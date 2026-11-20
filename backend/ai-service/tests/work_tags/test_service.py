@@ -13,6 +13,11 @@ def test_returns_candidates_within_content_rules(monkeypatch):
     assert service.suggest(Input.model_validate(data())).model_dump() == output()
 
 
+def test_accepts_keyword_without_trailing_newline(monkeypatch):
+    fake_openai(monkeypatch, output(hashtags=['회귀']))
+    assert service.suggest(Input.model_validate(data())).hashtags == ['회귀']
+
+
 @pytest.mark.parametrize('proposed', [
     output(genres=['무협']),
     output(genres=['고전', '드라마', '현대']),
@@ -24,6 +29,7 @@ def test_returns_candidates_within_content_rules(monkeypatch):
     output(hashtags=['#장돌뱅이']),
     output(hashtags=['여름 밤']),
     output(hashtags=['']),
+    output(hashtags=['회귀\n']),
     output(hashtags=['가' * 31]),
 ])
 def test_rejects_whole_result_instead_of_correcting(monkeypatch, proposed):

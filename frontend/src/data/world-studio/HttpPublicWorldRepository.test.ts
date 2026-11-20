@@ -20,6 +20,10 @@ const respond = (body: unknown, status = 200) => vi.fn(async (_url: RequestInfo 
 const FORMAT = '서버 응답 형식을 확인할 수 없어요.'
 
 describe('공개 세계관 목록 읽기 (공개 API, 인증 없음)', () => {
+  it('관계 수 확인 실패(null)는 0으로 바꾸지 않는다', async () => {
+    const result = await new HttpPublicWorldRepository(respond(page({ items: [summary({ relationshipCount: null }), summary({ id: 'w-2', relationshipCount: 0 })] }))).list({ page: 0, size: 24 })
+    expect(result.items.map((item) => item.relationshipCount)).toEqual([null, 0])
+  })
   it('장르·쪽·크기를 쿼리로 보내고 응답을 목록으로 바꾼다', async () => {
     const fetcher = respond(page({ items: [summary(), summary({ id: 'w-2', genre: null, cardCount: 0, relationshipCount: 0 })], total: 2 }))
     const result = await new HttpPublicWorldRepository(fetcher).list({ genre: 'fantasy', page: 0, size: 24 })
@@ -78,6 +82,49 @@ describe('공개 세계관 목록 읽기 (공개 API, 인증 없음)', () => {
 })
 
 describe('공개 세계관 상세 읽기', () => {
+  it('관계 분류를 보존하고 이전 응답·null을 허용하며 잘못된 값은 거절한다', async () => {
+    const relation = world().relationships[0]
+    for (const category of ['structural', 'emotional', 'identity', null] as const) {
+      const result = await new HttpPublicWorldRepository(respond(world({ relationships: [{ ...relation, category }] }))).get('w-1')
+      expect(result?.relationships[0].category).toBe(category)
+    }
+    await expect(new HttpPublicWorldRepository(respond(world({ relationships: [{ ...relation, category: 'bad' }] }))).get('w-1')).rejects.toThrow(FORMAT)
+  })
+  it('관계 방향을 보존하고 이전 응답·null은 미상이며 잘못된 값은 거절한다', async () => {
+    const relations = world().relationships
+    const withDirection = (direction: unknown) => world({ relationships: [{ ...relations[0], direction }] })
+    for (const direction of ['directed', 'symmetric', null] as const) {
+      const result = await new HttpPublicWorldRepository(respond(withDirection(direction))).get('w-1')
+      expect(result?.relationships[0].direction).toBe(direction)
+    }
+    expect((await new HttpPublicWorldRepository(respond(world())).get('w-1'))?.relationships[0].direction).toBeUndefined()
+    await expect(new HttpPublicWorldRepository(respond(withDirection('other'))).get('w-1')).rejects.toThrow(FORMAT)
+  })
+  it('관계 본문과 극성을 읽고 잘못된 값은 거절한다', async () => {
+    const relationship = { ...world().relationships[0], body: '원문\n설명', polarity: 'denied' }
+    const found = await new HttpPublicWorldRepository(respond(world({ relationships: [relationship] }))).get('w-1')
+    expect(found?.relationships[0]).toMatchObject({ body: '원문\n설명', polarity: 'denied' })
+    for (const bad of [{ ...relationship, body: 1 }, { ...relationship, polarity: 'unknown' }]) await expect(new HttpPublicWorldRepository(respond(world({ relationships: [bad] }))).get('w-1')).rejects.toThrow(FORMAT)
+  })
+  it('관계 이력(history)을 읽고 이력이 없던 응답은 그대로 두며 모양이 어긋난 이력은 거절한다', async () => {
+    const history = [{ episode: 1, label: '경계', body: '' }, { episode: 3, label: '보호', body: '지킨다' }]
+    const relationship = { ...world().relationships[0], history }
+    expect((await new HttpPublicWorldRepository(respond(world({ relationships: [relationship] }))).get('w-1'))?.relationships[0].history).toEqual(history)
+    expect((await new HttpPublicWorldRepository(respond(world({ relationships: [{ ...relationship, history: [] }] }))).get('w-1'))?.relationships[0].history).toEqual([])
+    expect((await new HttpPublicWorldRepository(respond(world())).get('w-1'))?.relationships[0]).not.toHaveProperty('history')
+    for (const bad of [[{ episode: 0, label: '경계', body: '' }], [{ episode: 2.5, label: '경계', body: '' }], [{ episode: 1, label: 1, body: '' }], 'x']) {
+      await expect(new HttpPublicWorldRepository(respond(world({ relationships: [{ ...relationship, history: bad }] }))).get('w-1')).rejects.toThrow(FORMAT)
+    }
+  })
+
+  it('공개 카드 만 장과 관계 천 개 이상을 절삭 없이 읽는다', async () => {
+    const cards = Array.from({ length: 10000 }, (_, i) => ({ id: `c-${i}`, title: `설정 ${i}`, text: `# 원문\n출처 ${i}`, cardType: 'character', aliases: [], tags: [] }))
+    const relationships = Array.from({ length: 1001 }, (_, i) => ({ id: `r-${i}`, sourceCardId: `c-${i}`, targetCardId: `c-${i + 1}`, label: '관계' }))
+    const result = await new HttpPublicWorldRepository(respond(world({ cards, relationships }))).get('w-1')
+    expect(result?.cards).toHaveLength(10000)
+    expect(result?.cards[9999].text).toBe('# 원문\n출처 9999')
+    expect(result?.relationships).toHaveLength(1001)
+  })
   it('id를 경로에 싣고 카드·관계·관계 상태를 그대로 돌려준다', async () => {
     const fetcher = respond(world())
     const found = await new HttpPublicWorldRepository(fetcher).get('w-1')
@@ -160,5 +207,90 @@ describe('공개 세계관 상세 읽기', () => {
       world({ id: 'other-world' }), // 요청한 id와 다름
     ]
     for (const body of bad) await expect(new HttpPublicWorldRepository(respond(body)).get('w-1')).rejects.toThrow(FORMAT)
+  })
+})
+
+describe('공개 세계관 목록의 검색어 (#505)', () => {
+  it('검색어를 q 쿼리로 장르·쪽·크기보다 앞에 싣고 공백·&도 원래 글자로 읽히게 인코딩한다', async () => {
+    const fetcher = respond(page())
+    await new HttpPublicWorldRepository(fetcher).list({ q: '달무리 군도&a=1', genre: 'fantasy', page: 1, size: 24 })
+    const url = new URL(String(fetcher.mock.calls[0][0]), 'http://x')
+    expect([url.pathname, [...url.searchParams]]).toEqual(['/api/v1/public/world-studios', [['q', '달무리 군도&a=1'], ['genre', 'fantasy'], ['page', '1'], ['size', '24']]])
+  })
+
+  it('검색어가 없거나 비어 있으면 q 쿼리를 싣지 않아 지금 목록과 같다', async () => {
+    const fetcher = respond(page())
+    const repo = new HttpPublicWorldRepository(fetcher)
+    await repo.list({ page: 0, size: 24 })
+    await repo.list({ q: '', page: 0, size: 24 })
+    expect(fetcher.mock.calls.map(([url]) => url)).toEqual(['/api/v1/public/world-studios?page=0&size=24', '/api/v1/public/world-studios?page=0&size=24'])
+  })
+})
+
+const cardHit = (extra: Record<string, unknown> = {}) => ({
+  worldId: 'w-1', worldName: '달무리 군도', cardId: 'c-1', title: '조석신 하엘', cardType: 'character', aliases: ['하엘'], tags: ['신'], imageId: null, ...extra,
+})
+const cardPage = (extra: Record<string, unknown> = {}) => ({ items: [cardHit()], page: 0, size: 24, total: 1, ...extra })
+
+describe('공개 설정 카드 검색 (공개 API, 인증 없음) (#505)', () => {
+  it('검색어·쪽·크기를 쿼리로 /cards를 읽고 응답을 결과로 바꾼다', async () => {
+    const fetcher = respond(cardPage({ items: [cardHit(), cardHit({ cardId: 'c-2', title: '하엘 사원', cardType: 'location', aliases: [], tags: [], imageId: 'img-1' })], page: 1, total: 31 }))
+    const result = await new HttpPublicWorldRepository(fetcher).searchCards({ q: '하엘', page: 1, size: 24 })
+    expect(fetcher).toHaveBeenCalledWith(`/api/v1/public/world-studios/cards?q=${encodeURIComponent('하엘')}&page=1&size=24`, expect.objectContaining({ method: 'GET', credentials: 'same-origin' }))
+    expect(result).toMatchObject({ page: 1, size: 24, total: 31 })
+    expect(result.items[0]).toEqual(cardHit())
+    expect(result.items[1]).toMatchObject({ worldId: 'w-1', worldName: '달무리 군도', cardId: 'c-2', cardType: 'location', imageId: 'img-1' })
+  })
+
+  it('검색어의 한글·공백은 인코딩해서 보내 서버가 원래 글자로 읽는다', async () => {
+    const fetcher = respond(cardPage())
+    await new HttpPublicWorldRepository(fetcher).searchCards({ q: '조석신 하엘&a=1', page: 0, size: 24 })
+    const url = new URL(String(fetcher.mock.calls[0][0]), 'http://x')
+    expect([url.pathname, url.searchParams.get('q'), [...url.searchParams.keys()]]).toEqual(['/api/v1/public/world-studios/cards', '조석신 하엘&a=1', ['q', 'page', 'size']])
+  })
+
+  it('로그인 상태와 상관없이 인증·CSRF 헤더를 보내지 않고 취소 신호를 이어 준다', async () => {
+    const fetcher = respond(cardPage())
+    const controller = new AbortController()
+    await new HttpPublicWorldRepository(fetcher).searchCards({ q: '하엘', page: 0, size: 24 }, controller.signal)
+    const init = fetcher.mock.calls[0][1]!
+    const headers = new Headers(init.headers)
+    expect([headers.has('Authorization'), headers.has('X-CSRF-TOKEN')]).toEqual([false, false])
+    expect(init.signal?.aborted).toBe(false)
+    controller.abort()
+    expect(init.signal?.aborted).toBe(true)
+  })
+
+  it('imageId는 그대로 읽고, 필드가 없거나 null이면 이미지 없음(null)으로 읽으며, 문자열이 아니면 던진다', async () => {
+    const { imageId: _kept, ...withoutField } = cardHit({ cardId: 'c-3' }) // 이 필드가 없던 응답
+    const result = await new HttpPublicWorldRepository(respond(cardPage({ items: [cardHit({ imageId: 'img-1' }), cardHit({ cardId: 'c-2', imageId: null }), withoutField] }))).searchCards({ q: '하엘', page: 0, size: 24 })
+    expect(result.items.map((hit) => hit.imageId)).toEqual(['img-1', null, null])
+    for (const imageId of [7, '']) await expect(new HttpPublicWorldRepository(respond(cardPage({ items: [cardHit({ imageId })] }))).searchCards({ q: '하엘', page: 0, size: 24 })).rejects.toThrow(FORMAT)
+  })
+
+  it('결과가 없으면 빈 배열이다', async () => {
+    expect((await new HttpPublicWorldRepository(respond(cardPage({ items: [], total: 0 }))).searchCards({ q: '없는카드', page: 0, size: 24 })).items).toEqual([])
+  })
+
+  it('응답 형식이 계약과 다르면 빈 결과로 숨기지 않고 던진다', async () => {
+    const bad = [
+      cardPage({ items: [cardHit({ cardType: 'wizard' })] }), // 모르는 카드 유형
+      cardPage({ items: [cardHit({ worldName: undefined })] }),
+      cardPage({ items: [cardHit({ cardId: '' })] }),
+      cardPage({ items: [cardHit({ aliases: '하엘' })] }),
+      cardPage({ items: [cardHit({ tags: [1] })] }),
+      cardPage({ total: -1 }),
+      cardPage({ size: 0 }),
+      cardPage({ items: 'none' }),
+      [cardHit()], // 배열이 아니라 객체여야 한다
+    ]
+    for (const body of bad) await expect(new HttpPublicWorldRepository(respond(body)).searchCards({ q: '하엘', page: 0, size: 24 })).rejects.toThrow(FORMAT)
+  })
+
+  it('실패 응답은 서버의 detail(검색어 없음 422 포함)을, 읽을 수 없는 실패는 안내 문구를 던진다', async () => {
+    await expect(new HttpPublicWorldRepository(respond({ detail: '검색어를 입력해 주세요.' }, 422)).searchCards({ q: ' ', page: 0, size: 24 })).rejects.toThrow('검색어를 입력해 주세요.')
+    await expect(new HttpPublicWorldRepository(respond({ detail: '잠시 후 다시 시도해 주세요.' }, 503)).searchCards({ q: '하엘', page: 0, size: 24 })).rejects.toThrow('잠시 후 다시 시도해 주세요.')
+    await expect(new HttpPublicWorldRepository(vi.fn(async () => new Response('<html>', { status: 502 }))).searchCards({ q: '하엘', page: 0, size: 24 })).rejects.toThrow('요청을 처리하지 못했어요')
+    await expect(new HttpPublicWorldRepository(vi.fn(async () => { throw new TypeError('network') })).searchCards({ q: '하엘', page: 0, size: 24 })).rejects.toThrow('network')
   })
 })

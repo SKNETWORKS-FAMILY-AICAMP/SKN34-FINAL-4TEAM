@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, cleanScene, replyText, stepText, type ChatReply, type ReviewFinding, type SceneAction } from '../entities/writingChat'
+import { chatBasis, cleanScene, featureLabel, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatReply, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -57,7 +57,56 @@ describe('replyText', () => {
       { feature: 'writing_editing', status: 'completed', result: { text: '초안' }, applied: { episode: 2, revision: 5 } },
       { feature: 'web_research', status: 'failed', error: '검색 실패' },
     ] }))
-    expect(text).toBe('작업 중 실패가 있어요.\n\n[집필·수정] 초안\n→ 2화 초안에 반영했어요.\n\n[고증 조사] 실패: 검색 실패')
+    expect(text).toBe('[기획·집필·수정] 초안\n→ 2화 초안에 반영했어요.\n\n[고증 조사] 실패: 검색 실패')
+  })
+
+  it('종합 답변은 단계 글에 다시 넣지 않고(#492), 답변도 단계도 없을 때만 안내 문구를 쓴다', () => {
+    const steps = [{ feature: 'manuscript_review', status: 'failed' as const, error: '검수 실패' }]
+    expect(replyText(reply({ message: '**검수**를 마치지 못했어요.', steps }))).toBe('[원고 검수] 실패: 검수 실패')
+    expect(replyText(reply({ message: '확인 질문이에요.' }))).toBe('')
+    expect(replyText(reply({}))).toBe('응답 내용이 없어요.')
+  })
+
+  it('기획 결과는 계획마다 비트를 번호로 잇고 참고를 덧붙인다(원고가 아니다)', () => {
+    const step = { feature: 'writing_editing', status: 'completed' as const, result: {
+      plans: [{ title: '항구의 밤', beats: ['선장이 도착한다.', '카이가 배를 숨긴다.'] }, { title: '추격', beats: ['서윤이 쫓는다.'] }],
+      notes: ['10화의 약속은 확정 사건'] } }
+    expect(stepText(step)).toBe('계획 1. 항구의 밤\n  1) 선장이 도착한다.\n  2) 카이가 배를 숨긴다.\n계획 2. 추격\n  1) 서윤이 쫓는다.\n참고: 10화의 약속은 확정 사건\n'
+      + PLAN_PICK_HINT)
+  })
+
+  it('계획 없이 바로 쓴 원고는 반영할 본문만 단계 글로 두고, 말풍선에 사용한 계획을 덧붙인다', () => {
+    const step = { feature: 'writing_editing', status: 'completed' as const, result: {
+      text: '선장은 항구에 내렸다.', plan: { title: '항구의 밤', beats: ['선장이 도착한다.'] } } }
+    expect(stepText(step)).toBe('선장은 항구에 내렸다.')
+    expect(replyText(reply({ steps: [step] }))).toBe('[기획·집필·수정] 선장은 항구에 내렸다.\n사용한 계획: 항구의 밤 — 선장이 도착한다.')
+  })
+})
+
+describe('replyOutcome', () => {
+  const reply = (steps: ChatReply['steps']): ChatReply => ({ status: 'completed', steps, missingInputs: [], message: '종합 답변' })
+
+  it('실패 단계와 반영·거절 결과만 줄로 돌려주고 replyText와 같은 문구를 쓴다', () => {
+    const steps: ChatReply['steps'] = [
+      { feature: 'writing_editing', status: 'completed', result: { text: '초안' }, applied: { episode: 2, revision: 5 } },
+      { feature: 'character_simulation', status: 'completed', approval: 'declined' },
+      { feature: 'web_research', status: 'failed', error: '검색 실패' },
+    ]
+    const lines = replyOutcome(reply(steps))
+    expect(lines).toEqual(['→ 2화 초안에 반영했어요.', '→ 반영하지 않았어요.', '[고증 조사] 실패: 검색 실패'])
+    for (const line of lines) expect(replyText(reply(steps))).toContain(line)
+  })
+
+  it('Content 반영이 실패해 바뀐 단계는 실패 사유를 보인다', () => {
+    expect(replyOutcome(reply([{ feature: 'writing_editing', status: 'failed', error: '초안에서 고칠 문장을 찾을 수 없어요' }])))
+      .toEqual(['[기획·집필·수정] 실패: 초안에서 고칠 문장을 찾을 수 없어요'])
+  })
+
+  it('보일 결과가 없으면 비어 있다(완료만 한 단계·실행 전 단계)', () => {
+    expect(replyOutcome(reply([
+      { feature: 'story_context', status: 'completed', result: { claims: [{ text: '밤에 닫는다' }] } },
+      { feature: 'web_research', status: 'not_started' },
+    ]))).toEqual([])
   })
 })
 
@@ -108,7 +157,7 @@ describe('장면 조작 정리(cleanScene)', () => {
 
 describe('WritingChatUseCase 시뮬레이션 시작', () => {
   const repository = () => ({ send: vi.fn().mockResolvedValue(undefined) }) as unknown as WritingChatRepository & { send: ReturnType<typeof vi.fn> }
-  const basis = { episode: 1, episodeVersionId: 'v', consent: true as const }
+  const basis = { episode: 1, episodeVersionId: 'v' }
   const onEvent = () => {}
 
   it('시작 값을 다듬어 operation과 함께 보낸다', async () => {
@@ -133,7 +182,7 @@ describe('WritingChatUseCase', () => {
     const repo = repository()
     const chat = new WritingChatUseCase(repo)
     await expect(chat.rename('w', 't', '  ')).rejects.toThrow('대화 제목')
-    await expect(chat.send('w', 't', { episode: 1, episodeVersionId: 'v', consent: true, request: ' ' }, () => {})).rejects.toThrow('보낼 내용')
+    await expect(chat.send('w', 't', { episode: 1, episodeVersionId: 'v', request: ' ' }, () => {})).rejects.toThrow('보낼 내용')
     expect(repo.rename).not.toHaveBeenCalled()
     expect(repo.send).not.toHaveBeenCalled()
     await chat.rename('w', 't', ' 새 제목 ')
@@ -144,7 +193,7 @@ describe('WritingChatUseCase', () => {
     const repo = repository()
     repo.send.mockResolvedValue(undefined)
     const chat = new WritingChatUseCase(repo)
-    const basis = { episode: 1, episodeVersionId: 'v', consent: true as const }
+    const basis = { episode: 1, episodeVersionId: 'v' }
     const scene = (action: SceneAction) => ({ ...basis, resume: { approved: true, scene: action } })
     const onEvent = () => {}
     await chat.send('w', 't', scene({ action: 'next', note: ' 비가 쏟아진다 ' }), onEvent)
@@ -172,8 +221,8 @@ it('shows whether web research confirmed or contradicted a finding', () => {
 
 describe('원고 검수 결과 글(#59)', () => {
   const finding: ReviewFinding = { category: 'spelling', quote: '웃엇다', reason: '받침 오류', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 3, end: 6 }
-  const step = (findings: ReviewFinding[], gaps: string[] = []) => ({ feature: 'review', status: 'completed' as const,
-    review: { check: 'mechanical' as const, episode: 3, revision: 4, findings, gaps } })
+  const step = (findings: ReviewFinding[], gaps: string[] = []) => ({ feature: 'manuscript_review', status: 'completed' as const,
+    manuscriptReview: { check: 'mechanical' as const, episode: 3, revision: 4, findings, gaps } })
 
   it('지적마다 상태·분류·원문 구절·이유·제안을 보이고, 위치를 정하지 못한 구절은 여러 곳이라고 알린다', () => {
     const text = stepText(step([finding, { ...finding, status: 'suspected', start: null, end: null, category: 'repetition' }], ['날짜 비교 대상 없음']))
@@ -216,6 +265,93 @@ describe('원고 검수 결과 글(#59)', () => {
   })
 
   it('두 검수를 함께 돌린 결과는 두 검수 이름을 제목에 붙인다(#369)', () => {
-    expect(stepText({ ...step([]), review: { ...step([]).review, check: 'both' } })).toBe('3화 초안 설정·개연성 + 맞춤법·표기 검수: 찾은 문제가 없어요.')
+    expect(stepText({ ...step([]), manuscriptReview: { ...step([]).manuscriptReview, check: 'both' } })).toBe('3화 초안 설정·개연성 + 맞춤법·표기 검수: 찾은 문제가 없어요.')
+  })
+})
+
+describe('설정집 검토 결과 글(#479)', () => {
+  const step = (findings: { kind: 'contradiction' | 'doc_role' | 'missing_info' | 'other'; message: string }[]) =>
+    ({ feature: 'world_review', status: 'completed' as const, worldReview: { reviewedCards: 2, findings } })
+
+  it('지적이 없으면 웹 조사 문구가 아니라 검토 결과로 알린다', () => {
+    expect(stepText(step([]))).toBe('검토에서 찾은 문제가 없어요.')
+  })
+
+  it('검토한 카드가 0장이면 문제가 없다고 하지 않고 카드가 없다고 알린다(#493)', () => {
+    expect(stepText({ ...step([]), worldReview: { reviewedCards: 0, findings: [] } })).toBe('검토할 설정 카드가 없어요.')
+  })
+
+  it('지적마다 종류와 메시지를 보이고, 단계 이름은 설정집 검토다', () => {
+    const reply: ChatReply = { status: 'completed', missingInputs: [], steps: [step([
+      { kind: 'contradiction', message: '두 카드의 나이가 어긋나요.' }, { kind: 'missing_info', message: '길드 위치가 없어요.' }])] }
+    expect(replyText(reply)).toBe('[설정집 검토] 설정 충돌 · 두 카드의 나이가 어긋나요.\n빠진 정보 · 길드 위치가 없어요.')
+  })
+})
+
+describe('World 단계 결과 글(#546)', () => {
+  const world = (result: ChatWorld, extra: Partial<ChatStep> = {}): ChatStep => ({ feature: 'world', task: result.task, status: 'completed', world: result, ...extra })
+  const check = (findings: { kind: 'contradiction' | 'doc_role' | 'missing_info' | 'other'; message: string }[], reviewedCards = 2): ChatWorld => ({ task: 'check', reviewedCards, findings })
+  const fix = (extra: Partial<WorldFix> = {}): WorldFix => ({ cardId: 'c1', cardTitle: '카엘', target: 'soul', episode: null, text: '말수가 적다.', ...extra })
+  const enrich = (fixes: WorldFix[], note = ''): ChatWorld => ({ task: 'enrich', fixes, note })
+
+  it('단계 이름은 세계관이고, 옛 대화 기록의 설정집 검토 이름도 그대로 남는다', () => {
+    expect(featureLabel.world).toBe('세계관')
+    expect(featureLabel.world_review).toBe('설정집 검토')
+  })
+
+  it('check는 설정집 검토와 같은 글이다(지적 없음·카드 없음 포함)', () => {
+    const findings = [{ kind: 'contradiction' as const, message: '두 카드의 나이가 어긋나요.' }, { kind: 'missing_info' as const, message: '길드 위치가 없어요.' }]
+    expect(stepText(world(check(findings)))).toBe('설정 충돌 · 두 카드의 나이가 어긋나요.\n빠진 정보 · 길드 위치가 없어요.')
+    expect(stepText(world(check([])))).toBe('검토에서 찾은 문제가 없어요.')
+    expect(stepText(world(check([], 0)))).toBe('검토할 설정 카드가 없어요.')
+  })
+
+  it('enrich는 카드 제목 · 칸 이름 아래에 바꿀 새 글을 그대로 보이고 끝에 note를 참고로 붙인다(승인 전에 읽는 글이다)', () => {
+    const text = stepText(world(enrich([
+      fix({ target: 'body', text: '카엘은 북문의 수문장이다.' }),
+      fix({ target: 'soul', text: '말수가 적고 단호하다.' }),
+      fix({ target: 'goal', text: '북문을 지킨다.' }),
+      fix({ target: 'episode', episode: 3, text: '3화에서 비밀을 안다.' }),
+      fix({ cardId: 'c2', cardTitle: '북문', target: 'body', text: '북쪽 성벽의 문이다.' }),
+    ], '북문 규칙에 맞췄어요.')))
+    expect(text).toBe([
+      '카엘 · IDENTITY\n카엘은 북문의 수문장이다.',
+      '카엘 · SOUL\n말수가 적고 단호하다.',
+      '카엘 · GOAL\n북문을 지킨다.',
+      '카엘 · 3회차 문서\n3화에서 비밀을 안다.',
+      '북문 · 본문\n북쪽 성벽의 문이다.',
+      '참고: 북문 규칙에 맞췄어요.',
+    ].join('\n\n'))
+  })
+
+  it('enrich의 인물 본문 이름: 같은 카드에 인물 문서(SOUL·GOAL·회차) 수정안이 없으면 카드 종류를 알 수 없어 본문이라 부르고, 0회차 문서도 회차 문서다', () => {
+    expect(stepText(world(enrich([fix({ target: 'body', text: '새 본문' })])))).toBe('카엘 · 본문\n새 본문')
+    expect(stepText(world(enrich([fix({ target: 'episode', episode: 0, text: '시작 전 비밀' })])))).toBe('카엘 · 0회차 문서\n시작 전 비밀')
+  })
+
+  it('impact는 확정·추정 표시와 이유로 영향을 받는 곳을 보이고 충돌·확인 못 함을 잇는다', () => {
+    const text = stepText(world({ task: 'impact', affected: [
+      { title: '카엘', reason: '나이 설정이 어긋나요.', certainty: 'confirmed' },
+      { title: '3화', reason: '3화에서 이 사건을 언급해요.', certainty: 'inferred' },
+    ], conflicts: ['두 카드의 나이가 달라요.'], gaps: ['관계 기록이 없어요.'] }))
+    expect(text).toBe('[확정] 카엘 · 나이 설정이 어긋나요.\n[추정] 3화 · 3화에서 이 사건을 언급해요.\n충돌: 두 카드의 나이가 달라요.\n확인 못 함: 관계 기록이 없어요.')
+  })
+
+  it('impact에 아무것도 없으면 영향 받는 곳을 찾지 못했다고 알린다', () => {
+    expect(stepText(world({ task: 'impact', affected: [], conflicts: [], gaps: [] }))).toBe('영향을 받는 곳을 찾지 못했어요.')
+  })
+
+  it('반영에 실패한 world 단계는 결과가 남아 있어도 제안 대신 실패 사유를 보인다', () => {
+    const failed = world(enrich([fix()]), { status: 'failed', error: '읽은 초안이 제안 때와 달라요.' })
+    expect(stepText(failed)).toBe('실패: 읽은 초안이 제안 때와 달라요.')
+  })
+
+  it('반영 결과 줄은 world 단계에서 회차가 아니라 설정집 초안이라고 알리고, 반영하지 않기는 그대로다', () => {
+    const body = enrich([fix()])
+    const applied = world(body, { approval: 'approved', applied: { episode: 0, revision: 9 } })
+    const reply: ChatReply = { status: 'completed', missingInputs: [], steps: [applied] }
+    expect(replyOutcome(reply)).toEqual(['→ 설정집 초안에 반영했어요.'])
+    expect(replyText(reply)).toBe('[세계관] ' + stepText(applied) + '\n→ 설정집 초안에 반영했어요.')
+    expect(replyOutcome({ ...reply, steps: [world(body, { approval: 'declined' })] })).toEqual(['→ 반영하지 않았어요.'])
   })
 })

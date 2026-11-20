@@ -7,7 +7,7 @@ import java.time.temporal.ChronoUnit
 /**
  * 독자가 올린 문장 수정 제안이다. 등록 시점의 발행 버전 ID를 고정 저장하고, 제안자 표시명은 저장하지 않는다(응답마다 Core 닉네임 조회).
  * 원래 [afterText]는 보존하고 작가의 편집안은 [editedText]에 따로 둔다. 승인 내용은 `editedText ?: afterText`다.
- * 승인 뒤 초안 반영 결과는 상태와 따로 [applyResult]·[applyFailure]·[appliedVersionId]에 기록하고, [decidedAt]은 승인·거절한 시각이다.
+ * 승인 뒤 초안 반영 결과는 상태와 따로 [applyResult]·[applyFailure]·[appliedVersionId]에 기록하고, [decidedAt]은 보류·승인·거절한 시각(마지막 판단)이다.
  * [reportId]는 제보 연결(계약 3절)용 칸이라 아직 항상 null이다.
  */
 @Entity

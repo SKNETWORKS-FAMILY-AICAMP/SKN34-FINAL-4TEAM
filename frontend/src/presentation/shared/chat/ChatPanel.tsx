@@ -1,18 +1,12 @@
 import { useId, useRef, useState, type ReactNode } from 'react'
 import type { ChatAttachment, ChatMessage } from '../../../domain/entities/chat'
+import { CardMarkdown } from '../CardMarkdown'
 import { MicIcon, PlusIcon, SendIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
 import './chat.css'
 
 const who = { user: '나', assistant: 'AI', system: '안내' } as const
 
-/** OpenAI 전송·비용 동의 한 줄. 집필 AI 채팅 입력창 위와 시뮬레이션 무대가 같은 문구·같은 값을 쓴다. */
-export function ConsentCheck({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
-  return <label className="chat-consent">
-    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-    <span>질문과 발행 회차 일부를 OpenAI로 보내고 API 비용이 드는 데 동의해요.</span>
-  </label>
-}
 const kinds = ['image', 'audio'] as const
 const kindLabel = { image: '이미지', audio: '음성' } as const
 
@@ -25,9 +19,9 @@ const kindLabel = { image: '이미지', audio: '음성' } as const
  * - emptyTitle·emptyText·suggestions: 대화가 없을 때 보이는 제목·안내·추천 칩. 칩을 누르면 입력창에 글만 채운다(보내지 않는다).
  * - after: 메시지 뒤에 이어 그릴 것(진행 표시·승인 카드). 있으면 빈 상태 대신 그린다.
  * - renderCard: 메시지 글 바로 아래에 이어 그릴 카드(인물 시뮬레이션 장면 등). 이 카드가 있는 말풍선은 폭을 채운다.
- * - renderActions: 메시지 말풍선 아래의 행동(수정·삭제 등). composerTop: 입력 카드 위 한 줄(동의 등).
+ * - renderActions: 메시지 말풍선 아래의 행동(수정·삭제 등).
  */
-export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledReason, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, renderCard, renderActions, composerTop }: {
+export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledReason, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, renderCard, renderActions }: {
   messages: ChatMessage[]
   onSend?: (text: string) => boolean | Promise<boolean>
   busy?: boolean
@@ -39,7 +33,6 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
   after?: ReactNode
   renderCard?: (message: ChatMessage) => ReactNode
   renderActions?: (message: ChatMessage) => ReactNode
-  composerTop?: ReactNode
 }) {
   const [draft, setDraft] = useState('')
   const box = useRef<HTMLTextAreaElement>(null)
@@ -74,7 +67,7 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
         {m.role === 'assistant' && <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>}
         <div className="chat-bubble">
           <span className="chat-who sr-only">{who[m.role]}</span>
-          <p className="chat-text">{m.text}</p>
+          {m.format === 'markdown' ? <div className="chat-text chat-md"><CardMarkdown text={m.text} /></div> : <p className="chat-text">{m.text}</p>}
           {!!m.attachments?.length && <ul className="chat-chips" aria-label="첨부">{m.attachments.map(a => <li key={a.id} className="chip">{kindLabel[a.kind]} · {a.name}</li>)}</ul>}
           {renderCard?.(m)}
           {renderActions?.(m)}
@@ -89,7 +82,6 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
       </div>}
     </div>
     <form className="chat-composer" onSubmit={e => { e.preventDefault(); void submit() }}>
-      {composerTop}
       <div className={`chat-card${locked ? ' locked' : ''}`}>
         <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={disabledReason ? reasonId : undefined}
           onChange={e => { setDraft(e.target.value); setFailed(false) }}

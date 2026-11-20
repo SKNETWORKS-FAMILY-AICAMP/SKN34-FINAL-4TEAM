@@ -6,12 +6,16 @@ import type { StudioWorld } from '../../../../domain/entities/studioWorld'
 import { cardLibraryRows, writingIssueLabel } from '../../../../domain/entities/worldStudioWriting'
 import { coverSrc } from '../../../shared/cover'
 import { Go } from '../../../shared/Go'
+import { McpChangeBanner } from '../../../shared/McpChangeBanner'
+import { PageControls } from '../../../shared/PageControls'
+import { pageItems } from '../../../shared/pageItems'
 import { BackChev } from '../../../shared/icons'
 import { useScreenId } from '../../../shared/screenIds'
 import { Sheet } from '../../../shared/Sheet'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
+import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { genreLabel } from '../../../shared/worldGenres'
 import { labelOf } from '../viewmodel/settingBoard'
 import { useWorldRevisions } from '../viewmodel/useWorldRevisions'
@@ -53,6 +57,8 @@ export function WorldStudioPage() {
   useScreenId('W01')
   useDocumentTitle('세계관')
   const vm = useWorldStudioViewModel()
+  // AI·외부 도구(MCP)가 이 세계관을 바꾸면 알림 신호로 알아차려 다시 읽는다. 저장하지 않은 변경·관계 입력이 있으면 덮지 않고 배너로 알린다(#553).
+  const mcp = useMcpChangeWatch({ targetType: 'world', targetId: vm.reviewWorldId, dirty: vm.dirty || vm.relationDirty, reload: vm.refresh })
   // 넓은 화면은 채팅을 연 채로, 1200px 이하는 닫은 채로 시작한다. 전송이 아직 잠긴(준비 중) 채팅이 300~350px를 차지하면 중간 폭에서 게시판·편집기가 너무 좁아지기 때문이다.
   // 닫혀 있어도 `AI 채팅 열기`로 열 수 있고(900px 이하에서는 화면을 덮는 서랍), 설정집 화면과 편집 화면이 같은 상태를 쓴다.
   const [chatOpen, setChatOpen] = useState(() => !window.matchMedia?.('(max-width: 1200px)').matches)
@@ -73,15 +79,16 @@ export function WorldStudioPage() {
           {/* 편집 화면이 열려 있는 동안은 같은 오류·알림을 그 화면이 보인다(숨은 설정집 화면에 같은 글이 겹쳐 있지 않게 한다). */}
           {!editingCard && vm.error && <p role="alert" className="ep-alert">{vm.error}</p>}
           {!editingCard && vm.message && <p role="status" className="ep-notice">{vm.message}</p>}
+          {!editingCard && <McpChangeBanner {...mcp} />}
           {loading && <p role="status" className="ep-notice">세계관을 불러오고 있어요…</p>}
           {!vm.reviewWorldId && <WorldCreate vm={vm} />}
           {!vm.editing && vm.reviewWorldId && <InitialWorldReview key={vm.reviewWorldId} studio={vm} />}
           {vm.editing && <WorldEditor vm={vm} world={vm.editing} revisions={revisions} openVersions={() => setVersionsOpen(true)} />}
         </main>
         {/* 편집 화면이 열려 있는 동안은 그 화면이 채팅을 그린다. 숨은 설정집 화면의 채팅은 좁은 화면에서 body에 그려지는 서랍이라 여기서 빼지 않으면 편집 화면 위에 겹쳐 뜬다. */}
-        {vm.editing && !editingCard && <WorldChat open={chatOpen} onOpenChange={setChatOpen} linkedWorkId={vm.linkedWorkId} />}
+        {vm.editing && !editingCard && <WorldChat open={chatOpen} onOpenChange={setChatOpen} linkedWorkId={vm.linkedWorkId} onWorldApplied={() => void vm.aiDraftChanged()} />}
       </div>
-      {editingCard && <WorldCardStudio vm={vm} revisions={revisions} openVersions={() => setVersionsOpen(true)} chatOpen={chatOpen} onChatOpenChange={setChatOpen} />}
+      {editingCard && <WorldCardStudio vm={vm} mcp={mcp} revisions={revisions} openVersions={() => setVersionsOpen(true)} chatOpen={chatOpen} onChatOpenChange={setChatOpen} />}
       {vm.editing && versionsOpen && (
         <Sheet sid="W01" label="확정 버전" panelClass="sheet world-sheet" onClose={closeVersions}>
           <div className="world-sheet-head"><button type="button" className="btn sm" onClick={closeVersions}>닫기</button></div>
@@ -178,7 +185,7 @@ function WorldPublish({ vm }: { vm: VM }) {
     <fieldset className="world-publish world-compact" disabled={vm.busy}>
       <legend className="sr-only">공개 설정</legend>
       <PublishFields value={vm.publishing ?? vm.publication} onChange={vm.setPublication} />
-      <p className="small muted">저장과 별개로 바로 적용돼요. 공개한 세계관에는 공개로 둔 설정 카드와 그 사이의 인물 관계만 확정 버전 기준으로 보여요.</p>
+      <p className="small muted">저장과 별개로 바로 적용돼요. 공개한 세계관에는 연결된 소설이 발행한 회차까지(소설이 없으면 1화까지) 공개된 설정 카드와 그 사이의 인물 관계만 확정 버전 기준으로 보여요.</p>
       <PublicCardsNotice vm={vm} visibility={(vm.publishing ?? vm.publication).visibility} />
     </fieldset>
   )
@@ -253,7 +260,7 @@ function WorldEditor({ vm, world, revisions, openVersions }: { vm: VM; world: St
             <WorldRelationshipEditor key={`${world.id}:${vm.relationKey}`} studio={vm} />
           </div>
         )}
-        {!manage && <div hidden={step !== 'review'}><WritingReview vm={vm} /></div>}
+        {!manage && step === 'review' && <WritingReview vm={vm} />}
         {!manage && (
           <nav className="world-step-actions" aria-label="단계 이동">
             <button className="btn" type="button" disabled={current === 0} onClick={() => vm.goStep(steps[current - 1][0])}>이전 단계</button>
@@ -283,12 +290,14 @@ function VersionsButton({ vm, supported, open }: { vm: VM; supported: boolean; o
 
 function WritingReview({vm}:{vm:VM}){
  const world=vm.editing!,cards=world.settings.filter(s=>s.item.kind!=='relation'),relations=world.settings.filter(s=>s.item.kind==='relation')
- const name=(id:string|null)=>world.settings.find(s=>s.item.id===id)?.item.title||'이름 없는 설정'
+ const [cardPage,setCardPage]=useState(0),[relationPage,setRelationPage]=useState(0),[issuePage,setIssuePage]=useState(0)
+ const shownCards=pageItems(cards,cardPage,50),shownRelations=pageItems(relations,relationPage,50),shownIssues=pageItems(vm.writingIssues,issuePage,50)
+ const names=new Map(world.settings.map(s=>[s.item.id,s.item.title])),name=(id:string|null)=>(id&&names.get(id))||'이름 없는 설정'
  const editInfo=()=>vm.goStep('info')
  return <section className="world-review" aria-label="세계관 검토"><article className="world-review-intro"><div className="world-toolbar"><h4>{world.name||'이름 없는 세계관'}</h4><button className="btn sm" type="button" onClick={editInfo}>기본 정보 수정</button></div><p className="world-prose">{world.description||'설명은 나중에 추가해도 괜찮아요.'}</p></article>
-  {vm.writingIssues.length>0&&<div className="world-error" role="alert"><h4>저장 전에 확인해 주세요</h4><ul>{vm.writingIssues.map((issue,i)=><li key={i}><button type="button" onClick={()=>vm.openIssue(issue)}>{writingIssueLabel(world,issue)}</button></li>)}</ul></div>}
-  <h4>설정 카드 {cards.length}개</h4>{cards.length?cards.map(s=><article className="world-review-item" key={s.item.id}><div><span className="small muted">{labelOf(s)}</span><h5>{s.item.title||'이름 없는 설정'}</h5><p className="world-prose">{s.item.text||'설명 없음'}</p></div><button className="btn sm" type="button" aria-label={`${s.item.title||'이름 없는 설정'} 수정`} onClick={()=>vm.editCard(s.item.id)}>수정</button></article>):<p className="muted">아직 등록한 설정이 없어요. 기본 정보만 저장해도 괜찮아요.</p>}
-  <h4>관계 {relations.length}개</h4>{relations.length?relations.map(s=><article key={s.item.id} className="world-review-item"><div><h5>{name(s.item.subjectId)} → {name(s.item.targetId)}</h5><p className="world-prose">{relationLabel(s.item)}</p></div><button className="btn sm" type="button" onClick={()=>vm.editRelation(s.item.id)}>관계 수정</button></article>):<p className="muted">관계는 선택 사항이에요. 나중에 연결할 수 있어요.</p>}
+  {vm.writingIssues.length>0&&<div className="world-error" role="alert"><h4>저장 전에 확인해 주세요</h4><ul>{shownIssues.items.map((issue,i)=><li key={i}><button type="button" onClick={()=>vm.openIssue(issue)}>{writingIssueLabel(world,issue)}</button></li>)}</ul><PageControls page={shownIssues.page} pages={shownIssues.pages} onPage={setIssuePage} /></div>}
+  <h4>설정 카드 {cards.length}개</h4>{cards.length?shownCards.items.map(s=><article className="world-review-item" key={s.item.id}><div><span className="small muted">{labelOf(s)}</span><h5>{s.item.title||'이름 없는 설정'}</h5><p className="world-prose">{s.item.text||'설명 없음'}</p></div><button className="btn sm" type="button" aria-label={`${s.item.title||'이름 없는 설정'} 수정`} onClick={()=>vm.editCard(s.item.id)}>수정</button></article>):<p className="muted">아직 등록한 설정이 없어요. 기본 정보만 저장해도 괜찮아요.</p>}<PageControls page={shownCards.page} pages={shownCards.pages} onPage={setCardPage} />
+  <h4>관계 {relations.length}개</h4>{relations.length?shownRelations.items.map(s=><article key={s.item.id} className="world-review-item"><div><h5>{name(s.item.subjectId)} → {name(s.item.targetId)}</h5><p className="world-prose">{relationLabel(s.item)}</p></div><button className="btn sm" type="button" onClick={()=>vm.editRelation(s.item.id)}>관계 수정</button></article>):<p className="muted">관계는 선택 사항이에요. 나중에 연결할 수 있어요.</p>}<PageControls page={shownRelations.page} pages={shownRelations.pages} onPage={setRelationPage} />
   <div className="world-save-actions"><p className="small muted">저장은 발행·공개와 달라요.</p>{vm.episodeSaveNote&&<p className="small muted">{vm.episodeSaveNote}</p>}<button className="btn pri" type="button" disabled={!vm.canSave} onClick={vm.save}>세계관 저장</button></div>
  </section>
 }

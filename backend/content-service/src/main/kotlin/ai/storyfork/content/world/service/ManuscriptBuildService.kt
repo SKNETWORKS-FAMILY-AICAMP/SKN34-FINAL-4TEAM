@@ -4,7 +4,6 @@ import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkWorldService
-import ai.storyfork.content.world.client.*
 import ai.storyfork.content.world.domain.*
 import ai.storyfork.content.world.service.dto.*
 import ai.storyfork.content.world.studio.entity.*
@@ -14,7 +13,6 @@ import java.time.Instant
 import java.util.UUID
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.core.task.AsyncTaskExecutor
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
@@ -25,11 +23,10 @@ import tools.jackson.databind.json.JsonMapper
 class ManuscriptBuildService(
     private val access:WorkAccessService,private val works:WorkRepository,private val links:WorkWorldService,
     private val studio:WorldStudioService,private val snapshot:ManuscriptBuildSnapshot,private val execution:ManuscriptBuildExecution,
-    private val resultStore:ManuscriptBuildResultStore,private val ai:ManuscriptBuildClient,
+    private val resultStore:ManuscriptBuildResultStore,
     private val jobs:ManuscriptBuildJobRepository,private val results:ManuscriptBuildResultRepository,
     private val steps:ManuscriptBuildLoadStepRepository,private val worlds:StudioWorldRepository,
     @Qualifier("worldStudioTransactionManager") manager:PlatformTransactionManager,private val mapper:JsonMapper,
-    @Qualifier("applicationTaskExecutor") private val executor:AsyncTaskExecutor,
     @Value("\${app.manuscript-build.enabled:false}") private val enabled:Boolean,
 ) {
     private val transaction=TransactionTemplate(manager)
@@ -46,120 +43,148 @@ class ManuscriptBuildService(
         })
     }
     private fun response(job:ManuscriptBuildJob):ManuscriptBuildResponse {
-        val expired=job.status=="running" && job.deadline?.isAfter(Instant.now())==false
+        val expired=job.status in listOf("running","loading") && job.deadline?.isAfter(Instant.now())==false
         val saved=steps.findAllByJobIdOrderBySequence(job.id)
         check(job.status!="completed" || (saved.isNotEmpty() && saved.all { it.receipt!=null && it.status=="applied" }))
         return ManuscriptBuildResponse(job.id,job.worldId,if(expired) "unknown" else job.status,
             results.findAllByJobIdOrderByEpisode(job.id).count { it.kind=="extraction" },input(job).episodes.size,
-            job.executionToken,if(expired) "EXECUTION_EXPIRED" else job.failureCode,
+            job.executionToken,if(expired && job.status=="running") "EXECUTION_EXPIRED" else job.failureCode,
             saved.mapNotNull { it.receipt?.let { receipt -> mapper.convertValue(receipt,ManuscriptLoadReceipt::class.java) } })
     }
-    fun read(workId:String,owner:UUID):ManuscriptBuildResponse {
-        access.own(workId,owner.toString())
-        val job=jobs.findByWorkId(workId) ?: throw WorldNotFound()
-        return tx { response(owned(job.id,owner)) }
+    fun matches(id:String,owner:UUID,request:ManuscriptBuildRequest):Boolean {
+        val row=jobs.findById(UUID.fromString(id)).orElse(null) ?: return false
+        if(row.ownerSubject!=owner || row.requestKey!=request.key) return false
+        if(row.worldId!=request.worldId) throw WorldConflict()
+        return true
     }
-    fun start(workId:String,owner:UUID,request:ManuscriptBuildRequest):ManuscriptBuildResponse {
+    fun status(id:UUID,owner:UUID):ManuscriptBuildResponse? =
+        if(!jobs.existsById(id)) null else tx { response(owned(id,owner)) }
+
+    fun freeze(workId:String,owner:String):ManuscriptBuildInput {
         if(!enabled) throw ContentFailure(503,"초기 세계관 구축은 아직 활성화되지 않았습니다.")
+        return snapshot.read(workId,owner)
+    }
+
+    fun prepare(id:UUID,workId:String,owner:UUID,request:ManuscriptBuildRequest,sources:ManuscriptBuildInput) {
         require(request.consent && request.key.matches(Regex("[A-Za-z0-9:_-]{1,200}")))
         val work=access.own(workId,owner.toString())
         val requestHash=hash(listOf(workId,request.worldId.toString(),"initial-build.v1",request.consent))
-        var job=jobs.findByWorkId(workId)
-        if(job==null) {
-            require(request.resumeToken==null)
-            val sources=snapshot.read(workId,owner.toString())
-            val linked=works.findById(workId).orElseThrow().worldStudioId
-            if(linked!=null && linked!=request.worldId) throw WorldConflict()
-            if(worlds.findById(request.worldId).isEmpty) studio.create(owner,CreateWorldRequest(id=request.worldId,name=work.title,description=""))
-            val basis=studio.draft(request.worldId,owner)
-            require(basis.cards.isEmpty() && basis.relationships.isEmpty()) { "기존 설정과의 정체 확인이 필요합니다." }
-            if(linked==null) links.link(workId,owner.toString(),request.worldId)
-            val manifest=mapOf("basis" to json(basis),"episodes" to sources.episodes.map { source -> mapOf(
-                "number" to source.number,"episodeId" to source.episodeId,"versionId" to source.versionId,
-                "title" to source.title,"body" to source.body,"sourceHash" to source.hash) })
-            job=studio.prepareManuscript(request.worldId,owner,basis) {
-                jobs.findByWorkId(workId) ?: jobs.saveAndFlush(ManuscriptBuildJob(workId=workId,worldId=request.worldId,
-                    ownerSubject=owner,requestKey=request.key,requestHash=requestHash,manifest=manifest))
-            }
+        val linked=works.findById(workId).orElseThrow().worldStudioId
+        if(linked!=null && linked!=request.worldId) throw WorldConflict()
+        if(worlds.findById(request.worldId).isEmpty) studio.create(owner,CreateWorldRequest(id=request.worldId,name=work.title,description=""))
+        val basis=studio.draft(request.worldId,owner)
+        require(basis.cards.isEmpty() && basis.relationships.isEmpty()) { "기존 설정과의 정체 확인이 필요합니다." }
+        if(linked==null) links.link(workId,owner.toString(),request.worldId)
+        val manifest=mapOf("basis" to json(basis),"episodes" to sources.episodes.map { source -> mapOf(
+            "number" to source.number,"episodeId" to source.episodeId,"versionId" to source.versionId,
+            "title" to source.title,"body" to source.body,"sourceHash" to source.hash) })
+        studio.prepareManuscript(request.worldId,owner,basis) {
+            jobs.saveAndFlush(ManuscriptBuildJob(id=id,workId=workId,worldId=request.worldId,
+                ownerSubject=owner,requestKey=request.key,requestHash=requestHash,manifest=manifest))
         }
-        val selected=checkNotNull(job)
-        val before=tx {
-            val row=owned(selected.id,owner)
-            if(row.requestKey!=request.key || row.requestHash!=requestHash || row.worldId!=request.worldId) throw WorldConflict()
-            response(row)
-        }
-        if(before.status=="completed") return before
-        val recover=selected.status in listOf("loading","unknown")
-        if(!recover && before.status!="queued" && request.resumeToken==null) return before
-        val now=Instant.now()
-        val token=if(recover) null else execution.claim(selected.id,owner,now,now.plusSeconds(90L*(before.totalEpisodes+1)),request.resumeToken)
-        val accepted=tx { response(owned(selected.id,owner)) }
-        try { executor.execute { run(selected.id,owner,token) } }
-        catch(_:RuntimeException) {
-            if(token!=null) execution.fail(selected.id,owner,token,"EXECUTION_NOT_SCHEDULED")
-            return read(workId,owner)
-        }
-        return accepted
     }
     private fun active(id:UUID,owner:UUID,token:UUID)=tx {
         owned(id,owner).also {
             if(it.status!="running" || it.executionToken!=token || it.deadline?.isAfter(Instant.now())!=true) throw WorldConflict()
         }
     }
-    private fun run(id:UUID,owner:UUID,token:UUID?) {
-        try {
-            if(token!=null) {
-                val job=active(id,owner,token)
-                require(works.findById(job.workId).orElseThrow().worldStudioId==job.worldId) { "WORLD_LINK_CHANGED" }
-                val frozen=input(job)
-                require(snapshot.read(job.workId,owner.toString())==frozen) { "SOURCE_CHANGED" }
-                for(source in frozen.missing(resultStore.read(id,owner))) {
-                    active(id,owner,token)
-                    val result=ManuscriptExtractionVerifier.verify(source,mapper.readTree(ai.extract(source)),mapper)
-                    resultStore.record(id,owner,token,result)
-                }
-                val all=resultStore.read(id,owner);frozen.requireResults(all)
-                var artifact=results.findByJobIdAndKindAndEpisode(id,"payload",0)
-                if(artifact==null) {
-                    active(id,owner,token)
-                    val structured=mapper.readTree(ai.structure(all.map { it.extraction }))
-                    require(structured.path("identity").isObject && structured.path("payload").isObject)
-                    val payload=mapper.convertValue(structured.path("payload"),ManuscriptLoadPayload::class.java)
-                    ManuscriptStructureVerifier.verify(all,structured.path("identity"),payload,mapper)
-                    val basis=mapper.convertValue(job.manifest["basis"],WorldDraftResponse::class.java)
-                    ManuscriptBuildMapper.build(id,basis,payload,emptyMap())
-                    tx {
-                        val current=owned(id,owner)
-                        if(current.executionToken!=token || current.status!="running" || current.deadline?.isAfter(Instant.now())!=true) throw WorldConflict()
-                        frozen.requireResults(resultStore.read(id,owner))
-                        for(kind in listOf("identity","payload")) {
-                            val body=json(structured.path(kind))
-                            val previous=results.findByJobIdAndKindAndEpisode(id,kind,0)
-                            if(previous!=null) { if(previous.contentHash!=hash(body)) throw WorldConflict() }
-                            else results.saveAndFlush(ManuscriptBuildResult(jobId=id,kind=kind,episode=0,content=body,contentHash=hash(body)))
-                        }
-                    }
-                    artifact=results.findByJobIdAndKindAndEpisode(id,"payload",0)
-                }
-                require(snapshot.read(job.workId,owner.toString())==frozen) { "SOURCE_CHANGED" }
-                val basis=mapper.convertValue(job.manifest["basis"],WorldDraftResponse::class.java)
-                require(works.findById(job.workId).orElseThrow().worldStudioId==job.worldId) { "WORLD_LINK_CHANGED" }
-                val payload=mapper.convertValue(checkNotNull(artifact).content,ManuscriptLoadPayload::class.java)
-                val identity=results.findByJobIdAndKindAndEpisode(id,"identity",0) ?: throw WorldConflict()
-                ManuscriptStructureVerifier.verify(all,mapper.valueToTree(identity.content),payload,mapper)
-                val evidence=sourceEvidence(id,payload,all)
-                val requests=ManuscriptBuildMapper.build(id,basis,payload,evidence)
-                studio.prepareManuscript(job.worldId,owner,basis) {
-                    val current=owned(id,owner)
-                    if(current.status!="running" || current.executionToken!=token || current.deadline?.isAfter(Instant.now())!=true) throw WorldConflict()
-                    require(steps.findAllByJobIdOrderBySequence(id).isEmpty())
-                    requests.forEachIndexed { index,request ->
-                        studio.validateEditRequest(request)
-                        steps.saveAndFlush(ManuscriptBuildLoadStep(jobId=id,sequence=index+1,requestPayload=json(request),requestHash=studio.manuscriptRequestHash(job.worldId,request)))
-                    }
-                    current.status="loading";jobs.flush();true
-                }
+    fun claim(id:UUID,work:String):Map<String,Any> {
+        val job=jobs.findById(id).orElseThrow { WorldNotFound() }
+        if(job.workId!=work) throw WorldConflict()
+        val owner=job.ownerSubject
+        if(job.status in listOf("loading","unknown")) return tx {
+            val row=owned(id,owner)
+            if(row.status!="unknown" && !(row.status=="loading" && row.deadline?.isAfter(Instant.now())==false))
+                return@tx mapOf("claimed" to false)
+            val token=UUID.randomUUID()
+            row.status="loading";row.executionToken=token;row.deadline=Instant.now().plusSeconds(90)
+            jobs.flush()
+            mapOf("claimed" to true,"loading" to true,"token" to token)
+        }
+        if(job.status!="queued") return mapOf("claimed" to false)
+        val frozen=input(job)
+        val now=Instant.now()
+        val token=execution.claim(id,owner,now,now.plusSeconds(90L*(frozen.episodes.size+1)))
+        if(snapshot.read(work,owner.toString())!=frozen) {
+            execution.fail(id,owner,token,"SOURCE_CHANGED")
+            throw WorldConflict()
+        }
+        return mapOf("claimed" to true,"loading" to false,"token" to token,
+            "missing" to frozen.missing(resultStore.read(id,owner)).map { mapOf("number" to it.number,"title" to it.title,"body" to it.body) })
+    }
+
+    private fun actor(id:UUID)=jobs.findById(id).orElseThrow { WorldNotFound() }.ownerSubject
+
+    fun record(id:UUID,token:UUID,node:tools.jackson.databind.JsonNode) {
+        val owner=actor(id)
+        val job=active(id,owner,token)
+        val source=input(job).episodes.single { it.number==node.path("number").asInt() }
+        resultStore.record(id,owner,token,ManuscriptExtractionVerifier.verify(source,node,mapper))
+    }
+
+    fun structureInput(id:UUID,token:UUID):Map<String,Any> {
+        val owner=actor(id)
+        val job=active(id,owner,token)
+        val all=resultStore.read(id,owner)
+        input(job).requireResults(all)
+        return mapOf("prepared" to (results.findByJobIdAndKindAndEpisode(id,"payload",0)!=null),
+            "results" to all.map { it.extraction })
+    }
+
+    fun structure(id:UUID,token:UUID,structured:tools.jackson.databind.JsonNode) {
+        val owner=actor(id)
+        val job=active(id,owner,token)
+        val frozen=input(job)
+        val all=resultStore.read(id,owner);frozen.requireResults(all)
+        require(structured.path("identity").isObject && structured.path("payload").isObject)
+        val payload=mapper.convertValue(structured.path("payload"),ManuscriptLoadPayload::class.java)
+        ManuscriptStructureVerifier.verify(all,structured.path("identity"),payload,mapper)
+        val basis=mapper.convertValue(job.manifest["basis"],WorldDraftResponse::class.java)
+        ManuscriptBuildMapper.build(id,basis,payload,emptyMap(),all)
+        tx {
+            val current=owned(id,owner)
+            if(current.executionToken!=token || current.status!="running" || current.deadline?.isAfter(Instant.now())!=true) throw WorldConflict()
+            frozen.requireResults(resultStore.read(id,owner))
+            for(kind in listOf("identity","payload")) {
+                val body=json(structured.path(kind))
+                val previous=results.findByJobIdAndKindAndEpisode(id,kind,0)
+                if(previous!=null) { if(previous.contentHash!=hash(body)) throw WorldConflict() }
+                else results.saveAndFlush(ManuscriptBuildResult(jobId=id,kind=kind,episode=0,content=body,contentHash=hash(body)))
             }
+        }
+    }
+
+    fun load(id:UUID,token:UUID):ManuscriptBuildResponse {
+        val owner=actor(id)
+        val job=tx { owned(id,owner) }
+        if(job.executionToken!=token) throw WorldConflict()
+        if(job.status=="completed") return tx { response(owned(id,owner)) }
+        if(job.status=="running") {
+            active(id,owner,token)
+            val frozen=input(job)
+            val all=resultStore.read(id,owner);frozen.requireResults(all)
+            val artifact=results.findByJobIdAndKindAndEpisode(id,"payload",0)
+            require(snapshot.read(job.workId,owner.toString())==frozen) { "SOURCE_CHANGED" }
+            val basis=mapper.convertValue(job.manifest["basis"],WorldDraftResponse::class.java)
+            require(works.findById(job.workId).orElseThrow().worldStudioId==job.worldId) { "WORLD_LINK_CHANGED" }
+            val payload=mapper.convertValue(checkNotNull(artifact).content,ManuscriptLoadPayload::class.java)
+            val identity=results.findByJobIdAndKindAndEpisode(id,"identity",0) ?: throw WorldConflict()
+            ManuscriptStructureVerifier.verify(all,mapper.valueToTree(identity.content),payload,mapper)
+            val evidence=sourceEvidence(id,payload,all)
+            val requests=ManuscriptBuildMapper.build(id,basis,payload,evidence,all)
+            studio.prepareManuscript(job.worldId,owner,basis) {
+                val current=owned(id,owner)
+                if(current.status!="running" || current.executionToken!=token || current.deadline?.isAfter(Instant.now())!=true) throw WorldConflict()
+                require(steps.findAllByJobIdOrderBySequence(id).isEmpty())
+                requests.forEachIndexed { index,request ->
+                    studio.validateEditRequest(request)
+                    steps.saveAndFlush(ManuscriptBuildLoadStep(jobId=id,sequence=index+1,requestPayload=json(request),requestHash=studio.manuscriptRequestHash(job.worldId,request)))
+                }
+                current.status="loading";jobs.flush();true
+            }
+        }
+        if(job.status!="running" && job.status !in listOf("loading","unknown")) throw WorldConflict()
+        try {
             val pending=tx { val job=owned(id,owner);job.worldId to steps.findAllByJobIdOrderBySequence(id).map { it.id } }
             check(pending.second.isNotEmpty())
             pending.second.forEach { studio.editManuscriptAddition(pending.first,owner,it) }
@@ -167,18 +192,24 @@ class ManuscriptBuildService(
             // 적재 실패는 WorldStudio가 unknown으로 보존한다. 완료/unknown을 추출 failed로 덮어쓰지 않는다.
             runCatching { tx {
                 val current=owned(id,owner)
-                if(current.status=="loading" && (token==null || current.executionToken==token)) {
+                if(current.status=="loading" && current.executionToken==token) {
                     current.status="unknown";current.failureCode="LOAD_RESULT_UNCONFIRMED";jobs.flush()
                 }
                 true
             } }
-            if(token!=null) runCatching { execution.fail(id,owner,token,when(error) {
-                is InitialWorldCallFailure -> error.code
-                is IllegalArgumentException -> if(error.message in setOf("SOURCE_CHANGED","WORLD_LINK_CHANGED")) checkNotNull(error.message) else "INVALID_EXTRACTION_OR_PAYLOAD"
-                else -> "BUILD_RESULT_UNCONFIRMED"
-            }) }
+            throw error
         }
+        return tx { response(owned(id,owner)) }
     }
+
+    fun failed(id:UUID,token:UUID,reason:String,episodes:List<Int>) {
+        val owner=actor(id)
+        val frozen=input(active(id,owner,token))
+        val remaining=frozen.missing(resultStore.read(id,owner)).map { it.number }
+        require(episodes.size==episodes.distinct().size && episodes.sorted()==remaining.sorted())
+        execution.fail(id,owner,token,reason)
+    }
+
     /** 표시 본문에 실제 포함된 인용만 연결하고, 모든 원본 결과는 별도로 보존한다. */
     private fun sourceEvidence(job:UUID,payload:ManuscriptLoadPayload,all:List<ManuscriptEpisodeResult>):Map<String,List<Map<String,Any?>>> {
         val identity=results.findByJobIdAndKindAndEpisode(job,"identity",0) ?: throw WorldConflict()

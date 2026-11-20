@@ -3,25 +3,39 @@
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import AliasChoices, BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 
 from app.intent.models import Feature
 from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
 from app.rating.models import RatingResponse
 from app.research.models import ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
-from app.review.models import ReviewResponse, Scope
+from app.manuscript_review.models import ReviewResponse, Scope
 from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
-from app.world_review.models import WorldReviewResponse
-from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse
+from app.world_review.models import EnrichResponse, ImpactResponse, WorldReviewResponse
+from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanResponse
+
+# 이전 체크포인트는 기록 당시의 단계 식별자를 보존한다(#387·#499). #387 전 대화 기록에는 Writing & Editing으로 합쳐진 story_development가, #499 전에는 review가,
+# World Agent(#546) 전에는 옛 설정집 검토 world_review와 미구현 판정 world_plot이 남아 있다. 이력을 다시 읽을 때 형식 오류가 되지 않게 읽기만 받는다.
+RecordedFeature = Feature | Literal['story_development', 'review', 'world_review', 'world_plot']
+
+
+def manuscript_review_feature(feature: str) -> str:
+    return 'manuscript_review' if feature == 'review' else feature
+
+
+CurrentFeature = Annotated[Feature, BeforeValidator(manuscript_review_feature)]
 
 
 class WritingInput(BaseModel):
-    """Writing & Editing은 한 기능이며 새 원고(draft)·선택 구간 수정(patch)·조건부 수정에서 고른 검수 지적 번호(fix) 중 하나만 받는다."""
+    """Writing & Editing은 한 기능이며 새 원고(draft)·선택 구간 수정(patch)·조건부 수정에서 고른 검수 지적 번호(fix) 중 하나만 받는다.
+
+    전개 기획과 계획 없는 바로 집필은 입력 없이 요청 문장과 반영 대상(target)으로 실행한다(#387).
+    """
     model_config = ConfigDict(extra='forbid')
     draft: DraftRequest | None = None
     patch: PatchRequest | None = None
-    fix: int | None = Field(default=None, ge=0)  # 직전 Review 결과 findings의 번호(#370)
+    fix: int | None = Field(default=None, ge=0)  # 직전 Manuscript Review 결과 findings의 번호(#370)
 
     @model_validator(mode='after')
     def one(self):
@@ -45,7 +59,7 @@ class StepInputs(BaseModel):
     story_context: AnswerRequest | None = None
     writing_editing: WritingInput | None = None
     web_research: ResearchRequest | None = None
-    review: ReviewInput | None = None
+    manuscript_review: ReviewInput | None = Field(default=None, validation_alias=AliasChoices('manuscript_review', 'review'))
 
 
 class Conversation(BaseModel):
@@ -59,12 +73,13 @@ class WritingTarget(BaseModel):
     """Content가 권한을 확인한 Writing 반영 대상. 작가가 승인하면 AI가 그 작가 권한으로 이 회차 초안에만 쓴다.
 
     baseEpisode는 근거 회차(시뮬레이션이 세계관을 읽는 지식 상한)다. 작가가 발행 전 초안을 열어 둬 반영 회차(episode)가 근거 회차와
-    다를 때만 오고, 없으면 episode와 같다.
+    다를 때만 오고, 없으면 episode와 같다. fork는 Fork 작품이면 Content가 true로 보내며 추적 metadata에만 쓴다(DEC-55 누설 표본 검사).
     """
     model_config = ConfigDict(extra='forbid')
     workId: str = Field(min_length=1, max_length=100)
     episode: int = Field(ge=1)
     baseEpisode: int | None = Field(default=None, ge=1)
+    fork: bool | None = None
 
 
 class Resume(BaseModel):
@@ -88,12 +103,12 @@ class OrchestrationRequest(BaseModel):
     request: str | None = Field(default=None, min_length=1, max_length=2000)
     resume: Resume | None = None
     target: WritingTarget | None = None  # 있고 대화 안이면 Writing 결과를 승인받아 Content MCP로 초안에 반영한다.
-    operation: Feature | None = None
+    operation: CurrentFeature | None = None
     materials: list[Annotated[str, Field(max_length=2000)]] = Field(default=[], max_length=8)
     inputs: StepInputs = StepInputs()
     fromTurn: int | None = Field(default=None, ge=0)  # 있으면 그 턴부터 지우고 이 request로 다시 실행한다(메시지 수정).
     # [시뮬레이션] 버튼의 시작 양식(계약 '버튼 진입'). character_simulation 새 요청에서만 받고 길이·개수 한도는 SimulationPlan이 지킨다.
-    # 그래프의 simulation_plan이 이 값을 계획으로 쓰는 연결은 아직 없다(실행 구조 확정 뒤).
+    # ask_character_simulation이 모델 없이 이 값을 계획으로 쓰고 연결 세계관으로 확인한다.
     simulation: SimulationPlan | None = None
 
     @model_validator(mode='after')
@@ -114,34 +129,40 @@ class QaStepResult(AnswerResponse):
 
 
 class AppliedDraft(BaseModel):
-    """Content MCP가 저장한 회차 초안의 새 revision."""
+    """Content MCP가 저장한 초안의 새 revision. Writing·시뮬레이션은 회차 초안, World 보강 제안은 세계관 초안이다(episode는 뜻 없이 채팅 대상 회차)."""
     episode: int
     revision: int
 
 
 class StepResult(BaseModel):
-    feature: Feature
+    feature: RecordedFeature
     when: Literal['always', 'if_issues_found']
+    # 메인 에이전트가 정한 작업 종류: Writing & Editing은 plan·draft·patch(#387·#473), World는 check·enrich·impact(#546·#291)
+    task: Literal['plan', 'draft', 'patch', 'check', 'enrich', 'impact'] | None = None
     # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다. skipped는 조건부 수정이 고칠 확정 지적이 없어 건너뛴 단계다(#370).
     status: Literal['completed', 'failed', 'not_started', 'skipped']
-    result: QaStepResult | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse | RatingResponse | None = None
+    result: (QaStepResult | PlanResponse | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse
+             | EnrichResponse | ImpactResponse | RatingResponse | None) = None
     error: str | None = None  # 실패 사유, skipped면 건너뛴 이유
-    approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면 반영에 대한 작가의 답
-    applied: AppliedDraft | None = None
+    approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면·World 보강 제안 반영에 대한 작가의 답
+    applied: AppliedDraft | None = None  # World 보강 제안이면 episode는 채팅 대상 회차를 그대로 싣고 revision은 반영 뒤 세계관 초안 revision이다
 
 
 class OrchestrationResponse(BaseModel):
-    """steps는 계획 순서다. clarify·rejected·unsupported·needs_input·cancelled면 아무 Agent도 실행하지 않았다.
+    """steps는 메인 에이전트가 서브 에이전트를 부른 순서다. message는 메인 에이전트의 종합 답변이거나 실행하지 않은 턴의 고정 문구다.
+
+    rejected와 고정 확인 질문의 clarify면 아무 Agent도 실행하지 않았다(unsupported는 미구현 기능을 판정하던 때의 옛 기록에만 남는다).
+    needs_input·cancelled는 그 앞에서 끝낸 단계만 있다.
 
     waiting은 대화 안에서 멈춘 상태이며 같은 conversation의 resume으로 이어간다. 입력 대기면 missingInputs,
-    Writing 결과·시뮬레이션 장면 반영 승인 대기면 awaitingApproval, 시뮬레이션 장면의 턴 사이 대기면 awaitingScene이 있다.
+    Writing 결과·시뮬레이션 장면·World 보강 제안 반영 승인 대기면 awaitingApproval, 시뮬레이션 장면의 턴 사이 대기면 awaitingScene이 있다.
     """
     status: Literal['completed', 'failed', 'clarify', 'rejected', 'unsupported', 'needs_input', 'waiting', 'cancelled']
     runId: str | None = None  # Langfuse trace id. 추적이 꺼져 있으면 없다.
     message: str | None = None
     steps: list[StepResult] = []
-    missingInputs: list[Feature] = []
-    unsupported: list[Feature] = []
+    missingInputs: list[CurrentFeature] = []
+    unsupported: list[RecordedFeature] = []
     awaitingApproval: Feature | None = None
     awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다
     approvalEpisode: int | None = None

@@ -4,11 +4,10 @@ import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.world.domain.WORLD_GENRES
 import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.isListed
-import ai.storyfork.content.world.domain.isPublicCard
 import ai.storyfork.content.world.domain.publicWorldPage
-import ai.storyfork.content.world.domain.readerCardEpisode
 import ai.storyfork.content.world.domain.readerUpto
 import ai.storyfork.content.world.domain.revealFromEpisode
+import ai.storyfork.content.world.domain.shownCardEpisode
 import ai.storyfork.content.world.domain.visibleRelationships
 import ai.storyfork.content.world.domain.worldGenre
 import ai.storyfork.content.world.domain.worldVisibility
@@ -52,13 +51,6 @@ class PublicWorldRulesTest {
         assertFalse(isListed("private", null))
     }
 
-    @Test fun `a card is shown on a public world only when it is active and its owner made it public`() {
-        assertTrue(isPublicCard("active", "public"))
-        assertFalse(isPublicCard("active", "private"))
-        assertFalse(isPublicCard("removed", "public"))
-        assertFalse(isPublicCard("removed", "private"))
-    }
-
     @Test fun `a relationship is public only when both ends are published cards`() {
         val both = relation(a, b)
         val others = listOf(relation(a, c), relation(c, UUID.randomUUID()), relation(a, null), relation(null, b), relation(null, null))
@@ -82,15 +74,36 @@ class PublicWorldRulesTest {
         assertNull(revealFromEpisode(mapOf("studio" to mapOf("revealFromEpisode" to 3))))
     }
 
-    @Test fun `readers see an active card from its reveal episode on and nothing before it`() {
-        val fromThree = mapOf<String, Any?>("revealFromEpisode" to 3)
-        assertEquals(3, readerCardEpisode("active", fromThree, 3))
-        assertEquals(3, readerCardEpisode("active", fromThree, 10))
-        assertNull(readerCardEpisode("active", fromThree, 2))
-        assertNull(readerCardEpisode("active", fromThree, 0))
-        assertNull(readerCardEpisode("removed", fromThree, 10))
-        assertNull(readerCardEpisode("active", emptyMap(), 10))
-        assertNull(readerCardEpisode("active", mapOf("revealFromEpisode" to "3"), 10))
+    /** 비공개+회차N / 공개+회차N / 공개+없음 / 비공개+없음 네 조합이 기준 회차 N-1·N에서 어떻게 보이는지(DEC-53)다. */
+    @Test fun `a card is shown from its reveal episode, from episode 1 when public without one, and never when author-only`() {
+        val n = 3
+        val atN = mapOf<String, Any?>("revealFromEpisode" to n)
+        listOf("private", "public").forEach { visibility ->
+            // 회차 값이 있으면 공개 여부와 무관하게 그 값이다. 기준 회차가 N 미만이면 숨는다.
+            assertNull(shownCardEpisode("active", visibility, atN, n - 1), visibility)
+            assertEquals(n, shownCardEpisode("active", visibility, atN, n), visibility)
+            assertEquals(n, shownCardEpisode("active", visibility, atN, Int.MAX_VALUE), visibility)
+            assertNull(shownCardEpisode("active", visibility, atN, 0), visibility)
+        }
+        // 공개이고 회차 값이 없는 기존 카드는 1화부터다(읽을 때 계산한다). 기준 회차가 0이면(공개된 회차가 없으면) 숨는다.
+        assertEquals(1, shownCardEpisode("active", "public", emptyMap(), 1))
+        assertEquals(1, shownCardEpisode("active", "public", emptyMap(), n))
+        assertNull(shownCardEpisode("active", "public", emptyMap(), 0))
+        // 비공개이고 회차 값이 없으면 작가 전용이다.
+        listOf(0, 1, n - 1, n, Int.MAX_VALUE).forEach { assertNull(shownCardEpisode("active", "private", emptyMap(), it), it.toString()) }
+        // 삭제된 카드는 어느 조합이든 보이지 않는다.
+        listOf("private", "public").forEach { assertNull(shownCardEpisode("removed", it, atN, Int.MAX_VALUE)) }
+        assertNull(shownCardEpisode("removed", "public", emptyMap(), Int.MAX_VALUE))
+    }
+
+    @Test fun `a reveal value that is present but unusable keeps the card author-only even when it is public`() {
+        // 값이 있으나 읽을 수 없으면(문자열·소수·0·음수) 공개 1화로 되돌리지 않고 작가 전용으로 닫는다.
+        listOf<Any?>("3", 2.5, 0, -1, true).forEach {
+            assertNull(shownCardEpisode("active", "public", mapOf("revealFromEpisode" to it), 10), it.toString())
+        }
+        // 키가 있으면 JSON null도 읽을 수 없는 값이라 작가 전용이다. 키가 없을 때만 옛 공개 카드의 1화 규칙이다(DEC-53 계약: '키가 없고 visibility=public이면 1').
+        assertNull(shownCardEpisode("active", "public", mapOf("revealFromEpisode" to null), 10))
+        assertNull(shownCardEpisode("active", "private", mapOf("revealFromEpisode" to null), 10))
     }
 
     @Test fun `the reader upto query is optional but must be a whole number of at least one`() {

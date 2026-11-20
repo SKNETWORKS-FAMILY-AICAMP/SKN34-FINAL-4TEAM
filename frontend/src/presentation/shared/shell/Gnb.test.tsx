@@ -40,3 +40,11 @@ it('상단바에는 크레딧 버튼이 없다', () => {
   render(<Provider store={createAppStore()}><MemoryRouter><Gnb /></MemoryRouter></Provider>)
   expect(screen.queryByRole('button', { name: /크레딧/ })).toBeNull()
 })
+
+it('검색 버튼은 소설·세계관·설정 카드·캐릭터챗 검색이고 좁은 화면용 짧은 표시가 따로 있다 (#505)', () => {
+  render(<Provider store={createAppStore()}><MemoryRouter><Gnb /></MemoryRouter></Provider>)
+  const button = screen.getByRole('button', { name: '소설·세계관·설정 카드·캐릭터챗 검색' })
+  expect(button.querySelector('.lf')?.textContent).toBe('소설·세계관·설정 카드·캐릭터챗 검색')
+  expect(button.querySelector('.ls')?.textContent).toBe('검색')
+  expect(button.textContent).not.toMatch(/인물|회차/)
+})

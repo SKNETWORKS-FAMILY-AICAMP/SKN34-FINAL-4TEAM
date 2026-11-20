@@ -91,20 +91,4 @@ export class AdminUseCase {
     await this.log('캐릭터챗 추가', () => w.title + ' · ' + character)
     return ok('캐릭터챗을 추가했어요 (데모)')
   }
-
-  /** 목업 data-run-job: 실패 작업만, 실제 실행 없이 기록합니다. */
-  async runJob(id: string): Promise<AdminResult> {
-    const done = await this.log('정기 작업 재시도 시연', (a) => { const j = a.jobs.find((x) => x.id === id); if (!j || j.status !== '실패') return null; Object.assign(j, { status: '완료', last: '수동 재시도 흐름 시연 · 실제 작업 없음' }); return j.name })
-    return done ? ok('실패 작업의 수동 재시도 흐름을 기록했어요 (실제 작업은 실행하지 않음)') : null
-  }
-
-  async resolveAlert(id: string): Promise<AdminResult> {
-    const s = await this.creditRepository.get(), al = s.alerts.find((x) => x.id === id)
-    if (!al) return null
-    al.resolved = true
-    await this.creditRepository.save(s)
-    await this.log('경고 확인', () => al.task)
-    return ok('조치를 기록했어요. 자동 재처리는 하지 않아요')
-  }
-
 }

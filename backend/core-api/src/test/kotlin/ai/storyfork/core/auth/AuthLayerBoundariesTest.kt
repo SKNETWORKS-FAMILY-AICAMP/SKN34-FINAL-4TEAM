@@ -47,7 +47,7 @@ class AuthLayerBoundariesTest {
     fun `public and internal contracts are explicit top level service DTOs`() {
         for (name in listOf("SignupRequest", "EmailRequest", "TokenRequest", "VerificationRequest", "LoginRequest",
             "NicknameRequest", "ResetRequest", "CsrfResponse", "MemberResponse", "LoginResponse", "LoginResult", "SessionResponse", "SessionsResponse",
-            "VerifiedMemberResponse", "MemberItem", "MemberListResponse", "AdminCreateRequest", "NicknamesRequest", "NicknamesResponse")) {
+            "VerifiedMemberResponse", "MemberItem", "MemberListResponse", "MemberStatsResponse", "AdminCreateRequest", "NicknamesRequest", "NicknamesResponse")) {
             val dto = Class.forName("ai.storyfork.core.auth.service.dto.$name")
             assertNull(dto.enclosingClass, name)
             assertTrue(dto.declaredFields.none { it.type.name.startsWith("ai.storyfork.core.auth.entity.") }, name)

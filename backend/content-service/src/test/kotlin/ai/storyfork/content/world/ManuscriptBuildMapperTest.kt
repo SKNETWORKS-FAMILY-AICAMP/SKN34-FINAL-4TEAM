@@ -25,7 +25,7 @@ class ManuscriptBuildMapperTest {
         assertEquals("private",hero.visibility)
         assertEquals(hero.aliases,(hero.semanticMetadata["studio"] as Map<*,*>)["aliases"])
         assertFalse(hero.semanticMetadata.containsKey("revealFromEpisode"))
-        assertFalse(hero.semanticMetadata.containsKey("preprocessing"))
+        assertEquals(1,(hero.semanticMetadata["preprocessing"] as Map<*,*>)["firstEpisode"])
         assertEquals(mapOf("1" to "산채를 보았다"),(hero.semanticMetadata["characterDocs"] as Map<*,*>)["episodes"])
         assertTrue(hero.semanticMetadata.containsKey("studio"))
         assertEquals(requests,ManuscriptBuildMapper.build(job,draft,payload,mapOf("hero" to listOf(mapOf("sourceId" to "version-1","quote" to "길동")))))

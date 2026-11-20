@@ -10,6 +10,7 @@ const suggestion: z.ZodType<EditSuggestion> = z.object({
   editedText: z.string().nullable(), reason: z.string().nullable(),
   status: z.enum(['pending', 'approved', 'rejected', 'held']), decisionReason: z.string().nullable(),
   applyResult: z.enum(['applied', 'failed']).nullable(), applyFailure: z.string().nullable(), appliedVersionId: z.string().nullable(),
+  published: z.boolean().optional(), handledAt: z.string().datetime({offset:true}).nullable().optional(), handlerName: z.string().nullable().optional(),
   scope: z.enum(['auto', 'review']), scopeReasons: z.array(z.string()), mine: z.boolean(), owner: z.boolean(),
   createdAt: z.string().datetime({ offset: true }), updatedAt: z.string().datetime({ offset: true }),
 })

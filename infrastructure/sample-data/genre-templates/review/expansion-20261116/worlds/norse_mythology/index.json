@@ -1,0 +1,493 @@
+{
+  "world_id": "norse_mythology",
+  "world_id_meaning": "기존 worldId 참조용 라벨",
+  "id_namespace": "cb459e34-c38c-56f4-af2d-7bfdb3321b88",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "norse-lokasenna",
+      "world_id": "norse_mythology",
+      "title": "Lokasenna",
+      "target_scope": "complete poem and prose passages",
+      "edition_language_attribution": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+      "prior_investigation_grade": "A",
+      "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Printed stanza sequence and prose passages bounded in saved HTML; critical edition and transcription rights unverified."
+      },
+      "scope_status": "complete_local_poem_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "4a4bfe3a167014fc9594b466f01ad8b1b5aeaa7d83d8ae080fb7481d0acac54e",
+      "units": [
+        {
+          "unit_id": "norse-lokasenna--prose-prologue",
+          "label": "Prose prologue and editorial note",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 11798,
+            "byte_end_exclusive": 13368,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "9771c6d0633ae5acff752b540d4cb98a104ce23c0e74c313c2921134fa559b5a",
+            "note": "Poem and adjacent Finnur Jónsson Danish commentary are interleaved; distinguish commentary from verse/prose, and consult neighboring units for speaker context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "norse-lokasenna--prose-prologue",
+              "status": "read",
+              "read_scope": "배정된 산문 서두 또는 연과 인접 편집 주석",
+              "reason": null,
+              "candidate_count": 1
+            }
+          ],
+          "actual_candidates": 1
+        },
+        {
+          "unit_id": "norse-lokasenna--stanzas-01-10",
+          "label": "Stanzas 1–10 and editorial notes",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 13368,
+            "byte_end_exclusive": 19519,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "6c131e38c890ed3da4d6f7cedf28381c82e7ce66e393d5488427eb0fee36fd05",
+            "note": "Poem and adjacent Finnur Jónsson Danish commentary are interleaved; distinguish commentary from verse/prose, and consult neighboring units for speaker context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "norse-lokasenna--stanzas-01-10",
+              "status": "read",
+              "read_scope": "배정된 산문 서두 또는 연과 인접 편집 주석",
+              "reason": null,
+              "candidate_count": 1
+            }
+          ],
+          "actual_candidates": 1
+        },
+        {
+          "unit_id": "norse-lokasenna--stanzas-11-20",
+          "label": "Stanzas 11–20 and editorial notes",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 19519,
+            "byte_end_exclusive": 27120,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "e96fb6f2310756a12b4748f9970eecee57bf05362e2c190e5b20a76efcb41765",
+            "note": "Poem and adjacent Finnur Jónsson Danish commentary are interleaved; distinguish commentary from verse/prose, and consult neighboring units for speaker context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "norse-lokasenna--stanzas-11-20",
+              "status": "read",
+              "read_scope": "배정된 산문 서두 또는 연과 인접 편집 주석",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "norse-lokasenna--stanzas-21-30",
+          "label": "Stanzas 21–30 and editorial notes",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 27120,
+            "byte_end_exclusive": 34071,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "3060a979f16c6c1de98ee0c841c15891546df9731dad44714c337772d6f15781",
+            "note": "Poem and adjacent Finnur Jónsson Danish commentary are interleaved; distinguish commentary from verse/prose, and consult neighboring units for speaker context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "norse-lokasenna--stanzas-21-30",
+              "status": "read",
+              "read_scope": "배정된 산문 서두 또는 연과 인접 편집 주석",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "norse-lokasenna--stanzas-31-40",
+          "label": "Stanzas 31–40 and editorial notes",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 34071,
+            "byte_end_exclusive": 41314,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "32fe0c19bba85dd28d6e6e7547b1475c6d6bc4ce538b179598415c33bf836dbc",
+            "note": "Poem and adjacent Finnur Jónsson Danish commentary are interleaved; distinguish commentary from verse/prose, and consult neighboring units for speaker context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "norse-lokasenna--stanzas-31-40",
+              "status": "read",
+              "read_scope": "배정된 산문 서두 또는 연과 인접 편집 주석",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "norse-lokasenna--stanzas-41-50",
+          "label": "Stanzas 41–50 and editorial notes",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 41314,
+            "byte_end_exclusive": 48548,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "3190018ee66a058199d2fc45e9353e47540dd2173e5c9c8abe99fba4c66c52bf",
+            "note": "Poem and adjacent Finnur Jónsson Danish commentary are interleaved; distinguish commentary from verse/prose, and consult neighboring units for speaker context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "norse-lokasenna--stanzas-41-50",
+              "status": "read",
+              "read_scope": "배정된 산문 서두 또는 연과 인접 편집 주석",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "norse-lokasenna--stanzas-51-60",
+          "label": "Stanzas 51–60 and editorial notes",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 48548,
+            "byte_end_exclusive": 55975,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "d158a55552622ce1ab6c07e3d3f37734d6f17a5645f3458d491b5354b0572e12",
+            "note": "Poem and adjacent Finnur Jónsson Danish commentary are interleaved; distinguish commentary from verse/prose, and consult neighboring units for speaker context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "norse-lokasenna--stanzas-51-60",
+              "status": "read",
+              "read_scope": "배정된 산문 서두 또는 연과 인접 편집 주석",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "norse-lokasenna--stanzas-61-65",
+          "label": "Stanzas 61–65 and editorial notes",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 55975,
+            "byte_end_exclusive": 59137,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "35f21bc555fac3eed263da31192e03a6eb9e017c8d9632ec35878123776b8c0f",
+            "note": "Poem and adjacent Finnur Jónsson Danish commentary are interleaved; distinguish commentary from verse/prose, and consult neighboring units for speaker context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "norse-lokasenna--stanzas-61-65",
+              "status": "read",
+              "read_scope": "Stanzas 61–65 and editorial notes의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "norse-lokasenna--prose-epilogue",
+          "label": "Prose epilogue and editorial note",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 59137,
+            "byte_end_exclusive": 59975,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "b5863e52fb280ffa200ed54f97be5fd256ee954c8cbb080605b4973205b33b79",
+            "note": "Poem and adjacent Finnur Jónsson Danish commentary are interleaved; distinguish commentary from verse/prose, and consult neighboring units for speaker context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "norse-lokasenna--prose-epilogue",
+              "status": "read",
+              "read_scope": "Prose epilogue and editorial note의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 3
+            }
+          ],
+          "actual_candidates": 3
+        }
+      ]
+    },
+    {
+      "work_id": "norse-baldr",
+      "world_id": "norse_mythology",
+      "title": "Baldrs draumar",
+      "target_scope": "complete poem",
+      "edition_language_attribution": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+      "prior_investigation_grade": "A",
+      "source_url": "https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Printed stanza sequence and prose passages bounded in saved HTML; critical edition and transcription rights unverified."
+      },
+      "scope_status": "complete_local_poem_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "7f3a7b55c8c7be0cf1cebfeb6d3702cd9a780a4bc5828403f19bc8158f4019f7",
+      "units": [
+        {
+          "unit_id": "norse-baldr--stanzas-01-10",
+          "label": "Stanzas 1–10 and editorial notes",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 12516,
+            "byte_end_exclusive": 19234,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "8c37a24e9d336acb075fffce3d699a714b150791764e1f02b4577a02370c58b7",
+            "note": "Poem and adjacent Finnur Jónsson Danish commentary are interleaved; distinguish commentary from verse/prose, and consult neighboring units for speaker context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "norse-baldr--stanzas-01-10",
+              "status": "read",
+              "read_scope": "Stanzas 1–10 and editorial notes의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "norse-baldr--stanzas-11-14",
+          "label": "Stanzas 11–14 and editorial notes",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 19234,
+            "byte_end_exclusive": 22936,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "60efd3956ba76b2b1a05af37e6ac2338fe49e9b8ef2de2cb0eff88d9cf8935cf",
+            "note": "Poem and adjacent Finnur Jónsson Danish commentary are interleaved; distinguish commentary from verse/prose, and consult neighboring units for speaker context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "norse-baldr--stanzas-11-14",
+              "status": "read",
+              "read_scope": "Stanzas 11–14 and editorial notes의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        }
+      ]
+    },
+    {
+      "work_id": "norse-vaf",
+      "world_id": "norse_mythology",
+      "title": "Vafþrúðnismál",
+      "target_scope": "complete poem",
+      "edition_language_attribution": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+      "prior_investigation_grade": "A",
+      "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "55 numbered stanzas delimited; delivered page identifies Guðni Jónsson edition, conflicting with earlier FJ attribution."
+      },
+      "scope_status": "complete_local_poem_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked. Original investigation described URL as FJ, but the delivered page attributes editor Guðni Jónsson; edition conflict requires independent bibliographic reconciliation.",
+      "input_file_sha256": "75a83288d8fb74a6c33c44d261fca53a120a0b6a180947185f9960d9b620a95f",
+      "units": [
+        {
+          "unit_id": "norse-vaf--stanzas-01-10",
+          "label": "Stanzas 1–10",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 10458,
+            "byte_end_exclusive": 13142,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "b1e0bb35a7270ac5b41cc0bf704f80f26595d1ed3c0bd7f4ff626b66943d3829",
+            "note": "Raw HTML slice includes prose speaker labels; a label immediately before a group boundary belongs to the preceding slice, consult neighboring context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "norse-vaf--stanzas-01-10",
+              "status": "read",
+              "read_scope": "Stanzas 1–10의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "norse-vaf--stanzas-11-20",
+          "label": "Stanzas 11–20",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 13142,
+            "byte_end_exclusive": 15861,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "355634c7868d4dd5f8a3ae7b27ac00a58d4a17a4cfe37dca8dab87e14ccfea66",
+            "note": "Raw HTML slice includes prose speaker labels; a label immediately before a group boundary belongs to the preceding slice, consult neighboring context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "norse-vaf--stanzas-11-20",
+              "status": "read",
+              "read_scope": "Stanzas 11–20의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "norse-vaf--stanzas-21-30",
+          "label": "Stanzas 21–30",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 15861,
+            "byte_end_exclusive": 18474,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "e460920f323e5abd2e1fff621fa8a66ca3d1cdf27660e2e581edbd8af36bbf39",
+            "note": "Raw HTML slice includes prose speaker labels; a label immediately before a group boundary belongs to the preceding slice, consult neighboring context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "norse-vaf--stanzas-21-30",
+              "status": "read",
+              "read_scope": "Stanzas 21–30의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "norse-vaf--stanzas-31-40",
+          "label": "Stanzas 31–40",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 18474,
+            "byte_end_exclusive": 21311,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "b0ec9f010aee7b60e90087073f907d0892273032487168598341a6bbcf4a5724",
+            "note": "Raw HTML slice includes prose speaker labels; a label immediately before a group boundary belongs to the preceding slice, consult neighboring context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "norse-vaf--stanzas-31-40",
+              "status": "read",
+              "read_scope": "Stanzas 31–40의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "norse-vaf--stanzas-41-50",
+          "label": "Stanzas 41–50",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 21311,
+            "byte_end_exclusive": 24065,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "caf4fb52cc90419429cbb576eb2aed22767c904ec41d8816872e51a1a6b41c64",
+            "note": "Raw HTML slice includes prose speaker labels; a label immediately before a group boundary belongs to the preceding slice, consult neighboring context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "norse-vaf--stanzas-41-50",
+              "status": "read",
+              "read_scope": "Stanzas 41–50의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "norse-vaf--stanzas-51-55",
+          "label": "Stanzas 51–55",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 24065,
+            "byte_end_exclusive": 25402,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "e003d33ebab80c73241b3581cfe9de6a1da583463e342be065fd1a075ddbd28c",
+            "note": "Raw HTML slice includes prose speaker labels; a label immediately before a group boundary belongs to the preceding slice, consult neighboring context."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "norse-vaf--stanzas-51-55",
+              "status": "read",
+              "read_scope": "Stanzas 51–55의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 3
+            }
+          ],
+          "actual_candidates": 3
+        }
+      ]
+    }
+  ]
+}

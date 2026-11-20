@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
 
 import {
-  beatLabel, checkKindLabel, checkSummary, evidenceLabel, monologueOwner, SIM_BEATS_MAX, SIM_CHARACTERS_MAX, SIM_PREMISE_MAX,
+  beatLabel, checkKindLabel, checkSummary, evidenceLabel, monologueOwner, samePersonChosen, SIM_BEATS_MAX, SIM_CHARACTERS_MAX, SIM_PREMISE_MAX,
   type CharacterSimulation, type SimulationStart, type SimulationTurn,
 } from '../../../domain/entities/characterSimulation'
 import { SCENE_NOTE_MAX, SCENE_TEXT_MAX } from '../../../domain/entities/writingChat'
+import { PencilIcon } from '../icons'
 import { ManuscriptBody } from '../media/MediaPanel'
-import { ConsentCheck } from './ChatPanel'
 import { useSimulationSetupViewModel } from './useSimulationSetupViewModel'
 import type { StageViewModel } from './useSimulationStageViewModel'
 import './chat.css'
@@ -68,16 +68,18 @@ function StartFields({ stage, data, planEpisode, plotLink, startBlocker = '' }: 
       <legend>참여 인물 (1~{SIM_CHARACTERS_MAX}명)</legend>
       {data.characters.length
         ? <ul className="stage-people">{data.characters.map((character) => <li key={character.id}>
-          <label><input type="checkbox" checked={ids.includes(character.id)} disabled={!ids.includes(character.id) && ids.length >= SIM_CHARACTERS_MAX}
-            onChange={() => toggle(character.id)} />{character.name}</label>
+          <label><input type="checkbox" checked={ids.includes(character.id)} disabled={(!ids.includes(character.id) && ids.length >= SIM_CHARACTERS_MAX) || samePersonChosen(data.characters, ids, character)}
+            onChange={() => toggle(character.id)} />{character.name}{samePersonChosen(data.characters, ids, character) && <small className="chat-note"> 같은 인물을 이미 골랐어요</small>}</label>
         </li>)}</ul>
         : data.linked
           ? <p className="chat-note">이 작품에 연결된 세계관에 인물 카드가 없어요. 세계관에 인물을 먼저 만들어 주세요.</p>
-          : <><p>연결된 세계관이 없어요.</p><p className="chat-note">작품 관리의 세계관 연결에서 이 작품에 세계관을 연결해 주세요.</p></>}
+          : data.inheritedUpto !== null
+            ? <p className="chat-note">이어받은 원작 세계관에 공개된 인물 카드가 없어요. 작품 관리의 세계관 연결에서 내 세계관을 연결해 인물을 만들어 주세요.</p>
+            : <><p>연결된 세계관이 없어요.</p><p className="chat-note">작품 관리의 세계관 연결에서 이 작품에 세계관을 연결해 주세요.</p></>}
+      {data.inheritedUpto !== null && data.characters.length > 0 && <p className="chat-note">원작 세계관에서 {data.inheritedUpto}화까지 공개된 인물을 이어받았어요(읽기 전용).</p>}
       <p className="chat-note">{ids.length}명 선택</p>
     </fieldset>
     {problem && !problem.missing && <p className="stage-reason" role="status">{problem.text}</p>}
-    {stage.available && <ConsentCheck checked={stage.consent} onChange={stage.setConsent} />}
     {stage.blocked && <p className="chat-note">{stage.blocked}</p>}
     {startBlocker && <p className="stage-reason" role="status">{startBlocker}</p>}
     <button type="submit" className="btn pri" disabled={!!problem || !!stage.blocked || stage.pending || !!startBlocker}>시뮬레이션 시작</button>
@@ -157,7 +159,7 @@ function Turn({ turn, stage, workId, episode, lockId, track }: { turn: Simulatio
       : <div className="stage-bubble"><ManuscriptBody workId={workId} number={episode} body={turn.prose} /></div>}
     {draft === null && stage.interactive && <div className="stage-actions" aria-live="off">
       <button ref={editButton} type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct}
-        onClick={() => { stage.pause(); setDraft(turn.prose) }}>수정</button>
+        aria-label="이 줄 고치기" title="이 줄 고치기" onClick={() => { stage.pause(); setDraft(turn.prose) }}><PencilIcon size={16} /></button>
       <button type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct} onClick={() => void stage.redo(turn.index)}>다시 말하기</button>
     </div>}
     {!turn.editedByAuthor && (turn.kind === 'character' || !!turn.checks.length || !!turn.evidence.length) && <Checks turn={turn} />}
@@ -223,7 +225,6 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
     </section>}
     {stage.result && <p className="stage-result" role="status">{stage.result}</p>}
     {!stage.live && !stage.approvable && !stage.pending && <button type="button" className="btn sm stage-again" onClick={stage.compose}>새 시뮬레이션</button>}
-    {stage.available && <ConsentCheck checked={stage.consent} onChange={stage.setConsent} />}
   </>
 }
 

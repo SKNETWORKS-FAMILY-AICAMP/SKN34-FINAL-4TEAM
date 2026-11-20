@@ -1,10 +1,15 @@
 package ai.storyfork.core.auth.service
 
 import ai.storyfork.core.auth.entity.AuthMember
+import ai.storyfork.core.auth.entity.AuthWithdrawal
 import ai.storyfork.core.auth.repository.MemberRepository
+import ai.storyfork.core.auth.repository.WithdrawalRepository
 import ai.storyfork.core.auth.service.dto.AdminCreateRequest
 import ai.storyfork.core.auth.service.dto.MemberItem
 import ai.storyfork.core.auth.service.dto.MemberListResponse
+import ai.storyfork.core.auth.service.dto.MemberStatsResponse
+import java.time.Duration
+import java.time.Instant
 import java.util.Locale
 import java.util.UUID
 import org.springframework.dao.DataIntegrityViolationException
@@ -14,12 +19,13 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-/** 운영 서비스 전용 회원 조회·이용 제한·관리자 생성. 호출 회원은 제한되지 않은 operator여야 한다. */
+/** 운영 서비스 전용 회원 조회·통계·이용 제한·관리자 생성. 호출 회원은 제한되지 않은 operator여야 한다. */
 @Service
 class MemberAdminService(
     private val members: MemberRepository,
     private val verification: AuthVerificationService,
     private val passwords: PasswordEncoder,
+    private val withdrawals: WithdrawalRepository,
 ) {
     private fun requireOperator(subject: String?): UUID {
         val actor = verification.verify(subject)
@@ -47,6 +53,14 @@ class MemberAdminService(
         val escaped = q.trim().lowercase(Locale.ROOT).replace("!", "!!").replace("%", "!%").replace("_", "!_")
         val page = PageRequest.of(0, 200, Sort.by(Sort.Order(direction, "createdAt"), Sort.Order.asc("id")))
         return MemberListResponse(members.search(operators, "%$escaped%", page).map(::item))
+    }
+
+    /** 전체 회원·최근 7일 가입·탈퇴 유예 수. count 쿼리만 쓴다. */
+    @Transactional(readOnly = true)
+    fun stats(subject: String?): MemberStatsResponse {
+        requireOperator(subject)
+        return MemberStatsResponse(members.count(), members.countByCreatedAtGreaterThanEqual(Instant.now().minus(Duration.ofDays(7))),
+            withdrawals.countByStatus(AuthWithdrawal.PENDING))
     }
 
     @Transactional

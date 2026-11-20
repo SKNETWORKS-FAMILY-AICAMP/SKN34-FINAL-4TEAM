@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Header, HTTPException
 
+from app import tracing
 from app.content_mcp.errors import ContentMcpFailure
 from app.internal_auth import require_internal_token
 from app.rating import service
@@ -21,6 +22,7 @@ def rate(data: RatingRequest, x_internal_token: str = Header(default=''),
     require_internal_token(x_internal_token)
     service.content_mcp.AUTHORIZATION.set(x_user_authorization)
     try:
-        return service.rate(data)
+        with tracing.request('rating', user_id=tracing.member_id(x_user_authorization), work_id=data.workId):
+            return service.rate(data)
     except (RatingFailure, ContentMcpFailure) as error:
         raise HTTPException(error.status, str(error)) from None

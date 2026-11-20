@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { scenePlans, type PlanInput } from '../../../../domain/entities/storyPlan'
 import type { StoryPlanUseCase } from '../../../../domain/usecases/StoryPlanUseCase'
 import { Sheet } from '../../../shared/Sheet'
-import { useStoryPlanViewModel } from '../viewmodel/useStoryPlanViewModel'
+import { useStoryPlanViewModel } from '../../../shared/plans/useStoryPlanViewModel'
 import { deletionFocusOrder } from './deletionFocus'
 import './plans.css'
 // 오류 상자(.ep-alert)는 작품 관리·집필실과 같은 공용 모양을 쓴다.

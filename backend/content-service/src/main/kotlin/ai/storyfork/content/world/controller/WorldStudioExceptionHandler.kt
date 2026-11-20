@@ -22,11 +22,17 @@ class WorldStudioExceptionHandler {
     @ExceptionHandler(WorldStudioFailure::class)
     fun failure(error:WorldStudioFailure)=ResponseEntity.status(status(error.reason)).body(WorldStudioErrorResponse(error.code,error.detail))
     private fun status(reason:Reason)=when(reason) {
-        Reason.MIGRATION,Reason.REJECTED,Reason.MISMATCH,Reason.HISTORY->HttpStatus.CONFLICT
+        Reason.MIGRATION,Reason.REJECTED,Reason.MISMATCH,Reason.HISTORY,Reason.LINKED->HttpStatus.CONFLICT
         Reason.INCOMPLETE,Reason.UNAVAILABLE->HttpStatus.SERVICE_UNAVAILABLE
     }
     @ExceptionHandler(WorldNotFound::class)
     fun missing()=ResponseEntity.status(404).body(WorldStudioErrorResponse("WORLD_NOT_FOUND","세계관을 찾을 수 없습니다."))
+    /** 되돌리면 사라질 설정(이름은 5개까지)에 이어진 관계를 작가가 먼저 정리하게 한다. 설정 이름은 소유자 본인의 것이다. */
+    @ExceptionHandler(WorldRestoreBlocked::class)
+    fun restoreBlocked(error:WorldRestoreBlocked):ResponseEntity<WorldStudioErrorResponse> {
+        val shown=error.titles.take(5).joinToString(", ") { it.ifBlank { "이름 없는 설정" } }+if(error.titles.size>5) " 외 ${error.titles.size-5}개" else ""
+        return ResponseEntity.status(409).body(WorldStudioErrorResponse("WORLD_RESTORE_BLOCKED","이 버전으로 되돌리면 사라지는 설정에 이어진 관계가 있어요: ${shown}. 관계를 먼저 지운 뒤 다시 시도하세요."))
+    }
     @ExceptionHandler(WorldConflict::class)
     fun conflict()=ResponseEntity.status(409).body(WorldStudioErrorResponse("WORLD_CONFLICT","다른 편집본 또는 저장 요청과 충돌했습니다. 입력을 보존하고 상태를 확인하세요."))
     @ExceptionHandler(IllegalArgumentException::class)

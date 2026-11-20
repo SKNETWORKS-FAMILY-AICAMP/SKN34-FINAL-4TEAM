@@ -69,6 +69,44 @@ const status = () => screen.getByRole('status')
 const end = () => act(() => { toast().moveCursorToEnd(false) })
 const type = (text: string) => act(() => { toast().insertText(text) })
 const select = (from: [number, number], to = from) => act(() => { toast().setSelection(from, to) })
+
+it('End는 브라우저가 찾은 표시 줄 끝을 즉시 반영하고 선택한 원문을 보존한다', () => {
+  render(draw(<Harness initial="앞줄 끝 뒷줄 보존" />))
+  select([1, 1], [1, 3])
+  const selection = document.getSelection()!
+  const text = document.createTreeWalker(surface(), NodeFilter.SHOW_TEXT).nextNode()!
+  const modify = vi.fn(() => selection.collapse(text, 4))
+  // jsdom에는 줄 배치가 없다. 브라우저의 표시 줄 경계 결과를 전달한다.
+  vi.spyOn(document, 'getSelection').mockReturnValue(Object.assign(selection, { modify }))
+  try {
+    fireEvent.keyDown(surface(), { key: 'End', code: 'End' })
+    type('\n')
+    expect(modify).toHaveBeenCalledWith('move', 'forward', 'lineboundary')
+    expect(toast().getMarkdown()).toBe('앞줄 끝\n 뒷줄 보존')
+  } finally { delete (selection as Partial<Selection>).modify }
+})
+
+it('인용 줄 Enter는 인용 기호 없이 일반 문단으로 이동하고 공백을 보존한다', () => {
+  render(draw(<Harness initial="> 인용  뒤" />))
+  select([1, 5])
+  fireEvent.keyDown(surface(), { key: 'Enter', code: 'Enter' })
+  expect(toast().getMarkdown()).toBe('> 인용\n  뒤')
+})
+
+it('서식 직후 End와 Enter를 연속 입력해도 원래 줄을 지우지 않는다', () => {
+  render(draw(<Harness initial="남아야 하는 문장" />))
+  select([1, 1], [1, '남아야 하는 문장'.length + 1])
+  const selection = document.getSelection()!
+  selection.modify = () => selection.collapse(surface().lastElementChild, surface().lastElementChild!.childNodes.length)
+  try {
+    act(() => {
+      toast().exec('blockQuote')
+      fireEvent.keyDown(surface(), { key: 'End', code: 'End' })
+      fireEvent.keyDown(surface(), { key: 'Enter', code: 'Enter' })
+    })
+    expect(toast().getMarkdown()).toBe('> 남아야 하는 문장\n')
+  } finally { delete (selection as Partial<Selection>).modify }
+})
 const png = () => new File(['png'], '본문.png', { type: 'image/png' })
 
 type HarnessProps = {

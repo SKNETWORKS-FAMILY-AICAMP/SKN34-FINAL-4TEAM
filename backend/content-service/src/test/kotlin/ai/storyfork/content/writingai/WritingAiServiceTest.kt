@@ -7,6 +7,7 @@ import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.context.service.dto.QaScope
 import ai.storyfork.content.context.service.dto.QaScopeRequest
 import ai.storyfork.content.episode.service.EpisodeService
+import ai.storyfork.content.fork.repository.ForkRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.WritingAiService
@@ -26,9 +27,10 @@ class WritingAiServiceTest {
     private val grants = QaScopeGrants()
     private val access = mock(WorkAccessService::class.java)
     private val episodes = mock(EpisodeService::class.java)
-    private val service = WritingAiService(scopes, grants, client, access, episodes)
+    private val forks = mock(ForkRepository::class.java)
+    private val service = WritingAiService(scopes, grants, client, access, episodes, forks)
     private val result = JsonMapper.builder().build().readTree("""{"status":"completed"}""")
-    private val ask = WritingAiRequest(request = "길드 규칙은?", episode = 2, episodeVersionId = "r2", consent = true)
+    private val ask = WritingAiRequest(request = "길드 규칙은?", episode = 2, episodeVersionId = "r2")
 
     @Suppress("UNCHECKED_CAST")
     private fun sent(): Map<String, Any?> {
@@ -41,8 +43,8 @@ class WritingAiServiceTest {
 
     @Test
     fun `new turn issues a scope token bound to the signed-in author and forwards the author's bearer`() {
-        `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2", "manuscript"))).thenReturn(
-            QaScope("work", null, 2, "r2", emptyList(), null))
+        `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2"))).thenReturn(
+            QaScope("work", null, 2, "r2", emptyList()))
         `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
         val response = service.run("work", "owner", "Bearer user", ask)
         assertEquals(result, response.result)
@@ -53,8 +55,17 @@ class WritingAiServiceTest {
         assertEquals(mapOf("workId" to "work", "episode" to 2), body["target"])
     }
 
-    private fun grounded() = `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2", "manuscript"))).thenReturn(
-        QaScope("work", null, 2, "r2", emptyList(), null))
+    private fun grounded() = `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2"))).thenReturn(
+        QaScope("work", null, 2, "r2", emptyList()))
+
+    @Test
+    fun `a Fork work marks the target as fork for the AI trace while a plain work sends no fork key`() {
+        grounded()
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        `when`(forks.existsById("work")).thenReturn(true)
+        service.run("work", "owner", "Bearer user", ask)
+        assertEquals(mapOf("workId" to "work", "episode" to 2, "fork" to true), sent()["target"])
+    }
 
     @Test
     fun `a target episode after the grounding episode reflects into that episode while the grounding stays as it was`() {
@@ -64,7 +75,7 @@ class WritingAiServiceTest {
         val body = sent()
         assertEquals(mapOf("workId" to "work", "episode" to 5, "baseEpisode" to 2), body["target"])  // 반영은 5화, 지식 상한은 근거 2화
         assertEquals(QaScopeGrant("work", "owner", 2, "r2"), grants.read(token(body["scope"])))  // 근거 조회 범위는 그대로
-        verify(scopes).resolve("work", "owner", QaScopeRequest(2, "r2", "manuscript"))
+        verify(scopes).resolve("work", "owner", QaScopeRequest(2, "r2"))
         verify(episodes).read("work", "owner", 5)  // 반영 회차가 이 작품의 활성 회차인지 확인한다
     }
 
@@ -100,7 +111,7 @@ class WritingAiServiceTest {
         `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
         service.run("work", "owner", "Bearer user", ask.copy(request = null, resume = WritingAiResume(true), threadId = "thread", targetEpisode = 1))
         assertFalse("target" in sent())
-        verifyNoInteractions(episodes)
+        verifyNoInteractions(episodes, forks)
     }
 
     @Test
@@ -116,8 +127,8 @@ class WritingAiServiceTest {
     }
 
     @Test
-    fun `missing consent ambiguous input or resume without thread never reach the model`() {
-        for (bad in listOf(ask.copy(consent = false), ask.copy(resume = WritingAiResume(true)),
+    fun `ambiguous input or resume without thread never reach the model`() {
+        for (bad in listOf(ask.copy(resume = WritingAiResume(true)),
             ask.copy(request = null), ask.copy(request = null, resume = WritingAiResume(false)))) {
             assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", "owner", "Bearer user", bad) }.status)
         }
@@ -159,8 +170,8 @@ class WritingAiServiceTest {
 
     @Test
     fun `message body uses the path thread and edits rerun from the chosen turn`() {
-        `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2", "manuscript"))).thenReturn(
-            QaScope("work", null, 2, "r2", emptyList(), null))
+        `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2"))).thenReturn(
+            QaScope("work", null, 2, "r2", emptyList()))
         val body = service.message("work", "owner", "thread", ask.copy(threadId = "ignored"), fromTurn = 1)
         assertEquals(mapOf("threadId" to "thread", "scope" to scope), body["conversation"])
         assertEquals(1, body["fromTurn"])
@@ -208,8 +219,8 @@ class WritingAiServiceTest {
     private val button = ask.copy(request = "흐름 모드 시뮬레이션: 장면 계획 3개", operation = "character_simulation",
         simulation = WritingAiSimulation("flow", beats = listOf("성문 대면", "숨긴 정체"), characterIds = listOf("k", "l")))
 
-    private fun scopeResolves() = `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2", "manuscript"))).thenReturn(
-        QaScope("work", null, 2, "r2", emptyList(), null))
+    private fun scopeResolves() = `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2"))).thenReturn(
+        QaScope("work", null, 2, "r2", emptyList()))
 
     @Test
     fun `the simulation form of the button reaches the AI as it is with the operation`() {

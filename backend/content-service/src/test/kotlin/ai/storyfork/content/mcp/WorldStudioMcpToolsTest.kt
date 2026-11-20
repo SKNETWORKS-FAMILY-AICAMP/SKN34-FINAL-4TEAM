@@ -51,7 +51,7 @@ class WorldStudioMcpToolsTest {
     @AfterEach fun clear() = SecurityContextHolder.clearContext()
 
     private fun toolsOver(a: WorldStudioService, b: WorkWorldService, c: PublicWorldService, d: InitialWorldAnalysisService, e: InitialWorldApplicationService) =
-        SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(WorldStudioMcpTools(a, b, c, d, e)))
+        SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(WorldStudioMcpTools(a, b, c, d, e, mock(McpChangeNotice::class.java))))
 
     private fun signedIn(): McpTransportContext {
         SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken.authenticated("$member", null, emptyList())
@@ -197,6 +197,37 @@ class WorldStudioMcpToolsTest {
         verify(studio).edit(worldId, member, request)
     }
 
+    @Test fun `world_studio_edit_draft binds relationshipEpisodes as relation id to episode, forwards the same request DTO and tells the caller about it`() {
+        val lira = UUID.fromString("77777777-7777-7777-7777-777777777777")
+        val moon = UUID.fromString("88888888-8888-8888-8888-888888888888")
+        val relation = UUID.fromString("99999999-9999-9999-9999-999999999999")
+        val request = EditWorldDraftRequest(3, "달빛 세계", "", relationships = listOf(RelationshipPayload(relation, lira, moon, "structural", label = "남매")),
+            key = "edit-2", episode = 2, relationshipEpisodes = mapOf(relation to 5))
+        `when`(studio.edit(worldId, member, request)).thenReturn(draft())
+
+        val result = call("world_studio_edit_draft", mapOf("id" to "$worldId", "request" to mapOf(
+            "expectedDraftRevision" to 3, "name" to "달빛 세계", "description" to "", "key" to "edit-2", "episode" to 2,
+            "relationships" to listOf(mapOf("id" to "$relation", "sourceCardId" to "$lira", "targetCardId" to "$moon", "category" to "structural", "label" to "남매")),
+            "relationshipEpisodes" to mapOf("$relation" to 5))), signedIn())
+
+        assertNotEquals(true, result.isError(), result.text())
+        verify(studio).edit(worldId, member, request)
+        val schema = specs.single { it.tool().name() == "world_studio_edit_draft" }.tool().inputSchema().toString()
+        assertTrue("relationshipEpisodes" in schema, schema)
+    }
+
+    @Test fun `world_studio_edit_draft hands a decimal or string relationship episode to the service as an invalid episode instead of rounding it`() {
+        val relation = UUID.fromString("99999999-9999-9999-9999-999999999999")
+        val request = EditWorldDraftRequest(3, "달빛 세계", "", key = "edit-3", relationshipEpisodes = mapOf(relation to 0)) // 0은 회차 검증이 거절한다(422)
+        `when`(studio.edit(worldId, member, request)).thenReturn(draft())
+
+        for (value in listOf<Any>(2.7, "3"))
+            call("world_studio_edit_draft", mapOf("id" to "$worldId", "request" to mapOf("expectedDraftRevision" to 3, "name" to "달빛 세계", "description" to "", "key" to "edit-3",
+                "relationshipEpisodes" to mapOf("$relation" to value))), signedIn())
+
+        verify(studio, times(2)).edit(worldId, member, request)
+    }
+
     @Test fun `world_studio_save_revision forwards the id the caller and the same request DTO`() {
         val saved = WorldRevisionResponse(worldId, revisionId, 1, "달빛 세계", "설명", null, null, emptyList(), null)
         `when`(studio.save(worldId, member, SaveWorldRequest(1, "save-1"))).thenReturn(saved)
@@ -235,8 +266,8 @@ class WorldStudioMcpToolsTest {
     }
 
     @Test fun `public world tools need no caller and forward their optional arguments unchanged`() {
-        `when`(publicWorlds.list(null, null, null)).thenReturn(PublicWorldPageResponse(emptyList(), 0, 24, 0))
-        `when`(publicWorlds.list("fantasy", "1", "10")).thenReturn(PublicWorldPageResponse(emptyList(), 1, 10, 0))
+        `when`(publicWorlds.list(null, null, null, null)).thenReturn(PublicWorldPageResponse(emptyList(), 0, 24, 0))
+        `when`(publicWorlds.list("fantasy", null, "1", "10")).thenReturn(PublicWorldPageResponse(emptyList(), 1, 10, 0))
         `when`(publicWorlds.detail(worldId)).thenReturn(
             PublicWorldResponse(worldId, "달빛 세계", "설명", "fantasy", "작가", "2026-11-13T00:00:00Z", 1, emptyList(), emptyList(), "current"))
 
@@ -249,14 +280,14 @@ class WorldStudioMcpToolsTest {
         assertTrue(page.text().contains("\"page\":1"), page.text())
         assertNotEquals(true, one.isError())
         assertTrue(one.text().contains("\"relationshipStatus\":\"current\""), one.text())
-        verify(publicWorlds).list(null, null, null)
-        verify(publicWorlds).list("fantasy", "1", "10")
+        verify(publicWorlds).list(null, null, null, null)
+        verify(publicWorlds).list("fantasy", null, "1", "10")
         verify(publicWorlds).detail(worldId)
     }
 
     @Test fun `public world tools turn ContentFailure into the HTTP status and detail`() {
         `when`(publicWorlds.detail(worldId)).thenThrow(ContentFailure(404, "세계관을 찾을 수 없습니다."))
-        `when`(publicWorlds.list("nope", null, null)).thenThrow(ContentFailure(422, "genre 값을 확인해 주세요."))
+        `when`(publicWorlds.list("nope", null, null, null)).thenThrow(ContentFailure(422, "genre 값을 확인해 주세요."))
 
         assertEquals(listOf("HTTP 404", "세계관을 찾을 수 없습니다."), call("world_studio_public_read", mapOf("id" to "$worldId")).text().lines())
         assertEquals(listOf("HTTP 422", "genre 값을 확인해 주세요."), call("world_studio_public_list", mapOf("genre" to "nope")).text().lines())
@@ -414,7 +445,7 @@ class WorldStudioMcpToolsTest {
         TransactionSystemException("tx 원고 본문 일부") to listOf("HTTP 503 WORLD_WRITE_UNCONFIRMED", "저장 완료를 확인하지 못했습니다. 입력을 보존하고 동일 요청으로 다시 시도하세요."),
         IllegalStateException("원고 본문 일부") to listOf("HTTP 500", "요청을 처리하지 못했어요."),
     ) + Reason.entries.map { reason ->
-        val status = mapOf(Reason.MIGRATION to 409, Reason.REJECTED to 409, Reason.MISMATCH to 409, Reason.HISTORY to 409, Reason.INCOMPLETE to 503, Reason.UNAVAILABLE to 503).getValue(reason)
+        val status = mapOf(Reason.MIGRATION to 409, Reason.REJECTED to 409, Reason.MISMATCH to 409, Reason.HISTORY to 409, Reason.LINKED to 409, Reason.INCOMPLETE to 503, Reason.UNAVAILABLE to 503).getValue(reason)
         WorldStudioFailure(reason) to listOf("HTTP $status ${reason.code}", reason.detail)
     } + (ContentFailure(404, "작품을 찾을 수 없어요.") to listOf("HTTP 404", "작품을 찾을 수 없어요."))
 

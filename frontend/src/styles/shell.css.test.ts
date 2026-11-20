@@ -96,3 +96,14 @@ describe('storyfork.css 계정 메뉴 계약', () => {
     expect(creditCss).not.toMatch(/#[0-9a-fA-F]{3,8}\b|border-(?:left|right)/)
   })
 })
+
+describe('storyfork.css GNB 검색 버튼 계약 (#505)', () => {
+  // 긴 안내(소설·세계관·설정 카드·캐릭터챗 검색)는 1100px 아래에서 GNB 한 줄에 다 들어가지 않아 짧은 표시(검색)로 바꾼다. 600px 이하는 돋보기 아이콘만(font-size:0)이다.
+  const narrow = (selector: string) => sheet.filter((r) => r.media === '(max-width:1100px)' && r.selectors.includes(selector)).map((r) => r.body.trim())
+
+  it('짧은 표시(.ls)는 기본으로 숨기고 1100px 이하에서 긴 표시(.lf)와 서로 바꿔 보인다', () => {
+    expect(value('.search .ls', 'display')).toBe('none')
+    expect(narrow('.search .lf')).toEqual(['display:none'])
+    expect(narrow('.search .ls')).toEqual(['display:inline'])
+  })
+})

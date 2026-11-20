@@ -342,7 +342,7 @@
     },
     "mapping": {
       "1:m1": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
-      "1:m2": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+      "1:m2": "entity-e1b377e3-4634-5293-88b8-2edbb6ae61db",
       "1:m3": "entity-f47222a3-0608-5ec3-afa7-60228d49856d",
       "2:m1": "entity-b777d45c-085c-5cb2-8f76-47042107e5da",
       "3:m1": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
@@ -359,8 +359,8 @@
           "evidenceEpisode": 1,
           "quote": "길동은 홍길동이라고도 불린다."
         },
-        "status": "merged",
-        "reason": "explicit_alias"
+        "status": "deferred",
+        "reason": "AUTHOR_REVIEW_REQUIRED"
       },
       {
         "link": {
@@ -418,11 +418,9 @@
         "key": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
         "cardType": "character",
         "title": "길동",
-        "aliases": [
-          "홍길동"
-        ],
+        "aliases": [],
         "body": "길동",
-        "firstAppearanceEpisode": 1,
+        "firstEpisode": 1,
         "characterDocs": {
           "soul": "[description] 길동은 약자를 돕는 성격이다.",
           "goal": "[plan] 길동은 산을 넘을 계획이었다.",
@@ -440,7 +438,7 @@
         "title": "홍길동",
         "aliases": [],
         "body": "홍길동",
-        "firstAppearanceEpisode": 2,
+        "firstEpisode": 2,
         "characterDocs": {
           "soul": "",
           "goal": "",
@@ -450,12 +448,25 @@
         }
       },
       {
+        "key": "entity-e1b377e3-4634-5293-88b8-2edbb6ae61db",
+        "cardType": "character",
+        "title": "홍길동",
+        "aliases": [],
+        "body": "홍길동",
+        "firstEpisode": 1,
+        "characterDocs": {
+          "soul": "",
+          "goal": "",
+          "episodes": {}
+        }
+      },
+      {
         "key": "entity-f47222a3-0608-5ec3-afa7-60228d49856d",
         "cardType": "organization",
         "title": "활빈당",
         "aliases": [],
         "body": "활빈당",
-        "firstAppearanceEpisode": 1,
+        "firstEpisode": 1,
         "characterDocs": null
       },
       {
@@ -464,7 +475,7 @@
         "title": "3화 사건 s1",
         "aliases": [],
         "body": "발생: 3화 / 참여: 길동\n[event] 길동은 산을 넘었다.",
-        "firstAppearanceEpisode": 3,
+        "firstEpisode": 3,
         "characterDocs": null
       },
       {
@@ -473,7 +484,7 @@
         "title": "4화 사건 s1",
         "aliases": [],
         "body": "발생: 4화 / 참여: 길동, 활빈당\n[event] 길동은 활빈당을 탈퇴했다.",
-        "firstAppearanceEpisode": 4,
+        "firstEpisode": 4,
         "characterDocs": null
       }
     ],
@@ -491,6 +502,14 @@
         "label": "소속",
         "fromEpisode": 4,
         "ended": true
+      }
+    ],
+    "identityCandidates": [
+      {
+        "fromKey": "entity-e1b377e3-4634-5293-88b8-2edbb6ae61db",
+        "toKey": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+        "episode": 1,
+        "quote": "길동은 홍길동이라고도 불린다."
       }
     ]
   }

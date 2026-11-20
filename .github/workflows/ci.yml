@@ -78,6 +78,18 @@ jobs:
       CORE_RABBITMQ_PASSWORD: synthetic-config-only
       OPERATIONS_SERVICE_TOKEN: synthetic-config-only
       OPENAI_API_KEY: synthetic-config-only
+      # develop·production이 include하는 Langfuse의 필수 값. 보간만 확인하므로 형식은 보지 않는다.
+      LANGFUSE_PUBLIC_KEY: synthetic-config-only
+      LANGFUSE_SECRET_KEY: synthetic-config-only
+      LANGFUSE_DB_PASSWORD: synthetic-config-only
+      LANGFUSE_CLICKHOUSE_PASSWORD: synthetic-config-only
+      LANGFUSE_REDIS_PASSWORD: synthetic-config-only
+      LANGFUSE_MINIO_PASSWORD: synthetic-config-only
+      LANGFUSE_NEXTAUTH_SECRET: synthetic-config-only
+      LANGFUSE_SALT: synthetic-config-only
+      LANGFUSE_ENCRYPTION_KEY: synthetic-config-only
+      LANGFUSE_INIT_USER_EMAIL: ci@example.invalid
+      LANGFUSE_INIT_USER_PASSWORD: synthetic-config-only
       WEB_PORT: "18088"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -98,6 +110,12 @@ jobs:
         run: python3 -I -m unittest discover -s infrastructure/sample-data -p 'test_*.py' -v
       - name: Validate myth template sources without a database
         run: python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p test_traditions.py -v
+      - name: Validate expanded world data without a database
+        run: python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p expanded_test.py -v
+      - name: Validate expanded world relations without a database
+        run: python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates/expanded-relations -p test_merge.py -v
+      - name: Validate simulation demo worlds without a database
+        run: python3 -I -m unittest discover -s infrastructure/sample-data/simulation-demo -p 'test_*.py' -v
 
   unit:
     name: Unit / ${{ matrix.service }}

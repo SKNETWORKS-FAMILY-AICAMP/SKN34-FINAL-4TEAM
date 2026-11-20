@@ -8,6 +8,10 @@ export type SettingItem = {
  polarity: 'asserted'|'denied'; relatedIds: string[]; condition: string; timeText: string; afterId: string|null
  orderEvidence: {sourceId:string;quote:string}[]; evidence: {sourceId:string;quote:string}[]
  origin: 'extraction'|'correction'|'author_addition'|'author_input'; authorText: string|null; decision: 'pending'|'approved'|'rejected'|'held'
+ /** 관계 행의 'N화부터'(DEC-54 2단계): 이 관계의 내용이 보이기 시작하는 회차(연결된 소설의 회차 순번, 1 이상의 정수). 서버가 준 그 관계의 시작 회차(응답의 `relationshipEpisodes`)를 읽어 두고, 작가가 고치면 바뀐 행만 저장 요청의 `relationshipEpisodes`로 보낸다. 서버에 저장하는 관계 본문에는 넣지 않는다. 관계가 아닌 행과, 시작 회차를 아직 모르는 새 관계(소설을 연결하지 않은 세계관은 1화)에는 없다. */
+ fromEpisode?: number
+ /** 서버가 준 그 관계의 기록된 시작 회차를 읽은 그대로 둔 값(`fromEpisode`와 같이 채우고 화면은 고치지 않는다). `fromEpisode`를 이보다 늦추면 서버는 그 회차 연결만 새로 쓰고 기존 연결은 남아(DEC-51) 독자에게는 이 회차부터 보인다. 서버에 아직 없는 새 관계에는 없다. 서버에 저장하는 관계 본문에는 넣지 않는다. */
+ recordedFrom?: number
 }
 /** 설정 카드 단위 공개(DEC-46). 세계관 단위 공개([WorldVisibility])와 다르다. */
 export type CardVisibility = 'private'|'public'
@@ -21,9 +25,9 @@ export type ImportedFrom = {worldId:string;worldName:string;authorNickname:strin
  */
 export type CharacterDocs = {soul:string;goal:string;episodes:Record<number,string>}
 export type StudioSetting = {serverMetadata?:Record<string,unknown>;item:SettingItem;userCategory:string;tags:string[];aliases?:string[]
- /** 카드 단위 공개. 없으면 비공개다. 관계 행에는 쓰지 않는다. */
+ /** 옛 공개 값이다(DEC-53). 새 화면은 `revealFromEpisode`만 정하고 이 값은 회차가 있으면 public, 없으면 지워 맞춰 둔다. 없으면 비공개다. 관계 행에는 쓰지 않는다. */
  visibility?:CardVisibility
- /** 독자 공개 시작 회차(연결된 소설 기준, 1 이상 정수). 없으면 독자에게 숨긴다. */
+ /** 공개 시작 회차('N화부터 공개', 연결된 소설 기준, 1 이상 정수). 없고 `visibility`도 공개가 아니면 작가 전용이다. */
  revealFromEpisode?:number
  /** 다른 세계관에서 가져온 카드의 출처. 직접 만든 카드에는 없다. */
  importedFrom?:ImportedFrom
@@ -33,9 +37,26 @@ export type StudioSetting = {serverMetadata?:Record<string,unknown>;item:Setting
  imageId?:string
  /** 장르 템플릿 카드의 읽기 순서(서버 `semanticMetadata.studio.templateOrder`). 없으면 뒤로 간다. */
  templateOrder?:number}
+/**
+ * 카드의 유효 공개 회차(DEC-53)다: `revealFromEpisode`가 있으면 그 값, 없고 `visibility`가 공개면 1(옛 공개 카드), 그 밖은 작가 전용(undefined).
+ * 서버 `shownCardEpisode`와 같은 규칙이되, 서버 값이 잘못된 경우(키는 있는데 JSON null·문자열·0·소수 등)는 서버가 작가 전용으로 닫으므로 읽는 어댑터(`HttpWorldStudioRepository`)가
+ * 그 카드의 `visibility`를 가져오지 않아 이 함수에 오지 않는다. 입력 중인 0 같은 값은 그대로 돌려주고 `invalidReveal`이 저장을 막는다. 화면은 이 값을 보여 줄 뿐 카드를 거르지 않는다(DEC-46).
+ */
+export const cardRevealEpisode=({revealFromEpisode:n,visibility}:Pick<StudioSetting,'revealFromEpisode'|'visibility'>)=>n??(visibility==='public'?1:undefined)
 /** 독자 공개 회차가 잘못됐는지: 값이 있는데 1 이상의 정수가 아니다. 저장 전 확인([worldWritingIssues])과 저장 검증(WorldStudioUseCase.save)이 같은 규칙·문구를 쓴다. */
 export const REVEAL_EPISODE_ERROR='독자 공개 회차는 1 이상의 정수로 입력해 주세요.'
 export const invalidReveal=({revealFromEpisode:n}:Pick<StudioSetting,'revealFromEpisode'>)=>n!==undefined&&!(Number.isInteger(n)&&n>=1)
+/**
+ * 관계의 N화부터(`fromEpisode`)가 잘못됐는지: 값이 있는데 1 이상의 정수가 아니다. 값이 없는 것은 여기서 거르지 않는다(소설을 연결하지 않은 세계관은 1화이고,
+ * 연결한 세계관의 새로 쓰거나 바꾼 관계만 값이 필요해 `lacksRelationFrom`을 저장 전 확인([worldWritingIssues])·관계 편집 패널·저장소가 따로 본다). 입력 칸·저장 전 확인·저장 검증이 같은 문구를 쓴다.
+ */
+export const RELATION_FROM_ERROR='관계가 몇 화부터인지 1 이상의 정수로 입력해 주세요.'
+export const invalidRelationFrom=({fromEpisode:n}:Pick<SettingItem,'fromEpisode'>)=>n!==undefined&&!(Number.isInteger(n)&&n>=1)
+/** 관계의 N화부터가 비었거나 잘못됐는지(소설을 연결한 세계관에서 새로 쓰거나 바꾼 관계에 필요한 값이 없다). */
+export const lacksRelationFrom=(item:Pick<SettingItem,'fromEpisode'>)=>item.fromEpisode===undefined||invalidRelationFrom(item)
+/** 이미 기록된 시작 회차(`recordedFrom`)보다 늦춘 N화부터면 그 기록된 회차, 아니면 undefined다. 늦춰도 기존 연결이 남아 독자에게는 기록된 회차부터 보이므로 입력 칸이 알리고 공개 순서 경고는 둘 중 이른 회차로 계산한다. */
+export const delayedRelationFrom=({fromEpisode:n,recordedFrom:m}:Pick<SettingItem,'fromEpisode'|'recordedFrom'>)=>n!==undefined&&m!==undefined&&n>m?m:undefined
+export const relationFromDelayedNote=(recorded:number)=>`이미 ${recorded}화부터 기록돼 있어 독자에게는 ${recorded}화부터 보여요(늦추려면 관계를 끝내고 다시 만드세요)`
 /** 관계 기준 회차(DEC-51, 연결된 소설의 회차 순번): 값이 있으면 1 이상의 정수여야 하고, 없으면(`null`) 최신 회차다. 조회·저장 검증(`invalidRelationEpisode`)과 입력 칸(`relationEpisodeInput`)이 같은 규칙·문구를 쓴다. */
 export const RELATION_EPISODE_ERROR='관계 기준 회차는 1 이상의 정수로 입력해 주세요.'
 export const invalidRelationEpisode=(n:number)=>!(Number.isInteger(n)&&n>=1)

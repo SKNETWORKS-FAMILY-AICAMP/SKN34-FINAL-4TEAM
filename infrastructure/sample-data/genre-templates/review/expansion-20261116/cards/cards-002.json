@@ -1,0 +1,3018 @@
+[
+  {
+    "id": "ff0a8174-c1f6-52f4-9d12-74d1211a6c72",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "vermont-flood",
+    "title": "1927년 버몬트 홍수의 목격담",
+    "cardType": "event",
+    "body": "홍수 뒤 세 강에서 낯선 형체를 보았다는 이야기가 신문과 편지로 전해진다. 화자는 부풀어 오른 시신이나 동물을 전설에 비추어 잘못 봤을 가능성을 제기한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 3번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3ebe742d-7070-579f-addf-ff0a7441f34d",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "flood-creatures",
+    "title": "홍수 속 분홍빛 형체의 증언",
+    "cardType": "other",
+    "body": "목격자들은 물에 떠내려간 것이 분홍색 갑각형 몸과 날개, 여러 다리를 가졌다고 주장한다. 화자는 서로 닮은 보고가 공통 전설의 영향을 받았을 수 있다고 본다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 4번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-vii/migo-invasion (균류와 갑각류를 닮은 침입자): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-wid--section-i/winged-folklore (산속 날개 달린 존재의 전설): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-wid--section-i/nepal-comparison (히말라야 미고와의 비교): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fc771f8d-bc1c-51dc-a8eb-9d3d52669cea",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "davenport-monograph",
+    "title": "일라이 대번포트의 민속지",
+    "cardType": "object",
+    "body": "화자는 버몬트의 오래된 주민들에게 1839년 이전 구술로 들은 자료를 담았다는 희귀한 일라이 대번포트의 책으로 산속 전설을 알게 되었다고 한다. 작품 속 자료다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 5번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e82b8163-b318-52b2-a051-44426279919c",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "hill-signs",
+    "title": "산속 돌무리와 막힌 동굴",
+    "cardType": "location",
+    "body": "화자가 요약한 지역 전설에는 발자국과 풀 닳은 돌무리, 바위로 막힌 듯한 산비탈 동굴이 나온다. 흔적의 방향과 인공 여부는 전언에서 불확실하다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 6번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f8b2a630-757e-585a-b50d-2922de0c71df",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "winged-folklore",
+    "title": "산속 날개 달린 존재의 전설",
+    "cardType": "other",
+    "body": "전설 속 존재는 여러 다리와 등날개를 지닌 붉은 게처럼 묘사되며 숲 개울에서 무리 지어 걷거나 밤에 난다는 목격담이 있다. 이는 전해진 이야기다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 7번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-vii/migo-invasion (균류와 갑각류를 닮은 침입자): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-wid--section-i/flood-creatures (홍수 속 분홍빛 형체의 증언): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-wid--section-i/nepal-comparison (히말라야 미고와의 비교): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3453a413-9e36-5b73-8e32-63eed2672e5c",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "settler-avoidance",
+    "title": "정착을 꺼리는 산과 골짜기",
+    "cardType": "rule",
+    "body": "전설은 사람의 실종과 불타버린 농가를 산속 존재에게 돌렸고 후대로 갈수록 이유가 잊혀져도 일부 산지의 정착을 꺼렸다고 화자는 서술한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 8번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dc2993d1-a8c2-51cd-a66d-5c4714f79534",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "buzzing-voices",
+    "title": "사람 말을 흉내 내는 윙윙거림",
+    "cardType": "ability",
+    "body": "후기의 지역 전설에서는 숲길의 혼자 걷는 사람에게 사람 말을 흉내 내는 윙윙거리는 목소리가 제안을 한다. 확인된 사건이 아닌 소문이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 9번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3beba128-9a2b-5158-a815-5c364d8bcf49",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "recluse-accusations",
+    "title": "은둔자에게 향한 공모 의혹",
+    "cardType": "event",
+    "body": "화자가 요약한 후기 전설에는 이상하다고 여겨진 농부나 은둔자가 산속 존재와 결탁했다는 비난이 나온다. 서술은 낙인과 소문이지 공모의 증거가 아니다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 9번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ca9057f6-ef3c-599a-bc0b-8379e99be5fe",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "pennacook-mines",
+    "title": "소설 속 페너쿡 전승의 별과 광산",
+    "cardType": "other",
+    "body": "화자가 페너쿡의 전승이라고 소개하는 이야기에서는 날개 달린 존재가 큰곰자리에서 와 산에서 다른 별에 없는 돌을 캐 운반한다. 실제 원주민 전승의 독립적 검증은 하지 않았다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 11번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e3dcd73b-3c62-5f89-80c3-f00f1b8ad51d",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "pennacook-food",
+    "title": "소설 속 전승의 외계 식량",
+    "cardType": "rule",
+    "body": "화자가 전한 페너쿡 이야기에서는 날개 달린 존재가 지구의 동식물을 먹지 못해 별에서 식량을 가져온다. 소설 속 전언으로 남긴다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 11번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "22640c9e-3b6d-5652-b5bd-1979f3d492fb",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "pennacook-colour",
+    "title": "소설 속 전승의 색으로 하는 대화",
+    "cardType": "ability",
+    "body": "화자가 인용한 전설에서 존재들은 머리의 색을 바꿔 서로 뜻을 전하고 여러 인간 언어를 안다. 소설 속 전승이며 실제 구술 자료로 확인된 것은 아니다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 11번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9d6b9875-89d0-5b6f-a5d5-19eb6f14e6b9",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "folk-names",
+    "title": "산속 존재를 부르는 여러 이름",
+    "cardType": "other",
+    "body": "화자는 식민 이주민이 이를 악마의 사역자나 요정과 연결하고 지역에 따라 옛 존재라고 불렀다고 소개한다. 같은 이름을 쓰는 다른 작품의 존재와 동일하다고 확정하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 10번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "기존 source/runtime old-ones-usage 및 great-old-ones: 용례는 겹칠 수 있으나 동일 종족이라는 뜻은 아님"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "88943e5c-dbfd-5f54-bc07-575e8d977754",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "nepal-comparison",
+    "title": "히말라야 미고와의 비교",
+    "cardType": "other",
+    "body": "화자는 버몬트 소문의 유사 사례로 네팔 산악 지역의 미고를 거론하며 이것이 사실이라는 지인들의 주장을 비웃는다. 실제 전승을 검증한 서술이 아니다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 14번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-vii/migo-invasion (균류와 갑각류를 닮은 침입자): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-wid--section-i/flood-creatures (홍수 속 분홍빛 형체의 증언): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-wid--section-i/winged-folklore (산속 날개 달린 존재의 전설): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1eac5d78-9aaa-5ca0-a05c-37d543548aff",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "henry-akeley",
+    "title": "헨리 웬트워스 애클리",
+    "cardType": "character",
+    "body": "버몬트의 은둔 연구자로 민속학과 자연과학을 공부했으며 윌마스에게 숲의 현상을 알리는 편지를 보낸다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 헨리 웬트워스 애클리 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자가 이웃과 아들에게서 얻은 정보와 편지에 근거한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "890d9734-2eb9-536b-974c-f01ca65e68d0",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "albert-wilmarth",
+    "title": "앨버트 N. 윌마스",
+    "cardType": "character",
+    "body": "홍수 뒤의 기이한 시신 이야기를 회의적으로 논하던 학자이자 서술자. 애클리의 편지와 사진을 읽으며 입장을 바꾼다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 앨버트 N. 윌마스 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "서술은 회고와 개인적인 추론이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4dbe0288-611f-5a2d-83d7-0fffaeb0438f",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "round-hill-black-stone",
+    "title": "라운드 힐의 검은 돌",
+    "cardType": "object",
+    "body": "애클리가 라운드 힐 숲에서 발견해 집에 가져온 큰 돌. 닳은 상형문자가 있고 윌마스는 사진에서 일부 기호를 알아본다고 여긴다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 19(애클리의 돌 발견)와 33(윌마스의 사진 판독)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "문자의 정확한 해독 내용은 이 구간에서 제시되지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "03dd08f1-7e35-5ad1-89cb-7d15ca3978cd",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "hill-mining-colony",
+    "title": "언덕 아래 외부 존재의 채굴지",
+    "cardType": "location",
+    "body": "애클리는 외부 존재들이 언덕 깊은 광산에서 금속을 채굴하며 인간에게 들키지 않기를 바란다고 주장한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 언덕 아래 외부 존재의 채굴지 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "애클리의 추정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "96a5bc01-b23b-5de4-a6cd-0ff3cfac9256",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "outer-winged-beings",
+    "title": "날개 달린 외부 존재",
+    "cardType": "other",
+    "body": "애클리는 이들이 우주 공간을 날아다니지만 지구에서 짧은 비행을 조종하기는 어렵다고 말한다. 후에 두 사람은 히말라야의 미고와 같다고 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 날개 달린 외부 존재 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "애클리와 윌마스가 전승을 연결한 해석이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4333d135-bb89-5257-aabe-62571b02b07d",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "akeley-phonograph",
+    "title": "숲의 소리를 담은 축음기 기록",
+    "cardType": "object",
+    "body": "애클리가 숲에서 녹음한 기록. 지역 노인들은 한 목소리가 조상들에게서 전해 들은 윙윙거림과 비슷하다고 반응한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 숲의 소리를 담은 축음기 기록 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "녹음 내용과 정체에 대한 판단은 편지 속 전언이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7b29faf5-b633-5aa0-8bec-f1a9fe9d6dc5",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "round-hill",
+    "title": "라운드 힐",
+    "cardType": "location",
+    "body": "애클리가 문자 새겨진 검은 돌을 발견한 외딴 숲이 있는 언덕으로 그의 집 동쪽에 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 라운드 힐 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a39ea5b5-ed8f-50ea-b39b-43fce28c198d",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "dark-mountain-farm",
+    "title": "다크 마운틴의 애클리 농가",
+    "cardType": "location",
+    "body": "타운젠드 남쪽 다크 마운틴 비탈의 오래된 집. 애클리는 개를 두고 지키며 밤에 다가오는 것들 탓에 일손을 구하지 못한다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 다크 마운틴의 애클리 농가 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "야간 침입자의 정체는 애클리의 주장이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "29158134-150c-5a9d-b622-4c52b479b3f5",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "clawprint-photo",
+    "title": "갈고리 발자국 사진",
+    "cardType": "object",
+    "body": "윌마스가 본 사진에는 사람 발만 한 자국과 중앙 패드 양옆의 톱니 모양 집게가 담겨 있으며 진행 방향이 불분명하다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 갈고리 발자국 사진 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "사진의 대상과 방향에 대한 판단은 화자의 해석이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d56e294c-6326-5375-9e40-c9883cfb6922",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "stone-circle-photo",
+    "title": "언덕의 선돌 고리",
+    "cardType": "location",
+    "body": "사진에 찍힌 외딴 언덕 꼭대기의 둥근 선돌 배열. 주변 풀은 짓밟혀 있으나 윌마스는 발자국을 식별하지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 언덕의 선돌 고리 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "드루이드에 비유했을 뿐 기원이나 사용자는 확인되지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "435b96f4-3731-54ee-b96b-c446743b4ecb",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "wood-cave-photo",
+    "title": "바위로 막힌 숲속 동굴 입구",
+    "cardType": "location",
+    "body": "사진 속 숲의 동굴 입구는 둥근 바위에 막혀 있고 앞의 맨땅에는 기묘한 자국들이 얽혀 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 바위로 막힌 숲속 동굴 입구 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "다른 자국과 같다는 것은 화자의 판단이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7de5fe8a-299d-570b-9034-57286324fe1f",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "walter-brown",
+    "title": "월터 브라운에 대한 의심",
+    "cardType": "character",
+    "body": "애클리는 근처 농부 브라운이 외부 존재를 위해 감시하는 자일지도 모른다고 윌마스에게 경고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 월터 브라운에 대한 의심 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-iii의 월터 브라운 후보"
+    ],
+    "uncertainties": [
+      "첩자라는 것은 애클리의 의심이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e6d07829-4118-5694-bd71-a1898ba3c1d6",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-ii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "necronomicon",
+    "title": "대학에 잠긴 네크로노미콘",
+    "cardType": "object",
+    "body": "애클리는 네크로노미콘에 인간 이전의 요그 소토스와 크툴루 관련 신화가 암시되며 대학 도서관 소장본이 잠겨 있다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 II절, 대학에 잠긴 네크로노미콘 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source/runtime의 네크로노미콘 및 네크로노미콘의 대학 소장본"
+    ],
+    "uncertainties": [
+      "편지의 설명이며 다른 작품의 판본과 대조 필요."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d1ff4600-d84e-5150-88d1-26293ecbd310",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "walter-brown",
+    "title": "월터 브라운",
+    "cardType": "character",
+    "body": "애클리는 숲 근처에서 혼자 사는 농부 브라운의 목소리와 집 근처 발자국을 근거로 그를 외부 존재의 협력자로 의심한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 III절, 월터 브라운 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-ii의 브라운 후보"
+    ],
+    "uncertainties": [
+      "인물의 실제 역할은 이 구간만으로 확정되지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "224264c1-8cfc-59e5-89b2-8738dcc8770e",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "may-eve-recording",
+    "title": "메이 이브 숲의 의식 녹음",
+    "cardType": "event",
+    "body": "애클리는 1915년 5월 1일 새벽 리스 늪의 동굴 근처에서 사람 목소리와 윙윙거리는 응답이 뒤섞인 단편을 녹음했다고 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 III절, 메이 이브 숲의 의식 녹음 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-ii의 축음기 기록 후보"
+    ],
+    "uncertainties": [
+      "채록과 전사는 애클리의 것이며 윌마스가 기억을 바탕으로 재현한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "82045bbd-3de8-5a7a-a832-59025d92616d",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "shub-niggurath",
+    "title": "슈브 니구라스의 의식 호칭",
+    "cardType": "other",
+    "body": "녹음된 의식의 목소리들은 슈브 니구라스를 숲의 검은 염소이자 천 마리 새끼의 염소로 부르며 찬양한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 III절, 슈브 니구라스의 의식 호칭 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source/runtime의 슈브 니구라스의 이름"
+    ],
+    "uncertainties": [
+      "의식 화자의 발언이며 존재의 성격을 추가로 단정할 수 없다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7db0fcc8-48d8-5926-ac8c-65301639ee4a",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "nyarlathotep",
+    "title": "의식 속 나이알라토텝",
+    "cardType": "character",
+    "body": "녹음에서 윙윙거리는 목소리는 나이알라토텝을 강력한 전령이라 부르며 모든 일을 전해야 한다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 III절, 의식 속 나이알라토텝 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-viii의 회의 목소리 후보"
+    ],
+    "uncertainties": [
+      "끊긴 의식 전사의 발언이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "50cab48c-e49b-5950-8f04-4a4ba3d3744f",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "black-stone-lost",
+    "title": "검은 돌 수송품의 실종",
+    "cardType": "event",
+    "body": "애클리가 벨로스폴스에서 보냈다는 검은 돌 상자는 보스턴과 아컴에 도착하지 않았다. 역의 낯선 남자가 상자를 물었다는 증언만 남는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 III절, 검은 돌 수송품의 실종 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-ii의 검은 돌 후보"
+    ],
+    "uncertainties": [
+      "분실 원인과 행방은 밝혀지지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "411abcd7-89b1-5e15-a1d6-446fe5e1057f",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "stanley-adams",
+    "title": "스탠리 애덤스라는 남자",
+    "cardType": "character",
+    "body": "킨 역에서 무거운 상자를 찾던 낯선 남자. 점원은 그의 걸쭉한 목소리를 듣고 어지럽고 졸렸다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 III절, 스탠리 애덤스라는 남자 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "이름의 진위와 실종 사건에 대한 책임은 확인되지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a8961851-b6e7-5e4a-a65d-3605ca549f5a",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "human-outer-alliance",
+    "title": "인간과 외부 존재의 연계에 대한 추론",
+    "cardType": "rule",
+    "body": "녹음과 편지를 검토한 두 사람은 일부 인간과 외부 존재 사이에 오래된 동맹이 있다고 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 III절, 인간과 외부 존재의 연계에 대한 추론 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "두 사람의 추론이며 범위와 현재 상태는 모른다고 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5ae85883-2a9c-534f-a1e6-a47ed55fd408",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iv",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "farmhouse-siege",
+    "title": "애클리 농가의 밤 포위",
+    "cardType": "event",
+    "body": "애클리는 달 없는 밤 총격과 발자국이 이어지고 개들이 죽었으며 전화선도 끊겼다고 편지로 보고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 IV절, 애클리 농가의 밤 포위 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-ii의 농가 후보"
+    ],
+    "uncertainties": [
+      "윌마스가 기억으로 재구성한 편지의 주장이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "56acd880-8494-5bc1-8ae0-8505260b5213",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iv",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "forged-telegram",
+    "title": "애클리 이름을 도용한 전보",
+    "cardType": "event",
+    "body": "윌마스의 도움 제안을 만류하는 전보가 도착하지만 애클리는 발송도 관련 편지 수령도 부인한다. 서명에는 이름 철자 오류가 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 IV절, 애클리 이름을 도용한 전보 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-iii의 스탠리 애덤스 후보와 발송자 유사성 검토"
+    ],
+    "uncertainties": [
+      "발송자의 실제 정체는 확정되지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "97c5aebf-f976-5c8f-b40d-f9cd569e523a",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iv",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "green-ichor",
+    "title": "녹색 끈적한 체액",
+    "cardType": "other",
+    "body": "총격 뒤 애클리는 악취가 나는 녹색 액체가 마당과 지붕에 남았고 죽은 생물의 체액이라고 여긴다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 IV절, 녹색 끈적한 체액 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "체액이라는 것은 애클리의 추론이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bec500e1-f1dd-5e61-b91c-c7e29afb44cc",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iv",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "unphotographable-remains",
+    "title": "사라지는 생물 사체",
+    "cardType": "other",
+    "body": "애클리는 개가 가져온 게 같은 사체를 만졌으나 몇 시간 만에 사라졌고 사진에는 헛간만 찍혔다고 보고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 IV절, 사라지는 생물 사체 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "사체를 본 사람은 애클리뿐이며 윌마스는 사진 실패가 실수일 가능성도 생각한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ac709004-a936-5604-8fee-b3fc60451d86",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iv",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "george-akeley",
+    "title": "조지 구드이너프 애클리",
+    "cardType": "character",
+    "body": "헨리 애클리의 캘리포니아 거주 아들. 애클리는 연락이 끊기면 아들에게 편지를 보내 달라고 윌마스에게 부탁한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 IV절, 조지 구드이너프 애클리 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "헨리의 편지에 등장하며 직접 대화하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "81d37585-18df-5f15-87f0-8e611b81ee92",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-iv",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "transport-threat",
+    "title": "강제 우주여행에 대한 경고",
+    "cardType": "event",
+    "body": "애클리는 방문자들이 자신을 살아 있는 상태에 준하는 방식으로 유고스와 그 너머로 데려가려 한다며 윌마스에게 접근하지 말라고 경고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 IV절, 강제 우주여행에 대한 경고 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-vii의 뇌 운반 후보"
+    ],
+    "uncertainties": [
+      "편지에 담긴 애클리의 공포와 주장이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3d671a37-f500-5b50-935c-fe3e78afe902",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-v",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "typed-invitation",
+    "title": "갑작스레 태도가 바뀐 타자 편지",
+    "cardType": "event",
+    "body": "공포에 찬 편지 직후 애클리 명의의 타자 편지는 외부 존재와 화해했다고 주장하며 윌마스에게 편지와 녹음과 사진을 가지고 오라고 초대한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 V절, 갑작스레 태도가 바뀐 타자 편지 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "서명만으로 작성자의 신원을 확정할 수 없다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a4ceedcd-9302-5220-82c5-d12ba4d45769",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-v",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "outer-beings-fungoid",
+    "title": "외부 존재의 균류 비슷한 신체",
+    "cardType": "other",
+    "body": "타자 편지는 외부 존재가 균류와 비슷하되 알려진 균류와 다른 조직을 가졌으며 일반 필름에 찍히지 않는 물질로 이루어졌다고 설명한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 V절, 외부 존재의 균류 비슷한 신체 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-iv의 사라지는 사체 후보"
+    ],
+    "uncertainties": [
+      "의심스러운 편지의 설명이며 과학적 사실이 아니다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4d4a5bb7-940e-5f09-912c-8f666dcd3a5d",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-v",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "outer-telepathy",
+    "title": "외부 존재의 의사소통",
+    "cardType": "ability",
+    "body": "편지에 따르면 그들은 평소 텔레파시로 소통하고 간단한 수술로 발성기관을 고쳐 인간의 말을 흉내 낼 수 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 V절, 외부 존재의 의사소통 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "타자 편지의 주장이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bf912cec-4aff-5989-8988-82bc2c317c64",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-v",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "yuggoth",
+    "title": "해왕성 바깥의 유고스",
+    "cardType": "location",
+    "body": "타자 편지는 태양계 가장자리의 어둡고 아직 발견되지 않은 아홉 번째 행성을 유고스라 부르며 외부 존재의 주요 거점이라고 주장한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 V절, 해왕성 바깥의 유고스 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-vii 및 viii의 유고스 후보"
+    ],
+    "uncertainties": [
+      "의심스러운 편지의 주장이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "427ca6c8-12f8-533f-a525-6f713b4f3208",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-v",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "hastur-yellow-sign-cult",
+    "title": "하스터와 황색 인장에 연결된 집단",
+    "cardType": "organization",
+    "body": "타자 편지는 외부 존재를 추적하고 해치려는 인간 집단이 하스터와 황색 인장에 관련되며 편지를 훔쳤다고 주장한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 V절, 하스터와 황색 인장에 연결된 집단 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "정체와 역할은 일방적 주장으로 확인되지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6f6f520c-925e-5718-96fc-eff7095eb10c",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vi",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "noyes",
+    "title": "노예스",
+    "cardType": "character",
+    "body": "브래틀버러 역에서 윌마스를 맞아 애클리의 집으로 데려간 세련된 남자. 그는 애클리가 천식으로 직접 오지 못했다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VI절, 노예스 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-vii와 viii의 노예스 후보"
+    ],
+    "uncertainties": [
+      "천식 설명은 노예스의 말이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "124597a5-e167-5599-ab54-c83cb35fb082",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vi",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "akeley-farm",
+    "title": "다크 마운틴 농가의 방문",
+    "cardType": "location",
+    "body": "윌마스가 도착한 흰 농가 뒤에는 창고와 방앗간, 습지와 다크 마운틴의 숲이 있다. 현장에는 개와 가축의 소리가 없다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VI절, 다크 마운틴 농가의 방문 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-ii의 농가 후보"
+    ],
+    "uncertainties": [
+      "가축이 없는 이유는 이 장면에서 확인되지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8045fdef-64bb-5387-84fa-995837ed7a5d",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vi",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "fresh-clawprints",
+    "title": "농가 앞의 최근 발자국",
+    "cardType": "event",
+    "body": "윌마스는 집으로 난 길목에서 애클리의 사진과 비슷한 집게 자국 세 개 이상을 직접 보았다고 생각한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VI절, 농가 앞의 최근 발자국 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-ii의 발자국 사진 후보"
+    ],
+    "uncertainties": [
+      "외부 존재의 자국이라는 판단은 화자의 해석이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8f1a0012-1d76-5d4c-9cdc-8454de7085f5",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vi",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "west-river",
+    "title": "웨스트 강",
+    "cardType": "location",
+    "body": "브래틀버러에서 농가로 향하는 길을 따라 흐르는 강. 윌마스는 홍수 뒤 게처럼 생긴 시신이 목격되었다는 신문 보도를 떠올린다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VI절, 웨스트 강 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "시신 목격은 신문 보도에 관한 회상이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "802cca29-6908-5d12-a445-4f56ed8b67ce",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "masked-host",
+    "title": "어두운 서재의 애클리로 보이는 손님맞이",
+    "cardType": "character",
+    "body": "노란 천을 두르고 얼굴과 손만 보이는 인물이 애클리처럼 윌마스를 맞는다. 거의 움직이지 않으며 기묘한 속삭임으로 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VII절, 어두운 서재의 애클리로 보이는 손님맞이 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-viii의 얼굴과 손 후보"
+    ],
+    "uncertainties": [
+      "당시 윌마스는 본인을 애클리로 생각했으나 정체는 불확실하다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5784b46f-2d81-5166-96b7-56ade716eb6e",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "yuggoth-cities",
+    "title": "유고스의 창 없는 도시",
+    "cardType": "location",
+    "body": "서재의 속삭이는 인물은 유고스에 검은 돌로 만든 계단식 도시와 창 없는 집과 사원, 어두운 강과 오래된 다리가 있다고 묘사한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VII절, 유고스의 창 없는 도시 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-v의 유고스 후보"
+    ],
+    "uncertainties": [
+      "정체가 의심스러운 인물의 설명이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d17063fa-5d92-5408-b2e5-87d0bf3680ef",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "underground-worlds",
+    "title": "지하의 세 세계",
+    "cardType": "location",
+    "body": "속삭이는 인물은 지하에 푸른 빛의 크느얀, 붉은 빛의 요스, 빛 없는 느카이가 있으며 버몬트 언덕에도 입구가 있다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VII절, 지하의 세 세계 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "인물의 설명이며 실제로 방문하거나 확인하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "df771960-1ebc-5252-b71f-d2313ef94566",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "tsathoggua",
+    "title": "느카이에서 왔다는 차토구아",
+    "cardType": "character",
+    "body": "속삭이는 인물은 차토구아를 느카이에서 온 형태 없는 두꺼비 같은 신적 존재라고 부르며 여러 문헌과 신화 주기를 언급한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VII절, 느카이에서 왔다는 차토구아 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "속삭이는 인물의 진술이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a0e3abad-9632-5223-9012-3445e266d91d",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "brain-cylinder",
+    "title": "뇌 운반용 금속 원통",
+    "cardType": "object",
+    "body": "속삭이는 인물의 설명에 따르면 적출한 뇌를 유고스의 금속으로 만든 기밀 원통과 보존액에 담고 전극을 감각 장치에 연결한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VII절, 뇌 운반용 금속 원통 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-viii의 애클리 이름이 붙은 원통 후보"
+    ],
+    "uncertainties": [
+      "시술의 안전과 가능 여부는 화자의 의심 속에 제시된 주장이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f9625669-78b3-533c-ab9f-77dae725fd58",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "faculty-machines",
+    "title": "원통에 연결하는 감각 장치",
+    "cardType": "object",
+    "body": "눈처럼 렌즈가 달린 장치, 음성 장치, 금속 원판 장치를 원통의 소켓에 연결해 시각·청각·발화를 제공한다고 설명한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VII절, 원통에 연결하는 감각 장치 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "기능 설명은 속삭이는 인물과 원통 화자의 주장이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d594dc5a-abef-5328-8d83-9725f388587b",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "round-hill-outpost",
+    "title": "라운드 힐 내부의 거점",
+    "cardType": "location",
+    "body": "속삭이는 인물은 라운드 힐 안의 거점에 다양한 감각을 가진 존재들의 뇌 원통과 대응 장치가 있다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VII절, 라운드 힐 내부의 거점 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-ii의 라운드 힐 후보"
+    ],
+    "uncertainties": [
+      "실제 거점 내부는 이 구간에서 방문하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "03dd74bb-a142-5715-8780-24bac29df65d",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "b67",
+    "title": "B-67 원통의 인간 화자",
+    "cardType": "character",
+    "body": "장치로 말하는 익명의 인물은 자신이 외부 존재의 인간 협력자이며 신체는 라운드 힐 안에 있고 뇌만 원통에 있다고 주장한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VII절, B-67 원통의 인간 화자 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "장치의 정체와 화자의 설명은 윌마스가 독립 확인하지 못했다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "982d897c-11ba-53b2-9e75-d8814951e4f4",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "noyes-record-voice",
+    "title": "녹음의 목소리와 노예스",
+    "cardType": "event",
+    "body": "B-67의 화자는 노예스가 오래된 협력자이며 애클리가 보낸 녹음 속 목소리라고 말한다. 윌마스는 이를 듣고 충격받는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VII절, 녹음의 목소리와 노예스 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-vi의 노예스와 section-iii의 녹음 후보"
+    ],
+    "uncertainties": [
+      "원통 화자의 주장과 윌마스의 인식에 근거한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c6f9dcd0-4cb6-5674-8b96-36333dc42419",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-vii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "acrid-coffee",
+    "title": "쓴맛이 도는 커피",
+    "cardType": "object",
+    "body": "윌마스는 농가에서 제공된 커피의 불쾌한 맛 때문에 첫 숟갈만 마시고 나머지를 버린다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VII절, 쓴맛이 도는 커피 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "약물이 들어 있었는지는 확인되지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "50338096-7e65-560d-80d2-114e1918b306",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-viii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "night-conference",
+    "title": "서재 아래층의 밤 대화",
+    "cardType": "event",
+    "body": "잠에서 깼다고 믿는 윌마스는 아래층에서 윙윙거리는 목소리, 기계 음성, 노예스 등 사람의 목소리가 뒤섞인 단편적 대화를 듣는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VIII절, 서재 아래층의 밤 대화 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "윌마스는 꿈과 실제 경험의 경계를 확정하지 못한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7130adda-a6a2-5e8c-bd3e-1637c17df0bc",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-viii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "akeley-cylinder",
+    "title": "애클리 이름이 붙은 원통",
+    "cardType": "object",
+    "body": "윌마스는 서재 탁자에서 애클리의 이름이 붙은 반짝이는 원통을 보지만 음성 장치를 연결하지 않고 떠난다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VIII절, 애클리 이름이 붙은 원통 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-vii의 뇌 원통 후보"
+    ],
+    "uncertainties": [
+      "원통 안에 실제로 무엇이 있는지는 확인되지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fc8107d5-2cd3-503b-85e0-c9886951c893",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-viii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "face-and-hands",
+    "title": "의자에 남은 얼굴과 손",
+    "cardType": "object",
+    "body": "윌마스는 빈 의자에서 애클리의 얼굴과 손을 닮거나 동일해 보이는 세 물체와 금속 고정 장치를 발견했다고 서술한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VIII절, 의자에 남은 얼굴과 손 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-vii의 속삭이는 인물 후보"
+    ],
+    "uncertainties": [
+      "밀랍 제작물인지 실제 신체 일부인지 판정되지 않았고 조사대는 발견하지 못했다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8c4ecaf9-eaa0-5c00-9482-cf4070ead72f",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-viii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "noyes-sleeper",
+    "title": "잠든 노예스",
+    "cardType": "character",
+    "body": "윌마스는 애클리를 깨우려다 거실 소파에서 잠든 노예스를 발견하고 조용히 문을 걸어 잠근다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VIII절, 잠든 노예스 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-vi의 노예스 후보"
+    ],
+    "uncertainties": [
+      "사건은 꿈일 가능성을 화자 스스로 인정한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "755f27be-843d-5ccf-b9a9-cfb2c4f099e4",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-viii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "farm-investigation",
+    "title": "농가 조사와 애클리의 실종",
+    "cardType": "event",
+    "body": "보안관의 수색대는 애클리와 가축들이 사라졌고 집에 총알 자국과 옷이 남아 있음을 확인하지만 원통과 기록은 찾지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VIII절, 농가 조사와 애클리의 실종 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-iv의 농가 포위 후보"
+    ],
+    "uncertainties": [
+      "조사대가 본 것과 윌마스가 그 전에 보았다고 하는 것은 구분한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b45d4651-0e71-520f-aafe-177306a075e5",
+    "batch_id": "batch-03",
+    "unit_id": "cthulhu-wid--section-viii",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "pluto-yuggoth",
+    "title": "명왕성과 유고스의 동일시",
+    "cardType": "other",
+    "body": "윌마스는 해왕성 너머 새로 발견된 명왕성이 편지의 유고스와 같다고 확신한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "《The Whisperer in Darkness》 VIII절, 명왕성과 유고스의 동일시 관련 대목",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-v 및 vii의 유고스 후보"
+    ],
+    "uncertainties": [
+      "동일시는 허구 서술자의 믿음이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "nathaniel",
+    "title": "너새니얼 윙게이트 피슬리",
+    "cardType": "character",
+    "body": "미스캐토닉 대학의 정치경제학 교수이자 화자다. 1908~1913년 기억상실을 겪고 훗날 이상 체험을 기록한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 5번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9abefa66-0500-54f0-b374-717d578c7f1a",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "wingate",
+    "title": "윙게이트 피슬리",
+    "cardType": "character",
+    "body": "화자의 아들로 미스캐토닉 대학 교수다. 아버지를 지지했고 화자의 기록을 받게 된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 4번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c94338c0-1f40-5325-8a88-0166c0311b33",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "family",
+    "title": "피슬리의 가족",
+    "cardType": "other",
+    "body": "피슬리는 앨리스 키저와 결혼해 로버트, 윙게이트, 해나를 두었다. 기억상실기의 낯선 모습은 가족을 두렵게 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 6번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "18f12f7c-65f4-580b-a96d-f87c72873b5c",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "collapse",
+    "title": "1908년 강의실의 붕괴",
+    "cardType": "event",
+    "body": "피슬리는 누군가 자신의 생각을 빼앗으려는 듯한 감각 뒤 수업 중 쓰러졌다. 5년여 뒤 본래 의식이 돌아왔다고 회고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 7번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d3530946-3508-51b3-8b67-4d77f87f509b",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "altered",
+    "title": "피슬리의 낯선 이차 인격",
+    "cardType": "character",
+    "body": "피슬리의 몸으로 깨어난 인격은 자신의 과거를 기억하지 못하는 듯했으며 몸과 언어 사용을 다시 배웠다. 화자의 재구성은 타인 증언에 의존한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 9번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f18af5b9-d2aa-5f80-bcb9-e2c4ddd9df4c",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "learning",
+    "title": "대체 인격의 빠른 학습",
+    "cardType": "ability",
+    "body": "기억상실기의 피슬리는 책을 훑어 세부를 익히고 복잡한 도형을 즉시 해석했다고 전해진다. 타인의 생각에 영향을 미쳤다는 보고는 확정되지 않았다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 17번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "59b4dac4-93ed-5b90-8d42-05875e7b41d5",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "travel",
+    "title": "기억상실기의 탐사 여행",
+    "cardType": "event",
+    "body": "대체 인격은 히말라야, 아라비아, 스피츠베르겐 북쪽과 버지니아 동굴을 찾아갔다. 무엇을 했는지는 화자도 모른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 16번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "816c04cd-e024-573d-b97b-e3025ebef2d8",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "books",
+    "title": "기억상실기의 금서 독서",
+    "cardType": "event",
+    "body": "대체 인격은 여러 금서의 도서관 소장본을 읽고 주석을 남겼다. 비밀 결사와 접촉했다는 소문은 당시 입증되지 않았다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 18번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4ac1dcd6-2918-52e3-bb70-19786d9122ec",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "necronomicon",
+    "title": "네크로노미콘",
+    "cardType": "object",
+    "body": "기억상실기의 피슬리가 주석을 남기며 검토한 금서 중 하나다. 작품은 저자를 압둘 알하즈레드라고 밝힌다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 18번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source/tradition-cards.json 및 runtime의 네크로노미콘, 네크로노미콘의 대학 소장본과 관련 가능; 해당 판본·역할은 구분"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6cd15269-a76c-5002-ad72-3ff5d78be91e",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cultes",
+    "title": "구울의 제의",
+    "cardType": "object",
+    "body": "데를레트 백작의 책으로 기억상실기의 피슬리가 검토한 희귀 금서다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 18번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d6e5e46c-3022-5c3e-980f-d6cb6a792af0",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "vermis",
+    "title": "벌레의 신비",
+    "cardType": "object",
+    "body": "루트비히 프린의 저서로 기억상실기의 피슬리가 검토했다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 18번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6fa8064b-8fe7-51b8-9d7a-abb6bb538d90",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "von-junzt",
+    "title": "말할 수 없는 제의",
+    "cardType": "object",
+    "body": "폰 융츠의 책으로 대체 인격이 읽고 주석을 남긴 금서다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 18번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5f151885-ad57-5276-afa2-3fe59f0dba22",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "eibon",
+    "title": "에이본의 책 단편",
+    "cardType": "object",
+    "body": "현재 전해지는 단편이 피슬리가 기억상실기에 검토한 금서에 포함된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 18번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cc68ce2d-e936-564f-b094-f188079e2da8",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "machine",
+    "title": "막대와 거울의 장치",
+    "cardType": "object",
+    "body": "대체 인격이 여러 제조사의 부품으로 조립해 집에 숨긴 기계다. 가운데 볼록 거울과 막대와 바퀴가 있었고 의식이 돌아온 뒤 사라졌다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 19번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3a72c902-25b8-5dc6-b2d8-512923401b49",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "visitor",
+    "title": "밤에 찾아온 마른 방문자",
+    "cardType": "character",
+    "body": "피슬리의 복귀 직전 방문한 신원 미상 인물이다. 기계를 가져갔는지는 화자의 추정이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 20번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0cef13d5-71f4-5412-9946-961ef92d9bdc",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ashes",
+    "title": "불에 탄 기억상실기 기록",
+    "cardType": "event",
+    "body": "의사 윌슨이 피슬리를 발견했을 때 서재 난로에는 기억상실기에 쓴 종이들이 탄 것으로 보이는 재가 남아 있었다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 21번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c346b3cc-31e0-5078-86fa-57fd95238937",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-i",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "return",
+    "title": "피슬리의 의식 복귀",
+    "cardType": "event",
+    "body": "1913년 9월 27일 피슬리는 낯선 음절을 중얼거린 뒤 1908년 강의를 이어가며 의식을 되찾는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 22번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "43bdac44-21bb-5655-9b9d-cff607239e3c",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-ii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "parallel",
+    "title": "평행한 기억상실 사례",
+    "cardType": "other",
+    "body": "피슬리가 조사한 드문 사례에는 낯선 행동과 지식 습득 뒤 본래 의식이 돌아오고 비슷한 악몽을 겪은 기록이 있다. 세 사례에는 기계도 언급된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 II절, HTML의 br로 나눈 텍스트 조각 8번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-iv / cases와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-vii / shelves와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bd08053e-3082-531d-91fa-79fd5e13a6f5",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-ii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "brief",
+    "title": "짧게 스친 이상 체험",
+    "cardType": "event",
+    "body": "일부 사람에게는 뚜렷한 기억상실 없이 비슷한 악몽의 흔적이 잠깐 나타났다. 화자는 실패한 시간 탐사라는 가능성을 추측한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 II절, HTML의 br로 나눈 텍스트 조각 9번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c8ce8dbe-2af8-5972-94b0-fc22c9577c0a",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-ii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "library",
+    "title": "꿈속의 거대한 서고",
+    "cardType": "location",
+    "body": "피슬리의 꿈에는 둥근 창과 아치, 거대한 서가와 상형문자 책, 크리스털 등불이 있는 석조 방이 나타난다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 II절, HTML의 br로 나눈 텍스트 조각 14번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "24dd1227-eb72-50fc-93aa-86e40ee24547",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-ii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "masonry",
+    "title": "곡면 맞물림 석조",
+    "cardType": "other",
+    "body": "꿈속 건축물은 돌의 볼록한 윗면과 오목한 아랫면이 서로 맞물리고 곡선 수학 무늬로 장식된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 II절, HTML의 br로 나눈 텍스트 조각 14번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3b128803-d8e8-594b-a069-34a504505943",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-ii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "trapdoors",
+    "title": "봉인된 지하 함정문",
+    "cardType": "object",
+    "body": "꿈속 건물 지하에 금속 띠로 봉인된 함정문들이 있고 화자는 막연한 위험을 느낀다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 II절, HTML의 br로 나눈 텍스트 조각 15번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-vii / open-door와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2c3d01ba-f384-5bc7-b2d2-57fffb17f903",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-ii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "city",
+    "title": "정원과 경사로의 꿈 도시",
+    "cardType": "location",
+    "body": "꿈속 거대한 석조 도시에는 넓은 길과 평평한 옥상 정원, 계단 대신 경사로가 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 II절, HTML의 br로 나눈 텍스트 조각 16번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "905e6279-d7e6-591a-94fb-a9254b7d2971",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-ii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "towers",
+    "title": "창 없는 현무암 탑",
+    "cardType": "location",
+    "body": "꿈 도시의 다른 건물보다 오래되고 낡은 원통형 현무암 탑들은 큰 문 외에 구멍이 보이지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 II절, HTML의 br로 나눈 텍스트 조각 17번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-ii / ruins와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-vii / crypt와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0ae155c0-1208-5477-a9cf-e22c17e537c2",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-ii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "gardens",
+    "title": "꿈속 고대 정원",
+    "cardType": "location",
+    "body": "꿈의 정원은 거대한 양치식물과 목본, 기이한 버섯으로 채워져 있고 옥상에는 가지치기 흔적이 보인다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 II절, HTML의 br로 나눈 텍스트 조각 18번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "152f44aa-c4a5-5e80-b0e4-e4384c2305e8",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-ii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sky",
+    "title": "낯선 남반구의 하늘",
+    "cardType": "other",
+    "body": "화자는 꿈속 별자리 배치로 장소가 남반구 남회귀선 부근이라고 짐작한다. 해와 달도 평소와 다르게 보인다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 II절, HTML의 br로 나눈 텍스트 조각 19번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ee8a58de-9971-5c79-bab0-778fbbdb2b4c",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-ii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ruins",
+    "title": "풍화된 현무암 유적지",
+    "cardType": "location",
+    "body": "피슬리는 꿈에서 창 없는 둥근 탑과 비슷한 현무암 폐허가 수 마일에 걸쳐 흩어진 곳을 본다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 II절, HTML의 br로 나눈 텍스트 조각 20번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-ii / towers와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-vii / crypt와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b9964a31-613f-5546-8876-b7b90531ce8f",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "glyphs",
+    "title": "금서의 곡선 상형문자 주석",
+    "cardType": "object",
+    "body": "폰 융츠 책의 주석에는 독일어 수정과 같은 잉크로 적힌 곡선 상형문자가 있다. 사서는 기억상실기의 피슬리가 썼다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 5번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-iv / script와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0466c53a-b840-5ae0-8967-5a8979bcf9ce",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "race",
+    "title": "시간을 정복한 대종족",
+    "cardType": "organization",
+    "body": "화자가 모은 신화와 환각에 따르면 대종족은 다른 시대에 정신을 보내 지식을 모았다. 화자는 진위를 의심한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 8번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bfeed588-0be4-5f4c-bebf-0ca268c4da7f",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "archive",
+    "title": "대종족의 전 시대 도서관",
+    "cardType": "location",
+    "body": "전승에 따르면 대종족은 과거와 미래 종족의 역사, 언어, 기술을 기록해 거대한 서고에 보관한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 9번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-iv / archives와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-vii / entrance와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "78da2ded-1582-53cb-b53b-0962c9ad03e5",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "exchange",
+    "title": "시대를 넘는 정신 교환",
+    "cardType": "ability",
+    "body": "전승에 따르면 장치를 사용해 미래의 지적 생명체에게 정신을 보내면 상대의 정신은 시전자의 몸과 시대로 밀려난다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 10번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "207f4ee4-dbe3-5ea6-8e89-5a506f0870db",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "captives",
+    "title": "교환된 정신의 취급",
+    "cardType": "rule",
+    "body": "전승 속 대종족은 끌려온 정신이 몸을 해치지 못하게 보호하며 질문으로 지식을 얻는다. 필요하면 언어를 재생하는 기계를 이용한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 11번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c28baa61-661b-56fd-a736-696c20d5998c",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "privileges",
+    "title": "포로에게 허용되는 연구와 여행",
+    "cardType": "rule",
+    "body": "포로는 충격이 가신 뒤 주의와 봉사 조건 아래 도서관을 이용하고 비행선이나 원자 동력 도로 차량으로 여행할 수 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a886b18f-231a-54dd-aa01-c83289049252",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "writing",
+    "title": "포로의 자국어 기록",
+    "cardType": "rule",
+    "body": "다른 미래에서 잡힌 정신들이 만날 수 있으며 각자 자기 시대의 기록을 자국어로 작성하도록 권유받는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 13번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fe545476-b250-5543-ae4e-c15a2b9ac4e1",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "exiles",
+    "title": "영구 추방된 정신",
+    "cardType": "other",
+    "body": "죽음을 피하려는 대종족 정신이 미래의 몸을 차지하면 밀려난 정신은 옛 시대에 죽을 때까지 남는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 14번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0324ae2f-12dd-574d-b85d-a5c5f7094af1",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "reverse",
+    "title": "교환의 복귀와 실패 조건",
+    "cardType": "rule",
+    "body": "탐사자는 비슷한 장치로 교환을 되돌린다. 어느 한쪽 몸이 죽었다면 복귀가 불가능하다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 15번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "82065f60-b219-5c18-a614-278c81e5f41a",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "penalties",
+    "title": "동족 정신 탈취에 대한 처벌",
+    "cardType": "rule",
+    "body": "죽어가는 자가 미래 동족의 몸을 차지하면 중한 처벌을 받을 수 있고 때로 강제 재교환이 이뤄진다고 전승은 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 16번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "64a963e3-04f2-54e6-ac52-b88d891157d3",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "erasure",
+    "title": "복귀 포로의 기억 소거",
+    "cardType": "rule",
+    "body": "외래 포로를 돌려보낼 때 대종족은 지식이 전달되어 재앙이 생기는 것을 막으려 기계 최면으로 기억을 지운다고 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 17번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "65f6f3c2-d5f4-5325-9552-338f871636ff",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "pnakotic",
+    "title": "프나코틱 필사본",
+    "cardType": "object",
+    "body": "화자가 소개하는 오래된 신화에 따르면 대종족 시대에서 직접 이어진 물증 중 일부로 남은 문서다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 17번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9d76bd0a-7ad8-5eb8-8157-86cb382386bc",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cult",
+    "title": "시간 여행자를 돕는 인간 결사",
+    "cardType": "organization",
+    "body": "화자가 소개하는 네크로노미콘의 암시에 따르면 인간 결사 하나가 대종족의 여행 정신을 때로 도왔다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 18번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a3021c96-62d0-5b69-804e-df63ac7fad7d",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "migration",
+    "title": "죽어가는 세계에서 온 정신들",
+    "cardType": "event",
+    "body": "전승에 따르면 죽어가는 행성의 주민들이 미래 지구 원뿔형 존재들과 집단 교환해 대종족이 되었다. 밀려난 정신들은 낯선 몸에서 죽었다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 III절, HTML의 br로 나눈 텍스트 조각 19번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-iv / mercury와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-iv / yith와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f73f70b4-daaa-573e-b6ca-0b385e685c32",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "body",
+    "title": "대종족의 원뿔형 몸",
+    "cardType": "other",
+    "body": "꿈속 존재는 비늘 모양의 원뿔 몸통과 네 개의 늘어나는 지체를 지닌다. 집게 두 쌍, 붉은 나팔 기관, 세 눈을 가진 머리가 묘사된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 4번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b6d9ca0b-b07d-5faf-98e8-0cff28f816c4",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "language",
+    "title": "집게발의 말과 촉수 필기",
+    "cardType": "other",
+    "body": "꿈속 존재들은 집게발을 딸깍거리거나 긁어 대화하고 머리 촉수로 필기도구를 쥔다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 5번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2d4a04ab-884b-5245-a964-06033dab9bc7",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "self",
+    "title": "원뿔 몸을 내려다본 피슬리",
+    "cardType": "event",
+    "body": "피슬리는 꿈에서 자기 목을 당겨 내려다보다 원뿔형 몸을 보고 비명을 지르며 깨어난다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 8번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ec1d0448-9d2f-55fc-b7d6-45e6a6535046",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "script",
+    "title": "상형문자 학습 기계",
+    "cardType": "object",
+    "body": "꿈에서 피슬리는 낮게 소리 내는 기계로 곡선 상형문자의 교착어를 배운다. 깨어나면 미미한 조각밖에 기억하지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 9번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-iii / glyphs와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bd525490-f365-56ca-8a37-137a5789ab12",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "star-headed",
+    "title": "남극의 별머리 종족 포로",
+    "cardType": "other",
+    "body": "피슬리는 꿈에서 날개 달리고 별 모양 머리를 가진 반식물성 남극 종족의 정신들과 대화했다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 11번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 자료 및 다른 배치의 남극 고대 존재 후보와 비교 필요; 명칭만으로 동일성 확정 금지"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ff493561-602d-535a-b3ea-a84922cbc8fa",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "valusia",
+    "title": "발루시아의 파충류인",
+    "cardType": "other",
+    "body": "꿈속 포로 가운데 전설의 발루시아에서 온 파충류인의 정신 하나가 있었다고 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 11번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "42e1820d-cd21-50af-99e4-a68802ef8303",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "hyperborea",
+    "title": "히페르보리아의 차토구아 숭배자",
+    "cardType": "other",
+    "body": "피슬리의 꿈에는 털이 있는 선인류 차토구아 숭배자 세 명의 정신이 포로로 나온다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 11번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5fcec2b1-839c-596a-8af8-b2cfe7c6b70b",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "beetles",
+    "title": "인류 다음의 딱정벌레 종족",
+    "cardType": "other",
+    "body": "꿈에서 인류 다음의 딱정벌레 종족 정신 다섯이 포로로 나온다. 화자는 대종족이 장차 그 몸으로 옮겨간다고 전한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 11번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c5ffbc2b-cc62-5e6c-ad97-1fa87aed67bd",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "yiang-li",
+    "title": "이앙리",
+    "cardType": "character",
+    "body": "꿈속에서 피슬리가 대화한 철학자로 서기 5000년의 찬찬 제국 출신이라고 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "312d62c6-8594-5348-a81b-c6282850a4df",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "bartolomeo",
+    "title": "바르톨로메오 코르시",
+    "cardType": "character",
+    "body": "피슬리는 꿈에서 12세기 피렌체 수도사의 포로 정신과 대화한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "495351ab-0f8a-5075-b298-0d4f0ef7d2d7",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "nug-soth",
+    "title": "누그소스",
+    "cardType": "character",
+    "body": "꿈에서 피슬리가 대화한 마술사로 서기 16000년의 정복자들 출신이라고 소개된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fe7482bc-7724-5f94-beb2-95813056abef",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "titus",
+    "title": "티투스 셈프로니우스 블라이수스",
+    "cardType": "character",
+    "body": "꿈속에서 대화한 로마인으로 술라 시대 재무관이었다고 소개된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "27aac28c-2cd0-5db4-b634-a4794f98b2fe",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "khephnes",
+    "title": "케프네스",
+    "cardType": "character",
+    "body": "꿈에서 피슬리에게 니알라토텝의 비밀을 말한 이집트 제14왕조 인물이다. 비밀의 내용은 나오지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cf2de0a7-2ffa-5179-a657-226cb67ad5c0",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "woodville",
+    "title": "제임스 우드빌",
+    "cardType": "character",
+    "body": "꿈속에서 피슬리가 대화한 크롬웰 시대 서퍽의 신사다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1bfbf0ee-7dcb-5d24-b42c-2b94052ac566",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "kingston-brown",
+    "title": "네빌 킹스턴브라운",
+    "cardType": "character",
+    "body": "꿈속에서 대화한 오스트레일리아 물리학자로 서기 2518년에 죽는다고 소개된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "952d882a-ea6d-5226-b583-e744767757a0",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "theodotides",
+    "title": "테오도티데스",
+    "cardType": "character",
+    "body": "꿈속 포로 정신 중 기원전 200년의 그리스박트리아 관리다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1451e152-601d-57cf-a58f-d84a36b15273",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "montmagny",
+    "title": "피에르루이 몽마니",
+    "cardType": "character",
+    "body": "꿈속에서 대화한 루이 13세 시대 프랑스 노인이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b0ba97c5-b37c-557a-b018-5f061183601f",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "crom-ya",
+    "title": "크롬야",
+    "cardType": "character",
+    "body": "꿈속에서 대화한 기원전 15000년의 키메리아 족장이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "17638f7f-50a3-5a17-af2d-54d0332b6faf",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "lomar-king",
+    "title": "로마르의 왕",
+    "cardType": "character",
+    "body": "꿈속에 나타나는 오래전 극지 로마르의 왕이다. 그의 나라에 대한 서술에는 화자의 인종적 편견이 섞여 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dd19aafd-a5d0-5788-9b89-1dc2d7b7bbf5",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mercury",
+    "title": "수성으로의 다음 이주",
+    "cardType": "event",
+    "body": "꿈에 따르면 딱정벌레 몸에 살게 될 대종족 정신은 지구 말기에 수성의 구근형 식물 존재에게 다시 옮겨간다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 13번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-iii / migration와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-iv / yith와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dab82839-699f-5196-befd-98692991855b",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "archives",
+    "title": "도시 중앙의 지하 기록보관소",
+    "cardType": "location",
+    "body": "꿈속 기록보관소는 도시 중심 근처의 거대한 지하 시설로 지각 변동을 견디도록 지어졌다. 화자는 그곳에 자기 시대의 기록을 쓴다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 14번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-iii / archive와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-vii / entrance와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b34f9180-5469-59b8-a286-0b94d2d4324e",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cases",
+    "title": "녹슬지 않는 책 상자와 서가",
+    "cardType": "object",
+    "body": "꿈의 기록들은 질긴 셀룰로스 판에 쓰여 위로 열리는 책으로 묶이고 곡선 문자 제목을 새긴 금속 상자와 잠금 서가에 보관된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 15번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-ii / parallel와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-vii / shelves와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1ffb76a7-f46a-54bb-b5f3-484eb8aca3be",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "airships",
+    "title": "전기 반발 비행선",
+    "cardType": "object",
+    "body": "꿈속에서 피슬리가 먼 지역을 여행한 밀폐 탄환형 비행선은 전기 반발로 떠서 움직인다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 16번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ea0039c2-f06b-5e77-b931-b7732cdc4738",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "winged",
+    "title": "검은 주둥이의 날개 달린 후계 종족",
+    "cardType": "other",
+    "body": "꿈속 먼 대륙의 마을에 사는 날개 달린 존재들로 대종족 이주 이후 우세해질 것이라고 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 16번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c0569494-db15-5f40-b10e-9c7a6be572f8",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "biology",
+    "title": "대종족의 생리와 번식",
+    "cardType": "other",
+    "body": "꿈과 전승을 함께 정리한 피슬리에 따르면 원뿔 몸은 잠이 필요 없으며 씨나 포자로 번식하고 새끼는 물속 수조에서 자란다. 통상 수명은 4~5천 년이라고 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 20번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5c549836-d233-5773-947f-fa0c4969938f",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "defective",
+    "title": "결함 있는 개체의 처분",
+    "cardType": "rule",
+    "body": "피슬리의 꿈과 전승 정리에 따르면 대종족은 현저한 결함이 있는 개체를 발견 즉시 조용히 처분한다. 화장 의식도 행한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 21번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bf74b827-e846-5b6d-90e7-108cdb8a1667",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "government",
+    "title": "대종족의 정치 제도",
+    "cardType": "organization",
+    "body": "화자는 대종족이 네 부문으로 나뉜 연합을 이루며 교육·심리 시험을 통과한 유권자가 소수 통치 위원회를 선출한다고 말한다. 정치적 명명은 화자의 관점이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 22번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f95632a4-a622-5f38-91bb-a55611856f3e",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "weapons",
+    "title": "전기 효과를 내는 무기",
+    "cardType": "object",
+    "body": "대종족의 군대는 카메라처럼 생겼으며 강력한 전기 효과를 내는 무기를 보유한다고 화자는 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 24번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4f33c91a-f9b6-5f44-ab10-ca05f00cee1c",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "taboo",
+    "title": "지하의 적에 관한 금기",
+    "cardType": "rule",
+    "body": "화자의 꿈과 전승에서 검은 유적과 지하 함정문 관련 구체적 사실은 일상 서적과 대화에서 금기시된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 25번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5f1bc180-2a50-5652-976d-ba8e2372ff64",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "polyps",
+    "title": "지하에 갇힌 반폴립성 고대 종족",
+    "cardType": "other",
+    "body": "단편에 따르면 외우주에서 온 존재들은 부분적으로 물질적이며 시각 없이 감각하고 날개 없이 공중 이동한다. 대종족은 이들과 정신을 교환할 수 없다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 26번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "02d71290-316a-5b82-9983-4c328bd757c8",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "yith",
+    "title": "이쓰에서의 집단 이동",
+    "cardType": "event",
+    "body": "논쟁적인 엘트다운 파편은 대종족의 정신이 이쓰라는 은하 밖 세계에서 왔다고 전한다. 이들은 선주 포식자들을 지하에 가두고 도시를 차지했다고 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 27번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-iii / migration와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-iv / mercury와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "204cba89-8d1d-542e-a403-d0ecd995a497",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "breach",
+    "title": "지하 존재들의 재출현",
+    "cardType": "event",
+    "body": "꿈과 전승의 단편에 따르면 봉인이 허술한 외진 도시에서 지하 존재들이 간헐적으로 출현했고 대종족은 통로를 닫거나 경비했다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 28번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cf43ea50-ecab-5120-bbc1-5b3f8628ccff",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "tracks",
+    "title": "휘파람 소리와 다섯 자국",
+    "cardType": "other",
+    "body": "지하 존재들에 대한 단편적 속삭임은 바람의 지배, 일시적 투명화, 휘파람 소리와 다섯 개 둥근 발가락 자국을 연결한다. 외형 전체는 알려지지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 29번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-vii / prints와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9f8b4229-6288-52f8-aa53-cc707b678e5c",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-iv",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "invasion",
+    "title": "예견된 대종족의 최후",
+    "cardType": "event",
+    "body": "전승 정리에 따르면 대종족은 지하 존재들의 최후 공격을 예견하고 유능한 정신을 미래로 보내려 준비한다. 원한이 동기라는 것은 서술 속 추정이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 30번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자의 꿈·신화·연구가 섞인 설명으로 작품 내 객관적 사실로 확정할 수 없음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "598ba239-c0c8-5cdd-a373-21e94ea4e97e",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "articles",
+    "title": "피슬리의 심리학 논문",
+    "cardType": "object",
+    "body": "피슬리는 자신의 경험과 관련 사례 및 전승을 정리하고 꿈에서 기억한 형상과 문자의 스케치를 곁들인 글을 1928~1929년에 발표했다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 3번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "51a6be6f-7c80-58dc-80b2-8bc2ac85d612",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mackenzie",
+    "title": "로버트 매켄지",
+    "cardType": "character",
+    "body": "서호주의 광산 기술자로 피슬리에게 사막의 새겨진 돌과 사진을 보내고 탐사를 제안한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 4번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "607e7243-88bb-5819-8a57-059af8541b3a",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "boyle",
+    "title": "E. M. 보일",
+    "cardType": "character",
+    "body": "퍼스의 의사로 피슬리의 글과 매켄지의 사막 돌 사진을 연결하고 탐사를 돕는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 14번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1faefe97-cd8d-53fe-a45b-cd2cca8e084b",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "buddai",
+    "title": "땅속에 잠든 부다이",
+    "cardType": "character",
+    "body": "매켄지의 편지가 전하는 지역 이야기에 따르면 부다이는 지하에 오래 잠든 거대한 노인으로 언젠가 깨어 세상을 먹는다. 이 간접 전언은 작중 인종적 편견에 물들어 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 15번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "지역 주민 발화는 허구 속 매켄지의 간접 전언이며 인종적 편견을 포함; 실제 구술 전승으로 입증되지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5bbd6180-0c19-5fe6-940e-246ff54c99d1",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "wind-tale",
+    "title": "지하 석실과 바람에 대한 전언",
+    "cardType": "other",
+    "body": "매켄지는 지역 주민의 이야기라며 전투에서 도망친 전사들이 지하 석실에 들어가 돌아오지 않았고 이후 무서운 바람이 불었다고 전한다. 주민을 폄하하는 편지의 시각을 감안해야 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 15번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "지역 주민 발화는 허구 속 매켄지의 간접 전언이며 인종적 편견을 포함; 실제 구술 전승으로 입증되지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3488f39a-be63-58db-94a9-f5a1fabaf152",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "stones",
+    "title": "대사막의 새겨진 석재",
+    "cardType": "object",
+    "body": "매켄지는 서호주 대사막에서 풍화된 가공 석재 수십 개를 발견하고 곡선 조각을 관찰해 사진으로 남겼다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 16번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "957c4f57-a34a-5b83-80e0-f2e7700206e4",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "expedition",
+    "title": "1935년 미스캐토닉 탐사대",
+    "cardType": "organization",
+    "body": "대학 지원을 받은 피슬리의 탐사대는 매켄지와 보일의 협력을 받아 서호주 유적을 발굴한다. 화자는 주요 목적을 대중에게 상세히 밝히지 않았다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 25번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "315e58ab-9a1a-5cb1-b359-8f904f69f6ef",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "dyer",
+    "title": "윌리엄 다이어",
+    "cardType": "character",
+    "body": "미스캐토닉 지질학 교수이며 1930~31년 남극 탐사대 지도자였고 피슬리의 사막 탐사에도 동행한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 26번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "다른 배치의 남극 탐사 관련 다이어 후보와 비교 필요; 별도 절 근거 유지"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f7870264-489b-548b-9ba1-032d56589d14",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ashley",
+    "title": "퍼디낸드 애슐리",
+    "cardType": "character",
+    "body": "미스캐토닉의 고대사 교수로 피슬리의 탐사에 동행한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 26번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "048988d2-4cfd-58e6-b7a2-398bc2b27a83",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "freeborn",
+    "title": "타일러 프리본",
+    "cardType": "character",
+    "body": "미스캐토닉 인류학 교수로 사막 탐사에 동행해 석재의 기호를 살핀다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 26번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f988beb3-d696-5011-bc53-e0f40d6800de",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "dig",
+    "title": "흩어진 돌 발굴",
+    "cardType": "event",
+    "body": "탐사대는 한 달간 약 1250개의 석재를 발굴한다. 곡면 거석과 팔각형 바닥돌 및 아치형 조각이 있으나 배열은 확인하지 못했다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 30번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  }
+]

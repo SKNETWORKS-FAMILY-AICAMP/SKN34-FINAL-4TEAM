@@ -31,7 +31,9 @@ import { adminViewActions, type AdminChatForm, type AdminFilter, type EventDraft
 const IDS: Record<AdminTab, string> = { data: 'A01+A02', rights: 'A03', llm: 'A05', users: 'A07', works: 'A08', comments: 'A09', characterChats: 'A18', feedback: 'A10', events: 'A11', notices: 'A12', credits: 'A13', audit: 'A14', jobs: 'A16', admins: 'A17', profile: 'A15' }
 export type AdminActionState = ActionState
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
-export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'comments', 'rights', 'feedback', 'profile', 'notices', 'events', 'audit']
+export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'comments', 'rights', 'feedback', 'profile', 'notices', 'events', 'audit', 'data', 'llm', 'jobs']
+/** 운영 변경 조치 실행기: 서버 응답 성공만 완료로 표시하고 dataChanged로 화면의 조회를 다시 읽게 합니다(대시보드·LLMOps·작업 감시 화면이 씁니다). */
+export type AdminMutate = (key: string, message: string, action: () => Promise<void>) => Promise<boolean>
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
 
 /** 작품 탭을 떠나면 선택과 조회 결과도 함께 닫힌다. */
@@ -80,8 +82,7 @@ export function useAdminViewModel(
     works: tab === 'works' ? await operationsWorkUseCase.list() : [],
     // 댓글 탭도 전체 목록(숨김 포함)을 한 번에 받고 필터·검색·정렬은 화면이 합니다.
     comments: tab === 'comments' ? await operationsCommentUseCase.list() : [],
-    // 개요의 '접수된 신고' 수도 실제 신고 목록에서 셉니다.
-    reports: tab === 'rights' ? await reportUseCase.listAll(status) : tab === 'data' ? await reportUseCase.listAll('RECEIVED') : [],
+    reports: tab === 'rights' ? await reportUseCase.listAll(status) : [],
     notices: tab === 'notices' ? await noticeUseCase.list() : [],
     events: tab === 'events' ? await eventUseCase.listAdmin() : [],
     // 활동 로그 탭은 진입할 때마다 서버의 최신 100개를 읽습니다(필터·페이지 없음).
@@ -89,9 +90,9 @@ export function useAdminViewModel(
   }), [tab, role, q, sort, status, memberUseCase, reportUseCase, noticeUseCase, eventUseCase, operationsWorkUseCase, operationsCommentUseCase, adminActivityUseCase])
   const reportId = tab === 'rights' ? sel : null
   const report = useAsyncData(async () => reportId ? reportUseCase.get(reportId) : null, [reportId, reportUseCase])
-  // 고객지원 문의(67): 제보·문의 탭은 상태 필터 목록과 선택한 문의 상세를, 개요는 답변 대기 수만 서버에서 읽습니다.
+  // 고객지원 문의(67): 제보·문의 탭은 상태 필터 목록과 선택한 문의 상세를 서버에서 읽습니다.
   const inquiryStatus = SUPPORT_STATUSES.find(([s]) => s === filter?.category)?.[0] ?? null
-  const inquiries = useAsyncData(async () => tab === 'feedback' ? supportInquiryUseCase.listAll(inquiryStatus) : tab === 'data' ? supportInquiryUseCase.listAll('WAITING') : [], [tab, inquiryStatus, supportInquiryUseCase])
+  const inquiries = useAsyncData(async () => tab === 'feedback' ? supportInquiryUseCase.listAll(inquiryStatus) : [], [tab, inquiryStatus, supportInquiryUseCase])
   const inquiryId = tab === 'feedback' ? view.recordSelection.inquiries : null
   const inquiry = useAsyncData(async () => inquiryId ? supportInquiryUseCase.get(inquiryId) : null, [inquiryId, supportInquiryUseCase])
   // mounted는 화면을 떠난 뒤 끝난 조치가 다른 화면에 알림을 띄우거나 Redux 초안·선택을 정리하지 않게 하는 데만 씁니다.
@@ -145,6 +146,7 @@ export function useAdminViewModel(
     eventStatusNow: (event: EventPeriod) => eventStatus(event, new Date()),
     live: {
       ...live, report, inquiries, inquiry,
+      mutate: runLive,
       setMemberRestriction: (id: string, restricted: boolean) => runLive(`member:${id}`, restricted ? '회원 이용을 제한했어요.' : '회원 이용 제한을 해제했어요.', () => memberUseCase.setRestriction(id, restricted)),
       createAdmin: (input: AdminInput) => runLive('admin:new', '관리자 계정을 만들고 권한을 저장했어요.', () => memberUseCase.createAdmin(input)),
       setWorkRestriction: (id: string, restricted: boolean) => runLive(`work:${id}`, restricted ? '작품을 운영 제한했어요.' : '작품 운영 제한을 해제했어요.', () => operationsWorkUseCase.setRestriction(id, restricted)),
@@ -192,8 +194,6 @@ export function useAdminViewModel(
     chatChoices: adminUseCase.chatChoices.bind(adminUseCase),
     toggleChat: (id: string) => run(`chat:${id}`, () => adminUseCase.toggleChat(id)),
     addChat: (workId: string, character: string) => run('chat:new', () => adminUseCase.addChat(workId, character)),
-    runJob: (id: string) => run(`job:${id}`, () => adminUseCase.runJob(id)),
-    resolveAlert: (id: string) => run(`alert:${id}`, () => adminUseCase.resolveAlert(id)),
     logout,
   }
 }

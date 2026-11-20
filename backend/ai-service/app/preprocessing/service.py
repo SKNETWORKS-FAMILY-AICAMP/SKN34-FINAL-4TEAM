@@ -1,223 +1,136 @@
-"""검증된 원고 추출 → 근거 있는 정체 통합 → 기존 Content 적재 DTO 구성. 정본·저장소는 수정하지 않는다."""
-import hashlib
-import json
-from uuid import NAMESPACE_URL, uuid5
-from pydantic import ValidationError
-from app.preprocessing import agent
-from app.preprocessing.errors import PreprocessingFailure
-from app.preprocessing.models import (Card, CharacterDocs, EpisodeExtraction, EpisodeText, Evidence,
-    IdentityDecision, IdentityResolution, LoadPayload, ProposedExtraction, ProposedResolution, Relation)
+"""회차 원고 전처리 실행 틀(#343, DEC-50, 계약 docs/design/manuscript-preprocessing-contract.md의 6단계).
+
+추출·정리·적재 본문은 아직 없다. 단계 함수를 차례로 부르며 Content 진행 API에 단계·진행·실패를 보고하는 틀만 있고,
+첫 미구현 단계에서 '전처리 로직 미구현'으로 실패를 보고한다(작업 감시 화면이 실제 작업 기록을 읽게 하되 성공으로 꾸미지 않는다).
+작업 상태·진행의 정본은 Content 작업 테이블이며 AI는 작업 DB를 쓰지 않는다.
+"""
+import logging
+import os
+
+import httpx
+
+from app import tracing
+from app.preprocessing.errors import ReportFailure
+from app.preprocessing.models import JobRequest, Progress
+
+log = logging.getLogger(__name__)
+
+NOT_IMPLEMENTED = '전처리 로직 미구현'
+EXTRACTION_FAILED = '회차 추출에 실패했어요.'
+UNEXPECTED_ERROR = '전처리 중 오류가 발생했어요.'
+
+# ponytail: 단계 입출력 구조(사건·호칭·정식 ID·카드)는 로직을 채울 때 models.py의 Pydantic DTO로 바꾼다. 지금은 구조를 못 박지 않고 dict·list로 둔다.
 
 
-def require_available() -> None:
-    """#345 및 성공 결과 보존·멱등 적재 검증 전에는 실제 작업을 접수하지 않는다."""
-    raise PreprocessingFailure('PREPROCESSING_NOT_IMPLEMENTED', 503)
+def extract_episode(job_id: str, number: int) -> dict:
+    """계약 1단계 — 회차별 추출. 회차마다 독립이라 Celery로 옮길 때 병렬 작업 단위가 된다.
+
+    입력: 작업 ID와 회차 번호. 원문은 Content 전처리 MCP 도구 preprocessing_episode_read(jobId, number)로 읽는다
+    (그 회차 최신 저장 버전 {number, title, body}, 도구는 아직 없다).
+    출력: 그 회차의 사건, 묘사(외모·성격·세계관 규칙처럼 사건이 아닌 서술), 등장한 호칭(인물·장소·물건·조직)을 원문 근거와 함께.
+    호칭은 이 회차 안에서만 통하는 임시 ID를 받고 다른 회차의 같은 이름과 연결하지 않는다. LLM 호출은 회차당 1회다.
+    입력·원고·모델 응답을 오류 메시지나 로그에 넣지 않는다.
+    """
+    raise NotImplementedError
 
 
-def _require(condition, code):
-    if not condition:
-        raise PreprocessingFailure(code, 422)
+def resolve_identities(extractions: list[dict]) -> dict:
+    """계약 2단계 — 정체 정리. 추출이 모두 끝난 뒤 작품당 한 번 실행한다.
+
+    입력: 1단계의 모든 회차 추출 결과(회차 번호 순서).
+    출력: 호칭을 같은 대상끼리 묶은 정식 ID 묶음과 「동일 인물」 후보. 동명이인은 분리하고 같은 이름만으로 병합하지 않는다.
+    같은 인물로 보이는 서로 다른 이름(별칭·가면·나중에 밝혀지는 정체)은 한 카드로 병합하지 않고 카드를 따로 둔 채
+    {다른 이름 카드, 본체 카드, 같은 인물로 보이는 회차, 근거} 후보로 낸다(DEC-53). 후보를 관계로 올리는 것은 작가 승인이다.
+    """
+    raise NotImplementedError
 
 
-def _hash(text):
-    return hashlib.sha256(text.encode('utf-8')).hexdigest()
+def organize(extractions: list[dict], identities: dict) -> dict:
+    """계약 3~5단계 — 사건 등록, 인물별 정리, 설정·아이템 정리. 1·2단계 결과만 읽는다.
+
+    입력: 1단계 추출 결과와 2단계 정체 묶음(원문을 다시 읽지 않는다. 작가가 정체 묶음을 고치면 이 단계부터 다시 실행할 수 있다).
+    출력: 적재할 cards[]·relations[]·identityCandidates[](계약 '전처리 MCP 도구' 절의 preprocessing_load 인자 모양).
+    사건은 호칭을 정식 ID로 바꿔 회차 순서대로, 인물은 나온 사건·묘사를 모아 프로필·상태·기억(characterDocs)으로,
+    장소·물건·조직은 같은 방식으로 정리한다. 카드는 공개 설정 없이(작가 전용) 싣고 firstEpisode는 제안값으로만 둔다(DEC-53).
+    """
+    raise NotImplementedError
 
 
-def _source_hash(episode):
-    return _hash(json.dumps(episode.model_dump(), sort_keys=True, ensure_ascii=False, separators=(',', ':')))
+def load(job_id: str, organized: dict) -> None:
+    """계약 6단계 — 적재. 정리 결과를 Content MCP 도구 preprocessing_load(jobId, cards, relations, identityCandidates)로 적재한다.
+
+    입력: 작업 ID와 3~5단계 결과. 출력: 없음(적재 결과로 Content가 작업을 completed로 바꾼다. 도구는 아직 없다).
+    적재는 jobId로 멱등이어야 한다(같은 작업의 재호출이 카드를 중복 생성하지 않음). AI는 정본 DB에 직접 쓰지 않는다.
+    """
+    raise NotImplementedError
 
 
-def _evidence(source, quote):
-    start = source.find(quote)
-    _require(start >= 0 and source.find(quote, start + 1) < 0, 'INVALID_OR_AMBIGUOUS_QUOTE')
-    offset = len(source[:start].encode('utf-16-le')) // 2
-    return Evidence(quote=quote, start=offset, end=offset + len(quote.encode('utf-16-le')) // 2, quoteHash=_hash(quote))
-
-
-def _validate(episode, proposed):
-    proposed = ProposedExtraction.model_validate(proposed)
-    mentions = {m.id: m for m in proposed.mentions}
-    all_rows = [*proposed.mentions, *proposed.statements, *proposed.relationships]
-    _require(len({r.id for r in all_rows}) == len(all_rows), 'DUPLICATE_LOCAL_ID')
-    quotes = sorted({r.quote for r in all_rows})
-    evidence = [_evidence(episode.body, q) for q in quotes]
-    for mention in proposed.mentions:
-        _require(mention.name.strip() and mention.name in mention.quote, 'INVALID_MENTION_NAME')
-    seen = set()
-    for statement in proposed.statements:
-        refs = statement.subjects + statement.knowers
-        _require(all(ref in mentions for ref in refs), 'UNKNOWN_ENTITY')
-        _require(len(set(statement.subjects)) == len(statement.subjects) and len(set(statement.knowers)) == len(statement.knowers), 'DUPLICATE_ENTITY_REFERENCE')
-        _require(all(mentions[ref].kind == 'character' for ref in statement.knowers), 'INVALID_KNOWER')
-        _require(all(mentions[ref].name in statement.quote for ref in statement.knowers), 'KNOWLEDGE_NOT_EXPLICIT')
-        expected = 'intended' if statement.kind in ('plan', 'goal') else 'uncertain' if statement.kind == 'conjecture' else 'asserted'
-        _require(statement.certainty == expected, 'SEMANTIC_TYPE_CONFLICT')
-        # 명시적 표지의 보수적 거절일 뿐 한국어 의미 판별의 완전한 대체가 아니다.
-        if statement.certainty == 'asserted':
-            _require(not any(cue in statement.quote for cue in ('계획', '추측', '것 같', '싶어', '예정', '지도 모', '소문')), 'UNCERTAIN_SOURCE_AS_FACT')
-        if statement.kind in ('plan', 'goal', 'conjecture'):
-            _require(statement.occurredEpisode is None, 'INTENTION_IS_NOT_EVENT')
-        if statement.kind == 'event':
-            _require(statement.occurredEpisode is not None, 'EVENT_TIME_REQUIRED')
-        _require(statement.occurredEpisode is None or statement.occurredEpisode <= episode.number, 'FUTURE_EVENT')
-        _require(statement.knownFromEpisode in (0, episode.number), 'INVALID_KNOWLEDGE_TIME')
-        if statement.knownFromEpisode == 0:
-            _require(statement.kind == 'fact' and statement.occurredEpisode == 0 and statement.document == 'memory', 'INVALID_PRESTORY_MEMORY')
-            _require('이야기 시작 전부터' in statement.quote, 'PRESTORY_EVIDENCE_REQUIRED')
-        if statement.kind in ('plan', 'goal'):
-            _require(statement.document in ('goal', 'memory'), 'INTENTION_DOCUMENT_CONFLICT')
-        if statement.kind == 'conjecture':
-            _require(statement.document == 'memory', 'CONJECTURE_DOCUMENT_CONFLICT')
-        fingerprint = (statement.kind, tuple(sorted(statement.subjects)), statement.quote)
-        _require(fingerprint not in seen, 'DUPLICATE_STATEMENT')
-        seen.add(fingerprint)
-    seen = set()
-    for relation in proposed.relationships:
-        _require(relation.change != 'learned', 'RELATION_DISCOVERY_NOT_REPRESENTABLE')
-        _require(relation.change != 'changed', 'RELATION_CHANGE_NOT_REPRESENTABLE')
-        _require(relation.ended == (relation.change == 'ended'), 'RELATION_CHANGE_CONFLICT')
-        _require(relation.source in mentions and relation.target in mentions and relation.source != relation.target, 'INVALID_RELATION_ENDPOINT')
-        # LoadPayload에는 관계 공개 회차가 따로 없다. 소급 공개나 미래 관계를 과거로 넣지 않는다.
-        _require(relation.fromEpisode == episode.number, 'UNSUPPORTED_RELATION_TIME')
-        fingerprint = (relation.source, relation.target, relation.label, relation.fromEpisode)
-        _require(fingerprint not in seen, 'DUPLICATE_RELATION')
-        seen.add(fingerprint)
-    return EpisodeExtraction(**proposed.model_dump(), number=episode.number, title=episode.title,
-                             source=episode.body, sourceHash=_source_hash(episode), evidence=evidence)
-
-
-def extract(episode: EpisodeText) -> EpisodeExtraction:
-    """한 회차를 실제 LLM으로 구조화하고 원문·ID·유형·시점을 다시 검증한다."""
+def report(job_id: str, progress: Progress) -> None:
+    """Content 진행 갱신 API(POST /internal/v1/preprocessing-jobs/{id}/progress)로 단계·진행·실패를 알린다. 못 알리면 ReportFailure다."""
+    base, token = os.environ.get('CONTENT_SERVICE_BASE_URL'), os.environ.get('INTERNAL_TOKEN')
+    if not base or not token:
+        raise ReportFailure('Content 진행 보고 설정이 필요합니다.')
     try:
-        return _validate(episode, agent.extract(episode))
-    except (ValidationError, TypeError, ValueError, UnicodeError):
-        raise PreprocessingFailure('INVALID_EXTRACTION') from None
+        response = httpx.post(f'{base.rstrip("/")}/internal/v1/preprocessing-jobs/{job_id}/progress',
+                              json=progress.model_dump(exclude_none=True), headers={'X-Internal-Token': token}, timeout=10)
+    except httpx.HTTPError:
+        raise ReportFailure('Content에 진행을 보고할 수 없습니다.') from None
+    if response.status_code >= 400:
+        raise ReportFailure(f'Content가 진행 보고를 거절했습니다({response.status_code}).')
 
 
-def _inputs(extractions):
-    _require(bool(extractions), 'EMPTY_EXTRACTIONS')
-    result = {}
-    for number, raw in sorted(extractions.items()):
-        row = EpisodeExtraction.model_validate(raw)
-        _require(number == row.number, 'EPISODE_MISMATCH')
-        data = EpisodeText(number=row.number, title=row.title, body=row.source)
-        checked = _validate(data, row.model_dump(include=set(ProposedExtraction.model_fields)))
-        _require(checked == row, 'EXTRACTION_EVIDENCE_MISMATCH')
-        result[number] = row
-    return result
+# ponytail: 접수한 요청 프로세스의 BackgroundTasks에서 회차를 순차 실행한다(서버가 재시작하면 유실되고 병렬 처리가 없다). Celery(DEC-50)로 이전한다.
+def run_job(request: JobRequest) -> None:
+    """전처리 작업 하나를 계약 순서(추출 → 정체 정리 → 정리 → 적재)로 실행한다.
 
+    단계마다 시작할 때 Content에 진행을 보고한다. 추출은 회차 하나가 실패해도 나머지를 이어서 하고, 실패 회차가 있으면 정리 전에
+    실패 회차를 기록하고 멈춘다. 미구현 단계·예상 밖 오류는 고정 사유로 실패를 보고하며 원고·예외 메시지를 싣지 않는다.
+    Content가 진행 보고를 받지 못하면(종료된 작업 등) 더 진행하지 않는다.
+    """
+    job, total = request.jobId, len(request.episodes)
+    stage, done, failed = 'extracting', 0, []
 
-def _key(ref):
-    return 'entity-' + str(uuid5(NAMESPACE_URL, 'storyfork:manuscript:' + ref))
+    def send(reason: str | None = None) -> None:
+        report(job, Progress(stage=stage, done=done, total=total, failedEpisodes=failed, failed=reason))
 
-
-def _resolution(rows, proposed):
-    mentions = {f'{n}:{m.id}': m for n, row in rows.items() for m in row.mentions}
-    parent = {ref: ref for ref in mentions}
-    def root(ref):
-        while parent[ref] != ref:
-            ref = parent[ref]
-        return ref
-    decisions = []
-    pairs = set()
-    distinct = [frozenset((l.left, l.right)) for l in proposed.links if l.basis == 'distinct']
-    for link in sorted(proposed.links, key=lambda l: (l.confirmedAt, min(l.left, l.right), max(l.left, l.right))):
-        _require(link.left in mentions and link.right in mentions and link.left != link.right, 'INVALID_IDENTITY_REFERENCE')
-        pair = frozenset((link.left, link.right))
-        _require(pair not in pairs, 'DUPLICATE_IDENTITY_LINK'); pairs.add(pair)
-        _require(link.evidenceEpisode in rows and link.confirmedAt == link.evidenceEpisode, 'INVALID_IDENTITY_TIME')
-        _require(link.confirmedAt >= max(int(r.split(':')[0]) for r in pair), 'IDENTITY_BEFORE_MENTION')
-        _evidence(rows[link.evidenceEpisode].source, link.quote)
-        left, right = mentions[link.left], mentions[link.right]
-        _require(left.name in link.quote and right.name in link.quote, 'IDENTITY_NAMES_NOT_IN_EVIDENCE')
-        _require(left.kind == right.kind, 'IDENTITY_KIND_CONFLICT')
-        status, reason = 'deferred', link.basis
-        if link.basis == 'distinct':
-            status = 'distinct'
-        elif link.basis in ('explicit_alias', 'explicit_coreference'):
-            earliest = min(int(r.split(':')[0]) for r in parent if root(r) in (root(link.left), root(link.right)))
-            if left.name != right.name and link.confirmedAt > earliest:
-                reason = 'LATE_ALIAS_REQUIRES_VERSIONED_IDENTITY'
+    with tracing.observe('preprocessing', as_type='chain', metadata={'feature': 'preprocessing'},
+                         input={'jobId': job, 'workId': request.workId, 'episodes': total}) as span:
+        reason = None
+        try:
+            send()
+            extractions = []
+            for number in request.episodes:
+                try:
+                    extractions.append(extract_episode(job, number))
+                    done += 1
+                except NotImplementedError:
+                    raise
+                except Exception:
+                    failed.append(number)
+                send()
+            if failed:
+                reason = EXTRACTION_FAILED
             else:
-                a, b = sorted((root(link.left), root(link.right)))
-                _require(not any({root(r) for r in pair} <= {a, b} for pair in distinct), 'CONTRADICTORY_IDENTITY')
-                parent[b] = a
-                status, reason = 'merged', link.basis
-        decisions.append(IdentityDecision(link=link, status=status, reason=reason))
-    return IdentityResolution(inputHashes={n: _hash(json.dumps(row.model_dump(), sort_keys=True, ensure_ascii=False, separators=(',', ':'))) for n, row in rows.items()},
-                              mapping={ref: _key(root(ref)) for ref in sorted(parent)}, decisions=decisions)
-
-
-def resolve(extractions: dict[int, object]) -> IdentityResolution:
-    """이름 자동 병합 없이 명시적 근거만 적용한다. key는 정렬된 회차-local ID에서 결정한다."""
-    try:
-        rows = _inputs(extractions)
-        return _resolution(rows, ProposedResolution.model_validate(agent.resolve(list(rows.values()))))
-    except (ValidationError, ValueError, TypeError, KeyError):
-        raise PreprocessingFailure('INVALID_IDENTITY_OUTPUT') from None
-
-
-def organize(identities: object, extractions: dict[int, object]) -> LoadPayload:
-    """검증 결과만 결정적으로 구성한다. 추가 LLM·원문 재조회·정본 UUID 발급은 없다."""
-    try:
-        rows = _inputs(extractions)
-        identity = IdentityResolution.model_validate(identities)
-        checked = _resolution(rows, ProposedResolution(links=[d.link for d in identity.decisions]))
-        _require(identity == checked, 'IDENTITY_INPUT_MISMATCH')
-        _require(not any(d.reason == 'LATE_ALIAS_REQUIRES_VERSIONED_IDENTITY' for d in identity.decisions), 'DEFERRED_IDENTITY_REQUIRES_REVIEW')
-        return _organize(identity, rows)
-    except (ValidationError, ValueError, TypeError, KeyError):
-        raise PreprocessingFailure('INVALID_LOAD_PAYLOAD') from None
-
-
-def _organize(identity, rows):
-    cards, first, docs, bodies = {}, {}, {}, {}
-    for n, row in rows.items():
-        for mention in sorted(row.mentions, key=lambda m: m.id):
-            key = identity.mapping[f'{n}:{mention.id}']
-            if key not in cards:
-                cards[key] = Card(key=key, cardType=mention.kind, title=mention.name, aliases=[], body=mention.name, firstAppearanceEpisode=n)
-                first[key], bodies[key] = n, []
-                if mention.kind == 'character': docs[key] = {'soul': [], 'goal': [], 'episodes': {}}
-            elif mention.name != cards[key].title and mention.name not in cards[key].aliases:
-                cards[key].aliases.append(mention.name)
-    relations = []
-    for n, row in rows.items():
-        for statement in row.statements:
-            subjects = sorted({identity.mapping[f'{n}:{ref}'] for ref in statement.subjects})
-            text = f'[{statement.kind}] {statement.quote}'
-            represented = bool(statement.knowers) or statement.kind == 'event'
-            if statement.kind == 'event':
-                key = 'event-' + str(uuid5(NAMESPACE_URL, f'storyfork:manuscript:{n}:{statement.id}'))
-                names = ', '.join(cards[k].title for k in subjects)
-                cards[key] = Card(key=key, cardType='event', title=f'{n}화 사건 {statement.id}', aliases=[],
-                                  body=f'발생: {statement.occurredEpisode}화 / 참여: {names}\n{text}', firstAppearanceEpisode=n)
-            for key in subjects:
-                if first[key] == n and statement.document in ('identity', 'soul', 'goal'):
-                    target = bodies[key] if statement.document == 'identity' or key not in docs else docs[key][statement.document]
-                    target.append(text)
-                    represented = True
-                elif key not in docs and statement.kind != 'event':
-                    raise PreprocessingFailure('UNSUPPORTED_LATER_SETTING_STATE', 422)
-            _require(represented, 'UNREPRESENTABLE_STATEMENT')
-            # 인물의 명시적 인지 대상에만 기억을 넣는다. 미래 회차는 이전 bucket으로 합치지 않는다.
-            for ref in statement.knowers:
-                key = identity.mapping[f'{n}:{ref}']
-                _require(statement.knownFromEpisode != 0 or n == first[key], 'RETROACTIVE_MEMORY_NOT_REPRESENTABLE')
-                memory = docs[key]['episodes'].setdefault(f'{statement.knownFromEpisode:02}', [])
-                if text not in memory: memory.append(text)
-        for relation in row.relationships:
-            source, target = (identity.mapping[f'{n}:{ref}'] for ref in (relation.source, relation.target))
-            _require(source != target, 'MERGED_SELF_RELATION')
-            relations.append(Relation(fromKey=source, toKey=target, label=relation.label, fromEpisode=relation.fromEpisode, ended=relation.ended))
-    for key, lines in bodies.items():
-        cards[key].body = '\n'.join(dict.fromkeys(lines)) or cards[key].title
-    for key, documents in docs.items():
-        cards[key].characterDocs = CharacterDocs(soul='\n'.join(dict.fromkeys(documents['soul'])),
-            goal='\n'.join(dict.fromkeys(documents['goal'])), episodes={n: '\n'.join(lines) for n, lines in sorted(documents['episodes'].items())})
-    # 모델/문서 길이 한도 초과도 잘라내지 않는다. 재검증으로 모두 실패시킨다.
-    payload = LoadPayload(cards=sorted(cards.values(), key=lambda c: c.key),
-                          relations=sorted(relations, key=lambda r: (r.fromEpisode, r.fromKey, r.toKey, r.label)))
-    fingerprints = [(r.fromKey, r.toKey, r.label, r.fromEpisode) for r in relations]
-    _require(len(fingerprints) == len(set(fingerprints)), 'DUPLICATE_RESOLVED_RELATION')
-    return LoadPayload.model_validate(payload.model_dump())
+                stage = 'resolving'
+                send()
+                identities = resolve_identities(extractions)
+                stage = 'organizing'
+                send()
+                organized = organize(extractions, identities)
+                stage = 'loading'
+                send()
+                load(job, organized)
+        except NotImplementedError:
+            reason = NOT_IMPLEMENTED
+        except ReportFailure:
+            log.error('preprocessing job %s stopped: the progress could not be reported', job)
+            span.update(level='ERROR', status_message='Content 진행 보고 실패')
+        except Exception as error:
+            log.error('preprocessing job %s failed in %s: %s', job, stage, type(error).__name__)
+            reason = UNEXPECTED_ERROR
+        if reason:
+            span.update(level='ERROR', status_message=reason)
+            try:
+                send(reason)
+            except ReportFailure:
+                log.error('preprocessing job %s failed but the failure could not be reported', job)

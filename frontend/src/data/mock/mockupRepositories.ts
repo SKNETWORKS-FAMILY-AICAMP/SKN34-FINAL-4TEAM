@@ -34,7 +34,7 @@ export const mockupNotificationRepository: NotificationRepository = {
   markRead: async () => {},
   markAllRead: async () => {},
   remove: async () => {},
-  getPrefs: async () => ({ read: true, creator: true }),
+  getPrefs: async () => ({ read: true, creator: true, aiTool: true }),
   savePrefs: async (prefs) => prefs,
 }
 
@@ -104,7 +104,7 @@ export function createMockupWritingRepository() {
   const work: Work = {
     id: '00000000-0000-4000-8000-00000000a001', title: '홍길동전 다시 쓰기', summary: '아버지를 아버지라 부르지 못한 소년의 이야기를 작가가 이어 씁니다.',
     visibility: 'private', allowFork: true, allowForkPublication: true, source: null, episodes: [], draft: { title: '', body: '', revision: 0 }, revision: 0,
-    creationType: 'ORIGINAL', genres: ['고전 영웅'], hashtags: ['#활빈당'], hasWritingEpisode: true,
+    creationType: 'ORIGINAL', genres: ['고전 영웅'], hashtags: ['#활빈당'],
   }
   const episodes: WritingEpisode[] = [
     { number: 1, draft: { title: '아버지라 부르지 못한 밤', body: HONG_BODY, revision: 1 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: now(), checkpointStatus: 'READY', hasDraft: true, checkpoints: [] },
@@ -155,6 +155,8 @@ export function createMockupWritingRepository() {
     // 시연 ② 확정 설정 확인: 집필실 '설정 버전 이력'에 보이는 확정 설정입니다.
     world: async (id: string) => structuredClone(confirmedWorld(id)),
     revertSetting: async () => { throw new Error('발표용 목업에서는 설정 복원을 막아 두었어요.') },
+    // 독립은 서버가 새 세계관을 만드는 일이라 흉내 내지 않고 미지원 오류로 답한다(#583).
+    detachInheritedWorld: demoUnsupported,
     deleteDraft: async () => { throw new Error('발표용 목업에서는 삭제를 막아 두었어요.') },
     deleteEpisode: async () => { throw new Error('발표용 목업에서는 삭제를 막아 두었어요.') },
   } satisfies Partial<EpisodeRepository>

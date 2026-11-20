@@ -18,6 +18,15 @@ class ManuscriptStructureVerifierTest {
     @Test fun `four episodes preserve identity documents knowledge and relation changes`() {
         ManuscriptStructureVerifier.verify(all,fixture.path("identity"),payload,mapper)
     }
+    @Test fun `missing forged and repeated identity suggestions cannot be loaded`() {
+        val original=payload.identityCandidates.single()
+        for (candidates in listOf(emptyList(),listOf(original,original),listOf(original.copy(quote="근거 없음")),
+            listOf(original.copy(episode=2)),listOf(original.copy(toKey=original.fromKey)))) {
+            assertThrows(IllegalArgumentException::class.java) {
+                ManuscriptStructureVerifier.verify(all,fixture.path("identity"),payload.copy(identityCandidates=candidates),mapper)
+            }
+        }
+    }
     @Test fun `later goal in global document foreign memory and removed evidence are rejected`() {
         val hero=payload.cards.first { it.title=="길동" }
         fun changed(card:ManuscriptCard)=payload.copy(cards=payload.cards.map { if(it.key==hero.key) card else it })

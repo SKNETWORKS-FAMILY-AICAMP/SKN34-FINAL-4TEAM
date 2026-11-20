@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppSelector } from '../../../../app/store'
 import { checkPassword, checkSignup, EMAIL } from '../../../../domain/entities/account'
+import { DuplicateEmail } from '../../../../domain/repositories/SignupRepository'
 
 export function useSignupViewModel() {
   const useCase = appContainer.resolve('signupUseCase')
@@ -25,8 +26,12 @@ export function useSignupViewModel() {
       if (!active.current) return false
       setMessage(success)
       return true
-    } catch {
-      if (active.current) setError('요청을 처리하지 못했어요. 입력을 확인하고 다시 시도해 주세요.')
+    } catch (e) {
+      // 가입 요청의 409(이미 쓰는 이메일)는 일반 실패 대신 이메일 칸에 수정할 항목으로 안내한다.
+      if (active.current) {
+        if (e instanceof DuplicateEmail) setErrors({ email: '이미 사용 중인 이메일이에요. 다른 이메일을 쓰거나 로그인해 주세요.' })
+        else setError('요청을 처리하지 못했어요. 입력을 확인하고 다시 시도해 주세요.')
+      }
       return false
     } finally { busy.current = false; if (active.current) setPending(false) }
   }

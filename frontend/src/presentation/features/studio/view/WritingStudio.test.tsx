@@ -15,7 +15,8 @@ const model = vi.hoisted(() => ({
   deleteBlocker: '', deleteBlockerOf: vi.fn((e: { inherited: boolean; publishedVersionId: string | null }) => e.inherited ? '원작 기준 회차는 삭제할 수 없어요.' : e.publishedVersionId ? '발행본이 있는 회차는 삭제할 수 없어요.' : ''),
   addImage: vi.fn().mockResolvedValue(true), orderLookup: null as null | { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: { number: number; candidateNumbers: number[]; reasons: string[]; executable: false } },
   checkOrder: vi.fn(), deleteDraft: vi.fn(),
-  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true),
+  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), refresh: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
+  retrySave: vi.fn(), expired: false,
   create: vi.fn().mockResolvedValue(true), select: vi.fn<(e: { number: number }) => boolean>(() => true),
   cancel: vi.fn(), loadPublicationHistory: vi.fn(), historyLoading: false, historyError: '', publicationHistory: null as null | unknown[],
   changeVisibility: vi.fn().mockResolvedValue(true),
@@ -23,10 +24,14 @@ const model = vi.hoisted(() => ({
 // 호출 인자(주소의 ?ep=n)를 확인하려고 훅 호출을 기록한다. 실제 ViewModel의 삭제는 그 렌더의 활성 회차를 지우므로 함수가 렌더 시점의 active를 붙잡도록 흉내 낸다.
 const useModel = vi.hoisted(() => vi.fn())
 vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: (...args: unknown[]) => { useModel(...args); const { active } = model; return { ...model, deleteEpisode: () => model.deleteEpisode(active) } } }))
-vi.mock('../../plans/viewmodel/useStoryPlanViewModel', () => ({ useStoryPlanViewModel: () => ({
+vi.mock('../../../shared/plans/useStoryPlanViewModel', () => ({ useStoryPlanViewModel: () => ({
   plans: [], references: null, selected: null, editor: null, deleting: null, embedded: true,
   busy: false, ready: true, dirty: false, error: '', notice: '', version: 0, startBlocker: '', confirmLeave: () => true,
 }) }))
+// AI·외부 도구(MCP) 변경 감시(#553)는 훅 자체의 테스트(useMcpChangeWatch.test)가 확인하고, 여기서는 집필실이 넘기는 값과 배너 연결만 본다.
+const mcp = vi.hoisted(() => ({ stale: false, reload: vi.fn(), watch: vi.fn() }))
+vi.mock('../../../shared/useMcpChangeWatch', () => ({ useMcpChangeWatch: (...args: unknown[]) => { mcp.watch(...args); return { stale: mcp.stale, reload: mcp.reload } } }))
+afterEach(() => { mcp.stale = false })
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p>, StoredImage: () => null }))
 vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="설정 버전 이력"><h2>설정 버전 이력</h2><p>{workId}</p></section> }))
@@ -42,7 +47,7 @@ const comparisonVersions = [
   { ...originalActive.versions[0], id: 'v2', body: '변경 원고' },
   { ...originalActive.versions[0], id: 'v3', body: '추가 원고' },
 ]
-afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.active = originalActive; model.draft = originalDraft; model.deleteBlocker = ''; model.orderLookup = null; model.episodes = []; model.busy = false; model.dirty = false; model.editingLocked = false; model.publicationHistory = null; model.error = ''; model.notice = ''; fakeEditor.suspend = false })
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.active = originalActive; model.draft = originalDraft; model.deleteBlocker = ''; model.orderLookup = null; model.episodes = []; model.busy = false; model.dirty = false; model.editingLocked = false; model.publicationHistory = null; model.error = ''; model.notice = ''; model.expired = false; fakeEditor.suspend = false })
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where" data-nav={useNavigationType()}>{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
 const navigation = () => screen.getByTestId('where').dataset.nav
@@ -628,7 +633,7 @@ it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장
   const bar = screen.getByRole('banner')
   expect(within(bar).getByRole('link', { name: '내가 쓰는 소설' })).toBeTruthy()
   expect(within(bar).getByRole('heading', { level: 1, name: '집필실' })).toBeTruthy()
-  expect(within(bar).getByRole('status').textContent).toBe('저장됨')
+  expect(within(bar).getByRole('status').textContent).toBe('저장됨 · 버전 1')
   const names = within(bar).getAllByRole('button').map(b => b.textContent || b.getAttribute('aria-label'))
   expect(names).toEqual(['기본', '고급', '시뮬레이션', '버전 저장', '버전 · 공개', '더보기'])
   // 자주 안 쓰는 이동·이력은 메뉴가 열리기 전에는 상단에 없다
@@ -806,8 +811,8 @@ const text = (n: number) => '가'.repeat(n)
 it('편집기 하단은 N / 40,000자와 함께 공개까지 남은 분량을 알려 주고 5,000자부터 공개 가능 분량이라고 한다', () => {
   model.draft = { ...originalDraft, body: text(2) }
   const view = renderStudio()
-  expect(footer().textContent).toContain('2 / 40,000자 · 공개까지 5,000자 중 4,998자 남음')
-  for (const [n, expected] of [[4999, '4,999 / 40,000자 · 공개까지 5,000자 중 1자 남음'], [5000, '5,000 / 40,000자 · 공개 가능 분량'], [40000, '40,000 / 40,000자 · 공개 가능 분량']] as const) {
+  expect(footer().textContent).toContain('2 / 40,000자 (공백 포함) · 공개까지 5,000자 중 4,998자 남음')
+  for (const [n, expected] of [[4999, '4,999 / 40,000자 (공백 포함) · 공개까지 5,000자 중 1자 남음'], [5000, '5,000 / 40,000자 (공백 포함) · 공개 가능 분량'], [40000, '40,000 / 40,000자 (공백 포함) · 공개 가능 분량']] as const) {
     model.draft = { ...originalDraft, body: text(n) }
     view.rerender(<WritingStudio id="work-id" />)
     expect(footer().textContent).toContain(expected)
@@ -1182,7 +1187,7 @@ it('완료 안내는 늘 있는 상단 저장 상태 줄에 이어 적고 본문
   model.notice = '새 원고 버전을 저장했어요. 발행본은 그대로예요.'
   renderStudio()
   const bar = screen.getByRole('banner')
-  expect(within(bar).getByRole('status').textContent).toBe('저장됨 · 새 원고 버전을 저장했어요. 발행본은 그대로예요.')
+  expect(within(bar).getByRole('status').textContent).toBe('저장됨 · 버전 1 · 새 원고 버전을 저장했어요. 발행본은 그대로예요.')
   // 알림이 생기고 사라져도 아래 3단이 밀리지 않게, 상단 바와 본문 사이에는 아무것도 끼우지 않는다.
   expect(bar.nextElementSibling).toBe(screen.getByRole('main'))
 })
@@ -1191,9 +1196,85 @@ it('오류는 상단 바 바로 아래의 오류 상자로 알리고 원고를 �
   model.error = '동시 수정 충돌'
   renderStudio()
   const alert = screen.getByRole('alert')
-  expect(alert.textContent).toBe('동시 수정 충돌 저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.')
+  expect(alert.textContent?.trim()).toBe('동시 수정 충돌 저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.')
   expect(alert.className).toContain('ep-alert')
   expect(screen.getByRole('banner').nextElementSibling).toBe(alert)
+})
+
+// 다시 시도할 입력(미저장 변경)이 있으면 '복사해 보관' 안내와 재시도 버튼이 엇갈리지 않게 버튼만 보이고, 버튼 이름에서 버전이 아니라 초안을 저장한다는 것이 드러난다.
+it('다시 시도할 입력이 있으면 오류 상자는 복사 안내 대신 초안 저장 재시도 버튼을 보인다', () => {
+  model.error = '동시 수정 충돌'
+  model.dirty = true
+  renderStudio()
+  const alert = screen.getByRole('alert')
+  expect(alert.textContent?.trim()).toBe('동시 수정 충돌 초안 저장 다시 시도')
+  expect(within(alert).getByRole('button', { name: '초안 저장 다시 시도' })).toBeTruthy()
+})
+
+it('재시도 버튼과 로그인 링크는 한 묶음이라 넓은 오류 상자에서 양끝으로 흩어지지 않는다', () => {
+  model.error = '로그인한 뒤 다시 저장해 주세요.'
+  model.expired = true
+  model.dirty = true
+  renderStudio()
+  const alert = screen.getByRole('alert')
+  const retry = within(alert).getByRole('button', { name: '초안 저장 다시 시도' })
+  const login = within(alert).getByRole('link', { name: '로그인' })
+  expect(retry.parentElement).toBe(login.parentElement)
+  expect(retry.parentElement?.parentElement).toBe(alert)
+})
+
+// #460: 로그인이 풀린 오류의 '로그인' 링크는 홈이 아니라 쓰던 회차로 돌아오게 현재 주소를 기억하고, 오류 글씨와 구분되는 버튼으로 보인다.
+it('로그인이 풀려 나타난 로그인 링크는 쓰던 회차 주소(?ep=n)를 로그인 뒤 돌아갈 곳으로 남기고 로그인 화면으로 보낸다', () => {
+  model.error = '로그인한 뒤 다시 저장해 주세요.'
+  model.expired = true
+  const { store } = renderStudio({}, undefined, '/studio/work-id?ep=3')
+  fireEvent.click(within(screen.getByRole('alert')).getByRole('link', { name: '로그인' }))
+  expect(store.getState().session.next).toBe('/studio/work-id?ep=3')
+  expect(where()).toBe('/login')
+})
+
+it('저장하지 않은 입력이 있어 이동을 취소하면 돌아갈 주소를 남기지 않고 화면에 머문다', () => {
+  model.error = '로그인한 뒤 다시 저장해 주세요.'
+  model.expired = true
+  model.dirty = true
+  model.mayLeave.mockReturnValueOnce(false)
+  const { store } = renderStudio({}, undefined, '/studio/work-id?ep=3')
+  fireEvent.click(within(screen.getByRole('alert')).getByRole('link', { name: '로그인' }))
+  expect(store.getState().session.next).toBeNull()
+  expect(where()).toBe('/studio/work-id?ep=3')
+})
+
+it('로그인 링크는 오류 글씨와 같은 색의 밑줄 없는 글자가 아니라 버튼 모양이다', () => {
+  model.error = '로그인한 뒤 다시 저장해 주세요.'
+  model.expired = true
+  renderStudio()
+  expect(within(screen.getByRole('alert')).getByRole('link', { name: '로그인' }).classList.contains('btn')).toBe(true)
+})
+
+// 재시도가 시작되면 오류 상자(와 그 안의 버튼)가 사라져 초점이 body로 떨어지던 문제: 눌렀을 때만 남아 있는 저장 상태 줄이 초점을 이어받는다.
+it('초안 저장 다시 시도를 누르면 사라질 오류 상자 대신 상단 저장 상태가 초점을 이어받는다', () => {
+  model.error = '오프라인'
+  model.dirty = true
+  model.retrySave.mockImplementationOnce(() => { model.error = '' })
+  const { rerender } = renderStudio()
+  const retry = screen.getByRole('button', { name: '초안 저장 다시 시도' })
+  retry.focus()
+  fireEvent.click(retry)
+  rerender(<WritingStudio id="work-id" />)
+  expect(model.retrySave).toHaveBeenCalledTimes(1)
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(document.activeElement).toBe(within(screen.getByRole('banner')).getByRole('status'))
+})
+
+it('재시도를 누르지 않았는데 오류 안내가 사라져도 초점을 저장 상태 줄로 가져오지 않는다', () => {
+  model.error = '오프라인'
+  model.dirty = true
+  const { rerender } = renderStudio()
+  const title = screen.getByRole('textbox', { name: '회차 제목' })
+  title.focus()
+  model.error = ''
+  rerender(<WritingStudio id="work-id" />)
+  expect(document.activeElement).toBe(title)
 })
 
 it('회차 설정 시트에서 보낸 요청의 실패와 완료는 시트 안에서도 알린다', () => {
@@ -1249,4 +1330,23 @@ it.each([
     // 문서 스크롤은 건드리지 않는다(좁은 화면에서 원고를 읽던 자리가 튀지 않게).
     expect(page).not.toHaveBeenCalled()
   } finally { layout.mockRestore(); page.mockRestore() }
+})
+
+it('AI·외부 도구 변경 감시에 열린 작품 id와 미저장 원고 여부, 다시 읽기(확인 없는 refresh)를 넘긴다', () => {
+  const { rerender } = renderStudio()
+  expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'work', targetId: 'work-id', dirty: false, reload: model.refresh })
+  model.dirty = true
+  rerender(<WritingStudio id="work-id" />)
+  expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'work', targetId: 'work-id', dirty: true, reload: model.refresh })
+})
+
+it('다른 곳에서 바뀌었다는 배너는 바뀐 것이 있을 때만 보이고, 다시 불러오기를 누르면 감시 훅의 reload를 부른다', () => {
+  const { unmount } = renderStudio()
+  expect(screen.queryByText('다른 곳에서 바뀌었어요')).toBeNull()
+  unmount()
+  mcp.stale = true
+  renderStudio()
+  const banner = screen.getByText('다른 곳에서 바뀌었어요').closest('[role="status"]') as HTMLElement
+  fireEvent.click(within(banner).getByRole('button', { name: '다시 불러오기' }))
+  expect(mcp.reload).toHaveBeenCalledTimes(1)
 })

@@ -13,10 +13,17 @@ class ManuscriptBuildStoragePostgresTest {
             try (var c = db.connect()) {
                 c.setAutoCommit(false);
                 var world=id(); var job=id(); var step=id(); var result=id();
-                var hash="a".repeat(64);
-                sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+world+"','"+id()+"')");
-                sql(c,"INSERT INTO worldstudio.manuscript_build_job(id,work_id,world_id,owner_subject,request_key,request_hash,manifest,status) VALUES ('"+job+"','work-qa','"+world+"','"+id()+"','same-key','"+hash+"','{\"episodes\":[1,2]}','queued')");
+                var hash="a".repeat(64); var owner=id();
+                sql(c,"CREATE TABLE work(id varchar(36) PRIMARY KEY)");
+                try(var stream=getClass().getResourceAsStream("/db/migration/preprocessing/V41__manuscript_preprocessing_job.sql")) {
+                    sql(c,new String(java.util.Objects.requireNonNull(stream).readAllBytes(),java.nio.charset.StandardCharsets.UTF_8));
+                }
+                sql(c,"INSERT INTO work VALUES ('work-qa')");
+                sql(c,"INSERT INTO preprocessing_job(id,work_id,world_id,member_id,status,total,created_at) VALUES ('"+job+"','work-qa','"+world+"','"+owner+"','queued',2,now())");
+                sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+world+"','"+owner+"')");
+                sql(c,"INSERT INTO worldstudio.manuscript_build_job(id,work_id,world_id,owner_subject,request_key,request_hash,manifest,status) VALUES ('"+job+"','work-qa','"+world+"','"+owner+"','same-key','"+hash+"','{\"episodes\":[{\"number\":1},{\"number\":2}]}','queued')");
                 rejects(c,"23514","UPDATE worldstudio.manuscript_build_job SET manifest='{\"episodes\":[1,2,3]}' WHERE id='"+job+"'");
+                sql(c,"UPDATE worldstudio.manuscript_build_job SET status='running' WHERE id='"+job+"'");
                 sql(c,"INSERT INTO worldstudio.manuscript_build_result(id,job_id,kind,episode,content,content_hash) VALUES ('"+result+"','"+job+"','extraction',1,'{\"quote\":\"원문\"}','"+hash+"')");
                 rejects(c,"23505","INSERT INTO worldstudio.manuscript_build_result(id,job_id,kind,episode,content,content_hash) VALUES ('"+id()+"','"+job+"','extraction',1,'{}','"+hash+"')");
                 rejects(c,"23514","UPDATE worldstudio.manuscript_build_result SET content='{}' WHERE id='"+result+"'");

@@ -2,6 +2,7 @@ package ai.storyfork.operations.security
 
 import ai.storyfork.operations._common.client.ContentWork
 import ai.storyfork.operations._common.client.CoreClient
+import ai.storyfork.operations._common.exception.EvaluationRequiredException
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
 import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.comment.controller.CommentController
@@ -11,6 +12,24 @@ import ai.storyfork.operations.comment.service.dto.OperationsCommentList
 import ai.storyfork.operations.activity.controller.AdminActivityController
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.activity.service.dto.AdminActivityListResponse
+import ai.storyfork.operations.alert.controller.AlertController
+import ai.storyfork.operations.alert.service.AlertService
+import ai.storyfork.operations.alert.service.dto.AlertActRequest
+import ai.storyfork.operations.alert.service.dto.AlertListResponse
+import ai.storyfork.operations.alert.service.dto.AlertRuleListResponse
+import ai.storyfork.operations.alert.service.dto.AlertRuleRequest
+import ai.storyfork.operations.dashboard.controller.DashboardController
+import ai.storyfork.operations.dashboard.service.DashboardService
+import ai.storyfork.operations.llmops.controller.LlmopsController
+import ai.storyfork.operations.llmops.service.EvaluationService
+import ai.storyfork.operations.llmops.service.LeakCheckService
+import ai.storyfork.operations.llmops.service.LlmopsSettingService
+import ai.storyfork.operations.llmops.service.MetricsService
+import ai.storyfork.operations.llmops.service.ModelService
+import ai.storyfork.operations.llmops.service.PromptService
+import ai.storyfork.operations.llmops.service.TraceService
+import ai.storyfork.operations.llmops.service.dto.PromptPromoteRequest
+import ai.storyfork.operations.llmops.service.dto.TracePage
 import ai.storyfork.operations.event.controller.AdminEventController
 import ai.storyfork.operations.event.controller.PublicEventController
 import ai.storyfork.operations.event.service.AdminEventService
@@ -44,7 +63,8 @@ import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.json.JsonMapper
 
 /** CI integration only: MVC assembly of the member Bearer and public event chains next to the service-token chain. */
-@WebMvcTest(controllers = [ReportController::class, AdminEventController::class, AdminActivityController::class, PublicEventController::class, WorkController::class, CommentController::class], properties = [
+@WebMvcTest(controllers = [ReportController::class, AdminEventController::class, AdminActivityController::class, PublicEventController::class, WorkController::class, CommentController::class,
+    DashboardController::class, LlmopsController::class, AlertController::class], properties = [
     "app.operations.service-token=ci-operations-test-only-0123456789abcdef",
 ])
 @Import(MemberSecurityConfig::class, PublicSecurityConfig::class, OperationsSecurityConfig::class, OperationsExceptionHandler::class,
@@ -63,6 +83,15 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var works: WorkService
     @MockitoBean lateinit var comments: CommentService
     @MockitoBean lateinit var adminActivities: AdminActivityService
+    @MockitoBean lateinit var dashboard: DashboardService
+    @MockitoBean lateinit var traces: TraceService
+    @MockitoBean lateinit var metrics: MetricsService
+    @MockitoBean lateinit var prompts: PromptService
+    @MockitoBean lateinit var models: ModelService
+    @MockitoBean lateinit var evaluations: EvaluationService
+    @MockitoBean lateinit var leakChecks: LeakCheckService
+    @MockitoBean lateinit var llmopsSettings: LlmopsSettingService
+    @MockitoBean lateinit var alerts: AlertService
     private val serviceToken = "ci-operations-test-only-0123456789abcdef"
     private val bearer = "Bearer member-access"
 
@@ -263,5 +292,87 @@ class MemberSecurityIntegrationTest {
             mvc.perform(get(path).header("Authorization", bearer)).andExpect(status().isUnauthorized())
         }
         verifyNoInteractions(core, events, adminEvents)
+    }
+
+    @Test
+    fun `dashboard llmops and alert routes require a Core verified Bearer and ignore the service token`() {
+        val id = UUID.randomUUID()
+        for (builder in listOf(
+            get("/api/v1/operations/dashboard"), get("/api/v1/operations/llmops/traces"), get("/api/v1/operations/llmops/traces/t-1"),
+            get("/api/v1/operations/llmops/metrics"), get("/api/v1/operations/llmops/prompts"), put("/api/v1/operations/llmops/prompts/qa-answer/production"),
+            get("/api/v1/operations/llmops/models"), post("/api/v1/operations/llmops/evaluations"), get("/api/v1/operations/llmops/leak-checks"),
+            get("/api/v1/operations/llmops/settings"), get("/api/v1/operations/alerts"), put("/api/v1/operations/alerts/$id"),
+            get("/api/v1/operations/alerts/rules"), put("/api/v1/operations/alerts/rules/ai_failure_rate"),
+        )) {
+            val response = mvc.perform(builder.header("X-Operations-Service-Token", serviceToken))
+                .andExpect(status().isUnauthorized()).andReturn().response
+            assertEquals("UNAUTHORIZED", code(response.contentAsString))
+            assertNull(response.getHeader("Set-Cookie"))
+        }
+        verifyNoInteractions(core, dashboard, traces, metrics, prompts, models, evaluations, leakChecks, llmopsSettings, alerts)
+    }
+
+    @Test
+    fun `a verified operator reaches the dashboard controller with the principal and the forwarded bearer`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        `when`(core.verify(bearer)).thenReturn(member)
+
+        mvc.perform(get("/api/v1/operations/dashboard").header("Authorization", bearer)).andExpect(status().isOk())
+
+        // The service also takes the current time (a default argument), so the call is read back instead of stubbed.
+        val call = mockingDetails(dashboard).invocations.single { it.method.name == "get" }
+        assertEquals(listOf<Any>(member, bearer), call.arguments.take(2))
+    }
+
+    @Test
+    fun `a verified operator reaches the trace route and the request id filter arrives at the service`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(traces.list(member, null, null, null, null, null, "req-1", 0)).thenReturn(TracePage(emptyList(), 0, 20, 0))
+
+        mvc.perform(get("/api/v1/operations/llmops/traces?requestId=req-1").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items").isArray()).andExpect(jsonPath("$.size").value(20))
+
+        verify(traces).list(member, null, null, null, null, null, "req-1", 0)
+    }
+
+    @Test
+    fun `a prompt promotion without a passing evaluation is a 409 with its own code`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(prompts.promote(member, "qa-answer", PromptPromoteRequest(3))).thenThrow(EvaluationRequiredException())
+
+        val response = mvc.perform(put("/api/v1/operations/llmops/prompts/qa-answer/production").header("Authorization", bearer)
+            .contentType("application/json").content("""{"version":3}""")).andExpect(status().isConflict()).andReturn().response
+
+        assertEquals("EVALUATION_REQUIRED", code(response.contentAsString))
+    }
+
+    @Test
+    fun `a verified operator reaches the alert routes with the body and the path values`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        val id = UUID.randomUUID()
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(alerts.list(member, "open")).thenReturn(AlertListResponse(emptyList()))
+        `when`(alerts.rules(member)).thenReturn(AlertRuleListResponse(emptyList()))
+
+        mvc.perform(get("/api/v1/operations/alerts?status=open").header("Authorization", bearer)).andExpect(status().isOk()).andExpect(jsonPath("$.items").isArray())
+        mvc.perform(get("/api/v1/operations/alerts/rules").header("Authorization", bearer)).andExpect(status().isOk()).andExpect(jsonPath("$.items").isArray())
+        mvc.perform(put("/api/v1/operations/alerts/$id").header("Authorization", bearer).contentType("application/json")
+            .content("""{"status":"resolved","note":"끝"}""")).andExpect(status().isOk())
+        mvc.perform(put("/api/v1/operations/alerts/rules/ai_failure_rate").header("Authorization", bearer).contentType("application/json")
+            .content("""{"threshold":0.2,"windowMinutes":30,"enabled":true}""")).andExpect(status().isOk())
+
+        verify(alerts).act(member, id, AlertActRequest("resolved", "끝"))
+        verify(alerts).updateRule(member, "ai_failure_rate", AlertRuleRequest(0.2, 30, true))
+    }
+
+    @Test
+    fun `the llmops and dashboard lookalike paths stay on the service token chain`() {
+        for (path in listOf("/api/v1/operations/dashboardX", "/api/v1/operations/llmopsX/traces", "/api/v1/operations/alertsX")) {
+            mvc.perform(get(path)).andExpect(status().isUnauthorized())
+            mvc.perform(get(path).header("Authorization", bearer)).andExpect(status().isUnauthorized())
+        }
+        verifyNoInteractions(core, dashboard, alerts)
     }
 }

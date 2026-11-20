@@ -1,38 +1,16 @@
-"""Content가 실행권·저장본을 고정한 최초 구축의 순수 추출/구조화 내부 창구."""
-from fastapi import APIRouter, Header, HTTPException
-from pydantic import Field
+"""회차 원고 전처리 내부 API(#343, DEC-50). 접수만 하고 실행은 응답 뒤 백그라운드에서 한다."""
+
+from fastapi import APIRouter, BackgroundTasks, Header
+
 from app.internal_auth import require_internal_token
-from app.preprocessing import service
-from app.preprocessing.errors import PreprocessingFailure
-from app.preprocessing.models import Model, EpisodeText, EpisodeExtraction, IdentityResolution, LoadPayload
+from app.preprocessing.models import JobRequest
+from app.preprocessing.worker import run as run_job
 
-router=APIRouter()
+router = APIRouter()
 
-class StructureRequest(Model):
-    extractions:list[EpisodeExtraction]=Field(min_length=1)
 
-class StructureResponse(Model):
-    identity:IdentityResolution
-    payload:LoadPayload
-
-@router.post('/internal/v1/manuscript-build/extractions',response_model=EpisodeExtraction)
-def extraction(data:EpisodeText,x_internal_token:str=Header(default='')):
-    """한 회차만 반환한다. Content가 성공 결과를 영속화한 뒤 다음 회차를 실행한다."""
+@router.post('/internal/v1/preprocessing/jobs', status_code=202)
+def accept_preprocessing_job(data: JobRequest, background: BackgroundTasks, x_internal_token: str = Header(default='')) -> None:
+    """Content가 접수시킨 전처리 작업을 받아 응답 뒤에 실행한다. 단계·진행·실패는 Content 진행 API로 보고한다."""
     require_internal_token(x_internal_token)
-    try:
-        return service.extract(data)
-    except PreprocessingFailure as error:
-        raise HTTPException(error.status,str(error)) from None
-
-@router.post('/internal/v1/manuscript-build/structure',response_model=StructureResponse)
-def structure(data:StructureRequest,x_internal_token:str=Header(default='')):
-    """전 회차 결과를 재검증해 정체와 적재 데이터를 반환하며 정본에는 쓰지 않는다."""
-    require_internal_token(x_internal_token)
-    if len({row.number for row in data.extractions})!=len(data.extractions):
-        raise HTTPException(422,'DUPLICATE_EPISODE')
-    rows={row.number:row for row in data.extractions}
-    try:
-        identity=service.resolve(rows)
-        return StructureResponse(identity=identity,payload=service.organize(identity,rows))
-    except PreprocessingFailure as error:
-        raise HTTPException(error.status,str(error)) from None
+    background.add_task(run_job, data)

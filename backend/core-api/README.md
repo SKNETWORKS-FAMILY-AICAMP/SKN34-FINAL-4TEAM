@@ -8,7 +8,7 @@ Spring Boot·Kotlin의 Auth·세션·Health API와 Content 전용 내부 인증 
 
 Core 8080과 Content 8081은 기존 같은 DB 대상·계정을 쓰되 writer·Entity/Repository·migration을 나눕니다. 운영 8082는 기존 실행 골격 그대로입니다. 기존 works URL은 공개 진입점에서 Content로 보내며 Core는 중계하지 않습니다. 아래 첨부 #87/#92 계약은 기존 문서 링크 호환을 위해 보존하지만 실행 소유자는 Content입니다. 사용자 승인 fresh Content 이력은 과거 checksum과 비호환이며 정확한 대상·보존/복구 승인 전 실제 DB를 폐기하지 않습니다. Auth SQL/이력은 유지합니다.
 
-LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합니다. 자체 UI 또는 운영 화면 API 통합은 미정이고 Core/Spring에서 제품 전체를 재구현하지 않습니다. 업무별 정기 작업은 소유 서비스가 실행하고 운영은 감시·재실행 요청을 담당합니다.
+LLMOps 정본은 self-host Langfuse이고 운영 화면이 프로젝트 API 키로 Langfuse Public API를 중계·집계해 보입니다([DEC-55 계약](../../docs/design/operations-llmops-contract.md)). Core는 운영 대시보드용 회원 통계(`GET /internal/v1/members/stats`)와 운영 경고 알림 수신만 맡고 LLMOps 기능을 재구현하지 않습니다. 업무별 정기 작업은 소유 서비스가 실행하고 운영은 감시·재실행 요청을 담당합니다.
 
 ## 공개 계약
 
@@ -50,7 +50,7 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `DELETE /api/v1/me/notifications/{id}` | Bearer 인증; 삭제 표시(행 보존, 반복 호출도 204), 타인 알림 404 |
 | `GET /api/v1/me/notifications/stream` | Bearer 인증; SSE(`text/event-stream`). `ready`(연결·재연결 직후)와 `changed`(새 알림 저장 후)만 보내며 내용은 없음. 받으면 목록·미읽음 수를 다시 조회. 연결은 10분 뒤 끝나고 20초마다 `:ping`을 보냄 |
 | `GET /api/v1/me/notification-preferences` | Bearer 인증; 분류별 `{"items":[{"kind","enabled","mutable"}]}`, 200 |
-| `PUT /api/v1/me/notification-preferences` | Bearer 인증과 `items`; 읽기(`reading`)·창작(`creation`)만 변경, 그 외 분류 끄기·알 수 없는 분류·중복은 400 |
+| `PUT /api/v1/me/notification-preferences` | Bearer 인증과 `items`; 읽기(`reading`)·창작(`creation`)·AI·외부 도구 변경(`ai-tool`)만 변경, 그 외 분류 끄기·알 수 없는 분류·중복은 400 |
 | `GET /api/v1/me/credits` | Bearer 인증; 사용 가능한 크레딧 합계와 지급분별 남은 양·소멸 예정(소멸이 빠른 순) `{"total","items":[{"kind","remaining","expiresAt"}]}`, 200 |
 | `GET /api/v1/me/credits/history` | Bearer 인증; 본인의 지급·사용·소멸 내역 최신순 `{"items":[{"type":"grant"\|"spend"\|"expire","kind","amount","occurredAt"}]}`, 200 |
 | `POST /api/v1/me/withdrawal` | Bearer 인증과 현재 `password`, 선택 `reason`(300자 이하); 30일 유예 탈퇴 요청·모든 refresh 세션 폐기, 202. 비밀번호 불일치 403, 이미 진행 중 409 |
@@ -71,6 +71,7 @@ AI 작업용 크레딧 예약·정산은 `CreditReservationService`(내부 서�
 | `POST /internal/v1/members/nicknames` | 〃 (사용자 Bearer 불필요) | `{ids: [uuid…]}`(최대 200개, 중복 무시) → `{nicknames: {<uuid>: 닉네임}}`. Content가 작성자·작가 표시명을 응답 때마다 조회한다. 없는 회원은 빠지고 이용 제한 회원은 포함하며, 잘못된 UUID·200개 초과는 400 |
 | `POST /internal/v1/ai-rate-limit/acquire`, `POST /internal/v1/credits/reservations`(`/settle`·`/release`) | 〃 (사용자 Bearer 불필요) | AI 작업용 속도 제한 확인과 크레딧 예약·정산·해제. 예약·정산·해제는 같은 `operationKey`로 다시 불러도 결과가 같고, `acquire`는 부를 때마다 한도를 쓴다. 잔액 부족 409 `INSUFFICIENT_CREDIT`, 없는 예약 404, 닫힌 예약 409, 규칙 위반 422. [크레딧 내부 API 계약](../../docs/design/credit-internal-api.md) |
 | `GET /internal/v1/members?role=ALL\|MEMBER\|ADMIN&q=&sort=newest\|oldest` | `X-Operations-Service-Token`만 | `{items: MemberItem[]}` 최대 200개, `q`는 닉네임·이메일 대소문자 무시 부분 일치 |
+| `GET /internal/v1/members/stats` | 〃 | `{total, joinedLast7Days, withdrawalPending}`: 전체 회원 수, 호출 시점 기준 최근 7일 가입 수, 탈퇴 유예(`PENDING`) 요청 수. count 쿼리만 쓰며 인증은 회원 목록과 같다(운영 서비스 토큰 + operator Bearer). 운영 대시보드가 읽는다([DEC-55 계약](../../docs/design/operations-llmops-contract.md)). `total`은 `auth_member` 전체 행이라, 탈퇴 최종 처리(기본 꺼짐)를 켜면 익명화된 "탈퇴한 회원" 행도 포함한다 |
 | `PUT`·`DELETE /internal/v1/members/{id}/restriction` | 〃 | 이용 제한·해제 후 `MemberItem`. 자기 자신 400, 없는 회원 404 |
 | `POST /internal/v1/members/admins` | 〃 | `{email, nickname, password}`로 관리자 생성, 201 `MemberItem`. 중복 이메일 409 |
 
@@ -78,7 +79,7 @@ AI 작업용 크레딧 예약·정산은 `CreditReservationService`(내부 서�
 
 탈퇴 요청은 계정 상태와 30일 유예 기한만 기록하며 유예 중에도 로그인해 복구할 수 있습니다. 유예 만료 후 Core 안의 최종 처리(계정을 "탈퇴한 회원"으로 익명화하고 이메일·비밀번호를 쓸 수 없게 바꾸며 세션·확인 요청을 지움, 요청은 `COMPLETED`)는 `app.withdrawal.completion.enabled=true`일 때만 `app.withdrawal.completion.poll-interval`(기본 `PT1H`, 한 번에 `batch-size` 50건)마다 실행하며 기본은 꺼져 있습니다. 실패하거나 처리되지 않은 요청은 `app.withdrawal.completion.retry-delay`(기본 `PT6H`) 동안 건너뛰어 뒤의 요청이 밀리지 않으며, 건너뛸 목록은 메모리에만 있어 재시작하면 비워집니다. 이용 제한 회원은 이미 발급된 토큰이 남아 있어도 닉네임을 바꾸거나 이메일 변경을 요청할 수 없습니다. 이메일 링크로 여는 비밀번호 재설정·이메일 변경 확인은 로그인 상태가 아니므로 예전처럼 동작합니다(이용 제한 회원의 재설정 허용 여부는 정책이 정해지면 정합니다). 탈퇴 사유는 그대로 두고, 이미 발급된 액세스 토큰이 남아 있어도 바로 막히도록 계정을 이용 제한 상태로 바꿉니다. 완료된 요청은 되돌릴 수 없고 Content의 작품은 정리하지 않으므로 Content 연동 전에는 켜지 않습니다. 작품·세계관 숨김·삭제·익명화, 남은 크레딧·결제 내역 처리, 같은 이메일 재가입 정책은 콘텐츠 서비스 계약과 정책이 정해진 뒤 연결하므로 아직 없습니다.
 
-알림 분류는 `reading`·`creation`(끌 수 있음), `result`·`credit`·`rights-security`(항상 수신)입니다. Core가 직접 만드는 알림은 크레딧 소멸 예정(매일 00:10 KST, 남은 크레딧이 `app.credit.expiry-notice.lead-time`(기본 `P3D`, 임시) 안에 소멸하면 소멸 날짜마다 한 번, `app.credit.expiry-notice.enabled` 기본 켜짐)과 탈퇴 요청(요청과 같은 트랜잭션)이며, 다른 사건과 같이 Outbox를 거쳐 발행됩니다. 모든 변경 요청은 CSRF 헤더가 필요하고 알림은 요청한 회원 본인 것만 보입니다. RabbitMQ·모바일 푸시는 아직 없습니다. SSE 연결 목록은 Core 인스턴스 메모리에 있으므로 단일 Core 인스턴스를 전제로 하며, 여러 인스턴스로 늘리면 인스턴스 간 신호 전달을 추가해야 합니다. 전송은 연결별 가상 스레드에서 직렬화하고 대기 신호는 종류별로 병합합니다. 전송이 5초를 넘으면 논리적으로 등록 해제하고 종료 처리를 호출자와 분리합니다. 이 기한은 막힌 Servlet 소켓의 물리적 종료를 보장하지 않으며, 실제 자원 회수에는 컨테이너의 쓰기 타임아웃이 필요합니다.
+알림 분류는 `reading`·`creation`·`ai-tool`(끌 수 있음), `result`·`credit`·`rights-security`(항상 수신)입니다. `ai-tool`은 Content MCP 쓰기가 남기는 `content.mcp.world-changed`·`content.mcp.work-changed` 사건(AI가 MCP로 작가의 세계관·작품을 바꿈)이며, 같은 수신자·종류·대상의 읽지 않은 알림이 있으면 새 알림을 만들지 않고 그 알림의 도착 시각만 지금으로 올린 뒤 변경 신호를 보냅니다(알림 행의 사건 id는 처음 것 그대로이고, 읽거나 삭제한 뒤에는 새로 만듭니다). 운영자 조치 사건(`content.operator.work-restricted`·`work-unrestricted`·`comment-hidden`·`comment-restored`)은 `result` 분류라 끌 수 없고 묶지 않습니다([계약](../../docs/design/mcp-change-notice-contract.md)). Core가 직접 만드는 알림은 크레딧 소멸 예정(매일 00:10 KST, 남은 크레딧이 `app.credit.expiry-notice.lead-time`(기본 `P3D`, 임시) 안에 소멸하면 소멸 날짜마다 한 번, `app.credit.expiry-notice.enabled` 기본 켜짐)과 탈퇴 요청(요청과 같은 트랜잭션)이며, 다른 사건과 같이 Outbox를 거쳐 발행됩니다. 운영 서비스가 발행하는 `operations.alert.raised`(운영 경고, 대상 `alert`)도 같은 소비 경로로 알림함에 들어오며 끌 수 없는 `result` 분류입니다. 모든 변경 요청은 CSRF 헤더가 필요하고 알림은 요청한 회원 본인 것만 보입니다. RabbitMQ·모바일 푸시는 아직 없습니다. SSE 연결 목록은 Core 인스턴스 메모리에 있으므로 단일 Core 인스턴스를 전제로 하며, 여러 인스턴스로 늘리면 인스턴스 간 신호 전달을 추가해야 합니다. 전송은 연결별 가상 스레드에서 직렬화하고 대기 신호는 종류별로 병합합니다. 전송이 5초를 넘으면 논리적으로 등록 해제하고 종료 처리를 호출자와 분리합니다. 이 기한은 막힌 Servlet 소켓의 물리적 종료를 보장하지 않으며, 실제 자원 회수에는 컨테이너의 쓰기 타임아웃이 필요합니다.
 
 가입 인증 링크는 24시간, 비밀번호 재설정·이메일 변경 링크는 1시간 유효하며 한 번만 사용할 수 있습니다. 가입 인증 화면은 fragment를 지운 뒤 비밀번호 입력과 명시적 확인을 기다리고, 이메일 변경 확인 화면은 기존처럼 토큰만으로 자동 진행합니다. SMTP는 가입 인증·비밀번호 복구·이메일 변경 메일에 사용합니다. 메일과 데이터베이스는 로컬 검증용이며 운영 SMTP·TLS 정책은 미정입니다.
 

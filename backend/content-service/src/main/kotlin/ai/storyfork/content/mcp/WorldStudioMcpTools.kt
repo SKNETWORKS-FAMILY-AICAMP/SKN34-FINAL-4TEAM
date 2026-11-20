@@ -34,6 +34,7 @@ class WorldStudioMcpTools(
     private val publicWorlds: PublicWorldService,
     private val analyses: InitialWorldAnalysisService,
     private val applications: InitialWorldApplicationService,
+    private val changeNotice: McpChangeNotice,
 ) {
     @McpTool(
         name = "world_studio_list",
@@ -53,11 +54,11 @@ class WorldStudioMcpTools(
     fun create(
         context: McpTransportContext,
         @McpToolParam(description = "생성 입력: name(필수, 100자 이하)·description(선택)·id(선택, 재시도 식별용 UUID)") request: CreateWorldRequest,
-    ): WorldDraftResponse = studioTool { linked(studio.create(context.callerUuid(), request)) }
+    ): WorldDraftResponse = studioTool { linked(studio.create(context.callerUuid(), request)).also { changeNotice.world(context, "${it.worldId}") } }
 
     @McpTool(
         name = "world_studio_read",
-        description = "세계관의 현재 초안(카드·관계·공개 설정)을 조회한다(GET /api/v1/world-studios/{id}). 관계는 episode(선택)화 시점의 것이며 생략하면 최신 회차다. 소유자만 가능하며 남의 세계관은 404, episode 값 오류는 422, 관계 저장소 전환 필요·불일치는 409, 관계 저장 미완료는 503이다.",
+        description = "세계관의 현재 초안(카드·관계·공개 설정)을 조회한다(GET /api/v1/world-studios/{id}). 관계는 episode(선택)화 시점의 것이며 생략하면 최신 회차다. relationshipEpisodes는 관계 id마다 그 시점 관계가 시작된 회차('N화부터')다. 소유자만 가능하며 남의 세계관은 404, episode 값 오류는 422, 관계 저장소 전환 필요·불일치는 409, 관계 저장 미완료는 503이다.",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
     fun read(
@@ -68,13 +69,13 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_studio_edit_draft",
-        description = "세계관 초안(이름·설명·카드·관계)을 저장한다(PUT /api/v1/world-studios/{id}/draft). 관계는 episode(선택)화 시점의 전체 목록으로 저장하며 생략하면 최신 회차다. 설정 삭제(lifecycle=removed·replace=true에서 생략)는 episode를 생략한 최신 회차에서만 하며 지정하면 422다. 소유자만 가능하며 expectedDraftRevision이 world_studio_read의 draftRevision과 다르면 409이고, 결과를 못 받으면 같은 key·같은 입력으로 재시도한다.",
+        description = "세계관 초안(이름·설명·카드·관계)을 저장한다(PUT /api/v1/world-studios/{id}/draft). 관계는 episode(선택)화 시점의 전체 목록으로 저장하며 생략하면 최신 회차다. 관계마다 다른 회차에 기록하려면 relationshipEpisodes(관계 id → 'N화부터')를 준다. 설정 삭제(lifecycle=removed·replace=true에서 생략)는 episode를 생략한 최신 회차에서만 하며 지정하면 422다. 소유자만 가능하며 expectedDraftRevision이 world_studio_read의 draftRevision과 다르면 409이고, 결과를 못 받으면 같은 key·같은 입력으로 재시도한다.",
     )
     fun editDraft(
         context: McpTransportContext,
         @McpToolParam(description = "세계관 ID(UUID)") id: String,
-        @McpToolParam(description = "초안 입력: expectedDraftRevision·name·description·key(필수, 1~200바이트, 재시도 식별용)·replace(false면 보낸 카드·관계만 추가·갱신, true면 보내지 않은 것은 제거)·cards(최대 1000개; cardType=character|location|organization|ability|object|rule|event|other, areaCode=basic|space|history|society|culture|special|conflict, visibility=private|public, lifecycle=active|removed)·relationships(sourceCardId·targetCardId 둘 다 필요; category=structural|emotional, direction=directed|symmetric, polarity=asserted|denied)·episode(선택, 연결된 소설의 회차 순번 1 이상. relationships는 그 회차 시점의 관계이며 바뀐 것만 그 회차에 기록하고 생략하면 최신 회차)") request: EditWorldDraftRequest,
-    ): WorldDraftResponse = studioTool { linked(studio.edit(uuidArg(id), context.callerUuid(), request)) }
+        @McpToolParam(description = "초안 입력: expectedDraftRevision·name·description·key(필수, 1~200바이트, 재시도 식별용)·replace(false면 보낸 카드·관계만 추가·갱신, true면 보내지 않은 것은 제거)·cards(최대 1000개; cardType=character|location|organization|ability|object|rule|event|other, areaCode=basic|space|history|society|culture|special|conflict, visibility=private|public, lifecycle=active|removed)·relationships(sourceCardId·targetCardId 둘 다 필요; category=structural|emotional|identity, direction=directed|symmetric, polarity=asserted|denied. identity는 「동일 인물」로 sourceCardId=다른 이름 인물 카드·targetCardId=본체 인물 카드·direction=directed이고 episode 또는 그 관계의 relationshipEpisodes 값이 필요하며(끝내는 identity는 episode) 사슬·순환·한 카드에 본체 둘은 422)·episode(선택, 연결된 소설의 회차 순번 1 이상. relationships는 그 회차 시점의 관계이며 바뀐 것만 그 회차에 기록하고 생략하면 최신 회차)·relationshipEpisodes(선택, 관계 id → 그 관계의 'N화부터' 1 이상의 정수 JSON 값. 이 요청에서 삭제하지 않는 관계에만 줄 수 있고 모르는 id·삭제 관계·1 미만이거나 정수가 아닌 값(소수·문자열)은 422이며, 준 관계는 episode가 아니라 그 회차에 기록하고 안 준 관계와 삭제는 episode를 따른다)") request: EditWorldDraftRequest,
+    ): WorldDraftResponse = studioTool { linked(studio.edit(uuidArg(id), context.callerUuid(), request)).also { changeNotice.world(context, id) } }
 
     @McpTool(
         name = "world_studio_save_revision",
@@ -84,7 +85,7 @@ class WorldStudioMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "세계관 ID(UUID)") id: String,
         @McpToolParam(description = "확정 입력: expectedDraftRevision(world_studio_read의 draftRevision)·key(1~200바이트, 재시도 식별용)") request: SaveWorldRequest,
-    ): WorldRevisionResponse = studioTool { studio.save(uuidArg(id), context.callerUuid(), request) }
+    ): WorldRevisionResponse = studioTool { studio.save(uuidArg(id), context.callerUuid(), request).also { changeNotice.world(context, id) } }
 
     @McpTool(
         name = "world_studio_update_publication",
@@ -94,7 +95,7 @@ class WorldStudioMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "세계관 ID(UUID)") id: String,
         @McpToolParam(description = "공개 입력: visibility(private|public)·genre(fantasy|sf|wuxia|romance|modern|classic|mystery, 선택)") request: PublicationRequest,
-    ): PublicationResponse = studioTool { studio.publication(uuidArg(id), context.callerUuid(), request) }
+    ): PublicationResponse = studioTool { studio.publication(uuidArg(id), context.callerUuid(), request).also { changeNotice.world(context, id) } }
 
     @McpTool(
         name = "world_studio_revisions",
@@ -124,11 +125,11 @@ class WorldStudioMcpTools(
         @McpToolParam(description = "장르 코드(fantasy|sf|wuxia|romance|modern|classic|mystery). 생략하면 전체", required = false) genre: String?,
         @McpToolParam(description = "쪽 번호(0부터)", required = false) page: String?,
         @McpToolParam(description = "쪽 크기(1~100, 기본 24)", required = false) size: String?,
-    ): PublicWorldPageResponse = mcpTool { publicWorlds.list(genre, page, size) }
+    ): PublicWorldPageResponse = mcpTool { publicWorlds.list(genre, null, page, size) }
 
     @McpTool(
         name = "world_studio_public_read",
-        description = "공개 세계관 하나를 조회한다(GET /api/v1/public/world-studios/{id}). 인증이 필요 없고 마지막 확정 버전의 공개 카드와 그 카드끼리의 현재 관계만 돌려주며 비공개·확정 버전 없음·없는 세계관은 404다.",
+        description = "공개 세계관 하나를 조회한다(GET /api/v1/public/world-studios/{id}). 인증이 필요 없고 마지막 확정 버전에서 기준 회차(연결된 공개 소설의 발행된 마지막 회차, 연결이 없으면 1화) 이하로 공개된 카드와 그 카드끼리의 그 시점 관계(관계마다 기준 회차까지의 변화 history 포함)만 돌려주며 비공개·확정 버전 없음·없는 세계관은 404다.",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
     fun publicRead(@McpToolParam(description = "세계관 ID(UUID)") id: String): PublicWorldResponse = mcpTool { publicWorlds.detail(uuidArg(id)) }
@@ -210,7 +211,7 @@ class WorldStudioMcpTools(
         // 컨트롤러는 applied를 200, applying을 202로 답하고 POST의 그 밖 상태(failed·unknown)는 503이다. 실패를 성공처럼 보이지 않게 같은 상태의 도구 오류로 낸다.
         if (receipt.status != "applied" && receipt.status != "applying") throw McpToolFailure(503, null,
             "반영을 끝내지 못했어요(상태 ${receipt.status}, 반영 ID ${receipt.applicationId}). world_analysis_application_read로 확인하거나 같은 요청으로 다시 호출해 주세요.")
-        receipt
+        receipt.also { changeNotice.world(context, worldId) }
     }
 
     @McpTool(

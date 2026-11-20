@@ -17,5 +17,5 @@ class InitialWorldExtractionConfig {
     @Bean fun initialWorldAnalysisClock():java.time.Clock=java.time.Clock.systemUTC()
     @Bean fun initialWorldExtractionClient(builder:RestClient.Builder,properties:AiServiceClientProperties,
         @Value("\${INTERNAL_TOKEN:}") token:String)=InitialWorldExtractionClient(
-        buildRestClient(builder,properties.baseUrl,properties.connectTimeout,Duration.ofSeconds(75)),token)
+        buildRestClient(builder,properties.baseUrl,properties.connectTimeout,Duration.ofSeconds(75),forwardUser=true),token)
 }

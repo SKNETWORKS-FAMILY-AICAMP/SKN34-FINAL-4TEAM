@@ -1,33 +1,37 @@
-"""DEC-47 적재 문서는 SOUL·GOAL·회차 기억만 받는다."""
+"""#343 전처리 접수 요청·진행 보고 DTO. 계약 본문만 받고 URL 경로에 들어갈 작업 ID는 안전한 문자만 허용한다."""
 import pytest
 from pydantic import ValidationError
-from app.preprocessing.models import Card, CharacterDocs
+
+from app.preprocessing.models import JobRequest, Progress
+
+JOB = {'jobId': '3f2b9c1e-0000-4000-8000-000000000001', 'workId': 'work-1', 'episodes': [1, 2, 5]}
 
 
-def test_initial_load_carries_first_appearance_without_reader_disclosure():
-    card = Card(key='hero', cardType='character', title='길동', aliases=[],
-                body='길동', firstAppearanceEpisode=3)
-    serialized = card.model_dump(mode='json')
-    assert serialized['firstAppearanceEpisode'] == 3
-    assert 'revealFromEpisode' not in serialized
-    assert Card.model_validate(serialized) == card
+def test_job_request_accepts_the_contract_body():
+    request = JobRequest.model_validate(JOB)
+    assert (request.jobId, request.workId, request.episodes) == (JOB['jobId'], 'work-1', [1, 2, 5])
 
 
-@pytest.mark.parametrize('include_first_appearance', [False, True])
-def test_initial_load_rejects_ambiguous_legacy_disclosure_field(include_first_appearance):
-    data = dict(key='hero', cardType='character', title='길동', aliases=[],
-                body='길동', revealFromEpisode=3)
-    if include_first_appearance:
-        data['firstAppearanceEpisode'] = 3
+@pytest.mark.parametrize('change', [
+    {'jobId': ''}, {'jobId': 'a/../b'}, {'jobId': 'a b'}, {'workId': ''},
+    {'episodes': []}, {'episodes': [0]}, {'episodes': [1, 1]}, {'episodes': [True]}, {'episodes': ['1']},
+    {'episodes': list(range(1, 5002))}, {'extra': 1},
+], ids=['empty-job', 'path-job', 'space-job', 'empty-work', 'no-episodes', 'episode-zero', 'duplicate', 'bool', 'string',
+        'too-many', 'unknown-field'])
+def test_job_request_rejects_malformed_bodies(change):
     with pytest.raises(ValidationError):
-        Card.model_validate(data)
+        JobRequest.model_validate({**JOB, **change})
 
 
-def test_goal_and_episode_zero_survive_payload_round_trip():
-    data = {'soul': '신분 차별을 싫어한다', 'goal': '율도국을 세운다', 'episodes': {'00': '서자임을 안다', '03': '활빈당을 만났다'}}
-    assert CharacterDocs.model_validate(data).model_dump() == data
+def test_job_request_requires_every_field():
+    for key in JOB:
+        with pytest.raises(ValidationError):
+            JobRequest.model_validate({k: v for k, v in JOB.items() if k != key})
 
 
-def test_legacy_memory_is_not_an_output_document():
+def test_progress_reports_only_the_contract_stages():
+    Progress(stage='loading', done=0, total=0, failedEpisodes=[])
     with pytest.raises(ValidationError):
-        CharacterDocs(soul='성격', memory='기억', episodes={})
+        Progress(stage='done', done=0, total=0, failedEpisodes=[])
+    with pytest.raises(ValidationError):
+        Progress(stage='extracting', done=-1, total=3, failedEpisodes=[])

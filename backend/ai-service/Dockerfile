@@ -10,13 +10,14 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 WORKDIR /app
 
+# eval: 회귀 평가(ragas·deepeval)가 AI 프로세스에서 돌아 같은 이미지에 설치한다(Celery 병합 뒤 평가를 돌리는 worker 이미지로 옮긴다, DEC-55).
 COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --extra manuscript --no-install-project
+    uv sync --locked --no-dev --extra manuscript --extra eval --no-install-project
 
 COPY app ./app
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --extra manuscript --no-editable
+    uv sync --locked --no-dev --extra manuscript --extra eval --no-editable
 
 FROM python:3.11-slim-bookworm AS runtime
 
@@ -37,6 +38,8 @@ RUN groupadd --system storyfork && \
 # 원고 검색 v1 고정 리비전 E5 모델. 체크섬은 app/story_qa/service.py FILES와 같고, 다르면 빌드가 실패한다.
 ADD --chmod=444 --checksum=sha256:dd476dd0c2514e9b9be83aeb3853fac0763e0bdf4a71645407587d77c48a2d88 https://huggingface.co/intfloat/multilingual-e5-small/resolve/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx/model_qint8_avx512_vnni.onnx /app/models/multilingual-e5-small/model_qint8_avx512_vnni.onnx
 ADD --chmod=444 --checksum=sha256:0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39 https://huggingface.co/intfloat/multilingual-e5-small/resolve/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx/tokenizer.json /app/models/multilingual-e5-small/tokenizer.json
+# ADD --chmod는 새로 만든 상위 폴더에도 444를 줘서(실행 비트 없음) 비 root 사용자가 모델을 못 연다(#475).
+RUN chmod 555 /app/models /app/models/multilingual-e5-small
 
 COPY --from=builder --chown=storyfork:storyfork /app/.venv /app/.venv
 COPY --from=builder --chown=storyfork:storyfork /app/app /app/app

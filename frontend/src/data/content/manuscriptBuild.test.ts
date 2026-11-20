@@ -3,7 +3,7 @@ import '../../test/testLocks'
 import {login} from '../api/auth'
 import {HttpManuscriptBuildRepository} from './HttpManuscriptBuildRepository'
 const work=crypto.randomUUID(),world=crypto.randomUUID(),job=crypto.randomUUID(),token=crypto.randomUUID()
-const status=(state='running')=>({jobId:job,worldId:world,status:state,completedEpisodes:1,totalEpisodes:4,executionToken:token,failureCode:null,receipts:[]})
+const status=(state='running')=>({id:job,workId:work,status:state,build:{jobId:job,worldId:world,status:state,completedEpisodes:1,totalEpisodes:4,executionToken:token,failureCode:null,receipts:[]}})
 beforeEach(async()=>{
  const values=new Map<string,string>()
  vi.stubGlobal('localStorage',{getItem:(k:string)=>values.get(k)??null,setItem:(k:string,v:string)=>values.set(k,v)})
@@ -49,4 +49,23 @@ it('unknown 적재 복구는 원래 key와 payload를 보내며 신규 실행 to
  await repo.resume(work)
  expect(fetcher.mock.calls[0][1].body).toBe(fetcher.mock.calls[2][1].body)
  expect(JSON.parse(fetcher.mock.calls[2][1].body)).not.toHaveProperty('resumeToken')
+})
+
+it('이전 실패의 새 접수 허용은 조회로만 표시하고 재개 버튼으로 새 작업을 접수하지 않는다',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(status('failed')))
+   .mockImplementation(async()=>Response.json({id:job,workId:work,status:'failed',build:null,recovery:'new_request'}))
+ const repo=new HttpManuscriptBuildRepository(fetcher)
+ await repo.start(work,world)
+ expect(await repo.read(work)).toBeNull()
+ await expect(repo.resume(work)).rejects.toThrow('새 작업')
+ expect(fetcher.mock.calls.filter(c=>c[1].method==='POST')).toHaveLength(1)
+})
+it('결과 미확인 이전 작업은 별도 검토로 표시한다',async()=>{
+ const repo=new HttpManuscriptBuildRepository(async()=>Response.json({id:job,workId:work,status:'failed',build:null,recovery:'manual_review'}))
+ await expect(repo.read(work)).rejects.toThrow('별도 검토')
+})
+it('스냅샷 없는 queued 작업은 자동 재개 없이 별도 검토를 표시한다',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(Response.json({id:job,workId:work,status:'queued',build:null,recovery:'manual_review'}))
+ await expect(new HttpManuscriptBuildRepository(fetcher).read(work)).rejects.toThrow('별도 검토')
+ expect(fetcher.mock.calls.map(c=>c[1].method)).toEqual(['GET'])
 })

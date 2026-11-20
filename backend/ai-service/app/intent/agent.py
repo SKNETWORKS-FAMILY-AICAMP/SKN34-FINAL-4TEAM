@@ -1,6 +1,6 @@
-"""Intent Router 모델 호출(#55·#373): LangChain `create_agent` 위에서 OpenAI Decisions(`gpt-6-luna`)를 1회 부르고 답을 검증한다.
+"""Decision Guard 모델 호출(#55·#373·#473): LangChain `create_agent` 위에서 OpenAI Decisions(`gpt-6-luna`)를 1회 부르고 답을 검증한다.
 
-분류(질문·선택지·검증)는 그대로이고, 입력 가드레일 미들웨어(LangChain 기본 미들웨어 상속)가 Decisions보다 먼저 작가 요청만 거른다.
+질문(guard + 기능별 yes/no)은 service가 정하고 선택지·누락·중복·refusal 검증은 여기서 한다. 입력 가드레일 미들웨어(LangChain 기본 미들웨어 상속)가 Decisions보다 먼저 작가 요청만 거른다.
 - `SensitiveDataGuard`(PIIMiddleware): 요청에 이메일·카드번호·API 키가 있으면 어떤 모델도 부르지 않고 sensitive_data로 거절한다(외부 전송 방지).
 - `ModerationGuard`(OpenAIModerationMiddleware): OpenAI moderation이 BLOCKED 범주를 걸면 unsafe로 거절한다. 폭력·성 묘사 같은
   창작 범주는 소설에 흔해 막지 않고 Decisions의 guard 질문이 판단한다.
@@ -17,10 +17,12 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 from langchain_openai.middleware import OpenAIModerationMiddleware
-from openai import OpenAI, OpenAIError
+from openai import (APIConnectionError, APITimeoutError, AuthenticationError, OpenAI, OpenAIError, PermissionDeniedError,
+                    RateLimitError)
 from pydantic import ValidationError
 
-from app.intent.errors import IntentFailure
+from app import tracing
+from app.intent.errors import ROUTER_FAILED_MESSAGE, IntentFailure
 from app.intent.models import Decision
 from app.intent.prompt import INSTRUCTIONS, MODEL
 
@@ -60,11 +62,13 @@ class DecisionsModel(BaseChatModel):
     """create_agent의 모델 슬롯에서 OpenAI Decisions를 부른다. 시스템 메시지는 developer 지시, 사용자 메시지는 작가 요청이다.
 
     질문·자료·이전 요청은 호출마다 정해 필드로 받는다. 응답(dict)은 그대로 additional_kwargs['decision']에 담고 decide가 검증한다.
+    호출은 generation으로 남기되 모델·사용량·프롬프트 버전만 담는다(요청·자료는 가드레일이 거른 작가 원문이라 이 observation에 넣지 않는다).
     """
     client: Any
     questions: list[dict]
     materials: list[str]
     history: list[str]
+    prompt: Any = None  # generation에 연결할 Langfuse 프롬프트
 
     @property
     def _llm_type(self) -> str:
@@ -73,22 +77,43 @@ class DecisionsModel(BaseChatModel):
     def _generate(self, messages, stop=None, run_manager=None, **kwargs) -> ChatResult:
         system, request = messages
         # 설치된 SDK에 decisions 리소스가 없어 공식 HTTP 계약(POST /v1/decisions)을 직접 쓴다.
-        response = self.client.post('/decisions', cast_to=object, body={
-            'model': MODEL, 'questions': self.questions,
-            'input': [{'role': 'developer', 'content': system.content},
-                      {'role': 'user', 'content': [{'type': 'input_json', 'data': {
-                          'request': request.content, 'materials': self.materials, 'history': self.history}}]}]})
+        with tracing.observe('decision_guard.generation', as_type='generation', model=MODEL, prompt=self.prompt) as generation:
+            response = self.client.post('/decisions', cast_to=object, body={
+                'model': MODEL, 'questions': self.questions,
+                'input': [{'role': 'developer', 'content': system.content},
+                          {'role': 'user', 'content': [{'type': 'input_json', 'data': {
+                              'request': request.content, 'materials': self.materials, 'history': self.history}}]}]})
+            usage = response.get('usage') if isinstance(response, dict) else None
+            if isinstance(usage, dict):
+                generation.update(usage_details={'input': usage.get('input_tokens', 0), 'output': usage.get('output_tokens', 0)})
         return ChatResult(generations=[ChatGeneration(message=AIMessage(content='', additional_kwargs={'decision': response}))])
+
+
+def _provider_message(error: OpenAIError) -> str:
+    """제공사 오류를 작가에게 보일 고정 문구로 바꾼다. 한도 초과 중 크레딧 소진(insufficient_quota)은 기다려도 풀리지 않아 따로 알린다."""
+    if isinstance(error, RateLimitError):
+        return 'AI 제공사 크레딧이 부족해 요청을 처리하지 못했습니다.' if error.code == 'insufficient_quota' else 'AI 제공사 요청 한도를 넘었습니다. 잠시 후 다시 시도해 주세요.'
+    if isinstance(error, (AuthenticationError, PermissionDeniedError)):
+        return 'AI 제공사 인증에 실패했습니다. 운영자에게 문의해 주세요.'
+    if isinstance(error, APITimeoutError):  # APIConnectionError의 하위 클래스라 먼저 본다
+        return 'AI 제공사 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.'
+    if isinstance(error, APIConnectionError):
+        return 'AI 제공사에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+    return ROUTER_FAILED_MESSAGE
 
 
 def decide(request: str, materials: list[str], questions: list[dict], history: list[str] = ()) -> dict[str, str]:
     key = os.environ.get('OPENAI_API_KEY')
     if not key:
         raise IntentFailure()
+    try:
+        managed = tracing.prompt('decision_guard.judge', INSTRUCTIONS)
+    except tracing.PromptUnavailable:
+        raise IntentFailure() from None
     client = OpenAI(api_key=key, timeout=30, max_retries=0)
     try:
-        model = DecisionsModel(client=client, questions=questions, materials=list(materials), history=list(history))
-        agent = create_agent(model, system_prompt=INSTRUCTIONS, checkpointer=False, middleware=[
+        model = DecisionsModel(client=client, questions=questions, materials=list(materials), history=list(history), prompt=managed.client)
+        agent = create_agent(model, system_prompt=managed.text, checkpointer=False, middleware=[
             SensitiveDataGuard('email'), SensitiveDataGuard('credit_card'), SensitiveDataGuard('api_key', API_KEY),
             ModerationGuard(client=client, check_output=False, exit_behavior='end'),
             ModelCallLimitMiddleware(run_limit=1, exit_behavior='error')])
@@ -110,7 +135,9 @@ def decide(request: str, materials: list[str], questions: list[dict], history: l
         if answers['guard'] == 'none' and any(answers.get(n) not in v for n, v in valid.items()):
             raise IntentFailure()
         return answers
-    except (OpenAIError, ValidationError):
+    except OpenAIError as error:
+        raise IntentFailure(_provider_message(error)) from None
+    except ValidationError:
         raise IntentFailure() from None
     finally:
         client.close()

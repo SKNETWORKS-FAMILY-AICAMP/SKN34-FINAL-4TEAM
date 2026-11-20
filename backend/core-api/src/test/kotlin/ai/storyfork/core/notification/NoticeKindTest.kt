@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test
 
 class NoticeKindTest {
     @Test
-    fun `only reading and creation notices can be turned off`() {
-        assertEquals(setOf("reading", "creation"), NoticeKind.entries.filter { it.mutable }.map { it.code }.toSet())
+    fun `only reading, creation and ai-tool notices can be turned off`() {
+        assertEquals(setOf("reading", "creation", "ai-tool"), NoticeKind.entries.filter { it.mutable }.map { it.code }.toSet())
     }
 
     @Test

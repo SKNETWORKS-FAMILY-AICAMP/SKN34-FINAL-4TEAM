@@ -1,4 +1,4 @@
-import { type CSSProperties, type FormEvent, type ReactNode, useEffect, useRef } from 'react'
+import { type FormEvent, type ReactNode, useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
 import { ADMIN_PERMISSIONS, type AdminTab, adminTab } from '../../../../domain/entities/admin'
@@ -18,7 +18,10 @@ import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { LIVE_TABS, useAdminViewModel, useForkIntegrity } from '../viewmodel/useAdminViewModel'
-import { AdminActionStatus, OperationsNotices } from './OperationsPanels'
+import { JobMonitor } from './JobMonitor'
+import { LlmOps } from './LlmOps'
+import { OperationsDashboard } from './OperationsDashboard'
+import { AdminActionStatus, LiveState, OperationsNotices, Table } from './OperationsPanels'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
 
 type VM = ReturnType<typeof useAdminViewModel>
@@ -34,9 +37,9 @@ const GROUPS: [string, [AdminTab, string][]][] = [
   ['내 계정', [['profile', '프로필']]],
 ]
 const TITLES: Record<AdminTab, [string, string]> = {
-  data: ['관리 개요', '수집 자료와 서비스 상태를 확인합니다.'],
+  data: ['관리 개요', '회원·AI 사용량·작업·미처리 업무를 운영 서버 기준으로 확인하고 운영 경고를 처리합니다.'],
   rights: ['신고·권리 관리', '운영 신고를 검토하고 대상 작품 제한·권리 증빙 요청을 기록합니다.'],
-  llm: ['LLM Ops', 'LLM 운영 지표는 시연용 예시이며 실시간 연결은 없습니다.'],
+  llm: ['LLM Ops', 'Langfuse 기준 추적·지표와 프롬프트·모델·평가·경고 기준을 확인하고 관리합니다.'],
   admins: ['관리자 계정과 권한', '업무별 접근 권한을 나누어 관리자 계정을 추가합니다.'],
   users: ['사용자 관리', '회원 목록을 조회하고 이용 제한·해제를 요청합니다.'],
   works: ['작품 관리', '작품의 공개 상태와 이용 권리를 조회하고 운영 제한·해제를 요청합니다.'],
@@ -49,7 +52,7 @@ const TITLES: Record<AdminTab, [string, string]> = {
     '제보·문의',
     '회원이 보낸 고객지원 문의를 확인하고 답변합니다. 작가 검토 제보는 시연용 데이터예요.',
   ],
-  jobs: ['정기 작업', '서버가 주기적으로 실행할 작업과 최근 결과를 확인합니다.'],
+  jobs: ['정기 작업', '원고 전처리와 운영 정기 작업의 실행 기록을 보고 실패 작업과 일정을 관리합니다.'],
   events: ['이벤트 관리', '이벤트 내용과 기간을 관리합니다.'],
   notices: ['공지 게시', '공지를 작성하고 수정·삭제합니다.'],
   credits: ['크레딧 관리', '크레딧 이용 현황과 정책 확정 상태를 확인합니다.'],
@@ -57,14 +60,17 @@ const TITLES: Record<AdminTab, [string, string]> = {
   profile: ['관리자 프로필', '로그인한 관리자 계정 정보를 확인합니다.'],
 }
 const KINDS: [string, string][] = [['all', '전체'], ['original', '원작'], ['fork', '포크']]
+/** 데모 조회를 쓰지 않는 운영 API 탭: 상단 '목록 새로고침'(데모 조회만 다시 읽음) 대신 자기 패널의 새로고침·조회를 씁니다. */
+const OPS_TABS: AdminTab[] = ['data', 'llm', 'jobs']
 /** 작품 탭의 권리 표시값. 검색도 화면에 보이는 이 문구로 합니다. */
 const rightsLabel = (w: OperationsWork) =>
   `${w.creationType === 'external_derivative' ? '외부 2차 창작' : '원작'} · ${w.rightsConfirmed ? '권리 확인됨' : '권리 미확인'}`
 const has = (q: string, ...xs: string[]) =>
   !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
 const blocked = (vm: VM, key: string) => vm.mutationsBlocked || !!vm.actions[key]?.pending
-/** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
-const IN_FORM = /^(notice:|event:|inquiry:|report:)/
+/** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리와 대시보드·LLMOps·작업 감시 패널)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
+const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule']
+const IN_FORM = new RegExp(`^(notice|event|inquiry|report|${OPS_PANEL_KINDS.join('|')}):`)
 /** 행 조치 키(`member:<id>` 등)의 대상을 화면에 보이는 이름으로 바꿉니다. 목록에서 찾지 못하면 이름 없이 안내합니다. */
 function actionTarget(vm: VM, key: string): string | undefined {
   const [kind, id] = key.split(':')
@@ -73,8 +79,6 @@ function actionTarget(vm: VM, key: string): string | undefined {
   if (kind === 'work') { const w = live?.works.find((x) => x.workId === id); return w && `「${w.title}」` }
   if (kind === 'comment') { const c = live?.comments.find((x) => x.commentId === id); return c && `${c.authorName} 님의 댓글` }
   if (kind === 'chat') { const c = vm.data?.chats.find((x) => x.id === id); return c ? `${c.w.title} · ${c.character}` : id === 'new' ? '캐릭터챗 추가' : undefined }
-  if (kind === 'job') return vm.data?.admin.jobs.find((x) => x.id === id)?.name
-  if (kind === 'alert') return vm.data?.alerts.find((x) => x.id === id)?.task
   return kind === 'admin' ? '관리자 계정 생성' : undefined
 }
 /**
@@ -83,6 +87,8 @@ function actionTarget(vm: VM, key: string): string | undefined {
  */
 function shownInForm(vm: VM, tab: AdminTab, key: string) {
   const [kind, id, , replyId] = key.split(':')
+  // 대시보드·LLMOps·작업 감시 패널은 자기 조치 안내(ActionLines)를 패널 안에 그립니다.
+  if (OPS_PANEL_KINDS.includes(kind)) return true
   // 공지·이벤트 폼은 새로 쓰는 중이거나 고른 항목이 목록에 있을 때만 그려집니다.
   const open = (selection: string | null, rows: { id: string }[] = []) => id === selection && (id === 'new' || rows.some((row) => row.id === id))
   if (kind === 'notice') return tab === 'notices' && open(vm.recordSelection.notices, vm.live.data?.notices)
@@ -95,20 +101,6 @@ function shownInForm(vm: VM, tab: AdminTab, key: string) {
 /** 폼 입력값을 이름으로 읽습니다 (목업 $('#id').value). */
 const val = (e: FormEvent<HTMLFormElement>, name: string) =>
   String(new FormData(e.currentTarget).get(name) ?? '')
-
-/** 표마다 용도를 알리는 캡션과, 좁은 화면에서 키보드로 가로 스크롤할 수 있는 영역을 붙입니다. */
-function Table(
-  { label, style, children }: { label: string; style?: CSSProperties; children: ReactNode },
-) {
-  return (
-    <div className='adm-scroll' role='region' tabIndex={0} aria-label={label} style={style}>
-      <table>
-        <caption className='sr-only'>{label}</caption>
-        {children}
-      </table>
-    </div>
-  )
-}
 
 /** 목업 admin(): 자체 상단바·업무 메뉴. 데모 화면 가림일 뿐이며 실제 권한 검사는 Core가 맡아야 합니다. */
 export function AdminPage() {
@@ -223,7 +215,7 @@ export function AdminPage() {
                 <button type='button' className='btn sm' onClick={vm.retry}>다시 불러오기</button>
               </div>
             )}
-            {d && !vm.isError && (
+            {d && !vm.isError && !OPS_TABS.includes(tab) && (
               <div className='rowend admin-refresh'>
                 <button
                   type='button'
@@ -322,6 +314,9 @@ function Controls(
 
 function Body(p: BodyProps) {
   const { tab, d, vm, f } = p
+  if (tab === 'data') return <OperationsDashboard vm={vm} />
+  if (tab === 'llm') return <LlmOps vm={vm} />
+  if (tab === 'jobs') return <JobMonitor vm={vm} />
   if (tab === 'rights') return <Rights {...p} />
   if (tab === 'admins') return <Admins vm={vm} />
   if (tab === 'users') return <Users {...p} />
@@ -335,9 +330,7 @@ function Body(p: BodyProps) {
     b: string,
   ) => (f.sort === 'titleDesc' ? b.localeCompare(a, 'ko') : a.localeCompare(b, 'ko'))
   let T: ReactNode
-  if (tab === 'data') T = <Overview d={d} vm={vm} />
-  else if (tab === 'llm') T = <Llm d={d} vm={vm} />
-  else if (tab === 'characterChats') {
+  if (tab === 'characterChats') {
     const list = d.chats.filter((c) =>
       ofKind(f.category, c.w) && has(f.query, c.w.title, c.character)
     ).sort((a, b) =>
@@ -408,62 +401,7 @@ function Body(p: BodyProps) {
       </>
     )
   } else if (tab === 'feedback') T = <Feedback {...p} />
-  else if (tab === 'jobs') {
-    T = (
-      <div className='panel'>
-        <div className='table-head'>
-          <h2 className='panel-title'>운영 정기 작업</h2>
-          <span className='demo'>데모 기록 · 실제 실행 없음</span>
-        </div>
-        <p className='admin-note'>
-          실행 주기는 아직 정하지 않았어요. 사용자가 요청한 AI 작업은 자동으로 다시 실행하지 않아요.
-        </p>
-        <Table label='정기 작업 표'>
-          <thead>
-            <tr>
-              <th scope='col'>작업</th>
-              <th scope='col'>실행 주기</th>
-              <th scope='col'>최근 상태</th>
-              <th scope='col'>최근 결과</th>
-              <th scope='col' className='act'>조치</th>
-            </tr>
-          </thead>
-          <tbody>
-            {d.admin.jobs.map((j) => (
-              <tr key={j.id}>
-                <td>
-                  <b>{j.name}</b>
-                </td>
-                <td>미정</td>
-                <td>
-                  <span className={`chip ${j.status === '실패' ? 'wait' : 'ok'}`}>{j.status}</span>
-                </td>
-                <td>{j.last}</td>
-                <td>
-                  {j.status === '실패'
-                    ? (
-                      <button
-                        type='button'
-                        className='btn sm'
-                        aria-label={`${j.name} 수동 재시도 시연`}
-                        disabled={blocked(vm, `job:${j.id}`)}
-                        onClick={() => vm.runJob(j.id)}
-                      >
-                        수동 재시도 시연
-                      </button>
-                    )
-                    : '—'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-        <p className='admin-note'>
-          실패한 작업만 수동으로 다시 시도할 수 있어요. 이 화면의 버튼은 실제 작업을 실행하지 않아요.
-        </p>
-      </div>
-    )
-  } else if (tab === 'events') {
+  else if (tab === 'events') {
     T = <Events vm={vm} />
   } else if (tab === 'notices') {
     T = (
@@ -506,134 +444,6 @@ function Body(p: BodyProps) {
     )
   }
   return T
-}
-
-/** 목업 adminLegacy() tab=data: A01+A02 */
-function Overview({ d, vm }: { d: Data; vm: VM }) {
-  const reports = vm.live.data?.reports
-  const waiting = vm.live.inquiries
-  // 서버 목록이 최신 100개까지라 100개 이상이면 정확한 수를 알 수 없어 100+로 표기합니다.
-  const waitingCount = waiting.data ? (waiting.data.length >= 100 ? '100+' : waiting.data.length) : '—'
-  return (
-    <>
-      <div className='admin-priorities'>
-        <div>
-          <h2>확인할 작업</h2>
-          <p>신고와 문의 수는 운영 서버 기준이에요.</p>
-        </div>
-        <div className='priority-links'>
-          <Go to='/admin?tab=feedback'>
-            <b>{waitingCount}</b>
-            <span>{waiting.isError ? '답변 대기 문의 · 불러오지 못함' : '답변 대기 문의'}</span>
-          </Go>
-          <Go to='/admin?tab=rights'>
-            <b>{reports ? reports.length : '—'}</b>
-            <span>{vm.live.isError ? '접수된 신고 · 불러오지 못함' : '접수된 신고'}</span>
-          </Go>
-        </div>
-      </div>
-      <h2 className='admin-section-title'>데이터 시연 현황</h2>
-      <div className='kpi'>
-        <div>
-          <small>수집 원작 (만료·등록)</small>
-          <b>{d.expired.length}편</b>
-          <span className='small muted'>{d.expired.map((w) => w.title).join(', ')}</span>
-        </div>
-        <div>
-          <small>가상 독자 댓글</small>
-          <b>300건</b>
-          <span className='small muted'>유형 라벨 포함 · LLM 생성 (데모)</span>
-        </div>
-        <div>
-          <small>전처리 결과 JSON</small>
-          <b>{d.chunhyang ? 2 : 1}개</b>
-          <span className='small muted'>구운몽{d.chunhyang ? ' + 가져온 소설' : ''}</span>
-        </div>
-        <div>
-          <small>처리 대기 제보</small>
-          <b>{d.pending}건</b>
-          <span className='small muted'>수정 제안 + 작가 확인 필요</span>
-        </div>
-      </div>
-      <div className='panel' style={{ marginTop: 14 }}>
-        <h2 className='panel-title'>전처리 6단계 · 구운몽 시연 흐름</h2>
-        <div className='flow' style={{ marginTop: 12 }}>
-          {[
-            ['수집', '원문 txt'],
-            ['정제', '특수·불용 문자 제거'],
-            ['회차 분할', '16장 → 4화'],
-            ['LLM 추출', '인물·관계·세계관·사건'],
-            ['검수', '작가·관리자 확인'],
-            ['결과', 'JSON 목업'],
-          ].map(([a, b], i) => (
-            <div key={a} className={i < 4 || d.chunhyang ? 'done' : ''}>
-              <b>{i + 1}. {a}</b>
-              {b}
-            </div>
-          ))}
-        </div>
-        <p className='small' style={{ marginTop: 10, color: 'var(--pri-ink)' }}>
-          실제 LLM 호출은 연결되지 않았으며, 이 파이프라인은 목표 흐름을 보여 주는 시연용입니다.
-        </p>
-      </div>
-      <div className='panel' style={{ marginTop: 14 }}>
-        <h2 className='panel-title'>수집 데이터 명세</h2>
-        <Table label='수집 데이터 명세 표' style={{ marginTop: 10 }}>
-          <thead>
-            <tr>
-              <th scope='col'>데이터</th>
-              <th scope='col'>출처</th>
-              <th scope='col'>양</th>
-              <th scope='col'>형식</th>
-              <th scope='col'>쓰는 곳</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>구운몽 전문</td>
-              <td>공유마당 만료 저작물</td>
-              <td>1편 · 16장</td>
-              <td>txt · 412KB</td>
-              <td>세계관·인물 추출, 읽기 화면</td>
-            </tr>
-            <tr>
-              <td>가상 독자 댓글</td>
-              <td>LLM 생성 (비상업·학습용)</td>
-              <td>300건</td>
-              <td>csv · 48KB</td>
-              <td>질문·제보 분류, 자동 응답</td>
-            </tr>
-            {!!d.chunhyang && (
-              <tr>
-                <td>춘향전 (가져온 소설)</td>
-                <td>이용자 등록 · {d.chunhyang.kind}</td>
-                <td>1편 · 4화</td>
-                <td>txt · 286KB</td>
-                <td>세계관·인물 추출</td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
-      </div>
-    </>
-  )
-}
-
-/** 실제 운영 API 목록의 로딩·새로고침·실패. 실패를 빈 목록으로 숨기지 않습니다. */
-function LiveState({ vm, label, state }: { vm: VM; label: string; state?: Pick<VM['live'], 'isLoading' | 'isRefreshing' | 'isError' | 'retry'> }) {
-  const l = state ?? vm.live
-  return (
-    <>
-      {l.isLoading && <p className='admin-data-state' role='status'>{label}을 불러오고 있어요.</p>}
-      {l.isRefreshing && <p className='admin-data-state' role='status'>{label}을 새로고침하고 있어요.</p>}
-      {l.isError && (
-        <div className='admin-data-state admin-action-error' role='alert'>
-          <p>{label}을 불러오지 못했어요. 로그인·업무 권한과 서버 연결을 확인한 뒤 다시 시도해 주세요.</p>
-          <button type='button' className='btn sm' onClick={l.retry}>다시 불러오기</button>
-        </div>
-      )}
-    </>
-  )
 }
 
 /** 72 관리자 활동 기록: 운영 서비스가 남긴 관리자 변경 조치 최신 100개. 수행자 닉네임은 서버가 채우며 없으면 ID를 보여 줍니다. */
@@ -1152,82 +962,6 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
           </p>
         </details>
       )}
-    </>
-  )
-}
-
-/** 목업 adminLegacy() 그 밖의 tab(llm): A05 */
-function Llm({ d, vm }: { d: Data; vm: VM }) {
-  return (
-    <>
-      <div className='panel'>
-        <h2>처리 실패·지연 경고</h2>
-        <p className='small muted'>데모 오류만 표시하며 자동 재처리하지 않아요.</p>
-        {d.alerts.length
-          ? d.alerts.map((a) => (
-            <div className='rp' key={a.id}>
-              <b>{a.task} · {a.status}</b>
-              <p>{a.detail}</p>
-              <dl className='ai'>
-                <dt>실패 단계</dt>
-                <dd>{a.stage || '미정'}</dd>
-                <dt>오류</dt>
-                <dd>{a.error || a.detail}</dd>
-                <dt>다음 조치</dt>
-                <dd>{a.action || '수동 확인'}</dd>
-              </dl>
-              {a.resolved
-                ? <span className='chip'>조치 기록됨</span>
-                : (
-                  <button
-                    type='button'
-                    className='btn sm'
-                    aria-label={`${a.task} 확인 및 조치 기록`}
-                    disabled={blocked(vm, `alert:${a.id}`)}
-                    onClick={() => vm.resolveAlert(a.id)}
-                  >
-                    확인 및 조치 기록
-                  </button>
-                )}
-            </div>
-          ))
-          : <p className='muted'>경고가 없어요.</p>}
-        <p className='small muted'>
-          작업·상태·실패 단계·오류·다음 조치만 표시해요. 개인 원고 내용은 로그에 넣지 않아요.
-        </p>
-      </div>
-      <div className='panel' style={{ marginTop: 22 }}>
-        <h2 className='panel-title'>LLM Ops · 운영 지표</h2> <span className='demo'>시연 데이터 · 실시간 연결 없음</span>
-        <Table label='LLM 운영 지표 표' style={{ marginTop: 10 }}>
-          <thead>
-            <tr>
-              <th scope='col'>지표</th>
-              <th scope='col'>측정 내용</th>
-              <th scope='col'>현재 값</th>
-              <th scope='col'>집계 기준</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              ['실패·시간 초과율', '작업 단계별 요청 결과', '단계별'],
-              ['응답 지연', '처리 단계별 지연 시간', '모델·프롬프트 버전'],
-              ['토큰·비용', '지급 주체별 사용량', '원고 내용 미수집'],
-              ['제안 채택·수정 승인', '제안 반영 여부', '품질 지표'],
-              ['오류 검증·필터 복구', '오류 적용·숨김 복구 비율', '품질 지표'],
-            ].map(([a, b, c]) => (
-              <tr key={a}>
-                <td>{a}</td>
-                <td>{b}</td>
-                <td>미정</td>
-                <td>{c}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-        <p className='small muted' style={{ marginTop: 10 }}>
-          현재는 요청 추적만 제공해요. 요청·작업·단계·모델·프롬프트 버전·토큰·지연·결과를 기록하고 개인 원고 내용은 넣지 않아요.
-        </p>
-      </div>
     </>
   )
 }

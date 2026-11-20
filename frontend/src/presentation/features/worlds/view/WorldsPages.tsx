@@ -1,8 +1,8 @@
-import { Component, lazy, Suspense, useId, useRef, type KeyboardEvent, type ReactNode, type Ref } from 'react'
+import { Component, lazy, Suspense, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react'
 import { useParams } from 'react-router'
 
 import { useAppSelector } from '../../../../app/store'
-import type { PublicWorld, PublicWorldLineage, PublicWorldRef, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
+import type { PublicWorld, PublicWorldLineage, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
 import { coverSrc } from '../../../shared/cover'
 import { Go } from '../../../shared/Go'
 import { useScreenId } from '../../../shared/screenIds'
@@ -12,26 +12,20 @@ import { CARD_COLORS } from '../../../shared/worldBoard'
 import { WORLD_GENRES, genreLabel } from '../../../shared/worldGenres'
 import { useWorldDetailViewModel, useWorldsViewModel } from '../viewmodel/useWorldsViewModel'
 import { GENRE_COLORS, LINEAGE_COLORS, atlasFeatures, type AtlasNode, type WorldAtlas } from '../worldAtlas'
-import { DETAIL_TABS, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
+import { DETAIL_TABS, bookPath, detailEndpoint, graphHighlight, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
 import { WorldBook } from './WorldBook'
 import { WorldOverview } from './WorldOverview'
-import { DemoNotice, LoadFailed, WorldCover, WorldLoading } from './WorldParts'
+import { DemoNotice, LoadFailed, WorldCard, WorldCover, WorldLoading } from './WorldParts'
 import './worlds.css'
 
 // react-force-graph(d3·canvas)는 지도·그래프를 볼 때만 내려받는다.
 const WorldAtlasCanvas = lazy(() => import('./WorldAtlasCanvas'))
 const WorldGraphCanvas = lazy(() => import('./WorldGraphCanvas'))
 
-const meta = (w: Pick<PublicWorldRef, 'authorNickname' | 'cardCount'>) => `${w.authorNickname} · 설정 카드 ${w.cardCount}개`
 // 홈 HomePage의 Chev·LEFT·RIGHT와 같은 화살표(홈 안에서만 쓰는 값이라 여기에 다시 둔다)
 const Chev = ({ d }: { d: string }) => <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d={d} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
 const LEFT = 'M15 5l-7 7 7 7'
 const RIGHT = 'M9 5l7 7-7 7'
-
-/** 홈 `BookCard`와 같은 책 카드. `badge`는 표지 오른쪽 아래 알약이다. */
-const WorldCard = ({ w, badge }: { w: PublicWorldRef; badge?: string }) => (
-  <Go to={`/worlds/${w.id}`} className="bk prox"><WorldCover w={w} badge={badge} /><h3 className="hk">{w.name}</h3><small>{meta(w)}</small></Go>
-)
 
 /** 캔버스를 내려받거나 그리다 실패해도 이 화면의 나머지는 그대로 쓰게 한다. `message`는 그때 대신 보일 안내(찾을 다른 길)다. */
 class AtlasBoundary extends Component<{ children: ReactNode; message: string }, { failed: boolean }> {
@@ -236,17 +230,79 @@ function DetailTabBar({ tab, onTab }: { tab: DetailTab; onTab: (next: DetailTab)
  * 상세의 그래프 카드 한 장. 세계관 지도 카드와 같은 어두운 캔버스(`.atlas-stage`)·컨트롤·통계 줄이고 캔버스만 더 높다(데스크톱 460px·모바일 340px).
  * 마우스로만 쓰는 시각 탐색이라 같은 내용은 설정집 탭의 카드 목록과 카드 페이지가 글로 대신한다.
  */
-function GraphCard({ title, mode, data, summary, stats, legend, onOpen }: {
-  title: string; mode: 'setting' | 'people'; data: DetailGraph; summary: string; stats: string; legend?: ReactNode; onOpen: (node: DetailNode) => void
+function GraphCard({ title, mode, data, summary, stats, legend, onOpen, bookHref, unavailable = false }: {
+  title: string; mode: 'setting' | 'people'; data: DetailGraph; summary: string; stats: string; legend?: ReactNode; onOpen: (node: DetailNode) => void; bookHref: string; unavailable?: boolean
 }) {
   const heading = useId()
+  const listId = useId()
+  const searchInput = useRef<HTMLInputElement>(null)
+  const results = useRef<HTMLUListElement>(null)
+  const [query, setQuery] = useState('')
+  const [active, setActive] = useState(-1)
+  const [open, setOpen] = useState(false)
+  const [highlightId, setHighlightId] = useState<string>()
+  const choices = useMemo(() => {
+    const needle = query.trim().toLocaleLowerCase()
+    return needle ? data.nodes.filter((node) => node.kind !== '세계관' && node.name.toLocaleLowerCase().includes(needle)).slice(0, 8) : []
+  }, [data.nodes, query])
+  const graph = useMemo(() => {
+    const pairs = new Map<string, DetailGraph['links']>()
+    for (const link of data.links) {
+      if (link.kind !== 'link') continue
+      const key = [detailEndpoint(link.source), detailEndpoint(link.target)].sort().join('\0')
+      const group = pairs.get(key) ?? []
+      group.push(link)
+      pairs.set(key, group)
+    }
+    const curves = new Map<DetailGraph['links'][number], number>()
+    for (const group of pairs.values()) group.forEach((link, i) => curves.set(link, (detailEndpoint(link.source) < detailEndpoint(link.target) ? 1 : -1) * (i - (group.length - 1) / 2) * Math.min(0.4, 1 / Math.max(1, (group.length - 1) / 2))))
+    return { nodes: data.nodes, links: data.links.map((link) => link.kind === 'link' ? { ...link, curve: curves.get(link) } : link) }
+  }, [data])
+  const highlighted = useMemo(() => graphHighlight(graph, highlightId), [graph, highlightId])
+  const selected = highlightId ? graph.nodes.find((node) => node.id === highlightId) : undefined
+  const neighbors = selected ? graph.nodes.filter((node) => node.id !== selected.id && highlighted.nodes.has(node.id)) : []
+  useEffect(() => {
+    if (active >= 0) (results.current?.children[active] as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest' })
+  }, [active])
+  const select = (node: DetailNode) => {
+    setHighlightId(node.id)
+    setQuery(node.name)
+    setActive(-1)
+    setOpen(false)
+  }
+  const clearHighlight = (focusSearch = false) => {
+    setHighlightId(undefined)
+    setQuery('')
+    setActive(-1)
+    setOpen(false)
+    if (focusSearch) searchInput.current?.focus()
+  }
+  const onSearchKey = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      if (open) {
+        setOpen(false)
+        setActive(-1)
+      } else clearHighlight()
+      return
+    }
+    if (!choices.length) return
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      setOpen(true)
+      setActive((current) => event.key === 'ArrowDown' ? (current + 1) % choices.length : current <= 0 ? choices.length - 1 : current - 1)
+    } else if (event.key === 'Enter') {
+      event.preventDefault()
+      select(choices[active >= 0 ? active : 0])
+    }
+  }
   return (
     <section className="worlds-graph" aria-labelledby={heading}>
       <div className="atlas-stage">
         <h2 id={heading} className="atlas-title">{title}</h2>
         <AtlasBoundary message="그래프를 표시하지 못했어요. 설정집 탭에서 설정 카드를 열어 같은 내용을 글로 읽을 수 있어요.">
           <Suspense fallback={<p className="atlas-loading" role="status">그래프를 불러오고 있어요.</p>}>
-            <WorldGraphCanvas data={data} mode={mode} summary={summary} onOpen={onOpen} />
+            <WorldGraphCanvas data={graph} mode={mode} summary={summary} highlightId={highlightId} onOpen={onOpen} />
           </Suspense>
           <div className="atlas-info">
             <p className="atlas-stats">{stats}</p>
@@ -254,6 +310,28 @@ function GraphCard({ title, mode, data, summary, stats, legend, onOpen }: {
           </div>
         </AtlasBoundary>
       </div>
+      {unavailable ? <p className="worlds-graph-status muted" role="status">관계를 불러오지 못했어요. 설정집 탭에서 설정을 글로 읽을 수 있어요.</p>
+        : linkCount(data) === 0 ? <p className="worlds-graph-status muted" role="status">아직 연결된 관계가 없어요. <Go to={bookHref}>설정집 탭</Go>에서 설정을 글로 읽을 수 있어요.</p> : null}
+      <div className="worlds-graph-search" onBlur={(event) => {
+        if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
+        setOpen(false)
+        setActive(-1)
+      }}>
+        <label htmlFor={listId}>설정 찾기</label>
+        <input ref={searchInput} id={listId} type="search" className="inp" role="combobox" value={query} aria-autocomplete="list" aria-expanded={open && choices.length > 0} aria-controls={`${listId}-results`} aria-activedescendant={active >= 0 ? `${listId}-option-${active}` : undefined}
+          onFocus={() => { if (query.trim()) setOpen(true) }} onKeyDown={onSearchKey}
+          onChange={(event) => { setQuery(event.target.value); setHighlightId(undefined); setActive(-1); setOpen(true) }} />
+        {open && choices.length > 0 && <ul ref={results} id={`${listId}-results`} className="worlds-graph-results" role="listbox" aria-label="설정 찾기 결과">
+          {choices.map((node, index) => <li key={node.id} id={`${listId}-option-${index}`} role="option" aria-selected={active === index} onMouseDown={(event) => event.preventDefault()} onClick={() => select(node)}>{node.name}</li>)}
+        </ul>}
+        {highlightId && <button type="button" className="btn sm" onClick={() => clearHighlight(true)}>강조 해제</button>}
+      </div>
+      {selected && <div className="worlds-graph-highlight">
+        <p className="small muted" role="status">{selected.name}와 연결된 설정 {neighbors.length}개를 강조했어요.</p>
+        {neighbors.length > 0 && <ul aria-label={`${selected.name}와 연결된 설정`}>
+          {neighbors.map((node) => <li key={node.id}><Go to={node.to}>{node.name}</Go></li>)}
+        </ul>}
+      </div>}
       <p className="sr-only">그래프는 눈으로 훑어보는 용도예요. 같은 내용은 설정집 탭의 설정 카드에서 글로 읽을 수 있어요.</p>
     </section>
   )
@@ -312,7 +390,7 @@ function ConnectedWorlds({ lineage }: { lineage?: PublicWorldLineage }) {
 }
 
 /**
- * 공개 세계관 상세(`/worlds/:id`). 제목·(데모는 한 줄 소개)·작가 아래에 네 탭(설정 그래프 · 인물관계도 · 설정집 · 개요)을 두고 읽기만 한다(이 세계관을 바꾸지 않는다).
+ * 공개 세계관 상세(`/worlds/:id`). 제목·(데모는 한 줄 소개)·작가 아래에 네 탭(개요 · 설정집 · 인물관계도 · 설정 그래프)을 두고 읽기만 한다(이 세계관을 바꾸지 않는다).
  * 개요 탭(`WorldOverview`)이 세계관 설명과 정보 상자(표지·장르·작가·설정 카드 수·데모의 파생·조합 출처)를 보인다.
  * 설정 가져오기(DEC-46)는 헤더에 두지 않는다: 로그인한 회원은 설정집 게시판에서 고른 설정을, 설정 카드 페이지에서 그 카드를 내 세계관 초안에 바로 더한다(`WorldAddMenu`).
  * 설정집은 카테고리별 설정 카드 게시판이고, 그래프의 카드·인물 노드를 누르면 그 설정 카드의 페이지(`/worlds/:id/cards/:cardId`)로 이동한다.
@@ -350,12 +428,12 @@ export function WorldDetailPage() {
                       ? <p className="muted">관계를 불러오지 못했어요. 인물 사이의 관계는 잠시 뒤 다시 열어 보면 보일 수 있어요.</p>
                       : detail.people.nodes.length < 2
                         ? <p className="muted">인물이 2명 이상 공개돼야 인물관계도를 보여 줄 수 있어요. 이 세계관에는 지금 공개된 인물이 {detail.people.nodes.length}명이에요.</p>
-                        : <GraphCard title="인물관계도" mode="people" data={detail.people} onOpen={openNode}
+                        : <GraphCard title="인물관계도" mode="people" data={detail.people} onOpen={openNode} bookHref={bookPath(world.id)}
                             summary={`${world.name}의 인물 ${detail.people.nodes.length}명이 ${linkCount(detail.people)}개의 관계로 이어진 관계도`}
                             stats={`인물 ${detail.people.nodes.length}명 · 관계 ${linkCount(detail.people)}개`} />}
                   </>
                 ) : (
-                  <GraphCard title="설정 그래프" mode="setting" data={detail.setting} onOpen={openNode}
+                  <GraphCard title="설정 그래프" mode="setting" data={detail.setting} onOpen={openNode} bookHref={bookPath(world.id)} unavailable={unavailable}
                     summary={unavailable ? `${world.name}의 설정 카드 ${world.cards.length}개 그래프(연결 정보를 불러오지 못함)` : `${world.name}의 설정 카드 ${world.cards.length}개가 ${linkCount(detail.setting)}개의 연결로 이어진 그래프`}
                     stats={`설정 카드 ${world.cards.length}개 · ${unavailable ? '연결 정보를 불러오지 못했어요' : `연결 ${linkCount(detail.setting)}개`}`}
                     legend={(

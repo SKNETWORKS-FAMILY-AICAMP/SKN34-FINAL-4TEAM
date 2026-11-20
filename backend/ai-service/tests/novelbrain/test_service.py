@@ -441,7 +441,7 @@ def test_stage_0_is_the_ppr_graph_only_with_cards_and_relations():
     assert by_ref['card:kael#identity'].text == KAEL.text  # 인물 카드의 본문은 #identity 문서이며 본문 그대로다.
     assert by_ref['card:gate'].text == GATE.text
     assert by_ref['relation:r-kl'].text == '카엘 ↔ 리라: 남매'
-    assert by_ref['relation:r-kg'].text == '카엘 → 성문: 근무지'
+    assert by_ref['relation:r-kg'].text == '카엘의 근무지: 성문'  # 'A → B 「관계명」'은 'B는 A의 관계명'으로 읽는다(DEC-54)
     assert not [r for r in by_ref if '#soul' in r or '#goal' in r or '#ep' in r or r.startswith('manuscript:')]
     assert result.items[0].score > 1 / 61  # 0단계 점수는 RRF가 아니라 PPR 점수 그대로다.
 
@@ -564,15 +564,27 @@ def test_stage_3_does_not_treat_a_denied_relation_as_a_connection_but_still_show
 
     assert 'card:sera#identity' not in refs(result.items)
     assert 'card:sera#identity' in [g.ref for g in result.gaps]
-    assert {i.ref: i.text for i in result.items}['relation:r-ks'] == '카엘 ↮ 세라 (아님): 동료'
+    assert {i.ref: i.text for i in result.items}['relation:r-ks'] == '카엘 ↔ 세라: 동료 아님'
 
 
-@pytest.mark.parametrize('direction,label,expected', [('directed', '스승', '카엘 ↛ 리라 (아님): 스승'),
-                                                      ('symmetric', '남매', '카엘 ↮ 리라 (아님): 남매'),
-                                                      (None, '', '카엘 — 리라 (아님)')])
+@pytest.mark.parametrize('direction,label,expected', [('directed', '스승', '카엘의 스승: 리라 아님'),
+                                                      ('directed', '', '카엘 → 리라 아님'),
+                                                      ('symmetric', '남매', '카엘 ↔ 리라: 남매 아님'),
+                                                      (None, '동료', '카엘 — 리라: 동료 아님'),
+                                                      (None, '', '카엘 — 리라 아님')])
 def test_a_denied_relation_item_shows_the_negation(direction, label, expected):
     world = WorldSnapshot(worldId='w', episode=1, cards=[KAEL, LIRA], relations=[
         Relation(id='r', source='kael', target='lira', label=label, direction=direction, polarity='denied')])
+
+    assert {i.ref: i.text for i in recall(world, None, 1, '카엘', stage=0, k=100).items}['relation:r'] == expected
+
+
+@pytest.mark.parametrize('direction,label,expected', [('directed', '스승', '카엘의 스승: 리라'), ('directed', '', '카엘 → 리라'),
+                                                      ('symmetric', '남매', '카엘 ↔ 리라: 남매'), (None, '동료', '카엘 — 리라: 동료'), (None, '', '카엘 — 리라')])
+def test_a_relation_item_reads_as_the_target_is_the_sources_label(direction, label, expected):
+    # 관계 'A → B 「관계명」'은 화면(DEC-54)처럼 'B는 A의 관계명'으로 읽힌다. 'A → B: 관계명'은 'A가 B의 관계명'으로도 읽혀 반대일 수 있었다.
+    world = WorldSnapshot(worldId='w', episode=1, cards=[KAEL, LIRA], relations=[
+        Relation(id='r', source='kael', target='lira', label=label, direction=direction)])
 
     assert {i.ref: i.text for i in recall(world, None, 1, '카엘', stage=0, k=100).items}['relation:r'] == expected
 
@@ -589,7 +601,7 @@ def test_a_denied_relation_carries_no_ppr_mass_but_stays_a_relation_item():
     assert 'card:b#identity' in stage0('asserted')
     denied = stage0('denied')
     assert 'card:b#identity' not in denied  # 부정 관계로는 이웃에 닿지 않는다.
-    assert denied['relation:r'] == '가이 ↛ 나이 (아님): 스승'
+    assert denied['relation:r'] == '가이의 스승: 나이 아님'
 
 
 def test_stage_3_without_a_character_is_the_main_agent_view_and_filters_nothing():

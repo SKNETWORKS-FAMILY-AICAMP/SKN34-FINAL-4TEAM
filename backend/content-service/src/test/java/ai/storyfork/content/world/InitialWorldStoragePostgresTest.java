@@ -8,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL", matches=".+")
 class InitialWorldStoragePostgresTest {
-    @Test void sequentialV1ThroughV9PreservesExistingWorldCardAndAnalysis() throws Exception {
+    @Test void sequentialV1ThroughV13PreservesExistingWorldCardAndAnalysis() throws Exception {
         try(var db=new WorldStudioPostgresFixture("independent")) {
-            String world=id(), card=id(), analysis=id();
-            for(int version=1;version<=9;version++) {
+            String world=id(), card=id(), analysis=id(), candidate=id(), decision=id();
+            for(int version=1;version<=13;version++) {
                 var flyway=org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration())
                     .target(Integer.toString(version)).load();
                 assertEquals(1,flyway.migrate().migrationsExecuted);
@@ -62,6 +62,33 @@ class InitialWorldStoragePostgresTest {
                         rejects(c,"23505",insert+id()+"','"+world+"','world-card-images/"+image+"','image/png')");
                         c.rollback();
                     }
+                    if(version>=9) {
+                        // 기존 세계관은 지운 표시 없이 남고, 표시만 하면 되며 다른 데이터는 그대로다(소프트 삭제).
+                        assertEquals(List.of("1"),rows(c,"SELECT count(*) FROM worldstudio.world WHERE id='"+world+"' AND deleted_at IS NULL"));
+                        c.setAutoCommit(false);
+                        sql(c,"UPDATE worldstudio.world SET deleted_at=now() WHERE id='"+world+"'");
+                        assertEquals(List.of("1"),rows(c,"SELECT count(*) FROM worldstudio.setting_card_draft WHERE world_id='"+world+"'"));
+                        c.rollback();
+                    }
+                    if(version==12) {
+                        // 검토 결과 표는 비어 있고, 이 세계관에 매인 행 하나만 받는다(세계관마다 하나).
+                        assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM worldstudio.world_review_result"));
+                        String insert="INSERT INTO worldstudio.world_review_result(world_id,result,reviewed_at) VALUES ('";
+                        c.setAutoCommit(false);
+                        rejects(c,"23503",insert+id()+"','{}',now())");
+                        sql(c,insert+world+"','{\"findings\":[]}',now())");
+                        rejects(c,"23505",insert+world+"','{}',now())");
+                        c.rollback();
+                        c.setAutoCommit(true);
+                        sql(c,"INSERT INTO worldstudio.world_review_result(world_id,result,reviewed_at) VALUES ('"+world+"','{\"findings\":[]}',now())");
+                        String ai="{\"type\":\"fact\",\"provenance\":\"ai_extraction\",\"evidence\":[{\"sourceId\":\"test\"}]}";
+                        sql(c,"INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) VALUES ('"+candidate+"','"+world+"','"+analysis+"','v12-review','"+ai+"')");
+                        sql(c,"INSERT INTO worldstudio.initial_decision(id,world_id,analysis_id,candidate_id,sequence,action,state,actor_id,content) VALUES ('"+decision+"','"+world+"','"+analysis+"','"+candidate+"',1,'approve','approved','"+id()+"','"+ai+"')");
+                    }
+                    if(version==13) {
+                        assertEquals(List.of("[]"),rows(c,"SELECT result->>'findings' FROM worldstudio.world_review_result WHERE world_id='"+world+"'"));
+                        assertEquals(List.of("approve|approved|1"),rows(c,"SELECT action||'|'||state||'|'||sequence FROM worldstudio.initial_decision WHERE id='"+decision+"' AND candidate_id='"+candidate+"' AND analysis_id='"+analysis+"' AND world_id='"+world+"'"));
+                    }
                 }
             }
             assertEquals(0,db.studio().migrate().migrationsExecuted);
@@ -77,7 +104,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+id()+"'),('"+other+"','"+id()+"')");
                 sql(c,"INSERT INTO worldstudio.world_draft(world_id,name,description) VALUES ('"+w+"','홍길동전','원문 보존')");
             }
-            assertEquals(7,db.studio().migrate().migrationsExecuted);
+            assertEquals(11,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             assertEquals(0,db.studio().migrate().migrationsExecuted);
             try(var c=db.connect()) {
@@ -139,7 +166,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) VALUES ('"+candidate+"','"+w+"','"+a+"','old','"+content+"')");
                 sql(c,"INSERT INTO worldstudio.initial_decision(id,world_id,analysis_id,candidate_id,sequence,action,state,actor_id,content) VALUES ('"+decision+"','"+w+"','"+a+"','"+candidate+"',1,'approve','approved','"+id()+"','"+content+"')");
             }
-            assertEquals(5,db.studio().migrate().migrationsExecuted);
+            assertEquals(9,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             try(var c=db.connect()) {
                 assertEquals(List.of(decision),rows(c,"SELECT id FROM worldstudio.initial_decision WHERE request_key IS NULL AND request_hash IS NULL AND comment IS NULL AND sequence=1 AND state='approved'"));

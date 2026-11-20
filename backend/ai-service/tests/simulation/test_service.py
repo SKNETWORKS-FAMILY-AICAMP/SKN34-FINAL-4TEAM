@@ -10,8 +10,8 @@ from app.simulation import prompt, service
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import CheckItem, Decision, Note, PlanDraft, SceneAction, SimulationPlan, Trail, Turn, Verdict
 
-from .stubs import (EPISODE, GATE, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, SHADOW, TARGET, WORLD, card, context, fake_content,
-                    fake_novelbrain, recalled, text)
+from .stubs import (EPISODE, GATE, INHERITED, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, REL3, REL6, SHADOW, TARGET, WORLD, card, context, fake_content,
+                    fake_novelbrain, recalled, relation, text)
 
 STYLE, PERSONA, REMOVED = (f'00000000-0000-0000-0000-0000000000{n}' for n in ('a1', 'a2', 'ff'))
 PERSONA_CARD = card(PERSONA, '나레이터 페르소나', 'PERSONA-ID 오래된 이야기꾼', docs={'soul': 'PERSONA-SOUL 느릿한 말투', 'goal': '', 'episodes': {}})
@@ -25,8 +25,9 @@ COVERAGE = {'expected': [], 'withVerifiedExcerpt': [], 'withoutVerifiedExcerpt':
 def test_world_is_the_one_linked_to_the_work_and_is_read_at_the_base_episode(monkeypatch):
     calls = fake_content(monkeypatch, worlds=[{'worldId': 'other', 'linkedWorkId': 'x'},
                                               {'worldId': WORLD, 'linkedWorkId': 'work'}])
-    assert service.read_world('work', EPISODE) == READ
-    assert calls == [('world_studio_list', {}), ('world_studio_read', {'id': WORLD, 'episode': '3'})]
+    assert service.read_world('work', EPISODE) == {**READ, 'identity': []}
+    # 기준 회차 시점으로 읽고, 「동일 인물」만 최신 시점으로 한 번 더 읽는다(회차 없이).
+    assert calls == [('world_studio_list', {}), ('world_studio_read', {'id': WORLD, 'episode': '3'}), ('world_studio_read', {'id': WORLD})]
 
 
 def test_a_409_from_the_episode_scoped_world_read_fails_as_it_is_and_is_never_retried_without_the_episode(monkeypatch):
@@ -45,12 +46,45 @@ def test_a_409_from_the_episode_scoped_world_read_fails_as_it_is_and_is_never_re
     assert [(tool, args.get('episode')) for tool, args in calls] == [('world_studio_list', None), ('world_studio_read', str(EPISODE))]  # 회차를 생략한 재조회가 없다
 
 
-def test_work_without_a_linked_world_fails_explicitly_without_reading_any_world(monkeypatch):
+def test_work_without_a_linked_world_or_an_inherited_one_fails_explicitly_without_reading_any_world(monkeypatch):
     calls = fake_content(monkeypatch, worlds=[{'worldId': WORLD, 'linkedWorkId': None}, {'worldId': 'o', 'linkedWorkId': 'x'}])
     with pytest.raises(SimulationFailure) as error:
         service.read_world('work', EPISODE)
     assert error.value.status == 409
-    assert [tool for tool, _ in calls] == ['world_studio_list']
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'work_inherited_world']  # 소유자 읽기(world_studio_read)로는 읽지 않는다
+
+
+def test_a_fork_without_a_world_of_its_own_reads_the_original_world_it_inherits_up_to_the_base_episode(monkeypatch):
+    calls = fake_content(monkeypatch, worlds=[], inherited=INHERITED)
+    assert service.read_world('work', EPISODE) == {**INHERITED, 'identity': []}
+    assert calls == [('world_studio_list', {}), ('work_inherited_world', {'id': 'work', 'upto': '3'})]
+
+
+def test_a_world_linked_to_the_work_wins_over_the_inherited_one(monkeypatch):
+    calls = fake_content(monkeypatch, inherited=INHERITED)
+    assert service.read_world('work', EPISODE) == {**READ, 'identity': []}
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read']
+
+
+def test_inherited_world_failing_to_vouch_for_its_relations_stops_the_run_instead_of_continuing_without_them(monkeypatch):
+    fake_content(monkeypatch, worlds=[], inherited={**INHERITED, 'relationshipStatus': 'unavailable'})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.load_world(TARGET, '요청', None)
+    assert error.value.status == 503
+
+
+def test_inherited_characters_are_the_candidates_for_the_start_form_and_carry_no_author_only_docs(monkeypatch):
+    fake_content(monkeypatch, worlds=[], inherited=INHERITED)
+    world = service.load_world(TARGET, '요청', None)
+    assert set(world.characters) == {KAEL, LINA}
+    assert all(not c.soul and not c.goal and not c.episodes for c in world.characters.values())
+    assert [r.id for r in world.snapshot.relations] == [REL]
+    # 시작 양식 검증도 같은 집합이다: 이어받지 않은 카드·모르는 id는 거절한다.
+    assert service.plan_from_form(PLAN_IF, TARGET) == PLAN_IF
+    for other in (SHADOW, GATE, '00000000-0000-0000-0000-0000000000ee'):
+        with pytest.raises(SimulationFailure) as error:
+            service.plan_from_form(SimulationPlan(mode='if', premise='만약 ~했다면', characterIds=[KAEL, other]), TARGET)
+        assert error.value.status == 422
 
 
 def test_load_world_reads_the_linked_world_and_retrieves_excerpts_for_the_request_without_filtering_them(monkeypatch):
@@ -60,7 +94,7 @@ def test_load_world_reads_the_linked_world_and_retrieves_excerpts_for_the_reques
     monkeypatch.setattr(service.retrieval, 'retrieve', lambda scope, question: asked.append((scope.scopeToken, question)) or
                         RetrievalResult(status='found', excerpts=excerpts, gaps=[], coverage=COVERAGE, steps=[]))
     world = service.load_world(TARGET, '카엘과 리나가 만나면', {'scopeToken': 'signed.token'})
-    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read'] and asked == [('signed.token', '카엘과 리나가 만나면')]
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read'] and asked == [('signed.token', '카엘과 리나가 만나면')]
     # 받은 발췌를 그대로 둔다. 원고가 아닌 발췌(설정·현재 관계)는 recall의 인물 필터가 gaps로 돌린다.
     assert [e.id for e in world.manuscript] == ['m', 's'] and set(world.characters) == {KAEL, LINA} and world.episode == EPISODE
 
@@ -71,10 +105,11 @@ BASE_TARGET = {'workId': 'work', 'episode': EPISODE + 2, 'baseEpisode': EPISODE}
 def test_the_world_is_read_at_the_base_episode_not_at_the_episode_the_scene_is_reflected_into(monkeypatch):
     calls = fake_content(monkeypatch)
     world = service.load_world(BASE_TARGET, '요청', None)
-    assert [(tool, args.get('episode')) for tool, args in calls if tool == 'world_studio_read'] == [('world_studio_read', str(EPISODE))]
+    # 관계는 기준 회차(3화)로 읽고, 「동일 인물」만 회차 없이(최신) 한 번 더 읽는다. 반영 회차(5화)로는 읽지 않는다.
+    assert [args.get('episode') for tool, args in calls if tool == 'world_studio_read'] == [str(EPISODE), None]
     assert world.episode == EPISODE
     service.plan_from_form(SimulationPlan(mode='if', premise='만약 ~했다면', characterIds=[KAEL]), BASE_TARGET)
-    assert [args.get('episode') for tool, args in calls if tool == 'world_studio_read'] == [str(EPISODE)] * 2
+    assert [args.get('episode') for tool, args in calls if tool == 'world_studio_read'] == [str(EPISODE), None] * 2
 
 
 def raising(error):
@@ -112,7 +147,7 @@ def test_the_context_reads_the_world_once_for_the_whole_request(monkeypatch):
     calls = fake_content(monkeypatch)
     ctx = context()
     assert ctx.world() is ctx.world()
-    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read']
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read']
 
 
 # --- 계획 ------------------------------------------------------------------------------------------------------------
@@ -177,7 +212,7 @@ def test_form_plan_is_used_as_it_is_after_checking_the_linked_world_without_aski
     monkeypatch.setattr(service.agent, 'plan', lambda *args: pytest.fail('양식으로 정한 계획은 모델에게 묻지 않는다'))
     form = SimulationPlan(mode='flow', beats=['성문 대면'], characterIds=[KAEL, LINA])
     assert service.plan_from_form(form, TARGET) == form
-    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read']
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read']
 
 
 @pytest.mark.parametrize('form, said', [
@@ -348,6 +383,47 @@ def view(monkeypatch, plan=PLAN_IF, actor=KAEL, scene=None, read=READ, manuscrip
     world = service.load_world(TARGET, '요청', None)
     world.manuscript = list(manuscript)
     return world, service.character_view(plan, world, scene or service.new_scene(plan), world.characters[actor])
+
+
+def test_character_input_carries_card_links_as_plain_text_including_the_relation_sentences(monkeypatch):
+    # AI 입력 경계(DEC-53): 인물이 보는 카드 본문·관계 문장에 카드 id가 섞이지 않는다. 관계 문장은 스냅샷이 아니라 원본 응답에서도 읽던 곳이라 따로 확인한다.
+    link = '[승상](card:aaaaaaaa-2222-3333-4444-555555555555)'
+    world = {**READ,
+             'cards': [{**c, 'body': f'{c["body"]} {link}'} if c['id'] == KAEL else c for c in READ['cards']],
+             'relationships': [{**r, 'body': f'{r["body"]} {link}'} if r['id'] == REL else r for r in READ['relationships']]}
+    fake_novelbrain(monkeypatch)
+
+    _, (kael, _, _) = view(monkeypatch, read=world)
+
+    shown = text(kael)
+    assert 'KAEL-IDENTITY' in shown and '카엘은 리나를 경계한다 승상' in shown and 'KAEL-IDENTITY 북문을 지키는 기사 승상' in shown
+    assert '](card:' not in shown and 'aaaaaaaa-2222' not in shown  # 근거 ref(card:<id>#identity)는 입력의 내부 표기라 남는다
+
+
+def test_relation_sentences_in_the_character_input_read_as_the_target_is_the_sources_label(monkeypatch):
+    # 관계 'A → B 「관계명」'은 'B는 A의 관계명'으로 읽는다(DEC-54, 화면과 같다). 'A → B: 관계명'은 'A가 B의 관계명'으로도 읽혀 반대일 수 있었다.
+    fake_novelbrain(monkeypatch)
+    _, (kael, _, _) = view(monkeypatch)
+    known = {d['ref']: d['text'] for d in kael['known']}
+    assert known[f'relation:{REL}'] == '카엘의 경계: 리나 — 카엘은 리나를 경계한다'
+    assert known[f'relation:{REL6}'] == '카엘의 수호: 북문 — REL-KAEL-GATE 카엘은 북문을 지킨다'
+    assert known[f'relation:{REL3}'] == '카엘 ↔ 리나: 친구 아님'  # 대칭은 양쪽 화살표이고 부정은 끝에 '아님'이다
+
+
+@pytest.mark.parametrize('source,direction,polarity,label,expected', [
+    (KAEL, 'directed', 'asserted', '스승', '카엘의 스승: 리나'),
+    (LINA, 'directed', 'asserted', '스승', '리나의 스승: 카엘'),  # 읽는 쪽이 아니라 관계의 보내는 쪽(source) 기준이다
+    (KAEL, 'directed', 'denied', '스승', '카엘의 스승: 리나 아님'),
+    (KAEL, 'directed', 'asserted', '', '카엘 → 리나'),  # 관계명이 없으면 읽을 이름도 없어 화살표만 쓴다
+    (KAEL, 'symmetric', 'asserted', '동료', '카엘 ↔ 리나: 동료'),
+    (KAEL, 'symmetric', 'denied', '동료', '카엘 ↔ 리나: 동료 아님'),
+    (KAEL, None, 'asserted', '동료', '카엘 — 리나: 동료')])  # 방향을 모르면 줄표다(NovelBrain의 현재 관계 근거와 같은 문장)
+def test_relation_sentence_forms(monkeypatch, source, direction, polarity, label, expected):
+    target = LINA if source == KAEL else KAEL
+    fake_novelbrain(monkeypatch)
+    read = {**READ, 'relationships': [relation('00000000-0000-0000-0000-0000000000b1', source, target, label, '', direction, polarity)]}
+    _, (kael, _, _) = view(monkeypatch, read=read)
+    assert [d['text'] for d in kael['known'] if d['ref'].startswith('relation:')] == [expected]
 
 
 def test_character_input_holds_only_that_characters_documents_up_to_the_base_episode(monkeypatch):

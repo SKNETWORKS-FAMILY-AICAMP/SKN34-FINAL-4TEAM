@@ -60,6 +60,12 @@ export type AppCradle = {
   operationsCommentUseCase: import('../../domain/usecases/OperationsCommentUseCase').OperationsCommentUseCase
   adminActivityRepository: import('../../domain/repositories/AdminActivityRepository').AdminActivityRepository
   adminActivityUseCase: import('../../domain/usecases/AdminActivityUseCase').AdminActivityUseCase
+  operationsDashboardRepository: import('../../domain/repositories/OperationsDashboardRepository').OperationsDashboardRepository
+  operationsDashboardUseCase: import('../../domain/usecases/OperationsDashboardUseCase').OperationsDashboardUseCase
+  llmOpsRepository: import('../../domain/repositories/LlmOpsRepository').LlmOpsRepository
+  llmOpsUseCase: import('../../domain/usecases/LlmOpsUseCase').LlmOpsUseCase
+  jobMonitorRepository: import('../../domain/repositories/JobMonitorRepository').JobMonitorRepository
+  jobMonitorUseCase: import('../../domain/usecases/JobMonitorUseCase').JobMonitorUseCase
   storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   demoStoryPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   initialWorldUseCase: import('../../domain/usecases/InitialWorldUseCase').InitialWorldUseCase | null

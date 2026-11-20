@@ -1,6 +1,7 @@
 import type {EpisodeRepository} from '../repositories/EpisodeRepository'
 import type { Draft, SettingInput, WorkRegistration, WorkTaxonomy } from '../entities/content'
 import { toKstDateTimeInput, type PublicationScheduleRevision } from '../entities/publicationSchedule'
+import type { WritingMode } from '../entities/operatingSettings'
 
 /** 작품 등록과 정보 수정이 같은 장르(1~2개)·해시태그(10개까지) 규칙을 쓴다. 주지 않은 쪽은 검사하지 않는다. */
 function taxonomyError({ genres, hashtags }: WorkTaxonomy) {
@@ -12,9 +13,6 @@ function taxonomyError({ genres, hashtags }: WorkTaxonomy) {
 export class EpisodeUseCase {
   private readonly repository: EpisodeRepository
   constructor(repository: EpisodeRepository) { this.repository = repository }
-  askStoryContext(id: string, input: import('../entities/content').StoryQaInput, owner: boolean, signal?: AbortSignal) {
-    return this.repository.askStoryContext(id, input, owner, signal)
-  }
   orderScope(id:string,number:number,signal?:AbortSignal) {return this.repository.orderScope(id,number,signal)}
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal) {return this.repository.deleteDraft(id,number,revision,signal)}
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal) {return this.repository.deleteEpisode(id,number,revision,signal)}
@@ -59,6 +57,11 @@ export class EpisodeUseCase {
     }
     return this.repository.create(title.trim(),summary.trim(),signal,registration)
   }
+  suggestWorkTags(id: string, signal?: AbortSignal) { return this.repository.suggestWorkTags(id,signal) }
+  workSettings(id: string, signal?: AbortSignal) { return this.repository.workSettings(id, signal) }
+  updateWorkSettings(id: string, revision: number, writingMode: WritingMode, signal?: AbortSignal) {
+    return this.repository.updateWorkSettings(id, revision, writingMode, signal)
+  }
   updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy) {
     if (!title.trim() || title.length>120 || summary.length>2000) return Promise.reject(new Error('작품 제목은 120자, 소개는 2,000자 이내로 입력해 주세요.'))
     const invalid = taxonomy && taxonomyError(taxonomy)
@@ -69,6 +72,10 @@ export class EpisodeUseCase {
   deleteWork(id: string, signal?: AbortSignal) { return this.repository.deleteWork(id,signal) }
   /** 작품과 내 세계관을 1:1로 연결한다(DEC-46). worldId가 null이면 해제한다. */
   linkWorldStudio(workId: string, worldId: string | null, signal?: AbortSignal) { return this.repository.linkWorldStudio(workId, worldId, signal) }
+  /** Fork가 자기 세계관 없이 이어받는 원작 세계관의 카드(읽기 전용, #365). 이어받는 것이 없으면 null이다. */
+  inheritedWorld(workId: string, upto?: number, signal?: AbortSignal) { return this.repository.inheritedWorld(workId, upto, signal) }
+  /** 이어받는 원작 세계관을 내 세계관으로 독립시킨다(#583). 새 세계관 id를 돌려준다. */
+  detachInheritedWorld(workId: string) { return this.repository.detachInheritedWorld(workId) }
   save(id: string, draft: Draft) { return this.repository.save(id,draft) }
   publish(id: string, draft: Draft, rights: boolean, allowFork: boolean, allowForkPublication = false, versionId?: string) {
     if (!draft.body.trim()) return Promise.reject(new Error('원고를 먼저 작성해 주세요.'))

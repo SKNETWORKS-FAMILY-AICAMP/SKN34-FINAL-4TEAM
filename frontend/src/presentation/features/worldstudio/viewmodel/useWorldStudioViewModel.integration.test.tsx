@@ -9,7 +9,7 @@ import {SessionExpired} from '../../../../domain/repositories/ProfileRepository'
 import {useWorldStudioViewModel} from './useWorldStudioViewModel'
 import {WorldStudioUseCase} from '../../../../domain/usecases/WorldStudioUseCase'
 import {InMemoryWorldStudioRepository} from '../../../../data/world-studio/InMemoryWorldStudioRepository'
-import {newSetting} from '../../../../domain/entities/studioWorld'
+import {newSetting,RELATION_FROM_ERROR} from '../../../../domain/entities/studioWorld'
 import {putRelation} from '../../../../domain/entities/studioRelations'
 import {EpisodeWorldRepository} from '../../../../test/episodeWorldRepository'
 afterEach(cleanup)
@@ -183,4 +183,100 @@ it('refuses to delete a setting while an episode is chosen, keeps the draft unto
  act(()=>{deleted=result.current.deleteCard(person)})
  expect(deleted).toBe(true)
  expect(result.current.editing!.settings.some(s=>s.item.id===person)).toBe(false)
+})
+
+// ── 관계마다의 N화부터(DEC-54 2단계): 소설을 연결한 서버 세계관만 받고, 바뀐 관계에 없으면 저장 전 확인이 막는다 ───
+const relationRow=(vm:ReturnType<typeof useWorldStudioViewModel>)=>vm.editing!.settings.find(s=>s.item.kind==='relation')!.item
+it.each([[true,{}],[false,{linked:false}],[false,{supported:false}]] as const)('takes the N화부터 of a relation only in a linked server world (%s, %j)',async(expected,options)=>{
+ const {result}=await openEpisodeStudio(options)
+ expect(result.current.relationFrom).toBe(expected)
+})
+it('blocks saving a changed relation without N화부터, points to that relation, and lets go once it has one',async()=>{
+ const {result}=await openEpisodeStudio()
+ expect([result.current.writingIssues,result.current.canSave]).toEqual([[],false]) // 그대로인 관계는 N화부터가 없어도 막지 않는다
+ const row=relationRow(result.current)
+ act(()=>{result.current.applyRelations([{...row,text:'다시 만난 친구'}],[])})
+ expect(result.current.writingIssues).toEqual([{step:'relations',id:row.id,message:RELATION_FROM_ERROR}])
+ expect(result.current.canSave).toBe(false)
+ act(()=>result.current.openIssue(result.current.writingIssues[0]))
+ expect(result.current.relationRequest).toMatchObject({id:row.id})
+ expect(result.current.view).toBe('people') // 관계도 보기에서 그 관계의 편집 패널이 열린다
+ act(()=>{result.current.applyRelations([{...relationRow(result.current),fromEpisode:3}],[])})
+ expect([result.current.writingIssues,result.current.canSave]).toEqual([[],true])
+ await act(()=>result.current.save())
+ expect(relationRow(result.current)).toMatchObject({text:'다시 만난 친구',fromEpisode:3})
+})
+it('does not ask a world without a linked novel for the N화부터 of a relation',async()=>{
+ const {result}=await openEpisodeStudio({linked:false})
+ const row=relationRow(result.current)
+ act(()=>{result.current.applyRelations([{...row,text:'다시 만난 친구'}],[])})
+ expect([result.current.writingIssues,result.current.canSave]).toEqual([[],true])
+})
+
+// 채팅의 World 반영(#546)이 서버 초안을 바꾼 뒤: 저장하지 않은 변경이 없으면 다시 읽고, 있으면 덮어쓰지 않고 알리기만 한다.
+async function openChatStudio(){
+ const repository=new InMemoryWorldStudioRepository(),useCase=new WorldStudioUseCase(repository)
+ const world=await useCase.create('세계','')
+ const wrapper=({children}:{children:ReactNode})=><MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path="/worldstudio/:worldId" element={children}/></Routes></MemoryRouter>
+ const {result}=renderHook(()=>useWorldStudioViewModel(useCase),{wrapper})
+ await waitFor(()=>expect(result.current.editing?.id).toBe(world.id))
+ return {result,repository,useCase,id:world.id}
+}
+const AI_DRAFT_CHANGED='설정집 초안이 AI 반영으로 바뀌었어요. 저장하지 않은 변경을 정리한 뒤 다시 불러오세요.'
+it('reads the draft again after a chat World apply when nothing is unsaved',async()=>{
+ const {result,useCase,id}=await openChatStudio()
+ await useCase.save({...await useCase.read(id),description:'AI가 바꾼 설명'}) // 채팅의 반영은 서버 초안을 바꾼다
+ let reread:boolean|undefined
+ await act(async()=>{reread=await result.current.aiDraftChanged()})
+ expect(reread).toBe(true)
+ expect([result.current.editing?.description,result.current.saved?.description,result.current.dirty]).toEqual(['AI가 바꾼 설명','AI가 바꾼 설명',false])
+})
+type Studio=ReturnType<typeof useWorldStudioViewModel>
+it.each([
+ ['unsaved draft changes',(vm:Studio)=>vm.patch({description:'고친 설명'}),'고친 설명'],
+ ['an unapplied relation input',(vm:Studio)=>vm.setRelationDirty(true),''],
+] as const)('does not overwrite %s after a chat World apply and only says the draft changed',async(_name,change,description)=>{
+ const {result,repository}=await openChatStudio()
+ act(()=>change(result.current))
+ const read=vi.spyOn(repository,'read')
+ let reread:boolean|undefined
+ await act(async()=>{reread=await result.current.aiDraftChanged()})
+ expect(reread).toBe(false);expect(read).not.toHaveBeenCalled()
+ expect(result.current.message).toBe(AI_DRAFT_CHANGED)
+ expect(result.current.error).toBe('')
+ expect(result.current.editing?.description).toBe(description)
+})
+it('reports the error and keeps the draft when reading it again after a chat World apply fails',async()=>{
+ const {result,repository}=await openChatStudio()
+ vi.spyOn(repository,'read').mockRejectedValueOnce(new Error('서버를 읽지 못했어요.'))
+ let reread:boolean|undefined
+ await act(async()=>{reread=await result.current.aiDraftChanged()})
+ expect(reread).toBe(false)
+ expect(result.current.error).toBe('서버를 읽지 못했어요.')
+ expect(result.current.message).toBe('')
+ expect(result.current.editing?.id).toBeTruthy()
+})
+it('refresh reads the server draft again and drops unsaved edits without asking (changed elsewhere by MCP, #553)',async()=>{
+ const repository:WorldStudioRepository=new InMemoryWorldStudioRepository(),useCase=new WorldStudioUseCase(repository)
+ const world=await useCase.create('세계','')
+ const confirm=vi.spyOn(window,'confirm')
+ const wrapper=({children}:{children:ReactNode})=><MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path="/worldstudio/:worldId" element={children}/></Routes></MemoryRouter>
+ const {result}=renderHook(()=>useWorldStudioViewModel(useCase),{wrapper})
+ await waitFor(()=>expect(result.current.editing?.id).toBe(world.id))
+ act(()=>result.current.patch({name:'저장하지 않은 이름'}))
+ expect(result.current.dirty).toBe(true)
+ await useCase.save({...world,name:'다른 곳에서 바꾼 이름'})
+ const keyBefore=result.current.relationKey
+ let done=false
+ await act(async()=>{done=await result.current.refresh()})
+ expect(done).toBe(true)
+ expect(confirm).not.toHaveBeenCalled()
+ expect(result.current.editing?.name).toBe('다른 곳에서 바꾼 이름')
+ expect(result.current.dirty).toBe(false)
+ expect(result.current.relationKey).toBe(keyBefore+1)
+ vi.spyOn(repository,'read').mockRejectedValueOnce(new Error('읽기 실패'))
+ await act(async()=>{done=await result.current.refresh()})
+ expect(done).toBe(false)
+ expect(result.current.error).not.toBe('')
+ confirm.mockRestore()
 })

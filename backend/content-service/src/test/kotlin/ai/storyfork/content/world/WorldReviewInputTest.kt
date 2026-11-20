@@ -7,6 +7,9 @@ import ai.storyfork.content.world.service.WorldReviewInput
 import ai.storyfork.content.world.service.dto.CardPayload
 import ai.storyfork.content.world.service.dto.RelationshipPayload
 import ai.storyfork.content.world.service.dto.WorldDraftResponse
+import ai.storyfork.content.world.service.dto.WorldReviewBasis
+import ai.storyfork.content.world.service.dto.WorldReviewFinding
+import ai.storyfork.content.world.service.dto.WorldReviewFix
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -79,6 +82,17 @@ class WorldReviewInputTest {
         assertNull(request(card("규칙", type = "rule", meta = docs())).cards.single().characterDocs)
     }
 
+    @Test fun `card links in the body and in character documents are sent as plain text whether or not the target exists`() {
+        val link = "[승상](card:${UUID.randomUUID()})"
+        val sent = request(card("길동", "앞 $link 뒤 [없는](card:${UUID.randomUUID()})", "character",
+            docs(soul = "말투 $link", goal = "목표 $link", episodes = mapOf("0" to "기억 $link")))).cards.single()
+        assertEquals("앞 승상 뒤 없는", sent.body)
+        assertEquals(WorldReviewAiCharacterDocs("말투 승상", "목표 승상", mapOf("0" to "기억 승상")), sent.characterDocs)
+        // 링크의 id는 4,000자 한도에 들지 않는다: 글자로 벗긴 길이로 센다.
+        val long = card("링크로 길어진 카드", "가".repeat(3990) + "[가](card:${UUID.randomUUID()})")
+        assertEquals(listOf("링크로 길어진 카드"), request(long).cards.map { it.title })
+    }
+
     @Test fun `relationships keep only active ones between sent cards and read a missing polarity as asserted`() {
         val a = card("갑", type = "character")
         val b = card("을", type = "character")
@@ -115,5 +129,41 @@ class WorldReviewInputTest {
         val json = JsonMapper.builder().addModule(KotlinModule.Builder().build()).build().writeValueAsString(sent)
         assertEquals(2, sent.cards.size)
         assertFalse(image in json || "imageId" in json, json)
+    }
+
+    @Test fun `basis keeps the raw text of each card a fix points at and nothing else`() {
+        val link = "[승상](card:${UUID.randomUUID()})"
+        val hero = card("길동", "앞 $link 뒤", "character", docs(soul = "말투 $link", goal = "목표", episodes = mapOf("0" to "기억 $link", "2" to "둘째")))
+        val rule = card("규칙", "규칙 본문 $link")
+        val other = card("수정안 없는 카드")
+        fun finding(card: CardPayload, target: String, vararg also: CardPayload) =
+            WorldReviewFinding(listOf(card.id.toString()) + also.map { it.id.toString() }, "doc_role", "지적", WorldReviewFix(card.id.toString(), target, text = "새 글"))
+
+        val basis = WorldReviewInput.basis(draft(listOf(hero, rule, other)), listOf(
+            finding(hero, "soul", other), finding(hero, "goal"), finding(rule, "body"),
+            WorldReviewFinding(listOf(other.id.toString()), "other", "수정안 없음")))
+
+        // 링크는 벗기지 않은 원문이다(화면이 저장본과 비교한다). 같은 카드의 수정안이 둘이어도 한 번, 수정안이 없는 카드는 없다.
+        assertEquals(mapOf(
+            hero.id.toString() to WorldReviewBasis("앞 $link 뒤", WorldReviewAiCharacterDocs("말투 $link", "목표", mapOf("0" to "기억 $link", "2" to "둘째"))),
+            rule.id.toString() to WorldReviewBasis("규칙 본문 $link")), basis)
+    }
+
+    @Test fun `basis has no documents for a card that is not a character or whose documents are broken`() {
+        val rule = card("문서가 붙은 규칙", type = "rule", meta = docs())
+        val broken = card("깨진 문서의 인물", type = "character", meta = docs(soul = 1))
+        val findings = listOf(rule, broken).map {
+            WorldReviewFinding(listOf(it.id.toString()), "other", "지적", WorldReviewFix(it.id.toString(), "body", text = "새 글"))
+        }
+
+        assertEquals(mapOf(rule.id.toString() to WorldReviewBasis("본문"), broken.id.toString() to WorldReviewBasis("본문")),
+            WorldReviewInput.basis(draft(listOf(rule, broken)), findings))
+    }
+
+    @Test fun `basis is empty when no finding has a fix`() {
+        val hero = card("길동", type = "character", meta = docs())
+        assertEquals(emptyMap<String, WorldReviewBasis>(),
+            WorldReviewInput.basis(draft(listOf(hero)), listOf(WorldReviewFinding(listOf(hero.id.toString()), "other", "수정안 없음"))))
+        assertEquals(emptyMap<String, WorldReviewBasis>(), WorldReviewInput.basis(draft(listOf(hero)), emptyList()))
     }
 }

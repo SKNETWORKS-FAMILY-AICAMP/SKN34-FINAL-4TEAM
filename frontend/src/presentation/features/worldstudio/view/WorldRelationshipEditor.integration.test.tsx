@@ -22,6 +22,56 @@ afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
 })
+it('많은 카드에서 그래프 페이지와 주체 검색으로 마지막 카드에 접근한다', async () => {
+  const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+  const world = await useCase.create('대형 세계', '')
+  world.settings = Array.from({ length: 101 }, (_, i) => { const row = newSetting('people'); row.item.title = `설정 ${i}`; return row })
+  await useCase.save(world)
+  function Harness() { const vm = useWorldStudioViewModel(useCase); return vm.editing ? <WorldRelationshipEditor studio={vm} /> : null }
+  render(<MemoryRouter initialEntries={['/worldstudio/' + world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness />} /></Routes></MemoryRouter>)
+  await screen.findByRole('group', { name: '설정 0 인물 카드' })
+  expect(screen.queryByRole('group', { name: '설정 100 인물 카드' })).toBeNull()
+  fireEvent.change(screen.getByRole('searchbox', { name: '관계 주체 검색' }), { target: { value: '설정 100' } })
+  expect(within(screen.getByRole('combobox', { name: '관계 주체' })).getByRole('option', { name: '설정 100' })).toBeTruthy()
+})
+it('선택한 카드의 다른 페이지 이웃과 관계선을 보고 관계를 편집한다', async () => {
+  const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+  const world = await useCase.create('이웃 관계', '')
+  const cards = Array.from({ length: 101 }, (_, i) => { const row = newSetting('people'); row.item.title = `설정 ${i}`; return row })
+  world.settings = putRelation(cards, { subjectId: cards[0].item.id, targetId: cards[100].item.id, predicate: 'friend_of', polarity: 'asserted' })
+  await useCase.save(world)
+  function Harness() { const vm = useWorldStudioViewModel(useCase); return vm.editing ? <WorldRelationshipEditor studio={vm} /> : null }
+  render(<MemoryRouter initialEntries={['/worldstudio/' + world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness />} /></Routes></MemoryRouter>)
+  await screen.findByRole('group', { name: '설정 0 인물 카드' })
+  expect(screen.queryByRole('group', { name: '설정 100 인물 카드' })).toBeNull()
+  fireEvent.change(screen.getByRole('searchbox', { name: '관계도 설정 검색' }), { target: { value: '설정 0' } })
+  fireEvent.click(within(screen.getByRole('group', { name: '관계도 중심 설정' })).getByRole('button', { name: '설정 0' }))
+  expect(screen.getByRole('group', { name: '설정 100 인물 카드' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: /관계선 편집: 설정 0 · 설정 100 · 친구/ })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: /관계선 편집: 설정 0 · 설정 100 · 친구/ }))
+  expect(await screen.findByRole('combobox', { name: '실제 관계 1' })).toBeTruthy()
+})
+it('그래프 페이지가 다른 카드의 관계를 관계 목록 다음 쪽에서 찾고 대상 카드로 이동한다', async () => {
+  const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+  const world = await useCase.create('페이지 관계 검증', '')
+  const cards = Array.from({ length: 101 }, (_, i) => { const row = newSetting('people'); row.item.title = `설정 ${i}`; return row })
+  let settings = cards
+  for (let i = 0; i < 50; i++) settings = putRelation(settings, { subjectId: cards[i].item.id, targetId: cards[i + 1].item.id, predicate: 'friend_of', polarity: 'asserted' })
+  settings = putRelation(settings, { subjectId: cards[0].item.id, targetId: cards[100].item.id, predicate: 'friend_of', polarity: 'asserted' })
+  world.settings = settings
+  await useCase.save(world)
+  vi.spyOn(studioViewModel, 'useWorldStudioViewModel').mockImplementation(() => useWorldStudioViewModel(useCase))
+  render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter initialEntries={['/worldstudio/' + world.id + '?view=people']}><Routes><Route path='/worldstudio/:worldId' element={<WorldStudioPage />} /></Routes></MemoryRouter></Provider>)
+  await screen.findByRole('group', { name: '설정 0 인물 카드' })
+  expect(screen.queryByRole('group', { name: '설정 100 인물 카드' })).toBeNull()
+  expect(screen.getByText(/전체 관계는 아래 목록에서 확인하고 편집할 수 있어요/)).toBeTruthy()
+  const list = within(screen.getByRole('region', { name: '관계 목록' }))
+  fireEvent.click(list.getByRole('button', { name: '다음' }))
+  const row = list.getByRole('button', { name: '설정 0 · 친구 · 설정 100 편집' }).closest('tr')!
+  expect(within(row).getByRole('button', { name: '설정 0' })).toBeTruthy()
+  fireEvent.click(within(row).getByRole('button', { name: '설정 100' }))
+  expect(await screen.findByRole<HTMLInputElement>('textbox', { name: '설정 이름' })).toHaveProperty('value', '설정 100')
+})
 it('connects character and location cards, applies free prose and preserves the relation ID on edit', async () => {
   const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
   const world = await useCase.create('세계', ''), a = newSetting('people'), b = newSetting('places')
@@ -434,12 +484,12 @@ it('releases the selection and the connect mode when the card they belong to is 
 })
 
 // ── 관계 기준 회차(DEC-51) ───────────────────────────────────────────────────────────────────────
-/** 회차 선택(페이지가 편집기 바로 위에 둔다)과 관계 편집기만 그린다. 소설이 연결된 세계관: 1화에는 관계가 없고 2화(최신)에 가람과 나래의 친구 관계가 있다. `supported`가 false면 회차를 모르는 메모리 데모다. */
-async function openEpisodes({ linked = true, supported = true } = {}) {
+/** 회차 선택(페이지가 편집기 바로 위에 둔다)과 관계 편집기만 그린다. 소설이 연결된 세계관: 1화에는 관계가 없고 2화(최신)에 가람과 나래의 친구 관계가 있다. `supported`가 false면 회차를 모르는 메모리 데모다. `from`은 서버가 준 그 관계의 시작 회차(N화부터)다. */
+async function openEpisodes({ linked = true, supported = true, from }: { linked?: boolean; supported?: boolean; from?: number } = {}) {
   const a = newSetting('people'), b = newSetting('people')
   a.item.title = '가람'
   b.item.title = '나래'
-  const settings = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted' })
+  const settings = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted', fromEpisode: from })
   const repository = supported ? new EpisodeWorldRepository() : new InMemoryWorldStudioRepository(), useCase = new WorldStudioUseCase(repository)
   const world = await useCase.create('세계', '')
   await useCase.save({ ...world, settings, linkedWorkId: linked ? 'work-1' : null })
@@ -468,7 +518,7 @@ it.each([
   const { input } = await openEpisodes(options)
   expect(episodePicker().getByText(reason)).toBeTruthy()
   expect(episodePicker().getByRole('status').textContent).toBe(reason) // 비활성 입력의 설명에만 두지 않고 화면에 읽히는 문구로 둔다
-  expect(episodePicker().queryByText(/이 회차의 관계로 기록/)).toBeNull() // 잠금 이유와 모순되는 '저장하면 이 회차로 기록' 도움말은 숨긴다
+  expect(episodePicker().queryByText(/관계를 몇 화부터로 기록할지/)).toBeNull() // 잠금 이유와 모순되는 도움말은 숨긴다
   expect(input.disabled).toBe(true)
   expect(episodePicker().getByRole<HTMLButtonElement>('button', { name: '이 회차 관계 보기' }).disabled).toBe(true)
   expect(episodePicker().getByRole<HTMLButtonElement>('button', { name: '최신으로' }).disabled).toBe(true)
@@ -478,7 +528,7 @@ it('validates the typed episode, reads that episode with its relations, and retu
   const { repository, id, input } = await openEpisodes()
   const read = vi.spyOn(repository, 'read'), show = () => episodePicker().getByRole<HTMLButtonElement>('button', { name: '이 회차 관계 보기' })
   expect(input.placeholder).toBe('최신')
-  expect(episodePicker().getByText(/세계관을 저장하면 이 회차의 관계로 기록/)).toBeTruthy() // 잠기지 않았으면 저장 기준 도움말이 보인다
+  expect(episodePicker().getByText(/관계를 몇 화부터로 기록할지는 관계마다 적고/)).toBeTruthy() // 잠기지 않았으면 이 칸은 보기 용도이고 기록 회차는 관계마다 정한다는 도움말이 보인다
   expect(show().disabled).toBe(true) // 지금 보는 회차(최신)와 같다
   expect(episodePicker().getByRole<HTMLButtonElement>('button', { name: '최신으로' }).disabled).toBe(true)
   expect(relationTable().getByRole('button', { name: '가람 · 친구 · 나래 편집' })).toBeTruthy() // 최신(2화)의 관계
@@ -503,6 +553,29 @@ it('locks the relation episode picker while changes are unsaved and says why', a
   act(() => vm().patch({ description: '고친 설명' }))
   expect(input.disabled).toBe(true)
   expect(episodePicker().getByText('저장하지 않은 변경이 있어 회차를 바꿀 수 없어요. 먼저 세계관을 저장하세요.')).toBeTruthy()
+})
+
+it('shows the N화부터 of each relation in the list and records the one typed in its edit row (DEC-54)', async () => {
+  const { repository, vm } = await openEpisodes({ from: 2 })
+  expect(relationTable().getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['주체', '관계', '대상', '시작 회차', '편집·삭제'])
+  expect(relationTable().getByText('2화부터')).toBeTruthy()
+  fireEvent.click(relationTable().getByRole('button', { name: '가람 · 친구 · 나래 편집' }))
+  const field = screen.getByRole<HTMLInputElement>('textbox', { name: '실제 관계 1 시작 회차 화부터' })
+  expect(field.value).toBe('2') // 서버가 준 그 관계의 시작 회차
+  fireEvent.change(field, { target: { value: '4' } })
+  fireEvent.click(screen.getByRole('button', { name: '편집본에 적용' }))
+  expect(relationTable().getByText('4화부터')).toBeTruthy()
+  const save = vi.spyOn(repository, 'saveStudio')
+  await act(async () => { await vm().save() })
+  expect(save.mock.calls[0][0].settings.find((s) => s.item.kind === 'relation')?.item.fromEpisode).toBe(4)
+  expect(save).toHaveBeenCalledWith(expect.objectContaining({ id: expect.any(String) }), expect.anything(), undefined) // 보는 회차(최신)가 아니라 관계마다의 N화부터가 기록 회차를 정한다
+})
+
+it.each([{ linked: false }, { supported: false }])('has no N화부터 column or input without a linked novel or in the demo (%j)', async (options) => {
+  await openEpisodes({ ...options, from: 2 })
+  expect(relationTable().getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['주체', '관계', '대상', '편집·삭제'])
+  fireEvent.click(relationTable().getByRole('button', { name: '가람 · 친구 · 나래 편집' }))
+  expect(screen.queryByRole('textbox', { name: /시작 회차/ })).toBeNull()
 })
 
 it('shows a relation to a deleted setting by its deleted name, read-only, and never offers it as a new endpoint', async () => {

@@ -2,14 +2,18 @@ import { describe, expect, it } from 'vitest'
 
 import {
   createPairRelationDraft,
+  endsIdentity,
   hasRelationDraftChanges,
   hasIncompleteRelationDraft,
+  identityBodyPatch,
   newRelationDraftRow,
   relationDirection,
   relationDirectionPatch,
   relationDraftChanges,
+  relationFromInvalid,
   relationTextPatch,
   removeRelationDraftRow,
+  type RelationGroup,
 } from '../entities/relationDraft'
 import {
   applyRelationChanges,
@@ -202,4 +206,71 @@ it('detects incomplete new rows with any entered content even beside valid rows'
     expect(hasIncompleteRelationDraft(originals, [{...first,value:{...first.value,text:'유효한 관계'}}, changed])).toBe(true)
   }
   expect(hasIncompleteRelationDraft(originals, [{...first,value:{...first.value,text:'유효한 관계'}}, second])).toBe(false)
+})
+
+describe('동일 인물 draft rows', () => {
+  it('starts from other name → body, needs no text, and is the only row that joins the changes', () => {
+    const rows = createPairRelationDraft([], 'a', 'b')
+    const identity = newRelationDraftRow('identity', 'a', 'b')
+    expect(identity.value).toMatchObject({ subjectId: 'a', targetId: 'b', predicate: 'identity_of', polarity: 'asserted' })
+    expect(relationDraftChanges([...rows, identity]).map((change) => change.predicate)).toEqual(['identity_of'])
+    expect(hasIncompleteRelationDraft(rows, [...rows, identity])).toBe(false)
+    expect(createPairRelationDraft([], 'a', 'b').some((row) => row.group === 'identity')).toBe(false)
+  })
+
+  it('brings the existing identity relation of the pair back as an identity row in either direction', () => {
+    const [a, b] = pair()
+    const settings = putRelation([a, b], { subjectId: b.item.id, targetId: a.item.id, predicate: 'identity_of', polarity: 'asserted' })
+    const rows = createPairRelationDraft(settings, a.item.id, b.item.id)
+    const identity = rows.filter((row) => row.group === 'identity')
+    expect(identity).toHaveLength(1)
+    expect(identity[0]).toMatchObject({ key: settings[2].item.id, value: { subjectId: b.item.id, targetId: a.item.id }, baseline: settings[2].item })
+    expect(rows.filter((row) => row.group === 'fact')).toHaveLength(1) // 실제 관계 칸은 그대로 하나 비어 있다
+  })
+
+  it('choosing the body turns the endpoints around and keeps the other card as the other name', () => {
+    expect(identityBodyPatch('a', 'a', 'b')).toEqual({ subjectId: 'b', targetId: 'a' })
+    expect(identityBodyPatch('b', 'a', 'b')).toEqual({ subjectId: 'a', targetId: 'b' })
+  })
+
+  it('needs the viewed episode only to end an identity relation: writing or changing one carries its own N화부터', () => {
+    const [a, b] = pair()
+    const settings = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, predicate: 'identity_of', polarity: 'asserted' })
+    const initial = createPairRelationDraft(settings, a.item.id, b.item.id)
+    expect(endsIdentity(initial, [])).toBe(false) // 그대로 둔 것은 회차를 다시 정하지 않아도 된다
+    const link = initial.find((row) => row.group === 'identity')!
+    expect(endsIdentity(initial, [link.value.id!])).toBe(true) // 끝내기
+    const other = initial.find((row) => row.group === 'fact')!
+    expect(endsIdentity(initial, [other.value.id ?? 'x'])).toBe(false) // 다른 관계를 지우는 것은 상관없다
+    expect(endsIdentity(initial, ['other-relation'])).toBe(false)
+  })
+})
+
+describe('관계 행의 N화부터 검사', () => {
+  const made = (group: RelationGroup, patch: Partial<RelationInput> = {}) => {
+    const row = newRelationDraftRow(group, 'a', 'b')
+    return { ...row, value: { ...row.value, ...patch } }
+  }
+
+  it('적용할 행(기존 관계·설명을 적은 행·「동일 인물」)만 N화부터가 1 이상의 정수인지 본다', () => {
+    expect(relationFromInvalid(made('fact'))).toBe(false) // 비어 있는 새 행은 적용하지 않아 묻지 않는다
+    expect(relationFromInvalid(made('emotion'))).toBe(false)
+    expect(relationFromInvalid(made('fact', { text: '친구' }))).toBe(true) // 설명을 적었는데 N화부터가 없다
+    expect(relationFromInvalid(made('fact', { text: '친구', fromEpisode: 3 }))).toBe(false)
+    for (const fromEpisode of [0, -1, 1.5]) expect(relationFromInvalid(made('fact', { text: '친구', fromEpisode })), String(fromEpisode)).toBe(true)
+    expect(relationFromInvalid(made('identity'))).toBe(true) // 「동일 인물」은 설명 없이도 적용한다
+    expect(relationFromInvalid(made('identity', { fromEpisode: 2 }))).toBe(false)
+    expect(relationFromInvalid(made('emotion', { id: 'x', fromEpisode: 5 }))).toBe(false) // 기존 관계는 서버가 준 시작 회차가 채워져 있다
+    expect(relationFromInvalid(made('emotion', { id: 'x' }))).toBe(true)
+  })
+
+  it('기존 관계 행은 서버가 준 시작 회차를 값으로 가져오고, 열 때의 기준값(baseline)에도 남는다', () => {
+    const [a, b] = pair()
+    const settings = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted' })
+    settings[2].item.fromEpisode = 3
+    const [fact] = createPairRelationDraft(settings, a.item.id, b.item.id)
+    expect(fact.value.fromEpisode).toBe(3)
+    expect(fact.baseline?.fromEpisode).toBe(3)
+    expect(hasRelationDraftChanges([fact], [{ ...fact, value: { ...fact.value, fromEpisode: 5 } }], [])).toBe(true) // 회차만 고쳐도 바뀐 입력이다
+  })
 })

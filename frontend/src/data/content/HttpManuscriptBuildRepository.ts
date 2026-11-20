@@ -21,7 +21,7 @@ export class HttpManuscriptBuildRepository implements ManuscriptBuildRepository 
   const parsed=request.safeParse(JSON.parse(raw));if(!parsed.success)throw new Error('기존 요청 기록을 확인할 수 없어요. 새 요청을 보내지 않았어요.')
   return parsed.data
  }
- private async send(work:string,body?:object,signal?:AbortSignal){
+ private async send(work:string,body?:object,signal?:AbortSignal,recovering=false){
   const version=authVersion(),timeout=AbortSignal.timeout(20000),combined=signal?AbortSignal.any([signal,timeout]):timeout
   const response=await protectedRequest(path(work),{method:body?'POST':'GET',signal:combined,...(body?{body:JSON.stringify(body),headers:{'Content-Type':'application/json','X-CSRF-TOKEN':await csrf(combined)}}:{})},version,false,{fetcher:this.fetcher,allowHttpError:true})
   if(!body&&response.status===404)return null
@@ -29,7 +29,18 @@ export class HttpManuscriptBuildRepository implements ManuscriptBuildRepository 
    const detail=await response.json().catch(()=>null)
    throw new Error(response.status===503?'현재 원고 세계관 구축을 사용할 수 없어요. 요청 기록은 유지했어요.':detail?.detail??'작업을 확인하지 못했어요. 같은 요청으로 상태를 다시 확인해 주세요.')
   }
-  const data=result.safeParse(await response.json());assertAuthVersion(version)
+  const envelope=await response.json()
+  assertAuthVersion(version)
+  if(!body && envelope.build==null && (envelope.status==='failed'||envelope.status==='queued'&&envelope.recovery==='manual_review')){
+   if(envelope.workId!==work)throw new Error('요청한 작품의 작업을 확인하지 못했어요.')
+   if(envelope.recovery==='new_request'){
+    if(recovering)throw new Error('이전 실행을 재개할 수 없어요. 새 작업에 동의한 후 시작해 주세요.')
+    return null
+   }
+   throw new Error('이전 작업의 적재 결과가 불확실해요. 중복 생성을 막기 위해 별도 검토가 필요해요.')
+  }
+  const data=result.safeParse(envelope.build)
+  if(data.success && (envelope.id!==data.data.jobId || envelope.workId!==work))throw new Error('요청한 작품의 작업을 확인하지 못했어요.')
   if(!data.success)throw new Error('저장 완료를 확인할 수 없어요. 요청 기록을 유지했어요.')
   return data.data
  }
@@ -52,10 +63,10 @@ export class HttpManuscriptBuildRepository implements ManuscriptBuildRepository 
   return withLock(slot,async()=>{
    assertAuthVersion(version)
    const body=this.saved(slot);if(!body)throw new Error('이 브라우저에 원래 요청 기록이 없어요. 시작한 브라우저에서 재개해 주세요.')
-   const current=await this.send(work,undefined,signal)
+   const current=await this.send(work,undefined,signal,true)
    if(!current)return this.send(work,body,signal).then(r=>{if(!r)throw new Error('작업을 확인하지 못했어요.');return r})
    if(current.worldId!==body.worldId)throw new Error('기존 요청과 세계관이 달라요.')
-   if(['queued','running','completed'].includes(current.status))return current
+   if(['running','completed'].includes(current.status))return current
    const retry=current.status==='failed'||current.failureCode==='EXECUTION_EXPIRED'
    if(retry&&!current.executionToken)throw new Error('재개할 실행 기록을 확인할 수 없어요.')
    const data=await this.send(work,{...body,...(retry?{resumeToken:current.executionToken}:{})},signal)

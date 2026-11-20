@@ -1,8 +1,9 @@
 import { sceneSummary, type CharacterSimulation, type SimulationStart } from './characterSimulation'
 import type { WritingEpisode } from './content'
+import { FINDING_KINDS, type ReviewFinding as WorldFinding } from './worldReview'
 
 /** 집필 AI 채팅(#331). 대화 원본은 AI 서비스의 LangGraph 체크포인터이며 화면은 Content API로만 읽고 쓴다. */
-export type ChatFeature = 'story_context' | 'writing_editing' | 'web_research' | 'character_simulation' | 'review' | (string & {})
+export type ChatFeature = 'story_context' | 'writing_editing' | 'web_research' | 'character_simulation' | 'manuscript_review' | (string & {})
 // both는 Router가 두 검수를 함께 고른 결과(#369)다. 작가에게 묻는 화면은 두 가지 중 하나만 고른다.
 export type ReviewCheck = 'mechanical' | 'semantic' | 'both'
 /** 원고 검수 지적 하나. 위치는 초안 본문의 UTF-16 [start,end)이고 같은 구절이 여러 곳이면 null이다(AI가 추측하지 않는다). */
@@ -11,7 +12,10 @@ export type ReviewFinding = {
   evidenceRefs: string[]; suggestion: string; start: number | null; end: number | null
 }
 /** 원고 검수(#59) 단계의 검증된 결과. 검수한 초안의 회차·판본과 확인하지 못한 부분(gaps)을 함께 둔다. */
-export type ChatReview = { check: ReviewCheck; episode: number; revision: number; findings: ReviewFinding[]; gaps: string[] }
+export type ChatReview = {
+  check: ReviewCheck; episode: number; revision: number; findings: ReviewFinding[]; gaps: string[]
+  candidate?: { selection: { start: number; end: number } | null }
+}
 export type RatingVerdict = 'adult' | 'general' | 'needsReview'
 /** 심의 등급 판별 단계의 검증된 결과. 판정은 제안이며 작품 등급을 바꾸지 않는다. 회차 verdict가 null이면 그 회차는 판별 실패(error)다. */
 export type ChatRating = {
@@ -19,6 +23,17 @@ export type ChatRating = {
   episodes: { episode: number; verdict: RatingVerdict | null; prohibited: boolean; error: string | null
     assessments: { criterion: string; level: number; quotes: string[]; rationale: string }[] }[]
 }
+/** 설정집 검토 단계 결과. 웹 조사와 같은 키(findings)를 쓰지만 모양이 달라 따로 둔다. */
+export type ChatWorldReview = { reviewedCards: number; findings: Pick<WorldFinding, 'kind' | 'message'>[] }
+/** World 단계(#546) enrich 수정안 하나: 카드 하나의 한 칸을 바꿀 새 글 전체. episode는 target이 episode일 때만 있다. */
+export type WorldFix = { cardId: string; cardTitle: string; target: 'body' | 'soul' | 'goal' | 'episode'; episode: number | null; text: string }
+/** World 단계 impact가 알려 주는 영향 하나. 화면이 쓰는 값만 받는다(영향 종류·참조 id는 글에 쓰지 않는다). */
+export type WorldImpact = { title: string; reason: string; certainty: 'confirmed' | 'inferred' }
+/** World 단계 결과. task마다 모양이 다르고 check는 설정집 검토와 같다. enrich는 작가가 승인해야 설정집 초안에 반영된다. */
+export type ChatWorld =
+  | ({ task: 'check' } & ChatWorldReview)
+  | { task: 'enrich'; fixes: WorldFix[]; note: string }
+  | { task: 'impact'; affected: WorldImpact[]; conflicts: string[]; gaps: string[] }
 export type ChatStepResult = {
   claims?: { text: string }[]
   gaps?: string[]
@@ -26,19 +41,31 @@ export type ChatStepResult = {
   before?: string
   after?: string
   findings?: { text: string; verdict: string; sourceUrls: string[] }[]
+  /** 전개 기획(#387)의 계획 대안과 참고. 원고가 아니라 반영하지 않는다. */
+  plans?: BeatPlan[]
+  notes?: string[]
+  /** 계획 없이 바로 쓴 원고(text)가 스스로 정해 쓴 계획 */
+  plan?: BeatPlan | null
 }
+export type BeatPlan = { title: string; beats: string[] }
 export type ChatStep = {
   feature: ChatFeature
   /** if_issues_found는 직전 검수에서 확정 지적이 있을 때만 고치는 조건부 수정이다(#370). skipped는 고칠 것이 없어 건너뛴 단계(error가 이유)다. */
   when?: 'always' | 'if_issues_found'
+  /** writing_editing 단계에 Router가 정한 작업 종류(#387). patch(선택 구간 수정)는 채팅에서 입력을 채울 수 없다. world 단계는 check·enrich·impact(#546)다. */
+  task?: 'plan' | 'draft' | 'patch' | 'check' | 'enrich' | 'impact' | null
   status: 'completed' | 'failed' | 'not_started' | 'skipped'
   result?: ChatStepResult | null
   /** character_simulation 단계의 검증된 결과(#58). 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
   simulation?: CharacterSimulation | null
-  /** review 단계의 검증된 결과. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
-  review?: ChatReview | null
+  /** manuscript_review 단계의 검증된 결과. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
+  manuscriptReview?: ChatReview | null
   /** rating 단계의 검증된 결과. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
   rating?: ChatRating | null
+  /** world_review 단계의 검증된 결과(#479). 채팅은 지적의 종류·메시지만 보인다. */
+  worldReview?: ChatWorldReview | null
+  /** world 단계의 검증된 결과(#546). 옛 world_review 단계는 worldReview에 남는다. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
+  world?: ChatWorld | null
   error?: string | null
   approval?: 'approved' | 'declined' | null
   applied?: { episode: number; revision: number } | null
@@ -73,7 +100,7 @@ export type ChatBasis = { episode: number; episodeVersionId: string; targetEpiso
 /** 입력 대기에서 작가가 채우는 단계 입력. 이름은 AI StepInputs 계약과 같다. */
 export type ChatStepInputs = {
   web_research?: { question: string }
-  review?: { check: ReviewCheck }
+  manuscript_review?: { check: ReviewCheck }
   /** fix는 조건부 수정에서 고른 검수 지적의 번호(검수 결과 findings 순서)다. */
   writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } } | { fix: number }
 }
@@ -87,7 +114,7 @@ export type SceneAction =
 export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction }
 /** 새 요청(operation이 있으면 의도 분류를 건너뛰고 그 기능을 실행, 시뮬레이션은 시작 양식 값을 싣는다)이거나 멈춘 실행을 잇는 답이다. */
 export type ChatSendBody = { request: string; operation?: ChatFeature; simulation?: SimulationStart } | { resume: ChatResume }
-export type ChatMessageInput = ChatBasis & { consent: true } & ChatSendBody
+export type ChatMessageInput = ChatBasis & ChatSendBody
 
 export const SCENE_NOTE_MAX = 300
 export const SCENE_TEXT_MAX = 2000
@@ -115,7 +142,7 @@ export function cleanScene(scene: SceneAction): SceneAction {
   }
 }
 
-export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', review: '원고 검수', rating: '심의 등급' }
+export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '기획·집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', manuscript_review: '원고 검수', rating: '심의 등급', world: '세계관', world_review: '설정집 검토' }
 export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성', both: '설정·개연성 + 맞춤법·표기' }
 const reviewStatus: Record<ReviewFinding['status'], string> = { confirmed: '확정', suspected: '의심', undeterminable: '판단 불가' }
 const reviewCategory: Record<string, string> = {
@@ -123,13 +150,38 @@ const reviewCategory: Record<string, string> = {
   setting: '설정 충돌', knowledge: '인물 지식', emotion: '감정 변화', causality: '인과관계', foreshadowing: '복선',
 }
 
-function reviewText({ check, episode, findings, gaps }: ChatReview): string {
-  const title = `${episode}화 초안 ${reviewCheckLabel[check]} 검수`
+function reviewText({ check, episode, revision, findings, gaps, candidate }: ChatReview): string {
+  const basis = candidate ? `승인 전 집필 후보 (기준 초안 판본 ${revision})` : '초안'
+  const selection = candidate?.selection
+  const title = `${episode}화 ${basis} ${reviewCheckLabel[check]} 검수${selection ? ' · 선택 구간 수정' : ''}`
   if (!findings.length && !gaps.length) return `${title}: 찾은 문제가 없어요.`
   return [title, ...findings.map((f) => [
     `${reviewStatus[f.status]} · ${reviewCategory[f.category] ?? f.category} · "${f.quote}"${f.start === null ? ' (여러 곳)' : ''}`,
     `이유: ${f.reason}`, ...(f.suggestion ? [`제안: ${f.suggestion}`] : []),
   ].join('\n')), ...gaps.map((g) => `확인 못 함: ${g}`)].join('\n\n')
+}
+
+const worldReviewText = ({ reviewedCards, findings }: ChatWorldReview) =>
+  findings.map((f) => `${FINDING_KINDS[f.kind]} · ${f.message}`).join('\n') || (reviewedCards ? '검토에서 찾은 문제가 없어요.' : '검토할 설정 카드가 없어요.')
+
+/**
+ * 수정안이 바꿀 칸 이름. 인물의 본문은 IDENTITY 문서인데 단계에 카드 종류가 없으므로, 같은 카드에 인물 문서(SOUL·GOAL·회차) 수정안이 함께 있을 때만 IDENTITY라 부른다.
+ * 인물 카드의 본문만 고치는 제안은 본문으로 보인다.
+ */
+const fixField = (f: WorldFix, all: WorldFix[]) =>
+  f.target === 'episode' ? `${f.episode}회차 문서` : f.target === 'body' ? (all.some((o) => o.cardId === f.cardId && o.target !== 'body') ? 'IDENTITY' : '본문') : f.target.toUpperCase()
+const impactCertainty: Record<WorldImpact['certainty'], string> = { confirmed: '확정', inferred: '추정' }
+
+// enrich는 승인 전에 읽는 제안이라 바꿀 새 글을 그대로 보인다(반영하지 않아도 제안은 대화에 남는다).
+function worldText(world: ChatWorld): string {
+  switch (world.task) {
+    case 'check': return worldReviewText(world)
+    case 'enrich': return [...world.fixes.map((f) => `${f.cardTitle} · ${fixField(f, world.fixes)}\n${f.text}`), ...(world.note ? [`참고: ${world.note}`] : [])].join('\n\n')
+    case 'impact': return [
+      ...world.affected.map((a) => `[${impactCertainty[a.certainty]}] ${a.title} · ${a.reason}`),
+      ...world.conflicts.map((c) => `충돌: ${c}`), ...world.gaps.map((g) => `확인 못 함: ${g}`),
+    ].join('\n') || '영향을 받는 곳을 찾지 못했어요.'
+  }
 }
 
 const ratingVerdict: Record<RatingVerdict, string> = { adult: '19세 이용가', general: '전체 이용가', needsReview: '작가 검토 필요' }
@@ -169,19 +221,43 @@ export function stepText(step: ChatStep): string {
   if (step.status === 'failed') return `실패: ${step.error ?? '작업을 완료하지 못했어요.'}`
   if (step.status === 'skipped') return `건너뜀: ${step.error ?? '할 일이 없어 건너뛰었어요.'}`
   if (step.simulation) return sceneSummary(step.simulation)
-  if (step.review) return reviewText(step.review)
+  if (step.manuscriptReview) return reviewText(step.manuscriptReview)
   if (step.rating) return ratingText(step.rating)
+  if (step.worldReview) return worldReviewText(step.worldReview)
+  if (step.world) return worldText(step.world)
   const r = step.result
   if (step.status !== 'completed' || !r) return ''
   if (r.claims) return [...r.claims.map((c) => c.text), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '근거를 찾지 못했어요.'
   if (r.findings) return [...r.findings.map((f) => `${researchVerdict[f.verdict] ?? researchVerdict.unverified} · ${f.text}${f.sourceUrls.length ? ` (${f.sourceUrls.join(', ')})` : ''}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '조사 결과가 없어요.'
   if (r.after !== undefined) return `수정 전: ${r.before ?? ''}\n수정 후: ${r.after}`
+  if (r.plans) return [...r.plans.map((p, i) => [`계획 ${i + 1}. ${p.title}`, ...p.beats.map((b, j) => `  ${j + 1}) ${b}`)].join('\n')),
+    ...(r.notes ?? []).map((n) => `참고: ${n}`), PLAN_PICK_HINT].join('\n')
   return r.text ?? ''
 }
 
-/** 턴 응답 전체를 말풍선 하나의 글로. 실행하지 않은 턴은 안내 문구만, 실행한 턴은 단계별 결과를 계획 순서로 잇는다. */
+/** 기획 결과에서 한 안을 골라 이어 쓰는 방법. 서버 previousPlans는 최근 5턴 중 가장 최근 기획 결과만 받는다(#441). */
+export const PLAN_PICK_HINT = "가장 최근 기획한 안 중 하나를 '계획 1로 써줘'처럼 말하면 그 계획으로 써요."
+
+/** 바로 쓴 원고가 정해 쓴 계획 한 줄. 반영 본문(stepText)과 섞지 않도록 따로 보인다. */
+export const PLAN_LABEL = '사용한 계획'
+export const usedPlan = (step: ChatStep) => (step.result?.plan ? `${PLAN_LABEL}: ${step.result.plan.title} — ${step.result.plan.beats.join(' / ')}` : '')
+
+/**
+ * 턴의 단계별 결과를 계획 순서로 이은 평문. 종합 답변(`reply.message`)은 넣지 않는다: 화면이 답변을 마크다운으로 그리고
+ * 이 글은 그 아래에 접어 둔다(같은 내용 두 번 보이기 방지, #492). 답변도 단계도 없을 때만 안내 문구다.
+ */
 export function replyText(reply: ChatReply): string {
   const steps = reply.steps.filter((s) => s.status !== 'not_started')
-    .map((s) => `[${featureLabel[s.feature] ?? s.feature}] ${stepText(s)}${s.applied ? `\n→ ${s.applied.episode}화 초안에 반영했어요.` : s.approval === 'declined' ? '\n→ 반영하지 않았어요.' : ''}`)
-  return [reply.message, ...steps].filter(Boolean).join('\n\n') || '응답 내용이 없어요.'
+    .map((s) => [`${stepLabel(s)} ${stepText(s)}`, s.status === 'completed' && usedPlan(s), appliedLine(s)].filter(Boolean).join('\n'))
+  return steps.join('\n\n') || (reply.message ? '' : '응답 내용이 없어요.')
 }
+
+const stepLabel = (s: ChatStep) => `[${featureLabel[s.feature] ?? s.feature}]`
+const appliedLine = (s: ChatStep) => (s.applied ? (s.feature === 'world' ? '→ 설정집 초안에 반영했어요.' : `→ ${s.applied.episode}화 초안에 반영했어요.`) : s.approval === 'declined' ? '→ 반영하지 않았어요.' : '')
+
+/**
+ * 실패 단계와 승인 결과(반영함·반영 안 함) 줄만. 종합 답변은 승인 전에 쓰여 승인·Content 반영 뒤에 달라진 이 결과를 말하지 못하므로
+ * 화면은 단계별 결과를 접어도 이 줄은 접지 않는다. 문구는 replyText와 같다.
+ */
+export const replyOutcome = (reply: ChatReply): string[] =>
+  reply.steps.flatMap((s) => [s.status === 'failed' ? `${stepLabel(s)} ${stepText(s)}` : '', appliedLine(s)].filter(Boolean))

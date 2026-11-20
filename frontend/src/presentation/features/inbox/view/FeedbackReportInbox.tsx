@@ -1,12 +1,14 @@
-import { useRef, useState } from 'react'
+import { Activity, useRef, useState } from 'react'
 
-import { REPORT_RESPONSE_MAX, REPORT_STATUS_LABEL, SETTABLE_REPORT_STATUSES, type FeedbackReport } from '../../../../domain/entities/feedbackReport'
+import { REPORT_KIND_LABEL, REPORT_RESPONSE_MAX, REPORT_STATUS_LABEL, SETTABLE_REPORT_STATUSES, type FeedbackReport } from '../../../../domain/entities/feedbackReport'
 import { FeedbackReportCard } from '../../../shared/feedbackReports/FeedbackReportCard'
 import { Go } from '../../../shared/Go'
 import { useFeedbackReportInboxViewModel } from '../viewmodel/useFeedbackReportInboxViewModel'
 import './inbox.css'
 
 type Vm = ReturnType<typeof useFeedbackReportInboxViewModel>
+
+const at = (iso: string) => new Date(iso).toLocaleString('ko-KR')
 
 function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
   const [answer, setAnswer] = useState('')
@@ -23,8 +25,11 @@ function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
   const settle = (ok: boolean) => { if (ok) card.current?.focus(); return ok }
   // 토스트는 곧 사라지므로 이 제보의 처리 결과(특히 서버가 거절한 이유)를 카드 안에도 남긴다.
   const result = vm.notice?.key === r.id ? vm.notice : null
+  // 확인만 한 제보는 두 시각이 같아 '마지막 처리'만 보이고, 그 뒤 다시 처리하면 '최초 확인'도 함께 보인다. 처리 시각이 기록되기 전의 제보는 '최초 확인'만 보인다.
+  const firstCheck = r.authorCheckedAt && r.authorCheckedAt !== r.handledAt ? r.authorCheckedAt : null
   return (
     <FeedbackReportCard report={r} showWork ref={card}>
+      {(r.handledAt || firstCheck) && <p className="small muted">{r.handlerName}{r.handledAt && ` · 마지막 처리 ${at(r.handledAt)}`}{firstCheck && ` · 최초 확인 ${at(firstCheck)}`}</p>}
       <div className="acts" style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
         <Go to={`/read/${r.workId}/${r.episodeNumber}`} className="btn sm" aria-label={`회차 보기 · ${label}`}>회차 보기</Go>
         {unchecked && <button type="button" className="btn sm" aria-label={`확인했어요 · ${label}`} disabled={vm.busy} onClick={() => void vm.check(r).then(settle)}>확인했어요</button>}
@@ -61,6 +66,11 @@ function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
 export function FeedbackReportInbox({ workId }: { workId?: string }) {
   const vm = useFeedbackReportInboxViewModel(workId)
   const { reports } = vm
+  const [kind, setKind] = useState('')
+  const [status, setStatus] = useState('')
+  // 방금 처리한 제보는 처리 결과로 상태가 바뀌어 필터와 어긋나도 보인다. 숨기면 카드 안의 결과 안내와 초점 대상이 함께 사라진다.
+  // ponytail: 다음 처리 전에는 필터를 바꿔도 그 카드가 남는다. 거슬리면 필터를 바꿀 때 notice를 비운다.
+  const visible = (r: FeedbackReport) => ((!kind || r.kind === kind) && (!status || r.status === status)) || r.id === vm.notice?.key
   return (
     // .panel 대신 .list 카드를 쓴다(데모 피드백 패널과 구분되고, 데모 패널의 aria-busy를 첫 .panel로 읽는 기존 테스트도 그대로 맞는다).
     // 다른 섹션과 같은 .sec/.sec-h 제목이다. 이 섹션은 화면의 첫 섹션이라 위쪽 간격(.sec의 margin-top)만 없앤다.
@@ -75,7 +85,12 @@ export function FeedbackReportInbox({ workId }: { workId?: string }) {
       )}
       {!reports && !vm.isError && <p className="muted">독자 제보를 불러오고 있어요…</p>}
       {reports?.length === 0 && <p className="muted">{workId ? '이 작품에 접수된 독자 제보가 없어요.' : '접수된 독자 제보가 없어요.'}</p>}
-      {!!reports?.length && <div className="list">{reports.map((r) => <InboxReportRow key={r.id} r={r} vm={vm} />)}</div>}
+      {!!reports?.length && <div className="feedback-filters">
+        <label>제보 유형 <select className="inp" value={kind} onChange={e=>setKind(e.target.value)}><option value="">전체</option>{Object.entries(REPORT_KIND_LABEL).map(([key, label])=><option key={key} value={key}>{label}</option>)}</select></label>
+        <label>제보 상태 <select className="inp" value={status} onChange={e=>setStatus(e.target.value)}><option value="">전체</option>{Object.entries(REPORT_STATUS_LABEL).map(([key, label])=><option key={key} value={key}>{label}</option>)}</select></label>
+      </div>}
+      {!!reports?.length && !reports.some(visible) && <p role="status">조건에 맞는 제보가 없어요.</p>}
+      {!!reports?.length && <div className="list">{reports.map(r => <Activity key={r.id} mode={visible(r) ? 'visible' : 'hidden'}><InboxReportRow r={r} vm={vm} /></Activity>)}</div>}
     </section>
   )
 }

@@ -35,8 +35,8 @@ it('신고·권리 탭은 운영 API 실패를 데모 행이나 빈 목록으로
   expect(screen.getByText('운영 API 연결')).toBeTruthy()
 })
 
-// users·admins 표는 운영 API 응답이 있어야 그려지므로, notices·events는 표 없이 목록 패널만 그리므로 렌더 통합 대상에서 뺍니다.
-it.each(['data', 'rights', 'llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'credits'])(
+// users·admins 표는 운영 API 응답이 있어야 그려지므로, notices·events는 표 없이 목록 패널만 그리므로, data(관리 개요)는 표 없이 숫자 카드와 차트만 그리므로(아래 별도 테스트) 렌더 통합 대상에서 뺍니다.
+it.each(['rights', 'llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'credits'])(
   '%s 탭의 모든 표에 캡션·열 머리 범위·키보드 스크롤 영역이 있다',
   async (tab) => {
     renderAdmin(tab)
@@ -52,6 +52,23 @@ it.each(['data', 'rights', 'llm', 'works', 'characterChats', 'comments', 'feedba
     }
   },
 )
+
+// 관리 개요는 표가 아니라 숫자 카드와 차트라, 표의 캡션·열 머리 범위 대신 카드의 이름·값 글자와 차트의 캡션·role=img·요약 aria-label로 읽힙니다.
+it('data 탭의 숫자 카드는 이름과 값을 글자로 갖고 차트는 캡션과 role=img 요약 aria-label을 갖는다', async () => {
+  renderAdmin('data')
+  await waitFor(() => {
+    expect(document.querySelectorAll('.kpi > div').length).toBeGreaterThan(0)
+    expect(document.querySelectorAll('.admin-chart').length).toBeGreaterThan(0)
+  })
+  for (const card of document.querySelectorAll('.kpi > div')) {
+    expect(card.querySelector(':scope > small')?.textContent?.trim()).toBeTruthy()
+    expect(card.querySelector(':scope > b')?.textContent?.trim()).toBeTruthy()
+  }
+  for (const chart of document.querySelectorAll('.admin-chart')) {
+    expect(chart.querySelector(':scope > figcaption')?.textContent?.trim()).toBeTruthy()
+    expect(chart.querySelector(':scope > [role="img"]')?.getAttribute('aria-label')?.trim()).toBeTruthy()
+  }
+})
 
 it('본문 영역은 건너뛰기 링크가 닿는 하나의 main이다', async () => {
   renderAdmin('data')
@@ -510,7 +527,7 @@ it('활동 로그 탭은 조회 권한이 없으면(403) 실패 화면 대신 �
 
 it('패널 제목은 굵은 글씨가 아니라 제목 요소이고, 메뉴 묶음 이름은 제목이 아니어서 화면 제목(h1)이 첫 제목이다', async () => {
   renderAdmin('jobs')
-  const title = await screen.findByRole('heading', { name: '운영 정기 작업', level: 2 })
+  const title = await screen.findByRole('heading', { name: '실행 기록', level: 2 })
   expect(title.className).toBe('panel-title')
   expect(screen.getAllByRole('heading')[0].tagName).toBe('H1')
   const menu = screen.getByRole('navigation', { name: '관리자 업무' })
@@ -520,8 +537,8 @@ it('패널 제목은 굵은 글씨가 아니라 제목 요소이고, 메뉴 묶�
 
 it('표의 행 버튼은 이름이 같은 버튼끼리 구분되도록 대상 이름을 함께 읽는다', async () => {
   renderAdmin('jobs')
-  const row = (await screen.findByText('알림 90일 보관기간 정리')).closest('tr') as HTMLElement
-  expect(within(row).getByRole('button', { name: '알림 90일 보관기간 정리 수동 재시도 시연' }).textContent).toBe('수동 재시도 시연')
+  const retry = await screen.findByRole('button', { name: 'manuscript_preprocessing 실행 job-failed-1 다시 실행' })
+  expect(retry.textContent).toBe('다시 실행')
   cleanup()
   renderAdmin('characterChats')
   const chat = (await screen.findAllByRole('button', { name: /(중지|운영 재개)$/ }))[0]
@@ -538,10 +555,12 @@ it('관리자 계정 생성 폼은 필수 항목과 비밀번호 규칙을 글�
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
 it('픽스처(데모) 컨테이너에서는 데모 관리자 조치가 활동 로그에 남는다', async () => {
-  await appContainer.resolve('adminUseCase').runJob('notification-cleanup')
+  const admin = appContainer.resolve('adminUseCase')
+  const { chats: [chat] } = await admin.load()
+  await admin.toggleChat(chat.id)
   renderAdmin('audit')
   await waitFor(() => expect(activityRows()).toHaveLength(1))
-  within(activityRows()[0]).getByText('정기 작업 재시도 시연', { selector: 'b' })
+  within(activityRows()[0]).getByText('캐릭터챗 중지', { selector: 'b' })
   within(activityRows()[0]).getByText('수행자 관리자 · 대상 데모')
-  within(activityRows()[0]).getByText('알림 90일 보관기간 정리')
+  within(activityRows()[0]).getByText(`${chat.w.title} · ${chat.character}`)
 })

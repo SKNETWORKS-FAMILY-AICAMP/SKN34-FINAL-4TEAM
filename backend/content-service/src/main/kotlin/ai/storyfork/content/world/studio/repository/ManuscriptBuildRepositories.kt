@@ -9,7 +9,6 @@ import java.util.UUID
 interface ManuscriptBuildJobRepository:JpaRepository<ManuscriptBuildJob,UUID> {
     @Query("select j.worldId from ManuscriptBuildJob j where j.id=:id")
     fun worldId(@Param("id") id:UUID):UUID?
-    fun findByWorkId(workId:String):ManuscriptBuildJob?
     fun findFirstByWorldIdAndStatusIn(worldId:UUID,status:List<String>):ManuscriptBuildJob?
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select j from ManuscriptBuildJob j where j.id=:id")

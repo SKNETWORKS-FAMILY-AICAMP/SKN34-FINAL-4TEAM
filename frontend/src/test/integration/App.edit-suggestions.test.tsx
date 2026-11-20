@@ -241,13 +241,50 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     fireEvent.click(within(await card()).getByRole('button', { name: '승인하고 초안에 반영' }))
     await waitFor(() => expect(repo.approve).toHaveBeenCalledWith('w1', 's1'))
     const c = await card()
-    await within(c).findByText('초안에 반영됨 — 발행은 집필실에서')
+    await within(c).findByText('발행은 집필실에서 할 수 있어요.')
     within(c).getByText('승인됨 · 초안에 반영됨')
     expect(within(c).getByRole('status').textContent).toBe('승인했고 초안에 반영했어요 — 발행은 집필실에서 해 주세요.')
-    expect(within(c).getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w1')
+    expect(within(c).getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w1?ep=3')
     expect(within(c).queryByRole('button', { name: '승인하고 초안에 반영' })).toBeNull()
     expect(toastText()).not.toContain('초안에 반영했어요')
     expect(repo.inbox.mock.calls.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('필터를 왕복해도 전송 전 편집안이 남는다', async () => {
+    await open([suggestion()])
+    fireEvent.change(within(await card()).getByLabelText('편집안'), { target: { value: '아직 전송하지 않은 문장' } })
+    fireEvent.change(screen.getByLabelText('수정 제안 상태'), { target: { value: 'approved' } })
+    expect(screen.queryByRole('article', { name: '별빛 서약 3화 수정 제안' })).toBeNull()
+    fireEvent.change(screen.getByLabelText('수정 제안 상태'), { target: { value: '' } })
+    expect((within(await card()).getByLabelText('편집안') as HTMLTextAreaElement).value).toBe('아직 전송하지 않은 문장')
+  })
+
+  it('현재 발행본에 반영된 제안은 발행본으로 연결하고 처리자를 표시한다', async () => {
+    await open([suggestion({ status: 'approved', applyResult: 'applied', published: true, handlerName: '작가봄', handledAt: '2026-11-10T01:00:00Z' })])
+    const c = await card()
+    within(c).getByText('발행 반영됨')
+    within(c).getByText(/처리자 작가봄/)
+    const view = within(c).getByRole('link', { name: '발행본 보기' })
+    expect(view.getAttribute('href')).toBe('/read/w1/3')
+    // 같은 줄의 '집필실 열기'와 같은 보조 버튼 모양이다.
+    expect(view.className).toBe('btn sm')
+    fireEvent.change(screen.getByLabelText('수정 제안 상태'), { target: { value: 'pending' } })
+    expect(screen.queryByRole('link', { name: '발행본 보기' })).toBeNull()
+    expect(screen.getByText('조건에 맞는 수정 제안이 없어요.').getAttribute('role')).toBe('status')
+  })
+
+  it('상태 필터를 건 채 승인해도 방금 처리한 카드는 결과 안내와 함께 남는다', async () => {
+    const repo = await open([suggestion()])
+    fireEvent.change(screen.getByLabelText('수정 제안 상태'), { target: { value: 'pending' } })
+    fireEvent.click(within(await card()).getByRole('button', { name: '승인하고 초안에 반영' }))
+    await waitFor(() => expect(repo.approve).toHaveBeenCalledWith('w1', 's1'))
+    const c = await card()
+    // 승인하면 상태가 '검토 대기' 필터와 어긋나지만, 결과 안내와 초점이 숨겨지면 안 된다.
+    await within(c).findByText('승인됨 · 초안에 반영됨')
+    const note = within(c).getByRole('status')
+    expect(note.textContent).toBe('승인했고 초안에 반영했어요 — 발행은 집필실에서 해 주세요.')
+    expect(document.activeElement).toBe(note)
+    expect(screen.queryByText('조건에 맞는 수정 제안이 없어요.')).toBeNull()
   })
 
   it('반영 실패는 사유와 함께 승인됨·반영 실패로 보이고 반영 완료로 안내하지 않으며 다시 시도할 수 있다', async () => {
@@ -255,12 +292,12 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     const c = await card()
     within(c).getByText('승인됨 · 반영 실패')
     expect(within(c).getByText(/반영 실패: 초안에서 고칠 문장을 찾을 수 없어요/).classList.contains('note')).toBe(true)
-    expect(within(c).queryByText(/초안에 반영됨 — 발행은 집필실에서/)).toBeNull()
+    expect(within(c).queryByText(/발행은 집필실에서 할 수 있어요/)).toBeNull()
     expect(within(c).getByRole('link', { name: '집필실에서 직접 고치기' }).getAttribute('href')).toBe('/studio/w1')
     expect(within(c).queryByRole('button', { name: '거절' })).toBeNull()
     fireEvent.click(within(c).getByRole('button', { name: '다시 반영 시도' }))
     await waitFor(() => expect(repo.approve).toHaveBeenCalledWith('w1', 's1'))
-    await within(await card()).findByText('초안에 반영됨 — 발행은 집필실에서')
+    await within(await card()).findByText('발행은 집필실에서 할 수 있어요.')
   })
 
   it('기준 발행본이 바뀌어 승인이 409로 거절되면 서버 안내를 보이고 목록을 다시 읽는다', async () => {
@@ -387,7 +424,21 @@ describe('내 서재의 내 수정 제안 (기능 24)', () => {
     within(rows[2] as HTMLElement).getByText('작가가 승인했지만 아직 초안에 반영되지 않았어요. 작가가 직접 고칠 수 있어요.')
     expect(list.textContent).not.toContain('내부 사유')
     within(rows[3] as HTMLElement).getByText('보류')
+    within(rows[3] as HTMLElement).getByText('작가가 판단을 보류했어요. 원고에는 아직 반영되지 않았어요.')
     expect(list.querySelectorAll('button')).toHaveLength(0)
+  })
+
+  it('현재 공개된 회차에 반영된 제안만 그 회차 본문으로 연결한다', async () => {
+    await open([
+      suggestion({ id: 'a', mine: true, owner: false, status: 'approved', applyResult: 'applied', published: true }),
+      suggestion({ id: 'b', mine: true, owner: false, status: 'approved', applyResult: 'applied' }),
+    ])
+    const list = await waitFor(() => { const el = document.getElementById('mysuggestions'); expect(el).not.toBeNull(); return el! })
+    const [published, draft] = [...list.querySelectorAll<HTMLElement>('.rp')]
+    within(published).getByText('현재 공개된 회차에 반영됐어요.')
+    expect(within(published).getByRole('link', { name: '회차 보기 · 별빛 서약 3화' }).getAttribute('href')).toBe('/read/w1/3')
+    within(draft).getByText('작가가 승인해 초안에 반영했어요. 독자에게는 작가가 발행해야 보여요.')
+    expect(within(draft).queryByRole('link')).toBeNull()
   })
 
   it('제안이 없으면 안내를 보이고 목록을 못 읽으면 오류와 다시 불러오기를 보인다', async () => {

@@ -5,7 +5,11 @@ import ai.storyfork.content.world.service.GenreTemplate
 import ai.storyfork.content.world.service.GenreTemplateRepair
 import ai.storyfork.content.world.service.GenreTemplateSeeder
 import ai.storyfork.content.world.service.WorldStudioService
+import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
+import ai.storyfork.content.world.studio.entity.StudioWorld
+import ai.storyfork.content.world.studio.repository.*
 import ai.storyfork.content.world.service.dto.*
+import java.util.Optional
 import java.util.UUID
 import java.security.MessageDigest
 import org.junit.jupiter.api.Assertions.*
@@ -15,6 +19,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
 import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.stereotype.Component
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.SimpleTransactionStatus
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.KotlinModule
 
@@ -29,7 +35,33 @@ class GenreTemplateSeederTest {
     /** Core auth V8 운영 관리자(admin@example.test, operator=true)의 회원 ID. 템플릿 소유자로 임시 할당한 값을 리터럴로 고정한다. */
     private val owner = UUID.fromString("5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01")
 
+    @Test fun `new sample is public at creation even if graph creation fails`() {
+        val worlds = mock(StudioWorldRepository::class.java)
+        val graph = mock(Neo4jRelationshipRepository::class.java)
+        val manager = mock(PlatformTransactionManager::class.java)
+        `when`(manager.getTransaction(org.mockito.ArgumentMatchers.any())).thenReturn(SimpleTransactionStatus())
+        val real = WorldStudioService(worlds, mock(WorldDraftRepository::class.java), mock(SettingCardRepository::class.java),
+            mock(SettingCardDraftRepository::class.java), mock(SettingCardVersionRepository::class.java), mock(WorldRevisionRepository::class.java),
+            mock(WorldRevisionCardRepository::class.java), mock(WorldSaveRequestRepository::class.java), mock(WorldRelationshipStateRepository::class.java),
+            mock(TemplatePublicationOnceRepository::class.java), mock(ExpandedSeedProgressRepository::class.java), mock(InitialWorldApplicationRepository::class.java), mock(SettingCardImageRepository::class.java), graph, manager,
+            JsonMapper.builder().addModule(KotlinModule.Builder().build()).build(), mock(ai.storyfork.content.world.studio.repository.ManuscriptBuildJobRepository::class.java), mock(ai.storyfork.content.world.studio.repository.ManuscriptBuildLoadStepRepository::class.java))
+        val single = spy(GenreTemplateSeeder(real, JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()))
+        val sample = legacy.first()
+        doReturn(listOf(sample)).`when`(single).loadLegacy()
+        doReturn(emptyList<GenreTemplate>()).`when`(single).loadV2()
+        doReturn(emptyList<GenreTemplate>()).`when`(single).load()
+        `when`(worlds.findById(sample.worldId)).thenReturn(Optional.empty())
+        doThrow(WorldStudioFailure.unavailable()).`when`(graph).replace(org.mockito.ArgumentMatchers.any(UUID::class.java) ?: UUID(0, 0), org.mockito.ArgumentMatchers.anyLong(),
+            org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.any<Int>())
+        var created: StudioWorld? = null
+        `when`(worlds.saveAndFlush(org.mockito.ArgumentMatchers.any(StudioWorld::class.java) ?: StudioWorld(ownerSubject = owner))).thenAnswer { (it.arguments[0] as StudioWorld).also { w -> created = w } }
+        single.seed()
+        assertEquals("public", created!!.visibility)
+        assertNotNull(created!!.publishedAt)
+    }
+
     private fun create(t: GenreTemplate) = CreateWorldRequest(t.name, t.description, t.worldId)
+    private fun mappedGenre(t: GenreTemplate) = GenreTemplateSeeder.mappedWorldGenre(t.genre)
     /** 템플릿 카드는 공개로 넣는다(DEC-46: 카드의 기본은 비공개라, 비공개로 넣으면 템플릿 세계관을 공개해도 카드가 보이지 않는다). */
     private fun edit(t: GenreTemplate) = EditWorldDraftRequest(0, t.name, t.description,
         (if (t in legacy) t.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic", visibility = "public") }
@@ -49,7 +81,7 @@ class GenreTemplateSeederTest {
     /** 아직 아무것도 적재되지 않은 서비스: create는 새 draft(0), edit는 draft(1)를 돌려준다. */
     private fun fresh(t: GenreTemplate) {
         `when`(service.draft(t.worldId, owner)).thenReturn(draft(t, 5, UUID.randomUUID()))
-        `when`(service.create(owner, create(t))).thenReturn(draft(t))
+        `when`(service.createTemplate(create(t), mappedGenre(t))).thenReturn(draft(t))
         `when`(service.edit(t.worldId, owner, edit(t))).thenReturn(draft(t, 1))
         `when`(service.save(t.worldId, owner, save(t, 1))).thenReturn(revision(t))
     }
@@ -62,17 +94,21 @@ class GenreTemplateSeederTest {
         seeder.seed()
         val order = inOrder(service)
         templates.filter { it.worldId in frozenIds }.forEach { t ->
-            order.verify(service).create(owner, create(t))
+            order.verify(service).createTemplate(create(t), mappedGenre(t))
             order.verify(service).edit(t.worldId, owner, edit(t))
             order.verify(service).save(t.worldId, owner, save(t, 1))
             if (t in legacy) order.verify(service).draft(t.worldId, owner)
         }
         templates.filter { it.worldId in frozenIds }.forEach { t -> order.verify(service).draft(t.worldId, owner) }
         templates.filter { it.worldId !in frozenIds }.forEach { t ->
-            order.verify(service).create(owner, create(t))
+            order.verify(service).createTemplate(create(t), mappedGenre(t))
             order.verify(service).edit(t.worldId, owner, edit(t))
             order.verify(service).save(t.worldId, owner, save(t, 1))
         }
+        val frozen=seeder.loadV2()
+        templates.forEach { t -> verify(service).publishPristineTemplate(legacy.find { it.worldId==t.worldId },
+            frozen.find { it.worldId==t.worldId },current.find { it.worldId==t.worldId }) }
+        templates.forEach { t -> verify(service).fillTemplateGenre(t.worldId, mappedGenre(t)) }
         verifyNoMoreInteractions(service)
     }
 
@@ -137,7 +173,7 @@ class GenreTemplateSeederTest {
         for (t in frozen) {
             val old = oldById[t.worldId]
             val initial = old ?: t
-            `when`(service.create(owner, create(initial))).thenReturn(draft(initial, 2, UUID.randomUUID()))
+            `when`(service.createTemplate(create(initial), mappedGenre(initial))).thenReturn(draft(initial, 2, UUID.randomUUID()))
             val baseCards = GenreTemplateRepair.payloads(t)
             val removed = old?.cards.orEmpty().filter { c -> baseCards.none { it.id == c.id } }.map {
                 CardPayload(it.id, it.title, it.body, it.cardType, "basic", visibility = "public", lifecycle = "removed")
@@ -174,7 +210,7 @@ class GenreTemplateSeederTest {
         templates.forEach(::fresh)
         val (user, completed, pending) = legacy.take(3)
         for (old in listOf(user, completed, pending)) {
-            `when`(service.create(owner, create(old))).thenReturn(draft(old, 2, UUID.randomUUID()))
+            `when`(service.createTemplate(create(old), mappedGenre(old))).thenReturn(draft(old, 2, UUID.randomUUID()))
         }
         val userCards = edit(user).cards.mapIndexed { i, card -> if (i == 0) card.copy(body = "사용자 변경") else card }
         `when`(service.draft(user.worldId, owner)).thenReturn(savedDraft(user, 2, userCards))
@@ -194,7 +230,7 @@ class GenreTemplateSeederTest {
         templates.forEach(::fresh)
         val down = templates[0]
         val rejected = templates[4]
-        doThrow(WorldStudioFailure.unavailable()).`when`(service).create(owner, create(down))
+        doThrow(WorldStudioFailure.unavailable()).`when`(service).createTemplate(create(down), mappedGenre(down))
         doThrow(IllegalArgumentException("카드 오류")).`when`(service).edit(rejected.worldId, owner, edit(rejected))
         assertDoesNotThrow { seeder.seed() }
         verify(service, never()).edit(down.worldId, owner, edit(down))
@@ -212,11 +248,22 @@ class GenreTemplateSeederTest {
     @Test fun `an already saved world is not edited again`() {
         templates.forEach(::fresh)
         val done = templates[1]
-        `when`(service.create(owner, create(done))).thenReturn(draft(done, 2, UUID.randomUUID()))
+        `when`(service.createTemplate(create(done), mappedGenre(done))).thenReturn(draft(done, 2, UUID.randomUUID()))
         seeder.seed()
         verify(service, never()).edit(done.worldId, owner, edit(done))
         verify(service, never()).save(done.worldId, owner, save(done, 1))
         (templates - done).forEach { verify(service).save(it.worldId, owner, save(it, 1)) }
+    }
+
+    @Test fun `restarts leave a saved sample private after its owner unpublishes it`() {
+        templates.forEach(::fresh)
+        val done = templates.first()
+        `when`(service.createTemplate(create(done), mappedGenre(done))).thenReturn(draft(done, 2, UUID.randomUUID()).copy(visibility = "private"))
+        repeat(2) { seeder.seed() }
+        verify(service, times(2)).createTemplate(create(done), mappedGenre(done))
+        verify(service, never()).publication(org.mockito.ArgumentMatchers.any(UUID::class.java) ?: UUID(0, 0),
+            org.mockito.ArgumentMatchers.any(UUID::class.java) ?: UUID(0, 0), org.mockito.ArgumentMatchers.any(PublicationRequest::class.java) ?: PublicationRequest())
+        verify(service, never()).edit(done.worldId, owner, edit(done))
     }
 
     @Test fun `unreadable repair resource does not block legacy seeding`() {
@@ -233,13 +280,41 @@ class GenreTemplateSeederTest {
         doThrow(IllegalStateException("스냅샷 오류")).`when`(broken).loadV2()
         broken.seed()
         legacy.forEach { verify(service).save(it.worldId, owner, save(it, 1)) }
-        (templates - legacy).forEach { verify(service, never()).create(owner, create(it)) }
+        (templates - legacy).forEach { verify(service, never()).createTemplate(create(it), mappedGenre(it)) }
     }
 
+    @Test fun `unreadable frozen resources defer publication and retry after recovery`() {
+        templates.forEach(::fresh)
+        val broken=spy(seeder)
+        doThrow(IllegalStateException("snapshot offline")).doReturn(seeder.loadV2()).`when`(broken).loadV2()
+        broken.seed()
+        verify(service, never()).publishPristineTemplate(any(), any(), any())
+        legacy.forEach { verify(service).save(it.worldId, owner, save(it, 1)) }
+        broken.seed()
+        verify(service, atLeastOnce()).publishPristineTemplate(any(), any(), any())
+    }
+    @Test fun `unreadable current resources defer publication and retry after recovery`() {
+        templates.forEach(::fresh)
+        val broken=spy(seeder)
+        doThrow(IllegalStateException("current offline")).doReturn(current).`when`(broken).load()
+        broken.seed()
+        verify(service, never()).publishPristineTemplate(any(), any(), any())
+        legacy.forEach { verify(service).save(it.worldId, owner, save(it, 1)) }
+        broken.seed()
+        verify(service, atLeastOnce()).publishPristineTemplate(any(), any(), any())
+    }
+    @Test fun `missing matching frozen resource defers that sample publication`() {
+        templates.forEach(::fresh)
+        val missing=legacy.first();val broken=spy(seeder)
+        doReturn(seeder.loadV2().filter { it.worldId!=missing.worldId }).`when`(broken).loadV2()
+        broken.seed()
+        verify(service,never()).publishPristineTemplate(eq(missing), isNull(), eq(current.single { it.worldId==missing.worldId }))
+        verify(service).save(missing.worldId,owner,save(missing,1))
+    }
     @Test fun `restart after edit but before save re-sends the same edit and saves the draft it returns`() {
         templates.forEach(::fresh)
         val half = templates[2]
-        `when`(service.create(owner, create(half))).thenReturn(draft(half, 1))
+        `when`(service.createTemplate(create(half), mappedGenre(half))).thenReturn(draft(half, 1))
         seeder.seed()
         verify(service).edit(half.worldId, owner, edit(half))
         verify(service).save(half.worldId, owner, save(half, 1))
@@ -248,7 +323,7 @@ class GenreTemplateSeederTest {
     @Test fun `a world whose earlier edit is still pending resumes from edit instead of being stuck`() {
         templates.forEach(::fresh)
         val pending = templates[3]
-        doThrow(WorldStudioFailure.incomplete()).`when`(service).create(owner, create(pending))
+        doThrow(WorldStudioFailure.incomplete()).`when`(service).createTemplate(create(pending), mappedGenre(pending))
         seeder.seed()
         verify(service).edit(pending.worldId, owner, edit(pending))
         verify(service).save(pending.worldId, owner, save(pending, 1))

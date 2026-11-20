@@ -2,20 +2,23 @@ import { Suspense, useEffect, useId, useRef, useState } from 'react'
 
 import { presentationPortrait } from '../../../../app/presentationPortraits'
 import { cardTypeOf, cardTypes, settingAreas, type CardType } from '../../../../domain/entities/studioCards'
-import { relationDefinitions } from '../../../../domain/entities/studioRelations'
-import { invalidReveal, REVEAL_EPISODE_ERROR, studioLabelCleanup, type SettingItem } from '../../../../domain/entities/studioWorld'
+import { identityBodyOf, relationDefinitions } from '../../../../domain/entities/studioRelations'
+import { cardRevealEpisode, invalidReveal, REVEAL_EPISODE_ERROR, studioLabelCleanup, type SettingItem } from '../../../../domain/entities/studioWorld'
 import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
 import { BackChev, ComposeIcon, MoreVerticalIcon } from '../../../shared/icons'
 import { LazyMarkdownEditor } from '../../../shared/LazyMarkdownEditor'
+import { McpChangeBanner, type McpChangeState } from '../../../shared/McpChangeBanner'
 import { PopMenu } from '../../../shared/PopMenu'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { ResizeSeparator } from '../../studio/view/ResizeSeparator'
 import { VersionGraph } from '../../studio/view/VersionGraph'
 import '../../studio/view/writing.css'
-import { setCardVisibility } from '../viewmodel/cardVisibility'
+import { setCardReveal } from '../viewmodel/cardVisibility'
 import { importedSource } from '../../../shared/importCards'
 import { kinds, labelOf, settingLinks } from '../viewmodel/settingBoard'
 import { useCardBoard } from '../viewmodel/useCardBoard'
+import { PageControls } from '../../../shared/PageControls'
+import { pageItems } from '../../../shared/pageItems'
 import { useCharacterDocs } from '../viewmodel/useCharacterDocs'
 import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
@@ -25,6 +28,7 @@ import { CardImageControl, CardThumb } from './WorldCardImage'
 import { CharacterDocs } from './CharacterDocs'
 import { NewCardMenu } from './NewCardMenu'
 import { WorldCardFindings } from './WorldCardFindings'
+import { WorldCardOrder } from './WorldCardOrder'
 import { WorldChat } from './WorldChat'
 import { WorldSaveBar } from './WorldSaveBar'
 
@@ -39,18 +43,21 @@ const BODY_MAX = 3000
  * - 가운데: 머리는 두 열(왼쪽 큰 이름 입력·유형, 오른쪽 대표 이미지 타일 `CardImageControl`, 좁은 화면은 타일이 이름 아래로) · 설명(마크다운 편집기 `MarkdownEditor`: Toast UI Editor, 쓰기·미리보기 탭, 편집 화면에서만 `React.lazy`로 늦게 불러온다) 등 기존 필드 · 한 줄 하단 바(글자 수·저장 상태·카드 삭제). 위 상단 바에는 `← 설정집`과 상시 저장 영역, 그 옆 끝에 테마 전환 버튼이 있다(집필실처럼 떠 있는 테마 버튼은 GlobalChrome이 이 화면에서 뺀다).
  *   설명은 마크다운 문자열 그대로 저장한다(`#`·`##`·`###` 제목이 공개 카드 페이지의 문단·목차가 된다). 편집기는 글자 수 제한이 없어 3000자를 넘으면 글자 수가 경고로 바뀌고 저장은 기존 검증이 막는다.
  *   글자 수 줄은 입력마다 바뀌므로 라이브 영역에 두지 않고, 3000자를 넘는 순간만 따로 둔 상태 문구로 한 번 알린다.
- *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다) 다시 만든다.
+ *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다), 그리고 초안을 서버 값으로 다시 읽을 때마다(`vm.relationKey`: 다른 곳(MCP)에서 바뀐 알림의 `refresh`·확정 버전 되돌리기) 다시 만든다.
  *   인물 카드는 설명 하나 대신 문서 네 종류로 쓴다(`CharacterDocs`·`useCharacterDocs`): 설명 자리에 문서 탭 줄(정체성 IDENTITY.md = 카드 본문 · 성격·말투 SOUL.md · 목표 GOAL.md · 회차 기억 memory/NN회차.md)과 고른 문서의 같은 편집기를 두고,
  *   글자 수·3,000자 초과 알림은 고른 문서의 것이다. 인물이 아닌 유형으로 바꾼 카드에 문서가 남아 있으면 저장하지 않는다고 알린다(인물로 되돌리면 그대로다).
- *   설명 아래 공개 범위(DEC-46): `이 설정 공개`(기본 비공개, 공개 세계관 화면에는 공개 카드만 보인다)와 `독자 공개 N화부터`(연결된 소설의 독자 설정 위키에 보이기 시작하는 회차, 비우면 숨김, 소설을 연결해야 켜진다).
+ *   설명 아래 공개 범위(DEC-53): 공개 설정은 하나다. 소설이 연결된 세계관은 `공개 회차 N화부터 공개`(비우면 작가 전용, 기본), 연결되지 않은 세계관은 `이 설정 공개`(1화부터)와 작가 전용이다.
  *   회차 입력은 숫자만 받는 글자 칸이다(`type="number"`는 휠·스핀 버튼으로 값이 바뀌고 `e` 같은 글자를 받으면 보이는 값과 초안이 어긋난다). 0처럼 쓸 수 없는 값은 입력 바로 아래에 이유를 글로 보이고 입력의 설명으로 잇는다.
- *   둘 다 초안 값이라 저장과 확정 버전을 거쳐야 반영된다. 다른 세계관에서 가져온 카드는 유형 옆에 `가져옴`과 출처를 보인다.
+ *   바꾸면 `revealFromEpisode`만 정하고 `visibility`는 회차가 있으면 public, 없으면 지워 맞춘다(`setCardReveal`). 건드리지 않은 카드는 다시 쓰지 않는다(옛 공개 카드는 1화로 보인다).
+ *   초안 값이라 저장과 확정 버전을 거쳐야 반영된다. 다른 세계관에서 가져온 카드는 유형 옆에 `가져옴`과 출처를 보인다.
  *   마지막 설정집 AI 검토가 이 카드에 지적을 남겼으면 편집기 맨 위에 'AI 검토 의견'(`WorldCardFindings`)이 보이고, 수정안을 `초안에 반영`하면 편집기를 지금 초안의 글로 다시 만든다(`docs.reload`).
+ *   이 카드의 글에 더 늦게 공개되는 카드의 이름이 나오면 그 아래에 '공개 순서 확인'(`WorldCardOrder`, DEC-53)이 어느 글에 어떤 이름이 나오는지 알린다(모델 없이 초안에서 계산하며 저장·확정을 막지 않는다).
+ *   카드 본문(인물은 IDENTITY.md) 편집기에는 `설정 링크` 버튼이 있어 같은 세계관 카드를 이름·별칭으로 찾아 `[글자](card:<id>)`를 커서 위치에 넣고, 미리보기의 링크를 누르면 그 카드의 편집 화면으로 간다. 연관 설정 목록에는 본문 링크로 이어진 카드도 들어간다.
  * - 오른쪽: AI 채팅(전송은 연결 전이라 '준비 중').
  * 삭제는 초안 변경이라 확인(함께 지워질 관계 수)을 거친 뒤 설정집으로 돌아가고 되돌릴 수 있으며, 세계관 저장으로 서버에 반영한다.
  * 관계 기준 회차를 고른 동안(`vm.deleteLock`)은 삭제가 최신 저장에서만 되므로 하단 삭제와 레일 ⋮ 삭제를 잠그고 이유를 하단에 보인다(잠긴 메뉴 항목의 설명도 같은 글).
  */
-export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatOpenChange }: { vm: VM; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; chatOpen: boolean; onChatOpenChange: (open: boolean) => void }) {
+export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, onChatOpenChange }: { vm: VM; mcp: McpChangeState; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; chatOpen: boolean; onChatOpenChange: (open: boolean) => void }) {
   const world = vm.editing!
   const setting = world.settings.find((s) => s.item.id === vm.selected)!
   const { item } = setting
@@ -69,16 +76,27 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
     nameField.current?.focus()
   }, [item.id])
   const legacy = world.settings.filter((s) => ['relation', 'review', 'note'].includes(cardTypeOf(s.item)))
+  const [legacyPage, setLegacyPage] = useState(0)
+  const legacyItems = pageItems(legacy, legacyPage, 50)
   const links = settingLinks(world.settings, item.id)
+  // 설정 링크(DEC-53)로 고를 수 있는 같은 세계관의 카드(편집 중인 카드와 카드가 아닌 기존 항목은 뺀다)와 이 카드에서 나온 공개 순서 경고
+  const linkChoices = world.settings.flatMap((s) => (s.item.id !== item.id && cardTypes.some((t) => t.id === cardTypeOf(s.item)) ? [{ id: s.item.id, title: s.item.title || '이름 없는 설정', type: labelOf(s), aliases: s.aliases }] : []))
+  const orderIssues = board.orderIssues.filter((issue) => issue.cardId === item.id)
+  const openLinked = (id: string) => { setConfirm(''); focusName.current = true; vm.editCard(id) }
+  const identityBody = identityBodyOf(world.settings, item.id) // 이 카드가 「동일 인물」의 다른 이름 카드면 그 본체 카드(#485)
   const docs = useCharacterDocs(vm, setting) // 편집 중인 글: 인물 카드는 고른 문서, 그 밖은 카드 본문
   const over = docs.text.length > BODY_MAX
   const revealError = invalidReveal(setting)
+  const reveal = cardRevealEpisode(setting)
+  const unlinkedHelp = reveal !== undefined && reveal > 1
+    ? `${reveal}화부터 공개로 정해져 있지만 소설이 연결되지 않아 지금은 공개되지 않아요.`
+    : demo ? '데모에서는 소설 연결을 지원하지 않아 공개(1화부터)와 작가 전용(기본)만 고를 수 있어요.' : '소설을 연결하면 N화부터 공개로 정할 수 있어요. 지금은 공개(1화부터)와 작가 전용(기본)만 고를 수 있어요.'
   const portrait = cardTypeOf(item) === 'character' ? presentationPortrait(item.title) : undefined
   const deletion = confirm === item.id ? vm.cardDeletionInfo(item.id) : null
   const bodyEditor = (
     <div className="world-card-editor" inert={vm.busy}>
       <Suspense fallback={<div className="world-card-editor-loading" aria-live="polite">편집기를 불러오고 있어요.</div>}>
-        <LazyMarkdownEditor key={docs.editorKey} label={docs.person ? docs.name : '설정 본문'} initialValue={docs.text} placeholder={docs.person ? undefined : '어떤 인물인가요? 무엇이 중요한 장소인가요? 떠오르는 내용을 자유롭게 적어 보세요.'} onChange={docs.write} />
+        <LazyMarkdownEditor key={`${docs.editorKey}:${vm.relationKey}`} label={docs.person ? docs.name : '설정 본문'} initialValue={docs.text} placeholder={docs.person ? undefined : '어떤 인물인가요? 무엇이 중요한 장소인가요? 떠오르는 내용을 자유롭게 적어 보세요.'} onChange={docs.write} cardLinks={docs.doc === 'identity' ? { cards: linkChoices, open: openLinked } : undefined} />
       </Suspense>
     </div>
   )
@@ -109,6 +127,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
       </header>
       {vm.error && <p role="alert" className="ep-alert">{vm.error}</p>}
       {vm.message && <p role="status" className="writing-message">{vm.message}</p>}
+      <McpChangeBanner {...mcp} />
       <main id="main" tabIndex={-1} className="studio-workspace">
         <div className="sgrid writing-grid">
           <div className="writing-rail">
@@ -118,7 +137,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             </div>
             <div className="world-rail-tools">
               <label className="sr-only" htmlFor={`${listId}-q`}>설정 검색</label>
-              <input id={`${listId}-q`} type="search" className="inp" placeholder="설정 검색" value={vm.cardQuery} onChange={(e) => vm.setCardQuery(e.target.value)} />
+              <input id={`${listId}-q`} type="search" className="inp" placeholder="설정 검색" value={vm.cardQuery} onChange={(e) => { vm.setCardQuery(e.target.value); board.setPage(0) }} />
               <div className="world-rail-kinds" role="group" aria-label="설정 분류">
                 <button type="button" aria-pressed={!board.kind} onClick={() => board.pickKind()}>전체</button>
                 {board.counts.map(({ kind, count }) => <button key={kind} type="button" aria-pressed={board.kind === kind} onClick={() => board.pickKind(kind)}>{kind} {count}</button>)}
@@ -126,10 +145,12 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             </div>
             <div className="writing-rail-split">
               <nav id={listId} className="seps writing-episodes" aria-label="설정 카드 목록" style={{ flexBasis: `${split}%` }}>
-                {board.rows.map((row) => rail(row.cardId, row.title, row.type))}
-                {legacy.map((s) => rail(s.item.id, s.item.title || '이름 없는 설정', labelOf(s)))}
+                {board.paged.items.map((row) => rail(row.cardId, row.title, row.type))}
+                {legacyItems.items.map((s) => rail(s.item.id, s.item.title || '이름 없는 설정', labelOf(s)))}
                 {!board.rows.length && !legacy.length && <p className="small muted world-rail-empty">조건에 맞는 설정이 없어요.</p>}
               </nav>
+              <PageControls page={board.paged.page} pages={board.paged.pages} onPage={board.setPage} />
+              <PageControls page={legacyItems.page} pages={legacyItems.pages} onPage={setLegacyPage} />
               <ResizeSeparator label="설정 카드 목록과 버전 그래프 크기 조절" controls={listId} value={split} min={20} max={80} onChange={setSplit} />
               <section className="writing-graph" aria-label="버전 그래프">
                 <h2>버전 그래프</h2>
@@ -142,82 +163,94 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             </div>
           </div>
           <div className="editor writing-editor" role="region" aria-label="선택한 설정 편집">
-            <WorldCardFindings key={item.id} vm={vm} cardId={item.id} onOpenCard={(id) => { setConfirm(''); focusName.current = true; vm.editCard(id) }} onApplied={docs.reload} />
+            <WorldCardFindings key={item.id} vm={vm} cardId={item.id} onOpenCard={openLinked} onApplied={docs.reload} />
+            <WorldCardOrder issues={orderIssues} relationTitle={(id) => world.settings.find((s) => s.item.id === id)?.item.title || '이름 없는 관계'} onOpenCard={openLinked} />
             <fieldset className="world-fields" disabled={vm.busy}>
               <legend className="sr-only">설정 카드 작성</legend>
-              <div className="world-card-header">
-                <div className="world-card-head">
-                  <input ref={nameField} className="et writing-title" aria-label="설정 이름" required value={item.title} maxLength={200} placeholder="이 설정의 이름은 무엇인가요?" onChange={(e) => vm.update(item.id, { title: e.target.value })} />
-                  <div className="world-card-meta">
-                    <label className="field world-type">유형
-                      <select className="inp" value={cardTypeOf(item)} onChange={(e) => vm.changeCardType(item.id, e.target.value as CardType)}>
-                        {cardTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-                        {['relation', 'review', 'note'].includes(cardTypeOf(item)) && <option value={cardTypeOf(item)}>{kinds[item.kind]} · 기존 의미 유지</option>}
-                      </select>
-                    </label>
-                    {setting.importedFrom && <p className="small muted world-card-source"><span className="chip">가져옴</span>{importedSource(setting.importedFrom)}</p>}
-                  </div>
-                  <CardImageControl vm={vm} cardId={item.id} title={item.title} imageId={setting.imageId} portrait={portrait} />
-                </div>
-              </div>
-              {docs.orphaned && <p role="status" className="small world-doc-orphaned">인물이 아닌 설정에는 SOUL.md·GOAL.md·회차별 기억을 저장하지 않아요. 유형을 인물로 되돌리면 이어 쓸 수 있고, 이대로 저장하면 사라져요.</p>}
-              {docs.person ? <CharacterDocs docs={docs}>{bodyEditor}</CharacterDocs> : bodyEditor}
-              {docs.doc === 'identity' && <p className="small muted world-card-help"># · ## · ### 제목은 공개 페이지 목차에 나와요.</p>}
-              {item.kind !== 'relation' && (
-                <section className="world-card-reach" aria-label="공개 범위">
-                  <h4>공개 범위</h4>
-                  <label className="world-consent">
-                    <input type="checkbox" role="switch" checked={setting.visibility === 'public'} aria-describedby={`${listId}-public`} onChange={(e) => vm.patch({ settings: setCardVisibility(world.settings, new Set([item.id]), e.target.checked ? 'public' : 'private') })} />
-                    이 설정 공개
-                  </label>
-                  <p id={`${listId}-public`} className="small muted">세계관을 공개하면 누구나 이 설정을 볼 수 있고, 로그인한 사람은 자기 세계관으로 가져갈 수 있어요.</p>
-                  <label className="world-reveal">
-                    독자 공개
-                    <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" className="inp" disabled={!vm.linkedWorkId} aria-invalid={revealError} aria-describedby={`${revealError ? `${listId}-reveal-error ` : ''}${listId}-reveal`} value={setting.revealFromEpisode ?? ''} onChange={(e) => vm.update(item.id, {}, { revealFromEpisode: revealEpisodeInput(e.target.value) })} />
-                    화부터
-                  </label>
-                  {revealError && <p id={`${listId}-reveal-error`} role="alert" className="small world-field-error">{REVEAL_EPISODE_ERROR}</p>}
-                  <p id={`${listId}-reveal`} className="small muted">{vm.linkedWorkId ? '연결된 소설의 독자 설정 위키에 이 회차부터 보여요. 비워 두면 독자에게 보이지 않아요.' : demo ? '데모에서는 소설 연결을 지원하지 않아 설정할 수 없어요.' : '소설을 연결하면 설정할 수 있어요.'}</p>
-                  <p className="small muted">저장한 뒤 ‘확정 버전 남기기’를 해야 공개 세계관 화면과 독자 설정 위키에 반영돼요.</p>
-                </section>
-              )}
-              {cardTypeOf(item) === 'character' && <button className="btn sm world-relation-link" type="button" onClick={() => vm.openRelations(item.id)}>관계 연결로 이동</button>}
-              <section className="world-card-links" aria-label="연관 설정">
-                <h4>연관 설정·관계 <span className="small muted">읽기 전용</span></h4>
-                {links.length
-                  ? <ul>{links.map((l) => <li key={`${l.id}:${l.label}`}><button type="button" className="world-card-link" onClick={() => { setConfirm(''); focusName.current = true; vm.editCard(l.id) }}>{l.title} <small>{l.label}</small></button></li>)}</ul>
-                  : <p className="small muted">이어진 설정이 없어요. 인물은 관계 연결에서 서로 이을 수 있어요.</p>}
-              </section>
-              <details className="world-additional" key={item.id}>
-                <summary>상세 설정 · 선택</summary>
-                <label className="field">설정 영역
-                  <select className="inp" value={item.category} onChange={(e) => vm.changeArea(item.id, e.target.value as SettingItem['category'])}>
-                    {settingAreas.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
-                  </select>
-                </label>
-                <label className="field">태그 (쉼표로 구분)<input className="inp" value={setting.tags.join(',')} onChange={(e) => vm.update(item.id, {}, { tags: e.target.value.split(',') })} onBlur={() => { const tags = studioLabelCleanup(setting.tags); if (tags) vm.update(item.id, {}, { tags }) }} /></label>
-                <label className="field">별칭<input className="inp" aria-describedby={`${listId}-alias`} value={setting.aliases?.join(',') ?? ''} onChange={(e) => vm.update(item.id, {}, { aliases: e.target.value.split(',') })} onBlur={() => { const aliases = studioLabelCleanup(setting.aliases); if (aliases) vm.update(item.id, {}, { aliases }) }} /></label>
-                <p id={`${listId}-alias`} className="small muted">별칭은 쉼표로 구분하며 저장 시 다른 카드 정보와 함께 서버에 보존해요.</p>
-                <label className="field">내 분류<input className="inp" value={setting.userCategory} maxLength={50} onChange={(e) => vm.update(item.id, {}, { userCategory: e.target.value })} /></label>
-                {item.kind === 'event' && <label className="field">사건 시점<input className="inp" value={item.timeText} onChange={(e) => vm.update(item.id, { timeText: e.target.value })} /></label>}
-                {item.kind === 'relation' && (
-                  <>
-                    <label className="field">기존 관계 유형
-                      <select className="inp" value={item.predicate ?? 'trusts'} onChange={(e) => vm.update(item.id, { predicate: e.target.value })}>
-                        {Object.entries(relationDefinitions).map(([id, r]) => <option key={id} value={id}>{r.label}</option>)}
-                      </select>
-                    </label>
-                    {(['subjectId', 'targetId'] as const).map((key, i) => (
-                      <label className="field" key={key}>{i ? '관계 대상' : '관계 주체'}
-                        <select className="inp" value={item[key] ?? ''} onChange={(e) => vm.update(item.id, { [key]: e.target.value || null })}>
-                          <option value="">선택하세요</option>
-                          {world.settings.filter((s) => s.item.kind === 'entity').map((s) => <option key={s.item.id} value={s.item.id}>{s.item.title}</option>)}
+              {/* Chromium: fieldset의 직접 자식이 바뀌면(인물 ↔ 그 밖의 문서 구조, 편집기 교체) 같은 fieldset 안 컨테이너 쿼리 컨테이너(.world-card-header)의 하위가 레이아웃에서 빠져 머리가 0×0이 된다(#466). 내용은 이 래퍼 하나 안에서만 바뀌게 하고 래퍼에 key를 주지 않는다. */}
+              <div>
+                <div className="world-card-header">
+                  <div className="world-card-head">
+                    <input ref={nameField} className="et writing-title" aria-label="설정 이름" required value={item.title} maxLength={200} placeholder="이 설정의 이름은 무엇인가요?" onChange={(e) => vm.update(item.id, { title: e.target.value })} />
+                    <div className="world-card-meta">
+                      <label className="field world-type">유형
+                        <select className="inp" value={cardTypeOf(item)} onChange={(e) => vm.changeCardType(item.id, e.target.value as CardType)}>
+                          {cardTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+                          {['relation', 'review', 'note'].includes(cardTypeOf(item)) && <option value={cardTypeOf(item)}>{kinds[item.kind]} · 기존 의미 유지</option>}
                         </select>
                       </label>
-                    ))}
-                  </>
+                      {setting.importedFrom && <p className="small muted world-card-source"><span className="chip">가져옴</span>{importedSource(setting.importedFrom)}</p>}
+                    </div>
+                    <CardImageControl vm={vm} cardId={item.id} title={item.title} imageId={setting.imageId} portrait={portrait} />
+                  </div>
+                </div>
+                {docs.orphaned && <p role="status" className="small world-doc-orphaned">인물이 아닌 설정에는 SOUL.md·GOAL.md·회차별 기억을 저장하지 않아요. 유형을 인물로 되돌리면 이어 쓸 수 있고, 이대로 저장하면 사라져요.</p>}
+                {docs.person && identityBody && <p className="small muted world-card-help">이 카드는 {identityBody.item.title}의 다른 이름이에요. 성격·목표·회차 기억은 본체 카드에 적어 주세요. 이 카드의 것은 시뮬레이션에서 읽지 않아요.</p>}
+                {docs.person ? <CharacterDocs docs={docs}>{bodyEditor}</CharacterDocs> : bodyEditor}
+                {docs.doc === 'identity' && <p className="small muted world-card-help"># · ## · ### 제목은 공개 페이지 목차에 나와요.</p>}
+                {item.kind !== 'relation' && (
+                  <section className="world-card-reach" aria-label="공개 범위">
+                    <h4>공개 범위</h4>
+                    {vm.linkedWorkId ? (
+                      <>
+                        <label className="world-reveal">
+                          공개 회차
+                          <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" className="inp" aria-invalid={revealError} aria-describedby={`${revealError ? `${listId}-reveal-error ` : ''}${listId}-reveal`} value={reveal ?? ''} onChange={(e) => vm.patch({ settings: setCardReveal(world.settings, new Set([item.id]), revealEpisodeInput(e.target.value)) })} />
+                          화부터 공개
+                        </label>
+                        {revealError && <p id={`${listId}-reveal-error`} role="alert" className="small world-field-error">{REVEAL_EPISODE_ERROR}</p>}
+                        <p id={`${listId}-reveal`} className="small muted">비워 두면 작가 전용(기본)이에요. 연결된 소설이 이 회차까지 발행되면 독자 설정 위키와 공개 세계관에 보이고, 로그인한 사람은 자기 세계관으로 가져갈 수 있어요.</p>
+                      </>
+                    ) : (
+                      <>
+                        <label className="world-consent">
+                          <input type="checkbox" role="switch" checked={reveal !== undefined} aria-describedby={`${listId}-reveal`} onChange={(e) => vm.patch({ settings: setCardReveal(world.settings, new Set([item.id]), e.target.checked ? 1 : undefined) })} />
+                          이 설정 공개
+                        </label>
+                        <p id={`${listId}-reveal`} className="small muted">{unlinkedHelp}</p>
+                      </>
+                    )}
+                    <p className="small muted">저장한 뒤 ‘확정 버전 남기기’를 해야 공개 세계관 화면과 독자 설정 위키에 반영돼요.</p>
+                  </section>
                 )}
-              </details>
+                {cardTypeOf(item) === 'character' && <button className="btn sm world-relation-link" type="button" onClick={() => vm.openRelations(item.id)}>관계 연결로 이동</button>}
+                <section className="world-card-links" aria-label="연관 설정">
+                  <h4>연관 설정·관계 <span className="small muted">읽기 전용</span></h4>
+                  {links.length
+                    ? <ul>{links.map((l) => <li key={`${l.id}:${l.label}`}><button type="button" className="world-card-link" onClick={() => openLinked(l.id)}>{l.title} <small>{l.label}</small></button></li>)}</ul>
+                    : <p className="small muted">이어진 설정이 없어요. 인물은 관계 연결에서 서로 이을 수 있어요.</p>}
+                </section>
+                <details className="world-additional" key={item.id}>
+                  <summary>상세 설정 · 선택</summary>
+                  <label className="field">설정 영역
+                    <select className="inp" value={item.category} onChange={(e) => vm.changeArea(item.id, e.target.value as SettingItem['category'])}>
+                      {settingAreas.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
+                    </select>
+                  </label>
+                  <label className="field">태그 (쉼표로 구분)<input className="inp" value={setting.tags.join(',')} onChange={(e) => vm.update(item.id, {}, { tags: e.target.value.split(',') })} onBlur={() => { const tags = studioLabelCleanup(setting.tags); if (tags) vm.update(item.id, {}, { tags }) }} /></label>
+                  <label className="field">별칭<input className="inp" aria-describedby={`${listId}-alias`} value={setting.aliases?.join(',') ?? ''} onChange={(e) => vm.update(item.id, {}, { aliases: e.target.value.split(',') })} onBlur={() => { const aliases = studioLabelCleanup(setting.aliases); if (aliases) vm.update(item.id, {}, { aliases }) }} /></label>
+                  <p id={`${listId}-alias`} className="small muted">별칭은 쉼표로 구분하며 저장 시 다른 카드 정보와 함께 서버에 보존해요.</p>
+                  <label className="field">내 분류<input className="inp" value={setting.userCategory} maxLength={50} onChange={(e) => vm.update(item.id, {}, { userCategory: e.target.value })} /></label>
+                  {item.kind === 'event' && <label className="field">사건 시점<input className="inp" value={item.timeText} onChange={(e) => vm.update(item.id, { timeText: e.target.value })} /></label>}
+                  {item.kind === 'relation' && (
+                    <>
+                      <label className="field">기존 관계 유형
+                        <select className="inp" value={item.predicate ?? 'trusts'} onChange={(e) => vm.update(item.id, { predicate: e.target.value })}>
+                          {Object.entries(relationDefinitions).map(([id, r]) => <option key={id} value={id}>{r.label}</option>)}
+                        </select>
+                      </label>
+                      {(['subjectId', 'targetId'] as const).map((key, i) => (
+                        <label className="field" key={key}>{i ? '관계 대상' : '관계 주체'}
+                          <select className="inp" value={item[key] ?? ''} onChange={(e) => vm.update(item.id, { [key]: e.target.value || null })}>
+                            <option value="">선택하세요</option>
+                            {world.settings.filter((s) => s.item.kind === 'entity').map((s) => <option key={s.item.id} value={s.item.id}>{s.item.title}</option>)}
+                          </select>
+                        </label>
+                      ))}
+                    </>
+                  )}
+                </details>
+              </div>
             </fieldset>
             {deletion && <CardDeletionConfirm deletion={deletion} onDelete={() => { if (vm.deleteCard(item.id)) setConfirm('') }} onCancel={() => setConfirm('')} />}
             <footer className="writing-foot">
@@ -230,7 +263,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             </footer>
           </div>
         </div>
-        <WorldChat variant="writing" open={chatOpen} onOpenChange={onChatOpenChange} linkedWorkId={vm.linkedWorkId} />
+        <WorldChat variant="writing" open={chatOpen} onOpenChange={onChatOpenChange} linkedWorkId={vm.linkedWorkId} onWorldApplied={() => void vm.aiDraftChanged().then((reread) => { if (reread) docs.reload() })} />
       </main>
     </div>
   )

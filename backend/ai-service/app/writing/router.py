@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Header, HTTPException
 
+from app import tracing
 from app.internal_auth import require_internal_token
 from app.writing import agent
 from app.writing.errors import WritingFailure
@@ -11,20 +12,24 @@ router = APIRouter()
 
 
 @router.post('/internal/v1/writing/drafts')
-def draft(data: DraftRequest, x_internal_token: str = Header(default='')) -> DraftResponse:
-    """BeatPlan/콘티와 허용 문맥으로 새 회차 원고 제안을 만든다."""
+def draft(data: DraftRequest, x_internal_token: str = Header(default=''),
+          x_user_authorization: str = Header(default='')) -> DraftResponse:
+    """BeatPlan/콘티와 허용 문맥으로 새 회차 원고 제안을 만든다. X-User-Authorization(선택)은 추적의 회원 식별에만 쓴다."""
     require_internal_token(x_internal_token)
     try:
-        return agent.draft(data)
+        with tracing.request('writing_editing', user_id=tracing.member_id(x_user_authorization)):
+            return agent.draft(data)
     except WritingFailure as error:
         raise HTTPException(error.status, str(error)) from None
 
 
 @router.post('/internal/v1/writing/patches')
-def patch(data: PatchRequest, x_internal_token: str = Header(default='')) -> PatchResponse:
-    """선택 구간 하나를 수정 지시대로 고친 before/after 제안을 만든다."""
+def patch(data: PatchRequest, x_internal_token: str = Header(default=''),
+          x_user_authorization: str = Header(default='')) -> PatchResponse:
+    """선택 구간 하나를 수정 지시대로 고친 before/after 제안을 만든다. X-User-Authorization(선택)은 추적의 회원 식별에만 쓴다."""
     require_internal_token(x_internal_token)
     try:
-        return agent.patch(data)
+        with tracing.request('writing_editing', user_id=tracing.member_id(x_user_authorization)):
+            return agent.patch(data)
     except WritingFailure as error:
         raise HTTPException(error.status, str(error)) from None

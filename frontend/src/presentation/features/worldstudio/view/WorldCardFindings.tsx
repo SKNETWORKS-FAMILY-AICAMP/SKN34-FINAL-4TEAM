@@ -1,11 +1,9 @@
 import { useId, useRef, useState } from 'react'
 
-import { REVIEW_FIX_BLOCKED, type ReviewFindingKind } from '../../../../domain/entities/worldReview'
+import { FINDING_KINDS, REVIEW_FIX_BLOCKED } from '../../../../domain/entities/worldReview'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
-
-const FINDING_KINDS: Record<ReviewFindingKind, string> = { contradiction: '설정 충돌', doc_role: '인물 문서 역할', missing_info: '빠진 정보', other: '기타 의견' }
 
 /**
  * 편집 화면 맨 위의 'AI 검토 의견'([계약](../../../../../../docs/design/world-review-contract.md)): 마지막 설정집 AI 검토가 이 카드에 남긴 지적을 검토 시각과 함께 보인다(검토 뒤 카드를 고쳐도 다음 검토 전까지 그대로 남는다).
@@ -30,7 +28,7 @@ export function WorldCardFindings({ vm, cardId, onOpenCard, onApplied }: { vm: V
   const toggle = (id: number) => setOpen((current) => new Set(current.has(id) ? [...current].filter((other) => other !== id) : [...current, id]))
   return (
     <section className="world-findings" aria-label="AI 검토 의견">
-      <h4>AI 검토 의견 <span className="small muted">{vm.review.result.clock} 검토 · 저장하지 않는 참고 의견이에요</span></h4>
+      <h4>AI 검토 의견 <span className="small muted">{vm.review.result.clock} 검토 · 참고 의견이에요</span></h4>
       <ul>
         {list.map(({ id, finding, handled, related, fix, fixIn }) => (
           <li key={id} className="world-finding">

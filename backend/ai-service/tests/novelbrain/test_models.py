@@ -37,7 +37,7 @@ def test_world_snapshot_maps_cards_character_docs_and_relations():
         cards=[Card(id='kael', cardType='character', title='카엘', text='성문 수비대장', soul='말투는 건조하다.', goal='리라를 지킨다.',
                     episodes={1: '1화 기억', 12: '12화 기억'}, revealFromEpisode=2),
                Card(id='gate', cardType='location', title='성문', text='북쪽 성문')],
-        relations=[Relation(id='r1', source='kael', target='gate', label='근무지', direction='directed', body='설명')])
+        relations=[Relation(id='r1', source='kael', target='gate', label='근무지', category='structural', direction='directed', body='설명')])
 
 
 @pytest.mark.parametrize('polarity,expected', [('asserted', 'asserted'), ('denied', 'denied'), (None, 'asserted'), ('both', 'asserted')])
@@ -46,6 +46,19 @@ def test_world_snapshot_reads_relation_polarity_and_body(polarity, expected):
                                    [relation('r1', 'kael', 'lira', '스승', 'directed', polarity=polarity, body='어린 시절 검술을 가르쳤다')]), 1)
 
     assert [(r.polarity, r.body) for r in snapshot.relations] == [(expected, '어린 시절 검술을 가르쳤다')]
+
+
+def test_world_snapshot_turns_card_links_into_plain_text_in_cards_character_docs_and_relation_bodies():
+    # 모델 입력·BM25에 카드 id가 섞이지 않게 대상이 있든 없든 글자만 남긴다(DEC-53, 링크 검증 표는 tests/test_card_links.py).
+    link = '[승상](card:aaaaaaaa-2222-3333-4444-555555555555)'
+    docs = {'soul': f'말투 {link}', 'goal': f'목표 {link}', 'episodes': {'1': f'기억 {link}'}}
+
+    snapshot = world_snapshot(read([card('kael', '카엘', f'앞 {link} 뒤', meta={'characterDocs': docs}), card('lira', '리라')],
+                                   [relation('r1', 'kael', 'lira', '스승', body=f'관계 {link}')]), 1)
+
+    kael = snapshot.cards[0]
+    assert (kael.text, kael.soul, kael.goal, kael.episodes) == ('앞 승상 뒤', '말투 승상', '목표 승상', {1: '기억 승상'})
+    assert snapshot.relations[0].body == '관계 승상'
 
 
 def test_world_snapshot_relation_without_polarity_or_body_uses_the_defaults():
@@ -187,3 +200,12 @@ def test_world_snapshot_rejects_a_response_it_cannot_read_without_echoing_the_in
 def test_recall_models_only_accept_the_contract_vocabulary(build):
     with pytest.raises(ValidationError):
         build()
+
+
+@pytest.mark.parametrize('category,expected', [('structural', 'structural'), ('emotional', 'emotional'), ('identity', 'identity'), (None, None), ('other', None)])
+def test_world_snapshot_reads_the_relation_category_and_does_not_fail_on_an_unknown_one(category, expected):
+    link = {**relation('r1', 'kael', 'lira', '동일 인물', 'directed'), 'category': category}
+
+    snapshot = world_snapshot(read([card('kael', '카엘'), card('lira', '리라')], [link]), 1)
+
+    assert [r.category for r in snapshot.relations] == [expected]

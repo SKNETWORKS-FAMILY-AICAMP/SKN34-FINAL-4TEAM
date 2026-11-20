@@ -1,5 +1,5 @@
-import { lineageOrigins, type PublicWorld, type PublicWorldLineage, type PublicWorldPage, type PublicWorldRef, type PublicWorldSummary } from '../../domain/entities/publicWorld'
-import type { PublicWorldQuery, PublicWorldRepository } from '../../domain/repositories/PublicWorldRepository'
+import { lineageOrigins, type PublicWorld, type PublicWorldCardHit, type PublicWorldCardPage, type PublicWorldLineage, type PublicWorldPage, type PublicWorldRef, type PublicWorldSummary } from '../../domain/entities/publicWorld'
+import type { PublicWorldCardQuery, PublicWorldQuery, PublicWorldRepository } from '../../domain/repositories/PublicWorldRepository'
 import { DEMO_WORLDS, type DemoWorld } from './demoPublicWorlds'
 
 // 데모는 배열 뒤쪽일수록 최근에 공개됐다고 본다(하루 간격). 목록은 서버처럼 최근 공개 순이라 역순이다.
@@ -7,6 +7,9 @@ const FIRST_PUBLISHED = Date.UTC(2026, 9, 1)
 const DAY = 24 * 60 * 60 * 1000
 
 const publishedAt = (index: number) => new Date(FIRST_PUBLISHED + index * DAY).toISOString()
+/** 검색어(#505)는 서버처럼 앞뒤 공백을 떼고 대소문자를 무시한 부분 일치다. 빈 검색어는 모든 글자에 맞는다. */
+const needleOf = (q?: string) => q?.trim().toLowerCase() ?? ''
+const has = (needle: string, ...texts: string[]) => texts.some((text) => text.toLowerCase().includes(needle))
 const ref = (w: DemoWorld): PublicWorldRef => ({ id: w.id, name: w.name, genre: w.genre, authorNickname: w.author, cardCount: w.cards.length })
 
 /** 카드 연관(제목으로 이은 `links`)을 서버의 현재 관계 목록으로 바꾼다. 카드 id는 카드 위치다. */
@@ -44,9 +47,21 @@ export class InMemoryPublicWorldRepository implements PublicWorldRepository {
     }
   }
 
-  async list({ genre, page, size }: PublicWorldQuery): Promise<PublicWorldPage> {
-    const matched = this.worlds.map((w, i) => this.summary(w, i)).filter((w) => !genre || w.genre === genre).toReversed()
+  async list({ genre, q, page, size }: PublicWorldQuery): Promise<PublicWorldPage> {
+    const needle = needleOf(q)
+    const matched = this.worlds.map((w, i) => this.summary(w, i)).filter((w) => (!genre || w.genre === genre) && has(needle, w.name, w.description, w.authorNickname)).toReversed()
     return { items: matched.slice(page * size, (page + 1) * size), page, size, total: matched.length, demo: true }
+  }
+
+  /** 세계관 최근 공개 순 → 카드 제목 가나다 순. 데모 카드는 모두 공개로 보고, 별칭·태그·이미지가 없어 제목만 본다(본문은 찾지 않는다). 검색어가 비면 서버처럼 거절한다. */
+  async searchCards({ q, page, size }: PublicWorldCardQuery): Promise<PublicWorldCardPage> {
+    const needle = needleOf(q)
+    if (!needle) throw new Error('검색어를 입력해 주세요.')
+    const hits = this.worlds.toReversed().flatMap((w) => w.cards
+      .map((c, i): PublicWorldCardHit => ({ worldId: w.id, worldName: w.name, cardId: String(i), title: c.title, cardType: c.type, aliases: [], tags: [], imageId: null }))
+      .filter((hit) => has(needle, hit.title))
+      .sort((a, b) => a.title.localeCompare(b.title, 'ko')))
+    return { items: hits.slice(page * size, (page + 1) * size), page, size, total: hits.length }
   }
 
   async get(id: string): Promise<PublicWorld | undefined> {

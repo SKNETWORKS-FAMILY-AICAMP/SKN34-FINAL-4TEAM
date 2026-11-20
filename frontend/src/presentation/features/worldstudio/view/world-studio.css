@@ -64,7 +64,7 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-imported-from{display:block;margin-top:2px;color:var(--tsub);font-size:12px;font-weight:500}
 /* 빈 인물 문서가 있는 인물 줄의 `정리 필요`: 관계 수·가져옴(강조색)과 구분되게 주의색 글자다. 편집 화면의 문서 버튼에 붙는 표시(.world-doc-flag)와 같은 색이다. 공용 .worlds-badge의 색을 불러오는 순서와 상관없이 이기도록 두 클래스로 쓴다. */
 .worlds-badge.world-todo{color:var(--acc-ink)}
-.world-bulk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}.world-bulk p{flex:1 1 260px;margin:0;line-height:1.5}.world-bulk [role=status]{color:var(--pri-ink);font-weight:700;font-variant-numeric:tabular-nums}
+.world-bulk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}.world-bulk .world-reveal{margin-top:0}.world-bulk p{flex:1 1 260px;margin:0;line-height:1.5}.world-bulk [role=status]{color:var(--pri-ink);font-weight:700;font-variant-numeric:tabular-nums}
 /* 좁은 본문(게시판 폭 760px 이하): 공용 게시판이 번호·요약을 숨길 때 분류·연결 칸도 숨겨 선택·제목·공개만 남기고 제목이 남은 폭을 쓴다.
    숨긴 분류와 요약은 제목 아래 한 줄(.world-row-sub: 유형 점·이름 + 요약 한 줄)로 보이고, 연결 수는 제목 옆 [n]이 대신한다(인물은 그중 관계로 이어진 수). 넓은 본문에서는 그 줄을 숨긴다. */
 .world-row-sub{display:none}
@@ -73,7 +73,8 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-legacy-list{margin-top:20px}.world-legacy-list>summary{cursor:pointer;min-height:44px;padding-block:10px}.world-legacy-list nav{display:grid;gap:6px;margin-top:8px}.world-legacy-list nav button{display:flex;justify-content:space-between;gap:10px;width:100%;padding:12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:inherit;text-align:left;cursor:pointer;overflow-wrap:anywhere}.world-legacy-list small{color:var(--sub);font-size:12px}
 .world-relation-link{margin-bottom:8px}
 .world-card-links{margin-block:20px;padding-top:16px;border-top:1px solid var(--tline)}.world-card-links h4{margin:0 0 10px;font-size:14px}.world-card-links ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}
-.world-card-link{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;overflow-wrap:anywhere}.world-card-link:hover{border-color:var(--pri)}.world-card-link small{flex:none;color:var(--sub)}
+/* 연관 설정 줄: 자유 관계의 문구는 관계 본문 전체(최대 3,000자)라 길 수 있다. 제목과 한 줄에 안 들어가면 문구를 아래 줄로 내리고, 문구는 줄어들 수 있어야(flex:none 금지) 제목 칸이 한 글자 폭으로 짜부러지거나 줄 밖으로 넘치지 않는다. */
+.world-card-link{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:2px 10px;width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;overflow-wrap:anywhere}.world-card-link:hover{border-color:var(--pri)}.world-card-link small{min-width:0;color:var(--sub)}
 .world-additional{margin-block:16px 24px;padding-top:16px;border-top:1px solid var(--line)}.world-additional>summary{cursor:pointer;min-height:44px;padding-block:10px}.world-additional[open]>summary{margin-bottom:12px}.world-additional p{line-height:1.7;margin-block:8px 16px}.world-consent{display:flex;gap:10px;align-items:flex-start;margin-block:16px}
 .world-error{border:1px solid var(--line);border-radius:8px;padding:16px;margin-block:16px;white-space:pre-wrap}.world-error{color:var(--danger)}.world-prose{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;max-width:75ch}.world-empty{padding-block:24px}
 .world-review{max-width:920px}.world-review h4{font-size:18px;margin-block:28px 14px}.world-review h5{font-size:17px;margin:4px 0 8px}.world-review-item{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;padding-block:18px;border-bottom:1px solid var(--line)}.world-review-item>div{min-width:0}.world-review-item .btn{flex-shrink:0}.world-review-intro{padding-bottom:20px;border-bottom:1px solid var(--line)}.world-review-intro .world-toolbar{margin:0}.world-review-intro h4{margin:0}.world-save-actions{margin-top:32px;display:flex;gap:16px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
@@ -189,7 +190,7 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-card-source{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0}
 .world-card-reach{display:grid;gap:6px;min-width:0;margin-block:20px;padding-top:16px;border-top:1px solid var(--tline)}.world-card-reach h4{margin:0 0 4px;font-size:14px}.world-card-reach p{margin:0;line-height:1.6}
 .world-card-reach .world-consent{align-items:center;min-height:44px;margin-block:0;font-weight:650}.world-card-reach input[type=checkbox]{width:18px;height:18px;accent-color:var(--pri)}
-.world-reveal{display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}:is(.world-reveal,.world-doc-add,.relationship-episode) .inp{width:88px;min-height:44px;padding:8px 10px;font-variant-numeric:tabular-nums}:is(.world-reveal,.world-doc-add,.relationship-episode) .inp:disabled{opacity:.55;cursor:not-allowed}.world-reveal .inp[aria-invalid=true]{border-color:var(--danger)}
+.world-reveal{display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}:is(.world-reveal,.world-doc-add,.relationship-episode,.relationship-from) .inp{width:88px;min-height:44px;padding:8px 10px;font-variant-numeric:tabular-nums}:is(.world-reveal,.world-doc-add,.relationship-episode) .inp:disabled{opacity:.55;cursor:not-allowed}.world-reveal .inp[aria-invalid=true]{border-color:var(--danger)}
 /* 입력 바로 아래의 오류 글(테두리 색만으로 알리지 않는다) */
 .world-card-reach .world-field-error{color:var(--danger);font-weight:650}
 /* 관계 기준 회차(DEC-51): 관계도 위의 한 줄. 관계 편집기가 다시 열려도 이 칸은 그대로라 키보드 초점이 남는다. 입력의 최소 높이·숫자 폭·잠긴 모양은 위 독자 공개 회차 입력과 같은 규칙(:is 묶음)이다.
@@ -257,3 +258,6 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-finding-actions{display:flex;flex-wrap:wrap;gap:8px}
 .world-findings .world-field-error{color:var(--danger);font-weight:650}
 @media (max-width:720px){.world-finding-diff{grid-template-columns:minmax(0,1fr)}}
+/* 관계 행의 N화부터(DEC-54 2단계): 위 공개 회차 입력과 같은 한 줄 라벨·숫자 폭이다(크기·숫자 폭은 위 :is 묶음). 위 관계 기준 회차 칸과 같이 .episode-app의 label(block)·입력(폭 100%) 규칙을 이기려고 .episode-app 아래로 다시 정한다(입력은 :not()까지 베낌). */
+.episode-app .relationship-from{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}.episode-app .relationship-from input:not([type=checkbox]):not([type=radio]){width:88px;margin-top:0;padding:8px 10px}.relationship-from .inp[aria-invalid=true]{border-color:var(--danger)}.relationship-row .world-field-error{color:var(--danger);font-weight:650}
+.relationship-row .relationship-from-note{margin:0;color:var(--danger);font-weight:650}

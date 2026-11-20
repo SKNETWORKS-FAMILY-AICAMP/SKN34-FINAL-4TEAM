@@ -19,6 +19,9 @@ export type EditSuggestion = {
   /** 승인 뒤 초안 반영 결과. 승인 상태와 따로 기록된다. */
   applyResult: 'applied' | 'failed' | null
   applyFailure: string | null
+  published?: boolean
+  handledAt?: string | null
+  handlerName?: string | null
   appliedVersionId: string | null
   /** 범위 검사(표시 전용): auto는 자동 처리 가능한 표기 교정, review는 작가 검토 필요. */
   scope: 'auto' | 'review'
@@ -58,11 +61,12 @@ export function editedTextError(text: string) {
 }
 
 /** 상태 칩: 승인 결과(초안 반영·반영 실패)는 승인 상태 뒤에 따로 보인다. tone은 진행 중(wait)·완료(ok)·종결(off)이다. */
-export function suggestionStatus(s: Pick<EditSuggestion, 'status' | 'applyResult'>) {
+export function suggestionStatus(s: Pick<EditSuggestion, 'status' | 'applyResult' | 'published'>) {
   if (s.status === 'pending') return { label: '검토 대기', tone: 'wait' } as const
   if (s.status === 'held') return { label: '보류', tone: 'wait' } as const
   if (s.status === 'rejected') return { label: '거절됨', tone: 'off' } as const
   // 서버는 승인과 함께 반영 결과를 항상 기록한다. 반영됨으로 기록된 것만 완료로 보이고 그 밖은 완료로 읽히지 않게 한다.
+  if (s.applyResult === 'applied' && s.published) return { label: '발행 반영됨', tone: 'ok' } as const
   return s.applyResult === 'applied' ? { label: '승인됨 · 초안에 반영됨', tone: 'ok' } as const : { label: '승인됨 · 반영 실패', tone: 'wait' } as const
 }
 

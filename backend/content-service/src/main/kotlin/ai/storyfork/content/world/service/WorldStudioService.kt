@@ -2,6 +2,7 @@ package ai.storyfork.content.world.service
 
 import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
+import ai.storyfork.content.world.domain.WorldRestoreBlocked
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.isListed
@@ -29,10 +30,11 @@ class WorldStudioService(
     private val cards:SettingCardRepository,private val cardDrafts:SettingCardDraftRepository,
     private val cardVersions:SettingCardVersionRepository,private val revisions:WorldRevisionRepository,
     private val revisionCards:WorldRevisionCardRepository,private val requests:WorldSaveRequestRepository,
-    private val states:WorldRelationshipStateRepository,private val applications:InitialWorldApplicationRepository,private val images:SettingCardImageRepository,private val graph:Neo4jRelationshipRepository,
+    private val states:WorldRelationshipStateRepository,private val templatePublications:TemplatePublicationOnceRepository,private val expandedSeeds:ExpandedSeedProgressRepository,private val applications:InitialWorldApplicationRepository,private val images:SettingCardImageRepository,private val graph:Neo4jRelationshipRepository,
     @Qualifier("worldStudioTransactionManager") manager:PlatformTransactionManager,private val mapper:JsonMapper,
     private val buildJobs:ManuscriptBuildJobRepository,private val buildSteps:ManuscriptBuildLoadStepRepository,
 ) {
+    private val log=org.slf4j.LoggerFactory.getLogger(javaClass)
     private val transaction=TransactionTemplate(manager)
     private fun <T:Any> tx(action:()->T):T=transaction.execute { action() }
     private fun owned(id:UUID,subject:UUID)=worlds.lockOwned(id,subject) ?: throw WorldNotFound()
@@ -42,7 +44,7 @@ class WorldStudioService(
     private fun ready(state:WorldRelationshipState) { if(!state.completed) throw WorldStudioFailure.incomplete() }
 
     fun list(subject:UUID):List<WorldStudioSummaryResponse> = tx {
-        worlds.findAllByOwnerSubjectOrderByCreatedAtDesc(subject).map { world ->
+        worlds.findAllByOwnerSubjectAndDeletedAtIsNullOrderByCreatedAtDesc(subject).map { world ->
             val draft=draft(world.id);val state=states.findById(world.id).orElse(null)
             WorldStudioSummaryResponse(world.id,draft.name,draft.description,draft.draftRevision,
                 if(state==null) "migration_required" else if(!state.completed) "incomplete" else "current",world.visibility,world.genre,world.coverObjectKey!=null,
@@ -59,14 +61,164 @@ class WorldStudioService(
         val visibility=worldVisibility(request.visibility);val genre=worldGenre(request.genre)
         return tx {
             val world=owned(worldId,subject)
+            guardNoExpanded(worldId)
+            world.ownerMetadataVersion=Math.incrementExact(world.ownerMetadataVersion)
             world.publishedAt=if(visibility=="public") world.publishedAt ?: Instant.now() else null
             world.visibility=visibility;world.genre=genre
             PublicationResponse(world.id,visibility,genre,world.publishedAt?.toString(),isListed(visibility,world.currentRevisionId))
         }
     }
 
-    fun create(subject:UUID,request:CreateWorldRequest):WorldDraftResponse {
+    fun create(subject:UUID,request:CreateWorldRequest):WorldDraftResponse = create(subject,request,false)
+
+    internal fun createTemplate(request:CreateWorldRequest,genre:String?=null):WorldDraftResponse =
+        create(GenreTemplateSeeder.TEMPLATE_OWNER,request,true,genre)
+
+    /** 템플릿 시더만 소유자 선택 전의 null 공개 장르를 채운다. 공개·표지 선택과 적재 marker·이력은 바꾸지 않는다. */
+    internal fun fillTemplateGenre(worldId:UUID,genre:String?) {
+        val mapped=worldGenre(genre) ?: return
+        tx<Unit> {
+            val world=worlds.lockOwned(worldId,GenreTemplateSeeder.TEMPLATE_OWNER)
+            if(world!=null && world.genre==null && world.ownerMetadataVersion==0L) world.genre=mapped
+        }
+    }
+
+    internal fun incompleteExpandedWorldIds():Set<UUID> = tx { expandedSeeds.findAllByCompletedFalse().map { it.worldId }.toSet() }
+
+    internal fun startHistoricalExpanded(request:CreateWorldRequest,inputHash:String,original:HistoricalFingerprint):Int? {
+        require(original.worldId==request.id)
+        val mode=tx {
+            val world=worlds.findById(request.id).orElse(null) ?: return@tx 0
+            owned(request.id,GenreTemplateSeeder.TEMPLATE_OWNER)
+            val progress=expandedSeeds.findById(request.id).orElse(null)
+            if(progress==null) 2 else if(progress.baseRevisionId==null && world.currentRevisionId==null) 0 else 1
+        }
+        if(mode==0) return startExpanded(request,inputHash,GenreTemplateSeeder.mappedWorldGenre(original.genre))
+        if(mode==1) return startPristineExpanded(inputHash,null,null,GenreTemplate(original.genre,original.worldId,"","",emptyList()),true)
+        val snapshot=draft(original.worldId,GenreTemplateSeeder.TEMPLATE_OWNER)
+        val byId=snapshot.cards.associateBy { it.id }
+        if(byId.size!=snapshot.cards.size || byId.size!=original.cards.size || original.cards.map { it.id }.distinct().size!=original.cards.size) return null
+        val cards=original.cards.mapIndexed { index,expected ->
+            val card=byId[expected.id] ?: return null
+            if(historicalPayloadHash(card,mapper)!=expected.payloadHash ||
+                (card.semanticMetadata["studio"] as? Map<*,*>)?.get("templateOrder")!=index) return null
+            val soul=(card.semanticMetadata["characterDocs"] as? Map<*,*>)?.get("soul") as? String
+            GenreTemplateCard(card.id,card.title,card.body,card.cardType,soul)
+        }
+        val template=GenreTemplate(original.genre,original.worldId,snapshot.name,snapshot.description,cards)
+        val key="genre-template-${original.genre}"
+        if(hash("create",original.worldId,CreateWorldRequest(template.name,template.description,original.worldId))!=original.createHash ||
+            hash("edit",original.worldId,EditWorldDraftRequest(0,template.name,template.description,GenreTemplateRepair.soulPayloads(template),key=key))!=original.editHash ||
+            hash("save",original.worldId,SaveWorldRequest(1,key))!=original.saveHash) return null
+        return startPristineExpanded(inputHash,null,null,template,true)
+    }
+
+    internal fun startExpanded(request:CreateWorldRequest,inputHash:String,genre:String?=null):Int? {
         validateName(request.name,request.description)
+        val mappedGenre=worldGenre(genre)
+        val owner=GenreTemplateSeeder.TEMPLATE_OWNER
+        val creationHash=hash("create",request.id,request)
+        val next=tx {
+            val existing=worlds.findById(request.id).orElse(null)
+            if(existing==null) {
+                worlds.saveAndFlush(StudioWorld(id=request.id,ownerSubject=owner,genre=mappedGenre))
+                templatePublications.saveAndFlush(TemplatePublicationOnce(request.id))
+                expandedSeeds.saveAndFlush(ExpandedSeedProgress(request.id,inputHash))
+                drafts.saveAndFlush(WorldDraft(worldId=request.id,name=request.name,description=request.description))
+                states.saveAndFlush(WorldRelationshipState(request.id,creationHash=creationHash,requestKey=request.id.toString(),requestHash=creationHash))
+                0
+            } else {
+                val progress=expandedSeeds.findById(request.id).orElse(null) ?: return@tx -2
+                val world=owned(request.id,owner)
+                if(progress.inputHash!=inputHash || state(request.id).creationHash!=creationHash) throw WorldConflict()
+                if(world.genre==null && mappedGenre!=null) world.genre=mappedGenre
+                if(progress.completed) return@tx -1
+                if(world.ownerMetadataVersion!=0L || world.visibility!="private" || world.currentRevisionId!=null || draft(request.id).draftRevision!=progress.nextChunk.toLong()) throw WorldConflict()
+                progress.nextChunk
+            }
+        }
+        if(next == -2) return null
+        if(next<0) return next
+        val creationPending=tx {
+            owned(request.id,owner)
+            val state=state(request.id)
+            state.graphVersion==-1L && !state.completed && state.requestKey==request.id.toString() && state.requestHash==creationHash
+        }
+        if(creationPending) {
+            val stored=graph.replace(request.id,-1,request.id.toString(),creationHash,emptyList())
+            tx {
+                owned(request.id,owner);val state=state(request.id)
+                if(stored.worldId!=request.id || stored.version!=0L || stored.key!=request.id.toString() || stored.hash!=creationHash ||
+                    state.requestKey!=stored.key || state.requestHash!=stored.hash) throw WorldConflict()
+                state.graphVersion=0;state.completed=true;states.flush()
+            }
+        }
+        return next
+    }
+
+    internal fun startPristineExpanded(inputHash:String,legacy:GenreTemplate?,baseline:GenreTemplate?,current:GenreTemplate?,allowUnmarked:Boolean=false):Int? {
+        val first=legacy ?: baseline ?: current ?: return null
+        val id=first.worldId;val owner=GenreTemplateSeeder.TEMPLATE_OWNER
+        require(listOfNotNull(legacy,baseline,current).all { it.worldId==id && it.genre==first.genre })
+        val prior=tx {
+            if(worlds.findById(id).isEmpty) return@tx -2
+            val world=owned(id,owner)
+            val progress=expandedSeeds.findById(id).orElse(null) ?: return@tx -2
+            if(progress.inputHash!=inputHash) throw WorldConflict()
+            if(progress.completed) return@tx -1
+            guardExpanded(world,ExpandedWrite(inputHash,progress.nextChunk))
+            progress.nextChunk
+        }
+        if(prior!=-2) return prior
+        if(!allowUnmarked && !templatePublications.existsById(id)) return null
+        val snapshot=draft(id,owner)
+        val (stored,hasHistory)=graph.readWithHistory(id)
+        if(stored.worldId!=id || stored.version!=snapshot.relationshipVersion) throw WorldStudioFailure.mismatch()
+        return tx {
+            val world=owned(id,owner);val state=state(id)
+            val existing=expandedSeeds.findById(id).orElse(null)
+            if(existing!=null) {
+                if(existing.inputHash!=inputHash) throw WorldConflict()
+                if(existing.completed) return@tx -1
+                guardExpanded(world,ExpandedWrite(inputHash,existing.nextChunk))
+                return@tx existing.nextChunk
+            }
+            if((!allowUnmarked && !templatePublications.existsById(id)) || !state.completed ||
+                applications.findFirstByWorldIdAndStatusIn(id,listOf("applying","unknown"))!=null ||
+                stored.version!=state.graphVersion || stored.key!=state.requestKey || stored.hash!=state.requestHash ||
+                snapshot.relationships.isNotEmpty() || stored.relationships.isNotEmpty() || hasHistory ||
+                readDraft(world,state)!=snapshot.copy(relationships=emptyList()) ||
+                !pristineTemplate(world,state,snapshot,legacy,baseline,current,true)) return@tx -2
+            if(current!=null && snapshot.cards.filter { it.lifecycle=="active" }.toSet()!=GenreTemplateRepair.soulPayloads(current).toSet()) return@tx -2
+            expandedSeeds.saveAndFlush(ExpandedSeedProgress(id,inputHash,baseDraftRevision=snapshot.draftRevision,
+                baseGraphVersion=state.graphVersion,baseRevisionId=world.currentRevisionId,baseVisibility=world.visibility))
+            0
+        }.let { if(it == -2) null else it }
+    }
+
+    private data class ExpandedWrite(val inputHash:String,val index:Int)
+
+    private fun guardExpanded(world:StudioWorld,write:ExpandedWrite):ExpandedSeedProgress {
+        val progress=expandedSeeds.findById(world.id).orElse(null) ?: throw WorldConflict()
+        if(progress.inputHash!=write.inputHash || progress.completed || progress.nextChunk!=write.index ||
+            world.ownerMetadataVersion!=0L || world.visibility!=progress.baseVisibility || world.currentRevisionId!=progress.baseRevisionId ||
+            draft(world.id).draftRevision!=Math.addExact(progress.baseDraftRevision,write.index.toLong()) ||
+            state(world.id).graphVersion!=Math.addExact(progress.baseGraphVersion,write.index.toLong())) throw WorldConflict()
+        return progress
+    }
+
+    internal fun expandedBase(worldId:UUID,inputHash:String,index:Int):Long = tx {
+        guardExpanded(owned(worldId,GenreTemplateSeeder.TEMPLATE_OWNER),ExpandedWrite(inputHash,index)).baseDraftRevision
+    }
+
+    internal fun editExpanded(worldId:UUID,inputHash:String,index:Int,request:EditWorldDraftRequest):WorldDraftResponse {
+        require(index>=0 && !request.replace)
+        return edit(worldId,GenreTemplateSeeder.TEMPLATE_OWNER,request,null,ExpandedWrite(inputHash,index))
+    }
+
+    private fun create(subject:UUID,request:CreateWorldRequest,template:Boolean,genre:String?=null):WorldDraftResponse {
+        validateName(request.name,request.description)
+        val mappedGenre=if(template) worldGenre(genre) else null
         val hash=hash("create",request.id,request);val key=request.id.toString()
         val complete=tx {
             val existing=worlds.findById(request.id).orElse(null)
@@ -75,9 +227,12 @@ class WorldStudioService(
                 val state=state(request.id)
                 if(state.creationHash!=hash) throw WorldConflict()
                 if(!state.completed && (state.requestKey!=key || state.requestHash!=hash)) throw WorldStudioFailure.incomplete()
+                if(template && existing.genre==null && mappedGenre!=null) existing.genre=mappedGenre
                 state.completed
             } else {
-                worlds.saveAndFlush(StudioWorld(id=request.id,ownerSubject=subject))
+                worlds.saveAndFlush(if(template) StudioWorld(id=request.id,ownerSubject=subject,visibility="public",genre=mappedGenre,publishedAt=Instant.now())
+                    else StudioWorld(id=request.id,ownerSubject=subject))
+                if(template) templatePublications.saveAndFlush(TemplatePublicationOnce(request.id))
                 drafts.saveAndFlush(WorldDraft(worldId=request.id,name=request.name,description=request.description))
                 states.saveAndFlush(WorldRelationshipState(request.id,creationHash=hash,requestKey=key,requestHash=hash))
                 false
@@ -94,21 +249,126 @@ class WorldStudioService(
         return draft(request.id,subject)
     }
 
+    /** 동결된 시더 요청과 전체 저장 이력이 일치하는 기존 샘플만 최초 한 번 공개한다. */
+    internal fun publishPristineTemplate(legacy:GenreTemplate?, baseline:GenreTemplate?, current:GenreTemplate?) {
+        val first=legacy ?: baseline ?: current ?: return
+        val id=first.worldId; val owner=GenreTemplateSeeder.TEMPLATE_OWNER
+        require(listOfNotNull(legacy,baseline,current).all { it.worldId==id && it.genre==first.genre })
+        // 미생성 세계관은 신규 create가 marker를 같은 트랜잭션에서 만든다.
+        val metadataVersion=tx {
+            if(worlds.findById(id).isEmpty) return@tx -1L
+            val world=owned(id,owner)
+            if(templatePublications.existsById(id)) return@tx -1L
+            if(world.visibility=="public" || world.ownerMetadataVersion!=0L) {
+                templatePublications.saveAndFlush(TemplatePublicationOnce(id)); return@tx -1L
+            }
+            if(!state(id).completed) {
+                log.warn("템플릿 공개 보류 world={}: 관계 요청 미완료",id);return@tx -1L
+            }
+            world.ownerMetadataVersion
+        }
+        if(metadataVersion<0) return
+        val snapshot=draft(id,owner)
+        val (stored,hasHistory)=graph.readWithHistory(id)
+        if(stored.worldId!=id || stored.version!=snapshot.relationshipVersion) throw WorldStudioFailure.mismatch()
+        val tokenMismatch=tx {
+            val world=owned(id,owner)
+            if(templatePublications.existsById(id)) return@tx false
+            val state=state(id)
+            if(world.ownerMetadataVersion!=metadataVersion || world.visibility!="private") {
+                templatePublications.saveAndFlush(TemplatePublicationOnce(id));return@tx false
+            }
+            if(!state.completed || applications.findFirstByWorldIdAndStatusIn(id,listOf("applying","unknown"))!=null) {
+                log.warn("템플릿 공개 보류 world={}: 요청 미완료",id);return@tx false
+            }
+            if(state.graphVersion==stored.version && (state.requestKey!=stored.key || state.requestHash!=stored.hash)) {
+                templatePublications.saveAndFlush(TemplatePublicationOnce(id)); return@tx true
+            }
+            val now=readDraft(world,state)
+            val same=now==snapshot.copy(relationships=emptyList()) &&
+                state.graphVersion==stored.version && state.requestKey==stored.key && state.requestHash==stored.hash &&
+                snapshot.relationships.isEmpty() && stored.relationships.isEmpty() && !hasHistory
+            if(same && pristineTemplate(world,state,snapshot,legacy,baseline,current)) {
+                world.visibility="public";world.publishedAt=Instant.now()
+            } else log.warn("템플릿 공개 건너뜀 world={}: 초기 샘플과 다르거나 판정 중 변경됨",id)
+            // 불확실하거나 사용자가 바꾼 세계관도 영구 처리하여 이후 비공개 선택을 건드리지 않는다.
+            templatePublications.saveAndFlush(TemplatePublicationOnce(id))
+            false
+        }
+        if(tokenMismatch) throw WorldStudioFailure.mismatch()
+    }
+
+    private fun pristineTemplate(world:StudioWorld,state:WorldRelationshipState,snapshot:WorldDraftResponse,
+        legacy:GenreTemplate?,baseline:GenreTemplate?,current:GenreTemplate?,allowPublic:Boolean=false):Boolean {
+        val first=legacy ?: baseline ?: current ?: return false
+        if((world.visibility!="private" || world.publishedAt!=null) && !(allowPublic && world.visibility=="public" && world.publishedAt!=null)) return false
+        if((world.genre!=null && world.genre!=GenreTemplateSeeder.mappedWorldGenre(first.genre)) || world.coverObjectKey!=null || world.coverContentType!=null || world.ownerMetadataVersion!=0L) return false
+        if(state.creationHash!=hash("create",world.id,CreateWorldRequest(first.name,first.description,world.id))) return false
+        val initial=if(legacy!=null) legacy.cards.map { CardPayload(it.id,it.title,it.body,it.cardType,"basic",visibility="public") }
+            else if(baseline!=null) GenreTemplateRepair.payloads(baseline) else GenreTemplateRepair.soulPayloads(first)
+        val steps=mutableListOf(EditWorldDraftRequest(0,first.name,first.description,initial,key="genre-template-${first.genre}"))
+        if(legacy!=null && baseline!=null) steps+=EditWorldDraftRequest(2,baseline.name,baseline.description,
+            GenreTemplateRepair.payloads(baseline),key="genre-template-${first.genre}-repair-v2",replace=true)
+        if(baseline!=null && current!=null && current.copy(cards=current.cards.map { it.copy(soul=null) })==baseline) {
+            val number=steps.size*2L
+            steps+=EditWorldDraftRequest(number,current.name,current.description,GenreTemplateRepair.soulPayloads(current),
+                key="genre-template-${first.genre}-soul-v1",replace=true)
+        }
+        if(snapshot.draftRevision<2 || snapshot.draftRevision%2!=0L) return false
+        val count=(snapshot.draftRevision/2).toInt()
+        if(count !in 1..steps.size || state.graphVersion!=count.toLong()) return false
+        val last=steps[count-1]
+        if(state.requestKey!=last.key || state.requestHash!=hash("edit",world.id,last) || state.expectedDraftRevision!=last.expectedDraftRevision) return false
+        if(snapshot.currentRevisionId==null || snapshot.baseWorldRevisionId!=snapshot.currentRevisionId) return false
+        val histories=revisions.findAllByWorldId(world.id)
+        val saves=requests.findAllByIdWorldId(world.id)
+        if(histories.size!=count || saves.size!=count) return false
+        val byNumber=histories.associateBy { it.revisionNo }
+        val versions=mutableMapOf<UUID,Long>(); val versionIds=mutableSetOf<UUID>()
+        var prior:UUID?=null; var expectedCards=emptyList<CardPayload>()
+        for(index in 0 until count) {
+            val step=steps[index]
+            expectedCards=mergeCards(expectedCards,step).sortedBy { it.id.toString() }
+            val revision=byNumber[index+1L] ?: return false
+            if(!revision.sealed || revision.parentRevisionId!=prior || revision.restoredFromRevisionId!=null ||
+                revision.name!=step.name || revision.description!=step.description) return false
+            val saved=readRevision(world.id,revision.id)
+            if(saved.cards.size!=expectedCards.size || saved.cards.map { it.card }.toSet()!=expectedCards.toSet()) return false
+            for(card in saved.cards) {
+                val version=(versions[card.card.id] ?: 0L)+1
+                if(card.versionNo!=version || card.restoredFromVersionId!=null || !versionIds.add(card.versionId)) return false
+                versions[card.card.id]=version
+            }
+            val request=SaveWorldRequest(step.expectedDraftRevision+1,step.key)
+            if(saves.none { it.id.requestKey==step.key && it.requestHash==hash("save",world.id,request) && it.revisionId==revision.id }) return false
+            prior=revision.id
+        }
+        if(prior!=world.currentRevisionId || snapshot.name!=last.name || snapshot.description!=last.description ||
+            snapshot.cards.size!=expectedCards.size || snapshot.cards.toSet()!=expectedCards.toSet()) return false
+        if(cards.findAllByWorldId(world.id).map { it.id }.toSet()!=expectedCards.map { it.id }.toSet()) return false
+        val allVersions=cardVersions.findAllByWorldId(world.id)
+        return allVersions.size==versionIds.size && allVersions.map { it.id }.toSet()==versionIds
+    }
+
     /** 소유한 저장 초안이다. 관계는 [episode]화 시점의 것이며 생략하면 최신 회차다. */
-    fun draft(worldId:UUID,subject:UUID,episode:Int?=null):WorldDraftResponse {
-        val loaded=tx { val world=owned(worldId,subject);val state=state(worldId);ready(state);readDraft(world,state) }
+    fun draft(worldId:UUID,subject:UUID,episode:Int?=null):WorldDraftResponse = draft(worldId,subject,episode,false)
+
+    private fun draft(worldId:UUID,subject:UUID,episode:Int?,review:Boolean):WorldDraftResponse {
+        val loaded=tx { val world=owned(worldId,subject);if(review) guardNoExpanded(worldId);val state=state(worldId);ready(state);readDraft(world,state) }
         val stored=graph.read(worldId,episode)
         if(stored.worldId!=worldId || stored.version!=loaded.relationshipVersion) throw WorldStudioFailure.mismatch()
         // 지난 회차의 관계는 그 뒤에 삭제된 카드를 끝점으로 가질 수 있어, 삭제된 카드도 이 세계관의 카드로 본다. 다른 세계관의 카드를 가리키면 어긋남이다.
-        try { RelationshipInputHelper.merge(emptyList(),stored.relationships,true,loaded.cards.map { it.id }.toSet()) }
+        try { RelationshipInputHelper.validateSnapshot(stored.relationships,loaded.cards.map { it.id }.toSet()) }
         catch(_:IllegalArgumentException) { throw WorldStudioFailure.mismatch() }
         // Detect a prepare/finalize that raced the network read; never pair another card draft with this graph.
         tx {
-            owned(worldId,subject);val state=state(worldId);ready(state)
+            owned(worldId,subject);if(review) guardNoExpanded(worldId);val state=state(worldId);ready(state)
             if(state.graphVersion!=stored.version || draft(worldId).draftRevision!=loaded.draftRevision) throw WorldStudioFailure.mismatch()
         }
-        return loaded.copy(relationships=stored.relationships)
+        return loaded.copy(relationships=stored.relationships,relationshipEpisodes=stored.episodes)
     }
+
+    internal fun draftForReview(worldId:UUID,subject:UUID):WorldDraftResponse = draft(worldId,subject,null,true)
 
     /** 소유한 저장 초안을 읽어 입력 원문과 현재 관계 기준을 고정한다. */
     internal fun prepareInitialWorldInput(worldId:UUID,subject:UUID,analysisId:UUID):InitialWorldInput =
@@ -118,6 +378,7 @@ class WorldStudioService(
     internal fun <T:Any> withInitialWorldInput(subject:UUID,input:InitialWorldInput,action:(InitialWorldInput)->T):T=tx {
         val world=owned(input.worldId,subject)
         guardApplication(input.worldId,null)
+        guardNoExpanded(input.worldId)
         val current=state(input.worldId);ready(current)
         val latest=readDraft(world,current)
         try { input.validateAgainst(latest) }
@@ -146,7 +407,7 @@ class WorldStudioService(
 
     /** 분석 기준이 그대로일 때만 전체 적재 단계를 예약한다. 콜백에는 DB 기록만 허용한다. */
     internal fun <T:Any> prepareManuscript(worldId:UUID,subject:UUID,basis:WorldDraftResponse,action:()->T):T=tx {
-        val world=owned(worldId,subject);guardApplication(worldId,null)
+        val world=owned(worldId,subject);guardNoExpanded(worldId);guardApplication(worldId,null)
         val current=state(worldId);ready(current)
         if(draft(worldId).draftRevision!=basis.draftRevision || current.graphVersion!=basis.relationshipVersion ||
             world.currentRevisionId!=basis.currentRevisionId) throw WorldConflict()
@@ -168,7 +429,7 @@ class WorldStudioService(
             request to step.receipt
         }
         prepared.second?.let { return it }
-        try { edit(worldId,subject,prepared.first,null,stepId) }
+        try { edit(worldId,subject,prepared.first,null,stepId=stepId) }
         catch(failure:RuntimeException) {
             val receipt=transaction.execute {
                 owned(worldId,subject)
@@ -187,6 +448,10 @@ class WorldStudioService(
 
     internal fun validateEditRequest(request:EditWorldDraftRequest) {
         validateName(request.name,request.description);validateKey(request.key);validEpisode(request.episode)
+        // 관계별 회차(DEC-54 2단계)는 이 요청에서 삭제하지 않는 관계에만, 1 이상의 정수로 정한다.
+        val active=request.relationships.filter { it.lifecycle=="active" }.map { it.id }.toSet()
+        require(request.relationshipEpisodes.keys.all { it in active }) { "관계별 회차는 이 요청에서 삭제하지 않는 관계에만 정할 수 있습니다." }
+        request.relationshipEpisodes.values.forEach { validEpisode(it) }
         require(request.expectedDraftRevision>=0 && request.cards.size<=1000)
         require(request.cards.map { it.id }.distinct().size==request.cards.size) { "중복된 카드입니다." }
         request.cards.forEach { validate(it,false);require(it.semanticMetadata["imageId"]==null || cardImageId(it.semanticMetadata)!=null) { "카드 이미지 ID를 확인하세요." } }
@@ -200,11 +465,16 @@ class WorldStudioService(
         if(build!=null && (stepId==null || buildSteps.findById(stepId).orElse(null)?.jobId!=build.id)) throw WorldStudioFailure.incomplete()
     }
 
-    private fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest,applicationId:UUID?,stepId:UUID?=null):WorldDraftResponse {
+    private fun guardNoExpanded(worldId:UUID) {
+        if(expandedSeeds.findById(worldId).orElse(null)?.completed==false) throw WorldConflict()
+    }
+
+    private fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest,applicationId:UUID?,expanded:ExpandedWrite?=null,stepId:UUID?=null):WorldDraftResponse {
         validateEditRequest(request)
         val hash=hash("edit",worldId,request)
         val loaded=tx {
-            val world=owned(worldId,subject);guardApplication(worldId,applicationId,stepId);requireCardImages(worldId,request.cards)
+            val world=owned(worldId,subject);if(expanded!=null) guardExpanded(world,expanded) else guardNoExpanded(worldId)
+            guardApplication(worldId,applicationId,stepId);requireCardImages(worldId,request.cards)
             val state=state(worldId);val draft=draft(worldId)
             val same=state.requestKey==request.key && state.expectedDraftRevision==request.expectedDraftRevision
             if(same && state.requestHash!=hash) throw WorldConflict()
@@ -232,9 +502,24 @@ class WorldStudioService(
         val worldCards=mergedCards.map { it.id }.toSet()
         val relations=if(alreadyApplied) current.relationships else RelationshipInputHelper.merge(current.relationships,request.relationships,request.replace,worldCards)
         // Even an acknowledged retry must still match the PostgreSQL card membership.
-        RelationshipInputHelper.merge(emptyList(),relations,true,worldCards)
-        // 이미 반영된 재시도는 relations가 current와 같아 새로 만들거나 바뀐 관계가 없다.
-        RelationshipInputHelper.merge(emptyList(),relations-current.relationships.toSet(),true,known)
+        RelationshipInputHelper.validateSnapshot(relations,worldCards)
+        // 새로 만들거나 바뀐 관계다. 관계별 회차를 준 관계는 그 시점 값과 같아 보여도 새로 쓰는 관계로 본다. 이미 반영된 재시도는 relations가 current와 같아 새로 쓸 관계가 없다.
+        val timed=request.relationshipEpisodes
+        val asOf=current.relationships.toSet()
+        val changed=if(alreadyApplied) emptyList() else relations.filter { it !in asOf || it.id in timed }
+        RelationshipInputHelper.validateSnapshot(changed,known)
+        // 「동일 인물」(#485): 새로 쓰거나 바꾸거나 끝내는 저장은 회차(요청의 회차, 새로 쓰거나 바꾸는 관계는 자기 회차도 된다)가 있어야 하고 인물 카드끼리 방향 있게 이어야 한다. 사슬·순환은 저장 결과의 최신 회차 시점으로 본다.
+        val written=changed+(current.relationships-relations.toSet())
+        val cardTypes=mergedCards.associate { it.id to it.cardType }
+        RelationshipInputHelper.validateIdentity(relations,written,cardTypes,request.episode,timed.keys)
+        // 인물이던 카드를 다른 유형으로 바꾸는 저장도 최신 시점을 본다: 저장 회차에 보이지 않는 뒤 회차 identity의 끝점일 수 있다.
+        val before=loaded.draft.cards.associate { it.id to it.cardType }
+        val retyped=request.cards.any { it.lifecycle=="active" && it.cardType!="character" && before[it.id]=="character" }
+        if(!alreadyApplied && (retyped || written.any { it.category=="identity" })) {
+            val after=if(timed.isEmpty()) graph.readAfter(worldId,relations,request.episode) else graph.readAfterWithEpisodes(worldId,relations,request.episode,timed)
+            if(after.worldId!=worldId || after.version!=current.version) throw WorldStudioFailure.mismatch()
+            RelationshipInputHelper.validateIdentityLinks(after.relationships,cardTypes)
+        }
         // 이번 요청이 삭제하는 카드(원래 초안에서 활성이던 카드)는 회차를 생략한(최신) 편집에서만 지우고, 거기 이어진 관계는 함께 빼야 한다. 지난 회차에 이미 삭제된 카드의 관계는 그대로 둘 수 있고, 재시도는 새로 쓸 것이 없어 건너뛴다.
         val deleting=loaded.draft.cards.filter { it.lifecycle=="active" }.map { it.id }.toSet()-known
         if(!alreadyApplied && deleting.isNotEmpty()) {
@@ -243,7 +528,8 @@ class WorldStudioService(
             require(relations.none { it.sourceCardId in deleting || it.targetCardId in deleting }) { "삭제하는 설정에 이어진 관계도 함께 빼세요." }
         }
         tx {
-            owned(worldId,subject);guardApplication(worldId,applicationId,stepId);val state=state(worldId)
+            val world=owned(worldId,subject);if(expanded!=null) guardExpanded(world,expanded) else guardNoExpanded(worldId)
+            guardApplication(worldId,applicationId,stepId);val state=state(worldId)
             val same=state.requestKey==request.key && state.expectedDraftRevision==request.expectedDraftRevision
             expected(draft(worldId),request.expectedDraftRevision,unprepared=state.completed && !same && !alreadyApplied)
             if(state.graphVersion!=loaded.graphVersion) throw WorldConflict()
@@ -257,7 +543,10 @@ class WorldStudioService(
             state.requestKey=request.key;state.requestHash=hash;state.expectedDraftRevision=request.expectedDraftRevision
             state.completed=false;states.flush()
         }
-        val stored=try { graph.replace(worldId,loaded.graphVersion,request.key,hash,relations,request.episode) }
+        val stored=try {
+            if(timed.isEmpty()) graph.replace(worldId,loaded.graphVersion,request.key,hash,relations,request.episode)
+            else graph.replaceWithEpisodes(worldId,loaded.graphVersion,request.key,hash,relations,request.episode,timed)
+        }
         catch(_:WorldNotFound) {
             // Only this callback rejection proves the graph transaction did not apply; transport/CAS failures stay pending.
             if(alreadyApplied) throw WorldStudioFailure.mismatch()
@@ -273,7 +562,9 @@ class WorldStudioService(
         }
         if(stored.worldId!=worldId || stored.version!=Math.incrementExact(loaded.graphVersion) || stored.key!=request.key || stored.hash!=hash) throw WorldStudioFailure.mismatch()
         tx {
-            owned(worldId,subject);guardApplication(worldId,applicationId,stepId);val state=state(worldId);val draft=draft(worldId)
+            val world=owned(worldId,subject);val progress=expanded?.let { guardExpanded(world,it) }
+            if(expanded==null) guardNoExpanded(worldId)
+            guardApplication(worldId,applicationId,stepId);val state=state(worldId);val draft=draft(worldId)
             if(state.requestKey!=request.key || state.requestHash!=hash) throw WorldConflict()
             if(!state.completed) {
                 expected(draft,request.expectedDraftRevision)
@@ -285,6 +576,7 @@ class WorldStudioService(
                 cardDrafts.flush();draft.name=request.name;draft.description=request.description
                 draft.draftRevision=Math.incrementExact(draft.draftRevision);draft.updatedAt=Instant.now()
                 state.graphVersion=stored.version;state.completed=true
+                if(progress!=null) { progress.nextChunk=Math.incrementExact(progress.nextChunk);expandedSeeds.flush() }
                 if(applicationId!=null) {
                     val application=applications.findById(applicationId).orElseThrow { WorldConflict() }
                     if(application.worldId!=worldId || application.baseDraftRevision!=request.expectedDraftRevision ||
@@ -317,14 +609,27 @@ class WorldStudioService(
     }
 
     /** 인물/설정만 불변 버전으로 남긴다. 관계 과거 상태를 수집하거나 저장했다고 응답하지 않는다. */
-    fun save(worldId:UUID,subject:UUID,request:SaveWorldRequest):WorldRevisionResponse=tx {
-        val world=owned(worldId,subject);ready(state(worldId));validateKey(request.key)
+    fun save(worldId:UUID,subject:UUID,request:SaveWorldRequest):WorldRevisionResponse=save(worldId,subject,request,null)
+
+    internal fun saveExpanded(worldId:UUID,inputHash:String,index:Int,request:SaveWorldRequest):WorldRevisionResponse {
+        require(index>=0)
+        return save(worldId,GenreTemplateSeeder.TEMPLATE_OWNER,request,ExpandedWrite(inputHash,index))
+    }
+
+    private fun save(worldId:UUID,subject:UUID,request:SaveWorldRequest,expanded:ExpandedWrite?):WorldRevisionResponse=tx {
+        val world=owned(worldId,subject);if(expanded==null) guardNoExpanded(worldId)
+        ready(state(worldId));validateKey(request.key)
         val hash=hash("save",worldId,request)
         val previous=requests.findById(WorldSaveKey(worldId,request.key)).orElse(null)
         if(previous!=null) {
             if(previous.requestHash!=hash) throw WorldConflict()
+            if(expanded!=null) {
+                val progress=expandedSeeds.findById(worldId).orElse(null) ?: throw WorldConflict()
+                if(progress.inputHash!=expanded.inputHash || !progress.completed) throw WorldConflict()
+            }
             return@tx readRevision(worldId,previous.revisionId)
         }
+        val progress=expanded?.let { guardExpanded(world,it) }
         guardApplication(worldId,null)
         val draft=draft(worldId);expected(draft,request.expectedDraftRevision)
         val cardData=cardDrafts.findAllByWorldId(worldId).map { payload(it.cardId,it.fields) }
@@ -338,6 +643,10 @@ class WorldStudioService(
         revision.sealed=true;revisions.flush();world.currentRevisionId=revision.id;draft.baseWorldRevisionId=revision.id
         draft.draftRevision=Math.incrementExact(draft.draftRevision);draft.updatedAt=Instant.now()
         requests.saveAndFlush(WorldSaveRequest(WorldSaveKey(worldId,request.key),hash,revision.id))
+        if(progress!=null) {
+            progress.completed=true;expandedSeeds.flush()
+            if(progress.baseRevisionId==null) { world.visibility="public";world.publishedAt=Instant.now() }
+        }
         readRevision(worldId,revision.id)
     }
     fun revision(worldId:UUID,subject:UUID,revisionId:UUID):WorldRevisionResponse=tx { owned(worldId,subject);readRevision(worldId,revisionId) }
@@ -357,10 +666,49 @@ class WorldStudioService(
         owned(worldId, subject)
         sealedRevision(worldId, revisionId).summary()
     }
-    fun restore(worldId:UUID,subject:UUID,request:RestoreWorldRequest):WorldRevisionResponse {
-        tx { owned(worldId,subject) }
-        throw WorldStudioFailure.history()
+    /**
+     * 확정 버전 [revisionId]의 카드로 초안의 카드만 되돌린다(2026-11-17 사용자 결정). 카드 집합이 그 버전의 카드(내용·공개 범위·semanticMetadata 그대로)가 되고,
+     * 그 버전에 없던 현재 활성 카드는 `removed`가 된다. 세계관 이름·설명·공개 설정·관계(Neo4j)는 그대로이고 새 확정 버전도 만들지 않는다(작가가 [save]로 남긴다).
+     * 사라질 카드가 현재 관계의 끝점이면 아무것도 바꾸지 않고 [WorldRestoreBlocked]로 거절한다. 관계는 Neo4j라 PG transaction 밖에서 읽고,
+     * 쓰기 직전에 초안 revision과 관계 token이 그대로인지 다시 본다.
+     */
+    fun restore(worldId:UUID,subject:UUID,revisionId:UUID,request:RestoreWorldRequest):WorldDraftResponse {
+        val plan=tx {
+            owned(worldId,subject);val state=state(worldId);ready(state);guardApplication(worldId,null)
+            sealedRevision(worldId,revisionId);expected(draft(worldId),request.expectedDraftRevision)
+            val target=cardVersions.findAllById(revisionCards.findAllByIdRevisionId(revisionId).map { it.versionId }).associateBy { it.cardId }
+            val current=cardDrafts.findAllByWorldId(worldId)
+            val changes=target.mapValues { fields(payload(it.key,it.value.fields)) }.toMutableMap()
+            // 그 버전에 없는 활성 카드는 내용을 두고 삭제 상태로만 바꾼다. 이미 삭제된 카드는 그대로 둔다.
+            current.filter { it.cardId !in target && it.fields.lifecycle=="active" }.forEach { changes[it.cardId]=fields(payload(it.cardId,it.fields).copy(lifecycle="removed")) }
+            RestorePlan(state.graphVersion,changes,current.filter { it.fields.lifecycle=="active" && changes.getValue(it.cardId).lifecycle!="active" }.associate { it.cardId to it.fields.title })
+        }
+        val stored=graph.read(worldId)
+        if(stored.worldId!=worldId || stored.version!=plan.graphVersion) throw WorldStudioFailure.mismatch()
+        val blocked=plan.vanishing.filterKeys { id -> stored.relationships.any { it.sourceCardId==id || it.targetCardId==id } }
+        if(blocked.isNotEmpty()) throw WorldRestoreBlocked(blocked.values.toList())
+        tx {
+            owned(worldId,subject);val state=state(worldId);ready(state);val draft=draft(worldId)
+            expected(draft,request.expectedDraftRevision)
+            if(state.graphVersion!=plan.graphVersion) throw WorldConflict()
+            val rows=cardDrafts.findAllByWorldId(worldId).associateBy { it.cardId }
+            plan.changes.forEach { (id,changed) -> rows.getValue(id).let { it.fields=changed;it.updatedAt=Instant.now() } }
+            draft.baseWorldRevisionId=revisionId;draft.draftRevision=Math.incrementExact(draft.draftRevision);draft.updatedAt=Instant.now()
+        }
+        return draft(worldId,subject)
     }
+
+    /**
+     * 소유자가 세계관을 지운다(소프트 삭제, 2026-11-17 사용자 결정). 행·초안·확정 버전·이미지·관계는 그대로 두고 [StudioWorld.deletedAt]만 찍어 소유자·공개 조회에서 모두 없는 것으로 만든다.
+     * 연결된 소설이 있으면([linked], 정본은 Content의 work.world_studio_id라 호출자가 먼저 읽어 넘긴다) 거절한다. 남의 세계관은 404다.
+     */
+    fun delete(worldId:UUID,subject:UUID,linked:Boolean) { tx {
+        val world=owned(worldId,subject)
+        if(linked) throw WorldStudioFailure.linked()
+        world.deletedAt=Instant.now()
+    } }
+
+    private class RestorePlan(val graphVersion:Long,val changes:Map<UUID,CardFields>,val vanishing:Map<UUID,String>)
 
     private data class EditPlan(val draft:WorldDraftResponse,val duplicate:Boolean,val graphVersion:Long)
     private fun readDraft(world:StudioWorld,state:WorldRelationshipState):WorldDraftResponse {

@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 
 import { avatarOf, epsOf, type Work } from '../../../../domain/entities/work'
-import { Art, Cov, CoverOf, Tags } from '../../../shared/art'
+import { Cov, CoverOf, Tags } from '../../../shared/art'
 import { ago, asOf, kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
@@ -74,9 +74,10 @@ export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: 
         <div className="track" id="track" ref={track}>
           {works.map((w, i) => {
             const active = i >= shown && i < shown + visible
-            return <Go key={w.id} to={`/work/${w.id}`} className={`slide ${w.lite ? 'lite' : ''}`} style={{ background: w.heroBg }}
+            // 배경은 표지와 같은 이미지를 흐리게 깐다(표지가 없으면 기본 표지). 테마 그림·색은 표지와 어긋나 쓰지 않는다.
+            return <Go key={w.id} to={`/work/${w.id}`} className="slide"
               inert={!active} aria-hidden={!active} tabIndex={active ? undefined : -1}>
-              <div className="bgart"><Art theme={w.theme} w={400} h={400} seed={w.id + 'bg'} /></div>
+              <div className="bgart"><CoverOf w={w} /></div>
               <div className="tg"><Tags w={w} /></div>
               <div className="cv"><CoverOf w={w} /></div>
               <h3>{w.hero?.[0] || w.title}<br />{w.hero?.[1]}</h3>

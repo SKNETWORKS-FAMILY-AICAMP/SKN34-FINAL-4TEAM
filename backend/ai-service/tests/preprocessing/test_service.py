@@ -1,183 +1,159 @@
-"""원고 기반 전처리 의미 로직 회귀. 제공사 호출은 모두 대역이다."""
-import copy
+"""#343 전처리 실행 틀. 단계 함수는 아직 미구현이라 첫 미구현에서 실패를 보고하고, 구현된 것처럼 대역을 끼우면 단계 순서·진행·실패 기록이 계약대로인지 본다."""
+import json
+
+import httpx
 import pytest
+
 from app.preprocessing import service
-from app.preprocessing.models import EpisodeText
-from app.preprocessing.errors import PreprocessingFailure
+from app.preprocessing.errors import ReportFailure
+from app.preprocessing.models import JobRequest
+
+REQUEST = JobRequest(jobId='job-1', workId='work-1', episodes=[1, 2, 3])
 
 
-def proposed():
-    return {'mentions': [{'id': 'm1', 'name': '길동', 'kind': 'character', 'quote': '길동은 산을 넘을 계획이었다.'}],
-            'statements': [{'id': 's1', 'kind': 'plan', 'certainty': 'intended', 'subjects': ['m1'], 'knowers': ['m1'],
-                            'document': 'goal', 'occurredEpisode': None, 'knownFromEpisode': 1,
-                            'quote': '길동은 산을 넘을 계획이었다.'}], 'relationships': []}
-
-
-def run_extract(monkeypatch, output=None, body='길동은 산을 넘을 계획이었다.'):
-    monkeypatch.setattr(service.agent, 'extract', lambda data: output or proposed())
-    return service.extract(EpisodeText(number=1, title='계획', body=body))
-
-
-def test_extract_keeps_intention_and_verified_source(monkeypatch):
-    result = run_extract(monkeypatch)
-    assert result.statements[0].kind == 'plan'
-    assert result.evidence[0].quote == '길동은 산을 넘을 계획이었다.'
-    assert len(result.sourceHash) == 64
-
-
-@pytest.mark.parametrize('mutation', ['missing_quote', 'ambiguous_quote', 'bad_id', 'duplicate_id', 'plan_as_event', 'conjecture_as_fact', 'bad_kind', 'future_memory'])
-def test_invalid_extraction_is_rejected(monkeypatch, mutation):
-    data = proposed(); body = '길동은 산을 넘을 계획이었다.'
-    if mutation == 'missing_quote': data['statements'][0]['quote'] = '길동은 이미 도착했다.'
-    if mutation == 'ambiguous_quote': body += body
-    if mutation == 'bad_id': data['statements'][0]['subjects'] = ['unknown']
-    if mutation == 'duplicate_id': data['mentions'] *= 2
-    if mutation == 'plan_as_event': data['statements'][0]['kind'] = 'event'
-    if mutation == 'conjecture_as_fact': data['statements'][0].update(kind='fact', certainty='uncertain')
-    if mutation == 'bad_kind': data['statements'][0]['kind'] = 'magic'
-    if mutation == 'future_memory': data['statements'][0]['knownFromEpisode'] = 3
-    with pytest.raises(PreprocessingFailure): run_extract(monkeypatch, data, body)
-
-
-def test_utf16_crlf_quote_coordinates(monkeypatch):
-    result = run_extract(monkeypatch, body='😀\r\n길동은 산을 넘을 계획이었다.')
-    assert result.evidence[0].start == 4
-    assert result.evidence[0].end == 20
+def progress(stage, done, failed=(), reason=None, total=3):
+    body = {'stage': stage, 'done': done, 'total': total, 'failedEpisodes': list(failed)}
+    return ('job-1', {**body, 'failed': reason} if reason else body)
 
 
 @pytest.fixture
-def four(monkeypatch):
-    import json
-    from pathlib import Path
-    data = json.loads((Path(__file__).parent / 'fixtures/four-episodes.json').read_text(encoding='utf-8'))
-    monkeypatch.setattr(service.agent, 'extract', lambda ep: data['episodes'][ep.number-1]['output'])
-    monkeypatch.setattr(service.agent, 'resolve', lambda rows: data['resolution'])
-    return data
+def reports(monkeypatch):
+    """Content로 가는 진행 보고를 (작업 ID, 본문)으로 모은다."""
+    seen = []
+    monkeypatch.setattr(service, 'report', lambda job_id, p: seen.append((job_id, p.model_dump(exclude_none=True))))
+    return seen
 
 
-def extract_four(data):
-    return {e['number']: service.extract(EpisodeText(**{k:v for k,v in e.items() if k!='output'})) for e in data['episodes']}
+@pytest.fixture
+def steps(monkeypatch):
+    """네 단계를 구현된 것처럼 바꾸고 호출 순서를 기록한다."""
+    calls = []
+    monkeypatch.setattr(service, 'extract_episode', lambda job_id, number: calls.append(('extract', number)) or {'n': number})
+    monkeypatch.setattr(service, 'resolve_identities', lambda extractions: calls.append(('resolve', len(extractions))) or 'ids')
+    monkeypatch.setattr(service, 'organize', lambda extractions, identities: calls.append(('organize', identities)) or 'organized')
+    monkeypatch.setattr(service, 'load', lambda job_id, organized: calls.append(('load', job_id, organized)))
+    return calls
 
 
-def test_four_episode_payload_preserves_time_and_identity(four):
-    rows = extract_four(four); identity = service.resolve(rows); payload = service.organize(identity, rows)
-    assert identity.mapping['1:m1'] == identity.mapping['1:m2'] == identity.mapping['4:m1']
-    assert identity.mapping['1:m2'] != identity.mapping['2:m1']
-    hero = next(c for c in payload.cards if c.key == identity.mapping['1:m1'])
-    stranger = next(c for c in payload.cards if c.key == identity.mapping['2:m1'])
-    assert hero.title == '길동' and hero.aliases == ['홍길동'] and hero.firstAppearanceEpisode == 1
-    assert '약자를' in hero.characterDocs.soul and '산을 넘을 계획' in hero.characterDocs.goal
-    assert '백성을' not in hero.characterDocs.goal and '백성을' in hero.characterDocs.episodes['03']
-    assert '비밀 지도' not in stranger.model_dump_json() and '추측' in stranger.characterDocs.episodes['02']
-    assert '산을 넘었다' not in hero.characterDocs.episodes['01']
-    assert '출생' in hero.characterDocs.episodes['00']
-    assert [(r.fromEpisode,r.ended) for r in payload.relations] == [(1,False),(4,True)]
-    assert payload.relations[0].fromKey == payload.relations[1].fromKey
-    assert {c.firstAppearanceEpisode for c in payload.cards if c.cardType=='event'} == {3,4}
-    assert service.resolve(dict(reversed(list(rows.items())))) == identity
-    assert service.organize(identity, dict(reversed(list(rows.items())))) == payload
+# ---- 틀 그대로: 로직 미구현 ----
+
+def test_unimplemented_steps_fail_the_job_at_the_first_one_and_never_pretend_success(reports):
+    service.run_job(REQUEST)
+    assert reports == [progress('extracting', 0), progress('extracting', 0, reason='전처리 로직 미구현')]
 
 
-def test_late_identity_cannot_leak_into_global_title_alias_or_docs(four):
-    late = '가면 사내는 길동이었다.'
-    four['episodes'][2]['body'] += '\n' + late
-    four['episodes'][2]['output']['mentions'].append({'id':'m2','name':'가면 사내','kind':'character','quote':late})
-    four['resolution']['links'].append({'left':'1:m1','right':'3:m2','basis':'explicit_alias','confirmedAt':3,'evidenceEpisode':3,'quote':late})
-    rows = extract_four(four); identity = service.resolve(rows)
-    decision = next(d for d in identity.decisions if d.link.right=='3:m2')
-    assert decision.status == 'deferred' and decision.reason == 'LATE_ALIAS_REQUIRES_VERSIONED_IDENTITY'
-    with pytest.raises(PreprocessingFailure, match='DEFERRED_IDENTITY_REQUIRES_REVIEW'):
-        service.organize(identity, rows)
+def test_every_step_is_still_a_documented_placeholder():
+    for step, args in ((service.extract_episode, ('job-1', 1)), (service.resolve_identities, ([],)),
+                       (service.organize, ([], {})), (service.load, ('job-1', {}))):
+        with pytest.raises(NotImplementedError):
+            step(*args)
+        assert '계약' in step.__doc__ and '입력' in step.__doc__ and '출력' in step.__doc__
 
 
-def test_relationship_discovery_is_not_a_relationship_change(four):
-    four['episodes'][0]['output']['relationships'][0]['change'] = 'learned'
-    with pytest.raises(PreprocessingFailure, match='RELATION_DISCOVERY_NOT_REPRESENTABLE'):
-        extract_four(four)
+# ---- 구현된 단계가 끼워졌을 때 틀의 동작 ----
+
+def test_stages_run_in_contract_order_and_progress_follows_each_episode(reports, steps):
+    service.run_job(REQUEST)
+    assert steps == [('extract', 1), ('extract', 2), ('extract', 3), ('resolve', 3), ('organize', 'ids'), ('load', 'job-1', 'organized')]
+    assert reports == [progress('extracting', 0), progress('extracting', 1), progress('extracting', 2), progress('extracting', 3),
+                       progress('resolving', 3), progress('organizing', 3), progress('loading', 3)]
 
 
-def test_changed_source_hash_and_cross_input_identity_are_rejected(four):
-    rows=extract_four(four); identity=service.resolve(rows)
-    rows[1].sourceHash = '0'*64
-    with pytest.raises(PreprocessingFailure, match='EXTRACTION_EVIDENCE_MISMATCH'): service.organize(identity,rows)
+def test_failed_episodes_are_recorded_and_stop_the_job_before_resolving(reports, steps, monkeypatch):
+    def extract(job_id, number):
+        if number == 2:
+            raise RuntimeError('SECRET 원고 본문')
+        return {'n': number}
+    monkeypatch.setattr(service, 'extract_episode', extract)
+    service.run_job(REQUEST)
+    assert reports[-1] == progress('extracting', 2, failed=[2], reason='회차 추출에 실패했어요.')
+    assert progress('extracting', 2, failed=[2]) in reports  # 실패 회차 뒤에도 나머지 회차는 이어서 추출한다
+    assert not [call for call in steps if call[0] in ('resolve', 'organize', 'load')]
+    assert 'SECRET' not in json.dumps(reports, ensure_ascii=False)
 
 
-def test_name_only_match_stays_separate_with_reason(four):
-    four['resolution']['links'][1]['basis']='name_only'
-    rows=extract_four(four);identity=service.resolve(rows)
-    assert identity.mapping['1:m2']!=identity.mapping['2:m1']
-    assert any(d.status=='deferred' and d.reason=='name_only' for d in identity.decisions)
+def test_an_unexpected_error_in_a_later_step_fails_the_job_with_a_fixed_reason(reports, steps, monkeypatch):
+    def organize(extractions, identities):
+        raise ValueError('SECRET 원고 본문')
+    monkeypatch.setattr(service, 'organize', organize)
+    service.run_job(REQUEST)
+    assert reports[-1] == progress('organizing', 3, reason='전처리 중 오류가 발생했어요.')
+    assert 'load' not in [call[0] for call in steps]
+    assert 'SECRET' not in json.dumps(reports, ensure_ascii=False)
 
 
-def test_four_episode_semantics_without_a_task_framework(four):
-    rows={row['number']:service.extract(EpisodeText(**{k:v for k,v in row.items() if k!='output'})).model_dump() for row in four['episodes']}
-    payload=service.organize(service.resolve(rows),rows)
-    assert len(payload.cards)==5 and len(payload.relations)==2
+def test_a_progress_report_the_content_service_refuses_stops_the_job_without_raising(steps, monkeypatch):
+    seen = []
+
+    def refuse(job_id, p):
+        seen.append(p.stage)
+        if len(seen) == 2:
+            raise ReportFailure('Content가 진행 보고를 거절했습니다(409).')
+    monkeypatch.setattr(service, 'report', refuse)
+    service.run_job(REQUEST)  # 예외 없이 끝난다
+    assert steps == [('extract', 1)]  # 보고할 수 없으면 더 진행하지 않는다
 
 
-@pytest.mark.parametrize('kind', ['fact','event'])
-def test_explicit_plan_cannot_be_promoted_by_changing_both_labels(monkeypatch,kind):
-    data=proposed(); data['statements'][0].update(kind=kind,certainty='asserted',occurredEpisode=1,document='memory')
-    with pytest.raises(PreprocessingFailure,match='UNCERTAIN_SOURCE_AS_FACT'): run_extract(monkeypatch,data)
+def test_a_failure_report_that_cannot_be_delivered_does_not_raise(monkeypatch):
+    def refuse(job_id, p):
+        raise ReportFailure('Content에 진행을 보고할 수 없습니다.')
+    monkeypatch.setattr(service, 'report', refuse)
+    service.run_job(REQUEST)
 
 
-def test_other_character_cannot_receive_unmentioned_secret(four):
-    data=four['episodes'][2]; quote='낯선이는 객주에 있었다.'
-    data['body']+='\n'+quote
-    data['output']['mentions'].append({'id':'m2','name':'낯선이','kind':'character','quote':quote})
-    data['output']['statements'][2]['knowers'].append('m2')
-    with pytest.raises(PreprocessingFailure,match='KNOWLEDGE_NOT_EXPLICIT'): extract_four(four)
+# ---- Content 진행 보고 호출 ----
+
+def content(monkeypatch, status=200, error=None):
+    monkeypatch.setenv('CONTENT_SERVICE_BASE_URL', 'http://content.test/')
+    monkeypatch.setenv('INTERNAL_TOKEN', 't' * 32)
+    seen = {}
+
+    def post(url, **kwargs):
+        seen.update(url=url, **kwargs)
+        if error:
+            raise error
+        return httpx.Response(status, json={}, request=httpx.Request('POST', url))
+    monkeypatch.setattr(service.httpx, 'post', post)
+    return seen
 
 
-def test_later_soul_cannot_change_global_soul(four):
-    data=four['episodes'][2]; quote='길동은 이제 냉혹하게 말하는 성격으로 변했다.'
-    data['body']+='\n'+quote
-    data['output']['statements'].append({'id':'s4','kind':'description','certainty':'asserted','subjects':['m1'],'knowers':['m1'],'document':'soul','occurredEpisode':None,'knownFromEpisode':3,'quote':quote})
-    rows=extract_four(four);identity=service.resolve(rows);payload=service.organize(identity,rows)
-    hero=next(c for c in payload.cards if c.key==identity.mapping['1:m1'])
-    assert '냉혹' not in hero.body+hero.title+hero.characterDocs.soul+hero.characterDocs.goal
-    assert '냉혹' in hero.characterDocs.episodes['03']
+def test_report_posts_the_progress_body_to_content_with_the_internal_token(monkeypatch):
+    seen = content(monkeypatch)
+    service.report('job-1', service.Progress(stage='extracting', done=1, total=3, failedEpisodes=[]))
+    assert seen['url'] == 'http://content.test/internal/v1/preprocessing-jobs/job-1/progress'
+    assert seen['headers'] == {'X-Internal-Token': 't' * 32}
+    assert seen['json'] == {'stage': 'extracting', 'done': 1, 'total': 3, 'failedEpisodes': []}  # failed는 없을 때 싣지 않는다
+    service.report('job-1', service.Progress(stage='extracting', done=1, total=3, failedEpisodes=[2], failed='사유'))
+    assert seen['json']['failed'] == '사유' and seen['json']['failedEpisodes'] == [2]
 
 
-def test_duplicate_claim_is_not_silently_dropped(four):
-    data=four['episodes'][0]['output']; duplicate=copy.deepcopy(data['statements'][0]);duplicate['id']='s4';data['statements'].append(duplicate)
-    with pytest.raises(PreprocessingFailure,match='DUPLICATE_STATEMENT'): extract_four(four)
+@pytest.mark.parametrize('kwargs', [{'status': 409}, {'status': 500}, {'error': httpx.ConnectError('down')}],
+                         ids=['refused', 'server-error', 'unreachable'])
+def test_report_failures_are_explicit(monkeypatch, kwargs):
+    content(monkeypatch, **kwargs)
+    with pytest.raises(ReportFailure):
+        service.report('job-1', service.Progress(stage='extracting', done=0, total=3, failedEpisodes=[]))
 
 
-def test_resolution_is_bound_to_extraction_not_only_original_source(four):
-    rows=extract_four(four); identity=service.resolve(rows)
-    rows[3].statements[2].knowers=[]
-    with pytest.raises(PreprocessingFailure,match='IDENTITY_INPUT_MISMATCH'): service.organize(identity,rows)
+def test_report_without_content_settings_is_explicit(monkeypatch):
+    monkeypatch.delenv('CONTENT_SERVICE_BASE_URL', raising=False)
+    with pytest.raises(ReportFailure):
+        service.report('job-1', service.Progress(stage='extracting', done=0, total=3, failedEpisodes=[]))
 
 
-def test_unrepresentable_statement_blocks_payload_instead_of_disappearing(four):
-    four['episodes'][1]['output']['statements'][0]['knowers']=[]
-    rows=extract_four(four);identity=service.resolve(rows)
-    with pytest.raises(PreprocessingFailure,match='UNREPRESENTABLE_STATEMENT'): service.organize(identity,rows)
+# ---- 추적 ----
+
+def test_the_job_is_one_trace_tagged_as_the_preprocessing_feature_and_marked_failed(reports, spans):
+    service.run_job(REQUEST)
+    (root,) = spans()
+    assert root.name == 'preprocessing'
+    assert root.attributes['langfuse.observation.metadata.feature'] == 'preprocessing'
+    assert json.loads(root.attributes['langfuse.observation.input']) == {'jobId': 'job-1', 'workId': 'work-1', 'episodes': 3}
+    assert root.attributes['langfuse.observation.level'] == 'ERROR'
+    assert root.attributes['langfuse.observation.status_message'] == '전처리 로직 미구현'
 
 
-def test_relation_label_change_requires_content_identity_contract(four):
-    four['episodes'][3]['output']['relationships'][0].update(change='changed',ended=False)
-    with pytest.raises(PreprocessingFailure,match='RELATION_CHANGE_NOT_REPRESENTABLE'): extract_four(four)
-
-
-def test_full_document_limit_is_not_satisfied_by_truncation(monkeypatch):
-    data=proposed(); body='길동 '+('가'*2990)
-    data['mentions'][0]['quote']=body
-    data['statements'][0].update(quote=body,kind='description',certainty='asserted',document='soul')
-    monkeypatch.setattr(service.agent,'resolve',lambda rows:{'links':[]})
-    rows={1:run_extract(monkeypatch,data,body)};identity=service.resolve(rows)
-    with pytest.raises(PreprocessingFailure,match='INVALID_LOAD_PAYLOAD'): service.organize(identity,rows)
-
-
-def test_future_secret_cannot_be_relabelled_as_episode_zero(four):
-    four['episodes'][2]['output']['statements'][2].update(occurredEpisode=0,knownFromEpisode=0)
-    with pytest.raises(PreprocessingFailure,match='PRESTORY_EVIDENCE_REQUIRED'): extract_four(four)
-
-
-def test_late_revealed_preexisting_memory_cannot_backfill_old_character(four):
-    data=four['episodes'][2];quote='길동은 이야기 시작 전부터 왕의 비밀을 알고 있었다.'
-    data['body']+='\n'+quote
-    data['output']['statements'].append({'id':'s4','kind':'fact','certainty':'asserted','subjects':['m1'],'knowers':['m1'],'document':'memory','occurredEpisode':0,'knownFromEpisode':0,'quote':quote})
-    rows=extract_four(four);identity=service.resolve(rows)
-    with pytest.raises(PreprocessingFailure,match='RETROACTIVE_MEMORY_NOT_REPRESENTABLE'):service.organize(identity,rows)
+def test_a_finished_job_trace_has_no_error_level(reports, steps, spans):
+    service.run_job(REQUEST)
+    (root,) = spans()
+    assert 'langfuse.observation.level' not in root.attributes

@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { Activity, useEffect, useRef, useState } from 'react'
 
 import { BASE_CHANGED_MESSAGE, SUGGESTION_MAX, type EditSuggestion } from '../../../../domain/entities/editSuggestion'
+import './inbox.css'
 import { Go } from '../../../shared/Go'
 import { SuggestionDiff, SuggestionStatusChip } from '../../../shared/editSuggestion/SuggestionParts'
 import { useEditSuggestionInboxViewModel } from '../viewmodel/useEditSuggestionInboxViewModel'
@@ -52,8 +53,9 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
         </>
       )}
       {s.status === 'approved' && s.applyResult === 'applied' && (
-        <div className="rowend"><span className="chip ok">초안에 반영됨 — 발행은 집필실에서</span><Go to={`/studio/${s.workId}`} className="btn sm">집필실 열기</Go></div>
+        <div className="rowend">{s.published ? <Go to={`/read/${s.workId}/${s.episodeNumber}`} className="btn sm">발행본 보기</Go> : <><span>발행은 집필실에서 할 수 있어요.</span><Go to={`/studio/${s.workId}?ep=${s.episodeNumber}`} className="btn sm">집필실 열기</Go></>}</div>
       )}
+      {s.handlerName && <p className="small muted">처리자 {s.handlerName} · {s.handledAt ? new Date(s.handledAt).toLocaleString('ko-KR') : '처리 시각 기록 없음'}</p>}
       {retryable && (
         <>
           <p role="note" className="note">반영 실패: {s.applyFailure}</p>
@@ -81,6 +83,10 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
  */
 export function EditSuggestionInbox({ workId }: { workId?: string }) {
   const vm = useEditSuggestionInboxViewModel(workId)
+  const [status, setStatus] = useState('')
+  // 방금 처리한 제안은 처리 결과로 상태가 바뀌어 필터와 어긋나도 보인다. 숨기면 카드 안의 결과 안내와 초점 대상이 함께 사라진다.
+  // ponytail: 다음 처리 전에는 필터를 바꿔도 그 카드가 남는다. 거슬리면 필터를 바꿀 때 notice를 비운다.
+  const visible = (item: EditSuggestion) => !status || item.status === status || item.id === vm.notice?.id
   return (
     <section className="sec" aria-labelledby="edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
       <div className="sec-h"><h2 id="edit-suggestions-h">독자 수정 제안</h2><span className="muted small">독자가 보낸 문장 수정 제안</span></div>
@@ -92,7 +98,16 @@ export function EditSuggestionInbox({ workId }: { workId?: string }) {
       )}
       {!vm.items && !vm.isError && <p className="muted">수정 제안을 불러오고 있어요…</p>}
       {vm.items?.length === 0 && <p className="muted">{workId ? '이 작품에 받은 수정 제안이 없어요.' : '받은 수정 제안이 없어요.'}</p>}
-      {vm.items && vm.items.length > 0 && <div style={{ display: 'grid', gap: 12 }}>{vm.items.map((s) => <SuggestionCard key={s.id} s={s} vm={vm} />)}</div>}
+      {!!vm.items?.length && <div className="feedback-filters">
+        <label>수정 제안 상태
+          <select className="inp" value={status} onChange={e => setStatus(e.target.value)}>
+            <option value="">전체</option><option value="pending">검토 대기</option><option value="held">보류</option>
+            <option value="approved">승인</option><option value="rejected">거절</option>
+          </select>
+        </label>
+      </div>}
+      {!!vm.items?.length && !vm.items.some(visible) && <p role="status">조건에 맞는 수정 제안이 없어요.</p>}
+      {!!vm.items?.length && <div style={{ display: 'grid', gap: 12 }}>{vm.items.map(s => <Activity key={s.id} mode={visible(s) ? 'visible' : 'hidden'}><SuggestionCard s={s} vm={vm} /></Activity>)}</div>}
     </section>
   )
 }

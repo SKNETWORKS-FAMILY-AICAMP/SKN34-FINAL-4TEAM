@@ -8,10 +8,13 @@ from langchain_core.runnables import RunnableLambda
 from openai import OpenAIError
 from pydantic import ValidationError
 
+from app import tracing
 from app.agent_runtime import MODEL_EVENT
 from app.simulation import agent, prompt
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import Action, CheckItem, Narration, PlanDraft, Verdict
+
+from traced import attrs
 
 ACTION = Action(prose='카엘이 말했다. "멈춰."', observed='카엘이 성문 앞에서 리나를 막아섰다.', refusesBeat=False, refusalReason=None)
 NARRATION = Narration(prose='성문 위로 밤비가 내렸다.', observed='밤비가 성문 앞에 내리고 있다.')
@@ -164,3 +167,39 @@ def test_generation_trace_has_model_usage_and_failure_but_no_character_documents
     assert failed.attributes['langfuse.observation.level'] == 'ERROR'
     # 설정 본문·생성 문단은 팀 결정 범위(질문·원고·답변) 밖이라 추적에 남기지 않는다.
     assert all('KAEL-SOUL' not in str(dict(s.attributes)) and '멈춰' not in str(dict(s.attributes)) for s in (ok, failed))
+
+
+
+DEFAULTS = {'plan': prompt.PLAN_INSTRUCTIONS, 'act': prompt.ACT_INSTRUCTIONS, 'narrate': prompt.NARRATE_INSTRUCTIONS,
+            'check': prompt.CHECK_INSTRUCTIONS}
+
+
+@pytest.mark.parametrize('name', CALLS)
+def test_each_call_uses_its_managed_prompt_and_the_generation_links_that_version(monkeypatch, spans, name):
+    call, _, parsed = CALLS[name]
+    seen, asked = {}, []
+    provider(monkeypatch, lambda **kwargs: seen.update(kwargs) or completed(parsed))
+    version = SimpleNamespace(name=f'character_simulation.{name}', version=2, is_fallback=False)
+    monkeypatch.setattr(tracing, 'prompt', lambda n, default: asked.append((n, default)) or tracing.Prompt('관리된 지시', version))
+
+    call()
+
+    assert asked == [(f'character_simulation.{name}', DEFAULTS[name])] and seen['instructions'] == '관리된 지시'
+    [span] = spans()
+    found = attrs(span)
+    assert span.name == f'simulation.{name}'
+    assert (found['langfuse.observation.prompt.name'], found['langfuse.observation.prompt.version']) == (f'character_simulation.{name}', 2)
+
+
+@pytest.mark.parametrize('name', CALLS)
+def test_an_unavailable_prompt_is_a_503_before_the_model_call(monkeypatch, name):
+    called = []
+    provider(monkeypatch, lambda **kwargs: called.append(kwargs))
+
+    def unavailable(n, default):
+        raise tracing.PromptUnavailable
+
+    monkeypatch.setattr(tracing, 'prompt', unavailable)
+    with pytest.raises(SimulationFailure) as error:
+        CALLS[name][0]()
+    assert (error.value.status, str(error.value)) == (503, '시뮬레이션 프롬프트를 불러올 수 없습니다.') and called == []

@@ -1,24 +1,43 @@
 package ai.storyfork.content.world.controller
 
 import ai.storyfork.content.world.service.ManuscriptBuildService
-import ai.storyfork.content.world.service.dto.ManuscriptBuildRequest
-import ai.storyfork.content.world.service.dto.ManuscriptBuildResponse
-import java.net.URI
-import java.security.Principal
 import java.util.UUID
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import tools.jackson.databind.JsonNode
 
-/** 작가가 명시적으로 시작한 최초 원고 구축만 접수한다. 업로드·발행과 연결하지 않는다. */
+/** 내부 AI 전용. 실행권과 저장본을 Content가 매 단계 다시 검사한다. */
 @RestController
-@RequestMapping("/api/v1/works/{id}/world-preprocessing")
-class ManuscriptBuildController(private val service:ManuscriptBuildService) {
-    /** 동일 key는 기존 작업을 조회하고 명시적 재개 token만 실패 작업을 재개한다. */
-    @PostMapping fun start(@PathVariable id:String,principal:Principal,@RequestBody request:ManuscriptBuildRequest):ResponseEntity<ManuscriptBuildResponse> {
-        val result=service.start(id,UUID.fromString(principal.name),request)
-        return ResponseEntity.status(if(result.status in listOf("queued","running","loading")) 202 else 200)
-            .location(URI.create("/api/v1/works/$id/world-preprocessing")).header("Cache-Control","no-store").body(result)
+@RequestMapping("/internal/v1/ai/manuscript-build/{id}")
+class ManuscriptBuildController(private val service: ManuscriptBuildService) {
+    data class Claim(val workId: String)
+    data class Lease(val token: UUID)
+    data class Result(val token: UUID, val result: JsonNode)
+    data class Failure(val token: UUID, val episodes: List<Int>, val reason: String)
+
+    @PostMapping("/claim")
+    fun claim(@PathVariable id: UUID, @RequestBody request: Claim) = service.claim(id, request.workId)
+
+    @PostMapping("/result")
+    fun result(@PathVariable id: UUID, @RequestBody request: Result): Map<String, Boolean> {
+        service.record(id, request.token, request.result)
+        return mapOf("saved" to true)
     }
-    /** 성공 수는 영속 결과 행으로 계산하며 완료 receipt가 없는 작업을 완료로 표시하지 않는다. */
-    @GetMapping fun read(@PathVariable id:String,principal:Principal)=service.read(id,UUID.fromString(principal.name))
+
+    @PostMapping("/structure-input")
+    fun inputs(@PathVariable id: UUID, @RequestBody request: Lease) = service.structureInput(id,request.token)
+
+    @PostMapping("/structure")
+    fun structure(@PathVariable id: UUID, @RequestBody request: JsonNode): Map<String, Boolean> {
+        service.structure(id,UUID.fromString(request.path("token").asString()),request)
+        return mapOf("saved" to true)
+    }
+
+    @PostMapping("/failed")
+    fun failed(@PathVariable id: UUID, @RequestBody request: Failure): Map<String, Boolean> {
+        service.failed(id,request.token,request.reason,request.episodes)
+        return mapOf("saved" to true)
+    }
+
+    @PostMapping("/load")
+    fun load(@PathVariable id: UUID, @RequestBody request: Lease) = service.load(id,request.token)
 }

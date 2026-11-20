@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface SettingCardVersionRepository : JpaRepository<SettingCardVersion, UUID> {
+    fun findAllByWorldId(worldId: UUID): List<SettingCardVersion>
     @Query("select v.cardId, max(v.versionNo) from SettingCardVersion v where v.worldId=:world group by v.cardId")
     fun versionNumbers(@Param("world") world: UUID): List<Array<Any>>
 }

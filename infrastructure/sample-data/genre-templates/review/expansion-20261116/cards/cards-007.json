@@ -1,0 +1,3006 @@
+[
+  {
+    "id": "fa07b2ef-a50c-58d7-812b-2327a0d35bef",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-13",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "turtle",
+    "title": "거북을 타고 온 도요타마히메",
+    "cardType": "event",
+    "body": "임신한 도요타마히메는 큰 거북을 타고 동생 다마요리히메와 함께 바다를 건너온다. 깃털로 덮는 산실이 완성되기 전에 아이를 낳는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 13 (一書) / 일서 후반, 산실에 도착",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source toyotamabime 「도요타마비메의 출산 금기」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2c704f14-3ba1-5ee0-99c9-5482581e1b80",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-13",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "nurse",
+    "title": "다마요리히메와 아이의 양육",
+    "cardType": "character",
+    "body": "도요타마히메는 돌아가 아이를 기르고 싶어 하지만 그럴 수 없다고 여겨 동생 다마요리히메를 보낸다. 일서는 따로 유모를 두는 관행의 유래도 적는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 13 (一書) / 일서 끝, 아이의 양육",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2cf720d2-b583-54b9-aafe-0f570d5e88c0",
+    "batch_id": "batch-13",
+    "unit_id": "india-ramayana--book5-chapter1",
+    "work_id": "india-ramayana",
+    "world_id": "indian_mythology",
+    "candidate_key": "search",
+    "title": "하누만의 시타 수색",
+    "cardType": "event",
+    "body": "라바나에게 끌려간 시타의 행방을 찾기 위해 원숭이 영웅은 길을 나선다. 신들에게 합장하고 남쪽을 향해 몸을 키운다.",
+    "source_url": "https://sacred-texts.com/hin/rys/rys5001.htm",
+    "source_location": "《라마야나》 순다라 칸다 제5권 1장 1–9절",
+    "edition": "발미키 전승 《라마야나》; Sacred Texts 산스크리트어 로마자 전사·데바나가리 병기, 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "산스크리트어 전사 판독 및 번역 감수 필요",
+      "동일 장 후속 절은 읽지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "591e4734-44cc-5471-a292-bde16782ecef",
+    "batch_id": "batch-13",
+    "unit_id": "india-ramayana--book5-chapter1",
+    "work_id": "india-ramayana",
+    "world_id": "indian_mythology",
+    "candidate_key": "mahendra",
+    "title": "마헨드라 산의 생명들",
+    "cardType": "location",
+    "body": "하누만이 산을 누르자 꽃과 광물과 물이 쏟아지고 동굴의 생물과 뱀이 놀란다. 비디아다라들은 하늘로 피한다.",
+    "source_url": "https://sacred-texts.com/hin/rys/rys5001.htm",
+    "source_location": "《라마야나》 순다라 칸다 제5권 1장 10–25절",
+    "edition": "발미키 전승 《라마야나》; Sacred Texts 산스크리트어 로마자 전사·데바나가리 병기, 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "산스크리트어 전사 판독 및 번역 감수 필요",
+      "동일 장 후속 절은 읽지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e8996f51-3bcc-567c-802e-64c015312fec",
+    "batch_id": "batch-13",
+    "unit_id": "india-ramayana--book5-chapter1",
+    "work_id": "india-ramayana",
+    "world_id": "indian_mythology",
+    "candidate_key": "vow",
+    "title": "랑카를 향한 하누만의 맹세",
+    "cardType": "event",
+    "body": "바람의 아들 하누만은 바다를 건너 라바나의 랑카에서 시타를 찾겠다고 말한다. 찾지 못할 경우의 대안도 자신의 결심으로 언급한다.",
+    "source_url": "https://sacred-texts.com/hin/rys/rys5001.htm",
+    "source_location": "《라마야나》 순다라 칸다 제5권 1장 27–40절",
+    "edition": "발미키 전승 《라마야나》; Sacred Texts 산스크리트어 로마자 전사·데바나가리 병기, 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "산스크리트어 전사 판독 및 번역 감수 필요",
+      "동일 장 후속 절은 읽지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c0c5ea20-02e9-55f3-be0d-ad32da999ec0",
+    "batch_id": "batch-13",
+    "unit_id": "india-ramayana--book5-chapter1",
+    "work_id": "india-ramayana",
+    "world_id": "indian_mythology",
+    "candidate_key": "leap",
+    "title": "바다를 뛰어넘는 하누만",
+    "cardType": "ability",
+    "body": "하누만이 산에서 뛰어오르자 나무들이 잠시 따라 날고, 그의 거대한 몸과 그림자가 바다 위를 지난다.",
+    "source_url": "https://sacred-texts.com/hin/rys/rys5001.htm",
+    "source_location": "《라마야나》 순다라 칸다 제5권 1장 40–70절",
+    "edition": "발미키 전승 《라마야나》; Sacred Texts 산스크리트어 로마자 전사·데바나가리 병기, 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "산스크리트어 전사 판독 및 번역 감수 필요",
+      "동일 장 후속 절은 읽지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1ea94303-41eb-5fdb-b11c-30cffe01e4f7",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-14",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "shiotsutsu",
+    "title": "시오쓰쓰 노인",
+    "cardType": "character",
+    "body": "해변에서 근심하는 호오리에게 바다 신의 말인 와니를 찾아가도록 주선한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 14 일서, 해변의 조력자",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "기존 japanese_mythology/source/tradition-cards.json 「바다 신의 궁전」과 관련 전승 가능; 고사기 서술과 대조 필요"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6aa9ea9e-8e34-52e7-8214-c1d01dc0e631",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-14",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "wani-guides",
+    "title": "두 와니와 바닷길",
+    "cardType": "character",
+    "body": "여덟 길이의 와니는 자신은 여드레가 걸린다며 하루 만에 궁전에 데려갈 한 길의 와니를 보내고, 바닷속 작은 물가와 우물 위 나무를 길잡이로 알려 준다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 14 일서, 와니의 안내",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "기존 japanese_mythology/source/tradition-cards.json 「바다 신의 궁전」과 관련 전승 가능; 고사기 서술과 대조 필요"
+    ],
+    "uncertainties": [
+      "鰐의 생물학적 종은 확정하지 않았다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6d168f7b-61e6-59bb-86d9-640eb1dcd755",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-14",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "palace-tree",
+    "title": "바다 궁전의 우물과 나무",
+    "cardType": "location",
+    "body": "궁전 문 우물 위의 유쓰모리 나무에 호오리가 앉자 도요타마히메의 시녀가 물에 비친 그림자를 본다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 14 일서, 우물과 시녀",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "기존 japanese_mythology/source/tradition-cards.json 「바다 신의 궁전」과 관련 전승 가능; 고사기 서술과 대조 필요"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "34ff3ba2-a9b4-51e9-8310-706739d6f1cf",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-14",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "three-seats",
+    "title": "세 자리로 알아본 천손",
+    "cardType": "event",
+    "body": "바다 신이 세 자리를 마련하자 호오리는 바깥 자리에서 발을 닦고 가운데서 손을 짚고 안쪽 침상에 앉는다. 이를 보고 바다 신이 천손임을 알아본다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 14 일서, 바다 신의 시험",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "기존 japanese_mythology/source/tradition-cards.json 「바다 신의 궁전」과 관련 전승 가능; 고사기 서술과 대조 필요"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "70b550f6-168a-5603-b933-68ac7314dc0f",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-14",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "hook-fish",
+    "title": "낚싯바늘을 토해 낸 물고기",
+    "cardType": "event",
+    "body": "바다 신이 아카메와 구치메를 부르자 구치메가 입에서 바늘을 내놓는다. 본문은 각각 도미와 숭어라고 풀이한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 14 일서, 바늘 회수",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "기존 japanese_mythology/source/tradition-cards.json 「호오리와 호데리의 낚싯바늘」과 동일 사건의 다른 저본 가능; 일서를 따로 비교할 것"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "75f6cc50-ab9b-5e84-af44-5a47bea13fdd",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-14",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "curse-whistle",
+    "title": "저주한 낚싯바늘과 휘파람",
+    "cardType": "ability",
+    "body": "바다 신은 바늘을 돌려줄 때 가난을 비는 말을 하고 세 번 침을 뱉으며, 형이 낚시할 때 해변에서 휘파람을 불라고 가르친다. 신이 바람과 파도를 일으키자 형이 물에 빠져 괴로워한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 14 일서, 바다 신의 가르침과 형의 조난",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "기존 japanese_mythology/source/tradition-cards.json 「호오리와 호데리의 낚싯바늘」과 동일 사건의 다른 저본 가능; 일서를 따로 비교할 것"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "34b4e25e-6eb3-533f-908e-084bd1e3f1d1",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-14",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "elder-brother",
+    "title": "호스세리의 항복과 광대",
+    "cardType": "character",
+    "body": "형 호스세리는 물에 빠져 동생에게 구원을 빌고 자손이 동생 곁에서 광대로 섬기겠다고 약속한다. 이후 몸을 붉게 칠하고 익사할 때의 몸짓을 흉내 낸다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 14 일서, 형의 항복",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "기존 japanese_mythology/source/tradition-cards.json 「호오리와 호데리의 낚싯바늘」과 동일 사건의 다른 저본 가능; 일서를 따로 비교할 것"
+    ],
+    "uncertainties": [
+      "형의 수모와 후손의 역할은 이 일서가 설명하는 전승이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0da1bd2e-7d27-5594-abf4-692de261209a",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-14",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "toyotama-parting",
+    "title": "도요타마히메의 이별",
+    "cardType": "event",
+    "body": "도요타마히메는 출산 때 자신의 요청이 무시되어 모욕당했다고 말하고 바다로 돌아간다. 아이를 물가에 두었다는 서술 뒤에는 직접 데려갔다가 다마요리히메를 시켜 보냈다는 다른 설이 이어진다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 14 일서, 출산과 이별 및 내부 이설",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "기존 japanese_mythology/source/tradition-cards.json 「도요타마비메의 출산 금기」와 관련 이설 가능; 동일시 보류"
+    ],
+    "uncertainties": [
+      "앞부분은 요청의 내용을 云云으로 생략한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0c48c0ba-a082-50c0-bccd-97fdadb9959c",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-14",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "land-sea-separation",
+    "title": "바다와 육지의 왕래 단절",
+    "cardType": "rule",
+    "body": "도요타마히메는 서로 상대에게 온 노비를 돌려보내지 말자고 말하고 바다로 떠난다. 이 일서는 이를 바다와 육지가 통하지 않게 된 까닭으로 설명한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 14 일서, 이별의 말",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "기존 japanese_mythology/source/tradition-cards.json 「도요타마비메의 출산 금기」와 관련 이설 가능; 동일시 보류"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "77ca975d-42a3-5539-9b15-918712388317",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-14",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "tamayori-delivery",
+    "title": "다마요리히메가 아이를 데려옴",
+    "cardType": "event",
+    "body": "아이를 바다에 데려갔다는 별도 설에서는 도요타마히메가 천손의 자식은 바다에 둘 수 없다며 다마요리히메 편으로 보낸다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 14 일서, 아이에 관한 내부 이설",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "기존 japanese_mythology/source/tradition-cards.json 「도요타마비메의 출산 금기」와 관련 이설 가능; 동일시 보류"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "aad9a9ca-1803-554e-b0f5-94c74ff65403",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-15",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "ugayafukiaezu",
+    "title": "우가야후키아에즈의 혼인과 무덤",
+    "cardType": "character",
+    "body": "우가야후키아에즈는 이모 다마요리히메를 비로 삼아 네 아들을 두고 서주의 궁에서 죽어 휴가 아이라산 위 능에 묻힌다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 15 본문, 혼인과 장지",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "같은 batch 문단 16–19의 네 아들 계보와 비교; 별도 이설이다."
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "69e4206f-0e4b-5dc3-9a7d-1ec4944b9c7f",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-15",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "sons-main",
+    "title": "네 아들의 본문 계보",
+    "cardType": "event",
+    "body": "본문은 이쓰세, 이나이, 미케이리노, 가무야마토이와레 순서로 네 아들을 낳았다고 전한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 15 본문, 네 아들의 출생 순서",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "같은 batch 문단 16–19 계보 이설과 대조"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c55e1d46-b378-582f-ad35-378363a0933d",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-16",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "sano-names",
+    "title": "사노와 가무야마토이와레",
+    "cardType": "character",
+    "body": "일서는 넷째 사노가 젊을 때의 이름이며 천하를 평정해 팔주를 차지한 뒤 가무야마토이와레라는 이름을 더했다고 설명한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 16 일서, 넷째 아들의 이름",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "기존 japanese_mythology/source/tradition-cards.json 「진무의 동쪽 원정과 이쓰세의 죽음」과 관련 인물 가능; 일본서기 이설로 별도 비교"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2ec07871-1244-5610-8f11-814f63477522",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-16",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "sons-alt-16",
+    "title": "네 아들 계보: 사노를 넷째로",
+    "cardType": "event",
+    "body": "이 일서는 이쓰세, 이나이, 미케이리노, 사노를 차례로 기록한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 16 일서, 출생 순서",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "같은 batch 문단 15와 17–19 계보 이설"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f8bec017-9394-51b0-8e1e-5e393f056b4d",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-17",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "sons-alt-17",
+    "title": "네 아들 계보: 미케노가 둘째",
+    "cardType": "event",
+    "body": "이 일서는 이쓰세, 미케노, 이나이, 이와레 순서로 기록하며 이와레의 다른 이름을 가무야마토이와레히코호호데미라 한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 17 일서, 출생 순서와 이명",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "같은 batch 문단 15–16, 18–19 계보 이설"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bab66ddc-09d9-542e-92c4-6db0ddfe9e10",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-18",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "sons-alt-18",
+    "title": "네 아들 계보: 와카미케노가 넷째",
+    "cardType": "event",
+    "body": "이 일서는 이쓰세, 이나이, 가무야마토이와레히코호호데미, 와카미케노 순서로 기록한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 18 일서, 출생 순서",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "같은 batch 문단 15–17, 19 계보 이설"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ed283f26-5db9-52bb-bc5d-af7ac8d963da",
+    "batch_id": "batch-14",
+    "unit_id": "japan-nihon2--paragraph-19",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "sons-alt-19",
+    "title": "네 아들 계보: 이와레가 둘째",
+    "cardType": "event",
+    "body": "이 일서는 이쓰세, 이와레히코호호데미, 이나이, 미케이리노 순서로 기록한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》卷第二, 페이지 문단 19 일서, 출생 순서",
+    "edition": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+    "possible_duplicates": [
+      "같은 batch 문단 15–18 계보 이설"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9a5ceaca-fa62-5003-8e12-7f67ae9485e9",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-01",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "xuanzang-child",
+    "title": "어린 현장과 아버지",
+    "cardType": "character",
+    "body": "전기는 현장이 속성 진씨이며 아버지 진혜에게 유교 경전을 배웠다고 전한다. 여덟 살 때 효경의 증자가 자리에서 일어나는 대목을 듣고 자신도 일어나 아버지를 기쁘게 한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 01, 출생과 효경 학습",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [
+      "기존 journey_to_the_west/source/tradition-cards.json 「삼장법사 · 당삼장」은 소설 인물; 역사 전기와 합치지 않음"
+    ],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ce9cc93b-8578-5ede-8bdd-e2044b1c60fe",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-01",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "changjie",
+    "title": "형 장첩",
+    "cardType": "character",
+    "body": "먼저 출가해 동도 정토사에 있던 장첩은 현장을 데려와 경전 공부를 가르친다. 뒤에 현장과 함께 전란을 피해 장안과 촉으로 향한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 01, 형과 출가",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e215486c-d642-5206-8197-0bb37ff902c0",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-01",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "zheng-shanguo",
+    "title": "정선과의 특별 선발",
+    "cardType": "event",
+    "body": "낙양에서 승려를 뽑을 때 나이가 어려 대상이 아니던 현장은 정선과에게 출가 뜻을 설명하고 예외로 선발된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 01, 낙양의 출가 선발",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9e83b907-42e2-556a-a68a-e2d38d8ab6eb",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-01",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "flight-to-shu",
+    "title": "전란 속 촉으로 향한 형제",
+    "cardType": "event",
+    "body": "전기는 수말 혼란 속에 형제가 장안에 갔으나 강석이 없자 자오곡을 거쳐 한천의 승려들에게 배우고 성도로 향했다고 서술한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 01, 장안에서 촉까지",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b150b64e-a88e-5737-b36e-df782cde3731",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-02",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "chengdu-teaching",
+    "title": "성도의 강석",
+    "cardType": "location",
+    "body": "전기는 혼란기에도 촉이 비교적 풍요롭고 조용해 여러 지역의 승려들이 모였고 강석마다 수백 명이 있었다고 전한다. 현장은 여기서 여러 논서를 배웠다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 02, 촉의 강석",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a58fedfd-d5ac-5e76-b3e3-fc5f42066399",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-02",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "departure-from-shu",
+    "title": "삼협을 거쳐 떠난 현장",
+    "cardType": "event",
+    "body": "성도에서 구족계를 받은 현장은 규정과 형의 만류로 뜻을 이루기 어렵자 상인들과 배를 타고 삼협을 지나 형주로 간다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 02, 성도에서 형주로",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "42861b85-add0-5227-a896-1316b875d21b",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-02",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "jingzhou-debate",
+    "title": "형주 강의와 문답",
+    "cardType": "event",
+    "body": "현장은 천황사에서 섭론과 아비담을 강의하며 참석자들의 질문에 답했고, 전기는 한양왕이 준 많은 시주를 받지 않았다고 전한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 02, 천황사의 강의",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b55d49ad-58ca-5373-ae5b-ec158c928334",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-02",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "changan-masters",
+    "title": "장안의 상과 변",
+    "cardType": "character",
+    "body": "장안의 두 승려 상과 변은 현장을 칭찬하며 그가 불교를 다시 밝힐 재목이라고 말한다. 현장은 이들에게도 가르침을 물었다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 02, 장안에서의 학습",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2d4e6c5a-cde8-5dc4-ad06-f70639d29145",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-03",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "westward-vow",
+    "title": "서행을 결심한 까닭",
+    "cardType": "event",
+    "body": "여러 스승의 해석이 달라 전거를 확인하고 유가사지론을 구하기 위해 서행하려 하지만 상주가 허락되지 않아 동료들은 물러나고 현장만 뜻을 굽히지 않는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 03, 서행 발원과 불허",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [
+      "기존 journey_to_the_west/source/tradition-cards.json 「삼장법사 · 당삼장」은 소설 인물; 역사 전기와 합치지 않음"
+    ],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a68771e6-6f8e-572c-a145-d6ebbade6290",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-03",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "sumeru-dream",
+    "title": "수미산을 오르는 꿈",
+    "cardType": "event",
+    "body": "출발 전 현장은 바다 속 보배로 된 수미산에 오르는 꿈을 꾼다. 발밑에 돌연꽃이 생기고 바람이 산꼭대기로 들어 올리는 장면은 전기에서 꿈으로 제시된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 03, 출발 전의 꿈",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "꿈의 내용이다.",
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "17173795-7142-593b-9c61-1c65bc272fdb",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-03",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "liangzhou",
+    "title": "양주의 강의와 소문",
+    "cardType": "location",
+    "body": "하서의 중심지 양주에서 현장은 경전을 강의한다. 오가던 상인들은 각지에 그의 서행 뜻을 전하고, 그는 시주의 절반을 등불에 쓰고 나머지는 여러 절에 나눈다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 03, 양주의 강회",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "42ded6e5-602b-5d0c-b0c3-931f30440c89",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-04",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "border-prohibition",
+    "title": "출번 금지와 양주의 단속",
+    "cardType": "rule",
+    "body": "전기는 나라가 백성의 국외 출행을 금지했으며 양주 도독 이대량이 현장을 추궁해 서울로 돌려보내려 했다고 전한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 04, 출행 금지와 추궁",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "70f95997-886c-5894-b066-d61910802868",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-04",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "yiwei-disciples",
+    "title": "의위와 두 제자의 은밀한 호송",
+    "cardType": "event",
+    "body": "의위 법사는 현장의 구법 뜻을 지지해 제자 혜림과 도정을 몰래 보내고 현장은 낮에는 숨고 밤에 가서 과주에 이른다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 04, 양주에서 과주까지",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "79e5f19a-b691-51b8-8599-ebae323d9ceb",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-04",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "li-chang",
+    "title": "공문을 찢은 이창",
+    "cardType": "character",
+    "body": "과주의 관리 이창은 현장 수색 공문을 몰래 보여 주고 본인임을 확인한 뒤 문서를 찢으며 빨리 떠나라고 말한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 04, 수색 공문",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2978e368-e8f4-51e8-8d71-5a7819cf538c",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-04",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "yumen-watchtowers",
+    "title": "옥문관과 다섯 봉수",
+    "cardType": "location",
+    "body": "전기가 전하는 서쪽 길에는 건너기 어려운 강과 옥문관, 백 리 간격으로 선 다섯 봉수가 있다. 그 사이에는 물과 풀이 없고 너머에는 막하연적이 있다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 04, 과주에서 들은 길 안내",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e44df923-6382-54e2-bd0b-953ba7a7e52d",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-04",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "pantuo",
+    "title": "석반타의 동행과 이탈",
+    "cardType": "character",
+    "body": "석반타는 오계를 받고 다섯 봉수까지 안내하겠다고 약속하나 위험과 가족, 법을 이유로 돌아간다. 전기는 그가 밤에 칼을 들고 다가왔다 돌아간 이유를 모른다고 쓴다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 04, 안내자와 결별",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "칼을 든 의도는 원문에서도 불명이다.",
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4018875d-ed60-5ab1-820f-9512860e7154",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-04",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "old-red-horse",
+    "title": "서쪽 길을 아는 늙은 붉은 말",
+    "cardType": "object",
+    "body": "노인은 이오를 여러 차례 왕래해 길을 아는 늙고 마른 붉은 말로 바꿔 타라고 권한다. 현장은 출발 전 점술가의 말과 들어맞는다고 여겨 말을 바꾼다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 04, 노인의 말 교환",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "점술의 적중은 전기의 인물 관점이다.",
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "01336760-14fe-5f0e-8d79-d64a04ba12b0",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-04",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "apparition-army",
+    "title": "사막의 군대처럼 보이는 형상",
+    "cardType": "event",
+    "body": "홀로 사막을 가던 현장은 멀리 보이는 군대 형상이 다가갈수록 사라지는 것을 보고 전기는 이를 요귀라고 해석한다. 두려워하지 말라는 허공의 소리도 전한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 04, 홀로 사막을 걷는 대목",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "초자연적 정체는 전기의 해석이다.",
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8e1e26cb-a95d-5e81-9ec7-1a694a10ea3f",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-05",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "wang-xiang",
+    "title": "첫 봉수의 왕상",
+    "cardType": "character",
+    "body": "첫 봉수의 교위 왕상은 처음 현장을 돌려보내려 하나 그의 결심을 듣고 물과 식량을 주고 네 번째 봉수의 왕백롱을 찾아가라고 안내한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 05, 첫 봉수의 만남",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1d00235f-392f-5281-9160-f83d1f675346",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-05",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "fourth-tower",
+    "title": "네 번째 봉수의 도움",
+    "cardType": "event",
+    "body": "현장은 밤에 물을 구하다 화살을 맞을 뻔하나 첫 봉수의 소개를 밝히자 봉수 관리가 숙박과 물주머니를 제공하고 다섯 번째 봉수를 피해 야마천으로 가라고 한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 05, 네 번째 봉수",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9ca7d9d1-4c91-52a2-a74c-a1f11b4d7cfa",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-05",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "moheyan-desert",
+    "title": "막하연적과 물 없는 여정",
+    "cardType": "location",
+    "body": "전기는 사하라고도 부르는 막하연적이 팔백여 리에 걸쳐 물과 풀이 없는 곳이라고 묘사한다. 현장은 야마천을 찾지 못하고 물까지 쏟는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 05, 사막과 물의 상실",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fac578c9-96d1-5231-a5ca-b143ec424e54",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-05",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "heart-sutra",
+    "title": "병자가 알려 준 반야심경",
+    "cardType": "object",
+    "body": "전기에 따르면 현장은 촉에서 아픈 사람에게 옷과 음식을 베풀고 그에게 경을 배웠다. 사막에서는 관음을 염하고 이 경을 소리 내어 외자 귀신들이 흩어졌다고 서술한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 05, 반야심경을 배운 내력",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "귀신이 흩어졌다는 것은 전기의 종교적 서술이다.",
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "19d8bb57-8e32-5c96-ad2e-b55ffa5274ca",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-05",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "oasis-dream",
+    "title": "다섯 밤의 갈증과 샘",
+    "cardType": "event",
+    "body": "물을 쏟은 뒤 나흘 밤과 닷새 동안 마시지 못한 현장은 쓰러졌다가 찬바람을 느낀다. 꿈에서 큰 신의 재촉을 받고 깨어난 뒤 말이 이끄는 길에서 풀과 물을 찾는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 05, 갈증과 발견",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "꿈은 꿈으로, 관음의 자비라는 설명은 전기 저자의 해석으로 보존한다.",
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f2e4a27f-f95b-5635-ba10-dbb9f7e192e7",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-05",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "yiwu-welcome",
+    "title": "이오의 노승과 환대",
+    "cardType": "event",
+    "body": "사막을 벗어나 이오에 도착한 현장은 절의 노승과 고향 사람을 만난 기쁨에 함께 울고, 이오 왕의 공양을 받는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 05, 이오 도착",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b7d4fdc4-44d9-5dc8-baf8-77ec0a98ad11",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-06",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "qu-wentai",
+    "title": "고창왕 국문태",
+    "cardType": "character",
+    "body": "고창왕 국문태는 현장을 초대하고 나라에 머물러 가르치기를 바라며 강제로 붙잡으려 한다. 현장의 단식 후 서행을 허락하고 그와 형제의 약속을 맺는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 06, 고창의 접대와 대립",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3cf2670a-db7f-5b23-9564-0d849dd3d170",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-06",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "fast-vow",
+    "title": "고창에서의 단식",
+    "cardType": "event",
+    "body": "왕의 만류로 발이 묶인 현장은 사흘간 물과 음식을 들지 않는다. 나흘째 왕이 서행을 허락하고 현장은 귀환 시 삼 년 머물겠다고 약속한 뒤 먹는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 06, 왕과의 대립과 약속",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e6c7be38-2699-5445-b392-c0f403c18dec",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-06",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "renwang-lecture",
+    "title": "인왕반야경 강회",
+    "cardType": "event",
+    "body": "현장은 떠나기 전 한 달 동안 인왕반야경을 강의하기로 한다. 왕은 큰 장막을 마련하고 날마다 직접 향로를 들고 맞이한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 06, 고창의 강회",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7d6826c2-2fb2-5510-aaff-60d28147670c",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-06",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "travel-support",
+    "title": "고창왕의 서행 지원",
+    "cardType": "object",
+    "body": "왕은 시봉할 사미 네 사람, 의복과 겨울 장비, 금은과 비단, 말과 인력을 마련하고 스물네 나라에 보낼 서신과 예물을 준비한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 06, 강의 뒤 여비와 국서",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0f43cdf3-8820-52d6-b541-6c65525e2a12",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-07",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "letter-of-thanks",
+    "title": "고창왕에게 보낸 감사문",
+    "cardType": "event",
+    "body": "현장은 감사문에서 번역과 해석의 차이로 생긴 논쟁을 서행의 이유로 밝히고, 여러 스승을 찾아 배운 뒤 돌아와 번역하겠다는 뜻을 적는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 07, 현장의 감사문",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [
+      "기존 journey_to_the_west/source/tradition-cards.json 「삼장법사 · 당삼장」은 소설 인물; 역사 전기와 합치지 않음"
+    ],
+    "uncertainties": [
+      "감사문은 현장의 수사적 자기 서술로 제시된다.",
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2b74f39b-d8a8-566b-965b-10c68dcee483",
+    "batch_id": "batch-14",
+    "unit_id": "journey-xuanzang--chunk-07",
+    "work_id": "journey-xuanzang",
+    "world_id": "journey_to_the_west",
+    "candidate_key": "gao-chang-farewell",
+    "title": "고창의 전송",
+    "cardType": "event",
+    "body": "출발하는 날 왕과 승려, 신하와 백성이 성 밖까지 보내고 왕은 현장을 안고 운다. 왕은 수십 리를 더 동행하고 돌아간다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+    "source_location": "《大唐大慈恩寺三藏法師傳》卷一, 인위적 구간 07, 출발과 이별",
+    "edition": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "역사 전기의 서술이며 소설 《서유기》와 통합 여부는 미정이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "455b0b53-39ef-5ab0-a7e6-13b36da2116a",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "kuaihelani",
+    "title": "쿠아이헤라니",
+    "cardType": "location",
+    "body": "도입부에서 펠레가 태어난 땅으로 전해진다. 한곳에 고정되지 않고 때때로 나무와 집이 있는 정원처럼 나타난다고 한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 첫 문단",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3fd477ab-80e9-5f8d-b096-279e047e00da",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "haumea",
+    "title": "하우메아",
+    "cardType": "character",
+    "body": "도입부는 하우메아를 펠레의 어머니로 소개한다. 막내 히이아카가 어머니의 뒤쪽 정수리에서 피 덩이로 태어났다는 이야기도 전한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 출생 이야기",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7fee3e6c-b5e1-5018-a5ac-d6f2cf42e9b1",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "lonomakua",
+    "title": "로노마쿠아",
+    "cardType": "character",
+    "body": "불을 돌보는 로노마쿠아 곁에서 어린 펠레가 그의 방법을 관찰하고 익혔다고 한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 어린 펠레",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8926a155-689c-5250-adbb-c75be13923e7",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "namaka",
+    "title": "나마카오카하이",
+    "cardType": "character",
+    "body": "펠레의 언니인 바다 여신이다. 펠레가 고향 일부를 불태우자 추격하며, 마우이 전투에서 펠레를 죽였다고 믿지만 영체가 하늘에 나타난다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 고향과 전투",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "펠레 관련 hawaii-pele--chapter-01 / pele 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-01 / spirit-journey 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-04 / return-spirit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-04 / wake-song 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-07 / hearth-disguise 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "34e6b744-6ba2-5dbf-a65f-ee4deee94ae0",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "kamohoalii",
+    "title": "카모호알리이",
+    "cardType": "character",
+    "body": "강한 권위와 금기로 보호받는 펠레의 오빠다. 펠레는 그의 옷자락에 숨어 추격을 피하고 그는 일행의 카누를 조종한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 피난과 항해",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5735d0dd-9d73-5377-af10-279455313abd",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "canoe",
+    "title": "호누아이아케아 카누",
+    "cardType": "object",
+    "body": "펠레 일행이 고향을 떠나 피난할 때 탄 이름난 카누다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 고향 탈출",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e6bf8bd3-8e4b-5cd6-a663-dcae80aaa1b1",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "paoa-staff",
+    "title": "파오아 지팡이",
+    "cardType": "object",
+    "body": "펠레 일행이 거처 후보지를 점칠 때 쓴다. 편집자 주에는 화구를 파는 도구이자 나중에 파나에와에서 숲이 되었다는 제보가 실려 있다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 니호아와 주 2",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "27f7f34f-acac-5ef9-8c4b-f64131a1406b",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "kaneapua",
+    "title": "니호아의 카네아푸아",
+    "cardType": "character",
+    "body": "노래에서 배 앞에 짐을 실은 막내 카네아푸아는 니호아에 남겨진다. 펠레가 연민을 표하자 일행이 돌아가 구한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 니호아 노래와 구조",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "535165cf-f9e4-5258-a2bc-b5ec7b149149",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "lehua-islet",
+    "title": "레후아 섬의 이름",
+    "cardType": "event",
+    "body": "펠레는 작은 섬에 카우노아 화환을 놓고 히이아카는 자신의 레후아 화환을 보태 이름을 붙인다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 레후아 상륙",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f9f1b28c-b1c4-5424-bffb-ca0c74e3f60e",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "hanui",
+    "title": "하우이",
+    "cardType": "character",
+    "body": "바다 여신 나마카오카하이와 함께 펠레를 쫓아 할레아칼라 앞바다에 나타나는 바다 용이다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 할레아칼라 대결",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "72ff67eb-64fe-578a-9982-7cff405aabda",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pele-spirit",
+    "title": "펠레의 영체와 전투",
+    "cardType": "event",
+    "body": "나마카오카하이와 용이 펠레를 쓰러뜨린 듯 보인 뒤, 카모호알리이는 하와이 산 너머 하늘에서 펠레의 빛나는 영체를 본다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 할레아칼라 전투",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "펠레 관련 hawaii-pele--chapter-01 / pele 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-01 / spirit-journey 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-04 / return-spirit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-04 / wake-song 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-07 / hearth-disguise 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1acbc4f1-8b6b-5928-8cc8-8dba65313554",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "kilauae-home",
+    "title": "킬라우에아 거처의 선택",
+    "cardType": "event",
+    "body": "하와이에 도착한 일행은 현재 킬라우에아 분화구에 해당한다고 편집자가 설명하는 곳에서 파오아의 좋은 징조를 얻고 거처를 정한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 상륙과 정착",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a4ddf37b-6ceb-5ba2-8ad0-206fe6b5b219",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--introduction",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "forest-paoa",
+    "title": "파나에와의 파오아 숲",
+    "cardType": "location",
+    "body": "편집자 주의 제보에 따르면 파오아 지팡이는 파나에와에 심겨 나무와 숲이 되었다. 제보자는 잘린 나뭇가지만 보고 살아 있는 나무는 보지 못했다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "도입부 주 2",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "도입부는 에머슨의 편집적 요약이며 독립된 단일 구술 원문이 아님",
+      "제보·인물의 전언·편집자의 해석을 구분해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-01",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pele",
+    "title": "펠레의 바닷가 나들이",
+    "cardType": "character",
+    "body": "펠레는 자매들과 바다 음식을 모으러 가자고 한다. 걸어서 일행을 따르지 않았지만 약속 장소에 먼저 나타난다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제1장 1쪽 나들이",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "펠레 관련 hawaii-pele--introduction / namaka 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--introduction / pele-spirit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-04 / return-spirit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-04 / wake-song 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-07 / hearth-disguise 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e78bcd55-71cb-59ce-b810-8ef9cb1422e8",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-01",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "hopoe",
+    "title": "호포에",
+    "cardType": "character",
+    "body": "푸나 바닷가에서 하에나와 춤을 춘다. 히이아카의 가까운 친구이자 노래와 춤의 스승으로 묘사된다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제1장 1–2쪽 춤",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ab48ce7e-8055-59e7-9fa4-c26820ed52cb",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-01",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "haena-dancer",
+    "title": "춤추는 하에나",
+    "cardType": "character",
+    "body": "호포에와 함께 푸나 바닷가에서 춤추는 인물로 히이아카의 노래에도 이름이 나온다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제1장 1–2쪽 춤",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "054c3dec-5431-5883-a318-7be1397d7f29",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-01",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "hiiaka",
+    "title": "히이아카의 노래와 화환",
+    "cardType": "character",
+    "body": "막내 히이아카는 레후아 꽃을 모아 펠레부터 자매들에게 화환을 씌우고 바닷가의 춤을 노래한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제1장 1–2쪽 답가",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "히이아카 관련 hawaii-pele--chapter-04 / hiiaka-vision 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "히이아카 관련 hawaii-pele--chapter-05 / hiiaka-foresight 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "히이아카 관련 hawaii-pele--chapter-07 / lohiau-name 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cbe456fe-2e18-5eda-8d86-fb0b584d7424",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-01",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "sleep-rule",
+    "title": "잠든 펠레를 깨우는 금지",
+    "cardType": "rule",
+    "body": "펠레는 자는 자신을 깨우지 말라고 경고한다. 꼭 깨워야 한다면 히이아카 또는 오빠 케오와히마카오카우아에게 맡기라고 한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제1장 2–3쪽 잠들기 전 명령",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "펠레를 깨움 관련 hawaii-pele--chapter-04 / return-spirit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레를 깨움 관련 hawaii-pele--chapter-04 / wake-song 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8e06b6e4-aac5-533f-a541-1adba5b0d724",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-01",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "keowahimaka",
+    "title": "케오와히마카오카우아",
+    "cardType": "character",
+    "body": "펠레가 오빠라고 부르는 가까운 친족이다. 펠레를 깨울 수 있다고 지목된 두 사람 중 하나로 그 명령을 히이아카에게 전한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제1장 3쪽 수면 명령",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f5cd124c-726c-5f5a-9b43-1dcff5cf9e06",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-01",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "spirit-journey",
+    "title": "펠레의 영체 여행",
+    "cardType": "ability",
+    "body": "육체가 동굴에서 자는 동안 펠레의 영체는 멀리 들리는 춤 북소리를 따라 여러 섬을 건너간다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제1장 3–4쪽 영체 추적",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "펠레 관련 hawaii-pele--introduction / namaka 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--introduction / pele-spirit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-04 / return-spirit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-04 / wake-song 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-07 / hearth-disguise 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0642f93e-7a9a-51d2-9040-3a6f4ad198d4",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-01",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pohaku-kauai",
+    "title": "포하쿠오카우아이",
+    "cardType": "character",
+    "body": "카에나 곶의 노인 모습 존재로 바다에서 마위가 끌어올린 바위의 인격적 표현이라고 설명된다. 펠레는 그가 자신을 음악으로 꾀었다고 오해했다가 인정한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제1장 3–4쪽 카에나 곶",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d6e70096-6382-5096-8b8e-c4b71dcc766a",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-01",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "music-spirits",
+    "title": "카니카위와 카니카와",
+    "cardType": "character",
+    "body": "각각 코피리와 호케오 호루라기에 깃든 작은 존재들이다. 훌라 장소로 펠레를 유인하려고 음악을 멀리서 들리게 한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제1장 4쪽 음악의 정체",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7906c0be-4fd8-5a0a-9e18-714da3040dda",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-01",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "halau",
+    "title": "하에나의 훌라 회관",
+    "cardType": "location",
+    "body": "카우아이 북쪽 하에나 마을의 훌라 회관에 섬 곳곳에서 온 사람들이 모이고 북이 울린다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제1장 4쪽 마지막 문단",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b50cfaee-1295-58b0-a193-e6475aaec7c9",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-02",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "lohiau",
+    "title": "로히아우",
+    "cardType": "character",
+    "body": "하에나 회관에서 북을 치는 추장으로 낯선 펠레를 맞아 잔치를 베푼다. 처음에는 그녀의 정체를 모른다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제2장 5–7쪽 환대",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "로히아우 관련 hawaii-pele--chapter-03 / lohiau-death 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "로히아우 관련 hawaii-pele--chapter-07 / death-message 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "472f7365-1dd8-5f5c-bb36-6683a2e7e336",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-02",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "paoa-friend",
+    "title": "로히아우의 벗 파오아",
+    "cardType": "character",
+    "body": "로히아우의 오른편에서 북을 치며 얼어붙은 친구를 옆구리로 찔러 손님에게 응대하도록 재촉한다. 도입부의 동명 지팡이와 별개다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제2장 6쪽 회관",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "af977ed0-7757-5751-a546-d83777371dd4",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-02",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pele-visit",
+    "title": "펠레와 로히아우의 만남",
+    "cardType": "event",
+    "body": "펠레는 노래로 회관을 사로잡고 로히아우와 사흘 밤낮을 보낸 뒤 푸나로 떠난다. 로히아우는 관계를 요구하지만 펠레는 입맞춤만 허락한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제2장 5–8쪽 만남과 이별",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "로히아우 관련 hawaii-pele--chapter-03 / lohiau-death 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "로히아우 관련 hawaii-pele--chapter-07 / death-message 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3fa302d8-463e-5a72-82cf-bdd9f1c6e6bc",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-02",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "messenger-condition",
+    "title": "로히아우에게 남긴 약속",
+    "cardType": "rule",
+    "body": "펠레는 거처를 준비한 뒤 사람을 보내겠다며 남자가 오면 따라가지 말고 여자가 오면 따라오라고 말한다. 도착 후 다섯 밤낮이 지나면 다른 여인과 함께할 수 있다고 한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제2장 8쪽 작별 약속",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "로히아우 관련 hawaii-pele--chapter-03 / lohiau-death 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "로히아우 관련 hawaii-pele--chapter-07 / death-message 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "184c093c-f54c-5081-8084-471c56ce7c16",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-03",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "lohiau-death",
+    "title": "로히아우의 죽음과 장례",
+    "cardType": "event",
+    "body": "누이가 집에 들어가 목에 옷을 건 채 서까래에 매달린 로히아우의 시신을 발견한다. 사람들은 의례에 따라 시신을 장사지낸다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제3장 8–9쪽 발견과 장례",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "로히아우 관련 hawaii-pele--chapter-02 / lohiau 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "로히아우 관련 hawaii-pele--chapter-02 / pele-visit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "로히아우 관련 hawaii-pele--chapter-02 / messenger-condition 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "로히아우 관련 hawaii-pele--chapter-07 / death-message 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "78f72bc7-8475-5c14-b8cc-2e0b998e8535",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-03",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "paoa-oath",
+    "title": "파오아의 복수 맹세",
+    "cardType": "event",
+    "body": "파오아는 친구이자 추장의 죽음에 분노해 여인을 찾아 모욕하고 복수하기 전까지 허리옷을 다시 입지 않겠다고 맹세한다. 이는 위협이지 실행된 사건은 아니다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제3장 9쪽 맹세",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fb21d6be-14b1-5add-9e22-ae4f055e67b2",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-03",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "lohiaus-dog",
+    "title": "로히아우의 개",
+    "cardType": "character",
+    "body": "주인의 무덤을 떠나지 않던 개를 포하카우가 데려오자 펠레는 개를 알아보고 비밀 장소에 숨긴다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제3장 9쪽 무덤과 전갈",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "56adbdaf-b96e-5390-b9b0-313e50bd1f97",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-03",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pohakau",
+    "title": "포하카우의 전갈",
+    "cardType": "character",
+    "body": "펠레의 사촌이자 초인적 힘을 가진 쿠푸아다. 하에나에서 로히아우의 개를 데려와 그의 죽음을 전한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제3장 9쪽 마지막 문단",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "69374788-16cb-5371-94fc-e2b2c273bc8b",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-04",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pauopalae",
+    "title": "파우오팔라에의 전갈",
+    "cardType": "character",
+    "body": "히이아카의 유모 파우오팔라에는 펠레의 자매들이 히이아카를 찾는다는 말을 전한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제4장 10–11쪽 전령",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "파우오팔라에 관련 hawaii-pele--chapter-05 / pau-messenger 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "파우오팔라에 관련 hawaii-pele--chapter-06 / travel-companion 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "파우오팔라에 관련 hawaii-pele--chapter-09 / pau-skirt 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2e0cf8d3-f685-526f-a5ca-662928a9657e",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-04",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "hiiaka-vision",
+    "title": "히이아카의 불길한 예감",
+    "cardType": "ability",
+    "body": "전령을 멀리서 본 히이아카는 닥칠 문제와 떠남을 예감하고 노래에서 불에 그을린 레후아와 작별을 노래한다. 인물의 환시다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제4장 10–11쪽 두 노래",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "히이아카 관련 hawaii-pele--chapter-01 / hiiaka 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "히이아카 관련 hawaii-pele--chapter-05 / hiiaka-foresight 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "히이아카 관련 hawaii-pele--chapter-07 / lohiau-name 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0d42851c-cc51-5ac5-b197-54d3766267e1",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-04",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "return-spirit",
+    "title": "펠레 영체의 귀환",
+    "cardType": "event",
+    "body": "펠레의 영체가 잠든 몸 위로 돌아왔지만 아직 들어가지 않아 가족이 걱정한다. 히이아카는 부패하지 않은 몸을 살피고 노래로 그녀를 깨운다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제4장 11–12쪽 각성",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "펠레 관련 hawaii-pele--introduction / namaka 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--introduction / pele-spirit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-01 / pele 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-01 / spirit-journey 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-07 / hearth-disguise 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레를 깨움 관련 hawaii-pele--chapter-01 / sleep-rule 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "869c4032-989d-544d-b025-ddec4bfebbec",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-04",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "wake-song",
+    "title": "히이아카의 깨우는 노래",
+    "cardType": "ability",
+    "body": "히이아카가 자는 펠레에게 두 차례 노래하자 펠레가 숨과 혈색을 되찾고 깨어난다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제4장 11–12쪽 깨우는 노래",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "펠레 관련 hawaii-pele--introduction / namaka 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--introduction / pele-spirit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-01 / pele 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-01 / spirit-journey 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-07 / hearth-disguise 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레를 깨움 관련 hawaii-pele--chapter-01 / sleep-rule 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "02560f7c-f391-5924-95b8-c139dff649d1",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-04",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "laupahoehoe",
+    "title": "라우파호에호에의 잠자리",
+    "cardType": "location",
+    "body": "자매들이 잠든 펠레를 지키는 곳이다. 편집자 주는 이 장소를 힐로의 동명 장소와 구별한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제4장 9–12쪽과 주 1",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ca79de08-b58f-5d9d-b343-981c5472aa8a",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-05",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "hiiaka-alei",
+    "title": "히이아카이카알레이",
+    "cardType": "character",
+    "body": "펠레가 로히아우를 데려오라고 먼저 제안한 자매다. 여행 중 접촉 금지와 위반 시 죽음이라는 조건을 듣고 운다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제5장 12–13쪽 제안",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "74b99690-4292-5ebd-8f3a-19c6f054deec",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-05",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "sisters-refuse",
+    "title": "자매들의 심부름 거절",
+    "cardType": "event",
+    "body": "펠레가 여러 자매에게 카우아이로 가자고 제안하지만 마법 존재와 용이 길을 막고 보호할 힘도 주어지지 않아 모두 거절한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제5장 13쪽 거절",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "71eb59a8-cc34-5356-adbc-092cb79cb515",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-05",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "hiiaka-foresight",
+    "title": "히이아카의 예지 감각",
+    "cardType": "ability",
+    "body": "서술자는 히이아카가 먼 곳의 일과 다가올 일을 알아채는 직관이 있다고 설명한다. 호포에와 파도타기를 하던 중 긴 여행을 떠날 것을 예감한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제5장 13쪽 파도타기",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "히이아카 관련 hawaii-pele--chapter-01 / hiiaka 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "히이아카 관련 hawaii-pele--chapter-04 / hiiaka-vision 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "히이아카 관련 hawaii-pele--chapter-07 / lohiau-name 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4e65d324-bb61-5023-b857-4a303ee9de2b",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-05",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pau-messenger",
+    "title": "파우오팔라에의 급한 심부름",
+    "cardType": "event",
+    "body": "펠레는 타로 잎 요리가 익기 전에 히이아카를 데려오라고 파우오팔라에에게 명한다. 파우는 해변에 나타나 킬라우에아로 가자고 전한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제5장 13쪽 음식과 해변",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "파우오팔라에 관련 hawaii-pele--chapter-04 / pauopalae 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "파우오팔라에 관련 hawaii-pele--chapter-06 / travel-companion 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "파우오팔라에 관련 hawaii-pele--chapter-09 / pau-skirt 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c33729de-5e58-51b6-a3ef-bdf4d5fc6b90",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-05",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "awa-tree",
+    "title": "나무 위의 아와",
+    "cardType": "other",
+    "body": "히이아카는 나무 갈라진 곳에 고인 물을 마시는 두 새와 그곳에 자란 아와를 본다. 서술자는 이런 아와가 푸나에서 특히 독하다고 전한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제5장 14쪽 새와 노래",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6903b140-6dc1-571e-a51a-c3ca5f64abbf",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-06",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "quest-agreement",
+    "title": "히이아카의 심부름 약속",
+    "cardType": "event",
+    "body": "히이아카는 다른 자매들과 달리 로히아우를 데려오겠다고 동의한다. 펠레는 귀환 전 접촉을 금하고 귀환 후 다섯 밤낮을 자신에게 달라고 한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제6장 15쪽 첫 제안",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "93ba4149-7627-5841-9faa-cecdf09810f3",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-06",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "protect-grove",
+    "title": "레후아 숲과 호포에 보호 약속",
+    "cardType": "rule",
+    "body": "히이아카는 떠나 있는 동안 펠레가 공동의 땅은 태우더라도 자신의 레후아 숲과 친구 호포에는 해치지 말아 달라고 요구하고 펠레는 수락한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제6장 18쪽 협상",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3ff5fb64-fe44-5b6f-a42a-d6db55d8ffc8",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-06",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "travel-companion",
+    "title": "파우오팔라에의 동행",
+    "cardType": "character",
+    "body": "혼자 여행하기 싫다는 히이아카의 요청에 펠레는 시녀 파우오팔라에를 동반자로 지정한다. 파우는 이를 받아들인다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제6장 19쪽 동행 요청",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "파우오팔라에 관련 hawaii-pele--chapter-04 / pauopalae 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "파우오팔라에 관련 hawaii-pele--chapter-05 / pau-messenger 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "파우오팔라에 관련 hawaii-pele--chapter-09 / pau-skirt 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2d4e6df2-8cb8-5bff-9083-22aae19c6a94",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-06",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "combined-songs",
+    "title": "에머슨이 결합한 두 노래",
+    "cardType": "other",
+    "body": "동반자를 요청하는 노래는 별도 사건에 속한 두 멜레를 서술상 에머슨이 결합했다고 직접 밝힌다. 한 구술자의 원형으로 간주하지 않는다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제6장 19쪽 노래 다음 괄호",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "제보·인물의 전언·편집자의 해석을 구분해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c67b439d-3df4-560c-b80f-452782fa1bcd",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-06",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "family-council",
+    "title": "친족들의 마나 요청",
+    "cardType": "event",
+    "body": "자매와 친족은 위험한 길에 대비할 힘이 필요하다고 조언하고 카모호알리이 등이 상의한다. 카모호알리이가 펠레에게 대신 말한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제6장 20–22쪽 의논",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "27a8e0df-06ab-59f2-a282-776b75af561d",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-06",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "heavenly-mana",
+    "title": "천상의 힘을 빌린 마나",
+    "cardType": "ability",
+    "body": "펠레는 해와 달과 별, 바람과 비, 천둥과 번개를 불러 히이아카를 보호하게 하고 그 힘을 쓸 권한을 준다. 신들이 이를 승인했다고 서술된다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제6장 22쪽 마나 부여",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9642ac59-01b5-526e-a035-b0c7b4df6f9d",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-07",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "lohiau-name",
+    "title": "로히아우의 이름을 알아낸 히이아카",
+    "cardType": "ability",
+    "body": "히이아카가 작별 노래에서 로히아우의 이름을 부르자 펠레는 자신이 이름을 감추었는데 히이아카가 알아냈다고 말한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제7장 22–23쪽 작별 노래",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "히이아카 관련 hawaii-pele--chapter-01 / hiiaka 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "히이아카 관련 hawaii-pele--chapter-04 / hiiaka-vision 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "히이아카 관련 hawaii-pele--chapter-05 / hiiaka-foresight 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "02acf00a-8358-5b30-a30d-3924ded34939",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-07",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "death-message",
+    "title": "로히아우의 죽음에 대한 영적 전갈",
+    "cardType": "event",
+    "body": "와히네카푸 고원에 이른 히이아카는 로히아우가 죽었다는 영적 전갈을 받는다. 펠레는 그를 하늘이 아니라 땅에서 찾아오라고 답한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제7장 23–24쪽 전갈",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "로히아우 관련 hawaii-pele--chapter-02 / lohiau 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "로히아우 관련 hawaii-pele--chapter-02 / pele-visit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "로히아우 관련 hawaii-pele--chapter-02 / messenger-condition 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "로히아우 관련 hawaii-pele--chapter-03 / lohiau-death 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "af2854fa-2380-51b4-8609-46359a7a93e7",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-07",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "wahineomao",
+    "title": "와히네오마오",
+    "cardType": "character",
+    "body": "부모의 약속을 이행하려 새끼돼지를 바치러 가던 젊은 여성이다. 히이아카를 펠레로 착각했다가 도움을 받아 펠레에게 제물을 바치고 동행한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제7장 24–26쪽 봉헌과 동행",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "41ea77d1-85af-53e6-a058-c3eb0a3666a9",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-07",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pig-offering",
+    "title": "펠레에게 바치는 새끼돼지",
+    "cardType": "object",
+    "body": "와히네오마오가 혼인 전 펠레를 먼저 찾아가겠다는 부모의 서약을 이행하며 바치는 산 제물이다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제7장 25쪽 봉헌",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "45d040b4-79bd-5e2a-8c2a-584831bef1e1",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-07",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "hearth-disguise",
+    "title": "화덕의 노파 모습",
+    "cardType": "rule",
+    "body": "히이아카는 펠레가 화덕에 누운 주름진 노파의 모습이라며 그에게만 제물을 바치라고 와히네오마오에게 주의를 준다. 잘못 접근하면 죽을 수 있다는 것은 히이아카의 경고다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제7장 25–26쪽 접근법",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "펠레 관련 hawaii-pele--introduction / namaka 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--introduction / pele-spirit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-01 / pele 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-01 / spirit-journey 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-04 / return-spirit 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "펠레 관련 hawaii-pele--chapter-04 / wake-song 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "50577333-c57f-5642-a7a4-605b6d69962b",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-07",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "instant-travel",
+    "title": "와히네오마오의 빠른 이동",
+    "cardType": "ability",
+    "body": "히이아카는 자신의 힘으로 와히네오마오가 곧바로 펠레 앞에 이르게 한다. 봉헌을 마친 와히네오마오는 곧 일행에게 돌아온다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제7장 26쪽 봉헌 이동",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "991ec934-e86f-5cd7-81c4-9a18fcf8c1df",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-07",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "watching-lohiau",
+    "title": "와히네오마오의 감시 전언",
+    "cardType": "other",
+    "body": "와히네오마오는 펠레가 히이아카와 로히아우의 접촉을 지켜보라고 말했다고 전한다. 직전 장면에 직접 서술된 펠레의 부탁은 친구로 붙으라는 말이므로 전언과 서술을 구분한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제7장 26쪽 귀환 대화",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "제보·인물의 전언·편집자의 해석을 구분해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5b5ef044-338c-5366-91b9-40e3627f8d92",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-07",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "road-sleep",
+    "title": "길 위의 잠자리",
+    "cardType": "rule",
+    "body": "쿠올로에서 파우가 마을 숙소를 제안하자 히이아카는 여행자는 길에서 자야 바로 떠날 수 있다고 말한다. 등장인물의 실용적 견해다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제7장 26쪽 마지막 대화",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "97af04fd-9f94-5700-a954-b1991d068d2b",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-08",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "papulehu",
+    "title": "파풀레후",
+    "cardType": "character",
+    "body": "레후아 화환을 만들던 젊은 여성으로 히이아카를 집 잔치에 초대하고 동행한다. 서술자는 그녀가 인간이며 동료들처럼 영적 적에 대한 보호를 받지 못했다고 설명한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제8장 27–28쪽 잔치",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "파풀레후 관련 hawaii-pele--chapter-09 / papulehu-fate 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a0264649-0701-52f9-b5be-2e11cdc67541",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-08",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "feast-gods",
+    "title": "신들에게 바친 잔치",
+    "cardType": "event",
+    "body": "파풀레후의 잔치에서 히이아카는 해와 달과 별과 신들을 초대해 음식을 먹도록 기도한다. 사람들이 눈을 뜨자 그녀 앞의 음식이 사라져 있다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제8장 28쪽 식사",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "39eb9428-502a-5099-86e9-ca60ea9b24af",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-08",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pahulu",
+    "title": "어부 파훌루",
+    "cardType": "character",
+    "body": "카누에서 고기를 잡는 어부다. 히이아카는 그의 그물을 향하던 물고기 떼를 쫓아내고 노래로 그를 불러 생선을 받는다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제8장 29쪽 해안",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "26249ec9-8d68-5036-a8ed-ceddca6bb296",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-08",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "stone-illusion",
+    "title": "돌을 끌어안은 어부들",
+    "cardType": "event",
+    "body": "생선을 준 두 어부가 여성들에게 모욕적인 제안을 한 뒤 두 여성인 줄 알고 돌 형상을 껴안는 모습이 다른 어부들에게 목격된다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제8장 29쪽 어부와 생선",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "76b42f7d-a9c3-5885-9554-4f0926643591",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-08",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "fish-remains",
+    "title": "생선 찌꺼기 처리",
+    "cardType": "rule",
+    "body": "파풀레후가 생선을 먹고 뼈와 비늘 등을 태우거나 묻지 않고 남겨두자 펠레가 불쾌해하여 보호를 거둔다고 서술된다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제8장 29쪽 마지막 문단",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "파풀레후 관련 hawaii-pele--chapter-09 / papulehu-fate 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "30172528-7809-509c-bd1e-38c26f53249d",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-09",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "panaewa-route",
+    "title": "파나에와의 두 길",
+    "cardType": "location",
+    "body": "해안 쪽 길은 돌아가지만 안전하고 파나에와의 영역을 지나는 지름길은 위험하다. 히이아카가 지름길을 택하자 파풀레후는 죽음을 두려워한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제9장 30쪽 첫 문단",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "45b2e717-2c6c-577c-b212-ca919e4e1b74",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-09",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "panaewa-witch",
+    "title": "파나에와",
+    "cardType": "character",
+    "body": "위험한 숲의 영역을 지배하는 마법의 모오다. 정찰자에게 여성 네 명이 왔다는 말을 듣고 먹잇감으로 여긴다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제9장 30–32쪽 길과 정찰",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0825ad02-6ee5-53c5-a5ac-7676e5c6f8ff",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-09",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "mo-o-disguise",
+    "title": "모오의 위장 정찰",
+    "cardType": "ability",
+    "body": "파나에와의 정찰자는 회색으로 몸을 덮어 고목 그루터기처럼 위장한다. 와히네오마오는 그루터기로 보지만 히이아카는 모오의 정체를 알아본다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제9장 30쪽 고목 정찰자",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "03f45d65-7e14-584f-8b78-b359424f4d43",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-09",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "bird-spy",
+    "title": "파나에와의 새 정탐꾼",
+    "cardType": "character",
+    "body": "숲에서 잠들지 않은 히이아카를 유심히 지켜보는 새로 파나에와를 위해 정탐한다. 히이아카는 경계하며 노래한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제9장 30–31쪽 숲의 밤",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "df4596a8-348d-5c4c-a157-8ff3804240db",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-09",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "scouts",
+    "title": "케아니니와 이히칼로",
+    "cardType": "character",
+    "body": "파나에와의 정찰을 맡은 두 부하다. 잠든 주인을 깨워 여성 네 명이 영역으로 들어왔다고 보고한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제9장 32쪽 정찰 보고",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d26babb6-6b3d-5ca5-87bf-10aa5f6f63e9",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-09",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "battle-song",
+    "title": "히이아카의 카호아호아",
+    "cardType": "ability",
+    "body": "파나에와의 도전에 히이아카는 승리의 예고이자 신들에게 도움을 구하는 엄숙한 노래로 답한다. 황폐화 묘사는 예고적 발화로 남긴다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제9장 34–35쪽 카호아호아",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f0fac8b2-5c69-5ee1-9305-5b03dfa9738e",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-09",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "mo-o-ambush",
+    "title": "숲에 숨은 모오 군세",
+    "cardType": "ability",
+    "body": "파나에와의 모오 무리는 나무와 돌 같은 자연물로 위장해 매복하고 공격한다. 히이아카는 이들과 싸운다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제9장 35쪽 전투",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "68cc646e-27a8-5b44-828e-d5966fb65662",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-09",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pau-skirt",
+    "title": "파우오팔라에의 마법 치마",
+    "cardType": "object",
+    "body": "파우오팔라에는 파나에와와의 전투에서 마법의 파우를 파괴하는 빗자루처럼 사용한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제9장 35쪽 전투",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "파우오팔라에 관련 hawaii-pele--chapter-04 / pauopalae 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "파우오팔라에 관련 hawaii-pele--chapter-05 / pau-messenger 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "파우오팔라에 관련 hawaii-pele--chapter-06 / travel-companion 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b8aff348-f71b-54a4-a172-d852c2163392",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-09",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "papulehu-fate",
+    "title": "파풀레후의 죽음",
+    "cardType": "event",
+    "body": "전투 중 파풀레후는 적에게 붙잡혀 파나에와의 신들을 위한 먹이가 된다. 앞서 자신이 죽으리라 우려한 말이 실현된 것으로 서술된다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제9장 35쪽 전투 말미",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [
+      "파풀레후 관련 hawaii-pele--chapter-08 / papulehu 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요",
+      "파풀레후 관련 hawaii-pele--chapter-08 / fish-remains 후보와 대상 또는 설정이 겹칠 수 있으므로 근거별 확인 필요"
+    ],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "572eece1-a6d0-53a2-af5c-f26e760ebff8",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-09",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "cloud-gods",
+    "title": "구름 모습의 원군",
+    "cardType": "event",
+    "body": "히이아카는 하늘에서 카네와 카날로아, 카모호알리이와 포하카우 등의 신 형상을 보고 기도한다. 카모호알리이는 히이아카를 도우러 가자고 한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제9장 35–36쪽 원군",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "82a58fb0-6cd9-5df5-83e6-6254fa51a626",
+    "batch_id": "batch-15",
+    "unit_id": "hawaii-pele--chapter-09",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "battle-variants",
+    "title": "히이아카의 전투에 관한 이설",
+    "cardType": "other",
+    "body": "일부가 히이아카가 불도끼와 불타는 유황을 썼다고 묘사하고 다른 이들은 살을 뜯어먹었다고 주장하지만 에머슨은 자신의 해석으로 이를 의심한다. 어느 설명도 확정하지 않는다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "제9장 35쪽 전투 묘사",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), Project Gutenberg 영어 전사본; 하와이어 노래와 영어 번역 포함",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "1915년 에머슨 영어 편집·번역본으로 하와이어 원구술이나 전승 공동체의 관점을 독립 확인하지 못함",
+      "제보·인물의 전언·편집자의 해석을 구분해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b7a025f8-5536-5c18-be02-b9998a29d31c",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pana-ewa",
+    "title": "파나에와",
+    "cardType": "character",
+    "body": "파나에와는 새 정찰병과 나무 모습의 병력을 이끄는 모오 우두머리다. 잠든 히이아카의 술수로 덩굴에 묶이고 펠레 신군의 공격 중 지반이 무너져 바다로 쓸려간다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 37쪽 파나에와 출전과 45쪽 최후",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [
+      "다른 장에 재등장하는 동명 대상일 가능성; 원문 위치 대조 필요"
+    ],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1b2e7aaf-6427-57ba-ac71-4a1068892723",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "bird-scouts",
+    "title": "파나에와의 새 정찰병",
+    "cardType": "organization",
+    "body": "새 정찰병들은 전황을 서로 다르게 보고하고, 한 쌍은 어둠을 밝히려 쿠쿠이 나무로 변장한다. 성난 우두머리가 목을 비틀려 하자 달아난다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 36–37쪽 첫 세 문단",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d6f9d6c1-d178-5af3-8b29-53d2bbf4fcab",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "namu-nawa",
+    "title": "나무와 나와 병력",
+    "cardType": "organization",
+    "body": "파나에와가 직접 이끄는 정규 병력으로, 다수는 나무 등 자연물의 모습으로 싸우다가 덩굴에 붙잡히고 신군의 폭풍에 휩쓸린다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 37쪽 출전, 45쪽 전투",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "73e75bae-2b9f-55dc-b985-963166534fa0",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "vines",
+    "title": "덩굴로 움직임을 묶는 술수",
+    "cardType": "ability",
+    "body": "잠든 히이아카가 오히아레후아 나무로 변한 파나에와를 기생 덩굴과 공중뿌리로 묶는다. 그의 나무 모습 병사들 역시 덩굴에 얽힌다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 37쪽 출전 장면",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5c73ecf7-7933-5ccd-bdc0-42ebaebc9050",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pau-prayer",
+    "title": "파우오팔라에의 구원 기도",
+    "cardType": "event",
+    "body": "파우오팔라에는 동이 틀 때 적군을 감지하고 히이아카를 깨우며 우호적인 신들을 부르는 기도 노래를 한다. 그 기도에는 펠레와 친족 등 여러 존재가 호명된다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 37–41쪽 기도와 영어 번역",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e4496c64-1369-5e9c-bb38-def2b692487e",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pele-decree",
+    "title": "펠레의 신성한 경계",
+    "cardType": "rule",
+    "body": "기도의 번역에는 펠레의 처소가 신성하고 떨어져 있으며 그 법이 굳다는 구절이 있다. 편집자 각주는 펠레의 등 뒤로 접근하는 금기와 다른 신들의 접근 제한으로 해설한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 41쪽 기도 번역과 각주 34–36",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "83629060-e87a-5a6b-b99f-405aed5586d6",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "pele-sons",
+    "title": "킬리오에와 올루왈레이말로",
+    "cardType": "character",
+    "body": "카모호알리이는 펠레의 총애를 받는 두 소년 킬리오에이카푸아와 올루왈레이말로에게 히이아카를 도울 허락을 청하게 한다. 편집자는 다른 이야기에서는 이 사자들이 새라고도 한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 41–43쪽 구원 요청",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4f32f012-9156-5ae3-b706-bd766f511222",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "war-gods",
+    "title": "펠레의 전쟁 신군",
+    "cardType": "organization",
+    "body": "펠레의 발화에 전쟁 신들이 모인다. 쿠릴리아이카우아가 이끌고 케카코이가 숲길을 안내하며 카마이아우·카히니히니·마푸가 소라를 분다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 43–45쪽 신군 행진",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "eaf4f904-1946-57de-8297-d70772332282",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "kiha",
+    "title": "키하",
+    "cardType": "character",
+    "body": "파나에와 편의 전사 키하는 용의 형태를 유지했다. 동굴로 피신했으나 펠레 군대에 발견되어 죽었으며 이야기에서는 돌이 된 몸을 근거로 든다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 45쪽 동굴 속 생존자",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0d739dbc-1916-571d-8b10-801164b99b4d",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "puaa-loa",
+    "title": "푸아아로아",
+    "cardType": "character",
+    "body": "멧돼지를 닮은 푸아아로아는 위급할 때 비밀 동굴에 숨겨져 홍수는 피했으나 신군에 발견되어 죽는다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 45쪽 동굴 속 생존자",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5f9b30fd-5178-53a0-88d4-d9ad38d69ebf",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "sinkhole",
+    "title": "파나에와를 삼킨 함몰지",
+    "cardType": "location",
+    "body": "파나에와가 갇힌 땅은 늪과 호수 모양으로 가라앉고 바닥이 무너지며 그를 바다로 쓸어 보낸다. 본문은 카네루호누아가 지층을 깼다고 한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 45쪽 파나에와 최후",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "98a2ad56-7144-5f59-b555-73b82918a6bf",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-10",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "papa-i-reef",
+    "title": "파파이 앞바다 암초",
+    "cardType": "location",
+    "body": "서술자는 파파이 맞은편 바다의 암초를 모오 파나에와의 몸이 남은 것이라고 전한다. 이 동일시는 전승의 주장이다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제10장, 45쪽 괄호 문장",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "95264d78-2f78-5905-bac2-d88a10327666",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-11",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "luau-meal",
+    "title": "루아우로 차린 식사",
+    "cardType": "object",
+    "body": "두 동행자가 칼로 잎을 묶어 익혀 식사를 마련하고, 잠든 히이아카를 파우오팔라에가 노래로 깨운다. 서술자는 루아우를 펠레 가족이 좋아하는 음식이라 한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제11장, 46–47쪽 첫 식사",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e5f226f8-6525-5e2d-b598-52e64d996fc3",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-11",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "maka-u-kiu",
+    "title": "상어 신 마카우키우",
+    "cardType": "character",
+    "body": "바닷길 절벽 아래에 숨어 있는 거대한 상어다. 히이아카가 던진 막대가 사라진 뒤 모습을 드러내고, 히이아카와 싸운다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제11장, 47–49쪽 수영 논쟁과 상어 출현",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [
+      "다른 장에 재등장하는 동명 대상일 가능성; 원문 위치 대조 필요"
+    ],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0ccac770-2344-5e4d-a09f-08229550d1eb",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-11",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "ti-test",
+    "title": "티 줄기로 시험한 바닷길",
+    "cardType": "event",
+    "body": "동행자들이 위험한 바다를 건너려 하자 히이아카는 껍질을 벗긴 티 줄기를 두 차례 던진다. 막대가 사라진 까닭을 두고 와히네오마오와 해석이 갈린 뒤 상어가 나타난다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제11장, 47–49쪽 절벽과 막대 시험",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a3417744-4753-5db9-970d-f0f81ba3dd50",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-11",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "au-hula",
+    "title": "해안길의 바다 단절 구간",
+    "cardType": "location",
+    "body": "절벽에서 길이 끊겨 내륙으로 우회하거나 바다를 헤엄쳐 건너야 하는 구간이다. 편집자 각주는 이 같은 단절을 아우훌라아나라고 설명한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제11장, 47쪽 절벽 장면과 각주 1",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8892b014-9727-5719-8793-392c6f4ef455",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-12",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "mahiki",
+    "title": "마히키 무리",
+    "cardType": "organization",
+    "body": "마히키와에나의 이동로를 지키며 여행자의 통행을 막는 모오 무리다. 이름은 뛰어오르는 능력에서 비롯한다고 서술되며 신군과 히이아카에게 패한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제12장, 49–54쪽 마히키 전투",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "eda1f88c-f964-5922-a536-545b9694d157",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-12",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "mo-o-lau",
+    "title": "모오라우",
+    "cardType": "character",
+    "body": "히이아카가 겨냥한 마히키 무리의 우두머리다. 본문은 양쪽에서 포위하도록 무리를 나누어 공격했다고 서술한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제12장, 51–54쪽 결투",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "89abe12d-23fb-51e3-b1e9-80e3af0e7e62",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-12",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "lau-mihi",
+    "title": "라우미히",
+    "cardType": "character",
+    "body": "마히키 우두머리가 히이아카를 감시하도록 보낸 여성 쿠푸아다. 밤에 높은 곳에서 발견되어 히이아카에게 죽는다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제12장, 52쪽 밤 정찰",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3dfbbc12-b60e-5d33-b2c3-ad38f6a96dde",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-12",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "healing-ti",
+    "title": "티 줄기로 부목을 댄 두 사람",
+    "cardType": "event",
+    "body": "팔다리뼈를 빼앗긴 두 사람의 울부짖음을 듣고 히이아카는 티 줄기를 넣어 부목을 댄다. 서술자는 마히키의 소행일 가능성을 말할 뿐 확정하지 않는다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제12장, 50–51쪽 부상자 구조",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f10838b0-c1e8-528d-af14-935d177691b4",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-12",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "right-of-way",
+    "title": "여행자의 통행권",
+    "cardType": "rule",
+    "body": "히이아카는 모오라우에게 대항하는 주문에서 길은 여행자가 함께 지날 권리가 있는 곳이라고 주장한다. 이는 이야기 속 화자의 주장이다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제12장, 51–52쪽 주문 영어 번역",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fcb3a522-1694-5cf0-bfb7-0ff161708f38",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-12",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "magic-pau",
+    "title": "마히키를 쓰러뜨리는 파우",
+    "cardType": "object",
+    "body": "편집 서술은 히이아카의 주된 공격 무기가 마법의 파우인 듯하며 이를 빗자루처럼 휘둘렀다고 풀이한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제12장, 54쪽 승리 뒤 설명",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [
+      "다른 장의 히이아카 마법 파우와 연관 가능; 용도와 문맥 별도 확인"
+    ],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dab8ef8d-a00e-5fb1-a24f-c332f4f68b9d",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-12",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "mahiki-survivors",
+    "title": "마히키 패잔병의 은신",
+    "cardType": "event",
+    "body": "서술자는 패한 무리 중 일부가 동굴과 은신처, 사람들의 집에 숨어들었다고 설명한다. 이어지는 노래를 근거로 한 편집자의 추론임을 명시한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제12장, 54–55쪽 노래 앞 설명",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c0b7c718-a796-595f-83e4-da4719a25b58",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-12",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "god-domains",
+    "title": "신들의 활동 영역에 관한 편집자 주",
+    "cardType": "rule",
+    "body": "편집자는 카모호알리이의 해전, 카네밀로하이의 육전 등 신들의 영역을 정리하지만 경계가 모호하다고 말한다. 이는 주석의 해석이지 다른 전승에도 통용되는 규칙은 아니다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제12장, 54–55쪽 Note",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "323d7b17-85f6-5bb8-bbc4-5ca25c85f195",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-13",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "wahine-parents",
+    "title": "와히네오마오의 부모",
+    "cardType": "character",
+    "body": "푸나호아와 카이팔라오아는 집 앞에서 딸을 기다린다. 딸은 동행을 계속하려 늙은 여인처럼 걷고, 부모는 닮았지만 걸음이 다르다고 말한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제13장, 55–56쪽 귀향 길",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ff4aa63b-a9cf-5eaf-9578-a60280e733e4",
+    "batch_id": "batch-16",
+    "unit_id": "hawaii-pele--chapter-13",
+    "work_id": "hawaii-pele",
+    "world_id": "hawaiian_tradition",
+    "candidate_key": "wailuku-bridge",
+    "title": "와일루쿠의 흔들다리",
+    "cardType": "location",
+    "body": "와일루쿠 강의 바위 협곡을 건너는 외나무다리다. 두 술사는 통행료를 내지 않는 사람을 떨어뜨리려 다리를 뒤집곤 한다.",
+    "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+    "source_location": "Emerson, Pele and Hiiaka, 제13장, 56–57쪽 다리 설명",
+    "edition": "Nathaniel B. Emerson, Pele and Hiiaka (1915), 하와이어·구술 자료를 바탕으로 편집한 영어판; Project Gutenberg HTML 전사",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "영어 번역·편집 서술에 근거하며 하와이어 원문과 구술 원형은 대조하지 않음."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  }
+]

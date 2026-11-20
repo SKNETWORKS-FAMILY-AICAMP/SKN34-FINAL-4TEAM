@@ -49,6 +49,14 @@ describe('settingBoardEntries', () => {
     expect(by).toEqual({ 성문: 1, 전쟁: 2, 평화: 1 })
   })
 
+  it('본문 링크(DEC-53)도 연결이다: 어느 쪽 본문에 걸었든 양쪽 카드에 한 번씩 세고 관계로 이미 이어진 카드면 하나다', () => {
+    const [gate, war, harbor] = [card('성문', 'location'), card('전쟁', 'event'), card('항구', 'location')]
+    war.item.text = `[성문](card:${gate.item.id}) 앞에서 [성문](card:${gate.item.id})과 [사라진 설정](card:11111111-2222-3333-4444-555555555555)`
+    harbor.item.text = `[성문](card:${gate.item.id}) 과 [자기](card:${harbor.item.id})`
+    const by = Object.fromEntries(settingBoardEntries(friends([gate, war, harbor], gate, war)).map((e) => [e.title, e.connections]))
+    expect(by).toEqual({ 성문: 2, 전쟁: 1, 항구: 1 }) // 성문: 관계로 전쟁 + 본문 링크로 항구(전쟁은 한 번만)
+  })
+
   it('게시판 규칙(boardRows)과 이어 붙이면 설정집 순서·연결 많은 순으로 번호가 매겨진다', () => {
     const [garam, narae, harbor] = [card('가람', 'character'), card('나래', 'character'), card('항구', 'location')]
     const entries = settingBoardEntries(friends([harbor, narae, garam], garam, harbor))
@@ -74,6 +82,7 @@ describe('settingBoardEntries', () => {
       if (a === b) continue
       try { settings = friends(settings, a, b, ['friend_of', 'trusts', 'custom_relation'][next(3)]) } catch { /* 같은 방향·종류의 관계는 한 번만 넣을 수 있다 */ }
     }
+    for (const c of cards) c.item.text = Array.from({ length: next(3) }, () => `[${c.item.title}](card:${ids[next(ids.length)]})`).join(' ') // 본문 링크: 없는 카드·자기 자신도 섞인다
     const entries = settingBoardEntries(settings)
     expect(entries).toHaveLength(40)
     for (const entry of entries) {
@@ -105,6 +114,14 @@ describe('settingLinks', () => {
     expect(names(settingLinks(settings, harbor.item.id))).toEqual(['가람·관련 설정', '전쟁·이후 사건'])
     expect(names(settingLinks(settings, war.item.id))).toEqual(['가람·관련 설정', '항구·앞선 사건'])
     expect(settingLinks(settings, garam.item.id).map((l) => l.via)).toEqual(['relation', 'relation', 'link', 'link'])
+  })
+
+  it('본문 링크는 건 카드에는 본문 링크로, 가리킨 카드에는 본문에서 가리킴으로 달고 없는 카드·자기 자신·같은 카드 여러 번은 하나로 모은다', () => {
+    const [gate, war] = [card('성문', 'location'), card('전쟁', 'event')]
+    war.item.text = `[성문](card:${gate.item.id}) 앞 [성문 또](card:${gate.item.id}) [자기](card:${war.item.id}) [없는](card:11111111-2222-3333-4444-555555555555)`
+    expect(names(settingLinks([gate, war], war.item.id))).toEqual(['성문·본문 링크'])
+    expect(names(settingLinks([gate, war], gate.item.id))).toEqual(['전쟁·본문에서 가리킴'])
+    expect(settingLinks([gate, war], gate.item.id).map((l) => l.via)).toEqual(['link'])
   })
 
   it('없는 카드·자기 자신·카드가 아닌 항목(메모)을 가리키는 연결은 버리고 연결이 없으면 빈 목록이다', () => {

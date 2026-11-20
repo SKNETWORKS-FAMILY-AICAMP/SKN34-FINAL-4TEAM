@@ -24,6 +24,16 @@
 .chat-msg.system .chat-bubble { max-width: 100%; }
 .chat-text { margin: 0; padding: 10px 14px; border: 1px solid var(--tline); border-radius: 18px 18px 18px 4px; background: var(--chat-card, var(--tcard)); line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .chat-msg.user .chat-text { border-color: var(--pri); border-radius: 18px 18px 4px 18px; background: var(--pri); color: var(--on-pri); }
+/* 마크다운 답변: 블록 사이 줄바꿈 글자가 빈 줄로 보이지 않게 한다(문단 안 줄바꿈은 CardMarkdown이 지킨다). */
+.chat-text.chat-md { white-space: normal; }
+.chat-step-details { padding-inline: 4px; color: var(--tsub); font-size: 12.5px; }
+.chat-step-details > summary { cursor: pointer; }
+.chat-step-details > summary:focus-visible { outline: 2px solid var(--tacc); outline-offset: 2px; border-radius: 4px; }
+.chat-step-details > p { margin: 6px 0 0; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-reply-foot { display: flex; align-items: flex-start; gap: 8px; }
+.chat-reply-foot > .chat-step-details { flex: 1; min-width: 0; }
+.chat-reply-foot > .chat-step-details > summary { line-height: 28px; }
+.chat-reply-foot > .chat-msg-actions { margin-left: auto; }
 .chat-msg.system .chat-text { padding: 4px 8px; border: 0; background: none; color: var(--tsub); font-size: 12.5px; text-align: center; }
 .chat-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
 
@@ -77,7 +87,7 @@
 /* 말풍선 아래 행동: 평소엔 옅게, 메시지에 다가가면 또렷하게(키보드 초점 포함) */
 .chat-msg-actions { display: flex; gap: 2px; opacity: .55; transition: opacity .15s; }
 .chat-msg:hover .chat-msg-actions, .chat-msg-actions:focus-within { opacity: 1; }
-.chat-msg-actions button { min-height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: none; color: var(--tsub); font-size: 12.5px; font-weight: 600; }
+.chat-msg-actions button { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: none; color: var(--tsub); font-size: 12.5px; font-weight: 600; }
 .chat-msg-actions button:hover:not(:disabled) { background: var(--muted-bg); color: var(--tfg); }
 .chat-msg-actions button:disabled { cursor: not-allowed; opacity: .5; }
 .chat-edit { display: grid; gap: 6px; width: min(100%, 320px); }
@@ -111,6 +121,13 @@
 .chat-hitl h3 { margin: 0; font-size: 14.5px; font-weight: 800; line-height: 1.45; text-wrap: balance; }
 .chat-hitl-preview { max-height: 220px; overflow: auto; padding: 10px 12px; border: 1px solid var(--tline); border-radius: 12px; background: var(--chat-card, var(--tcard)); font-family: var(--story); line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
 .chat-hitl-preview:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }
+/* 사용한 계획 줄: 아래 면책 문구(.chat-note)와 구분하고, 계획이 길어도 버튼을 밀지 않게 높이를 묶는다. */
+.chat-plan { max-height: 96px; overflow: auto; margin: 0; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.chat-plan b { font-weight: 800; }
+/* 같은 턴에 끝난 다른 단계 결과(심의 등급 등). */
+.chat-hitl-others { display: grid; gap: 6px; max-height: 160px; overflow: auto; margin: 0; padding: 8px 10px; border: 1px solid var(--tline); border-radius: 12px; list-style: none; font-size: 13px; }
+.chat-hitl-others p { margin: 2px 0 0; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-plan:focus-visible, .chat-hitl-others:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }
 .chat-hitl-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .chat-field { display: grid; gap: 4px; font-size: 13px; font-weight: 700; }
 .chat-field :is(input, textarea) { font-weight: 400; }
@@ -120,13 +137,12 @@
 .chat-choice input { accent-color: var(--tacc); }
 .chat-error { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--tline)); border-radius: 12px; color: var(--danger); font-size: 13px; }
 .chat-error p { flex: 1 1 160px; margin: 0; }
-.chat-consent { display: flex; align-items: flex-start; gap: 8px; padding-inline: 8px; color: var(--tsub); font-size: 12.5px; line-height: 1.5; cursor: pointer; }
-.chat-consent input { flex: none; width: 16px; height: 16px; margin-top: 2px; accent-color: var(--pri); }
 @media (max-width: 600px), (pointer: coarse) {
   .chat-session-pick, .chat-session-menu .pop-menu-btn, .chat-rename input { height: 44px; }
   .chat-session-menu .pop-menu-btn { width: 44px; }
   .chat-msg-actions { opacity: 1; }
-  .chat-msg-actions button { min-height: 44px; }
+  .chat-msg-actions button { min-width: 44px; min-height: 44px; }
+  .chat-reply-foot > .chat-step-details > summary { line-height: 44px; }
   .chat-hitl { margin-left: 0; }
 }
 @media (pointer: coarse) { .chat-edit textarea, .chat-field :is(input, textarea), .chat-rename input { font-size: 16px; } }

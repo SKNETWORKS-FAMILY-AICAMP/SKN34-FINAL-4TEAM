@@ -17,7 +17,7 @@ export function ManuscriptBuildPanel({work,useCase}:{work:Pick<Work,'id'|'worldS
   {job&&<><p role="status">{states[job.status]}</p><p>추출 결과 저장 {job.completedEpisodes} / {job.totalEpisodes}화</p>
    {job.failureCode&&<p>{reasons[job.failureCode]??'결과를 검증하지 못했어요. 원고와 작업 상태를 확인해 주세요.'}</p>}
    {job.status==='unknown'&&!job.failureCode&&<p>완료로 확인되지 않았어요. 원래 요청을 유지해 복구해 주세요.</p>}
-   {['failed','unknown','loading'].includes(job.status)&&<button className="btn" disabled={vm.busy} onClick={()=>void vm.resume()}>같은 작업 재개</button>}
+   {['queued','failed','unknown','loading'].includes(job.status)&&<button className="btn" disabled={vm.busy} onClick={()=>void vm.resume()}>같은 작업 재개</button>}
    {job.status==='completed'&&<><p>초안 생성만으로 확정하거나 공개하지 않아요. 작업실에서 내용을 검토·수정한 뒤 직접 확정해 주세요. 첫 등장 회차는 출처 정보이며 독자 공개 회차는 별도로 지정해야 해요.</p><Go className="btn pri" to={'/worldstudio/'+job.worldId}>세계관 초안 열기</Go></>}
   </>}
   {vm.error&&<p role="alert" className="ep-alert">{vm.error}</p>}

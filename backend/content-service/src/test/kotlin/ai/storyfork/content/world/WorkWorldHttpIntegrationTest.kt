@@ -77,7 +77,7 @@ class WorkWorldHttpIntegrationTest {
                     driver.publishEpisode(id,owner.toString(),number,PublishRequest(saved.draft.revision,true,versionId=saved.versions.last().id))
                 }
 
-                // 세계관: 독자 공개 회차가 1·2·3화인 카드, 회차가 없는 공개 카드, 값이 정수가 아닌 카드. 확정 버전은 아직 없다.
+                // 세계관: 공개 회차가 1·2·3화인 카드, 공개 회차가 없는 작가 전용 카드(비공개·값 없음, DEC-53), 값이 정수가 아닌 카드. 확정 버전은 아직 없다.
                 val create=CreateWorldRequest("연결할 세계관","설명");val world=create.id
                 assertEquals(200,send(studios,method="POST",body=create).statusCode())
                 fun card(title:String,visibility:String,reveal:Any?)=CardPayload(UUID.randomUUID(),title,"$title 원문","character","basic",
@@ -85,7 +85,7 @@ class WorkWorldHttpIntegrationTest {
                 val first=card("1화 인물","private",1)
                 val second=card("2화 인물","public",2)
                 val third=card("3화 인물","public",3)
-                val never=card("독자 비공개 인물","public",null)
+                val never=card("작가 전용 인물","private",null)
                 val text=card("회차가 글자인 인물","public","1")
                 val together=RelationshipPayload(UUID.randomUUID(),first.id,second.id,"structural","관계 설명 원문",label="동료")
                 val later=RelationshipPayload(UUID.randomUUID(),first.id,third.id,"structural","나중 관계 설명",label="나중에 만나는 사이")
@@ -143,7 +143,7 @@ class WorkWorldHttpIntegrationTest {
                 val beyond=json(anonymous("$wiki?upto=5"))
                 assertEquals(1,beyond.path("upto").asInt());assertEquals(1,beyond.path("cards").size())
 
-                // 2화를 발행하면 2화 카드와 두 카드 사이의 관계가 보인다. 3화 카드·회차 없는 카드·값이 글자인 카드와 그쪽 관계, 관계 설명 원문은 나오지 않는다.
+                // 2화를 발행하면 2화 카드와 두 카드 사이의 관계 및 그 근거가 보인다. 보이지 않는 카드와 그쪽 관계는 나오지 않는다.
                 publishNext(mine,2)
                 val two=anonymous(wiki);val twoView=json(two)
                 assertEquals(2,twoView.path("upto").asInt())
@@ -152,7 +152,8 @@ class WorkWorldHttpIntegrationTest {
                 val edge=twoView.path("relationships").get(0)
                 assertEquals(together.id.toString(),edge.path("id").asString());assertEquals(first.id.toString(),edge.path("sourceCardId").asString())
                 assertEquals(second.id.toString(),edge.path("targetCardId").asString());assertEquals("동료",edge.path("label").asString())
-                for(leak in listOf(third.id.toString(),never.id.toString(),text.id.toString(),"관계 설명 원문","나중에 만나는 사이","숨은 사이")) assertFalse(two.body().contains(leak),leak)
+                assertEquals("관계 설명 원문",edge.path("body").asString());assertTrue(edge.path("direction").isNull)
+                for(leak in listOf(third.id.toString(),never.id.toString(),text.id.toString(),"나중에 만나는 사이","숨은 사이")) assertFalse(two.body().contains(leak),leak)
                 // 회차 화면에서 온 요청(1화 기준)에는 2화 카드가 없다.
                 assertEquals(listOf(first.id.toString()),json(anonymous("$wiki?upto=1")).path("cards").values().map { it.path("id").asString() })
                 for(bad in listOf("0","-1","x")) assertEquals(422,anonymous("$wiki?upto=$bad").statusCode())

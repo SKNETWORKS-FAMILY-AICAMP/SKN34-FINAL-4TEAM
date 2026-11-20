@@ -1,10 +1,12 @@
 import pytest
 
+from app.content_mcp.errors import ContentMcpFailure
 from app.rating import service
 from app.rating.errors import RatingFailure
 from app.rating.models import RatingRequest
+from app.rating.prompt import INSTRUCTIONS
 
-from .stubs import WORK, adult, fake_agent, fake_content, general, result
+from .stubs import NO_INHERITED, WORK, adult, fake_agent, fake_content, general, result
 
 
 def request(*episodes):
@@ -46,6 +48,19 @@ def test_unlinked_work_is_rated_without_characters(monkeypatch):
     seen = fake_agent(monkeypatch, general())
     assert service.rate(request(1)).verdict == 'general'
     assert seen[0]['characters'] == []
+
+
+def test_fork_without_its_own_world_uses_the_inherited_original_characters(monkeypatch):
+    # #524: Review·Q&A와 같은 세계관 선택(content_mcp.linked_world). 원작의 공개 인물 카드로 미성년 여부를 본다.
+    inherited = {**NO_INHERITED, 'worldId': 'world-1', 'upto': 2, 'cards': [
+        {'id': 'hana', 'cardType': 'character', 'title': '하나', 'body': '열여섯 살 학생.'},
+        {'id': 'gate', 'cardType': 'location', 'title': '성문', 'body': '북쪽 문.'}]}
+    calls = fake_content(monkeypatch, linked='other-work', inherited=inherited)
+    seen = fake_agent(monkeypatch, general(), general())
+    service.rate(request(1, 2))
+    assert ('work_inherited_world', {'id': WORK, 'upto': '2'}) in calls
+    assert 'world_studio_read' not in [tool for tool, _ in calls]
+    assert [c['ref'] for c in seen[0]['characters']] == ['card:hana']
 
 
 def test_profanity_count_is_a_rule_signal_returned_with_the_rating(monkeypatch):
@@ -102,6 +117,19 @@ def test_unverifiable_quote_fails_only_that_episode(monkeypatch, quote):
     assert rating.verdict == 'needsReview'
 
 
+def test_quote_with_pronoun_replaced_by_name_is_not_in_draft(monkeypatch):
+    # #509: 모델이 '그는'을 '율도왕은'으로 바꿔 인용했다. 뜻이 같아도 원문 구간이 아니면 근거로 인정하지 않는다.
+    fake_content(monkeypatch, {1: '율도왕은 포위망을 벗어날 수 없음을 깨달았다. 그는 분노와 절망을 이기지 못하고 끝내 목숨을 끊었다.',
+                               2: '비가 왔다.'})
+    fake_agent(monkeypatch, adult(quote='율도왕은 분노와 절망을 이기지 못하고 끝내 목숨을 끊었다.'), general())
+    assert service.rate(request()).episodes[0].error == service.BAD_REASON
+
+
+def test_prompt_forbids_rewriting_quotes():
+    # #509: 대명사를 이름으로 바꾸거나 문장을 잇는 인용을 하지 않도록 지시한다.
+    assert '대명사를 이름으로 바꾸' in INSTRUCTIONS and '떨어진 문장을 잇지 않는다' in INSTRUCTIONS
+
+
 def test_unreadable_model_output_fails_only_that_episode(monkeypatch):
     fake_content(monkeypatch)
     fake_agent(monkeypatch, RatingFailure(502, '심의 판별 모델 응답을 확인할 수 없습니다.'), adult())
@@ -141,9 +169,11 @@ def test_empty_draft_fails_before_any_model_call(monkeypatch):
     lambda tool, arguments: {'draft': {'body': None, 'revision': 1}},  # 초안 형식 오류
     lambda tool, arguments: ({'draft': {'title': '1화', 'body': '비', 'revision': 1}} if tool == 'episode_read'
                              else [{'worldId': 'w', 'linkedWorkId': WORK}] if tool == 'world_studio_list' else {'cards': 'x'}),  # 세계관 형식 오류
+    # 세계관 목록 형식 오류: 공용 linked_world가 ContentMcpFailure(502)로 올린다(처리되지 않은 500이 아니다)
+    lambda tool, arguments: ({'draft': {'title': '1화', 'body': '비', 'revision': 1}} if tool == 'episode_read' else {'worlds': []}),
 ])
 def test_unreadable_content_is_502(monkeypatch, call):
     monkeypatch.setattr(service.content_mcp, 'call', call)
-    with pytest.raises(RatingFailure) as error:
+    with pytest.raises((RatingFailure, ContentMcpFailure)) as error:
         service.rate(request(1))
     assert error.value.status == 502

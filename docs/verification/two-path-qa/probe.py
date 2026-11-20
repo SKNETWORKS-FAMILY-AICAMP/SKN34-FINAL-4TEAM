@@ -13,9 +13,9 @@ parser.add_argument('--ai-root', type=Path, required=True)
 parser.add_argument('--output', type=Path, required=True)
 args = parser.parse_args()
 sys.path.insert(0, str(args.ai_root.resolve()))
-from app.preprocessing import service
-from app.preprocessing.models import EpisodeText
-from app.preprocessing.errors import PreprocessingFailure
+from app.manuscript_extraction import service
+from app.manuscript_extraction.models import EpisodeText
+from app.manuscript_extraction.errors import PreprocessingFailure
 
 args.output.mkdir(parents=True, exist_ok=True)
 def write(name, value):

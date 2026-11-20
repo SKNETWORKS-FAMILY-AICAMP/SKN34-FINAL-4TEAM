@@ -27,6 +27,7 @@ object ManuscriptStructureVerifier {
         require(mapping.keys==mentions.keys && mapping.values.all { it.isNotBlank() })
         val parent=mentions.keys.associateWith { it }.toMutableMap()
         fun root(ref:String):String { var at=ref;while(parent.getValue(at)!=at) at=parent.getValue(at);return at }
+        val candidates=linkedMapOf<Pair<String,String>,ManuscriptIdentityCandidate>()
         val distinct=mutableListOf<Pair<String,String>>()
         for(decision in array(identity.path("decisions"))) {
             val link=decision.path("link");val left=link.path("left").asString();val right=link.path("right").asString()
@@ -40,16 +41,23 @@ object ManuscriptStructureVerifier {
             when(decision.path("status").asString()) {
                 "merged" -> {
                     require(link.path("basis").asString() in setOf("explicit_alias","explicit_coreference"))
-                    if(mentions.getValue(left).path("name")!=mentions.getValue(right).path("name")) {
-                        require(n==parent.keys.filter { root(it) in setOf(root(left),root(right)) }.minOf { it.substringBefore(':').toInt() })
-                    }
+                    require(mentions.getValue(left).path("name")==mentions.getValue(right).path("name"))
                     parent[root(right)]=root(left)
                 }
                 "distinct" -> { require(link.path("basis").asString()=="distinct");distinct+=left to right }
-                "deferred" -> require(decision.path("reason").asString()!="LATE_ALIAS_REQUIRES_VERSIONED_IDENTITY")
+                "deferred" -> {
+                    val basis=link.path("basis").asString()
+                    if(basis in setOf("explicit_alias","explicit_coreference") && mentions.getValue(left).path("kind").asString()=="character") {
+                        require(mentions.getValue(left).path("name")!=mentions.getValue(right).path("name"))
+                        val from=mapping.getValue(right);val to=mapping.getValue(left)
+                        require(from!=to && decision.path("reason").asString()=="AUTHOR_REVIEW_REQUIRED")
+                        candidates.putIfAbsent(from to to,ManuscriptIdentityCandidate(from,to,n,quote))
+                    }
+                }
                 else -> throw IllegalArgumentException("INVALID_IDENTITY_DECISION")
             }
         }
+        require(payload.identityCandidates==candidates.values.toList())
         require(distinct.all { (a,b)->root(a)!=root(b) })
         require(parent.keys.groupBy(::root).values.map { it.toSet() }.toSet()==mapping.keys.groupBy { mapping.getValue(it) }.values.map { it.toSet() }.toSet())
         val cards=payload.cards.associateBy { it.key };require(cards.size==payload.cards.size)
@@ -57,7 +65,7 @@ object ManuscriptStructureVerifier {
         for((key,refs) in grouped) {
             val card=requireNotNull(cards[key]);val sorted=refs.sortedWith(compareBy<String> { it.substringBefore(':').toInt() }.thenBy { it.substringAfter(':') })
             val first=sorted.first().substringBefore(':').toInt();val original=mentions.getValue(sorted.first())
-            require(card.firstAppearanceEpisode==first && card.title==original.path("name").asString() && card.cardType==original.path("kind").asString())
+            require(card.firstEpisode==first && card.title==original.path("name").asString() && card.cardType==original.path("kind").asString())
             require(card.aliases==sorted.map { mentions.getValue(it).path("name").asString() }.distinct().filter { it!=card.title })
             val body=mutableListOf<String>();val soul=mutableListOf<String>();val goal=mutableListOf<String>();val memory=linkedMapOf<String,MutableList<String>>()
             for((n,row) in rows) for(statement in array(row.path("statements"))) {
@@ -84,7 +92,7 @@ object ManuscriptStructureVerifier {
             val title="${n}화 사건 ${event.path("id").asString()}"
             val card=eventCards.singleOrNull { it.title==title } ?: throw IllegalArgumentException("MISSING_EVENT")
             val names=array(event.path("subjects")).map { mapping.getValue("$n:${it.asString()}") }.distinct().sorted().joinToString(", ") { cards.getValue(it).title }
-            require(card.cardType=="event" && card.firstAppearanceEpisode==n && card.aliases.isEmpty() && card.characterDocs==null)
+            require(card.cardType=="event" && card.firstEpisode==n && card.aliases.isEmpty() && card.characterDocs==null)
             require(card.body=="발생: ${event.path("occurredEpisode").asInt()}화 / 참여: $names\n[event] ${event.path("quote").asString()}")
         }
         val relations=rows.flatMap { (n,row)->array(row.path("relationships")).map { r -> ManuscriptRelation(mapping.getValue("$n:${r.path("source").asString()}"),mapping.getValue("$n:${r.path("target").asString()}"),r.path("label").asString(),r.path("fromEpisode").asInt(),r.path("ended").asBoolean()) } }

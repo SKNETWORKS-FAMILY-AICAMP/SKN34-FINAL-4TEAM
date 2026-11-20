@@ -1,5 +1,8 @@
 import CharacterCards from './CharacterCards'
-import { buildSettingRelationshipMap, cardTypeCounts, hideCardTypes, toggleHiddenType } from '../viewmodel/characterMap'
+import { buildSettingRelationshipMap, cardTypeCounts, hideCardTypes, mapNeighbors, toggleHiddenType } from '../viewmodel/characterMap'
+import { mapEndpoint } from '../viewmodel/useWorldMapViewModel'
+import { pageItems } from '../../../shared/pageItems'
+import { PageControls } from '../../../shared/PageControls'
 import { pickRelationNode } from '../viewmodel/relationPick'
 import { useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import './world-map.css'
@@ -7,7 +10,7 @@ import { cardTypeOf, cardTypes, type CardType } from '../../../../domain/entitie
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { CardDeletionConfirm } from './CardDeletionConfirm'
 import { RelationPairEditor } from './RelationPairEditor'
-import { DELETED_CARD_NAME, isDeletedCard, relationLabel } from '../../../../domain/entities/studioRelations'
+import { DELETED_CARD_NAME, relationLabel } from '../../../../domain/entities/studioRelations'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 type VM = ReturnType<typeof useWorldStudioViewModel>
 
@@ -33,6 +36,17 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const [choosing, setChoosing] = useState(false)
   const [hidden, setHidden] = useState<ReadonlySet<CardType>>(() => new Set())
   const shown = hideCardTypes(map.graph, hidden)
+  const [graphPage, setGraphPage] = useState(0), [edgePage, setEdgePage] = useState(0), [relationPage, setRelationPage] = useState(0)
+  const [graphQuery, setGraphQuery] = useState(''), [choicePage, setChoicePage] = useState(0), [anchor, setAnchor] = useState(''), [neighborPage, setNeighborPage] = useState(0)
+  const choices = pageItems(shown.nodes.filter((n) => n.name.toLocaleLowerCase().includes(graphQuery.trim().toLocaleLowerCase())), choicePage, 50)
+  const anchorNode = shown.nodes.find((n) => n.id === anchor)
+  const neighbors = new Set(shown.links.filter((l) => mapEndpoint(l.source) === anchor || mapEndpoint(l.target) === anchor).map((l) => mapEndpoint(l.source) === anchor ? mapEndpoint(l.target) : mapEndpoint(l.source)))
+  const neighborPages = pageItems([...neighbors], neighborPage, 49)
+  const graphNodes = pageItems(shown.nodes, graphPage, 50)
+  const focused = anchorNode ? mapNeighbors(shown, anchor, neighborPages.page, 49) : null
+  const graphIds = new Set(graphNodes.items.map((n) => n.id))
+  const graphEdges = pageItems(focused ? focused.links : shown.links.filter((l) => graphIds.has(mapEndpoint(l.source)) && graphIds.has(mapEndpoint(l.target))), edgePage, 300)
+  const graph = { ...shown, nodes: focused?.nodes ?? graphNodes.items, links: graphEdges.items }
   const types = cardTypeCounts(map.graph.nodes), present = types.map((t) => t.id)
   const section = useRef<HTMLElement>(null), cancelConnect = useRef<HTMLButtonElement>(null)
   const returnFocus = useRef('')
@@ -50,6 +64,15 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const [source, setSource] = useState(''),
     [target, setTarget] = useState(''),
     [open, setOpen] = useState(false)
+  const [sourceQuery, setSourceQuery] = useState(''), [targetQuery, setTargetQuery] = useState('')
+  const [sourcePage, setSourcePage] = useState(0), [targetPage, setTargetPage] = useState(0)
+  const options = (query: string, page: number, selected: string) => {
+    const found = people.filter((s) => s.item.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
+    const result = pageItems(found, page, 50)
+    const current = people.find((s) => s.item.id === selected)
+    return { ...result, items: current && !result.items.includes(current) ? [current, ...result.items] : result.items }
+  }
+  const sourceOptions = options(sourceQuery, sourcePage, source), targetOptions = options(targetQuery, targetPage, target)
   const [focusRequest, setFocusRequest] = useState<{ id: string; seq: number } | null>(null)
   const handledRequest = useRef(0)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
@@ -99,6 +122,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
     const gone = (id?: string) => { const type = map.graph.nodes.find((n) => n.id === id)?.type; return !!type && next.has(type) }
     if (gone(map.selected?.id)) map.select(null)
     if (choosing && gone(source)) setChoosing(false)
+    if (gone(anchor)) { setAnchor(''); setEdgePage(0) }
   }
   // 목록에서 지우는 것도 '편집본에 적용'과 같은 경로(applyRelations)다. 저장 전까지는 서버에 닿지 않는다. 열린 초안이 있으면 버릴지 먼저 묻고 패널을 닫는다.
   const removeRelation = (id: string, label: string) => {
@@ -108,15 +132,18 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   }
   const { settings, deletedTitles } = studio.editing!
   const relations = settings.filter((s) => s.item.kind === 'relation')
+  const listedRelations = pageItems(relations, relationPage, 50)
+  const peopleById = new Map(people.map((s) => [s.item.id, s]))
+  const existingIds = new Set(settings.filter((s) => s.item.kind !== 'relation').map((s) => s.item.id))
   const name = (id: string | null) => {
-    if (id !== null && isDeletedCard(settings, id)) {
+    if (id !== null && !existingIds.has(id)) {
       const title = deletedTitles?.[id]
       return title ? `${DELETED_CARD_NAME}: ${title}` : DELETED_CARD_NAME
     }
-    return people.find((s) => s.item.id === id)?.item.title || '선택 안 함'
+    return (id ? peopleById.get(id)?.item.title : '') || '선택 안 함'
   }
   // 지난 회차 관계는 그 뒤에 삭제한 설정을 끝점으로 가질 수 있다(DEC-51). 관계도에는 그릴 곳이 없어 목록에서 읽기 전용으로만 보이고, 저장하면 그대로 보낸다.
-  const readOnly = (s: (typeof relations)[number]) => isDeletedCard(settings, s.item.subjectId) || isDeletedCard(settings, s.item.targetId)
+  const readOnly = (s: (typeof relations)[number]) => (s.item.subjectId !== null && !existingIds.has(s.item.subjectId)) || (s.item.targetId !== null && !existingIds.has(s.item.targetId))
   const readOnlyReason = useId(), deleteReason = useId()
   return (
     <section ref={section} className='world-map relationship-editor' aria-label='관계 편집' onKeyDown={(e) => { if (choosing && e.key === 'Escape') stopChoosing() }}>
@@ -141,7 +168,12 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                 })}
               </div>
             )}
-            <CharacterCards key={layoutVersion} vm={{...map,graph:shown}} editing={{busy:studio.busy,selectedRelations:open?studio.editing!.settings.filter(s=>s.item.kind==='relation'&&((s.item.subjectId===source&&s.item.targetId===target)||(s.item.subjectId===target&&s.item.targetId===source))).map(s=>s.item.id):[],targetSource:choosing?source:null,onPick:pick,onSelect:id=>{if(choosing){selectPair(source,id,true)}else if(studio.confirmRelationDiscard()){studio.editCard(id)}},onConnect:id=>{if(selectPair(id,'',false))setChoosing(true)},onRelation:id=>studio.editRelation(id)}}/>
+            <CharacterCards key={layoutVersion} vm={{...map,graph}} editing={{busy:studio.busy,selectedRelations:open?studio.editing!.settings.filter(s=>s.item.kind==='relation'&&((s.item.subjectId===source&&s.item.targetId===target)||(s.item.subjectId===target&&s.item.targetId===source))).map(s=>s.item.id):[],targetSource:choosing?source:null,onPick:pick,onSelect:id=>{if(choosing){selectPair(source,id,true)}else if(studio.confirmRelationDiscard()){studio.editCard(id)}},onConnect:id=>{if(selectPair(id,'',false))setChoosing(true)},onRelation:id=>studio.editRelation(id)}}/>
+            <label>관계도 설정 검색 <input type='search' className='inp' value={graphQuery} onChange={(e) => { setGraphQuery(e.target.value); setChoicePage(0) }} /></label>
+            <div role='group' aria-label='관계도 중심 설정'>{choices.items.map((node) => <button type='button' className='btn sm' key={node.id} aria-pressed={anchor === node.id} onClick={() => { setAnchor(node.id); setNeighborPage(0); setEdgePage(0) }}>{node.name}</button>)}</div>
+            <PageControls label="설정 목록" page={choices.page} pages={choices.pages} onPage={setChoicePage} />
+            {anchorNode ? <><p className='small muted'>{anchorNode.name}의 연결된 설정 {neighbors.size}개를 보여요.</p><button type='button' className='btn sm' onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 관계도로</button><PageControls label="그래프" page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /></> : <><PageControls label="그래프" page={graphNodes.page} pages={graphNodes.pages} onPage={(next) => { setGraphPage(next); setEdgePage(0) }} />{graphNodes.pages > 1 && <p className='small muted'>설정을 검색해 선택하면 다른 페이지의 관계도 볼 수 있어요. 전체 관계는 아래 목록에서 확인하고 편집할 수 있어요.</p>}</>}
+            {graphEdges.pages > 1 && <><p className='small muted'>현재 카드의 관계를 페이지별로 보여요.</p><PageControls label="연결선" page={graphEdges.page} pages={graphEdges.pages} onPage={setEdgePage} /></>}
             <ul className='relationship-legend' aria-label='범례'>
               <li><LineKey tone='edge' />구조 관계</li>
               <li><LineKey tone='emotion' dashed />감정(방향별)</li>
@@ -153,35 +185,39 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               <h4>관계 추가</h4>
               <p className='small muted'>그래프에서 카드를 차례로 두 번 누르거나, 아래에서 두 설정을 고르세요.</p>
               <div className='world-form-row'>
-                <label className='field'>
-                  관계 주체<select
+                <div className='field'>
+                  <label>관계 주체 검색<input className='inp' type='search' value={sourceQuery} onChange={(e) => { setSourceQuery(e.target.value); setSourcePage(0) }} /></label>
+                  <label>관계 주체<select
                     ref={sourceSelect}
                     className='inp'
                     value={source}
                     onChange={(e) => selectPair(e.target.value, target, false)}
                   >
                     <option value=''>선택하세요</option>
-                    {people.map((s) => (
+                    {sourceOptions.items.map((s) => (
                       <option key={s.item.id} value={s.item.id}>
                         {s.item.title || '이름 없는 설정'}
                       </option>
                     ))}
-                  </select>
-                </label>
-                <label className='field'>
-                  관계 대상<select
+                  </select></label>
+                  <PageControls page={sourceOptions.page} pages={sourceOptions.pages} onPage={setSourcePage} />
+                </div>
+                <div className='field'>
+                  <label>관계 대상 검색<input className='inp' type='search' value={targetQuery} onChange={(e) => { setTargetQuery(e.target.value); setTargetPage(0) }} /></label>
+                  <label>관계 대상<select
                     className='inp'
                     value={target}
                     onChange={(e) => selectPair(source, e.target.value, false)}
                   >
                     <option value=''>선택하세요</option>
-                    {people.map((s) => (
+                    {targetOptions.items.map((s) => (
                       <option key={s.item.id} value={s.item.id}>
                         {s.item.title || '이름 없는 설정'}
                       </option>
                     ))}
-                  </select>
-                </label>
+                  </select></label>
+                  <PageControls page={targetOptions.page} pages={targetOptions.pages} onPage={setTargetPage} />
+                </div>
               </div>
               <div className='relationship-actions'>
                 <button
@@ -261,16 +297,17 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                   <table className='relationship-table world-compact'>
                     <caption className='sr-only'>저장할 관계 목록</caption>
                     <thead>
-                      <tr><th scope='col'>주체</th><th scope='col'>관계</th><th scope='col'>대상</th><th scope='col'><span className='sr-only'>편집·삭제</span></th></tr>
+                      <tr><th scope='col'>주체</th><th scope='col'>관계</th><th scope='col'>대상</th>{studio.relationFrom && <th scope='col'>시작 회차</th>}<th scope='col'><span className='sr-only'>편집·삭제</span></th></tr>
                     </thead>
                     <tbody>
-                      {relations.map((s) => {
+                      {listedRelations.items.map((s) => {
                         const label = relationLabel(s.item), full = `${name(s.item.subjectId)} · ${label} · ${name(s.item.targetId)}`
                         return (
                           <tr key={s.item.id} aria-describedby={readOnly(s) ? readOnlyReason : undefined}>
-                            <td>{name(s.item.subjectId)}</td>
+                            <td>{!readOnly(s) && s.item.subjectId && peopleById.has(s.item.subjectId) ? <button type='button' className='relationship-card-link' onClick={() => { if (studio.confirmRelationDiscard()) studio.editCard(s.item.subjectId!) }}>{name(s.item.subjectId)}</button> : name(s.item.subjectId)}</td>
                             <td>{label}</td>
-                            <td>{name(s.item.targetId)}</td>
+                            <td>{!readOnly(s) && s.item.targetId && peopleById.has(s.item.targetId) ? <button type='button' className='relationship-card-link' onClick={() => { if (studio.confirmRelationDiscard()) studio.editCard(s.item.targetId!) }}>{name(s.item.targetId)}</button> : name(s.item.targetId)}</td>
+                            {studio.relationFrom && <td>{s.item.fromEpisode === undefined ? '—' : `${s.item.fromEpisode}화부터`}</td>}
                             <td className='relationship-row-actions'>
                               {readOnly(s)
                                 ? <span className='small muted'>읽기 전용</span>
@@ -287,6 +324,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                     </tbody>
                   </table>
                 )}
+              <PageControls page={listedRelations.page} pages={listedRelations.pages} onPage={setRelationPage} />
               {relations.some(readOnly) && <p id={readOnlyReason} className='small muted'>삭제된 설정과 이어진 관계는 읽기 전용이에요. 관계도에는 그리지 않고, 저장하면 그대로 유지돼요.</p>}
             </section>
           </div>

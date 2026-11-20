@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
+import type { InheritedWorld, Work } from '../../../../domain/entities/content'
 import type { StudioWorld } from '../../../../domain/entities/studioWorld'
 import { LinkedWorldPanel } from './LinkedWorldPanel'
 
@@ -16,7 +17,7 @@ const MINE = [world('free', '빈 세계'), world('other', '다른 소설의 세�
 function show(worldStudioId: string | null | undefined, list: () => Promise<StudioWorld[]> = async () => MINE, busy = false) {
   const onLink = vi.fn(async () => true)
   const worlds = { list: vi.fn(list) }
-  const view = render(<Provider store={createAppStore()}><MemoryRouter><LinkedWorldPanel work={{ id: 'w1', worldStudioId }} busy={busy} onLink={onLink} worlds={worlds} /></MemoryRouter></Provider>)
+  const view = render(<Provider store={createAppStore()}><MemoryRouter><LinkedWorldPanel work={{ id: 'w1', worldStudioId, source: null }} busy={busy} onLink={onLink} onDetach={vi.fn(async () => null)} worlds={worlds} /></MemoryRouter></Provider>)
   return { onLink, worlds, view, card: () => within(screen.getByRole('region', { name: '세계관 연결' })) }
 }
 
@@ -82,4 +83,118 @@ it('세계관 이름을 읽지 못해도 연결된 세계관으로 가는 링크
   expect(card().getByRole('link', { name: '세계관 열기' }).getAttribute('href')).toBe('/worldstudio/mine')
   expect((card().getByRole('button', { name: '연결 해제' }) as HTMLButtonElement).disabled).toBe(true)
   await act(async () => {})
+})
+
+// ── Fork 세계관 독립(#583): 자기 세계관이 없는 Fork는 이어받는 원작 세계관을 읽기 전용으로 보이고 내 세계관으로 독립시킨다 ──
+
+const FORK = { id: 'fork', worldStudioId: null, source: { workId: 'o', title: '원작', episode: 2, version: 1, direction: '' } }
+const inheritedCard = (id: string, title: string, cardType: string) => ({ id, title, cardType, aliases: [] })
+const INHERITED: InheritedWorld = {
+  upto: 2, relationshipCount: 3,
+  cards: [inheritedCard('c1', '카엘', 'character'), inheritedCard('p1', '성문', 'location'), inheritedCard('c2', '린', 'character')],
+}
+const DETACH = '내 세계관으로 만들어 수정하기'
+/**
+ * 이어받는 세계관 조회·내 세계관 목록 대역과 독립 요청 기록. 독립이 성공하면 새 세계관 관리 화면(/worldstudio/:id)으로 가는지는 그 주소의 라우트로 확인한다.
+ * 독립 요청 중 잠금과 실패 문구는 작품 관리 화면(useEpisodeViewModel)이 busy·detachError로 내려 주므로 여기서는 그 값을 직접 준다.
+ */
+function showFork({ inherited = async () => INHERITED as InheritedWorld | null, work = FORK as Pick<Work, 'id' | 'worldStudioId' | 'source'>, busy = false, detach = async () => 'new-world' as string | null, detachError = '' } = {}) {
+  const onDetach = vi.fn(detach)
+  const useCase = { inheritedWorld: vi.fn(inherited) }
+  const worlds = { list: vi.fn(async () => MINE) }
+  const view = render(
+    <Provider store={createAppStore()}>
+      <MemoryRouter initialEntries={['/content']}>
+        <Routes>
+          <Route path='/content' element={<LinkedWorldPanel work={work} busy={busy} onLink={vi.fn(async () => true)} onDetach={onDetach} detachError={detachError} useCase={useCase} worlds={worlds} />} />
+          <Route path='/worldstudio/:id' element={<p>세계관 관리 화면</p>} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>,
+  )
+  return { onDetach, useCase, view, card: () => within(screen.getByRole('region', { name: '이어받는 원작 세계관' })) }
+}
+
+it('자기 세계관이 없는 Fork는 이어받는 원작 세계관을 N화 기준의 카드 유형별 수·제목과 관계 수로 읽기 전용으로 보인다', async () => {
+  const { card, useCase } = showFork()
+  await card().findByText('원작 「원작」 세계관을 2화 기준으로 이어받는 중')
+  expect(card().getAllByRole('term').map((term) => term.textContent)).toEqual(['인물 2', '장소 1', '관계'])
+  expect(card().getAllByRole('definition').map((definition) => definition.textContent)).toEqual(['카엘, 린', '성문', '3개'])
+  expect(card().getByRole('button', { name: DETACH })).toBeTruthy()
+  // 상한 회차는 서버가 Fork 기준 회차로 정하므로 upto를 보내지 않는다.
+  expect(useCase.inheritedWorld).toHaveBeenCalledWith('fork', undefined, expect.any(AbortSignal))
+  // 기존 '세계관 연결' 카드는 그대로 따로 있다.
+  expect((await within(screen.getByRole('region', { name: '세계관 연결' })).findByRole('combobox', { name: '연결할 세계관' }))).toBeTruthy()
+})
+
+it('Fork가 아니거나 자기 세계관이 연결됐으면 이어받는 세계관을 묻지 않고, 이어받는 것이 없으면(null) 카드를 보이지 않는다', async () => {
+  for (const work of [{ ...FORK, source: null }, { ...FORK, worldStudioId: 'mine' }]) {
+    const { useCase, view } = showFork({ work })
+    await act(async () => {})
+    expect(useCase.inheritedWorld).not.toHaveBeenCalled()
+    expect(screen.queryByRole('region', { name: '이어받는 원작 세계관' })).toBeNull()
+    view.unmount()
+  }
+  const { useCase } = showFork({ inherited: async () => null })
+  await waitFor(() => expect(screen.queryByRole('region', { name: '이어받는 원작 세계관' })).toBeNull())
+  expect(useCase.inheritedWorld).toHaveBeenCalledTimes(1)
+})
+
+it('이어받은 세계관을 읽지 못하면 빈 상태로 바꾸지 않고 실패로 알리며 독립 버튼 없이 다시 불러온다', async () => {
+  let fail = true
+  const { card, useCase } = showFork({ inherited: async () => { if (fail) throw new Error('offline'); return INHERITED } })
+  expect(card().getByRole('status').textContent).toBe('원작 세계관을 불러오고 있어요…')
+  expect((await card().findByRole('alert')).textContent).toBe('원작 세계관을 불러오지 못했어요.')
+  expect(card().queryByRole('button', { name: DETACH })).toBeNull()
+  fail = false
+  fireEvent.click(card().getByRole('button', { name: '원작 세계관 다시 불러오기' }))
+  await card().findByText('원작 「원작」 세계관을 2화 기준으로 이어받는 중')
+  expect(card().queryByRole('alert')).toBeNull()
+  expect(useCase.inheritedWorld).toHaveBeenCalledTimes(2)
+})
+
+it('관계 상태를 모르면(null) 관계 0개로 채우지 않고 불러오지 못했다고 알리며, 관계가 정말 없으면 0개로 보인다', async () => {
+  const relations = (view: ReturnType<typeof showFork>) => view.card().getAllByRole('definition').at(-1)?.textContent
+  const unknown = showFork({ inherited: async () => ({ ...INHERITED, relationshipCount: null }) })
+  await unknown.card().findByText('불러오지 못했어요')
+  expect(relations(unknown)).toBe('불러오지 못했어요')
+  unknown.view.unmount()
+  const none = showFork({ inherited: async () => ({ ...INHERITED, relationshipCount: 0 }) })
+  await none.card().findByText('0개')
+  expect(relations(none)).toBe('0개')
+})
+
+it('내 세계관으로 만들어 수정하기를 누르면 독립을 한 번 요청하고 성공하면 새 세계관 관리 화면으로 간다', async () => {
+  const { card, onDetach } = showFork()
+  fireEvent.click(await card().findByRole('button', { name: DETACH }))
+  expect(onDetach).toHaveBeenCalledTimes(1)
+  expect(await screen.findByText('세계관 관리 화면')).toBeTruthy()
+})
+
+it('독립에 실패하면(null) 이동하지 않고 서버 문구를 이 카드 안에 보이며, 연결 카드에는 보이지 않는다', async () => {
+  const { card, onDetach } = showFork({ detach: async () => null, detachError: '이어받는 원작 세계관이 없어요.' })
+  fireEvent.click(await card().findByRole('button', { name: DETACH }))
+  await waitFor(() => expect(onDetach).toHaveBeenCalledTimes(1))
+  expect(card().getByRole('alert').textContent).toBe('이어받는 원작 세계관이 없어요.')
+  expect(within(screen.getByRole('region', { name: '세계관 연결' })).queryByRole('alert')).toBeNull()
+  expect(screen.queryByText('세계관 관리 화면')).toBeNull()
+})
+
+it('이어받은 카드가 없으면 독립할 것이 없어 버튼을 잠그고 이유를 알린다', async () => {
+  const { card, onDetach } = showFork({ inherited: async () => ({ ...INHERITED, cards: [], relationshipCount: 0 }) })
+  await card().findByText('이어받은 카드가 없어서 독립할 수 없어요.')
+  const button = card().getByRole('button', { name: DETACH }) as HTMLButtonElement
+  expect(button.disabled).toBe(true)
+  expect(document.getElementById(button.getAttribute('aria-describedby') ?? '')?.textContent).toBe('이어받은 카드가 없어서 독립할 수 없어요.')
+  expect(card().queryAllByRole('term')).toEqual([])
+  fireEvent.click(button)
+  expect(onDetach).not.toHaveBeenCalled()
+})
+
+it('다른 요청을 처리하는 중이면 독립 버튼을 누를 수 없다', async () => {
+  const { card, onDetach } = showFork({ busy: true })
+  const button = await card().findByRole('button', { name: DETACH }) as HTMLButtonElement
+  expect(button.disabled).toBe(true)
+  fireEvent.click(button)
+  expect(onDetach).not.toHaveBeenCalled()
 })

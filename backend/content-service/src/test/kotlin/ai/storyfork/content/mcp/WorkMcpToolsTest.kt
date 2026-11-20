@@ -51,14 +51,15 @@ private val WORLD: UUID = UUID.fromString("0f8c9a52-5b1e-4d0a-9d55-7a2d3c4b5e6f"
  * 인자 값은 도구마다 서로 다른 문자열을 써서 Service 인자 순서를 바꿔 넘기는 실수도 잡는다.
  */
 class WorkMcpToolsTest {
-    private val service = mock(WorkService::class.java)
+    // work_create·work_fork_create는 응답의 새 작품 id를 알림 대상으로 읽는다. 따로 스텁하지 않은 생성 호출에는 새 작품을 돌려준다.
+    private val service = mock(WorkService::class.java) { call -> if (call.method.name == "create") work("w-new") else RETURNS_DEFAULTS.answer(call) }
     private val worldLinks = mock(WorkWorldService::class.java)
     private val notices = mock(WorkNoticeService::class.java)
-    private val forks = mock(ForkService::class.java)
+    private val forks = mock(ForkService::class.java) { call -> if (call.method.name == "create") work("w-fork") else RETURNS_DEFAULTS.answer(call) }
     private val contexts = mock(ContextService::class.java)
     private val proposals = mock(ProposalService::class.java)
     private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(
-        listOf<Any>(WorkMcpTools(service, worldLinks, notices, forks, contexts, proposals)))
+        listOf<Any>(WorkMcpTools(service, worldLinks, notices, forks, contexts, proposals, mock(McpChangeNotice::class.java))))
 
     private fun resetServices() = reset(service, worldLinks, notices, forks, contexts, proposals)
 
@@ -152,6 +153,8 @@ class WorkMcpToolsTest {
         Case("work_link_world_studio", mapOf("id" to WORK), label = "work_link_world_studio omitted world id unlinks") { verify(worldLinks).link(WORK, ME, null) },
         Case("work_public_world_cards", mapOf("id" to WORK, "upto" to "3"), public = true) { verify(worldLinks).readerCards(WORK, "3") },
         Case("work_public_world_cards", mapOf("id" to WORK), public = true, label = "work_public_world_cards omitted upto") { verify(worldLinks).readerCards(WORK, null) },
+        Case("work_inherited_world", mapOf("id" to WORK, "upto" to "2")) { verify(worldLinks).inheritedWorld(WORK, ME, "2") },
+        Case("work_inherited_world", mapOf("id" to WORK), label = "work_inherited_world omitted upto") { verify(worldLinks).inheritedWorld(WORK, ME, null) },
         Case("work_notice_public_list", mapOf("id" to WORK), public = true) { verify(notices).list(WORK) },
         Case("work_notice_create", mapOf("id" to WORK, "data" to mapOf("category" to "info", "title" to "휴재 안내", "body" to "이번 주는 쉽니다", "pinned" to true))) {
             verify(notices).create(WORK, ME, false, WorkNoticeRequest("info", "휴재 안내", "이번 주는 쉽니다", true))
@@ -241,7 +244,7 @@ class WorkMcpToolsTest {
         val fail = Answer<Any> { throw ContentFailure(409, "다른 변경과 충돌했어요.", "SOME_CODE") }
         val failing = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(WorkMcpTools(
             mock(WorkService::class.java, fail), mock(WorkWorldService::class.java, fail), mock(WorkNoticeService::class.java, fail),
-            mock(ForkService::class.java, fail), mock(ContextService::class.java, fail), mock(ProposalService::class.java, fail))))
+            mock(ForkService::class.java, fail), mock(ContextService::class.java, fail), mock(ProposalService::class.java, fail), mock(McpChangeNotice::class.java))))
         return cases().map { case ->
             dynamicTest("${case.label} reports the failure") {
                 val request = CallToolRequest.builder(case.tool).arguments(case.args).build()
@@ -317,17 +320,17 @@ class WorkMcpToolsTest {
 
     // ---- 등록: 계약 '### 작품' 표의 도구가 빠짐없이 이름 그대로 등록된다 ----
 
-    // docs/design/content-mcp-contract.md '### 작품' 표(WorkMcpTools 24 + StoryPlanMcpTools 5)다.
+    // docs/design/content-mcp-contract.md '### 작품' 표(WorkMcpTools 25 + StoryPlanMcpTools 5)다.
     private val contractTools = listOf(
         "work_list_mine", "work_create", "work_read", "work_update", "work_delete", "work_stop_fork_publication", "work_history", "work_update_policy",
-        "work_public_list", "work_public_ranking", "work_public_rankings", "work_public_read", "work_link_world_studio", "work_public_world_cards",
+        "work_public_list", "work_public_ranking", "work_public_rankings", "work_public_read", "work_link_world_studio", "work_public_world_cards", "work_inherited_world",
         "work_notice_public_list", "work_notice_create", "work_notice_update", "work_notice_delete", "work_fork_create", "work_fork_world_change",
         "work_context_read", "work_context_public_read", "work_proposal_create", "work_proposal_accept",
         "story_plan_list", "story_plan_read", "story_plan_create", "story_plan_update", "story_plan_delete",
     )
 
     private val registry = SyncMcpAnnotationProviders.statelessToolSpecifications(
-        listOf<Any>(WorkMcpTools(service, worldLinks, notices, forks, contexts, proposals), StoryPlanMcpTools(mock(StoryPlanService::class.java))))
+        listOf<Any>(WorkMcpTools(service, worldLinks, notices, forks, contexts, proposals, mock(McpChangeNotice::class.java)), StoryPlanMcpTools(mock(StoryPlanService::class.java), mock(McpChangeNotice::class.java))))
 
     @Test fun `the work tool classes declare exactly the work tools of the contract and Spring AI registers each of them`() {
         val declared = listOf(WorkMcpTools::class.java, StoryPlanMcpTools::class.java)
@@ -344,7 +347,7 @@ class WorkMcpToolsTest {
         assertEquals(
             setOf(
                 "work_list_mine", "work_read", "work_history", "work_public_list", "work_public_ranking", "work_public_rankings", "work_public_read",
-                "work_public_world_cards", "work_notice_public_list", "work_context_read", "work_context_public_read", "story_plan_list", "story_plan_read",
+                "work_public_world_cards", "work_inherited_world", "work_notice_public_list", "work_context_read", "work_context_public_read", "story_plan_list", "story_plan_read",
             ),
             readOnly,
         )

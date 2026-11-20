@@ -1,0 +1,21 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "kind": { "type": "keyword" },
+      "world_id": { "type": "keyword" },
+      "hash": { "type": "keyword", "index": false, "doc_values": false },
+      "title": { "type": "wildcard" },
+      "name": { "type": "wildcard" },
+      "description": { "type": "wildcard" },
+      "author": { "type": "wildcard" },
+      "tags": { "type": "wildcard" },
+      "genres": { "type": "wildcard" },
+      "aliases": { "type": "wildcard" }
+    }
+  }
+}

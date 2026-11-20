@@ -1,6 +1,6 @@
 import {characterDocIssues} from './characterDocs'
 import {cardTypeOf,type CardType} from './studioCards'
-import {invalidReveal,REVEAL_EPISODE_ERROR,type StudioSetting,type StudioWorld} from './studioWorld'
+import {invalidReveal,lacksRelationFrom,RELATION_FROM_ERROR,REVEAL_EPISODE_ERROR,type StudioSetting,type StudioWorld} from './studioWorld'
 export function cardLibraryRows(settings:StudioSetting[],type:CardType|'all',query:string):StudioSetting[]{
  const search=query.trim().toLocaleLowerCase()
  return settings.filter(s=>{
@@ -12,8 +12,12 @@ export function selectCardForFilter(settings:StudioSetting[],selected:string,typ
  const rows=cardLibraryRows(settings,type,query)
  return rows.some(row=>row.item.id===selected)?selected:rows[0]?.item.id??''
 }
-export type WritingIssue={step:'info'|'cards';id?:string;message:string}
-export function worldWritingIssues(world:StudioWorld):WritingIssue[]{
+export type WritingIssue={step:'info'|'cards'|'relations';id?:string;message:string}
+/**
+ * 저장 전에 확인할 문제. 소설을 연결한 세계관은 새로 쓰거나 바꾼 관계마다 N화부터(`fromEpisode`)가 있어야 저장된다(DEC-54 2단계): 저장한 초안(`saved`)과 달라진 관계 가운데 값이 없거나
+ * 잘못된 것은 그 관계로 돌아가 고치게 한다. 저장한 초안을 모르는 점검(확정 버전)은 이 사유를 보지 않는다.
+ */
+export function worldWritingIssues(world:StudioWorld,saved?:StudioWorld):WritingIssue[]{
  const issues:WritingIssue[]=[]
  if(!world.name.trim())issues.push({step:'info',message:'세계관 이름을 입력해 주세요.'})
  for(const setting of world.settings){
@@ -22,6 +26,11 @@ export function worldWritingIssues(world:StudioWorld):WritingIssue[]{
   if(item.kind!=='entity'&&!item.text.trim())issues.push({step:'cards',id:item.id,message:'이 설정의 설명을 입력해 주세요.'})
   if(invalidReveal(setting))issues.push({step:'cards',id:item.id,message:REVEAL_EPISODE_ERROR})
   for(const message of characterDocIssues(setting))issues.push({step:'cards',id:item.id,message})
+ }
+ if(saved&&world.linkedWorkId){
+  const lacking=world.settings.filter(s=>s.item.kind==='relation'&&lacksRelationFrom(s.item))
+  const before=lacking.length?new Map(saved.settings.map(s=>[s.item.id,s])):undefined
+  for(const s of lacking)if(JSON.stringify(before?.get(s.item.id))!==JSON.stringify(s))issues.push({step:'relations',id:s.item.id,message:RELATION_FROM_ERROR})
  }
  return issues
 }
