@@ -238,3 +238,22 @@ describe('episode.css 관리 화면 quieter 계약 (작품 관리)', () => {
     expect(rule('.episode-app .ep-hero .stats b')).toMatch(/font-weight:700/)
   })
 })
+
+describe('episode.css 관리 화면 polish(작품 관리)', () => {
+  it('탭 내용 묶음(.ep-tab)은 분기 정책·작품 삭제 구획처럼 위쪽 선 하나와 16px 안쪽 여백으로 시작한다', () => {
+    const tab = rule('.ep-tab')
+    expect(tab).toMatch(/border-top:1px solid var\(--line2\)/)
+    expect(tab).toMatch(/padding-top:16px/)
+  })
+
+  it('운영 설정의 저장 버튼은 모든 폭에서 안내문 아래 왼쪽에 놓인다 — 좁은 폭의 align-self:flex-end도 이 패널에서만 되돌린다', () => {
+    const footer = rule('.ep-operating-settings .ep-form-footer')
+    expect(footer).toMatch(/flex-direction:\s*column/)
+    expect(footer).toMatch(/align-items:\s*flex-start/)
+    expect(rule('.ep-operating-settings .ep-form-footer button')).toMatch(/align-self:\s*auto/)
+  })
+
+  it('설정 변경 이력과 발행 이력의 시각은 숫자 폭이 같아 행마다 어긋나지 않는다', () => {
+    expect(rule('.ep-settings-history')).toMatch(/font-variant-numeric:\s*tabular-nums/)
+  })
+})

@@ -54,9 +54,9 @@ function SettingFiles({ workId, world: w, locked, onBusy }: { workId: string; wo
     <section className='ep-card' aria-label='설정 첨부'>
       <h2>설정 첨부 파일</h2>
       {w.mode === 'following'
-        ? <p className='small ep-muted'>원작을 따라가는 설정에는 파일을 붙일 수 없어요.</p>
+        ? <p className='ep-muted'>원작을 따라가는 설정에는 파일을 붙일 수 없어요.</p>
         : !row
-        ? <p className='small ep-muted'>첨부할 설정이 아직 없어요.</p>
+        ? <p className='ep-muted'>첨부할 설정이 아직 없어요.</p>
         : (
           <>
             <label>

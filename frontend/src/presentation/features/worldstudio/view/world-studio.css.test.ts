@@ -142,7 +142,8 @@ it('설정집 일괄 공개 회차 줄은 .episode-app의 label(block)·입력(�
   // 편집 화면의 .world-reveal은 .episode-app 밖이라 이 규칙을 받지 않는다.
   expect(rule((s) => s === '.episode-app .world-reveal')?.body).toMatch(/display:\s*flex/)
   const input = rule((s) => s === '.episode-app .world-reveal input:not([type=checkbox]):not([type=radio])')?.body // 이 규칙의 :not()까지 베껴야 특이도가 위(0,4,1)다
-  expect(input).toMatch(/width:\s*88px/)
+  // 채팅을 연 1440px에서 '전체 공개'가 셋째 줄로 넘어가지 않게 88px에서 줄였다(편집 화면 .world-reveal의 88px는 그대로).
+  expect(input).toMatch(/width:\s*72px/)
   expect(input).toMatch(/margin-top:\s*0/)
   expect(input).toMatch(/padding:\s*8px 10px/)
   expect(input).not.toMatch(/font/) // 터치 기기의 16px(확대 방지) 보정은 .episode-app 규칙이 계속 맡는다
@@ -227,4 +228,26 @@ it('Toast 기본 CSS를 어두운 테마 CSS보다 먼저 불러온다(마크다
     expect(base, path).toBeGreaterThan(-1)
     expect(dark, path).toBeGreaterThan(base)
   }
+})
+
+// 관리 화면 polish(세계관 관리): 정렬·간격·상태 마감만 다룬다. 구조·문구·접근성 이름은 그대로다.
+
+it('설정집 도구줄의 검색 칸은 220px에서 시작해, 채팅을 연 1440px(게시판 폭 약 748px)에서 정렬·결과 수·가져오기·+ 새 설정과 한 줄에 담긴다 (공개 설정집 /worlds는 그대로)', () => {
+  const search = rule((s) => s === '.world-card-library .worlds-search')?.body ?? ''
+  expect(search).toMatch(/flex-basis:\s*220px/)
+  expect(search).toMatch(/min-width:\s*min\(220px,\s*100%\)/) // 좁은 본문에서 칸이 넘치지 않는 하한
+})
+
+it('사이드바의 저장 영역은 901px부터 위 도구 버튼 묶음과 8px 더 떨어지고, 저장 상태 글자는 보기 메뉴 글자와 같은 x(안쪽 여백 10px)에서 시작한다', () => {
+  expect(css).toMatch(/@media\(min-width:901px\)\{\.world-menu-tools\{[^@]*\.world-menu-tools \.world-save-bar\{[^}]*margin-top:8px[^}]*\}\.world-menu-tools \.world-save-state\{padding-inline:10px\}/)
+})
+
+it('작성 단계 표시: 첫 원이 카드 왼쪽 가장자리에 맞고, 500px 이하에서는 지금 단계만 이름을 보이고 나머지는 번호 원만 남겨 네 단계가 가로 스크롤 없이 한 줄에 든다', () => {
+  expect(rule((s) => s === '.world-step-nav ol')?.body).toMatch(/margin-inline-start:\s*-6px/)
+  expect(css).toMatch(/@media\(max-width:500px\)\{[^@]*\.world-step-nav button:not\(\[aria-current\]\)\{font-size:0;gap:0;padding-right:6px\}/)
+})
+
+it('이미지 타일 안내는 두 줄 길이를 고르게 나누고(text-wrap:balance), 시간선 사건은 마우스를 올리면 제목에 밑줄이 생긴다(고른 사건의 보라 글자는 건드리지 않는다)', () => {
+  expect(rule((s) => s === '.world-card-tile-note')?.body).toMatch(/text-wrap:\s*balance/)
+  expect(timelineCss).toMatch(/\.world-timeline-event:hover strong\{text-decoration:underline;text-underline-offset:3px\}/)
 })

@@ -224,3 +224,17 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(opsCss).toMatch(/@media \(max-width: 600px\), \(pointer: coarse\) \{[^@]*\.admin-filter \.inp \{[^}]*min-height:\s*44px/)
   })
 })
+
+describe('storyfork.css 모바일 상단바 polish', () => {
+  const mobile = '(max-width:600px)'
+
+  it('390px에서 로고·검색·알림·테마·아바타가 한 줄에 담기도록 가로 간격은 4px이고 로고는 16px이다 (줄 사이 간격 10px은 그대로)', () => {
+    // 한 줄 폭 358px(390 − 좌우 16px)에 로고(18px일 때 130px)·44·79·44·44px를 간격 10px로 놓으면 381px라 아바타만 둘째 줄로 내려갔다. 4px·16px이면 약 347px이다.
+    expect(value('.gnb .in', 'gap', mobile)).toBe('10px 4px')
+    expect(value('.gnb .logo', 'font-size', mobile)).toBe('16px')
+  })
+
+  it('주 메뉴(세계관·랭킹·캐릭터챗·내 서재) 글자는 같은 폭의 칸 가운데에 놓인다', () => {
+    expect(value('.gnb .nav :is(button,a)', 'justify-content', mobile)).toBe('center')
+  })
+})

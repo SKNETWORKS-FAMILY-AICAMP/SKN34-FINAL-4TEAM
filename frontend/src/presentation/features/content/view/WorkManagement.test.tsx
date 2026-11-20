@@ -204,6 +204,7 @@ it('메뉴를 누르면 탭 내용 머리로 스크롤하고(처음 렌더에서
   expect(target.classList.contains('ep-content')).toBe(false) // 히어로까지 든 내용 열 전체가 아니라
   expect(target.parentElement?.classList.contains('ep-content')).toBe(true) // 그 안의 탭 내용 묶음이다
   expect(target.style.scrollMarginTop).toBe('80px') // 위의 sticky 상단바(.gnb)가 머리를 가리지 않게(회차 목록 Pager와 같은 값)
+  expect(target.classList.contains('ep-tab')).toBe(true) // 위 히어로·분기 정책·작품 삭제 구획과 선으로 나뉘는 클래스(episode.css)
   expect(document.activeElement).toBe(menu) // 초점은 누른 버튼에 남아 이어서 다른 메뉴를 고를 수 있다
 })
 
@@ -221,4 +222,36 @@ it('이력 탭의 저장본·AI 제안 항목 제목은 묶음 제목(h3) 바로
   openHistory()
   expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['발행 이력', '원고 저장본', 'AI 요청·제안'])
   expect(screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)).toEqual(['1화 · 저장 버전 1 · 첫 화', 'gpt · 검토 대기'])
+})
+
+// ── 이력 탭의 불러오는 중·실패: 탭을 누르면 탭 머리로 스크롤돼 화면 맨 위 알림이 화면 밖이므로 이력 구획 안에서 알린다 ──
+const historySection = () => screen.getByRole('heading', { name: '저장·AI·발행 이력', level: 2 }).closest('section')!
+/** 이력 탭을 연 채로 요청 상태(busy·origin·error·history)만 바꿔 다시 그리는 함수를 돌려준다. 요청 중에는 다른 탭이 잠기므로 탭은 먼저 연다. */
+const historyTab = () => {
+  const view = openWith({})
+  openHistory()
+  return (extra: object) => view.rerender(
+    <MemoryRouter><WorkManagement vm={{ ...vm, ...extra } as never} work={work(0)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>,
+  )
+}
+
+it('이력을 불러오는 동안에는 이력 구획 안에서 상태 문구(role=status)로 알리고, 다른 요청 중이거나 불러온 이력이 있으면 띄우지 않는다', () => {
+  const again = historyTab()
+  again({ busy: true, origin: 'history' })
+  expect(within(historySection()).getByRole('status').textContent).toBe('이력을 불러오고 있어요…')
+  // 다른 요청(예: 히어로의 분기 정책 저장)이 진행 중일 때는 이력을 읽는 중이 아니다.
+  again({ busy: true, origin: '' })
+  expect(within(historySection()).queryByRole('status')).toBeNull()
+  again({ busy: true, origin: 'history', history: { versions: [], proposals: [], publicationHistory: [] } })
+  expect(within(historySection()).queryByRole('status')).toBeNull()
+})
+
+it('이력 조회가 실패하면 이력 구획 안에 오류 상자(.ep-alert, role=alert)로 알리고, 다른 요청의 오류는 이 구획에 올리지 않는다', () => {
+  const again = historyTab()
+  again({ origin: 'history', error: '이력을 불러오지 못했어요.' })
+  const alert = within(historySection()).getByRole('alert')
+  expect(alert.textContent).toBe('이력을 불러오지 못했어요.')
+  expect(alert.classList.contains('ep-alert')).toBe(true)
+  again({ origin: 'fork', error: '분기를 만들지 못했어요.' })
+  expect(within(historySection()).queryByRole('alert')).toBeNull()
 })

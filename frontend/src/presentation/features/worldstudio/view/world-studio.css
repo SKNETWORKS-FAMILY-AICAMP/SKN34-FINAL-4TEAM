@@ -20,9 +20,10 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-cover-edit{display:grid;gap:8px;min-width:0}.world-cover-label{font-size:13px;font-weight:650}
 
 /* 관리 모드 왼쪽 사이드바(.ep-menu, shared/episode.css)의 아래쪽: AI 검토·집필 메모·확정 버전 버튼과 상시 저장 영역. 기본은 줄바꿈하는 가로 줄(사이드바가 내용 위 줄이 되는 900px 이하)이고,
-   901px부터는 보기 메뉴 밑 구분선 뒤에 세로로 쌓는다(저장 영역은 사이드바와 함께 따라와 늘 보인다). 도구 버튼은 보기 메뉴(테두리 없음)보다 무겁지 않게 옅은 테두리·600이고 모양·폭·높이는 그대로다. */
+   901px부터는 보기 메뉴 밑 구분선 뒤에 세로로 쌓는다(저장 영역은 사이드바와 함께 따라와 늘 보인다). 도구 버튼은 보기 메뉴(테두리 없음)보다 무겁지 않게 옅은 테두리·600이고 모양·폭·높이는 그대로다.
+   저장 영역은 위 버튼 묶음과 8px 더 떨어져 상태 글자가 아래 저장 버튼 소속으로 읽히고, 글자는 보기 메뉴 글자와 같은 x(안쪽 10px)에서 시작한다. */
 .world-menu-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
-@media(min-width:901px){.world-menu-tools{display:grid;padding-top:12px;border-top:1px solid var(--line2)}.world-menu-tools .world-save-bar{flex-direction:column;align-items:stretch}.world-menu-tools .btn:not(.pri){border-color:var(--line);font-weight:600}}
+@media(min-width:901px){.world-menu-tools{display:grid;padding-top:12px;border-top:1px solid var(--line2)}.world-menu-tools .world-save-bar{flex-direction:column;align-items:stretch;margin-top:8px}.world-menu-tools .world-save-state{padding-inline:10px}.world-menu-tools .btn:not(.pri){border-color:var(--line);font-weight:600}}
 .world-save-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px 12px}.world-save-state{font-size:13px;font-weight:650;white-space:nowrap}.world-save-state.ok{color:var(--tsub)}.world-save-state.wait{color:var(--pri-ink)}
 /* 저장할 것이 없어 잠긴 저장 버튼은 채운 보라가 아니라 옅은 윤곽선이다(숨기지 않는다). 흐림(.55)은 공용 disabled 규칙이 맡고, 바뀐 것이 생겨 켜지면 원래대로 채운 보라다. */
 .world-save-bar .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--sub)}
@@ -44,8 +45,9 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 좁은 화면의 서랍은 뒤 화면을 막는 대화 상자(공용 Sheet)로 body에 그려져 .episode-app 밖이다. 본문 옆에 있을 때와 같은 면·글자가 되도록 이 화면의 토큰 연결(shared/episode.css의 .episode-app)을 그대로 준다. */
 .world-chat[role=dialog]{--tbg:var(--read-bg);--tfg:var(--ink);--tsub:var(--sub);--tacc:var(--pri);--tline:var(--line);--tcard:var(--surface);color:var(--ink);font-family:var(--ui)}
 
-/* 작성 4단계: 번호 스텝(지나온 단계는 ✓, 지금 단계는 채움) → 단계 카드(본문 + 이전·다음 버튼). 연결선과 원 테두리는 1px로 가늘게 두어 지금 단계의 채움만 도드라진다. */
-.world-step-nav{margin:0 0 20px;min-width:0}.world-step-nav ol{display:flex;align-items:center;list-style:none;margin:0;padding:0 0 4px;overflow-x:auto}.world-step-nav li{display:flex;align-items:center;flex:0 0 auto}
+/* 작성 4단계: 번호 스텝(지나온 단계는 ✓, 지금 단계는 채움) → 단계 카드(본문 + 이전·다음 버튼). 연결선과 원 테두리는 1px로 가늘게 두어 지금 단계의 채움만 도드라진다.
+   첫 원은 버튼 안쪽 여백(6px)만큼 카드 가장자리보다 들어가 보여 목록을 -6px 당긴다(첫 단계 hover 알약만 바깥으로 나간다). 500px 이하에서는 네 단계가 한 줄에 안 들어가 오른쪽이 잘렸으므로('3 관계 연') 지금 단계만 이름을 보이고 나머지는 번호 원(✓)만 남긴다(font-size:0이라 접근성 이름은 그대로). */
+.world-step-nav{margin:0 0 20px;min-width:0}.world-step-nav ol{display:flex;align-items:center;list-style:none;margin:0;margin-inline-start:-6px;padding:0 0 4px;overflow-x:auto}.world-step-nav li{display:flex;align-items:center;flex:0 0 auto}
 .world-step-nav li+li::before{content:'';width:clamp(12px,3vw,40px);height:1px;margin-inline:6px;background:var(--line2)}.world-step-nav li[data-state=done]+li::before{background:var(--pri)}
 .world-step-nav button{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 14px 6px 6px;border:0;border-radius:999px;background:none;color:var(--sub);font:inherit;font-weight:650;white-space:nowrap;cursor:pointer}.world-step-nav button:hover{background:var(--pri-soft)}.world-step-nav button[aria-current=step]{color:var(--ink);font-weight:750}
 .world-step-nav span{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--line2);border-radius:50%;color:var(--sub);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -67,6 +69,8 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-board-scroll{overflow-x:auto}
 /* 좁은 배치의 분류 칩 줄(공용 worldBoard.css가 목록을 가로 flex로 바꾼다): 칩 버튼의 flex:none은 부모인 li에 닿지 않아, 칩이 한 줄에 다 안 들어가면 li가 줄어들어 칩 글자가 한 글자씩 꺾였다. li가 줄어들지 않게 해 줄 안에서 가로로 스크롤하게 한다. */
 .world-card-library .worlds-cats li{flex:none}
+/* 도구줄(검색·정렬·결과 수·가져오기·+ 새 설정): 공용 검색 칸이 260px에서 시작하면 채팅을 연 1440px(게시판 폭 748px)에서 다섯 항목이 약 845px라 '+ 새 설정'만 둘째 줄에 혼자 남았다. 220px에서 시작하면 약 713px로 한 줄이다(placeholder 약 164px는 들어간다). 공개 설정집(/worlds)은 이 규칙 밖이라 그대로다. */
+.world-card-library .worlds-search{flex-basis:220px;min-width:min(220px,100%)}
 .world-card-library .worlds-board-table .col-no{width:48px}.world-card-library .worlds-board-table .col-kind{width:92px}.world-card-library .worlds-board-table .col-num{width:56px}
 /* 제목 글자는 공용 게시판의 800 대신 650이다(57행 목록에서 행마다 무거운 글자가 쌓이지 않게). 공개 설정집(/worlds)은 이 화면 밖이라 그대로고, 'AI 의견 N' 배지는 아래 전용 규칙(700)을 그대로 쓴다. */
 .world-card-library .worlds-board-table .col-title :is(a,button):not(.world-opinion){font-weight:650}
@@ -100,7 +104,7 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-review button:not(.btn){color:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer;background:none;border:0}.world-content :focus-visible,.world-library :focus-visible{outline:2px solid var(--pri);outline-offset:3px}
 
 @media(max-width:800px){.world-form-row{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:500px){.world-toolbar h2{flex:1 1 55%;overflow-wrap:anywhere}.world-step-nav button{padding-right:10px}.world-step-actions .btn{flex:1 1 auto}.world-step-actions .btn:first-child{margin-right:0}.world-review-item{gap:8px}.world-review-item .btn{padding-inline:10px}}
+@media(max-width:500px){.world-toolbar h2{flex:1 1 55%;overflow-wrap:anywhere}.world-step-nav button{padding-right:10px}.world-step-nav button:not([aria-current]){font-size:0;gap:0;padding-right:6px}.world-step-actions .btn{flex:1 1 auto}.world-step-actions .btn:first-child{margin-right:0}.world-review-item{gap:8px}.world-review-item .btn{padding-inline:10px}}
 
 .initial-review{max-width:76ch;margin-block:24px}.initial-review p,.initial-review blockquote{overflow-wrap:anywhere}.initial-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.initial-copy{white-space:pre-wrap}.initial-review details{margin-block:16px}.initial-review summary{cursor:pointer;padding-block:10px}.initial-review fieldset{border:0;padding:0;margin-block:16px}.initial-source-label{font-weight:600}.initial-recovery{padding-block:20px;border-block:1px solid var(--line);margin-block:24px}.world-analysis .btn,.world-revisions .btn{height:auto;min-height:44px;white-space:normal;padding:10px 20px;text-align:center}.initial-review textarea{min-height:140px}.initial-review input,.initial-review textarea,.initial-review select{max-width:100%;box-sizing:border-box}@media(max-width:600px){.initial-actions .btn,.initial-apply-bar .btn{width:100%}.initial-review blockquote{margin-inline:12px}}
 
@@ -156,7 +160,7 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-card-tile.empty:has(input:enabled):hover{border-color:var(--tacc);background:color-mix(in srgb,var(--tacc) 6%,transparent)}
 .world-card-studio .world-card-tile .world-card-tile-add{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 8px 40px;color:var(--tfg);font-size:13.5px;font-weight:700;line-height:1.3;text-align:center}
 .world-card-tile-add svg{flex:none;width:22px;height:22px}
-.world-card-tile-note{position:absolute;inset:auto 8px 10px;margin:0;color:var(--tsub);font-size:11.5px;line-height:1.4;text-align:center;pointer-events:none}
+.world-card-tile-note{position:absolute;inset:auto 8px 10px;margin:0;color:var(--tsub);font-size:11.5px;line-height:1.4;text-align:center;text-wrap:balance;pointer-events:none}
 /* 타일은 overflow:hidden이라 안쪽 라벨의 초점 고리가 잘리므로 고리는 타일 바깥에 그리고 라벨 자신의 고리는 끈다. */
 .world-card-tile:has(input:focus-visible){outline:2px solid var(--tacc);outline-offset:3px}.world-card-studio .world-card-tile .world-card-tile-add:has(input:focus-visible){outline:0}
 .world-card-image-actions{display:flex;flex-wrap:wrap;gap:8px}.world-card-image-note{margin:0;line-height:1.5}
@@ -277,7 +281,8 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 관계 행의 N화부터(DEC-54 2단계): 위 공개 회차 입력과 같은 한 줄 라벨·숫자 폭이다(크기·숫자 폭은 위 :is 묶음). 위 관계 기준 회차 칸과 같이 .episode-app의 label(block)·입력(폭 100%) 규칙을 이기려고 .episode-app 아래로 다시 정한다(입력은 :not()까지 베낌). */
 .episode-app .relationship-from{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}.episode-app .relationship-from input:not([type=checkbox]):not([type=radio]){width:88px;margin-top:0;padding:8px 10px}.relationship-from .inp[aria-invalid=true]{border-color:var(--danger)}.relationship-row .world-field-error{color:var(--danger);font-weight:650}
 .relationship-row .relationship-from-note{margin:0;color:var(--danger);font-weight:650}
-/* 설정집 화면의 일괄 공개 회차(.world-bulk): 라벨·입력이 .episode-app 틀의 block·폭 100% 규칙에 져 세 줄로 갈라졌다. 위 관계 행의 N화부터와 같이 .episode-app 아래로 다시 정한다(입력은 :not()까지 베낌, 최소 높이·숫자 폭은 위 :is 묶음). 편집 화면의 .world-reveal은 .episode-app 밖이라 받지 않는다. */
-.episode-app .world-reveal{display:flex}.episode-app .world-reveal input:not([type=checkbox]):not([type=radio]){width:88px;margin-top:0;padding:8px 10px}
+/* 설정집 화면의 일괄 공개 회차(.world-bulk): 라벨·입력이 .episode-app 틀의 block·폭 100% 규칙에 져 세 줄로 갈라졌다. 위 관계 행의 N화부터와 같이 .episode-app 아래로 다시 정한다(입력은 :not()까지 베낌, 최소 높이·숫자 폭은 위 :is 묶음). 편집 화면의 .world-reveal은 .episode-app 밖이라 받지 않는다.
+   입력 폭은 채팅을 연 1440px(게시판 폭 748px)에서 '전체 공개'가 셋째 줄로 넘어가지 않게 88px이 아니라 72px다(편집 화면의 88px는 그대로, 세 자리 회차는 들어간다). */
+.episode-app .world-reveal{display:flex}.episode-app .world-reveal input:not([type=checkbox]):not([type=radio]){width:72px;margin-top:0;padding:8px 10px}
 /* 터치 기기: iOS는 16px보다 작은 입력에 초점이 가면 화면을 확대한다. 위 도구줄·레일 검색의 13.5px 규칙은 shared/episode.css의 16px 보정보다 특이도가 높아((0,4,1) 대 (0,3,1)) 그대로 남으므로, 같은 선택자(:not()까지)로 맨 뒤에서 되돌린다. */
 @media(pointer:coarse){.episode-app .world-compact input:not([type=checkbox]):not([type=radio]),.episode-app .world-compact select,.world-rail-tools input{font-size:16px}}

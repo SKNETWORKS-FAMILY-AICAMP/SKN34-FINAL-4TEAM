@@ -112,7 +112,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
           }}
         />
         {/* 탭 내용 묶음: 메뉴를 누르면 이 머리로 스크롤한다. scroll-margin은 sticky 상단바(.gnb)가 머리를 가리지 않게(회차 목록과 같은 값). */}
-        <div ref={tabContent} style={{ scrollMarginTop: 80 }}>
+        <div ref={tabContent} className='ep-tab' style={{ scrollMarginTop: 80 }}>
           {tab === 'settings' && <WorkSettingsPanel workId={w.id} useCase={useCase} />}
           {tab === 'world' && (
             <>
@@ -124,10 +124,13 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
             <section className='ep-reading'>
               <h2>저장·AI·발행 이력</h2>
               <p>저장본은 보존돼요. 이 화면에서는 이력을 읽기만 하고, 복원과 공개는 집필실에서 해요.</p>
+              {/* 이력 요청의 진행·실패는 맨 위 알림(탭 머리로 스크롤하면 화면 밖)이 아니라 여기서 알린다. 다른 요청과 섞이지 않게 origin이 history일 때만 보인다. */}
+              {vm.origin === 'history' && vm.error && <p className="ep-alert" role="alert">{vm.error}</p>}
+              {vm.origin === 'history' && vm.busy && !vm.history && <p role='status'>이력을 불러오고 있어요…</p>}
               {vm.history && (
                 <>
                   <h3>발행 이력</h3>
-                  {!vm.history.publicationHistory?<p className="ep-alert" role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol>{vm.history.publicationHistory.map((event,i)=><li key={i}>
+                  {!vm.history.publicationHistory?<p className="ep-alert" role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol role='list' className='ep-settings-history'>{vm.history.publicationHistory.map((event,i)=><li key={i}>
                     {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')} · {savedVersion(event.episode, event.versionId)}
                   </li>)}</ol>:<p>발행 이력이 없어요.</p>}
                   <h3>원고 저장본</h3>
@@ -242,7 +245,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
             <section className='ep-fork'>
               <h2>그 순간, 다른 선택을 했다면</h2>
               <p className='ep-lead'>
-                선택한 회차까지의 공개 원고를 보존하고,<br />그 다음 회차부터 새로운 이야기를
+                선택한 회차까지의 공개 원고를 보존하고, 그 다음 회차부터 새로운 이야기를
                 써 내려가세요. 기준 회차의 공개 설정·상태·지식·관계도 함께 이어져요.
               </p>
               {w.source || w.visibility !== 'public' || !w.allowFork

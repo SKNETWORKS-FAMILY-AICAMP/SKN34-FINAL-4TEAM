@@ -120,9 +120,10 @@
 .ep-alert.ep-changed{background:color-mix(in srgb,var(--pri) 8%,var(--surface));color:var(--ink);border-color:color-mix(in srgb,var(--pri) 40%,var(--line2))}
 .ep-operating-settings form { max-width: 520px; margin-top: 16px; gap: 14px; }
 .ep-operating-settings select { max-width: 320px; }
-.ep-settings-rules { display: grid; grid-template-columns: minmax(7rem, max-content) 1fr; gap: 8px 16px; }
-.ep-settings-rules dd { margin: 0; color: var(--sub); }
-.ep-settings-history { list-style: none; margin: 0; padding: 0; }
+/* 저장 버튼은 모든 폭에서 안내문 아래 왼쪽이다(양 끝 정렬은 어느 선에도 안 맞아 떠 보였고, 좁은 폭에서는 오른쪽 끝이라 폭마다 자리가 달랐다). 650px 이하 공용 규칙의 button{align-self:flex-end}는 버튼 자신의 속성이라 이 패널에서만 되돌린다. */
+.ep-operating-settings .ep-form-footer { flex-direction: column; align-items: flex-start; }
+.ep-operating-settings .ep-form-footer button { align-self: auto; }
+.ep-settings-history { list-style: none; margin: 0; padding: 0; font-variant-numeric: tabular-nums; }
 .ep-settings-history li { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 10px 0; border-bottom: 1px solid var(--line2); }
 .ep-settings-history time { color: var(--sub); }
 /* 관리 화면 distill(작품 관리 탭 내용): 탭 내용은 히어로·카드와 같은 왼쪽 선에서 시작한다(읽기 폭 max-width는 그대로). 이야기 분기만 있던 윗여백 40px도 다른 탭과 맞춘다. */
@@ -147,3 +148,5 @@
 .episode-app .ep-card.tcard:has(>.ep-sec-head){background:none;border:0;border-top:1px solid var(--line2);border-radius:0;padding:16px 0 0}
 /* 받은 피드백의 두 구획은 .sec 기본 위 간격(56px) 대신 다른 탭의 구획 간격과 맞춘다. 첫 구획은 inline marginTop:0이 우선한다. */
 .ep-feedback .sec{margin-top:32px}
+/* 관리 화면 polish(작품 관리): 탭 내용 묶음은 히어로·분기 정책·작품 삭제 구획처럼 위쪽 선 하나로 시작한다(선이 없으면 탭 내용이 위험 동작인 '작품 삭제'의 하위 내용처럼 읽혔다). */
+.ep-tab{border-top:1px solid var(--line2);padding-top:16px}

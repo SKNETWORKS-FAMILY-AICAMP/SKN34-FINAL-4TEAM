@@ -342,7 +342,6 @@ function OwnCover({ workId, editing, blocked, disabled, editRef, onBusy, onEdit,
           : !media.busy && !media.error && <img className='stored-image' src='/default-work-cover.svg' alt='기본 작품 표지' />}
       </div>
       {media.error && <p role='alert' className='ep-alert small'>{media.error}</p>}
-      <p role='status' className='small muted'>{media.busy ? '파일을 처리하고 있어요…' : media.notice}</p>
       {editing
         ? (
           <>
@@ -403,6 +402,8 @@ function OwnCover({ workId, editing, blocked, disabled, editRef, onBusy, onEdit,
             표지 편집
           </button>
         )}
+      {/* 결과 문구(라이브 영역)는 동작 줄 뒤에 둔다: 표지와 '표지 편집' 버튼 사이에 빈 문단이 끼어 버튼이 36px 떨어져 보였다. */}
+      <p role='status' className='small muted'>{media.busy ? '파일을 처리하고 있어요…' : media.notice}</p>
     </div>
   )
 }

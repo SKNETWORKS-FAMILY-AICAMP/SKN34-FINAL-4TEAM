@@ -69,10 +69,11 @@ describe('storyfork.css 콤보박스(select) 전역 규칙', () => {
 
   it('작은 입력(.inp.sm)·알약형(.pc select)·공개 범위(.wprops select)도 셰브런 자리를 뺏기지 않는다', () => {
     // .inp.sm은 padding:0 10px(0,2,0)이라 전역 규칙(0,1,1)을 이기므로 select.inp.sm이 오른쪽을 다시 정한다.
-    expect(parseInt(value('select.inp.sm', 'padding-right') ?? '0')).toBeGreaterThanOrEqual(26)
+    // 셰브런은 오른쪽 끝에서 14~24px를 차지하므로 기본 select(34px)와 같은 34px여야 글자와 10px 떨어진다(30·28·26px면 6·4·2px로 붙는다).
+    expect(parseInt(value('select.inp.sm', 'padding-right') ?? '0')).toBeGreaterThanOrEqual(34)
     // 뒤에 오는 같은 명시도 규칙은 padding 줄임 표기의 오른쪽(둘째 값)으로 맞춘다.
     for (const selector of ['.pc select', '.wprops select', '.visibility-mock select']) {
-      expect(parseInt(value(selector, 'padding')?.split(/\s+/)[1] ?? '0'), selector).toBeGreaterThanOrEqual(26)
+      expect(parseInt(value(selector, 'padding')?.split(/\s+/)[1] ?? '0'), selector).toBeGreaterThanOrEqual(34)
     }
   })
 
