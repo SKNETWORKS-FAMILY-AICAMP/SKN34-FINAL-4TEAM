@@ -274,7 +274,7 @@ class InitialBuildHttpIntegrationTest {
                 var progress=awaitBuild()
                 if(episodeCount==4) {
                     assertEquals("failed",progress.path("status").asString(),progress.toString())
-                    assertEquals("MODEL_TIMEOUT",progress.path("failureCode").asString())
+                    assertEquals("AI_TIMEOUT",progress.path("failureCode").asString())
                     assertEquals(3,progress.path("completedEpisodes").asInt())
                     val attempts=modelCalls()
                     send(jobPath,"POST",buildRequest,202)
