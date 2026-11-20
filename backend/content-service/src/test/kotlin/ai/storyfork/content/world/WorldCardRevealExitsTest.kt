@@ -86,7 +86,7 @@ class WorldCardRevealExitsTest {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val publicWorlds = PublicWorldService(worlds, revisions, revisionCards, cardVersions, images, states, expandedSeeds, graph, nicknames, storage, works, access, workImages, publication, SearchCandidates(null), manager)
-    private val workWorlds = WorkWorldService(access, works, publication, studios, publicWorlds, references, TransactionTemplate(manager))
+    private val workWorlds = WorkWorldService(access, works, publication, studios, publicWorlds, references, mock(WorldStudioService::class.java), TransactionTemplate(manager))
     private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(
         WorkMcpTools(mock(WorkService::class.java), workWorlds, mock(WorkNoticeService::class.java), mock(ForkService::class.java), mock(ContextService::class.java), mock(ProposalService::class.java), mock(McpChangeNotice::class.java)),
         WorldStudioMcpTools(mock(WorldStudioService::class.java), workWorlds, publicWorlds, mock(InitialWorldAnalysisService::class.java), mock(InitialWorldApplicationService::class.java), mock(McpChangeNotice::class.java)),

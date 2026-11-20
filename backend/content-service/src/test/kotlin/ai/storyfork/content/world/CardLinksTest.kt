@@ -1,10 +1,12 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content.world.domain.hideCardLinks
+import ai.storyfork.content.world.domain.remapCardLinks
 import ai.storyfork.content.world.domain.stripCardLinks
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest.dynamicTest
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 
 /**
@@ -59,4 +61,19 @@ class CardLinksTest {
         Triple("[갑](card:$a) <card:$b>", ids(b), "갑 <card:$b>"),
         Triple("[갑](CARD:${a.uppercase()})", ids(), "[갑]()"),
     ).mapIndexed { index, (body, visible, hidden) -> dynamicTest("${index + 1}. ${body.take(30)}") { assertEquals(hidden, hideCardLinks(body, visible)) } }
+
+    /** Fork 독립(#583)이 복사한 카드끼리 본문 링크를 새 id로 다시 잇는다. 공유 검증 표(화면·AI 경계)에는 없는 서버 전용 규칙이다. */
+    @Test fun `remapped links point at the new ids, unknown targets become plain text and other reference shapes are kept`() {
+        val a2 = "a2a2a2a2-2222-3333-4444-555555555555"
+        val b2 = "b2b2b2b2-2222-3333-4444-555555555555"
+        val stranger = "cccccccc-2222-3333-4444-555555555555"
+        val ids = mapOf(UUID.fromString(a) to UUID.fromString(a2), UUID.fromString(b) to UUID.fromString(b2))
+
+        assertEquals("앞 [갑](card:$a2) 중 [을](card:$b2) 뒤", remapCardLinks("앞 [갑](card:$a) 중 [을](card:$b) 뒤", ids))
+        assertEquals("[갑](card:$a2)", remapCardLinks("[갑](card:${a.uppercase()})", ids))
+        assertEquals("갑 [을](card:$b2)", remapCardLinks("[갑](card:$stranger) [을](card:$b)", ids))
+        assertEquals("<card:$a2> <>", remapCardLinks("<card:$a> <card:$stranger>", ids))
+        assertEquals("[갑](CARD:$a2)", remapCardLinks("[갑](CARD:$a)", ids))
+        assertEquals("링크 없는 본문", remapCardLinks("링크 없는 본문", ids))
+    }
 }

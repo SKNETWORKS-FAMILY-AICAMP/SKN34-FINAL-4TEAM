@@ -411,7 +411,7 @@ describe('Fork가 이어받는 원작 세계관(#365)', () => {
     expect(url).toBe('/api/v1/works/fork%201/inherited-world?upto=4')
     expect(request.method).toBe('GET')
     expect(request.headers).toEqual(expect.objectContaining({ Authorization: 'Bearer content-bearer' }))
-    expect(inherited).toEqual({ upto: 2, cards: [{ id: 'c1', title: '카엘', cardType: 'character', aliases: ['검은 기사'] }, { id: 'p1', title: '성문', cardType: 'location', aliases: ['검은 기사'] }], identity: [] })
+    expect(inherited).toEqual({ upto: 2, cards: [{ id: 'c1', title: '카엘', cardType: 'character', aliases: ['검은 기사'] }, { id: 'p1', title: '성문', cardType: 'location', aliases: ['검은 기사'] }], identity: [], relationshipCount: 0 })
   })
 
   // 「동일 인물」(#485): 시작 양식이 같은 사람의 두 카드를 함께 고르지 못하게 하려고 이어받은 세계관의 identity를 다른 이름 → 본체 쌍으로 받는다.
@@ -440,5 +440,51 @@ describe('Fork가 이어받는 원작 세계관(#365)', () => {
     await expect(new EpisodeUseCase(new HttpEpisodeRepository(refused)).inheritedWorld('fork', 4)).rejects.toThrow('작품을 찾을 수 없어요.')
     const broken = vi.fn().mockImplementation(async () => Response.json(answer({ cards: [{ id: 'c1' }] })))
     await expect(new EpisodeUseCase(new HttpEpisodeRepository(broken)).inheritedWorld('fork', 4)).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
+
+  // Fork 세계관 독립(#583) 화면이 '관계 N개'를 보인다. 관계 상태를 모르던 옛 응답은 current로 읽는다.
+  it('이어받은 관계 수를 돌려준다', async () => {
+    const relationship = (rid: string, category: string, polarity = 'asserted') =>
+      ({ id: rid, sourceCardId: 'c1', targetCardId: 'p1', category, label: '', body: '', direction: 'directed', polarity, semanticMetadata: {}, lifecycle: 'active' })
+    const relationships = [relationship('r1', 'identity'), relationship('r2', 'structural', 'denied'), relationship('r3', 'emotional')]
+    const current = vi.fn().mockImplementation(async () => Response.json(answer({ relationships })))
+    expect((await new EpisodeUseCase(new HttpEpisodeRepository(current)).inheritedWorld('fork'))?.relationshipCount).toBe(3)
+    const old = vi.fn().mockImplementation(async () => Response.json(answer({ relationships, relationshipStatus: undefined })))
+    expect((await new EpisodeUseCase(new HttpEpisodeRepository(old)).inheritedWorld('fork'))?.relationshipCount).toBe(3)
+  })
+
+  it('관계 저장소가 시점 상태를 보증하지 못하면(unavailable) 관계 수를 0으로 채우지 않고 null로 돌려준다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json(answer({ relationships: [], relationshipStatus: 'unavailable' })))
+    const inherited = await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).inheritedWorld('fork')
+    expect(inherited?.relationshipCount).toBeNull()
+    expect(inherited?.cards).toHaveLength(2) // 카드는 그대로 두고 관계만 알 수 없다
+  })
+})
+
+describe('Fork 세계관 독립(#583)', () => {
+  const worldId = '33333333-3333-4333-8333-333333333333'
+
+  it('내 세계관으로 만드는 POST를 본문 없이 CSRF와 함께 보내고 새 세계관 id를 돌려준다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json({ workId: 'fork 1', worldId }, { status: 201 }))
+    expect(await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).detachInheritedWorld('fork 1')).toEqual({ workId: 'fork 1', worldId })
+    const [url, request] = fetcher.mock.calls[0]
+    expect(url).toBe('/api/v1/works/fork%201/inherited-world/detach')
+    expect(request.method).toBe('POST')
+    expect(request.body).toBeUndefined()
+    expect(request.headers).toEqual(expect.objectContaining({ Authorization: 'Bearer content-bearer', 'X-CSRF-TOKEN': 'content-csrf' }))
+  })
+
+  it('서버가 거절하면(이어받을 세계관 없음 409·관계 저장소 503) 서버 문구 그대로 실패한다', async () => {
+    const refused = vi.fn().mockImplementation(async () => Response.json({ detail: '이어받는 원작 세계관이 없어요.', code: 'FORK_WORLD_NOT_INHERITED' }, { status: 409 }))
+    await expect(new EpisodeUseCase(new HttpEpisodeRepository(refused)).detachInheritedWorld('fork')).rejects.toThrow('이어받는 원작 세계관이 없어요.')
+    const unavailable = vi.fn().mockImplementation(async () => Response.json({ detail: '관계를 읽지 못해 독립할 수 없어요.' }, { status: 503 }))
+    await expect(new EpisodeUseCase(new HttpEpisodeRepository(unavailable)).detachInheritedWorld('fork')).rejects.toThrow('관계를 읽지 못해 독립할 수 없어요.')
+  })
+
+  it('응답에 새 세계관 id가 없거나 uuid가 아니면 성공으로 받지 않는다', async () => {
+    for (const body of [{ workId: 'fork', worldId: null }, { workId: 'fork', worldId: 'not-a-uuid' }, { workId: 'fork' }]) {
+      const fetcher = vi.fn().mockImplementation(async () => Response.json(body, { status: 201 }))
+      await expect(new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).detachInheritedWorld('fork')).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+    }
   })
 })

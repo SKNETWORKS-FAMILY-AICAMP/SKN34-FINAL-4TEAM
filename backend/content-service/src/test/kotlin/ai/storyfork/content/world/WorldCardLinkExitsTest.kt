@@ -77,7 +77,7 @@ class WorldCardLinkExitsTest {
     }
     private val publicWorlds = PublicWorldService(worlds, revisions, revisionCards, cardVersions, mock(SettingCardImageRepository::class.java), states, mock(ExpandedSeedProgressRepository::class.java), graph,
         mock(CoreNicknameService::class.java), mock(AttachmentStorageClient::class.java), works, access, mock(ContentImageRepository::class.java), publication, SearchCandidates(null), manager)
-    private val workWorlds = WorkWorldService(access, works, publication, mock(StudioWorldRepository::class.java), publicWorlds, references, TransactionTemplate(manager))
+    private val workWorlds = WorkWorldService(access, works, publication, mock(StudioWorldRepository::class.java), publicWorlds, references, mock(WorldStudioService::class.java), TransactionTemplate(manager))
     private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(
         WorkMcpTools(mock(WorkService::class.java), workWorlds, mock(WorkNoticeService::class.java), mock(ForkService::class.java), mock(ContextService::class.java), mock(ProposalService::class.java), mock(McpChangeNotice::class.java)),
         WorldStudioMcpTools(mock(WorldStudioService::class.java), workWorlds, publicWorlds, mock(InitialWorldAnalysisService::class.java), mock(InitialWorldApplicationService::class.java), mock(McpChangeNotice::class.java)),
