@@ -411,6 +411,26 @@ describe('원고 검수 단계 결과(#59)', () => {
     expect(step).toMatchObject({ feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.' })
   })
 
+  it('옛 대화 기록의 web_research 입력 대기는 research로 읽고, 옛 단계 이름은 그대로 둔다(#545)', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({
+      threadId: 't1', title: '고증', turns: [{ request: '조사해 줘', reply: {
+        status: 'waiting', steps: [{ feature: 'web_research', status: 'not_started' }], missingInputs: ['web_research'],
+      } }],
+    }))
+    const history = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(history.turns[0].reply).toMatchObject({ missingInputs: ['research'], steps: [{ feature: 'web_research' }] })
+  })
+
+  it('실시간 이벤트의 web_research 시작·입력 대기도 research로 읽는다(#545)', async () => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(
+      'event: started\ndata: {"feature":"web_research"}\n\n',
+      'event: waiting\ndata: {"steps":[],"missingInputs":["web_research"]}\n\n',
+      'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
+    expect(events[0]).toEqual({ type: 'started', feature: 'research' })
+    expect(events[1]).toMatchObject({ type: 'waiting', missingInputs: ['research'] })
+  })
+
   it.each(['manuscript_review', 'review'])('이력의 원고 검수 단계 %s를 같은 결과로 읽는다', async (feature) => {
     const fetcher = vi.fn().mockResolvedValue(Response.json({
       threadId: 't1', title: '원고 검수', turns: [{ request: '검수해 줘', reply: {

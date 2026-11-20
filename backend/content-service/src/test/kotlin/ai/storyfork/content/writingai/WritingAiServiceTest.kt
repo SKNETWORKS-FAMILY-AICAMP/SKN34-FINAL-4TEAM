@@ -180,7 +180,7 @@ class WritingAiServiceTest {
 
     @Test
     fun `resume forwards the inputs the author filled in`() {
-        val inputs = JsonMapper.builder().build().readTree("""{"web_research":{"question":"한양에서 동래까지?"}}""")
+        val inputs = JsonMapper.builder().build().readTree("""{"research":{"question":"한양에서 동래까지?"}}""")
         val body = service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true, inputs)))
         assertEquals(inputs, (body["resume"] as Map<*, *>)["inputs"])
     }

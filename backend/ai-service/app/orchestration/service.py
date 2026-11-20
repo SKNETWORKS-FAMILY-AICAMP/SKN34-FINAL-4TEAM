@@ -117,7 +117,6 @@ class State(TypedDict, total=False):
     message: str | None
     steps: list[dict]
     missingInputs: list[str]
-    unsupported: list[str]
     scope: str | None
     retrievalScope: dict | None  # Content가 확인한 Q&A 조회 키. 있으면 Q&A가 Retrieval로 근거를 받는다.
     target: dict | None  # Content가 확인한 Writing 반영 대상(workId·episode). 토큰은 담지 않는다.
@@ -377,7 +376,7 @@ def _initial(data: OrchestrationRequest) -> State:
     """턴마다 바뀌는 값은 모두 새로 넣어 이전 턴 결과가 이번 응답에 남지 않게 한다. runId·traceParent는 이 턴을 여는 요청의 루트가 채운다(_claim)."""
     return {'runId': None, 'traceParent': None, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
-            'steps': [], 'missingInputs': [], 'unsupported': [], 'writingBaseRevision': None, 'replaceHistory': False, 'simulationPlan': None, 'task': None,
+            'steps': [], 'missingInputs': [], 'writingBaseRevision': None, 'replaceHistory': False, 'simulationPlan': None, 'task': None,
             'scene': None, 'sceneAction': None, 'simulationForm': data.simulation.model_dump(mode='json') if data.simulation else None,
             'scope': data.conversation.scope if data.conversation else None,
             'retrievalScope': data.scope.model_dump() if data.scope else None,

@@ -16,15 +16,18 @@ from app.world_review.models import EnrichResponse, ImpactResponse, WorldReviewR
 from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanResponse
 
 # 이전 체크포인트는 기록 당시의 단계 식별자를 보존한다(#387·#499). #387 전 대화 기록에는 Writing & Editing으로 합쳐진 story_development가, #499 전에는 review가,
-# World Agent(#546) 전에는 옛 설정집 검토 world_review와 미구현 판정 world_plot이 남아 있다. 이력을 다시 읽을 때 형식 오류가 되지 않게 읽기만 받는다.
-RecordedFeature = Feature | Literal['story_development', 'review', 'world_review', 'world_plot']
+# World Agent(#546) 전에는 옛 설정집 검토 world_review와 미구현 판정 world_plot이, Research(#545) 전에는 web_research가 남아 있다.
+# 이력을 다시 읽을 때 형식 오류가 되지 않게 읽기만 받는다.
+RecordedFeature = Feature | Literal['story_development', 'review', 'world_review', 'world_plot', 'web_research']
+RENAMED_FEATURES = {'review': 'manuscript_review', 'web_research': 'research'}
 
 
-def manuscript_review_feature(feature: str) -> str:
-    return 'manuscript_review' if feature == 'review' else feature
+def current_feature(feature: str) -> str:
+    """옛 기능 키를 지금 키로 바꾼다. 선택 기능·입력 대기 목록·체크포인트의 판정 기능을 읽을 때 쓴다."""
+    return RENAMED_FEATURES.get(feature, feature)
 
 
-CurrentFeature = Annotated[Feature, BeforeValidator(manuscript_review_feature)]
+CurrentFeature = Annotated[Feature, BeforeValidator(current_feature)]
 
 
 class WritingInput(BaseModel):
@@ -58,7 +61,7 @@ class StepInputs(BaseModel):
     model_config = ConfigDict(extra='forbid')
     story_context: AnswerRequest | None = None
     writing_editing: WritingInput | None = None
-    web_research: ResearchRequest | None = None
+    research: ResearchRequest | None = Field(default=None, validation_alias=AliasChoices('research', 'web_research'))
     manuscript_review: ReviewInput | None = Field(default=None, validation_alias=AliasChoices('manuscript_review', 'review'))
 
 
@@ -151,7 +154,7 @@ class StepResult(BaseModel):
 class OrchestrationResponse(BaseModel):
     """steps는 메인 에이전트가 서브 에이전트를 부른 순서다. message는 메인 에이전트의 종합 답변이거나 실행하지 않은 턴의 고정 문구다.
 
-    rejected와 고정 확인 질문의 clarify면 아무 Agent도 실행하지 않았다(unsupported는 미구현 기능을 판정하던 때의 옛 기록에만 남는다).
+    rejected와 고정 확인 질문의 clarify면 아무 Agent도 실행하지 않았다(status unsupported는 미구현 기능을 판정하던 때의 옛 기록에만 남는다).
     needs_input·cancelled는 그 앞에서 끝낸 단계만 있다.
 
     waiting은 대화 안에서 멈춘 상태이며 같은 conversation의 resume으로 이어간다. 입력 대기면 missingInputs,
@@ -162,7 +165,6 @@ class OrchestrationResponse(BaseModel):
     message: str | None = None
     steps: list[StepResult] = []
     missingInputs: list[CurrentFeature] = []
-    unsupported: list[RecordedFeature] = []
     awaitingApproval: Feature | None = None
     awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다
     approvalEpisode: int | None = None

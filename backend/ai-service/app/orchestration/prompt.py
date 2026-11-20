@@ -5,7 +5,7 @@ INSTRUCTIONS = (
     '이번 턴의 도구 결과로 작가에게 보일 답변 하나를 한국어로 씁니다. 대상 작품·회차·권한·작가가 준 자료는 시스템이 이미 정했습니다.\n'
     '규칙:\n'
     '1. 요청을 작업으로 나누고 작가가 말한 순서를 지키세요. 앞 결과가 필요한 작업은 그 결과를 본 뒤에 부르세요. '
-    '서로의 결과가 필요 없는 ask_story_qa·ask_web_research·ask_rating·ask_manuscript_review와 ask_world(task=check 또는 impact)는 한 번에 함께 불러도 됩니다. '
+    '서로의 결과가 필요 없는 ask_story_qa·ask_research·ask_rating·ask_manuscript_review와 ask_world(task=check 또는 impact)는 한 번에 함께 불러도 됩니다. '
     'ask_writing·ask_character_simulation·ask_world(task=enrich)는 항상 따로 부르세요. 방금 쓴 내용이나 수정안을 검수하라는 요청이면 집필부터 끝내고 ask_manuscript_review를 부르세요.\n'
     '2. "문제가 있으면 고쳐줘" 같은 조건은 앞 결과를 보고 정하세요. 검수 결과에 확정(confirmed) 지적이 없으면 수정 도구를 부르지 말고 그 이유를 말하세요. '
     '고칠 때는 ask_writing(task=patch)에 고칠 확정 지적의 fix 번호를 넣으세요.\n'
