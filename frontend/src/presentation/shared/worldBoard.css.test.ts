@@ -262,3 +262,8 @@ describe('390px 가로 넘침(critique 후속)', () => {
     expect(studio).toContain('@media(max-width:900px){.world-menu-body,.world-menu-row{min-width:0}.world-menu-row{display:flex;align-items:center;gap:8px}')
   })
 })
+
+// ── 3단계 distill: 그래프 카드의 두 버튼은 마우스 기기에서만 호버·초점·선택·상대일 때 보인다 ───────────────────────────
+it('인물 카드의 두 버튼은 마우스 기기에서만 호버·초점·선택·상대일 때 보이고, 터치 화면은 늘 보인다', () => {
+  expect(block(map, '@media(hover:hover)')).toBe('.relationship-stage .relationship-character-card>div{opacity:0}.relationship-stage .relationship-character-card:is(:hover,:focus-within,.selected,.target)>div{opacity:1}')
+})

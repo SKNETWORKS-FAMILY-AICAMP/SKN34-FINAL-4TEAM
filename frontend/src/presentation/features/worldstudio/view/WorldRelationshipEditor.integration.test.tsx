@@ -71,7 +71,7 @@ it('그래프 페이지가 다른 카드의 관계를 관계 목록 다음 쪽�
   expect(screen.getByRole('group', { name: '설정 100 인물 카드' })).toBeTruthy() // 처음에는 중심 카드(설정 0)와 그 이웃을 본다
   fireEvent.click(screen.getByRole('button', { name: '전체 관계도로' }))
   expect(screen.queryByRole('group', { name: '설정 100 인물 카드' })).toBeNull()
-  expect(screen.getByText(/전체 관계는 아래 목록에서 확인하고 편집할 수 있어요/)).toBeTruthy()
+  expect(screen.queryByText(/전체 관계는 아래 목록에서 확인하고 편집할 수 있어요/)).toBeNull() // 위 중심 검색 칸·그래프 쪽 이동이 이미 알린다
   const list = within(screen.getByRole('region', { name: '관계 목록' }))
   fireEvent.click(list.getByRole('button', { name: '다음' }))
   const row = list.getByRole('button', { name: '설정 0 · 친구 · 설정 100 편집' }).closest('tr')!
@@ -520,7 +520,7 @@ it('validates the typed episode, reads that episode with its relations, and retu
   const { repository, id, input } = await openEpisodes()
   const read = vi.spyOn(repository, 'read'), show = () => episodePicker().getByRole<HTMLButtonElement>('button', { name: '이 회차 관계 보기' })
   expect(input.placeholder).toBe('최신')
-  expect(episodePicker().getByText(/관계를 몇 화부터로 기록할지는 관계마다 적고/)).toBeTruthy() // 잠기지 않았으면 이 칸은 보기 용도이고 기록 회차는 관계마다 정한다는 도움말이 보인다
+  expect(episodePicker().queryByText(/관계를 몇 화부터로 기록할지는 관계마다 적고/)).toBeNull() // 기록 회차는 관계 작성 시트가 알리므로 이 칸에는 긴 도움말을 두지 않는다
   expect(show().disabled).toBe(true) // 지금 보는 회차(최신)와 같다
   expect(episodePicker().getByRole<HTMLButtonElement>('button', { name: '최신으로' }).disabled).toBe(true)
   expect(relationTable().getByRole('button', { name: '가람 · 친구 · 나래 편집' })).toBeTruthy() // 최신(2화)의 관계
@@ -625,7 +625,7 @@ const edgeLabels = () => document.querySelectorAll('text.relationship-edge-label
 it('처음에는 관계가 가장 많은 인물을 가운데 둔 중심 카드 보기이고 이웃은 한 쪽에 12장까지이며, 전체 관계도로·중심 카드로 보기로 오간다', async () => {
   await openHub()
   expect(cardCount()).toBe(13) // 허브 + 이웃 12장(전체 21장이 아니다)
-  expect(screen.getByText('허브의 연결된 설정 15개를 보여요.')).toBeTruthy()
+  expect(screen.queryByText(/연결된 설정 \d+개를 보여요/)).toBeNull() // 이웃 수는 이웃 쪽수가, 관계 수는 아래 목록 머리가 보인다(숫자 둘이 나란히 헷갈렸다)
   expect(screen.queryByRole('group', { name: '외톨이 0 장소 카드' })).toBeNull()
   expect(screen.getByRole('navigation', { name: '이웃 페이지 이동' })).toBeTruthy()
   expect(screen.queryByRole('navigation', { name: '그래프 페이지 이동' })).toBeNull() // 그래프 쪽 이동은 전체 보기에서만 있다
@@ -713,6 +713,7 @@ it('관계 주체·대상 선택지와 중심 콤보 선택지는 한 쪽에 200
   expect(screen.queryByRole('navigation', { name: '설정 목록 페이지 이동' })).toBeNull() // 예전 중심 설정 칩의 쪽 이동은 없다
   expect(screen.queryAllByRole('navigation', { name: '페이지 이동' })).toHaveLength(0) // 이름 없는 쪽 이동: 관계 주체·대상 선택지
   expect(screen.getByRole('navigation', { name: '그래프 페이지 이동' })).toBeTruthy() // 그래프 쪽(50장씩)은 그대로
+  expect(screen.queryByText(/설정을 검색해 선택하면/)).toBeNull() // 위 중심 검색 칸을 말로 다시 설명하지 않는다
   expect(screen.queryByRole('group', { name: '설정 59 인물 카드' })).toBeNull()
 })
 
@@ -742,7 +743,7 @@ it('그래프 위 한 줄 툴바: 중심 콤보에 지금 중심 카드가 보�
   expect(within(toolbar).getByRole('navigation', { name: '이웃 페이지 이동' })).toBeTruthy()
   expect(within(toolbar).getByRole('button', { name: '전체 관계도로' })).toBeTruthy()
   fireEvent.change(center, { target: { value: '이웃 3' } })
-  expect(screen.getByText('이웃 3의 연결된 설정 1개를 보여요.')).toBeTruthy()
+  expect(screen.queryByText(/연결된 설정 \d+개를 보여요/)).toBeNull()
   expect(cardCount()).toBe(2) // 이웃 3과 허브
   fireEvent.blur(center)
   expect(center.value).toBe('이웃 3') // 쓰던 글이 아니라 지금 중심 카드의 이름을 다시 보인다

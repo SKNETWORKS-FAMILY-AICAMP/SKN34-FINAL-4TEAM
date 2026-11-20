@@ -245,10 +245,7 @@ export function RelationPairEditor(
   }
   return (
     <>
-      <p className='small muted'>
-        실제 관계는 여러 개일 수 있어요. 감정은 각 방향을 따로 정하며, 반대 방향으로 복사하지
-        않아요.
-      </p>
+      <p className='small muted'>감정은 방향마다 따로 정해요.</p>
       {studio.relationFrom && (
         <p id={fromHelp} className='small muted'>
           관계마다 아래 ‘시작 회차’ 칸에 적은 회차의 기록으로 저장해요. 같은 회차에 다시 저장하면 그 회차의 기록을 고쳐요.
@@ -266,11 +263,8 @@ export function RelationPairEditor(
       {error && <p role='alert' className='ep-alert'>{studio.error || error}</p>}
       <div className='relationship-apply'>
         <button type='button' className='btn pri' onClick={vm.apply}>편집본에 적용</button>
-        <button type='button' className='btn' onClick={() => { if (studio.confirmRelationDiscard()) onClose() }}>취소</button>
       </div>
-      <p className='small muted'>
-        적용 후 세계관 저장 버튼을 눌러야 저장돼요. 취소하면 이 패널에서 입력한 변경만 버려요.
-      </p>
+      <p className='small muted'>적용 후 세계관을 저장해야 저장돼요.</p>
     </>
   )
 }

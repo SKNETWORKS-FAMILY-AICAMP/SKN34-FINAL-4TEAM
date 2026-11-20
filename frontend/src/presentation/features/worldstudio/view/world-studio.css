@@ -12,14 +12,14 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 650px 이하: 히어로가 1열이 되면 표지(공용 .ep-hero-cover는 220px, 3:4)가 첫 화면을 다 차지해 고른 탭의 내용이 화면 밖이다. 표지는 개요 탭에서 크게 보고 바꾸므로 헤더의 표지는 72px로 줄여 제목 옆에 둔다:
    .ep-hero-main을 풀어(display:contents) 제목 줄만 표지 옆 열에 두고 칩·소개·버튼은 두 열을 가로지른다. 이 화면의 표지만 줄이고 /content 작품 관리 표지는 그대로 둔다. */
 @media(max-width:650px){.episode-app .world-manage-hero.ep-hero{grid-template-columns:72px minmax(0,1fr);gap:12px 16px}.episode-app .world-manage-hero .ep-hero-cover{max-width:none}.episode-app .world-manage-hero .ep-hero-main{display:contents}.episode-app .world-manage-hero .ep-hero-main>:not(.ep-title-row){grid-column:1/-1}}
-/* 개요가 아닌 탭(critique 승인): 설정집·관계도·시간선·소설 연결은 탭 내용이 주인공이라 히어로를 72px 표지 썸네일 + 제목·칩 한 덩어리로 줄이고 소개는 숨긴다(소개 전문은 개요 탭에 있다). 개요 탭은 지금 히어로 그대로이고, 작성 모드(마법사)와 /content 작품 관리 히어로는 data-view가 없어 그대로다.
+/* 관리 모드의 모든 보기(개요 포함)와 작성 모드(마법사, data-view=wizard)의 히어로(critique·distill 승인): 탭·단계의 내용이 주인공이라 히어로를 72px 표지 썸네일 + 제목·칩 한 덩어리로 줄이고 소개는 숨긴다(소개 전문은 개요 탭·기본 정보 단계의 입력에 있다). 개요 탭은 히어로의 표지·이름·소개가 아래 편집 폼과 같은 정보라 줄여야 폼이 첫 화면에 보인다. /content 작품 관리 히어로는 data-view가 없어 그대로다.
    위 650px 이하 규칙(.ep-hero-main을 풀어 칩·소개를 두 열에 걸치게 한다)보다 특이도가 높아 같은 한 덩어리 배치로 덮는다. 공개 목록 안내·공개 설정 경고·공개 화면 링크는 있을 때만 그 아래에 그대로 보인다. */
-.episode-app .world-manage-hero[data-view]:not([data-view=overview]){grid-template-columns:72px minmax(0,1fr);gap:0 16px;align-items:center}
-.episode-app .world-manage-hero[data-view]:not([data-view=overview]) .ep-hero-cover{max-width:none}
-.episode-app .world-manage-hero[data-view]:not([data-view=overview]) .ep-hero-main{display:block}
-.episode-app .world-manage-hero[data-view]:not([data-view=overview]) h1{font-size:24px}
-.episode-app .world-manage-hero[data-view]:not([data-view=overview]) .ep-chips{margin-top:8px}
-.episode-app .world-manage-hero[data-view]:not([data-view=overview]) .sum{display:none}
+.episode-app .world-manage-hero[data-view]{grid-template-columns:72px minmax(0,1fr);gap:0 16px;align-items:center}
+.episode-app .world-manage-hero[data-view] .ep-hero-cover{max-width:none}
+.episode-app .world-manage-hero[data-view] .ep-hero-main{display:block}
+.episode-app .world-manage-hero[data-view] h1{font-size:24px}
+.episode-app .world-manage-hero[data-view] .ep-chips{margin-top:8px}
+.episode-app .world-manage-hero[data-view] .sum{display:none}
 /* 공개 설정(관리 모드 헤더·작성 모드 기본 정보 단계): 공개 범위 토글과 장르 선택이 한 줄, 안내와 공개 화면 링크는 그 아래. 라벨 display는 .episode-app label이 정하므로 다시 정한다. */
 .episode-app .world-publish{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;margin:16px 0 12px;padding:0;border:0;min-width:0}
 .episode-app .world-publish .field{display:flex;margin:0}.world-publish .seg{width:200px;max-width:100%}.episode-app .world-publish select{min-width:150px}.world-publish>p{flex:1 1 100%;margin:0}
@@ -32,7 +32,7 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-menu-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
 @media(min-width:901px){.world-menu-tools{display:grid;padding-top:12px;border-top:1px solid var(--line2)}.world-menu-tools .world-save-bar{flex-direction:column;align-items:stretch;margin-top:8px}.world-menu-tools .world-save-state{padding-inline:10px}.world-menu-tools .btn:not(.pri){border-color:var(--line);font-weight:600}}
 .world-save-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px 12px}.world-save-state{font-size:13px;font-weight:650;white-space:nowrap}.world-save-state.ok{color:var(--tsub)}.world-save-state.wait{color:var(--pri-ink)}
-/* 저장할 것이 없어 잠긴 저장 버튼은 채운 보라가 아니라 옅은 윤곽선이다(숨기지 않는다). 흐림(.55)은 공용 disabled 규칙이 맡고, 바뀐 것이 생겨 켜지면 원래대로 채운 보라다. */
+/* 저장을 막는 문제가 있어 잠긴 저장 버튼은 채운 보라가 아니라 옅은 윤곽선이다(저장할 것이 없으면 버튼 자체를 그리지 않는다). 흐림(.55)은 공용 disabled 규칙이 맡고, 바뀐 것이 생겨 켜지면 원래대로 채운 보라다. */
 .world-save-bar .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--sub)}
 /* 저장을 막는 사유: 어느 설정의 문제인지 이름이 붙은 글자 버튼(누르면 그 설정의 편집 화면)과 남은 건수. 버튼은 본문 링크처럼 밑줄로 구분하고 누르는 높이는 44px다. */
 .world-save-issue{max-width:34ch;color:var(--danger);line-height:1.4;overflow-wrap:anywhere}
@@ -78,6 +78,8 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-fields{border:0;padding:0}.world-fields>legend.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.world-basic{max-width:880px}.world-fields .field{margin-bottom:18px}
 .world-natural-input{field-sizing:content;min-height:8rem;resize:vertical;line-height:1.8}.world-basic .world-natural-input{min-height:11rem}.world-form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .world-step-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:flex-end;margin-top:32px;padding-top:20px;border-top:1px solid var(--line2)}.world-step-actions .btn:first-child{margin-right:auto}
+/* 1단계는 이전 단계를 그리지 않아 다음 단계(.pri)가 첫 자식이 된다: 왼쪽으로 밀리지 않고 오른쪽 끝에 둔다. */
+.world-step-actions .btn.pri:first-child{margin-right:0}
 
 /* 작은 도구줄(검색·정렬·설정 추가·관계 표)에서는 .episode-app의 큰 입력 규칙(패딩·위 여백·폭 100%)을 줄인다. 선택자가 긴 것은 그 규칙의 :not()을 이기려는 것이다.
    라벨이 display를 정하는 컴포넌트는 .episode-app label{display:block}에 밀리므로 다시 정한다. select는 padding 단축 속성을 쓰지 않는다(위아래·왼쪽만 개별 속성): 오른쪽 안쪽 여백은 전역 셰브런(화살표) 자리다. */
@@ -100,14 +102,16 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-card-library .worlds-board-table th.col-title{width:26%}
 /* 제목 글자는 공용 게시판의 800 대신 650이다(57행 목록에서 행마다 무거운 글자가 쌓이지 않게). 공개 설정집(/worlds)은 이 화면 밖이라 그대로고, 'AI 의견 N' 배지는 아래 전용 규칙(700)을 그대로 쓴다. */
 .world-card-library .worlds-board-table .col-title :is(a,button):not(.world-opinion){font-weight:650}
-/* 카드 단위 공개(DEC-46): 맨 앞 선택 칸, `공개` 칸, 그 위의 한 번에 바꾸기 줄(안내 + 선택 공개·선택 비공개·전체 공개). 가져온 카드는 제목 아래에 출처를 한 줄 더 보인다. */
+/* 카드 단위 공개(DEC-46): 맨 앞 선택 칸, `공개` 칸, 그 위의 한 번에 바꾸기 줄(접힌 summary 한 줄이고 줄을 고르면 펼쳐진다. 안쪽은 안내 + 선택 공개·선택 비공개·전체 공개). 가져온 카드는 제목 아래에 출처를 한 줄 더 보인다. */
 /* 선택 칸은 칸 여백을 없애고 라벨이 44×44px를 채운다(다른 칸의 위아래 여백 덕에 줄 높이는 그대로다). */
 .world-card-library .worlds-board-table .col-pick{width:44px;padding:0}.episode-app .world-pick{display:grid;place-items:center;min-height:44px;cursor:pointer}.world-pick input{width:16px;height:16px;accent-color:var(--pri)}
 .world-card-library .worlds-board-table .col-vis{width:68px;color:var(--tsub);white-space:nowrap}.world-card-library .worlds-board-table .col-vis[data-public=true]{color:var(--tfg);font-weight:600}
 .world-imported-from{display:block;margin-top:2px;color:var(--tsub);font-size:12px;font-weight:500}
 /* 빈 인물 문서가 있는 인물 줄의 `정리 필요`: 관계 수·가져옴(보조 글자색)과 구분되게 주의색 글자다. 편집 화면의 문서 버튼에 붙는 표시(.world-doc-flag)와 같은 색이다. 공용 .worlds-badge의 색을 불러오는 순서와 상관없이 이기도록 두 클래스로 쓴다. */
 .worlds-badge.world-todo{color:var(--acc-ink)}
-.world-bulk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}.world-bulk .world-reveal{margin-top:0}.world-bulk p{flex:1 1 100%;margin:0;line-height:1.5}.world-bulk [role=status]{color:var(--tsub);font-weight:600;font-variant-numeric:tabular-nums}
+.world-bulk{margin-bottom:12px}
+.world-bulk>summary{cursor:pointer;min-height:44px;padding-block:10px}
+.world-bulk-body{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.world-bulk .world-reveal{margin-top:0}.world-bulk p{flex:1 1 100%;margin:0;line-height:1.5}.world-bulk [role=status]{color:var(--tsub);font-weight:600;font-variant-numeric:tabular-nums}
 /* 분류 칩 줄로 바뀌는 기준을 이 화면에서만 760px이 아니라 1000px로 올린다(critique): 사이드바를 접어 게시판이 760~1000px가 되면 176px 세로 분류 메뉴와 번호 칸이 생겨 요약이 약 150px로 오히려 좁아지고 일괄 공개 줄이 3줄로 꺾였다. 칩 줄이면 표가 카드 폭 전체를 쓴다.
    공용 게시판(shared/worldBoard.css)의 760px 컨테이너 규칙 가운데 분류 메뉴 5줄을 .world-card-library 범위로 복제한 것이다(번호·요약 칸 숨김은 760px 그대로). 공개 설정집(/worlds)은 공용 규칙만 써서 그대로고, 공용 파일과 그 동일성 테스트는 건드리지 않는다. */
 @container worlds-board (max-width:1000px){.world-card-library .worlds-board{grid-template-columns:minmax(0,1fr);gap:14px}.world-card-library .worlds-cats ul{display:flex;gap:8px;margin:-4px;padding:4px;overflow-x:auto;scrollbar-width:none}.world-card-library .worlds-cats ul::-webkit-scrollbar{display:none}.world-card-library .worlds-cats :is(a,button){flex:none;width:auto;gap:6px;min-height:44px;padding:0 16px;border:1px solid var(--line2);border-radius:999px;background:var(--surface)}.world-card-library .worlds-cats :is(a,button)[aria-current]{border-color:var(--pri)}}
@@ -117,6 +121,8 @@ html:has(.world-writing){scrollbar-gutter:stable}
    숨긴 분류와 요약은 제목 아래 한 줄(.world-row-sub: 유형 점·이름 + 요약 한 줄)로 보이고, 연결 수는 제목 옆 [n]이 대신한다(인물은 그중 관계로 이어진 수). 600px 이상에서는 그 줄을 숨긴다. */
 .world-row-sub{display:none}
 @container worlds-board (min-width:600px){.world-card-library .worlds-board-table .col-sum{display:table-cell}}
+/* 넓은 표(600px 이상)에서는 연결 칸이 제목 옆 [n]과 같은 수를 보이므로 [n]을 가린다(읽는 사람에게는 .sr-only의 '관계·연결 N개'가 그대로 남는다). 좁은 표는 연결 칸이 숨어 [n]이 대신한다. */
+@container worlds-board (min-width:600px){.world-card-library .world-count{display:none}}
 /* 숨기는 열은 display:none이 아니라 폭 0의 보이지 않는 칸으로 남긴다(critique): 미리보기·빈 안내 줄이 colSpan=7 한 칸이라, 보이는 열이 7개보다 적으면(채팅을 연 1440px는 번호 칸이 숨어 6개) 표에 없는 열이 하나 더 생기고 table-layout:fixed가 남는 폭을 그 빈 열과 나눠 미리보기를 열 때마다 요약 칸이 절반으로 줄고 오른쪽에 빈 칸이 생겼다.
    열 수가 늘 7이면 미리보기를 열고 닫아도 열 폭이 그대로다. visibility:hidden이라 눈에도 보조기기에도 없다. 760px 이하는 공용 규칙이 숨기는 번호 칸, 600px 미만은 요약·분류·연결 칸까지다(요약은 위 600px 이상 규칙이 되살린다). */
 @container worlds-board (max-width:760px){.world-card-library .worlds-board-table .col-no{display:table-cell;visibility:hidden;width:0;padding:0;border:0}}
@@ -239,7 +245,7 @@ a.world-card-link{text-decoration:none}
 /* 탭: 전역 `.world-rail-kinds button`(한 줄 알약)보다 구체적인 선택자로 라벨 아래 줄에 보조 글씨를 둔다. 왼쪽 여백은 간격 대신 margin이라 칸이 비어도 오른쪽이 늘지 않는다. */
 .world-doc-list .world-doc-tab{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;align-items:baseline;min-height:44px;padding:6px 14px;border-radius:14px;text-align:left}
 .world-doc-tab .world-doc-name{grid-column:1/-1;font-size:13.5px}
-.world-doc-file,.world-doc-scope{font-size:11.5px;font-weight:600}.world-doc-tab .world-doc-flag{margin-left:6px}
+.world-doc-file{font-size:11.5px;font-weight:600}.world-doc-tab .world-doc-flag{margin-left:6px}
 .world-doc-list .world-doc-tab[data-current=true]{border-color:var(--tacc);background:var(--pri-soft);color:var(--pri-ink)}
 .world-doc-memory{display:grid;gap:10px;padding:12px;border:1px solid var(--tline);border-radius:12px;background:var(--tcard,var(--surface))}.world-doc-memory>p{margin:0;line-height:1.6}
 .world-doc-flag{color:var(--acc-ink);font-size:12px}.world-doc-flag[data-flag=over]{color:var(--danger)}

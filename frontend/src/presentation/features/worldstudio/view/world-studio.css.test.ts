@@ -301,14 +301,15 @@ it("'소설 연결' 탭의 Fork 행은 연관 설정과 같은 44px 행(.world-c
 
 // ── critique 승인 항목: 히어로 축소·탭 줄 채팅 버튼·문서 탭 부제 ───────────────────────────────────────────────
 
-it('개요가 아닌 탭은 히어로를 72px 표지 + 제목·칩 한 덩어리로 줄이고 소개를 숨기며(data-view로만 가르므로 개요·작성 모드·/content 히어로는 그대로), 650px 이하 규칙보다 특이도가 높다', () => {
-  const compact = '.episode-app .world-manage-hero[data-view]:not([data-view=overview])'
+it('관리 모드의 모든 보기(개요 포함)와 작성 모드(wizard)의 히어로는 72px 표지 + 제목·칩 한 덩어리로 줄고 소개를 숨기며(data-view로만 가르므로 /content 히어로는 그대로), 650px 이하 규칙보다 특이도가 높다', () => {
+  const compact = '.episode-app .world-manage-hero[data-view]'
   expect(rule((s) => s === compact)?.body).toMatch(/grid-template-columns:72px minmax\(0,1fr\);gap:0 16px;align-items:center/)
   expect(rule((s) => s === `${compact} .ep-hero-cover`)?.body).toMatch(/max-width:none/) // 공용 .ep-hero-cover의 220px 상한은 이 화면에서만 푼다
   expect(rule((s) => s === `${compact} .ep-hero-main`)?.body).toMatch(/display:block/) // 650px 이하의 display:contents를 덮는다
   expect(rule((s) => s === `${compact} .sum`)?.body).toMatch(/display:none/)
   expect(rule((s) => s === `${compact} h1`)?.body).toMatch(/font-size:24px/)
-  expect(css).not.toMatch(/\.world-manage-hero\[data-view=overview\]\{/) // 개요 탭은 히어로를 건드리지 않는다
+  expect(css).not.toContain(':not([data-view=overview])') // 개요 탭도 줄인다: 폼의 이름·설명칸이 첫 화면에 보여야 한다
+  expect(css).not.toMatch(/\.world-manage-hero\[data-view=overview\]\{/)
   expect(episodeCss).not.toContain('data-view') // 공용 틀·/content 작품 관리 히어로는 그대로다
 })
 
@@ -319,10 +320,28 @@ it('900px 이하에서 닫힌 AI 채팅 열기 버튼은 보기 메뉴 줄의 �
   expect(writingCss).not.toContain('world-chat-slot') // 집필실의 같은 공용 버튼은 건드리지 않는다
 })
 
-it('인물 문서 탭의 파일 이름(.world-doc-file)은 화면에서 숨겨 스크린리더용으로만 남고 부제는 공개 범위뿐이다', async () => {
+it('인물 문서 탭의 파일 이름(.world-doc-file)은 화면에서 숨겨 스크린리더용으로만 남고 탭에는 부제가 없다(공개 범위는 문서 안내 줄이 알린다)', async () => {
   const doc = readFileSync(new URL('./CharacterDocs.tsx', import.meta.url), 'utf8')
   expect(doc.match(/<small className="world-doc-file sr-only">/g)).toHaveLength(2) // 문서 탭과 회차 기억 탭
   expect(doc).not.toMatch(/<small className="world-doc-file">/)
   expect(rule((s) => s === '.world-doc-tab .world-doc-flag')?.body).toMatch(/margin-left:6px/)
-  expect(rule((s) => s === '.world-doc-scope,.world-doc-tab .world-doc-flag')).toBeUndefined() // 첫 부제(공개 범위)는 이름 글자와 왼쪽이 맞는다
+  expect(rule((s) => s === '.world-doc-scope,.world-doc-tab .world-doc-flag')).toBeUndefined()
+  expect(doc).not.toContain('world-doc-scope') // 탭의 부제는 문서 안내 줄로 옮겼다
+  expect(css).not.toContain('world-doc-scope')
+})
+
+// ── 3단계 distill: 게시판 일괄 공개 줄(접힘)·제목 옆 [n] ─────────────────────────────────────────────────────
+it('일괄 공개는 접힌 summary 한 줄(누르는 높이 44px)이고, 펼친 안쪽 .world-bulk-body가 예전의 줄바꿈하는 가로 줄이다', () => {
+  expect(rule((s) => s === '.world-bulk>summary')?.body).toMatch(/cursor:pointer;min-height:44px/)
+  expect(rule((s) => s === '.world-bulk-body')?.body).toMatch(/display:flex;flex-wrap:wrap;align-items:center;gap:8px/)
+  expect(rule((s) => s === '.world-bulk')?.body).not.toMatch(/display:flex/) // details 자체에는 flex를 걸지 않는다
+})
+
+it('게시판 제목 옆 [n](.world-count)은 600px 이상 넓은 표에서 숨는다: 연결 칸이 같은 수를 보이고, 좁은 표에서는 연결 칸이 숨어 [n]이 대신한다', () => {
+  expect(css).toContain('@container worlds-board (min-width:600px){.world-card-library .world-count{display:none}}')
+})
+
+it('마법사 1단계는 이전 단계를 그리지 않으므로 첫 자식이 된 다음 단계(.pri)는 왼쪽으로 밀리지 않고 오른쪽 끝에 남는다', () => {
+  expect(rule((s) => s === '.world-step-actions .btn:first-child')?.body).toMatch(/margin-right:auto/) // 이전 단계는 왼쪽
+  expect(rule((s) => s === '.world-step-actions .btn.pri:first-child')?.body).toMatch(/margin-right:0/)
 })

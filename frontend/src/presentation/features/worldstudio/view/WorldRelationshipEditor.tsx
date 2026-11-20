@@ -175,7 +175,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               <button className='btn sm' type='button' onClick={()=>{if(!studio.confirmRelationDiscard())return;const id=studio.addCard('character');if(id)studio.editCard(id)}}>인물 추가</button>
               <button className='btn sm' type='button' onClick={()=>setLayoutVersion(v=>v+1)}>배치 정돈</button>
             </div>
-            <div className='relationship-hint' role='status'>{choosing?<>{name(source)}의 연결 상대를 고르세요.<button ref={cancelConnect} className='btn sm' type='button' onClick={stopChoosing}>연결 취소</button></>:'카드를 차례로 두 번 누르면 관계를 이을 수 있어요. 위치는 저장되지 않아요.'}</div>
+            <div className='relationship-hint' role='status'>{choosing?<>{name(source)}의 연결 상대를 고르세요.<button ref={cancelConnect} className='btn sm' type='button' onClick={stopChoosing}>연결 취소</button></>:'카드 두 개를 차례로 누르면 관계를 이어요.'}</div>
             {types.length > 0 && (
               <div className='relationship-filter' role='group' aria-label='관계도 유형 필터'>
                 <button className='btn sm' type='button' aria-pressed={!present.some((t) => hidden.has(t))} onClick={() => applyHidden(new Set())}>전체</button>
@@ -209,8 +209,8 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               </label>
               <datalist id={centerList}>{choices.map((node) => <option key={node.id} value={node.name} />)}</datalist>
               {anchorNode
-                ? <><PageControls label="이웃" page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /><button type='button' className='btn sm' onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 관계도로</button><p className='small muted'>{anchorNode.name}의 연결된 설정 {neighbors.size}개를 보여요.</p></>
-                : <>{backToCenter && <button type='button' className='btn sm' onClick={() => { setAnchor(backToCenter); setNeighborPage(0); setEdgePage(0) }}>중심 카드로 보기</button>}<PageControls label="그래프" page={graphNodes.page} pages={graphNodes.pages} onPage={(next) => { setGraphPage(next); setEdgePage(0) }} />{graphNodes.pages > 1 && <p className='small muted'>설정을 검색해 선택하면 다른 페이지의 관계도 볼 수 있어요. 전체 관계는 아래 목록에서 확인하고 편집할 수 있어요.</p>}</>}
+                ? <><PageControls label="이웃" page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /><button type='button' className='btn sm' onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 관계도로</button></>
+                : <>{backToCenter && <button type='button' className='btn sm' onClick={() => { setAnchor(backToCenter); setNeighborPage(0); setEdgePage(0) }}>중심 카드로 보기</button>}<PageControls label="그래프" page={graphNodes.page} pages={graphNodes.pages} onPage={(next) => { setGraphPage(next); setEdgePage(0) }} /></>}
               {graphEdges.pages > 1 && <><p className='small muted'>현재 카드의 관계를 페이지별로 보여요.</p><PageControls label="연결선" page={graphEdges.page} pages={graphEdges.pages} onPage={setEdgePage} /></>}
             </div>
             <CharacterCards key={layoutVersion} vm={{...map,graph}} center={focused?anchor:undefined} editing={{busy:studio.busy,selectedRelations:open?studio.editing!.settings.filter(s=>s.item.kind==='relation'&&((s.item.subjectId===source&&s.item.targetId===target)||(s.item.subjectId===target&&s.item.targetId===source))).map(s=>s.item.id):[],targetSource:choosing?source:null,onPick:pick,onSelect:id=>{if(choosing){selectPair(source,id,true)}else if(studio.confirmRelationDiscard()){studio.editCard(id)}},onConnect:id=>{if(selectPair(id,'',false))setChoosing(true)},onRelation:id=>studio.editRelation(id)}}/>

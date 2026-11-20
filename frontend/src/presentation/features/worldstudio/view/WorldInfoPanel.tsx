@@ -69,7 +69,6 @@ export function WorldInfoPanel({ vm, world }: { vm: VM; world: StudioWorld }) {
   }
   return (
     <>
-      <h2>세계관 개요</h2>
       <form
         className="ep-edit world-info-edit"
         aria-label="세계관 정보 편집"
@@ -81,7 +80,7 @@ export function WorldInfoPanel({ vm, world }: { vm: VM; world: StudioWorld }) {
           <fieldset className="world-publish world-compact">
             <legend className="sr-only">공개 설정</legend>
             <PublishFields value={publication} onChange={(change) => setPublication((current) => ({ ...current, ...change }))} />
-            <p className="small muted">저장을 누르면 적용돼요. 공개한 세계관에는 연결된 소설이 발행한 회차까지(소설이 없으면 1화까지) 공개된 설정 카드와 그 사이의 인물 관계만 확정 버전 기준으로 보여요.</p>
+            <p className="small muted">저장하면 적용돼요. 공개 화면에는 확정 버전의 공개 설정만, 소설이 발행한 회차까지 보여요.</p>
             <PublicCardsNotice vm={vm} visibility={publication.visibility} />
           </fieldset>
           <div className="world-cover-edit" role="group" aria-label="표지">
@@ -99,7 +98,7 @@ export function WorldInfoPanel({ vm, world }: { vm: VM; world: StudioWorld }) {
             </div>
             {cover
               ? <div className="ep-file-chosen"><span>{`선택한 파일: ${cover.name}`}</span></div>
-              : <p className="small muted">{vm.supportsCover ? 'PNG·JPEG·WebP, 5 MiB 이하. 올리지 않으면 기본 표지를 써요. 공개 목록에는 확정 버전을 남긴 공개 세계관의 표지로 보여요.' : '데모에서는 표지 업로드를 지원하지 않아요.'}</p>}
+              : <p className="small muted">{vm.supportsCover ? 'PNG·JPEG·WebP, 5 MiB 이하.' : '데모에서는 표지 업로드를 지원하지 않아요.'}</p>}
             {coverProblem && <p role="alert" className="small">{coverProblem}</p>}
             {vm.coverAction && <p role="status" className="small muted">{vm.coverAction === 'upload' ? '표지를 올리고 있어요…' : '표지를 지우고 있어요…'}</p>}
             {vm.cover.error && <p className="small muted">{vm.cover.error}</p>}

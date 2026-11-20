@@ -207,7 +207,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                           화부터 공개
                         </label>
                         {revealError && <p id={`${listId}-reveal-error`} role="alert" className="small world-field-error">{REVEAL_EPISODE_ERROR}</p>}
-                        <p id={`${listId}-reveal`} className="small muted">비워 두면 작가 전용(기본)이에요. 연결된 소설이 이 회차까지 발행되면 독자 설정 위키와 공개 세계관에 보이고, 로그인한 사람은 자기 세계관으로 가져갈 수 있어요.</p>
+                        <p id={`${listId}-reveal`} className="small muted">비워 두면 작가 전용이에요. 이 회차가 발행되면 독자에게 보여요.</p>
                       </>
                     ) : (
                       <>
@@ -218,15 +218,15 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                         <p id={`${listId}-reveal`} className="small muted">{unlinkedHelp}</p>
                       </>
                     )}
-                    <p className="small muted">저장한 뒤 ‘확정 버전 남기기’를 해야 공개 세계관 화면과 독자 설정 위키에 반영돼요.</p>
+                    <p className="small muted">저장 후 ‘확정 버전 남기기’를 해야 반영돼요.</p>
                   </section>
                 )}
                 {cardTypeOf(item) === 'character' && <button className="btn sm world-relation-link" type="button" onClick={() => vm.openRelations(item.id)}>관계 연결로 이동</button>}
                 <section className="world-card-links" aria-label="연관 설정">
-                  <h4>연관 설정·관계 <span className="small muted">읽기 전용</span></h4>
+                  <h4>연관 설정·관계</h4>
                   {links.length
                     ? <ul>{links.map((l) => <li key={`${l.id}:${l.label}`}><button type="button" className="world-card-link" onClick={() => openLinked(l.id)}>{l.title} <small>{l.label}</small></button></li>)}</ul>
-                    : <p className="small muted">이어진 설정이 없어요. 인물은 관계 연결에서 서로 이을 수 있어요.</p>}
+                    : <p className="small muted">이어진 설정이 없어요.</p>}
                 </section>
                 <details className="world-additional" key={item.id}>
                   <summary>상세 설정 · 선택</summary>
@@ -262,7 +262,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
             </fieldset>
             {deletion && <CardDeletionConfirm deletion={deletion} onDelete={() => { if (vm.deleteCard(item.id)) setConfirm('') }} onCancel={() => setConfirm('')} />}
             <footer className="writing-foot">
-              <p className={`small ${over ? 'world-over' : 'muted'}`}>{docs.person && `${docs.name} `}{docs.text.length.toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자 · {over ? '3,000자를 넘으면 저장할 수 없어요' : vm.dirty ? '저장 전 수정이 있어요' : '저장된 상태예요'}</p>
+              <p className={`small ${over ? 'world-over' : 'muted'}`}>{docs.person && `${docs.name} `}{docs.text.length.toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자{over && ' · 3,000자를 넘으면 저장할 수 없어요'}</p>
               <p role="status" className="sr-only">{over && (docs.person ? `${docs.name}가 3,000자를 넘었어요.` : '설명이 3,000자를 넘었어요.')}</p>
               {vm.deleteLock && <p id={deleteReason} className="small muted">{vm.deleteLock}</p>}
               <div className="writing-foot-actions">

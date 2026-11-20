@@ -44,6 +44,8 @@
 @media(max-width:600px){.relationship-cards-scroll{height:440px}.relationship-character-card{border-radius:10px}}
 /* 터치 기기: 카드 위에서 세로로 미는 손짓은 카드 끌기가 아니라 스크롤이 받고(가로로 끌면 카드가 움직인다), 그래프 끝에 닿으면 페이지 스크롤로 이어진다. 안 그러면 화면을 거의 채운 그래프가 스크롤을 삼킨다. */
 @media(pointer:coarse){.relationship-character-card{touch-action:pan-y}.relationship-cards-scroll{overscroll-behavior:auto}}
+/* 마우스 기기에서는 카드의 두 버튼(정보 편집·관계 연결)을 호버·초점·선택·상대를 고르는 중일 때만 보인다(distill): 그래프가 버튼 격자처럼 보이지 않게 한다. 투명할 뿐 사라지지 않아 키보드 초점·스크린리더는 그대로 닿고(:focus-within이 보이게 한다), 터치 화면은 이 규칙이 닿지 않아 늘 보인다. */
+@media(hover:hover){.relationship-stage .relationship-character-card>div{opacity:0}.relationship-stage .relationship-character-card:is(:hover,:focus-within,.selected,.target)>div{opacity:1}}
 
 .relationship-service-layout{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start}
 .relationship-service-form{min-width:0;max-height:760px;overflow:auto;padding:20px;border:1px solid var(--line2);border-radius:16px;background:var(--surface)}

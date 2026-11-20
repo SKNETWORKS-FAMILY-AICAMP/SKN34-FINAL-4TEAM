@@ -88,7 +88,7 @@ it('확정 버전 시트에서 되돌리면 서버가 바꾼 초안을 다시 �
   expect(screen.queryByRole('button', { name: /다온/ })).toBeNull()
   const bar = within(screen.getByRole('group', { name: '저장 상태' }))
   expect(bar.getByText('저장됨')).toBeTruthy() // 서버 초안이 바뀐 상태이지 저장하지 않은 변경이 아니다
-  expect(bar.getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(true)
+  expect(bar.queryByRole('button', { name: '세계관 저장' })).toBeNull() // 저장할 것이 없으면 버튼도 없다
 })
 
 it('서버가 되돌리기를 거절하면 그 이유를 그대로 알리고 설정집은 그대로다', async () => {

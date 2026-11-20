@@ -51,7 +51,7 @@ export function WorldNovelButton({ vm }: { vm: VM }) {
       {novel.open && (
         <Sheet sid="W01" label="소설 연결하기" panelClass="sheet world-sheet" onClose={novel.close}>
           <div className="world-sheet-head"><h3>소설 연결하기</h3><button type="button" className="btn sm" onClick={novel.close}>닫기</button></div>
-          <p className="small muted">세계관 하나는 소설 하나에만 연결해요. 연결하면 설정마다 ‘N화부터 공개’를 정해 그 소설의 독자 설정 위키와 공개 세계관에 보일 수 있어요.</p>
+          <p className="small muted">세계관은 소설 하나에만 연결돼요.</p>
           {novel.problem && <p role="alert" className="world-error">{novel.problem}</p>}
           {novel.isLoading ? <p role="status">내 소설을 불러오고 있어요…</p>
             : novel.failed ? <p role="alert">내 소설을 불러오지 못했어요. <button type="button" className="btn sm" onClick={novel.retry}>다시 시도</button></p>
@@ -67,7 +67,7 @@ export function WorldNovelButton({ vm }: { vm: VM }) {
                 ))}
               </ul>
             )
-            : <p className="muted">연결할 수 있는 소설이 없어요. 다른 세계관에 연결되지 않은 내 소설만 고를 수 있어요.</p>}
+            : <p className="muted">연결할 수 있는 소설이 없어요.</p>}
           <p className="small muted world-sheet-more">소설을 새로 쓰려면 <Go to="/content">새 소설 만들기</Go>에서 만든 뒤 여기서 연결하세요.</p>
         </Sheet>
       )}
@@ -77,9 +77,9 @@ export function WorldNovelButton({ vm }: { vm: VM }) {
 
 /**
  * '소설 연결' 탭(관리 모드, 주소 `?view=novel`): 연결된 소설과 그 Fork 소설을 함께 본다. 헤더에 있던 연결 상태 줄·소설 버튼이 이리로 옮겨 왔다(소설 버튼은 여전히 한 자리).
- * - 연결됨: 제목(`연결된 소설: 제목`, 정보만)·`소설 작성하기`(그 작품 관리)·`작품 보기`(독자용 소설 상세). 연결되지 않았으면 `연결된 소설이 없어요.`와 `소설 연결하기`(시트·초점 이동은 `WorldNovelButton` 그대로)뿐이고 Fork는 읽지 않는다.
+ * - 연결됨: 원작 행(제목 + `원작`, Fork 행과 같은 모양의 링크로 그 소설 상세 `/work/<id>`)과 `소설 작성하기`(그 작품 관리). 제목을 읽는 중이거나 읽지 못했으면 그렇다고 알리는 글(정보만)이 원작 행 자리에 온다. 연결되지 않았으면 `연결된 소설이 없어요.`와 `소설 연결하기`(시트·초점 이동은 `WorldNovelButton` 그대로)뿐이고 Fork는 읽지 않는다.
  * - `Fork 소설 N편`: 연결된 소설에서 갈라진 **공개 Fork만**(숨김·비공개가 아니고 자체 회차가 1개 이상, `ReadingUseCase.forksOf` = 소설 상세·`/ifs`와 같은 목록, 새 API 없음)이다. 0편이면 그 기준을 문구로 알리고, 읽지 못하면 실패와 `다시 시도`를 보인다.
- *   행은 그 Fork 소설(`/work/<id>`)로 가고 보조 글에 작가·분기 회차·자체 회차를 적는다. 원작이 공개이고 Fork가 있으면 모아 보기(`/ifs?w=<id>`) 링크가 있다.
+ *   행은 그 Fork 소설(`/work/<id>`)로 가고 보조 글에 작가·분기 회차·자체 회차를 적는다(같은 목록이 이 탭에 다 보여 모아 보기 링크는 두지 않는다).
  * 소설 목록·Fork 목록은 이 탭을 열 때만 읽는다. 서버가 없는 데모(mockup)는 `소설 작성하기`(→ `/new`)만 두고 Fork는 그리지 않는다.
  */
 export function WorldNovelTab({ vm }: { vm: VM }) {
@@ -90,10 +90,11 @@ export function WorldNovelTab({ vm }: { vm: VM }) {
   return (
     <section className="world-novel" aria-label="소설 연결">
       <h2>연결된 소설</h2>
-      {!demo && <p className={`small world-linked${work.title ? '' : ' muted'}`}>{linkedText(linked, work.title, work.isLoading)}</p>}
+      {!demo && (linked && work.title
+        ? <ul className="world-fork-list"><li><Go to={`/work/${encodeURIComponent(linked)}`} className="world-card-link">{work.title}<small>원작</small></Go></li></ul>
+        : <p className="small world-linked muted">{linkedText(linked, work.title, work.isLoading)}</p>)}
       <div className="ep-card-actions">
         <WorldNovelButton vm={vm} />
-        {linked && <Go to={`/work/${encodeURIComponent(linked)}`} className="btn sm">작품 보기</Go>}
       </div>
       {linked && (
         <div className="world-forks">
@@ -113,7 +114,6 @@ export function WorldNovelTab({ vm }: { vm: VM }) {
                     </li>
                   ))}
                 </ul>
-                {work.isPublic && <Go to={`/ifs?w=${encodeURIComponent(linked)}`} className="btn sm">모두 보기</Go>}
               </>
             )}
         </div>

@@ -121,10 +121,10 @@ export function WorldStudioPage() {
 /**
  * 공개 세계관 상세 헤더와 같은 모양: 표지(올린 표지가 있으면 그 이미지, 없으면 기본 표지), 이름, 칩(설정 수·저장 버전·공개 범위·장르·저장 상태), 소개. 이름·소개·수는 저장한 세계관 기준이다.
  * 관리 모드의 이름·설명·공개 범위·장르·표지 편집은 헤더가 아니라 '개요' 탭(`WorldInfoPanel`)에서 하고, 연결된 소설 상태 줄·소설 버튼도 '소설 연결' 탭으로 옮겼다. 관리 모드 헤더에는 보기(탭)와 상관없이 보일 것만 남는다:
- * 표지·이름·칩·소개(두 줄까지, 비었으면 개요 탭으로 안내)·공개 목록 안내와 공개 화면 링크·공개 설정 경고. 저장 상태는 왼쪽 사이드바(접으면 상단 줄)의 저장 영역이 보인다.
+ * 표지·이름·칩·소개(CSS가 모든 보기에서 72px 표지 + 제목·칩 한 덩어리로 줄이며 소개는 숨긴다: 소개 전문은 개요 탭의 입력에 있다)·공개 목록 안내와 공개 화면 링크·공개 설정 경고. 저장 상태는 왼쪽 사이드바(접으면 상단 줄)의 저장 영역이 보인다.
  * 헤더에는 공개 범위·장르 칩만 있고, 공개 목록에 나올 때(공개 + 확정 버전)만 공개 화면 링크가, 공개인데 확정 버전이 없을 때는 그 안내가 보인다.
  * 공개 세계관인데 공개로 둔 설정이 없으면 그 경고와 `전체 공개`를 보인다(어느 탭에서든 보여야 한다).
- * 작성 모드(만든 직후의 마법사)는 지금 그대로다: 행동 줄에 `집필 메모 추가`·소설 버튼 한 자리(연결된 소설이 있으면 그 작품 관리로 가는 `소설 작성하기`, 없으면 `소설 연결하기`, 데모는 새 소설 폼으로 가는 `소설 작성하기`)와 `관리 화면으로`가 있고
+ * 작성 모드(만든 직후의 마법사)도 같은 줄어든 히어로다(`data-view="wizard"`): 행동 줄에 `집필 메모 추가`(설정 카드 단계에서만)·소설 버튼 한 자리(연결된 소설이 있으면 그 작품 관리로 가는 `소설 작성하기`, 없으면 `소설 연결하기`, 데모는 새 소설 폼으로 가는 `소설 작성하기`)와 `관리 화면으로`가 있고
  * 그 위에 연결된 소설 상태 줄(정보만)이 있다. 이름·설명·공개 설정은 기본 정보 단계에 있고 저장 상태는 헤더 칩이 보이며 '관리 화면으로'로 나갈 수 있다. 테마 전환 버튼은 이 화면 안에 두지 않고 공용 상단바(Gnb)가 맡는다.
  */
 function WorldHeader({ vm, world }: { vm: VM; world: StudioWorld }) {
@@ -143,7 +143,7 @@ function WorldHeader({ vm, world }: { vm: VM; world: StudioWorld }) {
     wasManage.current = manage
   }, [manage])
   return (
-    <section className="whero ep-hero world-manage-hero" data-view={manage ? vm.view : undefined}>
+    <section className="whero ep-hero world-manage-hero" data-view={manage ? vm.view : 'wizard'}>
       <div className="ep-hero-cover">
         <div className="cov"><img src={coverSrc(vm.cover.url)} alt={vm.cover.url ? '세계관 표지' : '기본 세계관 표지'} /></div>
       </div>
@@ -168,7 +168,7 @@ function WorldHeader({ vm, world }: { vm: VM; world: StudioWorld }) {
         {!manage && <WorldLinkedLine vm={vm} />}
         {(!manage || vm.publicHref) && (
           <div className="acts">
-            {!manage && <NoteButton vm={vm} />}
+            {!manage && vm.flow.step === 'cards' && <NoteButton vm={vm} />}
             {!manage && <WorldNovelButton vm={vm} />}
             {vm.publicHref && <Go to={vm.publicHref} className="btn sm">공개 화면 보기</Go>}
             {!manage && <button type="button" className="btn sm" onClick={vm.leaveWizard}>관리 화면으로</button>}
@@ -188,7 +188,7 @@ function WorldPublish({ vm }: { vm: VM }) {
     <fieldset className="world-publish world-compact" disabled={vm.busy}>
       <legend className="sr-only">공개 설정</legend>
       <PublishFields value={vm.publishing ?? vm.publication} onChange={vm.setPublication} />
-      <p className="small muted">저장과 별개로 바로 적용돼요. 공개한 세계관에는 연결된 소설이 발행한 회차까지(소설이 없으면 1화까지) 공개된 설정 카드와 그 사이의 인물 관계만 확정 버전 기준으로 보여요.</p>
+      <p className="small muted">바로 적용돼요. 공개 화면에는 확정 버전의 공개 설정만, 소설이 발행한 회차까지 보여요.</p>
       <PublicCardsNotice vm={vm} visibility={(vm.publishing ?? vm.publication).visibility} />
     </fieldset>
   )
@@ -289,7 +289,6 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
           {timeline && (
             <section className="world-confirmed" aria-label="시간선">
               <h3>저장된 시간선</h3>
-              <p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않아요.</p>
               <WorldTimeline items={vm.saved?.settings.map((s) => s.item) ?? []} />
             </section>
           )}
@@ -303,7 +302,7 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
           {!manage && step === 'review' && <WritingReview vm={vm} />}
           {!manage && (
             <nav className="world-step-actions" aria-label="단계 이동">
-              <button className="btn" type="button" disabled={current === 0} onClick={() => vm.goStep(steps[current - 1][0])}>이전 단계</button>
+              {current > 0 && <button className="btn" type="button" onClick={() => vm.goStep(steps[current - 1][0])}>이전 단계</button>}
               {current < steps.length - 1 && <button className="btn pri" type="button" onClick={() => vm.goStep(steps[current + 1][0])}>{step === 'relations' ? '검토·저장으로' : '다음 단계'}</button>}
               {step === 'cards' && <button className="btn" type="button" onClick={() => vm.goStep('review')}>관계 없이 검토·저장</button>}
             </nav>
