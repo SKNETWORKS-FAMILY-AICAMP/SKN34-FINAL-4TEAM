@@ -124,3 +124,11 @@
 .ep-settings-history { list-style: none; margin: 0; padding: 0; }
 .ep-settings-history li { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 10px 0; border-bottom: 1px solid var(--line2); }
 .ep-settings-history time { color: var(--sub); }
+/* 관리 화면 distill(작품 관리 탭 내용): 탭 내용은 히어로·카드와 같은 왼쪽 선에서 시작한다(읽기 폭 max-width는 그대로). 이야기 분기만 있던 윗여백 40px도 다른 탭과 맞춘다. */
+.ep-content :is(.ep-reading,.ep-fork,.ep-feedback){margin-inline:0}
+.ep-content .ep-fork{margin-top:0}
+/* 이력 탭 저장본·AI 제안 항목은 제목·시각·버튼 세 줄이라 원고 본문용 여백을 줄인다. 직계(>) 제목·문단에만 닿아, 펼친 원고 안 문단(div.manuscript-body, margin:0)과 특이도가 겨루지 않는다. */
+.ep-content .ep-reading article{padding:12px 0 16px}
+.ep-content .ep-reading article>:is(h4,p){margin:6px 0}
+/* 세계관 탭의 연결·설정집 구획은 tcard 테두리 없이 구획으로만 둔다(분기 정책·포크 정보 같은 tcard 카드는 그대로). */
+.episode-app .ep-card:not(.tcard){padding:0}

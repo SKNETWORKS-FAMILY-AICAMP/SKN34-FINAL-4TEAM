@@ -139,7 +139,7 @@ function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: Stud
   return (
     <section className="whero ep-hero world-manage-hero">
       <div className="ep-hero-cover">
-        <div className="cov"><img src={coverSrc(vm.cover.url)} alt={vm.cover.url ? '세계관 표지' : '기본 세계관 표지'} /><div className="tg"><span className="tag dk">{visibility === 'public' ? '공개' : '비공개'}</span></div></div>
+        <div className="cov"><img src={coverSrc(vm.cover.url)} alt={vm.cover.url ? '세계관 표지' : '기본 세계관 표지'} /></div>
       </div>
       <div className="ep-hero-main">
         <div className="ep-title-row">
@@ -160,7 +160,7 @@ function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: Stud
           : saved.description
           ? <p className="sum">{saved.description}</p>
           : <p className="sum ep-muted">{manage ? '편집을 눌러 세계관 소개를 적어 보세요.' : '기본 정보에서 세계관 소개를 적어 보세요.'}</p>}
-        <p className="small muted">{vm.storage.intro}</p>
+        {import.meta.env.MODE === 'mockup' && <p className="small muted">{vm.storage.intro}</p>}
         {vm.listing === 'unlisted' && <p role="status" className="small muted">{UNLISTED_HINT}</p>}
         {manage && !infoOpen && <PublicCardsNotice vm={vm} visibility={visibility} />}
         <WorldLinkedLine vm={vm} />
@@ -254,7 +254,6 @@ function WorldEditor({ vm, world, revisions, openVersions }: { vm: VM; world: St
           )}
           {vm.relationWorld === world.id && (
             <div hidden={step !== 'relations'}>
-              {!manage && <p className="muted">관계는 필요한 경우에만 연결하세요. 건너뛰어도 저장할 수 있어요.</p>}
               <button className="btn sm" type="button" onClick={vm.returnToCard}>{manage ? '설정집으로 돌아가기' : '설정 카드로 돌아가기'}</button>
               <RelationEpisodePicker studio={vm} />
               <WorldRelationshipEditor key={`${world.id}:${vm.relationKey}`} studio={vm} />

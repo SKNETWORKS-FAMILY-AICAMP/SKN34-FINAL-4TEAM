@@ -168,3 +168,14 @@ it('분류 칩 줄(게시판 폭 760px 이하)에서는 비어 있는 분류도 
   expect(chip?.[1]).toMatch(/padding:\s*0 16px/)
   expect(chip!.index).toBeGreaterThan(css.indexOf('.worlds-cats .worlds-cats-empty{')) // 같은 특이도는 뒤에 온 규칙이 이긴다
 })
+
+it('관계 기준 회차 상자는 카드 안의 카드가 아니라 테두리·면·안쪽 여백 없이 카드 바탕 위에 놓인다 (한 줄 배치·입력 규칙은 그대로)', () => {
+  // 부모가 이미 .tcard.ep-card라 상자를 한 번 더 두면 상자 → 어두운 관계도 면 → 범례로 겹이 세 단이 된다.
+  const box = rule((s) => s === '.relationship-episode')?.body ?? ''
+  expect(box).toMatch(/display:\s*grid/)
+  expect(box).not.toMatch(/(^|;)\s*(padding|border|border-radius|background)\s*:/)
+})
+
+it('시간선 사건의 시점 칸은 시점이 비어 글자가 없어도 한 줄 높이를 지켜 점과 연결선 화살표(y+65)의 높이가 달라지지 않는다', () => {
+  expect(timelineCss.match(/\.world-timeline-time\{([^}]*)\}/)?.[1]).toMatch(/min-height:\s*1lh/)
+})

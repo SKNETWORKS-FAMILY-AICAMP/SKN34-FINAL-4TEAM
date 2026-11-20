@@ -11,7 +11,7 @@ export function WorldPanel({ workId, useCase }: { workId: string; useCase?: Epis
   const w = vm.world
   if (!w) {
     return (
-      <section className='tcard ep-card'>
+      <section className='ep-card'>
         <p role={vm.error ? 'alert' : 'status'} className={vm.error ? 'ep-alert' : undefined}>{vm.error || '설정집을 불러오고 있어요…'}</p>
         {vm.error && (
           <div className='ep-card-actions'>
@@ -22,7 +22,7 @@ export function WorldPanel({ workId, useCase }: { workId: string; useCase?: Epis
     )
   }
   return (
-    <section className='tcard ep-card' aria-label='세계관 설정집'>
+    <section className='ep-card' aria-label='세계관 설정집'>
       <h2>{w.name}</h2>
       <p>
         {w.mode === 'following'

@@ -161,3 +161,23 @@ describe('episode.css 이력 탭 제목 단계', () => {
     expect(rule('.ep-reading h4')).toMatch(/font-size:1\.17em/)
   })
 })
+
+describe('episode.css 관리 화면 distill 계약 (작품 관리 탭 내용)', () => {
+  it('탭 내용(.ep-reading·.ep-fork·.ep-feedback)은 가운데 정렬이 아니라 히어로·카드와 같은 왼쪽 선에서 시작한다', () => {
+    // 탭마다 본문이 가운데에 놓여 메뉴를 누를 때마다 시작점이 156~211px씩 바뀌었다. 가로 margin만 0으로 맞추고 max-width(읽기 폭)는 둔다.
+    expect(rule('.ep-content :is(.ep-reading,.ep-fork,.ep-feedback)')).toMatch(/margin-inline:0(?![\d.])/)
+    // 이야기 분기만 있던 윗여백 40px도 다른 탭과 같게 없앤다.
+    expect(rule('.ep-content .ep-fork')).toMatch(/margin-top:0(?![\d.])/)
+  })
+
+  it('이력 탭 저장본·AI 제안 항목(article)은 제목·시각·버튼 세 줄에 맞는 좁은 여백이고, 항목의 직계 제목·문단에만 닿아 펼친 원고 안의 문단은 건드리지 않는다', () => {
+    expect(rule('.ep-content .ep-reading article')).toMatch(/padding:12px 0 16px/)
+    expect(rule('.ep-content .ep-reading article>:is(h4,p)')).toMatch(/margin:6px 0/)
+    // 후손 선택자(article :is(h4,p))는 펼친 원고(div.manuscript-body)의 문단 규칙(margin:0, 특이도 0,2,2)과 같은 특이도라 불러오는 순서에 따라 문단 사이가 벌어진다.
+    expect(css).not.toMatch(/article :is\(h4,p\)/)
+  })
+
+  it('세계관 탭의 연결·설정집 구획은 테두리 없는 구획(tcard 없음)이라 카드 안쪽 여백도 두지 않는다', () => {
+    expect(rule('.episode-app .ep-card:not(.tcard)')).toMatch(/padding:0(?![\d.])/)
+  })
+})
