@@ -1,6 +1,7 @@
 package ai.storyfork.content.preprocessing.repository
 
 import ai.storyfork.content.preprocessing.entity.PreprocessingJobEntity
+import ai.storyfork.content.world.studio.entity.ManuscriptBuildJob
 import jakarta.persistence.LockModeType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -12,6 +13,47 @@ interface PreprocessingJobRepository : JpaRepository<PreprocessingJobEntity, Str
     fun findFirstByWorkIdOrderByCreatedAtDesc(workId: String): PreprocessingJobEntity?
 
     fun findAllByStatus(status: String, pageable: Pageable): Page<PreprocessingJobEntity>
+
+    @Query("""select count(b) > 0 from ManuscriptBuildJob b
+        where cast(b.id as String)=:id and b.status='running' and b.deadline<=instant""")
+    fun hasExpiredLease(@Param("id") id: String): Boolean
+
+    @Modifying
+    @Query("""update versioned ManuscriptBuildJob b set b.status='queued', b.executionToken=null,
+        b.deadline=null, b.failureCode=null where cast(b.id as String)=:id
+        and (b.status='failed' or (b.status='running' and b.deadline<=instant))""")
+    fun requeueSnapshot(@Param("id") id: String): Int
+
+    @Query("""select b from ManuscriptBuildJob b where cast(b.id as String)=:id
+        and b.workId=:work and cast(b.ownerSubject as String)=:member""")
+    fun snapshot(@Param("id") id: String, @Param("work") work: String, @Param("member") member: String): ManuscriptBuildJob?
+
+    fun frozenNumbers(id: String, work: String, member: String): List<Int> {
+        val row = snapshot(id, work, member) ?: return emptyList()
+        return (row.manifest.getValue("episodes") as List<*>).map { ((it as Map<*, *>)["number"] as Number).toInt() }
+    }
+
+    @Query("select count(b)>0 from ManuscriptBuildJob b where b.workId=:work and b.requestKey=:key")
+    fun requestKeyExists(@Param("work") work: String, @Param("key") key: String): Boolean
+
+    /** 실패한 모든 작업의 적재 예약 및 구형 작업의 세계관 상태를 확인한다. */
+    @Query("""select count(j)>0 from PreprocessingJobEntity j join WorkEntity w on w.id=j.workId
+        left join ManuscriptBuildJob b on cast(b.id as String)=j.id and b.workId=j.workId
+        where j.workId=:work and j.status='failed' and (
+            b.status in ('loading','unknown','completed')
+            or exists (select step.id from ManuscriptBuildLoadStep step where step.jobId=b.id)
+            or (b.id is null and (
+                not (coalesce(j.failedReason,'')='전처리 로직 미구현' and j.done=0 and j.total>0
+                     or coalesce(j.failedReason,'')='회차 추출에 실패했어요.' and array_length(j.failedEpisodes)>0)
+                or exists (select target.id from StudioWorld target
+                    where (target.id=j.worldId or target.id=w.worldStudioId) and (
+                        exists (select c.id from SettingCard c where c.worldId=target.id)
+                        or not exists (select r.worldId from WorldRelationshipState r where r.worldId=target.id
+                                       and r.completed=true and r.graphVersion=0)))
+                or (j.worldId is not null and not exists (select t.id from StudioWorld t where t.id=j.worldId))
+            ))
+        )""")
+    fun requiresLoadReview(@Param("work") work: String): Boolean
 
     /** 진행 보고와 재실행이 같은 작업을 동시에 바꾸지 않게 행을 잠가 읽는다. 트랜잭션 안에서만 부른다. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)

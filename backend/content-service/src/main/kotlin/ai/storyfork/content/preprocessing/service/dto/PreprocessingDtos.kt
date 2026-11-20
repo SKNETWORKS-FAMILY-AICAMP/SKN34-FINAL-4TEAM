@@ -7,6 +7,8 @@ package ai.storyfork.content.preprocessing.service.dto
 data class PreprocessingJobResponse(
     val id: String, val workId: String, val status: String, val done: Int, val total: Int,
     val failedEpisodes: List<Int>, val error: String?, val startedAt: String?, val finishedAt: String?,
+    val recovery: String? = null,
+    val build: ai.storyfork.content.world.service.dto.ManuscriptBuildResponse? = null,
 )
 
 /** 운영 감시용 목록(최신 접수 순)이다. [total]은 필터에 맞는 전체 건수다. */

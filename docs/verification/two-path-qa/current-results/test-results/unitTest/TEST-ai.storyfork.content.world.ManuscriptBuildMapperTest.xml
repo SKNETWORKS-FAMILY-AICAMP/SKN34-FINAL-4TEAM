@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.storyfork.content.world.ManuscriptBuildMapperTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-17T05:55:34.497Z" hostname="e52e187cb38b" time="0.313">
+  <properties/>
+  <testcase name="unknown endpoints duplicate keys and preexisting cards are blocked before reservation()" classname="ai.storyfork.content.world.ManuscriptBuildMapperTest" time="0.143"/>
+  <testcase name="mapping is private keeps metadata and reserves stable relation lifecycle across steps()" classname="ai.storyfork.content.world.ManuscriptBuildMapperTest" time="0.065"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -14,6 +14,7 @@ import type { useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
 import { ContextPreview } from './ContextPreview'
 import { EpisodeBulkImportSheet } from './EpisodeBulkImportSheet'
 import { LinkedWorldPanel } from './LinkedWorldPanel'
+import { ManuscriptBuildPanel } from './ManuscriptBuildPanel'
 import { WorkOverview } from './WorkOverview'
 import { WorkSettingsPanel } from './WorkSettingsPanel'
 import { WorldPanel } from './WorldPanel'
@@ -116,6 +117,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
           {tab === 'settings' && <WorkSettingsPanel workId={w.id} useCase={useCase} />}
           {tab === 'world' && (
             <>
+              {!mockup && <ManuscriptBuildPanel key={w.id} work={w} />}
               <LinkedWorldPanel work={w} busy={locked} onLink={vm.linkWorld} onDetach={vm.detachWorld} error={vm.origin === 'link' ? vm.error : ''} notice={vm.origin === 'link' ? vm.notice : ''} detachError={vm.origin === 'detach' ? vm.error : ''} useCase={useCase} />
               <WorldPanel workId={w.id} useCase={useCase} locked={locked} onMediaBusy={setMediaBusy} />
             </>
@@ -232,6 +234,8 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
               <Pager page={view.page} pages={view.pages} onPage={(next) => { setPage(next); episodeList.current?.scrollIntoView?.({ block: 'start' }) }} />
               <div className='ep-list-foot'>
                 <Go to={`/studio/${w.id}`} className='btn'>새 회차 집필하기</Go>
+                {/* 메뉴를 누른 것과 같이 세계관 탭 내용 머리(원고로 세계관 만들기 카드)로 스크롤한다(위 effect). */}
+                {!mockup && <button type='button' className='btn' disabled={locked} onClick={() => { picked.current = true; setTab('world') }}>원고로 세계관 만들기</button>}
                 {!mockup && <button type="button" className="btn" disabled={locked}
                   onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>}
               </div>

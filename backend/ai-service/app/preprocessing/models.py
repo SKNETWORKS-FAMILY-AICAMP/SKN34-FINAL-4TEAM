@@ -1,9 +1,9 @@
-"""회차 원고 전처리 입출력 DTO(#343, DEC-50). 접수 요청과 Content 진행 보고만 있다."""
-from typing import Annotated, Literal
+"""회차 원고 전처리 입력 DTO(#343, DEC-50). 접수 요청만 있다. 진행·결과는 worker가 Content 콜백으로 보고한다."""
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-# 작업 ID는 Content 진행 API 경로에 들어가므로 경로 문자를 허용하지 않는다.
+# 작업 ID는 Content 콜백 경로에 들어가므로 경로 문자를 허용하지 않는다.
 JobId = Annotated[str, Field(min_length=1, max_length=64, pattern=r'^[A-Za-z0-9_-]+$')]
 
 
@@ -23,12 +23,3 @@ class JobRequest(Model):
         if len(set(episodes)) != len(episodes):
             raise ValueError('DUPLICATE_EPISODE')
         return episodes
-
-
-class Progress(Model):
-    """Content 진행 갱신 API 본문이다. failed가 있으면 Content가 작업을 그 고정 사유로 끝낸다."""
-    stage: Literal['extracting', 'resolving', 'organizing', 'loading']
-    done: Annotated[int, Field(ge=0)]
-    total: Annotated[int, Field(ge=0)]
-    failedEpisodes: list[Annotated[int, Field(ge=1)]]
-    failed: str | None = None

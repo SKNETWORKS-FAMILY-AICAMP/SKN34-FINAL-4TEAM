@@ -11,6 +11,7 @@ import ai.storyfork.content.preprocessing.service.PreprocessingService
 import ai.storyfork.content.preprocessing.service.dto.PreprocessingProgressRequest
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.dto.CreateWorkRequest
+import ai.storyfork.content.world.service.ManuscriptBuildService
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -37,6 +38,7 @@ import tools.jackson.databind.json.JsonMapper
  * DB는 다른 테스트와 공유하므로 각 테스트는 자신이 만든 작품의 작업만 비교하고, AI 서비스 접수 호출은 [ai] 대역이다.
  */
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties=[
+    "app.manuscript-build.enabled=true",
     "DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}","DATABASE_USER=content_test","DATABASE_PASSWORD=",
     "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
     "OPERATIONS_SERVICE_TOKEN=operations-test-service-token-at-least-32",
@@ -50,6 +52,7 @@ class PreprocessingIntegrationTest {
     @MockitoBean lateinit var ai: PreprocessingAiClient
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var driver: ContentTestDriver
+    @Autowired lateinit var build: ManuscriptBuildService
     @Autowired lateinit var service: PreprocessingService
     @Autowired @Qualifier("contentDataSource") lateinit var source: DataSource
     @Autowired lateinit var json: JsonMapper
@@ -81,7 +84,7 @@ class PreprocessingIntegrationTest {
     private fun failure(block:()->Unit)=assertThrows(ContentFailure::class.java,block)
 
     @Test fun `접수·진행·실패·재실행이 integer 배열 칼럼과 유일 인덱스까지 이어진다`() {
-        val owner="pre-owner-${tag}"
+        val owner=UUID.randomUUID().toString()
         val id=work(owner)
         assertEquals(listOf(1),jdbc.queryForList("SELECT sequence FROM episode WHERE work_id=?",Int::class.java,id).filterNotNull().sorted())
 
@@ -91,9 +94,13 @@ class PreprocessingIntegrationTest {
         assertEquals("{}",jdbc.queryForObject("SELECT failed_episodes::text FROM preprocessing_job WHERE id=?",String::class.java,started.id))
         assertEquals(409,failure { service.start(id,owner) }.status,"진행 중인 작업이 있으면 새로 접수하지 않는다")
 
-        assertEquals("running",service.progress(started.id,PreprocessingProgressRequest("extracting",0,1,emptyList())).status)
-        val failed=service.progress(started.id,PreprocessingProgressRequest("extracting",0,1,listOf(1),"회차 추출에 실패했어요."))
-        assertEquals(listOf<Any?>("failed",listOf(1),"회차 추출에 실패했어요."),listOf(failed.status,failed.failedEpisodes,failed.error))
+        assertEquals(409,failure { service.progress(started.id,PreprocessingProgressRequest("extracting",0,1,emptyList())) }.status)
+        val jobId=UUID.fromString(started.id)
+        val token=build.claim(jobId,id).getValue("token") as UUID
+        assertEquals("running",service.latest(id,owner).status)
+        build.failed(jobId,token,"EXTRACTION_FAILED",listOf(1))
+        val failed=service.latest(id,owner)
+        assertEquals(listOf<Any?>("failed",listOf(1),"EXTRACTION_FAILED"),listOf(failed.status,failed.failedEpisodes,failed.error))
         assertEquals("{1}",jdbc.queryForObject("SELECT failed_episodes::text FROM preprocessing_job WHERE id=?",String::class.java,started.id))
         assertEquals(409,failure { service.progress(started.id,PreprocessingProgressRequest("extracting",1,1,emptyList())) }.status,"끝난 작업은 진행을 받지 않는다")
         assertEquals(started.id,service.latest(id,owner).id)
@@ -107,10 +114,11 @@ class PreprocessingIntegrationTest {
     }
 
     @Test fun `작품당 진행 중·완료 작업은 하나뿐이고 실패한 작업 뒤에는 새로 접수한다`() {
-        val owner="pre-owner2-${tag}"
+        val owner=UUID.randomUUID().toString()
         val id=work(owner)
         val first=service.start(id,owner)
-        service.progress(first.id,PreprocessingProgressRequest("extracting",0,1,emptyList(),"전처리 로직 미구현"))
+        val jobId=UUID.fromString(first.id)
+        build.failed(jobId,build.claim(jobId,id).getValue("token") as UUID,"EXTRACTION_FAILED",listOf(1))
         val second=service.start(id,owner)
         assertNotEquals(first.id,second.id)
         assertEquals(second.id,service.latest(id,owner).id)
@@ -119,16 +127,18 @@ class PreprocessingIntegrationTest {
     }
 
     @Test fun `저장 회차가 없는 작품은 422이고 AI에 접수하지 않는다`() {
-        val owner="pre-owner3-${tag}"
+        val owner=UUID.randomUUID().toString()
         val id=works.create(owner,CreateWorkRequest("전처리 빈 ${tag}","소개","ORIGINAL",listOf("판타지"),emptyList(),true)).id
         assertEquals(422,failure { service.start(id,owner) }.status)
         assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM preprocessing_job WHERE work_id=?",Int::class.java,id))
     }
 
     @Test fun `진행 보고는 AI 토큰만 목록·재실행은 운영 토큰만 받는다`() {
-        val owner="pre-owner4-${tag}"
+        val owner=UUID.randomUUID().toString()
         val id=work(owner)
-        val job=service.start(id,owner).id
+        // 기존 V41 작업만 AI의 progress 보고를 받는다.
+        val job=UUID.randomUUID().toString()
+        jdbc.update("INSERT INTO preprocessing_job(id,work_id,member_id,status,total,created_at) VALUES (?,?,?,'queued',1,now())",job,id,owner)
         val progress="/internal/v1/preprocessing-jobs/${job}/progress"
 
         for(wrong in listOf(emptyMap(),operations,mapOf("X-Internal-Token" to "wrong-service-token-wrong-service-token"))) {
@@ -153,9 +163,16 @@ class PreprocessingIntegrationTest {
         assertEquals(409,call("POST",progress,internal,report("extracting",0)).statusCode())
         val retryPath="/internal/v1/preprocessing-jobs/${job}/retry"
         assertEquals(403,call("POST",retryPath,internal).statusCode(),"AI 토큰으로 재실행할 수 없다")
-        val retried=call("POST",retryPath,operations)
+        val missing=call("POST",retryPath,operations)
+        assertEquals(409,missing.statusCode(),missing.body())
+        assertTrue(missing.body().contains("PREPROCESSING_SNAPSHOT_MISSING"))
+        val current=service.start(id,owner)
+        val jobId=UUID.fromString(current.id)
+        build.failed(jobId,build.claim(jobId,id).getValue("token") as UUID,"EXTRACTION_FAILED",listOf(1))
+        val currentRetry="/internal/v1/preprocessing-jobs/${current.id}/retry"
+        val retried=call("POST",currentRetry,operations)
         assertEquals(202,retried.statusCode(),retried.body())
         assertEquals("queued",node(retried).path("status").asString())
-        assertEquals(409,call("POST",retryPath,operations).statusCode())
+        assertEquals(409,call("POST",currentRetry,operations).statusCode())
     }
 }

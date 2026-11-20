@@ -1,0 +1,1 @@
+PASS: 5 stable card IDs; exact manuscriptBuild metadata/evidence/firstAppearance; aliases; private visibility; reveal unset; GOAL/episode memories preserved. Explicit IDENTITY/SOUL edits persisted.

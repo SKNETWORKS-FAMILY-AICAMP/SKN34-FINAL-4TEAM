@@ -1,0 +1,15 @@
+{
+  "four_episode_provider_stub": "PASS",
+  "hundred_minimal_provider_stub": "PASS",
+  "missing_episode_with_existing_resolution_rejected": "PASS",
+  "http_upload": "NOT TESTED",
+  "database_persistence": "NOT TESTED",
+  "existing_world_merge": "BLOCKED",
+  "note": "100 tiny episodes verify mechanics, not full-length novel capacity or LLM quality.",
+  "source_sha256": {
+    "1": "e821cb52a77f36075f73dec8d4fbdc679312c9a36bf5786097abc5425fb735dc",
+    "2": "692de0ae2078ebc6ec84312330e12ada7b409a27182575534455995e5e76fdd9",
+    "3": "ae9904cff36f4d7baca90046057448b68dac040c710d2d773a1473e15affc15f",
+    "4": "0bcb26f1a3f4fd6333109f9bb84c14372af09066742e91c057adbd87be4f9d63"
+  }
+}

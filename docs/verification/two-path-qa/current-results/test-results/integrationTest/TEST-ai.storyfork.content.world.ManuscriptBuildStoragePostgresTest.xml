@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.storyfork.content.world.ManuscriptBuildStoragePostgresTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-17T03:07:41.469Z" hostname="d7bace9fe281" time="0.579">
+  <properties/>
+  <testcase name="inputResultsAndReservedPayloadCannotBeRewritten()" classname="ai.storyfork.content.world.ManuscriptBuildStoragePostgresTest" time="0.578"/>
+  <system-out><![CDATA[03:07:41.542 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_9f1e890146f54645a5fc80b1f5bd5d82 (PostgreSQL 17.11)
+03:07:41.561 [Test worker] INFO org.flywaydb.core.internal.database.base.Schema -- Creating schema "worldstudio" ...
+03:07:41.566 [Test worker] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+03:07:41.607 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": null
+03:07:41.615 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "1 - independent worldstudio"
+03:07:41.741 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+03:07:41.762 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+03:07:41.838 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+03:07:41.853 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "5 - initial decision request identity"
+03:07:41.868 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "6 - world publication"
+03:07:41.884 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "7 - world cover"
+03:07:41.897 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "8 - setting card image"
+03:07:41.918 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "9 - manuscript initial build"
+03:07:41.959 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 9 migrations to schema "worldstudio", now at version v9 (execution time 00:00.266s)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
