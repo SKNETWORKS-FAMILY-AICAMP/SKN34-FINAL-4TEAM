@@ -10,6 +10,7 @@ import importlib.util
 import json
 import re
 import sys
+import threading
 from collections import Counter
 from pathlib import Path
 
@@ -18,12 +19,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'novelbrain'))
 import prepare as nb_prepare  # noqa: E402  eval/novelbrain/prepare.py
 from timechara import build_world, chapter_tuple, common_names, cutoff, ordinal_map, parse_tables, sample_by_type, snapshot  # noqa: E402
 
+import hp_chapters  # noqa: E402
 from app.simulation import service  # noqa: E402
+from app.simulation.errors import SimulationFailure  # noqa: E402
 from app.simulation.models import Decision, SimulationPlan, Trail, Turn  # noqa: E402
 
 DATA = Path(__file__).resolve().parent / '.data'
 TC = DATA / 'timechara'
 DEMO = Path(__file__).resolve().parents[4] / 'infrastructure/sample-data/simulation-demo'
+HP_WORLD = DATA / 'hp' / 'world.json'   # 번역본 원문에서 만든 세계관(hp_build.py). 저작권 때문에 .data(git 무시)에만 둔다
 SEED = 642   # 표본 고정용(이슈 번호). novelbrain의 58과 다른 표본이다
 PER_TYPE = 50
 PREMISE = 'An interviewer asks the character one question. The character answers it in their own voice, using only what they know at this point in the story.'
@@ -85,13 +89,19 @@ def tc_world(world: dict, episode: int) -> service.World:
     return service.World(episode, {}, snap, [], {c.id: c for c in snap.cards if c.cardType == 'character'}, [], None, {})
 
 
-def korean_world(episode: int) -> tuple[service.World, dict[str, str]]:
-    """홍길동전 시연 세계관(`honggildong/world.json`)의 episode화 시점 World와 카드 key → 카드 id.
-    Content 읽기 응답과 같은 모양(seed.py가 적재하는 카드·그 회차의 관계)을 만들어 운영과 같은 `service.load_world`가 변환한다."""
+def seed_module():
+    """시연 세계관 적재 스크립트(seed.py)의 카드·관계 변환 함수들."""
     spec = importlib.util.spec_from_file_location('simulation_demo_seed', DEMO / 'seed.py')
     seed = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(seed)
-    data = json.loads((DEMO / 'honggildong/world.json').read_text(encoding='utf-8'))
+    # seed.py의 KINDS는 시연 세계관이 쓰는 다섯 유형뿐이다. 서버·화면(studioCards.ts cardTypeOf)은 조직·능력도 entity로 되읽으므로 같은 규칙으로 더한다(seed.py 파일은 그대로).
+    seed.KINDS.update({'organization': ('entity', 'organization'), 'ability': ('entity', 'ability')})
+    return seed
+
+
+def _world_at(data: dict, episode: int) -> tuple[service.World, dict[str, str]]:
+    """world.json의 episode화 시점 World와 카드 key → 카드 id. Content 읽기 응답과 같은 모양(seed.py가 적재하는 카드·그 회차의 관계)을 만들어 운영과 같은 `service.load_world`가 변환한다."""
+    seed = seed_module()
     scope, keys = seed.scope_of(data), {c['key'] for c in data['cards']}
     read = {'worldId': data['world']['id'], 'cards': [seed.card_payload(c, scope, keys) for c in data['cards']],
             'relationships': seed.relations_at(data, episode), 'identity': []}
@@ -103,6 +113,33 @@ def korean_world(episode: int) -> tuple[service.World, dict[str, str]]:
     return world, {key: seed.card_id(key, scope) for key in keys}
 
 
+def korean_world(episode: int) -> tuple[service.World, dict[str, str]]:
+    """홍길동전 시연 세계관(`honggildong/world.json`)의 episode화 시점 World와 카드 key → 카드 id."""
+    return _world_at(json.loads((DEMO / 'honggildong/world.json').read_text(encoding='utf-8')), episode)
+
+
+def load_hp() -> dict:
+    """`hp_build.py`가 만든 해리 포터 세계관(world.json). 없으면 만들기부터 하라고 알린다."""
+    if not HP_WORLD.exists():
+        raise SystemExit('해리 포터 원문 세계관(.data/hp/world.json)이 없다: 먼저 sim_cli.py build-hp를 실행한다.')
+    return json.loads(HP_WORLD.read_text(encoding='utf-8'))
+
+
+def hp_episode(data: dict, book: int, chapter: int) -> int:
+    """TimeChara의 (권, 장) 기준을 회차(7권의 모든 장을 이어 붙인 번호)로. 장 0(그 권이 시작하기 전)은 앞 권의 끝이고 1권 앞은 0화다."""
+    ordinals = {tuple(map(int, key.split('-'))): n for key, n in data['ordinals'].items()}
+    if chapter >= 1:
+        return ordinals[(book, chapter)]
+    return max((n for (b, _), n in ordinals.items() if b < book), default=0)
+
+
+def hp_world(episode: int, data: dict | None = None) -> tuple[service.World, dict[str, str]]:
+    """원문 기반 해리 포터 세계관의 episode화 시점 World와 영어 이름 → 카드 id(`korean_world`와 같은 방식)."""
+    data = data or load_hp()
+    world, ids = _world_at(data, episode)
+    return world, {english: ids[key] for english, key in data['english'].items()}
+
+
 def end_of_book(ordinals: dict, book: int) -> int:
     """그 권의 끝(그 권까지 나온 가장 뒤의 장)의 회차 번호."""
     return max(o for t, o in ordinals.items() if t[0] <= book)
@@ -111,12 +148,21 @@ def end_of_book(ordinals: dict, book: int) -> int:
 class Worlds:
     """평가에 쓰는 세계관 묶음. 시리즈 세계관은 처음 쓸 때 검증 행 전체로 만들고 한국어 세계관은 장면마다 읽는다."""
 
-    def __init__(self, rows: list[dict], tables: dict):
-        self.rows, self.tables, self._series = rows, tables, {}
+    def __init__(self, rows: list[dict], tables: dict, hp: dict | None = None):
+        """hp가 있으면 해리 포터 질문·장면은 TimeChara 행으로 만든 얇은 세계관 대신 그 원문 기반 세계관(hp_world)을 쓴다."""
+        self.rows, self.tables, self.hp, self._series = rows, tables, hp, {}
+        self._hp_worlds, self._hp_lock = {}, threading.Lock()
 
     @classmethod
-    def load(cls) -> 'Worlds':
-        return cls(load_rows(), parse_tables((TC / 'utils.py').read_text()))
+    def load(cls, hp: bool = False) -> 'Worlds':
+        return cls(load_rows(), parse_tables((TC / 'utils.py').read_text()), load_hp() if hp else None)
+
+    def hp_at(self, episode: int) -> tuple[service.World, dict[str, str]]:
+        """회차별로 한 번만 만든다(질문이 스레드로 돌아도 같은 세계관을 동시에 만들지 않는다)."""
+        with self._hp_lock:
+            if episode not in self._hp_worlds:
+                self._hp_worlds[episode] = hp_world(episode, self.hp)
+            return self._hp_worlds[episode]
 
     def series(self, name: str) -> tuple[dict, dict]:
         """시리즈의 평가용 세계관(사건은 시리즈의 지식 기반이라 표본이 아니라 그 시리즈의 모든 행으로 만든다)과 장 → 회차 번호표.
@@ -132,9 +178,15 @@ class Worlds:
 
     def interview(self, row: dict):
         """질문 하나를 '그 시점의 인물에게 인터뷰어가 묻는 장면'으로: 시뮬레이션이 인물 턴을 쓰는 입력 (계획, World, 인물 카드, 장면)."""
-        data, ordinals = self.series(row['series'])
-        world = tc_world(data, ordinals[cutoff(row['series'], row['character'], row['character_period'], self.tables)])
-        actor = world.characters[data['character_id'][row['character']]]
+        if self.hp is not None and row['series'] == HP:
+            world, ids = self.hp_at(hp_episode(self.hp, *cutoff(HP, row['character'], row['character_period'], self.tables)))
+            actor = world.characters.get(ids.get(row['character']))
+            if actor is None:
+                raise SimulationFailure(404, '원문 기반 세계관에 이 시점의 인물 카드가 없습니다.')
+        else:
+            data, ordinals = self.series(row['series'])
+            world = tc_world(data, ordinals[cutoff(row['series'], row['character'], row['character_period'], self.tables)])
+            actor = world.characters[data['character_id'][row['character']]]
         plan = SimulationPlan(mode='if', premise=PREMISE, characterIds=[actor.id])
         question = Turn(index=0, kind='narration', characterId=None, characterName='Interviewer', prose=row['question'], checks=[], regenerated=0, evidence=[])
         scene = service.add_turn(service.new_scene(plan), question, Trail(decision=Decision(turn='narration', pov='omniscient'), observed=row['question']))
@@ -144,6 +196,8 @@ class Worlds:
         """고정 장면 하나의 (계획, World). 인물이 데이터에 없으면 짐작하지 않고 멈춘다."""
         if spec['world'] == 'ko':
             world, ids = korean_world(spec['episode'])
+        elif self.hp is not None and spec['world'] == HP:
+            world, ids = self.hp_at(hp_episode(self.hp, spec['book'], hp_chapters.BOOKS[spec['book']][1]))
         else:
             data, ordinals = self.series(spec['world'])
             world, ids = tc_world(data, end_of_book(ordinals, spec['book'])), data['character_id']

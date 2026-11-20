@@ -4,8 +4,10 @@ import json
 
 import pytest
 
+import hp_build as hb
 import sim_worlds as w
 from app.simulation import service
+from app.simulation.errors import SimulationFailure
 from timechara import parse_tables
 
 UTILS = """
@@ -128,3 +130,58 @@ def test_harry_potter_scenes_end_at_their_book_and_name_cast_by_the_names_in_the
     assert [world.characters[i].title for i in plan.characterIds] == ['Harry', 'Ron']
     with pytest.raises(ValueError, match='Nobody'):
         worlds.scene({**spec, 'cast': [HARRY, 'Nobody']})  # 데이터에 없는 이름은 짐작하지 않고 멈춘다
+
+
+def hp_data():
+    """합성 원문 세계관: 1화 해리, 2화(1권 17장)에 헤르미온느·론, 3화 = 3권 22장, 4화 = 5권 38장."""
+    def who(name, **fields):
+        return hb.Person(**{'name': name, 'aliases': [], 'looks': '', 'personality': '', 'speech': '', 'situation': '', 'wants': '', 'memory': '', **fields})
+
+    def unit(book, chapter, ordinal, *people):
+        return hb.Info(book, (chapter,), ordinal, hb.Extraction(events=[], people=list(people), things=[], relations=[]))
+
+    infos = [unit(1, 1, 1, who('해리', situation='소년')), unit(1, 17, 2, who('해리'), who('헤르미온느', situation='똑똑한 아이'), who('론')), unit(3, 22, 3, who('해리')), unit(5, 38, 4, who('해리'))]
+    english = {'해리': 'Harry Potter', '헤르미온느': 'Hermione Granger', '론': 'Ronald Weasley'}
+    return hb.build_world(infos, hb.resolve_persons(infos, english.get), hb.resolve_settings(infos), {}, {(1, 1): 1, (1, 17): 2, (3, 22): 3, (5, 38): 4}, [])
+
+
+def test_hp_episodes_number_the_chapters_across_books_and_chapter_zero_is_the_end_of_the_previous_book():
+    data = hp_data()
+    assert [w.hp_episode(data, 1, 17), w.hp_episode(data, 3, 22), w.hp_episode(data, 5, 38)] == [2, 3, 4]
+    assert w.hp_episode(data, 3, 0) == 2 and w.hp_episode(data, 1, 0) == 0   # 3권이 시작하기 전 = 앞 권(이 데이터에는 1권)의 끝, 1권 앞은 0화
+
+
+def test_the_original_text_world_carries_the_reveal_episodes_and_finds_people_by_english_name():
+    data = hp_data()
+    early, ids = w.hp_world(1, data)
+    later, _ = w.hp_world(2, data)
+    assert (early.episode, later.episode) == (1, 2) and early.manuscript == [] and set(ids) == {HARRY, HERMIONE, RON} and ids[HARRY] in early.characters
+    reveal = {c.title: c.revealFromEpisode for c in early.snapshot.cards if c.cardType == 'character'}   # 누가 무엇을 아는지는 이 값을 읽는 운영의 NovelBrain 필터가 가린다
+    assert reveal == {'해리': 1, '헤르미온느': 2, '론': 2}
+
+
+def test_hp_interviews_ask_the_character_in_the_original_text_world_at_the_questions_cutoff():
+    hp = w.Worlds(ROWS, parse_tables(UTILS), hp=hp_data())
+    plan, world, actor, scene = hp.interview(ROWS[0])   # 해리 3학년 → 3권 22장 = 3화
+    assert (actor.title, world.episode, plan.characterIds, [t.prose for t in scene.result.turns]) == ('해리', 3, [actor.id], ['What did you do in the Shack?'])
+    assert [hp.interview(r)[2].title for r in (ROWS[2], ROWS[3])] == ['헤르미온느', '론']
+    assert hp.hp_at(3) is hp.hp_at(3)   # 회차마다 한 번만 만든다
+
+
+def test_an_interview_whose_character_has_no_card_at_that_point_is_a_404_failure_not_a_guess():
+    data = hp_data()
+    gone = dict(data, english={k: v for k, v in data['english'].items() if k != HERMIONE})
+    with pytest.raises(SimulationFailure) as failure:
+        w.Worlds(ROWS, parse_tables(UTILS), hp=gone).interview(ROWS[2])
+    assert failure.value.status == 404
+
+
+def test_hp_scenes_end_at_their_book_in_the_original_text_world_and_cast_by_english_name():
+    hp = w.Worlds([], parse_tables(UTILS), hp=hp_data())
+    spec = {'id': 'hp-x', 'world': 'harry_potter', 'book': 3, 'mode': 'if', 'cast': [HARRY, RON], 'premise': '만약?'}
+    plan, world = hp.scene(spec)
+    assert world.episode == 3 and [world.characters[i].title for i in plan.characterIds] == ['해리', '론']
+    with pytest.raises(ValueError, match='Nobody'):
+        hp.scene({**spec, 'cast': [HARRY, 'Nobody']})
+    thin_plan, thin_world = w.Worlds(ROWS, parse_tables(UTILS)).scene(spec)   # hp가 없으면 얇은 세계관 그대로
+    assert [thin_world.characters[i].title for i in thin_plan.characterIds] == ['Harry', 'Ron']
