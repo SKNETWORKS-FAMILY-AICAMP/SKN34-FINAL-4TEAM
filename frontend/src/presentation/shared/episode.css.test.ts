@@ -153,3 +153,11 @@ describe('episode.css 관리 화면 왼쪽 사이드바 계약', () => {
     expect(css).toMatch(/\.ep-menu button:focus-visible\{[^}]*outline-offset:-2px/)
   })
 })
+
+describe('episode.css 이력 탭 제목 단계', () => {
+  it('저장본·AI 제안 항목 제목(h4)은 묶음 제목(h3)과 같은 여백·글자 크기라 단계만 낮아지고 눈으로는 같다', () => {
+    expect(rule('.ep-reading :is(h3,h4)')).toMatch(/margin:20px 0 12px/)
+    // Tailwind preflight를 쓰지 않아 제목 기본 크기가 브라우저 값(h3 1.17em, h4 1em) 그대로다: h4에 같은 크기를 줘야 단계를 낮춰도 작아 보이지 않는다.
+    expect(rule('.ep-reading h4')).toMatch(/font-size:1\.17em/)
+  })
+})

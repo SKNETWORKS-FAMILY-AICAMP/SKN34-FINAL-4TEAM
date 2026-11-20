@@ -4,6 +4,8 @@ import { expect, it } from 'vitest'
 const css = readFileSync(new URL('./world-studio.css', import.meta.url), 'utf8')
 /** 편집 화면이 집필실과 함께 쓰는 하단 바(.writing-foot)의 규칙이 있는 파일 */
 const writingCss = readFileSync(new URL('../../studio/view/writing.css', import.meta.url), 'utf8')
+/** 시간선 보드(스크롤 상자)의 규칙이 있는 파일 */
+const timelineCss = readFileSync(new URL('./world-timeline.css', import.meta.url), 'utf8')
 
 it('편집 화면의 파일 선택은 기본 입력을 시각적으로만 숨기고(초점·스크린리더는 유지) 라벨 버튼에 초점 링을 그린다', () => {
   const input = css.match(/\.world-card-studio \.ep-file-pick input\[type=file\]\{([^}]*)\}/)?.[1] ?? ''
@@ -125,4 +127,44 @@ it('설정집 게시판의 분류 칩은 칩 줄이 모자라도 글자가 꺾�
   // 공용 게시판(worldBoard.css)은 좁은 배치에서 목록을 가로 flex로 바꾸고 칩 버튼에 flex:none을 주지만 버튼의 부모는 li라 그 규칙이 닿지 않는다. 칩이 한 줄에 다 들어가지 않으면 li가 줄어들어 글자가 한 글자씩 꺾였다
   // (왼쪽 사이드바로 게시판 폭이 줄어 1024px에서도 좁은 배치가 기본이 되며 드러남).
   expect(rule((s) => s === '.world-card-library .worlds-cats li')?.body).toMatch(/flex:\s*none/)
+})
+
+it('시간선 스크롤 상자는 높이가 제한돼, 사건이 많아도 보드가 페이지째 길어지지 않고 바로 아래의 설명이 한 번 스크롤한 위치에 보인다', () => {
+  // 선후가 없는 사건은 모두 0열에 150px 간격으로 쌓여 32개면 보드가 약 4,840px였고, 설명(aria-live)은 보드 아래라 사건을 눌러도 화면이 안 바뀐 것처럼 보였다.
+  const scroll = timelineCss.match(/\.world-timeline-scroll\{([^}]*)\}/)?.[1] ?? ''
+  expect(scroll).toMatch(/max-height:\s*clamp\(320px,\s*55vh,\s*560px\)/)
+  expect(scroll).toMatch(/overflow:\s*auto/) // 상자 안에서 가로·세로로 민다(키보드는 tabIndex=0 region으로 스크롤)
+})
+
+it('설정집 일괄 공개 회차 줄은 .episode-app의 label(block)·입력(폭 100%) 규칙을 이겨 "일괄 공개 회차 [입력] 화부터 공개"가 한 줄로 붙는다', () => {
+  // .world-reveal{display:flex}(0,1,0)는 .episode-app label{display:block}(0,1,1)에 지고, 88px 입력 규칙(0,2,0)은 .episode-app input:not():not()(0,3,1)에 져 세 줄로 갈라졌다.
+  // 편집 화면의 .world-reveal은 .episode-app 밖이라 이 규칙을 받지 않는다.
+  expect(rule((s) => s === '.episode-app .world-reveal')?.body).toMatch(/display:\s*flex/)
+  const input = rule((s) => s === '.episode-app .world-reveal input:not([type=checkbox]):not([type=radio])')?.body // 이 규칙의 :not()까지 베껴야 특이도가 위(0,4,1)다
+  expect(input).toMatch(/width:\s*88px/)
+  expect(input).toMatch(/margin-top:\s*0/)
+  expect(input).toMatch(/padding:\s*8px 10px/)
+  expect(input).not.toMatch(/font/) // 터치 기기의 16px(확대 방지) 보정은 .episode-app 규칙이 계속 맡는다
+})
+
+it('카드 편집의 유형 라벨은 전역 .field의 세로 쌓기(column)를 이겨 "유형 [select]"가 한 줄이다', () => {
+  // 전역 .field는 flex-direction:column인데 .world-card-meta .world-type은 display·align-items만 다시 정해, 세로 축 가운데 정렬로 라벨이 select 위 가운데에 떴다.
+  expect(rule((s) => s === '.world-card-meta .world-type')?.body).toMatch(/flex-direction:\s*row/)
+})
+
+it('650px 이하에서는 세계관 관리 헤더의 표지를 120px로 줄여 고른 보기의 제목·칩이 첫 화면에 들어온다 (공용 .ep-hero-cover와 /content 작품 관리 표지는 그대로)', () => {
+  expect(css).toMatch(/@media\(max-width:650px\)\{\.episode-app \.world-manage-hero \.ep-hero-cover\{max-width:120px\}\}/) // 공용 .ep-hero-cover(shared/episode.css)는 두고 이 화면 전용 선택자로만 덮는다
+})
+
+it('채팅이 닫혀 떠 있는 열기 버튼(.studio-chat-toggle)이 설정집 화면의 문서 끝 내용을 덮지 않게 900px 이하에서 본문 아래를 84px 비운다(편집 화면 규칙과 같은 값)', () => {
+  expect(css).toMatch(/@media\(max-width:900px\)\{\.episode-app:has\(>\.studio-chat-toggle\) \.ep-main\{padding-bottom:84px\}\}/)
+})
+
+it('분류 칩 줄(게시판 폭 760px 이하)에서는 비어 있는 분류도 옆 칩과 같은 44px 높이·16px 안쪽 여백이고, 세로 메뉴(넓은 본문)에서는 다른 분류 항목과 같은 40px·12px 그대로다', () => {
+  // 칩은 min-height:44px;padding:0 16px(shared/worldBoard.css)인데 빈 분류만 40px·12px라 줄 안에서 중심선이 어긋났다. 세로 메뉴의 항목은 40px·12px이라 기본값을 바꾸면 거기서 어긋난다.
+  expect(rule((s) => s === '.worlds-cats .worlds-cats-empty')?.body).toMatch(/min-height:\s*40px;\s*padding:\s*0 12px/)
+  const chip = css.match(/@container worlds-board \(max-width:760px\)\{\.worlds-cats \.worlds-cats-empty\{([^}]*)\}\}/)
+  expect(chip?.[1]).toMatch(/min-height:\s*44px/)
+  expect(chip?.[1]).toMatch(/padding:\s*0 16px/)
+  expect(chip!.index).toBeGreaterThan(css.indexOf('.worlds-cats .worlds-cats-empty{')) // 같은 특이도는 뒤에 온 규칙이 이긴다
 })

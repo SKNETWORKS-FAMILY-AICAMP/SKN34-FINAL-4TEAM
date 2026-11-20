@@ -188,3 +188,37 @@ it('공개한 회차가 없을 때 안내는 작성 중인 초안이 있으면 "
   openWith({ writing: { id: 'w', rows: [] } })
   expect(screen.getByText('아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.')).toBeTruthy()
 })
+
+// ── 메뉴를 누르면 고른 탭의 내용으로 화면을 옮긴다: 탭 내용이 히어로·분기 정책 카드 아래(접힌 선 밖)에서 시작해, 눌러도 바뀐 것이 안 보였다 ──
+it('메뉴를 누르면 탭 내용 머리로 스크롤하고(처음 렌더에서는 하지 않는다) 초점은 누른 메뉴 버튼에 남는다', () => {
+  open(3)
+  expect(scrolled).toEqual([]) // 처음 렌더(공개 회차)에서는 스크롤하지 않는다
+  const menu = screen.getByRole('button', { name: '이야기 분기' })
+  menu.focus()
+  fireEvent.click(menu)
+  const head = scrolled.filter((s) => (s.arg as ScrollIntoViewOptions | undefined)?.block === 'start')
+  expect(head).toHaveLength(1)
+  const target = head[0].el as HTMLElement
+  expect(head[0].arg).toEqual({ block: 'start' })
+  expect(target.contains(screen.getByRole('heading', { name: '그 순간, 다른 선택을 했다면' }))).toBe(true) // 대상은 탭 내용을 감싼 요소이고
+  expect(target.classList.contains('ep-content')).toBe(false) // 히어로까지 든 내용 열 전체가 아니라
+  expect(target.parentElement?.classList.contains('ep-content')).toBe(true) // 그 안의 탭 내용 묶음이다
+  expect(target.style.scrollMarginTop).toBe('80px') // 위의 sticky 상단바(.gnb)가 머리를 가리지 않게(회차 목록 Pager와 같은 값)
+  expect(document.activeElement).toBe(menu) // 초점은 누른 버튼에 남아 이어서 다른 메뉴를 고를 수 있다
+})
+
+it('메뉴를 누르면 900px 이하의 가로 스크롤 줄에서 그 버튼이 보이게 옆으로만 옮긴다', () => {
+  open(3)
+  const menu = screen.getByRole('button', { name: '이야기 분기' })
+  fireEvent.click(menu)
+  expect(scrolled.find((s) => s.el === menu)?.arg).toEqual({ inline: 'nearest', block: 'nearest' }) // 세로는 건드리지 않는다
+})
+
+it('이력 탭의 저장본·AI 제안 항목 제목은 묶음 제목(h3) 바로 아래 단계(h4)라 헤딩 목록에서 묶음 경계가 보인다', () => {
+  const versions = [saved('v1')]
+  const proposal = { id: 'p1', text: '제안 본문', model: 'gpt', revision: 1, status: 'pending' as const, prompt: '지시문' }
+  openWith({ writing: { id: 'w', rows: [row(1, { versions })] }, history: { versions, proposals: [proposal], publicationHistory: [] } })
+  openHistory()
+  expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['발행 이력', '원고 저장본', 'AI 요청·제안'])
+  expect(screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)).toEqual(['1화 · 저장 버전 1 · 첫 화', 'gpt · 검토 대기'])
+})
