@@ -636,7 +636,7 @@ function Comments(p: BodyProps) {
                   <td>
                     <span className={`chip ${c.hidden ? 'wait' : 'ok'}`}>{c.hidden ? '숨김' : '게시'}</span>
                   </td>
-                  <td>{kstDateTime(c.createdAt)}</td>
+                  <td className='admin-date'>{kstDateTime(c.createdAt)}</td>
                   <td>
                     <button
                       type='button'
@@ -722,7 +722,7 @@ function Users({ vm, f, setF }: BodyProps) {
                     <span className='small muted'>{u.email}</span>
                   </td>
                   <td>{u.role === 'ADMIN' ? '관리자' : '회원'}</td>
-                  <td>{kstDateTime(u.createdAt)}</td>
+                  <td className='admin-date'>{kstDateTime(u.createdAt)}</td>
                   <td>
                     <span className={`chip ${u.restricted ? 'wait' : 'ok'}`}>{u.restricted ? '이용 제한' : '이용 가능'}</span>
                   </td>
@@ -816,7 +816,7 @@ function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
                       <span className={`chip ${x.status === 'RECEIVED' ? 'wait' : 'ok'}`}>{reportStatusLabel(x.status)}</span>
                     </td>
                     <td>{x.contentRestricted ? '제한 중' : '공개 유지'}</td>
-                    <td>{kstDateTime(x.createdAt)}</td>
+                    <td className='admin-date'>{kstDateTime(x.createdAt)}</td>
                     <td>
                       <button
                         type='button'
@@ -1451,7 +1451,7 @@ function Admins({ vm }: { vm: VM }) {
                     <td>
                       {ADMIN_PERMISSIONS.filter(([k]) => a.permissions.includes(k)).map(([, l]) => l).join(', ') || '없음'}
                     </td>
-                    <td>{kstDateTime(a.createdAt)}</td>
+                    <td className='admin-date'>{kstDateTime(a.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>

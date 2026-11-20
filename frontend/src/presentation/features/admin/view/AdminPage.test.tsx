@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import '../../../../test/fixtureApp'
+import { readFileSync } from 'node:fs'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
@@ -356,6 +357,8 @@ it('댓글 탭은 운영 댓글 API로 목록을 읽고 숨김·게시 복구 �
   expect(screen.getByRole('columnheader', { name: '작성일' })).toBeTruthy()
   expect(within(open).getByText('첫 감상').style.whiteSpace).toBe('pre-wrap')
   expect(within(open).getByText('첫 감상').style.overflowWrap).toBe('anywhere')
+  // 날짜 칸은 공백에서 두 줄로 꺾이지 않게 admin-date를 가진다.
+  expect(within(open).getByText(kstDateTime('2026-11-09T01:00:00Z')).className).toBe('admin-date')
   expect(within(hidden).getByText('숨김', { selector: '.chip' }).className).toContain('wait')
   expect(within(open).getByText('게시', { selector: '.chip' }).className).toContain('ok')
 
@@ -680,6 +683,13 @@ it('개요 탭의 새로고침도 다른 탭처럼 제목 줄 오른쪽(.admin-h
   const refresh = await screen.findByRole('button', { name: '새로고침' })
   expect(document.querySelector('.admin-head')!.contains(refresh)).toBe(true)
   expect(document.querySelector('.admin-refresh')).toBeNull()
+})
+
+// 날짜·시각이 공백에서 두 줄('26. 11. 20. 오전 / 12:03')로 꺾이면 표가 어색하고 넓은 칸이 폭을 다 가져간다: 날짜만 담은 표 칸은 모두 admin-date(한 줄·고정 폭 숫자)를 쓴다.
+it('날짜·시각만 담은 표 칸(td)은 admin-date 없이 맨 td로 그리지 않는다', () => {
+  for (const file of ['AdminPage.tsx', 'JobMonitor.tsx', 'LlmAlerts.tsx', 'LlmOps.tsx', 'LlmOpsManage.tsx']) {
+    expect(readFileSync(new URL(file, import.meta.url), 'utf8').match(/<td>\{[^}]*kstDateTime\(/g), file).toBeNull()
+  }
 })
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).

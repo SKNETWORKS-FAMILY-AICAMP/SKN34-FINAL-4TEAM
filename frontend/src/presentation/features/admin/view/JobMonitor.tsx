@@ -100,8 +100,8 @@ function RunRow({ run, j, busy }: { run: JobRun; j: Jobs; busy: boolean }) {
         {progress && progress.total > 0 && <progress value={progress.done} max={progress.total} aria-label={`${kind} 진행률`} />}
         <div className="small">{jobProgress(progress)}</div>
       </td>
-      <td>{run.startedAt ? kstDateTime(run.startedAt) : '—'}</td>
-      <td>{run.finishedAt ? kstDateTime(run.finishedAt) : '—'}</td>
+      <td className="admin-date">{run.startedAt ? kstDateTime(run.startedAt) : '—'}</td>
+      <td className="admin-date">{run.finishedAt ? kstDateTime(run.finishedAt) : '—'}</td>
       <td>
         {run.error ?? '—'}
         {run.targetId && <div className="small muted">대상 {run.targetId}</div>}
@@ -155,7 +155,7 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
                     <td>{row.cron}</td>
                     <td><span className={`chip ${row.enabled ? 'ok' : 'wait'}`}>{row.enabled ? '켜짐' : '꺼짐·취소됨'}</span></td>
                     <td>{Object.keys(row.params).length ? JSON.stringify(row.params) : '—'}</td>
-                    <td>{row.lastRun ? <>{statusChip(row.lastRun.status)} <span className="small muted">{row.lastRun.startedAt ? kstDateTime(row.lastRun.startedAt) : ''}</span></> : '—'}</td>
+                    <td>{row.lastRun ? <>{statusChip(row.lastRun.status)} <span className="small muted admin-date">{row.lastRun.startedAt ? kstDateTime(row.lastRun.startedAt) : ''}</span></> : '—'}</td>
                     <td>
                       <div className="admin-inline">
                         <button type="button" className="btn sm" aria-label={`${kind} 일정 수정`} disabled={busy} onClick={() => setEditing(row)}>수정</button>

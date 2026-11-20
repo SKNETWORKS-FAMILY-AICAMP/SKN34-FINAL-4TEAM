@@ -96,7 +96,7 @@ function Traces({ vm, l }: { vm: VM; l: LlmVM }) {
 function TraceRow({ row, onOpen }: { row: TraceItem; onOpen: (id: string) => void }) {
   return (
     <tr>
-      <td>{kstDateTime(row.timestamp)}</td>
+      <td className="admin-date">{kstDateTime(row.timestamp)}</td>
       <td>{row.feature}</td>
       <td>{statusChip(row.status)}</td>
       <td>{millis(row.latencyMs)}</td>
@@ -145,7 +145,7 @@ function TraceDetailPanel({ vm, l }: { vm: VM; l: LlmVM }) {
                 <tr key={o.id}>
                   <td>{o.name}</td>
                   <td>{o.type}</td>
-                  <td>{o.startTime ? kstDateTime(o.startTime) : '—'}</td>
+                  <td className="admin-date">{o.startTime ? kstDateTime(o.startTime) : '—'}</td>
                   <td>{millis(o.latencyMs)}</td>
                   <td>{o.model ?? '—'}</td>
                   <td>{count(o.inputTokens)} / {count(o.outputTokens)}</td>
@@ -266,7 +266,7 @@ function LeakChecks({ vm, l }: { vm: VM; l: LlmVM }) {
             <tbody>
               {rows.map((row) => (
                 <tr key={row.id}>
-                  <td>{kstDateTime(row.checkedAt)}</td>
+                  <td className="admin-date">{kstDateTime(row.checkedAt)}</td>
                   <td>{row.workId}</td>
                   <td><span className={`chip ${row.suspected ? 'bad' : 'ok'}`}>{row.suspected ? '의심' : '이상 없음'}</span></td>
                   <td>{row.matched.join(', ') || '—'}</td>

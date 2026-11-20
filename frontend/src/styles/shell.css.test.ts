@@ -155,4 +155,22 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     // 반대로 메뉴 안 브랜드는 900px 이하에서 숨긴다.
     expect([value('.adm .admin-nav .admin-brand', 'display'), narrow('.adm .admin-nav .admin-brand', 'display')]).toEqual([undefined, 'none'])
   })
+
+  it('날짜·시각 칸(.admin-date)은 공백에서 꺾이지 않는 한 줄이고 숫자 폭을 맞춘다', () => {
+    // 'ko-KR short' 날짜는 '26. 11. 20. 오전 12:03'처럼 공백이 많아, 좁아지면 '오전 / 12:03' 두 줄로 꺾이고 넓은 칸(권한 등)이 폭을 다 가져간다.
+    expect([value('.adm .admin-date', 'white-space'), value('.adm .admin-date', 'font-variant-numeric')]).toEqual(['nowrap', 'tabular-nums'])
+  })
+
+  it('패널 주 행동·필터 버튼은 btn sm 규칙(36px·0 14px·13.5px) 하나로 같은 크기이고, 터치 환경(600px 이하·coarse)에서만 44px이다', () => {
+    // 공지 작성·이벤트 작성 같은 .btn.pri는 전역 기본(44px·20px·15px) 큰 알약이라 필터 '조회'(.btn.sm)와 크기가 달랐다: .adm 안의 버튼은 모두 .btn.sm과 같다.
+    const small = ['height', 'padding', 'font-size'].map((prop) => value('.btn.sm', prop))
+    expect(small).toEqual(['36px', '0 14px', '13.5px'])
+    expect(['height', 'padding', 'font-size'].map((prop) => value('.adm .btn', prop))).toEqual(small)
+    // 터치 보정(파일 맨 끝 모바일 블록)은 .btn.sm처럼 .adm 버튼도 44px 이상으로 올린다.
+    expect(sheet.some((r) => r.media === '(max-width:600px),(pointer:coarse)' && r.selectors.includes('.adm .btn') && /(?:^|;)\s*min-height\s*:\s*44px/.test(r.body))).toBe(true)
+    // 필터 줄: 버튼에 따로 높이를 두지 않고 입력·선택을 같은 36px로 맞춰 줄이 가지런하다(터치 환경은 입력도 44px).
+    expect(opsCss).not.toMatch(/\.admin-filter \.btn\s*\{/)
+    expect(opsCss).toMatch(/\.admin-filter \.inp\s*\{[^}]*height:\s*36px/)
+    expect(opsCss).toMatch(/@media \(max-width: 600px\), \(pointer: coarse\) \{[^@]*\.admin-filter \.inp \{[^}]*min-height:\s*44px/)
+  })
 })

@@ -355,9 +355,13 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}th{text-align:left;co
 .adm .panel,.adm .kpi div{border-radius:12px}
 .adm th{background:none;border-bottom:1px solid var(--line2);font-size:12.5px;font-weight:600}
 .adm td{vertical-align:middle}.adm td b{font-weight:600}
+/* 날짜·시각 칸: 'ko-KR short' 날짜('26. 11. 20. 오전 12:03')가 공백에서 두 줄로 꺾이지 않게 한 줄로 두고 숫자 폭을 맞춘다. */
+.adm .admin-date{white-space:nowrap;font-variant-numeric:tabular-nums}
 .adm .chip{height:auto;padding:0;border-radius:0;background:none;color:var(--sub);font-size:12.5px;font-weight:600}.adm .chip+.chip{margin-left:8px}
 .adm .chip.bad{color:var(--danger)}.adm .chip.bad::before{content:'●';content:'●' / '';font-size:.7em}
 .adm .admin-head .chip{height:24px;padding:0 9px;border:1px solid var(--line2);border-radius:999px}
+/* 버튼 크기는 .btn.sm(36px·14px·13.5px) 하나다: 공지 작성·이벤트 작성 같은 .btn.pri가 전역 기본(44px 큰 알약)이라 필터 '조회'와 크기가 달랐다. 터치 환경의 44px은 파일 맨 끝 모바일 블록이 올린다. */
+.adm .btn{height:36px;padding:0 14px;font-size:13.5px}
 .adm td .btn{border-color:transparent;background:transparent;color:var(--pri-ink);font-weight:600}.adm td .btn:hover,.adm td .btn.pri:hover{background:var(--muted-bg)}.adm td .btn.pri{font-weight:700}.adm td .btn.danger{color:var(--danger)}
 /* 푸터가 있으면 어두운 사이드바 열 바로 아래에 푸터를 붙이고(위 여백 없음, .lg+.foot와 같은 이유) 푸터 안 내용도 틀처럼 전체 폭을 쓴다.
    고정(sticky) 상단바(60px) 밑으로 키보드 초점·건너뛰기 이동이 들어가 가리지 않게 스크롤 여백을 둔다(900px 이하는 상단바가 고정이 아니다). */
@@ -588,7 +592,7 @@ input,textarea{caret-color:var(--pri)}
 /* 터치 타깃: 좁은 화면(600px 이하)과 손가락이 주 입력인 기기(pointer:coarse — 태블릿·가로로 든 폰 포함)에서 누르는 요소를 44px 이상으로 한다.
    마우스가 주 입력인 데스크톱의 밀도는 그대로다. 체크박스는 라벨 전체를 누를 수 있다. 명시도가 같은 기본 규칙을 이기도록 파일 맨 끝에 둔다. */
 @media (max-width:600px),(pointer:coarse){
- .btn.sm,.sortt :is(button,a),.tagbar :is(button,a),.seg button,.chq button,.pop button,.logo,.nav :is(button,a),.search,.chips button,.svw :is(button,a),.pick2 button,.inp.sm,.rback,.adm .admin-nav :is(button,a),.wcat>:is(button,a),.wdocs :is(button,a),.wcheck,.wev,.wmen,.mlist button,.sec-h .more,.t10h .more{min-height:44px}
+ .btn.sm,.adm .btn,.sortt :is(button,a),.tagbar :is(button,a),.seg button,.chq button,.pop button,.logo,.nav :is(button,a),.search,.chips button,.svw :is(button,a),.pick2 button,.inp.sm,.rback,.adm .admin-nav :is(button,a),.wcat>:is(button,a),.wdocs :is(button,a),.wcheck,.wev,.wmen,.mlist button,.sec-h .more,.t10h .more{min-height:44px}
  .sheet .x,.rib,.cm .lk,.thm,.guide .x,.narrative-row .move button{min-width:44px;min-height:44px}
  button.avatar{width:44px;height:44px}
  .wdocs :is(button,a){display:flex;align-items:center}.sec-h .more,.t10h .more{display:inline-flex;align-items:center}

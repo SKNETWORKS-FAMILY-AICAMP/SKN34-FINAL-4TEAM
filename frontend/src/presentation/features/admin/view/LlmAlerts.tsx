@@ -58,7 +58,7 @@ function AlertRow({ alert, d, busy }: { alert: Alert; d: Alerts; busy: boolean }
   const act = async (status: 'acknowledged' | 'resolved') => { if (await d.updateAlert(alert.id, status, note)) setNote('') }
   return (
     <tr>
-      <td>{kstDateTime(alert.createdAt)}</td>
+      <td className="admin-date">{kstDateTime(alert.createdAt)}</td>
       <td>{rule}</td>
       <td>
         {alert.message}
@@ -67,7 +67,7 @@ function AlertRow({ alert, d, busy }: { alert: Alert; d: Alerts; busy: boolean }
       </td>
       <td><span className={`chip ${alert.status === 'open' ? 'wait' : 'ok'}`}>{alertStatusLabel(alert.status)}</span></td>
       <td>
-        {alert.actedAt ? kstDateTime(alert.actedAt) : '—'}
+        {alert.actedAt ? <span className="admin-date">{kstDateTime(alert.actedAt)}</span> : '—'}
         {alert.note && <div className="small">{alert.note}</div>}
       </td>
       <td>

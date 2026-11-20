@@ -71,7 +71,7 @@ function Prompts({ vm, l }: Props) {
                   <tr key={v.version}>
                     <td>{v.version}</td>
                     <td>{v.labels.length ? v.labels.map((label) => <span key={label} className="chip ok">{label}</span>) : '—'}</td>
-                    <td>{v.createdAt ? kstDateTime(v.createdAt) : '—'}</td>
+                    <td className="admin-date">{v.createdAt ? kstDateTime(v.createdAt) : '—'}</td>
                     <td>
                       {evaluation
                         ? (
@@ -238,7 +238,7 @@ function Evaluations({ vm, l }: Props) {
                   <td>{row.dataset}</td>
                   <td>{row.prompt} {row.version}번 버전</td>
                   <td>{evaluationChip(row)}</td>
-                  <td>{kstDateTime(row.createdAt)}</td>
+                  <td className="admin-date">{kstDateTime(row.createdAt)}</td>
                   <td><button type="button" className="btn sm" data-record-id={row.runId} aria-label={`${row.dataset} ${row.prompt} ${row.version}번 버전 평가 상세`} onClick={() => l.openEvaluation(row.runId)}>상세</button></td>
                 </tr>
               ))}
@@ -324,7 +324,7 @@ function RuleRow({ rule, l, busy }: { rule: AlertRule; l: LlmVM; busy: boolean }
       <td><input className="inp" type="number" min="0" step="any" aria-label={`${label} 기준값`} value={threshold} onChange={(e) => setThreshold(e.target.value)} /></td>
       <td><input className="inp" type="number" min="1" step="1" aria-label={`${label} 기준 시간(분)`} value={windowMinutes} onChange={(e) => setWindowMinutes(e.target.value)} /></td>
       <td><input type="checkbox" aria-label={`${label} 켜기`} checked={enabled} onChange={(e) => setEnabled(e.target.checked)} /></td>
-      <td>{kstDateTime(rule.updatedAt)}</td>
+      <td className="admin-date">{kstDateTime(rule.updatedAt)}</td>
       <td>
         <button
           type="button"
