@@ -26,5 +26,6 @@ export function useWorldChatPage(vm: VM) {
     },
     cardOf: (id: string) => { const item = settings.find((s) => s.item.id === id)?.item; return item && { title: item.title, body: item.text } },
     unsaved: vm.dirty || vm.relationDirty,
+    worldDraft: vm.saved && { id: vm.saved.id, revision: vm.saved.version } || undefined,
   }
 }

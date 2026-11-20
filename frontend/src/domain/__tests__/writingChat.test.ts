@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, chatPage, cleanScene, featureLabel, pendingChanges, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
+import { chatBasis, chatPage, cleanScene, featureLabel, pendingChanges, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -369,10 +369,11 @@ describe('chatPage', () => {
     expect(chatPage({ ...studio, path: `/studio/${'a'.repeat(400)}` }).path).toHaveLength(300)
   })
 
-  it('선택한 글은 5,000자 이하만 싣고 비었거나 공백뿐이거나 넘치면 뺀다(잘린 글은 수정 대상이 될 수 없다)', () => {
+  it('선택한 글은 5,000자까지 싣고 넘으면 전송에 필요한 수정 방법을 알린다', () => {
     expect(chatPage({ ...studio, selection: '그는 웃었다.' }).selection).toBe('그는 웃었다.')
     expect(chatPage({ ...studio, selection: '가'.repeat(5000) }).selection).toHaveLength(5000)
-    for (const selection of ['', '  \n ', '가'.repeat(5001)]) expect(chatPage({ ...studio, selection })).not.toHaveProperty('selection')
+    for (const selection of ['', '  \n ']) expect(chatPage({ ...studio, selection })).not.toHaveProperty('selection')
+    expect(() => chatPage({ ...studio, selection: '가'.repeat(5001) })).toThrow('5,000자')
   })
 
   it('저장하지 않은 편집 내용은 unsaved로 싣고 없으면 content를 넣지 않는다', () => {
@@ -391,6 +392,17 @@ describe('chatPage', () => {
   it('자르는 자리가 서로게이트 쌍의 가운데이면 한 글자 앞에서 자른다', () => {
     const body = `${'가'.repeat(9999)}😀뒤`
     expect(chatPage({ ...studio, unsaved: { body } }).content!.body).toBe('가'.repeat(9999))
+  })
+})
+
+describe('worldProposalIsStale', () => {
+  it('같은 세계관의 저장 revision이 바뀌었을 때만 이전 제안을 잠근다', () => {
+    const action: PendingAction = { tool: 'world_studio_edit_draft', label: '', args: { id: 'w', request: { expectedDraftRevision: 4 } } }
+    expect(worldProposalIsStale(action, { id: 'w', revision: 5 })).toBe(true)
+    expect(worldProposalIsStale(action, { id: 'w', revision: 4 })).toBe(false)
+    expect(worldProposalIsStale(action, { id: 'other', revision: 5 })).toBe(false)
+    expect(worldProposalIsStale({ ...action, tool: 'work_update' }, { id: 'w', revision: 5 })).toBe(false)
+    expect(worldProposalIsStale({ ...action, args: { id: 'w', expectedDraftRevision: 4 } }, { id: 'w', revision: 5 })).toBe(true)
   })
 })
 

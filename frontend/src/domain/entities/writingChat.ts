@@ -127,17 +127,29 @@ const clip = (text: string, max: number) => {
   return text.slice(0, high >= 0xd800 && high <= 0xdbff ? max - 1 : max)
 }
 /**
- * 화면 정보를 보낼 모양으로 조립한다. 선택한 글은 5,000자 이하만 싣는다(잘린 글은 수정 대상이 될 수 없어 넘치면 뺀다).
+ * 화면 정보를 보낼 모양으로 조립한다. 선택한 글이 5,000자를 넘으면 전송 전에 구간을 줄이도록 알린다.
  * 저장하지 않은 편집 내용(unsaved)이 있으면 본문을 10,000자까지 싣고 넘으면 잘라 truncated를 붙인다. 호출한 화면이 dirty일 때만 unsaved를 준다.
  */
 export function chatPage({ path, selection, unsaved, ...rest }: ChatPageInput): ChatPage {
   const page: ChatPage = { ...rest, path: clip(path, PAGE_PATH_MAX) }
-  if (selection?.trim() && selection.length <= PAGE_SELECTION_MAX) page.selection = selection
+  if (selection && selection.length > PAGE_SELECTION_MAX) {
+    throw new Error(`선택한 글은 ${PAGE_SELECTION_MAX.toLocaleString('ko-KR')}자까지 보낼 수 있어요. 선택 범위를 줄이거나 선택을 해제한 뒤 다시 보내 주세요.`)
+  }
+  if (selection?.trim()) page.selection = selection
   if (unsaved) {
     const body = clip(unsaved.body, PAGE_BODY_MAX)
     page.content = { ...(unsaved.title ? { title: clip(unsaved.title, PAGE_TITLE_MAX) } : {}), body, unsaved: true, ...(body.length < unsaved.body.length ? { truncated: true } : {}) }
   }
   return page
+}
+
+export type WorldDraftRevision = { id: string; revision: number }
+
+export function worldProposalIsStale(action: PendingAction, draft?: WorldDraftRevision): boolean {
+  if (!draft || action.tool !== 'world_studio_edit_draft' || action.args.id !== draft.id) return false
+  const request = action.args.request ?? action.args
+  const expected = request && typeof request === 'object' && 'expectedDraftRevision' in request ? request.expectedDraftRevision : undefined
+  return typeof expected === 'number' && expected !== draft.revision
 }
 
 /** 승인 카드가 보이는 바꿈 한 칸: 수정 전(없으면 새로 만드는 값)과 후. */

@@ -3,7 +3,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { CharacterSimulation } from '../../../domain/entities/characterSimulation'
-import type { ChatEvent, ChatStep } from '../../../domain/entities/writingChat'
+import { chatPage, type ChatEvent, type ChatStep } from '../../../domain/entities/writingChat'
 import { WritingChat } from './WritingChat'
 
 const { sessions, history, send } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn() }))
@@ -473,6 +473,29 @@ it('오래 걸린 스트림의 World 반영 알림은 시작할 때의 핸들러
   expect(first).not.toHaveBeenCalled()
 })
 
+it('AI가 처리 중일 때 전송한 요청은 말풍선에 있고 입력창은 비어 있다', async () => {
+  openThread([])
+  send.mockImplementation(() => new Promise(() => {}))
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  const input = screen.getByRole('textbox', { name: '메시지' })
+  fireEvent.change(input, { target: { value: '다음 장면을 써줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  expect(await screen.findByText('다음 장면을 써줘')).toBeTruthy()
+  expect(screen.getByRole('status', { name: 'AI 진행 상황' })).toBeTruthy()
+  expect(input).toHaveProperty('value', '')
+})
+
+it('저장된 제공사 분류 실패를 오류 말풍선으로 표시한다', async () => {
+  openThread([
+    { request: '요약해줘', reply: { status: 'failed', message: '요청 분류에 실패했습니다.', steps: [], missingInputs: [] } },
+    { request: '다시 요약해줘', reply: { status: 'completed', message: '요약했어요.', steps: [], missingInputs: [] } },
+  ])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  expect((await screen.findByText('요청 분류에 실패했습니다.')).closest('li')?.getAttribute('data-failed')).toBe('true')
+  expect(screen.getByText('요약했어요.').closest('li')?.hasAttribute('data-failed')).toBe(false)
+})
+
 // ── 화면 맥락과 Content 쓰기 승인(#554) ──
 const pendingAction = { tool: 'world_studio_edit_draft', label: '세계관 설정 카드 수정', args: { id: 'w1', request: { expectedDraftRevision: 4, cards: [{ id: 'k', body: '과묵한 기사. 십 년째 같은 자리에 선다.' }] } } }
 const approvalTurn = () => openThread([{ request: '이 설정 설명을 더 자세히 써줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action', pendingAction } }])
@@ -495,6 +518,19 @@ it('새 메시지를 보낼 때만 지금 화면(page)을 싣고, 이어가기�
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
   expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true } })
   expect(send.mock.calls[0][2]).not.toHaveProperty('page')
+})
+
+it('선택 글이 너무 길면 전송하지 않고 입력을 남긴다', async () => {
+  openThread([])
+  const getPage = () => chatPage({ path: '/studio/w', kind: 'studio', selection: '가'.repeat(5001) })
+  render(<WritingChat workId="w" basis={basis} getPage={getPage} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  const input = screen.getByRole('textbox', { name: '메시지' })
+  fireEvent.change(input, { target: { value: '다듬어줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  expect((await screen.findByRole('alert')).textContent).toContain('5,000자')
+  expect(input).toHaveProperty('value', '다듬어줘')
+  expect(send).not.toHaveBeenCalled()
 })
 
 it('화면 정보가 없으면(getPage가 비었거나 undefined를 주면) page를 싣지 않는다', async () => {
@@ -538,6 +574,20 @@ it('저장하지 않은 편집이 있으면 승인 버튼을 막고 먼저 저�
   expect(screen.getByRole('button', { name: '실행하지 않기' })).toHaveProperty('disabled', false)
   expect(screen.getByRole('alert').textContent).toContain('먼저 저장해 주세요')
   expect(send).not.toHaveBeenCalled()
+})
+
+it('저장 뒤 이전 제안은 승인할 수 없고 같은 요청을 현재 화면으로 다시 실행한다', async () => {
+  approvalTurn()
+  send.mockResolvedValue(undefined)
+  const props = { workId: 'w', basis, emptyTitle: '새 대화', emptyText: '', suggestions: [], getPage: () => ({ kind: 'world' as const, path: '/worldstudio/w1', worldId: 'w1' }) }
+  const view = render(<WritingChat {...props} worldDraft={{ id: 'w1', revision: 4 }} unsaved />)
+  expect(await screen.findByRole('button', { name: '실행' })).toHaveProperty('disabled', true)
+  view.rerender(<WritingChat {...props} worldDraft={{ id: 'w1', revision: 5 }} />)
+  expect(screen.queryByRole('button', { name: '실행' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '저장한 초안으로 제안 다시 받기' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ request: '이 설정 설명을 더 자세히 써줘', page: props.getPage() })
+  expect(send.mock.calls[0][2]).not.toHaveProperty('resume')
 })
 
 it('실행할 인자를 읽지 못한 승인 대기는 가짜 카드 없이 알린다', async () => {
