@@ -92,7 +92,8 @@ it('상단바 글자·버튼 색은 하드코딩하지 않고 고정 어두운 �
   await screen.findByRole('main')
   const inline = [...document.querySelectorAll('.adm .top [style]')].map((el) => el.getAttribute('style')).join(';')
   expect(inline).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i)
-  expect(inline).toMatch(/var\(--fixed-/)
+  // 상단바는 밝은 테마 면(--surface)이라 어두운 면용 --fixed-* 글자색을 인라인으로 두지 않는다(어두운 면은 사이드바 열이고, 색은 모두 CSS 토큰이 정한다).
+  expect(inline).not.toMatch(/var\(--fixed-/)
 })
 
 it('탭 제목에 관리자와 현재 섹션 이름을 쓴다', async () => {

@@ -147,38 +147,36 @@ export function AdminPage() {
       >
         본문으로 바로가기
       </a>
-      <div className='top'>
-        <div className='wrap in'>
-          <b style={{ fontSize: 16 }}>STORYFORK 관리자</b>
-          <span style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--fixed-sub)' }}>
-            {vm.me.nick} 님으로 로그인
-          </span>
-          <ThemeButton className='btn sm adm-theme' />
-        </div>
+      <div className='admin-side'>
+        <nav ref={nav} className='admin-nav' aria-label='관리자 업무'>
+          <b className='admin-brand'>STORYFORK 관리자</b>
+          {/* 메뉴 묶음 이름은 본문 제목(h1)보다 앞에 오므로 제목으로 읽히지 않게 하고, 묶음 이름은 group의 레이블로 전합니다. */}
+          {GROUPS.map(([g, items]) => (
+            <section key={g} role='group' aria-label={g}>
+              <h2 role='presentation'>{g}</h2>
+              {items.map(([k, l]) => (
+                <Go
+                  key={k}
+                  to={`/admin?tab=${k}`}
+                  className={tab === k ? 'on' : ''}
+                  aria-current={tab === k ? 'page' : undefined}
+                >
+                  {l}
+                  {LIVE_TABS.includes(k) && <span className='nav-live' aria-hidden='true'>API</span>}
+                </Go>
+              ))}
+            </section>
+          ))}
+          <p className='nav-legend'><span className='nav-live'>API</span> 실제 운영 데이터를 다루는 탭</p>
+          <button type='button' onClick={vm.logout}>로그아웃</button>
+        </nav>
       </div>
-      <main id='main' tabIndex={-1} className='wrap'>
-        <div className='shell'>
-          <nav ref={nav} className='admin-nav' aria-label='관리자 업무'>
-            {/* 메뉴 묶음 이름은 본문 제목(h1)보다 앞에 오므로 제목으로 읽히지 않게 하고, 묶음 이름은 group의 레이블로 전합니다. */}
-            {GROUPS.map(([g, items]) => (
-              <section key={g} role='group' aria-label={g}>
-                <h2 role='presentation'>{g}</h2>
-                {items.map(([k, l]) => (
-                  <Go
-                    key={k}
-                    to={`/admin?tab=${k}`}
-                    className={tab === k ? 'on' : ''}
-                    aria-current={tab === k ? 'page' : undefined}
-                  >
-                    {l}
-                    {LIVE_TABS.includes(k) && <span className='nav-live' aria-hidden='true'>API</span>}
-                  </Go>
-                ))}
-              </section>
-            ))}
-            <p className='nav-legend'><span className='nav-live'>API</span> 실제 운영 데이터를 다루는 탭</p>
-            <button type='button' onClick={vm.logout}>로그아웃</button>
-          </nav>
+      <div className='admin-col'>
+        <div className='top'>
+          <span className='admin-who'>{vm.me.nick} 님으로 로그인</span>
+          <ThemeButton className='btn sm' />
+        </div>
+        <main id='main' tabIndex={-1}>
           <section ref={content} id='admin-content' tabIndex={-1} className='workspace'>
             <header className='admin-head'>
               <div>
@@ -235,8 +233,8 @@ export function AdminPage() {
               <Body key={tab} tab={tab} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} />
             )}
           </section>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
     <Footer />
     </>

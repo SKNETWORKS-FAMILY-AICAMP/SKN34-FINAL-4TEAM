@@ -23,11 +23,11 @@ function parse(source: string, media = ''): Rule[] {
   return rules
 }
 const sheet = parse(css)
-/** 미디어 쿼리 밖 규칙 중 selector가 그대로 든 규칙들의 prop 값을 선언 순서대로 돌려준다. */
-const values = (selector: string, prop: string) => sheet
-  .filter((r) => !r.media && r.selectors.includes(selector))
+/** 미디어 쿼리 밖 규칙(media를 주면 그 미디어 쿼리 안 규칙) 중 selector가 그대로 든 규칙들의 prop 값을 선언 순서대로 돌려준다. */
+const values = (selector: string, prop: string, media = '') => sheet
+  .filter((r) => r.media === media && r.selectors.includes(selector))
   .flatMap((r) => [...r.body.matchAll(new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]*)`, 'g'))].map((m) => m[1].trim()))
-const value = (selector: string, prop: string) => values(selector, prop).at(-1)
+const value = (selector: string, prop: string, media?: string) => values(selector, prop, media).at(-1)
 
 describe('storyfork.css 푸터 위치 계약', () => {
   it('푸터가 있는 화면은 #root를 세로 flex로 두고 본문이 남는 높이를 채워 푸터를 맨 아래에 붙인다', () => {
@@ -105,5 +105,30 @@ describe('storyfork.css GNB 검색 버튼 계약 (#505)', () => {
     expect(value('.search .ls', 'display')).toBe('none')
     expect(narrow('.search .lf')).toEqual(['display:none'])
     expect(narrow('.search .ls')).toEqual(['display:inline'])
+  })
+})
+
+describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
+  const adminPage = readFileSync(new URL('../presentation/features/admin/view/AdminPage.tsx', import.meta.url), 'utf8')
+  /** 900px 이하(사이드바가 상단바 아래 가로 메뉴 줄이 되는 구간)에서 마지막으로 정한 값. */
+  const narrow = (selector: string, prop: string) => value(selector, prop, '(max-width:900px)')
+
+  it('관리자 틀은 최대 폭 제한(.wrap) 없이 사이드바를 왼쪽 끝 전체 높이로 둔다', () => {
+    // 틀 마크업: 상단바·본문 어디에도 최대 폭 1120px(.wrap)을 쓰지 않는다(푸터의 .wrap은 AdminPage 밖이다).
+    expect(adminPage).not.toMatch(/className=['"{][^'"}]*\bwrap\b/)
+    // 틀: 사이드바 열(220~240px) | 남은 폭 전부. 어느 칸에도 최대 폭을 두지 않는다.
+    expect(value('.adm', 'display')).toBe('grid')
+    expect(value('.adm', 'grid-template-columns')).toMatch(/^(?:22\d|23\d|240)px minmax\(0,1fr\)$/)
+    for (const selector of ['.adm', '.adm .admin-col', '.adm .top', '.adm .workspace']) expect(value(selector, 'max-width'), selector).toBeUndefined()
+    // 사이드바: 왼쪽 열 전체가 테마와 무관한 어두운 면이고, 메뉴는 sticky로 화면 높이만큼 남으며 길면 안에서 스크롤한다.
+    // 높이를 height로 못 박지 않고 max-height로 두는 이유: 푸터가 있는 짧은 화면에서도 틀이 푸터를 첫 화면 밖으로 밀지 않는다(위 푸터 위치 계약).
+    expect(value('.adm .admin-side', 'background')).toBe('var(--fixed-dark)')
+    expect([value('.adm .admin-nav', 'position'), value('.adm .admin-nav', 'top'), value('.adm .admin-nav', 'overflow-y')]).toEqual(['sticky', '0', 'auto'])
+    expect(values('.adm .admin-nav', 'max-height')).toEqual(['100vh', '100dvh'])
+    // 상단바: 오른쪽 열 맨 위의 밝은 면이고 본문을 스크롤해도 남는다.
+    expect([value('.adm .top', 'position'), value('.adm .top', 'top'), value('.adm .top', 'background')]).toEqual(['sticky', '0', 'var(--surface)'])
+    // 900px 이하: 사이드바는 상단바 아래의 가로 메뉴 줄이 된다(상단바가 맨 위).
+    expect([narrow('.adm', 'flex-direction'), narrow('.adm .admin-col', 'display'), narrow('.adm .top', 'order'), narrow('.adm .top', 'position'), narrow('.adm .admin-nav', 'position')])
+      .toEqual(['column', 'contents', '-1', 'static', 'static'])
   })
 })

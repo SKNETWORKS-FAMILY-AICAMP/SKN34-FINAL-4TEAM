@@ -53,6 +53,12 @@
 .adm .kpi span.small { display: block; margin-top: 2px; }
 .adm .kpi b.unavailable { font-size: 15px; color: var(--sub); }
 .adm .kpi a { display: inline-block; margin-top: 8px; font-size: 13px; color: var(--pri-ink); }
+/* 전체 폭 틀(storyfork.css .adm): 숫자 카드(전역 .kpi는 4열 고정)는 남은 폭만큼 여러 열로 채우고 좁은 화면은 전처럼 2열이다. 폼 격자는 넓은 화면에서 입력이 한없이 늘어나지 않게 기존 폭(약 800px)을 지킨다. */
+.adm .kpi { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.adm .form-grid { max-width: 800px; }
+@media (max-width: 600px) {
+  .adm .kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .adm .admin-operations pre.admin-prose { margin: 8px 0 18px; padding: 12px; max-height: 360px; overflow: auto; background: var(--muted-bg); border-radius: 10px; font-size: 13px; line-height: 1.6; }
 .adm progress { width: 100%; max-width: 160px; }
 /* 운영 차트(Recharts): 색은 전역 테마 토큰이고, 같은 값이 차트 아래 표·카드에도 있어 차트는 보조입니다. */
