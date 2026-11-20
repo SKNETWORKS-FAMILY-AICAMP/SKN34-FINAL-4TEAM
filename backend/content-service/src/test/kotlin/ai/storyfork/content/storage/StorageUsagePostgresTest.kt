@@ -68,14 +68,23 @@ class StorageUsagePostgresTest {
 
     @Test fun `a fork does not count the episodes it inherits from the original`() {
         val author = UUID.randomUUID().toString(); val forker = UUID.randomUUID()
+        val originalBody = "원작 본문"
         val original = works.create(author, CreateWorkRequest("저장 원작", "소개", "ORIGINAL", listOf("판타지"), emptyList(), true)).id
-        val draft = driver.edit(original, author, DraftRequest("출발", "원작 본문", driver.read(original, author).draft!!.revision))
+        val draft = driver.edit(original, author, DraftRequest("출발", originalBody, driver.read(original, author).draft!!.revision))
         driver.publish(original, author, PublishRequest(draft.revision, true, true, true, driver.history(original, author).versions.last().id))
 
-        driver.fork(original, forker.toString(), ForkRequest(1, "저장 분기"))
+        val forkOwner = forker.toString()
+        val fork = driver.fork(original, forkOwner, ForkRequest(1, "저장 분기")).id
+        val inherited = driver.writing(fork, forkOwner, 1)
+        assertTrue(inherited.inherited)
+        assertEquals(originalBody, inherited.draft.body)
+        val forkBody = "분기 원고"
+        val next = driver.writing(fork, forkOwner, 2)
+        driver.writeEpisode(fork, forkOwner, 2, DraftRequest("다음 장면", forkBody, next.draft.revision), false)
 
-        val firstEpisode = { item: List<Any>, work: String -> item[0] == "manuscript" && item[2] == work && item[1].toString().startsWith("1화") }
-        assertTrue(summary(UUID.fromString(author)).any { firstEpisode(it, "저장 원작") })
-        assertTrue(summary(forker).none { firstEpisode(it, "저장 분기") })
+        assertEquals(listOf(listOf("manuscript", "1화 · 출발", "저장 원작", originalBody.encodeToByteArray().size.toLong())),
+            summary(UUID.fromString(author)))
+        assertEquals(listOf(listOf("manuscript", "2화 · 다음 장면", "저장 분기", forkBody.encodeToByteArray().size.toLong())),
+            summary(forker))
     }
 }
