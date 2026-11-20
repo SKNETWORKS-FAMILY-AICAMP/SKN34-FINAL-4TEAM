@@ -29,6 +29,18 @@ function keepInView(menu: HTMLElement | null, button: HTMLElement | null) {
 }
 
 /**
+ * 목록이 fixed라 버튼에 묶이지 않는 쓰임(스크롤 상자 안 표의 행 메뉴처럼 absolute 목록이 잘리는 곳)을 위해 버튼의 자리를 CSS 변수로 알린다.
+ * --pop-bottom은 창 위쪽에서 버튼 아래 끝까지, --pop-right는 창 오른쪽 끝(스크롤바 제외)에서 버튼 오른쪽 끝까지 px이다.
+ * 정적 위치에 기대는 fixed 목록은 문서를 스크롤한 만큼 어긋나므로 이 값으로 직접 맞춘다. 변수를 쓰지 않는 메뉴에는 영향이 없다.
+ */
+function anchor(menu: HTMLElement | null, button: HTMLElement | null) {
+  if (!menu || !button) return
+  const b = button.getBoundingClientRect()
+  menu.style.setProperty('--pop-bottom', `${b.bottom}px`)
+  menu.style.setProperty('--pop-right', `${document.documentElement.clientWidth - b.right}px`)
+}
+
+/**
  * 아이콘 버튼 하나가 여는 작은 메뉴(popover)다. 바깥 클릭·Escape·Tab·항목 선택으로 닫히고, 닫히면 초점이 버튼으로 돌아온다.
  * 항목은 쓰는 쪽이 role="menuitem"으로 그린다(↑↓·Home·End로 옮긴다). 버튼 모양과 열리는 방향은 className으로 정한다.
  * 잠긴 항목(disabled)은 초점을 받지 못하므로, 그 항목이 aria-describedby로 가리키는 사유는 메뉴의 설명으로도 이어 메뉴에 들어설 때 읽히게 한다.
@@ -45,7 +57,7 @@ export function PopMenu({ label, icon, className = '', children }: { label: stri
   const close = () => { setOpen(false); trigger.current?.focus() }
 
   // 그리기 전에 자리를 잡아, 잘린 채로 한 번 보였다가 옮겨지지 않게 한다.
-  useLayoutEffect(() => { if (open) keepInView(list.current, trigger.current) }, [open])
+  useLayoutEffect(() => { if (open) { anchor(list.current, trigger.current); keepInView(list.current, trigger.current) } }, [open])
 
   useEffect(() => {
     if (!open) return

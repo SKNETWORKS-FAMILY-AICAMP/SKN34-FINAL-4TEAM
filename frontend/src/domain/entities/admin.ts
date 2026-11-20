@@ -26,8 +26,18 @@ export const ADMIN_TABS = ['data', 'users', 'works', 'comments', 'characterChats
 export type AdminTab = (typeof ADMIN_TABS)[number]
 export const adminTab = (t: string | null): AdminTab => ADMIN_TABS.find((x) => x === (t === 'ai' ? 'llm' : t)) ?? 'data'
 
+/** LLM Ops의 네 쪽(사이드바 메뉴, 주소 `?tab=llm&view=`): 경고가 기본이라 view가 없거나 모르는 값도 경고입니다. */
+export const LLM_PAGES = [['alerts', '경고'], ['traces', '추적·지표'], ['prompts', '프롬프트·모델'], ['quality', '평가·누설 검사']] as const
+export type LlmPage = (typeof LLM_PAGES)[number][0]
+export const llmPage = (v: string | null): LlmPage => LLM_PAGES.find(([page]) => page === v)?.[0] ?? 'alerts'
+/** 경고만 view가 없는 주소입니다(운영 경고 알림·개요 카드가 쓰는 `/admin?tab=llm`이 그대로 경고로 갑니다). */
+export const llmPageHref = (page: LlmPage) => page === 'alerts' ? '/admin?tab=llm' : `/admin?tab=llm&view=${page}`
+
 /** 로그인 복귀에는 알려진 내부 관리자 탭 하나만 남깁니다. 임의 next/외부 URL은 전달하지 않습니다. */
 export function adminReturnPath(search: string): string {
   const query = new URLSearchParams(search)
-  return query.has('tab') ? `/admin?tab=${adminTab(query.get('tab'))}` : '/admin'
+  if (!query.has('tab')) return '/admin'
+  const tab = adminTab(query.get('tab'))
+  // LLM Ops는 알려진 쪽(view)도 남깁니다(없거나 모르는 값은 경고).
+  return tab === 'llm' ? llmPageHref(llmPage(query.get('view'))) : `/admin?tab=${tab}`
 }

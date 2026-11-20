@@ -17,6 +17,8 @@ export function LlmAlerts({ vm }: { vm: VM }) {
     <section className="panel admin-operations" aria-label="운영 경고">
       <div className="table-head">
         <h2 className="panel-title">운영 경고</h2>
+      </div>
+      <div className="admin-filter">
         <label className="field">
           상태
           <select className="inp" value={d.status ?? ''} onChange={(e) => d.setStatus(ALERT_STATUSES.find(([value]) => value === e.target.value)?.[0] ?? null)}>
@@ -45,7 +47,7 @@ export function LlmAlerts({ vm }: { vm: VM }) {
           </Table>
         )
         : <p className="admin-empty">조건에 맞는 경고가 없어요.</p>)}
-      <p className="admin-note">경고 기준과 켜고 끄기는 ‘경고 기준·설정’ 보기에서 정해요. 확인·조치 완료는 활동 로그에 남아요.</p>
+      <p className="admin-note">경고 기준과 켜고 끄기는 아래 ‘경고 기준’에서 정해요. 확인·조치 완료는 활동 로그에 남아요.</p>
     </section>
   )
 }
@@ -56,7 +58,7 @@ function AlertRow({ alert, d, busy }: { alert: Alert; d: Alerts; busy: boolean }
   const act = async (status: 'acknowledged' | 'resolved') => { if (await d.updateAlert(alert.id, status, note)) setNote('') }
   return (
     <tr>
-      <td>{kstDateTime(alert.createdAt)}</td>
+      <td className="admin-date">{kstDateTime(alert.createdAt)}</td>
       <td>{rule}</td>
       <td>
         {alert.message}
@@ -65,7 +67,7 @@ function AlertRow({ alert, d, busy }: { alert: Alert; d: Alerts; busy: boolean }
       </td>
       <td><span className={`chip ${alert.status === 'open' ? 'wait' : 'ok'}`}>{alertStatusLabel(alert.status)}</span></td>
       <td>
-        {alert.actedAt ? kstDateTime(alert.actedAt) : '—'}
+        {alert.actedAt ? <span className="admin-date">{kstDateTime(alert.actedAt)}</span> : '—'}
         {alert.note && <div className="small">{alert.note}</div>}
       </td>
       <td>

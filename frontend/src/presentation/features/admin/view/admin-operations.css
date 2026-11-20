@@ -1,5 +1,4 @@
-.adm .admin-operations,
-.adm .admin-legacy-demo { min-width: 0; overflow-wrap: anywhere; }
+.adm .admin-operations { min-width: 0; overflow-wrap: anywhere; }
 .adm .admin-operations fieldset { border: 0; padding: 0; margin: 12px 0 0; min-width: 0; }
 .adm .admin-operations h2 { font-size: 20px; line-height: 1.4; margin: 24px 0 12px; }
 .adm .admin-operations .table-head h2 { margin: 0; }
@@ -19,17 +18,11 @@
 .adm .admin-action-error { padding: 12px; margin: 12px 0; background: var(--acc-soft); color: var(--acc-ink); border: 1px solid var(--line2); border-radius: 10px; overflow-wrap: anywhere; }
 .adm .admin-data-state { margin: 12px 0; font-size: 14px; }
 .adm .admin-data-state .btn { margin-top: 12px; }
-.adm .admin-refresh { margin: 0 0 12px; }
 .adm .admin-replies { margin-top: 28px; padding-top: 4px; border-top: 1px solid var(--line2); }
 .adm .admin-replies .inquiry-item { padding: 18px 0; }
-.adm .admin-legacy-demo { margin-top: 24px; }
-.adm .admin-legacy-demo summary { cursor: pointer; font-weight: 700; min-height: 44px; padding: 10px 0; color: var(--pri-ink); }
-.adm .admin-legacy-demo table { margin-top: 18px; }
 .adm .admin-operations [tabindex="-1"]:focus { outline: 2px solid var(--pri); outline-offset: 4px; }
 @media (max-width: 600px) {
-  .adm .admin-operations,
-  .adm .admin-legacy-demo { padding: 16px; }
-  .adm .admin-operations .table-head { align-items: stretch; }
+  .adm .admin-operations { padding: 16px; }
   .adm .admin-operations .btn { min-height: 44px; }
   .adm .admin-operations .rowend { justify-content: stretch; }
   .adm .admin-operations .rowend > .btn { flex: 1 1 130px; }
@@ -39,22 +32,61 @@
 .adm .admin-operations .report-actions h3 { margin: 0; }
 .adm .admin-operations h2[tabindex="-1"]:focus { outline: none; }
 /* 패널 제목: 굵은 글씨(<b>) 대신 제목 요소를 쓰되 모양과 흐름은 이전 그대로(본문 크기·굵게·줄 안 배치) 둡니다. */
-.adm .panel-title { display: inline; font-size: inherit; font-weight: 700; }
+.adm .panel-title { display: inline; font-size: inherit; font-weight: 600; }
+.adm .workspace :is(h2, h3, h4) { font-weight: 600; }
 /* 업무 메뉴가 가로 줄로 바뀌는 좁은 화면에서는 누르는 높이를 44px로 올립니다(전역 38px). */
 @media (max-width: 900px) {
   .adm .admin-nav :is(button, a) { height: auto; min-height: 44px; }
 }
-/* 운영 대시보드·LLMOps·작업 감시(DEC-55): 보기 선택 칩, 조회 조건 줄, 표 안 조치 묶음, 카드 안 보조 줄. */
-.adm .admin-subnav { margin: 0 0 14px; }
+/* 운영 대시보드·LLMOps·작업 감시(DEC-55): 조회 조건 줄, 표 안 조치 묶음, 카드 안 보조 줄. */
 .adm .admin-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; margin: 0 0 12px; }
 .adm .admin-filter .field { min-width: 120px; }
+/* 필터 줄(검색 입력·분류·정렬·상태 선택과 조회·검색 버튼): 입력·선택을 버튼(.adm .btn, btn sm 규칙)과 같은 36px로 아래 맞추고, 검색 입력은 최대 360px까지만 늘어난다. 터치 환경의 44px은 아래 모바일 블록이 올린다. */
+.adm .admin-filter .inp { height: 36px; padding-block: 0; }
+.adm .admin-filter .field-search { flex: 1 1 260px; max-width: 360px; }
+/* 상단바 닉네임 메뉴(PopMenu): 버튼은 작은 알약 모양이고 이름이 길면 말줄임, 목록은 버튼 오른쪽 끝에 맞춰 아래로 연다. 비레이어 규칙이라 pop-menu.css의 버튼 기본값을 이긴다. */
+.adm .admin-who { min-width: 0; }
+.adm .admin-who .pop-menu-btn { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 12em; height: 36px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 13.5px; font-weight: 700; }
+.adm .admin-who .pop-menu-btn:hover { background: var(--muted-bg); }
+.adm .admin-who-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm .admin-who .pop-menu-list { top: calc(100% + 6px); right: 0; }
+.adm .admin-who .pop-menu-list [aria-current="page"] { background: var(--pri-soft); color: var(--pri-ink); }
+@media (max-width: 600px), (pointer: coarse) {
+  .adm .admin-who .pop-menu-btn { min-height: 44px; }
+  .adm .admin-filter .inp { min-height: 44px; }
+}
+/* LLM Ops 한 쪽에 쌓은 패널(경고+경고 기준, 추적+지표 등): .panel은 바깥 여백이 없어 맞붙으므로 위 숫자 카드 줄 사이 gap(12px)과 같은 값으로 띄웁니다. */
+.adm .panel.admin-operations + .panel.admin-operations { margin-top: 12px; }
+/* 표 행 조치 메뉴(⋮, 공용 PopMenu): 조치 칸은 ⋮ 버튼 하나 폭이고 오른쪽에 붙인다. 표 스크롤 영역(.adm-scroll)은 absolute 메뉴를 잘라서 메뉴는 fixed로 띄우고,
+   위치는 PopMenu가 열 때 알려 주는 버튼의 자리(--pop-bottom·--pop-right)로 맞춘다(버튼 바로 아래, 오른쪽 끝 맞춤). 정적 위치에 기대면 문서를 스크롤한 만큼 어긋난다.
+   스크롤하면 PopMenu가 fixed 메뉴를 닫는다. */
+.adm th.act-menu, .adm td.act-menu { width: 56px; text-align: right; }
+.adm .row-menu { --more-size: 36px; }
+@media (max-width: 600px), (pointer: coarse) { .adm .row-menu { --more-size: 44px; } }
+.adm .row-menu .pop-menu-btn { width: var(--more-size); height: var(--more-size); border-radius: 999px; color: var(--sub); }
+.adm .row-menu .pop-menu-btn:hover, .adm .row-menu .pop-menu-btn[aria-expanded="true"] { background: var(--muted-bg); color: var(--ink); }
+.adm .row-menu .pop-menu-list { position: fixed; top: calc(var(--pop-bottom, 0px) + 4px); right: var(--pop-right, 0px); left: auto; text-align: left; }
+@media (max-width: 600px) {
+  /* 좁은 화면은 조치 칸이 오른쪽에 고정(sticky)되어 칸마다 쌓임 맥락이 생긴다: 열린 메뉴가 아래 행의 고정 칸에 가려지지 않게 그 칸을 올린다. */
+  .adm td.act-menu:has([aria-expanded="true"]) { z-index: 3; }
+}
 .adm .admin-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .adm .admin-operations .admin-inline .inp { width: auto; min-width: 140px; }
+/* 쪽 이동 줄: '전체 N건 · 1/1쪽' 글자를 36px 이전·다음 버튼과 세로 가운데로 둔다(.rowend 기본은 맨 위 정렬이라 글자가 떠 보인다). */
+.adm .admin-pager { align-items: center; }
 .adm .kpi span.small { display: block; margin-top: 2px; }
 .adm .kpi b.unavailable { font-size: 15px; color: var(--sub); }
 .adm .kpi a { display: inline-block; margin-top: 8px; font-size: 13px; color: var(--pri-ink); }
+/* 전체 폭 틀(storyfork.css .adm): 숫자 카드(전역 .kpi는 4열 고정)는 남은 폭만큼 여러 열로 채우고 좁은 화면은 전처럼 2열이다. 폼 격자는 넓은 화면에서 입력이 한없이 늘어나지 않게 기존 폭(약 800px)을 지킨다. */
+.adm .kpi { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.adm .form-grid { max-width: 800px; }
+@media (max-width: 600px) {
+  .adm .kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .adm .admin-operations pre.admin-prose { margin: 8px 0 18px; padding: 12px; max-height: 360px; overflow: auto; background: var(--muted-bg); border-radius: 10px; font-size: 13px; line-height: 1.6; }
 .adm progress { width: 100%; max-width: 160px; }
+/* 위 숫자 카드(.kpi)의 줄 사이 gap(12px)과 같은 값으로 카드 아래 '최근 7일 AI 사용' 패널을 띄웁니다(0이면 카드에 붙어 보임). */
+.adm .admin-usage { margin-top: 12px; }
 /* 운영 차트(Recharts): 색은 전역 테마 토큰이고, 같은 값이 차트 아래 표·카드에도 있어 차트는 보조입니다. */
 .adm .admin-usage h2 { margin-top: 0; }
 .adm .admin-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 0 24px; margin-top: 12px; }

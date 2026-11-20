@@ -97,6 +97,22 @@ it('같은 경로라도 화면 내용이 통째로 바뀌는 쿼리(관리자 �
   expect(scrollToSpy).toHaveBeenCalledTimes(8)
 })
 
+it('관리자 LLM Ops는 쪽(view)이 바뀌어도 다른 화면으로 보고 맨 위로 올리되, 같은 쪽의 다른 쿼리는 보던 위치를 지킨다', () => {
+  render(<Provider store={createAppStore()}><MemoryRouter initialEntries={['/admin?tab=llm']} useTransitions={false}>
+    <GlobalChrome />
+    <Link to="/admin?tab=llm&view=traces">추적·지표</Link>
+    <Link to="/admin?tab=llm&view=traces&page=2">같은 쪽의 다른 쿼리</Link>
+    <Link to="/admin?tab=llm&view=prompts">프롬프트·모델</Link>
+  </MemoryRouter></Provider>)
+  const go = (name: string) => fireEvent.click(screen.getByRole('link', { name }))
+  go('추적·지표')
+  expect(scrollToSpy).toHaveBeenCalledExactlyOnceWith({ top: 0 })
+  go('같은 쪽의 다른 쿼리')
+  expect(scrollToSpy).toHaveBeenCalledTimes(1)
+  go('프롬프트·모델')
+  expect(scrollToSpy).toHaveBeenCalledTimes(2)
+})
+
 it('운영 화면에는 화면 ID 표시·토글 없이 테마 전환을 제공한다', () => {
   vi.stubEnv('DEV', false)
   const { store } = renderChrome('/', 'light')

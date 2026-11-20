@@ -236,7 +236,7 @@ describe('공지 탭 (운영 공지 API, 메모리 fixture)', () => {
   it('운영 API 연결 탭이며 서버에 저장되지 않는다는 데모 문구와 구 공지 데모가 없다', async () => {
     renderAt('/admin?tab=notices')
     await screen.findByRole('button', { name: '공지 작성' })
-    screen.getByText('운영 API 연결')
+    expect(document.querySelector('.admin-head .chip')).toBeNull()
     expect(screen.queryByText(/서버에 저장되지 않아요/)).toBeNull()
     expect(screen.queryByText('기존 회원 공지 표')).toBeNull()
     expect(screen.queryByText('기존 회원 화면 공지 데모')).toBeNull()
@@ -291,7 +291,7 @@ describe('이벤트 운영 API 화면', () => {
     }
     within(screen.getByRole('button', { name: /진행 이벤트/ })).getByText(`${kstDateTime('2020-01-01T00:00:00.000Z')} ~ 종료 미정 · 한국시간`)
     expect(region().textContent).not.toContain('데모')
-    screen.getByText('운영 API 연결')
+    expect(document.querySelector('.admin-head .chip')).toBeNull()
   })
 
   it('저장이 실패하면 입력을 지키고 안내하며, 응답을 기다리는 동안 다시 보낼 수 없다', async () => {
