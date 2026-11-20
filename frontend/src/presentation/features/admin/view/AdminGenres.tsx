@@ -63,7 +63,7 @@ export function AdminGenres({ vm }: { vm: VM }) {
               <input className="inp" name="name" maxLength={GENRE_NAME_MAX} required autoComplete="off" placeholder="예: 사이버펑크" />
             </label>
             <label className="field">
-              아이콘 <span className="small muted">선택</span>
+              <span>아이콘 <span className="small muted">(선택)</span></span>
               <input className="inp" name="emoji" maxLength={GENRE_EMOJI_MAX} autoComplete="off" placeholder="예: 🤖" />
             </label>
             <button type="submit" className="btn pri" disabled={busy}>장르 추가</button>
