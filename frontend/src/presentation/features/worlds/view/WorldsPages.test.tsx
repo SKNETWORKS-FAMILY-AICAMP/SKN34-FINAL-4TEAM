@@ -754,7 +754,7 @@ it('장르 칩을 고르면 그 장르 코드로 모아 보기를 다시 읽고 
 it('장르 목록 조회가 실패하면 모아 보기 안에서만 실패를 알리고 지도·순위는 그대로이며 다시 시도하면 읽는다', async () => {
   const list = vi.spyOn(useCase(), 'list').mockImplementation(async ({ genre } = {}) => {
     if (genre) throw new Error('offline')
-    return serverPage([server('a')])
+    return serverPage([server('a'), server('b', { genre: 'genre-14', genreName: 'SF' })]) // 칩은 세계관이 있는 장르만 보인다
   })
   await renderAt('/worlds')
   fireEvent.click(await screen.findByRole('button', { name: '🛰 SF' }))

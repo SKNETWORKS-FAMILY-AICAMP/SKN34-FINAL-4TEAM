@@ -176,7 +176,7 @@ it('does not reuse the previous cover when creating another work', async () => {
   vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'content-csrf' }) : init?.method === 'PUT' ? uploads(path, init) : new Response(null, { status: 404 })))
   stubPreviewUrl()
   const router = createMemoryRouter([{ path: '/content', element: <EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))} /> }, { path: '/studio/:id', element: <Where/> }], { initialEntries: ['/content'] })
-  renderIn(<RouterProvider router={router} useTransitions={false} />)
+  renderIn(<Provider store={createAppStore()}><RouterProvider router={router} useTransitions={false} /></Provider>)
   await screen.findByText('새 작품 만들기')
   fireEvent.change(screen.getByLabelText('작품 제목'), { target: { value: first.title } })
   fireEvent.change(screen.getByLabelText('표지 이미지 선택'), { target: { files: [new File(['png'], 'first.png', { type: 'image/png' })] } })
