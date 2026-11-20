@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { LLM_FORBIDDEN, evaluationStatusLabel, passedLabel, perMillion, promoteLabel, type Evaluation } from '../../../../domain/entities/llmOps'
 import { alertRuleLabel, type AlertRule } from '../../../../domain/entities/operationsAlert'
 import { kstDateTime } from '../../../shared/format'
+import { MoreVerticalIcon } from '../../../shared/icons'
+import { PopMenu } from '../../../shared/PopMenu'
 import { EvaluationChart } from './AdminCharts'
 import type { LlmVM, VM } from './LlmOps'
 import { formNumber, formText } from './formValue'
@@ -53,7 +55,7 @@ export function Prompts({ vm, l }: Props) {
                 <th scope="col">라벨</th>
                 <th scope="col">등록</th>
                 <th scope="col">최신 회귀 평가</th>
-                <th scope="col" className="act">production</th>
+                <th scope="col" className="act act-menu"><span className="sr-only">production</span></th>
               </tr>
             </thead>
             <tbody>
@@ -74,18 +76,19 @@ export function Prompts({ vm, l }: Props) {
                         )
                         : '평가 없음'}
                     </td>
-                    <td>
+                    <td className="act-menu">
                       {action
                         ? (
-                          <button
-                            type="button"
-                            className="btn sm"
-                            aria-label={`${p.name} ${v.version}번 버전 production ${action}`}
-                            disabled={busy}
-                            onClick={() => { if (window.confirm(`${p.name} ${v.version}번 버전을 production으로 ${action === '복원' ? '되돌릴까요' : '올릴까요'}? 서비스가 바로 이 버전의 프롬프트를 쓰게 돼요.`)) void l.promote(p.name, v.version) }}
-                          >
-                            {action}
-                          </button>
+                          <PopMenu className="row-menu" label={`「${p.name} ${v.version}번 버전」 조치`} icon={<MoreVerticalIcon />}>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              disabled={busy}
+                              onClick={() => { if (window.confirm(`${p.name} ${v.version}번 버전을 production으로 ${action === '복원' ? '되돌릴까요' : '올릴까요'}? 서비스가 바로 이 버전의 프롬프트를 쓰게 돼요.`)) void l.promote(p.name, v.version) }}
+                            >
+                              production {action}
+                            </button>
+                          </PopMenu>
                         )
                         : '현재 production'}
                     </td>
@@ -221,7 +224,7 @@ export function Evaluations({ vm, l }: Props) {
                 <th scope="col">프롬프트</th>
                 <th scope="col">상태·결과</th>
                 <th scope="col">실행 시각</th>
-                <th scope="col" className="act">상세</th>
+                <th scope="col" className="act act-menu"><span className="sr-only">상세</span></th>
               </tr>
             </thead>
             <tbody>
@@ -231,7 +234,11 @@ export function Evaluations({ vm, l }: Props) {
                   <td>{row.prompt} {row.version}번 버전</td>
                   <td>{evaluationChip(row)}</td>
                   <td className="admin-date">{kstDateTime(row.createdAt)}</td>
-                  <td><button type="button" className="btn sm" data-record-id={row.runId} aria-label={`${row.dataset} ${row.prompt} ${row.version}번 버전 평가 상세`} onClick={() => l.openEvaluation(row.runId)}>상세</button></td>
+                  <td className="act-menu" data-record-id={row.runId}>
+                    <PopMenu className="row-menu" label={`「${row.dataset} ${row.prompt} ${row.version}번 버전 평가」 조치`} icon={<MoreVerticalIcon />}>
+                      <button type="button" role="menuitem" onClick={() => l.openEvaluation(row.runId)}>상세</button>
+                    </PopMenu>
+                  </td>
                 </tr>
               ))}
             </tbody>

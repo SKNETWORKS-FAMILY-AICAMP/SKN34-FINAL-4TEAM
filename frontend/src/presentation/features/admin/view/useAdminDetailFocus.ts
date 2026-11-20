@@ -9,8 +9,10 @@ export function useAdminDetailFocus(selection: string | null, ready = true, list
       previous.current = selection
       root.current?.querySelector<HTMLElement>('h2[tabindex]')?.focus()
     } else {
-      const buttons = Array.from(root.current?.querySelectorAll<HTMLButtonElement>('[data-record-id]') ?? [])
-      const target = buttons.find((node) => node.dataset.recordId === previous.current)
+      const records = Array.from(root.current?.querySelectorAll<HTMLElement>('[data-record-id]') ?? [])
+      const record = records.find((node) => node.dataset.recordId === previous.current)
+      // 행 조치 칸(⋮ 메뉴)이 id를 달고 있으면 그 안의 ⋮ 버튼으로 돌린다.
+      const target = (record?.matches('button') ? record : record?.querySelector<HTMLElement>('button'))
         ?? root.current?.querySelector<HTMLElement>('h2[tabindex]')
       target?.focus()
     }

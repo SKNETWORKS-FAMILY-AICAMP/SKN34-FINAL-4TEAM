@@ -12,6 +12,7 @@ import { ofKind } from '../../../../domain/entities/work'
 import { kstDateTime, kstPeriod } from '../../../shared/format'
 import { EventStatusChip } from '../../../shared/EventStatusChip'
 import { Go } from '../../../shared/Go'
+import { MoreVerticalIcon } from '../../../shared/icons'
 import { PopMenu } from '../../../shared/PopMenu'
 import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
 import { Footer } from '../../../shared/shell/Gnb'
@@ -380,7 +381,7 @@ function Body(p: BodyProps) {
                 <th scope='col'>작품</th>
                 <th scope='col'>캐릭터</th>
                 <th scope='col'>상태</th>
-                <th scope='col' className='act'>관리</th>
+                <th scope='col' className='act act-menu'><span className='sr-only'>관리</span></th>
               </tr>
             </thead>
             <tbody>
@@ -401,16 +402,12 @@ function Body(p: BodyProps) {
                         {c.enabled === false ? '중지' : '운영 중'}
                       </span>
                     </td>
-                    <td>
-                      <button
-                        type='button'
-                        className='btn sm'
-                        aria-label={`${c.w.title} ${c.character} ${c.enabled === false ? '운영 재개' : '중지'}`}
-                        disabled={blocked(vm, `chat:${c.id}`)}
-                        onClick={() => vm.toggleChat(c.id)}
-                      >
-                        {c.enabled === false ? '운영 재개' : '중지'}
-                      </button>
+                    <td className='act-menu'>
+                      <PopMenu className='row-menu' label={`「${c.w.title} ${c.character}」 조치`} icon={<MoreVerticalIcon />}>
+                        <button type='button' role='menuitem' disabled={blocked(vm, `chat:${c.id}`)} onClick={() => vm.toggleChat(c.id)}>
+                          {c.enabled === false ? '운영 재개' : '중지'}
+                        </button>
+                      </PopMenu>
                     </td>
                   </tr>
                 ))
@@ -529,7 +526,7 @@ function Works(p: BodyProps) {
               <th scope='col'>종류</th>
               <th scope='col'>권리</th>
               <th scope='col'>공개 상태</th>
-              <th scope='col' className='act'>조치</th>
+              <th scope='col' className='act act-menu'><span className='sr-only'>조치</span></th>
             </tr>
           </thead>
           <tbody>
@@ -547,12 +544,12 @@ function Works(p: BodyProps) {
                       {w.restricted ? '운영 제한' : w.visibility === 'public' ? '공개' : '비공개'}
                     </span>
                   </td>
-                  <td>
-                    <div className='rowend'>
+                  <td className='act-menu' data-record-id={w.workId}>
+                    <PopMenu className='row-menu' label={`「${w.title}」 조치`} icon={<MoreVerticalIcon />}>
                       <button
                         type='button'
-                        className={`btn sm${w.restricted ? '' : ' danger'}`}
-                        aria-label={`「${w.title}」 ${w.restricted ? '제한 해제' : '운영 제한'}`}
+                        role='menuitem'
+                        className={w.restricted ? undefined : 'danger'}
                         disabled={blocked(vm, `work:${w.workId}`)}
                         onClick={() => {
                           if (w.restricted || window.confirm(`「${w.title}」을 제한할까요? 해제 전까지 독자에게 보이지 않아요.`)) {
@@ -563,17 +560,11 @@ function Works(p: BodyProps) {
                         {w.restricted ? '제한 해제' : '운영 제한'}
                       </button>
                       {w.originKind === 'fork' && (
-                        <button
-                          type='button'
-                          className='btn sm'
-                          data-record-id={w.workId}
-                          aria-label={`「${w.title}」 포크 정합성 점검`}
-                          onClick={() => integrity.select({ id: w.workId, title: w.title })}
-                        >
+                        <button type='button' role='menuitem' onClick={() => integrity.select({ id: w.workId, title: w.title })}>
                           포크 정합성 점검
                         </button>
                       )}
-                    </div>
+                    </PopMenu>
                   </td>
                 </tr>
               ))
@@ -640,7 +631,7 @@ function Comments(p: BodyProps) {
               <th scope='col'>공감</th>
               <th scope='col'>상태</th>
               <th scope='col'>작성일</th>
-              <th scope='col' className='act'>조치</th>
+              <th scope='col' className='act act-menu'><span className='sr-only'>조치</span></th>
             </tr>
           </thead>
           <tbody>
@@ -655,20 +646,21 @@ function Comments(p: BodyProps) {
                     <span className={`chip ${c.hidden ? 'wait' : 'ok'}`}>{c.hidden ? '숨김' : '게시'}</span>
                   </td>
                   <td className='admin-date'>{kstDateTime(c.createdAt)}</td>
-                  <td>
-                    <button
-                      type='button'
-                      className='btn sm'
-                      aria-label={`${c.authorName} 댓글 ${c.hidden ? '게시 복구' : '숨김'}`}
-                      disabled={blocked(vm, `comment:${c.commentId}`)}
-                      onClick={() => {
-                        if (c.hidden || window.confirm(`「${c.workTitle}」의 댓글을 숨길까요? 독자에게는 자리표시로만 보여요.`)) {
-                          void vm.live.setCommentHidden(c.commentId, !c.hidden)
-                        }
-                      }}
-                    >
-                      {c.hidden ? '게시 복구' : '숨김'}
-                    </button>
+                  <td className='act-menu'>
+                    <PopMenu className='row-menu' label={`「${c.authorName} 댓글」 조치`} icon={<MoreVerticalIcon />}>
+                      <button
+                        type='button'
+                        role='menuitem'
+                        disabled={blocked(vm, `comment:${c.commentId}`)}
+                        onClick={() => {
+                          if (c.hidden || window.confirm(`「${c.workTitle}」의 댓글을 숨길까요? 독자에게는 자리표시로만 보여요.`)) {
+                            void vm.live.setCommentHidden(c.commentId, !c.hidden)
+                          }
+                        }}
+                      >
+                        {c.hidden ? '게시 복구' : '숨김'}
+                      </button>
+                    </PopMenu>
                   </td>
                 </tr>
               ))
@@ -728,7 +720,7 @@ function Users({ vm, f, setF }: BodyProps) {
                 <th scope='col'>역할</th>
                 <th scope='col'>가입일</th>
                 <th scope='col'>상태</th>
-                <th scope='col' className='act'>조치</th>
+                <th scope='col' className='act act-menu'><span className='sr-only'>조치</span></th>
               </tr>
             </thead>
             <tbody>
@@ -744,23 +736,25 @@ function Users({ vm, f, setF }: BodyProps) {
                   <td>
                     <span className={`chip ${u.restricted ? 'wait' : 'ok'}`}>{u.restricted ? '이용 제한' : '이용 가능'}</span>
                   </td>
-                  <td>
+                  <td className='act-menu'>
                     {u.id === vm.selfId
                       ? <span className='small muted'>본인 계정</span>
                       : (
-                        <button
-                          type='button'
-                          className={`btn sm${u.restricted ? '' : ' danger'}`}
-                          aria-label={`${u.nickname} ${u.restricted ? '제한 해제' : '이용 제한'}`}
-                          disabled={blocked(vm, `member:${u.id}`)}
-                          onClick={() => {
-                            if (u.restricted || window.confirm(`${u.nickname} 님의 로그인을 막을까요? 제한 해제 전까지 로그인할 수 없어요.`)) {
-                              void vm.live.setMemberRestriction(u.id, !u.restricted)
-                            }
-                          }}
-                        >
-                          {u.restricted ? '제한 해제' : '이용 제한'}
-                        </button>
+                        <PopMenu className='row-menu' label={`「${u.nickname}」 조치`} icon={<MoreVerticalIcon />}>
+                          <button
+                            type='button'
+                            role='menuitem'
+                            className={u.restricted ? undefined : 'danger'}
+                            disabled={blocked(vm, `member:${u.id}`)}
+                            onClick={() => {
+                              if (u.restricted || window.confirm(`${u.nickname} 님의 로그인을 막을까요? 제한 해제 전까지 로그인할 수 없어요.`)) {
+                                void vm.live.setMemberRestriction(u.id, !u.restricted)
+                              }
+                            }}
+                          >
+                            {u.restricted ? '제한 해제' : '이용 제한'}
+                          </button>
+                        </PopMenu>
                       )}
                   </td>
                 </tr>
@@ -819,7 +813,7 @@ function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
                   <th scope='col'>상태</th>
                   <th scope='col'>작품 제한</th>
                   <th scope='col'>접수</th>
-                  <th scope='col' className='act'>처리</th>
+                  <th scope='col' className='act act-menu'><span className='sr-only'>처리</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -835,19 +829,13 @@ function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
                     </td>
                     <td>{x.contentRestricted ? '제한 중' : '공개 유지'}</td>
                     <td className='admin-date'>{kstDateTime(x.createdAt)}</td>
-                    <td>
-                      <button
-                        type='button'
-                        className={`btn sm ${sel === x.id ? 'pri' : ''}`}
-                        aria-pressed={sel === x.id}
-                        aria-label={`${x.workTitle} 신고 검토`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSel(x.id)
-                        }}
-                      >
-                        {sel === x.id ? '검토 중' : '검토'}
-                      </button>
+                    {/* 행을 누르면 신고가 선택되므로, ⋮ 메뉴를 여는 누름은 행까지 올라가지 않게 한다. */}
+                    <td className='act-menu' onClick={(e) => e.stopPropagation()}>
+                      <PopMenu className='row-menu' label={`「${x.workTitle} 신고」 조치`} icon={<MoreVerticalIcon />}>
+                        <button type='button' role='menuitem' aria-current={sel === x.id ? 'true' : undefined} onClick={() => setSel(x.id)}>
+                          {sel === x.id ? '검토 중' : '검토'}
+                        </button>
+                      </PopMenu>
                     </td>
                   </tr>
                 ))}

@@ -57,6 +57,19 @@
 }
 /* LLM Ops 한 쪽에 쌓은 패널(경고+경고 기준, 추적+지표 등): .panel은 바깥 여백이 없어 맞붙으므로 위 숫자 카드 줄 사이 gap(12px)과 같은 값으로 띄웁니다. */
 .adm .panel.admin-operations + .panel.admin-operations { margin-top: 12px; }
+/* 표 행 조치 메뉴(⋮, 공용 PopMenu): 조치 칸은 ⋮ 버튼 하나 폭이고 오른쪽에 붙인다. 표 스크롤 영역(.adm-scroll)은 absolute 메뉴를 잘라서 메뉴는 fixed로 띄우고,
+   위치는 PopMenu가 열 때 알려 주는 버튼의 자리(--pop-bottom·--pop-right)로 맞춘다(버튼 바로 아래, 오른쪽 끝 맞춤). 정적 위치에 기대면 문서를 스크롤한 만큼 어긋난다.
+   스크롤하면 PopMenu가 fixed 메뉴를 닫는다. */
+.adm th.act-menu, .adm td.act-menu { width: 56px; text-align: right; }
+.adm .row-menu { --more-size: 36px; }
+@media (max-width: 600px), (pointer: coarse) { .adm .row-menu { --more-size: 44px; } }
+.adm .row-menu .pop-menu-btn { width: var(--more-size); height: var(--more-size); border-radius: 999px; color: var(--sub); }
+.adm .row-menu .pop-menu-btn:hover, .adm .row-menu .pop-menu-btn[aria-expanded="true"] { background: var(--muted-bg); color: var(--ink); }
+.adm .row-menu .pop-menu-list { position: fixed; top: calc(var(--pop-bottom, 0px) + 4px); right: var(--pop-right, 0px); left: auto; text-align: left; }
+@media (max-width: 600px) {
+  /* 좁은 화면은 조치 칸이 오른쪽에 고정(sticky)되어 칸마다 쌓임 맥락이 생긴다: 열린 메뉴가 아래 행의 고정 칸에 가려지지 않게 그 칸을 올린다. */
+  .adm td.act-menu:has([aria-expanded="true"]) { z-index: 3; }
+}
 .adm .admin-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .adm .admin-operations .admin-inline .inp { width: auto; min-width: 140px; }
 /* 쪽 이동 줄: '전체 N건 · 1/1쪽' 글자를 36px 이전·다음 버튼과 세로 가운데로 둔다(.rowend 기본은 맨 위 정렬이라 글자가 떠 보인다). */
