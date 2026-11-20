@@ -4,10 +4,10 @@ import {authenticatedUserId,authVersion,assertAuthVersion,protectedRequest} from
 import {csrf,withLock} from '../api/csrf'
 const uuid=z.string().uuid(),count=z.number().int().nonnegative()
 const receipt=z.object({jobId:uuid,stepId:uuid,worldId:uuid,draftRevision:count,relationshipVersion:count,cardIds:z.array(uuid),relationshipIds:z.array(uuid)})
-const result=z.object({jobId:uuid,worldId:uuid,status:z.enum(['queued','running','failed','loading','unknown','completed']),completedEpisodes:count,totalEpisodes:count.positive(),executionToken:uuid.nullable(),failureCode:z.string().nullable(),receipts:z.array(receipt)}).refine(r=>r.completedEpisodes<=r.totalEpisodes&&r.receipts.every(x=>x.jobId===r.jobId&&x.worldId===r.worldId)&&new Set(r.receipts.map(x=>x.stepId)).size===r.receipts.length&&(r.status!=='completed'||r.completedEpisodes===r.totalEpisodes&&r.receipts.length>0))
+const result=z.object({jobId:uuid,worldId:uuid,status:z.enum(['queued','running','failed','loading','unknown','completed']),completedEpisodes:count,totalEpisodes:count.positive(),executionToken:uuid.nullable(),failureCode:z.string().nullable(),skippedItems:count,receipts:z.array(receipt)}).refine(r=>r.completedEpisodes<=r.totalEpisodes&&r.receipts.every(x=>x.jobId===r.jobId&&x.worldId===r.worldId)&&new Set(r.receipts.map(x=>x.stepId)).size===r.receipts.length&&(r.status!=='completed'||r.completedEpisodes===r.totalEpisodes&&r.receipts.length>0))
 const request=z.object({worldId:uuid,key:uuid,consent:z.literal(true)})
 const path=(work:string)=>`/api/v1/works/${uuid.parse(work)}/world-preprocessing`
-/** 계정·작품별 최초 key를 전송 전에 보존한다. 실패나 재로그인 때문에 새 key를 만들지 않는다. */
+/** 계정·작품별 최초 key를 전송 전에 보존한다. 실패나 재로그인 때문에 새 key를 만들지 않는다. 기록을 바꾸는 것은 작업 없음 조회와 사용자가 연 '새로 시작'뿐이다. */
 export class HttpManuscriptBuildRepository implements ManuscriptBuildRepository {
  private readonly fetcher:typeof fetch
  constructor(fetcher:typeof fetch=fetch){this.fetcher=fetcher}
@@ -45,13 +45,16 @@ export class HttpManuscriptBuildRepository implements ManuscriptBuildRepository 
   return data.data
  }
  async read(work:string,signal?:AbortSignal){
-  this.slot(work);return this.send(work,undefined,signal)
+  const slot=this.slot(work),before=localStorage.getItem(slot),data=await this.send(work,undefined,signal)
+  // 서버에 작업이 없으면(404·new_request) 옛 key·worldId가 새 접수를 막지 않게 기록을 지운다. 중단된 조회나 조회하는 사이 다른 동작·탭이 바꾼 기록은 새것이라 건드리지 않는다(start·resume의 잠금은 즉시 실패형이라 조회를 잠그지 않는다).
+  if(!data&&!signal?.aborted&&localStorage.getItem(slot)===before)localStorage.removeItem(slot)
+  return data
  }
- async start(work:string,world?:string|null,signal?:AbortSignal){
+ async start(work:string,world?:string|null,signal?:AbortSignal,fresh=false){
   const slot=this.slot(work),version=authVersion()
   return withLock(slot,async()=>{
    assertAuthVersion(version)
-   let body=this.saved(slot)
+   let body=fresh?null:this.saved(slot)
    if(!body){body={worldId:world??crypto.randomUUID(),key:crypto.randomUUID(),consent:true};request.parse(body);localStorage.setItem(slot,JSON.stringify(body))}
    const data=await this.send(work,body,signal)
    if(!data||data.worldId!==body.worldId)throw new Error('기존 요청과 세계관이 달라요.')

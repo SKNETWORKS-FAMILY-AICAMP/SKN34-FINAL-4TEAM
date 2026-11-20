@@ -29,7 +29,7 @@
 | `current-results/test-results/{test,unitTest,integrationTest}/*.xml`, `input-results/*`, 최상위 XML | 유지. 중복처럼 보여도 과거 실행 단계와 Red/Green 증거가 섞여 있어 이번에는 삭제하지 않음 |
 | `evidence/hundred-*` | 과거 합성 자료로만 유지. 이번 100화 실행·성능 검증의 근거가 아님 |
 | 로컬 `current-results/reports/`, 각 `test-results/**/binary/` | 미추적 상태로 로컬 보존, 커밋 제외. 재생성 가능한 HTML·바이너리이며 공유 XML로 결과 확인 가능 |
-| `manual_provider.py`, `test_manual_provider.py`, `manual.html`, `manual-fixtures/*`, `vite.qa.config.ts` | QA 전용 실행·안내 및 검증으로 유지. 제품 빌드 진입점 변경 없음. 안내 HTML의 비밀번호 제거 |
+| `manual_provider.py`, `test_manual_provider.py`, `manual.html`, `manual-fixtures/*` | QA 전용(`vite.qa.config.ts`는 참조가 없어 삭제) 실행·안내 및 검증으로 유지. 제품 빌드 진입점 변경 없음. 안내 HTML의 비밀번호 제거 |
 
 변경 파일에서 개인키·실제 제공사 키·GitHub 토큰·JWT 패턴 및 증거 내 인증 헤더·쿠키·비밀번호를 점검했다. 실제 자격 값은 발견하지 않았다. Compose의 `qa-only-*`, 내부 대역 `qa-token` 등은 격리 QA용 고정값이다. HTTP/DB의 원문은 Fixture의 합성 데이터이며 사용자 원고를 반입하지 않았다. 패턴 검사는 완전한 비밀정보 검증을 대신하지 않으므로 팀 리뷰 시 함께 확인한다.
 
