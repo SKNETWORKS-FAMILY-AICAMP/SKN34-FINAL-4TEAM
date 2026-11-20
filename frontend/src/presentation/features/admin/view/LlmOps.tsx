@@ -6,6 +6,8 @@ import {
 } from '../../../../domain/entities/llmOps'
 import { usagePoints } from '../../../../domain/entities/llmOpsCharts'
 import { kstDateTime } from '../../../shared/format'
+import { MoreVerticalIcon } from '../../../shared/icons'
+import { PopMenu } from '../../../shared/PopMenu'
 import { useLlmOpsViewModel } from '../viewmodel/useLlmOpsViewModel'
 import type { useAdminViewModel } from '../viewmodel/useAdminViewModel'
 import { CostChart, RequestsChart } from './AdminCharts'
@@ -78,7 +80,7 @@ function Traces({ vm, l }: { vm: VM; l: LlmVM }) {
                   <th scope="col">토큰(입력/출력)</th>
                   <th scope="col">비용</th>
                   <th scope="col">회원</th>
-                  <th scope="col" className="act">상세</th>
+                  <th scope="col" className="act act-menu"><span className="sr-only">상세</span></th>
                 </tr>
               </thead>
               <tbody>{page.items.map((row) => <TraceRow key={row.id} row={row} onOpen={l.openTrace} />)}</tbody>
@@ -102,7 +104,11 @@ function TraceRow({ row, onOpen }: { row: TraceItem; onOpen: (id: string) => voi
       <td>{count(row.inputTokens)} / {count(row.outputTokens)}</td>
       <td>{usd(row.cost)}</td>
       <td>{row.userId ?? '—'}</td>
-      <td><button type="button" className="btn sm" data-record-id={row.id} aria-label={`${row.feature} 추적 ${row.id} 단계 상세`} onClick={() => onOpen(row.id)}>단계 상세</button></td>
+      <td className="act-menu" data-record-id={row.id}>
+        <PopMenu className="row-menu" label={`「${row.feature} 추적 ${row.id}」 조치`} icon={<MoreVerticalIcon />}>
+          <button type="button" role="menuitem" onClick={() => onOpen(row.id)}>단계 상세</button>
+        </PopMenu>
+      </td>
     </tr>
   )
 }
@@ -259,7 +265,7 @@ function LeakChecks({ vm, l }: { vm: VM; l: LlmVM }) {
                 <th scope="col">판정</th>
                 <th scope="col">걸린 항목</th>
                 <th scope="col">사유</th>
-                <th scope="col" className="act">추적</th>
+                <th scope="col" className="act act-menu"><span className="sr-only">추적</span></th>
               </tr>
             </thead>
             <tbody>
@@ -270,7 +276,11 @@ function LeakChecks({ vm, l }: { vm: VM; l: LlmVM }) {
                   <td><span className={`chip ${row.suspected ? 'bad' : 'ok'}`}>{row.suspected ? '의심' : '이상 없음'}</span></td>
                   <td>{row.matched.join(', ') || '—'}</td>
                   <td>{row.reason ?? '—'}</td>
-                  <td><button type="button" className="btn sm" aria-label={`추적 ${row.traceId} 보기`} onClick={() => l.openTrace(row.traceId)}>추적 보기</button></td>
+                  <td className="act-menu">
+                    <PopMenu className="row-menu" label={`「추적 ${row.traceId}」 조치`} icon={<MoreVerticalIcon />}>
+                      <button type="button" role="menuitem" onClick={() => l.openTrace(row.traceId)}>추적 보기</button>
+                    </PopMenu>
+                  </td>
                 </tr>
               ))}
             </tbody>

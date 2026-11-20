@@ -363,7 +363,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}th{text-align:left;co
 .adm .admin-head .chip{height:24px;padding:0 9px;border:1px solid var(--line2);border-radius:999px}
 /* 버튼 크기는 .btn.sm(36px·14px·13.5px) 하나다: 공지 작성·이벤트 작성 같은 .btn.pri가 전역 기본(44px 큰 알약)이라 필터 '조회'와 크기가 달랐다. 터치 환경의 44px은 파일 맨 끝 모바일 블록이 올린다. */
 .adm .btn{height:36px;padding:0 14px;font-size:13.5px}
-.adm td .btn{border-color:transparent;background:transparent;color:var(--pri-ink);font-weight:600}.adm td .btn:hover,.adm td .btn.pri:hover{background:var(--muted-bg)}.adm td .btn.pri{font-weight:700}.adm td .btn.danger{color:var(--danger)}
+.adm td .btn{border-color:transparent;background:transparent;color:var(--pri-ink);font-weight:600}.adm td .btn:hover,.adm td .btn.pri:hover{background:var(--muted-bg)}.adm td .btn.pri{font-weight:700}
 /* 푸터가 있으면 어두운 사이드바 열 바로 아래에 푸터를 붙이고(위 여백 없음, .lg+.foot와 같은 이유) 푸터 안 내용도 틀처럼 전체 폭을 쓴다.
    고정(sticky) 상단바(60px) 밑으로 키보드 초점·건너뛰기 이동이 들어가 가리지 않게 스크롤 여백을 둔다(900px 이하는 상단바가 고정이 아니다). */
 .adm+.foot{margin-top:0}.adm+.foot .wrap{max-width:none}

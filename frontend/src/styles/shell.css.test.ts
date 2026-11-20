@@ -161,6 +161,21 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(opsCss).toMatch(/\.panel\.admin-operations \+ \.panel\.admin-operations\s*\{[^}]*margin-top:\s*12px/)
   })
 
+  it('표 행 조치(⋮ 메뉴)는 조치 칸을 ⋮ 버튼 하나 폭으로 줄이고, 36px(터치 44px) 단추와 버튼 자리 기준 fixed 메뉴를 쓴다', () => {
+    // 조치 칸은 56px·오른쪽 맞춤이다. 글자 버튼 위험 색(.adm td .btn.danger)은 메뉴 항목(.pop-menu-list .danger)이 맡아 규칙을 지웠고, 남은 글자 버튼(경고 메모 줄·기준 저장·결과 보기)은 그대로다.
+    expect(opsCss).toMatch(/\.adm th\.act-menu, \.adm td\.act-menu \{[^}]*width: 56px[^}]*text-align: right/)
+    expect([value('.adm td .btn.danger', 'color'), value('.adm td .btn', 'color')]).toEqual([undefined, 'var(--pri-ink)'])
+    // 단추 크기는 변수 하나(36px)이고 터치(600px 이하·coarse)는 44px이다. 명시도가 같아 터치 규칙이 기본 규칙 뒤에 있어야 이긴다.
+    const base = opsCss.indexOf('.adm .row-menu { --more-size: 36px; }')
+    const touch = opsCss.indexOf('@media (max-width: 600px), (pointer: coarse) { .adm .row-menu { --more-size: 44px; } }')
+    expect([base > 0, touch > base]).toEqual([true, true])
+    expect(opsCss).toMatch(/\.adm \.row-menu \.pop-menu-btn \{[^}]*width: var\(--more-size\); height: var\(--more-size\)/)
+    // 메뉴는 표 스크롤 영역(.adm-scroll)에 잘리지 않게 fixed이고, 위치는 PopMenu가 열 때 알려 주는 버튼의 자리로 맞춘다(정적 위치에 기대면 스크롤한 문서에서 어긋난다).
+    expect(opsCss).toMatch(/\.adm \.row-menu \.pop-menu-list \{[^}]*position: fixed; top: calc\(var\(--pop-bottom, 0px\) \+ 4px\); right: var\(--pop-right, 0px\); left: auto/)
+    // 좁은 화면은 조치 칸이 오른쪽에 고정(sticky)되어 칸마다 쌓임 맥락이 생기므로, 열린 메뉴의 칸을 올려 아래 행의 고정 칸에 가려지지 않게 한다.
+    expect(opsCss).toMatch(/@media \(max-width: 600px\) \{[^@]*\.adm td\.act-menu:has\(\[aria-expanded="true"\]\) \{ z-index: 3; \}/)
+  })
+
   it('날짜·시각 칸(.admin-date)은 공백에서 꺾이지 않는 한 줄이고 숫자 폭을 맞춘다', () => {
     // 'ko-KR short' 날짜는 '26. 11. 20. 오전 12:03'처럼 공백이 많아, 좁아지면 '오전 / 12:03' 두 줄로 꺾이고 넓은 칸(권한 등)이 폭을 다 가져간다.
     expect([value('.adm .admin-date', 'white-space'), value('.adm .admin-date', 'font-variant-numeric')]).toEqual(['nowrap', 'tabular-nums'])

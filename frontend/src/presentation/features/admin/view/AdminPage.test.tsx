@@ -115,7 +115,7 @@ it('운영 API 탭은 데모 조회가 실패해도 본문과 조치 버튼을 �
   const row = (await screen.findByText('연화봉러')).closest('tr') as HTMLElement
   await waitFor(() => expect(load).toHaveBeenCalled())
   await act(async () => { await new Promise((done) => setTimeout(done, 0)) })
-  expect((within(row).getByRole('button', { name: '연화봉러 이용 제한' }) as HTMLButtonElement).disabled).toBe(false)
+  expect((openRowMenu(row).getByRole('menuitem', { name: '이용 제한' }) as HTMLButtonElement).disabled).toBe(false)
   expect(screen.queryByText(/관리자 데이터를 불러오지 못했어요/)).toBeNull()
   cleanup()
   renderAdmin('characterChats')
@@ -128,6 +128,12 @@ const work = (patch: Partial<OperationsWork> = {}): OperationsWork => ({
   rightsConfirmed: true, visibility: 'public', restricted: false, ...patch,
 })
 const cells = (row: HTMLElement) => within(row).getAllByRole('cell').map((cell) => cell.textContent)
+/** 표 행의 ⋮ 버튼('「이름」 조치')을 눌러 메뉴를 열고 그 메뉴 안을 돌려준다(메뉴는 한 번에 하나만 열려 있다). */
+const openRowMenu = (row: HTMLElement) => {
+  fireEvent.pointerDown(document.body) // 열려 있던 다른 행의 메뉴는 바깥 누름으로 닫힌다
+  fireEvent.click(within(row).getByRole('button', { name: /조치$/ }))
+  return within(screen.getByRole('menu'))
+}
 
 it('작품 탭은 운영 작품 API로 목록을 읽고 운영 제한·해제 뒤 목록을 다시 읽으며 실패는 그대로 보여 준다', async () => {
   vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'w-csrf' })
@@ -163,20 +169,21 @@ it('작품 탭은 운영 작품 API로 목록을 읽고 운영 제한·해제 �
   expect(screen.getByText(/신고 사건에는 남기지 않고 활동 로그에만 기록해요/)).toBeTruthy()
   expect(requests()).toEqual(['GET /api/v1/operations/works'])
   expect(fetcher.mock.calls[0][1]).toMatchObject({ headers: { Authorization: 'Bearer w-bearer' } })
-  expect(cells(open)).toEqual(['달빛 도서관', '연화', '원작', '원작 · 권리 확인됨', '공개', '운영 제한'])
-  expect(cells(fork)).toEqual(['달빛 도서관 외전', '하늘', '포크', '외부 2차 창작 · 권리 미확인', '비공개', '운영 제한포크 정합성 점검'])
+  expect(cells(open)).toEqual(['달빛 도서관', '연화', '원작', '원작 · 권리 확인됨', '공개', ''])
+  expect(cells(fork)).toEqual(['달빛 도서관 외전', '하늘', '포크', '외부 2차 창작 · 권리 미확인', '비공개', ''])
 
-  // 제한은 확인을 거쳐야 보내고, 취소하면 요청도 목록 재조회도 없다.
-  fireEvent.click(within(open).getByRole('button', { name: '「달빛 도서관」 운영 제한' }))
+  // 제한은 확인을 거쳐야 보내고, 취소하면 요청도 목록 재조회도 없다. 항목을 고르면 메뉴는 닫힌다.
+  fireEvent.click(openRowMenu(open).getByRole('menuitem', { name: '운영 제한' }))
   expect(confirm).toHaveBeenCalledTimes(1)
+  expect(screen.queryByRole('menu')).toBeNull()
   expect(requests()).toEqual(['GET /api/v1/operations/works'])
   confirm.mockReturnValue(true)
-  fireEvent.click(within(open).getByRole('button', { name: '「달빛 도서관」 운영 제한' }))
-  await within(open).findByRole('button', { name: '「달빛 도서관」 제한 해제' })
+  fireEvent.click(openRowMenu(open).getByRole('menuitem', { name: '운영 제한' }))
+  await within(open).findByText('운영 제한', { selector: '.chip' })
   expect(requests()).toEqual(['GET /api/v1/operations/works', 'PUT /api/v1/operations/works/w-open/restriction', 'GET /api/v1/operations/works'])
   expect(cells(open)[4]).toBe('운영 제한')
   expect(within(open).getByText('운영 제한', { selector: '.chip' }).className).toContain('wait')
-  expect(within(fork).getByRole('button', { name: '「달빛 도서관 외전」 운영 제한' })).toBeTruthy()
+  expect(openRowMenu(fork).getByRole('menuitem', { name: '운영 제한' })).toBeTruthy()
   // 완료 안내는 화면 위 한 줄에 대상 이름과 함께 한 번만 보인다(같은 문구를 조치 상태 줄로 또 그리지 않는다).
   const done = screen.getAllByText('작품을 운영 제한했어요.')
   expect(done).toHaveLength(1)
@@ -185,22 +192,22 @@ it('작품 탭은 운영 작품 API로 목록을 읽고 운영 제한·해제 �
 
   // 해제는 확인 없이 보내고 목록을 다시 읽어 공개 상태로 돌아온다.
   confirm.mockClear()
-  fireEvent.click(within(open).getByRole('button', { name: '「달빛 도서관」 제한 해제' }))
-  await within(open).findByRole('button', { name: '「달빛 도서관」 운영 제한' })
+  fireEvent.click(openRowMenu(open).getByRole('menuitem', { name: '제한 해제' }))
+  await waitFor(() => expect(cells(open)[4]).toBe('공개'))
   expect(confirm).not.toHaveBeenCalled()
   expect(requests().slice(3)).toEqual(['DELETE /api/v1/operations/works/w-open/restriction', 'GET /api/v1/operations/works'])
   expect(cells(open)[4]).toBe('공개')
 
   // 서버(Content) 실패는 성공으로 바꾸지 않고 오류를 보이며 목록도 다시 읽지 않는다.
   failRestriction = true
-  fireEvent.click(within(fork).getByRole('button', { name: '「달빛 도서관 외전」 운영 제한' }))
+  fireEvent.click(openRowMenu(fork).getByRole('menuitem', { name: '운영 제한' }))
   // 실패 안내는 어느 작품의 조치인지 이름과 함께 알린다.
   expect((await screen.findByRole('alert')).textContent).toBe('「달빛 도서관 외전」 · 연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.')
   expect(cells(fork)[4]).toBe('비공개')
   expect(requests()).toHaveLength(6)
 
-  expect(within(open).queryByRole('button', { name: /포크 정합성 점검/ })).toBeNull()
-  fireEvent.click(within(fork).getByRole('button', { name: '「달빛 도서관 외전」 포크 정합성 점검' }))
+  expect(openRowMenu(open).queryByRole('menuitem', { name: /포크 정합성 점검/ })).toBeNull()
+  fireEvent.click(openRowMenu(fork).getByRole('menuitem', { name: '포크 정합성 점검' }))
   expect(await screen.findByText('불일치')).toBeTruthy()
   expect(screen.getByText('a'.repeat(64))).toBeTruthy()
   expect(screen.getByText('비교 불가 · 기준 회차의 인물 상태 기록이 없어요.')).toBeTruthy()
@@ -226,12 +233,12 @@ async function openForkTab(check: () => Response) {
   renderAdmin('works')
   const row = (await screen.findByText('달빛 도서관 외전', { selector: 'b' })).closest('tr') as HTMLElement
   const checks = () => fetcher.mock.calls.filter(([url]) => String(url).endsWith('/fork-integrity')).length
-  return { row, checks, button: () => within(row).getByRole('button', { name: '「달빛 도서관 외전」 포크 정합성 점검' }) }
+  return { row, checks, trigger: () => within(row).getByRole('button', { name: '「달빛 도서관 외전」 조치' }), button: () => openRowMenu(row).getByRole('menuitem', { name: '포크 정합성 점검' }) }
 }
 const integrityReport = { basisEpisode: 2, forkHash: 'a'.repeat(64), sourceHash: 'a'.repeat(64), matches: true, characterStateStatus: 'unavailable' }
 
 it('포크 정합성 점검은 결과 제목으로 포커스를 옮기고, 닫으면 누른 점검 버튼으로 되돌리며, 점검 중인 행을 표시한다', async () => {
-  const { row, button } = await openForkTab(() => Response.json(integrityReport))
+  const { row, button, trigger } = await openForkTab(() => Response.json(integrityReport))
   expect(row.classList.contains('sel')).toBe(false)
   fireEvent.click(button())
   const heading = await screen.findByRole('heading', { name: '달빛 도서관 외전 정합성 점검' })
@@ -244,7 +251,7 @@ it('포크 정합성 점검은 결과 제목으로 포커스를 옮기고, 닫�
 
   fireEvent.click(screen.getByRole('button', { name: '점검 결과 닫기' }))
   expect(screen.queryByRole('region', { name: '포크 정합성 점검 결과' })).toBeNull()
-  expect(document.activeElement).toBe(button())
+  expect(document.activeElement).toBe(trigger())
   expect(row.classList.contains('sel')).toBe(false)
 })
 
@@ -283,7 +290,8 @@ it('그 밖의 점검 실패는 일반 오류와 다시 시도 버튼을 보이�
 
 it('데모(메모리) 작품의 포크 정합성 점검은 지원하지 않는다는 안내만 보이고 다시 시도 버튼은 두지 않는다', async () => {
   renderAdmin('works')
-  fireEvent.click((await screen.findAllByRole('button', { name: /포크 정합성 점검$/ }))[0])
+  const fork = (await screen.findAllByText('포크', { selector: 'td' }))[0].closest('tr') as HTMLElement
+  fireEvent.click(openRowMenu(fork).getByRole('menuitem', { name: '포크 정합성 점검' }))
   const alert = await screen.findByText('데모에서는 포크 정합성 점검을 지원하지 않아요.')
   expect(alert.getAttribute('role')).toBe('alert')
   expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull()
@@ -353,8 +361,8 @@ it('댓글 탭은 운영 댓글 API로 목록을 읽고 숨김·게시 복구 �
   expect(requests()).toEqual(['GET /api/v1/operations/comments'])
   expect(fetcher.mock.calls[0][1]).toMatchObject({ headers: { Authorization: 'Bearer c-bearer' } })
   // 숨긴 댓글도 운영자에게는 원문이 보인다.
-  expect(cells(hidden)).toEqual(['숨긴 댓글의 원문', '달빛 도서관 · 2화', '하늘', '9', '숨김', kstDateTime('2026-11-09T01:00:00Z'), '게시 복구'])
-  expect(cells(open)).toEqual(['첫 감상', '달빛 도서관 · 2화', '연화', '3', '게시', kstDateTime('2026-11-09T01:00:00Z'), '숨김'])
+  expect(cells(hidden)).toEqual(['숨긴 댓글의 원문', '달빛 도서관 · 2화', '하늘', '9', '숨김', kstDateTime('2026-11-09T01:00:00Z'), ''])
+  expect(cells(open)).toEqual(['첫 감상', '달빛 도서관 · 2화', '연화', '3', '게시', kstDateTime('2026-11-09T01:00:00Z'), ''])
   // 작성일 열은 회원·신고 표처럼 한국시간으로 보이고, 댓글 셀은 줄바꿈을 살리며 긴 글자도 줄바꿈한다. 버튼 이름에는 작성자가 들어간다.
   expect(screen.getByRole('columnheader', { name: '작성일' })).toBeTruthy()
   expect(within(open).getByText('첫 감상').style.whiteSpace).toBe('pre-wrap')
@@ -366,21 +374,21 @@ it('댓글 탭은 운영 댓글 API로 목록을 읽고 숨김·게시 복구 �
 
   // 숨김은 확인을 거치고, 취소하면 요청하지 않는다.
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
-  fireEvent.click(within(open).getByRole('button', { name: '연화 댓글 숨김' }))
+  fireEvent.click(openRowMenu(open).getByRole('menuitem', { name: '숨김' }))
   expect(confirm).toHaveBeenCalledWith('「달빛 도서관」의 댓글을 숨길까요? 독자에게는 자리표시로만 보여요.')
   expect(requests()).toEqual(['GET /api/v1/operations/comments'])
   // 승인하면 서버에 보낸 뒤 목록을 다시 읽어 상태를 바꾼다.
   confirm.mockReturnValue(true)
-  fireEvent.click(within(open).getByRole('button', { name: '연화 댓글 숨김' }))
-  await within(open).findByRole('button', { name: '연화 댓글 게시 복구' })
+  fireEvent.click(openRowMenu(open).getByRole('menuitem', { name: '숨김' }))
+  await within(open).findByText('숨김', { selector: '.chip' })
   confirm.mockClear()
   expect(requests()).toEqual(['GET /api/v1/operations/comments', 'PUT /api/v1/operations/comments/c-open/hidden', 'GET /api/v1/operations/comments'])
   expect(cells(open)[4]).toBe('숨김')
-  expect(within(hidden).getByRole('button', { name: '하늘 댓글 게시 복구' })).toBeTruthy()
+  expect(openRowMenu(hidden).getByRole('menuitem', { name: '게시 복구' })).toBeTruthy()
 
   // 게시 복구는 DELETE로 보내고 목록을 다시 읽어 게시 상태로 돌아온다.
-  fireEvent.click(within(open).getByRole('button', { name: '연화 댓글 게시 복구' }))
-  await within(open).findByRole('button', { name: '연화 댓글 숨김' })
+  fireEvent.click(openRowMenu(open).getByRole('menuitem', { name: '게시 복구' }))
+  await within(open).findByText('게시', { selector: '.chip' })
   expect(requests().slice(3)).toEqual(['DELETE /api/v1/operations/comments/c-open/hidden', 'GET /api/v1/operations/comments'])
   expect(cells(open)[4]).toBe('게시')
   // 게시 복구는 확인 없이 바로 보낸다.
@@ -388,7 +396,7 @@ it('댓글 탭은 운영 댓글 API로 목록을 읽고 숨김·게시 복구 �
 
   // 서버(Content) 실패는 성공으로 바꾸지 않고 오류를 보이며 목록도 다시 읽지 않는다.
   failAction = true
-  fireEvent.click(within(hidden).getByRole('button', { name: '하늘 댓글 게시 복구' }))
+  fireEvent.click(openRowMenu(hidden).getByRole('menuitem', { name: '게시 복구' }))
   expect((await screen.findByRole('alert')).textContent).toBe('하늘 님의 댓글 · 연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.')
   expect(cells(hidden)[4]).toBe('숨김')
   expect(requests()).toHaveLength(6)
@@ -547,13 +555,16 @@ it('패널 제목은 굵은 글씨가 아니라 제목 요소이고, 메뉴 묶�
 
 it('표의 행 버튼은 이름이 같은 버튼끼리 구분되도록 대상 이름을 함께 읽는다', async () => {
   renderAdmin('jobs')
-  const retry = await screen.findByRole('button', { name: 'manuscript_preprocessing 실행 job-failed-1 다시 실행' })
-  expect(retry.textContent).toBe('다시 실행')
+  // 행 조치는 ⋮ 버튼 하나이고, 그 이름(과 메뉴 이름)에 어느 행의 조치인지 대상 이름이 들어간다.
+  const retry = await screen.findByRole('button', { name: '「manuscript_preprocessing 실행 job-failed-1」 조치' })
+  expect(retry.textContent).toBe('')
+  fireEvent.click(retry)
+  within(screen.getByRole('menu', { name: '「manuscript_preprocessing 실행 job-failed-1」 조치' })).getByRole('menuitem', { name: '다시 실행' })
   cleanup()
   renderAdmin('characterChats')
-  const chat = (await screen.findAllByRole('button', { name: /(중지|운영 재개)$/ }))[0]
+  const chat = (await screen.findAllByRole('button', { name: /조치$/ }))[0]
   const cells = within(chat.closest('tr') as HTMLElement).getAllByRole('cell').map((cell) => cell.textContent)
-  expect(chat.getAttribute('aria-label')).toBe(`${cells[1]} ${cells[2]} ${chat.textContent}`)
+  expect(chat.getAttribute('aria-label')).toBe(`「${cells[1]} ${cells[2]}」 조치`)
 })
 
 it('관리자 계정 생성 폼은 필수 항목과 비밀번호 규칙을 글로 알린다', async () => {
@@ -765,7 +776,8 @@ it('LLM Ops 화면 제목과 문서 제목은 쪽 이름을 붙인다', async ()
 it('LLM Ops는 쪽을 옮기면 열어 둔 추적 상세를 닫아, 돌아오면 목록부터 보인다', async () => {
   renderAdmin('llm', 'traces')
   const menu = await screen.findByRole('navigation', { name: '관리자 업무' })
-  fireEvent.click((await screen.findAllByRole('button', { name: / 단계 상세$/ }))[0])
+  fireEvent.click((await screen.findAllByRole('button', { name: /^「.+ 추적 .+」 조치$/ }))[0])
+  fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '단계 상세' }))
   await region('추적 상세')
   // 상세가 열려 있는 동안은 그 상세만 보인다(지표 패널은 목록으로 돌아오면 다시 나온다).
   expect(screen.queryByRole('region', { name: 'LLM 지표' })).toBeNull()
@@ -947,6 +959,104 @@ it('장르 조회 권한이 없으면(403) 폼·표 없이 필요한 권한만 �
   fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
   await screen.findByText('판타지', { selector: 'b' })
   expect(screen.queryByRole('alert')).toBeNull()
+})
+
+// 표 행 조치는 글자 버튼이 줄마다 늘어서 지저분했다: 행마다 ⋮ 버튼 하나(공용 PopMenu)가 그 행의 조치들을 세로 메뉴로 연다.
+it('작품 표의 행 조치는 글자 버튼 대신 ⋮ 버튼 하나가 여는 메뉴에 모이고, Esc로 닫으면 초점이 ⋮로 돌아온다', async () => {
+  const { row } = await openForkTab(() => Response.json(integrityReport))
+  const trigger = within(row).getByRole('button', { name: '「달빛 도서관 외전」 조치' })
+  expect([trigger.getAttribute('aria-haspopup'), trigger.getAttribute('aria-expanded'), trigger.textContent]).toEqual(['menu', 'false', ''])
+  // 글자 버튼은 행에 없고, 메뉴가 열려야 항목이 나온다.
+  expect(within(row).queryByRole('button', { name: /운영 제한|포크 정합성 점검/ })).toBeNull()
+  expect(screen.queryByRole('menu')).toBeNull()
+  fireEvent.click(trigger)
+  const menu = screen.getByRole('menu', { name: '「달빛 도서관 외전」 조치' })
+  expect(trigger.getAttribute('aria-expanded')).toBe('true')
+  const items = within(menu).getAllByRole('menuitem')
+  expect(items.map((item) => item.textContent)).toEqual(['운영 제한', '포크 정합성 점검'])
+  // 위험 조치(제한)만 danger 글자이고, 열리면 첫 항목에 초점이 간다.
+  expect(items.map((item) => item.classList.contains('danger'))).toEqual([true, false])
+  expect(document.activeElement).toBe(items[0])
+  fireEvent.keyDown(items[0], { key: 'Escape' })
+  expect(screen.queryByRole('menu')).toBeNull()
+  expect(document.activeElement).toBe(trigger)
+  // 조치 칸 머리의 글자는 감추되 열 머리(scope=col)로 남는다.
+  const head = screen.getByRole('columnheader', { name: '조치' })
+  expect([head.getAttribute('scope'), head.querySelector('.sr-only')?.textContent]).toEqual(['col', '조치'])
+})
+
+it('신고 표의 ⋮ 메뉴를 여는 누름은 행 선택까지 올라가지 않고, 검토 항목을 고르면 그 신고가 선택된다', async () => {
+  const report = (id: string, workTitle: string) => ({
+    id, kind: 'RIGHTS' as const, workId: `w-${id}`, workTitle, workOwnerId: 'o1', reporterId: 'r1', reason: '권리 침해', evidence: '근거',
+    status: 'RECEIVED' as const, contentRestricted: false, createdAt: '2026-11-09T01:00:00Z', updatedAt: '2026-11-09T01:00:00Z',
+  })
+  // jsdom에는 scrollIntoView가 없어(신고 상세가 열리면 제목으로 스크롤한다) 빈 대역을 둔다.
+  Element.prototype.scrollIntoView = vi.fn()
+  const reports = appContainer.resolve('reportUseCase')
+  vi.spyOn(reports, 'listAll').mockResolvedValue([report('rep-1', '달빛 도서관'), report('rep-2', '별빛 정원')])
+  const detail = vi.spyOn(reports, 'get').mockImplementation(async (id) => ({ ...report(id, id === 'rep-1' ? '달빛 도서관' : '별빛 정원'), history: [] }))
+  renderAdmin('rights')
+  const row = (await screen.findByText('달빛 도서관', { selector: 'b' })).closest('tr') as HTMLElement
+  const menu = openRowMenu(row)
+  // 메뉴를 열었다고 신고를 선택(상세 조회)하지 않는다. 행을 누르는 선택은 그대로다.
+  expect([row.classList.contains('sel'), detail.mock.calls.length]).toEqual([false, 0])
+  const review = menu.getByRole('menuitem', { name: '검토' })
+  expect(review.getAttribute('aria-current')).toBeNull()
+  fireEvent.click(review)
+  await screen.findByRole('heading', { name: '신고 상세 · 달빛 도서관' })
+  expect(row.classList.contains('sel')).toBe(true)
+  expect(detail).toHaveBeenCalledWith('rep-1')
+  // 선택된 신고의 항목은 '검토 중'으로 읽힌다.
+  try {
+    expect(openRowMenu(row).getByRole('menuitem', { name: '검토 중' }).getAttribute('aria-current')).toBe('true')
+  } finally { Reflect.deleteProperty(Element.prototype, 'scrollIntoView') }
+})
+
+// 데모 조회(d)가 있어야 본문을 그리는 데모 탭(캐릭터챗·크레딧)은 조회 중·실패일 때 본문이 없다. 그때 화면은 빈 채로 두지 않고 제목 아래 안내가 로딩·오류와 다시 불러오기를 맡는다.
+const DEMO_TABS = [['characterChats', '캐릭터챗 관리', '캐릭터챗 목록'], ['credits', '크레딧 관리', '크레딧 원장']] as const
+
+it.each(DEMO_TABS)('%s 탭은 데모 조회가 아직 오지 않았으면 제목 아래에 불러오는 중임을 알리고, 오면 본문을 그린다', async (tab, title, body) => {
+  const admin = appContainer.resolve('adminUseCase')
+  const loaded = await admin.load()
+  let arrive = () => {}
+  vi.spyOn(admin, 'load').mockReturnValue(new Promise((resolve) => { arrive = () => resolve(loaded) }))
+  renderAdmin(tab)
+  await screen.findByRole('heading', { level: 1, name: title })
+  expect((await screen.findByRole('status')).textContent).toBe('관리자 데이터를 불러오고 있어요.')
+  expect([screen.queryByRole('alert'), screen.queryByRole('heading', { level: 2, name: body })]).toEqual([null, null])
+  await act(async () => { arrive() })
+  await screen.findByRole('heading', { level: 2, name: body })
+  expect(screen.queryByText('관리자 데이터를 불러오고 있어요.')).toBeNull()
+})
+
+it.each(DEMO_TABS)('%s 탭은 데모 조회가 실패하면 오류 안내와 다시 불러오기를 보이고, 누르면 다시 읽어 본문을 그린다', async (tab, title, body) => {
+  const load = vi.spyOn(appContainer.resolve('adminUseCase'), 'load').mockRejectedValueOnce(new Error('데모 조회 실패'))
+  renderAdmin(tab)
+  await screen.findByRole('heading', { level: 1, name: title })
+  const alert = await screen.findByRole('alert')
+  expect(alert.textContent).toContain('관리자 데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+  expect(screen.queryByRole('heading', { level: 2, name: body })).toBeNull()
+  fireEvent.click(within(alert).getByRole('button', { name: '다시 불러오기' }))
+  await screen.findByRole('heading', { level: 2, name: body })
+  expect(load).toHaveBeenCalledTimes(2)
+  expect(screen.queryByRole('alert')).toBeNull()
+})
+
+// 문의·이벤트·공지는 운영 API 탭이라 데모 조회(d)가 늦거나 실패해도 본문을 그린다: 제목만 남는 빈 화면이 아니다. 데모 조회 안내(불러오는 중·오류)는 데모 탭에만 보인다.
+const OPS_BODIES = [['feedback', '회원 문의'], ['events', '운영 이벤트 목록'], ['notices', '운영 공지 목록']] as const
+
+it.each(OPS_BODIES)('%s 탭은 데모 조회가 실패해도 본문(%s)을 그리고 데모 조회 오류 안내는 보이지 않는다', async (tab, heading) => {
+  vi.spyOn(appContainer.resolve('adminUseCase'), 'load').mockRejectedValue(new Error('데모 조회 실패'))
+  renderAdmin(tab)
+  await screen.findByRole('heading', { level: 2, name: heading })
+  expect(screen.queryByText(/관리자 데이터를 불러오지 못했어요/)).toBeNull()
+})
+
+it.each(OPS_BODIES)('%s 탭은 데모 조회가 아직 오지 않았어도 본문(%s)을 먼저 그리고 데모 조회 불러오는 중 안내는 보이지 않는다', async (tab, heading) => {
+  vi.spyOn(appContainer.resolve('adminUseCase'), 'load').mockReturnValue(new Promise(() => {}))
+  renderAdmin(tab)
+  await screen.findByRole('heading', { level: 2, name: heading })
+  expect(screen.queryByText('관리자 데이터를 불러오고 있어요.')).toBeNull()
 })
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
