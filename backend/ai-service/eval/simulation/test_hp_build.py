@@ -300,7 +300,7 @@ def test_relation_labels_and_bodies_stay_within_the_server_limits():
 
 def test_the_world_has_the_demo_shape_and_the_mapping_from_chapters_to_episodes():
     data, _ = world()
-    assert set(data) == {'world', 'work', 'cards', 'relationships', 'secrets', 'ordinals', 'english', 'unsplit', 'heldBack'} and data['heldBack'] == {}
+    assert set(data) == {'world', 'work', 'cards', 'relationships', 'secrets', 'ordinals', 'english', 'unsplit', 'heldBack', 'traitRetries'} and data['heldBack'] == {} and data['traitRetries'] == 0
     assert data['world']['genre'] == 'genre-01' and data['work']['title'] == '해리 포터(평가용·로컬 전용)' and data['secrets'] == []
     assert data['ordinals'] == {'1-1': 1, '1-2': 2, '2-1': 3} and data['english']['Harry Potter'] == 'harry-potter'
     assert len({c['key'] for c in data['cards']}) == len(data['cards'])
@@ -504,7 +504,7 @@ def test_a_document_with_a_forbidden_word_is_rewritten_once_with_the_word_named_
     retry = [json.loads(text) for kind, text in llm.asks if kind == 'hp_traits_retry']
     assert [r['name'] for r in retry] == ['해리'] and retry[0]['avoid'] == ['호크룩스']   # 걸린 낱말만 알려 준다
     assert cards_of(data)['harry-potter']['characterDocs']['soul'] == '## 말투\n- 해리의 한결같은 말투\n\n## 사고방식\n- 한결같은 성격'   # 두 번째 문서
-    assert stats['heldBack'] == 0 and data['heldBack'] == {}
+    assert stats['heldBack'] == 0 and data['heldBack'] == {} and data['traitRetries'] == 1 and stats['traitRetries'] == 1   # 처음 쓴 글이 걸려 다시 쓴 인물 수
 
 
 def test_a_document_that_is_caught_again_keeps_the_previous_value_and_is_listed_without_hiding_it(small):
@@ -514,7 +514,7 @@ def test_a_document_that_is_caught_again_keeps_the_previous_value_and_is_listed_
     llm, stats, data = run_traits_build(small, make)
     harry = cards_of(data)['harry-potter']
     assert harry['characterDocs']['soul'] == '## 말투\n- 처음 나온 대목의 말투' and harry['characterDocs']['goal'] == '- 처음 나온 대목의 바람'   # 이전(첫 등장) 문서
-    assert data['heldBack'] == {'harry-potter': ['호크룩스']} and stats['heldBack'] == 1
+    assert data['heldBack'] == {'harry-potter': ['호크룩스']} and stats['heldBack'] == 1 and data['traitRetries'] == 1
     assert cards_of(data)['ronald-weasley']['characterDocs']['soul'].startswith('## 말투\n- 론의')   # 걸리지 않은 인물은 새 문서
 
 
@@ -546,7 +546,7 @@ def test_the_preview_prints_soul_and_goal_in_full_for_the_asked_people_and_count
     data, _ = world({'harry-potter': docs})
     data['heldBack'] = {'a': ['x'], 'b': ['y']}
     text = b.preview(data, ['Harry Potter'], limit=40, full=['Harry Potter'])
-    assert '조용하다 ' * 80 in text.replace('\n', ' ') or ('조용하다 ' * 79) in text and '- 집을 찾는다' in text
-    assert '금지 낱말 검사에 두 번 걸려 이전 문서로 둔 인물: 2명' in text and '**SOUL**\n\n## 말투' in text
+    assert ('조용하다 ' * 79 + '조용하다') in text and '- 집을 찾는다' in text
+    assert '다시 쓴 인물: 0명, 두 번 걸려 이전(첫 등장 기준) 문서로 둔 인물: 2명' in text and '**SOUL**\n\n## 말투' in text
     short = b.preview(data, ['Harry Potter'], limit=40)
-    assert ('조용하다 ' * 80) not in short and '**SOUL** ## 말투' in short
+    assert ('조용하다 ' * 79 + '조용하다') not in short and '**SOUL** ## 말투' in short
