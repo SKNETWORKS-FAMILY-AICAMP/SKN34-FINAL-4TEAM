@@ -9,8 +9,8 @@ import { ThemeButton } from './ThemeButton'
 import { useNotificationStream } from './useNotificationStream'
 import { useApplyTheme } from './useTheme'
 
-/** 같은 경로인데도 값이 바뀌면 화면 내용이 통째로 바뀌는 쿼리: 관리자 탭, 공지·이벤트 글, 작품 관리의 작품, 검색어. 다른 화면으로 넘어간 것으로 본다. */
-const SCREEN_QUERY: Record<string, string> = { '/admin': 'tab', '/me/notice': 'id', '/me/event': 'id', '/content': 'work', '/search': 'q' }
+/** 같은 경로인데도 값이 바뀌면 화면 내용이 통째로 바뀌는 쿼리: 관리자 탭과 LLM Ops 쪽(view), 공지·이벤트 글, 작품 관리의 작품, 검색어. 다른 화면으로 넘어간 것으로 본다. */
+const SCREEN_QUERY: Record<string, string[]> = { '/admin': ['tab', 'view'], '/me/notice': ['id'], '/me/event': ['id'], '/content': ['work'], '/search': ['q'] }
 
 /** 목업 RB: 페이지 이동 바 */
 function RouteBar() {
@@ -38,8 +38,8 @@ function RouteBar() {
   }, [location.pathname, location.search])
   // 맨 위로 올리는 것은 다른 화면으로 넘어갈 때(경로나 SCREEN_QUERY의 값이 바뀌는 PUSH·REPLACE)뿐이다. 같은 화면의 탭·필터(그 밖의 쿼리 변경)는 보던 위치와 화면이 옮긴 초점을 지키고,
   // 뒤로·앞으로(POP)와 처음 들어온 화면(새로 고침 포함)은 브라우저의 위치 복원에 맡긴다.
-  const query = SCREEN_QUERY[location.pathname]
-  const screen = query ? `${location.pathname}?${new URLSearchParams(location.search).get(query) ?? ''}` : location.pathname
+  const keys = SCREEN_QUERY[location.pathname]
+  const screen = keys ? `${location.pathname}?${keys.map((key) => new URLSearchParams(location.search).get(key) ?? '').join('&')}` : location.pathname
   const from = useRef(screen)
   useEffect(() => {
     if (from.current === screen) return
