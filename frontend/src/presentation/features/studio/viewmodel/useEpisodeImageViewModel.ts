@@ -16,10 +16,10 @@ type Props = {
   onDraftSaved: () => void
 }
 
-/** 집필실 회차 이미지: 목록·대체 텍스트 저장·본문에서 빼기. 이미지 파일은 저장 버전·발행본이 참조할 수 있어 지우지 않는다. */
+/** 집필실 회차 이미지: 목록·대체 텍스트 저장·본문에서 빼기·원본 다운로드. 이미지 파일은 저장 버전·발행본이 참조할 수 있어 지우지 않는다. */
 export function useEpisodeImageViewModel(
   { workId, episode, draft, unsaved, onDraftSaved }: Props,
-  media: Pick<MediaUseCase, 'listEpisodeImages' | 'updateEpisodeImageAlt'> = appContainer.resolve('mediaUseCase'),
+  media: Pick<MediaUseCase, 'listEpisodeImages' | 'updateEpisodeImageAlt' | 'download'> = appContainer.resolve('mediaUseCase'),
   episodes: Pick<EpisodeUseCase, 'writeEpisode'> = appContainer.resolve('episodeUseCase'),
 ) {
   const scope = `${workId}:${episode}`
@@ -72,6 +72,17 @@ export function useEpisodeImageViewModel(
       if (signal.aborted) return
       patch(image.id, updated)
       setNotice('이미지 설명을 저장했어요.')
+    }),
+    download: (image: EpisodeImage) => run(async (signal) => {
+      const blob = await media.download({ kind: 'episode', workId, number: episode }, image.id, false, signal)
+      if (signal.aborted) return
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = image.filename
+      link.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+      setNotice('이미지 다운로드를 요청했어요.')
     }),
     removeFromBody: async (image: EpisodeImage) => {
       if (unsaved) {

@@ -976,6 +976,19 @@ it('세계관을 읽지 못해도 관리 주소에서는 오류만 알리고 새
   expect(createScreenParts()).toEqual([null, null, null, null, null])
 })
 
+it('세계관을 읽지 못하면 오류 곁의 다시 시도로 같은 세계관을 다시 읽고, 세계관 목록으로 돌아가는 길도 보인다', async () => {
+  const world: StudioWorld = { id: 'qa', name: '검증 세계', description: '설명', version: 1, settings: [person('가람', '기존 내용')], analysis: null }
+  const read = vi.fn<WorldStudioRepository['read']>().mockRejectedValueOnce(new Error('세계관을 읽지 못했습니다.')).mockImplementation(async () => structuredClone(world))
+  mount(undefined, '/worldstudio/qa', { read })
+  expect((await screen.findByRole('alert')).textContent).toBe('세계관을 읽지 못했습니다.')
+  expect(screen.getByRole('link', { name: '내가 만드는 세계관으로 돌아가기' }).getAttribute('href')).toBe('/lib?tab=worlds')
+  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+  expect(await screen.findByRole('heading', { name: '검증 세계', level: 1 })).toBeTruthy()
+  expect(read).toHaveBeenCalledTimes(2)
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull()
+})
+
 // ── 작성 모드(새로 만든 직후 ?new=1의 4단계 마법사) ↔ 관리 모드(그 밖의 모든 진입: 탭 + 저장 영역) ──────────────
 const stepNames = () => Array.from(within(screen.getByRole('navigation', { name: '세계관 작성 단계' })).getAllByRole('button'), (b) => b.textContent)
 const headerOf = (name = '검증 세계') => within(screen.getByRole('heading', { name, level: 1 }).closest('section')!)
@@ -1141,6 +1154,7 @@ it('저장이 실패하면 오류와 입력을 그대로 두고 저장 영역이
   dirtyCard()
   fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
   expect((await screen.findByRole('alert')).textContent).toBe('저장 충돌')
+  expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull() // 세계관을 다시 읽으면 입력이 사라지므로 편집 중 실패에는 다시 시도를 두지 않는다
   expect(saveBar().getByText('저장 실패 · 입력은 유지돼요')).toBeTruthy()
   openCard('고친 이름 인물')
   expect(screen.getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('고친 이름')
