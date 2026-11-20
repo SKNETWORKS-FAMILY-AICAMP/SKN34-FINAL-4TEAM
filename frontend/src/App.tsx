@@ -15,6 +15,8 @@ import { RecoveryPage } from './presentation/features/auth/view/RecoveryPage'
 import { VerifyEmailChangePage, VerifyEmailPage } from './presentation/features/auth/view/VerifyEmailPage'
 import { HomePage } from './presentation/features/home/view/HomePage'
 import { CoreApiConnectionStatus } from './presentation/shared/core-api-status/CoreApiConnectionStatus'
+import { NotFoundPage } from './presentation/shared/NotFoundPage'
+import { RequireGuest } from './presentation/shared/session/RequireGuest'
 import { RequireRole } from './presentation/shared/session/RequireRole'
 import { Footer } from './presentation/shared/shell/Gnb'
 import { GlobalChrome } from './presentation/shared/shell/GlobalChrome'
@@ -112,8 +114,8 @@ function App() {
             <Route path="/content" element={<RequireRole><EpisodePage /></RequireRole>} />
             <Route path="/status" element={<StartPage />} />
             <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/me/signup" element={<Signup />} />
+            <Route path="/login" element={<RequireGuest><LoginPage /></RequireGuest>} />
+            <Route path="/me/signup" element={<RequireGuest><Signup /></RequireGuest>} />
             <Route path="/auth/resend-verification" element={<ResendVerificationPage />} />
             <Route path="/auth/forgot-password" element={<RecoveryPage />} />
             <Route path="/auth/reset-password" element={<RecoveryPage reset />} />
@@ -149,7 +151,7 @@ function App() {
             <Route path="/chat/:wid/:cn?" element={<RequireRole><ChatPage /></RequireRole>} />
             <Route path="/admin" element={<RequireRole admin><AdminPage /></RequireRole>} />
             <Route path="/me/:sub?" element={<AccountPage />} />
-            <Route path="*" element={<Navigate replace to="/" />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </RouteErrorBoundary>
