@@ -80,7 +80,7 @@ export function WorkPage() {
                 : <Go to="/login" className="tbtn" onClick={vm.requireLogin}>관심 등록</Go>)}
               {vm.canReport && <button type="button" className="tbtn weak" aria-label={`${w.title} 소설 신고`} onClick={vm.startReport}><Flag /> 소설 신고</button>}
             </div>
-            {!!(w.hash || p?.hash)?.length && <div className="hashes">{(w.hash || p?.hash || []).map((h) => <Go key={h} to={`/tag/${encodeURIComponent(h.replace(/^#/, ''))}`} title={`${h} 소설 모아 보기`}>{h}</Go>)}</div>
+            {!!(w.hash || p?.hash)?.length && <div className="hashes">{(w.hash || p?.hash || []).map((h) => <Go key={h} to={`/tag/${encodeURIComponent(h.replace(/^#/, ''))}`} title={`${h} 소설 모아 보기`}>{h}</Go>)}</div>}
             <div className="stats">
               {(w.canonical || w.statisticsSupported!==false) && <span title="좋아요"><Like /><span className="sr-only">좋아요 </span><b id="lkc">{kfmt(likes)}</b></span>}
               {w.statisticsSupported!==false && <><span title="조회"><Eye /><span className="sr-only">조회 </span><b>{kfmt(w.views)}</b></span><span title="댓글"><Bubble /><span className="sr-only">댓글 </span><b>{w.cmts || 0}</b></span></>}
