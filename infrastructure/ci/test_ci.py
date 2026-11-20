@@ -449,8 +449,9 @@ class ComposeSplitTest(unittest.TestCase):
         self.assertIn('\ninclude:\n  - path: docker-compose.langfuse.yaml\n', prod)
         for source in (dev, prod):
             self.assertNotIn('\n  langfuse-web:\n', source)  # 정의를 복제하지 않는다.
-        # 로컬 기본 진입점은 별도 프로젝트로 두고 Langfuse 없이 뜬다.
-        for path in ('compose.yaml', 'infrastructure/docker-compose.yaml', 'infrastructure/docker-compose.local.yaml'):
+        # 로컬 기본 진입점(루트 compose.yaml)도 별도 include 항목으로 같은 프로젝트에 항상 켠다. base·local 파일은 Langfuse를 모른다.
+        self.assertIn('\n  - path: ./infrastructure/docker-compose.langfuse.yaml\n', read('compose.yaml'))
+        for path in ('infrastructure/docker-compose.yaml', 'infrastructure/docker-compose.local.yaml'):
             self.assertNotIn('langfuse.yaml', read(path), path)
 
     def test_langfuse_web_is_developer_only_and_keeps_the_headless_init_admin(self):
