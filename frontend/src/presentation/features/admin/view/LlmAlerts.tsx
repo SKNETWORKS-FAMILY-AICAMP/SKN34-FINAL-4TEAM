@@ -17,6 +17,8 @@ export function LlmAlerts({ vm }: { vm: VM }) {
     <section className="panel admin-operations" aria-label="운영 경고">
       <div className="table-head">
         <h2 className="panel-title">운영 경고</h2>
+      </div>
+      <div className="admin-filter">
         <label className="field">
           상태
           <select className="inp" value={d.status ?? ''} onChange={(e) => d.setStatus(ALERT_STATUSES.find(([value]) => value === e.target.value)?.[0] ?? null)}>

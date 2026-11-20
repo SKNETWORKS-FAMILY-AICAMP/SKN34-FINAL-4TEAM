@@ -1,5 +1,4 @@
-.adm .admin-operations,
-.adm .admin-legacy-demo { min-width: 0; overflow-wrap: anywhere; }
+.adm .admin-operations { min-width: 0; overflow-wrap: anywhere; }
 .adm .admin-operations fieldset { border: 0; padding: 0; margin: 12px 0 0; min-width: 0; }
 .adm .admin-operations h2 { font-size: 20px; line-height: 1.4; margin: 24px 0 12px; }
 .adm .admin-operations .table-head h2 { margin: 0; }
@@ -22,13 +21,9 @@
 .adm .admin-refresh { margin: 0 0 12px; }
 .adm .admin-replies { margin-top: 28px; padding-top: 4px; border-top: 1px solid var(--line2); }
 .adm .admin-replies .inquiry-item { padding: 18px 0; }
-.adm .admin-legacy-demo { margin-top: 24px; }
-.adm .admin-legacy-demo summary { cursor: pointer; font-weight: 700; min-height: 44px; padding: 10px 0; color: var(--pri-ink); }
-.adm .admin-legacy-demo table { margin-top: 18px; }
 .adm .admin-operations [tabindex="-1"]:focus { outline: 2px solid var(--pri); outline-offset: 4px; }
 @media (max-width: 600px) {
-  .adm .admin-operations,
-  .adm .admin-legacy-demo { padding: 16px; }
+  .adm .admin-operations { padding: 16px; }
   .adm .admin-operations .table-head { align-items: stretch; }
   .adm .admin-operations .btn { min-height: 44px; }
   .adm .admin-operations .rowend { justify-content: stretch; }
@@ -48,6 +43,20 @@
 .adm .admin-subnav { margin: 0 0 14px; }
 .adm .admin-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; margin: 0 0 12px; }
 .adm .admin-filter .field { min-width: 120px; }
+/* 필터 줄(검색 입력·분류·정렬·상태 선택과 조회·검색 버튼): 입력·선택·버튼을 같은 높이(44px)로 아래 맞추고, 검색 입력은 최대 360px까지만 늘어난다. */
+.adm .admin-filter .inp { height: 44px; padding-block: 0; }
+.adm .admin-filter .btn { height: 44px; }
+.adm .admin-filter .field-search { flex: 1 1 260px; max-width: 360px; }
+/* 상단바 닉네임 메뉴(PopMenu): 버튼은 작은 알약 모양이고 이름이 길면 말줄임, 목록은 버튼 오른쪽 끝에 맞춰 아래로 연다. 비레이어 규칙이라 pop-menu.css의 버튼 기본값을 이긴다. */
+.adm .admin-who { min-width: 0; }
+.adm .admin-who .pop-menu-btn { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 12em; height: 36px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 13.5px; font-weight: 700; }
+.adm .admin-who .pop-menu-btn:hover { background: var(--muted-bg); }
+.adm .admin-who-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm .admin-who .pop-menu-list { top: calc(100% + 6px); right: 0; }
+.adm .admin-who .pop-menu-list [aria-current="page"] { background: var(--pri-soft); color: var(--pri-ink); }
+@media (max-width: 600px), (pointer: coarse) {
+  .adm .admin-who .pop-menu-btn { min-height: 44px; }
+}
 .adm .admin-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .adm .admin-operations .admin-inline .inp { width: auto; min-width: 140px; }
 .adm .kpi span.small { display: block; margin-top: 2px; }

@@ -131,4 +131,11 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect([narrow('.adm', 'flex-direction'), narrow('.adm .admin-col', 'display'), narrow('.adm .top', 'order'), narrow('.adm .top', 'position'), narrow('.adm .admin-nav', 'position')])
       .toEqual(['column', 'contents', '-1', 'static', 'static'])
   })
+
+  it('900px 이하에서는 브랜드를 가로 스크롤 메뉴 밖 상단바 왼쪽에 둔다(메뉴 안 브랜드가 잘리던 audit 지적)', () => {
+    // 상단바 브랜드는 데스크톱에서는 숨기고(사이드바 맨 위 브랜드가 맡는다) 900px 이하에서 보인다.
+    expect([value('.adm .admin-brand-top', 'display'), narrow('.adm .admin-brand-top', 'display')]).toEqual(['none', 'flex'])
+    // 반대로 메뉴 안 브랜드는 900px 이하에서 숨긴다.
+    expect([value('.adm .admin-nav .admin-brand', 'display'), narrow('.adm .admin-nav .admin-brand', 'display')]).toEqual([undefined, 'none'])
+  })
 })

@@ -31,7 +31,8 @@ describe('관리자 (A01~A18)', () => {
         : new Response(null, { status: 204 }))
     vi.stubGlobal('fetch', fetch)
     const { store } = renderAt('/admin')
-    fireEvent.click(await screen.findByRole('button', { name: '로그아웃' }))
+    fireEvent.click(await screen.findByRole('button', { name: /계정 메뉴/ }))
+    fireEvent.click(screen.getByRole('menuitem', { name: '로그아웃' }))
     await toastIs('로그아웃했어요')
     await waitFor(() => expect(where()).toBe('/'))
     expect(store.getState().session).toMatchObject({ role: null, next: null, loginMsg: '' })
@@ -53,7 +54,7 @@ describe('관리자 (A01~A18)', () => {
     expect(sid()).toContain('A01')
     expect(within(nav()).getByRole('link', { name: '개요' }).getAttribute('aria-current')).toBe('page')
     // 개요·LLM Ops·정기 작업은 운영 API 탭이라 데모 표기가 없다.
-    screen.getByText('운영 API 연결')
+    expect(document.querySelector('.admin-head .chip')).toBeNull()
     expect(screen.queryByText('데모 화면')).toBeNull()
     expect(document.querySelector('.gnb')).toBeNull()
     cleanup()
@@ -115,7 +116,7 @@ describe('관리자 (A01~A18)', () => {
     expect(screen.queryByText('기존 회원 문의 데모')).toBeNull()
     expect(screen.queryByRole('button', { name: '문의 기록 추가' })).toBeNull()
     screen.getByText('작가 검토 제보')
-    screen.getByText('운영 API 연결')
+    expect(document.querySelector('.admin-head .chip')).toBeNull()
   })
 
   it('개요는 운영 대시보드 카드를 서버 값으로 보이고, 출처를 읽지 못한 칸은 0이 아니라 불러오지 못함으로 보인다', async () => {

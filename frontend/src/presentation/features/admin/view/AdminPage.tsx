@@ -12,6 +12,7 @@ import { ofKind } from '../../../../domain/entities/work'
 import { kstDateTime, kstPeriod } from '../../../shared/format'
 import { EventStatusChip } from '../../../shared/EventStatusChip'
 import { Go } from '../../../shared/Go'
+import { PopMenu } from '../../../shared/PopMenu'
 import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
 import { Footer } from '../../../shared/shell/Gnb'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
@@ -27,14 +28,12 @@ import { useAdminDetailFocus } from './useAdminDetailFocus'
 type VM = ReturnType<typeof useAdminViewModel>
 type Data = NonNullable<VM['data']>
 
-/** 운영 업무 대상별 메뉴: 회원 → 콘텐츠 → 소통 → 서비스 → 내 계정 */
+/** 운영 업무 대상별 메뉴: 회원 → 콘텐츠 → 소통 → 서비스. 개요는 묶음 없이 맨 위 단독 항목이고, 프로필·로그아웃은 상단바 닉네임 메뉴에 있습니다. */
 const GROUPS: [string, [AdminTab, string][]][] = [
-  ['현황', [['data', '개요']]],
   ['회원 관리', [['users', '사용자'], ['admins', '관리자 계정·권한']]],
   ['콘텐츠 관리', [['works', '작품'], ['rights', '신고·권리'], ['comments', '댓글'], ['characterChats', '캐릭터챗']]],
   ['소통 관리', [['feedback', '제보·문의'], ['notices', '공지'], ['events', '이벤트']]],
   ['서비스 운영', [['llm', 'LLM Ops'], ['jobs', '정기 작업'], ['credits', '크레딧'], ['audit', '활동 로그']]],
-  ['내 계정', [['profile', '프로필']]],
 ]
 const TITLES: Record<AdminTab, [string, string]> = {
   data: ['관리 개요', '회원·AI 사용량·작업·미처리 업무를 운영 서버 기준으로 확인하고 운영 경고를 처리합니다.'],
@@ -139,6 +138,20 @@ export function AdminPage() {
   }, [tab])
   const content = useRef<HTMLElement>(null)
   const successTarget = IN_FORM.test(vm.lastSuccessKey) ? undefined : actionTarget(vm, vm.lastSuccessKey)
+  // 운영 API가 없는 데모 탭만 메뉴에 '데모' 배지를 답니다. 배지는 읽지 않게 두는 대신 링크 설명으로 스크린리더에 알립니다(링크 이름은 그대로).
+  const navLink = (k: AdminTab, l: string) => (
+    <Go
+      key={k}
+      to={`/admin?tab=${k}`}
+      className={tab === k ? 'on' : ''}
+      aria-current={tab === k ? 'page' : undefined}
+      aria-describedby={LIVE_TABS.includes(k) ? undefined : 'admin-demo-note'}
+    >
+      {l}
+      {!LIVE_TABS.includes(k) && <span className='nav-demo' aria-hidden='true'>데모</span>}
+    </Go>
+  )
+  const showRefresh = !!d && !vm.isError && !OPS_TABS.includes(tab)
   return (
     <>
     <div className='adm'>
@@ -155,30 +168,29 @@ export function AdminPage() {
       <div className='admin-side'>
         <nav ref={nav} className='admin-nav' aria-label='관리자 업무'>
           <b className='admin-brand'>STORYFORK 관리자</b>
+          {navLink('data', '개요')}
           {/* 메뉴 묶음 이름은 본문 제목(h1)보다 앞에 오므로 제목으로 읽히지 않게 하고, 묶음 이름은 group의 레이블로 전합니다. */}
           {GROUPS.map(([g, items]) => (
             <section key={g} role='group' aria-label={g}>
               <h2 role='presentation'>{g}</h2>
-              {items.map(([k, l]) => (
-                <Go
-                  key={k}
-                  to={`/admin?tab=${k}`}
-                  className={tab === k ? 'on' : ''}
-                  aria-current={tab === k ? 'page' : undefined}
-                >
-                  {l}
-                  {LIVE_TABS.includes(k) && <span className='nav-live' aria-hidden='true'>API</span>}
-                </Go>
-              ))}
+              {items.map(([k, l]) => navLink(k, l))}
             </section>
           ))}
-          <p className='nav-legend'><span className='nav-live'>API</span> 실제 운영 데이터를 다루는 탭</p>
-          <button type='button' onClick={vm.logout}>로그아웃</button>
+          <span id='admin-demo-note' className='sr-only'>데모 화면이에요</span>
         </nav>
       </div>
       <div className='admin-col'>
         <div className='top'>
-          <span className='admin-who'>{vm.me.nick} 님으로 로그인</span>
+          {/* 900px 이하에서만 보이는 브랜드: 가로로 스크롤되는 메뉴 안 브랜드는 잘려서 상단바 왼쪽에 한 번 더 둡니다. */}
+          <b className='admin-brand-top'>STORYFORK 관리자</b>
+          <PopMenu
+            className='admin-who'
+            label={`${vm.me.nick} 님 계정 메뉴`}
+            icon={<><span className='admin-who-name'>{vm.me.nick} 님</span><span aria-hidden='true'>▾</span></>}
+          >
+            <Go to='/admin?tab=profile' role='menuitem' aria-current={tab === 'profile' ? 'page' : undefined}>프로필</Go>
+            <button type='button' role='menuitem' onClick={vm.logout}>로그아웃</button>
+          </PopMenu>
           <ThemeButton className='btn sm' />
         </div>
         <main id='main' tabIndex={-1}>
@@ -188,9 +200,16 @@ export function AdminPage() {
                 <h1>{title}</h1>
                 <p>{desc}</p>
               </div>
-              <span className={`chip ${live ? 'ok' : 'wait'}`}>
-                {live ? '운영 API 연결' : '데모 화면'}
-              </span>
+              {(!live || showRefresh) && (
+                <div className='admin-head-side'>
+                  {!live && <span className='chip wait'>데모 화면</span>}
+                  {showRefresh && (
+                    <button type='button' className='btn sm' onClick={vm.retry} disabled={vm.isRefreshing}>
+                      목록 새로고침
+                    </button>
+                  )}
+                </div>
+              )}
             </header>
             {!live && vm.isLoading && (
               <p className='admin-data-state' role='status'>관리자 데이터를 불러오고 있어요.</p>
@@ -216,18 +235,6 @@ export function AdminPage() {
                     : '관리자 데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'}
                 </p>
                 <button type='button' className='btn sm' onClick={vm.retry}>다시 불러오기</button>
-              </div>
-            )}
-            {d && !vm.isError && !OPS_TABS.includes(tab) && (
-              <div className='rowend admin-refresh'>
-                <button
-                  type='button'
-                  className='btn sm'
-                  onClick={vm.retry}
-                  disabled={vm.isRefreshing}
-                >
-                  목록 새로고침
-                </button>
               </div>
             )}
             {/* 행 조치의 진행·실패는 버튼에서 떨어진 여기에 보이므로 대상 이름을 붙입니다. 완료는 위의 완료 줄이 맡습니다. */}
@@ -257,7 +264,7 @@ type BodyProps = {
   setSel: (s: string) => void
 }
 
-/** 목업 adminExtra()의 controls(): 분류·정렬과 (작품·댓글·캐릭터챗) 검색 */
+/** 목업 adminExtra()의 controls(): (작품·댓글·캐릭터챗) 검색과 분류·정렬. 왼쪽 정렬 한 줄에 검색 입력 → 분류 → 정렬 → 검색 버튼 순서이고 좁으면 줄을 바꿉니다. */
 function Controls(
   { tab, f, setF, categories, sorts }: Pick<BodyProps, 'tab' | 'f' | 'setF'> & {
     categories: [string, string][]
@@ -266,52 +273,46 @@ function Controls(
 ) {
   const label = tab === 'works' ? '작품 검색' : tab === 'comments' ? '댓글 검색' : '캐릭터챗 검색'
   return (
-    <>
-      <div className='table-head'>
-        <label className='field'>
-          분류<select
-            className='inp'
-            value={f.category}
-            onChange={(e) => setF({ category: e.target.value })}
-          >
-            {categories.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-        </label>
-        <label className='field'>
-          정렬<select
-            className='inp'
-            value={f.sort}
-            onChange={(e) => setF({ sort: e.target.value })}
-          >
-            {sorts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-        </label>
-      </div>
-      {['works', 'comments', 'characterChats'].includes(tab) && (
-        <form
-          className='admin-search'
-          onSubmit={(e) => {
-            e.preventDefault()
-            setF({ query: val(e, 'query').trim() })
-          }}
+    <form
+      className='admin-filter'
+      onSubmit={(e) => {
+        e.preventDefault()
+        setF({ query: val(e, 'query').trim() })
+      }}
+    >
+      <label className='field field-search'>
+        {label}
+        <input
+          className='inp'
+          name='query'
+          defaultValue={f.query}
+          placeholder={tab === 'works'
+            ? '작품명·작성자·권리 유형'
+            : tab === 'comments'
+            ? '댓글 내용·작품명·작성자'
+            : '작품명·캐릭터'}
+        />
+      </label>
+      <label className='field'>
+        분류<select
+          className='inp'
+          value={f.category}
+          onChange={(e) => setF({ category: e.target.value })}
         >
-          <label className='field'>
-            {label}
-            <input
-              className='inp'
-              name='query'
-              defaultValue={f.query}
-              placeholder={tab === 'works'
-                ? '작품명·작성자·권리 유형'
-                : tab === 'comments'
-                ? '댓글 내용·작품명·작성자'
-                : '작품명·캐릭터'}
-            />
-          </label>
-          <button className='btn sm pri' type='submit'>검색</button>
-        </form>
-      )}
-    </>
+          {categories.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+      </label>
+      <label className='field'>
+        정렬<select
+          className='inp'
+          value={f.sort}
+          onChange={(e) => setF({ sort: e.target.value })}
+        >
+          {sorts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+      </label>
+      <button className='btn pri' type='submit'>검색</button>
+    </form>
   )
 }
 
@@ -672,7 +673,16 @@ function Users({ vm, f, setF }: BodyProps) {
   const rows = vm.live.data?.members ?? []
   return (
     <div className='panel'>
-      <div className='table-head'>
+      <form
+        className='admin-filter'
+        onSubmit={(e) => {
+          e.preventDefault()
+          setF({ query: val(e, 'query').trim() })
+        }}
+      >
+        <label className='field field-search'>
+          사용자 검색<input className='inp' name='query' type='search' defaultValue={f.query} placeholder='이름·이메일' />
+        </label>
         <label className='field'>
           역할<select className='inp' value={f.category} onChange={(e) => setF({ category: e.target.value })}>
             <option value='all'>전체</option>
@@ -686,18 +696,7 @@ function Users({ vm, f, setF }: BodyProps) {
             <option value='oldest'>가입 오래된순</option>
           </select>
         </label>
-      </div>
-      <form
-        className='admin-search'
-        onSubmit={(e) => {
-          e.preventDefault()
-          setF({ query: val(e, 'query').trim() })
-        }}
-      >
-        <label className='field'>
-          사용자 검색<input className='inp' name='query' type='search' defaultValue={f.query} placeholder='이름·이메일' />
-        </label>
-        <button className='btn sm pri' type='submit'>검색</button>
+        <button className='btn pri' type='submit'>검색</button>
       </form>
       <LiveState vm={vm} label='회원 목록' />
       {vm.live.data && (rows.length
@@ -758,7 +757,7 @@ function Users({ vm, f, setF }: BodyProps) {
 }
 
 /** 34 신고·소명·조치: 운영 신고 목록·상세·이력과 검토·작품 제한·권리 증빙 요청 */
-function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
+function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
   const rows = vm.live.data?.reports ?? []
   const detail = vm.live.report
   const r = detail.data?.id === sel ? detail.data : null
@@ -779,6 +778,8 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
       <div className='panel' style={{ marginTop: 22 }}>
         <div className='table-head'>
           <h2 className='panel-title'>운영 신고</h2>
+        </div>
+        <div className='admin-filter'>
           <label className='field'>
             상태<select className='inp' value={f.category} onChange={(e) => setF({ category: e.target.value })}>
               <option value='all'>전체</option>
@@ -928,42 +929,6 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
             </>
           )}
         </div>
-      )}
-      {d && (
-        <details className='panel admin-legacy-demo' style={{ marginTop: 14 }}>
-          <summary>원작·포크 데이터 격리 점검 (예시 데이터)</summary>
-          <Table label='원작·포크 격리 점검 표'>
-            <thead>
-              <tr>
-                <th scope='col'>포크</th>
-                <th scope='col'>원작 · 분기</th>
-                <th scope='col'>스냅샷 해시</th>
-                <th scope='col'>원작 현재 해시 (1~분기 회차)</th>
-                <th scope='col'>인물 상태 차이</th>
-                <th scope='col'>판정</th>
-              </tr>
-            </thead>
-            <tbody>
-              {d.isolation.map((x) => (
-                <tr key={x.title}>
-                  <td>{x.title}</td>
-                  <td>{x.parent} · {x.forkAt}화</td>
-                  <td className='mono'>{x.snapNow}</td>
-                  <td className='mono'>{x.now}</td>
-                  <td>{x.diff.length ? x.diff.join(', ') : '없음'}</td>
-                  <td>
-                    <span className={`chip ${x.ok ? 'ok' : 'wait'}`}>
-                      {x.ok ? (x.same ? '격리 · 동일' : '격리 · 원작만 변경됨') : '스냅샷 변경!'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-          <p className='small muted' style={{ marginTop: 10 }}>
-            스냅샷 해시는 포크 생성 순간의 원작 회차를 복사한 값이에요. 원작이 수정되면 오른쪽 해시만 바뀌고 포크 쪽은 그대로여야 정상이에요.
-          </p>
-        </details>
       )}
     </>
   )
@@ -1214,6 +1179,8 @@ function Feedback({ d, vm, f, setF }: BodyProps) {
             <>
               <div className='table-head'>
                 <h2 tabIndex={-1}>회원 문의</h2>
+              </div>
+              <div className='admin-filter'>
                 <label className='field'>
                   상태<select className='inp' value={f.category} onChange={(e) => setF({ category: e.target.value })}>
                     <option value='all'>전체</option>

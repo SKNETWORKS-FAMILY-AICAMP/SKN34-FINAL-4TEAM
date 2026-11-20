@@ -27,16 +27,18 @@ const renderAdmin = (tab: string) => render(
   </Provider>,
 )
 const tables = () => [...document.querySelectorAll('table')]
+/** 제목 옆 칩: 운영 API 탭에는 없고 데모 탭에만 '데모 화면'이 있다. */
+const demoChip = () => document.querySelector('.admin-head .chip')
 
 it('신고·권리 탭은 운영 API 실패를 데모 행이나 빈 목록으로 숨기지 않는다', async () => {
   renderAdmin('rights')
   await screen.findByText(/신고 목록을 불러오지 못했어요/)
   expect(screen.queryByText('○○○ 2차 연재')).toBeNull()
-  expect(screen.getByText('운영 API 연결')).toBeTruthy()
+  expect(demoChip()).toBeNull()
 })
 
-// users·admins 표는 운영 API 응답이 있어야 그려지므로, notices·events는 표 없이 목록 패널만 그리므로, data(관리 개요)는 표 없이 숫자 카드와 차트만 그리므로(아래 별도 테스트) 렌더 통합 대상에서 뺍니다.
-it.each(['rights', 'llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'credits'])(
+// users·admins·rights 표는 운영 API 응답이 있어야 그려지므로(rights는 이 환경에서 유일하던 예시 격리 점검 표를 지웠다), notices·events는 표 없이 목록 패널만 그리므로, data(관리 개요)는 표 없이 숫자 카드와 차트만 그리므로(아래 별도 테스트) 렌더 통합 대상에서 뺍니다.
+it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'credits'])(
   '%s 탭의 모든 표에 캡션·열 머리 범위·키보드 스크롤 영역이 있다',
   async (tab) => {
     renderAdmin(tab)
@@ -152,7 +154,7 @@ it('작품 탭은 운영 작품 API로 목록을 읽고 운영 제한·해제 �
   renderAdmin('works')
   const open = (await screen.findByText('달빛 도서관', { selector: 'b' })).closest('tr') as HTMLElement
   const fork = screen.getByText('달빛 도서관 외전', { selector: 'b' }).closest('tr') as HTMLElement
-  expect(screen.getByText('운영 API 연결')).toBeTruthy()
+  expect(demoChip()).toBeNull()
   expect(screen.queryByText('목업 작품 데이터')).toBeNull()
   // 운영 제한·해제는 신고 사건이 아니라 활동 로그(72)에 남는다.
   expect(screen.getByText(/신고 사건에는 남기지 않고 활동 로그에만 기록해요/)).toBeTruthy()
@@ -343,7 +345,7 @@ it('댓글 탭은 운영 댓글 API로 목록을 읽고 숨김·게시 복구 �
   renderAdmin('comments')
   const open = (await screen.findByText('첫 감상')).closest('tr') as HTMLElement
   const hidden = screen.getByText('숨긴 댓글의 원문').closest('tr') as HTMLElement
-  expect(screen.getByText('운영 API 연결')).toBeTruthy()
+  expect(demoChip()).toBeNull()
   expect(screen.queryByText(/서버 저장 없음/)).toBeNull()
   expect(requests()).toEqual(['GET /api/v1/operations/comments'])
   expect(fetcher.mock.calls[0][1]).toMatchObject({ headers: { Authorization: 'Bearer c-bearer' } })
@@ -450,7 +452,7 @@ it('활동 로그 탭은 운영 활동 기록 API를 읽어 시각·수행자·�
 
   renderAdmin('audit')
   await waitFor(() => expect(activityRows()).toHaveLength(3))
-  expect(screen.getByText('운영 API 연결')).toBeTruthy()
+  expect(demoChip()).toBeNull()
   expect(document.body.textContent).not.toContain('브라우저 메모리에만')
   expect(document.body.textContent).not.toContain('데모 조치')
   expect(fetcher.mock.calls.map(([url, init]) => `${init?.method} ${String(url)}`)).toEqual(['GET /api/v1/operations/admin/activities'])
@@ -533,7 +535,9 @@ it('패널 제목은 굵은 글씨가 아니라 제목 요소이고, 메뉴 묶�
   expect(screen.getAllByRole('heading')[0].tagName).toBe('H1')
   const menu = screen.getByRole('navigation', { name: '관리자 업무' })
   expect(within(menu).queryAllByRole('heading')).toHaveLength(0)
-  expect(within(menu).getAllByRole('group').map((group) => group.getAttribute('aria-label'))).toEqual(['현황', '회원 관리', '콘텐츠 관리', '소통 관리', '서비스 운영', '내 계정'])
+  expect(within(menu).getAllByRole('group').map((group) => group.getAttribute('aria-label'))).toEqual(['회원 관리', '콘텐츠 관리', '소통 관리', '서비스 운영'])
+  // 개요는 묶음 없이 메뉴 맨 위 단독 항목이다.
+  expect(within(menu).getByRole('link', { name: '개요' }).closest('[role="group"]')).toBeNull()
 })
 
 it('표의 행 버튼은 이름이 같은 버튼끼리 구분되도록 대상 이름을 함께 읽는다', async () => {
@@ -588,6 +592,87 @@ it('메뉴가 넘칠 때 현재 탭이 이미 보이면 스크롤을 건드리�
   expect(menu.scrollLeft).toBe(196) // 오른쪽으로 벗어남
   await visit('사용자', rect(0, 38, -50, 60))
   expect([menu.scrollLeft, menu.scrollTop]).toEqual([130, 0]) // 왼쪽으로 벗어남, 세로는 그대로
+})
+
+it('상단바 닉네임 버튼이 프로필·로그아웃 메뉴를 열고, 바깥 클릭·Esc로 닫으며 Esc는 초점을 버튼으로 돌린다', async () => {
+  renderAdmin('data')
+  const button = await screen.findByRole('button', { name: /계정 메뉴/ })
+  expect([button.getAttribute('aria-haspopup'), button.getAttribute('aria-expanded')]).toEqual(['menu', 'false'])
+  // 프로필·로그아웃은 사이드바 업무 메뉴가 아니라 이 메뉴에 있다.
+  const side = screen.getByRole('navigation', { name: '관리자 업무' })
+  expect(within(side).queryByRole('link', { name: '프로필' })).toBeNull()
+  expect(within(side).queryByRole('button', { name: '로그아웃' })).toBeNull()
+  expect(screen.queryByRole('menu')).toBeNull()
+  fireEvent.click(button)
+  const menu = screen.getByRole('menu')
+  expect(button.getAttribute('aria-expanded')).toBe('true')
+  const profile = within(menu).getByRole('menuitem', { name: '프로필' })
+  expect(profile.getAttribute('href')).toBe('/admin?tab=profile')
+  expect(profile.getAttribute('aria-current')).toBeNull()
+  within(menu).getByRole('menuitem', { name: '로그아웃' })
+  fireEvent.keyDown(menu, { key: 'Escape' })
+  expect(screen.queryByRole('menu')).toBeNull()
+  expect(document.activeElement).toBe(button)
+  fireEvent.click(button)
+  fireEvent.pointerDown(document.body)
+  expect(screen.queryByRole('menu')).toBeNull()
+  // 프로필 탭에서는 프로필 항목이 현재 항목이다.
+  cleanup()
+  renderAdmin('profile')
+  fireEvent.click(await screen.findByRole('button', { name: /계정 메뉴/ }))
+  expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: '프로필' }).getAttribute('aria-current')).toBe('page')
+})
+
+it('API 표시는 데모 탭에만 둔다: 메뉴 ‘데모’ 배지와 제목 옆 ‘데모 화면’ 칩은 데모 탭(캐릭터챗·크레딧)에만 있고 실제 API 탭에는 둘 다, 범례 줄도 없다', async () => {
+  renderAdmin('works')
+  const menu = await screen.findByRole('navigation', { name: '관리자 업무' })
+  // 실제 API 탭: 배지도, 설명 연결도 없다.
+  for (const name of ['개요', '사용자', '작품', '신고·권리', 'LLM Ops', '활동 로그']) {
+    const link = within(menu).getByRole('link', { name })
+    expect([link.querySelector('.nav-demo'), link.getAttribute('aria-describedby')], name).toEqual([null, null])
+  }
+  expect(menu.querySelector('.nav-live, .nav-legend')).toBeNull()
+  expect(document.querySelector('.admin-head .chip')).toBeNull()
+  // 데모 탭: 배지는 읽지 않게(aria-hidden) 두고, 링크 이름은 그대로 둔 채 설명으로 데모임을 알린다.
+  for (const name of ['캐릭터챗', '크레딧']) {
+    const link = within(menu).getByRole('link', { name })
+    const badge = link.querySelector('.nav-demo')
+    expect([badge?.textContent, badge?.getAttribute('aria-hidden')], name).toEqual(['데모', 'true'])
+    expect(document.getElementById(link.getAttribute('aria-describedby') ?? '')?.textContent, name).toBe('데모 화면이에요')
+  }
+  cleanup()
+  renderAdmin('characterChats')
+  await screen.findByRole('heading', { name: '캐릭터챗 관리' })
+  expect(document.querySelector('.admin-head .chip')?.textContent).toBe('데모 화면')
+})
+
+it('머리 영역: 목록 새로고침은 제목 줄 오른쪽(데모 칩 바로 옆)에 있어 혼자 차지하는 줄이 없고, 상단바에도 브랜드가 있다', async () => {
+  renderAdmin('characterChats')
+  const refresh = await screen.findByRole('button', { name: '목록 새로고침' })
+  const head = document.querySelector('.admin-head')!
+  expect(head.contains(refresh)).toBe(true)
+  expect(head.querySelector('.chip')?.nextElementSibling).toBe(refresh)
+  expect(document.querySelector('.admin-refresh')).toBeNull()
+  // 900px 이하에서는 메뉴 밖 상단바 왼쪽 브랜드만 보인다(어느 쪽이 보이는지는 CSS 계약 테스트가 지킨다).
+  const top = document.querySelector('.adm .top .admin-brand-top')
+  expect([top?.textContent, top?.closest('nav')]).toEqual(['STORYFORK 관리자', null])
+  expect(document.querySelector('.adm .admin-nav .admin-brand')?.textContent).toBe('STORYFORK 관리자')
+})
+
+it('필터는 왼쪽 정렬 한 줄: 검색 입력 → 분류(역할) → 정렬 → 검색 버튼을 한 form(.admin-filter)에 두고, 상태 선택은 제목 아래에 둔다', async () => {
+  const controls = (form: HTMLFormElement) => [...form.elements].map((el) => el.tagName)
+  renderAdmin('works')
+  const works = (await screen.findByLabelText('작품 검색')).closest('form')!
+  expect([works.className, controls(works)]).toEqual(['admin-filter', ['INPUT', 'SELECT', 'SELECT', 'BUTTON']])
+  cleanup()
+  renderAdmin('users')
+  const users = (await screen.findByLabelText('사용자 검색')).closest('form')!
+  expect([users.className, controls(users)]).toEqual(['admin-filter', ['INPUT', 'SELECT', 'SELECT', 'BUTTON']])
+  cleanup()
+  renderAdmin('llm')
+  const status = await screen.findByLabelText('상태')
+  expect([status.closest('.admin-filter') !== null, status.closest('.table-head')]).toEqual([true, null])
+  expect(status.closest('section')!.querySelector('.table-head h2')?.textContent).toBe('운영 경고')
 })
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
