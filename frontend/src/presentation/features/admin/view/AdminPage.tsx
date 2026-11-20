@@ -1,7 +1,7 @@
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
-import { ADMIN_PERMISSIONS, type AdminTab, adminTab } from '../../../../domain/entities/admin'
+import { ADMIN_PERMISSIONS, LLM_PAGES, type AdminTab, type LlmPage, adminTab, llmPage, llmPageHref } from '../../../../domain/entities/admin'
 import { ACTIVITY_FORBIDDEN, activityActionLabel, activityActor, activityDetail, activityTarget } from '../../../../domain/entities/adminActivity'
 import { REPORT_STATUSES, reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
 import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
@@ -28,17 +28,27 @@ import { useAdminDetailFocus } from './useAdminDetailFocus'
 type VM = ReturnType<typeof useAdminViewModel>
 type Data = NonNullable<VM['data']>
 
-/** 운영 업무 대상별 메뉴: 회원 → 콘텐츠 → 소통 → 서비스. 개요는 묶음 없이 맨 위 단독 항목이고, 프로필·로그아웃은 상단바 닉네임 메뉴에 있습니다. */
-const GROUPS: [string, [AdminTab, string][]][] = [
+/**
+ * 운영 업무 대상별 메뉴: 회원 → 콘텐츠 → 소통 → LLM Ops → 서비스. 개요는 묶음 없이 맨 위 단독 항목이고, 프로필·로그아웃은 상단바 닉네임 메뉴에 있습니다.
+ * LLM Ops의 네 메뉴는 같은 탭(llm)의 쪽이라 세 번째 값에 쪽(view)을 적습니다.
+ */
+const GROUPS: [string, [AdminTab, string, LlmPage?][]][] = [
   ['회원 관리', [['users', '사용자'], ['admins', '관리자 계정·권한']]],
   ['콘텐츠 관리', [['works', '작품'], ['rights', '신고·권리'], ['comments', '댓글'], ['characterChats', '캐릭터챗']]],
   ['소통 관리', [['feedback', '제보·문의'], ['notices', '공지'], ['events', '이벤트']]],
-  ['서비스 운영', [['llm', 'LLM Ops'], ['jobs', '정기 작업'], ['credits', '크레딧'], ['audit', '활동 로그']]],
+  ['LLM Ops', LLM_PAGES.map(([page, label]): [AdminTab, string, LlmPage] => ['llm', label, page])],
+  ['서비스 운영', [['jobs', '정기 작업'], ['credits', '크레딧'], ['audit', '활동 로그']]],
 ]
-const TITLES: Record<AdminTab, [string, string]> = {
+/** LLM Ops는 쪽마다 제목(문서 제목 포함)이 다릅니다. */
+const LLM_TITLES: Record<LlmPage, [string, string]> = {
+  alerts: ['LLM Ops · 경고', '운영 경고를 확인하고 조치하며, 경고 기준과 켜고 끄기를 정합니다.'],
+  traces: ['LLM Ops · 추적·지표', 'Langfuse 기준 AI 요청 추적과 기간별 품질·비용 지표를 확인합니다.'],
+  prompts: ['LLM Ops · 프롬프트·모델', '프롬프트 버전과 production 승격, 모델 단가를 관리합니다.'],
+  quality: ['LLM Ops · 평가·누설 검사', '회귀 평가를 실행해 결과를 확인하고, 정보 누설 검사 기록과 표본 비율을 관리합니다.'],
+}
+const TITLES: Record<Exclude<AdminTab, 'llm'>, [string, string]> = {
   data: ['관리 개요', '회원·AI 사용량·작업·미처리 업무를 운영 서버 기준으로 확인하고 운영 경고를 처리합니다.'],
   rights: ['신고·권리 관리', '운영 신고를 검토하고 대상 작품 제한·권리 증빙 요청을 기록합니다.'],
-  llm: ['LLM Ops', 'Langfuse 기준 추적·지표와 프롬프트·모델·평가·경고 기준을 확인하고 관리합니다.'],
   admins: ['관리자 계정과 권한', '업무별 접근 권한을 나누어 관리자 계정을 추가합니다.'],
   users: ['사용자 관리', '회원 목록을 조회하고 이용 제한·해제를 요청합니다.'],
   works: ['작품 관리', '작품의 공개 상태와 이용 권리를 조회하고 운영 제한·해제를 요청합니다.'],
@@ -105,6 +115,7 @@ const val = (e: FormEvent<HTMLFormElement>, name: string) =>
 export function AdminPage() {
   const [q] = useSearchParams()
   const tab = adminTab(q.get('tab'))
+  const page = llmPage(q.get('view'))
   const vm = useAdminViewModel(tab)
   const { sel, filters, setSel } = vm
   const f = filters[tab] ??
@@ -116,7 +127,7 @@ export function AdminPage() {
     }
   const setF = (x: Partial<Filter>) => vm.setFilter(tab, { ...f, ...x })
   const d = vm.data
-  const [title, desc] = TITLES[tab]
+  const [title, desc] = tab === 'llm' ? LLM_TITLES[page] : TITLES[tab]
   const live = LIVE_TABS.includes(tab)
   useDocumentTitle(`관리자 · ${title}`)
   const nav = useRef<HTMLElement>(null)
@@ -135,24 +146,29 @@ export function AdminPage() {
     const dy = n.scrollHeight > n.clientHeight ? reveal(at.top, at.bottom, box.top, box.bottom) : 0
     if (dx) n.scrollLeft += dx
     if (dy) n.scrollTop += dy
-  }, [tab])
+  }, [tab, page])
   const content = useRef<HTMLElement>(null)
   // 머리 오른쪽 자리(데모 칩·목록 새로고침). 개요 탭은 자기 새로고침을 이 자리에 포털로 두므로 요소를 상태로 들고 있다가 건넵니다.
   const [headSide, setHeadSide] = useState<HTMLDivElement | null>(null)
   const successTarget = IN_FORM.test(vm.lastSuccessKey) ? undefined : actionTarget(vm, vm.lastSuccessKey)
   // 운영 API가 없는 데모 탭만 메뉴에 '데모' 배지를 답니다. 배지는 읽지 않게 두는 대신 링크 설명으로 스크린리더에 알립니다(링크 이름은 그대로).
-  const navLink = (k: AdminTab, l: string) => (
-    <Go
-      key={k}
-      to={`/admin?tab=${k}`}
-      className={tab === k ? 'on' : ''}
-      aria-current={tab === k ? 'page' : undefined}
-      aria-describedby={LIVE_TABS.includes(k) ? undefined : 'admin-demo-note'}
-    >
-      {l}
-      {!LIVE_TABS.includes(k) && <span className='nav-demo' aria-hidden='true'>데모</span>}
-    </Go>
-  )
+  // 현재 표시는 탭과 쪽(view)이 모두 같을 때만 켭니다. LLM Ops 네 메뉴는 같은 탭이라 쪽까지 같아야 합니다.
+  const navLink = (k: AdminTab, l: string, view?: LlmPage) => {
+    const on = tab === k && (!view || view === page)
+    const to = view ? llmPageHref(view) : `/admin?tab=${k}`
+    return (
+      <Go
+        key={to}
+        to={to}
+        className={on ? 'on' : ''}
+        aria-current={on ? 'page' : undefined}
+        aria-describedby={LIVE_TABS.includes(k) ? undefined : 'admin-demo-note'}
+      >
+        {l}
+        {!LIVE_TABS.includes(k) && <span className='nav-demo' aria-hidden='true'>데모</span>}
+      </Go>
+    )
+  }
   const showRefresh = !!d && !vm.isError && !OPS_TABS.includes(tab)
   return (
     <>
@@ -175,7 +191,7 @@ export function AdminPage() {
           {GROUPS.map(([g, items]) => (
             <section key={g} role='group' aria-label={g}>
               <h2 role='presentation'>{g}</h2>
-              {items.map(([k, l]) => navLink(k, l))}
+              {items.map(([k, l, view]) => navLink(k, l, view))}
             </section>
           ))}
           <span id='admin-demo-note' className='sr-only'>데모 화면이에요</span>
@@ -242,7 +258,7 @@ export function AdminPage() {
               .filter(([key]) => !IN_FORM.test(key))
               .map(([key, state]) => <AdminActionStatus key={key} state={state} target={actionTarget(vm, key)} done={false} />)}
             {(d || live) && (
-              <Body key={tab} tab={tab} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} headSide={headSide} />
+              <Body key={tab} tab={tab} page={page} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} headSide={headSide} />
             )}
           </section>
         </main>
@@ -255,6 +271,8 @@ export function AdminPage() {
 
 type BodyProps = {
   tab: AdminTab
+  /** LLM Ops 탭에서 볼 쪽(주소의 view). 다른 탭에서는 쓰지 않습니다. */
+  page: LlmPage
   /** 데모 조회 결과. 운영 API 탭(users·admins·works·comments·rights·profile)은 이 값 없이도 그립니다. */
   d: Data | undefined
   vm: VM
@@ -321,7 +339,7 @@ function Controls(
 function Body(p: BodyProps) {
   const { tab, d, vm, f } = p
   if (tab === 'data') return <OperationsDashboard vm={vm} headSide={p.headSide} />
-  if (tab === 'llm') return <LlmOps vm={vm} />
+  if (tab === 'llm') return <LlmOps vm={vm} page={p.page} />
   if (tab === 'jobs') return <JobMonitor vm={vm} />
   if (tab === 'rights') return <Rights {...p} />
   if (tab === 'admins') return <Admins vm={vm} />

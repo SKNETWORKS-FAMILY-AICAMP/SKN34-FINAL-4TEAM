@@ -156,6 +156,11 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect([value('.adm .admin-nav .admin-brand', 'display'), narrow('.adm .admin-nav .admin-brand', 'display')]).toEqual([undefined, 'none'])
   })
 
+  it('LLM Ops 한 쪽에 쌓은 패널(경고+경고 기준 등)은 숫자 카드 줄 사이 gap과 같은 12px로 띄운다', () => {
+    // .panel은 바깥 여백이 없어 두 패널이 맞붙어 한 덩어리로 보였다.
+    expect(opsCss).toMatch(/\.panel\.admin-operations \+ \.panel\.admin-operations\s*\{[^}]*margin-top:\s*12px/)
+  })
+
   it('날짜·시각 칸(.admin-date)은 공백에서 꺾이지 않는 한 줄이고 숫자 폭을 맞춘다', () => {
     // 'ko-KR short' 날짜는 '26. 11. 20. 오전 12:03'처럼 공백이 많아, 좁아지면 '오전 / 12:03' 두 줄로 꺾이고 넓은 칸(권한 등)이 폭을 다 가져간다.
     expect([value('.adm .admin-date', 'white-space'), value('.adm .admin-date', 'font-variant-numeric')]).toEqual(['nowrap', 'tabular-nums'])

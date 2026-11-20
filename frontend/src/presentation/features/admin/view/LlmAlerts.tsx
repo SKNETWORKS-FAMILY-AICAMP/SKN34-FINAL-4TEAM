@@ -47,7 +47,7 @@ export function LlmAlerts({ vm }: { vm: VM }) {
           </Table>
         )
         : <p className="admin-empty">조건에 맞는 경고가 없어요.</p>)}
-      <p className="admin-note">경고 기준과 켜고 끄기는 ‘경고 기준·설정’ 보기에서 정해요. 확인·조치 완료는 활동 로그에 남아요.</p>
+      <p className="admin-note">경고 기준과 켜고 끄기는 아래 ‘경고 기준’에서 정해요. 확인·조치 완료는 활동 로그에 남아요.</p>
     </section>
   )
 }

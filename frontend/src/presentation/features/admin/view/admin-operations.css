@@ -38,8 +38,7 @@
 @media (max-width: 900px) {
   .adm .admin-nav :is(button, a) { height: auto; min-height: 44px; }
 }
-/* 운영 대시보드·LLMOps·작업 감시(DEC-55): 보기 선택 칩, 조회 조건 줄, 표 안 조치 묶음, 카드 안 보조 줄. */
-.adm .admin-subnav { margin: 0 0 14px; }
+/* 운영 대시보드·LLMOps·작업 감시(DEC-55): 조회 조건 줄, 표 안 조치 묶음, 카드 안 보조 줄. */
 .adm .admin-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; margin: 0 0 12px; }
 .adm .admin-filter .field { min-width: 120px; }
 /* 필터 줄(검색 입력·분류·정렬·상태 선택과 조회·검색 버튼): 입력·선택을 버튼(.adm .btn, btn sm 규칙)과 같은 36px로 아래 맞추고, 검색 입력은 최대 360px까지만 늘어난다. 터치 환경의 44px은 아래 모바일 블록이 올린다. */
@@ -56,6 +55,8 @@
   .adm .admin-who .pop-menu-btn { min-height: 44px; }
   .adm .admin-filter .inp { min-height: 44px; }
 }
+/* LLM Ops 한 쪽에 쌓은 패널(경고+경고 기준, 추적+지표 등): .panel은 바깥 여백이 없어 맞붙으므로 위 숫자 카드 줄 사이 gap(12px)과 같은 값으로 띄웁니다. */
+.adm .panel.admin-operations + .panel.admin-operations { margin-top: 12px; }
 .adm .admin-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .adm .admin-operations .admin-inline .inp { width: auto; min-width: 140px; }
 /* 쪽 이동 줄: '전체 N건 · 1/1쪽' 글자를 36px 이전·다음 버튼과 세로 가운데로 둔다(.rowend 기본은 맨 위 정렬이라 글자가 떠 보인다). */

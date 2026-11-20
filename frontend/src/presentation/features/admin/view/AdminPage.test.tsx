@@ -22,9 +22,9 @@ import { AdminPage } from './AdminPage'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.title = 'STORYFORK' })
 
-const renderAdmin = (tab: string) => render(
+const renderAdmin = (tab: string, view?: string) => render(
   <Provider store={createAppStore({ role: 'admin' })}>
-    <MemoryRouter initialEntries={[`/admin?tab=${tab}`]}><AdminPage /></MemoryRouter>
+    <MemoryRouter initialEntries={[`/admin?tab=${tab}${view ? `&view=${view}` : ''}`]}><AdminPage /></MemoryRouter>
   </Provider>,
 )
 const tables = () => [...document.querySelectorAll('table')]
@@ -538,7 +538,7 @@ it('패널 제목은 굵은 글씨가 아니라 제목 요소이고, 메뉴 묶�
   expect(screen.getAllByRole('heading')[0].tagName).toBe('H1')
   const menu = screen.getByRole('navigation', { name: '관리자 업무' })
   expect(within(menu).queryAllByRole('heading')).toHaveLength(0)
-  expect(within(menu).getAllByRole('group').map((group) => group.getAttribute('aria-label'))).toEqual(['회원 관리', '콘텐츠 관리', '소통 관리', '서비스 운영'])
+  expect(within(menu).getAllByRole('group').map((group) => group.getAttribute('aria-label'))).toEqual(['회원 관리', '콘텐츠 관리', '소통 관리', 'LLM Ops', '서비스 운영'])
   // 개요는 묶음 없이 메뉴 맨 위 단독 항목이다.
   expect(within(menu).getByRole('link', { name: '개요' }).closest('[role="group"]')).toBeNull()
 })
@@ -630,7 +630,7 @@ it('API 표시는 데모 탭에만 둔다: 메뉴 ‘데모’ 배지와 제목 
   renderAdmin('works')
   const menu = await screen.findByRole('navigation', { name: '관리자 업무' })
   // 실제 API 탭: 배지도, 설명 연결도 없다.
-  for (const name of ['개요', '사용자', '작품', '신고·권리', 'LLM Ops', '활동 로그']) {
+  for (const name of ['개요', '사용자', '작품', '신고·권리', '경고', '추적·지표', '활동 로그']) {
     const link = within(menu).getByRole('link', { name })
     expect([link.querySelector('.nav-demo'), link.getAttribute('aria-describedby')], name).toEqual([null, null])
   }
@@ -690,6 +690,89 @@ it('날짜·시각만 담은 표 칸(td)은 admin-date 없이 맨 td로 그리�
   for (const file of ['AdminPage.tsx', 'JobMonitor.tsx', 'LlmAlerts.tsx', 'LlmOps.tsx', 'LlmOpsManage.tsx']) {
     expect(readFileSync(new URL(file, import.meta.url), 'utf8').match(/<td>\{[^}]*kstDateTime\(/g), file).toBeNull()
   }
+})
+
+// LLM Ops는 탭 하나 안의 칩 여덟 개가 아니라 사이드바 네 메뉴(주소 ?tab=llm&view=)로 나뉜다. 쪽마다 두 패널(평가·누설 검사는 셋)을 위아래로 쌓는다.
+const before = (a: Element, b: Element) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+const region = (name: string) => screen.findByRole('region', { name })
+const llmMenu = async () => within(await screen.findByRole('navigation', { name: '관리자 업무' })).getByRole('group', { name: 'LLM Ops' })
+
+it('LLM Ops 추적·지표 쪽(view=traces)은 추적 패널 아래에 지표 패널을 쌓고 칩 줄은 없다', async () => {
+  renderAdmin('llm', 'traces')
+  const traces = await region('LLM 추적')
+  const metrics = await region('LLM 지표')
+  expect(before(traces, metrics)).toBe(true)
+  expect([document.querySelector('.admin-subnav'), screen.queryByRole('navigation', { name: 'LLM Ops 보기' })]).toEqual([null, null])
+  expect(screen.queryByRole('region', { name: '운영 경고' })).toBeNull()
+})
+
+it('LLM Ops는 view가 없거나 모르는 값이면 경고 쪽이다: 운영 경고 목록 아래에 경고 기준을 쌓는다', async () => {
+  for (const view of [undefined, 'nope', 'metrics']) {
+    renderAdmin('llm', view)
+    const alerts = await region('운영 경고')
+    expect(before(alerts, await region('경고 기준')), view).toBe(true)
+    expect(screen.queryByRole('region', { name: 'LLM 추적' }), view).toBeNull()
+    cleanup()
+  }
+})
+
+it('LLM Ops 프롬프트·모델 쪽(view=prompts)은 프롬프트 패널 아래에 모델 패널을, 평가·누설 검사 쪽(view=quality)은 평가·누설 검사 기록·표본 비율 폼을 쌓는다', async () => {
+  renderAdmin('llm', 'prompts')
+  expect(before(await region('프롬프트'), await region('모델 단가'))).toBe(true)
+  cleanup()
+  renderAdmin('llm', 'quality')
+  const evaluations = await region('회귀 평가')
+  const leaks = await region('정보 누설 검사')
+  const rate = await region('누설 검사 표본 비율')
+  expect([before(evaluations, leaks), before(leaks, rate)]).toEqual([true, true])
+  // 표본 비율 폼은 경고 기준과 따로 이 쪽에 있고, 경고 기준 표는 경고 쪽에만 있다.
+  within(rate).getByLabelText('표본 비율(0~1)')
+  within(rate).getByRole('button', { name: '표본 비율 저장' })
+  expect(screen.queryByRole('region', { name: '경고 기준' })).toBeNull()
+})
+
+it('사이드바는 서비스 운영 묶음 위에 LLM Ops 묶음(경고·추적·지표·프롬프트·모델·평가·누설 검사)을 두고, 현재 표시는 탭과 view가 모두 같은 메뉴에만 있다', async () => {
+  renderAdmin('llm', 'prompts')
+  const group = await llmMenu()
+  const links = within(group).getAllByRole('link')
+  expect(links.map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+    ['경고', '/admin?tab=llm'], ['추적·지표', '/admin?tab=llm&view=traces'], ['프롬프트·모델', '/admin?tab=llm&view=prompts'], ['평가·누설 검사', '/admin?tab=llm&view=quality'],
+  ])
+  expect(links.map((link) => [link.getAttribute('aria-current'), link.classList.contains('on')])).toEqual([[null, false], [null, false], ['page', true], [null, false]])
+  const menu = screen.getByRole('navigation', { name: '관리자 업무' })
+  expect(within(menu).getAllByRole('group').map((g) => g.getAttribute('aria-label'))).toEqual(['회원 관리', '콘텐츠 관리', '소통 관리', 'LLM Ops', '서비스 운영'])
+  expect(within(within(menu).getByRole('group', { name: '서비스 운영' })).queryByRole('link', { name: /LLM/ })).toBeNull()
+  // 모르는 view는 경고 메뉴가 켜지고, 다른 탭에서는 네 메뉴 모두 꺼진다.
+  cleanup()
+  renderAdmin('llm', 'nope')
+  expect((await llmMenu()) && within(await llmMenu()).getAllByRole('link').map((link) => link.getAttribute('aria-current'))).toEqual(['page', null, null, null])
+  cleanup()
+  renderAdmin('jobs')
+  expect(within(await llmMenu()).getAllByRole('link').map((link) => link.getAttribute('aria-current'))).toEqual([null, null, null, null])
+})
+
+it('LLM Ops 화면 제목과 문서 제목은 쪽 이름을 붙인다', async () => {
+  for (const [view, title] of [[undefined, 'LLM Ops · 경고'], ['traces', 'LLM Ops · 추적·지표'], ['prompts', 'LLM Ops · 프롬프트·모델'], ['quality', 'LLM Ops · 평가·누설 검사']] as const) {
+    renderAdmin('llm', view)
+    await screen.findByRole('heading', { level: 1, name: title })
+    await waitFor(() => expect(document.title).toBe(`관리자 · ${title} · STORYFORK`))
+    cleanup()
+  }
+})
+
+it('LLM Ops는 쪽을 옮기면 열어 둔 추적 상세를 닫아, 돌아오면 목록부터 보인다', async () => {
+  renderAdmin('llm', 'traces')
+  const menu = await screen.findByRole('navigation', { name: '관리자 업무' })
+  fireEvent.click((await screen.findAllByRole('button', { name: / 단계 상세$/ }))[0])
+  await region('추적 상세')
+  // 상세가 열려 있는 동안은 그 상세만 보인다(지표 패널은 목록으로 돌아오면 다시 나온다).
+  expect(screen.queryByRole('region', { name: 'LLM 지표' })).toBeNull()
+  fireEvent.click(within(menu).getByRole('link', { name: '프롬프트·모델' }))
+  await region('프롬프트')
+  fireEvent.click(within(menu).getByRole('link', { name: '추적·지표' }))
+  await region('LLM 추적')
+  expect(screen.queryByRole('region', { name: '추적 상세' })).toBeNull()
+  await region('LLM 지표')
 })
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
