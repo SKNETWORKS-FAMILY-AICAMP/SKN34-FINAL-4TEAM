@@ -17,15 +17,17 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 표지 묶음의 이름은 같은 폼의 다른 입력 이름(.episode-app label)과 같은 글자이고 버튼 줄과 간격을 둔다. */
 .world-cover-edit{display:grid;gap:8px;min-width:0}.world-cover-label{font-size:13px;font-weight:650}
 
-/* 관리 모드 탭 줄: 탭(.ep-tabs) 오른쪽에 상시 저장 영역. 밑줄은 줄 전체가 긋고 탭은 그 위에 놓인다. */
-.world-tabs-row{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:4px 20px;border-bottom:1px solid var(--line2);margin-bottom:30px}.world-tabs-row .ep-tabs{margin-bottom:0;border-bottom:0}
-.world-save-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px 12px;margin-left:auto;padding-bottom:8px}.world-save-state{font-size:13px;font-weight:650;white-space:nowrap}.world-save-state.ok{color:var(--tsub)}.world-save-state.wait{color:var(--pri-ink)}
+/* 관리 모드 왼쪽 사이드바(.ep-menu, shared/episode.css)의 아래쪽: AI 검토·집필 메모·확정 버전 버튼과 상시 저장 영역. 기본은 줄바꿈하는 가로 줄(사이드바가 내용 위 줄이 되는 900px 이하)이고,
+   901px부터는 보기 메뉴 밑 구분선 뒤에 세로로 쌓는다(저장 영역은 사이드바와 함께 따라와 늘 보인다). */
+.world-menu-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+@media(min-width:901px){.world-menu-tools{display:grid;padding-top:12px;border-top:1px solid var(--line2)}.world-menu-tools .world-save-bar{flex-direction:column;align-items:stretch}}
+.world-save-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px 12px}.world-save-state{font-size:13px;font-weight:650;white-space:nowrap}.world-save-state.ok{color:var(--tsub)}.world-save-state.wait{color:var(--pri-ink)}
 /* 저장을 막는 사유: 어느 설정의 문제인지 이름이 붙은 글자 버튼(누르면 그 설정의 편집 화면)과 남은 건수. 버튼은 본문 링크처럼 밑줄로 구분하고 누르는 높이는 44px다. */
 .world-save-issue{max-width:34ch;color:var(--danger);line-height:1.4;overflow-wrap:anywhere}
 .world-save-issue button{display:inline-flex;align-items:center;min-height:44px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 
 /* AI 채팅: 집필실과 같은 오른쪽 레일(.studio-chat은 전역 스타일, 안쪽은 shared/chat). 본문(main) | 채팅 2열(채팅 350px 고정)이고 채팅은 상단바(65px) 아래에 붙어(sticky) 화면 높이를 쓴다:
-   머리 / 메시지(스크롤) / 입력(바닥). 배경은 페이지와 같고 왼쪽 선으로만 구분하며, 입력 카드·추천 칩·말풍선(--chat-card)만 한 단계 밝은 면으로 도드라진다. 헤더·탭 줄은 본문 열 안이다. 전송이 잠긴(준비 중) 동안은 1200px 이하에서 닫힌 채로 시작하고(WorldStudioPage), 좁은 화면(집필실과 같은 900px 이하)에서 열면 화면을 덮는 오른쪽 서랍이다. */
+   머리 / 메시지(스크롤) / 입력(바닥). 배경은 페이지와 같고 왼쪽 선으로만 구분하며, 입력 카드·추천 칩·말풍선(--chat-card)만 한 단계 밝은 면으로 도드라진다. 왼쪽 사이드바·헤더는 본문(main) 열 안이다. 전송이 잠긴(준비 중) 동안은 1200px 이하에서 닫힌 채로 시작하고(WorldStudioPage), 좁은 화면(집필실과 같은 900px 이하)에서 열면 화면을 덮는 오른쪽 서랍이다. */
 .episode-app.with-chat{display:grid;grid-template-columns:minmax(0,1fr) 350px;align-items:start}
 .world-chat{display:flex;flex-direction:column;position:sticky;top:65px;width:auto;height:calc(100dvh - 65px);min-height:0;overflow:hidden;border-left:1px solid var(--tline);--chat-card:var(--l,var(--surface)) var(--d,color-mix(in srgb,var(--ink) 8%,var(--surface)));background:var(--tbg)}
 .world-chat .studio-chat-head{flex:none;padding:12px 12px 12px 16px}.world-chat .studio-chat-head h2{display:flex;align-items:center;gap:8px;margin:0;font-size:15px}
@@ -56,6 +58,8 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-card-library{min-width:0;container:worlds-board / inline-size}
 /* 좁은 배치로도 담지 못하는 내용(끊기지 않는 긴 글자·큰 글자 확대)은 카드 밖으로 넘치지 않고 표 안에서 가로로 민다. */
 .world-board-scroll{overflow-x:auto}
+/* 좁은 배치의 분류 칩 줄(공용 worldBoard.css가 목록을 가로 flex로 바꾼다): 칩 버튼의 flex:none은 부모인 li에 닿지 않아, 칩이 한 줄에 다 안 들어가면 li가 줄어들어 칩 글자가 한 글자씩 꺾였다. li가 줄어들지 않게 해 줄 안에서 가로로 스크롤하게 한다. */
+.world-card-library .worlds-cats li{flex:none}
 .world-card-library .worlds-board-table .col-no{width:48px}.world-card-library .worlds-board-table .col-kind{width:92px}.world-card-library .worlds-board-table .col-num{width:56px}
 /* 카드 단위 공개(DEC-46): 맨 앞 선택 칸, `공개` 칸, 그 위의 한 번에 바꾸기 줄(안내 + 선택 공개·선택 비공개·전체 공개). 가져온 카드는 제목 아래에 출처를 한 줄 더 보인다. */
 /* 선택 칸은 칸 여백을 없애고 라벨이 44×44px를 채운다(다른 칸의 위아래 여백 덕에 줄 높이는 그대로다). */
@@ -93,9 +97,8 @@ html:has(.world-writing){scrollbar-gutter:stable}
 
 .world-revisions{max-width:76ch;margin-block:24px;overflow-wrap:anywhere}.world-revisions ul{list-style:none;padding:0}.world-revisions li{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-block:12px}.world-revisions time{font-size:.875rem}@media(max-width:600px){.world-revisions li{align-items:stretch;flex-direction:column}.world-revisions .initial-actions button{width:100%}}
 
-/* 설정집 화면은 편집 화면이 열려 있는 동안 지우지 않고 숨긴다(.episode-app.with-chat의 display가 hidden을 이기지 않게). 보기 전환 줄 오른쪽: AI 후보 검토 버튼 + 저장 영역. */
+/* 설정집 화면은 편집 화면이 열려 있는 동안 지우지 않고 숨긴다(.episode-app.with-chat의 display가 hidden을 이기지 않게). */
 .episode-app[hidden]{display:none}
-.world-tabs-end{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px 16px;margin-left:auto;padding-bottom:8px}.world-tabs-end .world-save-bar{margin-left:0;padding-bottom:0}
 .world-delete-notice,.world-notice{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 16px;padding:10px 14px;border:1px solid var(--tline);border-radius:12px;background:var(--pri-soft);color:var(--pri-ink);font-size:13.5px}.world-delete-notice span,.world-notice span{flex:1 1 220px}
 /* 공개 세계관인데 공개로 둔 설정이 없을 때의 경고(헤더·정보 편집 패널·작성 모드 공개 설정): 삭제 알림 줄과 같은 모양에 `전체 공개`가 붙는다. 공개 설정 줄(.world-publish) 안에서는 그 줄의 간격을 따른다. */
 .world-notice{margin:12px 0 0}
@@ -107,7 +110,6 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-rail-new .pop-menu-btn{width:36px;height:36px;border-radius:50%;color:var(--tsub)}.world-rail-new .pop-menu-btn:hover,.world-rail-new .pop-menu-btn[aria-expanded="true"]{background:var(--muted-bg);color:var(--tfg)}.world-rail-new .pop-menu-list{top:calc(100% + 4px);right:0}
 
 /* 편집 화면: 집필실(studio/view/writing.css)의 3단·레일·버전 그래프·AI 채팅 규칙을 그대로 쓰고, 세계관에만 있는 조각만 더한다. 토큰은 .calm.rd가 준다. */
-.world-card-studio .world-save-bar{margin-left:0;padding-bottom:0}
 /* 전역 .sbar는 90% 면(반투명)이라 좁은 화면에서 sticky 상단 바 뒤로 스크롤되는 본문 글자가 비친다: 이 화면의 상단 바는 불투명한 면이다. */
 .world-card-studio .sbar{background:var(--tbg)}
 /* 편집 화면의 오류는 설정집 화면과 같은 오류 상자(공용 .ep-alert)로 보여 일반 안내와 구분한다. 상단 바 바로 아래에 두고 여러 줄 사유는 줄을 지킨다. */
@@ -115,7 +117,7 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 편집 화면의 AI 채팅은 설정집 화면의 채팅(.world-chat)과 같은 면이다: 집필실의 브랜드 틴트 대신 주변과 같은 --tbg. 틴트를 정하는 변수(--chat-bg)를 덮어 writing.css의 background가 그 값을 쓰게 한다(집필실 /studio의 채팅은 그대로).
    머리글·왼쪽 선·입력 카드와 추천 칩의 면(--chat-card)은 두 화면의 규칙이 이미 같다. */
 .writing-studio.world-card-studio .writing-chat{--chat-bg:var(--tbg)}
-/* AI 채팅이 열려 있는 동안 화면 오른쪽 아래의 맨 위로 버튼(#top, 전역 셸, 600px 넘게 스크롤하면 나타남)이 채팅 전송 버튼을 덮지 않게 한다. 테마 전환은 이 화면에서 떠 있지 않고 상단(설정집 화면 저장 영역 옆·편집 화면 상단 바)에 있다(GlobalChrome).
+/* AI 채팅이 열려 있는 동안 화면 오른쪽 아래의 맨 위로 버튼(#top, 전역 셸, 600px 넘게 스크롤하면 나타남)이 채팅 전송 버튼을 덮지 않게 한다. 테마 전환은 이 화면에서 떠 있지 않고 상단(설정집 화면은 상단바, 편집 화면은 상단 바)에 있다(GlobalChrome).
    데스크톱은 채팅이 오른쪽 열이라(설정집 화면 .world-chat은 .episode-app.with-chat의 350px 열이고 1200px 이하는 300px, 편집 화면 .writing-chat도 같은 폭) 버튼을 그 왼쪽으로 비킨다: right = 열 폭 + 기존 오프셋 24px.
    설정집 화면의 900px 이하 채팅은 body에 그려지는 서랍(.back-dim, z-index 100)이라 #top(z-index 50)이 그 막 아래로 가려져 겹치지 않는다. 채팅이 문서 끝에 쌓이는 편집 화면의 좁은 화면은 문서 끝을 비워 마지막 줄(채팅 안내 글)과 전송 버튼이 버튼 위에서 멈추게 한다:
    #top은 bottom:24px에서 높이 50px라 맨 위가 화면 아래에서 74px이고, 아래 여백은 그 74px + 여유 10px = 84px다. */

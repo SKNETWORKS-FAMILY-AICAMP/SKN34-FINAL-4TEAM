@@ -101,10 +101,10 @@ describe('세계관 작업실 레이아웃 규칙', () => {
     expect(studio).toMatch(/@media\(max-width:900px\)\{[^@]*\.world-chat\{[^}]*position:fixed/)
   })
 
-  it('탭 줄은 탭과 상시 저장 영역을 한 줄에 두고 저장 영역을 오른쪽 끝으로 민다', () => {
-    expect(rule(studio, '.world-tabs-row')).toMatch(/display:\s*flex/)
-    expect(rule(studio, '.world-tabs-row')).toMatch(/justify-content:\s*space-between/)
-    expect(rule(studio, '.world-save-bar')).toMatch(/margin-left:\s*auto/)
+  it('관리 모드 사이드바의 도구 묶음은 줄바꿈하는 가로 줄이고 901px부터 구분선 뒤에 버튼과 상시 저장 영역을 세로로 쌓으며, 옛 탭 줄 규칙을 남기지 않는다', () => {
+    expect(rule(studio, '.world-menu-tools')).toMatch(/flex-wrap:\s*wrap/)
+    expect(studio).toMatch(/@media\(min-width:901px\)\{\.world-menu-tools\{[^}]*display:grid[^}]*border-top:\s*1px solid[^}]*\}\.world-menu-tools \.world-save-bar\{[^}]*flex-direction:column/)
+    expect(studio).not.toMatch(/world-tabs-(row|end)/) // 탭 줄을 비운 것이 이 이동의 목적이다
   })
 })
 

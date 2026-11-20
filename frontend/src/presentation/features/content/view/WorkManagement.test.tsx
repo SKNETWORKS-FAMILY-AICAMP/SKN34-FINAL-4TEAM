@@ -109,6 +109,15 @@ it('요청을 처리하는 동안 다른 탭은 잠그되 지금 보고 있는 �
   expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['공개 회차 · 3', false], ['세계관·설정집', true], ['이야기 분기', true], ['받은 피드백', true], ['운영 설정', true], ['저장·AI·발행 이력', true]])
 })
 
+it('작품 메뉴는 왼쪽 사이드바에 있고 고른 메뉴의 내용은 그 뒤의 내용 열에 그려진다(DOM 순서 = 시각 순서)', () => {
+  open(3)
+  const side = screen.getByRole('navigation', { name: '작품 메뉴' }).closest('.ep-menu') as HTMLElement
+  const content = side.nextElementSibling as HTMLElement
+  expect(content.classList.contains('ep-content')).toBe(true)
+  expect(side.parentElement?.className).toBe('ep-manage') // 두 열은 같은 2열 틀의 자식이다
+  expect(within(content).getByRole('list')).toBeTruthy() // 기본 메뉴(공개 회차)의 회차 목록
+})
+
 // ── 초안 목록(소유자 회차 조회)에서 오는 표시: 저장 버전 순번·작성 중인 초안 ──────────────────────────
 const saved = (id: string, number = 1) => ({ id, episode: number, title: '첫 화', body: '저장된 원고', revision: 7, savedAt: '2026-11-02T00:00:00Z' })
 const row = (number: number, extra: Partial<WritingEpisode> = {}): WritingEpisode => ({

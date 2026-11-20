@@ -39,19 +39,20 @@ import { WorldTimeline } from './WorldTimeline'
 import './world-studio.css'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
-/** `집필 메모 추가`: 새 메모를 초안에 더하고 그 편집 화면을 연다. 관리 모드는 보기 전환 줄의 `AI 검토` 옆에, 그 줄이 없는 작성 모드(마법사)는 헤더 행동 줄에 둔다. */
+/** `집필 메모 추가`: 새 메모를 초안에 더하고 그 편집 화면을 연다. 관리 모드는 왼쪽 사이드바의 `AI 검토` 아래에, 사이드바가 없는 작성 모드(마법사)는 헤더 행동 줄에 둔다. */
 const NoteButton = ({ vm }: { vm: VM }) => <button type="button" className="btn sm" onClick={() => { const id = vm.addCard('note'); if (id) vm.editCard(id) }}>집필 메모 추가</button>
 const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relations', '관계 연결 (선택)'], ['review', '검토·저장']] as const
 
 /**
  * 세계관 관리·작성 화면. 두 화면이다.
- * - **설정집 화면**(기본): `/content` 작품 관리와 같은 틀 — 공용 상단바 아래 서재로 돌아가는 링크, 공개 세계관 상세와 같은 모양의 헤더(표지·이름·칩·소개), 보기 전환 줄(설정집·관계도·시간선, 주소 `?view=`)과
- *   오른쪽의 `AI 검토`(시트: 설정집 검토 + AI 후보 검토, 이름에 의견·후보 수가 붙는다)·상시 저장 영역, 그 아래 설정집 게시판. 만든 직후(`?new=1`)는 작성 모드(보기 줄 없이 기본 정보 → 설정 카드 → 관계 연결 → 검토·저장 4단계 마법사)다.
+ * - **설정집 화면**(기본): `/content` 작품 관리와 같은 틀 — 공용 상단바 아래 서재로 돌아가는 링크, 그 아래 왼쪽 사이드바(`.ep-menu`)와 오른쪽 내용 열(`.ep-content`). 사이드바에는 보기 메뉴(설정집·관계도·시간선, 주소 `?view=`)와 구분선 뒤에
+ *   `AI 검토`(시트: 설정집 검토 + AI 후보 검토, 이름에 의견·후보 수가 붙는다)·`집필 메모 추가`·`확정 버전 남기기`·상시 저장 영역이 세로로 있고, 내용 열에는 공개 세계관 상세와 같은 모양의 헤더(표지·이름·칩·소개)와 그 아래 설정집 게시판이 있다.
+ *   만든 직후(`?new=1`)는 작성 모드(사이드바 없이 기본 정보 → 설정 카드 → 관계 연결 → 검토·저장 4단계 마법사)다.
  * - **편집 화면**(`?card=<id>`): 설정 카드를 열면 집필실과 같은 3단 화면(`WorldCardStudio`: 카드 목록·버전 그래프 레일 / 편집기 / AI 채팅)이 이 화면을 대신하고, `← 설정집`·뒤로가기로 돌아온다.
  * 설정집 화면은 편집 화면 뒤에서 지우지 않고 숨겨 두어 필터·적용하지 않은 관계 입력·후보 검토 상태를 지킨다. 주소 `/worldstudio`(세계관 없음)에서만 새 세계관 만들기 화면을 그린다.
  * 소설 작성은 실행 모드의 작품 생성 화면에서 시작한다.
- * 세계관이 열린 화면(주소에 id가 있는 경로)에는 떠 있는 테마 버튼(GlobalChrome)이 없다(집필실과 같은 규칙, 열린 채팅의 전송 버튼을 덮지 않게). 테마 전환은 `ThemeButton`이 맡아
- * 설정집 화면은 저장 영역 옆(보기 전환 줄 오른쪽 끝), 작성 모드는 헤더 행동 줄 끝, 편집 화면은 상단 바에 있고, 세계관 없는 만들기 화면은 떠 있는 버튼이 그대로다.
+ * 세계관이 열린 화면(주소에 id가 있는 경로)에는 떠 있는 테마 버튼(GlobalChrome)이 없다(집필실과 같은 규칙, 열린 채팅의 전송 버튼을 덮지 않게). 테마 전환은 설정집 화면은 상단바(Gnb)의 테마 버튼이 맡고,
+ * 작성 모드는 헤더 행동 줄 끝, 편집 화면은 상단 바에 `ThemeButton`이 있으며, 세계관 없는 만들기 화면은 떠 있는 버튼이 그대로다.
  */
 export function WorldStudioPage() {
   useScreenId('W01')
@@ -102,10 +103,10 @@ export function WorldStudioPage() {
 
 /**
  * 공개 세계관 상세 헤더와 같은 모양: 표지(올린 표지가 있으면 그 이미지, 없으면 기본 표지), 이름, 칩(설정 수·저장 버전·공개 범위·장르·저장 상태), 소개. 이름·소개·수는 저장한 세계관 기준이다.
- * 관리 모드에서는 제목 옆 '편집'이 세계관 정보 편집 패널(이름·설명·공개 범위·장르·표지)을 그 자리에 연다. 저장하지 않은 수정이 있으면 편집이 잠기고 저장 상태는 보기 전환 줄의 저장 영역이 보인다.
+ * 관리 모드에서는 제목 옆 '편집'이 세계관 정보 편집 패널(이름·설명·공개 범위·장르·표지)을 그 자리에 연다. 저장하지 않은 수정이 있으면 편집이 잠기고 저장 상태는 왼쪽 사이드바의 저장 영역이 보인다.
  * 헤더에는 공개 범위·장르 칩만 있고, 공개 목록에 나올 때(공개 + 확정 버전)만 공개 화면 링크가, 공개인데 확정 버전이 없을 때는 그 안내가 보인다.
  * 공개 세계관인데 공개로 둔 설정이 없으면 그 경고와 `전체 공개`를, 그 아래에는 연결된 소설을 알리는 상태 줄(정보만)을 보인다.
- * 행동 줄의 소설 버튼은 한 자리다: 연결된 소설이 있으면 그 작품 관리로 가는 `소설 작성하기`, 없으면 `소설 연결하기`(데모는 새 소설 폼으로 가는 `소설 작성하기`). `집필 메모 추가`와 테마 전환 버튼은 관리 모드에서 보기 전환 줄로 옮겼다(작성 모드는 이 줄 끝).
+ * 행동 줄의 소설 버튼은 한 자리다: 연결된 소설이 있으면 그 작품 관리로 가는 `소설 작성하기`, 없으면 `소설 연결하기`(데모는 새 소설 폼으로 가는 `소설 작성하기`). `집필 메모 추가`는 관리 모드에서 왼쪽 사이드바로 옮겼고(작성 모드는 이 줄에 둔다), 테마 전환 버튼은 관리 모드에서는 상단바가 맡는다(작성 모드는 이 줄 끝).
  * 작성 모드(만든 직후의 마법사)의 이름·설명·공개 설정은 기본 정보 단계에 있고 저장 상태는 헤더 칩이 보이며 '관리 화면으로'로 나갈 수 있다.
  */
 function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: StudioWorld; infoOpen: boolean; setInfoOpen: (open: boolean) => void }) {
@@ -192,8 +193,9 @@ function WorldPublish({ vm }: { vm: VM }) {
 }
 
 /**
- * 작성 모드(세계관을 처음 만든 직후, 주소 `?new=1`)는 보기 줄 없이 기본 정보부터 4단계 마법사다. 그 밖의 모든 진입은 관리 모드로, `/content` 작품 관리처럼
- * 헤더 아래 보기 전환 줄(설정집·관계도·시간선, 주소 `?view=`)로 화면을 바꾸고 줄 오른쪽에 `AI 검토`(시트)·`집필 메모 추가`·`확정 버전 남기기`와 상시 저장 영역, 그 옆 끝에 테마 전환 버튼을 둔다(이름·설명·공개·표지는 헤더 편집 패널).
+ * 작성 모드(세계관을 처음 만든 직후, 주소 `?new=1`)는 사이드바 없이 기본 정보부터 4단계 마법사다. 그 밖의 모든 진입은 관리 모드로, `/content` 작품 관리처럼
+ * 왼쪽 사이드바(공용 틀 `.ep-manage`·`.ep-menu`·`.ep-content`, shared/episode.css)의 보기 메뉴(설정집·관계도·시간선, 주소 `?view=`)로 화면을 바꾸고, 그 아래 구분선 뒤에 `AI 검토`(시트)·`집필 메모 추가`·`확정 버전 남기기`와 상시 저장 영역을 세로로 둔다(이름·설명·공개·표지는 헤더 편집 패널).
+ * 900px 이하에서는 사이드바가 내용 위의 가로 스크롤 줄이 되고 버튼·저장 영역은 줄바꿈하는 가로 줄이다.
  * 확정 버전은 편집 화면의 버전 그래프에서 남기고 본다. 시간선은 저장한 설정의 사건만 보인다.
  */
 function WorldEditor({ vm, world, revisions, openVersions }: { vm: VM; world: StudioWorld; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void }) {
@@ -206,75 +208,76 @@ function WorldEditor({ vm, world, revisions, openVersions }: { vm: VM; world: St
   const current = steps.findIndex(([id]) => id === step)
   useEffect(() => { if (vm.flow.screen === 'editor') heading.current?.focus({ preventScroll: true }) }, [step, vm.flow.screen])
   return (
-    <section className="world-content" hidden={vm.flow.screen !== 'editor'} aria-busy={vm.busy}>
-      <WorldHeader vm={vm} world={world} infoOpen={infoOpen} setInfoOpen={setInfoOpen} />
+    <section className={'world-content' + (manage ? ' ep-manage' : '')} hidden={vm.flow.screen !== 'editor'} aria-busy={vm.busy}>
       {manage && (
-        <div className="world-tabs-row">
-          <nav className="ep-tabs" aria-label="세계관 메뉴">
+        <div className="ep-menu">
+          <nav aria-label="세계관 메뉴">
             {MANAGE_VIEWS.map(([id, label]) => <button key={id} type="button" aria-current={vm.view === id ? 'page' : undefined} onClick={() => vm.setView(id)}>{label}</button>)}
           </nav>
-          <div className="world-tabs-end">
+          <div className="world-menu-tools">
             <WorldAiReview studio={vm} />
             <NoteButton vm={vm} />
             <VersionsButton vm={vm} supported={revisions.supported} open={openVersions} />
             {!vm.selected && <WorldSaveBar vm={vm} />}
-            <ThemeButton className="btn sm" />
           </div>
         </div>
       )}
-      {!manage && (
-        <nav className="world-step-nav" aria-label="세계관 작성 단계">
-          <ol>
-            {steps.map(([id, label], i) => (
-              <li key={id} data-state={i < current ? 'done' : i === current ? 'now' : 'next'}>
-                <button type="button" aria-current={step === id ? 'step' : undefined} onClick={() => vm.goStep(id)}><span aria-hidden="true">{i + 1}</span>{label}</button>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      )}
-      <section className="tcard ep-card">
-        {!manage && <h3 className="world-step-title" ref={heading} tabIndex={-1}>{steps[current][1]}</h3>}
+      <div className="ep-content">
+        <WorldHeader vm={vm} world={world} infoOpen={infoOpen} setInfoOpen={setInfoOpen} />
         {!manage && (
-          <fieldset className="world-fields world-basic" disabled={vm.busy} hidden={step !== 'info'}>
-            <legend className="sr-only">세계관 기본 정보</legend>
-            <label className="field">세계관 이름<input className="inp" required value={world.name} maxLength={100} onChange={(e) => vm.patch({ name: e.target.value })} /></label>
-            <label className="field">세계관 설명<textarea className="ta world-natural-input" rows={6} value={world.description} maxLength={20000} placeholder="어떤 시대와 배경에서 시작하나요? 정해 둔 세계의 모습을 자유롭게 적어 주세요." onChange={(e) => vm.patch({ description: e.target.value })} /></label>
-            <p className="small muted">이름만 정해도 시작할 수 있어요. 자세한 설정은 나중에 추가하세요.</p>
-            <WorldPublish vm={vm} />
-          </fieldset>
-        )}
-        <div hidden={step !== 'cards' || timeline}><WorldCardBoard vm={vm} /></div>
-        {timeline && (
-          <section className="world-confirmed" aria-label="시간선">
-            <h3>저장된 시간선</h3>
-            <p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않아요.</p>
-            <WorldTimeline items={vm.saved?.settings.map((s) => s.item) ?? []} />
-          </section>
-        )}
-        {vm.relationWorld === world.id && (
-          <div hidden={step !== 'relations'}>
-            {!manage && <p className="muted">관계는 필요한 경우에만 연결하세요. 건너뛰어도 저장할 수 있어요.</p>}
-            <button className="btn sm" type="button" onClick={vm.returnToCard}>{manage ? '설정집으로 돌아가기' : '설정 카드로 돌아가기'}</button>
-            <RelationEpisodePicker studio={vm} />
-            <WorldRelationshipEditor key={`${world.id}:${vm.relationKey}`} studio={vm} />
-          </div>
-        )}
-        {!manage && step === 'review' && <WritingReview vm={vm} />}
-        {!manage && (
-          <nav className="world-step-actions" aria-label="단계 이동">
-            <button className="btn" type="button" disabled={current === 0} onClick={() => vm.goStep(steps[current - 1][0])}>이전 단계</button>
-            {current < steps.length - 1 && <button className="btn pri" type="button" onClick={() => vm.goStep(steps[current + 1][0])}>{step === 'relations' ? '검토·저장으로' : '다음 단계'}</button>}
-            {step === 'cards' && <button className="btn" type="button" onClick={() => vm.goStep('review')}>관계 없이 검토·저장</button>}
+          <nav className="world-step-nav" aria-label="세계관 작성 단계">
+            <ol>
+              {steps.map(([id, label], i) => (
+                <li key={id} data-state={i < current ? 'done' : i === current ? 'now' : 'next'}>
+                  <button type="button" aria-current={step === id ? 'step' : undefined} onClick={() => vm.goStep(id)}><span aria-hidden="true">{i + 1}</span>{label}</button>
+                </li>
+              ))}
+            </ol>
           </nav>
         )}
-      </section>
+        <section className="tcard ep-card">
+          {!manage && <h3 className="world-step-title" ref={heading} tabIndex={-1}>{steps[current][1]}</h3>}
+          {!manage && (
+            <fieldset className="world-fields world-basic" disabled={vm.busy} hidden={step !== 'info'}>
+              <legend className="sr-only">세계관 기본 정보</legend>
+              <label className="field">세계관 이름<input className="inp" required value={world.name} maxLength={100} onChange={(e) => vm.patch({ name: e.target.value })} /></label>
+              <label className="field">세계관 설명<textarea className="ta world-natural-input" rows={6} value={world.description} maxLength={20000} placeholder="어떤 시대와 배경에서 시작하나요? 정해 둔 세계의 모습을 자유롭게 적어 주세요." onChange={(e) => vm.patch({ description: e.target.value })} /></label>
+              <p className="small muted">이름만 정해도 시작할 수 있어요. 자세한 설정은 나중에 추가하세요.</p>
+              <WorldPublish vm={vm} />
+            </fieldset>
+          )}
+          <div hidden={step !== 'cards' || timeline}><WorldCardBoard vm={vm} /></div>
+          {timeline && (
+            <section className="world-confirmed" aria-label="시간선">
+              <h3>저장된 시간선</h3>
+              <p className="small muted">저장한 설정만 보여드려요. 작성 중 변경과 AI 후보는 포함하지 않아요.</p>
+              <WorldTimeline items={vm.saved?.settings.map((s) => s.item) ?? []} />
+            </section>
+          )}
+          {vm.relationWorld === world.id && (
+            <div hidden={step !== 'relations'}>
+              {!manage && <p className="muted">관계는 필요한 경우에만 연결하세요. 건너뛰어도 저장할 수 있어요.</p>}
+              <button className="btn sm" type="button" onClick={vm.returnToCard}>{manage ? '설정집으로 돌아가기' : '설정 카드로 돌아가기'}</button>
+              <RelationEpisodePicker studio={vm} />
+              <WorldRelationshipEditor key={`${world.id}:${vm.relationKey}`} studio={vm} />
+            </div>
+          )}
+          {!manage && step === 'review' && <WritingReview vm={vm} />}
+          {!manage && (
+            <nav className="world-step-actions" aria-label="단계 이동">
+              <button className="btn" type="button" disabled={current === 0} onClick={() => vm.goStep(steps[current - 1][0])}>이전 단계</button>
+              {current < steps.length - 1 && <button className="btn pri" type="button" onClick={() => vm.goStep(steps[current + 1][0])}>{step === 'relations' ? '검토·저장으로' : '다음 단계'}</button>}
+              {step === 'cards' && <button className="btn" type="button" onClick={() => vm.goStep('review')}>관계 없이 검토·저장</button>}
+            </nav>
+          )}
+        </section>
+      </div>
     </section>
   )
 }
 
 /**
- * 설정집 화면의 `확정 버전 남기기`: 편집 화면 버전 그래프의 같은 이름 버튼처럼 확정 버전 시트(기존 확정 요청·복구 UI)를 연다. 공개 목록에 나오려면 확정 버전이 필요해 게시판에서도 남길 수 있게 저장 영역 옆에 둔다.
+ * 설정집 화면의 `확정 버전 남기기`: 편집 화면 버전 그래프의 같은 이름 버튼처럼 확정 버전 시트(기존 확정 요청·복구 UI)를 연다. 공개 목록에 나오려면 확정 버전이 필요해 게시판에서도 남길 수 있게 사이드바의 저장 영역 위에 둔다.
  * 저장하지 않은 변경이 있으면 기존 규칙대로(확정은 저장된 초안만) 잠그고 이유를 알린다. 목업은 확정 버전을 지원하지 않는다.
  */
 function VersionsButton({ vm, supported, open }: { vm: VM; supported: boolean; open: () => void }) {

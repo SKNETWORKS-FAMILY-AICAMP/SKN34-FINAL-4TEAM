@@ -218,7 +218,7 @@ const eventCard = (title: string, timeText = '1년'): StudioSetting => {
 const manageTabs = () => within(screen.getByRole('navigation', { name: '세계관 메뉴' }))
 const saveBar = () => within(screen.getByRole('group', { name: '저장 상태' }))
 
-it('보기 전환 줄은 현재 보기를 aria-current로 알리고 보기를 바꾸면 따라간다', async () => {
+it('보기 전환 메뉴는 현재 보기를 aria-current로 알리고 보기를 바꾸면 따라간다', async () => {
   await showWorld()
   const current = () => manageTabs().getAllByRole('button').filter((b) => b.getAttribute('aria-current') === 'page').map((b) => b.textContent)
   expect(current()).toEqual(['설정집'])
@@ -255,7 +255,7 @@ it('관리 헤더는 저장한 세계관의 소개와 설정 수·저장 버전�
   expect(header.getByText('저장 버전 1')).toBeTruthy()
   expect(header.getByText('비공개', { selector: '.chip' })).toBeTruthy() // 서버 연결 예정 칩은 실제 공개 범위 칩이 됐다
   expect(header.getByText('설명')).toBeTruthy()
-  expect(saveBar().getByText('저장됨')).toBeTruthy() // 관리 모드의 저장 상태는 헤더 칩이 아니라 탭 줄의 저장 영역이 보인다
+  expect(saveBar().getByText('저장됨')).toBeTruthy() // 관리 모드의 저장 상태는 헤더 칩이 아니라 사이드바의 저장 영역이 보인다
   expect(header.queryByText('저장됨')).toBeNull()
   openCard('가람 인물') // 관리 모드에는 기본 정보 입력이 없으니 저장 전 입력은 카드 수정으로 만든다
   fireEvent.change(screen.getByRole('textbox', { name: '설정 이름' }), { target: { value: '고친 이름' } })
@@ -264,9 +264,14 @@ it('관리 헤더는 저장한 세계관의 소개와 설정 수·저장 버전�
   expect(header.getByText('설명')).toBeTruthy()
 })
 
-it('관리 보기 전환 줄이 한 줄로 있고(설정집·관계도·시간선) 보기를 옮기면 그 화면으로 바뀐다', async () => {
+it('관리 보기 전환 메뉴가 왼쪽 사이드바에 있고(설정집·관계도·시간선) 보기를 옮기면 그 화면으로 바뀐다', async () => {
   await showWorld()
   expect(manageTabs().getAllByRole('button').map((b) => b.textContent)).toEqual(['설정집', '관계도', '시간선'])
+  // 사이드바(.ep-menu)가 내용 열(.ep-content)보다 먼저다(DOM 순서 = 시각 순서). 메뉴 아래에 도구·저장 영역이, 내용 열에 헤더와 게시판이 있다.
+  const side = screen.getByRole('navigation', { name: '세계관 메뉴' }).closest('.ep-menu') as HTMLElement
+  expect(side.nextElementSibling?.classList.contains('ep-content')).toBe(true)
+  expect(within(side).getByRole('group', { name: '저장 상태' })).toBeTruthy()
+  expect(within(side.nextElementSibling as HTMLElement).getByRole('heading', { name: '검증 세계', level: 1 })).toBeTruthy()
   for (const gone of ['세계관 탐색', 'AI 후보 검토', '확정 버전']) expect(manageTabs().queryByRole('button', { name: gone }), gone).toBeNull() // 탐색은 헤더의 공개 화면 보기, 후보 검토는 시트, 확정 버전은 편집 화면의 버전 그래프로 옮겼다
   expect(screen.getByRole('button', { name: 'AI 검토' })).toBeTruthy() // 의견·후보가 없으면 이름에 수를 붙이지 않는다
   expect(manageTabs().getByRole('button', { name: '설정집' }).getAttribute('aria-current')).toBe('page')
@@ -277,15 +282,9 @@ it('관리 보기 전환 줄이 한 줄로 있고(설정집·관계도·시간�
   expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
 })
 
-it('테마 전환은 떠 있는 버튼이 아니라 설정집 화면의 저장 영역 옆(탭 줄 오른쪽 끝)에 기존 작은 버튼 한 개로 있다', async () => {
+it('설정집 화면의 본문(사이드바 포함)에는 테마 전환 버튼을 따로 두지 않는다: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않고, 테마 전환은 상단바(Gnb)가 맡는다', async () => {
   await showWorld()
-  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 한 개: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않는다
-  const end = saveBar().getByRole('button', { name: '세계관 저장' }).closest('.world-tabs-end')!
-  expect(end.lastElementChild).toBe(theme) // 저장 영역 바로 옆, 줄의 오른쪽 끝
-  expect(saveBar().queryByRole('button', { name: /모드로/ })).toBeNull() // 저장 상태 묶음 안이 아니라 그 옆
-  expect(theme.className).toBe('btn sm') // 새 스타일 없이 기존 작은 버튼: 저장 버튼(btn pri sm)보다 약하다
-  fireEvent.click(theme)
-  expect(screen.getByRole('button', { name: '라이트 모드로' })).toBeTruthy()
+  expect(within(screen.getByRole('main')).queryByRole('button', { name: /모드로/ })).toBeNull() // 저장 영역 옆에 있던 작은 테마 버튼은 사이드바로 옮기지 않고 없앴다
 })
 
 it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 전환 버튼을 한 개 두고, 가려진 설정집 화면의 버튼은 중복으로 보이지 않는다', async () => {
@@ -299,7 +298,7 @@ it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 
   expect(theme.className).toBe('btn sm')
 })
 
-it('작성 마법사에는 탭 줄·저장 영역이 없어 테마 전환 버튼이 헤더의 행동 줄(집필 메모 추가·관리 화면으로 옆)에 한 개 있다', async () => {
+it('작성 마법사에는 사이드바·저장 영역이 없어 테마 전환 버튼이 헤더의 행동 줄(집필 메모 추가·관리 화면으로 옆)에 한 개 있다', async () => {
   await wizard()
   const theme = screen.getByRole('button', { name: '다크 모드로' })
   const acts = within(theme.closest('.acts') as HTMLElement)
@@ -600,11 +599,11 @@ it('관계도 보기의 인물 삭제도 같은 삭제 흐름이다: 관계와 �
   expect(screen.queryByRole('button', { name: '인물 삭제 되돌리기' })).toBeNull()
 })
 
-it('집필 메모 추가는 보기 전환 줄의 AI 검토 옆에 있어 어느 보기에서든 새 메모의 편집 화면을 열고 돌아오면 그 보기다', async () => {
+it('집필 메모 추가는 사이드바의 AI 검토 바로 아래에 있어 어느 보기에서든 새 메모의 편집 화면을 열고 돌아오면 그 보기다', async () => {
   await showWorld()
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   const memo = screen.getByRole('button', { name: '집필 메모 추가' })
-  expect(memo.previousElementSibling).toBe(screen.getByRole('button', { name: /^AI 검토/ })) // 관리 모드에서는 헤더가 아니라 보기 전환 줄이다
+  expect(memo.previousElementSibling).toBe(screen.getByRole('button', { name: /^AI 검토/ })) // 관리 모드에서는 헤더가 아니라 사이드바다
   expect(headerOf().queryByRole('button', { name: '집필 메모 추가' })).toBeNull()
   fireEvent.click(memo)
   expect(where()).toMatch(/^\/worldstudio\/qa\?view=people&card=[0-9a-f-]{36}$/)
@@ -614,7 +613,7 @@ it('집필 메모 추가는 보기 전환 줄의 AI 검토 옆에 있어 어느 
   expect(manageTabs().getByRole('button', { name: '관계도' }).getAttribute('aria-current')).toBe('page')
 })
 
-it('작성 모드에는 보기 전환 줄이 없어 집필 메모 추가가 헤더 행동 줄에 남는다', async () => {
+it('작성 모드에는 사이드바가 없어 집필 메모 추가가 헤더 행동 줄에 남는다', async () => {
   await wizard()
   fireEvent.click(headerOf().getByRole('button', { name: '집필 메모 추가' }))
   expect(where()).toMatch(/^\/worldstudio\/qa\?new=1&card=[0-9a-f-]{36}$/)
@@ -655,12 +654,12 @@ it('버전 그래프는 작업 초안(저장하지 않은 수정 표시)과 확�
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 
-it('설정집 화면에도 확정 버전 남기기가 저장 영역 옆에 있어 같은 확정 버전 시트를 열고, 저장하지 않은 변경이 있으면 잠그며 이유를 알린다', async () => {
+it('설정집 화면에도 확정 버전 남기기가 사이드바의 저장 영역 위에 있어 같은 확정 버전 시트를 열고, 저장하지 않은 변경이 있으면 잠그며 이유를 알린다', async () => {
   const confirm = vi.fn(async () => undefined)
   revisions = { ...noRevisions(), confirm }
   await showWorld()
   const button = () => screen.getByRole<HTMLButtonElement>('button', { name: '확정 버전 남기기' })
-  expect(saveBar().getByRole('button', { name: '세계관 저장' }).closest('.world-tabs-end')?.contains(button())).toBe(true) // 저장 영역과 한 줄
+  expect(saveBar().getByRole('button', { name: '세계관 저장' }).closest('.world-menu-tools')?.contains(button())).toBe(true) // 저장 영역과 같은 사이드바 묶음
   fireEvent.click(button())
   fireEvent.click(within(screen.getByRole('dialog', { name: '확정 버전' })).getByRole('button', { name: '저장된 초안을 확정 버전으로 남기기' }))
   expect(confirm).toHaveBeenCalledOnce() // 새 로직 없이 기존 확정 요청
@@ -977,7 +976,7 @@ const stepNames = () => Array.from(within(screen.getByRole('navigation', { name:
 const headerOf = (name = '검증 세계') => within(screen.getByRole('heading', { name, level: 1 }).closest('section')!)
 const bumpVersion: WorldStudioRepository['saveStudio'] = async (next) => ({ ...next, version: next.version + 1 })
 
-it('처음 작성하는 세계관(새로 만든 직후)은 탭 줄 없이 기본 정보부터 4단계로 쓰고 공개 설정도 그 단계에 있다', async () => {
+it('처음 작성하는 세계관(새로 만든 직후)은 사이드바 없이 기본 정보부터 4단계로 쓰고 공개 설정도 그 단계에 있다', async () => {
   await wizard()
   expect(screen.queryByRole('navigation', { name: '세계관 메뉴' })).toBeNull()
   expect(screen.queryByRole('group', { name: '저장 상태' })).toBeNull()
@@ -989,7 +988,7 @@ it('처음 작성하는 세계관(새로 만든 직후)은 탭 줄 없이 기본
   expect(headerOf().queryByRole('group', { name: '공개 설정' })).toBeNull() // 같은 컨트롤을 두 곳에 두지 않는다
 })
 
-it('저장한 적 있는 세계관은 탭 줄과 설정집부터 시작하는 관리 화면이고 단계·기본 정보 입력은 없다', async () => {
+it('저장한 적 있는 세계관은 사이드바 메뉴와 설정집부터 시작하는 관리 화면이고 단계·기본 정보 입력은 없다', async () => {
   await showWorld()
   expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy() // 탭 구성은 '관리 탭 다섯 개…' 테스트가 본다
   expect(screen.queryByRole('textbox', { name: '세계관 이름' })).toBeNull()
@@ -1587,7 +1586,7 @@ it('처음 작성하는 세계관도 모든 단계에서 AI 채팅을 보인다'
   }
 })
 
-it('AI 채팅은 본문(main) 밖 오른쪽 열이라 헤더·탭 줄·저장 영역은 본문 안에 있고 접으면 2열 배치가 풀린다', async () => {
+it('AI 채팅은 본문(main) 밖 오른쪽 열이라 헤더·사이드바·저장 영역은 본문 안에 있고 접으면 2열 배치가 풀린다', async () => {
   await showWorld()
   const main = screen.getByRole('main')
   const page = main.parentElement!

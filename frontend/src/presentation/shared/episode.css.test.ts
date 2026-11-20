@@ -60,7 +60,7 @@ describe('episode.css 작품 관리 히어로 계약', () => {
     expect(css).not.toMatch(/\.ep-(writing|editor|ai|publish|proposal|preview|title-label|body-label)\b/)
   })
 
-  it('사이드바를 없애고 본문은 소설 상세 페이지와 같은 최대 폭으로 가운데에 둔다', () => {
+  it('옛 작품 목록 사이드바 규칙을 남기지 않고 본문은 소설 상세 페이지와 같은 최대 폭으로 가운데에 둔다(왼쪽 메뉴가 있는 화면만 아래 계약대로 넓힌다)', () => {
     expect(css).not.toMatch(/\.ep-(shell|sidebar|side-title|side-note|new|work|book)\b/)
     expect(css).toMatch(/\.ep-main\{[^}]*max-width:1120px[^}]*margin:0 auto/)
   })
@@ -126,17 +126,30 @@ describe('episode.css 전역 select 규칙과의 공존', () => {
 })
 
 describe('episode.css 작품 관리 조용히 다듬기 계약', () => {
-  it('탭 줄은 650px 이하에서 줄바꿈 대신 한 줄로 가로 스크롤하고, 잘리지 않게 포커스 링을 안쪽에 그린다', () => {
-    const narrow = [...css.matchAll(/@media\(max-width:650px\)\{((?:[^@{}]|\{[^{}]*\})*)\}/g)].map((m) => m[1]).join('')
-    expect(narrow).toMatch(/\.ep-tabs\{[^}]*flex-wrap:nowrap[^}]*overflow-x:auto/)
-    expect(narrow).toMatch(/\.ep-tabs button\{[^}]*flex:none[^}]*white-space:nowrap/)
-    expect(narrow).toMatch(/\.ep-tabs button:focus-visible\{[^}]*outline-offset:-2px/)
-  })
-
-  it('탭 hover는 선택한 탭의 강조색과 잠긴 탭을 바꾸지 않는다', () => {
-    const hover = css.match(/\.ep-tabs button:hover:not\(([^)]*)\)\{([^}]*)\}/)
+  it('메뉴 hover는 선택한 항목의 강조 면과 잠긴 항목을 바꾸지 않는다', () => {
+    const hover = css.match(/\.ep-menu nav button:hover:not\(([^)]*)\)\{([^}]*)\}/)
     expect(hover?.[2]).toMatch(/color:var\(--ink\)/)
     expect(hover?.[1]).toContain(':disabled')
     expect(hover?.[1]).toContain('[aria-current]')
+  })
+})
+
+describe('episode.css 관리 화면 왼쪽 사이드바 계약', () => {
+  it('왼쪽 메뉴는 상단바 아래에 붙는(sticky) 열이고 넘치면 안에서 스크롤하며, 900px 이하에서는 내용 위의 가로 스크롤 줄이 된다', () => {
+    // 작품 관리·세계관 관리가 함께 쓰는 2열 틀: 메뉴 | 내용. 메뉴가 있는 화면만 본문 폭을 넓혀 내용 폭을 지킨다.
+    expect(rule('.ep-manage')).toMatch(/grid-template-columns:\d+px minmax\(0,1fr\)/)
+    expect(css).toMatch(/\.ep-main:has\(\.ep-manage\)\{[^}]*max-width:1[3-9]\d\dpx/)
+    const menu = rule('.ep-menu')
+    expect(menu).toMatch(/position:sticky/)
+    expect(menu).toMatch(/top:\d+px/) // 상단바(.gnb) 바로 아래
+    expect(menu).toMatch(/max-height:calc\(100dvh/)
+    expect(menu).toMatch(/overflow-y:auto/)
+    const narrow = [...css.matchAll(/@media\(max-width:900px\)\{((?:[^@{}]|\{[^{}]*\})*)\}/g)].map((m) => m[1]).join('')
+    expect(narrow).toMatch(/\.ep-manage\{[^}]*grid-template-columns:minmax\(0,1fr\)/)
+    expect(narrow).toMatch(/\.ep-menu\{[^}]*position:static/)
+    expect(narrow).toMatch(/\.ep-menu nav\{[^}]*display:flex[^}]*overflow-x:auto/)
+    expect(narrow).toMatch(/\.ep-menu nav button\{[^}]*flex:none[^}]*white-space:nowrap/)
+    // 스크롤 상자는 바깥으로 넘친 초점 링을 자르므로 메뉴 안의 링은 안쪽에 그린다.
+    expect(css).toMatch(/\.ep-menu button:focus-visible\{[^}]*outline-offset:-2px/)
   })
 })

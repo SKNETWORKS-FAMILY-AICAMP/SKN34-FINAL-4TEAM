@@ -120,3 +120,9 @@ it('터치 기기에서는 설정집 도구줄·편집 화면 레일의 검색·
   expect(coarse!.index).toBeGreaterThan(css.indexOf('.world-rail-tools input{')) // 같은 특이도는 뒤에 온 규칙이 이긴다
   expect(coarse!.index).toBeGreaterThan(css.indexOf('.episode-app .world-compact select'))
 })
+
+it('설정집 게시판의 분류 칩은 칩 줄이 모자라도 글자가 꺾이지 않고 줄 안에서 가로로 스크롤한다: 칩이 든 li는 flex 항목이라 li에 flex:none이 있어야 한다', () => {
+  // 공용 게시판(worldBoard.css)은 좁은 배치에서 목록을 가로 flex로 바꾸고 칩 버튼에 flex:none을 주지만 버튼의 부모는 li라 그 규칙이 닿지 않는다. 칩이 한 줄에 다 들어가지 않으면 li가 줄어들어 글자가 한 글자씩 꺾였다
+  // (왼쪽 사이드바로 게시판 폭이 줄어 1024px에서도 좁은 배치가 기본이 되며 드러남).
+  expect(rule((s) => s === '.world-card-library .worlds-cats li')?.body).toMatch(/flex:\s*none/)
+})
