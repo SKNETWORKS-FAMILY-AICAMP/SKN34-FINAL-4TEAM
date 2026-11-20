@@ -167,6 +167,7 @@ export function HomePage() {
           <div className="chips" role="group" aria-label="소설 필터">
             {vm.chips.map((c) => <button type="button" key={c} className={vm.chip === c ? 'on' : ''} aria-pressed={vm.chip === c} onClick={() => vm.selectChip(c)}>{c}</button>)}
           </div>
+          {vm.chipsFailed && <LineFailed message="장르 칩을 불러오지 못했어요." retry={vm.retryChips} />}
           {vm.guide && (
             <div className="guide">
               <b>처음 오셨나요?</b>

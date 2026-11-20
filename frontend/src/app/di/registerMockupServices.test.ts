@@ -93,3 +93,20 @@ it('운영 대시보드·LLMOps·작업 감시 저장소는 실제 모드에서 
   expect(mockup.resolve('jobMonitorRepository').constructor.name).toBe('InMemoryJobMonitorRepository')
   expect((await mockup.resolve('operationsDashboardUseCase').dashboard()).unavailable).toEqual([])
 })
+
+it('장르 저장소는 실제 모드에서 Content·운영 API를, mockup에서 같은 목록을 보는 메모리를 쓰고 홈 칩·세계관 이름이 그 목록을 따른다', async () => {
+  const real = createAppContainer()
+  expect(real.resolve('genreRepository').constructor.name).toBe('HttpGenreRepository')
+  expect(real.resolve('operationsGenreRepository').constructor.name).toBe('HttpOperationsGenreRepository')
+  vi.stubEnv('MODE', 'mockup')
+  const mockup = createAppContainer()
+  expect(mockup.resolve('genreRepository').constructor.name).toBe('InMemoryGenreRepository')
+  expect(mockup.resolve('operationsGenreRepository').constructor.name).toBe('InMemoryOperationsGenreRepository')
+  expect(await mockup.resolve('readingUseCase').homeChips()).toEqual(['추천', '✨ 판타지', '🛰 SF', '📜 고전', '🆓 무료', '✎ 포크 많은'])
+  expect((await mockup.resolve('publicWorldUseCase').get(DEMO_WORLDS[0].id))?.genreName).toBe('판타지')
+  // 운영에서 숨기면 작가 선택지(공개 목록)·홈 칩에서 빠지고, 세계관 장르는 이름을 알 수 없어 장르 없음처럼 된다.
+  await mockup.resolve('operationsGenreUseCase').update('genre-01', { active: false })
+  expect((await mockup.resolve('genreUseCase').list()).some((genre) => genre.code === 'genre-01')).toBe(false)
+  expect((await mockup.resolve('readingUseCase').homeChips())).not.toContain('✨ 판타지')
+  expect((await mockup.resolve('publicWorldUseCase').get(DEMO_WORLDS[0].id))?.genreName).toBeNull()
+})

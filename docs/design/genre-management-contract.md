@@ -25,7 +25,7 @@
 
 ## 세계관 장르 합치기
 
-- WorldStudio 다음 번호 마이그레이션(V13)이 `world.genre`의 CHECK 제약을 지우고 기존 값을 Content 장르 코드로 바꾼다.
+- WorldStudio 마이그레이션 V14(V13은 열린 PR #552 몫이라 비운다)가 `world.genre`의 CHECK 제약을 지우고 기존 값을 Content 장르 코드로 바꾼다.
 
   | 옛 코드 | 새 코드 | 이름 |
   |---|---|---|
@@ -39,7 +39,7 @@
 
 - WorldStudio는 별도 마이그레이션 이력이라 DB 외래키를 걸지 않는다. 대신 같은 데이터소스의 Content `genre`를 서비스가 확인한다(`worldGenre` 검사를 목록 조회로 바꾼다).
 - 세계관 장르는 지금처럼 **하나**(미지정 `null`)다.
-- 장르 템플릿 시더의 템플릿 장르 매핑(`GenreTemplateSeeder.TEMPLATE_WORLD_GENRES`)은 새 코드로 바꾼다. 템플릿의 동결 입력·원본 판정 hash에 `world.genre`가 들어가는지 구현 전에 확인한다(들어가면 기존 값 보존 방식을 다시 정한다).
+- 장르 템플릿 시더의 템플릿 장르 매핑(`GenreTemplateSeeder.TEMPLATE_WORLD_GENRES`)은 새 코드로 바꾼다. 템플릿의 동결 입력·원본 판정 hash에 `world.genre`가 들어가는지 구현 전에 확인한다(들어가면 기존 값 보존 방식을 다시 정한다). 확인 결과: 생성·편집·저장 hash와 동결 입력에는 들어가지 않고 원본 판정의 값 비교(`genre`가 null이거나 매핑 값)에만 쓰이므로, V14 변환표와 시더 매핑을 같은 값 대 값 표로 두어 이미 적재된 템플릿의 원본 판정이 유지된다.
 - 공개 목록 필터 `GET /public/world-studios?genre=`는 새 코드(`genre-01` …)를 받는다. 옛 영문 코드는 받지 않는다(시연 프로젝트, 링크를 남기지 않음).
 
 ## 선택·검사 규칙 (작품·세계관 공통)

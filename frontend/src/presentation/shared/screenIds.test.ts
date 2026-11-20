@@ -15,4 +15,5 @@ it("캐릭터챗 화면(U27)의 이름은 화면 제목·관리자 메뉴와 같
 it('관리자 화면 ID(A01~A18)는 모두 이름이 있어 개발용 표시에 undefined가 나오지 않는다', () => {
   for (let n = 1; n <= 18; n++) expect(screenLabel(`A${String(n).padStart(2, '0')}`)).not.toContain('undefined')
   expect(screenLabel('A17')).toBe('A17 관리자 · 관리자 계정·권한')
+  expect(screenLabel('A19')).toBe('A19 관리자 · 장르') // 콘텐츠 관리 > 장르(DEC-56)
 })

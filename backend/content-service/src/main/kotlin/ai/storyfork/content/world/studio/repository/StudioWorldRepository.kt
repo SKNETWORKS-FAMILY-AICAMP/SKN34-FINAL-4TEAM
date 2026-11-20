@@ -25,4 +25,8 @@ interface StudioWorldRepository : JpaRepository<StudioWorld, UUID> {
     /** [listed]에서 장르 하나만 돌려준다. */
     @Query("select w from StudioWorld w where w.visibility='public' and w.currentRevisionId is not null and w.deletedAt is null and w.genre=:genre order by w.publishedAt desc, w.id")
     fun listedByGenre(@Param("genre") genre: String, pageable: Pageable): Page<StudioWorld>
+
+    /** 장르 코드별로 센 지우지 않은 세계관 수 `[genre, 세계관 수]`다(장르 없는 세계관은 세지 않음). 운영 장르 표의 사용 수이며 쿼리 한 번이다. */
+    @Query("select w.genre, count(w) from StudioWorld w where w.genre is not null and w.deletedAt is null group by w.genre")
+    fun worldCounts(): List<Array<Any>>
 }

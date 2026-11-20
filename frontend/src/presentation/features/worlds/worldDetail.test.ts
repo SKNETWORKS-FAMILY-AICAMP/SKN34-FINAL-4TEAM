@@ -5,7 +5,7 @@ import { InMemoryPublicWorldRepository } from '../../../data/mock/InMemoryPublic
 import type { PublicWorld } from '../../../domain/entities/publicWorld'
 import type { CardType } from '../../../domain/entities/studioCards'
 import { BOOK_SORTS, CARD_COLORS } from '../../shared/worldBoard'
-import { GENRE_COLORS } from './worldAtlas'
+import { genreColor } from '../../shared/worldGenres'
 import {
   LABEL_ALL_MAX, LARGE_GRAPH, bookPath, bookRows, buildCharacterGraph, buildSettingGraph, cardPage, cardPairs, cardPath, detailEndpoint, kindCounts, parseBookKind, parseDetailTab,
   selectVisible, showsDetailLabel, type CardRef, type DetailGraph, type DetailNode,
@@ -18,7 +18,7 @@ const card = (title: string, type: CardType, links?: Card['links']): Card => ({ 
 const world = (cards: Card[]): PublicWorld => {
   const idOf = new Map(cards.map((c, i) => [c.title, String(i)]))
   return {
-    id: 'w', name: '시험 세계', description: '시험 세계의 개요', genre: 'fantasy', authorNickname: '작가', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 1,
+    id: 'w', name: '시험 세계', description: '시험 세계의 개요', genre: 'genre-01', genreName: '판타지', authorNickname: '작가', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 1,
     cards: cards.map((c, i) => ({ id: String(i), title: c.title, text: `${c.title} 설명`, cardType: c.type, aliases: [], tags: [] })),
     relationships: cards
       .flatMap((c, a) => (c.links ?? []).map(({ to, label }) => ({ sourceCardId: String(a), targetCardId: idOf.get(to) ?? to, label: label ?? '' })))
@@ -126,7 +126,7 @@ describe('buildSettingGraph', () => {
     expect(graph.nodes.map((n) => [n.id, n.name, n.kind])).toEqual([
       ['card:0', '오르', '인물'], ['card:1', '미라', '인물'], ['card:2', '하엘', '인물'], ['card:3', '새벽항', '장소'], ['card:4', '금기', '규칙'], ['world', '시험 세계', '세계관'],
     ])
-    expect(graph.nodes.map((n) => n.color)).toEqual([CARD_COLORS.인물, CARD_COLORS.인물, CARD_COLORS.인물, CARD_COLORS.장소, CARD_COLORS.규칙, GENRE_COLORS.판타지])
+    expect(graph.nodes.map((n) => n.color)).toEqual([CARD_COLORS.인물, CARD_COLORS.인물, CARD_COLORS.인물, CARD_COLORS.장소, CARD_COLORS.규칙, genreColor('genre-01')])
   })
 
   it('카드 노드는 누르면 그 카드의 페이지로, 세계관 중심 노드는 개요 탭으로 가는 주소(to)를 가진다', () => {

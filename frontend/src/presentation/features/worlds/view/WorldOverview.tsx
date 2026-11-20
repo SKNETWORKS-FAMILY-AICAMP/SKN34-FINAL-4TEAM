@@ -2,8 +2,7 @@ import { Fragment, type CSSProperties } from 'react'
 
 import type { PublicWorld, PublicWorldRef } from '../../../../domain/entities/publicWorld'
 import { Go } from '../../../shared/Go'
-import { genreLabel } from '../../../shared/worldGenres'
-import { GENRE_COLORS } from '../worldAtlas'
+import { genreColor, genreKey, genreLabel } from '../../../shared/worldGenres'
 import { bookPath, cardPath, kindCounts, overviewCards, relationshipCount } from '../worldDetail'
 import { InfoRow, WorldCover, WorldLink } from './WorldParts'
 import '../../reading/view/publicWiki.css'
@@ -19,7 +18,7 @@ const WorldLinks = ({ worlds, sep }: { worlds: readonly Ref[]; sep: string }) =>
  */
 export function WorldOverview({ world }: { world: PublicWorld }) {
   const { lineage } = world
-  const genre = genreLabel(world.genre)
+  const genre = genreLabel(world)
   const children = lineage?.children ?? []
   const combined = lineage?.combinedFrom ?? []
   const kinds = kindCounts(world)
@@ -29,7 +28,7 @@ export function WorldOverview({ world }: { world: PublicWorld }) {
     <div className="calm">
       <article className="tcard nw worlds-overview">
         <div className="nw-doc">
-          <table className="nw-info" style={{ '--cat': GENRE_COLORS[genre] } as CSSProperties}>
+          <table className="nw-info" style={{ '--cat': genreColor(genreKey(world)) } as CSSProperties}>
             <caption>{world.name}</caption>
             <tbody>
               <tr><td colSpan={2} className="nw-cover"><WorldCover w={world} /></td></tr>

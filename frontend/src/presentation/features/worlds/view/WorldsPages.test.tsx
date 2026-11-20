@@ -9,10 +9,8 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { DEMO_WORLDS } from '../../../../data/mock/demoPublicWorlds'
-import { InMemoryPublicWorldRepository } from '../../../../data/mock/InMemoryPublicWorldRepository'
 import type { PublicWorld, PublicWorldPage, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
 import { CARD_COLORS } from '../../../shared/worldBoard'
-import { WORLD_GENRES } from '../../../shared/worldGenres'
 import { buildWorldAtlas, rankByLineage, type AtlasNode, type WorldAtlas } from '../worldAtlas'
 import { bookPath, cardPath, type DetailGraph, type DetailNode } from '../worldDetail'
 import { WorldCardPage } from './WorldCardPage'
@@ -58,8 +56,8 @@ const renderAt = async (path: string) => {
 }
 const demo = (id: string) => DEMO_WORLDS.find((w) => w.id === id)!
 const name = (id: string) => demo(id).name
-// 메모리 데모의 세계관 요약 26개(파생·조합과 카드 점이 모두 있다)
-const DEMO = (await new InMemoryPublicWorldRepository().list({ page: 0, size: 100 })).items
+// 메모리 데모의 세계관 요약 26개(파생·조합과 카드 점이 모두 있고 UseCase가 공개 장르 목록으로 장르 이름을 붙인다)
+const DEMO = (await appContainer.resolve('publicWorldUseCase').list()).items
 /** 개요 탭의 계보 줄들(출처 한 줄, 파생·조합된 세계관 한 줄) */
 const lines = () => Array.from(document.querySelectorAll('.worlds-lineage p'), (p) => p.textContent)
 
@@ -77,7 +75,7 @@ it('/worlds는 칩 줄 아래에 홈 상단과 같은 2단(왼쪽 세계관 지�
   expect(within(map).getByText(`공개 세계관 ${worlds}개 · 설정 카드 ${cards}개 · 파생 ${derived} · 조합 ${combined}`)).toBeTruthy()
   const legend = within(within(map).getByRole('group', { name: '지도 범례' }))
   const items = (name: string) => legend.getByRole('list', { name }).textContent
-  expect([items('장르 색'), items('설정 카드 유형 색'), items('연결 선')]).toEqual([WORLD_GENRES.join(''), Object.keys(CARD_COLORS).join(''), '파생조합'])
+  expect([items('장르 색'), items('설정 카드 유형 색'), items('연결 선')]).toEqual([buildWorldAtlas(DEMO).nodes.filter((n) => n.kind === 'genre').map((n) => n.name).join(''), Object.keys(CARD_COLORS).join(''), '파생조합'])
   const links = (heading: string) => within(screen.getByRole('heading', { name: heading }).closest('section')!).getAllByRole('link')
   expect(links('새로 공개된 세계관')).toHaveLength(10)
   expect(links('세계관 모아 보기')).toHaveLength(DEMO_WORLDS.length)
@@ -113,7 +111,7 @@ it('장르 칩을 고르면 그 장르로 밝힐 노드를 지도에 넘기고 �
   await renderAt('/worlds')
   await screen.findByText('지도 캔버스')
   expect(canvas.props?.lit).toBeUndefined()
-  fireEvent.click(screen.getByRole('button', { name: '🛰️ SF' }))
+  fireEvent.click(await screen.findByRole('button', { name: '🛰 SF' }))
   const { atlas, lit } = canvas.props!
   const idOf = (genre: string) => atlas.nodes.find((n) => n.kind === 'genre' && n.genre === genre)!.id
   expect([lit?.has(idOf('SF')), lit?.has(idOf('무협'))]).toEqual([true, false])
@@ -126,7 +124,7 @@ it('지도의 장르 노드를 누르면 그 장르 칩이 골라지고 세계�
   await screen.findByText('지도 캔버스')
   const { atlas, onOpen } = canvas.props!
   act(() => onOpen(atlas.nodes.find((n) => n.kind === 'genre' && n.genre === '무협')!))
-  expect(screen.getByRole('button', { name: '⚔️ 무협' }).getAttribute('aria-pressed')).toBe('true')
+  expect(screen.getByRole('button', { name: '무협' }).getAttribute('aria-pressed')).toBe('true')
   act(() => onOpen(atlas.nodes.find((n) => n.kind === 'world' && n.worldId === 'moonhalo-isles')!))
   expect((await screen.findByRole('heading', { level: 1, name: name('moonhalo-isles') })).textContent).toBe(name('moonhalo-isles'))
 })
@@ -484,12 +482,12 @@ it('연결된 세계관은 원본과 파생·조합된 세계관을 라벨 칩�
 // 메모리 데모 대신 서버가 줄 모양(데모 표시·계보·작품·카드 점 없음)을 UseCase 대역으로 돌려준다.
 const useCase = () => appContainer.resolve('publicWorldUseCase')
 const server = (id: string, extra: Partial<PublicWorldSummary> = {}): PublicWorldSummary => ({
-  id, name: `${id} 세계`, description: '설명', genre: 'fantasy', authorNickname: '서버 작가', cardCount: 3, relationshipCount: 1, publishedAt: '2026-11-01T00:00:00Z', ...extra,
+  id, name: `${id} 세계`, description: '설명', genre: 'genre-01', genreName: '판타지', authorNickname: '서버 작가', cardCount: 3, relationshipCount: 1, publishedAt: '2026-11-01T00:00:00Z', ...extra,
 })
 const serverPage = (items: PublicWorldSummary[], total = items.length): PublicWorldPage => ({ items, page: 0, size: 24, total })
 const card = (id: string, title: string, cardType: PublicWorld['cards'][number]['cardType']) => ({ id, title, text: `${title} 설명`, cardType, aliases: [], tags: [] })
 const serverWorld = (extra: Partial<PublicWorld> = {}): PublicWorld => ({
-  id: 'sw', name: '서버 세계', description: '서버 설명', genre: 'sf', authorNickname: '서버 작가', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 2,
+  id: 'sw', name: '서버 세계', description: '서버 설명', genre: 'genre-14', genreName: 'SF', authorNickname: '서버 작가', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 2,
   cards: [card('c-1', '하린', 'character'), card('c-2', '도윤', 'character'), card('c-3', '온실', 'location')],
   relationships: [{ id: 'r-1', sourceCardId: 'c-1', targetCardId: 'c-2', label: '적대' }, { id: 'r-2', sourceCardId: 'c-1', targetCardId: 'c-3', label: '거점' }],
   relationshipStatus: 'current', ...extra,
@@ -717,8 +715,8 @@ it('공개된 세계관이 하나도 없으면 서재에서 공개하라는 안�
 
 it('서버 목록은 데모 안내·카드 유형·연결 선 범례·파생·조합 통계 없이 장르→세계관 지도와 최근 공개 순 순위를 보인다', async () => {
   const items = [
-    server('old', { publishedAt: '2026-11-01T00:00:00Z', cardCount: 2 }), server('new', { publishedAt: '2026-11-09T00:00:00Z', cardCount: 9, genre: 'sf' }),
-    server('mid', { publishedAt: '2026-11-05T00:00:00Z', genre: null }),
+    server('old', { publishedAt: '2026-11-01T00:00:00Z', cardCount: 2 }), server('new', { publishedAt: '2026-11-09T00:00:00Z', cardCount: 9, genre: 'genre-14', genreName: 'SF' }),
+    server('mid', { publishedAt: '2026-11-05T00:00:00Z', genre: null, genreName: null }),
   ]
   vi.spyOn(useCase(), 'list').mockResolvedValue(serverPage(items))
   await renderAt('/worlds')
@@ -728,7 +726,7 @@ it('서버 목록은 데모 안내·카드 유형·연결 선 범례·파생·�
   expect(main.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['STORYFORK 세계관 지도', '실시간 인기', '새로 공개된 세계관', '세계관 모아 보기'])
   const map = within(main.getByRole('region', { name: 'STORYFORK 세계관 지도' }))
   map.getByText('공개 세계관 3개 · 설정 카드 14개')
-  expect(map.getByRole('list', { name: '장르 색' }).textContent).toBe(WORLD_GENRES.join(''))
+  expect(map.getByRole('list', { name: '장르 색' }).textContent).toBe('판타지SF미지정') // 지도에 있는 장르만, 장르 없음은 미지정
   expect(map.queryByRole('list', { name: '설정 카드 유형 색' })).toBeNull()
   expect(map.queryByRole('list', { name: '연결 선' })).toBeNull()
   expect(canvas.props!.atlas.nodes.map((n) => n.kind)).not.toContain('card') // 카드 점 없이 장르·세계관 노드만
@@ -738,14 +736,14 @@ it('서버 목록은 데모 안내·카드 유형·연결 선 범례·파생·�
 })
 
 it('장르 칩을 고르면 그 장르 코드로 모아 보기를 다시 읽고 지도·순위는 그대로이며 추천 칩은 장르 없이 읽는다', async () => {
-  const list = vi.spyOn(useCase(), 'list').mockImplementation(async ({ genre } = {}) => serverPage(genre ? [server('only-sf', { genre })] : [server('a'), server('b', { genre: 'sf' })]))
+  const list = vi.spyOn(useCase(), 'list').mockImplementation(async ({ genre } = {}) => serverPage(genre ? [server('only-sf', { genre })] : [server('a'), server('b', { genre: 'genre-14', genreName: 'SF' })]))
   await renderAt('/worlds')
   await screen.findByText('지도 캔버스')
   expect(list.mock.calls.map(([query]) => query)).toEqual([{}])
-  fireEvent.click(screen.getByRole('button', { name: '🛰️ SF' }))
+  fireEvent.click(await screen.findByRole('button', { name: '🛰 SF' }))
   await screen.findByRole('link', { name: /only-sf 세계/ })
-  expect(list).toHaveBeenLastCalledWith({ genre: 'sf' }, expect.any(AbortSignal))
-  expect(within(screen.getByRole('heading', { name: '🛰️ SF' }).closest('section')!).getAllByRole('link')).toHaveLength(1)
+  expect(list).toHaveBeenLastCalledWith({ genre: 'genre-14' }, expect.any(AbortSignal))
+  expect(within(screen.getByRole('heading', { name: '🛰 SF' }).closest('section')!).getAllByRole('link')).toHaveLength(1)
   expect(canvas.props!.atlas.stats.worlds).toBe(2) // 지도는 장르 칩과 상관없이 전체 목록이다
   expect(screen.queryByRole('heading', { name: '새로 공개된 세계관' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '추천' }))
@@ -756,13 +754,13 @@ it('장르 칩을 고르면 그 장르 코드로 모아 보기를 다시 읽고 
 it('장르 목록 조회가 실패하면 모아 보기 안에서만 실패를 알리고 지도·순위는 그대로이며 다시 시도하면 읽는다', async () => {
   const list = vi.spyOn(useCase(), 'list').mockImplementation(async ({ genre } = {}) => {
     if (genre) throw new Error('offline')
-    return serverPage([server('a')])
+    return serverPage([server('a'), server('b', { genre: 'genre-14', genreName: 'SF' })]) // 칩은 세계관이 있는 장르만 보인다
   })
   await renderAt('/worlds')
-  fireEvent.click(screen.getByRole('button', { name: '🛰️ SF' }))
+  fireEvent.click(await screen.findByRole('button', { name: '🛰 SF' }))
   const alert = await screen.findByRole('alert')
   expect(alert.textContent).toContain('세계관 목록을 불러오지 못했어요.')
-  expect(alert.closest('section')?.querySelector('h2')?.textContent).toBe('🛰️ SF')
+  expect(alert.closest('section')?.querySelector('h2')?.textContent).toBe('🛰 SF')
   screen.getByText('지도 캔버스')
   screen.getByRole('complementary', { name: '실시간 인기 세계관' })
   list.mockImplementation(async ({ genre } = {}) => serverPage([server('sf-world', { genre })]))

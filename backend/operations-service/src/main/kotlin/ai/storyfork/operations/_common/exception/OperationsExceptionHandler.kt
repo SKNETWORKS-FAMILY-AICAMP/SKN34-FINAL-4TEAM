@@ -58,11 +58,11 @@ class OperationsExceptionHandler {
         else -> ResponseEntity.status(error.statusCode).body(OperationsErrorResponse("REQUEST_FAILED", "Request could not be completed."))
     }
 
-    /** Keeps the status and code a plain status exception would get, but shows the upstream's own message instead of the generic one. */
+    /** Keeps the status a plain status exception would get, but shows the upstream's own message and, when it sent one, its own code (the generic code otherwise). */
     @ExceptionHandler(UpstreamRejection::class)
     fun upstreamRejected(error: UpstreamRejection, request: HttpServletRequest): ResponseEntity<OperationsErrorResponse> {
         val generic = responseStatus(error, request)
-        return ResponseEntity.status(generic.statusCode).body(OperationsErrorResponse(requireNotNull(generic.body).code, error.userMessage))
+        return ResponseEntity.status(generic.statusCode).body(OperationsErrorResponse(error.code ?: requireNotNull(generic.body).code, error.userMessage))
     }
 
     @ExceptionHandler(Exception::class)

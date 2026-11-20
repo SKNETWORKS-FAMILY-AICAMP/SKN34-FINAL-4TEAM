@@ -3,11 +3,13 @@ import { useNavigate, useSearchParams } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
 import type { PublicWorld } from '../../../../domain/entities/publicWorld'
+import type { GenreUseCase } from '../../../../domain/usecases/GenreUseCase'
 import type { PublicWorldUseCase } from '../../../../domain/usecases/PublicWorldUseCase'
 import { useAsyncData } from '../../../shared/useAsyncData'
+import { useGenres } from '../../../shared/useGenres'
 import { parseBookSort, type BookSort } from '../../../shared/worldBoard'
 import { pageItems } from '../../../shared/pageItems'
-import { ALL_CHIP, WORLD_CHIPS, genreCode } from '../../../shared/worldGenres'
+import { ALL_CHIP, genreCode, worldChips } from '../../../shared/worldGenres'
 import { buildWorldAtlas, highlightIds, liveRank, rankByRecent, type AtlasNode } from '../worldAtlas'
 import {
   bookRows, buildCharacterGraph, buildSettingGraph, cardPage, cardPath, kindCounts, parseBookKind, parseDetailTab, selectVisible, type DetailNode, type DetailTab,
@@ -19,16 +21,19 @@ const RAIL_SIZE = 10
 /**
  * 공개 세계관 대시보드의 장르 칩과 그에 맞는 지도·순위·목록. 이 화면에서만 쓰므로 Redux 없이 로컬 상태로 둔다.
  * 지도·'실시간 인기'·'새로 공개된' 선반은 장르와 상관없이 늘 최근 공개 순 전체 목록(`overview`)에서 만들고, 장르 칩은 지도를 흐리게만 한다(`lit`, 추천이면 undefined).
- * 칩의 장르 쿼리(`genre`)로 다시 읽는 것은 '모아 보기' 목록 하나뿐이다(추천 칩은 전체 목록을 그대로 쓴다). 지도의 장르 노드를 누르면 그 장르 칩이 골라진다.
+ * 칩은 추천 + 세계관이 있는 공개 장르이고(장르 목록은 `useGenres`), 칩의 장르 쿼리(`genre`, 장르 코드)로 다시 읽는 것은 '모아 보기' 목록 하나뿐이다(추천 칩은 전체 목록을 그대로 쓴다). 지도의 장르 노드를 누르면 그 장르 칩이 골라진다.
+ * 장르 목록을 읽지 못하면 칩 줄에 실패와 다시 불러오기를 알린다(`genresFailed`).
  * 요청 취소·늦은 응답 무시·실패 재시도는 `useAsyncData`가 맡는다. 첫 조회가 끝나기 전·실패했을 때는 `world`가 없고(`isLoading`·`isError`), 전체가 0개면 `empty`다.
  */
-export function useWorldsViewModel(useCase: PublicWorldUseCase = appContainer.resolve('publicWorldUseCase')) {
+export function useWorldsViewModel(useCase: PublicWorldUseCase = appContainer.resolve('publicWorldUseCase'), genreUseCase: GenreUseCase = appContainer.resolve('genreUseCase')) {
   const navigate = useNavigate()
   const [chip, setChip] = useState(ALL_CHIP)
-  const genre = genreCode(chip)
+  const genres = useGenres(genreUseCase)
+  const genre = genreCode(genres.data ?? [], chip)
   const overview = useAsyncData((signal) => useCase.list({}, signal), [useCase])
   const filtered = useAsyncData((signal) => (genre ? useCase.list({ genre }, signal) : Promise.resolve(undefined)), [useCase, genre])
   const all = overview.data
+  const chips = useMemo(() => worldChips(genres.data ?? [], all?.items ?? []), [genres.data, all])
   // 지도 그래프는 ForceGraph가 좌표를 붙이고 링크를 바꾸므로 응답마다 새로 만들고 그 안에서는 그대로 쓴다.
   const atlas = useMemo(() => (all ? buildWorldAtlas(all.items) : undefined), [all])
   const lit = useMemo(() => (atlas ? highlightIds(atlas, chip) : undefined), [atlas, chip])
@@ -37,9 +42,10 @@ export function useWorldsViewModel(useCase: PublicWorldUseCase = appContainer.re
   const grid = genre ? filtered : overview
   const listing = genre ? filtered.data : all
   return {
-    chips: WORLD_CHIPS, chip, selectChip: setChip,
-    filtered: chip !== ALL_CHIP,
-    heading: WORLD_CHIPS.find((c) => c.genre === chip)?.label ?? chip,
+    chips, chip, selectChip: setChip,
+    genresFailed: genres.isError && !genres.data, retryGenres: genres.retry,
+    filtered: genre !== undefined,
+    heading: chips.find((c) => c.genre === chip)?.label ?? chip,
     /** 첫 조회 전체 상태: 불러오는 중 / 실패(다시 시도) / 공개 세계관이 하나도 없음 */
     isLoading: overview.isLoading, isError: overview.isError && !all, retry: overview.retry,
     empty: all?.total === 0,
@@ -53,7 +59,7 @@ export function useWorldsViewModel(useCase: PublicWorldUseCase = appContainer.re
     /** 장르 노드는 그 장르 칩 선택으로(칩이 없는 '미지정'은 무시), 세계관 노드는 그 세계관 상세로, 카드 노드는 그 카드의 페이지로 */
     openAtlasNode: (node: AtlasNode) => {
       if (node.kind === 'genre') {
-        if (genreCode(node.genre)) setChip(node.genre)
+        if (chips.some((c) => c.genre === node.genre)) setChip(node.genre)
       } else navigate(node.kind === 'card' ? cardPath(node.worldId, node.cardId) : `/worlds/${node.worldId}`)
     },
   }

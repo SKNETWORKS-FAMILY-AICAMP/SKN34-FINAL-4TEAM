@@ -2,7 +2,8 @@ import { useCallback } from 'react'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
-import { HOME_CHIPS, type ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
+import { HOME_CHIP_ALL, homeChips } from '../../../../domain/entities/genre'
+import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 import { showRouteProgress } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
@@ -16,13 +17,18 @@ export function useHomeViewModel(readingUseCase: ReadingUseCase = appContainer.r
   const guide = useAppSelector((s) => s.ui.guide)
   const firstHome = useAppSelector((s) => s.ui.firstHome)
   const dispatch = useAppDispatch()
-  const { data, isError, isLoading, retry } = useAsyncData(() => readingUseCase.getHome(role, chip), [readingUseCase, role, chip])
-  useScreenId(chip === HOME_CHIPS[0][0] ? 'U01' : 'U02')
+  // 칩 줄: 추천 · 홈에 보이는 장르(공개 장르 목록) · 무료 · 포크 많은. 목록을 읽는 동안·읽지 못했을 때는 장르 칩 없이 세 칩만 보이고 실패는 `chipsFailed`로 알린다.
+  const chips = useAsyncData((signal) => readingUseCase.homeChips(signal), [readingUseCase])
+  // 고른 칩이 더는 없는 칩(운영이 장르를 숨겼거나 홈 노출을 끔)이면 추천으로 본다. 칩 줄을 읽기 전에는 고른 값을 그대로 둔다.
+  const active = chips.data && !chips.data.includes(chip) ? HOME_CHIP_ALL : chip
+  const { data, isError, isLoading, retry } = useAsyncData(() => readingUseCase.getHome(role, active), [readingUseCase, role, active])
+  useScreenId(active === HOME_CHIP_ALL ? 'U01' : 'U02')
   return {
     home: data,
     isError, isLoading, retry,
-    chips: HOME_CHIPS.map((c) => c[0]),
-    chip,
+    chips: chips.data ?? homeChips([]),
+    chipsFailed: chips.isError && !chips.data, retryChips: chips.retry,
+    chip: active,
     guide,
     firstHome,
     selectChip: (c: string) => { showRouteProgress(); dispatch(uiActions.setChip(c)) },

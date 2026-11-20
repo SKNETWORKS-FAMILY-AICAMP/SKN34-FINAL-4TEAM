@@ -2,6 +2,9 @@ package ai.storyfork.operations._common.client
 
 import ai.storyfork.operations.comment.service.dto.OperationsComment
 import ai.storyfork.operations.comment.service.dto.OperationsCommentList
+import ai.storyfork.operations.genre.service.dto.GenreCreateRequest
+import ai.storyfork.operations.genre.service.dto.GenreOrderRequest
+import ai.storyfork.operations.genre.service.dto.GenreUpdateRequest
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJob
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJobList
 import ai.storyfork.operations.work.service.dto.ForkIntegrity
@@ -10,6 +13,7 @@ import java.time.Instant
 import java.util.UUID
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
+import tools.jackson.databind.JsonNode
 
 /** [ownerId] stays a String because Content `work.owner_id` is a varchar: a non-UUID owner must not turn get/restrict/unrestrict into 502. */
 data class ContentWork(val workId: UUID, val ownerId: String, val title: String, val restricted: Boolean)
@@ -29,7 +33,10 @@ data class LeakReferences(
     val originWorkId: String?, val privateCardTitles: List<String> = emptyList(), val unpublishedEpisodeTitles: List<String> = emptyList(),
 )
 
-/** Content internal work and comment APIs; only the service token is sent, never a member Bearer. */
+/** Genre calls also keep Content's 422 (an order that is not every code once) and show its own message and code (GENRE_NAME_TAKEN, GENRE_FEATURED_LIMIT). */
+private fun <T : Any> genre(call: () -> T?): T = upstream(setOf(400, 404, 409, 422), keepMessage = true, call = call)
+
+/** Content internal work, comment and genre APIs; only the service token is sent, never a member Bearer. */
 class ContentClient(private val http: RestClient) {
     fun work(workId: UUID): ContentWork = upstream {
         http.get().uri("/internal/v1/works/{id}", workId).retrieve().body<ContentWork>()
@@ -82,6 +89,21 @@ class ContentClient(private val http: RestClient) {
     // ponytail: the newest [size] preprocessing jobs in one call under the fixed 5s read timeout; pass status and page through when jobs outgrow one window.
     fun preprocessingJobs(size: Int): ContentPreprocessingJobList = upstream {
         http.get().uri("/internal/v1/preprocessing-jobs?page=0&size={size}", size).retrieve().body<ContentPreprocessingJobList>()
+    }
+
+    // Genre rows are passed through as JSON: Content computes every field (workCount, position, ...), so the operations API follows it without a copy of the shape.
+    fun genres(): JsonNode = genre { http.get().uri("/internal/v1/genres").retrieve().body<JsonNode>() }
+
+    fun createGenre(request: GenreCreateRequest): JsonNode = genre {
+        http.post().uri("/internal/v1/genres").body(request).retrieve().body<JsonNode>()
+    }
+
+    fun updateGenre(code: String, request: GenreUpdateRequest): JsonNode = genre {
+        http.patch().uri("/internal/v1/genres/{code}", code).body(request).retrieve().body<JsonNode>()
+    }
+
+    fun reorderGenres(codes: List<String>): JsonNode = genre {
+        http.put().uri("/internal/v1/genres/order").body(GenreOrderRequest(codes)).retrieve().body<JsonNode>()
     }
 
     /** Content re-submits only the failed episodes of the job (DEC-50) and answers with the updated job. */

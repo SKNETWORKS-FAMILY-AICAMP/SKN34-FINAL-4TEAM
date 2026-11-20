@@ -10,6 +10,7 @@ import { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { HttpEpisodeRepository } from '../../../../data/content/HttpEpisodeRepository'
 import { login } from '../../../../data/api/auth'
 import { appContainer } from '../../../../app/appContainer'
+import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import { createAppStore } from '../../../../app/store'
 
 /** 상단바·푸터는 공용 Gnb·Footer라 이 화면 테스트에서는 호출만 기록하는 대역으로 바꾼다(실제 Gnb는 Redux 스토어가 필요하다). */
@@ -25,6 +26,9 @@ const render = (ui: ReactElement, entry = '/content') => renderIn(<Provider stor
 const Where = () => { const here = useLocation(); return <p>위치 {here.pathname}{here.search}</p> }
 
 beforeEach(async () => {
+  // 장르 선택지는 서버의 공개 장르 목록이라 운영과 같은 메모리 목록으로 대신한다(afterEach의 restoreAllMocks가 되돌린다).
+  const genres = new InMemoryGenreRepository(new InMemoryOperationsGenreRepository())
+  vi.spyOn(appContainer.resolve('genreUseCase'), 'list').mockImplementation(() => genres.list())
   vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf')
     ? Response.json({ csrfToken: 'content-csrf' })
     : Response.json({ accessToken: 'content-bearer', user: { id: 'writer', email: 'writer@example.invalid', nickname: 'Writer', operator: false } })))
@@ -32,8 +36,9 @@ beforeEach(async () => {
 })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); shell.gnb.mockClear(); shell.footer.mockClear() })
 
-/** 작품 등록 필수값(장르 1개·권리 확인)을 채운다. */
-const fillRegistration = () => {
+/** 작품 등록 필수값(장르 1개·권리 확인)을 채운다. 장르 선택지는 서버 목록이라 그려질 때까지 기다린다. */
+const fillRegistration = async () => {
+  await within(screen.getByLabelText('장르')).findByRole('option', { name: '판타지' })
   fireEvent.change(screen.getByLabelText('장르'), { target: { value: '판타지' } })
   fireEvent.click(screen.getByLabelText('이 작품을 등록할 권리가 있음을 확인합니다.'))
 }
@@ -151,7 +156,7 @@ it('creates a private work through the API and opens its writing studio', async 
   await screen.findByText('새 작품 만들기')
   fireEvent.change(screen.getByLabelText('작품 제목'), { target: { value: '별의 기록' } })
   fireEvent.click(screen.getByLabelText('외부 2차 창작', { exact: false }))
-  fillRegistration()
+  await fillRegistration()
   fireEvent.change(screen.getByLabelText('두 번째 장르'), { target: { value: 'SF' } })
   fireEvent.change(screen.getByLabelText('해시태그'), { target: { value: '#회귀, 성장' } })
   fireEvent.click(screen.getByRole('button', { name: '작품 만들기' }))
@@ -171,11 +176,11 @@ it('does not reuse the previous cover when creating another work', async () => {
   vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'content-csrf' }) : init?.method === 'PUT' ? uploads(path, init) : new Response(null, { status: 404 })))
   stubPreviewUrl()
   const router = createMemoryRouter([{ path: '/content', element: <EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))} /> }, { path: '/studio/:id', element: <Where/> }], { initialEntries: ['/content'] })
-  renderIn(<RouterProvider router={router} useTransitions={false} />)
+  renderIn(<Provider store={createAppStore()}><RouterProvider router={router} useTransitions={false} /></Provider>)
   await screen.findByText('새 작품 만들기')
   fireEvent.change(screen.getByLabelText('작품 제목'), { target: { value: first.title } })
   fireEvent.change(screen.getByLabelText('표지 이미지 선택'), { target: { files: [new File(['png'], 'first.png', { type: 'image/png' })] } })
-  fillRegistration()
+  await fillRegistration()
   fireEvent.click(screen.getByRole('button', { name: '작품 만들기' }))
   await waitFor(() => expect(router.state.location.pathname).toBe(`/studio/${first.id}`))
   expect(uploads).toHaveBeenCalledTimes(1)
@@ -186,7 +191,7 @@ it('does not reuse the previous cover when creating another work', async () => {
   fireEvent.change(screen.getByLabelText('작품 제목'), { target: { value: second.title } })
   expect(screen.getByText('PNG·JPEG · 10 MiB 이하. 작품 생성 후 실제 작품 ID로 표지를 저장해요.')).toBeTruthy()
   expect((screen.getByLabelText('이 작품을 등록할 권리가 있음을 확인합니다.') as HTMLInputElement).checked).toBe(false)
-  fillRegistration()
+  await fillRegistration()
   fireEvent.click(screen.getByRole('button', { name: '작품 만들기' }))
   await waitFor(() => expect(router.state.location.pathname).toBe(`/studio/${second.id}`))
   expect(uploads).toHaveBeenCalledTimes(1)
@@ -246,6 +251,7 @@ it('clears the second genre when the first genre becomes the same one, so the hi
   await screen.findByRole('heading', { level: 1, name: '새 작품 만들기' })
   const first = screen.getByLabelText('장르') as HTMLSelectElement
   const second = screen.getByLabelText('두 번째 장르') as HTMLSelectElement
+  await within(second).findByRole('option', { name: '무협' })
   fireEvent.change(first, { target: { value: '판타지' } })
   fireEvent.change(second, { target: { value: 'SF' } })
   fireEvent.change(first, { target: { value: 'SF' } })
@@ -407,6 +413,7 @@ it('edits genres and hashtags with the work info: filled from the server, the ty
   // 작품 유형은 등록 때 정해져 읽기 전용이라 입력이 없고, 아무것도 바꾸지 않으면 저장할 수 없다.
   expect(within(form).queryByRole('radio')).toBeNull()
   expect((within(form).getByRole('button', { name: '저장' }) as HTMLButtonElement).disabled).toBe(true)
+  await within(within(form).getByLabelText('장르')).findByRole('option', { name: '무협' })
   fireEvent.change(within(form).getByLabelText('장르'), { target: { value: '무협' } })
   fireEvent.change(within(form).getByLabelText('두 번째 장르'), { target: { value: '' } })
   fireEvent.change(within(form).getByLabelText('해시태그'), { target: { value: '#복수, 성장' } })
@@ -1019,7 +1026,7 @@ it('shows why creating a work failed inside the form next to 작품 만들기, n
   openContent(contentApi({ 'GET /api/v1/works': () => Response.json([]), 'POST /api/v1/works': () => Response.json({ detail: '같은 제목의 작품이 이미 있어요.' }, { status: 409 }) }))
   await screen.findByRole('heading', { level: 1, name: '새 작품 만들기' })
   fireEvent.change(screen.getByLabelText('작품 제목'), { target: { value: '중복 제목' } })
-  fillRegistration()
+  await fillRegistration()
   fireEvent.click(screen.getByRole('button', { name: '작품 만들기' }))
   const alert = await screen.findByRole('alert')
   expect(alert.textContent).toContain('같은 제목의 작품이 이미 있어요.')
