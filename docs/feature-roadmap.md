@@ -190,7 +190,7 @@
 <tr><td>해시태그 0~10개 검증·저장</td><td>✅</td></tr>
 <tr><td>AI 장르·키워드 추천 <small>(작가 본인 작품의 제목·소개·발행 회차 앞 3개로 후보만 받고 저장은 기존 작품 수정 API가 함, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/372">#372</a>)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/397">PR #397</a></td></tr>
 <tr><td>작품 등록 권리 확인·기록</td><td>✅</td></tr>
-<tr><td>작품 상세 조회</td><td>✅ <small>(#366: 소개 없는 원작·출처 불완전 Fork의 소개 줄 숨김 소스 구현, 로컬 단위 54개·CI 통과. #508: 상단 장식을 배경색으로 교체, 화면 회귀 CI 확인 대기)</small></td></tr>
+<tr><td>작품 상세 조회</td><td>✅ <small>(#366: 소개 없는 원작·출처 불완전 Fork의 소개 줄 숨김 소스 구현, 로컬 단위 54개·CI 통과. #508: 상단 장식을 배경색으로 교체, 태블릿·휴대폰은 표지와 제목을 나란히 배치, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/582">PR #582</a> CI 통과)</small></td></tr>
 <tr><td>내 작품 목록 조회</td><td>✅</td></tr>
 <tr><td>작품 기본 정보 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/99">PR #99</a></td></tr>
 <tr><td>작품 삭제 요청 <small>(소유자 작품 관리에서 원작·Fork 삭제, 확인·성공 후 서재 이동·실패 사유 안내. DEC-42 소프트 삭제, #108·#467)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/106">PR #106</a></td></tr>

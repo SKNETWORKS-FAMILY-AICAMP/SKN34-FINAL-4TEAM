@@ -157,21 +157,17 @@ describe('storyfork.css theme tokens', () => {
   it('keeps the work hero genre label at 4.5:1 over the page background', () => {
     const label = sheet.find((r) => !r.media && r.selector === '.whero .g')
     expect(declOf(label, 'color')).toBe('var(--l,var(--tacc)) var(--d,var(--pri-ink))')
-    expect(declOf(sheet.find((r) => r.selector === '.calm' && !r.media), 'background')).toBe('var(--tbg)')
-    expect(declOf(root, '--tbg')).toBe('var(--bg)')
-    expect(declOf(root, '--tacc')).toBe('var(--pri)')
     expect(contrast(pair('pri')[0], pair('bg')[0])).toBeGreaterThanOrEqual(4.5)
     expect(contrast(pair('pri-ink')[1], pair('bg')[1])).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('keeps the work cover and title side by side on phones and gives reading actions the full width', () => {
-    const phone = sheet.filter((rule) => rule.media === '(max-width:600px)')
-    const layout = phone.find((rule) => rule.selector === '.whero')
-    const body = phone.find((rule) => rule.selector === '.whero > .whero-body')
-    const fullWidth = phone.find((rule) => rule.selector === '.whero :is(.sum,.hashes,.stats,.acts)')
-    expect(declOf(layout, 'grid-template-columns')).toBe('96px minmax(0,1fr)')
-    expect(declOf(body, 'display')).toBe('contents')
-    expect(declOf(fullWidth, 'grid-column')).toBe('1/-1')
+  it('limits the work detail cover-beside-title layout to the work page so .whero.ep-hero management screens keep theirs', () => {
+    // 작품 생성·관리·세계관 화면도 .whero(.ep-hero)를 쓰지만 .calm 밖이다. 상세 전용 배치·그림자는 .calm .whero에만 건다.
+    const narrow = sheet.filter((rule) => rule.media === '(max-width:900px)' || rule.media === '(max-width:600px)')
+    expect(narrow.some((rule) => rule.media === '(max-width:900px)' && rule.selector === '.calm .whero>.whero-body' && declOf(rule, 'display') === 'contents')).toBe(true)
+    expect(narrow.filter((rule) => selectorsOf(rule).some((s) => /^\.whero\b/.test(s)) && /display:contents|grid-column|minmax/.test(rule.body))).toEqual([])
+    expect(sheet.filter((rule) => !rule.media && /^\.whero \.cover$/.test(rule.selector) && /box-shadow/.test(rule.body))).toEqual([])
+    expect(declOf(sheet.find((rule) => rule.media === '(max-width:600px)' && rule.selector === '.whero .cover'), 'max-width')).toBe('130px')
   })
 })
 
