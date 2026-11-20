@@ -51,6 +51,21 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 
 `POST /internal/v1/initial-world/extractions`는 기존 내부 토큰·OpenAI 설정으로 #219 Input을 받아 검증된 후보 Output만 반환합니다. 실제 모델 호출 경로는 구현했지만 유료 호출·추출 품질은 미검증입니다. 저장·승인·Content 실행 연결은 제외하며 [호출/실패 계약과 검증 한계](../../docs/design/initial-world-ai-extraction.md)를 따릅니다. 기존 이어쓰기 API는 유지합니다.
 
+## 인물 시뮬레이션 턴 속도 스위치와 성적표 (#642)
+
+턴 하나는 연출 결정(Decisions) → 대사·나레이션 생성 → 검사(위반 시 최대 2회 재생성)의 모델 호출을 차례로 기다린다. 모델은 `gpt-6-luna`로 두고, 아래 스위치가 대기 시간을 얼마나 줄이고 품질을 얼마나 잃는지
+[성적표](../../docs/evaluation/simulation.md)로 잰다. 스위치는 **호출 때 읽고, 기본값(빈 값)은 지금 동작 그대로**다. `.env.example`에는 빈 기본값 주석으로 있고 compose는 이 값을 AI 컨테이너에 넘기지 않는다(성적표는 프로세스 환경에서 직접 읽는다. 채택하면 base compose·인프라 문서에 연결한다).
+
+| 환경 변수 | 값 | 효과 |
+|---|---|---|
+| `SIMULATION_REASONING_EFFORT` | `none`·`minimal`·`low`·`medium`·`high`(비우면 지정 안 함) | 계획·인물 턴·나레이션·검사 호출(`agent._parse`)의 `responses.parse`에 `reasoning={'effort': 값}`을 보낸다. 그 밖의 값은 모델을 부르기 전에 503 설정 오류다 |
+| `SIMULATION_SKIP_FORCED_DIRECTOR` | `1` | `service.rules`가 고를 턴을 하나로 정했고 그 턴이 대사가 아니면(시작·메모·비트 전환·마무리) 연출 모델을 부르지 않는다. 시점은 직전 턴 시점이고 없으면 전지적이다. 독백은 직전 시점이 인물 시점일 때만 생략한다(`director.forced`) |
+| `SIMULATION_WORLD_CACHE` | `1` | 대화 모드에서 resume마다 다시 읽는 세계관(`world_studio_read` 둘)을 프로세스 안에서 재사용한다. 목록(`world_studio_list`)은 매번 부르고, 그 `draftRevision`이 같고 `relationshipStatus`가 `current`일 때만 (세계관, 기준 회차) 칸을 쓴다. 고친 세계관은 revision이 올라 다음 요청에 반영된다(#356). Fork 이어받기와 원고 발췌 검색은 캐시하지 않는다(칸은 32개까지) |
+| `SIMULATION_SKIP_NARRATION_CHECK` | `1` | 전지적(omniscient) 나레이션 턴은 검사 모델을 부르지 않고 통과로 붙인다. 서버 규칙 검사(`_problem`)와 인물 시점 나레이션·독백·대사의 검사는 그대로다 |
+
+성적표 실행기는 [`eval/simulation/`](eval/simulation/README.md)에 있다(`prepare`·`estimate`·`run`·`report`). `run`은 실제 OpenAI를 부르므로 비용 승인 뒤에만 쓴다.
+스위치마다 켰을 때·껐을 때의 호출 수를 단위 테스트가 단언한다: `uv run --locked --extra dev python -m pytest -m 'not integration' tests/simulation eval/simulation`.
+
 ## 회귀 평가·누설 판정 (DEC-55)
 
 운영 서비스가 부르는 내부 API입니다([계약](../../docs/design/operations-llmops-contract.md)). Langfuse 4.x(`events_only`) 기준이며 `ragas`·`deepeval`은 `--extra eval`입니다(AI 이미지에는 설치하고, 단위 테스트는 설치 없이 통과합니다).
