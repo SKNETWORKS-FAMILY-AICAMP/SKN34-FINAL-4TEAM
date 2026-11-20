@@ -118,6 +118,7 @@ export function useWorldStudioViewModel(
     }, { replace: true })
   }, [editing, cardParam, selected, setParams])
   const [error, setError] = useState('')
+  const [attempt, setAttempt] = useState(0)
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(restoring)
   const [reviewBusy,setReviewBusy]=useState(false)
@@ -218,7 +219,7 @@ export function useWorldStudioViewModel(
       mutation.current = null
       generation.current = current + 1
     }
-  }, [useCase, worldId, restoring])
+  }, [useCase, worldId, restoring, attempt])
   useEffect(() => {
     if (!dirty && !relationDirty) return
     const warn = (e: BeforeUnloadEvent) => e.preventDefault()
@@ -311,6 +312,8 @@ export function useWorldStudioViewModel(
   const reload = async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setEpisode(null);setRelationKey(v=>v+1);return w}
   return {
     reviewWorldId:worldId,
+    /** 처음 읽기를 같은 주소 그대로 다시 한다. */
+    retryLoad: () => setAttempt((count) => count + 1),
     setReviewBusy,
     /** 설정집 AI 검토: 동의·요청·결과(지적·수정안)와 수정안 반영. 마지막 결과는 서버가 저장해 세계관을 읽으면 불러오고(#555), 세계관이 바뀌면 지운다. */
     review,
