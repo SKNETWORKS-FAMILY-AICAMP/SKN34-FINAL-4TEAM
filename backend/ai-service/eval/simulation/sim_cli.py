@@ -212,7 +212,7 @@ def cmd_build_hp(args) -> None:
         os.environ.pop(key, None)  # 원문이 Langfuse로 가지 않게
     try:
         stats = hp_build.build(make_llm(args), raw, sim_worlds.HP_DIR, sim_worlds.load_rows(), limit_usd=money_limit(args), workers=args.workers,
-                              max_relations=args.max_relations, max_attend=args.max_attend)
+                              max_relations=args.max_relations, max_attend=args.max_attend, person_cap=args.person_cap)
     except hp_build.LimitReached as stop:
         if args.via == 'ocx':
             raise
@@ -220,10 +220,13 @@ def cmd_build_hp(args) -> None:
     print(json.dumps(stats, ensure_ascii=False, sort_keys=True))
 
 
+SHOWN = ['Harry Potter', 'Hermione Granger', 'Severus Snape', 'Professor Quirrell', 'Peter Pettigrew']   # preview.md에 SOUL·GOAL 전문을 싣는 인물(영어 이름)
+
+
 def cmd_show_hp(args) -> None:
     world = sim_worlds.load_hp()
     path = sim_worlds.HP_DIR / 'preview.md'
-    path.write_text(hp_build.preview(world, ['Harry Potter', 'Hermione Granger', 'Severus Snape']), encoding='utf-8')
+    path.write_text(hp_build.preview(world, SHOWN, full=SHOWN), encoding='utf-8')
     print(f'표본을 {path}에 썼다(카드 {len(world["cards"])}개·관계 기록 {len(world["relationships"])}개·회차 {len(world["ordinals"])}개)')
 
 
@@ -336,6 +339,7 @@ def main(argv=None) -> None:
     build.add_argument('--via', choices=('openai', 'ocx'), default='openai', help='ocx: 로컬 OpenCodex 게이트웨이(구독 경로, 금액 0)')
     build.add_argument('--max-relations', type=int, default=hp_build.MAX_RELATIONS, help='세계관의 관계 수 상한(서버 한도 10,000). 낮추면 적재·평가 프롬프트가 줄어든다(응답은 캐시라 다시 조립만 한다)')
     build.add_argument('--max-attend', type=int, default=hp_build.MAX_ATTEND, help='사건마다 참여 관계를 만드는 참석자 수(목록 앞에서부터)')
+    build.add_argument('--person-cap', type=int, default=hp_build.PERSON_CAP, help='인물 한 명이 끝점인 관계 수 상한(기본 150). 넘으면 알고 있음 → 참여 → 추출 관계 순으로 뺀다')
     sub.add_parser('show-hp', help='world.json → .data/hp/preview.md(호출 없음)').set_defaults(handler=cmd_show_hp)
     seed = sub.add_parser('seed-hp', help='world.json을 로컬 스택에 배치로 적재(호출 없음, 로컬만)')
     seed.set_defaults(handler=cmd_seed_hp)

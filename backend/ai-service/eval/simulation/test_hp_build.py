@@ -2,6 +2,7 @@
 
 import json
 import re
+from collections import Counter
 
 import pytest
 
@@ -196,11 +197,12 @@ def test_people_are_linked_to_their_events_and_to_each_other_from_the_chapter_th
     data, _ = world()
     rel = {(r['key'], r['from']): r for r in data['relationships']}
     assert rel[('harry-potter~ev-002-00', 2)]['label'] == '참여' and rel[('ronald-weasley~ev-002-00', 2)]['target'] == 'ev-002-00'
-    assert rel[('harry-potter>ronald-weasley>knows', 2)]['label'] == '알고 있음' and rel[('ronald-weasley>harry-potter>knows', 2)]['source'] == 'ronald-weasley'
-    assert ('harry-potter>albus-dumbledore>knows', 1) in rel
+    pair = rel[('harry-potter>ronald-weasley>knows', 2)]   # 한 쌍에 방향 하나(한쪽이 끝점이면 둘이 서로 안다), 키 순서로 정한다
+    assert pair['label'] == '알고 있음' and pair['source'] == 'harry-potter' and pair['body'] == '해리와(과) 론은(는) 서로 안다.' and ('ronald-weasley>harry-potter>knows', 2) not in rel
+    assert ('albus-dumbledore>harry-potter>knows', 1) in rel
     crowd = [info(1, [1], 1, [person(f'사람{i}') for i in range(10)], [event('모임', '모였다', [f'사람{i}' for i in range(10)])])]
     links = [r for r in world(infos=crowd)[0]['relationships']]
-    assert sum(r['label'] == '참여' for r in links) == b.MAX_ATTEND and sum(r['label'] == '알고 있음' for r in links) == b.MAX_PAIR * (b.MAX_PAIR - 1)   # 참여는 앞 3명, 알고 있음은 앞 8명끼리
+    assert sum(r['label'] == '참여' for r in links) == b.MAX_ATTEND and sum(r['label'] == '알고 있음' for r in links) == b.MAX_PAIR * (b.MAX_PAIR - 1) // 2   # 참여는 앞 3명, 알고 있음은 앞 8명끼리 쌍마다 하나
 
 
 def test_extracted_relations_reach_persons_and_settings_change_over_chapters_and_drop_unknown_ends():
@@ -229,12 +231,57 @@ def test_relations_are_kept_in_order_of_importance_within_the_server_limit():
         return data, {label: {r['key'] for r in data['relationships'] if r['label'] == label} for label in ('참여', '알고 있음', '친구')}
 
     full, got = kinds(100)
-    assert len(got['친구']) == 1 and len(got['참여']) == 3 * b.MAX_ATTEND and len(got['알고 있음']) == 2 * 6   # 쌍 6개(해리·론·헤르미온느 3쌍 + 네빌과 앞 셋은 3쌍)가 모두 양방향
-    tight, got = kinds(1 + 9 + 2)   # 추출 1 + 참여 9 + 알고 있음 한 쌍(두 방향)
-    assert len(got['친구']) == 1 and len(got['참여']) == 9 and len({r['key'] for r in tight['relationships']}) == 12 and len(got['알고 있음']) == 2
+    assert len(got['친구']) == 1 and len(got['참여']) == 3 * b.MAX_ATTEND and len(got['알고 있음']) == 6   # 쌍 6개(해리·론·헤르미온느 3쌍 + 네빌과 앞 셋은 3쌍)
+    tight, got = kinds(1 + 9 + 1)   # 추출 1 + 참여 9 + 알고 있음 한 쌍
+    assert len(got['친구']) == 1 and len(got['참여']) == 9 and len({r['key'] for r in tight['relationships']}) == 11 and len(got['알고 있음']) == 1
     assert all('네빌' not in r['body'] for r in tight['relationships'] if r['label'] == '알고 있음')   # 한 번만 함께한 네빌의 쌍은 빠졌다
-    starved, got = kinds(4)   # 추출을 지키고 남는 자리만큼 참여를 앞 회차부터 담고 알고 있음은 자리가 없다
+    starved, got = kinds(4)   # 추출을 지키고 남는 자리만큼 참여를 최근 것부터 담고 알고 있음은 자리가 없다
     assert len(got['친구']) == 1 and len(got['참여']) == 3 and got['알고 있음'] == set()
+
+
+def person_links(data, key):
+    """인물 하나가 끝점인 관계 key(마지막 회차 시점)."""
+    return {r['key'] for r in data['relationships'] if key in (r['source'], r['target'])}
+
+
+def crowded():
+    """해리가 론·헤르미온느·네빌과 함께 세 사건에 나오고 추출 관계는 해리-론·해리-호그와트·론-네빌이다."""
+    crowd = ['해리', '론', '헤르미온느', '네빌']
+    return [info(1, [n], n, [person(x) for x in crowd], [event(f'사건{n}', f'{n}번 사건', crowd)], [setting('location', '호그와트')],
+                 [link('해리', '론'), link('해리', '호그와트', 'structural', '재학'), link('론', '네빌', label='동기')] if n == 1 else []) for n in (1, 2, 3)]
+
+
+def test_no_person_has_more_relations_than_the_cap_and_the_extracted_ones_are_kept_first():
+    cap = 3
+    data = world(infos=crowded(), person_cap=cap)[0]
+    for key in ('harry-potter', 'ronald-weasley'):
+        assert len(person_links(data, key)) <= cap
+    harry = {r['label'] for r in data['relationships'] if 'harry-potter' in (r['source'], r['target'])}
+    assert {'친구', '재학'} <= harry   # 추출 관계(해리-론·해리-호그와트)가 먼저 자리를 얻고 남는 한 자리가 참여·알고 있음에 간다
+    assert len(world(infos=crowded(), person_cap=1)[0]['relationships']) >= 1 and all(len(person_links(world(infos=crowded(), person_cap=1)[0], k)) <= 1 for k in ('harry-potter', 'ronald-weasley'))
+
+
+def test_the_cap_drops_the_knows_links_first_then_attendance_and_prefers_frequent_and_recent_ones():
+    infos = crowded()
+    data = world(infos=infos, person_cap=4)[0]
+    labels = Counter(r['label'] for r in data['relationships'] if 'harry-potter' in (r['source'], r['target']))
+    assert labels['친구'] == 1 and labels['재학'] == 1 and labels['참여'] == 2 and labels['알고 있음'] == 0   # 추출 2 + 참여(최근 사건부터) 2, 알고 있음은 마지막
+    attended = sorted(r['target'] for r in data['relationships'] if r['label'] == '참여' and r['source'] == 'harry-potter')
+    assert attended == ['ev-002-00', 'ev-003-00']   # 오래된 사건(1화)이 빠졌다
+    wide = world(infos=infos, person_cap=b.PERSON_CAP)[0]
+    assert sum(r['label'] == '알고 있음' for r in wide['relationships']) == 6 and sum(r['label'] == '참여' for r in wide['relationships']) == 3 * b.MAX_ATTEND   # 상한 안이면 그대로
+
+
+def test_relations_to_settings_and_events_do_not_use_up_their_own_cap_and_the_cap_holds_at_every_episode():
+    data = world(infos=crowded(), person_cap=2)[0]
+    place = next(c['key'] for c in data['cards'] if c['title'] == '호그와트')
+    assert any(r['target'] == place for r in data['relationships'])   # 장소는 인물이 아니라 상한이 없다
+    seed = w.seed_module()
+    for episode in (1, 2, 3):
+        for key in ('harry-potter', 'ronald-weasley', 'hermione-granger'):
+            scope = seed.scope_of(data)
+            ids = {p['id'] for p in seed.relations_at(data, episode) if seed.card_id(key, scope) in (p['sourceCardId'], p['targetCardId'])}
+            assert len(ids) <= 2
 
 
 def test_fewer_attendance_links_per_event_can_be_asked_for_to_shrink_the_prompts():
@@ -253,7 +300,7 @@ def test_relation_labels_and_bodies_stay_within_the_server_limits():
 
 def test_the_world_has_the_demo_shape_and_the_mapping_from_chapters_to_episodes():
     data, _ = world()
-    assert set(data) == {'world', 'work', 'cards', 'relationships', 'secrets', 'ordinals', 'english', 'unsplit'}
+    assert set(data) == {'world', 'work', 'cards', 'relationships', 'secrets', 'ordinals', 'english', 'unsplit', 'heldBack'} and data['heldBack'] == {}
     assert data['world']['genre'] == 'genre-01' and data['work']['title'] == '해리 포터(평가용·로컬 전용)' and data['secrets'] == []
     assert data['ordinals'] == {'1-1': 1, '1-2': 2, '2-1': 3} and data['english']['Harry Potter'] == 'harry-potter'
     assert len({c['key'] for c in data['cards']}) == len(data['cards'])
@@ -281,7 +328,7 @@ def test_the_world_loads_through_the_demo_seed_functions_with_changing_relations
 
 def test_estimate_counts_calls_from_chunk_sizes_and_grows_with_the_text():
     small, big = b.estimate_build([28_000, 56_001]), b.estimate_build([28_000, 56_001, 28_000])
-    assert small['calls'] == {'extract': 4, 'names': 1, 'docs': 12} and big['calls'] == {'extract': 5, 'names': 1, 'docs': 18}   # 인물은 덩어리마다 6명으로 어림
+    assert small['calls'] == {'extract': 4, 'names': 1, 'docs': 12, 'traits': 12} and big['calls'] == {'extract': 5, 'names': 1, 'docs': 18, 'traits': 18}   # 인물은 덩어리마다 6명으로 어림
     assert 0 < small['usd'] < big['usd']
 
 
@@ -307,14 +354,19 @@ class FakeLlm:
             if not marks:
                 return b.Extraction(events=[], people=[], things=[], relations=[])
             first = marks[0]
-            people = [person('해리', ['포터'], situation=f'상황 {m}', memory=f'{m} 일') for m in marks]
+            people = [person('해리', ['포터'], situation=f'상황 {m}', memory=f'{m} 일', personality=f'성격 {m}', wants=f'바람 {m}') for m in marks]
             if first != 'MARK11':
                 people.append(person('론', speech=f'말투 {first}', memory=f'{first} 론'))
             return b.Extraction(events=[event(f'사건 {m}', f'{m} 사건', ['해리'] + ([] if first == 'MARK11' else ['론'])) for m in marks], people=people,
                                 things=[setting('location', '호그와트', [], f'{m} 학교') for m in marks], relations=[link('해리', '호그와트', 'structural', '재학', f'{first} 재학')])
         if kind == 'hp_names':
             return b.Names(names=[b.NameEntry(ko=n['ko'], en=EN.get(n['ko'])) for n in data['names']])
-        return b.Docs(identity=f'{data["name"]}의 문서', soul='## 말투\n- 담담하다', goal='- 돕는다')
+        if kind in ('hp_traits', 'hp_traits_retry'):
+            return self.traits(data)
+        return b.Docs(identity=f'{data["name"]}의 문서', soul='## 말투\n- 처음 나온 대목의 말투', goal='- 처음 나온 대목의 바람')
+
+    def traits(self, data):
+        return b.hp_traits.Traits(soul=f'## 말투\n- {data["name"]}의 한결같은 말투\n\n## 사고방식\n- 한결같은 성격', goal='- 한결같은 바람')
 
 
 @pytest.fixture
@@ -360,7 +412,7 @@ def test_the_requests_are_the_same_on_every_run_so_the_ledgered_clients_cache_ke
     first, _ = run_build(small)
     again = type('Small', (), {**vars(small), 'out': tmp_path / 'again'})
     second, _ = run_build(again)
-    assert sorted(first.asks) == sorted(second.asks) and {k for k, _ in first.asks} == {'hp_extract', 'hp_names', 'hp_docs'}
+    assert sorted(first.asks) == sorted(second.asks) and {k for k, _ in first.asks} == {'hp_extract', 'hp_names', 'hp_docs', 'hp_traits'}
 
 
 def test_a_build_whose_estimate_exceeds_the_remaining_limit_stops_before_any_call(small):
@@ -421,3 +473,80 @@ def test_events_of_chapters_whose_heading_was_not_found_are_dated_at_the_last_ch
     events = {c['body'].split()[0]: c['revealFromEpisode'] for c in data['cards'] if c['cardType'] == 'event'}
     assert stats['unsplit'] == [[1, [1, 2]]] and data['unsplit'] == [[1, [1, 2]]] and stats['units'] == 4
     assert events['MARK11'] == events['MARK12'] == 2 and events['MARK13'] == 3   # 묶인 1~2장의 사건은 2화(마지막 장)다: 앞 장으로 미래 정보가 새지 않는다
+
+
+def run_traits_build(small, make):
+    """FakeLlm의 SOUL·GOAL 응답을 make(data)로 바꿔 build를 돌린다."""
+    class Scripted(FakeLlm):
+        def traits(self, data):
+            return make(data) or super().traits(data)
+
+    llm, stats = run_build(small, Scripted(small.cost))
+    return llm, stats, json.loads((small.out / 'world.json').read_text(encoding='utf-8'))
+
+
+def test_soul_and_goal_are_rewritten_from_the_whole_text_while_identity_stays_the_first_appearance_one(small):
+    llm, stats, data = run_traits_build(small, lambda data: None)
+    harry, ron = cards_of(data)['harry-potter'], cards_of(data)['ronald-weasley']
+    assert harry['body'] == '해리의 문서' and harry['characterDocs']['soul'] == '## 말투\n- 해리의 한결같은 말투\n\n## 사고방식\n- 한결같은 성격' and harry['characterDocs']['goal'] == '- 한결같은 바람'
+    assert ron['body'] == '론의 문서' and ron['characterDocs']['soul'].startswith('## 말투\n- 론의')
+    asked = {json.loads(text)['name']: text for kind, text in llm.asks if kind == 'hp_traits'}
+    assert set(asked) == {'해리', '론'} and all(f'MARK{m}' in asked['해리'] for m in ('11', '12', '13', '21', '22'))   # 해리의 성격·바람은 원문 전체(다섯 덩어리)에서 모은다
+    assert '상황 MARK' not in asked['해리'] and ' 일' not in asked['해리'] and 'Harry' not in asked['해리']   # 처지·그 장에서 겪은 일은 주지 않고 영어 이름도 싣지 않는다
+    assert stats['heldBack'] == 0 and data['heldBack'] == {} and not any(kind == 'hp_traits_retry' for kind, _ in llm.asks)
+
+
+def test_a_document_with_a_forbidden_word_is_rewritten_once_with_the_word_named_and_the_second_one_is_used(small):
+    def make(data):
+        if data['name'] == '해리' and 'avoid' not in data:
+            return b.hp_traits.Traits(soul='## 말투\n- 호크룩스였다는 사실을 모른다\n\n## 사고방식\n- 용감하다', goal='- 바람')
+    llm, stats, data = run_traits_build(small, make)
+    retry = [json.loads(text) for kind, text in llm.asks if kind == 'hp_traits_retry']
+    assert [r['name'] for r in retry] == ['해리'] and retry[0]['avoid'] == ['호크룩스']   # 걸린 낱말만 알려 준다
+    assert cards_of(data)['harry-potter']['characterDocs']['soul'] == '## 말투\n- 해리의 한결같은 말투\n\n## 사고방식\n- 한결같은 성격'   # 두 번째 문서
+    assert stats['heldBack'] == 0 and data['heldBack'] == {}
+
+
+def test_a_document_that_is_caught_again_keeps_the_previous_value_and_is_listed_without_hiding_it(small):
+    def make(data):
+        if data['name'] == '해리':
+            return b.hp_traits.Traits(soul='## 말투\n- 호크룩스 이야기를 피한다\n\n## 사고방식\n- 용감하다', goal='- 바람')
+    llm, stats, data = run_traits_build(small, make)
+    harry = cards_of(data)['harry-potter']
+    assert harry['characterDocs']['soul'] == '## 말투\n- 처음 나온 대목의 말투' and harry['characterDocs']['goal'] == '- 처음 나온 대목의 바람'   # 이전(첫 등장) 문서
+    assert data['heldBack'] == {'harry-potter': ['호크룩스']} and stats['heldBack'] == 1
+    assert cards_of(data)['ronald-weasley']['characterDocs']['soul'].startswith('## 말투\n- 론의')   # 걸리지 않은 인물은 새 문서
+
+
+def test_people_without_any_trait_record_are_not_asked_and_keep_their_document(small):
+    class Plain(FakeLlm):
+        def ask(self, kind, instructions, input, **kwargs):
+            reply = super().ask(kind, instructions, input, **kwargs)
+            if kind == 'hp_extract':
+                for p in reply.people:
+                    p.personality = p.speech = p.wants = ''
+            return reply
+
+    llm, stats = run_build(small, Plain(small.cost))
+    data = json.loads((small.out / 'world.json').read_text(encoding='utf-8'))
+    assert not any(kind.startswith('hp_traits') for kind, _ in llm.asks) and stats['heldBack'] == 0
+    assert cards_of(data)['harry-potter']['characterDocs']['soul'] == '## 말투\n- 처음 나온 대목의 말투'
+
+
+def test_the_person_cap_reaches_the_build_and_the_world_shrinks_with_it(small):
+    _, wide = run_build(small)
+    again = type('Small', (), {**vars(small), 'out': small.out.parent / 'capped'})
+    _, tight = run_build(again, person_cap=1)
+    capped = json.loads((again.out / 'world.json').read_text(encoding='utf-8'))
+    assert tight['relations'] < wide['relations'] and all(len(person_links(capped, key)) <= 1 for key in ('harry-potter', 'ronald-weasley'))
+
+
+def test_the_preview_prints_soul_and_goal_in_full_for_the_asked_people_and_counts_held_back_documents():
+    docs = b.Docs(identity='해리의 정체', soul='## 말투\n- ' + '조용하다 ' * 80, goal='- 집을 찾는다')
+    data, _ = world({'harry-potter': docs})
+    data['heldBack'] = {'a': ['x'], 'b': ['y']}
+    text = b.preview(data, ['Harry Potter'], limit=40, full=['Harry Potter'])
+    assert '조용하다 ' * 80 in text.replace('\n', ' ') or ('조용하다 ' * 79) in text and '- 집을 찾는다' in text
+    assert '금지 낱말 검사에 두 번 걸려 이전 문서로 둔 인물: 2명' in text and '**SOUL**\n\n## 말투' in text
+    short = b.preview(data, ['Harry Potter'], limit=40)
+    assert ('조용하다 ' * 80) not in short and '**SOUL** ## 말투' in short

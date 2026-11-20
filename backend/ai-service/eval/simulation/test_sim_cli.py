@@ -246,16 +246,16 @@ def test_build_hp_runs_the_extractor_under_the_openai_limit_prints_only_numbers_
     monkeypatch.setattr(cli.hp_build, 'build', build)
     cli.main(['build-hp'])
     assert (seen['raw'], seen['out'], seen['rows'], seen['limit_usd'], seen['workers']) == (hp_env / 'raw', hp_env, [{'series': 'harry_potter'}], 18.0, 12) and seen['llm'].limit == 18.0
-    assert (seen['max_relations'], seen['max_attend']) == (hb.MAX_RELATIONS, hb.MAX_ATTEND)
+    assert (seen['max_relations'], seen['max_attend'], seen['person_cap']) == (hb.MAX_RELATIONS, hb.MAX_ATTEND, 150)
     assert json.loads(capsys.readouterr().out) == {'units': 3, 'usd': 0.5} and 'LANGFUSE_PUBLIC_KEY' not in os.environ and 'LANGFUSE_SECRET_KEY' not in os.environ
-    cli.main(['build-hp', '--max-relations', '5000', '--max-attend', '1'])   # 관계를 줄여 다시 조립(응답은 캐시)
-    assert (seen['max_relations'], seen['max_attend']) == (5000, 1)
+    cli.main(['build-hp', '--max-relations', '5000', '--max-attend', '1', '--person-cap', '40'])   # 관계를 줄여 다시 조립(응답은 캐시)
+    assert (seen['max_relations'], seen['max_attend'], seen['person_cap']) == (5000, 1, 40)
 
 
 def test_build_hp_that_hits_the_limit_says_how_to_continue_with_ocx_and_ocx_has_no_money_limit(monkeypatch, hp_env):
     calls = []
 
-    def build(llm, raw, out, rows, *, limit_usd, workers, max_relations, max_attend):
+    def build(llm, raw, out, rows, *, limit_usd, workers, max_relations, max_attend, person_cap):
         calls.append((getattr(llm, 'via', 'openai'), limit_usd))
         if llm is not ocx:
             raise hb.LimitReached('hp_extract: 비용 상한 $18.00에 닿아 멈췄다')
@@ -289,6 +289,7 @@ def test_show_hp_writes_the_preview_next_to_the_world_without_any_call(hp_env, c
     cli.main(['show-hp'])
     text = (hp_env / 'preview.md').read_text(encoding='utf-8')
     assert '## Harry Potter — 해리(첫 등장 1화)' in text and '## Hermione Granger' in text and '## Severus Snape' in text and 'preview.md' in capsys.readouterr().out
+    assert '## Professor Quirrell' in text and '## Peter Pettigrew' in text and '**SOUL**\n\n' in text   # 다섯 인물의 SOUL·GOAL은 전문으로
 
 
 def test_seed_hp_hands_the_world_path_and_the_local_address_to_hp_seed(monkeypatch, hp_env):

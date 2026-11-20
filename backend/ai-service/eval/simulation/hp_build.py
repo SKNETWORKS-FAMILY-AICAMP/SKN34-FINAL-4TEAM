@@ -1,9 +1,11 @@
 """해리 포터 번역본 원문 → 평가용 세계관 world.json(#642 후속): 장마다 모델이 사건·인물·설정·관계를 뽑고, 호칭을 한 사람으로 묶어 영어 정식 이름을 붙이고, 인물 문서를 쓴다.
 
 단계: ① 장 나누기(hp_chapters) → ② 덩어리마다 추출(사건·인물·장소/조직/물건/능력/규칙·관계, 한국어) → ③ 정체 정리(같은 사람 묶기·영어 정식 이름)
-→ ④ 인물마다 문서(IDENTITY·SOUL·GOAL) → ⑤ 시연 세계관(infrastructure/sample-data/simulation-demo)과 같은 world.json 하나를 .data/hp에 쓴다.
+→ ④ 인물마다 IDENTITY(처음 나온 대목만) → ⑤ SOUL·GOAL 다시 쓰기(원문 전체에서 변하지 않는 면만, 반전·결과는 서버 검사로 거른다: hp_traits)
+→ ⑥ 시연 세계관(infrastructure/sample-data/simulation-demo)과 같은 world.json 하나를 .data/hp에 쓴다.
 회차는 7권의 모든 장을 이어 붙인 번호다(1권 1장 = 1화). 장 → 회차 대응표를 world.json의 ordinals에 같이 둔다.
-누설을 막는 규칙(제품 규칙 그대로): IDENTITY·SOUL·GOAL·별칭·설정 카드 본문은 늘 보이므로 **처음 나온 대목에서 이미 드러난 것만** 모델에 준다.
+누설을 막는 규칙(제품 규칙 그대로): IDENTITY·별칭·설정 카드 본문은 늘 보이므로 **처음 나온 대목에서 이미 드러난 것만** 모델에 준다.
+SOUL·GOAL도 늘 보이지만 '사람됨'이라 원문 전체에서 한결같은 면만 쓰게 하고(성격·말투·바람 기록만 주고 사건·처지는 주지 않는다), 정체·반전·결과·후반 사건은 금지 낱말 검사로 거른다.
 나중에 드러나는 것(정체·변화·비밀)은 그 회차의 episodes[N]·관계·사건 카드(revealFromEpisode)로만 둔다. 머리를 못 찾아 묶인 장의 사건은 묶음의 마지막 장 회차다.
 호출은 novelbrain의 Llm(디스크 캐시·비용 장부)으로만 하고 원문·모델 응답은 .data에만 둔다. 같은 명령을 다시 쳐도 캐시된 요청은 다시 부르지 않는다.
 """
@@ -31,6 +33,7 @@ from cost import usd  # noqa: E402  eval/novelbrain/cost.py
 from llm import CallCapExceeded, LlmFailure  # noqa: E402
 
 import hp_chapters  # noqa: E402
+import hp_traits  # noqa: E402
 
 HP = 'harry_potter'
 WINDOW = 28_000          # 한 번에 읽는 글의 크기(글자). 묶인 장은 이보다 길어 여럿으로 자른다
@@ -42,6 +45,8 @@ MAX_DOC = 3_000          # 카드 본문·인물 문서 한 편의 글자 한도
 MAX_PAIR = 8             # '알고 있음' 관계를 만드는 사건 참석자 수 상한(큰 장면은 앞 8명끼리만)
 MAX_ATTEND = 3           # 사건마다 '참여' 관계를 만드는 참석자 수(목록 앞에서부터). 나머지 참석자는 그 회차 기억에만 남는다
 MAX_RELATIONS = 9_900    # 서버 한도: 한 회차 시점의 활성 관계 10,000개(RelationshipInputHelper.merge). 넘으면 덜 중요한 것부터 뺀다
+PERSON_CAP = 150         # 인물 한 명이 끝점인 관계의 상한(그 인물의 입력에는 관계 줄이 모두 들어가 입력 크기를 정한다). 넘으면 알고 있음 → 참여 → 추출 관계 순으로 뺀다
+TRAITS_TOKENS = 3_000
 CALL_MAX_USD = 0.03      # 호출 하나가 쓸 수 있는 최대 금액(가장 큰 창·출력 상한): 동시 호출 수만큼을 상한 확인의 여유로 둔다
 EXTRACT_TOKENS, NAMES_TOKENS, DOCS_TOKENS = 20_000, 8_000, 4_000
 CANON = {'ron weasley': 'Ronald Weasley', 'ronald weasley': 'Ronald Weasley', 'harry james potter': 'Harry Potter', 'hermione jean granger': 'Hermione Granger'}
@@ -430,10 +435,11 @@ def _relation(key, ordinal, source, target, predicate, label, body, polarity='as
 
 
 def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: dict[str, Docs], ordinals: dict, unsplit: list[list[int]],
-                max_relations: int = MAX_RELATIONS, max_attend: int = MAX_ATTEND) -> dict:
-    """시연 세계관과 같은 모양의 world.json 하나: 인물·설정·사건 카드와 회차별 관계. 문서·본문·별칭은 처음 나온 대목에서 드러난 것만, 나중 것은 episodes[N]·관계·사건 카드로 둔다.
-    관계는 서버 한도(max_relations) 안에서 중요도 순으로 담는다: 추출한 관계 → 사건 '참여'(참석자 목록 앞 max_attend명) → '알고 있음'(같은 사건에 함께 나온 횟수가 많은 쌍부터).
-    한도를 낮추면 적재·평가 프롬프트가 줄어든다(인물 입력에는 그 인물의 관계 줄이 모두 들어간다)."""
+                max_relations: int = MAX_RELATIONS, max_attend: int = MAX_ATTEND, person_cap: int = PERSON_CAP, held: dict[str, list[str]] | None = None) -> dict:
+    """시연 세계관과 같은 모양의 world.json 하나: 인물·설정·사건 카드와 회차별 관계. IDENTITY·별칭·설정 본문은 처음 나온 대목에서 드러난 것만, SOUL·GOAL은 docs가 준 것(원문 전체의 변하지 않는 면),
+    나중 일은 episodes[N]·관계·사건 카드로 둔다. held는 금지 낱말 검사에 걸려 이전 문서로 둔 인물(key → 걸린 낱말)이고 world.json의 heldBack에 남는다.
+    관계는 중요도 순으로 담는다: 추출한 관계 → 사건 '참여'(참석자 목록 앞 max_attend명) → '알고 있음'(함께 나온 횟수가 많은 쌍부터, 한 쌍에 방향 하나).
+    인물마다 끝점인 관계가 person_cap개를 넘지 않고(입력 크기), 전체는 서버 한도(max_relations) 안이다."""
     infos = sorted(infos, key=lambda i: i.ordinal)
     persons = lambda i: i.extraction.people  # noqa: E731
     things = lambda i: i.extraction.things  # noqa: E731
@@ -445,7 +451,7 @@ def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: d
     memory: dict[str, dict[int, list[str]]] = defaultdict(lambda: defaultdict(list))
     label_of = {info.ordinal: unit_label(info) for info in infos}
     events, attend = [], []
-    pairs: dict[tuple[str, str], tuple[int, int]] = {}   # 쌍 → (함께 나온 사건 수, 처음 함께 나온 회차)
+    pairs: dict[tuple[str, str], tuple[int, int, int]] = {}   # 쌍 → (함께 나온 사건 수, 처음 함께 나온 회차, 마지막으로 함께 나온 회차)
     attended: dict[str, dict[int, list[str]]] = defaultdict(lambda: defaultdict(list))
     for info in infos:
         for p in info.extraction.people:
@@ -463,8 +469,8 @@ def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: d
                 attended[person][info.ordinal].append(e.summary.strip())
             attend += [_relation(f'{person}~{ekey}', info.ordinal, person, ekey, 'custom_relation_directed', '참여', '이 사건에 함께했다.') for person in present[:max_attend]]
             for a, b in itertools.combinations(present[:MAX_PAIR], 2):
-                count, first = pairs.get(pair := tuple(sorted((a, b))), (0, info.ordinal))
-                pairs[pair] = (count + 1, first)
+                count, first, _ = pairs.get(pair := tuple(sorted((a, b))), (0, info.ordinal, info.ordinal))
+                pairs[pair] = (count + 1, first, info.ordinal)
     cards = []
     for key, who in sorted(people.items.items(), key=lambda kv: (appear[kv[0]], kv[0])):
         entries = first_person[key][1]
@@ -494,21 +500,42 @@ def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: d
             if source and target and source != target:
                 extracted.append(_relation(f'{source}>{target}>{r.category}', info.ordinal, source, target, 'custom_relation_directed' if r.category == 'structural' else 'custom_emotion',
                                            r.label.strip() or '관계', r.body.strip() or r.label.strip() or '관계'))
-    room = max_relations - len({r['key'] for r in extracted})
-    attend = attend[:max(room, 0)]   # 한도를 넘으면 뒤 회차의 참여부터 뺀다
-    knows = []
-    for (a, b), (_, first) in sorted(pairs.items(), key=lambda kv: (-kv[1][0], kv[1][1], kv[0])):
-        if len(knows) + 2 > room - len(attend):
-            break
-        knows += [_relation(f'{x}>{y}>knows', first, x, y, 'custom_relation_directed', '알고 있음', f'{people.items[x].title}은(는) {people.items[y].title}을(를) 안다.') for x, y in ((a, b), (b, a))]
-    links = extracted + attend + knows
+    links = choose_relations(extracted, attend, pairs, {k: w.title for k, w in people.items.items()}, person_cap, max_relations)
     cards += events
     return {'world': {'id': str(uuid.uuid5(uuid.NAMESPACE_URL, 'storyfork-eval-hp')), 'name': '해리 포터 · 원문 기반 평가 세계관',
-                      'description': '번역본 원문에서 모델이 뽑은 평가 전용 세계관이다. 인물 문서·설정 본문은 처음 나온 대목에서 드러난 것만이고, 이후의 일은 회차별 기억·관계·사건 카드로 둔다.', 'genre': 'genre-01'},  # genre-01 = 판타지(DEC-56 Content 장르 코드)
+                      'description': '번역본 원문에서 모델이 뽑은 평가 전용 세계관이다. IDENTITY·설정 본문은 처음 나온 대목에서 드러난 것만, SOUL·GOAL은 이야기 전체에서 변하지 않는 면만이고, 이후의 일은 회차별 기억·관계·사건 카드로 둔다.', 'genre': 'genre-01'},  # genre-01 = 판타지(DEC-56 Content 장르 코드)
             'work': {'title': '해리 포터(평가용·로컬 전용)', 'summary': '해리 포터 번역본 원문에서 만든 평가 전용 세계관을 붙인 로컬 작품입니다. 원고는 없습니다.',
                      'creationType': 'EXTERNAL_DERIVATIVE', 'genres': ['판타지'], 'hashtags': ['평가용'], 'allowFork': False},
             'cards': cards, 'relationships': _timeline(links), 'secrets': [],
-            'ordinals': {f'{b}-{c}': n for (b, c), n in ordinals.items()}, 'english': {c['english']: c['key'] for c in cards if c.get('english')}, 'unsplit': unsplit}
+            'ordinals': {f'{b}-{c}': n for (b, c), n in ordinals.items()}, 'english': {c['english']: c['key'] for c in cards if c.get('english')}, 'unsplit': unsplit, 'heldBack': held or {}}
+
+
+def choose_relations(extracted: list[dict], attend: list[dict], pairs: dict, titles: dict[str, str], cap: int, limit: int) -> list[dict]:
+    """관계를 중요도 순으로 담는다: 추출한 관계(여러 번 나온 것·최근 것 먼저) → 사건 '참여'(최근 것 먼저) → '알고 있음'(함께 나온 횟수·최근 순, 한 쌍에 방향 하나: 한쪽이 끝점이면 두 인물이 서로 안다).
+    인물(titles의 key)마다 그 인물이 끝점인 관계가 cap개를 넘으면 담지 않고, 전체 관계 수(key 기준)는 limit을 넘지 않는다. 관계는 사라지지 않아 마지막 회차에 지켜지면 모든 회차에서 지켜진다."""
+    used: dict[str, int] = defaultdict(int)
+    kept, taken = [], 0
+
+    def take(records: list[dict], ends: tuple[str, ...]) -> None:
+        nonlocal taken
+        mine = [e for e in ends if e in titles]
+        if taken >= limit or any(used[e] >= cap for e in mine):
+            return
+        for e in mine:
+            used[e] += 1
+        kept.extend(records)
+        taken += 1
+
+    by_key: dict[str, list[dict]] = defaultdict(list)
+    for r in extracted:
+        by_key[r['key']].append(r)
+    for key, records in sorted(by_key.items(), key=lambda kv: (-len(kv[1]), -max(r['from'] for r in kv[1]), kv[0])):
+        take(records, (records[0]['source'], records[0]['target']))
+    for r in sorted(attend, key=lambda r: (-r['from'], r['key'])):
+        take([r], (r['source'],))
+    for (a, b), (count, first, last) in sorted(pairs.items(), key=lambda kv: (-kv[1][0], -kv[1][2], kv[0])):
+        take([_relation(f'{a}>{b}>knows', first, a, b, 'custom_relation_directed', '알고 있음', f'{titles[a]}와(과) {titles[b]}은(는) 서로 안다.')], (a, b))
+    return kept
 
 
 def _timeline(links: list[dict]) -> list[dict]:
@@ -525,13 +552,56 @@ def _timeline(links: list[dict]) -> list[dict]:
 
 # --- 호출·실행 ---------------------------------------------------------------------------------------------------------------
 
+def person_texts(infos: list[Info], people: Resolved) -> dict[str, dict[int, str]]:
+    """사람마다 회차별 글: 그 장에서 겪은 일, 참석한 사건의 요약, 그 사람이 끝점인 추출 관계의 label·본문. 뒤 회차에만 나오는 고유명사를 뽑는 데 쓴다."""
+    texts: dict[str, dict[int, list[str]]] = defaultdict(lambda: defaultdict(list))
+    for info in infos:
+        for p in info.extraction.people:
+            texts[people.key_of[p.name]][info.ordinal].append(p.memory)
+        for e in info.extraction.events:
+            for key in {people.key_of[n] for n in e.participants if n in people.key_of}:
+                texts[key][info.ordinal].append(e.summary)
+        for r in info.extraction.relations:
+            for name in (r.source, r.target):
+                if name in people.key_of:
+                    texts[people.key_of[name]][info.ordinal].append(f'{r.label} {r.body}')
+    return {key: {ordinal: '\n'.join(lines) for ordinal, lines in by.items()} for key, by in texts.items()}
+
+
+def rewrite_traits(llm, infos: list[Info], people: Resolved, settings: Resolved, docs: dict[str, Docs], aliases: dict[str, list[str]], workers: int, limit_usd: float, log) -> tuple[dict[str, Docs], dict[str, list[str]]]:
+    """SOUL·GOAL을 원문 전체에서 변하지 않는 면으로 다시 쓴다(IDENTITY는 docs 그대로). 모델이 쓴 글에 금지 낱말(hp_traits)이 있으면 그 낱말을 알려 한 번 다시 쓰게 하고,
+    그래도 걸리면 그 인물은 이전 문서로 두고 (key → 걸린 낱말)로 남긴다. 성격·말투·바람 기록이 없는 인물은 부르지 않고 이전 문서로 둔다."""
+    records = person_records(infos, people)
+    entries = {key: hp_traits.trait_entries(records.get(key, [])) for key in docs}
+    texts, nouns, own = person_texts(infos, people), set(people.key_of) | set(settings.key_of), defaultdict(set)
+    for name, key in people.key_of.items():
+        own[key].add(name)
+    banned = {key: hp_traits.forbidden_words(people.items[key].en, own[key], hp_traits.late_nouns(texts.get(key, {}), nouns, own[key])) for key in docs if entries[key]}
+
+    def request(key, avoid=()):
+        return (*hp_traits.trait_request(people.items[key].title, aliases[key], entries[key], avoid), hp_traits.Traits, TRAITS_TOKENS, None)
+
+    first = _run(llm, 'hp_traits', {key: request(key) for key in banned}, workers, limit_usd, log)
+    said = lambda reply, key: hp_traits.caught(reply.soul + '\n' + reply.goal, banned[key])  # noqa: E731
+    retry = {key: words for key in first if (words := said(first[key], key))}
+    second = _run(llm, 'hp_traits_retry', {key: request(key, words) for key, words in retry.items()}, workers, limit_usd, log) if retry else {}
+    out, held = dict(docs), {}
+    for key in first:
+        reply, words = (second[key], said(second[key], key)) if key in retry else (first[key], [])
+        if words:
+            held[key] = words
+        elif reply.soul.strip():
+            out[key] = Docs(identity=docs[key].identity, soul=reply.soul, goal=reply.goal)
+    return out, held
+
+
 def estimate_build(chars: list[int]) -> dict:
     """build의 예상 호출 수와 금액(호출 없이). chars는 덩어리별 글자 수. 인물 수는 추출 전에는 모르므로 덩어리마다 6명으로 어림하고, 입출력 토큰은 호출당 평균의 어림이다."""
     windows = sum(math.ceil(c / WINDOW) for c in chars)
     persons = 6 * len(chars)
-    calls = {'extract': windows, 'names': math.ceil(persons * 0.4 / NAMES_BATCH), 'docs': persons}
-    tokens_in = {'extract': sum(chars) / CHARS_PER_TOKEN / (windows or 1) + 900, 'names': 7_000, 'docs': 1_200}
-    tokens_out = {'extract': 6_000, 'names': 3_000, 'docs': 1_100}   # 실측(2026-11-20 시험 호출 셋): 추출 출력 5.2~6.3K토큰·입력 글자/토큰 약 1.5
+    calls = {'extract': windows, 'names': math.ceil(persons * 0.4 / NAMES_BATCH), 'docs': persons, 'traits': persons}
+    tokens_in = {'extract': sum(chars) / CHARS_PER_TOKEN / (windows or 1) + 900, 'names': 7_000, 'docs': 1_200, 'traits': 1_500}
+    tokens_out = {'extract': 6_000, 'names': 3_000, 'docs': 1_100, 'traits': 900}   # 실측(2026-11-20 시험 호출 셋): 추출 출력 5.2~6.3K토큰·입력 글자/토큰 약 1.5
     return {'calls': calls, 'usd': sum(usd(int(n * tokens_in[k]), int(n * tokens_out[k])) for k, n in calls.items())}
 
 
@@ -582,14 +652,15 @@ def _run(llm, kind: str, requests: dict, workers: int, limit_usd: float, log) ->
     raise SystemExit(f'{kind}: 호출 {len(failures)}건이 두 번 실패했다(원인: {sorted(set(failures.values()))}). 같은 명령으로 이어 갈 수 있다(끝낸 요청은 캐시에 있다).')
 
 
-def build(llm, raw: Path, out: Path, rows: list[dict], *, limit_usd: float, workers: int = 8, max_relations: int = MAX_RELATIONS, max_attend: int = MAX_ATTEND, log=print) -> dict:
+def build(llm, raw: Path, out: Path, rows: list[dict], *, limit_usd: float, workers: int = 8, max_relations: int = MAX_RELATIONS, max_attend: int = MAX_ATTEND,
+          person_cap: int = PERSON_CAP, log=print) -> dict:
     """장 나누기부터 world.json까지. 시작 전에 예상 금액이 남은 상한(상한 − 장부 누적)을 넘으면 호출 없이 멈춘다. 숫자만 돌려준다(원문·응답 없음)."""
     splits = hp_chapters.split_all(raw)
     hp_chapters.write_chapters(splits, out / 'chapters')
     ordinals = ordinals_of(splits)
     units = [(book, unit) for book, split in sorted(splits.items()) for unit in split.units]
     plan, started = estimate_build([len(u.text) for _, u in units]), llm.cost.spent()
-    log(f'build 예상: 추출 {plan["calls"]["extract"]}회·이름 {plan["calls"]["names"]}회·문서 {plan["calls"]["docs"]}회 → 약 ${plan["usd"]:.2f} (장부 ${started:.2f} / 상한 ${limit_usd:.2f})')
+    log(f'build 예상: 추출 {plan["calls"]["extract"]}회·이름 {plan["calls"]["names"]}회·문서 {plan["calls"]["docs"]}회·SOUL·GOAL {plan["calls"]["traits"]}회 → 약 ${plan["usd"]:.2f} (장부 ${started:.2f} / 상한 ${limit_usd:.2f})')
     if plan['usd'] > limit_usd - started:
         raise LimitReached(f'예상 금액 ${plan["usd"]:.2f}가 남은 상한 ${limit_usd - started:.2f}(상한 ${limit_usd:.2f} − 장부 ${started:.2f})를 넘어 호출 없이 멈춘다.')
     requests = {(i, j): (*extract_request(window), Extraction, EXTRACT_TOKENS, window)
@@ -609,27 +680,28 @@ def build(llm, raw: Path, out: Path, rows: list[dict], *, limit_usd: float, work
     people, settings = resolve_persons(infos, english.get), resolve_settings(infos)
     records, first = person_records(infos, people), _first_entries(infos, people.key_of, lambda i: i.extraction.people)
     claimed = _claims(infos, people.key_of, lambda i: i.extraction.people)
-    doc_requests = {key: (*docs_request(people.items[key].title, card_aliases(first[key][1], people.items[key].title, key, claimed), records[key]), Docs, DOCS_TOKENS, None)
-                    for key in people.items if records.get(key)}
-    docs = _run(llm, 'hp_docs', doc_requests, workers, limit_usd, log)
+    aliases = {key: card_aliases(first[key][1], people.items[key].title, key, claimed) for key in people.items}
+    doc_requests = {key: (*docs_request(people.items[key].title, aliases[key], records[key]), Docs, DOCS_TOKENS, None) for key in people.items if records.get(key)}
+    docs, held = rewrite_traits(llm, infos, people, settings, _run(llm, 'hp_docs', doc_requests, workers, limit_usd, log), aliases, workers, limit_usd, log)
     unsplit = [[book, list(u.chapters)] for book, u in units if len(u.chapters) > 1]
-    world = build_world(infos, people, settings, docs, ordinals, unsplit, max_relations, max_attend)
+    world = build_world(infos, people, settings, docs, ordinals, unsplit, max_relations, max_attend, person_cap, held)
     (out / 'world.json').write_text(json.dumps(world, ensure_ascii=False))
     found, failed = match_names(hint_names(rows), world['english'])
     kinds = defaultdict(int)
     for card in world['cards']:
         kinds[card['cardType']] += 1
     return {'units': len(units), 'chapters': len(ordinals), 'cards': dict(kinds), 'relations': len(world['relationships']), 'unsplit': unsplit,
-            'nameMatched': len(found), 'nameFailures': failed, 'usd': llm.cost.spent() - started}
+            'nameMatched': len(found), 'nameFailures': failed, 'heldBack': len(held), 'usd': llm.cost.spent() - started}
 
 
 # --- 표본 보기 ----------------------------------------------------------------------------------------------------------------
 
-def preview(world: dict, names: list[str], limit: int = 300) -> str:
-    """사용자에게 보일 표본(마크다운): 물은 인물(영어 이름)의 문서 앞부분과 회차별 기억 예시, 사건 카드 셋, 인물 사이 관계 다섯."""
+def preview(world: dict, names: list[str], limit: int = 300, full: tuple[str, ...] | list[str] = ()) -> str:
+    """사용자에게 보일 표본(마크다운): 물은 인물(영어 이름)의 문서 앞부분(full에 든 인물은 SOUL·GOAL 전문)과 회차별 기억 예시, 사건 카드 셋, 인물 사이 관계 다섯, 금지 낱말 검사에 걸린 인물 수."""
     cards = {c['key']: c for c in world['cards']}
     found, _ = match_names(names, world['english'])
-    lines = ['# 해리 포터 원문 기반 세계관 표본', '', f'카드 {len(cards)}개 · 관계 기록 {len(world["relationships"])}개 · 회차 {len(world["ordinals"])}개', '']
+    lines = ['# 해리 포터 원문 기반 세계관 표본', '', f'카드 {len(cards)}개 · 관계 기록 {len(world["relationships"])}개 · 회차 {len(world["ordinals"])}개',
+             f'SOUL·GOAL이 금지 낱말 검사에 두 번 걸려 이전 문서로 둔 인물: {len(world.get("heldBack", {}))}명', '']
     for name in names:
         card = cards.get(found.get(name, ''))
         lines += [f'## {name}' + (f' — {card["title"]}(첫 등장 {card["revealFromEpisode"]}화)' if card else ''), '']
@@ -637,8 +709,9 @@ def preview(world: dict, names: list[str], limit: int = 300) -> str:
             lines += ['(카드 없음)', '']
             continue
         docs = card['characterDocs']
-        for label, text in (('IDENTITY', card['body']), ('SOUL', docs['soul']), ('GOAL', docs['goal'])):
-            lines += [f'**{label}** ' + (text.replace('\n', ' ')[:limit] or '(비어 있음)'), '']
+        lines += [f'**IDENTITY** ' + (card['body'].replace('\n', ' ')[:limit] or '(비어 있음)'), '']
+        for label, text in (('SOUL', docs['soul']), ('GOAL', docs['goal'])):
+            lines += [f'**{label}**', '', text or '(비어 있음)', ''] if name in full else [f'**{label}** ' + (text.replace('\n', ' ')[:limit] or '(비어 있음)'), '']
         ordinals = sorted(docs['episodes'], key=int)
         for o in ordinals[:: max(len(ordinals) // 3, 1)][:3]:
             lines += [f'- {docs["episodes"][o].replace(chr(10), " ")[:limit]}']
