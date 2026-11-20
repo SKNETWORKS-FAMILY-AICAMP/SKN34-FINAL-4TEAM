@@ -194,3 +194,18 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(opsCss).toMatch(/@media \(max-width: 600px\), \(pointer: coarse\) \{[^@]*\.admin-filter \.inp \{[^}]*min-height:\s*44px/)
   })
 })
+
+describe('storyfork.css 디자인 점검 P1 계약 (#623)', () => {
+  it('main.wrap은 .wrap의 가로 패딩에 덮이지 않고 위 여백 32px을 갖는다 — 아래 여백은 푸터의 위 여백이 정하고, 읽기 면(.calm)은 자기 위 여백이 있어 더하지 않는다', () => {
+    expect(value('main.wrap', 'padding-top')).toBe('32px')
+    expect(values('main.wrap', 'padding-bottom')).toEqual([])
+    expect(value('.calm main.wrap', 'padding-top')).toBe('0')
+    // 모바일 홈의 위 여백 20px 보정은 위 규칙과 겹쳐 52px이 되므로 두지 않는다.
+    expect(sheet.filter((r) => r.selectors.includes('#home') && /padding-top/.test(r.body))).toEqual([])
+  })
+
+  it('선택된 태그 칩의 개수 글자는 투명도로 흐리게 하지 않는다 — 흰 글자 × 0.8이 보라 면 위에서 4.25:1(AA 미달)이었다', () => {
+    expect(values('.tagbar :is(button,a).on span', 'opacity')).toEqual([])
+    expect(value('.tagbar :is(button,a).on span', 'color')).toBe('inherit')
+  })
+})

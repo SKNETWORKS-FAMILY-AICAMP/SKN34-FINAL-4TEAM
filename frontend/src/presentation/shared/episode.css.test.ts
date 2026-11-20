@@ -21,12 +21,18 @@ describe('episode.css 접근성 계약', () => {
   })
 
   it('입력 칸 경계는 3:1 이상인 --line3를 쓰고, 터치 기기에서는 입력 글자를 16px로 올려 iOS 확대를 막는다', () => {
-    const fields = css.match(/\.episode-app input:not\(\[type=checkbox\]\):not\(\[type=radio\]\),\.episode-app textarea,\.episode-app select\{([^}]*)\}/)?.[1] ?? ''
+    const fields = css.match(/\.ep-main input:not\(\[type=checkbox\]\):not\(\[type=radio\]\),\.ep-main textarea,\.ep-main select\{([^}]*)\}/)?.[1] ?? ''
     expect(fields).toMatch(/border:1px solid var\(--line3\)/)
     const coarse = css.match(/@media\(pointer:coarse\)\{([^@]*)\}\s*$/m)?.[1] ?? ''
-    expect(coarse).toMatch(/\.episode-app input:not\(\[type=checkbox\]\):not\(\[type=radio\]\),\.episode-app textarea,\.episode-app select,[^{]*\{font-size:16px\}/)
+    expect(coarse).toMatch(/\.ep-main input:not\(\[type=checkbox\]\):not\(\[type=radio\]\),\.ep-main textarea,\.ep-main select,[^{]*\{font-size:16px\}/)
     // 큰 제목 입력(28px)은 그대로 둔다.
     expect(coarse).not.toMatch(/ep-create-title/)
+  })
+
+  it('틀(.episode-app)의 제목·폼·입력 규칙은 본문(.ep-main) 안에만 걸려, 같은 틀 안에 있는 세계관 작업실의 AI 채팅 레일로 새지 않는다', () => {
+    // 세계관 작업실은 채팅 레일(.world-chat)을 .episode-app 안, .ep-main 밖에 둔다. 틀 규칙이 .episode-app 전체에 걸리면 채팅의 대화 선택 상자 글자가 잘리고 입력 칸이 이중 테두리가 된다.
+    expect(css).not.toMatch(/\.episode-app (?:h1|h2|form|label|input|textarea|select|summary|button)[\s,:{[]/)
+    for (const element of ['h1', 'h2', 'form', 'label', 'summary']) expect(css, element).toMatch(new RegExp(`\\.ep-main ${element}[\\s,:{]`))
   })
 
   it('전용 상단 헤더 규칙(.ep-header·.ep-brand·.ep-top-*·.ep-dot)과 전용 푸터(.ep-footer)를 남기지 않는다 — 상단과 하단은 공용 Gnb·Footer다', () => {
