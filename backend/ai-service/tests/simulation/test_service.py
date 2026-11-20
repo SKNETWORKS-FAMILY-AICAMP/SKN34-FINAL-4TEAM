@@ -1,3 +1,5 @@
+import sys
+from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 
 import pytest
@@ -755,3 +757,26 @@ def test_what_the_cache_returns_is_a_copy_so_a_caller_cannot_change_the_next_ans
     for _ in range(2):  # 처음 읽어 돌려준 값도, 캐시에서 돌려준 값도 호출자가 바꿔도 다음 답에 닿지 않는다
         service.read_world('work', EPISODE)['name'] = '바뀐 이름'
     assert service.read_world('work', EPISODE)['name'] == 'rev4'
+
+
+def test_the_cache_keeps_at_most_the_slot_limit_and_drops_the_oldest_slot_first(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    editable_world(monkeypatch)
+    for episode in range(1, service.WORLD_CACHE_SLOTS + 2):  # 한도보다 하나 많은 회차
+        service.read_world('work', episode)
+    assert len(service._WORLDS) == service.WORLD_CACHE_SLOTS
+    assert (WORLD, 1) not in service._WORLDS and (WORLD, 2) in service._WORLDS and (WORLD, service.WORLD_CACHE_SLOTS + 1) in service._WORLDS
+
+
+def test_threads_filling_a_full_cache_at_once_neither_break_it_nor_overfill_it(monkeypatch):
+    # 대화 모드에서 세계관 읽기는 스레드(asyncio.to_thread)에서 돈다: 칸이 가득 찬 캐시에 동시에 넣어도 오류 없이 한도를 지킨다.
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    editable_world(monkeypatch)
+    interval = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)  # 스레드가 자주 바뀌게 해 경쟁 구간을 넓힌다
+    try:
+        with ThreadPoolExecutor(8) as pool:
+            list(pool.map(lambda episode: service.read_world('work', episode), range(1, 800)))  # 서로 다른 칸 799개
+    finally:
+        sys.setswitchinterval(interval)
+    assert len(service._WORLDS) <= service.WORLD_CACHE_SLOTS

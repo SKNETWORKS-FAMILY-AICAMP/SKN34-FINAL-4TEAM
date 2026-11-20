@@ -10,6 +10,7 @@
 
 import os
 import re
+import threading
 import unicodedata
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
@@ -54,7 +55,9 @@ WORLD_CACHE = 'SIMULATION_WORLD_CACHE'  # 속도 스위치(#642): 1이면 같은
 WORLD_CACHE_SLOTS = 32
 # (세계관 id, 기준 회차) → (그때 목록의 draftRevision, read_world 결과).
 # ponytail: 프로세스 안 dict이고 칸이 32개를 넘으면 가장 오래된 칸부터 버린다. 프로세스가 여럿이어도 목록(draftRevision)이 매번 맞춰 보니 낡은 값은 쓰지 않는다. LRU·TTL이 필요해지면 그때 바꾼다.
+# read_world는 스레드(asyncio.to_thread)에서 돌아 칸을 비우고 채우는 구간만 락 하나로 지킨다(읽기는 dict.get 하나라 잠그지 않는다).
 _WORLDS: dict[tuple[str, int], tuple[int, dict]] = {}
+_WORLDS_LOCK = threading.Lock()
 
 
 class WorldLink(BaseModel):
@@ -89,9 +92,10 @@ def read_world(work_id: str, episode: int) -> dict:
         read = content_mcp.call('world_studio_read', {'id': linked.worldId, 'episode': str(episode)})
         found = {**read, 'identity': _identity_of(content_mcp.call('world_studio_read', {'id': linked.worldId}))}
         if slot:
-            if slot not in _WORLDS and len(_WORLDS) >= WORLD_CACHE_SLOTS:
-                del _WORLDS[next(iter(_WORLDS))]
-            _WORLDS[slot] = (linked.draftRevision, found)
+            with _WORLDS_LOCK:
+                if slot not in _WORLDS and len(_WORLDS) >= WORLD_CACHE_SLOTS:
+                    del _WORLDS[next(iter(_WORLDS))]
+                _WORLDS[slot] = (linked.draftRevision, found)
         return {**found}
     if (inherited := content_mcp.inherited_world(work_id, episode)) is None:
         raise SimulationFailure(409, NO_LINKED_WORLD)
