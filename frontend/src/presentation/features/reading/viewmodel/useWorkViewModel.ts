@@ -12,7 +12,6 @@ import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
 import { uiActions } from '../../../shared/ui/uiSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
-import { useLook } from './useLook'
 
 /** 목업 work(id): 소설 상세 U04 */
 export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = appContainer.resolve('readingUseCase'), interestUseCase: WorkInterestUseCase = appContainer.resolve('workInterestUseCase')) {
@@ -21,7 +20,6 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
   const epSort = useAppSelector((s) => s.ui.epSort)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const look = useLook()
   const { data, isError, retry } = useAsyncData(() => readingUseCase.getWork(id, role), [readingUseCase, id, role])
   const [query, setQuery] = useState('')
   const [reporting, setReporting] = useState(false)
@@ -62,7 +60,6 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
     setQuery,
     epSort,
     setSort: (s: 'old' | 'new') => dispatch(uiActions.setEpSort(s)),
-    bandAmb: !look.dark && look.eff === 'world' && look.motion,
     /** 공개 작품에서만 관심 등록 버튼을 보입니다(서버도 공개 작품만 받습니다). */
     canInterest: !!data && isPub(data.work),
     isMember: !!role,

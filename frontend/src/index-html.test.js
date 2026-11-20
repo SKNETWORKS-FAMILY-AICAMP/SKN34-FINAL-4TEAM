@@ -154,13 +154,24 @@ describe('storyfork.css theme tokens', () => {
     expect(css).not.toMatch(/#C2415C|#D9617D/i)
   })
 
-  it('shows the work hero genre label with --pri-ink in dark so it stays 4.5:1 over the lightest part of the background art', () => {
+  it('keeps the work hero genre label at 4.5:1 over the page background', () => {
     const label = sheet.find((r) => !r.media && r.selector === '.whero .g')
-    // 라이트는 기존 강조색(--tacc) 그대로, 다크만 --pri-ink — 토큰과 같은 --l/--d 스위치라 고른 테마와 OS 테마를 함께 따른다.
     expect(declOf(label, 'color')).toBe('var(--l,var(--tacc)) var(--d,var(--pri-ink))')
-    // .band 아트가 밝아지는 쪽의 실측 배경(약 #444)에서 --pri는 3.4:1이라 모자라고 --pri-ink는 4.5:1 이상이다.
-    expect(contrast(pair('pri')[1], '#444444')).toBeLessThan(4.5)
-    expect(contrast(pair('pri-ink')[1], '#444444')).toBeGreaterThanOrEqual(4.5)
+    expect(declOf(sheet.find((r) => r.selector === '.calm' && !r.media), 'background')).toBe('var(--tbg)')
+    expect(declOf(root, '--tbg')).toBe('var(--bg)')
+    expect(declOf(root, '--tacc')).toBe('var(--pri)')
+    expect(contrast(pair('pri')[0], pair('bg')[0])).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(pair('pri-ink')[1], pair('bg')[1])).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('keeps the work cover and title side by side on phones and gives reading actions the full width', () => {
+    const phone = sheet.filter((rule) => rule.media === '(max-width:600px)')
+    const layout = phone.find((rule) => rule.selector === '.whero')
+    const body = phone.find((rule) => rule.selector === '.whero > .whero-body')
+    const fullWidth = phone.find((rule) => rule.selector === '.whero :is(.sum,.hashes,.stats,.acts)')
+    expect(declOf(layout, 'grid-template-columns')).toBe('96px minmax(0,1fr)')
+    expect(declOf(body, 'display')).toBe('contents')
+    expect(declOf(fullWidth, 'grid-column')).toBe('1/-1')
   })
 })
 

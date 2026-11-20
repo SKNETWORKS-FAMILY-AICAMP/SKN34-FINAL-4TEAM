@@ -53,6 +53,13 @@ it('소설 상세는 id가 main인 랜드마크 하나와 h1 하나를 갖고 �
   await waitFor(() => expect(document.title).toBe('회색 도시의 우편배달부 · STORYFORK'))
 })
 
+it('소설 상세 상단은 세계관 효과와 모션이 켜져 있어도 작품 표지만 표시한다', async () => {
+  const { container } = renderApp('/work/postman', createAppStore({}, { theme: 'light', look: 'world', motion: true }))
+  await screen.findByRole('heading', { name: '회색 도시의 우편배달부', level: 1 })
+  expect(container.querySelector('.band, .band-amb')).toBeNull()
+  expect(container.querySelector('.whero .cover img')?.getAttribute('src')).toBe('/default-work-cover.svg')
+})
+
 it('소설 상세의 제목은 단계를 건너뛰지 않는다', async () => {
   renderApp('/work/postman', createAppStore({ role: 'user' }))
   await screen.findByRole('heading', { name: '회색 도시의 우편배달부', level: 1 })
