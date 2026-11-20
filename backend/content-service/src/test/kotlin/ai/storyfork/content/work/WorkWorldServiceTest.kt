@@ -63,6 +63,17 @@ class WorkWorldServiceTest {
     }
     private fun failure(block: () -> Unit) = assertThrows(ContentFailure::class.java) { block() }
 
+    @Test fun `the linked world id is read only after the caller owns the work and is null when there is no link`() {
+        `when`(works.findById("work")).thenReturn(Optional.of(row))
+        assertNull(service.linkedWorldId("work", owner))
+        row.worldStudioId = world
+        assertEquals(world, service.linkedWorldId("work", owner))
+        verify(access, times(2)).own("work", owner)
+
+        `when`(access.own("other", owner)).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
+        assertEquals(404, failure { service.linkedWorldId("other", owner) }.status)
+    }
+
     @Test fun `links a world the caller owns to a work the caller owns and leaves the work revision alone`() {
         owned()
 

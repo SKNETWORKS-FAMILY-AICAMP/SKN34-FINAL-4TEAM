@@ -3,7 +3,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { CharacterSimulation } from '../../../domain/entities/characterSimulation'
-import type { ChatEvent, ChatStep } from '../../../domain/entities/writingChat'
+import { chatPage, type ChatEvent, type ChatStep } from '../../../domain/entities/writingChat'
 import { WritingChat } from './WritingChat'
 
 const { sessions, history, send } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn() }))
@@ -51,6 +51,19 @@ it('바로 쓴 원고의 승인 카드는 반영할 본문과 따로 사용한 �
   await screen.findByRole('heading', { name: '2화 초안에 반영할까요?' })
   expect(screen.getByLabelText('반영할 내용').textContent).toBe('선장은 항구에 내렸다.')
   expect(document.querySelector('.chat-plan')?.textContent).toBe('사용한 계획: 항구의 밤 — 선장이 도착한다.')
+})
+
+it('바로 쓴 원고의 승인 카드는 설정 없이 쓴 알림을 반영 본문과 따로 보인다(#523)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+    request: '다음 화를 써줘',
+    reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 2, steps: [{
+      feature: 'writing_editing', status: 'completed', result: { text: '선장은 항구에 내렸다.', gaps: ['이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.'] } }] },
+  }] })
+  render(<WritingChat workId="w" basis={{ episode: 2, episodeVersionId: 'v2' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('heading', { name: '2화 초안에 반영할까요?' })
+  expect(screen.getByLabelText('반영할 내용').textContent).toBe('선장은 항구에 내렸다.')
+  expect(document.querySelector('.chat-plan')?.textContent).toBe('확인 못 함: 이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.')
 })
 
 it('승인 카드는 같은 턴에 끝난 다른 단계 결과도 짧게 보인다(#493)', async () => {
@@ -280,6 +293,19 @@ it('부분 수정(task=patch) 입력 대기는 새 원고 계획 칸을 띄우�
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
 })
 
+it('고증 조사 입력 대기는 질문을 적어야 이어서 실행하고, 질문을 research 단계 입력으로 보낸다(#545)', async () => {
+  openThread([{ request: '고증 확인해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['research'], awaitingApproval: null } }])
+  send.mockResolvedValue(undefined)
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
+  expect(within(form).getByText(/고증 조사 단계가 입력을 기다려요/)).toBeTruthy()
+  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+  fireEvent.change(within(form).getByLabelText('조사할 질문'), { target: { value: '한양에서 동래까지 며칠?' } })
+  fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { research: { question: '한양에서 동래까지 며칠?' } } } })
+})
+
 it('원고 검수 입력 대기는 검수 종류를 골라야 이어서 실행하고, 고른 종류를 단계 입력으로 보낸다', async () => {
   openThread([{ request: '검수해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['manuscript_review'], awaitingApproval: null } }])
   send.mockResolvedValue(undefined)
@@ -471,4 +497,193 @@ it('오래 걸린 스트림의 World 반영 알림은 시작할 때의 핸들러
   await run({ type: 'step', step: { ...enrichStep, approval: 'approved', applied: { episode: 0, revision: 9 } } })
   expect(second).toHaveBeenCalledTimes(1)
   expect(first).not.toHaveBeenCalled()
+})
+
+it('AI가 처리 중일 때 전송한 요청은 말풍선에 있고 입력창은 비어 있다', async () => {
+  openThread([])
+  send.mockImplementation(() => new Promise(() => {}))
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  const input = screen.getByRole('textbox', { name: '메시지' })
+  fireEvent.change(input, { target: { value: '다음 장면을 써줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  expect(await screen.findByText('다음 장면을 써줘')).toBeTruthy()
+  expect(screen.getByRole('status', { name: 'AI 진행 상황' })).toBeTruthy()
+  expect(input).toHaveProperty('value', '')
+})
+
+it('저장된 제공사 분류 실패를 오류 말풍선으로 표시한다', async () => {
+  openThread([
+    { request: '요약해줘', reply: { status: 'failed', message: '요청 분류에 실패했습니다.', steps: [], missingInputs: [] } },
+    { request: '다시 요약해줘', reply: { status: 'completed', message: '요약했어요.', steps: [], missingInputs: [] } },
+  ])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  expect((await screen.findByText('요청 분류에 실패했습니다.')).closest('li')?.getAttribute('data-failed')).toBe('true')
+  expect(screen.getByText('요약했어요.').closest('li')?.hasAttribute('data-failed')).toBe(false)
+})
+
+// ── 화면 맥락과 Content 쓰기 승인(#554) ──
+const pendingAction = { tool: 'world_studio_edit_draft', label: '세계관 설정 카드 수정', args: { id: 'w1', request: { expectedDraftRevision: 4, cards: [{ id: 'k', body: '과묵한 기사. 십 년째 같은 자리에 선다.' }] } } }
+const approvalTurn = () => openThread([{ request: '이 설정 설명을 더 자세히 써줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action', pendingAction } }])
+
+it('새 메시지를 보낼 때만 지금 화면(page)을 싣고, 이어가기에는 싣지 않는다', async () => {
+  openThread([])
+  send.mockResolvedValue(undefined)
+  const getPage = vi.fn(() => ({ path: '/studio/w?ep=2', kind: 'studio' as const, episode: 2, selection: '그는 웃었다.' }))
+  render(<WritingChat workId="w" basis={basis} getPage={getPage} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '다듬어줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ request: '다듬어줘', page: { path: '/studio/w?ep=2', episode: 2, selection: '그는 웃었다.' } })
+  cleanup()
+  send.mockClear()
+  approvalTurn()
+  render(<WritingChat workId="w" basis={basis} getPage={getPage} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  fireEvent.click(await screen.findByRole('button', { name: '실행' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true } })
+  expect(send.mock.calls[0][2]).not.toHaveProperty('page')
+})
+
+it('선택 글이 너무 길면 전송하지 않고 입력을 남긴다', async () => {
+  openThread([])
+  const getPage = () => chatPage({ path: '/studio/w', kind: 'studio', selection: '가'.repeat(5001) })
+  render(<WritingChat workId="w" basis={basis} getPage={getPage} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  const input = screen.getByRole('textbox', { name: '메시지' })
+  fireEvent.change(input, { target: { value: '다듬어줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  expect((await screen.findByRole('alert')).textContent).toContain('5,000자')
+  expect(input).toHaveProperty('value', '다듬어줘')
+  expect(send).not.toHaveBeenCalled()
+})
+
+it('화면 정보가 없으면(getPage가 비었거나 undefined를 주면) page를 싣지 않는다', async () => {
+  openThread([])
+  send.mockResolvedValue(undefined)
+  render(<WritingChat workId="w" basis={basis} getPage={() => undefined} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).not.toHaveProperty('page')
+})
+
+it('Content 쓰기 승인 카드는 모델의 요약이 아니라 실제 도구·인자와 카드의 수정 전·후를 보인다', async () => {
+  approvalTurn()
+  render(<WritingChat workId="w" basis={basis} cardOf={(id) => (id === 'k' ? { title: '카엘', body: '북문을 지키는 기사' } : undefined)} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  expect(await screen.findByRole('heading', { name: '세계관 설정 카드 수정을(를) 실행할까요?' })).toBeTruthy()
+  const changes = screen.getByLabelText('바뀌는 내용')
+  expect(changes.textContent).toContain('카엘 · 설명')
+  expect(changes.textContent).toContain('수정 전: 북문을 지키는 기사')
+  expect(changes.textContent).toContain('수정 후: 과묵한 기사. 십 년째 같은 자리에 선다.')
+  const args = screen.getByLabelText('실행할 도구와 인자').textContent!
+  expect(args).toContain('world_studio_edit_draft')
+  expect(JSON.parse(args.slice('world_studio_edit_draft'.length))).toEqual(pendingAction.args)
+})
+
+it('거절하면 실행하지 않는다는 resume을 보낸다', async () => {
+  approvalTurn()
+  send.mockResolvedValue(undefined)
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  fireEvent.click(await screen.findByRole('button', { name: '실행하지 않기' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: false } })
+})
+
+it('저장하지 않은 편집이 있으면 승인 버튼을 막고 먼저 저장해 달라고 알린다(거절은 할 수 있다)', async () => {
+  approvalTurn()
+  render(<WritingChat workId="w" basis={basis} unsaved emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('heading', { name: '세계관 설정 카드 수정을(를) 실행할까요?' })
+  expect(screen.getByRole('button', { name: '실행' })).toHaveProperty('disabled', true)
+  expect(screen.getByRole('button', { name: '실행하지 않기' })).toHaveProperty('disabled', false)
+  expect(screen.getByRole('alert').textContent).toContain('먼저 저장해 주세요')
+  expect(send).not.toHaveBeenCalled()
+})
+
+it('저장 뒤 이전 제안은 승인할 수 없고 같은 요청을 현재 화면으로 다시 실행한다', async () => {
+  approvalTurn()
+  send.mockResolvedValue(undefined)
+  const props = { workId: 'w', basis, emptyTitle: '새 대화', emptyText: '', suggestions: [], getPage: () => ({ kind: 'world' as const, path: '/worldstudio/w1', worldId: 'w1' }) }
+  const view = render(<WritingChat {...props} worldDraft={{ id: 'w1', revision: 4 }} unsaved />)
+  expect(await screen.findByRole('button', { name: '실행' })).toHaveProperty('disabled', true)
+  view.rerender(<WritingChat {...props} worldDraft={{ id: 'w1', revision: 5 }} />)
+  expect(screen.queryByRole('button', { name: '실행' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '저장한 초안으로 제안 다시 받기' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ request: '이 설정 설명을 더 자세히 써줘', page: props.getPage() })
+  expect(send.mock.calls[0][2]).not.toHaveProperty('resume')
+})
+
+it('실행할 인자를 읽지 못한 승인 대기는 가짜 카드 없이 알린다', async () => {
+  openThread([{ request: '고쳐줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action' } }])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  expect((await screen.findByRole('alert')).textContent).toContain('승인할 작업을 읽지 못했어요')
+  expect(screen.queryByRole('button', { name: '실행' })).toBeNull()
+})
+
+it('승인한 Content 세계관 카드 수정이 반영되면 설정집을 다시 읽고, 다른 도구는 회차 초안 다시 읽기를 부른다', async () => {
+  const onWorldApplied = vi.fn()
+  const onApplied = vi.fn()
+  const { run } = await worldStream({ onApplied, onWorldApplied })
+  const done = (tool: string, revision: number): ChatStep => ({ feature: 'content_action', status: 'completed', approval: 'approved', result: { tool, label: '작업' }, applied: { episode: 3, revision } })
+  await run({ type: 'step', step: done('world_studio_edit_draft', 5) })
+  expect(onWorldApplied).toHaveBeenCalledTimes(1)
+  expect(onApplied).not.toHaveBeenCalled()
+  await run({ type: 'step', step: done('work_update', 9) })
+  expect(onApplied).toHaveBeenCalledWith(3)
+  // 진행 표시는 승인한 작업을 단계마다 덧붙인다(계획에 없던 단계도 사라지지 않는다).
+  expect(screen.getAllByText('Content 작업').length).toBe(2)
+})
+
+// ── 계획 수정(#578): revise_plan 제안은 회차 초안이 아니라 저장된 계획에 저장할지 묻고, 저장돼도 회차 초안 갱신(onApplied)은 알리지 않는다 ──
+const reviseStep: ChatStep = {
+  feature: 'writing_editing', task: 'revise_plan', status: 'completed',
+  planRevision: { kind: 'scene', before: { title: '재회', content: '카엘이 리나를 만난다.' }, after: { title: '재회', content: '카엘이 리나를 만나지만 이름을 부르지 못한다.' } },
+}
+const reviseApproval = (steps: ChatStep[] = [reviseStep]) =>
+  openThread([{ request: '재회 장면을 더 긴장감 있게 고쳐줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 2, steps } }])
+
+it('계획 수정 제안의 승인 카드는 계획 제목으로 저장할지 묻고, 회차 초안 문구 없이 대상과 변경 전·후를 승인 전에 보인다', async () => {
+  reviseApproval()
+  renderChat()
+  await screen.findByRole('heading', { name: "'재회' 계획에 저장할까요?" })
+  expect(screen.queryByRole('heading', { name: /화 초안에 반영할까요/ })).toBeNull()
+  expect(screen.getByLabelText('반영할 내용').textContent).toBe("장면 계획 '재회' 수정안\n수정 전: 카엘이 리나를 만난다.\n수정 후: 카엘이 리나를 만나지만 이름을 부르지 못한다.")
+  expect(screen.getByRole('button', { name: '계획에 저장' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '저장하지 않기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '초안에 반영' })).toBeNull()
+  expect(screen.getByText(/계획의 제목·내용만 바뀌고 원고 초안은 바뀌지 않아요/)).toBeTruthy()
+})
+
+it('승인을 기다리는 계획 수정안을 읽지 못하면(결과 형식 오류) 보이지 않는 제안을 저장하지 않도록 저장 버튼만 잠근다', async () => {
+  reviseApproval([{ feature: 'writing_editing', task: 'revise_plan', status: 'failed', error: '계획 수정안 형식을 확인할 수 없어요.' }])
+  renderChat()
+  await screen.findByRole('heading', { name: '이 제안을 계획에 저장할까요?' })
+  expect(within(screen.getByLabelText('같이 끝난 작업')).getByText('실패: 계획 수정안 형식을 확인할 수 없어요.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '계획에 저장' })).toHaveProperty('disabled', true)
+  expect(screen.getByRole('button', { name: '저장하지 않기' })).toHaveProperty('disabled', false)
+})
+
+it('계획에 저장은 승인으로, 저장하지 않기는 거절로 이어 보낸다', async () => {
+  reviseApproval()
+  send.mockResolvedValue(undefined)
+  renderChat()
+  await screen.findByRole('heading', { name: "'재회' 계획에 저장할까요?" })
+  fireEvent.click(screen.getByRole('button', { name: '계획에 저장' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true } })
+  fireEvent.click(await screen.findByRole('button', { name: '저장하지 않기' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
+  expect(send.mock.calls[1][2]).toMatchObject({ resume: { approved: false } })
+})
+
+it('계획 수정 저장(step.applied)은 회차 초안 갱신(onApplied)도 설정집 갱신(onWorldApplied)도 알리지 않는다', async () => {
+  const onApplied = vi.fn()
+  const onWorldApplied = vi.fn()
+  const { run } = await worldStream({ onApplied, onWorldApplied })
+  await run({ type: 'step', step: { ...reviseStep, approval: 'approved', applied: { episode: 2, revision: 6 } } })
+  expect(onApplied).not.toHaveBeenCalled()
+  expect(onWorldApplied).not.toHaveBeenCalled()
 })

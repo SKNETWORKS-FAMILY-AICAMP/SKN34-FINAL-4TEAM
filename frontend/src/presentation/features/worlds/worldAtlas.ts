@@ -1,6 +1,6 @@
 import { lineageOrigins, type PublicWorldSummary } from '../../../domain/entities/publicWorld'
 import { CARD_COLORS, CARD_KIND } from '../../shared/worldBoard'
-import { ALL_CHIP, genreLabel, type GenreLabel } from '../../shared/worldGenres'
+import { ALL_CHIP, genreColor, genreKey, genreLabel } from '../../shared/worldGenres'
 
 /*
  * 세계관 지도(`/worlds` 상단 노드 그래프)의 순수 규칙: 공개 세계관 목록 → 노드·링크, 실시간 인기 순위, 장르 칩 하이라이트.
@@ -12,14 +12,11 @@ import { ALL_CHIP, genreLabel, type GenreLabel } from '../../shared/worldGenres'
 
 /** 파생·조합 선 색. 노드 색(장르·카드 유형)과 겹치지 않는 밝은 앰버·아쿠아이고 범례와 캔버스가 함께 쓴다(범례가 캔버스 파일을 import하면 지연 로딩이 깨진다). */
 export const LINEAGE_COLORS = { derive: '#FFC857', combine: '#7FE7D9' } as const
-/** 장르 노드·세계관 노드의 색. 어두운 캔버스 위에서 읽히는 밝은 색이다. */
-export const GENRE_COLORS: Record<GenreLabel, string> = {
-  판타지: '#B79CFF', SF: '#4CC9F0', 무협: '#FF6B6B', 로맨스: '#FF8FC8', 현대: '#4ADE80', 고전: '#E8C99B', 미스터리: '#94A3C8', 미지정: '#9AA7BD',
-}
 /** 세계관이 파생·조합으로 쓰인 횟수 하나를 설정 카드 몇 장만큼으로 칠지(노드 크기 가중) */
 export const WORLD_USE_WEIGHT = 2
 
-type AtlasNodeBase = { id: string; name: string; genre: GenreLabel; color: string; val: number; x?: number; y?: number; vx?: number; vy?: number; fx?: number; fy?: number }
+/** `genre`는 장르 이름(장르 없음·숨긴 장르는 '미지정')이라 칩의 장르 값과 같다. 장르·세계관 노드의 색은 장르 색(`genreColor`)이다. */
+type AtlasNodeBase = { id: string; name: string; genre: string; color: string; val: number; x?: number; y?: number; vx?: number; vy?: number; fx?: number; fy?: number }
 /** `name`은 장르명·세계관 이름·카드 제목이다. 세계관 노드의 `worldId`가 상세 주소(`/worlds/:id`)가, 카드 노드의 `worldId`·`cardId`(카드 id)가 카드 페이지 주소가 된다. */
 export type AtlasNode = AtlasNodeBase & ({ kind: 'genre' } | { kind: 'world'; worldId: string } | { kind: 'card'; worldId: string; cardId: string })
 /** `derive`는 원본→파생, `combine`은 조합의 원본마다 원본→조합 방향이다. `source`·`target`은 ForceGraph가 노드 객체로 바꾼다. */
@@ -80,8 +77,8 @@ export function buildWorldAtlas(worlds: readonly PublicWorldSummary[]): WorldAtl
   const links: AtlasLink[] = []
   let derived = 0, combined = 0
   for (const w of worlds) {
-    const genre = genreLabel(w.genre)
-    worldNodes.push({ kind: 'world', id: worldNodeId(w.id), name: w.name, genre, worldId: w.id, color: GENRE_COLORS[genre], val: w.cardCount + WORLD_USE_WEIGHT * (used.get(w.id) ?? 0) })
+    const genre = genreLabel(w)
+    worldNodes.push({ kind: 'world', id: worldNodeId(w.id), name: w.name, genre, worldId: w.id, color: genreColor(genreKey(w)), val: w.cardCount + WORLD_USE_WEIGHT * (used.get(w.id) ?? 0) })
     links.push({ source: genreNodeId(genre), target: worldNodeId(w.id), kind: 'genre' })
     for (const c of w.cards ?? []) {
       cardNodes.push({ kind: 'card', id: cardNodeId(w.id, c.id), name: c.title, genre, worldId: w.id, cardId: c.id, color: CARD_COLORS[CARD_KIND[c.cardType]], val: 1 })
@@ -92,7 +89,7 @@ export function buildWorldAtlas(worlds: readonly PublicWorldSummary[]): WorldAtl
     if (origins.some((o) => o.kind === 'derive')) derived++
     if (origins.some((o) => o.kind === 'combine')) combined++
   }
-  const genreNodes = [...new Set(worlds.map((w) => genreLabel(w.genre)))].map((genre): AtlasNode => ({ kind: 'genre', id: genreNodeId(genre), name: genre, genre, color: GENRE_COLORS[genre], val: 1 }))
+  const genreNodes = [...new Map(worlds.map((w) => [genreLabel(w), genreColor(genreKey(w))] as const))].map(([genre, color]): AtlasNode => ({ kind: 'genre', id: genreNodeId(genre), name: genre, genre, color, val: 1 }))
   return { nodes: [...cardNodes, ...worldNodes, ...genreNodes], links, stats: { worlds: worlds.length, cards: worlds.reduce((n, w) => n + w.cardCount, 0), derived, combined } }
 }
 

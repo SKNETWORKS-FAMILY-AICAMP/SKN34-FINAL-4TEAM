@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import type { Draft, WritingEpisode } from '../../../../domain/entities/content'
 import { imageMarker, type EpisodeImage } from '../../../../domain/entities/media'
 
-const fakes = vi.hoisted(() => ({ mediaUseCase: { listEpisodeImages: vi.fn(), updateEpisodeImageAlt: vi.fn() }, episodeUseCase: { writeEpisode: vi.fn() } }))
+const fakes = vi.hoisted(() => ({ mediaUseCase: { listEpisodeImages: vi.fn(), updateEpisodeImageAlt: vi.fn(), download: vi.fn() }, episodeUseCase: { writeEpisode: vi.fn() } }))
 vi.mock('../../../../app/appContainer', () => ({ appContainer: { resolve: (name: keyof typeof fakes) => fakes[name] } }))
 
 import { EpisodeImagePanel } from './EpisodeImagePanel'
@@ -24,7 +24,7 @@ beforeEach(() => {
   fakes.mediaUseCase.updateEpisodeImageAlt.mockImplementation(async (_w: string, _n: number, id: string, altText: string) => image(id, id === A ? '다리.png' : '강.png', { altText: altText.trim() }))
   fakes.episodeUseCase.writeEpisode.mockImplementation(async (_id: string, _n: number, value: Draft) => writing({ ...value, revision: value.revision + 1 }))
 })
-afterEach(() => { cleanup(); vi.clearAllMocks() })
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 const panel = (props: Partial<Parameters<typeof EpisodeImagePanel>[0]> = {}) => {
   const onDraftSaved = vi.fn()
@@ -135,4 +135,35 @@ it('행의 버튼은 글자를 짧게 두고 파일 이름은 이름(aria-label)
   expect([save.textContent, remove.textContent]).toEqual(['설명 저장', '본문에서 빼기'])
   // 파일 이름은 행 머리에 한 번 보인다.
   expect(screen.getAllByText(long)).toHaveLength(1)
+})
+
+/** 내려받기는 Blob 주소를 만들어 보이지 않는 링크를 누른다. jsdom에는 URL.createObjectURL이 없어 대역으로 둔다. */
+function stubSave() {
+  const saved: { download: string; href: string }[] = []
+  const createObjectURL = vi.fn(() => 'blob:image')
+  vi.stubGlobal('URL', class extends URL { static createObjectURL = createObjectURL; static revokeObjectURL = vi.fn() })
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) { saved.push({ download: this.download, href: this.href }) })
+  return { saved, createObjectURL }
+}
+
+it('이미지마다 다운로드 버튼이 있어 소유자 권한으로 원본 파일을 내려받는다', async () => {
+  const blob = new Blob(['png'], { type: 'image/png' })
+  fakes.mediaUseCase.download.mockResolvedValue(blob)
+  const { saved, createObjectURL } = stubSave()
+  panel()
+  fireEvent.click(await screen.findByRole('button', { name: '다운로드 · 다리.png' }))
+  await waitFor(() => expect(saved).toEqual([{ download: '다리.png', href: 'blob:image' }]))
+  expect(fakes.mediaUseCase.download).toHaveBeenCalledWith({ kind: 'episode', workId, number: 2 }, A, false, expect.any(AbortSignal))
+  expect(createObjectURL).toHaveBeenCalledWith(blob)
+  expect((await screen.findByRole('status')).textContent).toBe('이미지 다운로드를 요청했어요.')
+})
+
+it('다운로드가 실패하면 서버 사유를 알리고 파일을 저장하지 않는다', async () => {
+  fakes.mediaUseCase.download.mockRejectedValue(new Error('이미지를 찾을 수 없어요.'))
+  const { saved } = stubSave()
+  panel()
+  fireEvent.click(await screen.findByRole('button', { name: '다운로드 · 강.png' }))
+  expect((await screen.findByRole('alert')).textContent).toBe('이미지를 찾을 수 없어요.')
+  expect(saved).toEqual([])
+  expect(screen.queryByRole('status')).toBeNull()
 })

@@ -29,6 +29,7 @@ import { CharacterDocs } from './CharacterDocs'
 import { NewCardMenu } from './NewCardMenu'
 import { WorldCardFindings } from './WorldCardFindings'
 import { WorldCardOrder } from './WorldCardOrder'
+import { useWorldChatPage } from '../viewmodel/useWorldChatPage'
 import { WorldChat } from './WorldChat'
 import { WorldSaveBar } from './WorldSaveBar'
 
@@ -62,6 +63,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const setting = world.settings.find((s) => s.item.id === vm.selected)!
   const { item } = setting
   const board = useCardBoard(vm)
+  const chatPage = useWorldChatPage(vm)
   const [split, setSplit] = useState(50) // 레일에서 카드 목록이 차지하는 높이 비율(%). 새로 열면 처음으로 돌아온다.
   const [confirm, setConfirm] = useState('') // 삭제를 확인 중인 카드 id
   const listId = useId()
@@ -263,7 +265,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
             </footer>
           </div>
         </div>
-        <WorldChat variant="writing" open={chatOpen} onOpenChange={onChatOpenChange} linkedWorkId={vm.linkedWorkId} onWorldApplied={() => void vm.aiDraftChanged().then((reread) => { if (reread) docs.reload() })} />
+        <WorldChat variant="writing" open={chatOpen} onOpenChange={onChatOpenChange} linkedWorkId={vm.linkedWorkId} onWorldApplied={() => void vm.aiDraftChanged().then((reread) => { if (reread) docs.reload() })} {...chatPage} />
       </main>
     </div>
   )

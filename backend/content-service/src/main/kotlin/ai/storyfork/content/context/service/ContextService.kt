@@ -29,8 +29,10 @@ class ContextService(
         val published=publication.publishedEpisodes(id).items.let {if(owner==null) w.readerEpisodes(it) else it}
         val max=publication.nextEpisodeNumber(id)
         checkContent(if(owner==null) published.any {it.number==basis} else basis in 1..max,message="공개 회차 또는 현재 작성 회차를 선택해 주세요.")
-        val following=w.source!=null && world.isFollowingForContext(id)
-        val settings=selectSettings(world.historyForContext(id).items.map {it.toDomain()},basis,owner==null || following,character)
+        val settings=if(!request.includeSettings) emptyList() else {
+            val following=w.source!=null && world.isFollowingForContext(id)
+            selectSettings(world.historyForContext(id).items.map {it.toDomain()},basis,owner==null || following,character)
+        }
         val draft=if(owner!=null && character.isEmpty() && basis==max) {
             episodes.findByWorkIdAndSequence(id,max)?.let {drafts.findById(it.id).orElse(null)?.content} ?: ""
         } else ""

@@ -35,6 +35,11 @@ import ai.storyfork.operations.event.controller.PublicEventController
 import ai.storyfork.operations.event.service.AdminEventService
 import ai.storyfork.operations.event.service.EventService
 import ai.storyfork.operations.event.service.dto.EventResponse
+import ai.storyfork.operations.genre.controller.GenreController
+import ai.storyfork.operations.genre.service.GenreService
+import ai.storyfork.operations.genre.service.dto.GenreCreateRequest
+import ai.storyfork.operations.genre.service.dto.GenreOrderRequest
+import ai.storyfork.operations.genre.service.dto.GenreUpdateRequest
 import ai.storyfork.operations.report.controller.ReportController
 import ai.storyfork.operations.report.service.ReportService
 import ai.storyfork.operations.report.service.dto.ReportListResponse
@@ -64,7 +69,7 @@ import tools.jackson.databind.json.JsonMapper
 
 /** CI integration only: MVC assembly of the member Bearer and public event chains next to the service-token chain. */
 @WebMvcTest(controllers = [ReportController::class, AdminEventController::class, AdminActivityController::class, PublicEventController::class, WorkController::class, CommentController::class,
-    DashboardController::class, LlmopsController::class, AlertController::class], properties = [
+    DashboardController::class, LlmopsController::class, AlertController::class, GenreController::class], properties = [
     "app.operations.service-token=ci-operations-test-only-0123456789abcdef",
 ])
 @Import(MemberSecurityConfig::class, PublicSecurityConfig::class, OperationsSecurityConfig::class, OperationsExceptionHandler::class,
@@ -81,6 +86,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var adminEvents: AdminEventService
     @MockitoBean lateinit var events: EventService
     @MockitoBean lateinit var works: WorkService
+    @MockitoBean lateinit var genres: GenreService
     @MockitoBean lateinit var comments: CommentService
     @MockitoBean lateinit var adminActivities: AdminActivityService
     @MockitoBean lateinit var dashboard: DashboardService
@@ -254,6 +260,41 @@ class MemberSecurityIntegrationTest {
             .andExpect(status().isOk()).andExpect(jsonPath("$.hidden").value(true))
         mvc.perform(delete("/api/v1/operations/comments/ops-comment-1/hidden").header("Authorization", bearer))
             .andExpect(status().isOk()).andExpect(jsonPath("$.hidden").value(false))
+    }
+
+    @Test
+    fun `genres routes require a Core verified Bearer and ignore the service token`() {
+        for (builder in listOf(
+            get("/api/v1/operations/genres"), post("/api/v1/operations/genres"),
+            patch("/api/v1/operations/genres/genre-05"), put("/api/v1/operations/genres/order"),
+        )) {
+            val response = mvc.perform(builder.header("X-Operations-Service-Token", serviceToken))
+                .andExpect(status().isUnauthorized()).andReturn().response
+            assertEquals("UNAUTHORIZED", code(response.contentAsString))
+            assertNull(response.getHeader("Set-Cookie"))
+        }
+        verifyNoInteractions(core, genres)
+    }
+
+    @Test
+    fun `verified member reaches the genres controller as principal and gets Content's JSON as is`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        val rows = mapper.readTree("""[{"code":"genre-01","name":"판타지","emoji":"✨","active":true,"featured":true,"position":1,"workCount":3,"worldCount":1}]""")
+        val row = mapper.readTree("""{"code":"genre-31","name":"사이버펑크"}""")
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(genres.list(member)).thenReturn(rows)
+        `when`(genres.create(member, GenreCreateRequest("사이버펑크", "🤖"))).thenReturn(row)
+        `when`(genres.update(member, "genre-31", GenreUpdateRequest(active = false))).thenReturn(row)
+        `when`(genres.reorder(member, GenreOrderRequest(listOf("genre-02", "genre-01")))).thenReturn(rows)
+
+        mvc.perform(get("/api/v1/operations/genres").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$[0].workCount").value(3)).andExpect(jsonPath("$[0].emoji").value("✨"))
+        mvc.perform(post("/api/v1/operations/genres").header("Authorization", bearer).contentType("application/json")
+            .content("""{"name":"사이버펑크","emoji":"🤖"}""")).andExpect(status().isCreated()).andExpect(jsonPath("$.code").value("genre-31"))
+        mvc.perform(patch("/api/v1/operations/genres/genre-31").header("Authorization", bearer).contentType("application/json")
+            .content("""{"active":false}""")).andExpect(status().isOk()).andExpect(jsonPath("$.name").value("사이버펑크"))
+        mvc.perform(put("/api/v1/operations/genres/order").header("Authorization", bearer).contentType("application/json")
+            .content("""{"codes":["genre-02","genre-01"]}""")).andExpect(status().isOk())
     }
 
     @Test

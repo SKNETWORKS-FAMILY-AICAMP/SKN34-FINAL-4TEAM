@@ -302,3 +302,148 @@ def test_apply_world_keeps_contents_status_and_detail_when_the_edit_is_rejected(
     with pytest.raises(ContentMcpFailure) as error:
         service.apply_world(WORLD_ID, 7, [fix_of()])
     assert (error.value.status, str(error.value)) == (409, '초안이 최신이 아니에요.')
+
+
+WORLD = {'draftRevision': 4, 'name': '달빛 세계', 'description': '설명', 'cards': [
+    {'id': 'k', 'title': '카엘', 'body': '기사', 'cardType': 'character', 'areaCode': 'society', 'visibility': 'public', 'aliases': ['북문지기'],
+     'semanticMetadata': {'revealFromEpisode': 2, 'studio': {'item': {'text': '기사'}}}}]}
+
+
+def edit_calls(monkeypatch, cards):
+    calls = content(monkeypatch, {'world_studio_read': (False, json.dumps(WORLD)), 'world_studio_edit_draft': (False, json.dumps({'draftRevision': 5}))})
+    assert service.edit_world({'id': 'w', 'request': {'expectedDraftRevision': 4, 'replace': True, 'cards': cards}}) == {'draftRevision': 5}
+    return json.loads(json.dumps(calls[1][3]['request']))
+
+
+def test_edit_world_overlays_the_given_fields_on_the_read_card_and_never_replaces(monkeypatch):
+    sent = edit_calls(monkeypatch, [{'id': 'k', 'body': '과묵한 기사', 'semanticMetadata': {'tag': 1}}])
+    [card] = sent['cards']
+    assert sent['replace'] is False and sent['expectedDraftRevision'] == 4 and (sent['name'], sent['description']) == ('달빛 세계', '설명') and sent['key']
+    assert card['body'] == card['semanticMetadata']['studio']['item']['text'] == '과묵한 기사'  # 화면이 읽는 사본도 함께 맞춘다
+    assert (card['title'], card['visibility'], card['aliases'], card['semanticMetadata']['revealFromEpisode'], card['semanticMetadata']['tag']) == ('카엘', 'public', ['북문지기'], 2, 1)
+
+
+def test_edit_world_adds_a_new_card_only_when_it_is_complete_and_refuses_a_malformed_request(monkeypatch):
+    new = {'id': 'n', 'title': '새 설정', 'body': '본문', 'cardType': 'object', 'areaCode': 'basic'}
+    assert edit_calls(monkeypatch, [new])['cards'] == [{**new, 'semanticMetadata': {}}]
+    for bad in ({'id': 'w'}, {'id': 'w', 'request': {'cards': [{'id': 'n', 'title': '제목만'}]}}):
+        with pytest.raises(ContentMcpFailure) as error:
+            service.edit_world(bad)
+        assert error.value.status == 422
+
+
+def test_edit_world_keeps_a_content_conflict_as_it_is(monkeypatch):
+    content(monkeypatch, {'world_studio_read': (False, json.dumps(WORLD)), 'world_studio_edit_draft': (True, 'HTTP 409\n세계관 초안이 바뀌었어요.')})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.edit_world({'id': 'w', 'request': {'expectedDraftRevision': 3, 'cards': [{'id': 'k', 'body': '새 글'}]}})
+    assert (error.value.status, str(error.value)) == (409, '세계관 초안이 바뀌었어요.')
+
+
+def test_tool_specs_lists_the_content_tools_once_and_returns_only_the_allowed_names(monkeypatch):
+    import asyncio
+    from mcp.types import Tool  # 실제 SDK 타입(필드 이름이 inputSchema가 아니라 input_schema)이어야 대역이 실서버와 같다
+    monkeypatch.setenv('CONTENT_SERVICE_BASE_URL', 'http://content.test/')
+    monkeypatch.setattr(service, '_SPECS', {})
+    asked = []
+
+    async def listed(url, authorization):
+        asked.append((url, authorization))
+        return [Tool(name=n, description=f'{n} 설명', inputSchema={'type': 'object'}) for n in ('episode_read', 'episode_update_draft')]
+
+    monkeypatch.setattr(service, '_list', listed)
+    service.AUTHORIZATION.set('Bearer user')
+    assert asyncio.run(service.tool_specs(('episode_read', 'work_read'))) == [{'name': 'episode_read', 'description': 'episode_read 설명', 'schema': {'type': 'object'}}]
+    asyncio.run(service.tool_specs(('episode_read',)))
+    assert asked == [('http://content.test/mcp', 'Bearer user')]  # 두 번째는 캐시
+
+
+def test_edit_world_without_the_read_revision_refuses_instead_of_overwriting(monkeypatch):
+    calls = content(monkeypatch, {'world_studio_read': (False, json.dumps(WORLD))})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.edit_world({'id': 'w', 'request': {'cards': [{'id': 'k', 'body': '새 글'}]}})
+    assert error.value.status == 422 and [c[2] for c in calls] == ['world_studio_read']
+
+
+def test_edit_world_accepts_the_flat_shape_and_keeps_the_screen_title_copy_in_step(monkeypatch):
+    titled = {**WORLD, 'cards': [{**WORLD['cards'][0], 'semanticMetadata': {'studio': {'item': {'title': '카엘', 'text': '기사'}}}}]}
+    calls = content(monkeypatch, {'world_studio_read': (False, json.dumps(titled)), 'world_studio_edit_draft': (False, json.dumps({'draftRevision': 5}))})
+    service.edit_world({'id': 'w', 'expectedDraftRevision': 4, 'cards': [{'id': 'k', 'title': '카엘 공'}]})  # request로 감싸지 않은 평평한 호출
+    [card] = calls[1][3]['request']['cards']
+    assert (card['title'], card['semanticMetadata']['studio']['item']['title'], card['body']) == ('카엘 공', '카엘 공', '기사')
+
+
+def test_edit_world_keeps_the_null_fields_of_the_screen_metadata_the_model_left_out(monkeypatch):
+    full = {'id': 'k', 'kind': 'entity', 'title': '카엘', 'text': '기사', 'subjectId': None, 'targetId': None, 'predicate': None, 'afterId': None}
+    old = {**WORLD['cards'][0], 'semanticMetadata': {'studio': {'item': full, 'tags': [], 'aliases': [], 'userCategory': ''}}}
+    calls = content(monkeypatch, {'world_studio_read': (False, json.dumps({**WORLD, 'cards': [old]})), 'world_studio_edit_draft': (False, json.dumps({'draftRevision': 5}))})
+    # 모델이 null인 칸을 빼고 studio를 다시 보낸 호출
+    service.edit_world({'id': 'w', 'request': {'expectedDraftRevision': 4, 'cards': [{'id': 'k', 'title': '카엘 공', 'semanticMetadata': {'studio': {'item': {'id': 'k', 'kind': 'entity', 'title': '카엘', 'text': '기사'}}}}]}})
+    [card] = calls[1][3]['request']['cards']
+    item = card['semanticMetadata']['studio']['item']
+    assert (item['subjectId'], item['afterId'], item['title']) == (None, None, '카엘 공') and card['semanticMetadata']['studio']['userCategory'] == ''
+
+
+# 계획 수정(#578): story_plan_list·read·update. 소유자 검사·삭제(404)·다른 작품·종류 변경 금지는 Content가 한다.
+PLAN = {'id': 'scene-1', 'workId': 'work', 'kind': 'scene', 'parentId': 'plot-1', 'title': '재회', 'content': '카엘이 리나를 만난다.',
+        'episodeNumber': 5, 'episodeMissing': False, 'characterIds': ['k'], 'placeIds': ['p'], 'revision': 3, 'position': 2}
+
+
+def plan_replies(read=PLAN, saved=None):
+    return {'story_plan_read': (False, json.dumps(read)), 'story_plan_update': (False, json.dumps(saved or {**PLAN, 'revision': 4}))}
+
+
+def test_list_plans_keeps_only_what_the_candidate_summary_needs(monkeypatch):
+    content(monkeypatch, {'story_plan_list': (False, json.dumps([PLAN]))})
+    [item] = service.list_plans('work')
+    assert (item.id, item.kind, item.title, item.parentId, item.episodeNumber) == ('scene-1', 'scene', '재회', 'plot-1', 5)
+
+
+@pytest.mark.parametrize('reply', ['{}', '[{"id": "x"}]', '"x"'])
+def test_list_plans_with_an_unreadable_reply_is_502(monkeypatch, reply):
+    content(monkeypatch, {'story_plan_list': (False, reply)})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.list_plans('work')
+    assert error.value.status == 502
+
+
+def test_apply_plan_changes_only_title_and_content_with_the_proposals_revision_and_the_user_token(monkeypatch):
+    calls = content(monkeypatch, plan_replies())
+    assert service.apply_plan('work', 'scene-1', 3, '새 제목', '새 내용') == {'planId': 'scene-1', 'revision': 4}
+    assert [(c[2], c[1]) for c in calls] == [('story_plan_read', 'Bearer user'), ('story_plan_update', 'Bearer user')]
+    # 나머지 칸은 읽은 값 그대로다. position은 보내지 않아 내용 수정이 순서를 바꾸지 않는다.
+    assert calls[1][3] == {'workId': 'work', 'id': 'scene-1', 'data': {
+        'kind': 'scene', 'parentId': 'plot-1', 'title': '새 제목', 'content': '새 내용', 'episodeNumber': 5, 'characterIds': ['k'], 'placeIds': ['p'], 'revision': 3}}
+
+
+def test_apply_plan_refuses_a_plan_changed_since_the_proposal_and_writes_nothing(monkeypatch):
+    calls = content(monkeypatch, plan_replies(read={**PLAN, 'revision': 4}))
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_plan('work', 'scene-1', 3, '새 제목', '새 내용')
+    assert error.value.status == 409 and '바뀌어' in str(error.value) and [c[2] for c in calls] == ['story_plan_read']
+
+
+@pytest.mark.parametrize('read', [(False, '{"id": "scene-1"}'), (False, json.dumps({**PLAN, 'revision': '3'})), (False, '[]')])
+def test_apply_plan_unreadable_plan_is_502_without_writing(monkeypatch, read):
+    calls = content(monkeypatch, {'story_plan_read': read})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_plan('work', 'scene-1', 3, '새 제목', '새 내용')
+    assert error.value.status == 502 and [c[2] for c in calls] == ['story_plan_read']
+
+
+@pytest.mark.parametrize('saved', [(False, '{}'), (False, '{"revision": "4"}'), (False, '[]')])
+def test_apply_plan_unconfirmed_save_response_is_502_not_a_success(monkeypatch, saved):
+    content(monkeypatch, {**plan_replies(), 'story_plan_update': saved})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_plan('work', 'scene-1', 3, '새 제목', '새 내용')
+    assert error.value.status == 502
+
+
+def test_apply_plan_keeps_contents_status_and_detail_when_the_plan_is_gone_or_edited(monkeypatch):
+    content(monkeypatch, {**plan_replies(), 'story_plan_update': (True, 'HTTP 409\n다른 변경이 저장됐어요.')})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_plan('work', 'scene-1', 3, '새 제목', '새 내용')
+    assert (error.value.status, str(error.value)) == (409, '다른 변경이 저장됐어요.')
+    content(monkeypatch, {'story_plan_read': (True, 'HTTP 404\n계획을 찾을 수 없어요.')})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.read_plan('work', 'scene-1')
+    assert (error.value.status, str(error.value)) == (404, '계획을 찾을 수 없어요.')

@@ -6,7 +6,6 @@ import { AGGREGATE_WRITE_UNSUPPORTED, FEEDBACK_UNAVAILABLE, type WorkRepository 
 import type { WorkInterestRepository } from '../repositories/WorkInterestRepository'
 import type { WorldRepository } from '../repositories/WorldRepository'
 
-export const NOVEL_GENRES = ['판타지','현대판타지','무협','선협','퓨전','로맨스','로맨스판타지','BL','GL','현대','시대물','역사','대체역사','SF','게임','스포츠','드라마','미스터리','추리','스릴러','공포','오컬트','액션','전쟁·밀리터리','라이트노벨','학원','일상','고전','일반소설','기타']
 export const NOVEL_TAG_GROUPS: Record<string, string[]> = {
   '전개·인물': ['회귀','빙의','환생','타임슬립','차원이동','이세계','평행세계','루프','기억상실','성장','복수','구원','생존','착각계','오해','비밀','반전','먼치킨','천재 주인공','정체 숨김'],
   '판타지·세계': ['헌터','던전','게이트','탑등반','성좌','상태창','시스템','레벨업','마법','마법학교','기사','드래곤','정령','신화','마왕','몬스터','이종족','길드','아포칼립스','포스트아포칼립스','좀비','재난','디스토피아','가상현실'],

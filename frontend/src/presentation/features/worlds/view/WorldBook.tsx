@@ -50,7 +50,7 @@ export function WorldBook({ world }: { world: PublicWorld }) {
   const imageOf = new Map(world.cards.map((card) => [card.id, card.imageId]))
   return (
     <div className="calm">
-      <p className="muted small worlds-book-line">{`${genreLabel(world.genre)} · 작가 ${world.authorNickname} · 설정 카드 ${world.cards.length}개${derived ? ` · 파생·조합된 세계관 ${derived}개` : ''}`}</p>
+      <p className="muted small worlds-book-line">{`${genreLabel(world)} · 작가 ${world.authorNickname} · 설정 카드 ${world.cards.length}개${derived ? ` · 파생·조합된 세계관 ${derived}개` : ''}`}</p>
       {world.relationshipStatus === 'unavailable' && <p role="status">관계를 불러오지 못해 연결 수를 확인할 수 없어요.</p>}
       <div className="worlds-board">
         <nav className="worlds-cats" aria-label="설정 분류">

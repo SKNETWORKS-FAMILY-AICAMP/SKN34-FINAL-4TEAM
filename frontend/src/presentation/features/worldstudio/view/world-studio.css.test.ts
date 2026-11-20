@@ -54,6 +54,14 @@ it('관계 기준 회차 입력은 .episode-app의 큰 입력 규칙(폭 100%·�
   expect(input).not.toMatch(/font/) // 터치 기기의 16px(확대 방지) 보정은 .episode-app 규칙이 계속 맡는다
 })
 
+it('게시판 일괄 공개 회차 줄은 .episode-app의 label(block)·입력(폭 100%·패딩·위 여백) 규칙을 이기고 "일괄 공개 회차 [입력] 화부터 공개"를 한 줄 flex로 둔다', () => {
+  expect(rule((s) => s === '.episode-app .world-reveal')?.body).toMatch(/display:\s*flex/)
+  const input = rule((s) => s === '.episode-app .world-reveal input:not([type=checkbox]):not([type=radio])')?.body
+  expect(input).toMatch(/width:\s*88px/)
+  expect(input).toMatch(/padding:\s*8px 10px/)
+  expect(input).toMatch(/margin-top:\s*0/)
+})
+
 it('편집기 감싸개는 Toast의 z-index(본문 20·팝업 30)를 가둬 sticky 하단 바와 좁은 화면 상단 바 위로 글이 올라와 겹쳐 찍히지 않고, 두 바는 불투명한 면이다', () => {
   // 원인: Toast가 본문 컨테이너를 position:relative + z-index:20으로 그려, z-index가 없는 sticky 하단 바(.writing-foot)와 z-index 10인 상단 바(.sbar) 위로 글이 올라온다.
   expect(rule((s) => s === '.world-card-editor')?.body).toMatch(/isolation:\s*isolate/)

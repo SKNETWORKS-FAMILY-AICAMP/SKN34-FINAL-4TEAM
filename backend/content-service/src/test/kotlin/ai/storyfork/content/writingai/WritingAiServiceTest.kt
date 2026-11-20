@@ -9,8 +9,12 @@ import ai.storyfork.content.context.service.dto.QaScopeRequest
 import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.fork.repository.ForkRepository
 import ai.storyfork.content.work.service.WorkAccessService
+import ai.storyfork.content.work.service.WorkWorldService
+import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.WritingAiService
+import ai.storyfork.content.writingai.service.dto.WritingAiPage
+import ai.storyfork.content.writingai.service.dto.WritingAiPageContent
 import ai.storyfork.content.writingai.service.dto.WritingAiRequest
 import ai.storyfork.content.writingai.service.dto.WritingAiResume
 import ai.storyfork.content.writingai.service.dto.WritingAiScene
@@ -28,7 +32,9 @@ class WritingAiServiceTest {
     private val access = mock(WorkAccessService::class.java)
     private val episodes = mock(EpisodeService::class.java)
     private val forks = mock(ForkRepository::class.java)
-    private val service = WritingAiService(scopes, grants, client, access, episodes, forks)
+    private val workWorlds = mock(WorkWorldService::class.java)
+    private val worlds = mock(WorldStudioService::class.java)
+    private val service = WritingAiService(scopes, grants, client, access, episodes, forks, workWorlds, worlds)
     private val result = JsonMapper.builder().build().readTree("""{"status":"completed"}""")
     private val ask = WritingAiRequest(request = "길드 규칙은?", episode = 2, episodeVersionId = "r2")
 
@@ -180,7 +186,7 @@ class WritingAiServiceTest {
 
     @Test
     fun `resume forwards the inputs the author filled in`() {
-        val inputs = JsonMapper.builder().build().readTree("""{"web_research":{"question":"한양에서 동래까지?"}}""")
+        val inputs = JsonMapper.builder().build().readTree("""{"research":{"question":"한양에서 동래까지?"}}""")
         val body = service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true, inputs)))
         assertEquals(inputs, (body["resume"] as Map<*, *>)["inputs"])
     }
@@ -294,5 +300,100 @@ class WritingAiServiceTest {
             service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true)), fromTurn = 1)
         }
         assertEquals(422, failure.status)
+    }
+
+    // 화면 맥락(#554): 길이는 DTO가, 권한은 사용자 기준으로 Service가 다시 확인하고 통과한 값만 AI에 싣는다.
+    private val owner = "5b1e3f0a-1111-4222-8333-444455556666"
+    private val worldId = java.util.UUID.fromString("0a0a0a0a-1111-4222-8333-444455556666")
+    private val cardId = java.util.UUID.fromString("0b0b0b0b-1111-4222-8333-444455556666")
+
+    private fun pageAsk(page: WritingAiPage) = ask.copy(page = page)
+    private fun worldPage(world: String? = worldId.toString(), card: String? = cardId.toString()) =
+        WritingAiPage("/worldstudio/$world?card=$card", "world", worldId = world, cardId = card, view = "cards",
+            content = WritingAiPageContent("카엘", "북문을 지키는 기사", true))
+
+    private fun groundedFor(who: String) = `when`(scopes.resolve("work", who, QaScopeRequest(2, "r2"))).thenReturn(QaScope("work", null, 2, "r2", emptyList()))
+
+    @Test
+    fun `a world page of this authors linked world and card goes to the AI with only the given fields`() {
+        groundedFor(owner)
+        `when`(workWorlds.linkedWorldId("work", owner)).thenReturn(worldId)
+        `when`(worlds.hasCard(worldId, java.util.UUID.fromString(owner), cardId)).thenReturn(true)
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        service.run("work", owner, "Bearer user", pageAsk(worldPage()))
+        assertEquals(mapOf("path" to "/worldstudio/$worldId?card=$cardId", "kind" to "world", "worldId" to worldId.toString(), "cardId" to cardId.toString(),
+            "view" to "cards", "content" to mapOf("title" to "카엘", "body" to "북문을 지키는 기사", "unsaved" to true)), sent()["page"])
+    }
+
+    @Test
+    fun `a studio page checks the episode and sends the selection`() {
+        groundedFor(owner)
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        service.run("work", owner, "Bearer user", pageAsk(WritingAiPage("/studio/work?ep=2", "studio", episode = 2, selection = "그는 웃었다.")))
+        verify(episodes).read("work", owner, 2)
+        assertEquals(mapOf("path" to "/studio/work?ep=2", "kind" to "studio", "episode" to 2, "selection" to "그는 웃었다."), sent()["page"])
+    }
+
+    @Test
+    fun `a studio episode the work does not have is a 422 and nothing reaches the AI`() {
+        groundedFor(owner)
+        `when`(episodes.read("work", owner, 9)).thenThrow(ContentFailure(404, "회차를 찾을 수 없어요."))
+        assertEquals(422, assertThrows(ContentFailure::class.java) {
+            service.run("work", owner, "Bearer user", pageAsk(WritingAiPage("/studio/work?ep=9", "studio", episode = 9)))
+        }.status)
+        verifyNoInteractions(client)
+    }
+
+    @Test
+    fun `a world that is not the one linked to this work is refused`() {
+        groundedFor(owner)
+        `when`(workWorlds.linkedWorldId("work", owner)).thenReturn(null)
+        assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", owner, "Bearer user", pageAsk(worldPage())) }.status)
+        `when`(workWorlds.linkedWorldId("work", owner)).thenReturn(java.util.UUID.randomUUID())
+        assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", owner, "Bearer user", pageAsk(worldPage())) }.status)
+        assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", owner, "Bearer user", pageAsk(worldPage(world = "not-a-uuid"))) }.status)
+        verifyNoInteractions(client, worlds)
+    }
+
+    @Test
+    fun `a card that is not in the linked world or was removed is refused and another authors world keeps its 404`() {
+        groundedFor(owner)
+        `when`(workWorlds.linkedWorldId("work", owner)).thenReturn(worldId)
+        `when`(worlds.hasCard(worldId, java.util.UUID.fromString(owner), cardId)).thenReturn(false)
+        for (page in listOf(worldPage(), worldPage(card = java.util.UUID.randomUUID().toString()), worldPage(card = "not-a-uuid"))) {
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", owner, "Bearer user", pageAsk(page)) }.status)
+        }
+        `when`(worlds.hasCard(worldId, java.util.UUID.fromString(owner), cardId)).thenThrow(ContentFailure(404, "세계관을 찾을 수 없어요."))
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.run("work", owner, "Bearer user", pageAsk(worldPage())) }.status)
+        verifyNoInteractions(client)
+    }
+
+    @Test
+    fun `mixed page kinds are refused`() {
+        groundedFor(owner)
+        for (page in listOf(WritingAiPage("/studio/work", "studio", worldId = worldId.toString()), WritingAiPage("/worldstudio", "world", episode = 2),
+            WritingAiPage("/worldstudio", "world", cardId = cardId.toString()))) {
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", owner, "Bearer user", pageAsk(page)) }.status)
+        }
+    }
+
+    @Test
+    fun `resume ignores the page`() {
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        service.run("work", owner, "Bearer user", ask.copy(request = null, resume = WritingAiResume(true), threadId = "thread", page = worldPage()))
+        assertFalse("page" in sent())
+        verifyNoInteractions(workWorlds, worlds, episodes)
+    }
+
+    @Test
+    fun `a page over the limits is a validation failure`() {
+        val validator = jakarta.validation.Validation.buildDefaultValidatorFactory().validator
+        fun violations(page: WritingAiPage) = validator.validate(pageAsk(page)).map { it.propertyPath.toString() }
+        assertTrue(violations(WritingAiPage("/studio/work", "studio")).isEmpty())
+        assertEquals(listOf("page.path"), violations(WritingAiPage("x".repeat(301), "studio")))
+        assertEquals(listOf("page.selection"), violations(WritingAiPage("/studio/work", "studio", selection = "가".repeat(5001))))
+        assertEquals(listOf("page.content.body"), violations(WritingAiPage("/studio/work", "studio", content = WritingAiPageContent(null, "가".repeat(10001), true))))
+        assertEquals(listOf("page.content.unsaved"), violations(WritingAiPage("/studio/work", "studio", content = WritingAiPageContent(null, "본문", false))))
+        assertEquals(listOf("page.kind"), violations(WritingAiPage("/studio/work", "library")))
     }
 }

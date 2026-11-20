@@ -7,3 +7,4 @@
 .episode-image-list li { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; min-width: 0; overflow-wrap: anywhere; }
 .episode-image-list form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin-block: 10px; }
 .episode-image-list .field { flex: 1 1 240px; min-width: 0; }
+.episode-image-list li > .btn + .btn { margin-inline-start: 8px; }

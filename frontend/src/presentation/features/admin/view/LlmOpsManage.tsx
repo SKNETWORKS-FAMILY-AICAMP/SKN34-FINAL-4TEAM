@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { LLM_FORBIDDEN, evaluationStatusLabel, passedLabel, perMillion, promoteLabel, type Evaluation } from '../../../../domain/entities/llmOps'
 import { alertRuleLabel, type AlertRule } from '../../../../domain/entities/operationsAlert'
 import { kstDateTime } from '../../../shared/format'
+import { MoreVerticalIcon } from '../../../shared/icons'
+import { PopMenu } from '../../../shared/PopMenu'
 import { EvaluationChart } from './AdminCharts'
 import type { LlmVM, VM } from './LlmOps'
 import { formNumber, formText } from './formValue'
@@ -10,16 +12,11 @@ import { ActionLines, LiveState, Table } from './OperationsPanels'
 
 type Props = { vm: VM; l: LlmVM }
 
-/** 프롬프트·모델·평가·경고 기준 보기. 변경 조치(새 버전·승격·모델 등록·평가 실행·기준 저장)는 모두 활동 로그에 남습니다. */
-export function LlmOpsManage({ vm, l }: Props) {
-  if (l.view === 'prompts') return <Prompts vm={vm} l={l} />
-  if (l.view === 'models') return <Models vm={vm} l={l} />
-  if (l.view === 'evaluations') return <Evaluations vm={vm} l={l} />
-  if (l.view === 'settings') return <Settings vm={vm} l={l} />
-  return null
-}
+/** 평가 통과 여부의 칩 색: 미통과만 실패 색(bad)이고, 통과는 중립, 결과 없음(null)은 칠하지 않는다. */
+const passTone = (passed: boolean | null | undefined) => (passed === false ? 'bad' : passed ? 'ok' : '')
 
-function Prompts({ vm, l }: Props) {
+/** 프롬프트·모델·평가·경고 기준·표본 비율 패널. 변경 조치(새 버전·승격·모델 등록·평가 실행·기준 저장)는 모두 활동 로그에 남습니다. */
+export function Prompts({ vm, l }: Props) {
   const rows = l.prompts.data, p = l.prompt.data
   if (!l.promptName) {
     return (
@@ -58,7 +55,7 @@ function Prompts({ vm, l }: Props) {
                 <th scope="col">라벨</th>
                 <th scope="col">등록</th>
                 <th scope="col">최신 회귀 평가</th>
-                <th scope="col" className="act">production</th>
+                <th scope="col" className="act act-menu"><span className="sr-only">production</span></th>
               </tr>
             </thead>
             <tbody>
@@ -68,29 +65,30 @@ function Prompts({ vm, l }: Props) {
                   <tr key={v.version}>
                     <td>{v.version}</td>
                     <td>{v.labels.length ? v.labels.map((label) => <span key={label} className="chip ok">{label}</span>) : '—'}</td>
-                    <td>{v.createdAt ? kstDateTime(v.createdAt) : '—'}</td>
+                    <td className="admin-date">{v.createdAt ? kstDateTime(v.createdAt) : '—'}</td>
                     <td>
                       {evaluation
                         ? (
                           <>
-                            <span className={`chip ${evaluation.passed ? 'ok' : 'wait'}`}>{passedLabel(evaluation.passed)}</span>{' '}
+                            <span className={`chip ${passTone(evaluation.passed)}`}>{passedLabel(evaluation.passed)}</span>{' '}
                             <button type="button" className="btn sm" aria-label={`${p.name} ${v.version}번 버전 평가 결과 보기`} onClick={() => l.openEvaluation(evaluation.runId)}>결과 보기</button>
                           </>
                         )
                         : '평가 없음'}
                     </td>
-                    <td>
+                    <td className="act-menu">
                       {action
                         ? (
-                          <button
-                            type="button"
-                            className="btn sm"
-                            aria-label={`${p.name} ${v.version}번 버전 production ${action}`}
-                            disabled={busy}
-                            onClick={() => { if (window.confirm(`${p.name} ${v.version}번 버전을 production으로 ${action === '복원' ? '되돌릴까요' : '올릴까요'}? 서비스가 바로 이 버전의 프롬프트를 쓰게 돼요.`)) void l.promote(p.name, v.version) }}
-                          >
-                            {action}
-                          </button>
+                          <PopMenu className="row-menu" label={`「${p.name} ${v.version}번 버전」 조치`} icon={<MoreVerticalIcon />}>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              disabled={busy}
+                              onClick={() => { if (window.confirm(`${p.name} ${v.version}번 버전을 production으로 ${action === '복원' ? '되돌릴까요' : '올릴까요'}? 서비스가 바로 이 버전의 프롬프트를 쓰게 돼요.`)) void l.promote(p.name, v.version) }}
+                            >
+                              production {action}
+                            </button>
+                          </PopMenu>
                         )
                         : '현재 production'}
                     </td>
@@ -119,7 +117,7 @@ function Prompts({ vm, l }: Props) {
   )
 }
 
-function Models({ vm, l }: Props) {
+export function Models({ vm, l }: Props) {
   const rows = l.models.data, busy = !!vm.actions['model:new']?.pending
   return (
     <section className="panel admin-operations" aria-label="모델 단가">
@@ -171,9 +169,9 @@ function Models({ vm, l }: Props) {
   )
 }
 
-const evaluationChip = (e: Evaluation) => <span className={`chip ${e.passed ? 'ok' : 'wait'}`}>{e.status === 'completed' ? passedLabel(e.passed) : evaluationStatusLabel(e.status)}</span>
+const evaluationChip = (e: Evaluation) => <span className={`chip ${e.status === 'failed' ? 'bad' : passTone(e.passed)}`}>{e.status === 'completed' ? passedLabel(e.passed) : evaluationStatusLabel(e.status)}</span>
 
-function Evaluations({ vm, l }: Props) {
+export function Evaluations({ vm, l }: Props) {
   const rows = l.evaluations.data, e = l.evaluation.data, busy = !!vm.actions['eval:new']?.pending
   if (l.runId) {
     return (
@@ -226,7 +224,7 @@ function Evaluations({ vm, l }: Props) {
                 <th scope="col">프롬프트</th>
                 <th scope="col">상태·결과</th>
                 <th scope="col">실행 시각</th>
-                <th scope="col" className="act">상세</th>
+                <th scope="col" className="act act-menu"><span className="sr-only">상세</span></th>
               </tr>
             </thead>
             <tbody>
@@ -235,8 +233,12 @@ function Evaluations({ vm, l }: Props) {
                   <td>{row.dataset}</td>
                   <td>{row.prompt} {row.version}번 버전</td>
                   <td>{evaluationChip(row)}</td>
-                  <td>{kstDateTime(row.createdAt)}</td>
-                  <td><button type="button" className="btn sm" data-record-id={row.runId} aria-label={`${row.dataset} ${row.prompt} ${row.version}번 버전 평가 상세`} onClick={() => l.openEvaluation(row.runId)}>상세</button></td>
+                  <td className="admin-date">{kstDateTime(row.createdAt)}</td>
+                  <td className="act-menu" data-record-id={row.runId}>
+                    <PopMenu className="row-menu" label={`「${row.dataset} ${row.prompt} ${row.version}번 버전 평가」 조치`} icon={<MoreVerticalIcon />}>
+                      <button type="button" role="menuitem" onClick={() => l.openEvaluation(row.runId)}>상세</button>
+                    </PopMenu>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -265,12 +267,13 @@ function Evaluations({ vm, l }: Props) {
   )
 }
 
-function Settings({ vm, l }: Props) {
-  const c = l.config.data, busy = !!vm.actions['setting:leak']?.pending
+/** 경고 쪽의 경고 기준: 규칙마다 기준값·기준 시간·켜기를 저장합니다. */
+export function AlertRules({ vm, l }: Props) {
+  const rules = l.rules.data
   return (
-    <section className="panel admin-operations" aria-label="경고 기준·설정">
-      <LiveState vm={vm} label="경고 기준·설정" state={l.config} forbidden={LLM_FORBIDDEN} />
-      {c && (
+    <section className="panel admin-operations" aria-label="경고 기준">
+      <LiveState vm={vm} label="경고 기준" state={l.rules} forbidden={LLM_FORBIDDEN} />
+      {rules && (
         <>
           <h2>경고 기준</h2>
           <ActionLines vm={vm} prefix="rule:" target={(key) => alertRuleLabel(key.split(':')[1])} />
@@ -285,27 +288,39 @@ function Settings({ vm, l }: Props) {
                 <th scope="col" className="act">저장</th>
               </tr>
             </thead>
-            <tbody>{c.rules.map((rule) => <RuleRow key={rule.key} rule={rule} l={l} busy={!!vm.actions[`rule:${rule.key}`]?.pending} />)}</tbody>
+            <tbody>{rules.map((rule) => <RuleRow key={rule.key} rule={rule} l={l} busy={!!vm.actions[`rule:${rule.key}`]?.pending} />)}</tbody>
           </Table>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault()
-              await l.updateSettings(formNumber(e.currentTarget, 'leakSampleRate'))
-            }}
-          >
-            <h2>누설 검사 표본 비율</h2>
-            <fieldset disabled={busy} className="form-grid">
-              <label className="field">
-                표본 비율(0~1)
-                <input className="inp" name="leakSampleRate" type="number" min="0" max="1" step="any" required defaultValue={c.settings.leakSampleRate} key={c.settings.leakSampleRate} />
-              </label>
-              <div className="rowend wide"><button type="submit" className="btn pri">{busy ? '저장 중…' : '표본 비율 저장'}</button></div>
-            </fieldset>
-            <ActionLines vm={vm} prefix="setting:" />
-          </form>
         </>
       )}
       <p className="admin-note">기준값은 문서로 고정하지 않고 여기서 정해요. 처음엔 모두 꺼져 있고, 값을 넣고 켜야 경고가 만들어져요. 비율 기준은 0~1(0.1 = 10%)이에요.</p>
+    </section>
+  )
+}
+
+/** 평가·누설 검사 쪽의 누설 검사 표본 비율(0~1). */
+export function LeakSampleRate({ vm, l }: Props) {
+  const s = l.settings.data, busy = !!vm.actions['setting:leak']?.pending
+  return (
+    <section className="panel admin-operations" aria-label="누설 검사 표본 비율">
+      <LiveState vm={vm} label="누설 검사 표본 비율" state={l.settings} forbidden={LLM_FORBIDDEN} />
+      {s && (
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault()
+            await l.updateSettings(formNumber(e.currentTarget, 'leakSampleRate'))
+          }}
+        >
+          <h2>누설 검사 표본 비율</h2>
+          <fieldset disabled={busy} className="form-grid">
+            <label className="field">
+              표본 비율(0~1)
+              <input className="inp" name="leakSampleRate" type="number" min="0" max="1" step="any" required defaultValue={s.leakSampleRate} key={s.leakSampleRate} />
+            </label>
+            <div className="rowend wide"><button type="submit" className="btn pri">{busy ? '저장 중…' : '표본 비율 저장'}</button></div>
+          </fieldset>
+          <ActionLines vm={vm} prefix="setting:" />
+        </form>
+      )}
     </section>
   )
 }
@@ -321,7 +336,7 @@ function RuleRow({ rule, l, busy }: { rule: AlertRule; l: LlmVM; busy: boolean }
       <td><input className="inp" type="number" min="0" step="any" aria-label={`${label} 기준값`} value={threshold} onChange={(e) => setThreshold(e.target.value)} /></td>
       <td><input className="inp" type="number" min="1" step="1" aria-label={`${label} 기준 시간(분)`} value={windowMinutes} onChange={(e) => setWindowMinutes(e.target.value)} /></td>
       <td><input type="checkbox" aria-label={`${label} 켜기`} checked={enabled} onChange={(e) => setEnabled(e.target.checked)} /></td>
-      <td>{kstDateTime(rule.updatedAt)}</td>
+      <td className="admin-date">{kstDateTime(rule.updatedAt)}</td>
       <td>
         <button
           type="button"

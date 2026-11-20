@@ -22,6 +22,7 @@ function setup(initial: Initial = {}) {
   const media = {
     listEpisodeImages: vi.fn<MediaUseCase['listEpisodeImages']>(async () => { if (initial.listError) throw initial.listError; return [image(A), image(B, { referenced: false })] }),
     updateEpisodeImageAlt: vi.fn<MediaUseCase['updateEpisodeImageAlt']>(async (_w, _n, id, altText) => image(id, { altText })),
+    download: vi.fn<MediaUseCase['download']>(async () => new Blob()),
   }
   const episodes = { writeEpisode: vi.fn<EpisodeUseCase['writeEpisode']>(async (_id, _n, value) => writing({ ...value, revision: value.revision + 1 })) }
   const onDraftSaved = vi.fn()

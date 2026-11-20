@@ -20,7 +20,7 @@ function setup() {
   return { api, work }
 }
 
-async function setupDeletion(sceneCount = 1, demo = true) {
+async function setupDeletion(sceneCount = 1, demo = true, emptyPlots = 0) {
   const db = createFixtureDb()
   const work = db.works.find(w => w.id === 'starlight')!
   work.owner = 'me'
@@ -29,6 +29,7 @@ async function setupDeletion(sceneCount = 1, demo = true) {
   const plot = await api.save(work.id, input)
   const scenes = []
   for (let i = 0; i < sceneCount; i++) scenes.push(await api.save(work.id, { ...input, kind: 'scene', parentId: plot.id, title: `장면 ${i + 1}` }))
+  for (let i = 0; i < emptyPlots; i++) await api.save(work.id, { ...input, title: `빈 플롯 ${i + 1}` })
   render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><StoryPlanWorkspace workId={work.id} demo={demo} api={api} /></MemoryRouter></Provider>)
   await waitFor(() => expect(screen.getByRole('button', { name: '플롯 삭제' })).toHaveProperty('disabled', false))
   return { api, work, plot, scenes }
@@ -64,6 +65,25 @@ describe('계획 화면 · CI 통합', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(remove).toHaveBeenLastCalledWith(work.id, fresh, expect.any(AbortSignal))
     expect(await api.list(work.id)).toHaveLength(1)
+  })
+
+  it('하위 장면 때문에 삭제가 거절돼도 다른 플롯을 고르면 그 플롯의 삭제는 잠기지 않는다', async () => {
+    const { api, work } = await setupDeletion(1, true, 1)
+    fireEvent.click(screen.getByRole('button', { name: '플롯 삭제' })) // 처음 선택된 플롯은 장면이 있다
+    const blocked = within(screen.getByRole('dialog', { name: '계획 삭제 확인' }))
+    fireEvent.click(blocked.getByRole('button', { name: '삭제' }))
+    expect((await blocked.findByRole('alert')).textContent).toBe('하위 장면 계획을 먼저 삭제해 주세요.')
+    fireEvent.click(blocked.getByRole('button', { name: '취소' }))
+    fireEvent.click(screen.getByRole('button', { name: /빈 플롯 1/ }))
+    await screen.findByRole('heading', { level: 3, name: '빈 플롯 1' })
+    await waitFor(() => expect(screen.getByRole('button', { name: '플롯 삭제' })).toHaveProperty('disabled', false))
+    fireEvent.click(screen.getByRole('button', { name: '플롯 삭제' }))
+    const empty = within(screen.getByRole('dialog', { name: '계획 삭제 확인' }))
+    expect(empty.queryByText(/목록이 바뀌었을 수 있어요/)).toBeNull()
+    expect(empty.getByRole('button', { name: '삭제' })).toHaveProperty('disabled', false)
+    fireEvent.click(empty.getByRole('button', { name: '삭제' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect((await api.list(work.id)).map(p => p.title).sort()).toEqual(['삭제 검증 플롯', '장면 1'])
   })
 
   it('다른 탭에서 이미 삭제된 대상은 재조회 후 닫고 추가 버튼으로 포커스를 복구한다', async () => {

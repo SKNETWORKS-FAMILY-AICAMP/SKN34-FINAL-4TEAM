@@ -5,6 +5,7 @@ import ai.storyfork.operations._common.client.upstream
 import java.nio.charset.StandardCharsets
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -33,6 +34,16 @@ class UpstreamTest {
             assertTrue(rejected is UpstreamRejection, status.toString())
             assertEquals(status, rejected.statusCode)
             assertEquals(message, (rejected as UpstreamRejection).userMessage)
+        }
+    }
+
+    @Test
+    fun `Content's own code is kept next to its message and a missing or unusable code stays null`() {
+        val coded = failure(true, clientError(HttpStatus.CONFLICT, """{"detail":"$message","code":"GENRE_FEATURED_LIMIT"}"""))
+
+        assertEquals("GENRE_FEATURED_LIMIT", (coded as UpstreamRejection).code)
+        for (body in listOf("""{"detail":"$message"}""", """{"detail":"$message","code":null}""")) {
+            assertNull((failure(true, clientError(HttpStatus.CONFLICT, body)) as UpstreamRejection).code, body)
         }
     }
 
