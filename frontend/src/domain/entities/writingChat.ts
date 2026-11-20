@@ -34,6 +34,9 @@ export type ChatWorld =
   | ({ task: 'check' } & ChatWorldReview)
   | { task: 'enrich'; fixes: WorldFix[]; note: string }
   | { task: 'impact'; affected: WorldImpact[]; conflicts: string[]; gaps: string[] }
+/** 참고 카드 하나의 출처. worldId·cardId는 카드 화면 링크(`/worlds/:id/cards/:cardId`)용이다. */
+export type ChatReference = { worldId: string; worldName: string; cardId: string; cardTitle: string; authorNickname: string; note: string }
+export const referenceHref = (r: ChatReference) => `/worlds/${encodeURIComponent(r.worldId)}/cards/${encodeURIComponent(r.cardId)}`
 export type ChatStepResult = {
   claims?: { text: string }[]
   gaps?: string[]
@@ -41,6 +44,8 @@ export type ChatStepResult = {
   before?: string
   after?: string
   findings?: { text: string; verdict: string; sourceUrls: string[] }[]
+  /** Research platform(#547)의 참고안. 다른 작가가 공개한 세계관의 카드이며 내 설정집에 복사하지 않는다. 웹 조사 결과(findings)와 키로 구분한다. */
+  references?: ChatReference[]
   /** 전개 기획(#387)의 계획 대안과 참고. 원고가 아니라 반영하지 않는다. */
   plans?: BeatPlan[]
   notes?: string[]
@@ -228,6 +233,7 @@ export function stepText(step: ChatStep): string {
   const r = step.result
   if (step.status !== 'completed' || !r) return ''
   if (r.claims) return [...r.claims.map((c) => c.text), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '근거를 찾지 못했어요.'
+  if (r.references) return [...r.references.map((x) => `${x.worldName} · ${x.cardTitle} · ${x.authorNickname} — ${x.note}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '참고할 설정을 찾지 못했어요.'
   if (r.findings) return [...r.findings.map((f) => `${researchVerdict[f.verdict] ?? researchVerdict.unverified} · ${f.text}${f.sourceUrls.length ? ` (${f.sourceUrls.join(', ')})` : ''}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '조사 결과가 없어요.'
   if (r.after !== undefined) return `수정 전: ${r.before ?? ''}\n수정 후: ${r.after}`
   if (r.plans) return [...r.plans.map((p, i) => [`계획 ${i + 1}. ${p.title}`, ...p.beats.map((b, j) => `  ${j + 1}) ${b}`)].join('\n')),

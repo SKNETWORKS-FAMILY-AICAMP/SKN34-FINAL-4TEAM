@@ -7,6 +7,7 @@ INSTRUCTIONS = (
     '1. 요청을 작업으로 나누고 작가가 말한 순서를 지키세요. 앞 결과가 필요한 작업은 그 결과를 본 뒤에 부르세요. '
     '서로의 결과가 필요 없는 ask_story_qa·ask_research·ask_rating·ask_manuscript_review와 ask_world(task=check 또는 impact)는 한 번에 함께 불러도 됩니다. '
     'ask_writing·ask_character_simulation·ask_world(task=enrich)는 항상 따로 부르세요. 방금 쓴 내용이나 수정안을 검수하라는 요청이면 집필부터 끝내고 ask_manuscript_review를 부르세요.\n'
+    '   ask_research의 task=web은 현실 사실·고증을 웹에서 확인하고, task=platform은 다른 작가가 공개한 세계관에서 참고할 설정을 찾습니다(request에 찾을 주제). 내 작품 안의 질문은 ask_story_qa입니다.\n'
     '2. "문제가 있으면 고쳐줘" 같은 조건은 앞 결과를 보고 정하세요. 검수 결과에 확정(confirmed) 지적이 없으면 수정 도구를 부르지 말고 그 이유를 말하세요. '
     '고칠 때는 ask_writing(task=patch)에 고칠 확정 지적의 fix 번호를 넣으세요.\n'
     '3. 대상이나 작업을 정할 수 없으면 도구를 부르지 말고 확인 질문 한 문장으로 답을 끝내세요.\n'

@@ -149,7 +149,9 @@ SUMMARIES: dict[str, Callable[[dict], dict]] = {
         for i, f in enumerate(r['findings'])]},
     'world': _world_summary,
     'writing_editing': _writing_summary,
-    'research': lambda r: {'gaps': r['gaps'], 'findings': [{k: f[k] for k in ('text', 'verdict', 'sourceUrls')} for f in r['findings']]},
+    'research': lambda r: {'gaps': r['gaps'], **(
+        {'references': [{'world': f['worldName'], 'card': f['cardTitle'], 'author': f['authorNickname'], 'note': f['note']} for f in r['references']]}
+        if 'references' in r else {'findings': [{k: f[k] for k in ('text', 'verdict', 'sourceUrls')} for f in r['findings']]})},
     'rating': lambda r: {'verdict': r['verdict'], 'prohibited': r['prohibited']},
 }
 
@@ -288,10 +290,18 @@ def ask_rating(request: Request, runtime: ToolRuntime) -> Command:
 
 
 @tool
-def ask_research(task: Literal['web'], runtime: ToolRuntime) -> Command:
-    """고증 조사(Research): web은 작가가 동의한 질문·맥락만 웹에서 확인한다. 외부 전송이라 작업 지시(request)를 받지 않는다."""
-    return _ask(runtime, 'research', lambda inputs, scope: research.research(ResearchRequest.model_validate(inputs['research'])),
-                needs=lambda inputs, scope: WAITS['ask_research'](runtime.context, inputs, scope, {'task': task}))
+def ask_research(task: Literal['web', 'platform'], runtime: ToolRuntime, request: Request = '') -> Command:
+    """고증 조사(Research): web은 작가가 동의한 질문·맥락만 웹에서 확인한다(외부 전송이라 request를 쓰지 않는다).
+
+    platform은 다른 작가가 공개한 세계관에서 참고할 설정을 찾아 출처(세계관·카드·작가)를 단 참고안을 돌려준다. request는 찾을 설정 주제다.
+    내 작품 안의 질문은 ask_story_qa다.
+    """
+    def run(inputs, scope):
+        if task == 'platform':  # 공개 데이터만 써서 동의 입력을 기다리지 않는다
+            return research.platform(request.strip() or runtime.context.get('task') or runtime.context['request'])
+        return research.research(ResearchRequest.model_validate(inputs['research']))
+
+    return _ask(runtime, 'research', run, needs=lambda inputs, scope: WAITS['ask_research'](runtime.context, inputs, scope, {'task': task}))
 
 
 @tool

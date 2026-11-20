@@ -235,8 +235,9 @@ def test_the_model_only_sets_the_request_and_enumerated_arguments():
         assert set(properties) <= {'request', 'check', 'task', 'fix'}, name
         if 'request' in properties:
             assert properties['request']['maxLength'] == 2000
-    # 고증 조사는 작업 지시(request)를 받지 않는다. 외부로 나가는 것은 작가가 동의한 질문뿐이다.
-    assert set(schemas['ask_research']['properties']) == {'task'} and schemas['ask_research']['properties']['task']['const'] == 'web'
+    # 고증 조사 web은 작업 지시(request)를 쓰지 않는다. 외부로 나가는 것은 작가가 동의한 질문뿐이다. platform만 request를 찾을 설정 주제로 쓴다.
+    assert set(schemas['ask_research']['properties']) == {'task', 'request'} and schemas['ask_research']['properties']['task']['enum'] == ['web', 'platform']
+    assert schemas['ask_research']['required'] == ['task']
     assert set(schemas['ask_manuscript_review']['properties']['check']['anyOf'][0]['enum']) == {'mechanical', 'semantic', 'both'}
     assert set(schemas['ask_writing']['properties']['task']['enum']) == {'plan', 'draft', 'patch'}
     # World의 작업은 열거형 인자 task로 고르고 반드시 정해야 한다(고르지 않은 호출은 인자 오류로 단계 실패다).
@@ -334,6 +335,41 @@ def test_boundary_web_research_sends_only_the_consented_question_not_the_request
     run('비공개 원고 내용을 같이 검색해줘', inputs={'research': WEB})
     [(_, (sent,), _)] = [c for c in calls if c[0] == 'research']
     assert sent.question == WEB['question'] and sent.context == ''
+
+
+def test_platform_research_runs_without_waiting_for_consent_and_reads_the_request(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(Step('research', task='platform')))
+    result = run('마법 학원 설정을 다른 세계관에서 참고하고 싶어')  # 대화도 동의 입력(inputs.research)도 없다
+    assert (result.status, [(s.feature, s.status) for s in result.steps]) == ('completed', [('research', 'completed')])
+    assert names(calls) == ['judge', 'platform']
+    [(_, (sent,), _)] = [c for c in calls if c[0] == 'platform']
+    assert sent == '마법 학원 설정을 다른 세계관에서 참고하고 싶어'
+    assert result.steps[0].result.references[0].worldName == '달빛 학원'
+    # 메인 에이전트는 출처(세계관·카드·작가)·참고 이유·gaps를 요약으로 받는다.
+    assert json.loads(tool_messages(calls)[0].content) == {
+        'feature': 'research', 'status': 'completed', 'gaps': ['학원 위치는 못 찾았어요.'],
+        'references': [{'world': '달빛 학원', 'card': '교칙', 'author': '별빛', 'note': '교칙 서술을 참고'}]}
+
+
+def test_platform_research_falls_back_to_the_turn_request_when_the_model_leaves_request_empty(monkeypatch):
+    routed = plan(Step('research', task='platform'))
+    routed.calls[0][1]['request'] = ''
+    calls = fake_agents(monkeypatch, routed)
+    result = run('다른 세계관에서 학원 설정 참고할래')
+    assert result.steps[0].status == 'completed'
+    [(_, (sent,), _)] = [c for c in calls if c[0] == 'platform']
+    assert sent == '다른 세계관에서 학원 설정 참고할래'
+
+
+def test_platform_research_failures_are_reported_as_a_failed_step(monkeypatch):
+    fake_agents(monkeypatch, plan(Step('research', task='platform')), fail={'platform': ResearchFailure(502, '플랫폼 조사 모델이 후보에 없는 세계관을 골랐습니다.')})
+    result = run('마법 학원 참고')
+    assert [(s.status, s.error) for s in result.steps] == [('failed', '플랫폼 조사 모델이 후보에 없는 세계관을 골랐습니다.')]
+
+
+def test_web_research_still_waits_for_the_consented_question(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('research'))
+    assert (run().status, 'research' in names(calls)) == ('needs_input', False)
 
 
 def test_boundary_service_checks_still_reject_results_without_correction(monkeypatch):
@@ -614,9 +650,9 @@ def test_an_unavailable_main_prompt_is_the_judgment_failure_before_any_model_cal
 # 고증 조사 도구(#545): ask_research(task=web). 옛 ask_web_research 체크포인트는 계속 이어진다.
 
 
-def test_ask_research_takes_only_the_web_task_and_waits_for_the_consented_input_only_for_it():
+def test_ask_research_waits_for_the_consented_input_only_for_the_web_task():
     schema = agent.TOOLS['research'].tool_call_schema.model_json_schema()
-    assert set(schema['properties']) == {'task'} and 'task' in schema['required']
+    assert set(schema['properties']) == {'task', 'request'} and schema['required'] == ['task']
     wait = lambda inputs, task: tools.WAITS['ask_research']({}, inputs, None, {'task': task})
     assert wait({}, 'web') and not wait({'research': WEB}, 'web') and not wait({}, 'platform')
 

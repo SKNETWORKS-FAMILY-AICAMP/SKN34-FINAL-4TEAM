@@ -9,7 +9,7 @@ from app.rating import agent as rating
 from app.rating.prompt import INSTRUCTIONS as RATING
 from app.research import agent as research
 from app.research.models import ResearchRequest
-from app.research.prompt import RESEARCH_INSTRUCTIONS
+from app.research.prompt import PICK_INSTRUCTIONS, REFER_INSTRUCTIONS, RESEARCH_INSTRUCTIONS
 from app.story_qa import agent as story_qa
 from app.story_qa.models import AnswerRequest, Excerpt
 from app.story_qa.prompt import QA_INSTRUCTIONS
@@ -37,6 +37,8 @@ CASES = [
     (lambda: writing.patch(PatchRequest(selection='문장', instruction='고쳐')), 'writing_editing.patch', PATCH_INSTRUCTIONS),
     (lambda: rating.rate(EPISODE), 'rating.assess', RATING),
     (lambda: research.search(ResearchRequest(question='질문')), 'web_research.search', RESEARCH_INSTRUCTIONS),
+    (lambda: research.pick('요청', []), 'research.pick', PICK_INSTRUCTIONS),
+    (lambda: research.refer('요청', []), 'research.refer', REFER_INSTRUCTIONS),
     (lambda: world_review.review(WORLD), 'world_review.check', WORLD_REVIEW),
     (lambda: world_review.enrich('인물을 보강해줘', WORLD), 'world_review.enrich', ENRICH_INSTRUCTIONS),
     (lambda: world_review.impact('나이를 바꾸면?', WORLD, {}, []), 'world_review.impact', IMPACT_INSTRUCTIONS),
