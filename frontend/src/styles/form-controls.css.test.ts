@@ -1,0 +1,89 @@
+import { readFileSync } from 'node:fs'
+import { describe, expect, it } from 'vitest'
+
+const css = readFileSync(new URL('./storyfork.css', import.meta.url), 'utf8')
+
+type Rule = { media: string; selectors: string[]; body: string }
+/** 중첩 @media를 펼쳐 규칙 목록으로 만든다. 다른 at-rule(@keyframes 등)은 건너뛴다. */
+function parse(source: string, media = ''): Rule[] {
+  const text = source.replace(/\/\*[\s\S]*?\*\//g, '')
+  const rules: Rule[] = []
+  for (let i = 0; i < text.length;) {
+    const open = text.indexOf('{', i)
+    if (open < 0) break
+    let depth = 1
+    let end = open + 1
+    for (; end < text.length && depth; end++) depth += text[end] === '{' ? 1 : text[end] === '}' ? -1 : 0
+    const head = text.slice(i, open).trim()
+    const body = text.slice(open + 1, end - 1)
+    if (head.startsWith('@media')) rules.push(...parse(body, head.slice(6).trim()))
+    else if (!head.startsWith('@')) rules.push({ media, selectors: head.split(/,(?![^()]*\))/).map((s) => s.trim()), body })
+    i = end
+  }
+  return rules
+}
+const sheet = parse(css)
+const mobile = '(max-width:600px),(pointer:coarse)'
+/** selector가 그대로 든 규칙들의 prop 값을 선언 순서대로 돌려준다(media가 없으면 미디어 쿼리 밖). */
+const values = (selector: string, prop: string, media = '') => sheet
+  .filter((r) => r.media === media && r.selectors.includes(selector))
+  .flatMap((r) => [...r.body.matchAll(new RegExp('(?:^|;)\\s*' + prop + '\\s*:\\s*([^;]*)', 'g'))].map((m) => m[1].trim()))
+const value = (selector: string, prop: string, media = '') => values(selector, prop, media).at(-1)
+
+describe('storyfork.css 콤보박스(select) 전역 규칙', () => {
+  const chevron = 'select:not([multiple],[size])'
+
+  it('OS 기본 모양을 끄고 오른쪽에 셰브런을 그린다(multiple·size 목록 상자는 제외)', () => {
+    expect(value(chevron, 'appearance')).toBe('none')
+    expect(value(chevron, '-webkit-appearance')).toBe('none')
+    expect(value(chevron, 'background-repeat')).toBe('no-repeat')
+    expect(value(chevron, 'background-position')).toMatch(/^right \d+px center,right \d+px center$/)
+  })
+
+  it('셰브런은 그림 파일이 아니라 현재 글자색 그라디언트 두 줄이라 라이트·다크·독서 테마에서 모두 보인다', () => {
+    const image = value(chevron, 'background-image') ?? ''
+    expect(image.match(/linear-gradient\(/g)).toHaveLength(2)
+    expect(image).toContain('currentColor')
+    expect(image).not.toMatch(/url\(|#[0-9a-f]{3,8}\b|rgb/i)
+  })
+
+  it('테두리·표면·글자는 입력 칸과 같은 토큰이고 셰브런 자리(padding-right)를 둔다', () => {
+    expect(value('select', 'border')).toBe('1px solid var(--line3)')
+    expect(value('select', 'background-color')).toBe('var(--surface)')
+    expect(value('select', 'color')).toBe('var(--ink)')
+    expect(parseInt(value(chevron, 'padding-right') ?? '0')).toBeGreaterThanOrEqual(30)
+  })
+
+  it('초점은 focus-visible 링, 비활성은 흐리게 not-allowed, 호버는 테두리만 짙게 한다', () => {
+    expect(value('select:enabled:focus-visible', 'outline')).toBe('2px solid var(--pri)')
+    expect(value('select:enabled:focus-visible', 'border-color')).toBe('var(--pri)')
+    expect(value('select:disabled', 'cursor')).toBe('not-allowed')
+    expect(parseFloat(value('select:disabled', 'opacity') ?? '1')).toBeLessThan(1)
+    expect(value('select:enabled:hover', 'border-color')).toBe('var(--sub)')
+  })
+
+  it('옵션 목록은 표면·글자 토큰이라 다크 테마에서도 읽힌다', () => {
+    expect(value('option', 'background-color')).toBe('var(--surface)')
+    expect(value('option', 'color')).toBe('var(--ink)')
+  })
+
+  it('작은 입력(.inp.sm)·알약형(.pc select)·공개 범위(.wprops select)도 셰브런 자리를 뺏기지 않는다', () => {
+    // .inp.sm은 padding:0 10px(0,2,0)이라 전역 규칙(0,1,1)을 이기므로 select.inp.sm이 오른쪽을 다시 정한다.
+    expect(parseInt(value('select.inp.sm', 'padding-right') ?? '0')).toBeGreaterThanOrEqual(26)
+    // 뒤에 오는 같은 명시도 규칙은 padding 줄임 표기의 오른쪽(둘째 값)으로 맞춘다.
+    for (const selector of ['.pc select', '.wprops select', '.visibility-mock select']) {
+      expect(parseInt(value(selector, 'padding')?.split(/\s+/)[1] ?? '0'), selector).toBeGreaterThanOrEqual(26)
+    }
+  })
+
+  it('select를 다시 꾸미는 규칙은 background 줄임 표기로 셰브런(background-image)을 지우지 않는다', () => {
+    const touching = sheet.filter((r) => r.selectors.some((s) => /\bselect\b/.test(s)))
+    expect(touching.length).toBeGreaterThan(5)
+    for (const r of touching) expect(r.body, r.selectors.join(',')).not.toMatch(/(?:^|;)\s*background\s*:/)
+  })
+
+  it('손가락이 주 입력인 화면에서도 select는 44px 이상이다(16px 글자는 기존 규칙)', () => {
+    expect(value('select', 'min-height', mobile)).toBe('44px')
+    expect(value('select', 'font-size', '(pointer:coarse)')).toBe('16px')
+  })
+})
