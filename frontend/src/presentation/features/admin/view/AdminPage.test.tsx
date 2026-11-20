@@ -827,6 +827,7 @@ it('장르를 추가하면 맨 뒤에 활성·홈 숨김으로 붙고 입력이 
   await screen.findByText('사이버펑크', { selector: 'b' })
   expect(cells(genreRow('사이버펑크'))).toEqual(['31', '🤖', '사이버펑크', '활성', '—', '0', '0', '⋮'])
   expect((form.getByLabelText('새 장르 이름') as HTMLInputElement).value).toBe('')
+  expect(document.activeElement).toBe(form.getByLabelText('새 장르 이름')) // 이어서 다음 장르를 적을 수 있게 초점이 이름 칸에 남는다
   fireEvent.change(form.getByLabelText('새 장르 이름'), { target: { value: '판타지' } })
   fireEvent.click(form.getByRole('button', { name: '장르 추가' }))
   expect((await screen.findByRole('alert')).textContent).toBe('장르 추가 · 이미 같은 이름의 장르가 있어요.')

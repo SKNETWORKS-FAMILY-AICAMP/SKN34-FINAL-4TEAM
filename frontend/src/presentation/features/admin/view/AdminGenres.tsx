@@ -60,11 +60,11 @@ export function AdminGenres({ vm }: { vm: VM }) {
           <form className="admin-filter" aria-label="장르 추가" onSubmit={(e) => void add(e)}>
             <label className="field field-search">
               새 장르 이름
-              <input className="inp" name="name" maxLength={GENRE_NAME_MAX} required autoComplete="off" placeholder="예: 사이버펑크" disabled={busy} />
+              <input className="inp" name="name" maxLength={GENRE_NAME_MAX} required autoComplete="off" placeholder="예: 사이버펑크" />
             </label>
             <label className="field">
               아이콘 <span className="small muted">선택</span>
-              <input className="inp" name="emoji" maxLength={GENRE_EMOJI_MAX} autoComplete="off" placeholder="예: 🤖" disabled={busy} />
+              <input className="inp" name="emoji" maxLength={GENRE_EMOJI_MAX} autoComplete="off" placeholder="예: 🤖" />
             </label>
             <button type="submit" className="btn pri" disabled={busy}>장르 추가</button>
           </form>
@@ -161,7 +161,10 @@ function RowMenu({ genre, index, last, codes, d, busy, onEdit }: { genre: Operat
   )
 }
 
-/** 행 아래 인라인 수정 폼: 이름·아이콘 중 바뀐 것만 보낸다. 아이콘을 비우면 지운다. 성공하면 닫고, 실패하면 입력을 그대로 두고 위 조치 안내가 이유를 알린다. */
+/**
+ * 행 아래 인라인 수정 폼: 이름·아이콘 중 바뀐 것만 보낸다. 아이콘을 비우면 지운다. 성공하면 닫고, 실패하면 입력을 그대로 두고 위 조치 안내가 이유를 알린다.
+ * 진행 중에도 입력칸은 잠그지 않는다(잠기면 초점이 body로 떨어진다). 중복 제출은 제출 버튼과 실행기가 막는다.
+ */
 function GenreEdit({ genre, d, busy, onClose }: { genre: OperationsGenre; d: Genres; busy: boolean; onClose: () => void }) {
   const first = useRef<HTMLInputElement>(null)
   useEffect(() => { first.current?.focus() }, [])
@@ -178,11 +181,11 @@ function GenreEdit({ genre, d, busy, onClose }: { genre: OperationsGenre; d: Gen
     <form className="admin-filter genre-edit" aria-label={`「${genre.name}」 이름·아이콘 수정`} onSubmit={(e) => void save(e)}>
       <label className="field field-search">
         장르 이름
-        <input ref={first} className="inp" name="name" defaultValue={genre.name} maxLength={GENRE_NAME_MAX} required autoComplete="off" disabled={busy} />
+        <input ref={first} className="inp" name="name" defaultValue={genre.name} maxLength={GENRE_NAME_MAX} required autoComplete="off" />
       </label>
       <label className="field">
         아이콘 <span className="small muted">비우면 지워요</span>
-        <input className="inp" name="emoji" defaultValue={genre.emoji ?? ''} maxLength={GENRE_EMOJI_MAX} autoComplete="off" disabled={busy} />
+        <input className="inp" name="emoji" defaultValue={genre.emoji ?? ''} maxLength={GENRE_EMOJI_MAX} autoComplete="off" />
       </label>
       <button type="submit" className="btn pri" disabled={busy}>저장</button>
       <button type="button" className="btn" onClick={onClose}>취소</button>
