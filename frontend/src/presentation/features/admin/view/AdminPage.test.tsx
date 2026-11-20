@@ -745,7 +745,7 @@ it('사이드바는 서비스 운영 묶음 위에 LLM Ops 묶음(경고·추적
   // 모르는 view는 경고 메뉴가 켜지고, 다른 탭에서는 네 메뉴 모두 꺼진다.
   cleanup()
   renderAdmin('llm', 'nope')
-  expect((await llmMenu()) && within(await llmMenu()).getAllByRole('link').map((link) => link.getAttribute('aria-current'))).toEqual(['page', null, null, null])
+  expect(within(await llmMenu()).getAllByRole('link').map((link) => link.getAttribute('aria-current'))).toEqual(['page', null, null, null])
   cleanup()
   renderAdmin('jobs')
   expect(within(await llmMenu()).getAllByRole('link').map((link) => link.getAttribute('aria-current'))).toEqual([null, null, null, null])

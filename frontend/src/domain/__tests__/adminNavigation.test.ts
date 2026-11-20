@@ -18,3 +18,11 @@ it('LLM Ops 쪽은 view로 정하고 없거나 모르는 값은 경고이며, �
   expect([null, '', 'alerts', 'nope', 'metrics', 'TRACES'].map(llmPage)).toEqual(['alerts', 'alerts', 'alerts', 'alerts', 'alerts', 'alerts'])
   expect(LLM_PAGES.map(([page]) => llmPageHref(page))).toEqual(['/admin?tab=llm', '/admin?tab=llm&view=traces', '/admin?tab=llm&view=prompts', '/admin?tab=llm&view=quality'])
 })
+
+it('LLM Ops 쪽(view)은 로그인 복귀에도 알려진 값만 보존하고, 다른 탭이나 모르는 값은 버린다', () => {
+  expect(adminReturnPath('?tab=llm&view=traces')).toBe('/admin?tab=llm&view=traces')
+  expect(adminReturnPath('?tab=ai&view=quality')).toBe('/admin?tab=llm&view=quality')
+  expect(adminReturnPath('?tab=llm&view=alerts')).toBe('/admin?tab=llm')
+  expect(adminReturnPath('?tab=llm&view=https://example.invalid')).toBe('/admin?tab=llm')
+  expect(adminReturnPath('?tab=users&view=traces')).toBe('/admin?tab=users')
+})
