@@ -251,6 +251,17 @@ select:enabled:hover{border-color:var(--sub)}
 select:enabled:focus-visible{outline:2px solid var(--pri);outline-offset:1px;border-color:var(--pri)}
 select:disabled{opacity:.6;cursor:not-allowed}
 option{background-color:var(--surface);color:var(--ink)}
+/* 체크박스·라디오: OS 기본 모양 대신 입력 칸과 같은 테두리·표면을 쓰고 선택 표시는 ::before로 그린다. 색은 --pri(채움)·--on-pri(그 위 표시) 짝이라 다크 테마와 독서 테마(.reader가 --surface·--pri·--on-pri를 다시 연결)를 따른다.
+   칸 크기는 기능 CSS가 width·height로 바꿔도(15~18px) 표시가 % 크기·여백으로 가운데에 맞는다. position:relative를 쓰지 않는다 — 위치 지정 요소가 되면 sticky 머리글 위로 올라온다. */
+input[type=checkbox],input[type=radio]{-webkit-appearance:none;appearance:none;flex:none;width:18px;height:18px;border:1.5px solid var(--line3);background-color:var(--surface);color:var(--on-pri);cursor:pointer;vertical-align:middle}
+input[type=checkbox]{border-radius:5px}
+input[type=radio]{border-radius:50%}
+input[type=checkbox]:checked,input[type=checkbox]:indeterminate{border-color:var(--pri);background-color:var(--pri)}
+input[type=radio]:checked{border-color:var(--pri)}
+input[type=checkbox]:checked::before,input[type=checkbox]:indeterminate::before,input[type=radio]:checked::before{content:"";display:block;width:62%;height:62%;margin:19%;background:currentColor;clip-path:polygon(14% 44%,0 65%,50% 100%,100% 16%,80% 0,43% 62%)}
+input[type=checkbox]:indeterminate::before{clip-path:inset(38% 0)}
+input[type=radio]:checked::before{width:50%;height:50%;margin:25%;border-radius:50%;background:var(--pri);clip-path:none}
+input[type=checkbox]:disabled,input[type=radio]:disabled{opacity:.5;cursor:not-allowed}
 .novel-days{min-width:0;border:1px solid var(--line2);border-radius:14px;padding:12px 14px}.novel-days legend{padding:0 6px;color:var(--sub);font-size:13px;font-weight:700}.novel-choices{display:flex;flex-wrap:wrap;gap:8px}.novel-choice{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:999px;padding:7px 10px;background:var(--surface);font-size:13px;color:var(--ink2);cursor:pointer}.novel-choice:has(input:checked){background:var(--pri-soft);border-color:var(--pri);color:var(--pri-ink)}
 .newwork-info-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px 18px;align-items:start}.newwork-info-grid>*{min-width:0}.newwork-wide{grid-column:1/-1}.novel-tag-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}.novel-tag-actions .btn{min-height:44px}.novel-tag-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:52px;margin-top:10px;padding:8px 10px;border:1px solid var(--line2);border-radius:12px;background:var(--surface)}.novel-tag-chip{display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:3px 5px 3px 10px;border-radius:999px;background:var(--pri);color:var(--on-pri);font-size:13px}.novel-tag-chip span{overflow-wrap:anywhere}.novel-tag-chip button{display:grid;place-items:center;flex:none;width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer}.novel-tag-chip button:hover{background:color-mix(in srgb,var(--on-pri) 12%,transparent)}.novel-tag-chip button:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
 .admin-search{display:flex;align-items:end;gap:8px;margin-top:12px}.admin-search .field{flex:1;min-width:180px}.admin-permissions{min-width:0;border:1px solid var(--line2);border-radius:14px;padding:12px 14px}.admin-permissions legend{padding:0 6px;color:var(--sub);font-size:13px;font-weight:700}.admin-perm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}.admin-perm-grid label{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;background:var(--muted-bg);font-size:13px;color:var(--ink2)}
@@ -590,7 +601,7 @@ input,textarea{caret-color:var(--pri)}
  /* 스포일러 댓글 보기·제보 정정하기처럼 클래스 없는 접이식 제목(약 22px)도 누르기 쉽게 한다. 안쪽 여백으로 키워 펼침 표시(▸)를 지킨다. */
  :is(.cm,.rp) details>summary{min-height:44px;padding:11px 0}
  label:has(>input[type="checkbox"]){min-height:44px}
- input[type="checkbox"]{width:24px;height:24px;flex:none;accent-color:var(--pri)}
+ input[type="checkbox"],input[type="radio"]{width:24px;height:24px;flex:none;accent-color:var(--pri)}
  /* 모양을 키우면 어색한 작은 것은 누르는 영역만 넓힌다: 스위치(26px)와 해시태그(약 30px — 줄 간격도 함께 벌려 영역이 겹치지 않게). */
  .sw::after{content:"";position:absolute;inset:-9px 0}
  .hashes{row-gap:14px}.hashes :is(button,a){position:relative}.hashes :is(button,a)::after{content:"";position:absolute;inset:-7px 0}

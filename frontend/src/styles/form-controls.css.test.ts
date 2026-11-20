@@ -87,3 +87,52 @@ describe('storyfork.css 콤보박스(select) 전역 규칙', () => {
     expect(value('select', 'font-size', '(pointer:coarse)')).toBe('16px')
   })
 })
+
+describe('storyfork.css 체크박스·라디오 전역 규칙', () => {
+  const box = 'input[type=checkbox]'
+  const radio = 'input[type=radio]'
+
+  it('OS 기본 모양을 끄고 18px 칸에 입력 칸과 같은 테두리·표면 토큰을 쓴다', () => {
+    for (const selector of [box, radio]) {
+      expect(value(selector, 'appearance'), selector).toBe('none')
+      expect(value(selector, '-webkit-appearance'), selector).toBe('none')
+      expect([value(selector, 'width'), value(selector, 'height')], selector).toEqual(['18px', '18px'])
+      expect(value(selector, 'border'), selector).toBe('1.5px solid var(--line3)')
+      expect(value(selector, 'background-color'), selector).toBe('var(--surface)')
+      // 칸이 flex 줄에서 찌그러지지 않는다.
+      expect(value(selector, 'flex'), selector).toBe('none')
+    }
+    expect(value(box, 'border-radius')).toBe('5px')
+    expect(value(radio, 'border-radius')).toBe('50%')
+  })
+
+  it('선택하면 --pri로 채우고(체크박스) 테두리를 칠하며(라디오), 표시는 ::before로 그린다', () => {
+    expect(value(box + ':checked', 'background-color')).toBe('var(--pri)')
+    expect(value(box + ':checked', 'border-color')).toBe('var(--pri)')
+    expect(value(box + ':indeterminate', 'background-color')).toBe('var(--pri)')
+    expect(value(radio + ':checked', 'border-color')).toBe('var(--pri)')
+    // 체크·가로줄은 채움(--pri) 위 글자색 짝인 --on-pri(currentColor), 라디오 점은 --pri.
+    expect(value(box, 'color')).toBe('var(--on-pri)')
+    expect(value(box + ':checked::before', 'background')).toBe('currentColor')
+    expect(value(box + ':indeterminate::before', 'clip-path')).toMatch(/^inset\(/)
+    expect(value(radio + ':checked::before', 'background')).toBe('var(--pri)')
+  })
+
+  it('표시는 position:relative 없이 ::before의 % 크기·여백으로 가운데에 둔다(sticky 머리글 위로 올라오지 않게, 기능 CSS가 칸 크기를 바꿔도 비율로 맞게)', () => {
+    expect(value(box, 'position')).toBeUndefined()
+    for (const prop of ['width', 'height', 'margin']) expect(value(box + ':checked::before', prop), prop).toMatch(/%$/)
+  })
+
+  it('비활성은 흐리게 not-allowed로 둔다', () => {
+    expect(value(box + ':disabled', 'cursor')).toBe('not-allowed')
+    expect(value(radio + ':disabled', 'cursor')).toBe('not-allowed')
+    expect(parseFloat(value(box + ':disabled', 'opacity') ?? '1')).toBeLessThan(1)
+  })
+
+  it('손가락이 주 입력인 화면에서는 체크박스와 라디오 모두 24px 칸이고 체크박스의 기존 보정은 그대로다', () => {
+    expect(value('input[type="checkbox"]', 'width', mobile)).toBe('24px')
+    expect(value('input[type="radio"]', 'width', mobile)).toBe('24px')
+    expect(value('input[type="radio"]', 'height', mobile)).toBe('24px')
+    expect(value('input[type="checkbox"]', 'accent-color', mobile)).toBe('var(--pri)')
+  })
+})
