@@ -202,9 +202,13 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage, cardOf,
   const shown = live?.editIndex !== undefined ? vm.turns.slice(0, live.editIndex) : live?.resumed ? vm.turns.slice(0, -1) : vm.turns
   const messages: ChatMessage[] = shown.flatMap((turn, i) => [
     { id: `u${i}`, role: 'user' as const, text: turn.request },
-    ...(turn.reply && turn.reply.status !== 'waiting' ? [turn.reply.message
-      ? { id: `a${i}`, role: 'assistant' as const, text: turn.reply.message, format: 'markdown' as const }
-      : { id: `a${i}`, role: 'assistant' as const, text: replyText(turn.reply) }] : []),
+    ...(turn.reply && turn.reply.status !== 'waiting' ? [{
+      id: `a${i}`,
+      role: 'assistant' as const,
+      text: turn.reply.message || replyText(turn.reply),
+      format: turn.reply.message ? 'markdown' as const : undefined,
+      failed: turn.reply.status === 'failed' || turn.reply.status === 'rejected',
+    }] : []),
   ])
   // 종합 답변이 있는 말풍선은 단계별 결과를 접어 둔다(답변과 같은 내용이 두 번 보이지 않게, #492). 승인 카드·진행 표시는 그대로다.
   // 좋아요·싫어요는 그 줄의 오른쪽(말풍선 오른쪽 아래)에 둔다.
@@ -230,7 +234,7 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage, cardOf,
     if (m.role !== 'user' || m.id === 'live') return null
     const index = Number(m.id.slice(1))
     if (editing?.index === index) {
-      return <form className="chat-edit" onSubmit={(e) => { e.preventDefault(); const text = editing.text.trim(); if (text) { setEditing(null); void vm.edit(index, text) } }}>
+      return <form className="chat-edit" onSubmit={async (e) => { e.preventDefault(); const text = editing.text.trim(); if (text && await vm.edit(index, text)) setEditing(null) }}>
         <label className="sr-only" htmlFor={`${id}-edit`}>고칠 메시지</label>
         <textarea id={`${id}-edit`} rows={2} value={editing.text} maxLength={2000} autoFocus onChange={(e) => setEditing({ index, text: e.target.value })}
           onKeyDown={(e) => { if (e.key === 'Escape') setEditing(null) }} />
@@ -275,7 +279,7 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage, cardOf,
         </PopMenu>
       </>}
     </div>
-    <ChatPanel messages={messages} onSend={vm.send} busy={vm.pending} disabledReason={vm.lockedReason}
+    <ChatPanel messages={messages} onSend={vm.send} busy={vm.pending} disabledReason={vm.lockedReason} inputError={vm.inputError}
       emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}
