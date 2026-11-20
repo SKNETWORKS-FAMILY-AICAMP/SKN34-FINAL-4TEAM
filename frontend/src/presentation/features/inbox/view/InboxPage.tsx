@@ -26,7 +26,7 @@ export function InboxPage() {
   return (
     <>
       <Gnb on="lib" />
-      <main id="main" tabIndex={-1} className="wrap">
+      <main id="main" tabIndex={-1} className="wrap inbox-page">
         <div className="topbar" style={{ height: 'auto', marginBottom: 14 }}><Go to="/lib?tab=write" className="back"><BackChev />내가 쓰는 소설</Go><h1 style={{ fontSize: 21, fontWeight: 800 }}>독자 피드백함 <span className="muted small" style={{ fontWeight: 600 }}>댓글·단순 오류·스토리 오류·질문·제안</span></h1></div>
         <FeedbackReportInbox />
         {vm.isError && (

@@ -164,7 +164,7 @@ export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision,
               )}
           </section>
           {/* 작품 전체를 지우는 동작은 분기 정책과 섞지 않고 따로 둔다. 편집 중에는 잠가 저장하지 않은 입력을 잃지 않게 한다. */}
-          <section className='tcard ep-card' aria-labelledby='ep-delete-title'>
+          <section className='ep-delete' aria-labelledby='ep-delete-title'>
             <div className='ep-sec-head'>
               <h2 id='ep-delete-title'>작품 삭제</h2>
               <button type='button' className='btn sm ep-danger' disabled={blocked} onClick={() => void onDeleteWork()}>작품 삭제</button>
