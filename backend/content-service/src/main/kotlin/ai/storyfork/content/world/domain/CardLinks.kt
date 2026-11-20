@@ -20,3 +20,10 @@ fun hideCardLinks(text: String, visible: Set<UUID>): String =
 
 /** 모든 링크를 글자로 바꾸고 남은 `card:<uuid>`도 지운다. 대상이 보이든 아니든 모델 입력·색인에 id가 섞이지 않게 하는 AI 입력 경계의 규칙이다. */
 fun stripCardLinks(text: String): String = hideCardLinks(text, emptySet())
+
+/** [ids](옛 카드 id → 새 카드 id)에 있는 대상으로 가는 링크를 새 id로 바꾸고, 모르는 대상은 글자만 남긴다. Fork 독립(#583)이 복사한 카드끼리 본문 링크를 다시 잇는 규칙이다. */
+fun remapCardLinks(text: String, ids: Map<UUID, UUID>): String =
+    hideCardLinks(
+        // 접두(card:, 대소문자 그대로)와 링크 모양은 두고 id만 바꾼다. 모르는 대상은 새 id 집합에 없으니 아래 hideCardLinks가 글자만 남긴다.
+        CARD_REF.replace(text) { ref -> ids[UUID.fromString(ref.groupValues[1])]?.let { ref.value.take("card:".length) + it } ?: ref.value },
+        ids.values.toSet())

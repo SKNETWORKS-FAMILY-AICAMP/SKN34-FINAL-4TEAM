@@ -73,6 +73,8 @@ const inheritedWorld = z.object({
   cards: z.array(z.object({ id: cardId, title: z.string(), cardType: z.string(), aliases: z.array(z.string()) })),
   // 「동일 인물」(#485)만 쓴다: 이어받은 관계 중 identity가 아닌 것의 나머지 필드는 읽지 않는다.
   relationships: z.array(z.object({ sourceCardId: cardId, targetCardId: cardId, category: z.string().nullable().optional(), polarity: z.string().nullable().optional() })).default([]),
+  // 관계 상태를 주기 전 응답은 current로 읽는다. unavailable이면 관계가 비어 오므로 관계 수를 0으로 알리지 않는다(#583).
+  relationshipStatus: z.enum(['current', 'unavailable']).default('current'),
 })
 const publicationSchedule = z.object({
   id: z.string().min(1),
@@ -195,7 +197,12 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     return world.worldId ? {
       upto: world.upto, cards: world.cards,
       identity: world.relationships.filter((r) => r.category === 'identity' && r.polarity !== 'denied').map(({ sourceCardId, targetCardId }) => ({ sourceCardId, targetCardId })),
+      relationshipCount: world.relationshipStatus === 'unavailable' ? null : world.relationships.length,
     } : null
+  }
+  /** 이어받는 원작 세계관을 내 세계관으로 독립시킨다(#583, 201). 본문 없이 보내고 새 세계관 id를 받으며, 서버 거절은 detail 문구 그대로 던진다. */
+  detachInheritedWorld(workId: string) {
+    return this.request(`/works/${encodeURIComponent(workId)}/inherited-world/detach`, z.object({ workId: z.string(), worldId: z.uuid() }), 'POST')
   }
   save(id: string, value: Draft) { return this.request(`/works/${id}/draft`,draft,'PUT',value) }
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication = false, versionId?: string) { return this.request(`/works/${id}/publish`,work,'POST',{revision,rightsConfirmed,allowFork,allowForkPublication,versionId}) }

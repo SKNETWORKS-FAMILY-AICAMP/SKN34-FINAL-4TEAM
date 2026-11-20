@@ -8,6 +8,7 @@ import ai.storyfork.content.world.service.dto.InheritedWorldResponse
 import ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse
 import java.security.Principal
 import java.util.UUID
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 /** 세계관(WorldStudio)과 소설의 1:1 연결과, 그 세계관에서 독자에게 공개된 설정 카드 조회다(DEC-46). */
@@ -38,6 +39,14 @@ class WorkWorldController(private val service: WorkWorldService) {
     @GetMapping("/works/{id}/inherited-world")
     fun inheritedWorld(@PathVariable id: String, principal: Principal, @RequestParam(required = false) upto: String?): InheritedWorldResponse =
         service.inheritedWorld(id, principal.name, upto)
+
+    /**
+     * Fork 소유자가 이어받던 원작 세계관을 내 세계관으로 독립한다(DEC-37, #583, 본문 없음): 카드·관계를 새 세계관으로 복사해 Fork에 연결하고 더는 원작 변경을 따라가지 않는다.
+     * 201 + `{ workId, worldId }`(새 세계관), 남의 작품 404, 이어받을 세계관이 없으면 409 `FORK_WORLD_NOT_INHERITED`, 관계 저장소 불확실 503(어느 쪽도 세계관을 만들지 않음). 세계관을 만드는 중의 WorldStudio 실패는 서비스가 WorldStudio API와 같은 상태·code로 옮긴다(이 컨트롤러는 WorldStudio 처리기 대상이 아니다).
+     */
+    @PostMapping("/works/{id}/inherited-world/detach")
+    @ResponseStatus(HttpStatus.CREATED)
+    fun detachInheritedWorld(@PathVariable id: String, principal: Principal): WorkWorldLinkResponse = service.detachInheritedWorld(id, principal.name)
 
     /**
      * 독자 설정 위키 카드의 이미지를 캐시 없이 반환한다(#401). 익명 조회를 허용한다. `world-cards?upto=N`과 같은 기준으로 보이는 카드 중 하나가 `imageId`로 가리키는 이미지일 때만이며,
