@@ -107,3 +107,33 @@ describe('storyfork.css GNB 검색 버튼 계약 (#505)', () => {
     expect(narrow('.search .ls')).toEqual(['display:inline'])
   })
 })
+
+describe('storyfork.css 셸·읽기 화면 정리 계약 (impeccable 그룹 1)', () => {
+  it('상단바(.gnb)가 있는 화면은 떠 있는 테마 버튼을 숨겨 같은 버튼이 두 개 보이지 않는다', () => {
+    expect(value('body:has(.gnb) .thm-float', 'display')).toBe('none')
+  })
+
+  it('푸터가 있는 소설 상세·위키 틀(.calm)은 남는 높이를 채워 짧은 화면에서도 푸터를 맨 아래에 둔다', () => {
+    const calm = '#root:has(>.foot)>.calm'
+    expect([value(calm, 'flex'), value(calm, 'width')]).toEqual(['1 0 auto', '100%'])
+  })
+
+  it('빠른 이동 검색 입력은 지운 기본 윤곽선 대신 키보드 포커스 표시(아래 보라 선)를 둔다', () => {
+    expect(value('.qk input:focus-visible', 'box-shadow')).toBe('inset 0 -2px 0 var(--pri)')
+  })
+
+  it('뒤로 가기 버튼은 긴 작품 제목을 한 줄 말줄임으로 줄여 좁은 화면에서 넘치지 않는다', () => {
+    expect(value('.back', 'max-width')).toBe('100%')
+    const title = '.back>span'
+    expect([value(title, 'overflow'), value(title, 'text-overflow'), value(title, 'white-space')]).toEqual(['hidden', 'ellipsis', 'nowrap'])
+  })
+
+  it('장식 효과를 쓰지 않는다: 그라데이션 글자·원뿔 링·퍼지는 알림 배지·튀는 곡선·인용 색 띠', () => {
+    expect(css.match(/background-clip\s*:\s*text|conic-gradient|nbping|\.pop1\{|cubic-bezier\(\.3,\s*1\.6/g) ?? []).toEqual([])
+    expect(['.quote', 'q.cq'].map((s) => value(s, 'border-left'))).toEqual([undefined, undefined])
+  })
+
+  it('홈의 급상승·방금 업데이트 줄(.tri)은 2칸이다', () => {
+    expect(value('.tri', 'grid-template-columns')).toBe('repeat(2,minmax(0,1fr))')
+  })
+})

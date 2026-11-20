@@ -29,6 +29,13 @@ it('본문 랜드마크 하나 안에서 기존 #home 구성을 유지한다', a
   expect(main.querySelectorAll('#home .chips, #home .hero, #home .t10')).toHaveLength(3)
 })
 
+it('급상승·방금 업데이트 두 칸만 한 줄에 두고 소설 모아 보기 구역은 없다', async () => {
+  renderHome()
+  await screen.findByText('다르게 이어진 포크 소설')
+  expect(screen.queryByRole('heading', { name: '소설 모아 보기' })).toBeNull()
+  expect(document.querySelectorAll('#home .tri > div')).toHaveLength(2)
+})
+
 it('홈의 탭 제목은 태그라인이고 화면을 떠나면 기본 제목으로 돌아간다', async () => {
   const view = renderHome()
   await waitFor(() => expect(document.title).toBe('원작을 나만의 이야기로 · STORYFORK'))

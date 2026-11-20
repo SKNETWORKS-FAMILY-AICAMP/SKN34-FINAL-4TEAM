@@ -156,7 +156,7 @@ export function ReaderPage() {
       <main className="page" id="main" tabIndex={-1}>
         <h1 className="sr-only">{w.title} {r.n}화</h1>
         <div className="chap"><small>{chapLabel(w.theme, r.n)}</small><h2>{e.t}</h2><div className="orn">{ORN[w.theme]}</div>{!w.canonical && <div className="reading"><i />지금 {30 + ((r.n * 37) % 90)}명이 함께 읽는 중 <span className="demo">데모</span></div>}</div>
-        <div className="hint">{w.canonical?'☝ 문장을 누르면 댓글을 남길 수 있어요. 공개된 회차를 읽고 허용된 시점에서 포크할 수 있어요. 로그인하면 읽은 회차가 계정에 저장돼요.':'☝ 문장을 누르면 댓글이나 피드백을 보낼 수 있어요. 소설 전체 신고는 상세 화면에서 할 수 있어요.'}</div>
+        <div className="hint">{w.canonical?'☝ 문장을 누르면 댓글을 남길 수 있어요.':'☝ 문장을 누르면 댓글이나 피드백을 보낼 수 있어요. 소설 전체 신고는 상세 화면에서 할 수 있어요.'}</div>
         <span id="sentence-help" className="sr-only">{w.canonical?'댓글 달기 열기':'댓글·피드백 열기'}</span>
         <div className="text" id="text">
           {hiddenSourceEpisode(w, r.n, e.p) && <p className="muted">원작이 삭제돼 분기 전 회차 본문은 볼 수 없어요. {(w.forkAt ?? 0) + 1}화부터 이 포크 소설이 이어져요.</p>}
@@ -188,7 +188,7 @@ export function ReaderPage() {
           {r.canFork && (
             <div className="tcard ifend">
               <h3>여기서 포크해 볼까요?</h3>
-              <p>{w.canonical ? `${r.n}화의 공개된 원고·설정을 기준으로 분기해요. 관계의 과거 snapshot·복원은 지원하지 않아요.` : `${r.n}화가 끝난 시점의 세계관과 인물을 복사해서 나만의 다음 화를 쓸 수 있어요.`} 원작은 바뀌지 않아요.{r.forks.length > 0 && ` 이미 ${r.forks.length}편이 포크됐어요.`}</p>
+              <p>{w.canonical ? `${r.n}화의 공개된 원고·설정을 기준으로 분기해요.` : `${r.n}화가 끝난 시점의 세계관과 인물을 복사해서 나만의 다음 화를 쓸 수 있어요.`} 원작은 바뀌지 않아요.{r.forks.length > 0 && ` 이미 ${r.forks.length}편이 포크됐어요.`}</p>
               <div className="acts">
                 <Go to="/writing-policy?method=fork" state={{ target: `/fork/${id}?at=${r.n}` }} className="tbtn pri" id="forkHere">✎ {r.n}화에서 포크하기</Go>
                 {r.forks.map((f) => <Go key={f.id} to={`/work/${f.id}`} className="tbtn">「{f.title.split(': ')[1] || f.title}」 읽기</Go>)}

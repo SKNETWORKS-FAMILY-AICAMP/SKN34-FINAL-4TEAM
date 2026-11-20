@@ -108,7 +108,6 @@ export class ReadingUseCase {
       /** 순위 섹션이 실제 순위인가: 서버 랭킹이거나 좋아요·조회 지표가 있는 목업. 지표 없는 서버 작품의 단순 목록이면 false입니다. */
       ranked: !!server || !pub.some((w) => w.statisticsSupported === false),
       fresh: server ? server.fresh.items : pub.slice().sort(sorter('new')).slice(0, 5),
-      picks: pub.slice(0, 6),
       /** 오늘의 발견: 랭킹·최신과 겹치지 않게 오래된 작품부터. 서버 작품은 갱신 시각이 없어 공개 목록(생성 최신순)을 뒤집습니다. */
       discover: (pub.some((w) => w.statisticsSupported === false) ? pub.slice() : pub.slice().sort(sorter('new'))).reverse(),
       weekly: server ? server.weekly.items : origs.slice(0, 4),

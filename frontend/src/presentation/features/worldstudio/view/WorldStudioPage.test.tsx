@@ -282,9 +282,11 @@ it('관리 보기 전환 메뉴가 왼쪽 사이드바에 있고(설정집·관�
   expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
 })
 
-it('설정집 화면의 본문(사이드바 포함)에는 테마 전환 버튼을 따로 두지 않는다: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않고, 테마 전환은 상단바(Gnb)가 맡는다', async () => {
+it('테마 전환은 설정집 화면 안(본문·사이드바)에 따로 두지 않고 상단바(Gnb)의 버튼 한 개가 맡는다', async () => {
   await showWorld()
-  expect(within(screen.getByRole('main')).queryByRole('button', { name: /모드로/ })).toBeNull() // 저장 영역 옆에 있던 작은 테마 버튼은 사이드바로 옮기지 않고 없앴다
+  expect(within(screen.getByRole('main')).queryByRole('button', { name: /모드로/ })).toBeNull() // 사이드바도 main 안이다: 저장 영역 옆에 있던 작은 테마 버튼은 사이드바로 옮기지 않고 없앴다
+  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 한 개: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않는다
+  expect(theme.closest('.gnb')).toBeTruthy()
 })
 
 it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 전환 버튼을 한 개 두고, 가려진 설정집 화면의 버튼은 중복으로 보이지 않는다', async () => {
@@ -298,18 +300,15 @@ it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 
   expect(theme.className).toBe('btn sm')
 })
 
-it('작성 마법사에는 사이드바·저장 영역이 없어 테마 전환 버튼이 헤더의 행동 줄(집필 메모 추가·관리 화면으로 옆)에 한 개 있다', async () => {
+it('작성 마법사도 헤더의 행동 줄(집필 메모 추가·관리 화면으로 옆)에 테마 버튼을 따로 두지 않고 상단바(Gnb)의 버튼 한 개가 맡는다', async () => {
   await wizard()
-  const theme = screen.getByRole('button', { name: '다크 모드로' })
-  const acts = within(theme.closest('.acts') as HTMLElement)
-  expect(acts.getByRole('button', { name: '집필 메모 추가' })).toBeTruthy()
-  expect(acts.getByRole('button', { name: '관리 화면으로' })).toBeTruthy()
-  expect(theme.className).toBe('btn sm')
+  expect(within(screen.getByRole('main')).queryByRole('button', { name: /모드로/ })).toBeNull()
+  expect(screen.getByRole('button', { name: '다크 모드로' }).closest('.gnb')).toBeTruthy() // 한 개
 })
 
-it('새 세계관 만들기(/worldstudio)에는 테마 버튼을 따로 두지 않는다: 그 화면은 떠 있는 테마 버튼(GlobalChrome)이 그대로 맡는다', async () => {
+it('새 세계관 만들기(/worldstudio)에는 테마 버튼을 따로 두지 않는다: 그 화면은 상단바(Gnb)의 테마 버튼이 맡는다', async () => {
   await show(undefined, '/worldstudio')
-  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull()
+  expect(within(screen.getByRole('main')).queryByRole('button', { name: /모드로/ })).toBeNull()
 })
 
 it('4단계 내비는 지금 단계만 aria-current=step이고 단계 이름·순서는 그대로다', async () => {
