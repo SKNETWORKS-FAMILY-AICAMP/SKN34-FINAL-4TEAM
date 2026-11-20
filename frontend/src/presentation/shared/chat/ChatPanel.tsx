@@ -13,7 +13,7 @@ const kindLabel = { image: '이미지', audio: '음성' } as const
 /**
  * 집필실 AI 채팅과 이후 캐릭터챗이 함께 쓰는 표시용 채팅이다. 메시지·전송·첨부는 모두 호출하는 화면이 맡고
  * 이 컴포넌트는 API를 부르거나 메시지를 저장하지 않는다.
- * - onSend: true를 돌려줘야 입력창을 비운다(실패하면 false로 돌려주고 사유는 화면이 보여 준다). 던지면 입력을 남기고 일반 실패 안내를 보인다. 없으면 입력과 전송을 잠근다.
+ * - onSend: 전송을 시작하면 입력창을 비운다. false를 돌려주거나 던지면 새로 입력한 글이 없을 때 요청을 복구한다. 없으면 입력과 전송을 잠근다.
  * - onAttach: 없으면 + 버튼 안의 이미지·음성 첨부를 '준비 중'으로 잠근다(가짜 업로드를 만들지 않는다).
  * - disabledReason: 있으면 입력·전송·첨부·추천 칩을 모두 잠그고 이 사유를 입력 카드 아래에 보여 준다.
  * - emptyTitle·emptyText·suggestions: 대화가 없을 때 보이는 제목·안내·추천 칩. 칩을 누르면 입력창에 글만 채운다(보내지 않는다).
@@ -36,6 +36,8 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
   renderActions?: (message: ChatMessage) => ReactNode
 }) {
   const [draft, setDraft] = useState('')
+  const draftEdits = useRef(0)
+  const changeDraft = (value: string) => { draftEdits.current += 1; setDraft(value); setFailed(false) }
   const box = useRef<HTMLTextAreaElement>(null)
   const files = useRef<Record<ChatAttachment['kind'], HTMLInputElement | null>>({ image: null, audio: null })
   const id = useId()
@@ -55,13 +57,18 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
     sending.current = true
     setPending(true)
     setFailed(false)
+    const submittedEdits = draftEdits.current
+    setDraft('')
+    let sent = false
     try {
-      // 기다리는 사이 새로 입력한 글은 지우지 않는다.
-      if (await onSend(text)) setDraft(d => d.trim() === text ? '' : d)
+      sent = await onSend(text)
     } catch {
-      // 계약은 실패를 false로 돌려주는 것이다. 그래도 던지면 입력을 남기고 알린다(처리되지 않은 거부로 새지 않게).
       setFailed(true)
-    } finally { sending.current = false; setPending(false) }
+    } finally {
+      if (!sent && draftEdits.current === submittedEdits) setDraft(draft)
+      sending.current = false
+      setPending(false)
+    }
   }
   return <div className="chat-panel">
     <div className="chat-log" role="log" aria-label="대화 내용" aria-live="polite">
@@ -79,14 +86,14 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
         {emptyTitle && <h3>{emptyTitle}</h3>}
         <p>{emptyText}</p>
         {!!suggestions?.length && <ul className="chat-suggest" aria-label="추천 질문">{suggestions.map(text => <li key={text}>
-          <button type="button" className="chat-suggest-btn" disabled={locked} onClick={() => { setDraft(text); box.current?.focus() }}>{text}</button>
+          <button type="button" className="chat-suggest-btn" disabled={locked} onClick={() => { changeDraft(text); box.current?.focus() }}>{text}</button>
         </li>)}</ul>}
       </div>}
     </div>
     <form className="chat-composer" onSubmit={e => { e.preventDefault(); void submit() }}>
       <div className={`chat-card${locked ? ' locked' : ''}`}>
         <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={disabledReason ? reasonId : inputError ? errorId : undefined}
-          onChange={e => { setDraft(e.target.value); setFailed(false) }}
+          onChange={e => changeDraft(e.target.value)}
           onKeyDown={e => {
             // Safari는 조합 확정 Enter를 isComposing=false, keyCode=229로 보낸다
             if (e.key !== 'Enter' || e.shiftKey || e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return
@@ -105,7 +112,7 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
       </div>
       {disabledReason && <p id={reasonId} className="chat-note">{disabledReason}</p>}
       {inputError && <p id={errorId} role="alert" className="chat-note">{inputError}</p>}
-      {failed && <p role="alert" className="chat-note">보내지 못했어요. 입력은 그대로 남아 있어요. 다시 시도해 주세요.</p>}
+      {failed && <p role="alert" className="chat-note">메시지를 보내지 못했어요. 다시 시도해 주세요.</p>}
       {/* 파일 선택은 첨부 메뉴가 닫혀도 남아 있어야 고른 파일을 받을 수 있다. */}
       {onAttach && kinds.map(kind => <input key={kind} hidden type="file" accept={`${kind}/*`} ref={el => { files.current[kind] = el }}
         onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) onAttach(kind, file) }} />)}

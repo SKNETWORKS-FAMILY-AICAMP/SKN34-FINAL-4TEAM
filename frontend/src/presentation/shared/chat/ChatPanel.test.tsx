@@ -123,8 +123,8 @@ describe('공용 채팅 입력', () => {
     render(<ChatPanel messages={[]} onSend={onSend} />)
     type('남겨 줘')
     fireEvent.keyDown(box(), { key: 'Enter' })
-    await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1))
-    expect(box().value).toBe('남겨 줘')
+    await waitFor(() => expect(box().value).toBe('남겨 줘'))
+    expect(onSend).toHaveBeenCalledTimes(1)
   })
 
   it('처리 중에는 보내지 못하고 같은 요청을 겹쳐 보내지 않는다', () => {
@@ -145,7 +145,7 @@ describe('공용 채팅 입력', () => {
     fireEvent.keyDown(box(), { key: 'Enter' })
     fireEvent.click(send())
     expect(onSend).toHaveBeenCalledExactlyOnceWith('한 번만')
-    expect(box().value).toBe('한 번만')
+    expect(box().value).toBe('')
     await act(async () => { finish(true) })
     await waitFor(() => expect(box().value).toBe(''))
     type('다음')
@@ -168,7 +168,18 @@ describe('공용 채팅 입력', () => {
     expect(box().value).toBe('기다리며 쓴 글')
   })
 
-  it('onSend가 거부되면 입력을 남기고 실패를 알리며, 다시 쓰면 안내를 지우고 다시 보낼 수 있다', async () => {
+  it('실패한 요청을 기다리며 입력을 바꿨으면 이전 요청을 복구하지 않는다', async () => {
+    let finish!: (ok: boolean) => void
+    render(<ChatPanel messages={[]} onSend={() => new Promise<boolean>(resolve => { finish = resolve })} />)
+    type('이전 요청')
+    fireEvent.click(send())
+    type('새 글')
+    type('')
+    await act(async () => { finish(false) })
+    expect(box().value).toBe('')
+  })
+
+  it('onSend가 거부되면 입력을 복구하고 실패를 알리며, 다시 쓰면 안내를 지우고 다시 보낼 수 있다', async () => {
     const onSend = vi.fn().mockRejectedValueOnce(new Error('연결 끊김')).mockResolvedValue(true)
     render(<ChatPanel messages={[]} onSend={onSend} />)
     type('실패할 글')
