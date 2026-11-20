@@ -838,6 +838,53 @@ it('신고 표의 ⋮ 메뉴를 여는 누름은 행 선택까지 올라가지 �
   } finally { Reflect.deleteProperty(Element.prototype, 'scrollIntoView') }
 })
 
+// 데모 조회(d)가 있어야 본문을 그리는 데모 탭(캐릭터챗·크레딧)은 조회 중·실패일 때 본문이 없다. 그때 화면은 빈 채로 두지 않고 제목 아래 안내가 로딩·오류와 다시 불러오기를 맡는다.
+const DEMO_TABS = [['characterChats', '캐릭터챗 관리', '캐릭터챗 목록'], ['credits', '크레딧 관리', '크레딧 원장']] as const
+
+it.each(DEMO_TABS)('%s 탭은 데모 조회가 아직 오지 않았으면 제목 아래에 불러오는 중임을 알리고, 오면 본문을 그린다', async (tab, title, body) => {
+  const admin = appContainer.resolve('adminUseCase')
+  const loaded = await admin.load()
+  let arrive = () => {}
+  vi.spyOn(admin, 'load').mockReturnValue(new Promise((resolve) => { arrive = () => resolve(loaded) }))
+  renderAdmin(tab)
+  await screen.findByRole('heading', { level: 1, name: title })
+  expect((await screen.findByRole('status')).textContent).toBe('관리자 데이터를 불러오고 있어요.')
+  expect([screen.queryByRole('alert'), screen.queryByRole('heading', { level: 2, name: body })]).toEqual([null, null])
+  await act(async () => { arrive() })
+  await screen.findByRole('heading', { level: 2, name: body })
+  expect(screen.queryByText('관리자 데이터를 불러오고 있어요.')).toBeNull()
+})
+
+it.each(DEMO_TABS)('%s 탭은 데모 조회가 실패하면 오류 안내와 다시 불러오기를 보이고, 누르면 다시 읽어 본문을 그린다', async (tab, title, body) => {
+  const load = vi.spyOn(appContainer.resolve('adminUseCase'), 'load').mockRejectedValueOnce(new Error('데모 조회 실패'))
+  renderAdmin(tab)
+  await screen.findByRole('heading', { level: 1, name: title })
+  const alert = await screen.findByRole('alert')
+  expect(alert.textContent).toContain('관리자 데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+  expect(screen.queryByRole('heading', { level: 2, name: body })).toBeNull()
+  fireEvent.click(within(alert).getByRole('button', { name: '다시 불러오기' }))
+  await screen.findByRole('heading', { level: 2, name: body })
+  expect(load).toHaveBeenCalledTimes(2)
+  expect(screen.queryByRole('alert')).toBeNull()
+})
+
+// 문의·이벤트·공지는 운영 API 탭이라 데모 조회(d)가 늦거나 실패해도 본문을 그린다: 제목만 남는 빈 화면이 아니다. 데모 조회 안내(불러오는 중·오류)는 데모 탭에만 보인다.
+const OPS_BODIES = [['feedback', '회원 문의'], ['events', '운영 이벤트 목록'], ['notices', '운영 공지 목록']] as const
+
+it.each(OPS_BODIES)('%s 탭은 데모 조회가 실패해도 본문(%s)을 그리고 데모 조회 오류 안내는 보이지 않는다', async (tab, heading) => {
+  vi.spyOn(appContainer.resolve('adminUseCase'), 'load').mockRejectedValue(new Error('데모 조회 실패'))
+  renderAdmin(tab)
+  await screen.findByRole('heading', { level: 2, name: heading })
+  expect(screen.queryByText(/관리자 데이터를 불러오지 못했어요/)).toBeNull()
+})
+
+it.each(OPS_BODIES)('%s 탭은 데모 조회가 아직 오지 않았어도 본문(%s)을 먼저 그리고 데모 조회 불러오는 중 안내는 보이지 않는다', async (tab, heading) => {
+  vi.spyOn(appContainer.resolve('adminUseCase'), 'load').mockReturnValue(new Promise(() => {}))
+  renderAdmin(tab)
+  await screen.findByRole('heading', { level: 2, name: heading })
+  expect(screen.queryByText('관리자 데이터를 불러오고 있어요.')).toBeNull()
+})
+
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
 it('픽스처(데모) 컨테이너에서는 데모 관리자 조치가 활동 로그에 남는다', async () => {
   const admin = appContainer.resolve('adminUseCase')

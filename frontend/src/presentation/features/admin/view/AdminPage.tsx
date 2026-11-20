@@ -349,6 +349,17 @@ function Body(p: BodyProps) {
   if (tab === 'works') return <Works {...p} />
   if (tab === 'comments') return <Comments {...p} />
   if (tab === 'audit') return <Audit vm={vm} />
+  // 운영 API 탭이라 데모 조회(d) 없이 그린다(Feedback의 시연용 제보 표만 d가 있을 때 붙는다).
+  if (tab === 'feedback') return <Feedback {...p} />
+  if (tab === 'events') return <Events vm={vm} />
+  if (tab === 'notices') {
+    return (
+      <>
+        <LiveState vm={vm} label='공지 목록' />
+        <OperationsNotices vm={vm} />
+      </>
+    )
+  }
   if (!d) return null
   const titleSort = (
     a: string,
@@ -419,16 +430,6 @@ function Body(p: BodyProps) {
             </tbody>
           </Table>
         </div>
-      </>
-    )
-  } else if (tab === 'feedback') T = <Feedback {...p} />
-  else if (tab === 'events') {
-    T = <Events vm={vm} />
-  } else if (tab === 'notices') {
-    T = (
-      <>
-        <LiveState vm={vm} label='공지 목록' />
-        <OperationsNotices vm={vm} />
       </>
     )
   } else if (tab === 'credits') {
