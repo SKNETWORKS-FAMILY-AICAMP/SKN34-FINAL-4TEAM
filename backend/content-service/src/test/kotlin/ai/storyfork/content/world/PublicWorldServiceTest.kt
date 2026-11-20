@@ -914,4 +914,50 @@ class PublicWorldServiceTest {
         verify(nicknames, times(1)).nicknames(listOf(a.owner.toString()))
     }
 
+
+    // ---- Fork 독립(#583)이 복사할 원본 ----
+
+    @Test fun `an inherited source is the same read as the inherited world plus where it came from and when each relation began`() {
+        val s = Seed(name = "원작 세계")
+        val started = mapOf(s.relations[0].id to 1, s.relations[3].id to 2)
+        graphReads(s.id) { it.thenReturn(RelationshipStateResult(s.id, 3, "key", "hash", s.relations, started)) }
+        `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenReturn(mapOf(s.owner.toString() to "원작자"))
+
+        val source = service.inheritedSource("fork", s.id, 2)!!
+
+        assertEquals(service.inheritedWorld("fork", s.id, 2), source.world)
+        assertEquals(listOf<Any>("원작 세계", 3L, "원작자"), listOf(source.worldName, source.revisionNo, source.authorNickname))
+        assertEquals(started, source.relationshipEpisodes)
+    }
+
+    @Test fun `a withdrawn author of an inherited source is shown as the withdrawn member`() {
+        val s = Seed()
+        `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenReturn(emptyMap())
+
+        assertEquals("탈퇴한 회원", service.inheritedSource("fork", s.id, 2)!!.authorNickname)
+    }
+
+    @Test fun `an inherited source is null without asking Core or Neo4j when nothing is inherited`() {
+        val draftOnly = Seed(saved = false)
+        val allPrivate = Seed(cards = "private", revealed = false)
+
+        listOf(draftOnly.id, allPrivate.id, UUID.randomUUID()).forEach { assertNull(service.inheritedSource("fork", it, 2)) }
+
+        verifyNoInteractions(graph, nicknames)
+    }
+
+    @Test fun `an inherited source keeps its cards when the relations are unavailable so the caller can refuse, and a Core failure is not hidden`() {
+        val pending = Seed().also { it.state.completed = false }
+        `when`(nicknames.nicknames(listOf(pending.owner.toString()))).thenReturn(mapOf(pending.owner.toString() to "원작자"))
+
+        val unavailable = service.inheritedSource("fork", pending.id, 2)!!
+
+        assertEquals("unavailable", unavailable.world.relationshipStatus)
+        assertEquals(3, unavailable.world.cards.size)
+        assertTrue(unavailable.relationshipEpisodes.isEmpty())
+
+        val s = Seed()
+        `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenThrow(CoreAuthException(503, "CORE_MEMBER_UNAVAILABLE", "회원 정보 서비스를 사용할 수 없습니다."))
+        assertEquals(503, assertThrows(CoreAuthException::class.java) { service.inheritedSource("fork", s.id, 2) }.status)
+    }
 }

@@ -780,6 +780,50 @@ it('links and unlinks my world from the world tab and shows the server reason wh
   expect(sent()).toEqual([{ worldId: WORLD_ID }, { worldId: null }, { worldId: WORLD_ID }])
 })
 
+// ── Fork 세계관 독립(#583): 자기 세계관이 없는 Fork의 세계관 탭 ──
+const ORIGIN_WORLD = '5c0b3f0e-3a51-4d6b-9a39-1f4f2b6d0a02'
+const inheritedAnswer = {
+  workId: 'w', worldId: ORIGIN_WORLD, upto: 2, relationshipStatus: 'current',
+  cards: [{ id: 'c1', title: '카엘', body: '본문', cardType: 'character', areaCode: 'basic', classification: '', aliases: [], tags: [], semanticMetadata: { revealFromEpisode: 1 }, visibility: 'public', lifecycle: 'active' }],
+  relationships: [{ id: 'r1', sourceCardId: 'c1', targetCardId: 'c1', category: 'structural', label: '', direction: 'directed', polarity: 'asserted', body: '', semanticMetadata: {}, lifecycle: 'active' }],
+}
+const DETACH_CONFIRM = '독립하면 원작 세계관의 이후 변경은 따라오지 않아요. 원작 세계관의 카드와 관계를 내 세계관으로 복사해 이 소설에 연결할까요? 원작 세계관과 다른 포크는 바뀌지 않아요.'
+const openInheritedCard = async (detach: () => Response) => {
+  stubCover()
+  myWorlds([])
+  const fetcher = contentApi({
+    'GET /api/v1/works': () => Response.json([myFork]), 'GET /api/v1/works/w/world': () => Response.json(settingsBook),
+    'GET /api/v1/works/w/inherited-world': () => Response.json(inheritedAnswer),
+    'POST /api/v1/works/w/inherited-world/detach': detach,
+  })
+  await openWork(fetcher, '내 포크')
+  fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
+  const card = within(await screen.findByRole('region', { name: '이어받는 원작 세계관' }))
+  await card.findByText('원작 「원작」 세계관을 2화 기준으로 이어받는 중')
+  expect(card.getAllByRole('definition').map((definition) => definition.textContent)).toEqual(['카엘', '1개'])
+  return { fetcher, card }
+}
+
+it('독립을 확인한 뒤 요청하고, 성공하면 새 세계관 관리 화면으로 간다', async () => {
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+  const { fetcher, card } = await openInheritedCard(() => Response.json({ workId: 'w', worldId: WORLD_ID }, { status: 201 }))
+  fireEvent.click(card.getByRole('button', { name: '내 세계관으로 만들어 수정하기' }))
+  expect(await screen.findByText('위치 /worldstudio/' + WORLD_ID)).toBeTruthy()
+  expect(confirm).toHaveBeenCalledWith(DETACH_CONFIRM)
+  expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST').map(([path]) => path)).toEqual(['/api/v1/works/w/inherited-world/detach'])
+})
+
+it('독립이 거절되면 서버 문구를 이어받는 세계관 카드 안에 보이고 화면 맨 위 알림에는 두지 않으며 이동하지 않는다', async () => {
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  const { card } = await openInheritedCard(() => Response.json({ detail: '이어받는 원작 세계관이 없어요.', code: 'FORK_WORLD_NOT_INHERITED' }, { status: 409 }))
+  fireEvent.click(card.getByRole('button', { name: '내 세계관으로 만들어 수정하기' }))
+  expect((await card.findByRole('alert')).textContent).toBe('이어받는 원작 세계관이 없어요.')
+  expect(document.querySelector('.ep-main > .ep-alert')).toBeNull()
+  expect(screen.queryByText(/^위치 \/worldstudio/)).toBeNull()
+  // 실패 뒤에는 다시 누를 수 있다.
+  expect((card.getByRole('button', { name: '내 세계관으로 만들어 수정하기' }) as HTMLButtonElement).disabled).toBe(false)
+})
+
 it('lists saved versions, AI requests and publications read-only while restore and publish-target actions stay in the studio', async () => {
   stubCover()
   // revision(편집 번호)과 저장 순번이 다르게 두어, 화면이 순번('저장 버전 1')을 쓰는지 가른다.

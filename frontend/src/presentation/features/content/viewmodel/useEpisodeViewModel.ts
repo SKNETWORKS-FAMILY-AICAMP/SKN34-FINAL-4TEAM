@@ -4,7 +4,7 @@ import type { WritingEpisode, History, Work, WorkRegistration, WorkTagSuggestion
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecases/MediaUseCase'
 
-type Origin = '' | 'create' | 'fork' | 'link'
+type Origin = '' | 'create' | 'fork' | 'link' | 'detach'
 
 /**
  * `/content` 작품 관리 화면: 작품 생성·작품 정보(제목·소개·장르·해시태그)·표지·분기 정책·분기 정보(공개 중단·삭제)·분기 만들기·세계관 연결·이력 조회.
@@ -211,6 +211,21 @@ export function useEpisodeViewModel(
         install({ ...active, worldStudioId: linked.worldId })
         setNotice(linked.worldId ? '세계관을 연결했어요.' : '세계관 연결을 해제했어요.')
       }, 'link')
+    },
+    /**
+     * 이어받는 원작 세계관을 내 세계관으로 독립시킨다(#583, DEC-37). 확인을 받고 보내며, 서버가 복사해 만든 새 세계관을 열린 작품의 연결로 바꾸고 그 id를 돌려준다(취소·실패·화면 이탈이면 null).
+     * 이동은 화면이 한다. 이어받을 것이 없거나 이미 독립했거나(409) 관계 상태를 모르면(503) 서버 사유를 '이어받는 원작 세계관' 카드 안에 알리고(origin `detach`) 연결은 그대로 둔다.
+     * 요청 중에는 확인도 다시 묻지 않는다(`run`의 busy가 화면의 버튼과 탭도 잠근다).
+     */
+    detachWorld: async () => {
+      if (!active || inFlight.current || !window.confirm('독립하면 원작 세계관의 이후 변경은 따라오지 않아요. 원작 세계관의 카드와 관계를 내 세계관으로 복사해 이 소설에 연결할까요? 원작 세계관과 다른 포크는 바뀌지 않아요.')) return null
+      let id = null as string | null
+      await run(async () => {
+        const detached = await useCase.detachInheritedWorld(active.id)
+        install({ ...active, worldStudioId: detached.worldId })
+        id = detached.worldId
+      }, 'detach')
+      return alive.current ? id : null
     },
     /** 새 분기 작품의 id를 돌려준다(실패하거나 화면을 떠났으면 null). */
     fork: async (episode: number, title: string, direction: string) => {
