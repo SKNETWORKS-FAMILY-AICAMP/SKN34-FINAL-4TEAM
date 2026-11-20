@@ -99,7 +99,7 @@ flowchart TD
 | `story_context` | `ask_story_qa` | `story_qa.service.answer` + 공통 Retrieval(`app/retrieval`) | `request`(질문) | `scope` 토큰(없으면 `inputs.story_context`), 최근 5턴 질문·답 |
 | `manuscript_review` | `ask_manuscript_review` | `manuscript_review.service.review` | `request`, `check?`(`mechanical`·`semantic`·`both`) | `target` 반영 회차, 작가가 보낸 `inputs.manuscript_review`가 있으면 우선 |
 | `world` | `ask_world` | `world_review.review`·`enrich`·`impact`(#546·#291) | `request`, `task`(`check`·`enrich`·`impact`) | `target` 작품의 연결 세계관, `impact`는 `work_context_read`·`story_plan_list` |
-| `writing_editing` | `ask_writing` | `writing.agent.plan`·`plan_and_draft`·`draft`·`patch` | `request`, `task`(`plan`·`draft`·`patch`), `fix?`(지적 번호) | `target`, Content MCP 허용 문맥, `previousPlans`, `inputs.writing_editing` |
+| `writing_editing` | `ask_writing` | `writing.agent.plan`·`plan_and_draft`·`draft`·`patch`·`pick_plan`·`revise_plan`(#578) | `request`, `task`(`plan`·`draft`·`patch`·`revise_plan`), `fix?`(지적 번호) | `target`, Content MCP 허용 문맥, `previousPlans`, `inputs.writing_editing`, `revise_plan`은 `story_plan_list`·`story_plan_read` |
 | `research` | `ask_research` | `research.service.research`(`web`)·`research.service.platform`(`platform`, #547) | `task`(`web`·`platform`), `request?`(`platform`만 쓰는 찾을 설정 주제) | `web`: `inputs.research`(작가가 동의한 질문·500자 이하 맥락·외부 전송 동의). `platform`: 입력 없음(공개 세계관만 Content MCP로 읽는다) |
 | `rating` | `ask_rating` | `rating.service.rate` | `request` | `target` 회차 하나 |
 | `character_simulation` | `ask_character_simulation` | `simulation.plan`·`plan_from_form`(계획만. 장면 에이전트는 바깥 `scene` 노드) | `request`(상황) | `target`·연결 세계관, 시작 양식 `simulation` |
@@ -112,7 +112,7 @@ flowchart TD
 |---|---|---|
 | Manuscript Review | 원고 | `mechanical`·`semantic`·`both`. 조건부 수정은 이 결과에만 붙는다 |
 | World | 설정집 + 연대기(사건 카드) | `check`·`enrich`·`impact`. 세 작업이 같은 입력(기준 회차 시점 세계관)을 쓴다 |
-| Writing & Editing | 원고와 플롯·장면 계획(`story_plan`) | 현재 `plan`·`draft`·`patch`. [기존 플롯 및 장면 계획 수정](03-rag-simulation-design.md#기존-플롯-및-장면-계획-수정)은 미구현이며 수정안 제안과 작가 승인 후 반영을 포함 |
+| Writing & Editing | 원고와 플롯·장면 계획(`story_plan`) | 현재 `plan`·`draft`·`patch`·`revise_plan`. [기존 플롯 및 장면 계획 수정](03-rag-simulation-design.md#기존-플롯-및-장면-계획-수정)(#578)은 저장된 계획의 제목·내용만 고친 수정안을 제안하고 작가 승인 뒤에만 Content MCP `story_plan_update`로 저장한다 |
 | Research | 작품 밖 | `web`·`platform`. 결과는 참고이며 정본이 되지 않는다 |
 | Q&A | 내 작품 질문 | 내 세계관 안 검색도 Q&A가 맡는다 |
 | Rating·Simulation | — | 그대로 |
@@ -177,7 +177,7 @@ flowchart TD
 1. **범위:** 모든 서브 에이전트는 Content가 Core 인증 뒤 확정한 사용자·작품/Fork·`target`·기준 회차/판본·`scope`만 쓴다. 필요한 Content 확인이 실패하거나 대상·판본이 맞지 않으면 그 도구는 실패다.
 2. **노출·한도:** 판정에 없는 도구, 기능당 2회째 호출, 턴당 4회째 호출은 실행 직전에 막는다.
 3. **실패 뒤 정지:** 서브 에이전트가 실패하거나 시간 초과되면 그 턴에서 새 서브 에이전트 호출을 막는다. Writing 실패 뒤에는 판정에 포함된 미실행 Manuscript Review만 저장 초안을 검수할 수 있다. 완료한 결과는 보존한다. 병렬 묶음에서 함께 시작한 호출은 취소하지 않고 끝까지 실행해 보존한다(#474).
-4. **집필 도구 경계:** Writing & Editing 서브 에이전트에는 Retrieval·Simulation이 없다. 허용 문맥은 Content MCP `work_context_read`로 받되 설정(`settings`)만 Q&A·Review와 같은 WorldStudio(`content_mcp.linked_world`, 근거 회차 시점)로 바꾼다. 세계관이 없으면 빈 설정으로 실행하고 결과 `gaps`로 알린다(#523, [근거](07-retrieval-contract-and-mocks.md#qa-세계관-근거-490)).
+4. **집필 도구 경계:** Writing & Editing 서브 에이전트에는 Retrieval·Simulation이 없다. 허용 문맥은 Content MCP `work_context_read`(`includeSettings=false`, 옛 설정 문서 제외, #602)로 받고 설정(`settings`)은 Q&A·Review와 같은 WorldStudio(`content_mcp.linked_world`, 근거 회차 시점)로 바꾼다. 세계관이 없으면 빈 설정으로 실행하고 결과 `gaps`로 알린다(#523, [근거](07-retrieval-contract-and-mocks.md#qa-세계관-근거-490)).
 5. **조건부 수정:** `ask_writing(task=patch, fix=n)`은 이번 턴 `ask_manuscript_review` 결과가 상태에 있을 때만 받는다. 고른 지적이 확정이고 구절이 한 곳이며 초안 revision이 검수 때와 같아야 한다([조건부 수정](#조건부-수정-if_issues_found)). 메인 에이전트의 판단만으로 수정 입력을 만들지 않는다.
 6. **시뮬레이션:** Decision Guard가 명시적 요청으로 판정했거나 UI에서 고른 턴에만 노출한다.
 7. **외부 전송:** 웹 조사에는 작가가 동의한 질문·맥락 외의 원고·다른 결과·대화 기록을 보내지 않는다.
@@ -192,7 +192,7 @@ flowchart TD
   - 부분 수정의 선택 구간, 웹 조사의 질문·동의처럼 Content·작가가 주는 입력도 같다.
   - 채팅 구간 입력(2026-11-18 사용자 결정, 미구현, #497): 선택 구간이 없는 `task=patch` 입력 대기에서 채팅 카드가 반영 회차 초안을 보여 주고, 작가가 구간을 고르고 수정 지시를 적는다(비우면 이번 요청 문장). Content는 초안 revision과 UTF-16 구간 `[start,end)`를 기존 부분 수정 규칙(공백 아님·5,000자 이하·서로게이트 분할 금지, 어기면 422)으로 확인한다. 그다음 선택 문장·앞뒤 2,000자·허용 문맥을 `inputs.writing_editing.patch`로 채워 resume한다. 반영은 기존 `apply`가 선택 문장이 초안에 정확히 한 번 있는지 다시 확인한다.
 - **장면 턴:** 인물 시뮬레이션 장면 에이전트의 턴별 interrupt(`awaitingScene`)는 바깥 `scene` 노드에서 그대로 전달되며 [시뮬레이션 계약](../design/character-simulation-contract.md#무대stage-턴마다-멈추는-실행-2026-11-14-사용자-결정)을 따른다. 계획을 정하지 못하면 도구가 턴을 바로 끝내고 `clarify`와 고정 문장("시뮬레이션을 시작하려면 …을(를) 알려 주세요.")을 돌려준다(종합 호출 없음, 2026-11-17 사용자 결정).
-- **승인:** Writing 원고·부분 수정 또는 시뮬레이션 장면 결과가 상태에 있고 대화에 `target`이 있으면, 메인 에이전트가 답을 종합한 뒤 바깥 그래프의 `apply` 노드가 interrupt(`awaitingApproval`)로 멈춘다. 승인 뒤 Content MCP 반영·충돌 409·실패 처리는 기존과 같다. 메인 에이전트에는 반영 도구가 없다. 뒤 도구가 실패하거나 작가가 뒤 입력을 취소해도 앞서 끝난 결과의 승인은 묻는다(완료한 결과 보존). 승인 대기 응답의 `message`는 종합 답변 뒤에 승인 안내를 붙인다.
+- **승인:** Writing 원고·부분 수정·계획 수정안(`revise_plan`, #578), World 보강 제안(`enrich`) 또는 시뮬레이션 장면 결과가 상태에 있고 대화에 `target`이 있으면, 메인 에이전트가 답을 종합한 뒤 바깥 그래프의 `apply` 노드가 interrupt(`awaitingApproval`)로 멈춘다. 승인 뒤 Content MCP 반영·충돌 409·실패 처리는 기존과 같다. 메인 에이전트에는 반영 도구가 없다. 뒤 도구가 실패하거나 작가가 뒤 입력을 취소해도 앞서 끝난 결과의 승인은 묻는다(완료한 결과 보존). 승인 대기 응답의 `message`는 종합 답변 뒤에 승인 안내를 붙인다. 계획 수정안의 안내는 원고 반영이 아니라 "계획 수정안을 저장할지 승인해 주세요"이고(interrupt payload `approvalTask`), 대상 계획을 하나로 정하지 못하면 승인 없이 `clarify`로 후보 제목을 되묻는다.
 
 #### 공통 미들웨어 배치
 

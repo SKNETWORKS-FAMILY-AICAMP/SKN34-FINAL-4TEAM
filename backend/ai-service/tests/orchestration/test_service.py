@@ -28,8 +28,10 @@ from app.world_review.models import Affected, EnrichResult, Finding as WorldFind
 
 from traced import MEMBER, attrs, bearer, status_of
 
-from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, QA, REVIEW, SCENE_TEXT, SCOPE, WEB,
-                    NO_WORLD, WORLD, WORLD_ENRICH, WORLD_PLANS, WORLD_REVIEW, WORLD_REVIEW_REQUEST, Step, fake_agents, fake_scene, plan)
+from app.writing.errors import WritingFailure
+
+from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, PLAN_READ, PLAN_REVISION, QA, REVIEW, SCENE_TEXT, SCOPE,
+                    WEB, NO_WORLD, WORLD, WORLD_ENRICH, WORLD_PLANS, WORLD_REVIEW, WORLD_REVIEW_REQUEST, Step, fake_agents, fake_scene, plan)
 
 REAL_WORLD = {name: getattr(world_review, name) for name in ('linked_request', 'review', 'linked_world', 'enrich', 'impact')}  # fake_agents가 바꾸기 전의 실제 함수
 
@@ -1819,8 +1821,8 @@ def test_plan_only_returns_beat_plans_with_allowed_context_and_never_asks_to_wri
     assert result.status == 'completed' and result.awaitingApproval is None
     assert result.steps[0].result.plans[0].title == BEAT.title
     assert names(calls) == ['judge', 'mcp', 'mcp', 'mcp', 'writing_plan'] and applied == []
-    # 허용 문맥은 Content가 근거 회차(지식 상한)까지 확인한 것이다. 반영 회차 5화를 기획한다. 설정은 WorldStudio로 바꾼다(#523): 연결 세계관이 없어 비어 있다.
-    assert calls[1][1] == ('work_context_read', {'id': 'work', 'episode': 3, 'query': '11화 전개만 짜줘'})
+    # 허용 문맥은 Content가 근거 회차(지식 상한)까지 확인한 것이다. 반영 회차 5화를 기획한다. 설정은 WorldStudio로 바꾼다(#523): 연결 세계관이 없어 비어 있다. 옛 설정은 Content에서 뺀다(#602).
+    assert calls[1][1] == ('work_context_read', {'id': 'work', 'episode': 3, 'query': '11화 전개만 짜줘', 'includeSettings': False})
     sent = calls[4][1][0]
     assert (sent.episodeNumber, sent.request) == (5, '11화 전개만 짜줘') and json.loads(sent.context) == {**CONTEXT, 'settings': []}
 
@@ -2235,3 +2237,163 @@ def test_the_stream_root_stays_open_until_the_done_event_is_consumed(monkeypatch
     events, open_at_done = asyncio.run(consume())
     assert events[-1] == 'done' and open_at_done is True
     assert [s.name for s in requests_of(spans)] == ['orchestration']
+
+
+# 기존 플롯·장면 계획 수정(revise_plan, #578): 목록에서 대상 하나를 고르고 최신 계획을 읽어 제목·내용만 고친 제안을 만든다. 작가 승인 뒤에만 저장한다.
+REVISE = plan(Step('writing_editing', task='revise_plan'))
+REVISE_REQUEST = '재회 장면을 더 긴장감 있게 고쳐줘'
+PLAN_TOOLS = ('story_plan_list', 'story_plan_read', 'story_plan_update')
+
+
+def plan_tools(monkeypatch, listed=None, fail=None):
+    """fake_agents가 둔 Content MCP 대역을 감싸 story_plan_* 호출만 (도구, 인자, 그때의 사용자 토큰)으로 남긴다. listed는 목록 응답, fail은 {도구: 예외}."""
+    seen, real = [], tools.content_mcp.call
+
+    def call(tool, arguments):
+        if tool in PLAN_TOOLS:
+            seen.append((tool, arguments, tools.content_mcp.AUTHORIZATION.get()))
+            if tool in (fail or {}):
+                raise fail[tool]
+            if tool == 'story_plan_list' and listed is not None:
+                return listed
+        return real(tool, arguments)
+
+    monkeypatch.setattr(tools.content_mcp, 'call', call)
+    return seen
+
+
+def revise_turn(thread=None, **body):
+    return write_turn(thread or str(uuid4()), request=REVISE_REQUEST, target=TARGET, **body)
+
+
+def test_revise_plan_proposes_the_before_and_after_and_waits_for_approval_without_saving(monkeypatch):
+    fake_agents(monkeypatch, REVISE)
+    seen = plan_tools(monkeypatch)
+    result = revise_turn()
+    assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
+    assert result.message.startswith('종합 답변') and '계획 수정안을 저장할지 승인해 주세요' in result.message and '회차 초안' not in result.message
+    [step] = result.steps
+    assert (step.feature, step.task, step.status, step.approval, step.applied) == ('writing_editing', 'revise_plan', 'completed', None, None)
+    assert (step.result.planId, step.result.revision, step.result.before.title, step.result.after.content) == (
+        'scene-1', 3, '재회', '카엘이 리나를 만나지만 이름을 부르지 못한다.')
+    # 작품 ID는 Content가 확인한 target에서 읽고, 승인 전에는 저장하지 않는다.
+    assert [(tool, arguments) for tool, arguments, _ in seen] == [
+        ('story_plan_list', {'workId': 'work'}), ('story_plan_read', {'workId': 'work', 'id': 'scene-1'})]
+
+
+def test_revise_plan_sends_the_model_only_the_candidate_summaries_and_then_the_latest_plan(monkeypatch):
+    calls = fake_agents(monkeypatch, REVISE)
+    plan_tools(monkeypatch, listed=[
+        {**PLAN_READ, 'id': 'plot-1', 'kind': 'plot', 'parentId': None, 'title': '복수극', 'content': '플롯 본문', 'episodeNumber': None},
+        {**PLAN_READ, 'content': '장면 본문', 'secret': '모델에 보내지 않는다'}])
+    revise_turn()
+    [(_, (picked,), _)] = [c for c in calls if c[0] == 'pick_plan']
+    assert picked.request == REVISE_REQUEST
+    assert [p.model_dump() for p in picked.plans] == [
+        {'id': 'plot-1', 'kind': 'plot', 'title': '복수극', 'episodeNumber': None, 'plot': None},
+        {'id': 'scene-1', 'kind': 'scene', 'title': '재회', 'episodeNumber': 5, 'plot': '복수극'}]
+    [(_, (revised,), _)] = [c for c in calls if c[0] == 'revise_plan']
+    # 고칠 계획은 목록이 아니라 story_plan_read로 읽은 최신 값(제목·내용·revision)이다.
+    assert (revised.plan.id, revised.plan.plot, revised.content, revised.revision) == ('scene-1', '복수극', '카엘이 리나를 만난다.', 3)
+
+
+@pytest.mark.parametrize('chosen', [None, 'plan-ghost'])
+def test_revise_plan_asks_which_plan_when_the_model_does_not_settle_on_a_listed_one_and_proposes_nothing(monkeypatch, chosen):
+    calls = fake_agents(monkeypatch, REVISE)
+    monkeypatch.setattr(tools.writing, 'pick_plan', lambda data: chosen)
+    seen = plan_tools(monkeypatch)
+    result = revise_turn()
+    assert (result.status, result.steps, result.awaitingApproval) == ('clarify', [], None)
+    assert '재회' in result.message and '\n' not in result.message
+    assert [t for t, _, _ in seen] == ['story_plan_list'] and 'revise_plan' not in names(calls)  # 읽지도 고치지도 않는다
+
+
+def test_revise_plan_asks_a_few_candidate_titles_not_all_of_them(monkeypatch):
+    fake_agents(monkeypatch, REVISE)
+    monkeypatch.setattr(tools.writing, 'pick_plan', lambda data: None)
+    plan_tools(monkeypatch, listed=[{**PLAN_READ, 'id': f'scene-{i}', 'title': f'장면{i}'} for i in range(8)])
+    message = revise_turn().message
+    assert all(f'장면{i}' in message for i in range(5)) and '장면5' not in message and '3개' in message
+
+
+def test_revise_plan_with_no_saved_plans_asks_instead_of_calling_the_model(monkeypatch):
+    calls = fake_agents(monkeypatch, REVISE)
+    plan_tools(monkeypatch, listed=[])
+    result = revise_turn()
+    assert (result.status, result.steps) == ('clarify', []) and 'pick_plan' not in names(calls)
+
+
+def test_revise_plan_without_a_target_is_a_failed_step(monkeypatch):
+    calls = fake_agents(monkeypatch, REVISE)
+    result = run(REVISE_REQUEST)
+    assert result.status == 'failed' and result.steps[0].error == tools.NO_WRITING_TARGET and 'pick_plan' not in names(calls)
+
+
+@pytest.mark.parametrize('tool', ['story_plan_list', 'story_plan_read'])
+def test_revise_plan_content_failures_fail_the_step_with_contents_detail_and_no_proposal(monkeypatch, tool):
+    calls = fake_agents(monkeypatch, REVISE)
+    plan_tools(monkeypatch, fail={tool: ContentMcpFailure(404, '계획을 찾을 수 없어요.')})
+    result = revise_turn()
+    assert result.status == 'failed' and [(s.status, s.error, s.result) for s in result.steps] == [('failed', '계획을 찾을 수 없어요.', None)]
+    assert 'revise_plan' not in names(calls)
+
+
+def test_revise_plan_model_failure_fails_the_step(monkeypatch):
+    fake_agents(monkeypatch, REVISE, fail={'revise_plan': WritingFailure(502, '계획 수정 모델 응답을 확인할 수 없습니다.')})
+    result = revise_turn()
+    assert result.status == 'failed' and result.steps[0].error == '계획 수정 모델 응답을 확인할 수 없습니다.'
+
+
+def test_declined_plan_revision_is_kept_but_never_saved(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, REVISE)
+    seen = plan_tools(monkeypatch)
+    revise_turn(thread)
+    done = write_turn(thread, resume={'approved': False})
+    assert done.status == 'completed' and (done.steps[0].approval, done.steps[0].applied) == ('declined', None)
+    assert done.steps[0].result.after.content.startswith('카엘이 리나를 만나지만') and 'story_plan_update' not in [t for t, _, _ in seen]
+
+
+def test_approved_plan_revision_saves_title_and_content_only_with_the_revision_of_the_proposal(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, REVISE)
+    seen = plan_tools(monkeypatch)
+    revise_turn(thread)
+    done = write_turn(thread, 'Bearer fresh', resume={'approved': True})
+    assert (done.status, done.awaitingApproval) == ('completed', None)
+    [step] = done.steps
+    assert (step.approval, step.applied) == ('approved', AppliedDraft(episode=3, revision=6))
+    [(_, arguments, token)] = [c for c in seen if c[0] == 'story_plan_update']
+    # position은 보내지 않는다: 보내면 플롯은 422, 장면은 저장 순번 빈자리 때문에 이동이 된다(writing-plan-panel-contract 기존 API 확장).
+    assert token == 'Bearer fresh' and arguments == {'workId': 'work', 'id': 'scene-1', 'data': {
+        'kind': 'scene', 'parentId': 'plot-1', 'title': '재회', 'content': '카엘이 리나를 만나지만 이름을 부르지 못한다.',
+        'episodeNumber': 5, 'characterIds': ['k'], 'placeIds': ['p'], 'revision': 3}}
+    assert names(calls).count('revise_plan') == 1 and names(calls).count('pick_plan') == 1  # 승인 뒤 모델을 다시 부르지 않는다
+
+
+def test_plan_revision_conflict_fails_the_step_and_keeps_the_proposal(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, REVISE)
+    plan_tools(monkeypatch, fail={'story_plan_update': ContentMcpFailure(409, '다른 변경이 저장됐어요.')})
+    revise_turn(thread)
+    done = write_turn(thread, resume={'approved': True})
+    assert done.status == 'failed' and done.steps[0].error == '다른 변경이 저장됐어요.'
+    assert done.steps[0].applied is None and done.steps[0].result.planId == 'scene-1' and done.steps[0].approval == 'approved'
+
+
+def test_the_main_agent_reads_only_the_plan_title_of_a_revision_not_its_text():
+    step = {'feature': 'writing_editing', 'when': 'always', 'task': 'revise_plan', 'status': 'completed', 'result': PLAN_REVISION.model_dump(mode='json')}
+    brief = json.loads(tools._summary(step))
+    assert (brief['kind'], brief['plan']) == ('revise_plan', '재회') and '이름을 부르지' not in json.dumps(brief, ensure_ascii=False)
+
+
+def test_stream_reports_the_plan_revision_wait_then_the_applied_step(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, REVISE)
+    plan_tools(monkeypatch)
+    conversation = {'threadId': thread, 'scope': 'user:1/work:1'}
+    first = stream(conversation=conversation, target=TARGET)
+    assert [name for name, _ in first] == ['plan', 'started', 'step', 'waiting', 'done']
+    assert first[2][1]['task'] == 'revise_plan' and first[3][1]['awaitingApproval'] == 'writing_editing' and first[-1][1]['status'] == 'waiting'
+    second = stream(request=None, conversation=conversation, resume={'approved': True})
+    assert [name for name, _ in second] == ['step', 'done'] and second[0][1]['applied'] == {'episode': 3, 'revision': 6}

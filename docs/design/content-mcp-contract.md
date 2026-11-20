@@ -51,7 +51,7 @@ AI가 사용자가 프론트에서 할 수 있는 세계관·작품·회차 작�
 | `work_notice_delete` | `DELETE /api/v1/works/{id}/notices/{noticeId}` |
 | `work_fork_create` | `POST /api/v1/works/{id}/forks` |
 | `work_fork_world_change` | `POST /api/v1/works/{id}/world/changes` |
-| `work_context_read` | `GET /api/v1/works/{id}/context` |
+| `work_context_read` | `GET /api/v1/works/{id}/context` (선택 `includeSettings=false`면 설정을 빼고 예산에서도 뺀다. REST 쿼리도 같다, #602) |
 | `work_context_public_read` (공개) | `GET /api/v1/public/works/{id}/context` |
 | `work_proposal_create` | `POST /api/v1/works/{id}/proposals` |
 | `work_proposal_accept` | `POST /api/v1/works/{id}/proposals/{pid}/accept` |

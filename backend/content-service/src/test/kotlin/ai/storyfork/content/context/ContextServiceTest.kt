@@ -12,6 +12,8 @@ import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.world.service.WorldService
 import ai.storyfork.content.world.service.dto.SettingListResponse
+import ai.storyfork.content.world.service.dto.SettingPayload
+import ai.storyfork.content._common.exception.ContentFailure
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
@@ -44,5 +46,26 @@ class ContextServiceTest {
     @Test fun `reader context keeps inherited text while the original exists`() {
         fork(sourceDeleted = false)
         assertTrue(excerptText().contains("원작 본문"))
+    }
+
+    // Writing은 옛 설정 문서를 버리므로(#523) 설정을 빼고 읽으면 그 길이가 예산을 깎지 않는다(#602).
+    private fun ownerWithLargeSettings() {
+        `when`(access.own("work", "author")).thenReturn(WorkAccessResult("work", "author", "작품", "", 0, "world", "public", false, false, null))
+        `when`(publication.publishedEpisodes("work")).thenReturn(PublishedEpisodeListResponse(listOf(PublishedEpisodeResponse(1, 1, "v1", "1화", "1화 본문", false))))
+        `when`(publication.nextEpisodeNumber("work")).thenReturn(2)
+        `when`(world.historyForContext("work")).thenReturn(SettingListResponse(listOf(SettingPayload("s", "sv", "옛 설정", "가".repeat(50000)))))
+    }
+
+    @Test fun `owner context without settings ignores large old settings in the budget`() {
+        ownerWithLargeSettings()
+        val result = service.read("work", "author", ContextRequest(episode = 1, includeSettings = false))
+        assertTrue(result.settings.isEmpty())
+        assertTrue(result.episodes.single().excerpts.joinToString { it.text }.contains("1화 본문"))
+        verify(world, never()).historyForContext("work")
+    }
+
+    @Test fun `owner context with settings still rejects old settings over the budget`() {
+        ownerWithLargeSettings()
+        assertEquals(422, assertThrows(ContentFailure::class.java) { service.read("work", "author", ContextRequest(episode = 1)) }.status)
     }
 }

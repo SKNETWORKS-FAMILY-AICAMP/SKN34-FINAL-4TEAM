@@ -525,3 +525,57 @@ it('승인 전 집필 후보와 원래 선택 구간을 검수 결과에 표시�
     expect(step.rating).toBeUndefined()
   })
 })
+
+describe('계획 수정안 단계 결과(#578)', () => {
+  const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+  const BAD = '계획 수정안 형식을 확인할 수 없어요.'
+  const revision = {
+    planId: 'scene-1', kind: 'scene', revision: 3, model: 'm', providerResponseId: 'r', usage: null,
+    before: { title: '재회', content: '카엘이 리나를 만난다.' }, after: { title: '재회', content: '카엘이 리나를 만나지만 이름을 부르지 못한다.' },
+  }
+  const run = async (step: unknown) => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(`event: step\ndata: ${JSON.stringify(step)}\n\n`, done))).send('w1', 't1', input, (e) => events.push(e))
+    return events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
+  }
+
+  it('revise_plan 결과를 대상 종류와 변경 전·후로 읽고 승인·저장 결과를 그대로 둔다', async () => {
+    const step = await run({ feature: 'writing_editing', task: 'revise_plan', status: 'completed', approval: 'approved', applied: { episode: 3, revision: 6 }, result: revision })
+    expect(step).toMatchObject({ feature: 'writing_editing', task: 'revise_plan', status: 'completed', approval: 'approved', applied: { episode: 3, revision: 6 },
+      planRevision: { kind: 'scene', before: { title: '재회', content: '카엘이 리나를 만난다.' }, after: { title: '재회', content: '카엘이 리나를 만나지만 이름을 부르지 못한다.' } } })
+    expect(step.result).toBeUndefined()
+    expect(stepText(step)).toContain("장면 계획 '재회' 수정안")
+  })
+
+  it.each([
+    ['종류가 계약에 없다', { ...revision, kind: 'chapter' }],
+    ['수정 후 내용이 없다', { ...revision, after: { title: '재회' } }],
+    ['변경 전이 글자다(원고 수정 결과 모양)', { ...revision, before: '그는 웃었다.', after: '그는 차갑게 웃었다.' }],
+    ['결과가 객체가 아니다', '제안이에요'],
+  ])('형식이 어긋난 결과(%s)는 그 단계만 실패로 보인다', async (_name, result) => {
+    const step = await run({ feature: 'writing_editing', task: 'revise_plan', status: 'completed', result })
+    expect(step).toMatchObject({ feature: 'writing_editing', task: 'revise_plan', status: 'failed', error: BAD })
+    expect(step.planRevision).toBeUndefined()
+  })
+
+  it('서버가 실패로 보낸 단계(409 등)는 서버 사유를 지키고 결과가 있으면 제안도 남긴다', async () => {
+    const step = await run({ feature: 'writing_editing', task: 'revise_plan', status: 'failed', approval: 'approved', error: '다른 변경이 저장됐어요.', result: revision })
+    expect(step).toMatchObject({ status: 'failed', error: '다른 변경이 저장됐어요.', approval: 'approved', planRevision: { kind: 'scene' } })
+  })
+
+  it('다른 writing_editing 작업(기획·부분 수정)의 결과는 그대로 읽는다', async () => {
+    expect(await run({ feature: 'writing_editing', task: 'patch', status: 'completed', result: { before: '그는 웃었다.', after: '그는 차갑게 웃었다.' } }))
+      .toMatchObject({ status: 'completed', result: { before: '그는 웃었다.', after: '그는 차갑게 웃었다.' } })
+    expect(await run({ feature: 'writing_editing', task: 'plan', status: 'completed', result: { plans: [{ title: '항구의 밤', beats: ['도착'] }], notes: [] } }))
+      .toMatchObject({ status: 'completed', result: { plans: [{ title: '항구의 밤' }] } })
+  })
+
+  it('저장된 대화의 승인 대기(writing_editing + revise_plan)를 읽는다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '대화', turns: [
+      { request: '재회 장면 고쳐줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing',
+        steps: [{ feature: 'writing_editing', task: 'revise_plan', status: 'completed', result: revision }] } },
+    ] }))
+    const { turns } = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(turns[0].reply?.steps[0]).toMatchObject({ task: 'revise_plan', planRevision: { kind: 'scene' } })
+  })
+})

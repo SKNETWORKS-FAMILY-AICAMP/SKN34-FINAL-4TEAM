@@ -51,7 +51,7 @@ from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.writing import agent as writing
 from app.writing.errors import WritingFailure
-from app.writing.models import DraftRequest, PatchRequest, PlanRequest
+from app.writing.models import DraftRequest, PatchRequest, PlanBrief, PlanPickRequest, PlanRequest, PlanReviseRequest
 
 Request = Annotated[str, Field(max_length=2000, description='서브 에이전트에게 줄 작업 지시. 작가 요청과 이번 턴 앞선 결과의 요약을 담을 수 있다.')]
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
@@ -72,6 +72,8 @@ PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않�
 BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 확정 지적을 골라 주세요.'
 DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
+NO_SAVED_PLANS = '저장된 플롯·장면 계획이 없어 고칠 수 없어요. 고칠 계획을 먼저 저장해 주세요.'
+PLAN_CANDIDATES = 5  # 되묻기에 보이는 후보 계획 제목 수
 # 판정 기능 → 메인에 노출할 도구 이름. 판정 기능마다 도구가 있어 미구현으로 끝내는 기능이 없다.
 TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world': 'ask_world', 'writing_editing': 'ask_writing',
               'research': 'ask_research', 'rating': 'ask_rating', 'character_simulation': 'ask_character_simulation'}
@@ -103,6 +105,10 @@ class Skipped(Exception):
     """조건부 수정이 고칠 확정 지적이 없어 실행하지 않는다. 메시지가 작가에게 보일 이유다."""
 
 
+class Clarify(Exception):
+    """대상을 하나로 정할 수 없어 아무것도 만들지 않고 작가에게 되묻는다. 메시지가 작가에게 보일 한 문장이다."""
+
+
 def previous(turn: dict) -> list[dict]:
     """이전 턴들. 메시지 수정으로 대화를 다시 시작하는 턴에는 없다."""
     return [] if turn.get('replaceHistory') else turn.get('turns', [])
@@ -132,6 +138,8 @@ def _writing_summary(r: dict) -> dict:
     # gaps(설정 없이 쓴 이유 등, #523)는 종합 답변이 작가에게 전하도록 기획·집필 요약에 넣는다.
     if 'plans' in r:
         return {'kind': 'plan', 'plans': [p['title'] for p in r['plans']], 'notes': r['notes'], 'gaps': r['gaps']}
+    if 'planId' in r:  # 계획 수정안: 어느 계획인지만 알리고 변경 전·후 본문은 넣지 않는다(화면의 승인 카드가 보여 준다)
+        return {'kind': 'revise_plan', 'plan': r['before']['title']}
     # 수정안은 고친 구절(before)만 알려 어느 지적을 고쳤는지 말하게 한다. 고친 문장(after)과 새 원고 본문은 넣지 않는다.
     return {'kind': 'patch', 'selection': r['before']} if 'after' in r else {'kind': 'draft', 'characters': len(r['text']), 'gaps': r['gaps']}
 
@@ -197,6 +205,8 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
             step.update(status='completed', result=call(inputs, scope).model_dump(mode='json'))
     except Skipped as skip:
         step.update(status='skipped', error=str(skip))
+    except Clarify as ask:  # 단계를 남기지 않고 한 문장으로 되묻는다(시뮬레이션 계획의 되묻기와 같다)
+        return _reply(runtime, feature, f'[확인 필요] {name}: {ask}', {'stopped': {'status': 'clarify', 'message': str(ask)}}, failed=True)
     except FAILURES as error:
         step.update(status='failed', error=str(error))
     return _reply(runtime, feature, _summary(step), {'steps': [step], **answered}, failed=step['status'] == 'failed',
@@ -310,11 +320,15 @@ def ask_research(task: Literal['web', 'platform'], runtime: ToolRuntime, request
 
 
 @tool
-def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch'], runtime: ToolRuntime, fix: int | None = None) -> Command:
-    """기획·집필·수정(Writing & Editing): plan은 전개 기획만, draft는 계획을 세워 새 원고까지, patch는 기존 문장 수정안이다.
+def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revise_plan'], runtime: ToolRuntime, fix: int | None = None) -> Command:
+    """기획·집필·수정(Writing & Editing): plan은 전개 기획만(저장하지 않는다), draft는 계획을 세워 새 원고까지, patch는 기존 문장 수정안이다.
+
+    revise_plan은 작가가 이미 저장한 플롯·장면 계획의 제목·내용을 고치는 수정안이다(request에 고칠 계획과 방향을 적는다). 원고 문장은 고치지 않는다.
 
     이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때만 task=patch와 fix(그 지적의 fix 번호)를 쓴다. 확정 지적이 하나면 fix를 비워도 된다.
     """
+    if task == 'revise_plan':
+        return _revise_plan(runtime, request)
     turn, steps = runtime.context, runtime.state.get('steps', [])
     reviewed = next((s for s in reversed(steps) if s['feature'] in ('manuscript_review', 'review') and s['status'] == 'completed'), None)
     given = (runtime.state.get('inputs') or {}).get('writing_editing') or {}
@@ -351,6 +365,34 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch'], runti
     if base is not None and command.update['steps'][0]['status'] == 'completed':
         command.update['writingBase'] = base
     return command
+
+
+def _revise_plan(runtime: ToolRuntime, request: str) -> Command:
+    """기존 플롯·장면 계획 수정 제안(#578): 저장된 계획 목록에서 대상 하나를 고르고(모델 호출 1), 최신 계획을 읽어 제목·내용만 고친다(모델 호출 2).
+
+    작품은 Content가 확인한 target에서만 읽는다. 대상이 하나로 정해지지 않거나 목록에 없는 ID를 골랐으면 수정안을 만들지 않고 후보 제목으로 되묻는다.
+    여기서는 저장하지 않는다. 저장은 작가 승인 뒤 apply 노드가 Content MCP로 한다.
+
+    shortcut: 모델에는 계획 전체의 요약을 한 번에 보낸다(목록 길이 제한 없음). 계획이 아주 많은 작품에서 한도에 닿으면 회차·종류로 거른다.
+    """
+    turn = runtime.context
+
+    def run(inputs, scope):
+        work = _target(turn, WritingFailure, NO_WRITING_TARGET)['workId']
+        listed = content_mcp.list_plans(work)
+        titles = {p.id: p.title for p in listed}
+        briefs = [PlanBrief(id=p.id, kind=p.kind, title=p.title, episodeNumber=p.episodeNumber, plot=titles.get(p.parentId)) for p in listed]
+        if not briefs:
+            raise Clarify(NO_SAVED_PLANS)
+        if (picked := writing.pick_plan(PlanPickRequest(request=request, plans=briefs))) not in titles:
+            shown = ', '.join(f"'{b.title}'" for b in briefs[:PLAN_CANDIDATES])
+            more = f' 외 {len(briefs) - PLAN_CANDIDATES}개' if len(briefs) > PLAN_CANDIDATES else ''
+            raise Clarify(f'어느 계획을 고칠지 정할 수 없어요. 고칠 계획의 제목을 알려 주세요. 저장된 계획: {shown}{more}')
+        current = content_mcp.read_plan(work, picked)
+        brief = next(b for b in briefs if b.id == picked).model_copy(update={'title': current.title, 'episodeNumber': current.episodeNumber})
+        return writing.revise_plan(PlanReviseRequest(request=request, plan=brief, content=current.content, revision=current.revision))
+
+    return _ask(runtime, 'writing_editing', run, task_kind='revise_plan')
 
 
 def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None) -> Command:
@@ -406,19 +448,20 @@ def _previous_plans(turn: dict) -> list[dict]:
     return []
 
 
-def _read_context(target: dict, query: str) -> dict:
-    """Content가 근거 회차까지 허용한 설정·원문 발췌(작가 권한, work_context_read). Retrieval이 아니라 Content가 고른 문맥이다."""
-    return content_mcp.call('work_context_read', {'id': target['workId'], 'episode': target.get('baseEpisode') or target['episode'], 'query': query[:200]})
+def _read_context(target: dict, query: str, include_settings: bool = True) -> dict:
+    """Content가 근거 회차까지 허용한 설정·원문 발췌(작가 권한, work_context_read). Retrieval이 아니라 Content가 고른 문맥이다.
+    include_settings=False면 Content가 옛 설정 문서를 빼고 그 길이를 예산에서도 뺀다(#602)."""
+    args = {'id': target['workId'], 'episode': target.get('baseEpisode') or target['episode'], 'query': query[:200]}
+    return content_mcp.call('work_context_read', args if include_settings else {**args, 'includeSettings': False})
 
 
 def _allowed_context(target: dict, query: str) -> tuple[str, list[str]]:
     """writing에 보내는 허용 문맥 글과 작가에게 알릴 gaps. 원고 문맥은 Content가 근거 회차까지 허용한 것을 그대로 쓰고,
     설정(settings)만 Q&A·Review와 같은 WorldStudio(연결 → Fork 상속 세계관)로 바꾼다(#523). 세계관이 없으면 빈 설정과 알림이다.
 
-    shortcut: Content의 48,000자 예산은 버리는 옛 settings 길이까지 세어, 옛 설정 문서가 큰 작품은 Content가 422를 줄 수 있다.
-    문제가 되면 Content work_context_read에 설정 제외 옵션을 둔다. 공개된 카드가 0건이면 알림 없이 빈 설정으로 쓴다.
+    옛 설정 문서는 Content에서 빼고 읽어 예산을 깎지 않는다(#602). 공개된 카드가 0건이면 알림 없이 빈 설정으로 쓴다.
     """
-    if not isinstance(context := _read_context(target, query), dict):  # settings만 바꿔 끼우므로 객체가 아니면 단계 실패다(linked_world와 같은 규칙)
+    if not isinstance(context := _read_context(target, query, include_settings=False), dict):  # settings만 바꿔 끼우므로 객체가 아니면 단계 실패다(linked_world와 같은 규칙)
         raise ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.')
     episode = target.get('baseEpisode') or target['episode']
     gaps = []

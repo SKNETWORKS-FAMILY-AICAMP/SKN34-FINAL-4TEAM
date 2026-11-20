@@ -20,14 +20,16 @@ from app.world_review import agent as world_review
 from app.world_review.models import WorldReviewRequest
 from app.world_review.prompt import ENRICH_INSTRUCTIONS, IMPACT_INSTRUCTIONS, INSTRUCTIONS as WORLD_REVIEW
 from app.writing import agent as writing
-from app.writing.models import DraftRequest, PatchRequest, PlanRequest
-from app.writing.prompt import DRAFT_INSTRUCTIONS, PATCH_INSTRUCTIONS, PLAN_INSTRUCTIONS
+from app.writing.models import DraftRequest, PatchRequest, PlanBrief, PlanPickRequest, PlanRequest, PlanReviseRequest
+from app.writing.prompt import (DRAFT_INSTRUCTIONS, PATCH_INSTRUCTIONS, PICK_PLAN_INSTRUCTIONS, PLAN_INSTRUCTIONS,
+                                REVISE_PLAN_INSTRUCTIONS)
 
 EPISODE = {'title': '3화', 'authorNote': None, 'draft': '본문', 'characters': [], 'signals': {}}
 WORLD = WorldReviewRequest(worldName='세계', worldDescription='', cards=[], relationships=[])
 TAGS = {'schemaVersion': 'work-tags.v1', 'title': '작품', 'description': '', 'allowedGenres': ['판타지'], 'maxGenres': 1, 'maxHashtags': 1,
         'episodes': [{'number': 1, 'title': '', 'text': '본문'}]}
 
+BRIEF = PlanBrief(id='p', kind='plot', title='복수극')
 CASES = [
     (lambda: story_qa.answer(AnswerRequest(question='누구?', excerpts=[Excerpt(id='a', episode=1, quote='원문')])), 'story_context.answer', QA_INSTRUCTIONS),
     (lambda: manuscript_review.review('mechanical', '본문', []), 'manuscript_review.mechanical', MANUSCRIPT_REVIEW['mechanical']),
@@ -35,6 +37,9 @@ CASES = [
     (lambda: writing.plan(PlanRequest(episodeNumber=1, request='기획')), 'writing_editing.plan', PLAN_INSTRUCTIONS),
     (lambda: writing.draft(DraftRequest(episodeNumber=1, plan='계획')), 'writing_editing.draft', DRAFT_INSTRUCTIONS),
     (lambda: writing.patch(PatchRequest(selection='문장', instruction='고쳐')), 'writing_editing.patch', PATCH_INSTRUCTIONS),
+    (lambda: writing.pick_plan(PlanPickRequest(request='고쳐', plans=[BRIEF])), 'writing_editing.plan_pick', PICK_PLAN_INSTRUCTIONS),
+    (lambda: writing.revise_plan(PlanReviseRequest(request='고쳐', plan=BRIEF, content='내용', revision=1)), 'writing_editing.plan_revise',
+     REVISE_PLAN_INSTRUCTIONS),
     (lambda: rating.rate(EPISODE), 'rating.assess', RATING),
     (lambda: research.search(ResearchRequest(question='질문')), 'web_research.search', RESEARCH_INSTRUCTIONS),
     (lambda: research.pick('요청', []), 'research.pick', PICK_INSTRUCTIONS),

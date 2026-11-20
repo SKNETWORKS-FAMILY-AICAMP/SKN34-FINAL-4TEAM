@@ -97,6 +97,8 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
   const [fix, setFix] = useState<number | null>(null)
   // World 제안(enrich)은 회차 원고가 아니라 설정집 초안에 반영한다(#546): 승인 대상 단계와 문구를 대기 기능으로 가른다. 읽지 못한(형식 오류) 제안은 보이지 않으므로 반영 버튼을 잠근다.
   const world = reply.awaitingApproval === 'world'
+  // 계획 수정안(#578, task=revise_plan)도 회차 원고가 아니라 저장된 계획에 저장한다. 읽지 못한 제안은 world와 같이 저장 버튼을 잠근다.
+  const revising = !world && reply.awaitingApproval === 'writing_editing' && reply.steps.some((s) => s.task === 'revise_plan')
   const draft = reply.steps.find((s) => s.feature === (world ? 'world' : 'writing_editing') && s.status === 'completed')
   const planLine = draft ? usedPlan(draft) : ''
   const notice = draft ? draftNotice(draft) : ''
@@ -107,7 +109,8 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
   if (reply.awaitingApproval === 'character_simulation' || reply.awaitingScene === 'character_simulation') return <SceneWait reply={reply} onOpenStage={onOpenStage} />
   if (reply.awaitingApproval) {
     return <section className="chat-hitl" aria-labelledby={`${id}-t`}>
-      <h3 id={`${id}-t`}>{world ? '이 제안을 설정집 초안에 반영할까요?' : reply.approvalEpisode ? `${reply.approvalEpisode}화 초안에 반영할까요?` : '이 제안을 초안에 반영할까요?'}</h3>
+      <h3 id={`${id}-t`}>{world ? '이 제안을 설정집 초안에 반영할까요?' : revising ? (draft?.planRevision ? `'${draft.planRevision.before.title}' 계획에 저장할까요?` : '이 제안을 계획에 저장할까요?')
+        : reply.approvalEpisode ? `${reply.approvalEpisode}화 초안에 반영할까요?` : '이 제안을 초안에 반영할까요?'}</h3>
       {draft && <div className="chat-hitl-preview" tabIndex={0} aria-label="반영할 내용">{stepText(draft)}</div>}
       {candidateReview && <div className="chat-hitl-preview" tabIndex={0} aria-label="후보 검수 결과">{stepText(candidateReview)}</div>}
       {planLine && <p className="chat-plan" tabIndex={0}><b>{PLAN_LABEL}</b>{planLine.slice(PLAN_LABEL.length)}</p>}
@@ -115,10 +118,10 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
       {!!others.length && <ul className="chat-hitl-others" tabIndex={0} aria-label="같이 끝난 작업">{others.map((s, i) => <li key={`${s.feature}-${i}`}>
         <span className="chat-step-name">{featureLabel[s.feature] ?? s.feature}</span><p>{stepText(s)}</p>
       </li>)}</ul>}
-      <p className="chat-note">{world ? '반영하면 설정집 초안만 바뀌고 확정 버전은 남지 않아요.' : '반영하면 작업 중인 초안만 바뀌고 발행되지 않아요.'} 반영하지 않아도 제안은 대화에 남아요.</p>
+      <p className="chat-note">{world ? '반영하면 설정집 초안만 바뀌고 확정 버전은 남지 않아요.' : revising ? '저장하면 이 계획의 제목·내용만 바뀌고 원고 초안은 바뀌지 않아요.' : '반영하면 작업 중인 초안만 바뀌고 발행되지 않아요.'} {revising ? '저장하지' : '반영하지'} 않아도 제안은 대화에 남아요.</p>
       <div className="chat-hitl-actions">
-        <button type="button" className="btn sm pri" disabled={pending || (world && !draft)} onClick={() => onResume(true)}>{world ? '설정집 초안에 반영' : '초안에 반영'}</button>
-        <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>반영하지 않기</button>
+        <button type="button" className="btn sm pri" disabled={pending || ((world || revising) && !draft)} onClick={() => onResume(true)}>{world ? '설정집 초안에 반영' : revising ? '계획에 저장' : '초안에 반영'}</button>
+        <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>{revising ? '저장하지 않기' : '반영하지 않기'}</button>
       </div>
     </section>
   }
