@@ -108,6 +108,7 @@ const step: z.ZodType<ChatStep> = z.union([typedStep(z.literal('character_simula
     before: z.string().optional(),
     after: z.string().optional(),
     findings: z.array(z.object({ text: z.string(), verdict: z.string(), sourceUrls: z.array(z.string()) })).optional(),
+    references: z.array(z.object({ worldId: z.string(), worldName: z.string(), cardId: z.string(), cardTitle: z.string(), authorNickname: z.string(), note: z.string() })).optional(),
     plans: z.array(beatPlan).optional(),
     notes: z.array(z.string()).optional(),
     plan: beatPlan.nullish(),

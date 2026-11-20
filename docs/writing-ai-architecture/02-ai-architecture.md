@@ -100,7 +100,7 @@ flowchart TD
 | `manuscript_review` | `ask_manuscript_review` | `manuscript_review.service.review` | `request`, `check?`(`mechanical`·`semantic`·`both`) | `target` 반영 회차, 작가가 보낸 `inputs.manuscript_review`가 있으면 우선 |
 | `world` | `ask_world` | `world_review.review`·`enrich`·`impact`(#546·#291) | `request`, `task`(`check`·`enrich`·`impact`) | `target` 작품의 연결 세계관, `impact`는 `work_context_read`·`story_plan_list` |
 | `writing_editing` | `ask_writing` | `writing.agent.plan`·`plan_and_draft`·`draft`·`patch` | `request`, `task`(`plan`·`draft`·`patch`), `fix?`(지적 번호) | `target`, Content MCP 허용 문맥, `previousPlans`, `inputs.writing_editing` |
-| `research` | `ask_research(task=web)` | `research.service.research` | 없음(실행 여부만) | `inputs.research`(작가가 동의한 질문·500자 이하 맥락·외부 전송 동의) |
+| `research` | `ask_research` | `research.service.research`(`web`)·`research.service.platform`(`platform`, #547) | `task`(`web`·`platform`), `request?`(`platform`만 쓰는 찾을 설정 주제) | `web`: `inputs.research`(작가가 동의한 질문·500자 이하 맥락·외부 전송 동의). `platform`: 입력 없음(공개 세계관만 Content MCP로 읽는다) |
 | `rating` | `ask_rating` | `rating.service.rate` | `request` | `target` 회차 하나 |
 | `character_simulation` | `ask_character_simulation` | `simulation.plan`·`plan_from_form`(계획만. 장면 에이전트는 바깥 `scene` 노드) | `request`(상황) | `target`·연결 세계관, 시작 양식 `simulation` |
 
@@ -124,7 +124,7 @@ flowchart TD
 | `world` | `ask_world` | `check` | 설정집 카드끼리의 충돌(모순·인물 문서 역할·사건 정보 누락)과 사건 카드끼리의 시간 모순(연대기) 검사 | 구현(#546) |
 | | | `enrich` | 지정한 카드의 본문·인물 문서를 세계관과 어긋나지 않게 보강한 제안. 작가 승인 뒤에만 Content MCP `world_studio_edit_draft`로 초안에 반영(확정 버전은 작가가 남김) | 구현(#546) |
 | `research` | `ask_research` | `web` | 웹 고증. 외부 전송 동의 입력 대기는 이 작업에만 건다 | 구현(#545, 옛 `web_research`·`ask_web_research` 대화 기록·입력 대기는 읽어 이어 간다) |
-| | | `platform` | 다른 공개 세계관·설정 카드에서 참고할 설정 검색. 공개 데이터만 쓰므로 외부 전송 동의가 없고, 결과는 출처(세계관·카드)를 단 참고안이며 자동 복사하지 않는다(가져오기는 기존 화면 기능) | 없음 |
+| | | `platform` | 다른 작가의 공개 세계관·설정 카드에서 참고할 설정 검색. 기존 Content MCP 읽기 도구 셋(`world_studio_list`·`world_studio_public_list`·`world_studio_public_read`, 작가 Bearer)만 부르는 2단계다: 공개 목록(본인 세계관 제외) → 모델이 후보 세계관 최대 3개 선택 → 후보 상세 읽기 → 모델이 참고 카드·이유(`references`)와 `gaps` 작성 → service가 읽은 카드와 대조(없는 세계관·카드를 들면 502). 공개 데이터만 쓰므로 외부 전송 동의가 없고, 결과는 읽은 값으로 채운 출처(세계관·카드·작가)를 단 참고안이며 자동 복사하지 않는다(가져오기는 기존 화면 기능) | 구현(#547) |
 | | | `impact` | 설정·사건을 바꿀 때 영향받는 설정·관계, 사건 카드(연대기), 이미 쓴 회차의 구절(Content MCP `work_context_read`), 계획된 장면(MCP `story_plan_list`)과 충돌 분석(#291). 읽기만 하고 결과로 조건부 수정(`ask_writing(patch, fix)`)을 하지 않는다 | 구현(#291) |
 | `manuscript_review` | `ask_manuscript_review` | `mechanical`·`semantic`·`both` | 원고 검수 | 그대로(#499에서 `review`·`ask_review`에서 바꿈) |
 | `writing_editing` | `ask_writing` | `plan`·`draft`·`patch` | 전개 기획·새 원고 집필·기존 원고 수정 | 구현 |
@@ -305,7 +305,7 @@ Decision Guard가 `manuscript_review`와 `writing_editing`을 함께 판정하�
 | World(`check` 설정집 검토·`enrich` 설정 보강·`impact` 변경 영향 분석) | 작품에 연결된 세계관의 최신 초안 카드·관계(소설 연결 없이도 WorldStudio 화면에서 `check` 요청 가능). `impact`는 바꾸려는 설정·사건 | `check`: 카드별 지적(모순·역할 오류·누락·연대기 모순)과 카드 한 칸을 바꿀 수정안. `enrich`: 지정 카드의 본문·인물 문서 보강안. `impact`: 영향 대상(설정·관계·회차·계획된 장면)·근거·확실성·충돌·누락 | WorldStudio는 마지막 `check` 결과를 저장한다. `enrich` 보강안은 작가 승인 후 세계관 편집 초안에 반영한다. `impact`는 읽기만 하고 `work_context_read`·`story_plan_list`를 읽으며 조건부 수정과 잇지 않는다. Simulation 호출 없음 |
 | Character Simulation Subgraph | 상황, 인물별 허용 지식, 행동 상한, 작가/독자 모드 | 범위가 제한된 가상 기록·임시 상태·장면 요약, 모드별 검토 결과 | 턴마다 행동 → 상태 갱신 → 다음 인물. [모드별 결과](03-rag-simulation-design.md#시뮬레이션-결과와-후속-검수) 참고 |
 | Writing & Editing | Content가 확인한 기획 문맥·집필 계획·원고 선택 구간 또는 저장된 플롯·장면 계획과 수정 지시 | 전개 대안·BeatPlan, 새 Text, 원고 Patch 또는 플롯·장면 계획 수정안(미구현) | 기획 결과는 저장하지 않는다. 기존 계획 수정안은 작가 승인 후 Content가 반영한다. Retrieval·Simulation 직접 호출 없음 |
-| Research(`web` 웹 조사·`platform` 플랫폼 내부 조사) | `web`: 현실 검증 질문, 작품의 필요한 최소 맥락. `platform`(미구현): 찾을 설정 주제 | `web`: URL·검색 시각·주장별 근거·불확실성. `platform`: 출처 세계관·카드를 단 참고 설정 | 웹·다른 세계관 자료는 작품 정본과 분리, 자동 복사 없음 |
+| Research(`web` 웹 조사·`platform` 플랫폼 내부 조사) | `web`: 현실 검증 질문, 작품의 필요한 최소 맥락. `platform`: 찾을 설정 주제(요청 문장) | `web`: URL·검색 시각·주장별 근거·불확실성. `platform`: 출처 세계관·카드·작가를 단 참고 설정(`references`)과 `gaps` | 웹·다른 세계관 자료는 작품 정본과 분리, 자동 복사 없음 |
 | Rating | 회차 초안, 저장소의 심의 기준 문서 | 회차별 판별 항목 수준·근거 구절·금지 표현 표시, 코드가 계산한 `adult`·`general`·`needsReview`와 요청 회차 묶음 판정 | 오케스트레이션 단계로 실행. 판정 제안만 하며 등급 적용은 Content. [설계](03-rag-simulation-design.md#5-rating-agent) |
 
 위 기능은 메인 에이전트의 `ask_*` 서브 에이전트 도구로 호출되며([동적 할당](#서브-에이전트-동적-할당)), 각 기능의 입력·출력·호출 관계는 이 표대로 유지한다.
