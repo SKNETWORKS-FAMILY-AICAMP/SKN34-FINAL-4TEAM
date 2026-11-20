@@ -253,3 +253,7 @@ describe('storyfork.css 디자인 점검 P1 계약 (#623)', () => {
     expect(value('.tagbar :is(button,a).on span', 'color')).toBe('inherit')
   })
 })
+
+it('소설 상세 히어로의 장르 뒤 칩(자율 연재·연재 상태·원작 링크)은 인라인 style 대신 이 규칙으로 8px 띄운다', () => {
+  expect(value('.whero-body .chip', 'margin-left')).toBe('8px')
+})

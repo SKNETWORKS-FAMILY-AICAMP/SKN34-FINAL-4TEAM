@@ -137,7 +137,8 @@ describe('상세·홈·주소', () => {
     renderAt('/work/postman')
     const chip = await screen.findByText('🤖 AI 자율 연재 중')
     expect(chip.className).toBe('chip ok')
-    expect(chip.style.marginLeft).toBe('8px')
+    // 장르 뒤 간격은 인라인 style이 아니라 storyfork.css의 .whero-body .chip(margin-left:8px)이 준다.
+    expect(chip.closest('.whero-body')).not.toBeNull()
     expect(chip.previousElementSibling!.textContent).toBe('SF')
     await repo.saveWork(w)
   })
