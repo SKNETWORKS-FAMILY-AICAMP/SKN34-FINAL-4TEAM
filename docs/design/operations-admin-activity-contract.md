@@ -46,6 +46,8 @@ CREATE INDEX admin_activity_created_idx ON operations.admin_activity (created_at
 | `EVENT_DELETE` | `EVENT` · 이벤트 ID | — |
 | `INQUIRY_REPLY_CREATE` · `INQUIRY_REPLY_UPDATE` · `INQUIRY_REPLY_DELETE` | `INQUIRY` · 문의 ID | 답변 ID |
 | `COMMENT_HIDE` · `COMMENT_UNHIDE` | `COMMENT` · 댓글 ID | 작품 제목(Content 응답, 댓글 본문은 저장하지 않음) |
+| `GENRE_CREATE` · `GENRE_UPDATE` | `GENRE` · 장르 코드 | 장르 이름(Content 응답, [장르 관리](genre-management-contract.md)) |
+| `GENRE_REORDER` | `GENRE` · `order` | 새 순서의 코드 목록(쉼표) |
 
 `detail`은 500자를 넘으면 잘라 저장한다.
 
