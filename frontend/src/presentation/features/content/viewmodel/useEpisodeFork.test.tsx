@@ -85,7 +85,8 @@ it('포크 삭제는 되돌릴 수 없다는 확인을 거치고, 실패하면 �
   await act(async () => { ok = await result.current.deleteWork() })
   expect(ok).toBe(true)
   expect(api.deleteWork).toHaveBeenCalledWith('f1')
-  expect(result.current.notice).toBe('포크를 삭제했어요.')
+  // 성공하면 화면이 곧 서재로 떠나므로 보이지 않을 성공 안내를 두지 않는다.
+  expect(result.current.notice).toBe('')
   await act(async () => { ok = await result.current.deleteWork() })
   expect(ok).toBe(false)
   expect(result.current.error).toBe('작품을 찾을 수 없어요.')
@@ -100,7 +101,7 @@ it('원작 삭제는 취소를 존중하고, 확인하면 원작 ID로 요청하
   const { result } = await openFork(api, original)
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
   await act(async () => { expect(await result.current.deleteWork()).toBe(false) })
-  expect(confirm).toHaveBeenCalledWith('「원작」을 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 이 작품에서 만들어진 포크는 유지돼요.')
+  expect(confirm).toHaveBeenCalledWith('「원작」 작품을 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 이 작품에서 만들어진 포크는 유지돼요.')
   expect(api.deleteWork).not.toHaveBeenCalled()
 
   confirm.mockReturnValue(true)
@@ -112,7 +113,7 @@ it('원작 삭제는 취소를 존중하고, 확인하면 원작 ID로 요청하
   await act(async () => { expect(await result.current.deleteWork()).toBe(true) })
   expect(api.deleteWork.mock.calls).toEqual([['o1'], ['o1']])
   expect(result.current.error).toBe('')
-  expect(result.current.notice).toBe('원작을 삭제했어요.')
+  expect(result.current.notice).toBe('')
 })
 
 it('원작에서는 포크 공개 중단을 요청하지 않는다', async () => {
