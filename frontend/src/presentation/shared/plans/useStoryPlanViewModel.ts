@@ -24,6 +24,8 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
   const pending = useRef<AbortController | null>(null)
   const editorRead = useRef<AbortSignal | null>(null)
   const mutating = useRef(false)
+  // 채팅(AI)이 계획을 바꿨는데 패널은 저장하지 않은 입력을 지키느라 아직 옛 목록이다. 그 입력을 버릴 때(닫기) 최신 계획을 다시 읽는다.
+  const aiChanged = useRef(false)
   const dirty = !!editor && JSON.stringify(editor.value) !== JSON.stringify(editor.initial)
   const state = useRef({ dirty, busy })
   state.current = { dirty, busy: busy && mutating.current }
@@ -48,7 +50,7 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
     }
   }, [])
   const load = useCallback(() => run(signal => Promise.all([api.list(workId, signal), api.references(workId, signal)]), ([rows, refs]) => {
-    setPlans(rows); setReferences(refs); setReviewId(null)
+    setPlans(rows); setReferences(refs); setReviewId(null); aiChanged.current = false
     setSelected(before => rows.some(p => p.id === before && p.kind === 'plot') ? before : rows.find(p => p.kind === 'plot')?.id ?? null)
   }), [api, workId, run])
 
@@ -157,7 +159,7 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
   // 시작 양식은 어느 쪽이든 다시 읽게 하고, 알림이 남아 있는 동안 시작은 잠긴다(옛 계획으로 시작하지 않는다).
   const reloadAfterAi = () => {
     if (!state.current.dirty && !state.current.busy) return reload()
-    setVersion(v => v + 1); setError('AI가 계획을 바꿨어요. 저장하지 않은 입력은 그대로 두었으니 최신 내용을 다시 불러와 주세요.')
+    aiChanged.current = true; setVersion(v => v + 1); setError('AI가 계획을 바꿨어요. 저장하지 않은 입력은 그대로 두었으니 최신 내용을 다시 불러와 주세요.')
   }
   return {
     version, embedded, startBlocker: planStartBlocker({ dirty, busy }) || (error ? '계획 상태를 확인하지 못했어요. 다시 불러온 뒤 시작해 주세요.' : ''),
@@ -178,7 +180,7 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
     select: (id: string) => { if (!mayLeave()) return; void run(signal => api.read(workId, id, signal), fresh => { setPlans(rows => rows.map(p => p.id === id ? fresh : p)); setSelected(id) }) },
     create, edit, save, remove, reviewDelete,
     change: (patch: Partial<PlanInput>) => setEditor(before => before ? { ...before, value: { ...before.value, ...patch } } : null),
-    closeEditor: () => { if (mayLeave()) setError('') },
+    closeEditor: () => { if (mayLeave()) { setError(''); if (aiChanged.current) reload() } },
     askDelete: (plan: StoryPlan) => { if (mayLeave()) { setDeleting(plan); setError(''); setNotice('') } },
     closeDelete: () => { if (!pending.current) { setDeleting(null); setError(''); setNotice('') } },
   }

@@ -54,3 +54,30 @@ it('저장하지 않은 입력이 있으면 확인 창 없이 입력을 지키�
   expect(confirm).toHaveBeenCalledTimes(1)
   expect(result.current.plans[0].title).toBe('옛 제목')
 })
+
+it('AI 변경 안내가 남은 채 저장하지 않은 입력을 버리면 최신 계획을 다시 읽고, 다시 읽은 뒤의 닫기는 읽지 않는다', async () => {
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  const api = fake([scene('옛 제목')], [scene('새 제목')], [scene('새 제목')])
+  const { result } = await mount(api)
+  act(() => result.current.create('p1', 2))
+  act(() => result.current.change({ title: '내가 쓰던 제목' }))
+  act(() => result.current.reloadAfterAi())
+  expect(result.current.plans[0].title).toBe('옛 제목') // 입력을 지키느라 목록은 아직 옛 내용이다
+  // 확인에서 취소해 입력을 버리지 않으면 아무것도 바뀌지 않는다.
+  act(() => result.current.closeEditor())
+  expect(result.current.editor).not.toBeNull()
+  expect(api.list).toHaveBeenCalledTimes(1)
+  confirm.mockReturnValue(true)
+  act(() => result.current.closeEditor())
+  await waitFor(() => expect(result.current.plans[0].title).toBe('새 제목'))
+  expect(result.current.editor).toBeNull()
+  expect(result.current.error).toBe('')
+  expect(api.list).toHaveBeenCalledTimes(2)
+  expect(confirm).toHaveBeenCalledTimes(2) // 버리는 확인은 한 번씩만 묻는다(다시 읽기가 또 묻지 않는다)
+  // 이미 다시 읽었으니 새 입력을 버려도 또 읽지 않는다.
+  act(() => result.current.create('p1', 2))
+  act(() => result.current.change({ title: '또 쓰던 제목' }))
+  act(() => result.current.closeEditor())
+  expect(result.current.editor).toBeNull()
+  expect(api.list).toHaveBeenCalledTimes(2)
+})
