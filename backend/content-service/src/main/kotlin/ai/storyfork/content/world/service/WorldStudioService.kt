@@ -372,6 +372,9 @@ class WorldStudioService(
         return loaded.copy(relationships=stored.relationships,relationshipEpisodes=stored.episodes)
     }
 
+    /** 소유한 세계관 [worldId]의 초안에 삭제되지 않은 카드 [cardId]가 있는가. 남의 세계관은 404다. 관계 저장소를 읽지 않는 가벼운 확인이다(집필 AI 채팅의 화면 정보 검증). */
+    fun hasCard(worldId:UUID,subject:UUID,cardId:UUID):Boolean = tx { owned(worldId,subject);cardDrafts.findById(cardId).filter { it.worldId==worldId && it.fields.lifecycle!="removed" }.isPresent }
+
     internal fun draftForReview(worldId:UUID,subject:UUID):WorldDraftResponse = draft(worldId,subject,null,true)
 
     /** 소유한 저장 초안을 읽어 입력 원문과 현재 관계 기준을 고정한다. */

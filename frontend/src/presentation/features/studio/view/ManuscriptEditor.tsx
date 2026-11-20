@@ -20,6 +20,8 @@ type Cursor = { line: number; focus: boolean }
 export type ManuscriptEditorHandle = {
   /** 편집기 커서 위치에 이미지를 올려 넣는다. 성공하면 true. focus=false면 편집기로 초점을 옮기지 않는다(시트 안에서 호출할 때). */
   addImage: (file: File, focus?: boolean) => Promise<boolean>
+  /** 지금 선택한 글(저장 문자열 기준, 줄 사이는 줄바꿈). 선택이 없으면 빈 글. 편집기가 초점을 잃어도 마지막 선택을 읽는다(집필 AI 채팅이 보내는 순간 읽는다). */
+  selectedText: () => string
 }
 
 const LIMIT = `${BODY_MAX.toLocaleString('ko-KR')}자를 넘는 입력은 넣을 수 없어요.`
@@ -118,7 +120,7 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
   const host = useRef<HTMLDivElement>(null)
   const file = useRef<HTMLInputElement>(null)
   // 지금 떠 있는 편집기: ProseMirror 화면과, 커서 자리에 이미지를 올리는 함수
-  const pm = useRef<{ view: View; add: (file: File, focus: boolean) => Promise<boolean> } | null>(null)
+  const pm = useRef<{ view: View; add: (file: File, focus: boolean) => Promise<boolean>; selected: () => string } | null>(null)
   // 편집기로 초점을 돌려줄 일이 남았다(이미지 삽입으로 다시 만들어짐·올리기 실패). 잠긴 동안에는 초점을 받지 못하므로 풀릴 때 돌려준다.
   const wantFocus = useRef(false)
   // 편집기는 한 번만 만들므로 최신 값은 ref로 읽는다.
@@ -293,7 +295,10 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
       editor.setSelection([line, 1], [line, 1])
       wantFocus.current = mount.at.focus
     }
-    pm.current = { view, add: (picked, focus) => upload(picked, view.state.selection, focus) }
+    pm.current = {
+      view, add: (picked, focus) => upload(picked, view.state.selection, focus),
+      selected: () => { const { from, to } = view.state.selection; return from === to ? '' : unwrapAll(view.state.doc.textBetween(from, to, '\n')) },
+    }
     const releaseTab = escapeWithTab(el)
     return () => {
       releaseTab()
@@ -318,7 +323,7 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
     host.current?.querySelector('.toastui-editor-defaultUI')?.classList.toggle('toastui-editor-dark', dark)
   }, [dark])
 
-  useImperativeHandle(ref, () => ({ addImage: (picked, focus = true) => pm.current?.add(picked, focus) ?? Promise.resolve(false) }), [])
+  useImperativeHandle(ref, () => ({ addImage: (picked, focus = true) => pm.current?.add(picked, focus) ?? Promise.resolve(false), selectedText: () => pm.current?.selected() ?? '' }), [])
 
   return (
     <div className="manuscript-editor">

@@ -5,7 +5,8 @@ from openai import OpenAIError
 
 from app.writing import agent
 from app.writing.errors import WritingFailure
-from app.writing.models import BeatPlan, DraftRequest, DraftResponse, PatchRequest, PlanRequest, PlanResponse, Usage
+from app.writing.models import (BeatPlan, DraftRequest, DraftResponse, PatchRequest, PlanBrief, PlanPickRequest, PlanRequest, PlanResponse,
+                                PlanReviseRequest, Usage)
 
 from .stubs import fake_openai
 
@@ -133,3 +134,49 @@ def test_plan_sees_the_previous_plan_alternatives_so_the_author_can_pick_one(mon
     sent = seen['messages'][-1].content
     assert '편지의 비밀' in sent and '추격' in sent
     assert 'previousPlans' in seen['messages'][0].content  # 지시가 이전 계획의 쓰임을 설명한다
+
+
+# 기존 계획 수정(#578): 모델 호출 1은 요청이 가리키는 계획 하나를 고르고, 호출 2는 그 계획의 제목·내용만 고친다.
+BRIEFS = [PlanBrief(id='plot-1', kind='plot', title='복수극'), PlanBrief(id='scene-1', kind='scene', title='재회', episodeNumber=5, plot='복수극')]
+
+
+def test_pick_plan_returns_the_listed_id_the_request_points_at_and_sends_no_plan_text(monkeypatch):
+    seen = fake_openai(monkeypatch, text=json.dumps({'planId': 'scene-1'}))
+    assert agent.pick_plan(PlanPickRequest(request='재회 장면 고쳐줘', plans=BRIEFS)) == 'scene-1'
+    sent = seen['messages'][-1].content
+    assert seen['response_format']['json_schema']['strict'] is True
+    assert '재회 장면 고쳐줘' in sent and 'scene-1' in sent and '복수극' in sent and 'content' not in sent
+
+
+def test_pick_plan_is_none_when_the_model_cannot_settle_on_one(monkeypatch):
+    fake_openai(monkeypatch, text=json.dumps({'planId': None}))
+    assert agent.pick_plan(PlanPickRequest(request='그거 고쳐줘', plans=BRIEFS)) is None
+
+
+def revise(monkeypatch, title='재회', content='카엘이 리나를 만나지만 이름을 부르지 못한다.'):
+    seen = fake_openai(monkeypatch, text=json.dumps({'title': title, 'content': content}, ensure_ascii=False))
+    data = PlanReviseRequest(request='더 긴장감 있게', plan=BRIEFS[1], content='카엘이 리나를 만난다.', revision=3)
+    return seen, agent.revise_plan(data)
+
+
+def test_revise_plan_returns_the_before_and_after_with_the_revision_it_was_given(monkeypatch):
+    seen, result = revise(monkeypatch)
+    sent = seen['messages'][-1].content
+    assert seen['response_format']['json_schema']['strict'] is True and '더 긴장감 있게' in sent and '카엘이 리나를 만난다.' in sent and 'revision' not in sent
+    assert (result.planId, result.kind, result.revision) == ('scene-1', 'scene', 3)
+    assert (result.before.title, result.before.content) == ('재회', '카엘이 리나를 만난다.')
+    assert (result.after.title, result.after.content) == ('재회', '카엘이 리나를 만나지만 이름을 부르지 못한다.')
+    assert result.model == 'resolved-model' and result.providerResponseId == 'resp-1' and result.usage == Usage(inputTokens=10, outputTokens=5)
+
+
+@pytest.mark.parametrize('title, content', [
+    ('재회', '카엘이 리나를 만난다.'),    # 바뀐 것이 없다
+    ('재회', ' 카엘이 리나를 만난다. '),  # 공백만 다르다
+    ('', '새 내용'),                      # 제목이 비었다
+    ('가' * 121, '새 내용'),              # 제목 120자 초과
+    ('재회', '가' * 8001),                # 내용 8,000자 초과
+], ids=['unchanged', 'whitespace-only', 'empty-title', 'long-title', 'long-content'])
+def test_revise_plan_outside_the_limits_or_without_a_change_is_failure_not_a_proposal(monkeypatch, title, content):
+    with pytest.raises(WritingFailure) as error:
+        revise(monkeypatch, title, content)
+    assert error.value.status == 502

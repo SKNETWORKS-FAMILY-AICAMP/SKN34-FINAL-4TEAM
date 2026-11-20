@@ -76,6 +76,9 @@ html:has(.gnb){scroll-padding-top:72px}
 body:has(.gnb) .thm-float{display:none}
 .avatar{width:38px;height:38px;border-radius:50%;background:var(--pri);padding:2px}.avatar span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--ink);color:var(--bg);font-weight:900;font-size:14px;border:2px solid var(--bg)}
 main{padding:32px 0 72px}
+/* .wrap의 padding(0 24px)이 main{padding}을 이겨 본문이 상단바에 붙었다(위 여백 0). 위 여백만 되살린다: 아래 여백은 아래 푸터의 위 여백이 정한다. 읽기 면(.calm: 히어로·고정 상단 줄)은 자기 위 여백이 있다. */
+main.wrap{padding-top:32px}
+.calm main.wrap{padding-top:0}
 .foot{border-top:1px solid var(--line);margin-top:20px;padding:26px 0 40px;color:var(--sub);font-size:12.5px}.foot .wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.foot b{color:var(--ink);font-weight:900}
 .foot .r{margin-left:auto;display:flex;gap:8px}.foot :is(button,a){border:1px solid var(--line2);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:12px;color:var(--sub)}
 /* 푸터가 있는 화면은 본문이 짧아도 푸터를 화면 맨 아래에 둔다. #root를 세로 flex로 두고 본문(main·.episode-app)이 남는 높이를 채운다. 푸터 없는 화면(집필실·리더·로그인·관리자)은 그대로다.
@@ -112,7 +115,7 @@ main{padding:32px 0 72px}
 .hero-controls{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:8px}
 .hero-step{display:grid;place-items:center;flex:none;width:44px;height:44px;border:1px solid var(--line2);border-radius:50%;background:var(--surface);color:var(--ink)}
 .hero-step:hover{border-color:var(--pri);color:var(--pri-ink)}
-.dots{display:flex;flex-wrap:wrap;justify-content:center;min-width:0}.dots button{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:0;background:none}.dots i{display:block;width:6px;height:6px;border-radius:3px;background:var(--sub);transition:width .3s var(--ease),background .3s}.dots i.on{width:22px;background:var(--pri)}
+.dots{display:flex;flex-wrap:wrap;justify-content:center;min-width:0}.dots button{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:0;background:none}.dots i{display:block;width:6px;height:6px;border-radius:3px;background:var(--sub);transition:background .3s}.dots i.on{width:22px;background:var(--pri)}
 .hero-rotation{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:8px}.hero-rotation .btn{min-height:44px}.hero-rotation .btn[aria-pressed="true"]{border-color:var(--pri);color:var(--pri-ink)}.hero-rotation small{color:var(--sub);font-size:12px}
 .hero .slide:focus-visible{outline-offset:-4px}
 .rings{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;padding:6px 4px 4px}.rings::-webkit-scrollbar{display:none}
@@ -121,7 +124,7 @@ main{padding:32px 0 72px}
 .ring .o span{display:block;width:100%;height:100%;border-radius:50%;overflow:hidden;border:3px solid var(--bg)}.ring .o svg{width:100%;height:100%;display:block}
 .ring b{display:block;font-size:12.5px;font-weight:700;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ring small{display:block;font-size:11px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ring.add .o{background:none;border:2px dashed var(--line2);display:grid;place-items:center;font-size:28px;color:var(--pri)}
-.sec{margin-top:56px}.sec-h{display:flex;align-items:center;gap:10px;margin-bottom:16px}.sec-h :is(h1,h2){font-size:23px;font-weight:800;letter-spacing:-.03em}
+.sec{margin-top:56px}.sec-h{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-bottom:16px}.sec-h :is(h1,h2){font-size:23px;font-weight:800;letter-spacing:-.03em}
 .cont{display:flex;align-items:center;gap:16px;margin-top:22px;padding:14px;border-radius:22px;background:var(--fixed-dark);color:var(--fixed-ink);border:0;width:100%;text-align:left}
 .cont .th{width:56px;height:74px;border-radius:10px;overflow:hidden;flex:none}.cont .th svg{width:100%;height:100%;display:block}
 .cont h2{color:var(--acc);font-weight:800;font-size:12px}.cont b{display:block;font-size:17px;margin:2px 0 8px}
@@ -177,7 +180,7 @@ main{padding:32px 0 72px}
 .calm .topbar{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 82%,transparent);box-shadow:0 0 0 100vmax color-mix(in srgb,var(--bg) 82%,transparent);clip-path:inset(0 -100vmax);backdrop-filter:blur(10px)}.calm .topbar .back{box-shadow:none}.rback{height:40px;padding:0 14px 0 8px;font-size:14px;box-shadow:none;background:transparent;border-color:transparent;color:inherit}.rback:hover{border-color:var(--line2)}
 .whero{display:grid;grid-template-columns:300px minmax(0,1fr);gap:44px;align-items:end;padding:48px 0 34px}
 .cover{aspect-ratio:3/4;border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.25)}.cover svg{width:100%;height:100%;display:block}
-.calm .whero .cover{box-shadow:var(--sh)}
+.calm .whero{align-items:start}.calm .whero .cover{box-shadow:var(--sh)}
 .whero .g{font-size:13px;font-weight:700;color:var(--tsub)}.whero-body .chip{margin-left:8px}.whero h1{font-family:var(--tfont);font-size:52px;line-height:1.15;letter-spacing:-.03em;margin:8px 0}
 .whero .by{color:var(--tsub);font-size:14px}.whero .sum{font-family:var(--tfont);font-size:17px;line-height:1.8;margin:16px 0 14px;max-width:46ch}.whero .hashes{margin-top:16px}
 .hashes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}.hashes span{font-size:13px;font-weight:700;color:var(--pri-ink);background:var(--pri-soft);border-radius:999px;padding:4px 11px}
@@ -279,12 +282,14 @@ input[type=checkbox]:disabled,input[type=radio]:disabled{opacity:.5;cursor:not-a
 /* 포크 화면 맨 위 줄(뒤로 가기)은 아래 폼(.fork)과 같은 720px 열·24px 안쪽 여백에 맞춘다. 900px 이하에서 .wrap이 16px로 줄어도 폼과 어긋나지 않게 한다. */
 .wrap.fork-top{max-width:720px;padding-inline:24px}.fork>[role=alert]{margin:0 0 12px;color:var(--danger);font-weight:700}
 @media(max-width:760px){.newwork-info-grid{grid-template-columns:minmax(0,1fr)}}
-.fstep{padding:22px;margin-bottom:14px}.fstep h3{font-size:16px;display:flex;align-items:center;gap:10px;margin-bottom:14px}.fstep h3 i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--pri);color:var(--on-pri);display:grid;place-items:center;font-size:13px}
+.fstep{padding:22px;margin-bottom:14px}.fstep h3,main.fork .fstep h2{font-size:16px;display:flex;align-items:center;gap:10px;margin-bottom:14px}.fstep h3 i,main.fork .fstep h2 i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--pri);color:var(--on-pri);display:grid;place-items:center;font-size:13px}
 .epc{display:flex;gap:8px;flex-wrap:wrap}.epc button{border:1px solid var(--tline);background:transparent;color:var(--tfg);border-radius:16px;padding:10px 14px;text-align:left}.epc button small{display:block;color:var(--tsub);font-size:11.5px}.epc button.on{border-color:var(--pri);background:var(--pri-soft)}.epc button[disabled]{opacity:.35;cursor:not-allowed}
 .tinp{width:100%;height:50px;border-radius:16px;border:1px solid var(--line3);background:var(--surface);padding:0 16px;color:var(--tfg);font-family:var(--tfont);font-size:16px}
 .carry{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.carry span,.carry li{font-size:12.5px;border:1px solid var(--tline);border-radius:999px;padding:4px 10px;color:var(--tsub);overflow-wrap:anywhere}ul.carry{list-style:none;margin:12px 0 0;padding:0}.bm{font-size:12.5px;color:var(--tsub);margin:6px 0 18px}
 /* "가져가는 것" 머리말은 데이터 칩이 아니라 머리말로 보인다. */
 #carry>span:first-child{border:0;padding-left:0;font-weight:700;color:var(--tfg)}
+/* 제출 실패 안내(role=alert)는 본문색이라 오류로 읽히지 않았다. 위험색 굵은 글자로 둔다(라이트 --danger는 크림 면 위 6:1 이상, 다크는 어두운 면 위 6:1 이상). */
+.fork [role="alert"]{color:var(--danger);font-weight:700;margin:0 0 14px}
 .okbox{text-align:center;padding:34px 24px}.okbox .big{font-size:44px}.okbox h2{font-family:var(--tfont);font-size:28px;margin:8px 0}
 .snap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}.snap div{background:var(--muted-bg);border-radius:16px;padding:14px;text-align:left}.snap small{color:var(--sub);font-weight:700;font-size:12px}.snap b{display:block;font-size:22px}
 /* 서재·쓰기 */
@@ -362,12 +367,14 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}th{text-align:left;co
 .adm h3.st{font-size:12px;color:var(--faint);font-weight:700;letter-spacing:.06em;margin:26px 0 8px}
 /* 화면 ID 칩 · 토스트 */
 .author-note{margin:32px 0 0;padding:20px 0;border-top:1px solid var(--line);white-space:pre-wrap}.author-note h3{font-size:14px}.author-note p{margin-top:8px;color:var(--sub)}.screen-controls{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(86px,calc(env(safe-area-inset-bottom) + 12px));z-index:100;display:flex;gap:8px}#sid{position:fixed;left:12px;bottom:12px;z-index:90;font:600 11.5px var(--mono);background:rgba(30,27,46,.88);color:#D9D2FF;border-radius:999px;padding:6px 11px;pointer-events:none}
+/* 390px에서 떠 있는 테마 버튼이 공유 버튼·카드 ⋮·글줄 끝을 가렸다. 좁은 화면에서는 떠 있지 않고 페이지 맨 끝(푸터 아래)에 놓인다. 독서 화면은 고정 하단 바(.rnav) 높이만큼 비운다. */
+@media (max-width:600px){.screen-controls{position:static;justify-content:flex-end;padding:0 12px 12px}body:has(.rnav) .screen-controls{padding-bottom:86px}}
 #sid[hidden]{display:none}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:300;background:rgba(30,27,46,.95);border:1px solid rgba(255,255,255,.08);color:#fff;padding:11px 20px;border-radius:999px;font-size:14px;font-weight:600;max-width:calc(100vw - 32px);text-align:center}
 /* 토스트는 role=status 노드 하나를 계속 두고 글자만 바꾼다. 비어 있을 때도 hidden 속성의 display:none을 풀어 보조기기에 라이브 영역으로 남긴다(안이 빈 0×0 상자라 보이지 않는다). */
 #toast[hidden]{display:block;padding:0;border:0}
 #toast:not([hidden]){animation:up .3s var(--ease)}
-@media (max-width:900px){.tri,.wk,.wgrid,.whero,.inbox,.imp,.simg,.snap{grid-template-columns:1fr}.slide{flex-basis:80%}.whero{gap:20px}.whero .cover{max-width:220px}.whero h1{font-size:38px}.calm .whero{grid-template-columns:160px minmax(0,1fr);gap:0 24px;align-items:start}.calm .whero>.whero-body{display:contents}.calm .whero :is(.sum,.hashes,.stats,.acts){grid-column:1/-1}.sgrid{grid-template-columns:1fr}.seps{display:flex;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--tline);padding:8px;gap:6px}.seps .lab{display:none}.seps :is(button,a){flex:0 0 auto;white-space:nowrap}.seps :is(button,a) small{display:none}.side{border-left:0;border-top:1px solid var(--tline)}.editor{padding:24px 16px}.res3,.kpi{grid-template-columns:1fr 1fr}.flow{grid-template-columns:repeat(3,1fr)}.newbox{grid-template-columns:1fr}.wrap{padding:0 16px}.gnb .in{gap:10px}.search kbd{display:none}.search{min-width:0;flex:1}.arr{display:none}.guide{flex-wrap:wrap}.sbar{flex-wrap:wrap;height:auto;padding:10px 16px}}
+@media (max-width:900px){.tri,.wk,.wgrid,.whero,.inbox,.imp,.simg,.snap{grid-template-columns:1fr}.slide{flex-basis:80%}.whero{gap:20px}.whero .cover{max-width:220px}.whero h1{font-size:38px}.calm .whero{grid-template-columns:160px minmax(0,1fr);gap:0 24px}.calm .whero>.whero-body{display:contents}.calm .whero :is(.sum,.hashes,.stats,.acts){grid-column:1/-1}.sgrid{grid-template-columns:1fr}.seps{display:flex;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--tline);padding:8px;gap:6px}.seps .lab{display:none}.seps :is(button,a){flex:0 0 auto;white-space:nowrap}.seps :is(button,a) small{display:none}.side{border-left:0;border-top:1px solid var(--tline)}.editor{padding:24px 16px}.res3,.kpi{grid-template-columns:1fr 1fr}.flow{grid-template-columns:repeat(3,1fr)}.newbox{grid-template-columns:1fr}.wrap{padding:0 16px}.gnb .in{gap:10px}.search kbd{display:none}.search{min-width:0;flex:1}.arr{display:none}.guide{flex-wrap:wrap}.sbar{flex-wrap:wrap;height:auto;padding:10px 16px}}
 @media (max-width:600px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.nav :is(button,a){padding:0 10px;font-size:14px}.search{flex:0 0 42px;width:42px;padding:0;justify-content:center;font-size:0}.search::after{content:'🔍';font-size:16px}.logo{font-size:0;gap:0}.logo b{font-size:13px}.cont .go{display:none}.cont .bar{width:160px}.slide{flex-basis:86%;height:360px}.wc{grid-template-columns:minmax(0,1fr) 80px}.whero h1{font-size:32px}.whero .cover{max-width:130px}.calm .whero{grid-template-columns:96px minmax(0,1fr);gap:0 16px;padding:24px 0 26px}}
 /* 동작 줄이기: 이동·확대·반복 애니메이션은 끄고, 눌림·선택 같은 상태 피드백은 색·불투명도 전환(150ms)으로 남긴다. */
 @media (prefers-reduced-motion:reduce){*,::before,::after{animation:none!important;transition-property:color,background-color,border-color,box-shadow,opacity!important;transition-duration:.15s!important;transition-delay:0s!important}}
@@ -447,7 +454,7 @@ button.avatar{border:0;cursor:pointer}
 /* 해시태그 */
 .hashes :is(button,a){font-size:13px;font-weight:700;color:var(--pri-ink);background:var(--pri-soft);border-radius:999px;padding:4px 11px;border:1px solid transparent;transition:border-color .12s linear}
 .hashes :is(button,a):hover{border-color:var(--pri)}
-.tagbar{display:flex;gap:8px;flex-wrap:wrap}.tagbar :is(button,a){height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);font-weight:700;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}.tagbar :is(button,a) span{font-size:11.5px;color:var(--faint)}.tagbar :is(button,a).on{background:var(--pri);border-color:var(--pri);color:var(--on-pri)}.tagbar :is(button,a).on span{color:inherit;opacity:.8}
+.tagbar{display:flex;gap:8px;flex-wrap:wrap}.tagbar :is(button,a){height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);font-weight:700;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}.tagbar :is(button,a) span{font-size:11.5px;color:var(--faint)}.tagbar :is(button,a).on{background:var(--pri);border-color:var(--pri);color:var(--on-pri)}.tagbar :is(button,a).on span{color:inherit}
 .ri .m em{font-style:normal;font-size:12px;color:var(--sub)}.ri .m em.hit{color:var(--pri-ink);font-weight:800}
 /* 1~3위 메달. 링 색은 토큰과 같은 --l/--d 스위치라 고른 다크와 OS 다크에서 모두 표면색이 된다. */
 .md{border-radius:50%!important;width:24px!important;height:24px;display:inline-grid!important;place-items:center;font-size:12.5px!important;font-weight:900!important;color:#fff!important;flex:none}
@@ -591,7 +598,6 @@ input,textarea{caret-color:var(--pri)}
  .gnb .avatar{flex:none;width:44px;height:44px}
  .gnb .btn.sm,.screen-controls .btn.sm{flex-shrink:0;min-width:44px;height:44px}
  #home .chips button{min-width:44px;height:44px}
- #home{padding-top:20px}
  #home .guide{position:relative;padding:16px 44px 16px 16px;gap:10px}
  #home .guide ol{gap:8px}
  #home .guide .x{position:absolute;right:4px;top:4px;width:44px;height:44px}
@@ -611,7 +617,7 @@ input,textarea{caret-color:var(--pri)}
 .wgrid:has(+ .wcomments){padding-bottom:24px}.wcomments{margin-bottom:40px}.wcomments:last-child{margin-bottom:70px}.wrecs{margin-bottom:70px}.wrecs>section+section{margin-top:40px}.wrecs .rg{box-shadow:inset 0 0 0 1px var(--line2)}.wcomments h2{font-size:17px;margin:0 0 12px}.wcomments .cm b small{font-weight:400}.wc-best{margin:0 0 14px;padding:2px 14px;border-radius:14px;background:var(--muted-bg)}.wc-badge{display:inline-flex;align-items:center;height:18px;padding:0 6px;margin-right:6px;border-radius:4px;background:var(--pri);color:var(--on-pri);font-size:10.5px;font-weight:800;letter-spacing:.04em;vertical-align:1px}
 /* 소설 상세 히어로: 통계는 얇은 선 아이콘+숫자, 버튼 줄은 주요 행동 → 좋아요·공유 묶음 → 관심 등록 순이고 소설 신고는 줄 끝의 약한 버튼으로 떼어 둔다 */
 .stats>span{display:inline-flex;align-items:center;gap:5px}.stats .mi{width:16px;height:16px}
-.whero .acts{align-items:center;gap:12px}.ibs{display:flex;gap:8px}
+.whero .acts{align-items:center;gap:12px}.calm .whero .acts{margin-top:16px}.calm .whero .stats{margin-bottom:0}.ibs{display:flex;gap:8px}
 .tbtn.weak{padding:0 14px;border-color:transparent;color:var(--tsub)}.tbtn.weak:hover{color:var(--tfg)}.whero .tbtn.weak{margin-left:auto}
 @media (max-width:600px){.whero .acts .tbtn.pri{flex:1 1 100%}.whero .tbtn.weak{margin-left:0}}
 

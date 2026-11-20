@@ -40,7 +40,7 @@ Health 확인에는 `OPENAI_API_KEY`가 필요하지 않습니다.
 
 포트는 `WEB_PORT`·`CORE_API_PORT`·`CONTENT_SERVICE_PORT`·`DATABASE_PORT`·`CORE_MAILPIT_*_PORT`로 변경합니다.
 기존 프로세스가 5173/8080 등을 사용 중이면 시작은 실패하므로 **기존 앱을 임의 중지하지 말고** 포트와 `AUTH_PUBLIC_ORIGIN`을 조정하세요.
-CORS는 web 포트에서 계산하며 `APP_CORS_ALLOWED_ORIGIN`으로 단일 origin을 지정할 수 있습니다. AI는 내부 전용입니다.
+CORS는 web 포트에서 계산하며 `APP_CORS_ALLOWED_ORIGIN`으로 단일 origin을 지정할 수 있습니다. 별도 포트의 Vite로 Compose 백엔드에 연결할 때 표지 업로드가 403이면 먼저 Content가 허용한 origin과 브라우저 접속 주소의 스킴·호스트·포트가 일치하는지, Core가 발급한 CSRF 헤더와 쿠키가 함께 전송됐는지 확인합니다. AI는 내부 전용입니다.
 키는 AI 런타임에만 전달하고 VITE/build ARG에는 넣지 않습니다. **소스 빌드는 HMR이 아닙니다.**
 web은 nginx 정적 runtime이고 소스 mount가 없어 변경 후 다시 build해야 합니다. hot reload는 아래 네이티브 명령을 사용합니다.
 
@@ -137,7 +137,7 @@ Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통�
 
 `health`: web 정적 응답과 nginx → Core → AI Health.
 `auth`: CSRF 없는 변경 403, 가입 → Mailpit 메일 토큰 → 이메일 확인 → 잘못된 비밀번호 401 → 로그인·프로필·DB 회원 저장.
-`content`: 실제 로그인 UUID로 Content 작품 생성 → 회차 저장 → stale 409 → DB 원고/소유권·미인증 401, Core 중단 시 Content 503 및 복구. Content jar의 독립 Studio migration도 확인합니다.
+`content`: 실제 로그인 UUID로 Content 작품 생성 → 회차 저장 → stale 409 → DB 원고/소유권·미인증 401, 같은 origin의 multipart 표지 업로드 전후 저장 사용량이 같은지 확인(#613), Core 중단 시 Content 503 및 복구. Content jar의 독립 Studio migration도 확인합니다.
 `ai`: auth/content를 재사용하고 실제 Content → AI HTTP의 제공사 설정 누락 503, 원고 불변·실패 job·성공 제안 없음.
 선택된 시나리오의 준비 흐름은 한 번만 실행합니다. 실제 모델 성공·과금·브라우저 입력/클릭은 검증하지 않습니다.
 

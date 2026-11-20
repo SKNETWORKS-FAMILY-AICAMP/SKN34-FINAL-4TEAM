@@ -39,7 +39,7 @@ import { SimulationStage } from '../../../shared/chat/SimulationStage'
 import { useSimulationStageViewModel } from '../../../shared/chat/useSimulationStageViewModel'
 import { useWritingChatViewModel } from '../../../shared/chat/useWritingChatViewModel'
 import { WritingChat } from '../../../shared/chat/WritingChat'
-import { chatBasis } from '../../../../domain/entities/writingChat'
+import { chatBasis, chatPage } from '../../../../domain/entities/writingChat'
 import { VersionGraph } from './VersionGraph'
 import { LazyManuscriptEditor } from './LazyManuscriptEditor'
 import type { ManuscriptEditorHandle } from './ManuscriptEditor'
@@ -144,7 +144,9 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const active=vm.active
   // 집필 AI 채팅 상태는 채팅 패널과 시뮬레이션 무대가 함께 쓰므로 여기서 만들어 둘에 내려 준다(채팅을 접어도 진행 중인 장면이 끊기지 않는다).
   // 근거는 열린 회차가 발행돼 있으면 그 회차, 아니면 가장 뒤의 발행 회차다. 데모(mockup)는 잠긴다.
-  const chat=useWritingChatViewModel(id,chatBasis(vm.episodes,active?.number),vm.aiApplied)
+  // 새 메시지마다 작가가 지금 보는 화면을 싣는다(#554): 열린 회차, 편집기에서 고른 글, 저장하지 않은 원고(dirty일 때만, 10,000자까지).
+  const getPage=()=>chatPage({path:pathname+search,kind:'studio',episode:active?.number,selection:editor.current?.selectedText(),unsaved:vm.dirty?{title:vm.draft.title,body:vm.draft.body}:undefined})
+  const chat=useWritingChatViewModel(id,chatBasis(vm.episodes,active?.number),vm.aiApplied,undefined,getPage)
   const stage=useSimulationStageViewModel(chat)
   const [setupVersion,setSetupVersion]=useState(0)
   const [stageVisited,setStageVisited]=useState(false)

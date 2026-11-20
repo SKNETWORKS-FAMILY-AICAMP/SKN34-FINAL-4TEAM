@@ -10,6 +10,7 @@ import re
 import subprocess
 import time
 import uuid
+from base64 import b64decode
 
 import httpx2
 import pytest
@@ -150,6 +151,29 @@ def test_content(draft_work):
         assert anonymous.get(path).status_code == 401
     assert scalar("SELECT count(*) FROM episode_draft d JOIN episode e ON e.id=d.episode_id "
                   f"WHERE e.work_id='{draft_work['id']}' AND e.sequence=1 AND d.content='CI persisted manuscript'") == "1"
+
+
+def test_content_cover_upload_does_not_increase_storage_usage(draft_work):
+    client = draft_work["client"]
+    usage_path = "/api/v1/me/storage-usage"
+    before = client.get(usage_path)
+    assert before.status_code == 200
+    assert before.json()["items"]
+
+    cover_path = f"/api/v1/works/{draft_work['id']}/cover"
+    # ImageIO가 읽을 수 있는 2×2 PNG.
+    png = b64decode("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEUlEQVR4nGNI4ZJL4ZJjgFAAEHYCMUz7VUoAAAAASUVORK5CYII=")
+    refresh_csrf(client)
+    uploaded = client.put(cover_path, files={"file": ("cover.png", png, "image/png")},
+                          headers={"Origin": str(client.base_url).rstrip("/")})
+    assert uploaded.status_code == 200
+    stored = client.get(cover_path + "/content")
+    assert stored.status_code == 200
+    assert stored.content == png
+
+    after = client.get(usage_path)
+    assert after.status_code == 200
+    assert after.json() == before.json()
 
 
 def test_content_core_auth_timeout_is_not_an_invalid_user_or_cached_success(draft_work):

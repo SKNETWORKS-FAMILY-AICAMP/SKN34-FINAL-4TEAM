@@ -25,6 +25,7 @@ import { WorldAiReview } from './WorldAiReview'
 import { WorldInfoPanel } from './WorldInfoPanel'
 import { WorldCardBoard } from './WorldCardBoard'
 import { WorldCardStudio } from './WorldCardStudio'
+import { useWorldChatPage } from '../viewmodel/useWorldChatPage'
 import { WorldChat } from './WorldChat'
 import { WorldCreate } from './WorldCreate'
 import { WorldLinkedLine, WorldNovelButton } from './WorldLinkedWork'
@@ -61,6 +62,7 @@ export function WorldStudioPage() {
   // 넓은 화면은 채팅을 연 채로, 1200px 이하는 닫은 채로 시작한다. 전송이 아직 잠긴(준비 중) 채팅이 300~350px를 차지하면 중간 폭에서 게시판·편집기가 너무 좁아지기 때문이다.
   // 닫혀 있어도 `AI 채팅 열기`로 열 수 있고(900px 이하에서는 화면을 덮는 서랍), 설정집 화면과 편집 화면이 같은 상태를 쓴다.
   const [chatOpen, setChatOpen] = useState(() => !window.matchMedia?.('(max-width: 1200px)').matches)
+  const chatPage = useWorldChatPage(vm)
   const loading = !!vm.reviewWorldId && !vm.editing && !vm.error
   // 세계관을 열지 못한 상태(편집 중 저장 실패와 달리 편집 내용이 없어, 다시 읽어도 잃는 입력이 없다).
   const failed = !!vm.reviewWorldId && !vm.editing && !!vm.error
@@ -93,7 +95,7 @@ export function WorldStudioPage() {
           {vm.editing && <WorldEditor vm={vm} world={vm.editing} revisions={revisions} openVersions={() => setVersionsOpen(true)} />}
         </main>
         {/* 편집 화면이 열려 있는 동안은 그 화면이 채팅을 그린다. 숨은 설정집 화면의 채팅은 좁은 화면에서 body에 그려지는 서랍이라 여기서 빼지 않으면 편집 화면 위에 겹쳐 뜬다. */}
-        {vm.editing && !editingCard && <WorldChat open={chatOpen} onOpenChange={setChatOpen} linkedWorkId={vm.linkedWorkId} onWorldApplied={() => void vm.aiDraftChanged()} />}
+        {vm.editing && !editingCard && <WorldChat open={chatOpen} onOpenChange={setChatOpen} linkedWorkId={vm.linkedWorkId} onWorldApplied={() => void vm.aiDraftChanged()} {...chatPage} />}
       </div>
       {editingCard && <WorldCardStudio vm={vm} mcp={mcp} revisions={revisions} openVersions={() => setVersionsOpen(true)} chatOpen={chatOpen} onChatOpenChange={setChatOpen} />}
       {vm.editing && versionsOpen && (

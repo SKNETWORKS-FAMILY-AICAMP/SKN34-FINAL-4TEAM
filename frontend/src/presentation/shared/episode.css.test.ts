@@ -24,14 +24,20 @@ describe('episode.css 접근성 계약', () => {
   })
 
   it('입력 칸 경계는 3:1 이상인 --line3를 쓰고, 터치 기기에서는 입력 글자를 16px로 올려 iOS 확대를 막는다', () => {
-    const fields = rule('.episode-app input:not([type=checkbox]):not([type=radio]),.episode-app textarea')
+    const fields = rule('.ep-main input:not([type=checkbox]):not([type=radio]),.ep-main textarea')
     expect(fields).toMatch(/border:1px solid var\(--line3\)/)
     // select는 전역 셰브런을 지우지 않으려고 따로 두지만 경계는 같은 --line3다.
-    expect(rule('.episode-app select')).toMatch(/border:1px solid var\(--line3\)/)
+    expect(rule('.ep-main select')).toMatch(/border:1px solid var\(--line3\)/)
     const coarse = css.match(/@media\(pointer:coarse\)\{([^@]*)\}\s*$/m)?.[1] ?? ''
-    expect(coarse).toMatch(/\.episode-app input:not\(\[type=checkbox\]\):not\(\[type=radio\]\),\.episode-app textarea,\.episode-app select,[^{]*\{font-size:16px\}/)
+    expect(coarse).toMatch(/\.ep-main input:not\(\[type=checkbox\]\):not\(\[type=radio\]\),\.ep-main textarea,\.ep-main select,[^{]*\{font-size:16px\}/)
     // 큰 제목 입력(28px)은 그대로 둔다.
     expect(coarse).not.toMatch(/ep-create-title/)
+  })
+
+  it('틀(.episode-app)의 제목·폼·입력 규칙은 본문(.ep-main) 안에만 걸려, 같은 틀 안에 있는 세계관 작업실의 AI 채팅 레일로 새지 않는다', () => {
+    // 세계관 작업실은 채팅 레일(.world-chat)을 .episode-app 안, .ep-main 밖에 둔다. 틀 규칙이 .episode-app 전체에 걸리면 채팅의 대화 선택 상자 글자가 잘리고 입력 칸이 이중 테두리가 된다.
+    expect(css).not.toMatch(/\.episode-app (?:h1|h2|form|label|input|textarea|select|summary|button)[\s,:{[]/)
+    for (const element of ['h1', 'h2', 'form', 'label', 'summary']) expect(css, element).toMatch(new RegExp(`\\.ep-main ${element}[\\s,:{]`))
   })
 
   it('전용 상단 헤더 규칙(.ep-header·.ep-brand·.ep-top-*·.ep-dot)과 전용 푸터(.ep-footer)를 남기지 않는다 — 상단과 하단은 공용 Gnb·Footer다', () => {
@@ -116,7 +122,7 @@ describe('episode.css 전역 select 규칙과의 공존', () => {
   })
 
   it('select는 배경색을 직접 정하고 오른쪽 여백은 전역 규칙에 맡기며, 작은 select는 위아래 여백을 0으로 되돌린다', () => {
-    const select = rule('.episode-app select')
+    const select = rule('.ep-main select')
     expect(select).toMatch(/background-color:var\(--surface\)/)
     // 받은 피드백 탭의 작은 select는 높이를 .inp.sm(34px)이 정하므로 위아래 여백을 0으로 되돌려야 글자가 잘리지 않는다.
     const small = rule('.ep-feedback select.inp.sm')
@@ -160,7 +166,7 @@ describe('episode.css 이력 탭 제목 단계', () => {
     // Tailwind preflight를 쓰지 않아 제목 기본 크기가 브라우저 값(h3 1.17em ≈ 17.6px로 h2 17px보다 큼, h4 1em)이라 글자 크기를 직접 정한다.
     // 묶음 제목은 직계(>)만 건드려 항목 안 '조회한 문맥' 소제목(.ep-context h3, 15px)은 그대로다.
     const px = (selector: string) => Number(rule(selector).match(/font-size:(\d+)px/)?.[1])
-    const [h2, h3, h4] = [px('.episode-app h2'), px('.ep-content .ep-reading>h3'), px('.ep-content .ep-reading h4')]
+    const [h2, h3, h4] = [px('.ep-main h2'), px('.ep-content .ep-reading>h3'), px('.ep-content .ep-reading h4')]
     expect(h2).toBeGreaterThan(h3)
     expect(h3).toBeGreaterThan(h4)
     expect(rule('.ep-content .ep-reading h4')).toMatch(/font-weight:600/)
