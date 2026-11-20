@@ -219,10 +219,12 @@ it('작성 단계 표시는 연결선·원 테두리가 1px로 가늘고(지금 
   expect(rule((s) => s === '.world-rail-kinds button')?.body).toMatch(/font-weight:600/)
 })
 
-it('Toast 기본 CSS를 어두운 테마 CSS보다 먼저 불러온다 — 특이도가 같은 두 규칙은 나중에 불러온 쪽이 이겨, 반대 순서면 어두운 편집기의 탭 줄 뒤에 밝은 띠(#f7f9fc)가 깔린다', () => {
-  const source = readFileSync(new URL('../../../shared/MarkdownEditor.tsx', import.meta.url), 'utf8')
-  const base = source.indexOf("'@toast-ui/editor/dist/toastui-editor.css'")
-  const dark = source.indexOf("'@toast-ui/editor/dist/theme/toastui-editor-dark.css'")
-  expect(base).toBeGreaterThan(-1)
-  expect(dark).toBeGreaterThan(base)
+it('Toast 기본 CSS를 어두운 테마 CSS보다 먼저 불러온다(마크다운·원고 편집기 둘 다) — 특이도가 같은 두 규칙은 나중에 불러온 쪽이 이기고, 두 편집기가 같은 CSS를 각자 불러 먼저 평가된 순서가 남으므로 한쪽만 맞추면 어두운 탭 줄 뒤에 밝은 띠(#f7f9fc)가 다시 깔린다', () => {
+  for (const path of ['../../../shared/MarkdownEditor.tsx', '../../studio/view/ManuscriptEditor.tsx']) {
+    const source = readFileSync(new URL(path, import.meta.url), 'utf8')
+    const base = source.indexOf("'@toast-ui/editor/dist/toastui-editor.css'")
+    const dark = source.indexOf("'@toast-ui/editor/dist/theme/toastui-editor-dark.css'")
+    expect(base, path).toBeGreaterThan(-1)
+    expect(dark, path).toBeGreaterThan(base)
+  }
 })

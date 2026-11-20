@@ -1,7 +1,8 @@
 import Editor, { type EditorOptions, type PluginContext } from '@toast-ui/editor'
 import '@toast-ui/editor/dist/i18n/ko-kr'
-import '@toast-ui/editor/dist/theme/toastui-editor-dark.css'
+// 같은 특이도의 다크 규칙이 이기도록 기본 CSS를 먼저 불러온다(shared/MarkdownEditor.tsx와 같은 순서)
 import '@toast-ui/editor/dist/toastui-editor.css'
+import '@toast-ui/editor/dist/theme/toastui-editor-dark.css'
 import { useEffect, useId, useImperativeHandle, useRef, useState, type Ref, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 
