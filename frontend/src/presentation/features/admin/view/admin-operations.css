@@ -46,6 +46,8 @@
 }
 /* 메뉴 대부분에 붙는 'API' 표시는 글자(범례 안 표시 포함)보다 눈에 띄지 않게 무채색 작은 글자로 둔다. */
 .adm .nav-live { background: none; color: var(--faint); font-weight: 700; }
+/* 선택한 메뉴(--pri-soft 바탕) 위에서는 --faint가 AA 4.5:1에 못 미쳐(라이트 4.37) --sub(5.10)로 올린다. */
+.adm .admin-nav .on .nav-live { color: var(--sub); }
 /* 운영 대시보드·LLMOps·작업 감시(DEC-55): 보기 선택 칩, 조회 조건 줄, 표 안 조치 묶음, 카드 안 보조 줄. */
 .adm .admin-subnav { margin: 0 0 14px; }
 .adm .admin-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; margin: 0 0 12px; }
