@@ -429,9 +429,11 @@ def _relation(key, ordinal, source, target, predicate, label, body, polarity='as
     return {'key': key, 'from': ordinal, 'source': source, 'target': target, 'predicate': predicate, 'label': clip(label, 200), 'body': clip(body), 'polarity': polarity}
 
 
-def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: dict[str, Docs], ordinals: dict, unsplit: list[list[int]], max_relations: int = MAX_RELATIONS) -> dict:
+def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: dict[str, Docs], ordinals: dict, unsplit: list[list[int]],
+                max_relations: int = MAX_RELATIONS, max_attend: int = MAX_ATTEND) -> dict:
     """시연 세계관과 같은 모양의 world.json 하나: 인물·설정·사건 카드와 회차별 관계. 문서·본문·별칭은 처음 나온 대목에서 드러난 것만, 나중 것은 episodes[N]·관계·사건 카드로 둔다.
-    관계는 서버 한도(max_relations) 안에서 중요도 순으로 담는다: 추출한 관계 → 사건 '참여'(앞 MAX_ATTEND명) → '알고 있음'(같은 사건에 함께 나온 횟수가 많은 쌍부터)."""
+    관계는 서버 한도(max_relations) 안에서 중요도 순으로 담는다: 추출한 관계 → 사건 '참여'(참석자 목록 앞 max_attend명) → '알고 있음'(같은 사건에 함께 나온 횟수가 많은 쌍부터).
+    한도를 낮추면 적재·평가 프롬프트가 줄어든다(인물 입력에는 그 인물의 관계 줄이 모두 들어간다)."""
     infos = sorted(infos, key=lambda i: i.ordinal)
     persons = lambda i: i.extraction.people  # noqa: E731
     things = lambda i: i.extraction.things  # noqa: E731
@@ -459,7 +461,7 @@ def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: d
             for person in present:
                 appear[person] = min(appear.get(person, info.ordinal), info.ordinal)
                 attended[person][info.ordinal].append(e.summary.strip())
-            attend += [_relation(f'{person}~{ekey}', info.ordinal, person, ekey, 'custom_relation_directed', '참여', '이 사건에 함께했다.') for person in present[:MAX_ATTEND]]
+            attend += [_relation(f'{person}~{ekey}', info.ordinal, person, ekey, 'custom_relation_directed', '참여', '이 사건에 함께했다.') for person in present[:max_attend]]
             for a, b in itertools.combinations(present[:MAX_PAIR], 2):
                 count, first = pairs.get(pair := tuple(sorted((a, b))), (0, info.ordinal))
                 pairs[pair] = (count + 1, first)
@@ -502,7 +504,7 @@ def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: d
     links = extracted + attend + knows
     cards += events
     return {'world': {'id': str(uuid.uuid5(uuid.NAMESPACE_URL, 'storyfork-eval-hp')), 'name': '해리 포터 · 원문 기반 평가 세계관',
-                      'description': '번역본 원문에서 모델이 뽑은 평가 전용 세계관이다. 인물 문서·설정 본문은 처음 나온 대목에서 드러난 것만이고, 이후의 일은 회차별 기억·관계·사건 카드로 둔다.', 'genre': 'fantasy'},
+                      'description': '번역본 원문에서 모델이 뽑은 평가 전용 세계관이다. 인물 문서·설정 본문은 처음 나온 대목에서 드러난 것만이고, 이후의 일은 회차별 기억·관계·사건 카드로 둔다.', 'genre': 'genre-01'},  # genre-01 = 판타지(DEC-56 Content 장르 코드)
             'work': {'title': '해리 포터(평가용·로컬 전용)', 'summary': '해리 포터 번역본 원문에서 만든 평가 전용 세계관을 붙인 로컬 작품입니다. 원고는 없습니다.',
                      'creationType': 'EXTERNAL_DERIVATIVE', 'genres': ['판타지'], 'hashtags': ['평가용'], 'allowFork': False},
             'cards': cards, 'relationships': _timeline(links), 'secrets': [],
@@ -523,14 +525,14 @@ def _timeline(links: list[dict]) -> list[dict]:
 
 # --- 호출·실행 ---------------------------------------------------------------------------------------------------------------
 
-def estimate_build(chars: list[int], persons: int | None = None) -> dict:
-    """build의 예상 호출 수와 금액(호출 없이). chars는 덩어리별 글자 수. persons는 추출 전에는 모르므로 덩어리마다 6명으로 어림하고, 입출력 토큰은 호출당 평균의 어림이다."""
+def estimate_build(chars: list[int]) -> dict:
+    """build의 예상 호출 수와 금액(호출 없이). chars는 덩어리별 글자 수. 인물 수는 추출 전에는 모르므로 덩어리마다 6명으로 어림하고, 입출력 토큰은 호출당 평균의 어림이다."""
     windows = sum(math.ceil(c / WINDOW) for c in chars)
-    persons = persons if persons is not None else 6 * len(chars)
+    persons = 6 * len(chars)
     calls = {'extract': windows, 'names': math.ceil(persons * 0.4 / NAMES_BATCH), 'docs': persons}
     tokens_in = {'extract': sum(chars) / CHARS_PER_TOKEN / (windows or 1) + 900, 'names': 7_000, 'docs': 1_200}
     tokens_out = {'extract': 6_000, 'names': 3_000, 'docs': 1_100}   # 실측(2026-11-20 시험 호출 셋): 추출 출력 5.2~6.3K토큰·입력 글자/토큰 약 1.5
-    return {'calls': calls, 'in': tokens_in, 'out': tokens_out, 'usd': sum(usd(int(n * tokens_in[k]), int(n * tokens_out[k])) for k, n in calls.items())}
+    return {'calls': calls, 'usd': sum(usd(int(n * tokens_in[k]), int(n * tokens_out[k])) for k, n in calls.items())}
 
 
 def _ask(llm, kind, instructions, data, schema, tokens, text=None, depth=0):
@@ -580,7 +582,7 @@ def _run(llm, kind: str, requests: dict, workers: int, limit_usd: float, log) ->
     raise SystemExit(f'{kind}: 호출 {len(failures)}건이 두 번 실패했다(원인: {sorted(set(failures.values()))}). 같은 명령으로 이어 갈 수 있다(끝낸 요청은 캐시에 있다).')
 
 
-def build(llm, raw: Path, out: Path, rows: list[dict], *, limit_usd: float, workers: int = 8, log=print) -> dict:
+def build(llm, raw: Path, out: Path, rows: list[dict], *, limit_usd: float, workers: int = 8, max_relations: int = MAX_RELATIONS, max_attend: int = MAX_ATTEND, log=print) -> dict:
     """장 나누기부터 world.json까지. 시작 전에 예상 금액이 남은 상한(상한 − 장부 누적)을 넘으면 호출 없이 멈춘다. 숫자만 돌려준다(원문·응답 없음)."""
     splits = hp_chapters.split_all(raw)
     hp_chapters.write_chapters(splits, out / 'chapters')
@@ -611,7 +613,7 @@ def build(llm, raw: Path, out: Path, rows: list[dict], *, limit_usd: float, work
                     for key in people.items if records.get(key)}
     docs = _run(llm, 'hp_docs', doc_requests, workers, limit_usd, log)
     unsplit = [[book, list(u.chapters)] for book, u in units if len(u.chapters) > 1]
-    world = build_world(infos, people, settings, docs, ordinals, unsplit)
+    world = build_world(infos, people, settings, docs, ordinals, unsplit, max_relations, max_attend)
     (out / 'world.json').write_text(json.dumps(world, ensure_ascii=False))
     found, failed = match_names(hint_names(rows), world['english'])
     kinds = defaultdict(int)

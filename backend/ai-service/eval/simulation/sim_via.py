@@ -55,14 +55,11 @@ class Responses:
 
 
 class Client:
-    """OpenAI 클라이언트처럼 쓰는 어댑터(with 문 지원). responses만 바꾸고 나머지는 그대로 넘긴다."""
+    """OpenAI 클라이언트처럼 쓰는 어댑터(with 문 지원): responses만 바꾼다."""
 
     def __init__(self, inner, wait=time.sleep):
         self._inner = inner
         self.responses = Responses(inner.responses, wait)
-
-    def __getattr__(self, name):
-        return getattr(self._inner, name)
 
     def __enter__(self):
         return self
@@ -94,9 +91,9 @@ class OcxCostLog(CostLog):
         return 0.0
 
 
-def ocx_llm(cache_dir, cost_path, ledger_path=None) -> Llm:
+def ocx_llm(cache_dir, cost_path) -> Llm:
     """ocx로 부르는 Llm. 응답 캐시는 OpenAI와 같은 열쇠(모델 이름은 gpt-5.6-luna 그대로)라 이미 끝낸 호출을 이어 받고, 금액이 0이라 상한(limit_usd)은 두지 않는다."""
-    llm = Llm(Ledger(ledger_path or Path(cost_path).with_name('calls.jsonl'), cap=10 ** 9), cache_dir, model=JUDGE_MODEL, client=client(timeout=180, max_retries=0),
+    llm = Llm(Ledger(Path(cost_path).with_name('calls.jsonl'), cap=10 ** 9), cache_dir, model=JUDGE_MODEL, client=client(timeout=180, max_retries=0),
               cost=OcxCostLog(cost_path))
     llm.via = 'ocx'
     return llm

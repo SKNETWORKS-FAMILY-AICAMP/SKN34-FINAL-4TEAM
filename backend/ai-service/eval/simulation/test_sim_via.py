@@ -1,7 +1,5 @@
 """sim_via: ocx(로컬 게이트웨이) 어댑터의 입력 변환·429 대기·장부·환경 전환을 가짜 클라이언트로 검사한다. 네트워크 호출 없음."""
 
-import json
-
 import httpx
 import openai
 import pytest
@@ -76,11 +74,10 @@ def test_errors_other_than_a_rate_limit_are_not_retried():
     assert waits == [] and len(inner.calls) == 1
 
 
-def test_the_client_works_in_a_with_statement_closes_the_inner_client_and_passes_other_attributes_through():
+def test_the_client_works_in_a_with_statement_and_closes_the_inner_client():
     inner = FakeOpenAI(FakeResponses())
-    inner.base_url = 'http://gateway'
     with via.Client(inner) as client:
-        assert client.base_url == 'http://gateway'
+        assert isinstance(client, via.Client) and not inner.closed
     assert inner.closed
 
 

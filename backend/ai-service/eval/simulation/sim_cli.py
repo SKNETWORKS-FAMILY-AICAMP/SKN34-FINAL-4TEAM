@@ -32,6 +32,7 @@ from timechara import TYPES  # noqa: E402
 
 import hp_build  # noqa: E402
 import hp_chapters  # noqa: E402
+import hp_seed  # noqa: E402
 import sim_config as cfg  # noqa: E402
 import sim_quality  # noqa: E402
 import sim_speed  # noqa: E402
@@ -42,6 +43,7 @@ from app.simulation import prompt, service  # noqa: E402
 
 RESULTS = Path(__file__).resolve().parent / 'results'
 CHARS_PER_TOKEN = 3.5   # 영어 JSON 입력의 글자/토큰 비(어림). 예상 금액의 입력 크기에만 쓴다
+HP_CHARS_PER_TOKEN = 2.0   # 한국어 카드·관계가 많은 입력: 한국어 본문 1.5(실측)와 JSON 뼈대 3.5의 사이 어림. 실제 호출의 사용량으로 확인하면 바꾼다
 PARAGRAPH = 600         # 검사·채점 입력에 들어갈 응답 한 문단의 글자 수(어림)
 ASSUMED = {'act_in': 8_000, 'check_in': 20_000, 'judge_in': 2_500, 'narrate_in': 8_000}  # prepare 전의 가정 입력 크기(토큰). prepare 뒤에는 실제 입력으로 잰다
 HP_ASSUMED = {'act_in': 40_000, 'check_in': 60_000, 'judge_in': 2_500, 'narrate_in': 40_000}  # 원문 기반 세계관을 만들기 전의 가정(인물 기억·관계가 길다). 만든 뒤에는 실제 입력으로 잰다
@@ -55,8 +57,8 @@ def parse_configs(text: str) -> list[str]:
     return names
 
 
-def tokens(*parts: str) -> int:
-    return int(sum(len(p) for p in parts) / CHARS_PER_TOKEN)
+def tokens(*parts: str, per: float = CHARS_PER_TOKEN) -> int:
+    return int(sum(len(p) for p in parts) / per)
 
 
 def prepared() -> bool:
@@ -69,7 +71,7 @@ def sample_rows(worlds) -> list[dict]:
     return [by_idx[i] for i in json.loads((sim_worlds.DATA / 'sample.json').read_text())['idx']]
 
 
-def measure_quality(worlds, rows: list[dict], templates: dict) -> list[dict]:
+def measure_quality(worlds, rows: list[dict], templates: dict, per: float = CHARS_PER_TOKEN) -> list[dict]:
     """표본마다 운영이 만드는 인물 턴 입력·검사 입력의 크기(토큰, 모델 호출 없음)."""
     sized = []
     for r in rows:
@@ -77,13 +79,13 @@ def measure_quality(worlds, rows: list[dict], templates: dict) -> list[dict]:
         asked, extra, _ = service.character_view(plan, world, scene, actor)
         pov = f'limited:{actor.id}'
         check = {**asked, **extra, 'actionStyle': service.action_style(pov, actor), 'checks': service.check_kinds(plan, 'character', pov), 'paragraph': 'x' * PARAGRAPH}
-        sized.append({'type': r['data_type'], 'act_in': tokens(prompt.ACT_INSTRUCTIONS, json.dumps(asked)),
-                      'check_in': tokens(prompt.CHECK_INSTRUCTIONS, json.dumps(check)),
-                      'judge_in': tokens(templates['spatiotemporal'], r['question'], 'x' * PARAGRAPH, r['temporal_label'])})
+        sized.append({'type': r['data_type'], 'act_in': tokens(prompt.ACT_INSTRUCTIONS, json.dumps(asked, ensure_ascii=False), per=per),
+                      'check_in': tokens(prompt.CHECK_INSTRUCTIONS, json.dumps(check, ensure_ascii=False), per=per),
+                      'judge_in': tokens(templates['spatiotemporal'], r['question'], 'x' * PARAGRAPH, r['temporal_label'], per=per)})
     return sized
 
 
-def measure_speed(worlds) -> list[dict]:
+def measure_speed(worlds, per: float = CHARS_PER_TOKEN) -> list[dict]:
     """고정 장면마다 첫 턴의 인물·나레이터·검사 입력 크기(토큰, 모델 호출 없음)."""
     sized = []
     for spec in sim_worlds.SCENES:
@@ -93,8 +95,9 @@ def measure_speed(worlds) -> list[dict]:
         check = {**asked, **extra, 'checks': service.check_kinds(plan, 'character', 'omniscient'), 'paragraph': 'x' * PARAGRAPH}
         said, _, _ = service.narrator_view(plan, world, scene)
         narrate = {**said, **service.narration_input(plan, world, scene, 'opening', 'omniscient')}
-        sized.append({'act_in': tokens(prompt.ACT_INSTRUCTIONS, json.dumps(asked)), 'check_in': tokens(prompt.CHECK_INSTRUCTIONS, json.dumps(check)),
-                      'narrate_in': tokens(prompt.NARRATE_INSTRUCTIONS, json.dumps(narrate))})
+        sized.append({'act_in': tokens(prompt.ACT_INSTRUCTIONS, json.dumps(asked, ensure_ascii=False), per=per),
+                      'check_in': tokens(prompt.CHECK_INSTRUCTIONS, json.dumps(check, ensure_ascii=False), per=per),
+                      'narrate_in': tokens(prompt.NARRATE_INSTRUCTIONS, json.dumps(narrate, ensure_ascii=False), per=per)})
     return sized
 
 
@@ -115,7 +118,8 @@ def sizes(per_type: int, world: str = 'thin') -> tuple[list[dict], list[dict], s
     worlds = sim_worlds.Worlds.load(hp=True) if hp else sim_worlds.Worlds.load()
     rows = question_rows(worlds, world)
     templates, _ = sim_quality.load_inputs(rows)
-    return measure_quality(worlds, rows, templates), measure_speed(worlds), '실제 입력 크기로 계산(' + ('원문 기반 세계관·해리 포터 질문 전부·고정 장면)' if hp else 'prepare 한 표본·고정 장면)')
+    per = HP_CHARS_PER_TOKEN if hp else CHARS_PER_TOKEN
+    return measure_quality(worlds, rows, templates, per), measure_speed(worlds, per), '실제 입력 크기로 계산(' + ('원문 기반 세계관·해리 포터 질문 전부·고정 장면)' if hp else 'prepare 한 표본·고정 장면)')
 
 
 def format_build_estimate() -> tuple[str, float]:
@@ -207,7 +211,8 @@ def cmd_build_hp(args) -> None:
     for key in ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY'):
         os.environ.pop(key, None)  # 원문이 Langfuse로 가지 않게
     try:
-        stats = hp_build.build(make_llm(args), raw, sim_worlds.HP_DIR, sim_worlds.load_rows(), limit_usd=money_limit(args), workers=args.workers)
+        stats = hp_build.build(make_llm(args), raw, sim_worlds.HP_DIR, sim_worlds.load_rows(), limit_usd=money_limit(args), workers=args.workers,
+                              max_relations=args.max_relations, max_attend=args.max_attend)
     except hp_build.LimitReached as stop:
         if args.via == 'ocx':
             raise
@@ -223,7 +228,6 @@ def cmd_show_hp(args) -> None:
 
 
 def cmd_seed_hp(args) -> None:
-    import hp_seed
     raise SystemExit(hp_seed.main(['--world', str(sim_worlds.HP_WORLD), '--base-url', args.base_url]))
 
 
@@ -330,6 +334,8 @@ def main(argv=None) -> None:
     build.add_argument('--limit-usd', type=float, default=18.0, help='OpenAI 금액 상한(장부 누적, 달러)')
     build.add_argument('--workers', type=int, default=12, help='동시에 부르는 호출 수')
     build.add_argument('--via', choices=('openai', 'ocx'), default='openai', help='ocx: 로컬 OpenCodex 게이트웨이(구독 경로, 금액 0)')
+    build.add_argument('--max-relations', type=int, default=hp_build.MAX_RELATIONS, help='세계관의 관계 수 상한(서버 한도 10,000). 낮추면 적재·평가 프롬프트가 줄어든다(응답은 캐시라 다시 조립만 한다)')
+    build.add_argument('--max-attend', type=int, default=hp_build.MAX_ATTEND, help='사건마다 참여 관계를 만드는 참석자 수(목록 앞에서부터)')
     sub.add_parser('show-hp', help='world.json → .data/hp/preview.md(호출 없음)').set_defaults(handler=cmd_show_hp)
     seed = sub.add_parser('seed-hp', help='world.json을 로컬 스택에 배치로 적재(호출 없음, 로컬만)')
     seed.set_defaults(handler=cmd_seed_hp)

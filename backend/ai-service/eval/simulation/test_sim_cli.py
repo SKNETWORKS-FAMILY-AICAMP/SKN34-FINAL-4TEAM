@@ -3,7 +3,6 @@
 import json
 import math
 import os
-import sys
 from types import SimpleNamespace
 
 import pytest
@@ -247,13 +246,16 @@ def test_build_hp_runs_the_extractor_under_the_openai_limit_prints_only_numbers_
     monkeypatch.setattr(cli.hp_build, 'build', build)
     cli.main(['build-hp'])
     assert (seen['raw'], seen['out'], seen['rows'], seen['limit_usd'], seen['workers']) == (hp_env / 'raw', hp_env, [{'series': 'harry_potter'}], 18.0, 12) and seen['llm'].limit == 18.0
+    assert (seen['max_relations'], seen['max_attend']) == (hb.MAX_RELATIONS, hb.MAX_ATTEND)
     assert json.loads(capsys.readouterr().out) == {'units': 3, 'usd': 0.5} and 'LANGFUSE_PUBLIC_KEY' not in os.environ and 'LANGFUSE_SECRET_KEY' not in os.environ
+    cli.main(['build-hp', '--max-relations', '5000', '--max-attend', '1'])   # 관계를 줄여 다시 조립(응답은 캐시)
+    assert (seen['max_relations'], seen['max_attend']) == (5000, 1)
 
 
 def test_build_hp_that_hits_the_limit_says_how_to_continue_with_ocx_and_ocx_has_no_money_limit(monkeypatch, hp_env):
     calls = []
 
-    def build(llm, raw, out, rows, *, limit_usd, workers):
+    def build(llm, raw, out, rows, *, limit_usd, workers, max_relations, max_attend):
         calls.append((getattr(llm, 'via', 'openai'), limit_usd))
         if llm is not ocx:
             raise hb.LimitReached('hp_extract: 비용 상한 $18.00에 닿아 멈췄다')
@@ -291,7 +293,7 @@ def test_show_hp_writes_the_preview_next_to_the_world_without_any_call(hp_env, c
 
 def test_seed_hp_hands_the_world_path_and_the_local_address_to_hp_seed(monkeypatch, hp_env):
     got = []
-    monkeypatch.setitem(sys.modules, 'hp_seed', SimpleNamespace(main=lambda argv: got.append(argv) or 0))
+    monkeypatch.setattr(cli.hp_seed, 'main', lambda argv: got.append(argv) or 0)
     with pytest.raises(SystemExit) as done:
         cli.main(['seed-hp'])
     assert done.value.code == 0 and got == [['--world', str(hp_env / 'world.json'), '--base-url', 'http://localhost:5173']]
@@ -360,3 +362,18 @@ def test_the_report_for_the_original_text_world_reads_its_own_results_and_shows_
     cli.main(['report', '--suite', 'quality'])
     assert '결과 없음' in capsys.readouterr().out   # 얇은 세계관 결과는 따로 있다
     assert cli.format_via('openai') == 'via: openai' and '섞여' not in cli.format_via({'A': {'openai': 4}})
+
+
+def test_korean_world_inputs_are_counted_with_a_denser_character_to_token_ratio_and_without_json_escapes(monkeypatch, tmp_path):
+    assert cli.tokens('가' * 200) == 57 and cli.tokens('가' * 200, per=2.0) == 100
+    hp = tmp_path / 'world.json'
+    hp.write_text('{}')
+    seen = []
+    monkeypatch.setattr(cli, 'prepared', lambda: True)
+    monkeypatch.setattr(cli.sim_worlds, 'HP_WORLD', hp)
+    monkeypatch.setattr(cli.sim_worlds.Worlds, 'load', classmethod(lambda cls, hp=False: SimpleNamespace(rows=[{'series': 'harry_potter'}, {'series': 'other'}])))
+    monkeypatch.setattr(cli.sim_quality, 'load_inputs', lambda rows: ({}, {}))
+    monkeypatch.setattr(cli, 'measure_quality', lambda worlds, rows, templates, per: seen.append(('quality', per, len(rows))) or [])
+    monkeypatch.setattr(cli, 'measure_speed', lambda worlds, per: seen.append(('speed', per)) or [])
+    cli.sizes(50, 'hp')
+    assert seen == [('quality', cli.HP_CHARS_PER_TOKEN, 1), ('speed', cli.HP_CHARS_PER_TOKEN)]   # 해리 포터 질문만, 한국어 밀도로

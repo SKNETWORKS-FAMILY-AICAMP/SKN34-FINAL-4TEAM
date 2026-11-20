@@ -558,10 +558,10 @@ def test_main은_로그인해_적재하고_통계를_숫자만_한_줄_JSON으�
     monkeypatch.setenv('STORYFORK_SEED_PASSWORD', SECRET)
     path = tmp_path / 'world.json'
     path.write_text(json.dumps(WORLD, ensure_ascii=False), encoding='utf-8')
-    assert hp_seed.main(['--world', str(path), '--base-url', 'http://localhost:5173/', '--cards-per-batch', '40', '--relations-per-batch', '20']) == 0
+    assert hp_seed.main(['--world', str(path), '--base-url', 'http://localhost:5173/']) == 0
     out, err = capsys.readouterr()
     stats = json.loads(out.strip().splitlines()[-1])
     assert stats['cards'] == {'sent': 130, 'skipped': 0} and stats['relations'] == {'sent': 59, 'skipped': 0} and stats['batches']['failed'] == 0
-    assert max(len(b['cards']) for b in fake.puts) == 40 and max(len(b['relationships']) for b in fake.puts) == 20   # 옵션이 배치 크기로 이어진다
+    assert max(len(b['cards']) for b in fake.puts) == 50   # 기본 배치 크기(카드 50개)
     assert logins == [('http://localhost:5173', seed.EMAIL, SECRET)]
     assert SECRET not in out + err and CARD_TEXT not in out + err and REL_TEXT not in out + err

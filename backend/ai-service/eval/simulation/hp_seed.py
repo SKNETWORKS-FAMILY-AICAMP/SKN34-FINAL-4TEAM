@@ -178,8 +178,6 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description='해리 포터 평가 세계관을 로컬 스택에 배치로 적재한다. 비밀번호는 환경변수 STORYFORK_SEED_PASSWORD로만 받는다.')
     parser.add_argument('--world', type=Path, default=BASE / 'world.json', help='적재할 world.json(기본 .data/hp/world.json)')
     parser.add_argument('--base-url', default='http://localhost:5173', help='공개 진입점 주소(기본 http://localhost:5173, localhost·127.0.0.1·[::1]만)')
-    parser.add_argument('--cards-per-batch', type=int, default=50, help='카드 배치의 최대 개수(기본 50)')
-    parser.add_argument('--relations-per-batch', type=int, default=200, help='관계 배치의 최대 개수(기본 200)')
     args = parser.parse_args(argv)
     password = os.environ.get('STORYFORK_SEED_PASSWORD')
     if not password:
@@ -189,7 +187,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         client = seed.Client(check_local(args.base_url))
         client.login(seed.EMAIL, password)
-        stats = seed_hp(seed, json.loads(args.world.read_text(encoding='utf-8')), client.call, cards_per_batch=args.cards_per_batch, relations_per_batch=args.relations_per_batch)
+        stats = seed_hp(seed, json.loads(args.world.read_text(encoding='utf-8')), client.call)
     except seed.SeedError as error:
         print(f'실패: {error}', file=sys.stderr)
         return 1

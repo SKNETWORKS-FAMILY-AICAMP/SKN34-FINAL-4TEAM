@@ -237,6 +237,13 @@ def test_relations_are_kept_in_order_of_importance_within_the_server_limit():
     assert len(got['친구']) == 1 and len(got['참여']) == 3 and got['알고 있음'] == set()
 
 
+def test_fewer_attendance_links_per_event_can_be_asked_for_to_shrink_the_prompts():
+    crowd = ['해리', '론', '헤르미온느', '네빌']
+    infos = [info(1, [1], 1, [person(n) for n in crowd], [event('모임', '모였다', crowd)])]
+    attend = lambda limit: [r for r in world(infos=infos, max_attend=limit)[0]['relationships'] if r['label'] == '참여']  # noqa: E731
+    assert len(attend(1)) == 1 and len(attend(2)) == 2 and len(attend(b.MAX_ATTEND)) == b.MAX_ATTEND
+
+
 def test_relation_labels_and_bodies_stay_within_the_server_limits():
     infos = [info(1, [1], 1, [person('해리'), person('론')], relations=[link('해리', '론', label='가' * 500, body='나' * 5000)])]
     data = world(infos=infos)[0]
@@ -247,7 +254,7 @@ def test_relation_labels_and_bodies_stay_within_the_server_limits():
 def test_the_world_has_the_demo_shape_and_the_mapping_from_chapters_to_episodes():
     data, _ = world()
     assert set(data) == {'world', 'work', 'cards', 'relationships', 'secrets', 'ordinals', 'english', 'unsplit'}
-    assert data['world']['genre'] == 'fantasy' and data['work']['title'] == '해리 포터(평가용·로컬 전용)' and data['secrets'] == []
+    assert data['world']['genre'] == 'genre-01' and data['work']['title'] == '해리 포터(평가용·로컬 전용)' and data['secrets'] == []
     assert data['ordinals'] == {'1-1': 1, '1-2': 2, '2-1': 3} and data['english']['Harry Potter'] == 'harry-potter'
     assert len({c['key'] for c in data['cards']}) == len(data['cards'])
 
@@ -272,10 +279,10 @@ def test_the_world_loads_through_the_demo_seed_functions_with_changing_relations
     assert len(seed.relations_at(data, 1)) < len(seed.relations_at(data, 2))
 
 
-def test_estimate_counts_calls_from_chunk_sizes_and_grows_with_the_text_and_the_cast():
-    small, big = b.estimate_build([28_000, 56_001], persons=100), b.estimate_build([28_000, 56_001, 28_000], persons=300)
-    assert small['calls'] == {'extract': 4, 'names': 1, 'docs': 100} and big['calls'] == {'extract': 5, 'names': 2, 'docs': 300}
-    assert 0 < small['usd'] < big['usd'] and b.estimate_build([100])['calls']['docs'] == 6
+def test_estimate_counts_calls_from_chunk_sizes_and_grows_with_the_text():
+    small, big = b.estimate_build([28_000, 56_001]), b.estimate_build([28_000, 56_001, 28_000])
+    assert small['calls'] == {'extract': 4, 'names': 1, 'docs': 12} and big['calls'] == {'extract': 5, 'names': 1, 'docs': 18}   # 인물은 덩어리마다 6명으로 어림
+    assert 0 < small['usd'] < big['usd']
 
 
 def test_the_preview_shows_documents_episode_examples_events_and_relations_for_the_asked_people():
@@ -405,3 +412,12 @@ def test_a_window_the_model_cannot_finish_is_read_again_in_halves_before_the_bui
 
     llm, stats = run_build(small, Truncating(small.cost))
     assert stats['units'] == 5 and any(kind == 'hp_extract' and len(json.loads(text)['text']) <= 3100 for kind, text in llm.asks)
+
+
+def test_events_of_chapters_whose_heading_was_not_found_are_dated_at_the_last_chapter_of_their_group(small):
+    small.raw.joinpath('가', '1.txt').write_text('제1장\n해리가 걷는다 MARK11 ' + '가' * 400 + '\n해리가 웃는다 MARK12 ' + '나' * 400 + '\n제3장\n해리가 걷는다 MARK13 ' + '다' * 400, encoding='utf-8')   # 2장 머리가 없다
+    _, stats = run_build(small)
+    data = json.loads((small.out / 'world.json').read_text(encoding='utf-8'))
+    events = {c['body'].split()[0]: c['revealFromEpisode'] for c in data['cards'] if c['cardType'] == 'event'}
+    assert stats['unsplit'] == [[1, [1, 2]]] and data['unsplit'] == [[1, [1, 2]]] and stats['units'] == 4
+    assert events['MARK11'] == events['MARK12'] == 2 and events['MARK13'] == 3   # 묶인 1~2장의 사건은 2화(마지막 장)다: 앞 장으로 미래 정보가 새지 않는다
