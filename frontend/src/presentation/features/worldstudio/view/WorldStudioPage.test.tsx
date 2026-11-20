@@ -3947,11 +3947,13 @@ it('사이드바 접기: 토글이 메뉴를 접고 펼치며(aria-expanded), �
   await showWorld()
   const toggle = () => screen.getByRole('button', { name: /세계관 메뉴 (접기|펼치기)/ })
   expect(toggle().getAttribute('aria-label')).toBe('세계관 메뉴 접기')
+  expect(toggle().getAttribute('title')).toBe('세계관 메뉴 접기') // 아이콘만 있는 버튼이라 마우스 사용자에게는 툴팁이 뜻을 알린다
   expect(toggle().getAttribute('aria-expanded')).toBe('true')
   expect(screen.getAllByRole('group', { name: '저장 상태' })).toHaveLength(1)
   toggle().focus()
   fireEvent.click(toggle())
   expect(toggle().getAttribute('aria-label')).toBe('세계관 메뉴 펼치기')
+  expect(toggle().getAttribute('title')).toBe('세계관 메뉴 펼치기')
   expect(toggle().getAttribute('aria-expanded')).toBe('false')
   expect(screen.queryByRole('navigation', { name: '세계관 메뉴' })).toBeNull() // 접근성 트리에서 사라진다
   expect(screen.queryByRole('button', { name: 'AI 검토' })).toBeNull()
@@ -4247,4 +4249,14 @@ it('게시판 제목 옆 [n]은 world-count 클래스를 달아 CSS가 넓은 �
   const badge = rowOf('가람').querySelector('.worlds-badge')!
   expect(badge.querySelector('.world-count')?.textContent).toBe('[1]')
   expect(badge.querySelector('.sr-only')?.textContent).toBe('관계 1개')
+})
+
+// ── 5단계 polish: 시간선 연결선은 점 중심 높이에서 이어진다 ─────────────────────────────────────────────────────
+it('시간선 연결선은 점 중심 높이(행 top 22 + 시점 1lh + 간격 8 + 점 반지름 7 ≈ 58)에서 점 중심(x 40)을 잇는다', async () => {
+  const first = eventCard('건국')
+  const second = eventCard('전쟁', '3년')
+  second.item.afterId = first.item.id
+  await show([first, second], '/worldstudio/qa?view=timeline')
+  const d = document.querySelector('.world-timeline-board svg path[marker-end]')?.getAttribute('d') ?? ''
+  expect(d).toMatch(/^M 40 58 C 190 58, -?\d+ 58, \d+ 58$/)
 })

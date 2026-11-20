@@ -212,6 +212,7 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
   const view = manage ? vm.view : null
   const step: StudioStep = manage ? (view === 'people' ? 'relations' : 'cards') : vm.flow.step
   const timeline = view === 'timeline'
+  const toggleLabel = menuOpen ? '세계관 메뉴 접기' : '세계관 메뉴 펼치기' // 아이콘만 있는 버튼: 이름(aria-label)과 마우스 툴팁(title)이 같은 글이다
   // 개요 폼은 한 번 열면 숨길 뿐 지우지 않아(게시판·관계 편집기와 같다) 다른 보기에 다녀와도 쓰던 이름·설명·고른 표지가 남는다. 열기 전에는 그리지 않는다(장르 목록 같은 읽기를 미리 하지 않는다).
   const [overviewSeen, setOverviewSeen] = useState(false)
   if (view === 'overview' && !overviewSeen) setOverviewSeen(true)
@@ -229,7 +230,7 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
     <section className={'world-content' + (manage ? ' ep-manage' : '')} data-menu={manage && !menuOpen ? 'collapsed' : undefined} hidden={vm.flow.screen !== 'editor'} aria-busy={vm.busy}>
       {manage && (
         <div className="ep-menu">
-          <button type="button" className="world-menu-toggle" aria-expanded={menuOpen} aria-controls={menuId} aria-label={menuOpen ? '세계관 메뉴 접기' : '세계관 메뉴 펼치기'} onClick={() => setMenuOpen(!menuOpen)}><FoldIcon /></button>
+          <button type="button" className="world-menu-toggle" aria-expanded={menuOpen} aria-controls={menuId} aria-label={toggleLabel} title={toggleLabel} onClick={() => setMenuOpen(!menuOpen)}><FoldIcon /></button>
           <div id={menuId} className="world-menu-body" hidden={!menuOpen}>
             <div className="world-menu-row">
             <nav aria-label="세계관 메뉴">

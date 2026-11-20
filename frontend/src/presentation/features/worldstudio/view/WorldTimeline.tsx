@@ -4,6 +4,9 @@ import type { SettingItem } from '../../../../domain/entities/studioWorld'
 import { timelineLayout } from '../viewmodel/worldTimeline'
 import './world-timeline.css'
 
+/** 점 중심의 y(사건 버튼 top 22 + 시점 1lh + 점 위 간격 8 + 점 반지름 7 ≈ 58). world-timeline.css의 .world-timeline-event gap과 함께 바꾼다. */
+const DOT_Y = 58
+
 export function WorldTimeline({items}:{items:SettingItem[]}) {
  const nodes=timelineLayout(items),[selected,setSelected]=useState<string|null>(null)
  const current=nodes.find(n=>n.item.id===selected)?.item??nodes[0]?.item
@@ -14,7 +17,7 @@ export function WorldTimeline({items}:{items:SettingItem[]}) {
   <div className="world-timeline-scroll" role="region" aria-label="사건 시간선" tabIndex={0}>
    <div className="world-timeline-board" style={{width,height}}>
     <svg width={width} height={height} aria-hidden="true"><defs><marker id="timeline-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs>
-     {nodes.map(n=>{const prev=nodes.find(p=>p.item.id===n.item.afterId);return prev?<path key={n.item.id} d={`M ${prev.column*310+40} ${prev.row*150+65} C ${prev.column*310+190} ${prev.row*150+65}, ${n.column*310-100} ${n.row*150+65}, ${n.column*310+40} ${n.row*150+65}`} fill="none" stroke="currentColor" strokeWidth="2" markerEnd="url(#timeline-arrow)"/>:null})}
+     {nodes.map(n=>{const prev=nodes.find(p=>p.item.id===n.item.afterId);return prev?<path key={n.item.id} d={`M ${prev.column*310+40} ${prev.row*150+DOT_Y} C ${prev.column*310+190} ${prev.row*150+DOT_Y}, ${n.column*310-100} ${n.row*150+DOT_Y}, ${n.column*310+40} ${n.row*150+DOT_Y}`} fill="none" stroke="currentColor" strokeWidth="2" markerEnd="url(#timeline-arrow)"/>:null})}
     </svg>
     {nodes.map(n=><button type="button" key={n.item.id} className="world-timeline-event" style={{left:n.column*310+25,top:n.row*150+22}} aria-pressed={current.id===n.item.id} onClick={()=>setSelected(n.item.id)}><span className="world-timeline-time">{n.item.timeText}</span><span className="world-timeline-dot"/><strong>{n.item.title}</strong></button>)}
    </div>

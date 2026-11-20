@@ -20,12 +20,14 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .episode-app .world-manage-hero[data-view] h1{font-size:24px}
 .episode-app .world-manage-hero[data-view] .ep-chips{margin-top:8px}
 .episode-app .world-manage-hero[data-view] .sum{display:none}
+/* 마법사 히어로(polish): 오른쪽 열이 행동 줄(연결된 소설 줄·버튼)까지 더해 표지보다 길어 가운데 정렬이면 표지가 제목보다 아래에 떠 보였다. 표지를 위 선에 맞춘다(관리 보기는 열이 표지 높이와 비슷해 가운데가 맞아 그대로다). */
+.episode-app .world-manage-hero[data-view=wizard]{align-items:start}
 /* 헤더 칩(quieter): 마법사의 저장됨(.chip.ok[role=status])은 평소 상태라 강조색이 아니라 회색 칩이다. 주의가 필요한 작성 중·미저장은 노랑(.wait) 그대로, role 없는 공개 칩(.ok)의 보라는 의미가 있어 그대로다. 칩 굵기는 700에서 600으로 낮춰 제목과 겨루지 않게 한다(/content 작품 관리 히어로는 .world-manage-hero가 아니라 그대로다). */
 .world-manage-hero .chip.ok[role=status]{background:var(--muted-bg);color:var(--sub)}
 .world-manage-hero .ep-chips .chip{font-weight:600}
 /* 공개 설정(관리 모드 헤더·작성 모드 기본 정보 단계): 공개 범위 토글과 장르 선택이 한 줄, 안내와 공개 화면 링크는 그 아래. 라벨 display는 .episode-app label이 정하므로 다시 정한다. */
-.episode-app .world-publish{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;margin:16px 0 12px;padding:0;border:0;min-width:0}
-.episode-app .world-publish .field{display:flex;margin:0}.world-publish .seg{width:200px;max-width:100%}.episode-app .world-publish select{min-width:150px}.world-publish>p{flex:1 1 100%;margin:0}
+.episode-app .world-publish{display:flex;flex-wrap:wrap;align-items:stretch;gap:12px 24px;margin:16px 0 12px;padding:0;border:0;min-width:0}
+.episode-app .world-publish .field{display:flex;justify-content:space-between;margin:0}.world-publish .seg{width:200px;max-width:100%}.episode-app .world-publish select{min-width:150px}.world-publish>p{flex:1 1 100%;margin:0}
 /* 개요 탭의 정보 편집 폼은 /content 작품 정보 편집과 같은 ep-edit 틀이다(공용 규칙이 폭 560px·간격을 정한다). 표지 묶음의 이름은 같은 폼의 다른 입력 이름(.episode-app label)과 같은 글자이고, 맨 앞의 지금 표지(헤더와 같은 .cov)는 160px로 버튼 줄과 간격을 둔다. */
 .world-cover-edit{display:grid;gap:8px;min-width:0}.world-cover-label{font-size:13px;font-weight:650}.world-cover-now{width:160px}
 
@@ -37,8 +39,8 @@ html:has(.world-writing){scrollbar-gutter:stable}
 @media(min-width:901px){.world-menu-tools{display:grid;padding-top:12px;border-top:1px solid var(--line2)}.world-menu-tools .world-save-bar{flex-direction:column;align-items:stretch;margin-top:8px}.world-menu-tools .world-save-state{padding-inline:10px}}
 .world-save-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px 12px}.world-save-state{font-size:13px;font-weight:650;white-space:nowrap}.world-save-state.ok{color:var(--tsub)}.world-save-state.wait{color:var(--pri-ink)}
 /* 저장을 막는 문제가 있어 잠긴 저장 버튼은 채운 보라가 아니라 옅은 윤곽선이다(저장할 것이 없으면 버튼 자체를 그리지 않는다). 사이드바·상단 바의 세계관 저장(.world-save-bar)·개요 폼의 저장(.world-info-edit)·마법사 검토·저장 단계의 세계관 저장(.world-save-actions)이 같은 모양이다(quieter).
-   흐림(.45)은 공용 disabled 규칙이 맡고, 바뀐 것이 생겨 켜지면 원래대로 채운 보라다. 화면 전체(.world-writing)로 넓히지 않는다: 어두운 무대의 상대 선택·공용 채팅 같은 다른 잠긴 주 버튼의 모양까지 바뀐다. */
-:is(.world-save-bar,.world-info-edit,.world-save-actions) .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--sub)}
+   흐림(.45)은 공용 disabled 규칙이 맡고 글자색은 되돌리기(.btn 기본 --ink)와 같아 둘 다 잠기면 같은 흐림이다(polish: 이전엔 --sub라 저장이 더 흐렸다. 글자색을 아예 빼면 공용 .btn.pri의 --on-pri가 남아 라이트에서 글자가 흰색이라 보이지 않는다). 바뀐 것이 생겨 켜지면 원래대로 채운 보라다. 화면 전체(.world-writing)로 넓히지 않는다: 어두운 무대의 상대 선택·공용 채팅 같은 다른 잠긴 주 버튼의 모양까지 바뀐다. */
+:is(.world-save-bar,.world-info-edit,.world-save-actions) .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--ink)}
 /* 저장을 막는 사유: 어느 설정의 문제인지 이름이 붙은 글자 버튼(누르면 그 설정의 편집 화면)과 남은 건수. 버튼은 본문 링크처럼 밑줄로 구분하고 누르는 높이는 44px다. */
 .world-save-issue{max-width:34ch;color:var(--danger);line-height:1.4;overflow-wrap:anywhere}
 .world-save-issue button{display:inline-flex;align-items:center;min-height:44px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -57,6 +59,9 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-menu-row{display:contents}
 .world-chat-slot:empty{display:none}
 @media(max-width:900px){.world-menu-body,.world-menu-row{min-width:0}.world-menu-row{display:flex;align-items:center;gap:8px}.world-menu-row nav{flex:1 1 auto;min-width:0}.world-chat-slot .studio-chat-toggle{position:static;flex:none;box-shadow:none;white-space:nowrap}}
+/* 900px 이하 보기 메뉴 탭 줄(polish): 탭 다섯 개가 한 줄에 다 들어가지 않는데 가로 스크롤 줄 끝(≈243px)이 탭 경계와 겹쳐 5번째 탭 소설 연결이 AI 채팅 열기 뒤로 통째로 가려지고 넘침 신호도 없었다(소설 연결로 들어와도 고른 탭이 화면 밖).
+   줄바꿈으로 바꿔 모든 탭과 고른 탭이 늘 보인다(+44px). 공용 .ep-menu nav(overflow-x:auto, /content 작품 관리 메뉴)와 특이도가 같아 지므로 .world-menu-body를 더해 이긴다. */
+@media(max-width:900px){.world-menu-body .world-menu-row nav{flex-wrap:wrap;overflow-x:visible}}
 /* AI 채팅 열기(quieter): 이 화면에서는 채운 보라가 아니라 윤곽선 버튼이다 — 첫 화면에서 가장 큰 채운 면이 아직 전송을 못 쓰는 채팅 버튼이라 고른 탭보다 먼저 보였다. 집필실(/studio)과 카드 편집 화면은 .episode-app 밖이라 그대로 보라다. 떠 있는 버튼(마법사, 채팅이 닫힌 901~1200px)의 그림자는 전역 .studio-chat-toggle이 남겨 찾을 수 있다. */
 .episode-app .studio-chat-toggle.btn.pri{background:var(--surface);border-color:var(--line2);color:var(--ink)}
 .episode-app .studio-chat-toggle.btn.pri:hover{background:var(--muted-bg)}
@@ -142,11 +147,11 @@ html:has(.world-writing){scrollbar-gutter:stable}
    모든 폭에서 줄 아래 인라인이다(AI 채팅 레일과 다투지 않는다). 요약은 4줄까지만 보이고 전체 글은 편집 화면에 있다. */
 .world-card-library .worlds-board-table tr.world-row-preview>td{padding:0;background:var(--pri-soft)}
 .world-card-library .worlds-board-table tr.sel:has(+.world-row-preview) td{border-bottom-color:transparent}
-.world-preview{display:grid;gap:10px;min-width:0;padding:6px 20px 16px}
+.world-preview{display:grid;gap:10px;min-width:0;padding:6px 20px 16px 56px}
 .world-preview-head{display:flex;align-items:center;gap:8px}.world-preview-head .board-thumb{margin-right:0}
 .world-preview-sum{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;margin:0;max-width:75ch;overflow:hidden;line-height:1.7;overflow-wrap:anywhere}
 .world-preview-meta{display:grid;gap:6px;margin:0}.world-preview-meta>div{display:flex;flex-wrap:wrap;gap:2px 12px}.world-preview-meta dt{flex:none;min-width:5.5em;color:var(--tsub);font-size:12.5px;font-weight:650}.world-preview-meta dd{min-width:0;margin:0;font-size:13.5px}
-.world-preview-meta ul{display:flex;flex-wrap:wrap;gap:2px 14px;margin:0;padding:0;list-style:none}
+.world-preview-meta ul{display:grid;gap:2px;margin:0;padding:0;list-style:none}
 .world-preview-actions{display:flex;flex-wrap:wrap;gap:8px}
 
 .world-legacy-list{margin-top:20px}.world-legacy-list>summary{cursor:pointer;min-height:44px;padding-block:10px}.world-legacy-list nav{display:grid;gap:6px;margin-top:8px}.world-legacy-list nav button{display:flex;justify-content:space-between;gap:10px;width:100%;padding:12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:inherit;text-align:left;cursor:pointer;overflow-wrap:anywhere}.world-legacy-list small{color:var(--sub);font-size:12px}
@@ -194,6 +199,8 @@ a.world-card-link{text-decoration:none}
 /* 편집 화면: 집필실(studio/view/writing.css)의 3단·레일·버전 그래프·AI 채팅 규칙을 그대로 쓰고, 세계관에만 있는 조각만 더한다. 토큰은 .calm.rd가 준다. */
 /* 전역 .sbar는 90% 면(반투명)이라 좁은 화면에서 sticky 상단 바 뒤로 스크롤되는 본문 글자가 비친다: 이 화면의 상단 바는 불투명한 면이다. */
 .world-card-studio .sbar{background:var(--tbg)}
+/* 카드 편집 상단 바(polish): 600px 이하에서 공용 .writing-bar-end가 폭 100%라 저장 상태·테마가 다음 줄로 내려가 바가 2줄(≈112px)이었다. 오른쪽 묶음은 같은 줄 오른쪽 끝에 붙는다(저장할 것·문제가 있어 넓어지면 기존 줄바꿈이 줄을 넘긴다). 집필실은 이 규칙이 닿지 않는다. */
+@media(max-width:600px){.world-card-studio .writing-bar-end{width:auto;margin-left:auto}}
 /* 편집 화면의 오류는 설정집 화면과 같은 오류 상자(공용 .ep-alert)로 보여 일반 안내와 구분한다. 상단 바 바로 아래에 두고 여러 줄 사유는 줄을 지킨다. */
 .world-card-studio>.ep-alert{margin:12px 24px 0;white-space:pre-wrap}
 /* 편집 화면의 AI 채팅은 설정집 화면의 채팅(.world-chat)과 같은 면이다: 집필실의 브랜드 틴트 대신 주변과 같은 --tbg. 틴트를 정하는 변수(--chat-bg)를 덮어 writing.css의 background가 그 값을 쓰게 한다(집필실 /studio의 채팅은 그대로).
@@ -211,6 +218,9 @@ a.world-card-link{text-decoration:none}
 .world-rail-kinds button:hover{background:var(--muted-bg);color:var(--tfg)}.world-rail-kinds button:is([aria-pressed=true],[aria-current=true]){border-color:var(--tacc);background:var(--pri-soft);color:var(--pri-ink)}
 .world-rail-empty{padding:8px 12px}
 /* 편집 화면 왼쪽 레일(폭 약 280px)의 쪽 이동은 앞의 '설정 카드' 글자 때문에 '다음' 버튼이 둘째 줄로 밀렸다(critique): 글자는 스크린리더용으로만 남겨(nav의 이름 '설정 카드 페이지 이동'도 그대로) 한 줄에 둔다. 공용 PageControls·전역 .sr-only는 건드리지 않는다. */
+/* 카드 레일의 쪽 이동(polish): 레일 글(왼쪽 24px)과 같은 선에서 시작하는 왼쪽 정렬이다. 가운데 정렬은 263px를 꽉 채워 레일 가장자리(x=8)에 닿았다. 간격 6px·select 최소 폭 56px(자연 폭 약 54px)로 약 243px가 되어 255px(레일 279 - 왼쪽 24)에 12px 여유로 한 줄에 든다. */
+.world-card-studio .writing-rail .page-controls{padding-inline-start:24px;justify-content:flex-start;gap:6px}
+.world-card-studio .writing-rail .page-controls select.inp{min-width:56px}
 .world-card-studio .page-controls>span:first-child{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 .world-graph-actions{padding-inline:24px}.world-graph-note{margin:0;padding-inline:24px;line-height:1.6}
 /* 카드 편집 화면 머리(#401): 왼쪽 열은 이름 입력·유형 선택(+가져온 출처), 오른쪽 열은 대표 이미지 타일이다(--tile 폭, 데스크톱 150px). 이미지 블록은 이름·유형 두 행을 오른쪽에서 잇고, 타일 아래에 바꾸기·빼기와 올리는 중 안내가 놓인다.

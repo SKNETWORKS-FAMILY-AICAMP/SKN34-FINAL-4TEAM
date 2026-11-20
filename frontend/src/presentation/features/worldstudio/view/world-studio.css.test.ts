@@ -201,7 +201,9 @@ it('잠긴 저장 버튼(개요 저장·사이드바/상단 저장·마법사 �
   const idle = rule((s) => s === ':is(.world-save-bar,.world-info-edit,.world-save-actions) .btn.pri:disabled')?.body ?? ''
   expect(idle).toMatch(/background:none/)
   expect(idle).toMatch(/border-color:var\(--line2\)/)
-  expect(idle).toMatch(/color:var\(--sub\)/)
+  // 글자색은 되돌리기(.btn 기본 --ink)와 같다: 둘 다 잠기면 같은 흐림(.45)이다. 글자색을 아예 빼면 공용 .btn.pri의 --on-pri(라이트 흰색)가 남아 윤곽선 버튼에서 글자가 보이지 않는다.
+  expect(idle).toMatch(/color:var\(--ink\)/)
+  expect(idle).not.toMatch(/color:var\(--sub\)/)
   expect(idle).not.toMatch(/display|visibility|opacity/)
   expect(css).not.toMatch(/\.world-writing \.btn\.pri:disabled/) // 화면 전체로 넓히면 어두운 무대의 상대 선택·채팅 버튼까지 바뀐다
 })
@@ -391,4 +393,67 @@ it('카드 편집기 미리보기: 커서 문단의 노란 면(분할 보기 전
 
 it('게시판 표 머리는 회색 띠가 아니라 아래 선 하나다(관리자 표와 같은 규칙, 이 화면 범위): 공용 worldBoard.css는 그대로라 /worlds/:id의 표는 띠가 남는다', () => {
   expect(rule((s) => s === '.world-card-library .worlds-board-table th')?.body).toMatch(/background:none;border-bottom:1px solid var\(--line2\)/)
+})
+
+// ── 5단계 polish: 정렬·간격·390 탭 줄·상태 마감(색·구조·문구는 그대로) ────────────────────────────────────────
+/** 관계도·관계 목록 규칙이 있는 파일(이 테스트는 media 안의 규칙을 원문 정규식으로 본다) */
+const mapCss = readFileSync(new URL('./world-map.css', import.meta.url), 'utf8')
+const mapRules = [...mapCss.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)].map(([, selector, body]) => ({ selector: selector.trim(), body }))
+const mapRule = (matches: (selector: string) => boolean) => mapRules.find((r) => matches(r.selector))
+
+it('900px 이하 세계관 메뉴의 탭 줄(nav)은 줄바꿈해 탭 다섯 개가 모두 보인다(가로 스크롤 줄 끝에서 소설 연결이 AI 채팅 열기 뒤로 가려졌다). 공용 .ep-menu nav(/content 작품 관리 메뉴)는 그대로이고, 이 규칙은 .world-menu-body를 더해 그 규칙을 이긴다', () => {
+  expect(css).toMatch(/@media\(max-width:900px\)\{\.world-menu-body \.world-menu-row nav\{flex-wrap:wrap;overflow-x:visible\}\}/)
+  expect(episodeCss).toContain('.ep-menu nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}') // 공용 틀은 그대로다
+})
+
+it('공개 범위·장르 줄은 라벨은 위 선·컨트롤은 아래 선에 맞춘다: 높이가 다른 seg(약 48px)와 select(약 40px)의 아래를 맞추면 라벨이 10px 어긋났다', () => {
+  expect(rule((s) => s === '.episode-app .world-publish')?.body).toMatch(/align-items:stretch/)
+  expect(rule((s) => s === '.episode-app .world-publish')?.body).not.toMatch(/align-items:flex-end/)
+  expect(rule((s) => s === '.episode-app .world-publish .field')?.body).toMatch(/justify-content:space-between/) // .field는 세로 flex: 라벨 위·컨트롤 아래
+})
+
+it('마법사(data-view=wizard) 히어로는 표지를 위 선에 맞춘다(오른쪽 열이 행동 줄 때문에 더 길어 가운데 정렬이면 표지가 떠 보인다). 관리 보기의 히어로는 그대로 가운데다', () => {
+  expect(rule((s) => s === '.episode-app .world-manage-hero[data-view=wizard]')?.body).toMatch(/align-items:start/)
+  expect(rule((s) => s === '.episode-app .world-manage-hero[data-view]')?.body).toMatch(/align-items:center/)
+})
+
+it('시간선 상세는 카드 글자 선과 같은 x에서 시작하고(좌우 안쪽 여백 없음), 점과 제목 사이 간격은 8px다 — 점 중심 y(행 top 22 + 시점 1lh + 간격 8 + 점 반지름 7)에 맞춰 연결선 좌표도 58이다', () => {
+  expect(timelineCss.match(/\.world-timeline-description\{([^}]*)\}/)?.[1]).toMatch(/padding:12px 0(;|$)/)
+  expect(timelineCss.match(/\.world-timeline-event\{([^}]*)\}/)?.[1]).toMatch(/gap:8px/)
+  expect(timelineCss.match(/\.world-timeline-event\{([^}]*)\}/)?.[1]).not.toMatch(/gap:15px/)
+})
+
+it("'관계 추가' 접힘 summary는 기본 ▶ 표시가 보이는 list-item이다(display:flex면 Chromium이 marker를 그리지 않는다). 누르는 높이는 44px다", () => {
+  const summary = mapRule((s) => s === '.relationship-add>summary')?.body ?? ''
+  expect(summary).toMatch(/display:list-item/)
+  expect(summary).not.toMatch(/display:flex/)
+  expect(summary).toMatch(/min-height:44px;padding-block:10px/)
+})
+
+it('카드 편집 화면의 상단 바는 600px 이하에서 오른쪽 묶음(저장 상태·테마)이 100% 폭으로 다음 줄에 내려가지 않고 같은 줄 오른쪽 끝에 붙는다', () => {
+  expect(css).toMatch(/@media\(max-width:600px\)\{\.world-card-studio \.writing-bar-end\{width:auto;margin-left:auto\}\}/)
+  expect(writingCss).toContain('.writing-bar-end { justify-content: flex-start; width: 100%; }') // 집필실 공용 규칙은 그대로다
+})
+
+it('게시판 미리보기는 왼쪽 안쪽 여백 56px(선택 칸 44 + 칸 여백 12)로 표 열에 맞고, 연결된 설정은 한 줄에 하나씩이다', () => {
+  expect(rule((s) => s === '.world-preview')?.body).toMatch(/padding:6px 20px 16px 56px/)
+  expect(rule((s) => s === '.world-preview-meta ul')?.body).toMatch(/display:grid;gap:2px/)
+  expect(rule((s) => s === '.world-preview-meta ul')?.body).not.toMatch(/flex/)
+})
+
+it('관계도 툴바는 600px 이하에서 중심 입력이 한 줄 전체를 쓰고, 쪽 이동 앞의 라벨(이웃·그래프)은 화면에서만 숨겨 버튼이 혼자 줄에 떨어지지 않는다(nav 이름은 그대로)', () => {
+  expect(mapCss).toMatch(/@media\(max-width:600px\)\{\.episode-app \.relationship-center\{flex:1 1 100%\}\.episode-app \.relationship-center input:not\(\[type=checkbox\]\):not\(\[type=radio\]\)\{width:100%\}\.relationship-focus \.page-controls>span:first-child\{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset\(50%\);white-space:nowrap;border:0\}\}/)
+})
+
+it('카드 레일의 쪽 이동은 레일 글과 같은 x(24px)에서 시작하는 왼쪽 정렬이고, 한 줄에 들어가도록 간격 6px·select 최소 폭 56px다(가운데 정렬로 263px를 꽉 채우던 것)', () => {
+  const nav = rule((s) => s === '.world-card-studio .writing-rail .page-controls')?.body ?? ''
+  expect(nav).toMatch(/padding-inline-start:24px/)
+  expect(nav).toMatch(/justify-content:flex-start/)
+  expect(nav).toMatch(/gap:6px/)
+  expect(rule((s) => s === '.world-card-studio .writing-rail .page-controls select.inp')?.body).toMatch(/min-width:56px/)
+})
+
+it('관계 목록의 삭제는 편집과 달리 위험색 글자이고 hover 면은 그대로다', () => {
+  expect(mapRule((s) => s === '.relationship-row-actions .btn:last-child')?.body).toMatch(/color:var\(--danger\)/)
+  expect(mapRule((s) => s === '.relationship-row-actions .btn:hover')?.body).toMatch(/background:var\(--muted-bg\)/)
 })

@@ -37,6 +37,8 @@
 .relationship-row details{margin-block:14px}.relationship-row summary{cursor:pointer;color:var(--sub);font-size:13px}
 .relationship-remove{margin-top:12px}.relationship-apply{position:sticky;bottom:-20px;background:var(--surface);display:flex;gap:10px;padding:16px 0;border-top:1px solid var(--line)}
 @media(max-width:600px){.relationship-toolbar{padding:12px 12px 4px}.relationship-hint{padding:4px 12px 10px}.relationship-filter{padding-inline:12px}.relationship-legend{padding-inline:12px}.relationship-focus{padding-inline:12px}.relationship-apply{bottom:-12px}}
+/* 관계도 툴바 390(polish): 중심 입력이 한 줄 전체를 쓰고, 쪽 이동 앞의 라벨(이웃·그래프)은 화면에서만 숨겨(sr-only 묶음, nav 이름 '이웃 페이지 이동'은 그대로) 다음 버튼이 혼자 줄에 떨어지지 않게 한다. 입력 규칙은 위(.episode-app .relationship-center input…)와 같은 특이도라 뒤에 와서 이긴다. */
+@media(max-width:600px){.episode-app .relationship-center{flex:1 1 100%}.episode-app .relationship-center input:not([type=checkbox]):not([type=radio]){width:100%}.relationship-focus .page-controls>span:first-child{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}}
 .relationship-cards-scroll{height:clamp(380px,55vh,590px);overflow:auto;overscroll-behavior:contain;background:var(--surface);scrollbar-color:var(--pri) var(--surface)}
 .relationship-cards-board{position:relative;min-height:360px}.relationship-card-edges{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible}
 /* 층: 간선 그림(0) < 카드(1) < 간선 라벨(2). 카드 면은 위 .relationship-stage 변수가 불투명이라 카드 뒤를 지나는 간선이 글자를 가로지르지 않고, 라벨은 카드 위에서도 읽힌다. */
@@ -58,7 +60,7 @@
 .relationship-service-form>*+*{margin-top:24px;padding-top:24px;border-top:1px solid var(--line2)}.relationship-service-form h4{margin:0;font-size:15px}
 .relationship-list{display:grid;gap:12px;align-content:start}
 /* '관계 추가' 폼은 접힌 <details>다(critique 승인): 그래프에서 두 카드를 고르는 길이 기본이라 처음에는 닫혀 있고, 고른 설정이 폼에 채워지면 펼쳐진다. details 자체는 grid로 두지 않고(기본 펼침 표시를 지킨다) 안쪽 묶음이 간격을 정한다. */
-.relationship-add>summary{display:flex;align-items:center;min-height:44px;font-size:15px;font-weight:700;cursor:pointer}
+.relationship-add>summary{display:list-item;min-height:44px;padding-block:10px;font-size:15px;font-weight:700;cursor:pointer}
 .relationship-add-body{display:grid;gap:12px;align-content:start;padding-top:12px}.relationship-pair{min-width:0}.relationship-add .field{margin-bottom:0}.relationship-actions{display:flex;flex-wrap:wrap;gap:8px}
 .relationship-table{width:100%;table-layout:fixed}.relationship-table :is(th,td){padding:8px 6px;text-align:left;vertical-align:middle;font-size:14px;overflow-wrap:anywhere}.relationship-table th{font-size:12px;background:none;border-bottom:1px solid var(--line2)}
 /* 칸 폭(R5): 주체·대상은 이름 길이만큼, 시작 회차·작업은 고정, 관계(자유 문구)가 남은 폭을 쓴다. 표는 전역 .adm-scroll(가로 스크롤, 표 최소 600px) 안이라 좁은 편집기·폰에서도 한 단어씩 꺾이지 않고 가로로 민다. */
@@ -67,7 +69,7 @@
    비레이어인 background:none이 전역 .btn:hover 면을 이기므로 hover 면을 다시 정한다. 터치 44px은 전역 .btn.sm 규칙 그대로다. */
 .relationship-card-link{padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;text-decoration:underline;text-decoration-color:var(--line3);cursor:pointer;overflow-wrap:anywhere}
 .relationship-card-link:hover{color:var(--pri-ink);text-decoration-color:currentColor}
-.relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}.relationship-row-actions .btn{border-color:transparent;background:none;font-weight:600}.relationship-row-actions .btn:hover{background:var(--muted-bg)}/* 390px 가로 넘침 방어(측정 필요): 그리드·플렉스 항목의 min-width는 auto라 안쪽의 넓은 내용(관계 목록 표는 전역 .adm-scroll table이 최소 600px, 중심 칩 줄은 수십 개)이 칸을 밀어 낼 수 있다. 칸을 0까지 줄일 수 있게 하고 넓은 내용은 자기 스크롤 상자(.adm-scroll·칩 줄)가 민다. */
+.relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}.relationship-row-actions .btn{border-color:transparent;background:none;font-weight:600}.relationship-row-actions .btn:hover{background:var(--muted-bg)}.relationship-row-actions .btn:last-child{color:var(--danger)}/* 390px 가로 넘침 방어(측정 필요): 그리드·플렉스 항목의 min-width는 auto라 안쪽의 넓은 내용(관계 목록 표는 전역 .adm-scroll table이 최소 600px, 중심 칩 줄은 수십 개)이 칸을 밀어 낼 수 있다. 칸을 0까지 줄일 수 있게 하고 넓은 내용은 자기 스크롤 상자(.adm-scroll·칩 줄)가 민다. */
 .relationship-editor :is(.relationship-service-form,.relationship-list,.relationship-focus,.relationship-add,.relationship-stage){min-width:0;max-width:100%}
 .relationship-list>.adm-scroll,.relationship-focus>*{min-width:0;max-width:100%}
 /* 390px 가로 넘침의 원인(critique 후속): 표의 마지막 칸 머리에는 오른쪽 맞춤 숨은 글자(.sr-only, position:absolute)가 있다. 가로 스크롤 상자(.adm-scroll)가 기준 위치가 아니면 이 1px 요소의 기준은 상자 밖(문서)이라 상자가 잘라 주지 않고, 표(최소 600px) 오른쪽 끝(안쪽 여백 안 646px)에 놓여 문서 폭을 646px로 늘렸다(모바일은 화면이 그 폭으로 줄어 innerWidth가 646).
