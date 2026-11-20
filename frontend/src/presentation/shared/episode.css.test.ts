@@ -155,10 +155,15 @@ describe('episode.css 관리 화면 왼쪽 사이드바 계약', () => {
 })
 
 describe('episode.css 이력 탭 제목 단계', () => {
-  it('저장본·AI 제안 항목 제목(h4)은 묶음 제목(h3)과 같은 여백·글자 크기라 단계만 낮아지고 눈으로는 같다', () => {
+  it('저장본·AI 제안 항목 제목(h4)은 묶음 제목(h3)보다 한 단계 낮아 탭 제목(h2) > 묶음(h3) > 항목(h4) 순으로 작아지고, 항목은 덜 굵다', () => {
     expect(rule('.ep-reading :is(h3,h4)')).toMatch(/margin:20px 0 12px/)
-    // Tailwind preflight를 쓰지 않아 제목 기본 크기가 브라우저 값(h3 1.17em, h4 1em) 그대로다: h4에 같은 크기를 줘야 단계를 낮춰도 작아 보이지 않는다.
-    expect(rule('.ep-reading h4')).toMatch(/font-size:1\.17em/)
+    // Tailwind preflight를 쓰지 않아 제목 기본 크기가 브라우저 값(h3 1.17em ≈ 17.6px로 h2 17px보다 큼, h4 1em)이라 글자 크기를 직접 정한다.
+    // 묶음 제목은 직계(>)만 건드려 항목 안 '조회한 문맥' 소제목(.ep-context h3, 15px)은 그대로다.
+    const px = (selector: string) => Number(rule(selector).match(/font-size:(\d+)px/)?.[1])
+    const [h2, h3, h4] = [px('.episode-app h2'), px('.ep-content .ep-reading>h3'), px('.ep-content .ep-reading h4')]
+    expect(h2).toBeGreaterThan(h3)
+    expect(h3).toBeGreaterThan(h4)
+    expect(rule('.ep-content .ep-reading h4')).toMatch(/font-weight:600/)
   })
 })
 
@@ -179,5 +184,57 @@ describe('episode.css 관리 화면 distill 계약 (작품 관리 탭 내용)', 
 
   it('세계관 탭의 연결·설정집 구획은 테두리 없는 구획(tcard 없음)이라 카드 안쪽 여백도 두지 않는다', () => {
     expect(rule('.episode-app .ep-card:not(.tcard)')).toMatch(/padding:0(?![\d.])/)
+  })
+})
+
+describe('episode.css 관리 화면 quieter 계약 (작품 관리)', () => {
+  it('이력·운영 탭의 안내·빈 상태 문단과 저장 시각은 다른 탭의 보조 문장과 같은 보조색이고, 알림 역할(role)이 붙은 문단은 건드리지 않는다', () => {
+    expect(rule('.ep-content .ep-reading>p:not([role])')).toMatch(/color:var\(--sub\)/)
+    const time = rule('.ep-content .ep-reading article time')
+    expect(time).toMatch(/color:var\(--sub\)/)
+    expect(time).toMatch(/font-size:13px/)
+  })
+
+  it('히어로 해시태그는 누를 수 없는 글자라 강조색 알약이 아니라 .chip과 같은 회색 알약이다 (소설 상세의 링크 태그는 .episode-app 밖이라 그대로)', () => {
+    const tag = rule('.episode-app .ep-hero .hashes span')
+    expect(tag).toMatch(/background:var\(--muted-bg\)/)
+    expect(tag).toMatch(/color:var\(--sub\)/)
+    expect(tag).not.toMatch(/--pri/)
+  })
+
+  it('이야기 분기 탭 제목은 다른 탭 제목(h2 17px)과 같은 크기라 26px 표제 규칙을 두지 않는다', () => {
+    expect(css).not.toMatch(/\.ep-fork h2\{[^}]*font-size/)
+  })
+
+  it('히어로 제목은 관리 도구에 맞게 32px·700이고 명조(--tfont)는 유지한다', () => {
+    const h1 = rule('.episode-app .ep-hero h1')
+    expect(h1).toMatch(/font-family:var\(--tfont\)/)
+    expect(h1).toMatch(/font-size:32px/)
+    expect(h1).toMatch(/font-weight:700/)
+  })
+
+  it('삭제 버튼의 테두리는 위험색이 아니라 다른 외곽선 버튼과 같은 회색이고, 위험 신호는 빨간 글자와 hover의 옅은 빨간 면이 맡는다', () => {
+    const danger = rule('.episode-app .ep-danger')
+    expect(danger).toMatch(/border-color:var\(--line2\)/)
+    expect(danger).toMatch(/color:var\(--danger\)/)
+    expect(rule('.episode-app .ep-danger:hover')).toMatch(/background:color-mix\(in srgb,var\(--danger\) 10%,transparent\)/)
+  })
+
+  it('분기 정책·포크 정보 카드는 작품 삭제 구획처럼 위쪽 선 하나의 구획이다 — 카드 머리(.ep-sec-head)가 있는 카드로 한정해 세계관 관리의 큰 카드와 이어받는 원작 세계관 카드는 그대로 둔다', () => {
+    const flat = rule('.episode-app .ep-card.tcard:has(>.ep-sec-head)')
+    expect(flat).toMatch(/background:none/)
+    expect(flat).toMatch(/border:0;border-top:1px solid var\(--line2\)/)
+    expect(flat).toMatch(/border-radius:0/)
+    expect(flat).toMatch(/padding:16px 0 0/)
+    // 한정 없이 .ep-card.tcard 전체에 걸면 WorldStudioPage의 본문 카드(게시판·관계도·시간선을 담는 큰 카드)와 LinkedWorldPanel의 '이어받는 원작 세계관' 카드까지 펴진다.
+    expect(rules.map((r) => r.selector)).not.toContain('.episode-app .ep-card.tcard')
+  })
+
+  it('받은 피드백의 두 구획 사이는 다른 탭의 구획 간격(32px)이다 (첫 구획은 inline marginTop:0이 우선해 그대로)', () => {
+    expect(rule('.ep-feedback .sec')).toMatch(/margin-top:32px/)
+  })
+
+  it('히어로 통계 숫자는 800이 아니라 700이다', () => {
+    expect(rule('.episode-app .ep-hero .stats b')).toMatch(/font-weight:700/)
   })
 })

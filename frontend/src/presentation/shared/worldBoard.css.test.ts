@@ -148,3 +148,19 @@ describe('select 규칙은 전역 셰브런(오른쪽 화살표)을 지우지 �
     expect(offenders).toEqual([])
   })
 })
+
+describe('관계도 무대 조용히 다듬기', () => {
+  it('무대는 카드 안의 평평한 면이라 그림자가 없고(어두운 면 위 그림자는 보이지 않고 층만 늘린다) 고정 색 그라데이션은 그대로다', () => {
+    const stage = rule(map, '.relationship-stage')
+    expect(stage).not.toMatch(/box-shadow/)
+    expect(stage).toMatch(/radial-gradient\(ellipse at 50% 46%,var\(--stage-1\) 0%,var\(--stage-2\) 56%,var\(--stage-3\) 100%\)/)
+  })
+
+  it('구획 제목 h4는 700·자간 없음이고 유형 필터 버튼은 600이다 (켜짐·꺼짐 색 체계는 그대로)', () => {
+    const h4 = rule(map, '.relationship-toolbar h4')
+    expect(h4).toMatch(/font-weight:700/)
+    expect(h4).not.toMatch(/letter-spacing/)
+    expect(rule(map, '.relationship-filter .btn')).toMatch(/font-weight:600/)
+    expect(map).toMatch(/\.relationship-stage \.relationship-filter \.btn\[aria-pressed=true\]\{[^}]*background:var\(--rc-sel\)/)
+  })
+})

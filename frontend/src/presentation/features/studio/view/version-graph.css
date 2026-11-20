@@ -5,7 +5,7 @@
 .graph-row:first-child::before { top: 22px; }
 .graph-row:last-child::before { bottom: calc(100% - 22px); }
 .graph-node { position: relative; z-index: 1; box-sizing: border-box; width: 12px; height: 12px; margin: 16px 0 0 4px; border: 2px solid var(--tacc); border-radius: 50%; background: var(--tbg); }
-.graph-row.head .graph-node { background: var(--tacc); box-shadow: 0 0 0 4px var(--pri-soft); }
+.graph-row.head .graph-node { background: var(--tacc); }
 .graph-row.unsaved .graph-node { border-style: dashed; }
 .graph-item { display: flex; flex-direction: column; gap: 2px; min-width: 0; min-height: 44px; padding: 10px 12px; border: 0; border-radius: 12px; background: none; color: var(--tfg); text-align: left; font-size: 13.5px; }
 button.graph-item:hover { background: var(--muted-bg); }

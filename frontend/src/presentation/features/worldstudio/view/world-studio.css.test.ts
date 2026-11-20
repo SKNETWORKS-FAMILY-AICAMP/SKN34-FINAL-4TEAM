@@ -90,8 +90,9 @@ it('카드 편집 화면 머리는 왼쪽(이름·유형)과 오른쪽(대표 �
   expect(css).not.toMatch(/@media \(max-width:\s*600px\)\{\.world-card-head/) // 뷰포트 기준 전환은 두지 않는다
 })
 
-it('대표 이미지 타일은 헤더 표지(.cov)의 3:4·둥근 모서리·그림자를 그대로 쓰고 빈 타일만 점선 테두리(--line3)·그림자 없음으로 구분하며, 빈 타일 안 이미지 추가는 타일 전체를 덮는다', () => {
-  expect(rule((s) => s === '.world-card-tile.empty')?.body).toMatch(/border:\s*2px dashed var\(--line3\)[^}]*box-shadow:\s*none/)
+it('대표 이미지 타일은 헤더 표지(.cov)의 3:4·둥근 모서리·그림자를 그대로 쓰고 빈 타일만 얇은(1px) 점선 테두리(--line3)·그림자 없음으로 구분하며, 빈 타일 안 이미지 추가는 타일 전체를 덮는다', () => {
+  // 두께만 2px에서 줄인다: 색을 --line2로 옅게 하면 라이트에서 1.23:1이라 빈 자리의 윤곽이 사라지고, --line3은 3.49:1(다크 4.41:1)로 경계 대비 3:1을 지킨다.
+  expect(rule((s) => s === '.world-card-tile.empty')?.body).toMatch(/border:\s*1px dashed var\(--line3\)[^}]*box-shadow:\s*none/)
   // 크기·모서리·그림자는 전역 .cov가 정하므로 여기서 다시 정하지 않는다(세계관 헤더 표지와 어긋나지 않게).
   expect(rule((s) => s === '.world-card-tile')?.body ?? '').not.toMatch(/aspect-ratio|border-radius|box-shadow/)
   expect(rule((s) => s === '.world-card-studio .world-card-tile .world-card-tile-add')?.body).toMatch(/position:\s*absolute;\s*inset:\s*0/)
@@ -178,4 +179,50 @@ it('관계 기준 회차 상자는 카드 안의 카드가 아니라 테두리·
 
 it('시간선 사건의 시점 칸은 시점이 비어 글자가 없어도 한 줄 높이를 지켜 점과 연결선 화살표(y+65)의 높이가 달라지지 않는다', () => {
   expect(timelineCss.match(/\.world-timeline-time\{([^}]*)\}/)?.[1]).toMatch(/min-height:\s*1lh/)
+})
+
+// 관리 화면 quieter(세계관 관리): 색·굵기·두께만 낮추고 구조·문구는 그대로다.
+
+it('상시 저장 버튼은 저장할 것이 없어 잠기면(disabled) 채운 보라가 아니라 윤곽선 버튼이다 — 숨기지 않고 톤만 낮추며, 흐림(.55)은 공용 disabled 규칙이 맡는다', () => {
+  const idle = rule((s) => s === '.world-save-bar .btn.pri:disabled')?.body ?? ''
+  expect(idle).toMatch(/background:none/)
+  expect(idle).toMatch(/border-color:var\(--line2\)/)
+  expect(idle).toMatch(/color:var\(--sub\)/)
+  expect(idle).not.toMatch(/display|visibility|opacity/)
+})
+
+it('게시판 제목은 800이 아니라 650이라 줄마다 무거운 글자가 쌓이지 않고(AI 의견 배지 제외), 공개 칸의 N화부터는 보라 기둥이 아니라 본문색이다', () => {
+  expect(rule((s) => s === '.world-card-library .worlds-board-table .col-title :is(a,button):not(.world-opinion)')?.body).toMatch(/font-weight:650/)
+  const vis = rule((s) => s === '.world-card-library .worlds-board-table .col-vis[data-public=true]')?.body ?? ''
+  expect(vis).toMatch(/color:var\(--tfg\)/)
+  expect(vis).toMatch(/font-weight:600/)
+})
+
+it('분류 칩 줄(게시판 폭 760px 이하)에서 선택하지 않은 칩은 옅은 테두리·600이고, 선택한 칩(aria-current)은 건드리지 않는다', () => {
+  expect(css).toMatch(/@container worlds-board \(max-width:760px\)\{\.world-card-library \.worlds-cats :is\(a,button\):not\(\[aria-current\]\)\{border-color:var\(--line\);font-weight:600\}\}/)
+})
+
+it('사이드바의 도구 버튼(AI 검토·집필 메모·확정 버전)은 901px부터 보기 메뉴보다 가벼운 옅은 테두리·600이고, 저장 버튼(.pri)과 900px 이하 가로 줄은 그대로다', () => {
+  expect(css).toMatch(/@media\(min-width:901px\)\{[^@]*\.world-menu-tools \.btn:not\(\.pri\)\{border-color:var\(--line\);font-weight:600\}\}/)
+})
+
+it('채팅 머리의 브랜드 원은 집필실 채팅 머리(.chat-brand)와 같은 옅은 면이다 — 채운 보라는 전송 버튼만', () => {
+  const soft = /background:\s*var\(--pri-soft\);\s*color:\s*var\(--pri-ink\)/
+  expect(rule((s) => s === '.world-chat .chat-brand')?.body).toMatch(soft)
+  expect(writingCss.match(/\.chat-brand \{([^}]*)\}/)?.[1]).toMatch(soft)
+})
+
+it('작성 단계 표시는 연결선·원 테두리가 1px로 가늘고(지금 단계의 채움 --pri는 그대로), 레일의 분류 칩·문서 탭 글자는 600이다', () => {
+  expect(rule((s) => s === '.world-step-nav li+li::before')?.body).toMatch(/height:1px/)
+  expect(rule((s) => s === '.world-step-nav span')?.body).toMatch(/border:1px solid var\(--line2\)/)
+  expect(css).toMatch(/\.world-step-nav \[data-state=now\] span\{[^}]*background:var\(--pri\)/)
+  expect(rule((s) => s === '.world-rail-kinds button')?.body).toMatch(/font-weight:600/)
+})
+
+it('Toast 기본 CSS를 어두운 테마 CSS보다 먼저 불러온다 — 특이도가 같은 두 규칙은 나중에 불러온 쪽이 이겨, 반대 순서면 어두운 편집기의 탭 줄 뒤에 밝은 띠(#f7f9fc)가 깔린다', () => {
+  const source = readFileSync(new URL('../../../shared/MarkdownEditor.tsx', import.meta.url), 'utf8')
+  const base = source.indexOf("'@toast-ui/editor/dist/toastui-editor.css'")
+  const dark = source.indexOf("'@toast-ui/editor/dist/theme/toastui-editor-dark.css'")
+  expect(base).toBeGreaterThan(-1)
+  expect(dark).toBeGreaterThan(base)
 })

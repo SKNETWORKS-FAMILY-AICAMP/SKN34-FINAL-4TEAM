@@ -6,7 +6,7 @@ function Label({ row }: { row: VersionGraphRow }) {
     <span className="graph-label">{row.label}
       {row.head && <span className="chip ok">현재</span>}
       {row.unsaved && <span className="chip wait">저장 안 됨</span>}
-      {row.published && <span className="chip ok">발행본</span>}
+      {row.published && <span className="chip">발행본</span>}
     </span>
     {row.savedAt && <time className="graph-time" dateTime={row.savedAt}>{new Date(row.savedAt).toLocaleString('ko-KR')}</time>}
   </>
