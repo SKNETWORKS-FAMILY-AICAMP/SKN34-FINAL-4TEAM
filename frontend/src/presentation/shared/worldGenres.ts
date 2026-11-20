@@ -34,7 +34,7 @@ function hslHex(hue: number, saturation: number, lightness: number) {
 
 /** 홈 장르 칩 줄의 첫 칩과 같은 이름. 장르를 거르지 않고 모두 보인다. */
 export const ALL_CHIP = '추천'
-export type WorldChip = { label: string; genre: string }
+type WorldChip = { label: string; genre: string }
 /**
  * 세계관 목록의 칩 줄: 추천 + 세계관이 하나 이상 있는 활성 장르(공개 장르 목록 순서, 라벨은 아이콘 이름).
  * 칩의 `genre`는 장르 이름이고(서버가 이름을 유일하게 지켜, 지도 노드의 장르와 같은 값이다) 추천 칩은 ALL_CHIP이다. 고를 때는 라벨이 아니라 `genre` 값을 쓴다.

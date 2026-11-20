@@ -16,8 +16,10 @@ describe('HttpGenreRepository', () => {
     expect(new Headers(init.headers).has('Authorization')).toBe(false)
   })
 
-  it('목록을 items로 감싸 줘도 받고 비었거나 없는 아이콘은 null로 읽는다', async () => {
-    const fetcher = vi.fn(async () => Response.json({ items: [{ code: 'genre-03', name: '무협', emoji: '', featured: false }, { code: 'genre-04', name: '선협', featured: true }] }))
+  it('비었거나 없는 아이콘은 null로 읽고 계약(배열)과 다른 모양(items로 감싼 응답)은 형식 오류다', async () => {
+    const rows = [{ code: 'genre-03', name: '무협', emoji: '', featured: false }, { code: 'genre-04', name: '선협', featured: true }]
+    await expect(new HttpGenreRepository(vi.fn(async () => Response.json({ items: rows }))).list()).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+    const fetcher = vi.fn(async () => Response.json(rows))
     expect(await new HttpGenreRepository(fetcher).list()).toEqual([
       { code: 'genre-03', name: '무협', emoji: null, featured: false },
       { code: 'genre-04', name: '선협', emoji: null, featured: true },

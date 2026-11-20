@@ -25,7 +25,7 @@ describe('HttpOperationsGenreRepository', () => {
     const [[url, init]] = callsOf(fetcher)
     expect(url).toBe('/api/v1/operations/genres')
     expect(init.headers.Authorization).toBe('Bearer g-bearer')
-    expect(await new HttpOperationsGenreRepository(ok({ items: [row] })).list()).toEqual([row])
+    await expect(new HttpOperationsGenreRepository(ok({ items: [row] })).list()).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.') // 계약은 배열이다
   })
 
   it('형식이 다른 목록은 던진다', async () => {

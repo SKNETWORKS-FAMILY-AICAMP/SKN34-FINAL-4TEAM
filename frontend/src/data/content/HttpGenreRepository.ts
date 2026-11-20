@@ -3,10 +3,8 @@ import { z } from 'zod'
 import type { Genre } from '../../domain/entities/genre'
 import type { GenreRepository } from '../../domain/repositories/GenreRepository'
 
-/** 장르 한 줄(계약: `{code, name, emoji, featured}`). 아이콘은 없거나 비어 올 수 있어 null로 통일한다. 운영 장르 응답도 이 행을 넓혀 쓴다. */
+/** 장르 한 줄(계약: `{code, name, emoji, featured}`, 목록은 배열). 아이콘은 없거나 비어 올 수 있어 null로 통일한다. 운영 장르 응답도 이 행을 넓혀 쓴다. */
 export const genreRow = z.object({ code: z.string().min(1), name: z.string().min(1), emoji: z.string().nullish().transform((value) => value || null), featured: z.boolean() })
-/** 목록은 배열이 계약이지만 다른 목록 API처럼 `{ items }`로 와도 받는다. */
-export const listOf = <T extends z.ZodType>(item: T) => z.union([z.array(item), z.object({ items: z.array(item) }).transform((value) => value.items)])
 
 const FORMAT = '서버 응답 형식을 확인할 수 없어요.'
 
@@ -22,7 +20,7 @@ export class HttpGenreRepository implements GenreRepository {
     const requestSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(20000)]) : AbortSignal.timeout(20000)
     const response = await (this.fetcher ?? fetch)('/api/v1/public/genres', { method: 'GET', credentials: 'same-origin', signal: requestSignal })
     if (!response.ok) throw new Error('장르를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
-    const parsed = listOf(genreRow).safeParse(await response.json().catch(() => undefined))
+    const parsed = z.array(genreRow).safeParse(await response.json().catch(() => undefined))
     if (!parsed.success) throw new Error(FORMAT)
     return parsed.data
   }

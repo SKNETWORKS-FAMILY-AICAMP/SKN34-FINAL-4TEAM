@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { GENRE_MESSAGES, GENRE_ORDER_MESSAGE, type GenreInput, type GenrePatch, type OperationsGenre } from '../../domain/entities/genre'
 import type { OperationsGenreRepository } from '../../domain/repositories/OperationsGenreRepository'
-import { genreRow, listOf } from '../content/HttpGenreRepository'
+import { genreRow } from '../content/HttpGenreRepository'
 import { MESSAGES, read, send, type ServerReason } from './operationsApi'
 
 const count = z.number().int().nonnegative()
@@ -26,7 +26,7 @@ export class HttpOperationsGenreRepository implements OperationsGenreRepository 
   private readonly fetcher?: typeof fetch
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
 
-  list(): Promise<OperationsGenre[]> { return read(this.fetcher, '/genres', listOf(operationsGenre)) }
+  list(): Promise<OperationsGenre[]> { return read(this.fetcher, '/genres', z.array(operationsGenre)) }
   async create(input: GenreInput) { await send(this.fetcher, '/genres', 'POST', input, INPUT_MESSAGES, conflictReason) }
   async update(code: string, patch: GenrePatch) { await send(this.fetcher, `/genres/${encodeURIComponent(code)}`, 'PATCH', patch, INPUT_MESSAGES, conflictReason) }
   async reorder(codes: string[]) { await send(this.fetcher, '/genres/order', 'PUT', { codes }, ORDER_MESSAGES) }
