@@ -190,6 +190,17 @@ describe('회차 뷰어 · 숨긴 바와 구조', () => {
     expect(order).toEqual(['read', 'write', 'write', 'write'])
   })
 
+  it('공유 버튼은 데모 안내 대신 이 회차의 주소를 복사하고 토스트로 알린다', async () => {
+    await openReader()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    try {
+      fireEvent.click(within(document.getElementById('rtop')!).getByRole('button', { name: '공유' }))
+      expect(writeText).toHaveBeenCalledWith(window.location.href)
+      await screen.findByText('링크를 복사했어요')
+    } finally { Reflect.deleteProperty(navigator, 'clipboard') }
+  })
+
   it('포커스가 들어 있는 바는 숨기지 않는다', async () => {
     await openReader()
     const [top, bottom] = [document.getElementById('rtop')!, document.getElementById('rbot')!]

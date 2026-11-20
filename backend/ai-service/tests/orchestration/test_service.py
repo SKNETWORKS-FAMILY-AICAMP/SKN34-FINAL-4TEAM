@@ -61,18 +61,18 @@ def test_router_receives_request_operation_and_materials(monkeypatch):
 
 
 def test_missing_input_without_a_conversation_ends_as_needs_input_and_keeps_the_finished_steps(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    calls = fake_agents(monkeypatch, plan('story_context', 'research'))
     result = run(inputs={'story_context': QA})
-    assert (result.status, result.missingInputs) == ('needs_input', ['web_research'])
+    assert (result.status, result.missingInputs) == ('needs_input', ['research'])
     assert names(calls) == ['judge', 'story_context'] and [s.feature for s in result.steps] == ['story_context']
 
 
 def test_independent_steps_run_in_plan_order_with_own_inputs(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('web_research', 'story_context', 'writing_editing'))
-    result = run(inputs={'story_context': QA, 'web_research': WEB, 'writing_editing': DRAFT})
+    calls = fake_agents(monkeypatch, plan('research', 'story_context', 'writing_editing'))
+    result = run(inputs={'story_context': QA, 'research': WEB, 'writing_editing': DRAFT})
     assert result.status == 'completed'
-    assert names(calls) == ['judge', 'web_research', 'story_context', 'draft']
-    assert [s.feature for s in result.steps] == ['web_research', 'story_context', 'writing_editing']
+    assert names(calls) == ['judge', 'research', 'story_context', 'draft']
+    assert [s.feature for s in result.steps] == ['research', 'story_context', 'writing_editing']
     assert result.steps[1].result.claims[0].sourceIds == ['a']
     assert calls[1][1][0].question == WEB['question']
 
@@ -85,13 +85,13 @@ def test_writing_patch_input_runs_patch(monkeypatch):
 
 
 def test_failed_step_keeps_earlier_result_and_starts_no_new_step(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research', 'writing_editing'),
-                        fail={'web_research': ResearchFailure(503, '웹 검색에 실패했습니다.')})
-    result = run(inputs={'story_context': QA, 'web_research': WEB, 'writing_editing': DRAFT})
+    calls = fake_agents(monkeypatch, plan('story_context', 'research', 'writing_editing'),
+                        fail={'research': ResearchFailure(503, '웹 검색에 실패했습니다.')})
+    result = run(inputs={'story_context': QA, 'research': WEB, 'writing_editing': DRAFT})
     assert result.status == 'failed'
     assert [(s.status, s.error) for s in result.steps] == [
         ('completed', None), ('failed', '웹 검색에 실패했습니다.')]
-    assert names(calls) == ['judge', 'story_context', 'web_research']
+    assert names(calls) == ['judge', 'story_context', 'research']
 
 
 def test_router_failure_propagates(monkeypatch):
@@ -107,20 +107,20 @@ def stream(request='요청', **body):
 
 
 def test_stream_reports_plan_each_step_start_and_result_then_done(monkeypatch):
-    fake_agents(monkeypatch, plan('story_context', 'web_research'))
-    events = stream(inputs={'story_context': QA, 'web_research': WEB})
+    fake_agents(monkeypatch, plan('story_context', 'research'))
+    events = stream(inputs={'story_context': QA, 'research': WEB})
     assert [(name, data.get('feature')) for name, data in events] == [
         ('plan', None), ('started', 'story_context'), ('step', 'story_context'),
-        ('started', 'web_research'), ('step', 'web_research'), ('done', None)]
-    assert [s['feature'] for s in events[0][1]['steps']] == ['story_context', 'web_research']
+        ('started', 'research'), ('step', 'research'), ('done', None)]
+    assert [s['feature'] for s in events[0][1]['steps']] == ['story_context', 'research']
     assert events[2][1]['status'] == 'completed' and events[2][1]['result']['claims'][0]['sourceIds'] == ['a']
     assert events[-1][1]['status'] == 'completed' and len(events[-1][1]['steps']) == 2
 
 
 def test_stream_stops_starting_steps_after_failure(monkeypatch):
-    fake_agents(monkeypatch, plan('story_context', 'web_research'),
+    fake_agents(monkeypatch, plan('story_context', 'research'),
                 fail={'story_context': StoryQaFailure(502, 'Q&A 모델 응답을 확인할 수 없습니다.')})
-    events = stream(inputs={'story_context': QA, 'web_research': WEB})
+    events = stream(inputs={'story_context': QA, 'research': WEB})
     assert [name for name, _ in events] == ['plan', 'started', 'step', 'done']
     assert events[2][1]['error'] == 'Q&A 모델 응답을 확인할 수 없습니다.'
     assert events[-1][1]['status'] == 'failed'
@@ -132,23 +132,23 @@ def slow_qa(monkeypatch, seconds=0.3):
 
 
 def test_stream_of_a_batch_sends_steps_as_they_finish_and_done_in_call_order(monkeypatch):
-    fake_agents(monkeypatch, plan(['story_context', 'web_research']))
+    fake_agents(monkeypatch, plan(['story_context', 'research']))
     slow_qa(monkeypatch)
-    events = stream(inputs={'story_context': QA, 'web_research': WEB})
+    events = stream(inputs={'story_context': QA, 'research': WEB})
     assert [name for name, _ in events] == ['plan', 'started', 'started', 'step', 'step', 'done']
-    assert [data['feature'] for name, data in events if name == 'step'] == ['web_research', 'story_context']  # 먼저 끝난 결과가 먼저
-    assert [s['feature'] for s in events[-1][1]['steps']] == ['story_context', 'web_research']  # 모델이 부른 순서
+    assert [data['feature'] for name, data in events if name == 'step'] == ['research', 'story_context']  # 먼저 끝난 결과가 먼저
+    assert [s['feature'] for s in events[-1][1]['steps']] == ['story_context', 'research']  # 모델이 부른 순서
 
 
 def test_batched_steps_are_overlapping_spans_of_the_same_trace(monkeypatch, spans):
-    fake_agents(monkeypatch, plan(['story_context', 'web_research']))
+    fake_agents(monkeypatch, plan(['story_context', 'research']))
     slow_qa(monkeypatch)
     # 웹 조사도 시간이 걸려야 두 단계가 겹친다. 즉시 끝나면 Q&A 스레드가 늦게 시작할 때 겹치지 않아 흔들린다.
     web = tools.research.research
     monkeypatch.setattr(tools.research, 'research', lambda data: (time.sleep(0.3), web(data))[1])
-    run(inputs={'story_context': QA, 'web_research': WEB})
+    run(inputs={'story_context': QA, 'research': WEB})
     found = {s.name: s for s in spans()}
-    qa, web, root = found['step.story_context'], found['step.web_research'], found['orchestration']
+    qa, web, root = found['step.story_context'], found['step.research'], found['orchestration']
     assert qa.parent.span_id == web.parent.span_id == root.context.span_id
     assert web.start_time < qa.end_time and qa.start_time < web.end_time
 
@@ -214,34 +214,34 @@ def resume(thread, approved=True, inputs=None, scope='user:1/work:1'):
 
 
 def test_missing_input_in_conversation_waits_inside_the_tool_after_the_finished_steps(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    calls = fake_agents(monkeypatch, plan('story_context', 'research'))
     result = chat(str(uuid4()), inputs={'story_context': QA})
-    assert (result.status, result.missingInputs) == ('waiting', ['web_research'])
-    assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'completed'), ('web_research', 'not_started')]
+    assert (result.status, result.missingInputs) == ('waiting', ['research'])
+    assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'completed'), ('research', 'not_started')]
     assert names(calls) == ['judge', 'story_context']
 
 
 def test_resume_with_inputs_runs_saved_plan_without_routing_again(monkeypatch):
     thread = str(uuid4())
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    calls = fake_agents(monkeypatch, plan('story_context', 'research'))
     chat(thread, inputs={'story_context': QA})
-    result = resume(thread, inputs={'web_research': WEB})
+    result = resume(thread, inputs={'research': WEB})
     assert result.status == 'completed' and [s.status for s in result.steps] == ['completed', 'completed']
-    assert names(calls) == ['judge', 'story_context', 'web_research']
+    assert names(calls) == ['judge', 'story_context', 'research']
 
 
 def test_resume_still_missing_waits_again(monkeypatch):
     thread = str(uuid4())
-    fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    fake_agents(monkeypatch, plan('story_context', 'research'))
     chat(thread)
     again = resume(thread, inputs={'story_context': QA})
-    assert (again.status, again.missingInputs) == ('waiting', ['web_research'])
-    assert resume(thread, inputs={'web_research': WEB}).status == 'completed'
+    assert (again.status, again.missingInputs) == ('waiting', ['research'])
+    assert resume(thread, inputs={'research': WEB}).status == 'completed'
 
 
 def test_rejected_resume_cancels_without_running(monkeypatch):
     thread = str(uuid4())
-    calls = fake_agents(monkeypatch, plan('web_research'))
+    calls = fake_agents(monkeypatch, plan('research'))
     chat(thread)
     assert resume(thread, approved=False).status == 'cancelled'
     assert names(calls) == ['judge']
@@ -251,12 +251,12 @@ def test_rejected_resume_cancels_without_running(monkeypatch):
 
 def test_resume_needs_a_waiting_run_of_the_same_scope(monkeypatch):
     thread = str(uuid4())
-    fake_agents(monkeypatch, plan('web_research'))
+    fake_agents(monkeypatch, plan('research'))
     with pytest.raises(service.NothingToResume):
         resume(thread)
     chat(thread)
     with pytest.raises(service.ConversationMismatch):
-        resume(thread, scope='user:2/work:1', inputs={'web_research': WEB})
+        resume(thread, scope='user:2/work:1', inputs={'research': WEB})
 
 
 def test_conversation_without_configured_store_is_unavailable(monkeypatch):
@@ -269,43 +269,43 @@ def test_conversation_without_configured_store_is_unavailable(monkeypatch):
 
 def test_stream_reports_waiting_then_resume_streams_steps(monkeypatch):
     thread = str(uuid4())
-    fake_agents(monkeypatch, plan('web_research'))
+    fake_agents(monkeypatch, plan('research'))
     conversation = {'threadId': thread, 'scope': 'user:1/work:1'}
     first = stream(conversation=conversation)
     assert [name for name, _ in first] == ['plan', 'waiting', 'done']
-    assert first[1][1]['missingInputs'] == ['web_research'] and first[-1][1]['status'] == 'waiting'
-    second = stream(request=None, conversation=conversation, resume={'approved': True, 'inputs': {'web_research': WEB}})
+    assert first[1][1]['missingInputs'] == ['research'] and first[-1][1]['status'] == 'waiting'
+    second = stream(request=None, conversation=conversation, resume={'approved': True, 'inputs': {'research': WEB}})
     assert [name for name, _ in second] == ['started', 'step', 'done']
     assert second[-1][1]['status'] == 'completed'
 
 
 def test_run_id_is_the_trace_of_the_decision_main_agent_and_steps(monkeypatch, spans):
-    fake_agents(monkeypatch, plan('story_context', 'web_research'))
-    result = run(inputs={'story_context': QA, 'web_research': WEB})
+    fake_agents(monkeypatch, plan('story_context', 'research'))
+    result = run(inputs={'story_context': QA, 'research': WEB})
     found = {s.name: s for s in spans()}
-    assert {'orchestration', 'decision_guard', 'main_agent', 'step.story_context', 'step.web_research'} <= set(found)
+    assert {'orchestration', 'decision_guard', 'main_agent', 'step.story_context', 'step.research'} <= set(found)
     root = found['orchestration']
     assert result.runId == format(root.context.trace_id, '032x')
     assert all(found[n].parent.span_id == root.context.span_id
-               for n in ('decision_guard', 'main_agent', 'step.story_context', 'step.web_research'))
+               for n in ('decision_guard', 'main_agent', 'step.story_context', 'step.research'))
     assert json.loads(found['decision_guard'].attributes['langfuse.observation.input']) == {'request': '요청'}  # 요청 루트에는 본문을 남기지 않는다
     assert len([s for s in spans() if s.name == 'main_agent']) == 3  # 도구 두 번 + 종합
 
 
 def test_failed_step_is_traced_as_error(monkeypatch, spans):
-    fake_agents(monkeypatch, plan('web_research'), fail={'web_research': ResearchFailure(503, '웹 검색에 실패했습니다.')})
-    run(inputs={'web_research': WEB})
-    step = next(s for s in spans() if s.name == 'step.web_research')
+    fake_agents(monkeypatch, plan('research'), fail={'research': ResearchFailure(503, '웹 검색에 실패했습니다.')})
+    run(inputs={'research': WEB})
+    step = next(s for s in spans() if s.name == 'step.research')
     assert step.attributes['langfuse.observation.level'] == 'ERROR'
     assert step.attributes['langfuse.observation.status_message'] == '웹 검색에 실패했습니다.'
 
 
 def test_resumed_steps_join_the_trace_of_the_waiting_turn(monkeypatch, spans):
     thread = str(uuid4())
-    fake_agents(monkeypatch, plan('web_research'))
+    fake_agents(monkeypatch, plan('research'))
     waiting = chat(thread)
-    done = resume(thread, inputs={'web_research': WEB})
-    step = next(s for s in spans() if s.name == 'step.web_research')
+    done = resume(thread, inputs={'research': WEB})
+    step = next(s for s in spans() if s.name == 'step.research')
     assert done.runId == waiting.runId == format(step.context.trace_id, '032x')
 
 
@@ -397,9 +397,9 @@ def test_qa_without_target_fails_instead_of_skipping_the_world(monkeypatch):
 
 
 def test_retrieval_failure_fails_the_qa_step(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'),
+    calls = fake_agents(monkeypatch, plan('story_context', 'research'),
                         fail={'retrieval': RetrievalFailure(409, '공개 원고 범위가 변경됐어요.')})
-    result = run(scope=SCOPE, target=TARGET, inputs={'web_research': WEB})
+    result = run(scope=SCOPE, target=TARGET, inputs={'research': WEB})
     assert [(s.status, s.error) for s in result.steps] == [('failed', '공개 원고 범위가 변경됐어요.')]
     assert names(calls) == ['judge', 'retrieval']
 
@@ -411,8 +411,8 @@ def test_given_excerpts_win_over_scope_and_skip_retrieval(monkeypatch):
 
 
 def test_scope_does_not_satisfy_other_features(monkeypatch):
-    fake_agents(monkeypatch, plan('web_research'))
-    assert run(scope=SCOPE).missingInputs == ['web_research']
+    fake_agents(monkeypatch, plan('research'))
+    assert run(scope=SCOPE).missingInputs == ['research']
 
 
 def test_stream_unexpected_failure_still_ends_with_error_event(monkeypatch):
@@ -422,11 +422,11 @@ def test_stream_unexpected_failure_still_ends_with_error_event(monkeypatch):
 
 def test_resume_uses_the_fresh_scope_token_from_content(monkeypatch):
     thread = str(uuid4())
-    calls = fake_agents(monkeypatch, plan('web_research', 'story_context'))  # 웹 조사 입력을 기다린 뒤 Q&A가 검색한다
+    calls = fake_agents(monkeypatch, plan('research', 'story_context'))  # 웹 조사 입력을 기다린 뒤 Q&A가 검색한다
     conversation = {'threadId': thread, 'scope': 'user:1/work:1'}
     run(conversation=conversation, scope={'scopeToken': 'old.token'}, target=TARGET)
     resumed = run(None, conversation=conversation, resume={
-        'approved': True, 'inputs': {'web_research': WEB}, 'scope': {'scopeToken': 'fresh.token'}})
+        'approved': True, 'inputs': {'research': WEB}, 'scope': {'scopeToken': 'fresh.token'}})
     assert resumed.status == 'completed'
     assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['fresh.token']
 
@@ -603,8 +603,8 @@ def test_world_without_a_target_fails_the_step_without_reading_the_world(monkeyp
     ('impact', 'world_impact', WorldReviewFailure(502, '설정 영향 분석 모델 응답의 참조를 확인할 수 없습니다.')),
 ])
 def test_world_failure_fails_the_step_with_its_message_and_starts_no_new_step(monkeypatch, task, where, failure):
-    fake_agents(monkeypatch, plan(Step('world', task=task), 'web_research'), fail={where: failure})
-    result = run(target=TARGET, inputs={'web_research': WEB})
+    fake_agents(monkeypatch, plan(Step('world', task=task), 'research'), fail={where: failure})
+    result = run(target=TARGET, inputs={'research': WEB})
     assert result.status == 'failed'
     assert [(s.status, s.error) for s in result.steps] == [('failed', str(failure))]
 
@@ -613,9 +613,9 @@ def test_world_runs_in_plan_order_and_never_asks_for_an_input(monkeypatch):
     calls = fake_agents(monkeypatch, plan('world', 'story_context'))
     result = run(target=TARGET, inputs={'story_context': QA})
     assert result.status == 'completed' and names(calls) == ['judge', 'world_review_read', 'world_review', 'story_context']
-    calls = fake_agents(monkeypatch, plan('world', 'web_research'))
+    calls = fake_agents(monkeypatch, plan('world', 'research'))
     result = run(target=TARGET)
-    assert (result.status, result.missingInputs) == ('needs_input', ['web_research'])
+    assert (result.status, result.missingInputs) == ('needs_input', ['research'])
     assert names(calls) == ['judge', 'world_review_read', 'world_review']
 
 
@@ -742,13 +742,13 @@ def test_declined_world_enrich_is_kept_but_never_written(monkeypatch):
 
 def test_failed_world_write_fails_the_step_and_keeps_the_proposal_and_the_earlier_steps(monkeypatch):
     thread = str(uuid4())
-    calls = fake_agents(monkeypatch, plan(Step('world', task='enrich'), 'web_research'))
+    calls = fake_agents(monkeypatch, plan(Step('world', task='enrich'), 'research'))
     world_writer(monkeypatch, fail=ContentMcpFailure(409, '제안한 뒤 세계관 초안이 바뀌어 반영하지 않았어요. 다시 요청해 주세요.'))
-    write_turn(thread, request='보강하고 조사해줘', target=TARGET, inputs={'web_research': WEB})
+    write_turn(thread, request='보강하고 조사해줘', target=TARGET, inputs={'research': WEB})
     done = write_turn(thread, resume={'approved': True})
     assert done.status == 'failed' and done.steps[0].error == '제안한 뒤 세계관 초안이 바뀌어 반영하지 않았어요. 다시 요청해 주세요.'
     assert done.steps[0].result.worldId == 'w' and done.steps[0].applied is None and done.steps[1].status == 'completed'
-    assert names(calls).count('web_research') == 1
+    assert names(calls).count('research') == 1
 
 
 def test_world_enrich_without_a_conversation_or_target_only_returns_the_proposal(monkeypatch):
@@ -920,13 +920,13 @@ def test_declined_result_is_kept_but_never_written(monkeypatch):
 def test_failed_write_fails_the_step_and_keeps_its_result_and_the_earlier_steps(monkeypatch):
     from app.content_mcp.errors import ContentMcpFailure
     thread = str(uuid4())
-    calls = fake_agents(monkeypatch, plan('writing_editing', 'web_research'))
+    calls = fake_agents(monkeypatch, plan('writing_editing', 'research'))
     writer(monkeypatch, fail=ContentMcpFailure(409, '초안이 최신이 아니에요.'))
-    write_turn(thread, request='고치고 조사해줘', target=TARGET, inputs={'writing_editing': PATCH, 'web_research': WEB})
+    write_turn(thread, request='고치고 조사해줘', target=TARGET, inputs={'writing_editing': PATCH, 'research': WEB})
     done = write_turn(thread, resume={'approved': True})
     assert done.status == 'failed' and done.steps[0].error == '초안이 최신이 아니에요.'
     assert done.steps[0].result.after == '그는 차갑게 웃었다.' and done.steps[1].status == 'completed'
-    assert names(calls).count('web_research') == 1  # 승인은 메인 에이전트가 끝난 뒤라 앞선 도구를 다시 부르지 않는다
+    assert names(calls).count('research') == 1  # 승인은 메인 에이전트가 끝난 뒤라 앞선 도구를 다시 부르지 않는다
 
 
 def test_writing_without_target_or_conversation_only_returns_a_proposal(monkeypatch):
@@ -1075,14 +1075,14 @@ def test_a_turn_that_cannot_pass_the_checks_stops_the_scene_but_it_waits_for_the
 
 
 def test_a_scene_that_fails_before_any_turn_ends_the_run_failed_with_the_partial_result_and_runs_nothing_else(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('character_simulation', 'web_research'))
+    calls = fake_agents(monkeypatch, plan('character_simulation', 'research'))
     fake_scene(monkeypatch, fail='narration')
     applied = writer(monkeypatch)
-    result = write_turn(str(uuid4()), request=REQUEST, scope=SCOPE, target=TARGET, inputs={'web_research': WEB})
+    result = write_turn(str(uuid4()), request=REQUEST, scope=SCOPE, target=TARGET, inputs={'research': WEB})
     assert (result.status, result.awaitingScene, result.awaitingApproval) == ('failed', None, None)
     step = result.steps[0]
     assert (step.status, step.result.status, step.result.turns, step.result.stopReason) == ('failed', 'stopped', [], 'check_failed')
-    assert '나레이션' in step.error and len(result.steps) == 1 and applied == [] and 'web_research' not in planned(calls)
+    assert '나레이션' in step.error and len(result.steps) == 1 and applied == [] and 'research' not in planned(calls)
 
 
 @pytest.fixture
@@ -1165,8 +1165,8 @@ def test_simulation_without_a_conversation_writes_the_whole_scene_at_once_withou
     (SimulationPlan(), ['모드', '참여 인물']),
 ])
 def test_plan_the_request_does_not_settle_is_a_clarify_answer_and_runs_nothing(monkeypatch, drafted, asked):
-    calls = fake_agents(monkeypatch, plan('character_simulation', 'web_research'), drafted=drafted)
-    result = run(REQUEST, target=TARGET, inputs={'web_research': WEB})
+    calls = fake_agents(monkeypatch, plan('character_simulation', 'research'), drafted=drafted)
+    result = run(REQUEST, target=TARGET, inputs={'research': WEB})
     assert (result.status, result.steps, result.awaitingApproval) == ('clarify', [], None)
     assert all(label in result.message for label in asked) and '\n' not in result.message  # 빠진 것을 한 문장으로
     assert planned(calls) == ['judge', 'sim_plan']  # 다른 단계도 실행하지 않는다(축소 실행 금지)
@@ -1186,15 +1186,15 @@ def test_the_author_answers_a_clarify_in_the_next_chat_message(monkeypatch):
 
 def test_planning_failure_fails_the_step_without_running_anything(monkeypatch):
     message = '이 작품에 연결된 세계관이 없어 시뮬레이션을 실행할 수 없어요.'
-    calls = fake_agents(monkeypatch, plan('character_simulation', 'web_research'), fail={'sim_plan': SimulationFailure(409, message)})
-    result = run(REQUEST, target=TARGET, inputs={'web_research': WEB})
+    calls = fake_agents(monkeypatch, plan('character_simulation', 'research'), fail={'sim_plan': SimulationFailure(409, message)})
+    result = run(REQUEST, target=TARGET, inputs={'research': WEB})
     assert result.status == 'failed'
     assert [(s.status, s.error) for s in result.steps] == [('failed', message)]
     assert planned(calls) == ['judge', 'sim_plan']
 
 
 def test_failed_planning_does_not_wait_for_the_other_steps_inputs(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('character_simulation', 'web_research'),
+    calls = fake_agents(monkeypatch, plan('character_simulation', 'research'),
                         fail={'sim_plan': SimulationFailure(409, '연결된 세계관이 없어요.')})
     result = write_turn(str(uuid4()), request=REQUEST, scope=SCOPE, target=TARGET)  # 대화 안이고 웹 조사 입력은 없다
     assert (result.status, result.missingInputs) == ('failed', [])
@@ -1203,24 +1203,24 @@ def test_failed_planning_does_not_wait_for_the_other_steps_inputs(monkeypatch):
 
 def test_simulation_needs_no_step_input_but_an_earlier_tool_still_waits_for_its_own(monkeypatch):
     thread = str(uuid4())
-    calls = fake_agents(monkeypatch, plan('web_research', 'character_simulation'))
+    calls = fake_agents(monkeypatch, plan('research', 'character_simulation'))
     log = fake_scene(monkeypatch)
     writer(monkeypatch)
     waiting = write_turn(thread, request=REQUEST, scope=SCOPE, target=TARGET)
-    assert (waiting.status, waiting.missingInputs, waiting.awaitingScene) == ('waiting', ['web_research'], None)
+    assert (waiting.status, waiting.missingInputs, waiting.awaitingScene) == ('waiting', ['research'], None)
     assert planned(calls) == ['judge'] and log.director == []  # 입력이 모자라면 계획도 장면도 시작하지 않는다
-    resumed = write_turn(thread, resume={'approved': True, 'inputs': {'web_research': WEB}})
+    resumed = write_turn(thread, resume={'approved': True, 'inputs': {'research': WEB}})
     assert (resumed.status, resumed.awaitingScene) == ('waiting', 'character_simulation')
-    assert len(resumed.steps[1].result.turns) == 1 and planned(calls) == ['judge', 'web_research', 'sim_plan']
+    assert len(resumed.steps[1].result.turns) == 1 and planned(calls) == ['judge', 'research', 'sim_plan']
     again = scene_turn(thread)
-    assert len(again.steps[1].result.turns) == 2 and planned(calls) == ['judge', 'web_research', 'sim_plan']  # 계획은 다시 만들지 않는다
+    assert len(again.steps[1].result.turns) == 2 and planned(calls) == ['judge', 'research', 'sim_plan']  # 계획은 다시 만들지 않는다
 
 
 def test_no_tool_runs_after_the_simulation_plan_because_the_scene_comes_next(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('character_simulation', 'web_research'))
+    calls = fake_agents(monkeypatch, plan('character_simulation', 'research'))
     fake_scene(monkeypatch)
-    result = write_turn(str(uuid4()), request=REQUEST, scope=SCOPE, target=TARGET, inputs={'web_research': WEB})
-    assert result.awaitingScene == 'character_simulation' and 'web_research' not in planned(calls)
+    result = write_turn(str(uuid4()), request=REQUEST, scope=SCOPE, target=TARGET, inputs={'research': WEB})
+    assert result.awaitingScene == 'character_simulation' and 'research' not in planned(calls)
     assert [s.feature for s in result.steps] == ['character_simulation']
 
 
@@ -1334,7 +1334,7 @@ def test_scene_actions_the_stage_cannot_take_are_refused_before_anything_runs(mo
 
 def test_scene_actions_are_refused_while_waiting_for_something_else(monkeypatch):
     thread = str(uuid4())
-    fake_agents(monkeypatch, plan('web_research', 'character_simulation'))
+    fake_agents(monkeypatch, plan('research', 'character_simulation'))
     fake_scene(monkeypatch)
     write_turn(thread, request=REQUEST, scope=SCOPE, target=TARGET)  # 웹 조사 입력을 기다린다
     with pytest.raises(service.SceneRejected, match='조작할 수 없어요'):
@@ -1506,16 +1506,26 @@ def test_history_reads_a_manuscript_review_step_from_an_old_checkpoint():
     assert (step.feature, step.result.episode, step.result.check) == ('review', 3, 'semantic')
 
 
+def test_history_reads_an_old_waiting_web_research_turn_that_still_has_the_removed_unsupported_key():
+    thread = str(uuid4())
+    old_step = {'feature': 'web_research', 'when': 'always', 'status': 'not_started'}
+    reply = {'status': 'waiting', 'steps': [old_step], 'missingInputs': ['web_research'], 'unsupported': []}
+    asyncio.run(service.CHAT.aupdate_state(service._config(thread, ME),
+                                          {'scope': ME, 'turns': [{'request': '고증 조사', 'qa': None, 'reply': reply}]}, as_node='finish'))
+    [saved] = conversation('history', thread, ME).turns
+    assert (saved.reply.status, saved.reply.steps[0].feature, saved.reply.missingInputs) == ('waiting', 'web_research', ['research'])
+
+
 def test_history_has_each_turn_with_its_reply_and_the_waiting_turn(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, plan('story_context'))
     chat(thread, request='첫 질문', inputs={'story_context': QA})
-    fake_agents(monkeypatch, plan('web_research'))
+    fake_agents(monkeypatch, plan('research'))
     chat(thread, request='조사해 줘')
     history = conversation('history', thread, ME)
     assert [t.request for t in history.turns] == ['첫 질문', '조사해 줘']
     assert history.turns[0].reply.status == 'completed' and history.turns[0].reply.steps[0].result.claims
-    assert (history.turns[1].reply.status, history.turns[1].reply.missingInputs) == ('waiting', ['web_research'])
+    assert (history.turns[1].reply.status, history.turns[1].reply.missingInputs) == ('waiting', ['research'])
 
 
 @pytest.mark.parametrize('fn, args', [('history', ()), ('rename', ('새 제목',)), ('delete', ()), ('truncate', (0,))])
@@ -1536,7 +1546,7 @@ def test_rename_keeps_turns_and_waits_for_a_finished_run(monkeypatch):
     conversation('rename', thread, ME, '규칙 정리')
     history = conversation('history', thread, ME)
     assert (history.title, len(history.turns)) == ('규칙 정리', 1)
-    fake_agents(monkeypatch, plan('web_research'))
+    fake_agents(monkeypatch, plan('research'))
     chat(thread)
     with pytest.raises(service.ConversationBusy):
         conversation('rename', thread, ME, '다른 제목')
@@ -2006,7 +2016,8 @@ def test_a_reply_recorded_before_a_feature_was_merged_or_removed_still_loads(mer
     # #387 전 대화에는 story_development, World Agent 전 대화에는 world_plot 미구현 응답이 남아 있다. 이력을 다시 읽을 때 형식 오류가 되면 안 된다.
     old = {'status': 'unsupported', 'message': UNSUPPORTED, 'unsupported': [merged],
            'steps': [{'feature': merged, 'when': 'always', 'status': 'not_started'}]}
-    assert ChatTurn(request='11화 사건을 추천해줘', reply=old).reply.unsupported == [merged]
+    reply = ChatTurn(request='11화 사건을 추천해줘', reply=old).reply  # 없앤 unsupported 목록 키가 남아 있어도 읽는다(#545)
+    assert (reply.status, reply.steps[0].feature) == ('unsupported', merged)
 
 
 def test_a_reply_recorded_with_the_world_review_step_before_the_world_agent_still_loads_with_its_findings():
@@ -2094,27 +2105,27 @@ def test_the_request_without_a_conversation_has_no_session(monkeypatch, spans):
     assert 'session.id' not in request.attributes and 'langfuse.trace.metadata.work_id' not in request.attributes
 
 
-@pytest.mark.parametrize('where, failure', [('judge', IntentFailure()), ('web_research', ResearchFailure(503, '웹 검색에 실패했습니다.'))])
+@pytest.mark.parametrize('where, failure', [('judge', IntentFailure()), ('research', ResearchFailure(503, '웹 검색에 실패했습니다.'))])
 def test_a_router_failure_or_a_failed_step_marks_the_turn_failed_on_the_root(monkeypatch, spans, where, failure):
-    fake_agents(monkeypatch, plan('web_research'), fail={where: failure})
+    fake_agents(monkeypatch, plan('research'), fail={where: failure})
     with contextlib.suppress(IntentFailure):  # 판정 실패는 예외로 올라오고, 실패한 단계는 응답 status=failed다
-        member_run(inputs={'web_research': WEB})
+        member_run(inputs={'research': WEB})
     [request] = requests_of(spans)
     assert status_of(request) == 'failed' and request.attributes['langfuse.observation.level'] == 'ERROR'  # 응답 status가 failed여도 루트는 ERROR다
 
 
 def test_a_waiting_turn_has_no_status_and_its_resume_joins_the_trace_and_ends_it(monkeypatch, spans):
     thread = str(uuid4())
-    fake_agents(monkeypatch, plan('web_research'))
+    fake_agents(monkeypatch, plan('research'))
     waiting = member_run(conversation={'threadId': thread, 'scope': 'user:1/work:1'}, target=TURN_TARGET)
-    done = member_resume(thread, {'web_research': WEB})
+    done = member_resume(thread, {'research': WEB})
     first, second = requests_of(spans)
     assert (waiting.status, done.status) == ('waiting', 'completed') and waiting.runId == done.runId
     assert status_of(first) is None and status_of(second) == 'success'
     assert {format(s.context.trace_id, '032x') for s in (first, second)} == {waiting.runId}
     # 이어 간 요청의 루트는 첫 요청 루트 아래에서 새 루트가 되고, 그 요청의 단계는 그 루트 아래에 붙는다
     assert first.parent is None and second.parent.span_id == first.context.span_id and second.attributes['langfuse.internal.is_app_root']
-    step = next(s for s in spans() if s.name == 'step.web_research')
+    step = next(s for s in spans() if s.name == 'step.research')
     assert step.parent.span_id == second.context.span_id
     resumed = attrs(second)
     assert (resumed['user.id'], resumed['session.id'], resumed['langfuse.trace.metadata.work_id']) == (MEMBER, thread, 'work-1')
@@ -2129,7 +2140,7 @@ def test_a_stream_is_one_request_trace_too(monkeypatch, spans):
 
 
 def test_a_waiting_stream_and_a_failed_stream_are_marked_by_their_outcome(monkeypatch, spans):
-    fake_agents(monkeypatch, plan('web_research'))
+    fake_agents(monkeypatch, plan('research'))
     member_stream(conversation={'threadId': str(uuid4()), 'scope': 'user:1/work:1'})
     fake_agents(monkeypatch, plan('story_context'), fail={'judge': IntentFailure()})
     assert member_stream(inputs={'story_context': QA}) == [('error', {'message': '요청 분류에 실패했습니다.'})]
@@ -2183,9 +2194,9 @@ def test_a_stream_that_fails_at_the_conversation_check_is_a_failed_request_trace
 
 def test_a_request_is_one_trace_with_one_root_that_starts_first_ends_last_and_every_span_descends_from(monkeypatch, spans):
     thread = str(uuid4())
-    fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    fake_agents(monkeypatch, plan('story_context', 'research'))
     result = member_run(conversation={'threadId': thread, 'scope': 'user:1/work:1'}, target={**TURN_TARGET, 'fork': True},
-                        inputs={'story_context': QA, 'web_research': WEB})
+                        inputs={'story_context': QA, 'research': WEB})
     everything = spans()
     roots = [s for s in everything if s.parent is None]
     assert [s.name for s in roots] == ['orchestration'] and not [s for s in everything if s.name == 'writing_ai.orchestration']

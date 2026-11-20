@@ -69,6 +69,14 @@ data class InheritedWorldResponse(
 )
 
 /**
+ * Fork 독립(#583)이 새 세계관으로 복사하는 원본이다. [world]는 [InheritedWorldResponse]와 같은 읽기 한 번의 결과(같은 카드·관계 집합)이고,
+ * [worldName]·[revisionNo]는 그 읽기가 본 원작 세계관의 확정 버전, [authorNickname]은 그 작가의 닉네임, [relationshipEpisodes]는 관계 id → 그 관계가 원작에서 보이기 시작한 회차다.
+ */
+data class InheritedSource(
+    val world: InheritedWorldResponse, val worldName: String, val revisionNo: Long, val authorNickname: String, val relationshipEpisodes: Map<UUID, Int>,
+)
+
+/**
  * 소설 [workId]의 독자에게 [upto]화 기준으로 보이는 설정 카드와 그 카드끼리의 현재 관계다(DEC-46). 연결된 세계관이 없으면 [worldId]는 null이다.
  * [relationshipStatus]가 unavailable이면 관계 저장소가 현재 상태를 보증하지 못해 [relationships]를 비운 것이다.
  */

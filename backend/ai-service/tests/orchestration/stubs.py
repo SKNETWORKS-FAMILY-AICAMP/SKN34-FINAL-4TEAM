@@ -11,7 +11,7 @@ from app.intent.models import DecisionResult
 from app.story_qa.models import AnswerResponse, Claim
 from app.orchestration import agent as main_agent, tools as service
 from app.rating.models import EpisodeRating, RatingResponse
-from app.research.models import Finding, ResearchResponse
+from app.research.models import Finding, PlatformReference, PlatformResult, ResearchResponse
 from app.retrieval.models import RetrievalResult
 from app.manuscript_review.models import Finding as ReviewFinding, ReviewResponse
 from app.simulation import agent, director
@@ -24,6 +24,8 @@ QA = {'question': '길드 규칙은?', 'excerpts': [{'id': 'a', 'episode': 4, 'q
 DRAFT = {'draft': {'episodeNumber': 11, 'plan': '선장이 항구에 도착한다.'}}
 PATCH = {'patch': {'selection': '그는 웃었다.', 'instruction': '더 차갑게'}}
 WEB = {'question': '조선 후기 한양에서 동래까지 며칠?'}
+PLATFORM = PlatformResult(references=[PlatformReference(worldId='w9', worldName='달빛 학원', cardId='c9', cardTitle='교칙', authorNickname='별빛', note='교칙 서술을 참고')],
+                          gaps=['학원 위치는 못 찾았어요.'])
 REVIEW = {'check': 'mechanical'}
 SCOPE = {'scopeToken': 'signed.token'}
 COVERAGE = {'expected': [{'number': 4, 'versionId': 'r4'}], 'withVerifiedExcerpt': [{'number': 4, 'versionId': 'r4'}],
@@ -97,6 +99,8 @@ def call(step: Step) -> tuple[str, dict]:
         return 'ask_writing', {'task': task, **({'fix': step.fix} if step.fix is not None else {})}
     if step.feature == 'world':
         return 'ask_world', {'task': step.task or 'check'}
+    if step.feature == 'research':
+        return 'ask_research', {'task': step.task or 'web'}
     return service.TOOL_NAMES.get(step.feature, f'ask_{step.feature}'), {'check': step.check} if step.check else {}
 
 
@@ -144,7 +148,7 @@ class FakeMain(BaseChatModel):
         usage = {'input_tokens': 20, 'output_tokens': 5, 'total_tokens': 25}
         if done < len(self.script) and tools:
             batch = self.script[done] if isinstance(self.script[done], list) else [self.script[done]]
-            calls = [{'name': name, 'args': args if name == 'ask_web_research' else {'request': messages[last].text, **args},
+            calls = [{'name': name, 'args': args if (name, args.get('task')) == ('ask_research', 'web') else {'request': messages[last].text, **args},
                       'id': f'call-{done}-{i}'} for i, (name, args) in enumerate(batch)]
             message = AIMessage(content='', tool_calls=calls, response_metadata=meta, usage_metadata=usage)
         elif isinstance(self.answer, Exception):
@@ -210,7 +214,8 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
     monkeypatch.setattr(service.writing, 'revise_plan', recorded('revise_plan', PLAN_REVISION))
     monkeypatch.setattr(service.simulation, 'plan', recorded(
         'sim_plan', lambda request, history, target: drafted or SimulationPlan(**SIM)))
-    monkeypatch.setattr(service.research, 'research', recorded('web_research', ResearchResponse(
+    monkeypatch.setattr(service.research, 'platform', recorded('platform', PLATFORM))
+    monkeypatch.setattr(service.research, 'research', recorded('research', ResearchResponse(
         findings=[Finding(text='약 15일', verdict='unverified', sourceUrls=[])], gaps=[],
         searchedAt=datetime(2026, 11, 12, tzinfo=timezone.utc))))
     review = recorded('manuscript_review', lambda data: ReviewResponse(

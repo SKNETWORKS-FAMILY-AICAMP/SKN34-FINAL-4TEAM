@@ -162,7 +162,7 @@ class WorldCardImageHttpIntegrationTest {
                 // 확정 버전이 없는 동안은 공개로 설정해도 비로그인에는 404다.
                 val publicA="$publics/$world/card-images/$a"
                 assertEquals(404,call(publicA,actor=null).statusCode())
-                assertEquals(200,send("$studios/$world/publication","PUT",PublicationRequest("public","fantasy")).statusCode())
+                assertEquals(200,send("$studios/$world/publication","PUT",PublicationRequest("public","genre-01")).statusCode())
                 assertEquals(404,call(publicA,actor=null).statusCode())
 
                 // 확정하면 공개 카드가 가리키는 이미지만 비로그인으로 읽힌다. 비공개 카드·다른 세계관·없는 ID·UUID가 아닌 값은 아니다.

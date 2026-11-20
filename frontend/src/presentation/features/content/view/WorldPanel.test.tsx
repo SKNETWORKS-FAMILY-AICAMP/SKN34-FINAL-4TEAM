@@ -3,6 +3,9 @@ import {cleanup, render, screen, fireEvent, within} from '@testing-library/react
 import {afterEach, beforeEach, expect, it, vi} from 'vitest'
 import '../../../../test/testLocks'
 import {WorldPanel} from './WorldPanel'
+
+// 첨부 패널은 자기 테스트(MediaPanel.test)가 맡는다. 여기서는 어떤 설정의 패널이 어떤 잠금으로 붙는지만 본다.
+vi.mock('../../../shared/media/MediaPanel',()=>({MediaPanel:({target,disabled}:{target:object;disabled?:boolean})=><p data-testid="media-panel">{JSON.stringify(target)+(disabled?' 잠김':'')}</p>}))
 import {EpisodeUseCase} from '../../../../domain/usecases/EpisodeUseCase'
 import {HttpEpisodeRepository} from '../../../../data/content/HttpEpisodeRepository'
 import {login} from '../../../../data/api/auth'
@@ -17,7 +20,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 const world=(over:object={})=>({id:'w',name:'설정집',revision:0,mode:'own',basis:null,draft:null,drafts:[],settings:[],history:[],changes:[],sourceToken:'t',...over})
 const setting={id:'s',versionId:'v',name:'지도',content:'설정',category:'장소',tags:[],visibility:'private',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
-const show=(fetcher:typeof fetch)=>render(<WorldPanel workId="w" useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))} />)
+const show=(fetcher:typeof fetch,props:{locked?:boolean}={})=>render(<WorldPanel workId="w" useCase={new EpisodeUseCase(new HttpEpisodeRepository(fetcher))} {...props} />)
 
 it('shows only the settings book summary and no coming-soon studio button now that world linking has its own panel',async()=>{
  const fetcher=vi.fn().mockResolvedValueOnce(Response.json(world({name:'구운몽 설정집',mode:'following',basis:{episode:2,version:1,settings:[setting,setting]},settings:[setting],history:[setting]})))
@@ -53,4 +56,39 @@ it('shows a load failure as an alert and reads the settings book again only from
  await screen.findByRole('region',{name:'세계관 설정집'})
  expect(screen.queryByRole('alert')).toBeNull()
  expect(fetcher).toHaveBeenCalledTimes(2)
+})
+
+const panelOf=(workId:string,settingId:string)=>JSON.stringify({kind:'setting',workId,settingId})
+
+it('내 설정집은 설정 하나를 골라 그 설정의 첨부 패널(참고 파일·설정 이미지)을 붙이고, 고르면 그 설정의 패널로 바뀐다',async()=>{
+ const second={...setting,id:'s2',versionId:'v2',name:'인물 표'}
+ const draftOnly={id:'d',name:'초안 설정',content:'초안',category:'장소',tags:[],visibility:'private',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
+ show(vi.fn().mockResolvedValueOnce(Response.json(world({settings:[setting,second],drafts:[draftOnly]}))))
+ const files=within(await screen.findByRole('region',{name:'설정 첨부'}))
+ const select=files.getByRole<HTMLSelectElement>('combobox',{name:'첨부할 설정'})
+ expect(Array.from(select.options,option=>option.textContent)).toEqual(['지도','인물 표','초안 설정'])
+ expect(files.getByTestId('media-panel').textContent).toBe(panelOf('w','s'))
+ fireEvent.change(select,{target:{value:'d'}})
+ expect(files.getByTestId('media-panel').textContent).toBe(panelOf('w','d'))
+})
+
+it('설정집을 읽는 요청이 진행 중이면 첨부 패널도 잠근다',async()=>{
+ show(vi.fn().mockResolvedValueOnce(Response.json(world({settings:[setting]}))),{locked:true})
+ expect((await screen.findByTestId('media-panel')).textContent).toBe(panelOf('w','s')+' 잠김')
+ expect((screen.getByRole('combobox',{name:'첨부할 설정'}) as HTMLSelectElement).disabled).toBe(true)
+})
+
+it('원작을 따라가는 설정집은 첨부할 수 없는 이유를 알리고 패널을 붙이지 않는다',async()=>{
+ show(vi.fn().mockResolvedValueOnce(Response.json(world({mode:'following',settings:[setting]}))))
+ const files=within(await screen.findByRole('region',{name:'설정 첨부'}))
+ expect(files.getByText('원작을 따라가는 설정에는 파일을 붙일 수 없어요.')).toBeTruthy()
+ expect(files.queryByTestId('media-panel')).toBeNull()
+ expect(files.queryByRole('combobox')).toBeNull()
+})
+
+it('첨부할 설정이 없는 설정집은 빈 상태를 알리고 패널을 붙이지 않는다',async()=>{
+ show(vi.fn().mockResolvedValueOnce(Response.json(world())))
+ const files=within(await screen.findByRole('region',{name:'설정 첨부'}))
+ expect(files.getByText('첨부할 설정이 아직 없어요.')).toBeTruthy()
+ expect(files.queryByTestId('media-panel')).toBeNull()
 })

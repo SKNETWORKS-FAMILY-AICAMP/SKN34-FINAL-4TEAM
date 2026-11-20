@@ -1,6 +1,8 @@
 # Bare docker compose uses the root .env; include keeps build paths relative to infrastructure/.
+# Langfuse is its own include entry (a path list merges files into one) and is always on.
 name: storyfork-local
 include:
   - path:
       - ./infrastructure/docker-compose.yaml
       - ./infrastructure/docker-compose.local.yaml
+  - path: ./infrastructure/docker-compose.langfuse.yaml

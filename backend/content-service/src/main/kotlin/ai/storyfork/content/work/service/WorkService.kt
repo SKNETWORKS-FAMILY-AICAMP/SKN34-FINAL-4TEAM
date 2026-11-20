@@ -123,8 +123,10 @@ class WorkService(
     fun create(owner: String,data: CreateWorkRequest): WorkResponse {
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000,message="작품 제목과 소개를 확인해 주세요.")
         val registered=data.creationType!=null || data.genres.isNotEmpty() || data.hashtags.isNotEmpty() || data.rightsConfirmed!=null
-        val meta=if(registered) validateWorkMetadata(data.creationType,data.genres,data.hashtags,data.rightsConfirmed==true) else null
-        val genreIds=meta?.let {genreRowsOf(it.genres)}.orEmpty()
+        // 고를 수 있는 장르는 활성 장르뿐이다(DEC-56).
+        val active=if(registered) genreRows.findActive() else emptyList()
+        val meta=if(registered) validateWorkMetadata(data.creationType,data.genres,data.hashtags,data.rightsConfirmed==true,active.map {it.name}.toSet()) else null
+        val genreIds=active.filter {it.name in data.genres}
         members.ensure(owner)
         val id=contentId()
         worlds.saveAndFlush(WorldEntity(id=id,ownerId=owner,name=data.title.trim()+" 설정집"))
@@ -147,9 +149,13 @@ class WorkService(
     fun update(id: String,owner: String,data: UpdateWorkRequest): WorkResponse {
         val w=access.own(id,owner);access.requireRevision(w,data.revision)
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000,message="작품 제목과 소개를 확인해 주세요.")
-        data.genres?.let {validateWorkGenres(it)}
         val tags=data.hashtags?.let {validateWorkHashtags(it)}
-        val genres=data.genres?.let {genreRowsOf(it)}
+        val genres=data.genres?.let {names->
+            // 고를 수 있는 장르는 활성 장르에 이 작품에 이미 붙은 장르(숨긴 것 포함)를 더한 것이다. 저장할 때 그 값을 바꾸지 않으면 통과한다(DEC-56).
+            val selectable=(genreRows.findActive()+genreRows.findAllById(workGenres.findAllByWorkId(id).map {it.genreId})).distinctBy {it.id}
+            validateWorkGenres(names,selectable.map {it.name}.toSet())
+            selectable.filter {it.name in names}
+        }
         val row=works.findById(id).orElseThrow()
         row.title=data.title.trim();row.description=data.summary.trim();row.revision++
         // Hibernate는 insert를 delete보다 먼저 보내므로, 같은 (작품, 장르)·(작품, 위치) 키를 다시 넣으려면 삭제를 먼저 내보낸다.
@@ -163,12 +169,6 @@ class WorkService(
         }
         works.saveAndFlush(row)
         return read(id,owner)
-    }
-    /** 승인된 장르 이름의 genre 행이다. 승인 목록과 genre 시드가 어긋나 이름을 다 찾지 못하면 422다. */
-    private fun genreRowsOf(names: List<String>): List<GenreEntity> {
-        val found=genreRows.findAllByNameIn(names)
-        checkContent(found.size==names.size,message="승인된 장르 목록에서 서로 다른 장르를 골라 주세요.")
-        return found
     }
     /**
      * 작품을 소프트 삭제한다(DEC-42). 행은 지우지 않고 삭제 시각만 기록하며, 이후 목록·검색·랭킹·읽기·분기 생성에서 제외된다.
@@ -248,7 +248,7 @@ class WorkService(
             DraftResponse(d?.title ?: "새 회차",d?.content ?: "",w.revision,d?.authorNote.orEmpty())
         }
         val row=works.findById(w.id).orElseThrow()
-        val genres=genreRows.findAllById(workGenres.findAllByWorkId(w.id).map {it.genreId}).map {it.name}.sortedBy {WORK_GENRES.indexOf(it)}
+        val genres=genreRows.findAllById(workGenres.findAllByWorkId(w.id).map {it.genreId}).sortedWith(compareBy({it.position},{it.code})).map {it.name}
         val tags=hashtagRows.findAllByWorkIdOrderByPosition(w.id).map {it.tag}
         val type=CreationType.entries.first {it.code==row.creationType}.name
         return WorkResponse(w.id,w.title,w.summary,w.visibility,w.allowFork,w.allowForkPublication,w.source,published,draft,

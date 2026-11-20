@@ -72,3 +72,54 @@ it('세계관 연결의 결과는 그 카드에서 보이도록 요청한 자리
   await act(async () => { await result.current.reload() })
   expect(result.current.origin).toBe('')
 })
+
+// ── Fork 세계관 독립(#583): 이어받는 원작 세계관을 내 세계관으로 독립시킨다 ──
+
+const fork: Work = { ...work, source: { workId: 'o', title: '원작', episode: 2, version: 1, direction: '' } }
+
+it('독립은 확인을 받은 뒤에만 보내고, 서버가 만든 세계관으로 연결을 바꾸며 그 id를 돌려준다(이동하므로 성공 안내는 두지 않는다)', async () => {
+  const api = { list: vi.fn().mockResolvedValue([fork]), detachInheritedWorld: vi.fn().mockResolvedValue({ workId: 'w1', worldId: WORLD }) }
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  const result = await open(api)
+  let id: string | null = 'x'
+  await act(async () => { id = await result.current.detachWorld() })
+  expect(id).toBeNull()
+  expect(confirm.mock.calls[0][0]).toContain('독립하면 원작 세계관의 이후 변경은 따라오지 않아요')
+  expect(api.detachInheritedWorld).not.toHaveBeenCalled()
+  confirm.mockReturnValue(true)
+  await act(async () => { id = await result.current.detachWorld() })
+  expect(id).toBe(WORLD)
+  expect(api.detachInheritedWorld).toHaveBeenCalledWith('w1')
+  expect(result.current.active).toEqual({ ...fork, worldStudioId: WORLD })
+  expect(result.current.origin).toBe('detach')
+  expect(result.current.notice).toBe('')
+})
+
+it('독립에 실패하면 서버 사유를 그 카드에서 보이도록 오류로 알리고 연결을 바꾸지 않는다', async () => {
+  const api = { list: vi.fn().mockResolvedValue([fork]), detachInheritedWorld: vi.fn().mockRejectedValue(new Error('이어받는 원작 세계관이 없어요.')) }
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  const result = await open(api)
+  let id: string | null = 'x'
+  await act(async () => { id = await result.current.detachWorld() })
+  expect(id).toBeNull()
+  expect(result.current.error).toBe('이어받는 원작 세계관이 없어요.')
+  expect(result.current.origin).toBe('detach')
+  expect(result.current.active?.worldStudioId).toBeUndefined()
+})
+
+it('독립 요청 중에 다시 누르면 확인도 다시 묻지 않고 요청도 한 번만 보낸다', async () => {
+  let finish!: (value: { workId: string; worldId: string }) => void
+  const api = { list: vi.fn().mockResolvedValue([fork]), detachInheritedWorld: vi.fn(() => new Promise<{ workId: string; worldId: string }>((resolve) => { finish = resolve })) }
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+  const result = await open(api)
+  let first!: Promise<string | null>
+  let second: string | null = 'x'
+  await act(async () => { first = result.current.detachWorld() })
+  await act(async () => { second = await result.current.detachWorld() })
+  expect(second).toBeNull()
+  expect(confirm).toHaveBeenCalledTimes(1)
+  expect(api.detachInheritedWorld).toHaveBeenCalledTimes(1)
+  expect(result.current.busy).toBe(true)
+  await act(async () => { finish({ workId: 'w1', worldId: WORLD }); await first })
+  expect(result.current.busy).toBe(false)
+})

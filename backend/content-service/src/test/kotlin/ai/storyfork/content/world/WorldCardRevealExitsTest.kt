@@ -86,7 +86,7 @@ class WorldCardRevealExitsTest {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val publicWorlds = PublicWorldService(worlds, revisions, revisionCards, cardVersions, images, states, expandedSeeds, graph, nicknames, storage, works, access, workImages, publication, SearchCandidates(null), manager)
-    private val workWorlds = WorkWorldService(access, works, publication, studios, publicWorlds, references, TransactionTemplate(manager))
+    private val workWorlds = WorkWorldService(access, works, publication, studios, publicWorlds, references, mock(WorldStudioService::class.java), TransactionTemplate(manager))
     private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(
         WorkMcpTools(mock(WorkService::class.java), workWorlds, mock(WorkNoticeService::class.java), mock(ForkService::class.java), mock(ContextService::class.java), mock(ProposalService::class.java), mock(McpChangeNotice::class.java)),
         WorldStudioMcpTools(mock(WorldStudioService::class.java), workWorlds, publicWorlds, mock(InitialWorldAnalysisService::class.java), mock(InitialWorldApplicationService::class.java), mock(McpChangeNotice::class.java)),
@@ -122,7 +122,7 @@ class WorldCardRevealExitsTest {
     private val shownLabels = mapOf(n - 1 to emptySet<String>(), n to setOf("동료", "정체"))
 
     init {
-        val world = StudioWorld(worldId, UUID.randomUUID(), revisionId, visibility = "public", genre = "fantasy", publishedAt = Instant.parse("2026-11-11T01:02:03Z"))
+        val world = StudioWorld(worldId, UUID.randomUUID(), revisionId, visibility = "public", genre = "genre-01", publishedAt = Instant.parse("2026-11-11T01:02:03Z"))
         `when`(worlds.findById(worldId)).thenReturn(Optional.of(world))
         val revision = WorldRevision(id = revisionId, worldId = worldId, revisionNo = 3, name = "세계", description = "설명", sealed = true)
         val state = WorldRelationshipState(worldId, 3, "creation", "key", "hash", 1, true)

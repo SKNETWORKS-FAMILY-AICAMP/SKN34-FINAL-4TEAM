@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { PUBLIC_WORLD_GENRES } from '../../domain/entities/publicWorld'
-import { DEMO_WORLDS } from './demoPublicWorlds'
+import { DEMO_WORLDS, DEMO_WORLD_GENRES } from './demoPublicWorlds'
+
+/** 작품(`works`)의 장르는 코드가 아니라 데모 세계관 장르(코드 순)의 이름이다. */
+const DEMO_WORLD_GENRE_NAMES = ['판타지', '무협', '로맨스', '현대', 'SF', '미스터리', '고전']
 
 describe('DEMO_WORLDS', () => {
   it('id가 겹치지 않아 /worlds/:id가 한 세계관만 가리키고 주소에 쓸 수 있는 글자만 쓴다', () => {
@@ -11,8 +13,8 @@ describe('DEMO_WORLDS', () => {
   })
 
   it('모든 장르 칩에 세계관이 하나 이상 있고 칩에 없는 장르는 없다', () => {
-    for (const genre of PUBLIC_WORLD_GENRES) expect(DEMO_WORLDS.filter((w) => w.genre === genre).length, genre).toBeGreaterThan(0)
-    for (const w of DEMO_WORLDS) expect(PUBLIC_WORLD_GENRES, w.id).toContain(w.genre)
+    for (const genre of DEMO_WORLD_GENRES) expect(DEMO_WORLDS.filter((w) => w.genre === genre).length, genre).toBeGreaterThan(0)
+    for (const w of DEMO_WORLDS) expect(DEMO_WORLD_GENRES, w.id).toContain(w.genre)
   })
 
   it('세계관마다 히어로 둘째 줄에 들어갈 13자 이하의 한 줄 소개가 있다', () => {
@@ -87,7 +89,7 @@ describe('DEMO_WORLDS 데모 작품', () => {
       for (const work of w.works ?? []) {
         expect([work.title, work.author].every((text) => text.trim().length > 0), w.id).toBe(true)
         expect(Number.isInteger(work.episodes) && work.episodes > 0, `${w.id} ${work.title}`).toBe(true)
-        expect(PUBLIC_WORLD_GENRES, `${w.id} ${work.title}`).toContain(work.genre)
+        expect(DEMO_WORLD_GENRE_NAMES, `${w.id} ${work.title}`).toContain(work.genre)
       }
       const titles = (w.works ?? []).map((work) => work.title)
       expect(new Set(titles).size, w.id).toBe(titles.length)

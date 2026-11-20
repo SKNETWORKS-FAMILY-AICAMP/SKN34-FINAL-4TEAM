@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
+from langchain.agents.middleware.types import ToolCallRequest
 from langchain_core.messages import ToolMessage
 from openai import OpenAIError
 from pydantic import ValidationError
@@ -62,11 +63,11 @@ def tool_messages(calls):
 
 
 def test_the_decision_guard_runs_once_per_turn_and_the_main_agent_synthesizes_the_answer(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'))
-    result = run('규칙 알려주고 고증도 확인해줘', inputs={'story_context': QA, 'web_research': WEB})
-    assert names(calls) == ['judge', 'story_context', 'web_research']
+    calls = fake_agents(monkeypatch, plan('story_context', 'research'))
+    result = run('규칙 알려주고 고증도 확인해줘', inputs={'story_context': QA, 'research': WEB})
+    assert names(calls) == ['judge', 'story_context', 'research']
     assert (result.status, result.message) == ('completed', '종합 답변')
-    assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'completed'), ('web_research', 'completed')]
+    assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'completed'), ('research', 'completed')]
     assert len(calls.main) == 3  # 도구 두 번 + 종합 한 번
 
 
@@ -77,7 +78,7 @@ def test_the_decision_guard_runs_once_per_turn_and_the_main_agent_synthesizes_th
 def test_rejected_or_no_feature_decisions_never_call_the_main_model(monkeypatch, routed, status, message):
     calls = fake_agents(monkeypatch, routed)
     result = run(inputs={'story_context': QA})
-    assert (result.status, result.message, result.unsupported) == (status, message, [])
+    assert (result.status, result.message) == (status, message)
     assert names(calls) == ['judge'] and calls.main == []
 
 
@@ -125,9 +126,9 @@ def test_the_same_feature_runs_only_once_per_turn(monkeypatch):
 
 
 def test_at_most_three_sub_agents_run_per_turn(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research', 'rating', 'world'))
-    result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
-    assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'rating']
+    calls = fake_agents(monkeypatch, plan('story_context', 'research', 'rating', 'world'))
+    result = run(target=TARGET, inputs={'story_context': QA, 'research': WEB})
+    assert [s.feature for s in result.steps] == ['story_context', 'research', 'rating']
     assert 'world_review' not in names(calls)
 
 
@@ -149,9 +150,9 @@ def test_tools_are_bound_with_parallel_calls_and_the_model_has_no_retries_or_sto
 
 
 def test_a_failed_sub_agent_closes_the_tools_and_the_main_agent_only_answers(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'), fail={'story_context': StoryQaFailure(502, '답변 실패')})
-    result = run(inputs={'story_context': QA, 'web_research': WEB})
-    assert 'web_research' not in names(calls) and exposed(calls)[-1] == []
+    calls = fake_agents(monkeypatch, plan('story_context', 'research'), fail={'story_context': StoryQaFailure(502, '답변 실패')})
+    result = run(inputs={'story_context': QA, 'research': WEB})
+    assert 'research' not in names(calls) and exposed(calls)[-1] == []
     assert [(s.feature, s.status, s.error) for s in result.steps] == [('story_context', 'failed', '답변 실패')]
     assert result.status == 'failed' and result.message == '종합 답변'
     failed = tool_messages(calls)[0]
@@ -228,13 +229,15 @@ def test_a_turn_that_calls_no_tool_is_the_main_agents_clarifying_question(monkey
 
 def test_the_model_only_sets_the_request_and_enumerated_arguments():
     schemas = {t.name: t.tool_call_schema.model_json_schema() for t in agent.TOOLS.values()}
-    assert set(schemas) == {'ask_story_qa', 'ask_manuscript_review', 'ask_world', 'ask_writing', 'ask_web_research', 'ask_rating', 'ask_character_simulation'}
+    assert set(schemas) == {'ask_story_qa', 'ask_manuscript_review', 'ask_world', 'ask_writing', 'ask_research', 'ask_rating', 'ask_character_simulation'}
     for name, schema in schemas.items():
         properties = schema.get('properties', {})
         assert set(properties) <= {'request', 'check', 'task', 'fix'}, name
         if 'request' in properties:
             assert properties['request']['maxLength'] == 2000
-    assert schemas['ask_web_research'].get('properties', {}) == {}
+    # 고증 조사 web은 작업 지시(request)를 쓰지 않는다. 외부로 나가는 것은 작가가 동의한 질문뿐이다. platform만 request를 찾을 설정 주제로 쓴다.
+    assert set(schemas['ask_research']['properties']) == {'task', 'request'} and schemas['ask_research']['properties']['task']['enum'] == ['web', 'platform']
+    assert schemas['ask_research']['required'] == ['task']
     assert set(schemas['ask_manuscript_review']['properties']['check']['anyOf'][0]['enum']) == {'mechanical', 'semantic', 'both'}
     assert set(schemas['ask_writing']['properties']['task']['enum']) == {'plan', 'draft', 'patch', 'revise_plan'}
     # World의 작업은 열거형 인자 task로 고르고 반드시 정해야 한다(고르지 않은 호출은 인자 오류로 단계 실패다).
@@ -328,10 +331,45 @@ def test_boundary_simulation_is_only_reachable_when_the_guard_decided_it(monkeyp
 
 
 def test_boundary_web_research_sends_only_the_consented_question_not_the_request(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('web_research'))
-    run('비공개 원고 내용을 같이 검색해줘', inputs={'web_research': WEB})
-    [(_, (sent,), _)] = [c for c in calls if c[0] == 'web_research']
+    calls = fake_agents(monkeypatch, plan('research'))
+    run('비공개 원고 내용을 같이 검색해줘', inputs={'research': WEB})
+    [(_, (sent,), _)] = [c for c in calls if c[0] == 'research']
     assert sent.question == WEB['question'] and sent.context == ''
+
+
+def test_platform_research_runs_without_waiting_for_consent_and_reads_the_request(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(Step('research', task='platform')))
+    result = run('마법 학원 설정을 다른 세계관에서 참고하고 싶어')  # 대화도 동의 입력(inputs.research)도 없다
+    assert (result.status, [(s.feature, s.status) for s in result.steps]) == ('completed', [('research', 'completed')])
+    assert names(calls) == ['judge', 'platform']
+    [(_, (sent,), _)] = [c for c in calls if c[0] == 'platform']
+    assert sent == '마법 학원 설정을 다른 세계관에서 참고하고 싶어'
+    assert result.steps[0].result.references[0].worldName == '달빛 학원'
+    # 메인 에이전트는 출처(세계관·카드·작가)·참고 이유·gaps를 요약으로 받는다.
+    assert json.loads(tool_messages(calls)[0].content) == {
+        'feature': 'research', 'status': 'completed', 'gaps': ['학원 위치는 못 찾았어요.'],
+        'references': [{'world': '달빛 학원', 'card': '교칙', 'author': '별빛', 'note': '교칙 서술을 참고'}]}
+
+
+def test_platform_research_falls_back_to_the_turn_request_when_the_model_leaves_request_empty(monkeypatch):
+    routed = plan(Step('research', task='platform'))
+    routed.calls[0][1]['request'] = ''
+    calls = fake_agents(monkeypatch, routed)
+    result = run('다른 세계관에서 학원 설정 참고할래')
+    assert result.steps[0].status == 'completed'
+    [(_, (sent,), _)] = [c for c in calls if c[0] == 'platform']
+    assert sent == '다른 세계관에서 학원 설정 참고할래'
+
+
+def test_platform_research_failures_are_reported_as_a_failed_step(monkeypatch):
+    fake_agents(monkeypatch, plan(Step('research', task='platform')), fail={'platform': ResearchFailure(502, '플랫폼 조사 모델이 후보에 없는 세계관을 골랐습니다.')})
+    result = run('마법 학원 참고')
+    assert [(s.status, s.error) for s in result.steps] == [('failed', '플랫폼 조사 모델이 후보에 없는 세계관을 골랐습니다.')]
+
+
+def test_web_research_still_waits_for_the_consented_question(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('research'))
+    assert (run().status, 'research' in names(calls)) == ('needs_input', False)
 
 
 def test_boundary_service_checks_still_reject_results_without_correction(monkeypatch):
@@ -344,32 +382,32 @@ def test_boundary_service_checks_still_reject_results_without_correction(monkeyp
 
 
 def test_a_missing_input_waits_inside_the_tool_and_resume_runs_only_that_tool(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    calls = fake_agents(monkeypatch, plan('story_context', 'research'))
     thread = str(uuid4())
     waiting = turn(thread, inputs={'story_context': QA})
-    assert (waiting.status, waiting.missingInputs) == ('waiting', ['web_research'])
-    assert [(s.feature, s.status) for s in waiting.steps] == [('story_context', 'completed'), ('web_research', 'not_started')]
+    assert (waiting.status, waiting.missingInputs) == ('waiting', ['research'])
+    assert [(s.feature, s.status) for s in waiting.steps] == [('story_context', 'completed'), ('research', 'not_started')]
     before = len(calls.main)
-    done = resume(thread, approved=True, inputs={'web_research': WEB})
-    assert names(calls) == ['judge', 'story_context', 'web_research']  # 판정·Q&A를 다시 하지 않는다
+    done = resume(thread, approved=True, inputs={'research': WEB})
+    assert names(calls) == ['judge', 'story_context', 'research']  # 판정·Q&A를 다시 하지 않는다
     assert len(calls.main) == before + 1  # 이어서는 종합 한 번뿐이다
     assert (done.status, done.message) == ('completed', '종합 답변')
 
 
 def test_declining_the_input_cancels_the_tool_and_only_the_finished_results_are_answered(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    calls = fake_agents(monkeypatch, plan('story_context', 'research'))
     thread = str(uuid4())
     turn(thread, inputs={'story_context': QA})
     done = resume(thread, approved=False)
-    assert 'web_research' not in names(calls) and exposed(calls)[-1] == []
+    assert 'research' not in names(calls) and exposed(calls)[-1] == []
     assert done.status == 'cancelled' and [s.feature for s in done.steps] == ['story_context']
 
 
 def test_a_missing_input_without_a_conversation_ends_as_needs_input(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('web_research'))
+    calls = fake_agents(monkeypatch, plan('research'))
     result = run()
-    assert (result.status, result.missingInputs) == ('needs_input', ['web_research'])
-    assert 'web_research' not in names(calls)
+    assert (result.status, result.missingInputs) == ('needs_input', ['research'])
+    assert 'research' not in names(calls)
 
 
 def test_each_turn_counts_its_own_tool_calls(monkeypatch):
@@ -396,10 +434,10 @@ def test_the_main_agent_gets_the_last_five_turns_of_requests_and_answers(monkeyp
 
 
 def test_a_blocked_tool_outside_the_decision_does_not_use_up_the_three_calls(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('rating', 'story_context', 'web_research', 'world',
-                                          capabilities=['story_context', 'web_research', 'world']))
-    result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
-    assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'world']
+    calls = fake_agents(monkeypatch, plan('rating', 'story_context', 'research', 'world',
+                                          capabilities=['story_context', 'research', 'world']))
+    result = run(target=TARGET, inputs={'story_context': QA, 'research': WEB})
+    assert [s.feature for s in result.steps] == ['story_context', 'research', 'world']
     assert 'rating' not in names(calls)
 
 
@@ -417,9 +455,9 @@ def applied(monkeypatch):
 
 
 def test_a_later_failure_still_asks_to_approve_the_finished_writing(monkeypatch):
-    fake_agents(monkeypatch, plan('writing_editing', 'web_research'), fail={'web_research': ResearchFailure(503, '웹 검색에 실패했습니다.')})
+    fake_agents(monkeypatch, plan('writing_editing', 'research'), fail={'research': ResearchFailure(503, '웹 검색에 실패했습니다.')})
     written, thread = applied(monkeypatch), str(uuid4())
-    waiting = turn(thread, target=TARGET, inputs={'writing_editing': PATCH, 'web_research': WEB})
+    waiting = turn(thread, target=TARGET, inputs={'writing_editing': PATCH, 'research': WEB})
     assert (waiting.status, waiting.awaitingApproval) == ('waiting', 'writing_editing') and written == []
     done = resume(thread, approved=True)
     assert done.status == 'failed' and done.steps[0].approval == 'approved' and len(written) == 1
@@ -436,7 +474,7 @@ def test_a_later_simulation_clarify_still_asks_to_approve_the_finished_writing_f
 
 
 def test_a_cancelled_later_input_still_asks_to_approve_the_finished_writing(monkeypatch):
-    fake_agents(monkeypatch, plan('writing_editing', 'web_research'))
+    fake_agents(monkeypatch, plan('writing_editing', 'research'))
     written, thread = applied(monkeypatch), str(uuid4())
     turn(thread, target=TARGET, inputs={'writing_editing': PATCH})
     asked = resume(thread, approved=False)
@@ -478,10 +516,10 @@ def together(monkeypatch, *names):
 
 
 def test_independent_lookups_in_one_model_turn_run_concurrently_in_call_order(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(['web_research', 'story_context']))
+    calls = fake_agents(monkeypatch, plan(['research', 'story_context']))
     together(monkeypatch, (tools.research, 'research'), (tools.story_qa, 'answer'))
-    result = run(inputs={'story_context': QA, 'web_research': WEB})
-    assert [(s.feature, s.status) for s in result.steps] == [('web_research', 'completed'), ('story_context', 'completed')]
+    result = run(inputs={'story_context': QA, 'research': WEB})
+    assert [(s.feature, s.status) for s in result.steps] == [('research', 'completed'), ('story_context', 'completed')]
     assert len(calls.main) == 2 and (result.status, result.message) == ('completed', '종합 답변')  # 묶음 한 번 + 종합
 
 
@@ -540,35 +578,35 @@ def test_a_dependent_fix_in_the_same_batch_as_its_review_waits_for_the_review(mo
 
 
 def test_a_call_missing_author_input_in_a_batch_is_deferred_then_waits_alone(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(['story_context', 'web_research'], 'web_research'))
+    calls = fake_agents(monkeypatch, plan(['story_context', 'research'], 'research'))
     thread = str(uuid4())
     waiting = turn(thread, inputs={'story_context': QA})
-    assert sent(calls, 'ask_web_research').content.startswith('[순차]')
-    assert (waiting.status, waiting.missingInputs) == ('waiting', ['web_research'])
-    done = resume(thread, approved=True, inputs={'web_research': WEB})
-    assert [(s.feature, s.status) for s in done.steps] == [('story_context', 'completed'), ('web_research', 'completed')]
-    assert names(calls).count('web_research') == 1
+    assert sent(calls, 'ask_research').content.startswith('[순차]')
+    assert (waiting.status, waiting.missingInputs) == ('waiting', ['research'])
+    done = resume(thread, approved=True, inputs={'research': WEB})
+    assert [(s.feature, s.status) for s in done.steps] == [('story_context', 'completed'), ('research', 'completed')]
+    assert names(calls).count('research') == 1
 
 
 def test_a_batch_where_nothing_can_run_together_still_runs_its_first_call_alone(monkeypatch):
     # 둘 다 작가 입력이 빠졌다. 모두 미루면 모델이 같은 묶음을 반복해 아무것도 못 한다.
-    calls = fake_agents(monkeypatch, plan([Step('manuscript_review'), 'web_research']))
+    calls = fake_agents(monkeypatch, plan([Step('manuscript_review'), 'research']))
     waiting = turn(str(uuid4()), target=TARGET)
     assert (waiting.status, waiting.missingInputs) == ('waiting', ['manuscript_review'])
     assert len(calls.main) == 1
 
 
 def test_a_failure_in_a_batch_keeps_the_finished_sibling_and_closes_the_tools(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(['story_context', 'web_research'], 'rating'), fail={'web_research': ResearchFailure(503, '웹 검색에 실패했습니다.')})
-    result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
-    assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'completed'), ('web_research', 'failed')]
+    calls = fake_agents(monkeypatch, plan(['story_context', 'research'], 'rating'), fail={'research': ResearchFailure(503, '웹 검색에 실패했습니다.')})
+    result = run(target=TARGET, inputs={'story_context': QA, 'research': WEB})
+    assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'completed'), ('research', 'failed')]
     assert result.status == 'failed' and exposed(calls)[-1] == [] and 'rating' not in names(calls)
 
 
 def test_each_call_in_a_batch_counts_toward_the_three_calls_per_turn(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(['story_context', 'web_research', 'rating', 'world']))
-    result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
-    assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'rating']
+    calls = fake_agents(monkeypatch, plan(['story_context', 'research', 'rating', 'world']))
+    result = run(target=TARGET, inputs={'story_context': QA, 'research': WEB})
+    assert [s.feature for s in result.steps] == ['story_context', 'research', 'rating']
     assert 'world_review' not in names(calls) and sent(calls, 'ask_world').status == 'error'
 
 
@@ -607,3 +645,30 @@ def test_an_unavailable_main_prompt_is_the_judgment_failure_before_any_model_cal
     with pytest.raises(IntentFailure):
         run(inputs={'story_context': QA})
     assert calls == [] and calls.main == []
+
+
+# 고증 조사 도구(#545): ask_research(task=web). 옛 ask_web_research 체크포인트는 계속 이어진다.
+
+
+def test_ask_research_waits_for_the_consented_input_only_for_the_web_task():
+    schema = agent.TOOLS['research'].tool_call_schema.model_json_schema()
+    assert set(schema['properties']) == {'task', 'request'} and schema['required'] == ['task']
+    wait = lambda inputs, task: tools.WAITS['ask_research']({}, inputs, None, {'task': task})
+    assert wait({}, 'web') and not wait({'research': WEB}, 'web') and not wait({}, 'platform')
+
+
+def test_a_decision_recorded_as_web_research_still_exposes_ask_research():
+    assert agent._allowed({'decision': {'capabilities': ['web_research']}}) == {'ask_research'}
+
+
+def test_a_pending_ask_web_research_call_from_an_old_checkpoint_runs_as_ask_research():
+    request = ToolCallRequest(tool_call={'name': 'ask_web_research', 'args': {}, 'id': 'c1'}, tool=None, runtime=None,
+                              state={'decision': {'capabilities': ['web_research']}})
+    ran = []
+
+    async def handler(asked):
+        ran.append(asked.tool_call)
+        return ToolMessage(content='ok', tool_call_id='c1')
+
+    asyncio.run(agent.DynamicToolMiddleware().awrap_tool_call(request, handler))
+    assert ran == [{'name': 'ask_research', 'args': {'task': 'web'}, 'id': 'c1'}]

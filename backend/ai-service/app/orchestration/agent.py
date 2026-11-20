@@ -29,7 +29,7 @@ from app import tracing
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
 from app.orchestration import tools
-from app.orchestration.models import manuscript_review_feature
+from app.orchestration.models import current_feature
 from app.orchestration.prompt import INSTRUCTIONS
 
 MODEL_CALLS = 5  # 메인 모델 호출 상한(턴당). 마지막 호출은 도구 없이 종합한다.
@@ -41,7 +41,7 @@ BAD_ARGUMENTS = '작업 지시가 형식에 맞지 않아 실행하지 않았어
 TOOLS = {feature: getattr(tools, name) for feature, name in tools.TOOL_NAMES.items()}
 # 한 모델 턴에 함께 실행할 수 있는 조회형 도구(#474). 서로의 결과를 쓰지 않는다. ask_writing·ask_character_simulation은 항상 단독이고,
 # ask_world는 작가 승인이 필요한 enrich만 단독이다(tools.WAITS). check·impact는 조회형이라 함께 실행한다.
-PARALLEL = {'ask_story_qa', 'ask_web_research', 'ask_rating', 'ask_world', 'ask_manuscript_review'}
+PARALLEL = {'ask_story_qa', 'ask_research', 'ask_rating', 'ask_world', 'ask_manuscript_review'}
 
 
 class MainState(AgentState):
@@ -57,13 +57,13 @@ class MainState(AgentState):
 def _allowed(state: dict) -> set[str]:
     if state.get('stopped') or state.get('simulationPlan'):
         return set()
-    capabilities = map(manuscript_review_feature, state['decision']['capabilities'])
+    capabilities = map(current_feature, state['decision']['capabilities'])
     available = {TOOLS[c].name for c in capabilities if c in TOOLS}
     steps = state.get('steps', [])
     failed = {s['feature'] for s in steps if s['status'] == 'failed'}
     if failed:
         # 작성에 실패해도 판정에 포함된 검수는 저장된 초안으로 한 번 실행할 수 있다.
-        if failed == {'writing_editing'} and not any(manuscript_review_feature(s['feature']) == 'manuscript_review' for s in steps):
+        if failed == {'writing_editing'} and not any(current_feature(s['feature']) == 'manuscript_review' for s in steps):
             return available & {'ask_manuscript_review'}
         return set()
     return available
@@ -129,6 +129,9 @@ class DynamicToolMiddleware(AgentMiddleware):
             # 입력 대기 중 저장된 옛 호출을 복원한다. 모델에는 새 도구 이름만 노출한다.
             tool = TOOLS['manuscript_review']
             request = request.override(tool=tool, tool_call={**call, 'name': tool.name})
+        elif call['name'] == 'ask_web_research' and 'web_research' in request.state['decision']['capabilities']:
+            tool = TOOLS['research']
+            request = request.override(tool=tool, tool_call={**call, 'name': tool.name, 'args': {'task': 'web'}})
         if request.tool_call['name'] not in _allowed(request.state):
             return _blocked(call)
         result = await handler(request)
@@ -151,6 +154,9 @@ def _deferred(call: dict) -> ToolMessage:
                        tool_call_id=call['id'], name=call['name'], status='error')
 
 
+OLD_TOOL_NAMES = {'ask_manuscript_review': 'ask_review', 'ask_research': 'ask_web_research'}  # 이름을 바꾸기 전 체크포인트의 호출 횟수를 이어받는다
+
+
 class ToolCallLimit(ToolCallLimitMiddleware):
     """라이브러리 도구 한도. DynamicToolMiddleware가 이미 답한(막거나 미룬) 호출은 세지 않는다(미룬 호출을 다음 턴에 부를 수 있게)."""
 
@@ -162,7 +168,7 @@ class ToolCallLimit(ToolCallLimitMiddleware):
             answered.add(asked.tool_call_id)
         pending = asked.model_copy(update={'tool_calls': [c for c in asked.tool_calls if c['id'] not in answered]})
         counted = {**state, 'messages': [pending]}
-        if self.tool_name == 'ask_manuscript_review' and (old_count := state.get('thread_tool_call_count', {}).get('ask_review')):
+        if (old_name := OLD_TOOL_NAMES.get(self.tool_name)) and (old_count := state.get('thread_tool_call_count', {}).get(old_name)):
             counts = state['thread_tool_call_count']
             counted['thread_tool_call_count'] = {**counts, self.tool_name: counts.get(self.tool_name, old_count)}
         return super().after_model(counted, runtime)

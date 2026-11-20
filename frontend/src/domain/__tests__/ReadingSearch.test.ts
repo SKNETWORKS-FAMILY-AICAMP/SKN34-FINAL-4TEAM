@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../data/mock/InMemoryGenreRepositories'
 import { seedWorks, seedWorlds } from '../../data/mock/seed'
 import type { Episode as ContentEpisode } from '../entities/content'
 import type { Work } from '../entities/work'
+import type { GenreRepository } from '../repositories/GenreRepository'
 import type { ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 import type { WorkRankingQuery, WorkSearchQuery, WorkSearchRepository } from '../repositories/WorkSearchRepository'
@@ -14,13 +16,16 @@ const serverWork = (id: string, over: Partial<Work> = {}): Work => ({ ...seedWor
 const at = new Date('2026-11-10T05:07:00Z')
 const ranked = (items: Work[] = [], computedAt = at) => ({ items, computedAt })
 
-function setup(search?: Partial<WorkSearchRepository>, works = seedWorks(0)) {
+/** `genres`를 안 주면 운영과 같은 목록을 보는 메모리 장르 저장소(시드: 홈에 보이는 판타지·SF·고전), null이면 장르 저장소가 없는 구성이다. */
+function setup(search?: Partial<WorkSearchRepository>, works = seedWorks(0), genres?: GenreRepository | null) {
   const state: ReadingProgress = { last: {}, read: {}, seen: {}, liked: {} }
   const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), readWorld: async (work) => work, createFork: async () => ({ id: 'forked' }), saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const readingRepository: ReadingRepository = { getProgress: async () => state, markSeen: async () => {}, saveProgress: async () => {} }
   const readingRecordRepository: ReadingRecordRepository = { list: async () => [], record: async () => {}, remove: async () => {} }
   const repo: WorkSearchRepository | undefined = search && { search: vi.fn(async () => []), rankings: vi.fn(async () => ranked()), recordView: vi.fn(async () => {}), episodeViews: vi.fn(async () => ({})), ...search }
-  return { useCase: new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, repo) }
+  const operations = new InMemoryOperationsGenreRepository()
+  const genreRepository = genres === null ? undefined : genres ?? new InMemoryGenreRepository(operations)
+  return { operations, useCase: new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, repo, undefined, genreRepository) }
 }
 
 describe('ReadingUseCase.getHome 서버 랭킹', () => {
@@ -195,6 +200,38 @@ describe('ReadingUseCase.getHome 장르 칩·오늘의 발견', () => {
     expect(search).not.toHaveBeenCalled()
   })
 
+  it('칩의 장르는 홈에 보이는 장르(아이콘 이름)로 정해 새로 켠 장르도 그 이름으로 서버 검색한다', async () => {
+    const search = vi.fn(async () => [])
+    const { operations, useCase } = setup({ search })
+    await operations.update('genre-03', { featured: true, emoji: '⚔️' })
+    await useCase.getHome(null, '⚔️ 무협')
+    expect(search).toHaveBeenCalledWith({ q: '무협', f: 'genre', sort: 'like' })
+  })
+
+  it('숨겼거나 홈 노출을 끈 장르의 칩은 더 이상 없는 칩이라 장르를 거르지 않고 추천과 같다', async () => {
+    const search = vi.fn(async () => [])
+    const { operations, useCase } = setup({ search })
+    await operations.update('genre-28', { featured: false })
+    await operations.update('genre-14', { active: false })
+    expect((await useCase.getHome(null, '📜 고전')).filtered).toBeNull()
+    expect((await useCase.getHome(null, '🛰 SF')).filtered).toBeNull()
+    expect(search).not.toHaveBeenCalled()
+  })
+
+  it('목업의 장르 칩은 테마가 아니라 작품의 장르 이름이 든 공개 작품만 보인다', async () => {
+    const works = seedWorks(0).map((w) => (w.id === 'hong' ? { ...w, genre: '사극' } : w.id === 'starlight' ? { ...w, genre: '판타지 · 고전' } : w))
+    const home = await setup(undefined, works).useCase.getHome(null, '📜 고전')
+    expect(home.filtered!.map((w) => w.id)).toEqual(['guunmong', 'starlight', 'gate', 'cloud', 'pardon'])
+  })
+
+  it('장르 목록을 읽지 못하면 장르 칩 조회를 빈 결과로 숨기지 않고 던진다', async () => {
+    const genres: GenreRepository = { list: async () => { throw new Error('genres offline') } }
+    await expect(setup({ search: async () => [] }, seedWorks(0), genres).useCase.getHome(null, '✨ 판타지')).rejects.toThrow('genres offline')
+    // 장르가 필요 없는 추천·무료 칩은 장르 목록을 읽지 않는다.
+    expect((await setup(undefined, seedWorks(0), genres).useCase.getHome(null, '🆓 무료')).filtered).not.toBeNull()
+    expect((await setup(undefined, seedWorks(0), genres).useCase.getHome(null, '추천')).filtered).toBeNull()
+  })
+
   it('오늘의 발견은 서버 공개 목록(생성 최신순)을 뒤집은 오래된 순이다', async () => {
     const list = [serverWork('new', { statisticsSupported: false, upd: 0 }), serverWork('mid', { statisticsSupported: false, upd: 0 }), serverWork('old', { statisticsSupported: false, upd: 0 })]
     const home = await setup({}, list).useCase.getHome(null, '추천')
@@ -234,6 +271,36 @@ describe('ReadingUseCase.findWorks 서버 검색', () => {
   it('서버 실패는 빈 목록으로 숨기지 않고 오류로 알린다', async () => {
     const { useCase } = setup({ search: async () => { throw new Error('offline') } })
     await expect(useCase.findWorks({ sort: 'latest' })).rejects.toThrow('offline')
+  })
+
+  describe('태그 범위: 해시태그가 없는 포크는 원작 태그를 이어받으므로(/tag와 같게) 서버가 찾은 원작 바로 뒤에 잇는다', () => {
+    const hong = serverWork('hong', { hash: ['#홍길동전', '#의적'] })
+    const [base] = seedWorks(0)
+    const fork = (id: string, over: Partial<Work> = {}) => serverWork(id, { parent: 'hong', forkAt: 1, hash: [], eps: base.eps.slice(0, 1), ...over })
+    // 서버 태그 검색은 포크 자신의 해시태그만 봐서 원작만 찾는다. 자기 태그가 있는 포크(mine)는 서버가 직접 찾는다.
+    const catalog = [hong, fork('fork1'), fork('mine', { hash: ['#홍길동전'] }), fork('draft', { eps: [] }), fork('stray', { parent: 'else' }), fork('fork2')]
+
+    it('자기 해시태그가 없는 공개 포크만 이어 주고, 자기 태그가 있거나 비공개이거나 다른 원작의 포크는 잇지 않는다', async () => {
+      const search = vi.fn(async () => [hong])
+      const page = await setup({ search }, catalog).useCase.findWorks({ q: ' 홍길동전 ', f: 'tag', sort: 'latest' })
+      expect(page.list.map((w) => w.id)).toEqual(['hong', 'fork1', 'fork2'])
+      expect(page.hasMore).toBe(false) // 더 보기는 서버가 준 개수로 따진다
+    })
+
+    it('서버가 이미 준 포크는 다시 잇지 않는다', async () => {
+      const search = vi.fn(async () => [hong, fork('fork1')])
+      const page = await setup({ search }, catalog).useCase.findWorks({ q: '홍길동전', f: 'tag', sort: 'latest' })
+      expect(page.list.map((w) => w.id).toSorted()).toEqual(['fork1', 'fork2', 'hong'])
+    })
+
+    it('이어받은 태그에 검색어가 없거나 태그 범위가 아니거나 검색어가 비면 포크를 잇지 않는다', async () => {
+      const { useCase } = setup({ search: async () => [hong] }, catalog)
+      const ids = async (q: string, f: 'tag' | 'all' | 'title') => (await useCase.findWorks({ q, f, sort: 'latest' })).list.map((w) => w.id)
+      expect(await ids('없는태그', 'tag')).toEqual(['hong'])
+      expect(await ids('홍길동전', 'all')).toEqual(['hong']) // 전체·제목 범위는 서버가 포크의 제목·작가로도 직접 찾는다
+      expect(await ids('홍길동전', 'title')).toEqual(['hong'])
+      expect(await ids('', 'tag')).toEqual(['hong'])
+    })
   })
 })
 
@@ -422,5 +489,30 @@ describe('ReadingUseCase.openEpisode 회차 열람 조회 기록', () => {
     const result = await setup({ recordView }, server()).useCase.openEpisode('guunmong', 3, 'user')
     expect(result).toMatchObject({ n: 3 })
     expect(recordView).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ReadingUseCase.homeChips 홈 칩 줄', () => {
+  it('추천 · 홈에 보이는 장르 · 무료 · 포크 많은 순서로 공개 장르 목록에서 만든다', async () => {
+    expect(await setup().useCase.homeChips()).toEqual(['추천', '✨ 판타지', '🛰 SF', '📜 고전', '🆓 무료', '✎ 포크 많은'])
+  })
+
+  it('운영에서 홈 노출·숨김·순서를 바꾸면 칩이 따라가고 장르 칩은 최대 여섯 개다', async () => {
+    const { operations, useCase } = setup()
+    await operations.update('genre-03', { featured: true, emoji: '⚔️' })
+    await operations.update('genre-14', { active: false })
+    expect(await useCase.homeChips()).toEqual(['추천', '✨ 판타지', '⚔️ 무협', '📜 고전', '🆓 무료', '✎ 포크 많은'])
+    const codes = (await operations.list()).map((g) => g.code)
+    await operations.reorder(['genre-28', ...codes.filter((code) => code !== 'genre-28')])
+    expect(await useCase.homeChips()).toEqual(['추천', '📜 고전', '✨ 판타지', '⚔️ 무협', '🆓 무료', '✎ 포크 많은'])
+  })
+
+  it('장르 목록을 읽지 못하면 장르 없는 칩 줄로 숨기지 않고 던진다', async () => {
+    const genres: GenreRepository = { list: async () => { throw new Error('genres offline') } }
+    await expect(setup(undefined, seedWorks(0), genres).useCase.homeChips()).rejects.toThrow('genres offline')
+  })
+
+  it('장르 저장소가 없는 구성은 장르 칩 없이 추천·무료·포크 많은만 보인다', async () => {
+    expect(await setup(undefined, seedWorks(0), null).useCase.homeChips()).toEqual(['추천', '🆓 무료', '✎ 포크 많은'])
   })
 })

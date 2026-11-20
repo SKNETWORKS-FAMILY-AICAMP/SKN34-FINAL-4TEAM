@@ -44,7 +44,7 @@ class GenreTemplateSeederTest {
             mock(SettingCardDraftRepository::class.java), mock(SettingCardVersionRepository::class.java), mock(WorldRevisionRepository::class.java),
             mock(WorldRevisionCardRepository::class.java), mock(WorldSaveRequestRepository::class.java), mock(WorldRelationshipStateRepository::class.java),
             mock(TemplatePublicationOnceRepository::class.java), mock(ExpandedSeedProgressRepository::class.java), mock(InitialWorldApplicationRepository::class.java), mock(SettingCardImageRepository::class.java), graph, manager,
-            JsonMapper.builder().addModule(KotlinModule.Builder().build()).build())
+            JsonMapper.builder().addModule(KotlinModule.Builder().build()).build(), mock(ai.storyfork.content.work.repository.GenreRepository::class.java))
         val single = spy(GenreTemplateSeeder(real, JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()))
         val sample = legacy.first()
         doReturn(listOf(sample)).`when`(single).loadLegacy()

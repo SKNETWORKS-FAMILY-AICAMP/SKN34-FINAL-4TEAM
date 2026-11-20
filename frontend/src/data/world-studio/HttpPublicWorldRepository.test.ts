@@ -3,12 +3,12 @@ import { describe, expect, it, vi } from 'vitest'
 import { HttpPublicWorldRepository } from './HttpPublicWorldRepository'
 
 const summary = (extra: Record<string, unknown> = {}) => ({
-  id: 'w-1', name: '달무리 군도', description: '달이 질 때마다 섬이 흐르는 바다', genre: 'fantasy', authorNickname: '달무리', cardCount: 7, relationshipCount: 4,
+  id: 'w-1', name: '달무리 군도', description: '달이 질 때마다 섬이 흐르는 바다', genre: 'genre-01', authorNickname: '달무리', cardCount: 7, relationshipCount: 4,
   publishedAt: '2026-11-11T09:30:00Z', hasCover: false, ...extra,
 })
 const page = (extra: Record<string, unknown> = {}) => ({ items: [summary()], page: 0, size: 24, total: 1, ...extra })
 const world = (extra: Record<string, unknown> = {}) => ({
-  id: 'w-1', name: '달무리 군도', description: '설명', genre: 'fantasy', authorNickname: '달무리', publishedAt: '2026-11-11T09:30:00Z', hasCover: false, revisionNo: 3,
+  id: 'w-1', name: '달무리 군도', description: '설명', genre: 'genre-01', authorNickname: '달무리', publishedAt: '2026-11-11T09:30:00Z', hasCover: false, revisionNo: 3,
   cards: [
     { id: 'c-1', title: '조석신 하엘', text: '달을 끄는 신', cardType: 'character', aliases: ['하엘'], tags: ['신'], imageId: null },
     { id: 'c-2', title: '새벽항', text: '오래된 항구', cardType: 'location', aliases: [], tags: [], imageId: null },
@@ -26,8 +26,8 @@ describe('공개 세계관 목록 읽기 (공개 API, 인증 없음)', () => {
   })
   it('장르·쪽·크기를 쿼리로 보내고 응답을 목록으로 바꾼다', async () => {
     const fetcher = respond(page({ items: [summary(), summary({ id: 'w-2', genre: null, cardCount: 0, relationshipCount: 0 })], total: 2 }))
-    const result = await new HttpPublicWorldRepository(fetcher).list({ genre: 'fantasy', page: 0, size: 24 })
-    expect(fetcher).toHaveBeenCalledWith('/api/v1/public/world-studios?genre=fantasy&page=0&size=24', expect.objectContaining({ method: 'GET', credentials: 'same-origin' }))
+    const result = await new HttpPublicWorldRepository(fetcher).list({ genre: 'genre-01', page: 0, size: 24 })
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/public/world-studios?genre=genre-01&page=0&size=24', expect.objectContaining({ method: 'GET', credentials: 'same-origin' }))
     expect(result).toMatchObject({ page: 0, size: 24, total: 2 })
     expect(result.items[0]).toEqual(summary())
     expect(result.items[1]).toMatchObject({ id: 'w-2', genre: null, cardCount: 0 }) // 장르 미지정은 null 그대로
@@ -64,7 +64,7 @@ describe('공개 세계관 목록 읽기 (공개 API, 인증 없음)', () => {
 
   it('응답 형식이 계약과 다르면 빈 목록으로 숨기지 않고 던진다', async () => {
     const bad = [
-      page({ items: [summary({ genre: 'horror' })] }), // 모르는 장르 코드
+      page({ items: [summary({ genre: 7 })] }), // 문자열이 아닌 장르
       page({ items: [summary({ cardCount: -1 })] }),
       page({ items: [summary({ publishedAt: '어제' })] }),
       page({ items: [{ id: 'x' }] }),
@@ -213,9 +213,9 @@ describe('공개 세계관 상세 읽기', () => {
 describe('공개 세계관 목록의 검색어 (#505)', () => {
   it('검색어를 q 쿼리로 장르·쪽·크기보다 앞에 싣고 공백·&도 원래 글자로 읽히게 인코딩한다', async () => {
     const fetcher = respond(page())
-    await new HttpPublicWorldRepository(fetcher).list({ q: '달무리 군도&a=1', genre: 'fantasy', page: 1, size: 24 })
+    await new HttpPublicWorldRepository(fetcher).list({ q: '달무리 군도&a=1', genre: 'genre-01', page: 1, size: 24 })
     const url = new URL(String(fetcher.mock.calls[0][0]), 'http://x')
-    expect([url.pathname, [...url.searchParams]]).toEqual(['/api/v1/public/world-studios', [['q', '달무리 군도&a=1'], ['genre', 'fantasy'], ['page', '1'], ['size', '24']]])
+    expect([url.pathname, [...url.searchParams]]).toEqual(['/api/v1/public/world-studios', [['q', '달무리 군도&a=1'], ['genre', 'genre-01'], ['page', '1'], ['size', '24']]])
   })
 
   it('검색어가 없거나 비어 있으면 q 쿼리를 싣지 않아 지금 목록과 같다', async () => {

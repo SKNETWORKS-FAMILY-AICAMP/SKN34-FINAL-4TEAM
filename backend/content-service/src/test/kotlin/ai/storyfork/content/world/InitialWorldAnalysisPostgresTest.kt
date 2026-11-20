@@ -77,6 +77,8 @@ class InitialWorldAnalysisPostgresTest {
             "app.worldstudio.neo4j.uri=${System.getenv("NEO4J_URI")}","app.worldstudio.neo4j.username=neo4j",
             "app.worldstudio.neo4j.password=${System.getenv("NEO4J_PASSWORD")}").applyTo(this)
         beanFactory.registerSingleton("jsonMapper",mapper)
+        // WorldStudioService가 세계관 장르 확인(DEC-56)에 쓰는 Content 저장소다. 이 부분 컨텍스트는 Content JPA를 올리지 않고 장르를 고르는 호출도 없다.
+        beanFactory.registerSingleton("genreRepository",org.mockito.Mockito.mock(ai.storyfork.content.work.repository.GenreRepository::class.java))
         beanFactory.registerSingleton("initialWorldAnalysisClock",clock)
         beanFactory.registerSingleton("initialWorldExtractionClient",stub.client())
         register(ai.storyfork.content._common.config.ContentDatabaseConfig::class.java,WorldStudioConfig::class.java,
@@ -458,7 +460,7 @@ class InitialWorldAnalysisPostgresTest {
         val studio=WorldStudioService(ctx.getBean(StudioWorldRepository::class.java),ctx.getBean(WorldDraftRepository::class.java),
             ctx.getBean(SettingCardRepository::class.java),ctx.getBean(SettingCardDraftRepository::class.java),ctx.getBean(SettingCardVersionRepository::class.java),
             ctx.getBean(WorldRevisionRepository::class.java),ctx.getBean(WorldRevisionCardRepository::class.java),ctx.getBean(WorldSaveRequestRepository::class.java),
-            ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(TemplatePublicationOnceRepository::class.java),ctx.getBean(ExpandedSeedProgressRepository::class.java),ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(SettingCardImageRepository::class.java),graph,manager,mapper)
+            ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(TemplatePublicationOnceRepository::class.java),ctx.getBean(ExpandedSeedProgressRepository::class.java),ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(SettingCardImageRepository::class.java),graph,manager,mapper,org.mockito.Mockito.mock(ai.storyfork.content.work.repository.GenreRepository::class.java))
         return InitialWorldApplicationService(studio,ctx.getBean(InitialWorldAnalysisService::class.java),ctx.getBean(StudioWorldRepository::class.java),
             ctx.getBean(InitialWorldAnalysisRepository::class.java),ctx.getBean(InitialWorldCandidateRepository::class.java),
             ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(InitialWorldApplicationItemRepository::class.java),mapper,

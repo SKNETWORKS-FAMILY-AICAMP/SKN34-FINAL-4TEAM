@@ -6,7 +6,7 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 
 ## 서비스와 진입점
 
-현재 Compose의 앱은 **web·core-api·content-service·operations-service·ai-service 다섯 개**입니다. Core는 회원·인증·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio, AI는 요청된 모델 실행을 소유합니다. 정산·알림·운영 업무는 목표 책임이며 구현 완료를 뜻하지 않습니다. develop·prod는 여기에 **Langfuse(LLMOps, DEC-55)를 같은 프로젝트로 함께 켭니다**([Langfuse 절](#집필-ai-추적용-langfuse-302)). 새 큐/worker/Start 서버는 추가하지 않습니다.
+현재 Compose의 앱은 **web·core-api·content-service·operations-service·ai-service 다섯 개**입니다. Core는 회원·인증·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio, AI는 요청된 모델 실행을 소유합니다. 정산·알림·운영 업무는 목표 책임이며 구현 완료를 뜻하지 않습니다. 로컬·develop·prod는 여기에 **Langfuse(LLMOps, DEC-55)를 같은 프로젝트로 함께 켭니다**([Langfuse 절](#집필-ai-추적용-langfuse-302)). 새 큐/worker/Start 서버는 추가하지 않습니다.
 
 [`docker-compose.yaml`](docker-compose.yaml)은 공통 환경·내부 포트만 정의하는 base로 **단독 실행하지 않습니다**.
 
@@ -17,17 +17,17 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 | 앱 | 다섯 앱 소스 build, web은 nginx 정적 runtime, HMR 아님 | 다섯 앱의 GHCR `:develop`, `linux/amd64` | 다섯 앱의 GHCR `:main`, `linux/amd64`, 게시 여부 미확인 |
 | DB·SMTP | 새 프로젝트 범위 `core-postgres` volume의 PostgreSQL + Mailpit | 로컬과 같은 PostgreSQL·Mailpit 정의 재사용, 별도 프로젝트 DB volume | 별도 승인·준비한 외부 PostgreSQL·SMTP, 내장 DB·Mailpit·volume 없음 |
 | web 포트 | `127.0.0.1:${WEB_PORT:-5173}` | `127.0.0.1:${CD_WEB_PORT}` | `127.0.0.1:${WEB_PORT}` |
-| Langfuse | 별도 프로젝트 `storyfork-langfuse`(필요할 때만, [절차](#로컬-별도-실행)) | 같은 프로젝트에 `include`(웹·worker와 자체 저장소 4개) | 같은 프로젝트에 `include`(자체 저장소·volume 포함, 앱 DB는 외부 PostgreSQL 그대로) |
-| 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025, 모두 loopback | Langfuse 웹(개발자용) `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`만 | Langfuse 웹(개발자용) `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`만 |
+| Langfuse | 같은 프로젝트에 항상 `include`(웹·worker와 자체 저장소 4개, [절차](#로컬에서-켜기)) | 같은 프로젝트에 `include`(웹·worker와 자체 저장소 4개) | 같은 프로젝트에 `include`(자체 저장소·volume 포함, 앱 DB는 외부 PostgreSQL 그대로) |
+| 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025·Langfuse 웹(개발자용) `${LANGFUSE_WEB_PORT:-3000}`, 모두 loopback | Langfuse 웹(개발자용) `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`만 | Langfuse 웹(개발자용) `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`만 |
 
 루트 진입점은 Compose native `include`로 base+local을 재사용하므로 build context는 `infrastructure/` 기준의 `../frontend`·`../backend/*`입니다.
 루트 `.env`는 기본 명령에서 자동 로드하며 컨테이너에는 서비스별 allowlist만 전달합니다. dev는 local 파일의 PostgreSQL·Mailpit 서비스만 native `extends`로 재사용하고 호스트 포트는 제거합니다. 원격 CD에서는 `--project-directory`와 임시 설정 위치가 다르므로 `CD_LOCAL_COMPOSE_FILE`(extends)과 `CD_LANGFUSE_COMPOSE_FILE`(include)을 임시 파일의 절대 경로로 고정합니다. dev 렌더링에 앱 build는 없으며 DB volume은 `storyfork-develop-cd_core-postgres`로 격리됩니다. Compose v2.24.4 이상을 사용합니다.
 
 ```text
 Browser → web nginx
-           ├─ /api/v1/works 및 /api/v1/public/works(+하위) → Content:8081 → AI:8000
+           ├─ /api/v1/works 및 /api/v1/public/works(+하위)·/api/v1/public/genres → Content:8081 → AI:8000
            │                                                   └→ Core 내부 인증 확인
-           ├─ /api/v1/operations/{reports,members,admins,support,works,comments,admin/notices,public/notices,admin/events,public/events,admin/activities}(+하위) → Operations:8082 → Core·Content 내부 API
+           ├─ /api/v1/operations/{reports,members,admins,support,works,comments,genres,admin/notices,public/notices,admin/events,public/events,admin/activities}(+하위) → Operations:8082 → Core·Content 내부 API
            ├─ /api/v1/operations/{dashboard,llmops,alerts,jobs}(+하위) → Operations:8082 → Langfuse Public API·AI·Core·Content 내부 API
            └─ 나머지 /api → Core:8080 → AI Health
 ```
@@ -36,7 +36,7 @@ Browser → web nginx
 
 ## 시작과 설정
 
-다음은 담당자의 수동 실행 안내이며 로컬 자동 검증에서 앱/DB/컨테이너를 기동하지 않습니다. `cp -n .env.example .env`로 루트 설정을 준비하되 기존 파일은 덮어쓰지 않습니다. 서비스별 `.env`는 만들지 않습니다.
+다음은 담당자의 수동 실행 안내이며 로컬 자동 검증에서 앱/DB/컨테이너를 기동하지 않습니다. `cp -n .env.example .env`로 루트 설정을 준비하되 기존 파일은 덮어쓰지 않습니다. 서비스별 `.env`는 만들지 않습니다. 로컬 Compose는 Langfuse도 함께 켜므로 `LANGFUSE_*` 값도 채워야 합니다([로컬에서 켜기](#로컬에서-켜기)).
 
 로컬 Core에는 직접 준비한 `DATABASE_USER/PASSWORD`, `AUTH_MAIL_FROM`, `AUTH_JWT_SECRET`이 필요합니다. JWT 키는 32바이트 이상 무작위 값의 Base64 인코딩이며 Core에만 전달합니다. 기본 비밀번호나 서명 키는 제공하지 않습니다. `AUTH_PUBLIC_ORIGIN`을 실제 web 주소에 맞추고 HTTP 로컬 검증에서만 `AUTH_COOKIE_SECURE=false`를 사용합니다. 로컬 DB URL·SMTP는 Compose 내부 PostgreSQL·Mailpit으로 고정합니다. Mailpit 화면(기본 8025)은 인증 메일을 포함하므로 로컬 전용입니다. dev도 내부 PostgreSQL·Mailpit을 쓰지만 호스트에 노출하지 않으며, prod만 외부 DB·SMTP를 사용합니다. 가입 인증 24시간, 복구·이메일 변경 1시간 계약과 실제 API는 [Core 문서](../backend/core-api/README.md#공개-계약)를 따릅니다.
 
@@ -68,7 +68,7 @@ docker compose down
 | `DATABASE_*` | 빈 계정, `storyfork` DB | Core·Content(Studio 포함)·운영 공용 PostgreSQL(운영은 전용 `operations` schema) |
 | `INTERNAL_TOKEN` | 빈 값 | Content·Operations·AI (Content/AI 생성, Operations → AI 평가 위임) |
 | `OPERATIONS_SERVICE_TOKEN` | 빈 값(운영 호출 거절) | Operations·Core·Content |
-| `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | 빈 값(추적 끔) | AI·Operations, Langfuse 서버의 초기 프로젝트 키(세 곳이 같은 값) |
+| `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | 빈 값(네이티브는 추적 끔, Compose는 필수) | AI·Operations, Langfuse 서버의 초기 프로젝트 키(세 곳이 같은 값) |
 | `CREDIT_SIGNUP_TRIAL_AMOUNT` | `0`(가입 체험 크레딧을 지급하지 않음) | Core만, 양수면 가입한 회원에게 한 번 지급(30일 뒤 소멸) |
 | `APP_CORS_ALLOWED_ORIGIN` | 빈 값이면 web 포트에서 계산 | Core/Content의 단일 origin |
 | `WEB_PORT` | local `5173` / prod 필수 | web loopback (dev는 CD workflow의 `CD_WEB_PORT`) |
@@ -197,10 +197,10 @@ docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index
 
 | 실행 | 방식 |
 |---|---|
-| 로컬 | 앱 스택과 분리한 별도 Compose 프로젝트 `storyfork-langfuse`. 시연·디버깅할 때만 켭니다([로컬 별도 실행](#로컬-별도-실행)) |
+| 로컬 | 루트 [`compose.yaml`](../compose.yaml)이 앱 파일과 **별도 `include` 항목**으로 앱 스택과 같은 프로젝트(`storyfork-local`)에서 항상 함께 켭니다(정의 복제 없음, [로컬에서 켜기](#로컬에서-켜기)) |
 | develop(CD)·prod | `docker-compose.dev.yaml`·`docker-compose.prod.yaml`이 `include`로 앱 스택과 같은 프로젝트에서 함께 켭니다(정의 복제 없음). 앱은 같은 네트워크의 `http://langfuse-web:3000`으로 부르므로 네트워크 연결 작업이 없습니다 |
 
-구성은 웹·worker와 자체 저장소(PostgreSQL·ClickHouse·Redis·MinIO)입니다. 서비스 이름은 앱 스택의 `postgres`·`minio`와 겹치지 않게 모두 `langfuse-` 접두어를 씁니다(볼륨 이름은 그대로라 기존 로컬 데이터가 이어집니다). 나머지 저장소는 호스트 포트가 없습니다. 웹 화면은 **개발자용**이라 `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`에만 열고 공개 진입점(nginx)에는 두지 않습니다. 개발자는 초기 관리자(`LANGFUSE_INIT_USER_*`)로 로그인하며 가입은 막혀 있습니다. 원격 서버에서는 SSH 포트 포워딩으로 서버의 `LANGFUSE_WEB_PORT`를 같은 번호의 로컬 포트로 연 뒤 `http://localhost:<포트>`에 접속합니다(Langfuse의 기준 주소가 `http://localhost:${LANGFUSE_WEB_PORT:-3000}`로 고정). 메모리를 수 GB 쓰며 ClickHouse는 3GiB로 제한합니다.
+구성은 웹·worker와 자체 저장소(PostgreSQL·ClickHouse·Redis·MinIO)입니다. 서비스 이름은 앱 스택의 `postgres`·`minio`와 겹치지 않게 모두 `langfuse-` 접두어를 씁니다. 나머지 저장소는 호스트 포트가 없습니다. 웹 화면은 **개발자용**이라 `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`에만 열고 공개 진입점(nginx)에는 두지 않습니다. 개발자는 초기 관리자(`LANGFUSE_INIT_USER_*`)로 로그인하며 가입은 막혀 있습니다. 원격 서버에서는 SSH 포트 포워딩으로 서버의 `LANGFUSE_WEB_PORT`를 같은 번호의 로컬 포트로 연 뒤 `http://localhost:<포트>`에 접속합니다(Langfuse의 기준 주소가 `http://localhost:${LANGFUSE_WEB_PORT:-3000}`로 고정). 메모리를 수 GB 쓰며 ClickHouse는 3GiB로 제한합니다.
 
 ### develop·prod에서 켜기
 
@@ -215,25 +215,22 @@ docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index
 
 배포 전제는 CD가 확인하지 않습니다. 서버 관리자가 확인합니다(아래 'CI → CD' 전제조건 표에도 있습니다).
 
-### 로컬 별도 실행
+### 로컬에서 켜기
 
-1. 루트 `.env`에 `.env.example`의 Langfuse 항목을 채웁니다. 비밀값은 각각 `openssl rand -hex 32`로 만들고, `LANGFUSE_PUBLIC_KEY=pk-lf-<임의값>`, `LANGFUSE_SECRET_KEY=sk-lf-<임의값>`처럼 접두어를 붙입니다. `LANGFUSE_BASE_URL`은 네이티브 ai-service용(`http://localhost:3000`)이며 Compose 컨테이너는 항상 내부 주소 `http://langfuse-web:3000`을 씁니다.
-2. 저장소 루트에서 시작합니다. 첫 실행은 이미지를 받고 마이그레이션하느라 몇 분 걸립니다.
+별도 켜기 작업은 없습니다. 루트 [`compose.yaml`](../compose.yaml)이 `docker-compose.langfuse.yaml`을 앱 파일과 **별도 `include` 항목**으로 불러, `docker compose up`이 앱 스택과 같은 프로젝트(`storyfork-local`)·같은 기본 네트워크에 Langfuse를 항상 함께 올립니다(끄는 옵션·profile은 없습니다). 앱은 내부 주소 `http://langfuse-web:3000`으로 부르므로 네트워크 연결 작업이 없습니다.
 
-```powershell
-docker compose -f infrastructure/docker-compose.langfuse.yaml --env-file .env up -d --wait
-```
+1. 루트 `.env`에 위 표와 같은 `LANGFUSE_*` 값을 채웁니다(이름과 설명은 `.env.example`). 이제 로컬 `docker compose up`의 필수값이라 비어 있으면 `config`가 실패합니다. `LANGFUSE_BASE_URL`은 네이티브 ai-service용(`http://localhost:3000`)이며 Compose 컨테이너는 항상 내부 주소를 씁니다.
+2. 저장소 루트에서 [시작과 설정](#시작과-설정)의 `docker compose up -d --build`로 시작합니다. 첫 시작은 Langfuse 이미지를 받고 마이그레이션하느라 몇 분 걸립니다.
+3. 첫 시작 때 조직 `STORYFORK`, 프로젝트 `writing-ai`, 관리자(`LANGFUSE_INIT_USER_*`)와 `.env`의 같은 API 키가 만들어집니다. 회원가입은 막혀 있습니다. `http://localhost:${LANGFUSE_WEB_PORT:-3000}`에 관리자로 로그인합니다. 집필 AI 요청은 **Tracing → Traces**에 나타납니다. 응답의 `runId`가 trace id입니다. 전송은 몇 초 단위로 묶여 늦게 보일 수 있습니다.
 
-3. 첫 시작 때 조직 `STORYFORK`, 프로젝트 `writing-ai`, 관리자(`LANGFUSE_INIT_USER_*`)와 `.env`의 같은 API 키가 만들어집니다. 회원가입은 막혀 있습니다. http://localhost:3000 에 관리자로 로그인합니다.
-4. 앱 스택을 시작하고 AI·운영 컨테이너만 Langfuse 네트워크에 연결합니다. AI는 요청을 trace로 보내고 운영은 관리자 화면을 위해 읽습니다. 컨테이너를 다시 만들면 연결을 다시 설정합니다. 집필 AI 요청은 **Tracing → Traces**에 나타납니다. 응답의 `runId`가 trace id입니다. 전송은 몇 초 단위로 묶여 늦게 보일 수 있습니다.
+**한 번만 하는 이전:** 예전에 별도 프로젝트로 Langfuse를 켜 뒀다면 새로 시작하기 전에 저장소 루트에서 `docker compose -p storyfork-langfuse down`으로 멈춥니다(웹 포트가 겹칩니다). 예전 볼륨 `storyfork-langfuse_langfuse-*`은 남지만 새 프로젝트는 쓰지 않으므로 이전 로컬 trace는 이어지지 않습니다. AI·운영 컨테이너를 그 네트워크에 연결해 뒀다면 `storyfork-langfuse_default`는 '사용 중'이라 남을 수 있으나 무해합니다.
+
+비밀값을 바꾸면 이미 초기화된 Langfuse 볼륨과 맞지 않습니다. 프로젝트 전체 `down -v`는 앱 DB·Neo4j·첨부 볼륨까지 지우므로 쓰지 말고, Langfuse 컨테이너와 볼륨만 지웁니다(되돌릴 수 없음).
 
 ```bash
-for service in ai-service operations-service; do docker network connect storyfork-langfuse_default "$(docker compose ps -q $service)"; done
+docker compose rm -sf langfuse-web langfuse-worker langfuse-postgres langfuse-clickhouse langfuse-minio langfuse-redis
+docker volume rm $(docker volume ls -q -f name=storyfork-local_langfuse-)
 ```
-
-서비스 이름을 `langfuse-` 접두어로 바꾸기 전 파일(`postgres`·`clickhouse`·`minio`·`redis`)로 띄운 로컬 Langfuse가 남아 있으면 같은 볼륨을 두 컨테이너가 쓰지 않도록 먼저 `docker compose -f infrastructure/docker-compose.langfuse.yaml --env-file .env down --remove-orphans`(볼륨 유지)를 실행하고 다시 시작합니다.
-
-종료는 같은 명령에 `stop`, 데이터까지 지우려면 `down -v`입니다(되돌릴 수 없음). 비밀값을 바꾸면 기존 볼륨과 맞지 않으므로 `down -v` 뒤 다시 시작합니다. 키를 비워 두면 ai-service는 추적하지 않습니다.
 
 ## CI → CD (publish → deploy)
 
@@ -287,7 +284,7 @@ docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastr
 docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml config --quiet
 ```
 
-구문 검사만 하며 컨테이너를 시작하지 않습니다. CI configuration은 예시/synthetic 값으로 루트 기본 진입점과 local/dev/prod의 content false/true, 소스 빌드 CI overlay, 첨부 환경 격리를 확인합니다. dev·prod가 include하는 Langfuse의 필수값은 configuration job 환경의 synthetic 값으로 채웁니다(새 `:?` 필수 변수를 더하면 `.github/workflows/ci.yml`의 같은 job 환경에도 더합니다. 단위 테스트가 빠진 값을 잡습니다). 실제 DB·HTTP·SMTP는 CI 통합/시스템, 모델은 대역 또는 명시적 설정 누락 실패로 검증합니다.
+구문 검사만 하며 컨테이너를 시작하지 않습니다. CI configuration은 예시/synthetic 값으로 루트 기본 진입점과 local/dev/prod의 content false/true, 소스 빌드 CI overlay, 첨부 환경 격리를 확인합니다. 루트 기본 진입점·dev·prod가 include하는 Langfuse의 필수값은 configuration job 환경의 synthetic 값으로 채웁니다(새 `:?` 필수 변수를 더하면 `.github/workflows/ci.yml`의 같은 job 환경에도 더합니다. 단위 테스트가 빠진 값을 잡습니다). 실제 DB·HTTP·SMTP는 CI 통합/시스템, 모델은 대역 또는 명시적 설정 누락 실패로 검증합니다.
 
 ## 표준 테스트 프레임워크 직접 실행
 

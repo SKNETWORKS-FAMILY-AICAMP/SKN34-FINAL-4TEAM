@@ -69,7 +69,7 @@ class PublicWorldServiceTest {
      * 작가 전용 인물은 비공개이고 회차도 없어 어느 기준 회차에서도 비작가에게 숨는다. [revealed]가 false이면 공개 회차 값을 모두 뺀다.
      */
     private inner class Seed(
-        val owner: UUID = UUID.randomUUID(), visibility: String = "public", genre: String? = "fantasy",
+        val owner: UUID = UUID.randomUUID(), visibility: String = "public", genre: String? = "genre-01",
         saved: Boolean = true, name: String = "저장된 세계", cover: Boolean = false, cards: String = "public", pictures: Boolean = false, revealed: Boolean = true,
     ) {
         val id: UUID = UUID.randomUUID()
@@ -156,7 +156,7 @@ class PublicWorldServiceTest {
         assertEquals(s.id, result.id)
         assertEquals("저장된 세계", result.name)
         assertEquals("저장된 세계 설명", result.description)
-        assertEquals("fantasy", result.genre)
+        assertEquals("genre-01", result.genre)
         assertEquals("작가", result.authorNickname)
         assertEquals("2026-11-11T01:02:03Z", result.publishedAt)
         assertEquals(3L, result.revisionNo)
@@ -451,7 +451,7 @@ class PublicWorldServiceTest {
         `when`(nicknames.nicknames(listOf(x.owner.toString(), y.owner.toString()))).thenReturn(mapOf(x.owner.toString() to "작가 하나"))
         val page = service.list(null, null, null, null)
         assertEquals(PublicWorldPageResponse(listOf(
-            PublicWorldSummaryResponse(x.id, "하나", "하나 설명", "fantasy", "작가 하나", 2, 1, "2026-11-11T01:02:03Z"),
+            PublicWorldSummaryResponse(x.id, "하나", "하나 설명", "genre-01", "작가 하나", 2, 1, "2026-11-11T01:02:03Z"),
             PublicWorldSummaryResponse(y.id, "둘", "둘 설명", null, "탈퇴한 회원", 2, null, "2026-11-11T01:02:03Z"),
         ), 0, 24, 30), page)
         verify(nicknames, times(1)).nicknames(listOf(x.owner.toString(), y.owner.toString()))
@@ -470,14 +470,14 @@ class PublicWorldServiceTest {
     }
 
     @Test fun `list filters by genre and window, and a blank genre means all`() {
-        val s = Seed(genre = "sf")
-        stubPage(listOf(s), PageRequest.of(1, 10), 11, genre = "sf")
-        val page = service.list("sf", null, "1", "10")
+        val s = Seed(genre = "genre-14")
+        stubPage(listOf(s), PageRequest.of(1, 10), 11, genre = "genre-14")
+        val page = service.list("genre-14", null, "1", "10")
         assertEquals(listOf(s.id), page.items.map { it.id })
         assertEquals(1, page.page)
         assertEquals(10, page.size)
         assertEquals(11L, page.total)
-        verify(worlds).listedByGenre("sf", PageRequest.of(1, 10))
+        verify(worlds).listedByGenre("genre-14", PageRequest.of(1, 10))
         verify(worlds).findById(s.id)
         verifyNoMoreInteractions(worlds)
 
@@ -764,7 +764,7 @@ class PublicWorldServiceTest {
         stubNames(mapOf(moon.owner to "작가 하나", star.owner to "달빛 지기", dusk.owner to "작가 셋"))
 
         // 이름: 대소문자와 앞뒤 공백을 무시하고, 한 줄은 목록과 같은 모양이다.
-        assertEquals(PublicWorldSummaryResponse(moon.id, "Moonlight 세계", "Moonlight 세계 설명", "fantasy", "작가 하나", 2, 1, "2026-11-11T01:02:03Z"),
+        assertEquals(PublicWorldSummaryResponse(moon.id, "Moonlight 세계", "Moonlight 세계 설명", "genre-01", "작가 하나", 2, 1, "2026-11-11T01:02:03Z"),
             service.list(null, "  MOONLIGHT ", null, null).items.single())
         // 작가 닉네임
         assertEquals(listOf(star.id), service.list(null, "달빛", null, null).items.map { it.id })
@@ -781,10 +781,10 @@ class PublicWorldServiceTest {
     }
 
     @Test fun `list with q and genre reads only that genre, and a blank q is the plain paged query as before`() {
-        val sf = Seed(name = "별 세계", genre = "sf")
-        stubAll(listOf(sf), genre = "sf")
-        assertEquals(listOf(sf.id), service.list("sf", "별", null, null).items.map { it.id })
-        verify(worlds).listedByGenre("sf", Pageable.unpaged())
+        val sf = Seed(name = "별 세계", genre = "genre-14")
+        stubAll(listOf(sf), genre = "genre-14")
+        assertEquals(listOf(sf.id), service.list("genre-14", "별", null, null).items.map { it.id })
+        verify(worlds).listedByGenre("genre-14", Pageable.unpaged())
         verify(worlds, never()).listed(Pageable.unpaged())
 
         val plain = Seed()
@@ -914,4 +914,50 @@ class PublicWorldServiceTest {
         verify(nicknames, times(1)).nicknames(listOf(a.owner.toString()))
     }
 
+
+    // ---- Fork 독립(#583)이 복사할 원본 ----
+
+    @Test fun `an inherited source is the same read as the inherited world plus where it came from and when each relation began`() {
+        val s = Seed(name = "원작 세계")
+        val started = mapOf(s.relations[0].id to 1, s.relations[3].id to 2)
+        graphReads(s.id) { it.thenReturn(RelationshipStateResult(s.id, 3, "key", "hash", s.relations, started)) }
+        `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenReturn(mapOf(s.owner.toString() to "원작자"))
+
+        val source = service.inheritedSource("fork", s.id, 2)!!
+
+        assertEquals(service.inheritedWorld("fork", s.id, 2), source.world)
+        assertEquals(listOf<Any>("원작 세계", 3L, "원작자"), listOf(source.worldName, source.revisionNo, source.authorNickname))
+        assertEquals(started, source.relationshipEpisodes)
+    }
+
+    @Test fun `a withdrawn author of an inherited source is shown as the withdrawn member`() {
+        val s = Seed()
+        `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenReturn(emptyMap())
+
+        assertEquals("탈퇴한 회원", service.inheritedSource("fork", s.id, 2)!!.authorNickname)
+    }
+
+    @Test fun `an inherited source is null without asking Core or Neo4j when nothing is inherited`() {
+        val draftOnly = Seed(saved = false)
+        val allPrivate = Seed(cards = "private", revealed = false)
+
+        listOf(draftOnly.id, allPrivate.id, UUID.randomUUID()).forEach { assertNull(service.inheritedSource("fork", it, 2)) }
+
+        verifyNoInteractions(graph, nicknames)
+    }
+
+    @Test fun `an inherited source keeps its cards when the relations are unavailable so the caller can refuse, and a Core failure is not hidden`() {
+        val pending = Seed().also { it.state.completed = false }
+        `when`(nicknames.nicknames(listOf(pending.owner.toString()))).thenReturn(mapOf(pending.owner.toString() to "원작자"))
+
+        val unavailable = service.inheritedSource("fork", pending.id, 2)!!
+
+        assertEquals("unavailable", unavailable.world.relationshipStatus)
+        assertEquals(3, unavailable.world.cards.size)
+        assertTrue(unavailable.relationshipEpisodes.isEmpty())
+
+        val s = Seed()
+        `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenThrow(CoreAuthException(503, "CORE_MEMBER_UNAVAILABLE", "회원 정보 서비스를 사용할 수 없습니다."))
+        assertEquals(503, assertThrows(CoreAuthException::class.java) { service.inheritedSource("fork", s.id, 2) }.status)
+    }
 }

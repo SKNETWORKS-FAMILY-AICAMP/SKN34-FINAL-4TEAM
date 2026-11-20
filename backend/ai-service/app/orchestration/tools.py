@@ -46,7 +46,7 @@ from app.simulation.models import GAP_LABELS, SimulationPlan
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.story_qa.models import AnswerRequest
-from app.orchestration.models import QaStepResult, manuscript_review_feature
+from app.orchestration.models import QaStepResult, current_feature
 from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.writing import agent as writing
@@ -76,7 +76,7 @@ NO_SAVED_PLANS = '저장된 플롯·장면 계획이 없어 고칠 수 없어요
 PLAN_CANDIDATES = 5  # 되묻기에 보이는 후보 계획 제목 수
 # 판정 기능 → 메인에 노출할 도구 이름. 판정 기능마다 도구가 있어 미구현으로 끝내는 기능이 없다.
 TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world': 'ask_world', 'writing_editing': 'ask_writing',
-              'web_research': 'ask_web_research', 'rating': 'ask_rating', 'character_simulation': 'ask_character_simulation'}
+              'research': 'ask_research', 'rating': 'ask_rating', 'character_simulation': 'ask_character_simulation'}
 
 
 def _check(inputs: dict, check: str | None) -> str | None:
@@ -90,7 +90,7 @@ def _check(inputs: dict, check: str | None) -> str | None:
 WAITS = {
     'ask_story_qa': lambda turn, inputs, scope, args: 'story_context' not in inputs and not scope,
     'ask_manuscript_review': lambda turn, inputs, scope, args: bool(turn.get('target')) and not _check(inputs, args.get('check')),
-    'ask_web_research': lambda turn, inputs, scope, args: 'web_research' not in inputs,
+    'ask_research': lambda turn, inputs, scope, args: args.get('task') == 'web' and 'research' not in inputs,
     'ask_world': lambda turn, inputs, scope, args: args.get('task') == 'enrich',
 }
 
@@ -162,7 +162,9 @@ SUMMARIES: dict[str, Callable[[dict], dict]] = {
         for i, f in enumerate(r['findings'])]},
     'world': _world_summary,
     'writing_editing': _writing_summary,
-    'web_research': lambda r: {'gaps': r['gaps'], 'findings': [{k: f[k] for k in ('text', 'verdict', 'sourceUrls')} for f in r['findings']]},
+    'research': lambda r: {'gaps': r['gaps'], **(
+        {'references': [{'world': f['worldName'], 'card': f['cardTitle'], 'author': f['authorNickname'], 'note': f['note']} for f in r['references']]}
+        if 'references' in r else {'findings': [{k: f[k] for k in ('text', 'verdict', 'sourceUrls')} for f in r['findings']]})},
     'rating': lambda r: {'verdict': r['verdict'], 'prohibited': r['prohibited']},
 }
 
@@ -303,10 +305,18 @@ def ask_rating(request: Request, runtime: ToolRuntime) -> Command:
 
 
 @tool
-def ask_web_research(runtime: ToolRuntime) -> Command:
-    """고증 조사(웹): 작가가 동의한 질문·맥락만 웹에서 확인한다. 외부 전송이라 작업 지시를 받지 않는다."""
-    return _ask(runtime, 'web_research', lambda inputs, scope: research.research(ResearchRequest.model_validate(inputs['web_research'])),
-                needs=lambda inputs, scope: WAITS['ask_web_research'](runtime.context, inputs, scope, {}))
+def ask_research(task: Literal['web', 'platform'], runtime: ToolRuntime, request: Request = '') -> Command:
+    """고증 조사(Research): web은 작가가 동의한 질문·맥락만 웹에서 확인한다(외부 전송이라 request를 쓰지 않는다).
+
+    platform은 다른 작가가 공개한 세계관에서 참고할 설정을 찾아 출처(세계관·카드·작가)를 단 참고안을 돌려준다. request는 찾을 설정 주제다.
+    내 작품 안의 질문은 ask_story_qa다.
+    """
+    def run(inputs, scope):
+        if task == 'platform':  # 공개 데이터만 써서 동의 입력을 기다리지 않는다
+            return research.platform(request.strip() or runtime.context.get('task') or runtime.context['request'])
+        return research.research(ResearchRequest.model_validate(inputs['research']))
+
+    return _ask(runtime, 'research', run, needs=lambda inputs, scope: WAITS['ask_research'](runtime.context, inputs, scope, {'task': task}))
 
 
 @tool
@@ -333,7 +343,7 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
         data = inputs.get('writing_editing') or {}
         target = turn.get('target')
         changes_draft = task != 'plan' or 'patch' in data or 'draft' in data
-        if target and changes_draft and reviewed is None and 'manuscript_review' in map(manuscript_review_feature, runtime.state['decision']['capabilities']):
+        if target and changes_draft and reviewed is None and 'manuscript_review' in map(current_feature, runtime.state['decision']['capabilities']):
             draft = content_mcp.read_draft(target['workId'], target['episode'])
             base = {'body': draft.body, 'revision': draft.revision}
         if 'patch' in data:

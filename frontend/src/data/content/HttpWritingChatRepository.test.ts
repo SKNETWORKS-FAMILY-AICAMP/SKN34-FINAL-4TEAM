@@ -292,6 +292,28 @@ describe('설정집 검토 단계 결과(#479)', () => {
   })
 })
 
+describe('Research platform 단계 결과(#547)', () => {
+  const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+  const run = async (result: unknown) => {
+    const events: ChatEvent[] = []
+    const step = { feature: 'research', status: 'completed', result }
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(`event: step\ndata: ${JSON.stringify(step)}\n\n`, done))).send('w1', 't1', input, (e) => events.push(e))
+    return events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
+  }
+
+  it('참고안(references)을 출처와 함께 읽고 세계관·카드·작가·참고 이유를 글로 보인다', async () => {
+    const reference = { worldId: 'w9', worldName: '달빛 학원', cardId: 'c9', cardTitle: '교칙', authorNickname: '별빛', note: '교칙 서술을 참고' }
+    const step = await run({ references: [reference], gaps: ['학원 위치는 못 찾았어요.'] })
+    expect(step.result?.references).toEqual([reference])
+    expect(stepText(step)).toBe('달빛 학원 · 교칙 · 별빛 — 교칙 서술을 참고\n확인 못 함: 학원 위치는 못 찾았어요.')
+  })
+
+  it('참고안이 없으면 결과 없음을 그대로 알리고, 웹 조사 결과(findings)도 계속 읽는다', async () => {
+    expect(stepText(await run({ references: [], gaps: [] }))).toBe('참고할 설정을 찾지 못했어요.')
+    expect(stepText(await run({ findings: [{ text: '약 15일', verdict: 'confirmed', sourceUrls: [] }], gaps: [], searchedAt: '2026-11-12T00:00:00Z' }))).toBe('확인됨 · 약 15일')
+  })
+})
+
 describe('World 단계 결과(#546)', () => {
   const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
   const BAD = '세계관 결과 형식을 확인할 수 없어요.'
@@ -409,6 +431,26 @@ describe('원고 검수 단계 결과(#59)', () => {
   it('건너뛴 조건부 수정 단계와 조건(when)을 읽는다(#370)', async () => {
     const step = await run({ feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.', result: null })
     expect(step).toMatchObject({ feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.' })
+  })
+
+  it('옛 대화 기록의 web_research 입력 대기는 research로 읽고, 옛 단계 이름은 그대로 둔다(#545)', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({
+      threadId: 't1', title: '고증', turns: [{ request: '조사해 줘', reply: {
+        status: 'waiting', steps: [{ feature: 'web_research', status: 'not_started' }], missingInputs: ['web_research'],
+      } }],
+    }))
+    const history = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(history.turns[0].reply).toMatchObject({ missingInputs: ['research'], steps: [{ feature: 'web_research' }] })
+  })
+
+  it('실시간 이벤트의 web_research 시작·입력 대기도 research로 읽는다(#545)', async () => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(
+      'event: started\ndata: {"feature":"web_research"}\n\n',
+      'event: waiting\ndata: {"steps":[],"missingInputs":["web_research"]}\n\n',
+      'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
+    expect(events[0]).toEqual({ type: 'started', feature: 'research' })
+    expect(events[1]).toMatchObject({ type: 'waiting', missingInputs: ['research'] })
   })
 
   it.each(['manuscript_review', 'review'])('이력의 원고 검수 단계 %s를 같은 결과로 읽는다', async (feature) => {

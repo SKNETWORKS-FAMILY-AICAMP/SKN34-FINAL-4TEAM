@@ -97,23 +97,28 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
     }
 
     companion object {
+        /**
+         * 템플릿 키 → Content 장르 코드(DEC-56, WorldStudio V14가 옛 영문 코드를 같은 표로 바꾼다: fantasy→genre-01, wuxia→genre-03, romance→genre-06,
+         * modern→genre-10, sf→genre-14, mystery→genre-18, classic→genre-28). 이미 적재된 세계관의 장르가 이 값과 같아야 원본 판정(`pristineTemplate`)을 계속 통과하므로
+         * 옛 매핑을 값만 바꿔 따라가고, 더 잘게 나누려면 V14의 변환 표와 함께 바꾼다. 이 값은 시스템이 정하므로 활성 여부는 확인하지 않는다.
+         */
         private val TEMPLATE_WORLD_GENRES = mapOf(
-            "wuxia" to "wuxia", "romance_fantasy" to "romance",
-            "modern_fantasy" to "fantasy", "game_fantasy" to "fantasy", "fusion_fantasy" to "fantasy",
-            "territory_management" to "fantasy", "sports_fantasy" to "fantasy",
-            "science_fiction" to "sf", "apocalypse" to "sf", "entertainment" to "modern",
-            "cthulhu_mythos" to "mystery",
-            "alternate_history" to "classic", "sumerian_mythology" to "classic", "norse_mythology" to "classic",
-            "greco_roman_mythology" to "classic", "germanic_folklore" to "classic", "chinese_folklore" to "classic",
-            "japanese_mythology" to "classic", "korean_mythology_fables" to "classic", "egyptian_mythology" to "classic",
-            "indian_mythology" to "classic", "celtic_mythology" to "classic", "slavic_mythology" to "classic",
-            "maya_mythology" to "classic", "aztec_mythology" to "classic", "hawaiian_tradition" to "classic",
-            "inca_tradition" to "classic", "persian_tradition" to "classic", "journey_to_the_west" to "classic",
-            "england_history" to "classic", "usa_history" to "classic", "china_history" to "classic",
-            "korea_history" to "classic", "japan_history" to "classic", "france_history" to "classic", "italy_history" to "classic",
+            "wuxia" to "genre-03", "romance_fantasy" to "genre-06",
+            "modern_fantasy" to "genre-01", "game_fantasy" to "genre-01", "fusion_fantasy" to "genre-01",
+            "territory_management" to "genre-01", "sports_fantasy" to "genre-01",
+            "science_fiction" to "genre-14", "apocalypse" to "genre-14", "entertainment" to "genre-10",
+            "cthulhu_mythos" to "genre-18",
+            "alternate_history" to "genre-28", "sumerian_mythology" to "genre-28", "norse_mythology" to "genre-28",
+            "greco_roman_mythology" to "genre-28", "germanic_folklore" to "genre-28", "chinese_folklore" to "genre-28",
+            "japanese_mythology" to "genre-28", "korean_mythology_fables" to "genre-28", "egyptian_mythology" to "genre-28",
+            "indian_mythology" to "genre-28", "celtic_mythology" to "genre-28", "slavic_mythology" to "genre-28",
+            "maya_mythology" to "genre-28", "aztec_mythology" to "genre-28", "hawaiian_tradition" to "genre-28",
+            "inca_tradition" to "genre-28", "persian_tradition" to "genre-28", "journey_to_the_west" to "genre-28",
+            "england_history" to "genre-28", "usa_history" to "genre-28", "china_history" to "genre-28",
+            "korea_history" to "genre-28", "japan_history" to "genre-28", "france_history" to "genre-28", "italy_history" to "genre-28",
         )
 
-        /** 템플릿 키를 공개 세계관의 고정 장르 코드로 바꾼다. 알 수 없는 키는 미지정(null)으로 둔다. */
+        /** 템플릿 키를 공개 세계관의 Content 장르 코드로 바꾼다. 알 수 없는 키는 미지정(null)으로 둔다. */
         internal fun mappedWorldGenre(templateGenre: String): String? = TEMPLATE_WORLD_GENRES[templateGenre]
 
         /**
