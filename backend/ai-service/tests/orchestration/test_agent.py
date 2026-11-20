@@ -272,7 +272,7 @@ def test_boundary_writing_gets_the_allowed_context_and_never_retrieval_or_simula
     calls = fake_agents(monkeypatch, plan(Step('writing_editing', task='plan')))
     result = run('11화 사건 추천해줘', target=TARGET)
     assert result.steps[0].status == 'completed'
-    assert [args[0] for name, args, _ in calls if name == 'mcp'] == ['work_context_read']
+    assert [args[0] for name, args, _ in calls if name == 'mcp'] == ['work_context_read', 'world_studio_list', 'work_inherited_world']
     assert not {'retrieval', 'sim_plan'} & set(names(calls))
 
 
@@ -502,7 +502,7 @@ def test_writing_and_review_wait_for_an_earlier_tool_in_the_same_batch(monkeypat
 
     assert result.status == 'completed'
     assert [s.feature for s in result.steps] == ['story_context', 'writing_editing', 'manuscript_review']
-    assert names(calls) == ['judge', 'story_context', 'mcp', 'mcp', 'plan_and_draft', 'manuscript_review']
+    assert names(calls) == ['judge', 'story_context', 'mcp', 'mcp', 'mcp', 'mcp', 'plan_and_draft', 'manuscript_review']
 
 
 @pytest.mark.parametrize('task, service_call', [('check', (tools.world_review, 'review')), ('impact', (tools.world_review, 'impact'))])

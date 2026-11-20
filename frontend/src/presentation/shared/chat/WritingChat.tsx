@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
-import { featureLabel, PLAN_LABEL, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
+import { draftNotice, featureLabel, PLAN_LABEL, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
@@ -82,6 +82,7 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
   const world = reply.awaitingApproval === 'world'
   const draft = reply.steps.find((s) => s.feature === (world ? 'world' : 'writing_editing') && s.status === 'completed')
   const planLine = draft ? usedPlan(draft) : ''
+  const notice = draft ? draftNotice(draft) : ''
   // 같은 턴에 끝난 다른 단계(심의 등급 등). 승인을 기다리는 동안 대기 응답은 메시지 목록에 없어 여기서만 보인다(#493).
   // 같은 턴의 후보 검수(#538)는 반영 여부를 정할 근거라 부가 작업 목록에 묻지 않고 미리보기 바로 아래에 따로 보인다.
   const candidateReview = reply.steps.find((s) => s.feature === 'manuscript_review' && s.status === 'completed' && s.manuscriptReview?.candidate)
@@ -93,6 +94,7 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
       {draft && <div className="chat-hitl-preview" tabIndex={0} aria-label="반영할 내용">{stepText(draft)}</div>}
       {candidateReview && <div className="chat-hitl-preview" tabIndex={0} aria-label="후보 검수 결과">{stepText(candidateReview)}</div>}
       {planLine && <p className="chat-plan" tabIndex={0}><b>{PLAN_LABEL}</b>{planLine.slice(PLAN_LABEL.length)}</p>}
+      {notice && <p className="chat-plan" tabIndex={0}>{notice}</p>}
       {!!others.length && <ul className="chat-hitl-others" tabIndex={0} aria-label="같이 끝난 작업">{others.map((s, i) => <li key={`${s.feature}-${i}`}>
         <span className="chat-step-name">{featureLabel[s.feature] ?? s.feature}</span><p>{stepText(s)}</p>
       </li>)}</ul>}
