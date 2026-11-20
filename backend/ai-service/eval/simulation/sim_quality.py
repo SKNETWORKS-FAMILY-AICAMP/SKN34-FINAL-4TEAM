@@ -26,8 +26,6 @@ from app.simulation import agent, scene_agent, service  # noqa: E402
 from app.simulation.errors import SimulationFailure  # noqa: E402
 from app.simulation.prompt import FEEDBACK  # noqa: E402
 
-RESERVE_USD = 0.10  # 상한 확인과 질문 하나가 끝나기 사이에 진행 중인 질문들이 더 쓸 수 있는 금액의 여유
-
 
 def generate(plan, world, actor, scene) -> list[dict]:
     """인물 한 명의 답을 운영 경로로 만든다. 시도마다 {prose, failed(검사가 본 위반 종류)}이고, 마지막 시도가 최종 응답이다(모두 위반이면 멈춘 턴)."""
@@ -88,17 +86,18 @@ def evaluate(row: dict, worlds, llm, templates: dict, personalities: dict) -> di
             'responses': {'first': first['prose'], 'final': final['prose']}, 'usage': ledger.calls}
 
 
-def run_quality(rows: list[dict], worlds, llm, templates: dict, personalities: dict, limit_usd: float, workers: int, out: Path) -> list[dict]:
+def run_quality(rows: list[dict], worlds, llm, templates: dict, personalities: dict, limit_usd: float, workers: int, out: Path, question_usd: float) -> list[dict]:
     """질문마다 evaluate를 스레드로 돌려 끝난 것부터 out(JSONL)에 덧붙인다. out에 이미 있는 질문은 다시 하지 않아 중단 뒤에 이어 받는다.
-    금액 장부가 상한에 닿으면 새 질문을 시작하지 않고 끝낸 것을 남긴 채 CallCapExceeded다."""
+    진행 중인 질문의 비용은 끝나야 장부에 남으므로 새 질문은 '장부 + 동시 수 × 질문당 최대 금액(question_usd)'이 상한 안일 때만 시작한다(그러면 동시에 진행하던 질문이
+    끝나도 지출이 상한을 넘지 않는다). 그렇지 않으면 새 질문을 시작하지 않고 끝낸 것을 남긴 채 CallCapExceeded다."""
     out.parent.mkdir(parents=True, exist_ok=True)
     done = {r['idx']: r for r in map(json.loads, out.read_text().splitlines())} if out.exists() else {}
     for series in {r['series'] for r in rows}:
         worlds.series(series)  # 스레드가 같은 세계관을 동시에 만들지 않게 먼저 만든다
-    lock, stop = threading.Lock(), threading.Event()
+    lock, stop, reserve = threading.Lock(), threading.Event(), workers * question_usd
 
     def one(row):
-        if stop.is_set() or llm.cost.spent() + RESERVE_USD > limit_usd:
+        if stop.is_set() or llm.cost.spent() + reserve > limit_usd:
             stop.set()
             return
         record = evaluate(row, worlds, llm, templates, personalities)

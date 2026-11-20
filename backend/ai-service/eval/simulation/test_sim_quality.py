@@ -1,6 +1,7 @@
 """품질 실행기 단위 테스트: 모델·채점 대역으로 인물 턴 경로의 시도·검사·재생성·채점·장부·이어 받기를 확인한다. OpenAI 호출이 없다."""
 
 import json
+import threading
 import time
 from types import SimpleNamespace
 
@@ -190,9 +191,9 @@ def test_a_run_appends_each_finished_question_and_resumes_without_generating_the
     acts = act_returns(monkeypatch, 'ok.')
     check_returns(monkeypatch, ())
     out = tmp_path / 'runs' / 'quality-A.jsonl'
-    first = q.run_quality(ROWS[:2], worlds, judge, TEMPLATES, {}, limit_usd=10, workers=2, out=out)
+    first = q.run_quality(ROWS[:2], worlds, judge, TEMPLATES, {}, limit_usd=10, workers=2, out=out, question_usd=0.05)
     assert [r['idx'] for r in first] == [0, 1] and len(out.read_text().splitlines()) == 2 and len(acts) == 2
-    again = q.run_quality(ROWS[:3], worlds, judge, TEMPLATES, {}, limit_usd=10, workers=2, out=out)
+    again = q.run_quality(ROWS[:3], worlds, judge, TEMPLATES, {}, limit_usd=10, workers=2, out=out, question_usd=0.05)
     assert [r['idx'] for r in again] == [0, 1, 2] and len(acts) == 3 and len(out.read_text().splitlines()) == 3  # 새 질문 하나만 돌렸다
 
 
@@ -201,5 +202,23 @@ def test_a_run_stops_before_starting_a_question_once_the_cost_limit_is_reached(m
     check_returns(monkeypatch, ())
     judge.cost.record('earlier', 10_000_000, 0)  # 이미 $2를 썼다
     with pytest.raises(CallCapExceeded):
-        q.run_quality(ROWS[:2], worlds, judge, TEMPLATES, {}, limit_usd=1, workers=1, out=tmp_path / 'q.jsonl')
+        q.run_quality(ROWS[:2], worlds, judge, TEMPLATES, {}, limit_usd=1, workers=1, out=tmp_path / 'q.jsonl', question_usd=0.05)
     assert acts == []
+
+
+def test_a_run_starts_a_question_only_if_the_ones_already_in_flight_cannot_push_the_total_over_the_limit(monkeypatch, worlds, judge, tmp_path):
+    # 진행 중인 질문의 비용은 끝나야 장부에 남는다: 새 질문은 '장부 + 동시 수 × 질문당 최대 금액'이 상한 안일 때만 시작한다.
+    together = threading.Barrier(4)
+
+    def evaluate(row, worlds, llm, templates, personalities):
+        if row['idx'] < 4:
+            together.wait(timeout=10)  # 처음 네 질문이 모두 진행 중인 채로 비용이 남는다
+        llm.cost.record('act', 0, 250_000)  # 질문마다 정확히 $0.30(질문당 최대 금액과 같다)
+        return {'idx': row['idx'], 'data_type': row['data_type'], 'error': None}
+
+    monkeypatch.setattr(q, 'evaluate', evaluate)
+    rows = [dict(ROWS[0], idx=i) for i in range(8)]
+    with pytest.raises(CallCapExceeded):
+        q.run_quality(rows, worlds, judge, TEMPLATES, {}, limit_usd=2.0, workers=4, out=tmp_path / 'q.jsonl', question_usd=0.30)
+    assert judge.cost.spent() <= 2.0  # 동시에 진행하던 질문이 끝나도 상한 안이다(여유가 없으면 여덟 질문이 모두 시작해 2.4가 된다)
+    assert len((tmp_path / 'q.jsonl').read_text().splitlines()) < 8

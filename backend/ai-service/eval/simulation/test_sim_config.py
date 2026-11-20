@@ -5,6 +5,8 @@ import os
 import pytest
 
 import sim_config as c
+from cost import usd
+from run_timechara import JUDGE_TOKENS
 from sim_config import CONFIGS, SWITCHES, applied, estimate_quality, estimate_speed, plan_runs
 
 SIZES = {'act_in': 10_000, 'check_in': 20_000, 'narrate_in': 10_000}
@@ -71,3 +73,12 @@ def test_a_reused_config_costs_nothing_in_the_estimate():
     rows = c.estimate('speed', list('ABCDE'), [SIZES] * 10)
     assert rows['D']['reusedFrom'] == 'C' and rows['D']['usd'] == 0 and rows['D']['calls'] == {}
     assert rows['C']['reusedFrom'] is None and rows['C']['usd'] > 0
+
+
+def test_the_most_a_question_can_cost_covers_every_attempt_and_every_grading():
+    q = {'type': 'past-absence', 'act_in': 10_000, 'check_in': 20_000, 'judge_in': 2_000}
+    worst = c.question_max_usd(q)
+    # 인물 턴·검사를 세 번(처음 + 재생성 둘), 첫·최종 응답을 각각 시공간 2번 + 성격 1번 채점하고 출력은 호출당 상한까지 쓰는 경우
+    assert worst == pytest.approx(3 * (usd(10_000, c.OUT_TOKENS) + usd(20_000, c.OUT_TOKENS)) + 6 * usd(2_000, c.JUDGE_MAX_OUT))
+    assert worst > estimate_quality([q])['usd']  # 기대 금액보다 크다
+    assert c.JUDGE_MAX_OUT == JUDGE_TOKENS  # 채점 호출의 max_output_tokens와 같다

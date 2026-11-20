@@ -101,14 +101,17 @@ def test_run_speed_applies_each_config_once_reuses_identical_ones_and_writes_onl
 def test_run_quality_runs_only_the_configs_that_differ_on_the_character_turn_path(monkeypatch, run_env):
     seen = []
 
-    def run_quality(rows, worlds, llm, templates, personalities, limit_usd, workers, out):
-        seen.append((out.name, os.environ.get('SIMULATION_REASONING_EFFORT'), workers))
+    def run_quality(rows, worlds, llm, templates, personalities, limit_usd, workers, out, question_usd):
+        seen.append((out.name, os.environ.get('SIMULATION_REASONING_EFFORT'), workers, question_usd))
         return [{'idx': r['idx'], 'data_type': 'future', 'attempts': 1, 'blocked': False, 'error': None, 'flagged': False, 'leakFlagged': False,
                  'first': {'score': 1, 'personality': 5}, 'final': {'score': 1, 'personality': 5}} for r in rows]
 
+    big = {'type': 'past-absence', 'act_in': 50_000, 'check_in': 90_000, 'judge_in': 4_000}
+    monkeypatch.setattr(cli, 'sizes', lambda per_type: ([{'type': 'future', 'act_in': 1, 'check_in': 1, 'judge_in': 1}, big], [], '대역'))
     monkeypatch.setattr(cli.sim_quality, 'run_quality', run_quality)
     cli.main(['run', '--suite', 'quality', '--configs', 'A,B,C,D,E', '--workers', '3'])
-    assert seen == [('quality-A.jsonl', None, 3), ('quality-B.jsonl', 'low', 3)]  # 추론 강도만 인물 턴 경로에 닿는다: C·D·E는 B와 같은 실행
+    worst = cfg.question_max_usd(big)  # 가장 큰 질문 하나가 쓸 수 있는 최대 금액을 동시 수만큼 곱해 확인한다
+    assert seen == [('quality-A.jsonl', None, 3, worst), ('quality-B.jsonl', 'low', 3, worst)]  # 추론 강도만 인물 턴 경로에 닿는다: C·D·E는 B와 같은 실행
     data = json.loads((run_env / 'results' / 'quality.json').read_text())
     assert data['ranAs'] == {'A': 'A', 'B': 'B', 'C': 'B', 'D': 'B', 'E': 'B'} and [n for n, v in data['configs'].items() if v is None] == ['C', 'D', 'E']
     assert 'B|A' in data['paired'] and data['questions'] == 2 and data['seed'] == sim_worlds.SEED
@@ -167,3 +170,12 @@ def test_estimate_measures_the_real_input_sizes_once_the_data_is_prepared(monkey
     shown = capsys.readouterr().out
     assert '품질(표본 4문항)' in shown and '속도(고정 장면 10개)' in shown and '실제 입력 크기' in shown and '가정값' not in shown
     assert shown.count('합계') == 2 and any(line.startswith('E') and 'check' in line for line in shown.splitlines())
+
+
+def test_run_stops_without_any_call_when_the_estimate_is_over_the_limit(monkeypatch, run_env, capsys):
+    called = []
+    monkeypatch.setattr(cli, 'usd_llm', lambda *args: called.append('llm'))
+    monkeypatch.setattr(cli.sim_quality, 'run_quality', lambda *args: called.append('quality'))
+    with pytest.raises(SystemExit, match='상한'):
+        cli.main(['run', '--suite', 'quality', '--configs', 'A,B', '--limit-usd', '0.001'])
+    assert called == [] and '합계' in capsys.readouterr().out  # 예상 표는 보여 주고 호출 없이 멈춘다

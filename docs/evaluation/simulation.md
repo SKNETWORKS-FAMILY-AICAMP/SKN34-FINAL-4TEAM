@@ -77,7 +77,7 @@ uv run --locked --extra dev python eval/simulation/sim_cli.py run --suite speed 
 uv run --locked --extra dev python eval/simulation/sim_cli.py report
 ```
 
-실행 전 예상 금액과 상한: `estimate`는 설정·표본별 예상 호출 수와 금액을 호출 없이 출력하고, `run`은 시작 전에 같은 표를 출력한 뒤 `.data/cost.jsonl` 장부의 누적 합계가 `--limit-usd`에 닿으면 새 질문·장면을 시작하지 않는다(끝낸 것은 `.data/runs`에 남아 이어 받는다).
+실행 전 예상 금액과 상한: `estimate`는 설정·표본별 예상 호출 수와 금액을 호출 없이 출력하고, `run`은 시작 전에 같은 표를 출력해 예상 합계가 `--limit-usd`를 넘으면 호출 없이 멈춘다. 시작한 뒤에는 `.data/cost.jsonl` 장부의 누적 합계로 막는다: 품질은 새 질문을 '장부 + 동시 수 × 질문당 최대 금액'이 상한 안일 때만 시작하고(진행 중인 질문의 비용은 끝나야 장부에 남는다), 속도는 장면 하나의 여유(0.50달러)가 남을 때만 시작한다(끝낸 것은 `.data/runs`에 남아 이어 받는다).
 `prepare` 전에는 입력 크기를 가정값(act 8,000·check 20,000토큰)으로 센다: 그 값으로 품질 A·B가 약 6달러, 속도 A·B·C·E가 약 4달러(출력을 호출당 상한 1,500토큰으로 센 상한에 가까운 값)다. 실제 입력 크기는 `prepare` 뒤 `estimate`가 잰다.
 
 **단가:** `eval/novelbrain/cost.py`의 gpt-5.6-luna 값(입력 $0.20·캐시 입력 $0.02·출력 $1.20 / 100만 토큰)을 쓴다. `gpt-6-luna`의 OpenAI 공식 단가는 확인하지 못했다(제3자 가격 사이트는 입력 $0.10·출력 $0.50으로 적지만 공식 페이지로 확인하지 못했다). 이 값이 맞다면 장부·예상 금액은 실제보다 높게(안전하게) 잡힌 것이다.

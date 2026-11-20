@@ -57,6 +57,14 @@ JUDGE_OUT = 330   # 채점 호출의 평균 출력(novelbrain/batch.py OUT_GUESS
 DIRECTOR_IN, DIRECTOR_OUT = 3_000, 100
 TURNS, FORCED, OMNISCIENT = 8, 2, 2   # 장면당 턴 수(가정)와 그중 규칙이 정한 턴·전지적 나레이션 턴(시작·마무리)
 SPATIAL_FIRST = ('past-absence', 'past-presence')   # 공간 판정을 먼저 하는 유형(공개 채점 흐름)
+JUDGE_MAX_OUT = 3000  # 채점 호출의 max_output_tokens(novelbrain/run_timechara.py의 JUDGE_TOKENS)
+
+
+def question_max_usd(q: dict) -> float:
+    """질문 하나가 쓸 수 있는 최대 금액: 인물 턴·검사를 모든 시도(처음 + 재생성)만큼 하고 첫·최종 응답을 각각 시공간 2번 + 성격 1번 채점하며 출력은 호출당 상한까지 쓰는 경우.
+    진행 중인 질문의 비용은 끝나야 장부에 남아, 품질 실행은 새 질문을 시작하기 전에 '장부 + 동시 수 × 이 금액'으로 상한을 확인한다."""
+    attempts = service.REGENERATIONS + 1
+    return attempts * (usd(q['act_in'], OUT_TOKENS) + usd(q['check_in'], OUT_TOKENS)) + 2 * 3 * usd(q['judge_in'], JUDGE_MAX_OUT)
 
 
 def estimate_quality(inputs: list[dict]) -> dict:

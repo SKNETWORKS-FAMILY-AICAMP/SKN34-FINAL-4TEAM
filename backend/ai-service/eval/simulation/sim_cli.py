@@ -124,12 +124,19 @@ def cmd_prepare(args) -> None:
         raise SystemExit(f'내려받기 실패(HTTP {error.code}): HuggingFace 로그인·약관 동의를 확인한다(토큰은 ~/.cache/huggingface/token). 값은 출력하지 않는다.') from None
 
 
-def cmd_estimate(args) -> None:
-    configs = parse_configs(args.configs)
-    quality, speed, note = sizes(args.per_type)
+def show_estimate(args, configs: list[str], quality: list[dict], speed: list[dict], note: str) -> float:
+    """선택한 스위트의 예상 표를 출력하고 예상 합계(달러)를 돌려준다."""
+    total = 0.0
     for suite, title, inputs in (('quality', f'품질(표본 {len(quality)}문항)', quality), ('speed', f'속도(고정 장면 {len(speed)}개)', speed)):
         if args.suite in ('all', suite):
-            print(format_estimate(title, cfg.estimate(suite, configs, inputs), note, args.limit_usd), '\n', sep='\n')
+            rows = cfg.estimate(suite, configs, inputs)
+            print(format_estimate(title, rows, note, args.limit_usd), end='\n\n')
+            total += sum(row['usd'] for row in rows.values())
+    return total
+
+
+def cmd_estimate(args) -> None:
+    show_estimate(args, parse_configs(args.configs), *sizes(args.per_type))
 
 
 def cmd_run(args) -> None:
@@ -141,7 +148,10 @@ def cmd_run(args) -> None:
     for key in ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY'):
         os.environ.pop(key, None)  # 원문이 Langfuse로 가지 않게, 프롬프트는 코드 문자열로
     configs = parse_configs(args.configs)
-    cmd_estimate(argparse.Namespace(configs=args.configs, suite=args.suite, per_type=args.per_type, limit_usd=args.limit_usd))
+    quality, speed, note = sizes(args.per_type)
+    total = show_estimate(args, configs, quality, speed, note)
+    if total > args.limit_usd:
+        raise SystemExit(f'예상 금액 ${total:.2f}가 상한 ${args.limit_usd:.2f}를 넘어 호출 없이 멈춘다. --limit-usd를 올리거나 --configs를 줄인다.')
     worlds = sim_worlds.Worlds.load()
     llm = usd_llm(sim_worlds.DATA / 'cache', sim_worlds.DATA / 'cost.jsonl', args.limit_usd)
     ran_as = cfg.plan_runs(configs, args.suite)
@@ -149,10 +159,11 @@ def cmd_run(args) -> None:
     if args.suite == 'quality':
         rows = sample_rows(worlds)
         templates, personalities = sim_quality.load_inputs(rows)
+        question_usd = max(cfg.question_max_usd(q) for q in quality)  # 동시에 진행하는 질문이 끝나도 상한을 넘지 않을 여유(sim_quality.run_quality)
         by_source = {}
         for name in dict.fromkeys(ran_as.values()):
             with cfg.applied(name):
-                by_source[name] = sim_quality.run_quality(rows, worlds, llm, templates, personalities, args.limit_usd, args.workers, runs / f'quality-{name}.jsonl')
+                by_source[name] = sim_quality.run_quality(rows, worlds, llm, templates, personalities, args.limit_usd, args.workers, runs / f'quality-{name}.jsonl', question_usd)
         meta |= {'seed': sim_worlds.SEED, 'questions': len(rows), 'paired': sim_stats.paired_quality(by_source), 'usd': llm.cost.spent()}
         data = results('quality', {name: sim_stats.summarize_quality(records) for name, records in by_source.items()}, ran_as, meta)
     else:

@@ -26,7 +26,7 @@
 
 ## 규칙
 
-- **`run`은 비용 승인 뒤에만 쓴다.** 상한(`--limit-usd`, 기본 10달러)은 `.data/cost.jsonl` 장부의 누적 합계로 막는다(품질·속도·재실행이 같은 장부를 쓴다). 시뮬레이션 모델 호출(act·check·narrate·director)은 토큰으로 계산해 같은 장부에 남기고, 채점은 `eval/novelbrain`의 `usd_llm`이 남긴다. 단가는 `cost.py`(gpt-5.6-luna) 값이다.
+- **`run`은 비용 승인 뒤에만 쓴다.** 시작 전에 예상 표를 출력하고 예상 합계가 상한(`--limit-usd`, 기본 10달러)을 넘으면 호출 없이 멈춘다. 시작한 뒤에는 `.data/cost.jsonl` 장부의 누적 합계로 막는다(품질·속도·재실행이 같은 장부를 쓴다): 품질은 진행 중인 질문의 비용이 끝나야 장부에 남아 새 질문을 '장부 + 동시 수(`--workers`) × 질문당 최대 금액'이 상한 안일 때만 시작하고(`sim_config.question_max_usd`: 모든 시도·채점을 출력 상한으로 센 금액), 속도는 장면 하나의 여유(0.50달러)가 남을 때만 시작한다. 시뮬레이션 모델 호출(act·check·narrate·director)은 토큰으로 계산해 같은 장부에 남기고, 채점은 `eval/novelbrain`의 `usd_llm`이 남긴다. 단가는 `cost.py`(gpt-5.6-luna) 값이다.
 - 같은 경로를 지나는 설정은 한 번만 돌린다(`sim_config.plan_runs`): 품질에서는 추론 강도만 닿아 C·D·E가 B와 같고, 속도에서는 세계관 캐시(D)가 Content 호출이 없어 효과가 없으므로 C와 같다. 결과 JSON의 `ranAs`가 그 대응이다.
 - `run`은 시작할 때 `LANGFUSE_*` 키를 지운다: TimeChara 원문이 팀 Langfuse에 남지 않고, 프롬프트도 코드 문자열(운영 production 버전이 아님)로 돈다.
 - 중단하면 `.data/runs/<suite>-<설정>.jsonl`에 끝낸 질문·장면이 남아 같은 명령이 이어 받는다. 처음부터 다시 내려면 그 파일을 지운다(프롬프트·표본을 바꾼 뒤에는 꼭 지운다).
