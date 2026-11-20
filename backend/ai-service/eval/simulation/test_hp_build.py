@@ -45,10 +45,10 @@ def story():
     ]
 
 
-def world(docs=None, infos=None):
+def world(docs=None, infos=None, **kwargs):
     infos = infos or story()
     people = b.resolve_persons(infos, EN.get)
-    return b.build_world(infos, people, b.resolve_settings(infos), docs or {}, {(1, 1): 1, (1, 2): 2, (2, 1): 3}, []), people
+    return b.build_world(infos, people, b.resolve_settings(infos), docs or {}, {(1, 1): 1, (1, 2): 2, (2, 1): 3}, [], **kwargs), people
 
 
 def cards_of(data):
@@ -200,7 +200,7 @@ def test_people_are_linked_to_their_events_and_to_each_other_from_the_chapter_th
     assert ('harry-potter>albus-dumbledore>knows', 1) in rel
     crowd = [info(1, [1], 1, [person(f'사람{i}') for i in range(10)], [event('모임', '모였다', [f'사람{i}' for i in range(10)])])]
     links = [r for r in world(infos=crowd)[0]['relationships']]
-    assert sum(r['label'] == '참여' for r in links) == 10 and sum(r['label'] == '알고 있음' for r in links) == b.MAX_PAIR * (b.MAX_PAIR - 1)
+    assert sum(r['label'] == '참여' for r in links) == b.MAX_ATTEND and sum(r['label'] == '알고 있음' for r in links) == b.MAX_PAIR * (b.MAX_PAIR - 1)   # 참여는 앞 3명, 알고 있음은 앞 8명끼리
 
 
 def test_extracted_relations_reach_persons_and_settings_change_over_chapters_and_drop_unknown_ends():
@@ -216,6 +216,32 @@ def test_extracted_relations_reach_persons_and_settings_change_over_chapters_and
 def test_an_unchanged_relation_is_recorded_once_and_the_last_value_of_a_chapter_wins():
     links = [{'key': 'k', 'from': 1, 'label': 'a', 'body': 'x'}, {'key': 'k', 'from': 2, 'label': 'a', 'body': 'x'}, {'key': 'k', 'from': 3, 'label': 'a', 'body': 'y'}, {'key': 'k', 'from': 3, 'label': 'b', 'body': 'z'}]
     assert [(r['from'], r['label']) for r in b._timeline(links)] == [(1, 'a'), (3, 'b')]
+
+
+def test_relations_are_kept_in_order_of_importance_within_the_server_limit():
+    # 해리·론·헤르미온느가 두 사건에 함께 나오고 네빌은 한 사건에만 나온다: 한도가 모자라면 적게 함께한 쌍부터 뺀다
+    crowd = ['해리', '론', '헤르미온느']
+    infos = [info(1, [1], 1, [person(n) for n in crowd + ['네빌']], [event('모임', '모였다', crowd), event('수업', '수업했다', crowd + ['네빌'])], relations=[link('해리', '론')]),
+             info(1, [2], 2, [person(n) for n in crowd], [event('모험', '모험했다', crowd)])]
+
+    def kinds(limit):
+        data = world(infos=infos, max_relations=limit)[0]
+        return data, {label: {r['key'] for r in data['relationships'] if r['label'] == label} for label in ('참여', '알고 있음', '친구')}
+
+    full, got = kinds(100)
+    assert len(got['친구']) == 1 and len(got['참여']) == 3 * b.MAX_ATTEND and len(got['알고 있음']) == 2 * 6   # 쌍 6개(해리·론·헤르미온느 3쌍 + 네빌과 앞 셋은 3쌍)가 모두 양방향
+    tight, got = kinds(1 + 9 + 2)   # 추출 1 + 참여 9 + 알고 있음 한 쌍(두 방향)
+    assert len(got['친구']) == 1 and len(got['참여']) == 9 and len({r['key'] for r in tight['relationships']}) == 12 and len(got['알고 있음']) == 2
+    assert all('네빌' not in r['body'] for r in tight['relationships'] if r['label'] == '알고 있음')   # 한 번만 함께한 네빌의 쌍은 빠졌다
+    starved, got = kinds(4)   # 추출을 지키고 남는 자리만큼 참여를 앞 회차부터 담고 알고 있음은 자리가 없다
+    assert len(got['친구']) == 1 and len(got['참여']) == 3 and got['알고 있음'] == set()
+
+
+def test_relation_labels_and_bodies_stay_within_the_server_limits():
+    infos = [info(1, [1], 1, [person('해리'), person('론')], relations=[link('해리', '론', label='가' * 500, body='나' * 5000)])]
+    data = world(infos=infos)[0]
+    tie = next(r for r in data['relationships'] if r['key'].endswith('>emotional'))
+    assert len(tie['label']) == 200 and len(tie['body']) == b.MAX_DOC
 
 
 def test_the_world_has_the_demo_shape_and_the_mapping_from_chapters_to_episodes():

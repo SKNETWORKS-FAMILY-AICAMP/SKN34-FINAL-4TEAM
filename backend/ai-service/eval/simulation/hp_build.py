@@ -10,6 +10,7 @@
 
 import ast
 import hashlib
+import itertools
 import json
 import math
 import re
@@ -39,6 +40,8 @@ MIN_UNITS = 2            # 이 수 이상의 덩어리에 나온 호칭만 영�
 DOC_UNITS = 1            # 인물 문서를 쓰려고 읽는 '처음 나온 덩어리' 수. 1이면 처음 나온 대목뿐이고, 늘리면 그만큼 뒤 장의 정보가 처음 나온 회차에 새어 든다
 MAX_DOC = 3_000          # 카드 본문·인물 문서 한 편의 글자 한도(서버 검사·DEC-47)
 MAX_PAIR = 8             # '알고 있음' 관계를 만드는 사건 참석자 수 상한(큰 장면은 앞 8명끼리만)
+MAX_ATTEND = 3           # 사건마다 '참여' 관계를 만드는 참석자 수(목록 앞에서부터). 나머지 참석자는 그 회차 기억에만 남는다
+MAX_RELATIONS = 9_900    # 서버 한도: 한 회차 시점의 활성 관계 10,000개(RelationshipInputHelper.merge). 넘으면 덜 중요한 것부터 뺀다
 CALL_MAX_USD = 0.03      # 호출 하나가 쓸 수 있는 최대 금액(가장 큰 창·출력 상한): 동시 호출 수만큼을 상한 확인의 여유로 둔다
 EXTRACT_TOKENS, NAMES_TOKENS, DOCS_TOKENS = 20_000, 8_000, 4_000
 CANON = {'ron weasley': 'Ronald Weasley', 'ronald weasley': 'Ronald Weasley', 'harry james potter': 'Harry Potter', 'hermione jean granger': 'Hermione Granger'}
@@ -422,11 +425,13 @@ def card_aliases(entries: list, title: str, key: str, claimed: dict[str, set[str
 
 
 def _relation(key, ordinal, source, target, predicate, label, body, polarity='asserted'):
-    return {'key': key, 'from': ordinal, 'source': source, 'target': target, 'predicate': predicate, 'label': label, 'body': body, 'polarity': polarity}
+    """관계 기록 하나. 서버 한도(label 200자·본문 3,000자)를 지켜 자른다."""
+    return {'key': key, 'from': ordinal, 'source': source, 'target': target, 'predicate': predicate, 'label': clip(label, 200), 'body': clip(body), 'polarity': polarity}
 
 
-def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: dict[str, Docs], ordinals: dict, unsplit: list[list[int]]) -> dict:
-    """시연 세계관과 같은 모양의 world.json 하나: 인물·설정·사건 카드와 회차별 관계. 문서·본문·별칭은 처음 나온 대목에서 드러난 것만, 나중 것은 episodes[N]·관계·사건 카드로 둔다."""
+def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: dict[str, Docs], ordinals: dict, unsplit: list[list[int]], max_relations: int = MAX_RELATIONS) -> dict:
+    """시연 세계관과 같은 모양의 world.json 하나: 인물·설정·사건 카드와 회차별 관계. 문서·본문·별칭은 처음 나온 대목에서 드러난 것만, 나중 것은 episodes[N]·관계·사건 카드로 둔다.
+    관계는 서버 한도(max_relations) 안에서 중요도 순으로 담는다: 추출한 관계 → 사건 '참여'(앞 MAX_ATTEND명) → '알고 있음'(같은 사건에 함께 나온 횟수가 많은 쌍부터)."""
     infos = sorted(infos, key=lambda i: i.ordinal)
     persons = lambda i: i.extraction.people  # noqa: E731
     things = lambda i: i.extraction.things  # noqa: E731
@@ -437,7 +442,8 @@ def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: d
     appear: dict[str, int] = {k: info.ordinal for k, (info, _) in first_person.items()}
     memory: dict[str, dict[int, list[str]]] = defaultdict(lambda: defaultdict(list))
     label_of = {info.ordinal: unit_label(info) for info in infos}
-    events, links = [], []
+    events, attend = [], []
+    pairs: dict[tuple[str, str], tuple[int, int]] = {}   # 쌍 → (함께 나온 사건 수, 처음 함께 나온 회차)
     attended: dict[str, dict[int, list[str]]] = defaultdict(lambda: defaultdict(list))
     for info in infos:
         for p in info.extraction.people:
@@ -453,12 +459,10 @@ def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: d
             for person in present:
                 appear[person] = min(appear.get(person, info.ordinal), info.ordinal)
                 attended[person][info.ordinal].append(e.summary.strip())
-                links.append(_relation(f'{person}~{ekey}', info.ordinal, person, ekey, 'custom_relation_directed', '참여', '이 사건에 함께했다.'))
-            crowd = present[:MAX_PAIR]
-            for a in crowd:
-                for b in crowd:
-                    if a != b:
-                        links.append(_relation(f'{a}>{b}>knows', info.ordinal, a, b, 'custom_relation_directed', '알고 있음', f'{people.items[a].title}은(는) {people.items[b].title}을(를) 안다.'))
+            attend += [_relation(f'{person}~{ekey}', info.ordinal, person, ekey, 'custom_relation_directed', '참여', '이 사건에 함께했다.') for person in present[:MAX_ATTEND]]
+            for a, b in itertools.combinations(present[:MAX_PAIR], 2):
+                count, first = pairs.get(pair := tuple(sorted((a, b))), (0, info.ordinal))
+                pairs[pair] = (count + 1, first)
     cards = []
     for key, who in sorted(people.items.items(), key=lambda kv: (appear[kv[0]], kv[0])):
         entries = first_person[key][1]
@@ -480,13 +484,22 @@ def build_world(infos: list[Info], people: Resolved, settings: Resolved, docs: d
         body = ' '.join(dict.fromkeys(e.description.strip() for e in entries if e.description.strip())) or f'{what.title}. {unit_label(info)}에 처음 나온다.'
         cards.append({'key': key, 'cardType': what.kind, 'areaCode': area, 'title': what.title, 'classification': classification, 'aliases': card_aliases(entries, what.title, key, claimed_thing),
                       'tags': [], 'visibility': 'private', 'revealFromEpisode': info.ordinal, 'body': clip(body)})
+    extracted = []
     for info in infos:
         for r in info.extraction.relations:
             source = people.key_of.get(r.source) or settings.key_of.get(r.source)
             target = people.key_of.get(r.target) or settings.key_of.get(r.target)
             if source and target and source != target:
-                links.append(_relation(f'{source}>{target}>{r.category}', info.ordinal, source, target, 'custom_relation_directed' if r.category == 'structural' else 'custom_emotion',
-                                       r.label.strip() or '관계', r.body.strip() or r.label.strip() or '관계'))
+                extracted.append(_relation(f'{source}>{target}>{r.category}', info.ordinal, source, target, 'custom_relation_directed' if r.category == 'structural' else 'custom_emotion',
+                                           r.label.strip() or '관계', r.body.strip() or r.label.strip() or '관계'))
+    room = max_relations - len({r['key'] for r in extracted})
+    attend = attend[:max(room, 0)]   # 한도를 넘으면 뒤 회차의 참여부터 뺀다
+    knows = []
+    for (a, b), (_, first) in sorted(pairs.items(), key=lambda kv: (-kv[1][0], kv[1][1], kv[0])):
+        if len(knows) + 2 > room - len(attend):
+            break
+        knows += [_relation(f'{x}>{y}>knows', first, x, y, 'custom_relation_directed', '알고 있음', f'{people.items[x].title}은(는) {people.items[y].title}을(를) 안다.') for x, y in ((a, b), (b, a))]
+    links = extracted + attend + knows
     cards += events
     return {'world': {'id': str(uuid.uuid5(uuid.NAMESPACE_URL, 'storyfork-eval-hp')), 'name': '해리 포터 · 원문 기반 평가 세계관',
                       'description': '번역본 원문에서 모델이 뽑은 평가 전용 세계관이다. 인물 문서·설정 본문은 처음 나온 대목에서 드러난 것만이고, 이후의 일은 회차별 기억·관계·사건 카드로 둔다.', 'genre': 'fantasy'},
