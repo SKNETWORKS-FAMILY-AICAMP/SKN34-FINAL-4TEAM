@@ -249,7 +249,7 @@ def test_the_world_loads_through_the_demo_seed_functions_with_changing_relations
 def test_estimate_counts_calls_from_chunk_sizes_and_grows_with_the_text_and_the_cast():
     small, big = b.estimate_build([28_000, 56_001], persons=100), b.estimate_build([28_000, 56_001, 28_000], persons=300)
     assert small['calls'] == {'extract': 4, 'names': 1, 'docs': 100} and big['calls'] == {'extract': 5, 'names': 2, 'docs': 300}
-    assert 0 < small['usd'] < big['usd'] and b.estimate_build([100])['calls']['docs'] == 5
+    assert 0 < small['usd'] < big['usd'] and b.estimate_build([100])['calls']['docs'] == 6
 
 
 def test_the_preview_shows_documents_episode_examples_events_and_relations_for_the_asked_people():

@@ -511,12 +511,12 @@ def _timeline(links: list[dict]) -> list[dict]:
 # --- 호출·실행 ---------------------------------------------------------------------------------------------------------------
 
 def estimate_build(chars: list[int], persons: int | None = None) -> dict:
-    """build의 예상 호출 수와 금액(호출 없이). chars는 덩어리별 글자 수. persons는 추출 전에는 모르므로 덩어리마다 5명으로 어림하고, 입출력 토큰은 호출당 평균의 어림이다."""
+    """build의 예상 호출 수와 금액(호출 없이). chars는 덩어리별 글자 수. persons는 추출 전에는 모르므로 덩어리마다 6명으로 어림하고, 입출력 토큰은 호출당 평균의 어림이다."""
     windows = sum(math.ceil(c / WINDOW) for c in chars)
-    persons = persons if persons is not None else 5 * len(chars)
+    persons = persons if persons is not None else 6 * len(chars)
     calls = {'extract': windows, 'names': math.ceil(persons * 0.4 / NAMES_BATCH), 'docs': persons}
     tokens_in = {'extract': sum(chars) / CHARS_PER_TOKEN / (windows or 1) + 900, 'names': 7_000, 'docs': 1_200}
-    tokens_out = {'extract': 9_000, 'names': 3_000, 'docs': 1_000}
+    tokens_out = {'extract': 6_000, 'names': 3_000, 'docs': 1_100}   # 실측(2026-11-20 시험 호출 셋): 추출 출력 5.2~6.3K토큰·입력 글자/토큰 약 1.5
     return {'calls': calls, 'in': tokens_in, 'out': tokens_out, 'usd': sum(usd(int(n * tokens_in[k]), int(n * tokens_out[k])) for k, n in calls.items())}
 
 

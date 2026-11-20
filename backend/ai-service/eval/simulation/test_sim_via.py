@@ -1,0 +1,112 @@
+"""sim_via: ocx(로컬 게이트웨이) 어댑터의 입력 변환·429 대기·장부·환경 전환을 가짜 클라이언트로 검사한다. 네트워크 호출 없음."""
+
+import json
+
+import httpx
+import openai
+import pytest
+
+import sim_via as via
+from app.simulation import agent
+from cost import CostLog
+
+
+def rate_limit():
+    return openai.RateLimitError('limit', response=httpx.Response(429, request=httpx.Request('POST', 'http://gateway/v1/responses')), body=None)
+
+
+class FakeResponses:
+    def __init__(self, failures=0, error=None):
+        self.calls, self.failures, self.error = [], failures, error
+
+    def _answer(self, method, options):
+        self.calls.append((method, options))
+        if self.failures:
+            self.failures -= 1
+            raise (self.error or rate_limit())
+        return 'ok'
+
+    def create(self, **options):
+        return self._answer('create', options)
+
+    def parse(self, **options):
+        return self._answer('parse', options)
+
+
+class FakeOpenAI:
+    def __init__(self, responses):
+        self.responses, self.closed = responses, False
+
+    def close(self):
+        self.closed = True
+
+
+def test_a_string_input_becomes_a_message_list_and_store_model_are_forced_without_touching_the_original():
+    original = {'model': 'gpt-5.6-luna', 'store': True, 'input': '질문', 'instructions': '지시', 'max_output_tokens': 10, 'text_format': dict}
+    adapted = via.adapt(original)
+    assert adapted == {'model': via.MODEL, 'store': False, 'input': [{'role': 'user', 'content': '질문'}], 'instructions': '지시', 'max_output_tokens': 10, 'text_format': dict}
+    assert original['store'] is True and original['input'] == '질문' and original['model'] == 'gpt-5.6-luna'
+    messages = [{'role': 'user', 'content': '이미 목록'}]
+    assert via.adapt({'input': messages})['input'] is messages
+
+
+def test_create_and_parse_send_the_adapted_options_to_the_gateway_client():
+    inner = FakeResponses()
+    client = via.Client(FakeOpenAI(inner))
+    assert client.responses.parse(model='gpt-5.6-luna', input='a', text_format=dict) == 'ok' and client.responses.create(model='m', input='b') == 'ok'
+    assert [(m, o['input'], o['store'], o['model']) for m, o in inner.calls] == [('parse', [{'role': 'user', 'content': 'a'}], False, via.MODEL), ('create', [{'role': 'user', 'content': 'b'}], False, via.MODEL)]
+
+
+def test_a_rate_limit_waits_with_growing_delays_and_then_succeeds_or_gives_up_after_ten_minutes():
+    waits = []
+    inner = FakeResponses(failures=2)
+    assert via.Client(FakeOpenAI(inner), waits.append).responses.parse(input='x') == 'ok' and waits == [15, 30] and len(inner.calls) == 3
+    waits.clear()
+    endless = FakeResponses(failures=99)
+    with pytest.raises(openai.RateLimitError):
+        via.Client(FakeOpenAI(endless), waits.append).responses.parse(input='x')
+    assert waits == list(via.WAITS) and sum(waits) < 600 and len(endless.calls) == len(via.WAITS) + 1
+
+
+def test_errors_other_than_a_rate_limit_are_not_retried():
+    inner = FakeResponses(failures=1, error=openai.APIConnectionError(request=httpx.Request('POST', 'http://gateway')))
+    waits = []
+    with pytest.raises(openai.APIConnectionError):
+        via.Client(FakeOpenAI(inner), waits.append).responses.create(input='x')
+    assert waits == [] and len(inner.calls) == 1
+
+
+def test_the_client_works_in_a_with_statement_closes_the_inner_client_and_passes_other_attributes_through():
+    inner = FakeOpenAI(FakeResponses())
+    inner.base_url = 'http://gateway'
+    with via.Client(inner) as client:
+        assert client.base_url == 'http://gateway'
+    assert inner.closed
+
+
+def test_ocx_rows_cost_nothing_and_say_via_so_the_openai_total_and_cap_ignore_them(tmp_path):
+    path = tmp_path / 'cost.jsonl'
+    paid, free = CostLog(path), via.OcxCostLog(path)
+    paid.record('a', 100_000, 0)   # 입력 10만 토큰 = $0.02
+    assert free.record('b', 5_000_000, 5_000_000, chars=7) == 0.0
+    rows = paid.rows()
+    assert 'via' not in rows[0] and rows[1] == {**rows[1], 'usd': 0.0, 'via': 'ocx', 'in': 5_000_000, 'out': 5_000_000, 'chars': 7}
+    assert round(paid.spent(), 6) == round(free.spent(), 6) == 0.02
+    assert paid.summary()['b']['usd'] == 0 and paid.summary()['b']['in'] == 5_000_000   # 토큰은 남는다
+
+
+def test_the_ocx_llm_keeps_the_openai_cache_key_but_sends_the_gateway_model_and_has_no_cap(tmp_path):
+    llm = via.ocx_llm(tmp_path / 'cache', tmp_path / 'cost.jsonl')
+    assert llm.via == 'ocx' and llm.model == 'gpt-5.6-luna' and llm.limit_usd is None and isinstance(llm.client, via.Client)
+    assert llm.client._inner.base_url.host == '127.0.0.1' and llm.client._inner.base_url.port == 10100
+
+
+def test_switching_to_ocx_changes_this_process_only_and_hands_the_simulation_agent_the_adapter(monkeypatch):
+    monkeypatch.setenv('OPENAI_API_KEY', 'sk-real')
+    monkeypatch.setenv('OPENAI_BASE_URL', 'https://api.openai.com/v1')
+    monkeypatch.setattr(agent, 'OpenAI', agent.OpenAI)   # 테스트가 끝나면 원래 클래스로 되돌린다
+    via.use_ocx()
+    import os
+    assert os.environ['OPENAI_BASE_URL'] == via.GATEWAY and os.environ['OPENAI_API_KEY'] == 'ocx'
+    with agent.OpenAI(api_key='ocx', timeout=3, max_retries=0) as client:
+        assert isinstance(client, via.Client) and client._inner.base_url.port == 10100

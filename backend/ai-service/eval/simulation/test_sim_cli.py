@@ -1,15 +1,19 @@
 """CLI(simulation.py)의 순수 부분 단위 테스트: 설정 목록 파싱·예상 금액 표·결과 JSON 조립·데이터 없이 도는 estimate. 호출·내려받기가 없다."""
 
 import json
+import math
 import os
+import sys
 from types import SimpleNamespace
 
 import pytest
 
+import hp_build as hb
 import sim_config as cfg
 import sim_worlds
 import sim_cli as cli
 from cost import CostLog
+from llm import CallCapExceeded
 from sim_stats import summarize_speed
 
 
@@ -179,3 +183,115 @@ def test_run_stops_without_any_call_when_the_estimate_is_over_the_limit(monkeypa
     with pytest.raises(SystemExit, match='상한'):
         cli.main(['run', '--suite', 'quality', '--configs', 'A,B', '--limit-usd', '0.001'])
     assert called == [] and '합계' in capsys.readouterr().out  # 예상 표는 보여 주고 호출 없이 멈춘다
+
+
+# --- 해리 포터 원문 세계관(build-hp·show-hp·seed-hp)과 --via ocx --------------------------------------------------------------
+
+def test_speed_with_ocx_is_refused_before_any_key_or_call(monkeypatch):
+    monkeypatch.delenv('OPENAI_API_KEY', raising=False)
+    monkeypatch.delenv('OPENAI_MODEL', raising=False)
+    with pytest.raises(SystemExit, match='speed.*OpenAI API로만'):
+        cli.main(['run', '--suite', 'speed', '--via', 'ocx', '--configs', 'A'])
+
+
+def test_ocx_needs_only_the_model_name_switches_the_process_and_runs_without_a_money_limit(monkeypatch, run_env):
+    monkeypatch.delenv('OPENAI_API_KEY', raising=False)
+    switched, limits = [], []
+    ocx = SimpleNamespace(cost=CostLog(run_env / 'cost.jsonl'), model='judge-model', via='ocx')
+    monkeypatch.setattr(cli.sim_via, 'use_ocx', lambda: switched.append('ocx'))
+    monkeypatch.setattr(cli.sim_via, 'ocx_llm', lambda *args: ocx)
+    monkeypatch.setattr(cli, 'usd_llm', lambda *args: pytest.fail('ocx는 OpenAI Llm을 만들지 않는다'))
+    monkeypatch.setattr(cli.sim_quality, 'run_quality', lambda rows, worlds, llm, templates, personalities, limit_usd, *rest: limits.append((llm.via, limit_usd)) or [])
+    monkeypatch.setattr(cli.sim_stats, 'summarize_quality', lambda records: {})
+    monkeypatch.setattr(cli.sim_stats, 'paired_quality', lambda by_source: {})
+    cli.main(['run', '--suite', 'quality', '--configs', 'A', '--via', 'ocx', '--limit-usd', '1'])
+    assert switched == ['ocx'] and limits == [('ocx', math.inf)]
+
+
+def test_a_quality_run_that_hits_the_openai_cap_tells_how_to_continue_with_ocx_and_ocx_itself_just_fails(monkeypatch, run_env):
+    def capped(*args):
+        raise CallCapExceeded('비용 상한 $1.00에 도달했다')
+
+    monkeypatch.setattr(cli.sim_quality, 'run_quality', capped)
+    with pytest.raises(SystemExit) as stop:
+        cli.main(['run', '--suite', 'quality', '--configs', 'A'])
+    assert '--via ocx' in str(stop.value) and '비용 상한' in str(stop.value) and 'via가 남아' in str(stop.value)
+    monkeypatch.setattr(cli.sim_via, 'use_ocx', lambda: None)
+    monkeypatch.setattr(cli.sim_via, 'ocx_llm', lambda *args: SimpleNamespace(cost=CostLog(run_env / 'cost.jsonl'), model='judge-model', via='ocx'))
+    with pytest.raises(CallCapExceeded):
+        cli.main(['run', '--suite', 'quality', '--configs', 'A', '--via', 'ocx'])
+
+
+@pytest.fixture
+def hp_env(monkeypatch, tmp_path):
+    hp = tmp_path / 'hp'
+    (hp / 'raw').mkdir(parents=True)
+    monkeypatch.setattr(cli.sim_worlds, 'DATA', tmp_path)
+    monkeypatch.setattr(cli.sim_worlds, 'HP_DIR', hp)
+    monkeypatch.setattr(cli.sim_worlds, 'HP_WORLD', hp / 'world.json')
+    monkeypatch.setattr(cli.sim_worlds, 'load_rows', lambda: [{'series': 'harry_potter'}])
+    monkeypatch.setattr(cli, 'usd_llm', lambda cache, cost, limit: SimpleNamespace(cost=CostLog(tmp_path / 'cost.jsonl'), model='judge-model', limit=limit))
+    monkeypatch.setenv('OPENAI_API_KEY', 'key')
+    monkeypatch.setenv('LANGFUSE_PUBLIC_KEY', 'pk')
+    monkeypatch.setenv('LANGFUSE_SECRET_KEY', 'sk')
+    return hp
+
+
+def test_build_hp_runs_the_extractor_under_the_openai_limit_prints_only_numbers_and_clears_langfuse(monkeypatch, hp_env, capsys):
+    seen = {}
+
+    def build(llm, raw, out, rows, **kwargs):
+        seen.update(llm=llm, raw=raw, out=out, rows=rows, **kwargs)
+        return {'units': 3, 'usd': 0.5}
+
+    monkeypatch.setattr(cli.hp_build, 'build', build)
+    cli.main(['build-hp'])
+    assert (seen['raw'], seen['out'], seen['rows'], seen['limit_usd'], seen['workers']) == (hp_env / 'raw', hp_env, [{'series': 'harry_potter'}], 18.0, 12) and seen['llm'].limit == 18.0
+    assert json.loads(capsys.readouterr().out) == {'units': 3, 'usd': 0.5} and 'LANGFUSE_PUBLIC_KEY' not in os.environ and 'LANGFUSE_SECRET_KEY' not in os.environ
+
+
+def test_build_hp_that_hits_the_limit_says_how_to_continue_with_ocx_and_ocx_has_no_money_limit(monkeypatch, hp_env):
+    calls = []
+
+    def build(llm, raw, out, rows, *, limit_usd, workers):
+        calls.append((getattr(llm, 'via', 'openai'), limit_usd))
+        if llm is not ocx:
+            raise hb.LimitReached('hp_extract: 비용 상한 $18.00에 닿아 멈췄다')
+        return {'units': 3}
+
+    ocx = SimpleNamespace(cost=CostLog(hp_env / 'cost.jsonl'), model='judge-model', via='ocx')
+    monkeypatch.setattr(cli.hp_build, 'build', build)
+    monkeypatch.setattr(cli.sim_via, 'ocx_llm', lambda *args: ocx)
+    with pytest.raises(SystemExit, match='--via ocx') as stop:
+        cli.main(['build-hp'])
+    assert '비용 상한 $18.00' in str(stop.value)
+    cli.main(['build-hp', '--via', 'ocx'])
+    assert calls == [('openai', 18.0), ('ocx', math.inf)]
+
+
+def test_build_hp_needs_the_key_and_the_raw_text(monkeypatch, hp_env):
+    monkeypatch.delenv('OPENAI_API_KEY')
+    with pytest.raises(SystemExit, match='OPENAI_API_KEY'):
+        cli.main(['build-hp'])
+    monkeypatch.setenv('OPENAI_API_KEY', 'key')
+    (hp_env / 'raw').rmdir()
+    with pytest.raises(SystemExit, match='원문'):
+        cli.main(['build-hp'])
+
+
+def test_show_hp_writes_the_preview_next_to_the_world_without_any_call(hp_env, capsys):
+    person = lambda name, **f: hb.Person(**{'name': name, 'aliases': [], 'looks': '', 'personality': '', 'speech': '', 'situation': '', 'wants': '', 'memory': '', **f})  # noqa: E731
+    infos = [hb.Info(1, (1,), 1, hb.Extraction(events=[], people=[person('해리', situation='소년')], things=[], relations=[]))]
+    world = hb.build_world(infos, hb.resolve_persons(infos, {'해리': 'Harry Potter'}.get), hb.resolve_settings(infos), {}, {(1, 1): 1}, [])
+    (hp_env / 'world.json').write_text(json.dumps(world, ensure_ascii=False), encoding='utf-8')
+    cli.main(['show-hp'])
+    text = (hp_env / 'preview.md').read_text(encoding='utf-8')
+    assert '## Harry Potter — 해리(첫 등장 1화)' in text and '## Hermione Granger' in text and '## Severus Snape' in text and 'preview.md' in capsys.readouterr().out
+
+
+def test_seed_hp_hands_the_world_path_and_the_local_address_to_hp_seed(monkeypatch, hp_env):
+    got = []
+    monkeypatch.setitem(sys.modules, 'hp_seed', SimpleNamespace(main=lambda argv: got.append(argv) or 0))
+    with pytest.raises(SystemExit) as done:
+        cli.main(['seed-hp'])
+    assert done.value.code == 0 and got == [['--world', str(hp_env / 'world.json'), '--base-url', 'http://localhost:5173']]

@@ -27,7 +27,8 @@ from app.simulation.models import Decision, SimulationPlan, Trail, Turn  # noqa:
 DATA = Path(__file__).resolve().parent / '.data'
 TC = DATA / 'timechara'
 DEMO = Path(__file__).resolve().parents[4] / 'infrastructure/sample-data/simulation-demo'
-HP_WORLD = DATA / 'hp' / 'world.json'   # 번역본 원문에서 만든 세계관(hp_build.py). 저작권 때문에 .data(git 무시)에만 둔다
+HP_DIR = DATA / 'hp'   # 번역본 원문(raw)·장 나눈 글·세계관(world.json)·표본(preview.md). 저작권 때문에 .data(git 무시)에만 둔다
+HP_WORLD = HP_DIR / 'world.json'   # 번역본 원문에서 만든 세계관(hp_build.py)
 SEED = 642   # 표본 고정용(이슈 번호). novelbrain의 58과 다른 표본이다
 PER_TYPE = 50
 PREMISE = 'An interviewer asks the character one question. The character answers it in their own voice, using only what they know at this point in the story.'
