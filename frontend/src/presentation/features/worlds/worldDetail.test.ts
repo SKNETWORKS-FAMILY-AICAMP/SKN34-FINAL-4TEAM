@@ -387,8 +387,8 @@ describe('bookRows', () => {
 
   it('한 줄은 카드 주소용 cardId·제목·본문·유형과 연결 수(관계+연관)·제목 옆 수(인물은 인물 관계 수, 그 밖은 연결 수)를 가진다', () => {
     expect(bookRows(sample).find((r) => r.title === '하엘')).toEqual({ cardId: '2', title: '하엘', text: '하엘 설명', type: '인물', kind: '인물', no: 3, connections: 1, badge: 1 })
-    // 오르와 미라 사이의 역방향 관계 두 개도 각각 센다.
-    expect(bookRows(sample).map((r) => [r.title, r.connections, r.badge])).toEqual([['오르', 3, 2], ['미라', 3, 3], ['하엘', 1, 1], ['새벽항', 1, 1], ['금기', 0, 0]])
+    // 오르와 미라 사이의 역방향 관계 두 개도 각각 센다. 오르→새벽항(장소) 관계도 오르의 관계 수다.
+    expect(bookRows(sample).map((r) => [r.title, r.connections, r.badge])).toEqual([['오르', 3, 3], ['미라', 3, 3], ['하엘', 1, 1], ['새벽항', 1, 1], ['금기', 0, 0]])
   })
 
   it('요약(text)은 마크다운 기호를 벗긴 한 줄이고 검색어도 벗긴 글자에 맞춘다', () => {
@@ -455,7 +455,7 @@ describe('데모 세계관의 설정집·그래프', () => {
         const refs = [...p.relations, ...p.backlinks]
         const row = rows.get(p.card.cardId)!
         expect(refs.length, w.id + ' ' + p.card.title).toBe(row.connections)
-        expect(p.card.kind === '인물' ? refs.filter((r) => r.relationId && r.kind === '인물').length : refs.length, w.id + ' ' + p.card.title).toBe(row.badge)
+        expect(p.card.kind === '인물' ? refs.filter((r) => r.relationId).length : refs.length, w.id + ' ' + p.card.title).toBe(row.badge)
         for (const r of refs) {
           expect(r.cardId, w.id + ' ' + p.card.title).not.toBe(p.card.cardId)
           const back = cardPage(w, r.cardId)!

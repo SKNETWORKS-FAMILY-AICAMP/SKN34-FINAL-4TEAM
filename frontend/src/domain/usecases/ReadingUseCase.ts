@@ -1,7 +1,7 @@
 import type { Work as ContentWork } from '../entities/content'
 import { readerBody } from '../entities/feedback'
 import { HOME_CHIP_ALL, HOME_CHIP_FORKS, HOME_CHIP_FREE, emojiName, homeChips, type Genre } from '../entities/genre'
-import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, RANKING_TYPES, rankingUsesPeriod, sameAuthorWorks, similarWorks, sorter, tagsOf, visibleEpisode, type RankingKind, type RankingPeriod, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
+import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, RANKING_TYPES, rankingUsesPeriod, sameAuthorWorks, similarWorks, sorter, tagsOf, visibleEpisode, withTagForks, type RankingKind, type RankingPeriod, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
 import type { GenreRepository } from '../repositories/GenreRepository'
 import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
@@ -284,7 +284,9 @@ export class ReadingUseCase {
   async findWorks({ q = '', f = 'all', sort, page = 0 }: { q?: string; f?: SearchField; sort: SearchSort; page?: number }, signal?: AbortSignal) {
     if (this.workSearchRepository) {
       const found = await this.workSearchRepository.search({ q: q.trim(), f, sort, page, size: SEARCH_PAGE_SIZE }, signal)
-      return { list: found, hasMore: found.length === SEARCH_PAGE_SIZE }
+      // 태그 범위는 서버가 못 찾는 원작 태그 상속 포크를 공개 목록으로 보탠다(/tag와 같게). 더 보기는 서버가 준 개수로 따진다.
+      const tagged = q.trim() && f === 'tag' && found.length > 0
+      return { list: tagged ? withTagForks(found, await this.workRepository.listWorks(), q.trim()) : found, hasMore: found.length === SEARCH_PAGE_SIZE }
     }
     const works = await this.workRepository.listWorks()
     return {

@@ -209,7 +209,7 @@ export function cardPage(world: PublicWorld, cardId: string): CardPage | undefin
 
 /**
  * 설정집 게시판의 한 줄. `no`는 지금 보이는 목록(필터·정렬 뒤)의 순번(1부터), `connections`는 이어진 카드 수(인물 관계 + 설정 연관, 양쪽에서 쓴 것 포함)다.
- * `badge`는 제목 옆에 댓글 수처럼 붙는 수로, 인물은 인물 관계 수이고 그 밖은 연결 수다(카드 페이지 정보 표의 '관계'·'연결'과 같은 값).
+ * `badge`는 제목 옆에 댓글 수처럼 붙는 수로, 인물은 관계 수(본문 링크 제외)이고 그 밖은 연결 수다(카드 페이지 정보 표의 '관계'·'연결'과 같은 값).
  */
 export type BookRow = BoardRow
 
@@ -218,17 +218,15 @@ export type BookRow = BoardRow
  * 요약 열(`text`)은 한 줄로 보이므로 본문의 마크다운 기호를 벗긴 글자이고 검색도 그 글자에 맞춘다.
  */
 function bookEntries(world: PublicWorld): BoardEntry[] {
-  const connections = new Uint32Array(world.cards.length), people = new Uint32Array(world.cards.length)
+  const connections = new Uint32Array(world.cards.length)
   const pairs = cardPairs(world)
-  for (const { a, b } of pairs) {
-    connections[a]++; connections[b]++
-    if (world.cards[a].cardType === 'character' && world.cards[b].cardType === 'character') { people[a]++; people[b]++ }
-  }
+  for (const { a, b } of pairs) { connections[a]++; connections[b]++ }
+  const relations = connections.slice() // 관계 수: 상대 카드의 유형과 상관없이 관계마다 센다(인물의 관계 문단이 장소·사건과의 관계도 보인다)
   for (const [, to] of linkPairs(world, pairs)) connections[to]++ // 본문 링크: 가리킨 카드의 '이 설정을 가리키는 관계'라 그 카드에만 센다
   return bookOrder(world).map((i) => {
     const { id, title, text, cardType } = world.cards[i]
     const kind = CARD_KIND[cardType]
-    return { cardId: id, title, text: plainCardText(text), type: typeLabel(cardType), kind, connections: connections[i], badge: kind === '인물' ? people[i] : connections[i] }
+    return { cardId: id, title, text: plainCardText(text), type: typeLabel(cardType), kind, connections: connections[i], badge: kind === '인물' ? relations[i] : connections[i] }
   })
 }
 

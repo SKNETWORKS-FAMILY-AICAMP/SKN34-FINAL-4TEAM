@@ -201,7 +201,7 @@ export function HomePage() {
               <section className="sec" style={{ marginTop: 28 }}>
                 <div className="sec-h"><h2>다르게 이어진 포크 소설</h2><span className="muted small">원작의 한 회차에서 포크됐어요</span><Go to="/rank?t=if" className="more">전체 보기 ›</Go></div>
                 <div className="rings">
-                  <Go to="/rank?t=orig" className="ring add"><div className="o">＋</div><b>나도 쓰기</b><small>원작에서 포크하기</small></Go>
+                  <Go to="/rank?t=orig" className="ring add"><div className="o">＋</div><b>나도 쓰기</b><small>원작을 골라 포크하기</small></Go>
                   {h.forkFeed.map((w) => (
                     <Go key={w.id} to={`/work/${w.id}`} className={`ring ${h.seen[w.id] ? 'seen' : ''} prox`} onClick={() => vm.markSeen(w.id)}>
                       <div className="o"><span><CoverOf w={w} /></span></div>

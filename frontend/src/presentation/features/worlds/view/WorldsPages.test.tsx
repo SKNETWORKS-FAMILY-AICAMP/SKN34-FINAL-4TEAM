@@ -86,7 +86,7 @@ it('실시간 인기 패널은 홈 TOP10과 같은 구조로 파생·조합 순 
   const rank = within(screen.getByRole('complementary', { name: '실시간 인기 세계관' }))
   const expected = rankByLineage(DEMO)
   expect(rank.getAllByRole('listitem').map((li) => li.textContent)).toEqual(expected.map((w, i) => `${i + 1}${w.name}${w.authorNickname}`))
-  expect(rank.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(expected.map((w) => `/worlds/${w.id}`))
+  expect(within(rank.getByRole('list')).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(expected.map((w) => `/worlds/${w.id}`))
   expect(Array.from(screen.getByRole('complementary', { name: '실시간 인기 세계관' }).querySelectorAll('.n'), (n) => n.className)).toEqual([
     'n md md1', 'n md md2', 'n md md3', ...Array<string>(7).fill('n'),
   ])
@@ -97,14 +97,10 @@ it('실시간 인기 패널은 홈 TOP10과 같은 구조로 파생·조합 순 
 const scrollIntoView = vi.fn()
 Element.prototype.scrollIntoView = scrollIntoView
 
-it('더보기를 누르면 아래 세계관 모아 보기로 내려가고 그곳으로 포커스를 옮긴다', async () => {
-  scrollIntoView.mockClear()
+it('더보기는 눌러도 달라 보이지 않는 버튼이 아니라 공개 세계관 전체 목록(/search?type=world)으로 가는 링크다', async () => {
   await renderAt('/worlds')
-  fireEvent.click(within(screen.getByRole('complementary', { name: '실시간 인기 세계관' })).getByRole('button', { name: '더보기 ›' }))
-  const grid = screen.getByRole('heading', { name: '세계관 모아 보기' }).closest('section')
-  expect(scrollIntoView).toHaveBeenCalledOnce()
-  expect(scrollIntoView.mock.contexts[0]).toBe(grid)
-  expect(document.activeElement).toBe(grid)
+  const more = within(screen.getByRole('complementary', { name: '실시간 인기 세계관' })).getByRole('link', { name: '더보기 ›' })
+  expect(more.getAttribute('href')).toBe('/search?type=world')
 })
 
 it('장르 칩을 고르면 그 장르로 밝힐 노드를 지도에 넘기고 추천 칩으로 돌아가면 넘기지 않는다', async () => {
@@ -378,7 +374,7 @@ it('게시판 줄은 번호·분류·제목(관계·연결 수)·요약·연결 
   const row = (title: string) => screen.getByRole('link', { name: title }).closest('tr')!
   const sailor = row('늙은 항해사 오르')
   expect(Array.from(sailor.cells, (c) => c.textContent)).toEqual([
-    '2', '인물', '늙은 항해사 오르[2]관계 2개', '기억에 항로를 적는 마지막 항해사. 일곱 번째 섬의 항로를 혼자 기억한다고 한다.', '3',
+    '2', '인물', '늙은 항해사 오르[3]관계 3개', '기억에 항로를 적는 마지막 항해사. 일곱 번째 섬의 항로를 혼자 기억한다고 한다.', '3',
   ])
   expect(within(sailor).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([cardPath('moonhalo-isles', 2)])
   // 인물이 아닌 줄의 제목 옆 수는 연결 수다

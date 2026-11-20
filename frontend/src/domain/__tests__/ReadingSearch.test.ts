@@ -272,6 +272,36 @@ describe('ReadingUseCase.findWorks 서버 검색', () => {
     const { useCase } = setup({ search: async () => { throw new Error('offline') } })
     await expect(useCase.findWorks({ sort: 'latest' })).rejects.toThrow('offline')
   })
+
+  describe('태그 범위: 해시태그가 없는 포크는 원작 태그를 이어받으므로(/tag와 같게) 서버가 찾은 원작 바로 뒤에 잇는다', () => {
+    const hong = serverWork('hong', { hash: ['#홍길동전', '#의적'] })
+    const [base] = seedWorks(0)
+    const fork = (id: string, over: Partial<Work> = {}) => serverWork(id, { parent: 'hong', forkAt: 1, hash: [], eps: base.eps.slice(0, 1), ...over })
+    // 서버 태그 검색은 포크 자신의 해시태그만 봐서 원작만 찾는다. 자기 태그가 있는 포크(mine)는 서버가 직접 찾는다.
+    const catalog = [hong, fork('fork1'), fork('mine', { hash: ['#홍길동전'] }), fork('draft', { eps: [] }), fork('stray', { parent: 'else' }), fork('fork2')]
+
+    it('자기 해시태그가 없는 공개 포크만 이어 주고, 자기 태그가 있거나 비공개이거나 다른 원작의 포크는 잇지 않는다', async () => {
+      const search = vi.fn(async () => [hong])
+      const page = await setup({ search }, catalog).useCase.findWorks({ q: ' 홍길동전 ', f: 'tag', sort: 'latest' })
+      expect(page.list.map((w) => w.id)).toEqual(['hong', 'fork1', 'fork2'])
+      expect(page.hasMore).toBe(false) // 더 보기는 서버가 준 개수로 따진다
+    })
+
+    it('서버가 이미 준 포크는 다시 잇지 않는다', async () => {
+      const search = vi.fn(async () => [hong, fork('fork1')])
+      const page = await setup({ search }, catalog).useCase.findWorks({ q: '홍길동전', f: 'tag', sort: 'latest' })
+      expect(page.list.map((w) => w.id).toSorted()).toEqual(['fork1', 'fork2', 'hong'])
+    })
+
+    it('이어받은 태그에 검색어가 없거나 태그 범위가 아니거나 검색어가 비면 포크를 잇지 않는다', async () => {
+      const { useCase } = setup({ search: async () => [hong] }, catalog)
+      const ids = async (q: string, f: 'tag' | 'all' | 'title') => (await useCase.findWorks({ q, f, sort: 'latest' })).list.map((w) => w.id)
+      expect(await ids('없는태그', 'tag')).toEqual(['hong'])
+      expect(await ids('홍길동전', 'all')).toEqual(['hong']) // 전체·제목 범위는 서버가 포크의 제목·작가로도 직접 찾는다
+      expect(await ids('홍길동전', 'title')).toEqual(['hong'])
+      expect(await ids('', 'tag')).toEqual(['hong'])
+    })
+  })
 })
 
 describe('ReadingUseCase.findWorks 메모리(목업)', () => {

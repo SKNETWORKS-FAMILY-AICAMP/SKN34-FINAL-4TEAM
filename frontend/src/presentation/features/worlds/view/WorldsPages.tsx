@@ -1,4 +1,4 @@
-import { Component, lazy, Suspense, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react'
+import { Component, lazy, Suspense, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { useParams } from 'react-router'
 
 import { useAppSelector } from '../../../../app/store'
@@ -91,15 +91,15 @@ const RANK_BASIS = {
 
 /**
  * 홈 `Top10`과 같은 마크업·클래스(`aside.t10`·`t10h`·`live`·`more`)의 '실시간 인기' 세계관 순위 패널.
- * 조회수가 없어 서버 목록은 최근 공개 순, 파생·조합이 있는 데모는 파생·조합된 횟수 순(같으면 설정 카드 수 순)이고 배지가 그 기준을 알린다. 더보기는 이동할 곳이 없어 아래 '세계관 모아 보기'로 내려간다.
+ * 조회수가 없어 서버 목록은 최근 공개 순, 파생·조합이 있는 데모는 파생·조합된 횟수 순(같으면 설정 카드 수 순)이고 배지가 그 기준을 알린다. 더보기는 홈의 `/rank`처럼 전체 목록(`/search?type=world`, 번호 쪽)으로 간다.
  */
-function LiveRank({ ranked, basis, onMore }: { ranked: readonly PublicWorldSummary[]; basis: keyof typeof RANK_BASIS; onMore: () => void }) {
+function LiveRank({ ranked, basis }: { ranked: readonly PublicWorldSummary[]; basis: keyof typeof RANK_BASIS }) {
   return (
     <aside className="t10" aria-label="실시간 인기 세계관">
       <div className="t10h">
         <h2>실시간 인기</h2>
         <span className="live" title={RANK_BASIS[basis].title}>{RANK_BASIS[basis].badge}</span>
-        <button type="button" className="more" onClick={onMore}>더보기 ›</button>
+        <Go to="/search?type=world" className="more">더보기 ›</Go>
       </div>
       <ol>
         {ranked.map((w, i) => (
@@ -137,10 +137,10 @@ type Listing = { worlds: readonly PublicWorldSummary[]; total: number; isLoading
  * 홈의 필터 결과·소설 모아 보기와 같은 격자. 장르 칩이면 그 장르 쿼리를 따로 읽으므로 이 목록의 불러오는 중·실패(다시 시도)를 여기서 알린다.
  * 서버가 센 전체 수(`total`)가 불러온 수보다 크면 최근 공개 순 앞쪽만 보인다고 머리에 적는다.
  */
-function WorldGrid({ title, list, sectionRef }: { title: string; list: Listing; sectionRef?: Ref<HTMLElement> }) {
+function WorldGrid({ title, list }: { title: string; list: Listing }) {
   const shown = list.worlds.length
   return (
-    <section className="sec" ref={sectionRef} tabIndex={-1}>
+    <section className="sec">
       <div className="sec-h">
         <h2>{title}</h2>
         {!list.isLoading && !list.isError && <span className="muted small">{shown < list.total ? `최근 공개 ${shown}개 · 전체 ${list.total}개` : `${shown}개`}</span>}
@@ -163,11 +163,6 @@ export function WorldsPage() {
   useDocumentTitle('세계관')
   const vm = useWorldsViewModel()
   const member = useAppSelector((s) => !!s.session.role)
-  const all = useRef<HTMLElement>(null)
-  const showAll = () => {
-    all.current?.scrollIntoView()
-    all.current?.focus({ preventScroll: true })
-  }
   return (
     <>
       <Gnb on="worlds" />
@@ -190,12 +185,12 @@ export function WorldsPage() {
               {!vm.demo && <p className="muted small worlds-demo">{member ? '설정 가져오기는 각 세계관 상세에서 할 수 있어요' : '로그인하면 각 세계관 상세에서 공개 설정을 내 세계관으로 가져올 수 있어요'}</p>}
               <div className="herow">
                 <WorldAtlasSection atlas={vm.atlas} lit={vm.lit} total={vm.total} onOpen={vm.openAtlasNode} />
-                {vm.rankBasis && <LiveRank ranked={vm.liveRank} basis={vm.rankBasis} onMore={showAll} />}
+                {vm.rankBasis && <LiveRank ranked={vm.liveRank} basis={vm.rankBasis} />}
               </div>
-              {vm.filtered ? <WorldGrid title={vm.heading} list={vm.list} sectionRef={all} /> : (
+              {vm.filtered ? <WorldGrid title={vm.heading} list={vm.list} /> : (
                 <>
                   <WorldRail title="새로 공개된 세계관" worlds={vm.newest} />
-                  <WorldGrid title="세계관 모아 보기" list={vm.list} sectionRef={all} />
+                  <WorldGrid title="세계관 모아 보기" list={vm.list} />
                 </>
               )}
             </>
