@@ -11,6 +11,7 @@ resume이 이 에이전트를 멈춘 자리에서 이어 간다. 장면은 JSON(
 """
 
 import asyncio
+import os
 from collections import namedtuple
 from functools import lru_cache
 from typing import Any, NotRequired
@@ -28,7 +29,7 @@ from app.content_mcp.errors import ContentMcpFailure
 from app.retrieval.errors import RetrievalFailure
 from app.simulation import agent, director, service
 from app.simulation.errors import SimulationFailure
-from app.simulation.models import Check, Decision, Evidence, Scene, SceneAction, Trail, Turn
+from app.simulation.models import Check, Decision, Evidence, Scene, SceneAction, Trail, Turn, Verdict
 from app.simulation.prompt import FEEDBACK, KIND_LABELS, NARRATION_FEEDBACK
 from app.simulation.service import SceneContext
 from app.simulation.tools import TOOLS
@@ -37,6 +38,8 @@ FAILURES = (SimulationFailure, RetrievalFailure, ContentMcpFailure)
 LOOP_LIMIT = service.MAX_TURNS * 2  # 모델·도구 호출 안전망. 정상 장면은 턴마다 한 번씩만 부른다
 TOOL_OF = {'narration': 'narrate', 'monologue': 'monologue', 'speech': 'speak', 'end': 'end_scene'}
 TURN_LIMIT_MESSAGE = f'인물 대사 턴 한도({service.TURN_LIMIT})까지 장면이 끝나지 않아 멈췄어요.'
+SKIP_NARRATION_CHECK = 'SIMULATION_SKIP_NARRATION_CHECK'  # 속도 스위치(#642): 1이면 전지적 나레이션 턴은 검사 모델을 부르지 않고 통과로 붙인다
+PASSED = Verdict(checks=[], beatDone=False, sceneComplete=False)  # 나레이션은 검사 결과를 장면에 내보이지 않고 비트·완결도 인물 턴만 따진다
 
 
 Problem = namedtuple('Problem', 'kind detail')  # 모델 검사 앞에서 서버가 잡은 위반. 검사 모델의 항목처럼 kind·detail만 쓴다
@@ -102,6 +105,7 @@ class DirectorMiddleware(AgentMiddleware):
     """연출: 인물이 말하기 전에 반드시 이번 턴(나레이션·독백·대사·마무리)·화자·시점을 정하고 그 결정대로 도구 호출을 만든다.
 
     장면 시작·메모·비트 전환·마무리처럼 규칙이 정한 턴(service.rules)은 선택지를 좁혀 묻는다. 다시 말하기는 기록된 결정을 그대로 쓴다.
+    속도 스위치(`SIMULATION_SKIP_FORCED_DIRECTOR=1`, #642)가 켜져 있으면 고를 턴이 하나뿐이고 대사가 아닌 턴은 묻지 않고 직전 시점으로 정한다(`director.forced`).
     한도에 닿거나 결정이 실패하면 장면을 멈춘 상태로 두고(대화 안이면 작가가 이어 간다) 장면을 끝낼 수 없을 때만 에이전트를 끝낸다.
     """
     state_schema = SceneState
@@ -126,7 +130,8 @@ class DirectorMiddleware(AgentMiddleware):
                 return {'scene': _dump(scene), 'decision': scene.redo.model_dump()}
             cast = [{'id': i, 'name': world.characters[i].title} for i in context.plan.characterIds]
             last = scene.result.turns[-1].pov if scene.result.turns else None
-            decision = await director.decide(service.director_state(context.plan, scene, required), allowed, cast, last)
+            # 속도 스위치(#642)가 켜져 있으면 규칙이 정한 턴(대사 아님)은 연출 모델을 묻지 않고 정한다(director.forced).
+            decision = director.forced(allowed, last) or await director.decide(service.director_state(context.plan, scene, required), allowed, cast, last)
         except FAILURES as failure:
             stopped = service.stop_scene(scene, str(failure), 'failed')
             # 턴이 없어도 실패한 장면을 알리고, 그 알림에서 실패한 연출 호출의 사용량을 장부에 확정한다
@@ -149,6 +154,7 @@ class SceneCheckMiddleware(AgentMiddleware):
 
     통과하면 턴을 장면에 붙이고 끝내면 stopReason 없이 completed가 된다. 계속 위반하거나 비트를 따르지 않거나 호출이 실패하면 쌓은
     턴은 그대로 두고 stopped·failed와 이유를 남긴다. 턴이 끝날 때마다 장면의 현재 결과를 상태의 step에 남겨 공통 ProgressMiddleware가 SSE로 알리게 한다.
+    속도 스위치(`SIMULATION_SKIP_NARRATION_CHECK=1`, #642)가 켜져 있으면 전지적 나레이션은 서버 규칙 검사만 하고 검사 모델은 부르지 않는다.
     """
     state_schema = SceneState
 
@@ -169,6 +175,8 @@ class SceneCheckMiddleware(AgentMiddleware):
                 spec = made['check']
                 if problem := _problem(made, scene):
                     failed = [problem]
+                elif made['kind'] == 'narration' and decision.pov == 'omniscient' and os.environ.get(SKIP_NARRATION_CHECK) == '1':
+                    return await self._added(call, context, scene, decision, made, PASSED, attempt)  # 서버 규칙(_problem)은 위에서 이미 봤다
                 else:
                     payload = {**spec['payload'], 'checks': spec['kinds'], 'paragraph': made['prose']}
                     verdict = await asyncio.to_thread(agent.check, payload)

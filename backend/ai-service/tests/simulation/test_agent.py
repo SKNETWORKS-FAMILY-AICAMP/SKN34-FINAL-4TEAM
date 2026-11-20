@@ -203,3 +203,44 @@ def test_an_unavailable_prompt_is_a_503_before_the_model_call(monkeypatch, name)
     with pytest.raises(SimulationFailure) as error:
         CALLS[name][0]()
     assert (error.value.status, str(error.value)) == (503, '시뮬레이션 프롬프트를 불러올 수 없습니다.') and called == []
+
+
+# --- 추론 강도 스위치(#642) -------------------------------------------------------------------------------------------------
+
+EFFORTS = ('none', 'minimal', 'low', 'medium', 'high')
+
+
+@pytest.mark.parametrize('name', CALLS)
+@pytest.mark.parametrize('value', [None, '', '  '])
+def test_without_the_effort_switch_the_request_is_what_it_was_before(monkeypatch, name, value):
+    call, _, parsed = CALLS[name]
+    seen = []
+    provider(monkeypatch, lambda **kwargs: seen.append(kwargs) or completed(parsed))
+    if value is not None:
+        monkeypatch.setenv('SIMULATION_REASONING_EFFORT', value)
+    call()
+    assert len(seen) == 1 and 'reasoning' not in seen[0]  # 빈 값은 지정 안 함이다
+
+
+@pytest.mark.parametrize('name', CALLS)
+@pytest.mark.parametrize('effort', EFFORTS)
+def test_the_effort_switch_is_sent_as_reasoning_effort_on_every_call(monkeypatch, name, effort):
+    call, _, parsed = CALLS[name]
+    seen = []
+    provider(monkeypatch, lambda **kwargs: seen.append(kwargs) or completed(parsed))
+    monkeypatch.setenv('SIMULATION_REASONING_EFFORT', effort)
+    call()
+    assert seen[0]['reasoning'] == {'effort': effort}
+
+
+@pytest.mark.parametrize('name', CALLS)
+@pytest.mark.parametrize('effort', ['LOW', 'turbo', 'xhigh'])
+def test_an_effort_outside_the_five_openai_values_is_a_503_before_any_model_call(monkeypatch, name, effort):
+    built = []
+    monkeypatch.setenv('OPENAI_API_KEY', 'test-key')
+    monkeypatch.setenv('OPENAI_MODEL', 'test-model')
+    monkeypatch.setenv('SIMULATION_REASONING_EFFORT', effort)
+    monkeypatch.setattr(agent, 'OpenAI', lambda **_: built.append(1))
+    with pytest.raises(SimulationFailure) as error:
+        CALLS[name][0]()
+    assert (error.value.status, str(error.value)) == (503, '시뮬레이션 추론 강도 설정을 확인해 주세요.') and built == []

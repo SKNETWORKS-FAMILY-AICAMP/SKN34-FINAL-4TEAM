@@ -670,3 +670,88 @@ def test_narration_input_names_the_point_of_view_character_and_the_checks_follow
     assert service.check_kinds(PLAN_FLOW, 'character', 'omniscient')[-1] == 'beat'
     assert service.check_kinds(PLAN_IF, 'narration', 'omniscient') == service.check_kinds(PLAN_IF, 'narration', f'limited:{KAEL}') == ['knowledge_leak']
     assert service.check_kinds(PLAN_IF, 'narration', f'first:{KAEL}') == service.check_kinds(PLAN_IF, 'monologue', f'limited:{KAEL}') == ['knowledge_leak', 'voice_mix']
+
+
+# --- 세계관 읽기 캐시 스위치(#642) ------------------------------------------------------------------------------------------
+
+LISTED = {'worldId': WORLD, 'name': '달빛 세계', 'linkedWorkId': 'work', 'draftRevision': 4, 'relationshipStatus': 'current'}
+
+
+def editable_world(monkeypatch, listed=LISTED):
+    """Content MCP 대역: 세계관을 고치면 목록의 draftRevision이 오르고 읽는 이름도 바뀐다. (호출한 도구 목록, 상태)를 돌려준다."""
+    calls, state = [], {'revision': listed.get('draftRevision', 0)}
+
+    def call(tool, arguments):
+        calls.append(tool)
+        if tool == 'world_studio_list':
+            return [{**listed, **({'draftRevision': state['revision']} if 'draftRevision' in listed else {})}]
+        return {**READ, 'name': f'rev{state["revision"]}'}
+
+    monkeypatch.setattr(service.content_mcp, 'call', call)
+    monkeypatch.setattr(service, '_WORLDS', {})  # 테스트마다 빈 캐시
+    return calls, state
+
+
+def test_without_the_cache_switch_every_request_reads_the_world_again(monkeypatch):
+    calls, _ = editable_world(monkeypatch)
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE)
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read'] * 2
+
+
+def test_the_cache_reuses_the_same_revision_but_asks_for_the_list_every_time(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, _ = editable_world(monkeypatch)
+    first = service.read_world('work', EPISODE)
+    second = service.read_world('work', EPISODE)
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read', 'world_studio_list']  # 목록은 매번, 읽기 둘은 처음 한 번
+    assert first == second == {**READ, 'name': 'rev4', 'identity': []}
+
+
+def test_a_world_the_author_edited_is_read_again_on_the_next_request(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, state = editable_world(monkeypatch)
+    assert service.read_world('work', EPISODE)['name'] == 'rev4'
+    state['revision'] = 5  # 작가가 설정집을 고쳐 저장했다(#356)
+    assert service.read_world('work', EPISODE)['name'] == 'rev5'
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read'] * 2
+    assert service.read_world('work', EPISODE)['name'] == 'rev5' and len(calls) == 7  # 새 revision도 다음부터 재사용한다
+
+
+def test_the_cache_is_kept_per_base_episode(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, _ = editable_world(monkeypatch)
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE + 1)
+    service.read_world('work', EPISODE)
+    assert calls.count('world_studio_read') == 4 and calls.count('world_studio_list') == 3  # 회차마다 칸이 따로라 3화로 돌아와도 다시 읽지 않는다
+
+
+@pytest.mark.parametrize('listed', [
+    {k: v for k, v in LISTED.items() if k != 'draftRevision'},        # revision을 알 수 없다
+    {k: v for k, v in LISTED.items() if k != 'relationshipStatus'},   # 관계 저장소 상태를 알 수 없다
+    {**LISTED, 'relationshipStatus': 'incomplete'},                   # 관계 저장이 끝나지 않았다(고치는 중)
+])
+def test_the_cache_is_not_used_when_the_list_cannot_vouch_for_the_revision_or_the_relations(monkeypatch, listed):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, _ = editable_world(monkeypatch, listed)
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE)
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read'] * 2
+
+
+def test_an_inherited_world_is_never_cached(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls = fake_content(monkeypatch, worlds=[], inherited=INHERITED)
+    monkeypatch.setattr(service, '_WORLDS', {})
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE)
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'work_inherited_world'] * 2
+
+
+def test_what_the_cache_returns_is_a_copy_so_a_caller_cannot_change_the_next_answer(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    editable_world(monkeypatch)
+    for _ in range(2):  # 처음 읽어 돌려준 값도, 캐시에서 돌려준 값도 호출자가 바꿔도 다음 답에 닿지 않는다
+        service.read_world('work', EPISODE)['name'] = '바뀐 이름'
+    assert service.read_world('work', EPISODE)['name'] == 'rev4'
