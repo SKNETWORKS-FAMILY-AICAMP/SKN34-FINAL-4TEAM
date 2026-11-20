@@ -184,7 +184,7 @@ describe('공용 채팅 입력', () => {
     render(<ChatPanel messages={[]} onSend={onSend} />)
     type('실패할 글')
     fireEvent.keyDown(box(), { key: 'Enter' })
-    expect((await screen.findByRole('alert')).textContent).toBe('보내지 못했어요. 입력은 그대로 남아 있어요. 다시 시도해 주세요.')
+    expect((await screen.findByRole('alert')).textContent).toBe('메시지를 보내지 못했어요. 다시 시도해 주세요.')
     expect(box().value).toBe('실패할 글')
     expect(send().disabled).toBe(false)
     type('실패할 글 고침')
