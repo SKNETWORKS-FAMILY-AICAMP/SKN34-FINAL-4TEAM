@@ -42,6 +42,9 @@ export type ChatPlanRevision = { kind: 'plot' | 'scene'; before: PlanText; after
 export type ChatReference = { worldId: string; worldName: string; cardId: string; cardTitle: string; authorNickname: string; note: string }
 export const referenceHref = (r: ChatReference) => `/worlds/${encodeURIComponent(r.worldId)}/cards/${encodeURIComponent(r.cardId)}`
 export type ChatStepResult = {
+  /** content_action 단계(#554): 승인 뒤 메인 에이전트가 직접 실행한 Content 도구 이름과 고정 문구 */
+  tool?: string
+  label?: string
   claims?: { text: string }[]
   gaps?: string[]
   text?: string
@@ -81,6 +84,8 @@ export type ChatStep = {
   approval?: 'approved' | 'declined' | null
   applied?: { episode: number; revision: number } | null
 }
+/** 작가의 승인을 기다리는 Content 쓰기 도구(#554). 모델의 요약이 아니라 실제로 실행할 도구와 인자다. label은 서버의 도구별 고정 문구다. */
+export type PendingAction = { tool: string; label: string; args: Record<string, unknown> }
 export type ChatStatus = 'completed' | 'failed' | 'clarify' | 'rejected' | 'unsupported' | 'needs_input' | 'waiting' | 'cancelled'
 export type ChatReply = {
   status: ChatStatus
@@ -91,6 +96,8 @@ export type ChatReply = {
   /** 턴마다 멈추는 시뮬레이션 장면이 작가의 조작(다음 턴·수정·다시 말하기·끝내기)을 기다린다(#58 무대). */
   awaitingScene?: ChatFeature | null
   approvalEpisode?: number | null
+  /** awaitingApproval이 content_action일 때 실행을 기다리는 도구와 인자 */
+  pendingAction?: PendingAction | null
 }
 export type ChatTurn = { request: string; reply: ChatReply | null }
 export type ChatSession = { threadId: string; title: string; updatedAt: string }
@@ -100,7 +107,7 @@ export type ChatEvent =
   | { type: 'plan'; steps: ChatStep[] }
   | { type: 'started'; feature: ChatFeature }
   | { type: 'step'; step: ChatStep }
-  | { type: 'waiting'; steps: ChatStep[]; missingInputs: ChatFeature[]; awaitingApproval?: ChatFeature | null; awaitingScene?: ChatFeature | null }
+  | { type: 'waiting'; steps: ChatStep[]; missingInputs: ChatFeature[]; awaitingApproval?: ChatFeature | null; awaitingScene?: ChatFeature | null; pendingAction?: PendingAction | null }
   | { type: 'done'; reply: ChatReply }
   | { type: 'error'; message: string }
 /**
@@ -108,6 +115,76 @@ export type ChatEvent =
  * targetEpisode는 결과를 반영할 회차(작가가 연 회차, 발행 전 초안이어도 된다)이고 없으면 서버가 근거 회차와 같게 본다.
  */
 export type ChatBasis = { episode: number; episodeVersionId: string; targetEpisode?: number }
+/**
+ * 작가가 지금 보고 있는 화면(#554). 메시지마다 싣는다(이어가기에는 싣지 않는다). Content가 권한을 다시 확인하고 AI가 그 턴에만 본다.
+ * path는 표시용이고 인가에 쓰이지 않는다. content는 저장하지 않은 편집이 있을 때만 싣는다.
+ */
+export type ChatPage = {
+  path: string; kind: 'studio' | 'world'
+  episode?: number; worldId?: string; cardId?: string; view?: string; selection?: string
+  content?: { title?: string; body: string; unsaved: true; truncated?: boolean }
+}
+// 서버(Content `WritingAiPage`·AI `PageContext`)와 같은 상한이다.
+export const PAGE_PATH_MAX = 300
+export const PAGE_SELECTION_MAX = 5000
+export const PAGE_TITLE_MAX = 300
+export const PAGE_BODY_MAX = 10000
+export type ChatPageInput = Omit<ChatPage, 'content'> & { unsaved?: { title?: string; body: string } }
+
+// UTF-16 길이로 자르되 서로게이트 쌍의 가운데는 피한다(서버 검증이 UTF-16 길이로 센다).
+const clip = (text: string, max: number) => {
+  if (text.length <= max) return text
+  const high = text.charCodeAt(max - 1)
+  return text.slice(0, high >= 0xd800 && high <= 0xdbff ? max - 1 : max)
+}
+/**
+ * 화면 정보를 보낼 모양으로 조립한다. 선택한 글이 5,000자를 넘으면 전송 전에 구간을 줄이도록 알린다.
+ * 저장하지 않은 편집 내용(unsaved)이 있으면 본문을 10,000자까지 싣고 넘으면 잘라 truncated를 붙인다. 호출한 화면이 dirty일 때만 unsaved를 준다.
+ */
+export function chatPage({ path, selection, unsaved, ...rest }: ChatPageInput): ChatPage {
+  const page: ChatPage = { ...rest, path: clip(path, PAGE_PATH_MAX) }
+  if (selection && selection.length > PAGE_SELECTION_MAX) {
+    throw new Error(`선택한 글은 ${PAGE_SELECTION_MAX.toLocaleString('ko-KR')}자까지 보낼 수 있어요. 선택 범위를 줄이거나 선택을 해제한 뒤 다시 보내 주세요.`)
+  }
+  if (selection?.trim()) page.selection = selection
+  if (unsaved) {
+    const body = clip(unsaved.body, PAGE_BODY_MAX)
+    page.content = { ...(unsaved.title ? { title: clip(unsaved.title, PAGE_TITLE_MAX) } : {}), body, unsaved: true, ...(body.length < unsaved.body.length ? { truncated: true } : {}) }
+  }
+  return page
+}
+
+export type WorldDraftRevision = { id: string; revision: number }
+
+export function worldProposalIsStale(action: PendingAction, draft?: WorldDraftRevision): boolean {
+  if (!draft || action.tool !== 'world_studio_edit_draft' || action.args.id !== draft.id) return false
+  const request = action.args.request ?? action.args
+  const expected = request && typeof request === 'object' && 'expectedDraftRevision' in request ? request.expectedDraftRevision : undefined
+  return typeof expected === 'number' && expected !== draft.revision
+}
+
+/** 승인 카드가 보이는 바꿈 한 칸: 수정 전(없으면 새로 만드는 값)과 후. */
+export type PendingChange = { name: string; before: string | null; after: string }
+/**
+ * 세계관 설정 카드 수정(world_studio_edit_draft)이 바꿀 이름·설명의 수정 전과 후. 저장된 카드는 cardOf로 찾고 없으면 새 설정이다.
+ * 다른 도구나 모양이 어긋난 인자는 칸을 만들지 않는다(화면이 도구 인자를 그대로 보인다).
+ */
+export function pendingChanges(action: PendingAction, cardOf?: (id: string) => { title: string; body: string } | undefined): PendingChange[] {
+  if (action.tool !== 'world_studio_edit_draft') return []
+  const request = action.args.request ?? action.args // 모델이 request로 감싸지 않고 평평하게 보낸 호출도 읽는다
+  const cards = request && typeof request === 'object' ? (request as { cards?: unknown }).cards : undefined
+  if (!Array.isArray(cards)) return []
+  return cards.flatMap((card): PendingChange[] => {
+    if (!card || typeof card !== 'object') return []
+    const { id, title, body } = card as { id?: unknown; title?: unknown; body?: unknown }
+    const old = typeof id === 'string' ? cardOf?.(id) : undefined
+    const name = old?.title ?? (typeof title === 'string' && title ? title : '새 설정')
+    return [
+      ...(typeof title === 'string' && title !== old?.title ? [{ name: `${name} · 이름`, before: old?.title ?? null, after: title }] : []),
+      ...(typeof body === 'string' && body !== old?.body ? [{ name: `${name} · 설명`, before: old?.body ?? null, after: body }] : []),
+    ]
+  })
+}
 /** 입력 대기에서 작가가 채우는 단계 입력. 이름은 AI StepInputs 계약과 같다. */
 export type ChatStepInputs = {
   research?: { question: string }
@@ -124,7 +201,7 @@ export type SceneAction =
 /** 멈춘 실행을 이어 가는 답. 장면 조작이면 scene을 싣고, approved는 서버 검증을 위해 함께 보낸다(장면 조작 뒤에는 다시 멈춘다). */
 export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction }
 /** 새 요청(operation이 있으면 의도 분류를 건너뛰고 그 기능을 실행, 시뮬레이션은 시작 양식 값을 싣는다)이거나 멈춘 실행을 잇는 답이다. */
-export type ChatSendBody = { request: string; operation?: ChatFeature; simulation?: SimulationStart } | { resume: ChatResume }
+export type ChatSendBody = { request: string; operation?: ChatFeature; simulation?: SimulationStart; page?: ChatPage } | { resume: ChatResume }
 export type ChatMessageInput = ChatBasis & ChatSendBody
 
 export const SCENE_NOTE_MAX = 300
@@ -153,7 +230,7 @@ export function cleanScene(scene: SceneAction): SceneAction {
   }
 }
 
-export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '기획·집필·수정', research: '고증 조사', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', manuscript_review: '원고 검수', rating: '심의 등급', world: '세계관', world_review: '설정집 검토' }
+export const featureLabel: Record<string, string> = { content_action: 'Content 작업', story_context: '작품 질문', writing_editing: '기획·집필·수정', research: '고증 조사', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', manuscript_review: '원고 검수', rating: '심의 등급', world: '세계관', world_review: '설정집 검토' }
 export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성', both: '설정·개연성 + 맞춤법·표기' }
 const reviewStatus: Record<ReviewFinding['status'], string> = { confirmed: '확정', suspected: '의심', undeterminable: '판단 불가' }
 const reviewCategory: Record<string, string> = {
@@ -251,6 +328,7 @@ export function stepText(step: ChatStep): string {
   if (r.after !== undefined) return `수정 전: ${r.before ?? ''}\n수정 후: ${r.after}`
   if (r.plans) return [...r.plans.map((p, i) => [`계획 ${i + 1}. ${p.title}`, ...p.beats.map((b, j) => `  ${j + 1}) ${b}`)].join('\n')),
     ...(r.notes ?? []).map((n) => `참고: ${n}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`), PLAN_PICK_HINT].join('\n')
+  if (r.label) return `${r.label} 완료`
   return r.text ?? ''
 }
 
@@ -276,7 +354,7 @@ export function replyText(reply: ChatReply): string {
 
 const stepLabel = (s: ChatStep) => `[${featureLabel[s.feature] ?? s.feature}]`
 const appliedLine = (s: ChatStep) => (s.applied
-  ? (s.feature === 'world' ? '→ 설정집 초안에 반영했어요.' : s.task === 'revise_plan' ? '→ 계획에 저장했어요.' : `→ ${s.applied.episode}화 초안에 반영했어요.`)
+  ? (s.feature === 'world' ? '→ 설정집 초안에 반영했어요.' : s.feature === 'content_action' ? '→ 승인한 작업을 실행했어요.' : s.task === 'revise_plan' ? '→ 계획에 저장했어요.' : `→ ${s.applied.episode}화 초안에 반영했어요.`)
   : s.approval === 'declined' ? (s.task === 'revise_plan' ? '→ 저장하지 않았어요.' : '→ 반영하지 않았어요.') : '')
 
 /**

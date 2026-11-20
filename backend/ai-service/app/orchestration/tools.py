@@ -330,6 +330,7 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
     if task == 'revise_plan':
         return _revise_plan(runtime, request)
     turn, steps = runtime.context, runtime.state.get('steps', [])
+    selected = (turn.get('page') or {}).get('selection')  # 작가가 편집기에서 고른 글(#554, Content가 확인한 화면 정보)
     reviewed = next((s for s in reversed(steps) if s['feature'] in ('manuscript_review', 'review') and s['status'] == 'completed'), None)
     given = (runtime.state.get('inputs') or {}).get('writing_editing') or {}
     fixing = 'fix' in given or fix is not None or (task == 'patch' and 'patch' not in given and reviewed is not None)
@@ -348,6 +349,8 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
             base = {'body': draft.body, 'revision': draft.revision}
         if 'patch' in data:
             return writing.patch(PatchRequest.model_validate(data['patch']))
+        if task == 'patch' and selected and 'draft' not in data:  # 선택한 글이 있으면 입력 대기 없이 그 글을 수정한다. 반영 때 초안에 한 번만 있어야 한다
+            return writing.patch(PatchRequest(selection=selected, instruction=request or '선택한 문장을 다듬어 주세요.'))
         if 'draft' in data:
             draft, gaps = DraftRequest.model_validate(data['draft']), []
             if target and not draft.context:
@@ -360,7 +363,7 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
         return (writing.plan(planned) if task == 'plan' else writing.plan_and_draft(planned)).model_copy(update={'gaps': gaps})
 
     # 부분 수정은 Content·작가가 주는 선택 구간이 있어야 한다. 기획·바로 집필은 요청과 반영 대상으로 실행한다(#387).
-    needs = lambda inputs, scope: task == 'patch' and not {'patch', 'draft'} & set(inputs.get('writing_editing') or {})  # noqa: E731
+    needs = lambda inputs, scope: task == 'patch' and not selected and not {'patch', 'draft'} & set(inputs.get('writing_editing') or {})  # noqa: E731
     command = _ask(runtime, 'writing_editing', run, needs=needs, task_kind=task)
     if base is not None and command.update['steps'][0]['status'] == 'completed':
         command.update['writingBase'] = base

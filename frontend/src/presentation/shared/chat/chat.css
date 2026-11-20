@@ -3,6 +3,7 @@
 .chat-panel { display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; color: var(--tfg); word-break: keep-all; }
 .chat-log { flex: 1; min-height: 120px; overflow: auto; padding: 16px; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, currentColor 28%, transparent) transparent; }
 .chat-log ol { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.chat-log:has(> .chat-msg > .chat-progress) > ol { gap: 20px; margin-block-end: 20px; }
 
 /* 빈 상태: 마크 → 제목 → 한 줄 설명 → 추천 칩 */
 .chat-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 32px 8px 0; text-align: center; }
@@ -24,6 +25,13 @@
 .chat-msg.system .chat-bubble { max-width: 100%; }
 .chat-text { margin: 0; padding: 10px 14px; border: 1px solid var(--tline); border-radius: 18px 18px 18px 4px; background: var(--chat-card, var(--tcard)); line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .chat-msg.user .chat-text { border-color: var(--pri); border-radius: 18px 18px 4px 18px; background: var(--pri); color: var(--on-pri); }
+.chat-msg.assistant[data-failed] .chat-text {
+  border-color: color-mix(in srgb, var(--danger) 20%, var(--tline));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--danger) 5%, var(--chat-card, var(--tcard)));
+  color: color-mix(in srgb, var(--danger) 86%, white);
+  font: 500 .8125rem/1.6 var(--ui);
+}
 /* 마크다운 답변: 블록 사이 줄바꿈 글자가 빈 줄로 보이지 않게 한다(문단 안 줄바꿈은 CardMarkdown이 지킨다). */
 .chat-text.chat-md { white-space: normal; }
 .chat-step-details { padding-inline: 4px; color: var(--tsub); font-size: 12.5px; }
@@ -125,6 +133,7 @@
 .chat-hitl { display: grid; gap: 10px; margin: 16px 0 0 36px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--tacc) 45%, var(--tline)); border-radius: 16px; background: color-mix(in srgb, var(--tacc) 6%, var(--chat-card, var(--tcard))); }
 .chat-hitl h3 { margin: 0; font-size: 14.5px; font-weight: 800; line-height: 1.45; text-wrap: balance; }
 .chat-hitl-preview { max-height: 220px; overflow: auto; padding: 10px 12px; border: 1px solid var(--tline); border-radius: 12px; background: var(--chat-card, var(--tcard)); font-family: var(--story); line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-hitl-args { font-family: var(--mono, ui-monospace, monospace); font-size: 12px; line-height: 1.6; }
 .chat-hitl-preview:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }
 /* 사용한 계획 줄: 아래 면책 문구(.chat-note)와 구분하고, 계획이 길어도 버튼을 밀지 않게 높이를 묶는다. */
 .chat-plan { max-height: 96px; overflow: auto; margin: 0; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }

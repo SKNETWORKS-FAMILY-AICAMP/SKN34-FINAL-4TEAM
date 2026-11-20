@@ -524,6 +524,34 @@ it('승인 전 집필 후보와 원래 선택 구간을 검수 결과에 표시�
     expect(step).toMatchObject({ status: 'failed', error: '심의 등급 결과 형식을 확인할 수 없어요.' })
     expect(step.rating).toBeUndefined()
   })
+
+  it('Content 쓰기 승인 대기는 실제 도구·인자를 그대로 읽고 승인 뒤 단계는 content_action으로 읽는다(#554)', async () => {
+    const pending = { tool: 'world_studio_edit_draft', label: '세계관 설정 카드 수정', args: { id: 'w', request: { cards: [{ id: 'k', body: '새 글' }] } } }
+    const applied = { feature: 'content_action', when: 'always', status: 'completed', approval: 'approved', result: { tool: 'work_update', label: '작품 정보 수정' }, applied: { episode: 3, revision: 9 } }
+    const fetcher = vi.fn().mockResolvedValue(sse(
+      `event: waiting\ndata: ${JSON.stringify({ steps: [], awaitingApproval: 'content_action', pendingAction: pending })}\n\n`,
+      `event: step\ndata: ${JSON.stringify(applied)}\n\n`,
+      `event: done\ndata: ${JSON.stringify({ status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action', pendingAction: pending })}\n\n`))
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(fetcher).send('w1', 't1', input, (e) => events.push(e))
+    expect(events[0]).toMatchObject({ type: 'waiting', awaitingApproval: 'content_action', pendingAction: pending })
+    expect(events[1]).toMatchObject({ type: 'step', step: { feature: 'content_action', result: { tool: 'work_update', label: '작품 정보 수정' }, applied: { revision: 9 } } })
+    expect(events[2]).toMatchObject({ type: 'done', reply: { pendingAction: pending } })
+  })
+
+  it('승인 대기의 인자가 객체가 아니면 형식 오류로 알린다(가짜 카드를 만들지 않는다)', async () => {
+    const fetcher = vi.fn().mockResolvedValue(sse('event: waiting\ndata: {"steps":[],"awaitingApproval":"content_action","pendingAction":{"tool":"x","label":"y","args":3}}\n\n'))
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(fetcher).send('w1', 't1', input, (e) => events.push(e))
+    expect(events[0]).toEqual({ type: 'error', message: '서버 응답 형식을 확인할 수 없어요.' })
+  })
+
+  it('보내는 요청에 화면 정보(page)가 그대로 실린다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(sse('event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))
+    const page = { path: '/studio/w1?ep=2', kind: 'studio' as const, episode: 2, selection: '그는 웃었다.' }
+    await new HttpWritingChatRepository(fetcher).send('w1', 't1', { ...input, page }, () => {})
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ ...input, page })
+  })
 })
 
 describe('계획 수정안 단계 결과(#578)', () => {

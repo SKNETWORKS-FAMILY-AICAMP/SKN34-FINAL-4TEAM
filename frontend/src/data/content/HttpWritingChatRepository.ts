@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import type { CharacterSimulation } from '../../domain/entities/characterSimulation'
-import type { ChatEvent, ChatHistory, ChatMessageInput, ChatPlanRevision, ChatRating, ChatReply, ChatReview, ChatSession, ChatStep, ChatWorld, ChatWorldReview } from '../../domain/entities/writingChat'
+import type { ChatEvent, ChatHistory, ChatMessageInput, ChatPlanRevision, ChatRating, ChatReply, ChatReview, ChatSession, ChatStep, ChatWorld, ChatWorldReview, PendingAction } from '../../domain/entities/writingChat'
 import type { WritingChatRepository } from '../../domain/repositories/WritingChatRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, protectedRequest } from '../api/auth'
@@ -108,6 +108,7 @@ const step: z.ZodType<ChatStep> = z.union([typedStep(z.literal('character_simula
   feature: z.string(),
   ...stepFields,
   result: z.looseObject({
+    tool: z.string().optional(), label: z.string().optional(), // content_action 단계(#554)
     claims: z.array(z.object({ text: z.string() })).optional(),
     gaps: z.array(z.string()).optional(),
     text: z.string().optional(),
@@ -120,6 +121,8 @@ const step: z.ZodType<ChatStep> = z.union([typedStep(z.literal('character_simula
     plan: beatPlan.nullish(),
   }).nullish(),
 })])
+// Content 쓰기 도구 승인 대기(#554): 실제 실행할 도구와 인자다.
+const pendingAction: z.ZodType<PendingAction> = z.object({ tool: z.string(), label: z.string(), args: z.record(z.string(), z.unknown()) })
 // 옛 대화 기록의 기능 키(#499 review, #545 web_research)를 지금 키로 바꾼다.
 const RENAMED_FEATURES = new Map([['review', 'manuscript_review'], ['web_research', 'research']])
 const featureKey = z.string().transform((feature) => RENAMED_FEATURES.get(feature) ?? feature)
@@ -131,6 +134,7 @@ const reply: z.ZodType<ChatReply> = z.object({
   awaitingApproval: z.string().nullish(),
   awaitingScene: z.string().nullish(),
   approvalEpisode: z.number().int().positive().nullish(),
+  pendingAction: pendingAction.nullish(),
 })
 const session: z.ZodType<ChatSession> = z.object({ threadId: z.string(), title: z.string(), updatedAt: z.string() })
 const history: z.ZodType<ChatHistory> = z.object({
@@ -140,7 +144,7 @@ const events = {
   plan: z.object({ steps: z.array(step) }).transform((d) => ({ type: 'plan' as const, ...d })),
   started: z.object({ feature: featureKey }).transform((d) => ({ type: 'started' as const, ...d })),
   step: step.transform((s) => ({ type: 'step' as const, step: s })),
-  waiting: z.object({ steps: z.array(step), missingInputs: z.array(featureKey).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish() })
+  waiting: z.object({ steps: z.array(step), missingInputs: z.array(featureKey).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish(), pendingAction: pendingAction.nullish() })
     .transform((d) => ({ type: 'waiting' as const, ...d })),
   done: reply.transform((r) => ({ type: 'done' as const, reply: r })),
   error: z.object({ message: z.string() }).transform((d) => ({ type: 'error' as const, ...d })),

@@ -34,6 +34,7 @@
 - MCP 창구(`ai.storyfork.content.mcp`, `/mcp`)는 기존 Service 함수만 호출하는 어댑터다. 공개 도구는 인증 없이, 사용자 도구는 전달된 Bearer를 기존 필터로 검증한 회원 UUID로 호출하며 도구 인자로 회원 ID를 받지 않는다. [계약](../../docs/design/content-mcp-contract.md)
 - 회차 원고 전처리(#343, DEC-50)는 `ai.storyfork.content.preprocessing`이 작업 기록(`preprocessing_job`, V41 `preprocessing` leaf)·접수·진행·재실행만 소유하고 추출·정리·적재는 AI 서비스가 한다(틀 단계, [계약](../../docs/design/manuscript-preprocessing-contract.md#실행-계약-2026-11-13-343)). 접수는 작업을 `queued`로 저장한 뒤 AI `POST /internal/v1/preprocessing/jobs`를 부르고(DB 트랜잭션·잠금을 AI 호출 동안 열지 않는다) AI가 받지 않으면 `failed`+고정 사유로 남기고 502다. 같은 작품의 진행 중·완료 작업은 하나(부분 유니크 인덱스가 최종 방어)이고 재실행은 작품의 가장 최근 실패 작업만 된다. 진행 보고 `POST /internal/v1/preprocessing-jobs/{id}/progress`만 AI 토큰 체인(`X-Internal-Token`)이고 목록·재실행은 운영 토큰 체인이다.
 - 남이 바꾼 변경 알림(#553): 내용·설정을 바꾸는 MCP 쓰기 도구는 성공한 뒤 `McpChangeNotice`가 콘텐츠 주인에게 `content.mcp.world-changed`·`work-changed`를 `content_event_outbox`에 별도 저장하고(저장 실패는 로그만), 운영자 내부 API(작품 제한·해제, 댓글 숨김·해제)는 상태가 실제로 바뀔 때만 같은 트랜잭션에서 `content.operator.*`를 쓴다. 대상 도구 목록은 [계약](../../docs/design/mcp-change-notice-contract.md)이다.
+- 집필 AI 채팅 요청의 `page`(#554)는 `WritingAiService`가 새 요청에서만 받아 사용자 권한으로 다시 확인한다(studio 회차는 활성 회차, world 세계관은 `WorkWorldService.linkedWorldId`가 이 작품에 연결된 작가 본인의 것, 카드는 `WorldStudioService.draft`의 삭제되지 않은 카드이며 어긋나면 404·422). 통과한 값만 AI에 싣고 `path`는 인가에 쓰지 않는다.
 - 로컬은 이 디렉터리에서 `./gradlew unitTest --tests 'ai.storyfork.content.<대상 클래스>' --no-daemon`으로 순수 단위만 실행한다.
   Spring/HTTP/DB/Flyway 검사는 CI `integrationTest`에서 실행한다.
 
