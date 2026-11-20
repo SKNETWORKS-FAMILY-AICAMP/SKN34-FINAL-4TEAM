@@ -298,3 +298,31 @@ it("'소설 연결' 탭의 Fork 행은 연관 설정과 같은 44px 행(.world-c
   expect(rule((s) => s === '.world-novel .world-forks')?.body).toMatch(/border-top:1px solid var\(--tline\)/)
   expect(rule((s) => s === '.world-cover-now')?.body).toMatch(/width:160px/) // 개요 탭의 지금 표지
 })
+
+// ── critique 승인 항목: 히어로 축소·탭 줄 채팅 버튼·문서 탭 부제 ───────────────────────────────────────────────
+
+it('개요가 아닌 탭은 히어로를 72px 표지 + 제목·칩 한 덩어리로 줄이고 소개를 숨기며(data-view로만 가르므로 개요·작성 모드·/content 히어로는 그대로), 650px 이하 규칙보다 특이도가 높다', () => {
+  const compact = '.episode-app .world-manage-hero[data-view]:not([data-view=overview])'
+  expect(rule((s) => s === compact)?.body).toMatch(/grid-template-columns:72px minmax\(0,1fr\);gap:0 16px;align-items:center/)
+  expect(rule((s) => s === `${compact} .ep-hero-cover`)?.body).toMatch(/max-width:none/) // 공용 .ep-hero-cover의 220px 상한은 이 화면에서만 푼다
+  expect(rule((s) => s === `${compact} .ep-hero-main`)?.body).toMatch(/display:block/) // 650px 이하의 display:contents를 덮는다
+  expect(rule((s) => s === `${compact} .sum`)?.body).toMatch(/display:none/)
+  expect(rule((s) => s === `${compact} h1`)?.body).toMatch(/font-size:24px/)
+  expect(css).not.toMatch(/\.world-manage-hero\[data-view=overview\]\{/) // 개요 탭은 히어로를 건드리지 않는다
+  expect(episodeCss).not.toContain('data-view') // 공용 틀·/content 작품 관리 히어로는 그대로다
+})
+
+it('900px 이하에서 닫힌 AI 채팅 열기 버튼은 보기 메뉴 줄의 오른쪽 끝 슬롯에 놓이고(제자리 버튼), 넓은 화면에서는 줄을 풀어 메뉴 배치가 그대로며 빈 슬롯은 숨는다', () => {
+  expect(rule((s) => s === '.world-menu-row')?.body).toMatch(/display:contents/)
+  expect(rule((s) => s === '.world-chat-slot:empty')?.body).toMatch(/display:none/)
+  expect(css).toContain('@media(max-width:900px){.world-menu-row{display:flex;align-items:center;gap:8px}.world-menu-row nav{flex:1 1 auto;min-width:0}.world-chat-slot .studio-chat-toggle{position:static;flex:none;box-shadow:none;white-space:nowrap}}')
+  expect(writingCss).not.toContain('world-chat-slot') // 집필실의 같은 공용 버튼은 건드리지 않는다
+})
+
+it('인물 문서 탭의 파일 이름(.world-doc-file)은 화면에서 숨겨 스크린리더용으로만 남고 부제는 공개 범위뿐이다', async () => {
+  const doc = readFileSync(new URL('./CharacterDocs.tsx', import.meta.url), 'utf8')
+  expect(doc.match(/<small className="world-doc-file sr-only">/g)).toHaveLength(2) // 문서 탭과 회차 기억 탭
+  expect(doc).not.toMatch(/<small className="world-doc-file">/)
+  expect(rule((s) => s === '.world-doc-tab .world-doc-flag')?.body).toMatch(/margin-left:6px/)
+  expect(rule((s) => s === '.world-doc-scope,.world-doc-tab .world-doc-flag')).toBeUndefined() // 첫 부제(공개 범위)는 이름 글자와 왼쪽이 맞는다
+})

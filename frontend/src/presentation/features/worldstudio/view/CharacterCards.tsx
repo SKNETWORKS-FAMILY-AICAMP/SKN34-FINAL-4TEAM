@@ -9,7 +9,7 @@ type Actions={busy:boolean;selectedRelations:string[];targetSource:string|null;r
 type Point={x:number;y:number}
 /**
  * 카드 그래프. `center`(중심 카드 id)가 있으면 그 카드를 보드 가운데에 두고 이웃(`vm.graph.nodes`의 나머지)을 둘레 원 위에 놓는다(`ringLayout`, 선이 서로 교차하지 않는 별 모양). 없으면 모든 카드를 격자에 깐다.
- * 관계선 라벨(`<text>`)은 고른 카드나 중심 카드에 닿는 선에만 그리고, 나머지 선은 `<title>` 툴팁·누르는 영역의 이름으로만 읽힌다(겹친 선의 라벨이 서로 가리지 않게).
+ * 관계선 라벨(`<text>`)은 중심 보기에서는 중심 카드에 닿는 선에, 전체 보기에서는 마우스를 올리거나 초점을 둔 선(키보드는 카드 버튼에 초점이 있는 카드에 닿는 선)에만 그리고, 나머지 선은 `<title>` 툴팁·누르는 영역의 이름으로만 읽힌다(겹친 선의 라벨이 서로 가리지 않게).
  */
 export default function CharacterCards({vm,editing,center}:{vm:ReturnType<typeof useWorldMapViewModel>;editing:Actions;center?:string}) {
  const host=useRef<HTMLDivElement>(null),cards=useRef(new Map<string,HTMLDivElement>())
@@ -37,7 +37,7 @@ export default function CharacterCards({vm,editing,center}:{vm:ReturnType<typeof
  // 중심 카드 보기에서 원이 상자보다 크면 가운데(중심 카드)가 먼저 보이게 스크롤한다. 자동 배치 크기(ring)가 바뀔 때만이라 부모가 다시 그리거나 카드를 끌어 보드가 커져도 사용자가 민 위치를 뺏지 않는다.
  useEffect(()=>{const el=host.current;if(!ring||!el)return;el.scrollLeft=Math.max(0,(ring.width-el.clientWidth)/2);el.scrollTop=Math.max(0,(ring.height-el.clientHeight)/2)},[ring])
  // 라벨: 중심 보기는 중심 카드에 닿는 선(이 보기의 모든 선)에만, 전체 보기는 마우스를 올리거나 초점을 둔 선 하나에만 그린다(수십 개의 라벨이 서로 겹치지 않게). 선 자체는 툴팁·이름으로 늘 읽힌다.
- const [hot,setHot]=useState('')
+ const [hot,setHot]=useState(''),[focusCard,setFocusCard]=useState('') // hot: 마우스를 올리거나 초점을 둔 선, focusCard: 키보드 초점이 있는 카드(그 카드에 닿는 선의 라벨도 보인다)
  const start=(id:string,e:PointerEvent<HTMLDivElement>)=>{
   if(editing.busy||(e.target instanceof Element&&e.target.closest('button')))return
   drag.current={id,start:{x:e.clientX,y:e.clientY},position:at(id),moved:false};e.currentTarget.setPointerCapture?.(e.pointerId)
@@ -64,7 +64,7 @@ export default function CharacterCards({vm,editing,center}:{vm:ReturnType<typeof
    color:active?'var(--edge-active,var(--pri))':l.emotion?'var(--edge-emotion,var(--acc-ink))':'var(--edge,var(--pri-ink))',
    name:`${editing.readOnly?'관계선 보기':'관계선 편집'}: ${title(source)} · ${title(target)} · ${l.fullLabel??l.label}`}]
  })
- const labelled=edges.filter(e=>center?e.source===center||e.target===center:hot===e.key)
+ const labelled=edges.filter(e=>center?e.source===center||e.target===center:hot===e.key||e.source===focusCard||e.target===focusCard)
  const fits=!!ring&&ring.width<=width // 호스트 폭 안에 든 원: 상자가 보드 높이를 그대로 써서 위·아래 카드가 잘리지 않는다(폰처럼 못 들어가면 640px까지, 안에서 스크롤)
  return <div ref={host} className="relationship-cards-scroll" role="group" aria-label={`${subject} 카드 그래프`} style={ring?{height:fits?boardHeight:Math.min(boardHeight,640)}:undefined}>
   <div className="relationship-cards-board" style={{width:boardWidth,height:boardHeight}}>
@@ -76,7 +76,7 @@ export default function CharacterCards({vm,editing,center}:{vm:ReturnType<typeof
     </g>)}
    </svg>
    {vm.graph.nodes.map(n=>{const p=at(n.id),portrait=presentationPortrait(n.name),target=!!editing.targetSource&&n.id!==editing.targetSource,selected=vm.selected?.id===n.id
-    return <div key={n.id} role="group" data-id={n.id} aria-current={selected||undefined} aria-label={`${n.name} ${n.kind} 카드`} ref={el=>{if(el)cards.current.set(n.id,el);else cards.current.delete(n.id)}} className={'relationship-character-card'+(selected?' selected':'')+(target?' target':'')+(!vm.visible.has(n.id)?' dim':'')} style={{width:cardWidth,height:cardHeight,transform:`translate(${p.x}px, ${p.y}px)`+(k<1?` scale(${k})`:''),transformOrigin:'0 0'}} onPointerDown={e=>start(n.id,e)} onPointerMove={move} onPointerUp={stop} onPointerCancel={()=>{drag.current=null}}>
+    return <div key={n.id} role="group" data-id={n.id} aria-current={selected||undefined} aria-label={`${n.name} ${n.kind} 카드`} ref={el=>{if(el)cards.current.set(n.id,el);else cards.current.delete(n.id)}} className={'relationship-character-card'+(selected?' selected':'')+(target?' target':'')+(!vm.visible.has(n.id)?' dim':'')} style={{width:cardWidth,height:cardHeight,transform:`translate(${p.x}px, ${p.y}px)`+(k<1?` scale(${k})`:''),transformOrigin:'0 0'}} onPointerDown={e=>start(n.id,e)} onPointerMove={move} onPointerUp={stop} onPointerCancel={()=>{drag.current=null}} onFocus={()=>setFocusCard(n.id)} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node|null))setFocusCard('')}}>
      <h4 title={n.name}>{n.type&&<i className="relationship-kind" style={{background:CARD_COLORS[CARD_KIND[n.type]]}} aria-hidden="true"/>}{portrait&&<img src={portrait} alt="" width={36} height={36}/>}{n.name}</h4><p title={n.text}>{n.text||'소개를 입력할 수 있어요.'}</p>
      <div><button type="button" className="btn sm" aria-label={`${n.name} ${editing.readOnly?'상세 보기':'정보 편집'}`} disabled={editing.busy||!!editing.targetSource} onClick={()=>editing.onSelect(n.id)}>{editing.readOnly?'상세 보기':'정보 편집'}</button>
       {!editing.readOnly&&(editing.targetSource?<button type="button" className="btn pri sm" aria-label={`${n.name} 상대 선택`} disabled={editing.busy||n.id===editing.targetSource||n.unnamed} onClick={()=>editing.onSelect(n.id)}>상대 선택</button>:<button type="button" className="btn sm" aria-label={`${n.name} 관계 연결`} disabled={editing.busy||n.unnamed} onClick={()=>editing.onConnect(n.id)}>관계 연결</button>)}

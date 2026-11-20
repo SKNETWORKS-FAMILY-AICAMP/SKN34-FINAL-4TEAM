@@ -59,7 +59,7 @@ const BODY_MAX = 3000
  * 삭제는 초안 변경이라 확인(함께 지워질 관계 수)을 거친 뒤 설정집으로 돌아가고 되돌릴 수 있으며, 세계관 저장으로 서버에 반영한다.
  * 관계 기준 회차를 고른 동안(`vm.deleteLock`)은 삭제가 최신 저장에서만 되므로 하단 삭제와 레일 ⋮ 삭제를 잠그고 이유를 하단에 보인다(잠긴 메뉴 항목의 설명도 같은 글).
  */
-export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, onChatOpenChange }: { vm: VM; mcp: McpChangeState; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; chatOpen: boolean; onChatOpenChange: (open: boolean) => void }) {
+export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, onChatOpenChange, previewFirst = false }: { vm: VM; mcp: McpChangeState; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; chatOpen: boolean; onChatOpenChange: (open: boolean) => void; previewFirst?: boolean }) {
   const world = vm.editing!
   const setting = world.settings.find((s) => s.item.id === vm.selected)!
   const { item } = setting
@@ -89,6 +89,10 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const openLinked = (id: string) => { setConfirm(''); focusName.current = true; vm.editCard(id) }
   const identityBody = identityBodyOf(world.settings, item.id) // 이 카드가 「동일 인물」의 다른 이름 카드면 그 본체 카드(#485)
   const docs = useCharacterDocs(vm, setting) // 편집 중인 글: 인물 카드는 고른 문서, 그 밖은 카드 본문
+  // 게시판 미리보기의 `수정하기`로 들어왔으면(previewFirst) 그때 처음 만들어지는 편집기만 미리보기 탭으로 연다: 원문 링크 `[글자](card:<id>)`가 먼저 보이지 않게. 같은 카드의 다른 문서·레일의 다른 카드·새 설정은 쓰는 중이라 쓰기 탭이다. 이 화면을 나가면 잊는다.
+  const editorKey = `${docs.editorKey}:${vm.relationKey}`
+  const [entryKey, setEntryKey] = useState(() => (previewFirst ? editorKey : ''))
+  useEffect(() => { if (entryKey && entryKey !== editorKey) setEntryKey('') }, [entryKey, editorKey]) // 다른 문서·카드로 옮기면 잊는다: 돌아와도 이미 쓰기 시작한 화면이라 쓰기 탭이다
   const over = docs.text.length > BODY_MAX
   const revealError = invalidReveal(setting)
   const reveal = cardRevealEpisode(setting)
@@ -100,7 +104,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const bodyEditor = (
     <div className="world-card-editor" inert={vm.busy}>
       <Suspense fallback={<div className="world-card-editor-loading" aria-live="polite">편집기를 불러오고 있어요.</div>}>
-        <LazyMarkdownEditor key={`${docs.editorKey}:${vm.relationKey}`} label={docs.person ? docs.name : '설정 본문'} initialValue={docs.text} placeholder={docs.person ? undefined : '어떤 인물인가요? 무엇이 중요한 장소인가요? 떠오르는 내용을 자유롭게 적어 보세요.'} onChange={docs.write} cardLinks={docs.doc === 'identity' ? { cards: linkChoices, open: openLinked } : undefined} />
+        <LazyMarkdownEditor key={editorKey} startTab={entryKey === editorKey ? 'preview' : undefined} label={docs.person ? docs.name : '설정 본문'} initialValue={docs.text} placeholder={docs.person ? undefined : '어떤 인물인가요? 무엇이 중요한 장소인가요? 떠오르는 내용을 자유롭게 적어 보세요.'} onChange={docs.write} cardLinks={docs.doc === 'identity' ? { cards: linkChoices, open: openLinked } : undefined} />
       </Suspense>
     </div>
   )

@@ -74,6 +74,11 @@ export function WorldStudioPage() {
   // 사이드바 접기(901px 이상): 접은 동안 상시 저장 영역은 상단 줄(뒤로 가기 링크 오른쪽)로 옮겨 그린다. 상단 줄이 이 페이지에 있어 접힘 상태도 여기서 가진다.
   // ponytail: 접힘 상태를 저장하지 않는다(새로 고치면 펼침). 필요하면 worldStudioStorage에 한 키로 남긴다.
   const [menuOpen, setMenuOpen] = useState(true)
+  // 900px 이하의 닫힌 AI 채팅 열기 버튼이 들어갈 자리(사이드바 탭 줄의 오른쪽 끝). 탭 줄이 그려지면 채워져 WorldChat이 그 안으로 버튼을 옮긴다.
+  const [chatSlot, setChatSlot] = useState<HTMLElement | null>(null)
+  // 게시판 미리보기의 `수정하기`로 연 카드(편집기를 미리보기 탭으로 시작한다). 편집 화면을 나가면 비운다.
+  const [previewEntry, setPreviewEntry] = useState('')
+  useEffect(() => { if (!editingCard) setPreviewEntry('') }, [editingCard])
   return (
     <>
       {!editingCard && <Gnb on="lib" />}
@@ -96,12 +101,12 @@ export function WorldStudioPage() {
           {loading && <p role="status" className="ep-notice">세계관을 불러오고 있어요…</p>}
           {!vm.reviewWorldId && <WorldCreate vm={vm} />}
           {!vm.editing && vm.reviewWorldId && <InitialWorldReview key={vm.reviewWorldId} studio={vm} />}
-          {vm.editing && <WorldEditor vm={vm} world={vm.editing} revisions={revisions} openVersions={() => setVersionsOpen(true)} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />}
+          {vm.editing && <WorldEditor vm={vm} world={vm.editing} revisions={revisions} openVersions={() => setVersionsOpen(true)} menuOpen={menuOpen} setMenuOpen={setMenuOpen} chatSlotRef={setChatSlot} onPreviewEdit={setPreviewEntry} />}
         </main>
         {/* 편집 화면이 열려 있는 동안은 그 화면이 채팅을 그린다. 숨은 설정집 화면의 채팅은 좁은 화면에서 body에 그려지는 서랍이라 여기서 빼지 않으면 편집 화면 위에 겹쳐 뜬다. */}
-        {vm.editing && !editingCard && <WorldChat open={chatOpen} onOpenChange={setChatOpen} linkedWorkId={vm.linkedWorkId} onWorldApplied={() => void vm.aiDraftChanged()} {...chatPage} />}
+        {vm.editing && !editingCard && <WorldChat open={chatOpen} onOpenChange={setChatOpen} slot={chatSlot} linkedWorkId={vm.linkedWorkId} onWorldApplied={() => void vm.aiDraftChanged()} {...chatPage} />}
       </div>
-      {editingCard && <WorldCardStudio vm={vm} mcp={mcp} revisions={revisions} openVersions={() => setVersionsOpen(true)} chatOpen={chatOpen} onChatOpenChange={setChatOpen} />}
+      {editingCard && <WorldCardStudio vm={vm} mcp={mcp} revisions={revisions} openVersions={() => setVersionsOpen(true)} chatOpen={chatOpen} onChatOpenChange={setChatOpen} previewFirst={previewEntry === vm.selected} />}
       {vm.editing && versionsOpen && (
         <Sheet sid="W01" label="확정 버전" panelClass="sheet world-sheet" onClose={closeVersions}>
           <div className="world-sheet-head"><button type="button" className="btn sm" onClick={closeVersions}>닫기</button></div>
@@ -138,7 +143,7 @@ function WorldHeader({ vm, world }: { vm: VM; world: StudioWorld }) {
     wasManage.current = manage
   }, [manage])
   return (
-    <section className="whero ep-hero world-manage-hero">
+    <section className="whero ep-hero world-manage-hero" data-view={manage ? vm.view : undefined}>
       <div className="ep-hero-cover">
         <div className="cov"><img src={coverSrc(vm.cover.url)} alt={vm.cover.url ? '세계관 표지' : '기본 세계관 표지'} /></div>
       </div>
@@ -199,7 +204,7 @@ function WorldPublish({ vm }: { vm: VM }) {
  * 메뉴를 누르면 누른 버튼을 가로 줄 안에 보이게 하고 바뀐 내용 카드 머리로 스크롤한다(처음 열 때·같은 메뉴를 다시 누를 때는 하지 않고, 초점은 누른 버튼에 둔다).
  * 확정 버전은 편집 화면의 버전 그래프에서 남기고 본다. 시간선은 저장한 설정의 사건만 보인다.
  */
-function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen }: { vm: VM; world: StudioWorld; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; menuOpen: boolean; setMenuOpen: (open: boolean) => void }) {
+function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen, chatSlotRef, onPreviewEdit }: { vm: VM; world: StudioWorld; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; menuOpen: boolean; setMenuOpen: (open: boolean) => void; chatSlotRef: (slot: HTMLElement | null) => void; onPreviewEdit: (id: string) => void }) {
   const heading = useRef<HTMLHeadingElement>(null)
   const menuId = useId()
   const manage = vm.mode === 'manage'
@@ -226,6 +231,7 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
         <div className="ep-menu">
           <button type="button" className="world-menu-toggle" aria-expanded={menuOpen} aria-controls={menuId} aria-label={menuOpen ? '세계관 메뉴 접기' : '세계관 메뉴 펼치기'} onClick={() => setMenuOpen(!menuOpen)}><FoldIcon /></button>
           <div id={menuId} className="world-menu-body" hidden={!menuOpen}>
+            <div className="world-menu-row">
             <nav aria-label="세계관 메뉴">
               {MANAGE_VIEWS.map(([id, label]) => (
                 <button
@@ -241,6 +247,8 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
                 >{label}</button>
               ))}
             </nav>
+            <div className="world-chat-slot" ref={chatSlotRef} />
+            </div>
             <div className="world-menu-tools">
               <WorldAiReview studio={vm} />
               <NoteButton vm={vm} />
@@ -277,7 +285,7 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
           )}
           {(overviewSeen || view === 'overview') && <div hidden={view !== 'overview'}><WorldInfoPanel key={vm.relationKey} vm={vm} world={vm.saved ?? world} /></div>}
           {view === 'novel' && <WorldNovelTab vm={vm} />}
-          <div hidden={manage ? view !== 'book' : step !== 'cards'}><WorldCardBoard vm={vm} /></div>
+          <div hidden={manage ? view !== 'book' : step !== 'cards'}><WorldCardBoard vm={vm} onPreviewEdit={onPreviewEdit} /></div>
           {timeline && (
             <section className="world-confirmed" aria-label="시간선">
               <h3>저장된 시간선</h3>
@@ -287,7 +295,7 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
           )}
           {vm.relationWorld === world.id && (
             <div hidden={step !== 'relations'}>
-              <button className="btn sm" type="button" onClick={vm.returnToCard}>{manage ? '설정집으로 돌아가기' : '설정 카드로 돌아가기'}</button>
+              {!manage && <button className="btn sm" type="button" onClick={vm.returnToCard}>설정 카드로 돌아가기</button>}
               <RelationEpisodePicker studio={vm} />
               <WorldRelationshipEditor key={`${world.id}:${vm.relationKey}`} studio={vm} />
             </div>

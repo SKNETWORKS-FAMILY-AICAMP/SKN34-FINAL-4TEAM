@@ -185,3 +185,22 @@ it('간선 그림은 카드 아래 층이고 라벨은 별도 SVG로 카드 위 
  expect(angles.some(deg=>Math.abs(deg)<1)).toBe(true) // 오른쪽·왼쪽 이웃으로 가는 가로선은 눕지 않고
  expect(angles.some(deg=>Math.abs(deg-90)<1)).toBe(true) // 위·아래 이웃으로 가는 세로선은 90°다
 })
+
+it('전체 보기에서 카드(버튼)에 키보드 초점이 가면 그 카드에 닿는 선의 라벨이 보이고, 같은 카드 안에서 초점이 옮겨 가도 유지되며 카드를 떠나면 사라진다',()=>{
+ const {a,rows}=triangle()
+ function Harness(){const vm=useWorldMapViewModel(rows,buildCharacterMap);return <CharacterCards vm={vm} editing={actions()}/>}
+ render(<Harness/>)
+ expect(labels()).toEqual([])
+ const info=screen.getByRole('button',{name:'가람 정보 편집'}),connect=screen.getByRole('button',{name:'가람 관계 연결'}),other=screen.getByRole('button',{name:'나래 정보 편집'})
+ fireEvent.focus(info)
+ expect(labels()).toHaveLength(2) // 가람에 닿는 선 둘뿐(나래↔다온은 가람에 닿지 않는다)
+ fireEvent.blur(info,{relatedTarget:connect}) // 같은 카드의 다른 버튼으로 옮겨 간다
+ fireEvent.focus(connect)
+ expect(labels()).toHaveLength(2)
+ fireEvent.blur(connect,{relatedTarget:other}) // 다른 카드로 떠난다
+ fireEvent.focus(other)
+ expect(labels()).toHaveLength(2) // 나래에 닿는 선 둘(가람·다온)
+ fireEvent.blur(other,{relatedTarget:null})
+ expect(labels()).toEqual([])
+ expect(a.item.title).toBe('가람')
+})

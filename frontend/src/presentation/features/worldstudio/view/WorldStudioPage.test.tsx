@@ -595,23 +595,6 @@ it('레일의 ⋮ 메뉴 삭제는 그 카드를 열어 같은 삭제 확인을 
   expect(screen.queryByRole('region', { name: '설정 삭제 확인' })).toBeNull()
 })
 
-it('관계도 보기의 인물 삭제도 같은 삭제 흐름이다: 관계와 함께 지우고 되돌릴 수 있다', async () => {
-  const [garam, narae] = [person('가람'), person('나래')]
-  await show(friends([garam, narae], garam, narae))
-  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  fireEvent.change(screen.getByRole('combobox', { name: '관계 주체' }), { target: { value: garam.item.id } })
-  fireEvent.click(screen.getByRole('button', { name: '선택한 인물 삭제' }))
-  expect(screen.getByRole('region', { name: '인물 삭제 확인' }).textContent).toContain('인물과 연결된 관계·감정 1개를 편집본에서 삭제해요')
-  fireEvent.click(screen.getByRole('button', { name: '인물과 연결 삭제' }))
-  expect(screen.queryByRole('table', { name: '저장할 관계 목록' })).toBeNull()
-  expect(screen.getByText('아직 연결한 관계가 없어요.')).toBeTruthy()
-  expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '인물 삭제 되돌리기' }))
-  expect(screen.getByRole('table', { name: '저장할 관계 목록' })).toBeTruthy()
-  expect(saveBar().getByText('저장됨')).toBeTruthy()
-  expect(screen.queryByRole('button', { name: '인물 삭제 되돌리기' })).toBeNull()
-})
-
 it('집필 메모 추가는 사이드바의 AI 검토 바로 아래에 있어 어느 보기에서든 새 메모의 편집 화면을 열고 돌아오면 그 보기다', async () => {
   await showWorld()
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
@@ -839,14 +822,12 @@ const pickEpisode = async (episode: number) => {
   fireEvent.click(episodePicker().getByRole('button', { name: '이 회차 관계 보기' }))
   await waitFor(() => expect(episodePicker().getByText(`지금은 ${episode}화 시점의 관계예요.`)).toBeTruthy())
 }
-it('관계 기준 회차를 고른 동안에는 설정 삭제 진입점(인물 삭제·편집 화면 삭제·레일 ⋮ 삭제)이 이유와 함께 잠기고, 최신으로 돌아오면 열린다', async () => {
+it('관계 기준 회차를 고른 동안에는 설정 삭제 진입점(편집 화면 삭제·레일 ⋮ 삭제)이 이유와 함께 잠기고, 최신으로 돌아오면 열린다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   const reason = '설정 삭제는 최신 회차에서 할 수 있어요.'
   await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
   await pickEpisode(1)
-  fireEvent.change(screen.getByRole('combobox', { name: '관계 주체' }), { target: { value: garam.item.id } })
-  expect(screen.getByRole<HTMLButtonElement>('button', { name: '선택한 인물 삭제' }).disabled).toBe(true)
-  expect(within(screen.getByRole('region', { name: '관계 편집' })).getByText(reason)).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '선택한 인물 삭제' })).toBeNull() // 관계도에는 삭제 진입점이 없다(편집 화면으로 일원화)
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   openCard('가람 인물')
   expect(editor().getByRole<HTMLButtonElement>('button', { name: '카드 삭제' }).disabled).toBe(true)
@@ -2472,26 +2453,6 @@ it('레일의 ⋮ 메뉴로 연 삭제 확인을 취소하면 그 항목의 더�
   await waitFor(() => expect(document.activeElement).toBe(confirm))
   fireEvent.click(within(confirm).getByRole('button', { name: '삭제 취소' }))
   await waitFor(() => expect(document.activeElement).toBe(rail().getByRole('button', { name: '항구 더보기' })))
-})
-
-it('관계도의 인물 삭제도 확인으로 초점이 가고, 지우면 되돌리기 버튼으로, 되돌리면 관계 주체 선택으로 초점이 간다', async () => {
-  const [garam, narae] = [person('가람'), person('나래')]
-  await show(friends([garam, narae], garam, narae))
-  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  const subject = () => screen.getByRole('combobox', { name: '관계 주체' })
-  fireEvent.change(subject(), { target: { value: garam.item.id } })
-  const remove = screen.getByRole('button', { name: '선택한 인물 삭제' })
-  remove.focus()
-  fireEvent.click(remove)
-  const confirm = () => screen.getByRole('region', { name: '인물 삭제 확인' })
-  await waitFor(() => expect(document.activeElement).toBe(confirm()))
-  fireEvent.click(within(confirm()).getByRole('button', { name: '삭제 취소' }))
-  await waitFor(() => expect(document.activeElement).toBe(remove))
-  fireEvent.click(remove)
-  fireEvent.click(within(confirm()).getByRole('button', { name: '인물과 연결 삭제' }))
-  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '인물 삭제 되돌리기' }))) // 누른 버튼이 사라진 자리에서 바로 되돌릴 수 있다
-  fireEvent.click(screen.getByRole('button', { name: '인물 삭제 되돌리기' }))
-  await waitFor(() => expect(document.activeElement).toBe(subject()))
 })
 
 it('관계 작성 패널을 취소하거나 적용해 닫으면 사라진 버튼 대신 관계 작성 버튼으로 초점이 돌아온다', async () => {
@@ -4124,4 +4085,73 @@ it('미리보기를 열면 그 미리보기 구획이 화면에 들어오게 가
   } finally {
     delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView
   }
+})
+
+// ── 관리 화면 critique 승인 항목: 히어로 data-view·돌아가기 버튼·좁은 화면 채팅 열기 버튼 자리·미리보기 탭으로 열기 ─────────────────
+it('관리 모드 헤더는 보기마다 data-view를 달아(개요가 아닌 탭은 히어로를 줄이는 CSS가 쓴다) 작성 모드 헤더에는 달지 않는다', async () => {
+  await showWorld()
+  const hero = () => document.querySelector('.world-manage-hero')!
+  expect(hero().getAttribute('data-view')).toBe('book') // 주소에 없으면 설정집
+  for (const [label, view] of [['개요', 'overview'], ['관계도', 'people'], ['시간선', 'timeline'], ['소설 연결', 'novel'], ['설정집', 'book']] as const) {
+    fireEvent.click(manageTabs().getByRole('button', { name: label }))
+    expect(hero().getAttribute('data-view'), label).toBe(view)
+  }
+  cleanup()
+  await wizard()
+  expect(document.querySelector('.world-manage-hero')!.hasAttribute('data-view')).toBe(false)
+})
+
+it('관리 모드 관계도에는 설정집으로 돌아가기 버튼이 없고(왼쪽 설정집 탭이 같은 일을 한다), 작성 모드의 관계 연결 단계에는 설정 카드로 돌아가기가 남는다', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people')
+  expect(screen.queryByRole('button', { name: '설정집으로 돌아가기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '설정 카드로 돌아가기' })).toBeNull()
+  cleanup()
+  await wizard()
+  fireEvent.click(within(screen.getByRole('navigation', { name: '세계관 작성 단계' })).getByRole('button', { name: '관계 연결 (선택)' }))
+  expect(screen.getByRole('button', { name: '설정 카드로 돌아가기' })).toBeTruthy()
+})
+
+it('좁은 화면(900px 이하)의 닫힌 AI 채팅 열기 버튼은 화면 오른쪽 아래에 떠 있지 않고 사이드바 탭 줄의 오른쪽 끝에 있으며, 넓은 화면은 그대로 본문 옆에 뜬다', async () => {
+  viewport(800)
+  await showWorld()
+  const open = screen.getByRole('button', { name: 'AI 채팅 열기' })
+  const row = document.querySelector('.world-menu-row')!
+  expect(row.contains(open)).toBe(true)
+  expect(open.closest('.world-chat-slot')).toBeTruthy()
+  expect(row.contains(manageTabs().getByRole('button', { name: '설정집' }))).toBe(true) // 탭과 같은 줄이다
+  expect(open.parentElement).not.toBe(document.querySelector('.episode-app')) // 문서 끝에 떠 있는 버튼이 아니다
+  fireEvent.click(open)
+  expect(chatDrawer()).toBeTruthy()
+  expect(row.querySelector('.studio-chat-toggle')).toBeNull() // 서랍이 열려 있는 동안 열기 버튼은 없다
+  fireEvent.keyDown(document, { key: 'Escape' })
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'AI 채팅 열기' }))) // 닫으면 같은 자리 버튼으로 초점이 돌아온다
+  cleanup()
+  viewport(1000)
+  await showWorld()
+  const wide = screen.getByRole('button', { name: 'AI 채팅 열기' })
+  expect(wide.parentElement).toBe(document.querySelector('.episode-app')) // 넓은 화면은 지금처럼 본문 옆에 뜬다(데스크톱 동작 그대로)
+  expect(wide.closest('.world-menu-row')).toBeNull()
+})
+
+it("게시판 미리보기의 수정하기로 들어오면 처음 만들어지는 편집기를 미리보기 탭으로 열고, 같은 카드의 다른 문서·다른 카드·새 설정은 쓰기 탭으로 연다", async () => {
+  await show([person('가람', '기존 내용'), person('나래', '다른 내용')])
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' }))
+  fireEvent.click(screen.getByRole('button', { name: '수정하기' }))
+  expect(fakeEditor.startTab.get('IDENTITY.md')).toBe('preview') // 원문 링크([글자](card:…))가 먼저 보이지 않게 미리보기로 시작
+  pickDoc('SOUL.md 정리 필요') // 비어 있는 문서는 정리 필요 표시가 붙는다
+  expect(fakeEditor.startTab.has('SOUL.md')).toBe(true)
+  expect(fakeEditor.startTab.get('SOUL.md')).toBeUndefined() // 문서를 옮기면 쓰는 중이니 쓰기 탭이다
+  pickDoc('IDENTITY.md') // 처음 문서로 돌아와도 이미 쓰기 시작한 편집 화면이라 미리보기 탭으로 다시 열지 않는다
+  expect(fakeEditor.startTab.get('IDENTITY.md')).toBeUndefined()
+  fireEvent.click(rail().getByRole('button', { name: '나래 인물' }))
+  expect(fakeEditor.startTab.get('IDENTITY.md')).toBeUndefined() // 레일에서 연 다른 카드
+  backToBoard()
+  addSetting('인물')
+  expect(fakeEditor.startTab.get('IDENTITY.md')).toBeUndefined() // 새 설정
+  backToBoard()
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' })) // 이미 열려 있던 미리보기를 접는다
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' }))
+  fireEvent.click(screen.getByRole('button', { name: '수정하기' }))
+  expect(fakeEditor.startTab.get('IDENTITY.md')).toBe('preview') // 다시 미리보기로 들어오면 다시 미리보기 탭이다
 })

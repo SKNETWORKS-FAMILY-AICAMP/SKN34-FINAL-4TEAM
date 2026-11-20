@@ -50,8 +50,7 @@ it('선택한 카드의 다른 페이지 이웃과 관계선을 보고 관계를
   expect(screen.getByRole('group', { name: '설정 100 인물 카드' })).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '전체 관계도로' }))
   expect(screen.queryByRole('group', { name: '설정 100 인물 카드' })).toBeNull()
-  fireEvent.change(screen.getByRole('searchbox', { name: '관계도 설정 검색' }), { target: { value: '설정 0' } })
-  fireEvent.click(within(screen.getByRole('group', { name: '관계도 중심 설정' })).getByRole('button', { name: '설정 0' }))
+  fireEvent.change(screen.getByRole('combobox', { name: '중심' }), { target: { value: '설정 0' } }) // 중심 칸에 이름을 쓰거나 목록에서 고른다
   expect(screen.getByRole('group', { name: '설정 100 인물 카드' })).toBeTruthy()
   expect(screen.getByRole('button', { name: /관계선 편집: 설정 0 · 설정 100 · 친구/ })).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: /관계선 편집: 설정 0 · 설정 100 · 친구/ }))
@@ -218,11 +217,7 @@ it('removes an incident relation with its person and restores both original IDs 
   fireEvent.change(await screen.findByRole('combobox', { name: '관계 주체' }), {
     target: { value: a.item.id },
   })
-  fireEvent.click(screen.getByRole('button', { name: '선택한 인물 삭제' }))
-  expect(screen.getByRole('region', { name: '인물 삭제 확인' }).textContent).toContain(
-    '관계·감정 1개',
-  )
-  fireEvent.click(screen.getByRole('button', { name: '인물과 연결 삭제' }))
+  act(() => { current!.deleteCard(a.item.id) }) // 편집 화면의 '카드 삭제'와 같은 경로다(관계도에는 삭제 버튼이 없다)
   expect(current!.editing!.settings.map((s) => s.item.id)).toEqual([b.item.id])
   expect(current!.saved!.settings).toHaveLength(3)
   fireEvent.click(screen.getByRole('button', { name: '인물 삭제 되돌리기' }))
@@ -358,20 +353,6 @@ it('preserves the unapplied relationship text when changing the target is cancel
  expect(window.confirm).toHaveBeenCalledOnce()
 })
 
-it('closes stale deletion confirmation safely after the person changes type',async()=>{
- const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
- const world=await useCase.create('세계',''),person=newSetting('people');person.item.title='가람';world.settings=[person];await useCase.save(world)
- let current:ReturnType<typeof useWorldStudioViewModel>|undefined
- function Harness(){const vm=useWorldStudioViewModel(useCase);current=vm;return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
- render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
- fireEvent.change(await screen.findByRole('combobox',{name:'관계 주체'}),{target:{value:person.item.id}})
- fireEvent.click(screen.getByRole('button',{name:'선택한 인물 삭제'}))
- expect(screen.getByRole('region',{name:'인물 삭제 확인'})).toBeTruthy()
- act(()=>current!.changeCardType(person.item.id,'location'))
- expect(screen.queryByRole('region',{name:'인물 삭제 확인'})).toBeNull()
- expect(current!.editing!.settings[0].item.id).toBe(person.item.id)
-})
-
 it('does not discard a new relation with a custom name but no description on apply',async()=>{
  const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
  const world=await useCase.create('세계',''),a=newSetting('people'),b=newSetting('people')
@@ -405,11 +386,12 @@ it('keeps the open pair draft when the same two people are chosen in the opposit
  expect(screen.getByRole<HTMLInputElement>('textbox',{name:'실제 관계 1'}).value).toBe('작성 중인 관계')
 })
 
-it('focuses connection cancel, cancels choosing with Escape and clears it when the source person is deleted',async()=>{
+it('focuses connection cancel, cancels choosing with Escape and clears it when the source person is deleted elsewhere',async()=>{
  const useCase=new WorldStudioUseCase(new InMemoryWorldStudioRepository())
  const world=await useCase.create('세계',''),a=newSetting('people'),b=newSetting('places')
  a.item.title='가람';b.item.title='항구';world.settings=[a,b];await useCase.save(world)
- function Harness(){const vm=useWorldStudioViewModel(useCase);return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
+ let current:ReturnType<typeof useWorldStudioViewModel>|undefined
+ function Harness(){const vm=useWorldStudioViewModel(useCase);current=vm;return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
  render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
  fireEvent.click(await screen.findByRole('button',{name:'가람 관계 연결'}))
  expect(document.activeElement).toBe(screen.getByRole('button',{name:'연결 취소'}))
@@ -418,8 +400,7 @@ it('focuses connection cancel, cancels choosing with Escape and clears it when t
  expect(screen.queryByRole('button',{name:'연결 취소'})).toBeNull()
  expect(document.activeElement).toBe(screen.getByRole('button',{name:'가람 관계 연결'}))
  fireEvent.click(screen.getByRole('button',{name:'가람 관계 연결'}))
- fireEvent.click(screen.getByRole('button',{name:'선택한 인물 삭제'}))
- fireEvent.click(screen.getByRole('button',{name:'인물과 연결 삭제'}))
+ act(()=>{current!.deleteCard(a.item.id)}) // 편집 화면의 카드 삭제로 연결을 시작한 카드가 지워졌다(관계도는 그동안 숨은 채 마운트돼 있다)
  expect(screen.queryByRole('button',{name:'연결 취소'})).toBeNull()
  expect(screen.getByRole('button',{name:'항구 관계 연결'})).toBeTruthy()
 })
@@ -717,7 +698,7 @@ it('관계도 카드 모서리에는 유형 점이 있어 인물과 장소를 �
   expect(dot('허브 인물 카드').getAttribute('aria-hidden')).toBe('true')
 })
 
-it('관계 주체·대상 선택지와 중심 설정 칩은 한 쪽에 200개까지라, 설정 60장에서도 쪽 이동 없이 51번째 이후 설정을 그 자리에서 고른다 (그래프 쪽은 그대로 50장씩)', async () => {
+it('관계 주체·대상 선택지와 중심 콤보 선택지는 한 쪽에 200개까지라, 설정 60장에서도 쪽 이동 없이 51번째 이후 설정을 그 자리에서 고른다 (그래프 쪽은 그대로 50장씩)', async () => {
   const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
   const world = await useCase.create('큰 세계', '')
   world.settings = Array.from({ length: 60 }, (_, i) => { const row = newSetting('people'); row.item.title = `설정 ${i}`; return row })
@@ -727,8 +708,9 @@ it('관계 주체·대상 선택지와 중심 설정 칩은 한 쪽에 200개까
   await screen.findByRole('group', { name: '설정 0 인물 카드' })
   expect(within(screen.getByRole('combobox', { name: '관계 주체' })).getByRole('option', { name: '설정 59' })).toBeTruthy()
   expect(within(screen.getByRole('combobox', { name: '관계 대상' })).getByRole('option', { name: '설정 59' })).toBeTruthy()
-  expect(within(screen.getByRole('group', { name: '관계도 중심 설정' })).getByRole('button', { name: '설정 59' })).toBeTruthy()
-  expect(screen.queryByRole('navigation', { name: '설정 목록 페이지 이동' })).toBeNull() // 중심 설정 칩
+  const center = screen.getByRole('combobox', { name: '중심' }), choices = [...document.getElementById(center.getAttribute('list')!)!.querySelectorAll('option')].map((o) => o.getAttribute('value'))
+  expect(choices).toContain('설정 59') // 중심 콤보의 선택지도 한 번에 200개까지다
+  expect(screen.queryByRole('navigation', { name: '설정 목록 페이지 이동' })).toBeNull() // 예전 중심 설정 칩의 쪽 이동은 없다
   expect(screen.queryAllByRole('navigation', { name: '페이지 이동' })).toHaveLength(0) // 이름 없는 쪽 이동: 관계 주체·대상 선택지
   expect(screen.getByRole('navigation', { name: '그래프 페이지 이동' })).toBeTruthy() // 그래프 쪽(50장씩)은 그대로
   expect(screen.queryByRole('group', { name: '설정 59 인물 카드' })).toBeNull()
@@ -743,4 +725,93 @@ it('관계 목록의 삭제 버튼은 빨간 위험 버튼이 아니라 중립 b
   fireEvent.click(remove[0])
   expect(confirm).toHaveBeenCalledOnce() // 확인 단계는 그대로
   expect(within(screen.getByRole('table', { name: '저장할 관계 목록' })).getAllByRole('button', { name: /삭제$/ })).toHaveLength(remove.length)
+})
+
+// ── 관계도 컨트롤(critique 승인): 한 줄 툴바·접힌 관계 추가 폼·중심 기준 관계 목록·삭제 버튼 정리·시트 도움말 ─────────────────
+it('그래프 위 한 줄 툴바: 중심 콤보에 지금 중심 카드가 보이고 이름을 쓰거나 목록에서 고르면 그 카드가 중심이 되며, 예전 검색 칸·중심 칩 줄·설정 목록 쪽 이동은 없다', async () => {
+  await openHub()
+  const center = screen.getByRole<HTMLInputElement>('combobox', { name: '중심' })
+  expect(center.value).toBe('허브')
+  const options = [...document.getElementById(center.getAttribute('list')!)!.querySelectorAll('option')].map((o) => o.getAttribute('value'))
+  expect(options).toContain('이웃 3')
+  expect(screen.queryByRole('searchbox', { name: '관계도 설정 검색' })).toBeNull()
+  expect(screen.queryByRole('group', { name: '관계도 중심 설정' })).toBeNull()
+  expect(screen.queryByRole('navigation', { name: '설정 목록 페이지 이동' })).toBeNull()
+  const toolbar = center.closest('.relationship-focus') as HTMLElement
+  expect(toolbar.compareDocumentPosition(document.querySelector('.relationship-cards-scroll')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 툴바는 그래프 위다
+  expect(within(toolbar).getByRole('navigation', { name: '이웃 페이지 이동' })).toBeTruthy()
+  expect(within(toolbar).getByRole('button', { name: '전체 관계도로' })).toBeTruthy()
+  fireEvent.change(center, { target: { value: '이웃 3' } })
+  expect(screen.getByText('이웃 3의 연결된 설정 1개를 보여요.')).toBeTruthy()
+  expect(cardCount()).toBe(2) // 이웃 3과 허브
+  fireEvent.blur(center)
+  expect(center.value).toBe('이웃 3') // 쓰던 글이 아니라 지금 중심 카드의 이름을 다시 보인다
+  fireEvent.change(center, { target: { value: '없는 이름' } })
+  expect(cardCount()).toBe(2) // 없는 이름은 중심을 바꾸지 않는다
+})
+
+it("'관계 추가' 폼은 접힌 details로 시작하고, 카드를 눌러 두 설정을 고르면 채워진 폼이 펼쳐지며 작성 시트를 닫으면 초점이 관계 작성 버튼으로 돌아온다", async () => {
+  vi.stubGlobal('PointerEvent', MouseEvent)
+  const { hub, others } = await openHub()
+  const form = document.querySelector<HTMLDetailsElement>('details.relationship-add')!
+  expect(form.open).toBe(false)
+  expect(form.querySelector('summary')!.textContent).toBe('관계 추가')
+  const press = (name: string) => { const card = screen.getByRole('group', { name }); fireEvent.pointerDown(card, { clientX: 20, clientY: 20 }); fireEvent.pointerUp(card, { clientX: 20, clientY: 20 }) }
+  press('허브 인물 카드')
+  press('이웃 0 인물 카드')
+  await screen.findByRole('dialog', { name: '허브 ↔ 이웃 0 관계' })
+  expect(form.open).toBe(true) // 고른 두 설정이 채워진 폼을 보인다
+  expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '관계 주체' }).value).toBe(hub.item.id)
+  expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '관계 대상' }).value).toBe(others[0].item.id)
+  fireEvent.keyDown(document, { key: 'Escape' })
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '관계 작성' })))
+})
+
+/** 허브가 가·나·다와 이어지고, 다는 허브에 닿지 않는 라와도 이어진 세계관의 관계 편집기(관계 4개, 허브의 관계 3개). */
+async function openScoped() {
+  const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+  const world = await useCase.create('범위 세계', '')
+  const [hub, a, b, c, d] = ['허브', '가', '나', '다', '라'].map((title) => { const row = newSetting('people'); row.item.title = title; return row })
+  let rows = [hub, a, b, c, d]
+  for (const other of [a, b, c]) rows = putRelation(rows, { subjectId: hub.item.id, targetId: other.item.id, predicate: 'friend_of', polarity: 'asserted' })
+  world.settings = putRelation(rows, { subjectId: c.item.id, targetId: d.item.id, predicate: 'friend_of', polarity: 'asserted' })
+  await useCase.save(world)
+  function Harness() { const vm = useWorldStudioViewModel(useCase); return vm.editing ? <WorldRelationshipEditor studio={vm} /> : null }
+  render(<MemoryRouter initialEntries={['/worldstudio/' + world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness />} /></Routes></MemoryRouter>)
+  await screen.findByRole('group', { name: '허브 인물 카드' })
+}
+const listRows = () => within(screen.getByRole('table', { name: '저장할 관계 목록' })).getAllByRole('row').length - 1
+
+it('중심 보기 동안 관계 목록은 기본으로 중심 카드의 관계만이고 전체 N개 보기로 전체를 보며, 중심을 바꾸면 다시 그 카드의 관계만이고 전체 보기에서는 전체다', async () => {
+  await openScoped()
+  expect(listRows()).toBe(3) // 허브의 관계 3개(다와 라의 관계는 허브에 닿지 않는다)
+  expect(screen.getByRole('region', { name: '관계 목록' }).textContent).toContain('허브의 관계 3개')
+  fireEvent.click(screen.getByRole('button', { name: '전체 4개 보기' })) // 숫자는 실제 관계 수다
+  expect(listRows()).toBe(4)
+  expect(screen.getByRole('button', { name: '허브의 관계만 3개 보기' })).toBeTruthy()
+  fireEvent.change(screen.getByRole('combobox', { name: '중심' }), { target: { value: '다' } })
+  expect(listRows()).toBe(2) // 다의 관계(허브·라)만
+  expect(screen.getByRole('button', { name: '전체 4개 보기' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '전체 관계도로' }))
+  expect(listRows()).toBe(4) // 전체 보기에서는 전체
+  expect(screen.queryByRole('button', { name: /개 보기$/ })).toBeNull() // 전체 보기에는 범위 버튼이 없다
+})
+
+it('관계도에는 인물 삭제 버튼이 없다: 삭제는 편집 화면의 카드 삭제로 일원화한다', async () => {
+  const { hub } = await openHub()
+  fireEvent.change(screen.getByRole('combobox', { name: '관계 주체' }), { target: { value: hub.item.id } })
+  expect(screen.queryByRole('button', { name: '선택한 인물 삭제' })).toBeNull()
+  expect(screen.queryByRole('region', { name: '인물 삭제 확인' })).toBeNull()
+})
+
+it('시트의 N화부터 도움말은 행마다 되풀이하지 않고 시트 위 한 문단이며, 모든 시작 회차 칸의 설명이 그 문단을 가리킨다', async () => {
+  await openEpisodes({ from: 2 })
+  fireEvent.click(relationTable().getByRole('button', { name: '가람 · 친구 · 나래 편집' }))
+  const dialog = await screen.findByRole('dialog')
+  const help = within(dialog).getAllByText(/기록으로 저장해요/)
+  expect(help).toHaveLength(1)
+  const fields = within(dialog).getAllByRole('textbox', { name: /시작 회차/ })
+  expect(fields.length).toBeGreaterThanOrEqual(1)
+  for (const field of fields) expect(field.getAttribute('aria-describedby')!.split(' ')).toContain(help[0].id)
+  expect(help[0].compareDocumentPosition(dialog.querySelector('.relationship-group')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 첫 행 묶음보다 위
 })

@@ -166,9 +166,10 @@ describe('설정 카드 썸네일(#401)', () => {
 })
 
 describe('관계도 무대 안 묶음과 좁은 화면 적용 바', () => {
-  it('그래프 아래 검색·중심 설정·페이지·안내 묶음은 툴바와 같은 안쪽 여백(16px, 좁은 화면 12px)에 맞추고 칩은 한 줄 가로 스크롤이며, 어두운 무대 위 안내 글은 고정 보조색이다', () => {
-    expect(rule(map, '.relationship-focus')).toMatch(/display:\s*grid;\s*gap:\s*8px;\s*padding:\s*0 16px 12px/)
-    expect(rule(map, '.relationship-focus [role=group]')).toMatch(/display:\s*flex[^}]*overflow-x:\s*auto/)
+  it('그래프 위 한 줄 툴바(중심 콤보·이웃 쪽 이동·전체 관계도로)는 줄바꿈하는 flex이고 툴바와 같은 안쪽 여백(16px, 좁은 화면 12px)이며, 안내 글은 늘 한 줄을 쓰고, 어두운 무대 위 글은 고정 보조색이다', () => {
+    expect(rule(map, '.relationship-focus')).toMatch(/display:\s*flex;\s*flex-wrap:\s*wrap;\s*align-items:\s*center;\s*gap:\s*8px 12px;\s*padding:\s*0 16px 10px/)
+    expect(rule(map, '.relationship-focus>p')).toMatch(/flex:\s*1 1 100%/)
+    expect(map).not.toContain('.relationship-focus [role=group]') // 중심 설정 칩 줄은 없다(콤보 하나로 묶었다)
     expect(rule(map, '.relationship-focus :is(.muted,.page-controls)')).toMatch(/color:\s*var\(--fixed-sub\)/) // --sub(라이트 #5F6370)는 무대 위 대비가 2.5~3.1:1이다
     expect(block(map, '@media(max-width:600px)')).toMatch(/\.relationship-focus\{padding-inline:12px\}/) // 툴바·안내·필터·범례와 같은 왼쪽 선
   })
@@ -236,5 +237,17 @@ describe('관계 작성 시트와 관계 목록 표(R5)', () => {
 
   it('관계도 카드의 유형 점은 8px 원이다', () => {
     expect(rule(map, '.relationship-kind')).toMatch(/width:8px;\s*height:8px;[^}]*border-radius:50%/)
+  })
+})
+
+describe('관계도 컨트롤 정리(critique 승인)', () => {
+  it("'관계 추가'는 접힌 details라 요약 줄이 44px이고 안쪽 묶음이 간격을 정하며(details를 grid로 두지 않는다), 중심 콤보는 .episode-app 틀 규칙을 이기도록 .episode-app 아래에서 정한다", () => {
+    expect(rule(map, '.relationship-add>summary')).toMatch(/min-height:44px/)
+    expect(rule(map, '.relationship-add-body')).toMatch(/display:grid;gap:12px/)
+    expect(map).not.toMatch(/\.relationship-add,\.relationship-list\{display:grid/)
+    expect(rule(map, '.episode-app .relationship-center')).toMatch(/display:inline-flex/)
+    const input = rule(map, '.episode-app .relationship-center input:not([type=checkbox]):not([type=radio])')
+    expect(input).toMatch(/margin-top:0/)
+    expect(input).not.toMatch(/font/) // 터치 기기의 입력 16px(확대 방지) 보정이 그대로 남는다
   })
 })

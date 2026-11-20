@@ -92,6 +92,7 @@ function RowPreview({ id, row, setting, images, linked, links, onEdit, onClose }
 
 /**
  * 설정집 게시판(관리 모드의 설정집 보기, 작성 모드의 설정 카드 단계). 공개 설정집과 같은 게시판으로, 왼쪽 분류 메뉴 + 오른쪽 검색·정렬·결과 수·`다른 세계관에서 가져오기`·`+ 새 설정`을 둔 도구줄 아래 표(선택·번호·분류·제목[연결 수]·요약·공개·연결)다.
+ * `onPreviewEdit`은 미리보기의 `수정하기`로 편집 화면에 들어갈 때 그 카드 id를 알려, 편집기가 미리보기 탭으로 시작하게 한다(레일·새 설정 같은 다른 입구는 알리지 않는다).
  * 내용 편집은 여기서 하지 않는다: 행(제목)을 누르면 그 줄 아래에 미리보기가 열리고(한 번에 하나, 편집 화면에 다녀와도 열린 채), 미리보기의 `수정하기`나 새 설정을 만들면 집필실 같은 편집 화면(`WorldCardStudio`, 주소 `?card=`)이 열리고, 삭제도 거기서 한다.
  * 편집 화면에서 돌아오면 그 카드의 행 제목에 초점이 가고, 미리보기를 닫으면 제목으로 초점이 돌아온다.
  * 설정 카드는 기본 작가 전용이고(DEC-53) 공개 설정만은 게시판에서 한 번에 바꾼다: 행을 골라 `선택 공개`·`선택 비공개`, 또는 `전체 공개`. 소설이 연결된 세계관이면 회차를 한 번 입력받아(기본 1화) 고른 카드 모두에 같은 'N화부터 공개'를 정하고,
@@ -100,7 +101,7 @@ function RowPreview({ id, row, setting, images, linked, links, onEdit, onClose }
  * `다른 세계관에서 가져오기`는 가져오기 시트(`WorldImportSheet`)를 연다(닫히면 시트가 초점을 이 버튼으로 돌려준다).
  * 카드가 하나도 없으면 안내는 표 안 한 줄뿐이다. 카드가 아닌 기존 항목(관계·메모·분류 확인)은 표 아래 접힌 목록에서 열 수 있다.
  */
-export function WorldCardBoard({ vm }: { vm: VM }) {
+export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: (id: string) => void }) {
   const world = vm.editing!
   const board = useCardBoard(vm)
   const search = useRef<HTMLInputElement>(null)
@@ -241,7 +242,7 @@ export function WorldCardBoard({ vm }: { vm: VM }) {
                     return (
                       <Fragment key={row.cardId}>
                         <Row row={row} setting={byId.get(row.cardId)} status={board.statuses.get(row.cardId)} images={vm.cardImages} picked={selected.has(row.cardId)} linked={linked} previewing={preview === row.cardId} previewId={previewId} onPick={pick} onOpen={vm.editCard} onToggle={toggle} />
-                        {preview === row.cardId && <RowPreview id={previewId} row={row} setting={byId.get(row.cardId)} images={vm.cardImages} linked={linked} links={settingLinks(world.settings, row.cardId).slice(0, 5)} onEdit={vm.editCard} onClose={() => closePreview(row.cardId)} />}
+                        {preview === row.cardId && <RowPreview id={previewId} row={row} setting={byId.get(row.cardId)} images={vm.cardImages} linked={linked} links={settingLinks(world.settings, row.cardId).slice(0, 5)} onEdit={(id) => { onPreviewEdit?.(id); vm.editCard(id) }} onClose={() => closePreview(row.cardId)} />}
                       </Fragment>
                     )
                   })}

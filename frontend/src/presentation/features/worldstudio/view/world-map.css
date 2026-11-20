@@ -16,12 +16,14 @@
 .relationship-filter{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
 .relationship-filter .btn{font-weight:600}
 .relationship-stage .relationship-filter .btn[aria-pressed=true]{background:var(--rc-sel);border-color:var(--rc-accent)}
-/* 그래프 아래 검색·중심 설정 칩·페이지 이동·안내 묶음: 무대에는 안쪽 여백이 없어 이 글자들이 둥근 모서리에 붙었으므로 툴바와 같은 16px(좁은 화면 12px)에 맞춘다.
-   칩은 줄바꿈 대신 한 줄 가로 스크롤이다. 스크롤 상자는 안쪽을 잘라 초점 고리(2px + 간격 3px)가 잘리므로 안쪽 여백 5px을 주고 같은 값의 음수 바깥 여백으로 자리를 되돌린다.
-   안내·페이지 글자는 전역 .muted(--sub, 라이트 #5F6370)면 어두운 무대 위 대비가 2.5~3.1:1이라 고정 면의 보조 글자색(--fixed-sub)을 쓴다. 페이지 이동 바의 위 여백은 이 묶음의 gap이 대신하고, 버튼은 그리드 칸을 채우지 않고 제 폭이다. */
-.relationship-focus{display:grid;gap:8px;padding:0 16px 12px}
-.relationship-focus [role=group]{display:flex;gap:6px;overflow-x:auto;padding:5px;margin:-5px}
-.relationship-focus :is(.muted,.page-controls){color:var(--fixed-sub)}.relationship-focus .page-controls{margin-top:0}.relationship-focus>.btn{justify-self:start}
+/* 그래프 위 한 줄 툴바(critique 승인): `중심: [검색 콤보] · 이웃 쪽 이동 · 전체 관계도로`. 예전의 그래프 아래 검색·중심 설정 칩 줄·설정 목록 쪽 이동은 이 줄 하나로 묶었다. 무대에는 안쪽 여백이 없어 글자가 둥근 모서리에 붙으므로 툴바와 같은 16px(좁은 화면 12px)에 맞추고, 좁으면 줄바꿈한다(안내 글은 늘 한 줄을 다 쓴다).
+   안내·페이지 글자는 전역 .muted(--sub, 라이트 #5F6370)면 어두운 무대 위 대비가 2.5~3.1:1이라 고정 면의 보조 글자색(--fixed-sub)을 쓴다. 페이지 이동 바의 위 여백은 이 줄의 gap이 대신한다. */
+.relationship-focus{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:0 16px 10px}
+.relationship-focus>p{flex:1 1 100%;margin:0}
+.relationship-focus :is(.muted,.page-controls){color:var(--fixed-sub)}.relationship-focus .page-controls{margin-top:0}
+/* 중심 카드 검색 콤보(<input list>): .episode-app의 라벨(block)·입력(폭 100%·위 여백) 규칙을 이기려고 .episode-app 아래로 정하고 입력은 :not()까지 베낀다. font는 정하지 않아 터치 기기의 입력 16px 보정이 남는다. */
+.episode-app .relationship-center{display:inline-flex;align-items:center;gap:8px;margin:0;color:var(--fixed-sub);font-size:13px;font-weight:650}
+.episode-app .relationship-center input:not([type=checkbox]):not([type=radio]){width:min(240px,60vw);margin-top:0;padding:8px 12px}
 .episode-app .relationship-stage :focus-visible{outline-color:var(--fixed-pri)}
 .relationship-stage .relationship-cards-scroll{background:none;scrollbar-color:color-mix(in srgb,var(--fixed-ink) 30%,transparent) transparent}
 .relationship-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding:10px 16px 12px;border-top:1px solid var(--stage-tint);list-style:none;color:var(--fixed-sub);font-size:11.5px}.relationship-legend li{display:inline-flex;align-items:center;gap:6px}.relationship-key.edge{color:var(--edge)}.relationship-key.emotion{color:var(--edge-emotion)}
@@ -46,7 +48,10 @@
 .relationship-service-layout{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start}
 .relationship-service-form{min-width:0;max-height:760px;overflow:auto;padding:20px;border:1px solid var(--line2);border-radius:16px;background:var(--surface)}
 .relationship-service-form>*+*{margin-top:24px;padding-top:24px;border-top:1px solid var(--line2)}.relationship-service-form h4{margin:0;font-size:15px}
-.relationship-add,.relationship-list{display:grid;gap:12px;align-content:start}.relationship-pair{min-width:0}.relationship-add .field{margin-bottom:0}.relationship-actions{display:flex;flex-wrap:wrap;gap:8px}
+.relationship-list{display:grid;gap:12px;align-content:start}
+/* '관계 추가' 폼은 접힌 <details>다(critique 승인): 그래프에서 두 카드를 고르는 길이 기본이라 처음에는 닫혀 있고, 고른 설정이 폼에 채워지면 펼쳐진다. details 자체는 grid로 두지 않고(기본 펼침 표시를 지킨다) 안쪽 묶음이 간격을 정한다. */
+.relationship-add>summary{display:flex;align-items:center;min-height:44px;font-size:15px;font-weight:700;cursor:pointer}
+.relationship-add-body{display:grid;gap:12px;align-content:start;padding-top:12px}.relationship-pair{min-width:0}.relationship-add .field{margin-bottom:0}.relationship-actions{display:flex;flex-wrap:wrap;gap:8px}
 .relationship-table{width:100%;table-layout:fixed}.relationship-table :is(th,td){padding:8px 6px;text-align:left;vertical-align:middle;font-size:14px;overflow-wrap:anywhere}.relationship-table th{font-size:12px}
 /* 칸 폭(R5): 주체·대상은 이름 길이만큼, 시작 회차·작업은 고정, 관계(자유 문구)가 남은 폭을 쓴다. 표는 전역 .adm-scroll(가로 스크롤, 표 최소 600px) 안이라 좁은 편집기·폰에서도 한 단어씩 꺾이지 않고 가로로 민다. */
 .relationship-table th.col-subject{width:18%}.relationship-table th.col-target{width:20%}.relationship-table th.col-from{width:84px}

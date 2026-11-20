@@ -12,6 +12,14 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 650px 이하: 히어로가 1열이 되면 표지(공용 .ep-hero-cover는 220px, 3:4)가 첫 화면을 다 차지해 고른 탭의 내용이 화면 밖이다. 표지는 개요 탭에서 크게 보고 바꾸므로 헤더의 표지는 72px로 줄여 제목 옆에 둔다:
    .ep-hero-main을 풀어(display:contents) 제목 줄만 표지 옆 열에 두고 칩·소개·버튼은 두 열을 가로지른다. 이 화면의 표지만 줄이고 /content 작품 관리 표지는 그대로 둔다. */
 @media(max-width:650px){.episode-app .world-manage-hero.ep-hero{grid-template-columns:72px minmax(0,1fr);gap:12px 16px}.episode-app .world-manage-hero .ep-hero-cover{max-width:none}.episode-app .world-manage-hero .ep-hero-main{display:contents}.episode-app .world-manage-hero .ep-hero-main>:not(.ep-title-row){grid-column:1/-1}}
+/* 개요가 아닌 탭(critique 승인): 설정집·관계도·시간선·소설 연결은 탭 내용이 주인공이라 히어로를 72px 표지 썸네일 + 제목·칩 한 덩어리로 줄이고 소개는 숨긴다(소개 전문은 개요 탭에 있다). 개요 탭은 지금 히어로 그대로이고, 작성 모드(마법사)와 /content 작품 관리 히어로는 data-view가 없어 그대로다.
+   위 650px 이하 규칙(.ep-hero-main을 풀어 칩·소개를 두 열에 걸치게 한다)보다 특이도가 높아 같은 한 덩어리 배치로 덮는다. 공개 목록 안내·공개 설정 경고·공개 화면 링크는 있을 때만 그 아래에 그대로 보인다. */
+.episode-app .world-manage-hero[data-view]:not([data-view=overview]){grid-template-columns:72px minmax(0,1fr);gap:0 16px;align-items:center}
+.episode-app .world-manage-hero[data-view]:not([data-view=overview]) .ep-hero-cover{max-width:none}
+.episode-app .world-manage-hero[data-view]:not([data-view=overview]) .ep-hero-main{display:block}
+.episode-app .world-manage-hero[data-view]:not([data-view=overview]) h1{font-size:24px}
+.episode-app .world-manage-hero[data-view]:not([data-view=overview]) .ep-chips{margin-top:8px}
+.episode-app .world-manage-hero[data-view]:not([data-view=overview]) .sum{display:none}
 /* 공개 설정(관리 모드 헤더·작성 모드 기본 정보 단계): 공개 범위 토글과 장르 선택이 한 줄, 안내와 공개 화면 링크는 그 아래. 라벨 display는 .episode-app label이 정하므로 다시 정한다. */
 .episode-app .world-publish{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;margin:16px 0 12px;padding:0;border:0;min-width:0}
 .episode-app .world-publish .field{display:flex;margin:0}.world-publish .seg{width:200px;max-width:100%}.episode-app .world-publish select{min-width:150px}.world-publish>p{flex:1 1 100%;margin:0}
@@ -38,6 +46,11 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-menu-body{display:grid;gap:12px}
 @media(min-width:901px){.world-content.ep-manage[data-menu=collapsed]{grid-template-columns:44px minmax(0,1fr);column-gap:20px}.world-content.ep-manage[data-menu=collapsed] .ep-menu{padding-right:0;border-right:0}}
 @media(max-width:900px){.world-menu-toggle{display:none}.world-writing .world-menu-body[hidden]{display:grid!important}}
+/* 보기 메뉴 줄(.world-menu-row): 900px 이하에서 닫힌 AI 채팅 열기 버튼(WorldChat이 slot으로 옮겨 그린다, critique 승인)을 탭 줄의 오른쪽 끝에 둔다. 넓은 화면에서는 줄을 풀어(display:contents) 메뉴가 예전처럼 .world-menu-body의 직계 자식으로 놓이고, 슬롯은 비어 있어 숨는다.
+   전역 .studio-chat-toggle(화면 오른쪽 아래 고정)은 이 줄 안에서만 제자리 버튼이 된다. 집필실의 같은 공용 버튼은 이 슬롯이 없어 그대로다. */
+.world-menu-row{display:contents}
+.world-chat-slot:empty{display:none}
+@media(max-width:900px){.world-menu-row{display:flex;align-items:center;gap:8px}.world-menu-row nav{flex:1 1 auto;min-width:0}.world-chat-slot .studio-chat-toggle{position:static;flex:none;box-shadow:none;white-space:nowrap}}
 
 /* AI 채팅: 집필실과 같은 오른쪽 레일(.studio-chat은 전역 스타일, 안쪽은 shared/chat). 본문(main) | 채팅 2열(채팅 350px 고정)이고 채팅은 상단바(65px) 아래에 붙어(sticky) 화면 높이를 쓴다:
    머리 / 메시지(스크롤) / 입력(바닥). 배경은 페이지와 같고 왼쪽 선으로만 구분하며, 입력 카드·추천 칩·말풍선(--chat-card)만 한 단계 밝은 면으로 도드라진다. 왼쪽 사이드바·헤더는 본문(main) 열 안이다. 전송이 잠긴(준비 중) 동안은 1200px 이하에서 닫힌 채로 시작하고(WorldStudioPage), 좁은 화면(집필실과 같은 900px 이하)에서 열면 화면을 덮는 오른쪽 서랍이다. */
@@ -225,7 +238,7 @@ a.world-card-link{text-decoration:none}
 /* 탭: 전역 `.world-rail-kinds button`(한 줄 알약)보다 구체적인 선택자로 라벨 아래 줄에 보조 글씨를 둔다. 왼쪽 여백은 간격 대신 margin이라 칸이 비어도 오른쪽이 늘지 않는다. */
 .world-doc-list .world-doc-tab{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;align-items:baseline;min-height:44px;padding:6px 14px;border-radius:14px;text-align:left}
 .world-doc-tab .world-doc-name{grid-column:1/-1;font-size:13.5px}
-.world-doc-file,.world-doc-scope{font-size:11.5px;font-weight:600}.world-doc-scope,.world-doc-tab .world-doc-flag{margin-left:6px}
+.world-doc-file,.world-doc-scope{font-size:11.5px;font-weight:600}.world-doc-tab .world-doc-flag{margin-left:6px}
 .world-doc-list .world-doc-tab[data-current=true]{border-color:var(--tacc);background:var(--pri-soft);color:var(--pri-ink)}
 .world-doc-memory{display:grid;gap:10px;padding:12px;border:1px solid var(--tline);border-radius:12px;background:var(--tcard,var(--surface))}.world-doc-memory>p{margin:0;line-height:1.6}
 .world-doc-flag{color:var(--acc-ink);font-size:12px}.world-doc-flag[data-flag=over]{color:var(--danger)}
