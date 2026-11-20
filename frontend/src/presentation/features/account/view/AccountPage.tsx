@@ -8,7 +8,6 @@ import { kstDateTime, kstPeriod } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { RequireRole } from '../../../shared/session/RequireRole'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
-import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useAccountViewModel } from '../viewmodel/useAccountViewModel'
 import { Devices } from './Devices'
@@ -132,7 +131,7 @@ function Profile({ vm }: { vm: VM }) {
         e.preventDefault()
         resume.current = document.activeElement
         void vm.saveProfile(nick, email).then((ok) => { if (ok) { setNick(nick.trim()); setEmail(email.trim()) } })
-      }}><div className="mehead"><span className="meav big">{vm.user.nick.slice(0, 1)}</span><div><b>{vm.user.nick}</b>{vm.user.joined && <small>가입일 {vm.user.joined}</small>}</div><div style={{ marginLeft: 'auto' }}><ThemeButton className="btn" /></div></div>
+      }}><div className="mehead"><span className="meav big">{vm.user.nick.slice(0, 1)}</span><div><b>{vm.user.nick}</b>{vm.user.joined && <small>가입일 {vm.user.joined}</small>}</div></div>
         <p className="small muted">모든 항목은 필수예요.</p>
         <label className="field">닉네임<input className="inp" id="pfn" autoComplete="nickname" required disabled={vm.saving} value={nick} maxLength={12} aria-invalid={!!vm.profileErrors.nick} aria-describedby={vm.profileErrors.nick ? 'pfn-error' : undefined} onChange={(e) => setNick(e.target.value)} /></label>
         {vm.profileErrors.nick && <p id="pfn-error" role="alert">{vm.profileErrors.nick}</p>}

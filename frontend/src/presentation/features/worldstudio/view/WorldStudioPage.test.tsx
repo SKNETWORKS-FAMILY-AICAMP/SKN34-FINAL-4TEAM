@@ -277,15 +277,11 @@ it('관리 보기 전환 줄이 한 줄로 있고(설정집·관계도·시간�
   expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
 })
 
-it('테마 전환은 떠 있는 버튼이 아니라 설정집 화면의 저장 영역 옆(탭 줄 오른쪽 끝)에 기존 작은 버튼 한 개로 있다', async () => {
+it('테마 전환은 설정집 화면 안(저장 영역 옆)에 따로 두지 않고 상단바(Gnb)의 버튼 한 개가 맡는다', async () => {
   await showWorld()
-  const theme = within(screen.getByRole('main')).getByRole('button', { name: '다크 모드로' }) // main 안에 한 개: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않고, 상단바(Gnb)의 테마 버튼은 main 밖이다
-  const end = saveBar().getByRole('button', { name: '세계관 저장' }).closest('.world-tabs-end')!
-  expect(end.lastElementChild).toBe(theme) // 저장 영역 바로 옆, 줄의 오른쪽 끝
-  expect(saveBar().queryByRole('button', { name: /모드로/ })).toBeNull() // 저장 상태 묶음 안이 아니라 그 옆
-  expect(theme.className).toBe('btn sm') // 새 스타일 없이 기존 작은 버튼: 저장 버튼(btn pri sm)보다 약하다
-  fireEvent.click(theme)
-  expect(within(screen.getByRole('main')).getByRole('button', { name: '라이트 모드로' })).toBeTruthy()
+  expect(within(screen.getByRole('main')).queryByRole('button', { name: /모드로/ })).toBeNull()
+  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 한 개: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않는다
+  expect(theme.closest('.gnb')).toBeTruthy()
 })
 
 it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 전환 버튼을 한 개 두고, 가려진 설정집 화면의 버튼은 중복으로 보이지 않는다', async () => {
@@ -299,13 +295,10 @@ it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 
   expect(theme.className).toBe('btn sm')
 })
 
-it('작성 마법사에는 탭 줄·저장 영역이 없어 테마 전환 버튼이 헤더의 행동 줄(집필 메모 추가·관리 화면으로 옆)에 한 개 있다', async () => {
+it('작성 마법사도 헤더의 행동 줄(집필 메모 추가·관리 화면으로 옆)에 테마 버튼을 따로 두지 않고 상단바(Gnb)의 버튼 한 개가 맡는다', async () => {
   await wizard()
-  const theme = within(screen.getByRole('main')).getByRole('button', { name: '다크 모드로' }) // 상단바(Gnb)의 테마 버튼은 main 밖이다
-  const acts = within(theme.closest('.acts') as HTMLElement)
-  expect(acts.getByRole('button', { name: '집필 메모 추가' })).toBeTruthy()
-  expect(acts.getByRole('button', { name: '관리 화면으로' })).toBeTruthy()
-  expect(theme.className).toBe('btn sm')
+  expect(within(screen.getByRole('main')).queryByRole('button', { name: /모드로/ })).toBeNull()
+  expect(screen.getByRole('button', { name: '다크 모드로' }).closest('.gnb')).toBeTruthy() // 한 개
 })
 
 it('새 세계관 만들기(/worldstudio)에는 테마 버튼을 따로 두지 않는다: 그 화면은 상단바(Gnb)의 테마 버튼이 맡는다', async () => {

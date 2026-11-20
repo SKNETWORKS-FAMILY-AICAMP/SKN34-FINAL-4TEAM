@@ -13,7 +13,6 @@ import { BackChev } from '../../../shared/icons'
 import { useScreenId } from '../../../shared/screenIds'
 import { Sheet } from '../../../shared/Sheet'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
-import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { genreLabel } from '../../../shared/worldGenres'
@@ -50,8 +49,8 @@ const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relation
  * - **편집 화면**(`?card=<id>`): 설정 카드를 열면 집필실과 같은 3단 화면(`WorldCardStudio`: 카드 목록·버전 그래프 레일 / 편집기 / AI 채팅)이 이 화면을 대신하고, `← 설정집`·뒤로가기로 돌아온다.
  * 설정집 화면은 편집 화면 뒤에서 지우지 않고 숨겨 두어 필터·적용하지 않은 관계 입력·후보 검토 상태를 지킨다. 주소 `/worldstudio`(세계관 없음)에서만 새 세계관 만들기 화면을 그린다.
  * 소설 작성은 실행 모드의 작품 생성 화면에서 시작한다.
- * 세계관이 열린 화면(주소에 id가 있는 경로)에는 떠 있는 테마 버튼(GlobalChrome)이 없다(집필실과 같은 규칙, 열린 채팅의 전송 버튼을 덮지 않게). 테마 전환은 `ThemeButton`이 맡아
- * 설정집 화면은 저장 영역 옆(보기 전환 줄 오른쪽 끝), 작성 모드는 헤더 행동 줄 끝, 편집 화면은 상단 바에 있고, 세계관 없는 만들기 화면은 떠 있는 버튼이 그대로다.
+ * 세계관이 열린 화면(주소에 id가 있는 경로)은 떠 있는 테마 버튼(GlobalChrome)을 그리지 않는다(집필실과 같은 규칙, 열린 채팅의 전송 버튼을 덮지 않게).
+ * 공용 상단바(Gnb)가 있는 설정집 화면·작성 모드·세계관 없는 만들기 화면은 테마 버튼을 화면 안에 따로 두지 않고 상단바의 것 하나가 맡으며(세계관 없는 만들기 화면의 떠 있는 버튼은 CSS가 숨긴다), 상단바가 없는 편집 화면은 `WorldCardStudio` 상단 바에 있다.
  */
 export function WorldStudioPage() {
   useScreenId('W01')
@@ -169,7 +168,6 @@ function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: Stud
           <WorldNovelButton vm={vm} />
           {vm.publicHref && <Go to={vm.publicHref} className="btn sm">공개 화면 보기</Go>}
           {!manage && <button type="button" className="btn sm" onClick={vm.leaveWizard}>관리 화면으로</button>}
-          {!manage && <ThemeButton className="btn sm" />}
         </div>
       </div>
     </section>
@@ -218,7 +216,6 @@ function WorldEditor({ vm, world, revisions, openVersions }: { vm: VM; world: St
             <NoteButton vm={vm} />
             <VersionsButton vm={vm} supported={revisions.supported} open={openVersions} />
             {!vm.selected && <WorldSaveBar vm={vm} />}
-            <ThemeButton className="btn sm" />
           </div>
         </div>
       )}
