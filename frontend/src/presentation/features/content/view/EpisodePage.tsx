@@ -6,7 +6,6 @@ import '../../../shared/episode.css'
 import { CreateWork } from './CreateWork'
 import { WorkManagement } from './WorkManagement'
 import { Go } from '../../../shared/Go'
-import { toast } from '../../../shared/events'
 import { MyCommentsReports } from '../../library/view/MyCommentsReports'
 import { BackChev } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
@@ -80,10 +79,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                 work={w}
                 useCase={useCase}
                 onForked={(id) => navigate(`/content?work=${encodeURIComponent(id)}`)}
-                onDeleted={() => {
-                  navigate('/lib?tab=write')
-                  toast(`「${w.title}」 작품을 삭제했어요.`)
-                }}
+                onDeleted={() => navigate('/lib?tab=write', { state: { deletedWorkTitle: w.title } })}
               />
             )
             : !vm.error && (

@@ -153,6 +153,7 @@ it('포크 폼은 main 하나와 h1 하나를 갖고 탭 제목은 포크 만들
   const h1 = await screen.findByRole('heading', { name: '「구운몽」 포크', level: 1 })
   expect(expectOneMain().contains(h1)).toBe(true)
   expect(h1.closest('.calm')?.querySelector('.band')).toBeNull()
+  expect(within(expectOneMain()).getAllByRole('heading', { level: 2 }).map((heading) => heading.tagName)).toEqual(['H2', 'H2', 'H2'])
   expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
   await waitFor(() => expect(document.title).toBe('포크 만들기 · STORYFORK'))
 })

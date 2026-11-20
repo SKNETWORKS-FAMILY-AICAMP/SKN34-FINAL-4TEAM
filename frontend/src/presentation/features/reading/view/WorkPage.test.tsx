@@ -37,6 +37,21 @@ it.each([
   } finally { works[index] = original }
 })
 
+it('읽기 버튼을 해시태그와 긴 작품 소개 앞에 둔다', async () => {
+  const work = appContainer.resolve('mockDb').works.find((candidate) => candidate.id === 'postman')!
+  const saved = work.summary
+  const summary = '도시를 가로지르는 우편배달부의 여정. '.repeat(40).trim()
+  work.summary = summary
+  try {
+    renderApp('/work/postman')
+    const read = await screen.findByRole('link', { name: '읽기 시작' })
+    const introduction = screen.getByText(summary, { selector: '.whero .sum' })
+    const firstTag = document.querySelector('.whero .hashes a')!
+    expect(read.compareDocumentPosition(firstTag) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(read.compareDocumentPosition(introduction) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  } finally { work.summary = saved }
+})
+
 const expectOneMain = () => {
   const mains = document.querySelectorAll('main')
   expect(mains).toHaveLength(1)

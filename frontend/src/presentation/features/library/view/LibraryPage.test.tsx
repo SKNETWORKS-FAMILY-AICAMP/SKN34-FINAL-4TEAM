@@ -6,15 +6,17 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import '../../../../test/scrollToSpy'
+import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { LibraryPage } from './LibraryPage'
+import * as events from '../../../shared/events'
 
 vi.mock('./ServerWritingList', () => ({ ServerWritingList: () => null }))
 vi.mock('./MyWorlds', () => ({ MyWorlds: () => null }))
 
 afterEach(() => { cleanup(); document.title = 'STORYFORK' })
 
-const renderLibrary = (path = '/lib') => render(
+const renderLibrary = (path: string | { pathname: string; search: string; state: { deletedWorkTitle: string } } = '/lib') => render(
   <Provider store={createAppStore({ role: 'user' })}>
     <MemoryRouter initialEntries={[path]}><LibraryPage /></MemoryRouter>
   </Provider>,
@@ -30,6 +32,37 @@ it('서재 탭은 현재 탭을 aria-current로 알리고 탭을 옮기면 따�
   await screen.findByRole('heading', { name: '새로 시작하기' })
   expect(tab('내가 쓰는 소설').getAttribute('aria-current')).toBe('page')
   expect(tab('읽는 중').hasAttribute('aria-current')).toBe(false)
+})
+
+it('삭제 완료는 내가 쓰는 소설 탭이 열린 뒤 한 번 안내한다', async () => {
+  const notify = vi.spyOn(events, 'toast').mockImplementation(() => {
+    expect(tab('내가 쓰는 소설').getAttribute('aria-current')).toBe('page')
+    return true
+  })
+  try {
+    renderLibrary({ pathname: '/lib', search: '?tab=write', state: { deletedWorkTitle: '삭제한 작품' } })
+    expect(notify).not.toHaveBeenCalled()
+    await screen.findByRole('heading', { name: '새로 시작하기' })
+    expect(notify).toHaveBeenCalledExactlyOnceWith('「삭제한 작품」 작품을 삭제했어요.')
+    fireEvent.click(tab('읽는 중'))
+    await screen.findByRole('heading', { name: '이어 읽기' })
+    fireEvent.click(tab('내가 쓰는 소설'))
+    await screen.findByRole('heading', { name: '새로 시작하기' })
+    expect(notify).toHaveBeenCalledTimes(1)
+  } finally { notify.mockRestore() }
+})
+
+it('서재를 불러오지 못해도 이미 끝난 작품 삭제는 안내한다', async () => {
+  const load = vi.spyOn(appContainer.resolve('libraryUseCase'), 'getWrite').mockRejectedValue(new Error('offline'))
+  const notify = vi.spyOn(events, 'toast')
+  try {
+    renderLibrary({ pathname: '/lib', search: '?tab=write', state: { deletedWorkTitle: '삭제한 작품' } })
+    await screen.findByRole('button', { name: '다시 불러오기' })
+    expect(notify).toHaveBeenCalledExactlyOnceWith('「삭제한 작품」 작품을 삭제했어요.')
+  } finally {
+    notify.mockRestore()
+    load.mockRestore()
+  }
 })
 
 it('서재 탭 줄은 이름이 있는 내비게이션이라 상단 주요 메뉴와 구분된다', async () => {

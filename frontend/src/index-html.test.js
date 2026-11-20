@@ -170,10 +170,8 @@ describe('storyfork.css theme tokens', () => {
     expect(declOf(sheet.find((rule) => rule.media === '(max-width:600px)' && rule.selector === '.whero .cover'), 'max-width')).toBe('130px')
   })
 
-  it('puts the full summary below the reading actions on phones only', () => {
-    const orderedSummaries = sheet.filter((rule) => rule.selector === '.calm .whero .sum' && declOf(rule, 'order') !== undefined)
-    expect(orderedSummaries.map((rule) => rule.media)).toEqual(['(max-width:600px)'])
-    expect(Number(declOf(orderedSummaries[0], 'order'))).toBeGreaterThan(0)
+  it('aligns the work-detail cover with the top of long work information', () => {
+    expect(declOf(sheet.find((rule) => !rule.media && rule.selector === '.calm .whero'), 'align-items')).toBe('start')
   })
 })
 
