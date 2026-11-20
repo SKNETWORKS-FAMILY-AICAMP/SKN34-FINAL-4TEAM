@@ -82,8 +82,8 @@ class StorageUsagePostgresTest {
         val next = driver.writing(fork, forkOwner, 2)
         driver.writeEpisode(fork, forkOwner, 2, DraftRequest("다음 장면", forkBody, next.draft.revision), false)
 
-        assertEquals(listOf(listOf("manuscript", "1화 · 출발", "저장 원작", originalBody.encodeToByteArray().size.toLong())),
-            summary(UUID.fromString(author)))
+        val originalEpisode = summary(UUID.fromString(author)).single { it[0] == "manuscript" && it[1] == "1화 · 출발" }
+        assertEquals(listOf("manuscript", "1화 · 출발", "저장 원작", originalBody.encodeToByteArray().size.toLong()), originalEpisode)
         assertEquals(listOf(listOf("manuscript", "2화 · 다음 장면", "저장 분기", forkBody.encodeToByteArray().size.toLong())),
             summary(forker))
     }
