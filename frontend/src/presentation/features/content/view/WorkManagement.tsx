@@ -212,7 +212,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
           {/* 쪽을 옮기면 목록 머리로 스크롤만 한다. 초점은 누른 쪽 버튼에 남아 이어서 옮길 수 있다(scrollIntoView가 없는 jsdom에서는 건너뛴다). */}
           <Pager page={view.page} pages={view.pages} onPage={(next) => { setPage(next); episodeList.current?.scrollIntoView?.({ block: 'start' }) }} />
           <div className='ep-list-foot'>
-            <Go to={`/studio/${w.id}`} className='btn pri'>새 회차 집필하기</Go>
+            <Go to={`/studio/${w.id}`} className='btn'>새 회차 집필하기</Go>
             {!mockup && <button type="button" className="btn" disabled={locked}
               onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>}
           </div>

@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest'
 
 const css = readFileSync(new URL('./episode.css', import.meta.url), 'utf8')
 const sizes = (re: RegExp) => [...css.matchAll(re)].map((m) => Number(m[1]))
+// 규칙을 선택자와 선언부로 나눈다(@media 안의 규칙 포함). jsdom은 CSS를 적용하지 않아 글자로 확인한다.
+const rules = [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({ selector: m[1].trim(), body: m[2] }))
+const rule = (selector: string) => rules.find((r) => r.selector === selector)?.body ?? ''
 
 describe('episode.css 접근성 계약', () => {
   it('글자 크기는 모두 12px 이상이고 font-size:0으로 숨기지 않는다', () => {
@@ -21,8 +24,10 @@ describe('episode.css 접근성 계약', () => {
   })
 
   it('입력 칸 경계는 3:1 이상인 --line3를 쓰고, 터치 기기에서는 입력 글자를 16px로 올려 iOS 확대를 막는다', () => {
-    const fields = css.match(/\.episode-app input:not\(\[type=checkbox\]\):not\(\[type=radio\]\),\.episode-app textarea,\.episode-app select\{([^}]*)\}/)?.[1] ?? ''
+    const fields = rule('.episode-app input:not([type=checkbox]):not([type=radio]),.episode-app textarea')
     expect(fields).toMatch(/border:1px solid var\(--line3\)/)
+    // select는 전역 셰브런을 지우지 않으려고 따로 두지만 경계는 같은 --line3다.
+    expect(rule('.episode-app select')).toMatch(/border:1px solid var\(--line3\)/)
     const coarse = css.match(/@media\(pointer:coarse\)\{([^@]*)\}\s*$/m)?.[1] ?? ''
     expect(coarse).toMatch(/\.episode-app input:not\(\[type=checkbox\]\):not\(\[type=radio\]\),\.episode-app textarea,\.episode-app select,[^{]*\{font-size:16px\}/)
     // 큰 제목 입력(28px)은 그대로 둔다.
@@ -99,5 +104,39 @@ describe('episode.css 작품 관리 화면 정리 계약', () => {
 
   it('설정집 편집 UI를 뺀 뒤 쓰지 않는 규칙(.ep-world*·.ep-setting-row)을 남기지 않는다', () => {
     expect(css).not.toMatch(/\.ep-world\b|\.ep-setting-row\b/)
+  })
+})
+
+describe('episode.css 전역 select 규칙과의 공존', () => {
+  it('select 규칙은 background·padding 단축 속성을 쓰지 않아 전역 셰브런(배경 이미지)과 오른쪽 여백을 지우지 않는다', () => {
+    // 이 파일은 레이어 밖이라 단축 속성 하나가 전역(@layer base) select 규칙의 background-image·padding-right를 통째로 이긴다.
+    const selects = rules.filter(({ selector }) => /(^|[\s,>+~])select(?![\w-])/.test(selector))
+    expect(selects.length).toBeGreaterThan(0)
+    for (const { selector, body } of selects) expect(body, selector).not.toMatch(/(^|;)\s*(background|padding)\s*:/)
+  })
+
+  it('select는 배경색을 직접 정하고 오른쪽 여백은 전역 규칙에 맡기며, 작은 select는 위아래 여백을 0으로 되돌린다', () => {
+    const select = rule('.episode-app select')
+    expect(select).toMatch(/background-color:var\(--surface\)/)
+    // 받은 피드백 탭의 작은 select는 높이를 .inp.sm(34px)이 정하므로 위아래 여백을 0으로 되돌려야 글자가 잘리지 않는다.
+    const small = rule('.ep-feedback select.inp.sm')
+    expect(small).toMatch(/padding-block:0(?![\d.])/)
+    for (const body of [select, small]) expect(body).not.toMatch(/padding-(right|inline-end)|padding-inline:/)
+  })
+})
+
+describe('episode.css 작품 관리 조용히 다듬기 계약', () => {
+  it('탭 줄은 650px 이하에서 줄바꿈 대신 한 줄로 가로 스크롤하고, 잘리지 않게 포커스 링을 안쪽에 그린다', () => {
+    const narrow = [...css.matchAll(/@media\(max-width:650px\)\{((?:[^@{}]|\{[^{}]*\})*)\}/g)].map((m) => m[1]).join('')
+    expect(narrow).toMatch(/\.ep-tabs\{[^}]*flex-wrap:nowrap[^}]*overflow-x:auto/)
+    expect(narrow).toMatch(/\.ep-tabs button\{[^}]*flex:none[^}]*white-space:nowrap/)
+    expect(narrow).toMatch(/\.ep-tabs button:focus-visible\{[^}]*outline-offset:-2px/)
+  })
+
+  it('탭 hover는 선택한 탭의 강조색과 잠긴 탭을 바꾸지 않는다', () => {
+    const hover = css.match(/\.ep-tabs button:hover:not\(([^)]*)\)\{([^}]*)\}/)
+    expect(hover?.[2]).toMatch(/color:var\(--ink\)/)
+    expect(hover?.[1]).toContain(':disabled')
+    expect(hover?.[1]).toContain('[aria-current]')
   })
 })
