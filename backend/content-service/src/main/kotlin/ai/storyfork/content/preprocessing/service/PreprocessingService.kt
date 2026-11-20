@@ -44,7 +44,7 @@ class PreprocessingService(
 
     /**
      * 소유자가 작품의 저장 회차 전체로 전처리를 접수한다. 소유자가 아니거나 없는 작품은 404, 저장 회차가 없으면 422,
-     * 가장 최근 작업이 진행 중이거나 완료면 409다. 작업을 queued로 저장한 뒤에 AI에 접수하고, AI가 받지 않으면 작업을 failed로 남기고 502다.
+     * 가장 최근 작업이 진행 중이거나 완료면 409다. 작업을 queued로 저장하고 최초 입력을 준비한 뒤에 AI에 접수한다. 입력을 준비할 수 없으면 404·409·422이고 접수 행을 지운다. AI의 접수 응답이 없으면 작업을 queued로 둔 채 502다(받았는지 알 수 없어 실패로 덮지 않는다).
      */
     fun start(workId: String, owner: String, request: ManuscriptBuildRequest? = null): PreprocessingJobResponse {
         val work = ownedWork(workId, owner)
@@ -83,8 +83,12 @@ class PreprocessingService(
         } catch (error: Exception) {
             transaction.executeWithoutResult {
                 val row = jobs.lock(job.id) ?: throw missing()
-                row.fail("최초 입력 준비 결과를 확인해 주세요.", Instant.now())
-                jobs.saveAndFlush(row)
+                // 최초 입력이 만들어지지 않았으면 접수가 성립하지 않은 것이다. 실패 행으로 남기면 적재 확인 대기로 작품이 영구히 막힌다.
+                if (jobs.frozenNumbers(row.id, workId, owner).isEmpty()) jobs.delete(row)
+                else {
+                    row.fail("최초 입력 준비 결과를 확인해 주세요.", Instant.now())
+                    jobs.saveAndFlush(row)
+                }
             }
             throw error
         }
@@ -119,7 +123,7 @@ class PreprocessingService(
 
     /**
      * 운영 재실행이다. 실패한 작업이면서 그 작품의 가장 최근 작업일 때만(그 밖은 409) 대기로 되돌리고 실패 회차만(없으면 저장 회차 전체를) 다시 접수한다.
-     * 없는 작업은 404, AI가 받지 않으면 작업을 다시 failed로 남기고 502다.
+     * 없는 작업은 404, AI의 접수 응답이 없으면 작업을 queued로 둔 채 502다.
      */
     fun retry(jobId: String, ownerDetail: Boolean = false): PreprocessingJobResponse {
         val (job, numbers) = claim {
@@ -145,7 +149,7 @@ class PreprocessingService(
     private fun <T> claim(block: () -> T): T =
         try { requireNotNull(transaction.execute { block() }) } catch (_: DataIntegrityViolationException) { throw ContentFailure(409, OPEN_JOB_EXISTS) }
 
-    /** 저장이 끝난 작업을 AI에 접수시킨다. AI가 받지 않으면 작업을 failed로 남기고 502다(성공으로 보이게 두지 않는다). */
+    /** 저장이 끝난 작업을 AI에 접수시킨다. AI의 접수 응답이 없으면 작업을 queued로 둔 채 502다(성공으로 보이게 두지 않는다). */
     private fun handOff(job: PreprocessingJobEntity, numbers: List<Int>, ownerDetail: Boolean = true): PreprocessingJobResponse {
         try {
             ai.accept(PreprocessingAiRequest(job.id, job.workId, numbers))

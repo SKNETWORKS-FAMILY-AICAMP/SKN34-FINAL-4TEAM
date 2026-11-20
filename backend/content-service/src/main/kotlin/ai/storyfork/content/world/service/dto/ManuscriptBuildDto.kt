@@ -12,4 +12,4 @@ data class ManuscriptBuildRequest(val worldId:UUID,val key:String,val consent:Bo
 data class ManuscriptLoadReceipt(val jobId:UUID,val stepId:UUID,val worldId:UUID,val draftRevision:Long,
     val relationshipVersion:Long,val cardIds:List<UUID>,val relationshipIds:List<UUID>)
 data class ManuscriptBuildResponse(val jobId:UUID,val worldId:UUID,val status:String,val completedEpisodes:Int,
-    val totalEpisodes:Int,val executionToken:UUID?,val failureCode:String?,val receipts:List<ManuscriptLoadReceipt>)
+    val totalEpisodes:Int,val executionToken:UUID?,val failureCode:String?,val receipts:List<ManuscriptLoadReceipt>,val skippedItems:Int)

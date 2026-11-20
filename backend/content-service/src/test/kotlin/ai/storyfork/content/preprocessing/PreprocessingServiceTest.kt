@@ -326,6 +326,38 @@ class PreprocessingServiceTest {
         verifyNoInteractions(ai)
     }
 
+    // ---- 입력 준비 실패 ----
+
+    private fun anyUuid():UUID=any(UUID::class.java) ?: UUID(0,0)
+    private fun anyBuildRequest():ManuscriptBuildRequest=any(ManuscriptBuildRequest::class.java) ?: ManuscriptBuildRequest(world,"key",true)
+    private fun anyInput():ManuscriptBuildInput=any(ManuscriptBuildInput::class.java) ?: ManuscriptBuildInput(listOf(ManuscriptBuildSource(1,"e","v","title","body")))
+    private fun prepareFails(error:Throwable) {
+        doThrow(error).`when`(build).prepare(anyUuid(),anyString(),anyUuid(),anyBuildRequest(),anyInput())
+        `when`(jobs.lock(anyString())).thenAnswer { savedJobs().last() }
+    }
+
+    @Test fun `a refused input preparation removes the intake row instead of locking the work`() {
+        val reason=ContentFailure(409,"이미 설정이 있는 세계관에는 원고로 세계관을 만들 수 없어요.")
+        prepareFails(reason)
+
+        assertSame(reason,rejected { service.start("work","00000000-0000-0000-0000-000000000001") })
+
+        val intake=savedJobs().single()
+        verify(jobs).delete(intake)
+        assertEquals(listOf<Pair<String,String?>>(QUEUED to null),savedStates,"접수가 성립하지 않았으니 실패 행을 남기지 않는다")
+        verifyNoInteractions(ai)
+    }
+
+    @Test fun `a failure after the immutable input exists keeps the row as failed for review`() {
+        `when`(jobs.frozenNumbers(anyString(),anyString(),anyString())).thenReturn(listOf(1,2,5))
+        prepareFails(IllegalStateException("late"))
+
+        assertThrows(IllegalStateException::class.java) { service.start("work","00000000-0000-0000-0000-000000000001") }
+
+        assertEquals(FAILED,savedJobs().last().status)
+        verify(jobs,never()).delete(anyJob())
+    }
+
     private fun WorkEntity.copyOwner(owner: String) = WorkEntity(id = id, ownerId = owner, title = title, worldStudioId = worldStudioId)
     private fun WorkEntity.copyDeleted() = WorkEntity(id = id, ownerId = ownerId, title = title, deletedAt = t0)
 }

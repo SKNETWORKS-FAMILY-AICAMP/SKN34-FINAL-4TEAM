@@ -1,5 +1,6 @@
 package ai.storyfork.content.world
 
+import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.episode.entity.EpisodeCurrentEntity
 import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
 import ai.storyfork.content.episode.service.EpisodeService
@@ -31,12 +32,23 @@ class ManuscriptBuildSnapshotTest {
         assertEquals("저장된 원문 1",input.episodes.first().body)
         verify(episodes).list("work","owner")
     }
-    @Test fun `missing saved episode fails the full snapshot instead of silently skipping it`() {
-        `when`(episodes.list("work","owner")).thenReturn(EpisodeListResponse(listOf(row(1),row(2).copy(versions=emptyList()))))
-        assertThrows(IllegalArgumentException::class.java) { service.read("work","owner") }
+    @Test fun `the empty draft that publishing leaves after the last saved episode is not part of the snapshot`() {
+        `when`(episodes.list("work","owner")).thenReturn(EpisodeListResponse((1..3).map(::row)+row(4).copy(versions=emptyList())))
+        val input=service.read("work","owner")
+        assertEquals((1..3).toList(),input.episodes.map { it.number })
     }
-    @Test fun `inherited episodes are not treated as this initial import`() {
-        `when`(episodes.list("work","owner")).thenReturn(EpisodeListResponse(listOf(row(1).copy(inherited=true))))
-        assertThrows(IllegalArgumentException::class.java) { service.read("work","owner") }
+    @Test fun `an unsaved episode in the middle is 422 and names the episode`() {
+        `when`(episodes.list("work","owner")).thenReturn(EpisodeListResponse(listOf(row(1),row(2).copy(versions=emptyList()),row(3))))
+        val failure=assertThrows(ContentFailure::class.java) { service.read("work","owner") }
+        assertEquals(422,failure.status)
+        assertTrue(failure.message.contains("2화"),failure.message)
+    }
+    @Test fun `a work with nothing saved is 422 instead of an empty snapshot`() {
+        `when`(episodes.list("work","owner")).thenReturn(EpisodeListResponse(listOf(row(1).copy(versions=emptyList()))))
+        assertEquals(422,assertThrows(ContentFailure::class.java) { service.read("work","owner") }.status)
+    }
+    @Test fun `inherited episodes are not treated as this initial import and are 422`() {
+        `when`(episodes.list("work","owner")).thenReturn(EpisodeListResponse(listOf(row(1).copy(inherited=true),row(2))))
+        assertEquals(422,assertThrows(ContentFailure::class.java) { service.read("work","owner") }.status)
     }
 }

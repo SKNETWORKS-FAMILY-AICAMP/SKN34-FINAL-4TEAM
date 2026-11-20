@@ -1,6 +1,7 @@
 package ai.storyfork.content.world.service
 
 import ai.storyfork.content._common.exception.ContentFailure
+import ai.storyfork.content._common.exception.checkContent
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkWorldService
@@ -46,10 +47,22 @@ class ManuscriptBuildService(
         val expired=job.status in listOf("running","loading") && job.deadline?.isAfter(Instant.now())==false
         val saved=steps.findAllByJobIdOrderBySequence(job.id)
         check(job.status!="completed" || (saved.isNotEmpty() && saved.all { it.receipt!=null && it.status=="applied" }))
+        val extractions=results.findAllByJobIdOrderByEpisode(job.id).filter { it.kind=="extraction" }
         return ManuscriptBuildResponse(job.id,job.worldId,if(expired) "unknown" else job.status,
-            results.findAllByJobIdOrderByEpisode(job.id).count { it.kind=="extraction" },input(job).episodes.size,
+            extractions.size,input(job).episodes.size,
             job.executionToken,if(expired && job.status=="running") "EXECUTION_EXPIRED" else job.failureCode,
-            saved.mapNotNull { it.receipt?.let { receipt -> mapper.convertValue(receipt,ManuscriptLoadReceipt::class.java) } })
+            saved.mapNotNull { it.receipt?.let { receipt -> mapper.convertValue(receipt,ManuscriptLoadReceipt::class.java) } },
+            extractions.sumOf { skippedItems(it.content) })
+    }
+    /** 추출 결과의 skipped(코드별 건수)를 더한다. 이 필드가 없던 옛 결과는 0이다. */
+    private fun skippedItems(extraction:Map<String,Any?>)=(extraction["skipped"] as? Map<*,*>)?.values?.sumOf { (it as? Number)?.toInt() ?: 0 } ?: 0
+    /** 지금 원고가 고정한 입력과 다르다. 회차가 지워지거나 미저장이 돼 고정할 수 없는 경우도 바뀐 것으로 본다. */
+    private fun sourceChanged(work:String,owner:UUID,frozen:ManuscriptBuildInput)=
+        try { snapshot.read(work,owner.toString())!=frozen } catch(_:ContentFailure) { true }
+    /** 추출 중에 전제가 바뀌었다. 재개해도 같은 거절이 반복되니 사유를 남겨 실패로 끝내고 작가가 새로 시작하게 한다. */
+    private fun stale(id:UUID,owner:UUID,token:UUID,code:String):Nothing {
+        runCatching { execution.fail(id,owner,token,code) }
+        throw WorldConflict()
     }
     fun matches(id:String,owner:UUID,request:ManuscriptBuildRequest):Boolean {
         val row=jobs.findById(UUID.fromString(id)).orElse(null) ?: return false
@@ -71,9 +84,9 @@ class ManuscriptBuildService(
         val requestHash=hash(listOf(workId,request.worldId.toString(),"initial-build.v1",request.consent))
         val linked=works.findById(workId).orElseThrow().worldStudioId
         if(linked!=null && linked!=request.worldId) throw WorldConflict()
-        if(worlds.findById(request.worldId).isEmpty) studio.create(owner,CreateWorldRequest(id=request.worldId,name=work.title,description=""))
+        if(worlds.findById(request.worldId).isEmpty) studio.create(owner,CreateWorldRequest(id=request.worldId,name=work.title.take(100),description=""))
         val basis=studio.draft(request.worldId,owner)
-        require(basis.cards.isEmpty() && basis.relationships.isEmpty()) { "기존 설정과의 정체 확인이 필요합니다." }
+        checkContent(basis.cards.isEmpty() && basis.relationships.isEmpty(),409,"이미 설정이 있는 세계관에는 원고에서 만든 설정을 더할 수 없어요. 설정이 없는 세계관으로 시작해 주세요.")
         if(linked==null) links.link(workId,owner.toString(),request.worldId)
         val manifest=mapOf("basis" to json(basis),"episodes" to sources.episodes.map { source -> mapOf(
             "number" to source.number,"episodeId" to source.episodeId,"versionId" to source.versionId,
@@ -105,10 +118,7 @@ class ManuscriptBuildService(
         val frozen=input(job)
         val now=Instant.now()
         val token=execution.claim(id,owner,now,now.plusSeconds(90L*(frozen.episodes.size+1)))
-        if(snapshot.read(work,owner.toString())!=frozen) {
-            execution.fail(id,owner,token,"SOURCE_CHANGED")
-            throw WorldConflict()
-        }
+        if(sourceChanged(work,owner,frozen)) stale(id,owner,token,"SOURCE_CHANGED")
         return mapOf("claimed" to true,"loading" to false,"token" to token,
             "missing" to frozen.missing(resultStore.read(id,owner)).map { mapOf("number" to it.number,"title" to it.title,"body" to it.body) })
     }
@@ -164,23 +174,28 @@ class ManuscriptBuildService(
             val frozen=input(job)
             val all=resultStore.read(id,owner);frozen.requireResults(all)
             val artifact=results.findByJobIdAndKindAndEpisode(id,"payload",0)
-            require(snapshot.read(job.workId,owner.toString())==frozen) { "SOURCE_CHANGED" }
+            if(sourceChanged(job.workId,owner,frozen)) stale(id,owner,token,"SOURCE_CHANGED")
             val basis=mapper.convertValue(job.manifest["basis"],WorldDraftResponse::class.java)
-            require(works.findById(job.workId).orElseThrow().worldStudioId==job.worldId) { "WORLD_LINK_CHANGED" }
+            if(works.findById(job.workId).orElseThrow().worldStudioId!=job.worldId) stale(id,owner,token,"WORLD_LINK_CHANGED")
             val payload=mapper.convertValue(checkNotNull(artifact).content,ManuscriptLoadPayload::class.java)
             val identity=results.findByJobIdAndKindAndEpisode(id,"identity",0) ?: throw WorldConflict()
             ManuscriptStructureVerifier.verify(all,mapper.valueToTree(identity.content),payload,mapper)
             val evidence=sourceEvidence(id,payload,all)
             val requests=ManuscriptBuildMapper.build(id,basis,payload,evidence,all)
-            studio.prepareManuscript(job.worldId,owner,basis) {
-                val current=owned(id,owner)
-                if(current.status!="running" || current.executionToken!=token || current.deadline?.isAfter(Instant.now())!=true) throw WorldConflict()
-                require(steps.findAllByJobIdOrderBySequence(id).isEmpty())
-                requests.forEachIndexed { index,request ->
-                    studio.validateEditRequest(request)
-                    steps.saveAndFlush(ManuscriptBuildLoadStep(jobId=id,sequence=index+1,requestPayload=json(request),requestHash=studio.manuscriptRequestHash(job.worldId,request)))
+            try {
+                studio.prepareManuscript(job.worldId,owner,basis) {
+                    val current=owned(id,owner)
+                    if(current.status!="running" || current.executionToken!=token || current.deadline?.isAfter(Instant.now())!=true) throw WorldConflict()
+                    require(steps.findAllByJobIdOrderBySequence(id).isEmpty())
+                    requests.forEachIndexed { index,request ->
+                        studio.validateEditRequest(request)
+                        steps.saveAndFlush(ManuscriptBuildLoadStep(jobId=id,sequence=index+1,requestPayload=json(request),requestHash=studio.manuscriptRequestHash(job.worldId,request)))
+                    }
+                    current.status="loading";jobs.flush();true
                 }
-                current.status="loading";jobs.flush();true
+            } catch(_:WorldConflict) {
+                // 추출하는 동안 세계관이 고정한 입력의 기준에서 바뀌었다(실행권이 이미 없으면 stale의 실패 기록은 거절되고 409만 남는다).
+                stale(id,owner,token,"WORLD_CHANGED")
             }
         }
         if(job.status!="running" && job.status !in listOf("loading","unknown")) throw WorldConflict()

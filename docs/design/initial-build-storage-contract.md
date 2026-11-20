@@ -21,7 +21,7 @@ Content V41의 preprocessing_job이 공개 작업 ID와 상태를 소유한다. 
 | manuscript_build_load_step | step UUID, job ID, 순번, 고정 요청 JSON/hash, 상태, 완료 receipt | UUID·관계 ID·request key는 예약 이후 불변. 같은 단계만 재시도. 완료 receipt 불변 |
 
 workId는 기존 Content의 문자열 식별자를 유지한다. UUID로 억지 변환하지 않는다.
-manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제목·본문의 불변 사본과 sourceHash를 담는다. 공개/발행 여부는 입력 가능 조건이 아니며 소유권이 조건이다. 이후 원문 수정은 고정된 snapshot을 바꾸지 않는다. 요청이 새 원문을 의미한다면 동일 key 재사용을 거절한다.
+manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제목·본문의 불변 사본과 sourceHash를 담는다. 저장 버전이 없는 끝의 다음 회차 초안(발행·작품 생성이 자동으로 만든다)은 전체 회차에서 뺀다. 중간의 미저장 회차와 Fork 상속 회차는 422다. 공개/발행 여부는 입력 가능 조건이 아니며 소유권이 조건이다. 이후 원문 수정은 고정된 snapshot을 바꾸지 않는다. 요청이 새 원문을 의미한다면 동일 key 재사용을 거절한다. 단 추출이 도는 동안 원고 저장 버전·세계관 초안·작품-세계관 연결이 바뀌면 고정본으로 계속하지 않고 `SOURCE_CHANGED`·`WORLD_CHANGED`·`WORLD_LINK_CHANGED`로 작업을 실패 처리한다(사용자 결정 2026-11-20, [정책 5](manuscript-preprocessing-contract.md#추출정체-정리-정책-2026-11-20-사용자-확정)).
 완료 수는 영속 결과에서 계산한다. worker가 보낸 done 숫자만으로 성공 회차를 인정하지 않는다.
 
 ## 결과와 재실행
@@ -40,7 +40,7 @@ manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제�
 - loading/unknown/completed 작업은 새 추출 실행권을 발급하지 않는다. loading/unknown은 예약한 적재 요청으로 복구하고, completed는 기존 receipt를 사용한다. 실행권 교체는 성공 결과를 삭제하지 않는다.
 - 성공 결과의 응답 유실은 같은 슬롯/hash 재요청으로 복구한다. 실패 회차 재시도는 저장된 성공 결과를 재사용한다.
 - manifest의 전체 집합과 저장된 결과 집합이 정확히 같을 때만 정체 통합 및 적재를 허용한다. 누락·중복·상이한 입력 해시는 거절한다.
-- 정체 통합은 전체 추출 결과 hash 집합에 결합한다. 기존 WorldStudio 인물을 이름만으로 자동 병합하지 않는다. 기존 카드와의 정체가 확인되지 않으면 적재 전에 보류/충돌로 중단한다.
+- 정체 통합은 전체 추출 결과 hash 집합에 결합한다. 기존 WorldStudio 인물을 이름만으로 자동 병합하지 않는다(원고 안의 같은 종류·같은 이름은 정책 1에 따라 묶는다). 기존 카드와의 정체가 확인되지 않으면 적재 전에 보류/충돌로 중단한다.
 
 ## 적재 경계
 
@@ -66,11 +66,11 @@ manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제�
 ## 실행 제한과 소비자 연결
 
 - 공개 API POST 본문: `{worldId, key, consent: true, resumeToken?}`. worldId와 key는 요청 전에 정하고 재전송할 때 유지한다.
-- 진행 중은 202 + Location, 완료·실패·unknown 조회는 상태/실제 완료 receipt를 반환한다. GET은 모델을 실행하지 않는다.
-- 실패/실행 기한 만료 후 재개는 조회한 executionToken을 resumeToken으로 명시한다. 모델 timeout은 AI_TIMEOUT, 잘못된 출력은 AI_OUTPUT_INVALID, 요청 거절은 AI_REQUEST_REJECTED, 응답 미확인은 AI_RESPONSE_UNCONFIRMED로 구분한다.
+- 진행 중은 202 + Location, 완료·실패·unknown 조회는 상태/실제 완료 receipt를 반환한다. 응답의 `build`에는 `skippedItems`(모든 회차 추출 결과의 `skipped` 합, 결과가 없으면 0)가 있고 완료 화면이 '근거를 확인하지 못한 항목 N개는 초안에 넣지 않았어요'로 알린다. GET은 모델을 실행하지 않는다.
+- 실패/실행 기한 만료 후 재개는 조회한 executionToken을 resumeToken으로 명시한다. worker가 Content에 남기는 실패 사유 코드(`failureCode`)의 정본은 `AI_TIMEOUT`(모델 timeout), `AI_RESPONSE_UNCONFIRMED`(응답 미확인), `AI_REQUEST_REJECTED`(모델 미설정·입력 과대 등 요청 거절), `AI_OUTPUT_INVALID`(그 밖의 검증·모델 출력 오류), `CONTENT_REJECTED`(Content가 result/structure/load 콜백을 4xx로 거절), `NO_SETTINGS_FOUND`(정리 결과 카드가 0장)이다. 세부 오류 코드는 로그에 코드 문자열로만 남기고 원고는 남기지 않는다. Content가 적재 전제 위반으로 직접 기록하는 코드는 `SOURCE_CHANGED`·`WORLD_CHANGED`·`WORLD_LINK_CHANGED`이고, 이 경우 뒤따르는 worker의 실패 보고는 409로 거절될 수 있다.
 - loading/unknown의 동일 POST는 기존 load_step만 복구한다. 성공 회차나 구조화를 재호출하지 않는다.
 - JSONB의 객체 key 순서는 보장되지 않는다. 원고 부분 추가 요청 해시는 예약과 복구 양쪽에서 같은 재귀 정렬을 사용한다. 기존 일반 저장 해시 계약은 변경하지 않는다.
-- 기존 카드가 있는 세계관은 자동 정체 병합하지 않고 거절한다. 이 작업은 빈 세계관의 최초 구축 전용이다.
+- 기존 카드가 있는 세계관은 자동 정체 병합하지 않고 409('이미 설정이 있는 세계관에는…')로 거절하며 접수 행을 남기지 않는다. 이 작업은 빈 세계관의 최초 구축 전용이다. 시작 시 사유가 있는 거절은 404(작품·세계관 없음)·409(설정이 있는 세계관, 연결 불일치, 진행 중·완료)·422(저장 회차 없음, 중간 미저장, Fork 상속, 입력 형식)이고 한국어 문구와 함께 내려가며 500으로 내보내지 않는다.
 - 완료 후 새 회차 추가/재구축/취소는 제공하지 않는다. 기존 직접 등록 후보별 승인과 별개의 시작 동의다.
 - 작품 관리에 명시적 동의·시작/상태/동일 작업 재개를 연결했다. 상세 수용 범위는 [브라우저 QA](../verification/two-path-qa/browser-qa.md) 참조. 공개 회차 목록이 비어 있어도 비공개 저장 원고가 있으므로 시작을 차단하지 않고 Content가 원고를 검증한다.
 - 명시적 재개는 영속 결과/실행권 기반이다. 프로세스 강제 종료 후 실제 재시작 수용 검증 전에는 운영 실행을 활성화하지 않는다.
@@ -81,6 +81,6 @@ DEC-47 저장/화면의 episodes key는 "0", "3" 형태다. 추출 결과의 파
 
 View → ViewModel → ManuscriptBuildUseCase → HttpManuscriptBuildRepository → 기존 Content API를 사용한다. 목업에서는 이 실행 패널을 그리지 않는다.
 화면 진입/업로드/새로고침은 GET만 수행한다. 명시적 동의 후 POST 직전에 계정·작품별 localStorage에 worldId/key/consent를 보존한다. 재접수·통신 실패·재로그인으로 key를 교체하지 않는다. 브라우저 Web Lock과 진행 중 버튼 잠금으로 중복 입력을 막는다.
-진행 중은 상태 GET만 2초 간격으로 조회하며 조회 실패는 오류로 남긴다. failed/unknown은 사용자가 같은 작업 재개를 눌러야 한다. 실패 재개는 최신 executionToken, 적재 unknown 복구는 원래 요청을 사용한다. 완료 상태는 전체 회차 수와 해당 job/world의 receipt를 확인한 경우만 표시한다.
+진행 중은 상태 GET만 2초 간격으로 조회하며 조회 실패는 오류로 남긴다. failed/unknown은 사용자가 같은 작업 재개를 눌러야 한다. failed는 항상 '같은 작업 재개'와 함께 동의 뒤 '새로 시작' 폼을 보이고, 새로 시작은 새 key와 지금 작품에 연결된 worldId(없으면 실패한 작업의 worldId, 그것도 없으면 새 UUID)로 POST한다. 서버는 작품에 연결된 세계관만 받으므로 연결이 바뀐 뒤에도 409 없이 새로 시작된다. 조회가 404이거나 `recovery=new_request`이면 저장해 둔 요청 기록을 지운다. 실패 재개는 최신 executionToken, 적재 unknown 복구는 원래 요청을 사용한다. 완료 상태는 전체 회차 수와 해당 job/world의 receipt를 확인한 경우만 표시한다.
 초안 열기는 기존 WorldStudio 경로이며 확정/공개/발행을 실행하지 않는다. 이미 작가가 확정한 뒤 돌아올 수 있으므로 완료 안내는 현재 미확정이라고 단정하지 않는다.
 다른 브라우저에서 요청 key가 없으면 임의 새 key로 재개하지 않는다. 원래 시작한 브라우저를 안내한다. 교차 기기 재개/취소/재구축은 이번 범위 밖이다.

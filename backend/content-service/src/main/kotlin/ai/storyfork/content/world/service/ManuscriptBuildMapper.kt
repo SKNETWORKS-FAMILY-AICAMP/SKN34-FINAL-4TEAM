@@ -27,7 +27,7 @@ object ManuscriptBuildMapper {
         }
         val byEpisode=sources.associateBy { it.basis.number }
         val cards=payload.cards.map { c ->
-            require(c.key.isNotBlank() && c.cardType in setOf("character","location","organization","object","event"))
+            require(c.key.isNotBlank() && c.cardType in setOf("character","location","organization","object","rule","event"))
             require(c.firstEpisode>0 && c.title.isNotBlank() && c.title.length<=200 && c.body.length<=3000)
             require(c.aliases.distinct().size==c.aliases.size && c.aliases.all { it.isNotBlank() && it.length<=200 })
             c.characterDocs?.let { docs ->
@@ -36,9 +36,10 @@ object ManuscriptBuildMapper {
                 require(docs.episodes.keys.all { it.toIntOrNull()!=null })
                 require(docs.episodes.keys.map { it.toInt() }.distinct().size==docs.episodes.size)
             }
-            val area=when(c.cardType) { "location"->"space";"organization"->"society";"event"->"history";else->"basic" }
-            val meta=metadata(c.key,ids.getValue(c.key),c.title,c.body,if(c.cardType=="event") "event" else "entity",area,
-                if(c.cardType=="event") null else c.cardType,c.firstEpisode,aliases=c.aliases).toMutableMap()
+            val area=when(c.cardType) { "location"->"space";"organization"->"society";"event"->"history";"rule"->"special";else->"basic" }
+            val kind=when(c.cardType) { "event"->"event";"rule"->"rule";else->"entity" }
+            val meta=metadata(c.key,ids.getValue(c.key),c.title,c.body,kind,area,
+                if(kind=="entity") c.cardType else null,c.firstEpisode,aliases=c.aliases).toMutableMap()
             val candidates=payload.identityCandidates.filter { it.fromKey==c.key }.map { candidate ->
                 val result=byEpisode.getValue(candidate.episode)
                 val text=result.extraction.getValue("source") as String
@@ -54,12 +55,15 @@ object ManuscriptBuildMapper {
             CardPayload(ids.getValue(c.key),c.title,c.body,c.cardType,area,aliases=c.aliases,semanticMetadata=meta)
         }
         val active=mutableSetOf<String>()
-        val updates=payload.relations.sortedBy { it.fromEpisode }.map { r ->
+        val updates=payload.relations.sortedBy { it.fromEpisode }.mapNotNull { r ->
             require(r.fromEpisode>0 && r.fromKey in ids && r.toKey in ids && r.fromKey!=r.toKey && r.label.isNotBlank() && r.label.length<=200)
             val key="relation:${r.fromKey.length}:${r.fromKey}:${r.toKey.length}:${r.toKey}:${r.label}"
-            require(if(r.ended) active.remove(key) else active.add(key)) { "관계 시작·종료 순서가 올바르지 않습니다." }
-            r.fromEpisode to RelationshipPayload(id(key),ids.getValue(r.fromKey),ids.getValue(r.toKey),"structural",r.label,r.label,"directed","asserted",
-                metadata(key,id(key),r.label,r.label,"relation","basic",null,r.fromEpisode,ids.getValue(r.fromKey),ids.getValue(r.toKey)),
+            // 이미 이어진 관계의 재시작과 시작이 기록되지 않은 종료는 싣지 않는다. 다른 관계를 대신 끝내지도 않는다.
+            if(!(if(r.ended) active.remove(key) else active.add(key))) return@mapNotNull null
+            // 관계 설명(body)은 근거 인용 그대로이고 label은 관계명이다. 근거가 없으면(검증 전 시험 호출) 관계명으로 둔다.
+            val quote=evidence["$key:${r.fromEpisode}"].orEmpty().firstNotNullOfOrNull { it["quote"] as? String } ?: r.label
+            r.fromEpisode to RelationshipPayload(id(key),ids.getValue(r.fromKey),ids.getValue(r.toKey),"structural",quote,r.label,"directed","asserted",
+                metadata(key,id(key),r.label,quote,"relation","basic",null,r.fromEpisode,ids.getValue(r.fromKey),ids.getValue(r.toKey)),
                 if(r.ended) "removed" else "active")
         }
         require(updates.map { it.first to it.second.id }.distinct().size==updates.size)

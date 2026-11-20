@@ -23,8 +23,8 @@
 
 ## 처리 흐름
 
-1. **회차별 추출 (병렬):** 회차마다 LLM 1회로 사건, 묘사(외모·성격·세계관 규칙처럼 사건이 아닌 서술), 거기 등장한 호칭(인물·장소·물건·조직)을 원문 근거와 함께 뽑는다. 호칭은 그 회차 안에서만 통하는 임시 ID를 받고, 다른 회차의 같은 이름과 연결하지 않는다.
-2. **정체 정리:** 호칭을 같은 대상끼리 묶어 정식 ID를 준다. 동명이인은 분리한다. 같은 이름만으로 병합하지 않는다. 같은 인물로 보이는 서로 다른 이름(별칭·가면·나중에 밝혀지는 정체)은 한 카드로 병합하지 않고 카드를 따로 둔 채 「동일 인물」 후보로 낸다(DEC-53): 다른 이름 카드 → 본체 카드와 "몇 화부터 같은 인물로 보이는지"를 함께 기록해 앞 회차 상태에 미래 정보가 섞이지 않게 한다. 후보는 관계가 아니며 작가가 승인해야 `identity` 관계가 된다.
+1. **회차별 추출 (병렬):** 회차마다 LLM 1회로 사건, 묘사(외모·성격·세계관 규칙처럼 사건이 아닌 서술), 거기 등장한 호칭(인물·장소·물건·조직·규칙)을 원문 근거와 함께 뽑는다. 근거를 확인하지 못한 항목은 그 항목만 제외한다(아래 정책 2). 호칭은 그 회차 안에서만 통하는 임시 ID를 받고, 다른 회차의 같은 이름과 연결하지 않는다.
+2. **정체 정리:** 호칭을 같은 대상끼리 묶어 정식 ID를 준다. 같은 종류·같은 이름은 기본으로 같은 대상으로 묶고, 모델이 가른 동명이인은 분리한다(정책 1). 같은 인물로 보이는 서로 다른 이름(별칭·가면·나중에 밝혀지는 정체)은 한 카드로 병합하지 않고 카드를 따로 둔 채 「동일 인물」 후보로 낸다(DEC-53): 다른 이름 카드 → 본체 카드와 "몇 화부터 같은 인물로 보이는지"를 함께 기록해 앞 회차 상태에 미래 정보가 섞이지 않게 한다. 후보는 관계가 아니며 작가가 승인해야 `identity` 관계가 된다.
 3. **사건 등록:** 사건의 호칭을 정식 ID로 바꿔 회차 순서대로 정리한다.
 4. **인물별 정리:** 인물이 나온 사건과 묘사를 모아 프로필·상태·기억을 구성한다.
 5. **설정·아이템 정리:** 장소·물건·조직을 4와 같은 방식으로 정리한다.
@@ -45,12 +45,12 @@
 
 | 항목 | 결정 |
 |---|---|
-| 접수 | 화면 → Content `POST /api/v1/works/{id}/world-preprocessing`(소유자만, 저장 회차 0개 422, 진행 중·완료 작업 409) → AI `POST /internal/v1/preprocessing/jobs`(`X-Internal-Token`, 본문 `{jobId, workId, episodes:[회차 번호]}`, 202). Kotlin은 Celery 메시지를 직접 만들지 않는다. 같은 `jobId` 재접수는 실패 회차만 다시 실행한다 |
+| 접수 | 화면 → Content `POST /api/v1/works/{id}/world-preprocessing`(소유자만, 저장 회차 0개 422, 진행 중·완료 작업 409. 저장 버전이 없는 끝의 다음 회차 초안은 대상에서 빼고, 중간의 미저장 회차·Fork 상속 회차는 422와 사유 문구, 이미 설정이 있는 세계관은 409로 거절하며 거절하면 접수 행을 남기지 않는다) → AI `POST /internal/v1/preprocessing/jobs`(`X-Internal-Token`, 본문 `{jobId, workId, episodes:[회차 번호]}`, 202). Kotlin은 Celery 메시지를 직접 만들지 않는다. 같은 `jobId` 재접수는 실패 회차만 다시 실행한다 |
 | 작업 기록·진행 상태 | Content 작업 테이블(작업 ID·작품·세계관·회원·상태 `queued/running/loading/completed/failed`·완료 수/전체 수·실패 회차·시각). 화면은 `GET /api/v1/works/{id}/world-preprocessing`만 조회한다. Celery 결과 저장소와 AI DB는 쓰지 않는다 |
 | 백그라운드 인증 | 전처리 MCP 도구는 사용자 Bearer 대신 `X-Internal-Token` + 도구 인자 `jobId`로 호출한다. Content는 그 작업이 진행 중(`queued/running/loading`)일 때만 받아들이고 작업에 기록된 회원 권한으로 기존 Service를 호출한다. 종료된 작업 ID는 거절한다 |
 | 읽을 원문 | 최초 접수 때 고정한 회차별 저장 버전과 해시 |
 | 적재 위치 | 작품에 연결된 세계관의 **초안**. 연결 세계관이 없으면 접수 때 새 세계관을 만들어 1:1 연결한다(`work.world_studio_id`). 확정 버전은 작가가 수정 후 직접 남긴다 |
-| 실패·재실행 | 추출 실패 회차가 하나라도 있으면 정리 단계 전에 `failed`로 멈추고 실패 회차를 기록한다. 적재는 `jobId`로 멱등(같은 작업의 재호출이 카드를 중복 생성하지 않음) |
+| 실패·재실행 | 모델 호출 실패 등으로 추출에 실패한 회차가 하나라도 있으면 정리 단계 전에 `failed`로 멈추고 실패 회차를 기록한다. 항목 하나의 검증 위반은 실패가 아니라 제외다(정책 2). 추출 중 원고·세계관·연결이 바뀌면 사유 코드와 함께 `failed`로 끝난다(정책 5). 적재는 `jobId`로 멱등(같은 작업의 재호출이 카드를 중복 생성하지 않음) |
 
 ### 전처리 MCP 도구 (Content, `jobId` 인증)
 
@@ -60,10 +60,24 @@
 | `preprocessing_progress` | `jobId`, `stage`(`extracting/resolving/organizing/loading`), `done`, `total`, `failedEpisodes[]`, `failed`(선택, 고정 사유 문구) | 갱신된 작업 상태 |
 | `preprocessing_load` | `jobId`, `cards[]`, `relations[]`, `identityCandidates[]` | 적재 결과(카드 수·관계 수), 작업 `completed` |
 
-`cards[]` 항목: `key`(작업 안 정식 ID), `cardType`(`character/location/organization/object/event`), `title`, `aliases[]`, `body`(마크다운, 인물은 `IDENTITY.md`), `firstEpisode`(첫 등장 회차, 제안값이며 공개 설정이 아니다), 인물만 `characterDocs{soul, goal, episodes{"NN": 글}}`(`memory` 키는 쓰지 않음, 이야기 시작 전 기억은 `episodes{"00"}`)(DEC-47, 문서마다 3,000자 이하). 사건 카드 본문은 회차 번호와 참여 인물을 적는다. 카드는 공개 설정 없이 적재한다: 작가 전용으로 시작하고 `revealFromEpisode`·`visibility`를 쓰지 않는다(DEC-53). `firstEpisode`는 작가가 'N화부터 공개'를 정할 때 보는 제안값으로 카드의 `semanticMetadata.preprocessing`에 두며 독자에게 나가지 않는다.
-`relations[]` 항목: `fromKey`, `toKey`, `label`, `fromEpisode`, `ended`(선택). Content가 DEC-51 회차별 관계로 변환해 `fromEpisode` 시점마다 기록한다. 카드 공개는 작가 전용(DEC-53)으로 시작하고 `relations[]`에는 `identity`를 싣지 않는다. 「동일 인물」 후보는 `identityCandidates[]` 항목(`fromKey`: 다른 이름 카드, `toKey`: 본체 카드, `episode`: 같은 인물로 보이는 회차, 근거)으로 따로 싣고 Content가 카드의 `semanticMetadata.preprocessing`에 후보로 남긴다. 후보를 관계로 올리는 것은 작가 승인이다.
+`cards[]` 항목: `key`(작업 안 정식 ID), `cardType`(`character/location/organization/object/rule/event`), `title`, `aliases[]`, `body`(마크다운, 인물은 `IDENTITY.md`), `firstEpisode`(첫 등장 회차, 제안값이며 공개 설정이 아니다), 인물만 `characterDocs{soul, goal, episodes{"NN": 글}}`(`memory` 키는 쓰지 않음, 이야기 시작 전 기억은 인물의 첫 등장 회차에서만 `episodes{"00"}`이고 뒤 회차에서 밝혀진 것은 그 회차 기억이다)(DEC-47, 문서마다 3,000자 이하). 사건 카드 본문은 회차 번호와 참여 인물을 적는다. 표지·제목 표기는 아래 정책의 표기 계약을 따른다. 카드는 공개 설정 없이 적재한다: 작가 전용으로 시작하고 `revealFromEpisode`·`visibility`를 쓰지 않는다(DEC-53). `firstEpisode`는 작가가 'N화부터 공개'를 정할 때 보는 제안값으로 카드의 `semanticMetadata.preprocessing`에 두며 독자에게 나가지 않는다.
+`relations[]` 항목: `fromKey`, `toKey`, `label`(관계명), `fromEpisode`, `ended`(선택). 관계 설명(body)은 Content가 근거 인용으로 채운다. Content가 DEC-51 회차별 관계로 변환해 `fromEpisode` 시점마다 기록한다. 카드 공개는 작가 전용(DEC-53)으로 시작하고 `relations[]`에는 `identity`를 싣지 않는다. 「동일 인물」 후보는 `identityCandidates[]` 항목(`fromKey`: 다른 이름 카드, `toKey`: 본체 카드, `episode`: 같은 인물로 보이는 회차, 근거)으로 따로 싣고 Content가 카드의 `semanticMetadata.preprocessing`에 후보로 남긴다. 후보를 관계로 올리는 것은 작가 승인이다.
 
 원고 정체 추출의 `left`는 본체, `right`는 다른 이름 카드다. 명시적인 근거가 있는 서로 다른 인물 이름은 별도 카드로 유지한다. 다른 이름 카드의 `semanticMetadata.preprocessing.identityCandidates[]`에 두 카드 UUID, 발견 회차, 원문 인용을 보존한다. 승인 전에는 Neo4j 관계를 생성하지 않는다.
+
+## 추출·정체 정리 정책 (2026-11-20 사용자 확정)
+
+원고 추출은 실제 문체의 원고를 끝까지 처리하는 것을 우선한다. AI의 `organize`와 Content의 검증기(`ManuscriptExtractionVerifier`·`ManuscriptStructureVerifier`)는 같은 규칙을 따로 구현하므로 표기·basis·허용 목록을 바꾸면 같은 커밋에서 양쪽을 바꾼다.
+
+| 결정 | 내용 |
+|---|---|
+| 1. 같은 이름의 재등장 | 같은 종류·같은 이름은 프로그램이 기본으로 같은 대상으로 묶는다(정체 basis `same_name`, 근거는 뒤 회차 대상의 검증된 인용). 모델이 `distinct`로 가른 쌍, 같은 이름 후보가 둘 이상인 경우, 같은 회차에 같은 이름이 둘인 경우는 묶지 않는다. 모델은 동명이인(`distinct`)과 이름이 다른 같은 인물(별칭)만 알린다. 대가: 모델이 동명이인을 놓치면 합쳐지고 작가가 초안에서 고친다 |
+| 2. 항목 단위 제외 | 근거·참조·종류 검증을 통과하지 못한 항목(대상·진술·관계·정체 링크)은 그 항목만 제외하고 코드별 건수를 회차 추출 결과의 `skipped`에 남긴다. 모델 호출 실패·시간 초과·잘린 응답·형식 오류와 검증된 대상이 하나도 없는 회차만 회차 실패이고, 회차가 하나라도 실패하면 작업은 `failed`다. 제외한 합계는 공개 응답 `build.skippedItems`로 화면에 알린다. 원본 추출은 전부 `manuscript_build_result`에 남는다 |
+| 3. 시작 전 기억 | 원문에 '이야기 시작 전부터' 같은 정해진 문구를 요구하지 않는다. `knownFromEpisode=0`(fact, `occurredEpisode=0`)은 인물의 첫 등장 회차이면 `episodes{"00"}`, 뒤 회차에서 밝혀진 것이면 그 회차 기억(`episodes{"NN"}`)에 싣는다. 소급하지 않아 미래 정보가 앞 회차로 새지 않는다. 사실 여부를 낱말로 가르는 금칙어 검사(계획·추측·것 같·소문 등)는 두지 않고, 종류 구분은 프롬프트와 표지가 맡는다 |
+| 4. 대상 종류 | 대상 종류는 `character/location/organization/object/rule`이다(`rule`은 세계의 규칙·개념). `rule` 카드는 `rule` 유형·영역 `special`(특수 규칙)로 적재한다 |
+| 5. 추출 중 변경 | 추출하는 동안 원고 저장 버전, 세계관 초안(기준 revision·관계 버전·확정 버전), 작품-세계관 연결이 고정한 입력과 달라지면 고정본으로 계속하지 않고 작업을 `failed`로 두고 사유 코드 `SOURCE_CHANGED`·`WORLD_CHANGED`·`WORLD_LINK_CHANGED`를 남긴다. 같은 작업을 재개해도 같은 거절이 반복되므로 화면은 실패한 작업에 항상 '같은 작업 재개'와 함께 동의 뒤 '새로 시작'(새 key, 지금 작품에 연결된 worldId가 우선이고 없으면 실패한 작업의 worldId)을 보인다 |
+
+표기 계약(AI `organize`와 Content 검증기가 글자 그대로 같아야 한다): 카드 본문·문서 줄은 `<표지> <인용>`이고 표지는 사건 `[사건]`, 묘사 `[묘사]`, 사실 `[사실]`, 규칙 `[규칙]`, 계획 `[계획]`, 목표 `[목표]`, 추측 `[추측]`이다. 사건 카드 제목은 `{n}화 · {인용 앞 24 코드포인트}`(코드포인트 기준, UTF-16 단위로 자르지 않는다)이고 본문은 `발생: N화 / 참여: 이름들` 줄과 `[사건] <인용>` 줄이다. 관계는 label이 관계명이고 설명(body)이 근거 인용이다. 모델이 내는 관계 변화 값은 `started`·`ended`뿐이고 `fromEpisode`(현재 회차)와 `ended`는 프로그램이 채운다. Content 적재는 이미 이어진 관계의 재시작과 시작이 기록되지 않은 종료를 싣지 않는다(적재를 거절하지 않는다).
 
 ## 관련
 
@@ -87,3 +101,5 @@
 V15 스냅샷이 없는 구 V41 실패 기록의 동일 ID 재실행은 409 PREPROCESSING_SNAPSHOT_MISSING이다. 읽기나 재개는 새 접수를 발생시키지 않는다. 적재 전 실패라는 근거가 있는 경우에만 작가가 새로 접수할 수 있고 새 ID에 현재 원고를 고정한다. 기존 실패의 진행 이력은 보존한다. 부분 적재 또는 결과 미확인이면 새 접수도 409 PREPROCESSING_LOAD_REVIEW_REQUIRED로 차단한다. 신규 회차 자동 반영과 구 작업 데이터 이관은 별도 범위다.
 
 V41 접수 커밋 직후 중단되어 V15 입력이 비어 있으면 소유자 GET은 기존 queued 기록과 manual_review를 반환한다. 동일 작업 retry와 새 접수는 409 PREPROCESSING_SNAPSHOT_MISSING으로 차단한다. 정상 입력 준비 중에도 일시적으로 같은 상태를 볼 수 있으므로 먼저 GET으로 다시 확인한다. 상태가 계속되면 작업 ID로 원래 입력과 적재 여부를 조사한다. 경과 시간이나 스냅샷 부재만으로 실패 전환·재접수를 허용하지 않는다.
+
+최초 입력 준비가 거절되어 V15 입력이 만들어지지 않았다면(이미 설정이 있는 세계관 409 등) 방금 만든 V41 접수 행을 지운다. 접수가 성립하지 않았으므로 실패 행으로 남겨 작품이 적재 확인 대기로 막히게 하지 않는다. 입력이 만들어진 뒤의 실패만 `failed` 행으로 남긴다.

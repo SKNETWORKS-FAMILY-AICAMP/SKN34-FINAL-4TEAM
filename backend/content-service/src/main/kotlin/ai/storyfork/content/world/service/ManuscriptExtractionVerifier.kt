@@ -25,7 +25,7 @@ object ManuscriptExtractionVerifier {
         require(ids.distinct().size==ids.size && ids.all { it.matches(Regex("[a-zA-Z][a-zA-Z0-9_-]{0,63}")) })
         val entities=mentions.associateBy { it.path("id").asString() }
         mentions.forEach {
-            require(it.path("kind").asString() in setOf("character","location","organization","object"))
+            require(it.path("kind").asString() in setOf("character","location","organization","object","rule"))
             require(it.path("name").asString().isNotBlank() && it.path("quote").asString().contains(it.path("name").asString()))
         }
         statements.forEach { row ->
@@ -36,13 +36,12 @@ object ManuscriptExtractionVerifier {
             require(knowers.all { entities.getValue(it).path("kind").asString()=="character" && quote.contains(entities.getValue(it).path("name").asString()) })
             val expected=when(kind) { "goal","plan"->"intended";"conjecture"->"uncertain";else->"asserted" }
             require(row.path("certainty").asString()==expected)
-            if(expected=="asserted") require(listOf("계획","추측","것 같","싶어","예정","지도 모","소문").none { quote.contains(it) })
             val occurred=row.path("occurredEpisode")
             require(occurred.isNull || (occurred.isIntegralNumber && occurred.asInt() in 0..source.number))
             if(kind in setOf("goal","plan","conjecture")) require(occurred.isNull)
             if(kind=="event") require(!occurred.isNull)
             val known=row.path("knownFromEpisode").asInt()
-            require(known==source.number || (known==0 && kind=="fact" && occurred.asInt()==0 && quote.contains("이야기 시작 전부터")))
+            require(known==source.number || (known==0 && kind=="fact" && occurred.asInt()==0))
         }
         relations.forEach { row ->
             val from=row.path("source").asString();val to=row.path("target").asString()

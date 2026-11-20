@@ -829,5 +829,6 @@ Draft·미병합: 최신 승인 검증·UUID/payload 예약, replace:false 추�
 - [x] 명시적 접수·고정 원문 snapshot·V15 job/result/load_step·Content의 기존 부분 추가 저장 연결(미커밋 작업).
 - [x] 제공사 대역 기반 4화 실제 HTTP → PostgreSQL/Neo4j → 작가 명시적 확정 수용 검증.
 - [x] 관리 화면 시작/상태/동일 작업 재개와 기존 작업실 연결. 격리 QA의 실로그인·4화 브라우저 편집/확정/재로그인, 실패 후 Content 프로세스 재시작·재개 확인([근거](verification/two-path-qa/browser-qa.md)). 실행 중 강제 종료/실배포/실모델 검증은 별도.
+- [x] 실제 문체 원고 대응(2026-11-20 결정, [정책](design/manuscript-preprocessing-contract.md#추출정체-정리-정책-2026-11-20-사용자-확정)): Content 검증·적재 반영(저장 회차 스냅샷에서 끝의 빈 초안 제외, 금칙어·시작 전 문구 요구 삭제, `same_name`·`rule`, 겹친 관계 제외, 추출 중 변경 사유 기록, 접수 거절 사유와 접수 행 정리, `skippedItems`)을 단위 테스트로 확인했다. AI 추출·화면 반영과 실모델 실측은 각 서비스 몫이다.
 - [ ] 실행 활성화 및 실모델 품질 평가. 기본 비활성 유지, 유료 호출 없음.
 - 10화 및 장애 확대 결과는 [현재 검증 기록](verification/two-path-qa/final-connection.md) 참조. 20~30화 성능은 후속, 100화 이상은 이번 범위 제외.

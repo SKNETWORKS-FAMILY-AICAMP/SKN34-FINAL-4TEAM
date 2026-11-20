@@ -11,9 +11,6 @@ import java.time.Duration
 
 @Configuration(proxyBeanMethods=false)
 class InitialWorldExtractionConfig {
-    @Bean fun manuscriptBuildClient(builder:RestClient.Builder,properties:AiServiceClientProperties,
-        @Value("\${INTERNAL_TOKEN:}") token:String)=ai.storyfork.content.world.client.ManuscriptBuildClient(
-        buildRestClient(builder.clone(),properties.baseUrl,properties.connectTimeout,Duration.ofSeconds(75)),token)
     @Bean fun initialWorldAnalysisClock():java.time.Clock=java.time.Clock.systemUTC()
     @Bean fun initialWorldExtractionClient(builder:RestClient.Builder,properties:AiServiceClientProperties,
         @Value("\${INTERNAL_TOKEN:}") token:String)=InitialWorldExtractionClient(

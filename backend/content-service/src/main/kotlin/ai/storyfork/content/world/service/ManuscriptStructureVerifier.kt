@@ -7,6 +7,15 @@ import tools.jackson.databind.json.JsonMapper
 
 /** 구조화 응답이 영속 추출의 정체·문서·기억·관계를 바꾸거나 미래 정보를 소급하지 않는지 검사한다. */
 object ManuscriptStructureVerifier {
+    /** 카드 본문·문서 줄의 표지(계약: kind → 한글). 파이썬 organize와 같은 글자여야 한다. */
+    private val KIND_LABEL=mapOf("event" to "사건","description" to "묘사","fact" to "사실","rule" to "규칙","plan" to "계획","goal" to "목표","conjecture" to "추측")
+    private fun marked(kind:String,quote:String)="[${KIND_LABEL.getValue(kind)}] $quote"
+
+    /** 사건 카드 제목은 "N화 · 인용 앞 24 코드포인트"다. UTF-16 단위로 자르면 이모지가 깨져 코드포인트로 센다. */
+    internal fun eventTitle(number:Int,quote:String):String {
+        val head=quote.codePoints().limit(24).toArray()
+        return "${number}화 · ${String(head,0,head.size)}"
+    }
     fun verify(all:List<ManuscriptEpisodeResult>,identity:JsonNode,payload:ManuscriptLoadPayload,mapper:JsonMapper) {
         fun array(node:JsonNode)= (0 until node.size()).map { node.get(it) }
         fun ordered(value:Any?):Any?=when(value) {
@@ -40,7 +49,7 @@ object ManuscriptStructureVerifier {
             require(mentions.getValue(left).path("kind")==mentions.getValue(right).path("kind"))
             when(decision.path("status").asString()) {
                 "merged" -> {
-                    require(link.path("basis").asString() in setOf("explicit_alias","explicit_coreference"))
+                    require(link.path("basis").asString() in setOf("explicit_alias","explicit_coreference","same_name"))
                     require(mentions.getValue(left).path("name")==mentions.getValue(right).path("name"))
                     parent[root(right)]=root(left)
                 }
@@ -69,15 +78,15 @@ object ManuscriptStructureVerifier {
             require(card.aliases==sorted.map { mentions.getValue(it).path("name").asString() }.distinct().filter { it!=card.title })
             val body=mutableListOf<String>();val soul=mutableListOf<String>();val goal=mutableListOf<String>();val memory=linkedMapOf<String,MutableList<String>>()
             for((n,row) in rows) for(statement in array(row.path("statements"))) {
-                val line="[${statement.path("kind").asString()}] ${statement.path("quote").asString()}"
+                val line=marked(statement.path("kind").asString(),statement.path("quote").asString())
                 val subject=array(statement.path("subjects")).any { mapping["$n:${it.asString()}"]==key }
                 val document=statement.path("document").asString()
                 if(n==first && subject && document in setOf("identity","soul","goal")) {
                     (if(document=="identity" || card.cardType!="character") body else if(document=="soul") soul else goal).add(line)
                 }
                 if(array(statement.path("knowers")).any { mapping["$n:${it.asString()}"]==key }) {
-                    val known=statement.path("knownFromEpisode").asInt()
-                    require(known!=0 || n==first)
+                    // 시작 전부터 아는 기억(0)은 인물의 첫 등장 회차에서만 00이다. 뒤 회차에서 밝혀진 것은 그 회차 기억이다(소급하지 않는다).
+                    val known=if(statement.path("knownFromEpisode").asInt()==0 && n==first) 0 else n
                     memory.getOrPut(known.toString().padStart(2,'0')) { mutableListOf() }.apply { if(line !in this) add(line) }
                 }
             }
@@ -87,14 +96,14 @@ object ManuscriptStructureVerifier {
         }
         val events=rows.flatMap { (n,row)->array(row.path("statements")).filter { it.path("kind").asString()=="event" }.map { n to it } }
         val eventCards=payload.cards.filter { it.key !in grouped }
-        require(eventCards.size==events.size)
-        for((n,event) in events) {
-            val title="${n}화 사건 ${event.path("id").asString()}"
-            val card=eventCards.singleOrNull { it.title==title } ?: throw IllegalArgumentException("MISSING_EVENT")
+        // 제목에 id가 없어 한 회차에서 앞부분이 같은 사건은 제목이 같을 수 있다. (회차, 제목, 본문)의 개수로 대조한다.
+        val expected=events.map { (n,event) ->
+            val quote=event.path("quote").asString()
             val names=array(event.path("subjects")).map { mapping.getValue("$n:${it.asString()}") }.distinct().sorted().joinToString(", ") { cards.getValue(it).title }
-            require(card.cardType=="event" && card.firstEpisode==n && card.aliases.isEmpty() && card.characterDocs==null)
-            require(card.body=="발생: ${event.path("occurredEpisode").asInt()}화 / 참여: $names\n[event] ${event.path("quote").asString()}")
+            Triple(n,eventTitle(n,quote),"발생: ${event.path("occurredEpisode").asInt()}화 / 참여: $names\n${marked("event",quote)}")
         }
+        require(eventCards.all { it.cardType=="event" && it.aliases.isEmpty() && it.characterDocs==null })
+        require(expected.groupingBy { it }.eachCount()==eventCards.map { Triple(it.firstEpisode,it.title,it.body) }.groupingBy { it }.eachCount()) { "MISSING_EVENT" }
         val relations=rows.flatMap { (n,row)->array(row.path("relationships")).map { r -> ManuscriptRelation(mapping.getValue("$n:${r.path("source").asString()}"),mapping.getValue("$n:${r.path("target").asString()}"),r.path("label").asString(),r.path("fromEpisode").asInt(),r.path("ended").asBoolean()) } }
         require(relations.size==payload.relations.size && relations.toSet()==payload.relations.toSet())
     }
