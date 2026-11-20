@@ -339,7 +339,7 @@ export class ReadingUseCase {
     const works = await this.workRepository.listWorks()
     const items: { k: string; w?: Work; label: string; sub: string; go: string }[] = []
     // 목업은 모든 작품에서 넣지만, 비공개 인물이 보이지 않도록 내 작품 집필실에서만 넣습니다.
-    const sw = studio && role === 'user' && works.find((w) => w.id === studio.id && isMine(w))
+    const sw = studio && role !== null && works.find((w) => w.id === studio.id && isMine(w))
     if (sw) {
       const at = (target: string) => `/studio/${sw.id}?${target}${studio.ep ? `&ep=${studio.ep}` : ''}`
       items.push({ k: '이동', label: 'AI 채팅', sub: '집필실', go: at('panel=chat') }, { k: '이동', label: '플롯', sub: '집필실', go: at('view=narrative') }, { k: '이동', label: '집필 설정', sub: '집필실', go: at('panel=settings') })
