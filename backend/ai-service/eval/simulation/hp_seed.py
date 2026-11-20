@@ -3,7 +3,7 @@
 시연 세계관 적재(infrastructure/sample-data/simulation-demo/seed.py)의 함수(작품 찾기·카드·관계 변환·값 비교·확정)를 그대로 불러 쓰고(seed.py는 고치지 않는다) 회차 저장 루프만 배치로 바꿨다.
 카드가 3천~4천 개라 seed.seed처럼 한 번에 보내면 서버 한도(WorldStudioService.validateEditRequest: 요청당 카드 1000개·직렬화 본문 2,000,000바이트)를 넘는다. 그래서
 ① 카드를 개수·바이트 한도 안의 배치로 모두 저장한 뒤(서버가 관계 양 끝 카드를 검사한다) ② 관계를 회차 오름차순으로, 회차마다 서버의 그 시점 관계와 world.json의 그 시점 관계를 비교해 다른 것만 배치로 보낸다(고칠 것은 그 회차의 연결로, world.json에서 줄어든 것은 종료 연결로).
-서버는 관계를 지우지 않고 회차마다 종료 연결(lifecycle removed)을 쓰므로 줄어든 관계도 이 비교로 모든 회차에서 끝난다. 저장 key는 보내는 입력에서 정해 같은 입력의 재시도가 같은 요청으로 알아봐진다. 배치 하나가 실패하면 2초·4초… 기다려 서버를 다시 읽고(응답을 못 받은 사이 들어간 것은 빼고) 다시 보낸다.
+서버는 관계를 지우지 않고 회차마다 종료 연결(lifecycle removed)을 쓰므로 줄어든 관계도 이 비교로 모든 회차에서 끝난다. 저장 key는 보내는 입력에서 정해 같은 입력의 재시도가 같은 요청으로 알아봐진다. 배치 하나가 실패하면 2초·4초… 기다려 같은 요청을 그대로 다시 보내고(저장 도중 멈춘 요청은 그래야 끝난다), 낡은 revision이면 서버를 다시 읽어(응답을 못 받은 사이 들어간 것은 빼고) 다시 보낸다.
 모든 시도가 실패한 배치는 세고 다음 배치로 계속 가며, 한 번 훑은 뒤 남은 단계만 한 번 더 시도하고 그래도 남으면 SeedError다(카드가 다 들어가지 않으면 관계는 보내지 않는다).
 world['work']에는 title·creationType·genres가 있어야 한다(seed._ensure_work가 읽는다). 원고(episodes/*.md)는 발행하지 않는다.
 서버가 끝에서 거절할 입력(빈 제목·본문 카드, 마지막 회차 시점 관계 10,000개 초과)은 아무것도 보내기 전에 알린다(check_world).
@@ -147,14 +147,23 @@ def seed_hp(seed, world: dict, call, *, log=print, cards_per_batch=50, relations
         for i, piece in enumerate(pieces, 1):
             if len(piece) == 1 and (size := len(json.dumps(piece, ensure_ascii=False).encode('utf-8'))) > max_bytes:
                 log(f'{label} 배치 {i}/{len(pieces)}: 항목 하나가 {size}바이트로 한도 {max_bytes}바이트를 넘어요(혼자 보냄)')
-            batch = piece
+            batch, sent = piece, None   # sent: 마지막으로 보낸 요청의 (배치, revision)
             for attempt in range(1, attempts + 1):
                 try:
+                    if sent and attempt > 1:   # 저장 도중 멈춘 요청은 같은 key·입력으로 다시 보내야 끝나므로(서버가 그렇게 안내한다. 멈춘 동안은 조회도 503이다) 읽기 전에 그대로 다시 보낸다
+                        try:
+                            draft = put(field, episode, *sent)
+                            break
+                        except seed.SeedError as error:
+                            if 'HTTP 409' not in str(error):
+                                raise   # 서버가 아직 멈춰 있거나 일시 오류면 이 시도는 실패다(다음 시도에서 같은 요청을 다시 보낸다)
+                            # 낡은 revision(409)이면 아래에서 서버를 다시 읽어 맞춘다
                     if attempt > 1 or draft is None:   # 다시 보내기 전과 실패한 배치 다음에는 서버를 다시 읽어, 응답을 못 받은 사이 들어간 것은 빼고 보낸다
                         draft = read(episode)
                         batch = _pending(seed, draft, field, batch, fields)
                     if batch:
-                        draft = put(field, episode, batch, draft['draftRevision'])
+                        sent = (batch, draft['draftRevision'])
+                        draft = put(field, episode, *sent)
                     break
                 except seed.SeedError as error:
                     log(f'{label} 배치 {i}/{len(pieces)}: {attempt}번째 시도 실패({error})')

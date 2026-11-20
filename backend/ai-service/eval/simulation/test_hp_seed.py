@@ -91,6 +91,8 @@ class FakeStack:
         self.calls, self.puts, self.revision_posts = [], [], []
         self.fail = lambda n, body: None     # n번째 PUT draft를 (상태, detail)로 거절시킨다(저장하지 않음)
         self.lose = lambda n, body: False    # True면 저장은 하고 응답은 500으로 돌려준다(응답을 못 받은 경우)
+        self.stall = lambda n, body: False   # True면 저장 도중 멈춘 것처럼 503을 돌려주고, 같은 key·revision의 요청이 다시 올 때까지 조회·다른 저장이 모두 503이다(관계 저장 미완료)
+        self.stalled = None
 
     @property
     def world(self):
@@ -125,6 +127,8 @@ class FakeStack:
                 return self.revisions(wid, method, rest[1:], body)
             if method == 'GET' and wid not in self.worlds:
                 return 404, {'detail': '세계관을 찾을 수 없습니다.'}
+            if method == 'GET' and self.stalled:
+                return 503, {'detail': '관계 저장이 미완료입니다. 동일한 요청 키와 입력으로 다시 시도하세요.'}
             return (200, self.draft(wid, int(query.split('=')[1]) if query else None)) if method == 'GET' else self.put(wid, body)
         if route.startswith('/api/v1/works/'):
             work, rest = self.works[parts[4]], '/'.join(parts[5:])
@@ -175,6 +179,11 @@ class FakeStack:
         world = self.worlds[wid]
         self.puts.append(body)
         n = len(self.puts)
+        mine = (body['key'], body['expectedDraftRevision'])
+        if (self.stalled and self.stalled != mine) or self.stall(n, body):   # 멈춘 동안은 같은 요청이 아니면 거절하고, 다시 보낸 같은 요청도 계속 멈출 수 있다
+            self.stalled = self.stalled or mine
+            return 503, {'detail': '관계 저장이 미완료입니다. 동일한 요청 키와 입력으로 다시 시도하세요.'}
+        self.stalled = None   # 같은 요청이 다시 와서 끝낸다
         if (refused := self.fail(n, body)):
             return refused[0], {'detail': refused[1]}
         if len(body['cards']) > 1000 or len({c['id'] for c in body['cards']}) != len(body['cards']) \
@@ -337,7 +346,7 @@ def test_응답을_못_받은_저장은_서버를_다시_읽어_이미_들어간
     fake = FakeStack()
     fake.lose = lambda n, body: n == 3   # 세 번째 PUT은 저장됐지만 응답이 500으로 돌아온다
     stats, _, waits = run(fake, **OPTIONS)
-    assert len(fake.puts) == len(base.puts)   # 같은 배치를 다시 보내지 않는다
+    assert len(fake.puts) == len(base.puts) + 1 and fake.puts[3] == fake.puts[2]   # 같은 요청을 그대로 한 번 다시 보내고(서버가 같은 key·revision은 한 번만 적용한다) 다른 배치는 다시 보내지 않는다
     assert waits == [2] and stats['batches']['retried'] == 1 and stats['batches']['failed'] == 0
     assert stats['cards']['sent'] == 130 and len(fake.world['cards']) == 130 and len(fake.draft(WORLD_ID, 7)['relationships']) == 52
 
@@ -669,3 +678,20 @@ def test_세계관_설명을_고친_뒤_다시_적재해도_세계관을_다시_
     mark = len(fake.puts)
     run(fake, changed, **OPTIONS)
     assert len(fake.puts) == mark   # 같으면 다시 보내지 않는다
+
+
+def test_저장_도중_멈춘_서버는_같은_요청을_그대로_다시_보내야_끝나므로_읽기_전에_다시_보낸다(first_run):
+    base = first_run[0]
+    fake = FakeStack()
+    fake.stall = lambda n, body: n == 3   # 세 번째 PUT에서 서버가 멈춘다: 이후 조회도 다른 저장도 같은 요청이 올 때까지 503
+    stats, _, waits = run(fake, **OPTIONS)
+    assert fake.stalled is None and fake.puts[3] == fake.puts[2] and len(fake.puts) == len(base.puts) + 1   # 같은 key·입력의 요청이 다시 가서 끝났다
+    assert waits == [2] and stats['batches']['retried'] == 1 and stats['batches']['failed'] == 0
+    assert len(fake.world['cards']) == 130 and len(fake.draft(WORLD_ID, 7)['relationships']) == 52
+
+
+def test_멈춘_서버가_끝내_안_풀리면_실패로_세고_원인을_알리며_멈춘다():
+    fake = FakeStack()
+    fake.stall = lambda n, body: n >= 3   # 세 번째 PUT부터 서버가 계속 멈춰 있다
+    with pytest.raises(seed.SeedError, match='503|미완료'):
+        run(fake, **OPTIONS)
