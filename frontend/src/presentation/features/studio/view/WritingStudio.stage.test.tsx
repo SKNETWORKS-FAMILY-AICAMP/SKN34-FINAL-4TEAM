@@ -225,6 +225,38 @@ it('작품에 편집할 회차가 없으면 시뮬레이션 버튼을 잠근다'
   model.active = { number: 3, draft: { title: '셋째', body: '원고', revision: 1 }, versions: [], inherited: false, hasDraft: true, publishedVersionId: 'v3', checkpoints: [] }
 })
 
+// 장면 대기(awaitingScene)에도 서버가 반영 회차(approvalEpisode)를 싣는다(#364): 승인 대기와 같은 정렬이 장면 대기 복원에도 적용된다.
+it('새로 고친 뒤 장면 대기(awaitingScene)가 복원되어도 편집기를 서버가 알려 준 반영 회차로 연다(주소의 ?ep=가 다른 회차여도)', async () => {
+  model.episodes = [...model.episodes, fourth] // 편집기는 3화에 열려 있다.
+  stored({ ...pausedReply(), approvalEpisode: 4 })
+  renderStudio()
+  await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
+  await waitFor(() => expect(model.select).toHaveBeenCalledWith(fourth))
+  expect(model.select).toHaveBeenCalledTimes(1)
+})
+
+it('장면이 턴마다 멈춰도(대기 → 요청 중 → 대기) 작가가 고른 회차를 다시 반영 회차로 되돌리지 않는다', async () => {
+  model.episodes = [...model.episodes, fourth]
+  stored({ ...pausedReply(), approvalEpisode: 4 })
+  const waits = [
+    () => ({ status: 'waiting', steps: [simStep(scene())], missingInputs: [], awaitingScene: 'character_simulation', approvalEpisode: 4 }) as ChatReply,
+    () => ({ ...approvalReply(), approvalEpisode: 4 }),
+  ]
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    const reply = waits.shift()!()
+    store.reply = reply
+    onEvent({ type: 'waiting', steps: reply.steps, missingInputs: [], awaitingScene: reply.awaitingScene, awaitingApproval: reply.awaitingApproval })
+    onEvent({ type: 'done', reply })
+  })
+  renderStudio()
+  const stage = await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
+  await waitFor(() => expect(model.select).toHaveBeenCalledTimes(1))
+  fireEvent.click(within(stage).getByRole('button', { name: '재생' })) // 새로 고친 뒤 이어진 장면은 재생을 눌러야 이어 간다
+  await within(stage).findByRole('region', { name: '원고 반영' })
+  expect(send).toHaveBeenCalledTimes(2)
+  expect(model.select).toHaveBeenCalledTimes(1)
+})
+
 // 채팅에서 계획 수정을 승인해 저장하면 계획 패널과 시뮬레이션 시작 양식이 최신 계획을 다시 읽는다(#637).
 const plotPlan = { id: 'plot-1', workId: 'work-id', kind: 'plot', parentId: null, title: '복수극', content: '', episodeNumber: null, characterIds: [], placeIds: [], revision: 1, episodeMissing: false }
 const scenePlan = (title: string, content: string) => ({ id: 'scene-1', workId: 'work-id', kind: 'scene', parentId: 'plot-1', title, content, episodeNumber: 3, characterIds: [], placeIds: [], revision: 1, episodeMissing: false })

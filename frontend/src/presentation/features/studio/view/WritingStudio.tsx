@@ -178,10 +178,15 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   // 항목의 ⋮ 메뉴가 고른 회차를 먼저 선택한다(저장하지 않은 입력을 버리지 않으면 false). 이미 선택된 회차는 다시 고르지 않는다.
   const pick=(e:WritingEpisode)=>{if(active?.number===e.number)return true;if(!vm.select(e))return false;setSelection({episode:0,id:''});setRights(false);return true}
   // 승인을 기다리는 장면·제안의 반영 회차(서버가 알려 준 값)가 열린 회차와 다르면 편집기를 그 회차로 연다. 새로 고친 뒤 주소의 ?ep=n이 다른 회차여도 승인 문구와 편집기가 같은 회차를 가리킨다.
-  // 승인 회차가 새로 오거나 목록이 준비될 때만 맞추므로 그 뒤 작가가 고른 회차는 되돌리지 않는다.
+  // 승인 회차가 새로 오거나 목록이 준비될 때만 맞추므로 그 뒤 작가가 고른 회차는 되돌리지 않는다. 장면 대기(#364)는 턴마다 요청 중(null)을 거쳐 같은 회차로 돌아오므로
+  // 같은 대화의 같은 반영 회차는 한 번만 맞춘다(턴이 끝날 때마다 편집기가 끌려오지 않는다).
   const approvalEpisode=chat.approvalEpisode
+  const aligned=useRef('')
   const openApproval=useEffectEvent((target:number)=>{const e=vm.episodes.find(x=>x.number===target);if(e)pick(e)})
-  useEffect(()=>{if(approvalEpisode&&vm.ready)openApproval(approvalEpisode)},[approvalEpisode,vm.ready])
+  useEffect(()=>{
+    const key=`${chat.threadId}:${approvalEpisode}`
+    if(approvalEpisode&&vm.ready&&aligned.current!==key){aligned.current=key;openApproval(approvalEpisode)}
+  },[approvalEpisode,vm.ready,chat.threadId])
   const deleteActive=async()=>settled(await vm.deleteEpisode())
   // 다른 회차의 삭제는 그 회차가 활성 회차가 된 다음 렌더에서 시작한다(삭제는 렌더 시점의 활성 회차를 지운다).
   const [deleting,setDeleting]=useState(0)
