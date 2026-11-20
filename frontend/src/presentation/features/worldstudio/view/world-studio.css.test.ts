@@ -112,3 +112,11 @@ it('연관 설정 목록의 줄은 제목과 문구가 한 줄에 안 들어가�
   expect(label).not.toMatch(/flex:\s*none/)
   expect(label).toMatch(/min-width:\s*0/)
 })
+
+it('터치 기기에서는 설정집 도구줄·편집 화면 레일의 검색·정렬 입력이 16px라 iOS가 초점에서 화면을 확대하지 않는다', () => {
+  // 위의 13.5px 규칙(.episode-app .world-compact input:not()…, 특이도 (0,4,1))이 shared/episode.css의 16px 보정((0,3,1))을 이기므로, 같은 선택자(:not()까지)를 뒤에서 되돌린다.
+  const coarse = css.match(/@media\(pointer:coarse\)\{\.episode-app \.world-compact input:not\(\[type=checkbox\]\):not\(\[type=radio\]\),\.episode-app \.world-compact select,\.world-rail-tools input\{font-size:16px\}\}/)
+  expect(coarse).not.toBeNull()
+  expect(coarse!.index).toBeGreaterThan(css.indexOf('.world-rail-tools input{')) // 같은 특이도는 뒤에 온 규칙이 이긴다
+  expect(coarse!.index).toBeGreaterThan(css.indexOf('.episode-app .world-compact select'))
+})
