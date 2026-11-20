@@ -64,8 +64,8 @@ it('소설 상세의 제목은 단계를 건너뛰지 않는다', async () => {
   renderApp('/work/postman', createAppStore({ role: 'user' }))
   await screen.findByRole('heading', { name: '회색 도시의 우편배달부', level: 1 })
   // 오른쪽 포크 안내 상자의 제목은 h1 바로 아래 구역 제목이다(화면 읽기 프로그램의 제목 이동이 끊기지 않게).
-  expect(screen.getByRole('heading', { name: '이 소설, 다르게 쓰고 싶다면', level: 2 })).toBeTruthy()
-  const levels = screen.getAllByRole('heading').map((h) => Number(h.getAttribute('aria-level') ?? h.tagName.slice(1)))
+  expect(screen.getByRole('heading', { name: '이 소설, 다르게 쓰고 싶다면' }).tagName).toBe('H2')
+  const levels = screen.getAllByRole('heading').map((h) => Number(h.tagName.slice(1)))
   expect(levels.filter((level, i) => i > 0 && level > levels[i - 1] + 1)).toEqual([])
 })
 

@@ -1,6 +1,5 @@
 import { Navigate, useParams, useSearchParams } from 'react-router'
 
-import { Art } from '../../../shared/art'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { BackChev } from '../../../shared/icons'
@@ -39,7 +38,6 @@ function ForkForm({id}:{id:string}) {
   const w = d.work
   return (
     <div className={`calm calm-${w.theme}`} style={{ minHeight: '100vh' }}>
-      <div className="band" style={{ height: 300 }}><Art theme={w.theme} w={1200} h={300} seed={w.id + 'band'} /></div>
       <div className="wrap"><div className="topbar"><Go to={`/work/${id}`} className="back"><BackChev />{w.title}</Go><span style={{ marginLeft: 'auto' }} /></div></div>
       <main className="fork" id="main" tabIndex={-1}>
         <h1>「{w.title}」 포크</h1><p className="lead">고른 회차가 끝난 순간부터 나만의 소설이 시작돼요.</p>
