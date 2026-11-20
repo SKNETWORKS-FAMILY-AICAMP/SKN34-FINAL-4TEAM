@@ -230,7 +230,7 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage, cardOf,
     if (m.role !== 'user' || m.id === 'live') return null
     const index = Number(m.id.slice(1))
     if (editing?.index === index) {
-      return <form className="chat-edit" onSubmit={(e) => { e.preventDefault(); const text = editing.text.trim(); if (text) { setEditing(null); void vm.edit(index, text) } }}>
+      return <form className="chat-edit" onSubmit={async (e) => { e.preventDefault(); const text = editing.text.trim(); if (text && await vm.edit(index, text)) setEditing(null) }}>
         <label className="sr-only" htmlFor={`${id}-edit`}>고칠 메시지</label>
         <textarea id={`${id}-edit`} rows={2} value={editing.text} maxLength={2000} autoFocus onChange={(e) => setEditing({ index, text: e.target.value })}
           onKeyDown={(e) => { if (e.key === 'Escape') setEditing(null) }} />
@@ -275,7 +275,7 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage, cardOf,
         </PopMenu>
       </>}
     </div>
-    <ChatPanel messages={messages} onSend={vm.send} busy={vm.pending} disabledReason={vm.lockedReason}
+    <ChatPanel messages={messages} onSend={vm.send} busy={vm.pending} disabledReason={vm.lockedReason} inputError={vm.inputError}
       emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}

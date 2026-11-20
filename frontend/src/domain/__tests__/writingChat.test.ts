@@ -369,10 +369,11 @@ describe('chatPage', () => {
     expect(chatPage({ ...studio, path: `/studio/${'a'.repeat(400)}` }).path).toHaveLength(300)
   })
 
-  it('선택한 글은 5,000자 이하만 싣고 비었거나 공백뿐이거나 넘치면 뺀다(잘린 글은 수정 대상이 될 수 없다)', () => {
+  it('선택한 글은 5,000자까지 싣고 넘으면 전송에 필요한 수정 방법을 알린다', () => {
     expect(chatPage({ ...studio, selection: '그는 웃었다.' }).selection).toBe('그는 웃었다.')
     expect(chatPage({ ...studio, selection: '가'.repeat(5000) }).selection).toHaveLength(5000)
-    for (const selection of ['', '  \n ', '가'.repeat(5001)]) expect(chatPage({ ...studio, selection })).not.toHaveProperty('selection')
+    for (const selection of ['', '  \n ']) expect(chatPage({ ...studio, selection })).not.toHaveProperty('selection')
+    expect(() => chatPage({ ...studio, selection: '가'.repeat(5001) })).toThrow('5,000자')
   })
 
   it('저장하지 않은 편집 내용은 unsaved로 싣고 없으면 content를 넣지 않는다', () => {

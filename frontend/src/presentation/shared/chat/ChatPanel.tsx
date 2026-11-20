@@ -21,12 +21,13 @@ const kindLabel = { image: '이미지', audio: '음성' } as const
  * - renderCard: 메시지 글 바로 아래에 이어 그릴 카드(인물 시뮬레이션 장면 등). 이 카드가 있는 말풍선은 폭을 채운다.
  * - renderActions: 메시지 말풍선 아래의 행동(수정·삭제 등).
  */
-export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledReason, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, renderCard, renderActions }: {
+export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledReason, inputError, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, renderCard, renderActions }: {
   messages: ChatMessage[]
   onSend?: (text: string) => boolean | Promise<boolean>
   busy?: boolean
   onAttach?: (kind: ChatAttachment['kind'], file: File) => void
   disabledReason?: string
+  inputError?: string
   emptyTitle?: string
   emptyText?: string
   suggestions?: string[]
@@ -38,6 +39,7 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
   const box = useRef<HTMLTextAreaElement>(null)
   const files = useRef<Record<ChatAttachment['kind'], HTMLInputElement | null>>({ image: null, audio: null })
   const id = useId()
+  const errorId = `${id}-error`
   const reasonId = `${id}-reason`
   const attachId = `${id}-attach`
   const locked = !!disabledReason || !onSend
@@ -83,7 +85,7 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
     </div>
     <form className="chat-composer" onSubmit={e => { e.preventDefault(); void submit() }}>
       <div className={`chat-card${locked ? ' locked' : ''}`}>
-        <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={disabledReason ? reasonId : undefined}
+        <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={disabledReason ? reasonId : inputError ? errorId : undefined}
           onChange={e => { setDraft(e.target.value); setFailed(false) }}
           onKeyDown={e => {
             // Safari는 조합 확정 Enter를 isComposing=false, keyCode=229로 보낸다
@@ -102,6 +104,7 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
         </div>
       </div>
       {disabledReason && <p id={reasonId} className="chat-note">{disabledReason}</p>}
+      {inputError && <p id={errorId} role="alert" className="chat-note">{inputError}</p>}
       {failed && <p role="alert" className="chat-note">보내지 못했어요. 입력은 그대로 남아 있어요. 다시 시도해 주세요.</p>}
       {/* 파일 선택은 첨부 메뉴가 닫혀도 남아 있어야 고른 파일을 받을 수 있다. */}
       {onAttach && kinds.map(kind => <input key={kind} hidden type="file" accept={`${kind}/*`} ref={el => { files.current[kind] = el }}

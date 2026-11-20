@@ -26,6 +26,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const [live, setLive] = useState<LiveTurn | null>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const [inputError, setInputError] = useState('')
   // 턴 사이에 멈춘 시뮬레이션 장면이 작가 조작을 기다리게 된 횟수(무대가 자동 재생이면 이 값이 오를 때마다 다음 턴을 보낸다).
   const [sceneTicket, setSceneTicket] = useState(0)
   const active = useRef<AbortController | null>(null)
@@ -69,7 +70,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
 
   // 작품이 바뀌면 처음부터: 목록을 읽고 가장 최근 대화를 연다.
   useEffect(() => {
-    setSessions(null); setThreadId(null); setTurns([]); setLive(null); setPending(false); setError('')
+    setSessions(null); setThreadId(null); setTurns([]); setLive(null); setPending(false); setError(''); setInputError('')
     void refreshSessions(true)
     return () => { generation.current += 1; sessionsRequest.current?.abort(); active.current?.abort(); active.current = null }
   }, [refreshSessions])
@@ -92,6 +93,14 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   async function stream(request: string, input: ChatSendBody, editIndex?: number) {
     if (active.current) return false
     if (!useCase || !workId || !basis) { setError(lockedReason ?? '지금은 보낼 수 없어요.'); return false }
+    let screen: ChatPage | undefined
+    try {
+      screen = 'request' in input ? page.current?.() : undefined
+    } catch (failure) {
+      setInputError(message(failure, '보낼 화면 정보를 읽지 못했어요.'))
+      return false
+    }
+    setInputError('')
     const controller = new AbortController()
     active.current = controller
     const owner = generation.current
@@ -106,8 +115,6 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     try {
       id ??= await useCase.open(workId, controller.signal)
       if (!threadId) { current.current = id; setThreadId(id) }
-      // 새 메시지에만 지금 화면을 싣는다(이어가기는 대화에 저장된 맥락으로 이어 간다).
-      const screen = 'request' in input ? page.current?.() : undefined
       await useCase.send(workId, id, { ...basis, ...input, ...(screen ? { page: screen } : {}) }, (event) => {
         if (active.current !== controller) return
         if (event.type === 'error') { ok = false; setError(event.message) }
@@ -153,15 +160,15 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const awaiting = waiting?.awaitingScene === 'character_simulation' ? 'scene' as const : waiting?.awaitingApproval === 'character_simulation' ? 'approval' as const : null
 
   return {
-    sessions, threadId, title, turns, live, waiting, pending, error, lockedReason,
+    sessions, threadId, title, turns, live, waiting, pending, error, inputError, lockedReason,
     available: !!useCase && !!workId && !!basis, basisEpisode: basis?.episode ?? null,
     // 결과를 반영할 회차(작가가 연 회차). 근거 회차와 다를 수 있다(5화 초안은 4화까지를 근거로 5화에 반영한다).
     targetEpisode: basis?.targetEpisode ?? basis?.episode ?? null,
     simulation: simulationStep?.simulation ?? null, simulationStep, awaiting, approvalEpisode: waiting?.approvalEpisode ?? null,
     streaming: !!live, deciding: !!live?.decision, sceneTicket,
     dismissError: () => setError(''),
-    select: (id: string) => { if (active.current || id === threadId) return; current.current = id; setTurns([]); setError(''); setThreadId(id) },
-    startNew: () => { if (active.current) return; current.current = null; setThreadId(null); setTurns([]); setTitle(''); setError('') },
+    select: (id: string) => { if (active.current || id === threadId) return; current.current = id; setTurns([]); setError(''); setInputError(''); setThreadId(id) },
+    startNew: () => { if (active.current) return; current.current = null; setThreadId(null); setTurns([]); setTitle(''); setError(''); setInputError('') },
     send: (text: string, extra?: { operation?: ChatFeature; simulation?: SimulationStart }) => stream(text, { request: text, ...extra }),
     edit: (index: number, text: string) => stream(text, { request: text }, index),
     resume: (approved: boolean, inputs?: ChatStepInputs) => stream(turns.at(-1)?.request ?? '', { resume: { approved, inputs } }),
