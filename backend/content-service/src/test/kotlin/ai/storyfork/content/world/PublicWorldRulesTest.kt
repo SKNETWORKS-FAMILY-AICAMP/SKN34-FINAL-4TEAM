@@ -1,15 +1,14 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content._common.exception.ContentFailure
-import ai.storyfork.content.world.domain.WORLD_GENRES
 import ai.storyfork.content.world.domain.cardImageId
+import ai.storyfork.content.world.domain.isGenreCode
 import ai.storyfork.content.world.domain.isListed
 import ai.storyfork.content.world.domain.publicWorldPage
 import ai.storyfork.content.world.domain.readerUpto
 import ai.storyfork.content.world.domain.revealFromEpisode
 import ai.storyfork.content.world.domain.shownCardEpisode
 import ai.storyfork.content.world.domain.visibleRelationships
-import ai.storyfork.content.world.domain.worldGenre
 import ai.storyfork.content.world.domain.worldVisibility
 import ai.storyfork.content.world.service.dto.RelationshipPayload
 import java.util.UUID
@@ -24,10 +23,6 @@ class PublicWorldRulesTest {
     private val c = UUID.randomUUID()
     private fun relation(source: UUID?, target: UUID?) = RelationshipPayload(UUID.randomUUID(), source, target, "structural", label = "관계")
 
-    @Test fun `genre codes are exactly the seven public codes`() {
-        assertEquals(listOf("fantasy", "sf", "wuxia", "romance", "modern", "classic", "mystery"), WORLD_GENRES)
-    }
-
     @Test fun `visibility accepts only the exact private and public codes`() {
         assertEquals("public", worldVisibility("public"))
         assertEquals("private", worldVisibility("private"))
@@ -36,12 +31,10 @@ class PublicWorldRulesTest {
         }
     }
 
-    @Test fun `genre is optional but must be an exact known code`() {
-        assertNull(worldGenre(null))
-        WORLD_GENRES.forEach { assertEquals(it, worldGenre(it)) }
-        listOf("", " sf", "Fantasy", "romcom").forEach {
-            assertThrows(IllegalArgumentException::class.java) { worldGenre(it) }
-        }
+    @Test fun `a genre filter is a Content genre code in the genre-NN form and the old English codes are gone`() {
+        // 세계관 장르는 작품과 같은 Content 장르 코드다(DEC-56). 코드가 실제 있는지는 목록이 말해 주므로(없으면 빈 목록) 모양만 본다.
+        listOf("genre-01", "genre-30", "genre-31", "genre-100").forEach { assertTrue(isGenreCode(it), it) }
+        listOf("", "fantasy", "sf", "wuxia", "romcom", "genre-1", "genre-", "Genre-01", " genre-01", "genre-01 ", "genre-0a").forEach { assertFalse(isGenreCode(it), it) }
     }
 
     @Test fun `only a public world that has a saved revision is listed`() {

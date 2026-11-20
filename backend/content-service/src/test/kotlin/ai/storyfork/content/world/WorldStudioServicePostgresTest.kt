@@ -46,6 +46,8 @@ class WorldStudioServicePostgresTest {
             "app.worldstudio.neo4j.uri=${System.getenv("NEO4J_URI")}","app.worldstudio.neo4j.username=neo4j",
             "app.worldstudio.neo4j.password=${System.getenv("NEO4J_PASSWORD")}").applyTo(this)
         beanFactory.registerSingleton("jsonMapper",JsonMapper.builder().addModule(KotlinModule.Builder().build()).build())
+        // WorldStudioService가 세계관 장르 확인(DEC-56)에 쓰는 Content 저장소다. 이 부분 컨텍스트는 Content JPA를 올리지 않고 장르를 고르는 호출도 없다.
+        beanFactory.registerSingleton("genreRepository",org.mockito.Mockito.mock(ai.storyfork.content.work.repository.GenreRepository::class.java))
         register(ai.storyfork.content._common.config.ContentDatabaseConfig::class.java,WorldStudioConfig::class.java,
             Neo4jRelationshipConfig::class.java,Neo4jRelationshipRepository::class.java,WorldStudioService::class.java)
         refresh()
@@ -105,7 +107,8 @@ class WorldStudioServicePostgresTest {
                 ctx.getBean(WorldRevisionRepository::class.java),ctx.getBean(WorldRevisionCardRepository::class.java),ctx.getBean(WorldSaveRequestRepository::class.java),
                 ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(TemplatePublicationOnceRepository::class.java),ctx.getBean(ExpandedSeedProgressRepository::class.java),
                 ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(SettingCardImageRepository::class.java),graph,
-                ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java),ctx.getBean(JsonMapper::class.java))
+                ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java),ctx.getBean(JsonMapper::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.repository.GenreRepository::class.java))
             val seeder=ExpandedTemplateSeeder(service,ctx.getBean(JsonMapper::class.java),true)
             assertThrows(WorldStudioFailure::class.java) { seeder.seedWorld(world,chunks) }
             val entity=ctx.getBean(StudioWorldRepository::class.java).findById(id).orElseThrow()
@@ -253,7 +256,8 @@ class WorldStudioServicePostgresTest {
                 ctx.getBean(WorldRevisionRepository::class.java),ctx.getBean(WorldRevisionCardRepository::class.java),ctx.getBean(WorldSaveRequestRepository::class.java),
                 ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(TemplatePublicationOnceRepository::class.java),ctx.getBean(ExpandedSeedProgressRepository::class.java),
                 ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(SettingCardImageRepository::class.java),graph,
-                ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java),ctx.getBean(JsonMapper::class.java))
+                ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java),ctx.getBean(JsonMapper::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.repository.GenreRepository::class.java))
             val world=ExpandedWorld("race",id,"확장","",listOf("one.json"))
             val chunk=ExpandedChunk(current.cards.map { it.copy(body="새 본문") },emptyList())
             Executors.newSingleThreadExecutor().use { pool ->
@@ -288,7 +292,8 @@ class WorldStudioServicePostgresTest {
                 ctx.getBean(WorldRevisionRepository::class.java),ctx.getBean(WorldRevisionCardRepository::class.java),ctx.getBean(WorldSaveRequestRepository::class.java),
                 ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(TemplatePublicationOnceRepository::class.java),ctx.getBean(ExpandedSeedProgressRepository::class.java),
                 ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(SettingCardImageRepository::class.java),graph,
-                ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java),ctx.getBean(JsonMapper::class.java))
+                ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java),ctx.getBean(JsonMapper::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.repository.GenreRepository::class.java))
             val original=EditWorldDraftRequest(0,old.name,old.description,GenreTemplateRepair.soulPayloads(template),key="genre-template-korea_history")
             assertThrows(WorldStudioFailure::class.java) { interrupted.edit(id,owner,original) }
             val before=ctx.getBean(WorldRelationshipStateRepository::class.java).findById(id).orElseThrow()
@@ -685,7 +690,8 @@ class WorldStudioServicePostgresTest {
                 ctx.getBean(WorldRevisionRepository::class.java),ctx.getBean(WorldRevisionCardRepository::class.java),ctx.getBean(WorldSaveRequestRepository::class.java),
                 ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(TemplatePublicationOnceRepository::class.java),ctx.getBean(ExpandedSeedProgressRepository::class.java),
                 ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(SettingCardImageRepository::class.java),slow,
-                ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java),ctx.getBean(JsonMapper::class.java))
+                ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java),ctx.getBean(JsonMapper::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.repository.GenreRepository::class.java))
             Executors.newSingleThreadExecutor().use { pool ->
                 val future=pool.submit { migration.publishPristineTemplate(template,null,null) }
                 try { assertTrue(entered.await(10,TimeUnit.SECONDS));service.publication(template.worldId,owner,PublicationRequest("private",null)) }
