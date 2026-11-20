@@ -24,4 +24,16 @@ describe('원고 가져오기 화면 스타일', () => {
     expect(box).toMatch(/width:\s*24px/)
     expect(box).toMatch(/height:\s*24px/)
   })
+
+  it('평평한 목록(.mi-episode의 border: 0)에서도 제외한 회차는 점선 테두리 두께를 되살린다', () => {
+    // 두께가 0이면 점선·색만으로는 테두리가 보이지 않는다.
+    expect(rule('.mi-episode.is-excluded')).toMatch(/border-width:\s*1px/)
+  })
+
+  it('미리보기·등록 실패 사유(p[role=alert])는 위험색 굵은 글씨로 본문과 구분한다', () => {
+    // 저장하지 못한 회차 묶음(section.mi-failed)도 role=alert지만 제목만 빨갛게 두므로 문단으로 한정한다.
+    const alert = rule('.manuscript-import p[role="alert"]')
+    expect(alert).toMatch(/color:\s*var\(--danger\)/)
+    expect(alert).toMatch(/font-weight:\s*700/)
+  })
 })

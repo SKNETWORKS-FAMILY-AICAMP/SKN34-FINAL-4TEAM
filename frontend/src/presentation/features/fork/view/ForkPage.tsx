@@ -22,7 +22,7 @@ function ForkForm({id}:{id:string}) {
   const vm = useForkViewModel(id, Number(q.get('at')))
   const d = vm.form
   useDocumentTitle('포크 만들기')
-  if (d === undefined || vm.isError) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
+  if (d === undefined || vm.isError) return <main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main>
   if (d === null) return <Navigate replace to={`/work/${id}`} />
   if (d.existing) {
     return (
@@ -38,7 +38,7 @@ function ForkForm({id}:{id:string}) {
   const w = d.work
   return (
     <div className={`calm calm-${w.theme}`} style={{ minHeight: '100vh' }}>
-      <div className="wrap"><div className="topbar"><Go to={`/work/${id}`} className="back"><BackChev />{w.title}</Go><span style={{ marginLeft: 'auto' }} /></div></div>
+      <div className="wrap fork-top"><div className="topbar"><Go to={`/work/${id}`} className="back"><BackChev /><span>{w.title}</span></Go></div></div>
       <main className="fork" id="main" tabIndex={-1}>
         <h1>「{w.title}」 포크</h1><p className="lead">고른 회차가 끝난 순간부터 나만의 소설이 시작돼요.</p>
         <section className="tcard fstep">

@@ -101,10 +101,10 @@ describe('세계관 작업실 레이아웃 규칙', () => {
     expect(studio).toMatch(/@media\(max-width:900px\)\{[^@]*\.world-chat\{[^}]*position:fixed/)
   })
 
-  it('탭 줄은 탭과 상시 저장 영역을 한 줄에 두고 저장 영역을 오른쪽 끝으로 민다', () => {
-    expect(rule(studio, '.world-tabs-row')).toMatch(/display:\s*flex/)
-    expect(rule(studio, '.world-tabs-row')).toMatch(/justify-content:\s*space-between/)
-    expect(rule(studio, '.world-save-bar')).toMatch(/margin-left:\s*auto/)
+  it('관리 모드 사이드바의 도구 묶음은 줄바꿈하는 가로 줄이고 901px부터 구분선 뒤에 버튼과 상시 저장 영역을 세로로 쌓으며, 옛 탭 줄 규칙을 남기지 않는다', () => {
+    expect(rule(studio, '.world-menu-tools')).toMatch(/flex-wrap:\s*wrap/)
+    expect(studio).toMatch(/@media\(min-width:901px\)\{\.world-menu-tools\{[^}]*display:grid[^}]*border-top:\s*1px solid[^}]*\}\.world-menu-tools \.world-save-bar\{[^}]*flex-direction:column/)
+    expect(studio).not.toMatch(/world-tabs-(row|end)/) // 탭 줄을 비운 것이 이 이동의 목적이다
   })
 })
 
@@ -116,5 +116,51 @@ describe('설정 카드 썸네일(#401)', () => {
     expect(thumb).toMatch(/object-fit:\s*cover/)
     expect(thumb).toMatch(/vertical-align:\s*middle/)
     expect(thumb).toMatch(/flex:\s*none/)
+  })
+})
+
+describe('관계도 무대 안 묶음과 좁은 화면 적용 바', () => {
+  it('그래프 아래 검색·중심 설정·페이지·안내 묶음은 툴바와 같은 안쪽 여백(16px, 좁은 화면 12px)에 맞추고 칩은 한 줄 가로 스크롤이며, 어두운 무대 위 안내 글은 고정 보조색이다', () => {
+    expect(rule(map, '.relationship-focus')).toMatch(/display:\s*grid;\s*gap:\s*8px;\s*padding:\s*0 16px 12px/)
+    expect(rule(map, '.relationship-focus [role=group]')).toMatch(/display:\s*flex[^}]*overflow-x:\s*auto/)
+    expect(rule(map, '.relationship-focus :is(.muted,.page-controls)')).toMatch(/color:\s*var\(--fixed-sub\)/) // --sub(라이트 #5F6370)는 무대 위 대비가 2.5~3.1:1이다
+    expect(block(map, '@media(max-width:600px)')).toMatch(/\.relationship-focus\{padding-inline:12px\}/) // 툴바·안내·필터·범례와 같은 왼쪽 선
+  })
+
+  it('적용 바는 폼 안쪽 여백만큼만 아래로 내려 붙는다(sticky bottom = -padding): 넓은 화면 20px, 좁은 화면 12px', () => {
+    expect(rule(map, '.relationship-service-form')).toMatch(/padding:\s*20px/)
+    expect(rule(map, '.relationship-apply')).toMatch(/bottom:\s*-20px/)
+    expect(map).toMatch(/@media\(max-width:600px\)\{\.relationship-service-form\{padding:12px\}\}/)
+    expect(block(map, '@media(max-width:600px)')).toMatch(/\.relationship-apply\{bottom:-12px\}/) // 18px면 폼 밖으로 6px 잘린다
+  })
+})
+
+describe('select 규칙은 전역 셰브런(오른쪽 화살표)을 지우지 않는다', () => {
+  /** 가장 안쪽 규칙 목록: 중첩된 @media·@container 안의 규칙도 낱개로 읽고, 주석은 지운다. */
+  const flat = (css: string) => [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, selector, body]) => ({ selector: selector.trim(), body }))
+
+  it('select 요소를 고르는 규칙은 padding·padding-inline·background 단축 속성과 오른쪽 안쪽 여백을 정하지 않는다(위아래·왼쪽은 개별 속성으로)', () => {
+    // 전역 select는 appearance:none + 오른쪽 셰브런(background-image) + padding-right로 그린다. 비레이어인 기능 CSS의 단축 속성은 그 값을 이겨 셰브런 자리를 0으로 되돌리거나 그림을 지운다.
+    const offenders = [board, studio, map]
+      .flatMap(flat)
+      .filter(({ selector, body }) => selector.split(',').some((s) => /(^|[\s>+~(])select($|[^\w-])/.test(s.trim())) && /(^|;)\s*(padding|padding-inline|padding-right|padding-inline-end|background)\s*:/.test(body))
+      .map(({ selector }) => selector)
+    expect(offenders).toEqual([])
+  })
+})
+
+describe('관계도 무대 조용히 다듬기', () => {
+  it('무대는 카드 안의 평평한 면이라 그림자가 없고(어두운 면 위 그림자는 보이지 않고 층만 늘린다) 고정 색 그라데이션은 그대로다', () => {
+    const stage = rule(map, '.relationship-stage')
+    expect(stage).not.toMatch(/box-shadow/)
+    expect(stage).toMatch(/radial-gradient\(ellipse at 50% 46%,var\(--stage-1\) 0%,var\(--stage-2\) 56%,var\(--stage-3\) 100%\)/)
+  })
+
+  it('구획 제목 h4는 700·자간 없음이고 유형 필터 버튼은 600이다 (켜짐·꺼짐 색 체계는 그대로)', () => {
+    const h4 = rule(map, '.relationship-toolbar h4')
+    expect(h4).toMatch(/font-weight:700/)
+    expect(h4).not.toMatch(/letter-spacing/)
+    expect(rule(map, '.relationship-filter .btn')).toMatch(/font-weight:600/)
+    expect(map).toMatch(/\.relationship-stage \.relationship-filter \.btn\[aria-pressed=true\]\{[^}]*background:var\(--rc-sel\)/)
   })
 })

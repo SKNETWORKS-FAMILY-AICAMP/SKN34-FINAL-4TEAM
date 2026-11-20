@@ -58,13 +58,13 @@ export function WorkPage() {
   return (
     <>
     <Gnb />
-    <div className={`calm calm-${w.theme}`} style={{ minHeight: '100vh' }}>
+    <div className={`calm calm-${w.theme}`}>
       <main className="wrap" id="main" tabIndex={-1}>
         <section className="whero">
           <div className="cover"><CoverOf w={w} /></div>
           <div className="whero-body">
             <div>
-              <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok" style={{ marginLeft: 8 }}>🤖 AI 자율 연재 중</span>}{sv.days && <span className="g wsched">{sv.days}</span>}{sv.badge && <span className={`chip ${sv.badge === '연재 중' ? 'ok' : sv.badge === '휴재' ? 'wait' : ''}`} style={{ marginLeft: 8 }}>{sv.badge}</span>}{p && <Go to={`/work/${p.id}`} className="chip ok" style={{ marginLeft: 8 }}><Branch /> 「{p.title}」 {w.forkAt}화에서 분기</Go>}
+              <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok">🤖 AI 자율 연재 중</span>}{sv.days && <span className="g wsched">{sv.days}</span>}{sv.badge && <span className={`chip ${sv.badge === '연재 중' ? 'ok' : sv.badge === '휴재' ? 'wait' : ''}`}>{sv.badge}</span>}{p && <Go to={`/work/${p.id}`} className="chip ok"><Branch /> 「{p.title}」 {w.forkAt}화에서 분기</Go>}
               <h1>{w.title}</h1><div className="by">{w.by}</div>{p && <div className="by" style={{ marginTop: 6 }}>“{w.dir}”</div>}
             </div>
             <div className="acts">
@@ -129,7 +129,7 @@ export function WorkPage() {
             ) : forkList.length ? (
               <><h2>이 소설, 다르게 쓰고 싶다면</h2><p>{w.owner === '운영팀' ? '운영팀이' : '작가가'} <b style={{ color: 'var(--pri-ink)' }}>{w.forkAll || (w.forkEps ?? []).length === w.eps.length ? '전체 회차' : forkList.join('·') + '화'}</b>에서 포크를 허용했어요.<br />고른 회차까지의 세계관과 인물을 그대로 가져가요.</p><Go to="/writing-policy?method=fork" state={{ target: `/fork/${id}` }} className="tbtn pri">✎ 포크하기</Go></>
             ) : (
-              <><h2>포크를 허용하지 않은 소설</h2><p>이 작품에서는 포크 생성이 지원되지 않거나 허용된 회차가 없어요. 공개된 회차를 읽을 수 있어요.</p><button type="button" className="tbtn" disabled>✎ 포크하기 불가</button></>
+              <><h2>포크를 허용하지 않은 소설</h2><p>이 작품에서는 포크 생성이 지원되지 않거나 허용된 회차가 없어요. 공개된 회차를 읽을 수 있어요.</p></>
             )}
             {!w.parent && (
               <div className="ifs">
