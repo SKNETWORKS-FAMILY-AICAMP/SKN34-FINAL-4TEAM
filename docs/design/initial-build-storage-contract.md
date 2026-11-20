@@ -32,7 +32,7 @@ manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제�
 
 공개 접수/조회는 `/api/v1/works/{id}/world-preprocessing`이고 시작 동의·작품 및 세계관 소유권을 확인한다. AI는 내부 `/internal/v1/preprocessing/jobs`에서 작업을 받고 Content의 `/internal/v1/ai/manuscript-build/{id}` 하위 경로로 결과를 기록한다. 실제 적재는 Content가 기존 WorldStudioService로 수행한다. 기존 문서의 Celery·MCP 실행 방식은 이번 구현의 필수 의존성이 아니다.
 
-`app.manuscript-build.enabled` 기본값은 false다. 격리 QA에서만 true로 설정한다. 기존 업로드는 이 플래그와 무관하게 분석·적재·발행을 시작하지 않는다. 작성자가 명시적으로 POST를 호출해야 한다. 카드의 UI 검토 표시 `approved`는 최초 일괄 초안 생성 동의에 따른 편집 가능 상태이며 직접 입력 후보의 검토 결정 기록이나 확정 버전을 뜻하지 않는다. `analysisId`·`decisionSequence`는 생성하지 않는다.
+`app.manuscript-build.enabled` 코드 기본값은 false이고, 2026-11-20 실모델(`gpt-6-luna`) four-episodes 1회 실측(회차당 5~12초, 정체 정리 5초, 제외 항목 0, 카드 11장) 뒤 사용자 결정으로 base compose가 `APP_MANUSCRIPTBUILD_ENABLED`(기본 true)로 켠다. 기존 업로드는 이 플래그와 무관하게 분석·적재·발행을 시작하지 않는다. 작성자가 명시적으로 POST를 호출해야 한다. 카드의 UI 검토 표시 `approved`는 최초 일괄 초안 생성 동의에 따른 편집 가능 상태이며 직접 입력 후보의 검토 결정 기록이나 확정 버전을 뜻하지 않는다. `analysisId`·`decisionSequence`는 생성하지 않는다.
 
 - 회차 결과는 해당 manifest의 번호·원문 버전/해시·인용·좌표와 대조한다. UTF-16 근거와 원문 문자열을 보존한다.
 - 실행 token/deadline으로 중복 worker 실행과 중단 뒤 늦은 응답을 구분한다. token 소유자가 아닌 쓰기는 거절한다.
