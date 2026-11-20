@@ -151,6 +151,14 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
       setNotice(target ? '최신 내용을 불러왔어요. 내용을 확인한 뒤 삭제를 다시 선택해 주세요.' : '최신 목록에서 해당 계획을 찾을 수 없어요.')
     })
   }
+  // 응답을 잃은 저장도 서버에는 남을 수 있으므로 다시 불러오면 시작 양식도 다시 읽게 한다.
+  const reload = () => { if (mayLeave()) { setVersion(v => v + 1); void load() } }
+  // 채팅(AI)이 계획을 저장했다(#637). 저장하지 않은 입력·진행 중인 저장이 없으면 바로 다시 읽고, 있으면 확인 창 없이 입력을 지킨 채 다시 불러오라고만 알린다.
+  // 시작 양식은 어느 쪽이든 다시 읽게 하고, 알림이 남아 있는 동안 시작은 잠긴다(옛 계획으로 시작하지 않는다).
+  const reloadAfterAi = () => {
+    if (!state.current.dirty && !state.current.busy) return reload()
+    setVersion(v => v + 1); setError('AI가 계획을 바꿨어요. 저장하지 않은 입력은 그대로 두었으니 최신 내용을 다시 불러와 주세요.')
+  }
   return {
     version, embedded, startBlocker: planStartBlocker({ dirty, busy }) || (error ? '계획 상태를 확인하지 못했어요. 다시 불러온 뒤 시작해 주세요.' : ''),
     confirmLeave: () => !state.current.busy && (!state.current.dirty || window.confirm('저장하지 않은 계획이 있어요. 계속할까요? 회차 이동에서는 입력을 유지하고, 페이지를 떠나면 사라져요.')),
@@ -166,8 +174,7 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
       }, rows => { setPlans(rows); setNotice('장면 순서를 저장했어요.') }, true)
     },
     plans, references, selected: plans.find(p => p.id === selected) ?? null, editor, deleting, deleteNeedsReview, busy, ready, error, notice, dirty,
-    // 응답을 잃은 저장도 서버에는 남을 수 있으므로 다시 불러오면 시작 양식도 다시 읽게 한다.
-    reload: () => { if (mayLeave()) { setVersion(v => v + 1); void load() } },
+    reload, reloadAfterAi,
     select: (id: string) => { if (!mayLeave()) return; void run(signal => api.read(workId, id, signal), fresh => { setPlans(rows => rows.map(p => p.id === id ? fresh : p)); setSelected(id) }) },
     create, edit, save, remove, reviewDelete,
     change: (patch: Partial<PlanInput>) => setEditor(before => before ? { ...before, value: { ...before.value, ...patch } } : null),
