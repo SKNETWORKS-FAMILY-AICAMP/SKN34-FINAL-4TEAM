@@ -22,6 +22,8 @@
 
 > **V12(설정집 AI 검토 결과, #555):** `world_review_result`를 추가한다. 세계관마다 마지막 검토 한 행(`world_id` PK·FK, `result jsonb`, `reviewed_at timestamptz`)이고 성공한 검토가 같은 행을 덮어쓴다. AI 호출·응답 검증이 실패하면 저장하지 않아 이전 결과가 남는다. 기존 행·기존 SQL 이력·체크섬은 바꾸지 않는다. V1~V12 12건, 테이블은 22개다. [검토 계약](../../../../../../../../docs/design/world-review-contract.md#검토-결과-저장-2026-11-19-사용자-결정).
 
+> **V14(세계관 장르 통합, DEC-56):** `world.genre`의 CHECK 제약(`world_genre_check`)을 지우고 옛 영문 코드 일곱 개를 Content 장르 코드로 바꾸는 UPDATE(fantasy→genre-01, wuxia→genre-03, romance→genre-06, modern→genre-10, sf→genre-14, mystery→genre-18, classic→genre-28)만 한다. 장르 코드가 Content `genre` 표에 있는지·활성인지는 별도 이력이라 FK 없이 서비스가 확인한다. V13은 결번이라(원고 기반 최초 구축은 V15로 재번호했다) V14까지의 적용 개수는 V1~V12와 V14의 13건이고 표는 22개 그대로다. [장르 관리 계약](../../../../../../../../docs/design/genre-management-contract.md).
+
 ## 실행 계약
 
 > **Core→Content 추출 후 현재 계약:** 명시 main은 Content 이미지의 `ai.storyfork.content.world.migration.WorldStudioMigration`이며 기존 같은 DB를 `DATABASE_URL/USER/PASSWORD`로 받는다. 서버는 `contentDataSource`와 studio-only EntityManager/TransactionManager로 validate만 하며 Auth를 스캔하지 않는다. CD는 fresh 전환 승인 후 ingress/구 writer 중지 → opt-in migration → 새 앱 시작 순서이며 실패 시 ingress를 멈춘 채 자동 rollback하지 않는다. 로컬은 선택 순수 `unitTest`만 허용하고 아래 PostgreSQL/통합 명령은 hosted CI 전용이다. **아래 Core 패키지·기본 persistence unit·통합 로컬 실행 설명은 추출 전 기록으로 사용하지 않는다.** 최신 [Content 안내](../../../../../../README.md)와 [배포 계약](../../../../../../../../docs/deployment/worldstudio-v1-rollout.md)을 우선한다.
@@ -85,4 +87,4 @@ Service는 검증된 JWT subject를 인자로 받아 world.owner_subject를 먼�
 
 이미 실행한 Content 공존 검증은 일회성 데이터 보호 회귀다. 그 테스트만 별도로 `TEST_WORLDSTUDIO_COEXISTENCE_ONCE=true`를 지정했을 때 실행하도록 보존했으며 기본 검증 명령에는 포함하지 않는다. Content V1~V7은 독립 WorldStudio의 선행 조건이 아니다.
 
-> **V13(원고 기반 최초 세계관 구축):** 최초 구축 작업과 회차별 결과, 적재 요청 기록을 담는 세 테이블을 추가한다. V12의 설정집 검토 기록은 유지되며 V1~V13 적용 후 이력 표를 제외한 테이블은 25개다.
+> **V15(원고 기반 최초 세계관 구축):** 최초 구축 작업과 회차별 결과, 적재 요청 기록을 담는 세 테이블을 추가한다. V12의 설정집 검토 기록은 유지되며 V1~V12·V14·V15의 14건이 적용되고 이력 표를 제외한 테이블은 25개다. V13은 결번이다(V14가 먼저 병합돼 outOfOrder 없이 채울 수 없어 V15로 재번호했다).

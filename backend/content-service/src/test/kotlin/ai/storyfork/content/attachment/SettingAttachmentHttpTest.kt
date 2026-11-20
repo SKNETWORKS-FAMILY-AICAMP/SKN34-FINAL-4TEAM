@@ -120,7 +120,7 @@ class SettingAttachmentHttpTest {
         assertNotSame(attachmentTransactions.transactionManager, authManager)
         val managed = requireNotNull(authManager.entityManagerFactory).metamodel.entities.map { it.javaType }
         val (studio, content) = managed.partition { it.packageName == "ai.storyfork.content.world.studio.entity" }
-        // V41 재접수와 V13 실행권을 같은 트랜잭션에서 검증하는 엔티티만 공유한다.
+        // V41 재접수와 V15 실행권을 같은 트랜잭션에서 검증하는 엔티티만 공유한다.
         assertEquals(setOf(ManuscriptBuildJob::class.java, ManuscriptBuildLoadStep::class.java,
             StudioWorld::class.java, SettingCard::class.java, WorldRelationshipState::class.java), studio.toSet())
         assertEquals(setOf("ai.storyfork.content.work.entity","ai.storyfork.content.episode.entity","ai.storyfork.content.episode_version.entity","ai.storyfork.content.publication.entity","ai.storyfork.content.world.entity","ai.storyfork.content.fork.entity","ai.storyfork.content.proposal.entity","ai.storyfork.content.plan.entity","ai.storyfork.content.comment.entity","ai.storyfork.content.feedbackreport.entity","ai.storyfork.content.like.entity","ai.storyfork.content.interest.entity","ai.storyfork.content.reading.entity","ai.storyfork.content.editsuggestion.entity","ai.storyfork.content.notice.entity","ai.storyfork.content.preprocessing.entity"), content.map { it.packageName }.toSet())

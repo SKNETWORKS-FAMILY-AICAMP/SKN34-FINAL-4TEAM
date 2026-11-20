@@ -266,6 +266,16 @@ export function matchW(w: Work, q: string, f: string, works: Work[]) {
   return f === 'title' ? t : f === 'author' ? au : f === 'tag' ? tg : f === 'genre' ? g : t || au || tg
 }
 
+/**
+ * 서버 태그 검색은 포크 자신의 해시태그만 봐서, 해시태그가 없어 원작 태그를 이어받는(tagsOf) 포크가 /tag 화면과 달리 빠진다.
+ * 찾은 작품 바로 뒤에, 그 작품의 공개 포크 중 해시태그가 없고 이어받은 태그가 검색어에 맞는 것을 잇는다(`works`는 공개 작품 목록).
+ * 자기 해시태그가 있는 포크는 서버가 직접 찾으므로 잇지 않고, 이미 찾은 포크도 다시 잇지 않는다(쪽을 넘어 중복되지 않게).
+ */
+export const withTagForks = (found: Work[], works: Work[], q: string) => {
+  const shown = new Set(found.map((w) => w.id))
+  return found.flatMap((w) => [w, ...forksOf(works, w.id).filter((x) => !shown.has(x.id) && !x.hash?.length && matchW(x, q, 'tag', works))])
+}
+
 export const sorter = (k: string) => (a: Work,b: Work) => {
   if(k==='author') return a.author.localeCompare(b.author,'ko') || a.title.localeCompare(b.title,'ko')
   if(k==='title' || a.statisticsSupported===false || b.statisticsSupported===false) return a.title.localeCompare(b.title,'ko')

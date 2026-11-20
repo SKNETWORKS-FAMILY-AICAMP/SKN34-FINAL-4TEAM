@@ -11,6 +11,8 @@ import { ReportUseCase } from '../../domain/usecases/ReportUseCase'
 import { SupportInquiryUseCase } from '../../domain/usecases/SupportInquiryUseCase'
 import { EventUseCase } from '../../domain/usecases/EventUseCase'
 import { OperationsWorkUseCase } from '../../domain/usecases/OperationsWorkUseCase'
+import { OperationsGenreUseCase } from '../../domain/usecases/OperationsGenreUseCase'
+import { GenreUseCase } from '../../domain/usecases/GenreUseCase'
 import { OperationsCommentUseCase } from '../../domain/usecases/OperationsCommentUseCase'
 import { AdminActivityUseCase } from '../../domain/usecases/AdminActivityUseCase'
 import { JobMonitorUseCase } from '../../domain/usecases/JobMonitorUseCase'
@@ -19,6 +21,8 @@ import { OperationsDashboardUseCase } from '../../domain/usecases/OperationsDash
 import { HttpEventRepository } from '../../data/api/HttpEventRepository'
 import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
 import { HttpNoticeRepository } from '../../data/api/noticeApi'
+import { HttpOperationsGenreRepository } from '../../data/api/genreApi'
+import { HttpGenreRepository } from '../../data/content/HttpGenreRepository'
 import { HttpJobMonitorRepository, HttpLlmOpsRepository, HttpOperationsDashboardRepository } from '../../data/api/llmOpsApi'
 import { InMemoryOperationsRepository } from '../../data/mock/InMemoryOperationsRepository'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
@@ -102,6 +106,10 @@ export function registerAppServices(container: AppContainer) {
     eventUseCase: asFunction(({ eventRepository }) => new EventUseCase(eventRepository)).singleton(),
     operationsWorkRepository: asFunction(() => new HttpOperationsWorkRepository()).singleton(),
     operationsWorkUseCase: asFunction(({ operationsWorkRepository }) => new OperationsWorkUseCase(operationsWorkRepository)).singleton(),
+    genreRepository: asFunction(() => new HttpGenreRepository()).singleton(),
+    genreUseCase: asFunction(({ genreRepository }) => new GenreUseCase(genreRepository)).singleton(),
+    operationsGenreRepository: asFunction(() => new HttpOperationsGenreRepository()).singleton(),
+    operationsGenreUseCase: asFunction(({ operationsGenreRepository }) => new OperationsGenreUseCase(operationsGenreRepository)).singleton(),
     operationsCommentRepository: asFunction(() => new HttpOperationsCommentRepository()).singleton(),
     operationsCommentUseCase: asFunction(({ operationsCommentRepository }) => new OperationsCommentUseCase(operationsCommentRepository)).singleton(),
     adminActivityRepository: asFunction(() => new HttpAdminActivityRepository()).singleton(),
@@ -116,7 +124,7 @@ export function registerAppServices(container: AppContainer) {
     worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new HttpWorldStudioRepository())).singleton(),
     worldReviewUseCase: asFunction(() => new WorldReviewUseCase(new HttpWorldReviewRepository())).singleton(),
     publicWorldRepository: asFunction(() => new HttpPublicWorldRepository()).singleton(),
-    publicWorldUseCase: asFunction(({ publicWorldRepository }) => new PublicWorldUseCase(publicWorldRepository)).singleton(),
+    publicWorldUseCase: asFunction(({ publicWorldRepository, genreRepository }) => new PublicWorldUseCase(publicWorldRepository, genreRepository)).singleton(),
     profileRepository: asValue(profileRepository),
     profileUseCase: asFunction(({ profileRepository }) => new ProfileUseCase(profileRepository)).singleton(),
     authRepository: asValue(authRepository),
@@ -168,7 +176,7 @@ export function registerAppServices(container: AppContainer) {
     creditLedgerUseCase: asFunction(({ creditLedgerRepository }) => new CreditLedgerUseCase(creditLedgerRepository)).singleton(),
     withdrawalRepository: asFunction(() => new HttpWithdrawalRepository()).singleton(),
     withdrawalUseCase: asFunction(({ withdrawalRepository }) => new WithdrawalUseCase(withdrawalRepository)).singleton(),
-    readingUseCase: asFunction(({ workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository }) => new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository)).singleton(),
+    readingUseCase: asFunction(({ workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository, genreRepository }) => new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository, genreRepository)).singleton(),
     feedbackUseCase: asFunction(({ workRepository, feedbackRepository, adminRepository, feedbackReportUseCase }) => new FeedbackUseCase(workRepository, feedbackRepository, adminRepository, feedbackReportUseCase)).singleton(),
     forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),
     studioUseCase: asFunction(({ workRepository, creditRepository, feedbackRepository, worldRepository }) => new StudioUseCase(workRepository, creditRepository, feedbackRepository, worldRepository)).singleton(),

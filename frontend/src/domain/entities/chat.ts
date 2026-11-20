@@ -10,4 +10,5 @@ export type ChatMessage = {
   id: string; role: 'user' | 'assistant' | 'system'; text: string; attachments?: ChatAttachment[]
   /** markdown이면 text를 마크다운(AI 종합 답변)으로 그린다. 없으면 글자 그대로다(원고 본문은 마크다운이 아니다, DEC-48). */
   format?: 'markdown'
+  failed?: boolean
 }

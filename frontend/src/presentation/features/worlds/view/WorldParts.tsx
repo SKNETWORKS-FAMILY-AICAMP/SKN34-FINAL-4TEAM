@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import type { PublicWorldRef, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
+import type { PublicWorldRef } from '../../../../domain/entities/publicWorld'
 import { coverSrc } from '../../../shared/cover'
 import { Go } from '../../../shared/Go'
 import { genreLabel } from '../../../shared/worldGenres'
@@ -28,11 +28,11 @@ export const InfoRow = ({ k, children }: { k: string; children: ReactNode }) => 
  * 홈 `Cov`와 같은 표지: 소유자가 올린 표지(`hasCover`, 공개 cover 주소를 `<img>`로 직접)이거나 기본 표지, 그리고 왼쪽 위 장르 태그.
  * `badge`가 있으면 홈 표지의 오른쪽 아래 알약(`.lk`)으로 보인다(연결된 세계관의 '원본'·'파생'·'조합', 작품의 '데모 작품').
  */
-export function WorldCover({ w, badge }: { w: Pick<PublicWorldSummary, 'id' | 'genre' | 'hasCover'>; badge?: string }) {
+export function WorldCover({ w, badge }: { w: { id: string; hasCover?: boolean; genreName?: string | null }; badge?: string }) {
   return (
     <div className="cov">
       <img src={coverSrc(w.hasCover ? `/api/v1/public/world-studios/${w.id}/cover` : null)} alt="" loading="lazy" />
-      <div className="tg"><span className="tag dk">{genreLabel(w.genre)}</span></div>
+      <div className="tg"><span className="tag dk">{genreLabel(w)}</span></div>
       {badge && <span className="lk">{badge}</span>}
     </div>
   )

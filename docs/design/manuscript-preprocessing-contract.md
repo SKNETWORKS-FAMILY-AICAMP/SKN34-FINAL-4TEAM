@@ -74,16 +74,16 @@
 
 최초 일괄 세계관 구축만 대상으로 한다. 첫 등장 회차는 `semanticMetadata.preprocessing.firstEpisode`에 보존하며, 자동 생성 카드는 `visibility=private`로 저장하고 `semanticMetadata.revealFromEpisode`는 설정하지 않는다. 독자 공개 회차는 작가가 직접 지정한다. 기존 작가 데이터는 변경하지 않는다. 초안 적재·작가의 확정 버전 생성·독자 공개·작품 발행은 별도다. 이전 LoadPayload의 `revealFromEpisode=첫 등장` 의미를 그대로 공개 필드에 연결하지 않는다. 기존 원고 DTO의 `firstAppearanceEpisode`는 Content가 이전 입력을 읽을 때만 허용한다. 이전 카드의 저장값은 소급 변경하지 않는다.
 
-통합 스키마는 develop V1~V12 위에 원고 구축 V13를 적용한다. 원고 구축 SQL이 V9로 기록된 기존 QA DB는 원본을 보존하며, 직접 업그레이드와 데이터 이관은 별도 검증 대상으로 둔다.
+통합 스키마는 develop V1~V12·V14 위에 원고 구축 V15를 적용한다(V13은 결번). 원고 구축 SQL이 V9로 기록된 기존 QA DB는 원본을 보존하며, 직접 업그레이드와 데이터 이관은 별도 검증 대상으로 둔다.
 
 ## 최초 구축 작업의 상태와 복구
 
-작품 소유자의 접수와 조회에는 기존 V41의 작업 ID와 공개 상태를 사용한다. 운영 감시는 같은 행을 조회한다. WorldStudio V13의 세 테이블은 이 작업에 종속된다.
+작품 소유자의 접수와 조회에는 기존 V41의 작업 ID와 공개 상태를 사용한다. 운영 감시는 같은 행을 조회한다. WorldStudio V15의 세 테이블은 이 작업에 종속된다.
 
 - `manuscript_build_job`은 동일 ID에 접수 당시 회차, 저장 버전, 해시, 작가와 세계관을 고정한다. 실행권으로 중복 실행을 막는다.
 - `manuscript_build_result`는 작업별 회차 추출 근거와 정체 통합 결과를 보존한다. 재실행은 보존된 성공 결과를 재사용한다.
 - `manuscript_build_load_step`은 단계별 생성 ID와 요청 payload를 예약하고 적용 receipt를 보존한다. 적재 결과가 불확실하면 감시 상태는 loading이며 소유자 상세에는 unknown을 표시한다. 모든 회차 결과와 단계별 receipt가 확인돼야 completed가 된다.
 
-V13 스냅샷이 없는 구 V41 실패 기록의 동일 ID 재실행은 409 PREPROCESSING_SNAPSHOT_MISSING이다. 읽기나 재개는 새 접수를 발생시키지 않는다. 적재 전 실패라는 근거가 있는 경우에만 작가가 새로 접수할 수 있고 새 ID에 현재 원고를 고정한다. 기존 실패의 진행 이력은 보존한다. 부분 적재 또는 결과 미확인이면 새 접수도 409 PREPROCESSING_LOAD_REVIEW_REQUIRED로 차단한다. 신규 회차 자동 반영과 구 작업 데이터 이관은 별도 범위다.
+V15 스냅샷이 없는 구 V41 실패 기록의 동일 ID 재실행은 409 PREPROCESSING_SNAPSHOT_MISSING이다. 읽기나 재개는 새 접수를 발생시키지 않는다. 적재 전 실패라는 근거가 있는 경우에만 작가가 새로 접수할 수 있고 새 ID에 현재 원고를 고정한다. 기존 실패의 진행 이력은 보존한다. 부분 적재 또는 결과 미확인이면 새 접수도 409 PREPROCESSING_LOAD_REVIEW_REQUIRED로 차단한다. 신규 회차 자동 반영과 구 작업 데이터 이관은 별도 범위다.
 
-V41 접수 커밋 직후 중단되어 V13 입력이 비어 있으면 소유자 GET은 기존 queued 기록과 manual_review를 반환한다. 동일 작업 retry와 새 접수는 409 PREPROCESSING_SNAPSHOT_MISSING으로 차단한다. 정상 입력 준비 중에도 일시적으로 같은 상태를 볼 수 있으므로 먼저 GET으로 다시 확인한다. 상태가 계속되면 작업 ID로 원래 입력과 적재 여부를 조사한다. 경과 시간이나 스냅샷 부재만으로 실패 전환·재접수를 허용하지 않는다.
+V41 접수 커밋 직후 중단되어 V15 입력이 비어 있으면 소유자 GET은 기존 queued 기록과 manual_review를 반환한다. 동일 작업 retry와 새 접수는 409 PREPROCESSING_SNAPSHOT_MISSING으로 차단한다. 정상 입력 준비 중에도 일시적으로 같은 상태를 볼 수 있으므로 먼저 GET으로 다시 확인한다. 상태가 계속되면 작업 ID로 원래 입력과 적재 여부를 조사한다. 경과 시간이나 스냅샷 부재만으로 실패 전환·재접수를 허용하지 않는다.

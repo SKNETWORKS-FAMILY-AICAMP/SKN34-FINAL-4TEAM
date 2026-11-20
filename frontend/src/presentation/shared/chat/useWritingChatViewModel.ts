@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { appContainer } from '../../../app/appContainer'
 import type { SimulationStart } from '../../../domain/entities/characterSimulation'
-import type { ChatBasis, ChatEvent, ChatFeature, ChatSendBody, ChatSession, ChatStep, ChatStepInputs, ChatTurn, SceneAction } from '../../../domain/entities/writingChat'
+import type { ChatBasis, ChatEvent, ChatFeature, ChatPage, ChatSendBody, ChatSession, ChatStep, ChatStepInputs, ChatTurn, SceneAction } from '../../../domain/entities/writingChat'
 
 /** 지금 흐르는 SSE 턴. 끝나면 이력을 다시 읽어 세이버에 저장된 내용으로 바꾼다. decision은 승인·거절 응답(장면 조작이 아닌 이어가기)이다. */
 /** running: 시작(started)했지만 결과(step)가 아직 없는 기능들. 병렬 호출(#474)이면 둘 이상이다. */
@@ -14,8 +14,10 @@ const message = (error: unknown, fallback: string) => (error instanceof Error &&
  * 집필실·세계관 화면의 집필 AI 채팅(#331). 대화 원본은 AI 세이버이고, 이 Hook은 Content API로 읽고 보낸 뒤
  * 스트림이 끝나거나 실패하면 이력을 다시 읽어 저장된 상태를 그대로 보인다(실패를 성공처럼 남기지 않는다).
  * workId가 없거나(연결 소설 없음) basis가 없으면(발행 회차 없음) 보내지 않는다.
+ * getPage(#554)는 새 메시지(보내기·고쳐 다시 보내기)를 보내는 순간의 화면 정보를 읽는다. 편집기의 선택 글은 상태가 아니라 보내는 때 읽어야 해서 값이 아니라 함수다.
+ * 이어가기(승인·입력·장면 조작)에는 싣지 않는다.
  */
-export function useWritingChatViewModel(workId: string | null, basis: ChatBasis | null, onApplied?: (episode: number) => void, onWorldApplied?: () => void) {
+export function useWritingChatViewModel(workId: string | null, basis: ChatBasis | null, onApplied?: (episode: number) => void, onWorldApplied?: () => void, getPage?: () => ChatPage | undefined) {
   const useCase = appContainer.resolve('writingChatUseCase')
   const [sessions, setSessions] = useState<ChatSession[] | null>(null)
   const [threadId, setThreadId] = useState<string | null>(null)
@@ -24,6 +26,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const [live, setLive] = useState<LiveTurn | null>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const [inputError, setInputError] = useState('')
   // 턴 사이에 멈춘 시뮬레이션 장면이 작가 조작을 기다리게 된 횟수(무대가 자동 재생이면 이 값이 오를 때마다 다음 턴을 보낸다).
   const [sceneTicket, setSceneTicket] = useState(0)
   const active = useRef<AbortController | null>(null)
@@ -35,6 +38,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   // 스트림은 몇 분 걸릴 수 있어 World 반영 알림은 시작할 때가 아니라 도착한 지금의 핸들러로 보낸다(그사이 저장하지 않은 변경이 생길 수 있다).
   const worldApplied = useRef(onWorldApplied)
   worldApplied.current = onWorldApplied
+  const page = useRef(getPage)
+  page.current = getPage
 
   const refreshSessions = useCallback(async (pick = false) => {
     if (!useCase || !workId) return
@@ -65,7 +70,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
 
   // 작품이 바뀌면 처음부터: 목록을 읽고 가장 최근 대화를 연다.
   useEffect(() => {
-    setSessions(null); setThreadId(null); setTurns([]); setLive(null); setPending(false); setError('')
+    setSessions(null); setThreadId(null); setTurns([]); setLive(null); setPending(false); setError(''); setInputError('')
     void refreshSessions(true)
     return () => { generation.current += 1; sessionsRequest.current?.abort(); active.current?.abort(); active.current = null }
   }, [refreshSessions])
@@ -76,7 +81,11 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     if (!turn) return turn
     if (event.type === 'plan' || event.type === 'waiting') return { ...turn, steps: event.steps, running: [] }
     if (event.type === 'started') return { ...turn, running: [...turn.running, event.feature] }
-    if (event.type === 'step') return { ...turn, running: turn.running.filter((f) => f !== event.step.feature), steps: turn.steps.map((s) => (s.feature === event.step.feature ? event.step : s)) }
+    // content_action(#554)은 판정이 계획에 올리지 않고 한 턴에 여러 번일 수 있어 단계마다 덧붙인다.
+    if (event.type === 'step') {
+      const own = event.step.feature !== 'content_action' && turn.steps.some((s) => s.feature === event.step.feature)
+      return { ...turn, running: turn.running.filter((f) => f !== event.step.feature), steps: own ? turn.steps.map((s) => (s.feature === event.step.feature ? event.step : s)) : [...turn.steps, event.step] }
+    }
     return turn
   })
 
@@ -84,6 +93,14 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   async function stream(request: string, input: ChatSendBody, editIndex?: number) {
     if (active.current) return false
     if (!useCase || !workId || !basis) { setError(lockedReason ?? '지금은 보낼 수 없어요.'); return false }
+    let screen: ChatPage | undefined
+    try {
+      screen = 'request' in input ? page.current?.() : undefined
+    } catch (failure) {
+      setInputError(message(failure, '보낼 화면 정보를 읽지 못했어요.'))
+      return false
+    }
+    setInputError('')
     const controller = new AbortController()
     active.current = controller
     const owner = generation.current
@@ -98,12 +115,16 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     try {
       id ??= await useCase.open(workId, controller.signal)
       if (!threadId) { current.current = id; setThreadId(id) }
-      await useCase.send(workId, id, { ...basis, ...input }, (event) => {
+      await useCase.send(workId, id, { ...basis, ...input, ...(screen ? { page: screen } : {}) }, (event) => {
         if (active.current !== controller) return
         if (event.type === 'error') { ok = false; setError(event.message) }
         if (event.type === 'waiting' && event.awaitingScene === 'character_simulation') sceneWaits = true
-        // World 반영은 회차 초안이 아니라 설정집 초안을 바꾼다(applied.episode는 회차가 아니다).
-        if (event.type === 'step' && event.step.applied) { if (event.step.feature === 'world') worldApplied.current?.(); else onApplied?.(event.step.applied.episode) }
+        // World 반영은 회차 초안이 아니라 설정집 초안을 바꾼다(applied.episode는 회차가 아니다). 승인한 Content 세계관 카드 수정(#554)도 같다.
+        // 계획 수정(#578)은 저장된 계획만 바꿔 회차 초안·설정집 초안 어느 쪽도 다시 읽을 필요가 없다.
+        if (event.type === 'step' && event.step.applied) {
+          const world = event.step.feature === 'world' || event.step.result?.tool === 'world_studio_edit_draft'
+          if (world) worldApplied.current?.(); else if (event.step.task !== 'revise_plan') onApplied?.(event.step.applied.episode)
+        }
         apply(event)
       }, controller.signal, editIndex)
     } catch (failure) {
@@ -140,15 +161,15 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const awaiting = waiting?.awaitingScene === 'character_simulation' ? 'scene' as const : waiting?.awaitingApproval === 'character_simulation' ? 'approval' as const : null
 
   return {
-    sessions, threadId, title, turns, live, waiting, pending, error, lockedReason,
+    sessions, threadId, title, turns, live, waiting, pending, error, inputError, lockedReason,
     available: !!useCase && !!workId && !!basis, basisEpisode: basis?.episode ?? null,
     // 결과를 반영할 회차(작가가 연 회차). 근거 회차와 다를 수 있다(5화 초안은 4화까지를 근거로 5화에 반영한다).
     targetEpisode: basis?.targetEpisode ?? basis?.episode ?? null,
     simulation: simulationStep?.simulation ?? null, simulationStep, awaiting, approvalEpisode: waiting?.approvalEpisode ?? null,
     streaming: !!live, deciding: !!live?.decision, sceneTicket,
     dismissError: () => setError(''),
-    select: (id: string) => { if (active.current || id === threadId) return; current.current = id; setTurns([]); setError(''); setThreadId(id) },
-    startNew: () => { if (active.current) return; current.current = null; setThreadId(null); setTurns([]); setTitle(''); setError('') },
+    select: (id: string) => { if (active.current || id === threadId) return; current.current = id; setTurns([]); setError(''); setInputError(''); setThreadId(id) },
+    startNew: () => { if (active.current) return; current.current = null; setThreadId(null); setTurns([]); setTitle(''); setError(''); setInputError('') },
     send: (text: string, extra?: { operation?: ChatFeature; simulation?: SimulationStart }) => stream(text, { request: text, ...extra }),
     edit: (index: number, text: string) => stream(text, { request: text }, index),
     resume: (approved: boolean, inputs?: ChatStepInputs) => stream(turns.at(-1)?.request ?? '', { resume: { approved, inputs } }),

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, cleanScene, featureLabel, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatReply, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
+import { chatBasis, chatPage, cleanScene, draftNotice, featureLabel, pendingChanges, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -80,6 +80,21 @@ describe('replyText', () => {
       text: '선장은 항구에 내렸다.', plan: { title: '항구의 밤', beats: ['선장이 도착한다.'] } } }
     expect(stepText(step)).toBe('선장은 항구에 내렸다.')
     expect(replyText(reply({ steps: [step] }))).toBe('[기획·집필·수정] 선장은 항구에 내렸다.\n사용한 계획: 항구의 밤 — 선장이 도착한다.')
+  })
+
+  it('기획 결과의 알림(gaps)은 확인 못 함 줄로 참고 뒤에 붙는다(#523)', () => {
+    const step = { feature: 'writing_editing', status: 'completed' as const, result: {
+      plans: [{ title: '항구의 밤', beats: ['선장이 도착한다.'] }], notes: ['참고 하나'], gaps: ['이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.'] } }
+    expect(stepText(step)).toBe('계획 1. 항구의 밤\n  1) 선장이 도착한다.\n참고: 참고 하나\n확인 못 함: 이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.\n' + PLAN_PICK_HINT)
+  })
+
+  it('집필 결과의 알림(gaps)은 반영 본문에 섞지 않고 따로 한 줄로 보인다(#523)', () => {
+    const step = { feature: 'writing_editing', status: 'completed' as const, result: {
+      text: '선장은 항구에 내렸다.', gaps: ['이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.'] } }
+    expect(stepText(step)).toBe('선장은 항구에 내렸다.')
+    expect(draftNotice(step)).toBe('확인 못 함: 이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.')
+    expect(replyText(reply({ steps: [step] }))).toBe('[기획·집필·수정] 선장은 항구에 내렸다.\n확인 못 함: 이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.')
+    expect(draftNotice({ ...step, result: { text: '본문', gaps: [] } })).toBe('')
   })
 })
 
@@ -207,6 +222,13 @@ describe('WritingChatUseCase', () => {
   })
 })
 
+
+it('고증 조사 단계 이름은 research이고, 옛 대화 기록의 web_research 단계도 같은 이름으로 보인다(#545)', () => {
+  expect(featureLabel.research).toBe('고증 조사')
+  expect(featureLabel.web_research).toBe('고증 조사')
+  const reply: ChatReply = { status: 'failed', missingInputs: [], steps: [{ feature: 'research', status: 'failed', error: '검색 실패' }] }
+  expect(replyText(reply)).toBe('[고증 조사] 실패: 검색 실패')
+})
 
 it('shows whether web research confirmed or contradicted a finding', () => {
   const reply: ChatReply = { status: 'completed', missingInputs: [], steps: [
@@ -353,5 +375,127 @@ describe('World 단계 결과 글(#546)', () => {
     expect(replyOutcome(reply)).toEqual(['→ 설정집 초안에 반영했어요.'])
     expect(replyText(reply)).toBe('[세계관] ' + stepText(applied) + '\n→ 설정집 초안에 반영했어요.')
     expect(replyOutcome({ ...reply, steps: [world(body, { approval: 'declined' })] })).toEqual(['→ 반영하지 않았어요.'])
+  })
+})
+
+// 화면 맥락(#554): 메시지마다 작가가 보는 화면을 싣는다. 길이 상한은 서버(Content DTO·AI PageContext)와 같다.
+describe('chatPage', () => {
+  const studio = { path: '/studio/w?ep=3', kind: 'studio' as const, episode: 3 }
+
+  it('경로·종류·대상 id만 있으면 그대로 싣고 비어 있는 값은 키를 넣지 않는다', () => {
+    expect(chatPage(studio)).toEqual(studio)
+    expect(chatPage({ path: '/worldstudio/w?card=k', kind: 'world', worldId: 'w', cardId: 'k', view: undefined })).toEqual({ path: '/worldstudio/w?card=k', kind: 'world', worldId: 'w', cardId: 'k' })
+  })
+
+  it('경로는 300자까지만 싣는다(표시용이라 잘라도 된다)', () => {
+    expect(chatPage({ ...studio, path: `/studio/${'a'.repeat(400)}` }).path).toHaveLength(300)
+  })
+
+  it('선택한 글은 5,000자까지 싣고 넘으면 전송에 필요한 수정 방법을 알린다', () => {
+    expect(chatPage({ ...studio, selection: '그는 웃었다.' }).selection).toBe('그는 웃었다.')
+    expect(chatPage({ ...studio, selection: '가'.repeat(5000) }).selection).toHaveLength(5000)
+    for (const selection of ['', '  \n ']) expect(chatPage({ ...studio, selection })).not.toHaveProperty('selection')
+    expect(() => chatPage({ ...studio, selection: '가'.repeat(5001) })).toThrow('5,000자')
+  })
+
+  it('저장하지 않은 편집 내용은 unsaved로 싣고 없으면 content를 넣지 않는다', () => {
+    expect(chatPage({ ...studio, unsaved: { title: '3화', body: '고친 본문' } }).content).toEqual({ title: '3화', body: '고친 본문', unsaved: true })
+    expect(chatPage(studio)).not.toHaveProperty('content')
+  })
+
+  it('본문은 10,000자까지 보내고 넘으면 잘라 truncated를 붙인다(이름은 300자까지)', () => {
+    expect(chatPage({ ...studio, unsaved: { body: '가'.repeat(10000) } }).content).toEqual({ body: '가'.repeat(10000), unsaved: true })
+    const cut = chatPage({ ...studio, unsaved: { title: '제'.repeat(301), body: '나'.repeat(10001) } }).content!
+    expect(cut.body).toHaveLength(10000)
+    expect(cut.title).toHaveLength(300)
+    expect(cut.truncated).toBe(true)
+  })
+
+  it('자르는 자리가 서로게이트 쌍의 가운데이면 한 글자 앞에서 자른다', () => {
+    const body = `${'가'.repeat(9999)}😀뒤`
+    expect(chatPage({ ...studio, unsaved: { body } }).content!.body).toBe('가'.repeat(9999))
+  })
+})
+
+describe('worldProposalIsStale', () => {
+  it('같은 세계관의 저장 revision이 바뀌었을 때만 이전 제안을 잠근다', () => {
+    const action: PendingAction = { tool: 'world_studio_edit_draft', label: '', args: { id: 'w', request: { expectedDraftRevision: 4 } } }
+    expect(worldProposalIsStale(action, { id: 'w', revision: 5 })).toBe(true)
+    expect(worldProposalIsStale(action, { id: 'w', revision: 4 })).toBe(false)
+    expect(worldProposalIsStale(action, { id: 'other', revision: 5 })).toBe(false)
+    expect(worldProposalIsStale({ ...action, tool: 'work_update' }, { id: 'w', revision: 5 })).toBe(false)
+    expect(worldProposalIsStale({ ...action, args: { id: 'w', expectedDraftRevision: 4 } }, { id: 'w', revision: 5 })).toBe(true)
+  })
+})
+
+describe('pendingChanges', () => {
+  const card = { id: 'k', title: '카엘', body: '북문을 지키는 기사' }
+  const edit = (cards: object[]): PendingAction => ({ tool: 'world_studio_edit_draft', label: '세계관 설정 카드 수정', args: { id: 'w', request: { cards } } })
+
+  it('카드 수정은 그 카드의 수정 전과 후를 칸마다 알려 준다', () => {
+    expect(pendingChanges(edit([{ id: 'k', body: '과묵한 기사' }]), (id) => (id === 'k' ? card : undefined)))
+      .toEqual([{ name: '카엘 · 설명', before: '북문을 지키는 기사', after: '과묵한 기사' }])
+    expect(pendingChanges(edit([{ id: 'k', title: '카엘 경', body: '북문을 지키는 기사' }]), () => card))
+      .toEqual([{ name: '카엘 · 이름', before: '카엘', after: '카엘 경' }])
+  })
+
+  it('저장된 카드에 없는 카드는 새 설정으로 보고 수정 전이 없다', () => {
+    expect(pendingChanges(edit([{ id: 'n', title: '새 설정', body: '본문' }]), () => undefined))
+      .toEqual([{ name: '새 설정 · 이름', before: null, after: '새 설정' }, { name: '새 설정 · 설명', before: null, after: '본문' }])
+  })
+
+  it('카드 수정이 아닌 도구나 모양이 어긋난 인자는 칸을 만들지 않는다(화면이 도구 인자를 그대로 보인다)', () => {
+    expect(pendingChanges({ tool: 'work_update', label: '작품 정보 수정', args: { id: 'w' } })).toEqual([])
+    expect(pendingChanges({ tool: 'world_studio_edit_draft', label: '', args: { id: 'w', request: 3 } })).toEqual([])
+  })
+})
+
+describe('content_action 단계(#554)', () => {
+  const step: ChatStep = { feature: 'content_action', status: 'completed', result: { tool: 'work_update', label: '작품 정보 수정' }, approval: 'approved', applied: { episode: 3, revision: 9 } }
+
+  it('승인 뒤 실행한 Content 작업은 고정 문구로 보이고 반영 줄은 회차 초안이 아니라 승인한 작업이라고 알린다', () => {
+    expect(stepText(step)).toBe('작품 정보 수정 완료')
+    expect(replyOutcome({ status: 'completed', steps: [step], missingInputs: [] })).toEqual(['→ 승인한 작업을 실행했어요.'])
+  })
+
+  it('실패한 Content 작업은 사유를 그대로 보인다', () => {
+    expect(stepText({ feature: 'content_action', status: 'failed', error: '세계관 초안이 바뀌었어요.' })).toBe('실패: 세계관 초안이 바뀌었어요.')
+  })
+})
+
+describe('pendingChanges (평평한 인자)', () => {
+  it('모델이 request로 감싸지 않고 cards를 바로 보낸 카드 수정도 수정 전·후를 알려 준다', () => {
+    const action: PendingAction = { tool: 'world_studio_edit_draft', label: '세계관 설정 카드 수정', args: { id: 'w', expectedDraftRevision: 3, cards: [{ id: 'k', title: '카엘 공' }] } }
+    expect(pendingChanges(action, () => ({ title: '카엘 경', body: '기사' }))).toEqual([{ name: '카엘 경 · 이름', before: '카엘 경', after: '카엘 공' }])
+  })
+})
+
+describe('계획 수정안 결과 글(#578)', () => {
+  const planRevision = (extra: Partial<ChatPlanRevision['after']> = {}, extraStep: Partial<ChatStep> = {}): ChatStep => ({
+    feature: 'writing_editing', task: 'revise_plan', status: 'completed',
+    planRevision: { kind: 'scene', before: { title: '재회', content: '카엘이 리나를 만난다.' }, after: { title: '재회', content: '카엘이 리나를 만나지만 이름을 부르지 못한다.', ...extra } },
+    ...extraStep,
+  })
+
+  it('대상(종류·제목)과 변경 전·후 내용을 승인 전에 보인다', () => {
+    expect(stepText(planRevision())).toBe("장면 계획 '재회' 수정안\n수정 전: 카엘이 리나를 만난다.\n수정 후: 카엘이 리나를 만나지만 이름을 부르지 못한다.")
+    expect(stepText({ ...planRevision(), planRevision: { kind: 'plot', before: { title: '복수극', content: 'a' }, after: { title: '복수극', content: 'b' } } })).toMatch(/^플롯 '복수극' 수정안/)
+  })
+
+  it('제목이 바뀌면 전·후 제목을 따로 보이고, 그대로면 제목 줄을 두지 않는다', () => {
+    expect(stepText(planRevision({ title: '재회 직전' }))).toContain("\n제목: 재회 → 재회 직전\n")
+    expect(stepText(planRevision())).not.toContain('제목:')
+  })
+
+  it('저장한 계획 수정은 회차 초안이 아니라 계획에 저장했다고, 거절하면 저장하지 않았다고 알린다', () => {
+    const saved = planRevision({}, { approval: 'approved', applied: { episode: 3, revision: 6 } })
+    expect(replyOutcome({ status: 'completed', missingInputs: [], steps: [saved] })).toEqual(['→ 계획에 저장했어요.'])
+    expect(replyOutcome({ status: 'completed', missingInputs: [], steps: [planRevision({}, { approval: 'declined' })] })).toEqual(['→ 저장하지 않았어요.'])
+  })
+
+  it('저장에 실패(409 등)하면 제안 대신 Content가 준 사유를 보이고 저장했다는 줄은 없다', () => {
+    const failed = planRevision({}, { status: 'failed', approval: 'approved', error: '제안한 뒤 계획이 바뀌어 저장하지 않았어요. 다시 요청해 주세요.' })
+    expect(stepText(failed)).toBe('실패: 제안한 뒤 계획이 바뀌어 저장하지 않았어요. 다시 요청해 주세요.')
+    expect(replyOutcome({ status: 'failed', missingInputs: [], steps: [failed] })).toEqual(['[기획·집필·수정] 실패: 제안한 뒤 계획이 바뀌어 저장하지 않았어요. 다시 요청해 주세요.'])
   })
 })

@@ -378,16 +378,16 @@ it('acknowledges only the current owner/world and creates a fresh key only on a 
 })
 
 // ── 세계관 단위 공개 설정(공개 범위·장르) ──────────────────────────────────────
-const published=(over={})=>({worldId:id,visibility:'public',genre:'fantasy',publishedAt:'2026-11-12T01:02:03Z',listed:true,...over})
+const published=(over={})=>({worldId:id,visibility:'public',genre:'genre-01',publishedAt:'2026-11-12T01:02:03Z',listed:true,...over})
 it('puts the publication change with CSRF and maps the 200 result',async()=>{
  const fetcher=vi.fn().mockResolvedValue(Response.json(published()))
  const controller=new AbortController()
- const result=await new HttpWorldStudioRepository(fetcher).setPublication(id,{visibility:'public',genre:'fantasy'},controller.signal)
+ const result=await new HttpWorldStudioRepository(fetcher).setPublication(id,{visibility:'public',genre:'genre-01'},controller.signal)
  const [url,init]=fetcher.mock.calls[0]
  expect(url).toBe(`/api/v1/world-studios/${id}/publication`)
  expect(init.method).toBe('PUT')
  expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer','X-CSRF-TOKEN':'studio-csrf'}))
- expect(JSON.parse(init.body)).toEqual({visibility:'public',genre:'fantasy'})
+ expect(JSON.parse(init.body)).toEqual({visibility:'public',genre:'genre-01'})
  expect(result).toEqual(published())
  controller.abort();expect(init.signal.aborted).toBe(true)
 })
@@ -402,10 +402,10 @@ it.each([
  [404,'WORLD_NOT_FOUND','세계관을 찾을 수 없습니다.'],[422,'WORLD_INPUT_INVALID','세계관 장르를 확인하세요.'],
 ])('reports the server detail when the publication change is rejected (%s)',async(status,code,detail)=>{
  const repo=new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({code,detail},{status})))
- await expect(repo.setPublication(id,{visibility:'public',genre:'sf'})).rejects.toThrow(detail)
+ await expect(repo.setPublication(id,{visibility:'public',genre:'genre-14'})).rejects.toThrow(detail)
 })
 it('does not report success for a malformed publication result or another world',async()=>{
- const fetcher=vi.fn().mockResolvedValueOnce(Response.json(published({visibility:'hidden'}))).mockResolvedValueOnce(Response.json(published({genre:'horror'}))).mockResolvedValueOnce(Response.json(published({worldId:crypto.randomUUID()})))
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(published({visibility:'hidden'}))).mockResolvedValueOnce(Response.json(published({genre:7}))).mockResolvedValueOnce(Response.json(published({worldId:crypto.randomUUID()})))
  const repo=new HttpWorldStudioRepository(fetcher)
  for(let i=0;i<3;i++)await expect(repo.setPublication(id,{visibility:'public',genre:null})).rejects.toThrow('응답')
 })
@@ -413,24 +413,24 @@ it('reads the world visibility and genre, and treats a response without them as 
  const fetcher=vi.fn().mockImplementation(async()=>Response.json(wire()))
  const repo=new HttpWorldStudioRepository(fetcher)
  expect(await repo.read(id)).toMatchObject({visibility:'private',genre:null})
- fetcher.mockImplementation(async()=>Response.json({...wire(),visibility:'public',genre:'sf'}))
- expect(await repo.read(id)).toMatchObject({visibility:'public',genre:'sf'})
- fetcher.mockImplementation(async()=>Response.json({...wire(),visibility:'public',genre:'horror'}))
+ fetcher.mockImplementation(async()=>Response.json({...wire(),visibility:'public',genre:'genre-14'}))
+ expect(await repo.read(id)).toMatchObject({visibility:'public',genre:'genre-14'})
+ fetcher.mockImplementation(async()=>Response.json({...wire(),visibility:'public',genre:7}))
  await expect(repo.read(id)).rejects.toThrow('응답')
 })
 it('maps the publication of each summary in the list and defaults an older summary to private',async()=>{
  const other=crypto.randomUUID()
  const row=(worldId:string,extra={})=>({worldId,name:'세계관',description:'',draftRevision:1,relationshipStatus:'current',...extra})
- const repo=new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json([row(id,{visibility:'public',genre:'romance'}),row(other)])))
- expect((await repo.listStudio()).map(w=>[w.id,w.visibility,w.genre])).toEqual([[id,'public','romance'],[other,'private',null]])
+ const repo=new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json([row(id,{visibility:'public',genre:'genre-06'}),row(other)])))
+ expect((await repo.listStudio()).map(w=>[w.id,w.visibility,w.genre])).toEqual([[id,'public','genre-06'],[other,'private',null]])
 })
 it('never sends the world publication with a draft save and keeps the one the server returns',async()=>{
- const fetcher=vi.fn().mockResolvedValue(Response.json({...wire(3),visibility:'public',genre:'mystery'}))
+ const fetcher=vi.fn().mockResolvedValue(Response.json({...wire(3),visibility:'public',genre:'genre-18'}))
  const world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null,visibility:'private',genre:null}
  const saved=await (await prepared(fetcher)).saveStudio(world)
  const body=JSON.parse(fetcher.mock.calls[0][1].body)
  expect(body).not.toHaveProperty('visibility');expect(body).not.toHaveProperty('genre')
- expect(saved).toMatchObject({visibility:'public',genre:'mystery'})
+ expect(saved).toMatchObject({visibility:'public',genre:'genre-18'})
 })
 
 // ── 세계관 표지(소유자 업로드·교체·삭제·읽기, 계약: PUT·DELETE·GET /api/v1/world-studios/{id}/cover) ───

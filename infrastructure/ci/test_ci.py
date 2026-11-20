@@ -608,7 +608,7 @@ class SystemContractTest(unittest.TestCase):
                             self.assertGreater(index, 0)
                             self.assertEqual(f'refresh_csrf({call.func.value.id})', ast.unparse(function.body[index - 1]))
                         mutations += 1
-        self.assertEqual(29, mutations)  # Anonymous missing-CSRF rejection stays intentionally unrefreshed.
+        self.assertEqual(30, mutations)  # Anonymous missing-CSRF rejection stays intentionally unrefreshed.
 
 
 class ConfigurationTest(unittest.TestCase):
@@ -693,7 +693,7 @@ class ConfigurationTest(unittest.TestCase):
             for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
                 self.assertNotIn(private, text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
-        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs)', text)
+        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres)', text)
 
     def test_operations_works_public_routes_go_to_operations(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
@@ -731,6 +731,33 @@ class ConfigurationTest(unittest.TestCase):
                       '/api/v1/operations/inquiries', '/api/v1/operations/notices']:
             with self.subTest(vite=route):
                 self.assertNotRegex(route, pattern)
+
+    def test_genre_routes_go_to_content_and_operations(self):
+        # DEC-56: 공개 장르 목록은 Content, 운영 장르 관리(목록·추가와 {code} 수정·order 순서)는 Operations로 간다(일반 /api(Core)보다 구체적).
+        content = ['/api/v1/public/genres', '/api/v1/public/genres?x=1']
+        operations = ['/api/v1/operations/genres', '/api/v1/operations/genres/genre-31', '/api/v1/operations/genres/order']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in content:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://content-service:8081', nginx_upstream(read(path), route))
+            for route in operations:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://operations-service:8082', nginx_upstream(read(path), route))
+        vite = read('frontend/vite.config.ts')
+        content_pattern = re.search(r"'(\^/api/v1/\(\?:[^']*world-studios[^']*)':\s*\{", vite)[1].replace('\\\\', '\\')
+        operations_pattern = re.search(r"'(\^/api/v1/operations/[^']*)':\s*\{", vite)[1].replace('\\\\', '\\')
+        for route in content:
+            with self.subTest(vite=route):
+                self.assertRegex(route, content_pattern)
+        for route in operations:
+            with self.subTest(vite=route):
+                self.assertRegex(route, operations_pattern)
+        for route in ['/api/v1/public/genres-extra', '/api/v1/public/genre']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, content_pattern)
+        for route in ['/api/v1/operations/genres-extra', '/api/v1/operations/genre']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, operations_pattern)
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)

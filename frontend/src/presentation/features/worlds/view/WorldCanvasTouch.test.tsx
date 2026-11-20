@@ -20,10 +20,10 @@ const media = (coarse: boolean) => Object.defineProperty(window, 'matchMedia', {
 beforeEach(() => vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} }))
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); Reflect.deleteProperty(window, 'matchMedia'); forceGraph.props = null })
 
-const summary = (id: string, name: string): PublicWorldSummary => ({ id, name, description: '', genre: 'fantasy', authorNickname: '작가', cardCount: 2, relationshipCount: 0, publishedAt: '2026-11-01T00:00:00Z' })
+const summary = (id: string, name: string): PublicWorldSummary => ({ id, name, description: '', genre: 'genre-01', genreName: '판타지', authorNickname: '작가', cardCount: 2, relationshipCount: 0, publishedAt: '2026-11-01T00:00:00Z' })
 const atlas = () => buildWorldAtlas([summary('w-1', '별빛 세계'), summary('w-2', '안개 항구')])
 const world: PublicWorld = {
-  id: 'w-1', name: '별빛 세계', description: '', genre: 'fantasy', authorNickname: '작가', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 1, relationshipStatus: 'current',
+  id: 'w-1', name: '별빛 세계', description: '', genre: 'genre-01', genreName: '판타지', authorNickname: '작가', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 1, relationshipStatus: 'current',
   cards: [{ id: 'c-1', title: '리안', text: '', cardType: 'character', aliases: [], tags: [] }], relationships: [],
 }
 const click = (node: unknown) => act(() => forceGraph.props!.onNodeClick(node))

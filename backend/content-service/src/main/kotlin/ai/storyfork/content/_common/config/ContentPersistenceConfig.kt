@@ -52,7 +52,7 @@ class ContentPersistenceConfig {
             dataSource = ds
             persistenceUnitName = "content"
             setPackagesToScan("ai.storyfork.content.work.entity", "ai.storyfork.content.episode.entity", "ai.storyfork.content.episode_version.entity", "ai.storyfork.content.publication.entity", "ai.storyfork.content.world.entity", "ai.storyfork.content.fork.entity", "ai.storyfork.content.proposal.entity", "ai.storyfork.content.plan.entity", "ai.storyfork.content.comment.entity", "ai.storyfork.content.feedbackreport.entity", "ai.storyfork.content.like.entity", "ai.storyfork.content.interest.entity", "ai.storyfork.content.reading.entity", "ai.storyfork.content.editsuggestion.entity", "ai.storyfork.content.notice.entity", "ai.storyfork.content.preprocessing.entity")
-            // V41 재접수는 V13 실행권과 한 트랜잭션에서 변경한다. 기존 엔티티 매핑을 공유한다.
+            // V41 재접수는 V15 실행권과 한 트랜잭션에서 변경한다. 기존 엔티티 매핑을 공유한다.
             setPersistenceUnitPostProcessors({ unit ->
                 listOf(ManuscriptBuildJob::class, ManuscriptBuildLoadStep::class, StudioWorld::class,
                     SettingCard::class, WorldRelationshipState::class).forEach { unit.addManagedClassName(it.java.name) }

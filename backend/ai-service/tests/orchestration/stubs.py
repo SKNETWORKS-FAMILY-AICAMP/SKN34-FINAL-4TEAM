@@ -9,21 +9,24 @@ from langchain_core.outputs import ChatGeneration, ChatResult
 from app.intent import service as intent
 from app.intent.models import DecisionResult
 from app.story_qa.models import AnswerResponse, Claim
-from app.orchestration import agent as main_agent, tools as service
+from app.content_mcp import service as content_mcp
+from app.orchestration import agent as main_agent, mcp_tools, tools as service
 from app.rating.models import EpisodeRating, RatingResponse
-from app.research.models import Finding, ResearchResponse
+from app.research.models import Finding, PlatformReference, PlatformResult, ResearchResponse
 from app.retrieval.models import RetrievalResult
 from app.manuscript_review.models import Finding as ReviewFinding, ReviewResponse
 from app.simulation import agent, director
 from app.simulation.models import Action, Check, CheckItem, Decision, Narration, SimulationPlan, SimulationResult, Turn, Verdict
 from app.world_review.models import (Affected, CardFix, EnrichResponse, Finding as WorldFinding, Fix, ImpactResponse, WorldReviewRequest,
                                      WorldReviewResponse)
-from app.writing.models import BeatPlan, DraftResponse, PatchResponse, PlanResponse
+from app.writing.models import BeatPlan, DraftResponse, PatchResponse, PlanResponse, PlanRevision, PlanText
 
 QA = {'question': '길드 규칙은?', 'excerpts': [{'id': 'a', 'episode': 4, 'quote': '길드는 밤에 문을 닫는다.'}]}
 DRAFT = {'draft': {'episodeNumber': 11, 'plan': '선장이 항구에 도착한다.'}}
 PATCH = {'patch': {'selection': '그는 웃었다.', 'instruction': '더 차갑게'}}
 WEB = {'question': '조선 후기 한양에서 동래까지 며칠?'}
+PLATFORM = PlatformResult(references=[PlatformReference(worldId='w9', worldName='달빛 학원', cardId='c9', cardTitle='교칙', authorNickname='별빛', note='교칙 서술을 참고')],
+                          gaps=['학원 위치는 못 찾았어요.'])
 REVIEW = {'check': 'mechanical'}
 SCOPE = {'scopeToken': 'signed.token'}
 COVERAGE = {'expected': [{'number': 4, 'versionId': 'r4'}], 'withVerifiedExcerpt': [{'number': 4, 'versionId': 'r4'}],
@@ -48,6 +51,12 @@ WORLD_ENRICH = EnrichResponse(worldId='w', revision=7, note='카엘의 SOUL을 �
 WORLD_IMPACT = ImpactResponse(affected=[Affected(kind='card', ref='k', title='카엘', reason='나이 설정이 바뀐다.', certainty='confirmed')],
                               conflicts=['3화의 나이와 충돌한다.'], gaps=['5화 계획의 나이를 알 수 없다.'], model='m')
 WORLD_PLANS = [{'id': 'scene-1', 'kind': 'scene', 'title': '재회', 'content': '카엘이 리나를 만난다.', 'episodeNumber': 5, 'parentId': None}]
+# 계획 수정(revise_plan): Content가 읽어 준 최신 계획(story_plan_read)과 그 계획을 고친 제안. revision은 제안 때의 값이다.
+PLAN_READ = {'id': 'scene-1', 'workId': 'work', 'kind': 'scene', 'parentId': 'plot-1', 'title': '재회', 'content': '카엘이 리나를 만난다.',
+             'episodeNumber': 5, 'episodeMissing': False, 'characterIds': ['k'], 'placeIds': ['p'], 'revision': 3, 'position': 1}
+PLAN_REVISION = PlanRevision(planId='scene-1', kind='scene', revision=3, before=PlanText(title='재회', content='카엘이 리나를 만난다.'),
+                             after=PlanText(title='재회', content='카엘이 리나를 만나지만 이름을 부르지 못한다.'),
+                             model='m', providerResponseId='r', usage=None)
 
 
 def scene(*prose, status='completed', reason=None):
@@ -91,6 +100,8 @@ def call(step: Step) -> tuple[str, dict]:
         return 'ask_writing', {'task': task, **({'fix': step.fix} if step.fix is not None else {})}
     if step.feature == 'world':
         return 'ask_world', {'task': step.task or 'check'}
+    if step.feature == 'research':
+        return 'ask_research', {'task': step.task or 'web'}
     return service.TOOL_NAMES.get(step.feature, f'ask_{step.feature}'), {'check': step.check} if step.check else {}
 
 
@@ -138,7 +149,7 @@ class FakeMain(BaseChatModel):
         usage = {'input_tokens': 20, 'output_tokens': 5, 'total_tokens': 25}
         if done < len(self.script) and tools:
             batch = self.script[done] if isinstance(self.script[done], list) else [self.script[done]]
-            calls = [{'name': name, 'args': args if name == 'ask_web_research' else {'request': messages[last].text, **args},
+            calls = [{'name': name, 'args': args if (name, args.get('task')) == ('ask_research', 'web') or name in mcp_tools.NAMES else {'request': messages[last].text, **args},
                       'id': f'call-{done}-{i}'} for i, (name, args) in enumerate(batch)]
             message = AIMessage(content='', tool_calls=calls, response_metadata=meta, usage_metadata=usage)
         elif isinstance(self.answer, Exception):
@@ -146,6 +157,15 @@ class FakeMain(BaseChatModel):
         else:
             message = AIMessage(content=self.answer, response_metadata=meta, usage_metadata=usage)
         return ChatResult(generations=[ChatGeneration(message=message)])
+
+
+# Content MCP list_tools가 알려 주는 도구(허용 목록 10개 + 허용 밖 하나). 스키마는 테스트용으로 줄였다.
+SPECS = [{'name': n, 'description': f'{n} 설명', 'schema': {'type': 'object', 'properties': {'id': {'type': 'string'}}}}
+         for n in (*mcp_tools.NAMES, 'episode_update_draft')]
+
+
+async def _specs(names):
+    return [s for s in SPECS if s['name'] in names]
 
 
 def fake_main(monkeypatch, *calls, answer='종합 답변'):
@@ -159,6 +179,7 @@ def fake_main(monkeypatch, *calls, answer='종합 답변'):
         return FakeMain(script=list(calls), answer=answer, seen=seen)
 
     monkeypatch.setattr(main_agent, 'ChatOpenAI', chat)
+    monkeypatch.setattr(content_mcp, 'tool_specs', _specs)
     return seen
 
 
@@ -196,12 +217,16 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
         text='선장은 항구에 내렸다.', model='m', providerResponseId='r', usage=None, plan=BEAT)))
     episode = {'episode_read': {'draft': {'title': '3화', 'body': '그는 웃었다.', 'revision': 4}}}
     monkeypatch.setattr(service.content_mcp, 'call', recorded('mcp', lambda tool, args:
-                        {**NO_WORLD, **episode, 'story_plan_list': WORLD_PLANS}.get(tool, CONTEXT)))
+                        {**NO_WORLD, **episode, 'story_plan_list': WORLD_PLANS, 'story_plan_read': PLAN_READ,
+                                                                                      'story_plan_update': {**PLAN_READ, 'revision': 6}}.get(tool, CONTEXT)))
     monkeypatch.setattr(service.writing, 'patch', recorded('patch', PatchResponse(
         before='그는 웃었다.', after='그는 차갑게 웃었다.', model='m', providerResponseId='r', usage=None)))
+    monkeypatch.setattr(service.writing, 'pick_plan', recorded('pick_plan', 'scene-1'))
+    monkeypatch.setattr(service.writing, 'revise_plan', recorded('revise_plan', PLAN_REVISION))
     monkeypatch.setattr(service.simulation, 'plan', recorded(
         'sim_plan', lambda request, history, target: drafted or SimulationPlan(**SIM)))
-    monkeypatch.setattr(service.research, 'research', recorded('web_research', ResearchResponse(
+    monkeypatch.setattr(service.research, 'platform', recorded('platform', PLATFORM))
+    monkeypatch.setattr(service.research, 'research', recorded('research', ResearchResponse(
         findings=[Finding(text='약 15일', verdict='unverified', sourceUrls=[])], gaps=[],
         searchedAt=datetime(2026, 11, 12, tzinfo=timezone.utc))))
     review = recorded('manuscript_review', lambda data: ReviewResponse(

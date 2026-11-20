@@ -5,8 +5,11 @@ import ai.storyfork.content.world.service.dto.RelationshipPayload
 import java.util.UUID
 import org.springframework.data.domain.PageRequest
 
-/** 세계관 장르 코드다. 소유자가 공개할 때 고르고(미지정은 null) 공개 목록의 필터가 된다. */
-val WORLD_GENRES = listOf("fantasy", "sf", "wuxia", "romance", "modern", "classic", "mystery")
+/**
+ * 세계관 장르는 작품과 같은 Content 장르 코드(`genre-NN`)다(DEC-56). 소유자가 공개할 때 고르고(미지정은 null) 공개 목록의 필터가 된다.
+ * 새로 고를 수 있는지(활성)는 서비스가 genre 표로 확인하고, 목록 필터는 모양만 보며 없는 코드는 빈 목록이 된다.
+ */
+private val GENRE_CODE = Regex("genre-\\d{2,}")
 
 private val WORLD_VISIBILITIES = setOf("private", "public")
 private const val DEFAULT_PAGE_SIZE = 24
@@ -17,8 +20,8 @@ private const val MAX_PAGE = Int.MAX_VALUE / MAX_PAGE_SIZE
 /** 공개 범위 코드를 정확히 검사한다. 값 오류는 [IllegalArgumentException]이며 소유자 API가 422로 바꾼다. */
 fun worldVisibility(code: String?): String = requireNotNull(code?.takeIf { it in WORLD_VISIBILITIES }) { "세계관 공개 범위를 확인하세요." }
 
-/** 장르 코드는 선택이지만 있으면 [WORLD_GENRES]의 정확한 값이어야 한다. 값 오류는 [IllegalArgumentException]이다. */
-fun worldGenre(code: String?): String? = code?.also { require(it in WORLD_GENRES) { "세계관 장르를 확인하세요." } }
+/** 장르 코드의 모양(`genre-NN`)이다. 옛 영문 코드(fantasy 등)는 받지 않는다. */
+fun isGenreCode(code: String): Boolean = GENRE_CODE.matches(code)
 
 /** 공개 목록·상세에 나오는지다. 공개로 설정돼도 저장 버전이 하나도 없으면(초안만 있으면) 나오지 않는다. */
 fun isListed(visibility: String, currentRevisionId: UUID?): Boolean = visibility == "public" && currentRevisionId != null

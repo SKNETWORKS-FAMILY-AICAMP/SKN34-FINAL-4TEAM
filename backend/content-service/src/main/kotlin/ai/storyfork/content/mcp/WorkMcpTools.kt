@@ -255,7 +255,7 @@ class WorkMcpTools(
 
     @McpTool(
         name = "work_context_read",
-        description = "작성자용 허용 문맥(GET /api/v1/works/{id}/context). 소유자만 읽을 수 있고 기준 회차(episode)까지 허용된 설정·원문 발췌를 돌려주며 범위·문맥 한도 오류는 422다.",
+        description = "작성자용 허용 문맥(GET /api/v1/works/{id}/context). 소유자만 읽을 수 있고 기준 회차(episode)까지 허용된 설정·원문 발췌를 돌려주며 범위·문맥 한도 오류는 422다. includeSettings=false면 설정을 빼고(빈 settings) 문맥 예산을 원고에만 쓴다.",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
     fun contextRead(
@@ -264,7 +264,8 @@ class WorkMcpTools(
         @McpToolParam(description = "기준 회차(1 이상)") episode: Int,
         @McpToolParam(description = "원문 발췌를 고를 검색어", required = false) query: String?,
         @McpToolParam(description = "인물 시점으로 좁힐 인물 이름. 생략하면 전체 문맥", required = false) character: String?,
-    ): StoryContextResponse = mcpTool { contexts.read(id, context.requireCaller().memberId, contextRequest(episode, query, character)) }
+        @McpToolParam(description = "false면 설정(settings)을 빼고 읽는다. 생략하면 true", required = false) includeSettings: Boolean?,
+    ): StoryContextResponse = mcpTool { contexts.read(id, context.requireCaller().memberId, contextRequest(episode, query, character, includeSettings)) }
 
     @McpTool(
         name = "work_context_public_read",
@@ -300,7 +301,7 @@ class WorkMcpTools(
     ): DraftResponse = mcpTool { proposals.accept(id, proposalId, context.requireCaller().memberId, data.validated().revision).also { changeNotice.work(context, id) } }
 
     /** 컨트롤러의 `@Valid @ModelAttribute`와 같다. 선택 인자의 기본값은 빈 문자열이다. */
-    private fun contextRequest(episode: Int, query: String?, character: String?) = ContextRequest(episode, query.orEmpty(), character.orEmpty()).validated()
+    private fun contextRequest(episode: Int, query: String?, character: String?, includeSettings: Boolean? = null) = ContextRequest(episode, query.orEmpty(), character.orEmpty(), includeSettings ?: true).validated()
 
     /** 컨트롤러가 JSON 본문에서 UUID를 읽지 못하면 내리는 400과 같다. 입력 값은 되돌려 주지 않는다. */
     private fun uuidOrNull(value: String?): UUID? =

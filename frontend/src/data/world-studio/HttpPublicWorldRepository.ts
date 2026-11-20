@@ -1,13 +1,14 @@
 import { z } from 'zod'
 
-import { PUBLIC_WORLD_GENRES, type PublicWorld, type PublicWorldCardHit, type PublicWorldCardPage, type PublicWorldPage, type PublicWorldSummary } from '../../domain/entities/publicWorld'
+import type { PublicWorld, PublicWorldCardHit, PublicWorldCardPage, PublicWorldPage, PublicWorldSummary } from '../../domain/entities/publicWorld'
 import type { CardType } from '../../domain/entities/studioCards'
 import type { PublicWorldCardQuery, PublicWorldQuery, PublicWorldRepository } from '../../domain/repositories/PublicWorldRepository'
 
 const id = z.string().min(1)
 const count = z.number().int().nonnegative()
 const instant = z.iso.datetime({ offset: true })
-const genre = z.enum(PUBLIC_WORLD_GENRES).nullable()
+// 장르 코드(`genre-01` …)다. 이름은 UseCase가 공개 장르 목록으로 찾는다(DEC-56).
+const genre = z.string().min(1).nullable()
 const cardType: z.ZodType<CardType> = z.enum(['character', 'location', 'organization', 'ability', 'object', 'rule', 'event', 'other'])
 // 카드 대표 이미지 id(#401). 이 필드를 주기 전 응답과 이미지 없는 카드는 null이다.
 const imageId = z.string().min(1).nullable().default(null)

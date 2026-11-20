@@ -1,5 +1,6 @@
 package ai.storyfork.content.world
 
+import ai.storyfork.content.work.repository.GenreRepository
 import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldRestoreBlocked
@@ -40,13 +41,14 @@ class WorldStudioServiceTest {
     private val expandedSeeds=mock(ExpandedSeedProgressRepository::class.java)
     private val images=mock(SettingCardImageRepository::class.java)
     private val graph=mock(Neo4jRelationshipRepository::class.java)
+    private val genres=mock(GenreRepository::class.java)
     private val buildJobs=mock(ManuscriptBuildJobRepository::class.java)
     private val buildSteps=mock(ManuscriptBuildLoadStepRepository::class.java)
     private val manager=mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
-    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,buildJobs,buildSteps)
+    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,genres,buildJobs,buildSteps)
     private val world=UUID.randomUUID()
     private val actor=UUID.randomUUID()
     private val draft=WorldDraft(worldId=world,name="편집본",draftRevision=2)
@@ -111,16 +113,16 @@ class WorldStudioServiceTest {
         val entity = StudioWorld(world, owner, UUID.randomUUID(), visibility = "public", publishedAt = java.time.Instant.EPOCH)
         `when`(worlds.lockOwned(world, owner)).thenReturn(entity)
 
-        service.fillTemplateGenre(world, "fantasy")
+        service.fillTemplateGenre(world, "genre-01")
 
-        assertEquals("fantasy", entity.genre)
+        assertEquals("genre-01", entity.genre)
         assertEquals("public", entity.visibility)
         assertEquals(java.time.Instant.EPOCH, entity.publishedAt)
         assertEquals(0L, entity.ownerMetadataVersion)
         assertNotNull(entity.currentRevisionId)
-        entity.genre = "sf"
-        service.fillTemplateGenre(world, "fantasy")
-        assertEquals("sf", entity.genre)
+        entity.genre = "genre-14"
+        service.fillTemplateGenre(world, "genre-01")
+        assertEquals("genre-14", entity.genre)
         verifyNoInteractions(templatePublications, expandedSeeds, drafts, states, requests, revisions, graph)
     }
     @Test fun `template genre backfill does not fill a world after its publication changes`() {
@@ -128,7 +130,7 @@ class WorldStudioServiceTest {
         val entity = StudioWorld(world, owner, ownerMetadataVersion = 1)
         `when`(worlds.lockOwned(world, owner)).thenReturn(entity)
 
-        service.fillTemplateGenre(world, "fantasy")
+        service.fillTemplateGenre(world, "genre-01")
 
         assertNull(entity.genre)
         assertEquals(1L, entity.ownerMetadataVersion)
@@ -178,14 +180,14 @@ class WorldStudioServiceTest {
         doAnswer { if(fail) { fail=false;throw WorldStudioFailure.unavailable() }
             RelationshipStateResult(world,0,it.arguments[2] as String,it.arguments[3] as String,emptyList())
         }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
-        assertNull(service.startExpanded(request,"digest","sf"))
+        assertNull(service.startExpanded(request,"digest","genre-14"))
         verify(worlds,never()).saveAndFlush(any())
         entity=null
-        assertThrows(WorldStudioFailure::class.java) { service.startExpanded(request,"digest","sf") }
+        assertThrows(WorldStudioFailure::class.java) { service.startExpanded(request,"digest","genre-14") }
         assertNotNull(marker)
-        assertEquals("sf", entity!!.genre)
-        assertEquals(0,service.startExpanded(request,"digest","sf"))
-        assertThrows(WorldConflict::class.java) { service.startExpanded(request,"different","sf") }
+        assertEquals("genre-14", entity!!.genre)
+        assertEquals(0,service.startExpanded(request,"digest","genre-14"))
+        assertThrows(WorldConflict::class.java) { service.startExpanded(request,"different","genre-14") }
         assertEquals(0,marker!!.nextChunk)
     }
     @Test fun `expanded chunk cannot overwrite a missing marker changed digest or owner choice`() {
@@ -224,9 +226,9 @@ class WorldStudioServiceTest {
             RelationshipStateResult(id, 0, it.arguments[2] as String, it.arguments[3] as String, emptyList())
         }.`when`(graph).replace(anyUUID(), anyLong(), anyString(), anyString(), anyList(), anyEpisode())
         `when`(graph.read(id)).thenAnswer { RelationshipStateResult(id, 0, storedState!!.requestKey, storedState!!.requestHash, emptyList()) }
-        assertThrows(WorldStudioFailure::class.java) { service.createTemplate(CreateWorldRequest(template.name, template.description, id), "wuxia") }
+        assertThrows(WorldStudioFailure::class.java) { service.createTemplate(CreateWorldRequest(template.name, template.description, id), "genre-03") }
         assertEquals("public", storedWorld!!.visibility)
-        assertEquals("wuxia", storedWorld!!.genre)
+        assertEquals("genre-03", storedWorld!!.genre)
         assertNotNull(storedWorld!!.publishedAt)
         verify(templatePublications).saveAndFlush(any())
         val hash = storedState!!.creationHash
@@ -234,12 +236,12 @@ class WorldStudioServiceTest {
         val originalHash = MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsBytes(listOf("create", id, request)))
             .joinToString("") { "%02x".format(it) }
         assertEquals(originalHash, hash)
-        assertEquals("public", service.createTemplate(CreateWorldRequest(template.name, template.description, id), "wuxia").visibility)
+        assertEquals("public", service.createTemplate(CreateWorldRequest(template.name, template.description, id), "genre-03").visibility)
         assertEquals(hash, storedState!!.creationHash)
         storedWorld!!.currentRevisionId = UUID.randomUUID()
         storedWorld!!.visibility = "private"
         storedWorld!!.publishedAt = null
-        repeat(2) { assertEquals("private", service.createTemplate(CreateWorldRequest(template.name, template.description, id), "wuxia").visibility) }
+        repeat(2) { assertEquals("private", service.createTemplate(CreateWorldRequest(template.name, template.description, id), "genre-03").visibility) }
         assertThrows(WorldConflict::class.java) { service.createTemplate(request.copy(description = "다른 입력")) }
         storedWorld = StudioWorld(id, UUID.randomUUID(), visibility = "private")
         assertThrows(WorldNotFound::class.java) { service.createTemplate(CreateWorldRequest(template.name, template.description, id)) }
@@ -519,7 +521,7 @@ class WorldStudioServiceTest {
         assertEquals("private",f.world.visibility)
     }
     @Test fun `current genre and cover or altered history prevent publication`() {
-        val f=pristineTemplateFixture();f.world.genre="fantasy"
+        val f=pristineTemplateFixture();f.world.genre="genre-25"
         service.publishPristineTemplate(f.template,null,null)
         assertEquals("private",f.world.visibility);assertTrue(f.template.worldId in f.marked)
     }
@@ -537,9 +539,9 @@ class WorldStudioServiceTest {
         assertEquals("private",f.world.visibility);assertTrue(f.template.worldId in f.marked)
     }
     @Test fun `already public template keeps genre and publication time`() {
-        val f=pristineTemplateFixture();f.world.visibility="public";f.world.genre="sf";f.world.publishedAt=java.time.Instant.EPOCH
+        val f=pristineTemplateFixture();f.world.visibility="public";f.world.genre="genre-14";f.world.publishedAt=java.time.Instant.EPOCH
         service.publishPristineTemplate(f.template,null,null)
-        assertEquals("sf",f.world.genre);assertEquals(java.time.Instant.EPOCH,f.world.publishedAt);assertTrue(f.template.worldId in f.marked)
+        assertEquals("genre-14",f.world.genre);assertEquals(java.time.Instant.EPOCH,f.world.publishedAt);assertTrue(f.template.worldId in f.marked)
         verifyNoInteractions(graph)
     }
     @Test fun `cover is excluded`() {
@@ -1117,33 +1119,54 @@ class WorldStudioServiceTest {
         `when`(worlds.lockOwned(world,actor)).thenReturn(entity)
         return service.publication(world,actor,PublicationRequest(visibility,genre))
     }
+    /** 운영자가 숨기지 않은(활성) Content 장르 코드다. 나머지 코드는 활성이 아니다(DEC-56). */
+    private fun active(vararg codes:String) { codes.forEach { `when`(genres.existsByCodeAndActiveTrue(it)).thenReturn(true) } }
 
     @Test fun `owner publishes with a genre and a world without a saved revision is reported as not listed`() {
+        active("genre-01")
         val entity=StudioWorld(world,actor)
-        val result=publish(entity,"public","fantasy")
+        val result=publish(entity,"public","genre-01")
         assertNotNull(entity.publishedAt)
-        assertEquals(PublicationResponse(world,"public","fantasy",entity.publishedAt.toString(),false),result)
-        assertEquals("public",entity.visibility);assertEquals("fantasy",entity.genre)
+        assertEquals(PublicationResponse(world,"public","genre-01",entity.publishedAt.toString(),false),result)
+        assertEquals("public",entity.visibility);assertEquals("genre-01",entity.genre)
         verifyNoInteractions(graph,revisionCards,cardVersions)
     }
 
     @Test fun `publishing again keeps publishedAt, private clears it, and the genre is stored as sent`() {
+        active("genre-01","genre-14")
         val entity=StudioWorld(world,actor,currentRevisionId=UUID.randomUUID())
-        val first=publish(entity,"public","fantasy")
+        val first=publish(entity,"public","genre-01")
         assertTrue(first.listed)
-        val again=publish(entity,"public","sf")
-        assertEquals(first.publishedAt,again.publishedAt);assertEquals("sf",again.genre)
-        val hidden=publish(entity,"private","sf")
-        assertNull(hidden.publishedAt);assertNull(entity.publishedAt);assertFalse(hidden.listed);assertEquals("sf",entity.genre)
+        val again=publish(entity,"public","genre-14")
+        assertEquals(first.publishedAt,again.publishedAt);assertEquals("genre-14",again.genre)
+        val hidden=publish(entity,"private","genre-14")
+        assertNull(hidden.publishedAt);assertNull(entity.publishedAt);assertFalse(hidden.listed);assertEquals("genre-14",entity.genre)
         val republished=publish(entity,"public",null)
         assertNotNull(republished.publishedAt);assertNull(republished.genre);assertTrue(republished.listed)
     }
 
     @Test fun `invalid publication bodies fail as input errors before the world is even locked`() {
-        listOf(PublicationRequest(null,null),PublicationRequest("friends",null),PublicationRequest("public","romcom"),PublicationRequest("public"," sf")).forEach {
+        listOf(PublicationRequest(null,null),PublicationRequest("friends",null)).forEach {
             assertThrows(IllegalArgumentException::class.java) { service.publication(world,actor,it) }
         }
-        verifyNoInteractions(worlds)
+        verifyNoInteractions(worlds,genres)
+    }
+
+    @Test fun `a genre must be an active Content genre unless the world already has it`() {
+        active("genre-01")
+        // 이 세계관에는 지금 숨긴(활성이 아닌) genre-14가 붙어 있다.
+        val entity=StudioWorld(world,actor,visibility="public",genre="genre-14",publishedAt=java.time.Instant.now())
+        // 없는 코드·옛 영문 코드·공백이 붙은 코드·숨긴 장르는 새로 고를 수 없다. 거절하면 저장된 값은 그대로다.
+        listOf("romcom","sf"," genre-01","genre-02","genre-99").forEach {
+            assertThrows(IllegalArgumentException::class.java) { publish(entity,"public",it) }
+        }
+        assertEquals("genre-14",entity.genre)
+        // 그 값을 바꾸지 않으면 숨긴 장르여도 통과한다. 활성 장르로 바꾸거나 지울 수도 있다.
+        assertEquals("genre-14",publish(entity,"public","genre-14").genre)
+        assertEquals("genre-01",publish(entity,"public","genre-01").genre)
+        assertNull(publish(entity,"public",null).genre)
+        // 한 번 지운 숨긴 장르는 다시 붙일 수 없다(유지 허용은 지금 저장된 값에만 적용된다).
+        assertThrows(IllegalArgumentException::class.java) { publish(entity,"public","genre-14") }
     }
 
     @Test fun `only the owner can change publication`() {
@@ -1152,13 +1175,13 @@ class WorldStudioServiceTest {
 
     @Test fun `owner summaries and the world detail carry visibility and genre`() {
         owned()
-        val entity=StudioWorld(world,actor,visibility="public",genre="sf",publishedAt=java.time.Instant.now())
+        val entity=StudioWorld(world,actor,visibility="public",genre="genre-14",publishedAt=java.time.Instant.now())
         `when`(worlds.lockOwned(world,actor)).thenReturn(entity)
         `when`(worlds.findAllByOwnerSubjectAndDeletedAtIsNullOrderByCreatedAtDesc(actor)).thenReturn(listOf(entity))
         val summary=service.list(actor).single()
-        assertEquals("public",summary.visibility);assertEquals("sf",summary.genre)
+        assertEquals("public",summary.visibility);assertEquals("genre-14",summary.genre)
         val detail=service.draft(world,actor)
-        assertEquals("public",detail.visibility);assertEquals("sf",detail.genre)
+        assertEquals("public",detail.visibility);assertEquals("genre-14",detail.genre)
         assertEquals("private",WorldStudioSummaryResponse(world,"n","d",0,"current").visibility)
     }
 

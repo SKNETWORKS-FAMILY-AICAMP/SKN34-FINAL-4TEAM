@@ -54,7 +54,7 @@ it('카드 한 장이 빵부스러기·분류 상자·문서 제목·정보 표�
   expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('늙은 항해사 오르')
   expect(within(document.querySelector<HTMLElement>('article.nw .nw-cat')!).getAllByRole('link').map((a) => a.textContent)).toEqual(['달무리 군도', '인물'])
   // 정보 표: 맨 위 유형 칩 → 인물은 관계 수(소속이 없으면 소속 행 없음) → 세계관
-  expect(rows(screen.getByRole('table', { name: '늙은 항해사 오르' }))).toEqual({ keys: ['유형', '관계', '세계관'], values: ['인물', '2개', '달무리 군도'] })
+  expect(rows(screen.getByRole('table', { name: '늙은 항해사 오르' }))).toEqual({ keys: ['유형', '관계', '세계관'], values: ['인물', '3개', '달무리 군도'] }) // 관계 문단 셋: 하엘·미라(인물)와 사건
 })
 
 it('목차와 접이식 문단은 내용이 있는 문단만 연속 번호로 그리고 관계는 관계마다 하위 문단이며 소제목의 상대는 그 카드 페이지로 가는 링크다', async () => {
@@ -80,7 +80,7 @@ it('인물이 아닌 카드도 같은 규칙으로 방향 미상 관계를 관�
 it('인물의 정보 표는 이어진 조직을 소속으로 보인다', async () => {
   await renderAt(cardPath('silent-orbit', 5)) // 교신사 하린 → 관제 잔류단(소속)
   const table = screen.getByRole('table', { name: '교신사 하린' })
-  expect(rows(table)).toEqual({ keys: ['유형', '소속', '관계', '세계관'], values: ['인물', '관제 잔류단(소속)', '2개', '침묵 궤도'] })
+  expect(rows(table)).toEqual({ keys: ['유형', '소속', '관계', '세계관'], values: ['인물', '관제 잔류단(소속)', '4개', '침묵 궤도'] })
   expect(within(table).getByRole('link', { name: '관제 잔류단(소속)' }).getAttribute('href')).toBe(cardPath('silent-orbit', 2))
 })
 
@@ -337,7 +337,8 @@ it('정보 상자에 별칭은 쉼표로, 태그는 칩으로 보이고 값이 �
   const get = vi.spyOn(useCase(), 'get').mockResolvedValue(marked('교신사', { aliases: ['린', '교신사'], tags: ['주인공', '우주'] }))
   await renderAt(cardPath('sw', 'c-uuid-1'))
   const table = screen.getByRole('table', { name: '하린' })
-  expect(rows(table)).toEqual({ keys: ['유형', '별칭', '관계', '태그', '세계관'], values: ['인물', '린, 교신사', '0개', '주인공우주', '서버 세계'] })
+  // 하린의 관계는 장소(온실) 하나라 인물 관계만 세면 0개로 보였다(본문에는 관계 문단이 하나)
+  expect(rows(table)).toEqual({ keys: ['유형', '별칭', '관계', '태그', '세계관'], values: ['인물', '린, 교신사', '1개', '주인공우주', '서버 세계'] })
   expect(within(table).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['주인공', '우주'])
   cleanup()
   get.mockResolvedValue(marked('교신사'))

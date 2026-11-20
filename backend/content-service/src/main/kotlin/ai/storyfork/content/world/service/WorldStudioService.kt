@@ -7,13 +7,13 @@ import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.isListed
 import ai.storyfork.content.world.domain.validEpisode
-import ai.storyfork.content.world.domain.worldGenre
 import ai.storyfork.content.world.domain.worldVisibility
 import ai.storyfork.content.world.helper.RelationshipInputHelper
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.studio.entity.*
 import ai.storyfork.content.world.studio.repository.*
 import ai.storyfork.content.world.service.dto.*
+import ai.storyfork.content.work.repository.GenreRepository
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
@@ -32,6 +32,7 @@ class WorldStudioService(
     private val revisionCards:WorldRevisionCardRepository,private val requests:WorldSaveRequestRepository,
     private val states:WorldRelationshipStateRepository,private val templatePublications:TemplatePublicationOnceRepository,private val expandedSeeds:ExpandedSeedProgressRepository,private val applications:InitialWorldApplicationRepository,private val images:SettingCardImageRepository,private val graph:Neo4jRelationshipRepository,
     @Qualifier("worldStudioTransactionManager") manager:PlatformTransactionManager,private val mapper:JsonMapper,
+    private val genres:GenreRepository,
     private val buildJobs:ManuscriptBuildJobRepository,private val buildSteps:ManuscriptBuildLoadStepRepository,
 ) {
     private val log=org.slf4j.LoggerFactory.getLogger(javaClass)
@@ -58,10 +59,14 @@ class WorldStudioService(
      * 저장 버전이 없으면 설정은 되지만 목록에 나오지 않는다(listed=false). 카드·관계·revision은 건드리지 않는다.
      */
     fun publication(worldId:UUID,subject:UUID,request:PublicationRequest):PublicationResponse {
-        val visibility=worldVisibility(request.visibility);val genre=worldGenre(request.genre)
+        val visibility=worldVisibility(request.visibility);val genre=request.genre
+        // 새로 고를 수 있는 장르는 활성 Content 장르뿐이다(DEC-56). genre는 다른 영속 단위라 WorldStudio 트랜잭션을 열기 전에 읽는다.
+        val selectable=genre!=null && genres.existsByCodeAndActiveTrue(genre)
         return tx {
             val world=owned(worldId,subject)
             guardNoExpanded(worldId)
+            // 이미 붙은 장르는 숨겼어도 그대로 두면 통과한다. 숨긴 장르를 새로 붙이는 것만 막는다.
+            require(genre==null || selectable || genre==world.genre) { "세계관 장르를 확인하세요." }
             world.ownerMetadataVersion=Math.incrementExact(world.ownerMetadataVersion)
             world.publishedAt=if(visibility=="public") world.publishedAt ?: Instant.now() else null
             world.visibility=visibility;world.genre=genre
@@ -76,7 +81,7 @@ class WorldStudioService(
 
     /** 템플릿 시더만 소유자 선택 전의 null 공개 장르를 채운다. 공개·표지 선택과 적재 marker·이력은 바꾸지 않는다. */
     internal fun fillTemplateGenre(worldId:UUID,genre:String?) {
-        val mapped=worldGenre(genre) ?: return
+        val mapped=genre ?: return
         tx<Unit> {
             val world=worlds.lockOwned(worldId,GenreTemplateSeeder.TEMPLATE_OWNER)
             if(world!=null && world.genre==null && world.ownerMetadataVersion==0L) world.genre=mapped
@@ -115,7 +120,7 @@ class WorldStudioService(
 
     internal fun startExpanded(request:CreateWorldRequest,inputHash:String,genre:String?=null):Int? {
         validateName(request.name,request.description)
-        val mappedGenre=worldGenre(genre)
+        val mappedGenre=genre
         val owner=GenreTemplateSeeder.TEMPLATE_OWNER
         val creationHash=hash("create",request.id,request)
         val next=tx {
@@ -218,7 +223,7 @@ class WorldStudioService(
 
     private fun create(subject:UUID,request:CreateWorldRequest,template:Boolean,genre:String?=null):WorldDraftResponse {
         validateName(request.name,request.description)
-        val mappedGenre=if(template) worldGenre(genre) else null
+        val mappedGenre=if(template) genre else null
         val hash=hash("create",request.id,request);val key=request.id.toString()
         val complete=tx {
             val existing=worlds.findById(request.id).orElse(null)
@@ -367,6 +372,9 @@ class WorldStudioService(
         }
         return loaded.copy(relationships=stored.relationships,relationshipEpisodes=stored.episodes)
     }
+
+    /** 소유한 세계관 [worldId]의 초안에 삭제되지 않은 카드 [cardId]가 있는가. 남의 세계관은 404다. 관계 저장소를 읽지 않는 가벼운 확인이다(집필 AI 채팅의 화면 정보 검증). */
+    fun hasCard(worldId:UUID,subject:UUID,cardId:UUID):Boolean = tx { owned(worldId,subject);cardDrafts.findById(cardId).filter { it.worldId==worldId && it.fields.lifecycle!="removed" }.isPresent }
 
     internal fun draftForReview(worldId:UUID,subject:UUID):WorldDraftResponse = draft(worldId,subject,null,true)
 

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import type { CharacterSimulation } from '../../domain/entities/characterSimulation'
-import type { ChatEvent, ChatHistory, ChatMessageInput, ChatRating, ChatReply, ChatReview, ChatSession, ChatStep, ChatWorld, ChatWorldReview } from '../../domain/entities/writingChat'
+import type { ChatEvent, ChatHistory, ChatMessageInput, ChatPlanRevision, ChatRating, ChatReply, ChatReview, ChatSession, ChatStep, ChatWorld, ChatWorldReview, PendingAction } from '../../domain/entities/writingChat'
 import type { WritingChatRepository } from '../../domain/repositories/WritingChatRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, protectedRequest } from '../api/auth'
@@ -32,7 +32,7 @@ const BAD_SIMULATION = '인물 시뮬레이션 결과 형식을 확인할 수 �
 
 const stepFields = {
   when: z.enum(['always', 'if_issues_found']).optional(),
-  task: z.enum(['plan', 'draft', 'patch', 'check', 'enrich', 'impact']).nullish(), // 앞 셋은 writing_editing, 뒤 셋은 world 단계의 작업이다
+  task: z.enum(['plan', 'draft', 'patch', 'revise_plan', 'check', 'enrich', 'impact']).nullish(), // 앞 넷은 writing_editing, 뒤 셋은 world 단계의 작업이다
   status: z.enum(['completed', 'failed', 'not_started', 'skipped']),
   error: z.string().nullish(),
   approval: z.enum(['approved', 'declined']).nullish(),
@@ -68,6 +68,10 @@ const worldResults: Record<string, z.ZodType<ChatWorld>> = {
   }).transform((r) => ({ task: 'impact' as const, ...r })),
 }
 const BAD_WORLD = '세계관 결과 형식을 확인할 수 없어요.'
+// 계획 수정안(#578) 단계 결과. AI PlanRevision 중 화면이 쓰는 값(대상 종류·변경 전·후)만 받는다. 수정 범위는 제목·내용뿐이다.
+const planText = z.object({ title: z.string(), content: z.string() })
+const planRevision: z.ZodType<ChatPlanRevision> = z.object({ kind: z.enum(['plot', 'scene']), before: planText, after: planText })
+const BAD_PLAN_REVISION = '계획 수정안 형식을 확인할 수 없어요.'
 // 심의 등급 단계 결과. AI RatingResponse 중 화면이 쓰는 값만 계약의 열거값으로 받는다.
 const ratingVerdict = z.enum(['adult', 'general', 'needsReview'])
 const rating: z.ZodType<ChatRating> = z.object({
@@ -83,8 +87,9 @@ const beatPlan = z.object({ title: z.string(), beats: z.array(z.string()) })
 
 // 시뮬레이션·검수 단계는 결과가 객체가 아니어도(문자열·배열·숫자) 이 단계만 실패로 바꿔야 해서 결과를 transform이 따로 검증한다.
 // 결과를 객체로 먼저 검사하면 그 실패가 transform 앞에서 응답 전체의 형식 오류가 된다.
-const typedStep = <T,>(feature: z.ZodType<string>, schema: z.ZodType<T> | ((task: ChatStep['task']) => z.ZodType<T> | undefined), key: 'simulation' | 'manuscriptReview' | 'rating' | 'worldReview' | 'world', bad: string) =>
-  z.object({ feature, ...stepFields, result: z.unknown() }).transform((raw): ChatStep => {
+const typedStep = <T,>(feature: z.ZodType<string>, schema: z.ZodType<T> | ((task: ChatStep['task']) => z.ZodType<T> | undefined), key: 'simulation' | 'manuscriptReview' | 'rating' | 'worldReview' | 'world' | 'planRevision', bad: string, only?: ChatStep['task']) =>
+  // only가 있으면 그 작업의 단계만 받는다(다른 작업은 다음 후보 스키마로 넘어간다).
+  z.object({ feature, ...stepFields, result: z.unknown() }).refine((raw) => !only || raw.task === only).transform((raw): ChatStep => {
     const { result, ...rest } = raw
     // 완료됐다는 단계는 결과가 있어야 한다. 아직 시작 전·서버가 실패로 보낸 결과 없는 단계는 그대로 둔다.
     if (!result && raw.status !== 'completed') return rest
@@ -98,22 +103,29 @@ const step: z.ZodType<ChatStep> = z.union([typedStep(z.literal('character_simula
   typedStep(z.literal(['manuscript_review', 'review']).transform(() => 'manuscript_review'), manuscriptReview, 'manuscriptReview', BAD_REVIEW),
   typedStep(z.literal('rating'), rating, 'rating', BAD_RATING),
   typedStep(z.literal('world_review'), worldReview, 'worldReview', BAD_WORLD_REVIEW),
-  typedStep(z.literal('world'), (task) => (task ? worldResults[task] : undefined), 'world', BAD_WORLD), z.object({
+  typedStep(z.literal('world'), (task) => (task ? worldResults[task] : undefined), 'world', BAD_WORLD),
+  typedStep(z.literal('writing_editing'), planRevision, 'planRevision', BAD_PLAN_REVISION, 'revise_plan'), z.object({
   feature: z.string(),
   ...stepFields,
   result: z.looseObject({
+    tool: z.string().optional(), label: z.string().optional(), // content_action 단계(#554)
     claims: z.array(z.object({ text: z.string() })).optional(),
     gaps: z.array(z.string()).optional(),
     text: z.string().optional(),
     before: z.string().optional(),
     after: z.string().optional(),
     findings: z.array(z.object({ text: z.string(), verdict: z.string(), sourceUrls: z.array(z.string()) })).optional(),
+    references: z.array(z.object({ worldId: z.string(), worldName: z.string(), cardId: z.string(), cardTitle: z.string(), authorNickname: z.string(), note: z.string() })).optional(),
     plans: z.array(beatPlan).optional(),
     notes: z.array(z.string()).optional(),
     plan: beatPlan.nullish(),
   }).nullish(),
 })])
-const featureKey = z.string().transform((feature) => feature === 'review' ? 'manuscript_review' : feature)
+// Content 쓰기 도구 승인 대기(#554): 실제 실행할 도구와 인자다.
+const pendingAction: z.ZodType<PendingAction> = z.object({ tool: z.string(), label: z.string(), args: z.record(z.string(), z.unknown()) })
+// 옛 대화 기록의 기능 키(#499 review, #545 web_research)를 지금 키로 바꾼다.
+const RENAMED_FEATURES = new Map([['review', 'manuscript_review'], ['web_research', 'research']])
+const featureKey = z.string().transform((feature) => RENAMED_FEATURES.get(feature) ?? feature)
 const reply: z.ZodType<ChatReply> = z.object({
   status: z.enum(['completed', 'failed', 'clarify', 'rejected', 'unsupported', 'needs_input', 'waiting', 'cancelled']),
   message: z.string().nullish(),
@@ -122,6 +134,7 @@ const reply: z.ZodType<ChatReply> = z.object({
   awaitingApproval: z.string().nullish(),
   awaitingScene: z.string().nullish(),
   approvalEpisode: z.number().int().positive().nullish(),
+  pendingAction: pendingAction.nullish(),
 })
 const session: z.ZodType<ChatSession> = z.object({ threadId: z.string(), title: z.string(), updatedAt: z.string() })
 const history: z.ZodType<ChatHistory> = z.object({
@@ -131,7 +144,7 @@ const events = {
   plan: z.object({ steps: z.array(step) }).transform((d) => ({ type: 'plan' as const, ...d })),
   started: z.object({ feature: featureKey }).transform((d) => ({ type: 'started' as const, ...d })),
   step: step.transform((s) => ({ type: 'step' as const, step: s })),
-  waiting: z.object({ steps: z.array(step), missingInputs: z.array(featureKey).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish() })
+  waiting: z.object({ steps: z.array(step), missingInputs: z.array(featureKey).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish(), pendingAction: pendingAction.nullish() })
     .transform((d) => ({ type: 'waiting' as const, ...d })),
   done: reply.transform((r) => ({ type: 'done' as const, reply: r })),
   error: z.object({ message: z.string() }).transform((d) => ({ type: 'error' as const, ...d })),

@@ -13,12 +13,14 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
   const [selected, setSelected] = useState<string | null>(null)
   const [editor, setEditor] = useState<Editor | null>(null)
   const [deleting, setDeleting] = useState<StoryPlan | null>(null)
-  const [deleteNeedsReview, setDeleteNeedsReview] = useState(false)
+  // 삭제 응답이 불명확해 재전송 전에 최신 목록을 확인해야 하는 계획의 id. 그 계획에만 걸고, 다른 계획의 삭제 확인은 잠그지 않는다.
+  const [reviewId, setReviewId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [version, setVersion] = useState(0)
+  const deleteNeedsReview = !!deleting && reviewId === deleting.id
   const pending = useRef<AbortController | null>(null)
   const editorRead = useRef<AbortSignal | null>(null)
   const mutating = useRef(false)
@@ -46,12 +48,12 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
     }
   }, [])
   const load = useCallback(() => run(signal => Promise.all([api.list(workId, signal), api.references(workId, signal)]), ([rows, refs]) => {
-    setPlans(rows); setReferences(refs); setDeleteNeedsReview(false)
+    setPlans(rows); setReferences(refs); setReviewId(null)
     setSelected(before => rows.some(p => p.id === before && p.kind === 'plot') ? before : rows.find(p => p.kind === 'plot')?.id ?? null)
   }), [api, workId, run])
 
   useEffect(() => {
-    setPlans([]); setReferences(null); setSelected(null); setEditor(null); setDeleting(null); setDeleteNeedsReview(false); setReady(false)
+    setPlans([]); setReferences(null); setSelected(null); setEditor(null); setDeleting(null); setReviewId(null); setReady(false)
     void load()
     return () => { pending.current?.abort(); pending.current = null }
   }, [load])
@@ -134,18 +136,18 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
   const remove = () => {
     if (!deleting || deleteNeedsReview || pending.current) return
     // 응답이 불명확한 경우에도 재전송 전 최신 목록에서 대상을 확인한다.
-    setDeleteNeedsReview(true)
+    setReviewId(deleting.id)
     void run(signal => api.remove(workId, deleting, signal), () => {
       setVersion(v => v + 1)
-      setPlans(rows => rows.filter(p => p.id !== deleting.id)); setSelected(before => before === deleting.id ? plans.find(p => p.kind === 'plot' && p.id !== deleting.id)?.id ?? null : before); setDeleting(null); setDeleteNeedsReview(false)
+      setPlans(rows => rows.filter(p => p.id !== deleting.id)); setSelected(before => before === deleting.id ? plans.find(p => p.kind === 'plot' && p.id !== deleting.id)?.id ?? null : before); setDeleting(null); setReviewId(null)
       setNotice('계획을 삭제했어요. 연결된 원고·사전은 유지돼요.')
     }, true)
   }
   const reviewDelete = () => {
     if (!deleting || pending.current) return
-    setDeleteNeedsReview(true)
+    setReviewId(deleting.id)
     void run(signal => api.reviewDeletion(workId, deleting.id, signal), ({ plans: rows, target }) => {
-      setPlans(rows); setDeleting(target); setDeleteNeedsReview(false)
+      setPlans(rows); setDeleting(target); setReviewId(null)
       setNotice(target ? '최신 내용을 불러왔어요. 내용을 확인한 뒤 삭제를 다시 선택해 주세요.' : '최신 목록에서 해당 계획을 찾을 수 없어요.')
     })
   }

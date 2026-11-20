@@ -1,5 +1,6 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 
+import type { ChatPage, WorldDraftRevision } from '../../../../domain/entities/writingChat'
 import { WritingChat } from '../../../shared/chat/WritingChat'
 import { useLinkedWorkBasis } from '../viewmodel/useLinkedWorkBasis'
 import { FoldIcon, SparkIcon } from '../../../shared/icons'
@@ -26,7 +27,11 @@ const useDrawer = () => useSyncExternalStore(watchDrawer, () => window.matchMedi
  * 채팅의 World 제안이 설정집 초안에 반영되면(`onWorldApplied`) 서버 초안이 바뀐 것이라, 부모가 저장하지 않은 변경이 없을 때만 다시 읽고 있으면 안내만 한다(`aiDraftChanged`).
  * 접기·열기 버튼은 한 번에 하나만 마운트되므로 ref 하나를 함께 쓰고, 누르면 사라질 버튼 대신 새로 보이는 버튼으로 초점을 옮긴다(처음 렌더링에서는 옮기지 않는다).
  */
-export function WorldChat({ open, onOpenChange, variant = 'world', linkedWorkId = null, onWorldApplied }: { open: boolean; onOpenChange: (open: boolean) => void; variant?: 'world' | 'writing'; linkedWorkId?: string | null; onWorldApplied?: () => void }) {
+export function WorldChat({ open, onOpenChange, variant = 'world', linkedWorkId = null, onWorldApplied, getPage, cardOf, unsaved, worldDraft }: {
+  open: boolean; onOpenChange: (open: boolean) => void; variant?: 'world' | 'writing'; linkedWorkId?: string | null; onWorldApplied?: () => void
+  /** 메시지마다 싣는 화면 정보, 승인 카드의 수정 전 값 찾기, 작성 중인 변경이 있어 승인을 막아야 하는지(#554). */
+  getPage?: () => ChatPage | undefined; cardOf?: (id: string) => { title: string; body: string } | undefined; unsaved?: boolean; worldDraft?: WorldDraftRevision
+}) {
   const basis = useLinkedWorkBasis(open ? linkedWorkId : null)
   const toggle = useRef<HTMLButtonElement>(null)
   const wasOpen = useRef(open)
@@ -43,7 +48,7 @@ export function WorldChat({ open, onOpenChange, variant = 'world', linkedWorkId 
         <h2><span className="chat-brand" aria-hidden="true"><SparkIcon size={16} /></span>AI 채팅</h2>
         <button ref={toggle} type="button" className="chat-icon-btn" aria-label="접기" title="접기" onClick={close}><FoldIcon /></button>
       </div>
-      <WritingChat workId={linkedWorkId} basis={basis} emptyTitle="어떤 세계를 함께 다듬어 볼까요?" emptyText="AI의 제안은 설정 카드에 자동으로 반영되지 않아요." suggestions={suggestions} onWorldApplied={onWorldApplied} />
+      <WritingChat workId={linkedWorkId} basis={basis} emptyTitle="어떤 세계를 함께 다듬어 볼까요?" emptyText="AI의 제안은 설정 카드에 자동으로 반영되지 않아요." suggestions={suggestions} onWorldApplied={onWorldApplied} getPage={getPage} cardOf={cardOf} unsaved={unsaved} worldDraft={worldDraft} />
     </>
   )
   if (drawer) return <Sheet sid="W01" label="AI 채팅" panelClass="studio-chat world-chat" onClose={close}>{body}</Sheet>
