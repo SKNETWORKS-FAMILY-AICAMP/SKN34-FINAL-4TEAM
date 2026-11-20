@@ -11,4 +11,6 @@
 button.graph-item:hover { background: var(--muted-bg); }
 button.graph-item[aria-current="true"] { background: var(--pri-soft); color: var(--pri-ink); }
 .graph-label { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-weight: 700; overflow-wrap: anywhere; }
+/* 280px 레일에서 칩(현재·저장 안 됨·발행본)이 덜 두드러지고 덜 줄바꿈되도록 전역 .chip(24px·12px)보다 작게 */
+.graph-label .chip { height: 20px; padding: 0 7px; font-size: 11px; }
 .graph-time { color: var(--tsub); font-size: 11.5px; }
