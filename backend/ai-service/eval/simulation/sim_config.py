@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'novelbrain'))
 
-from cost import usd  # noqa: E402  eval/novelbrain/cost.py(단가·금액 계산)
+from cost import request_usd, usd  # noqa: E402  eval/novelbrain/cost.py(단가·금액 계산). request_usd는 입력이 272K 토큰을 넘는 요청의 할증을 센다(장부와 같다)
 
 from app.simulation import agent, director, scene_agent, service  # noqa: E402
 
@@ -81,16 +81,18 @@ def estimate_quality(inputs: list[dict]) -> dict:
 
 def estimate_speed(scenes: list[dict], config: str) -> dict:
     """속도: 장면마다 TURNS턴. 연출 호출은 규칙이 정한 FORCED턴을 뺀 만큼(C부터), 생성·검사는 기대 시도 수만큼, 전지적 나레이션 검사는 E에서 뺀다.
-    scenes 항목은 {'act_in', 'check_in', 'narrate_in'}(입력 토큰)이다. 생성은 인물·나레이션 입력의 평균 크기로 센다."""
+    scenes 항목은 {'act_in', 'check_in', 'narrate_in'}(입력 토큰)이고, 'narrate_check_in'(전지적 나레이션 검사 입력)이 있으면 나레이션 검사는 그 크기로 센다
+    (그 입력은 아직 공개되지 않은 설정 전체를 금지 목록으로 담아 인물 검사보다 훨씬 클 수 있다: 해리 포터 원문 세계관에서 실측 평균 30만 토큰). 없으면 인물 검사와 같은 크기로 센다.
+    생성은 인물·나레이션 입력의 평균 크기로 센다."""
     env, n = CONFIGS[config], len(scenes)
 
     def mean(key: str) -> float:
-        return sum(s[key] for s in scenes) / (n or 1)
+        return sum(s.get(key, s['check_in']) for s in scenes) / (n or 1)
 
-    calls = {'director': n * (TURNS - (FORCED if env.get(SKIP_DIRECTOR) else 0)), 'gen': n * TURNS * ATTEMPTS,
-             'check': n * (TURNS - (OMNISCIENT if env.get(SKIP_NARRATION) else 0)) * ATTEMPTS}
+    calls = {'director': n * (TURNS - (FORCED if env.get(SKIP_DIRECTOR) else 0)), 'gen': n * TURNS * ATTEMPTS, 'check': n * (TURNS - OMNISCIENT) * ATTEMPTS,
+             'narrate_check': n * (0 if env.get(SKIP_NARRATION) else OMNISCIENT) * ATTEMPTS}
     money = (calls['director'] * usd(DIRECTOR_IN, DIRECTOR_OUT) + calls['gen'] * usd((mean('act_in') + mean('narrate_in')) / 2, OUT_TOKENS)
-             + calls['check'] * usd(mean('check_in'), OUT_TOKENS))
+             + calls['check'] * usd(mean('check_in'), OUT_TOKENS) + calls['narrate_check'] * request_usd(round(mean('narrate_check_in')), OUT_TOKENS))
     return {'calls': calls, 'usd': money}
 
 

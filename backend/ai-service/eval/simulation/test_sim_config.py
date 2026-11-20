@@ -7,7 +7,7 @@ import pytest
 import sim_config as c
 from cost import usd
 from run_timechara import JUDGE_TOKENS
-from sim_config import CONFIGS, SWITCHES, applied, estimate_quality, estimate_speed, plan_runs
+from sim_config import ATTEMPTS, CONFIGS, SWITCHES, applied, estimate_quality, estimate_speed, plan_runs
 
 SIZES = {'act_in': 10_000, 'check_in': 20_000, 'narrate_in': 10_000}
 
@@ -65,8 +65,18 @@ def test_speed_estimate_drops_exactly_what_each_switch_skips():
     assert run['A']['calls'] == run['B']['calls']  # 추론 강도는 호출 수를 바꾸지 않는다
     assert run['C']['calls']['director'] < run['B']['calls']['director'] and run['C']['calls']['check'] == run['B']['calls']['check']
     assert run['D'] == run['C']  # 세계관 캐시는 이 경로에서 효과가 없다
-    assert run['E']['calls']['check'] < run['D']['calls']['check'] and run['E']['calls']['director'] == run['D']['calls']['director']
+    assert run['E']['calls']['narrate_check'] == 0 < run['D']['calls']['narrate_check'] and run['E']['calls']['check'] == run['D']['calls']['check'] and run['E']['calls']['director'] == run['D']['calls']['director']
     assert run['A']['usd'] > run['C']['usd'] > run['E']['usd'] > 0
+
+
+def test_the_omniscient_narration_check_is_priced_by_its_own_much_larger_input_and_E_skips_it():
+    """해리 포터 원문 세계관에서 나레이션 검사 입력은 평균 30만 토큰이었다(미래 전체가 금지 목록으로 들어간다). 인물 검사 입력으로만 세면 속도 예상이 3배 낮았다."""
+    plain = [{**SIZES} for _ in range(10)]
+    heavy = [{**SIZES, 'narrate_check_in': 300_000} for _ in range(10)]
+    assert estimate_speed(heavy, 'A')['usd'] > 3 * estimate_speed(plain, 'A')['usd']   # 나레이션 검사 입력을 알면 예상이 크게 오른다
+    assert estimate_speed(heavy, 'A')['calls']['narrate_check'] == 10 * 2 * ATTEMPTS and estimate_speed(heavy, 'E')['calls']['narrate_check'] == 0
+    assert estimate_speed(heavy, 'E')['usd'] == estimate_speed(plain, 'E')['usd']   # E는 나레이션 검사를 하지 않아 그 입력 크기와 무관하다
+    assert estimate_speed(plain, 'A') == estimate_speed([{k: v for k, v in s.items()} for s in plain], 'A')   # narrate_check_in이 없으면 인물 검사와 같은 크기로 센다
 
 
 def test_a_reused_config_costs_nothing_in_the_estimate():

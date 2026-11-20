@@ -378,3 +378,17 @@ def test_korean_world_inputs_are_counted_with_a_denser_character_to_token_ratio_
     monkeypatch.setattr(cli, 'measure_speed', lambda worlds, per: seen.append(('speed', per)) or [])
     cli.sizes(50, 'hp')
     assert seen == [('quality', cli.HP_CHARS_PER_TOKEN, 1), ('speed', cli.HP_CHARS_PER_TOKEN)]   # 해리 포터 질문만, 한국어 밀도로
+
+
+def test_the_speed_inputs_include_the_omniscient_narration_check_with_its_own_forbidden_list(monkeypatch):
+    """나레이션 검사는 아직 공개되지 않은 설정 전체를 금지 목록으로 받아 인물 검사보다 훨씬 크다(해리 포터 세계관에서 평균 30만 토큰). 예상이 그것을 세야 실비와 맞는다."""
+    plan = SimpleNamespace(characterIds=['a'])
+    worlds = SimpleNamespace(scene=lambda spec: (plan, SimpleNamespace(characters={'a': object()})))
+    monkeypatch.setattr(cli.sim_worlds, 'SCENES', ({'id': 's'},))
+    monkeypatch.setattr(cli.service, 'new_scene', lambda plan: object())
+    monkeypatch.setattr(cli.service, 'character_view', lambda plan, world, scene, actor: ({'self': 'x'}, {'forbidden': []}, []))
+    monkeypatch.setattr(cli.service, 'check_kinds', lambda plan, kind, pov: ['knowledge_leak'])
+    monkeypatch.setattr(cli.service, 'narrator_view', lambda plan, world, scene: ({'known': []}, {'forbidden': [{'ref': 'card:1', 'text': '가' * 40_000}], 'voices': []}, []))
+    monkeypatch.setattr(cli.service, 'narration_input', lambda plan, world, scene, purpose, pov: {'purpose': purpose})
+    (sized,) = cli.measure_speed(worlds, per=2.0)
+    assert sized['narrate_check_in'] > 20_000 and sized['narrate_check_in'] > 10 * sized['check_in'] and sized['narrate_in'] < 5_000   # 금지 목록이 들어간 검사만 크다

@@ -93,11 +93,13 @@ def measure_speed(worlds, per: float = CHARS_PER_TOKEN) -> list[dict]:
         scene = service.new_scene(plan)
         asked, extra, _ = service.character_view(plan, world, scene, world.characters[plan.characterIds[0]])
         check = {**asked, **extra, 'checks': service.check_kinds(plan, 'character', 'omniscient'), 'paragraph': 'x' * PARAGRAPH}
-        said, _, _ = service.narrator_view(plan, world, scene)
+        said, forbidden, _ = service.narrator_view(plan, world, scene)
         narrate = {**said, **service.narration_input(plan, world, scene, 'opening', 'omniscient')}
+        narrate_check = {**said, **forbidden, 'checks': service.check_kinds(plan, 'narration', 'omniscient'), 'paragraph': 'x' * PARAGRAPH}   # 전지적 나레이션 검사: 미래 전체가 금지 목록으로 들어간다
         sized.append({'act_in': tokens(prompt.ACT_INSTRUCTIONS, json.dumps(asked, ensure_ascii=False), per=per),
                       'check_in': tokens(prompt.CHECK_INSTRUCTIONS, json.dumps(check, ensure_ascii=False), per=per),
-                      'narrate_in': tokens(prompt.NARRATE_INSTRUCTIONS, json.dumps(narrate, ensure_ascii=False), per=per)})
+                      'narrate_in': tokens(prompt.NARRATE_INSTRUCTIONS, json.dumps(narrate, ensure_ascii=False), per=per),
+                      'narrate_check_in': tokens(prompt.CHECK_INSTRUCTIONS, json.dumps(narrate_check, ensure_ascii=False), per=per)})
     return sized
 
 
