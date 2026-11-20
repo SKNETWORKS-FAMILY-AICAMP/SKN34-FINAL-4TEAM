@@ -112,6 +112,7 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
   const adminPage = readFileSync(new URL('../presentation/features/admin/view/AdminPage.tsx', import.meta.url), 'utf8')
   /** 900px 이하(사이드바가 상단바 아래 가로 메뉴 줄이 되는 구간)에서 마지막으로 정한 값. */
   const narrow = (selector: string, prop: string) => value(selector, prop, '(max-width:900px)')
+  const opsCss = readFileSync(new URL('../presentation/features/admin/view/admin-operations.css', import.meta.url), 'utf8')
 
   it('관리자 틀은 최대 폭 제한(.wrap) 없이 사이드바를 왼쪽 끝 전체 높이로 둔다', () => {
     // 틀 마크업: 상단바·본문 어디에도 최대 폭 1120px(.wrap)을 쓰지 않는다(푸터의 .wrap은 AdminPage 밖이다).
@@ -127,9 +128,18 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(values('.adm .admin-nav', 'max-height')).toEqual(['100vh', '100dvh'])
     // 상단바: 오른쪽 열 맨 위의 밝은 면이고 본문을 스크롤해도 남는다.
     expect([value('.adm .top', 'position'), value('.adm .top', 'top'), value('.adm .top', 'background')]).toEqual(['sticky', '0', 'var(--surface)'])
+    // 본문 main은 .wrap을 떼면 전역 main{padding:32px 0 72px}이 되살아나 제목 위 여백이 56px이 된다(24px + 32px): 여백은 .workspace만 가진다.
+    expect(value('.adm main', 'padding')).toBe('0')
     // 900px 이하: 사이드바는 상단바 아래의 가로 메뉴 줄이 된다(상단바가 맨 위).
     expect([narrow('.adm', 'flex-direction'), narrow('.adm .admin-col', 'display'), narrow('.adm .top', 'order'), narrow('.adm .top', 'position'), narrow('.adm .admin-nav', 'position')])
       .toEqual(['column', 'contents', '-1', 'static', 'static'])
+  })
+
+  it('패널 머리(.table-head)는 좁은 화면에서도 제목과 버튼을 한 줄에 두고 버튼을 전체 폭으로 늘리지 않는다', () => {
+    // 필터가 머리 밖으로 나간 뒤에도 세로로 쌓고 stretch하던 규칙이 남아 390px에서 새로고침이 전체 폭 큰 버튼이 됐다.
+    expect([values('.adm .table-head', 'flex-direction', '(max-width:600px)'), values('.adm .table-head', 'align-items', '(max-width:600px)')]).toEqual([[], []])
+    expect(value('.adm .table-head', 'flex-wrap')).toBe('wrap')
+    expect(opsCss).not.toMatch(/\.table-head\s*\{[^}]*align-items\s*:\s*stretch/)
   })
 
   it('900px 이하에서는 브랜드를 가로 스크롤 메뉴 밖 상단바 왼쪽에 둔다(메뉴 안 브랜드가 잘리던 audit 지적)', () => {

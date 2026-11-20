@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode, useEffect, useRef } from 'react'
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
 import { ADMIN_PERMISSIONS, type AdminTab, adminTab } from '../../../../domain/entities/admin'
@@ -137,6 +137,8 @@ export function AdminPage() {
     if (dy) n.scrollTop += dy
   }, [tab])
   const content = useRef<HTMLElement>(null)
+  // 머리 오른쪽 자리(데모 칩·목록 새로고침). 개요 탭은 자기 새로고침을 이 자리에 포털로 두므로 요소를 상태로 들고 있다가 건넵니다.
+  const [headSide, setHeadSide] = useState<HTMLDivElement | null>(null)
   const successTarget = IN_FORM.test(vm.lastSuccessKey) ? undefined : actionTarget(vm, vm.lastSuccessKey)
   // 운영 API가 없는 데모 탭만 메뉴에 '데모' 배지를 답니다. 배지는 읽지 않게 두는 대신 링크 설명으로 스크린리더에 알립니다(링크 이름은 그대로).
   const navLink = (k: AdminTab, l: string) => (
@@ -200,16 +202,14 @@ export function AdminPage() {
                 <h1>{title}</h1>
                 <p>{desc}</p>
               </div>
-              {(!live || showRefresh) && (
-                <div className='admin-head-side'>
-                  {!live && <span className='chip wait'>데모 화면</span>}
-                  {showRefresh && (
-                    <button type='button' className='btn sm' onClick={vm.retry} disabled={vm.isRefreshing}>
-                      목록 새로고침
-                    </button>
-                  )}
-                </div>
-              )}
+              <div className='admin-head-side' ref={setHeadSide}>
+                {!live && <span className='chip wait'>데모 화면</span>}
+                {showRefresh && (
+                  <button type='button' className='btn sm' onClick={vm.retry} disabled={vm.isRefreshing}>
+                    목록 새로고침
+                  </button>
+                )}
+              </div>
             </header>
             {!live && vm.isLoading && (
               <p className='admin-data-state' role='status'>관리자 데이터를 불러오고 있어요.</p>
@@ -242,7 +242,7 @@ export function AdminPage() {
               .filter(([key]) => !IN_FORM.test(key))
               .map(([key, state]) => <AdminActionStatus key={key} state={state} target={actionTarget(vm, key)} done={false} />)}
             {(d || live) && (
-              <Body key={tab} tab={tab} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} />
+              <Body key={tab} tab={tab} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} headSide={headSide} />
             )}
           </section>
         </main>
@@ -262,6 +262,8 @@ type BodyProps = {
   setF: (x: Partial<Filter>) => void
   sel: string | null
   setSel: (s: string) => void
+  /** 제목 줄 오른쪽 자리. 개요 탭이 새로고침을 여기에 둔다. */
+  headSide: HTMLElement | null
 }
 
 /** 목업 adminExtra()의 controls(): (작품·댓글·캐릭터챗) 검색과 분류·정렬. 왼쪽 정렬 한 줄에 검색 입력 → 분류 → 정렬 → 검색 버튼 순서이고 좁으면 줄을 바꿉니다. */
@@ -318,7 +320,7 @@ function Controls(
 
 function Body(p: BodyProps) {
   const { tab, d, vm, f } = p
-  if (tab === 'data') return <OperationsDashboard vm={vm} />
+  if (tab === 'data') return <OperationsDashboard vm={vm} headSide={p.headSide} />
   if (tab === 'llm') return <LlmOps vm={vm} />
   if (tab === 'jobs') return <JobMonitor vm={vm} />
   if (tab === 'rights') return <Rights {...p} />

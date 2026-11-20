@@ -675,6 +675,13 @@ it('필터는 왼쪽 정렬 한 줄: 검색 입력 → 분류(역할) → 정렬
   expect(status.closest('section')!.querySelector('.table-head h2')?.textContent).toBe('운영 경고')
 })
 
+it('개요 탭의 새로고침도 다른 탭처럼 제목 줄 오른쪽(.admin-head)에 있고 설명 아래 혼자 차지하는 줄이 없다', async () => {
+  renderAdmin('data')
+  const refresh = await screen.findByRole('button', { name: '새로고침' })
+  expect(document.querySelector('.admin-head')!.contains(refresh)).toBe(true)
+  expect(document.querySelector('.admin-refresh')).toBeNull()
+})
+
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
 it('픽스처(데모) 컨테이너에서는 데모 관리자 조치가 활동 로그에 남는다', async () => {
   const admin = appContainer.resolve('adminUseCase')
