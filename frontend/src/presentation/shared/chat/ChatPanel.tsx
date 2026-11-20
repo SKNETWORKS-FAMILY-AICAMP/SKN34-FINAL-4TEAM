@@ -65,7 +65,7 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
   }
   return <div className="chat-panel">
     <div className="chat-log" role="log" aria-label="대화 내용" aria-live="polite">
-      {messages.length || after ? <><ol>{messages.map(m => <li key={m.id} className={`chat-msg ${m.role}`}>
+      {messages.length || after ? <><ol>{messages.map(m => <li key={m.id} className={`chat-msg ${m.role}`} data-failed={m.failed || undefined}>
         {m.role === 'assistant' && <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>}
         <div className="chat-bubble">
           <span className="chat-who sr-only">{who[m.role]}</span>

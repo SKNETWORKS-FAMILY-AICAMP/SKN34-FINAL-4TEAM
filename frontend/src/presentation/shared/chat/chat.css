@@ -24,6 +24,7 @@
 .chat-msg.system .chat-bubble { max-width: 100%; }
 .chat-text { margin: 0; padding: 10px 14px; border: 1px solid var(--tline); border-radius: 18px 18px 18px 4px; background: var(--chat-card, var(--tcard)); line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .chat-msg.user .chat-text { border-color: var(--pri); border-radius: 18px 18px 4px 18px; background: var(--pri); color: var(--on-pri); }
+.chat-msg.assistant[data-failed] .chat-text { color: var(--danger); }
 /* 마크다운 답변: 블록 사이 줄바꿈 글자가 빈 줄로 보이지 않게 한다(문단 안 줄바꿈은 CardMarkdown이 지킨다). */
 .chat-text.chat-md { white-space: normal; }
 .chat-step-details { padding-inline: 4px; color: var(--tsub); font-size: 12.5px; }

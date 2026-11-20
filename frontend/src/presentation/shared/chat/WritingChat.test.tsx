@@ -473,6 +473,16 @@ it('오래 걸린 스트림의 World 반영 알림은 시작할 때의 핸들러
   expect(first).not.toHaveBeenCalled()
 })
 
+it('저장된 제공사 분류 실패를 오류 말풍선으로 표시한다', async () => {
+  openThread([
+    { request: '요약해줘', reply: { status: 'failed', message: '요청 분류에 실패했습니다.', steps: [], missingInputs: [] } },
+    { request: '다시 요약해줘', reply: { status: 'completed', message: '요약했어요.', steps: [], missingInputs: [] } },
+  ])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  expect((await screen.findByText('요청 분류에 실패했습니다.')).closest('li')?.getAttribute('data-failed')).toBe('true')
+  expect(screen.getByText('요약했어요.').closest('li')?.hasAttribute('data-failed')).toBe(false)
+})
+
 // ── 화면 맥락과 Content 쓰기 승인(#554) ──
 const pendingAction = { tool: 'world_studio_edit_draft', label: '세계관 설정 카드 수정', args: { id: 'w1', request: { expectedDraftRevision: 4, cards: [{ id: 'k', body: '과묵한 기사. 십 년째 같은 자리에 선다.' }] } } }
 const approvalTurn = () => openThread([{ request: '이 설정 설명을 더 자세히 써줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action', pendingAction } }])
