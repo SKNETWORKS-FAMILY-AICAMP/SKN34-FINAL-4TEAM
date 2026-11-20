@@ -540,6 +540,20 @@ it('저장하지 않은 편집이 있으면 승인 버튼을 막고 먼저 저�
   expect(send).not.toHaveBeenCalled()
 })
 
+it('저장 뒤 이전 제안은 승인할 수 없고 같은 요청을 현재 화면으로 다시 실행한다', async () => {
+  approvalTurn()
+  send.mockResolvedValue(undefined)
+  const props = { workId: 'w', basis, emptyTitle: '새 대화', emptyText: '', suggestions: [], getPage: () => ({ kind: 'world' as const, path: '/worldstudio/w1', worldId: 'w1' }) }
+  const view = render(<WritingChat {...props} worldDraft={{ id: 'w1', revision: 4 }} unsaved />)
+  expect(await screen.findByRole('button', { name: '실행' })).toHaveProperty('disabled', true)
+  view.rerender(<WritingChat {...props} worldDraft={{ id: 'w1', revision: 5 }} />)
+  expect(screen.queryByRole('button', { name: '실행' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '저장한 초안으로 제안 다시 받기' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ request: '이 설정 설명을 더 자세히 써줘', page: props.getPage() })
+  expect(send.mock.calls[0][2]).not.toHaveProperty('resume')
+})
+
 it('실행할 인자를 읽지 못한 승인 대기는 가짜 카드 없이 알린다', async () => {
   openThread([{ request: '고쳐줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action' } }])
   render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)

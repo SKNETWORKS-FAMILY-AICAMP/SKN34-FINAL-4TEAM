@@ -140,6 +140,15 @@ export function chatPage({ path, selection, unsaved, ...rest }: ChatPageInput): 
   return page
 }
 
+export type WorldDraftRevision = { id: string; revision: number }
+
+export function worldProposalIsStale(action: PendingAction, draft?: WorldDraftRevision): boolean {
+  if (!draft || action.tool !== 'world_studio_edit_draft' || action.args.id !== draft.id) return false
+  const request = action.args.request ?? action.args
+  const expected = request && typeof request === 'object' && 'expectedDraftRevision' in request ? request.expectedDraftRevision : undefined
+  return typeof expected === 'number' && expected !== draft.revision
+}
+
 /** 승인 카드가 보이는 바꿈 한 칸: 수정 전(없으면 새로 만드는 값)과 후. */
 export type PendingChange = { name: string; before: string | null; after: string }
 /**

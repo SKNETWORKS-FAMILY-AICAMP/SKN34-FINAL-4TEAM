@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
-import { featureLabel, PLAN_LABEL, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
+import { featureLabel, PLAN_LABEL, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
@@ -71,9 +71,9 @@ function SceneWait({ reply, onOpenStage }: { reply: ChatReply; onOpenStage?: () 
 }
 
 /** 멈춘 턴: 초안 반영 승인(World 제안은 설정집 초안, #546) 또는 빠진 단계 입력. 승인 전에는 원고·설정집이 바뀌지 않는다. */
-function Waiting({ reply, episode, pending, onResume, onOpenStage, cardOf, unsaved }: {
+function Waiting({ reply, episode, pending, onResume, onOpenStage, cardOf, unsaved, worldDraft, onRefreshProposal }: {
   reply: ChatReply; episode: number | null; pending: boolean; onResume: (approved: boolean, inputs?: ChatStepInputs) => void; onOpenStage?: () => void
-  cardOf?: (id: string) => { title: string; body: string } | undefined; unsaved?: boolean
+  cardOf?: (id: string) => { title: string; body: string } | undefined; unsaved?: boolean; worldDraft?: WorldDraftRevision; onRefreshProposal: () => void
 }) {
   const id = useId()
   const [question, setQuestion] = useState('')
@@ -92,7 +92,7 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage, cardOf, unsav
   // Content 쓰기 도구 승인(#554): 실제 도구·인자를 보인다. 실행할 인자를 읽지 못했으면 승인을 받을 수 없어 카드를 만들지 않는다.
   if (reply.awaitingApproval === 'content_action') {
     return reply.pendingAction
-      ? <PendingActionCard action={reply.pendingAction} cardOf={cardOf} unsaved={unsaved} pending={pending} onResume={(approved) => onResume(approved)} />
+      ? <PendingActionCard action={reply.pendingAction} cardOf={cardOf} unsaved={unsaved} pending={pending} worldDraft={worldDraft} onRefresh={onRefreshProposal} onResume={(approved) => onResume(approved)} />
       : <p className="chat-note" role="alert">승인할 작업을 읽지 못했어요. 대화를 다시 불러와 주세요.</p>
   }
   if (reply.awaitingApproval) {
@@ -175,6 +175,7 @@ type WritingChatProps = {
   /** Content 쓰기 도구 승인 카드가 설정 카드의 수정 전 값을 찾는 함수(세계관 화면)와, 작성 중인 변경이 있어 승인을 막아야 하는지. */
   cardOf?: (id: string) => { title: string; body: string } | undefined
   unsaved?: boolean
+  worldDraft?: WorldDraftRevision
 }
 
 export function WritingChat({ chat, basis = null, onApplied, onWorldApplied, getPage, ...rest }: WritingChatProps) {
@@ -186,7 +187,7 @@ function OwnedChat({ basis, onApplied, onWorldApplied, getPage, ...rest }: Omit<
   return <WorkChat vm={vm} {...rest} />
 }
 
-function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage, cardOf, unsaved }: { vm: ChatViewModel } & Pick<WritingChatProps, 'emptyTitle' | 'emptyText' | 'suggestions' | 'onOpenStage' | 'cardOf' | 'unsaved'>) {
+function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage, cardOf, unsaved, worldDraft }: { vm: ChatViewModel } & Pick<WritingChatProps, 'emptyTitle' | 'emptyText' | 'suggestions' | 'onOpenStage' | 'cardOf' | 'unsaved' | 'worldDraft'>) {
   const id = useId()
   const [editing, setEditing] = useState<{ index: number; text: string } | null>(null)
   const [renaming, setRenaming] = useState<string | null>(null)
@@ -278,7 +279,8 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage, cardOf,
       emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}
-        {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} reply={vm.waiting} episode={vm.targetEpisode} pending={vm.pending} onResume={(approved, inputs) => void vm.resume(approved, inputs)} onOpenStage={onOpenStage} cardOf={cardOf} unsaved={unsaved} />}
+        {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} reply={vm.waiting} episode={vm.targetEpisode} pending={vm.pending} onResume={(approved, inputs) => void vm.resume(approved, inputs)} onOpenStage={onOpenStage} cardOf={cardOf} unsaved={unsaved} worldDraft={worldDraft}
+          onRefreshProposal={() => { const turn = vm.turns.at(-1); if (turn) void vm.edit(vm.turns.length - 1, turn.request) }} />}
         {vm.error && <div className="chat-error" role="alert"><p>{vm.error}</p><button type="button" className="btn sm" onClick={vm.retry}>다시 불러오기</button></div>}
       </> : undefined} />
   </>
