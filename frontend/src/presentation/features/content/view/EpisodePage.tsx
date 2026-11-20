@@ -79,7 +79,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                 work={w}
                 useCase={useCase}
                 onForked={(id) => navigate(`/content?work=${encodeURIComponent(id)}`)}
-                onDeleted={() => navigate('/lib?tab=write')}
+                onDeleted={() => navigate('/lib?tab=write', { state: { deletedWorkTitle: w.title } })}
               />
             )
             : !vm.error && (

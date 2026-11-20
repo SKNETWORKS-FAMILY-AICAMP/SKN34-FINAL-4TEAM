@@ -1,6 +1,5 @@
 import { useParams } from 'react-router'
 
-import { Art } from '../../../shared/art'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
@@ -27,7 +26,6 @@ export function ForkedPage() {
   const snap = f.snap!
   return (
     <div className={`calm calm-${f.theme}`} style={{ minHeight: '100vh' }}>
-      <div className="band" style={{ height: 300 }}><Art theme={f.theme} w={1200} h={300} seed={f.id + 'band'} /></div>
       <main className="fork" id="main" tabIndex={-1}><div className="tcard okbox">
         <h1 className="sr-only">포크 소설 생성 완료</h1>
         <div className="big">✎</div><h2>포크 소설을 만들었어요</h2><p className="muted">「{f.title}」 · 원작 「{p?.title ?? f.parentTitle}」 {f.forkAt}화 끝에서 포크</p>
