@@ -251,3 +251,14 @@ describe('관계도 컨트롤 정리(critique 승인)', () => {
     expect(input).not.toMatch(/font/) // 터치 기기의 입력 16px(확대 방지) 보정이 그대로 남는다
   })
 })
+
+describe('390px 가로 넘침(critique 후속)', () => {
+  it('관계 목록 표의 가로 스크롤 상자는 기준 위치(position:relative)라 안의 sr-only(position:absolute) 요소가 상자 밖으로 나가 문서 폭을 늘리지 않는다 (마지막 칸 머리의 오른쪽 맞춤 숨은 글자가 표 오른쪽 끝에 놓여 390px에서 innerWidth가 646으로 늘던 원인)', () => {
+    expect(rule(map, '.relationship-list>.adm-scroll')).toMatch(/position:relative/)
+    expect(map).toContain('.relationship-list>.adm-scroll,.relationship-focus>*{min-width:0;max-width:100%}') // 앞선 min-width 방어는 그대로
+  })
+
+  it('900px 이하 보기 메뉴 묶음·줄은 min-width:0라 탭 줄+채팅 열기 버튼의 최소 폭(약 480px)이 358px 본문의 그리드 칸을 늘리지 않고 탭 줄이 가로로 스크롤한다', () => {
+    expect(studio).toContain('@media(max-width:900px){.world-menu-body,.world-menu-row{min-width:0}.world-menu-row{display:flex;align-items:center;gap:8px}')
+  })
+})

@@ -315,7 +315,7 @@ it('개요가 아닌 탭은 히어로를 72px 표지 + 제목·칩 한 덩어리
 it('900px 이하에서 닫힌 AI 채팅 열기 버튼은 보기 메뉴 줄의 오른쪽 끝 슬롯에 놓이고(제자리 버튼), 넓은 화면에서는 줄을 풀어 메뉴 배치가 그대로며 빈 슬롯은 숨는다', () => {
   expect(rule((s) => s === '.world-menu-row')?.body).toMatch(/display:contents/)
   expect(rule((s) => s === '.world-chat-slot:empty')?.body).toMatch(/display:none/)
-  expect(css).toContain('@media(max-width:900px){.world-menu-row{display:flex;align-items:center;gap:8px}.world-menu-row nav{flex:1 1 auto;min-width:0}.world-chat-slot .studio-chat-toggle{position:static;flex:none;box-shadow:none;white-space:nowrap}}')
+  expect(css).toContain('@media(max-width:900px){.world-menu-body,.world-menu-row{min-width:0}.world-menu-row{display:flex;align-items:center;gap:8px}.world-menu-row nav{flex:1 1 auto;min-width:0}.world-chat-slot .studio-chat-toggle{position:static;flex:none;box-shadow:none;white-space:nowrap}}')
   expect(writingCss).not.toContain('world-chat-slot') // 집필실의 같은 공용 버튼은 건드리지 않는다
 })
 

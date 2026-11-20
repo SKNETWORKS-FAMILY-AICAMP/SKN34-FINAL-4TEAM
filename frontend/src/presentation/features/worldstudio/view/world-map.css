@@ -59,6 +59,9 @@
 .relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}/* 390px 가로 넘침 방어(측정 필요): 그리드·플렉스 항목의 min-width는 auto라 안쪽의 넓은 내용(관계 목록 표는 전역 .adm-scroll table이 최소 600px, 중심 칩 줄은 수십 개)이 칸을 밀어 낼 수 있다. 칸을 0까지 줄일 수 있게 하고 넓은 내용은 자기 스크롤 상자(.adm-scroll·칩 줄)가 민다. */
 .relationship-editor :is(.relationship-service-form,.relationship-list,.relationship-focus,.relationship-add,.relationship-stage){min-width:0;max-width:100%}
 .relationship-list>.adm-scroll,.relationship-focus>*{min-width:0;max-width:100%}
+/* 390px 가로 넘침의 원인(critique 후속): 표의 마지막 칸 머리에는 오른쪽 맞춤 숨은 글자(.sr-only, position:absolute)가 있다. 가로 스크롤 상자(.adm-scroll)가 기준 위치가 아니면 이 1px 요소의 기준은 상자 밖(문서)이라 상자가 잘라 주지 않고, 표(최소 600px) 오른쪽 끝(안쪽 여백 안 646px)에 놓여 문서 폭을 646px로 늘렸다(모바일은 화면이 그 폭으로 줄어 innerWidth가 646).
+   상자를 기준 위치로 두면 숨은 글자도 상자 안에서 잘리고 표와 함께 스크롤한다(표 자체는 이미 이 상자 안에서 가로로 민다). */
+.relationship-list>.adm-scroll{position:relative}
 @container relationship-editor (max-width:950px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{max-height:none}}
 @media(max-width:600px){.relationship-service-form{padding:12px}}
 /* 카드 모서리 위 유형 점(인물·장소·사건 …): 게시판 칩과 같은 유형 색이라 사건 수십 장이 인물과 섞여도 구분된다. */
