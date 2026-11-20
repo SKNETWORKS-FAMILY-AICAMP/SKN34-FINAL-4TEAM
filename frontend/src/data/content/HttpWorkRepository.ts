@@ -5,6 +5,13 @@ import { getAccessToken, authVersion, assertAuthVersion } from '../api/auth'
 import { HttpEpisodeRepository } from './HttpEpisodeRepository'
 import { mapReadingWork, withReadingWorld } from './readingWork'
 
+/**
+ * 서버(ForkService)는 삭제한 포크까지 세어 같은 문구의 409로 막는다. 살아 있는 포크는 ForkUseCase.startFork가 내 목록으로 먼저 거르므로, 요청까지 온 이 거절은 삭제한 포크 때문이다.
+ * ponytail: 두 제출이 동시에 겹치면 살아 있는 포크도 이 안내가 나온다. 서버가 두 경우를 가르는 코드를 주면 그 코드로 바꾼다.
+ */
+const FORK_EXISTS = '이미 만든 분기 작품이 있어요.'
+const FORK_DELETED = '이 원작에서 만든 포크를 삭제한 적이 있어 다시 만들 수 없어요.'
+
 /** Canonical reads and Fork writes only; rich demo mutations never pretend to persist. */
 export class HttpWorkRepository implements WorkRepository {
   private readonly api: HttpEpisodeRepository
@@ -34,8 +41,12 @@ export class HttpWorkRepository implements WorkRepository {
     return cards
   }
   async createFork(id: string, episode: number, title: string, direction: string) {
-    const made = await this.api.fork(id, episode, title, direction)
-    return { id: made.id }
+    try {
+      const made = await this.api.fork(id, episode, title, direction)
+      return { id: made.id }
+    } catch (error) {
+      throw error instanceof Error && error.message === FORK_EXISTS ? new Error(FORK_DELETED) : error
+    }
   }
   async getDraft(key: string): Promise<Draft | undefined> {
     const [id, selected] = key.split(':ep:')

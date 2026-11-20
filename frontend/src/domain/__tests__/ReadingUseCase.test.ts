@@ -345,6 +345,13 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect(server.repository.record).not.toHaveBeenCalled()
   })
 
+  it('관리자도 자기 소설의 집필실에서는 집필실 빠른 이동을 앞에 두고 남의 소설에서는 두지 않는다 (#605)', async () => {
+    const { useCase } = fakes()
+    const items = await useCase.getQuickItems('admin', { id: 'starlight', ep: null })
+    expect(items.find((x) => x.k === '이동' && x.label === 'AI 채팅')).toMatchObject({ go: '/studio/starlight?panel=chat' })
+    expect((await useCase.getQuickItems('admin', { id: 'postman', ep: null })).some((x) => x.k === '이동')).toBe(false)
+  })
+
   it('관심 소설을 토글한다', async () => {
     const { state, useCase } = fakes()
     expect(await useCase.toggleLike('guunmong')).toBe(true)

@@ -94,7 +94,7 @@ function StartPage() {
   )
 }
 
-/** 세션 복원이 끝나기 전에는 로그인 상태에 따라 달라지는 화면(콘텐츠·집필실·회차 열람)을 열지 않는다. */
+/** 세션 복원이 끝나기 전에는 로그인 상태에 따라 달라지는 화면(회차 열람)을 열지 않는다. */
 const checkingSession = <p role="status">로그인 상태를 확인하고 있어요.</p>
 
 /** 로그인 상태를 복원한 뒤 모드에 맞는 작품 생성·원고 가져오기 경로를 연다. */
@@ -109,7 +109,7 @@ function App() {
       <RouteErrorBoundary pathname={pathname}>
         <Suspense fallback={<main className="wrap"><p role="status">화면을 불러오고 있어요.</p></main>}>
           <Routes>
-            <Route path="/content" element={restoring ? checkingSession : <EpisodePage />} />
+            <Route path="/content" element={<RequireRole><EpisodePage /></RequireRole>} />
             <Route path="/status" element={<StartPage />} />
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -140,7 +140,7 @@ function App() {
             <Route path="/worlds/:id/cards/:cardId" element={<WorldCardPage />} />
             <Route path="/worldstudio/:worldId?" element={<RequireRole><WorldStudioPage /></RequireRole>} />
             <Route path="/import" element={<RequireRole>{mockup ? <ImportPage /> : <ManuscriptImportPage />}</RequireRole>} />
-            <Route path="/studio/:id" element={restoring ? checkingSession : <StudioPage />} />
+            <Route path="/studio/:id" element={<RequireRole><StudioPage /></RequireRole>} />
             <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
             <Route path="/notifications" element={<RequireRole><NotificationsPage /></RequireRole>} />
             <Route path="/reports" element={<RequireRole><ReportsPage /></RequireRole>} />
