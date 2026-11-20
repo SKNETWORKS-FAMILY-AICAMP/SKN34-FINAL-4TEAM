@@ -78,6 +78,9 @@ html:has(.gnb){scroll-padding-top:72px}
 .thm{width:40px;height:40px;border-radius:50%;border:1px solid var(--line2);background:var(--surface);font-size:16px;display:grid;place-items:center;color:var(--ink)}
 .avatar{width:38px;height:38px;border-radius:50%;background:conic-gradient(var(--pri),var(--acc),var(--pri));padding:2px}.avatar span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--ink);color:var(--bg);font-weight:900;font-size:14px;border:2px solid var(--bg)}
 main{padding:32px 0 72px}
+/* .wrap의 padding(0 24px)이 main{padding}을 이겨 본문이 상단바에 붙었다(위 여백 0). 위 여백만 되살린다: 아래 여백은 아래 푸터의 위 여백이 정한다. 읽기 면(.calm: 히어로·고정 상단 줄)은 자기 위 여백이 있다. */
+main.wrap{padding-top:32px}
+.calm main.wrap{padding-top:0}
 .foot{border-top:1px solid var(--line);margin-top:20px;padding:26px 0 40px;color:var(--sub);font-size:12.5px}.foot .wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.foot b{color:var(--ink);font-weight:900}
 .foot .r{margin-left:auto;display:flex;gap:8px}.foot :is(button,a){border:1px solid var(--line2);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:12px;color:var(--sub)}
 /* 푸터가 있는 화면은 본문이 짧아도 푸터를 화면 맨 아래에 둔다. #root를 세로 flex로 두고 본문(main·.episode-app)이 남는 높이를 채운다. 푸터 없는 화면(집필실·리더·로그인·관리자)은 그대로다.
@@ -112,7 +115,7 @@ main{padding:32px 0 72px}
 .hero-controls{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:8px}
 .hero-step{display:grid;place-items:center;flex:none;width:44px;height:44px;border:1px solid var(--line2);border-radius:50%;background:var(--surface);color:var(--ink)}
 .hero-step:hover{border-color:var(--pri);color:var(--pri-ink)}
-.dots{display:flex;flex-wrap:wrap;justify-content:center;min-width:0}.dots button{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:0;background:none}.dots i{display:block;width:6px;height:6px;border-radius:3px;background:var(--sub);transition:width .3s var(--ease),background .3s}.dots i.on{width:22px;background:var(--pri)}
+.dots{display:flex;flex-wrap:wrap;justify-content:center;min-width:0}.dots button{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:0;background:none}.dots i{display:block;width:6px;height:6px;border-radius:3px;background:var(--sub);transition:background .3s}.dots i.on{width:22px;background:var(--pri)}
 .hero-rotation{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px}.hero-rotation .btn{min-height:44px}.hero-rotation .btn[aria-pressed="true"]{border-color:var(--pri);color:var(--pri-ink)}.hero-rotation small{color:var(--sub);font-size:12px}
 .hero .slide:focus-visible{outline-offset:-4px}
 .rings{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;padding:6px 4px 4px}.rings::-webkit-scrollbar{display:none}
@@ -121,7 +124,7 @@ main{padding:32px 0 72px}
 .ring .o span{display:block;width:100%;height:100%;border-radius:50%;overflow:hidden;border:3px solid var(--bg)}.ring .o svg{width:100%;height:100%;display:block}
 .ring b{display:block;font-size:12.5px;font-weight:700;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ring small{display:block;font-size:11px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ring.add .o{background:none;border:2px dashed var(--line2);display:grid;place-items:center;font-size:28px;color:var(--pri)}
-.sec{margin-top:56px}.sec-h{display:flex;align-items:center;gap:10px;margin-bottom:16px}.sec-h :is(h1,h2){font-size:23px;font-weight:800;letter-spacing:-.03em}
+.sec{margin-top:56px}.sec-h{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-bottom:16px}.sec-h :is(h1,h2){font-size:23px;font-weight:800;letter-spacing:-.03em}
 .cont{display:flex;align-items:center;gap:16px;margin-top:22px;padding:14px;border-radius:22px;background:var(--fixed-dark);color:#fff;border:0;width:100%;text-align:left}
 .cont .th{width:56px;height:74px;border-radius:10px;overflow:hidden;flex:none}.cont .th svg{width:100%;height:100%;display:block}
 .cont h2{color:#F7BE3A;font-weight:800;font-size:12px}.cont b{display:block;font-size:17px;margin:2px 0 8px}
@@ -261,6 +264,8 @@ body:has(.rnav,.studio-chat-toggle) #top{bottom:142px}
 .epc{display:flex;gap:8px;flex-wrap:wrap}.epc button{border:1px solid var(--tline);background:transparent;color:var(--tfg);border-radius:16px;padding:10px 14px;text-align:left}.epc button small{display:block;color:var(--tsub);font-size:11.5px}.epc button.on{border-color:var(--pri);background:var(--pri-soft)}.epc button[disabled]{opacity:.35;cursor:not-allowed}
 .tinp{width:100%;height:50px;border-radius:16px;border:1px solid var(--line3);background:var(--surface);padding:0 16px;color:var(--tfg);font-family:var(--tfont);font-size:16px}
 .carry{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.carry span,.carry li{font-size:12.5px;border:1px solid var(--tline);border-radius:999px;padding:4px 10px;color:var(--tsub);overflow-wrap:anywhere}ul.carry{list-style:none;margin:12px 0 0;padding:0}.bm{font-size:12.5px;color:var(--tsub);margin:6px 0 18px}
+/* 제출 실패 안내(role=alert)는 본문색이라 오류로 읽히지 않았다. 위험색 굵은 글자로 둔다(라이트 --danger는 크림 면 위 6:1 이상, 다크는 어두운 면 위 6:1 이상). */
+.fork [role="alert"]{color:var(--danger);font-weight:700;margin:0 0 14px}
 .okbox{text-align:center;padding:34px 24px}.okbox .big{font-size:44px}.okbox h2{font-family:var(--tfont);font-size:28px;margin:8px 0}
 .snap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}.snap div{background:var(--muted-bg);border-radius:16px;padding:14px;text-align:left}.snap small{color:var(--sub);font-weight:700;font-size:12px}.snap b{display:block;font-size:22px}
 /* 서재·쓰기 */
@@ -337,6 +342,8 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}th{text-align:left;co
 .adm h3.st{font-size:12px;color:var(--faint);font-weight:700;letter-spacing:.06em;margin:26px 0 8px}
 /* 화면 ID 칩 · 토스트 */
 .author-note{margin:32px 0 0;padding:20px 0;border-top:1px solid var(--line);white-space:pre-wrap}.author-note h3{font-size:14px}.author-note p{margin-top:8px;color:var(--sub)}.screen-controls{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(86px,calc(env(safe-area-inset-bottom) + 12px));z-index:100;display:flex;gap:8px}#sid{position:fixed;left:12px;bottom:12px;z-index:90;font:600 11.5px var(--mono);background:rgba(30,27,46,.88);color:#D9D2FF;border-radius:999px;padding:6px 11px;pointer-events:none}
+/* 390px에서 떠 있는 테마 버튼이 공유 버튼·카드 ⋮·글줄 끝을 가렸다. 좁은 화면에서는 떠 있지 않고 페이지 맨 끝(푸터 아래)에 놓인다. 독서 화면은 고정 하단 바(.rnav) 높이만큼 비운다. */
+@media (max-width:600px){.screen-controls{position:static;justify-content:flex-end;padding:0 12px 12px}body:has(.rnav) .screen-controls{padding-bottom:86px}}
 #sid[hidden]{display:none}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:300;background:rgba(30,27,46,.95);border:1px solid rgba(255,255,255,.08);color:#fff;padding:11px 20px;border-radius:999px;font-size:14px;font-weight:600;max-width:calc(100vw - 32px);text-align:center}
 /* 토스트는 role=status 노드 하나를 계속 두고 글자만 바꾼다. 비어 있을 때도 hidden 속성의 display:none을 풀어 보조기기에 라이브 영역으로 남긴다(안이 빈 0×0 상자라 보이지 않는다). */
@@ -417,12 +424,12 @@ button.avatar{border:0;cursor:pointer}
 .ib .hrt path{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round;transition:fill .15s linear,stroke .15s linear}
 .ib.on{color:var(--pri);border-color:var(--pri);background:var(--pri-soft)}
 .ib.on .hrt path{fill:var(--pri);stroke:var(--pri)}
-.ib.pop1 .hrt{animation:hpop .32s cubic-bezier(.3,1.6,.5,1)}
+.ib.pop1 .hrt{animation:hpop .32s var(--ease)}
 @keyframes hpop{0%{transform:scale(.6)}100%{transform:scale(1)}}
 /* 해시태그 */
 .hashes :is(button,a){font-size:13px;font-weight:700;color:var(--pri-ink);background:var(--pri-soft);border-radius:999px;padding:4px 11px;border:1px solid transparent;transition:border-color .12s linear}
 .hashes :is(button,a):hover{border-color:var(--pri)}
-.tagbar{display:flex;gap:8px;flex-wrap:wrap}.tagbar :is(button,a){height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);font-weight:700;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}.tagbar :is(button,a) span{font-size:11.5px;color:var(--faint)}.tagbar :is(button,a).on{background:var(--pri);border-color:var(--pri);color:var(--on-pri)}.tagbar :is(button,a).on span{color:inherit;opacity:.8}
+.tagbar{display:flex;gap:8px;flex-wrap:wrap}.tagbar :is(button,a){height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);font-weight:700;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}.tagbar :is(button,a) span{font-size:11.5px;color:var(--faint)}.tagbar :is(button,a).on{background:var(--pri);border-color:var(--pri);color:var(--on-pri)}.tagbar :is(button,a).on span{color:inherit}
 .ri .m em{font-style:normal;font-size:12px;color:var(--sub)}.ri .m em.hit{color:var(--pri-ink);font-weight:800}
 /* 1~3위 메달. 링 색은 토큰과 같은 --l/--d 스위치라 고른 다크와 OS 다크에서 모두 표면색이 된다. */
 .md{border-radius:50%!important;width:24px!important;height:24px;display:inline-grid!important;place-items:center;font-size:12.5px!important;font-weight:900!important;color:#fff!important;flex:none}
@@ -430,9 +437,10 @@ button.avatar{border:0;cursor:pointer}
 .md2{background:linear-gradient(145deg,#EEF0F4,#B9BFCB 55%,#8C93A1);color:#2A2E38!important;box-shadow:0 0 0 2px var(--l,#F1F3F5) var(--d,var(--surface)),0 2px 6px var(--l,rgba(80,90,110,.25)) var(--d,transparent)}
 .md3{background:linear-gradient(145deg,#E8C29A,#C08A58 55%,#94633A);color:#2E1A08!important;box-shadow:0 0 0 2px var(--l,#F6EBDD) var(--d,var(--surface)),0 2px 6px var(--l,rgba(148,99,58,.3)) var(--d,transparent)}
 .rc .big.b1,.rc .big.b2,.rc .big.b3{font-size:46px;-webkit-text-stroke:1.5px rgba(0,0,0,.25);text-shadow:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.45))}
-.rc .big.b1{background:linear-gradient(180deg,#FFF1B8,#F5B014 60%,#C98A00);-webkit-background-clip:text;background-clip:text;color:transparent}
-.rc .big.b2{background:linear-gradient(180deg,#FFFFFF,#C9CED8 60%,#8C93A1);-webkit-background-clip:text;background-clip:text;color:transparent}
-.rc .big.b3{background:linear-gradient(180deg,#FBE3C8,#C98F5C 60%,#94633A);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* 금·은·동 단색 글자(그라데이션을 글자 모양으로 오려 내는 background-clip:text는 쓰지 않는다). */
+.rc .big.b1{color:#F5B014}
+.rc .big.b2{color:#C9CED8}
+.rc .big.b3{color:#C98F5C}
 .rc{overflow:visible}.rc>svg{border-radius:12px}.rc .crown{position:absolute;top:-12px;left:50%;transform:translateX(-50%) rotate(-8deg);filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
 .rg.top3{background:linear-gradient(180deg,var(--surface),transparent);box-shadow:inset 0 0 0 1px var(--line)}.rg.t1{box-shadow:inset 0 0 0 1.5px #F5B014}.rg.t2{box-shadow:inset 0 0 0 1.5px #B9BFCB}.rg.t3{box-shadow:inset 0 0 0 1.5px #C08A58}
 .t10 .n.md{width:22px!important;height:22px;font-size:11.5px!important}
@@ -566,7 +574,6 @@ input,textarea{caret-color:var(--pri)}
  .gnb .avatar{flex:none;width:44px;height:44px}
  .gnb .btn.sm,.screen-controls .btn.sm{flex-shrink:0;min-width:44px;height:44px}
  #home .chips button{min-width:44px;height:44px}
- #home{padding-top:20px}
  #home .guide{position:relative;padding:16px 44px 16px 16px;gap:10px}
  #home .guide ol{gap:8px}
  #home .guide .x{position:absolute;right:4px;top:4px;width:44px;height:44px}

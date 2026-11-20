@@ -14,7 +14,8 @@
 .writing-studio :is(.writing-rail, .writing-episodes, .writing-graph, .writing-editor) { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--tfg) 28%, transparent) transparent; }
 
 /* ── 상단 바: 왼쪽(돌아가기·제목·저장 상태) / 오른쪽(모드·버전 저장·버전 · 공개·더보기) ── */
-.writing-studio .sbar { flex-wrap: wrap; justify-content: space-between; height: auto; min-height: 64px; padding: 8px 20px; gap: 8px 16px; }
+/* 전역 .sbar는 90% 면(반투명)이라 sticky 상단 바 뒤로 스크롤되는 원고 글자가 버튼 글자 사이로 비친다: 이 화면의 상단 바는 불투명한 면이다. */
+.writing-studio .sbar { flex-wrap: wrap; justify-content: space-between; height: auto; min-height: 64px; padding: 8px 20px; gap: 8px 16px; background: var(--tbg); }
 .writing-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; }
 .writing-bar-end { justify-content: flex-end; }
 .writing-studio .sbar .t { font-size: 15px; }

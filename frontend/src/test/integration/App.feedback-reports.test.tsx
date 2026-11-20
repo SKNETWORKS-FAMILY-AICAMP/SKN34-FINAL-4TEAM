@@ -105,7 +105,7 @@ describe('실제 작품 제보 화면 (기능 23)', () => {
       expect(sheet.getByLabelText<HTMLSelectElement>('공개 범위').value).toBe('private')
       expect(sheet.getByLabelText<HTMLTextAreaElement>('내용').maxLength).toBe(500)
       expect(sheet.queryByText(/AI|시뮬레이션|데모/)).toBeNull()
-      expect(sheet.getByText(/내 서재의 ‘내 댓글·제보’/)).toBeTruthy()
+      expect(sheet.getByText(/‘내 댓글·제보’에서 정정·철회·공개 범위 변경/)).toBeTruthy()
       expect(sheet.queryByText(/내 댓글·신고/)).toBeNull()
       fireEvent.change(sheet.getByLabelText('피드백 유형'), { target: { value: '스토리 오류' } })
       expect(sheet.queryByText(/시뮬레이션/)).toBeNull()

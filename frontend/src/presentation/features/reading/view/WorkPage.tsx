@@ -64,7 +64,7 @@ export function WorkPage() {
           <div className="cover"><CoverOf w={w} /></div>
           <div className="whero-body">
             <div>
-              <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok" style={{ marginLeft: 8 }}>🤖 AI 자율 연재 중</span>}{sv.days && <span className="g wsched">{sv.days}</span>}{sv.badge && <span className={`chip ${sv.badge === '연재 중' ? 'ok' : sv.badge === '휴재' ? 'wait' : ''}`} style={{ marginLeft: 8 }}>{sv.badge}</span>}
+              <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok" style={{ marginLeft: 8 }}>🤖 AI 자율 연재 중</span>}{sv.days && <span className="g wsched">{sv.days}</span>}{sv.badge && <span className={`chip ${sv.badge === '연재 중' ? 'ok' : sv.badge === '휴재' ? 'wait' : ''}`} style={{ marginLeft: 8 }}>{sv.badge}</span>}{p && <Go to={`/work/${p.id}`} className="chip ok" style={{ marginLeft: 8 }}><Branch /> 「{p.title}」 {w.forkAt}화에서 분기</Go>}
               <h1>{w.title}</h1><div className="by">{w.by}</div>{p && <div className="by" style={{ marginTop: 6 }}>“{w.dir}”</div>}
             </div>
             {d.summary && <p className="sum">{d.summary}</p>}
@@ -124,7 +124,7 @@ export function WorkPage() {
           <aside className="tcard forkbox">
             {/* 이 상자의 제목은 h1 바로 아래 구역이라 2단계로 알린다(모양은 전역 .forkbox h3 규칙을 그대로 쓴다). */}
             {p ? (
-              <><h3 aria-level={2}>원작 보기</h3><p>이 소설은 「{p.title}」 {w.forkAt}화를 기준으로 분기했어요.{w.canonical ? ' 설정의 원본 추적·독립 상태는 집필실에서 확인해 주세요. 관계의 과거 시점 복원은 지원하지 않아요.' : ' 이후 바뀐 설정은 이 소설에만 저장돼요.'}</p><Go to={`/work/${p.id}`} className="tbtn">원작으로 가기</Go></>
+              <><h3 aria-level={2}>원작 보기</h3><p>이 소설은 「{p.title}」 {w.forkAt}화를 기준으로 분기했어요.{w.canonical ? ' 그 뒤 이야기는 이 소설에서 따로 이어져요.' : ' 이후 바뀐 설정은 이 소설에만 저장돼요.'}</p><Go to={`/work/${p.id}`} className="tbtn">원작으로 가기</Go></>
             ) : w.parentDeleted ? (
               <><h3 aria-level={2}>삭제된 원작</h3><p>이 소설은 「{w.parentTitle}」 {w.forkAt}화를 기준으로 분기했어요. 원작이 삭제돼 원작으로 이동할 수 없고, 분기 전 회차 본문은 독자에게 보이지 않아요.</p></>
             ) : forkList.length ? (
@@ -136,7 +136,7 @@ export function WorkPage() {
               <div className="ifs">
                 <div className="pop-h"><b>이 원작의 포크 소설</b></div>
                 {d.topForks.length ? d.topForks.slice(0, 3).map((f, i) => (
-                  <Go key={f.id} to={`/work/${f.id}`} className="ifl pk"><span className={`rkn${f.canonical ? '' : ` md md${i + 1}`}`}>{i + 1}</span><div><b>{f.dir}</b><small>{f.forkAt}화에서 포크 · {f.author}{f.statisticsSupported!==false && ` · ♥ ${kfmt(f.likes)}`}</small></div></Go>
+                  <Go key={f.id} to={`/work/${f.id}`} className="ifl pk"><span className={`rkn${f.canonical ? '' : ` md md${i + 1}`}`}>{i + 1}</span><div><b>{f.title}</b><small>{f.forkAt}화에서 포크 · {f.author} · “{f.dir}”{f.statisticsSupported!==false && ` · ♥ ${kfmt(f.likes)}`}</small></div></Go>
                 )) : <p style={{ margin: '8px 0 0' }}>아직 포크된 전개가 없어요.</p>}
                 {d.topForks.length > 0 && <Go to={`/ifs?w=${id}`} className="btn sm" style={{ width: '100%', marginTop: 8 }}>{d.topForks.length > 3 ? `전개 ${d.topForks.length}개 모두 보기 →` : '이 소설의 포크 소설 보기 →'}</Go>}
               </div>

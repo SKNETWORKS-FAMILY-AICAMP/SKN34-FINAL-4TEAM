@@ -538,6 +538,22 @@ it('연재 상태를 상단 배지와 정보 탭에 보이고 완결은 요일 �
   expect(document.querySelector('.whero .wsched')!.textContent).toBe('화·금 연재')
 })
 
+it('포크 상세는 상단에 원작으로 가는 계보 링크를 보이고, 원작 상세의 포크 목록은 전제 문장 대신 포크 제목을 굵게 보인다', async () => {
+  renderApp('/work/gate', createAppStore({ role: 'user' }))
+  await screen.findByRole('heading', { name: '구운몽: 저승의 문', level: 1 })
+  const cue = screen.getByRole('link', { name: '「구운몽」 3화에서 분기' })
+  expect(cue.getAttribute('href')).toBe('/work/guunmong')
+  expect(document.querySelector('.whero')!.contains(cue)).toBe(true)
+  cleanup()
+  renderApp('/work/guunmong', createAppStore({ role: 'user' }))
+  await screen.findByRole('heading', { name: '구운몽', level: 1 })
+  expect(screen.queryByRole('link', { name: /화에서 분기$/ })).toBeNull() // 원작에는 계보 링크가 없다
+  const row = document.querySelector('.ifl.pk[href="/work/gate"]')!
+  expect(row.querySelector('b')!.textContent).toBe('구운몽: 저승의 문')
+  expect(row.querySelector('small')!.textContent).toContain('3화에서 포크')
+  expect(row.querySelector('small')!.textContent).toContain('“성진이 환생을 거부했다면?”')
+})
+
 it('서버 작품 상세는 공개 상세의 회차별 누적 조회 수를 자체 회차에만 보인다 (상속 회차는 원작 몫)', async () => {
   const server = serverWorks()
   server.read.mockResolvedValue({ likes: 1, liked: false })
@@ -561,7 +577,8 @@ it('서버 작품 상세는 공개 상세의 회차별 누적 조회 수를 자�
 it('포크 소설의 정보 탭은 원작 링크를 보이고 원작을 열 수 없으면 제목만 보인다', async () => {
   renderApp('/work/cloud', createAppStore({ role: 'user' }))
   fireEvent.click(await screen.findByRole('tab', { name: '정보' }))
-  expect(screen.getByRole('link', { name: '「구운몽」 2화에서 분기' }).getAttribute('href')).toBe('/work/guunmong')
+  // 상단 원작 칩과 정보 탭 링크가 같은 이름이라 둘 다 원작으로 가는지 본다(#623).
+  expect(screen.getAllByRole('link', { name: '「구운몽」 2화에서 분기' }).map((a) => a.getAttribute('href'))).toEqual(['/work/guunmong', '/work/guunmong'])
   cleanup()
   const server = serverWorks()
   server.read.mockResolvedValue({ likes: 1, liked: false })
