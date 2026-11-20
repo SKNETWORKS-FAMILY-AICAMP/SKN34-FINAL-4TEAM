@@ -359,8 +359,8 @@
 <tr><td>자동 교정 설정 변경</td><td>❌</td></tr>
 <tr><td>자율 연재 설정 변경</td><td>❌</td></tr>
 <tr><td>작품 설정 변경 이력 조회</td><td>❌ <small>(집필 방식 변경 이력 조회 구현, 병합·Required CI 미확인)</small></td></tr>
-<tr><td rowspan="6">저장 공간 관리</td><td rowspan="6">36 사용량·정리 관리</td><td>내 저장 사용량 조회</td><td>❌</td><td rowspan="6"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/87">#87</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90">PR #90</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a></td></tr>
-<tr><td>저장 항목 목록 조회</td><td>❌</td></tr>
+<tr><td rowspan="6">저장 공간 관리</td><td rowspan="6">36 사용량·정리 관리</td><td>내 저장 사용량 조회</td><td>❌ <small>(서버·화면 구현, PR #580 병합 전)</small></td><td rowspan="6"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/579">#579</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/580">PR #580</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/87">#87</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90">PR #90</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a></td></tr>
+<tr><td>저장 항목 목록 조회</td><td>❌ <small>(서버·화면 구현, PR #580 병합 전)</small></td></tr>
 <tr><td>정리 대상 선택</td><td>❌</td></tr>
 <tr><td>정리 요청</td><td>❌</td></tr>
 <tr><td>정리 결과 조회</td><td>❌</td></tr>
