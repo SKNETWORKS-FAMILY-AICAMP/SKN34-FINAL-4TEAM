@@ -7,7 +7,7 @@ import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecase
 type Origin = '' | 'create' | 'fork' | 'link' | 'detach'
 
 /**
- * `/content` 작품 관리 화면: 작품 생성·작품 정보(제목·소개·장르·해시태그)·표지·분기 정책·분기 정보(공개 중단·삭제)·분기 만들기·세계관 연결·이력 조회.
+ * `/content` 작품 관리 화면: 작품 생성·작품 정보(제목·소개·장르·해시태그)·표지·분기 정책·분기 정보(공개 중단)·작품 삭제(원작·포크)·분기 만들기·세계관 연결·이력 조회.
  * 작품 목록과 선택은 서재(`/lib?tab=write`)가 맡고, 이 화면은 주소의 `?work=<id>`(workId)가 가리키는 내 작품 하나를 관리하거나 쿼리가 없으면 새 작품을 만든다.
  * 열린 작품(active)은 내 작품 목록에서 workId로 도출하므로 `install`이 목록을 갱신하면 함께 바뀌고, 작품 revision도 항상 서버 응답 값이다.
  * 원고 작성·AI 이어쓰기·회차 공개는 집필실(`/studio/{id}`) 몫이다.
@@ -248,13 +248,14 @@ export function useEpisodeViewModel(
         setNotice('포크 공개를 중단했어요.')
       })
     },
-    /** 분기 작품을 삭제한다. 성공하면 true이며, 열려 있던 작품이 사라지므로 화면이 서재로 이동한다. */
-    deleteFork: () => {
-      if (!active?.source || !window.confirm(`「${active.title}」 포크를 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 같은 원작에서 포크를 다시 만들 수 없어요.`)) return Promise.resolve(false)
-      return run(async () => {
-        await useCase.deleteWork(active.id)
-        setNotice('포크를 삭제했어요.')
-      })
+    /** 원작과 포크를 소프트 삭제한다. 성공하면 true를 반환해 화면이 서재로 이동하므로 성공 안내는 따로 두지 않는다. */
+    deleteWork: () => {
+      if (!active) return Promise.resolve(false)
+      const message = active.source
+        ? `「${active.title}」 포크를 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 같은 원작에서 포크를 다시 만들 수 없어요.`
+        : `「${active.title}」 작품을 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 이 작품에서 만들어진 포크는 유지돼요.`
+      if (!window.confirm(message)) return Promise.resolve(false)
+      return run(() => useCase.deleteWork(active.id))
     },
   }
 }

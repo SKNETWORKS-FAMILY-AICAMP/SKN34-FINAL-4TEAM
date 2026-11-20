@@ -17,7 +17,7 @@
 | `pg_git` (`seanwevans/pg_git`) | MVP 이후 PostgreSQL 확장 도입을 신중히 추진 | **MVP 미적용**. 실제 포크·설치·개발은 아직 안 함; 재사용 범위·격리 방식 검토(DEC-27·30) |
 | MinIO(S3 호환) | 설정 이미지 파일 보관. RDB에는 URL 저장 | 설정·표지·회차 첨부 선택 구현 존재. 추가 배포·접근·정리 계약은 별도 |
 | KAG·pgvector | 이전 MVP 이후 또는 범위 밖 항목 | 이번 결정으로 추가하지 않음 |
-| Langfuse | 운영 영역 LLMOps, 별도 제품 배포 | dev·prod Compose 포함, 운영 화면 API 통합(DEC-55), Spring Boot 재구현 아님 |
+| Langfuse | 운영 영역 LLMOps, 별도 제품 배포 | 로컬·dev·prod Compose 포함, 운영 화면 API 통합(DEC-55), Spring Boot 재구현 아님 |
 | SMTP | 현재 인증·복구·이메일 변경 | 로컬 구성 존재, 운영 제공사 미정. 옛 MVP 제외를 미구현으로 읽지 않음 |
 | Celery | AI 서비스의 회차 원고 전처리 작업 실행(DEC-50). 브로커는 기존 RabbitMQ, worker 컨테이너 하나 추가 | **결정만 기록, 미구현.** [전처리 계약](../manuscript-preprocessing-contract.md) |
 
