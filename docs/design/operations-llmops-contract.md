@@ -12,7 +12,7 @@
 |---|---|
 | LLMOps 정본 | **Langfuse**(self-host). LangSmith가 주는 추적·세션·프롬프트 버전·데이터셋·실험·점수·비용을 Langfuse로 채우고 Spring으로 재구현하지 않는다. DEC-18의 'MVP 이후'를 이 결정으로 바꾼다 |
 | 화면 방식 | **우리 운영 화면이 API로 통합**한다. 운영 서비스가 Langfuse Public API를 중계·집계하고 실행 단계 상세까지 우리 화면에 보인다(Langfuse 화면 링크 없음) |
-| 배치 | Langfuse를 dev·prod Compose에 포함한다(웹·worker·ClickHouse·Redis·MinIO·Postgres). 웹은 개발자용 별도 포트(로컬 `:3000`)로만 연다 |
+| 배치 | Langfuse를 로컬·dev·prod Compose에 포함한다(웹·worker·ClickHouse·Redis·MinIO·Postgres; 로컬은 루트 `compose.yaml`의 별도 include로 항상, #606). 웹은 개발자용 별도 포트(로컬 `:3000`)로만 연다 |
 | Langfuse 화면 | 관리자는 Langfuse 웹에 들어가지 않는다. 데이터는 운영·AI 서비스가 프로젝트 API 키로만 읽고 쓴다. Langfuse 웹은 개발자가 초기 관리자 계정(`LANGFUSE_INIT_*`)으로만 쓴다(2026-11-19 사용자 결정, OIDC 로그인 안 함) |
 | 회원 식별 | trace의 `user_id`에 **회원 UUID**를 남긴다. 이메일·닉네임·키는 계속 남기지 않는다(2026-11-13 팀 결정의 보완) |
 | 경고 기준 | 기준값은 문서로 고정하지 않고 **운영 화면에서 관리자가 정한다**. 초기 행은 꺼진 상태로 시드하고 값을 넣어 켠다 |

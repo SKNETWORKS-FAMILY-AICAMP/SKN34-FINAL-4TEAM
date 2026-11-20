@@ -1,4 +1,5 @@
 import type { PublicationSchedule, PublicationScheduleInput, PublicationScheduleRevision } from '../entities/publicationSchedule'
+import type { StorageUsage } from '../entities/storageUsage'
 import type {WorkRegistration,WorkTaxonomy,WorkTagSuggestion,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary,InheritedWorld} from '../entities/content'
 import type { EpisodeWorldBasis, EpisodeWorldBasisChoice, WorldBasisCard, WorldBasisVersion } from '../entities/episodeWorldBasis'
 import type { WorkSettings, WritingMode } from '../entities/operatingSettings'
@@ -17,6 +18,7 @@ export interface EpisodeRepository {
   cancelPublicationSchedule(id: string, number: number, target: PublicationScheduleRevision, signal?: AbortSignal): Promise<void>
   publicList(signal?: AbortSignal): Promise<Work[]>
   list(signal?: AbortSignal): Promise<Work[]>
+  storageUsage(signal?: AbortSignal): Promise<StorageUsage>
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration): Promise<Work>
   updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy): Promise<Work>
   workSettings(id: string, signal?: AbortSignal): Promise<WorkSettings>

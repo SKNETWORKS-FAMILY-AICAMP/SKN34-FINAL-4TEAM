@@ -92,6 +92,13 @@ describe('canonical WorkRepository', () => {
     expect(await repository.createFork('work-uuid', 2, '분기 제목', '분기 방향')).toEqual({ id: 'created-server-uuid' })
     expect(api.fork).toHaveBeenCalledWith('work-uuid', 2, '분기 제목', '분기 방향')
   })
+  it('포크 생성의 중복 거절은 삭제한 포크 때문인 안내로 바꾸고 다른 거절은 서버 문구 그대로 둔다 (#605)', async () => {
+    const { api, repository } = setup()
+    api.fork.mockRejectedValueOnce(new Error('이미 만든 분기 작품이 있어요.'))
+    await expect(repository.createFork('work-uuid', 2, '분기 제목', '분기 방향')).rejects.toThrow('이 원작에서 만든 포크를 삭제한 적이 있어 다시 만들 수 없어요.')
+    api.fork.mockRejectedValueOnce(new Error('이 회차에서는 분기할 수 없어요.'))
+    await expect(repository.createFork('work-uuid', 2, '분기 제목', '분기 방향')).rejects.toThrow('이 회차에서는 분기할 수 없어요.')
+  })
 })
 
 

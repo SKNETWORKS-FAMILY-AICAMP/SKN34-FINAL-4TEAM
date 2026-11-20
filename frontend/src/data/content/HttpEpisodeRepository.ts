@@ -3,6 +3,7 @@ import type {WorkRankingQuery, WorkSearchQuery, WorkSearchRepository} from '../.
 import { z } from 'zod'
 import {settingCategories, type Draft, type SettingInput, type WorkRegistration, type WorkTaxonomy} from '../../domain/entities/content'
 import type { PublicationScheduleInput, PublicationScheduleRevision } from '../../domain/entities/publicationSchedule'
+import { storageKinds } from '../../domain/entities/storageUsage'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
@@ -42,6 +43,9 @@ const readingWork = work.omit({draft:true}).extend({
   likes:z.number().int().nonnegative(),
 })
 const instant = z.iso.datetime({offset:true})
+const storageUsage = z.object({
+  items: z.array(z.object({ id: z.string().min(1), kind: z.enum(storageKinds), title: z.string(), parentTitle: z.string(), bytes: z.number().int().nonnegative() })),
+})
 const settingsVersion = z.object({ revision: z.number().int().positive(), writingMode: z.enum(['direct', 'assisted']), changedAt: instant })
 const unsetSettings = z.object({ revision: z.literal(0), writingMode: z.null(), changedAt: z.null() })
 const operatingSettings = z.object({
@@ -181,6 +185,7 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     await this.request(`/works/${encodeURIComponent(id)}/episodes/${number}/views`, z.undefined(), 'POST', undefined, signal)
   }
   list(signal?: AbortSignal) { return this.request('/works', z.array(work), 'GET', undefined, signal) }
+  storageUsage(signal?: AbortSignal) { return this.request('/me/storage-usage', storageUsage, 'GET', undefined, signal) }
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration) { return this.request('/works',work,'POST',registration?{title,summary,...registration}:{title,summary},signal) }
   suggestWorkTags(id: string, signal?: AbortSignal) { return this.request(`/works/${id}/tag-suggestions`,z.object({genres:z.array(z.string()),hashtags:z.array(z.string())}),'POST',undefined,signal) }
   /** 장르·해시태그는 주었을 때만 본문에 싣는다(생략하면 서버가 유지하고, 빈 배열은 비운다). */

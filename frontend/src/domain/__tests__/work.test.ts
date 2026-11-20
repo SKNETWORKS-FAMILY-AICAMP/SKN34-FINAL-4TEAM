@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { seedWorks, seedWorlds } from '../../data/mock/seed'
-import { canReport, canView, forkLabel, forkList, makeFork, sameAuthorWorks, similarWorks, type Work } from '../entities/work'
+import { canReport, canView, forkLabel, forkList, makeFork, sameAuthorWorks, similarWorks, visibleEpisode, type Work } from '../entities/work'
 
 const works = seedWorks(0)
 const worlds = seedWorlds()
@@ -30,6 +30,16 @@ describe('작품 규칙 (목업 1절)', () => {
     expect(canView(mine, null)).toBe(false)
     expect(canView(mine, 'user')).toBe(true)
     expect(canView({ ...byId('postman'), private: true }, 'user')).toBe(false)
+  })
+
+  it('관리자도 자기 비공개 작품과 숨긴 회차는 볼 수 있지만 남의 것은 볼 수 없다 (#605)', () => {
+    const hide = (w: Work): Work => ({ ...w, private: true, eps: w.eps.map((e) => ({ ...e, hidden: true })) })
+    const mine = hide(byId('starlight')), others = hide(byId('postman'))
+    expect(canView(mine, 'admin')).toBe(true)
+    expect(canView(mine, null)).toBe(false)
+    expect(canView(others, 'admin')).toBe(false)
+    expect(visibleEpisode(mine, mine.eps[0], 'admin')).toBe(true)
+    expect(visibleEpisode(others, others.eps[0], 'admin')).toBe(false)
   })
 
   it('신고는 남의 공개 작품에만 열린다 — 비공개·숨김·본인 작품은 불가 (#196)', () => {

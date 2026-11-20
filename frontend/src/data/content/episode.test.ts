@@ -12,6 +12,22 @@ beforeEach(async () => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+it('reads authenticated storage usage and the server item sizes', async () => {
+  const usage = {
+    items: [
+      { id: 'episode', kind: 'manuscript', title: '1화 · 시작', parentTitle: '작품', bytes: 3 },
+      { id: 'image', kind: 'manuscript_image', title: '시장.png', parentTitle: '작품 · 1화', bytes: 500 },
+    ],
+  }
+  const fetcher = vi.fn().mockResolvedValue(Response.json(usage))
+  const signal = new AbortController().signal
+
+  expect(await new HttpEpisodeRepository(fetcher).storageUsage(signal)).toEqual(usage)
+  expect(fetcher).toHaveBeenCalledWith('/api/v1/me/storage-usage', expect.objectContaining({
+    method: 'GET', headers: expect.objectContaining({ Authorization: 'Bearer content-bearer' }), signal: expect.any(AbortSignal),
+  }))
+})
+
 describe('작품 운영 설정', () => {
   it('소유자 경로에서 미설정 상태를 읽고 설정 버전으로 집필 방식을 저장한다', async () => {
     const version = { revision: 1, writingMode: 'assisted', changedAt: '2026-11-19T03:00:00Z' }
