@@ -2,7 +2,7 @@ import { useState, type KeyboardEvent } from 'react'
 import { useParams } from 'react-router'
 import { hiddenSourceEpisode, isPub } from '../../../../domain/entities/work'
 
-import { Art, CoverOf } from '../../../shared/art'
+import { CoverOf } from '../../../shared/art'
 import { kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
@@ -10,7 +10,6 @@ import { Branch, Bubble, Eye, Flag, Heart, Like, Share } from '../../../shared/i
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useWorkViewModel } from '../viewmodel/useWorkViewModel'
-import { Amb } from './Amb'
 import { ReportSheet } from './Sheets'
 import { WorkComments } from './WorkComments'
 import { WorkInfo, serialView } from './WorkInfo'
@@ -60,14 +59,14 @@ export function WorkPage() {
     <>
     <Gnb />
     <div className={`calm calm-${w.theme}`} style={{ minHeight: '100vh' }}>
-      <div className="band"><Art theme={w.theme} w={1200} h={460} seed={w.id + 'band'} /></div>
-      {vm.bandAmb && <Amb t={w.theme} lite band />}
       <main className="wrap" id="main" tabIndex={-1}>
         <section className="whero">
           <div className="cover"><CoverOf w={w} /></div>
-          <div>
-            <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok" style={{ marginLeft: 8 }}>🤖 AI 자율 연재 중</span>}{sv.days && <span className="g wsched">{sv.days}</span>}{sv.badge && <span className={`chip ${sv.badge === '연재 중' ? 'ok' : sv.badge === '휴재' ? 'wait' : ''}`} style={{ marginLeft: 8 }}>{sv.badge}</span>}
-            <h1>{w.title}</h1><div className="by">{w.by}</div>{p && <div className="by" style={{ marginTop: 6 }}>“{w.dir}”</div>}
+          <div className="whero-body">
+            <div>
+              <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok" style={{ marginLeft: 8 }}>🤖 AI 자율 연재 중</span>}{sv.days && <span className="g wsched">{sv.days}</span>}{sv.badge && <span className={`chip ${sv.badge === '연재 중' ? 'ok' : sv.badge === '휴재' ? 'wait' : ''}`} style={{ marginLeft: 8 }}>{sv.badge}</span>}
+              <h1>{w.title}</h1><div className="by">{w.by}</div>{p && <div className="by" style={{ marginTop: 6 }}>“{w.dir}”</div>}
+            </div>
             {d.summary && <p className="sum">{d.summary}</p>}
             <div className="hashes">{(w.hash || p?.hash || []).map((h) => <Go key={h} to={`/tag/${encodeURIComponent(h.replace(/^#/, ''))}`} title={`${h} 소설 모아 보기`}>{h}</Go>)}</div>
             <div className="stats">
@@ -86,7 +85,7 @@ export function WorkPage() {
               {vm.canInterest && (vm.isMember
                 ? <button type="button" className="tbtn" disabled={vm.interestBusy} onClick={vm.toggleInterest}>{vm.interested ? '관심 해제' : '관심 등록'}</button>
                 : <Go to="/login" className="tbtn" onClick={vm.requireLogin}>관심 등록</Go>)}
-              {vm.canReport && <button type="button" className="tbtn weak" aria-label={`${w.title} 소설 신고`} onClick={() => vm.setReporting(true)}><Flag /> 소설 신고</button>}
+              {vm.canReport && <button type="button" className="tbtn weak" aria-label={`${w.title} 소설 신고`} onClick={vm.startReport}><Flag /> 소설 신고</button>}
             </div>
           </div>
         </section>

@@ -1,6 +1,8 @@
 import type { Work as ContentWork } from '../entities/content'
 import { readerBody } from '../entities/feedback'
-import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, RANKING_TYPES, rankingUsesPeriod, sameAuthorWorks, similarWorks, sorter, tagsOf, visibleEpisode, type RankingKind, type RankingPeriod, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
+import { HOME_CHIP_ALL, HOME_CHIP_FORKS, HOME_CHIP_FREE, emojiName, homeChips, type Genre } from '../entities/genre'
+import { baseOf, canView, epsOf, forkLabel, forkList, forkOK, forksOf, isMine, isPub, matchW, originals, publicCast, RANKING_TYPES, rankingUsesPeriod, sameAuthorWorks, similarWorks, sorter, tagsOf, visibleEpisode, withTagForks, type RankingKind, type RankingPeriod, type Role, type SearchField, type SearchSort, type Work } from '../entities/work'
+import type { GenreRepository } from '../repositories/GenreRepository'
 import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
 import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
@@ -10,21 +12,14 @@ import type { WorkRankingQuery, WorkSearchRepository } from '../repositories/Wor
 /** 서버 검색 목록이 한 번에 받는 개수(계약: size 20). 이만큼 받으면 다음 페이지가 있을 수 있다. */
 const SEARCH_PAGE_SIZE = 20
 
-/** 목업 CHIPS: 홈 장르 칩과 필터 조건 */
-export const HOME_CHIPS: [string, ((w: Work, all: Work[]) => boolean) | null][] = [
-  ['추천', null],
-  ['📜 고전', (w) => w.theme === 'hanji'],
-  ['✨ 판타지', (w) => /판타지/.test(w.genre)],
-  ['🛰 SF', (w) => /SF/.test(w.genre)],
-  ['🆓 무료', (w) => w.tags.includes('free') || !!w.canonical], // 유료 열람이 없어 서버(canonical) 공개 작품은 모두 무료다.
-  ['✎ 포크 많은', (w, all) => forksOf(all, w.id).length > 0],
-]
+/** 홈 칩 중 장르가 아니라 작품 조건으로 거르는 칩. 장르 칩은 공개 장르 목록(`homeChips`)이 정하고 그 장르 이름으로 거른다. */
+const CONDITION_CHIPS: Record<string, (w: Work, all: Work[]) => boolean> = {
+  [HOME_CHIP_FREE]: (w) => w.tags.includes('free') || !!w.canonical, // 유료 열람이 없어 서버(canonical) 공개 작품은 모두 무료다.
+  [HOME_CHIP_FORKS]: (w, all) => forksOf(all, w.id).length > 0,
+}
 
 /** 랭킹 범위 탭 t(all·orig·if)에 드는 작품인가 */
 const inTab = (t: string) => (w: Work) => t === 'all' || (t === 'orig' ? !w.parent : !!w.parent)
-/** 서버 저장소가 있으면 이 칩은 Content 검색(장르 부분 일치·좋아요순)으로 채웁니다. 목업은 위 메모리 필터입니다. */
-const HOME_GENRE_QUERIES: Record<string, string> = { '📜 고전': '고전', '✨ 판타지': '판타지', '🛰 SF': 'SF' }
-
 export class ReadingUseCase {
   private readonly workRepository: WorkRepository
   private readonly readingRepository: ReadingRepository
@@ -34,12 +29,26 @@ export class ReadingUseCase {
   private readonly workSearchRepository?: WorkSearchRepository
   /** 있으면 서버 작품(canonical)의 좋아요를 Content로 보냅니다. 없으면(목업) 메모리 데모입니다. */
   private readonly workLikeRepository?: WorkLikeRepository
-  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository, readingRecordRepository: ReadingRecordRepository, workSearchRepository?: WorkSearchRepository, workLikeRepository?: WorkLikeRepository) {
+  /** 홈 장르 칩을 채우는 공개 장르 목록(DEC-56). 없으면 장르 칩이 없습니다. */
+  private readonly genreRepository?: GenreRepository
+  constructor(workRepository: WorkRepository, readingRepository: ReadingRepository, readingRecordRepository: ReadingRecordRepository, workSearchRepository?: WorkSearchRepository, workLikeRepository?: WorkLikeRepository, genreRepository?: GenreRepository) {
     this.workRepository = workRepository
     this.readingRepository = readingRepository
     this.readingRecordRepository = readingRecordRepository
     this.workSearchRepository = workSearchRepository
     this.workLikeRepository = workLikeRepository
+    this.genreRepository = genreRepository
+  }
+
+  /** 홈 칩 줄: 추천 · 홈에 보이는 장르(공개 장르 목록, 최대 6개) · 무료 · 포크 많은. 장르 목록을 읽지 못하면 장르 없는 줄로 숨기지 않고 던집니다. */
+  async homeChips(signal?: AbortSignal) {
+    return homeChips((await this.genreRepository?.list(signal)) ?? [])
+  }
+
+  /** 이 칩이 장르 칩이면 그 장르(홈에 보이는 공개 장르 중 아이콘 이름이 칩과 같은 것)입니다. 추천·무료·포크 많은 칩은 장르 목록을 읽지 않고, 목록에 없는 칩도 undefined입니다. */
+  private async chipGenre(chip: string): Promise<Genre | undefined> {
+    if (chip === HOME_CHIP_ALL || Object.hasOwn(CONDITION_CHIPS, chip)) return undefined
+    return (await this.genreRepository?.list())?.find((g) => g.featured && emojiName(g) === chip)
   }
 
   /** 로그인 회원의 서버 독서 기록(최근 순). 비회원은 기록이 없고(서버를 부르지 않음), 읽지 못하면 빈 기록으로 숨기지 않고 던집니다. */
@@ -68,10 +77,11 @@ export class ReadingUseCase {
   /** 목업 home(): 칩이 '추천'이 아니면 filtered(U02)만 채웁니다. */
   async getHome(role: Role, chip: string) {
     const repo = this.workSearchRepository
-    const genre = HOME_GENRE_QUERIES[chip]
-    const [works, progress, server, records, genreWorks] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.serverHome(), this.memberRecords(role), repo && genre ? repo.search({ q: genre, f: 'genre', sort: 'like' }) : null])
+    const genre = await this.chipGenre(chip)
+    // 서버 저장소가 있으면 장르 칩은 Content 검색(장르 부분 일치·좋아요순)으로, 목업은 작품 장르에 그 이름이 든 공개 작품으로 채웁니다.
+    const [works, progress, server, records, genreWorks] = await Promise.all([this.workRepository.listWorks(), this.readingRepository.getProgress(), this.serverHome(), this.memberRecords(role), repo && genre ? repo.search({ q: genre.name, f: 'genre', sort: 'like' }) : null])
     const pub = works.filter(isPub)
-    const filter = (HOME_CHIPS.find((c) => c[0] === chip) ?? HOME_CHIPS[0])[1]
+    const filter: ((w: Work, all: Work[]) => boolean) | null = genre ? (w) => w.genre.includes(genre.name) : Object.hasOwn(CONDITION_CHIPS, chip) ? CONDITION_CHIPS[chip] : null
     const origs = originals(works).filter(isPub)
     const forkSources: Record<string, { title: string; episode: number }> = {}
     // ponytail: 소수 작품의 메모리 데모용 중첩 순회; 서버 목록으로 확장할 때 저장소 조회로 대체합니다.
@@ -274,7 +284,9 @@ export class ReadingUseCase {
   async findWorks({ q = '', f = 'all', sort, page = 0 }: { q?: string; f?: SearchField; sort: SearchSort; page?: number }, signal?: AbortSignal) {
     if (this.workSearchRepository) {
       const found = await this.workSearchRepository.search({ q: q.trim(), f, sort, page, size: SEARCH_PAGE_SIZE }, signal)
-      return { list: found, hasMore: found.length === SEARCH_PAGE_SIZE }
+      // 태그 범위는 서버가 못 찾는 원작 태그 상속 포크를 공개 목록으로 보탠다(/tag와 같게). 더 보기는 서버가 준 개수로 따진다.
+      const tagged = q.trim() && f === 'tag' && found.length > 0
+      return { list: tagged ? withTagForks(found, await this.workRepository.listWorks(), q.trim()) : found, hasMore: found.length === SEARCH_PAGE_SIZE }
     }
     const works = await this.workRepository.listWorks()
     return {
@@ -339,7 +351,7 @@ export class ReadingUseCase {
     const works = await this.workRepository.listWorks()
     const items: { k: string; w?: Work; label: string; sub: string; go: string }[] = []
     // 목업은 모든 작품에서 넣지만, 비공개 인물이 보이지 않도록 내 작품 집필실에서만 넣습니다.
-    const sw = studio && role === 'user' && works.find((w) => w.id === studio.id && isMine(w))
+    const sw = studio && role !== null && works.find((w) => w.id === studio.id && isMine(w))
     if (sw) {
       const at = (target: string) => `/studio/${sw.id}?${target}${studio.ep ? `&ep=${studio.ep}` : ''}`
       items.push({ k: '이동', label: 'AI 채팅', sub: '집필실', go: at('panel=chat') }, { k: '이동', label: '플롯', sub: '집필실', go: at('view=narrative') }, { k: '이동', label: '집필 설정', sub: '집필실', go: at('panel=settings') })

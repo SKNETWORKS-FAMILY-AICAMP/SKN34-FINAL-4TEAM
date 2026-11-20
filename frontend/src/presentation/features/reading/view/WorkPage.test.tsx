@@ -53,6 +53,13 @@ it('소설 상세는 id가 main인 랜드마크 하나와 h1 하나를 갖고 �
   await waitFor(() => expect(document.title).toBe('회색 도시의 우편배달부 · STORYFORK'))
 })
 
+it('소설 상세 상단은 세계관 효과와 모션이 켜져 있어도 작품 표지만 표시한다', async () => {
+  const { container } = renderApp('/work/postman', createAppStore({}, { theme: 'light', look: 'world', motion: true }))
+  await screen.findByRole('heading', { name: '회색 도시의 우편배달부', level: 1 })
+  expect(container.querySelector('.band, .band-amb')).toBeNull()
+  expect(container.querySelector('.whero .cover img')?.getAttribute('src')).toBe('/default-work-cover.svg')
+})
+
 it('소설 상세의 제목은 단계를 건너뛰지 않는다', async () => {
   renderApp('/work/postman', createAppStore({ role: 'user' }))
   await screen.findByRole('heading', { name: '회색 도시의 우편배달부', level: 1 })
@@ -154,6 +161,18 @@ it('비로그인이 서버 작품의 좋아요를 누르면 서버를 부르지 
     expect(store.getState().session.next).toBe('/work/guunmong')
     expect(server.like).not.toHaveBeenCalled()
     expect(server.read).not.toHaveBeenCalled()
+  } finally { server.restore() }
+})
+
+it('비로그인이 서버 작품의 소설 신고를 누르면 신고 시트를 열지 않고 로그인 안내로 보낸다 (#605)', async () => {
+  const server = serverWorks()
+  try {
+    const { store } = renderApp('/work/guunmong')
+    fireEvent.click(await screen.findByRole('button', { name: '구운몽 소설 신고' }))
+    await screen.findByRole('heading', { name: '로그인', level: 1 })
+    screen.getByText('소설 신고는 로그인한 회원만 할 수 있어요.')
+    expect(store.getState().session.next).toBe('/work/guunmong')
+    expect(screen.queryByRole('dialog', { name: '소설 신고' })).toBeNull()
   } finally { server.restore() }
 })
 

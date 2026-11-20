@@ -22,6 +22,8 @@
 
 > **V12(설정집 AI 검토 결과, #555):** `world_review_result`를 추가한다. 세계관마다 마지막 검토 한 행(`world_id` PK·FK, `result jsonb`, `reviewed_at timestamptz`)이고 성공한 검토가 같은 행을 덮어쓴다. AI 호출·응답 검증이 실패하면 저장하지 않아 이전 결과가 남는다. 기존 행·기존 SQL 이력·체크섬은 바꾸지 않는다. V1~V12 12건, 테이블은 22개다. [검토 계약](../../../../../../../../docs/design/world-review-contract.md#검토-결과-저장-2026-11-19-사용자-결정).
 
+> **V14(세계관 장르 통합, DEC-56):** `world.genre`의 CHECK 제약(`world_genre_check`)을 지우고 옛 영문 코드 일곱 개를 Content 장르 코드로 바꾸는 UPDATE(fantasy→genre-01, wuxia→genre-03, romance→genre-06, modern→genre-10, sf→genre-14, mystery→genre-18, classic→genre-28)만 한다. 장르 코드가 Content `genre` 표에 있는지·활성인지는 별도 이력이라 FK 없이 서비스가 확인한다. V13은 다른 열린 PR 몫이라 비워 두었으므로 적용 개수는 V1~V12와 V14의 13건이고 표는 22개 그대로다. [장르 관리 계약](../../../../../../../../docs/design/genre-management-contract.md).
+
 ## 실행 계약
 
 > **Core→Content 추출 후 현재 계약:** 명시 main은 Content 이미지의 `ai.storyfork.content.world.migration.WorldStudioMigration`이며 기존 같은 DB를 `DATABASE_URL/USER/PASSWORD`로 받는다. 서버는 `contentDataSource`와 studio-only EntityManager/TransactionManager로 validate만 하며 Auth를 스캔하지 않는다. CD는 fresh 전환 승인 후 ingress/구 writer 중지 → opt-in migration → 새 앱 시작 순서이며 실패 시 ingress를 멈춘 채 자동 rollback하지 않는다. 로컬은 선택 순수 `unitTest`만 허용하고 아래 PostgreSQL/통합 명령은 hosted CI 전용이다. **아래 Core 패키지·기본 persistence unit·통합 로컬 실행 설명은 추출 전 기록으로 사용하지 않는다.** 최신 [Content 안내](../../../../../../README.md)와 [배포 계약](../../../../../../../../docs/deployment/worldstudio-v1-rollout.md)을 우선한다.

@@ -1,13 +1,18 @@
+import { useNavigate } from 'react-router'
+
+import { type LlmPage, llmPageHref } from '../../../../domain/entities/admin'
 import {
   LLM_FORBIDDEN, METRICS_GROUPS, PERIODS, TRACE_STATUS_OPTIONS, bodyText, count, millis, percent, traceStatusLabel, usd, type TraceItem,
 } from '../../../../domain/entities/llmOps'
 import { usagePoints } from '../../../../domain/entities/llmOpsCharts'
 import { kstDateTime } from '../../../shared/format'
-import { LLM_VIEWS, useLlmOpsViewModel } from '../viewmodel/useLlmOpsViewModel'
+import { MoreVerticalIcon } from '../../../shared/icons'
+import { PopMenu } from '../../../shared/PopMenu'
+import { useLlmOpsViewModel } from '../viewmodel/useLlmOpsViewModel'
 import type { useAdminViewModel } from '../viewmodel/useAdminViewModel'
 import { CostChart, RequestsChart } from './AdminCharts'
 import { LlmAlerts } from './LlmAlerts'
-import { LlmOpsManage } from './LlmOpsManage'
+import { AlertRules, Evaluations, LeakSampleRate, Models, Prompts } from './LlmOpsManage'
 import { formText } from './formValue'
 import { LiveState, Pager, Table } from './OperationsPanels'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
@@ -15,28 +20,24 @@ import { useAdminDetailFocus } from './useAdminDetailFocus'
 export type VM = ReturnType<typeof useAdminViewModel>
 export type LlmVM = ReturnType<typeof useLlmOpsViewModel>
 
-const statusChip = (status: string) => <span className={`chip ${status === 'success' ? 'ok' : 'wait'}`}>{traceStatusLabel(status)}</span>
+const statusChip = (status: string) => <span className={`chip ${status === 'success' ? 'ok' : 'bad'}`}>{traceStatusLabel(status)}</span>
 
-/** 40-A~E LLM Ops: Langfuse 기준 추적·지표와 프롬프트·모델·평가·누설 검사·경고 기준을 운영 서비스 API로 보고 관리합니다. */
-export function LlmOps({ vm }: { vm: VM }) {
-  const l = useLlmOpsViewModel(vm.live.mutate)
+/**
+ * 40-A~E LLM Ops: Langfuse 기준 추적·지표와 프롬프트·모델·평가·누설 검사·경고 기준을 운영 서비스 API로 보고 관리합니다.
+ * 사이드바 네 메뉴(주소 view)가 쪽이고, 쪽마다 패널을 위아래로 쌓습니다. 상세(추적·프롬프트·평가)를 열면 그 쪽은 상세만 보이고 닫으면 목록 패널들이 돌아옵니다.
+ */
+export function LlmOps({ vm, page }: { vm: VM; page: LlmPage }) {
+  const navigate = useNavigate()
+  const l = useLlmOpsViewModel(vm.live.mutate, page, (next) => navigate(llmPageHref(next)))
   // 목록에서 상세를 열면 상세 제목으로, 닫으면 눌렀던 목록 버튼으로 초점을 옮깁니다.
   const root = useAdminDetailFocus(l.traceId ?? l.promptName ?? l.runId, !!(l.trace.data || l.prompt.data || l.evaluation.data))
   return (
-    <>
-      <nav className="chips admin-subnav" aria-label="LLM Ops 보기">
-        {LLM_VIEWS.map(([view, label]) => (
-          <button key={view} type="button" className={l.view === view ? 'on' : undefined} aria-pressed={l.view === view} onClick={() => l.choose(view)}>{label}</button>
-        ))}
-      </nav>
-      <section ref={root}>
-        {l.view === 'alerts' && <LlmAlerts vm={vm} />}
-        {l.view === 'traces' && (l.traceId ? <TraceDetailPanel vm={vm} l={l} /> : <Traces vm={vm} l={l} />)}
-        {l.view === 'metrics' && <Metrics vm={vm} l={l} />}
-        {l.view === 'leaks' && <LeakChecks vm={vm} l={l} />}
-        <LlmOpsManage vm={vm} l={l} />
-      </section>
-    </>
+    <section ref={root}>
+      {page === 'alerts' && <><LlmAlerts vm={vm} /><AlertRules vm={vm} l={l} /></>}
+      {page === 'traces' && (l.traceId ? <TraceDetailPanel vm={vm} l={l} /> : <><Traces vm={vm} l={l} /><Metrics vm={vm} l={l} /></>)}
+      {page === 'prompts' && <><Prompts vm={vm} l={l} />{!l.promptName && <Models vm={vm} l={l} />}</>}
+      {page === 'quality' && <><Evaluations vm={vm} l={l} />{!l.runId && <><LeakChecks vm={vm} l={l} /><LeakSampleRate vm={vm} l={l} /></>}</>}
+    </section>
   )
 }
 
@@ -79,7 +80,7 @@ function Traces({ vm, l }: { vm: VM; l: LlmVM }) {
                   <th scope="col">토큰(입력/출력)</th>
                   <th scope="col">비용</th>
                   <th scope="col">회원</th>
-                  <th scope="col" className="act">상세</th>
+                  <th scope="col" className="act act-menu"><span className="sr-only">상세</span></th>
                 </tr>
               </thead>
               <tbody>{page.items.map((row) => <TraceRow key={row.id} row={row} onOpen={l.openTrace} />)}</tbody>
@@ -96,14 +97,18 @@ function Traces({ vm, l }: { vm: VM; l: LlmVM }) {
 function TraceRow({ row, onOpen }: { row: TraceItem; onOpen: (id: string) => void }) {
   return (
     <tr>
-      <td>{kstDateTime(row.timestamp)}</td>
+      <td className="admin-date">{kstDateTime(row.timestamp)}</td>
       <td>{row.feature}</td>
       <td>{statusChip(row.status)}</td>
       <td>{millis(row.latencyMs)}</td>
       <td>{count(row.inputTokens)} / {count(row.outputTokens)}</td>
       <td>{usd(row.cost)}</td>
       <td>{row.userId ?? '—'}</td>
-      <td><button type="button" className="btn sm" data-record-id={row.id} aria-label={`${row.feature} 추적 ${row.id} 단계 상세`} onClick={() => onOpen(row.id)}>단계 상세</button></td>
+      <td className="act-menu" data-record-id={row.id}>
+        <PopMenu className="row-menu" label={`「${row.feature} 추적 ${row.id}」 조치`} icon={<MoreVerticalIcon />}>
+          <button type="button" role="menuitem" onClick={() => onOpen(row.id)}>단계 상세</button>
+        </PopMenu>
+      </td>
     </tr>
   )
 }
@@ -145,12 +150,12 @@ function TraceDetailPanel({ vm, l }: { vm: VM; l: LlmVM }) {
                 <tr key={o.id}>
                   <td>{o.name}</td>
                   <td>{o.type}</td>
-                  <td>{o.startTime ? kstDateTime(o.startTime) : '—'}</td>
+                  <td className="admin-date">{o.startTime ? kstDateTime(o.startTime) : '—'}</td>
                   <td>{millis(o.latencyMs)}</td>
                   <td>{o.model ?? '—'}</td>
                   <td>{count(o.inputTokens)} / {count(o.outputTokens)}</td>
                   <td>
-                    <span className={`chip ${o.level === 'ERROR' ? 'wait' : ''}`}>{o.level}</span>
+                    <span className={`chip ${o.level === 'ERROR' ? 'bad' : ''}`}>{o.level}</span>
                     {o.statusMessage && <div className="small">{o.statusMessage}</div>}
                   </td>
                   <td>{o.promptName ? `${o.promptName} v${o.promptVersion ?? '?'}` : '—'}</td>
@@ -260,25 +265,29 @@ function LeakChecks({ vm, l }: { vm: VM; l: LlmVM }) {
                 <th scope="col">판정</th>
                 <th scope="col">걸린 항목</th>
                 <th scope="col">사유</th>
-                <th scope="col" className="act">추적</th>
+                <th scope="col" className="act act-menu"><span className="sr-only">추적</span></th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
                 <tr key={row.id}>
-                  <td>{kstDateTime(row.checkedAt)}</td>
+                  <td className="admin-date">{kstDateTime(row.checkedAt)}</td>
                   <td>{row.workId}</td>
-                  <td><span className={`chip ${row.suspected ? 'wait' : 'ok'}`}>{row.suspected ? '의심' : '이상 없음'}</span></td>
+                  <td><span className={`chip ${row.suspected ? 'bad' : 'ok'}`}>{row.suspected ? '의심' : '이상 없음'}</span></td>
                   <td>{row.matched.join(', ') || '—'}</td>
                   <td>{row.reason ?? '—'}</td>
-                  <td><button type="button" className="btn sm" aria-label={`추적 ${row.traceId} 보기`} onClick={() => l.openTrace(row.traceId)}>추적 보기</button></td>
+                  <td className="act-menu">
+                    <PopMenu className="row-menu" label={`「추적 ${row.traceId}」 조치`} icon={<MoreVerticalIcon />}>
+                      <button type="button" role="menuitem" onClick={() => l.openTrace(row.traceId)}>추적 보기</button>
+                    </PopMenu>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </Table>
         )
         : <p className="admin-empty">아직 검사 결과가 없어요.</p>)}
-      <p className="admin-note">Fork 작품 요청을 표본으로 뽑아 원작의 비공개 카드 제목·미발행 회차 제목이 답변에 그대로 나왔는지 대조한 결과예요. 표본 비율은 ‘경고 기준·설정’에서 정해요.</p>
+      <p className="admin-note">Fork 작품 요청을 표본으로 뽑아 원작의 비공개 카드 제목·미발행 회차 제목이 답변에 그대로 나왔는지 대조한 결과예요. 표본 비율은 아래 ‘누설 검사 표본 비율’에서 정해요.</p>
     </section>
   )
 }

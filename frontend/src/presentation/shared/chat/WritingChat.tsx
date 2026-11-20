@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
-import { draftNotice, featureLabel, PLAN_LABEL, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
+import { draftNotice, featureLabel, PLAN_LABEL, referenceHref, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
@@ -30,6 +30,22 @@ function SceneLine({ simulation, approval, onOpenStage }: { simulation: Characte
 }
 
 /**
+ * 플랫폼 조사(#547) 참고안: 세계관 · 카드 · 작가와 참고 이유. 카드는 새 탭에서 열어 채팅·작업 중인 화면을 지키고,
+ * 다른 작가의 공개 설정이라 내 설정집에는 복사하지 않는다. 참고안이 없으면 링크 없이 stepText가 결과 없음을 알린다.
+ */
+function References({ step }: { step: ChatStep }) {
+  const refs = step.result?.references
+  if (step.status !== 'completed' || !refs?.length) return null
+  return <ul className="chat-refs" aria-label="참고한 공개 설정">
+    {refs.map((r) => <li key={`${r.worldId}-${r.cardId}`}>
+      <a href={referenceHref(r)} target="_blank" rel="noreferrer">{r.worldName} · {r.cardTitle}</a> · {r.authorNickname}
+      <p>{r.note}</p>
+    </li>)}
+    {step.result?.gaps?.map((g) => <li key={g} className="chat-note">확인 못 함: {g}</li>)}
+  </ul>
+}
+
+/**
  * 진행 중인 턴의 단계 목록. 단계가 끝나는 대로 결과를 바로 아래에 보인다(SSE 순서 그대로).
  * 장면 한 줄은 상태 알림(role="status") 밖에 둔다: 알림 영역은 바뀔 때마다 통째로 읽혀 턴마다 다시 읽히기 때문이다.
  */
@@ -42,12 +58,13 @@ function Progress({ live, onOpenStage }: { live: LiveTurn; onOpenStage?: () => v
         {!!live.steps.length && <ol className="chat-steps">{live.steps.map((step, i) => {
           const state = stepState(step, live.running)
           // 장면 카드가 그리는 단계는 한 줄 요약을 되풀이하지 않는다. 실패 사유는 그대로 보인다.
-          const text = step.simulation && step.status !== 'failed' ? '' : stepText(step)
+          const text = (step.simulation && step.status !== 'failed') || step.result?.references?.length ? '' : stepText(step)
           return <li key={`${step.feature}-${i}`} data-state={state}>
             <span className="chat-step-dot" aria-hidden="true" />
             <span className="chat-step-name">{featureLabel[step.feature] ?? step.feature}</span>
             <span className="chat-step-state">{stateLabel[state]}</span>
             {text && <p className="chat-step-text">{text}</p>}
+            <References step={step} />
           </li>
         })}</ol>}
       </div>
@@ -113,9 +130,9 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
   const reviewed = reply.steps.find((s) => s.feature === 'manuscript_review')
   const confirmed = (reviewed?.manuscriptReview?.findings ?? [])
     .flatMap((f, i) => (f.status === 'confirmed' ? [{ ...f, index: i }] : []))
-  const filled = needs.every((f) => (f === 'web_research' ? question.trim() : f === 'writing_editing' ? (fixing ? fix !== null : !patching && plan.trim()) : f === 'manuscript_review' ? check : false))
+  const filled = needs.every((f) => (f === 'research' ? question.trim() : f === 'writing_editing' ? (fixing ? fix !== null : !patching && plan.trim()) : f === 'manuscript_review' ? check : false))
   const inputs: ChatStepInputs = {
-    ...(needs.includes('web_research') ? { web_research: { question: question.trim() } } : {}),
+    ...(needs.includes('research') ? { research: { question: question.trim() } } : {}),
     ...(needs.includes('manuscript_review') && check ? { manuscript_review: { check } } : {}),
     ...(needs.includes('writing_editing') && fixing && fix !== null ? { writing_editing: { fix } } : {}),
     ...(needs.includes('writing_editing') && !fixing && !patching && episode ? { writing_editing: { draft: { episodeNumber: episode, plan: plan.trim() } } } : {}),
@@ -123,7 +140,7 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
   return <form className="chat-hitl" aria-labelledby={`${id}-t`} onSubmit={(e) => { e.preventDefault(); if (filled) onResume(true, inputs) }}>
     <h3 id={`${id}-t`}>작업에 필요한 내용을 알려 주세요</h3>
     <p className="chat-note">{needs.map((f) => featureLabel[f] ?? f).join(' · ')} 단계가 입력을 기다려요. 취소하면 아무 작업도 실행하지 않아요.</p>
-    {needs.includes('web_research') && <label className="chat-field">조사할 질문
+    {needs.includes('research') && <label className="chat-field">조사할 질문
       <input value={question} maxLength={500} onChange={(e) => setQuestion(e.target.value)} placeholder="예: 조선 후기 한양에서 동래까지 며칠 걸렸나요?" />
     </label>}
     {/* 대기 중에는 검수 답이 채팅에 그려지지 않으므로 제안·의심 지적·확인 못 한 부분을 여기서 보인다(#391) */}
@@ -145,7 +162,7 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
         {reviewCheckLabel[c]}{c === 'semantic' && <span className="chat-note"> (연결된 세계관 설정과 대조)</span>}
       </label>)}
     </fieldset>}
-    {(patching || needs.some((f) => f !== 'web_research' && f !== 'writing_editing' && f !== 'manuscript_review')) && <p className="chat-note">이 단계의 입력은 아직 화면에서 채울 수 없어요. 취소한 뒤 다른 요청으로 보내 주세요.</p>}
+    {(patching || needs.some((f) => f !== 'research' && f !== 'writing_editing' && f !== 'manuscript_review')) && <p className="chat-note">이 단계의 입력은 아직 화면에서 채울 수 없어요. 취소한 뒤 다른 요청으로 보내 주세요.</p>}
     <div className="chat-hitl-actions">
       <button type="submit" className="btn sm pri" disabled={pending || !filled}>이어서 실행</button>
       <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>취소</button>
@@ -203,6 +220,7 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
     const outcome = text && reply ? replyOutcome(reply) : []
     return <>
       {outcome.map((line, i) => <p key={i} className="chat-note">{line}</p>)}
+      {reply?.steps.map((s, i) => <References key={`${s.feature}-${i}`} step={s} />)}
       <div className="chat-reply-foot">
         {text && <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details>}
         {/* shortcut: 좋아요·싫어요는 누른 값을 저장하지 않는다. 저장 위치·용도가 정해지면(#560) 연결한다. */}

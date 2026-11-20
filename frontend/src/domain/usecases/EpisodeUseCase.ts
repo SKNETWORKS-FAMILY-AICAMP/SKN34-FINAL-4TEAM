@@ -74,6 +74,8 @@ export class EpisodeUseCase {
   linkWorldStudio(workId: string, worldId: string | null, signal?: AbortSignal) { return this.repository.linkWorldStudio(workId, worldId, signal) }
   /** Fork가 자기 세계관 없이 이어받는 원작 세계관의 카드(읽기 전용, #365). 이어받는 것이 없으면 null이다. */
   inheritedWorld(workId: string, upto?: number, signal?: AbortSignal) { return this.repository.inheritedWorld(workId, upto, signal) }
+  /** 이어받는 원작 세계관을 내 세계관으로 독립시킨다(#583). 새 세계관 id를 돌려준다. */
+  detachInheritedWorld(workId: string) { return this.repository.detachInheritedWorld(workId) }
   save(id: string, draft: Draft) { return this.repository.save(id,draft) }
   publish(id: string, draft: Draft, rights: boolean, allowFork: boolean, allowForkPublication = false, versionId?: string) {
     if (!draft.body.trim()) return Promise.reject(new Error('원고를 먼저 작성해 주세요.'))

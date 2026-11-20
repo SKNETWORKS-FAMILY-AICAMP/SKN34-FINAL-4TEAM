@@ -7,9 +7,9 @@ import ai.storyfork.content.work.client.WorkTagSuggestionCallFailure
 import ai.storyfork.content.work.client.WorkTagSuggestionClient
 import ai.storyfork.content.work.client.dto.WorkTagEpisode
 import ai.storyfork.content.work.client.dto.WorkTagSuggestionInput
+import ai.storyfork.content.work.repository.GenreRepository
 import ai.storyfork.content.work.domain.MAX_WORK_GENRES
 import ai.storyfork.content.work.domain.MAX_WORK_HASHTAGS
-import ai.storyfork.content.work.domain.WORK_GENRES
 import ai.storyfork.content.work.domain.validateWorkGenres
 import ai.storyfork.content.work.domain.validateWorkHashtags
 import ai.storyfork.content.work.service.dto.WorkTagSuggestionResponse
@@ -24,6 +24,7 @@ class WorkTagSuggestionService(
     private val access: WorkAccessService,
     private val publications: PublicationService,
     private val client: WorkTagSuggestionClient,
+    private val genres: GenreRepository,
 ) {
     fun suggest(id: String, owner: String): WorkTagSuggestionResponse {
         // 후보만 만들고 작품을 바꾸지 않으므로 own()처럼 작품 행에 쓰기 잠금을 걸지 않고 읽기만 한다.
@@ -32,16 +33,18 @@ class WorkTagSuggestionService(
         // Fork가 이어받은 원작 회차는 작가 본인 원고가 아니라 빼고, 앞에서부터 최대 3개만 보낸다.
         val episodes = publications.publishedEpisodes(id).items.filter { !it.inherited && it.body.isNotBlank() }.take(MAX_EPISODES)
         checkContent(episodes.isNotEmpty(), 409, "발행한 회차가 있어야 장르·키워드를 추천할 수 있어요.")
+        // AI에 허용하는 장르는 지금 고를 수 있는(활성) 장르 이름이다(DEC-56). 결과도 같은 목록으로 다시 검증한다.
+        val allowed = genres.findActive().map { it.name }
         val input = WorkTagSuggestionInput("work-tags.v1", work.title, work.summary,
             episodes.map { WorkTagEpisode(it.number, it.title, head(it.body)) },
-            WORK_GENRES, MAX_WORK_GENRES, MAX_WORK_HASHTAGS)
+            allowed, MAX_WORK_GENRES, MAX_WORK_HASHTAGS)
         val output = try { client.suggest(input) } catch (e: WorkTagSuggestionCallFailure) { throw failure(e.code) }
         // AI 서비스가 검증한 결과지만 Content 규칙(작품 등록·수정과 같은 검증)을 벗어나면 일부만 고치지 않고 실패로 알린다.
         val hashtags = try {
-            validateWorkGenres(output.genres)
+            validateWorkGenres(output.genres, allowed.toSet())
             validateWorkHashtags(output.hashtags)
         } catch (e: ContentFailure) { throw failure("AI_OUTPUT_INVALID") }
-        if (hashtags != output.hashtags || hashtags.toSet().size != hashtags.size || hashtags.any { it in WORK_GENRES })
+        if (hashtags != output.hashtags || hashtags.toSet().size != hashtags.size || hashtags.any { it in allowed })
             throw failure("AI_OUTPUT_INVALID")
         return WorkTagSuggestionResponse(output.genres, output.hashtags)
     }

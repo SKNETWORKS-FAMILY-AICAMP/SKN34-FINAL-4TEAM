@@ -1,11 +1,11 @@
 import pytest
 from pydantic import ValidationError
 
-from app.orchestration.models import OrchestrationRequest, StepResult, WritingInput
+from app.orchestration.models import OrchestrationRequest, OrchestrationResponse, Resume, StepResult, WritingInput
 from app.simulation.models import SimulationPlan, SimulationResult
 from app.world_review.models import EnrichResponse, ImpactResponse, WorldReviewResponse
 
-from .stubs import DRAFT, PATCH, SCENE, WORLD_ENRICH, WORLD_IMPACT, WORLD_REVIEW
+from .stubs import DRAFT, PATCH, SCENE, WEB, WORLD_ENRICH, WORLD_IMPACT, WORLD_REVIEW
 
 
 @pytest.mark.parametrize('body', [{}, {**DRAFT, **PATCH}])
@@ -100,3 +100,18 @@ def test_simulation_form_needs_the_simulation_operation_and_a_new_request(body):
 def test_simulation_form_keeps_the_plan_limits(form):
     with pytest.raises(ValidationError):
         OrchestrationRequest.model_validate({**BUTTON, 'simulation': form})
+
+
+# 옛 web_research 키(#545 전): 요청·재개 입력, 단계, 입력 대기 목록, 선택 기능을 모두 research로 읽는다.
+@pytest.mark.parametrize('key', ['web_research', 'research'])
+def test_the_old_web_research_input_is_read_as_research(key):
+    request = OrchestrationRequest(request='고증', operation=key, inputs={key: WEB})
+    assert request.operation == 'research'
+    assert request.inputs.research.question == WEB['question']
+    assert Resume(approved=True, inputs={key: WEB}).inputs.research.question == WEB['question']
+
+
+def test_a_step_and_a_waiting_input_recorded_as_web_research_still_load():
+    step = StepResult.model_validate({'feature': 'web_research', 'when': 'always', 'status': 'not_started'})
+    reply = OrchestrationResponse.model_validate({'status': 'waiting', 'steps': [step.model_dump(mode='json')], 'missingInputs': ['web_research']})
+    assert (reply.steps[0].feature, reply.missingInputs) == ('web_research', ['research'])

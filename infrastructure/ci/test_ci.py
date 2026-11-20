@@ -449,8 +449,9 @@ class ComposeSplitTest(unittest.TestCase):
         self.assertIn('\ninclude:\n  - path: docker-compose.langfuse.yaml\n', prod)
         for source in (dev, prod):
             self.assertNotIn('\n  langfuse-web:\n', source)  # 정의를 복제하지 않는다.
-        # 로컬 기본 진입점은 별도 프로젝트로 두고 Langfuse 없이 뜬다.
-        for path in ('compose.yaml', 'infrastructure/docker-compose.yaml', 'infrastructure/docker-compose.local.yaml'):
+        # 로컬 기본 진입점(루트 compose.yaml)도 별도 include 항목으로 같은 프로젝트에 항상 켠다. base·local 파일은 Langfuse를 모른다.
+        self.assertIn('\n  - path: ./infrastructure/docker-compose.langfuse.yaml\n', read('compose.yaml'))
+        for path in ('infrastructure/docker-compose.yaml', 'infrastructure/docker-compose.local.yaml'):
             self.assertNotIn('langfuse.yaml', read(path), path)
 
     def test_langfuse_web_is_developer_only_and_keeps_the_headless_init_admin(self):
@@ -692,7 +693,7 @@ class ConfigurationTest(unittest.TestCase):
             for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
                 self.assertNotIn(private, text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
-        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs)', text)
+        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres)', text)
 
     def test_operations_works_public_routes_go_to_operations(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
@@ -730,6 +731,33 @@ class ConfigurationTest(unittest.TestCase):
                       '/api/v1/operations/inquiries', '/api/v1/operations/notices']:
             with self.subTest(vite=route):
                 self.assertNotRegex(route, pattern)
+
+    def test_genre_routes_go_to_content_and_operations(self):
+        # DEC-56: 공개 장르 목록은 Content, 운영 장르 관리(목록·추가와 {code} 수정·order 순서)는 Operations로 간다(일반 /api(Core)보다 구체적).
+        content = ['/api/v1/public/genres', '/api/v1/public/genres?x=1']
+        operations = ['/api/v1/operations/genres', '/api/v1/operations/genres/genre-31', '/api/v1/operations/genres/order']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in content:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://content-service:8081', nginx_upstream(read(path), route))
+            for route in operations:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://operations-service:8082', nginx_upstream(read(path), route))
+        vite = read('frontend/vite.config.ts')
+        content_pattern = re.search(r"'(\^/api/v1/\(\?:[^']*world-studios[^']*)':\s*\{", vite)[1].replace('\\\\', '\\')
+        operations_pattern = re.search(r"'(\^/api/v1/operations/[^']*)':\s*\{", vite)[1].replace('\\\\', '\\')
+        for route in content:
+            with self.subTest(vite=route):
+                self.assertRegex(route, content_pattern)
+        for route in operations:
+            with self.subTest(vite=route):
+                self.assertRegex(route, operations_pattern)
+        for route in ['/api/v1/public/genres-extra', '/api/v1/public/genre']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, content_pattern)
+        for route in ['/api/v1/operations/genres-extra', '/api/v1/operations/genre']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, operations_pattern)
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)

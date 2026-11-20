@@ -1,3 +1,5 @@
+import { cardTypes } from './studioCards'
+
 export type Draft = { title: string; body: string; authorNote?: string; revision: number }
 export type Episode = { number: number; version: number; /** 공개 중인 저장 버전 id. 같은 회차의 `WritingEpisode.versions`에서 찾아 '저장 버전 N'으로 보인다(`version`은 초안 편집 번호다). */ versionId?: string; title: string; body: string; authorNote?: string; inherited: boolean }
 export type Source = { workId: string; title: string; episode: number; version: number; direction: string; deleted?: boolean }
@@ -40,7 +42,16 @@ export type WritingEpisode = {publicationStatus?:'draft'|'published'|'suspended'
 export type InheritedCard = { id: string; title: string; cardType: string; aliases: string[] }
 /** 이어받은 세계관에서 「동일 인물」로 이은 카드 쌍(다른 이름 카드 → 본체 카드, 부정 제외). 시작 양식이 같은 사람의 두 카드를 함께 고르지 못하게 하는 데 쓴다(#485). */
 export type InheritedIdentity = { sourceCardId: string; targetCardId: string }
-export type InheritedWorld = { upto: number; cards: InheritedCard[]; identity?: InheritedIdentity[] }
+/** `relationshipCount`는 이어받은 관계 수다. 관계 저장소가 그 회차 시점 상태를 보증하지 못하면(`relationshipStatus: unavailable`) 0으로 채우지 않고 null이다(#583). */
+export type InheritedWorld = { upto: number; cards: InheritedCard[]; identity?: InheritedIdentity[]; relationshipCount: number | null }
+/** 이어받은 카드를 유형별로 묶는다. 카드 유형 순서로 두고 알 수 없는 유형은 지우지 않고 뒤에 원래 이름으로 둔다. 같은 유형 안의 카드 순서는 서버가 준 그대로다(#583). */
+export function inheritedCardGroups(cards: readonly InheritedCard[]) {
+  const groups = new Map<string, InheritedCard[]>()
+  for (const card of cards) groups.set(card.cardType, [...(groups.get(card.cardType) ?? []), card])
+  const rank = (type: string) => { const i = cardTypes.findIndex((t) => t.id === type); return i < 0 ? cardTypes.length : i }
+  return [...groups].sort(([a], [b]) => rank(a) - rank(b))
+    .map(([type, items]) => ({ type, label: cardTypes.find((t) => t.id === type)?.label ?? type, cards: items }))
+}
 export type EpisodeOrderScope = {number:number;candidateNumbers:number[];reasons:string[];executable:false}
 
 /** 집필실이 표시하는 회차별 저장 순번. 발행본의 편집 revision과 구분한다. id가 없거나 목록에 없으면 번호를 지어내지 않는다. */

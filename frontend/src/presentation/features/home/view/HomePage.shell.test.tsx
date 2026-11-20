@@ -29,6 +29,13 @@ it('본문 랜드마크 하나 안에서 기존 #home 구성을 유지한다', a
   expect(main.querySelectorAll('#home .chips, #home .hero, #home .t10')).toHaveLength(3)
 })
 
+it('나도 쓰기 카드는 원작 랭킹으로 가며 포크할 원작을 고르는 곳임을 문구로 알린다', async () => {
+  renderHome()
+  const ring = await screen.findByRole('link', { name: /나도 쓰기/ })
+  expect(ring.getAttribute('href')).toBe('/rank?t=orig')
+  expect(ring.textContent).toContain('원작을 골라 포크하기')
+})
+
 it('홈의 탭 제목은 태그라인이고 화면을 떠나면 기본 제목으로 돌아간다', async () => {
   const view = renderHome()
   await waitFor(() => expect(document.title).toBe('원작을 나만의 이야기로 · STORYFORK'))

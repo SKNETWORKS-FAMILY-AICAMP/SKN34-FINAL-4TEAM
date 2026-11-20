@@ -91,19 +91,6 @@ describe('계정 (U30~U35E)', () => {
     expect(within(screen.getByRole('navigation', { name: '계정 메뉴' })).queryByRole('button', { name: '로그아웃' })).toBeNull()
   })
 
-  it('저장 공간은 MVP 제외를 안내하고 발행 회차 수정 초안을 보여 준다', async () => {
-    renderAt('/studio/starlight?ep=1')
-    const body = await screen.findByLabelText('원고 본문')
-    body.innerHTML = '<p>수정 초안</p>'
-    fireEvent.input(body)
-    await waitFor(() => expect(document.getElementById('saved')!.textContent).toBe('저장 중…'))
-    cleanup()
-    renderAt('/me/storage')
-    await screen.findByText(/저장 공간 관리는 MVP에서 제외됐어요/)
-    await screen.findByText('별빛 서약의 탑 · 1화 수정 초안')
-    expect(document.querySelector('[data-storage-delete]')).toBeNull()
-  })
-
   it('문의를 보내면 답변 대기로 쌓인다', async () => {
     const { store } = renderAt('/me/inquiry')
     await screen.findByRole('heading', { name: '문의하기' })

@@ -144,10 +144,11 @@ export const epsOf = (w: Work) => (w.parent && w.snap ? w.snap.eps.concat(w.eps)
 /** 설정(규칙·인물·사건) 출처: 포크는 자기 스냅샷만 본다 */
 export const baseOf = (w: Work): Pick<Snapshot, 'rules' | 'cast' | 'events'> => (w.parent && w.snap ? w.snap : w)
 export const isMine = (w: Work) => w.mine ?? (w.owner === 'me' || w.author === '나')
-export const canView = (w: Work | undefined, role: Role): w is Work => !!w && (isPub(w) || (role === 'user' && isMine(w)))
-/** 신고 버튼 노출(#172): 공개 작품이고 본인 작품이 아닐 때. 검색 카드의 서버 작품은 mine을 모르므로 소유자 회원 ID로도 가른다. 로그인·접수 권한은 서버가 검사한다(비로그인은 접수 때 로그인 안내). */
+/** 공개 작품이거나 로그인한 소유자(관리자 포함)의 작품이면 볼 수 있다. */
+export const canView = (w: Work | undefined, role: Role): w is Work => !!w && (isPub(w) || (role !== null && isMine(w)))
+/** 신고 버튼 노출(#172): 공개 작품이고 본인 작품이 아닐 때. 검색 카드의 서버 작품은 mine을 모르므로 소유자 회원 ID로도 가른다. 로그인·접수 권한은 서버가 검사한다(소설 상세는 비로그인이 누르면 로그인으로 보내고, 검색 카드는 접수 때 안내). */
 export const canReport = (w: Work, memberId: string | null) => isPub(w) && !isMine(w) && (memberId === null || w.owner !== memberId)
-export const visibleEpisode = (w: Work, e: Episode, role: Role) => !e.hidden || (!w.canonical && role === 'user' && isMine(w))
+export const visibleEpisode = (w: Work, e: Episode, role: Role) => !e.hidden || (!w.canonical && role !== null && isMine(w))
 export const originals = (works: Work[]) => works.filter((w) => !w.parent && !w.private)
 /** 목업 분류 필터(관리자·캐릭터챗 목록): 전체·원작·포크 */
 export const ofKind = (kind: string, w: { parent?: string }) => kind === 'all' || (kind === 'fork' ? !!w.parent : !w.parent)
@@ -263,6 +264,16 @@ export function matchW(w: Work, q: string, f: string, works: Work[]) {
   const tg = tagsOf(w, works).some((h) => h.slice(1).toLowerCase().includes(q))
   const g = w.genre.toLowerCase().includes(q)
   return f === 'title' ? t : f === 'author' ? au : f === 'tag' ? tg : f === 'genre' ? g : t || au || tg
+}
+
+/**
+ * 서버 태그 검색은 포크 자신의 해시태그만 봐서, 해시태그가 없어 원작 태그를 이어받는(tagsOf) 포크가 /tag 화면과 달리 빠진다.
+ * 찾은 작품 바로 뒤에, 그 작품의 공개 포크 중 해시태그가 없고 이어받은 태그가 검색어에 맞는 것을 잇는다(`works`는 공개 작품 목록).
+ * 자기 해시태그가 있는 포크는 서버가 직접 찾으므로 잇지 않고, 이미 찾은 포크도 다시 잇지 않는다(쪽을 넘어 중복되지 않게).
+ */
+export const withTagForks = (found: Work[], works: Work[], q: string) => {
+  const shown = new Set(found.map((w) => w.id))
+  return found.flatMap((w) => [w, ...forksOf(works, w.id).filter((x) => !shown.has(x.id) && !x.hash?.length && matchW(x, q, 'tag', works))])
 }
 
 export const sorter = (k: string) => (a: Work,b: Work) => {

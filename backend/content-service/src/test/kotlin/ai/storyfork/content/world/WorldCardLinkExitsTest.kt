@@ -77,7 +77,7 @@ class WorldCardLinkExitsTest {
     }
     private val publicWorlds = PublicWorldService(worlds, revisions, revisionCards, cardVersions, mock(SettingCardImageRepository::class.java), states, mock(ExpandedSeedProgressRepository::class.java), graph,
         mock(CoreNicknameService::class.java), mock(AttachmentStorageClient::class.java), works, access, mock(ContentImageRepository::class.java), publication, SearchCandidates(null), manager)
-    private val workWorlds = WorkWorldService(access, works, publication, mock(StudioWorldRepository::class.java), publicWorlds, references, TransactionTemplate(manager))
+    private val workWorlds = WorkWorldService(access, works, publication, mock(StudioWorldRepository::class.java), publicWorlds, references, mock(WorldStudioService::class.java), TransactionTemplate(manager))
     private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(
         WorkMcpTools(mock(WorkService::class.java), workWorlds, mock(WorkNoticeService::class.java), mock(ForkService::class.java), mock(ContextService::class.java), mock(ProposalService::class.java), mock(McpChangeNotice::class.java)),
         WorldStudioMcpTools(mock(WorldStudioService::class.java), workWorlds, publicWorlds, mock(InitialWorldAnalysisService::class.java), mock(InitialWorldApplicationService::class.java), mock(McpChangeNotice::class.java)),
@@ -105,7 +105,7 @@ class WorldCardLinkExitsTest {
     private val hiddenEnd = RelationshipPayload(UUID.randomUUID(), authorOnly, a, "structural", label = "숨은 관계", body = "")
 
     init {
-        val world = StudioWorld(worldId, UUID.randomUUID(), revisionId, visibility = "public", genre = "fantasy", publishedAt = Instant.parse("2026-11-11T01:02:03Z"))
+        val world = StudioWorld(worldId, UUID.randomUUID(), revisionId, visibility = "public", genre = "genre-01", publishedAt = Instant.parse("2026-11-11T01:02:03Z"))
         `when`(worlds.findById(worldId)).thenReturn(Optional.of(world))
         `when`(revisions.findByIdAndWorldId(revisionId, worldId)).thenReturn(WorldRevision(id = revisionId, worldId = worldId, revisionNo = 3, name = "세계", description = "설명", sealed = true))
         `when`(revisionCards.findAllByIdRevisionId(revisionId)).thenReturn(cards.map { WorldRevisionCard(RevisionCardKey(revisionId, it.cardId), worldId, it.id) })

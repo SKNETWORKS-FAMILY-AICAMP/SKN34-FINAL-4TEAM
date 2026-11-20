@@ -6,9 +6,10 @@ import type { CardType } from './studioCards'
  * 실제 모드 응답에는 없고 메모리 데모(`--mode mockup`)만 채우며, 화면은 값이 없으면 빈 상태·숨김으로 그린다. 연결된 소설(`linkedWork`)은 반대로 서버가 주는 값이다.
  */
 
-/** 서버 장르 코드. 미지정은 `null`이다. 화면 라벨은 presentation의 `worldGenres.ts`가 정한다. */
-export const PUBLIC_WORLD_GENRES = ['fantasy', 'sf', 'wuxia', 'romance', 'modern', 'classic', 'mystery'] as const
-export type PublicWorldGenre = (typeof PUBLIC_WORLD_GENRES)[number]
+/*
+ * 세계관의 `genre`는 장르 코드(`genre-01` …, DEC-56)이고 미지정은 `null`이다. 서버는 코드만 주므로 이름(`genreName`)은
+ * `PublicWorldUseCase`가 공개 장르 목록(활성 장르)으로 찾아 붙인다. 목록에 없는 코드(숨긴 장르)는 이름을 알 수 없어 `genreName`이 null이다.
+ */
 
 /** `imageId`는 카드 대표 이미지(#401)다. 있으면 공개 주소(`/api/v1/public/world-studios/{id}/card-images/{imageId}`)가 이미지를 주고, 없거나 null이면(데모 포함) 이미지 없는 카드다. */
 export type PublicWorldCard = { id: string; title: string; text: string; cardType: CardType; aliases: string[]; tags: string[]; imageId?: string | null }
@@ -26,7 +27,9 @@ export type PublicWorldSummary = {
   id: string
   name: string
   description: string
-  genre: PublicWorldGenre | null
+  genre: string | null
+  /** 이 세계관 장르의 이름. `PublicWorldUseCase`가 채우고, 장르가 없거나 목록에 없는 코드(숨긴 장르)면 null(화면은 장르 없음처럼 그린다). */
+  genreName?: string | null
   authorNickname: string
   cardCount: number
   relationshipCount: number | null
@@ -63,21 +66,23 @@ export function lineageOrigins(w: Pick<PublicWorldSummary, 'id' | 'derivedFrom' 
 }
 
 /** 데모 전용: 계보·작품 선반이 그리는 세계관 한 줄 */
-export type PublicWorldRef = Pick<PublicWorldSummary, 'id' | 'name' | 'genre' | 'authorNickname' | 'cardCount'>
+export type PublicWorldRef = Pick<PublicWorldSummary, 'id' | 'name' | 'genre' | 'genreName' | 'authorNickname' | 'cardCount'>
 /** 데모 전용: 이 세계관이 파생·조합된 출처(`derivedFrom`·`combinedFrom`)와 이 세계관에서 나온 세계관(`children`) */
 export type PublicWorldLineage = {
   derivedFrom?: PublicWorldRef
   combinedFrom: PublicWorldRef[]
   children: (PublicWorldRef & { kind: 'derive' | 'combine' })[]
 }
-/** 데모 전용: 이 세계관으로 쓴 작품(실제 작품이 아니다) */
-export type PublicWorldWork = { title: string; author: string; episodes: number; genre: PublicWorldGenre | null }
+/** 데모 전용: 이 세계관으로 쓴 작품(실제 작품이 아니다). `genre`는 코드가 아니라 장르 이름이다. */
+export type PublicWorldWork = { title: string; author: string; episodes: number; genre: string | null }
 
 export type PublicWorld = {
   id: string
   name: string
   description: string
-  genre: PublicWorldGenre | null
+  genre: string | null
+  /** 장르 이름(목록 항목과 같다). */
+  genreName?: string | null
   authorNickname: string
   publishedAt: string
   /** 올린 표지가 있는지(목록 항목과 같다). */

@@ -61,7 +61,12 @@ class ContentBoundaryTest {
         assertTrue(work.contains("creation_type text NOT NULL DEFAULT 'original'"))
         assertTrue(work.contains("'external_derivative'"))
         val genres = Regex("\\('genre-\\d+', 'genre-\\d+', '([^']+)'\\)").findAll(work).map { it.groupValues[1] }.toList()
-        assertEquals(ai.storyfork.content.work.domain.WORK_GENRES, genres)
+        // V1 시드는 30개 장르 이름이며 이후 DEC-56(V42)이 운영 화면에서 바꾸는 정본으로 넘긴다(하드코딩 목록은 더 두지 않는다).
+        assertEquals(listOf(
+        "판타지", "현대판타지", "무협", "선협", "퓨전", "로맨스", "로맨스판타지", "BL", "GL", "현대",
+        "시대물", "역사", "대체역사", "SF", "게임", "스포츠", "드라마", "미스터리", "추리", "스릴러",
+        "공포", "오컬트", "액션", "전쟁·밀리터리", "라이트노벨", "학원", "일상", "고전", "일반소설", "기타",
+    ), genres)
         assertTrue(work.contains("CREATE TABLE work_hashtag"))
         assertTrue(work.contains("UNIQUE (work_id, position)"))
         assertTrue(work.contains("member_id varchar(200) NOT NULL REFERENCES member(id)"))
@@ -174,8 +179,9 @@ class ContentBoundaryTest {
         // Development samples share the global order (sample/V16); V17 comments, V18 likes, V19 interests/outbox, V20 reading_record, V21 work soft delete, V22 publication visibility, V23 author notes (episode leaf), V25 publication schedule (publication leaf), V26 world checkpoint (world leaf), V27 episode world basis (episode leaf), V28 feedback reports (work leaf), V29 edit suggestions (work leaf), V30 episode_comment.hidden (work leaf), V31 episode soft delete (episode leaf), V36 work notices (work leaf; V32~V35 belong to other open PRs), V37 work.world_studio_id (work leaf, the 1:1 WorldStudio link of DEC-46).
         // V24 stays vacant: V25 reached the shared DB first and Flyway runs without outOfOrder, so a lower version could never be applied there.
         // V38 adds scene positions, V39 records author handling time, V40 adds work operating settings history,
-        // and V41 adds the manuscript preprocessing job table in its own preprocessing leaf (#343, DEC-50).
-        assertEquals((1..23) + (25..31) + (36..41), versions.sorted())
+        // V41 adds the manuscript preprocessing job table in its own preprocessing leaf (#343, DEC-50),
+        // and V42 adds genre management columns to the V1 genre table (active·position·featured·emoji, UNIQUE name; DEC-56).
+        assertEquals((1..23) + (25..31) + (36..42), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->

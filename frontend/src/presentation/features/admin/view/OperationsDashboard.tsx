@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom'
+
 import { LLM_FORBIDDEN } from '../../../../domain/entities/llmOps'
 import { usagePoints } from '../../../../domain/entities/llmOpsCharts'
 import { dashboardCards } from '../../../../domain/entities/operationsDashboard'
@@ -10,15 +12,17 @@ import { LiveState } from './OperationsPanels'
 type VM = ReturnType<typeof useAdminViewModel>
 
 /** 85 운영 대시보드: 운영 서버·Langfuse·Content·Core를 합친 현황 카드. 출처를 읽지 못한 칸은 0이 아니라 '불러오지 못함'입니다. */
-export function OperationsDashboard({ vm }: { vm: VM }) {
+export function OperationsDashboard({ vm, headSide }: { vm: VM; headSide: HTMLElement | null }) {
   const dashboard = useDashboardViewModel()
   const usage = useWeeklyUsageViewModel()
   const data = dashboard.data
   return (
     <>
-      <div className="rowend admin-refresh">
-        <button type="button" className="btn sm" disabled={dashboard.isRefreshing || usage.isRefreshing} onClick={() => { dashboard.retry(); usage.retry() }}>새로고침</button>
-      </div>
+      {/* 새로고침은 다른 탭처럼 제목 줄 오른쪽(AdminPage가 비워 둔 머리 자리)에 둡니다. 조회 상태는 이 화면의 훅이 가져서 포털로 옮깁니다. */}
+      {headSide && createPortal(
+        <button type="button" className="btn sm" disabled={dashboard.isRefreshing || usage.isRefreshing} onClick={() => { dashboard.retry(); usage.retry() }}>새로고침</button>,
+        headSide,
+      )}
       <LiveState vm={vm} label="운영 현황" state={dashboard} />
       {data && (
         <>

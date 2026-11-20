@@ -132,7 +132,7 @@ class WorldCoverHttpIntegrationTest {
 
                 // 공개 전에는 404이고, 공개로 설정해도 확정 버전이 없으면 404다.
                 assertEquals(404,call(publicCover,actor=null).statusCode())
-                assertEquals(200,publish(create.id,"public","fantasy").statusCode())
+                assertEquals(200,publish(create.id,"public","genre-01").statusCode())
                 assertEquals(404,call(publicCover,actor=null).statusCode())
                 // 확정 버전이 생기면 비로그인으로도 같은 표지를 캐시 없이 읽고 목록·상세가 hasCover로 알린다.
                 assertEquals(200,send("$studios/${create.id}/revisions","POST",SaveWorldRequest(1,"cover-save")).statusCode())

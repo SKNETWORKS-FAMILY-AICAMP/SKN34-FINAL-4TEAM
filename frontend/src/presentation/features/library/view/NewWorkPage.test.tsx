@@ -11,6 +11,7 @@ const vm = vi.hoisted(() => ({
 }))
 vi.mock('../viewmodel/useNewWorkViewModel', () => ({ useNewWorkViewModel: () => vm }))
 vi.mock('../../../shared/shell/Gnb', () => ({ Gnb: () => null, Footer: () => null }))
+vi.mock('../../../shared/useGenres', () => ({ useGenres: () => ({ data: [], isError: false, retry: vi.fn() }) }))
 
 afterEach(() => { cleanup(); vi.clearAllMocks(); vm.policyAccepted = false; document.title = 'STORYFORK' })
 

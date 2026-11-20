@@ -1,4 +1,5 @@
 import type { PublicationSchedule, PublicationScheduleInput, PublicationScheduleRevision } from '../entities/publicationSchedule'
+import type { StorageUsage } from '../entities/storageUsage'
 import type {WorkRegistration,WorkTaxonomy,WorkTagSuggestion,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary,InheritedWorld} from '../entities/content'
 import type { EpisodeWorldBasis, EpisodeWorldBasisChoice, WorldBasisCard, WorldBasisVersion } from '../entities/episodeWorldBasis'
 import type { WorkSettings, WritingMode } from '../entities/operatingSettings'
@@ -17,6 +18,7 @@ export interface EpisodeRepository {
   cancelPublicationSchedule(id: string, number: number, target: PublicationScheduleRevision, signal?: AbortSignal): Promise<void>
   publicList(signal?: AbortSignal): Promise<Work[]>
   list(signal?: AbortSignal): Promise<Work[]>
+  storageUsage(signal?: AbortSignal): Promise<StorageUsage>
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration): Promise<Work>
   updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy): Promise<Work>
   workSettings(id: string, signal?: AbortSignal): Promise<WorkSettings>
@@ -29,6 +31,8 @@ export interface EpisodeRepository {
   linkWorldStudio(workId: string, worldId: string | null, signal?: AbortSignal): Promise<{ workId: string; worldId: string | null }>
   /** Fork가 자기 세계관 없이 이어받는 원작 세계관(읽기 전용, #365). 상한은 Fork 기준 회차이며 `upto`가 더 작으면 그 회차까지다. 이어받는 것이 없으면 null이다. */
   inheritedWorld(workId: string, upto?: number, signal?: AbortSignal): Promise<InheritedWorld | null>
+  /** 이어받는 원작 세계관의 카드·관계를 Fork 작가 소유의 새 세계관으로 복사해 연결한다(독립, #583). 새 세계관 id를 돌려주고, 거절(이어받을 것 없음 409·관계 상태 불명 503)은 서버 문구로 던진다. */
+  detachInheritedWorld(workId: string): Promise<{ workId: string; worldId: string }>
   save(id: string, draft: Draft): Promise<Draft>
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication?: boolean, versionId?: string): Promise<Work>
   history(id: string,signal?:AbortSignal): Promise<History>
