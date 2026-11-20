@@ -23,7 +23,7 @@ it('서버 프로필을 표시하고 확인 전 기존 이메일을 유지한다
   expect(nick.autocomplete).toBe('nickname')
   expect(email.autocomplete).toBe('email')
   expect(screen.queryByText(/가입일/)).toBeNull()
-  expect(screen.getByRole('button', { name: '다크 모드로' }).closest('.screen-controls')).toBeNull()
+  expect(screen.getAllByRole('button', { name: '다크 모드로' }).every((button) => !button.closest('.screen-controls'))).toBe(true) // 상단바·계정 카드의 버튼만 있고 떠 있는 버튼은 없다
   fireEvent.change(nick, { target: { value: '새이름' } })
   fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'new@example.com' } })
   fireEvent.click(screen.getByRole('button', { name: '저장' }))

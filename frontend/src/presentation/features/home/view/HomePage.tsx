@@ -122,7 +122,7 @@ function RankState({ failed, failure = '순위를 불러오지 못했어요.', r
 function Top10({ list, works, failed, retry, ranked, computedAt }: { list: Work[]; works: Work[]; failed: boolean; retry: () => void; ranked: boolean; computedAt: Date | null }) {
   return (
     <aside className="t10" aria-label={ranked ? '실시간 인기 TOP10' : '공개 소설 목록'}>
-      <div className="t10h"><h2>{ranked ? '실시간 인기' : '공개 소설'}</h2>{ranked ? <span className="live" title="최근 24시간 조회 수 순">24시간 조회</span> : <span className="live">둘러보기</span>}<Go to="/rank" className="more">더보기 ›</Go></div>
+      <div className="t10h"><h2>{ranked ? '실시간 인기' : '공개 소설'}</h2>{ranked && <span className="live" title="최근 24시간 조회 수 순">24시간 조회</span>}<Go to="/rank" className="more">더보기 ›</Go></div>
       {computedAt && <p className="t10f">{asOf(computedAt)}</p>}
       <RankState failed={failed} retry={retry} list={list} empty={ranked ? '최근 24시간 동안 조회된 소설이 아직 없어요.' : '아직 공개된 소설이 없어요.'}>
         <ol>
@@ -238,7 +238,7 @@ export function HomePage() {
                   <div className="wk">{h.weekly.map((w) => (
                     <Go key={w.id} to={`/work/${w.id}`} className="wc prox">
                       <div>
-                        <div className="tgs"><Tags w={w} /><span className="tag dk">공개 소설</span></div>
+                        <div className="tgs"><Tags w={w} /></div>
                         <h3>{w.title}</h3><p>{w.summary}</p>
                         <div className="ft"><i style={{ background: avatarOf(w.author) }} />{w.author}{w.statisticsSupported!==false && <span>👁 {kfmt(w.views)} · ♥ {kfmt(w.likes)}</span>}</div>
                       </div>
