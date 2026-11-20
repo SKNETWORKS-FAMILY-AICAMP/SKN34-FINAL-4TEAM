@@ -1,4 +1,4 @@
-import { Component, lazy, Suspense, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react'
+import { Component, lazy, Suspense, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { useParams } from 'react-router'
 
 import { useAppSelector } from '../../../../app/store'
@@ -9,9 +9,9 @@ import { useScreenId } from '../../../shared/screenIds'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { CARD_COLORS } from '../../../shared/worldBoard'
-import { WORLD_GENRES, genreLabel } from '../../../shared/worldGenres'
+import { genreColor, genreKey } from '../../../shared/worldGenres'
 import { useWorldDetailViewModel, useWorldsViewModel } from '../viewmodel/useWorldsViewModel'
-import { GENRE_COLORS, LINEAGE_COLORS, atlasFeatures, type AtlasNode, type WorldAtlas } from '../worldAtlas'
+import { LINEAGE_COLORS, atlasFeatures, type AtlasNode, type WorldAtlas } from '../worldAtlas'
 import { DETAIL_TABS, bookPath, detailEndpoint, graphHighlight, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
 import { WorldBook } from './WorldBook'
 import { WorldOverview } from './WorldOverview'
@@ -45,12 +45,12 @@ const LineKey = ({ kind }: { kind: keyof typeof LINEAGE_COLORS }) => (
 )
 
 /**
- * 지도 카드 아래쪽의 작은 범례: 장르 색 · 설정 카드 유형 색 · 파생/조합 선 모양. 묶음째 줄바꿈하고, 좁은 화면에서는 한 줄로 두어 옆으로 밀어 본다.
+ * 지도 카드 아래쪽의 작은 범례: 지도에 있는 장르의 색 · 설정 카드 유형 색 · 파생/조합 선 모양. 묶음째 줄바꿈하고, 좁은 화면에서는 한 줄로 두어 옆으로 밀어 본다.
  * 카드 점이 없는 서버 목록 지도는 카드 유형 색을, 파생·조합이 없으면 연결 선을 보이지 않는다(그리지 않는 것을 설명하지 않는다).
  */
-const AtlasLegend = ({ features }: { features: ReturnType<typeof atlasFeatures> }) => (
+const AtlasLegend = ({ features, genres }: { features: ReturnType<typeof atlasFeatures>; genres: readonly AtlasNode[] }) => (
   <div className="atlas-legend" role="group" aria-label="지도 범례">
-    <ul aria-label="장르 색">{WORLD_GENRES.map((g) => <li key={g}><i style={{ background: GENRE_COLORS[g] }} />{g}</li>)}</ul>
+    <ul aria-label="장르 색">{genres.map((g) => <li key={g.id}><i style={{ background: g.color }} />{g.name}</li>)}</ul>
     {features.cards && <ul aria-label="설정 카드 유형 색">{Object.entries(CARD_COLORS).map(([kind, color]) => <li key={kind}><i className="dot" style={{ background: color }} />{kind}</li>)}</ul>}
     {features.lineage && <ul aria-label="연결 선"><li><LineKey kind="derive" />파생</li><li><LineKey kind="combine" />조합</li></ul>}
   </div>
@@ -75,7 +75,7 @@ function WorldAtlasSection({ atlas, lit, total, onOpen }: { atlas: WorldAtlas; l
           </Suspense>
           <div className="atlas-info">
             <p className="atlas-stats">{`${worlds < total ? `공개 세계관 ${total}개 중 최근 ${worlds}개` : `공개 세계관 ${worlds}개`} · 설정 카드 ${cards}개${features.lineage ? ` · 파생 ${derived} · 조합 ${combined}` : ''}`}</p>
-            <AtlasLegend features={features} />
+            <AtlasLegend features={features} genres={atlas.nodes.filter((n) => n.kind === 'genre')} />
           </div>
         </AtlasBoundary>
       </div>
@@ -91,15 +91,15 @@ const RANK_BASIS = {
 
 /**
  * 홈 `Top10`과 같은 마크업·클래스(`aside.t10`·`t10h`·`live`·`more`)의 '실시간 인기' 세계관 순위 패널.
- * 조회수가 없어 서버 목록은 최근 공개 순, 파생·조합이 있는 데모는 파생·조합된 횟수 순(같으면 설정 카드 수 순)이고 배지가 그 기준을 알린다. 더보기는 이동할 곳이 없어 아래 '세계관 모아 보기'로 내려간다.
+ * 조회수가 없어 서버 목록은 최근 공개 순, 파생·조합이 있는 데모는 파생·조합된 횟수 순(같으면 설정 카드 수 순)이고 배지가 그 기준을 알린다. 더보기는 홈의 `/rank`처럼 전체 목록(`/search?type=world`, 번호 쪽)으로 간다.
  */
-function LiveRank({ ranked, basis, onMore }: { ranked: readonly PublicWorldSummary[]; basis: keyof typeof RANK_BASIS; onMore: () => void }) {
+function LiveRank({ ranked, basis }: { ranked: readonly PublicWorldSummary[]; basis: keyof typeof RANK_BASIS }) {
   return (
     <aside className="t10" aria-label="실시간 인기 세계관">
       <div className="t10h">
         <h2>실시간 인기</h2>
         <span className="live" title={RANK_BASIS[basis].title}>{RANK_BASIS[basis].badge}</span>
-        <button type="button" className="more" onClick={onMore}>더보기 ›</button>
+        <Go to="/search?type=world" className="more">더보기 ›</Go>
       </div>
       <ol>
         {ranked.map((w, i) => (
@@ -137,10 +137,10 @@ type Listing = { worlds: readonly PublicWorldSummary[]; total: number; isLoading
  * 홈의 필터 결과·소설 모아 보기와 같은 격자. 장르 칩이면 그 장르 쿼리를 따로 읽으므로 이 목록의 불러오는 중·실패(다시 시도)를 여기서 알린다.
  * 서버가 센 전체 수(`total`)가 불러온 수보다 크면 최근 공개 순 앞쪽만 보인다고 머리에 적는다.
  */
-function WorldGrid({ title, list, sectionRef }: { title: string; list: Listing; sectionRef?: Ref<HTMLElement> }) {
+function WorldGrid({ title, list }: { title: string; list: Listing }) {
   const shown = list.worlds.length
   return (
-    <section className="sec" ref={sectionRef} tabIndex={-1}>
+    <section className="sec">
       <div className="sec-h">
         <h2>{title}</h2>
         {!list.isLoading && !list.isError && <span className="muted small">{shown < list.total ? `최근 공개 ${shown}개 · 전체 ${list.total}개` : `${shown}개`}</span>}
@@ -163,11 +163,6 @@ export function WorldsPage() {
   useDocumentTitle('세계관')
   const vm = useWorldsViewModel()
   const member = useAppSelector((s) => !!s.session.role)
-  const all = useRef<HTMLElement>(null)
-  const showAll = () => {
-    all.current?.scrollIntoView()
-    all.current?.focus({ preventScroll: true })
-  }
   return (
     <>
       <Gnb on="worlds" />
@@ -176,6 +171,7 @@ export function WorldsPage() {
         <div className="chips" role="group" aria-label="장르 필터">
           {vm.chips.map((c) => <button type="button" key={c.genre} className={vm.chip === c.genre ? 'on' : ''} aria-pressed={vm.chip === c.genre} onClick={() => vm.selectChip(c.genre)}>{c.label}</button>)}
         </div>
+        {vm.genresFailed && <LoadFailed what="장르 칩" onRetry={vm.retryGenres} />}
         {vm.demo && <DemoNotice />}
         {vm.isLoading ? <WorldLoading what="공개 세계관" />
           : vm.isError ? <LoadFailed what="공개 세계관" onRetry={vm.retry} />
@@ -189,12 +185,12 @@ export function WorldsPage() {
               {!vm.demo && <p className="muted small worlds-demo">{member ? '설정 가져오기는 각 세계관 상세에서 할 수 있어요' : '로그인하면 각 세계관 상세에서 공개 설정을 내 세계관으로 가져올 수 있어요'}</p>}
               <div className="herow">
                 <WorldAtlasSection atlas={vm.atlas} lit={vm.lit} total={vm.total} onOpen={vm.openAtlasNode} />
-                {vm.rankBasis && <LiveRank ranked={vm.liveRank} basis={vm.rankBasis} onMore={showAll} />}
+                {vm.rankBasis && <LiveRank ranked={vm.liveRank} basis={vm.rankBasis} />}
               </div>
-              {vm.filtered ? <WorldGrid title={vm.heading} list={vm.list} sectionRef={all} /> : (
+              {vm.filtered ? <WorldGrid title={vm.heading} list={vm.list} /> : (
                 <>
                   <WorldRail title="새로 공개된 세계관" worlds={vm.newest} />
-                  <WorldGrid title="세계관 모아 보기" list={vm.list} sectionRef={all} />
+                  <WorldGrid title="세계관 모아 보기" list={vm.list} />
                 </>
               )}
             </>
@@ -368,7 +364,7 @@ function WorldWorks({ world }: { world: PublicWorld }) {
         )]
         : (world.works ?? []).map((work, i) => (
           <div key={work.title} className="bk">
-            <WorldCover w={{ id: `${world.id}-work${i}`, genre: work.genre }} badge="데모 작품" />
+            <WorldCover w={{ id: `${world.id}-work${i}`, genreName: work.genre }} badge="데모 작품" />
             <h3 className="hk">{work.title}</h3>
             <small>{work.author} · {work.episodes}화</small>
           </div>
@@ -439,7 +435,7 @@ export function WorldDetailPage() {
                     legend={(
                       <div className="atlas-legend" role="group" aria-label="그래프 범례">
                         <ul aria-label="그래프 노드 색">
-                          <li><i style={{ background: GENRE_COLORS[genreLabel(world.genre)] }} />세계관</li>
+                          <li><i style={{ background: genreColor(genreKey(world)) }} />세계관</li>
                           {detail.kinds.map(({ kind }) => <li key={kind}><i style={{ background: CARD_COLORS[kind] }} />{kind}</li>)}
                         </ul>
                       </div>

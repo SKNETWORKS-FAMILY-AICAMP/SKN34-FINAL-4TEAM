@@ -7,7 +7,7 @@ import './episode-images.css'
 
 type Props = { workId: string; episode: number; draft: Draft; unsaved: boolean; onDraftSaved: () => void }
 
-/** 집필실 회차 이미지 관리: 목록·대체 텍스트 저장·본문에서 빼기(이미지 파일은 지우지 않는다). */
+/** 집필실 회차 이미지 관리: 목록·대체 텍스트 저장·원본 다운로드·본문에서 빼기(이미지 파일은 지우지 않는다). */
 export function EpisodeImagePanel({ workId, episode, draft, unsaved, onDraftSaved }: Props) {
   const vm = useEpisodeImageViewModel({ workId, episode, draft, unsaved, onDraftSaved })
   return (
@@ -20,7 +20,7 @@ export function EpisodeImagePanel({ workId, episode, draft, unsaved, onDraftSave
       {vm.loading ? <p role="status">이미지를 불러오고 있어요…</p>
         : vm.images.length ? <fieldset disabled={vm.busy}>
           <legend className="sr-only">이미지 목록</legend>
-          <ul className="episode-image-list">{vm.images.map((image) => <ImageRow key={image.id} image={image} canRemove={!unsaved} onSave={(alt) => vm.saveAlt(image, alt)} onRemove={() => vm.removeFromBody(image)} />)}</ul>
+          <ul className="episode-image-list">{vm.images.map((image) => <ImageRow key={image.id} image={image} canRemove={!unsaved} onSave={(alt) => vm.saveAlt(image, alt)} onDownload={() => vm.download(image)} onRemove={() => vm.removeFromBody(image)} />)}</ul>
         </fieldset>
         : !vm.error && <p>이 회차에 올린 이미지가 없어요.</p>}
       <button type="button" className="btn sm" onClick={vm.reload}>이미지 목록 새로고침</button>
@@ -28,7 +28,7 @@ export function EpisodeImagePanel({ workId, episode, draft, unsaved, onDraftSave
   )
 }
 
-function ImageRow({ image, canRemove, onSave, onRemove }: { image: EpisodeImage; canRemove: boolean; onSave: (altText: string) => Promise<boolean>; onRemove: () => Promise<boolean> }) {
+function ImageRow({ image, canRemove, onSave, onDownload, onRemove }: { image: EpisodeImage; canRemove: boolean; onSave: (altText: string) => Promise<boolean>; onDownload: () => Promise<boolean>; onRemove: () => Promise<boolean> }) {
   // 저장에 실패해도 입력한 설명이 남도록 입력값은 행이 들고 있는다.
   const [alt, setAlt] = useState(image.altText)
   return (
@@ -39,6 +39,7 @@ function ImageRow({ image, canRemove, onSave, onRemove }: { image: EpisodeImage;
         {/* 파일 이름은 행 머리에 이미 보인다. 버튼 글자에 넣으면 긴 이름이 줄바꿈 없이 시트를 넘치므로 이름(aria-label)에만 둔다. */}
         <button type="submit" className="btn sm" aria-label={`설명 저장 · ${image.filename}`}>설명 저장</button>
       </form>
+      <button type="button" className="btn sm" aria-label={`다운로드 · ${image.filename}`} onClick={() => void onDownload()}>다운로드</button>
       <button type="button" className="btn sm" aria-label={`본문에서 빼기 · ${image.filename}`} disabled={!image.referenced || !canRemove} onClick={() => void onRemove()}>본문에서 빼기</button>
     </li>
   )

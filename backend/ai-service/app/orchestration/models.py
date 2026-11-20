@@ -8,25 +8,28 @@ from pydantic import AliasChoices, BaseModel, BeforeValidator, ConfigDict, Field
 from app.intent.models import Feature
 from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
 from app.rating.models import RatingResponse
-from app.research.models import ResearchRequest, ResearchResponse
+from app.research.models import PlatformResult, ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
 from app.manuscript_review.models import ReviewResponse, Scope
 from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
 from app.world_review.models import EnrichResponse, ImpactResponse, WorldReviewResponse
-from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanResponse
+from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanResponse, PlanRevision
 
 # 이전 체크포인트는 기록 당시의 단계 식별자를 보존한다(#387·#499). #387 전 대화 기록에는 Writing & Editing으로 합쳐진 story_development가, #499 전에는 review가,
-# World Agent(#546) 전에는 옛 설정집 검토 world_review와 미구현 판정 world_plot이 남아 있다. 이력을 다시 읽을 때 형식 오류가 되지 않게 읽기만 받는다.
-RecordedFeature = Feature | Literal['story_development', 'review', 'world_review', 'world_plot', 'content_action']
+# World Agent(#546) 전에는 옛 설정집 검토 world_review와 미구현 판정 world_plot이, Research(#545) 전에는 web_research가 남아 있다.
+# 이력을 다시 읽을 때 형식 오류가 되지 않게 읽기만 받는다.
+RecordedFeature = Feature | Literal['story_development', 'review', 'world_review', 'world_plot', 'web_research', 'content_action']
+RENAMED_FEATURES = {'review': 'manuscript_review', 'web_research': 'research'}
 CONTENT_ACTION = 'content_action'  # 메인 에이전트가 승인 뒤 직접 실행한 Content MCP 쓰기 도구(#554)의 단계·승인 대기 이름
 AwaitingApproval = Feature | Literal['content_action']
 
 
-def manuscript_review_feature(feature: str) -> str:
-    return 'manuscript_review' if feature == 'review' else feature
+def current_feature(feature: str) -> str:
+    """옛 기능 키를 지금 키로 바꾼다. 선택 기능·입력 대기 목록·체크포인트의 판정 기능을 읽을 때 쓴다."""
+    return RENAMED_FEATURES.get(feature, feature)
 
 
-CurrentFeature = Annotated[Feature, BeforeValidator(manuscript_review_feature)]
+CurrentFeature = Annotated[Feature, BeforeValidator(current_feature)]
 
 
 class WritingInput(BaseModel):
@@ -60,7 +63,7 @@ class StepInputs(BaseModel):
     model_config = ConfigDict(extra='forbid')
     story_context: AnswerRequest | None = None
     writing_editing: WritingInput | None = None
-    web_research: ResearchRequest | None = None
+    research: ResearchRequest | None = Field(default=None, validation_alias=AliasChoices('research', 'web_research'))
     manuscript_review: ReviewInput | None = Field(default=None, validation_alias=AliasChoices('manuscript_review', 'review'))
 
 
@@ -156,7 +159,7 @@ class QaStepResult(AnswerResponse):
 
 
 class AppliedDraft(BaseModel):
-    """Content MCP가 저장한 초안의 새 revision. Writing·시뮬레이션은 회차 초안, World 보강 제안은 세계관 초안이다(episode는 뜻 없이 채팅 대상 회차)."""
+    """Content MCP가 저장한 초안의 새 revision. Writing·시뮬레이션은 회차 초안, World 보강 제안은 세계관 초안, 계획 수정은 그 계획이다(episode는 뜻 없이 채팅 대상 회차)."""
     episode: int
     revision: int
 
@@ -177,21 +180,21 @@ class PendingAction(BaseModel):
 class StepResult(BaseModel):
     feature: RecordedFeature
     when: Literal['always', 'if_issues_found']
-    # 메인 에이전트가 정한 작업 종류: Writing & Editing은 plan·draft·patch(#387·#473), World는 check·enrich·impact(#546·#291)
-    task: Literal['plan', 'draft', 'patch', 'check', 'enrich', 'impact'] | None = None
+    # 메인 에이전트가 정한 작업 종류: Writing & Editing은 plan·draft·patch·revise_plan(#387·#473·#578), World는 check·enrich·impact(#546·#291)
+    task: Literal['plan', 'draft', 'patch', 'revise_plan', 'check', 'enrich', 'impact'] | None = None
     # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다. skipped는 조건부 수정이 고칠 확정 지적이 없어 건너뛴 단계다(#370).
     status: Literal['completed', 'failed', 'not_started', 'skipped']
-    result: (QaStepResult | PlanResponse | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse
+    result: (QaStepResult | PlanResponse | DraftResponse | PatchResponse | PlanRevision | ResearchResponse | PlatformResult | SimulationResult | ReviewResponse | WorldReviewResponse
              | EnrichResponse | ImpactResponse | RatingResponse | ActionResult | None) = None
     error: str | None = None  # 실패 사유, skipped면 건너뛴 이유
-    approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면·World 보강 제안 반영에 대한 작가의 답
-    applied: AppliedDraft | None = None  # World 보강 제안이면 episode는 채팅 대상 회차를 그대로 싣고 revision은 반영 뒤 세계관 초안 revision이다
+    approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면·World 보강 제안·계획 수정안 반영에 대한 작가의 답
+    applied: AppliedDraft | None = None  # World 보강 제안·계획 수정이면 episode는 채팅 대상 회차를 그대로 싣고 revision은 반영 뒤 세계관 초안·계획 revision이다
 
 
 class OrchestrationResponse(BaseModel):
     """steps는 메인 에이전트가 서브 에이전트를 부른 순서다. message는 메인 에이전트의 종합 답변이거나 실행하지 않은 턴의 고정 문구다.
 
-    rejected와 고정 확인 질문의 clarify면 아무 Agent도 실행하지 않았다(unsupported는 미구현 기능을 판정하던 때의 옛 기록에만 남는다).
+    rejected와 고정 확인 질문의 clarify면 아무 Agent도 실행하지 않았다(status unsupported는 미구현 기능을 판정하던 때의 옛 기록에만 남는다).
     needs_input·cancelled는 그 앞에서 끝낸 단계만 있다.
 
     waiting은 대화 안에서 멈춘 상태이며 같은 conversation의 resume으로 이어간다. 입력 대기면 missingInputs,
@@ -202,7 +205,6 @@ class OrchestrationResponse(BaseModel):
     message: str | None = None
     steps: list[StepResult] = []
     missingInputs: list[CurrentFeature] = []
-    unsupported: list[RecordedFeature] = []
     awaitingApproval: AwaitingApproval | None = None
     pendingAction: PendingAction | None = None  # awaitingApproval이 content_action일 때 실행을 기다리는 도구와 인자
     awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다

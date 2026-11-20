@@ -56,7 +56,7 @@ function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
         {card.kind === '인물' ? (
           <>
             {affiliations.length > 0 && <InfoRow k="소속"><CardList worldId={world.id} refs={affiliations} withType={false} /></InfoRow>}
-            <InfoRow k="관계">{world.relationshipStatus === 'unavailable' ? '불러오지 못함' : `${related.filter((r) => r.relationId && r.kind === '인물').length}개`}</InfoRow>
+            <InfoRow k="관계">{world.relationshipStatus === 'unavailable' ? '불러오지 못함' : `${related.filter((r) => r.relationId).length}개`}</InfoRow>
           </>
         ) : <InfoRow k="연결">{world.relationshipStatus === 'unavailable' ? '불러오지 못함' : `${related.length}개`}</InfoRow>}
         {card.tags.length > 0 && <InfoRow k="태그"><ul className="worlds-tags">{card.tags.map((tag) => <li key={tag} className="chip">{tag}</li>)}</ul></InfoRow>}

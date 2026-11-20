@@ -75,7 +75,7 @@ it('한글 조합 중 Enter는 이동하지 않고 조합이 끝난 Enter만 이
 const NAME = '소설·세계관·설정 카드·캐릭터챗 검색'
 const NOTE = '세계관·설정 카드를 불러오지 못했어요'
 const worldCases = () => appContainer.resolve('publicWorldUseCase')
-const world = (id: string, name: string, authorNickname = '달무리'): PublicWorldSummary => ({ id, name, description: '', genre: 'fantasy', authorNickname, cardCount: 7, relationshipCount: 3, publishedAt: '2026-11-18T00:00:00Z' })
+const world = (id: string, name: string, authorNickname = '달무리'): PublicWorldSummary => ({ id, name, description: '', genre: 'genre-01', genreName: '판타지', authorNickname, cardCount: 7, relationshipCount: 3, publishedAt: '2026-11-18T00:00:00Z' })
 const hit = (cardId: string, title: string): PublicWorldCardHit => ({ worldId: 'moonhalo-isles', worldName: '달무리 군도', cardId, title, cardType: 'character', aliases: [], tags: [], imageId: null })
 const worldPage = (...items: PublicWorldSummary[]) => ({ items, page: 0, size: 3, total: items.length })
 const cardPage = (...items: PublicWorldCardHit[]) => ({ items, page: 0, size: 3, total: items.length })

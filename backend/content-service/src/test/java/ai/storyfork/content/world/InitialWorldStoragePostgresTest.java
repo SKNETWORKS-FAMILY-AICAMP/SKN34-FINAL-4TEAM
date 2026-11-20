@@ -8,10 +8,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL", matches=".+")
 class InitialWorldStoragePostgresTest {
-    @Test void sequentialV1ThroughV12PreservesExistingWorldCardAndAnalysis() throws Exception {
+    @Test void sequentialV1ThroughV12AndV14PreservesExistingWorldCardAndAnalysis() throws Exception {
         try(var db=new WorldStudioPostgresFixture("independent")) {
             String world=id(), card=id(), analysis=id();
-            for(int version=1;version<=12;version++) {
+            // V13은 다른 열린 PR 몫이라 비어 있다. DEC-56의 V14는 V12 바로 다음에 적용된다.
+            for(int version : new int[]{1,2,3,4,5,6,7,8,9,10,11,12,14}) {
                 var flyway=org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration())
                     .target(Integer.toString(version)).load();
                 assertEquals(1,flyway.migrate().migrationsExecuted);
@@ -34,7 +35,9 @@ class InitialWorldStoragePostgresTest {
                         assertEquals(List.of("private||"),rows(c,"SELECT visibility||'|'||coalesce(genre,'')||'|'||coalesce(published_at::text,'') FROM worldstudio.world WHERE id='"+world+"'"));
                         c.setAutoCommit(false);
                         rejects(c,"23514","UPDATE worldstudio.world SET visibility='friends' WHERE id='"+world+"'");
-                        rejects(c,"23514","UPDATE worldstudio.world SET genre='romcom' WHERE id='"+world+"'");
+                        // V14가 장르 CHECK를 지운다(DEC-56). 그 뒤 장르 코드는 서비스가 genre 표로 확인하므로 DB는 값을 막지 않는다.
+                        if(version<14) rejects(c,"23514","UPDATE worldstudio.world SET genre='romcom' WHERE id='"+world+"'");
+                        else sql(c,"UPDATE worldstudio.world SET genre='genre-99' WHERE id='"+world+"'");
                         rejects(c,"23514","UPDATE worldstudio.world SET visibility='public' WHERE id='"+world+"'");
                         rejects(c,"23514","UPDATE worldstudio.world SET published_at=now() WHERE id='"+world+"'");
                         sql(c,"UPDATE worldstudio.world SET visibility='public',genre='sf',published_at=now() WHERE id='"+world+"'");
@@ -95,7 +98,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+id()+"'),('"+other+"','"+id()+"')");
                 sql(c,"INSERT INTO worldstudio.world_draft(world_id,name,description) VALUES ('"+w+"','홍길동전','원문 보존')");
             }
-            assertEquals(10,db.studio().migrate().migrationsExecuted);
+            assertEquals(11,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             assertEquals(0,db.studio().migrate().migrationsExecuted);
             try(var c=db.connect()) {
@@ -157,13 +160,35 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) VALUES ('"+candidate+"','"+w+"','"+a+"','old','"+content+"')");
                 sql(c,"INSERT INTO worldstudio.initial_decision(id,world_id,analysis_id,candidate_id,sequence,action,state,actor_id,content) VALUES ('"+decision+"','"+w+"','"+a+"','"+candidate+"',1,'approve','approved','"+id()+"','"+content+"')");
             }
-            assertEquals(8,db.studio().migrate().migrationsExecuted);
+            assertEquals(9,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             try(var c=db.connect()) {
                 assertEquals(List.of(decision),rows(c,"SELECT id FROM worldstudio.initial_decision WHERE request_key IS NULL AND request_hash IS NULL AND comment IS NULL AND sequence=1 AND state='approved'"));
                 c.setAutoCommit(false);
                 rejects(c,"23514","UPDATE worldstudio.initial_decision SET comment='invented'");
                 rejects(c,"23514","DELETE FROM worldstudio.initial_decision");
+            }
+        }
+    }
+
+    /** DEC-56: V14가 장르 CHECK를 지우고 옛 영문 코드 일곱 개를 Content 장르 코드로 바꾼다. 그 밖의 값(장르 없음)은 건드리지 않는다. */
+    @Test void upgradeV14ConvertsLegacyGenreCodesAndDropsTheCheck() throws Exception {
+        try(var db=new WorldStudioPostgresFixture("independent")) {
+            org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration()).target("12").load().migrate();
+            String none=id();
+            try(var c=db.connect()) {
+                for(String legacy : new String[]{"fantasy","wuxia","romance","modern","sf","mystery","classic"})
+                    sql(c,"INSERT INTO worldstudio.world(id,owner_subject,genre) VALUES ('"+id()+"','"+id()+"','"+legacy+"')");
+                sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+none+"','"+id()+"')");
+            }
+            assertEquals(1,db.studio().migrate().migrationsExecuted);
+            db.studio().validate();
+            assertEquals(0,db.studio().migrate().migrationsExecuted);
+            try(var c=db.connect()) {
+                assertEquals(List.of("genre-01","genre-03","genre-06","genre-10","genre-14","genre-18","genre-28"),
+                    rows(c,"SELECT genre FROM worldstudio.world WHERE genre IS NOT NULL ORDER BY genre"));
+                assertEquals(List.of(""),rows(c,"SELECT coalesce(genre,'') FROM worldstudio.world WHERE id='"+none+"'"));
+                sql(c,"UPDATE worldstudio.world SET genre='genre-31' WHERE id='"+none+"'");
             }
         }
     }

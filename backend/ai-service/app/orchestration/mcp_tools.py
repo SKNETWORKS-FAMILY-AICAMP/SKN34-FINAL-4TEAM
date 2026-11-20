@@ -1,4 +1,4 @@
-"""메인 에이전트가 직접 쓰는 Content MCP 도구 10개(#554, DEC-56). 서브 에이전트(`ask_*`)에 해당하지 않는 간단한 작업용이다.
+"""메인 에이전트가 직접 쓰는 Content MCP 도구 10개(#554, DEC-57). 서브 에이전트(`ask_*`)에 해당하지 않는 간단한 작업용이다.
 
 읽기 6개는 자동으로 실행하고 쓰기 4개는 `HumanInTheLoopMiddleware`가 작가 승인을 받은 뒤에만 실행한다. 원고(`episode_update_draft`)는 넣지 않는다:
 원고는 기존 `ask_writing` + `apply` 경로로만 고친다. 허용 목록 밖의 도구는 Content가 알려 줘도 감싸지 않는다.

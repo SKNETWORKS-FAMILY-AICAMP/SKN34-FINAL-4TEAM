@@ -53,6 +53,19 @@ it('바로 쓴 원고의 승인 카드는 반영할 본문과 따로 사용한 �
   expect(document.querySelector('.chat-plan')?.textContent).toBe('사용한 계획: 항구의 밤 — 선장이 도착한다.')
 })
 
+it('바로 쓴 원고의 승인 카드는 설정 없이 쓴 알림을 반영 본문과 따로 보인다(#523)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+    request: '다음 화를 써줘',
+    reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 2, steps: [{
+      feature: 'writing_editing', status: 'completed', result: { text: '선장은 항구에 내렸다.', gaps: ['이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.'] } }] },
+  }] })
+  render(<WritingChat workId="w" basis={{ episode: 2, episodeVersionId: 'v2' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('heading', { name: '2화 초안에 반영할까요?' })
+  expect(screen.getByLabelText('반영할 내용').textContent).toBe('선장은 항구에 내렸다.')
+  expect(document.querySelector('.chat-plan')?.textContent).toBe('확인 못 함: 이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.')
+})
+
 it('승인 카드는 같은 턴에 끝난 다른 단계 결과도 짧게 보인다(#493)', async () => {
   sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
   history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
@@ -278,6 +291,19 @@ it('부분 수정(task=patch) 입력 대기는 새 원고 계획 칸을 띄우�
   expect(within(form).queryByLabelText(/쓸 장면 계획/)).toBeNull()
   expect(within(form).getByText(/화면에서 채울 수 없어요/)).toBeTruthy()
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+})
+
+it('고증 조사 입력 대기는 질문을 적어야 이어서 실행하고, 질문을 research 단계 입력으로 보낸다(#545)', async () => {
+  openThread([{ request: '고증 확인해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['research'], awaitingApproval: null } }])
+  send.mockResolvedValue(undefined)
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
+  expect(within(form).getByText(/고증 조사 단계가 입력을 기다려요/)).toBeTruthy()
+  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+  fireEvent.change(within(form).getByLabelText('조사할 질문'), { target: { value: '한양에서 동래까지 며칠?' } })
+  fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { research: { question: '한양에서 동래까지 며칠?' } } } })
 })
 
 it('원고 검수 입력 대기는 검수 종류를 골라야 이어서 실행하고, 고른 종류를 단계 입력으로 보낸다', async () => {
@@ -609,4 +635,55 @@ it('승인한 Content 세계관 카드 수정이 반영되면 설정집을 다�
   expect(onApplied).toHaveBeenCalledWith(3)
   // 진행 표시는 승인한 작업을 단계마다 덧붙인다(계획에 없던 단계도 사라지지 않는다).
   expect(screen.getAllByText('Content 작업').length).toBe(2)
+})
+
+// ── 계획 수정(#578): revise_plan 제안은 회차 초안이 아니라 저장된 계획에 저장할지 묻고, 저장돼도 회차 초안 갱신(onApplied)은 알리지 않는다 ──
+const reviseStep: ChatStep = {
+  feature: 'writing_editing', task: 'revise_plan', status: 'completed',
+  planRevision: { kind: 'scene', before: { title: '재회', content: '카엘이 리나를 만난다.' }, after: { title: '재회', content: '카엘이 리나를 만나지만 이름을 부르지 못한다.' } },
+}
+const reviseApproval = (steps: ChatStep[] = [reviseStep]) =>
+  openThread([{ request: '재회 장면을 더 긴장감 있게 고쳐줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 2, steps } }])
+
+it('계획 수정 제안의 승인 카드는 계획 제목으로 저장할지 묻고, 회차 초안 문구 없이 대상과 변경 전·후를 승인 전에 보인다', async () => {
+  reviseApproval()
+  renderChat()
+  await screen.findByRole('heading', { name: "'재회' 계획에 저장할까요?" })
+  expect(screen.queryByRole('heading', { name: /화 초안에 반영할까요/ })).toBeNull()
+  expect(screen.getByLabelText('반영할 내용').textContent).toBe("장면 계획 '재회' 수정안\n수정 전: 카엘이 리나를 만난다.\n수정 후: 카엘이 리나를 만나지만 이름을 부르지 못한다.")
+  expect(screen.getByRole('button', { name: '계획에 저장' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '저장하지 않기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '초안에 반영' })).toBeNull()
+  expect(screen.getByText(/계획의 제목·내용만 바뀌고 원고 초안은 바뀌지 않아요/)).toBeTruthy()
+})
+
+it('승인을 기다리는 계획 수정안을 읽지 못하면(결과 형식 오류) 보이지 않는 제안을 저장하지 않도록 저장 버튼만 잠근다', async () => {
+  reviseApproval([{ feature: 'writing_editing', task: 'revise_plan', status: 'failed', error: '계획 수정안 형식을 확인할 수 없어요.' }])
+  renderChat()
+  await screen.findByRole('heading', { name: '이 제안을 계획에 저장할까요?' })
+  expect(within(screen.getByLabelText('같이 끝난 작업')).getByText('실패: 계획 수정안 형식을 확인할 수 없어요.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '계획에 저장' })).toHaveProperty('disabled', true)
+  expect(screen.getByRole('button', { name: '저장하지 않기' })).toHaveProperty('disabled', false)
+})
+
+it('계획에 저장은 승인으로, 저장하지 않기는 거절로 이어 보낸다', async () => {
+  reviseApproval()
+  send.mockResolvedValue(undefined)
+  renderChat()
+  await screen.findByRole('heading', { name: "'재회' 계획에 저장할까요?" })
+  fireEvent.click(screen.getByRole('button', { name: '계획에 저장' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true } })
+  fireEvent.click(await screen.findByRole('button', { name: '저장하지 않기' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
+  expect(send.mock.calls[1][2]).toMatchObject({ resume: { approved: false } })
+})
+
+it('계획 수정 저장(step.applied)은 회차 초안 갱신(onApplied)도 설정집 갱신(onWorldApplied)도 알리지 않는다', async () => {
+  const onApplied = vi.fn()
+  const onWorldApplied = vi.fn()
+  const { run } = await worldStream({ onApplied, onWorldApplied })
+  await run({ type: 'step', step: { ...reviseStep, approval: 'approved', applied: { episode: 2, revision: 6 } } })
+  expect(onApplied).not.toHaveBeenCalled()
+  expect(onWorldApplied).not.toHaveBeenCalled()
 })

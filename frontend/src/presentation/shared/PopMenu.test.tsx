@@ -130,3 +130,14 @@ it.each([
   layout(windowHeight, [...button], [...menu])
   expect(openMenu().style.transform).toBe(transform)
 })
+
+it('목록이 fixed라 버튼에 묶이지 않는 화면(스크롤 상자 안 표 행 메뉴)을 위해 버튼의 자리를 --pop-bottom·--pop-right(창 오른쪽 끝에서, 스크롤바 제외)로 알린다', () => {
+  // 스크롤한 문서에서는 fixed 목록의 정적 위치가 어긋나므로, CSS가 이 값으로 버튼 바로 아래 오른쪽 끝에 맞춘다.
+  vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(1000)
+  const rect = (top: number, bottom: number, left: number, right: number) => ({ top, bottom, left, right, height: bottom - top, width: right - left, x: left, y: top, toJSON: () => ({}) })
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('pop-menu-btn') ? rect(300, 336, 864, 900) : rect(0, 0, 0, 0)
+  })
+  const menu = openMenu()
+  expect([menu.style.getPropertyValue('--pop-bottom'), menu.style.getPropertyValue('--pop-right')]).toEqual(['336px', '100px'])
+})

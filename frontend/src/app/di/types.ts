@@ -71,6 +71,10 @@ export type AppCradle = {
   initialWorldUseCase: import('../../domain/usecases/InitialWorldUseCase').InitialWorldUseCase | null
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase
   worldReviewUseCase: import('../../domain/usecases/WorldReviewUseCase').WorldReviewUseCase | null
+  genreRepository: import('../../domain/repositories/GenreRepository').GenreRepository
+  genreUseCase: import('../../domain/usecases/GenreUseCase').GenreUseCase
+  operationsGenreRepository: import('../../domain/repositories/OperationsGenreRepository').OperationsGenreRepository
+  operationsGenreUseCase: import('../../domain/usecases/OperationsGenreUseCase').OperationsGenreUseCase
   publicWorldRepository: import('../../domain/repositories/PublicWorldRepository').PublicWorldRepository
   publicWorldUseCase: import('../../domain/usecases/PublicWorldUseCase').PublicWorldUseCase
   mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase

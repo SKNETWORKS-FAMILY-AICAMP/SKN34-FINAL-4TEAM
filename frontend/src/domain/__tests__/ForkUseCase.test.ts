@@ -55,6 +55,15 @@ describe('ForkUseCase (목업 fork()·startFork·forked())', () => {
     expect(snap.cast.flatMap((c) => c.knowledge ?? []).every((k) => k.knownAt <= 2 && (k.publicAt ?? 99) <= 2)).toBe(true)
   })
 
+  it('관리자도 자기가 만든 비공개 포크의 완료 화면을 보지만 남의 포크는 보지 못한다 (#605)', async () => {
+    const { db, useCase } = setup()
+    const made = await useCase.startFork('guunmong', 2, input)
+    if (!('id' in made)) throw new Error(made.error)
+    expect((await useCase.getForked(made.id, 'admin'))?.fork.id).toBe(made.id)
+    db.works.find((w) => w.id === made.id)!.mine = false
+    expect(await useCase.getForked(made.id, 'admin')).toBeNull()
+  })
+
   it('새 포크에 다음 회차 작성 초안을 만든다 (목업 draftOf)', async () => {
     const { repo, useCase } = setup()
     const made = await useCase.startFork('guunmong', 2, input)

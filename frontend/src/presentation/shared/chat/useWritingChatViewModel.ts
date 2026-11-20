@@ -120,9 +120,10 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
         if (event.type === 'error') { ok = false; setError(event.message) }
         if (event.type === 'waiting' && event.awaitingScene === 'character_simulation') sceneWaits = true
         // World 반영은 회차 초안이 아니라 설정집 초안을 바꾼다(applied.episode는 회차가 아니다). 승인한 Content 세계관 카드 수정(#554)도 같다.
+        // 계획 수정(#578)은 저장된 계획만 바꿔 회차 초안·설정집 초안 어느 쪽도 다시 읽을 필요가 없다.
         if (event.type === 'step' && event.step.applied) {
           const world = event.step.feature === 'world' || event.step.result?.tool === 'world_studio_edit_draft'
-          if (world) worldApplied.current?.(); else onApplied?.(event.step.applied.episode)
+          if (world) worldApplied.current?.(); else if (event.step.task !== 'revise_plan') onApplied?.(event.step.applied.episode)
         }
         apply(event)
       }, controller.signal, editIndex)

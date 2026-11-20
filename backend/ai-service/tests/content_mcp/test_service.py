@@ -381,3 +381,69 @@ def test_edit_world_keeps_the_null_fields_of_the_screen_metadata_the_model_left_
     [card] = calls[1][3]['request']['cards']
     item = card['semanticMetadata']['studio']['item']
     assert (item['subjectId'], item['afterId'], item['title']) == (None, None, '카엘 공') and card['semanticMetadata']['studio']['userCategory'] == ''
+
+
+# 계획 수정(#578): story_plan_list·read·update. 소유자 검사·삭제(404)·다른 작품·종류 변경 금지는 Content가 한다.
+PLAN = {'id': 'scene-1', 'workId': 'work', 'kind': 'scene', 'parentId': 'plot-1', 'title': '재회', 'content': '카엘이 리나를 만난다.',
+        'episodeNumber': 5, 'episodeMissing': False, 'characterIds': ['k'], 'placeIds': ['p'], 'revision': 3, 'position': 2}
+
+
+def plan_replies(read=PLAN, saved=None):
+    return {'story_plan_read': (False, json.dumps(read)), 'story_plan_update': (False, json.dumps(saved or {**PLAN, 'revision': 4}))}
+
+
+def test_list_plans_keeps_only_what_the_candidate_summary_needs(monkeypatch):
+    content(monkeypatch, {'story_plan_list': (False, json.dumps([PLAN]))})
+    [item] = service.list_plans('work')
+    assert (item.id, item.kind, item.title, item.parentId, item.episodeNumber) == ('scene-1', 'scene', '재회', 'plot-1', 5)
+
+
+@pytest.mark.parametrize('reply', ['{}', '[{"id": "x"}]', '"x"'])
+def test_list_plans_with_an_unreadable_reply_is_502(monkeypatch, reply):
+    content(monkeypatch, {'story_plan_list': (False, reply)})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.list_plans('work')
+    assert error.value.status == 502
+
+
+def test_apply_plan_changes_only_title_and_content_with_the_proposals_revision_and_the_user_token(monkeypatch):
+    calls = content(monkeypatch, plan_replies())
+    assert service.apply_plan('work', 'scene-1', 3, '새 제목', '새 내용') == {'planId': 'scene-1', 'revision': 4}
+    assert [(c[2], c[1]) for c in calls] == [('story_plan_read', 'Bearer user'), ('story_plan_update', 'Bearer user')]
+    # 나머지 칸은 읽은 값 그대로다. position은 보내지 않아 내용 수정이 순서를 바꾸지 않는다.
+    assert calls[1][3] == {'workId': 'work', 'id': 'scene-1', 'data': {
+        'kind': 'scene', 'parentId': 'plot-1', 'title': '새 제목', 'content': '새 내용', 'episodeNumber': 5, 'characterIds': ['k'], 'placeIds': ['p'], 'revision': 3}}
+
+
+def test_apply_plan_refuses_a_plan_changed_since_the_proposal_and_writes_nothing(monkeypatch):
+    calls = content(monkeypatch, plan_replies(read={**PLAN, 'revision': 4}))
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_plan('work', 'scene-1', 3, '새 제목', '새 내용')
+    assert error.value.status == 409 and '바뀌어' in str(error.value) and [c[2] for c in calls] == ['story_plan_read']
+
+
+@pytest.mark.parametrize('read', [(False, '{"id": "scene-1"}'), (False, json.dumps({**PLAN, 'revision': '3'})), (False, '[]')])
+def test_apply_plan_unreadable_plan_is_502_without_writing(monkeypatch, read):
+    calls = content(monkeypatch, {'story_plan_read': read})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_plan('work', 'scene-1', 3, '새 제목', '새 내용')
+    assert error.value.status == 502 and [c[2] for c in calls] == ['story_plan_read']
+
+
+@pytest.mark.parametrize('saved', [(False, '{}'), (False, '{"revision": "4"}'), (False, '[]')])
+def test_apply_plan_unconfirmed_save_response_is_502_not_a_success(monkeypatch, saved):
+    content(monkeypatch, {**plan_replies(), 'story_plan_update': saved})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_plan('work', 'scene-1', 3, '새 제목', '새 내용')
+    assert error.value.status == 502
+
+
+def test_apply_plan_keeps_contents_status_and_detail_when_the_plan_is_gone_or_edited(monkeypatch):
+    content(monkeypatch, {**plan_replies(), 'story_plan_update': (True, 'HTTP 409\n다른 변경이 저장됐어요.')})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_plan('work', 'scene-1', 3, '새 제목', '새 내용')
+    assert (error.value.status, str(error.value)) == (409, '다른 변경이 저장됐어요.')
+    content(monkeypatch, {'story_plan_read': (True, 'HTTP 404\n계획을 찾을 수 없어요.')})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.read_plan('work', 'scene-1')
+    assert (error.value.status, str(error.value)) == (404, '계획을 찾을 수 없어요.')

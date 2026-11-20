@@ -10,9 +10,9 @@ import type { WorkInterestUseCase } from '../../../../domain/usecases/WorkIntere
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
+import { shareLink } from '../../../shared/shareLink'
 import { uiActions } from '../../../shared/ui/uiSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
-import { useLook } from './useLook'
 
 /** 목업 work(id): 소설 상세 U04 */
 export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = appContainer.resolve('readingUseCase'), interestUseCase: WorkInterestUseCase = appContainer.resolve('workInterestUseCase')) {
@@ -21,7 +21,6 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
   const epSort = useAppSelector((s) => s.ui.epSort)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const look = useLook()
   const { data, isError, retry } = useAsyncData(() => readingUseCase.getWork(id, role), [readingUseCase, id, role])
   const [query, setQuery] = useState('')
   const [reporting, setReporting] = useState(false)
@@ -37,6 +36,11 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
   const [shown, setShown] = useState(id)
   if (shown !== id) { setShown(id); setQuery(''); setReporting(false) }
   useScreenId(data ? 'U04' : null)
+  /** 비회원을 로그인으로 보내고, 로그인하면 이 작품으로 돌아오게 합니다(좋아요·신고 공통). */
+  const goLogin = (msg: string) => {
+    dispatch(sessionActions.requireLogin({ next: `/work/${id}`, msg, role: 'user' }))
+    navigate('/login')
+  }
 
   // 회차 본문을 이어 붙여 만드는 값(공백을 뺀 글자 수·검색 대상 글)은 작품을 읽었을 때 한 번만 만든다. 렌더나 검색 입력마다 전 회차 본문을 다시 훑지 않는다.
   const indexed = useMemo(() => (data?.visible ?? []).map(([e, i]) => ({
@@ -57,7 +61,6 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
     setQuery,
     epSort,
     setSort: (s: 'old' | 'new') => dispatch(uiActions.setEpSort(s)),
-    bandAmb: !look.dark && look.eff === 'world' && look.motion,
     /** 공개 작품에서만 관심 등록 버튼을 보입니다(서버도 공개 작품만 받습니다). */
     canInterest: !!data && isPub(data.work),
     isMember: !!role,
@@ -87,11 +90,7 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
     toggleLike: async () => {
       if (!data || liking) return
       const { work, liked } = data
-      if (work.canonical && !role) {
-        dispatch(sessionActions.requireLogin({ next: `/work/${id}`, msg: '좋아요는 로그인한 회원만 누를 수 있어요.', role: 'user' }))
-        navigate('/login')
-        return
-      }
+      if (work.canonical && !role) { goLogin('좋아요는 로그인한 회원만 누를 수 있어요.'); return }
       setLiking(true)
       try {
         const on = await readingUseCase.toggleLike(work.id, { canonical: work.canonical, liked })
@@ -102,13 +101,12 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
         else toast(error instanceof Error && error.message ? error.message : '좋아요를 처리하지 못했어요. 잠시 후 다시 시도해 주세요.')
       } finally { setLiking(false) }
     },
-    /** 현재 소설 상세 주소를 클립보드에 복사합니다. 클립보드가 없거나(비보안 출처) 거부되면 주소를 보여 줍니다. */
-    share: async () => {
-      const url = window.location.href
-      try { await navigator.clipboard.writeText(url); toast('링크를 복사했어요') } catch { toast(`링크를 복사하지 못했어요 · ${url}`) }
-    },
+    /** 현재 소설 상세 주소를 공유합니다(클립보드 복사, 못 하면 공유 창, 그것도 안 되면 주소를 보여 줍니다). */
+    share: () => shareLink(window.location.href),
     /** 남의 공개 작품에서만 신고 버튼을 보입니다. */
     canReport: !!data && canReport(data.work, memberId),
+    /** 서버 작품의 신고는 로그인한 회원만 접수하므로, 비회원은 시트를 열지 않고 좋아요처럼 로그인으로 보냅니다. */
+    startReport: () => { if (data?.work.canonical && !role) goLogin('소설 신고는 로그인한 회원만 할 수 있어요.'); else setReporting(true) },
     reporting,
     setReporting,
   }

@@ -6,6 +6,7 @@ import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkWorldLinkRequest
 import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
 import ai.storyfork.content.world.controller.WorldStudioController
+import ai.storyfork.content.world.controller.WorldStudioExceptionHandler
 import ai.storyfork.content.world.service.WorldCoverService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.CreateWorldRequest
@@ -21,8 +22,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 /** 세계관-소설 연결(DEC-46)의 HTTP 조립: 연결·독자 위키 경로와, 세계관 소유자 응답에 연결된 작품을 붙이는 일이다. 서비스는 대역이다. */
@@ -102,5 +106,26 @@ class WorkWorldControllerTest {
         verify(studio).draft(world, owner, 3)
         for (bad in listOf("0", "-2", "abc", "1.5", "")) assertThrows(IllegalArgumentException::class.java, { studios.read(world, principal, bad) }, bad)
         verifyNoMoreInteractions(studio)
+    }
+
+    @Test fun `detaching hands the signed-in member to the service and answers the new world`() {
+        val detached = WorkWorldLinkResponse("fork", world)
+        `when`(links.detachInheritedWorld("fork", owner.toString())).thenReturn(detached)
+
+        assertSame(detached, works.detachInheritedWorld("fork", principal))
+    }
+
+    @Test fun `the detach route is a 201 POST`() {
+        val method = WorkWorldController::class.java.methods.first { it.name == "detachInheritedWorld" }
+        assertEquals(listOf("/works/{id}/inherited-world/detach"), AnnotatedElementUtils.findMergedAnnotation(method, PostMapping::class.java)!!.value.toList())
+        assertEquals(HttpStatus.CREATED, AnnotatedElementUtils.findMergedAnnotation(method, ResponseStatus::class.java)!!.code)
+    }
+
+    @Test fun `the world studio error handler does not apply to this controller so the existing endpoints answer as before`() {
+        // 처리기를 이 컨트롤러 전체에 씌우면 기존 연결·독자 위키·이어받기의 DB 오류(500→503)·UUID 경로 오류(400→422) 응답이 바뀐다. 독립 경로가 WorldStudio 실패를 직접 옮긴다.
+        val advice = AnnotatedElementUtils.findMergedAnnotation(WorldStudioExceptionHandler::class.java, RestControllerAdvice::class.java)!!
+        assertFalse(WorkWorldController::class in advice.assignableTypes)
+        // 선택 기준이 assignableTypes뿐이라는 확인이다(패키지·애노테이션 기준이 생기면 이 컨트롤러가 그 안에 들 수 있다).
+        assertEquals(0, advice.basePackages.size + advice.basePackageClasses.size + advice.annotations.size)
     }
 }

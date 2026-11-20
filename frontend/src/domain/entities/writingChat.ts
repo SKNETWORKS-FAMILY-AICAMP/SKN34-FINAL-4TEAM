@@ -3,7 +3,7 @@ import type { WritingEpisode } from './content'
 import { FINDING_KINDS, type ReviewFinding as WorldFinding } from './worldReview'
 
 /** 집필 AI 채팅(#331). 대화 원본은 AI 서비스의 LangGraph 체크포인터이며 화면은 Content API로만 읽고 쓴다. */
-export type ChatFeature = 'story_context' | 'writing_editing' | 'web_research' | 'character_simulation' | 'manuscript_review' | (string & {})
+export type ChatFeature = 'story_context' | 'writing_editing' | 'research' | 'character_simulation' | 'manuscript_review' | (string & {})
 // both는 Router가 두 검수를 함께 고른 결과(#369)다. 작가에게 묻는 화면은 두 가지 중 하나만 고른다.
 export type ReviewCheck = 'mechanical' | 'semantic' | 'both'
 /** 원고 검수 지적 하나. 위치는 초안 본문의 UTF-16 [start,end)이고 같은 구절이 여러 곳이면 null이다(AI가 추측하지 않는다). */
@@ -34,6 +34,13 @@ export type ChatWorld =
   | ({ task: 'check' } & ChatWorldReview)
   | { task: 'enrich'; fixes: WorldFix[]; note: string }
   | { task: 'impact'; affected: WorldImpact[]; conflicts: string[]; gaps: string[] }
+/** 계획 수정안(#578)의 제목·내용. 수정 범위는 이 둘뿐이다. */
+export type PlanText = { title: string; content: string }
+/** writing_editing 단계(task=revise_plan)의 수정안: 저장된 플롯·장면 계획 하나의 변경 전·후. 작가가 승인해야 그 계획에 저장된다. */
+export type ChatPlanRevision = { kind: 'plot' | 'scene'; before: PlanText; after: PlanText }
+/** 참고 카드 하나의 출처. worldId·cardId는 카드 화면 링크(`/worlds/:id/cards/:cardId`)용이다. */
+export type ChatReference = { worldId: string; worldName: string; cardId: string; cardTitle: string; authorNickname: string; note: string }
+export const referenceHref = (r: ChatReference) => `/worlds/${encodeURIComponent(r.worldId)}/cards/${encodeURIComponent(r.cardId)}`
 export type ChatStepResult = {
   /** content_action 단계(#554): 승인 뒤 메인 에이전트가 직접 실행한 Content 도구 이름과 고정 문구 */
   tool?: string
@@ -44,6 +51,8 @@ export type ChatStepResult = {
   before?: string
   after?: string
   findings?: { text: string; verdict: string; sourceUrls: string[] }[]
+  /** Research platform(#547)의 참고안. 다른 작가가 공개한 세계관의 카드이며 내 설정집에 복사하지 않는다. 웹 조사 결과(findings)와 키로 구분한다. */
+  references?: ChatReference[]
   /** 전개 기획(#387)의 계획 대안과 참고. 원고가 아니라 반영하지 않는다. */
   plans?: BeatPlan[]
   notes?: string[]
@@ -55,8 +64,8 @@ export type ChatStep = {
   feature: ChatFeature
   /** if_issues_found는 직전 검수에서 확정 지적이 있을 때만 고치는 조건부 수정이다(#370). skipped는 고칠 것이 없어 건너뛴 단계(error가 이유)다. */
   when?: 'always' | 'if_issues_found'
-  /** writing_editing 단계에 Router가 정한 작업 종류(#387). patch(선택 구간 수정)는 채팅에서 입력을 채울 수 없다. world 단계는 check·enrich·impact(#546)다. */
-  task?: 'plan' | 'draft' | 'patch' | 'check' | 'enrich' | 'impact' | null
+  /** writing_editing 단계에 Router가 정한 작업 종류(#387). patch(선택 구간 수정)는 채팅에서 입력을 채울 수 없고 revise_plan(#578)은 저장된 계획의 수정안이다. world 단계는 check·enrich·impact(#546)다. */
+  task?: 'plan' | 'draft' | 'patch' | 'revise_plan' | 'check' | 'enrich' | 'impact' | null
   status: 'completed' | 'failed' | 'not_started' | 'skipped'
   result?: ChatStepResult | null
   /** character_simulation 단계의 검증된 결과(#58). 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
@@ -69,6 +78,8 @@ export type ChatStep = {
   worldReview?: ChatWorldReview | null
   /** world 단계의 검증된 결과(#546). 옛 world_review 단계는 worldReview에 남는다. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
   world?: ChatWorld | null
+  /** writing_editing 단계(task=revise_plan)의 검증된 결과(#578). 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
+  planRevision?: ChatPlanRevision | null
   error?: string | null
   approval?: 'approved' | 'declined' | null
   applied?: { episode: number; revision: number } | null
@@ -176,7 +187,7 @@ export function pendingChanges(action: PendingAction, cardOf?: (id: string) => {
 }
 /** 입력 대기에서 작가가 채우는 단계 입력. 이름은 AI StepInputs 계약과 같다. */
 export type ChatStepInputs = {
-  web_research?: { question: string }
+  research?: { question: string }
   manuscript_review?: { check: ReviewCheck }
   /** fix는 조건부 수정에서 고른 검수 지적의 번호(검수 결과 findings 순서)다. */
   writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } } | { fix: number }
@@ -219,7 +230,7 @@ export function cleanScene(scene: SceneAction): SceneAction {
   }
 }
 
-export const featureLabel: Record<string, string> = { content_action: 'Content 작업', story_context: '작품 질문', writing_editing: '기획·집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', manuscript_review: '원고 검수', rating: '심의 등급', world: '세계관', world_review: '설정집 검토' }
+export const featureLabel: Record<string, string> = { content_action: 'Content 작업', story_context: '작품 질문', writing_editing: '기획·집필·수정', research: '고증 조사', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', manuscript_review: '원고 검수', rating: '심의 등급', world: '세계관', world_review: '설정집 검토' }
 export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성', both: '설정·개연성 + 맞춤법·표기' }
 const reviewStatus: Record<ReviewFinding['status'], string> = { confirmed: '확정', suspected: '의심', undeterminable: '판단 불가' }
 const reviewCategory: Record<string, string> = {
@@ -260,6 +271,12 @@ function worldText(world: ChatWorld): string {
     ].join('\n') || '영향을 받는 곳을 찾지 못했어요.'
   }
 }
+
+const planKind: Record<ChatPlanRevision['kind'], string> = { plot: '플롯', scene: '장면 계획' }
+// 계획 수정안은 승인 전에 읽는 제안이라 변경 전·후 내용을 그대로 보인다(저장하지 않아도 제안은 대화에 남는다).
+const planRevisionText = ({ kind, before, after }: ChatPlanRevision) => [
+  `${planKind[kind]} '${before.title}' 수정안`, ...(before.title === after.title ? [] : [`제목: ${before.title} → ${after.title}`]),
+  `수정 전: ${before.content}`, `수정 후: ${after.content}`].join('\n')
 
 const ratingVerdict: Record<RatingVerdict, string> = { adult: '19세 이용가', general: '전체 이용가', needsReview: '작가 검토 필요' }
 // needsReview는 AI가 다시 판정하지 않고 작가가 근거를 보고 정한다(#439).
@@ -302,13 +319,15 @@ export function stepText(step: ChatStep): string {
   if (step.rating) return ratingText(step.rating)
   if (step.worldReview) return worldReviewText(step.worldReview)
   if (step.world) return worldText(step.world)
+  if (step.planRevision) return planRevisionText(step.planRevision)
   const r = step.result
   if (step.status !== 'completed' || !r) return ''
   if (r.claims) return [...r.claims.map((c) => c.text), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '근거를 찾지 못했어요.'
+  if (r.references) return [...r.references.map((x) => `${x.worldName} · ${x.cardTitle} · ${x.authorNickname} — ${x.note}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '참고할 설정을 찾지 못했어요.'
   if (r.findings) return [...r.findings.map((f) => `${researchVerdict[f.verdict] ?? researchVerdict.unverified} · ${f.text}${f.sourceUrls.length ? ` (${f.sourceUrls.join(', ')})` : ''}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '조사 결과가 없어요.'
   if (r.after !== undefined) return `수정 전: ${r.before ?? ''}\n수정 후: ${r.after}`
   if (r.plans) return [...r.plans.map((p, i) => [`계획 ${i + 1}. ${p.title}`, ...p.beats.map((b, j) => `  ${j + 1}) ${b}`)].join('\n')),
-    ...(r.notes ?? []).map((n) => `참고: ${n}`), PLAN_PICK_HINT].join('\n')
+    ...(r.notes ?? []).map((n) => `참고: ${n}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`), PLAN_PICK_HINT].join('\n')
   if (r.label) return `${r.label} 완료`
   return r.text ?? ''
 }
@@ -320,18 +339,23 @@ export const PLAN_PICK_HINT = "가장 최근 기획한 안 중 하나를 '계획
 export const PLAN_LABEL = '사용한 계획'
 export const usedPlan = (step: ChatStep) => (step.result?.plan ? `${PLAN_LABEL}: ${step.result.plan.title} — ${step.result.plan.beats.join(' / ')}` : '')
 
+/** 바로 쓴 원고에 붙는 알림(설정 없이 쓴 이유 등, #523) 한 줄. 반영 본문(stepText)과 섞지 않도록 사용한 계획처럼 따로 보인다. */
+export const draftNotice = (step: ChatStep) => (step.result?.text !== undefined && step.result.gaps?.length ? step.result.gaps.map((g) => `확인 못 함: ${g}`).join('\n') : '')
+
 /**
  * 턴의 단계별 결과를 계획 순서로 이은 평문. 종합 답변(`reply.message`)은 넣지 않는다: 화면이 답변을 마크다운으로 그리고
  * 이 글은 그 아래에 접어 둔다(같은 내용 두 번 보이기 방지, #492). 답변도 단계도 없을 때만 안내 문구다.
  */
 export function replyText(reply: ChatReply): string {
   const steps = reply.steps.filter((s) => s.status !== 'not_started')
-    .map((s) => [`${stepLabel(s)} ${stepText(s)}`, s.status === 'completed' && usedPlan(s), appliedLine(s)].filter(Boolean).join('\n'))
+    .map((s) => [`${stepLabel(s)} ${stepText(s)}`, s.status === 'completed' && usedPlan(s), s.status === 'completed' && draftNotice(s), appliedLine(s)].filter(Boolean).join('\n'))
   return steps.join('\n\n') || (reply.message ? '' : '응답 내용이 없어요.')
 }
 
 const stepLabel = (s: ChatStep) => `[${featureLabel[s.feature] ?? s.feature}]`
-const appliedLine = (s: ChatStep) => (s.applied ? (s.feature === 'world' ? '→ 설정집 초안에 반영했어요.' : s.feature === 'content_action' ? '→ 승인한 작업을 실행했어요.' : `→ ${s.applied.episode}화 초안에 반영했어요.`) : s.approval === 'declined' ? '→ 반영하지 않았어요.' : '')
+const appliedLine = (s: ChatStep) => (s.applied
+  ? (s.feature === 'world' ? '→ 설정집 초안에 반영했어요.' : s.feature === 'content_action' ? '→ 승인한 작업을 실행했어요.' : s.task === 'revise_plan' ? '→ 계획에 저장했어요.' : `→ ${s.applied.episode}화 초안에 반영했어요.`)
+  : s.approval === 'declined' ? (s.task === 'revise_plan' ? '→ 저장하지 않았어요.' : '→ 반영하지 않았어요.') : '')
 
 /**
  * 실패 단계와 승인 결과(반영함·반영 안 함) 줄만. 종합 답변은 승인 전에 쓰여 승인·Content 반영 뒤에 달라진 이 결과를 말하지 못하므로

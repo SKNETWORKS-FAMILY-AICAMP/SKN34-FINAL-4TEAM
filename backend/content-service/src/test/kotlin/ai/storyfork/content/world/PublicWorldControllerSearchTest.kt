@@ -21,9 +21,9 @@ class PublicWorldControllerSearchTest {
 
     @Test fun `list and card search hand q, genre and paging to the service as plain strings`() {
         val page = PublicWorldPageResponse(emptyList(), 0, 24, 0)
-        `when`(service.list("fantasy", "달빛", "1", "10")).thenReturn(page)
-        assertSame(page, controller.list("fantasy", "달빛", "1", "10"))
-        verify(service).list("fantasy", "달빛", "1", "10")
+        `when`(service.list("genre-01", "달빛", "1", "10")).thenReturn(page)
+        assertSame(page, controller.list("genre-01", "달빛", "1", "10"))
+        verify(service).list("genre-01", "달빛", "1", "10")
 
         val cards = PublicWorldCardSearchResponse(emptyList(), 0, 24, 0)
         `when`(service.cards("인물", "2", "5")).thenReturn(cards)

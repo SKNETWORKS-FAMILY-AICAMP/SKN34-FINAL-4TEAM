@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../data/mock/InMemoryGenreRepositories'
 import { seedWorks, seedWorlds } from '../../data/mock/seed'
 import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
@@ -33,7 +34,8 @@ function fakes(progress: Partial<ReadingProgress> = {}) {
     markSeen: async (id) => { state.seen[id] = true },
     saveProgress: async (p) => { Object.assign(state, p) },
   }
-  return { works, state, server, useCase: new ReadingUseCase(workRepository, readingRepository, server.repository) }
+  const genres = new InMemoryGenreRepository(new InMemoryOperationsGenreRepository())
+  return { works, state, server, useCase: new ReadingUseCase(workRepository, readingRepository, server.repository, undefined, undefined, genres) }
 }
 
 /** 서버(정본) 작품 좋아요: 저장소 대역은 서버가 확정하는 수·상태를 그대로 돌려준다. canonical이 아닌 시드 작품은 메모리 데모다. */
@@ -343,6 +345,13 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     const r = await useCase.openEpisode('starlight', 1, 'user')
     expect(r && r !== 'hidden' && r.n).toBe(1)
     expect(server.repository.record).not.toHaveBeenCalled()
+  })
+
+  it('관리자도 자기 소설의 집필실에서는 집필실 빠른 이동을 앞에 두고 남의 소설에서는 두지 않는다 (#605)', async () => {
+    const { useCase } = fakes()
+    const items = await useCase.getQuickItems('admin', { id: 'starlight', ep: null })
+    expect(items.find((x) => x.k === '이동' && x.label === 'AI 채팅')).toMatchObject({ go: '/studio/starlight?panel=chat' })
+    expect((await useCase.getQuickItems('admin', { id: 'postman', ep: null })).some((x) => x.k === '이동')).toBe(false)
   })
 
   it('관심 소설을 토글한다', async () => {

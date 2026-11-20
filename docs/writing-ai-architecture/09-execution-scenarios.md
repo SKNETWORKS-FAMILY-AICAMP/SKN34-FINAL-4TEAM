@@ -87,10 +87,10 @@ MVP의 같은 요청 안 결과 전달은 [등록된 집필 연결](02-ai-archit
 
 | 모델이 한 턴에 부른 묶음 | 코드의 처리 | 결과 |
 |---|---|---|
-| `ask_story_qa` + `ask_web_research`(질문·동의 있음) | 둘 다 조회형이고 입력이 있어 동시에 실행한다. | `steps[]`는 부른 순서, SSE `step`은 먼저 끝난 순서. 메인 모델 호출은 묶음 1회 + 종합 1회 |
+| `ask_story_qa` + `ask_research`(질문·동의 있음) | 둘 다 조회형이고 입력이 있어 동시에 실행한다. | `steps[]`는 부른 순서, SSE `step`은 먼저 끝난 순서. 메인 모델 호출은 묶음 1회 + 종합 1회 |
 | `ask_manuscript_review` + `ask_writing(task=patch, fix)` | 수정은 단독 도구라 실행하지 않고 `[순차]` 오류로 돌려준다(한도 미차감). | 검수가 끝난 다음 모델 턴에 수정을 단독으로 불러 Manuscript Review → 조건부 수정 순서가 남는다 |
-| `ask_story_qa` + `ask_web_research`(질문·동의 없음) | 입력이 빠진 웹 조사는 미루고 Q&A만 실행한다. | 다음 모델 턴에 웹 조사를 단독으로 불러 입력 대기(`waiting`) → resume으로 이어 간다 |
-| `ask_story_qa` + `ask_web_research` 중 웹 조사 실패 | Q&A는 취소하지 않고 끝까지 실행한다. | 두 결과를 보존하고 새 호출은 막으며 응답은 `failed` |
+| `ask_story_qa` + `ask_research`(질문·동의 없음) | 입력이 빠진 웹 조사는 미루고 Q&A만 실행한다. | 다음 모델 턴에 웹 조사를 단독으로 불러 입력 대기(`waiting`) → resume으로 이어 간다 |
+| `ask_story_qa` + `ask_research` 중 웹 조사 실패 | Q&A는 취소하지 않고 끝까지 실행한다. | 두 결과를 보존하고 새 호출은 막으며 응답은 `failed` |
 | 조회형 네 개 | 앞의 세 개만 실행하고 네 번째는 턴당 3회 한도로 막는다. | 세 단계 |
 
 ## 5. 병렬 분기와 합류

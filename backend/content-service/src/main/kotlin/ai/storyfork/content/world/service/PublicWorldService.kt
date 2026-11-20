@@ -10,11 +10,11 @@ import ai.storyfork.content.search.service.SearchCandidates
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
-import ai.storyfork.content.world.domain.WORLD_GENRES
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.coverStorage
 import ai.storyfork.content.world.domain.hideCardLinks
+import ai.storyfork.content.world.domain.isGenreCode
 import ai.storyfork.content.world.domain.isListed
 import ai.storyfork.content.world.domain.matchesCard
 import ai.storyfork.content.world.domain.matchesWorld
@@ -65,8 +65,8 @@ class PublicWorldService(
         val shown = cards.map { it.first.cardId }.toSet()
     }
     private class Listing(val page: Page<StudioWorld>, val revisions: Map<UUID, WorldRevision>, val cards: Map<UUID, List<SettingCardVersion>>, val states: Map<UUID, WorldRelationshipState>)
-    /** 기준 회차에 양 끝이 보이는 관계와, 그 관계마다 기준 회차까지의 변화다(DEC-54 2단계, 저장소가 기준 회차 뒤의 변화는 담아 주지 않는다). */
-    private class Visible(val rows: List<RelationshipPayload>, val history: Map<UUID, List<RelationshipChange>>)
+    /** 기준 회차에 양 끝이 보이는 관계와, 그 관계마다 기준 회차까지의 변화다(DEC-54 2단계, 저장소가 기준 회차 뒤의 변화는 담아 주지 않는다). [episodes]는 관계 id → 그 시점 관계가 시작된 회차다(Fork 독립이 쓴다). */
+    private class Visible(val rows: List<RelationshipPayload>, val history: Map<UUID, List<RelationshipChange>>, val episodes: Map<UUID, Int>)
     /** q로 거른 세계관의 한 페이지와, 거르려고 전체 작가를 한 번에 조회한 닉네임이다(페이지 항목이 그대로 쓴다). */
     private class Matched(val page: Page<StudioWorld>, val names: Map<String, String>)
 
@@ -75,7 +75,7 @@ class PublicWorldService(
      * [q]가 있으면(앞뒤 공백을 자르며 공백뿐이면 없는 것과 같다) 확정 버전의 이름·설명이나 작가 닉네임에 대소문자 무시로 들어 있는 세계관만 거른 뒤 페이지를 자르고 total도 거른 수다(#505).
      */
     fun list(genre: String?, q: String?, page: String?, size: String?): PublicWorldPageResponse {
-        val code = genre?.takeIf { it.isNotBlank() }?.also { if (it !in WORLD_GENRES) throw ContentFailure(422, "genre 값을 확인해 주세요.") }
+        val code = genre?.takeIf { it.isNotBlank() }?.also { if (!isGenreCode(it)) throw ContentFailure(422, "genre 값을 확인해 주세요.") }
         val request = publicWorldPage(page, size)
         // q가 있으면 공개 세계관 전체(색인이 켜져 있으면 그 후보)에서 거른 한 페이지다. 페이지의 카드·관계 수는 아래에서 그 한 페이지만 센다. q가 없으면 쿼리가 페이지를 자른다.
         val matched = searchTerm(q)?.let { matchingWorlds(code, it, request) }
@@ -226,17 +226,37 @@ class PublicWorldService(
      * 상한만 Fork 기준 회차다. 관계는 그 카드끼리의 [upto]화 시점(DEC-51) 것만 남긴다.
      * 인물 문서·카드 메타데이터·관계 본문 같은 작가용 값은 싣지 않는다. 방향·부정 여부는 관계의 뜻이라 남긴다. 작품·Fork 여부는 호출자([ai.storyfork.content.work.service.WorkWorldService])가 먼저 정한다.
      */
-    fun inheritedWorld(workId: String, worldId: UUID, upto: Int): InheritedWorldResponse {
+    fun inheritedWorld(workId: String, worldId: UUID, upto: Int): InheritedWorldResponse = readInherited(workId, worldId, upto).response
+
+    /**
+     * Fork 독립(#583)이 새 세계관으로 복사할 원본이다. [inheritedWorld]와 같은 읽기 한 번의 결과(같은 카드·관계 집합)에 출처 표시(원작 세계관 이름·읽은 확정 버전 번호·작가 닉네임)와
+     * 관계가 원작에서 보이기 시작한 회차를 더한다. 이어받을 카드가 없으면 null이다. 관계가 unavailable이어도 카드는 그대로 돌려주고 거절은 호출자가 한다.
+     * 작가 닉네임은 Core 조회라 이 함수만 부른다([inheritedWorld]는 부르지 않아 AI 읽기 경로가 Core 가용성에 묶이지 않는다).
+     */
+    fun inheritedSource(workId: String, worldId: UUID, upto: Int): InheritedSource? {
+        val read = readInherited(workId, worldId, upto)
+        if (read.response.cards.isEmpty()) return null
+        // 읽은 확정 버전의 이름·번호와 세계관 소유자는 바뀌지 않는 값이라 같은 읽기 뒤에 따로 읽어도 어긋나지 않는다.
+        val (revision, owner) = tx {
+            checkNotNull(revisions.findByIdAndWorldId(requireNotNull(read.revisionId), worldId)) to checkNotNull(worlds.findById(worldId).orElse(null)).ownerSubject.toString()
+        }
+        return InheritedSource(read.response, revision.name, revision.revisionNo, authors(listOf(owner)).getValue(owner), read.episodes)
+    }
+
+    /** [inheritedWorld]의 읽기 한 번이다: 응답과, 그 읽기가 본 확정 버전([revisionId])·관계 시작 회차([episodes])다. */
+    private class Inherited(val response: InheritedWorldResponse, val revisionId: UUID? = null, val episodes: Map<UUID, Int> = emptyMap())
+
+    private fun readInherited(workId: String, worldId: UUID, upto: Int): Inherited {
         val seen = tx { readerSnapshot(worldId, upto) }
-        if (seen.cards.isEmpty()) return InheritedWorldResponse(workId, worldId, upto)
+        if (seen.cards.isEmpty()) return Inherited(InheritedWorldResponse(workId, worldId, upto))
         val relations = currentRelationships(worldId, seen.state, requireNotNull(seen.revisionId), seen.shown, upto)
-        return InheritedWorldResponse(workId, worldId, upto,
+        return Inherited(InheritedWorldResponse(workId, worldId, upto,
             seen.cards.map { (card, from) ->
                 CardPayload(card.cardId, card.fields.title, hideCardLinks(card.fields.body, seen.shown), card.fields.cardType, card.fields.areaCode, card.fields.classification,
                     card.fields.aliases.toList(), card.fields.tags.toList(), mapOf("revealFromEpisode" to from), "public", "active")
             },
             relations?.rows.orEmpty().map { it.copy(body = "", semanticMetadata = emptyMap()) },
-            if (relations == null) "unavailable" else "current", seen.state?.graphVersion ?: 0)
+            if (relations == null) "unavailable" else "current", seen.state?.graphVersion ?: 0), seen.revisionId, relations?.episodes.orEmpty())
     }
 
     /**
@@ -328,7 +348,7 @@ class PublicWorldService(
                 !expansionPending(worldId) && worlds.findById(worldId).orElse(null)?.currentRevisionId==revisionId &&
                     latest!=null && latest.completed && latest.graphVersion==version && latest.requestKey==key && latest.requestHash==hash
             }
-            if(valid) Visible(visibleRelationships(stored.relationships,cardIds),if(withHistory) stored.history else emptyMap()) else null
+            if(valid) Visible(visibleRelationships(stored.relationships,cardIds),if(withHistory) stored.history else emptyMap(),stored.episodes) else null
         } catch (_: WorldStudioFailure) { null }
     }
 

@@ -62,14 +62,15 @@ private fun jsonRestClient(baseUrl: String, mapper: JsonMapper, readTimeout: Dur
 /**
  * A preserved Content 4xx whose own message is shown to the admin as is, so the admin can read why a record cannot be handled.
  * Only a call that opts in with `keepMessage` raises it: Content failure texts never embed raw or database content.
+ * [code] is Content's own error code (for example GENRE_NAME_TAKEN) when its body had one, so the screen can tell two 409 apart.
  */
-class UpstreamRejection(status: HttpStatusCode, val userMessage: String, cause: Throwable) : ResponseStatusException(status, null, cause)
+class UpstreamRejection(status: HttpStatusCode, val userMessage: String, cause: Throwable, val code: String? = null) : ResponseStatusException(status, null, cause)
 
 private val detailReader = JsonMapper.builder().build()
 
-/** The text of Content's `{ "detail": … }` error body; null for an empty, non-JSON or text-less body. UTF-8 is read from the bytes, not a header charset. */
-private fun RestClientResponseException.upstreamDetail(): String? = try {
-    detailReader.readTree(responseBodyAsByteArray).path("detail").takeIf { it.isString }?.stringValue()?.takeIf { it.isNotBlank() }
+/** The text of one field (`detail` or `code`) of Content's `{ "detail": …, "code": … }` error body; null for an empty, non-JSON or text-less body. UTF-8 is read from the bytes, not a header charset. */
+private fun RestClientResponseException.upstreamText(field: String): String? = try {
+    detailReader.readTree(responseBodyAsByteArray).path(field).takeIf { it.isString }?.stringValue()?.takeIf { it.isNotBlank() }
 } catch (_: JacksonException) {
     null
 }
@@ -83,8 +84,8 @@ internal fun <T : Any> upstream(preserved: Set<Int> = setOf(400, 404, 409), keep
         call()
     } catch (error: RestClientResponseException) {
         val kept = error.statusCode.value() in preserved
-        val message = if (kept && keepMessage) error.upstreamDetail() else null
-        throw if (message != null) UpstreamRejection(error.statusCode, message, error)
+        val message = if (kept && keepMessage) error.upstreamText("detail") else null
+        throw if (message != null) UpstreamRejection(error.statusCode, message, error, error.upstreamText("code"))
         else ResponseStatusException(if (kept) error.statusCode else HttpStatus.BAD_GATEWAY, null, error)
     } catch (error: RestClientException) {
         // Keep the cause for server logs; the response body stays the generic UPSTREAM_FAILED DTO.

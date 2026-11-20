@@ -293,3 +293,83 @@ it.each(['unavailable', 'failed'])('초기 인증 잠금 %s 오류를 안내한�
   render(<Provider store={createAppStore()}><MemoryRouter><App /></MemoryRouter></Provider>)
   expect((await screen.findByRole('alert')).textContent).toContain('브라우저')
 })
+
+// ── #620: 없는 주소의 404 화면과 로그인 상태의 /login·/me/signup ─────────────────────────────
+
+const member = { id: '1', email: 'reader@example.com', nickname: '독자', operator: false }
+
+/** 세션 복원(/refresh)이 이 회원으로 끝나는 서버. 그 밖의 요청은 내용 없는 성공이다. */
+function restoreMember() {
+  vi.stubGlobal('fetch', vi.fn(async (path: string) =>
+    path.endsWith('/csrf') ? Response.json({ csrfToken: 'csrf' })
+      : path.endsWith('/refresh') ? Response.json({ accessToken: 'token', user: member })
+        : new Response(null, { status: 204 })))
+}
+
+/** 앱 전체(App)와 현재 주소 표시. */
+function renderAppAt(path: string, store = createAppStore()) {
+  render(<Provider store={store}><MemoryRouter initialEntries={[path]} useTransitions={false}><App /><Where /></MemoryRouter></Provider>)
+  return store
+}
+
+describe('알 수 없는 주소 (#620)', () => {
+  it('없는 주소는 홈으로 보내지 않고 주소를 그대로 둔 채 404 화면을 보여 준다', async () => {
+    const path = '/no-such-page'
+    renderAppAt(path)
+    await screen.findByRole('heading', { name: '페이지를 찾을 수 없어요', level: 1 })
+    expect(screen.getByText('주소가 바뀌었거나 삭제된 페이지예요.')).toBeTruthy()
+    expect(screen.getByRole('link', { name: '홈으로' }).getAttribute('href')).toBe('/')
+    expect(screen.getByRole('link', { name: '작품 둘러보기' }).getAttribute('href')).toBe('/search')
+    expect(document.title).toBe('페이지를 찾을 수 없어요 · STORYFORK')
+    expect(screen.getByTestId('where').textContent).toBe(path)
+  })
+})
+
+describe('로그인한 채 /login·/me/signup (#620)', () => {
+  it.each([['/login', '로그인'], ['/me/signup', '회원가입']])('로그인 상태로 %s에 들어오면 세션 복원이 끝난 뒤 메인(/)으로 보낸다', async (path, title) => {
+    restoreMember()
+    const store = renderAppAt(path)
+    await waitFor(() => expect(screen.getByTestId('where').textContent).toBe('/'))
+    expect(store.getState().session.role).toBe('user')
+    expect(screen.queryByRole('heading', { name: title, level: 1 })).toBeNull()
+  })
+
+  it('세션 복원이 끝나기 전에는 Store에 남은 로그인 값만 보고 홈으로 보내지 않는다', async () => {
+    let finish!: (response: Response) => void
+    const pending = new Promise<Response>((resolve) => { finish = resolve })
+    vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'csrf' }) : pending))
+    renderAppAt('/login', createAppStore({ role: 'user' }))
+    expect(screen.getByRole('heading', { name: '로그인', level: 1 })).toBeTruthy()
+    expect(screen.getByTestId('where').textContent).toBe('/login')
+    await act(async () => { finish(Response.json({ accessToken: 'token', user: member })) })
+    await waitFor(() => expect(screen.getByTestId('where').textContent).toBe('/'))
+  })
+
+  it('복원 결과가 비로그인이면 /login은 폼을 그대로 보이고 주소를 바꾸지 않는다', async () => {
+    const store = renderAppAt('/login', createAppStore({ role: 'user' }))
+    await waitFor(() => expect(store.getState().session.role).toBeNull())
+    expect(screen.getByRole('heading', { name: '로그인', level: 1 })).toBeTruthy()
+    expect(screen.getByTestId('where').textContent).toBe('/login')
+  })
+
+  it('보호 화면이 다른 계정의 로그인을 요구해 보낸 로그인 상태는 홈으로 돌리지 않고 폼을 보인다', async () => {
+    restoreMember()
+    const store = renderAppAt('/admin?tab=users')
+    await screen.findByText('관리자 화면은 관리자 계정으로 로그인해야 볼 수 있어요.')
+    expect(screen.getByRole('heading', { name: '로그인', level: 1 })).toBeTruthy()
+    expect(screen.getByTestId('where').textContent).toBe('/login')
+    expect(store.getState().session).toMatchObject({ role: 'user', next: '/admin?tab=users' })
+  })
+
+  it('보호 화면에서 로그인하면 방금 한 로그인을 메인으로 가로채지 않고 원래 주소로 돌아간다 (전환 렌더)', async () => {
+    // useTransitions를 켠 라우터는 이동을 로그인 상태 변경보다 늦게 렌더하므로, 로그인한 채 /login이 한 번 그려진다.
+    const path = '/worldstudio/owned-world?tab=cards'
+    const store = createAppStore()
+    render(<Provider store={store}><MemoryRouter initialEntries={[path]}><App /></MemoryRouter></Provider>)
+    await screen.findByRole('heading', { name: '로그인', level: 1 })
+    submitLogin('reader@example.com')
+    await screen.findByRole('heading', { name: '세계관 작업실' })
+    expect(screen.getByTestId('world-location').textContent).toBe(path)
+    expect(store.getState().session).toMatchObject({ role: 'user', next: null })
+  })
+})

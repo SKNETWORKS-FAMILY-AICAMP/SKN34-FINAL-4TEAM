@@ -1,4 +1,4 @@
-"""Writing & Editing(#62·#387): 전개 기획(BeatPlan), 새 회차 원고(Text), 선택 구간 수정(before/after Patch)을 별개 결과로 만든다.
+"""Writing & Editing(#62·#387·#578): 전개 기획(BeatPlan), 새 회차 원고(Text), 선택 구간 수정(before/after Patch), 저장된 플롯·장면 계획의 수정안(PlanRevision)을 별개 결과로 만든다.
 
 기획은 계획만 돌려주고 원고를 만들지 않는다. 계획 없이 바로 집필하면 계획 하나를 정한 뒤 그 계획으로 원고를 쓴다(plan_and_draft).
 
@@ -9,11 +9,13 @@ Content가 권한·판본·선택 범위를 확정해 허용 자료만 보낸다
 
 from app import agent_runtime
 from app.writing.errors import WritingFailure
-from app.writing.models import (DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanOutput, PlanRequest,
-                                PlanResponse)
-from app.writing.prompt import DRAFT_INSTRUCTIONS, PATCH_INSTRUCTIONS, PLAN_INSTRUCTIONS
+from app.writing.models import (PLAN_CONTENT_MAX, PLAN_TITLE_MAX, DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanOutput, PlanPick,
+                                PlanPickRequest, PlanRequest, PlanResponse, PlanReviseRequest, PlanRevision, PlanText)
+from app.writing.prompt import (DRAFT_INSTRUCTIONS, PATCH_INSTRUCTIONS, PICK_PLAN_INSTRUCTIONS, PLAN_INSTRUCTIONS,
+                                REVISE_PLAN_INSTRUCTIONS)
 
 BAD_PLAN = '기획 모델 응답을 확인할 수 없습니다.'
+BAD_REVISION = '계획 수정 모델 응답을 확인할 수 없습니다.'
 
 
 def draft(data: DraftRequest) -> DraftResponse:
@@ -45,6 +47,25 @@ def patch(data: PatchRequest) -> PatchResponse:
     """선택 구간 하나를 수정 지시대로 고친 before/after 제안을 만든다."""
     after, meta = _write('patch', 2000, PATCH_INSTRUCTIONS, data)
     return PatchResponse(before=data.selection, after=after, **meta)
+
+
+def pick_plan(data: PlanPickRequest) -> str | None:
+    """계획 수정 모델 호출 1: 요청이 가리키는 계획 하나의 id. 하나로 정할 수 없으면 None이다. 목록에 있는지는 호출한 쪽이 확인한다."""
+    _, result = agent_runtime.run('writing.plan_pick', '계획 선택', WritingFailure, PICK_PLAN_INSTRUCTIONS, data.model_dump(),
+                                  prompt_name='writing_editing.plan_pick', max_tokens=200, timeout=30, trace=data.model_dump(), schema=PlanPick)
+    return result.planId
+
+
+def revise_plan(data: PlanReviseRequest) -> PlanRevision:
+    """계획 수정 모델 호출 2: 고를 계획의 제목·내용만 지시대로 고친 변경 전·후 제안. 한도를 넘거나 바뀐 것이 없으면 502이며 저장하지 않는다."""
+    message, result = agent_runtime.run('writing.plan_revise', '계획 수정', WritingFailure, REVISE_PLAN_INSTRUCTIONS,
+                                        data.model_dump(exclude={'revision'}), prompt_name='writing_editing.plan_revise', max_tokens=8000,
+                                        timeout=90, trace=data.model_dump(exclude={'revision'}), schema=PlanText)
+    before, after = PlanText(title=data.plan.title, content=data.content), PlanText(title=result.title.strip(), content=result.content.strip())
+    changed = (before.title.strip(), before.content.strip()) != (after.title, after.content)
+    if not after.title or len(after.title) > PLAN_TITLE_MAX or len(after.content) > PLAN_CONTENT_MAX or not changed:
+        raise WritingFailure(502, BAD_REVISION)
+    return PlanRevision(planId=data.plan.id, kind=data.plan.kind, revision=data.revision, before=before, after=after, **agent_runtime.meta(message))
 
 
 def _write(kind: str, max_tokens: int, instructions: str, data: DraftRequest | PatchRequest) -> tuple[str, dict]:

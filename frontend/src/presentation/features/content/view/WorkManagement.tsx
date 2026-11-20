@@ -68,8 +68,8 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
         onSuggestTags={vm.suggestTags}
         onSavePolicy={vm.policy}
         onStopFork={vm.stopFork}
-        onDeleteFork={async () => {
-          const deleted = await vm.deleteFork()
+        onDeleteWork={async () => {
+          const deleted = await vm.deleteWork()
           if (deleted) onDeleted()
           return deleted
         }}
@@ -100,8 +100,8 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
       {tab === 'settings' && <WorkSettingsPanel workId={w.id} useCase={useCase} />}
       {tab === 'world' && (
         <>
-          <LinkedWorldPanel work={w} busy={locked} onLink={vm.linkWorld} error={vm.origin === 'link' ? vm.error : ''} notice={vm.origin === 'link' ? vm.notice : ''} />
-          <WorldPanel workId={w.id} useCase={useCase} />
+          <LinkedWorldPanel work={w} busy={locked} onLink={vm.linkWorld} onDetach={vm.detachWorld} error={vm.origin === 'link' ? vm.error : ''} notice={vm.origin === 'link' ? vm.notice : ''} detachError={vm.origin === 'detach' ? vm.error : ''} useCase={useCase} />
+          <WorldPanel workId={w.id} useCase={useCase} locked={locked} onMediaBusy={setMediaBusy} />
         </>
       )}
       {tab === 'history' && (

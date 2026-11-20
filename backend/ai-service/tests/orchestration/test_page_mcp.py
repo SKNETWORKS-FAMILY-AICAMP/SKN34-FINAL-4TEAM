@@ -299,8 +299,8 @@ def test_a_selected_text_runs_the_patch_without_waiting_for_input_while_without_
 
 def test_the_write_approval_coexists_with_an_input_wait_and_the_outer_apply_approval_in_one_turn(monkeypatch):
     # 최소 재현: 같은 체크포인터에서 HITL(쓰기 승인) → 입력 대기(웹 조사 질문) → 바깥 apply 승인이 차례로 멈추고 이어진다.
-    routed = Planned(DecisionResult(allowed=True, capabilities=['web_research', 'writing_editing']),
-                     [('world_studio_edit_draft', EDIT), ('ask_web_research', {}), ('ask_writing', {'task': 'draft'})])
+    routed = Planned(DecisionResult(allowed=True, capabilities=['research', 'writing_editing']),
+                     [('world_studio_edit_draft', EDIT), ('ask_research', {'task': 'web'}), ('ask_writing', {'task': 'draft'})])
     fake_agents(monkeypatch, routed)
     log = content(monkeypatch)
     applied = []
@@ -310,11 +310,11 @@ def test_the_write_approval_coexists_with_an_input_wait_and_the_outer_apply_appr
     data = OrchestrationRequest(conversation={'threadId': thread, 'scope': SCOPE},
                                 resume={'approved': True})
     asked = asyncio.run(service.run(data, 'Bearer user'))
-    assert (asked.status, asked.missingInputs) == ('waiting', ['web_research']) and len(writes(log)) == 1
+    assert (asked.status, asked.missingInputs) == ('waiting', ['research']) and len(writes(log)) == 1
     answer = OrchestrationRequest(conversation={'threadId': thread, 'scope': SCOPE},
-                                  resume={'approved': True, 'inputs': {'web_research': {'question': '조선 후기 한양에서 동래까지 며칠?'}}})
+                                  resume={'approved': True, 'inputs': {'research': {'question': '조선 후기 한양에서 동래까지 며칠?'}}})
     approval = asyncio.run(service.run(answer, 'Bearer user'))
     assert (approval.status, approval.awaitingApproval) == ('waiting', 'writing_editing')
-    assert [(s.feature, s.status) for s in approval.steps] == [('content_action', 'completed'), ('web_research', 'completed'), ('writing_editing', 'completed')]
+    assert [(s.feature, s.status) for s in approval.steps] == [('content_action', 'completed'), ('research', 'completed'), ('writing_editing', 'completed')]
     done = resume(thread, True)
     assert done.status == 'completed' and applied == [3] and len(writes(log)) == 1

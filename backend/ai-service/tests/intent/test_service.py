@@ -211,7 +211,7 @@ def test_every_feature_has_a_name_in_the_clarify_question():
 @pytest.mark.parametrize('text, feature', [
     ('작품 질문', 'story_context'), ('원고 검수', 'manuscript_review'), ('인물 시뮬레이션', 'character_simulation'),
     ('기획·집필·수정', 'writing_editing'), ('전개 제안', 'writing_editing'), ('집필·수정', 'writing_editing'),
-    ('고증 조사', 'web_research'), ('심의 등급', 'rating'),
+    ('고증 조사', 'research'), ('심의 등급', 'rating'),
     ('세계관', 'world'), (' 세계관 ', 'world'),
     ('기획 집필 수정', 'writing_editing'), ('기획ㆍ집필ㆍ수정', 'writing_editing'), (' 인물  시뮬레이션 ', 'character_simulation'),
 ])

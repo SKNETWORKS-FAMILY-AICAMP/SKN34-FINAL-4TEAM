@@ -29,15 +29,17 @@ const ACTIONS = new Map([
   ['PROMPT_CREATE', '프롬프트 버전 등록'], ['PROMPT_PROMOTE', '프롬프트 승격·복원'], ['MODEL_CREATE', '모델 등록'], ['EVALUATION_RUN', '회귀 평가 실행'],
   ['ALERT_ACKNOWLEDGE', '경고 확인'], ['ALERT_RESOLVE', '경고 조치 완료'], ['ALERT_RULE_UPDATE', '경고 기준 변경'], ['LLMOPS_SETTING_UPDATE', 'LLMOps 설정 변경'],
   ['JOB_SCHEDULE_CREATE', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATE', '정기 작업 일정 변경'], ['JOB_SCHEDULE_CANCEL', '정기 작업 일정 취소'], ['JOB_RETRY', '작업 실패 재실행'],
+  // DEC-56 장르 관리(운영 서비스가 남기는 조치)
+  ['GENRE_CREATE', '장르 추가'], ['GENRE_UPDATE', '장르 수정'], ['GENRE_REORDER', '장르 순서 변경'],
 ])
 const TARGETS = new Map([['MEMBER', '회원'], ['REPORT', '신고'], ['WORK', '작품'], ['NOTICE', '공지'], ['EVENT', '이벤트'], ['INQUIRY', '문의'], ['COMMENT', '댓글'], ['JOB_SCHEDULE', '정기 작업 일정'], ['JOB_RUN', '작업 실행'],
-  ['PROMPT', '프롬프트'], ['MODEL', '모델'], ['EVALUATION', '회귀 평가'], ['ALERT', '경고'], ['ALERT_RULE', '경고 기준'], ['LLMOPS_SETTING', 'LLMOps 설정']])
+  ['PROMPT', '프롬프트'], ['MODEL', '모델'], ['EVALUATION', '회귀 평가'], ['ALERT', '경고'], ['ALERT_RULE', '경고 기준'], ['LLMOPS_SETTING', 'LLMOps 설정'], ['GENRE', '장르']])
 
 /** 모르는 조치는 코드 그대로 보여 줍니다. */
 export const activityActionLabel = (action: string) => ACTIONS.get(action) ?? action
-/** 대상은 "종류 이름 ID"입니다. 모르는 종류는 코드 그대로, ID가 없으면 종류만 보여 줍니다. */
+/** 대상은 "종류 이름 ID"입니다. 모르는 종류는 코드 그대로, ID가 없으면 종류만 보여 줍니다. 장르 순서 변경은 특정 장르가 아니라 목록 전체(ID `order`)입니다. */
 export const activityTarget = ({ targetType, targetId }: Pick<AdminActivity, 'targetType' | 'targetId'>) =>
-  [TARGETS.get(targetType) ?? targetType, targetId].filter(Boolean).join(' ')
+  targetType === 'GENRE' && targetId === 'order' ? '장르 목록' : [TARGETS.get(targetType) ?? targetType, targetId].filter(Boolean).join(' ')
 /** 수행자는 닉네임이고, 관리자 해제·탈퇴로 닉네임이 없으면 ID입니다. */
 export const activityActor = ({ actorId, actorNickname }: Pick<AdminActivity, 'actorId' | 'actorNickname'>) => actorNickname || actorId
 
@@ -53,6 +55,8 @@ const isReportStatus = (value: string): value is ReportStatus => REPORT_STATUSES
 export function activityDetail({ action, detail }: Pick<AdminActivity, 'action' | 'detail'>): string | null {
   if (!detail || ID_ONLY.has(action)) return null
   if (action === 'REPORT_REVIEW') return isReportStatus(detail) ? reportStatusLabel(detail) : detail
+  // 장르 순서 변경의 내역은 장르 코드 목록(쉼표)이라 개수로만 보입니다.
+  if (action === 'GENRE_REORDER') return `${detail.split(',').filter(Boolean).length}개 장르의 순서`
   if (action === 'ADMIN_CREATE') {
     const [email, keys] = detail.split(' · ')
     if (keys === undefined) return detail

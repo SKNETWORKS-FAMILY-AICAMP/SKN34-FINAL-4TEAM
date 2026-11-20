@@ -7,6 +7,7 @@ import { InMemoryPublicWorldRepository } from '../../data/mock/InMemoryPublicWor
 import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
 import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
+import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../data/mock/InMemoryGenreRepositories'
 import { InMemoryOperationsCommentRepository } from '../../data/mock/InMemoryOperationsCommentRepository'
 import { InMemoryAdminActivityRepository } from '../../data/mock/InMemoryAdminActivityRepository'
 import { InMemoryJobMonitorRepository, InMemoryLlmOpsRepository, InMemoryOperationsDashboardRepository } from '../../data/mock/InMemoryLlmOpsRepositories'
@@ -42,7 +43,12 @@ export function registerMockupServices(container: AppContainer) {
   const mediaRepository = Object.assign(new HttpMediaRepository(), mockupUnsupportedMedia)
   const manuscriptRepository = createMockupManuscriptRepository(episodeRepository)
   const creditLedgerRepository = new InMemoryCreditLedgerRepository(mockDb)
+  // 운영 장르 관리와 공개 장르 목록(작가 선택지·홈 칩·세계관 장르 이름)이 같은 메모리 목록을 봅니다.
+  const operationsGenreRepository = new InMemoryOperationsGenreRepository()
+  const genreRepository = new InMemoryGenreRepository(operationsGenreRepository)
   container.register({
+    operationsGenreRepository: asValue(operationsGenreRepository),
+    genreRepository: asValue(genreRepository),
     // 운영 이벤트 API 대신 메모리에만 등록·공개합니다.
     eventRepository: asValue(eventRepository),
     eventUseCase: asValue(new EventUseCase(eventRepository)),
@@ -57,7 +63,7 @@ export function registerMockupServices(container: AppContainer) {
     llmOpsRepository: asValue(new InMemoryLlmOpsRepository()),
     jobMonitorRepository: asValue(new InMemoryJobMonitorRepository()),
     // 검색 저장소를 주지 않아 홈 순위·검색은 서버 호출 없이 메모리 데모를 유지하고, 독서 기록도 mockDb.progress 메모리입니다.
-    readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository, readingRecordRepository)),
+    readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, undefined, undefined, genreRepository)),
     episodeRepository: asValue(episodeRepository),
     episodeUseCase: asValue(new EpisodeUseCase(episodeRepository)),
     // 가져오기·EPUB/발행본 내보내기·첨부 이름 변경·회차 이미지 관리는 데모 미지원 오류로 답하고(성공을 흉내 내지 않음), 집필실 TXT 초안 내보내기만 메모리 원고로 만듭니다.

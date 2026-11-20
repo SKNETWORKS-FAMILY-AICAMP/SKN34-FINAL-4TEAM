@@ -4,7 +4,7 @@ import { createFixtureDb } from '../../data/mock/fixtureDb'
 import { InMemoryFeedbackRepository, InMemoryReadingRecordRepository, InMemoryWorkRepository, InMemoryWorldRepository } from '../../data/mock/InMemoryRepositories'
 import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
 import type { WorkInterestRepository } from '../repositories/WorkInterestRepository'
-import { LibraryUseCase, IMPORT, NOVEL_GENRES, type NewWorkInput } from '../usecases/LibraryUseCase'
+import { LibraryUseCase, IMPORT, type NewWorkInput } from '../usecases/LibraryUseCase'
 
 const setup = () => {
   const db = createFixtureDb(), records = new InMemoryReadingRecordRepository(db)
@@ -16,11 +16,6 @@ const base = (worldIds: string[]): NewWorkInput => ({
 })
 
 describe('LibraryUseCase · 새 소설 (목업 createWork)', () => {
-  it('장르 목록은 목업 NOVEL_GENRES 30개다', () => {
-    expect(NOVEL_GENRES).toHaveLength(30)
-    expect(NOVEL_GENRES.slice(0, 3)).toEqual(['판타지', '현대판타지', '무협'])
-  })
-
   it('세계관 0·6개, 요일 없음, 태그 1개, 제목·인물 없음을 차례로 거부한다', async () => {
     const { useCase } = setup()
     expect(await useCase.createWork(base([]))).toEqual({ error: '세계관을 1~5개 선택해 주세요' })

@@ -85,7 +85,7 @@ describe('목업 새 소설 만들기 (U28)', () => {
   it('세계관을 만들어도 작성 중인 정보가 남고, 실패는 Toast로 알린 뒤 집필실로 간다', async () => {
     renderAt('/new')
     await acceptPolicy()
-    expect(within(screen.getByLabelText('장르')).getAllByRole('option')).toHaveLength(30)
+    await waitFor(() => expect(within(screen.getByLabelText('장르')).getAllByRole('option')).toHaveLength(30)) // 선택지는 공개 장르 목록(서버)이라 읽은 뒤에 그려진다
     fireEvent.change(screen.getByLabelText('제목'), { target: { value: '작성 중인 작품' } })
     const create = document.getElementById('worldCreate')!
     fireEvent.change(within(create).getByLabelText('이름'), { target: { value: '새 세계' } })

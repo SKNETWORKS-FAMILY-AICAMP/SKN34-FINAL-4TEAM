@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, JOB_STATUSES, jobKindLabel, jobProgress, jobSourceLabel, jobStatusLabel, jobTriggerLabel, type JobRun, type Schedule } from '../../../../domain/entities/jobMonitor'
 import { kstDateTime } from '../../../shared/format'
+import { MoreVerticalIcon } from '../../../shared/icons'
+import { PopMenu } from '../../../shared/PopMenu'
 import { useJobMonitorViewModel } from '../viewmodel/useJobMonitorViewModel'
 import type { useAdminViewModel } from '../viewmodel/useAdminViewModel'
 import { formText } from './formValue'
@@ -10,7 +12,7 @@ import { ActionLines, LiveState, Pager, Table } from './OperationsPanels'
 type VM = ReturnType<typeof useAdminViewModel>
 type Jobs = ReturnType<typeof useJobMonitorViewModel>
 
-const statusChip = (status: string) => <span className={`chip ${status === 'succeeded' ? 'ok' : status === 'failed' ? 'wait' : ''}`}>{jobStatusLabel(status)}</span>
+const statusChip = (status: string) => <span className={`chip ${status === 'succeeded' ? 'ok' : status === 'failed' ? 'bad' : ''}`}>{jobStatusLabel(status)}</span>
 
 /** 35 작업 감시·정기 작업: 회차 원고 전처리와 운영 정기 작업을 같은 실행 기록으로 보고, 실패 재실행과 일정 관리를 요청합니다. */
 export function JobMonitor({ vm }: { vm: VM }) {
@@ -73,7 +75,7 @@ function Runs({ vm, j }: { vm: VM; j: Jobs }) {
                   <th scope="col">시작</th>
                   <th scope="col">종료</th>
                   <th scope="col">오류·대상</th>
-                  <th scope="col" className="act">조치</th>
+                  <th scope="col" className="act act-menu"><span className="sr-only">조치</span></th>
                 </tr>
               </thead>
               <tbody>{page.items.map((run) => <RunRow key={run.id} run={run} j={j} busy={!!vm.actions[`run:${run.id}`]?.pending} />)}</tbody>
@@ -100,24 +102,25 @@ function RunRow({ run, j, busy }: { run: JobRun; j: Jobs; busy: boolean }) {
         {progress && progress.total > 0 && <progress value={progress.done} max={progress.total} aria-label={`${kind} 진행률`} />}
         <div className="small">{jobProgress(progress)}</div>
       </td>
-      <td>{run.startedAt ? kstDateTime(run.startedAt) : '—'}</td>
-      <td>{run.finishedAt ? kstDateTime(run.finishedAt) : '—'}</td>
+      <td className="admin-date">{run.startedAt ? kstDateTime(run.startedAt) : '—'}</td>
+      <td className="admin-date">{run.finishedAt ? kstDateTime(run.finishedAt) : '—'}</td>
       <td>
         {run.error ?? '—'}
         {run.targetId && <div className="small muted">대상 {run.targetId}</div>}
       </td>
-      <td>
+      <td className="act-menu">
         {run.status === 'failed'
           ? (
-            <button
-              type="button"
-              className="btn sm"
-              aria-label={`${kind} 실행 ${run.id} 다시 실행`}
-              disabled={busy}
-              onClick={() => { if (window.confirm('실패한 작업을 다시 실행할까요? 원고 전처리는 실패한 회차만 다시 접수돼요.')) void j.retry(run.id) }}
-            >
-              다시 실행
-            </button>
+            <PopMenu className="row-menu" label={`「${kind} 실행 ${run.id}」 조치`} icon={<MoreVerticalIcon />}>
+              <button
+                type="button"
+                role="menuitem"
+                disabled={busy}
+                onClick={() => { if (window.confirm('실패한 작업을 다시 실행할까요? 원고 전처리는 실패한 회차만 다시 접수돼요.')) void j.retry(run.id) }}
+              >
+                다시 실행
+              </button>
+            </PopMenu>
           )
           : '—'}
       </td>
@@ -143,7 +146,7 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
                 <th scope="col">사용</th>
                 <th scope="col">매개변수</th>
                 <th scope="col">최근 실행</th>
-                <th scope="col" className="act">조치</th>
+                <th scope="col" className="act act-menu"><span className="sr-only">조치</span></th>
               </tr>
             </thead>
             <tbody>
@@ -155,20 +158,20 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
                     <td>{row.cron}</td>
                     <td><span className={`chip ${row.enabled ? 'ok' : 'wait'}`}>{row.enabled ? '켜짐' : '꺼짐·취소됨'}</span></td>
                     <td>{Object.keys(row.params).length ? JSON.stringify(row.params) : '—'}</td>
-                    <td>{row.lastRun ? <>{statusChip(row.lastRun.status)} <span className="small muted">{row.lastRun.startedAt ? kstDateTime(row.lastRun.startedAt) : ''}</span></> : '—'}</td>
-                    <td>
-                      <div className="admin-inline">
-                        <button type="button" className="btn sm" aria-label={`${kind} 일정 수정`} disabled={busy} onClick={() => setEditing(row)}>수정</button>
+                    <td>{row.lastRun ? <>{statusChip(row.lastRun.status)} <span className="small muted admin-date">{row.lastRun.startedAt ? kstDateTime(row.lastRun.startedAt) : ''}</span></> : '—'}</td>
+                    <td className="act-menu">
+                      <PopMenu className="row-menu" label={`「${kind} 일정」 조치`} icon={<MoreVerticalIcon />}>
+                        <button type="button" role="menuitem" disabled={busy} onClick={() => setEditing(row)}>수정</button>
                         <button
                           type="button"
-                          className="btn sm"
-                          aria-label={`${kind} 일정 취소`}
+                          role="menuitem"
+                          className="danger"
                           disabled={busy || !row.enabled}
                           onClick={() => { if (window.confirm(`${kind} 일정을 취소할까요? 일정은 삭제되지 않고 꺼져요.`)) void j.cancelSchedule(row.id) }}
                         >
                           일정 취소
                         </button>
-                      </div>
+                      </PopMenu>
                     </td>
                   </tr>
                 )

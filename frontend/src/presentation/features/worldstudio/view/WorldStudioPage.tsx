@@ -16,7 +16,6 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
-import { genreLabel } from '../../../shared/worldGenres'
 import { labelOf } from '../viewmodel/settingBoard'
 import { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import { UNLISTED_HINT } from '../viewmodel/worldPublication'
@@ -31,7 +30,7 @@ import { useWorldChatPage } from '../viewmodel/useWorldChatPage'
 import { WorldChat } from './WorldChat'
 import { WorldCreate } from './WorldCreate'
 import { WorldLinkedLine, WorldNovelButton } from './WorldLinkedWork'
-import { PublicCardsNotice, PublishFields } from './WorldPublishFields'
+import { GenreChip, PublicCardsNotice, PublishFields } from './WorldPublishFields'
 import { RelationEpisodePicker } from './RelationEpisodePicker'
 import { WorldRelationshipEditor } from './WorldRelationshipEditor'
 import { WorldRevisions } from './WorldRevisions'
@@ -65,6 +64,8 @@ export function WorldStudioPage() {
   const [chatOpen, setChatOpen] = useState(() => !window.matchMedia?.('(max-width: 1200px)').matches)
   const chatPage = useWorldChatPage(vm)
   const loading = !!vm.reviewWorldId && !vm.editing && !vm.error
+  // 세계관을 열지 못한 상태(편집 중 저장 실패와 달리 편집 내용이 없어, 다시 읽어도 잃는 입력이 없다).
+  const failed = !!vm.reviewWorldId && !vm.editing && !!vm.error
   const editingCard = !!vm.editing && !!vm.selected
   // 확정 버전 목록·남기기는 설정집 화면의 `확정 버전 남기기`와 편집 화면의 버전 그래프가 같은 훅·같은 시트를 쓴다(공개 목록에 나오려면 확정 버전이 필요하다).
   const revisions = useWorldRevisions(vm.reviewWorldId, !!vm.editing, vm.saved, vm.dirty || vm.relationDirty, vm.reload, vm.setReviewBusy)
@@ -80,6 +81,12 @@ export function WorldStudioPage() {
           </div>
           {/* 편집 화면이 열려 있는 동안은 같은 오류·알림을 그 화면이 보인다(숨은 설정집 화면에 같은 글이 겹쳐 있지 않게 한다). */}
           {!editingCard && vm.error && <p role="alert" className="ep-alert">{vm.error}</p>}
+          {failed && (
+            <div className="ep-card-actions">
+              <button type="button" className="btn sm" disabled={vm.busy} onClick={vm.retryLoad}>다시 시도</button>
+              <Go to="/lib?tab=worlds" className="btn sm">내가 만드는 세계관으로 돌아가기</Go>
+            </div>
+          )}
           {!editingCard && vm.message && <p role="status" className="ep-notice">{vm.message}</p>}
           {!editingCard && <McpChangeBanner {...mcp} />}
           {loading && <p role="status" className="ep-notice">세계관을 불러오고 있어요…</p>}
@@ -153,7 +160,7 @@ function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: Stud
           <span className="chip">설정 {cardLibraryRows(saved.settings, 'all', '').length}개</span>
           <span className="chip">저장 버전 {saved.version}</span>
           <span className={'chip' + (visibility === 'public' ? ' ok' : '')}>{visibility === 'public' ? '공개' : '비공개'}</span>
-          {genre && <span className="chip">{genreLabel(genre)}</span>}
+          {genre && <GenreChip code={genre} />}
           {!manage && <span role="status" className={'chip ' + state.tone}>{state.text}</span>}
           {vm.relationDirty && <span role="status" className="chip wait">관계 입력 미적용</span>}
         </div>
