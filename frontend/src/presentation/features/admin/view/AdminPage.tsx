@@ -19,6 +19,7 @@ import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { LIVE_TABS, useAdminViewModel, useForkIntegrity } from '../viewmodel/useAdminViewModel'
+import { AdminGenres } from './AdminGenres'
 import { JobMonitor } from './JobMonitor'
 import { LlmOps } from './LlmOps'
 import { OperationsDashboard } from './OperationsDashboard'
@@ -34,7 +35,7 @@ type Data = NonNullable<VM['data']>
  */
 const GROUPS: [string, [AdminTab, string, LlmPage?][]][] = [
   ['회원 관리', [['users', '사용자'], ['admins', '관리자 계정·권한']]],
-  ['콘텐츠 관리', [['works', '작품'], ['rights', '신고·권리'], ['comments', '댓글'], ['characterChats', '캐릭터챗']]],
+  ['콘텐츠 관리', [['works', '작품'], ['rights', '신고·권리'], ['comments', '댓글'], ['characterChats', '캐릭터챗'], ['genres', '장르']]],
   ['소통 관리', [['feedback', '제보·문의'], ['notices', '공지'], ['events', '이벤트']]],
   ['LLM Ops', LLM_PAGES.map(([page, label]): [AdminTab, string, LlmPage] => ['llm', label, page])],
   ['서비스 운영', [['jobs', '정기 작업'], ['credits', '크레딧'], ['audit', '활동 로그']]],
@@ -52,6 +53,7 @@ const TITLES: Record<Exclude<AdminTab, 'llm'>, [string, string]> = {
   admins: ['관리자 계정과 권한', '업무별 접근 권한을 나누어 관리자 계정을 추가합니다.'],
   users: ['사용자 관리', '회원 목록을 조회하고 이용 제한·해제를 요청합니다.'],
   works: ['작품 관리', '작품의 공개 상태와 이용 권리를 조회하고 운영 제한·해제를 요청합니다.'],
+  genres: ['장르 관리', '작품·세계관이 함께 쓰는 장르를 추가하고 이름·아이콘·숨김·홈 노출·순서를 관리합니다.'],
   characterChats: [
     '캐릭터챗 관리',
     '공개 작품의 원작·포크와 캐릭터를 선택해 챗을 추가하거나 운영 상태를 바꿉니다.',
@@ -70,7 +72,7 @@ const TITLES: Record<Exclude<AdminTab, 'llm'>, [string, string]> = {
 }
 const KINDS: [string, string][] = [['all', '전체'], ['original', '원작'], ['fork', '포크']]
 /** 데모 조회를 쓰지 않는 운영 API 탭: 상단 '목록 새로고침'(데모 조회만 다시 읽음) 대신 자기 패널의 새로고침·조회를 씁니다. */
-const OPS_TABS: AdminTab[] = ['data', 'llm', 'jobs']
+const OPS_TABS: AdminTab[] = ['data', 'llm', 'jobs', 'genres']
 /** 작품 탭의 권리 표시값. 검색도 화면에 보이는 이 문구로 합니다. */
 const rightsLabel = (w: OperationsWork) =>
   `${w.creationType === 'external_derivative' ? '외부 2차 창작' : '원작'} · ${w.rightsConfirmed ? '권리 확인됨' : '권리 미확인'}`
@@ -78,7 +80,7 @@ const has = (q: string, ...xs: string[]) =>
   !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
 const blocked = (vm: VM, key: string) => vm.mutationsBlocked || !!vm.actions[key]?.pending
 /** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리와 대시보드·LLMOps·작업 감시 패널)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
-const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule']
+const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule', 'genre']
 const IN_FORM = new RegExp(`^(notice|event|inquiry|report|${OPS_PANEL_KINDS.join('|')}):`)
 /** 행 조치 키(`member:<id>` 등)의 대상을 화면에 보이는 이름으로 바꿉니다. 목록에서 찾지 못하면 이름 없이 안내합니다. */
 function actionTarget(vm: VM, key: string): string | undefined {
@@ -341,6 +343,7 @@ function Body(p: BodyProps) {
   if (tab === 'data') return <OperationsDashboard vm={vm} headSide={p.headSide} />
   if (tab === 'llm') return <LlmOps vm={vm} page={p.page} />
   if (tab === 'jobs') return <JobMonitor vm={vm} />
+  if (tab === 'genres') return <AdminGenres vm={vm} />
   if (tab === 'rights') return <Rights {...p} />
   if (tab === 'admins') return <Admins vm={vm} />
   if (tab === 'users') return <Users {...p} />
@@ -499,7 +502,7 @@ function Audit({ vm }: { vm: VM }) {
         </ul>
       )}
       <p className='admin-note'>
-        최신 100건까지 보여 줘요. 회원·관리자 계정·신고·작품·공지·이벤트·문의 답변의 변경 조치가 성공하면 운영 서버에 남고,
+        최신 100건까지 보여 줘요. 회원·관리자 계정·신고·작품·장르·공지·이벤트·문의 답변의 변경 조치가 성공하면 운영 서버에 남고,
         조회나 실패한 요청은 기록하지 않아요. 활동 로그는 ‘관리자 계정 관리’ 권한이 있는 관리자만 볼 수 있어요.
       </p>
     </div>

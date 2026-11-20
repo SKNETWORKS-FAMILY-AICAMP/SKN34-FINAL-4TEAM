@@ -1,5 +1,5 @@
 import { GENRE_EMOJI_MAX, GENRE_NAME_MAX, type GenreInput, type GenrePatch } from '../entities/genre'
-import { OperationsError } from '../entities/operations'
+import { OperationsError, orNullIfForbidden } from '../entities/operations'
 import type { OperationsGenreRepository } from '../repositories/OperationsGenreRepository'
 
 const name = (value: string) => {
@@ -18,7 +18,8 @@ export class OperationsGenreUseCase {
   private readonly repository: OperationsGenreRepository
   constructor(repository: OperationsGenreRepository) { this.repository = repository }
 
-  list() { return this.repository.list() }
+  /** 조회 권한(작품 관리)이 없으면(403) 실패가 아니라 null이라, 화면이 다시 불러오기 대신 권한 안내를 보입니다. */
+  list() { return orNullIfForbidden(this.repository.list()) }
 
   async create(input: GenreInput) {
     const icon = input.emoji === undefined ? '' : emoji(input.emoji)

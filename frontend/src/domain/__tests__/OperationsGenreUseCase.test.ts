@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { OperationsError } from '../entities/operations'
+import { OperationsError, OperationsForbidden } from '../entities/operations'
 import type { OperationsGenreRepository } from '../repositories/OperationsGenreRepository'
 import { OperationsGenreUseCase } from '../usecases/OperationsGenreUseCase'
 
@@ -46,6 +46,14 @@ describe('운영 장르 수정', () => {
 })
 
 describe('운영 장르 순서·조회', () => {
+  it('조회 권한(작품 관리)이 없으면(403) 실패가 아니라 null이고 그 밖의 실패는 그대로 던진다', async () => {
+    const { repository, useCase } = setup()
+    repository.list.mockRejectedValueOnce(new OperationsForbidden('이 작업을 할 권한이 없어요.'))
+    expect(await useCase.list()).toBeNull()
+    repository.list.mockRejectedValueOnce(new OperationsError('연결된 서비스에서 처리하지 못해 반영되지 않았어요.'))
+    await expect(useCase.list()).rejects.toBeInstanceOf(OperationsError)
+  })
+
   it('목록은 저장소 값을 그대로 돌려주고 순서는 전체 코드를 한 번에 보낸다', async () => {
     const { repository, useCase } = setup()
     await useCase.list()

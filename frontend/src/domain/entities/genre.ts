@@ -18,6 +18,9 @@ export const GENRE_EMOJI_MAX = 8
 /** 홈 장르 칩에 보이는 장르 수의 상한. 서버는 7번째 노출을 409 `GENRE_FEATURED_LIMIT`로 거절한다. */
 export const HOME_GENRE_LIMIT = 6
 
+/** 장르 관리는 `works`(화면 이름 '작품 관리') 권한이 있어야 합니다. 403이면 다시 시도 대신 이 안내만 보입니다. */
+export const GENRE_FORBIDDEN = "장르를 관리하려면 '작품 관리' 권한이 필요해요."
+
 /** 서버가 `{code, message}`로 거절하는 장르 오류 code → 화면에 그대로 보일 한국어 안내(서버 문구는 영문 고정이다). */
 export const GENRE_MESSAGES: Record<string, string> = {
   GENRE_NAME_TAKEN: '이미 같은 이름의 장르가 있어요.',

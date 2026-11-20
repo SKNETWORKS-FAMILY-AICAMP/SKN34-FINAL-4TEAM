@@ -62,6 +62,13 @@ describe('HttpOperationsGenreRepository', () => {
     await expect(new HttpOperationsGenreRepository(failing(409, { code: 'CONFLICT', message: 'Conflict' })).update('genre-05', { name: 'x' })).rejects.toThrow('다른 변경과 충돌했어요.')
   })
 
+  it('입력 오류 422는 서버(Content)의 한글 안내를 그대로 보이고 영문 고정 문구면 입력값 확인 안내로 바꾼다', async () => {
+    const korean = new HttpOperationsGenreRepository(failing(422, { code: 'REQUEST_FAILED', message: '장르 이름을 1~30자로 적어 주세요.' }))
+    await expect(korean.create({ name: '사극' })).rejects.toThrow(new OperationsRejected('장르 이름을 1~30자로 적어 주세요.'))
+    const english = new HttpOperationsGenreRepository(failing(422, { code: 'REQUEST_FAILED', message: 'Request failed' }))
+    await expect(english.update('genre-31', { name: '사극' })).rejects.toThrow(new OperationsError('입력값을 확인해 주세요.'))
+  })
+
   it('403은 OperationsForbidden이고 404·422·502는 상태별 한국어 안내(OperationsError)다', async () => {
     await expect(new HttpOperationsGenreRepository(failing(403)).list()).rejects.toBeInstanceOf(OperationsForbidden)
     await expect(new HttpOperationsGenreRepository(failing(404, { code: 'NOT_FOUND', message: 'Not found' })).update('genre-99', { active: false })).rejects.toThrow(new OperationsError('대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'))
