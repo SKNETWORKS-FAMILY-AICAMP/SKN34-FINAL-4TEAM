@@ -60,14 +60,17 @@ function Row({ row, setting, status, images, picked, linked, previewing, preview
 /**
  * 고른 줄 바로 아래에 펼쳐지는 미리보기(한 칸짜리 줄): 유형·썸네일, 요약 전문(4줄까지), 공개 범위, 이어진 설정(위 5개, `이름 · 라벨`), `수정하기`(편집 화면 `?card=`)와 `닫기`.
  * 모든 폭에서 줄 바로 아래 인라인이라 오른쪽 AI 채팅 레일과 다투지 않고 표 폭도 줄지 않는다. 표의 행이 아니라 줄 안의 덩어리라 `presentation`이다(표 읽기 쪽은 데이터 줄만 센다).
+ * 열릴 때 한 번 그 구획이 화면에 들어오게 가장 가까운 만큼만 스크롤한다(줄이 첫 화면 아래쪽이면 `수정하기`가 화면 밖이라 눌러도 반응이 없는 것처럼 보였다).
  * ponytail: 게시판 폭이 1,000px 이상(채팅 닫힘 + 사이드바 접힘 + 1440px 이상)일 때의 옆 패널(표 | 미리보기)은 만들지 않는다. 필요해지면 `@container worlds-board (min-width:1000px)`에서 이 줄을 sticky 옆 칸으로 옮긴다.
  */
 function RowPreview({ id, row, setting, images, linked, links, onEdit, onClose }: { id: string; row: BoardRow; setting?: StudioSetting; images: CardImages; linked: boolean; links: ReturnType<typeof settingLinks>; onEdit: (id: string) => void; onClose: () => void }) {
   const reveal = setting && cardRevealEpisode(setting)
+  const section = useRef<HTMLElement>(null)
+  useEffect(() => { section.current?.scrollIntoView?.({ block: 'nearest' }) }, []) // 미리보기는 열릴 때마다 새로 그려진다(jsdom에는 scrollIntoView가 없다)
   return (
     <tr className="world-row-preview" role="presentation">
       <td colSpan={7} role="presentation">
-        <section id={id} className="world-preview" aria-label={`${row.title} 미리보기`}>
+        <section ref={section} id={id} className="world-preview" aria-label={`${row.title} 미리보기`}>
           <div className="world-preview-head">
             <CardThumb images={images} imageId={setting?.imageId} />
             <KindChip kind={row.kind} label={row.type} />

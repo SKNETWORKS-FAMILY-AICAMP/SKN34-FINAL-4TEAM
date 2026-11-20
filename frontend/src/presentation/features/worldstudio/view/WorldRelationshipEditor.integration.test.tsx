@@ -658,7 +658,7 @@ it('처음에는 관계가 가장 많은 인물을 가운데 둔 중심 카드 �
   expect(screen.queryByRole('button', { name: '중심 카드로 보기' })).toBeNull()
 })
 
-it('중심 카드 보기는 중심 카드를 보드 가운데에, 이웃을 그 둘레 원 위에 놓고 모든 선에 라벨이 있으며, 전체 보기는 카드를 고르기 전에는 라벨이 없고 고르면 그 카드의 선 라벨만 보인다', async () => {
+it('중심 카드 보기는 중심 카드를 보드 가운데에, 이웃을 그 둘레 원 위에 놓고 모든 선에 라벨이 있으며, 전체 보기는 카드를 골라도 라벨이 없고 선에 마우스를 올린 동안만 그 선의 라벨이 보인다', async () => {
   vi.stubGlobal('PointerEvent', MouseEvent)
   await openHub()
   const center = screen.getByRole('group', { name: '허브 인물 카드' }), first = screen.getByRole('group', { name: '이웃 0 인물 카드' })
@@ -672,9 +672,9 @@ it('중심 카드 보기는 중심 카드를 보드 가운데에, 이웃을 그 
   expect(screen.getAllByRole('button', { name: /관계선 편집: 허브 · 이웃/ })).toHaveLength(15) // 선은 그대로 읽히고 누를 수 있다
   const press = (name: string) => { const card = screen.getByRole('group', { name }); fireEvent.pointerDown(card, { clientX: 20, clientY: 20 }); fireEvent.pointerUp(card, { clientX: 20, clientY: 20 }) }
   press('이웃 3 인물 카드')
-  expect(edgeLabels()).toBe(1) // 고른 카드에 닿는 선(허브 ↔ 이웃 3)뿐
-  press('허브 인물 카드') // 다른 카드를 고르면(두 번째 누름은 대상) 그 카드의 선으로 바뀐다
-  expect(edgeLabels()).toBeGreaterThan(0)
+  expect(edgeLabels()).toBe(0) // 카드를 골라도 전체 보기에는 라벨이 없다(겹친 라벨을 피한다)
+  fireEvent.mouseEnter(screen.getByRole('button', { name: /관계선 편집: 허브 · 이웃 3 · / }))
+  expect(edgeLabels()).toBe(1) // 선에 마우스를 올린 동안만 그 선의 라벨
 })
 
 it('중심 카드를 보다가 두 카드를 차례로 누르면 가운데에 관계 작성 시트가 열려 첫 입력으로 초점이 가고, Esc는 변경이 있으면 확인한 뒤 닫으며 닫은 뒤 초점은 관계 작성 버튼에 있다', async () => {
@@ -715,4 +715,32 @@ it('관계도 카드 모서리에는 유형 점이 있어 인물과 장소를 �
   expect(dot('허브 인물 카드').style.background).not.toBe('')
   expect(dot('허브 인물 카드').style.background).not.toBe(dot('외톨이 0 장소 카드').style.background)
   expect(dot('허브 인물 카드').getAttribute('aria-hidden')).toBe('true')
+})
+
+it('관계 주체·대상 선택지와 중심 설정 칩은 한 쪽에 200개까지라, 설정 60장에서도 쪽 이동 없이 51번째 이후 설정을 그 자리에서 고른다 (그래프 쪽은 그대로 50장씩)', async () => {
+  const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+  const world = await useCase.create('큰 세계', '')
+  world.settings = Array.from({ length: 60 }, (_, i) => { const row = newSetting('people'); row.item.title = `설정 ${i}`; return row })
+  await useCase.save(world)
+  function Harness() { const vm = useWorldStudioViewModel(useCase); return vm.editing ? <WorldRelationshipEditor studio={vm} /> : null }
+  render(<MemoryRouter initialEntries={['/worldstudio/' + world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness />} /></Routes></MemoryRouter>)
+  await screen.findByRole('group', { name: '설정 0 인물 카드' })
+  expect(within(screen.getByRole('combobox', { name: '관계 주체' })).getByRole('option', { name: '설정 59' })).toBeTruthy()
+  expect(within(screen.getByRole('combobox', { name: '관계 대상' })).getByRole('option', { name: '설정 59' })).toBeTruthy()
+  expect(within(screen.getByRole('group', { name: '관계도 중심 설정' })).getByRole('button', { name: '설정 59' })).toBeTruthy()
+  expect(screen.queryByRole('navigation', { name: '설정 목록 페이지 이동' })).toBeNull() // 중심 설정 칩
+  expect(screen.queryAllByRole('navigation', { name: '페이지 이동' })).toHaveLength(0) // 이름 없는 쪽 이동: 관계 주체·대상 선택지
+  expect(screen.getByRole('navigation', { name: '그래프 페이지 이동' })).toBeTruthy() // 그래프 쪽(50장씩)은 그대로
+  expect(screen.queryByRole('group', { name: '설정 59 인물 카드' })).toBeNull()
+})
+
+it('관계 목록의 삭제 버튼은 빨간 위험 버튼이 아니라 중립 btn sm이다(142행에 빨간 버튼이 반복되지 않게) — 삭제 전 확인은 그대로다', async () => {
+  await openHub()
+  const remove = within(screen.getByRole('table', { name: '저장할 관계 목록' })).getAllByRole('button', { name: /삭제$/ })
+  expect(remove.length).toBeGreaterThan(0)
+  for (const button of remove) expect(button.className).toBe('btn sm')
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  fireEvent.click(remove[0])
+  expect(confirm).toHaveBeenCalledOnce() // 확인 단계는 그대로
+  expect(within(screen.getByRole('table', { name: '저장할 관계 목록' })).getAllByRole('button', { name: /삭제$/ })).toHaveLength(remove.length)
 })

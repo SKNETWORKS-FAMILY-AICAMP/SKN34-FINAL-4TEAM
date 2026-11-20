@@ -101,10 +101,9 @@ it('center를 주면 중심 카드를 보드 가운데에 두고 이웃을 둘�
  expect(dy).toBeGreaterThan(by) // 둘째 이웃은 시계 방향(아래쪽)
  expect(Math.hypot(bx-cx,by-cy)).toBeCloseTo(Math.hypot(dx-cx,dy-cy),5) // 같은 원 위
  expect(labels()).toHaveLength(2) // 나래↔다온 선은 이 보기에 없고(중심에 닿는 이웃 선만), 둘 다 중심 카드에 닿는다
- expect(document.querySelector<HTMLElement>('.relationship-cards-scroll')!.style.height).toMatch(/^\d+px$/) // 상자 높이는 보드를 따르되 640px까지
- expect(parseFloat(document.querySelector<HTMLElement>('.relationship-cards-scroll')!.style.height)).toBeLessThanOrEqual(640)
+ expect(document.querySelector<HTMLElement>('.relationship-cards-scroll')!.style.height).toBe(board.style.height) // 호스트 폭 안에 든 원은 상자 높이가 보드 높이 그대로다(안쪽 세로 스크롤 없이 모든 카드가 보인다)
 })
-it('center 없는 전체 보기는 카드를 고르기 전에는 라벨이 없고 고르면 그 카드에 닿는 선의 라벨만 보이며 선은 툴팁·이름으로 계속 읽힌다',()=>{
+it('center 없는 전체 보기의 라벨은 선에 마우스를 올리거나 초점을 둘 때만 그 선 하나에 보이고(카드를 골라도 생기지 않는다) 선은 툴팁·이름으로 계속 읽힌다',()=>{
  const {a,rows}=triangle()
  let pick!:(id:string|null)=>void
  function Harness(){const vm=useWorldMapViewModel(rows,buildCharacterMap);pick=vm.select;return <CharacterCards vm={vm} editing={actions()}/>}
@@ -113,7 +112,12 @@ it('center 없는 전체 보기는 카드를 고르기 전에는 라벨이 없�
  expect(screen.getAllByRole('button',{name:/관계선 편집/})).toHaveLength(3) // 선은 읽히고 누를 수 있다
  expect(document.querySelectorAll('.relationship-edge-hit title')).toHaveLength(3) // <title> 툴팁
  act(()=>pick(a.item.id))
- expect(labels()).toHaveLength(2) // 가람에 닿는 선 둘뿐(나래↔다온은 그리지 않는다)
+ expect(labels()).toEqual([]) // 고른 카드의 선이어도 올리기 전에는 없다(겹친 라벨을 피한다)
+ const edge=screen.getAllByRole('button',{name:/관계선 편집/})[0]
+ fireEvent.mouseEnter(edge);expect(labels()).toHaveLength(1)
+ fireEvent.mouseLeave(edge);expect(labels()).toEqual([])
+ fireEvent.focus(edge);expect(labels()).toHaveLength(1)
+ fireEvent.blur(edge);expect(labels()).toEqual([])
  expect(document.querySelectorAll('.relationship-kind')).toHaveLength(3) // 카드마다 유형 점
 })
 
@@ -140,4 +144,44 @@ it('중심 보기의 중앙 정렬은 처음(과 중심·이웃 수·폭이 바�
  }finally{
   if(original)Object.defineProperty(Element.prototype,'scrollLeft',original);else delete (Element.prototype as {scrollLeft?:unknown}).scrollLeft
  }
+})
+
+/** 허브 하나가 이웃 n장과 이어진 세계(모든 선이 허브에 닿는다). */
+function hub(n:number) {
+ const h=newSetting('people');h.item.title='허브'
+ const others=Array.from({length:n},(_,i)=>{const s=newSetting('people');s.item.title='이웃 '+i;return s})
+ const rows=others.reduce((r,o)=>putRelation(r,{subjectId:h.item.id,targetId:o.item.id,predicate:'friend_of',polarity:'asserted'}),[h,...others])
+ return {h,rows}
+}
+const placed=(el:HTMLElement)=>{const m=/translate\(([-\d.]+)px, ([-\d.]+)px\)(?: scale\(([\d.]+)\))?/.exec(el.style.transform)!;return {x:Number(m[1]),y:Number(m[2]),scale:m[3]?Number(m[3]):1}}
+it('중심 보기에서 이웃이 호스트 폭보다 넓게 퍼지면 카드째 줄여 모든 카드가 보드 안에 들고, 보드와 스크롤 상자는 가로로 넘치지 않고 세로로도 잘리지 않는다',()=>{
+ const {h,rows}=hub(12)
+ function Harness(){const vm=useWorldMapViewModel(rows,buildCharacterMap);return <CharacterCards vm={{...vm,graph:mapNeighbors(vm.graph,h.item.id,0,12)}} center={h.item.id} editing={actions()}/>}
+ render(<Harness/>)
+ const board=document.querySelector<HTMLElement>('.relationship-cards-board')!,cards=[...document.querySelectorAll<HTMLElement>('.relationship-character-card')]
+ expect(cards).toHaveLength(13)
+ expect(parseFloat(board.style.width)).toBeLessThanOrEqual(700) // 상자 폭(jsdom 기본 700px) 안에 든다
+ for(const el of cards){
+  const {x,y,scale}=placed(el)
+  expect(scale).toBeLessThan(1);expect(scale).toBeGreaterThanOrEqual(.55)
+  expect(x).toBeGreaterThanOrEqual(0);expect(y).toBeGreaterThanOrEqual(0)
+  expect(x+200*scale).toBeLessThanOrEqual(parseFloat(board.style.width)+1e-6);expect(y+150*scale).toBeLessThanOrEqual(parseFloat(board.style.height)+1e-6)
+ }
+ expect(document.querySelector<HTMLElement>('.relationship-cards-scroll')!.style.height).toBe(board.style.height) // 상자가 보드 높이를 그대로 써서 위·아래 카드가 잘리지 않는다
+})
+it('간선 그림은 카드 아래 층이고 라벨은 별도 SVG로 카드 위 층에 그려지며 선 방향으로 눕는다(거꾸로 뒤집히지 않는다)',()=>{
+ const {h,rows}=hub(4)
+ function Harness(){const vm=useWorldMapViewModel(rows,buildCharacterMap);return <CharacterCards vm={{...vm,graph:mapNeighbors(vm.graph,h.item.id,0,12)}} center={h.item.id} editing={actions()}/>}
+ render(<Harness/>)
+ const edges=document.querySelector('svg.relationship-card-edges')!,layer=document.querySelector('svg.relationship-card-labels')!,cards=[...document.querySelectorAll('.relationship-character-card')]
+ expect(edges.compareDocumentPosition(cards[0])&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 간선 SVG가 카드보다 앞(아래)
+ expect(cards.at(-1)!.compareDocumentPosition(layer)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 라벨 SVG는 마지막 카드보다 뒤(위)
+ expect(layer.getAttribute('aria-hidden')).toBe('true') // 같은 말은 선 버튼의 이름과 툴팁이 이미 읽힌다
+ expect(edges.querySelector('text')).toBeNull()
+ const texts=[...layer.querySelectorAll('text.relationship-edge-label')]
+ expect(texts).toHaveLength(4)
+ const angles=texts.map(t=>Number(/rotate\((-?[\d.]+) /.exec(t.getAttribute('transform')!)![1]))
+ for(const deg of angles){expect(deg).toBeGreaterThan(-90);expect(deg).toBeLessThanOrEqual(90)}
+ expect(angles.some(deg=>Math.abs(deg)<1)).toBe(true) // 오른쪽·왼쪽 이웃으로 가는 가로선은 눕지 않고
+ expect(angles.some(deg=>Math.abs(deg-90)<1)).toBe(true) // 위·아래 이웃으로 가는 세로선은 90°다
 })

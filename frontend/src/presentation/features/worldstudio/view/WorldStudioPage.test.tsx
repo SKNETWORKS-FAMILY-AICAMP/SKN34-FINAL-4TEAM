@@ -4098,3 +4098,30 @@ it('개요 폼은 한 번 열기 전에는 그리지 않고(장르 목록 같은
   expect(hidden).toBeTruthy()
   expect(hidden!.closest('[hidden]')).toBeTruthy()
 })
+
+it('미리보기를 열면 그 미리보기 구획이 화면에 들어오게 가장 가까운 만큼만 스크롤하고(첫 화면 아래에 열려도 수정하기가 보이게), 닫을 때와 편집 화면에 다녀올 때는 다시 스크롤하지 않는다 (critique)', async () => {
+  const scroll = vi.fn()
+  Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: scroll })
+  try {
+    await show([person('가람'), person('나래')])
+    expect(scroll).not.toHaveBeenCalled() // 아무것도 열지 않았다
+    const title = screen.getByRole('button', { name: '가람 인물' })
+    fireEvent.click(title)
+    expect(scroll).toHaveBeenCalledTimes(1)
+    expect(scroll.mock.calls[0]).toEqual([{ block: 'nearest' }])
+    expect(scroll.mock.contexts[0]).toBe(screen.getByRole('region', { name: '가람 미리보기' }))
+    fireEvent.click(screen.getByRole('button', { name: '수정하기' })) // 편집 화면으로 갔다
+    backToBoard() // 돌아오면 열려 있던 미리보기가 그대로 있다
+    expect(screen.getByRole('region', { name: '가람 미리보기' })).toBeTruthy()
+    expect(scroll).toHaveBeenCalledTimes(1) // 다시 열린 것이 아니라 계속 열려 있던 것이다
+    fireEvent.click(title) // 접는다
+    expect(scroll).toHaveBeenCalledTimes(1)
+    fireEvent.click(title) // 다시 열면 다시 맞춘다
+    expect(scroll).toHaveBeenCalledTimes(2)
+    fireEvent.click(screen.getByRole('button', { name: '나래 인물' })) // 다른 줄을 열면 새 미리보기를 맞춘다
+    expect(scroll).toHaveBeenCalledTimes(3)
+    expect(scroll.mock.contexts[2]).toBe(screen.getByRole('region', { name: '나래 미리보기' }))
+  } finally {
+    delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView
+  }
+})

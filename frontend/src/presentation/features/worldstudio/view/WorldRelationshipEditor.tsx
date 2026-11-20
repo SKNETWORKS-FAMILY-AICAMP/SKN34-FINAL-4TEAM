@@ -18,6 +18,9 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
 /** 중심 카드 보기에서 한 쪽에 보이는 이웃 수: 가운데 카드 둘레 원 위에 겹치지 않게 놓을 수 있는 만큼이다(`ringLayout`). */
 const NEIGHBORS = 12
 
+/** 관계 주체·대상 선택지와 중심 설정 칩의 한 쪽 크기: native select와 가로 스크롤 칩 줄은 200개를 감당해, 57장 세계관에서도 '다음 쪽'을 눌러야 51번째 이후 설정을 고르던 일이 없다(그래프 쪽·관계 목록은 그대로 50). */
+const CHOICES = 200
+
 /** 범례의 선 모양: 실선(구조 관계), 점선(감정), 화살표(방향이 있는 관계). 색은 그래프 간선과 같은 토큰이다. */
 const LineKey = ({ tone, dashed, arrow }: { tone: 'edge' | 'emotion'; dashed?: boolean; arrow?: boolean }) => (
   <svg className={'relationship-key ' + tone} viewBox="0 0 28 10" width="28" height="10" aria-hidden="true">
@@ -29,7 +32,7 @@ const LineKey = ({ tone, dashed, arrow }: { tone: 'edge' | 'emotion'; dashed?: b
 /**
  * 관계 연결 단계. 왼쪽은 공개 인물관계도와 같은 어두운 면 위의 인물·설정 카드 그래프(범례·관계 라벨)이고, 카드를 차례로 두 번 누르면 오른쪽 '관계 추가' 폼의
  * 주체·대상이 채워지며 관계 작성이 열린다(`pickRelationNode`). 오른쪽에는 관계 추가 폼과 관계 목록 표(편집·삭제)가 있고, 관계 작성 패널은 가운데에 뜨는 시트(720px, `Sheet`)다.
- * 그래프는 처음에 **중심 카드 보기**다(`defaultAnchor`: 관계가 가장 많은 인물): 그 카드를 가운데에 두고 이웃 12장을 둘레 원 위에 놓으며(`ringLayout`) 선 라벨은 중심 카드에 닿는 선에만 있다. `전체 관계도로`가 모든 카드를 격자에 까는 전체 보기로 바꾸고(그래프 쪽 이동은 이때만), `중심 카드로 보기`가 되돌린다.
+ * 그래프는 처음에 **중심 카드 보기**다(`defaultAnchor`: 관계가 가장 많은 인물): 그 카드를 가운데에 두고 이웃 12장을 둘레 원 위에 놓으며(`ringLayout`, 본문 폭보다 넓으면 카드째 줄여 한눈에 들어온다) 선 라벨은 중심 카드에 닿는 선에만 있다(전체 보기는 선에 마우스를 올리거나 초점을 둘 때만). `전체 관계도로`가 모든 카드를 격자에 까는 전체 보기로 바꾸고(그래프 쪽 이동은 이때만), `중심 카드로 보기`가 되돌린다.
  * 관계는 기존 초안·적용 흐름 그대로 '편집본에 적용'으로 반영하고 세계관 저장으로 서버에 저장한다.
  * 누른 버튼이 사라지는 동작 뒤에는 초점을 이어 준다(`focusTo`): 관계 작성 패널을 닫으면 '관계 작성' 버튼(잠겨 있으면 관계 주체 선택), 목록의 관계를 지우면 관계 목록,
  * 인물을 지우면 '인물 삭제 되돌리기', 되돌리면 관계 주체 선택이다.
@@ -43,7 +46,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const shown = hideCardTypes(map.graph, hidden)
   const [graphPage, setGraphPage] = useState(0), [edgePage, setEdgePage] = useState(0), [relationPage, setRelationPage] = useState(0)
   const [graphQuery, setGraphQuery] = useState(''), [choicePage, setChoicePage] = useState(0), [anchor, setAnchor] = useState(() => defaultAnchor(shown)), [neighborPage, setNeighborPage] = useState(0)
-  const choices = pageItems(shown.nodes.filter((n) => n.name.toLocaleLowerCase().includes(graphQuery.trim().toLocaleLowerCase())), choicePage, 50)
+  const choices = pageItems(shown.nodes.filter((n) => n.name.toLocaleLowerCase().includes(graphQuery.trim().toLocaleLowerCase())), choicePage, CHOICES)
   const anchorNode = shown.nodes.find((n) => n.id === anchor)
   const neighbors = new Set(shown.links.filter((l) => mapEndpoint(l.source) === anchor || mapEndpoint(l.target) === anchor).map((l) => mapEndpoint(l.source) === anchor ? mapEndpoint(l.target) : mapEndpoint(l.source)))
   const neighborPages = pageItems([...neighbors], neighborPage, NEIGHBORS)
@@ -74,7 +77,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const [sourcePage, setSourcePage] = useState(0), [targetPage, setTargetPage] = useState(0)
   const options = (query: string, page: number, selected: string) => {
     const found = people.filter((s) => s.item.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
-    const result = pageItems(found, page, 50)
+    const result = pageItems(found, page, CHOICES)
     const current = people.find((s) => s.item.id === selected)
     return { ...result, items: current && !result.items.includes(current) ? [current, ...result.items] : result.items }
   }
@@ -311,7 +314,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                                 : (
                                   <>
                                     <button className='btn sm' type='button' aria-label={`${full} 편집`} onClick={() => selectPair(s.item.subjectId ?? '', s.item.targetId ?? '', true)}>편집</button>
-                                    <button className='btn sm relationship-remove' type='button' aria-label={`${full} 삭제`} onClick={() => removeRelation(s.item.id, full)}>삭제</button>
+                                    <button className='btn sm' type='button' aria-label={`${full} 삭제`} onClick={() => removeRelation(s.item.id, full)}>삭제</button>
                                   </>
                                 )}
                             </td>

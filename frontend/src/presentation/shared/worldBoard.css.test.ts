@@ -49,10 +49,10 @@ describe('설정 카드 게시판의 좁은 배치와 터치 영역', () => {
 })
 
 describe('세계관 작업실 레이아웃 규칙', () => {
-  it('설정집 게시판은 본문 폭을 기준으로 삼는 컨테이너라 채팅 레일이 열려도 좁은 배치로 바뀌고, 숨는 분류·요약은 제목 아래 한 줄로 보인다(열 숨김 기준은 600px 미만, 분류 칩 줄은 760px 이하)', () => {
+  it('설정집 게시판은 본문 폭을 기준으로 삼는 컨테이너라 채팅 레일이 열려도 좁은 배치로 바뀌고, 숨는 분류·요약은 제목 아래 한 줄로 보인다(열 숨김 기준은 600px 미만, 분류 칩 줄은 1000px 이하)', () => {
     expect(rule(studio, '.world-card-library')).toMatch(/container:\s*worlds-board\s*\/\s*inline-size/)
     const narrow = block(studio, '@container worlds-board (max-width:599px)')
-    expect(narrow).toMatch(/\.world-card-library \.worlds-board-table :is\(\.col-kind,\.col-num\)\{display:none\}/)
+    expect(narrow).toMatch(/\.world-card-library \.worlds-board-table :is\(\.col-sum,\.col-kind,\.col-num\)\{display:table-cell;visibility:hidden;width:0;padding:0;border:0\}/) // 숨기는 열은 폭 0의 보이지 않는 칸이다(열 수가 늘 7개)
     expect(narrow).toMatch(/\.world-row-sub\{display:flex/)
     expect(rule(studio, '.world-row-sub')).toMatch(/display:\s*none/) // 600px 이상 본문에서는 분류·요약 칸이 보이므로 숨긴다
     // 채팅을 연 1440px(게시판 폭 약 748px)에서도 한 줄 행이 되도록 600px부터 요약 칸을 되살린다(번호 칸은 공용 규칙대로 숨긴 채): 특이도 (0,3,0)이 공용 (0,2,0)을 이긴다.
@@ -108,6 +108,49 @@ describe('세계관 작업실 레이아웃 규칙', () => {
     expect(rule(studio, '.world-menu-tools')).toMatch(/flex-wrap:\s*wrap/)
     expect(studio).toMatch(/@media\(min-width:901px\)\{\.world-menu-tools\{[^}]*display:grid[^}]*border-top:\s*1px solid[^}]*\}\.world-menu-tools \.world-save-bar\{[^}]*flex-direction:column/)
     expect(studio).not.toMatch(/world-tabs-(row|end)/) // 탭 줄을 비운 것이 이 이동의 목적이다
+  })
+})
+
+// ── critique 단계: 게시판 열·분류 칩 줄·관계도 층 ──────────────────────────────────────────────────────────
+describe('게시판 열·분류 칩 줄(critique)', () => {
+  it('숨기는 게시판 열은 display:none이 아니라 폭 0의 보이지 않는 칸으로 남아 열 수가 늘 7개다(미리보기 colSpan=7과 맞아 열 폭이 변하지 않고 오른쪽 빈 칸이 없다)', () => {
+    const hidden = 'display:table-cell;visibility:hidden;width:0;padding:0;border:0'
+    expect(block(studio, '@container worlds-board (max-width:760px)')).toBe(`.world-card-library .worlds-board-table .col-no{${hidden}}`) // 공용 규칙이 숨기는 번호 칸
+    expect(block(studio, '@container worlds-board (max-width:599px)')).toContain(`.world-card-library .worlds-board-table :is(.col-sum,.col-kind,.col-num){${hidden}}`)
+    expect(studio).not.toMatch(/:is\(\.col-kind,\.col-num\)\{display:none\}/)
+    // 특이도 (0,3,0)이 공용 (0,2,0)의 display:none을 이기고, 요약은 600px 이상 규칙이 table-cell로 되살린다.
+    expect(block(studio, '@container worlds-board (min-width:600px)')).toContain('.col-sum{display:table-cell}')
+  })
+
+  it('제목 열은 26%라 요약이 더 넓고(공용 게시판의 34%는 그대로), 사이드바를 접어 게시판이 760~1000px가 돼도 표가 세로 분류 메뉴 없이 카드 폭 전체를 쓴다', () => {
+    expect(rule(studio, '.world-card-library .worlds-board-table th.col-title')).toMatch(/width:26%/)
+    expect(rule(board, '.worlds-board-table th.col-title')).toMatch(/width:\s*34%/)
+    const chips = block(studio, '@container worlds-board (max-width:1000px)')
+    expect(chips).toContain('.world-card-library .worlds-board{grid-template-columns:minmax(0,1fr);gap:14px}')
+    expect(chips).toContain('.world-card-library .worlds-cats ul{display:flex;gap:8px;margin:-4px;padding:4px;overflow-x:auto;scrollbar-width:none}')
+    expect(chips).toContain('.world-card-library .worlds-cats ul::-webkit-scrollbar{display:none}')
+    expect(chips).toContain('.world-card-library .worlds-cats :is(a,button){flex:none;width:auto;gap:6px;min-height:44px;padding:0 16px;border:1px solid var(--line2);border-radius:999px;background:var(--surface)}')
+    expect(chips).toContain('.world-card-library .worlds-cats :is(a,button)[aria-current]{border-color:var(--pri)}')
+    // 공용 게시판의 칩 줄 기준(760px 컨테이너·720px 뷰포트)과 그 동일성은 그대로다.
+    expect(block(board, '@container worlds-board (max-width: 760px)')).toContain('.worlds-cats :is(a, button) { flex: none; width: auto;')
+  })
+})
+
+describe('관계도 층과 좁은 화면 넘침 방어(critique)', () => {
+  it('간선 그림(SVG)은 카드 아래 층(z-index:0 < 카드 1 < 라벨 2)이고 무대 위 카드 면은 반투명이 아니라 불투명이라 뒤를 지나는 간선이 카드 글자를 가로지르지 않는다', () => {
+    expect(rule(map, '.relationship-card-edges')).toMatch(/z-index:0/)
+    expect(rule(map, '.relationship-character-card')).toMatch(/z-index:1/)
+    expect(rule(map, '.relationship-card-labels')).toMatch(/position:absolute;inset:0;z-index:2;pointer-events:none;overflow:visible/)
+    const stage = rule(map, '.relationship-stage')
+    expect(stage).toMatch(/--rc-bg:color-mix\(in srgb,var\(--fixed-ink\) 7%,var\(--stage-2\)\)/)
+    expect(stage).toMatch(/--rc-sel:color-mix\(in srgb,var\(--fixed-pri\) 20%,var\(--stage-2\)\)/)
+    expect(stage).not.toMatch(/--rc-(bg|sel):[^;]*transparent/) // 투명을 섞으면 카드 뒤 간선이 비친다
+  })
+
+  it('390px 가로 넘침 방어(측정 필요): 그리드·플렉스 항목이 안쪽의 넓은 내용(관계 목록 표 최소 600px·중심 칩 줄)에 밀려 커지지 않게 min-width:0이다', () => {
+    expect(map).toContain('.relationship-editor :is(.relationship-service-form,.relationship-list,.relationship-focus,.relationship-add,.relationship-stage){min-width:0;max-width:100%}')
+    expect(map).toContain('.relationship-list>.adm-scroll,.relationship-focus>*{min-width:0;max-width:100%}')
+    expect(rule(map, '.relationship-table')).toMatch(/width:100%;table-layout:fixed/)
   })
 })
 

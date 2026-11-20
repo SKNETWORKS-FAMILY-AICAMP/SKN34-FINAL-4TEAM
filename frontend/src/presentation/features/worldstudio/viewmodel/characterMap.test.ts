@@ -3,7 +3,7 @@ import {newSetting} from '../../../../domain/entities/studioWorld'
 import {putRelation} from '../../../../domain/entities/studioRelations'
 import {cardTypePatch,type CardType} from '../../../../domain/entities/studioCards'
 import {mapConnectionLabel,type MapNode} from './useWorldMapViewModel'
-import {buildCharacterMap,buildSettingRelationshipMap,cardTypeCounts,defaultAnchor,hideCardTypes,toggleHiddenType,mapNeighbors,ringLayout} from './characterMap'
+import {buildCharacterMap,buildSettingRelationshipMap,cardTypeCounts,defaultAnchor,hideCardTypes,toggleHiddenType,mapNeighbors,ringLayout,labelAngle} from './characterMap'
 import {settingBoardEntries} from './settingBoard'
 it('선택한 카드의 다른 페이지 이웃과 관계를 유지한다',()=>{
  const cards=Array.from({length:101},(_,i)=>{const s=newSetting('people');s.item.title=`설정 ${i}`;return s})
@@ -178,7 +178,7 @@ it('인물이 있어도 인물에게 관계가 하나도 없으면 관계가 가
 const overlap=(a:{x:number;y:number},b:{x:number;y:number},w:number,h:number)=>Math.abs(a.x-b.x)<w&&Math.abs(a.y-b.y)<h
 it('원형 배치: 중심 카드는 보드 가운데에, 이웃은 그 둘레에 같은 간격으로 놓이고 어떤 두 카드도 겹치지 않는다 (이웃 1~12장)',()=>{
  for(const count of Array.from({length:12},(_,i)=>i+1)){
-  const layout=ringLayout(count,700,200,150),cards=[layout.center,...layout.ring]
+  const layout=ringLayout(count,1300,200,150),cards=[layout.center,...layout.ring] // 1300px 이상이면 이웃 12장도 원래 크기(배율 1)다
   expect(layout.ring,String(count)).toHaveLength(count)
   expect({x:layout.center.x+100,y:layout.center.y+75},String(count)).toEqual({x:layout.width/2,y:layout.height/2}) // 중심 카드의 한가운데가 보드 가운데
   for(const [i,a] of cards.entries())for(const b of cards.slice(i+1))expect(overlap(a,b,200,150),`${count}장: ${JSON.stringify(a)} ${JSON.stringify(b)}`).toBe(false)
@@ -190,7 +190,7 @@ it('원형 배치: 중심 카드는 보드 가운데에, 이웃은 그 둘레에
 })
 
 it('원형 배치: 첫 이웃은 중심 바로 위이고 시계 방향으로 간다, 이웃이 없으면 중심 카드만 있다, 보드는 호스트 폭보다 좁아지지 않는다',()=>{
- const four=ringLayout(4,700,200,150)
+ const four=ringLayout(4,1300,200,150)
  expect(four.ring.map(p=>[Math.round(p.x+100-four.width/2),Math.round(p.y+75-four.height/2)])).toEqual([[0,-260],[260,0],[0,260],[-260,0]]) // 위·오른쪽·아래·왼쪽
  const alone=ringLayout(0,700,200,150)
  expect(alone.ring).toEqual([])
@@ -198,4 +198,43 @@ it('원형 배치: 첫 이웃은 중심 바로 위이고 시계 방향으로 간
  expect(alone.height).toBeGreaterThanOrEqual(360)
  expect(ringLayout(12,2000,200,150).width).toBe(2000) // 호스트가 넓으면 넓은 대로
  expect(ringLayout(12,300,200,150).width).toBeGreaterThan(300) // 좁으면 원이 들어가게 보드가 넓어진다(상자 안에서 가로로 스크롤)
+})
+
+// ── 관계도 중심 보기(critique): 보이는 영역에 맞추기 ────────────────────────────────────────────────────
+it('원형 배치는 호스트 폭보다 넓으면 카드째 줄여(배율 0.55 이상) 보드 폭이 호스트 폭 안에 들고, 모든 카드가 보드 안에서 서로 겹치지 않는다 (이웃 1~12장, 채팅을 연 폭 700·749부터 900·1100까지)',()=>{
+ for(const width of [700,749,900,1100])for(const count of Array.from({length:12},(_,i)=>i+1)){
+  const layout=ringLayout(count,width,200,150),tag=`${width}px ${count}장`,w=200*layout.scale,h=150*layout.scale
+  expect(layout.width,tag).toBeLessThanOrEqual(width) // 가로 스크롤 없이 한눈에
+  expect(layout.scale,tag).toBeGreaterThanOrEqual(.55)
+  expect(layout.scale,tag).toBeLessThanOrEqual(1)
+  const cards=[layout.center,...layout.ring]
+  for(const p of cards){expect(p.x,tag).toBeGreaterThanOrEqual(0);expect(p.y,tag).toBeGreaterThanOrEqual(0);expect(p.x+w,tag).toBeLessThanOrEqual(layout.width+1e-6);expect(p.y+h,tag).toBeLessThanOrEqual(layout.height+1e-6)} // 잘린 카드 없음
+  for(const [i,a] of cards.entries())for(const b of cards.slice(i+1))expect(Math.abs(a.x-b.x)<w-1e-6&&Math.abs(a.y-b.y)<h-1e-6,tag).toBe(false) // 겹침 없음
+  expect({x:layout.center.x+w/2,y:layout.center.y+h/2},tag).toEqual({x:layout.width/2,y:layout.height/2}) // 중심 카드는 여전히 보드 가운데
+ }
+ const crowded=ringLayout(12,749,200,150)
+ expect(crowded.scale).toBeLessThan(1) // 채팅을 연 1440px(본문 약 749px)에서 12장은 줄여야 들어간다
+ expect(crowded.height).toBeLessThanOrEqual(760) // 줄인 만큼 보드도 낮아져 상자가 보드 높이를 그대로 쓴다
+})
+
+it('원형 배치는 실제로 차지하는 폭으로 줄일지 정한다: 위·아래 이웃뿐이면 좁은 폭에서도 원래 크기이고, 줄여도 못 담을 만큼 좁으면(배율 0.55 미만) 줄이지 않고 보드가 넓어져 상자 안에서 가로로 민다',()=>{
+ const stacked=ringLayout(2,390,200,150) // 위·아래 이웃만이라 가로로는 카드 한 장 폭
+ expect(stacked.scale).toBe(1)
+ expect(stacked.width).toBe(390)
+ const phone=ringLayout(12,390,200,150)
+ expect(phone.scale).toBe(1) // 390px에서 12장은 0.55배로도 안 들어간다
+ expect(phone.width).toBeGreaterThan(390)
+ expect(ringLayout(12,1300,200,150).scale).toBe(1) // 넓으면 원래 크기
+ expect(ringLayout(0,390,200,150).ring).toEqual([])
+})
+
+it('선 라벨의 각도: 선 방향으로 눕히되 글자가 거꾸로 뒤집히지 않게 -90° 초과 90° 이하로 둔다',()=>{
+ expect(labelAngle(1,0)).toBeCloseTo(0)
+ expect(labelAngle(-1,0)).toBeCloseTo(0) // 왼쪽으로 가는 선도 글자는 왼쪽에서 오른쪽으로 읽힌다
+ expect(labelAngle(1,1)).toBeCloseTo(45)
+ expect(labelAngle(-1,-1)).toBeCloseTo(45)
+ expect(labelAngle(1,-1)).toBeCloseTo(-45)
+ expect(labelAngle(-1,1)).toBeCloseTo(-45)
+ expect(labelAngle(0,1)).toBeCloseTo(90)
+ expect(labelAngle(0,-1)).toBeCloseTo(90) // 위로 가는 선과 아래로 가는 선의 글자 방향이 같다
 })

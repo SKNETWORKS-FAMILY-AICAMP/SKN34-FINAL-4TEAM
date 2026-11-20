@@ -6,7 +6,7 @@
  */
 .relationship-editor{container:relationship-editor / inline-size}
 /* 무대는 카드 안의 평평한 면이다: 어두운 면 위의 그림자는 보이지 않고 겹만 하나 늘려서 두지 않는다. */
-.relationship-stage{--stage-1:#182742;--stage-2:#0b1324;--stage-3:#080e1b;--edge:#A9C6FF;--edge-emotion:#FFD98A;--edge-active:var(--fixed-ink);--edge-halo:var(--stage-3);--stage-tint:color-mix(in srgb,var(--fixed-ink) 8%,transparent);--rc-bg:color-mix(in srgb,var(--fixed-ink) 7%,transparent);--rc-line:color-mix(in srgb,var(--fixed-ink) 18%,transparent);--rc-ink:var(--fixed-ink);--rc-sub:var(--fixed-sub);--rc-sel:color-mix(in srgb,var(--fixed-pri) 20%,transparent);--rc-accent:var(--fixed-pri);min-width:0;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:radial-gradient(ellipse at 50% 46%,var(--stage-1) 0%,var(--stage-2) 56%,var(--stage-3) 100%)}
+.relationship-stage{--stage-1:#182742;--stage-2:#0b1324;--stage-3:#080e1b;--edge:#A9C6FF;--edge-emotion:#FFD98A;--edge-active:var(--fixed-ink);--edge-halo:var(--stage-3);--stage-tint:color-mix(in srgb,var(--fixed-ink) 8%,transparent);--rc-bg:color-mix(in srgb,var(--fixed-ink) 7%,var(--stage-2));--rc-line:color-mix(in srgb,var(--fixed-ink) 18%,transparent);--rc-ink:var(--fixed-ink);--rc-sub:var(--fixed-sub);--rc-sel:color-mix(in srgb,var(--fixed-pri) 20%,var(--stage-2));--rc-accent:var(--fixed-pri);min-width:0;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:radial-gradient(ellipse at 50% 46%,var(--stage-1) 0%,var(--stage-2) 56%,var(--stage-3) 100%)}
 /* 고른 카드는 보라 틴트 면이라 보조 글자(--fixed-sub)의 대비가 무대 가운데에서 4.22:1까지 내려간다. 고른 카드만 밝게 섞어 5.64:1 이상으로 올린다. */
 .relationship-stage .relationship-character-card.selected{--rc-sub:color-mix(in srgb,var(--fixed-sub) 70%,var(--fixed-ink))}
 .relationship-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 16px 6px}.relationship-toolbar h4{margin:0 auto 0 0;font-size:14px;font-weight:700}
@@ -32,9 +32,11 @@
 .relationship-remove{margin-top:12px}.relationship-apply{position:sticky;bottom:-20px;background:var(--surface);display:flex;gap:10px;padding:16px 0;border-top:1px solid var(--line)}
 @media(max-width:600px){.relationship-toolbar{padding:12px 12px 4px}.relationship-hint{padding:4px 12px 10px}.relationship-filter{padding-inline:12px}.relationship-legend{padding-inline:12px}.relationship-focus{padding-inline:12px}.relationship-apply{bottom:-12px}}
 .relationship-cards-scroll{height:clamp(380px,55vh,590px);overflow:auto;overscroll-behavior:contain;background:var(--surface);scrollbar-color:var(--pri) var(--surface)}
-.relationship-cards-board{position:relative;min-height:360px}.relationship-card-edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.relationship-cards-board{position:relative;min-height:360px}.relationship-card-edges{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible}
+/* 층: 간선 그림(0) < 카드(1) < 간선 라벨(2). 카드 면은 위 .relationship-stage 변수가 불투명이라 카드 뒤를 지나는 간선이 글자를 가로지르지 않고, 라벨은 카드 위에서도 읽힌다. */
+.relationship-card-labels{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:visible}
 .relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-character-card h4 img{object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px}.relationship-edge-label{font-size:12px;pointer-events:none;paint-order:stroke;stroke:var(--edge-halo,var(--surface));stroke-width:4px;stroke-linejoin:round}
-.relationship-character-card{position:absolute;left:0;top:0;border:1px solid var(--rc-line,var(--line2));border-radius:12px;padding:12px;background:var(--rc-bg,var(--surface));color:var(--rc-ink,var(--ink));box-shadow:0 3px 12px #24233010;touch-action:none;user-select:none;cursor:grab}
+.relationship-character-card{position:absolute;left:0;top:0;z-index:1;border:1px solid var(--rc-line,var(--line2));border-radius:12px;padding:12px;background:var(--rc-bg,var(--surface));color:var(--rc-ink,var(--ink));box-shadow:0 3px 12px #24233010;touch-action:none;user-select:none;cursor:grab}
 .relationship-character-card.selected{border:2px solid var(--rc-accent,var(--pri));padding:11px;background:var(--rc-sel,var(--pri-soft))}.relationship-character-card.target{border:2px dashed var(--rc-accent,var(--pri));padding:11px}.relationship-character-card.dim{opacity:.3}
 .relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--rc-sub,var(--sub));margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:12px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
 @media(max-width:600px){.relationship-cards-scroll{height:440px}.relationship-character-card{border-radius:10px}}
@@ -49,7 +51,9 @@
 /* 칸 폭(R5): 주체·대상은 이름 길이만큼, 시작 회차·작업은 고정, 관계(자유 문구)가 남은 폭을 쓴다. 표는 전역 .adm-scroll(가로 스크롤, 표 최소 600px) 안이라 좁은 편집기·폰에서도 한 단어씩 꺾이지 않고 가로로 민다. */
 .relationship-table th.col-subject{width:18%}.relationship-table th.col-target{width:20%}.relationship-table th.col-from{width:84px}
 .relationship-card-link{padding:0;border:0;background:none;color:var(--pri-ink);font:inherit;text-align:left;text-decoration:underline;cursor:pointer;overflow-wrap:anywhere}
-.relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}.relationship-row-actions .relationship-remove{margin-top:0}
+.relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}/* 390px 가로 넘침 방어(측정 필요): 그리드·플렉스 항목의 min-width는 auto라 안쪽의 넓은 내용(관계 목록 표는 전역 .adm-scroll table이 최소 600px, 중심 칩 줄은 수십 개)이 칸을 밀어 낼 수 있다. 칸을 0까지 줄일 수 있게 하고 넓은 내용은 자기 스크롤 상자(.adm-scroll·칩 줄)가 민다. */
+.relationship-editor :is(.relationship-service-form,.relationship-list,.relationship-focus,.relationship-add,.relationship-stage){min-width:0;max-width:100%}
+.relationship-list>.adm-scroll,.relationship-focus>*{min-width:0;max-width:100%}
 @container relationship-editor (max-width:950px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{max-height:none}}
 @media(max-width:600px){.relationship-service-form{padding:12px}}
 /* 카드 모서리 위 유형 점(인물·장소·사건 …): 게시판 칩과 같은 유형 색이라 사건 수십 장이 인물과 섞여도 구분된다. */

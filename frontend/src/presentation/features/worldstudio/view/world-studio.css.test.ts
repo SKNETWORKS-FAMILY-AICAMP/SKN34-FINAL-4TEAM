@@ -102,6 +102,13 @@ it('대표 이미지 타일은 헤더 표지(.cov)의 3:4·둥근 모서리·그
   expect(rule((s) => s === '.world-card-studio .world-card-tile .world-card-tile-add:has(input:focus-visible)')?.body).toMatch(/outline:\s*0/)
 })
 
+it('편집 화면 레일의 쪽 이동은 앞의 글자(설정 카드)를 스크린리더용으로만 남겨 한 줄에 다음 버튼까지 든다 — 숨겨 읽히지 않게 하지 않는다 (critique)', () => {
+  const label = rule((s) => s === '.world-card-studio .page-controls>span:first-child')?.body ?? ''
+  expect(label).toMatch(/position:absolute;width:1px;height:1px/)
+  expect(label).toMatch(/clip-path:inset\(50%\)/)
+  expect(label).not.toMatch(/display:\s*none|visibility:\s*hidden/)
+})
+
 it('편집 화면 레일의 썸네일은 왼쪽에 띄워 제목·상태 줄이 옆으로 흐르게 하고, 집필실과 함께 쓰는 writing.css는 건드리지 않는다', () => {
   expect(rule((s) => s === '.world-card-studio .writing-episode .board-thumb')?.body).toMatch(/float:\s*left/)
   expect(writingCss).not.toContain('board-thumb')
@@ -168,10 +175,10 @@ it('채팅이 닫혀 떠 있는 열기 버튼(.studio-chat-toggle)이 설정집 
   expect(css).toMatch(/@media\(max-width:900px\)\{\.episode-app:has\(>\.studio-chat-toggle\) \.ep-main\{padding-bottom:84px\}\}/)
 })
 
-it('분류 칩 줄(게시판 폭 760px 이하)에서는 비어 있는 분류도 옆 칩과 같은 44px 높이·16px 안쪽 여백이고, 세로 메뉴(넓은 본문)에서는 다른 분류 항목과 같은 40px·12px 그대로다', () => {
+it('분류 칩 줄(게시판 폭 1000px 이하)에서는 비어 있는 분류도 옆 칩과 같은 44px 높이·16px 안쪽 여백이고, 세로 메뉴(넓은 본문)에서는 다른 분류 항목과 같은 40px·12px 그대로다', () => {
   // 칩은 min-height:44px;padding:0 16px(shared/worldBoard.css)인데 빈 분류만 40px·12px라 줄 안에서 중심선이 어긋났다. 세로 메뉴의 항목은 40px·12px이라 기본값을 바꾸면 거기서 어긋난다.
   expect(rule((s) => s === '.worlds-cats .worlds-cats-empty')?.body).toMatch(/min-height:\s*40px;\s*padding:\s*0 12px/)
-  const chip = css.match(/@container worlds-board \(max-width:760px\)\{\.worlds-cats \.worlds-cats-empty\{([^}]*)\}\}/)
+  const chip = css.match(/@container worlds-board \(max-width:1000px\)\{\.worlds-cats \.worlds-cats-empty\{([^}]*)\}\}/)
   expect(chip?.[1]).toMatch(/min-height:\s*44px/)
   expect(chip?.[1]).toMatch(/padding:\s*0 16px/)
   expect(chip!.index).toBeGreaterThan(css.indexOf('.worlds-cats .worlds-cats-empty{')) // 같은 특이도는 뒤에 온 규칙이 이긴다
@@ -205,8 +212,8 @@ it('게시판 제목은 800이 아니라 650이라 줄마다 무거운 글자가
   expect(vis).toMatch(/font-weight:600/)
 })
 
-it('분류 칩 줄(게시판 폭 760px 이하)에서 선택하지 않은 칩은 옅은 테두리·600이고, 선택한 칩(aria-current)은 건드리지 않는다', () => {
-  expect(css).toMatch(/@container worlds-board \(max-width:760px\)\{\.world-card-library \.worlds-cats :is\(a,button\):not\(\[aria-current\]\)\{border-color:var\(--line\);font-weight:600\}\}/)
+it('분류 칩 줄(게시판 폭 1000px 이하)에서 선택하지 않은 칩은 옅은 테두리·600이고, 선택한 칩(aria-current)은 건드리지 않는다', () => {
+  expect(css).toMatch(/@container worlds-board \(max-width:1000px\)\{\.world-card-library \.worlds-cats :is\(a,button\):not\(\[aria-current\]\)\{border-color:var\(--line\);font-weight:600\}\}/)
 })
 
 it('사이드바의 도구 버튼(AI 검토·집필 메모·확정 버전)은 901px부터 보기 메뉴보다 가벼운 옅은 테두리·600이고, 저장 버튼(.pri)과 900px 이하 가로 줄은 그대로다', () => {
