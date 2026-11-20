@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { PUBLIC_WORLD_GENRES } from '../../domain/entities/publicWorld'
 import type { CardType } from '../../domain/entities/studioCards'
-import { DEMO_WORLDS, type DemoWorld } from './demoPublicWorlds'
+import { DEMO_WORLDS, DEMO_WORLD_GENRES, type DemoWorld } from './demoPublicWorlds'
 import { InMemoryPublicWorldRepository } from './InMemoryPublicWorldRepository'
 
 const card = (title: string, type: CardType = 'other', links?: DemoWorld['cards'][number]['links']) => ({ type, title, text: `${title} 설명`, ...(links ? { links } : {}) })
 const world = (id: string, extra: Partial<DemoWorld> = {}): DemoWorld => ({
-  id, name: `${id} 세계`, hook: '소개', genre: 'fantasy', author: '작가', description: '설명', cards: [card(`${id} 카드 1`), card(`${id} 카드 2`, 'character')], ...extra,
+  id, name: `${id} 세계`, hook: '소개', genre: 'genre-01', author: '작가', description: '설명', cards: [card(`${id} 카드 1`), card(`${id} 카드 2`, 'character')], ...extra,
 })
 const all = { page: 0, size: 100 }
 
@@ -22,11 +21,11 @@ describe('메모리 공개 세계관 목록', () => {
   })
 
   it('장르 코드를 쿼리로 받아 그 장르의 세계관만 같은 순서로 남기고 total도 그 수다', async () => {
-    const repo = new InMemoryPublicWorldRepository([world('a'), world('b', { genre: 'sf' }), world('c')])
-    const page = await repo.list({ genre: 'fantasy', ...all })
+    const repo = new InMemoryPublicWorldRepository([world('a'), world('b', { genre: 'genre-14' }), world('c')])
+    const page = await repo.list({ genre: 'genre-01', ...all })
     expect(page.items.map((w) => w.id)).toEqual(['c', 'a'])
     expect(page.total).toBe(2)
-    expect((await repo.list({ genre: 'wuxia', ...all })).items).toEqual([])
+    expect((await repo.list({ genre: 'genre-03', ...all })).items).toEqual([])
   })
 
   it('쪽과 크기로 자르고 total은 자르기 전 전체 수다', async () => {
@@ -45,7 +44,7 @@ describe('메모리 공개 세계관 목록', () => {
     ])
     const byId = new Map((await repo.list(all)).items.map((w) => [w.id, w]))
     expect(byId.get('origin')).toMatchObject({
-      id: 'origin', name: 'origin 세계', description: '설명', genre: 'fantasy', authorNickname: '작가', cardCount: 2, relationshipCount: 1,
+      id: 'origin', name: 'origin 세계', description: '설명', genre: 'genre-01', authorNickname: '작가', cardCount: 2, relationshipCount: 1,
       cards: [{ id: '0', title: '하나', cardType: 'character' }, { id: '1', title: '둘', cardType: 'location' }],
     })
     expect(byId.get('origin')?.derivedFrom).toBeUndefined()
@@ -61,7 +60,7 @@ describe('메모리 공개 세계관 상세', () => {
       world('w', { cards: [card('오르', 'character', [{ to: '미라', label: '스승-제자' }, { to: '새벽항' }]), card('미라', 'character'), card('새벽항', 'location')] }),
     ])
     const found = await repo.get('w')
-    expect(found).toMatchObject({ id: 'w', name: 'w 세계', description: '설명', genre: 'fantasy', authorNickname: '작가', revisionNo: 1, relationshipStatus: 'current', demo: true, hook: '소개' })
+    expect(found).toMatchObject({ id: 'w', name: 'w 세계', description: '설명', genre: 'genre-01', authorNickname: '작가', revisionNo: 1, relationshipStatus: 'current', demo: true, hook: '소개' })
     expect(found?.cards).toEqual([
       { id: '0', title: '오르', text: '오르 설명', cardType: 'character', aliases: [], tags: [] },
       { id: '1', title: '미라', text: '미라 설명', cardType: 'character', aliases: [], tags: [] },
@@ -72,11 +71,11 @@ describe('메모리 공개 세계관 상세', () => {
   })
 
   it('목록의 공개 시각과 같은 값을 주고 작품이 없는 세계관은 빈 작품 목록이다(작품 연결을 지원하는 데모)', async () => {
-    const repo = new InMemoryPublicWorldRepository([world('a'), world('b', { works: [{ title: '작품', author: '작가', episodes: 3, genre: 'fantasy' }] })])
+    const repo = new InMemoryPublicWorldRepository([world('a'), world('b', { works: [{ title: '작품', author: '작가', episodes: 3, genre: '판타지' }] })])
     const listed = new Map((await repo.list(all)).items.map((w) => [w.id, w.publishedAt]))
     const [a, b] = await Promise.all([repo.get('a'), repo.get('b')])
     expect([a?.publishedAt, b?.publishedAt]).toEqual([listed.get('a'), listed.get('b')])
-    expect([a?.works, b?.works]).toEqual([[], [{ title: '작품', author: '작가', episodes: 3, genre: 'fantasy' }]])
+    expect([a?.works, b?.works]).toEqual([[], [{ title: '작품', author: '작가', episodes: 3, genre: '판타지' }]])
   })
 
   it('없는 세계관은 undefined다', async () => {
@@ -104,7 +103,7 @@ describe('메모리 공개 세계관의 계보', () => {
 
   it('세계관 한 줄은 이름·장르·작가·카드 수를 담아 선반 카드가 바로 그린다', async () => {
     const [origin] = (await lineageOf('b'))!.children
-    expect(origin).toEqual({ id: 'c', name: 'c 세계', genre: 'fantasy', authorNickname: '작가', cardCount: 2, kind: 'derive' })
+    expect(origin).toEqual({ id: 'c', name: 'c 세계', genre: 'genre-01', authorNickname: '작가', cardCount: 2, kind: 'derive' })
   })
 
   const broken = [
@@ -133,7 +132,7 @@ describe('메모리 공개 세계관의 계보', () => {
 describe('메모리 데모 목록의 장르 쿼리', () => {
   it('계약의 장르 코드마다 그 장르의 데모 세계관이 하나 이상 나온다', async () => {
     const repo = new InMemoryPublicWorldRepository()
-    for (const genre of PUBLIC_WORLD_GENRES) {
+    for (const genre of DEMO_WORLD_GENRES) {
       const page = await repo.list({ genre, ...all })
       expect(page.total, genre).toBeGreaterThan(0)
       expect(page.items.every((w) => w.genre === genre), genre).toBe(true)
@@ -145,7 +144,7 @@ describe('메모리 공개 세계관 목록의 검색어 (#505)', () => {
   const repo = new InMemoryPublicWorldRepository([
     world('a', { name: '달무리 군도', description: '바다 위의 섬', author: '파도' }),
     world('b', { name: '침묵 궤도', description: '달이 없는 밤의 정거장', author: '궤도서기' }),
-    world('c', { name: '사막 이야기', description: '모래', author: '달빛', genre: 'sf' }),
+    world('c', { name: '사막 이야기', description: '모래', author: '달빛', genre: 'genre-14' }),
     world('d', { name: 'Neon City', description: 'rain', author: 'Kim', cards: [card('달무리 사원')] }),
   ])
   const ids = async (query: Partial<Parameters<typeof repo.list>[0]>) => (await repo.list({ ...all, ...query })).items.map((w) => w.id)
@@ -167,9 +166,9 @@ describe('메모리 공개 세계관 목록의 검색어 (#505)', () => {
   })
 
   it('장르와 함께 쓰면 둘 다 맞는 세계관만 남고 쪽·total도 그 수다', async () => {
-    const page = await repo.list({ q: '달', genre: 'fantasy', page: 0, size: 1 })
+    const page = await repo.list({ q: '달', genre: 'genre-01', page: 0, size: 1 })
     expect([page.items.map((w) => w.id), page.total]).toEqual([['b'], 2])
-    expect(await ids({ q: '달', genre: 'sf' })).toEqual(['c'])
+    expect(await ids({ q: '달', genre: 'genre-14' })).toEqual(['c'])
   })
 
   it('검색어가 없거나 공백뿐이면 전체 목록과 같다', async () => {

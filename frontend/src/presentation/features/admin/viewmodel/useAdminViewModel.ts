@@ -28,10 +28,10 @@ import { useAsyncData } from '../../../shared/useAsyncData'
 import { adminViewActions, type AdminChatForm, type AdminFilter, type EventDraft, type OperationsRecordKind } from '../state/adminViewSlice'
 
 /** 목업 adminExtra()·adminLegacy()의 baseId */
-const IDS: Record<AdminTab, string> = { data: 'A01+A02', rights: 'A03', llm: 'A05', users: 'A07', works: 'A08', comments: 'A09', characterChats: 'A18', feedback: 'A10', events: 'A11', notices: 'A12', credits: 'A13', audit: 'A14', jobs: 'A16', admins: 'A17', profile: 'A15' }
+const IDS: Record<AdminTab, string> = { data: 'A01+A02', rights: 'A03', llm: 'A05', users: 'A07', works: 'A08', comments: 'A09', characterChats: 'A18', feedback: 'A10', events: 'A11', notices: 'A12', credits: 'A13', audit: 'A14', jobs: 'A16', admins: 'A17', genres: 'A19', profile: 'A15' }
 export type AdminActionState = ActionState
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
-export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'comments', 'rights', 'feedback', 'profile', 'notices', 'events', 'audit', 'data', 'llm', 'jobs']
+export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'comments', 'rights', 'feedback', 'profile', 'notices', 'events', 'audit', 'data', 'llm', 'jobs', 'genres']
 /** 운영 변경 조치 실행기: 서버 응답 성공만 완료로 표시하고 dataChanged로 화면의 조회를 다시 읽게 합니다(대시보드·LLMOps·작업 감시 화면이 씁니다). */
 export type AdminMutate = (key: string, message: string, action: () => Promise<void>) => Promise<boolean>
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']

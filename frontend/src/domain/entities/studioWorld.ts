@@ -1,4 +1,3 @@
-import type { PublicWorldGenre } from './publicWorld'
 import { sectionFields, type StudioSection } from './studioSections'
 export type SettingItem = {
  semanticType?:'fact'|'relation'|'rule'|'event'|'conjecture'|'goal'|'plan'
@@ -68,10 +67,11 @@ export function relationEpisodeInput(text:string):{episode:number|null}|{error:s
 }
 /** 세계관 단위 공개 설정(설정 카드 단위 공개와 다르다). 값이 없으면 비공개·장르 미지정이다(서버가 이 필드를 주기 전 응답과 메모리 데모). */
 export type WorldVisibility = 'private'|'public'
-export type WorldPublicationInput = {visibility:WorldVisibility;genre:PublicWorldGenre|null}
+/** `genre`는 장르 코드(`genre-01` …, 목록은 `GET /public/genres`)이고 미지정은 null이다. */
+export type WorldPublicationInput = {visibility:WorldVisibility;genre:string|null}
 /** `listed`는 지금 공개 목록·상세에 실제로 나오는지다. 공개로 설정해도 확정 버전이 없으면 false이고, `publishedAt`은 비공개이면 null이다. */
 export type WorldPublication = WorldPublicationInput & {worldId:string;publishedAt:string|null;listed:boolean}
-export type StudioWorld = {currentRevisionId?:string|null;id:string;name:string;description:string;version:number;visibility?:WorldVisibility;genre?:PublicWorldGenre|null;/** 올린 표지가 있는지(없으면 기본 표지). 값이 없으면 없다. */hasCover?:boolean;/** 이 세계관에 연결된 내 소설 id(DEC-46 1:1 연결). 없으면 미연결이다. */linkedWorkId?:string|null;/** 목록 요약에만 있는 초안의 활성 카드 수(요약은 settings를 싣지 않는다). */cardCount?:number;settings:StudioSetting[];/** 지난 회차 관계의 끝점이 될 수 있는, 그 뒤에 삭제한 설정의 이름(카드 id → 이름). 서버 저장소가 채우고(삭제된 카드가 없으면 빈 객체) 메모리 데모에는 없다. */deletedTitles?:Record<string,string>;relationshipStatus?:'current'|'incomplete'|'migration_required';analysis:{id:string;status:string;candidates:SettingItem[];issues:string[]}|null}
+export type StudioWorld = {currentRevisionId?:string|null;id:string;name:string;description:string;version:number;visibility?:WorldVisibility;genre?:string|null;/** 올린 표지가 있는지(없으면 기본 표지). 값이 없으면 없다. */hasCover?:boolean;/** 이 세계관에 연결된 내 소설 id(DEC-46 1:1 연결). 없으면 미연결이다. */linkedWorkId?:string|null;/** 목록 요약에만 있는 초안의 활성 카드 수(요약은 settings를 싣지 않는다). */cardCount?:number;settings:StudioSetting[];/** 지난 회차 관계의 끝점이 될 수 있는, 그 뒤에 삭제한 설정의 이름(카드 id → 이름). 서버 저장소가 채우고(삭제된 카드가 없으면 빈 객체) 메모리 데모에는 없다. */deletedTitles?:Record<string,string>;relationshipStatus?:'current'|'incomplete'|'migration_required';analysis:{id:string;status:string;candidates:SettingItem[];issues:string[]}|null}
 export const newSetting = (section:StudioSection='basic'):StudioSetting => ({userCategory:'설정',tags:[],item:{id:crypto.randomUUID(),title:'',text:'',topics:[],subjectId:null,targetId:null,predicate:null,polarity:'asserted',relatedIds:[],condition:'',timeText:'',afterId:null,orderEvidence:[],evidence:[],origin:'author_addition',authorText:'',decision:'approved',...sectionFields(section)}})
 export function authorEdit(setting:StudioSetting,patch:Partial<SettingItem>):StudioSetting {
  const item={...setting.item,...patch,origin:'author_addition' as const,decision:'approved' as const,evidence:[],orderEvidence:[]}

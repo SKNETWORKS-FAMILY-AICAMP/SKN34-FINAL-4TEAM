@@ -117,7 +117,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
           {tab === 'world' && (
             <>
               <LinkedWorldPanel work={w} busy={locked} onLink={vm.linkWorld} onDetach={vm.detachWorld} error={vm.origin === 'link' ? vm.error : ''} notice={vm.origin === 'link' ? vm.notice : ''} detachError={vm.origin === 'detach' ? vm.error : ''} useCase={useCase} />
-              <WorldPanel workId={w.id} useCase={useCase} />
+              <WorldPanel workId={w.id} useCase={useCase} locked={locked} onMediaBusy={setMediaBusy} />
             </>
           )}
           {tab === 'history' && (

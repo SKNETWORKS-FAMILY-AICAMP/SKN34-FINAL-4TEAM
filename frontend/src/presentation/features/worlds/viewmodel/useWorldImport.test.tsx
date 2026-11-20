@@ -13,7 +13,7 @@ import { useWorldImport } from './useWorldImport'
 afterEach(cleanup)
 
 const source: PublicWorld = {
-  id: 'src', name: '별빛 세계', description: '', genre: 'fantasy', authorNickname: '윤서하', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 3, relationshipStatus: 'current',
+  id: 'src', name: '별빛 세계', description: '', genre: 'genre-01', genreName: '판타지', authorNickname: '윤서하', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 3, relationshipStatus: 'current',
   cards: [
     { id: 'c1', title: '리안', text: '끈질긴 견습생', cardType: 'character', aliases: ['견습 서약사'], tags: ['주인공'] },
     { id: 'c2', title: '별빛 탑', text: '봉인을 지키는 탑', cardType: 'location', aliases: [], tags: [] },

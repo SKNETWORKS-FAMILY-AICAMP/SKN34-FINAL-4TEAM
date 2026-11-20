@@ -8,7 +8,8 @@ import ai.storyfork.content.work.client.WorkTagSuggestionCallFailure
 import ai.storyfork.content.work.client.WorkTagSuggestionClient
 import ai.storyfork.content.work.client.dto.WorkTagSuggestionInput
 import ai.storyfork.content.work.client.dto.WorkTagSuggestionOutput
-import ai.storyfork.content.work.domain.WORK_GENRES
+import ai.storyfork.content.work.entity.GenreEntity
+import ai.storyfork.content.work.repository.GenreRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkTagSuggestionService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
@@ -32,6 +33,7 @@ class WorkTagSuggestionServiceTest {
     @Mock lateinit var access: WorkAccessService
     @Mock lateinit var publications: PublicationService
     @Mock lateinit var client: WorkTagSuggestionClient
+    @Mock lateinit var genres: GenreRepository
     @InjectMocks lateinit var service: WorkTagSuggestionService
 
     private val work = WorkAccessResult("w", "owner", "메밀꽃 필 무렵", "장돌뱅이 이야기", 4, "world", "private", false, false, null)
@@ -40,6 +42,10 @@ class WorkTagSuggestionServiceTest {
     private fun published(vararg items: PublishedEpisodeResponse) {
         `when`(access.get("w")).thenReturn(work)
         `when`(publications.publishedEpisodes("w")).thenReturn(PublishedEpisodeListResponse(items.toList()))
+    }
+    /** 지금 고를 수 있는 활성 장르다(DEC-56). AI에는 이 이름만 허용 목록으로 보내고 결과도 이 이름으로 검증한다. */
+    private fun activeGenres() {
+        `when`(genres.findActive()).thenReturn(listOf("고전", "드라마", "현대").mapIndexed { i, name -> GenreEntity("genre-$i", "genre-$i", name, position = i) })
     }
     private val placeholder = WorkTagSuggestionInput("work-tags.v1", "", "", emptyList(), emptyList(), 0, 0)
     /** Kotlin 비 null 인자에 Mockito 매처의 null이 들어가지 않게 자리값을 돌려준다. */
@@ -51,6 +57,7 @@ class WorkTagSuggestionServiceTest {
     @Test
     fun `작가 본인 작품의 자기 발행 회차 앞 3개와 Content 장르 규칙을 보내고 후보만 돌려준다`() {
         published(episode(1, inherited = true), episode(2), episode(3, body = " "), episode(4), episode(5), episode(6, body = "가".repeat(9000)))
+        activeGenres()
         answer(listOf("고전", "드라마"), listOf("장돌뱅이", "메밀꽃"))
 
         assertEquals(WorkTagSuggestionResponse(listOf("고전", "드라마"), listOf("장돌뱅이", "메밀꽃")), service.suggest("w", "owner"))
@@ -59,7 +66,7 @@ class WorkTagSuggestionServiceTest {
         verify(client).suggest(captured(sent))
         with(sent.value) {
             assertEquals(listOf(2, 4, 5), episodes.map { it.number })
-            assertEquals(Triple("메밀꽃 필 무렵", "장돌뱅이 이야기", WORK_GENRES), Triple(title, description, allowedGenres))
+            assertEquals(Triple("메밀꽃 필 무렵", "장돌뱅이 이야기", listOf("고전", "드라마", "현대")), Triple(title, description, allowedGenres))
             assertEquals(2 to 10, maxGenres to maxHashtags)
         }
     }
@@ -67,6 +74,7 @@ class WorkTagSuggestionServiceTest {
     @Test
     fun `긴 회차는 서로게이트 쌍을 자르지 않고 앞부분만 보낸다`() {
         published(episode(1, body = "😀".repeat(9000)))
+        activeGenres()
         answer(listOf("고전"), emptyList())
         service.suggest("w", "owner")
         val sent = ArgumentCaptor.forClass(WorkTagSuggestionInput::class.java)
@@ -103,6 +111,7 @@ class WorkTagSuggestionServiceTest {
     @CsvSource("AI_TIMEOUT,504", "AI_OUTPUT_INVALID,502", "AI_UNAVAILABLE,503", "AI_NOT_CONFIGURED,503", "AI_REQUEST_REJECTED,502")
     fun `AI 호출 실패는 가짜 추천 없이 상태로 알린다`(code: String, status: Int) {
         published(episode(1))
+        activeGenres()
         `when`(client.suggest(anyInput())).thenThrow(WorkTagSuggestionCallFailure(code))
         val failure = assertThrows(ContentFailure::class.java) { service.suggest("w", "owner") }
         assertEquals(status to code, failure.status to failure.code)
@@ -121,8 +130,9 @@ class WorkTagSuggestionServiceTest {
             listOf("고전") to listOf("고전"),
         )
         for ((genres, hashtags) in cases) {
-            reset(access, publications, client)
+            reset(access, publications, client, this.genres)
             published(episode(1))
+            activeGenres()
             answer(genres, hashtags)
             val failure = assertThrows(ContentFailure::class.java) { service.suggest("w", "owner") }
             assertEquals(502 to "AI_OUTPUT_INVALID", failure.status to failure.code, "$genres $hashtags")

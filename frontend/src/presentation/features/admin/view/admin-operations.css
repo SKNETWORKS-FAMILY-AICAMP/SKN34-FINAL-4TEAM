@@ -51,9 +51,18 @@
 .adm .admin-who-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adm .admin-who .pop-menu-list { top: calc(100% + 6px); right: 0; }
 .adm .admin-who .pop-menu-list [aria-current="page"] { background: var(--pri-soft); color: var(--pri-ink); }
+/* 장르 표 행 조치 메뉴(PopMenu): ⋮ 아이콘 버튼 하나(36px, 터치 44px)와 세로 메뉴. 표의 가로 스크롤 영역에 잘리지 않게 목록을 화면에 고정해(position: fixed) 버튼 오른쪽 끝에 맞춘다:
+   고정한 목록의 처음 위치는 .pop-menu(버튼 크기)의 왼쪽 위라 마진으로 버튼 아래·오른쪽 정렬을 잡고(목록 최소 너비 200px), PopMenu가 스크롤하면 닫고 창 밖으로 잘리면 뒤집는다. */
+.adm .genre-menu .pop-menu-btn { width: 36px; height: 36px; border-radius: 50%; color: var(--sub); font-size: 18px; font-weight: 700; line-height: 1; }
+.adm .genre-menu .pop-menu-btn:hover, .adm .genre-menu .pop-menu-btn[aria-expanded="true"] { background: var(--muted-bg); color: var(--ink); }
+.adm .genre-menu .pop-menu-list { position: fixed; top: auto; right: auto; margin: 40px 0 0 -164px; }
+/* 행 아래 인라인 수정 폼: 표 안이라 아래 여백 없이 줄에 붙인다. */
+.adm .genre-edit { margin: 0; }
 @media (max-width: 600px), (pointer: coarse) {
   .adm .admin-who .pop-menu-btn { min-height: 44px; }
   .adm .admin-filter .inp { min-height: 44px; }
+  .adm .genre-menu .pop-menu-btn { width: 44px; height: 44px; }
+  .adm .genre-menu .pop-menu-list { margin: 48px 0 0 -156px; }
 }
 /* LLM Ops 한 쪽에 쌓은 패널(경고+경고 기준, 추적+지표 등): .panel은 바깥 여백이 없어 맞붙으므로 위 숫자 카드 줄 사이 gap(12px)과 같은 값으로 띄웁니다. */
 .adm .panel.admin-operations + .panel.admin-operations { margin-top: 12px; }

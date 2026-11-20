@@ -10,11 +10,11 @@ import ai.storyfork.content.search.service.SearchCandidates
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
-import ai.storyfork.content.world.domain.WORLD_GENRES
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.coverStorage
 import ai.storyfork.content.world.domain.hideCardLinks
+import ai.storyfork.content.world.domain.isGenreCode
 import ai.storyfork.content.world.domain.isListed
 import ai.storyfork.content.world.domain.matchesCard
 import ai.storyfork.content.world.domain.matchesWorld
@@ -75,7 +75,7 @@ class PublicWorldService(
      * [q]가 있으면(앞뒤 공백을 자르며 공백뿐이면 없는 것과 같다) 확정 버전의 이름·설명이나 작가 닉네임에 대소문자 무시로 들어 있는 세계관만 거른 뒤 페이지를 자르고 total도 거른 수다(#505).
      */
     fun list(genre: String?, q: String?, page: String?, size: String?): PublicWorldPageResponse {
-        val code = genre?.takeIf { it.isNotBlank() }?.also { if (it !in WORLD_GENRES) throw ContentFailure(422, "genre 값을 확인해 주세요.") }
+        val code = genre?.takeIf { it.isNotBlank() }?.also { if (!isGenreCode(it)) throw ContentFailure(422, "genre 값을 확인해 주세요.") }
         val request = publicWorldPage(page, size)
         // q가 있으면 공개 세계관 전체(색인이 켜져 있으면 그 후보)에서 거른 한 페이지다. 페이지의 카드·관계 수는 아래에서 그 한 페이지만 센다. q가 없으면 쿼리가 페이지를 자른다.
         val matched = searchTerm(q)?.let { matchingWorlds(code, it, request) }

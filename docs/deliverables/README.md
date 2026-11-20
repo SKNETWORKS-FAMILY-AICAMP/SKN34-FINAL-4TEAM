@@ -8,6 +8,7 @@
 |---|---|---|
 | `SKN34-final-4Team_기획서` (.pdf / .hwpx) | 프로젝트 기획서 | 개정 이력상 최신 v1.6 (2026-11-10) |
 | `SKN34-final-4Team_요구사항정의서.xlsx` | 요구사항 원본 | Markdown 색인은 [requirements.md](../requirements.md) |
+| `SKN34-final-4Team_LLM활용소프트웨어.docx` | LLM 활용 소프트웨어 문서 | |
 | `SKN34-final-4Team_WBS.xlsx` | 일정·작업 분해 | 마지막 수정 2026-10-30 |
 | `SKN34-final-4Team_화면설계서.pdf` | 화면 구성·흐름 | |
 | `SKN34-final-4Team_시스템 구상도` (.pdf / .hwpx) | 시스템 구상도 | |

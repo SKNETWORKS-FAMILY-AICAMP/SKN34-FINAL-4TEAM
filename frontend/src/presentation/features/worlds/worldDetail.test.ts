@@ -5,7 +5,7 @@ import { InMemoryPublicWorldRepository } from '../../../data/mock/InMemoryPublic
 import type { PublicWorld } from '../../../domain/entities/publicWorld'
 import type { CardType } from '../../../domain/entities/studioCards'
 import { BOOK_SORTS, CARD_COLORS } from '../../shared/worldBoard'
-import { GENRE_COLORS } from './worldAtlas'
+import { genreColor } from '../../shared/worldGenres'
 import {
   LABEL_ALL_MAX, LARGE_GRAPH, bookPath, bookRows, buildCharacterGraph, buildSettingGraph, cardPage, cardPairs, cardPath, detailEndpoint, kindCounts, parseBookKind, parseDetailTab,
   selectVisible, showsDetailLabel, type CardRef, type DetailGraph, type DetailNode,
@@ -18,7 +18,7 @@ const card = (title: string, type: CardType, links?: Card['links']): Card => ({ 
 const world = (cards: Card[]): PublicWorld => {
   const idOf = new Map(cards.map((c, i) => [c.title, String(i)]))
   return {
-    id: 'w', name: '시험 세계', description: '시험 세계의 개요', genre: 'fantasy', authorNickname: '작가', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 1,
+    id: 'w', name: '시험 세계', description: '시험 세계의 개요', genre: 'genre-01', genreName: '판타지', authorNickname: '작가', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 1,
     cards: cards.map((c, i) => ({ id: String(i), title: c.title, text: `${c.title} 설명`, cardType: c.type, aliases: [], tags: [] })),
     relationships: cards
       .flatMap((c, a) => (c.links ?? []).map(({ to, label }) => ({ sourceCardId: String(a), targetCardId: idOf.get(to) ?? to, label: label ?? '' })))
@@ -126,7 +126,7 @@ describe('buildSettingGraph', () => {
     expect(graph.nodes.map((n) => [n.id, n.name, n.kind])).toEqual([
       ['card:0', '오르', '인물'], ['card:1', '미라', '인물'], ['card:2', '하엘', '인물'], ['card:3', '새벽항', '장소'], ['card:4', '금기', '규칙'], ['world', '시험 세계', '세계관'],
     ])
-    expect(graph.nodes.map((n) => n.color)).toEqual([CARD_COLORS.인물, CARD_COLORS.인물, CARD_COLORS.인물, CARD_COLORS.장소, CARD_COLORS.규칙, GENRE_COLORS.판타지])
+    expect(graph.nodes.map((n) => n.color)).toEqual([CARD_COLORS.인물, CARD_COLORS.인물, CARD_COLORS.인물, CARD_COLORS.장소, CARD_COLORS.규칙, genreColor('genre-01')])
   })
 
   it('카드 노드는 누르면 그 카드의 페이지로, 세계관 중심 노드는 개요 탭으로 가는 주소(to)를 가진다', () => {
@@ -387,8 +387,8 @@ describe('bookRows', () => {
 
   it('한 줄은 카드 주소용 cardId·제목·본문·유형과 연결 수(관계+연관)·제목 옆 수(인물은 인물 관계 수, 그 밖은 연결 수)를 가진다', () => {
     expect(bookRows(sample).find((r) => r.title === '하엘')).toEqual({ cardId: '2', title: '하엘', text: '하엘 설명', type: '인물', kind: '인물', no: 3, connections: 1, badge: 1 })
-    // 오르와 미라 사이의 역방향 관계 두 개도 각각 센다.
-    expect(bookRows(sample).map((r) => [r.title, r.connections, r.badge])).toEqual([['오르', 3, 2], ['미라', 3, 3], ['하엘', 1, 1], ['새벽항', 1, 1], ['금기', 0, 0]])
+    // 오르와 미라 사이의 역방향 관계 두 개도 각각 센다. 오르→새벽항(장소) 관계도 오르의 관계 수다.
+    expect(bookRows(sample).map((r) => [r.title, r.connections, r.badge])).toEqual([['오르', 3, 3], ['미라', 3, 3], ['하엘', 1, 1], ['새벽항', 1, 1], ['금기', 0, 0]])
   })
 
   it('요약(text)은 마크다운 기호를 벗긴 한 줄이고 검색어도 벗긴 글자에 맞춘다', () => {
@@ -455,7 +455,7 @@ describe('데모 세계관의 설정집·그래프', () => {
         const refs = [...p.relations, ...p.backlinks]
         const row = rows.get(p.card.cardId)!
         expect(refs.length, w.id + ' ' + p.card.title).toBe(row.connections)
-        expect(p.card.kind === '인물' ? refs.filter((r) => r.relationId && r.kind === '인물').length : refs.length, w.id + ' ' + p.card.title).toBe(row.badge)
+        expect(p.card.kind === '인물' ? refs.filter((r) => r.relationId).length : refs.length, w.id + ' ' + p.card.title).toBe(row.badge)
         for (const r of refs) {
           expect(r.cardId, w.id + ' ' + p.card.title).not.toBe(p.card.cardId)
           const back = cardPage(w, r.cardId)!

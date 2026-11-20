@@ -6,6 +6,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
+import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import type { Work } from '../../../../domain/entities/content'
 import type { PublicWorld, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
 import { putRelation, relationLabel } from '../../../../domain/entities/studioRelations'
@@ -57,6 +58,9 @@ const revisionDetail = (revisionNo: number, name: string): WorldRevision => ({
 /** jsdom에는 URL.createObjectURL이 없어 표지 이미지(인증 읽기 → 객체 주소) 테스트가 쓰는 대역이다. 만든 순서대로 blob:cover-1, 2 …를 준다. */
 const objectUrls = { created: 0, createObjectURL: vi.fn(), revokeObjectURL: vi.fn() }
 beforeEach(() => {
+  // 장르 선택지·헤더 칩은 서버의 공개 장르 목록이라 운영과 같은 메모리 목록으로 대신한다(afterEach의 restoreAllMocks가 되돌린다).
+  const genres = new InMemoryGenreRepository(new InMemoryOperationsGenreRepository())
+  vi.spyOn(appContainer.resolve('genreUseCase'), 'list').mockImplementation(() => genres.list())
   revisions = noRevisions()
   reviewCase = new WorldReviewUseCase({ review: vi.fn(async () => { throw new Error('이 테스트는 설정집 검토를 요청하지 않아요.') }), latest: vi.fn(async () => null) })
   objectUrls.created = 0
@@ -970,6 +974,19 @@ it('세계관을 읽지 못해도 관리 주소에서는 오류만 알리고 새
   expect(createScreenParts()).toEqual([null, null, null, null, null])
 })
 
+it('세계관을 읽지 못하면 오류 곁의 다시 시도로 같은 세계관을 다시 읽고, 세계관 목록으로 돌아가는 길도 보인다', async () => {
+  const world: StudioWorld = { id: 'qa', name: '검증 세계', description: '설명', version: 1, settings: [person('가람', '기존 내용')], analysis: null }
+  const read = vi.fn<WorldStudioRepository['read']>().mockRejectedValueOnce(new Error('세계관을 읽지 못했습니다.')).mockImplementation(async () => structuredClone(world))
+  mount(undefined, '/worldstudio/qa', { read })
+  expect((await screen.findByRole('alert')).textContent).toBe('세계관을 읽지 못했습니다.')
+  expect(screen.getByRole('link', { name: '내가 만드는 세계관으로 돌아가기' }).getAttribute('href')).toBe('/lib?tab=worlds')
+  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+  expect(await screen.findByRole('heading', { name: '검증 세계', level: 1 })).toBeTruthy()
+  expect(read).toHaveBeenCalledTimes(2)
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull()
+})
+
 // ── 작성 모드(새로 만든 직후 ?new=1의 4단계 마법사) ↔ 관리 모드(그 밖의 모든 진입: 탭 + 저장 영역) ──────────────
 const stepNames = () => Array.from(within(screen.getByRole('navigation', { name: '세계관 작성 단계' })).getAllByRole('button'), (b) => b.textContent)
 const headerOf = (name = '검증 세계') => within(screen.getByRole('heading', { name, level: 1 }).closest('section')!)
@@ -1135,6 +1152,7 @@ it('저장이 실패하면 오류와 입력을 그대로 두고 저장 영역이
   dirtyCard()
   fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
   expect((await screen.findByRole('alert')).textContent).toBe('저장 충돌')
+  expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull() // 세계관을 다시 읽으면 입력이 사라지므로 편집 중 실패에는 다시 시도를 두지 않는다
   expect(saveBar().getByText('저장 실패 · 입력은 유지돼요')).toBeTruthy()
   openCard('고친 이름 인물')
   expect(screen.getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('고친 이름')
@@ -1158,6 +1176,12 @@ it('설정집은 설정이 하나도 없으면 표 안의 빈 행 하나로만 �
 const openInfoEdit = () => fireEvent.click(screen.getByRole('button', { name: '세계관 정보 편집' }))
 const infoForm = () => within(screen.getByRole('form', { name: '세계관 정보 편집' }))
 const publishGroup = () => within(infoForm().getByRole('group', { name: '공개 설정' }))
+/** 장르 선택지는 공개 장르 목록(서버)이라 패널이 열린 뒤 읽혀 그려진다. 선택지가 그려질 때까지 기다린 뒤 장르 select를 돌려준다. */
+const genreSelect = async () => {
+  const select = publishGroup().getByRole<HTMLSelectElement>('combobox', { name: '장르' })
+  await waitFor(() => expect(select.options.length).toBeGreaterThan(1))
+  return select
+}
 const savePanel = () => fireEvent.click(infoForm().getByRole('button', { name: '저장' }))
 const panelClosed = () => waitFor(() => expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull())
 
@@ -1296,15 +1320,15 @@ it('편집을 연 채 카드를 고치면 열린 패널의 저장도 잠겨 카�
 
 // ── 공개 범위·장르(편집 패널에서 저장과 함께 적용) ──────────────────────────────────────
 it('관리 헤더에는 공개 설정 폼 없이 공개 범위·장르 칩만 있고, 편집을 열면 한 패널에서 이름·설명·공개 범위·장르를 저장·취소한다', async () => {
-  await show(undefined, '/worldstudio/qa', { visibility: 'public', genre: 'fantasy', currentRevisionId: 'rev-1' })
+  await show(undefined, '/worldstudio/qa', { visibility: 'public', genre: 'genre-01', currentRevisionId: 'rev-1' })
   expect(headerOf().queryByRole('group', { name: '공개 설정' })).toBeNull()
   expect(headerOf().getByText('공개', { selector: '.chip' })).toBeTruthy()
-  expect(headerOf().getByText('판타지', { selector: '.chip' })).toBeTruthy()
+  expect(await headerOf().findByText('판타지', { selector: '.chip' })).toBeTruthy()
   openInfoEdit()
   expect(infoForm().getByRole('textbox', { name: '세계관 이름' })).toBeTruthy()
   expect(infoForm().getByRole('textbox', { name: '세계관 설명' })).toBeTruthy()
   expect(within(publishGroup().getByRole('group', { name: '공개 범위' })).getAllByRole('button').map((b) => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([['비공개', 'false'], ['공개', 'true']])
-  expect(publishGroup().getByRole<HTMLSelectElement>('combobox', { name: '장르' }).value).toBe('fantasy')
+  expect((await genreSelect()).value).toBe('genre-01')
   expect(infoForm().getByRole('button', { name: '저장' })).toBeTruthy()
   expect(infoForm().getByRole('button', { name: '취소' })).toBeTruthy()
 })
@@ -1314,8 +1338,9 @@ it('관리 헤더의 공개 설정은 서버 연결 예정 대신 실제 공개 
   openInfoEdit()
   const range = within(publishGroup().getByRole('group', { name: '공개 범위' }))
   expect(range.getAllByRole('button').map((b) => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([['비공개', 'true'], ['공개', 'false']])
-  const genre = publishGroup().getByRole<HTMLSelectElement>('combobox', { name: '장르' })
-  expect(Array.from(genre.options, (o) => [o.value, o.textContent])).toEqual([['', '미지정'], ['fantasy', '판타지'], ['sf', 'SF'], ['wuxia', '무협'], ['romance', '로맨스'], ['modern', '현대'], ['classic', '고전'], ['mystery', '미스터리']])
+  const genre = await genreSelect()
+  const all = await new InMemoryOperationsGenreRepository().list()
+  expect(Array.from(genre.options, (o) => [o.value, o.textContent])).toEqual([['', '미지정'], ...all.map((g) => [g.code, g.name])]) // 운영이 관리하는 공개 장르(활성 장르, 표시 순서)
   expect(genre.value).toBe('')
   expect(screen.queryByText(/서버 연결 예정/)).toBeNull()
   expect(screen.queryByRole('link', { name: '공개 화면 보기' })).toBeNull() // 비공개에는 공개 화면이 없다
@@ -1393,18 +1418,20 @@ it('공개로 설정했지만 목록에 나오지 않으면(저장 버전 없음
 })
 
 it('이미 공개인 세계관의 장르를 바꾸면 확인 없이 현재 공개 범위와 새 장르를 보내고 칩을 바꾼다', async () => {
-  const { setPublication } = await show(undefined, '/worldstudio/qa', { visibility: 'public', genre: 'fantasy', currentRevisionId: 'rev-1' })
+  const { setPublication } = await show(undefined, '/worldstudio/qa', { visibility: 'public', genre: 'genre-01', currentRevisionId: 'rev-1' })
   const confirm = vi.spyOn(window, 'confirm')
   const select = () => publishGroup().getByRole<HTMLSelectElement>('combobox', { name: '장르' })
   openInfoEdit()
-  expect(select().value).toBe('fantasy')
-  expect(headerOf().getByText('판타지', { selector: '.chip' })).toBeTruthy()
-  fireEvent.change(select(), { target: { value: 'sf' } })
+  await genreSelect()
+  expect(select().value).toBe('genre-01')
+  expect(await headerOf().findByText('판타지', { selector: '.chip' })).toBeTruthy()
+  fireEvent.change(select(), { target: { value: 'genre-14' } })
   savePanel()
   expect(await headerOf().findByText('SF', { selector: '.chip' })).toBeTruthy()
-  expect(setPublication).toHaveBeenLastCalledWith('qa', { visibility: 'public', genre: 'sf' }, expect.any(AbortSignal))
+  expect(setPublication).toHaveBeenLastCalledWith('qa', { visibility: 'public', genre: 'genre-14' }, expect.any(AbortSignal))
   await panelClosed()
   openInfoEdit()
+  await genreSelect()
   fireEvent.change(select(), { target: { value: '' } })
   savePanel()
   await waitFor(() => expect(setPublication).toHaveBeenLastCalledWith('qa', { visibility: 'public', genre: null }, expect.any(AbortSignal)))
@@ -1463,15 +1490,15 @@ it('패널의 저장은 이름·설명은 초안 저장으로, 공개 범위·�
   openInfoEdit()
   fireEvent.change(infoForm().getByRole('textbox', { name: '세계관 이름' }), { target: { value: '새 이름' } })
   fireEvent.click(publishGroup().getByRole('button', { name: '공개', pressed: false }))
-  fireEvent.change(publishGroup().getByRole('combobox', { name: '장르' }), { target: { value: 'sf' } })
+  fireEvent.change(await genreSelect(), { target: { value: 'genre-14' } })
   savePanel()
   expect(await screen.findByRole('heading', { name: '새 이름', level: 1 })).toBeTruthy()
   await waitFor(() => expect(setPublication).toHaveBeenCalledOnce())
   expect(saveStudio).toHaveBeenCalledOnce()
   expect(saveStudio).toHaveBeenCalledWith(expect.objectContaining({ id: 'qa', name: '새 이름' }), expect.any(AbortSignal), undefined)
-  expect(setPublication).toHaveBeenCalledWith('qa', { visibility: 'public', genre: 'sf' }, expect.any(AbortSignal))
+  expect(setPublication).toHaveBeenCalledWith('qa', { visibility: 'public', genre: 'genre-14' }, expect.any(AbortSignal))
   await panelClosed()
-  expect(headerOf('새 이름').getByText('SF', { selector: '.chip' })).toBeTruthy()
+  expect(await headerOf('새 이름').findByText('SF', { selector: '.chip' })).toBeTruthy()
 })
 
 it('이름·설명은 저장됐지만 공개 설정이 실패하면 패널을 닫지 않고 오류를 알리며, 다시 저장하면 공개 설정만 다시 보낸다', async () => {
@@ -1496,13 +1523,13 @@ it('취소는 고른 공개 범위·장르도 버리고 아무것도 보내지 �
   const { saveStudio, setPublication } = await showWorld()
   openInfoEdit()
   fireEvent.click(publishGroup().getByRole('button', { name: '공개', pressed: false }))
-  fireEvent.change(publishGroup().getByRole('combobox', { name: '장르' }), { target: { value: 'sf' } })
+  fireEvent.change(await genreSelect(), { target: { value: 'genre-14' } })
   fireEvent.click(infoForm().getByRole('button', { name: '취소' }))
   expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull()
   expect([saveStudio, setPublication].map((fn) => fn.mock.calls.length)).toEqual([0, 0])
   openInfoEdit() // 다시 열면 저장한 값에서 시작한다
   expect(publishGroup().getByRole('button', { name: '비공개', pressed: true })).toBeTruthy()
-  expect(publishGroup().getByRole<HTMLSelectElement>('combobox', { name: '장르' }).value).toBe('')
+  expect((await genreSelect()).value).toBe('')
 })
 
 it('작성 모드의 공개 설정은 기본 정보 단계에서 같은 확인·전송을 한다', async () => {

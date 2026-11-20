@@ -135,6 +135,16 @@ class OperationsExceptionHandlerTest {
     }
 
     @Test
+    fun `an upstream rejection that carries Content's own code answers with that code`() {
+        val message = "홈에는 장르를 최대 6개까지 보여 줄 수 있어요."
+
+        assertError(handler.upstreamRejected(UpstreamRejection(HttpStatus.CONFLICT, message, IllegalStateException("cause"), "GENRE_FEATURED_LIMIT"), request),
+            409, "GENRE_FEATURED_LIMIT", message)
+        assertError(handler.upstreamRejected(UpstreamRejection(HttpStatus.valueOf(422), message, IllegalStateException("cause"), "GENRE_ORDER_MISMATCH"), request),
+            422, "GENRE_ORDER_MISMATCH", message)
+    }
+
+    @Test
     fun `the real resolver answers an upstream rejection with its message while a plain status exception stays generic`() {
         val resolver = adviceResolver()
         val message = "원작의 고정 기준 기록을 확인할 수 없어요."

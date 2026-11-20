@@ -62,7 +62,7 @@ describe('홈·공통 셸 (U01·U02)', () => {
     renderAt('/')
     await screen.findByText('다르게 이어진 포크 소설')
     expect(screen.getByRole('button', { name: '추천' }).getAttribute('aria-pressed')).toBe('true')
-    fireEvent.click(screen.getByRole('button', { name: '🛰 SF' }))
+    fireEvent.click(await screen.findByRole('button', { name: '🛰 SF' })) // 장르 칩은 공개 장르 목록을 읽은 뒤에 그려진다
     await screen.findByText('3편')
     expect(screen.getByRole('button', { name: '🛰 SF' }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByRole('button', { name: '추천' }).getAttribute('aria-pressed')).toBe('false')

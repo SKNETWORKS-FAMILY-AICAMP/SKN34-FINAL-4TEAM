@@ -75,7 +75,7 @@ class WorldStudioMcpToolsTest {
         "world_studio_read" to mapOf("id" to "$worldId"),
         "world_studio_edit_draft" to mapOf("id" to "$worldId", "request" to mapOf("expectedDraftRevision" to 1, "name" to "달빛 세계", "description" to "설명")),
         "world_studio_save_revision" to mapOf("id" to "$worldId", "request" to mapOf("expectedDraftRevision" to 1, "key" to "save-1")),
-        "world_studio_update_publication" to mapOf("id" to "$worldId", "request" to mapOf("visibility" to "public", "genre" to "fantasy")),
+        "world_studio_update_publication" to mapOf("id" to "$worldId", "request" to mapOf("visibility" to "public", "genre" to "genre-01")),
         "world_studio_revisions" to mapOf("id" to "$worldId"),
         "world_studio_revision_read" to mapOf("id" to "$worldId", "revisionId" to "$revisionId"),
         "world_analysis_create" to mapOf("worldId" to "$worldId", "request" to mapOf("key" to "analyze-1", "expectedDraftRevision" to 1)),
@@ -240,8 +240,8 @@ class WorldStudioMcpToolsTest {
     }
 
     @Test fun `world_studio_update_publication forwards the id the caller and the same request DTO`() {
-        val request = PublicationRequest("public", "fantasy")
-        `when`(studio.publication(worldId, member, request)).thenReturn(PublicationResponse(worldId, "public", "fantasy", "2026-11-13T00:00:00Z", true))
+        val request = PublicationRequest("public", "genre-01")
+        `when`(studio.publication(worldId, member, request)).thenReturn(PublicationResponse(worldId, "public", "genre-01", "2026-11-13T00:00:00Z", true))
 
         val result = call("world_studio_update_publication", userTools.getValue("world_studio_update_publication"), signedIn())
 
@@ -267,12 +267,12 @@ class WorldStudioMcpToolsTest {
 
     @Test fun `public world tools need no caller and forward their optional arguments unchanged`() {
         `when`(publicWorlds.list(null, null, null, null)).thenReturn(PublicWorldPageResponse(emptyList(), 0, 24, 0))
-        `when`(publicWorlds.list("fantasy", null, "1", "10")).thenReturn(PublicWorldPageResponse(emptyList(), 1, 10, 0))
+        `when`(publicWorlds.list("genre-01", null, "1", "10")).thenReturn(PublicWorldPageResponse(emptyList(), 1, 10, 0))
         `when`(publicWorlds.detail(worldId)).thenReturn(
-            PublicWorldResponse(worldId, "달빛 세계", "설명", "fantasy", "작가", "2026-11-13T00:00:00Z", 1, emptyList(), emptyList(), "current"))
+            PublicWorldResponse(worldId, "달빛 세계", "설명", "genre-01", "작가", "2026-11-13T00:00:00Z", 1, emptyList(), emptyList(), "current"))
 
         val all = call("world_studio_public_list", emptyMap())
-        val page = call("world_studio_public_list", mapOf("genre" to "fantasy", "page" to "1", "size" to "10"))
+        val page = call("world_studio_public_list", mapOf("genre" to "genre-01", "page" to "1", "size" to "10"))
         val one = call("world_studio_public_read", mapOf("id" to "$worldId"))
 
         assertNotEquals(true, all.isError())
@@ -281,7 +281,7 @@ class WorldStudioMcpToolsTest {
         assertNotEquals(true, one.isError())
         assertTrue(one.text().contains("\"relationshipStatus\":\"current\""), one.text())
         verify(publicWorlds).list(null, null, null, null)
-        verify(publicWorlds).list("fantasy", null, "1", "10")
+        verify(publicWorlds).list("genre-01", null, "1", "10")
         verify(publicWorlds).detail(worldId)
     }
 

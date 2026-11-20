@@ -11,11 +11,13 @@ import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { login } from '../../../../data/api/auth'
 import { HttpAdminActivityRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository } from '../../../../data/api/operationsApi'
+import { InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import type { AdminActivity } from '../../../../domain/entities/adminActivity'
 import type { OperationsComment } from '../../../../domain/entities/operationsComment'
 import type { OperationsWork } from '../../../../domain/entities/operationsWork'
 import { AdminActivityUseCase } from '../../../../domain/usecases/AdminActivityUseCase'
 import { OperationsCommentUseCase } from '../../../../domain/usecases/OperationsCommentUseCase'
+import { OperationsGenreUseCase } from '../../../../domain/usecases/OperationsGenreUseCase'
 import { OperationsWorkUseCase } from '../../../../domain/usecases/OperationsWorkUseCase'
 import { kstDateTime } from '../../../shared/format'
 import { AdminPage } from './AdminPage'
@@ -39,7 +41,7 @@ it('신고·권리 탭은 운영 API 실패를 데모 행이나 빈 목록으로
 })
 
 // users·admins·rights 표는 운영 API 응답이 있어야 그려지므로(rights는 이 환경에서 유일하던 예시 격리 점검 표를 지웠다), notices·events는 표 없이 목록 패널만 그리므로, data(관리 개요)는 표 없이 숫자 카드와 차트만 그리므로(아래 별도 테스트) 렌더 통합 대상에서 뺍니다.
-it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'credits'])(
+it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'credits', 'genres'])(
   '%s 탭의 모든 표에 캡션·열 머리 범위·키보드 스크롤 영역이 있다',
   async (tab) => {
     renderAdmin(tab)
@@ -785,6 +787,178 @@ it('LLM Ops는 쪽을 옮기면 열어 둔 추적 상세를 닫아, 돌아오면
   await region('LLM 추적')
   expect(screen.queryByRole('region', { name: '추적 상세' })).toBeNull()
   await region('LLM 지표')
+})
+
+/** 운영 장르 관리(DEC-56): 테스트마다 새 메모리 목록(시드 30개)을 UseCase에 잇는다(픽스처 컨테이너의 목록은 파일 안에서 공유되므로 건드리지 않는다). */
+const openGenres = (repo = new InMemoryOperationsGenreRepository()) => {
+  const useCase = new OperationsGenreUseCase(repo)
+  const real = appContainer.resolve('operationsGenreUseCase')
+  vi.spyOn(real, 'list').mockImplementation(() => useCase.list())
+  vi.spyOn(real, 'create').mockImplementation((input) => useCase.create(input))
+  const update = vi.spyOn(real, 'update').mockImplementation((code, patch) => useCase.update(code, patch))
+  vi.spyOn(real, 'reorder').mockImplementation((codes) => useCase.reorder(codes))
+  return { repo, update }
+}
+const genreRow = (name: string) => screen.getByText(name, { selector: 'b' }).closest('tr') as HTMLElement
+const genreMenu = (name: string) => within(genreRow(name)).getByRole('button', { name: `「${name}」 조치` })
+const openGenreMenu = (name: string) => fireEvent.click(genreMenu(name))
+const pickGenreItem = (name: string) => fireEvent.click(screen.getByRole('menuitem', { name }))
+const genreNames = () => within(screen.getByRole('table', { name: '장르 관리 표' })).getAllByRole('row').slice(1).map((row) => within(row).getAllByRole('cell')[2].textContent)
+
+it('장르 탭은 콘텐츠 관리 묶음의 맨 뒤 메뉴로 열리고 장르 표(순서·아이콘·이름·상태·홈 노출·사용 수·조치)와 추가 폼을 보이며 데모 표시는 없다', async () => {
+  openGenres()
+  renderAdmin('genres')
+  await screen.findByText('판타지', { selector: 'b' })
+  const links = within(screen.getByRole('group', { name: '콘텐츠 관리' })).getAllByRole('link')
+  expect([links.at(-1)?.textContent, links.at(-1)?.getAttribute('href'), links.at(-1)?.getAttribute('aria-current')]).toEqual(['장르', '/admin?tab=genres', 'page'])
+  expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('장르 관리')
+  expect(demoChip()).toBeNull()
+  const table = screen.getByRole('table', { name: '장르 관리 표' })
+  expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['순서', '아이콘', '이름', '상태', '홈 노출', '작품 수', '세계관 수', '조치'])
+  expect(cells(genreRow('판타지'))).toEqual(['1', '✨', '판타지', '활성', '홈 노출', '0', '0', '⋮'])
+  expect(cells(genreRow('현대판타지'))).toEqual(['2', '—', '현대판타지', '활성', '—', '0', '0', '⋮'])
+  expect(within(table).getAllByRole('row')).toHaveLength(31)
+  const form = within(screen.getByRole('form', { name: '장르 추가' }))
+  form.getByLabelText('새 장르 이름')
+  form.getByLabelText(/아이콘/)
+  form.getByRole('button', { name: '장르 추가' })
+  expect(genreMenu('판타지').getAttribute('aria-haspopup')).toBe('menu')
+})
+
+it('장르를 추가하면 맨 뒤에 활성·홈 숨김으로 붙고 입력이 비며, 같은 이름은 거절 이유를 그 자리에서 알린다', async () => {
+  const { repo } = openGenres()
+  renderAdmin('genres')
+  await screen.findByText('판타지', { selector: 'b' })
+  const form = within(screen.getByRole('form', { name: '장르 추가' }))
+  fireEvent.change(form.getByLabelText('새 장르 이름'), { target: { value: ' 사이버펑크 ' } })
+  fireEvent.change(form.getByLabelText(/아이콘/), { target: { value: '🤖' } })
+  fireEvent.click(form.getByRole('button', { name: '장르 추가' }))
+  const done = await screen.findByText('「사이버펑크」 장르를 추가했어요.')
+  expect(done.getAttribute('role')).toBe('status')
+  expect(screen.getAllByText('「사이버펑크」 장르를 추가했어요.')).toHaveLength(1) // 화면 위 완료 줄과 겹쳐 두 번 그리지 않는다
+  await screen.findByText('사이버펑크', { selector: 'b' })
+  expect(cells(genreRow('사이버펑크'))).toEqual(['31', '🤖', '사이버펑크', '활성', '—', '0', '0', '⋮'])
+  expect((form.getByLabelText('새 장르 이름') as HTMLInputElement).value).toBe('')
+  expect(document.activeElement).toBe(form.getByLabelText('새 장르 이름')) // 이어서 다음 장르를 적을 수 있게 초점이 이름 칸에 남는다
+  fireEvent.change(form.getByLabelText('새 장르 이름'), { target: { value: '판타지' } })
+  fireEvent.click(form.getByRole('button', { name: '장르 추가' }))
+  expect((await screen.findByRole('alert')).textContent).toBe('장르 추가 · 이미 같은 이름의 장르가 있어요.')
+  expect(await repo.list()).toHaveLength(31)
+})
+
+it('⋮ 메뉴의 숨기기는 확인 뒤에만 보내고 다시 보이기·홈 노출 켜기/끄기는 바로 보내며, 고르면 메뉴가 닫히고 초점이 ⋮로 돌아온다', async () => {
+  openGenres()
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  renderAdmin('genres')
+  await screen.findByText('무협', { selector: 'b' })
+  openGenreMenu('무협')
+  expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['이름·아이콘 수정', '숨기기', '홈 노출 켜기', '위로 옮기기', '아래로 옮기기'])
+  pickGenreItem('숨기기')
+  expect(confirm).toHaveBeenCalledWith(expect.stringContaining('「무협」을(를) 숨길까요?'))
+  expect(screen.queryByRole('menu')).toBeNull()
+  expect(document.activeElement).toBe(genreMenu('무협'))
+  expect(cells(genreRow('무협'))[3]).toBe('활성') // 취소하면 바뀌지 않는다
+  confirm.mockReturnValue(true)
+  openGenreMenu('무협')
+  pickGenreItem('숨기기')
+  await waitFor(() => expect(cells(genreRow('무협'))[3]).toBe('숨김'))
+  expect(screen.getByText('「무협」 장르를 숨겼어요.').getAttribute('role')).toBe('status')
+  confirm.mockClear()
+  openGenreMenu('무협')
+  pickGenreItem('다시 보이기') // 확인 없이 바로
+  await waitFor(() => expect(cells(genreRow('무협'))[3]).toBe('활성'))
+  expect(confirm).not.toHaveBeenCalled()
+  openGenreMenu('무협')
+  pickGenreItem('홈 노출 켜기')
+  await waitFor(() => expect(cells(genreRow('무협'))[4]).toBe('홈 노출'))
+  openGenreMenu('무협')
+  pickGenreItem('홈 노출 끄기')
+  await waitFor(() => expect(cells(genreRow('무협'))[4]).toBe('—'))
+})
+
+it('홈 노출은 일곱 번째를 켜면 거절 이유를 그 장르 이름과 함께 알리고 표는 그대로이며 하나를 끄면 켤 수 있다', async () => {
+  const { repo } = openGenres()
+  for (const code of ['genre-02', 'genre-03', 'genre-04']) await repo.update(code, { featured: true }) // 판타지·SF·고전과 함께 6개
+  renderAdmin('genres')
+  await screen.findByText('퓨전', { selector: 'b' })
+  openGenreMenu('퓨전')
+  pickGenreItem('홈 노출 켜기')
+  expect((await screen.findByRole('alert')).textContent).toBe('「퓨전」 · 홈에 보이는 장르는 최대 6개예요. 다른 장르의 홈 노출을 먼저 꺼 주세요.')
+  expect(cells(genreRow('퓨전'))[4]).toBe('—')
+  openGenreMenu('선협')
+  pickGenreItem('홈 노출 끄기')
+  await waitFor(() => expect(cells(genreRow('선협'))[4]).toBe('—'))
+  openGenreMenu('퓨전')
+  pickGenreItem('홈 노출 켜기')
+  await waitFor(() => expect(cells(genreRow('퓨전'))[4]).toBe('홈 노출'))
+})
+
+it('이름·아이콘 수정은 행 아래 인라인 폼으로 열려 바뀐 것만 보내고, 저장·취소하면 닫히며 초점이 그 줄의 ⋮로 돌아온다', async () => {
+  const { update } = openGenres()
+  renderAdmin('genres')
+  await screen.findByText('무협', { selector: 'b' })
+  openGenreMenu('무협')
+  pickGenreItem('이름·아이콘 수정')
+  const form = within(screen.getByRole('form', { name: '「무협」 이름·아이콘 수정' }))
+  expect(document.activeElement).toBe(form.getByLabelText('장르 이름'))
+  expect((form.getByLabelText('장르 이름') as HTMLInputElement).value).toBe('무협')
+  // 아무것도 바꾸지 않고 저장하면 보내지 않고 닫는다.
+  fireEvent.click(form.getByRole('button', { name: '저장' }))
+  expect(screen.queryByRole('form', { name: /이름·아이콘 수정/ })).toBeNull()
+  expect(update).not.toHaveBeenCalled()
+  expect(document.activeElement).toBe(genreMenu('무협'))
+  // 취소도 보내지 않고 닫는다.
+  openGenreMenu('무협')
+  pickGenreItem('이름·아이콘 수정')
+  fireEvent.click(within(screen.getByRole('form', { name: '「무협」 이름·아이콘 수정' })).getByRole('button', { name: '취소' }))
+  expect(screen.queryByRole('form', { name: /이름·아이콘 수정/ })).toBeNull()
+  expect(update).not.toHaveBeenCalled()
+  openGenreMenu('무협')
+  pickGenreItem('이름·아이콘 수정')
+  const edit = within(screen.getByRole('form', { name: '「무협」 이름·아이콘 수정' }))
+  fireEvent.change(edit.getByLabelText('장르 이름'), { target: { value: ' 신무협 ' } })
+  fireEvent.change(edit.getByLabelText(/아이콘/), { target: { value: '⚔' } })
+  fireEvent.click(edit.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(screen.queryByRole('form', { name: /이름·아이콘 수정/ })).toBeNull())
+  expect(update).toHaveBeenCalledWith('genre-03', { name: '신무협', emoji: '⚔' })
+  await screen.findByText('신무협', { selector: 'b' })
+  expect(cells(genreRow('신무협'))).toEqual(['3', '⚔', '신무협', '활성', '—', '0', '0', '⋮'])
+  expect(screen.getByText('「신무협」 장르를 수정했어요.')).toBeTruthy()
+  expect(document.activeElement).toBe(genreMenu('신무협'))
+})
+
+it('위·아래로 옮기면 순서를 저장해 표가 바뀌고 맨 앞은 위로·맨 뒤는 아래로 옮길 수 없다', async () => {
+  openGenres()
+  renderAdmin('genres')
+  await screen.findByText('판타지', { selector: 'b' })
+  expect(genreNames().slice(0, 3)).toEqual(['판타지', '현대판타지', '무협'])
+  openGenreMenu('현대판타지')
+  pickGenreItem('위로 옮기기')
+  await waitFor(() => expect(genreNames().slice(0, 3)).toEqual(['현대판타지', '판타지', '무협']))
+  expect(screen.getByText('「현대판타지」 장르를 위로 옮겼어요.')).toBeTruthy()
+  openGenreMenu('현대판타지')
+  expect((screen.getByRole('menuitem', { name: '위로 옮기기' }) as HTMLButtonElement).disabled).toBe(true) // 이제 맨 앞
+  fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' })
+  expect(screen.queryByRole('menu')).toBeNull()
+  openGenreMenu('기타')
+  expect((screen.getByRole('menuitem', { name: '아래로 옮기기' }) as HTMLButtonElement).disabled).toBe(true) // 맨 뒤
+})
+
+it('장르 조회 권한이 없으면(403) 폼·표 없이 필요한 권한만 안내하고, 읽지 못하면 실패와 다시 불러오기를 보인다', async () => {
+  const list = vi.spyOn(appContainer.resolve('operationsGenreUseCase'), 'list').mockResolvedValue(null)
+  renderAdmin('genres')
+  expect((await screen.findByRole('alert')).textContent).toBe("장르를 관리하려면 '작품 관리' 권한이 필요해요.")
+  expect(screen.queryByRole('form', { name: '장르 추가' })).toBeNull()
+  expect(screen.queryByRole('table', { name: '장르 관리 표' })).toBeNull()
+  cleanup()
+  list.mockRejectedValue(new Error('offline'))
+  renderAdmin('genres')
+  expect((await screen.findByRole('alert')).textContent).toContain('장르 목록을 불러오지 못했어요.')
+  expect(screen.queryByRole('table', { name: '장르 관리 표' })).toBeNull() // 실패를 빈 표로 숨기지 않는다
+  list.mockImplementation(() => new OperationsGenreUseCase(new InMemoryOperationsGenreRepository()).list())
+  fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+  await screen.findByText('판타지', { selector: 'b' })
+  expect(screen.queryByRole('alert')).toBeNull()
 })
 
 // 표 행 조치는 글자 버튼이 줄마다 늘어서 지저분했다: 행마다 ⋮ 버튼 하나(공용 PopMenu)가 그 행의 조치들을 세로 메뉴로 연다.

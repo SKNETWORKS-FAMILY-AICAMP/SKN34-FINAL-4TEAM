@@ -17,13 +17,15 @@
 - **정본:** Content `genre` 테이블. 다음 번호 Content 마이그레이션(V42)으로 칸 둘을 더한다.
   - `active boolean NOT NULL DEFAULT true`: 숨김 여부
   - `position int NOT NULL`: 표시 순서. 기존 행은 코드 순(`genre-01`=1 …)으로 채운다
+  - `featured boolean NOT NULL DEFAULT false`: 홈 장르 칩에 보이기. 기존 고정 칩에 맞춰 판타지(`genre-01`)·SF(`genre-14`)·고전(`genre-28`)을 true로 채운다
+  - `emoji text NULL`: 칩 앞 아이콘(선택, 최대 8자). 위 세 장르는 ✨·🛰·📜로 채운다
   - `name`에 UNIQUE를 더한다(같은 이름 두 개 금지).
 - **코드(`code`)는 바꾸지 않는다.** 새 장르는 서버가 다음 번호로 만든다(`genre-31` …). `id`=`code`(기존 규칙).
 - **삭제는 없다.** 작품·세계관이 참조하므로 숨김만 한다.
 
 ## 세계관 장르 합치기
 
-- WorldStudio 다음 번호 마이그레이션(V13)이 `world.genre`의 CHECK 제약을 지우고 기존 값을 Content 장르 코드로 바꾼다.
+- WorldStudio 마이그레이션 V14(V13은 열린 PR #552 몫이라 비운다)가 `world.genre`의 CHECK 제약을 지우고 기존 값을 Content 장르 코드로 바꾼다.
 
   | 옛 코드 | 새 코드 | 이름 |
   |---|---|---|
@@ -37,7 +39,7 @@
 
 - WorldStudio는 별도 마이그레이션 이력이라 DB 외래키를 걸지 않는다. 대신 같은 데이터소스의 Content `genre`를 서비스가 확인한다(`worldGenre` 검사를 목록 조회로 바꾼다).
 - 세계관 장르는 지금처럼 **하나**(미지정 `null`)다.
-- 장르 템플릿 시더의 템플릿 장르 매핑(`GenreTemplateSeeder.TEMPLATE_WORLD_GENRES`)은 새 코드로 바꾼다. 템플릿의 동결 입력·원본 판정 hash에 `world.genre`가 들어가는지 구현 전에 확인한다(들어가면 기존 값 보존 방식을 다시 정한다).
+- 장르 템플릿 시더의 템플릿 장르 매핑(`GenreTemplateSeeder.TEMPLATE_WORLD_GENRES`)은 새 코드로 바꾼다. 템플릿의 동결 입력·원본 판정 hash에 `world.genre`가 들어가는지 구현 전에 확인한다(들어가면 기존 값 보존 방식을 다시 정한다). 확인 결과: 생성·편집·저장 hash와 동결 입력에는 들어가지 않고 원본 판정의 값 비교(`genre`가 null이거나 매핑 값)에만 쓰이므로, V14 변환표와 시더 매핑을 같은 값 대 값 표로 두어 이미 적재된 템플릿의 원본 판정이 유지된다.
 - 공개 목록 필터 `GET /public/world-studios?genre=`는 새 코드(`genre-01` …)를 받는다. 옛 영문 코드는 받지 않는다(시연 프로젝트, 링크를 남기지 않음).
 
 ## 선택·검사 규칙 (작품·세계관 공통)
@@ -48,19 +50,26 @@
 - 장르 추천 AI(`work-tags`)에 보내는 `allowedGenres`는 활성 장르 이름 목록이다(하드코딩 목록 대신).
 - 검색 색인은 장르 이름으로 저장한다. 이름을 바꾸면 다음 색인 작업 때 반영되고, 그 사이에는 옛 이름으로 검색된다(한계).
 
+## 홈 장르 칩
+
+- 운영자만 장르를 만든다. 작가는 작품 등록·수정에서 목록 중에 고른다(2026-11-20 사용자 결정).
+- 홈 칩 순서: `추천` · [홈에 보이는 장르: `active && featured`, `position` 순, **최대 6개**] · `무료` · `포크 많은`. `무료`·`포크 많은`은 장르가 아니라 지금 조건 그대로다.
+- `featured`를 7번째로 켜려 하면 409 `GENRE_FEATURED_LIMIT`. 숨긴 장르는 `featured`여도 칩에 나오지 않는다.
+- 장르 칩을 누르면 공개 검색(`/public/works`)의 장르 조건으로 거른다(지금 `고전` 칩이 작품 테마로 거르던 것을 장르로 바꾼다).
+
 ## API
 
 ### Content 공개
 | 경로 | 설명 |
 |---|---|
-| `GET /api/v1/public/genres` | 활성 장르 `[{code, name}]`, `position ASC`. 비로그인 가능. 작품·세계관 장르 선택지와 검색 칩이 쓴다 |
+| `GET /api/v1/public/genres` | 활성 장르 `[{code, name, emoji, featured}]`, `position ASC`. 비로그인 가능. 작품·세계관 장르 선택지와 검색 칩이 쓴다 |
 
 ### Content 내부 (운영 서비스 토큰 체인, `/internal/v1/works`와 같은 인증)
 | 경로 | 설명 |
 |---|---|
-| `GET /internal/v1/genres` | 전체 장르(숨김 포함) `[{code, name, active, position, workCount, worldCount}]`. 사용 수는 집계 쿼리 한 번씩(N+1 금지) |
-| `POST /internal/v1/genres` | `{name}` → 201 새 장르(맨 뒤 순서, 활성). 이름 1~30자, 앞뒤 공백 제거, 중복은 409 `GENRE_NAME_TAKEN` |
-| `PATCH /internal/v1/genres/{code}` | `{name?, active?}` → 200. 이름 중복 409, 없는 코드 404 |
+| `GET /internal/v1/genres` | 전체 장르(숨김 포함) `[{code, name, emoji, active, featured, position, workCount, worldCount}]`. 사용 수는 집계 쿼리 한 번씩(N+1 금지) |
+| `POST /internal/v1/genres` | `{name, emoji?}` → 201 새 장르(맨 뒤 순서, 활성). 이름 1~30자, 앞뒤 공백 제거, 중복은 409 `GENRE_NAME_TAKEN` |
+| `PATCH /internal/v1/genres/{code}` | `{name?, emoji?, active?, featured?}` → 200(`emoji: ""`는 지움). 홈 노출 한도 초과 409 `GENRE_FEATURED_LIMIT`, 이름 중복 409, 없는 코드 404 |
 | `PUT /internal/v1/genres/order` | `{codes: [...]}`(전체 코드를 한 번씩) → 200. 빠짐·중복·없는 코드는 422 |
 
 ### 운영 공개 (회원 Bearer, `operator` + `works` 권한)
@@ -68,8 +77,8 @@
 
 ## 화면
 
-- **관리자 `콘텐츠 관리 > 장르`**(`/admin?tab=genres`): 장르 표(순서·이름·상태·작품 수·세계관 수·조치), 추가 폼, 이름 바꾸기, 숨기기/다시 보이기(확인 뒤), 위·아래로 순서 옮기기. 권한이 없으면(403) 안내만.
-- **작품 등록·수정, 세계관 공개 설정, 검색 장르 칩**: 하드코딩 목록 대신 `GET /public/genres`를 읽는다. 읽지 못하면 선택지를 빈 목록으로 채우지 않고 실패와 다시 불러오기를 보인다.
+- **관리자 `콘텐츠 관리 > 장르`**(`/admin?tab=genres`): 장르 표(순서·아이콘·이름·상태·홈 노출·작품 수·세계관 수·조치), 추가 폼(이름·아이콘), 이름·아이콘 바꾸기, 숨기기/다시 보이기(확인 뒤), 홈 노출 켜기/끄기(6개 한도 안내), 위·아래로 순서 옮기기. 권한이 없으면(403) 안내만.
+- **작품 등록·수정, 세계관 공개 설정, 홈·검색 장르 칩**: 하드코딩 목록 대신 `GET /public/genres`를 읽는다. 읽지 못하면 선택지를 빈 목록으로 채우지 않고 실패와 다시 불러오기를 보인다.
 
 ## 한계
 

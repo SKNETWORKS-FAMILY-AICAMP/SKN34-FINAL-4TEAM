@@ -190,7 +190,7 @@ class McpChangeNoticeTest {
         Case("world_studio_create", mapOf("request" to mapOf("name" to "달빛 세계")), "world", "${NEW_WORLD}"),
         Case("world_studio_edit_draft", mapOf("id" to "${WORLD}", "request" to mapOf("expectedDraftRevision" to 1, "name" to "달빛 세계", "description" to "설명")), "world", "${WORLD}"),
         Case("world_studio_save_revision", mapOf("id" to "${WORLD}", "request" to mapOf("expectedDraftRevision" to 1, "key" to "save-1")), "world", "${WORLD}"),
-        Case("world_studio_update_publication", mapOf("id" to "${WORLD}", "request" to mapOf("visibility" to "public", "genre" to "fantasy")), "world", "${WORLD}"),
+        Case("world_studio_update_publication", mapOf("id" to "${WORLD}", "request" to mapOf("visibility" to "public", "genre" to "genre-01")), "world", "${WORLD}"),
         Case("world_analysis_apply", mapOf("worldId" to "${WORLD}", "analysisId" to "${ANALYSIS}",
             "request" to mapOf("key" to "apply-1", "expectedDraftRevision" to 1, "candidates" to listOf(mapOf("candidateId" to "${CANDIDATE}", "decisionSequence" to 1)))), "world", "${WORLD}"),
         // work: 작품과 그에 딸린 설정·소식·제안 반영(생성은 새 작품, Fork 생성은 새 Fork 작품).

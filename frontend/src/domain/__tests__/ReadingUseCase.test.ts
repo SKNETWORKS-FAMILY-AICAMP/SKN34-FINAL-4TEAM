@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../data/mock/InMemoryGenreRepositories'
 import { seedWorks, seedWorlds } from '../../data/mock/seed'
 import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
@@ -33,7 +34,8 @@ function fakes(progress: Partial<ReadingProgress> = {}) {
     markSeen: async (id) => { state.seen[id] = true },
     saveProgress: async (p) => { Object.assign(state, p) },
   }
-  return { works, state, server, useCase: new ReadingUseCase(workRepository, readingRepository, server.repository) }
+  const genres = new InMemoryGenreRepository(new InMemoryOperationsGenreRepository())
+  return { works, state, server, useCase: new ReadingUseCase(workRepository, readingRepository, server.repository, undefined, undefined, genres) }
 }
 
 /** 서버(정본) 작품 좋아요: 저장소 대역은 서버가 확정하는 수·상태를 그대로 돌려준다. canonical이 아닌 시드 작품은 메모리 데모다. */

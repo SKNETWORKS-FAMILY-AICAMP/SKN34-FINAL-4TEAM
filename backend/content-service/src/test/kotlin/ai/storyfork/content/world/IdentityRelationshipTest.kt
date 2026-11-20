@@ -43,7 +43,7 @@ class IdentityRelationshipTest {
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
     private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,mock(SettingCardVersionRepository::class.java),mock(WorldRevisionRepository::class.java),
         mock(WorldRevisionCardRepository::class.java),mock(WorldSaveRequestRepository::class.java),states,mock(TemplatePublicationOnceRepository::class.java),
-        mock(ExpandedSeedProgressRepository::class.java),mock(InitialWorldApplicationRepository::class.java),mock(SettingCardImageRepository::class.java),graph,manager,mapper)
+        mock(ExpandedSeedProgressRepository::class.java),mock(InitialWorldApplicationRepository::class.java),mock(SettingCardImageRepository::class.java),graph,manager,mapper,mock(ai.storyfork.content.work.repository.GenreRepository::class.java))
     private val world=UUID.randomUUID()
     private val actor=UUID.randomUUID()
     private val draft=WorldDraft(worldId=world,name="편집본",draftRevision=2)

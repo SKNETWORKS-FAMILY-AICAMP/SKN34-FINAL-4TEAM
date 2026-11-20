@@ -94,7 +94,7 @@ class WorldStudioMcpTools(
     fun updatePublication(
         context: McpTransportContext,
         @McpToolParam(description = "세계관 ID(UUID)") id: String,
-        @McpToolParam(description = "공개 입력: visibility(private|public)·genre(fantasy|sf|wuxia|romance|modern|classic|mystery, 선택)") request: PublicationRequest,
+        @McpToolParam(description = "공개 입력: visibility(private|public)·genre(Content 장르 코드 genre-NN, 선택. 활성 장르만 새로 고를 수 있고 이미 붙은 장르는 그대로 두면 통과)") request: PublicationRequest,
     ): PublicationResponse = studioTool { studio.publication(uuidArg(id), context.callerUuid(), request).also { changeNotice.world(context, id) } }
 
     @McpTool(
@@ -122,7 +122,7 @@ class WorldStudioMcpTools(
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
     fun publicList(
-        @McpToolParam(description = "장르 코드(fantasy|sf|wuxia|romance|modern|classic|mystery). 생략하면 전체", required = false) genre: String?,
+        @McpToolParam(description = "장르 코드(Content 장르 코드 genre-NN, 목록은 GET /api/v1/public/genres의 code). 생략하면 전체", required = false) genre: String?,
         @McpToolParam(description = "쪽 번호(0부터)", required = false) page: String?,
         @McpToolParam(description = "쪽 크기(1~100, 기본 24)", required = false) size: String?,
     ): PublicWorldPageResponse = mcpTool { publicWorlds.list(genre, null, page, size) }

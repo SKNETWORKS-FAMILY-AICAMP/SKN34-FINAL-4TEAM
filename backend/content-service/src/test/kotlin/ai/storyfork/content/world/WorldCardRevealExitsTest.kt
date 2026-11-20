@@ -122,7 +122,7 @@ class WorldCardRevealExitsTest {
     private val shownLabels = mapOf(n - 1 to emptySet<String>(), n to setOf("동료", "정체"))
 
     init {
-        val world = StudioWorld(worldId, UUID.randomUUID(), revisionId, visibility = "public", genre = "fantasy", publishedAt = Instant.parse("2026-11-11T01:02:03Z"))
+        val world = StudioWorld(worldId, UUID.randomUUID(), revisionId, visibility = "public", genre = "genre-01", publishedAt = Instant.parse("2026-11-11T01:02:03Z"))
         `when`(worlds.findById(worldId)).thenReturn(Optional.of(world))
         val revision = WorldRevision(id = revisionId, worldId = worldId, revisionNo = 3, name = "세계", description = "설명", sealed = true)
         val state = WorldRelationshipState(worldId, 3, "creation", "key", "hash", 1, true)
