@@ -1,6 +1,7 @@
+import { characterDocName, missingCharacterDocs } from './characterDocs'
 import type { InheritedCard, InheritedIdentity } from './content'
 import { cardTypeOf } from './studioCards'
-import { identityBodies } from './studioRelations'
+import { identityBodies, identityBodyOf } from './studioRelations'
 import { scenePlans, type StoryPlan } from './storyPlan'
 import type { StudioSetting } from './studioWorld'
 
@@ -10,7 +11,8 @@ import type { StudioSetting } from './studioWorld'
  * 무대(Stage) 확장: 장면은 턴(나레이션 또는 인물 한 명)마다 멈추고(`paused`), 작가가 줄을 고치거나 끼어들 수 있다.
  */
 export type SimulationStatus = 'running' | 'paused' | 'completed' | 'stopped' | 'failed'
-export type SimulationBeat = { index: number; text: string; status: 'done' | 'pending' | 'rejected' }
+/** `rejectedBy`는 그 비트를 따르지 않은 인물의 카드 id다(status가 rejected일 때만, #356). 서버가 모든 비트에 싣는 null도 받는다. */
+export type SimulationBeat = { index: number; text: string; status: 'done' | 'pending' | 'rejected'; rejectedBy?: string | null }
 export type SimulationCheckKind = 'knowledge_leak' | 'voice_mix' | 'relation' | 'premise' | 'beat'
 export type SimulationCheck = { kind: SimulationCheckKind; passed: boolean; detail: string }
 export type SimulationEvidence = { ref: string; source: 'graph' | 'manuscript' | 'bm25' }
@@ -124,6 +126,13 @@ export function sceneRows(sim: Pick<CharacterSimulation, 'turns' | 'notes'>, kno
   return rows
 }
 
+/**
+ * 비트 거부로 멈춘 장면(#356)이면 거부한 인물의 카드 id(서버가 거부한 비트에 싣는다, 없는 옛 결과는 null)를, 아니면 null을 돌려준다.
+ * 거부는 기획 쪽 문제라 '이대로 진행'은 없고 인물 카드나 흐름을 고쳐 다시 시도한다. 다시 시도해 이어진 장면(paused)은 거부가 아니다.
+ */
+export const beatRejection = (sim: Pick<CharacterSimulation, 'status' | 'stopReason' | 'beats'>) =>
+  sim.status === 'stopped' && sim.stopReason === 'beat_rejected' ? { characterId: sim.beats.find((beat) => beat.status === 'rejected')?.rejectedBy ?? null } : null
+
 // 서버 SimulationResult.stopReason은 코드값이고 사람이 읽을 문장은 단계 error다. error 문장이 없을 때만 코드를 이 문구로 바꾼다.
 // ponytail: 턴 한도 12는 서버 TURN_LIMIT와 같은 값을 적었다. 서버가 한도를 바꾸면 함께 바꾼다(error 문장이 오면 그 문장이 먼저다).
 const stopReasons: Record<string, string> = {
@@ -159,8 +168,11 @@ export function planBeats(plans: (Pick<StoryPlan, 'kind' | 'episodeNumber' | 'ti
   return used.map((plan) => cut([plan.title.trim(), plan.content.trim()].filter(Boolean).join(': '), SIM_BEAT_MAX))
 }
 
-/** 시작 양식의 인물 후보. id는 연결 WorldStudio의 인물 카드 id다. person은 「동일 인물」의 다른 이름 카드일 때의 본체 카드 id다(#485). */
-export type SimulationCharacter = { id: string; name: string; aliases: string[]; person?: string }
+/**
+ * 시작 양식의 인물 후보. id는 연결 WorldStudio의 인물 카드 id다. person은 「동일 인물」의 다른 이름 카드일 때의 본체 카드 id다(#485).
+ * missing은 비어 있는 필수 인물 문서의 파일 이름(IDENTITY.md·SOUL.md)이다. 하나라도 있으면 참여 인물로 고를 수 없다(#357, GOAL.md는 선택이라 세지 않는다).
+ */
+export type SimulationCharacter = { id: string; name: string; aliases: string[]; missing: string[]; person?: string }
 
 // 제목이 '나레이터'로 시작하는 카드(나레이터 — 작품명)는 인물이 아니라 서술 문체 지침이다. 서버(simulation/service.py NARRATOR_CARD)와 같은 규칙: NFC → trim → 시작 일치.
 const isNarratorCard = (title: string) => title.normalize('NFC').trim().startsWith('나레이터')
@@ -174,7 +186,12 @@ const isCandidate = (cardType: string, title: string) => cardType === 'character
 export const worldCharacters = (settings: StudioSetting[]): SimulationCharacter[] => {
   const bodies = identityBodies(settings)
   return settings.filter((setting) => isCandidate(cardTypeOf(setting.item), setting.item.title))
-    .map((setting) => ({ id: setting.item.id, name: setting.item.title.trim(), aliases: setting.aliases ?? [], ...(bodies.has(setting.item.id) && { person: bodies.get(setting.item.id) }) }))
+    .map((setting) => {
+      // 다른 이름 카드는 SOUL·GOAL·회차 기억을 본체의 것으로 쓰므로(서버 `_characters`) 본체와 합친 문서로 비어 있는지 본다. 본문(IDENTITY.md)은 그 카드 자신의 것이다.
+      const body = identityBodyOf(settings, setting.item.id)
+      const missing = missingCharacterDocs(body ? { ...setting, characterDocs: body.characterDocs } : setting).map(characterDocName)
+      return { id: setting.item.id, name: setting.item.title.trim(), aliases: setting.aliases ?? [], missing, ...(bodies.has(setting.item.id) && { person: bodies.get(setting.item.id) }) }
+    })
 }
 
 /** 같은 사람(「동일 인물」로 이어진 본체와 다른 이름들)의 다른 카드를 이미 [ids]에 골라 [candidate]를 고를 수 없는지. 한 사람은 카드 하나로만 고른다(#485). */
@@ -186,21 +203,22 @@ export const samePersonChosen = (characters: SimulationCharacter[], ids: string[
 /**
  * Fork가 이어받은 원작 세계관의 인물 후보(#365). 서버가 공개 카드·Fork 기준 회차로 이미 거른 카드에서 [worldCharacters]와 같은 규칙으로 고른다.
  * 서버는 같은 카드 집합으로 characterIds를 검증하므로 이 카드 id를 그대로 보낸다. 이어받은 세계관의 「동일 인물」 쌍([identity])으로 다른 이름 카드에 본체 카드 id를 단다(#485).
+ * SOUL.md·GOAL.md는 작가용이라 이어받지 않고 서버도 이어받은 인물은 IDENTITY.md(카드 본문, 확정 버전에서 늘 있다)만 보므로 비어 있는 문서로 막지 않는다(#357).
  */
 export const inheritedCharacters = (cards: InheritedCard[], identity: InheritedIdentity[] = []): SimulationCharacter[] => {
   const bodies = new Map(identity.map(({ sourceCardId, targetCardId }) => [sourceCardId, targetCardId]))
   return cards.filter((card) => isCandidate(card.cardType, card.title))
-    .map((card) => ({ id: card.id, name: card.title.trim(), aliases: card.aliases, ...(bodies.has(card.id) && { person: bodies.get(card.id) }) }))
+    .map((card) => ({ id: card.id, name: card.title.trim(), aliases: card.aliases, missing: [], ...(bodies.has(card.id) && { person: bodies.get(card.id) }) }))
 }
 
 /**
- * 흐름 모드가 미리 고르는 참여 인물: 비트 문장(제목·내용)에 이름이나 별칭이 나오는 인물 카드를 목록 순서대로 6명까지.
+ * 흐름 모드가 미리 고르는 참여 인물: 비트 문장(제목·내용)에 이름이나 별칭이 나오는 인물 카드를 목록 순서대로 6명까지. 필수 인물 문서가 빈 인물은 고를 수 없으니 뺀다(#357).
  * ponytail: 부분 문자열 일치라 조사가 붙은 이름도 잡지만 이름이 다른 낱말의 일부여도 잡힌다. 한 글자 이름은 오탐이 많아 건너뛴다. 작가가 양식에서 고친다.
  */
 export function beatCharacterIds(beats: string[], characters: SimulationCharacter[]) {
   const text = beats.join('\n')
   return characters
-    .filter((character) => [character.name, ...character.aliases].some((name) => name.trim().length >= 2 && text.includes(name.trim())))
+    .filter((character) => !character.missing.length && [character.name, ...character.aliases].some((name) => name.trim().length >= 2 && text.includes(name.trim())))
     .map((character) => character.id)
     .slice(0, SIM_CHARACTERS_MAX)
 }
