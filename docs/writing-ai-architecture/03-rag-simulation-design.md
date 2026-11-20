@@ -108,7 +108,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 
 - 전개 기획 `writing.agent.plan(PlanRequest{episodeNumber, request(≤2000자, 작가 요청), single, context, previousPlans(≤3, 직전 기획 결과)})`: strict 구조화 출력 `plans[{title, beats[]}]`·`notes[]`. `single=false`(기획만)면 대안 1~3개, `true`(바로 집필)면 1개이고 계획마다 비트 1~12개다. 한도를 벗어나면 502이며 잘린 계획을 결과로 돌려주지 않는다. 계획은 저장하지 않는다.
 - 바로 집필 `plan_and_draft`: 같은 단계 안에서 `plan(single=true)` → 그 계획(제목 + 번호 비트, ≤4000자)으로 `draft`. 응답은 `DraftResponse`에 쓴 계획 `plan`을 더한다. 사용량·응답 id는 원고 호출의 값이다.
-- 오케스트레이션: 메인 에이전트가 `ask_writing(task=plan|draft|patch)`로 작업 종류를 정한다. 작가가 준 `draft`·`patch` 입력이 있으면 그것을 쓰고, 없으면 `task=plan|draft`는 단계 입력 없이(입력 대기 없음) 메인 에이전트의 작업 지시(`request`)와 반영 대상(`target`)으로 실행한다. `target`이 없으면 단계 실패다. 허용 문맥은 오케스트레이션이 작가 권한으로 Content MCP `work_context_read(workId, 근거 회차, query=요청 앞 200자)`를 읽어 JSON으로 넘긴다(Retrieval 검색이 아니라 Content가 근거 회차까지 고른 원문 발췌다). 응답의 `settings`는 버리고 `content_mcp.linked_world`(연결 → Fork 상속 세계관)와 `episode_settings`가 거른 WorldStudio 카드·관계 `{ref, type, title, text}`로 바꾼다(#523). 세계관이 없으면 `settings: []`로 계속하고 결과 `gaps`에 알리며, 세계관 읽기 오류는 단계 실패다. 합친 문맥은 60,000자를 넘으면 단계 실패다. 작가가 계획을 준 draft도 `context`가 비어 있으면 같은 문맥을 받는다. 기획 결과(`plans`)는 원고가 아니라 반영 승인(`apply`)을 묻지 않고 Content MCP에 쓰지 않는다. 이번 턴 Manuscript Review 결과가 있는 `task=patch`는 [조건부 수정](02-ai-architecture.md#조건부-수정-if_issues_found)이다. 그 밖의 `task=patch`는 선택 구간 입력 대기다. 응답 단계에도 `task`를 남긴다. 지금 화면은 `patch` 대기에서 새 원고 계획 칸 대신 채팅에서 채울 수 없다는 안내를 보인다. 목표는 채팅 카드에서 구간을 고르는 것이다([채팅 구간 입력](02-ai-architecture.md#입력-대기와-승인-hitl), 2026-11-18 사용자 결정, 미구현). 예전 대화 기록의 `story_development` 단계는 응답 모델이 그대로 읽는다.
+- 오케스트레이션: 메인 에이전트가 `ask_writing(task=plan|draft|patch|revise_plan)`로 작업 종류를 정한다(`revise_plan`은 아래 [기존 플롯 및 장면 계획 수정](#기존-플롯-및-장면-계획-수정)). 작가가 준 `draft`·`patch` 입력이 있으면 그것을 쓰고, 없으면 `task=plan|draft`는 단계 입력 없이(입력 대기 없음) 메인 에이전트의 작업 지시(`request`)와 반영 대상(`target`)으로 실행한다. `target`이 없으면 단계 실패다. 허용 문맥은 오케스트레이션이 작가 권한으로 Content MCP `work_context_read(workId, 근거 회차, query=요청 앞 200자)`를 읽어 JSON으로 넘긴다(Retrieval 검색이 아니라 Content가 근거 회차까지 고른 원문 발췌다). 응답의 `settings`는 버리고 `content_mcp.linked_world`(연결 → Fork 상속 세계관)와 `episode_settings`가 거른 WorldStudio 카드·관계 `{ref, type, title, text}`로 바꾼다(#523). 세계관이 없으면 `settings: []`로 계속하고 결과 `gaps`에 알리며, 세계관 읽기 오류는 단계 실패다. 합친 문맥은 60,000자를 넘으면 단계 실패다. 작가가 계획을 준 draft도 `context`가 비어 있으면 같은 문맥을 받는다. 기획 결과(`plans`)는 원고가 아니라 반영 승인(`apply`)을 묻지 않고 Content MCP에 쓰지 않는다. 이번 턴 Manuscript Review 결과가 있는 `task=patch`는 [조건부 수정](02-ai-architecture.md#조건부-수정-if_issues_found)이다. 그 밖의 `task=patch`는 선택 구간 입력 대기다. 응답 단계에도 `task`를 남긴다. 지금 화면은 `patch` 대기에서 새 원고 계획 칸 대신 채팅에서 채울 수 없다는 안내를 보인다. 목표는 채팅 카드에서 구간을 고르는 것이다([채팅 구간 입력](02-ai-architecture.md#입력-대기와-승인-hitl), 2026-11-18 사용자 결정, 미구현). 예전 대화 기록의 `story_development` 단계는 응답 모델이 그대로 읽는다.
 - 실모델 브라우저 e2e(2026-11-17, `gpt-6-luna`, Aside, 로컬 스택, 개발용 작품 4화 초안): "다음 화 전개를 두 가지 안으로 짜줘. 원고는 쓰지 마."는 `writing_editing`·`task=plan` 한 단계로 계획 2안(비트 6개씩)과 참고를 돌려줬고 승인 카드·원고 본문은 없었다. "첫 번째 안으로 다음 화를 기획하고 바로 원고까지 써줘."는 약 36초에 계획 하나(비트 8개)와 그 계획을 따른 원고로 4화 반영 승인 대기가 됐고, 거절하자 초안은 바뀌지 않았다. 이 e2e 뒤 사용자 결정(2026-11-17)으로 기획·바로 집필 단계가 같은 대화 최근 5턴 중 가장 최근 기획 결과를 `previousPlans`로 받아, 지칭한 계획을 그대로 따른다(대화 기록 전체는 보내지 않는다). 실모델 확인(같은 날, 컨테이너에서 Writing 직접 호출, 개발용 요약 문맥): 두 안 기획 뒤 "그 중 두 번째 안으로 바로 원고까지 써줘."는 두 번째 계획의 제목·비트를 그대로 쓴 원고를 약 12초에 만들었다. 이 변경의 브라우저 e2e는 Aside 사용량 한도로 하지 못했다. 같은 시각 컨테이너의 OpenAI 연결 오류(`APIConnectionError`)가 간헐적으로 나 Router 실패로 끝난 요청이 있었다(재시도 시 정상 분류). 이 e2e들은 #473 전환 전 Router 구조에서 확인했다.
 - 화면(#458): 바로 집필 승인 카드는 반영할 본문과 따로 `사용한 계획`(제목·비트) 한 줄을 보여, 작가가 어떤 계획으로 쓴 원고인지 보고 반영을 정한다(반영 본문에는 계획을 섞지 않는다). 계획 줄은 면책 문구와 구분되는 전용 스타일(제목 굵게, 높이 제한·스크롤)이고, 같은 턴에 끝난 다른 단계(심의 등급 등)의 완료·실패 결과도 승인 카드 안 "같이 끝난 작업"에 짧게 보인다(#493). 기획 결과 글 끝에는 "가장 최근 기획한 안 중 하나를 '계획 1로 써줘'처럼 말하면 그 계획으로 써요." 안내를 붙인다(previousPlans는 가장 최근 기획 결과만 받는다).
 
@@ -123,9 +123,23 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 
 ### 기존 플롯 및 장면 계획 수정
 
-**미구현.** 작가가 저장된 플롯이나 장면 계획의 수정을 요청하면 Content가 작품·대상 계획·편집 권한을 확인하고 기존 계획을 읽는다. Writing & Editing은 그 계획과 수정 지시를 바탕으로 대상과 변경 전후를 제안으로 보여준다.
+**구현(#578, 2026-11-20 사용자 결정).** 집필 채팅의 `ask_writing(task=revise_plan)`이 작가가 이미 저장한 플롯·장면 계획의 **제목(`title`)과 내용(`content`)만** 고치는 수정안을 만든다. 새 BeatPlan을 만드는 `plan`(저장 안 함), 원고 문장을 고치는 `patch`·조건부 수정 `fix`와 다른 작업이다. Content는 바꾸지 않고 기존 MCP 도구 `story_plan_list`·`story_plan_read`·`story_plan_update`만 작가 권한으로 쓴다. 소유자 확인, 삭제된 계획·다른 작품(404), revision 충돌(409), 종류·소속 플롯 변경 금지는 `StoryPlanService`가 이미 검사한다.
 
-작가가 제안을 명시적으로 승인하면 Content가 편집 권한을 다시 확인하고 현재 계획을 제안의 기준 상태와 대조한 뒤, 기존 계획 수정 경로로 승인된 변경만 반영한다. 승인 전이나 거절 시 계획은 그대로다. 기준 계획이 바뀌었으면 충돌을 알리고 적용하지 않는다. 전개 기획의 BeatPlan은 저장 없이 반환하며 원고 `patch`는 초안 문장에 적용한다.
+실행(`app/orchestration/tools.py _revise_plan`, 모델 호출 2회):
+
+1. Content가 확인한 `target`이 없으면 단계 실패(422)다. 작품 ID는 `target`에서만 읽는다.
+2. `story_plan_list(workId)`로 저장된 계획을 받는다. 계획이 없으면 모델을 부르지 않고 되묻는다.
+3. **모델 호출 1(`writing.agent.pick_plan`):** 요청과 계획 요약(`id`·종류·제목·회차·소속 플롯 제목, 본문 제외)만 보내 계획 ID 하나를 고른다. 하나로 정해지지 않았거나(`null`) 목록에 없는 ID를 골랐으면 수정안을 만들지 않고 `clarify`(`stopped`)로 저장된 계획 제목 최대 5개("외 N개")를 알려 되묻는다. 작가는 다음 채팅 메시지로 제목을 알려 준다. 단계는 남기지 않는다(시뮬레이션 계획의 되묻기와 같다).
+4. `story_plan_read(workId, id)`로 최신 계획과 `revision`을 읽는다. 삭제됨(404)·권한(403) 같은 Content 실패는 단계 `failed`(Content `detail`)다.
+5. **모델 호출 2(`writing.agent.revise_plan`):** 읽은 계획과 지시로 수정된 `title`·`content`를 strict 구조화 출력으로 받는다. 제목 120자 초과·빈 제목·내용 8,000자 초과·바뀐 것 없음(공백 차이만 포함)은 502로 처리해 제안하지 않는다.
+6. 결과 `PlanRevision{planId, kind, revision, before{title, content}, after{title, content}, model, providerResponseId, usage}`의 `revision`은 **제안 때** 읽은 값이다. 메인 에이전트 요약에는 `{kind: 'revise_plan', plan: 제목}`만 넣고 변경 전·후 본문은 넣지 않는다.
+
+승인(`apply`)은 Writing 결과와 같은 노드가 묻는다(`_pending`은 `plans` 없는 완료 결과를 대기로 잡는다). 승인 안내 문구는 `TASK_APPROVAL_MESSAGES`가 "계획 수정안을 저장할지 승인해 주세요. 거절하면 저장하지 않아요."로 따로 쓴다(`awaitingApproval`은 `writing_editing` 그대로, interrupt payload의 `approvalTask`로 구분). interrupt 앞에는 부수효과가 없어, 대기 중이거나 거절이면 `story_plan_update`를 부르지 않는다. 승인하면 `content_mcp.apply_plan`이 계획을 다시 읽어 `revision`이 제안 때와 같은지 확인하고(다르면 409, 쓰지 않음) `story_plan_update`에 `kind`·`parentId`·`episodeNumber`·`characterIds`·`placeIds`는 읽은 값 그대로, `title`·`content`는 수정안, `revision`은 제안 때의 값으로 한 번 보낸다. 성공하면 `applied={episode: 채팅 대상 회차(뜻 없음), revision: 저장 뒤 계획 revision}`을 남기고, Content 실패(409 포함)는 단계 `failed`와 Content `detail`이며 제안은 보존한다.
+
+- **`position`은 보내지 않는다.** 읽은 값을 그대로 돌려보내면 플롯은 422이고(플롯에는 지정 불가), 장면은 저장 순번의 빈자리 때문에 순서 이동이 된다([기존 API 확장](../design/writing-plan-panel-contract.md#기존-api-확장): 일반 편집은 `position`을 생략). 생략하면 같은 회차의 내용 수정은 상대 순서를 유지한다.
+- 회차 연결·인물·장소 연결·종류·소속 플롯·순서 변경과 계획 생성·삭제는 이 작업의 범위 밖이다.
+- 화면: 승인 카드 제목은 "'<계획 제목>' 계획에 저장할까요?"이고 대상(종류·제목)과 변경 전·후 내용을 승인 전에 보인다. 저장 완료("계획에 저장했어요")·실패(409 포함, Content 사유)·거절("저장하지 않았어요")을 구분해 보이며, 저장돼도 회차 초안·설정집을 다시 읽지 않는다. 집필실 플롯 패널은 `다시 불러오기`로 최신 계획을 받는다.
+- 알려진 한계: 계획 요약 전체를 한 번에 모델에 보낸다(목록 길이 제한 없음). Decision Guard의 기능 설명(`writing_editing`)에 계획 수정을 더했으므로 Langfuse에 이미 등록된 production 프롬프트는 새 버전으로 올려야 반영된다. 실모델 e2e 결과는 [기능표](../feature-roadmap.md)에 적는다.
 
 ## 5. Rating Agent
 
@@ -241,4 +255,4 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 
 World는 바꾸려는 설정·사건을 받아 작품에 연결된 세계관의 최신 초안 카드·관계, 사건 카드(연대기), 기준 회차까지의 허용 문맥(Content MCP `work_context_read`), 계획 목록(`story_plan_list`)을 조회한다. 결과에는 영향받는 카드·관계·회차·장면, 근거와 확실성, 충돌과 확인하지 못한 부분을 담는다.
 
-영향 분석은 조회로 끝난다. 기존 플롯·장면 계획의 수정안 제안과 승인 후 반영은 [Writing & Editing의 후속 작업](#기존-플롯-및-장면-계획-수정)이다.
+영향 분석은 조회로 끝난다. 기존 플롯·장면 계획의 수정안 제안과 승인 후 반영은 [Writing & Editing](#기존-플롯-및-장면-계획-수정)(`task=revise_plan`, #578)이 한다.

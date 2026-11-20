@@ -236,7 +236,7 @@ def test_the_model_only_sets_the_request_and_enumerated_arguments():
             assert properties['request']['maxLength'] == 2000
     assert schemas['ask_web_research'].get('properties', {}) == {}
     assert set(schemas['ask_manuscript_review']['properties']['check']['anyOf'][0]['enum']) == {'mechanical', 'semantic', 'both'}
-    assert set(schemas['ask_writing']['properties']['task']['enum']) == {'plan', 'draft', 'patch'}
+    assert set(schemas['ask_writing']['properties']['task']['enum']) == {'plan', 'draft', 'patch', 'revise_plan'}
     # World의 작업은 열거형 인자 task로 고르고 반드시 정해야 한다(고르지 않은 호출은 인자 오류로 단계 실패다).
     assert set(schemas['ask_world']['properties']['task']['enum']) == {'check', 'enrich', 'impact'} and 'task' in schemas['ask_world']['required']
 

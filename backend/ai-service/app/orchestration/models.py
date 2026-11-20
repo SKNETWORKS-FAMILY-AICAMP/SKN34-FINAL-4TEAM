@@ -13,7 +13,7 @@ from app.retrieval.models import Coverage, RetrievalScope
 from app.manuscript_review.models import ReviewResponse, Scope
 from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
 from app.world_review.models import EnrichResponse, ImpactResponse, WorldReviewResponse
-from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanResponse
+from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanResponse, PlanRevision
 
 # 이전 체크포인트는 기록 당시의 단계 식별자를 보존한다(#387·#499). #387 전 대화 기록에는 Writing & Editing으로 합쳐진 story_development가, #499 전에는 review가,
 # World Agent(#546) 전에는 옛 설정집 검토 world_review와 미구현 판정 world_plot이 남아 있다. 이력을 다시 읽을 때 형식 오류가 되지 않게 읽기만 받는다.
@@ -129,7 +129,7 @@ class QaStepResult(AnswerResponse):
 
 
 class AppliedDraft(BaseModel):
-    """Content MCP가 저장한 초안의 새 revision. Writing·시뮬레이션은 회차 초안, World 보강 제안은 세계관 초안이다(episode는 뜻 없이 채팅 대상 회차)."""
+    """Content MCP가 저장한 초안의 새 revision. Writing·시뮬레이션은 회차 초안, World 보강 제안은 세계관 초안, 계획 수정은 그 계획이다(episode는 뜻 없이 채팅 대상 회차)."""
     episode: int
     revision: int
 
@@ -137,15 +137,15 @@ class AppliedDraft(BaseModel):
 class StepResult(BaseModel):
     feature: RecordedFeature
     when: Literal['always', 'if_issues_found']
-    # 메인 에이전트가 정한 작업 종류: Writing & Editing은 plan·draft·patch(#387·#473), World는 check·enrich·impact(#546·#291)
-    task: Literal['plan', 'draft', 'patch', 'check', 'enrich', 'impact'] | None = None
+    # 메인 에이전트가 정한 작업 종류: Writing & Editing은 plan·draft·patch·revise_plan(#387·#473·#578), World는 check·enrich·impact(#546·#291)
+    task: Literal['plan', 'draft', 'patch', 'revise_plan', 'check', 'enrich', 'impact'] | None = None
     # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다. skipped는 조건부 수정이 고칠 확정 지적이 없어 건너뛴 단계다(#370).
     status: Literal['completed', 'failed', 'not_started', 'skipped']
-    result: (QaStepResult | PlanResponse | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse
+    result: (QaStepResult | PlanResponse | DraftResponse | PatchResponse | PlanRevision | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse
              | EnrichResponse | ImpactResponse | RatingResponse | None) = None
     error: str | None = None  # 실패 사유, skipped면 건너뛴 이유
-    approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면·World 보강 제안 반영에 대한 작가의 답
-    applied: AppliedDraft | None = None  # World 보강 제안이면 episode는 채팅 대상 회차를 그대로 싣고 revision은 반영 뒤 세계관 초안 revision이다
+    approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면·World 보강 제안·계획 수정안 반영에 대한 작가의 답
+    applied: AppliedDraft | None = None  # World 보강 제안·계획 수정이면 episode는 채팅 대상 회차를 그대로 싣고 revision은 반영 뒤 세계관 초안·계획 revision이다
 
 
 class OrchestrationResponse(BaseModel):

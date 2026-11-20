@@ -1,8 +1,8 @@
-"""Content MCP 창구(DEC-49) 클라이언트: 작가가 승인한 Writing 결과를 그 작가의 권한으로 회차 초안에, 설정 보강 제안을 세계관 초안에 반영한다.
+"""Content MCP 창구(DEC-49) 클라이언트: 작가가 승인한 Writing 결과를 그 작가의 권한으로 회차 초안에, 설정 보강 제안을 세계관 초안에, 계획 수정안을 플롯·장면 계획에 반영한다.
 
 Stateless Streamable HTTP `{CONTENT_SERVICE_BASE_URL}/mcp`에 AI를 호출한 사용자의 Bearer를 그대로 보내고,
 인가·revision 충돌 판단은 Content Service가 한다. 토큰은 요청마다 `AUTHORIZATION` 컨텍스트로만 받고
-그래프 상태·체크포인트·추적에 넣지 않는다. Review·Q&A·시뮬레이션은 같은 창구로 원고·세계관을 읽는다. 쓰기는 회차 초안 수정(`episode_update_draft`)과 세계관 초안 수정(`world_studio_edit_draft`)뿐이며
+그래프 상태·체크포인트·추적에 넣지 않는다. Review·Q&A·시뮬레이션은 같은 창구로 원고·세계관을 읽는다. 쓰기는 회차 초안 수정(`episode_update_draft`)과 세계관 초안 수정(`world_studio_edit_draft`), 계획 수정(`story_plan_update`)뿐이며
 버전 저장(확정)·발행·삭제 도구는 부르지 않는다.
 """
 
@@ -13,7 +13,9 @@ import uuid
 from contextvars import ContextVar
 
 from agents.mcp import MCPServerStreamableHttp
-from pydantic import BaseModel, ConfigDict, ValidationError
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
 
 from app.content_mcp.errors import ContentMcpFailure
 
@@ -22,6 +24,7 @@ AUTHORIZATION: ContextVar[str] = ContextVar('content_mcp_authorization', default
 PASSED_STATUSES = {401, 403, 404, 409, 422}
 SELECTION_CHANGED = '선택한 문장이 초안에서 바뀌었거나 여러 곳에 있어 반영하지 않았어요. 다시 요청해 주세요.'
 WORLD_CHANGED = '제안한 뒤 세계관 초안이 바뀌어 반영하지 않았어요. 다시 요청해 주세요.'
+PLAN_CHANGED = '제안한 뒤 계획이 바뀌어 저장하지 않았어요. 다시 요청해 주세요.'
 
 
 class DraftRevision(BaseModel):
@@ -41,6 +44,24 @@ class EpisodeReadResponse(BaseModel):
 
 class EpisodeUpdateResponse(BaseModel):
     draft: DraftRevision
+
+
+class PlanItem(BaseModel):
+    """계획 목록(story_plan_list)의 한 항목에서 대상을 고르는 데 쓰는 칸."""
+    model_config = ConfigDict(strict=True)
+    id: str
+    kind: Literal['plot', 'scene']
+    title: str
+    parentId: str | None = None
+    episodeNumber: int | None = None
+
+
+class StoryPlan(PlanItem):
+    """계획 상세(story_plan_read). 수정 저장에 되돌려 보낼 칸을 모두 담는다(position·episodeMissing은 보내지 않는다)."""
+    content: str
+    characterIds: list[str]
+    placeIds: list[str]
+    revision: int
 
 
 def place(body: str, quote: str) -> int | None:
@@ -81,6 +102,39 @@ def apply_writing(work_id: str, number: int, result: dict, *, expected_revision:
     except ValidationError:
         raise ContentMcpFailure(502, 'Content 초안 저장 응답을 확인할 수 없습니다.') from None
     return {'episode': number, 'revision': revision}
+
+
+def list_plans(work_id: str) -> list[PlanItem]:
+    """작가 권한으로 작품의 플롯·장면 계획 목록을 읽는다. 소유자 검사는 Content가 한다."""
+    try:
+        return TypeAdapter(list[PlanItem]).validate_python(call('story_plan_list', {'workId': work_id}))
+    except ValidationError:
+        raise ContentMcpFailure(502, 'Content 계획 목록 응답을 확인할 수 없습니다.') from None
+
+
+def read_plan(work_id: str, plan_id: str) -> StoryPlan:
+    """작가 권한으로 계획 하나의 최신 값과 revision을 읽는다. 삭제·다른 작품이면 Content가 404로 답한다."""
+    try:
+        return StoryPlan.model_validate(call('story_plan_read', {'workId': work_id, 'id': plan_id}))
+    except ValidationError:
+        raise ContentMcpFailure(502, 'Content 계획 응답을 확인할 수 없습니다.') from None
+
+
+def apply_plan(work_id: str, plan_id: str, revision: int, title: str, content: str) -> dict:
+    """승인된 계획 수정안을 저장한다. 제목·내용만 바꾸고 나머지 칸은 다시 읽은 값 그대로 보내며 position은 보내지 않아 순서가 바뀌지 않는다.
+
+    revision은 제안을 만든 때의 값이다. 읽은 계획이 그 revision이 아니면 쓰지 않고 409다(저장 직전 경쟁은 Content가 같은 revision으로 다시 막는다).
+    """
+    current = read_plan(work_id, plan_id)
+    if current.revision != revision:
+        raise ContentMcpFailure(409, PLAN_CHANGED)
+    saved = call('story_plan_update', {'workId': work_id, 'id': plan_id, 'data': {
+        'kind': current.kind, 'parentId': current.parentId, 'title': title, 'content': content, 'episodeNumber': current.episodeNumber,
+        'characterIds': current.characterIds, 'placeIds': current.placeIds, 'revision': revision}})
+    new = saved.get('revision') if isinstance(saved, dict) else None
+    if not isinstance(new, int) or isinstance(new, bool):
+        raise ContentMcpFailure(502, 'Content 계획 저장 응답을 확인할 수 없습니다.')
+    return {'planId': plan_id, 'revision': new}
 
 
 def apply_world(world_id: str, revision: int, fixes: list[dict]) -> dict:

@@ -68,6 +68,8 @@ WAITING_MESSAGE = '작업에 필요한 자료를 기다리고 있어요. 자료�
 APPROVAL_MESSAGES = {'writing_editing': 'Writing 결과를 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
                      'character_simulation': '시뮬레이션 장면을 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
                      'world': '설정 보강 제안을 세계관 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.'}
+# 같은 기능(writing_editing) 안에서 작업(task)이 승인 문구를 가르는 경우. 계획 수정은 원고 초안이 아니라 저장된 계획을 고친다.
+TASK_APPROVAL_MESSAGES = {'revise_plan': '계획 수정안을 저장할지 승인해 주세요. 거절하면 저장하지 않아요.'}
 CANCELLED_MESSAGE = '요청을 취소해 아무 작업도 실행하지 않았어요.'
 SCENE_MESSAGE = '시뮬레이션 장면을 진행하고 있어요. 다음 턴을 이어 가거나 줄을 고치고 다시 말하게 하거나 끝낼 수 있어요.'
 SCENE_NOT_WAITING = '지금은 장면을 조작할 수 없어요.'
@@ -246,7 +248,7 @@ def apply(state: State) -> State:
     steps = [dict(s) for s in state['steps']]
     pending = _pending(state)
     feature, step = pending['feature'], steps[state['steps'].index(pending)]  # _pending이 고른 단계 그대로다(같은 feature의 앞 단계를 다시 찾지 않는다)
-    answer = interrupt({'steps': state['steps'], 'awaitingApproval': feature})
+    answer = interrupt({'steps': state['steps'], 'awaitingApproval': feature, 'approvalTask': step.get('task')})
     if feature == 'character_simulation' and answer.get('scene'):
         # 승인 대신 장면을 고치거나 이어 가는 조작이다(승인·거절은 scene 없는 답으로만 한다). 단계를 다시 진행 중으로 돌리고
         # 조작은 scene 노드가 새 에이전트 실행의 시작에서 처리한다.
@@ -263,6 +265,13 @@ def apply(state: State) -> State:
                     # 보강 제안은 세계관 초안의 그 칸만 바꾼다. applied는 회차 초안 반영과 같은 모양이라 episode는 채팅 대상 회차를 그대로 싣고(world에서는 뜻 없음)
                     # revision은 반영 뒤 세계관 초안 revision이다.
                     saved = content_mcp.apply_world(step['result']['worldId'], step['result']['revision'], step['result']['fixes'])
+                    step['applied'] = {'episode': target['episode'], 'revision': saved['revision']}
+                elif step.get('task') == 'revise_plan':
+                    # 계획 수정은 제목·내용만 저장한다. revision은 제안을 만든 때의 값이라 그 사이 계획이 바뀌었으면 쓰지 않고 409다.
+                    # applied는 회차 초안 반영과 같은 모양이라 episode는 채팅 대상 회차를 그대로 싣고(뜻 없음) revision은 저장 뒤 계획 revision이다.
+                    revised = step['result']
+                    saved = content_mcp.apply_plan(target['workId'], revised['planId'], revised['revision'], revised['after']['title'],
+                                                   revised['after']['content'])
                     step['applied'] = {'episode': target['episode'], 'revision': saved['revision']}
                 else:
                     # 장면은 지문 + "대사" 문단을 빈 줄로 이어 Text 경로(초안 뒤에 잇기)로 반영한다.
@@ -433,7 +442,8 @@ def _response(state: dict) -> OrchestrationResponse:
     if state.get('__interrupt__'):
         waiting = state['__interrupt__'][0].value
         approval, scene = waiting.get('awaitingApproval'), waiting.get('awaitingScene')
-        message = APPROVAL_MESSAGES[approval] if approval else SCENE_MESSAGE if scene else WAITING_MESSAGE
+        message = (TASK_APPROVAL_MESSAGES.get(waiting.get('approvalTask')) or APPROVAL_MESSAGES[approval] if approval
+                   else SCENE_MESSAGE if scene else WAITING_MESSAGE)
         if approval and state.get('message'):  # 승인 대기는 메인 에이전트가 답을 종합한 뒤라 그 답과 승인 안내를 함께 보인다
             message = '\n\n'.join((state['message'], message))
         # 장면은 에이전트 상태에서 진행 중이라 바깥 상태의 단계에는 아직 결과가 없다. 멈춘 payload의 단계가 현재 모습이다.
