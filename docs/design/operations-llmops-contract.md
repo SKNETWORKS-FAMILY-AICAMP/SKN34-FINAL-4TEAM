@@ -77,6 +77,8 @@
 실행 기록 모양(출처 독립): `{id, kind, source, status(queued|running|succeeded|failed|cancelled), trigger(schedule|manual|user), progress{done,total}, startedAt, finishedAt, error, targetId}`.
 `source`는 `operations-scheduler`·`content-preprocessing`이고 Airflow를 붙이면 `airflow`가 더해진다.
 
+작업 감시 오류 규칙: 일정 등록·변경에서 등록되지 않은 `kind`, 바뀐 `kind`, 읽을 수 없거나 100자를 넘거나 다시 도래하지 않는 `cron`은 모두 422다(형식이 틀린 본문은 400, 없는 일정은 404). 재실행은 운영 정기 작업의 실패한 기록만 새 `queued`·`manual` 기록 하나로 접수하고(202) 다음 tick이 실행한다. 실패가 아닌 기록, 그 일정에 진행 중(`queued`·`running`) 기록이 있을 때, **이미 재실행된 기록은 재실행 결과(성공·실패)와 무관하게 409**다. 재실행으로 생긴 새 기록이 실패하면 그 기록은 다시 재실행할 수 있다.
+
 ### 응답 모양 (JSON, 시각은 ISO-8601 UTC, 비용은 USD 숫자)
 
 ```text
@@ -113,7 +115,8 @@ Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRu
 - `llmops_setting(key PK, value)` — `leak_sample_rate=0.1`.
 - `leak_check_result(id, trace_id, work_id, matched jsonb, suspected bool, reason, checked_at)`.
 - 위 넷은 LLMOps 조각의 V8, 아래 작업 테이블은 작업 감시 조각의 V9다(V8을 먼저 병합한다).
-- (V9) `scheduled_job(id, kind, cron, enabled, params jsonb, created_at, updated_at)`, `job_run(id, kind, source, status, trigger, done, total, started_at, finished_at, error, target_id, external_ref)`.
+- (V9) `scheduled_job(id, kind, cron, enabled, params jsonb, created_at, updated_at)`, `job_run(id, kind, source, status, trigger, done, total, started_at, finished_at, error, target_id, external_ref, retry_of)`.
+- `job_run.retry_of`(NULL 허용, `job_run` 자기 참조): 수동 재실행 기록이 다시 실행한 실패 기록의 id다. 이 값이 가리키는 기록은 재실행 결과와 무관하게 다시 재실행할 수 없다(409).
 
 ## 정기 작업 (운영 스케줄러)
 
@@ -127,6 +130,9 @@ Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRu
 | `alert_cleanup` | 운영 | 90일 지난 해결 경고 삭제 |
 
 Content 내부 `GET /internal/v1/works/{id}/leak-references`는 Fork 작품의 원작 기준 비공개 카드 제목·미발행 회차 제목을 준다(서비스 토큰, 공개 진입점 미노출).
+
+- 대시보드 `jobs`: `running`은 대기·실행 중인 `job_run` 수 + Content 전처리 `queued`·`running`·`loading` 수, `failedLast24h`는 최근 24시간 안에 끝난 `FAILED` `job_run` 수 + 같은 24시간 안에 끝난 Content 전처리 `failed` 수다(Content 쪽은 최신 100건만 읽는다).
+- `llm_alert_check`의 `job_failed`(metric `failed_jobs`) 판정: 규칙 `windowMinutes` 안에 끝난 `FAILED` `job_run` 수 + Content 전처리 `failed` 수(위 `failedLast24h`와 같은 집계)가 `threshold` 이상이면 값=건수로 경고를 만든다. 실패가 0건이면 `threshold`가 0이어도 만들지 않고, 같은 규칙의 미해결 경고가 있으면 다시 만들지 않는다. Langfuse(AI 규칙)와 Content(`job_failed`)는 따로 읽어 한쪽이 내려가도 다른 쪽을 평가하고, 읽지 못한 쪽이 있으면 둘 다 시도한 뒤 실행이 실패한다.
 
 ## 사이트 안 알림
 

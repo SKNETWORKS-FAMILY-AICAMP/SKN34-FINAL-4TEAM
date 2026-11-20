@@ -10,7 +10,14 @@ import ai.storyfork.operations._common.client.ObservationUsage
 import ai.storyfork.operations._common.client.ProposalDecisionStats
 import ai.storyfork.operations.alert.repository.OperationAlertRepository
 import ai.storyfork.operations.dashboard.service.DashboardService
+import ai.storyfork.operations.dashboard.service.dto.DashboardJobs
 import ai.storyfork.operations.inquiry.repository.InquiryRepository
+import ai.storyfork.operations.jobs.entity.JobStatus
+import ai.storyfork.operations.jobs.repository.JobRunRepository
+import ai.storyfork.operations.jobs.service.CONTENT_JOB_WINDOW
+import ai.storyfork.operations.jobs.service.JobCountService
+import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJob
+import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJobList
 import ai.storyfork.operations.llmops.service.AiUsageService
 import ai.storyfork.operations.llmops.json
 import ai.storyfork.operations.llmops.root
@@ -18,6 +25,7 @@ import ai.storyfork.operations.report.entity.ReportStatus
 import ai.storyfork.operations.report.repository.ReportRepository
 import ai.storyfork.operations.security.OperationsMember
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -33,7 +41,8 @@ class DashboardServiceTest {
     private val inquiries = mock(InquiryRepository::class.java)
     private val reports = mock(ReportRepository::class.java)
     private val alerts = mock(OperationAlertRepository::class.java)
-    private val service = DashboardService(core, AiUsageService(langfuse), content, inquiries, reports, alerts)
+    private val runs = mock(JobRunRepository::class.java)
+    private val service = DashboardService(core, AiUsageService(langfuse), content, inquiries, reports, alerts, JobCountService(runs, content))
 
     private val operator = OperationsMember(UUID.randomUUID(), true)
     private val bearer = "Bearer admin-access"
@@ -49,7 +58,20 @@ class DashboardServiceTest {
     // The cost is the model calls' (a root has none): 0.20, 0.10 and 0.40.
     private val usage = listOf(ObservationUsage("old", "gpt-5", 1, 1, 0.20), ObservationUsage("edge", "gpt-5", 1, 1, 0.10), ObservationUsage("new", "mini", 1, 1, 0.40))
 
+    private val dayAgo = now.minus(24, ChronoUnit.HOURS)
+
+    private fun job(status: String, finishedAt: Instant? = null) = ContentPreprocessingJob(id = "j-$status", workId = "w", status = status, finishedAt = finishedAt)
+
+    // In progress: queued, running and loading. Failed in the last 24 hours: only the one that finished an hour ago.
+    private val preprocessing = listOf(
+        job("queued"), job("running"), job("loading"), job("completed", now.minusSeconds(60)),
+        job("failed", now.minus(1, ChronoUnit.HOURS)), job("failed", now.minus(30, ChronoUnit.HOURS)), job("failed"),
+    )
+
     private fun givenAllSources() {
+        `when`(runs.countByStatusIn(listOf(JobStatus.QUEUED, JobStatus.RUNNING))).thenReturn(2L)
+        `when`(runs.countByStatusAndFinishedAtAfter(JobStatus.FAILED, dayAgo)).thenReturn(1L)
+        `when`(content.preprocessingJobs(CONTENT_JOB_WINDOW)).thenReturn(ContentPreprocessingJobList(preprocessing))
         `when`(core.memberStats(bearer)).thenReturn(MemberStats(100, 5, 1))
         `when`(langfuse.allTraces(weekAgo, now)).thenReturn(traces)
         `when`(langfuse.observationUsage(weekAgo, now)).thenReturn(usage)
@@ -64,11 +86,11 @@ class DashboardServiceTest {
         val denied = assertThrows(ResponseStatusException::class.java) { service.get(OperationsMember(UUID.randomUUID(), false), bearer, now) }
 
         assertEquals(HttpStatus.FORBIDDEN, denied.statusCode)
-        verifyNoInteractions(core, langfuse, content, inquiries, reports, alerts)
+        verifyNoInteractions(core, langfuse, content, inquiries, reports, alerts, runs)
     }
 
     @Test
-    fun `every source answering fills every card except the jobs card that waits for the jobs piece`() {
+    fun `every source answering fills every card`() {
         givenAllSources()
 
         val dashboard = service.get(operator, bearer, now)
@@ -76,8 +98,9 @@ class DashboardServiceTest {
         assertEquals(MemberStats(100, 5, 1), dashboard.members)
         assertEquals(listOf(7L, 2L, 5L), listOf(dashboard.pending.authorReviews, dashboard.pending.inquiries, dashboard.pending.reports))
         assertEquals(3L, dashboard.openAlerts)
-        assertNull(dashboard.jobs)
-        assertEquals(listOf("jobs"), dashboard.unavailable)
+        // Own runs queued or running (2) plus Content jobs queued, running or loading (3); failed in 24 hours: one own run and one Content job.
+        assertEquals(DashboardJobs(5, 2), dashboard.jobs)
+        assertEquals(emptyList<String>(), dashboard.unavailable)
     }
 
     @Test
@@ -121,13 +144,15 @@ class DashboardServiceTest {
         )
         for ((source, breakIt) in failing) {
             // Re-stubbing a call that already throws would throw while stubbing, so every round starts from fresh mocks.
-            reset(core, langfuse, content, inquiries, reports, alerts)
+            reset(core, langfuse, content, inquiries, reports, alerts, runs)
             givenAllSources()
             breakIt()
 
             val dashboard = service.get(operator, bearer, now)
 
-            assertEquals(listOf(source, "jobs"), dashboard.unavailable, source)
+            assertEquals(listOf(source), dashboard.unavailable, source)
+            // The jobs card adds Content's preprocessing jobs to the operations runs, so it follows Content.
+            assertEquals(source == "content", dashboard.jobs == null, source)
             assertEquals(source == "core", dashboard.members == null, source)
             assertEquals(source == "langfuse", dashboard.ai == null, source)
             // Waiting inquiries and received reports are database values, so only the author-review count follows Content.
@@ -146,7 +171,7 @@ class DashboardServiceTest {
         val dashboard = service.get(operator, bearer, now)
 
         assertNull(dashboard.ai)
-        assertEquals(listOf("langfuse", "jobs"), dashboard.unavailable)
+        assertEquals(listOf("langfuse"), dashboard.unavailable)
         assertEquals(MemberStats(100, 5, 1), dashboard.members)
         assertEquals(7L, dashboard.pending.authorReviews)
         assertEquals(3L, dashboard.openAlerts)
@@ -163,12 +188,37 @@ class DashboardServiceTest {
 
         val dashboard = service.get(operator, bearer, now)
 
-        assertEquals(listOf("core", "langfuse", "content", "jobs"), dashboard.unavailable)
+        assertEquals(listOf("core", "langfuse", "content"), dashboard.unavailable)
+        assertNull(dashboard.jobs)
         assertNull(dashboard.members)
         assertNull(dashboard.ai)
         assertEquals(listOf(4L, 6L), listOf(dashboard.pending.inquiries, dashboard.pending.reports))
         assertNull(dashboard.pending.authorReviews)
         assertEquals(0L, dashboard.openAlerts)
+    }
+
+    @Test
+    fun `Content stats answering but the preprocessing job list failing blanks only the jobs card`() {
+        givenAllSources()
+        `when`(content.preprocessingJobs(CONTENT_JOB_WINDOW)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+
+        val dashboard = service.get(operator, bearer, now)
+
+        assertNull(dashboard.jobs)
+        assertEquals(7L, dashboard.pending.authorReviews)
+        assertEquals(listOf("content"), dashboard.unavailable)
+    }
+
+    @Test
+    fun `once Content has failed its job list is not asked for a second timeout`() {
+        givenAllSources()
+        `when`(content.operationsStats(weekAgo, now)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+
+        val dashboard = service.get(operator, bearer, now)
+
+        assertEquals(listOf("content"), dashboard.unavailable)
+        assertNull(dashboard.jobs)
+        verify(content, never()).preprocessingJobs(CONTENT_JOB_WINDOW)
     }
 
     @Test

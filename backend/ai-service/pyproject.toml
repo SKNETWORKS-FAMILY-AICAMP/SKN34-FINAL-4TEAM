@@ -12,7 +12,7 @@ dependencies = [
     "langchain>=1.5,<2",
     "langchain-openai>=1,<2",
     "langchain-typesafe==0.0.1a3",
-    "langfuse>=3,<5",
+    "langfuse>=4.18,<5",
     "langgraph>=1.0,<2",
     "langgraph-checkpoint-postgres>=3,<4",
     "openai>=3.1.0,<4.0.0",
@@ -27,6 +27,11 @@ manuscript = [
     "numpy>=2.2,<3",
     "onnxruntime>=1.29,<2",
     "tokenizers>=0.22,<1",
+]
+# 회귀 평가(app/evaluation, DEC-55). 같은 프로세스에서 돌므로 AI 이미지에도 설치한다.
+eval = [
+    "ragas>=0.4.4,<0.5",
+    "deepeval>=4.3.4,<5",
 ]
 dev = [
     "httpx2>=2.0.0,<3.0.0",

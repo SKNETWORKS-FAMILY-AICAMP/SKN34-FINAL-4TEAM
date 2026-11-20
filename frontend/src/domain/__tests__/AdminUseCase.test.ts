@@ -33,17 +33,10 @@ describe('관리자 데모 조치 기록', () => {
     vi.setSystemTime(new Date('2026-11-10T01:00:00Z'))
     try {
       const { uc, admin } = fakes()
-      // 데모 댓글 숨김은 운영 댓글 API(75)로 옮겨져 남은 데모 조치인 정기 작업 재시도로 확인한다.
-      await uc.runJob('notification-cleanup')
-      expect(admin().audit).toEqual([{ at: '2026-11-10T01:00:00.000Z', actor: '관리자', action: '정기 작업 재시도 시연', detail: '알림 90일 보관기간 정리' }])
+      // 데모 댓글 숨김은 운영 댓글 API(75)로, 정기 작업·경고는 운영 API(DEC-55)로 옮겨져 남은 데모 조치인 캐릭터챗 중지로 확인한다.
+      const { chats: [chat] } = await uc.load()
+      await uc.toggleChat(chat.id)
+      expect(admin().audit).toEqual([{ at: '2026-11-10T01:00:00.000Z', actor: '관리자', action: '캐릭터챗 중지', detail: `${chat.w.title} · ${chat.character}` }])
     } finally { vi.useRealTimers() }
-  })
-})
-
-describe('관리자 신고 처리 (목업 data-qact)', () => {
-  it('정기 작업 재시도는 실패한 작업만 기록한다', async () => {
-    const { uc } = fakes()
-    expect(await uc.runJob('series')).toBeNull()
-    expect((await uc.runJob('notification-cleanup'))?.msg).toMatch('수동 재시도')
   })
 })

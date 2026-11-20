@@ -52,9 +52,9 @@ const supportInquiry = z.object({
   id: z.string(), memberId: z.string(), category: z.string(), title: z.string(), body: z.string(), status: z.enum(['WAITING', 'ANSWERED']),
   createdAt: instant, updatedAt: instant, replies: z.array(supportReply),
 })
-const items = <T extends z.ZodType>(item: T) => z.object({ items: z.array(item) }).transform((v) => v.items)
+export const items = <T extends z.ZodType>(item: T) => z.object({ items: z.array(item) }).transform((v) => v.items)
 
-const MESSAGES: Record<number, string> = {
+export const MESSAGES: Record<number, string> = {
   400: '입력값을 확인해 주세요.',
   403: '이 작업을 할 권한이 없어요.',
   404: '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.',
@@ -62,18 +62,21 @@ const MESSAGES: Record<number, string> = {
   502: '연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.',
 }
 
-/** 운영 서비스의 오류 본문 `{ code, message }`에서 안내 문구만 읽습니다. 없거나 비어 있으면 undefined입니다. */
-const failureMessage = async (response: Response) => {
-  const parsed = z.object({ message: z.string().trim().min(1) }).safeParse(await response.json().catch(() => undefined))
-  return parsed.success ? parsed.data.message : undefined
+/** 운영 서비스의 오류 본문 `{ code, message }`. 없거나 형식이 다르면 빈 객체입니다. */
+const failureBody = async (response: Response) => {
+  const parsed = z.object({ code: z.string().optional(), message: z.string().trim().min(1).optional() }).safeParse(await response.json().catch(() => undefined))
+  return parsed.success ? parsed.data : {}
 }
+/** 실패 상태와 오류 본문으로 화면에 그대로 보일 문구를 정합니다. 보이지 않을 오류면 undefined(상태별 일반 문구)입니다. */
+export type ServerReason = (status: number, error: { code?: string; message?: string }) => string | undefined
 
 /**
  * 운영 공개 API(/api/v1/operations) 공통 요청. 운영 서비스는 회원 Bearer만 확인하는 stateless API라 CSRF를 보내지 않습니다.
  * 실패 상태는 성공으로 숨기지 않고 화면에 보일 OperationsError로 바꿉니다. 403은 OperationsForbidden이고,
  * [serverMessages]에 든 상태는 서버가 보낸 안내 문구를 그대로 담은 OperationsRejected입니다(문구가 없으면 일반 문구).
+ * 함수를 주면 상태·code·message를 보고 보일 문구를 정합니다(돌려준 문구가 없으면 일반 문구).
  */
-export async function send(fetcher: typeof fetch | undefined, path: string, method = 'GET', body?: unknown, messages: Record<number, string> = MESSAGES, serverMessages: readonly number[] = []) {
+export async function send(fetcher: typeof fetch | undefined, path: string, method = 'GET', body?: unknown, messages: Record<number, string> = MESSAGES, serverMessages: readonly number[] | ServerReason = []) {
   const init: RequestInit = { method, signal: AbortSignal.timeout(15000), headers: body === undefined ? {} : { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }
   let response: Response
   try {
@@ -83,15 +86,16 @@ export async function send(fetcher: typeof fetch | undefined, path: string, meth
     throw error
   }
   if (!response.ok) {
-    const reason = serverMessages.includes(response.status) ? await failureMessage(response) : undefined
+    const reason = typeof serverMessages === 'function' ? serverMessages(response.status, await failureBody(response))
+      : serverMessages.includes(response.status) ? (await failureBody(response)).message : undefined
     if (reason) throw new OperationsRejected(reason)
     const message = messages[response.status] ?? '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'
     throw response.status === 403 ? new OperationsForbidden(message) : new OperationsError(message)
   }
   return response
 }
-export async function read<T>(fetcher: typeof fetch | undefined, path: string, schema: z.ZodType<T>, serverMessages: readonly number[] = []): Promise<T> {
-  const parsed = schema.safeParse(await (await send(fetcher, path, 'GET', undefined, MESSAGES, serverMessages)).json().catch(() => undefined))
+export async function read<T>(fetcher: typeof fetch | undefined, path: string, schema: z.ZodType<T>, serverMessages: readonly number[] = [], messages: Record<number, string> = MESSAGES): Promise<T> {
+  const parsed = schema.safeParse(await (await send(fetcher, path, 'GET', undefined, messages, serverMessages)).json().catch(() => undefined))
   if (!parsed.success) throw new OperationsError('서버 응답 형식을 확인할 수 없어요.')
   return parsed.data
 }

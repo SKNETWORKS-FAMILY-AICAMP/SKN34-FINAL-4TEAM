@@ -50,3 +50,20 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 ## 초기 세계관 추출 (5-B)
 
 `POST /internal/v1/initial-world/extractions`는 기존 내부 토큰·OpenAI 설정으로 #219 Input을 받아 검증된 후보 Output만 반환합니다. 실제 모델 호출 경로는 구현했지만 유료 호출·추출 품질은 미검증입니다. 저장·승인·Content 실행 연결은 제외하며 [호출/실패 계약과 검증 한계](../../docs/design/initial-world-ai-extraction.md)를 따릅니다. 기존 이어쓰기 API는 유지합니다.
+
+## 회귀 평가·누설 판정 (DEC-55)
+
+운영 서비스가 부르는 내부 API입니다([계약](../../docs/design/operations-llmops-contract.md)). Langfuse 4.x(`events_only`) 기준이며 `ragas`·`deepeval`은 `--extra eval`입니다(AI 이미지에는 설치하고, 단위 테스트는 설치 없이 통과합니다).
+
+| 경로 | 내용 |
+|---|---|
+| `POST /internal/v1/evaluations` `{dataset, prompt, version}` | 평가 세트·프롬프트 버전·설정을 확인한 뒤 `202 {runName}`을 먼저 돌려주고 백그라운드로 평가합니다 |
+| `POST /internal/v1/evaluations/leak-check` `{response, references[], question?}` | 응답이 비공개 참조를 드러내는지 GEval 한 번으로 판정해 `{suspected, reason}`을 돌려줍니다. 사용자 질문 원문 `question`(선택)을 주면 질문에 이미 나온 이름을 되풀이하거나 근거가 없다고 답한 응답은 의심하지 않고 비공개 참조의 내용을 새로 알려 줄 때만 의심합니다 |
+
+결과는 Langfuse Experiments API(`GET /api/public/experiments?fromStartTime=…&name=<runName>&fields=core,metadata,scores`)로 읽습니다.
+
+- 실험 이름은 `runName`(`<프롬프트>@v<버전>-<UTC yyyymmddTHHMMSSZ>-<hex6>`)이고 `fields=metadata`로 읽는 `metadata`에는 `prompt`·`version`·`dataset`·`tolerance`·`baselineRun`·`baselineVersion`(모두 문자열)을 실어 보냅니다(서버가 돌려주는 모양은 실서버 확인 전).
+- Run 수준 점수는 `scores`에 있고 실험 id(`Experiment.id`)를 `datasetRunId`로 단 것입니다(Scores v3는 `experimentId`). `passed`(BOOLEAN, metadata `failedItems`·`totalItems`·`tolerance`·`baselineRun`·`baselineVersion`)와 지표 평균(NUMERIC, metadata `baseline`·`delta`·`tolerance`)이며, `qa.` 평가 세트는 `faithfulness`·`context_precision`, 그 밖은 `geval`입니다. `passed`가 없으면 실행 중입니다.
+- 항목 점수는 항목 trace에 같은 이름으로 남습니다.
+
+평가 세트는 `app/evaluation/datasets/*.jsonl`(저작권 만료 작품만)이고 `python -m app.evaluation.seed`로 Langfuse에 멱등 등록합니다. 설정은 `OPENAI_API_KEY`·`OPENAI_MODEL`(채점 모델 겸용)·`LANGFUSE_*`·`INTERNAL_TOKEN`이고 선택 `EVAL_TOLERANCE`(기본 0.05)가 있습니다.

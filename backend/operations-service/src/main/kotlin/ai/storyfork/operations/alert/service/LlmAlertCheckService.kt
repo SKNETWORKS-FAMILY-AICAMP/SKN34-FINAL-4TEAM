@@ -2,6 +2,7 @@ package ai.storyfork.operations.alert.service
 
 import ai.storyfork.operations.alert.entity.AlertRuleEntity
 import ai.storyfork.operations.alert.repository.AlertRuleRepository
+import ai.storyfork.operations.jobs.service.JobCountService
 import ai.storyfork.operations.llmops.service.AiUsageService
 import ai.storyfork.operations.llmops.service.UsageStats
 import ai.storyfork.operations.llmops.service.usageStats
@@ -11,9 +12,11 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 
-/** The rules this check owns. job_failed waits for the jobs piece (ponytail: wire it to the job_run table after that merge); leak_suspected is raised by the leak sampling itself. */
+/** The rules this check owns: the AI rules read Langfuse and job_failed reads the jobs. leak_suspected is raised by the leak sampling itself. */
 private val AI_RULES = setOf("ai_failure_rate", "ai_timeout_rate", "ai_daily_cost_usd", "ai_p95_latency_ms")
+private const val JOB_RULE = "job_failed"
 
 /** Scheduled by the jobs piece (llm_alert_check); this is only the work of one run. */
 @Service
@@ -21,16 +24,36 @@ class LlmAlertCheckService(
     private val rules: AlertRuleRepository,
     private val usage: AiUsageService,
     private val raiser: AlertRaiser,
+    private val jobs: JobCountService,
 ) {
     /**
-     * Compares every enabled AI rule that has a value with the last window of Langfuse data and raises an alert on a breach (the raiser keeps one
-     * unresolved alert per rule). Rules with the same window share one Langfuse read. Returns how many new alerts were raised.
-     * ponytail: a rate over a window with very few requests can breach on one failure; add a minimum request count if that gets noisy.
+     * Checks every enabled rule that has a value and returns how many new alerts were raised (the raiser keeps one unresolved alert per rule).
+     * Langfuse (the AI rules) and the jobs (job_failed, which reads Content) are read separately, so one source being down does not hide the
+     * other's alerts: an alert check that keeps failing because Langfuse is down is itself a failed job that job_failed should report. The run still
+     * fails with the first unreadable source once both were tried; any other exception is a bug and fails the run at once.
      */
     fun run(now: Instant = Instant.now()): Int {
+        val enabled = rules.findAllByEnabledTrue()
+        var unreadable: ResponseStatusException? = null
+        fun attempt(check: () -> Int): Int = try {
+            check()
+        } catch (error: ResponseStatusException) {
+            unreadable = unreadable ?: error
+            0
+        }
+        val raised = attempt { aiRules(enabled, now) } + attempt { failedJobs(enabled, now) }
+        unreadable?.let { throw it }
+        return raised
+    }
+
+    /**
+     * Compares every enabled AI rule that has a value with the last window of Langfuse data. Rules with the same window share one Langfuse read.
+     * ponytail: a rate over a window with very few requests can breach on one failure; add a minimum request count if that gets noisy.
+     */
+    private fun aiRules(enabled: List<AlertRuleEntity>, now: Instant): Int {
         val statsByWindow = HashMap<Int, UsageStats>()
         var raised = 0
-        for (rule in rules.findAllByEnabledTrue()) {
+        for (rule in enabled) {
             if (rule.ruleKey !in AI_RULES) continue
             val threshold = rule.threshold?.toDouble() ?: continue
             val stats = statsByWindow.getOrPut(rule.windowMinutes) {
@@ -42,9 +65,22 @@ class LlmAlertCheckService(
         return raised
     }
 
+    /**
+     * job_failed: the jobs that failed within the rule's window, the scheduler's runs plus Content's preprocessing jobs counted by the same
+     * JobCountService as the dashboard card, reach the threshold. Zero failures never alert, even for a threshold of 0.
+     */
+    private fun failedJobs(enabled: List<AlertRuleEntity>, now: Instant): Int {
+        val rule = enabled.firstOrNull { it.ruleKey == JOB_RULE } ?: return 0
+        val threshold = rule.threshold ?: return 0
+        val failed = jobs.counts(now.minus(rule.windowMinutes.toLong(), ChronoUnit.MINUTES)).failed
+        if (failed == 0 || failed.toBigDecimal() < threshold) return 0
+        val message = "실패한 작업이 ${failed}건으로 기준 ${threshold.stripTrailingZeros().toPlainString()}건에 이르렀어요 (${windowText(rule)}, 정기 작업과 원고 전처리)"
+        return if (raiser.raise(rule.ruleKey, message, failed.toDouble(), null) != null) 1 else 0
+    }
+
     /** The observed value and its message when it is above the threshold; with no request in the window there is nothing to rate. */
     private fun breach(rule: AlertRuleEntity, threshold: Double, stats: UsageStats): Pair<Double, String>? {
-        val window = "최근 ${rule.windowMinutes}분"
+        val window = windowText(rule)
         return when (rule.ruleKey) {
             "ai_failure_rate" -> stats.failureRate?.takeIf { it > threshold }
                 ?.let { it to "AI 요청 실패율이 ${percent(it)}로 기준 ${percent(threshold)}를 넘었어요 ($window, 요청 ${stats.requests}건 중 ${stats.failed}건 실패)" }
@@ -57,6 +93,8 @@ class LlmAlertCheckService(
             else -> null
         }
     }
+
+    private fun windowText(rule: AlertRuleEntity) = "최근 ${rule.windowMinutes}분"
 
     private fun percent(fraction: Double) = "${figure(fraction * 100, 1)}%"
 

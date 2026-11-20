@@ -12,6 +12,8 @@ import ai.storyfork.operations._common.client.TraceRoots
 import ai.storyfork.operations.alert.repository.OperationAlertRepository
 import ai.storyfork.operations.alert.service.AlertCleanupService
 import ai.storyfork.operations.alert.service.AlertRaiser
+import ai.storyfork.operations.jobs.service.CONTENT_JOB_WINDOW
+import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJobList
 import ai.storyfork.operations.llmops.entity.LeakCheckResultEntity
 import ai.storyfork.operations.llmops.repository.LeakCheckResultRepository
 import ai.storyfork.operations.security.OperationsMember
@@ -74,6 +76,7 @@ class LlmopsIntegrationTest {
 
     /** Every alert and leak result this test creates carries it, which is also how cleanup finds them. */
     private val runId = "it-" + UUID.randomUUID()
+    private val createdSchedules = mutableListOf<UUID>()
     private val startedAt = Instant.now().minusSeconds(5)
 
     // Sample admin seeded by Core; operations V4 grants it every permission, including llm and jobs.
@@ -97,6 +100,10 @@ class LlmopsIntegrationTest {
     fun cleanOnlyWhatThisTestTouched() {
         jdbc.update("DELETE FROM operations.operation_alert WHERE message LIKE ?", "$runId%")
         jdbc.update("DELETE FROM operations.leak_check_result WHERE trace_id LIKE ?", "$runId%")
+        for (id in createdSchedules) {
+            jdbc.update("DELETE FROM operations.job_run WHERE schedule_id = ?", id)
+            jdbc.update("DELETE FROM operations.scheduled_job WHERE id = ?", id)
+        }
         jdbc.update("DELETE FROM operations.admin_permission WHERE member_id = ?", jobsOnlyId)
         jdbc.update("UPDATE operations.alert_rule SET threshold = NULL, enabled = false, window_minutes = 60, updated_at = now() WHERE key = 'ai_failure_rate'")
         jdbc.update("UPDATE operations.llmops_setting SET value = '0.1' WHERE key = 'leak_sample_rate'")
@@ -252,6 +259,7 @@ class LlmopsIntegrationTest {
         `when`(core.memberStats(anyString())).thenReturn(MemberStats(100, 5, 1))
         `when`(langfuse.allTraces(anyInstant(), anyInstant())).thenReturn(emptyList())
         `when`(content.operationsStats(anyInstant(), anyInstant())).thenReturn(ContentOperationsStats(3, 4, ProposalDecisionStats(1, 2), EditSuggestionStats(1, 1)))
+        `when`(content.preprocessingJobs(CONTENT_JOB_WINDOW)).thenReturn(ContentPreprocessingJobList(emptyList()))
     }
 
     @Test
@@ -271,14 +279,16 @@ class LlmopsIntegrationTest {
         assertTrue(dashboard.path("openAlerts").isNumber)
         assertEquals(0, dashboard.path("ai").path("today").path("requests").asInt())
         assertTrue(dashboard.path("ai").path("today").path("failureRate").isNull, "no request means no failure rate")
-        assertTrue(dashboard.path("jobs").isNull)
-        assertEquals(listOf("jobs"), dashboard.path("unavailable").values().map { it.asString() })
+        assertTrue(dashboard.path("jobs").path("running").isNumber)
+        assertTrue(dashboard.path("jobs").path("failedLast24h").isNumber)
+        assertEquals(emptyList<String>(), dashboard.path("unavailable").values().map { it.asString() })
 
         doThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY)).`when`(core).memberStats(anyString())
         val partial = tree(send("GET", "$base/dashboard", operatorBearer))
         assertTrue(partial.path("members").isNull)
         assertEquals(7, partial.path("pending").path("authorReviews").asInt())
-        assertEquals(listOf("core", "jobs"), partial.path("unavailable").values().map { it.asString() })
+        assertEquals(listOf("core"), partial.path("unavailable").values().map { it.asString() })
+        assertTrue(partial.path("jobs").path("running").isNumber)
 
         doThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY)).`when`(content).operationsStats(anyInstant(), anyInstant())
         val noContent = tree(send("GET", "$base/dashboard", operatorBearer))
@@ -286,7 +296,29 @@ class LlmopsIntegrationTest {
         assertTrue(noContent.path("pending").path("inquiries").isNumber)
         assertTrue(noContent.path("pending").path("reports").isNumber)
         assertTrue(noContent.path("pending").path("authorReviews").isNull)
-        assertEquals(listOf("core", "content", "jobs"), noContent.path("unavailable").values().map { it.asString() })
+        // The jobs card adds Content's preprocessing jobs to the operations runs, so it follows Content.
+        assertTrue(noContent.path("jobs").isNull)
+        assertEquals(listOf("core", "content"), noContent.path("unavailable").values().map { it.asString() })
+    }
+
+    @Test
+    fun `own queued and running runs and recent failures feed the dashboard jobs card`() {
+        givenUpstreams()
+        val before = tree(send("GET", "$base/dashboard", operatorBearer)).path("jobs")
+        val schedule = UUID.randomUUID().also { createdSchedules.add(it) }
+        jdbc.update("INSERT INTO operations.scheduled_job (id, kind, cron, enabled, params, created_at, updated_at) VALUES (?, 'alert_cleanup', '0 0 0 1 1 *', false, '{}'::jsonb, now(), now())", schedule)
+        val insert = "INSERT INTO operations.job_run (id, schedule_id, kind, source, status, trigger, created_at, finished_at) VALUES (?, ?, 'alert_cleanup', 'operations-scheduler', ?, 'SCHEDULE', now(), ?)"
+        jdbc.update(insert, UUID.randomUUID(), schedule, "QUEUED", null)
+        jdbc.update(insert, UUID.randomUUID(), schedule, "RUNNING", null)
+        jdbc.update(insert, UUID.randomUUID(), schedule, "SUCCEEDED", Timestamp.from(Instant.now().minusSeconds(60)))
+        jdbc.update(insert, UUID.randomUUID(), schedule, "FAILED", Timestamp.from(Instant.now().minusSeconds(3600)))
+        jdbc.update(insert, UUID.randomUUID(), schedule, "FAILED", Timestamp.from(Instant.now().minusSeconds(86400L * 3)))
+
+        val after = tree(send("GET", "$base/dashboard", operatorBearer)).path("jobs")
+
+        // Two runs are in progress and one failed within the last 24 hours; the older failure and the success count for nothing.
+        assertEquals(before.path("running").asInt() + 2, after.path("running").asInt())
+        assertEquals(before.path("failedLast24h").asInt() + 1, after.path("failedLast24h").asInt())
     }
 
     @Test
