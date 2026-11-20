@@ -121,7 +121,7 @@ export function AdminPage() {
   const live = LIVE_TABS.includes(tab)
   useDocumentTitle(`관리자 · ${title}`)
   const nav = useRef<HTMLElement>(null)
-  // 모바일 가로 메뉴나 높이를 넘겨 스스로 스크롤되는 세로 메뉴에서 현재 탭이 메뉴 밖에 있으면 보이게 합니다.
+  // 모바일 가로 메뉴나 높이를 넘겨 스스로 스크롤되는 세로 메뉴에서 현재 탭이 메뉴의 보이는 영역 밖에 있을 때만 보이게 합니다. 이미 보이면 건드리지 않아 맨 위 브랜드가 밀려나지 않습니다.
   useEffect(() => {
     // scrollIntoView는 키보드 Tab 시작점까지 옮기므로 메뉴의 스크롤 값만 바꿉니다.
     const n = nav.current
@@ -129,8 +129,13 @@ export function AdminPage() {
     if (!n || !a) return
     const at = a.getBoundingClientRect()
     const box = n.getBoundingClientRect()
-    if (n.scrollWidth > n.clientWidth) n.scrollLeft += at.left - box.left - 16
-    if (n.scrollHeight > n.clientHeight) n.scrollTop += at.top - box.top - 16
+    // 보이는 구간 밖으로 벗어난 쪽으로만, 16px 여유를 두고 옮길 양입니다. 이미 보이면 0.
+    const reveal = (start: number, end: number, boxStart: number, boxEnd: number) =>
+      start < boxStart ? start - boxStart - 16 : end > boxEnd ? end - boxEnd + 16 : 0
+    const dx = n.scrollWidth > n.clientWidth ? reveal(at.left, at.right, box.left, box.right) : 0
+    const dy = n.scrollHeight > n.clientHeight ? reveal(at.top, at.bottom, box.top, box.bottom) : 0
+    if (dx) n.scrollLeft += dx
+    if (dy) n.scrollTop += dy
   }, [tab])
   const content = useRef<HTMLElement>(null)
   const successTarget = IN_FORM.test(vm.lastSuccessKey) ? undefined : actionTarget(vm, vm.lastSuccessKey)

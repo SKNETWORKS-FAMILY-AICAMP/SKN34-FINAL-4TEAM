@@ -61,6 +61,8 @@
 }
 .adm .admin-operations pre.admin-prose { margin: 8px 0 18px; padding: 12px; max-height: 360px; overflow: auto; background: var(--muted-bg); border-radius: 10px; font-size: 13px; line-height: 1.6; }
 .adm progress { width: 100%; max-width: 160px; }
+/* 위 숫자 카드(.kpi)의 줄 사이 gap(12px)과 같은 값으로 카드 아래 '최근 7일 AI 사용' 패널을 띄웁니다(0이면 카드에 붙어 보임). */
+.adm .admin-usage { margin-top: 12px; }
 /* 운영 차트(Recharts): 색은 전역 테마 토큰이고, 같은 값이 차트 아래 표·카드에도 있어 차트는 보조입니다. */
 .adm .admin-usage h2 { margin-top: 0; }
 .adm .admin-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 0 24px; margin-top: 12px; }

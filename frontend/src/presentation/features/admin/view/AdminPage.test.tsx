@@ -554,6 +554,42 @@ it('관리자 계정 생성 폼은 필수 항목과 비밀번호 규칙을 글�
   expect(document.getElementById(password.getAttribute('aria-describedby')!)!.textContent).toBe('초기 비밀번호는 8자 이상이에요.')
 })
 
+it('메뉴가 넘칠 때 현재 탭이 이미 보이면 스크롤을 건드리지 않고, 보이는 영역 밖일 때만 그 축을 16px 여유로 보이게 옮긴다', async () => {
+  renderAdmin('profile')
+  const menu = await screen.findByRole('navigation', { name: '관리자 업무' })
+  // jsdom에는 레이아웃이 없어 메뉴(스크롤 상자)와 항목의 위치·크기를 직접 정한다.
+  const rect = (top: number, bottom: number, left = 0, right = 200) =>
+    ({ top, bottom, left, right, width: right - left, height: bottom - top, x: left, y: top, toJSON: () => ({}) }) as DOMRect
+  const size = (values: Record<string, number>) => {
+    for (const [prop, value] of Object.entries(values)) Object.defineProperty(menu, prop, { configurable: true, value })
+  }
+  const visit = async (name: string, at: DOMRect) => {
+    const link = within(menu).getByRole('link', { name })
+    vi.spyOn(link, 'getBoundingClientRect').mockReturnValue(at)
+    fireEvent.click(link)
+    await waitFor(() => expect(link.getAttribute('aria-current')).toBe('page'))
+  }
+  // 세로 메뉴: 보이는 칸 400px, 내용 1000px(가로는 넘치지 않는다).
+  size({ scrollHeight: 1000, clientHeight: 400 })
+  vi.spyOn(menu, 'getBoundingClientRect').mockReturnValue(rect(0, 400))
+  await visit('사용자', rect(120, 158))
+  expect(menu.scrollTop).toBe(0) // 이미 보이는 탭은 그대로 둔다: 맨 위 브랜드가 밀려나지 않는다
+  await visit('활동 로그', rect(520, 558))
+  expect(menu.scrollTop).toBe(174) // 아래로 벗어남: 아래 가장자리에서 16px 여유
+  await visit('개요', rect(-60, -22))
+  expect(menu.scrollTop).toBe(98) // 위로 벗어남: 위 가장자리에서 16px 여유
+  // 가로 메뉴: 보이는 칸 300px, 내용 900px(세로는 넘치지 않는다).
+  menu.scrollTop = 0
+  size({ scrollHeight: 400, scrollWidth: 900, clientWidth: 300 })
+  vi.spyOn(menu, 'getBoundingClientRect').mockReturnValue(rect(0, 400, 0, 300))
+  await visit('작품', rect(0, 38, 100, 160))
+  expect(menu.scrollLeft).toBe(0)
+  await visit('크레딧', rect(0, 38, 400, 480))
+  expect(menu.scrollLeft).toBe(196) // 오른쪽으로 벗어남
+  await visit('사용자', rect(0, 38, -50, 60))
+  expect([menu.scrollLeft, menu.scrollTop]).toEqual([130, 0]) // 왼쪽으로 벗어남, 세로는 그대로
+})
+
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
 it('픽스처(데모) 컨테이너에서는 데모 관리자 조치가 활동 로그에 남는다', async () => {
   const admin = appContainer.resolve('adminUseCase')
