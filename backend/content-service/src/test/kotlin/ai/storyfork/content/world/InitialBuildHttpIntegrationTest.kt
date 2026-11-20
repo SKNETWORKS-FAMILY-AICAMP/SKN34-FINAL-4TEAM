@@ -44,18 +44,24 @@ class InitialBuildHttpIntegrationTest {
     @Test fun `direct input approval application and explicit revision use actual HTTP and databases`() {
         WorldStudioPostgresFixture("coexist").use { db ->
             db.studio().migrate()
-            SpringApplicationBuilder(ContentServiceApplication::class.java,Doubles::class.java).run(
+            fun startContent() = SpringApplicationBuilder(ContentServiceApplication::class.java,Doubles::class.java).run(
                 "--server.port=${System.getenv("MANUSCRIPT_QA_CONTENT_PORT") ?: "18761"}", "--DATABASE_URL=${db.url}",
                 "--DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
                 "--DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
                 "--CONTENT_CORE_AUTH_TOKEN=qa-service-credential-at-least-32-characters",
+                "--OPERATIONS_SERVICE_TOKEN=qa-only-operations-token-32-characters",
                 "--app.manuscript-build.enabled=true","--INTERNAL_TOKEN=qa-only-manuscript-internal-token-32-chars",
-                "--app.ai-service.base-url=${System.getenv("MANUSCRIPT_QA_AI_URL") ?: "http://host.docker.internal:8769"}").use { ctx ->
+                "--app.ai-service.base-url=${System.getenv("MANUSCRIPT_QA_AI_URL") ?: "http://host.docker.internal:8769"}")
+            var ctx = startContent()
+            try {
                 val mapper=ctx.getBean(JsonMapper::class.java)
                 val owner=UUID.randomUUID()
-                `when`(ctx.getBean(CoreAuthClient::class.java).verify("Bearer $owner")).thenReturn(VerifiedMemberResponse(owner))
-                `when`(ctx.getBean(CoreAuthClient::class.java).nicknames(ai.storyfork.content.auth.client.dto.NicknamesPayload(listOf(owner.toString()))))
-                    .thenReturn(ai.storyfork.content.auth.client.dto.NicknamesResponse(mapOf(owner.toString() to "QA 작가")))
+                fun authenticateOwner() {
+                    `when`(ctx.getBean(CoreAuthClient::class.java).verify("Bearer $owner")).thenReturn(VerifiedMemberResponse(owner))
+                    `when`(ctx.getBean(CoreAuthClient::class.java).nicknames(ai.storyfork.content.auth.client.dto.NicknamesPayload(listOf(owner.toString()))))
+                        .thenReturn(ai.storyfork.content.auth.client.dto.NicknamesResponse(mapOf(owner.toString() to "QA 작가")))
+                }
+                authenticateOwner()
                 val extraction=ctx.getBean(InitialWorldExtractionClient::class.java)
                 val matcherPlaceholder=mock(InitialWorldInput::class.java)
                 doAnswer { invocation ->
@@ -80,7 +86,7 @@ class InitialBuildHttpIntegrationTest {
                     Files.writeString(Path.of("build/qa/direct-http.json"),mapper.writeValueAsString(evidence))
                     assertEquals(expected,response.statusCode(),response.body())
                     val data=mapper.readTree(response.body())
-                    if(path.endsWith("/world-preprocessing") && response.statusCode() in 200..299) {
+                    if(path.endsWith("/world-preprocessing") && response.statusCode() in 200..299 && data.path("build").isObject) {
                         val detail=data.path("build")
                         assertEquals(data.path("id").asString(),detail.path("jobId").asString())
                         return detail
@@ -286,9 +292,38 @@ class InitialBuildHttpIntegrationTest {
                         assertEquals(listOf("0"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.setting_card_draft WHERE world_id='$manuscriptWorld'"))
                         WorldStudioPostgresFixture.sql(c,"DROP TRIGGER qa_fail_load ON worldstudio.manuscript_build_load_step; DROP FUNCTION worldstudio.qa_fail_load()")
                     }
+                    val pendingJob = UUID.fromString(progress.path("jobId").asString())
+                    fun reservation() = db.connect().use { c ->
+                        WorldStudioPostgresFixture.rows(c, "SELECT id::text || request_hash || request_payload::text FROM worldstudio.manuscript_build_load_step WHERE job_id='$pendingJob' ORDER BY sequence")
+                    }
+                    val reserved = reservation()
+                    assertTrue(reserved.isNotEmpty())
+                    val orphanWork = send("/api/v1/works","POST",mapOf("title" to "입력 고정 전 중단 QA"),201).path("id").asString()
+                    val orphanId = UUID.randomUUID()
+                    db.connect().use { c ->
+                        WorldStudioPostgresFixture.sql(c,"INSERT INTO preprocessing_job(id,work_id,member_id,status,total,created_at) VALUES ('$orphanId','$orphanWork','$owner','queued',4,now())")
+                        assertEquals(listOf("loading"), WorldStudioPostgresFixture.rows(c,"SELECT status FROM preprocessing_job WHERE id='$pendingJob'"))
+                    }
+                    // Keep PostgreSQL, Neo4j and the provider running; discard the entire Content application context.
+                    ctx.close()
+                    ctx = startContent()
+                    authenticateOwner()
+                    val orphanPath = "/api/v1/works/$orphanWork/world-preprocessing"
+                    val orphan = send(orphanPath)
+                    assertEquals(orphanId.toString(), orphan.path("id").asString())
+                    assertEquals("manual_review", orphan.path("recovery").asString())
+                    assertEquals("PREPROCESSING_SNAPSHOT_MISSING", send(orphanPath,"POST",expected=409).path("code").asString())
+                    val retry = client.send(HttpRequest.newBuilder(URI.create("$host/internal/v1/preprocessing-jobs/$orphanId/retry"))
+                        .header("X-Operations-Service-Token","qa-only-operations-token-32-characters")
+                        .POST(HttpRequest.BodyPublishers.noBody()).build(), HttpResponse.BodyHandlers.ofString())
+                    assertEquals(409,retry.statusCode(),retry.body())
+                    assertEquals("PREPROCESSING_SNAPSHOT_MISSING", mapper.readTree(retry.body()).path("code").asString())
+                    assertEquals(listOf("queued"), db.connect().use { c -> WorldStudioPostgresFixture.rows(c,"SELECT status FROM preprocessing_job WHERE work_id='$orphanWork'") })
+                    assertEquals("unknown",send(jobPath).path("status").asString())
                     val beforeRecovery=modelCalls()
                     send(jobPath,"POST",buildRequest,202)
                     progress=awaitBuild(true)
+                    assertEquals(reserved, reservation())
                     assertEquals(beforeRecovery,modelCalls(),"적재 복구는 모델을 재호출하지 않는다")
                 }
                 assertEquals("completed",progress.path("status").asString(),progress.toString())
@@ -400,6 +435,8 @@ class InitialBuildHttpIntegrationTest {
                 val epubPublished=db.connect().use { c -> WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM episode_current WHERE work_id='$epubWork' AND published_version_id IS NOT NULL") }
                 assertEquals(listOf("0"),epubPublished)
                 Files.writeString(Path.of("build/qa/manuscript-epub-db.json"),mapper.writeValueAsString(mapOf("workId" to epubWork,"snapshot" to epubSnapshot,"publishedCount" to epubPublished)))
+            } finally {
+                ctx.close()
             }
         }
     }
