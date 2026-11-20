@@ -197,27 +197,29 @@ it('시간선 사건의 시점 칸은 시점이 비어 글자가 없어도 한 �
 
 // 관리 화면 quieter(세계관 관리): 색·굵기·두께만 낮추고 구조·문구는 그대로다.
 
-it('상시 저장 버튼은 저장할 것이 없어 잠기면(disabled) 채운 보라가 아니라 윤곽선 버튼이다 — 숨기지 않고 톤만 낮추며, 흐림(.55)은 공용 disabled 규칙이 맡는다', () => {
-  const idle = rule((s) => s === '.world-save-bar .btn.pri:disabled')?.body ?? ''
+it('잠긴 저장 버튼(개요 저장·사이드바/상단 저장·마법사 세계관 저장)은 채운 보라가 아니라 윤곽선 버튼이다 — 숨기지 않고 톤만 낮추며, 흐림(.45)은 공용 disabled 규칙이 맡고, 채팅·관계도 무대·AI 검토의 잠긴 주 버튼은 건드리지 않는다', () => {
+  const idle = rule((s) => s === ':is(.world-save-bar,.world-info-edit,.world-save-actions) .btn.pri:disabled')?.body ?? ''
   expect(idle).toMatch(/background:none/)
   expect(idle).toMatch(/border-color:var\(--line2\)/)
   expect(idle).toMatch(/color:var\(--sub\)/)
   expect(idle).not.toMatch(/display|visibility|opacity/)
+  expect(css).not.toMatch(/\.world-writing \.btn\.pri:disabled/) // 화면 전체로 넓히면 어두운 무대의 상대 선택·채팅 버튼까지 바뀐다
 })
 
-it('게시판 제목은 800이 아니라 650이라 줄마다 무거운 글자가 쌓이지 않고(AI 의견 배지 제외), 공개 칸의 N화부터는 보라 기둥이 아니라 본문색이다', () => {
+it('게시판 제목은 800이 아니라 650이라 줄마다 무거운 글자가 쌓이지 않고(AI 의견 배지 제외), 공개 칸의 N화부터는 보라 기둥도 굵은 기둥도 아니라 본문색 보통 굵기다', () => {
   expect(rule((s) => s === '.world-card-library .worlds-board-table .col-title :is(a,button):not(.world-opinion)')?.body).toMatch(/font-weight:650/)
   const vis = rule((s) => s === '.world-card-library .worlds-board-table .col-vis[data-public=true]')?.body ?? ''
   expect(vis).toMatch(/color:var\(--tfg\)/)
-  expect(vis).toMatch(/font-weight:600/)
+  expect(vis).not.toMatch(/font-weight/) // 공개/비공개는 글자('N화부터'·'비공개')와 색으로 이미 갈리므로 굵기까지 얹지 않는다
 })
 
 it('분류 칩 줄(게시판 폭 1000px 이하)에서 선택하지 않은 칩은 옅은 테두리·600이고, 선택한 칩(aria-current)은 건드리지 않는다', () => {
   expect(css).toMatch(/@container worlds-board \(max-width:1000px\)\{\.world-card-library \.worlds-cats :is\(a,button\):not\(\[aria-current\]\)\{border-color:var\(--line\);font-weight:600\}\}/)
 })
 
-it('사이드바의 도구 버튼(AI 검토·집필 메모·확정 버전)은 901px부터 보기 메뉴보다 가벼운 옅은 테두리·600이고, 저장 버튼(.pri)과 900px 이하 가로 줄은 그대로다', () => {
-  expect(css).toMatch(/@media\(min-width:901px\)\{[^@]*\.world-menu-tools \.btn:not\(\.pri\)\{border-color:var\(--line\);font-weight:600\}\}/)
+it('사이드바의 도구 버튼(AI 검토·집필 메모·확정 버전)은 모든 폭에서 보기 메뉴보다 가벼운 옅은 테두리·600이다(900px 이하 가로 줄에서도 탭 줄보다 무겁지 않다) — 저장 버튼(.pri)은 그대로다', () => {
+  expect(css).toMatch(/\.world-menu-tools \.btn:not\(\.pri\)\{border-color:var\(--line\);font-weight:600\}/)
+  expect(css).not.toMatch(/@media\(min-width:901px\)\{[^@]*\.world-menu-tools \.btn:not\(\.pri\)/) // 데스크톱 전용 규칙이 아니다
 })
 
 it('채팅 머리의 브랜드 원은 집필실 채팅 머리(.chat-brand)와 같은 옅은 면이다 — 채운 보라는 전송 버튼만', () => {
@@ -297,6 +299,9 @@ it("'소설 연결' 탭의 Fork 행은 연관 설정과 같은 44px 행(.world-c
   expect(rule((s) => s === 'a.world-card-link')?.body).toMatch(/text-decoration:none/)
   expect(rule((s) => s === '.world-novel .world-forks')?.body).toMatch(/border-top:1px solid var\(--tline\)/)
   expect(rule((s) => s === '.world-cover-now')?.body).toMatch(/width:160px/) // 개요 탭의 지금 표지
+  // 카드 안의 행이 입력칸처럼 보이지 않게 테두리는 카드 테두리(--line)보다 진하지 않고, hover의 보라 테두리는 그대로다(같은 특이도라 hover를 다시 정한다)
+  expect(rule((s) => s === '.world-novel .world-card-link')?.body).toMatch(/border-color:var\(--line\)/)
+  expect(rule((s) => s === '.world-novel .world-card-link:hover')?.body).toMatch(/border-color:var\(--pri\)/)
 })
 
 // ── critique 승인 항목: 히어로 축소·탭 줄 채팅 버튼·문서 탭 부제 ───────────────────────────────────────────────
@@ -344,4 +349,46 @@ it('게시판 제목 옆 [n](.world-count)은 600px 이상 넓은 표에서 숨�
 it('마법사 1단계는 이전 단계를 그리지 않으므로 첫 자식이 된 다음 단계(.pri)는 왼쪽으로 밀리지 않고 오른쪽 끝에 남는다', () => {
   expect(rule((s) => s === '.world-step-actions .btn:first-child')?.body).toMatch(/margin-right:auto/) // 이전 단계는 왼쪽
   expect(rule((s) => s === '.world-step-actions .btn.pri:first-child')?.body).toMatch(/margin-right:0/)
+})
+
+// ── 4단계 quieter: 채운 보라·진한 테두리·굵기를 줄인다(구조·문구는 그대로) ─────────────────────────────────────────
+it('AI 채팅 열기는 이 화면(.episode-app)에서만 채운 보라가 아니라 윤곽선 버튼이다(hover는 옅은 면) — 집필실·카드 편집 화면은 .episode-app 밖이라 그대로 보라다', () => {
+  const rest = rule((s) => s === '.episode-app .studio-chat-toggle.btn.pri')?.body ?? ''
+  expect(rest).toMatch(/background:var\(--surface\)/)
+  expect(rest).toMatch(/border-color:var\(--line2\)/)
+  expect(rest).toMatch(/color:var\(--ink\)/)
+  expect(rule((s) => s === '.episode-app .studio-chat-toggle.btn.pri:hover')?.body).toMatch(/background:var\(--muted-bg\)/)
+  expect(rules.some((r) => /\.studio-chat-toggle\.btn\.pri/.test(r.selector) && !r.selector.startsWith('.episode-app '))).toBe(false)
+  expect(writingCss).not.toMatch(/studio-chat-toggle\.btn\.pri/) // 집필실 공용 규칙은 건드리지 않는다
+})
+
+it('시간선은 보라를 고른 사건에만 쓴다: 고르지 않은 점은 회색 고리(--line3 2px, 3:1 이상), 고른 점은 채운 보라이고 후광(outline)이 없으며, 연결선·스크롤바는 --line3이고 opacity로 흐리지 않는다(.5면 3:1 아래)', () => {
+  expect(timelineCss.match(/\.world-timeline-dot\{([^}]*)\}/)?.[1]).toMatch(/border:2px solid var\(--line3\)/)
+  const picked = timelineCss.match(/\.world-timeline-event\[aria-pressed=true\] \.world-timeline-dot\{([^}]*)\}/)?.[1] ?? ''
+  expect(picked).toMatch(/background:var\(--pri\);border-color:var\(--pri\)/)
+  expect(picked).not.toMatch(/outline/)
+  const svg = timelineCss.match(/\.world-timeline-board svg\{([^}]*)\}/)?.[1] ?? ''
+  expect(svg).toMatch(/color:var\(--line3\)/)
+  expect(svg).not.toMatch(/opacity/)
+  expect(timelineCss.match(/\.world-timeline-scroll\{([^}]*)\}/)?.[1]).toMatch(/scrollbar-color:var\(--line3\) var\(--surface\)/)
+  expect(timelineCss.match(/\.world-timeline-event strong\{([^}]*)\}/)?.[1]).toMatch(/font-weight:600/)
+  expect(timelineCss).toMatch(/\.world-timeline-event\[aria-pressed=true\] strong\{color:var\(--pri-ink\);font-weight:700\}/) // 고른 사건의 보라 제목은 그대로
+})
+
+it('마법사 헤더의 저장됨 칩(.chip.ok[role=status])은 평소 상태라 강조색이 아니라 회색 칩이고(공개 칩은 그대로), 이 화면 헤더 칩은 700이 아니라 600이다', () => {
+  expect(rule((s) => s === '.world-manage-hero .chip.ok[role=status]')?.body).toMatch(/background:var\(--muted-bg\);color:var\(--sub\)/)
+  expect(rules.some((r) => r.selector === '.world-manage-hero .chip.ok')).toBe(false) // role 없는 공개 칩의 보라는 의미가 있어 그대로
+  expect(rule((s) => s === '.world-manage-hero .ep-chips .chip')?.body).toMatch(/font-weight:600/)
+  expect(episodeCss).not.toContain('world-manage-hero') // 공용 틀·/content 작품 관리 히어로 칩은 그대로다
+})
+
+it('카드 편집기 미리보기: 커서 문단의 노란 면(분할 보기 전용 표시)을 끄고, 링크는 Toast 기본 파랑이 아니라 이 화면의 강조색(--tacc)이다 — 둘 다 .world-card-editor 범위이고 Toast 어두운 테마 규칙(특이도 (0,3,1))보다 한 단계 높다', () => {
+  const ui = '.world-card-editor .toastui-editor-defaultUI .toastui-editor-contents'
+  expect(rule((s) => s === ui + ' .toastui-editor-md-preview-highlight::after')?.body).toMatch(/display:none/)
+  expect(rule((s) => s === ui + ' :is(a,a:hover)')?.body).toMatch(/color:var\(--tacc\)/)
+  expect(rules.every((r) => !/toastui/.test(r.selector) || r.selector.startsWith('.world-card-editor '))).toBe(true) // 범위 밖(집필실 원고 편집기)은 건드리지 않는다
+})
+
+it('게시판 표 머리는 회색 띠가 아니라 아래 선 하나다(관리자 표와 같은 규칙, 이 화면 범위): 공용 worldBoard.css는 그대로라 /worlds/:id의 표는 띠가 남는다', () => {
+  expect(rule((s) => s === '.world-card-library .worlds-board-table th')?.body).toMatch(/background:none;border-bottom:1px solid var\(--line2\)/)
 })

@@ -20,6 +20,9 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .episode-app .world-manage-hero[data-view] h1{font-size:24px}
 .episode-app .world-manage-hero[data-view] .ep-chips{margin-top:8px}
 .episode-app .world-manage-hero[data-view] .sum{display:none}
+/* 헤더 칩(quieter): 마법사의 저장됨(.chip.ok[role=status])은 평소 상태라 강조색이 아니라 회색 칩이다. 주의가 필요한 작성 중·미저장은 노랑(.wait) 그대로, role 없는 공개 칩(.ok)의 보라는 의미가 있어 그대로다. 칩 굵기는 700에서 600으로 낮춰 제목과 겨루지 않게 한다(/content 작품 관리 히어로는 .world-manage-hero가 아니라 그대로다). */
+.world-manage-hero .chip.ok[role=status]{background:var(--muted-bg);color:var(--sub)}
+.world-manage-hero .ep-chips .chip{font-weight:600}
 /* 공개 설정(관리 모드 헤더·작성 모드 기본 정보 단계): 공개 범위 토글과 장르 선택이 한 줄, 안내와 공개 화면 링크는 그 아래. 라벨 display는 .episode-app label이 정하므로 다시 정한다. */
 .episode-app .world-publish{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;margin:16px 0 12px;padding:0;border:0;min-width:0}
 .episode-app .world-publish .field{display:flex;margin:0}.world-publish .seg{width:200px;max-width:100%}.episode-app .world-publish select{min-width:150px}.world-publish>p{flex:1 1 100%;margin:0}
@@ -27,13 +30,15 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-cover-edit{display:grid;gap:8px;min-width:0}.world-cover-label{font-size:13px;font-weight:650}.world-cover-now{width:160px}
 
 /* 관리 모드 왼쪽 사이드바(.ep-menu, shared/episode.css)의 아래쪽: AI 검토·집필 메모·확정 버전 버튼과 상시 저장 영역. 기본은 줄바꿈하는 가로 줄(사이드바가 내용 위 줄이 되는 900px 이하)이고,
-   901px부터는 보기 메뉴 밑 구분선 뒤에 세로로 쌓는다(저장 영역은 사이드바와 함께 따라와 늘 보인다). 도구 버튼은 보기 메뉴(테두리 없음)보다 무겁지 않게 옅은 테두리·600이고 모양·폭·높이는 그대로다.
+   901px부터는 보기 메뉴 밑 구분선 뒤에 세로로 쌓는다(저장 영역은 사이드바와 함께 따라와 늘 보인다). 도구 버튼은 보기 메뉴(테두리 없음)보다 무겁지 않게 모든 폭에서 옅은 테두리·600이고(quieter: 900px 이하의 가로 줄에서도 탭 줄보다 무겁지 않다) 모양·폭·높이는 그대로다.
    저장 영역은 위 버튼 묶음과 8px 더 떨어져 상태 글자가 아래 저장 버튼 소속으로 읽히고, 글자는 보기 메뉴 글자와 같은 x(안쪽 10px)에서 시작한다. */
 .world-menu-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
-@media(min-width:901px){.world-menu-tools{display:grid;padding-top:12px;border-top:1px solid var(--line2)}.world-menu-tools .world-save-bar{flex-direction:column;align-items:stretch;margin-top:8px}.world-menu-tools .world-save-state{padding-inline:10px}.world-menu-tools .btn:not(.pri){border-color:var(--line);font-weight:600}}
+.world-menu-tools .btn:not(.pri){border-color:var(--line);font-weight:600}
+@media(min-width:901px){.world-menu-tools{display:grid;padding-top:12px;border-top:1px solid var(--line2)}.world-menu-tools .world-save-bar{flex-direction:column;align-items:stretch;margin-top:8px}.world-menu-tools .world-save-state{padding-inline:10px}}
 .world-save-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px 12px}.world-save-state{font-size:13px;font-weight:650;white-space:nowrap}.world-save-state.ok{color:var(--tsub)}.world-save-state.wait{color:var(--pri-ink)}
-/* 저장을 막는 문제가 있어 잠긴 저장 버튼은 채운 보라가 아니라 옅은 윤곽선이다(저장할 것이 없으면 버튼 자체를 그리지 않는다). 흐림(.55)은 공용 disabled 규칙이 맡고, 바뀐 것이 생겨 켜지면 원래대로 채운 보라다. */
-.world-save-bar .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--sub)}
+/* 저장을 막는 문제가 있어 잠긴 저장 버튼은 채운 보라가 아니라 옅은 윤곽선이다(저장할 것이 없으면 버튼 자체를 그리지 않는다). 사이드바·상단 바의 세계관 저장(.world-save-bar)·개요 폼의 저장(.world-info-edit)·마법사 검토·저장 단계의 세계관 저장(.world-save-actions)이 같은 모양이다(quieter).
+   흐림(.45)은 공용 disabled 규칙이 맡고, 바뀐 것이 생겨 켜지면 원래대로 채운 보라다. 화면 전체(.world-writing)로 넓히지 않는다: 어두운 무대의 상대 선택·공용 채팅 같은 다른 잠긴 주 버튼의 모양까지 바뀐다. */
+:is(.world-save-bar,.world-info-edit,.world-save-actions) .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--sub)}
 /* 저장을 막는 사유: 어느 설정의 문제인지 이름이 붙은 글자 버튼(누르면 그 설정의 편집 화면)과 남은 건수. 버튼은 본문 링크처럼 밑줄로 구분하고 누르는 높이는 44px다. */
 .world-save-issue{max-width:34ch;color:var(--danger);line-height:1.4;overflow-wrap:anywhere}
 .world-save-issue button{display:inline-flex;align-items:center;min-height:44px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -52,6 +57,9 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-menu-row{display:contents}
 .world-chat-slot:empty{display:none}
 @media(max-width:900px){.world-menu-body,.world-menu-row{min-width:0}.world-menu-row{display:flex;align-items:center;gap:8px}.world-menu-row nav{flex:1 1 auto;min-width:0}.world-chat-slot .studio-chat-toggle{position:static;flex:none;box-shadow:none;white-space:nowrap}}
+/* AI 채팅 열기(quieter): 이 화면에서는 채운 보라가 아니라 윤곽선 버튼이다 — 첫 화면에서 가장 큰 채운 면이 아직 전송을 못 쓰는 채팅 버튼이라 고른 탭보다 먼저 보였다. 집필실(/studio)과 카드 편집 화면은 .episode-app 밖이라 그대로 보라다. 떠 있는 버튼(마법사, 채팅이 닫힌 901~1200px)의 그림자는 전역 .studio-chat-toggle이 남겨 찾을 수 있다. */
+.episode-app .studio-chat-toggle.btn.pri{background:var(--surface);border-color:var(--line2);color:var(--ink)}
+.episode-app .studio-chat-toggle.btn.pri:hover{background:var(--muted-bg)}
 
 /* AI 채팅: 집필실과 같은 오른쪽 레일(.studio-chat은 전역 스타일, 안쪽은 shared/chat). 본문(main) | 채팅 2열(채팅 350px 고정)이고 채팅은 상단바(65px) 아래에 붙어(sticky) 화면 높이를 쓴다:
    머리 / 메시지(스크롤) / 입력(바닥). 배경은 페이지와 같고 왼쪽 선으로만 구분하며, 입력 카드·추천 칩·말풍선(--chat-card)만 한 단계 밝은 면으로 도드라진다. 왼쪽 사이드바·헤더는 본문(main) 열 안이다. 전송이 잠긴(준비 중) 동안은 1200px 이하에서 닫힌 채로 시작하고(WorldStudioPage), 좁은 화면(집필실과 같은 900px 이하)에서 열면 화면을 덮는 오른쪽 서랍이다. */
@@ -100,12 +108,14 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-card-library .worlds-board-table .col-no{width:48px}.world-card-library .worlds-board-table .col-kind{width:92px}.world-card-library .worlds-board-table .col-num{width:56px}
 /* 제목 칸은 공용 게시판의 34%가 아니라 26%다(critique): 제목은 2~10자인데 34%(채팅을 연 1440px에서 약 250px)가 비어 요약이 17자쯤에서 …로 잘렸다. 줄어든 폭은 요약이 쓰고(약 +60px), 배지가 많아 길어진 제목은 overflow-wrap으로 줄바꿈한다. 공개 설정집(/worlds)은 이 화면 밖이라 그대로다. */
 .world-card-library .worlds-board-table th.col-title{width:26%}
+/* 표 머리(quieter): 전역 th의 회색 띠(--muted-bg) 대신 아래 선 하나다(관리자 표 .adm th와 같은 규칙, 이 화면 범위). 공용 worldBoard.css·/worlds/:id의 표는 그대로 띠다. */
+.world-card-library .worlds-board-table th{background:none;border-bottom:1px solid var(--line2)}
 /* 제목 글자는 공용 게시판의 800 대신 650이다(57행 목록에서 행마다 무거운 글자가 쌓이지 않게). 공개 설정집(/worlds)은 이 화면 밖이라 그대로고, 'AI 의견 N' 배지는 아래 전용 규칙(700)을 그대로 쓴다. */
 .world-card-library .worlds-board-table .col-title :is(a,button):not(.world-opinion){font-weight:650}
 /* 카드 단위 공개(DEC-46): 맨 앞 선택 칸, `공개` 칸, 그 위의 한 번에 바꾸기 줄(접힌 summary 한 줄이고 줄을 고르면 펼쳐진다. 안쪽은 안내 + 선택 공개·선택 비공개·전체 공개). 가져온 카드는 제목 아래에 출처를 한 줄 더 보인다. */
 /* 선택 칸은 칸 여백을 없애고 라벨이 44×44px를 채운다(다른 칸의 위아래 여백 덕에 줄 높이는 그대로다). */
 .world-card-library .worlds-board-table .col-pick{width:44px;padding:0}.episode-app .world-pick{display:grid;place-items:center;min-height:44px;cursor:pointer}.world-pick input{width:16px;height:16px;accent-color:var(--pri)}
-.world-card-library .worlds-board-table .col-vis{width:68px;color:var(--tsub);white-space:nowrap}.world-card-library .worlds-board-table .col-vis[data-public=true]{color:var(--tfg);font-weight:600}
+.world-card-library .worlds-board-table .col-vis{width:68px;color:var(--tsub);white-space:nowrap}.world-card-library .worlds-board-table .col-vis[data-public=true]{color:var(--tfg)}
 .world-imported-from{display:block;margin-top:2px;color:var(--tsub);font-size:12px;font-weight:500}
 /* 빈 인물 문서가 있는 인물 줄의 `정리 필요`: 관계 수·가져옴(보조 글자색)과 구분되게 주의색 글자다. 편집 화면의 문서 버튼에 붙는 표시(.world-doc-flag)와 같은 색이다. 공용 .worlds-badge의 색을 불러오는 순서와 상관없이 이기도록 두 클래스로 쓴다. */
 .worlds-badge.world-todo{color:var(--acc-ink)}
@@ -171,6 +181,9 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-linked{margin:12px 0 0}
 /* '소설 연결' 탭: 연결된 소설(상태 줄·버튼)과 그 아래 Fork 소설 목록. 구획 사이는 선 하나이고, Fork 행은 연관 설정과 같은 44px 행(.world-card-link, 링크라 밑줄은 없앤다)이다. */
 .world-novel h2{margin:0}.world-novel .world-forks{margin-top:28px;padding-top:20px;border-top:1px solid var(--tline)}.world-novel .world-forks>p{margin:12px 0 0}
+/* 원작·Fork 행(quieter): 카드(--tline 테두리) 안의 행이 진한 테두리(--line2)로 다시 둘러싸 입력칸처럼 보이지 않게 카드 테두리와 같은 옅은 선이다. hover의 보라 테두리는 같은 특이도라 여기서 다시 정한다. */
+.world-novel .world-card-link{border-color:var(--line)}
+.world-novel .world-card-link:hover{border-color:var(--pri)}
 .world-fork-list{display:grid;gap:6px;margin:12px 0;padding:0;list-style:none}
 a.world-card-link{text-decoration:none}
 /* '+ 새 설정'(유형을 고르는 PopMenu): 게시판 도구줄에서는 채운 알약 글자 버튼, 편집 화면 레일 머리에서는 집필실 '새 회차'와 같은 아이콘 버튼. */
@@ -228,6 +241,10 @@ a.world-card-link{text-decoration:none}
 /* 설명: 마크다운 편집기(shared/MarkdownEditor, Toast UI Editor)는 글 높이만큼 자라고 스크롤은 편집 열이 맡는다. 불러오는 동안은 편집기 최소 높이(320px)와 탭 줄만큼 자리를 비운다. 저장 중에는 잠기고(inert) 흐려진다.
    isolation: Toast는 본문 컨테이너를 position:relative + z-index:20(팝업 30·툴팁 40)으로 그려, z-index 없는 sticky 하단 바(.writing-foot)와 z-index 10인 좁은 화면 상단 바(.sbar) 위로 글이 올라와 겹쳐 찍힌다. 그 값들을 이 감싸개 안에 가둔다. */
 .world-card-editor{margin-bottom:8px;isolation:isolate}.world-card-editor[inert]{opacity:.6}
+/* 카드 편집기 미리보기(quieter): ① 커서 문단의 노란 면(Toast의 분할 보기 전용 표시, 이 화면은 탭 모드라 짝이 되는 원문이 안 보인다)을 끈다. ② 링크는 Toast 기본 파랑(#4b96e6, 흰 면 3.1:1)이 아니라 이 화면의 강조색이다(--tacc, 흰 면 5.7:1·어두운 면 6.6:1).
+   둘 다 .world-card-editor 범위이고 Toast 어두운 테마 규칙(.toastui-editor-dark …, 특이도 (0,3,1))을 이기려고 클래스를 하나 더한다. 집필실 원고 편집기는 .world-card-editor 밖이라 그대로다. */
+.world-card-editor .toastui-editor-defaultUI .toastui-editor-contents .toastui-editor-md-preview-highlight::after{display:none}
+.world-card-editor .toastui-editor-defaultUI .toastui-editor-contents :is(a,a:hover){color:var(--tacc)}
 .world-card-editor-loading{display:grid;place-items:center;min-height:365px;border:1px solid var(--tline);border-radius:4px;color:var(--tsub);font-size:13.5px}
 .world-card-help{margin:0 0 16px}
 /* 인물 문서(인물 카드): 설명 편집기 자리에 머리(제목 + ⋯ 더보기 메뉴의 .md 파일 불러오기) → 문서 탭 줄(회차 기억 펼침 포함) → 고른 문서의 안내 한 줄 → 편집기 → 회차 기억 삭제.

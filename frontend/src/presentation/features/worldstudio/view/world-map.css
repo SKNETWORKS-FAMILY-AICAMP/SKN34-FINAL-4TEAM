@@ -5,17 +5,21 @@
  * 그래프 | 관계 폼 2열은 뷰포트가 아니라 편집기 자신의 폭(컨테이너)으로 정한다: 오른쪽 AI 채팅 레일이 열리면 뷰포트가 넓어도 본문이 좁아 그래프가 230px까지 눌렸다.
  */
 .relationship-editor{container:relationship-editor / inline-size}
-/* 무대는 카드 안의 평평한 면이다: 어두운 면 위의 그림자는 보이지 않고 겹만 하나 늘려서 두지 않는다. */
-.relationship-stage{--stage-1:#182742;--stage-2:#0b1324;--stage-3:#080e1b;--edge:#A9C6FF;--edge-emotion:#FFD98A;--edge-active:var(--fixed-ink);--edge-halo:var(--stage-3);--stage-tint:color-mix(in srgb,var(--fixed-ink) 8%,transparent);--rc-bg:color-mix(in srgb,var(--fixed-ink) 7%,var(--stage-2));--rc-line:color-mix(in srgb,var(--fixed-ink) 18%,transparent);--rc-ink:var(--fixed-ink);--rc-sub:var(--fixed-sub);--rc-sel:color-mix(in srgb,var(--fixed-pri) 20%,var(--stage-2));--rc-accent:var(--fixed-pri);min-width:0;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:radial-gradient(ellipse at 50% 46%,var(--stage-1) 0%,var(--stage-2) 56%,var(--stage-3) 100%)}
+/* 무대는 카드 안의 평평한 면이다: 어두운 면 위의 그림자는 보이지 않고 겹만 하나 늘려서 두지 않는다.
+   관계선·감정선은 무대 색에 섞어 낮춘다(quieter): 이전 #A9C6FF·#FFD98A은 14선이 카드보다 밝았다. 섞은 선은 무대 위 4.7~6.0:1·6.5~8.4:1이라 비문자 3:1을 지키고, 고른 선(--edge-active 흰색)은 그대로라 더 뜬다. */
+.relationship-stage{--stage-1:#182742;--stage-2:#0b1324;--stage-3:#080e1b;--edge:color-mix(in srgb,#A9C6FF 70%,var(--stage-2));--edge-emotion:color-mix(in srgb,#FFD98A 75%,var(--stage-2));--edge-active:var(--fixed-ink);--edge-halo:var(--stage-3);--stage-tint:color-mix(in srgb,var(--fixed-ink) 8%,transparent);--rc-bg:color-mix(in srgb,var(--fixed-ink) 7%,var(--stage-2));--rc-line:color-mix(in srgb,var(--fixed-ink) 18%,transparent);--rc-ink:var(--fixed-ink);--rc-sub:var(--fixed-sub);--rc-sel:color-mix(in srgb,var(--fixed-pri) 20%,var(--stage-2));--rc-accent:var(--fixed-pri);min-width:0;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:radial-gradient(ellipse at 50% 46%,var(--stage-1) 0%,var(--stage-2) 56%,var(--stage-3) 100%)}
 /* 고른 카드는 보라 틴트 면이라 보조 글자(--fixed-sub)의 대비가 무대 가운데에서 4.22:1까지 내려간다. 고른 카드만 밝게 섞어 5.64:1 이상으로 올린다. */
 .relationship-stage .relationship-character-card.selected{--rc-sub:color-mix(in srgb,var(--fixed-sub) 70%,var(--fixed-ink))}
 .relationship-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 16px 6px}.relationship-toolbar h4{margin:0 auto 0 0;font-size:14px;font-weight:700}
 .relationship-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 16px 10px;color:var(--fixed-sub);font-size:12.5px;line-height:1.6}.relationship-hint .btn{margin-left:auto}
 .relationship-stage .btn{background:var(--stage-tint);border-color:color-mix(in srgb,var(--fixed-ink) 20%,transparent);color:var(--fixed-ink)}.relationship-stage .btn:hover{background:color-mix(in srgb,var(--fixed-ink) 16%,transparent)}.relationship-stage .btn.pri{background:var(--fixed-pri);border-color:var(--fixed-pri);color:var(--on-fixed-pri)}.relationship-stage .btn.pri:hover{background:color-mix(in srgb,var(--fixed-pri) 75%,var(--fixed-ink))}
-/* 유형 필터 줄: 안내 아래·그래프 위. 켜진(보이는) 유형은 고른 카드와 같은 보라 틴트·테두리라 꺼진 유형(기본 무대 버튼)과 구분된다. */
+/* 유형 필터 줄: 안내 아래·그래프 위. 켜진(보이는) 유형은 보라 틴트 면 + 낮춘 보라 테두리, 꺼진 유형은 기본 무대 버튼에 글자만 물러난(--fixed-sub) 모양이다(quieter).
+   기본이 '모두 켜짐'이라 밝은 보라 테두리(--rc-accent, 무대 위 6.8~8.8:1) 여섯 개가 그래프보다 먼저 보였다. 켜짐 표시는 지우지 않고(선택 상태, 비문자 3:1) 무대 색에 60% 섞어 3.0~3.9:1로 낮춘다. 꺼진 칩의 보조 글자는 hover 면 위에서 3.8:1이라 hover에서 다시 밝힌다. */
 .relationship-filter{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
 .relationship-filter .btn{font-weight:600}
-.relationship-stage .relationship-filter .btn[aria-pressed=true]{background:var(--rc-sel);border-color:var(--rc-accent)}
+.relationship-stage .relationship-filter .btn[aria-pressed=true]{background:var(--rc-sel);border-color:color-mix(in srgb,var(--rc-accent) 60%,var(--stage-2))}
+.relationship-stage .relationship-filter .btn[aria-pressed=false]{color:var(--fixed-sub)}
+.relationship-stage .relationship-filter .btn[aria-pressed=false]:hover{color:var(--fixed-ink)}
 /* 그래프 위 한 줄 툴바(critique 승인): `중심: [검색 콤보] · 이웃 쪽 이동 · 전체 관계도로`. 예전의 그래프 아래 검색·중심 설정 칩 줄·설정 목록 쪽 이동은 이 줄 하나로 묶었다. 무대에는 안쪽 여백이 없어 글자가 둥근 모서리에 붙으므로 툴바와 같은 16px(좁은 화면 12px)에 맞추고, 좁으면 줄바꿈한다(안내 글은 늘 한 줄을 다 쓴다).
    안내·페이지 글자는 전역 .muted(--sub, 라이트 #5F6370)면 어두운 무대 위 대비가 2.5~3.1:1이라 고정 면의 보조 글자색(--fixed-sub)을 쓴다. 페이지 이동 바의 위 여백은 이 줄의 gap이 대신한다. */
 .relationship-focus{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:0 16px 10px}
@@ -38,6 +42,8 @@
 /* 층: 간선 그림(0) < 카드(1) < 간선 라벨(2). 카드 면은 위 .relationship-stage 변수가 불투명이라 카드 뒤를 지나는 간선이 글자를 가로지르지 않고, 라벨은 카드 위에서도 읽힌다. */
 .relationship-card-labels{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:visible}
 .relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-character-card h4 img{object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px}.relationship-edge-label{font-size:12px;pointer-events:none;paint-order:stroke;stroke:var(--edge-halo,var(--surface));stroke-width:4px;stroke-linejoin:round}
+/* 관계 라벨(quieter): 선 색을 따라 밝은 하늘색이던 글자를 회색(--fixed-sub, 무대 위 6.3:1 이상)으로 낮춘다. CSS가 SVG fill 속성을 이긴다. 읽기 전용 관계도는 .relationship-stage 밖이라 그대로다. */
+.relationship-stage .relationship-edge-label{fill:var(--fixed-sub)}
 .relationship-character-card{position:absolute;left:0;top:0;z-index:1;border:1px solid var(--rc-line,var(--line2));border-radius:12px;padding:12px;background:var(--rc-bg,var(--surface));color:var(--rc-ink,var(--ink));box-shadow:0 3px 12px #24233010;touch-action:none;user-select:none;cursor:grab}
 .relationship-character-card.selected{border:2px solid var(--rc-accent,var(--pri));padding:11px;background:var(--rc-sel,var(--pri-soft))}.relationship-character-card.target{border:2px dashed var(--rc-accent,var(--pri));padding:11px}.relationship-character-card.dim{opacity:.3}
 .relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--rc-sub,var(--sub));margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:12px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
@@ -54,11 +60,14 @@
 /* '관계 추가' 폼은 접힌 <details>다(critique 승인): 그래프에서 두 카드를 고르는 길이 기본이라 처음에는 닫혀 있고, 고른 설정이 폼에 채워지면 펼쳐진다. details 자체는 grid로 두지 않고(기본 펼침 표시를 지킨다) 안쪽 묶음이 간격을 정한다. */
 .relationship-add>summary{display:flex;align-items:center;min-height:44px;font-size:15px;font-weight:700;cursor:pointer}
 .relationship-add-body{display:grid;gap:12px;align-content:start;padding-top:12px}.relationship-pair{min-width:0}.relationship-add .field{margin-bottom:0}.relationship-actions{display:flex;flex-wrap:wrap;gap:8px}
-.relationship-table{width:100%;table-layout:fixed}.relationship-table :is(th,td){padding:8px 6px;text-align:left;vertical-align:middle;font-size:14px;overflow-wrap:anywhere}.relationship-table th{font-size:12px}
+.relationship-table{width:100%;table-layout:fixed}.relationship-table :is(th,td){padding:8px 6px;text-align:left;vertical-align:middle;font-size:14px;overflow-wrap:anywhere}.relationship-table th{font-size:12px;background:none;border-bottom:1px solid var(--line2)}
 /* 칸 폭(R5): 주체·대상은 이름 길이만큼, 시작 회차·작업은 고정, 관계(자유 문구)가 남은 폭을 쓴다. 표는 전역 .adm-scroll(가로 스크롤, 표 최소 600px) 안이라 좁은 편집기·폰에서도 한 단어씩 꺾이지 않고 가로로 민다. */
 .relationship-table th.col-subject{width:18%}.relationship-table th.col-target{width:20%}.relationship-table th.col-from{width:84px}
-.relationship-card-link{padding:0;border:0;background:none;color:var(--pri-ink);font:inherit;text-align:left;text-decoration:underline;cursor:pointer;overflow-wrap:anywhere}
-.relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}/* 390px 가로 넘침 방어(측정 필요): 그리드·플렉스 항목의 min-width는 auto라 안쪽의 넓은 내용(관계 목록 표는 전역 .adm-scroll table이 최소 600px, 중심 칩 줄은 수십 개)이 칸을 밀어 낼 수 있다. 칸을 0까지 줄일 수 있게 하고 넓은 내용은 자기 스크롤 상자(.adm-scroll·칩 줄)가 민다. */
+/* 관계 목록 행(quieter): 이름 링크는 본문색 + 옅은 밑줄(--line3: 색이 아니라 밑줄이 링크 표시라 3:1 이상)이고 hover에서 보라다. 편집·삭제는 알약 테두리 없는 글자 버튼이다(관리자 표 .adm td .btn과 같은 규칙).
+   비레이어인 background:none이 전역 .btn:hover 면을 이기므로 hover 면을 다시 정한다. 터치 44px은 전역 .btn.sm 규칙 그대로다. */
+.relationship-card-link{padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;text-decoration:underline;text-decoration-color:var(--line3);cursor:pointer;overflow-wrap:anywhere}
+.relationship-card-link:hover{color:var(--pri-ink);text-decoration-color:currentColor}
+.relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}.relationship-row-actions .btn{border-color:transparent;background:none;font-weight:600}.relationship-row-actions .btn:hover{background:var(--muted-bg)}/* 390px 가로 넘침 방어(측정 필요): 그리드·플렉스 항목의 min-width는 auto라 안쪽의 넓은 내용(관계 목록 표는 전역 .adm-scroll table이 최소 600px, 중심 칩 줄은 수십 개)이 칸을 밀어 낼 수 있다. 칸을 0까지 줄일 수 있게 하고 넓은 내용은 자기 스크롤 상자(.adm-scroll·칩 줄)가 민다. */
 .relationship-editor :is(.relationship-service-form,.relationship-list,.relationship-focus,.relationship-add,.relationship-stage){min-width:0;max-width:100%}
 .relationship-list>.adm-scroll,.relationship-focus>*{min-width:0;max-width:100%}
 /* 390px 가로 넘침의 원인(critique 후속): 표의 마지막 칸 머리에는 오른쪽 맞춤 숨은 글자(.sr-only, position:absolute)가 있다. 가로 스크롤 상자(.adm-scroll)가 기준 위치가 아니면 이 1px 요소의 기준은 상자 밖(문서)이라 상자가 잘라 주지 않고, 표(최소 600px) 오른쪽 끝(안쪽 여백 안 646px)에 놓여 문서 폭을 646px로 늘렸다(모바일은 화면이 그 폭으로 줄어 innerWidth가 646).

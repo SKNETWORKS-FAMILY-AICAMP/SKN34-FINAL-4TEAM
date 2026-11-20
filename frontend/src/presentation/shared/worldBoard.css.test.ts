@@ -203,12 +203,45 @@ describe('관계도 무대 조용히 다듬기', () => {
     expect(stage).toMatch(/radial-gradient\(ellipse at 50% 46%,var\(--stage-1\) 0%,var\(--stage-2\) 56%,var\(--stage-3\) 100%\)/)
   })
 
-  it('구획 제목 h4는 700·자간 없음이고 유형 필터 버튼은 600이다 (켜짐·꺼짐 색 체계는 그대로)', () => {
+  it('구획 제목 h4는 700·자간 없음이고 유형 필터 버튼은 600이며, 켜진 칩은 보라 틴트 면 + 낮춘 테두리(3:1 이상 유지)·꺼진 칩은 글자만 물러난다', () => {
     const h4 = rule(map, '.relationship-toolbar h4')
     expect(h4).toMatch(/font-weight:700/)
     expect(h4).not.toMatch(/letter-spacing/)
     expect(rule(map, '.relationship-filter .btn')).toMatch(/font-weight:600/)
-    expect(map).toMatch(/\.relationship-stage \.relationship-filter \.btn\[aria-pressed=true\]\{[^}]*background:var\(--rc-sel\)/)
+    const on = rule(map, '.relationship-stage .relationship-filter .btn[aria-pressed=true]')
+    expect(on).toMatch(/background:var\(--rc-sel\)/)
+    // 기본이 '모두 켜짐'이라 밝은 보라 테두리(무대 위 6.8~8.8:1) 여섯 개가 그래프보다 먼저 보였다. 선택 상태 표시를 지우지 않으려고(비문자 3:1) 없애지 않고 무대 색에 60% 섞어 낮춘다(3.0~3.9:1).
+    expect(on).toMatch(/border-color:color-mix\(in srgb,var\(--rc-accent\) 60%,var\(--stage-2\)\)/)
+    expect(on).not.toMatch(/border-color:var\(--rc-accent\)/)
+    expect(rule(map, '.relationship-stage .relationship-filter .btn[aria-pressed=false]')).toMatch(/color:var\(--fixed-sub\)/)
+    // 꺼진 칩의 보조 글자는 hover 면 위에서 4.5:1에 못 미쳐(3.8:1) hover에서 다시 밝아진다.
+    expect(rule(map, '.relationship-stage .relationship-filter .btn[aria-pressed=false]:hover')).toMatch(/color:var\(--fixed-ink\)/)
+  })
+
+  it('관계선·화살촉·범례 선은 무대에 섞어 낮추고(밝은 하늘색 14선이 카드보다 눈에 띄었다) 라벨은 회색 글자다 — 선은 무대 위 3:1 이상, 라벨은 4.5:1 이상, 고른 선(흰색)은 그대로라 더 뜬다', () => {
+    const stage = rule(map, '.relationship-stage')
+    expect(stage).toMatch(/--edge:color-mix\(in srgb,#A9C6FF 70%,var\(--stage-2\)\)/) // 무대 위 4.7~6.0:1
+    expect(stage).toMatch(/--edge-emotion:color-mix\(in srgb,#FFD98A 75%,var\(--stage-2\)\)/) // 6.5~8.4:1
+    expect(stage).toMatch(/--edge-active:var\(--fixed-ink\)/)
+    expect(rule(map, '.relationship-stage .relationship-edge-label')).toMatch(/fill:var\(--fixed-sub\)/) // 선 색을 따르던 라벨을 회색 글자로(6.3:1 이상)
+  })
+
+  it('관계 목록 행의 조작은 알약 테두리 없는 글자 버튼이고(hover는 옅은 면), 주체·대상 이름은 본문색 + 옅은 밑줄 링크다(밑줄이 링크 표시라 3:1 이상인 --line3)', () => {
+    const actions = rule(map, '.relationship-row-actions .btn')
+    expect(actions).toMatch(/border-color:transparent/)
+    expect(actions).toMatch(/background:none/)
+    expect(actions).toMatch(/font-weight:600/)
+    expect(rule(map, '.relationship-row-actions .btn:hover')).toMatch(/background:var\(--muted-bg\)/) // 비레이어 background:none이 전역 hover 면을 이기므로 다시 정한다
+    const link = rule(map, '.relationship-card-link')
+    expect(link).toMatch(/color:inherit/)
+    expect(link).toMatch(/text-decoration:underline/)
+    expect(link).toMatch(/text-decoration-color:var\(--line3\)/)
+    expect(rule(map, '.relationship-card-link:hover')).toMatch(/color:var\(--pri-ink\);text-decoration-color:currentColor/)
+  })
+
+  it('관계 목록 표 머리는 회색 띠가 아니라 아래 선 하나이고, 공용 게시판(/worlds/:id)의 머리 띠는 그대로다', () => {
+    expect(rule(map, '.relationship-table th')).toMatch(/font-size:12px;background:none;border-bottom:1px solid var\(--line2\)/)
+    expect(rule(board, '.worlds-board-table th')).not.toMatch(/background/) // 공용 worldBoard.css는 머리 면을 정하지 않고 전역 th를 쓴다
   })
 })
 
