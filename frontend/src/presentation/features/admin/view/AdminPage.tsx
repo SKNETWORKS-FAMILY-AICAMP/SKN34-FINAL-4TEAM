@@ -274,7 +274,7 @@ type BodyProps = {
   tab: AdminTab
   /** LLM Ops 탭에서 볼 쪽(주소의 view). 다른 탭에서는 쓰지 않습니다. */
   page: LlmPage
-  /** 데모 조회 결과. 운영 API 탭(users·admins·works·comments·rights·profile)은 이 값 없이도 그립니다. */
+  /** 데모 조회 결과. 데모 탭(characterChats·credits)만 이 값이 있어야 그리고, 운영 API 탭은 이 값 없이도 그립니다. */
   d: Data | undefined
   vm: VM
   f: Filter
