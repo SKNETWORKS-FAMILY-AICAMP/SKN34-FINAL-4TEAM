@@ -9,6 +9,8 @@ import {WorldStudioPage} from '../../presentation/features/worldstudio/view/Worl
 import {WorldStudioLeaveProvider} from '../../presentation/features/worldstudio/viewmodel/WorldStudioLeaveProvider'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
+/** 게시판 제목은 미리보기를 열고 `수정하기`가 편집 화면을 연다. 이미 미리보기가 열려 있으면(편집 화면에 다녀온 뒤) 제목을 다시 누르지 않는다(접힌다). */
+const openCard=(name:string)=>{const title=screen.getByRole('button',{name});if(title.getAttribute('aria-expanded')!=='true')fireEvent.click(title);fireEvent.click(screen.getByRole('button',{name:'수정하기'}))}
 let useCase:WorldStudioUseCase
 let createWorld=vi.fn(async(_name:string,_description:string):Promise<StudioWorld>=>{throw new Error('test setup')})
 vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel',async original=>{
@@ -40,9 +42,10 @@ async function show(entries=['/before','/worldstudio/qa','/after'],edit=true,two
 }
 it.each([['test','/content'],['mockup','/new']])('opens the work creation route in %s mode',async(mode,path)=>{
  vi.stubEnv('MODE',mode)
- // 헤더의 소설 버튼은 한 자리다. 데모는 소설 작성하기가 바로 새 소설 폼으로 가고, 실제 모드의 연결되지 않은 세계관은 소설 연결하기 시트의 새 소설 만들기가 작품 만들기로 간다(시트가 읽는 내 소설 목록은 빈 목록으로 답한다).
+ // 소설 버튼은 소설 연결 탭의 한 자리다(헤더에는 없다). 데모는 소설 작성하기가 바로 새 소설 폼으로 가고, 실제 모드의 연결되지 않은 세계관은 소설 연결하기 시트의 새 소설 만들기가 작품 만들기로 간다(시트가 읽는 내 소설 목록은 빈 목록으로 답한다).
  vi.spyOn(appContainer.resolve('episodeUseCase'),'list').mockResolvedValue([])
  const router=await show(undefined,false)
+ fireEvent.click(within(screen.getByRole('navigation',{name:'세계관 메뉴'})).getByRole('button',{name:'소설 연결'})) // 소설 버튼은 헤더가 아니라 소설 연결 탭에 있다
  if(mode==='mockup')fireEvent.click(screen.getByRole('link',{name:'소설 작성하기'}))
  else{
   fireEvent.click(screen.getByRole('button',{name:'소설 연결하기'}))
@@ -78,7 +81,7 @@ it('protects navigation through the actual Gnb Go button',async()=>{
  fireEvent.click(screen.getByRole('button',{name:'설정집'})) // Gnb는 설정집 화면에 있다(편집 화면은 집필실처럼 자체 상단 바를 쓴다)
  fireEvent.click(screen.getAllByRole('link',{name:/내 서재/})[0])
  await waitFor(()=>expect(confirm).toHaveBeenCalledOnce())
- fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ openCard('가람 인물')
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('보존할 편집 내용')
 })
 it('confirms once before opening another world and creation',async()=>{
@@ -136,12 +139,12 @@ it('protects an unapplied relationship draft without blocking preserved step nav
  fireEvent.change(source,{target:{value:within(source).getByRole<HTMLOptionElement>('option',{name:'가람'}).value}})
  fireEvent.change(target,{target:{value:within(target).getByRole<HTMLOptionElement>('option',{name:'나래'}).value}})
  fireEvent.click(screen.getByRole('button',{name:'관계 작성'}))
- fireEvent.change(screen.getByRole('combobox',{name:'실제 관계 1'}),{target:{value:'미적용 관계 원문'}})
+ fireEvent.change(screen.getByRole('textbox',{name:'실제 관계 1'}),{target:{value:'미적용 관계 원문'}})
  await screen.findByText('관계 입력 미적용')
  const event=new Event('beforeunload',{cancelable:true});window.dispatchEvent(event);expect(event.defaultPrevented).toBe(true)
  fireEvent.click(manageTab('설정집'));fireEvent.click(manageTab('관계도')) // 탭 이동은 같은 화면이라 미적용 입력을 지키며 이탈 확인을 하지 않는다
  expect(confirm).not.toHaveBeenCalled()
- expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('미적용 관계 원문')
+ expect(screen.getByRole<HTMLInputElement>('textbox',{name:'실제 관계 1'}).value).toBe('미적용 관계 원문')
  fireEvent.click(screen.getByText('링크 이동'))
  await waitFor(()=>expect(confirm).toHaveBeenCalledTimes(1));expect(router.state.location.pathname).toBe('/worldstudio/qa')
  await act(async()=>{await router.navigate('/worldstudio/other')})
@@ -149,7 +152,7 @@ it('protects an unapplied relationship draft without blocking preserved step nav
  await act(async()=>{await router.navigate('/worldstudio')})
  await waitFor(()=>expect(confirm).toHaveBeenCalledTimes(3));expect(router.state.location.pathname).toBe('/worldstudio/qa')
  expect(createWorld).not.toHaveBeenCalled()
- expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('미적용 관계 원문')
+ expect(screen.getByRole<HTMLInputElement>('textbox',{name:'실제 관계 1'}).value).toBe('미적용 관계 원문')
 })
 
 

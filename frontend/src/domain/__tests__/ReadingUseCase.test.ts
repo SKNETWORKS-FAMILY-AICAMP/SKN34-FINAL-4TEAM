@@ -410,6 +410,24 @@ describe('ReadingUseCase 회차별 포크 수 (작품 관리 화면)', () => {
   it('작품 목록을 읽지 못하면 0편으로 채우지 않고 오류를 그대로 알린다', async () => {
     await expect(withWorks(new Error('목록을 읽지 못했어요.')).forkCountsByEpisode('src')).rejects.toThrow('목록을 읽지 못했어요.')
   })
+
+  // 세계관 관리의 '소설 연결' 탭이 연결된 소설의 Fork 목록으로 쓴다(새 API 없이 같은 작품 목록).
+  describe('forksOf (세계관 관리 소설 연결 탭)', () => {
+    it('이 작품에서 갈라진 공개 Fork만 목록 순서대로 돌려준다', async () => {
+      const forks = await withWorks([original, fork('a', 1), fork('b', 3), fork('c', 1, { parent: 'other' })]).forksOf('src')
+      expect(forks.map((f) => f.id)).toEqual(['a', 'b'])
+    })
+
+    it('비공개·숨김·공개 회차가 없는 포크는 뺀다 (소설 상세·회차별 포크 수와 같은 목록이다)', async () => {
+      const works = [original, fork('a', 1, { private: true }), fork('b', 1, { hidden: true }), fork('c', 1, { eps: [] }), fork('d', 2)]
+      expect((await withWorks(works).forksOf('src')).map((f) => f.id)).toEqual(['d'])
+    })
+
+    it('Fork가 없으면 빈 목록이고, 작품 목록을 읽지 못하면 빈 목록으로 채우지 않고 오류를 그대로 알린다', async () => {
+      expect(await withWorks([original]).forksOf('src')).toEqual([])
+      await expect(withWorks(new Error('목록을 읽지 못했어요.')).forksOf('src')).rejects.toThrow('목록을 읽지 못했어요.')
+    })
+  })
 })
 
 describe('ReadingUseCase 연결된 세계관의 설정 위키 (DEC-46)', () => {

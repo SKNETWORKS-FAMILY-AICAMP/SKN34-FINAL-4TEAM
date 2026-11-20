@@ -5,19 +5,18 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-studio .ep-alert{white-space:pre-wrap}
 .world-toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.world-toolbar h2{font-size:18px;margin:0;flex:1}
 
-/* 관리 헤더: 공개 세계관 상세와 같은 모양(표지 아트 | 이름·칩·소개). 소개는 두 줄까지만 보이고 전체는 편집 창(관리 모드)·기본 정보 단계(작성 모드)·검토 단계에 있다. */
+/* 관리 헤더: 공개 세계관 상세와 같은 모양(표지 아트 | 이름·칩·소개). 소개는 두 줄까지만 보이고 전체는 개요 탭(관리 모드)·기본 정보 단계(작성 모드)·검토 단계에 있다. */
 .episode-app .world-manage-hero{padding-bottom:12px}
 .episode-app .world-manage-hero .sum{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:16px 0 8px}
 .episode-app .world-manage-hero .acts{display:flex;flex-wrap:wrap;margin-top:16px}
-/* 650px 이하: 히어로가 1열이 되면 표지(공용 .ep-hero-cover는 220px, 3:4)가 첫 화면을 다 차지해 고른 보기(설정집·관계도·시간선)의 제목·칩이 화면 밖이다. 이 화면의 표지만 줄이고 /content 작품 관리 표지는 그대로 둔다. */
-@media(max-width:650px){.episode-app .world-manage-hero .ep-hero-cover{max-width:120px}}
+/* 650px 이하: 히어로가 1열이 되면 표지(공용 .ep-hero-cover는 220px, 3:4)가 첫 화면을 다 차지해 고른 탭의 내용이 화면 밖이다. 표지는 개요 탭에서 크게 보고 바꾸므로 헤더의 표지는 72px로 줄여 제목 옆에 둔다:
+   .ep-hero-main을 풀어(display:contents) 제목 줄만 표지 옆 열에 두고 칩·소개·버튼은 두 열을 가로지른다. 이 화면의 표지만 줄이고 /content 작품 관리 표지는 그대로 둔다. */
+@media(max-width:650px){.episode-app .world-manage-hero.ep-hero{grid-template-columns:72px minmax(0,1fr);gap:12px 16px}.episode-app .world-manage-hero .ep-hero-cover{max-width:none}.episode-app .world-manage-hero .ep-hero-main{display:contents}.episode-app .world-manage-hero .ep-hero-main>:not(.ep-title-row){grid-column:1/-1}}
 /* 공개 설정(관리 모드 헤더·작성 모드 기본 정보 단계): 공개 범위 토글과 장르 선택이 한 줄, 안내와 공개 화면 링크는 그 아래. 라벨 display는 .episode-app label이 정하므로 다시 정한다. */
 .episode-app .world-publish{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;margin:16px 0 12px;padding:0;border:0;min-width:0}
 .episode-app .world-publish .field{display:flex;margin:0}.world-publish .seg{width:200px;max-width:100%}.episode-app .world-publish select{min-width:150px}.world-publish>p{flex:1 1 100%;margin:0}
-/* 이름·설명 인라인 편집은 소개 자리에 열린다(/content 작품 정보 편집과 같은 ep-edit 틀). 편집 중에는 제목을 화면 밖으로만 숨긴다. */
-.episode-app .world-manage-hero .world-info-edit{margin:16px 0 8px}
-/* 표지 묶음의 이름은 같은 폼의 다른 입력 이름(.episode-app label)과 같은 글자이고 버튼 줄과 간격을 둔다. */
-.world-cover-edit{display:grid;gap:8px;min-width:0}.world-cover-label{font-size:13px;font-weight:650}
+/* 개요 탭의 정보 편집 폼은 /content 작품 정보 편집과 같은 ep-edit 틀이다(공용 규칙이 폭 560px·간격을 정한다). 표지 묶음의 이름은 같은 폼의 다른 입력 이름(.episode-app label)과 같은 글자이고, 맨 앞의 지금 표지(헤더와 같은 .cov)는 160px로 버튼 줄과 간격을 둔다. */
+.world-cover-edit{display:grid;gap:8px;min-width:0}.world-cover-label{font-size:13px;font-weight:650}.world-cover-now{width:160px}
 
 /* 관리 모드 왼쪽 사이드바(.ep-menu, shared/episode.css)의 아래쪽: AI 검토·집필 메모·확정 버전 버튼과 상시 저장 영역. 기본은 줄바꿈하는 가로 줄(사이드바가 내용 위 줄이 되는 900px 이하)이고,
    901px부터는 보기 메뉴 밑 구분선 뒤에 세로로 쌓는다(저장 영역은 사이드바와 함께 따라와 늘 보인다). 도구 버튼은 보기 메뉴(테두리 없음)보다 무겁지 않게 옅은 테두리·600이고 모양·폭·높이는 그대로다.
@@ -30,6 +29,15 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 저장을 막는 사유: 어느 설정의 문제인지 이름이 붙은 글자 버튼(누르면 그 설정의 편집 화면)과 남은 건수. 버튼은 본문 링크처럼 밑줄로 구분하고 누르는 높이는 44px다. */
 .world-save-issue{max-width:34ch;color:var(--danger);line-height:1.4;overflow-wrap:anywhere}
 .world-save-issue button{display:inline-flex;align-items:center;min-height:44px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* 사이드바 접기(R1): 이 화면 전용이다(공용 shared/episode.css의 /content 사이드바는 그대로). 맨 위 토글(44×44, 펼친 동안은 아이콘을 뒤집어 왼쪽으로 접는 방향)과 메뉴 묶음(.world-menu-body: 보기 메뉴 + 도구·저장 영역, 접으면 hidden으로 숨길 뿐 지우지 않는다).
+   901px부터만 접힌 틀(data-menu=collapsed)이 44px 열이 되고(내용 열이 그만큼 넓어진다) 메뉴 옆 선·여백을 거두며, 900px 이하는 이미 가로 줄이라 토글을 숨기고 접힌 메뉴도 그대로 보인다(.world-writing [hidden]의 !important를 이기려고 선택자를 한 단계 높였다). */
+.world-menu-toggle{display:inline-grid;place-items:center;justify-self:start;width:44px;height:44px;padding:0;border:0;border-radius:9px;background:transparent;color:var(--sub);cursor:pointer}
+.world-menu-toggle:hover{background:var(--muted-bg);color:var(--ink)}
+.world-menu-toggle[aria-expanded=true] svg{transform:scaleX(-1)}
+.world-menu-body{display:grid;gap:12px}
+@media(min-width:901px){.world-content.ep-manage[data-menu=collapsed]{grid-template-columns:44px minmax(0,1fr);column-gap:20px}.world-content.ep-manage[data-menu=collapsed] .ep-menu{padding-right:0;border-right:0}}
+@media(max-width:900px){.world-menu-toggle{display:none}.world-writing .world-menu-body[hidden]{display:grid!important}}
 
 /* AI 채팅: 집필실과 같은 오른쪽 레일(.studio-chat은 전역 스타일, 안쪽은 shared/chat). 본문(main) | 채팅 2열(채팅 350px 고정)이고 채팅은 상단바(65px) 아래에 붙어(sticky) 화면 높이를 쓴다:
    머리 / 메시지(스크롤) / 입력(바닥). 배경은 페이지와 같고 왼쪽 선으로만 구분하며, 입력 카드·추천 칩·말풍선(--chat-card)만 한 단계 밝은 면으로 도드라진다. 왼쪽 사이드바·헤더는 본문(main) 열 안이다. 전송이 잠긴(준비 중) 동안은 1200px 이하에서 닫힌 채로 시작하고(WorldStudioPage), 좁은 화면(집필실과 같은 900px 이하)에서 열면 화면을 덮는 오른쪽 서랍이다. */
@@ -61,6 +69,8 @@ html:has(.world-writing){scrollbar-gutter:stable}
    라벨이 display를 정하는 컴포넌트는 .episode-app label{display:block}에 밀리므로 다시 정한다. select는 padding 단축 속성을 쓰지 않는다(위아래·왼쪽만 개별 속성): 오른쪽 안쪽 여백은 전역 셰브런(화살표) 자리다. */
 .episode-app .world-compact input:not([type=checkbox]):not([type=radio]),.episode-app .world-compact select{margin-top:0;padding-block:9px;font-size:13.5px;line-height:1.5}.episode-app .world-compact input:not([type=checkbox]):not([type=radio]){padding-inline:12px}.episode-app .world-compact select{width:auto;padding-inline-start:12px}
 .episode-app .worlds-sort{display:inline-flex}.episode-app .world-consent{display:flex}
+/* 쪽 이동의 select(.inp.sm, 높이 34px): .ep-main의 큰 입력 규칙(padding-block:14px·위 여백 10px)이 걸리면 글자 칸이 6px뿐이라 '1'이 잘려 몇 쪽인지 보이지 않았다. /content 피드백 탭의 select.inp.sm과 같이 위아래 패딩·위 여백을 없앤다. */
+.episode-app .page-controls select.inp{margin-top:0;padding-block:0}
 
 /* 설정집 화면의 게시판: 공개 설정집과 같은 게시판(shared/worldBoard.css)이 전체 폭을 쓴다. 카드 편집은 이 화면을 대신하는 편집 화면(아래 '편집 화면')이다. */
 /* 게시판은 뷰포트가 아니라 자기 폭으로 좁은 배치를 고른다(컨테이너): 오른쪽 AI 채팅 레일이 열리면 뷰포트가 넓어도 본문이 300~350px 줄기 때문이다. 좁은 배치의 공용 규칙은 shared/worldBoard.css의 @container worlds-board다. */
@@ -82,10 +92,24 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 빈 인물 문서가 있는 인물 줄의 `정리 필요`: 관계 수·가져옴(보조 글자색)과 구분되게 주의색 글자다. 편집 화면의 문서 버튼에 붙는 표시(.world-doc-flag)와 같은 색이다. 공용 .worlds-badge의 색을 불러오는 순서와 상관없이 이기도록 두 클래스로 쓴다. */
 .worlds-badge.world-todo{color:var(--acc-ink)}
 .world-bulk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}.world-bulk .world-reveal{margin-top:0}.world-bulk p{flex:1 1 100%;margin:0;line-height:1.5}.world-bulk [role=status]{color:var(--tsub);font-weight:600;font-variant-numeric:tabular-nums}
-/* 좁은 본문(게시판 폭 760px 이하): 공용 게시판이 번호·요약을 숨길 때 분류·연결 칸도 숨겨 선택·제목·공개만 남기고 제목이 남은 폭을 쓴다.
-   숨긴 분류와 요약은 제목 아래 한 줄(.world-row-sub: 유형 점·이름 + 요약 한 줄)로 보이고, 연결 수는 제목 옆 [n]이 대신한다(인물은 그중 관계로 이어진 수). 넓은 본문에서는 그 줄을 숨긴다. */
+/* 게시판 표의 열은 채팅을 연 1440px(게시판 폭 약 748px)에서도 관리자 표처럼 한 줄 행이다: 공용 게시판(shared/worldBoard.css)은 760px 이하에서 번호·요약 칸을 숨기지만, 이 화면은 600px부터 요약 칸을 되살려(번호 칸은 숨긴 채, 관리자 표에도 번호가 없다)
+   분류·제목·요약·공개·연결이 한 줄에 보이게 한다(특이도 (0,3,0)이 공용 (0,2,0)을 이긴다). 분류 칩 줄로 바뀌는 기준(760px)은 그대로다. 공개 설정집(/worlds)은 이 화면 밖이라 그대로다.
+   600px 미만(폰·좁은 본문): 공용 게시판이 번호·요약을 숨길 때 분류·연결 칸도 숨겨 선택·제목·공개만 남기고 제목이 남은 폭을 쓴다.
+   숨긴 분류와 요약은 제목 아래 한 줄(.world-row-sub: 유형 점·이름 + 요약 한 줄)로 보이고, 연결 수는 제목 옆 [n]이 대신한다(인물은 그중 관계로 이어진 수). 600px 이상에서는 그 줄을 숨긴다. */
 .world-row-sub{display:none}
-@container worlds-board (max-width:760px){.world-card-library .worlds-board-table :is(.col-kind,.col-num){display:none}.world-card-library .worlds-board-table th.col-title{width:auto}.world-row-sub{display:flex;align-items:center;gap:6px;min-width:0;margin-top:4px;color:var(--tsub);font-size:12.5px;font-weight:500}.world-row-sub>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+@container worlds-board (min-width:600px){.world-card-library .worlds-board-table .col-sum{display:table-cell}}
+@container worlds-board (max-width:599px){.world-card-library .worlds-board-table :is(.col-kind,.col-num){display:none}.world-card-library .worlds-board-table th.col-title{width:auto}.world-row-sub{display:flex;align-items:center;gap:6px;min-width:0;margin-top:4px;color:var(--tsub);font-size:12.5px;font-weight:500}.world-row-sub>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+
+/* 게시판 미리보기(R4): 고른 줄(tr.sel, 전역 보라 면) 바로 아래 한 칸짜리 줄이다. 표 칸 여백을 없애고 안쪽 덩어리(.world-preview)가 여백을 두며, 고른 줄과 같은 면이라 한 덩어리로 읽히게 둘 사이의 선을 거둔다.
+   모든 폭에서 줄 아래 인라인이다(AI 채팅 레일과 다투지 않는다). 요약은 4줄까지만 보이고 전체 글은 편집 화면에 있다. */
+.world-card-library .worlds-board-table tr.world-row-preview>td{padding:0;background:var(--pri-soft)}
+.world-card-library .worlds-board-table tr.sel:has(+.world-row-preview) td{border-bottom-color:transparent}
+.world-preview{display:grid;gap:10px;min-width:0;padding:6px 20px 16px}
+.world-preview-head{display:flex;align-items:center;gap:8px}.world-preview-head .board-thumb{margin-right:0}
+.world-preview-sum{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;margin:0;max-width:75ch;overflow:hidden;line-height:1.7;overflow-wrap:anywhere}
+.world-preview-meta{display:grid;gap:6px;margin:0}.world-preview-meta>div{display:flex;flex-wrap:wrap;gap:2px 12px}.world-preview-meta dt{flex:none;min-width:5.5em;color:var(--tsub);font-size:12.5px;font-weight:650}.world-preview-meta dd{min-width:0;margin:0;font-size:13.5px}
+.world-preview-meta ul{display:flex;flex-wrap:wrap;gap:2px 14px;margin:0;padding:0;list-style:none}
+.world-preview-actions{display:flex;flex-wrap:wrap;gap:8px}
 
 .world-legacy-list{margin-top:20px}.world-legacy-list>summary{cursor:pointer;min-height:44px;padding-block:10px}.world-legacy-list nav{display:grid;gap:6px;margin-top:8px}.world-legacy-list nav button{display:flex;justify-content:space-between;gap:10px;width:100%;padding:12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:inherit;text-align:left;cursor:pointer;overflow-wrap:anywhere}.world-legacy-list small{color:var(--sub);font-size:12px}
 .world-relation-link{margin-bottom:8px}
@@ -117,6 +141,10 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-notice{margin:12px 0 0}
 /* 헤더의 연결 상태 한 줄(정보만: 연결된 소설의 제목 또는 없음). 이동·연결은 행동 줄의 소설 버튼 한 자리가 맡는다. */
 .world-linked{margin:12px 0 0}
+/* '소설 연결' 탭: 연결된 소설(상태 줄·버튼)과 그 아래 Fork 소설 목록. 구획 사이는 선 하나이고, Fork 행은 연관 설정과 같은 44px 행(.world-card-link, 링크라 밑줄은 없앤다)이다. */
+.world-novel h2{margin:0}.world-novel .world-forks{margin-top:28px;padding-top:20px;border-top:1px solid var(--tline)}.world-novel .world-forks>p{margin:12px 0 0}
+.world-fork-list{display:grid;gap:6px;margin:12px 0;padding:0;list-style:none}
+a.world-card-link{text-decoration:none}
 /* '+ 새 설정'(유형을 고르는 PopMenu): 게시판 도구줄에서는 채운 알약 글자 버튼, 편집 화면 레일 머리에서는 집필실 '새 회차'와 같은 아이콘 버튼. */
 .world-new-menu .pop-menu-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 16px;border:1px solid var(--pri);border-radius:999px;background:var(--pri);color:var(--on-pri);font-size:13.5px;font-weight:700;white-space:nowrap}
 .world-new-menu .pop-menu-btn:hover{background:var(--pri-d)}.world-new-menu .pop-menu-list{top:calc(100% + 6px);right:0;left:auto}

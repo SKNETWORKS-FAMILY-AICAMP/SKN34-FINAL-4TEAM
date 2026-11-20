@@ -4,6 +4,8 @@ import { expect, it } from 'vitest'
 const css = readFileSync(new URL('./world-studio.css', import.meta.url), 'utf8')
 /** 편집 화면이 집필실과 함께 쓰는 하단 바(.writing-foot)의 규칙이 있는 파일 */
 const writingCss = readFileSync(new URL('../../studio/view/writing.css', import.meta.url), 'utf8')
+/** 공용 관리 화면 틀(/content 작품 관리와 함께 쓴다). 세계관 전용 규칙은 이 파일이 아니라 world-studio.css에 둔다. */
+const episodeCss = readFileSync(new URL('../../../shared/episode.css', import.meta.url), 'utf8')
 /** 시간선 보드(스크롤 상자)의 규칙이 있는 파일 */
 const timelineCss = readFileSync(new URL('./world-timeline.css', import.meta.url), 'utf8')
 
@@ -22,7 +24,6 @@ it('고른 인물 문서 버튼(aria-current)은 레일의 고른 분류 칩(ari
 /** 규칙(선택자 { 본문 }) 목록: 쉼표로 이어진 선택자도 한 규칙으로 읽어 선택자 글자 안에서 찾는다. 주석은 지워 앞 주석이 선택자에 붙거나 주석 속 `{}`가 규칙으로 읽히지 않게 한다. */
 const rules = [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)].map(([, selector, body]) => ({ selector: selector.trim(), body }))
 const rule = (matches: (selector: string) => boolean) => rules.find((r) => matches(r.selector))
-
 it('관계 기준 회차 입력은 독자 공개 회차 입력과 같은 크기·숫자 폭이고, 잠기면 같은 비활성 모양이라 편집할 수 있어 보이지 않는다', () => {
   const size = rule((s) => s.endsWith('.inp') && s.includes('.world-reveal') && s.includes('.relationship-episode'))
   expect(size?.body).toMatch(/min-height:\s*44px/)
@@ -154,9 +155,14 @@ it('카드 편집의 유형 라벨은 전역 .field의 세로 쌓기(column)를 
   expect(rule((s) => s === '.world-card-meta .world-type')?.body).toMatch(/flex-direction:\s*row/)
 })
 
-it('650px 이하에서는 세계관 관리 헤더의 표지를 120px로 줄여 고른 보기의 제목·칩이 첫 화면에 들어온다 (공용 .ep-hero-cover와 /content 작품 관리 표지는 그대로)', () => {
-  expect(css).toMatch(/@media\(max-width:650px\)\{\.episode-app \.world-manage-hero \.ep-hero-cover\{max-width:120px\}\}/) // 공용 .ep-hero-cover(shared/episode.css)는 두고 이 화면 전용 선택자로만 덮는다
+it('650px 이하에서는 세계관 관리 헤더의 표지를 72px로 줄여 제목 옆에 두고(칩·소개·버튼은 전체 폭) 고른 탭의 내용이 첫 화면에 들어온다 (공용 .ep-hero-cover와 /content 작품 관리 표지는 그대로)', () => {
+  // 표지는 개요 탭에서 크게 보고 바꾸므로 헤더의 표지는 중복이다. .ep-hero-main을 풀어(display:contents) 제목 줄만 표지 옆 열에 두고 나머지 줄은 두 열을 가로지른다.
+  // 공용 .episode-app .ep-hero(같은 특이도)를 이기도록 클래스를 하나 더 붙였고, 공용 .ep-hero-cover의 220px 상한은 이 화면에서만 푼다.
+  expect(css).toContain('@media(max-width:650px){.episode-app .world-manage-hero.ep-hero{grid-template-columns:72px minmax(0,1fr);gap:12px 16px}.episode-app .world-manage-hero .ep-hero-cover{max-width:none}.episode-app .world-manage-hero .ep-hero-main{display:contents}.episode-app .world-manage-hero .ep-hero-main>:not(.ep-title-row){grid-column:1/-1}}')
+  expect(css).not.toContain('max-width:120px')
+  expect(episodeCss).not.toContain('world-manage-hero') // 공용 틀은 건드리지 않는다
 })
+
 
 it('채팅이 닫혀 떠 있는 열기 버튼(.studio-chat-toggle)이 설정집 화면의 문서 끝 내용을 덮지 않게 900px 이하에서 본문 아래를 84px 비운다(편집 화면 규칙과 같은 값)', () => {
   expect(css).toMatch(/@media\(max-width:900px\)\{\.episode-app:has\(>\.studio-chat-toggle\) \.ep-main\{padding-bottom:84px\}\}/)
@@ -250,4 +256,38 @@ it('작성 단계 표시: 첫 원이 카드 왼쪽 가장자리에 맞고, 500px
 it('이미지 타일 안내는 두 줄 길이를 고르게 나누고(text-wrap:balance), 시간선 사건은 마우스를 올리면 제목에 밑줄이 생긴다(고른 사건의 보라 글자는 건드리지 않는다)', () => {
   expect(rule((s) => s === '.world-card-tile-note')?.body).toMatch(/text-wrap:\s*balance/)
   expect(timelineCss).toMatch(/\.world-timeline-event:hover strong\{text-decoration:underline;text-underline-offset:3px\}/)
+})
+
+// ── 기능별 탭·게시판 미리보기·사이드바 접기(audit 단계: R1·R4) ────────────────────────────────────────
+
+it('사이드바 접기(R1): 901px부터만 접힌 틀이 44px 열이고 메뉴 옆 선·여백이 없어지며, 900px 이하(이미 가로 줄)에서는 접기 버튼을 숨기고 접힌 메뉴도 그대로 보인다 — 공용 episode.css는 건드리지 않는다', () => {
+  expect(css).toContain('@media(min-width:901px){.world-content.ep-manage[data-menu=collapsed]{grid-template-columns:44px minmax(0,1fr);column-gap:20px}.world-content.ep-manage[data-menu=collapsed] .ep-menu{padding-right:0;border-right:0}}')
+  // 900px 이하: 접힌 메뉴(hidden)를 되살린다. .world-writing [hidden]{display:none!important}를 이기려면 !important와 한 단계 높은 선택자가 필요하다.
+  expect(css).toContain('@media(max-width:900px){.world-menu-toggle{display:none}.world-writing .world-menu-body[hidden]{display:grid!important}}')
+  expect(episodeCss).not.toContain('data-menu') // /content 작품 관리 사이드바는 그대로
+  expect(episodeCss).not.toContain('world-menu')
+})
+
+it('접기 버튼은 44×44 토글이고 펼친 동안에는 아이콘을 뒤집어(왼쪽으로 접는 방향) 보이며, 메뉴 묶음은 보기 메뉴와 도구를 같은 세로 간격으로 쌓는다', () => {
+  const toggle = rule((s) => s === '.world-menu-toggle')?.body ?? ''
+  expect(toggle).toMatch(/width:44px;height:44px/)
+  expect(toggle).toMatch(/justify-self:start/)
+  expect(rule((s) => s === '.world-menu-toggle[aria-expanded=true] svg')?.body).toMatch(/transform:scaleX\(-1\)/)
+  expect(rule((s) => s === '.world-menu-body')?.body).toMatch(/display:grid;gap:12px/) // .ep-menu의 gap과 같다
+})
+
+it('게시판 미리보기 줄은 표 칸 여백 없이 고른 줄과 같은 옅은 면 한 칸이고, 고른 줄과의 사이 선을 거두며, 요약은 4줄까지만 보인다 (R4)', () => {
+  expect(rule((s) => s === '.world-card-library .worlds-board-table tr.world-row-preview>td')?.body).toMatch(/padding:0;background:var\(--pri-soft\)/)
+  expect(rule((s) => s === '.world-card-library .worlds-board-table tr.sel:has(+.world-row-preview) td')?.body).toMatch(/border-bottom-color:transparent/)
+  expect(rule((s) => s === '.world-preview-sum')?.body).toMatch(/-webkit-line-clamp:4/)
+})
+
+it('쪽 이동의 select는 .ep-main의 큰 입력 패딩·위 여백을 이겨 값이 보인다 (높이 34px의 .inp.sm에 위아래 패딩 14px이 걸려 값이 잘렸다)', () => {
+  expect(rule((s) => s === '.episode-app .page-controls select.inp')?.body).toMatch(/margin-top:0;padding-block:0/)
+})
+
+it("'소설 연결' 탭의 Fork 행은 연관 설정과 같은 44px 행(.world-card-link)을 링크로 쓰므로 밑줄을 없애고, 구획 사이는 선 하나다", () => {
+  expect(rule((s) => s === 'a.world-card-link')?.body).toMatch(/text-decoration:none/)
+  expect(rule((s) => s === '.world-novel .world-forks')?.body).toMatch(/border-top:1px solid var\(--tline\)/)
+  expect(rule((s) => s === '.world-cover-now')?.body).toMatch(/width:160px/) // 개요 탭의 지금 표지
 })

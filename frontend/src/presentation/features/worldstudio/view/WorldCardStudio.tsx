@@ -30,6 +30,7 @@ import { NewCardMenu } from './NewCardMenu'
 import { WorldCardFindings } from './WorldCardFindings'
 import { WorldCardOrder } from './WorldCardOrder'
 import { useWorldChatPage } from '../viewmodel/useWorldChatPage'
+import { MANAGE_VIEWS } from '../viewmodel/worldStudioFlow'
 import { WorldChat } from './WorldChat'
 import { WorldSaveBar } from './WorldSaveBar'
 
@@ -39,9 +40,9 @@ const BODY_MAX = 3000
 
 /**
  * 설정 카드 편집 화면(주소 `?card=<id>`): 집필실(`WritingStudio`)과 같은 3단 인터페이스다. 집필실의 클래스·`VersionGraph`·`ResizeSeparator`·`PopMenu`·AI 채팅 레일을 그대로 쓰고 세계관 전용 스타일은 최소다.
- * - 왼쪽 레일: 설정 카드 목록(검색·분류 필터, 지금 카드 강조, 눌러서 다른 카드로, `+ 새 설정`, 항목 ⋮ 메뉴의 삭제) → 크기 조절선 → 버전 그래프(작업 초안 + 확정 버전, 확정 버전을 누르면 읽기 전용 시트).
+ * - 왼쪽 레일: 설정 카드 목록(검색·분류 필터, 지금 카드 강조, 눌러서 다른 카드로, `+ 새 설정`, 항목 ⋮ 메뉴의 삭제)과 메모·분류 확인 같은 기존 항목(기존 관계는 섞지 않는다. 쪽 이동 둘은 `설정 카드`·`기존 항목`으로 이름이 다르다) → 크기 조절선 → 버전 그래프(작업 초안 + 확정 버전, 확정 버전을 누르면 읽기 전용 시트).
  *   확정 버전 목록·시트는 설정집 화면의 `확정 버전 남기기`와 같은 것이라 페이지가 갖고 `revisions`·`openVersions`로 넘긴다.
- * - 가운데: 머리는 두 열(왼쪽 큰 이름 입력·유형, 오른쪽 대표 이미지 타일 `CardImageControl`, 좁은 화면은 타일이 이름 아래로) · 설명(마크다운 편집기 `MarkdownEditor`: Toast UI Editor, 쓰기·미리보기 탭, 편집 화면에서만 `React.lazy`로 늦게 불러온다) 등 기존 필드 · 한 줄 하단 바(글자 수·저장 상태·카드 삭제). 위 상단 바에는 `← 설정집`과 상시 저장 영역, 그 옆 끝에 테마 전환 버튼이 있다(집필실처럼 떠 있는 테마 버튼은 GlobalChrome이 이 화면에서 뺀다).
+ * - 가운데: 머리는 두 열(왼쪽 큰 이름 입력·유형, 오른쪽 대표 이미지 타일 `CardImageControl`, 좁은 화면은 타일이 이름 아래로) · 설명(마크다운 편집기 `MarkdownEditor`: Toast UI Editor, 쓰기·미리보기 탭, 편집 화면에서만 `React.lazy`로 늦게 불러온다) 등 기존 필드 · 한 줄 하단 바(글자 수·저장 상태·카드 삭제). 위 상단 바에는 `← 설정집`(들어온 보기의 이름: 관계도·시간선 같은 보기에서 열었으면 그 이름)과 상시 저장 영역, 그 옆 끝에 테마 전환 버튼이 있다(집필실처럼 떠 있는 테마 버튼은 GlobalChrome이 이 화면에서 뺀다).
  *   설명은 마크다운 문자열 그대로 저장한다(`#`·`##`·`###` 제목이 공개 카드 페이지의 문단·목차가 된다). 편집기는 글자 수 제한이 없어 3000자를 넘으면 글자 수가 경고로 바뀌고 저장은 기존 검증이 막는다.
  *   글자 수 줄은 입력마다 바뀌므로 라이브 영역에 두지 않고, 3000자를 넘는 순간만 따로 둔 상태 문구로 한 번 알린다.
  *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다), 그리고 초안을 서버 값으로 다시 읽을 때마다(`vm.relationKey`: 다른 곳(MCP)에서 바뀐 알림의 `refresh`·확정 버전 되돌리기) 다시 만든다.
@@ -77,7 +78,8 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
     focusName.current = false
     nameField.current?.focus()
   }, [item.id])
-  const legacy = world.settings.filter((s) => ['relation', 'review', 'note'].includes(cardTypeOf(s.item)))
+  // 레일의 '기존 항목'은 메모·분류 확인뿐이다: 기존 관계는 수백 개가 카드 아래에 섞여 쪽만 늘리므로 뺀다(관계도의 목록·게시판의 접힌 목록에서 계속 연다). 지금 열려 있는 항목은 어느 것이든 남겨 위치를 보인다.
+  const legacy = world.settings.filter((s) => ['review', 'note'].includes(cardTypeOf(s.item)) || (s.item.id === item.id && cardTypeOf(s.item) === 'relation'))
   const [legacyPage, setLegacyPage] = useState(0)
   const legacyItems = pageItems(legacy, legacyPage, 50)
   const links = settingLinks(world.settings, item.id)
@@ -122,7 +124,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
     <div className="calm rd studio writing-studio world-card-studio">
       <header className="sbar">
         <div className="writing-bar">
-          <button type="button" className="back rback" onClick={vm.closeCard}><BackChev />설정집</button>
+          <button type="button" className="back rback" onClick={vm.closeCard}><BackChev />{MANAGE_VIEWS.find(([id]) => id === vm.view)?.[1]}</button>
           <h1 className="t">설정 편집</h1>
         </div>
         <div className="writing-bar writing-bar-end"><WorldSaveBar vm={vm} /><ThemeButton className="btn sm" /></div>
@@ -151,8 +153,8 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                 {legacyItems.items.map((s) => rail(s.item.id, s.item.title || '이름 없는 설정', labelOf(s)))}
                 {!board.rows.length && !legacy.length && <p className="small muted world-rail-empty">조건에 맞는 설정이 없어요.</p>}
               </nav>
-              <PageControls page={board.paged.page} pages={board.paged.pages} onPage={board.setPage} />
-              <PageControls page={legacyItems.page} pages={legacyItems.pages} onPage={setLegacyPage} />
+              <PageControls label="설정 카드" page={board.paged.page} pages={board.paged.pages} onPage={board.setPage} />
+              <PageControls label="기존 항목" page={legacyItems.page} pages={legacyItems.pages} onPage={setLegacyPage} />
               <ResizeSeparator label="설정 카드 목록과 버전 그래프 크기 조절" controls={listId} value={split} min={20} max={80} onChange={setSplit} />
               <section className="writing-graph" aria-label="버전 그래프">
                 <h2>버전 그래프</h2>

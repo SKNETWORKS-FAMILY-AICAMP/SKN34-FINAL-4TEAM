@@ -1,8 +1,9 @@
 import CharacterCards from './CharacterCards'
-import { buildSettingRelationshipMap, cardTypeCounts, hideCardTypes, mapNeighbors, toggleHiddenType } from '../viewmodel/characterMap'
+import { buildSettingRelationshipMap, cardTypeCounts, defaultAnchor, hideCardTypes, mapNeighbors, toggleHiddenType } from '../viewmodel/characterMap'
 import { mapEndpoint } from '../viewmodel/useWorldMapViewModel'
 import { pageItems } from '../../../shared/pageItems'
 import { PageControls } from '../../../shared/PageControls'
+import { Sheet } from '../../../shared/Sheet'
 import { pickRelationNode } from '../viewmodel/relationPick'
 import { useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import './world-map.css'
@@ -14,6 +15,9 @@ import { DELETED_CARD_NAME, relationLabel } from '../../../../domain/entities/st
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 type VM = ReturnType<typeof useWorldStudioViewModel>
 
+/** 중심 카드 보기에서 한 쪽에 보이는 이웃 수: 가운데 카드 둘레 원 위에 겹치지 않게 놓을 수 있는 만큼이다(`ringLayout`). */
+const NEIGHBORS = 12
+
 /** 범례의 선 모양: 실선(구조 관계), 점선(감정), 화살표(방향이 있는 관계). 색은 그래프 간선과 같은 토큰이다. */
 const LineKey = ({ tone, dashed, arrow }: { tone: 'edge' | 'emotion'; dashed?: boolean; arrow?: boolean }) => (
   <svg className={'relationship-key ' + tone} viewBox="0 0 28 10" width="28" height="10" aria-hidden="true">
@@ -24,7 +28,8 @@ const LineKey = ({ tone, dashed, arrow }: { tone: 'edge' | 'emotion'; dashed?: b
 
 /**
  * 관계 연결 단계. 왼쪽은 공개 인물관계도와 같은 어두운 면 위의 인물·설정 카드 그래프(범례·관계 라벨)이고, 카드를 차례로 두 번 누르면 오른쪽 '관계 추가' 폼의
- * 주체·대상이 채워지며 관계 작성이 열린다(`pickRelationNode`). 오른쪽에는 관계 추가 폼, 열린 관계 작성 패널, 관계 목록 표(편집·삭제)가 있다.
+ * 주체·대상이 채워지며 관계 작성이 열린다(`pickRelationNode`). 오른쪽에는 관계 추가 폼과 관계 목록 표(편집·삭제)가 있고, 관계 작성 패널은 가운데에 뜨는 시트(720px, `Sheet`)다.
+ * 그래프는 처음에 **중심 카드 보기**다(`defaultAnchor`: 관계가 가장 많은 인물): 그 카드를 가운데에 두고 이웃 12장을 둘레 원 위에 놓으며(`ringLayout`) 선 라벨은 중심 카드에 닿는 선에만 있다. `전체 관계도로`가 모든 카드를 격자에 까는 전체 보기로 바꾸고(그래프 쪽 이동은 이때만), `중심 카드로 보기`가 되돌린다.
  * 관계는 기존 초안·적용 흐름 그대로 '편집본에 적용'으로 반영하고 세계관 저장으로 서버에 저장한다.
  * 누른 버튼이 사라지는 동작 뒤에는 초점을 이어 준다(`focusTo`): 관계 작성 패널을 닫으면 '관계 작성' 버튼(잠겨 있으면 관계 주체 선택), 목록의 관계를 지우면 관계 목록,
  * 인물을 지우면 '인물 삭제 되돌리기', 되돌리면 관계 주체 선택이다.
@@ -37,13 +42,14 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const [hidden, setHidden] = useState<ReadonlySet<CardType>>(() => new Set())
   const shown = hideCardTypes(map.graph, hidden)
   const [graphPage, setGraphPage] = useState(0), [edgePage, setEdgePage] = useState(0), [relationPage, setRelationPage] = useState(0)
-  const [graphQuery, setGraphQuery] = useState(''), [choicePage, setChoicePage] = useState(0), [anchor, setAnchor] = useState(''), [neighborPage, setNeighborPage] = useState(0)
+  const [graphQuery, setGraphQuery] = useState(''), [choicePage, setChoicePage] = useState(0), [anchor, setAnchor] = useState(() => defaultAnchor(shown)), [neighborPage, setNeighborPage] = useState(0)
   const choices = pageItems(shown.nodes.filter((n) => n.name.toLocaleLowerCase().includes(graphQuery.trim().toLocaleLowerCase())), choicePage, 50)
   const anchorNode = shown.nodes.find((n) => n.id === anchor)
   const neighbors = new Set(shown.links.filter((l) => mapEndpoint(l.source) === anchor || mapEndpoint(l.target) === anchor).map((l) => mapEndpoint(l.source) === anchor ? mapEndpoint(l.target) : mapEndpoint(l.source)))
-  const neighborPages = pageItems([...neighbors], neighborPage, 49)
+  const neighborPages = pageItems([...neighbors], neighborPage, NEIGHBORS)
+  const backToCenter = defaultAnchor(shown) // 전체 보기에서 되돌아갈 중심 카드(관계가 하나도 없으면 ''이라 버튼이 없다)
   const graphNodes = pageItems(shown.nodes, graphPage, 50)
-  const focused = anchorNode ? mapNeighbors(shown, anchor, neighborPages.page, 49) : null
+  const focused = anchorNode ? mapNeighbors(shown, anchor, neighborPages.page, NEIGHBORS) : null
   const graphIds = new Set(graphNodes.items.map((n) => n.id))
   const graphEdges = pageItems(focused ? focused.links : shown.links.filter((l) => graphIds.has(mapEndpoint(l.source)) && graphIds.has(mapEndpoint(l.target))), edgePage, 300)
   const graph = { ...shown, nodes: focused?.nodes ?? graphNodes.items, links: graphEdges.items }
@@ -124,6 +130,8 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
     if (choosing && gone(source)) setChoosing(false)
     if (gone(anchor)) { setAnchor(''); setEdgePage(0) }
   }
+  // 관계 작성 시트를 닫는다(닫기·Esc·배경). 입력한 변경이 있으면 버릴지 먼저 묻고, 닫은 뒤 초점은 '관계 작성'(잠겼으면 관계 주체 선택)으로 간다.
+  const closePair = () => { if (studio.confirmRelationDiscard()) { setOpen(false); setFocusTo('write') } }
   // 목록에서 지우는 것도 '편집본에 적용'과 같은 경로(applyRelations)다. 저장 전까지는 서버에 닿지 않는다. 열린 초안이 있으면 버릴지 먼저 묻고 패널을 닫는다.
   const removeRelation = (id: string, label: string) => {
     if (open && !studio.confirmRelationDiscard()) return
@@ -167,12 +175,12 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                 })}
               </div>
             )}
-            <CharacterCards key={layoutVersion} vm={{...map,graph}} editing={{busy:studio.busy,selectedRelations:open?studio.editing!.settings.filter(s=>s.item.kind==='relation'&&((s.item.subjectId===source&&s.item.targetId===target)||(s.item.subjectId===target&&s.item.targetId===source))).map(s=>s.item.id):[],targetSource:choosing?source:null,onPick:pick,onSelect:id=>{if(choosing){selectPair(source,id,true)}else if(studio.confirmRelationDiscard()){studio.editCard(id)}},onConnect:id=>{if(selectPair(id,'',false))setChoosing(true)},onRelation:id=>studio.editRelation(id)}}/>
+            <CharacterCards key={layoutVersion} vm={{...map,graph}} center={focused?anchor:undefined} editing={{busy:studio.busy,selectedRelations:open?studio.editing!.settings.filter(s=>s.item.kind==='relation'&&((s.item.subjectId===source&&s.item.targetId===target)||(s.item.subjectId===target&&s.item.targetId===source))).map(s=>s.item.id):[],targetSource:choosing?source:null,onPick:pick,onSelect:id=>{if(choosing){selectPair(source,id,true)}else if(studio.confirmRelationDiscard()){studio.editCard(id)}},onConnect:id=>{if(selectPair(id,'',false))setChoosing(true)},onRelation:id=>studio.editRelation(id)}}/>
             <div className='relationship-focus'>
               <label>관계도 설정 검색 <input type='search' className='inp' value={graphQuery} onChange={(e) => { setGraphQuery(e.target.value); setChoicePage(0) }} /></label>
               <div role='group' aria-label='관계도 중심 설정'>{choices.items.map((node) => <button type='button' className='btn sm' key={node.id} aria-pressed={anchor === node.id} onClick={() => { setAnchor(node.id); setNeighborPage(0); setEdgePage(0) }}>{node.name}</button>)}</div>
               <PageControls label="설정 목록" page={choices.page} pages={choices.pages} onPage={setChoicePage} />
-              {anchorNode ? <><p className='small muted'>{anchorNode.name}의 연결된 설정 {neighbors.size}개를 보여요.</p><button type='button' className='btn sm' onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 관계도로</button><PageControls label="그래프" page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /></> : <><PageControls label="그래프" page={graphNodes.page} pages={graphNodes.pages} onPage={(next) => { setGraphPage(next); setEdgePage(0) }} />{graphNodes.pages > 1 && <p className='small muted'>설정을 검색해 선택하면 다른 페이지의 관계도 볼 수 있어요. 전체 관계는 아래 목록에서 확인하고 편집할 수 있어요.</p>}</>}
+              {anchorNode ? <><p className='small muted'>{anchorNode.name}의 연결된 설정 {neighbors.size}개를 보여요.</p><button type='button' className='btn sm' onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 관계도로</button><PageControls label="이웃" page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /></> : <>{backToCenter && <button type='button' className='btn sm' onClick={() => { setAnchor(backToCenter); setNeighborPage(0); setEdgePage(0) }}>중심 카드로 보기</button>}<PageControls label="그래프" page={graphNodes.page} pages={graphNodes.pages} onPage={(next) => { setGraphPage(next); setEdgePage(0) }} />{graphNodes.pages > 1 && <p className='small muted'>설정을 검색해 선택하면 다른 페이지의 관계도 볼 수 있어요. 전체 관계는 아래 목록에서 확인하고 편집할 수 있어요.</p>}</>}
               {graphEdges.pages > 1 && <><p className='small muted'>현재 카드의 관계를 페이지별로 보여요.</p><PageControls label="연결선" page={graphEdges.page} pages={graphEdges.pages} onPage={setEdgePage} /></>}
             </div>
             <ul className='relationship-legend' aria-label='범례'>
@@ -277,27 +285,16 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                 />
               )}
             </section>
-            {open && (
-              <div className='relationship-pair'>
-                <RelationPairEditor
-                  key={source + '|' + target}
-                  studio={studio}
-                  source={source}
-                  target={target}
-                  focusRequest={focusRequest}
-                  onClose={() => { setOpen(false); setFocusTo('write') }}
-                />
-              </div>
-            )}
             <section ref={list} tabIndex={-1} className='relationship-list' aria-label='관계 목록'>
               <h4>관계 목록 <span className='small muted'>{relations.length}개</span></h4>
               {!relations.length
                 ? <p>아직 연결한 관계가 없어요.</p>
                 : (
+                  <div className='adm-scroll'>
                   <table className='relationship-table world-compact'>
                     <caption className='sr-only'>저장할 관계 목록</caption>
                     <thead>
-                      <tr><th scope='col'>주체</th><th scope='col'>관계</th><th scope='col'>대상</th>{studio.relationFrom && <th scope='col'>시작 회차</th>}<th scope='col'><span className='sr-only'>편집·삭제</span></th></tr>
+                      <tr><th scope='col' className='col-subject'>주체</th><th scope='col'>관계</th><th scope='col' className='col-target'>대상</th>{studio.relationFrom && <th scope='col' className='col-from'>시작 회차</th>}<th scope='col'><span className='sr-only'>편집·삭제</span></th></tr>
                     </thead>
                     <tbody>
                       {listedRelations.items.map((s) => {
@@ -323,6 +320,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                       })}
                     </tbody>
                   </table>
+                  </div>
                 )}
               <PageControls page={listedRelations.page} pages={listedRelations.pages} onPage={setRelationPage} />
               {relations.some(readOnly) && <p id={readOnlyReason} className='small muted'>삭제된 설정과 이어진 관계는 읽기 전용이에요. 관계도에는 그리지 않고, 저장하면 그대로 유지돼요.</p>}
@@ -330,6 +328,24 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
           </div>
         </div>
       </fieldset>
+      {open && (
+        <Sheet sid="W01" label={`${name(source)} ↔ ${name(target)} 관계`} panelClass="sheet world-sheet relationship-sheet" onClose={closePair}>
+          <div className="world-sheet-head"><h3>{name(source)} ↔ {name(target)} 관계</h3><button type="button" className="btn sm" onClick={closePair}>닫기</button></div>
+          <fieldset className="world-fields" disabled={studio.busy}>
+            <legend className="sr-only">관계 작성</legend>
+            <div className="relationship-pair">
+              <RelationPairEditor
+                key={source + '|' + target}
+                studio={studio}
+                source={source}
+                target={target}
+                focusRequest={focusRequest}
+                onClose={() => { setOpen(false); setFocusTo('write') }}
+              />
+            </div>
+          </fieldset>
+        </Sheet>
+      )}
     </section>
   )
 }

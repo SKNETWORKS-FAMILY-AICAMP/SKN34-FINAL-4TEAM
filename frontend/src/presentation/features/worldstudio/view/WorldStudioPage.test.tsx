@@ -8,6 +8,7 @@ import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import type { Work } from '../../../../domain/entities/content'
+import type { Work as ReadingWork } from '../../../../domain/entities/work'
 import type { PublicWorld, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
 import { putRelation, relationLabel } from '../../../../domain/entities/studioRelations'
 import type { ReviewBasis, ReviewFinding, WorldReview } from '../../../../domain/entities/worldReview'
@@ -61,6 +62,8 @@ beforeEach(() => {
   // 장르 선택지·헤더 칩은 서버의 공개 장르 목록이라 운영과 같은 메모리 목록으로 대신한다(afterEach의 restoreAllMocks가 되돌린다).
   const genres = new InMemoryGenreRepository(new InMemoryOperationsGenreRepository())
   vi.spyOn(appContainer.resolve('genreUseCase'), 'list').mockImplementation(() => genres.list())
+  // '소설 연결' 탭의 Fork 목록은 운영과 같은 작품 목록 조회라 서버를 부르지 않게 비워 둔다(탭을 보는 테스트가 따로 정한다).
+  vi.spyOn(appContainer.resolve('readingUseCase'), 'forksOf').mockResolvedValue([])
   revisions = noRevisions()
   reviewCase = new WorldReviewUseCase({ review: vi.fn(async () => { throw new Error('이 테스트는 설정집 검토를 요청하지 않아요.') }), latest: vi.fn(async () => null) })
   objectUrls.created = 0
@@ -194,12 +197,17 @@ it('대형 설정집에서 쪽마다 선택한 카드를 유지하고 마지막 
   expect(table().getByLabelText<HTMLInputElement>('설정 0 선택').checked).toBe(true)
   fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '설정 100' } })
   fireEvent.click(table().getByRole('button', { name: '설정 100 인물' }))
+  fireEvent.click(screen.getByRole('button', { name: '수정하기' })) // 제목은 미리보기를 열고, 수정하기가 편집 화면을 연다
   expect(screen.getByRole('region', { name: '선택한 설정 편집' })).toBeTruthy()
 })
 /** 새 세계관 만들기 직후의 마법사(작성 모드): 주소에 `?new=1`이 붙고 저장 버전은 0이다. */
 const wizard = (fixture: Fixture = {}) => show(undefined, '/worldstudio/qa?new=1', { version: 0, ...fixture })
-/** 설정집 게시판의 행(제목 버튼, 이름 + 분류)을 눌러 그 카드의 편집 패널을 연다. 고르기 전에는 패널이 없다. */
-const openCard = (name: string) => fireEvent.click(screen.getByRole('button', { name }))
+/** 설정집 게시판의 행(제목 버튼, 이름 + 분류)을 눌러 그 줄 아래 미리보기를 열고 `수정하기`로 그 카드의 편집 화면을 연다. 고르기 전에는 패널이 없다. */
+const openCard = (name: string) => {
+  const title = screen.getByRole('button', { name })
+  if (title.getAttribute('aria-expanded') !== 'true') fireEvent.click(title) // 이미 미리보기가 열려 있으면(편집 화면에 다녀온 뒤) 다시 누르지 않는다: 접힌다
+  fireEvent.click(screen.getByRole('button', { name: '수정하기' }))
+}
 /** 설정 편집 화면(집필실 같은 3단: 레일 / 편집기 / AI 채팅)이 설정집 화면을 대신한다. 설정집으로 돌아가는 버튼은 상단 바의 '← 설정집'이다. */
 const editor = () => within(screen.getByRole('region', { name: '선택한 설정 편집' }))
 const rail = () => within(screen.getByRole('navigation', { name: '설정 카드 목록' }))
@@ -268,9 +276,9 @@ it('관리 헤더는 저장한 세계관의 소개와 설정 수·저장 버전�
   expect(header.getByText('설명')).toBeTruthy()
 })
 
-it('관리 보기 전환 메뉴가 왼쪽 사이드바에 있고(설정집·관계도·시간선) 보기를 옮기면 그 화면으로 바뀐다', async () => {
+it('관리 보기 전환 메뉴가 왼쪽 사이드바에 있고(개요·설정집·관계도·시간선·소설 연결) 보기를 옮기면 그 화면으로 바뀐다', async () => {
   await showWorld()
-  expect(manageTabs().getAllByRole('button').map((b) => b.textContent)).toEqual(['설정집', '관계도', '시간선'])
+  expect(manageTabs().getAllByRole('button').map((b) => b.textContent)).toEqual(['개요', '설정집', '관계도', '시간선', '소설 연결'])
   // 사이드바(.ep-menu)가 내용 열(.ep-content)보다 먼저다(DOM 순서 = 시각 순서). 메뉴 아래에 도구·저장 영역이, 내용 열에 헤더와 게시판이 있다.
   const side = screen.getByRole('navigation', { name: '세계관 메뉴' }).closest('.ep-menu') as HTMLElement
   expect(side.nextElementSibling?.classList.contains('ep-content')).toBe(true)
@@ -343,7 +351,7 @@ it('작성 검토는 열 때만 렌더하고 카드와 관계를 각각 페이�
   expect(review.getByRole('heading', { name: '설정 50 → 설정 51', level: 5 })).toBeTruthy()
 })
 
-it('설정 카드 단계는 공개 설정집과 같은 분류 메뉴·검색·정렬·게시판 표로 카드를 보이고 행을 누르면 목록 대신 그 카드의 편집 화면이 열린다', async () => {
+it('설정 카드 단계는 공개 설정집과 같은 분류 메뉴·검색·정렬·게시판 표로 카드를 보이고 행을 누르면 미리보기가 열리고 수정하기가 목록 대신 그 카드의 편집 화면을 연다', async () => {
   await show([person('나래'), person('가람', '북부 기록관'), place('항구')])
   const menu = within(screen.getByRole('navigation', { name: '설정 분류' }))
   expect(menu.getAllByRole('button').map((b) => b.textContent)).toEqual(['전체 3', '인물 2', '장소 1', '보완 필요 2']) // 두 인물은 SOUL·GOAL이 비어 정리 필요라 보완 필요 분류가 마지막에 선다
@@ -360,6 +368,8 @@ it('설정 카드 단계는 공개 설정집과 같은 분류 메뉴·검색·�
   expect(rows().map((r) => r.slice(0, 3))).toEqual([['1', '인물', '가람'], ['2', '인물', '나래'], ['3', '장소', '항구']])
 
   fireEvent.click(table.getByRole('button', { name: '항구 장소' }))
+  expect(screen.queryByRole('region', { name: '선택한 설정 편집' })).toBeNull() // 제목은 편집 화면이 아니라 미리보기를 연다
+  fireEvent.click(screen.getByRole('button', { name: '수정하기' }))
   expect(screen.getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('항구')
   expect(screen.queryByRole('table', { name: '설정 카드 목록' })).toBeNull() // 목록은 숨고 탭 영역 전체가 편집 화면이다
   expect(screen.queryByRole('navigation', { name: '설정 분류' })).toBeNull()
@@ -611,7 +621,7 @@ it('집필 메모 추가는 사이드바의 AI 검토 바로 아래에 있어 �
   fireEvent.click(memo)
   expect(where()).toMatch(/^\/worldstudio\/qa\?view=people&card=[0-9a-f-]{36}$/)
   expect(editor().getByRole('textbox', { name: '설정 이름' })).toBeTruthy()
-  backToBoard()
+  fireEvent.click(screen.getByRole('button', { name: '관계도' })) // 돌아가기 버튼은 들어온 보기의 이름이다
   expect(where()).toBe('/worldstudio/qa?view=people')
   expect(manageTabs().getByRole('button', { name: '관계도' }).getAttribute('aria-current')).toBe('page')
 })
@@ -755,17 +765,17 @@ it('AI 검토는 설정집 화면의 버튼이 시트로 열고, 시트 아래 �
   expect(screen.getByText('먼저 세계관을 저장하세요.')).toBeTruthy()
 })
 
-it('헤더의 소설 버튼은 한 자리다: 연결된 소설이 없으면 소설 연결하기뿐이고, 데모는 새 소설 폼으로 가는 소설 작성하기뿐이다', async () => {
-  await showWorld()
-  expect(headerOf().getByRole('button', { name: '소설 연결하기' })).toBeTruthy()
-  expect(headerOf().queryByRole('link', { name: '소설 작성하기' })).toBeNull() // 같은 자리에 두 버튼을 두지 않는다
-  expect(headerOf().getByText('연결된 소설이 없어요.').querySelector('button, a')).toBeNull() // 그 위의 상태 줄은 정보만 보인다
+it('소설 버튼은 한 자리다: 연결된 소설이 없으면 소설 연결 탭에 소설 연결하기뿐이고, 데모는 새 소설 폼으로 가는 소설 작성하기뿐이다', async () => {
+  await show(undefined, '/worldstudio/qa?view=novel')
+  expect(novelTab().getByRole('button', { name: '소설 연결하기' })).toBeTruthy()
+  expect(novelTab().queryByRole('link', { name: '소설 작성하기' })).toBeNull() // 같은 자리에 두 버튼을 두지 않는다
+  expect(novelTab().getByText('연결된 소설이 없어요.').querySelector('button, a')).toBeNull() // 그 위의 상태 줄은 정보만 보인다
   expect(screen.queryByRole('link', { name: '새 소설 등록으로' })).toBeNull()
   cleanup()
   vi.stubEnv('MODE', 'mockup')
-  await showWorld()
-  expect(headerOf().getByRole('link', { name: '소설 작성하기' }).getAttribute('href')).toBe('/new') // 데모는 기존 새 소설 폼
-  expect(headerOf().queryByRole('button', { name: '소설 연결하기' })).toBeNull()
+  await show(undefined, '/worldstudio/qa?view=novel')
+  expect(novelTab().getByRole('link', { name: '소설 작성하기' }).getAttribute('href')).toBe('/new') // 데모는 기존 새 소설 폼
+  expect(novelTab().queryByRole('button', { name: '소설 연결하기' })).toBeNull()
 })
 
 it('관계 연결 단계에서 그래프 카드를 차례로 두 번 누르면 관계 추가 폼의 주체·대상이 채워지고 관계 작성이 열린다', async () => {
@@ -781,10 +791,10 @@ it('관계 연결 단계에서 그래프 카드를 차례로 두 번 누르면 �
   press('가람 인물 카드')
   expect(screen.getByText(/가람의 연결 상대를 고르세요/)).toBeTruthy()
   expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '관계 주체' }).value).toBe(garam.item.id)
-  expect(screen.queryByRole('combobox', { name: '실제 관계 1' })).toBeNull() // 첫 번째 누름만으로는 열리지 않는다
+  expect(screen.queryByRole('textbox', { name: '실제 관계 1' })).toBeNull() // 첫 번째 누름만으로는 열리지 않는다
   press('나래 인물 카드')
   expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '관계 대상' }).value).toBe(narae.item.id)
-  expect(screen.getByRole('combobox', { name: '실제 관계 1' })).toBeTruthy()
+  expect(screen.getByRole('textbox', { name: '실제 관계 1' })).toBeTruthy()
   expect(screen.queryByText(/연결 상대를 고르세요/)).toBeNull()
 })
 
@@ -922,7 +932,7 @@ it('관계 목록 표는 주체·관계·대상과 편집·삭제를 보이고 �
   expect(table.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['주체', '관계', '대상', '편집·삭제'])
   expect([...table.getAllByRole('row')[1].querySelectorAll('td')].slice(0, 3).map((td) => td.textContent)).toEqual(['가람', '친구', '나래'])
   fireEvent.click(table.getByRole('button', { name: '가람 · 친구 · 나래 편집' }))
-  expect(screen.getByRole('combobox', { name: '실제 관계 1' })).toBeTruthy() // 편집은 관계 작성 패널을 연다
+  expect(screen.getByRole('textbox', { name: '실제 관계 1' })).toBeTruthy() // 편집은 관계 작성 패널을 연다
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
   fireEvent.click(table.getByRole('button', { name: '가람 · 친구 · 나래 삭제' }))
   expect(confirm).toHaveBeenCalledOnce()
@@ -1010,7 +1020,8 @@ it('저장한 적 있는 세계관은 사이드바 메뉴와 설정집부터 시
   expect(screen.queryByRole('textbox', { name: '세계관 이름' })).toBeNull()
   expect(screen.queryByRole('group', { name: '세계관 기본 정보' })).toBeNull()
   expect(headerOf().queryByRole('group', { name: '공개 설정' })).toBeNull() // 공개 설정은 헤더가 아니라 정보 편집 패널에 있다
-  expect(headerOf().getByRole('button', { name: '세계관 정보 편집' })).toBeTruthy()
+  expect(headerOf().queryByRole('button', { name: '세계관 정보 편집' })).toBeNull() // 정보 편집은 헤더가 아니라 개요 탭에 있다
+  expect(manageTabs().getByRole('button', { name: '개요' })).toBeTruthy()
 })
 
 it('관리 모드에는 단계(번호·이전·다음·관계 없이 검토·저장·검토 화면) UI가 없고 설정집·관계도 탭이 그 화면을 맡는다', async () => {
@@ -1172,8 +1183,11 @@ it('설정집은 설정이 하나도 없으면 표 안의 빈 행 하나로만 �
   expect(screen.getByRole('textbox', { name: '설정 이름' })).toBeTruthy()
 })
 
-// ── 관리 모드 헤더의 정보 편집 패널(이름·설명·공개 범위·장르) ──────────────────────────────────────────────
-const openInfoEdit = () => fireEvent.click(screen.getByRole('button', { name: '세계관 정보 편집' }))
+// ── 관리 모드 개요 탭의 정보 편집 폼(이름·설명·공개 범위·장르·표지) ───────────────────────────────────────────
+/** 정보 편집 폼은 헤더가 아니라 '개요' 탭에 있다(주소 ?view=overview). 폼이 이미 열려 있으면 다시 누르지 않는다. */
+const openInfoEdit = () => {
+  if (!screen.queryByRole('form', { name: '세계관 정보 편집' })) fireEvent.click(manageTabs().getByRole('button', { name: '개요' }))
+}
 const infoForm = () => within(screen.getByRole('form', { name: '세계관 정보 편집' }))
 const publishGroup = () => within(infoForm().getByRole('group', { name: '공개 설정' }))
 /** 장르 선택지는 공개 장르 목록(서버)이라 패널이 열린 뒤 읽혀 그려진다. 선택지가 그려질 때까지 기다린 뒤 장르 select를 돌려준다. */
@@ -1183,14 +1197,15 @@ const genreSelect = async () => {
   return select
 }
 const savePanel = () => fireEvent.click(infoForm().getByRole('button', { name: '저장' }))
-const panelClosed = () => waitFor(() => expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull())
+/** 저장하면 폼은 열린 채(탭 본문) '저장했어요.'를 알린다. */
+const panelSaved = () => waitFor(() => expect(infoForm().getByText('저장했어요.')).toBeTruthy())
 
-it('편집을 누르면 헤더에서 이름·설명을 바로 고치고 저장하면 기존 초안 저장으로 보낸 뒤 편집 버튼으로 초점을 돌린다', async () => {
+it('개요 탭에서 이름·설명을 고치고 저장하면 기존 초안 저장으로 보내고 헤더가 바뀐 채 폼은 열려 있다', async () => {
   const { saveStudio, setPublication, setCover, removeCover } = await showWorld()
   openInfoEdit()
   const name = infoForm().getByRole<HTMLInputElement>('textbox', { name: '세계관 이름' })
   expect(name.value).toBe('검증 세계')
-  expect(document.activeElement).toBe(name)
+  expect(document.activeElement).not.toBe(name) // 탭을 열어도 입력으로 초점을 끌어가지 않는다
   expect(infoForm().getByRole<HTMLTextAreaElement>('textbox', { name: '세계관 설명' }).value).toBe('설명')
   fireEvent.change(name, { target: { value: '새 이름' } })
   fireEvent.change(infoForm().getByRole('textbox', { name: '세계관 설명' }), { target: { value: '새 소개' } })
@@ -1198,23 +1213,22 @@ it('편집을 누르면 헤더에서 이름·설명을 바로 고치고 저장�
   expect(await screen.findByRole('heading', { name: '새 이름', level: 1 })).toBeTruthy()
   expect(saveStudio).toHaveBeenCalledOnce()
   expect(saveStudio).toHaveBeenCalledWith(expect.objectContaining({ id: 'qa', name: '새 이름', description: '새 소개', version: 1 }), expect.any(AbortSignal), undefined)
-  expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull()
+  await panelSaved()
   expect([setPublication, setCover, removeCover].map((fn) => fn.mock.calls.length)).toEqual([0, 0, 0]) // 바뀐 것만 보낸다
   expect(headerOf('새 이름').getByText('새 소개')).toBeTruthy()
-  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '세계관 정보 편집' })))
 })
 
-it('Esc와 취소는 입력을 버리고 편집을 닫으며 저장 요청을 보내지 않는다', async () => {
+it('Esc는 개요 폼을 닫지 않고 되돌리기가 바뀐 입력을 저장한 값으로 되돌리며 저장 요청을 보내지 않는다', async () => {
   const { saveStudio } = await showWorld()
   openInfoEdit()
-  fireEvent.change(infoForm().getByRole('textbox', { name: '세계관 이름' }), { target: { value: '버릴 이름' } })
-  fireEvent.keyDown(infoForm().getByRole('textbox', { name: '세계관 이름' }), { key: 'Escape' })
-  expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull()
+  const name = () => infoForm().getByRole<HTMLInputElement>('textbox', { name: '세계관 이름' })
+  fireEvent.change(name(), { target: { value: '버릴 이름' } })
+  fireEvent.keyDown(name(), { key: 'Escape' })
+  expect(screen.getByRole('form', { name: '세계관 정보 편집' })).toBeTruthy() // 탭 본문이라 Esc로 닫히지 않는다
+  expect(name().value).toBe('버릴 이름')
+  fireEvent.click(infoForm().getByRole('button', { name: '되돌리기' }))
+  expect(name().value).toBe('검증 세계') // 저장한 값에서 다시 시작한다
   expect(screen.getByRole('heading', { name: '검증 세계', level: 1 })).toBeTruthy()
-  openInfoEdit()
-  expect(infoForm().getByRole<HTMLInputElement>('textbox', { name: '세계관 이름' }).value).toBe('검증 세계') // 다시 열면 저장한 값에서 시작한다
-  fireEvent.click(infoForm().getByRole('button', { name: '취소' }))
-  expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull()
   expect(saveStudio).not.toHaveBeenCalled()
 })
 
@@ -1244,7 +1258,7 @@ it('이름·설명을 저장하는 동안에는 입력과 버튼을 잠가 같�
   fireEvent.click(infoForm().getByRole('button', { name: '저장' }))
   await waitFor(() => expect(infoForm().getByRole('button', { name: '저장 중…' })).toBeTruthy())
   expect(infoForm().getByRole('textbox', { name: '세계관 이름' }).closest('fieldset')!.disabled).toBe(true) // 입력·버튼은 fieldset 째로 잠긴다
-  expect(infoForm().getByRole('button', { name: '취소' }).closest('fieldset')!.disabled).toBe(true)
+  expect(infoForm().getByRole('button', { name: '되돌리기' }).closest('fieldset')!.disabled).toBe(true)
   fireEvent.submit(screen.getByRole('form', { name: '세계관 정보 편집' })) // Enter로 보내는 제출도 한 번만
   expect(saveStudio).toHaveBeenCalledOnce()
   await act(async () => finish(saveStudio.mock.calls[0][0]))
@@ -1270,35 +1284,34 @@ it('검토·저장 단계의 기본 정보 수정은 마법사의 기본 정보 
   expect(screen.getByRole('textbox', { name: '세계관 이름' })).toBeTruthy()
 })
 
-// ── 편집 패널의 잠금: 저장하지 않은 입력이 이름·설명 저장에 딸려 가면 안 된다 ──────────────────
-const editButton = () => screen.getByRole<HTMLButtonElement>('button', { name: '세계관 정보 편집' })
+// ── 개요 폼의 잠금: 저장하지 않은 입력이 이름·설명 저장에 딸려 가면 안 된다 ──────────────────
 const dirtyCard = () => {
   openCard('가람 인물')
   fireEvent.change(screen.getByRole('textbox', { name: '설정 이름' }), { target: { value: '고친 이름' } })
   backToBoard() // 헤더·저장 영역은 설정집 화면에 있다
 }
 
-it('저장하지 않은 카드 수정이 있으면 헤더 편집이 잠기고 먼저 저장하라고 안내한다', async () => {
+it('저장하지 않은 카드 수정이 있으면 개요 탭의 이름·설명 저장이 잠기고 먼저 저장하라고 안내한다', async () => {
   await showWorld()
-  expect(editButton().disabled).toBe(false)
-  expect(screen.queryByText(/작성 중인 변경을 먼저 저장하세요/)).toBeNull()
   dirtyCard()
-  expect(editButton().disabled).toBe(true)
-  const hint = screen.getByText(/작성 중인 변경을 먼저 저장하세요/)
-  expect(editButton().getAttribute('aria-describedby')).toBe(hint.id)
-  fireEvent.click(editButton()) // 눌러도 열리지 않는다
-  expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull()
+  openInfoEdit()
+  const save = () => infoForm().getByRole<HTMLButtonElement>('button', { name: '저장' })
+  expect(infoForm().queryByText(/작성 중인 변경을 먼저 저장하세요/)).toBeNull() // 이름·설명을 건드리기 전에는 알리지 않는다
+  fireEvent.change(infoForm().getByRole('textbox', { name: '세계관 이름' }), { target: { value: '새 이름' } })
+  expect(save().disabled).toBe(true)
+  const hint = infoForm().getByText(/작성 중인 변경을 먼저 저장하세요/)
+  expect(save().getAttribute('aria-describedby')).toBe(hint.id)
 })
 
-it('먼저 저장하면 편집이 다시 열리고 이름·설명 저장은 방금 저장한 카드 수정을 그대로 보내 잃지 않는다', async () => {
+it('먼저 저장하면 이름·설명 저장이 다시 열리고 방금 저장한 카드 수정을 그대로 보내 잃지 않는다', async () => {
   const { saveStudio } = await showWorld()
   dirtyCard()
   fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
   await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
-  await waitFor(() => expect(editButton().disabled).toBe(false))
-  expect(screen.queryByText(/작성 중인 변경을 먼저 저장하세요/)).toBeNull()
   openInfoEdit()
   fireEvent.change(infoForm().getByRole('textbox', { name: '세계관 이름' }), { target: { value: '새 이름' } })
+  await waitFor(() => expect(infoForm().getByRole<HTMLButtonElement>('button', { name: '저장' }).disabled).toBe(false))
+  expect(infoForm().queryByText(/작성 중인 변경을 먼저 저장하세요/)).toBeNull()
   savePanel()
   expect(await screen.findByRole('heading', { name: '새 이름', level: 1 })).toBeTruthy()
   expect(saveStudio).toHaveBeenCalledTimes(2)
@@ -1306,12 +1319,12 @@ it('먼저 저장하면 편집이 다시 열리고 이름·설명 저장은 방�
   expect([second.name, second.settings[0].item.title]).toEqual(['새 이름', '고친 이름']) // 첫 저장에 올라간 카드 수정이 그대로
 })
 
-it('편집을 연 채 카드를 고치면 열린 패널의 저장도 잠겨 카드 수정이 이름·설명 저장에 딸려 가지 않는다', async () => {
-  const { saveStudio } = await showWorld()
+it('개요 탭에서 이름을 고친 채 초안이 바뀌면(전체 공개) 저장이 잠겨 그 변경이 이름·설명 저장에 딸려 가지 않는다', async () => {
+  const { saveStudio } = await show([person('가람'), person('나래')], '/worldstudio/qa', { visibility: 'public', currentRevisionId: 'rev-1' })
   openInfoEdit()
   fireEvent.change(infoForm().getByRole('textbox', { name: '세계관 이름' }), { target: { value: '새 이름' } })
   expect(infoForm().getByRole<HTMLButtonElement>('button', { name: '저장' }).disabled).toBe(false)
-  dirtyCard()
+  fireEvent.click(warningIn(infoForm()).getByRole('button', { name: '전체 공개' })) // 초안(설정 공개)이 바뀐다
   expect(infoForm().getByRole<HTMLButtonElement>('button', { name: '저장' }).disabled).toBe(true)
   expect(infoForm().getByText(/작성 중인 변경을 먼저 저장하세요/)).toBeTruthy()
   fireEvent.submit(screen.getByRole('form', { name: '세계관 정보 편집' })) // Enter 제출도 막힌다
@@ -1319,7 +1332,7 @@ it('편집을 연 채 카드를 고치면 열린 패널의 저장도 잠겨 카�
 })
 
 // ── 공개 범위·장르(편집 패널에서 저장과 함께 적용) ──────────────────────────────────────
-it('관리 헤더에는 공개 설정 폼 없이 공개 범위·장르 칩만 있고, 편집을 열면 한 패널에서 이름·설명·공개 범위·장르를 저장·취소한다', async () => {
+it('관리 헤더에는 공개 설정 폼 없이 공개 범위·장르 칩만 있고, 개요 탭의 한 폼에서 이름·설명·공개 범위·장르를 저장·되돌린다', async () => {
   await show(undefined, '/worldstudio/qa', { visibility: 'public', genre: 'genre-01', currentRevisionId: 'rev-1' })
   expect(headerOf().queryByRole('group', { name: '공개 설정' })).toBeNull()
   expect(headerOf().getByText('공개', { selector: '.chip' })).toBeTruthy()
@@ -1330,7 +1343,7 @@ it('관리 헤더에는 공개 설정 폼 없이 공개 범위·장르 칩만 �
   expect(within(publishGroup().getByRole('group', { name: '공개 범위' })).getAllByRole('button').map((b) => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([['비공개', 'false'], ['공개', 'true']])
   expect((await genreSelect()).value).toBe('genre-01')
   expect(infoForm().getByRole('button', { name: '저장' })).toBeTruthy()
-  expect(infoForm().getByRole('button', { name: '취소' })).toBeTruthy()
+  expect(infoForm().getByRole('button', { name: '되돌리기' })).toBeTruthy()
 })
 
 it('관리 헤더의 공개 설정은 서버 연결 예정 대신 실제 공개 범위 토글과 장르 선택이다', async () => {
@@ -1360,7 +1373,7 @@ it('공개로 바꾸면 한 번 확인한 뒤 공개 설정을 보내고 칩·�
   expect(setPublication).toHaveBeenCalledWith('qa', { visibility: 'public', genre: null }, expect.any(AbortSignal))
   expect(headerOf().getByText('공개', { selector: '.chip' })).toBeTruthy()
   expect(screen.getByRole('link', { name: '공개 화면 보기' }).getAttribute('href')).toBe('/worlds/qa')
-  await panelClosed() // 저장되면 패널이 닫힌다
+  await panelSaved() // 저장되면 저장했어요를 알린다
 })
 
 it('공개 확인을 거절하면 아무것도 보내지 않고 비공개 그대로다', async () => {
@@ -1429,7 +1442,7 @@ it('이미 공개인 세계관의 장르를 바꾸면 확인 없이 현재 공�
   savePanel()
   expect(await headerOf().findByText('SF', { selector: '.chip' })).toBeTruthy()
   expect(setPublication).toHaveBeenLastCalledWith('qa', { visibility: 'public', genre: 'genre-14' }, expect.any(AbortSignal))
-  await panelClosed()
+  await panelSaved()
   openInfoEdit()
   await genreSelect()
   fireEvent.change(select(), { target: { value: '' } })
@@ -1468,23 +1481,25 @@ it('공개 설정을 보내는 동안에는 잠가 같은 변경을 다시 보�
   expect(setPublication).toHaveBeenCalledOnce()
   await act(async () => finish(published('qa', { visibility: 'public', genre: null })))
   await waitFor(() => expect(headerOf().getByText('공개', { selector: '.chip' })).toBeTruthy())
-  await panelClosed()
+  await panelSaved()
 })
 
-it('공개 설정은 저장하지 않은 입력을 건드리지 않는다', async () => {
-  const { setPublication } = await show(undefined, '/worldstudio/qa', { currentRevisionId: 'rev-1' })
+it('저장하지 않은 입력이 있어도 공개 설정만 바꾼 저장은 그 입력을 건드리지 않고 공개 설정만 보낸다', async () => {
+  const { saveStudio, setPublication } = await show(undefined, '/worldstudio/qa', { currentRevisionId: 'rev-1' })
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   dirtyCard()
-  // 저장하지 않은 입력이 있는 동안에는 편집 패널이 잠겨 공개 설정을 보내지도, 그 입력을 저장에 딸려 보내지도 않는다.
-  fireEvent.click(editButton())
-  expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull()
-  expect(setPublication).not.toHaveBeenCalled()
+  openInfoEdit()
+  fireEvent.click(publishGroup().getByRole('button', { name: '공개', pressed: false }))
+  savePanel()
+  await waitFor(() => expect(setPublication).toHaveBeenCalledOnce())
+  expect(saveStudio).not.toHaveBeenCalled() // 초안 저장은 하지 않는다: 그 입력은 저장에 딸려 가지 않는다
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   openCard('고친 이름 인물')
   expect(screen.getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('고친 이름')
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
 })
 
-it('패널의 저장은 이름·설명은 초안 저장으로, 공개 범위·장르는 공개 설정으로 각각 한 번씩 보내고 둘 다 되면 닫힌다', async () => {
+it('폼의 저장은 이름·설명은 초안 저장으로, 공개 범위·장르는 공개 설정으로 각각 한 번씩 보내고 둘 다 되면 저장했어요를 알린다', async () => {
   const { saveStudio, setPublication } = await show(undefined, '/worldstudio/qa', { currentRevisionId: 'rev-1' })
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   openInfoEdit()
@@ -1497,11 +1512,11 @@ it('패널의 저장은 이름·설명은 초안 저장으로, 공개 범위·�
   expect(saveStudio).toHaveBeenCalledOnce()
   expect(saveStudio).toHaveBeenCalledWith(expect.objectContaining({ id: 'qa', name: '새 이름' }), expect.any(AbortSignal), undefined)
   expect(setPublication).toHaveBeenCalledWith('qa', { visibility: 'public', genre: 'genre-14' }, expect.any(AbortSignal))
-  await panelClosed()
+  await panelSaved()
   expect(await headerOf('새 이름').findByText('SF', { selector: '.chip' })).toBeTruthy()
 })
 
-it('이름·설명은 저장됐지만 공개 설정이 실패하면 패널을 닫지 않고 오류를 알리며, 다시 저장하면 공개 설정만 다시 보낸다', async () => {
+it('이름·설명은 저장됐지만 공개 설정이 실패하면 오류를 알리고 폼과 입력을 그대로 두며, 다시 저장하면 공개 설정만 다시 보낸다', async () => {
   const setPublication = vi.fn<WorldStudioRepository['setPublication']>().mockRejectedValueOnce(new Error('세계관을 찾을 수 없습니다.')).mockImplementation(async (id, change) => published(id, change))
   const { saveStudio } = await show(undefined, '/worldstudio/qa', { setPublication })
   vi.spyOn(window, 'confirm').mockReturnValue(true)
@@ -1516,19 +1531,17 @@ it('이름·설명은 저장됐지만 공개 설정이 실패하면 패널을 �
   savePanel() // 이제 바뀐 것은 공개 설정뿐이다
   await waitFor(() => expect(setPublication).toHaveBeenCalledTimes(2))
   expect(saveStudio).toHaveBeenCalledOnce()
-  await panelClosed()
+  await panelSaved()
 })
 
-it('취소는 고른 공개 범위·장르도 버리고 아무것도 보내지 않는다', async () => {
+it('되돌리기는 고른 공개 범위·장르도 저장한 값으로 되돌리고 아무것도 보내지 않는다', async () => {
   const { saveStudio, setPublication } = await showWorld()
   openInfoEdit()
   fireEvent.click(publishGroup().getByRole('button', { name: '공개', pressed: false }))
   fireEvent.change(await genreSelect(), { target: { value: 'genre-14' } })
-  fireEvent.click(infoForm().getByRole('button', { name: '취소' }))
-  expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull()
+  fireEvent.click(infoForm().getByRole('button', { name: '되돌리기' }))
   expect([saveStudio, setPublication].map((fn) => fn.mock.calls.length)).toEqual([0, 0])
-  openInfoEdit() // 다시 열면 저장한 값에서 시작한다
-  expect(publishGroup().getByRole('button', { name: '비공개', pressed: true })).toBeTruthy()
+  expect(publishGroup().getByRole('button', { name: '비공개', pressed: true })).toBeTruthy() // 저장한 값에서 다시 시작한다
   expect((await genreSelect()).value).toBe('')
 })
 
@@ -1721,22 +1734,21 @@ it('표지 칸은 이미지 선택과 AI로 생성(준비 중, 잠김)을 두고
   expect(coverGroup().getByRole('button', { name: '표지 삭제' })).toBeTruthy()
 })
 
-it('고른 표지는 저장해야 올라가고 올라가면 헤더 표지가 새 이미지로 바뀐다(취소하면 보내지 않는다)', async () => {
+it('고른 표지는 저장해야 올라가고 올라가면 헤더 표지가 새 이미지로 바뀐다(되돌리면 보내지 않는다)', async () => {
   const { setCover, readCover } = await showWorld()
   openInfoEdit()
   const file = png()
   pickCover(file)
   expect(coverGroup().getByText('선택한 파일: cover.png')).toBeTruthy()
   expect(setCover).not.toHaveBeenCalled() // 고르는 것만으로는 보내지 않는다
-  fireEvent.click(infoForm().getByRole('button', { name: '취소' })) // 취소는 고른 파일을 버린다
+  fireEvent.click(infoForm().getByRole('button', { name: '되돌리기' })) // 되돌리기는 고른 파일을 버린다
   expect(setCover).not.toHaveBeenCalled()
-  openInfoEdit()
   expect(coverGroup().queryByText(/선택한 파일/)).toBeNull()
   pickCover(file)
   savePanel()
   await waitFor(() => expect(setCover).toHaveBeenCalledWith('qa', file, expect.any(AbortSignal)))
   expect(await screen.findByText('표지를 올렸어요.')).toBeTruthy()
-  await panelClosed()
+  await panelSaved()
   await waitFor(() => expect(headerCover()).toBeTruthy())
   expect(readCover).toHaveBeenCalledWith('qa', expect.any(AbortSignal))
 })
@@ -1768,7 +1780,7 @@ it('표지를 올리는 동안에는 올리고 있다고 알리고 패널을 잠
   fireEvent.submit(screen.getByRole('form', { name: '세계관 정보 편집' }))
   expect(setCover).toHaveBeenCalledOnce()
   await act(async () => finish())
-  await panelClosed()
+  await panelSaved()
 })
 
 it('표지 올리기가 실패하면 오류를 알리고 패널과 고른 파일을 그대로 두며 헤더 표지는 바뀌지 않고 다시 올릴 수 있다', async () => {
@@ -1783,7 +1795,7 @@ it('표지 올리기가 실패하면 오류를 알리고 패널과 고른 파일
   expect(headerCover()).toBeNull()
   savePanel()
   await waitFor(() => expect(setCover).toHaveBeenCalledTimes(2))
-  await panelClosed()
+  await panelSaved()
   expect(screen.queryByRole('alert')).toBeNull()
 })
 
@@ -1834,7 +1846,7 @@ it('정보 편집 패널의 세계관 삭제는 이름을 보이며 확인하고
   expect(String(confirm.mock.calls[0][0])).toContain('검증 세계')
   expect(String(confirm.mock.calls[0][0])).toContain('목록에서 사라져요')
   expect(deleteStudio).not.toHaveBeenCalled()
-  expect(where()).toBe('/worldstudio/qa')
+  expect(where()).toBe('/worldstudio/qa?view=overview')
   confirm.mockReturnValue(true)
   fireEvent.click(deleteButton())
   await waitFor(() => expect(deleteStudio).toHaveBeenCalledExactlyOnceWith('qa', expect.any(AbortSignal)))
@@ -1849,7 +1861,7 @@ it('서버가 삭제를 거절하면(연결된 소설 등) 그 이유를 그대�
   fireEvent.click(deleteButton())
   expect((await screen.findByText(reason)).getAttribute('role')).toBe('alert')
   expect(deleteStudio).toHaveBeenCalledOnce()
-  expect(where()).toBe('/worldstudio/qa')
+  expect(where()).toBe('/worldstudio/qa?view=overview')
   expect(screen.getByRole('form', { name: '세계관 정보 편집' })).toBeTruthy()
 })
 
@@ -1891,7 +1903,7 @@ it('삭제하는 동안은 패널 전체가 잠겨 다시 누를 수 없다', as
   await waitFor(() => expect(where()).toBe('/lib?tab=worlds'))
 })
 
-it('이름·공개 설정·표지를 함께 바꾸면 이름·설명 → 공개 설정 → 표지 순으로 한 번씩 보내고 모두 되면 닫는다', async () => {
+it('이름·공개 설정·표지를 함께 바꾸면 이름·설명 → 공개 설정 → 표지 순으로 한 번씩 보내고 모두 되면 저장했어요를 알린다', async () => {
   const { saveStudio, setPublication, setCover } = await show(undefined, '/worldstudio/qa', { currentRevisionId: 'rev-1' })
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   openInfoEdit()
@@ -1903,7 +1915,7 @@ it('이름·공개 설정·표지를 함께 바꾸면 이름·설명 → 공개 
   expect([saveStudio, setPublication, setCover].map((fn) => fn.mock.calls.length)).toEqual([1, 1, 1])
   const order = [saveStudio, setPublication, setCover].map((fn) => fn.mock.invocationCallOrder[0])
   expect(order).toEqual([...order].sort((a, b) => a - b))
-  await panelClosed()
+  await panelSaved()
 })
 
 it('표지 저장소가 없는 데모(메모리)에서는 표지 올리기를 잠그고 지원하지 않는다고 알린다', async () => {
@@ -1979,7 +1991,8 @@ it('3000자를 넘기면 글자 수가 경고로 바뀌고 저장을 눌러도 �
 it('편집기를 불러오는 동안은 같은 자리에 안내를 보이고 이름 입력은 그대로 쓸 수 있다', async () => {
   fakeEditor.suspend = true
   await show()
-  await act(async () => openCard('가람 인물')) // 화면 이동은 transition이라 멈춘 렌더가 안내(Suspense 대체 화면)로 커밋되도록 비동기로 기다린다
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' })) // 미리보기
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '수정하기' }))) // 화면 이동은 transition이라 멈춘 렌더가 안내(Suspense 대체 화면)로 커밋되도록 비동기로 기다린다
   expect(editor().getByText('편집기를 불러오고 있어요.')).toBeTruthy()
   expect(editor().queryByRole('textbox', { name: 'IDENTITY.md' })).toBeNull()
   expect(editor().getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('가람')
@@ -2060,14 +2073,15 @@ it('세계관을 공개로 고르면 공개로 둔 설정이 없다고 경고하
   fireEvent.click(publishGroup().getByRole('button', { name: '공개', pressed: false }))
   fireEvent.click(warningIn(infoForm()).getByRole('button', { name: '전체 공개' }))
   expect(infoForm().queryByText(noPublicCards)).toBeNull()
-  expect(visibilityOf()).toEqual(['공개', '공개'])
-  // 초안이 바뀌어 저장하지 않은 변경이 생겼어도, 공개 범위만 바꾼 패널 저장은 초안 저장과 별개라 잠기지 않는다.
+  // 초안이 바뀌어 저장하지 않은 변경이 생겼어도, 공개 범위만 바꾼 폼 저장은 초안 저장과 별개라 잠기지 않는다.
   expect(infoForm().getByRole<HTMLButtonElement>('button', { name: '저장' }).disabled).toBe(false)
   expect(infoForm().queryByText(/작성 중인 변경을 먼저 저장하세요/)).toBeNull()
   savePanel()
   await waitFor(() => expect(setPublication).toHaveBeenCalledWith('qa', { visibility: 'public', genre: null }, expect.any(AbortSignal)))
-  await panelClosed()
+  await panelSaved()
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy() // 카드 공개는 초안 변경이라 세계관 저장이 남아 있다
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  expect(visibilityOf()).toEqual(['공개', '공개'])
 })
 
 it('경고를 넘기고 공개해도 막지 않으며, 공개 세계관에 공개로 둔 설정이 없는 동안에는 헤더가 경고와 전체 공개를 보인다', async () => {
@@ -2078,10 +2092,11 @@ it('경고를 넘기고 공개해도 막지 않으며, 공개 세계관에 공�
   expect(infoForm().getByText(noPublicCards)).toBeTruthy()
   savePanel()
   await waitFor(() => expect(setPublication).toHaveBeenCalledOnce())
-  await panelClosed()
+  await panelSaved()
   await headerOf().findByText(noPublicCards)
   fireEvent.click(warningIn(headerOf()).getByRole('button', { name: '전체 공개' }))
   expect(headerOf().queryByText(noPublicCards)).toBeNull()
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   expect(visibilityOf()).toEqual(['공개'])
 })
 
@@ -2115,39 +2130,41 @@ const episodeApi = () => appContainer.resolve('episodeUseCase')
 const myWork = (id: string, title: string, worldStudioId: string | null = null): Work => ({ id, title, summary: '', visibility: 'private', allowFork: false, allowForkPublication: false, source: null, episodes: [], draft: { title: '새 회차', body: '', revision: 0 }, revision: 0, worldStudioId })
 const revealField = () => editor().getByRole<HTMLInputElement>('textbox', { name: /공개 회차/ })
 
-it('연결된 소설이 있으면 헤더가 그 제목을 알리고 소설 버튼 자리는 그 작품 관리로 가는 소설 작성하기다', async () => {
+it('연결된 소설이 있으면 소설 연결 탭이 그 제목을 알리고 소설 버튼 자리는 그 작품 관리로 가는 소설 작성하기다', async () => {
   vi.spyOn(episodeApi(), 'list').mockResolvedValue([myWork('work-1', '달빛 기록', '11111111-1111-4111-8111-111111111111'), myWork('work-2', '다른 소설')])
-  await show(undefined, '/worldstudio/qa', { linkedWorkId: 'work-1' })
-  expect((await headerOf().findByText('연결된 소설: 달빛 기록')).querySelector('button, a')).toBeNull() // 상태 줄은 정보만 보인다
-  expect(headerOf().getAllByRole('link').filter((link) => link.getAttribute('href') === '/content?work=work-1').map((link) => link.textContent)).toEqual(['소설 작성하기']) // 같은 곳으로 가는 링크는 하나뿐이다
-  expect(headerOf().queryByRole('button', { name: '소설 연결하기' })).toBeNull()
+  await show(undefined, '/worldstudio/qa?view=novel', { linkedWorkId: 'work-1' })
+  expect((await novelTab().findByText('연결된 소설: 달빛 기록')).querySelector('button, a')).toBeNull() // 상태 줄은 정보만 보인다
+  expect(novelTab().getAllByRole('link').filter((link) => link.getAttribute('href') === '/content?work=work-1').map((link) => link.textContent)).toEqual(['소설 작성하기']) // 같은 곳으로 가는 링크는 하나뿐이다
+  expect(novelTab().queryByRole('button', { name: '소설 연결하기' })).toBeNull()
 })
 
 it('연결된 소설의 제목을 읽지 못해도 작품 관리로 가는 링크는 남기고 읽지 못했다고 알린다', async () => {
   vi.spyOn(episodeApi(), 'list').mockRejectedValue(new Error('서버 인증이 필요합니다.'))
-  await show(undefined, '/worldstudio/qa', { linkedWorkId: 'work-1' })
-  expect(await headerOf().findByText('연결된 소설의 제목을 불러오지 못했어요.')).toBeTruthy()
-  expect(headerOf().getByRole('link', { name: '소설 작성하기' }).getAttribute('href')).toBe('/content?work=work-1')
+  await show(undefined, '/worldstudio/qa?view=novel', { linkedWorkId: 'work-1' })
+  expect(await novelTab().findByText('연결된 소설의 제목을 불러오지 못했어요.')).toBeTruthy()
+  expect(novelTab().getByRole('link', { name: '소설 작성하기' }).getAttribute('href')).toBe('/content?work=work-1')
 })
 
-it('연결된 소설이 없으면 소설 연결하기가 아직 연결되지 않은 내 소설만 고르게 하고, 고르면 서버에 연결한 뒤 헤더와 독자 공개 입력을 바꾼다', async () => {
+it('연결된 소설이 없으면 소설 연결하기가 아직 연결되지 않은 내 소설만 고르게 하고, 고르면 서버에 연결한 뒤 소설 연결 탭과 독자 공개 입력을 바꾼다', async () => {
   const list = vi.spyOn(episodeApi(), 'list').mockResolvedValue([myWork('work-1', '달빛 기록'), myWork('work-2', '이미 연결된 소설', '11111111-1111-4111-8111-111111111111')])
   const linkWorldStudio = vi.spyOn(episodeApi(), 'linkWorldStudio').mockResolvedValue({ workId: 'work-1', worldId: 'qa' })
-  await showWorld()
+  await show(undefined, '/worldstudio/qa?view=novel')
   expect(list).not.toHaveBeenCalled() // 내 소설 목록은 필요할 때만 읽는다
-  fireEvent.click(headerOf().getByRole('button', { name: '소설 연결하기' }))
+  fireEvent.click(novelTab().getByRole('button', { name: '소설 연결하기' }))
   const sheet = within(await screen.findByRole('dialog', { name: '소설 연결하기' }))
   const pick = await sheet.findByRole('button', { name: /달빛 기록/ })
   expect(sheet.queryByRole('button', { name: /이미 연결된 소설/ })).toBeNull()
   fireEvent.click(pick)
   await waitFor(() => expect(linkWorldStudio).toHaveBeenCalledWith('work-1', 'qa'))
-  const write = await headerOf().findByRole('link', { name: '소설 작성하기' }) // 같은 자리의 버튼이 소설 작성하기로 바뀐다
+  const write = await novelTab().findByRole('link', { name: '소설 작성하기' }) // 같은 자리의 버튼이 소설 작성하기로 바뀐다
   expect(write.getAttribute('href')).toBe('/content?work=work-1')
   await waitFor(() => expect(document.activeElement).toBe(write)) // 누른 버튼이 사라진 자리의 새 버튼으로 초점이 간다
-  expect(headerOf().queryByRole('button', { name: '소설 연결하기' })).toBeNull()
+  expect(novelTab().queryByRole('button', { name: '소설 연결하기' })).toBeNull()
   expect(screen.queryByRole('dialog', { name: '소설 연결하기' })).toBeNull()
-  expect(await headerOf().findByText('연결된 소설: 달빛 기록')).toBeTruthy()
+  expect(await novelTab().findByText('연결된 소설: 달빛 기록')).toBeTruthy()
+  expect(await novelTab().findByRole('heading', { name: 'Fork 소설 0편', level: 2 })).toBeTruthy() // 연결되면 그 소설의 Fork 목록도 읽는다
   expect(saveBar().getByText('저장됨')).toBeTruthy() // 연결은 초안 저장과 별개다
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   openCard('가람 인물')
   expect(revealField().disabled).toBe(false)
 })
@@ -2155,20 +2172,20 @@ it('연결된 소설이 없으면 소설 연결하기가 아직 연결되지 않
 it('소설 연결이 실패하면 서버가 준 이유를 시트에 보이고 연결되지 않은 채로 둔다', async () => {
   vi.spyOn(episodeApi(), 'list').mockResolvedValue([myWork('work-1', '달빛 기록')])
   vi.spyOn(episodeApi(), 'linkWorldStudio').mockRejectedValue(new Error('이미 다른 작품에 연결된 세계관이에요.'))
-  await showWorld()
-  fireEvent.click(headerOf().getByRole('button', { name: '소설 연결하기' }))
+  await show(undefined, '/worldstudio/qa?view=novel')
+  fireEvent.click(novelTab().getByRole('button', { name: '소설 연결하기' }))
   const sheet = within(await screen.findByRole('dialog', { name: '소설 연결하기' }))
   fireEvent.click(await sheet.findByRole('button', { name: /달빛 기록/ }))
   expect((await sheet.findByRole('alert')).textContent).toBe('이미 다른 작품에 연결된 세계관이에요.')
   expect(sheet.getByRole<HTMLButtonElement>('button', { name: /달빛 기록/ }).disabled).toBe(false) // 다시 고를 수 있다
   fireEvent.click(sheet.getByRole('button', { name: '닫기' }))
-  expect(headerOf().getByRole('button', { name: '소설 연결하기' })).toBeTruthy()
+  expect(novelTab().getByRole('button', { name: '소설 연결하기' })).toBeTruthy()
 })
 
 it('내 소설 목록을 읽지 못하면 다시 시도할 수 있고, 연결할 소설이 없으면 그렇다고 알린다', async () => {
   const list = vi.spyOn(episodeApi(), 'list').mockRejectedValue(new Error('서버 인증이 필요합니다.'))
-  await showWorld()
-  fireEvent.click(headerOf().getByRole('button', { name: '소설 연결하기' }))
+  await show(undefined, '/worldstudio/qa?view=novel')
+  fireEvent.click(novelTab().getByRole('button', { name: '소설 연결하기' }))
   const sheet = within(await screen.findByRole('dialog', { name: '소설 연결하기' }))
   expect((await sheet.findByRole('alert')).textContent).toContain('내 소설을 불러오지 못했어요')
   expect(sheet.getByRole('link', { name: '새 소설 만들기' }).getAttribute('href')).toBe('/content') // 목록을 못 읽어도 새로 쓰러 갈 수 있다
@@ -2302,6 +2319,12 @@ it('데모(목업)에는 소설 연결이 없어 연결 줄을 그리지 않고 
   await showWorld()
   expect(headerOf().queryByRole('button', { name: '소설 연결하기' })).toBeNull()
   expect(headerOf().queryByText(/연결된 소설/)).toBeNull()
+  fireEvent.click(manageTabs().getByRole('button', { name: '소설 연결' }))
+  expect(novelTab().queryByText(/^연결된 소설(:|이 없어요)/)).toBeNull() // 상태 줄 없이 소설 작성하기(→ /new)만 있다
+  expect(novelTab().getByRole('link', { name: '소설 작성하기' }).getAttribute('href')).toBe('/new')
+  expect(novelTab().queryByRole('heading', { name: /Fork 소설/ })).toBeNull()
+  expect(list).not.toHaveBeenCalled()
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   openCard('가람 인물')
   expect(editor().queryByRole('textbox', { name: /공개 회차/ })).toBeNull()
   expect(editor().getByText('데모에서는 소설 연결을 지원하지 않아 공개(1화부터)와 작가 전용(기본)만 고를 수 있어요.')).toBeTruthy()
@@ -2479,13 +2502,15 @@ it('관계 작성 패널을 취소하거나 적용해 닫으면 사라진 버튼
   fireEvent.change(screen.getByRole('combobox', { name: '관계 대상' }), { target: { value: narae.item.id } })
   const write = () => screen.getByRole('button', { name: '관계 작성' })
   fireEvent.click(write())
+  expect(screen.getByRole('dialog', { name: '가람 ↔ 나래 관계' })).toBeTruthy() // 관계 작성 패널은 시트다
   const cancel = screen.getByRole('button', { name: '취소' })
   cancel.focus()
   fireEvent.click(cancel)
+  expect(screen.queryByRole('dialog')).toBeNull()
   await waitFor(() => expect(document.activeElement).toBe(write()))
   fireEvent.click(write())
   fireEvent.click(screen.getByRole('button', { name: '실제 관계 추가' }))
-  fireEvent.change(screen.getByRole('combobox', { name: '실제 관계 1' }), { target: { value: '오랜 벗' } })
+  fireEvent.change(screen.getByRole('textbox', { name: '실제 관계 1' }), { target: { value: '오랜 벗' } })
   const apply = screen.getByRole('button', { name: '편집본에 적용' })
   apply.focus()
   fireEvent.click(apply)
@@ -2608,16 +2633,16 @@ it('가져올 설정의 체크박스는 유형과 이름으로 읽히고 본문�
   expect([all.checked, all.indeterminate]).toEqual([true, false])
 })
 
-it('한글을 조합하는 중에 누른 Esc는 조합만 끝내고 정보 편집을 닫지 않아 쓰던 입력을 지킨다', async () => {
+it('한글을 조합하는 중에 누른 Esc는 개요 폼의 입력을 지운다고 하지 않는다: 개요 폼은 Esc로 닫히거나 입력을 버리지 않는다', async () => {
   await showWorld()
   openInfoEdit()
   const name = () => infoForm().getByRole<HTMLInputElement>('textbox', { name: '세계관 이름' })
   fireEvent.change(name(), { target: { value: '쓰던 이름' } })
   fireEvent.keyDown(name(), { key: 'Escape', isComposing: true })
   fireEvent.keyDown(name(), { key: 'Escape', keyCode: 229 }) // Safari는 조합을 끝내는 키를 keyCode 229로 보낸다
-  expect(name().value).toBe('쓰던 이름')
   fireEvent.keyDown(name(), { key: 'Escape' })
-  expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull()
+  expect(screen.getByRole('form', { name: '세계관 정보 편집' })).toBeTruthy()
+  expect(name().value).toBe('쓰던 이름') // 쓰던 입력을 지킨다
 })
 
 it('별칭 입력은 쉼표로 구분한다는 안내를 설명으로 잇는다', async () => {
@@ -3750,4 +3775,326 @@ it('다른 곳에서 바뀐 세계관을 다시 읽으면 열어 둔 카드 편�
   await act(async () => { expect(await reload()).toBe(true) })
   expect(body().value).toBe('다른 곳에서 바뀐 글')
   expect(mcp.watch).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: false }))
+})
+
+// ── 기능별 탭(개요·소설 연결)·게시판 미리보기·사이드바 접기(audit 단계: R1~R4) ──────────────────────────
+/** '소설 연결' 탭(연결된 소설과 그 Fork): 이 탭 안에서만 찾는다. */
+const novelTab = () => within(screen.getByRole('region', { name: '소설 연결' }))
+const readingApi = () => appContainer.resolve('readingUseCase')
+const forkWork = (id: string, title: string, over: Partial<ReadingWork> = {}) => ({ id, title, author: '작가', forkAt: 2, eps: [{ t: '1화', p: ['본문'] }], ...over }) as ReadingWork
+const previewOf = (title: string) => within(screen.getByRole('region', { name: title + ' 미리보기' }))
+
+it('관리 모드 헤더에는 정보 편집 버튼·연결된 소설 줄·소설 버튼이 없고(개요·소설 연결 탭으로 옮겼다) 작성 모드(마법사) 헤더는 그대로다', async () => {
+  await showWorld()
+  expect(headerOf().queryByRole('button', { name: '세계관 정보 편집' })).toBeNull()
+  expect(headerOf().queryByRole('button', { name: '편집' })).toBeNull()
+  expect(headerOf().queryByText(/연결된 소설/)).toBeNull()
+  expect(headerOf().queryByRole('button', { name: /소설 (연결|작성)하기/ })).toBeNull()
+  expect(headerOf().queryByRole('link', { name: '소설 작성하기' })).toBeNull()
+  cleanup()
+  await wizard()
+  expect(headerOf().getByText('연결된 소설이 없어요.')).toBeTruthy()
+  expect(headerOf().getByRole('button', { name: '소설 연결하기' })).toBeTruthy()
+  expect(headerOf().getByRole('button', { name: '집필 메모 추가' })).toBeTruthy()
+  expect(headerOf().getByRole('button', { name: '관리 화면으로' })).toBeTruthy()
+})
+
+it('보기 메뉴는 개요·설정집·관계도·시간선·소설 연결 다섯 개이고, 개요·소설 연결은 주소 ?view=overview|novel로 열려 그 탭의 내용만 보인다', async () => {
+  await showWorld()
+  expect(manageTabs().getAllByRole('button').map((b) => b.textContent)).toEqual(['개요', '설정집', '관계도', '시간선', '소설 연결'])
+  expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull() // 기본 보기는 설정집이다
+  fireEvent.click(manageTabs().getByRole('button', { name: '개요' }))
+  expect(where()).toBe('/worldstudio/qa?view=overview')
+  expect(manageTabs().getByRole('button', { name: '개요' }).getAttribute('aria-current')).toBe('page')
+  expect(screen.getByRole('form', { name: '세계관 정보 편집' })).toBeTruthy()
+  expect(screen.queryByRole('table', { name: '설정 카드 목록' })).toBeNull()
+  expect(screen.queryByRole('region', { name: '소설 연결' })).toBeNull()
+  fireEvent.click(manageTabs().getByRole('button', { name: '소설 연결' }))
+  expect(where()).toBe('/worldstudio/qa?view=novel')
+  expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull()
+  expect(screen.getByRole('region', { name: '소설 연결' })).toBeTruthy()
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  expect(where()).toBe('/worldstudio/qa')
+  expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
+  cleanup()
+  await show(undefined, '/worldstudio/qa?view=overview') // 새로 고침하면 그 탭
+  expect(screen.getByRole('form', { name: '세계관 정보 편집' })).toBeTruthy()
+  cleanup()
+  await show(undefined, '/worldstudio/qa?view=foo') // 모르는 값은 설정집
+  expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
+})
+
+it('개요 탭에 다녀와도 설정집 게시판의 선택 상태는 남는다(게시판은 숨길 뿐 지우지 않는다)', async () => {
+  await show([person('가람'), person('나래')])
+  fireEvent.click(screen.getByLabelText('나래 선택'))
+  fireEvent.click(manageTabs().getByRole('button', { name: '개요' }))
+  expect(screen.queryByRole('table', { name: '설정 카드 목록' })).toBeNull()
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  expect(screen.getByLabelText<HTMLInputElement>('나래 선택').checked).toBe(true)
+})
+
+it('개요 탭 폼은 열어도 입력으로 초점을 옮기지 않고 Esc로 닫히지 않으며, 저장하면 탭은 그대로 두고 헤더 제목을 바꾸고 저장했어요를 알린다', async () => {
+  const { saveStudio } = await show(undefined, '/worldstudio/qa?view=overview')
+  expect(document.activeElement).toBe(document.body) // 메뉴에서 탭을 옮기다 입력칸으로 끌려가지 않는다
+  const form = within(screen.getByRole('form', { name: '세계관 정보 편집' }))
+  fireEvent.keyDown(form.getByRole('textbox', { name: '세계관 이름' }), { key: 'Escape' })
+  expect(screen.getByRole('form', { name: '세계관 정보 편집' })).toBeTruthy()
+  expect(form.queryByRole('button', { name: '취소' })).toBeNull() // 취소 대신 되돌리기
+  fireEvent.change(form.getByRole('textbox', { name: '세계관 이름' }), { target: { value: '새 이름' } })
+  fireEvent.click(form.getByRole('button', { name: '저장' }))
+  expect(await screen.findByRole('heading', { name: '새 이름', level: 1 })).toBeTruthy()
+  expect(saveStudio).toHaveBeenCalledTimes(1)
+  await waitFor(() => expect(form.getByText('저장했어요.')).toBeTruthy())
+  expect(where()).toBe('/worldstudio/qa?view=overview') // 탭은 그대로다
+  expect(form.getByRole<HTMLButtonElement>('button', { name: '저장' }).disabled).toBe(true) // 바뀐 것이 없다
+  fireEvent.change(form.getByRole('textbox', { name: '세계관 이름' }), { target: { value: '또 바꿈' } })
+  expect(form.queryByText('저장했어요.')).toBeNull() // 다시 고치면 알림은 사라진다
+})
+
+it('개요 탭의 되돌리기는 바뀐 이름·설명·공개 범위·고른 표지를 저장값으로 되돌리고, 바뀐 것이 없으면 잠겨 있다', async () => {
+  await show(undefined, '/worldstudio/qa?view=overview')
+  const form = () => within(screen.getByRole('form', { name: '세계관 정보 편집' }))
+  const reset = () => form().getByRole<HTMLButtonElement>('button', { name: '되돌리기' })
+  expect(reset().disabled).toBe(true)
+  fireEvent.change(form().getByRole('textbox', { name: '세계관 이름' }), { target: { value: '다른 이름' } })
+  fireEvent.click(within(form().getByRole('group', { name: '공개 설정' })).getByRole('button', { name: '공개' }))
+  fireEvent.change(form().getByLabelText('이미지 선택'), { target: { files: [new File([new Uint8Array(4)], 'cover.png', { type: 'image/png' })] } })
+  expect(reset().disabled).toBe(false)
+  expect(form().getByText('선택한 파일: cover.png')).toBeTruthy()
+  fireEvent.click(reset())
+  expect(form().getByRole<HTMLInputElement>('textbox', { name: '세계관 이름' }).value).toBe('검증 세계')
+  expect(within(form().getByRole('group', { name: '공개 설정' })).getByRole('button', { name: '비공개' }).getAttribute('aria-pressed')).toBe('true')
+  expect(form().queryByText(/선택한 파일/)).toBeNull()
+  expect(reset().disabled).toBe(true)
+})
+
+it('개요 탭 표지 묶음 맨 앞에 현재 표지가 보이고, 세계관 삭제는 폼 맨 아래의 삭제 구획에 있다', async () => {
+  await show(undefined, '/worldstudio/qa?view=overview')
+  const form = screen.getByRole('form', { name: '세계관 정보 편집' })
+  const cover = within(within(form).getByRole('group', { name: '표지' }))
+  expect(cover.getByRole('img', { name: '기본 표지' })).toBeTruthy()
+  const zone = within(form).getByRole('group', { name: '세계관 삭제' })
+  expect(zone.classList.contains('ep-delete')).toBe(true)
+  expect(form.querySelector('fieldset')!.lastElementChild).toBe(zone) // 저장·되돌리기 줄 아래, 폼의 맨 끝
+})
+
+it('소설 연결 탭은 연결된 소설의 제목·소설 작성하기·작품 보기와 공개 Fork 목록(작가 · N화에서 분기 · 자체 M화)을 보이고 행은 그 소설로 간다', async () => {
+  vi.spyOn(episodeApi(), 'list').mockResolvedValue([{ ...myWork('work-1', '달빛 기록', '11111111-1111-4111-8111-111111111111'), visibility: 'public' }])
+  const forks = vi.spyOn(readingApi(), 'forksOf').mockResolvedValue([forkWork('f1', '다른 길', { author: '나래', forkAt: 3, eps: [{ t: '1화', p: ['a'] }, { t: '2화', p: ['b'] }] }), forkWork('f2', '또 다른 길')])
+  await show(undefined, '/worldstudio/qa?view=novel', { linkedWorkId: 'work-1' })
+  expect(await novelTab().findByText('연결된 소설: 달빛 기록')).toBeTruthy()
+  expect(novelTab().getByRole('link', { name: '소설 작성하기' }).getAttribute('href')).toBe('/content?work=work-1')
+  expect(novelTab().getByRole('link', { name: '작품 보기' }).getAttribute('href')).toBe('/work/work-1')
+  expect(forks).toHaveBeenCalledWith('work-1')
+  expect(await novelTab().findByRole('heading', { name: 'Fork 소설 2편', level: 2 })).toBeTruthy()
+  const rows = novelTab().getAllByRole('link').filter((link) => link.getAttribute('href')?.startsWith('/work/f'))
+  expect(rows.map((link) => [link.getAttribute('href'), link.textContent])).toEqual([['/work/f1', '다른 길나래 · 3화에서 분기 · 자체 2화'], ['/work/f2', '또 다른 길작가 · 2화에서 분기 · 자체 1화']])
+  expect(novelTab().getByRole('link', { name: '모두 보기' }).getAttribute('href')).toBe('/ifs?w=work-1') // 원작이 공개이고 Fork가 있다
+})
+
+it('소설 연결 탭의 Fork가 0편이면 공개 Fork만 보인다는 기준을 알리고, 비공개 원작이면 모두 보기 링크가 없으며, 읽지 못하면 다시 시도할 수 있다', async () => {
+  vi.spyOn(episodeApi(), 'list').mockResolvedValue([myWork('work-1', '달빛 기록')]) // 비공개
+  const forks = vi.spyOn(readingApi(), 'forksOf').mockRejectedValue(new Error('목록을 읽지 못했어요.'))
+  await show(undefined, '/worldstudio/qa?view=novel', { linkedWorkId: 'work-1' })
+  expect((await novelTab().findByRole('alert')).textContent).toContain('Fork 소설을 불러오지 못했어요')
+  forks.mockResolvedValue([])
+  fireEvent.click(novelTab().getByRole('button', { name: '다시 시도' }))
+  expect(await novelTab().findByText('아직 공개된 Fork 소설이 없어요. 회차를 하나 이상 발행한 공개 Fork만 보여요.')).toBeTruthy()
+  expect(novelTab().getByRole('heading', { name: 'Fork 소설 0편', level: 2 })).toBeTruthy()
+  forks.mockResolvedValue([forkWork('f1', '다른 길')])
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '소설 연결' }))
+  await novelTab().findByRole('heading', { name: 'Fork 소설 1편', level: 2 })
+  expect(novelTab().queryByRole('link', { name: '모두 보기' })).toBeNull() // 원작이 비공개라 공개 Fork 모음이 열리지 않는다
+})
+
+it('소설 연결 탭은 연결된 소설이 없으면 소설 연결하기뿐이고 Fork 목록·작품 보기는 읽지도 그리지도 않으며, 소설 목록·Fork 조회는 이 탭을 열 때만 한다', async () => {
+  const list = vi.spyOn(episodeApi(), 'list').mockResolvedValue([])
+  const forks = vi.spyOn(readingApi(), 'forksOf').mockResolvedValue([])
+  await showWorld()
+  expect(list).not.toHaveBeenCalled() // 헤더가 연결된 소설 제목을 읽던 일을 이 탭이 맡는다
+  expect(forks).not.toHaveBeenCalled()
+  fireEvent.click(manageTabs().getByRole('button', { name: '소설 연결' }))
+  expect(novelTab().getByText('연결된 소설이 없어요.')).toBeTruthy()
+  expect(novelTab().getByRole('button', { name: '소설 연결하기' })).toBeTruthy()
+  expect(novelTab().queryByRole('link', { name: '작품 보기' })).toBeNull()
+  expect(novelTab().queryByRole('heading', { name: /Fork 소설/ })).toBeNull()
+  expect(forks).not.toHaveBeenCalled()
+})
+
+it('사이드바 접기: 토글이 메뉴를 접고 펼치며(aria-expanded), 접힌 동안에도 저장 영역은 상단 줄에 한 곳만 보이고 초점은 토글에 남는다', async () => {
+  await showWorld()
+  const toggle = () => screen.getByRole('button', { name: /세계관 메뉴 (접기|펼치기)/ })
+  expect(toggle().getAttribute('aria-label')).toBe('세계관 메뉴 접기')
+  expect(toggle().getAttribute('aria-expanded')).toBe('true')
+  expect(screen.getAllByRole('group', { name: '저장 상태' })).toHaveLength(1)
+  toggle().focus()
+  fireEvent.click(toggle())
+  expect(toggle().getAttribute('aria-label')).toBe('세계관 메뉴 펼치기')
+  expect(toggle().getAttribute('aria-expanded')).toBe('false')
+  expect(screen.queryByRole('navigation', { name: '세계관 메뉴' })).toBeNull() // 접근성 트리에서 사라진다
+  expect(screen.queryByRole('button', { name: 'AI 검토' })).toBeNull()
+  const bars = screen.getAllByRole('group', { name: '저장 상태' })
+  expect(bars).toHaveLength(1) // 두 군데 동시에 뜨지 않는다
+  expect(bars[0].closest('.ep-top')).toBeTruthy() // 뒤로 가기 링크 옆 상단 줄
+  expect(within(bars[0]).getByText('저장됨')).toBeTruthy()
+  expect(screen.getAllByRole('button', { name: '세계관 저장' })).toHaveLength(1)
+  expect(document.activeElement).toBe(toggle())
+  fireEvent.click(toggle())
+  expect(toggle().getAttribute('aria-expanded')).toBe('true')
+  expect(screen.getByRole('navigation', { name: '세계관 메뉴' })).toBeTruthy()
+  expect(screen.getAllByRole('group', { name: '저장 상태' })).toHaveLength(1)
+  expect(screen.getByRole('group', { name: '저장 상태' }).closest('.ep-menu')).toBeTruthy() // 펼치면 다시 사이드바 쪽
+  expect(document.activeElement).toBe(toggle())
+})
+
+it('사이드바를 접어도 미저장 상태와 저장 버튼은 잃지 않는다: 상단 줄의 저장 영역으로 저장하면 서버로 간다', async () => {
+  const { saveStudio } = await showWorld()
+  openCard('가람 인물')
+  fireEvent.change(screen.getByRole('textbox', { name: '설정 이름' }), { target: { value: '고친 이름' } })
+  backToBoard()
+  fireEvent.click(screen.getByRole('button', { name: '세계관 메뉴 접기' }))
+  const bar = within(screen.getByRole('group', { name: '저장 상태' }))
+  expect(bar.getByText('저장하지 않은 변경 있음')).toBeTruthy()
+  fireEvent.click(bar.getByRole('button', { name: '세계관 저장' }))
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledTimes(1))
+  await waitFor(() => expect(within(screen.getByRole('group', { name: '저장 상태' })).getByText('저장됨')).toBeTruthy())
+})
+
+it('보기 메뉴를 누르면 누른 버튼을 가로 줄 안에 보이게 하고 바뀐 내용 카드 머리로 스크롤하되, 처음 열 때는 스크롤하지 않고 같은 탭을 다시 눌러도 카드는 스크롤하지 않는다', async () => {
+  const scroll = vi.fn()
+  Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: scroll })
+  try {
+    await showWorld()
+    expect(scroll).not.toHaveBeenCalled()
+    fireEvent.click(manageTabs().getByRole('button', { name: '시간선' }))
+    expect(scroll.mock.calls.map(([arg]) => arg)).toEqual([{ inline: 'nearest', block: 'nearest' }, { block: 'start' }])
+    expect(scroll.mock.contexts[0]).toBe(manageTabs().getByRole('button', { name: '시간선' }))
+    expect(scroll.mock.contexts[1]).toBe(document.querySelector('.tcard.ep-card'))
+    scroll.mockClear()
+    fireEvent.click(manageTabs().getByRole('button', { name: '시간선' }))
+    expect(scroll.mock.calls.map(([arg]) => arg)).toEqual([{ inline: 'nearest', block: 'nearest' }])
+  } finally {
+    delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView
+  }
+})
+
+it('시간선의 사건 설명은 본문의 카드 링크 원문 대신 링크 글자만 보인다', async () => {
+  const garam = person('가람'), event = eventCard('건국')
+  event.item.text = '[가람](card:' + garam.item.id + ')이 나라를 세웠다'
+  await show([garam, event], '/worldstudio/qa?view=timeline')
+  expect(document.querySelector('.world-timeline-description .world-prose')?.textContent).toBe('가람이 나라를 세웠다') // 설명 영역(게시판의 숨은 요약과 따로)
+  expect(document.body.textContent).not.toContain('card:')
+})
+
+it('게시판 제목을 누르면 편집 화면이 아니라 그 행 바로 아래에 미리보기가 열리고, 수정하기를 눌러야 편집 화면(?card=)이 열린다', async () => {
+  const garam = person('가람', '기존 내용')
+  await show([garam, place('항구')])
+  const title = screen.getByRole('button', { name: '가람 인물' })
+  expect(title.getAttribute('aria-expanded')).toBe('false')
+  fireEvent.click(title)
+  expect(where()).toBe('/worldstudio/qa') // 편집 화면이 아니다
+  expect(screen.queryByRole('region', { name: '선택한 설정 편집' })).toBeNull()
+  expect(title.getAttribute('aria-expanded')).toBe('true')
+  expect(previewOf('가람').getByText('기존 내용')).toBeTruthy() // 요약 전문
+  expect(title.closest('tr')!.nextElementSibling).toBe(screen.getByRole('region', { name: '가람 미리보기' }).closest('tr')) // 고른 행 바로 아래
+  expect(title.closest('tr')!.classList.contains('sel')).toBe(true)
+  fireEvent.click(previewOf('가람').getByRole('button', { name: '수정하기' }))
+  expect(where()).toBe('/worldstudio/qa?card=' + garam.item.id)
+  expect(screen.getByRole('region', { name: '선택한 설정 편집' })).toBeTruthy()
+  backToBoard()
+  expect(screen.getByRole('region', { name: '가람 미리보기' })).toBeTruthy() // 편집 화면에 다녀와도 열린 채
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '가람 인물' }))) // 돌아오면 그 행의 제목에 초점
+})
+
+it('행의 빈 곳을 눌러도 미리보기가 열리지만 선택 체크박스·보완 배지 버튼은 열지 않고, 미리보기는 한 번에 하나뿐이다', async () => {
+  const [garam, narae] = [person('가람', '첫째'), person('나래', '둘째')]
+  await show([garam, narae])
+  const rowOf = (name: string) => screen.getByRole('button', { name }).closest('tr')!
+  fireEvent.click(screen.getByLabelText('가람 선택')) // 선택 칸
+  expect(screen.queryByRole('region', { name: /미리보기/ })).toBeNull()
+  fireEvent.click(rowOf('가람 인물').querySelector('.col-sum')!) // 행의 다른 칸
+  expect(screen.getByRole('region', { name: '가람 미리보기' })).toBeTruthy()
+  fireEvent.click(rowOf('나래 인물').querySelector('.col-kind')!)
+  expect(screen.queryByRole('region', { name: '가람 미리보기' })).toBeNull()
+  expect(screen.getByRole('region', { name: '나래 미리보기' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '나래 인물' })) // 같은 제목을 다시 누르면 접힌다
+  expect(screen.queryByRole('region', { name: /미리보기/ })).toBeNull()
+})
+
+it('미리보기의 닫기는 미리보기를 접고 제목으로 초점을 돌려주며, 연결된 설정(상위 5개)과 공개 범위를 보인다', async () => {
+  const [garam, narae] = [person('가람', '첫째'), person('나래', '둘째')]
+  await show(friends([garam, narae], garam, narae))
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' }))
+  expect(previewOf('가람').getByText('작가 전용')).toBeTruthy() // 공개 범위
+  expect(previewOf('가람').getByText('나래 · 친구')).toBeTruthy() // 연결된 설정: 이름 · 라벨
+  fireEvent.click(previewOf('가람').getByRole('button', { name: '닫기' }))
+  expect(screen.queryByRole('region', { name: '가람 미리보기' })).toBeNull()
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: '가람 인물' }))
+})
+
+it('설정 편집 화면의 카드 레일에는 기존 관계가 섞이지 않고(메모·분류 확인은 남는다) 열려 있는 관계 항목만은 남으며, 두 쪽 이동에는 각각 이름이 있다', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  const note = newSetting()
+  note.item.kind = 'note'
+  note.item.title = '집필 메모'
+  note.item.text = '메모'
+  const settings = friends([garam, narae, note], garam, narae)
+  await show(settings)
+  openCard('가람 인물')
+  const names = () => rail().getAllByRole('button', { name: /(인물|메모|관계)$/ }).map((b) => b.getAttribute('aria-label'))
+  expect(names()).toEqual(['가람 인물', '나래 인물', '집필 메모 메모']) // 가람·나래 · 메모. 관계 항목은 레일에 없다
+  backToBoard()
+  fireEvent.click(screen.getByText(/기존 설정·관계 \d+개/)) // 관계는 게시판의 접힌 목록에서 계속 열린다
+  fireEvent.click(within(screen.getByRole('navigation', { name: '기존 설정과 관계' })).getByRole('button', { name: /가람 · 친구 · 나래/ }))
+  expect(names()).toContain('가람 · 친구 · 나래 관계') // 열려 있는 항목은 레일에도 남아 어디인지 알 수 있다
+})
+
+it('설정 편집 화면 레일의 두 페이지 이동은 설정 카드·기존 항목으로 이름이 구분된다', async () => {
+  const cards = Array.from({ length: 51 }, (_, i) => person('카드 ' + i))
+  const notes = Array.from({ length: 51 }, (_, i) => { const note = newSetting(); note.item.kind = 'note'; note.item.title = '메모 ' + i; note.item.text = 'x'; return note })
+  await show([...cards, ...notes])
+  openCard('카드 0 인물')
+  expect(screen.getByRole('navigation', { name: '설정 카드 페이지 이동' })).toBeTruthy()
+  expect(screen.getByRole('navigation', { name: '기존 항목 페이지 이동' })).toBeTruthy()
+  expect(screen.queryByRole('navigation', { name: '페이지 이동' })).toBeNull()
+})
+
+it.each([
+  ['', '설정집'],
+  ['view=people&', '관계도'],
+  ['view=timeline&', '시간선'],
+  ['view=overview&', '개요'],
+  ['view=novel&', '소설 연결'],
+])('설정 편집 화면의 돌아가기 버튼은 들어온 보기의 이름이다 (%s → %s)', async (query, name) => {
+  const garam = person('가람')
+  mount([garam, person('나래')], '/worldstudio/qa?' + query + 'card=' + garam.item.id)
+  await screen.findByRole('region', { name: '선택한 설정 편집' }) // 편집 화면이 열려 있는 동안 설정집 화면(h1)은 숨는다
+  const back = screen.getByRole('button', { name })
+  fireEvent.click(back)
+  expect(where()).toBe(query ? '/worldstudio/qa?' + query.slice(0, -1) : '/worldstudio/qa') // 누르면 그 보기로 돌아온다
+})
+
+it('개요 탭에서 고치던 이름과 고른 표지 파일은 다른 보기에 다녀와도 남는다(보기 이동은 입력을 잃지 않는다: 폼은 숨길 뿐 지우지 않는다)', async () => {
+  await show(undefined, '/worldstudio/qa?view=overview')
+  const name = () => infoForm().getByRole<HTMLInputElement>('textbox', { name: '세계관 이름' })
+  fireEvent.change(name(), { target: { value: '쓰던 이름' } })
+  pickCover(png())
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  expect(screen.queryByRole('form', { name: '세계관 정보 편집' })).toBeNull() // 숨은 폼은 접근성 트리에 없다
+  expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
+  fireEvent.click(manageTabs().getByRole('button', { name: '개요' }))
+  expect(name().value).toBe('쓰던 이름')
+  expect(coverGroup().getByText('선택한 파일: cover.png')).toBeTruthy()
+})
+
+it('개요 폼은 한 번 열기 전에는 그리지 않고(장르 목록 같은 읽기를 미리 하지 않는다), 열고 나면 다른 보기에서도 숨겨 둔다', async () => {
+  await showWorld()
+  expect(document.querySelector('.world-info-edit')).toBeNull()
+  fireEvent.click(manageTabs().getByRole('button', { name: '개요' }))
+  expect(document.querySelector('.world-info-edit')).toBeTruthy()
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
+  const hidden = document.querySelector('.world-info-edit')
+  expect(hidden).toBeTruthy()
+  expect(hidden!.closest('[hidden]')).toBeTruthy()
 })

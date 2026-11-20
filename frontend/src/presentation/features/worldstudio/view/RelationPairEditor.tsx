@@ -83,9 +83,10 @@ export function RelationPairEditor(
                 {field}
                 {kind === 'fact'
                   ? (
-                    <input
-                      className='inp'
-                      list='relationship-examples'
+                    <textarea
+                      className='ta'
+                      rows={2}
+                      data-autofocus={i === 0 ? '' : undefined}
                       value={r.value.text ?? ''}
                       maxLength={3000}
                       placeholder='예: 아버지와 서자, 인정받지 못한 가족'
@@ -245,11 +246,6 @@ export function RelationPairEditor(
   }
   return (
     <>
-      <datalist id='relationship-examples'>
-        <option value='친구' />
-        <option value='아버지와 서자, 인정받지 못한 가족' />
-        <option value='오랜 동료이자 경쟁자' />
-      </datalist>
       <p className='small muted'>
         실제 관계는 여러 개일 수 있어요. 감정은 각 방향을 따로 정하며, 반대 방향으로 복사하지
         않아요.

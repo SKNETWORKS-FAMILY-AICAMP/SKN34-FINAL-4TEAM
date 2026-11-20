@@ -49,6 +49,29 @@ export function mapNeighbors(graph:ReturnType<typeof buildWorldMap>,anchor:strin
  return {...graph,nodes:[node,...nodes],links:links.filter(l=>ids.has(mapEndpoint(l.source))&&ids.has(mapEndpoint(l.target)))}
 }
 
+/**
+ * 관계도를 처음 열 때 보는 중심 카드: 승인된 관계가 가장 많은 인물, 인물에게 관계가 하나도 없으면 관계가 가장 많은 카드, 관계가 하나도 없으면 ''(전체 보기)다. 동률이면 그래프의 앞선 카드다.
+ * 57장·142관계처럼 큰 세계관은 전체를 한 번에 깔면 읽을 수 없어 이 카드와 이웃만 먼저 보이고, 전체는 '전체 관계도로'로 본다.
+ */
+export function defaultAnchor(graph:ReturnType<typeof buildWorldMap>) {
+ const degree=new Map<string,number>()
+ for(const l of graph.links)for(const id of [mapEndpoint(l.source),mapEndpoint(l.target)])degree.set(id,(degree.get(id)??0)+1)
+ const most=(nodes:MapNode[])=>nodes.reduce<MapNode|undefined>((best,n)=>(degree.get(n.id)??0)>(degree.get(best?.id??'')??0)?n:best,undefined)
+ return (most(graph.nodes.filter(n=>n.type==='character'))??most(graph.nodes))?.id??''
+}
+
+/**
+ * 중심 카드 보기의 원형 배치. 좌표는 카드의 왼쪽 위 모서리다(격자 배치와 같다). 중심 카드는 보드 가운데, 이웃 ${count}장은 그 둘레에 중심 바로 위에서 시계 방향으로 같은 간격으로 놓인다.
+ * 반지름은 이웃끼리 겹치지 않을 만큼(카드 폭 × 개수 ÷ 2π × 1.25, 최소 260px)이라 중심과 이웃, 이웃끼리 카드가 겹치지 않는다(1.15면 9·11장에서 카드 모서리가 겹쳤다). 보드는 원이 들어갈 만큼 커지되 호스트 폭보다 좁아지지 않는다.
+ */
+export function ringLayout(count:number,width:number,cardW:number,cardH:number) {
+ const margin=24,radius=count?Math.max(260,count*cardW/(2*Math.PI)*1.25):0
+ const boardWidth=Math.ceil(Math.max(width,2*radius+cardW+margin*2)),boardHeight=Math.ceil(Math.max(360,2*radius+cardH+margin*2))
+ const cx=boardWidth/2,cy=boardHeight/2,place=(x:number,y:number)=>({x:x-cardW/2,y:y-cardH/2})
+ const ring=Array.from({length:count},(_,i)=>{const angle=-Math.PI/2+2*Math.PI*i/count;return place(cx+radius*Math.cos(angle),cy+radius*Math.sin(angle))})
+ return {center:place(cx,cy),ring,width:boardWidth,height:boardHeight}
+}
+
 /** 유형 버튼을 눌렀을 때의 숨김 집합. 숨긴 유형은 다시 보이게 하고, 보이는 유형이 그것 하나뿐이면 끄지 않고(빈 그래프가 되지 않게) 같은 집합을 돌려준다. */
 export function toggleHiddenType(hidden:ReadonlySet<CardType>,type:CardType,present:readonly CardType[]):ReadonlySet<CardType> {
  const next=new Set(hidden)

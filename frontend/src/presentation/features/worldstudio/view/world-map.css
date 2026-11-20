@@ -45,10 +45,22 @@
 .relationship-service-form{min-width:0;max-height:760px;overflow:auto;padding:20px;border:1px solid var(--line2);border-radius:16px;background:var(--surface)}
 .relationship-service-form>*+*{margin-top:24px;padding-top:24px;border-top:1px solid var(--line2)}.relationship-service-form h4{margin:0;font-size:15px}
 .relationship-add,.relationship-list{display:grid;gap:12px;align-content:start}.relationship-pair{min-width:0}.relationship-add .field{margin-bottom:0}.relationship-actions{display:flex;flex-wrap:wrap;gap:8px}
-.relationship-table{width:100%;table-layout:fixed}.relationship-table :is(th,td){padding:8px 6px;text-align:left;vertical-align:middle;font-size:13px;overflow-wrap:anywhere}.relationship-table th{font-size:12px}
+.relationship-table{width:100%;table-layout:fixed}.relationship-table :is(th,td){padding:8px 6px;text-align:left;vertical-align:middle;font-size:14px;overflow-wrap:anywhere}.relationship-table th{font-size:12px}
+/* 칸 폭(R5): 주체·대상은 이름 길이만큼, 시작 회차·작업은 고정, 관계(자유 문구)가 남은 폭을 쓴다. 표는 전역 .adm-scroll(가로 스크롤, 표 최소 600px) 안이라 좁은 편집기·폰에서도 한 단어씩 꺾이지 않고 가로로 민다. */
+.relationship-table th.col-subject{width:18%}.relationship-table th.col-target{width:20%}.relationship-table th.col-from{width:84px}
 .relationship-card-link{padding:0;border:0;background:none;color:var(--pri-ink);font:inherit;text-align:left;text-decoration:underline;cursor:pointer;overflow-wrap:anywhere}
 .relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}.relationship-row-actions .relationship-remove{margin-top:0}
 @container relationship-editor (max-width:950px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{max-height:none}}
-/* 편집기가 좁으면(390px 폰, 채팅 레일을 연 좁은 본문) 관계 목록 표의 작업 칸을 126px 고정에서 64px로 줄이고 버튼을 줄바꿈해, 주체·관계·대상 칸이 한 글자씩 끊기지 않게 한다. */
-@container relationship-editor (max-width:520px){.relationship-table :is(th,td):last-child{width:64px}.relationship-row-actions{white-space:normal}.relationship-row-actions .btn+.btn{margin:6px 0 0}}
 @media(max-width:600px){.relationship-service-form{padding:12px}}
+/* 카드 모서리 위 유형 점(인물·장소·사건 …): 게시판 칩과 같은 유형 색이라 사건 수십 장이 인물과 섞여도 구분된다. */
+.relationship-kind{display:inline-block;width:8px;height:8px;margin-right:8px;border-radius:50%;vertical-align:middle}
+/* 관계 작성 패널(R5)은 가운데에 뜨는 시트(.world-sheet, 720px)다. 시트는 body에 그려져 .episode-app·.ep-main 밖이라 그 틀의 입력 규칙이 닿지 않으므로 전역 .inp·.ta를 이 안에서 키운다:
+   폭 100%·15px(터치 기기는 확대 방지로 16px), 실제 관계 문구 칸은 최소 3줄에서 글 길이를 따라 자란다. */
+.relationship-sheet :is(input:not([type=checkbox]):not([type=radio]),select,textarea){box-sizing:border-box;width:100%;font-size:15px}
+.relationship-sheet textarea{field-sizing:content;min-height:calc(3lh + 24px)}
+/* N화부터 라벨과 숫자 칸(88px)은 .episode-app 틀 밖이라 그쪽 규칙이 닿지 않으므로 같은 모양을 다시 정한다. */
+.relationship-sheet .relationship-from{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}
+.relationship-sheet .relationship-from input:not([type=checkbox]):not([type=radio]){width:88px}
+/* 적용 바는 시트 안쪽 여백(.sheet padding 26px)만큼 아래로 내려 붙어 시트 바닥에 닿는다(sticky bottom = -padding, 위 폼의 -20px·-12px와 같은 규칙). */
+.relationship-sheet .relationship-apply{bottom:-26px}
+@media(pointer:coarse){.relationship-sheet :is(input:not([type=checkbox]):not([type=radio]),select,textarea){font-size:16px}}

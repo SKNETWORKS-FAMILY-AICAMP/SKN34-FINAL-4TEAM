@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { stripCardLinks } from '../../../../domain/entities/cardLinks'
 import type { SettingItem } from '../../../../domain/entities/studioWorld'
 import { timelineLayout } from '../viewmodel/worldTimeline'
 import './world-timeline.css'
@@ -18,6 +19,6 @@ export function WorldTimeline({items}:{items:SettingItem[]}) {
     {nodes.map(n=><button type="button" key={n.item.id} className="world-timeline-event" style={{left:n.column*310+25,top:n.row*150+22}} aria-pressed={current.id===n.item.id} onClick={()=>setSelected(n.item.id)}><span className="world-timeline-time">{n.item.timeText}</span><span className="world-timeline-dot"/><strong>{n.item.title}</strong></button>)}
    </div>
   </div>
-  <div className="world-timeline-description" aria-live="polite"><span className="chip">{current.timeText||'시점 미지정'}</span><h4>{current.title}</h4><p className="world-prose">{current.text}</p>{current.afterId&&<p className="small muted">앞선 사건 · {byId(current.afterId)}</p>}<div className="world-timeline-related">{current.relatedIds.map(id=><span className="chip" key={id}>{byId(id)}</span>)}</div></div>
+  <div className="world-timeline-description" aria-live="polite"><span className="chip">{current.timeText||'시점 미지정'}</span><h4>{current.title}</h4><p className="world-prose">{stripCardLinks(current.text)}</p>{current.afterId&&<p className="small muted">앞선 사건 · {byId(current.afterId)}</p>}<div className="world-timeline-related">{current.relatedIds.map(id=><span className="chip" key={id}>{byId(id)}</span>)}</div></div>
  </div>
 }

@@ -49,12 +49,15 @@ describe('설정 카드 게시판의 좁은 배치와 터치 영역', () => {
 })
 
 describe('세계관 작업실 레이아웃 규칙', () => {
-  it('설정집 게시판은 본문 폭을 기준으로 삼는 컨테이너라 채팅 레일이 열려도 좁은 배치로 바뀌고, 숨는 분류·요약은 제목 아래 한 줄로 보인다', () => {
+  it('설정집 게시판은 본문 폭을 기준으로 삼는 컨테이너라 채팅 레일이 열려도 좁은 배치로 바뀌고, 숨는 분류·요약은 제목 아래 한 줄로 보인다(열 숨김 기준은 600px 미만, 분류 칩 줄은 760px 이하)', () => {
     expect(rule(studio, '.world-card-library')).toMatch(/container:\s*worlds-board\s*\/\s*inline-size/)
-    const narrow = block(studio, '@container worlds-board (max-width:760px)')
+    const narrow = block(studio, '@container worlds-board (max-width:599px)')
     expect(narrow).toMatch(/\.world-card-library \.worlds-board-table :is\(\.col-kind,\.col-num\)\{display:none\}/)
     expect(narrow).toMatch(/\.world-row-sub\{display:flex/)
-    expect(rule(studio, '.world-row-sub')).toMatch(/display:\s*none/) // 넓은 본문에서는 분류·요약 칸이 보이므로 숨긴다
+    expect(rule(studio, '.world-row-sub')).toMatch(/display:\s*none/) // 600px 이상 본문에서는 분류·요약 칸이 보이므로 숨긴다
+    // 채팅을 연 1440px(게시판 폭 약 748px)에서도 한 줄 행이 되도록 600px부터 요약 칸을 되살린다(번호 칸은 공용 규칙대로 숨긴 채): 특이도 (0,3,0)이 공용 (0,2,0)을 이긴다.
+    expect(block(studio, '@container worlds-board (min-width:600px)')).toMatch(/\.world-card-library \.worlds-board-table \.col-sum\{display:table-cell\}/)
+    expect(block(board, '@container worlds-board (max-width: 760px)')).toMatch(/:is\(\.col-no, \.col-sum\) \{ display: none; \}/) // 공용 게시판의 760px 규칙은 그대로다(공개 설정집 /worlds는 변화 없음)
     expect(studio).not.toMatch(/@media\(max-width:(720|480)px\)/) // 뷰포트 기준 분기는 채팅 레일(300~350px)을 몰라 표가 넘쳤다
     expect(rule(studio, '.world-board-scroll')).toMatch(/overflow-x:\s*auto/)
   })
@@ -162,5 +165,33 @@ describe('관계도 무대 조용히 다듬기', () => {
     expect(h4).not.toMatch(/letter-spacing/)
     expect(rule(map, '.relationship-filter .btn')).toMatch(/font-weight:600/)
     expect(map).toMatch(/\.relationship-stage \.relationship-filter \.btn\[aria-pressed=true\]\{[^}]*background:var\(--rc-sel\)/)
+  })
+})
+
+describe('관계 작성 시트와 관계 목록 표(R5)', () => {
+  it('관계 작성 패널은 시트라 입력·select·textarea를 폭 100%·15px로 키우고(터치 기기는 확대 방지로 16px), 실제 관계 문구 칸은 최소 3줄에서 글 길이를 따라 자란다', () => {
+    const fields = ':is(input:not([type=checkbox]):not([type=radio]),select,textarea)'
+    expect(map).toContain('.relationship-sheet ' + fields + '{box-sizing:border-box;width:100%;font-size:15px}')
+    expect(rule(map, '.relationship-sheet textarea')).toMatch(/field-sizing:content;\s*min-height:calc\(3lh \+ 24px\)/)
+    expect(map).toContain('@media(pointer:coarse){.relationship-sheet ' + fields + '{font-size:16px}}') // iOS는 16px 미만 입력에 초점이 가면 확대한다
+    // N화부터 칸은 시트 안에서도 88px 숫자 칸이다(위의 폭 100%를 이기려고 선택자를 더 길게).
+    expect(rule(map, '.relationship-sheet .relationship-from input:not([type=checkbox]):not([type=radio])')).toMatch(/width:88px/)
+  })
+
+  it('적용 바는 시트 안쪽 여백(.sheet padding 26px)만큼 아래로 내려 붙어 시트 바닥에 닿는다', () => {
+    expect(rule(map, '.relationship-sheet .relationship-apply')).toMatch(/bottom:-26px/)
+    expect(rule(map, '.relationship-apply')).toMatch(/bottom:-20px/) // 위 폼(오른쪽 열) 규칙은 그대로
+  })
+
+  it('관계 목록 표는 칸 폭을 정하고(주체 18%·대상 20%·시작 회차 84px·작업 126px) 글자는 14px이며, 좁은 편집기용 작업 칸 64px 규칙은 없다(전역 가로 스크롤 상자가 대신한다)', () => {
+    expect(rule(map, '.relationship-table :is(th,td)')).toMatch(/font-size:14px/)
+    expect(map).toMatch(/\.relationship-table th\.col-subject\{width:18%\}\.relationship-table th\.col-target\{width:20%\}\.relationship-table th\.col-from\{width:84px\}/)
+    expect(rule(map, '.relationship-table :is(th,td):last-child')).toMatch(/width:126px/)
+    expect(map).not.toMatch(/relationship-editor \(max-width:520px\)/)
+    expect(map).not.toMatch(/last-child\{width:64px\}/)
+  })
+
+  it('관계도 카드의 유형 점은 8px 원이다', () => {
+    expect(rule(map, '.relationship-kind')).toMatch(/width:8px;\s*height:8px;[^}]*border-radius:50%/)
   })
 })

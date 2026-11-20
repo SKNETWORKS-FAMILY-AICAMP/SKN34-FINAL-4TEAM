@@ -9,6 +9,8 @@ import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
 import {putRelation} from '../../domain/entities/studioRelations'
 import type {WorldStudioRepository} from '../../domain/repositories/WorldStudioRepository'
+/** 게시판 제목은 미리보기를 열고 `수정하기`가 편집 화면을 연다. 이미 미리보기가 열려 있으면(편집 화면에 다녀온 뒤) 제목을 다시 누르지 않는다(접힌다). */
+const openCard=(name:string)=>{const title=screen.getByRole('button',{name});if(title.getAttribute('aria-expanded')!=='true')fireEvent.click(title);fireEvent.click(screen.getByRole('button',{name:'수정하기'}))}
 let useCase:WorldStudioUseCase
 let world:StudioWorld
 let repository:WorldStudioRepository
@@ -39,7 +41,7 @@ it('uses one step navigation, preserves typed input, and returns from review to 
  await show(WIZARD)
  expect(screen.getByRole('navigation',{name:'세계관 작성 단계'})).toBeTruthy()
  expect(screen.queryByRole('navigation',{name:'세계관 도구'})).toBeNull()
- fireEvent.click(screen.getByRole('button',{name:'설정 카드'}));fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ fireEvent.click(screen.getByRole('button',{name:'설정 카드'}));openCard('가람 인물')
  fireEvent.change(screen.getByRole('textbox',{name:'설정 이름'}),{target:{value:'가람 수정'}})
  fireEvent.change(screen.getByRole('textbox',{name:'IDENTITY.md'}),{target:{value:'보존할 미저장 원문'}})
  backToBoard() // 마법사의 단계 이동 줄은 설정집 화면에 있다
@@ -58,7 +60,7 @@ it('makes add visible and keeps management entries out of the compact type filte
  const menu=within(screen.getByRole('navigation',{name:'설정 분류'}))
  expect(menu.getAllByRole('button').map(button=>button.textContent)).toEqual(['전체 1','인물 1','보완 필요 1']) // 가람은 SOUL·GOAL이 비어 정리 필요다
  expect(screen.queryByText('상세 설정 · 선택')).toBeNull() // 행을 고르기 전에는 편집 패널이 없다
- fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ openCard('가람 인물')
  expect(screen.getByText('상세 설정 · 선택').closest('details')?.open).toBe(false)
  backToBoard()
  fireEvent.click(menu.getByRole('button',{name:'인물 1'}))
@@ -68,7 +70,7 @@ it('makes add visible and keeps management entries out of the compact type filte
  fireEvent.change(screen.getByRole('textbox',{name:'설정 이름'}),{target:{value:'나래'}})
  backToBoard()
  expect(menu.getByRole('button',{name:/^전체/}).getAttribute('aria-current')).toBe('true')
- fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ openCard('가람 인물')
  expect(screen.getByRole<HTMLInputElement>('textbox',{name:'설정 이름'}).value).toBe('가람')
 })
 it('keeps failed edits and AI candidates out of the saved confirmed view',async()=>{
@@ -77,7 +79,7 @@ it('keeps failed edits and AI candidates out of the saved confirmed view',async(
  // 저장한 설정만 그리는 화면은 시간선이다: 사건 카드의 설명을 고쳐 저장이 실패해도 시간선은 저장한 원문 그대로여야 한다.
  const event=newSetting();event.item.kind='event';event.item.category='history';event.item.title='건국';event.item.text='기존 사건 원문';event.item.timeText='1년'
  world.settings=[...world.settings,event]
- await show();fireEvent.click(screen.getByRole('button',{name:'건국 사건'}))
+ await show();openCard('건국 사건')
  fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'실패해도 남길 내용'}})
  vi.mocked(repository.saveStudio).mockRejectedValueOnce(new Error('저장 충돌'))
  fireEvent.click(screen.getByRole('button',{name:'세계관 저장'}))
