@@ -219,9 +219,6 @@ export function HomePage() {
                   <div><h2>{h.serverRanking ? '방금 업데이트' : '함께 읽을 소설'}</h2><RankState failed={h.freshFailed} failure="업데이트 소식을 불러오지 못했어요." retry={vm.retry} list={h.fresh} empty="아직 업데이트된 소설이 없어요.">{h.fresh.map((w) => (
                     <Go key={w.id} to={`/work/${w.id}`} className="rk" style={{ gridTemplateColumns: '38px minmax(0,1fr) auto' }}><span className="th"><CoverOf w={w} /></span><b>{w.title}</b><em>{freshLabel(w, h.serverRanking)}</em></Go>
                   ))}</RankState></div>
-                  <div><h2>소설 모아 보기</h2><div className="picks">{h.picks.map((w) => (
-                    <Go key={w.id} to={`/work/${w.id}`} className="pick prox"><Cov w={w} /><b>{shortTitle(w)}</b></Go>
-                  ))}</div></div>
                 </div>
               </section>
               <section className="sec">

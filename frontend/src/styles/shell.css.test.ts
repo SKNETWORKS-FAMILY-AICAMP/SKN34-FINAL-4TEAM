@@ -132,4 +132,8 @@ describe('storyfork.css 셸·읽기 화면 정리 계약 (impeccable 그룹 1)',
     expect(css.match(/background-clip\s*:\s*text|conic-gradient|nbping|\.pop1\{|cubic-bezier\(\.3,\s*1\.6/g) ?? []).toEqual([])
     expect(['.quote', 'q.cq'].map((s) => value(s, 'border-left'))).toEqual([undefined, undefined])
   })
+
+  it('홈의 급상승·방금 업데이트 줄(.tri)은 2칸이다', () => {
+    expect(value('.tri', 'grid-template-columns')).toBe('repeat(2,minmax(0,1fr))')
+  })
 })
