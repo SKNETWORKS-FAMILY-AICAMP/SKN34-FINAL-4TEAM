@@ -8,12 +8,16 @@
 .writing-checkpoints li.on { background: var(--pri-soft); border-color: var(--pri); color: var(--pri-ink); }
 .writing-checkpoints li > :is(.writing-preview, [role="status"]) { flex-basis: 100%; }
 .writing-checkpoints .writing-checkpoint-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.writing-checkpoints .writing-rights { margin: 0; }
-.setting-history-panel > .setting-checkpoints-open { justify-self: start; }
+.writing-checkpoints .writing-rights, .publication-schedule .writing-rights { margin: 0; }
+.setting-history-panel > .btn { justify-self: start; }
 .version-panel-nav { display: flex; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
 /* 지금 보는 화면은 작품 관리의 탭과 같이 aria-current로 알린다. */
 .version-panel-nav [aria-current] { background: var(--pri-soft); border-color: var(--pri); color: var(--pri-ink); }
-.version-comparison, .version-diff, .setting-history-panel { display: grid; gap: 16px; min-width: 0; }
+.version-comparison, .version-diff, .setting-history-panel, .publication-schedule { display: grid; gap: 16px; min-width: 0; }
+/* 예약 발행 패널(PublicationSchedulePanel): 시트 안 다른 패널처럼 격자 간격 안에 두고, 폼·목록 안은 12px·8px, 단독 버튼은 내용 폭으로 둔다. */
+.publication-schedule form { display: grid; gap: 12px; }
+.publication-schedule > .btn, .publication-schedule form > .btn { justify-self: start; }
+.publication-schedule ul { display: grid; gap: 8px; margin: 0; padding-left: 20px; }
 .version-comparison h3, .version-comparison h4 { font-size: 16px; overflow-wrap: anywhere; }
 .version-diff h4 { margin-bottom: 8px; }
 .version-change { display: grid; grid-template-columns: 3em minmax(0, 1fr); gap: 12px; padding: 12px; border-bottom: 1px solid var(--line); }
@@ -31,4 +35,7 @@
   .writing-history-sheet { padding: 20px 16px; }
   .version-original-columns { grid-template-columns: minmax(0, 1fr); }
   .version-change { grid-template-columns: 2em minmax(0, 1fr); gap: 8px; padding-inline: 8px; }
+  /* 탭 다섯 개는 줄바꿈하면 본문을 아래로 밀므로 한 줄 가로 스크롤 띠로 둔다. 스크롤 상자는 초점 고리(바깥 4px)를 자르므로 위·양옆에 4px을 비우고, 양옆은 바깥 여백으로 되돌려 다른 내용과 왼쪽 줄을 맞춘다. */
+  .version-panel-nav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; margin-inline: -4px; padding: 4px 4px 16px; }
+  .writing-history .version-panel-nav .btn { flex: none; white-space: nowrap; }
 }

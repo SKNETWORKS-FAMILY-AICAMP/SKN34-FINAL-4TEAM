@@ -6,8 +6,8 @@
 
 /* 빈 상태: 마크 → 제목 → 한 줄 설명 → 추천 칩 */
 .chat-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 32px 8px 0; text-align: center; }
-.chat-mark { display: grid; place-items: center; width: 56px; height: 56px; margin-bottom: 8px; border-radius: 50%; background: var(--pri); color: var(--on-pri); }
-.chat-empty h3 { font-size: 18px; font-weight: 800; line-height: 1.4; }
+.chat-mark { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 8px; border-radius: 50%; background: var(--pri-soft); color: var(--pri-ink); }
+.chat-empty h3 { font-size: 18px; font-weight: 700; line-height: 1.4; }
 .chat-empty p { color: var(--tsub); font-size: 13.5px; line-height: 1.6; text-wrap: balance; }
 .chat-suggest { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
 .chat-suggest-btn { min-height: 36px; padding: 0 14px; border: 1px solid var(--tline); border-radius: 999px; background: var(--chat-card, var(--tcard)); color: inherit; font-size: 13px; font-weight: 600; }
@@ -18,7 +18,7 @@
 .chat-msg { display: flex; align-items: flex-end; gap: 8px; min-width: 0; }
 .chat-msg.user { justify-content: flex-end; }
 .chat-msg.system { justify-content: center; }
-.chat-avatar { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--pri); color: var(--on-pri); }
+.chat-avatar { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--pri-soft); color: var(--pri-ink); }
 .chat-bubble { display: flex; flex-direction: column; gap: 4px; min-width: 0; max-width: 88%; }
 .chat-msg.user .chat-bubble { align-items: flex-end; }
 .chat-msg.system .chat-bubble { max-width: 100%; }
@@ -42,7 +42,7 @@
 /* 입력 카드는 패널보다 한 단계 밝은 면 + 부드러운 그림자로 떠 보인다. 잠긴 카드(준비 중)도 그대로 두고 사유 문구·비활성 버튼이 알린다.
    입력 칸의 경계라 테두리는 3:1 이상인 --line3를 쓴다. */
 .chat-card { display: grid; gap: 4px; padding: 12px 12px 8px 16px; border: 1px solid var(--line3); border-radius: 24px; background: var(--chat-card, var(--tcard)); box-shadow: var(--sh); transition: border-color .15s; }
-.chat-card:focus-within { border-color: var(--tacc); }
+.chat-card:focus-within { border-color: var(--tacc); box-shadow: var(--sh), 0 0 0 1px var(--tacc); }
 .chat-card textarea { width: 100%; min-height: 48px; max-height: 200px; padding: 0; resize: none; field-sizing: content; border: 0; outline: 0; background: none; color: inherit; font: inherit; line-height: 1.6; }
 .chat-card textarea::placeholder { color: var(--tsub); opacity: 1; }
 .chat-card textarea:disabled { cursor: not-allowed; }
@@ -75,7 +75,8 @@
 
 /* 집필 AI 채팅(#331): 대화 고르기 줄, SSE 진행, 승인·입력 대기 카드. 면·선·글자는 위와 같은 읽기 토큰을 쓴다. */
 .chat-sessions { display: flex; flex: none; align-items: center; gap: 4px; min-height: 52px; padding: 0 12px 8px 16px; border-bottom: 1px solid var(--tline); }
-.chat-session-pick { flex: 1; min-width: 0; height: 36px; padding: 0 32px 0 12px; border: 1px solid var(--line3); border-radius: 999px; background: var(--chat-card, var(--tcard)); color: var(--tfg); font: inherit; font-size: 13.5px; font-weight: 600; text-overflow: ellipsis; }
+/* select의 화살표(전역 background-image와 오른쪽 안쪽 여백)를 지우지 않도록 background·padding 단축 속성을 쓰지 않는다. */
+.chat-session-pick { flex: 1; min-width: 0; height: 36px; padding-block: 0; padding-inline-start: 12px; border: 1px solid var(--line3); border-radius: 999px; background-color: var(--chat-card, var(--tcard)); color: var(--tfg); font: inherit; font-size: 13.5px; font-weight: 600; text-overflow: ellipsis; }
 .chat-session-pick:disabled { cursor: not-allowed; opacity: .6; }
 .chat-session-menu .pop-menu-btn { width: 36px; height: 36px; border-radius: 50%; color: var(--tsub); }
 .chat-session-menu .pop-menu-btn:hover, .chat-session-menu .pop-menu-btn[aria-expanded="true"] { background: var(--muted-bg); color: var(--tfg); }
