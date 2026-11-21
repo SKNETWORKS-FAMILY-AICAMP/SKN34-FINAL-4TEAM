@@ -5,7 +5,8 @@ package ai.storyfork.operations.llmops.service
  * of that request, so [feature] says which requests to look in: the writing chat ("orchestration"), where an agent's or a tool's observations are told apart by
  * name, or the request of a standalone feature, whose observations are those named after the feature key ([prefix]). [names] are exact names and [prefix] stands
  * for a family of them. ponytail: the names are those of the AI service (its tracing.observe calls and the step.<feature> of orchestration/tools.py), so a new
- * agent or observation needs a line here, and a name that no node lists is counted nowhere.
+ * agent or observation needs a line here, and a name that no node lists is counted nowhere. [next] are the nodes it leads to; an agent also leads back to the main agent
+ * that called it, so the links make a cycle.
  */
 internal class NodeSpec(
     val id: String, val label: String, val next: List<String>, val feature: String,
@@ -16,7 +17,9 @@ internal class NodeSpec(
 
 private const val CHAT = "orchestration"
 private val APPLY = listOf("apply")
-private val AGENTS = listOf("qa", "writing", "manuscript_review", "world", "research", "rating", "character_simulation")
+private val BACK = listOf("main")
+// The agents that read or review, then those that write (writing, world and character_simulation: the ones with an approval).
+private val AGENTS = listOf("qa", "manuscript_review", "rating", "research", "writing", "world", "character_simulation")
 
 private fun chat(id: String, label: String, next: List<String>, vararg names: String) = NodeSpec(id, label, next, CHAT, names.toSet())
 
@@ -29,20 +32,21 @@ internal val PIPELINE_NODES = listOf(
     chat("request", "집필 AI 요청", listOf("guard"), "orchestration"),
     chat("guard", "Decision Guard", listOf("main"), "decision_guard", "decision_guard.generation"),
     chat("main", "메인 에이전트", AGENTS + "mcp", "main_agent", "main_agent.blocked"),
-    chat("qa", "작품 질문", APPLY, "step.story_context", "story_context.qa", "qa.generation", "retrieval", "retrieval.embedding", "retrieval.elasticsearch", "retrieval.postgres_verify",
+    chat("qa", "작품 질문", BACK, "step.story_context", "story_context.qa", "qa.generation", "retrieval", "retrieval.embedding", "retrieval.elasticsearch", "retrieval.postgres_verify",
         "world_read", "evidence_check"),
-    chat("writing", "기획·집필·수정", APPLY, "step.writing_editing", "writing.plan", "writing.plan_pick", "writing.plan_revise", "writing.generation"),
-    chat("manuscript_review", "원고 검수", APPLY, "step.manuscript_review", "manuscript_review.generation"),
-    chat("world", "세계관", APPLY, "step.world", "world_review", "world_review.generation", "world_review.enrich", "world_review.enrich.generation", "world_review.impact",
+    chat("manuscript_review", "원고 검수", BACK, "step.manuscript_review", "manuscript_review.generation"),
+    chat("rating", "심의 등급", BACK, "step.rating", "rating.generation"),
+    chat("research", "고증 조사", BACK, "step.research", "research.generation", "research.platform_pick", "research.platform_refer"),
+    chat("writing", "기획·집필·수정", APPLY + BACK, "step.writing_editing", "writing.plan", "writing.plan_pick", "writing.plan_revise", "writing.generation"),
+    chat("world", "세계관", APPLY + BACK, "step.world", "world_review", "world_review.generation", "world_review.enrich", "world_review.enrich.generation", "world_review.impact",
         "world_review.impact.generation"),
-    chat("research", "고증 조사", APPLY, "step.research", "research.generation", "research.platform_pick", "research.platform_refer"),
-    chat("rating", "심의 등급", APPLY, "step.rating", "rating.generation"),
-    chat("character_simulation", "인물 시뮬레이션", APPLY + "novelbrain", "step.character_simulation", "step.character_simulation.plan", "simulation.plan", "simulation.act", "simulation.narrate",
-        "simulation.check", "simulation.director", "simulation.turn"),
+    chat("character_simulation", "인물 시뮬레이션", APPLY + "novelbrain" + BACK, "step.character_simulation", "step.character_simulation.plan", "simulation.plan", "simulation.act",
+        "simulation.narrate", "simulation.check", "simulation.director", "simulation.turn"),
     // The recall NovelBrain makes for the characters of the simulation (it is also made inside the rating, which has no link to it).
     chat("novelbrain", "NovelBrain 기억 회상", emptyList(), "novelbrain.recall"),
     NodeSpec("mcp", "Content MCP 도구", emptyList(), CHAT, prefix = "mcp."),
-    chat("apply", "작가 승인 반영", emptyList(), "step.writing_editing.apply", "step.world.apply", "step.character_simulation.apply"),
+    // An approval changes the work through the Content tools.
+    chat("apply", "작가 승인 반영", listOf("mcp"), "step.writing_editing.apply", "step.world.apply", "step.character_simulation.apply"),
     alone("proposals", "전개 제안"),
     alone("initial_world", "초기 세계관 분석"),
     alone("manuscript_extraction", "원고 설정 추출"),

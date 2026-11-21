@@ -47,7 +47,9 @@ class PipelineServiceTest {
     fun `the pipeline is the fixed node list in flow order and a node without observations is zero`() {
         val nodes = service.pipeline(operators.llm, from, to).nodes
         val byId = nodes.associateBy { it.id }
-        val agents = listOf("qa", "writing", "manuscript_review", "world", "research", "rating", "character_simulation")
+        // The agents that read or review come first and then those that write: the order of the nodes and of the links of the main agent.
+        val readers = listOf("qa", "manuscript_review", "rating", "research")
+        val agents = readers + listOf("writing", "world", "character_simulation")
 
         assertEquals(
             listOf("request", "guard", "main") + agents + listOf("novelbrain", "mcp", "apply", "proposals", "initial_world", "manuscript_extraction", "work_tags", "world_review", "rating_direct", "writing_editing"),
@@ -58,11 +60,14 @@ class PipelineServiceTest {
         assertEquals(listOf("guard"), byId.getValue("request").next)
         assertEquals(listOf("main"), byId.getValue("guard").next)
         assertEquals(agents + "mcp", byId.getValue("main").next)
-        for (id in agents - "character_simulation") assertEquals(listOf("apply"), byId.getValue(id).next, id)
+        // Every agent hands its result back to the main agent, which weaves the answer from it again; only the three that write have an approval to apply.
+        for (id in readers) assertEquals(listOf("main"), byId.getValue(id).next, id)
+        for (id in listOf("writing", "world")) assertEquals(listOf("apply", "main"), byId.getValue(id).next, id)
         // The simulation also leads to the NovelBrain recall its characters make.
-        assertEquals(listOf("apply", "novelbrain"), byId.getValue("character_simulation").next)
-        // The recall, the tools and the approval end the flow, and a standalone feature stands beside it: it has no links.
-        assertEquals(List(3) { emptyList<String>() }, listOf("novelbrain", "mcp", "apply").map { byId.getValue(it).next })
+        assertEquals(listOf("apply", "novelbrain", "main"), byId.getValue("character_simulation").next)
+        // The approval changes the work through the Content tools. The recall and the tools end the flow, and a standalone feature stands beside it: it has no links.
+        assertEquals(listOf("mcp"), byId.getValue("apply").next)
+        assertEquals(List(2) { emptyList<String>() }, listOf("novelbrain", "mcp").map { byId.getValue(it).next })
         assertEquals(listOf("proposals", "initial_world", "manuscript_extraction", "work_tags", "world_review", "rating_direct", "writing_editing"), nodes.filter { it.standalone }.map { it.id })
         assertTrue(nodes.filter { it.standalone }.all { it.next.isEmpty() })
         assertTrue(nodes.flatMap { it.next }.all { it in byId })

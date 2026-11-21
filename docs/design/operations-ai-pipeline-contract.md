@@ -18,19 +18,25 @@ LLM Ops `프롬프트·모델` 쪽(`/admin?tab=llm&view=prompts`)에 **전체** 
 
 | 노드 | observation 이름(`orchestration` 요청 안) | 다음 |
 |---|---|---|
-| `request` 집필 AI 요청 | 요청 루트 `orchestration` | guard |
+| `request` 집필 AI 요청 = 요청 전체(루트) | 요청 루트 `orchestration` | guard |
 | `guard` Decision Guard | `decision_guard`, `decision_guard.generation` | main (거절이면 끝) |
-| `main` 메인 에이전트 | `main_agent`, `main_agent.blocked` | 업무 Agent 7개, mcp |
-| `qa` 작품 질문 | `step.story_context`, `story_context.qa`, `qa.generation`, `retrieval`, `retrieval.embedding`·`.elasticsearch`·`.postgres_verify`, `world_read`, `evidence_check` | apply |
-| `writing` 기획·집필·수정 | `step.writing_editing`, `writing.plan`·`.plan_pick`·`.plan_revise`·`.generation` | apply |
-| `manuscript_review` 원고 검수 | `step.manuscript_review`, `manuscript_review.generation` | apply |
-| `world` 세계관 | `step.world`, `world_review`, `world_review.generation`, `world_review.enrich`(`.generation`), `world_review.impact`(`.generation`) | apply |
-| `research` 고증 조사 | `step.research`, `research.generation`·`.platform_pick`·`.platform_refer` | apply |
-| `rating` 심의 등급 | `step.rating`, `rating.generation` | apply |
-| `character_simulation` 인물 시뮬레이션 | `step.character_simulation`, `step.character_simulation.plan`, `simulation.plan`·`.act`·`.narrate`·`.check`·`.director`·`.turn` | apply, novelbrain |
+| `main` 메인 에이전트 | `main_agent`, `main_agent.blocked` | 업무 Agent 7개(읽기·검토 4 → 작성 3), mcp |
+| `qa` 작품 질문 | `step.story_context`, `story_context.qa`, `qa.generation`, `retrieval`, `retrieval.embedding`·`.elasticsearch`·`.postgres_verify`, `world_read`, `evidence_check` | main |
+| `manuscript_review` 원고 검수 | `step.manuscript_review`, `manuscript_review.generation` | main |
+| `rating` 심의 등급 | `step.rating`, `rating.generation` | main |
+| `research` 고증 조사 | `step.research`, `research.generation`·`.platform_pick`·`.platform_refer` | main |
+| `writing` 기획·집필·수정 | `step.writing_editing`, `writing.plan`·`.plan_pick`·`.plan_revise`·`.generation` | apply, main |
+| `world` 세계관 | `step.world`, `world_review`, `world_review.generation`, `world_review.enrich`(`.generation`), `world_review.impact`(`.generation`) | apply, main |
+| `character_simulation` 인물 시뮬레이션 | `step.character_simulation`, `step.character_simulation.plan`, `simulation.plan`·`.act`·`.narrate`·`.check`·`.director`·`.turn` | apply, novelbrain, main |
 | `novelbrain` NovelBrain 기억 회상 | `novelbrain.recall` | — |
 | `mcp` Content MCP 도구 | `mcp.`로 시작하는 이름 | — |
-| `apply` 작가 승인 반영 | `step.writing_editing.apply`, `step.world.apply`, `step.character_simulation.apply` | — |
+| `apply` 작가 승인 반영 | `step.writing_editing.apply`, `step.world.apply`, `step.character_simulation.apply` | mcp |
+
+**흐름**: `request`는 요청 전체(루트)라 다른 노드는 모두 그 안의 단계이고, 이 노드의 건수는 요청 수·지연은 요청 전체 지연이다. Guard를 지난 요청은 메인으로 가고,
+메인은 업무 Agent 7개(읽기·검토 `qa`·`manuscript_review`·`rating`·`research` → 작성 `writing`·`world`·`character_simulation` 순)와 Content MCP 도구를 부른다.
+업무 Agent는 결과를 메인에 돌려주고 메인이 그 결과로 답을 다시 종합하므로 Agent마다 `next`에 `main`(되돌아가는 선)이 있다. 작가 승인 반영은 `writing`·`world`·`character_simulation`에만 있어
+`apply`로 가는 선도 이 셋뿐이고(`qa`·`manuscript_review`·`rating`·`research`는 메인으로만 돌아간다), `apply`는 Content MCP로 반영하므로 `mcp`로 이어진다.
+그래서 `next`에는 `main` ⇄ 업무 Agent 순환이 있다.
 
 노드 id `qa`·`writing`은 약칭이고 AI 쪽 기능 키는 `story_context`·`writing_editing`이라 observation 이름은 `step.story_context`·`step.writing_editing`이다.
 하위 이름에는 `step.` 접두가 없다.
@@ -64,7 +70,7 @@ Guard의 거절은 level이 아니라 `decision_guard` 출력 `allowed=false`(le
 
 ## 화면
 
-- 캔버스: 노드 = 이름·건수·오류 수(오류가 있으면 위험 색), 선 = 흐름. 노드를 누르면 캔버스·노드 버튼 아래에 기록 패널(표가 전체 폭이다. 오른쪽 반쪽 폭에 두면 표 칸이 잘리고 페이지가 가로로 늘어났다).
+- 캔버스: 노드 = 이름·건수·오류 수(오류가 있으면 위험 색), 선 = 흐름. 위 흐름의 되돌아가는 선 때문에 `next`는 순환이므로 열(왼→오)은 되돌아가는 선(`request`부터 서버 순서로 따라가 이미 지나온 노드로 돌아오는 선)을 빼고 정하고, 가는 선과 되돌아오는 선은 겹치지 않게 그린다. 노드를 누르면 캔버스·노드 버튼 아래에 기록 패널(표가 전체 폭이다. 오른쪽 반쪽 폭에 두면 표 칸이 잘리고 페이지가 가로로 늘어났다).
 - 기록 패널: 결과 필터(전체·통과·거절/오류), 기록 표(시각·결과·지연·모델·프롬프트 버전), 줄을 펼치면 입력·출력·판정 근거(메타데이터)·도구 호출(이름·인자)을 그대로 보인다. NovelBrain 기억 회상 기록은 출력의 `recalled` 목록을 '회상한 기억' 제목 목록으로 더 보인다(카드 항목은 제목, 관계·원고 항목은 제목이 없어 ref).
   Guard는 결과 칸에 허용/거절과 기능별 판정을, 메인은 부른 도구와 인자를 보인다. 줄마다 `실행 흐름 보기`(그 trace의 observation 트리, 단계마다 입력·출력)와
   그 노드 프롬프트로 가는 `프롬프트 보기`(기존 프롬프트 상세)를 둔다.
@@ -72,7 +78,7 @@ Guard의 거절은 level이 아니라 `decision_guard` 출력 `allowed=false`(le
 
 ## ponytail 한계
 
-- 노드 목록은 코드에 고정이다. 새 Agent를 추가하면 운영 목록도 함께 고친다.
+- 노드 목록과 선(`next`)은 코드에 고정이다. 새 Agent를 추가하거나 실행 흐름·승인 반영이 바뀌면 운영 목록도 함께 고친다.
 - 본문 8,000자 자르기 때문에 긴 원고는 끝이 보이지 않는다. 전문은 Langfuse에서 본다(개발자용).
 - 노드 p95는 풀링 백분위가 아니라 노드 이름별 p95 중 가장 큰 값이다(노드마다 쿼리를 따로 보내지 않으려는 단순화). 건수·오류 수·프롬프트 이름은 Metrics API 집계라 정확하다.
 - 이름으로만 가르므로 `retrieval`은 시뮬레이션이 불러도 작품 질문 노드에 센다. 목록에 없는 이름은 어느 노드에도 세지 않는다.
