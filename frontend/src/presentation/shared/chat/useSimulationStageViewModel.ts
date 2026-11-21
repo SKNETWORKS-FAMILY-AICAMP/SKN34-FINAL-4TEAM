@@ -4,6 +4,7 @@ import {
   beatRejection, characterNames, cleanSimulation, sceneProse, sceneRows, simulationIssue, simulationSummary, statusLabel, stopReasonText, type SimulationStart,
 } from '../../../domain/entities/characterSimulation'
 import { bodyLength } from '../../../domain/entities/manuscriptLength'
+import { lastScene } from '../../../domain/entities/writingChat'
 import type { ChatViewModel } from './useWritingChatViewModel'
 
 const LINES_LOCKED = '줄 수정과 다시 말하기는 일시정지한 뒤 턴이 끝나면 쓸 수 있어요.'
@@ -14,8 +15,9 @@ const LINES_LOCKED = '줄 수정과 다시 말하기는 일시정지한 뒤 턴�
  * 자동 재생은 이 화면에서 시작·재생한 장면만 이어 간다(새로 고친 뒤 이어진 장면은 멈춘 채로 보이고 재생을 눌러야 한다).
  */
 export function useSimulationStageViewModel(chat: ChatViewModel) {
-  const sim = chat.simulation
-  const step = chat.simulationStep
+  // 끝난 장면 다시 보기(#420): 이번 턴에 장면이 없고 요청도 흐르지 않으면 대화에 남은 가장 최근 장면을 읽기 전용으로 보인다(live·attention 판단은 이번 턴 기준이다).
+  const step = chat.simulationStep ?? (chat.streaming ? null : lastScene(chat.turns))
+  const sim = step?.simulation ?? null
   const [open, setOpen] = useState(false)
   // 끝난 장면 대신 새 시작 양식을 본다.
   const [composing, setComposing] = useState(false)
@@ -71,8 +73,8 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
 
   return {
     open, hide: () => setOpen(false), compose: () => setComposing(true),
-    /** [시뮬레이션] 버튼: 진행 중이거나 답을 기다리는 장면이 있으면 그 장면을, 아니면 새 시작 양식을 연다. */
-    show: () => { setOpen(true); setAsked(false); if (!attention) setComposing(true) },
+    /** [시뮬레이션] 버튼: 보여 줄 장면(진행 중·답을 기다리는·끝난 장면)이 있으면 그 장면을, 없으면 새 시작 양식을 연다. 끝난 장면에서는 '새 시뮬레이션'이 양식을 연다. */
+    show: () => { setOpen(true); setAsked(false) },
     simulation: sim, rows: sim ? sceneRows(sim, roster) : [], names: sim ? characterNames(sim, roster) : {}, showForm: !sim || composing,
     live, playing, canAct, blocked, queued, finishing: stopAfterTurn,
     statusKey: shown, statusText: shown === 'paused' ? '일시정지' : shown === 'error' ? '오류로 멈춤' : shown && statusLabel[shown],
@@ -97,7 +99,7 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
     // 비트 거부로 멈춘 장면이면 거부한 인물 카드 id(모르면 null). 거부는 기획 쪽 문제라 '이대로 진행'은 없고 카드나 흐름을 고쳐 다시 시도한다(#356).
     rejection: sim ? beatRejection(sim) : null,
     sceneError: step && !step.simulation && step.status === 'failed' ? step.error ?? '시뮬레이션을 완료하지 못했어요.' : '',
-    answer: asked && !sim && !chat.pending ? chat.turns.at(-1)?.reply?.message ?? '' : '',
+    answer: asked && !chat.simulation && !chat.pending ? chat.turns.at(-1)?.reply?.message ?? '' : '',
     // 이 무대에서 시작한 요청이 첫 턴을 만드는 중이다(아직 장면이 없다).
     starting: asked && !sim && chat.streaming,
     pending: chat.pending, deciding: chat.deciding,

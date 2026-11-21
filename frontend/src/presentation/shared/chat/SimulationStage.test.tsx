@@ -1275,7 +1275,9 @@ it('시작 요청이 실패하면 옛 장면으로 돌아가지 않고 입력한
   reload({ status: 'completed', steps: [stepOf(scene([narrate(0)], { status: 'completed' }), { applied: { episode: 4, revision: 2 } })], missingInputs: [] })
   setup(() => { throw new Error('서버에 보내지 못했어요.') })
   await waitFor(() => expect(screen.getByTestId('chat-line').textContent).toBe('시뮬레이션 완료 · 1턴'))
-  await openForm() // 끝난 장면이 있어도 버튼은 새 시작 양식을 연다.
+  fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' })) // 끝난 장면이 있으면 버튼은 그 기록을 열고, 새 시작 양식은 새 시뮬레이션이 연다(#420).
+  fireEvent.click(await box().findByRole('button', { name: '새 시뮬레이션' }))
+  await box().findByRole('group', { name: '시뮬레이션 방식' })
   fireEvent.change(box().getByRole('textbox', { name: '전제' }), { target: { value: PREMISE } })
   pick('카엘')
   fireEvent.click(startButton())
@@ -1344,13 +1346,82 @@ it('저장된 진행 중 장면이 있으면 닫혀 있던 무대가 저절로 �
   expect(screen.queryByRole('region', { name: '인물 시뮬레이션 무대' })).toBeNull()
 })
 
-it('저장된 장면이 이미 끝나 있으면 무대를 저절로 열지 않고, 시뮬레이션 버튼은 새 요청 입력으로 연다', async () => {
+it('저장된 장면이 이미 끝나 있으면 무대를 저절로 열지 않고, 시뮬레이션 버튼은 끝난 장면 기록을 다시 보여 주며 새 요청 입력은 새 시뮬레이션 버튼으로 연다(#420)', async () => {
   reload({ status: 'completed', steps: [stepOf(scene([narrate(0)], { status: 'completed' }), { applied: { episode: 4, revision: 2 } })], missingInputs: [] })
   setup()
   await waitFor(() => expect(screen.getByTestId('chat-line').textContent).toBe('시뮬레이션 완료 · 1턴'))
   expect(screen.queryByRole('region', { name: '인물 시뮬레이션 무대' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+  expect(lines()).toHaveLength(1)
+  expect(box().getByText('4화 초안 끝에 이어 붙였어요.')).toBeTruthy()
+  expect(box().queryByRole('textbox', { name: '전제' })).toBeNull()
+  // 기록은 읽기 전용이다: 줄 수정·다시 말하기·원고 반영·재생은 없다.
+  expect(box().queryByRole('button', { name: '다시 말하기' })).toBeNull()
+  expect(box().queryByRole('region', { name: '원고 반영' })).toBeNull()
+  expect(box().queryByRole('button', { name: '재생' })).toBeNull()
+  fireEvent.click(box().getByRole('button', { name: '새 시뮬레이션' }))
   expect(await box().findByRole('textbox', { name: '전제' })).toBeTruthy()
+})
+
+// 마지막 턴이 시뮬레이션이 아니어도 대화에 남은 가장 최근 장면 기록을 다시 볼 수 있다. 저장된 응답은 한 턴뿐이라 여러 턴 이력을 직접 준다.
+const finishedTurn = (extra: Partial<ChatStep> = {}) => ({ request: '시뮬레이션', reply: { status: 'completed', steps: [stepOf(scene([narrate(0), speak(1)], { status: 'completed' }), extra)], missingInputs: [] } as ChatReply })
+const chatTurn = (request: string, message: string) => ({ request, reply: { status: 'completed', message, steps: [], missingInputs: [] } as ChatReply })
+
+it('끝난 장면 뒤에 일반 채팅이 이어졌어도 시뮬레이션 버튼은 대화에 남은 가장 최근 장면 기록을 보여 준다(#420)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [finishedTurn({ approval: 'declined' }), chatTurn('이 장면 어때?', '긴장감이 좋아요.')] })
+  setup()
+  fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  expect(box().getByText('반영하지 않았어요. 장면은 대화에 남아 있어요.')).toBeTruthy()
+  expect(box().queryByRole('textbox', { name: '전제' })).toBeNull()
+  // 지난 장면이 있어도 채팅 한 줄·저절로 열림 판단은 마지막 턴만 본다: 일반 채팅 턴에서는 장면 줄이 없고 무대도 저절로 열리지 않았다.
+  expect(screen.getByTestId('chat-line').textContent).toBe('')
+})
+
+it('끝난 장면이 있는 대화에서 새 시뮬레이션 요청이 장면 없이 끝나면 지난 장면이 아니라 답과 요청 입력을 보인다(#420)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  let turns = [finishedTurn()]
+  history.mockImplementation(async () => ({ threadId: 'a', title: '', turns }))
+  serve((input, emit) => {
+    const reply: ChatReply = { status: 'clarify', message: '어느 인물로 할까요?', steps: [], missingInputs: [] }
+    turns = [...turns, { request: 'request' in input ? input.request : '', reply }]
+    emit({ type: 'done', reply })
+  })
+  render(<Provider store={createAppStore()}><Host /></Provider>)
+  fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+  await waitFor(() => expect(lines()).toHaveLength(2))
+  fireEvent.click(box().getByRole('button', { name: '새 시뮬레이션' }))
+  fireEvent.change(await box().findByRole('textbox', { name: '전제' }), { target: { value: PREMISE } })
+  fireEvent.click(box().getByRole('checkbox', { name: '카엘' }))
+  fireEvent.click(box().getByRole('button', { name: '시뮬레이션 시작' }))
+  expect(await box().findByText('어느 인물로 할까요?')).toBeTruthy()
+  expect(box().getByRole('textbox', { name: '전제' })).toBeTruthy()
+  expect(box().queryByRole('list', { name: '장면 대본' })).toBeNull()
+})
+
+it('일반 채팅을 보내는 동안에도 지난 장면 기록은 진행 중인 장면으로 보이지 않고 무대가 저절로 열리지 않는다(#420)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [finishedTurn(), chatTurn('이 장면 어때?', '긴장감이 좋아요.')] })
+  let release!: () => void
+  serve(async (_input, emit) => {
+    await new Promise<void>((resolve) => { release = resolve })
+    emit({ type: 'done', reply: { status: 'completed', message: '좋아요', steps: [], missingInputs: [] } })
+  })
+  const { result } = renderHook(() => { const chat = useWritingChatViewModel('w', BASIS); return { chat, stage: useSimulationStageViewModel(chat) } })
+  await waitFor(() => expect(result.current.stage.simulation).not.toBeNull()) // 지난 장면(두 줄)을 읽기 전용으로 쥔다
+  expect(result.current.stage.rows).toHaveLength(2)
+  expect(result.current.stage.live).toBe(false)
+  expect(result.current.stage.open).toBe(false)
+  let sending!: Promise<boolean>
+  act(() => { sending = result.current.chat.send('이어서 써 줘') })
+  await waitFor(() => expect(result.current.chat.streaming).toBe(true))
+  expect(result.current.stage.simulation).toBeNull() // 흐르는 요청 동안은 새 요청의 장면과 섞이지 않게 지난 장면을 쥐지 않는다
+  expect(result.current.stage.live).toBe(false)
+  expect(result.current.stage.open).toBe(false)
+  await act(async () => { release(); await sending })
+  expect(result.current.stage.open).toBe(false)
+  expect(result.current.stage.live).toBe(false)
 })
 
 it('진행 중인 장면에서 시뮬레이션 버튼은 요청 입력이 아니라 장면을 연다', async () => {

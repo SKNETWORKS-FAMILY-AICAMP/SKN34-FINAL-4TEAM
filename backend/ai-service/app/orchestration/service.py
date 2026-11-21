@@ -469,7 +469,7 @@ def _response(state: dict) -> OrchestrationResponse:
         # 장면은 에이전트 상태에서 진행 중이라 바깥 상태의 단계에는 아직 결과가 없다. 멈춘 payload의 단계가 현재 모습이다.
         state = {**state, 'status': 'waiting', 'message': message, 'steps': waiting.get('steps', state.get('steps', [])),
                  'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval, 'awaitingScene': scene, 'pendingAction': waiting.get('pendingAction'),
-                 'approvalEpisode': (state.get('target') or {}).get('episode') if approval in APPROVABLE else None}
+                 'approvalEpisode': (state.get('target') or {}).get('episode') if approval in APPROVABLE or scene else None}
     return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
 
 
@@ -512,6 +512,8 @@ async def sessions(scope: str) -> list[ChatSession]:
     latest = {}
     # shortcut: scope의 checkpoint를 모두 읽어 thread별로 고른다. 대화가 많아지면 thread 단위 목록 쿼리로 바꾼다.
     async for row in CHAT.checkpointer.alist(None, filter={'scope': scope}):
+        if row.config['configurable'].get('checkpoint_ns'):  # 장면 에이전트 같은 하위 그래프의 checkpoint는 제목·요청이 없어 진행 중인 대화 제목이 비어 보인다
+            continue
         thread = row.config['configurable']['thread_id']
         if thread not in latest or row.checkpoint['id'] > latest[thread].checkpoint['id']:
             latest[thread] = row

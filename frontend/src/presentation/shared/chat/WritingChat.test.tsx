@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { afterEach, expect, it, vi } from 'vitest'
 import type { CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { chatPage, type ChatEvent, type ChatStep } from '../../../domain/entities/writingChat'
+import { useWritingChatViewModel } from './useWritingChatViewModel'
 import { WritingChat } from './WritingChat'
 
 const { sessions, history, send } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn() }))
@@ -686,4 +687,50 @@ it('계획 수정 저장(step.applied)은 회차 초안 갱신(onApplied)도 설
   await run({ type: 'step', step: { ...reviseStep, approval: 'approved', applied: { episode: 2, revision: 6 } } })
   expect(onApplied).not.toHaveBeenCalled()
   expect(onWorldApplied).not.toHaveBeenCalled()
+})
+
+// 집필실처럼 chat을 직접 만드는 화면은 계획 재조회 콜백(#637)을 그 Hook에 넘긴다.
+const planStream = async (callbacks: { onApplied?: (episode: number) => void; onWorldApplied?: () => void; onPlanApplied?: () => void }) => {
+  openThread([])
+  let emit!: (event: ChatEvent) => void
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    emit = onEvent
+    await new Promise<void>(() => {})
+  })
+  function StudioChat() {
+    const chat = useWritingChatViewModel('w', basis, callbacks.onApplied, callbacks.onWorldApplied, undefined, callbacks.onPlanApplied)
+    return <WritingChat workId="w" chat={chat} emptyTitle="새 대화" emptyText="" suggestions={[]} />
+  }
+  render(<StudioChat />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '재회 장면 계획을 바꿔 줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  return { run: async (event: ChatEvent) => { await act(async () => { emit(event) }) } }
+}
+
+it('계획 수정 저장(step.applied)은 계획 재조회(onPlanApplied)만 알리고 회차 초안·설정집 갱신은 알리지 않는다(#637)', async () => {
+  const onApplied = vi.fn()
+  const onWorldApplied = vi.fn()
+  const onPlanApplied = vi.fn()
+  const { run } = await planStream({ onApplied, onWorldApplied, onPlanApplied })
+  await run({ type: 'step', step: reviseStep })  // 제안만 도착: 저장 전이라 아무것도 다시 읽지 않는다
+  expect(onPlanApplied).not.toHaveBeenCalled()
+  await run({ type: 'step', step: { ...reviseStep, approval: 'declined' } })
+  expect(onPlanApplied).not.toHaveBeenCalled()
+  await run({ type: 'step', step: { ...reviseStep, approval: 'approved', applied: { episode: 2, revision: 6 } } })
+  expect(onPlanApplied).toHaveBeenCalledTimes(1)
+  expect(onApplied).not.toHaveBeenCalled()
+  expect(onWorldApplied).not.toHaveBeenCalled()
+})
+
+it('승인한 Content 계획 도구(story_plan_create·story_plan_update)도 계획 재조회만 알린다(#637)', async () => {
+  const onApplied = vi.fn()
+  const onPlanApplied = vi.fn()
+  const { run } = await planStream({ onApplied, onPlanApplied })
+  const done = (tool: string, revision: number): ChatStep => ({ feature: 'content_action', status: 'completed', approval: 'approved', result: { tool, label: '작업' }, applied: { episode: 3, revision } })
+  await run({ type: 'step', step: done('story_plan_create', 2) })
+  await run({ type: 'step', step: done('story_plan_update', 3) })
+  expect(onPlanApplied).toHaveBeenCalledTimes(2)
+  expect(onApplied).not.toHaveBeenCalled()
 })
