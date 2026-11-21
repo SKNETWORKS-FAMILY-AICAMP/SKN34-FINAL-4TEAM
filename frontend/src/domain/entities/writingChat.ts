@@ -308,6 +308,10 @@ export function chatBasis(episodes: WritingEpisode[], open?: number): ChatBasis 
   return pick?.publishedVersionId ? { episode: pick.number, episodeVersionId: pick.publishedVersionId, ...(known ? { targetEpisode: open } : {}) } : null
 }
 
+/** 대화에 남은 가장 최근 인물 시뮬레이션 장면 단계(끝난 장면 다시 보기, #420). 장면을 읽지 못한(simulation 없는) 단계는 기록이 아니라 건너뛴다. */
+export const lastScene = (turns: ChatTurn[]): ChatStep | null =>
+  turns.map((turn) => turn.reply?.steps.find((step) => step.feature === 'character_simulation' && step.simulation)).findLast(Boolean) ?? null
+
 const researchVerdict: Record<string, string> = { confirmed: '확인됨', conflicting: '근거 상충', unverified: '미확인' }
 
 /** 단계 결과를 채팅 말풍선 글로. 결과가 없거나 실패면 그 사유를 그대로 보인다(성공처럼 꾸미지 않는다). */
