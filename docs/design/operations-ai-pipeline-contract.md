@@ -12,35 +12,53 @@ LLM Ops `프롬프트·모델` 쪽(`/admin?tab=llm&view=prompts`)에 **전체** 
 
 ## 파이프라인 노드
 
-운영 서비스가 고정 목록으로 정의한다(`id`, 표시 이름, observation 이름 규칙, 다음 노드). 이름 규칙은 AI 코드의 실제 observation 이름과 맞춘다.
+운영 서비스가 고정 목록으로 정의한다(`llmops/service/PipelineNodes.kt`: `id`, 표시 이름, 다음 노드, observation 이름 규칙). 이름 규칙은 AI 코드의 실제 observation 이름과 맞춘다.
+요청의 모든 observation은 그 요청의 태그 `feature:<키>`를 달므로, 업무 Agent·도구 노드는 태그 `feature:orchestration` 요청 안에서 **이름 목록**으로 가르고,
+단독 노드는 태그 `feature:<키>` 요청 안에서 그 키로 시작하는 이름이다(아래 `writing_editing`만 `writing`으로 시작한다). 이름이 같은 observation(`rating.generation`·`world_review*`)도 요청 종류별로 따로 센다.
 
-| 노드 | observation 이름 | 다음 |
+| 노드 | observation 이름(`orchestration` 요청 안) | 다음 |
 |---|---|---|
 | `request` 집필 AI 요청 | 요청 루트 `orchestration` | guard |
-| `guard` Decision Guard | `decision_guard`, `decision_guard.generation` | main, (거절이면 끝) |
-| `main` 메인 에이전트 | `main_agent` | 업무 Agent 7개, mcp |
-| `qa`·`writing`·`manuscript_review`·`world`·`research`·`rating`·`character_simulation` | `step.<기능>`과 그 하위(`story_context.qa`·`retrieval`·`evidence_check`·`world_review.*`·`simulation.director` 등) | apply |
-| `mcp` Content MCP 도구 | `mcp.*` | — |
-| `apply` 작가 승인 반영 | `step.*.apply` | — |
+| `guard` Decision Guard | `decision_guard`, `decision_guard.generation` | main (거절이면 끝) |
+| `main` 메인 에이전트 | `main_agent`, `main_agent.blocked` | 업무 Agent 7개, mcp |
+| `qa` 작품 질문 | `step.story_context`, `story_context.qa`, `qa.generation`, `retrieval`, `retrieval.embedding`·`.elasticsearch`·`.postgres_verify`, `world_read`, `evidence_check` | apply |
+| `writing` 기획·집필·수정 | `step.writing_editing`, `writing.plan`·`.plan_pick`·`.plan_revise`·`.generation` | apply |
+| `manuscript_review` 원고 검수 | `step.manuscript_review`, `manuscript_review.generation` | apply |
+| `world` 세계관 | `step.world`, `world_review`, `world_review.generation`, `world_review.enrich`(`.generation`), `world_review.impact`(`.generation`) | apply |
+| `research` 고증 조사 | `step.research`, `research.generation`·`.platform_pick`·`.platform_refer` | apply |
+| `rating` 심의 등급 | `step.rating`, `rating.generation` | apply |
+| `character_simulation` 인물 시뮬레이션 | `step.character_simulation`, `step.character_simulation.plan`, `simulation.plan`·`.act`·`.narrate`·`.check`·`.director`·`.turn` | apply |
+| `mcp` Content MCP 도구 | `mcp.`로 시작하는 이름 | — |
+| `apply` 작가 승인 반영 | `step.writing_editing.apply`, `step.world.apply`, `step.character_simulation.apply` | — |
 
-단독 기능(`proposals`·`initial_world`·`manuscript_extraction`·`work_tags`·`world_review`·`rating`·`preprocessing`)은 캔버스 아래 줄에 따로 둔다.
+노드 id `qa`·`writing`은 약칭이고 AI 쪽 기능 키는 `story_context`·`writing_editing`이라 observation 이름은 `step.story_context`·`step.writing_editing`이다.
+하위 이름에는 `step.` 접두가 없다.
 
-## AI 계측 보강 (ai-service)
+단독 기능은 자기 요청(태그 `feature:<키>`)이며 캔버스 아래 줄에 따로 둔다(`next`는 비고 `standalone: true`): `proposals`·`initial_world`·`manuscript_extraction`(회차 원고
+전처리 작업도 이 요청이다)·`work_tags`·`world_review`·`rating_direct`(요청 `rating`. id `rating`은 위 업무 Agent라 겹치지 않게 바꿨다)·
+`writing_editing`(Content가 `/internal/v1/writing/drafts`·`patches`로 직접 부르는 새 원고·부분 수정 요청. 요청 루트 `writing_editing`과 모델 호출 `writing.generation`이라 접두는 `writing`이다).
+초안의 `preprocessing` 노드는 두지 않는다: 전처리 작업의 요청 루트가 `manuscript_extraction`이라 같은 데이터이고 따로 가를 이름이 없다.
+AI 코드의 단독 요청 중 `manuscript_review`·`web_research`는 노드가 없다.
 
-- `decision_guard` span의 `output`에 판정 결과(허용 여부·범위·기능별 yes/no와 이유 필드 그대로)를 남긴다(지금은 metadata만).
-- `main_agent` generation의 `output`을 `{text, toolCalls:[{name, args}]}`로 남긴다(지금은 글 또는 도구 이름 목록). 도구를 부른 이유는 그 호출의 인자(`ask_*`의 요청문)와 같은 응답의 글이다.
-- 메인이 실행하지 않고 돌려보낸 도구 호출(노출 밖·병렬 불가·승인 필요)은 `main_agent.blocked` 이벤트(span)로 이름·이유를 남긴다.
+## AI 계측 보강 (ai-service, 반영됨 2026-11-21)
+
+- `decision_guard` span의 `output`에 판정 결과 `{allowed, reason, capabilities}`를 남긴다(전에는 metadata에 있었다. 모델의 기능별 yes/no 원답은 남기지 않는다).
+- `main_agent` generation의 `output`을 `{text, toolCalls:[{name, args}]}`로 남긴다(전에는 글 또는 도구 이름 목록). 도구를 부른 이유는 그 호출의 인자(`ask_*`의 요청문)와 같은 응답의 글이다.
+- 메인이 실행하지 않고 돌려보낸 도구 호출(노출 밖·함께 실행하지 못해 미룸·대상 작품·세계관 불일치·MCP 한도)은 `main_agent.blocked` span(input `{name}`, output `{reason}`)으로 남긴다.
+  라이브러리 미들웨어(도구 호출 한도·승인 거절)가 돌려보내는 호출은 남기지 않는다.
+- 새로 남기는 observation의 level은 모두 DEFAULT다. 이 계측 전 7일 안의 기록은 옛 모양이다(`decision_guard`는 output 없이 metadata에 판정, `main_agent`의 output은 글 또는 도구 이름 목록).
 - 프롬프트 시드 문자열은 바꾸지 않는다.
 
 ## 운영 API (`llm` 권한)
 
 | 경로 | 내용 |
 |---|---|
-| `GET /llmops/pipeline?from&to` | `{nodes:[{id,label,next:[id],standalone,count,errors,p95LatencyMs?,promptNames:[string]}]}` — 노드별 observation 수·ERROR 수·p95 지연과 그 노드 generation에 연결된 프롬프트 이름 |
-| `GET /llmops/pipeline/{nodeId}/records?from&to&level&page` | 그 노드 observation 목록(최신순, 20개씩): `{id,traceId,name,type,startTime,latencyMs,level,statusMessage?,model?,promptName?,promptVersion?,input?,output?,metadata?}`. 본문은 칸마다 앞 8,000자까지 |
-| `GET /llmops/traces/{id}` (기존 확장) | observation마다 `parentObservationId`·`input`·`output`·`metadata`를 더한다(같은 8,000자 제한) — 작업 하나의 실행 흐름 트리 |
+| `GET /llmops/pipeline?from&to` | `{nodes:[{id,label,next:[id],standalone,count,errors,p95LatencyMs?,promptNames:[string]}]}` — 노드별 observation 수·ERROR level 수·p95 지연과 그 노드 generation에 연결된 프롬프트 이름. 기본 기간은 최근 7일이고 비었거나 거꾸로면 400. p95는 노드 이름별 p95 중 가장 큰 값이고 측정된 지연이 없으면 null이다 |
+| `GET /llmops/pipeline/{nodeId}/records?from&to&level&page` | 그 노드 observation 목록(최신순, 20개씩) `{items:[{id,traceId,name,type,startTime,latencyMs,level,statusMessage?,model?,promptName?,promptVersion?,input?,output?,metadata?}], page, size, total}`(trace 목록과 같은 쪽 모양). 본문은 칸마다 앞 8,000자까지(JSON 글은 JSON으로, 넘으면 앞 8,000자만 글로). `level`은 Langfuse level 하나(`DEBUG`·`DEFAULT`·`WARNING`·`ERROR`, 없으면 전체, 그 밖의 값은 400). 쪽은 0부터이고 최신 1,000개까지만 닿는다(쪽 번호 50부터 400). 없는 `nodeId`는 404 |
+| `GET /llmops/traces/{id}` (기존 확장) | observation마다 `parentObservationId`·`input`·`output`·`metadata`를 더한다(같은 8,000자 제한) — 작업 하나의 실행 흐름 트리. `parentObservationId`는 부모 단계의 id(루트는 null)이고 `input`·`output`·`metadata`는 JSON 글이면 JSON으로 준다 |
 
 Langfuse 실패는 502 `UPSTREAM_FAILED`(기존 규칙).
+Guard의 거절은 level이 아니라 `decision_guard` 출력 `allowed=false`(level DEFAULT)라 `level` 필터로는 걸러지지 않는다. 화면은 기록의 출력으로 거절을 표시한다.
 
 ## 화면
 
@@ -54,3 +72,5 @@ Langfuse 실패는 502 `UPSTREAM_FAILED`(기존 규칙).
 
 - 노드 목록은 코드에 고정이다. 새 Agent를 추가하면 운영 목록도 함께 고친다.
 - 본문 8,000자 자르기 때문에 긴 원고는 끝이 보이지 않는다. 전문은 Langfuse에서 본다(개발자용).
+- 노드 p95는 풀링 백분위가 아니라 노드 이름별 p95 중 가장 큰 값이다(노드마다 쿼리를 따로 보내지 않으려는 단순화). 건수·오류 수·프롬프트 이름은 Metrics API 집계라 정확하다.
+- 이름으로만 가르므로 `retrieval`은 시뮬레이션이 불러도 작품 질문 노드에 센다. 목록에 없는 이름은 어느 노드에도 세지 않는다.
