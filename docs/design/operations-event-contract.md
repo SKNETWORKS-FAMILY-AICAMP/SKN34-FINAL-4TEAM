@@ -7,7 +7,8 @@
 ## 결정
 
 - **저장**: 기존 `operations.event`(V2)와 `EventService`의 검증(제목 1~200자·본문 1~20,000자·공백만/U+0000 거절·
-  종료가 시작보다 빠르면 400·기간 선택)을 재사용한다. 새 컬럼·마이그레이션은 없다.
+  종료가 시작보다 빠르면 400·기간 선택)을 재사용한다. 새 마이그레이션은 선택 이동 경로 `linkPath`(V10 `event.link_path`)뿐이며,
+  규칙(사이트 안 경로만, 위반 422)은 [DEC-57 계약](operations-funnel-credit-contract.md#3-이벤트-이동-기능표-70)을 따른다.
 - **진행 상태**: 상태 컬럼·전이 API가 없다. 프런트 Domain 순수 함수가 `startsAt`·`endsAt`과 현재 시각으로 계산한다.
   - 둘 다 없음 → `상시`(always)
   - `startsAt`이 있고 현재 < `startsAt` → `예정`(upcoming)
@@ -26,9 +27,9 @@
 오류는 기존 `{ code, message }`다. 시각은 UTC ISO-8601이다.
 
 ```text
-Event = { id, title, body, startsAt|null, endsAt|null, createdAt, updatedAt }   // 기존 EventResponse
+Event = { id, title, body, startsAt|null, endsAt|null, createdAt, updatedAt, linkPath|null }   // 기존 EventResponse + DEC-57
 EventList = { items: Event[], page, size, totalElements, totalPages }          // 공통 PageResponse<Event>
-EventInput = { title, body, startsAt?|null, endsAt?|null }                     // 기존 EventRequest
+EventInput = { title, body, startsAt?|null, endsAt?|null, linkPath?|null }                     // 기존 EventRequest + DEC-57
 ```
 
 관리자 `/api/v1/operations/admin/events` (회원 Bearer, `operator` + `events` 권한, 없으면 401/403)
@@ -37,8 +38,8 @@ EventInput = { title, body, startsAt?|null, endsAt?|null }                     /
 |---|---|
 | `GET /` | 최신 등록순(`createdAt DESC, id DESC`) 최대 100개 `EventList` |
 | `GET /{id}` | `Event`, 없으면 404 |
-| `POST /` | `EventInput` 등록, 201 + `Location` + `Event`. 입력 오류 400 |
-| `PUT /{id}` | `EventInput` 전체 수정(생략한 기간은 비움), `Event`. 없음 404·입력 오류 400 |
+| `POST /` | `EventInput` 등록, 201 + `Location` + `Event`. 입력 오류 400·`linkPath` 규칙 위반 422 |
+| `PUT /{id}` | `EventInput` 전체 수정(생략한 기간·`linkPath`는 비움), `Event`. 없음 404·입력 오류 400·`linkPath` 규칙 위반 422 |
 | `DELETE /{id}` | 204, 없음 404 |
 
 독자 `/api/v1/operations/public/events` (인증 없음, GET만)
