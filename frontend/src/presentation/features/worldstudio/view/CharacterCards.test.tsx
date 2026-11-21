@@ -306,3 +306,41 @@ it('키보드 초점이 간 카드가 캔버스 밖이면 그 카드가 가운�
   expect(zoomOf()).toBeCloseTo(zoom,5) // 배율은 그대로
  }finally{spy.mockRestore()}
 })
+
+/** React Flow 뷰포트의 이동(translate, 캔버스 좌표 0,0이 화면 어디에 놓이는지). */
+const viewportOf=()=>/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(document.querySelector<HTMLElement>('.react-flow__viewport')!.style.transform)!.slice(1).map(Number)
+/** 인물 n장(제목 인물1…). */
+const crowd=(n:number)=>Array.from({length:n},(_,i)=>{const s=newSetting('people');s.item.title=`인물${i+1}`;return s})
+/** 허브 한 장이 이웃 k장과 이어진 세계. */
+function star(k:number){const hub=newSetting('people');hub.item.title='허브';const rest=crowd(k);let rows=[hub,...rest];for(const o of rest)rows=putRelation(rows,{subjectId:hub.item.id,targetId:o.item.id,predicate:'friend_of',polarity:'asserted'});return {hub,rows}}
+/** 캔버스(800×600) 안에 카드(200×150) 전체가 들어오는지: 카드마다 뷰포트 이동·배율을 적용한 화면 사각형을 본다. */
+const insideCanvas=(name:string)=>{const [vx,vy]=viewportOf(),z=zoomOf(),[x,y]=at(name);return vx+x*z>=0&&vy+y*z>=0&&vx+(x+200)*z<=800&&vy+(y+150)*z<=600}
+it('중심 보기에서 이웃이 많아 한눈에 못 들어오면 카드 글자가 읽히는 0.7배로 시작하고 중심 카드가 캔버스 가운데에 온다(넘치는 이웃은 끌어서 본다)',()=>{
+ const {hub,rows}=star(12)
+ function Harness(){const vm=useWorldMapViewModel(rows,buildCharacterMap);return <CharacterCards vm={{...vm,graph:mapNeighbors(vm.graph,hub.item.id,0,12)}} center={hub.item.id} editing={actions()}/>}
+ render(<Harness/>)
+ expect(zoomOf()).toBeCloseTo(0.7,5) // 다 넣으면 0.41배라 글자를 읽을 수 없다
+ const [vx,vy]=viewportOf(),[cx,cy]=at('허브 인물 카드')
+ expect(vx+(cx+100)*0.7).toBeCloseTo(400,1) // 중심 카드의 가운데가 캔버스(800×600)의 가운데
+ expect(vy+(cy+75)*0.7).toBeCloseTo(300,1)
+})
+it('중심 보기에서 이웃이 적어 0.7배 이상으로 들어오면 전부 보이게 맞춘다(배율을 더 줄이지도, 억지로 낮추지도 않는다)',()=>{
+ const {hub,rows}=star(3)
+ function Harness(){const vm=useWorldMapViewModel(rows,buildCharacterMap);return <CharacterCards vm={{...vm,graph:mapNeighbors(vm.graph,hub.item.id,0,12)}} center={hub.item.id} editing={actions()}/>}
+ render(<Harness/>)
+ expect(zoomOf()).toBeGreaterThanOrEqual(0.7)
+ expect(zoomOf()).toBeLessThan(1)
+ for(const name of ['허브 인물 카드','인물1 인물 카드','인물2 인물 카드','인물3 인물 카드'])expect(insideCanvas(name),name).toBe(true)
+})
+it('전체 보기에서 카드가 많아 한눈에 못 들어오면 0.45배로 시작해 왼쪽 위 카드부터 보이고, 화면에 맞추기 버튼은 그보다 줄여 전체를 보여 준다',async()=>{
+ function Harness(){const vm=useWorldMapViewModel(crowd(20),buildCharacterMap);return <CharacterCards vm={vm} editing={actions()}/>}
+ render(<Harness/>)
+ expect(zoomOf()).toBeCloseTo(0.45,5) // 다 넣으면 0.32배
+ expect(viewportOf()).toEqual([24,24]) // 첫 카드가 왼쪽 위 가장자리(24px)에 놓인다
+ expect(insideCanvas('인물1 인물 카드')).toBe(true)
+ expect(insideCanvas('인물6 인물 카드')).toBe(false) // 오른쪽 끝 열은 캔버스 밖으로 넘친다(끌어서 본다)
+ fireEvent.click(screen.getByRole('button',{name:'화면에 맞추기'}))
+ await waitFor(()=>expect(zoomOf()).toBeLessThan(0.4))
+ expect(zoomOf()).toBeGreaterThanOrEqual(0.15)
+ for(const name of ['인물1 인물 카드','인물6 인물 카드','인물20 인물 카드'])expect(insideCanvas(name),name).toBe(true) // 전체가 들어온다
+})

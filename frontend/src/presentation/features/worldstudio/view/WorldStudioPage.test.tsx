@@ -4431,6 +4431,22 @@ it('관계도 보기는 React Flow 캔버스가 내용 열 전체 폭의 한 열
   expect(document.querySelector('.ep-content')!.getAttribute('data-view')).toBeNull() // 작성 모드는 그대로
 })
 
+it('관계도 보기의 안내문·범례는 캔버스 감싸개(.relationship-canvas) 안에서 캔버스에 겹치고, 도구줄·중심·유형 필터는 캔버스 위 한 묶음(.relationship-bar)이며, 관계 기준 회차는 그 바깥이라 편집기가 다시 열려도 그대로다', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people')
+  const canvas = screen.getByRole('group', { name: '인물 카드 그래프' }).closest('.relationship-canvas') as HTMLElement
+  expect(canvas).toBeTruthy()
+  expect(within(canvas).getByText('카드 두 개를 차례로 누르면 관계를 이어요.').getAttribute('role')).toBe('status') // 안내문은 캔버스 위에 겹치는 작은 글(상태 안내 그대로)
+  expect(within(canvas).getByRole('list', { name: '범례' })).toBeTruthy()
+  const bar = document.querySelector('.relationship-bar') as HTMLElement
+  expect(Array.from(bar.children, (child) => child.className)).toEqual(['relationship-toolbar', 'relationship-focus', 'relationship-filter']) // 도구줄 → 중심 → 유형 필터(키보드 순서도 같다)
+  expect(within(bar).getByRole('button', { name: '인물 추가' })).toBeTruthy()
+  expect(within(bar).getByRole('combobox')).toBeTruthy()
+  expect(within(bar).getByRole('group', { name: '관계도 유형 필터' })).toBeTruthy()
+  expect(bar.compareDocumentPosition(canvas) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 묶음은 캔버스 위
+  expect(bar.contains(screen.getByRole('region', { name: '관계 기준 회차' }))).toBe(false) // 회차 칸은 다시 열리는 편집기 바깥
+})
+
 it('관계도 보기에서 적용하지 않은 관계 입력이 있으면 세계관 머리가 없어도 관계 입력 미적용 칩이 내용 열 맨 위에 보이고, 다른 보기에서는 머리의 칩이 맡는다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show([garam, narae], '/worldstudio/qa?view=people')

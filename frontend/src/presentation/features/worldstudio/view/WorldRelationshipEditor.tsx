@@ -35,7 +35,8 @@ const LineKey = ({ tone, dashed, arrow }: { tone: 'edge' | 'emotion'; dashed?: b
  * 관계는 기존 초안·적용 흐름 그대로 '편집본에 적용'으로 반영하고 세계관 저장으로 서버에 저장한다.
  * 누른 버튼이 사라지는 동작 뒤에는 초점을 이어 준다(`focusTo`): 관계 작성 패널을 닫으면 '관계 작성' 버튼(잠겨 있으면 관계 주체 선택), 목록의 관계를 지우면 관계 목록, 지운 인물을 되돌리면 관계 주체 선택이다.
  * 인물 삭제는 이 화면에 없다(편집 화면의 '카드 삭제'로 일원화): 거기서 지운 인물의 되돌리기만 알림으로 남고, 고른·연결 중이던 카드가 지워지면 그 선택을 푼다.
- * 그래프 위 한 줄 툴바(`중심: [검색 콤보]`·이웃 쪽 이동·`전체 관계도로`)가 중심을 바꾸고(`<input list>`: 이름을 쓰거나 목록에서 고르면 그 카드), '관계 추가' 폼은 접힌 `<details>`(그래프에서 두 카드를 고르는 길이 기본, 고른 설정이 채워지면 펼침)다.
+ * 그래프 위 도구 묶음(`.relationship-bar`: 제목·인물 추가·배치 정돈 → `중심: [검색 콤보]`·이웃 쪽 이동·`전체 관계도로` → 유형 필터, 키보드 순서도 같다)이 줄바꿈만 하며 중심을 바꾸고(`<input list>`: 이름을 쓰거나 목록에서 고르면 그 카드), '관계 추가' 폼은 접힌 `<details>`(그래프에서 두 카드를 고르는 길이 기본, 고른 설정이 채워지면 펼침)다.
+ * 안내문('카드 두 개를 차례로 누르면…', 연결 중이면 연결 취소)과 범례는 캔버스 감싸개(`.relationship-canvas`) 안에 있어, 작성 모드는 캔버스 위·아래 줄이고 관리 모드 관계도 보기는 둘 다 캔버스 위에 겹친 작은 글이다(`world-studio.css`). 관계 기준 회차 칸은 이 편집기 바깥(`WorldStudioPage`)이라 편집기가 다시 열려도 초점이 남는다.
  * 관계 목록은 중심 보기 동안 기본으로 중심 카드의 관계만이고 `전체 N개 보기`로 전체를 보며, 중심을 바꾸면 다시 그 카드의 관계만이다.
  * 그래프 위의 유형 필터(`관계도 유형 필터`)는 이 화면에서만 쓰는 보기 상태라 주소·초안·저장과 무관하고, 숨긴 유형의 카드와 그 카드에 닿는 관계선만 그래프에서 뺀다
  * (관계 주체·대상 선택지와 관계 목록은 거르지 않는다). 선택했거나 연결을 시작한 카드가 숨겨지면 그 선택·연결 모드를 풀어 숨은 카드에 관계를 잇지 못하게 한다.
@@ -170,55 +171,59 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
         <legend className='sr-only'>관계 대상 선택</legend>
         <div className='relationship-service-layout'>
           <div className='relationship-stage'>
-            <div className='relationship-toolbar'>
-              <h4>관계도</h4>
-              <button className='btn sm' type='button' onClick={()=>{if(!studio.confirmRelationDiscard())return;const id=studio.addCard('character');if(id)studio.editCard(id)}}>인물 추가</button>
-              <button className='btn sm' type='button' onClick={()=>setLayoutVersion(v=>v+1)}>배치 정돈</button>
-            </div>
-            <div className='relationship-hint' role='status'>{choosing?<>{name(source)}의 연결 상대를 고르세요.<button ref={cancelConnect} className='btn sm' type='button' onClick={stopChoosing}>연결 취소</button></>:'카드 두 개를 차례로 누르면 관계를 이어요.'}</div>
-            {types.length > 0 && (
-              <div className='relationship-filter' role='group' aria-label='관계도 유형 필터'>
-                <button className='btn sm' type='button' aria-pressed={!present.some((t) => hidden.has(t))} onClick={() => applyHidden(new Set())}>전체</button>
-                {types.map(({ id, label, count }) => {
-                  const next = toggleHiddenType(hidden, id, present)
-                  // 보이는 유형이 하나뿐이면 그 버튼은 잠긴다(toggleHiddenType이 같은 집합을 돌려줌): 그래프가 비지 않게.
-                  return <button key={id} className='btn sm' type='button' aria-pressed={!hidden.has(id)} disabled={next === hidden} onClick={() => applyHidden(next)}>{label} {count}</button>
-                })}
+            <div className='relationship-bar'>
+              <div className='relationship-toolbar'>
+                <h4>관계도</h4>
+                <button className='btn sm' type='button' onClick={()=>{if(!studio.confirmRelationDiscard())return;const id=studio.addCard('character');if(id)studio.editCard(id)}}>인물 추가</button>
+                <button className='btn sm' type='button' onClick={()=>setLayoutVersion(v=>v+1)}>배치 정돈</button>
               </div>
-            )}
-            <div className='relationship-focus'>
-              <label className='relationship-center'>
-                중심
-                <input
-                  type='search'
-                  role='combobox'
-                  list={centerList}
-                  className='inp'
-                  autoComplete='off'
-                  value={typed ?? anchorNode?.name ?? ''}
-                  placeholder={anchorNode ? anchorNode.name : '카드 이름으로 찾기'}
-                  onFocus={() => setTyped('')}
-                  onBlur={() => setTyped(null)}
-                  onChange={(e) => {
-                    const value = e.target.value
-                    setTyped(value)
-                    const hit = shown.nodes.find((n) => n.name === value) // 목록에서 고르거나 이름을 그대로 쓰면 그 카드가 중심이다
-                    if (hit) { setAnchor(hit.id); setNeighborPage(0); setEdgePage(0) }
-                  }}
-                />
-              </label>
-              <datalist id={centerList}>{choices.map((node) => <option key={node.id} value={node.name} />)}</datalist>
-              {anchorNode
-                ? <><PageControls label="이웃" page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /><button type='button' className='btn sm' onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 관계도로</button></>
-                : <>{backToCenter && <button type='button' className='btn sm' onClick={() => { setAnchor(backToCenter); setNeighborPage(0); setEdgePage(0) }}>중심 카드로 보기</button>}<PageControls label="그래프" page={graphNodes.page} pages={graphNodes.pages} onPage={(next) => { setGraphPage(next); setEdgePage(0) }} /></>}
-              {graphEdges.pages > 1 && <><p className='small muted'>현재 카드의 관계를 페이지별로 보여요.</p><PageControls label="연결선" page={graphEdges.page} pages={graphEdges.pages} onPage={setEdgePage} /></>}
+              <div className='relationship-focus'>
+                <label className='relationship-center'>
+                  중심
+                  <input
+                    type='search'
+                    role='combobox'
+                    list={centerList}
+                    className='inp'
+                    autoComplete='off'
+                    value={typed ?? anchorNode?.name ?? ''}
+                    placeholder={anchorNode ? anchorNode.name : '카드 이름으로 찾기'}
+                    onFocus={() => setTyped('')}
+                    onBlur={() => setTyped(null)}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setTyped(value)
+                      const hit = shown.nodes.find((n) => n.name === value) // 목록에서 고르거나 이름을 그대로 쓰면 그 카드가 중심이다
+                      if (hit) { setAnchor(hit.id); setNeighborPage(0); setEdgePage(0) }
+                    }}
+                  />
+                </label>
+                <datalist id={centerList}>{choices.map((node) => <option key={node.id} value={node.name} />)}</datalist>
+                {anchorNode
+                  ? <><PageControls label="이웃" page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /><button type='button' className='btn sm' onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 관계도로</button></>
+                  : <>{backToCenter && <button type='button' className='btn sm' onClick={() => { setAnchor(backToCenter); setNeighborPage(0); setEdgePage(0) }}>중심 카드로 보기</button>}<PageControls label="그래프" page={graphNodes.page} pages={graphNodes.pages} onPage={(next) => { setGraphPage(next); setEdgePage(0) }} /></>}
+                {graphEdges.pages > 1 && <><p className='small muted'>현재 카드의 관계를 페이지별로 보여요.</p><PageControls label="연결선" page={graphEdges.page} pages={graphEdges.pages} onPage={setEdgePage} /></>}
+              </div>
+              {types.length > 0 && (
+                <div className='relationship-filter' role='group' aria-label='관계도 유형 필터'>
+                  <button className='btn sm' type='button' aria-pressed={!present.some((t) => hidden.has(t))} onClick={() => applyHidden(new Set())}>전체</button>
+                  {types.map(({ id, label, count }) => {
+                    const next = toggleHiddenType(hidden, id, present)
+                    // 보이는 유형이 하나뿐이면 그 버튼은 잠긴다(toggleHiddenType이 같은 집합을 돌려줌): 그래프가 비지 않게.
+                    return <button key={id} className='btn sm' type='button' aria-pressed={!hidden.has(id)} disabled={next === hidden} onClick={() => applyHidden(next)}>{label} {count}</button>
+                  })}
+                </div>
+              )}
             </div>
-            <CharacterCards key={layoutVersion} vm={{...map,graph}} center={focused?anchor:undefined} editing={{busy:studio.busy,selectedRelations:open?studio.editing!.settings.filter(s=>s.item.kind==='relation'&&((s.item.subjectId===source&&s.item.targetId===target)||(s.item.subjectId===target&&s.item.targetId===source))).map(s=>s.item.id):[],targetSource:choosing?source:null,onPick:pick,onSelect:id=>{if(choosing){selectPair(source,id,true)}else if(studio.confirmRelationDiscard()){studio.editCard(id)}},onConnect:id=>{if(selectPair(id,'',false))setChoosing(true)},onRelation:id=>studio.editRelation(id)}}/>
-            <ul className='relationship-legend' aria-label='범례'>
-              <li><LineKey tone='edge' />구조 관계</li>
-              <li><LineKey tone='emotion' dashed />감정(방향별)</li>
-              <li><LineKey tone='edge' arrow />방향이 있는 관계</li>
-            </ul>
+            <div className='relationship-canvas'>
+              <CharacterCards key={layoutVersion} vm={{...map,graph}} center={focused?anchor:undefined} editing={{busy:studio.busy,selectedRelations:open?studio.editing!.settings.filter(s=>s.item.kind==='relation'&&((s.item.subjectId===source&&s.item.targetId===target)||(s.item.subjectId===target&&s.item.targetId===source))).map(s=>s.item.id):[],targetSource:choosing?source:null,onPick:pick,onSelect:id=>{if(choosing){selectPair(source,id,true)}else if(studio.confirmRelationDiscard()){studio.editCard(id)}},onConnect:id=>{if(selectPair(id,'',false))setChoosing(true)},onRelation:id=>studio.editRelation(id)}}/>
+              <div className='relationship-hint' role='status'>{choosing?<>{name(source)}의 연결 상대를 고르세요.<button ref={cancelConnect} className='btn sm' type='button' onClick={stopChoosing}>연결 취소</button></>:'카드 두 개를 차례로 누르면 관계를 이어요.'}</div>
+              <ul className='relationship-legend' aria-label='범례'>
+                <li><LineKey tone='edge' />구조 관계</li>
+                <li><LineKey tone='emotion' dashed />감정(방향별)</li>
+                <li><LineKey tone='edge' arrow />방향이 있는 관계</li>
+              </ul>
+            </div>
           </div>
           <div className='relationship-service-form'>
             {studio.deletedCard?.person && (

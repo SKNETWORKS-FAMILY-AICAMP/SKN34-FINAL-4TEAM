@@ -20,6 +20,12 @@ type Graph = { editing: Actions; marker: string; setHot: (key: string) => void; 
 const CARD_W = 200, CARD_H = 150, GAP = 144
 /** 화면 맞춤: 가장자리에 12% 여백, 카드 글자가 읽히도록 원래 크기(1배)까지만 키우고 전체 보기는 0.15배까지 줄인다. 처음·중심 변경(`Fit`)과 컨트롤의 화면 맞춤 버튼이 같은 값을 쓴다. */
 const FIT = { padding: '12%', minZoom: 0.15, maxZoom: 1 } as const // React Flow 13의 숫자 padding은 픽셀이라 비율은 문자열('%')로 쓴다
+/**
+ * 처음·중심 변경 때 카드 글자가 읽히는 최소 배율(중심 보기 0.7, 전체 보기 0.45). 전부 넣으려면 이보다 작아야 하면 이 배율로 시작하고 넘치는 부분은 끌어서 본다.
+ * 컨트롤의 화면 맞춤 버튼은 위 `FIT`(최소 0.15)이라 늘 전체를 보여 준다. 전체 보기는 넘치면 왼쪽 위 카드부터 보이게 가장자리 `START_PAD`px를 둔다.
+ */
+const START_ZOOM = { centered: 0.7, all: 0.45 } as const
+const START_PAD = 24
 /** React Flow의 영어 컨트롤 이름을 한국어로 바꾼다. */
 const ARIA: Partial<AriaLabelConfig> = { 'controls.ariaLabel': '관계도 조작', 'controls.zoomIn.ariaLabel': '확대', 'controls.zoomOut.ariaLabel': '축소', 'controls.fitView.ariaLabel': '화면에 맞추기' }
 
@@ -81,27 +87,35 @@ const nodeTypes = { card: CardNode } satisfies NodeTypes
 const edgeTypes = { relation: RelationLine } satisfies EdgeTypes
 
 /**
- * 화면 맞춤: 처음과 중심·이웃 구성이 바뀔 때(`k`) 모든 카드가 상자 안에 들어오게 뷰포트를 정한다. 이미 아는 카드 경계와 상자 크기로 직접 계산한다.
- * 끌어 옮긴 카드·확대·이동은 `k`가 같으면 건드리지 않는다. 컨트롤의 화면 맞춤 버튼은 같은 값(`FIT`)으로 React Flow가 한다.
+ * 처음 화면: 처음과 중심·이웃 구성이 바뀔 때(`k`) 뷰포트를 정한다. 이미 아는 카드 경계와 상자 크기로 직접 계산한다.
+ * 전부 `START_ZOOM` 이상으로 들어오면 전부 보이게 맞추고, 아니면 `START_ZOOM`으로 시작해 중심 보기(`focus`)는 중심 카드를 캔버스 가운데에, 전체 보기는 왼쪽 위 카드부터 보이게 한다.
+ * 끌어 옮긴 카드·확대·이동은 `k`가 같으면 건드리지 않는다. 컨트롤의 화면 맞춤 버튼은 `FIT`으로 React Flow가 한다.
  */
-function Fit({ k, nodes, host }: { k: string; nodes: FlowCard[]; host: RefObject<HTMLDivElement | null> }) {
+function Fit({ k, nodes, host, focus }: { k: string; nodes: FlowCard[]; host: RefObject<HTMLDivElement | null>; focus?: string }) {
   const { setViewport } = useReactFlow()
   const latest = useRef(nodes)
   latest.current = nodes
   useEffect(() => {
-    const el = host.current
-    if (!el || !latest.current.length) return
-    const xs = latest.current.map((n) => n.position.x), ys = latest.current.map((n) => n.position.y)
+    const el = host.current, list = latest.current
+    if (!el || !list.length) return
+    const xs = list.map((n) => n.position.x), ys = list.map((n) => n.position.y)
     const x = Math.min(...xs), y = Math.min(...ys), bounds = { x, y, width: Math.max(...xs) + CARD_W - x, height: Math.max(...ys) + CARD_H - y } // 카드 경계(위치 + 고정 크기)
-    void setViewport(getViewportForBounds(bounds, el.clientWidth, el.clientHeight, FIT.minZoom, FIT.maxZoom, FIT.padding))
-  }, [k, setViewport, host])
+    const { clientWidth: w, clientHeight: h } = el
+    const fit = getViewportForBounds(bounds, w, h, FIT.minZoom, FIT.maxZoom, FIT.padding)
+    const zoom = focus ? START_ZOOM.centered : START_ZOOM.all
+    if (fit.zoom >= zoom) { void setViewport(fit); return }
+    const card = list.find((n) => n.id === focus)
+    void setViewport(card
+      ? { x: w / 2 - (card.position.x + CARD_W / 2) * zoom, y: h / 2 - (card.position.y + CARD_H / 2) * zoom, zoom }
+      : { x: START_PAD - bounds.x * zoom, y: START_PAD - bounds.y * zoom, zoom })
+  }, [k, setViewport, host, focus])
   return null
 }
 const finite = (p?: Point): p is Point => !!p && Number.isFinite(p.x) && Number.isFinite(p.y)
 
 /**
  * 카드 그래프(React Flow 캔버스, `@xyflow/react`는 이 파일에서만 쓴다). 점 격자 배경 위에서 휠·핀치로 확대·축소하고 빈 곳을 끌어 옮기며 카드를 끌 수 있고(끈 위치는 화면 상태일 뿐 저장하지 않는다), 왼쪽 아래 컨트롤이 확대·축소·화면 맞춤이다.
- * `center`(중심 카드 id)가 있으면 그 카드를 가운데에 두고 이웃(`vm.graph.nodes`의 나머지)을 둘레 원 위에 놓는다(`ringLayout`, 선이 서로 교차하지 않는 별 모양). 없으면 모든 카드를 격자에 깐다. 처음과 중심·이웃이 바뀔 때 화면을 맞춘다(`Fit`).
+ * `center`(중심 카드 id)가 있으면 그 카드를 가운데에 두고 이웃(`vm.graph.nodes`의 나머지)을 둘레 원 위에 놓는다(`ringLayout`, 선이 서로 교차하지 않는 별 모양). 없으면 모든 카드를 격자에 깐다. 처음과 중심·이웃이 바뀔 때 카드 글자가 읽히는 배율로 시작한다(`Fit`, 중심 보기 0.7배·전체 보기 0.45배 이상).
  * 관계선 라벨(`<text>`)은 중심 보기에서는 중심 카드에 닿는 선에, 전체 보기에서는 마우스를 올리거나 초점을 둔 선(키보드는 카드 버튼에 초점이 있는 카드에 닿는 선)에만 그리고, 나머지 선은 `<title>` 툴팁·누르는 영역의 이름으로만 읽힌다(겹친 선의 라벨이 서로 가리지 않게).
  * 층: 간선(React Flow 간선 층) < 카드 < 라벨(뷰포트 포털의 SVG). 캔버스 높이는 CSS가 정하고, 이 컴포넌트는 캔버스 위쪽의 문서 위치만 `--rf-top`으로 알린다(관계도 보기가 '화면 높이 − 위쪽'을 채운다).
  */
@@ -195,7 +209,7 @@ export default function CharacterCards({ vm, editing, center }: { vm: ReturnType
         >
           <Background variant={BackgroundVariant.Dots} gap={22} size={1.6} />
           <Controls showInteractive={false} fitViewOptions={FIT} />
-          <Fit k={`${center ?? ''}|${nodesIn.map((n) => n.id).join(',')}`} nodes={nodes} host={host} />
+          <Fit k={`${center ?? ''}|${nodesIn.map((n) => n.id).join(',')}`} nodes={nodes} host={host} focus={center} />
           <ViewportPortal>
             <svg className="relationship-card-labels" aria-hidden="true">
               {labelled.map((e) => {

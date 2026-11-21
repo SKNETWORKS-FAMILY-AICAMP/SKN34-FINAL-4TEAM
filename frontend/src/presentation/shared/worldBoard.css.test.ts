@@ -174,6 +174,11 @@ describe('관계도 React Flow 캔버스(@xyflow/react)', () => {
     for (const gone of ['relationship-cards-scroll', 'relationship-cards-board', 'relationship-card-edges']) expect(map, gone).not.toContain(gone)
   })
 
+  it('캔버스 감싸개는 안내문을 캔버스 위(order:-1), 범례를 캔버스 아래에 두고 겹침의 기준이 된다(관리 모드 관계도 보기는 world-studio.css가 둘을 캔버스 위에 겹친다)', () => {
+    expect(rule(map, '.relationship-canvas')).toMatch(/position:relative;display:flex;flex-direction:column/)
+    expect(rule(map, '.relationship-canvas>.relationship-hint')).toMatch(/order:-1/)
+  })
+
   it('작성 모드(2열)의 캔버스 높이는 화면 높이를 따르는 범위이고 좁은 화면은 440px이며, 터치 기기는 카드 위 세로 손짓을 페이지 스크롤이 받는다', () => {
     expect(rule(map, '.relationship-flow')).toMatch(/position:relative;height:clamp\(380px,55vh,590px\)/)
     expect(map).toContain('@media(max-width:600px){.relationship-flow{height:440px}.relationship-character-card{border-radius:10px}}')
