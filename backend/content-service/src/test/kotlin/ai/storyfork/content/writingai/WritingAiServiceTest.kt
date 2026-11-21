@@ -7,6 +7,8 @@ import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.context.service.dto.QaScope
 import ai.storyfork.content.context.service.dto.QaScopeRequest
 import ai.storyfork.content.episode.service.EpisodeService
+import ai.storyfork.content.episode.service.dto.DraftResponse
+import ai.storyfork.content.episode.service.dto.EpisodeResponse
 import ai.storyfork.content.fork.repository.ForkRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkWorldService
@@ -189,6 +191,91 @@ class WritingAiServiceTest {
         val inputs = JsonMapper.builder().build().readTree("""{"research":{"question":"한양에서 동래까지?"}}""")
         val body = service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true, inputs)))
         assertEquals(inputs, (body["resume"] as Map<*, *>)["inputs"])
+    }
+
+    // 채팅 구간 입력(#497): resume의 inputs.writing_editing.span을 Content가 검증하고 patch로 바꿔 AI에 보낸다. 허용 문맥은 AI가 채우므로 싣지 않는다.
+    private val mapper = JsonMapper.builder().build()
+    private val before = "가".repeat(2500)
+    private val after = "나".repeat(2500)
+    private val picked = "그는 웃었다."
+
+    private fun draftOf(body: String, revision: Int = 4) =
+        EpisodeResponse(2, DraftResponse("2화", body, revision), emptyList(), null, false, null)
+
+    private fun spanInputs(start: Int, end: Int, revision: Int = 4, instruction: String? = "더 차갑게", episode: Int = 2) = mapper.readTree(
+        """{"writing_editing":{"span":{"episode":$episode,"revision":$revision,"start":$start,"end":$end${instruction?.let { ""","instruction":"$it"""" } ?: ""}}}}""")
+
+    private fun resumedWith(inputs: tools.jackson.databind.JsonNode) =
+        service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true, inputs)))["resume"] as Map<*, *>
+
+    private fun refusedWith(inputs: tools.jackson.databind.JsonNode) =
+        assertThrows(ContentFailure::class.java) { resumedWith(inputs) }.status
+
+    @Test
+    fun `a chosen span becomes a patch with the selection the surrounding text and the instruction but no context`() {
+        `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf(before + picked + after))
+        val patch = resumedWith(spanInputs(2500, 2500 + picked.length))["inputs"]
+        assertEquals(mapper.readTree("""{"writing_editing":{"patch":{"selection":"$picked","instruction":"더 차갑게",
+            "precedingText":"${"가".repeat(2000)}","followingText":"${"나".repeat(2000)}"}}}"""), patch)
+        assertFalse(patch.toString().contains("context"))
+        assertFalse(patch.toString().contains("span"))
+    }
+
+    @Test
+    fun `a span outside the other inputs leaves them as they were`() {
+        `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf(picked))
+        val inputs = mapper.readTree("""{"research":{"question":"한양에서 동래까지?"},"writing_editing":{"span":{"episode":2,"revision":4,"start":0,"end":3,"instruction":"다듬어 줘"}}}""")
+        val sent = resumedWith(inputs)["inputs"]
+        assertEquals("한양에서 동래까지?", (sent as tools.jackson.databind.JsonNode).path("research").path("question").asString())
+        assertEquals("그는 ", sent.path("writing_editing").path("patch").path("selection").asString())
+    }
+
+    @Test
+    fun `spans that break the selection rules are a 422 and nothing reaches the AI`() {
+        val body = "그는 웃었다. 😀 바람이 찼다."  // 공백이 7, 이모지(서로게이트 쌍)가 8~9에 있다
+        `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf(body))
+        assertEquals(422, refusedWith(spanInputs(3, 3)))  // 빈 구간
+        assertEquals(422, refusedWith(spanInputs(5, 3)))  // 거꾸로
+        assertEquals(422, refusedWith(spanInputs(-1, 3)))
+        assertEquals(422, refusedWith(spanInputs(0, body.length + 1)))  // 본문 밖
+        assertEquals(422, refusedWith(spanInputs(0, 9)))  // 서로게이트 쌍의 중간에서 끝남
+        assertEquals(422, refusedWith(spanInputs(9, 12)))  // 서로게이트 쌍의 중간에서 시작
+        assertEquals(422, refusedWith(mapper.readTree("""{"writing_editing":{"span":{"episode":2,"revision":4,"start":7,"end":8,"instruction":"x"}}}""")))  // 공백뿐
+        verifyNoInteractions(client)
+        `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf("가".repeat(6000)))
+        assertEquals(422, refusedWith(spanInputs(0, 5001)))  // 5,000자 초과
+        resumedWith(spanInputs(0, 5000))  // 5,000자는 허용
+    }
+
+    @Test
+    fun `a draft saved after the span was chosen is a 409`() {
+        `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf(picked, revision = 5))
+        assertEquals(409, refusedWith(spanInputs(0, 3, revision = 4)))
+    }
+
+    @Test
+    fun `a missing instruction or a malformed span is a 422 and an over-long instruction too`() {
+        `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf(picked))
+        assertEquals(422, refusedWith(spanInputs(0, 3, instruction = null)))
+        assertEquals(422, refusedWith(spanInputs(0, 3, instruction = " ")))
+        assertEquals(422, refusedWith(spanInputs(0, 3, instruction = "가".repeat(2001))))
+        assertEquals(422, refusedWith(mapper.readTree("""{"writing_editing":{"span":{"episode":"2","revision":4,"start":0,"end":3,"instruction":"x"}}}""")))
+        assertEquals(422, refusedWith(mapper.readTree("""{"writing_editing":{"span":"0:3"}}""")))
+        resumedWith(spanInputs(0, 3, instruction = "가".repeat(2000)))
+    }
+
+    @Test
+    fun `another author's work or a missing episode keeps its own error`() {
+        `when`(episodes.read("work", "owner", 2)).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
+        assertEquals(404, refusedWith(spanInputs(0, 3)))
+        verifyNoInteractions(client)
+    }
+
+    @Test
+    fun `inputs without a span go through untouched and never read the draft`() {
+        val draft = mapper.readTree("""{"writing_editing":{"draft":{"episodeNumber":2,"plan":"선장이 도착한다."}}}""")
+        assertEquals(draft, resumedWith(draft)["inputs"])
+        verifyNoInteractions(episodes)
     }
 
     // 시뮬레이션 무대의 장면 조작(resume.scene): 형식·길이만 확인해 AI로 그대로 넘긴다. 조작별 필수 필드는 AI가 다시 확인한다.

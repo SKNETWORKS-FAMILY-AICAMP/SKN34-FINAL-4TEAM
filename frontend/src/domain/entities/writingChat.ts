@@ -190,7 +190,9 @@ export type ChatStepInputs = {
   research?: { question: string }
   manuscript_review?: { check: ReviewCheck }
   /** fix는 조건부 수정에서 고른 검수 지적의 번호(검수 결과 findings 순서)다. */
+  /** span은 채팅 입력 대기에서 고른 초안 구간이다(#497). Content가 검증해 patch로 바꿔 AI에 넘긴다. start·end는 초안 본문의 UTF-16 위치 [start, end)다. */
   writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } } | { fix: number }
+    | { span: { episode: number; revision: number; start: number; end: number; instruction: string } }
 }
 /** 시뮬레이션 무대에서 작가가 장면에 거는 조작(AI `Resume.scene`, Content `WritingAiResume.scene`을 그대로 통과한다). */
 export type SceneAction =

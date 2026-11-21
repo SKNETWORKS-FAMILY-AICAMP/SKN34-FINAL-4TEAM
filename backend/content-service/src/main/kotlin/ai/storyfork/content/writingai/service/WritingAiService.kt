@@ -8,6 +8,7 @@ import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.context.service.dto.QaScopeRequest
 import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.fork.repository.ForkRepository
+import ai.storyfork.content.proposal.domain.WritingSelection
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.service.WorldStudioService
@@ -21,6 +22,7 @@ import ai.storyfork.content.writingai.service.dto.WritingAiSimulation
 import java.io.OutputStream
 import java.util.UUID
 import tools.jackson.databind.JsonNode
+import tools.jackson.databind.node.ObjectNode
 
 /**
  * 집필 AI 오케스트레이션의 Content 진입점. 로그인한 작가 본인으로 Q&A 조회 범위를 서명해 발급하고,
@@ -125,6 +127,37 @@ internal class WritingAiService(
         }
     }
 
+    /**
+     * 채팅 구간 입력(#497): 작가가 입력 대기 카드에서 고른 `inputs.writing_editing.span`(episode·revision·start·end·instruction)을 확인해
+     * AI의 `patch`(선택 문장·앞뒤 2,000자·지시)로 바꾼다. 작품 소유는 회차 조회가 확인하고(남의 작품·없는 회차는 그 오류),
+     * 초안 revision이 다르면 409, 구간 규칙(공백 아님·5,000자 이하·서로게이트 분할 금지)은 부분 수정과 같은 [WritingSelection]이 422로 막는다.
+     * 허용 문맥은 싣지 않는다(AI가 Content MCP로 채운다). span이 없으면 inputs를 그대로 통과시킨다.
+     * shortcut: span.episode가 대화의 반영 회차와 같은지는 보지 않는다. 다르면 AI의 apply가 선택 문장이 그 초안에 한 번 있는지 다시 확인해 409로 막는다.
+     */
+    private fun patchInputs(workId: String, owner: String, inputs: JsonNode): JsonNode {
+        val span = inputs.path("writing_editing").path("span")
+        if (span.isMissingNode) return inputs
+        fun whole(name: String) = span.path(name).takeIf { it.isIntegralNumber && it.canConvertToInt() }?.asInt()
+        val episode = whole("episode")
+        val revision = whole("revision")
+        val start = whole("start")
+        val end = whole("end")
+        val instruction = span.path("instruction").takeIf { it.isString }?.asString()
+        checkContent(episode != null && revision != null && start != null && end != null &&
+            instruction != null && instruction.isNotBlank() && instruction.length <= 2000, message = "수정 구간과 지시를 다시 확인해 주세요.")
+        val draft = episodes.read(workId, owner, episode!!).draft
+        checkContent(draft.revision == revision, 409, "초안이 바뀌었어요. 수정할 구간을 다시 선택해 주세요.")
+        val selection = WritingSelection.of(draft.body, start!!, end!!)
+        val replaced = (inputs as ObjectNode).deepCopy()
+        replaced.putObject("writing_editing").putObject("patch").apply {
+            put("selection", selection.before)
+            put("instruction", instruction)
+            put("precedingText", selection.preceding)
+            put("followingText", selection.following)
+        }
+        return replaced
+    }
+
     private fun body(form: WritingAiSimulation) = buildMap<String, Any?> {
         put("mode", form.mode)
         form.premise?.let { put("premise", it) }
@@ -163,7 +196,7 @@ internal class WritingAiService(
                 put("resume", buildMap {
                     put("approved", request.resume.approved)
                     put("scope", scope)
-                    request.resume.inputs?.let { put("inputs", it) }
+                    request.resume.inputs?.let { put("inputs", patchInputs(workId, owner, it)) }
                     request.resume.scene?.let { put("scene", body(it)) }
                 })
             } else {

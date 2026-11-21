@@ -127,6 +127,7 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/draft?revision=${revision}`,z.undefined(),'DELETE',undefined,signal)}
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}?revision=${revision}`,z.undefined(),'DELETE',undefined,signal)}
   writingList(id:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes`,z.array(writing),'GET',undefined,signal)}
+  writingEpisode(id:string,number:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}`,writing,'GET',undefined,signal)}
   workSettings(id: string, signal?: AbortSignal) {
     return this.request(operatingSettingsPath(id), operatingSettings, 'GET', undefined, signal)
   }
