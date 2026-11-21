@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="454" viewBox="0 0 820 454" font-family="'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif">
+<rect width="820" height="454" fill="#ffffff"/>
+<defs><marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<text x="30" y="40" font-size="20" fill="#1f2937" text-anchor="start" font-weight="bold">결과 ③ 한국어에서는 단계마다 맡는 질문이 다르다</text>
+<text x="30" y="66" font-size="14" fill="#6b7280" text-anchor="start" font-weight="normal">하나씩 빼 보기: 정답 근거를 상위 5개 안에 찾은 비율 (Recall@5, 한국어 샘플 62문항)</text>
+<text x="30" y="104" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">원고 질문 (장면·대사를 묻는 질문 23개) → 원고 벡터가 맡는다</text>
+<text x="218" y="135" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">전체</text>
+<rect x="230" y="120" width="480.0" height="22" rx="4" fill="#dc2626"/>
+<text x="718.0" y="136" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.96</text>
+<text x="218" y="169" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">전체 − 그래프</text>
+<rect x="230" y="154" width="480.0" height="22" rx="4" fill="#2563eb"/>
+<text x="718.0" y="170" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.96</text>
+<text x="218" y="203" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">전체 − BM25</text>
+<rect x="230" y="188" width="480.0" height="22" rx="4" fill="#7c3aed"/>
+<text x="718.0" y="204" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.96</text>
+<text x="218" y="237" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">전체 − 원고 벡터</text>
+<rect x="230" y="222" width="2.0" height="22" rx="4" fill="#9ca3af"/>
+<text x="240" y="238" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.00</text>
+<text x="30" y="266" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">설정 질문 (설정 카드를 묻는 질문 14개) → BM25가 맡는다</text>
+<text x="218" y="297" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">전체</text>
+<rect x="230" y="282" width="430.0" height="22" rx="4" fill="#dc2626"/>
+<text x="668.0" y="298" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.86</text>
+<text x="218" y="331" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">전체 − 그래프</text>
+<rect x="230" y="316" width="430.0" height="22" rx="4" fill="#2563eb"/>
+<text x="668.0" y="332" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.86</text>
+<text x="218" y="365" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">전체 − 원고 벡터</text>
+<rect x="230" y="350" width="430.0" height="22" rx="4" fill="#16a34a"/>
+<text x="668.0" y="366" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.86</text>
+<text x="218" y="399" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">전체 − BM25</text>
+<rect x="230" y="384" width="145.0" height="22" rx="4" fill="#9ca3af"/>
+<text x="383.0" y="400" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.29</text>
+<text x="30" y="440" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal">원고 벡터를 빼면 원고 질문을, BM25를 빼면 설정 질문을 못 찾는다. 그래프는 빼도 변하지 않았다.</text>
+</svg>
