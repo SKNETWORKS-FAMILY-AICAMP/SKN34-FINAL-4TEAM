@@ -14,6 +14,9 @@ import type { Metrics } from '../../domain/entities/llmOps'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
+// 파이프라인 캔버스(react-force-graph, d3·canvas)는 jsdom에서 그리지 않는다. 프롬프트·모델 쪽의 기본 보기(전체)가 불러오기만 해도 대역으로 막는다.
+vi.mock('react-force-graph-2d', () => ({ default: () => null }))
+
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
 const sid = () => document.getElementById('sid')!.textContent
@@ -267,13 +270,14 @@ describe('관리자 (A01~A18)', () => {
     vi.spyOn(llm, 'metrics').mockResolvedValue(null)
     vi.spyOn(llm, 'prompts').mockResolvedValue(null)
     vi.spyOn(llm, 'models').mockResolvedValue(null)
+    vi.spyOn(llm, 'pipeline').mockResolvedValue(null)
     vi.spyOn(llm, 'evaluations').mockResolvedValue(null)
     vi.spyOn(llm, 'leakChecks').mockResolvedValue(null)
     vi.spyOn(llm, 'alertRules').mockResolvedValue(null)
     vi.spyOn(llm, 'settings').mockResolvedValue(null)
     renderAt('/admin?tab=llm')
-    // 쪽마다 권한이 없는 패널 수만큼 같은 안내가 보이고(경고 1·추적·지표 2·프롬프트·모델 2·평가·누설 검사 3), 목록이 403이면 등록·실행·저장 폼도 숨겨 권한 안내만 보인다.
-    const pages: [string, number, RegExp | null][] = [['경고', 1, /기준 저장$/], ['추적·지표', 2, null], ['프롬프트·모델', 2, /^모델 등록$/], ['평가·누설 검사', 3, /^평가 실행$|^표본 비율 저장$/]]
+    // 쪽마다 권한이 없는 패널 수만큼 같은 안내가 보이고(경고 1·추적·지표 2·프롬프트·모델 1(기본 보기인 전체=AI 파이프라인)·평가·누설 검사 3), 목록이 403이면 등록·실행·저장 폼도 숨겨 권한 안내만 보인다.
+    const pages: [string, number, RegExp | null][] = [['경고', 1, /기준 저장$/], ['추적·지표', 2, null], ['프롬프트·모델', 1, /^모델 등록$/], ['평가·누설 검사', 3, /^평가 실행$|^표본 비율 저장$/]]
     for (const [page, notes, hiddenForm] of pages) {
       fireEvent.click(within(nav()).getByRole('link', { name: page }))
       await waitFor(() => expect(screen.getAllByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')).toHaveLength(notes))
@@ -285,7 +289,7 @@ describe('관리자 (A01~A18)', () => {
 
   it('프롬프트 상세만 403이어도 다시 불러오기 없이 권한 안내를 보인다', async () => {
     vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'prompt').mockResolvedValue(null)
-    renderAt('/admin?tab=llm&view=prompts')
+    renderAt('/admin?tab=llm&view=prompts&sub=prompts')
     fireEvent.click(await screen.findByRole('button', { name: /qa-answer/ }))
     const detail = await screen.findByLabelText('프롬프트 상세')
     await within(detail).findByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
@@ -414,7 +418,7 @@ describe('관리자 (A01~A18)', () => {
 
   it('프롬프트 승격은 최신 평가가 통과가 아니면 서버 문구로 거절되고, 새 버전은 라벨 없이 등록된다', async () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
-    renderAt('/admin?tab=llm&view=prompts')
+    renderAt('/admin?tab=llm&view=prompts&sub=prompts')
     fireEvent.click(await screen.findByRole('button', { name: /qa-answer/ }))
     await screen.findByRole('heading', { name: 'qa-answer' })
     fireEvent.click(screen.getByRole('button', { name: '「qa-answer 3번 버전」 조치' }))
@@ -438,6 +442,8 @@ describe('관리자 (A01~A18)', () => {
     within(metrics).getByText('faithfulness')
     within(metrics).getByText('-0.120')
     fireEvent.click(within(nav()).getByRole('link', { name: '프롬프트·모델' }))
+    // 프롬프트·모델 쪽의 기본 보기는 전체(AI 파이프라인)라 모델 단가는 '모델' 보기로 옮겨 본다.
+    fireEvent.click(within(await screen.findByRole('navigation', { name: '프롬프트·모델 보기' })).getByRole('link', { name: '모델' }))
     within(await screen.findByRole('region', { name: '모델 단가 표' })).getByText('$2.50')
     fireEvent.click(within(nav()).getByRole('link', { name: '평가·누설 검사' }))
     const leaks = await screen.findByRole('region', { name: '정보 누설 검사 표' })

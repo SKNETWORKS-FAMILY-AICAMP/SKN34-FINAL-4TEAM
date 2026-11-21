@@ -26,6 +26,9 @@ import { AdminPage } from './AdminPage'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.title = 'STORYFORK' })
 
+// 파이프라인 캔버스(react-force-graph, d3·canvas)는 jsdom에서 그리지 않는다. 프롬프트·모델 쪽의 기본 보기(전체)가 불러오기만 해도 대역으로 막는다.
+vi.mock('react-force-graph-2d', () => ({ default: () => null }))
+
 const renderAdmin = (tab: string, view?: string) => render(
   <Provider store={createAppStore({ role: 'admin' })}>
     <MemoryRouter initialEntries={[`/admin?tab=${tab}${view ? `&view=${view}` : ''}`]}><AdminPage /></MemoryRouter>
@@ -731,9 +734,19 @@ it('LLM Ops는 view가 없거나 모르는 값이면 경고 쪽이다: 운영 �
   }
 })
 
-it('LLM Ops 프롬프트·모델 쪽(view=prompts)은 프롬프트 패널 아래에 모델 패널을, 평가·누설 검사 쪽(view=quality)은 평가·누설 검사 기록·표본 비율 폼을 쌓는다', async () => {
+it('LLM Ops 프롬프트·모델 쪽(view=prompts)은 보기 전환(sub)에 따라 전체(AI 파이프라인)·프롬프트·모델 중 하나만, 평가·누설 검사 쪽(view=quality)은 평가·누설 검사 기록·표본 비율 폼을 쌓는다', async () => {
+  // sub가 없으면 전체, 프롬프트와 모델은 따로 보인다(예전에는 한 쪽에 프롬프트 패널 아래 모델 패널이 쌓였다).
   renderAdmin('llm', 'prompts')
-  expect(before(await region('프롬프트'), await region('모델 단가'))).toBe(true)
+  await region('AI 파이프라인')
+  expect([screen.queryByRole('region', { name: '프롬프트' }), screen.queryByRole('region', { name: '모델 단가' })]).toEqual([null, null])
+  cleanup()
+  renderAdmin('llm', 'prompts&sub=prompts')
+  await region('프롬프트')
+  expect([screen.queryByRole('region', { name: 'AI 파이프라인' }), screen.queryByRole('region', { name: '모델 단가' })]).toEqual([null, null])
+  cleanup()
+  renderAdmin('llm', 'prompts&sub=models')
+  await region('모델 단가')
+  expect([screen.queryByRole('region', { name: 'AI 파이프라인' }), screen.queryByRole('region', { name: '프롬프트' })]).toEqual([null, null])
   cleanup()
   renderAdmin('llm', 'quality')
   const evaluations = await region('회귀 평가')
@@ -784,7 +797,7 @@ it('LLM Ops는 쪽을 옮기면 열어 둔 추적 상세를 닫아, 돌아오면
   // 상세가 열려 있는 동안은 그 상세만 보인다(지표 패널은 목록으로 돌아오면 다시 나온다).
   expect(screen.queryByRole('region', { name: 'LLM 지표' })).toBeNull()
   fireEvent.click(within(menu).getByRole('link', { name: '프롬프트·모델' }))
-  await region('프롬프트')
+  await region('AI 파이프라인')
   fireEvent.click(within(menu).getByRole('link', { name: '추적·지표' }))
   await region('LLM 추적')
   expect(screen.queryByRole('region', { name: '추적 상세' })).toBeNull()
