@@ -1,7 +1,9 @@
 package ai.storyfork.operations.jobs
 
+import ai.storyfork.operations._common.client.AiClient
 import ai.storyfork.operations._common.client.ContentClient
 import ai.storyfork.operations._common.client.CoreClient
+import ai.storyfork.operations._common.client.LangfuseClient
 import ai.storyfork.operations.jobs.service.CONTENT_JOB_WINDOW
 import ai.storyfork.operations.jobs.service.JobOutcome
 import ai.storyfork.operations.jobs.service.JobScheduler
@@ -38,8 +40,9 @@ import tools.jackson.databind.json.JsonMapper
 
 /**
  * CI-only HTTP/PostgreSQL coverage of Flyway V9, the real member Bearer chain with the `jobs` permission, the schedule CRUD,
- * the scheduler tick (called directly, as its own 1-minute timer is far slower than a test) and the merge with Content's jobs.
- * Core and Content are test doubles; cleanup touches only rows this test created.
+ * the scheduler tick (called directly, as its own 1-minute timer is far slower than a test; it only queues a run and tells the AI service),
+ * the worker's execute call with the internal token (which really runs the handler through the conditional claim) and the merge with Content's jobs
+ * and Langfuse's evaluation runs. Core, Content, the AI service and Langfuse are test doubles; cleanup touches only rows this test created.
  * A schedule uses a yearly cron and is back-dated two years to be due: the tick of another cached Spring context that shares
  * this database can then never find it due by itself, and a real clock cannot make it due twice.
  */
@@ -48,6 +51,7 @@ import tools.jackson.databind.json.JsonMapper
     "DATABASE_USER=\${TEST_OPERATIONS_DATABASE_USER:operations_test}",
     "DATABASE_PASSWORD=\${TEST_OPERATIONS_DATABASE_PASSWORD:}",
     "OPERATIONS_SERVICE_TOKEN=jobs-ci-service-token-not-a-production-secret",
+    "INTERNAL_TOKEN=jobs-ci-internal-token-not-a-production-secret",
 ])
 @EnabledIfEnvironmentVariable(named = "TEST_OPERATIONS_DATABASE_URL", matches = ".+")
 @Import(JobsIntegrationTest.Handlers::class)
@@ -71,12 +75,15 @@ class JobsIntegrationTest {
     @LocalServerPort private var port = 0
     @MockitoBean lateinit var core: CoreClient
     @MockitoBean lateinit var content: ContentClient
+    @MockitoBean lateinit var ai: AiClient
+    @MockitoBean lateinit var langfuse: LangfuseClient
     @Autowired private lateinit var jdbc: JdbcTemplate
     @Autowired private lateinit var json: JsonMapper
     @Autowired private lateinit var scheduler: JobScheduler
     private val client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build()
     private val base = "/api/v1/operations/jobs"
     private val serviceToken = "jobs-ci-service-token-not-a-production-secret"
+    private val internalToken = "jobs-ci-internal-token-not-a-production-secret"
     private val yearly = "0 0 0 1 1 *"
 
     private val runId = UUID.randomUUID().toString()
@@ -110,11 +117,16 @@ class JobsIntegrationTest {
         jdbc.update("DELETE FROM operations.admin_activity WHERE target_id = ?", "job-$runId")
     }
 
-    private fun send(method: String, path: String, bearer: String? = null, body: String? = null, withServiceToken: Boolean = false): HttpResponse<String> {
+    private fun anyInstant(): Instant = org.mockito.ArgumentMatchers.any(Instant::class.java) ?: Instant.EPOCH
+
+    private fun anyRun(): UUID = org.mockito.ArgumentMatchers.any(UUID::class.java) ?: UUID(0, 0)
+
+    private fun send(method: String, path: String, bearer: String? = null, body: String? = null, withServiceToken: Boolean = false, internalToken: String? = null): HttpResponse<String> {
         val request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$path"))
             .timeout(Duration.ofSeconds(10)).header("Accept", "application/json")
         if (bearer != null) request.header("Authorization", bearer)
         if (withServiceToken) request.header("X-Operations-Service-Token", serviceToken)
+        if (internalToken != null) request.header("X-Internal-Token", internalToken)
         if (body != null) request.header("Content-Type", "application/json")
         val publisher = body?.let(HttpRequest.BodyPublishers::ofString) ?: HttpRequest.BodyPublishers.noBody()
         return client.send(request.method(method, publisher).build(), HttpResponse.BodyHandlers.ofString())
@@ -141,6 +153,9 @@ class JobsIntegrationTest {
         val own = jdbc.queryForList("SELECT id FROM operations.job_run WHERE schedule_id = ?", UUID::class.java, scheduleId).filterNotNull().map { it.toString() }.toSet()
         return items(response).filter { it.path("id").asString() in own }
     }
+
+    /** What the AI service's worker does when it takes a queued run: asks operations to execute it and waits for the finished run. */
+    private fun execute(id: String, token: String? = internalToken) = send("POST", "/internal/v1/jobs/runs/$id/execute", internalToken = token)
 
     private fun activities(targetId: String) =
         jdbc.queryForList("SELECT action FROM operations.admin_activity WHERE target_id = ? ORDER BY created_at, id", String::class.java, targetId).filterNotNull()
@@ -199,13 +214,28 @@ class JobsIntegrationTest {
     }
 
     @Test
-    fun `the tick runs a due schedule and the run list shows its progress and target`() {
+    fun `the tick queues a due schedule for the AI service and the worker's execute call runs it`() {
         val id = createSchedule("ci_ok", """{"target":"$runId"}""")
         assertTrue(runsOf("ci_ok", id).isEmpty())
         makeDue(id)
 
         scheduler.tick()
 
+        // The tick runs nothing: it leaves a queued run and tells the AI service about it.
+        val queued = runsOf("ci_ok", id).single()
+        val queuedId = queued.path("id").asString()
+        assertEquals(listOf("queued", "schedule", "operations-scheduler", "ci_ok"), listOf("status", "trigger", "source", "kind").map { queued.path(it).asString() })
+        assertFalse(queued.has("startedAt"))
+        verify(ai).startJob(UUID.fromString(queuedId), "ci_ok")
+        // The queued run holds its schedule, so another tick queues and hands over nothing.
+        scheduler.tick()
+        assertEquals(1, runsOf("ci_ok", id).size)
+        verify(ai, times(1)).startJob(UUID.fromString(queuedId), "ci_ok")
+
+        // A worker takes the run: the handler runs inside this call and the answer is the finished run.
+        val executed = execute(queuedId)
+        assertEquals(200, executed.statusCode(), executed.body())
+        assertEquals("succeeded", json.readTree(executed.body()).path("status").asString())
         val run = runsOf("ci_ok", id).single()
         assertEquals(listOf("succeeded", "schedule", "operations-scheduler", "ci_ok", runId),
             listOf("status", "trigger", "source", "kind", "targetId").map { run.path(it).asString() })
@@ -214,7 +244,11 @@ class JobsIntegrationTest {
         assertTrue(run.has("startedAt") && run.has("finishedAt"))
         assertFalse(run.has("error"))
 
-        // The schedule list carries its latest run, and a second tick finds nothing due.
+        // The same run told to another worker (a task delivered twice) is refused by the conditional claim and nothing changes.
+        assertEquals(409, execute(queuedId).statusCode())
+        assertEquals("succeeded", runsOf("ci_ok", id).single().path("status").asString())
+
+        // The schedule list carries its latest run, and with nothing active a later tick finds nothing due.
         val schedule = items(send("GET", "$base/schedules", adminBearer)).single { it.path("id").asString() == id.toString() }
         assertEquals("succeeded", schedule.path("lastRun").path("status").asString())
         scheduler.tick()
@@ -222,23 +256,27 @@ class JobsIntegrationTest {
     }
 
     @Test
-    fun `a failed run is retried as a queued manual run that the next tick executes`() {
+    fun `a failed run is retried as a queued manual run that goes to the AI service and is executed by a worker`() {
         val id = createSchedule("ci_fail")
         makeDue(id)
         scheduler.tick()
+        assertEquals(200, execute(runsOf("ci_fail", id).single().path("id").asString()).statusCode())
         val failed = runsOf("ci_fail", id).single()
         assertEquals("failed", failed.path("status").asString())
         assertEquals("작업을 실행하지 못했어요.", failed.path("error").asString())
 
         val retried = send("POST", "$base/runs/${failed.path("id").asString()}/retry", adminBearer)
         assertEquals(202, retried.statusCode(), retried.body())
+        val retriedId = json.readTree(retried.body()).path("id").asString()
         assertEquals(listOf("queued", "manual"), listOf("status", "trigger").map { json.readTree(retried.body()).path(it).asString() })
+        // The queued retry was committed before the AI service was told, and it is that run the AI service got.
+        verify(ai).startJob(UUID.fromString(retriedId), "ci_fail")
         // A schedule with an active run takes no second retry, and a run that did not fail takes none.
         assertEquals(409, send("POST", "$base/runs/${failed.path("id").asString()}/retry", adminBearer).statusCode())
-        assertEquals(409, send("POST", "$base/runs/${json.readTree(retried.body()).path("id").asString()}/retry", adminBearer).statusCode())
+        assertEquals(409, send("POST", "$base/runs/$retriedId/retry", adminBearer).statusCode())
         assertEquals(403, send("POST", "$base/runs/${failed.path("id").asString()}/retry", memberBearer).statusCode())
 
-        scheduler.tick()
+        assertEquals(200, execute(retriedId).statusCode())
 
         val runs = runsOf("ci_fail", id)
         assertEquals(2, runs.size)
@@ -250,10 +288,64 @@ class JobsIntegrationTest {
         // The re-run failed too, yet the first failed run stays re-run: it is refused for good, whatever its re-run did.
         assertEquals(409, send("POST", "$base/runs/${failed.path("id").asString()}/retry", adminBearer).statusCode())
         // The re-run is a record of its own: it failed, so it can be re-run once.
-        val rerun = runs.single { it.path("trigger").asString() == "manual" }.path("id").asString()
-        assertEquals(202, send("POST", "$base/runs/$rerun/retry", adminBearer).statusCode())
-        assertEquals(409, send("POST", "$base/runs/$rerun/retry", adminBearer).statusCode())
-        assertEquals(listOf("JOB_RETRY"), activities(rerun))
+        assertEquals(202, send("POST", "$base/runs/$retriedId/retry", adminBearer).statusCode())
+        assertEquals(409, send("POST", "$base/runs/$retriedId/retry", adminBearer).statusCode())
+        assertEquals(listOf("JOB_RETRY"), activities(retriedId))
+    }
+
+    @Test
+    fun `a retry the AI service does not take is 502 and leaves a failed run that can be retried again`() {
+        val id = createSchedule("ci_fail")
+        makeDue(id)
+        scheduler.tick()
+        execute(runsOf("ci_fail", id).single().path("id").asString())
+        val failed = runsOf("ci_fail", id).single()
+        doThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY)).`when`(ai).startJob(anyRun(), eq("ci_fail"))
+
+        assertEquals(502, send("POST", "$base/runs/${failed.path("id").asString()}/retry", adminBearer).statusCode())
+
+        // The queued run was recorded as failed with the fixed reason, so it holds no schedule and can itself be retried.
+        val refused = runsOf("ci_fail", id).single { it.path("trigger").asString() == "manual" }
+        assertEquals(listOf("failed", "작업을 AI 서비스에 접수하지 못했어요."), listOf(refused.path("status").asString(), refused.path("error").asString()))
+        reset(ai)
+        assertEquals(202, send("POST", "$base/runs/${refused.path("id").asString()}/retry", adminBearer).statusCode())
+    }
+
+    @Test
+    fun `the execute API takes only the internal token and answers 404 for an unknown run`() {
+        val path = "/internal/v1/jobs/runs/${UUID.randomUUID()}/execute"
+
+        assertEquals(401, send("POST", path).statusCode())
+        // Neither the service token nor a member Bearer opens the worker route, and the internal token opens no other route.
+        assertEquals(401, send("POST", path, withServiceToken = true).statusCode())
+        assertEquals(401, send("POST", path, adminBearer).statusCode())
+        assertEquals(401, send("POST", path, internalToken = "wrong").statusCode())
+        assertEquals(401, send("GET", "$base/runs", internalToken = internalToken).statusCode())
+        assertEquals(401, send("GET", "/api/v1/operations/notices", internalToken = internalToken).statusCode())
+        assertEquals(404, send("POST", path, internalToken = internalToken).statusCode())
+        assertEquals(401, send("POST", "/internal/v1/jobs/runs/not-a-uuid/execute").statusCode())
+        assertEquals(400, send("POST", "/internal/v1/jobs/runs/not-a-uuid/execute", internalToken = internalToken).statusCode())
+    }
+
+    @Test
+    fun `regression evaluation runs are merged from Langfuse and named unavailable when Langfuse fails`() {
+        val name = "ci-prompt@v1-20260310T010203Z-a1b2c3"
+        `when`(langfuse.experiments(anyInstant(), isNull())).thenReturn(listOf(json.readTree(
+            """{"id":"id-ci","name":"$name","startTime":"${Instant.now().minusSeconds(60)}","datasetId":"ds-1","metadata":{"prompt":"ci-prompt","version":"1","dataset":"ci-dataset"}}""",
+        )))
+
+        val merged = send("GET", "$base/runs?kind=evaluation", adminBearer)
+
+        assertEquals(200, merged.statusCode(), merged.body())
+        val evaluation = items(merged).single { it.path("id").asString() == name }
+        assertEquals(listOf("evaluation", "ai-evaluation", "running", "manual", name),
+            listOf("kind", "source", "status", "trigger", "targetId").map { evaluation.path(it).asString() })
+        assertTrue(json.readTree(merged.body()).path("unavailable").values().toList().isEmpty())
+
+        doThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY)).`when`(langfuse).experiments(anyInstant(), isNull())
+        val degraded = send("GET", "$base/runs", adminBearer)
+        assertEquals(200, degraded.statusCode(), degraded.body())
+        assertEquals(listOf("ai-evaluation"), json.readTree(degraded.body()).path("unavailable").values().toList().map { it.asString() })
     }
 
     @Test

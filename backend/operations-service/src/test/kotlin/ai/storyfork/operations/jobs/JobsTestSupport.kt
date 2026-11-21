@@ -1,11 +1,13 @@
 package ai.storyfork.operations.jobs
 
 import ai.storyfork.operations.jobs.entity.JobRunEntity
+import ai.storyfork.operations.jobs.entity.JobStatus
 import ai.storyfork.operations.jobs.entity.ScheduledJobEntity
 import ai.storyfork.operations.jobs.repository.JobRunRepository
 import ai.storyfork.operations.jobs.repository.ScheduledJobRepository
 import ai.storyfork.operations.jobs.service.JobOutcome
 import ai.storyfork.operations.jobs.service.ScheduledJobHandler
+import java.time.Instant
 import java.util.Optional
 import org.mockito.Mockito.mock
 import org.mockito.invocation.InvocationOnMock
@@ -51,13 +53,13 @@ class FakeSchedules(private val log: MutableList<String> = mutableListOf()) {
 }
 
 /**
- * In-memory stand-in for [JobRunRepository]; [savedStatuses] is the status of the row at each save that went through,
+ * In-memory stand-in for [JobRunRepository]; [savedStatuses] is the status of the row at each save that went through (the claim is not a save),
  * [pageables] every page asked for. [saveFailure] makes a save throw before it is recorded, like a database that is down for that call.
  */
 class FakeRuns(private val log: MutableList<String> = mutableListOf()) {
     val rows = mutableListOf<JobRunEntity>()
     var saveFailure: (JobRunEntity) -> Throwable? = { null }
-    val savedStatuses = mutableListOf<ai.storyfork.operations.jobs.entity.JobStatus>()
+    val savedStatuses = mutableListOf<JobStatus>()
     val pageables = mutableListOf<Pageable>()
 
     val repository: JobRunRepository = mock(JobRunRepository::class.java) { call ->
@@ -70,6 +72,15 @@ class FakeRuns(private val log: MutableList<String> = mutableListOf()) {
                 if (rows.none { row -> row.id == it.id }) rows += it
             }
             "findById" -> Optional.ofNullable(rows.find { it.id == args[0] })
+            // The conditional update: one atomic step that moves a run from the first status to the second and answers how many rows it changed.
+            "claim" -> synchronized(rows) {
+                val run = rows.find { it.id == args[0] }
+                if (run != null && run.status == args[1]) {
+                    run.status = args[2] as JobStatus
+                    run.startedAt = args[3] as Instant
+                    1
+                } else 0
+            }
             "findAllByStatusOrderByCreatedAtAscIdAsc" ->
                 rows.filter { it.status == args[0] }.sortedWith(compareBy<JobRunEntity> { it.createdAt }.thenBy { it.id })
             "existsByScheduleIdAndStatusIn" -> rows.any { it.scheduleId == args[0] && it.status in (args[1] as Collection<*>) }

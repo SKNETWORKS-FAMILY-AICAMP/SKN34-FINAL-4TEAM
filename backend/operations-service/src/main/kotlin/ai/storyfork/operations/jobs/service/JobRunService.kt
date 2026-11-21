@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 
@@ -48,6 +49,7 @@ class JobRunService(
     private val permissions: AdminPermissionRepository,
     private val activities: AdminActivityService,
     private val evaluations: EvaluationService,
+    private val dispatcher: JobDispatcher,
 ) {
     private val log = LoggerFactory.getLogger(JobRunService::class.java)
 
@@ -79,11 +81,19 @@ class JobRunService(
         return JobPage(merged.drop(page * size).take(size).map { it.second }, page, size, own.totalElements + outside.size, contentUnavailable + evaluationUnavailable)
     }
 
-    /** An own run is queued for the scheduler; any other id is a Content job and goes back to Content, which retries only its failed episodes. */
+    /**
+     * An own run is queued and handed to the AI service like a scheduled one; any other id is a Content job and goes back to Content, which retries only its
+     * failed episodes. When the AI service does not take the queued run the answer is 502 and that run is already recorded as failed (it can be retried again).
+     */
     fun retry(member: OperationsMember, id: String): JobRun {
         permissions.requirePermission(member, JOBS)
         val own = runCatching { UUID.fromString(id) }.getOrNull()?.let { runs.findById(it).getOrNull() }
-        if (own != null) return schedules.requeue(member, own)
+        if (own != null) {
+            // requeue has committed the queued run by now, so the worker that takes it finds it.
+            val queued = schedules.requeue(member, own)
+            if (!dispatcher.dispatch(queued)) throw ResponseStatusException(HttpStatus.BAD_GATEWAY)
+            return queued.toRun()
+        }
         return content.retryPreprocessingJob(id).toRun().also { activities.record(member, "JOB_RETRY", "JOB_RUN", id, PREPROCESSING_KIND) }
     }
 

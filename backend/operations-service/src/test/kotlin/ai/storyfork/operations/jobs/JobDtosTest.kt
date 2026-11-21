@@ -19,6 +19,7 @@ import java.time.Instant
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.parser.PartTree
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.module.kotlin.jacksonMapperBuilder
@@ -141,7 +142,8 @@ class JobDtosTest {
     @Test
     fun `the repository query names resolve against their entities`() {
         // Static check without a database: a typo in a derived query name would otherwise break every CI integration test.
-        for (method in JobRunRepository::class.java.declaredMethods) PartTree(method.name, JobRunEntity::class.java)
+        // A method with its own @Query (the claim) is not a derived name; Spring Data parses its JPQL when the context starts.
+        for (method in JobRunRepository::class.java.declaredMethods.filter { !it.isAnnotationPresent(Query::class.java) }) PartTree(method.name, JobRunEntity::class.java)
         for (method in ScheduledJobRepository::class.java.declaredMethods) PartTree(method.name, ScheduledJobEntity::class.java)
     }
 }

@@ -4,6 +4,7 @@ import ai.storyfork.operations._common.client.AiClient
 import ai.storyfork.operations._common.client.aiRestClient
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.util.UUID
 import org.springframework.http.HttpMethod
 import org.springframework.web.server.ResponseStatusException
 import tools.jackson.module.kotlin.jacksonMapperBuilder
@@ -35,6 +36,30 @@ class AiClientTest {
         assertEquals("qa-regression", body.path("dataset").asString())
         assertEquals("qa/answer", body.path("prompt").asString())
         assertEquals(3, body.path("version").asInt())
+    }
+
+    @Test
+    fun `starting a job sends the run id and kind with the internal token and needs only the 202`() {
+        val factory = RecordingRequestFactory { Reply(202, "") }
+
+        client(factory).startJob(UUID.fromString("0b6c1d52-4a3f-4a55-9a3e-4a8d0f3d2c11"), "alert_cleanup")
+
+        val call = factory.calls.single()
+        assertEquals(HttpMethod.POST, call.method)
+        assertEquals("/internal/v1/jobs", call.uri.path)
+        assertEquals("internal-token-1", call.headers.getFirst("X-Internal-Token"))
+        assertNull(call.headers.getFirst("X-Operations-Service-Token"))
+        val body = mapper.readTree(call.body)
+        assertEquals(listOf("runId", "kind"), body.propertyNames().toList())
+        assertEquals("0b6c1d52-4a3f-4a55-9a3e-4a8d0f3d2c11", body.path("runId").asString())
+        assertEquals("alert_cleanup", body.path("kind").asString())
+    }
+
+    @Test
+    fun `a refused job start is a failure the caller can record, never a success`() {
+        for ((upstream, expected) in listOf(400 to 400, 409 to 409, 401 to 502, 422 to 502, 500 to 502, 503 to 502)) {
+            assertEquals(expected, status { client(RecordingRequestFactory { Reply(upstream, """{"detail":"x"}""") }).startJob(UUID.randomUUID(), "alert_cleanup") }, upstream.toString())
+        }
     }
 
     @Test

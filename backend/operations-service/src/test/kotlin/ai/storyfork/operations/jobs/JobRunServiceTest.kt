@@ -6,11 +6,13 @@ import ai.storyfork.operations.jobs.entity.JobRunEntity
 import ai.storyfork.operations.jobs.entity.JobStatus
 import ai.storyfork.operations.jobs.entity.JobTrigger
 import ai.storyfork.operations.jobs.service.CONTENT_JOB_WINDOW
+import ai.storyfork.operations.jobs.service.JobDispatcher
 import ai.storyfork.operations.jobs.service.JobRunService
 import ai.storyfork.operations.jobs.service.ScheduleService
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJob
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJobList
 import ai.storyfork.operations.jobs.service.dto.JobRun
+import ai.storyfork.operations.jobs.service.dto.toRun
 import ai.storyfork.operations.llmops.service.EvaluationService
 import ai.storyfork.operations.llmops.service.dto.Evaluation
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
@@ -33,7 +35,8 @@ class JobRunServiceTest {
     private val permissions = mock(AdminPermissionRepository::class.java)
     private val activities = mock(AdminActivityService::class.java)
     private val evaluations = mock(EvaluationService::class.java)
-    private val service = JobRunService(runs.repository, content, scheduleService, permissions, activities, evaluations)
+    private val dispatcher = mock(JobDispatcher::class.java)
+    private val service = JobRunService(runs.repository, content, scheduleService, permissions, activities, evaluations, dispatcher)
     private val admin = OperationsMember(UUID.randomUUID(), true)
     private val operatorWithoutJobs = OperationsMember(UUID.randomUUID(), true)
     private val staleGrant = OperationsMember(UUID.randomUUID(), false)
@@ -220,18 +223,35 @@ class JobRunServiceTest {
         }
 
         assertTrue(runs.pageables.isEmpty())
-        verifyNoInteractions(content, scheduleService, activities)
+        verifyNoInteractions(content, scheduleService, activities, dispatcher)
     }
 
     @Test
-    fun `retrying an own run asks the schedule service to requeue it`() {
+    fun `retrying an own run queues it and only then hands it to the AI service`() {
         val failed = own(1, JobStatus.FAILED)
-        val queued = JobRun(UUID.randomUUID().toString(), "alpha", "operations-scheduler", "queued", "manual", null, null, null, null, null)
+        val queued = JobRunEntity(scheduleId = failed.scheduleId, kind = "alpha", trigger = JobTrigger.MANUAL, retryOf = failed.id)
         `when`(scheduleService.requeue(admin, failed)).thenReturn(queued)
+        `when`(dispatcher.dispatch(queued)).thenReturn(true)
 
-        assertSame(queued, service.retry(admin, failed.id.toString()))
+        assertEquals(queued.toRun(), service.retry(admin, failed.id.toString()))
 
+        // The requeue transaction commits the queued run before the AI service hears of it, so the worker that takes it finds it.
+        val order = inOrder(scheduleService, dispatcher)
+        order.verify(scheduleService).requeue(admin, failed)
+        order.verify(dispatcher).dispatch(queued)
         verifyNoInteractions(content, activities)
+    }
+
+    @Test
+    fun `a retry the AI service did not take is 502, and its queued run was already recorded as failed by the dispatcher`() {
+        val failed = own(1, JobStatus.FAILED)
+        val queued = JobRunEntity(scheduleId = failed.scheduleId, kind = "alpha", trigger = JobTrigger.MANUAL, retryOf = failed.id)
+        `when`(scheduleService.requeue(admin, failed)).thenReturn(queued)
+        `when`(dispatcher.dispatch(queued)).thenReturn(false)
+
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.retry(admin, failed.id.toString()) }.statusCode)
+
+        verify(dispatcher).dispatch(queued)
     }
 
     @Test

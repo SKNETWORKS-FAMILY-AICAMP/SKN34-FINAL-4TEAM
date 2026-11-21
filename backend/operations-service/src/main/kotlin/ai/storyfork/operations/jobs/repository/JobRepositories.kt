@@ -8,6 +8,10 @@ import java.util.UUID
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
+import org.springframework.transaction.annotation.Transactional
 
 interface ScheduledJobRepository : JpaRepository<ScheduledJobEntity, UUID> {
     fun findAllByEnabledTrue(): List<ScheduledJobEntity>
@@ -28,4 +32,13 @@ interface JobRunRepository : JpaRepository<JobRunEntity, UUID> {
     fun countByStatusAndFinishedAtAfter(status: JobStatus, since: Instant): Long
     fun findFirstByScheduleIdOrderByCreatedAtDescIdDesc(scheduleId: UUID): JobRunEntity?
     fun existsByRetryOf(retryOf: UUID): Boolean
+
+    /**
+     * Takes a run for execution with one conditional update ([fromStatus] → [toStatus], stamping its start): 1 for the one caller that wins, 0 for every other
+     * (the run has left [fromStatus] or does not exist). Workers racing for the same run therefore run it once, whatever the database isolation.
+     */
+    @Transactional
+    @Modifying
+    @Query("update JobRunEntity r set r.status = :toStatus, r.startedAt = :startedAt where r.id = :id and r.status = :fromStatus")
+    fun claim(@Param("id") id: UUID, @Param("fromStatus") fromStatus: JobStatus, @Param("toStatus") toStatus: JobStatus, @Param("startedAt") startedAt: Instant): Int
 }
