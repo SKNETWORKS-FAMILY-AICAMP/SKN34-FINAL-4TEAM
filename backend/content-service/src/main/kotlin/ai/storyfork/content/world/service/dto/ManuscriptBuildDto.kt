@@ -12,4 +12,6 @@ data class ManuscriptBuildRequest(val worldId:UUID,val key:String,val consent:Bo
 data class ManuscriptLoadReceipt(val jobId:UUID,val stepId:UUID,val worldId:UUID,val draftRevision:Long,
     val relationshipVersion:Long,val cardIds:List<UUID>,val relationshipIds:List<UUID>)
 data class ManuscriptBuildResponse(val jobId:UUID,val worldId:UUID,val status:String,val completedEpisodes:Int,
-    val totalEpisodes:Int,val executionToken:UUID?,val failureCode:String?,val receipts:List<ManuscriptLoadReceipt>,val skippedItems:Int)
+    val totalEpisodes:Int,val executionToken:UUID?,val failureCode:String?,val receipts:List<ManuscriptLoadReceipt>,val skippedItems:Int,
+    /** 접수 때 쓴 요청 key다(소유자 응답). 화면은 저장한 기록이 없을 때 이 key와 [worldId]로 같은 작업을 재개한다. */
+    val requestKey:String)

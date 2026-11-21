@@ -90,6 +90,7 @@ class PreprocessingIntegrationTest {
 
         val started=service.start(id,owner)
         assertEquals(listOf<Any?>("queued",1,0,null),listOf(started.status,started.total,started.done,started.startedAt))
+        assertEquals(started.id,started.build?.requestKey,"요청 key 없이 접수하면 key는 작업 id다")
         verify(ai).accept(PreprocessingAiRequest(started.id,id,listOf(1)))
         assertEquals("{}",jdbc.queryForObject("SELECT failed_episodes::text FROM preprocessing_job WHERE id=?",String::class.java,started.id))
         assertEquals(409,failure { service.start(id,owner) }.status,"진행 중인 작업이 있으면 새로 접수하지 않는다")
@@ -152,10 +153,13 @@ class PreprocessingIntegrationTest {
 
         assertEquals(403,call("GET","/internal/v1/preprocessing-jobs",internal).statusCode(),"AI 토큰으로 운영 목록을 읽을 수 없다")
         assertEquals(403,call("GET","/internal/v1/preprocessing-jobs",emptyMap()).statusCode())
-        val list=call("GET","/internal/v1/preprocessing-jobs?status=running&size=100",operations)
-        assertEquals(200,list.statusCode(),list.body())
-        assertTrue(node(list).path("total").asLong()>=1)
-        assertEquals(listOf(job),node(list).path("items").toList().filter { it.path("workId").asString()==id }.map { it.path("id").asString() })
+        // 목록의 출처는 V15 작업 행(manuscript_build_job)이다. 작업 행이 없는 골격 V41 행은 running이어도 목록에 나오지 않는다.
+        fun listed(status:String):List<JsonNode> {
+            val list=call("GET","/internal/v1/preprocessing-jobs?status=$status&size=100",operations)
+            assertEquals(200,list.statusCode(),list.body())
+            return node(list).path("items").toList().filter { it.path("workId").asString()==id }
+        }
+        assertEquals(emptyList<JsonNode>(),listed("running"))
         assertEquals(422,call("GET","/internal/v1/preprocessing-jobs?status=done",operations).statusCode())
 
         val failedReport=call("POST",progress,internal,report("extracting",0,"전처리 로직 미구현"))
@@ -168,7 +172,12 @@ class PreprocessingIntegrationTest {
         assertTrue(missing.body().contains("PREPROCESSING_SNAPSHOT_MISSING"))
         val current=service.start(id,owner)
         val jobId=UUID.fromString(current.id)
-        build.failed(jobId,build.claim(jobId,id).getValue("token") as UUID,"EXTRACTION_FAILED",listOf(1))
+        val token=build.claim(jobId,id).getValue("token") as UUID
+        assertEquals(listOf(current.id),listed("running").map { it.path("id").asString() },"V15 작업 행이 목록의 출처다")
+        build.failed(jobId,token,"EXTRACTION_FAILED",listOf(1))
+        val failedRow=listed("failed").single()
+        assertEquals(listOf<Any?>(current.id,"failed",1,"EXTRACTION_FAILED",listOf(1)),listOf(failedRow.path("id").asString(),failedRow.path("status").asString(),
+            failedRow.path("total").asInt(),failedRow.path("error").asString(),failedRow.path("failedEpisodes").toList().map { it.asInt() }))
         val currentRetry="/internal/v1/preprocessing-jobs/${current.id}/retry"
         val retried=call("POST",currentRetry,operations)
         assertEquals(202,retried.statusCode(),retried.body())

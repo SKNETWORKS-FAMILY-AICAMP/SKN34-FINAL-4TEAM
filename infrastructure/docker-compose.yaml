@@ -3,7 +3,7 @@
 services:
   ai-service:
     init: true
-    environment:
+    environment: &ai-environment
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
@@ -16,11 +16,19 @@ services:
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
       LANGFUSE_BASE_URL: http://langfuse-web:3000
+      # 회차 원고 전처리 Celery 큐(RabbitMQ). Core와 같은 rabbitmq 컨테이너·자격(CORE_RABBITMQ_*)을 쓰며 비밀번호가 URL에 들어간다(영문·숫자 권장).
+      AI_CELERY_BROKER_URL: amqp://${CORE_RABBITMQ_USER:-storyfork}:${CORE_RABBITMQ_PASSWORD:-}@${CORE_RABBITMQ_HOST:-rabbitmq}:${CORE_RABBITMQ_PORT:-5672}//
     # 호스트에서 별도 도구를 실행하는 기존 설정에서도 내부 호스트 이름을 유지한다.
     extra_hosts:
       - "host.docker.internal:host-gateway"
     expose:
       - "8000"
+
+  # 회차 원고 전처리 Celery 워커. ai-service와 같은 이미지·환경(Content 콜백 주소·내부 토큰·OpenAI·Langfuse)으로 큐의 작업을 한 번에 하나씩 실행한다.
+  ai-worker:
+    init: true
+    command: [celery, -A, app.preprocessing.worker, worker, -Q, preprocessing, --concurrency=1, --loglevel=INFO]
+    environment: *ai-environment
 
   core-api:
     init: true

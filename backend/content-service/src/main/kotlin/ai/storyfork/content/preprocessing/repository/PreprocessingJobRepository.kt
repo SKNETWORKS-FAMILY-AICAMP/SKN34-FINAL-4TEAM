@@ -12,7 +12,16 @@ interface PreprocessingJobRepository : JpaRepository<PreprocessingJobEntity, Str
     /** 작품의 가장 최근에 접수한 작업이다. 접수·소유자 화면·재실행 가능 여부가 모두 이 한 건을 기준으로 한다. */
     fun findFirstByWorkIdOrderByCreatedAtDesc(workId: String): PreprocessingJobEntity?
 
-    fun findAllByStatus(status: String, pageable: Pageable): Page<PreprocessingJobEntity>
+    /**
+     * 운영 목록의 출처다. V15 작업 행(manuscript_build_job)이 있는 작업의 V41 행만 돌려준다(작업 행은 원고 본문이 든 manifest를 가져서 목록에서 읽지 않는다).
+     * 쪽·정렬(최신 접수 순)은 [pageable]이 정한다.
+     */
+    @Query("""select j from PreprocessingJobEntity j join ManuscriptBuildJob b on cast(b.id as String)=j.id""")
+    fun snapshots(pageable: Pageable): Page<PreprocessingJobEntity>
+
+    @Query("""select j from PreprocessingJobEntity j join ManuscriptBuildJob b on cast(b.id as String)=j.id
+        where b.status in :statuses""")
+    fun snapshotsByStatus(@Param("statuses") statuses: Collection<String>, pageable: Pageable): Page<PreprocessingJobEntity>
 
     @Query("""select count(b) > 0 from ManuscriptBuildJob b
         where cast(b.id as String)=:id and b.status='running' and b.deadline<=instant""")

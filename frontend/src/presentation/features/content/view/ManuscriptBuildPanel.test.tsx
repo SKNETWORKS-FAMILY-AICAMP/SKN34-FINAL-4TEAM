@@ -19,7 +19,7 @@ it('다른 작품으로 이동하면 이전 결과와 시작 동의를 지우고
 const work={id:crypto.randomUUID(),worldStudioId:null,episodes:[{number:1}]} as never
 const job={jobId:crypto.randomUUID(),worldId:crypto.randomUUID(),status:'running',completedEpisodes:0,totalEpisodes:4,executionToken:crypto.randomUUID(),failureCode:null,skippedItems:0,receipts:[]}
 const show=(api:object,w:object=work)=>render(<MemoryRouter><ManuscriptBuildPanel work={w as never} useCase={api as never}/></MemoryRouter>)
-it('화면 진입과 업로드만으로 시작하지 않으며 동의 후 명시적으로 접수한다',async()=>{
+it('화면 진입만으로 시작하지 않으며 동의 후 명시적으로 접수한다',async()=>{
  const api={read:vi.fn().mockResolvedValue(null),start:vi.fn().mockResolvedValue(job),resume:vi.fn()}
  render(<MemoryRouter><ManuscriptBuildPanel work={work} useCase={api as never}/></MemoryRouter>)
  await screen.findByText('저장된 원고로 비공개 세계관 초안을 만들어요.')

@@ -12,7 +12,7 @@
 
 ## 최소 영속 기록
 
-Content V41의 preprocessing_job이 공개 작업 ID와 상태를 소유한다. WorldStudio V15는 같은 ID에 입력, 결과와 적재 단계를 연결한다. 기존 WorldStudio V1~V12와 V14는 보존한다(V13은 결번).
+Content V41의 preprocessing_job이 공개 작업 ID와 상태를 소유한다(V15 트리거가 `manuscript_build_job`의 진행 수·실패 회차·시각을 같은 id의 이 행에 맞춰 두므로 운영 목록도 이 값을 읽는다). WorldStudio V15는 같은 ID에 입력, 결과와 적재 단계를 연결한다. 기존 WorldStudio V1~V12와 V14는 보존한다(V13은 결번).
 
 | 기록 | 필요한 값 | 불변·고유 조건 |
 |---|---|---|
@@ -30,7 +30,7 @@ manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제�
 
 사용자 정정에 따라 이번 연결은 4화 수용 검증 후 10화까지 진행한다. 20~30화 안정성 검증과 100화 이상·유료 모델 평가는 제외한다. AI 내부 접수 경로에서 실행권을 한 번 획득해 누락된 회차만 처리한다. V41이 작업 상태를, V15가 복구 자료를 보존한다. 이전 실행 token을 지목한 명시적 동일 작업 재개로 복구한다.
 
-공개 접수/조회는 `/api/v1/works/{id}/world-preprocessing`이고 시작 동의·작품 및 세계관 소유권을 확인한다. AI는 내부 `/internal/v1/preprocessing/jobs`에서 작업을 받고 Content의 `/internal/v1/ai/manuscript-build/{id}` 하위 경로로 결과를 기록한다. 실제 적재는 Content가 기존 WorldStudioService로 수행한다. 기존 문서의 Celery·MCP 실행 방식은 이번 구현의 필수 의존성이 아니다.
+공개 접수/조회는 `/api/v1/works/{id}/world-preprocessing`이고 시작 동의·작품 및 세계관 소유권을 확인한다. AI는 내부 `/internal/v1/preprocessing/jobs`에서 작업을 받고 Content의 `/internal/v1/ai/manuscript-build/{id}` 하위 경로로 결과를 기록한다. 실제 적재는 Content가 기존 WorldStudioService로 수행한다. AI 실행은 아래 '업로드 자동 시작과 Celery 큐'대로 Celery 큐(순차)다. MCP 적재는 쓰지 않는다.
 
 `app.manuscript-build.enabled` 코드 기본값은 false이고, 2026-11-20 실모델(`gpt-6-luna`) four-episodes 1회 실측(회차당 5~12초, 정체 정리 5초, 제외 항목 0, 카드 11장) 뒤 사용자 결정으로 base compose가 `APP_MANUSCRIPTBUILD_ENABLED`(기본 true)로 켠다. 기존 업로드는 이 플래그와 무관하게 분석·적재·발행을 시작하지 않는다. 작성자가 명시적으로 POST를 호출해야 한다. 카드의 UI 검토 표시 `approved`는 최초 일괄 초안 생성 동의에 따른 편집 가능 상태이며 직접 입력 후보의 검토 결정 기록이나 확정 버전을 뜻하지 않는다. `analysisId`·`decisionSequence`는 생성하지 않는다.
 
@@ -77,10 +77,19 @@ manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제�
 
 DEC-47 저장/화면의 episodes key는 "0", "3" 형태다. 추출 결과의 파일명용 "00", "03"은 V15 result에 그대로 보존하고, 적재 매퍼가 숫자 key로 변환한다. 숫자 변환으로 충돌하는 중복 키는 거절한다.
 
+## 업로드 자동 시작과 Celery 큐 (2026-11-20 사용자 결정)
+
+전처리 담당자가 이어받을 틀이다. 기존 접수·재개·조회 함수를 그대로 부르고 두 번째 경로를 만들지 않는다. 회차별 병렬 실행과 #343 골격(`preprocessing_job`) 정리는 담당자의 후속이다.
+
+- **실행기:** AI의 `POST /internal/v1/preprocessing/jobs`는 `BackgroundTasks` 대신 Celery 태스크(`preprocessing.run`) 하나를 큐에 올리고 202를 돌려준다. 브로커는 기존 `rabbitmq` 컨테이너(Core와 같은 자격), 결과 저장소는 쓰지 않는다. 작업(작품) 하나가 태스크 하나이고 워커 동시성은 1이라 큐에 들어온 순서대로 하나씩 처리한다(순차 처리). 워커는 ai-service와 같은 이미지의 별도 컨테이너(`ai-worker`)다. `acks_late`라 워커가 도중에 죽으면 같은 태스크가 다시 배달되지만 Content 실행권(claim)이 이미 시작된 작업을 거절(`claimed=false`)해 다시 실행되지 않는다(만료된 적재만 load를 다시 시도한다). 죽은 실행의 재개는 실행 기한이 지난 뒤 사용자의 '같은 작업 재개'다. 접수·콜백·검증·적재 계약은 바꾸지 않는다.
+- **업로드 자동 시작:** 원고 가져오기(`POST /works/{id}/manuscript-imports`, `…/manuscript-imports/bulk`)가 회차를 하나 이상 저장하면 Content가 같은 요청 안에서 최초 구축 접수(위 '결과와 재실행'의 시작과 같은 검사·작업 행)를 시도한다. 별도 확인 없이 업로드 화면의 안내 문구로 OpenAI 전송을 알린다(동의 기록은 `consent=true`, key는 `import:<가져오기 요청 id>`). 세계관은 작품에 연결된 세계관, 없으면 새 UUID다. 업로드할 때마다 시도하고, 접수 결과를 가져오기 응답의 `worldBuild`에 싣는다: `{ "status": "started" | "rejected", "jobId": string|null, "code": string|null, "message": string|null }`(거절이면 시작 API와 같은 오류 code·한국어 문구). 접수 실패가 가져오기 저장을 되돌리지 않는다. 일괄 가져오기는 묶음(요청)마다 `startWorldBuild`(기본 true)를 받아 화면이 마지막 묶음만 true로 보낸다(앞 묶음에서 일부 회차만 고정되지 않게). 마지막 묶음이 모두 실패하면 접수하지 않는다. 구축 응답(조회·시작·재개)은 `requestKey`를 실어, 브라우저에 요청 기록이 없어도(업로드가 시작한 작업·다른 브라우저) 응답의 worldId·requestKey로 같은 작업을 재개한다.
+- **운영 화면:** Content 내부 `GET /internal/v1/preprocessing-jobs`·`POST …/{id}/retry`의 출처를 `manuscript_build_job`으로 바꾼다(응답 형식 유지). 재실행은 실패한 작업을 같은 작업으로 다시 접수한다. 목록은 `manuscript_build_job` 행만 고르고 진행 수·시각은 트리거가 맞춰 둔 같은 id의 `preprocessing_job` 행에서 읽는다(`unknown`은 `loading`으로 보인다).
+- **회차 관리 표시:** 작품 관리는 기존 `GET /works/{id}/world-preprocessing`을 읽어 `queued`·`running`·`loading`이면 '세계관 추출 중' 배지를 보인다. 새 API는 없다.
+
 ## 최초 구축 사용자 화면
 
 View → ViewModel → ManuscriptBuildUseCase → HttpManuscriptBuildRepository → 기존 Content API를 사용한다. 목업에서는 이 실행 패널을 그리지 않는다.
 화면 진입/업로드/새로고침은 GET만 수행한다. 명시적 동의 후 POST 직전에 계정·작품별 localStorage에 worldId/key/consent를 보존한다. 재접수·통신 실패·재로그인으로 key를 교체하지 않는다. 브라우저 Web Lock과 진행 중 버튼 잠금으로 중복 입력을 막는다.
 진행 중은 상태 GET만 2초 간격으로 조회하며 조회 실패는 오류로 남긴다. failed/unknown은 사용자가 같은 작업 재개를 눌러야 한다. failed는 항상 '같은 작업 재개'와 함께 동의 뒤 '새로 시작' 폼을 보이고, 새로 시작은 새 key와 지금 작품에 연결된 worldId(없으면 실패한 작업의 worldId, 그것도 없으면 새 UUID)로 POST한다. 서버는 작품에 연결된 세계관만 받으므로 연결이 바뀐 뒤에도 409 없이 새로 시작된다. 조회가 404이거나 `recovery=new_request`이면 저장해 둔 요청 기록을 지운다. 실패 재개는 최신 executionToken, 적재 unknown 복구는 원래 요청을 사용한다. 완료 상태는 전체 회차 수와 해당 job/world의 receipt를 확인한 경우만 표시한다.
 초안 열기는 기존 WorldStudio 경로이며 확정/공개/발행을 실행하지 않는다. 이미 작가가 확정한 뒤 돌아올 수 있으므로 완료 안내는 현재 미확정이라고 단정하지 않는다.
-다른 브라우저에서 요청 key가 없으면 임의 새 key로 재개하지 않는다. 원래 시작한 브라우저를 안내한다. 교차 기기 재개/취소/재구축은 이번 범위 밖이다.
+요청 key는 구축 응답의 `requestKey`로 받으므로 다른 브라우저에서도 같은 작업을 재개한다(임의 새 key로 재개하지 않는다). 교차 기기 취소/재구축은 이번 범위 밖이다.

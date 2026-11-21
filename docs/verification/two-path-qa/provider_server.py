@@ -34,6 +34,12 @@ service.agent.resolve=lambda rows:{'links':[l for l in data['resolution']['links
 os.environ['INTERNAL_TOKEN']='qa-only-manuscript-internal-token-32-chars'
 os.environ['CONTENT_SERVICE_BASE_URL']=os.environ.get('MANUSCRIPT_QA_CONTENT_URL','http://127.0.0.1:18761')
 os.environ.pop('OPENAI_API_KEY',None)
+# 격리 QA에는 RabbitMQ가 없다. 실제 router는 그대로 두고 Celery 발행만 즉시 시작하는 스레드로 바꾼다(운영 워커처럼 응답과 실행 순서를 보장하지 않는다).
+import threading
+from types import SimpleNamespace
+from app.preprocessing import router as job_module, worker
+from app.preprocessing.models import JobRequest
+job_module.run_job=SimpleNamespace(delay=lambda payload: threading.Thread(target=worker.run,args=(JobRequest.model_validate(payload),),daemon=True).start())
 app=FastAPI();app.include_router(job_router)
 initial_service.agent.propose=propose
 app.include_router(initial_router)

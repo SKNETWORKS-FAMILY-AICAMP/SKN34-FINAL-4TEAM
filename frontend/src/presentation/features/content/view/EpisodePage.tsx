@@ -12,7 +12,7 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 
 /**
- * 작품 관리 화면. 주소가 화면을 정한다: `/content`는 새 작품 만들기, `/content?work=<id>`는 그 내 작품의 관리 화면이고
+ * 작품 관리 화면. 주소가 화면을 정한다: `/content`는 새 작품 만들기, `/content?work=<id>`는 그 내 작품의 관리 화면(`&tab=world`면 세계관 탭부터)이고
  * 내 작품이 아니면 안내한다. 작품 목록은 서재(`/lib?tab=write`)가 맡고 원고 작성은 집필실(`/studio/{id}`)이 맡는다.
  * 상단바·푸터는 다른 관리 화면과 같은 공용 Gnb·Footer이고, 서재로 돌아가는 링크는 본문 맨 위에 둔다.
  */
@@ -78,6 +78,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                 vm={vm}
                 work={w}
                 useCase={useCase}
+                initialTab={params.get('tab') === 'world' ? 'world' : undefined}
                 onForked={(id) => navigate(`/content?work=${encodeURIComponent(id)}`)}
                 onDeleted={() => navigate('/lib?tab=write', { state: { deletedWorkTitle: w.title } })}
               />
