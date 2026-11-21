@@ -56,13 +56,6 @@ class AiClientTest {
     }
 
     @Test
-    fun `a refused job start is a failure the caller can record, never a success`() {
-        for ((upstream, expected) in listOf(400 to 400, 409 to 409, 401 to 502, 422 to 502, 500 to 502, 503 to 502)) {
-            assertEquals(expected, status { client(RecordingRequestFactory { Reply(upstream, """{"detail":"x"}""") }).startJob(UUID.randomUUID(), "alert_cleanup") }, upstream.toString())
-        }
-    }
-
-    @Test
     fun `a leak check sends the response and the matched references and reads the verdict`() {
         val factory = RecordingRequestFactory { Reply(200, """{"suspected":true,"reason":"비공개 카드 제목을 그대로 말했어요"}""") }
 
@@ -99,6 +92,8 @@ class AiClientTest {
             val factory = RecordingRequestFactory { Reply(upstream, """{"detail":"x"}""") }
             assertEquals(expected, status { client(factory).startEvaluation("d", "p", 1) }, upstream.toString())
             assertEquals(expected, status { client(factory).leakCheck("r", listOf("x")) }, upstream.toString())
+            // A job start the AI service refuses is a failure the dispatcher records, never a success.
+            assertEquals(expected, status { client(factory).startJob(UUID.randomUUID(), "alert_cleanup") }, upstream.toString())
         }
         assertEquals(502, status { client(RecordingRequestFactory { Reply(200, "") }).startEvaluation("d", "p", 1) })
     }
