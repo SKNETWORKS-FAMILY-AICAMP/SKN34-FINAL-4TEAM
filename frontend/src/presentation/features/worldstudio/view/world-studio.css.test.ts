@@ -91,16 +91,36 @@ it('카드 편집 화면 머리는 이름 입력 하나이고(유형·대표 이
   expect(rule((s) => s === '.world-overview .world-card-image')?.body).toMatch(/--tile:\s*160px/)
 })
 
-it('활동 막대: 목록 패널이 펼쳐져 있으면 --writing-rail이 막대(48px)+패널 폭이고 접히면 막대 폭뿐이며, 900px 이하에서는 막대가 가로 줄이고 목록 패널이 그 아래다. 집필실 writing.css는 건드리지 않는다', () => {
-  expect(css).toMatch(/\.writing-studio\.world-card-studio\{--world-panel:280px;--writing-rail:calc\(var\(--world-panel\) \+ 48px\)\}/)
-  expect(css).toMatch(/\.writing-studio\.world-card-studio\[data-list=closed\]\{--writing-rail:48px\}/)
+it('활동 막대: 목록 패널이 펼쳐져 있으면 --writing-rail이 막대(64px)+패널 폭이고 접히면 막대 폭뿐이며, 900px 이하에서는 막대가 가로 줄이고 목록 패널이 그 아래다. 집필실 writing.css는 건드리지 않는다', () => {
+  expect(css).toMatch(/\.writing-studio\.world-card-studio\{--world-panel:280px;--writing-rail:calc\(var\(--world-panel\) \+ 64px\)\}/)
+  expect(css).toMatch(/\.writing-studio\.world-card-studio\[data-list=closed\]\{--writing-rail:64px\}/)
   expect(css).toMatch(/@media\(min-width:901px\) and \(max-width:1200px\)\{\.writing-studio\.world-card-studio\{--world-panel:240px\}\}/)
-  expect(rule((s) => s === '.world-activity')?.body).toMatch(/width:48px/)
-  expect(rule((s) => s === '.world-panel')?.body).toMatch(/width:calc\(var\(--writing-rail\) - 48px\)/)
+  expect(rule((s) => s === '.world-activity')?.body).toMatch(/width:64px/)
+  expect(rule((s) => s === '.world-panel')?.body).toMatch(/width:calc\(var\(--writing-rail\) - 64px\)/)
   expect(css).toMatch(/@media\(max-width:900px\)\{\s*\.world-card-side\{flex-direction:column\}\s*\.world-activity\{flex-direction:row;width:auto/)
   expect(css).toContain('.world-activity-tab:is([aria-selected=true],[aria-expanded=true])') // 고른 탭과 펼친 목록 토글이 같은 강조다
   expect(writingCss).not.toContain('world-activity')
   expect(writingCss).not.toContain('world-panel')
+})
+
+it('활동 막대 버튼은 아이콘(20px) 아래 글자 라벨(11px)을 세로로 쌓고(막대 폭을 채우는 52px 이상), 고른 탭의 라벨은 굵으며, 배지는 아이콘 모서리에 붙어 라벨을 가리지 않는다', () => {
+  const tab = rule((s) => s === '.world-activity-tab')?.body ?? ''
+  expect(tab).toMatch(/display:flex;flex-direction:column;align-items:center;justify-content:center/)
+  expect(tab).toMatch(/width:100%;min-height:52px/)
+  expect(rule((s) => s === '.world-activity-icon')?.body).toMatch(/position:relative;display:grid;place-items:center;width:20px;height:20px/)
+  expect(rule((s) => s === '.world-activity-label')?.body).toMatch(/font-size:11px/)
+  expect(rule((s) => s === '.world-activity-label')?.body).toMatch(/word-break:keep-all/) // 공개 순서는 띄어쓰기에서만 줄을 바꾼다
+  expect(css).toContain('.world-activity-tab:is([aria-selected=true],[aria-expanded=true]) .world-activity-label{font-weight:700}')
+  expect(rule((s) => s === '.world-activity-badge')?.body).toMatch(/position:absolute;top:-7px;right:-11px/) // 가장 가까운 위치 기준은 .world-activity-icon이다
+  expect(rule((s) => s === '.world-activity-badge.dot')?.body).toMatch(/top:-3px;right:-4px/)
+})
+
+it('900px 이하의 가로 줄(390px 폰 포함)에서도 버튼은 아이콘 아래 라벨이고, 탭 다섯이 남은 폭을 나눠 쓰며(가로 스크롤 없이 한 화면), 목록 토글은 고정 폭이다', () => {
+  const narrow = css.match(/@media\(max-width:900px\)\{\s*\.world-card-side\{flex-direction:column\}([\s\S]*?)\n\}/)?.[1] ?? ''
+  expect(narrow).toContain('.world-activity>.world-activity-tab{flex:none;width:56px}')
+  expect(narrow).toContain('.world-activity-tabs{flex:1 1 auto;flex-direction:row}')
+  expect(narrow).toContain('.world-activity-tabs .world-activity-tab{flex:1 1 0;min-width:48px}')
+  expect(narrow).toMatch(/\.world-activity-sep\{width:1px;height:32px;margin:0 4px;align-self:center\}/)
 })
 
 it('대표 이미지 타일은 헤더 표지(.cov)의 3:4·둥근 모서리·그림자를 그대로 쓰고 빈 타일만 얇은(1px) 점선 테두리(--line3)·그림자 없음으로 구분하며, 빈 타일 안 이미지 추가는 타일 전체를 덮는다', () => {

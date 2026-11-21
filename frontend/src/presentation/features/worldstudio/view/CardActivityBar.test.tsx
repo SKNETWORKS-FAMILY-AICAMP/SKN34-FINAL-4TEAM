@@ -51,6 +51,26 @@ it('아이콘 버튼의 읽는 이름에 배지 수가 들어가고, 배지 글�
   expect(screen.getByRole('tab', { name: '개요' }).querySelector('.world-activity-badge')).toBeNull() // 배지가 없는 화면
 })
 
+it('아이콘 아래에는 늘 보이는 짧은 글자 라벨이 있다: 목록 토글은 카드 목록, 탭은 개요·문서·관계·버전·공개 순서이고, 읽는 이름(aria-label)과 겹치지 않게 라벨은 aria-hidden이다', () => {
+  bar('doc', { badges: { relations: { text: '12', label: '12개' }, versions: { text: '', label: '저장 안 됨' } } })
+  const label = (button: HTMLElement) => button.querySelector('.world-activity-label')!
+  const toggle = screen.getByRole('button', { name: '설정 카드' })
+  expect([label(toggle).textContent, label(toggle).getAttribute('aria-hidden')]).toEqual(['카드 목록', 'true'])
+  expect(tabs().map((t) => label(t).textContent)).toEqual(['개요', '문서', '관계', '버전', '공개 순서'])
+  expect(tabs().every((t) => label(t).getAttribute('aria-hidden') === 'true')).toBe(true)
+  expect(tabs().map((t) => t.getAttribute('aria-label'))).toEqual(['개요', '문서', '관계 12개', '버전 저장 안 됨', '공개 순서']) // 읽는 이름은 그대로(배지 수 포함)
+})
+
+it('아이콘과 배지는 한 덩어리(.world-activity-icon)라 배지가 아이콘 모서리에 붙고 글자 라벨은 그 밖이라 라벨을 가리지 않는다', () => {
+  bar('doc', { badges: { relations: { text: '12', label: '12개' }, versions: { text: '', label: '저장 안 됨' } } })
+  const relations = screen.getByRole('tab', { name: '관계 12개' })
+  expect(relations.querySelector('.world-activity-icon svg')).toBeTruthy()
+  expect(relations.querySelector('.world-activity-icon .world-activity-badge')!.textContent).toBe('12')
+  expect(relations.querySelector('.world-activity-label')!.closest('.world-activity-icon')).toBeNull()
+  expect(screen.getByRole('tab', { name: /^버전/ }).querySelector('.world-activity-icon .world-activity-badge.dot')).toBeTruthy()
+  expect(Array.from(relations.children, (child) => child.className)).toEqual(['world-activity-icon', 'world-activity-label']) // 아이콘 아래 라벨 순서
+})
+
 it('누르면 그 화면을 알린다', () => {
   const { onPane } = bar('doc')
   fireEvent.click(screen.getByRole('tab', { name: '버전' }))
