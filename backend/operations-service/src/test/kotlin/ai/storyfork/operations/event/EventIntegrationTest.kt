@@ -87,6 +87,34 @@ class EventIntegrationTest {
     }
 
     @Test
+    fun `HTTP stores the in-site link path, returns it, clears it on a full update and answers 422 for any other path`() {
+        val created = send("POST", path, """{"title":"이벤트","body":"안내","linkPath":"/works?genre=fantasy"}""")
+        assertEquals(201, created.statusCode(), created.body())
+        val id = UUID.fromString(json.readTree(created.body()).path("id").asText())
+        try {
+            assertEquals("/works?genre=fantasy", json.readTree(created.body()).path("linkPath").asText())
+            assertEquals("/works?genre=fantasy", events.findById(id).orElseThrow().linkPath)
+            assertEquals("/works?genre=fantasy", json.readTree(send("GET", "$path/$id").body()).path("linkPath").asText())
+            val listed = json.readTree(send("GET", "$path?size=100").body()).path("items").first { it.path("id").asText() == id.toString() }
+            assertEquals("/works?genre=fantasy", listed.path("linkPath").asText())
+
+            for (bad in listOf("works", "//evil.example", "https://evil.example", "/a b", "/a\\b", "/" + "a".repeat(200))) {
+                val rejected = send("PUT", "$path/$id", """{"title":"제목","body":"본문","linkPath":${json.writeValueAsString(bad)}}""")
+                assertEquals(422, rejected.statusCode(), bad)
+                assertFalse(rejected.body().contains("evil"))
+                assertEquals("/works?genre=fantasy", events.findById(id).orElseThrow().linkPath)
+            }
+            val cleared = send("PUT", "$path/$id", """{"title":"제목","body":"본문"}""")
+            assertEquals(200, cleared.statusCode(), cleared.body())
+            assertTrue(json.readTree(cleared.body()).path("linkPath").isNull)
+            assertNull(events.findById(id).orElseThrow().linkPath)
+            assertEquals(422, send("POST", path, """{"title":"이벤트","body":"안내","linkPath":"//evil.example"}""").statusCode())
+        } finally {
+            events.deleteById(id)
+        }
+    }
+
+    @Test
     fun `invalid HTTP update preserves the original stored row and does not echo inputs`() {
         val original = events.saveAndFlush(EventEntity(
             title = "원래 제목", body = "원래 본문",

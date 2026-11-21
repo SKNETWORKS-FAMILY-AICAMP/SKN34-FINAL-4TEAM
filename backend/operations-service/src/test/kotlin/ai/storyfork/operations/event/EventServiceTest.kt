@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.web.server.ResponseStatusException
 
 @ExtendWith(MockitoExtension::class)
 class EventServiceTest {
@@ -58,6 +59,35 @@ class EventServiceTest {
         assertEquals(20_000, response.body.length)
         assertEquals(start, response.startsAt)
         assertEquals(end, response.endsAt)
+    }
+
+    @Test
+    fun `create keeps the in-site link path and a request without one has none`() {
+        `when`(events.save(any(EventEntity::class.java))).thenAnswer { it.getArgument<EventEntity>(0) }
+
+        val linked = service.create(EventRequest("이벤트", "안내", linkPath = "/account?tab=credits"))
+        val plain = service.create(EventRequest("이벤트", "안내"))
+
+        assertEquals("/account?tab=credits", linked.linkPath)
+        assertNull(plain.linkPath)
+    }
+
+    @ParameterizedTest
+    @MethodSource("validLinkPaths")
+    fun `create accepts the root, a deep path with a query and the longest link path`(path: String) {
+        `when`(events.save(any(EventEntity::class.java))).thenAnswer { it.getArgument<EventEntity>(0) }
+
+        assertEquals(path, service.create(EventRequest("이벤트", "안내", linkPath = path)).linkPath)
+    }
+
+    // 422, not the 400 of the other fields: a link path that is not an in-site path is a rule of its own (DEC-57), and 200 characters is part of it.
+    @ParameterizedTest
+    @MethodSource("invalidLinkPaths")
+    fun `a link path that is not an in-site path is a 422 and never reaches persistence`(path: String) {
+        val error = assertThrows(ResponseStatusException::class.java) { service.create(EventRequest("이벤트", "안내", linkPath = path)) }
+
+        assertEquals(422, error.statusCode.value())
+        verifyNoInteractions(events)
     }
 
     @ParameterizedTest
@@ -160,6 +190,34 @@ class EventServiceTest {
         assertNull(response.endsAt)
     }
 
+    @Test
+    fun `full update replaces the link path and clears an omitted one`() {
+        val event = existing()
+        `when`(events.findById(event.id)).thenReturn(Optional.of(event))
+
+        assertEquals("/works", service.update(event.id, EventRequest("제목", "본문", linkPath = "/works")).linkPath)
+        assertEquals("/works", event.linkPath)
+        assertNull(service.update(event.id, EventRequest("제목", "본문")).linkPath)
+        assertNull(event.linkPath)
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidLinkPaths")
+    fun `a bad link path in an update is a 422 and preserves every old row field`(path: String) {
+        val event = existing().also { it.linkPath = "/works" }
+        val updatedAt = event.updatedAt
+        `when`(events.findById(event.id)).thenReturn(Optional.of(event))
+
+        val error = assertThrows(ResponseStatusException::class.java) { service.update(event.id, EventRequest("새 제목", "새 본문", start, end, path)) }
+
+        assertEquals(422, error.statusCode.value())
+        assertEquals("원래 제목", event.title)
+        assertEquals("/works", event.linkPath)
+        assertEquals(updatedAt, event.updatedAt)
+        verify(events).findById(event.id)
+        verifyNoMoreInteractions(events)
+    }
+
     @ParameterizedTest
     @MethodSource("invalidRequests")
     fun `invalid update preserves every old row field`(request: EventRequest) {
@@ -218,6 +276,17 @@ class EventServiceTest {
     )
 
     companion object {
+        @JvmStatic
+        fun validLinkPaths(): List<String> = listOf("/", "/works", "/works/7c9e?tab=info#top", "/" + "a".repeat(199))
+
+        // No leading slash, blank, whitespace or a control character anywhere, "//" anywhere (so "//host" and "://" too), a backslash
+        // (browsers read "/\host" as "//host") and 201 characters.
+        @JvmStatic
+        fun invalidLinkPaths(): List<String> = listOf(
+            "works", "", " ", " /works", "/works ", "/a b", "/a\tb", "/a\nb", "/a\u00a0b", "/a\u0000b",
+            "//evil.example", "/a//b", "https://evil.example", "/redirect?to=https://evil.example", "/\\evil.example", "/a\\b", "/" + "a".repeat(200),
+        )
+
         @JvmStatic
         fun validPeriods(): Stream<EventRequest> {
             val instant = Instant.parse("2026-11-05T01:00:00Z")

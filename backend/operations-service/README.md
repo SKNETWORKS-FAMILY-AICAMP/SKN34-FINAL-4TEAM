@@ -53,6 +53,7 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 | 404 | `NOT_FOUND` | 레코드 없음, 다른 문의에 속한 답변 접근, 없는 운영 API 경로 |
 | 405 등 | `REQUEST_FAILED` | 메서드 불일치 등 MVC HTTP 오류의 상태를 보존하고 상세 reason은 숨김 |
 | 409 | `CONFLICT` | 낙관적 동시성 충돌, 답변이 남은 문의 삭제, DB 참조 충돌 |
+| 422 | `REQUEST_FAILED` | 이벤트 `linkPath`가 사이트 안 경로 규칙을 어김. Core 크레딧 규칙 위반(금액·사유)은 Core의 `code`·안내 문구를 그대로 전함 |
 | 500 | `INTERNAL_ERROR` | 예상하지 못한 실패; 성공 fallback 없음 |
 | 502 | `UPSTREAM_FAILED` | Core/Content 호출 실패(아래 회원 Bearer API); 상태·이력 미기록 |
 
@@ -67,11 +68,11 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 | 리소스 | 목록 경로 | 요청 필드 |
 |---|---|---|
 | 공지 | `/notices` | `title`(1~200자·공백만 불가), `body`(1~20,000자·공백만 불가) |
-| 이벤트 | `/events` | 공지와 같은 `title`, `body`; 선택 `startsAt`, `endsAt`(ISO-8601 Instant) |
+| 이벤트 | `/events` | 공지와 같은 `title`, `body`; 선택 `startsAt`, `endsAt`(ISO-8601 Instant), `linkPath`(사이트 안 경로) |
 | 문의 | `/inquiries` | `title`(1~200자), `body`(1~20,000자), `category`(1~50자); 공백만 불가 |
 | 문의 답변 | `/inquiries/{id}/replies` | `body`(1~20,000자·공백만 불가) |
 
-문의 `category`는 자유 텍스트 분류이며 회원 식별자나 확정된 유형 enum이 아닙니다. 이벤트 기간은 선택이며 둘 다 있으면 `endsAt >= startsAt`이어야 합니다. 자동 진행 상태나 발행 여부는 계산하지 않습니다. 내용은 일반 텍스트 레코드이며 HTML 렌더링 계약이 아닙니다.
+문의 `category`는 자유 텍스트 분류이며 회원 식별자나 확정된 유형 enum이 아닙니다. 이벤트 기간은 선택이며 둘 다 있으면 `endsAt >= startsAt`이어야 합니다. 이동 경로 `linkPath`도 선택이며(V10 `event.link_path`, DEC-57) `/`로 시작하는 사이트 안 경로만 받습니다: 200자 이하이고 `//`(`//host`·`://` 포함)·백슬래시·공백·제어 문자가 없어야 하며, 위반은 400이 아니라 422 `REQUEST_FAILED`입니다. 자동 진행 상태나 발행 여부는 계산하지 않습니다. 내용은 일반 텍스트 레코드이며 HTML 렌더링 계약이 아닙니다.
 
 아래 동작은 각 목록 경로 `R`에 동일하게 적용합니다. 답변의 `R`에는 문의 UUID가 포함됩니다.
 
@@ -83,7 +84,7 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 | `PUT R/{resourceId}` | 200 | 전체 필드 교체 후 DTO 반환 |
 | `DELETE R/{resourceId}` | 204, 응답 본문 없음 | 명시적 삭제; 없는 ID는 404 |
 
-- PUT은 PATCH가 아닙니다. 이벤트에서 기간을 생략하거나 null로 보내면 기존 기간을 비웁니다.
+- PUT은 PATCH가 아닙니다. 이벤트에서 기간·`linkPath`를 생략하거나 null로 보내면 기존 값을 비웁니다.
 - 생성/수정 전 필수 값·길이는 요청 DTO의 `@NotBlank`·`@Size`가 컨트롤러의 `@Valid`에서 검증하고, 서비스는 공백·이벤트 기간 순서·모든 문자열의 U+0000 포함 여부를 다시 검증합니다. `@NotBlank`(Hibernate Validator의 `String.isBlank`)는 U+00A0·U+2007·U+202F만 있는 값을 통과시키고 DB `CHECK (~ '[^[:space:]]')`도 이 문자를 통과시키므로 서비스의 `isNotBlank`가 이를 400으로 거절합니다. 길이는 DTO `@Size`만 검사하며 서비스가 되풀이하지 않습니다(서비스 토큰 컨트롤러는 `@Valid`로, `/admin/notices`·`/admin/events`는 권한 확인 뒤 `AdminNoticeService`·`AdminEventService`가 같은 어노테이션을 직접 검증합니다). 공지·이벤트의 제목/본문, 문의의 분류/제목/본문, 답변 본문에 U+0000이 있으면 저장·변경 전에 거절하며 기존 필드와 수정 시각을 보존합니다. 잘못된 생성 요청은 Repository를 호출하지 않습니다.
 - 공지/이벤트/문의 응답은 `id`, 요청 필드, `createdAt`, `updatedAt`입니다. 답변에는 `inquiryId`도 있습니다. 모든 시각은 UTC Instant입니다.
 - 목록은 `items`, `page`, `size`, `totalElements`, `totalPages`를 갖는 명시적 DTO이며 네 목록이 제네릭 `PageResponse<T>`(`_common/service/dto`) 하나를 공유합니다. JPA Entity나 Spring `Page`를 그대로 노출하지 않습니다.
@@ -134,7 +135,7 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 
 ## 이벤트 관리자·공개 API
 
-[이벤트 계약](../../docs/design/operations-event-contract.md)대로 기존 `EventService`의 저장·검증을 재사용하며 새 컬럼·마이그레이션은 없습니다. 서비스 토큰 `/events`는 그대로이고 브라우저에 열지 않습니다.
+[이벤트 계약](../../docs/design/operations-event-contract.md)대로 기존 `EventService`의 저장·검증을 재사용하며 새 마이그레이션은 선택 이동 경로 `linkPath`(V10 `event.link_path`, [DEC-57 계약](../../docs/design/operations-funnel-credit-contract.md#3-이벤트-이동-기능표-70))뿐입니다. `linkPath`는 관리자 등록·수정·목록과 공개 조회 응답에 모두 실립니다. 서비스 토큰 `/events`는 그대로이고 브라우저에 열지 않습니다.
 
 | 경로 | 인증 | 동작 |
 |---|---|---|
