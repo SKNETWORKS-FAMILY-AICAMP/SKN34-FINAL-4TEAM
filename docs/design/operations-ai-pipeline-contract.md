@@ -47,6 +47,7 @@ AI 코드의 단독 요청 중 `manuscript_review`·`web_research`는 노드가 
 - `main_agent` generation의 `output`을 `{text, toolCalls:[{name, args}]}`로 남긴다(전에는 글 또는 도구 이름 목록). 도구를 부른 이유는 그 호출의 인자(`ask_*`의 요청문)와 같은 응답의 글이다.
 - 메인이 실행하지 않고 돌려보낸 도구 호출(노출 밖·함께 실행하지 못해 미룸·대상 작품·세계관 불일치·MCP 한도)은 `main_agent.blocked` span(input `{name}`, output `{reason}`)으로 남긴다.
   라이브러리 미들웨어(도구 호출 한도·승인 거절)가 돌려보내는 호출은 남기지 않는다.
+- NovelBrain 회상(`novelbrain.service.recall`, 인물 시뮬레이션이 부른다)은 `novelbrain.recall` retriever span으로 남긴다: input `{actor_id, episode, stage, query}`(나레이터는 actor_id null, query는 앞 500자), output `{recalled:[{ref, card_id?, title?, score}], count}`. 카드 항목(`card:<id>[#문서]`)만 카드 id·제목을 담고 관계·원고 항목은 ref와 점수뿐이며 카드·관계·원고 본문은 남기지 않는다.
 - 새로 남기는 observation의 level은 모두 DEFAULT다. 이 계측 전 7일 안의 기록은 옛 모양이다(`decision_guard`는 output 없이 metadata에 판정, `main_agent`의 output은 글 또는 도구 이름 목록).
 - 프롬프트 시드 문자열은 바꾸지 않는다.
 
