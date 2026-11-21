@@ -280,6 +280,50 @@ def test_run_never_raises_and_logs_no_content(monkeypatch, caplog):
     assert client.scores == []
 
 
+def test_a_plan_travels_to_the_worker_as_json_without_the_dataset_items(monkeypatch):
+    runs = [experiment('qa.answer@v2-a', {'faithfulness': 0.95, 'context_precision': 0.7})]
+    _, _, plan = prepared(monkeypatch, [item(1, QA)], experiments=runs, prompts=PRODUCTION)
+
+    job = service.to_job(plan)
+
+    assert json.loads(json.dumps(job)) == job  # 브로커를 지나도 같다
+    assert job == {'request': {'dataset': 'qa.grounding', 'prompt': 'qa.answer', 'version': 3}, 'runName': plan.run_name, 'instructions': '지시문',
+                   'tolerance': 0.05, 'baseline': {'run': 'qa.answer@v2-a', 'version': 2, 'metrics': {'faithfulness': 0.95, 'context_precision': 0.7}}}
+    assert QA['question'] not in json.dumps(job, ensure_ascii=False)  # 채점 입력은 싣지 않는다: 워커가 평가 세트를 이름으로 읽는다
+
+
+def test_the_worker_runs_the_plan_it_received_on_the_dataset_it_reads_at_that_moment(monkeypatch):
+    runs = [experiment('qa.answer@v2-a', {'faithfulness': 0.95, 'context_precision': 0.7})]
+    _, client, plan = prepared(monkeypatch, [item(1, QA)], experiments=runs, prompts=PRODUCTION)
+    job = json.loads(json.dumps(service.to_job(plan)))  # 브로커를 지난 인자
+    other = {**QA, 'question': '초낭은 누구인가?'}
+    client.dataset = FakeDataset([item(2, other)])  # 큐에서 기다리는 동안 평가 세트가 바뀌었다
+    calls = stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.85, 'context_precision': 0.9})
+
+    service.run_job(job)
+
+    assert calls.generate == [('지시문', other)]
+    assert client.dataset.experiment['run_name'] == plan.run_name  # 응답한 Run 이름 그대로
+    assert client.dataset.experiment['metadata']['baselineRun'] == 'qa.answer@v2-a'
+    scores = {s['name']: s for s in client.scores}
+    assert scores['faithfulness']['metadata'] == {'baseline': 0.95, 'delta': -0.1, 'tolerance': 0.05}  # 기준 Run도 인자로 받은 그대로 비교한다
+    assert scores['passed']['value'] == 0.0
+
+
+@pytest.mark.parametrize('case, logged', [('no_dataset', '평가 세트를 찾을 수 없어요.'), ('empty_dataset', '평가 세트에 항목이 없어요.')])
+def test_a_plan_whose_dataset_is_gone_by_run_time_is_logged_with_a_fixed_message_and_runs_nothing(monkeypatch, caplog, case, logged):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA)])
+    job = service.to_job(plan)
+    client.dataset = None if case == 'no_dataset' else FakeDataset([])
+    calls = stub_models(monkeypatch)
+
+    with caplog.at_level(logging.ERROR):
+        service.run_job(job)  # 예외를 올리지 않는다
+
+    assert plan.run_name in caplog.text and logged in caplog.text and '지시문' not in caplog.text
+    assert (dataset.experiment, client.scores, calls.generate) == (None, [], [])
+
+
 @pytest.mark.parametrize('score, suspected', [(0.5, True), (0.49, False), (1.0, True), (0.0, False)])
 def test_leak_check_suspects_from_the_geval_threshold(monkeypatch, score, suspected):
     calls = stub_models(monkeypatch, geval=lambda *_: (score, '근거'))
