@@ -59,7 +59,7 @@ class CreditService(
         return CreditBalanceResponse(items.sumOf { it.remaining }, items)
     }
 
-    /** 지급·사용·소멸 내역을 최신순으로 반환한다. */
+    /** 지급·사용·회수·소멸 내역을 최신순으로 반환한다. 운영자 회수는 type `revoke`다. */
     @Transactional(readOnly = true)
     fun history(memberId: UUID): CreditHistoryResponse {
         val granted = grants.history(memberId)
