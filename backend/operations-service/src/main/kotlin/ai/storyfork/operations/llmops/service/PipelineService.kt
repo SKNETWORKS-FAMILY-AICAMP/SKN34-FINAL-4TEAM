@@ -73,7 +73,7 @@ class PipelineService(private val permissions: AdminPermissionRepository, privat
     }
 
     private fun JsonNode.record() = PipelineRecord(
-        path("id").asString(), path("traceId").asString(), path("name").textOrNull() ?: "", path("type").textOrNull() ?: "SPAN", path("startTime").instantOrNull(), latencyMs(),
+        path("id").asString(), path("traceId").asString(), path("name").textOrNull() ?: "", path("type").textOrNull() ?: "SPAN", path("startTime").instantOrNull(), latencyMsOrNull(),
         path("level").textOrNull() ?: "DEFAULT", path("statusMessage").textOrNull(), path("model").textOrNull(), path("promptName").textOrNull(),
         path("promptVersion").takeIf { it.isNumber }?.asInt(), path("input").clipped(), path("output").clipped(), path("metadata").ownMetadata(),
     )

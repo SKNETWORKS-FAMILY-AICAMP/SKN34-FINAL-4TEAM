@@ -168,9 +168,21 @@ class PipelineServiceTest {
             listOf(first.input?.path("request")?.asString(), first.output?.path("allowed")?.asBoolean(), first.output?.path("reason")?.asString(), first.metadata?.path("turn")?.asString()))
         assertEquals(listOf(null, null, null, null), listOf(first.statusMessage, first.model, first.promptName, first.promptVersion))
         val second = page.items[1]
-        assertEquals(listOf<Any?>("gpt-6-luna", "ERROR", "timeout", "decision_guard.judge", 4, 0L), listOf(second.model, second.level, second.statusMessage, second.promptName, second.promptVersion, second.latencyMs))
+        assertEquals(listOf<Any?>("gpt-6-luna", "ERROR", "timeout", "decision_guard.judge", 4), listOf(second.model, second.level, second.statusMessage, second.promptName, second.promptVersion))
         assertEquals("그냥 글", second.output?.asString())
         assertNull(second.input)
+    }
+
+    @Test
+    fun `a record's latency is null for an observation that never ended and 0 for one that ended within the millisecond it started`() {
+        val open = observation("t-1", "o1", name = "decision_guard", latency = null)
+        val quick = observation("t-1", "o2", name = "decision_guard", latency = 0.0)
+        `when`(langfuse.pipelineObservations(from, to, "orchestration", guardNames, null, null, 0, 20)).thenReturn(TraceRoots(listOf(open, quick), 2))
+
+        val items = service.records(operators.llm, "guard", from, to, null, 0).items
+
+        // Langfuse times are whole milliseconds, so a fast step (the NovelBrain recall) ends in the millisecond it started: 0, not null.
+        assertEquals(listOf<Long?>(null, 0L), items.map { it.latencyMs })
     }
 
     @Test

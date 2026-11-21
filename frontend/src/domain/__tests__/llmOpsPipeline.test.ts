@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { lastPage } from '../entities/operations'
 import {
-  LABEL_HEIGHT, NODE_HEIGHT, NODE_WIDTH, PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, layoutPipeline, linkCurve, nodeStats, pipelineSummary, promptTargets, recalledTitles, recordResult, serverLevel, splitOutput, verdictText,
+  LABEL_HEIGHT, NODE_HEIGHT, NODE_WIDTH, PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, layoutPipeline, linkCurve, nodeStats, pipelineSummary, promptTargets, recalledTitles, recordResult, serverLevel, spanMillis, splitOutput, verdictText,
   type PipelineNode, type PipelineRecord,
 } from '../entities/llmOpsPipeline'
 
@@ -201,6 +201,11 @@ describe('노드 표시 글', () => {
     expect(PIPELINE_RECORDS_LIMIT).toBe(1000)
     expect(lastPage(41, 20, PIPELINE_RECORDS_LIMIT)).toBe(2)
     expect(lastPage(5000, 20, PIPELINE_RECORDS_LIMIT)).toBe(49)
+  })
+
+  it('지연 글은 같은 밀리초 안에 끝나 0인 값을 1ms 미만으로, 값이 없으면(종료 없음) —로 말한다', () => {
+    expect([0, 1, 250, 1500].map((ms) => spanMillis(ms))).toEqual(['1ms 미만', '1ms', '250ms', '1,500ms'])
+    expect([null, undefined].map((ms) => spanMillis(ms))).toEqual(['—', '—'])
   })
 })
 

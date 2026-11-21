@@ -84,12 +84,18 @@ internal fun JsonNode.ownMetadata(): JsonNode? {
     return if (own.isEmpty()) null else ioReader.createObjectNode().apply { own.forEach { (key, value) -> set(key, value) } }.clipped()
 }
 
-/** How long an observation ran in milliseconds; 0 for one without an end (it never ended). */
-internal fun JsonNode.latencyMs(): Long {
+/**
+ * How long an observation ran in milliseconds; null for one without an end (it never ended). Langfuse times are whole milliseconds, so 0 is an observation that
+ * ended within the millisecond it started (a fast step like the NovelBrain recall), not a missing time.
+ */
+internal fun JsonNode.latencyMsOrNull(): Long? {
     val start = path("startTime").instantOrNull()
     val end = path("endTime").instantOrNull()
-    return if (start != null && end != null) Duration.between(start, end).toMillis() else 0
+    return if (start != null && end != null) Duration.between(start, end).toMillis() else null
 }
+
+/** [latencyMsOrNull] for a screen that has a number for every step and tells an open one by its endTime: 0 for one without an end. */
+internal fun JsonNode.latencyMs(): Long = latencyMsOrNull() ?: 0
 
 private fun JsonNode.startedAt(): Instant = path("startTime").instant()
 

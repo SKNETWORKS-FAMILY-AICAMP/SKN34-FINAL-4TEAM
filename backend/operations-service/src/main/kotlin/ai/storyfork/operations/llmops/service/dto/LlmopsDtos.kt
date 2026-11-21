@@ -37,9 +37,9 @@ data class PipelineNode(
 
 data class Pipeline(val nodes: List<PipelineNode>)
 
-/** One observation of a node; input, output and metadata are each cut to their first 8,000 characters. */
+/** One observation of a node; input, output and metadata are each cut to their first 8,000 characters. [latencyMs] is null for one that never ended. */
 data class PipelineRecord(
-    val id: String, val traceId: String, val name: String, val type: String, val startTime: Instant?, val latencyMs: Long, val level: String,
+    val id: String, val traceId: String, val name: String, val type: String, val startTime: Instant?, val latencyMs: Long?, val level: String,
     val statusMessage: String?, val model: String?, val promptName: String?, val promptVersion: Int?,
     val input: JsonNode?, val output: JsonNode?, val metadata: JsonNode?,
 )

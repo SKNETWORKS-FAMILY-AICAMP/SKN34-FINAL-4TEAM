@@ -1,8 +1,8 @@
 import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties } from 'react'
 
-import { LLM_FORBIDDEN, PERIODS, bodyText, millis, traceStatusLabel, type Observation } from '../../../../domain/entities/llmOps'
+import { LLM_FORBIDDEN, PERIODS, bodyText, traceStatusLabel, type Observation } from '../../../../domain/entities/llmOps'
 import {
-  PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, nodeStats, promptTargets, recalledTitles, recordResult, splitOutput, verdictText, type PipelineNode, type PipelineRecord,
+  PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, nodeStats, promptTargets, recalledTitles, recordResult, spanMillis, splitOutput, verdictText, type PipelineNode, type PipelineRecord,
 } from '../../../../domain/entities/llmOpsPipeline'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
@@ -85,7 +85,7 @@ function NodeRecords({ vm, l, node }: { vm: VM; l: LlmVM; node: PipelineNode }) 
         <h2 tabIndex={-1}>{node.label} 기록</h2>
         <button type="button" className="btn sm" onClick={l.closeNode}>기록 닫기</button>
       </div>
-      <p className="small muted">{nodeStats(node)} · p95 지연 {millis(node.p95LatencyMs)} · 프롬프트 {node.promptNames.length ? node.promptNames.join(', ') : '없음'}</p>
+      <p className="small muted">{nodeStats(node)} · p95 지연 {spanMillis(node.p95LatencyMs)} · 프롬프트 {node.promptNames.length ? node.promptNames.join(', ') : '없음'}</p>
       <div className="admin-filter">
         <label className="field">
           결과
@@ -141,7 +141,7 @@ function RecordRow({ l, node, row }: { l: LlmVM; node: PipelineNode; row: Pipeli
           <span className={`chip ${result.tone}`}>{result.label}</span>
           {verdict && verdictText(verdict) && <span className="small muted pipe-verdict">{verdictText(verdict)}</span>}
         </td>
-        <td>{millis(row.latencyMs)}</td>
+        <td>{spanMillis(row.latencyMs)}</td>
         <td>{row.model ?? '—'}</td>
         <td>{row.promptName ? `${row.promptName} v${row.promptVersion ?? '?'}` : '—'}</td>
         <td className="act-menu">
@@ -215,7 +215,7 @@ function FlowPanel({ vm, l, flow }: { vm: VM; l: LlmVM; flow: { traceId: string;
 }
 
 function FlowStep({ step, depth, here }: { step: Observation; depth: number; here: boolean }) {
-  const meta = [step.type, millis(step.latencyMs), step.model, step.promptName ? `${step.promptName} v${step.promptVersion ?? '?'}` : null].filter(Boolean).join(' · ')
+  const meta = [step.type, spanMillis(step.endTime ? step.latencyMs : null), step.model, step.promptName ? `${step.promptName} v${step.promptVersion ?? '?'}` : null].filter(Boolean).join(' · ')
   return (
     <li className="pipe-step" style={{ '--depth': depth } as CSSProperties} aria-current={here ? 'true' : undefined}>
       <div className="pipe-step-head">

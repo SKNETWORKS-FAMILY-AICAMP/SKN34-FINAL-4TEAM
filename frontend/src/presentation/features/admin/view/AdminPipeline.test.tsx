@@ -241,3 +241,25 @@ it('NovelBrain 기억 회상 노드는 인물 시뮬레이션 바로 뒤에 이�
   fireEvent.click(document.querySelectorAll<HTMLButtonElement>('.pipe-records button.pipe-toggle')[1])
   within(document.querySelector<HTMLElement>('.pipe-detail')!).getByText('없음')
 })
+
+it('지연은 같은 밀리초 안에 끝난 기록(0)을 1ms 미만으로, 종료 시각이 없어 모르는 기록을 —로 보이고, 실행 흐름의 단계도 같다', async () => {
+  const at = '2026-11-21T01:00:00Z'
+  const item = (id: string, latencyMs: number | null): PipelineRecord => ({ id, traceId: 'trace-1', name: 'novelbrain.recall', type: 'RETRIEVER', startTime: at, latencyMs, level: 'DEFAULT' })
+  vi.spyOn(llm(), 'pipelineRecords').mockResolvedValue({ items: [item('a', 0), item('b', null), item('c', 250)], page: 0, size: 20, total: 3, unavailable: [] })
+  // 실행 흐름의 단계는 종료 시각이 없어도 지연 0으로 오므로, 0이어도 종료 시각이 없으면 1ms 미만이 아니라 모르는 값이다.
+  vi.spyOn(llm(), 'trace').mockResolvedValue({
+    id: 'trace-1', timestamp: at, feature: 'orchestration', status: 'success',
+    observations: [
+      { id: 'o1', name: 'novelbrain.recall', type: 'RETRIEVER', startTime: at, endTime: at, latencyMs: 0, level: 'DEFAULT' },
+      { id: 'o2', name: 'simulation.turn', type: 'SPAN', startTime: at, endTime: null, latencyMs: 0, level: 'DEFAULT' },
+    ],
+  })
+  renderPipeline()
+  await pick(/NovelBrain 기억 회상/)
+  const rows = dataRows(await table('NovelBrain 기억 회상'))
+  expect(rows.map((row: HTMLElement) => within(row).getAllByRole('cell')[3].textContent)).toEqual(['1ms 미만', '—', '250ms'])
+  fireEvent.click(openRowMenu(rows[0]).getByRole('menuitem', { name: '실행 흐름 보기' }))
+  const flow = within(await screen.findByRole('region', { name: '실행 흐름' }))
+  await flow.findByText('RETRIEVER · 1ms 미만')
+  flow.getByText('SPAN · —')
+})

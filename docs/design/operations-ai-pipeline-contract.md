@@ -62,7 +62,7 @@ AI 코드의 단독 요청 중 `manuscript_review`·`web_research`는 노드가 
 | 경로 | 내용 |
 |---|---|
 | `GET /llmops/pipeline?from&to` | `{nodes:[{id,label,next:[id],standalone,count,errors,p95LatencyMs?,promptNames:[string]}]}` — 노드별 observation 수·ERROR level 수·p95 지연과 그 노드 generation에 연결된 프롬프트 이름. 기본 기간은 최근 7일이고 비었거나 거꾸로면 400. p95는 노드 이름별 p95 중 가장 큰 값이고 측정된 지연이 없으면 null이다 |
-| `GET /llmops/pipeline/{nodeId}/records?from&to&level&page` | 그 노드 observation 목록(최신순, 20개씩) `{items:[{id,traceId,name,type,startTime,latencyMs,level,statusMessage?,model?,promptName?,promptVersion?,input?,output?,metadata?}], page, size, total}`(trace 목록과 같은 쪽 모양). 본문은 칸마다 앞 8,000자까지(JSON 글은 JSON으로, 넘으면 앞 8,000자만 글로). `metadata`에서는 Langfuse SDK가 모든 observation에 붙이는 `scope.`·`resourceAttributes.`로 시작하는 키를 뺀다(8,000자는 남은 키 기준, 남는 키가 없으면 null). `level`은 Langfuse level 하나(`DEBUG`·`DEFAULT`·`WARNING`·`ERROR`, 없으면 전체, 그 밖의 값은 400). 쪽은 0부터이고 최신 1,000개까지만 닿는다(쪽 번호 50부터 400). 없는 `nodeId`는 404 |
+| `GET /llmops/pipeline/{nodeId}/records?from&to&level&page` | 그 노드 observation 목록(최신순, 20개씩) `{items:[{id,traceId,name,type,startTime,latencyMs?,level,statusMessage?,model?,promptName?,promptVersion?,input?,output?,metadata?}], page, size, total}`(trace 목록과 같은 쪽 모양). `latencyMs`는 시작~종료 밀리초이고 Langfuse 시각이 밀리초 단위라 같은 밀리초 안에 끝난 단계(NovelBrain 회상 같은 빠른 단계)는 0, 종료 시각이 없으면 null이다. 본문은 칸마다 앞 8,000자까지(JSON 글은 JSON으로, 넘으면 앞 8,000자만 글로). `metadata`에서는 Langfuse SDK가 모든 observation에 붙이는 `scope.`·`resourceAttributes.`로 시작하는 키를 뺀다(8,000자는 남은 키 기준, 남는 키가 없으면 null). `level`은 Langfuse level 하나(`DEBUG`·`DEFAULT`·`WARNING`·`ERROR`, 없으면 전체, 그 밖의 값은 400). 쪽은 0부터이고 최신 1,000개까지만 닿는다(쪽 번호 50부터 400). 없는 `nodeId`는 404 |
 | `GET /llmops/traces/{id}` (기존 확장) | observation마다 `parentObservationId`·`input`·`output`·`metadata`를 더한다(같은 8,000자 제한) — 작업 하나의 실행 흐름 트리. `parentObservationId`는 부모 단계의 id(루트는 null)이고 `input`·`output`·`metadata`는 JSON 글이면 JSON으로 주고 `metadata`에서는 위와 같이 SDK 키를 뺀다 |
 
 Langfuse 실패는 502 `UPSTREAM_FAILED`(기존 규칙).
@@ -71,7 +71,7 @@ Guard의 거절은 level이 아니라 `decision_guard` 출력 `allowed=false`(le
 ## 화면
 
 - 캔버스: 노드 = 이름·건수·오류 수(오류가 있으면 위험 색), 선 = 흐름. 위 흐름의 되돌아가는 선 때문에 `next`는 순환이므로 열(왼→오)은 되돌아가는 선(`request`부터 서버 순서로 따라가 이미 지나온 노드로 돌아오는 선)을 빼고 정하고, 가는 선과 되돌아오는 선은 겹치지 않게 그린다(되돌아오는 선은 비켜 그린 점선). 업무 Agent 열은 읽기·검토(`qa`·`manuscript_review`·`rating`·`research`)가 위, 작성(`writing`·`world`·`character_simulation`)이 아래이고 각 묶음 위에 작은 라벨을 달며, 두 묶음 사이 빈칸이 요청·Guard·메인과 같은 줄에 와서 메인→MCP 직접 선이 업무 Agent 위를 지나지 않는다. `novelbrain`은 인물 시뮬레이션 오른쪽 같은 줄에 놓인다. 묶음 표는 프런트(`llmOpsPipeline.ts`)에 고정이라 새 Agent는 거기에도 넣고(없으면 라벨 없이 묶음 밖에 놓임) 모르는 id의 노드도 연결(`next`)대로 빠지지 않고 그려진다. 노드를 누르면 캔버스·노드 버튼 아래에 기록 패널(표가 전체 폭이다. 오른쪽 반쪽 폭에 두면 표 칸이 잘리고 페이지가 가로로 늘어났다).
-- 기록 패널: 결과 필터(전체·통과·거절/오류), 기록 표(시각·결과·지연·모델·프롬프트 버전), 줄을 펼치면 입력·출력·판정 근거(메타데이터)·도구 호출(이름·인자)을 그대로 보인다. NovelBrain 기억 회상 기록은 출력의 `recalled` 목록을 '회상한 기억' 목록으로 더 보인다(카드 항목은 제목 뒤에 ref의 문서 조각을 붙여 같은 인물 카드의 문서를 구분하고(`#identity`·`#soul`·`#goal` → '제목 · 정체'·'제목 · 성격'·'제목 · 목표', 그 밖의 조각은 원문 그대로), 관계·원고 항목은 제목이 없어 ref).
+- 기록 패널: 결과 필터(전체·통과·거절/오류), 기록 표(시각·결과·지연·모델·프롬프트 버전; 지연은 노드 p95·실행 흐름 단계도 같게 0이면 '1ms 미만', 종료 시각이 없어 모르면 —), 줄을 펼치면 입력·출력·판정 근거(메타데이터)·도구 호출(이름·인자)을 그대로 보인다. NovelBrain 기억 회상 기록은 출력의 `recalled` 목록을 '회상한 기억' 목록으로 더 보인다(카드 항목은 제목 뒤에 ref의 문서 조각을 붙여 같은 인물 카드의 문서를 구분하고(`#identity`·`#soul`·`#goal` → '제목 · 정체'·'제목 · 성격'·'제목 · 목표', 그 밖의 조각은 원문 그대로), 관계·원고 항목은 제목이 없어 ref).
   Guard는 결과 칸에 허용/거절과 기능별 판정을, 메인은 부른 도구와 인자를 보인다. 줄마다 `실행 흐름 보기`(그 trace의 observation 트리, 단계마다 입력·출력)와
   그 노드 프롬프트로 가는 `프롬프트 보기`(기존 프롬프트 상세)를 둔다.
 - 키보드: 캔버스는 보조이고, 같은 노드 목록을 캔버스 아래 버튼 목록으로도 둔다(초점·Enter로 열림).

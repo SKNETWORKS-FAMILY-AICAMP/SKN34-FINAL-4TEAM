@@ -1,4 +1,4 @@
-import { bodyText, count } from './llmOps'
+import { bodyText, count, millis } from './llmOps'
 import { featureLabel } from './writingChat'
 
 /**
@@ -159,6 +159,8 @@ export function linkCurve(from: Point, to: Point, back: boolean) {
 /** 캔버스(role="img")의 요약 이름. 캔버스는 보조라 같은 정보가 아래 노드 버튼 목록에도 있습니다. */
 export const pipelineSummary = (nodes: PipelineNode[]) => `집필 AI 파이프라인: 노드 ${nodes.length}개, 오류가 있는 노드 ${nodes.filter((n) => n.errors > 0).length}개`
 export const nodeStats = (n: Pick<PipelineNode, 'count' | 'errors'>) => `${count(n.count)}건 · 오류 ${count(n.errors)}건`
+/** observation 지연 글. Langfuse 시각이 밀리초 단위라 0은 같은 밀리초 안에 끝난 값(1ms 미만)이고, 종료 시각이 없어 모르는 값은 null이라 —입니다. */
+export const spanMillis = (latencyMs: number | null | undefined) => (latencyMs === 0 ? '1ms 미만' : millis(latencyMs))
 
 type Step = { id: string; parentObservationId?: string | null; startTime?: string | null }
 /**
