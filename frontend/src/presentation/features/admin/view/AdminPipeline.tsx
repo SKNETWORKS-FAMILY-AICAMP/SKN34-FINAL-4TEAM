@@ -158,7 +158,7 @@ function RecordRow({ l, node, row }: { l: LlmVM; node: PipelineNode; row: Pipeli
   )
 }
 
-/** 입력·출력·메타데이터는 받은 그대로(칸마다 앞 8,000자까지) 보이고, 메인 에이전트 출력만 글과 도구 호출(이름·인자)로 나누며, NovelBrain 회상 기록(recalled 목록)은 회상한 기억의 제목 목록을 더한다. */
+/** 입력·출력·메타데이터는 받은 그대로(칸마다 앞 8,000자까지) 보이고, 메인 에이전트 출력만 글과 도구 호출(이름·인자)로 나누며, NovelBrain 회상 기록(recalled 목록)은 회상한 기억 목록(제목 · 정체·성격·목표 같은 문서 조각)을 더한다. */
 function RecordDetail({ row, guard }: { row: PipelineRecord; guard: boolean }) {
   const output = splitOutput(row.output), recalled = recalledTitles(row)
   return (

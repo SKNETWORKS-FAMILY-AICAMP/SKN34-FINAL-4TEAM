@@ -293,12 +293,24 @@ describe('Guard 판정·메인 출력 읽기', () => {
     expect(recalledTitles(rec({ name: 'novelbrain.recall', output: { recalled, gaps: [] } }))).toEqual(['리안', '카엘', '세계수', 'ep:2#4'])
     // AI가 남기는 모양: 카드 항목은 제목이 있고 관계·원고 항목은 ref와 점수뿐이라 ref로 보인다.
     const traced = { count: 3, recalled: [{ ref: 'card:lira#identity', card_id: 'lira', title: '리라', score: 0.8 }, { ref: 'relation:r-kl', score: 0.6 }, { ref: 'manuscript:m1', score: 0.5 }] }
-    expect(recalledTitles(rec({ name: 'novelbrain.recall', output: traced }))).toEqual(['리라', 'relation:r-kl', 'manuscript:m1'])
+    expect(recalledTitles(rec({ name: 'novelbrain.recall', output: traced }))).toEqual(['리라 · 정체', 'relation:r-kl', 'manuscript:m1'])
     expect(recalledTitles(rec({ metadata: { recalled: [{ title: '메타데이터 쪽' }] } }))).toEqual(['메타데이터 쪽'])
     expect(recalledTitles(rec({ output: { recalled: [] } }))).toEqual([])
     expect(recalledTitles(rec({ output: { recalled: '카엘' } }))).toBeNull()
     expect(recalledTitles(rec({ output: '글' }))).toBeNull()
     expect(recalledTitles(rec())).toBeNull()
+  })
+
+  it('회상한 카드 항목은 ref의 문서 조각을 제목 뒤에 붙인다(정체·성격·목표, 그 밖의 조각은 원문 그대로, 조각이 없으면 제목만)', () => {
+    const card = (ref: string, title = '하린') => ({ ref, card_id: 'c1', title, score: 0.5 })
+    const recalled = [
+      card('card:c1#identity'), card('card:c1#goal'), card('card:c1#soul'), card('card:c1#ep03'),
+      card('card:w1', '세계수'), card('card:c1#'), { name: '카엘', ref: 'card:c2#soul' }, { ref: 'card:c1#goal' },
+    ]
+    // 같은 인물 카드가 정체·목표·성격 문서로 따로 회상돼도 줄마다 어느 문서인지 보인다. 제목이 없는 항목은 ref가 이미 조각을 담아 그대로다.
+    expect(recalledTitles(rec({ output: { recalled } }))).toEqual([
+      '하린 · 정체', '하린 · 목표', '하린 · 성격', '하린 · ep03', '세계수', '하린', '카엘 · 성격', 'card:c1#goal',
+    ])
   })
 
   it('프롬프트 보기 대상은 그 기록의 프롬프트이고, 없으면 노드에 연결된 프롬프트다', () => {

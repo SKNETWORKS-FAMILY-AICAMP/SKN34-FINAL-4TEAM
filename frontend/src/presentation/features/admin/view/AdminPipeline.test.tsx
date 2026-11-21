@@ -234,8 +234,8 @@ it('NovelBrain 기억 회상 노드는 인물 시뮬레이션 바로 뒤에 이�
   fireEvent.click(document.querySelector<HTMLButtonElement>('.pipe-records button.pipe-toggle')!)
   const detail = within(document.querySelector<HTMLElement>('.pipe-detail')!)
   detail.getByText('회상한 기억')
-  // 카드 항목은 제목, 관계·원고 항목은 제목이 없어 ref로 보인다.
-  expect(detail.getAllByRole('listitem').map((item) => item.textContent)).toEqual(['세계수', 'relation:r-kl', 'manuscript:m1'])
+  // 카드 항목은 제목에 ref의 문서 조각(정체·성격·목표)을 붙이고, 관계·원고 항목은 제목이 없어 ref로 보인다.
+  expect(detail.getAllByRole('listitem').map((item) => item.textContent)).toEqual(['세계수 · 정체', 'relation:r-kl', 'manuscript:m1'])
   // 회상이 없는 기록은 빈 목록 대신 '없음'을 보인다.
   fireEvent.click(document.querySelector<HTMLButtonElement>('.pipe-records button.pipe-toggle')!)
   fireEvent.click(document.querySelectorAll<HTMLButtonElement>('.pipe-records button.pipe-toggle')[1])

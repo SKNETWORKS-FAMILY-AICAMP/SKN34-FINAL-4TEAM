@@ -240,16 +240,24 @@ export function filterRecords<T extends Pick<PipelineRecord, 'name' | 'level' | 
   return records.filter((r) => (result === 'ERROR' ? r.level === 'ERROR' || rejected(r) : r.level === result && !rejected(r)))
 }
 
+/** 회상한 카드 문서(ref의 # 뒤 조각)의 이름. 그 밖의 조각(ep03 등)은 원문 그대로 보입니다. */
+const RECALLED_PART = new Map([['identity', '정체'], ['soul', '성격'], ['goal', '목표']])
+
 /**
- * NovelBrain 기억 회상 기록의 recalled 목록 제목. 항목은 글(제목) 또는 객체이고 객체는 title, 없으면 name, 없으면 ref를 제목으로 읽으며 그것도 없으면 건너뜁니다.
+ * NovelBrain 기억 회상 기록의 recalled 목록 이름. 항목은 글(그대로) 또는 객체이고 객체는 title, 없으면 name을 제목으로 읽어 ref의 문서 조각을 뒤에 붙입니다
+ * (`card:<id>#identity` → '제목 · 정체': 같은 인물 카드의 정체·성격·목표 문서가 따로 회상돼도 줄이 구분됩니다. 조각이 없으면 제목만). 제목이 없으면 ref 그대로이고 그것도 없으면 건너뜁니다.
  * 출력에 recalled 목록이 없으면 metadata에서 읽고, 둘 다 목록이 아니면 null입니다(회상 기록이 아님).
  */
 export function recalledTitles(record: Pick<PipelineRecord, 'output' | 'metadata'>): string[] | null {
   const source = [record.output, record.metadata].find((v) => isObject(v) && Array.isArray(v.recalled))
   if (!isObject(source)) return null
   return (source.recalled as unknown[]).flatMap((item) => {
-    const title = typeof item === 'string' ? item : isObject(item) ? [item.title, item.name, item.ref].find((v) => typeof v === 'string' && v !== '') : undefined
-    return typeof title === 'string' && title !== '' ? [title] : []
+    if (!isObject(item)) return typeof item === 'string' && item !== '' ? [item] : []
+    const ref = typeof item.ref === 'string' ? item.ref : ''
+    const title = [item.title, item.name].find((v): v is string => typeof v === 'string' && v !== '')
+    if (title === undefined) return ref !== '' ? [ref] : []
+    const part = ref.split('#').slice(1).join('#')
+    return [part ? `${title} · ${RECALLED_PART.get(part) ?? part}` : title]
   })
 }
 
