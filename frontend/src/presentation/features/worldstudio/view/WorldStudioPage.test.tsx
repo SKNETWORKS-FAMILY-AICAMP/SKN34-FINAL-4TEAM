@@ -621,7 +621,7 @@ it('작성 모드 헤더의 행동 줄에도 집필 메모 추가는 없다: 설
   await wizard()
   fireEvent.click(screen.getByRole('button', { name: '다음 단계' })) // 설정 카드 단계
   expect(screen.queryByRole('button', { name: '집필 메모 추가' })).toBeNull()
-  expect(headerOf().getAllByRole('button').map((b) => b.textContent)).toEqual(['소설 연결하기', '관리 화면으로'])
+  expect(headerOf().getAllByRole('button').map((b) => b.textContent)).toEqual(['소설 연결하기', '독자 시점으로 보기', '내보내기 ▸', '관리 화면으로']) // 소설 버튼·독자 시점 미리보기(연결 전이라 잠김)·내보내기·관리 화면으로뿐이다
 })
 
 it('작성 모드의 설정 카드 단계도 같은 게시판과 편집 화면이고 마법사 표시(?new=1)를 주소에 지킨다', async () => {

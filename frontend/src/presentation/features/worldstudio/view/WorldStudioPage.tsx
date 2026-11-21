@@ -38,6 +38,8 @@ import { WorldRelationshipEditor } from './WorldRelationshipEditor'
 import { WorldRevisions } from './WorldRevisions'
 import { WorldSaveBar } from './WorldSaveBar'
 import { WorldTimeline } from './WorldTimeline'
+import { ReaderPreviewLink, WorldExportButton } from './WorldHeaderExtras'
+import { useLinkedWorkBasis } from '../viewmodel/useLinkedWorkBasis'
 import './world-studio.css'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
@@ -145,6 +147,7 @@ export function WorldStudioPage() {
 function WorldHeader({ vm, world }: { vm: VM; world: StudioWorld }) {
   const saved = vm.saved ?? world
   const manage = vm.mode === 'manage'
+  const basis = useLinkedWorkBasis(vm.linkedWorkId) // 독자 시점 미리보기의 N화: 연결된 소설의 가장 뒤 발행 회차
   const { visibility, genre } = vm.publication
   const state = vm.saveState === 'saving' ? { tone: 'wait', text: '저장 중' }
     : vm.saveState === 'failed' ? { tone: 'wait', text: '저장 실패 · 입력은 유지돼요' }
@@ -181,13 +184,13 @@ function WorldHeader({ vm, world }: { vm: VM; world: StudioWorld }) {
         {vm.listing === 'unlisted' && <p role="status" className="small muted">{UNLISTED_HINT}</p>}
         {manage && <PublicCardsNotice vm={vm} visibility={visibility} />}
         {!manage && <WorldLinkedLine vm={vm} />}
-        {(!manage || vm.publicHref) && (
-          <div className="acts">
-            {!manage && <WorldNovelButton vm={vm} />}
-            {vm.publicHref && <Go to={vm.publicHref} className="btn sm">공개 화면 보기</Go>}
-            {!manage && <button type="button" className="btn sm" onClick={vm.leaveWizard}>관리 화면으로</button>}
-          </div>
-        )}
+        <div className="acts">
+          {!manage && <WorldNovelButton vm={vm} />}
+          {vm.publicHref && <Go to={vm.publicHref} className="btn sm">공개 화면 보기</Go>}
+          <ReaderPreviewLink workId={vm.linkedWorkId} episode={basis?.episode ?? null} />
+          <WorldExportButton world={saved} dirty={vm.dirty || vm.relationDirty} />
+          {!manage && <button type="button" className="btn sm" onClick={vm.leaveWizard}>관리 화면으로</button>}
+        </div>
       </div>
     </section>
   )
