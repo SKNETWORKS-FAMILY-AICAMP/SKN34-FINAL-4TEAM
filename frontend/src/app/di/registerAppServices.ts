@@ -14,11 +14,13 @@ import { OperationsWorkUseCase } from '../../domain/usecases/OperationsWorkUseCa
 import { OperationsGenreUseCase } from '../../domain/usecases/OperationsGenreUseCase'
 import { GenreUseCase } from '../../domain/usecases/GenreUseCase'
 import { OperationsCommentUseCase } from '../../domain/usecases/OperationsCommentUseCase'
+import { OperationsCreditUseCase } from '../../domain/usecases/OperationsCreditUseCase'
 import { AdminActivityUseCase } from '../../domain/usecases/AdminActivityUseCase'
 import { JobMonitorUseCase } from '../../domain/usecases/JobMonitorUseCase'
 import { LlmOpsUseCase } from '../../domain/usecases/LlmOpsUseCase'
 import { OperationsDashboardUseCase } from '../../domain/usecases/OperationsDashboardUseCase'
 import { HttpEventRepository } from '../../data/api/HttpEventRepository'
+import { HttpOperationsCreditRepository } from '../../data/api/HttpOperationsCreditRepository'
 import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
 import { HttpNoticeRepository } from '../../data/api/noticeApi'
 import { HttpOperationsGenreRepository } from '../../data/api/genreApi'
@@ -110,6 +112,8 @@ export function registerAppServices(container: AppContainer) {
     genreUseCase: asFunction(({ genreRepository }) => new GenreUseCase(genreRepository)).singleton(),
     operationsGenreRepository: asFunction(() => new HttpOperationsGenreRepository()).singleton(),
     operationsGenreUseCase: asFunction(({ operationsGenreRepository }) => new OperationsGenreUseCase(operationsGenreRepository)).singleton(),
+    operationsCreditRepository: asFunction(() => new HttpOperationsCreditRepository()).singleton(),
+    operationsCreditUseCase: asFunction(({ operationsCreditRepository }) => new OperationsCreditUseCase(operationsCreditRepository)).singleton(),
     operationsCommentRepository: asFunction(() => new HttpOperationsCommentRepository()).singleton(),
     operationsCommentUseCase: asFunction(({ operationsCommentRepository }) => new OperationsCommentUseCase(operationsCommentRepository)).singleton(),
     adminActivityRepository: asFunction(() => new HttpAdminActivityRepository()).singleton(),

@@ -16,6 +16,8 @@ uv sync --locked --extra dev
 uv run --locked uvicorn app.main:create_app --factory --reload --port 8000
 # 회차 원고 전처리(Celery 큐 preprocessing)는 AI_CELERY_BROKER_URL·CONTENT_SERVICE_BASE_URL을 설정하고 워커를 따로 띄운다
 uv run --locked celery -A app.preprocessing.worker worker -Q preprocessing --concurrency=1 --loglevel=INFO
+# 작업 실행(회귀 평가·운영 정기 작업, Celery 큐 jobs)은 AI_CELERY_BROKER_URL·OPERATIONS_SERVICE_BASE_URL·INTERNAL_TOKEN을 설정하고 워커를 따로 띄운다(Compose는 AI_JOBS_CONCURRENCY, 기본 4)
+uv run --locked celery -A app.jobs.worker worker -Q jobs --concurrency=4 --loglevel=INFO
 ```
 
 로컬 개발 검증은 변경·직접 영향 범위의 **단위 테스트만** 선택합니다. TestClient·HTTP는 통합 계층이며 로컬에서 통합/시스템·전체 suite·컨테이너를 실행하지 않습니다.
@@ -59,7 +61,7 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 
 | 경로 | 내용 |
 |---|---|
-| `POST /internal/v1/evaluations` `{dataset, prompt, version}` | 평가 세트·프롬프트 버전·설정을 확인한 뒤 `202 {runName}`을 먼저 돌려주고 백그라운드로 평가합니다 |
+| `POST /internal/v1/evaluations` `{dataset, prompt, version}` | 평가 세트·프롬프트 버전·설정을 확인한 뒤 Celery 큐(`jobs`)에 올리고 `202 {runName}`을 먼저 돌려줍니다(올리지 못하면 503). `ai-jobs-worker`가 평가하며 서버를 재시작해도 큐에 남아 이어 실행됩니다 |
 | `POST /internal/v1/evaluations/leak-check` `{response, references[], question?}` | 응답이 비공개 참조를 드러내는지 GEval 한 번으로 판정해 `{suspected, reason}`을 돌려줍니다. 사용자 질문 원문 `question`(선택)을 주면 질문에 이미 나온 이름을 되풀이하거나 근거가 없다고 답한 응답은 의심하지 않고 비공개 참조의 내용을 새로 알려 줄 때만 의심합니다 |
 
 결과는 Langfuse Experiments API(`GET /api/public/experiments?fromStartTime=…&name=<runName>&fields=core,metadata,scores`)로 읽습니다.
@@ -69,3 +71,13 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 - 항목 점수는 항목 trace에 같은 이름으로 남습니다.
 
 평가 세트는 `app/evaluation/datasets/*.jsonl`(저작권 만료 작품만)이고 `python -m app.evaluation.seed`로 Langfuse에 멱등 등록합니다. 설정은 `OPENAI_API_KEY`·`OPENAI_MODEL`(채점 모델 겸용)·`LANGFUSE_*`·`INTERNAL_TOKEN`이고 선택 `EVAL_TOLERANCE`(기본 0.05)가 있습니다.
+
+## 작업 실행 큐 (운영 정기 작업·회귀 평가, 계약 §4)
+
+`ai-jobs-worker`(ai-service와 같은 이미지, Celery 큐 `jobs`, 동시 실행 수 `AI_JOBS_CONCURRENCY` 기본 4)가 회귀 평가(`evaluation.run`)와 운영 정기 작업(`operations.run_job`)을 실행합니다. 원고 전처리 워커 `ai-worker`(`-Q preprocessing`, 동시성 1)와 큐·태스크는 따로이며 그대로입니다([계약](../../docs/design/operations-funnel-credit-contract.md)).
+
+| 경로 | 내용 |
+|---|---|
+| `POST /internal/v1/jobs` `{runId, kind}` | 운영 스케줄러가 접수시킨 정기 작업 실행을 큐(`jobs`)에 올리고 `202`를 돌려줍니다(올리지 못하면 503). 워커가 운영 내부 `POST /internal/v1/jobs/runs/{runId}/execute`를 불러 운영이 기존 handler를 실행하고 상태를 기록합니다. 운영이 거절·장애로 답하면 태스크가 실패로 남고 자동으로 다시 하지 않습니다 |
+
+설정은 `INTERNAL_TOKEN`(운영이 AI를 부를 때와 워커가 운영을 부를 때 모두 `X-Internal-Token`)·`OPERATIONS_SERVICE_BASE_URL`(워커가 운영을 부르는 주소)·`AI_CELERY_BROKER_URL`이고 선택 `AI_JOBS_CONCURRENCY`가 있습니다.

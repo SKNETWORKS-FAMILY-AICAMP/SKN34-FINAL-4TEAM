@@ -5,7 +5,8 @@ import type { EventRepository } from '../../domain/repositories/EventRepository'
 import { send } from './operationsApi'
 
 const instant = z.string().datetime({ offset: true })
-const event = z.object({ id: z.string(), title: z.string(), body: z.string(), startsAt: instant.nullable(), endsAt: instant.nullable(), createdAt: instant, updatedAt: instant })
+// linkPath는 이동 경로 선택 칸(DEC-57)이라 비거나 생략되면 null입니다.
+const event = z.object({ id: z.string(), title: z.string(), body: z.string(), startsAt: instant.nullable(), endsAt: instant.nullable(), linkPath: z.string().nullish().transform((v) => v ?? null), createdAt: instant, updatedAt: instant })
 const events = z.object({ items: z.array(event) }).transform((value) => value.items)
 const id = encodeURIComponent
 const LOAD_FAILED = '이벤트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'

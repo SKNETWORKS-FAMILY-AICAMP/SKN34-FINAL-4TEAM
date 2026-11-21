@@ -19,6 +19,7 @@ class LlmopsController(
     private val evaluations: EvaluationService,
     private val leakChecks: LeakCheckService,
     private val settings: LlmopsSettingService,
+    private val pipelines: PipelineService,
 ) {
     @GetMapping("/traces")
     fun traces(
@@ -29,6 +30,16 @@ class LlmopsController(
 
     @GetMapping("/traces/{id}")
     fun trace(@AuthenticationPrincipal member: OperationsMember, @PathVariable id: String) = traces.detail(member, id)
+
+    @GetMapping("/pipeline")
+    fun pipeline(@AuthenticationPrincipal member: OperationsMember, @RequestParam(required = false) from: Instant?, @RequestParam(required = false) to: Instant?) =
+        pipelines.pipeline(member, from, to)
+
+    @GetMapping("/pipeline/{nodeId}/records")
+    fun pipelineRecords(
+        @AuthenticationPrincipal member: OperationsMember, @PathVariable nodeId: String, @RequestParam(required = false) from: Instant?, @RequestParam(required = false) to: Instant?,
+        @RequestParam(required = false) level: String?, @RequestParam(defaultValue = "0") page: Int,
+    ) = pipelines.records(member, nodeId, from, to, level, page)
 
     @GetMapping("/metrics")
     fun metrics(

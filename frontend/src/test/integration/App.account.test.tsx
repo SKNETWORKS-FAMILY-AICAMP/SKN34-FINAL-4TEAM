@@ -151,6 +151,31 @@ describe('계정 (U30~U35E)', () => {
     } finally { await events.remove(saved.id) }
   })
 
+  it('이벤트에 이동 경로(linkPath)가 있으면 목록 카드와 상세에 바로 가기가 보이고 앱 안에서 이동하며, 없거나 사이트 밖이면 버튼이 없다', async () => {
+    const events = appContainer.resolve('eventRepository')
+    const plain = await events.create({ title: '경로 없는 이벤트', body: '본문', startsAt: null, endsAt: null })
+    // 서버가 이미 막는 값이지만 화면도 사이트 안 경로가 아니면 버튼을 그리지 않는다.
+    const external = await events.create({ title: '사이트 밖 이벤트', body: '본문', startsAt: null, endsAt: null, linkPath: 'https://evil.example' })
+    const linked = await events.create({ title: '세계관 이벤트', body: '둘러보세요', startsAt: null, endsAt: null, linkPath: '/worlds' })
+    try {
+      renderAt('/me/event', null)
+      const card = (await screen.findByRole('link', { name: /세계관 이벤트/ })).closest('.evc') as HTMLElement
+      expect(screen.getAllByRole('link', { name: '바로 가기' })).toHaveLength(1)
+      const go = within(card).getByRole('link', { name: '바로 가기' })
+      expect(go.getAttribute('href')).toBe('/worlds')
+      // 카드 전체 링크(.evmain) 안에 링크가 겹치지 않는다.
+      expect(go.closest('.evmain')).toBeNull()
+      fireEvent.click(within(card).getByRole('link', { name: /세계관 이벤트/ }))
+      await screen.findByRole('heading', { name: '세계관 이벤트' })
+      fireEvent.click(screen.getByRole('link', { name: '바로 가기' }))
+      await waitFor(() => expect(where()).toBe('/worlds'))
+      cleanup()
+      renderAt(`/me/event?id=${plain.id}`, null)
+      await screen.findByRole('heading', { name: '경로 없는 이벤트' })
+      expect(screen.queryByRole('link', { name: '바로 가기' })).toBeNull()
+    } finally { for (const row of [plain, external, linked]) await events.remove(row.id) }
+  })
+
   it('이벤트가 없으면 빈 안내를, 불러오기에 실패하면 실패를 알리고 다시 불러오기로 복구한다', async () => {
     const events = appContainer.resolve('eventUseCase')
     renderAt('/me/event', null)

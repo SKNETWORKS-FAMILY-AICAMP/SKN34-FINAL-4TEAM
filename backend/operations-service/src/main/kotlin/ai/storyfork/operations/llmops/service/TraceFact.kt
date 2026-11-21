@@ -4,6 +4,7 @@ import ai.storyfork.operations._common.client.doubleOrNull
 import ai.storyfork.operations._common.client.instant
 import ai.storyfork.operations._common.client.instantOrNull
 import ai.storyfork.operations._common.client.textOrNull
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import kotlin.math.ceil
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.node.StringNode
 
 /** The service's day: "today" and the day keys of the metrics are Korean days, like the notice dates of Core. */
 internal val KST: ZoneId = ZoneId.of("Asia/Seoul")
@@ -56,6 +58,44 @@ internal fun JsonNode.ioValue(): JsonNode? = when {
     stringValue().trimStart().let { it.startsWith("{") || it.startsWith("[") } -> runCatching { ioReader.readTree(stringValue()) }.getOrDefault(this)
     else -> this
 }
+
+/** The most characters of an observation's input, output or metadata a screen gets; the whole text stays in Langfuse. */
+private const val BODY_LIMIT = 8_000
+
+/**
+ * An observation's input, output or metadata as a screen shows it: like [ioValue], but a body longer than [BODY_LIMIT] characters (a JSON object or array counts
+ * as its compact text) is cut to its first [BODY_LIMIT] characters and stays text however it began, since with its end gone it is no longer valid JSON.
+ */
+internal fun JsonNode.clipped(): JsonNode? {
+    val body = ioValue() ?: return null
+    val text = if (body.isString) body.stringValue() else body.toString()
+    return if (text.length <= BODY_LIMIT) body else StringNode.valueOf(text.take(BODY_LIMIT))
+}
+
+/** The metadata keys the Langfuse SDK and its OpenTelemetry exporter add to every observation (scope.name, scope.attributes.public_key, resourceAttributes.service.name, ...). */
+private val SDK_METADATA_PREFIXES = listOf("scope.", "resourceAttributes.")
+
+/**
+ * An observation's own metadata for a screen: without the keys the SDK adds, which bury the ones that explain a judgement, then [clipped]. null when none are left,
+ * so a screen shows no metadata instead of an empty object.
+ */
+internal fun JsonNode.ownMetadata(): JsonNode? {
+    val own = properties().filterNot { (key, _) -> SDK_METADATA_PREFIXES.any { key.startsWith(it) } }
+    return if (own.isEmpty()) null else ioReader.createObjectNode().apply { own.forEach { (key, value) -> set(key, value) } }.clipped()
+}
+
+/**
+ * How long an observation ran in milliseconds; null for one without an end (it never ended). Langfuse times are whole milliseconds, so 0 is an observation that
+ * ended within the millisecond it started (a fast step like the NovelBrain recall), not a missing time.
+ */
+internal fun JsonNode.latencyMsOrNull(): Long? {
+    val start = path("startTime").instantOrNull()
+    val end = path("endTime").instantOrNull()
+    return if (start != null && end != null) Duration.between(start, end).toMillis() else null
+}
+
+/** [latencyMsOrNull] for a screen that has a number for every step and tells an open one by its endTime: 0 for one without an end. */
+internal fun JsonNode.latencyMs(): Long = latencyMsOrNull() ?: 0
 
 private fun JsonNode.startedAt(): Instant = path("startTime").instant()
 

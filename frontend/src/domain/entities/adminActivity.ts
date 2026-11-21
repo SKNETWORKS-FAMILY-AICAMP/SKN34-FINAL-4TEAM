@@ -31,6 +31,8 @@ const ACTIONS = new Map([
   ['JOB_SCHEDULE_CREATE', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATE', '정기 작업 일정 변경'], ['JOB_SCHEDULE_CANCEL', '정기 작업 일정 취소'], ['JOB_RETRY', '작업 실패 재실행'],
   // DEC-56 장르 관리(운영 서비스가 남기는 조치)
   ['GENRE_CREATE', '장르 추가'], ['GENRE_UPDATE', '장르 수정'], ['GENRE_REORDER', '장르 순서 변경'],
+  // DEC-57 크레딧 운영(대상은 회원, 내역은 서버가 남긴 금액·사유 문구)
+  ['CREDIT_GRANT', '크레딧 지급'], ['CREDIT_REVOKE', '크레딧 회수'],
 ])
 const TARGETS = new Map([['MEMBER', '회원'], ['REPORT', '신고'], ['WORK', '작품'], ['NOTICE', '공지'], ['EVENT', '이벤트'], ['INQUIRY', '문의'], ['COMMENT', '댓글'], ['JOB_SCHEDULE', '정기 작업 일정'], ['JOB_RUN', '작업 실행'],
   ['PROMPT', '프롬프트'], ['MODEL', '모델'], ['EVALUATION', '회귀 평가'], ['ALERT', '경고'], ['ALERT_RULE', '경고 기준'], ['LLMOPS_SETTING', 'LLMOps 설정'], ['GENRE', '장르']])

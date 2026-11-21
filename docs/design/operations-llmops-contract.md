@@ -17,7 +17,7 @@
 | 회원 식별 | trace의 `user_id`에 **회원 UUID**를 남긴다. 이메일·닉네임·키는 계속 남기지 않는다(2026-11-13 팀 결정의 보완) |
 | 경고 기준 | 기준값은 문서로 고정하지 않고 **운영 화면에서 관리자가 정한다**. 초기 행은 꺼진 상태로 시드하고 값을 넣어 켠다 |
 | 평가 | 회귀 평가는 AI 서비스의 **Ragas**(Q&A RAG)·**DeepEval**(생성·검토·누설 판정)로 채점하고 결과를 Langfuse Dataset Run 점수로 남긴다. 1회 비용 상한은 **추후 결정**(그 전까지 상한 없음, 평가는 관리자가 직접 실행할 때만 돈다) |
-| 작업 감시 | 회차 원고 전처리(DEC-50, 100화 이상 작품의 회차를 하나씩 전처리해 세계관 카드를 만드는 Celery 작업)와 운영 정기 작업을 한 화면에서 본다. 실제 실행은 업무 소유 서비스, 감시·재실행 요청은 운영(F-JOB-01) |
+| 작업 감시 | 회차 원고 전처리(DEC-50, 100화 이상 작품의 회차를 하나씩 전처리해 세계관 카드를 만드는 Celery 작업)·운영 정기 작업·회귀 평가 실행을 한 화면에서 본다. 실제 실행은 업무 소유 서비스(운영 정기 작업은 AI 작업 워커가 운영의 execute API를 불러 실행, [작업 실행 이관](operations-funnel-credit-contract.md#4-작업-실행을-celery로-이관-리팩터링-2026-11-20-사용자-결정)), 감시·재실행 요청은 운영(F-JOB-01). 평가 실행은 작업 감시에서 재실행하지 않는다 |
 | Airflow | 지금은 쓰지 않는다. 운영 스케줄러가 맡는 '정해진 시각에 소유 서비스의 실행 API 호출'과 '실행 기록 조회'를 나중에 Airflow DAG·REST API로 바꿀 수 있게 실행 API와 기록 모양을 출처 독립으로 둔다 |
 
 ## 데이터 출처
@@ -33,6 +33,7 @@
 | 필터 복원률 | 콘텐츠 필터 기능(미구현) | 필터가 생기기 전까지 `null`, 화면은 '데이터 없음' |
 | 전처리 작업 진행 | Content 전처리 작업 테이블(DEC-50 계약) | Content `GET /internal/v1/preprocessing-jobs` |
 | 정기 작업 일정·실행 기록 | 운영 DB | 운영 Repository |
+| 회귀 평가 실행 기록 | Langfuse Dataset Run | 운영 `EvaluationService`가 평가 화면과 같은 읽기로 최신 50개(권한은 `jobs`로 이미 확인) |
 | 경고·조치 기록 | 운영 DB | 운영 Repository |
 | 프롬프트·모델 버전, 평가 결과 | Langfuse Prompt·Model·Dataset | 운영 → Langfuse Public API |
 
@@ -70,14 +71,16 @@
 | `PUT /alerts/{id}` `{status, note}` | `llm` 또는 `jobs` | 확인·조치 완료 기록 |
 | `GET /alerts/rules`, `PUT /alerts/rules/{key}` `{threshold, windowMinutes, enabled}` | `llm` | 경고 기준값 설정 |
 | `GET /llmops/settings`, `PUT /llmops/settings` `{leakSampleRate}` | `llm` | 누설 검사 표본 비율(0~1, 기본 0.1) |
-| `GET /jobs/runs?status&kind&page` | `jobs` | 전처리 작업 + 운영 정기 작업 실행 기록(같은 모양). 앞쪽 1,000건까지만(`(page+1)*size > 1000`이면 400) |
-| `POST /jobs/runs/{id}/retry` | `jobs` | 실패 작업 수동 재실행 요청(전처리는 Content 재접수 = 실패 회차만) |
+| `GET /jobs/runs?status&kind&page` | `jobs` | 전처리 작업 + 운영 정기 작업 + 회귀 평가 실행 기록(같은 모양). 앞쪽 1,000건까지만(`(page+1)*size > 1000`이면 400). 출처 하나를 읽지 못하면(Content·Langfuse) 나머지는 보이고 `unavailable`에 그 출처 이름(`content-preprocessing`·`ai-evaluation`)을 적는다 |
+| `POST /jobs/runs/{id}/retry` | `jobs` | 실패 작업 수동 재실행 요청(전처리는 Content 재접수 = 실패 회차만, 운영 정기 작업은 새 `queued`·`manual` 기록을 AI 작업 워커에 접수시킨다). 평가 실행은 대상이 아니다 |
 | `GET /jobs/schedules`, `POST /jobs/schedules`, `PUT /jobs/schedules/{id}`, `DELETE /jobs/schedules/{id}` | `jobs` | 정기 작업 일정 등록·조회·변경·취소(취소는 `enabled=false` 소프트). PUT은 `{kind,cron,enabled,params}` 전체 교체이며 종류 변경은 422 |
 
 실행 기록 모양(출처 독립): `{id, kind, source, status(queued|running|succeeded|failed|cancelled), trigger(schedule|manual|user), progress{done,total}, startedAt, finishedAt, error, targetId}`.
-`source`는 `operations-scheduler`·`content-preprocessing`이고 Airflow를 붙이면 `airflow`가 더해진다.
+`source`는 `operations-scheduler`·`content-preprocessing`·`ai-evaluation`이고 Airflow를 붙이면 `airflow`가 더해진다.
+회귀 평가 실행(Langfuse Run)은 `kind=evaluation`, `id`·`targetId`=Run 이름, `startedAt`=Run 생성 시각, `trigger=manual`(Run은 요청 주체를 모르고 일정으로 시작한 평가는 `regression_eval` 기록이 따로 있다), 끝난 시각·진행률은 없고,
+`status`는 평가의 `running|completed|failed`를 `running|succeeded|failed`로 옮기며(통과 여부와 무관, 실패는 고정 `error`: 시작 후 2시간이 지나도 결과 점수가 없는 Run) 최신 Run 50개까지다.
 
-작업 감시 오류 규칙: 일정 등록·변경에서 등록되지 않은 `kind`, 바뀐 `kind`, 읽을 수 없거나 100자를 넘거나 다시 도래하지 않는 `cron`은 모두 422다(형식이 틀린 본문은 400, 없는 일정은 404). 재실행은 운영 정기 작업의 실패한 기록만 새 `queued`·`manual` 기록 하나로 접수하고(202) 다음 tick이 실행한다. 실패가 아닌 기록, 그 일정에 진행 중(`queued`·`running`) 기록이 있을 때, **이미 재실행된 기록은 재실행 결과(성공·실패)와 무관하게 409**다. 재실행으로 생긴 새 기록이 실패하면 그 기록은 다시 재실행할 수 있다.
+작업 감시 오류 규칙: 일정 등록·변경에서 등록되지 않은 `kind`, 바뀐 `kind`, 읽을 수 없거나 100자를 넘거나 다시 도래하지 않는 `cron`은 모두 422다(형식이 틀린 본문은 400, 없는 일정은 404). 재실행은 운영 정기 작업의 실패한 기록만 새 `queued`·`manual` 기록 하나로 접수해 AI 작업 워커에 접수시킨다(202, queued 기록이 커밋된 뒤에 접수시킨다. AI가 받지 않으면 그 기록은 failed+고정 사유로 남고 502). 실패가 아닌 기록, 그 일정에 진행 중(`queued`·`running`) 기록이 있을 때, **이미 재실행된 기록은 재실행 결과(성공·실패)와 무관하게 409**다. 재실행으로 생긴 새 기록이 실패하면 그 기록은 다시 재실행할 수 있다.
 
 ### 응답 모양 (JSON, 시각은 ISO-8601 UTC, 비용은 USD 숫자)
 
@@ -120,19 +123,25 @@ Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRu
 
 ## 정기 작업 (운영 스케줄러)
 
-운영 서비스의 `@Scheduled` 1분 tick이 켜진 일정 중 도래한 것을 실행하고 `job_run`에 남긴다(같은 일정의 실행 중 기록이 있으면 건너뜀). 작업 종류마다 `ScheduledJobHandler`(`kind`, `run(params)`) 빈 하나가 실행을 맡고, 일정 등록은 등록된 handler의 `kind`만 받는다.
+운영 서비스의 `@Scheduled` 1분 tick이 켜진 일정 중 도래한 것마다 `queued` `job_run`을 만들고 AI 내부 `POST /internal/v1/jobs` `{runId, kind}`(`X-Internal-Token`)로 접수시킨다(같은 일정의 queued·running 기록이 있으면 건너뜀, AI가 받지 않으면 그 기록을 failed+고정 사유로 남김). 실행은 AI 작업 워커(Celery 큐 `jobs`)가 운영 내부 `POST /internal/v1/jobs/runs/{runId}/execute`를 불러 맡긴다: 작업 종류마다 `ScheduledJobHandler`(`kind`, `run(params)`) 빈 하나가 있고, 운영이 `queued`→`running`을 조건부 UPDATE 한 번으로 선점한 뒤(병렬 워커·재배달에도 handler는 한 번) 그 handler를 동기 실행해 상태·진행률·대상을 기록한다. 일정 등록은 등록된 handler의 `kind`만 받는다.
+
+| 내부 API (AI 작업 워커 → 운영, `X-Internal-Token`=공유 `INTERNAL_TOKEN`, `/internal/v1/jobs/**` 전용 보안 체인) | 동작 |
+|---|---|
+| `POST /internal/v1/jobs/runs/{runId}/execute` (본문 없음) | 선점하면 handler를 끝까지 실행하고 200 + 끝난 `JobRun`(handler 실패도 failed 기록의 200). 선점하지 못하면(이미 실행 중·끝남·재배달) 실행도 변경도 없이 409, 없는 `runId`는 404, 토큰이 없거나 틀리면 401 |
+
+tick은 일정을 보기 전에 `queued`가 10분, `running`이 30분을 넘은 기록(워커가 죽었거나 execute 호출이 실패해 남은 것)을 failed+고정 사유(작업 워커 응답 없음)로 닫아 그 일정이 영원히 막히지 않게 한다. 이 닫기와 AI 접수 실패 처리는 읽은 상태일 때만 failed로 바꾸는 조건부 UPDATE라 그사이 워커가 선점했거나 결과가 기록된 run은 덮어쓰지 않고, 접수 응답을 잃었어도 이미 워커가 선점했으면 접수된 것으로 본다. 재시작 때는 `running`을 failed로 닫는다(핸들러가 운영 프로세스 안에서 돌기 때문).
 
 | kind | 실행 위치 | 내용 |
 |---|---|---|
 | `llm_alert_check` | 운영 | 경고 규칙을 Langfuse 지표·실패 작업과 비교해 경고 생성. 생성 시 운영자에게 사이트 안 알림 사건 발행 |
 | `leak_sample_check` | 운영 → Content·AI | 직전 구간 Fork 작품 요청 trace를 표본 비율로 뽑고 Content가 준 원작 비공개 카드 제목·미발행 회차 제목을 답변 글자와 대조한다 → 하나라도 걸린 건만 AI `POST /internal/v1/evaluations/leak-check` `{response, references, question?}`(`references`는 걸린 제목 그대로, `question`은 사용자 질문 원문(요청 루트 관측 input의 `request`)이고 없으면 null, DeepEval)로 판정한다. 제목이 질문에 이미 있어도 걸리면 넘기고, 답변이 사용자의 말을 되풀이했을 뿐인지 비공개 내용까지 드러냈는지는 AI가 질문을 보고 판단한다 → 의심이면 `leak_suspected` 경고. 걸린 제목이 없으면 AI를 부르지 않고 `suspected=false` 결과만 남긴다 |
-| `regression_eval` | AI | AI `POST /internal/v1/evaluations`로 위임, AI가 Langfuse Dataset Run을 만들고 끝나면 운영 콜백 없이 운영이 Run 상태를 읽어 기록 갱신 |
+| `regression_eval` | AI | 운영 handler가 AI `POST /internal/v1/evaluations`로 평가를 요청만 한다(기록의 성공 = AI가 접수, `targetId`=Run 이름). AI가 Langfuse Dataset Run을 만들고, Run의 진행·결과는 작업 감시가 Langfuse에서 `kind=evaluation` 기록으로 따로 보인다 |
 | `alert_cleanup` | 운영 | 90일 지난 해결 경고 삭제 |
 
 Content 내부 `GET /internal/v1/works/{id}/leak-references`는 Fork 작품의 원작 기준 비공개 카드 제목·미발행 회차 제목을 준다(서비스 토큰, 공개 진입점 미노출).
 
-- 대시보드 `jobs`: `running`은 대기·실행 중인 `job_run` 수 + Content 전처리 `queued`·`running`·`loading` 수, `failedLast24h`는 최근 24시간 안에 끝난 `FAILED` `job_run` 수 + 같은 24시간 안에 끝난 Content 전처리 `failed` 수다(Content 쪽은 최신 100건만 읽는다).
-- `llm_alert_check`의 `job_failed`(metric `failed_jobs`) 판정: 규칙 `windowMinutes` 안에 끝난 `FAILED` `job_run` 수 + Content 전처리 `failed` 수(위 `failedLast24h`와 같은 집계)가 `threshold` 이상이면 값=건수로 경고를 만든다. 실패가 0건이면 `threshold`가 0이어도 만들지 않고, 같은 규칙의 미해결 경고가 있으면 다시 만들지 않는다. Langfuse(AI 규칙)와 Content(`job_failed`)는 따로 읽어 한쪽이 내려가도 다른 쪽을 평가하고, 읽지 못한 쪽이 있으면 둘 다 시도한 뒤 실행이 실패한다.
+- 대시보드 `jobs`: `running`은 대기·실행 중인 `job_run` 수 + Content 전처리 `queued`·`running`·`loading` 수 + 실행 중인 회귀 평가 수, `failedLast24h`는 최근 24시간 안에 끝난 `FAILED` `job_run` 수 + 같은 24시간 안에 끝난 Content 전처리 `failed` 수 + 시작이 24시간 안인 실패한 회귀 평가 수다(Content 쪽은 최신 100건, 평가는 끝난 시각이 없고 최신 50개만 읽는다). Content나 Langfuse를 읽지 못하면 일부만 센 값을 보이지 않고 이 칸을 `null`로 하며 `unavailable`에 그 출처(`content`·`langfuse`)를 한 번만 적는다(평가는 Content 집계가 끝난 뒤에만 읽고, Langfuse가 이미 실패했으면 다시 읽지 않는다).
+- `llm_alert_check`의 `job_failed`(metric `failed_jobs`) 판정: 규칙 `windowMinutes` 안에 끝난 `FAILED` `job_run` 수 + Content 전처리 `failed` 수(위 `failedLast24h`에서 회귀 평가 실행을 뺀 집계: Langfuse가 내려가도 판정이 계속돼야 하고 경고 검사의 실패가 `job_failed`에 잡혀야 하므로 평가는 세지 않는다)가 `threshold` 이상이면 값=건수로 경고를 만든다. 실패가 0건이면 `threshold`가 0이어도 만들지 않고, 같은 규칙의 미해결 경고가 있으면 다시 만들지 않는다. Langfuse(AI 규칙)와 Content(`job_failed`)는 따로 읽어 한쪽이 내려가도 다른 쪽을 평가하고, 읽지 못한 쪽이 있으면 둘 다 시도한 뒤 실행이 실패한다.
 
 ## 사이트 안 알림
 
@@ -142,7 +151,7 @@ Content 내부 `GET /internal/v1/works/{id}/leak-references`는 Fork 작품의 �
 ## 실행 연결
 
 - nginx·Vite: `/api/v1/operations/{dashboard,llmops,alerts,jobs}`와 하위 경로를 Operations로. Langfuse 웹은 공개 진입점에 열지 않는다(개발자용 별도 포트).
-- env: 운영 `OPERATIONS_LANGFUSE_BASE_URL`·`LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY`(AI와 같은 프로젝트 키), `OPERATIONS_AI_BASE_URL`·`INTERNAL_TOKEN`(AI 내부 호출), RabbitMQ 접속값. Langfuse 프로젝트·키는 `LANGFUSE_INIT_*` 헤드리스 초기화로 만든다.
+- env: 운영 `OPERATIONS_LANGFUSE_BASE_URL`·`LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY`(AI와 같은 프로젝트 키), `OPERATIONS_AI_BASE_URL`·`INTERNAL_TOKEN`(AI 내부 호출, 그리고 AI 작업 워커가 운영 `/internal/v1/jobs/**`를 부를 때 받는 쪽 인증. AI 워커는 `OPERATIONS_SERVICE_BASE_URL`로 운영을 부르고 `/internal/**`은 공개 진입점(nginx·Vite)에 열지 않는다), RabbitMQ 접속값. Langfuse 프로젝트·키는 `LANGFUSE_INIT_*` 헤드리스 초기화로 만든다.
 - AI 평가 의존성 `ragas`·`deepeval`은 `[project.optional-dependencies] eval`에 두고 평가를 실행하는 이미지(worker)만 설치한다.
 
 ## 단계
@@ -157,4 +166,6 @@ Content 내부 `GET /internal/v1/works/{id}/leak-references`는 Fork 작품의 �
 - 사용자 부담 비용은 AI 요청이 Core 크레딧 예약을 쓰기 시작해야 0이 아니게 된다.
 - 필터 복원률은 콘텐츠 필터 기능이 생기기 전까지 비어 있다.
 - 평가 비용 상한이 없다(추후 결정). 평가는 관리자 실행·켠 일정으로만 돈다.
-- 운영 스케줄러는 단일 인스턴스를 가정한다(DB 잠금 없음). 여러 대로 늘리거나 Airflow로 옮길 때 실행 주체를 하나로 바꾼다.
+- 운영 스케줄러는 단일 인스턴스를 가정한다(DB 잠금 없음). 여러 대로 늘리거나 Airflow로 옮길 때 실행 주체를 하나로 바꾼다. (handler 실행은 AI 작업 워커 여러 개가 병렬로 부르지만 `queued`→`running` 선점이 조건부 UPDATE라 한 기록은 한 번만 돈다.)
+- 멈춘 기록 정리의 한도(queued 10분·running 30분)는 고정 상수다. 30분을 넘겨 도는 handler는 실패로 기록된 뒤 끝나면 자기 결과로 덮어쓰고, 그동안 같은 일정이 다음 기록을 만들 수 있다. 한도가 모자라는 작업이 생기면 설정으로 바꾼다.
+- 작업 워커 큐 `jobs`는 평가와 정기 작업이 같이 쓰므로 긴 평가가 워커를 모두 차지하면 정기 작업 기록이 `queued`로 기다리고, 10분을 넘기면 위 정리가 실패로 닫는다(워커 수는 `AI_JOBS_CONCURRENCY`).

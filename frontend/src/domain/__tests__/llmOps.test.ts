@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { LLM_FORBIDDEN, bodyText, percent, periodRange, promoteLabel, usd, type PromptVersion } from '../entities/llmOps'
-import { JOBS_FORBIDDEN, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobStatusLabel } from '../entities/jobMonitor'
+import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
 import { lastPage } from '../entities/operations'
 
 describe('LLMOps 표시 값', () => {
@@ -66,6 +66,23 @@ describe('작업 감시 표시 값', () => {
     expect(jobKindLabel('manuscript_preprocessing')).toBe('manuscript_preprocessing')
     expect(jobStatusLabel('failed')).toBe('실패')
     expect(jobStatusLabel('constructor')).toBe('constructor')
+  })
+
+  it('회귀 평가 실행은 종류 회귀 평가·출처 AI 평가로 보이고, 일정으로 등록하는 종류 목록에는 없다', () => {
+    expect(jobKindLabel('evaluation')).toBe('회귀 평가')
+    expect(jobSourceLabel('ai-evaluation')).toBe('AI 평가')
+    expect(jobSourceLabel('content-preprocessing')).toBe('원고 전처리')
+    expect(jobSourceLabel('constructor')).toBe('constructor')
+    // 일정은 handler가 있는 종류만 받으므로 평가 실행 종류가 일정 폼의 선택지로 새면 안 된다.
+    expect(JOB_KINDS.map(([kind]) => kind)).not.toContain('evaluation')
+  })
+
+  it('실패한 기록만 다시 실행할 수 있고, 평가 실행은 평가 화면에서 새로 실행하므로 실패해도 제외한다', () => {
+    const run = (status: string, source: string, kind = 'x'): JobRun => ({ id: 'r', kind, source, status, trigger: 'manual' })
+    expect(jobRetryable(run('failed', 'operations-scheduler'))).toBe(true)
+    expect(jobRetryable(run('failed', 'content-preprocessing', 'preprocessing'))).toBe(true)
+    expect(jobRetryable(run('failed', 'ai-evaluation', 'evaluation'))).toBe(false)
+    for (const status of ['queued', 'running', 'succeeded', 'cancelled']) expect(jobRetryable(run(status, 'operations-scheduler'))).toBe(false)
   })
 
   it('진행률은 done/total과 백분율이고, 전체를 모르면 완료 수만 보인다', () => {

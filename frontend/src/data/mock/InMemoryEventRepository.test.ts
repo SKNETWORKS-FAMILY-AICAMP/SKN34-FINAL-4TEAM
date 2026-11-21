@@ -27,6 +27,15 @@ describe('InMemoryEventRepository (서버 없는 시연·테스트용)', () => {
     expect((await repo.listAdmin()).map((row) => row.title)).toEqual(['겨울 이벤트', '수정'])
   })
 
+  it('이동 경로를 저장하고(생략하면 null) 전체 수정에서 생략하면 비운다', async () => {
+    const repo = new InMemoryEventRepository()
+    const first = await repo.create({ ...input, linkPath: '/lib' })
+    expect((await repo.create(input)).linkPath).toBeNull()
+    expect((await repo.getPublic(first.id))?.linkPath).toBe('/lib')
+    expect((await repo.update(first.id, { ...input, linkPath: '/rank' })).linkPath).toBe('/rank')
+    expect((await repo.update(first.id, input)).linkPath).toBeNull()
+  })
+
   it('없는 이벤트의 상세는 null, 수정·삭제는 대상을 찾을 수 없다는 안내 오류다', async () => {
     const repo = new InMemoryEventRepository()
     expect(await repo.getPublic('missing')).toBeNull()

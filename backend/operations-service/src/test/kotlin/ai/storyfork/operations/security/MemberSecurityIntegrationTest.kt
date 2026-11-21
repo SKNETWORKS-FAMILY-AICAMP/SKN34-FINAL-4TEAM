@@ -18,6 +18,9 @@ import ai.storyfork.operations.alert.service.dto.AlertActRequest
 import ai.storyfork.operations.alert.service.dto.AlertListResponse
 import ai.storyfork.operations.alert.service.dto.AlertRuleListResponse
 import ai.storyfork.operations.alert.service.dto.AlertRuleRequest
+import ai.storyfork.operations.credit.controller.CreditController
+import ai.storyfork.operations.credit.service.CreditService
+import ai.storyfork.operations.credit.service.dto.CreditAdjustRequest
 import ai.storyfork.operations.dashboard.controller.DashboardController
 import ai.storyfork.operations.dashboard.service.DashboardService
 import ai.storyfork.operations.llmops.controller.LlmopsController
@@ -26,6 +29,7 @@ import ai.storyfork.operations.llmops.service.LeakCheckService
 import ai.storyfork.operations.llmops.service.LlmopsSettingService
 import ai.storyfork.operations.llmops.service.MetricsService
 import ai.storyfork.operations.llmops.service.ModelService
+import ai.storyfork.operations.llmops.service.PipelineService
 import ai.storyfork.operations.llmops.service.PromptService
 import ai.storyfork.operations.llmops.service.TraceService
 import ai.storyfork.operations.llmops.service.dto.PromptPromoteRequest
@@ -47,6 +51,7 @@ import ai.storyfork.operations.work.controller.WorkController
 import ai.storyfork.operations.work.service.WorkService
 import ai.storyfork.operations.work.service.dto.OperationsWorkList
 import java.time.Instant
+import java.math.BigDecimal
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -69,7 +74,7 @@ import tools.jackson.databind.json.JsonMapper
 
 /** CI integration only: MVC assembly of the member Bearer and public event chains next to the service-token chain. */
 @WebMvcTest(controllers = [ReportController::class, AdminEventController::class, AdminActivityController::class, PublicEventController::class, WorkController::class, CommentController::class,
-    DashboardController::class, LlmopsController::class, AlertController::class, GenreController::class], properties = [
+    DashboardController::class, LlmopsController::class, AlertController::class, GenreController::class, CreditController::class], properties = [
     "app.operations.service-token=ci-operations-test-only-0123456789abcdef",
 ])
 @Import(MemberSecurityConfig::class, PublicSecurityConfig::class, OperationsSecurityConfig::class, OperationsExceptionHandler::class,
@@ -87,6 +92,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var events: EventService
     @MockitoBean lateinit var works: WorkService
     @MockitoBean lateinit var genres: GenreService
+    @MockitoBean lateinit var credits: CreditService
     @MockitoBean lateinit var comments: CommentService
     @MockitoBean lateinit var adminActivities: AdminActivityService
     @MockitoBean lateinit var dashboard: DashboardService
@@ -94,6 +100,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var metrics: MetricsService
     @MockitoBean lateinit var prompts: PromptService
     @MockitoBean lateinit var models: ModelService
+    @MockitoBean lateinit var pipelines: PipelineService
     @MockitoBean lateinit var evaluations: EvaluationService
     @MockitoBean lateinit var leakChecks: LeakCheckService
     @MockitoBean lateinit var llmopsSettings: LlmopsSettingService
@@ -295,6 +302,40 @@ class MemberSecurityIntegrationTest {
             .content("""{"active":false}""")).andExpect(status().isOk()).andExpect(jsonPath("$.name").value("사이버펑크"))
         mvc.perform(put("/api/v1/operations/genres/order").header("Authorization", bearer).contentType("application/json")
             .content("""{"codes":["genre-02","genre-01"]}""")).andExpect(status().isOk())
+    }
+
+    @Test
+    fun `credits routes require a Core verified Bearer and ignore the service token`() {
+        val id = UUID.randomUUID()
+        for (builder in listOf(
+            get("/api/v1/operations/credits/members/$id"), post("/api/v1/operations/credits/members/$id/grants"),
+            post("/api/v1/operations/credits/members/$id/revocations"),
+        )) {
+            val response = mvc.perform(builder.header("X-Operations-Service-Token", serviceToken))
+                .andExpect(status().isUnauthorized()).andReturn().response
+            assertEquals("UNAUTHORIZED", code(response.contentAsString))
+            assertNull(response.getHeader("Set-Cookie"))
+        }
+        verifyNoInteractions(core, credits)
+    }
+
+    @Test
+    fun `verified member reaches the credits controller as principal with the forwarded bearer and gets Core's JSON as is`() {
+        val member = OperationsMember(UUID.randomUUID(), true)
+        val id = UUID.randomUUID()
+        val overview = mapper.readTree("""{"balance":{"total":1200,"items":[]},"history":{"items":[{"type":"revoke","kind":"operator","amount":300}]}}""")
+        val updated = mapper.readTree("""{"total":1700,"items":[]}""")
+        `when`(core.verify(bearer)).thenReturn(member)
+        `when`(credits.read(member, bearer, id)).thenReturn(overview)
+        `when`(credits.grant(member, bearer, id, CreditAdjustRequest(BigDecimal(500), "이벤트 보상"))).thenReturn(updated)
+        `when`(credits.revoke(member, bearer, id, CreditAdjustRequest(BigDecimal(200), "오지급 회수"))).thenReturn(updated)
+
+        mvc.perform(get("/api/v1/operations/credits/members/$id").header("Authorization", bearer))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.history.items[0].type").value("revoke"))
+        mvc.perform(post("/api/v1/operations/credits/members/$id/grants").header("Authorization", bearer).contentType("application/json")
+            .content("""{"amount":500,"reason":"이벤트 보상"}""")).andExpect(status().isCreated()).andExpect(jsonPath("$.total").value(1700))
+        mvc.perform(post("/api/v1/operations/credits/members/$id/revocations").header("Authorization", bearer).contentType("application/json")
+            .content("""{"amount":200,"reason":"오지급 회수"}""")).andExpect(status().isCreated()).andExpect(jsonPath("$.total").value(1700))
     }
 
     @Test

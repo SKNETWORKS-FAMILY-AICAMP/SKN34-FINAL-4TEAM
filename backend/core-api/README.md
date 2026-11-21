@@ -52,7 +52,7 @@ LLMOps 정본은 self-host Langfuse이고 운영 화면이 프로젝트 API 키�
 | `GET /api/v1/me/notification-preferences` | Bearer 인증; 분류별 `{"items":[{"kind","enabled","mutable"}]}`, 200 |
 | `PUT /api/v1/me/notification-preferences` | Bearer 인증과 `items`; 읽기(`reading`)·창작(`creation`)·AI·외부 도구 변경(`ai-tool`)만 변경, 그 외 분류 끄기·알 수 없는 분류·중복은 400 |
 | `GET /api/v1/me/credits` | Bearer 인증; 사용 가능한 크레딧 합계와 지급분별 남은 양·소멸 예정(소멸이 빠른 순) `{"total","items":[{"kind","remaining","expiresAt"}]}`, 200 |
-| `GET /api/v1/me/credits/history` | Bearer 인증; 본인의 지급·사용·소멸 내역 최신순 `{"items":[{"type":"grant"\|"spend"\|"expire","kind","amount","occurredAt"}]}`, 200 |
+| `GET /api/v1/me/credits/history` | Bearer 인증; 본인의 지급·사용·회수·소멸 내역 최신순 `{"items":[{"type":"grant"\|"spend"\|"revoke"\|"expire","kind","amount","occurredAt"}]}`, 200. `revoke`는 운영자 회수이고 `kind`는 회수된 지급분의 종류(운영자 지급분은 `operator`)다 |
 | `POST /api/v1/me/withdrawal` | Bearer 인증과 현재 `password`, 선택 `reason`(300자 이하); 30일 유예 탈퇴 요청·모든 refresh 세션 폐기, 202. 비밀번호 불일치 403, 이미 진행 중 409 |
 | `GET /api/v1/me/withdrawal` | Bearer 인증; 진행 중이면 `{"status":"PENDING","requestedAt","dueAt"}`, 없으면 `{"status":"NONE"}`, 200 |
 | `DELETE /api/v1/me/withdrawal` | Bearer 인증; 유예 중인 탈퇴 요청 취소(복구), 204. 진행 중인 요청이 없으면 404, 유예 기한이 지난 요청은 복구할 수 없어 409 |
@@ -74,6 +74,8 @@ AI 작업용 크레딧 예약·정산은 `CreditReservationService`(내부 서�
 | `GET /internal/v1/members/stats` | 〃 | `{total, joinedLast7Days, withdrawalPending}`: 전체 회원 수, 호출 시점 기준 최근 7일 가입 수, 탈퇴 유예(`PENDING`) 요청 수. count 쿼리만 쓰며 인증은 회원 목록과 같다(운영 서비스 토큰 + operator Bearer). 운영 대시보드가 읽는다([DEC-55 계약](../../docs/design/operations-llmops-contract.md)). `total`은 `auth_member` 전체 행이라, 탈퇴 최종 처리(기본 꺼짐)를 켜면 익명화된 "탈퇴한 회원" 행도 포함한다 |
 | `PUT`·`DELETE /internal/v1/members/{id}/restriction` | 〃 | 이용 제한·해제 후 `MemberItem`. 자기 자신 400, 없는 회원 404 |
 | `POST /internal/v1/members/admins` | 〃 | `{email, nickname, password}`로 관리자 생성, 201 `MemberItem`. 중복 이메일 409 |
+| `GET /internal/v1/credits/members/{memberId}` | 〃 | `{balance, history}`: 회원의 잔액(`GET /api/v1/me/credits` 응답과 같은 모양)과 내역(`GET /api/v1/me/credits/history` 응답과 같은 모양). 인증은 회원 목록과 같다(운영 서비스 토큰 + operator Bearer). 없는 회원 404 |
+| `POST /internal/v1/credits/members/{memberId}/grants`·`/revocations` | 〃 | `{amount, reason}`(`amount` 1~100000 정수, `reason` 앞뒤 공백 제외 1~200자, 위반 422 `INVALID_CREDIT_REQUEST`) → 201 갱신된 잔액 `{total, items}`. 지급은 종류 `operator`(소멸은 보상과 같은 월간 초기화), 회수는 소멸이 가까운 지급분부터 장부 `revoke`(`operator-revoke:<UUID>`)로 남기며 예약 중인 양은 건드리지 않는다. 회수가 쓸 수 있는 잔액을 넘으면 409 `CREDIT_INSUFFICIENT`(아무것도 바꾸지 않음), 없는 회원 404. 사유는 저장하지 않고(활동 기록은 운영 서비스가 남김) 요청 중복 방지 키가 없어 같은 요청을 다시 보내면 다시 반영한다. 마이그레이션은 `V14__credit_ledger_revoke.sql`(장부 `kind` CHECK에 `revoke` 추가)이다. [운영 계약](../../docs/design/operations-funnel-credit-contract.md) |
 
 `MemberItem = {id, email, nickname, role: "MEMBER"|"ADMIN", restricted, createdAt}`. 회원 API는 Bearer 회원이 이용 제한 상태면 401, 제한되지 않았지만 `operator=true`가 아니면 403입니다. 이용 제한 회원은 로그인(403, `code: "ACCOUNT_RESTRICTED"`)·refresh(401)·verify(401)가 거절되며, 이미 발급된 access JWT는 만료까지 Core 공개 API에 남습니다. 샘플 관리자는 `admin@example.test / StoryforkDev123!`(V8)입니다. 고전 원작 샘플의 소유 계정(`b1b09f26…`) 닉네임은 운영자처럼 보이지 않게 V10이 `운영팀`일 때만 `고전 아카이브`로 바꿉니다.
 

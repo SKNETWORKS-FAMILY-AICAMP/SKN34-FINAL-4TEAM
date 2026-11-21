@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 
-import { type LlmPage, llmPageHref } from '../../../../domain/entities/admin'
+import { PROMPT_SUBS, type LlmPage, type PromptSub, llmPageHref, promptSub, promptSubHref } from '../../../../domain/entities/admin'
 import {
   LLM_FORBIDDEN, METRICS_GROUPS, PERIODS, TRACE_STATUS_OPTIONS, bodyText, count, millis, percent, traceStatusLabel, usd, type TraceItem,
 } from '../../../../domain/entities/llmOps'
@@ -11,6 +11,7 @@ import { PopMenu } from '../../../shared/PopMenu'
 import { useLlmOpsViewModel } from '../viewmodel/useLlmOpsViewModel'
 import type { useAdminViewModel } from '../viewmodel/useAdminViewModel'
 import { CostChart, RequestsChart } from './AdminCharts'
+import { AdminPipeline } from './AdminPipeline'
 import { LlmAlerts } from './LlmAlerts'
 import { AlertRules, Evaluations, LeakSampleRate, Models, Prompts } from './LlmOpsManage'
 import { formText } from './formValue'
@@ -25,19 +26,37 @@ const statusChip = (status: string) => <span className={`chip ${status === 'succ
 /**
  * 40-A~E LLM Ops: Langfuse 기준 추적·지표와 프롬프트·모델·평가·누설 검사·경고 기준을 운영 서비스 API로 보고 관리합니다.
  * 사이드바 네 메뉴(주소 view)가 쪽이고, 쪽마다 패널을 위아래로 쌓습니다. 상세(추적·프롬프트·평가)를 열면 그 쪽은 상세만 보이고 닫으면 목록 패널들이 돌아옵니다.
+ * 프롬프트·모델 쪽은 위의 보기 전환(주소 sub)으로 전체(AI 파이프라인, DEC-58)·프롬프트·모델 중 하나만 보입니다.
  */
 export function LlmOps({ vm, page }: { vm: VM; page: LlmPage }) {
   const navigate = useNavigate()
-  const l = useLlmOpsViewModel(vm.live.mutate, page, (next) => navigate(llmPageHref(next)))
+  const sub = promptSub(useSearchParams()[0].get('sub'))
+  const l = useLlmOpsViewModel(vm.live.mutate, page, (next, nextSub) => navigate(next === 'prompts' && nextSub ? promptSubHref(nextSub) : llmPageHref(next)), sub)
   // 목록에서 상세를 열면 상세 제목으로, 닫으면 눌렀던 목록 버튼으로 초점을 옮깁니다.
   const root = useAdminDetailFocus(l.traceId ?? l.promptName ?? l.runId, !!(l.trace.data || l.prompt.data || l.evaluation.data))
   return (
     <section ref={root}>
       {page === 'alerts' && <><LlmAlerts vm={vm} /><AlertRules vm={vm} l={l} /></>}
       {page === 'traces' && (l.traceId ? <TraceDetailPanel vm={vm} l={l} /> : <><Traces vm={vm} l={l} /><Metrics vm={vm} l={l} /></>)}
-      {page === 'prompts' && <><Prompts vm={vm} l={l} />{!l.promptName && <Models vm={vm} l={l} />}</>}
+      {page === 'prompts' && <PromptsView vm={vm} l={l} sub={sub} />}
       {page === 'quality' && <><Evaluations vm={vm} l={l} />{!l.runId && <><LeakChecks vm={vm} l={l} /><LeakSampleRate vm={vm} l={l} /></>}</>}
     </section>
+  )
+}
+
+/** 프롬프트·모델 쪽: 보기 전환(전체·프롬프트·모델)과 고른 보기 하나. 프롬프트 상세를 열어 둔 동안은 상세만 보입니다. */
+function PromptsView({ vm, l, sub }: { vm: VM; l: LlmVM; sub: PromptSub }) {
+  return (
+    <>
+      {!l.promptName && (
+        <nav className="pipe-views" aria-label="프롬프트·모델 보기">
+          {PROMPT_SUBS.map(([key, label]) => <Link key={key} to={promptSubHref(key)} aria-current={key === sub ? 'page' : undefined}>{label}</Link>)}
+        </nav>
+      )}
+      {sub === 'all' && <AdminPipeline vm={vm} l={l} />}
+      {sub === 'prompts' && <Prompts vm={vm} l={l} />}
+      {sub === 'models' && <Models vm={vm} l={l} />}
+    </>
   )
 }
 

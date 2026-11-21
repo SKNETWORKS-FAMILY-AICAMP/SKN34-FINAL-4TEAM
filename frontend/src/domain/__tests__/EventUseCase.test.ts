@@ -29,13 +29,29 @@ describe('EventUseCase', () => {
   it('새 이벤트는 제목 앞뒤 공백만 정리하고 본문은 그대로 등록한다', async () => {
     const { uc, calls } = setup()
     expect(await uc.save(null, input)).toBe(row)
-    expect(calls).toEqual([['create', { title: '가을 이벤트', body: ' 첫 줄\n둘째 줄 ', startsAt: input.startsAt, endsAt: input.endsAt }]])
+    expect(calls).toEqual([['create', { title: '가을 이벤트', body: ' 첫 줄\n둘째 줄 ', startsAt: input.startsAt, endsAt: input.endsAt, linkPath: null }]])
   })
 
   it('기존 이벤트는 전체 수정으로 보내며 비운 기간은 null로 전달한다', async () => {
     const { uc, calls } = setup()
     await uc.save(ID, { ...input, startsAt: null, endsAt: null })
-    expect(calls).toEqual([['update', ID, { title: '가을 이벤트', body: ' 첫 줄\n둘째 줄 ', startsAt: null, endsAt: null }]])
+    expect(calls).toEqual([['update', ID, { title: '가을 이벤트', body: ' 첫 줄\n둘째 줄 ', startsAt: null, endsAt: null, linkPath: null }]])
+  })
+
+  it('이동 경로는 앞뒤 공백을 떼어 보내고, 비우면 null로 보내 기존 경로를 지운다(전체 수정)', async () => {
+    const { uc, calls } = setup()
+    await uc.save(null, { ...input, linkPath: ' /lib?tab=worlds ' })
+    await uc.save(ID, { ...input, linkPath: '   ' })
+    await uc.save(ID, { ...input, linkPath: null })
+    expect(calls.map(([name, ...rest]) => [name, (rest.at(-1) as EventInput).linkPath])).toEqual([['create', '/lib?tab=worlds'], ['update', null], ['update', null]])
+  })
+
+  it.each([['/로 시작하지 않음', 'lib'], ['외부 URL', 'https://evil.example'], ['프로토콜 상대', '//evil.example'], ['공백', '/a b'], ['백슬래시', '/\\evil.example'], ['201자', '/' + 'a'.repeat(200)]])('이동 경로 %s는 요청 없이 거절한다', async (_name, linkPath) => {
+    const { uc, calls } = setup()
+    const message = '이동 경로는 /로 시작하는 사이트 안 경로(공백·//·://·\\ 없이 200자 이하)여야 해요.'
+    await expect(uc.save(null, { ...input, linkPath })).rejects.toThrow(new OperationsError(message))
+    await expect(uc.save(ID, { ...input, linkPath })).rejects.toThrow(new OperationsError(message))
+    expect(calls).toEqual([])
   })
 
   it.each([

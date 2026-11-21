@@ -74,10 +74,11 @@ class TraceService(private val permissions: AdminPermissionRepository, private v
         val end = path("endTime").instantOrNull()
         return TraceObservation(
             path("id").asString(), path("name").textOrNull() ?: "", path("type").textOrNull() ?: "SPAN", start, end,
-            if (start != null && end != null) Duration.between(start, end).toMillis() else 0, path("model").textOrNull(),
+            latencyMs(), path("model").textOrNull(),
             path("usageDetails").path("input").takeIf { it.isNumber }?.asLong(), path("usageDetails").path("output").takeIf { it.isNumber }?.asLong(),
             path("level").textOrNull() ?: "DEFAULT", path("statusMessage").textOrNull(), path("promptName").textOrNull(),
             path("promptVersion").takeIf { it.isNumber }?.asInt(),
+            path("parentObservationId").textOrNull(), path("input").clipped(), path("output").clipped(), path("metadata").ownMetadata(),
         )
     }
 

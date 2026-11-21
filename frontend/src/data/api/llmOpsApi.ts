@@ -6,6 +6,7 @@ import type {
   Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
 import { EVALUATION_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
+import type { PipelineNode, PipelineQuery, PipelineRecord, PipelineRecordQuery } from '../../domain/entities/llmOpsPipeline'
 import type { OperationsPage } from '../../domain/entities/operations'
 import type { Alert, AlertRule, AlertRuleInput, AlertStatus } from '../../domain/entities/operationsAlert'
 import type { JobMonitorRepository } from '../../domain/repositories/JobMonitorRepository'
@@ -18,6 +19,14 @@ const instant = z.string().datetime({ offset: true })
 const num = z.number().nullish()
 const text = z.string().nullish()
 
+const funnel = z.object({
+  readers: z.object({ viewed: z.number(), readAny: z.number(), readNext: z.number() }),
+  reactions: z.object({ publishedEpisodes: z.number(), likes: z.number(), interests: z.number(), comments: z.number() }),
+  forks: z.object({ readers: z.number(), readerForked: z.number(), baseEpisodes: z.array(z.object({ bucket: z.string(), count: z.number() })) }),
+  writers: z.object({ forks: z.number(), saved: z.number(), published: z.number(), medianHoursToPublish: num }),
+  proposals: z.object({ adopted: z.number(), total: z.number() }),
+  feedback: z.object({ approved: z.number(), decided: z.number() }),
+})
 const aiSummary = z.object({ requests: z.number(), failed: z.number(), timeouts: z.number(), failureRate: num, costUser: z.number(), costPlatform: z.number() })
 // 출처 하나가 실패하면 그 칸만 null이고, 칸 안의 값도 비어 올 수 있습니다.
 const dashboard = z.object({
@@ -26,6 +35,7 @@ const dashboard = z.object({
   jobs: z.object({ running: num, failedLast24h: num }).nullish(),
   pending: z.object({ inquiries: num, reports: num, authorReviews: num }).nullish(),
   openAlerts: num,
+  funnel: funnel.nullish(),
   unavailable: z.array(z.string()).default([]),
 })
 const alert = z.object({
@@ -46,6 +56,8 @@ const traceItem = z.object({
 const observation = z.object({
   id: z.string(), name: z.string(), type: z.string(), startTime: instant.nullish(), endTime: instant.nullish(), latencyMs: num, model: text, inputTokens: num, outputTokens: num,
   level: z.string(), statusMessage: text, promptName: text, promptVersion: num,
+  // 실행 흐름 트리(DEC-58): 부모 단계와 단계마다 입력·출력·메타데이터(선택 값이라 생략돼도 받는다).
+  parentObservationId: text, input: z.unknown().optional(), output: z.unknown().optional(), metadata: z.unknown().optional(),
 })
 // zod 4의 z.unknown()은 객체에서 필수 키라, 계약상 선택 값인 입력·출력이 생략돼도 받도록 optional을 붙입니다.
 const traceDetail = traceItem.extend({ input: z.unknown().optional(), output: z.unknown().optional(), observations: z.array(observation) })
@@ -68,6 +80,15 @@ const evaluation = z.object({
 })
 const leakCheck = z.object({ id: z.string(), traceId: z.string(), workId: z.string(), checkedAt: instant, matched: z.array(z.string()), suspected: z.boolean(), reason: text })
 const settings = z.object({ leakSampleRate: z.number() })
+// AI 파이프라인(DEC-58): 노드 모양은 서버 고정 목록의 계약 그대로이고, 기록의 입력·출력·메타데이터는 노드마다 모양이 달라 그대로 받는다.
+const pipelineNode = z.object({
+  id: z.string(), label: z.string(), next: z.array(z.string()), standalone: z.boolean(), count: z.number(), errors: z.number(), p95LatencyMs: num, promptNames: z.array(z.string()).default([]),
+})
+const pipelineNodes = z.object({ nodes: z.array(pipelineNode) }).transform((v) => v.nodes)
+const pipelineRecord = z.object({
+  id: z.string(), traceId: z.string(), name: z.string(), type: z.string(), startTime: instant.nullish(), latencyMs: num, level: z.string(),
+  statusMessage: text, model: text, promptName: text, promptVersion: num, input: z.unknown().optional(), output: z.unknown().optional(), metadata: z.unknown().optional(),
+})
 
 const jobRun = z.object({
   id: z.string(), kind: z.string(), source: z.string(), status: z.string(), trigger: z.string(), progress: z.object({ done: z.number(), total: z.number() }).nullish(),
@@ -125,6 +146,10 @@ export class HttpLlmOpsRepository extends LlmOpsApi implements LlmOpsRepository 
   evaluation(runId: string): Promise<Evaluation> { return this.get(`/llmops/evaluations/${id(runId)}`, evaluation) }
   runEvaluation(input: EvaluationInput) { return this.change('/llmops/evaluations', 'POST', input) }
   leakChecks(): Promise<LeakCheck[]> { return this.get('/llmops/leak-checks', items(leakCheck)) }
+  pipeline({ from, to }: PipelineQuery): Promise<PipelineNode[]> { return this.get(withQuery('/llmops/pipeline', { from, to }), pipelineNodes) }
+  pipelineRecords({ nodeId, from, to, level, page }: PipelineRecordQuery): Promise<OperationsPage<PipelineRecord>> {
+    return this.get(withQuery(`/llmops/pipeline/${id(nodeId)}/records`, { from, to, level, page }), pageOf(pipelineRecord))
+  }
   alertRules(): Promise<AlertRule[]> { return this.get('/alerts/rules', items(alertRule)) }
   updateAlertRule(key: string, input: AlertRuleInput) { return this.change(`/alerts/rules/${id(key)}`, 'PUT', input) }
   settings(): Promise<LlmOpsSettings> { return this.get('/llmops/settings', settings) }

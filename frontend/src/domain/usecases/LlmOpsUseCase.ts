@@ -1,4 +1,5 @@
 import { periodRange, type EvaluationInput, type MetricsQuery, type TraceQuery } from '../entities/llmOps'
+import type { PipelineQuery, PipelineRecordQuery } from '../entities/llmOpsPipeline'
 import { OperationsError, orNullIfForbidden } from '../entities/operations'
 import type { AlertRuleInput } from '../entities/operationsAlert'
 import type { LlmOpsRepository } from '../repositories/LlmOpsRepository'
@@ -24,6 +25,8 @@ export class LlmOpsUseCase {
   leakChecks() { return orNullIfForbidden(this.repository.leakChecks()) }
   alertRules() { return orNullIfForbidden(this.repository.alertRules()) }
   settings() { return orNullIfForbidden(this.repository.settings()) }
+  pipeline(query: PipelineQuery) { return orNullIfForbidden(this.repository.pipeline(query)) }
+  pipelineRecords(query: PipelineRecordQuery) { return orNullIfForbidden(this.repository.pipelineRecords(query)) }
 
   /** 대시보드 차트: 지금부터 7일 전까지의 날짜별 지표('지표' 보기의 최근 7일과 같은 구간). */
   weeklyMetrics(now = new Date()) { return this.metrics({ ...periodRange(24 * 7, now), groupBy: 'day' }) }

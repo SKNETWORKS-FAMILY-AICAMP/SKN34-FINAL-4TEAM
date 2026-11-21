@@ -104,3 +104,27 @@ describe('LLM Ops 조회 권한', () => {
     await expect(uc.promote('qa-answer', 1)).rejects.toThrow(OperationsForbidden)
   })
 })
+
+describe('AI 파이프라인(DEC-58) 조회', () => {
+  const range = { from: '2026-11-14T00:00:00.000Z', to: '2026-11-21T00:00:00.000Z' }
+  const recordQuery = { nodeId: 'guard', ...range, level: '', page: 0 }
+  const forbidden = async () => { throw new OperationsForbidden('권한 없음') }
+
+  it('노드 목록과 노드 기록은 저장소 결과를 그대로 준다', async () => {
+    const nodes = [{ id: 'guard', label: 'Decision Guard', next: ['main'], standalone: false, count: 3, errors: 1, promptNames: [] }]
+    const page = { items: [], page: 0, size: 20, total: 0, unavailable: [] }
+    const pipeline = vi.fn(async () => nodes), pipelineRecords = vi.fn(async () => page)
+    const uc = make({ pipeline, pipelineRecords })
+    expect(await uc.pipeline(range)).toEqual(nodes)
+    expect(await uc.pipelineRecords(recordQuery)).toEqual(page)
+    expect(pipeline).toHaveBeenCalledWith(range)
+    expect(pipelineRecords).toHaveBeenCalledWith(recordQuery)
+  })
+
+  it('조회 권한(llm)이 없으면(403) 실패가 아니라 null이고, 그 밖의 실패는 그대로 던진다', async () => {
+    const uc = make({ pipeline: forbidden, pipelineRecords: forbidden })
+    expect([await uc.pipeline(range), await uc.pipelineRecords(recordQuery)]).toEqual([null, null])
+    await expect(make({ pipeline: async () => { throw new OperationsError('연결 실패') } }).pipeline(range)).rejects.toThrow('연결 실패')
+    await expect(make({ pipelineRecords: async () => { throw new OperationsError('연결 실패') } }).pipelineRecords(recordQuery)).rejects.toThrow('연결 실패')
+  })
+})
