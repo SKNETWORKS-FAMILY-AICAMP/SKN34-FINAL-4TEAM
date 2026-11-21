@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="790" height="400" viewBox="0 0 790 400" font-family="'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif">
+<rect width="790" height="400" fill="#ffffff"/>
+<defs><marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<text x="30" y="40" font-size="20" fill="#1f2937" text-anchor="start" font-weight="bold">인물은 「기준 회차까지 자기가 겪은 것」만 알아야 한다</text>
+<text x="30" y="66" font-size="14" fill="#6b7280" text-anchor="start" font-weight="normal">예: 5화 시점의 춘향에게 질문할 때</text>
+<line x1="80" y1="150" x2="710" y2="150" stroke="#d1d5db" stroke-width="4"/>
+<circle cx="80" cy="150" r="6" fill="#1f2937"/>
+<text x="80" y="178" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal">1화</text>
+<circle cx="150" cy="150" r="6" fill="#1f2937"/>
+<text x="150" y="178" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal">2화</text>
+<circle cx="220" cy="150" r="6" fill="#1f2937"/>
+<text x="220" y="178" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal">3화</text>
+<circle cx="290" cy="150" r="6" fill="#1f2937"/>
+<text x="290" y="178" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal">4화</text>
+<circle cx="360" cy="150" r="6" fill="#1f2937"/>
+<text x="360" y="178" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal">5화</text>
+<circle cx="430" cy="150" r="6" fill="#9ca3af"/>
+<text x="430" y="178" font-size="13" fill="#6b7280" text-anchor="middle" font-weight="normal">6화</text>
+<circle cx="500" cy="150" r="6" fill="#9ca3af"/>
+<text x="500" y="178" font-size="13" fill="#6b7280" text-anchor="middle" font-weight="normal">7화</text>
+<circle cx="570" cy="150" r="6" fill="#9ca3af"/>
+<text x="570" y="178" font-size="13" fill="#6b7280" text-anchor="middle" font-weight="normal">8화</text>
+<circle cx="640" cy="150" r="6" fill="#9ca3af"/>
+<text x="640" y="178" font-size="13" fill="#6b7280" text-anchor="middle" font-weight="normal">9화</text>
+<circle cx="710" cy="150" r="6" fill="#9ca3af"/>
+<text x="710" y="178" font-size="13" fill="#6b7280" text-anchor="middle" font-weight="normal">10화</text>
+<line x1="360" y1="100" x2="360" y2="162" stroke="#2563eb" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="360" y="92" font-size="13" fill="#2563eb" text-anchor="middle" font-weight="bold">기준 회차</text>
+<rect x="440" y="105" width="290" height="26" rx="6" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="585" y="123" font-size="13" fill="#6b7280" text-anchor="middle" font-weight="normal">아직 일어나지 않은 미래</text>
+<rect x="30" y="220" width="230" height="130" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+<text x="46" y="248" font-size="16" fill="#16a34a" text-anchor="start" font-weight="bold">✔ 알아도 됨</text>
+<text x="46" y="276" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">3화에서 직접 본 사건</text>
+<text x="46" y="300" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">자기 성격·목표(IDENTITY·SOUL)</text>
+<text x="46" y="324" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">누구나 아는 장소·규칙</text>
+<rect x="280" y="220" width="230" height="130" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+<text x="296" y="248" font-size="16" fill="#dc2626" text-anchor="start" font-weight="bold">✘ 미래 정보</text>
+<text x="296" y="276" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">7화에 일어날 사건</text>
+<text x="296" y="300" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">9화에야 공개되는 설정 카드</text>
+<text x="296" y="324" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">→ 말하면 「스포일러」</text>
+<rect x="530" y="220" width="230" height="130" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="546" y="248" font-size="16" fill="#ea580c" text-anchor="start" font-weight="bold">✘ 남의 기억·비밀</text>
+<text x="546" y="276" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">다른 인물만 겪은 사건</text>
+<text x="546" y="300" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">다른 인물의 속마음(SOUL·GOAL)</text>
+<text x="546" y="324" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal">→ 말하면 「캐릭터 붕괴」</text>
+<text x="30" y="384" font-size="13" fill="#6b7280" text-anchor="start" font-weight="normal">일반 검색(RAG)은 질문과 「비슷한 글」을 다 가져와서 미래·남의 기억이 섞인다. NovelBrain은 이것을 걸러 낸다.</text>
+</svg>

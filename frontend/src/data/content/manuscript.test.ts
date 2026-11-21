@@ -10,7 +10,10 @@ const previewBody = {
   episodes: [{ title: '1화 시작', from: 0, to: 10, charCount: 5120, excerpt: '앞 300자…', imageCount: 0, warnings: [] }, { title: '2화', from: 10, to: 30, charCount: 40001, excerpt: '[이미지] 둘째', imageCount: 2, warnings: ['본문이 40,000자를 넘어 등록할 수 없어요.'] }],
 }
 const items = [{ number: 1, title: '1화 시작', from: 0, to: 10 }, { number: 3, title: '2화', from: 10, to: 30 }]
-const summaryBody = { succeeded: 2, failed: 1, results: [
+// 가져오기가 회차를 저장하면 서버가 같은 요청에서 세계관 추출 접수를 시도하고 그 결과를 worldBuild에 싣는다(저장하지 못했으면 null).
+const started = { status: 'started', jobId: '6f0c6c4e-8f4a-4d0b-9d52-1c3b5a7e9f10', code: null, message: null }
+const rejected = { status: 'rejected', jobId: null, code: 'PREPROCESSING_LOAD_REVIEW_REQUIRED', message: '이전 작업의 적재 여부를 먼저 확인해 주세요.' }
+const summaryBody = { succeeded: 2, failed: 1, worldBuild: started, results: [
   { number: 1, title: '1화 시작', status: 'versioned', reason: null, missingImages: 0 },
   { number: 2, title: '2화', status: 'partial', reason: '이미지 1개를 가져오지 못했어요.', missingImages: 1 },
   { number: 4, title: '4화', status: 'failed', reason: '앞 회차가 없어 등록할 수 없어요.', missingImages: 0 },
@@ -61,7 +64,7 @@ it('확정은 같은 파일과 application/json request 파트를 multipart로 �
 it('일괄 업로드는 GET 기준 revision과 파일 순서에 맞는 multipart를 사용한다', async () => {
   const basis = { lastNumber: 2, workRevision: 7 }
   const result = {
-    workRevision: 8, stopReason: null,
+    workRevision: 8, stopReason: null, worldBuild: rejected,
     results: [
       { number: 2, title: '둘째', status: 'versioned', versionId: 'saved-2', reason: null },
       { number: 3, title: '셋째', status: 'failed', versionId: null, reason: '본문이 비어 있어요.' },
@@ -73,7 +76,7 @@ it('일괄 업로드는 GET 기준 revision과 파일 순서에 맞는 multipart
   expect(await repo.importBulkBatch(workId, [
     { file: file(), number: 2, title: '둘째' },
     { file: new File(['epub'], '셋째.epub'), number: 3, title: '셋째' },
-  ], basis.workRevision)).toEqual(result)
+  ], basis.workRevision, true)).toEqual(result)
 
   const [[getUrl, get], [postUrl, post]] = fetcher.mock.calls
   expect(getUrl).toBe(`/api/v1/works/${workId}/manuscript-imports/bulk`)
@@ -85,9 +88,41 @@ it('일괄 업로드는 GET 기준 revision과 파일 순서에 맞는 multipart
   expect(post.body.getAll('files').map((part: File) => part.name)).toEqual(['episode.txt', 'episode.epub'])
   expect(await post.body.getAll('files')[0].text()).toBe('1화 시작\n본문')
   expect(JSON.parse(await post.body.get('request').text())).toEqual({
-    rightsConfirmed: true, expectedWorkRevision: 7,
+    rightsConfirmed: true, expectedWorkRevision: 7, startWorldBuild: true,
     items: [{ number: 2, title: '둘째' }, { number: 3, title: '셋째' }],
   })
+})
+
+it('묶음 요청의 startWorldBuild는 true·false 그대로 JSON에 실린다', async () => {
+  const fetcher = vi.fn().mockImplementation(async () => Response.json({ workRevision: 8, stopReason: null, results: [], worldBuild: null }))
+  const repo = new HttpManuscriptRepository(fetcher)
+  for (const start of [true, false]) await repo.importBulkBatch(workId, [], 7, start)
+  const sent = await Promise.all(fetcher.mock.calls.map(async ([, init]) => JSON.parse(await init.body.get('request').text()).startWorldBuild))
+  expect(sent).toEqual([true, false])
+})
+
+it('가져오기 응답의 worldBuild는 시작·거절·null을 단건·일괄 모두 그대로 돌려준다', async () => {
+  const fetcher = vi.fn()
+  const repo = new HttpManuscriptRepository(fetcher)
+  for (const worldBuild of [started, rejected, null]) {
+    fetcher.mockResolvedValueOnce(Response.json({ ...summaryBody, worldBuild }))
+    expect((await repo.confirm(workId, file(), true, items)).worldBuild).toEqual(worldBuild)
+    fetcher.mockResolvedValueOnce(Response.json({ workRevision: 8, stopReason: null, results: [], worldBuild }))
+    expect((await repo.importBulkBatch(workId, [], 7, true)).worldBuild).toEqual(worldBuild)
+  }
+})
+
+it('worldBuild 키가 없거나 형식이 다른 가져오기 응답은 성공으로 보이지 않고 오류로 처리한다', async () => {
+  const fetcher = vi.fn()
+  const repo = new HttpManuscriptRepository(fetcher)
+  fetcher.mockResolvedValueOnce(Response.json({ succeeded: 0, failed: 0, results: [] }))
+  await expect(repo.confirm(workId, file(), true, items)).rejects.toThrow('응답 형식')
+  fetcher.mockResolvedValueOnce(Response.json({ workRevision: 8, stopReason: null, results: [] }))
+  await expect(repo.importBulkBatch(workId, [], 7, true)).rejects.toThrow('응답 형식')
+  fetcher.mockResolvedValueOnce(Response.json({ ...summaryBody, worldBuild: { ...started, status: 'queued' } }))
+  await expect(repo.confirm(workId, file(), true, items)).rejects.toThrow('응답 형식')
+  fetcher.mockResolvedValueOnce(Response.json({ ...summaryBody, worldBuild: { status: 'started' } }))
+  await expect(repo.confirm(workId, file(), true, items)).rejects.toThrow('응답 형식')
 })
 
 it('서버의 detail을 그대로 보이고, detail이 없으면 상태별 안내를 쓴다', async () => {

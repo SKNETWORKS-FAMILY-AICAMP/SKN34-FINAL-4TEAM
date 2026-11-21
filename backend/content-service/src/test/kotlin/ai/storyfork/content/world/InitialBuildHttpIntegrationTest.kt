@@ -217,6 +217,14 @@ class InitialBuildHttpIntegrationTest {
                 for(episodeCount in listOf(4,10)) {
                 val work=send("/api/v1/works","POST",mapOf("title" to "원고 이관 QA"),201)
                 val workId=work.path("id").asString()
+                // 업로드가 저장 직후 최초 구축을 자동으로 접수하므로, 연결할 세계관·모델 대역의 기준 호출 수·실패 주입은 업로드 전에 준비한다.
+                val manuscriptWorld=UUID.randomUUID()
+                send("/api/v1/world-studios","POST",CreateWorldRequest(id=manuscriptWorld,name="원고 최초 구축 QA",description="합성 원고 4화"))
+                send("/api/v1/works/$workId/world-studio","PUT",mapOf("worldId" to manuscriptWorld))
+                val qaUrl=System.getenv("MANUSCRIPT_QA_AI_URL") ?: "http://host.docker.internal:8769"
+                fun modelCalls()=mapper.readTree(client.send(HttpRequest.newBuilder(URI.create("$qaUrl/qa/calls")).GET().build(),HttpResponse.BodyHandlers.ofString()).body()).size()
+                val callStart=modelCalls()
+                if(episodeCount==4) client.send(HttpRequest.newBuilder(URI.create("$qaUrl/qa/fail-next/2")).POST(HttpRequest.BodyPublishers.noBody()).build(),HttpResponse.BodyHandlers.ofString())
                 val uploadPath="/api/v1/works/$workId/manuscript-imports/bulk"
                 val uploadBasis=send(uploadPath)
                 val originals=(1..episodeCount).map { n ->
@@ -248,21 +256,20 @@ class InitialBuildHttpIntegrationTest {
                 val published=db.connect().use { c -> WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM episode_current WHERE work_id='$workId' AND published_version_id IS NOT NULL") }
                 assertEquals(listOf("0"),published)
                 Files.writeString(Path.of("build/qa/manuscript-upload-db-$episodeCount.json"),mapper.writeValueAsString(mapOf("workId" to workId,"snapshot" to snapshot,"publishedCount" to published)))
-                val manuscriptWorld=UUID.randomUUID()
-                send("/api/v1/world-studios","POST",CreateWorldRequest(id=manuscriptWorld,name="원고 최초 구축 QA",description="합성 원고 4화"))
-                send("/api/v1/works/$workId/world-studio","PUT",mapOf("worldId" to manuscriptWorld))
                 val jobPath="/api/v1/works/$workId/world-preprocessing"
                 val stranger=UUID.randomUUID()
                 `when`(ctx.getBean(CoreAuthClient::class.java).verify("Bearer $stranger")).thenReturn(VerifiedMemberResponse(stranger))
                 val denied=client.send(HttpRequest.newBuilder(URI.create(host+jobPath)).header("Authorization","Bearer $stranger").GET().build(),HttpResponse.BodyHandlers.ofString())
                 assertTrue(denied.statusCode() in setOf(403,404),denied.body())
-                val buildRequest=mapOf("worldId" to manuscriptWorld,"key" to "qa-first-build","consent" to true)
-                val qaUrl=System.getenv("MANUSCRIPT_QA_AI_URL") ?: "http://host.docker.internal:8769"
-                fun modelCalls()=mapper.readTree(client.send(HttpRequest.newBuilder(URI.create("$qaUrl/qa/calls")).GET().build(),HttpResponse.BodyHandlers.ofString()).body()).size()
-                val callStart=modelCalls()
-                if(episodeCount==4) client.send(HttpRequest.newBuilder(URI.create("$qaUrl/qa/fail-next/2")).POST(HttpRequest.BodyPublishers.noBody()).build(),HttpResponse.BodyHandlers.ofString())
-                val accepted=send(jobPath,"POST",buildRequest,202)
+                // 접수는 업로드가 이미 했다(연결된 세계관·확인 없는 동의). key는 서버가 만든 import:<UUID>라 DB에서 읽어 이후 같은 작업의 재개·복구 요청에 쓴다.
+                val autoBuild=uploadResult.path("worldBuild")
+                assertEquals("started",autoBuild.path("status").asString(),uploaded.body())
+                val autoKey=db.connect().use { c -> WorldStudioPostgresFixture.rows(c,"SELECT request_key FROM worldstudio.manuscript_build_job WHERE id='${autoBuild.path("jobId").asString()}'") }.single()
+                assertTrue(autoKey.startsWith("import:"),autoKey)
+                val buildRequest=mapOf("worldId" to manuscriptWorld,"key" to autoKey,"consent" to true)
+                val accepted=send(jobPath)
                 assertEquals(manuscriptWorld.toString(),accepted.path("worldId").asString())
+                assertEquals(autoKey,accepted.path("requestKey").asString(),"상태 응답이 접수 key를 알려 다른 브라우저도 같은 작업을 재개한다")
                 fun awaitBuild(recovering:Boolean=false):tools.jackson.databind.JsonNode {
                     var row=send(jobPath)
                     val until=System.nanoTime()+java.time.Duration.ofSeconds(60).toNanos()
@@ -277,12 +284,12 @@ class InitialBuildHttpIntegrationTest {
                     assertEquals("AI_TIMEOUT",progress.path("failureCode").asString())
                     assertEquals(3,progress.path("completedEpisodes").asInt())
                     val attempts=modelCalls()
-                    send(jobPath,"POST",buildRequest,202)
+                    assertEquals(autoKey,send(jobPath,"POST",buildRequest,202).path("requestKey").asString(),"시작 POST 응답도 접수 key를 싣는다")
                     assertEquals(attempts,modelCalls(),"새 키나 자동 재시도를 만들지 않는다")
                     db.connect().use { c ->
                         WorldStudioPostgresFixture.sql(c,"CREATE FUNCTION worldstudio.qa_fail_load() RETURNS trigger LANGUAGE plpgsql AS 'BEGIN IF NEW.status=''applied'' THEN RAISE EXCEPTION ''QA completion failure''; END IF; RETURN NEW; END'; CREATE TRIGGER qa_fail_load BEFORE UPDATE ON worldstudio.manuscript_build_load_step FOR EACH ROW EXECUTE FUNCTION worldstudio.qa_fail_load()")
                     }
-                    send(jobPath,"POST",buildRequest+mapOf("resumeToken" to progress.path("executionToken").asString()),202)
+                    assertEquals(autoKey,send(jobPath,"POST",buildRequest+mapOf("resumeToken" to progress.path("executionToken").asString()),202).path("requestKey").asString(),"재개 POST 응답도 접수 key를 싣는다")
                     progress=awaitBuild()
                     assertEquals("unknown",progress.path("status").asString(),progress.toString())
                     assertEquals(4,progress.path("completedEpisodes").asInt())
@@ -330,6 +337,7 @@ class InitialBuildHttpIntegrationTest {
                 assertEquals(episodeCount,progress.path("completedEpisodes").asInt())
                 val repeated=send(jobPath,"POST",buildRequest,202)
                 assertEquals(progress.path("receipts"),repeated.path("receipts"))
+                assertEquals(autoKey,repeated.path("requestKey").asString())
                 send(jobPath,"POST",buildRequest+mapOf("key" to "different-key"),409)
                 val built=mapper.convertValue(send("/api/v1/world-studios/$manuscriptWorld"),WorldDraftResponse::class.java)
                 Files.writeString(Path.of("build/qa/manuscript-draft.json"),mapper.writeValueAsString(built))
@@ -429,12 +437,17 @@ class InitialBuildHttpIntegrationTest {
                     mapOf("number" to i+1,"title" to row.path("title").asString(),"from" to row.path("from").asInt(),"to" to row.path("to").asInt()) }))
                 assertEquals(4,confirmed.path("succeeded").asInt(),confirmed.toString())
                 assertEquals(0,confirmed.path("failed").asInt())
+                assertEquals("started",confirmed.path("worldBuild").path("status").asString(),confirmed.toString())
                 val epubSnapshot=ctx.getBean(ManuscriptBuildSnapshot::class.java).read(epubWork,owner.toString())
                 fun whitespace(text:String)=text.replace(Regex("\\s+")," ").trim()
                 assertEquals((1..4).map { whitespace(checkNotNull(javaClass.getResourceAsStream("/initial-build/episode-" + it.toString().padStart(2,'0') + ".txt")).use { stream -> String(stream.readBytes(),Charsets.UTF_8) }) },epubSnapshot.episodes.map { whitespace(it.body) })
                 val epubPublished=db.connect().use { c -> WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM episode_current WHERE work_id='$epubWork' AND published_version_id IS NOT NULL") }
                 assertEquals(listOf("0"),epubPublished)
                 Files.writeString(Path.of("build/qa/manuscript-epub-db.json"),mapper.writeValueAsString(mapOf("workId" to epubWork,"snapshot" to epubSnapshot,"publishedCount" to epubPublished)))
+                // 확정이 자동 접수한 작업이 AI에서 도는 채로 컨텍스트와 DB를 닫지 않도록 끝날 때까지 기다린다(결과는 이 시험의 대상이 아니다).
+                val epubJob="/api/v1/works/$epubWork/world-preprocessing"
+                val epubUntil=System.nanoTime()+java.time.Duration.ofSeconds(60).toNanos()
+                while(send(epubJob).path("status").asString() in listOf("queued","running","loading") && System.nanoTime()<epubUntil) Thread.sleep(150)
             } finally {
                 ctx.close()
             }

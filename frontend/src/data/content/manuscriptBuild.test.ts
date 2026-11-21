@@ -3,8 +3,11 @@ import '../../test/testLocks'
 import {login} from '../api/auth'
 import {HttpManuscriptBuildRepository} from './HttpManuscriptBuildRepository'
 const work=crypto.randomUUID(),world=crypto.randomUUID(),job=crypto.randomUUID(),token=crypto.randomUUID()
-const status=(state='running',skippedItems=0)=>({id:job,workId:work,status:state,build:{jobId:job,worldId:world,status:state,completedEpisodes:1,totalEpisodes:4,executionToken:token,failureCode:null,skippedItems,receipts:[]}})
+// 업로드가 서버에서 시작한 작업의 key(import:<uuid>)다. 이 브라우저가 시작한 작업은 보낸 key를 그대로 돌려받는다(own).
+const serverKey='import:'+crypto.randomUUID()
+const status=(state='running',skippedItems=0,requestKey=serverKey)=>({id:job,workId:work,status:state,build:{jobId:job,worldId:world,status:state,completedEpisodes:1,totalEpisodes:4,executionToken:token,failureCode:null,skippedItems,requestKey,receipts:[]}})
 const slot=`storyfork-manuscript-build:writer:${work}`
+const own=(state:string)=>async()=>Response.json(status(state,0,JSON.parse(localStorage.getItem(slot)??'null')?.key))
 const receipt=()=>({jobId:job,stepId:crypto.randomUUID(),worldId:world,draftRevision:1,relationshipVersion:1,cardIds:[crypto.randomUUID()],relationshipIds:[]})
 const done=(extra:object={})=>({id:job,workId:work,status:'completed',build:{...status('completed').build,completedEpisodes:4,receipts:[receipt()],...extra}})
 beforeEach(async()=>{
@@ -29,7 +32,7 @@ it('상태 조회는 POST하지 않으며 완료 receipt 없는 성공은 거절
  expect(fetcher.mock.calls.every((c)=>!c[1].method||c[1].method==='GET')).toBe(true)
 })
 it('실패 재개는 현재 token을 사용하며 진행 중인 작업을 중복 실행하지 않는다',async()=>{
- const fetcher=vi.fn().mockResolvedValueOnce(Response.json(status('failed'))).mockResolvedValueOnce(Response.json(status('failed'))).mockResolvedValueOnce(Response.json(status())).mockResolvedValueOnce(Response.json(status()))
+ const fetcher=vi.fn().mockImplementationOnce(own('failed')).mockImplementationOnce(own('failed')).mockImplementationOnce(own('running')).mockImplementationOnce(own('running'))
  const repo=new HttpManuscriptBuildRepository(fetcher)
  await repo.start(work,world)
  await repo.resume(work)
@@ -37,16 +40,42 @@ it('실패 재개는 현재 token을 사용하며 진행 중인 작업을 중복
  await repo.resume(work)
  expect(fetcher.mock.calls.filter(c=>c[1].method==='POST')).toHaveLength(2)
 })
-it('다른 계정의 요청 기록을 재개에 사용하지 않는다',async()=>{
- const repo=new HttpManuscriptBuildRepository(vi.fn().mockResolvedValue(Response.json(status('failed'))))
+it('다른 계정의 요청 기록은 재개에 쓰지 않고 응답의 key로 재개한다',async()=>{
+ const fetcher=vi.fn().mockImplementation(async()=>Response.json(status('failed')))
+ const repo=new HttpManuscriptBuildRepository(fetcher)
  await repo.start(work,world)
+ const mine=JSON.parse(fetcher.mock.calls[0][1].body).key
  vi.stubGlobal('fetch',vi.fn(async(path:string)=>Response.json(path.endsWith('/csrf')?{csrfToken:'qa-csrf'}:{accessToken:'qa-other',user:{id:'other',email:'other@example.test',nickname:'other',operator:false}})))
  await login('other@example.test','qa-password')
- await expect(repo.resume(work)).rejects.toThrow('요청 기록')
+ await repo.resume(work)
+ const sent=JSON.parse(fetcher.mock.calls[fetcher.mock.calls.length-1][1].body)
+ expect(sent.key).toBe(serverKey)
+ expect(sent.key).not.toBe(mine)
+})
+it('요청 기록이 없으면(업로드가 시작한 작업·다른 브라우저) 조회 응답의 worldId·requestKey·consent로 같은 작업을 재개한다',async()=>{
+ const fetcher=vi.fn().mockImplementationOnce(async()=>Response.json(status('failed'))).mockImplementationOnce(async()=>Response.json(status()))
+ await new HttpManuscriptBuildRepository(fetcher).resume(work)
+ expect(fetcher.mock.calls.map(c=>c[1].method)).toEqual(['GET','POST'])
+ expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual({worldId:world,key:serverKey,consent:true,resumeToken:token})
+ expect(localStorage.getItem(slot)).toBeNull()
+})
+it('요청 기록의 key가 지금 작업의 requestKey와 다르면(다른 작업의 기록) 응답의 key로 재개하고, 같으면 기록을 그대로 쓴다',async()=>{
+ const fetcher=vi.fn().mockImplementationOnce(async()=>Response.json(status()))
+   .mockImplementationOnce(async()=>Response.json(status('unknown')))
+   .mockImplementationOnce(async()=>Response.json(status()))
+   .mockImplementationOnce(own('unknown'))
+   .mockImplementationOnce(async()=>Response.json(status()))
+ const repo=new HttpManuscriptBuildRepository(fetcher)
+ await repo.start(work,world)
+ const mine=JSON.parse(fetcher.mock.calls[0][1].body).key
+ await repo.resume(work)
+ expect(JSON.parse(fetcher.mock.calls[2][1].body)).toEqual({worldId:world,key:serverKey,consent:true})
+ await repo.resume(work)
+ expect(JSON.parse(fetcher.mock.calls[4][1].body)).toEqual({worldId:world,key:mine,consent:true})
 })
 
 it('unknown 적재 복구는 원래 key와 payload를 보내며 신규 실행 token을 만들지 않는다',async()=>{
- const fetcher=vi.fn().mockImplementation(async()=>Response.json(status('unknown')))
+ const fetcher=vi.fn().mockImplementation(own('unknown'))
  const repo=new HttpManuscriptBuildRepository(fetcher)
  await repo.start(work,world)
  await repo.resume(work)
@@ -61,8 +90,13 @@ it('이전 실패의 새 접수 허용은 조회로만 표시하고 재개 버�
  await repo.start(work,world)
  await expect(repo.resume(work)).rejects.toThrow('새 작업')
  expect(await repo.read(work)).toBeNull()
- await expect(repo.resume(work)).rejects.toThrow('요청 기록')
+ await expect(repo.resume(work)).rejects.toThrow('새 작업')
  expect(fetcher.mock.calls.filter(c=>c[1].method==='POST')).toHaveLength(1)
+})
+it('작업이 없고(404) 요청 기록도 없으면 재개할 것이 없다고 알린다',async()=>{
+ const fetcher=vi.fn().mockImplementation(async()=>new Response('',{status:404}))
+ await expect(new HttpManuscriptBuildRepository(fetcher).resume(work)).rejects.toThrow('요청 기록')
+ expect(fetcher.mock.calls.every(c=>c[1].method==='GET')).toBe(true)
 })
 it('결과 미확인 이전 작업은 별도 검토로 표시한다',async()=>{
  const repo=new HttpManuscriptBuildRepository(async()=>Response.json({id:job,workId:work,status:'failed',build:null,recovery:'manual_review'}))
@@ -132,5 +166,12 @@ it('완료 응답의 skippedItems(초안에 넣지 않은 항목 수)를 읽는�
 })
 it.each([['음수',-1],['소수',1.5],['문자열','3'],['없음',undefined]])('skippedItems가 %s이면 응답을 거절한다',async(_label,bad)=>{
  const body=done({skippedItems:bad})
+ await expect(new HttpManuscriptBuildRepository(vi.fn(async()=>Response.json(body))).read(work)).rejects.toThrow('저장 완료를 확인할 수 없어요')
+})
+it('상태 응답의 requestKey를 그대로 읽는다',async()=>{
+ expect((await new HttpManuscriptBuildRepository(vi.fn(async()=>Response.json(status()))).read(work))?.requestKey).toBe(serverKey)
+})
+it.each([['없음',undefined],['빈 문자열','']])('requestKey가 %s이면 응답을 거절한다',async(_label,bad)=>{
+ const body=done({requestKey:bad})
  await expect(new HttpManuscriptBuildRepository(vi.fn(async()=>Response.json(body))).read(work)).rejects.toThrow('저장 완료를 확인할 수 없어요')
 })

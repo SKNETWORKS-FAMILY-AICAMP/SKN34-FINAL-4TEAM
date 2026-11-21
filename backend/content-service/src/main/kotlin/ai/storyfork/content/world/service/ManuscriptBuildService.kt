@@ -52,7 +52,7 @@ class ManuscriptBuildService(
             extractions.size,input(job).episodes.size,
             job.executionToken,if(expired && job.status=="running") "EXECUTION_EXPIRED" else job.failureCode,
             saved.mapNotNull { it.receipt?.let { receipt -> mapper.convertValue(receipt,ManuscriptLoadReceipt::class.java) } },
-            extractions.sumOf { skippedItems(it.content) })
+            extractions.sumOf { skippedItems(it.content) },job.requestKey)
     }
     /** 추출 결과의 skipped(코드별 건수)를 더한다. 이 필드가 없던 옛 결과는 0이다. */
     private fun skippedItems(extraction:Map<String,Any?>)=(extraction["skipped"] as? Map<*,*>)?.values?.sumOf { (it as? Number)?.toInt() ?: 0 } ?: 0

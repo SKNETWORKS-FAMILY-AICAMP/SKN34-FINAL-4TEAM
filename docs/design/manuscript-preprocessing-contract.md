@@ -2,7 +2,7 @@
 
 [결정 목록](decisions.md#결정-목록) DEC-50 · [서비스 경계](service-boundaries.md) · [Content MCP 창구](content-mcp-contract.md)
 
-아래 초기 설계의 Celery·MCP는 제안 당시의 실행 방식이다. #552 통합 후보의 실제 실행 경로와 복구 조건은 [최초 구축 저장 계약](initial-build-storage-contract.md)과 이 문서의 마지막 절을 따른다.
+아래 초기 설계의 회차별 병렬 Celery·MCP 적재는 제안 당시의 실행 방식이다. 2026-11-20 사용자 결정으로 Celery 큐는 도입하되 작업(작품) 하나를 태스크 하나로 순차 실행한다([최초 구축 저장 계약](initial-build-storage-contract.md#업로드-자동-시작과-celery-큐-2026-11-20-사용자-결정)). #552 통합 후보의 실제 실행 경로와 복구 조건은 [최초 구축 저장 계약](initial-build-storage-contract.md)과 이 문서의 마지막 절을 따른다.
 
 > 2026-11-17 사용자 정정: #344·#351·#428과 Celery/LangGraph는 참고 구현이며 필수 의존성이 아니다. 최신 develop의 저장 경계를 우선한다. 최초 구축의 영속 기록은 [초기 구축 저장 계약](initial-build-storage-contract.md)에 따라 보완 중이며 자동 실행 완료를 의미하지 않는다.
 

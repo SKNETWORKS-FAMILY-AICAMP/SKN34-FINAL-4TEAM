@@ -15,7 +15,7 @@ const C = '0d3b6f0e-6a55-4c1e-8f3a-2b9d4e7a1c55'
 const work = (id: string, title: string): Work => ({ id, title, summary: '', visibility: 'private', allowFork: false, allowForkPublication: false, source: null, episodes: [], draft: { title: '', body: '', revision: 0 }, revision: 0 })
 const episode = (title: string, from: number, to: number) => ({ title, from, to, charCount: to - from, excerpt: `${title} 발췌`, imageCount: 0, warnings: [] as string[] })
 const preview: ManuscriptPreview = { format: 'txt', unit: 'line', unitCount: 30, existingEpisodeCount: 2, episodes: [episode('1화', 0, 10), episode('2화', 10, 20), episode('3화', 20, 30)] }
-const summary: ManuscriptImportSummary = { succeeded: 2, failed: 1, results: [
+const summary: ManuscriptImportSummary = { succeeded: 2, failed: 1, worldBuild: null, results: [
   { number: 1, title: '1화', status: 'versioned', reason: null, missingImages: 0 },
   { number: 2, title: '2화', status: 'created', reason: null, missingImages: 0 },
   { number: 3, title: '3화', status: 'failed', reason: '본문이 40,000자를 넘어 등록할 수 없어요.', missingImages: 0 },

@@ -43,7 +43,7 @@ class AttachmentEnvironmentTest(unittest.TestCase):
                         "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"):
                 self.assertEqual(name == "content-service", key in settings)
                 self.assertNotIn(key, service.get("build", {}).get("args", {}))
-            self.assertEqual(name == "ai-service", "OPENAI_API_KEY" in settings)
+            self.assertEqual(name in ("ai-service", "ai-worker"), "OPENAI_API_KEY" in settings)
             self.assertNotIn("env_file", service)
             for port in service.get("ports", []):
                 self.assertEqual("127.0.0.1", port["host_ip"])

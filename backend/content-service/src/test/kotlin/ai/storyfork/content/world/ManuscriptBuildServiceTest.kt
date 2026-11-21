@@ -84,6 +84,16 @@ class ManuscriptBuildServiceTest {
             any(Function0::class.java) as? (() -> Any) ?: action)
     }
 
+    // ---- 기능 플래그: 꺼져 있으면 시작 API와 원고 가져오기의 자동 접수가 같은 503으로 거절된다 ----
+
+    @Test fun `a disabled feature flag refuses to freeze the input with 503 before reading the manuscript`() {
+        val disabled=ManuscriptBuildService(access,works,links,studio,snapshot,execution,resultStore,jobs,results,steps,worlds,manager,mapper,false)
+        val failure=assertThrows(ContentFailure::class.java) { disabled.freeze(workId,owner.toString()) }
+        assertEquals(503,failure.status)
+        assertEquals("초기 세계관 구축은 아직 활성화되지 않았습니다.",failure.message)
+        verifyNoInteractions(snapshot)
+    }
+
     // ---- 적재 직전 전제가 추출 중에 바뀐 경우: 사유를 남겨 재개 불가 실패로 끝낸다 ----
 
     @Test fun `an edited manuscript fails the job as SOURCE_CHANGED instead of leaving it running`() {
@@ -151,5 +161,10 @@ class ManuscriptBuildServiceTest {
         val response=service.status(job.id,owner)!!
         assertEquals(3,response.skippedItems)
         assertEquals(3,response.completedEpisodes)
+    }
+
+    @Test fun `status carries the request key so another browser can resume the same job`() {
+        val job=job("queued")
+        assertEquals("key-1",service.status(job.id,owner)!!.requestKey)
     }
 }
