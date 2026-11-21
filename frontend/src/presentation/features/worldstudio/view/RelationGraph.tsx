@@ -5,7 +5,7 @@ import { useElementSize } from '../../../shared/useElementSize'
 import { aspectGravity } from '../../worlds/worldAtlas'
 import { foldSatellites, type Folding } from '../viewmodel/graphFold'
 import { AUTO_MAX, DEFAULT_SETTINGS, dotBox, forceParams, labelBox, labelCollide, type GraphSettings } from '../viewmodel/graphForces'
-import { buildGraph, endId, labelLimit, nodeRadius, relationTitle, topDegreeIds, type GLink, type GNode } from '../viewmodel/graphModel'
+import { buildGraph, drawRadius, endId, fitView, labelLimit, nodeRadius, relationTitle, topDegreeIds, type GLink, type GNode } from '../viewmodel/graphModel'
 import { neighborhood } from '../viewmodel/highlight'
 import type { useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import { AddCardPanel } from './AddCardPanel'
@@ -44,14 +44,14 @@ const GearIcon = () => <svg viewBox="0 0 24 24" width="16" height="16" fill="non
 type Props = { vm: Pick<ReturnType<typeof useWorldMapViewModel>, 'graph' | 'selected' | 'visible'>; editing: Actions; find?: { id: string; seq: number } | null; filters: Filters }
 
 /**
- * 관계도 그래프(react-force-graph-2d 캔버스, 옵시디언 그래프 뷰처럼): 모든 배율에서 점과 이름뿐이다. 점은 이어진 관계 수(+접힌 위성 수)의 제곱근에 비례하는 채운 원(유형 색, 화면 3px 아래로는 줄지 않는다), 선은 화면 기준 1px의 가는 회색 직선(같은 두 설정 사이의 관계는 선 하나, 굵기는 늘지 않는다), 배경은 평평하다. 노드는 선 위에 그려진다.
+ * 관계도 그래프(react-force-graph-2d 캔버스, 옵시디언 그래프 뷰처럼): 모든 배율에서 점과 이름뿐이다. 점은 이어진 관계 수(+접힌 위성 수)의 제곱근에 비례하는 채운 원(유형 색, 화면 반지름은 3px~24px로 묶여 멀리서 사라지지도 확대해서 거대해지지도 않는다), 선은 화면 기준 1px의 가는 회색 직선(같은 두 설정 사이의 관계는 선 하나, 굵기는 늘지 않는다), 배경은 평평하다. 노드는 선 위에 그려진다.
  * - 배치: 힘 시뮬레이션이 실시간으로 돈다(끄는 노드를 이웃이 따라오고 놓으면 고정이 풀린다, 식으면 멈춘다). 중심·반발·연결 힘과 이름표 포함 겹침 방지(`labelCollide`)는 설정 패널의 슬라이더로 바꾼다. 좌표는 화면 상태일 뿐 저장하지 않는다.
  * - 위성 노드 접기(기본 켬, 노드가 60개를 넘는 큰 세계관에서만 적용): 이웃이 하나뿐인 노드는 허브 안으로 접혀 그려지지 않고 허브가 접힌 수만큼 커지며 이름표가 '이름 +N'이다(`foldSatellites`). 허브 이름표를 누르거나 메뉴·패널에서 펼치고 접으며, 설정 찾기가 접힌 노드를 가리키면 그 허브를 펼친다. 외톨이도 노드가 60개를 넘을 때만 기본으로 숨긴다(켜고 끌 수 있고, 관계가 하나도 없는 세계는 모두 보인다).
  * - 이름: 노드 바로 아래 화면 12px 이상의 글자로 어느 배율에서나 그린다(`graphPaint`). 임계값보다 멀리 가면 관계가 많은 몇 개의 이름만 남고 겹치면 작은 노드부터 숨는다. 선 위 관계 이름은 올리거나 고른 선에만 보인다.
  * - 강조: 올린 노드(없으면 키보드 초점, 없으면 눌러 고정한 노드)와 그 이웃·닿는 선만 또렷하고 나머지는 흐리다. 노드를 누르면 고정하고 같은 노드를 다시 누르거나 빈 곳·Esc로 푼다.
  * - 조작: 휠로 커서 자리 확대·빈 곳 끌기로 이동·노드 끌기, 노드 더블클릭 = 정보 편집, 선 클릭 = 관계 편집 시트, 오른쪽 클릭 메뉴(빈 곳·노드·선: `RelationContextMenu`), 터치는 길게 누르기가 메뉴·핀치가 확대다. 키보드는 `GraphKeyboardList`가 같은 일을 한다.
  * - 도구: 왼쪽 위 + 설정 추가(`AddCardPanel`), 오른쪽 위 톱니(`GraphSettingsPanel`). 새 설정은 누른 자리(패널은 화면 가운데)에서 물리에 합류하고 선택·강조한다.
- * 상자가 숨겨져(크기 0) 있으면 그리지 않고(관계 편집기는 다른 화면에서도 숨은 채 마운트돼 있다) 보이면 처음처럼 전체를 맞춘다: 첫 틱에 곧바로, 배치가 처음 멈출 때 한 번 더(그 사이 사용자가 움직였으면 그대로 둔다).
+ * 상자가 숨겨져(크기 0) 있으면 그리지 않고(관계 편집기는 다른 화면에서도 숨은 채 마운트돼 있다) 보이면 처음처럼 전체를 맞춘다: 첫 틱에 곧바로, 배치가 처음 멈출 때 한 번 더(그 사이 사용자가 움직였으면 그대로 둔다). 맞춤의 확대 배율은 1.5를 넘지 않는다(`fitView`: 노드가 적은 세계관이 화면 가득 확대되지 않는다).
  * 캔버스 높이는 CSS가 정하고, 이 컴포넌트는 캔버스 위쪽의 문서 위치만 `--rf-top`으로 알린다(관리 모드 관계도 보기가 '화면 높이 − 위쪽'을 채운다).
  */
 export default function RelationGraph({ vm, editing, find, filters }: Props) {
@@ -127,7 +127,8 @@ export default function RelationGraph({ vm, editing, find, filters }: Props) {
   // 힘: 중심·반발·연결 힘은 슬라이더 값으로, 중력(가로세로비)과 이름표 포함 겹침 방지는 우리 힘이다. 값이 바뀌면 시뮬레이션을 다시 데운다(처음 그릴 때는 이미 돌고 있다).
   /** 힘이 그때그때 읽는 노드 크기·이름표 글(접힌 위성 수가 바뀌면 같이 바뀐다). */
   const live = useRef<{ radius: (n: GNode) => number; text: (n: GNode) => string }>({ radius: () => 0, text: (n) => n.name })
-  live.current = { radius: (n) => nodeRadius(weights.get(n.id) ?? n.degree, maxWeight, settings.nodeSize), text: (n) => n.name + (foldedCount.has(n.id) ? ' +' + foldedCount.get(n.id) : '') }
+  // 겹침 방지가 읽는 반지름은 지금 배율에서 화면에 그려지는 크기(3px~24px 안, 그래프 단위)다.
+  live.current = { radius: (n) => drawRadius(nodeRadius(weights.get(n.id) ?? n.degree, maxWeight, settings.nodeSize), zoom.current, settings.nodeSize), text: (n) => n.name + (foldedCount.has(n.id) ? ' +' + foldedCount.get(n.id) : '') }
   const forced = useRef(false)
   useLayoutEffect(() => {
     const g = graph.current
@@ -146,7 +147,14 @@ export default function RelationGraph({ vm, editing, find, filters }: Props) {
   const flags = useRef({ early: false, final: false, touched: false })
   const refit = () => { flags.current = { early: false, final: false, touched: false } }
   useEffect(() => { if (sized) refit() }, [sized])
-  const fit = (duration: number) => graph.current?.zoomToFit(duration, FIT_PADDING)
+  /** 모든 노드를 한 화면에 맞춘다(force-graph의 zoomToFit과 같되 확대 배율은 `FIT_MAX_ZOOM`까지). */
+  const fit = (duration: number) => {
+    const g = graph.current, bbox = g?.getGraphBbox()
+    if (!g || !bbox) return
+    const { x, y, k } = fitView(bbox, boxNow.current.w, boxNow.current.h, FIT_PADDING)
+    g.centerAt(x, y, duration)
+    g.zoom(k, duration)
+  }
   // 상자 크기가 바뀌면(사이드바 접기·AI 채팅·창 크기) 처음 맞춤이 끝난 뒤에는, 사용자가 움직이지 않았을 때만 다시 맞춘다.
   useEffect(() => { const f = flags.current; if (f.final && !f.touched) fit(ms(200)) }, [box.w, box.h]) // eslint-disable-line react-hooks/exhaustive-deps -- 크기가 바뀔 때만
   const focusOn = (n: GNode) => {

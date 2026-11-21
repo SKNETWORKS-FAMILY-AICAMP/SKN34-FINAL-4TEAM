@@ -73,3 +73,14 @@ describe('exportFileName', () => {
     expect(exportFileName('가', 'md', new Date(2026, 0, 3))).toBe('가-20260103.md')
   })
 })
+
+describe('서버에서 읽은 자유 관계', () => {
+  it('이름은 label(항목 이름)이고 설명은 본문이다 — 본문 문장이 이름으로 내려가지 않는다', () => {
+    const [a, b] = [newSetting('people'), newSetting('people')]
+    a.item.title = '길동'; b.item.title = '길현'
+    const rows = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', title: '이복형', text: '길동은 길현을 이복형으로 따랐다.', fromEpisode: 2 })
+    const w = { id: 'w', name: '홍길동전', description: '', version: 1, settings: rows } as StudioWorld
+    expect(JSON.parse(worldToJson(w)).relations[0]).toMatchObject({ name: '이복형', description: '길동은 길현을 이복형으로 따랐다.', fromEpisode: 2 })
+    expect(worldToMarkdown(w)).toContain('- 길현 — 이복형 (2화부터)')
+  })
+})

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { honggildongMap } from '../../../../test/honggildongGraph'
-import { NODE_R_MAX, NODE_R_MIN, NODE_SCREEN_MIN, buildGraph, degrees, drawRadius, labelFont, labelLimit, nodeRadius, relationNames, relationTitle, textAlpha, topDegreeIds, type GNode } from './graphModel'
+import { FIT_MAX_ZOOM, NODE_R_MAX, NODE_R_MIN, NODE_SCREEN_MAX, NODE_SCREEN_MIN, buildGraph, degrees, drawRadius, fitView, labelFont, labelLimit, nodeRadius, relationNames, relationTitle, textAlpha, topDegreeIds, type GNode } from './graphModel'
 import { neighborhood } from './highlight'
 import type { MapLink, MapNode } from './useWorldMapViewModel'
 
@@ -103,12 +103,29 @@ it('relationNames는 선에 올렸을 때 보이는 이름이다: 관계가 하�
  expect(relationNames({relations:[r('친구'),r('친구')]})).toBe('친구 외 1개')
 })
 
-it('drawRadius는 어느 배율에서도 화면 반지름 3px 아래로 줄지 않는다(멀리서 점이 사라지지 않는다)',()=>{
- expect(NODE_SCREEN_MIN).toBe(3)
- expect(drawRadius(4,1)).toBe(4)
- expect(drawRadius(4,0.2)).toBeCloseTo(15,10) // 3px ÷ 0.2
- expect(drawRadius(NODE_R_MAX,0.2)).toBe(NODE_R_MAX) // 이미 충분히 크면 그대로
- expect(NODE_R_MAX).toBeGreaterThanOrEqual(24) // 허브가 확실히 크다
+it('drawRadius는 화면 반지름을 3px~24px로 묶는다(크기 슬라이더 배수만큼 상한도 커진다): 멀리서 점이 사라지지 않고 가까이서 거대한 원이 되지 않는다',()=>{
+  expect(NODE_SCREEN_MIN).toBe(3)
+  expect(NODE_SCREEN_MAX).toBe(24)
+  expect(drawRadius(4,1)).toBe(4) // 범위 안이면 그대로
+  expect(drawRadius(NODE_R_MAX,1)).toBe(NODE_R_MAX)
+  expect(drawRadius(4,0.2)).toBeCloseTo(15,10) // 하한: 화면 3px ÷ 0.2
+  expect(drawRadius(NODE_R_MAX,0.2)).toBe(NODE_R_MAX) // 24×0.2=4.8px: 범위 안이라 그대로
+  expect(drawRadius(NODE_R_MAX,5)).toBeCloseTo(4.8,10) // 상한: 화면 24px ÷ 5 (확대해도 지름 240px로 커지지 않는다)
+  expect(drawRadius(10,3)).toBeCloseTo(8,10) // 화면 30px → 24px
+  expect(drawRadius(4,8)).toBeCloseTo(3,10) // 화면 32px → 24px: 작은 노드도 상한을 넘지 않는다
+  expect(drawRadius(36,2,1.5)).toBeCloseTo(18,10) // 크기 슬라이더 1.5배면 상한도 36px(화면 72px → 36px)
+  expect(drawRadius(36,1,1.5)).toBe(36) // 상한 안이면 그대로
+  expect(NODE_R_MAX).toBeGreaterThanOrEqual(24) // 허브가 확실히 크다
+})
+
+it('fitView는 노드 상자를 여백을 두고 화면에 맞추되 확대 배율이 FIT_MAX_ZOOM(1.5)을 넘지 않는다: 노드가 적은 세계관이 과하게 확대되지 않는다',()=>{
+  expect(FIT_MAX_ZOOM).toBe(1.5)
+  expect(fitView({x:[-50,50],y:[-40,40]},800,600,64)).toEqual({x:0,y:0,k:FIT_MAX_ZOOM}) // 그대로 맞추면 약 5.9배
+  const wide=fitView({x:[0,4000],y:[100,1100]},800,600,64)
+  expect(wide.k).toBeCloseTo((800-128)/4000,10) // 가로가 먼저 찬다
+  expect([wide.x,wide.y]).toEqual([2000,600])
+  const tall=fitView({x:[0,100],y:[0,3000]},800,600,64)
+  expect(tall.k).toBeCloseTo((600-128)/3000,10) // 세로가 먼저 찬다
 })
 
 it('홍길동전(카드 57장·관계 146개): 홍길동은 관계 54개·서로 다른 이웃 38장이고 이웃 강조는 선 쌍 단위로 같은 이웃을 준다',()=>{

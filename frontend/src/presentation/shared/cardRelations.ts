@@ -1,4 +1,5 @@
 import { relationHistoryLine } from './relationParagraph'
+import { textWidth } from './textWidth'
 import { KINDS, type CardKind } from './worldBoard'
 
 /*
@@ -9,12 +10,12 @@ import { KINDS, type CardKind } from './worldBoard'
 /** 그림의 둘레에 두는 이웃의 상한: 넘치면 '외 N개'로 알리고 아래 목록에 모두 있다. */
 export const RING_MAX = 16
 
-/** 관계 이름이 `episode`화부터 `name`이다(회차를 모르면 null). 한 관계의 이름이 바뀐 이력이면 여러 개다. */
-export type RelationStep = { name: string; episode: number | null }
+/** 관계 이름이 `episode`화부터 `name`이다(회차를 모르면 null). 한 관계의 이름이 바뀐 이력이면 여러 개다. `body`는 그 시점의 관계 본문(설명 문장)이고 목록을 펼칠 때만 보인다. */
+export type RelationStep = { name: string; episode: number | null; body?: string }
 /** 가운데 카드에서 본 관계 한 줄: 상대 카드와 그 관계의 이름 이력(회차 오름차순, 마지막이 현재). */
 export type RelationEntry = { id: string; otherId: string; otherTitle: string; otherKind: CardKind; steps: readonly RelationStep[] }
-/** 이웃 한 명: 그 상대와의 관계들을 묶은 것. `name`은 가장 늦은 회차의 관계 이름, `more`는 나머지 관계 수, `weight`는 관계 수·바뀐 횟수, `first`는 처음 이어진 회차다. */
-export type Neighbor = { id: string; title: string; kind: CardKind; entries: RelationEntry[]; name: string; more: number; history: string; weight: number; first: number | null }
+/** 이웃 한 명: 그 상대와의 관계들을 묶은 것. `name`은 가장 늦은 회차의 관계 이름, `more`는 나머지 관계 수, `weight`는 관계 수·바뀐 횟수, `first`는 처음 이어진 회차, `notes`는 관계마다 현재 본문(이름과 함께, 같은 본문은 한 번)이다. */
+export type Neighbor = { id: string; title: string; kind: CardKind; entries: RelationEntry[]; name: string; more: number; history: string; weight: number; first: number | null; notes: { name: string; body: string }[] }
 
 const latest = (e: RelationEntry) => e.steps[e.steps.length - 1]
 const at = (episode: number | null) => episode ?? -1
@@ -42,6 +43,7 @@ export function groupNeighbors(entries: readonly RelationEntry[]): Neighbor[] {
       id, title: list[0].otherTitle, kind: list[0].otherKind, entries: list, name: latest(rep).name, more: list.length - 1,
       history: relationHistoryLine(null, steps.map((s) => ({ episode: s.episode, label: s.name, body: '' }))),
       weight: list.reduce((sum, e) => sum + e.steps.length, 0), first: steps.length ? steps[0].episode : null,
+      notes: list.flatMap((e) => { const { name, body } = latest(e); return body?.trim() ? [{ name, body: body.trim() }] : [] }).filter((note, i, all) => all.findIndex((x) => x.body === note.body) === i),
     }
   })
 }
@@ -57,4 +59,57 @@ export function layoutOf(neighbors: readonly Neighbor[]) {
   const ring = grouped([...others].sort(byWeight).slice(0, RING_MAX))
   const events = neighbors.filter((n) => n.kind === '사건').sort((a, b) => (a.first ?? Infinity) - (b.first ?? Infinity) || a.title.localeCompare(b.title, 'ko'))
   return { ring, rest: others.length - ring.length, people: grouped([...others].sort(byWeight)), events }
+}
+
+/*
+ * 그림의 기하(순수): 상자 크기·둘레 위치·이웃 이름·선 이름. 이웃 이름이 상자 밖으로 잘리지 않게 좌우에 이름 자리를 두고(왼쪽 이웃은 오른쪽 끝을 맞추고 오른쪽 이웃은 왼쪽 끝을 맞춘다)
+ * 폭이 모자라면 말줄임으로 줄이며, 선 이름은 선의 바깥쪽에 놓고 겹치면 숨긴다(아래 간단 목록에 모두 있다).
+ */
+/** 그림 상자(viewBox)와 둘레(타원)의 가로·세로 반지름. 가로로 넓게 잡아 좌우 이웃의 이름 자리를 남긴다. */
+export const MAP_W = 640, MAP_H = 360, MAP_RX = 200, MAP_RY = 125
+/** 이웃 노드 반지름과 노드~이름 간격, 상자 가장자리 여백(px). */
+const NODE_R = 9, TEXT_GAP = 14, EDGE_PAD = 4
+
+/** 글자 수로 줄인다: `max`자를 넘으면 앞 `max`자 뒤에 …를 붙인다. */
+export const clip = (text: string, max: number) => (Array.from(text).length > max ? Array.from(text).slice(0, max).join('') + '…' : text)
+/** 폭(px)에 들도록 뒤를 …로 줄인다. …도 못 담을 만큼 좁으면 빈 글이다. */
+export function ellipsize(text: string, maxWidth: number, size: number) {
+  if (textWidth(text, size) <= maxWidth) return text
+  const chars = Array.from(text)
+  while (chars.length && textWidth(chars.join('') + '…', size) > maxWidth) chars.pop()
+  return chars.length ? chars.join('') + '…' : textWidth('…', size) <= maxWidth ? '…' : ''
+}
+
+/** 둘레에 놓은 이웃: 노드 중심 좌표와 각도(위가 −π/2, 시계 방향). */
+export type Spot = { n: Neighbor; x: number; y: number; angle: number }
+/** 이웃을 타원 둘레에 위에서 시계 방향으로 고르게 놓는다. */
+export const ringSpots = (ring: readonly Neighbor[]): Spot[] => ring.map((n, i) => {
+  const angle = -Math.PI / 2 + (2 * Math.PI * i) / ring.length
+  return { n, angle, x: MAP_W / 2 + MAP_RX * Math.cos(angle), y: MAP_H / 2 + MAP_RY * Math.sin(angle) }
+})
+
+/** 이웃 이름의 자리: 좌우 이웃은 노드 옆(왼쪽은 end·오른쪽은 start), 위아래 이웃은 노드 위·아래 가운데(middle)이고 폭이 모자라면 말줄임이다. */
+export function nodeText({ n, x, y, angle }: Spot, size = 12) {
+  const side = Math.cos(angle)
+  if (side > 0.3) return { x: x + TEXT_GAP, y: y + 4, anchor: 'start' as const, text: ellipsize(n.title, MAP_W - EDGE_PAD - (x + TEXT_GAP), size) }
+  if (side < -0.3) return { x: x - TEXT_GAP, y: y + 4, anchor: 'end' as const, text: ellipsize(n.title, x - TEXT_GAP - EDGE_PAD, size) }
+  return { x, y: y + (Math.sin(angle) > 0 ? NODE_R + 17 : -(NODE_R + 7)), anchor: 'middle' as const, text: ellipsize(n.title, 2 * Math.min(x, MAP_W - x) - 2 * EDGE_PAD, size) }
+}
+
+/** 선 이름 자리: 가운데에서 노드까지의 65% 지점이다(가운데 근처에 몰리지 않게). */
+const EDGE_AT = 0.65
+export type EdgeText = { id: string; x: number; y: number; text: string }
+/**
+ * 선 이름(관계 이름만, 8자 넘으면 말줄임, 외 N은 목록에): 관계가 많은 이웃부터 자리를 잡고 앞서 놓은 이름과 겹치면 숨긴다.
+ */
+export function edgeTexts(spots: readonly Spot[], size = 11): EdgeText[] {
+  const placed: { l: number; r: number; t: number; b: number }[] = [], shown: EdgeText[] = []
+  for (const { n, x, y } of [...spots].sort((a, b) => b.n.weight - a.n.weight)) {
+    const text = clip(n.name, 8), cx = MAP_W / 2 + (x - MAP_W / 2) * EDGE_AT, cy = MAP_H / 2 + (y - MAP_H / 2) * EDGE_AT
+    const half = textWidth(text, size) / 2 + 3, box = { l: cx - half, r: cx + half, t: cy - size, b: cy + 4 }
+    if (placed.some((p) => box.l < p.r && p.l < box.r && box.t < p.b && p.t < box.b)) continue
+    placed.push(box)
+    shown.push({ id: n.id, x: cx, y: cy, text })
+  }
+  return shown
 }

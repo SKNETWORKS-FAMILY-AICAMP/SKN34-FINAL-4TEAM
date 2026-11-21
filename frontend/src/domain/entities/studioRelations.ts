@@ -21,10 +21,22 @@ export function sameRelation(a:RelationInput,b:RelationInput) {
  if(isFreeRelation(a.predicate)&&a.text!==b.text)return false
  return a.subjectId===b.subjectId&&a.targetId===b.targetId || !!relationDefinitions[a.predicate??'']?.symmetric&&a.subjectId===b.targetId&&a.targetId===b.subjectId
 }
-function generatedDescription(item:RelationInput,settings:StudioSetting[]) {
- const name=(id:string|null)=>settings.find(s=>s.item.id===id)?.item.title??'선택 안 함'
+const describe=(item:RelationInput,name:(id:string|null)=>string)=>{
  const label=isFreeRelation(item.predicate)?item.predicate==='custom_emotion'?'감정':'관계':relationLabel(item)
  return `${name(item.subjectId)} · ${label} · ${name(item.targetId)}`
+}
+function generatedDescription(item:RelationInput,settings:StudioSetting[]) {
+ return describe(item,id=>settings.find(s=>s.item.id===id)?.item.title??'선택 안 함')
+}
+/**
+ * 관계의 짧은 이름(관계도·관계 종류 필터·내보내기가 쓴다). 정해진 관계는 정의 이름이고, 자유 관계는 항목 이름(`title`, 서버의 label)이다.
+ * 항목 이름이 비었거나 자동으로 지은 것('가람 · 관계 · 나래')이면 관계 문구(`text`)가 이름이다. `relationLabel`은 자유 관계에서 늘 `text`를 돌려주는데
+ * 서버에서 읽은 관계는 이름이 `title`에 있고 `text`는 긴 본문이라, 그림·목록에 본문 문장이 이름으로 나오던 것을 이것으로 바로잡는다. `titleOf`는 카드 id의 이름이다(없으면 undefined).
+ */
+export function relationShortName(item:Pick<SettingItem,'predicate'|'polarity'|'title'|'text'|'subjectId'|'targetId'>,titleOf:(id:string|null)=>string|undefined) {
+ const title=item.title.trim()
+ const named=isFreeRelation(item.predicate)&&title&&item.title!==describe(item,id=>titleOf(id)??'선택 안 함')
+ return named?title+(item.polarity==='denied'?' 아님':''):relationLabel(item)
 }
 export function editStudioSetting(settings:StudioSetting[],id:string,patch:Partial<SettingItem>,labels?:Partial<StudioSetting>) {
  const edited=settings.map(s=>s.item.id===id?{...(Object.entries(patch).some(([key,value])=>JSON.stringify(s.item[key as keyof SettingItem])!==JSON.stringify(value))?authorEdit(s,patch):s),...labels}:s)

@@ -56,7 +56,7 @@ const BODY_MAX = 3000
  *   바꾸면 `revealFromEpisode`만 정하고 `visibility`는 회차가 있으면 public, 없으면 지워 맞춘다(`setCardReveal`). 건드리지 않은 카드는 다시 쓰지 않는다(옛 공개 카드는 1화로 보인다).
  *   초안 값이라 저장과 확정 버전을 거쳐야 반영된다. 다른 세계관에서 가져온 카드는 유형 옆에 `가져옴`과 출처를 보인다.
  *   마지막 설정집 AI 검토가 이 카드에 지적을 남겼으면 편집기 맨 위에 'AI 검토 의견'(`WorldCardFindings`)이 보이고, 수정안을 `초안에 반영`하면 편집기를 지금 초안의 글로 다시 만든다(`docs.reload`).
- *   이 카드의 글에 더 늦게 공개되는 카드의 이름이 나오면 그 아래에 '공개 순서 확인'(`WorldCardOrder`, DEC-53)이 어느 글에 어떤 이름이 나오는지 알린다(모델 없이 초안에서 계산하며 저장·확정을 막지 않는다).
+ *   이 카드의 글에 더 늦게 공개되는 카드의 이름이 나오면 그 아래에 '공개 순서 확인'(`WorldCardOrder`, DEC-53)이 어느 글에 어떤 이름이 나오는지 알린다(모델 없이 초안에서 계산하며 저장·확정을 막지 않는다). 문제가 없으면 맨 위에는 아무것도 없고 공개 범위 칸 안에 한 줄 '공개 순서 문제 없음'이 있다.
  *   카드 본문(인물은 IDENTITY.md) 편집기에는 `설정 링크` 버튼이 있어 같은 세계관 카드를 이름·별칭으로 찾아 `[글자](card:<id>)`를 커서 위치에 넣고, 미리보기의 링크를 누르면 그 카드의 편집 화면으로 간다. 연관 설정 목록에는 본문 링크로 이어진 카드도 들어간다.
  * - 오른쪽: AI 채팅(전송은 연결 전이라 '준비 중').
  * 삭제는 초안 변경이라 확인(함께 지워질 관계 수)을 거친 뒤 설정집으로 돌아가고 되돌릴 수 있으며, 세계관 저장으로 서버에 반영한다.
@@ -223,6 +223,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                         <p id={`${listId}-reveal`} className="small muted">{unlinkedHelp}</p>
                       </>
                     )}
+                    {!orderIssues.length && <p className="small muted">공개 순서 문제 없음</p>}
                     <p className="small muted">저장 후 ‘확정 버전 남기기’를 해야 반영돼요.</p>
                   </section>
                 )}

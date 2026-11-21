@@ -1,3 +1,4 @@
+import { textWidth as labelWidth } from '../../../shared/textWidth'
 import { createGrid, type Box } from './canvasLayout'
 
 /** 이름표를 붙일 노드(그래프 좌표): 중심, 점 지름(`d`), 이름, 글자 크기(`size`, 화면 px), 우선순위(`degree`: 이어진 관계 수이고, 큰 값이 먼저 자리를 잡는다. 강조한 이웃에는 더 큰 값을 넘긴다). */
@@ -9,12 +10,8 @@ export type Label = { id: string; x: number; y: number; size: number }
 /** 노드와 이름표 사이 간격(화면 px). */
 const LABEL_GAP = 4
 
-/** 이름표 글자 폭 어림(화면 px): 한글·한자 같은 넓은 글자는 한 칸(글자 크기), 영문·숫자·기호는 약 0.56칸이다. */
-export function labelWidth(name: string, size: number) {
-  let width = 0
-  for (const char of name) width += (char.codePointAt(0) ?? 0) > 0x2e7f ? size : size * 0.56
-  return width
-}
+/** 이름표 글자 폭 어림(화면 px): 카드별 관계도와 같은 `shared/textWidth`다. */
+export { labelWidth }
 
 /**
  * 이름표를 놓는다(화면 좌표, 결정적). 이름표는 확대 배율을 따라 커지지 않고 노드 바로 아래 화면 4px에 붙으므로 겹침도 화면에서 가린다:

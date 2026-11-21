@@ -1,5 +1,5 @@
 import type { StudioSetting } from '../../../../domain/entities/studioWorld'
-import { relationDefinitions, relationLabel } from '../../../../domain/entities/studioRelations'
+import { relationDefinitions, relationShortName } from '../../../../domain/entities/studioRelations'
 import { buildWorldMap, mapEndpoint, type MapLink, type MapNode } from './useWorldMapViewModel'
 import { cardTypeOf, cardTypes, type CardType } from '../../../../domain/entities/studioCards'
 
@@ -10,7 +10,7 @@ export function buildSettingRelationshipMap(settings:StudioSetting[]) {
  return relationshipMap(settings,settings.filter(s=>cardTypes.some(t=>t.id===cardTypeOf(s.item))))
 }
 function relationshipMap(settings:StudioSetting[],cards:StudioSetting[]) {
- const byId=new Map(cards.map(s=>[s.item.id,s.item]))
+ const byId=new Map(cards.map(s=>[s.item.id,s.item])),titleOf=(id:string|null)=>id?byId.get(id)?.title:undefined
  const nodes=buildWorldMap(cards).nodes.map(n=>{
   const item=byId.get(n.id)
   return {...n,name:item?.title||(n.kind==='인물'?'새 인물':'새 설정'),unnamed:!item?.title.trim(),type:item&&cardTypes.find(t=>t.id===cardTypeOf(item))?.id}
@@ -19,7 +19,7 @@ function relationshipMap(settings:StudioSetting[],cards:StudioSetting[]) {
  let missingLinks=0
  for(const {item} of settings.filter(s=>s.item.kind==='relation'&&s.item.decision==='approved')) {
   if(!item.subjectId||!item.targetId||item.subjectId===item.targetId||!ids.has(item.subjectId)||!ids.has(item.targetId)){missingLinks++;continue}
-  const fullLabel=relationLabel(item),label=Array.from(fullLabel).length>10?Array.from(fullLabel).slice(0,10).join('')+'…':fullLabel
+  const fullLabel=relationShortName(item,titleOf),label=Array.from(fullLabel).length>10?Array.from(fullLabel).slice(0,10).join('')+'…':fullLabel
   links.push({id:item.id,source:item.subjectId,target:item.targetId,label,fullLabel,description:item.text,symmetric:!!relationDefinitions[item.predicate??'']?.symmetric})
  }
  return {nodes,links,missingLinks}

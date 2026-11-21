@@ -567,11 +567,19 @@ it('관계도 보기의 안내문은 묶음(.relationship-notes)으로 캔버스
   expect(mediaRule('(max-width:600px),(pointer:coarse)', '.ep-content[data-view=people] .relationship-hint')).toBe('')
 })
 
-it('시간선은 가로 시간축이다: 설명은 컨테이너가 880px 이상이면 오른쪽 320px 패널이고 좁으면 아래이며, 접힌 열 버튼(사건 N)은 알약 모양이고, 구간 이동 줄은 좁으면 줄바꿈한다', () => {
+it('시간선은 가로 시간축이다: 설명은 컨테이너가 640px 이상이면 오른쪽 280px 패널이고 좁으면 아래(스크롤 상자도 낮춰 설명이 가까이 보인다)이며, 접힌 열 버튼(사건 N)은 알약 모양이고, 구간 이동 줄은 좁으면 줄바꿈한다', () => {
   expect(timelineCss).toMatch(/\.world-timeline\{[^}]*container-type:inline-size/) // 사이드바를 접고 펴도 컨테이너 폭으로 맞는다
-  expect(timelineCss).toMatch(/@container \(min-width:880px\)\{\.world-timeline-body\{grid-template-columns:minmax\(0,1fr\) 320px\}\}/)
+  expect(timelineCss).toMatch(/@container \(min-width:640px\)\{\.world-timeline-body\{grid-template-columns:minmax\(0,1fr\) 280px\}\}/)
+  expect(timelineCss).toMatch(/@container \(max-width:639px\)\{\.world-timeline-scroll\{max-height:clamp\(240px,40vh,400px\)\}\}/) // 좁아 설명이 아래로 가면 보드를 낮춰 가까이 둔다
+  expect(timelineCss).not.toContain('880px')
   expect(timelineCss.match(/\.world-timeline-body\{([^}]*)\}/)?.[1]).toMatch(/display:grid/)
   expect(timelineCss.match(/\.world-timeline-more\{([^}]*)\}/)?.[1]).toMatch(/border-radius:999px/)
   expect(timelineCss.match(/\.world-timeline-pager\{([^}]*)\}/)?.[1]).toMatch(/flex-wrap:wrap/)
   expect(timelineCss.match(/\.world-timeline-board svg\{([^}]*)\}/)?.[1]).toMatch(/pointer-events:none/) // 눈금·선이 사건 버튼 누르기를 가리지 않는다
+})
+
+it('헤더 버튼 줄(.acts)은 한 줄로 흐른다: 독자 시점 안내문이 줄 전체(flex-basis:100%)를 차지해 버튼이 세로로 쌓이지 않는다', () => {
+  expect(css).toMatch(/\.episode-app \.world-manage-hero \.acts\{[^}]*flex-wrap:wrap/)
+  expect(css).not.toContain('acts-note')
+  expect(css).not.toMatch(/\.world-manage-hero[^{]*\{[^}]*flex-basis:100%/)
 })

@@ -3,6 +3,7 @@ import { cardLinkMarkdown } from '../../../../domain/entities/cardLinks'
 import { putRelation } from '../../../../domain/entities/studioRelations'
 import { newSetting } from '../../../../domain/entities/studioWorld'
 import { cardRelationEntries } from './cardRelationEntries'
+import type { SettingItem } from '../../../../domain/entities/studioWorld'
 
 const card = (title: string, section: 'people' | 'places' = 'people') => { const row = newSetting(section); row.item.title = title; return row }
 
@@ -34,4 +35,21 @@ it('본문 링크의 대상 카드가 지워졌으면 그 항목은 없다(없�
   const [a, gone] = [card('가'), card('나')]
   a.item.text = cardLinkMarkdown(gone.item.id, '나')
   expect(cardRelationEntries([a], a.item.id)).toEqual([])
+})
+
+const pair = (over: Partial<SettingItem> & { predicate: string }) => {
+  const [a, b] = [card('길동'), card('길현')]
+  const rows = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, polarity: 'asserted', ...over })
+  return cardRelationEntries(rows, a.item.id)[0].steps[0]
+}
+
+it('서버에서 읽은 자유 관계는 이름이 항목 이름(label)이고 본문은 body로 따로 둔다 — 본문이 이름으로 나오지 않는다', () => {
+  expect(pair({ predicate: 'custom_relation_directed', title: '이복형', text: '길동은 초부석을 들어 올려 이복형 길현에게 보였다.', fromEpisode: 2 }))
+    .toEqual({ name: '이복형', episode: 2, body: '길동은 초부석을 들어 올려 이복형 길현에게 보였다.' })
+})
+
+it('이름 없이 만든 자유 관계는 관계 문구가 이름이고 본문은 없다. 정해진 관계는 정의 이름이고 직접 쓴 설명만 본문이다', () => {
+  expect(pair({ predicate: 'custom_relation_directed', text: '친구' })).toEqual({ name: '친구', episode: null })
+  expect(pair({ predicate: 'friend_of' })).toEqual({ name: '친구', episode: null }) // 자동으로 지은 설명은 본문이 아니다
+  expect(pair({ predicate: 'friend_of', text: '어릴 적부터 함께 자랐다.' })).toEqual({ name: '친구', episode: null, body: '어릴 적부터 함께 자랐다.' })
 })

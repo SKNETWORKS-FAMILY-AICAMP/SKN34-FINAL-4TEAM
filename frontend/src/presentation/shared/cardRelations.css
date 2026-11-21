@@ -4,7 +4,7 @@
 .card-relmap-tabs button[role=tab]{padding:4px 12px;border:1px solid var(--line3);border-radius:999px;background:var(--surface);color:var(--sub);font:inherit;font-size:13px;cursor:pointer}
 .card-relmap-tabs button[role=tab][aria-selected=true]{border-color:var(--pri);color:var(--pri-ink);font-weight:700}
 .card-relmap-tabs select{padding:4px 8px;border:1px solid var(--line3);border-radius:8px;background:var(--surface);color:var(--sub);font:inherit;font-size:13px}
-.card-relmap-svg{width:100%;max-width:560px;height:auto;color:var(--line3)}
+.card-relmap-svg{width:100%;max-width:640px;height:auto;color:var(--line3)}
 .card-relmap-svg line{stroke:currentColor;stroke-width:1;vector-effect:non-scaling-stroke}
 .card-relmap-svg text{fill:var(--ink);font-size:12px;paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 .card-relmap-svg .card-relmap-edge{fill:var(--sub);font-size:11px}
@@ -13,7 +13,8 @@
 .card-relmap-node{cursor:pointer}.card-relmap-node:hover circle{stroke:var(--ink);stroke-width:2px}
 .card-relmap-list,.card-relmap-events ul{margin:0;padding-left:20px;display:grid;gap:4px}
 .card-relmap-link{padding:0;border:0;background:none;color:var(--pri-ink);font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-.card-relmap-events summary{cursor:pointer;color:var(--sub)}
+.card-relmap-events summary,.card-relmap-more summary{cursor:pointer;color:var(--sub)}
+.card-relmap-more{display:inline-block;margin-left:8px;font-size:13px;vertical-align:top}.card-relmap-more[open]{display:block;margin:4px 0 0}.card-relmap-more p{margin:4px 0}.card-relmap-more ul{margin:4px 0 0;padding-left:16px;display:grid;gap:2px;color:var(--sub)}
 .card-relmap-empty{margin:0}
 /* 전역 터치 보정(누르는 칸 44px·입력 16px)을 위 규칙이 다시 정하므로 터치 기기에서는 이 화면이 직접 보정한다. */
 @media(pointer:coarse){.card-relmap-tabs button[role=tab],.card-relmap-tabs select{min-height:44px}.card-relmap-tabs select{font-size:16px}}

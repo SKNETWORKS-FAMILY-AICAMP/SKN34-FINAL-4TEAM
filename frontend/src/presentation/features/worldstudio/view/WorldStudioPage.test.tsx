@@ -3738,6 +3738,7 @@ it('이른 카드의 글에 더 늦게 공개되는 카드의 이름이 나오�
   expect(todos('궁궐')).toEqual(['공개 순서 확인'])
   expect(todos('승상')).toEqual([])
   openCard('궁궐 장소')
+  expect(editor().queryByText('공개 순서 문제 없음')).toBeNull() // 문제가 있으면 경고 절만 보인다
   const panel = () => within(editor().getByRole('region', { name: '공개 순서 확인' }))
   expect(panel().getByRole('listitem').textContent).toBe('본문에 ‘승상’이(가) 나와요. 승상 카드는 5화부터 공개인데 이 글은 1화부터 독자에게 보여요.')
   fireEvent.change(editor().getByRole('textbox', { name: '설명' }), { target: { value: '승상이 사는 곳!' } }) // 이름이 그대로 있어 경고는 남는다
@@ -4488,7 +4489,7 @@ it('관계도 보기에서 적용하지 않은 관계 입력이 있으면 세계
   expect(screen.getAllByText('관계 입력 미적용')).toHaveLength(1)
 })
 
-it('카드 편집 화면의 연관 설정·관계 절은 관계 수·관계 편집(모든 유형)·카드별 관계도·간단 목록이고, 공개 순서는 문제가 없으면 한 줄이다', async () => {
+it('카드 편집 화면의 연관 설정·관계 절은 관계 수·관계 편집(모든 유형)·카드별 관계도·간단 목록이고, 공개 순서는 문제가 없으면 공개 범위 칸의 한 줄이다', async () => {
   const [garam, narae, harbor] = [person('가람'), person('나래'), place('항구')]
   await show(friends([garam, narae, harbor], garam, narae))
   openCard('가람 인물')
@@ -4496,7 +4497,8 @@ it('카드 편집 화면의 연관 설정·관계 절은 관계 수·관계 편�
   expect(links.getByRole('heading', { name: /연관 설정·관계/ }).textContent).toContain('관계 1')
   expect(links.getByRole('list', { name: '관계 목록' }).textContent).toContain('나래 — 친구')
   expect(document.querySelector('svg.card-relmap-svg')?.getAttribute('aria-hidden')).toBe('true')
-  expect(editor().getByText('공개 순서 문제 없음')).toBeTruthy()
+  expect(within(editor().getByRole('region', { name: '공개 범위' })).getByText('공개 순서 문제 없음')).toBeTruthy() // 이름 입력 위가 아니라 공개 범위 칸 안의 한 줄
+  expect(editor().getAllByText('공개 순서 문제 없음')).toHaveLength(1) // 맨 위(이름 입력 위)에는 따로 없다
   expect(editor().queryByRole('region', { name: '공개 순서 확인' })).toBeNull()
   fireEvent.click(links.getByRole('button', { name: '관계 편집' }))
   expect(await screen.findByRole('region', { name: '관계 편집' })).toBeTruthy() // 기존 관계 편집(관계도 화면)으로 간다

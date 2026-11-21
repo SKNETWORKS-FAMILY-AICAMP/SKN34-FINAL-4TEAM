@@ -9,10 +9,20 @@ import { mapEndpoint, type MapLink, type MapNode } from './useWorldMapViewModel'
 
 /** 노드 반지름(그래프 단위, 크기 슬라이더가 1일 때): 관계가 가장 많은 노드가 최대, 관계가 없으면 최소다. 지름이 √(관계 수)에 비례해 늘어난다(관계 수에 비례해 늘리면 허브가 화면을 덮는다). 허브는 확실히 크다. */
 export const NODE_R_MIN = 4, NODE_R_MAX = 24
-/** 화면 반지름의 최솟값(px): 수백 노드를 한눈에 볼 만큼 멀어져도 점이 사라지지 않는다. */
-export const NODE_SCREEN_MIN = 3
-/** 그릴 반지름(그래프 단위): 배율 `k`에서 화면 `NODE_SCREEN_MIN` 아래로 줄지 않는다. */
-export const drawRadius = (radius: number, k: number) => Math.max(radius, NODE_SCREEN_MIN / k)
+/** 화면 반지름의 범위(px): 하한은 수백 노드를 한눈에 볼 만큼 멀어져도 점이 사라지지 않게, 상한(크기 슬라이더 1 기준)은 확대해도 지름 150~240px의 거대한 원이 되지 않게 한다. */
+export const NODE_SCREEN_MIN = 3, NODE_SCREEN_MAX = 24
+/**
+ * 그릴 반지름(그래프 단위): 배율 `k`에서 화면 반지름이 `NODE_SCREEN_MIN`~`NODE_SCREEN_MAX × size`(`size` = 크기 슬라이더 배수) 안이 되게 묶는다(화면 px를 `k`로 나눈 값).
+ * 범위 안이면 `radius` 그대로다. 겹침 방지 힘도 같은 값을 쓴다(화면에 그려진 크기 기준).
+ */
+export const drawRadius = (radius: number, k: number, size = 1) => Math.max(NODE_SCREEN_MIN / k, Math.min(radius, (NODE_SCREEN_MAX * size) / k))
+/** 맞춤의 최대 확대 배율: 노드가 적은 세계관이 화면 가득 거대하게 확대되지 않게 한다(큰 세계관은 화면에 맞춰 줄어든다). */
+export const FIT_MAX_ZOOM = 1.5
+/** 노드 좌표의 상자(`getGraphBbox`)를 `width`×`height` 화면에 여백 `padding`(px)을 두고 맞추는 중심·배율: force-graph의 `zoomToFit`과 같되 배율이 `FIT_MAX_ZOOM`을 넘지 않는다. */
+export function fitView(bbox: { x: readonly [number, number]; y: readonly [number, number] }, width: number, height: number, padding: number) {
+  const k = Math.min(FIT_MAX_ZOOM, (width - 2 * padding) / (bbox.x[1] - bbox.x[0]), (height - 2 * padding) / (bbox.y[1] - bbox.y[0]))
+  return { x: (bbox.x[0] + bbox.x[1]) / 2, y: (bbox.y[0] + bbox.y[1]) / 2, k }
+}
 export const nodeRadius = (degree: number, maxDegree: number, size = 1) => (NODE_R_MIN + (NODE_R_MAX - NODE_R_MIN) * (maxDegree > 0 ? Math.sqrt(Math.min(degree, maxDegree) / maxDegree) : 0)) * size
 
 /** 카드마다 이어진 관계 수: 관계 하나가 양쪽 끝 카드에 한 번씩 더해진다. 그래프에 없는 끝점은 세지 않는다. */

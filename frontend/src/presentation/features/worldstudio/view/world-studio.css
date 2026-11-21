@@ -9,7 +9,6 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .episode-app .world-manage-hero{padding-bottom:12px}
 .episode-app .world-manage-hero .sum{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:16px 0 8px}
 .episode-app .world-manage-hero .acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px}
-.episode-app .world-manage-hero .acts-note{flex-basis:100%;margin:0}
 /* 650px 이하: 히어로가 1열이 되면 표지(공용 .ep-hero-cover는 220px, 3:4)가 첫 화면을 다 차지해 고른 탭의 내용이 화면 밖이다. 표지는 개요 탭에서 크게 보고 바꾸므로 헤더의 표지는 72px로 줄여 제목 옆에 둔다:
    .ep-hero-main을 풀어(display:contents) 제목 줄만 표지 옆 열에 두고 칩·소개·버튼은 두 열을 가로지른다. 이 화면의 표지만 줄이고 /content 작품 관리 표지는 그대로 둔다. */
 @media(max-width:650px){.episode-app .world-manage-hero.ep-hero{grid-template-columns:72px minmax(0,1fr);gap:12px 16px}.episode-app .world-manage-hero .ep-hero-cover{max-width:none}.episode-app .world-manage-hero .ep-hero-main{display:contents}.episode-app .world-manage-hero .ep-hero-main>:not(.ep-title-row){grid-column:1/-1}}
@@ -428,4 +427,3 @@ a.world-card-link{text-decoration:none}
 @media(pointer:coarse){.episode-app .world-compact input:not([type=checkbox]):not([type=radio]),.episode-app .world-compact select,.world-rail-tools input{font-size:16px}}
 .world-card-links-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.world-card-links-head h4{margin:0}
 .world-reach-badge{margin-left:8px;font-weight:600}
-.world-order-ok{margin:12px 0 0}

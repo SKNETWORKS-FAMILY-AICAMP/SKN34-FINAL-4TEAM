@@ -1,5 +1,5 @@
 import { cardTypeOf, type CardType } from '../../../../domain/entities/studioCards'
-import { relationLabel } from '../../../../domain/entities/studioRelations'
+import { relationShortName } from '../../../../domain/entities/studioRelations'
 import { cardRevealEpisode, type SettingItem, type StudioSetting } from '../../../../domain/entities/studioWorld'
 import { KNOWLEDGE_KINDS } from './relationView'
 
@@ -51,10 +51,11 @@ export function buildTimeline(settings: readonly StudioSetting[]): Timeline {
     depths.set(id, value)
     return value
   }
+  const titleOf = (id: string | null) => (id ? cards.get(id)?.item.title : undefined)
   const participantsOf = (id: string): Participant[] => {
     const seen = new Set<string>(), out: Participant[] = []
     for (const r of touching.get(id) ?? []) {
-      if (KNOWLEDGE_KINDS.includes(relationLabel(r.item))) continue // 정보 관계는 참여가 아니다
+      if (KNOWLEDGE_KINDS.includes(relationShortName(r.item, titleOf))) continue // 정보 관계는 참여가 아니다(서버에서 읽은 관계의 이름은 label이다)
       const other = r.item.subjectId === id ? r.item.targetId : r.item.subjectId, found = other ? cards.get(other) : undefined
       const type = found && cardTypeOf(found.item)
       if (found && (type === 'character' || type === 'location') && !seen.has(found.item.id)) { seen.add(found.item.id); out.push({ id: found.item.id, title: found.item.title, type }) }

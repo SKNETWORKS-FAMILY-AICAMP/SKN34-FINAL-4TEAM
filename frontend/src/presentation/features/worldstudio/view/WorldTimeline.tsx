@@ -11,9 +11,9 @@ const COL_W = 132, AXIS_Y = 24, DOT_Y = 64, ROW_H = 92
 const EVENT_COLOR = CARD_COLORS[CARD_KIND.event]
 
 /**
- * 시간선(가로 시간축): 저장한 설정의 사건을 회차 열로 묶어 왼쪽→오른쪽으로 놓고(같은 회차는 같은 열 위아래), 축 위에 회차 눈금, 사건 점은 한 줄 시간선으로 잇고 afterId는 굵은 화살표를 더한다.
+ * 시간선(가로 시간축): 저장한 설정의 사건을 회차 열로 묶어 왼쪽→오른쪽으로 놓고(같은 회차는 같은 열 위아래), 축 위에 회차 눈금이 있다. 선은 열마다 축에서 그 열의 마지막 사건까지 세로 한 줄뿐이고 열과 열은 축(눈금 줄)만으로 이어진다(열 사이를 잇는 대각선 없음). afterId 선후만 얇은 곡선 화살표다.
  * 한 쪽에 회차 열 20개만 그리고(이전·다음 구간), 한 열에 사건이 6개를 넘으면 '사건 N' 한 줄로 접어 사건 1,600개에도 DOM이 수백 개 이하다. 정렬 규칙은 `buildTimeline`이다.
- * 가로로 스크롤하고(휠은 가로로 바꾸지 않는다) 방향키(←→↑↓)로 사건을 오가며 Enter가 고른다(aria-pressed). 고른 사건의 설명은 넓으면 오른쪽 패널, 좁으면 아래에 놓인다(CSS 컨테이너 쿼리).
+ * 가로로 스크롤하고(휠은 가로로 바꾸지 않는다) 방향키(←→↑↓)로 사건을 오가며 Enter가 고른다(aria-pressed). 고른 사건의 설명은 넓으면(컨테이너 640px 이상) 오른쪽 패널, 좁으면 아래에 놓인다(CSS 컨테이너 쿼리).
  * 시간축 SVG는 상자 크기를 재서 그리고(`useElementSize`: 사이드바 접기·창 크기로 바뀌면 다시) 크기가 0이면 그리지 않는다.
  */
 export function WorldTimeline({ settings, onOpenCard }: { settings: readonly StudioSetting[]; onOpenCard?: (id: string) => void }) {
@@ -33,15 +33,14 @@ function TimelineBoard({ timeline, settings, onOpenCard }: { timeline: Timeline;
   const columns = timeline.columns.slice(at * PAGE_COLUMNS, (at + 1) * PAGE_COLUMNS)
 
   // 놓을 것: 열마다 (접을 수 있는 열이면 맨 위 '사건 N' 줄 + 펼쳤을 때 사건들) 행 번호를 정한다.
-  const dots = new Map<string, { x: number; y: number }>(), points: { x: number; y: number }[] = [], stops: string[] = []
+  const dots = new Map<string, { x: number; y: number }>(), stops: string[] = []
   let rows = 1
   const placed = columns.map((col, c) => {
     const heavy = col.events.length > COLUMN_CAP, shown = !heavy || open.has(col.key), x = c * COL_W + COL_W / 2
     if (heavy) stops.push('more:' + col.key)
-    const events = shown ? col.events.map((event, i) => { const y = DOT_Y + (i + (heavy ? 1 : 0)) * ROW_H; dots.set(event.item.id, { x, y }); points.push({ x, y }); stops.push(event.item.id); return { event, y } }) : []
-    if (heavy && !shown) points.push({ x, y: DOT_Y })
+    const events = shown ? col.events.map((event, i) => { const y = DOT_Y + (i + (heavy ? 1 : 0)) * ROW_H; dots.set(event.item.id, { x, y }); stops.push(event.item.id); return { event, y } }) : []
     rows = Math.max(rows, events.length + (heavy ? 1 : 0))
-    return { col, heavy, shown, x, events }
+    return { col, heavy, shown, x, events, stem: events.length ? events[events.length - 1].y : DOT_Y } // 세로 줄은 축에서 마지막 사건(접힌 열은 '사건 N' 버튼)까지
   })
   const active = stopId && stops.includes(stopId) ? stopId : stops.includes(current.item.id) ? current.item.id : stops[0]
   const width = columns.length * COL_W, height = DOT_Y + rows * ROW_H + 8
@@ -71,11 +70,10 @@ function TimelineBoard({ timeline, settings, onOpenCard }: { timeline: Timeline;
           <div className="world-timeline-board" style={{ width, height }}>
             {size.w > 0 && (
               <svg width={svgWidth} height={height} aria-hidden="true">
-                <defs><marker id="timeline-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" /></marker></defs>
+                <defs><marker id="timeline-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" /></marker></defs>
                 <line x1={0} y1={AXIS_Y} x2={svgWidth} y2={AXIS_Y} stroke="currentColor" strokeWidth={1} />
-                {placed.map(({ col, x }) => <g key={col.key}><line x1={x} y1={AXIS_Y - 4} x2={x} y2={AXIS_Y + 4} stroke="currentColor" strokeWidth={1} /><text x={x} y={AXIS_Y - 9} textAnchor="middle">{col.label}</text></g>)}
-                {points.length > 1 && <polyline points={points.map((p) => p.x + ',' + p.y).join(' ')} fill="none" stroke="currentColor" strokeWidth={1.5} />}
-                {drawn.map((a) => { const from = dots.get(a.from)!, to = dots.get(a.to)!; return <path key={a.from + '>' + a.to} d={'M ' + from.x + ' ' + from.y + ' Q ' + ((from.x + to.x) / 2 + (from.x === to.x ? 30 : 0)) + ' ' + ((from.y + to.y) / 2 + 36) + ' ' + to.x + ' ' + to.y} fill="none" stroke="currentColor" strokeWidth={2.5} markerEnd="url(#timeline-arrow)" /> })}
+                {placed.map(({ col, x, stem }) => <g key={col.key}><line x1={x} y1={AXIS_Y - 4} x2={x} y2={AXIS_Y + 4} stroke="currentColor" strokeWidth={1} /><text x={x} y={AXIS_Y - 9} textAnchor="middle">{col.label}</text><line className="world-timeline-stem" x1={x} y1={AXIS_Y} x2={x} y2={stem} stroke="currentColor" strokeWidth={1.5} /></g>)}
+                {drawn.map((a) => { const from = dots.get(a.from)!, to = dots.get(a.to)!; return <path key={a.from + '>' + a.to} d={'M ' + from.x + ' ' + from.y + ' Q ' + ((from.x + to.x) / 2 + (from.x === to.x ? 30 : 0)) + ' ' + ((from.y + to.y) / 2 + 36) + ' ' + to.x + ' ' + to.y} fill="none" stroke="currentColor" strokeWidth={1.25} markerEnd="url(#timeline-arrow)" /> })}
               </svg>
             )}
             {placed.flatMap(({ col, heavy, shown, x, events }) => [

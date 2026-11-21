@@ -418,13 +418,13 @@ it('배치 정돈은 노드를 중심 근처에 다시 놓고 고정을 풀어 �
  for (const n of data().nodes) { expect(Math.hypot(n.x!, n.y!)).toBeLessThan(40); expect([n.vx, n.vy, n.fx, n.fy]).toEqual([0, 0, undefined, undefined]) }
  expect(fg.methods.d3ReheatSimulation).toHaveBeenCalledTimes(1)
  fireEvent.click(screen.getByRole('button', { name: '화면 맞춤' }))
- expect(fg.methods.zoomToFit).toHaveBeenCalledTimes(1)
+ expect(fg.methods.getGraphBbox).toHaveBeenCalledTimes(1)
  act(() => props().onBackgroundRightClick(mouse()))
  fireEvent.click(menuItem('배치 정돈'))
  expect(fg.methods.d3ReheatSimulation).toHaveBeenCalledTimes(2)
  act(() => props().onBackgroundRightClick(mouse()))
  fireEvent.click(menuItem('화면 맞춤'))
- expect(fg.methods.zoomToFit).toHaveBeenCalledTimes(2)
+ expect(fg.methods.getGraphBbox).toHaveBeenCalledTimes(2)
 })
 
 it('노드를 오른쪽 클릭하면 그 노드의 메뉴가 열려 정보 편집·관계 연결·삭제가 기존 동작을 부르고, 삭제가 잠기면 이유를 보인다', () => {
@@ -619,21 +619,51 @@ it('설정 찾기 요청이 오면 그 노드를 화면 가운데로 옮기고 �
 
 it('첫 화면: 첫 틱에 곧바로 전체를 맞추고, 배치가 처음 멈추면 한 번 더 맞춘다. 그 사이 사용자가 휠로 움직였으면 그대로 둔다', () => {
  render(<Graph rows={triangle().rows} editing={actions()} />)
+ spread()
  act(() => props().onEngineTick())
- expect(fg.methods.zoomToFit).toHaveBeenCalledTimes(1)
- expect(fg.methods.zoomToFit).toHaveBeenLastCalledWith(0, expect.any(Number))
+ expect(fg.methods.getGraphBbox).toHaveBeenCalledTimes(1)
+ expect(fg.methods.centerAt).toHaveBeenLastCalledWith(expect.any(Number), expect.any(Number), 0) // 첫 틱은 애니메이션 없이 곧바로
+ expect(fg.methods.zoom).toHaveBeenLastCalledWith(expect.any(Number), 0)
  act(() => props().onEngineTick())
- expect(fg.methods.zoomToFit).toHaveBeenCalledTimes(1) // 첫 틱에만
+ expect(fg.methods.getGraphBbox).toHaveBeenCalledTimes(1) // 첫 틱에만
  act(() => props().onEngineStop())
- expect(fg.methods.zoomToFit).toHaveBeenCalledTimes(2)
+ expect(fg.methods.getGraphBbox).toHaveBeenCalledTimes(2)
  act(() => props().onEngineStop())
- expect(fg.methods.zoomToFit).toHaveBeenCalledTimes(2) // 처음 멈출 때만(드래그가 끝날 때마다 맞추지 않는다)
- cleanup(); fg.methods.zoomToFit.mockClear()
+ expect(fg.methods.getGraphBbox).toHaveBeenCalledTimes(2) // 처음 멈출 때만(드래그가 끝날 때마다 맞추지 않는다)
+ cleanup(); fg.methods.getGraphBbox.mockClear()
  render(<Graph rows={triangle().rows} editing={actions()} />)
  act(() => props().onEngineTick())
  fireEvent.wheel(screen.getByRole('img', { name: /^관계도/ }))
  act(() => props().onEngineStop())
- expect(fg.methods.zoomToFit).toHaveBeenCalledTimes(1) // 움직인 화면은 두 번째로 맞추지 않는다
+ expect(fg.methods.getGraphBbox).toHaveBeenCalledTimes(1) // 움직인 화면은 두 번째로 맞추지 않는다
+})
+
+it('맞춤은 확대 배율을 1.5로 제한한다: 노드가 적은 작은 그래프가 화면 가득 거대하게 확대되지 않고 가운데에 모이며, 큰 그래프는 화면에 맞춰 줄어든다', () => {
+ render(<Graph rows={triangle().rows} editing={actions()} />)
+ data().nodes.forEach((n, i) => Object.assign(n, { x: i * 30 - 30, y: i * 20 - 20 })) // 가로 60·세로 40 안에 모인 그래프(그대로 맞추면 약 9.8배)
+ act(() => props().onEngineTick())
+ expect(fg.methods.centerAt).toHaveBeenLastCalledWith(0, 0, 0)
+ expect(fg.methods.zoom).toHaveBeenLastCalledWith(1.5, 0)
+ data().nodes.forEach((n, i) => Object.assign(n, { x: i * 2000 - 2000, y: 0 })) // 가로 4000
+ act(() => props().onEngineStop())
+ const [k] = fg.methods.zoom.mock.lastCall
+ expect(k).toBeCloseTo((800 - 2 * 64) / 4008, 5) // 상자 800에 여백 64씩(노드 반지름 4가 양끝에 더해진다)
+})
+
+it('겹침 방지의 반지름은 화면 기준으로 그린 반지름이다: 멀리서는 점이 3px 아래로 줄지 않는 만큼, 가까이서는 24px 상한만큼만 자리를 차지한다', () => {
+ const a = newSetting('people'), b = newSetting('people'); a.item.title = '가'; b.item.title = '나'
+ render(<Graph rows={[a, b]} editing={actions()} />) // 관계가 없는 두 점(외톨이는 점만 차지한다)
+ const [p, q] = data().nodes
+ const pushed = (k: number, gap: number) => {
+  act(() => props().onZoom({ k, x: 0, y: 0 }))
+  Object.assign(p, { x: 0, y: 0, vx: 0, vy: 0 }); Object.assign(q, { x: gap, y: 0, vx: 0, vy: 0 })
+  fg.forces.collide.initialize([p, q]); fg.forces.collide(1)
+  return q.vx!
+ }
+ expect(pushed(1, 20)).toBe(0) // 반지름 4+4+여백 4 = 12 < 20: 겹치지 않는다
+ expect(pushed(0.1, 20)).toBeGreaterThan(0) // 화면 3px ÷ 0.1 = 30: 겹쳐서 민다
+ expect(pushed(8, 11)).toBe(0) // 화면 상한 24px ÷ 8 = 3: 3+3+4 = 10 < 11
+ expect(pushed(1, 11)).toBeGreaterThan(0) // 같은 간격이라도 배율 1에서는 4+4+4 = 12 > 11이라 민다
 })
 
 it('그래프 데이터는 올리기·고정·패널 같은 화면 상태가 바뀌어도 같은 객체다(바뀌면 시뮬레이션이 처음부터 다시 돈다). 설정이 바뀌어 다시 만들어도 같은 설정의 노드는 같은 객체(배치를 잇는다)다', () => {
@@ -864,17 +894,17 @@ it('큰 세계관(보이는 노드 150개 초과)은 물리를 2초 안에 식�
 it('상자 크기가 바뀌면(사이드바 접기·AI 채팅 열기·창 크기) 캔버스 크기를 다시 재서 넘기고, 사용자가 움직이지 않았으면 다시 맞춘다', () => {
  render(<Graph rows={triangle().rows} editing={actions()} />)
  act(() => props().onEngineStop()) // 처음 맞춤이 끝났다
- fg.methods.zoomToFit.mockClear()
+ fg.methods.getGraphBbox.mockClear()
  canvasSize.w = 500; canvasSize.h = 420
  act(() => notifyResize())
  expect([props().width, props().height]).toEqual([500, 420])
- expect(fg.methods.zoomToFit).toHaveBeenCalled()
+ expect(fg.methods.getGraphBbox).toHaveBeenCalled()
  fireEvent.pointerDown(screen.getByRole('img', { name: /^관계도/ }), { pointerType: 'mouse' }) // 사용자가 움직였다
- fg.methods.zoomToFit.mockClear()
+ fg.methods.getGraphBbox.mockClear()
  canvasSize.w = 900
  act(() => notifyResize())
  expect(props().width).toBe(900)
- expect(fg.methods.zoomToFit).not.toHaveBeenCalled()
+ expect(fg.methods.getGraphBbox).not.toHaveBeenCalled()
 })
 
 it('노드가 60개 이하인 작은 세계는 위성을 접지 않는다(두 설정을 이으면 한쪽이 사라지지 않게): 패널이 이유를 알리고 모두 펼치기는 없다', () => {

@@ -96,3 +96,11 @@ it('큰 세계관(사건 1634·회차 199·관계 4732)도 한도 안에서 회�
   expect(Math.max(...timeline.columns.map((c) => c.events.length))).toBeLessThanOrEqual(9)
   expect(performance.now() - t0).toBeLessThan(3000)
 })
+
+it('서버에서 읽은 정보 관계(label이 알고 있음, 본문은 긴 문장)도 참여 칩에서 뺀다', () => {
+  const [e, hero, other] = [event('전투', 3), card('주인공'), card('목격자')]
+  let rows = [e, hero, other]
+  rows = putRelation(rows, { subjectId: hero.item.id, targetId: e.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', title: '참여', text: '주인공은 전투에 나섰다.' })
+  rows = putRelation(rows, { subjectId: other.item.id, targetId: e.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', title: '알고 있음', text: '목격자는 전투가 어떻게 끝났는지 안다.' })
+  expect(buildTimeline(rows).columns[0].events[0].participants.map((p) => p.title)).toEqual(['주인공'])
+})

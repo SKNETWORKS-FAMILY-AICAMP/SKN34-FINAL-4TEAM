@@ -128,3 +128,33 @@ it('시간축 SVG는 상자 크기를 재서 그리고(사이드바 접기·창 
   act(() => notifyResize())
   expect(region().querySelector('svg')).toBeNull()
 })
+
+it('선은 열마다 세로 한 줄(축에서 그 열의 마지막 사건 점까지)이고 열과 열 사이를 잇는 대각선은 없다 — 열 사이의 시간 흐름은 축 눈금만으로 보인다', () => {
+  render(<WorldTimeline settings={[event('가', 1), event('나', 1), event('다', 1), event('라', 2)]} />)
+  const svg = region().querySelector('svg')!
+  expect(svg.querySelector('polyline')).toBeNull() // 열 사이를 지그재그로 잇던 선
+  const stems = [...svg.querySelectorAll('line.world-timeline-stem')]
+  expect(stems.map((s) => [s.getAttribute('x1'), s.getAttribute('x2')])).toEqual([['66', '66'], ['198', '198']]) // 모두 세로(x가 같다), 열 가운데
+  expect(stems.map((s) => [s.getAttribute('y1'), s.getAttribute('y2')])).toEqual([['24', '248'], ['24', '64']]) // 1화 열은 셋째 사건(64+2×92)까지, 2화 열은 첫 사건까지
+  expect(svg.querySelectorAll('line:not(.world-timeline-stem)')).toHaveLength(1 + 2) // 축 하나 + 눈금 둘
+})
+
+it('접힌 열(사건 N)의 세로 줄은 그 버튼까지, 펼치면 마지막 사건까지다', () => {
+  const many = Array.from({ length: 8 }, (_, i) => event('많은' + i, 1))
+  render(<WorldTimeline settings={[...many, event('뒤', 2)]} />)
+  const stem = () => region().querySelector('line.world-timeline-stem')!
+  expect(stem().getAttribute('y2')).toBe(String(64 + 8 * 92)) // 펼친 열: 사건 N 줄 아래 사건 8개의 마지막
+  fireEvent.click(within(region()).getByRole('button', { name: '사건 8' }))
+  expect(stem().getAttribute('y2')).toBe('64') // 접힌 열: 사건 N 버튼까지
+})
+
+it('afterId 선후는 얇은 곡선 화살표(1.5px 이하)이고, 선후가 없으면 화살표가 없다', () => {
+  const first = event('건국', 1), second = event('전쟁', 2, { afterId: first.item.id })
+  render(<WorldTimeline settings={[first, second]} />)
+  const arrow = region().querySelector('svg path[marker-end]')!
+  expect(arrow.getAttribute('d')).toMatch(/^M [\d.]+ [\d.]+ Q /) // 곡선
+  expect(Number(arrow.getAttribute('stroke-width'))).toBeLessThanOrEqual(1.5)
+  cleanup()
+  render(<WorldTimeline settings={[event('가', 1), event('나', 2)]} />)
+  expect(region().querySelector('svg path[marker-end]')).toBeNull()
+})

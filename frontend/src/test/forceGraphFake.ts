@@ -46,11 +46,18 @@ export const fakeGraph = {
     this.forces = { charge: chain(), link: chain(), center: chain() }
     Object.assign(this.methods, {
       d3Force: vi.fn((name: string, fn?: unknown) => (fn === undefined ? this.forces[name] : (this.forces[name] = fn, this.methods))),
-      d3ReheatSimulation: vi.fn(), zoomToFit: vi.fn(), centerAt: vi.fn(), zoom: vi.fn((k?: number) => (k === undefined ? this.zoom : (this.zoom = k, this.methods))),
+      d3ReheatSimulation: vi.fn(), getGraphBbox: vi.fn(() => this.bbox()), centerAt: vi.fn(), zoom: vi.fn((k?: number) => (k === undefined ? this.zoom : (this.zoom = k, this.methods))),
       screen2GraphCoords: vi.fn((x: number, y: number) => ({ x: (x - 400) / this.zoom, y: (y - 300) / this.zoom })), graph2ScreenCoords: vi.fn((x: number, y: number) => ({ x: x * this.zoom + 400, y: y * this.zoom + 300 })),
     })
   },
   data() { return this.props!.graphData as { nodes: GNode[]; links: GLink[] } },
+  /** force-graph의 `getGraphBbox`처럼 노드 좌표의 상자(노드마다 반지름 4 여백)다. 좌표가 있는 노드가 없으면 null이다. */
+  bbox() {
+    const placed = this.data().nodes.filter((n) => n.x !== undefined && n.y !== undefined)
+    if (!placed.length) return null
+    const xs = placed.map((n) => n.x!), ys = placed.map((n) => n.y!)
+    return { x: [Math.min(...xs) - 4, Math.max(...xs) + 4] as [number, number], y: [Math.min(...ys) - 4, Math.max(...ys) + 4] as [number, number] }
+  },
   node(name: string) { const found = this.data().nodes.find((n) => n.name === name); if (!found) throw new Error('그래프에 노드가 없어요: ' + name); return found },
   /** 두 설정 사이의 선(방향 무관). 없으면 undefined다. */
   link(a: string, b: string) { const ids = [this.node(a).id, this.node(b).id].sort().join(); return this.data().links.find((l) => [endId(l.source), endId(l.target)].sort().join() === ids) },

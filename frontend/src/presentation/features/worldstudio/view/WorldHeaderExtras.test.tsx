@@ -19,6 +19,21 @@ it('독자 시점 미리보기: 소설을 연결하고 발행한 회차가 있�
   expect(screen.getByText('확정 버전과 발행 회차 기준이라 저장하지 않은 초안은 보이지 않아요')).toBeTruthy()
 })
 
+it('안내문은 보이는 줄이 아니라 버튼의 툴팁(title)과 aria-describedby로만 알린다(헤더 버튼이 세로로 쌓이지 않고 한 줄에 놓인다)', () => {
+  inRouter(<ReaderPreviewLink workId="w9" episode={7} />)
+  const link = screen.getByRole('link', { name: '7화까지 읽은 독자로 보기' })
+  const note = screen.getByText('확정 버전과 발행 회차 기준이라 저장하지 않은 초안은 보이지 않아요')
+  expect(note.className).toContain('sr-only')
+  expect(link.getAttribute('aria-describedby')).toBe(note.id)
+  expect(link.getAttribute('title')).toBe(note.textContent)
+  expect(document.querySelector('.acts-note')).toBeNull()
+  cleanup()
+  inRouter(<ReaderPreviewLink workId={null} episode={null} />)
+  const locked = screen.getByRole('button', { name: '독자 시점으로 보기' })
+  expect(locked.getAttribute('title')).toBe('소설을 연결하면 독자 시점으로 볼 수 있어요.') // 잠긴 이유도 툴팁으로
+  expect(screen.getByText('소설을 연결하면 독자 시점으로 볼 수 있어요.').className).toContain('sr-only')
+})
+
 it('소설 연결이 없거나 발행한 회차가 없으면 이유와 함께 잠긴다(링크가 아니다)', () => {
   const view = inRouter(<ReaderPreviewLink workId={null} episode={null} />)
   const locked = screen.getByRole('button', { name: '독자 시점으로 보기' }) as HTMLButtonElement

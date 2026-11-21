@@ -9,11 +9,15 @@ import type { CardKind } from './worldBoard'
 afterEach(cleanup)
 
 let n = 0
-const entry = (other: string, steps: [string, number | null][], kind: CardKind = '인물'): RelationEntry => ({ id: 'r' + ++n, otherId: other, otherTitle: other, otherKind: kind, steps: steps.map(([name, episode]) => ({ name, episode })) })
+const entry = (other: string, steps: [string, number | null, string?][], kind: CardKind = '인물'): RelationEntry => ({ id: 'r' + ++n, otherId: other, otherTitle: other, otherKind: kind, steps: steps.map(([name, episode, body]) => ({ name, episode, ...(body ? { body } : {}) })) })
 const center = { id: 'c', title: '홍길동', kind: '인물' as CardKind }
 const ui = (props: Partial<Parameters<typeof CardRelationMap>[0]> & { entries: RelationEntry[] }) => <MemoryRouter><CardRelationMap center={center} {...props} /></MemoryRouter>
 const svg = () => document.querySelector('svg.card-relmap-svg')!
-const listed = () => within(screen.getByRole('list', { name: '관계 목록' })).getAllByRole('listitem').map((li) => li.textContent)
+/** 간단 목록의 줄 글: 펼침(details) 안의 이력·본문은 뺀 보이는 한 줄이다. */
+const rowText = (li: HTMLElement) => [...li.childNodes].filter((node) => node.nodeName !== 'DETAILS').map((node) => node.textContent).join('')
+const listed = () => within(screen.getByRole('list', { name: '관계 목록' })).getAllByRole('listitem').filter((li) => li.parentElement?.getAttribute('aria-label') === '관계 목록').map((li) => rowText(li))
+
+const rowTextOf = (title: string) => rowText(screen.getByRole('button', { name: title }).closest('li')!)
 
 it('그림은 aria-hidden이고 둘레에는 사건이 아닌 이웃 최대 16명만 두며, 넘치는 수를 알리고 아래 목록에는 모두 있다', () => {
   const rows = Array.from({ length: 20 }, (_, i) => entry('이웃' + i, [['친구', i + 1]]))
@@ -27,12 +31,58 @@ it('그림은 aria-hidden이고 둘레에는 사건이 아닌 이웃 최대 16�
   expect(svg().textContent).toContain('홍길동') // 가운데 카드
 })
 
-it('같은 상대의 관계는 선 하나이고 선 위에는 가장 늦은 회차의 관계 이름(+외 N), 올리면 이력이 말풍선으로, 목록에는 상대 — 관계 이름 · N화부터가 보인다', () => {
+it('같은 상대의 관계는 선 하나이고 선 위에는 가장 늦은 회차의 관계 이름만, 올리면 외 N·이력이 말풍선으로, 목록에는 상대 — 관계 이름 · N화부터 · 외 N이 보인다', () => {
   render(ui({ entries: [entry('세라핀', [['경계', 1]]), entry('세라핀', [['보호', 3]])] }))
   expect(svg().querySelectorAll('line')).toHaveLength(1)
-  expect(svg().querySelector('.card-relmap-edge')!.textContent).toBe('보호 외 1')
-  expect(svg().querySelector('.card-relmap-node title')!.textContent).toBe('세라핀 — 경계(1화) → 보호(3화)')
-  expect(listed()).toEqual(['세라핀 — 보호 외 1 · 1화부터 경계(1화) → 보호(3화)'])
+  expect(svg().querySelector('.card-relmap-edge')!.textContent).toBe('보호') // 외 N은 선 위가 아니라 목록·말풍선에
+  expect(svg().querySelector('.card-relmap-node title')!.textContent).toBe('세라핀 — 보호 외 1 · 경계(1화) → 보호(3화)')
+  expect(listed()).toEqual(['세라핀 — 보호 · 1화부터 · 외 1'])
+})
+
+const longBody = '길현과 홍길동은 같은 아버지를 둔 이복형제로, 길동은 초부석을 들어 올려 이복형 길현에게 보였다.'
+it('선 위 글자는 관계 이름이고 관계 본문(긴 문장)이 아니다: 8자 넘는 이름은 말줄임이며, 본문은 말풍선과 펼친 목록 안에서만 보인다', () => {
+  render(ui({ entries: [entry('길현', [['이복형', 2, longBody]]), entry('초낭', [['초부석을 들어 올려 보였다', 3, '긴 설명 문장이다.']])] }))
+  const edges = [...svg().querySelectorAll('.card-relmap-edge')].map((t) => t.textContent)
+  expect(edges.sort()).toEqual(['이복형', '초부석을 들어 …'].sort())
+  expect([...svg().querySelectorAll('text')].map((t) => t.textContent).join('')).not.toContain('이복형제') // 그림에 그려지는 글자에는 본문이 없다(말풍선 title에만)
+  expect(svg().querySelector('.card-relmap-node title')!.textContent).toContain(longBody.slice(0, 20)) // 말풍선에는 본문 앞부분
+  expect(rowTextOf('길현')).toBe('길현 — 이복형 · 2화부터')
+  const more = screen.getByRole('button', { name: '길현' }).closest('li')!.querySelector('details')!
+  expect(more.open).toBe(false)
+  expect(within(more).getByText(longBody)).toBeTruthy() // 펼친 안에서만
+})
+
+it('간단 목록 줄은 상대 — 관계 이름 · N화부터 · 외 N이고, 이력(이름 위주)과 본문은 줄을 펼칠 때(자세히)만 보인다. 이력·본문이 없으면 펼침이 없다', () => {
+  render(ui({ entries: [
+    entry('길현', [['이복형', 2, '길현과 홍길동은 이복형제다.'], ['형님', 6, '길동은 길현을 형님이라 부른다.']]),
+    entry('길현', [['동행', 3]]), entry('길현', [['동료', 4]]), entry('길현', [['스승', 5]]), entry('길현', [['제자', 7]]),
+    entry('나래', [['친구', null]]),
+  ] }))
+  expect(listed()).toEqual(['길현 — 제자 · 2화부터 · 외 4', '나래 — 친구']) // 가장 늦은 회차(7화)의 이름이 대표다
+  const row = screen.getByRole('button', { name: '길현' }).closest('li')!, details = row.querySelector('details')!
+  expect(details.open).toBe(false)
+  expect(within(details).getByText('자세히').getAttribute('aria-label')).toBe('길현 관계 자세히') // 줄마다 같은 글자라 누구의 것인지 이름에 넣는다
+  expect(details.querySelector('p')!.textContent).toBe('이복형(2화) → 동행(3화) → 동료(4화) → 스승(5화) → 형님(6화) → 제자(7화)')
+  expect([...details.querySelectorAll('li')].map((li) => li.textContent)).toEqual(['형님 길동은 길현을 형님이라 부른다.']) // 본문은 현재 본문만
+  expect(screen.getByRole('button', { name: '나래' }).closest('li')!.querySelector('details')).toBeNull() // 이력·본문이 없다
+})
+
+it('이웃 이름은 방향마다 맞춤이 다르고(왼쪽 end·오른쪽 start·위아래 middle) 긴 이름은 말줄임이다(상자 안에 드는지는 nodeText 단위 시험이 본다)', () => {
+  const rows = Array.from({ length: 16 }, (_, i) => entry('다드 로드리고 가나다라마바사아자차카' + i, [['관계' + i, i + 1]]))
+  render(ui({ entries: rows }))
+  const texts = [...svg().querySelectorAll('.card-relmap-node text:not(.card-relmap-edge)')]
+  expect(texts).toHaveLength(16)
+  expect(new Set(texts.map((t) => t.getAttribute('text-anchor')))).toEqual(new Set(['start', 'end', 'middle']))
+  expect(texts.some((t) => t.textContent!.endsWith('…'))).toBe(true)
+})
+
+it('겹치는 선 이름은 숨기고(목록에 모두 있다) 겹치지 않는 것만 그린다', () => {
+  const rows = Array.from({ length: 16 }, (_, i) => entry('이웃' + i, [['아주 긴 관계 이름' + i, 1]]))
+  render(ui({ entries: rows }))
+  const edges = svg().querySelectorAll('.card-relmap-edge').length
+  expect(edges).toBeGreaterThan(0)
+  expect(edges).toBeLessThan(16)
+  expect(listed()).toHaveLength(16)
 })
 
 it('사건은 둘레에 두지 않고 함께한 사건 N(회차순, 접힘 목록)에 모은다', () => {
@@ -52,7 +102,7 @@ it('회차 탭: 전체·관계가 생기거나 바뀌는 회차가 있고 N화 �
   expect(listed()).toEqual(['가 — 경계 · 1화부터'])
   fireEvent.keyDown(tabs.getByRole('tab', { name: '1화' }), { key: 'ArrowRight' })
   expect(tabs.getByRole('tab', { name: '3화' }).getAttribute('aria-selected')).toBe('true')
-  expect(listed()).toEqual(['가 — 보호 · 1화부터 경계(1화) → 보호(3화)'])
+  expect(listed()).toEqual(['가 — 보호 · 1화부터'])
   fireEvent.keyDown(tabs.getByRole('tab', { name: '3화' }), { key: 'End' })
   expect(tabs.getByRole('tab', { name: '11화' }).getAttribute('aria-selected')).toBe('true')
   fireEvent.change(tabs.getByRole('combobox', { name: '더 많은 회차' }), { target: { value: '15' } })

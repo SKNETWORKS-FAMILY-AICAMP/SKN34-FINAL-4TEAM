@@ -45,7 +45,7 @@ export function nodeAlpha(id: string, s: PaintState) {
 /** 크기·이름표 순서의 기준: 관계 수 + 접힌 위성 수. */
 const weightOf = (node: GNode, s: PaintState) => node.degree + (s.folded.get(node.id) ?? 0)
 /** 그릴 반지름(그래프 단위): 지름이 √(기준)에 비례하고 어느 배율에서도 화면 3px 아래로 줄지 않는다. */
-const radiusOf = (node: GNode, s: PaintState, k: number) => drawRadius(nodeRadius(weightOf(node, s), s.maxDegree, s.settings.nodeSize), k)
+const radiusOf = (node: GNode, s: PaintState, k: number) => drawRadius(nodeRadius(weightOf(node, s), s.maxDegree, s.settings.nodeSize), k, s.settings.nodeSize)
 /** 이름표 글: 접힌 위성이 있는 허브는 '이름 +N'이다. */
 const labelText = (node: GNode, s: PaintState) => node.name + (s.folded.has(node.id) ? ' +' + s.folded.get(node.id) : '')
 

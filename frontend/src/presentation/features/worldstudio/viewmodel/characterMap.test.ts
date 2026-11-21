@@ -119,3 +119,12 @@ it('관계도 카드의 요약(노드 text)은 설정집 게시판 요약과 같
  expect(buildSettingRelationshipMap([a,b]).nodes[0].text).toBe(board)
  expect(buildCharacterMap([a,b]).nodes[0].text).toBe(board)
 })
+it('서버에서 읽은 자유 관계는 label(항목 이름)이 관계 이름이고 본문(text)은 설명이다 — 관계 종류가 본문 문장으로 갈리지 않는다',()=>{
+ const a=newSetting('people'),b=newSetting('people')
+ a.item.title='길동';b.item.title='길현'
+ const rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation_directed',polarity:'asserted',title:'알고 있음',text:'길동은 초부석을 들어 올려 이복형 길현에게 보였다.'})
+ const [link]=buildSettingRelationshipMap(rows).links
+ expect(link.fullLabel).toBe('알고 있음')
+ expect(link.label).toBe('알고 있음')
+ expect(link.description).toBe('길동은 초부석을 들어 올려 이복형 길현에게 보였다.')
+})

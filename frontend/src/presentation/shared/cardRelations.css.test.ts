@@ -6,7 +6,7 @@ const esc = (s: string) => s.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
 const rule = (selector: string) => css.match(new RegExp(esc(selector) + '\\{([^}]*)\\}'))?.[1] ?? ''
 
 it('카드별 관계도 그림은 상자 폭에 맞춰 줄고(고정 좌표 SVG) 선은 확대·축소와 상관없이 1px다', () => {
-  expect(rule('.card-relmap-svg')).toMatch(/width:100%;max-width:560px;height:auto/)
+  expect(rule('.card-relmap-svg')).toMatch(/width:100%;max-width:640px;height:auto/)
   expect(rule('.card-relmap-svg line')).toMatch(/stroke-width:1;vector-effect:non-scaling-stroke/)
   expect(rule('.card-relmap-svg line')).not.toMatch(/opacity/) // 흐리면 3:1 아래라 쓰지 않는다
 })

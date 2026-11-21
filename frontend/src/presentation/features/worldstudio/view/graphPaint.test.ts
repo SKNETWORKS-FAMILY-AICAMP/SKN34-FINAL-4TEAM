@@ -31,7 +31,7 @@ it('nodeAlpha: 강조 중이면 중심·이웃만 1이고 나머지는 흐리며
 
 it('paintNode는 지름이 크기 배수를 따르는 채운 원을 그리고 강조 밖은 흐리게(globalAlpha) 그린 뒤 알파를 되돌린다',()=>{
  const ctx=fakeCtx(),n=node('c',10,20,{degree:4})
- paintNode(n,ctx,2,state({maxDegree:4,settings:{...DEFAULT_SETTINGS,nodeSize:1.5},around:{id:'a',nodes:new Set(['a']),edges:new Set<string>()}}))
+ paintNode(n,ctx,1,state({maxDegree:4,settings:{...DEFAULT_SETTINGS,nodeSize:1.5},around:{id:'a',nodes:new Set(['a']),edges:new Set<string>()}}))
  expect(calls(ctx,'arc')[0]).toEqual(['arc',10,20,NODE_R_MAX*1.5,0,2*Math.PI]) // 관계가 가장 많은 노드의 반지름 × 1.5
  expect(sets(ctx,'fillStyle')[0]).toBe('#67caff')
  expect(sets(ctx,'globalAlpha')[0]).toBe(DIM)
@@ -55,6 +55,17 @@ it('paintNode: 어느 배율에서도 화면 반지름 3px 아래로 줄지 않�
  expect(radius(1)).toBe(NODE_R_MIN)
  expect(radius(0.1)).toBeCloseTo(30,6) // 화면 3px ÷ 0.1
  expect(radius(0.5,state({settings:{...DEFAULT_SETTINGS,nodeSize:0.4}}))).toBeCloseTo(6,6) // 4×0.4=1.6이라 화면 3px(÷0.5)로 올린다
+})
+
+it('paintNode: 확대해도 화면 반지름 24px(크기 배수만큼 상한도 커진다)를 넘지 않는다(지름 150~240px 거대한 원이 되지 않는다)',()=>{
+  const radius=(k:number,s=state({maxDegree:10}))=>{const ctx=fakeCtx();paintNode(node('c',0,0,{degree:10}),ctx,k,s);return calls(ctx,'arc')[0][3] as number}
+  expect(radius(1)).toBe(NODE_R_MAX) // 24px 그대로
+  expect(radius(5)*5).toBeCloseTo(24,6) // 확대 5배: 화면 24px(그래프 반지름 4.8)
+  expect(radius(8)*8).toBeCloseTo(24,6)
+  expect(radius(5,state({maxDegree:10,settings:{...DEFAULT_SETTINGS,nodeSize:2}}))*5).toBeCloseTo(48,6) // 슬라이더 2배면 상한도 48px
+  const small=(k:number)=>{const ctx=fakeCtx();paintNode(node('d',0,0,{degree:0}),ctx,k,state({maxDegree:10}));return (calls(ctx,'arc')[0][3] as number)*k}
+  expect(small(8)).toBeCloseTo(24,6) // 4×8=32px → 24px: 작은 노드도 상한을 넘지 않는다
+  expect(small(0.1)).toBeCloseTo(3,6) // 하한은 그대로
 })
 
 it('paintNode: 접힌 위성이 있는 허브는 접힌 수만큼 커지고(지름이 √(관계 수+접힌 수)에 비례, 최대를 넘지 않는다) 안쪽에 얇은 고리가 있다',()=>{

@@ -8,17 +8,19 @@ import { RelationContextMenu } from './RelationContextMenu'
 /**
  * 독자 시점 미리보기: 연결된 소설의 가장 뒤 발행 회차(`episode`)까지 읽은 독자가 보는 설정 위키(`/work/:id/wiki?upto=N`, 기존 `ReadingUseCase.linkedWorldCards` 경로)를 새 탭으로 연다. 새 화면을 만들지 않는다.
  * 소설 연결이 없거나 발행한 회차가 없으면 이유와 함께 잠긴다. 위키는 확정 버전과 발행 회차 기준이라 저장하지 않은 초안은 보이지 않는다.
+ * 안내문(이유)은 보이는 줄이 아니라 버튼의 툴팁(title)과 `aria-describedby`로만 알린다: 줄 전체를 차지해 헤더 버튼이 세로로 쌓이지 않게 한다.
  */
 export function ReaderPreviewLink({ workId, episode }: { workId: string | null; episode: number | null }) {
   const href = useHref(workId && episode ? '/work/' + workId + '/wiki?upto=' + episode : '/')
   const note = useId()
   const reason = !workId ? '소설을 연결하면 독자 시점으로 볼 수 있어요.' : episode ? '' : '발행한 회차가 없어요.'
+  const why = reason || '확정 버전과 발행 회차 기준이라 저장하지 않은 초안은 보이지 않아요'
   return (
     <>
       {reason
-        ? <button type="button" className="btn sm" disabled aria-describedby={note}>독자 시점으로 보기</button>
-        : <a className="btn sm" href={href} target="_blank" rel="noreferrer" aria-describedby={note}>{episode}화까지 읽은 독자로 보기</a>}
-      <p id={note} className="small muted acts-note">{reason || '확정 버전과 발행 회차 기준이라 저장하지 않은 초안은 보이지 않아요'}</p>
+        ? <button type="button" className="btn sm" disabled aria-describedby={note} title={why}>독자 시점으로 보기</button>
+        : <a className="btn sm" href={href} target="_blank" rel="noreferrer" aria-describedby={note} title={why}>{episode}화까지 읽은 독자로 보기</a>}
+      <span id={note} className="sr-only">{why}</span>
     </>
   )
 }

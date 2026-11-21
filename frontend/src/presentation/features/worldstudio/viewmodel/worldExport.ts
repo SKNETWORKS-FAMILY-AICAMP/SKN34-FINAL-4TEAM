@@ -1,6 +1,6 @@
 import { stripCardLinks } from '../../../../domain/entities/cardLinks'
 import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
-import { relationLabel } from '../../../../domain/entities/studioRelations'
+import { relationShortName } from '../../../../domain/entities/studioRelations'
 import { cardRevealEpisode, type StudioWorld } from '../../../../domain/entities/studioWorld'
 
 /*
@@ -16,18 +16,20 @@ const NO_TITLE = '이름 없는 설정'
 /** 내보낼 카드(관계 행이 아닌 설정 카드)와 양 끝 카드가 있는 승인된 관계. */
 function parts(world: StudioWorld) {
   const cards = world.settings.filter((s) => cardTypes.some((t) => t.id === cardTypeOf(s.item)))
-  const ids = new Set(cards.map((s) => s.item.id))
+  const ids = new Set(cards.map((s) => s.item.id)), titles = new Map(cards.map((s) => [s.item.id, s.item.title]))
   const relations = world.settings.filter((s) => s.item.kind === 'relation' && s.item.decision === 'approved' && ids.has(s.item.subjectId ?? '') && ids.has(s.item.targetId ?? ''))
-  return { cards, relations }
+  // 관계 이름: 서버에서 읽은 자유 관계는 항목 이름(label)이고 본문(text)은 설명이다(relationShortName).
+  const nameOf = (item: StudioWorld['settings'][number]['item']) => relationShortName(item, (id) => (id ? titles.get(id) : undefined))
+  return { cards, relations, nameOf }
 }
 /** JSON: 카드(id·유형·제목·별칭·태그·본문·공개 회차)와 관계(출발·도착·이름·설명·시작 회차), 스키마 버전 하나. 회차가 없으면(작가 전용·시작 회차 미정) null이다. */
 export function worldToJson(world: StudioWorld) {
-  const { cards, relations } = parts(world)
+  const { cards, relations, nameOf } = parts(world)
   return JSON.stringify({
     schemaVersion: EXPORT_SCHEMA_VERSION,
     world: { id: world.id, name: world.name, description: world.description },
     cards: cards.map((s) => ({ id: s.item.id, type: cardTypeOf(s.item), title: s.item.title, aliases: s.aliases ?? [], tags: s.tags, text: s.item.text, revealFromEpisode: cardRevealEpisode(s) ?? null })),
-    relations: relations.map((s) => ({ id: s.item.id, source: s.item.subjectId, target: s.item.targetId, name: relationLabel(s.item), description: s.item.text === relationLabel(s.item) ? '' : s.item.text, fromEpisode: s.item.fromEpisode ?? null })),
+    relations: relations.map((s) => { const name = nameOf(s.item), text = s.item.text.trim(); return { id: s.item.id, source: s.item.subjectId, target: s.item.targetId, name, description: text && s.item.text !== s.item.title && text !== name ? s.item.text : '', fromEpisode: s.item.fromEpisode ?? null } }),
   }, null, 2)
 }
 
@@ -36,9 +38,9 @@ export function worldToJson(world: StudioWorld) {
  * 그 카드로 들어오는 관계는 `- ← 상대 — 관계명`으로 같이 쓴다. 카드가 없는 유형은 쓰지 않는다.
  */
 export function worldToMarkdown(world: StudioWorld) {
-  const { cards, relations } = parts(world)
+  const { cards, relations, nameOf } = parts(world)
   const title = new Map(cards.map((s) => [s.item.id, s.item.title || NO_TITLE]))
-  const line = (arrow: string, other: string | null, item: (typeof relations)[number]['item']) => '- ' + arrow + title.get(other ?? '') + ' — ' + relationLabel(item) + (item.fromEpisode ? ' (' + item.fromEpisode + '화부터)' : '')
+  const line = (arrow: string, other: string | null, item: (typeof relations)[number]['item']) => '- ' + arrow + title.get(other ?? '') + ' — ' + nameOf(item) + (item.fromEpisode ? ' (' + item.fromEpisode + '화부터)' : '')
   const out = ['# ' + (world.name || '이름 없는 세계관'), '', ...(world.description ? [world.description, ''] : [''])]
   for (const type of cardTypes) {
     const group = cards.filter((s) => cardTypeOf(s.item) === type.id)
