@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { Bar, BarChart, CartesianGrid, ComposedChart, LabelList, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { count, millis, percent, usd, type EvaluationMetric } from '../../../../domain/entities/llmOps'
@@ -29,13 +29,15 @@ const tooltip = (
 const legend = <Legend iconSize={10} formatter={(name: string) => <span style={{ color: 'var(--ink2)' }}>{name}</span>} />
 
 /**
- * 차트 한 장: 제목과, 값을 말로 옮긴 요약(role="img"의 aria-label)입니다. 같은 값이 차트 아래 표·카드에 있어 차트는 보조이므로
+ * 차트 한 장: 제목과, 값을 말로 옮긴 요약(role="img"의 aria-label)입니다. 같은 값이 표·카드·lead에 있어 차트는 보조이므로
  * 그림 안은 키보드 초점(accessibilityLayer)을 받지 않습니다. 크기를 못 재는 환경(jsdom 등)에서는 그림 없이 이 틀만 남습니다.
+ * lead는 제목과 그림 사이에 놓는 글입니다(서비스 지표의 비율 목록).
  */
-function ChartFrame({ title, summary, height = 260, children }: { title: string; summary: string; height?: number; children: ReactElement }) {
+function ChartFrame({ title, summary, height = 260, lead, children }: { title: string; summary: string; height?: number; lead?: ReactNode; children: ReactElement }) {
   return (
     <figure className="admin-chart">
       <figcaption>{title}</figcaption>
+      {lead}
       <div role="img" aria-label={summary}>
         <ResponsiveContainer width="100%" height={height}>{children}</ResponsiveContainer>
       </div>
@@ -98,10 +100,10 @@ export function EvaluationChart({ metrics }: { metrics: EvaluationMetric[] }) {
   )
 }
 
-/** 서비스 지표(DEC-57)의 단계 막대: 단계별 수를 가로 막대로 그리고 막대 끝에 수를 적습니다. 비율·오차는 차트 아래 목록에 있고 차트는 보조입니다. */
-export function FunnelChart({ group }: { group: FunnelGroup }) {
+/** 서비스 지표(DEC-57)의 단계 막대: 단계별 수를 가로 막대로 그리고 막대 끝에 수를 적습니다. 비율·오차는 lead(차트 위 목록)에 있고 차트는 보조입니다. */
+export function FunnelChart({ group, lead }: { group: FunnelGroup; lead?: ReactNode }) {
   return (
-    <ChartFrame title={group.title} summary={groupSummary(group)} height={group.steps.length * 44 + 16}>
+    <ChartFrame title={group.title} summary={groupSummary(group)} height={group.steps.length * 44 + 16} lead={lead}>
       <BarChart data={group.steps} layout="vertical" margin={{ top: 4, right: 44, bottom: 0, left: 0 }} accessibilityLayer={false}>
         <XAxis type="number" hide />
         <YAxis type="category" dataKey="label" tick={TICK} tickLine={false} axisLine={{ stroke: 'var(--line2)' }} width={150} />
@@ -115,9 +117,9 @@ export function FunnelChart({ group }: { group: FunnelGroup }) {
 }
 
 /** 발행 회차 하나당 좋아요·관심·댓글 평균. 발행 회차가 없으면 값이 null이라 막대를 그리지 않습니다. */
-export function ReactionsChart({ rows }: { rows: Reaction[] }) {
+export function ReactionsChart({ rows, lead }: { rows: Reaction[]; lead?: ReactNode }) {
   return (
-    <ChartFrame title="회차당 반응" summary={reactionSummary(rows)} height={200}>
+    <ChartFrame title="회차당 반응" summary={reactionSummary(rows)} height={200} lead={lead}>
       <BarChart data={rows} margin={MARGIN} accessibilityLayer={false}>
         <CartesianGrid stroke="var(--line)" vertical={false} />
         <XAxis dataKey="label" tick={TICK} tickLine={false} axisLine={{ stroke: 'var(--line2)' }} />
@@ -138,7 +140,7 @@ export function BaseEpisodeChart({ bars }: { bars: { label: string; count: numbe
         <XAxis dataKey="label" tick={TICK} tickLine={false} axisLine={{ stroke: 'var(--line2)' }} />
         <YAxis allowDecimals={false} tick={TICK} tickLine={false} axisLine={false} width={40} />
         {tooltip}
-        <Bar dataKey="count" name="Fork 수" {...AMBER} maxBarSize={36} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="count" name="Fork 수" {...PRIMARY} maxBarSize={36} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ChartFrame>
   )

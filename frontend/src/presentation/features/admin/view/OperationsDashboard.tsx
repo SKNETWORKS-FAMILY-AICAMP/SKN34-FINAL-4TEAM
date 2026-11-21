@@ -12,7 +12,7 @@ import { ServiceMetrics } from './ServiceMetrics'
 
 type VM = ReturnType<typeof useAdminViewModel>
 
-/** 85 운영 대시보드: 운영 서버·Langfuse·Content·Core를 합친 현황 카드. 출처를 읽지 못한 칸은 0이 아니라 '불러오지 못함'입니다. */
+/** 85 운영 대시보드: 운영 서버·Langfuse·Content·Core를 합친 현황. 위에서부터 요약 카드 → 서비스 지표 → 최근 7일 AI 사용 순서이고, 출처를 읽지 못한 칸은 0이 아니라 '불러오지 못함'입니다. */
 export function OperationsDashboard({ vm, headSide }: { vm: VM; headSide: HTMLElement | null }) {
   const dashboard = useDashboardViewModel()
   const usage = useWeeklyUsageViewModel()
@@ -27,22 +27,20 @@ export function OperationsDashboard({ vm, headSide }: { vm: VM; headSide: HTMLEl
       <LiveState vm={vm} label="운영 현황" state={dashboard} />
       {data && (
         <>
-          <ServiceMetrics funnel={data.funnel} />
-          {data.unavailable.length > 0 && (
-            <p className="admin-data-state" role="status">
-              일부 출처를 불러오지 못했어요: {data.unavailable.join(', ')}. 해당 칸은 ‘불러오지 못함’으로 보여요(0으로 채우지 않아요).
-            </p>
-          )}
-          <div className="kpi">
+          <div className="admin-summary">
             {dashboardCards(data).map((card) => (
               <div key={card.key}>
                 <small>{card.label}</small>
                 <b className={card.value === null ? 'unavailable' : undefined}>{card.value ?? '불러오지 못함'}</b>
                 {card.details.map((line) => <span key={line} className="small muted">{line}</span>)}
-                {card.to && <Go to={card.to}>바로 가기</Go>}
+                {card.to && <Go to={card.to} aria-label={`${card.label} 바로 가기`}>바로 가기</Go>}
               </div>
             ))}
           </div>
+          {data.unavailable.length > 0 && (
+            <p className="admin-data-state" role="status">일부 출처를 불러오지 못했어요: {data.unavailable.join(', ')}</p>
+          )}
+          <ServiceMetrics funnel={data.funnel} />
         </>
       )}
       <WeeklyUsage vm={vm} usage={usage} />
@@ -68,7 +66,7 @@ function WeeklyUsage({ vm, usage }: { vm: VM; usage: ReturnType<typeof useWeekly
               <RequestsChart period={WEEK} points={points} />
               <CostChart title="날짜별 비용(USD)" period={WEEK} points={points} />
             </div>
-            <p className="admin-note">날짜는 한국시간 기준이에요. 요청이 없던 날은 보이지 않고, 처음·마지막 날은 7일 구간에 걸친 만큼만 더해요.</p>
+            <p className="admin-note">한국시간 기준이에요. 요청이 없던 날은 보이지 않고, 처음·마지막 날은 7일 구간에 걸친 만큼만 더해요.</p>
           </>
         )
         : <p className="admin-empty">아직 데이터가 없어요.</p>)}

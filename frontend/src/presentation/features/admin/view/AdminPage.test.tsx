@@ -64,10 +64,10 @@ it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'genr
 it('data 탭의 숫자 카드는 이름과 값을 글자로 갖고 차트는 캡션과 role=img 요약 aria-label을 갖는다', async () => {
   renderAdmin('data')
   await waitFor(() => {
-    expect(document.querySelectorAll('.kpi > div').length).toBeGreaterThan(0)
+    expect(document.querySelectorAll('.admin-summary > div').length).toBeGreaterThan(0)
     expect(document.querySelectorAll('.admin-chart').length).toBeGreaterThan(0)
   })
-  for (const card of document.querySelectorAll('.kpi > div')) {
+  for (const card of document.querySelectorAll('.admin-summary > div')) {
     expect(card.querySelector(':scope > small')?.textContent?.trim()).toBeTruthy()
     expect(card.querySelector(':scope > b')?.textContent?.trim()).toBeTruthy()
   }

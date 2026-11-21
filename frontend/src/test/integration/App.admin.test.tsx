@@ -132,8 +132,8 @@ describe('관리자 (A01~A18)', () => {
     within(await card('전체 회원')).getByText('1,284명')
     const inquiries = await card('답변 대기 문의')
     within(inquiries).getByText('3건')
-    expect(within(inquiries).getByRole('link', { name: '바로 가기' }).getAttribute('href')).toBe('/admin?tab=feedback')
-    expect(within(await card('접수 신고')).getByRole('link', { name: '바로 가기' }).getAttribute('href')).toBe('/admin?tab=rights')
+    expect(within(inquiries).getByRole('link', { name: /바로 가기$/ }).getAttribute('href')).toBe('/admin?tab=feedback')
+    expect(within(await card('접수 신고')).getByRole('link', { name: /바로 가기$/ }).getAttribute('href')).toBe('/admin?tab=rights')
     within(await card('AI 요청 · 오늘')).getByText('48건')
     cleanup()
     // 회원(Core)·접수 신고 칸만 비어 오고 나머지는 그대로 보인다.
@@ -148,13 +148,18 @@ describe('관리자 (A01~A18)', () => {
     within(await card('답변 대기 문의')).getByText('4건')
   })
 
-  it('개요 맨 위에 서비스 지표(전체 기간)가 숫자 카드보다 앞에 있고 단계 막대 4묶음·회차당 반응·Fork 기준 회차 분포와 비율·오차·n을 보인다', async () => {
+  it('개요는 요약 카드가 맨 위이고 그 아래에 서비스 지표(전체 기간)와 최근 7일 AI 사용 순으로 단계 막대 4묶음·회차당 반응·Fork 기준 회차 분포를 보이며 비율·오차·n은 각 막대 위에 있다', async () => {
     renderAt('/admin?tab=data')
     const section = await screen.findByRole('region', { name: '서비스 지표(전체 기간)' })
-    expect(section.compareDocumentPosition(document.querySelector('.kpi')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(within(section).getAllByRole('figure').map((figure) => figure.querySelector('figcaption')?.textContent)).toEqual([
+    const after = (first: Element, second: Element) => !!(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(after(document.querySelector('.admin-summary')!, section)).toBe(true)
+    expect(after(section, await screen.findByLabelText('최근 7일 AI 사용'))).toBe(true)
+    const figures = within(section).getAllByRole('figure')
+    expect(figures.map((figure) => figure.querySelector('figcaption')?.textContent)).toEqual([
       '독자 이어 읽기', '독자의 Fork', 'Fork 작가의 저장·발행', 'AI 제안 채택·수정 제안 승인', '회차당 반응', 'Fork 기준 회차 분포',
     ])
+    // 비율 목록은 캡션 아래·그림(role=img) 위에 있다.
+    for (const figure of figures.slice(0, 5)) expect(after(figure.querySelector('ul.admin-funnel-rates')!, figure.querySelector('[role="img"]')!)).toBe(true)
     const lines = (name: string) => within(within(section).getByRole('list', { name })).getAllByRole('listitem').map((li) => li.textContent)
     expect(lines('독자 이어 읽기 비율')).toEqual(['조회 → 1화 이상 읽음60.0% ±5.8%p · n=300', '1화 이상 → 이어 읽기40.0% ±7.5%p · n=180'])
     expect(lines('Fork 작가의 저장·발행 비율')).toEqual(['Fork → 직접 저장68.0% ±20.0%p · n=25', '저장 → 직접 발행47.1% ±24.3%p · n=17'])
@@ -464,7 +469,7 @@ describe('관리자 (A01~A18)', () => {
     renderAt('/admin?tab=data')
     const openCard = async () => (await screen.findByText('미확인 경고')).closest('div') as HTMLElement
     await within(await openCard()).findByText('2건')
-    fireEvent.click(within(await openCard()).getByRole('link', { name: '바로 가기' }))
+    fireEvent.click(within(await openCard()).getByRole('link', { name: /바로 가기$/ }))
     // 운영 경고 알림의 이동 대상(/admin?tab=llm)과 같은 자리: LLM Ops는 경고 보기로 열린다.
     expect(where()).toBe('/admin?tab=llm')
     fireEvent.change(await screen.findByLabelText('AI 실패율 경고 메모'), { target: { value: '재시작 확인' } })
