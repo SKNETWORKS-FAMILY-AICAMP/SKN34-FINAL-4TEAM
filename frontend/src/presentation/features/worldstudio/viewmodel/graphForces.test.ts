@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { DEFAULT_SETTINGS, RANGES, forceParams, labelBox, labelCollide } from './graphForces'
+import { AUTO_MAX, DEFAULT_SETTINGS, RANGES, dotBox, forceParams, labelBox, labelCollide } from './graphForces'
 
 type N={id:string;name:string;r:number;x:number;y:number;vx:number;vy:number}
 const node=(id:string,x:number,y:number,name='이름',r=6):N=>({id,name,r,x,y,vx:0,vy:0})
@@ -11,11 +11,21 @@ it('기본값은 슬라이더 범위 안이고 슬라이더 값은 힘의 세기
   expect(value,key).toBeGreaterThanOrEqual(min)
   expect(value,key).toBeLessThanOrEqual(max)
  }
- expect(forceParams({...DEFAULT_SETTINGS,center:0.5,repel:6,linkForce:0.7,linkDistance:60})).toEqual({gravity:0.1,charge:-180,linkStrength:0.7,linkDistance:60})
+ expect(forceParams({...DEFAULT_SETTINGS,center:0.5,repel:6,linkForce:0.7,linkDistance:60})).toEqual({gravity:0.1,charge:-180,orphanCharge:-30,linkStrength:0.7,linkDistance:60})
  expect(forceParams({...DEFAULT_SETTINGS,center:0,repel:0}).charge).toBeCloseTo(0,10) // -0도 0이다
  expect(forceParams({...DEFAULT_SETTINGS,repel:20}).charge).toBe(-600)
  expect(DEFAULT_SETTINGS.arrows).toBe(false) // 옵시디언처럼 화살표는 기본 꺼짐
- expect(DEFAULT_SETTINGS.orphans).toBe(true)
+ expect(DEFAULT_SETTINGS.orphans).toBeNull() // 자동: 노드가 60개를 넘는 큰 세계관에서만 숨긴다(바깥에 점 고리를 만들지 않게)
+ expect(AUTO_MAX).toBe(60)
+ expect(DEFAULT_SETTINGS.fold).toBe(true) // 위성 노드 접기는 기본 켬(60개 초과일 때만 적용)
+ expect(DEFAULT_SETTINGS.linkWidth).toBe(RANGES.linkWidth[0]) // 선 두께는 가장 얇은 값(최소)이 기본이다
+})
+
+it('외톨이는 약하게 밀어내고(orphanCharge) 점 크기만큼만 차지한다(dotBox): 이름표 상자 없이 무리 가장자리에 촘촘히 놓인다',()=>{
+ expect(forceParams({...DEFAULT_SETTINGS,repel:20}).orphanCharge).toBe(-100)
+ expect(Math.abs(forceParams(DEFAULT_SETTINGS).orphanCharge)).toBeLessThan(Math.abs(forceParams(DEFAULT_SETTINGS).charge)/3)
+ expect(dotBox(6)).toEqual({halfW:6,up:6,down:6})
+ expect(dotBox(6).down).toBeLessThan(labelBox('가나다라',6).down)
 })
 
 it('labelBox는 이름표(화면 12px, 노드 아래 4px)가 차지하는 상자다: 노드 반지름보다 이름이 넓으면 이름 폭, 짧으면 반지름이고, 이름이 아주 길어도 폭을 제한한다',()=>{

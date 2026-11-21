@@ -311,3 +311,18 @@ describe('관계도 추가 패널·오른쪽 클릭 메뉴·키보드 목록', (
     expect(rule(map, '.relationship-keys button:is(:hover,:focus-visible)')).toMatch(/background:var\(--stage-tint\)/)
   })
 })
+
+describe('관계도 설정 패널의 관계 종류·중심 보기 칩', () => {
+  it('관계 종류 목록은 길어도 패널을 늘리지 않게 스크롤 상자이고, 그 안의 검색 입력도 .episode-app 입력 규칙을 이기도록 다시 정한다', () => {
+    expect(rule(map, '.relationship-kinds-list')).toMatch(/max-height:11rem;overflow:auto/)
+    expect(map).toMatch(/\.episode-app \.relationship-settings \.relationship-kinds input:not\(\[type=checkbox\]\):not\(\[type=radio\]\)\{width:100%;margin-top:0/)
+    expect(rule(map, '.relationship-settings-actions')).toMatch(/flex-wrap:wrap/) // 모두 펼치기·필터 초기화가 좁은 패널에서 줄바꿈
+  })
+
+  it('노드 중심 보기 칩(.relationship-local)은 캔버스 위 왼쪽(+ 설정 추가 아래)에 겹치고 좁은 화면에서도 상자 안에 줄바꿈된다', () => {
+    const chip = rule(map, '.relationship-local')
+    expect(chip).toMatch(/position:absolute;top:48px;left:10px/)
+    expect(chip).toMatch(/flex-wrap:wrap/)
+    expect(chip).toMatch(/max-width:calc\(100% - 20px\)/)
+  })
+})

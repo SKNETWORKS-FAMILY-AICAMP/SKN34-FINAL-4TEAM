@@ -22,20 +22,24 @@ export type GraphSettings = {
   linkForce: number
   /** 연결 거리: 이어진 노드가 놓이려는 간격. */
   linkDistance: number
-  /** 외톨이 표시: 관계가 하나도 없는 노드를 그린다. */
-  orphans: boolean
+  /** 외톨이 표시: 관계가 하나도 없는 노드를 그린다. null이면 자동이다: 노드가 60개를 넘는 큰 세계관에서만 숨긴다(바깥에 점 고리를 만든다). */
+  orphans: boolean | null
+  /** 위성 노드 접기: 이웃이 하나뿐인 노드를 그 이웃(허브) 안으로 접는다(기본 켬, 보이는 노드가 60개를 넘을 때만 적용한다). */
+  fold: boolean
 }
 
-/** 기본값: 시연 세계관(홍길동전 57노드·146관계)을 1100×700 캔버스에 맞추면 배율 0.9쯤이고 이름이 겹치지 않게 골랐다. */
-export const DEFAULT_SETTINGS: GraphSettings = { arrows: false, textThreshold: 0.7, nodeSize: 1, linkWidth: 1, center: 0.5, repel: 6, linkForce: 0.7, linkDistance: 60, orphans: true }
+/** 기본값: 시연 세계관(홍길동전 57노드·146관계)을 1100×700 캔버스에 맞추면 배율 0.9쯤이고 이름이 겹치지 않게 골랐다. 선 두께 1은 가장 가는 선(화면 1px)이다. */
+export const DEFAULT_SETTINGS: GraphSettings = { arrows: false, textThreshold: 0.7, nodeSize: 1, linkWidth: 1, center: 0.5, repel: 6, linkForce: 0.7, linkDistance: 60, orphans: null, fold: true }
+/** 외톨이를 자동으로 숨기고(`orphans`가 null) 위성을 접는 세계관 크기의 기준: 노드가 이 수를 넘을 때만이다. */
+export const AUTO_MAX = 60
 /** 슬라이더 범위: [최소, 최대, 간격]. */
 export const RANGES = {
-  textThreshold: [0, 3, 0.05], nodeSize: [0.4, 2.5, 0.05], linkWidth: [0.3, 3, 0.1],
+  textThreshold: [0, 3, 0.05], nodeSize: [0.4, 2.5, 0.05], linkWidth: [1, 4, 0.5], // 선 두께는 가장 가는 선(1)이 최소다
   center: [0, 1, 0.01], repel: [0, 20, 0.5], linkForce: [0, 1, 0.01], linkDistance: [20, 300, 5],
 } as const satisfies Record<string, readonly [number, number, number]>
 
-/** 설정 값을 d3 힘의 세기로 바꾼다: 중심력은 중력(`aspectGravity`의 세기, 0.2가 최대), 반발력은 음수 전하다. */
-export const forceParams = (s: GraphSettings) => ({ gravity: s.center * 0.2, charge: -s.repel * 30, linkStrength: s.linkForce, linkDistance: s.linkDistance })
+/** 설정 값을 d3 힘의 세기로 바꾼다: 중심력은 중력(`aspectGravity`의 세기, 0.2가 최대), 반발력은 음수 전하이고 외톨이는 약하게(1/6) 밀어내 무리 가장자리에 촘촘히 놓인다. */
+export const forceParams = (s: GraphSettings) => ({ gravity: s.center * 0.2, charge: -s.repel * 30, orphanCharge: -s.repel * 5, linkStrength: s.linkForce, linkDistance: s.linkDistance })
 
 /** 노드 하나가 차지하는 상자(중심 기준): 반쪽 폭, 위쪽 길이(점 반지름), 아래쪽 길이(점 반지름 + 이름표 간격 4 + 글자 12px의 줄 높이). */
 export type LabelBox = { halfW: number; up: number; down: number }
@@ -44,6 +48,8 @@ export type LabelBox = { halfW: number; up: number; down: number }
  * 확대 배율이 1보다 작으면 이름표가 이보다 커 보이는데, 그때는 겹치는 이름표를 숨기는 규칙(`placeLabels`)이 맡는다.
  */
 export const labelBox = (name: string, radius: number): LabelBox => ({ halfW: Math.max(radius, Math.min(70, (labelWidth(name, 12) + 8) / 2)), up: radius, down: radius + 4 + 12 * 1.3 })
+/** 점만 차지하는 상자: 외톨이는 이름표 자리를 비우지 않아 수백 개여도 촘촘하다(이름표는 겹치면 숨는다). */
+export const dotBox = (radius: number): LabelBox => ({ halfW: radius, up: radius, down: radius })
 
 /**
  * 이름표를 포함한 겹침 방지 힘(사각형 충돌). 두 상자가 겹치면 덜 겹친 쪽 축으로 서로 밀어낸다(속도에 더한다). 그 축의 차이가 0이면(같은 자리 포함) 앞선 노드가 음의 쪽으로 갈라진다(난수 없음).

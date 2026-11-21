@@ -24,12 +24,18 @@ vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/mar
 // 관계도 캔버스(react-force-graph)는 그리지 않고 넘기는 값·메서드만 붙잡는 대역이다(공용: src/test/forceGraphFake). 노드·선은 캔버스가 넘긴 graphData에서 읽고, 누르기·오른쪽 클릭·올리기는 넘긴 핸들러로 흉내 낸다.
 vi.mock('react-force-graph-2d', () => import('../../../../test/forceGraphFake'))
 beforeEach(() => fakeGraph.reset())
+// 관계도의 기본 보기(인물이 둘 이상이면 인물만·정보 관계 끔)는 관계 편집 동작과 무관한 시험에서는 모든 유형을 보는 필터로 대신한다. 기본 보기·기억을 시험할 때는 prefs.filter를 undefined로 두어 실제 저장소를 읽는다.
+const prefs = vi.hoisted(() => ({ filter: { hiddenTypes: [] as string[], hiddenKinds: [] as string[] } as undefined | { hiddenTypes: string[]; hiddenKinds: string[] } }))
+vi.mock('../viewmodel/relationPrefs', async (original) => { const real = await original<typeof import('../viewmodel/relationPrefs')>(); return { ...real, loadFilter: (id: string) => (prefs.filter === undefined ? real.loadFilter(id) : prefs.filter) } })
+beforeEach(() => { localStorage.clear(); prefs.filter = { hiddenTypes: [], hiddenKinds: [] } })
 /** 캔버스가 그려진 뒤(상자가 보이고 그래프가 마운트된 뒤)를 기다린다. */
 const ready = async () => { await screen.findByRole('img', { name: /^관계도/ }); await waitFor(() => expect(fakeGraph.props).not.toBeNull()) }
 /** 점 하나가 설정 한 장이고, 같은 두 설정 사이의 관계는 선 하나에 묶인다. */
 const cardCount = () => fakeGraph.data().nodes.length
 const nodeNames = () => fakeGraph.data().nodes.map((n) => n.name)
 const relationLine = (from: string, to: string) => fakeGraph.link(from, to)
+/** 선을 눌러 관계 편집 시트를 연다. 같은 두 설정 사이에 관계가 여럿이면 어느 관계인지 고르는 메뉴가 먼저 떠서 첫 관계를 고른다. */
+const openLine = (from: string, to: string) => { clickLink(from, to); const menu = screen.queryByRole('menu', { name: '관계 선택' }); if (menu) fireEvent.click(within(menu).getAllByRole('menuitem')[0]) }
 const canvasRoot = () => document.querySelector<HTMLElement>('.relationship-flow')!
 /** 키보드로 관계도 조작 목록의 설정 버튼(캔버스의 노드와 같은 일을 한다: 선택은 aria-current로 알린다). */
 const card = (name: string) => screen.getByRole('button', { name: new RegExp('^' + name + ' · ') })
@@ -67,8 +73,9 @@ it('멀리 있는 두 카드의 관계선도 그려져 누르면 그 관계의 �
   function Harness() { const vm = useWorldStudioViewModel(useCase); return vm.editing ? <WorldRelationshipEditor studio={vm} /> : null }
   render(<MemoryRouter initialEntries={['/worldstudio/' + world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness />} /></Routes></MemoryRouter>)
   await ready()
+  fireEvent.click(openSettings().getByRole('checkbox', { name: '위성 노드 접기' })) // 101장(60개 초과)이라 서로만 이어진 두 설정은 접힌다
   expect(card('설정 100')).toBeTruthy()
-  clickLink('설정 0', '설정 100')
+  openLine('설정 0', '설정 100')
   expect(await screen.findByRole('textbox', { name: '실제 관계 1' })).toBeTruthy()
 })
 it('connects character and location cards, applies free prose and preserves the relation ID on edit', async () => {
@@ -107,7 +114,7 @@ it('connects character and location cards, applies free prose and preserves the 
   fireEvent.click(screen.getByRole('button', { name: '메모리에 저장' }))
   await waitFor(async () => expect((await useCase.read(world.id)).settings).toHaveLength(3))
   const relation = (await useCase.read(world.id)).settings[2].item
-  clickLink('가람', '항구')
+  openLine('가람', '항구')
   fireEvent.change(screen.getByRole('textbox', { name: '실제 관계 1' }), {
     target: { value: '돌아갈 장소' },
   })
@@ -156,7 +163,7 @@ it('keeps both emotion directions and explicit removal when changing a legacy fa
     </MemoryRouter>,
   )
   await ready()
-  clickLink('가람', '나래')
+  openLine('가람', '나래')
   fireEvent.change(screen.getByRole('combobox', { name: '실제 관계 1 방향' }), {
     target: { value: 'reverse' },
   })
@@ -260,7 +267,7 @@ it.each(['text', 'title', 'name'] as const)(
     )
     await screen.findByRole('heading', { name: '탭 충돌 검증', level: 1 })
     fireEvent.click(manageTab('관계도'))
-    clickLink('가람', '나래')
+    openLine('가람', '나래')
     const fact = screen.getByRole('textbox', { name: '실제 관계 1' }),
       draft = screen.getByRole<HTMLTextAreaElement>('textbox', { name: '나래 → 가람 감정 1' })
     const prose = '믿고 싶지만 아직은 두렵다.\n패널에 남겨 둘 감정'
@@ -354,7 +361,7 @@ it('does not discard a new relation with a custom name but no description on app
  function Harness(){const vm=useWorldStudioViewModel(useCase);return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
  render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
  await ready()
- clickLink('가람','나래')
+ openLine('가람','나래')
  const group=screen.getByRole('heading',{name:'나래 → 가람 감정'}).closest('section')!
  fireEvent.click(within(group).getByText('항목 이름 직접 쓰기'))
  fireEvent.change(within(group).getByRole('textbox',{name:'나래 → 가람 감정 1 이름'}),{target:{value:'남겨 둔 이름'}})
@@ -375,7 +382,7 @@ it('keeps the open pair draft when the same two people are chosen in the opposit
  startConnect('가람')
  clickNode('나래')
  fireEvent.change(screen.getByRole('textbox',{name:'실제 관계 1'}),{target:{value:'작성 중인 관계'}})
- clickLink('가람','나래') // 같은 두 설정의 반대 방향 관계를 누른다
+ openLine('가람','나래') // 같은 두 설정의 반대 방향 관계를 누른다
  expect(window.confirm).not.toHaveBeenCalled()
  expect(screen.getByRole<HTMLInputElement>('textbox',{name:'실제 관계 1'}).value).toBe('작성 중인 관계')
 })
@@ -428,7 +435,10 @@ const checked = (filter: ReturnType<typeof openSettings>) => ['인물 2', '장�
 
 it('filters the graph by card type: hiding a type removes its cards and the edges touching them, and checking it again restores', async () => {
   const filter = await openTyped()
-  expect(filter.getAllByRole('checkbox').map((b) => b.parentElement!.textContent!.trim())).toEqual(['인물 2', '장소 1', '외톨이 표시', '화살표']) // 노드가 있는 유형만 개수와 함께(능력·조직 등은 없다)
+  const labels = filter.getAllByRole('checkbox').map((b) => b.parentElement!.textContent!.trim())
+  expect(labels.slice(0, 2)).toEqual(['인물 2', '장소 1']) // 노드가 있는 유형만 개수와 함께(능력·조직 등은 없다)
+  expect(labels.slice(2, -3).every((label) => /^\S.* \d+$/.test(label))).toBe(true) // 이어서 관계 종류(이름 개수)
+  expect(labels.slice(-3)).toEqual(['외톨이 표시', '위성 노드 접기', '화살표'])
   expect(checked(filter)).toEqual([true, true]) // 기본은 모두 보임
   expect(relationLine('가람', '항구')).toBeTruthy()
   fireEvent.click(filter.getByRole('checkbox', { name: '장소 1' }))
@@ -539,7 +549,7 @@ it('locks the relation episode picker while changes are unsaved and says why', a
 it('shows the saved N화부터 in the relation sheet and records the one typed in its edit row (DEC-54)', async () => {
   const { repository, vm } = await openEpisodes({ from: 2 })
   await ready()
-  clickLink('가람', '나래')
+  openLine('가람', '나래')
   const field = screen.getByRole<HTMLInputElement>('textbox', { name: '실제 관계 1 시작 회차 화부터' })
   expect(field.value).toBe('2') // 서버가 준 그 관계의 시작 회차
   fireEvent.change(field, { target: { value: '4' } })
@@ -553,7 +563,7 @@ it('shows the saved N화부터 in the relation sheet and records the one typed i
 it.each([{ linked: false }, { supported: false }])('has no N화부터 input without a linked novel or in the demo (%j)', async (options) => {
   await openEpisodes({ ...options, from: 2 })
   await ready()
-  clickLink('가람', '나래')
+  openLine('가람', '나래')
   expect(screen.queryByRole('textbox', { name: /시작 회차/ })).toBeNull()
 })
 
@@ -772,7 +782,7 @@ it('올린 선에서 Delete는 확인한 뒤 그 관계만 편집본에서 지�
 it('시트의 N화부터 도움말은 행마다 되풀이하지 않고 시트 위 한 문단이며, 모든 시작 회차 칸의 설명이 그 문단을 가리킨다', async () => {
   await openEpisodes({ from: 2 })
   await ready()
-  clickLink('가람', '나래')
+  openLine('가람', '나래')
   const dialog = await screen.findByRole('dialog')
   const help = within(dialog).getAllByText(/기록으로 저장해요/)
   expect(help).toHaveLength(1)
@@ -780,4 +790,85 @@ it('시트의 N화부터 도움말은 행마다 되풀이하지 않고 시트 �
   expect(fields.length).toBeGreaterThanOrEqual(1)
   for (const field of fields) expect(field.getAttribute('aria-describedby')!.split(' ')).toContain(help[0].id)
   expect(help[0].compareDocumentPosition(dialog.querySelector('.relationship-group')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 첫 행 묶음보다 위
+})
+
+/** 가람·나래·다온(인물)과 항구(장소): 가람—나래 친구, 가람→다온 알고 있음, 나래→항구 지키는 곳. */
+async function knowledgeWorld() {
+  const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+  const world = await useCase.create('기본 보기', '')
+  const a = newSetting('people'), b = newSetting('people'), c = newSetting('people'), p = newSetting('places')
+  a.item.title = '가람'; b.item.title = '나래'; c.item.title = '다온'; p.item.title = '항구'
+  let rows = [a, b, c, p]
+  rows = putRelation(rows, { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted' })
+  rows = putRelation(rows, { subjectId: a.item.id, targetId: c.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', text: '알고 있음' })
+  rows = putRelation(rows, { subjectId: b.item.id, targetId: p.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', text: '지키는 곳' })
+  world.settings = rows
+  await useCase.save(world)
+  function Harness() { const vm = useWorldStudioViewModel(useCase); return vm.editing ? <WorldRelationshipEditor studio={vm} /> : null }
+  const ui = () => <MemoryRouter initialEntries={['/worldstudio/' + world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness />} /></Routes></MemoryRouter>
+  return { world, ui }
+}
+
+it('처음 여는 세계관의 기본 보기는 인물만이고 알고 있음·전해 들음·목격 선은 뺀다. 바꾼 필터는 이 기기에 세계관별로 기억하고(다시 열어도 그대로), 필터 초기화가 기본 보기로 되돌린다', async () => {
+  prefs.filter = undefined // 실제 저장소를 읽는다
+  const { world, ui } = await knowledgeWorld(), key = 'storyfork.relation-filter.' + world.id
+  const view = render(ui())
+  await ready()
+  expect(nodeNames()).toEqual(['가람', '나래', '다온']) // 장소는 숨김(인물이 둘 이상)
+  expect(fakeGraph.data().links).toHaveLength(1) // 가람—나래만(알고 있음은 끄고, 지키는 곳은 숨긴 항구에 닿는다)
+  expect(localStorage.getItem(key)).toBeNull() // 바꾸기 전에는 기억하지 않는다
+  let panel = openSettings()
+  expect((panel.getByRole('checkbox', { name: '장소 1' }) as HTMLInputElement).checked).toBe(false)
+  expect((panel.getByRole('checkbox', { name: '알고 있음 1' }) as HTMLInputElement).checked).toBe(false)
+  expect((panel.getByRole('checkbox', { name: '친구 1' }) as HTMLInputElement).checked).toBe(true)
+  fireEvent.click(panel.getByRole('checkbox', { name: '알고 있음 1' })) // 정보 관계를 켠다
+  expect(fakeGraph.data().links).toHaveLength(2)
+  expect(JSON.parse(localStorage.getItem(key)!)).toEqual({ hiddenTypes: ['location'], hiddenKinds: ['전해 들음', '목격'] })
+  view.unmount()
+  render(ui()) // 다시 열면 기억한 필터 그대로
+  await ready()
+  expect(fakeGraph.data().links).toHaveLength(2)
+  panel = openSettings()
+  fireEvent.click(panel.getByRole('button', { name: '필터 초기화' }))
+  expect(localStorage.getItem(key)).toBeNull()
+  expect(fakeGraph.data().links).toHaveLength(1) // 기본 보기
+})
+
+it('관계 종류 필터로 끈 종류의 선은 그리지 않고(노드는 그대로), 보이는 유형을 모두 끈 기억은 모든 유형을 켠 것으로 읽는다', async () => {
+  prefs.filter = undefined
+  const { world, ui } = await knowledgeWorld()
+  localStorage.setItem('storyfork.relation-filter.' + world.id, JSON.stringify({ hiddenTypes: ['character', 'location'], hiddenKinds: [] }))
+  render(ui())
+  await ready()
+  expect(nodeNames()).toEqual(['가람', '나래', '다온', '항구']) // 모든 유형을 끄는 상태는 없다
+  expect(fakeGraph.data().links).toHaveLength(3)
+  const panel = openSettings()
+  fireEvent.click(panel.getByRole('checkbox', { name: '친구 1' })) // 친구 종류를 끈다
+  expect(fakeGraph.data().links).toHaveLength(2)
+  expect(nodeNames()).toHaveLength(4)
+})
+
+it('노드 중심 보기: 노드 메뉴의 이 설정 중심으로 보기가 그 설정과 이웃만 남기고, 깊이 버튼으로 넓히며, 전체 보기로 풀고, 필터처럼 기억하지는 않는다', async () => {
+  prefs.filter = undefined
+  const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+  const world = await useCase.create('사슬', '')
+  const cards = ['가람', '나래', '다온', '라온'].map((title) => { const row = newSetting('people'); row.item.title = title; return row })
+  world.settings = [[0, 1], [1, 2], [2, 3]].reduce((rows, [from, to]) => putRelation(rows, { subjectId: cards[from].item.id, targetId: cards[to].item.id, predicate: 'friend_of', polarity: 'asserted' }), cards)
+  await useCase.save(world)
+  function Harness() { const vm = useWorldStudioViewModel(useCase); return vm.editing ? <WorldRelationshipEditor studio={vm} /> : null }
+  render(<MemoryRouter initialEntries={['/worldstudio/' + world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness />} /></Routes></MemoryRouter>)
+  await ready()
+  expect(nodeNames()).toEqual(['가람', '나래', '다온', '라온'])
+  rightClickNode('가람')
+  fireEvent.click(screen.getByRole('menuitem', { name: '이 설정 중심으로 보기' }))
+  expect(nodeNames()).toEqual(['가람', '나래'])
+  const chip = screen.getByRole('group', { name: '노드 중심 보기' })
+  expect(chip.textContent).toBe('가람 중심 · 깊이 1 · 전체 보기')
+  fireEvent.click(openSettings().getByRole('button', { name: '깊이 2' }))
+  expect(nodeNames()).toEqual(['가람', '나래', '다온'])
+  expect(screen.getByRole('group', { name: '노드 중심 보기' }).textContent).toBe('가람 중심 · 깊이 2 · 전체 보기')
+  fireEvent.click(within(screen.getByRole('group', { name: '노드 중심 보기' })).getByRole('button', { name: '전체 보기' }))
+  expect(nodeNames()).toEqual(['가람', '나래', '다온', '라온'])
+  expect(screen.queryByRole('group', { name: '노드 중심 보기' })).toBeNull()
+  expect(localStorage.getItem('storyfork.relation-filter.' + world.id)).toBeNull() // 중심 보기는 기억하지 않는다
 })

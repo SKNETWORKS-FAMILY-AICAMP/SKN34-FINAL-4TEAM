@@ -13,10 +13,11 @@ function move(from: HTMLElement, selector: string, to: 1 | -1 | 'first' | 'last'
 /**
  * 키보드로 관계도 조작(캔버스는 키보드로 닿지 않으므로 같은 일을 하는 목록): 설정마다 버튼 하나이고 Tab 한 번에 들어와(`tabIndex` 로빙) 방향키·Home·End로 오가며 Enter는 정보 편집, Delete는 삭제, 메뉴 키·Shift+F10은 캔버스의 오른쪽 클릭과 같은 메뉴를 연다.
  * 초점이 간 설정은 캔버스가 마우스를 올린 것처럼 강조하고, 그 설정의 관계 목록('가람 ↔ 나래 · 친구', 방향이 이름에 담긴다)이 아래에 펼쳐진다: Tab으로 들어가 Enter는 관계 편집, Delete는 관계 삭제, 메뉴 키는 선 메뉴이고 초점이 간 관계의 선은 강조되며 관계 이름이 보인다.
+ * 목록은 접힌 상태를 따른다(접힌 위성은 없고 허브 버튼에 접힌 위성 수가 있다: 메뉴 키로 열리는 메뉴에서 펼친다).
  * 화면에서는 초점이 있을 때만 보인다(CSS: `.relationship-keys:not(:focus-within)`은 시각적으로만 숨긴다).
  */
-export function GraphKeyboardList({ nodes, links, names, selected, onFocusNode, onFocusLink, onEdit, onDelete, onEditRelation, onDeleteRelation, onMenu }: {
-  nodes: readonly GNode[]; links: readonly GLink[]; names: (id: string) => string; selected: string
+export function GraphKeyboardList({ nodes, links, names, selected, folded, onFocusNode, onFocusLink, onEdit, onDelete, onEditRelation, onDeleteRelation, onMenu }: {
+  nodes: readonly GNode[]; links: readonly GLink[]; names: (id: string) => string; selected: string; folded: ReadonlyMap<string, number>
   onFocusNode: (id: string) => void; onFocusLink: (id: string) => void
   onEdit: (id: string) => void; onDelete: (id: string) => void; onEditRelation: (relationId: string) => void; onDeleteRelation: (relationId: string) => void
   onMenu: (kind: 'node' | 'link', id: string, at: { x: number; y: number }) => void
@@ -61,7 +62,7 @@ export function GraphKeyboardList({ nodes, links, names, selected, onFocusNode, 
           const mine = n.id === current ? links.filter((l) => endId(l.source) === n.id || endId(l.target) === n.id) : []
           return (
             <li key={n.id} onFocus={(e) => focused(e, n.id)} onBlur={blurred}>
-              <button type="button" data-node-id={n.id} aria-current={n.id === selected || undefined} tabIndex={n.id === current ? 0 : -1} onKeyDown={(e) => nodeKey(e, n.id)} onClick={() => onEdit(n.id)}>{n.name} · {kind} · 관계 {n.degree}개</button>
+              <button type="button" data-node-id={n.id} aria-current={n.id === selected || undefined} tabIndex={n.id === current ? 0 : -1} onKeyDown={(e) => nodeKey(e, n.id)} onClick={() => onEdit(n.id)}>{n.name} · {kind} · 관계 {n.degree}개{folded.has(n.id) ? ' · 접힌 위성 ' + folded.get(n.id) + '개' : ''}</button>
               {mine.length > 0 && (
                 <ul aria-label={n.name + '의 관계'}>
                   {mine.flatMap((link) => link.relations.filter((r) => r.id).map((r) => (

@@ -7,8 +7,12 @@ import { mapEndpoint, type MapLink, type MapNode } from './useWorldMapViewModel'
  * 그리기·힘·화면은 view(RelationGraph·graphPaint)와 graphForces가 맡는다.
  */
 
-/** 노드 반지름(그래프 단위, 크기 슬라이더가 1일 때): 관계가 가장 많은 노드가 최대, 관계가 없으면 최소다. 지름이 √(관계 수)에 비례해 늘어난다(관계 수에 비례해 늘리면 허브가 화면을 덮는다). */
-export const NODE_R_MIN = 4, NODE_R_MAX = 18
+/** 노드 반지름(그래프 단위, 크기 슬라이더가 1일 때): 관계가 가장 많은 노드가 최대, 관계가 없으면 최소다. 지름이 √(관계 수)에 비례해 늘어난다(관계 수에 비례해 늘리면 허브가 화면을 덮는다). 허브는 확실히 크다. */
+export const NODE_R_MIN = 4, NODE_R_MAX = 24
+/** 화면 반지름의 최솟값(px): 수백 노드를 한눈에 볼 만큼 멀어져도 점이 사라지지 않는다. */
+export const NODE_SCREEN_MIN = 3
+/** 그릴 반지름(그래프 단위): 배율 `k`에서 화면 `NODE_SCREEN_MIN` 아래로 줄지 않는다. */
+export const drawRadius = (radius: number, k: number) => Math.max(radius, NODE_SCREEN_MIN / k)
 export const nodeRadius = (degree: number, maxDegree: number, size = 1) => (NODE_R_MIN + (NODE_R_MAX - NODE_R_MIN) * (maxDegree > 0 ? Math.sqrt(Math.min(degree, maxDegree) / maxDegree) : 0)) * size
 
 /** 카드마다 이어진 관계 수: 관계 하나가 양쪽 끝 카드에 한 번씩 더해진다. 그래프에 없는 끝점은 세지 않는다. */
@@ -39,9 +43,9 @@ export const textAlpha = (zoom: number, threshold: number) => (threshold <= 0 ? 
 
 /** 선 하나가 나타내는 관계 한 줄: `id`는 관계 id(없을 수 있다), `source`→`target`은 그 관계 자신의 방향(선의 방향과 다를 수 있다), `label`은 짧은 이름, `full`은 전체 이름이다. */
 export type Relation = { id?: string; source: string; target: string; label: string; full: string; symmetric: boolean }
-/** 그래프의 노드. react-force-graph가 좌표(`x`·`y`·`vx`·`vy`)를 붙이고 끌 때 `fx`·`fy`를 쓰는 가변 객체라 같은 카드는 같은 객체로 둔다. `r`은 크기 슬라이더 1일 때의 반지름이다. */
+/** 그래프의 노드. react-force-graph가 좌표(`x`·`y`·`vx`·`vy`)를 붙이고 끌 때 `fx`·`fy`를 쓰는 가변 객체라 같은 카드는 같은 객체로 둔다. 크기는 `degree`(와 접힌 위성 수)에서 그릴 때 정한다. */
 export type GNode = {
-  id: string; name: string; type?: CardType; unnamed: boolean; degree: number; r: number; color: string
+  id: string; name: string; type?: CardType; unnamed: boolean; degree: number; color: string
   x?: number; y?: number; vx?: number; vy?: number; fx?: number; fy?: number
 }
 /** 그래프의 선: 같은 두 카드 사이의 관계는 선 하나로 묶는다(옵시디언처럼 쌍마다 선 하나). `directed`는 방향이 있는 관계가 하나라도 있다는 뜻이고 그때 `source`→`target`이 그 방향이다. */
@@ -62,7 +66,7 @@ export function buildGraph(nodes: readonly MapNode[], links: readonly MapLink[],
   const degree = degrees([...ids], rows), maxDegree = Math.max(0, ...degree.values())
   const graphNodes = nodes.map((n): GNode => {
     const d = degree.get(n.id) ?? 0
-    const fields = { id: n.id, name: n.name, type: n.type, unnamed: !!n.unnamed, degree: d, r: nodeRadius(d, maxDegree), color: n.type ? CARD_COLORS[CARD_KIND[n.type]] : FALLBACK_COLOR }
+    const fields = { id: n.id, name: n.name, type: n.type, unnamed: !!n.unnamed, degree: d, color: n.type ? CARD_COLORS[CARD_KIND[n.type]] : FALLBACK_COLOR }
     const old = previous.get(n.id)
     if (old) return Object.assign(old, fields)
     const at = spawn.get(n.id)
@@ -80,10 +84,10 @@ export function buildGraph(nodes: readonly MapNode[], links: readonly MapLink[],
   return { nodes: graphNodes, links: [...pairs.values()], maxDegree }
 }
 
-/** 선에 올렸을 때 보이는 관계 이름: 이름이 같은 관계는 한 번만, 셋을 넘으면 '외 N'을 붙인다. */
+/** 선에 올렸을 때 보이는 관계 이름: 관계가 하나면 그 이름, 여럿이면 첫 관계 '외 N개'다(합친 선의 굵기는 늘리지 않고 개수는 이 말로만 알린다). */
 export function relationNames(link: Pick<GLink, 'relations'>) {
-  const names = [...new Set(link.relations.map((r) => r.label))]
-  return names.length > 3 ? names.slice(0, 3).join(' · ') + ' 외 ' + (names.length - 3) : names.join(' · ')
+  const [first, ...rest] = link.relations
+  return first ? first.label + (rest.length ? ' 외 ' + rest.length + '개' : '') : ''
 }
 
 /** 선의 끝점 id(react-force-graph가 끝점을 노드 객체로 바꾸기 전에는 id 문자열이다). */

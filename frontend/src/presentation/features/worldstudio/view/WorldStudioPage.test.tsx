@@ -45,6 +45,10 @@ vi.mock('../viewmodel/useWorldRevisions', () => ({ useWorldRevisions: () => revi
 vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/markdownEditorFake'))
 // 관계도 캔버스(react-force-graph)는 그리지 않고 넘기는 값·메서드만 붙잡는 대역이다(공용: src/test/forceGraphFake).
 vi.mock('react-force-graph-2d', () => import('../../../../test/forceGraphFake'))
+// 관계도의 기본 보기(인물이 둘 이상이면 인물만·정보 관계 끔)는 관계 편집 동작과 무관한 시험에서는 모든 유형을 보는 필터로 대신한다. 기본 보기·기억을 시험할 때는 prefs.filter를 undefined로 두어 실제 저장소를 읽는다.
+const prefs = vi.hoisted(() => ({ filter: { hiddenTypes: [] as string[], hiddenKinds: [] as string[] } as undefined | { hiddenTypes: string[]; hiddenKinds: string[] } }))
+vi.mock('../viewmodel/relationPrefs', async (original) => { const real = await original<typeof import('../viewmodel/relationPrefs')>(); return { ...real, loadFilter: (id: string) => (prefs.filter === undefined ? real.loadFilter(id) : prefs.filter) } })
+beforeEach(() => { localStorage.clear(); prefs.filter = { hiddenTypes: [], hiddenKinds: [] } })
 // AI·외부 도구(MCP) 변경 감시(#553)는 훅 자체의 테스트(useMcpChangeWatch.test)가 확인하고, 여기서는 이 화면이 넘기는 값·배너 연결·다시 읽은 뒤의 편집기만 본다.
 const mcp = vi.hoisted(() => ({ stale: false, reload: vi.fn(), watch: vi.fn() }))
 vi.mock('../../../shared/useMcpChangeWatch', () => ({ useMcpChangeWatch: (...args: unknown[]) => { mcp.watch(...args); return { stale: mcp.stale, reload: mcp.reload } } }))

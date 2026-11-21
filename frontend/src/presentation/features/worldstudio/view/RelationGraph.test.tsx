@@ -14,11 +14,11 @@ import RelationGraph from './RelationGraph'
 // 실제 react-force-graph(d3·canvas)는 그리지 않고 캔버스가 넘기는 값과 부르는 메서드만 붙잡는다(공용 대역: src/test/forceGraphFake).
 vi.mock('react-force-graph-2d', () => import('../../../../test/forceGraphFake'))
 beforeEach(() => fg.reset())
-afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks() })
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 type Rows = ReturnType<typeof newSetting>[]
-const actions = (over: Record<string, unknown> = {}) => ({ busy: false, selectedRelations: [] as string[], targetSource: null as string | null, deleteLock: '', onPick: vi.fn(), onSelect: vi.fn(), onConnect: vi.fn(), onRelation: vi.fn(), onDeleteCard: vi.fn(), onDeleteRelation: vi.fn(), onAdd: vi.fn(), onMark: vi.fn(), ...over })
-const filters = (over: Record<string, unknown> = {}) => ({ typed: '', onTyped: vi.fn(), choices: [], types: [], hidden: new Set<never>(), onToggleType: vi.fn(), ...over })
+const actions = (over: Record<string, unknown> = {}) => ({ busy: false, selectedRelations: [] as string[], targetSource: null as string | null, deleteLock: '', onPick: vi.fn(), onSelect: vi.fn(), onConnect: vi.fn(), onRelation: vi.fn(), onDeleteCard: vi.fn(), onDeleteRelation: vi.fn(), onAdd: vi.fn(), onMark: vi.fn(), onCenter: vi.fn(), ...over })
+const filters = (over: Record<string, unknown> = {}) => ({ typed: '', onTyped: vi.fn(), choices: [], types: [], hidden: new Set<never>(), onToggleType: vi.fn(), kinds: [], hiddenKinds: new Set<string>(), onToggleKind: vi.fn(), onReset: vi.fn(), center: null, onDepth: vi.fn(), onClearCenter: vi.fn(), ...over })
 const noSettings: never[] = []
 function Graph({ rows = noSettings, project = buildSettingRelationshipMap, editing, find, filter }: { rows?: Rows | never[]; project?: Parameters<typeof useWorldMapViewModel>[1]; editing: ReturnType<typeof actions>; find?: { id: string; seq: number } | null; filter?: ReturnType<typeof filters> }) {
  const vm = useWorldMapViewModel(rows as Rows, project)
@@ -34,7 +34,17 @@ function triangle() {
  return { a, b, c, rows }
 }
 
+/** 사람 `count`명이 고리로 이어진 세계(모두 이웃이 둘이라 위성이 없다): 노드 수를 채울 때 쓴다. */
+function ringOf(count: number, prefix = '고리') {
+ const people = Array.from({ length: count }, (_, i) => { const s = newSetting('people'); s.item.title = prefix + i; return s })
+ let rows: Rows = people
+ for (let i = 0; i < count; i++) rows = putRelation(rows, { subjectId: people[i].item.id, targetId: people[(i + 1) % count].item.id, predicate: 'friend_of', polarity: 'asserted' })
+ return rows
+}
+
 const props = () => fg.props!
+/** 가장 최근에 정한 전하 세기(노드마다 정하는 함수): 외톨이(관계 0)와 이어진 노드가 다르다. */
+const charge = (degree = 1) => fg.forces.charge.strength.mock.lastCall[0]({ degree })
 const data = () => props().graphData as { nodes: GNode[]; links: GLink[] }
 const nodeOf = (name: string) => data().nodes.find((n) => n.name === name)!
 const endId = (end: string | GNode) => (typeof end === 'string' ? end : end.id)
@@ -74,7 +84,8 @@ it('상자가 숨겨져(크기 0) 있으면 그래프를 그리지 않고, 보�
 
 it('힘은 옵시디언 기본값으로 정해진다: 반발력 6→전하 −180, 연결 힘 0.7·거리 60, 중력(가로세로비)과 이름표 포함 겹침 방지 힘이 더해진다', () => {
  render(<Graph rows={triangle().rows} editing={actions()} />)
- expect(fg.forces.charge.strength).toHaveBeenCalledWith(-180)
+ expect(charge()).toBe(-180)
+ expect(charge(0)).toBe(-30) // 외톨이는 약하게 밀어낸다(무리 가장자리에 촘촘히)
  expect(fg.forces.link.distance).toHaveBeenCalledWith(60)
  expect(fg.forces.link.strength).toHaveBeenCalledWith(0.7)
  for (const name of ['gravity', 'collide']) expect(typeof fg.forces[name]).toBe('function')
@@ -93,7 +104,7 @@ it('설정 패널은 톱니로 열고 닫으며(Esc도 닫고 초점은 톱니�
  expect(gear.getAttribute('aria-controls')).toBe(panel.id)
  for (const name of ['중심력', '반발력', '연결 힘', '연결 거리']) expect(within(panel).getByRole('slider', { name })).toBeTruthy()
  fireEvent.change(within(panel).getByRole('slider', { name: '반발력' }), { target: { value: '10' } })
- expect(fg.forces.charge.strength).toHaveBeenLastCalledWith(-300)
+ expect(charge()).toBe(-300)
  fireEvent.change(within(panel).getByRole('slider', { name: '연결 거리' }), { target: { value: '120' } })
  expect(fg.forces.link.distance).toHaveBeenLastCalledWith(120)
  fireEvent.change(within(panel).getByRole('slider', { name: '연결 힘' }), { target: { value: '0.4' } })
@@ -189,21 +200,36 @@ it('표시 설정: 화살표를 켜면 방향 있는 관계의 선에 화살표�
  fireEvent.change(within(panel).getByRole('slider', { name: '선 두께' }), { target: { value: '2' } })
  expect(props().linkWidth(directed)).toBe(2)
  act(() => props().onZoom({ k: 2, x: 0, y: 0 }))
- expect(props().linkWidth(directed)).toBe(1) // 선은 화면에서 늘 같은 굵기다(확대 배율로 나눈다)
+ expect(props().linkWidth(directed)).toBe(2) // 확대해도 같다: react-force-graph가 배율로 나누므로 우리는 나누지 않는다
 })
 
-it('외톨이 표시를 끄면 관계가 하나도 없는 노드를 그래프에서 빼고 요약도 그만큼 줄며, 다시 켜면 돌아온다', () => {
+it('외톨이는 노드가 60개를 넘는 큰 세계관에서만 기본으로 숨기고(바깥에 점 고리를 만들지 않게) 켜고 끌 수 있다. 관계가 하나도 없는 세계는 빈 화면이 되지 않게 늘 보인다', () => {
  const { rows } = triangle(), loner = newSetting('people'); loner.item.title = '홀로'
  render(<Graph rows={[...rows, loner]} editing={actions()} />)
- expect(data().nodes.map((n) => n.name)).toContain('홀로')
+ expect(nodeNames()).toContain('홀로') // 작은 세계는 외톨이도 보인다
  fireEvent.click(screen.getByRole('button', { name: '그래프 설정' }))
  const toggle = screen.getByRole('checkbox', { name: '외톨이 표시' }) as HTMLInputElement
  expect(toggle.checked).toBe(true)
  fireEvent.click(toggle)
- expect(data().nodes.map((n) => n.name)).toEqual(['가람', '나래', '다온'])
+ expect(nodeNames()).toEqual(['가람', '나래', '다온'])
  expect(screen.getByRole('img', { name: /설정 3개/ })).toBeTruthy()
  fireEvent.click(toggle)
- expect(data().nodes.map((n) => n.name)).toContain('홀로')
+ expect(nodeNames()).toContain('홀로')
+ cleanup()
+ const lone = newSetting('people'); lone.item.title = '홀로'
+ render(<Graph rows={[...ringOf(60), lone]} editing={actions()} />) // 61노드: 큰 세계관
+ expect(nodeNames()).not.toContain('홀로')
+ fireEvent.click(screen.getByRole('button', { name: '그래프 설정' }))
+ const big = screen.getByRole('checkbox', { name: '외톨이 표시' }) as HTMLInputElement
+ expect(big.checked).toBe(false)
+ fireEvent.click(big)
+ expect(nodeNames()).toContain('홀로')
+ cleanup()
+ const a1 = newSetting('people'), b1 = newSetting('people'); a1.item.title = '가'; b1.item.title = '나'
+ render(<Graph rows={[a1, b1]} editing={actions()} />) // 관계가 하나도 없다
+ expect(nodeNames()).toEqual(['가', '나'])
+ fireEvent.click(screen.getByRole('button', { name: '그래프 설정' }))
+ expect((screen.getByRole('checkbox', { name: '외톨이 표시' }) as HTMLInputElement).disabled).toBe(true)
 })
 
 it('필터: 유형 체크박스는 편집기가 준 상태를 따르고(마지막 하나는 잠긴다), 설정 찾기는 입력과 선택지를 편집기에 넘긴다', () => {
@@ -312,23 +338,19 @@ it('빈 곳을 누르거나 Esc를 누르면 고정한 강조를 푼다. 연결 
  expect(editing.onPick).toHaveBeenCalledTimes(picks) // 처리 중에는 누르기를 받지 않는다
 })
 
-it('선을 누르면 관계 편집 시트로(같은 쌍의 관계가 여럿이면 첫 관계), 마우스를 올린 선에는 관계 이름이 선 위에 보이고, 올린 선에서 Delete는 관계가 하나일 때만 삭제를 요청한다', () => {
+it('관계가 하나뿐인 선을 누르면 관계 편집 시트로 가고, 마우스를 올린 선에는 관계 이름이 선 위에 보이며, 올린 선에서 Delete는 관계가 하나일 때 바로 삭제를 요청한다', () => {
  const { rows } = triangle(), editing = actions()
  render(<Graph rows={rows} editing={editing} />)
- const pair = linkOf('가람', '나래'), single = linkOf('나래', '다온')
- expect(pair.relations.map((r) => r.label)).toEqual(expect.arrayContaining(['친구', '신뢰']))
- act(() => props().onLinkClick(pair, mouse()))
- expect(editing.onRelation).toHaveBeenCalledWith(pair.relations[0].id)
+ const single = linkOf('나래', '다온')
+ act(() => props().onLinkClick(single, mouse()))
+ expect(editing.onRelation).toHaveBeenCalledWith(single.relations[0].id)
  spread()
  expect(shows('친구')).toBe(false) // 평소 선 위 관계 이름은 숨김
  act(() => props().onLinkHover(single, null))
  expect(shows('친구')).toBe(true)
  fireEvent.keyDown(root(), { key: 'Delete' })
  expect(editing.onDeleteRelation).toHaveBeenCalledWith(single.relations[0].id)
- act(() => props().onLinkHover(pair, single))
- fireEvent.keyDown(root(), { key: 'Delete' })
- expect(editing.onDeleteRelation).toHaveBeenCalledTimes(1) // 관계가 둘인 선은 어느 관계인지 몰라 아무것도 지우지 않는다
- act(() => props().onLinkHover(null, pair))
+ act(() => props().onLinkHover(null, single))
  expect(shows('친구')).toBe(false)
 })
 
@@ -410,7 +432,7 @@ it('노드를 오른쪽 클릭하면 그 노드의 메뉴가 열려 정보 편�
  render(<Graph rows={rows} editing={editing} />)
  act(() => props().onNodeRightClick(nodeOf('가람'), mouse(30, 40)))
  const menu = screen.getByRole('menu', { name: '가람 메뉴' })
- expect(within(menu).getAllByRole('menuitem').map((i) => i.textContent)).toEqual(['정보 편집', '관계 연결', '삭제'])
+ expect(within(menu).getAllByRole('menuitem').map((i) => i.textContent)).toEqual(['정보 편집', '관계 연결', '이 설정 중심으로 보기', '삭제'])
  fireEvent.click(menuItem('정보 편집'))
  expect(editing.onSelect).toHaveBeenCalledWith(a.item.id)
  act(() => props().onNodeRightClick(nodeOf('가람'), mouse()))
@@ -455,6 +477,10 @@ it('선을 오른쪽 클릭하면 관계 편집·관계 삭제가 열린다(관�
  expect(names.join()).toMatch(/친구/)
  fireEvent.click(within(screen.getByRole('menu', { name: '관계 삭제' })).getAllByRole('menuitem')[1])
  expect(editing.onDeleteRelation).toHaveBeenLastCalledWith(pair.relations[1].id)
+ act(() => props().onLinkRightClick(pair, mouse()))
+ fireEvent.click(menuItem('관계 편집')) // 관계가 둘이면 편집도 어느 관계인지 고르는 하위 목록이다
+ fireEvent.click(within(screen.getByRole('menu', { name: '관계 편집' })).getAllByRole('menuitem')[0])
+ expect(editing.onRelation).toHaveBeenLastCalledWith(pair.relations[0].id)
 })
 
 it('터치로 노드를 길게 누르면(600ms) 그 노드의 메뉴가 열리고, 움직이면 취소되며, 빈 곳을 길게 누르면 캔버스 메뉴가 열린다. 메뉴를 연 뒤 첫 누르기는 건너뛴다', () => {
@@ -495,7 +521,7 @@ it('길게 눌러 선 메뉴를 연 뒤 손가락을 뗄 때 오는 click은 관
  expect(screen.getByRole('menu', { name: '관계선 메뉴' })).toBeTruthy()
  act(() => props().onLinkClick(linkOf('가람', '나래'), mouse()))
  expect(editing.onRelation).not.toHaveBeenCalled()
- act(() => props().onLinkClick(linkOf('가람', '나래'), mouse()))
+ act(() => props().onLinkClick(linkOf('나래', '다온'), mouse())) // 그 다음 누르기는 평소처럼 연다(관계가 하나인 선)
  expect(editing.onRelation).toHaveBeenCalledTimes(1)
  fireEvent.keyDown(screen.getByRole('menu', { name: '관계선 메뉴' }), { key: 'Escape' })
  act(() => props().onNodeClick(nodeOf('다온'), mouse())) // 다온을 눌러 고정한다
@@ -540,7 +566,7 @@ it('키보드로 관계도 조작 목록: 설정마다 버튼 하나(Tab 한 번
  fireEvent.keyDown(buttons[1], { key: 'Delete' })
  expect(editing.onDeleteCard).toHaveBeenCalledWith(b.item.id)
  fireEvent.keyDown(buttons[0], { key: 'ContextMenu' })
- expect(within(screen.getByRole('menu', { name: '가람 메뉴' })).getAllByRole('menuitem').map((i) => i.textContent)).toEqual(['정보 편집', '관계 연결', '삭제'])
+ expect(within(screen.getByRole('menu', { name: '가람 메뉴' })).getAllByRole('menuitem').map((i) => i.textContent)).toEqual(['정보 편집', '관계 연결', '이 설정 중심으로 보기', '삭제'])
  fireEvent.keyDown(screen.getByRole('menu', { name: '가람 메뉴' }), { key: 'Escape' })
  expect(document.activeElement).toBe(buttons[0]) // 메뉴를 닫으면 초점이 목록으로 돌아온다
  act(() => buttons[0].blur())
@@ -627,7 +653,7 @@ it('그래프 데이터는 올리기·고정·패널 같은 화면 상태가 바
 
 it('이름표는 확대 배율과 상관없이 화면 12px 이상이고, 멀리서는 관계가 많은 설정의 이름만 남으며, 숨은 이름의 설정에 올리면 그 이름과 이웃 이름이 보인다(홍길동전 57노드)', () => {
  render(<Graph project={honggildongMap} editing={actions()} />)
- expect(data().nodes).toHaveLength(57)
+ expect(data().nodes).toHaveLength(57) // 60개 이하의 세계관이라 외톨이도 보이고 위성도 접지 않는다
  spread()
  const fonts: number[] = []
  const texts = (zoom: number) => {
@@ -649,4 +675,213 @@ it('이름표는 확대 배율과 상관없이 화면 12px 이상이고, 멀리�
  const lit = texts(0.3)
  expect(lit).toContain(hiddenName) // 올린 노드의 이름은 늘 보인다(숨어 있던 이름도)
  expect(lit.length).toBeGreaterThan(1)
+})
+
+const ring = Array.from({ length: 56 }, (_, i) => '고리' + i)
+/** 해그리드가 위성 셋(가·나·다)·허브2와 이어지고 허브2가 라와 이어지는 세계: 가·나·다는 해그리드에, 라는 허브2에 접힌다(접히지 않는 노드는 해그리드·허브2와 고리 56명 = 노드 62개). `ringSize`를 0으로 두면 작은 세계(접지 않는다)다. */
+function hubWorld(ringSize = 56) {
+ const make = (name: string) => { const s = newSetting('people'); s.item.title = name; return s }
+ const [hub, s1, s2, s3, m, x] = ['해그리드', '가', '나', '다', '허브2', '라'].map(make)
+ const ring = Array.from({ length: ringSize }, (_, i) => make('고리' + i)) // 서로 이어진 고리: 위성이 없고 노드를 60개 넘게 채운다(큰 세계관)
+ let rows: Rows = [hub, s1, s2, s3, m, x, ...ring]
+ for (const [from, to] of [[hub, s1], [hub, s2], [hub, s3], [hub, m], [m, x], ...ring.map((r, i) => [r, ring[(i + 1) % ring.length]])]) rows = putRelation(rows, { subjectId: from.item.id, targetId: to.item.id, predicate: 'friend_of', polarity: 'asserted' })
+ return { rows, hub, s1, s2, s3, m, x }
+}
+
+it('선은 확대 배율과 무관하게 화면 기준 가장 가는 선이다(react-force-graph가 배율로 나누므로 우리는 나누지 않는다): 1px, 고해상도는 1/배율, 합친 평행 관계도 같다', () => {
+ render(<Graph rows={triangle().rows} editing={actions()} />)
+ const pair = linkOf('가람', '나래'), single = linkOf('나래', '다온')
+ expect(pair.relations).toHaveLength(2)
+ expect(props().linkWidth(pair)).toBe(1)
+ expect(props().linkWidth(single)).toBe(1) // 관계 둘을 합친 선도 한 가닥과 같다
+ act(() => props().onZoom({ k: 0.1, x: 0, y: 0 }))
+ expect(props().linkWidth(pair)).toBe(1)
+ act(() => props().onZoom({ k: 8, x: 0, y: 0 }))
+ expect(props().linkWidth(pair)).toBe(1)
+ vi.stubGlobal('devicePixelRatio', 2)
+ expect(props().linkWidth(pair)).toBe(0.5)
+ fireEvent.click(screen.getByRole('button', { name: '그래프 설정' }))
+ const slider = within(screen.getByRole('group', { name: '그래프 설정' })).getByRole('slider', { name: '선 두께' }) as HTMLInputElement
+ expect([slider.min, slider.value]).toEqual(['1', '1']) // 선 두께 슬라이더는 가장 가는 값(최소)이 기본이다
+})
+
+it('위성 노드 접기(기본 켬): 이웃이 하나뿐인 노드는 허브 안으로 접혀 그려지지 않고, 허브 이름표는 이름 +N이며, 요약과 키보드 목록도 접힌 상태를 따른다', () => {
+ render(<Graph rows={hubWorld().rows} editing={actions()} />)
+ expect(nodeNames()).toEqual(['해그리드', '허브2', ...ring])
+ expect(data().links).toHaveLength(57)
+ expect(screen.getByRole('img', { name: '관계도: 설정 58개 · 관계 57개 · 접힌 위성 4개' })).toBeTruthy()
+ spread()
+ expect(drawnTexts()).toEqual(expect.arrayContaining(['해그리드 +3', '허브2 +1']))
+ const list = within(screen.getByRole('region', { name: '키보드로 관계도 조작' }))
+ expect(list.getByRole('button', { name: /^해그리드 · .*접힌 위성 3개$/ })).toBeTruthy()
+ expect(list.queryByRole('button', { name: /^가 · / })).toBeNull()
+})
+
+it('접힌 허브의 메뉴에서 위성 펼치기·접기를 고르고, 점 아래 이름표(+N)를 눌러도 펼친다. 펼친 위성은 허브 둘레에서 시작한다', () => {
+ render(<Graph rows={hubWorld().rows} editing={actions()} />)
+ spread()
+ const hub = nodeOf('해그리드')
+ act(() => props().onNodeRightClick(hub, mouse()))
+ expect(within(screen.getByRole('menu', { name: '해그리드 메뉴' })).getAllByRole('menuitem').map((i) => i.textContent)).toEqual(['정보 편집', '관계 연결', '이 설정 중심으로 보기', '위성 펼치기', '삭제'])
+ fireEvent.click(menuItem('위성 펼치기'))
+ expect(nodeNames()).toEqual(expect.arrayContaining(['해그리드', '가', '나', '다', '허브2']))
+ expect(nodeNames()).not.toContain('라') // 다른 허브의 위성은 그대로 접혀 있다
+ for (const name of ['가', '나', '다']) expect(Math.hypot(nodeOf(name).x! - hub.x!, nodeOf(name).y! - hub.y!)).toBeLessThan(60)
+ expect(screen.getByRole('img', { name: '관계도: 설정 61개 · 관계 60개 · 접힌 위성 1개' })).toBeTruthy()
+ act(() => props().onNodeRightClick(nodeOf('해그리드'), mouse()))
+ fireEvent.click(menuItem('위성 접기'))
+ expect(nodeNames()).toEqual(['해그리드', '허브2', ...ring])
+ spread()
+ const h = nodeOf('해그리드')
+ act(() => props().onNodeClick(h, mouse(h.x! + 400, h.y! + 300))) // 점 한가운데를 누르면 평소 누르기(펼치지 않는다)
+ expect(nodeNames()).toEqual(['해그리드', '허브2', ...ring])
+ act(() => props().onNodeClick(h, mouse(h.x! + 400, h.y! + 300 + 34))) // 점 아래 이름표 자리
+ expect(nodeNames()).toContain('가')
+})
+
+it('접힌 허브만 점 아래 이름표 자리까지 눌리는 영역(포인터 영역)이 넓어진다', () => {
+ const pointerRects = (name: string) => {
+  const calls: string[] = []
+  const ctx = new Proxy({}, { get: (_, p) => () => { calls.push(String(p)) }, set: () => true }) as unknown as CanvasRenderingContext2D
+  props().nodePointerAreaPaint(nodeOf(name), '#123456', ctx, 1)
+  return calls.filter((c) => c === 'fillRect').length
+ }
+ render(<Graph rows={hubWorld().rows} editing={actions()} />)
+ expect(pointerRects('해그리드')).toBe(1)
+ cleanup()
+ render(<Graph rows={triangle().rows} editing={actions()} />)
+ expect(pointerRects('가람')).toBe(0)
+})
+
+it('설정 패널의 위성 노드 접기를 끄면 모두 보이고, 켜면 다시 접히며, 모두 펼치기는 접힌 허브를 한꺼번에 펼친다', () => {
+ render(<Graph rows={hubWorld().rows} editing={actions()} />)
+ fireEvent.click(screen.getByRole('button', { name: '그래프 설정' }))
+ const toggle = screen.getByRole('checkbox', { name: '위성 노드 접기' }) as HTMLInputElement
+ expect(toggle.checked).toBe(true)
+ fireEvent.click(screen.getByRole('button', { name: '모두 펼치기' }))
+ expect(nodeNames()).toHaveLength(62)
+ fireEvent.click(toggle) // 끈다
+ expect(nodeNames()).toHaveLength(62)
+ expect(screen.queryByRole('button', { name: '모두 펼치기' })).toBeNull()
+ fireEvent.click(toggle) // 다시 켜면 처음처럼 접힌다
+ expect(nodeNames()).toEqual(['해그리드', '허브2', ...ring])
+})
+
+it('설정 찾기가 접힌 노드를 가리키면 그 허브를 펼치고 그 노드로 다가간다', () => {
+ const { rows, s2 } = hubWorld()
+ const view = render(<Graph rows={rows} editing={actions()} find={null} />)
+ expect(nodeNames()).not.toContain('나')
+ view.rerender(<Graph rows={rows} editing={actions()} find={{ id: s2.item.id, seq: 1 }} />)
+ expect(nodeNames()).toContain('나')
+ expect(nodeNames()).not.toContain('라')
+ expect(fg.methods.centerAt).toHaveBeenCalled()
+})
+
+it('필터 칸: 관계 종류 체크박스(개수와 함께)는 편집기가 준 상태를 따르고, 12종을 넘으면 상위만 보이고 나머지는 기타로 묶이며 검색으로 모두 찾는다. 필터 초기화 버튼이 있다', () => {
+ const kinds = Array.from({ length: 20 }, (_, i) => ({ name: '종류' + i, count: 40 - i }))
+ const onToggleKind = vi.fn(), onReset = vi.fn()
+ render(<Graph rows={triangle().rows} editing={actions()} filter={filters({ kinds, hiddenKinds: new Set(['종류1']), onToggleKind, onReset })} />)
+ fireEvent.click(screen.getByRole('button', { name: '그래프 설정' }))
+ const panel = within(screen.getByRole('group', { name: '그래프 설정' }))
+ const labels = () => panel.getAllByRole('checkbox').map((b) => b.parentElement!.textContent!.trim())
+ expect(labels()).toEqual(expect.arrayContaining(['종류0 40', '종류1 39', '종류11 29', '기타 8종 196']))
+ expect(labels()).not.toContain('종류12 28')
+ expect((panel.getByRole('checkbox', { name: '종류1 39' }) as HTMLInputElement).checked).toBe(false)
+ fireEvent.click(panel.getByRole('checkbox', { name: '종류0 40' }))
+ expect(onToggleKind).toHaveBeenLastCalledWith(['종류0'])
+ fireEvent.click(panel.getByRole('checkbox', { name: '기타 8종 196' }))
+ expect(onToggleKind).toHaveBeenLastCalledWith(['종류12', '종류13', '종류14', '종류15', '종류16', '종류17', '종류18', '종류19'])
+ fireEvent.change(panel.getByRole('searchbox', { name: '관계 종류 찾기' }), { target: { value: '종류15' } })
+ expect(labels().filter((l) => /^종류|^기타/.test(l))).toEqual(['종류15 25']) // 검색 중에는 맞는 종류만(상위·기타 없음)
+ fireEvent.click(panel.getByRole('checkbox', { name: '종류15 25' }))
+ expect(onToggleKind).toHaveBeenLastCalledWith(['종류15'])
+ fireEvent.click(panel.getByRole('button', { name: '필터 초기화' }))
+ expect(onReset).toHaveBeenCalledTimes(1)
+})
+
+it('노드 중심 보기: 노드 메뉴가 편집기에 중심을 알리고, 중심 칩의 전체 보기·Esc가 풀며, 패널의 깊이 버튼이 깊이를 바꾼다', () => {
+ const { rows, a } = triangle(), editing = actions(), onDepth = vi.fn(), onClearCenter = vi.fn()
+ const view = render(<Graph rows={rows} editing={editing} filter={filters({ onDepth, onClearCenter })} />)
+ act(() => props().onNodeRightClick(nodeOf('가람'), mouse()))
+ fireEvent.click(menuItem('이 설정 중심으로 보기'))
+ expect(editing.onCenter).toHaveBeenCalledWith(a.item.id)
+ expect(screen.queryByRole('group', { name: '노드 중심 보기' })).toBeNull()
+ view.rerender(<Graph rows={rows} editing={editing} filter={filters({ center: { id: a.item.id, name: '가람', depth: 1 }, onDepth, onClearCenter })} />)
+ const chip = screen.getByRole('group', { name: '노드 중심 보기' })
+ expect(chip.textContent).toBe('가람 중심 · 깊이 1 · 전체 보기')
+ fireEvent.click(within(chip).getByRole('button', { name: '전체 보기' }))
+ expect(onClearCenter).toHaveBeenCalledTimes(1)
+ fireEvent.keyDown(root(), { key: 'Escape' })
+ expect(onClearCenter).toHaveBeenCalledTimes(2)
+ fireEvent.click(screen.getByRole('button', { name: '그래프 설정' }))
+ const panel = within(screen.getByRole('group', { name: '그래프 설정' }))
+ expect(panel.getByRole('button', { name: '깊이 1' }).getAttribute('aria-pressed')).toBe('true')
+ fireEvent.click(panel.getByRole('button', { name: '깊이 2' }))
+ expect(onDepth).toHaveBeenCalledWith(2)
+})
+
+it('고정한 강조를 먼저 풀고(Esc), 그다음 Esc가 노드 중심 보기를 푼다', () => {
+ const { rows, a } = triangle(), onClearCenter = vi.fn()
+ render(<Graph rows={rows} editing={actions()} filter={filters({ center: { id: a.item.id, name: '가람', depth: 1 }, onClearCenter })} />)
+ act(() => props().onNodeClick(nodeOf('가람'), mouse()))
+ fireEvent.keyDown(root(), { key: 'Escape' })
+ expect(onClearCenter).not.toHaveBeenCalled() // 고정만 풀린다
+ fireEvent.keyDown(root(), { key: 'Escape' })
+ expect(onClearCenter).toHaveBeenCalledTimes(1)
+})
+
+it('같은 두 설정 사이에 관계가 여럿이면 선 클릭이 관계 목록 메뉴를 열고 고른 관계의 편집 시트로 가며(하나뿐이면 바로), 선에 올리면 첫 관계 외 N개가 보이고, Delete는 지울 관계를 목록에서 고르게 한다', () => {
+ const { rows } = triangle(), editing = actions()
+ render(<Graph rows={rows} editing={editing} />)
+ const pair = linkOf('가람', '나래')
+ act(() => props().onLinkClick(pair, mouse(30, 40)))
+ expect(editing.onRelation).not.toHaveBeenCalled()
+ const items = within(screen.getByRole('menu', { name: '관계 선택' })).getAllByRole('menuitem')
+ expect(items.map((i) => i.textContent)).toEqual(['가람 ↔ 나래 · 친구', '나래 → 가람 · 신뢰'])
+ fireEvent.click(items[1])
+ expect(editing.onRelation).toHaveBeenCalledWith(pair.relations[1].id)
+ expect(screen.queryByRole('menu')).toBeNull()
+ spread()
+ act(() => props().onLinkHover(pair, null))
+ expect(shows('친구 외 1개')).toBe(true) // 합친 선의 개수는 이름으로만 알린다
+ fireEvent.keyDown(root(), { key: 'Delete' })
+ expect(editing.onDeleteRelation).not.toHaveBeenCalled() // 어느 관계인지 목록에서 고른다
+ fireEvent.click(within(screen.getByRole('menu', { name: '삭제할 관계 선택' })).getAllByRole('menuitem')[0])
+ expect(editing.onDeleteRelation).toHaveBeenCalledWith(pair.relations[0].id)
+})
+
+it('큰 세계관(보이는 노드 150개 초과)은 물리를 2초 안에 식힌다. 작은 세계관은 기본값이다', () => {
+ render(<Graph rows={ringOf(160)} editing={actions()} />)
+ expect(data().nodes).toHaveLength(160)
+ expect(props().cooldownTime).toBeLessThanOrEqual(2000)
+ expect(props().d3AlphaDecay).toBeGreaterThan(0.0228)
+ cleanup()
+ render(<Graph rows={triangle().rows} editing={actions()} />)
+ expect(props().cooldownTime).toBe(15000)
+ expect(props().d3AlphaDecay).toBe(0.0228)
+})
+
+it('상자 크기가 바뀌면(사이드바 접기·AI 채팅 열기·창 크기) 캔버스 크기를 다시 재서 넘기고, 사용자가 움직이지 않았으면 다시 맞춘다', () => {
+ render(<Graph rows={triangle().rows} editing={actions()} />)
+ act(() => props().onEngineStop()) // 처음 맞춤이 끝났다
+ fg.methods.zoomToFit.mockClear()
+ canvasSize.w = 500; canvasSize.h = 420
+ act(() => notifyResize())
+ expect([props().width, props().height]).toEqual([500, 420])
+ expect(fg.methods.zoomToFit).toHaveBeenCalled()
+ fireEvent.pointerDown(screen.getByRole('img', { name: /^관계도/ }), { pointerType: 'mouse' }) // 사용자가 움직였다
+ fg.methods.zoomToFit.mockClear()
+ canvasSize.w = 900
+ act(() => notifyResize())
+ expect(props().width).toBe(900)
+ expect(fg.methods.zoomToFit).not.toHaveBeenCalled()
+})
+
+it('노드가 60개 이하인 작은 세계는 위성을 접지 않는다(두 설정을 이으면 한쪽이 사라지지 않게): 패널이 이유를 알리고 모두 펼치기는 없다', () => {
+ render(<Graph rows={hubWorld(0).rows} editing={actions()} />)
+ expect(nodeNames()).toEqual(['해그리드', '가', '나', '다', '허브2', '라'])
+ expect(screen.getByRole('img', { name: '관계도: 설정 6개 · 관계 5개' })).toBeTruthy()
+ fireEvent.click(screen.getByRole('button', { name: '그래프 설정' }))
+ expect(screen.getByText('설정이 많을 때(60개 초과) 접혀요')).toBeTruthy()
+ expect(screen.queryByRole('button', { name: '모두 펼치기' })).toBeNull()
 })

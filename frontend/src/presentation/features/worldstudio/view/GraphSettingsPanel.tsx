@@ -1,8 +1,13 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import type { CardType } from '../../../../domain/entities/studioCards'
 import { RANGES, type GraphSettings } from '../viewmodel/graphForces'
+import { KIND_LIMIT, kindRows } from '../viewmodel/relationView'
 
-/** 설정 패널의 필터 칸에 편집기가 넘기는 것: 설정 찾기(입력과 선택지)와 유형 체크박스(보이는 유형이 그것 하나뿐이면 `locked`). 상태는 편집기가 쥔다. */
+/**
+ * 설정 패널의 필터 칸에 편집기가 넘기는 것: 설정 찾기(입력과 선택지), 유형 체크박스(보이는 유형이 그것 하나뿐이면 `locked`), 관계 종류 체크박스(같은 이름끼리 묶은 종류와 개수, 끈 종류),
+ * 필터 초기화, 노드 중심 보기(`center`: 없으면 null). 상태는 편집기가 쥐고 세계관별로 이 기기에 기억한다.
+ * `onToggleKind`는 종류 이름들을 한꺼번에 받는다: 하나라도 보이면 모두 끄고, 모두 꺼져 있으면 모두 켠다(기타 묶음도 한 번에).
+ */
 export type Filters = {
   typed: string
   onTyped: (value: string) => void
@@ -10,6 +15,13 @@ export type Filters = {
   types: readonly { id: CardType; label: string; count: number; locked: boolean }[]
   hidden: ReadonlySet<CardType>
   onToggleType: (id: CardType) => void
+  kinds: readonly { name: string; count: number }[]
+  hiddenKinds: ReadonlySet<string>
+  onToggleKind: (names: readonly string[]) => void
+  onReset: () => void
+  center: { id: string; name: string; depth: 1 | 2 } | null
+  onDepth: (depth: 1 | 2) => void
+  onClearCenter: () => void
 }
 type Change = <K extends keyof GraphSettings>(key: K, value: GraphSettings[K]) => void
 
@@ -24,11 +36,36 @@ function Slider({ name, label, settings, onChange }: { name: keyof typeof RANGES
   )
 }
 
+/** 관계 종류 체크박스: 12종을 넘으면 상위만 보이고 나머지는 기타 한 줄로 묶이며(부분만 꺼져 있으면 중간 표시) 검색으로 모두 찾는다. */
+function KindFilter({ filters }: { filters: Filters }) {
+  const [query, setQuery] = useState('')
+  const { rows, other } = kindRows(filters.kinds, query)
+  if (!filters.kinds.length) return null
+  const visible = (name: string) => !filters.hiddenKinds.has(name)
+  const shown = other ? other.names.filter(visible).length : 0
+  return (
+    <fieldset className="relationship-kinds">
+      <legend>관계 종류</legend>
+      {filters.kinds.length > KIND_LIMIT && <input type="search" className="inp" aria-label="관계 종류 찾기" placeholder="관계 종류 찾기" autoComplete="off" value={query} onChange={(e) => setQuery(e.target.value)} />}
+      <div className="relationship-kinds-list">
+        {rows.map(({ name, count }) => <label key={name}><input type="checkbox" checked={visible(name)} onChange={() => filters.onToggleKind([name])} /> {name} {count}</label>)}
+        {other && (
+          <label>
+            <input type="checkbox" checked={shown === other.names.length} ref={(el) => { if (el) el.indeterminate = shown > 0 && shown < other.names.length }} onChange={() => filters.onToggleKind(other.names)} /> 기타 {other.names.length}종 {other.count}
+          </label>
+        )}
+        {!rows.length && <p className="small muted">맞는 관계 종류가 없어요</p>}
+      </div>
+    </fieldset>
+  )
+}
+
 /**
- * 관계도 그래프의 설정 패널(옵시디언 그래프 뷰의 톱니): 필터(설정 찾기·유형·외톨이 표시), 표시(화살표·텍스트 표시 임계값·노드 크기·선 두께), 힘(중심력·반발력·연결 힘·연결 거리)과 화면 맞춤·배치 정돈이다.
- * 값은 화면 상태일 뿐 저장하지 않는다. 힘 슬라이더를 움직이면 캔버스가 시뮬레이션을 다시 데운다. 열린 동안에도 초점은 톱니에 두고(비모달), Esc는 닫는다.
+ * 관계도 그래프의 설정 패널(옵시디언 그래프 뷰의 톱니): 필터(설정 찾기·유형·관계 종류·외톨이 표시·위성 노드 접기·필터 초기화), 노드 중심 보기의 깊이, 표시(화살표·텍스트 표시 임계값·노드 크기·선 두께), 힘(중심력·반발력·연결 힘·연결 거리)과 화면 맞춤·배치 정돈이다.
+ * 값은 화면 상태일 뿐이다(필터·배치는 편집기가 이 기기에 기억한다). 힘 슬라이더를 움직이면 캔버스가 시뮬레이션을 다시 데운다. 열린 동안에도 초점은 톱니에 두고(비모달), Esc는 닫는다.
+ * 외톨이는 노드가 60개 이하면 기본으로 보이고(`showOrphans`가 지금 보이는지), 관계가 하나도 없는 세계(`noLinks`)는 빈 화면이 되지 않게 늘 보이고 그 체크박스는 잠긴다. 위성 노드 접기는 노드가 60개 이하(`foldable`이 아님)면 적용되지 않는다고 알린다.
  */
-export function GraphSettingsPanel({ id, settings, onChange, filters, onFit, onRelayout, onClose }: { id: string; settings: GraphSettings; onChange: Change; filters: Filters; onFit: () => void; onRelayout: () => void; onClose: () => void }) {
+export function GraphSettingsPanel({ id, settings, onChange, filters, showOrphans, noLinks, foldable, onFit, onRelayout, onExpandAll, onClose }: { id: string; settings: GraphSettings; onChange: Change; filters: Filters; showOrphans: boolean; noLinks: boolean; foldable: boolean; onFit: () => void; onRelayout: () => void; onExpandAll: () => void; onClose: () => void }) {
   const list = useId()
   return (
     <div id={id} className="relationship-settings" role="group" aria-label="그래프 설정" onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose() } }}>
@@ -51,8 +88,23 @@ export function GraphSettingsPanel({ id, settings, onChange, filters, onFit, onR
             ))}
           </fieldset>
         )}
-        <label><input type="checkbox" checked={settings.orphans} onChange={(e) => onChange('orphans', e.target.checked)} /> 외톨이 표시</label>
+        <KindFilter filters={filters} />
+        <label><input type="checkbox" checked={showOrphans} disabled={noLinks} onChange={(e) => onChange('orphans', e.target.checked)} /> 외톨이 표시</label>
+        <label><input type="checkbox" checked={settings.fold} onChange={(e) => onChange('fold', e.target.checked)} /> 위성 노드 접기</label>
+        {settings.fold && !foldable && <p className="small muted">설정이 많을 때(60개 초과) 접혀요</p>}
+        <div className="relationship-settings-actions">
+          {settings.fold && foldable && <button type="button" className="btn sm" onClick={onExpandAll}>모두 펼치기</button>}
+          <button type="button" className="btn sm" onClick={filters.onReset}>필터 초기화</button>
+        </div>
       </section>
+      {filters.center && (
+        <section>
+          <h4>중심 보기</h4>
+          <div className="relationship-settings-actions" role="group" aria-label="중심 보기 깊이">
+            {([1, 2] as const).map((depth) => <button key={depth} type="button" className="btn sm" aria-pressed={filters.center?.depth === depth} onClick={() => filters.onDepth(depth)}>깊이 {depth}</button>)}
+          </div>
+        </section>
+      )}
       <section>
         <h4>표시</h4>
         <label><input type="checkbox" checked={settings.arrows} onChange={(e) => onChange('arrows', e.target.checked)} /> 화살표</label>

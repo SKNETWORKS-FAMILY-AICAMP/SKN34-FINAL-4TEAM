@@ -35,13 +35,16 @@
 /* 설정 패널(옵시디언의 톱니): 캔버스 오른쪽 위에 겹치고 안쪽이 길면 스크롤하며, 600px 이하에서는 아래에서 올라오는 시트다. 구획(필터·표시·힘)은 위에서 아래로 쌓는다. z-index는 도구(10)와 톱니(30) 사이다.
    .episode-app 틀의 입력 규칙(폭 100%·패딩·위 여백)을 이기려고 설정 찾기·슬라이더는 .episode-app 아래에서 다시 정한다(입력은 :not()까지 베낌). */
 .relationship-settings{position:absolute;top:50px;right:10px;bottom:10px;z-index:20;display:flex;flex-direction:column;gap:6px;box-sizing:border-box;width:min(280px,calc(100% - 20px));padding:12px 14px;overflow:auto;border:1px solid var(--rc-line);border-radius:12px;background:color-mix(in srgb,var(--stage-3) 94%,transparent);color:var(--fixed-ink);font-size:13px}
-.relationship-settings-actions{display:flex;gap:6px}
+.relationship-settings-actions{display:flex;flex-wrap:wrap;gap:6px}
 .relationship-settings section{display:grid;gap:8px;padding-top:10px;border-top:1px solid var(--rc-line)}
 .relationship-settings h4{margin:0;font-size:12px;font-weight:700;color:var(--fixed-sub)}
 .relationship-settings label{display:flex;align-items:center;gap:8px}
 .relationship-settings fieldset{display:grid;gap:6px;margin:0;padding:0;border:0}.relationship-settings legend{padding:0;margin-bottom:4px;color:var(--fixed-sub)}
 .relationship-settings .relationship-find{display:grid;gap:4px;color:var(--fixed-sub);font-weight:650}
 .episode-app .relationship-settings .relationship-find input:not([type=checkbox]):not([type=radio]){width:100%;margin-top:0;padding:8px 12px}
+.episode-app .relationship-settings .relationship-kinds input:not([type=checkbox]):not([type=radio]){width:100%;margin-top:0;padding:8px 12px}
+.relationship-kinds-list{display:grid;gap:6px;max-height:11rem;overflow:auto}
+.relationship-local{position:absolute;top:48px;left:10px;z-index:15;display:flex;flex-wrap:wrap;align-items:center;gap:8px;box-sizing:border-box;max-width:calc(100% - 20px);padding:6px 10px;border:1px solid var(--rc-line);border-radius:10px;background:color-mix(in srgb,var(--stage-3) 94%,transparent);color:var(--fixed-ink);font-size:13px}
 .relationship-slider{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center}
 .episode-app .relationship-settings .relationship-slider input[type=range]{grid-column:1/-1;width:100%;min-height:0;margin:0;padding:0;border:0;background:none;accent-color:var(--fixed-pri)}
 @media(max-width:600px){.relationship-settings{top:auto;left:0;right:0;bottom:0;width:auto;max-height:min(60%,380px);border-width:1px 0 0;border-radius:16px 16px 0 0}}

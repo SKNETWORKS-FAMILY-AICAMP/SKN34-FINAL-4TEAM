@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { honggildongMap } from '../../../../test/honggildongGraph'
-import { NODE_R_MAX, NODE_R_MIN, buildGraph, degrees, labelFont, labelLimit, nodeRadius, relationNames, relationTitle, textAlpha, topDegreeIds, type GNode } from './graphModel'
+import { NODE_R_MAX, NODE_R_MIN, NODE_SCREEN_MIN, buildGraph, degrees, drawRadius, labelFont, labelLimit, nodeRadius, relationNames, relationTitle, textAlpha, topDegreeIds, type GNode } from './graphModel'
 import { neighborhood } from './highlight'
 import type { MapLink, MapNode } from './useWorldMapViewModel'
 
@@ -56,8 +56,6 @@ it('buildGraph는 같은 쌍의 관계를 선 하나로 묶고(관계는 모두 
  expect(ab.relations.map(r=>r.label)).toEqual(['친구','동료']) // 방향이 달라도 한 쌍
  expect(g.nodes.map(n=>n.degree)).toEqual([3,2,1])
  expect(g.maxDegree).toBe(3)
- expect(g.nodes[0].r).toBe(NODE_R_MAX)
- expect(g.nodes[2].r).toBeGreaterThan(NODE_R_MIN)
 })
 
 it('buildGraph는 방향 있는 관계가 하나라도 있으면 선을 방향 있다고 하고 그 방향을 따르며, 대칭 관계만이면 방향이 없다',()=>{
@@ -86,7 +84,6 @@ it('이름이 없는 카드(unnamed)와 유형이 없는 카드도 그려진다(
  const g=buildGraph([node('a',{unnamed:true}),node('b',{type:undefined})],[])
  expect(g.nodes[0].unnamed).toBe(true)
  expect(g.nodes[1].color).toBe('#a5b8d8')
- expect(g.nodes[0].r).toBe(NODE_R_MIN)
 })
 
 it('relationTitle은 관계 자신의 방향을 이름에 담는다(방향 있는 관계는 →, 대칭은 ↔)',()=>{
@@ -100,10 +97,19 @@ it('buildGraph는 묶은 관계마다 자기 방향(source·target)을 남긴다
  expect(g.links[0].relations.map(x=>[x.source,x.target,x.label])).toEqual([['a','b','친구'],['b','a','신뢰']])
 })
 
-it('relationNames는 이름이 같은 관계를 한 번만 보이고 셋을 넘으면 외 N을 붙인다',()=>{
+it('relationNames는 선에 올렸을 때 보이는 이름이다: 관계가 하나면 그 이름, 여럿이면 첫 관계 외 N개(개수는 이 말로만 알린다)',()=>{
  const r=(label:string)=>({source:'a',target:'b',label,full:label,symmetric:false})
- expect(relationNames({relations:[r('친구'),r('친구'),r('동료')]})).toBe('친구 · 동료')
- expect(relationNames({relations:[r('a'),r('b'),r('c'),r('d'),r('e')]})).toBe('a · b · c 외 2')
+ expect(relationNames({relations:[r('부자 관계')]})).toBe('부자 관계')
+ expect(relationNames({relations:[r('부자 관계'),r('아버지'),r('효도'),r('신임'),r('경고')]})).toBe('부자 관계 외 4개')
+ expect(relationNames({relations:[r('친구'),r('친구')]})).toBe('친구 외 1개')
+})
+
+it('drawRadius는 어느 배율에서도 화면 반지름 3px 아래로 줄지 않는다(멀리서 점이 사라지지 않는다)',()=>{
+ expect(NODE_SCREEN_MIN).toBe(3)
+ expect(drawRadius(4,1)).toBe(4)
+ expect(drawRadius(4,0.2)).toBeCloseTo(15,10) // 3px ÷ 0.2
+ expect(drawRadius(NODE_R_MAX,0.2)).toBe(NODE_R_MAX) // 이미 충분히 크면 그대로
+ expect(NODE_R_MAX).toBeGreaterThanOrEqual(24) // 허브가 확실히 크다
 })
 
 it('홍길동전(카드 57장·관계 146개): 홍길동은 관계 54개·서로 다른 이웃 38장이고 이웃 강조는 선 쌍 단위로 같은 이웃을 준다',()=>{
@@ -114,7 +120,6 @@ it('홍길동전(카드 57장·관계 146개): 홍길동은 관계 54개·서로
  const gil=g.nodes.find(n=>n.id==='gildong') as GNode
  expect(gil.degree).toBe(54)
  expect(g.maxDegree).toBe(54)
- expect(gil.r).toBe(NODE_R_MAX)
  const around=neighborhood('gildong',g.links.map(l=>({id:l.id,source:l.source as string,target:l.target as string})))
  expect(around.nodes.size).toBe(39) // 자신 + 이웃 38장
  expect(around.edges.size).toBe(g.links.filter(l=>l.source==='gildong'||l.target==='gildong').length)
