@@ -97,8 +97,8 @@ Content `GET /internal/v1/operations/funnel`(운영 서비스 토큰 체인, 파
 
 원고 전처리(`preprocessing.run`, `ai-worker` `-Q preprocessing` 동시성 1)는 **그대로 둔다**. 그 밖의 작업 실행을 같은 Celery·브로커(`rabbitmq`)로 옮기고, 실행 기록은 지금처럼 작업 감시(`/admin?tab=jobs`)에서 본다.
 
-- **새 워커 `ai-jobs-worker`:** ai-service와 같은 이미지, `celery … worker -Q jobs --concurrency=1`. Celery 앱 설정(acks_late·prefetch 1·결과 저장 없음)은 전처리와 같은 값을 쓰되 전처리 태스크·큐는 건드리지 않는다.
+- **새 워커 `ai-jobs-worker`:** ai-service와 같은 이미지, `celery … worker -Q jobs --concurrency=${AI_JOBS_CONCURRENCY:-4}`(기본 4개 병렬). Celery 앱 설정(acks_late·prefetch 1·결과 저장 없음)은 전처리와 같은 값을 쓰되 전처리 태스크·큐는 건드리지 않는다.
 - **회귀 평가:** AI `POST /internal/v1/evaluations`는 `BackgroundTasks` 대신 태스크 `evaluation.run`(큐 `jobs`)을 올리고 지금처럼 202 `{runName}`. 재시작해도 큐에 남아 이어 실행된다.
-- **운영 정기 작업 4종:** 운영 스케줄러는 일정 판단과 `job_run` 기록(queued·running·succeeded·failed, 진행률)만 맡는다. 때가 되면(또는 수동 재실행이면) `queued` 기록을 만들고 AI 내부 `POST /internal/v1/jobs` `{runId, kind}`(운영 서비스 토큰)를 부른다 — Content가 전처리를 AI에 접수하는 것과 같은 모양. AI는 태스크 `operations.run_job`(큐 `jobs`)을 올리고 202. 워커는 운영 내부 `POST /internal/v1/jobs/runs/{runId}/execute`(AI→운영 토큰)를 불러 운영 서버가 기존 handler를 실행하고 상태를 기록한다. 같은 runId가 다시 배달되면 운영이 `queued`가 아닌 기록은 실행하지 않는다(중복 실행 방지). AI 접수 실패는 그 기록을 `failed`+고정 사유로 남긴다.
+- **운영 정기 작업 4종:** 운영 스케줄러는 일정 판단과 `job_run` 기록(queued·running·succeeded·failed, 진행률)만 맡는다. 때가 되면(또는 수동 재실행이면) `queued` 기록을 만들고 AI 내부 `POST /internal/v1/jobs` `{runId, kind}`(운영 서비스 토큰)를 부른다 — Content가 전처리를 AI에 접수하는 것과 같은 모양. AI는 태스크 `operations.run_job`(큐 `jobs`)을 올리고 202. 워커는 운영 내부 `POST /internal/v1/jobs/runs/{runId}/execute`(AI→운영 토큰)를 불러 운영 서버가 기존 handler를 실행하고 상태를 기록한다. 병렬 실행이라 운영은 `queued`→`running`을 조건부 갱신 한 번으로 선점하고(선점 실패면 실행하지 않음), 같은 일정의 기록이 이미 진행 중이면 새 기록을 만들지 않는다(같은 정기 작업이 겹쳐 돌지 않게). AI 접수 실패는 그 기록을 `failed`+고정 사유로 남긴다.
 - **작업 감시:** `GET /jobs/runs`는 운영 정기 작업·원고 구축에 회귀 평가 Run을 같은 `JobRun` 모양으로 더한다(`kind=evaluation`, `source=ai-evaluation`, 평가 상태를 running|succeeded|failed로, `targetId`=Run 이름, 재실행은 평가 화면에서). 정기 작업 기록의 `source`는 `operations-scheduler` 그대로. 대시보드 작업 카드에도 평가 실행을 센다.
-- ponytail: 작업 큐 하나·동시성 1이라 긴 평가 뒤에 정기 작업이 기다린다. 필요하면 워커를 늘린다.
+- 동시성은 `AI_JOBS_CONCURRENCY`(기본 4)로 조절한다. 평가 여러 개와 정기 작업이 동시에 돈다. ponytail: 평가는 모델을 많이 불러 동시 실행 수만큼 OpenAI 요청이 늘어난다.
