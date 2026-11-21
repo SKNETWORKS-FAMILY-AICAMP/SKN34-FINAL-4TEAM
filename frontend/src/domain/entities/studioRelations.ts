@@ -35,7 +35,7 @@ function generatedDescription(item:RelationInput,settings:StudioSetting[]) {
  */
 export function relationShortName(item:Pick<SettingItem,'predicate'|'polarity'|'title'|'text'|'subjectId'|'targetId'>,titleOf:(id:string|null)=>string|undefined) {
  const title=item.title.trim()
- const named=isFreeRelation(item.predicate)&&title&&item.title!==describe(item,id=>titleOf(id)??'선택 안 함')
+ const named=isFreeRelation(item.predicate)&&title&&item.title!==describe(item,id=>titleOf(id)??'선택 안 함').slice(0,200) // 자동 이름은 200자로 잘려 저장된다(editStudioSetting·validateRelation과 같은 규칙)
  return named?title+(item.polarity==='denied'?' 아님':''):relationLabel(item)
 }
 export function editStudioSetting(settings:StudioSetting[],id:string,patch:Partial<SettingItem>,labels?:Partial<StudioSetting>) {

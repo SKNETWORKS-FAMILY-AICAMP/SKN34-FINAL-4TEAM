@@ -26,6 +26,14 @@ describe('relationShortName: 그림·관계 종류·내보내기가 쓰는 짧�
     expect(name(relation({ predicate: 'trusts', polarity: 'denied' }))).toBe('신뢰 아님')
   })
 
+  it('양 끝 카드 이름이 길어 자동 이름이 200자로 잘려 저장돼도 여전히 자동 이름이다(관계 문구가 이름이다, 끝점 이름이 섞인 긴 제목이 아니다)', () => {
+    const [longA, longB] = [card('가'.repeat(120)), card('나'.repeat(120))]
+    const rows = putRelation([longA, longB], { subjectId: longA.item.id, targetId: longB.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', text: '친구' })
+    const stored = rows.find((s) => s.item.kind === 'relation')!
+    expect(stored.item.title).toHaveLength(200) // 자동 이름은 200자로 잘려 저장된다(editStudioSetting과 같은 규칙)
+    expect(relationShortName(stored.item, (id) => rows.find((s) => s.item.id === id)?.item.title)).toBe('친구')
+  })
+
   it('양 끝 카드 이름을 모르면(지워진 카드) 선택 안 함으로 지은 이름과 비교한다(던지지 않는다)', () => {
     const read = relation({ predicate: 'custom_relation_directed', title: '이복형', text: '본문' })
     expect(relationShortName(read.item, () => undefined)).toBe('이복형')
