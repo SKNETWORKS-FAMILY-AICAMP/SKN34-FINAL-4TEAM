@@ -15,7 +15,7 @@ const ICONS: Record<CardPane | 'list', ReactNode> = {
 /**
  * 설정 카드 편집 화면 왼쪽의 활동 막대(VS Code처럼 세로 아이콘 줄, 아이콘만으로는 뜻을 알 수 없어 버튼마다 아이콘 아래 짧은 글자 라벨이 늘 보인다: 카드 목록·개요·문서·관계·버전·공개 순서). 맨 위 목록 버튼은 설정 카드 목록 패널을 펴고 접는 토글이고(`aria-expanded`, 가운데 화면은 그대로),
  * 구분선 아래 아이콘 다섯은 가운데 본문 전체를 그 화면으로 바꾸는 탭이다(`role="tablist"`: 개요·문서·관계·버전·공개 순서, 한 번에 하나, `aria-controls`는 가운데 `tabpanel`).
- * 탭의 읽는 이름(aria-label)에 배지 수가 들어가고(`관계 12개`) 툴팁(title)은 화면 이름이다. 읽는 이름이 따로 있으므로 화면의 글자 라벨은 `aria-hidden`이라 겹쳐 읽지 않는다. ↑↓←→로 초점이 이웃 탭으로 옮겨 가고(처음·끝에서 이어진다, Home·End) 고르는 것은 Enter·Space(버튼의 누르기)다.
+ * 탭의 읽는 이름(aria-label)에 배지 수가 들어가고(`관계 12개`) 툴팁(title)은 화면 이름이다. 읽는 이름이 따로 있으므로 화면의 글자 라벨은 `aria-hidden`이라 겹쳐 읽지 않고, 읽는 이름은 화면 라벨을 포함한다(목록 토글 `설정 카드 목록` ⊃ `카드 목록`, label in name). ↑↓←→로 초점이 이웃 탭으로 옮겨 가고(처음·끝에서 이어진다, Home·End) 고르는 것은 Enter·Space(버튼의 누르기)다.
  * Tab 자리는 고른 탭 하나다. 좁은 화면은 CSS가 가로 줄로 바꾼다(`aria-orientation`은 마크업 그대로).
  */
 export function CardActivityBar({ pane, paneId, badges, onPane, listOpen, listId, onList }: {
@@ -31,7 +31,7 @@ export function CardActivityBar({ pane, paneId, badges, onPane, listOpen, listId
   }
   return (
     <div className="world-activity">
-      <button type="button" className="world-activity-tab" aria-expanded={listOpen} aria-controls={listOpen ? listId : undefined} aria-label="설정 카드" title="설정 카드" onClick={onList}>
+      <button type="button" className="world-activity-tab" aria-expanded={listOpen} aria-controls={listOpen ? listId : undefined} aria-label="설정 카드 목록" title="설정 카드 목록" onClick={onList}>
         <span className="world-activity-icon"><StrokeIcon size={20}>{ICONS.list}</StrokeIcon></span>
         <span className="world-activity-label" aria-hidden="true">카드 목록</span>
       </button>

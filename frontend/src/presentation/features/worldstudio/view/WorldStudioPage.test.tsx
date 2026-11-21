@@ -6,6 +6,7 @@ import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-rou
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../../../app/appContainer'
+import { cardLinkMarkdown } from '../../../../domain/entities/cardLinks'
 import { createAppStore } from '../../../../app/store'
 import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import type { Work } from '../../../../domain/entities/content'
@@ -221,7 +222,7 @@ const editor = () => within(screen.getByRole('region', { name: '선택한 설정
 /** 왼쪽 활동 막대의 탭(개요·문서·관계·버전·공개 순서)을 고른다. 이미 고른 탭이면 그대로 둔다. 편집 화면의 처음 탭은 문서다. 탭은 가운데 본문 전체를 바꾼다. */
 const openPane = (name: string) => { const tab = screen.getByRole('tab', { name: new RegExp('^' + name) }); if (tab.getAttribute('aria-selected') !== 'true') fireEvent.click(tab) }
 /** 설정 카드 목록은 활동 막대 맨 위 토글이 펴고 접는 왼쪽 패널이다(데스크톱은 처음부터 펼쳐져 있다). */
-const rail = () => { const toggle = screen.getByRole('button', { name: '설정 카드' }); if (toggle.getAttribute('aria-expanded') !== 'true') fireEvent.click(toggle); return within(screen.getByRole('navigation', { name: '설정 카드 목록' })) }
+const rail = () => { const toggle = screen.getByRole('button', { name: '설정 카드 목록' }); if (toggle.getAttribute('aria-expanded') !== 'true') fireEvent.click(toggle); return within(screen.getByRole('navigation', { name: '설정 카드 목록' })) }
 const graph = () => { openPane('버전'); return within(screen.getByRole('region', { name: '버전 그래프' })) }
 const overview = () => { openPane('개요'); return within(screen.getByRole('tabpanel')) }
 const relations = () => { openPane('관계'); return within(screen.getByRole('region', { name: '연관 설정' })) }
@@ -374,11 +375,11 @@ it('설정 카드 단계는 공개 설정집과 같은 분류 메뉴·검색·�
   const menu = within(screen.getByRole('navigation', { name: '설정 분류' }))
   expect(menu.getAllByRole('button').map((b) => b.textContent)).toEqual(['전체 3', '인물 2', '장소 1', '보완 필요 2']) // 두 인물은 SOUL·GOAL이 비어 정리 필요라 보완 필요 분류가 마지막에 선다
   const table = within(screen.getByRole('table', { name: '설정 카드 목록' }))
-  expect(table.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['보이는 설정 모두 선택', '번호', '분류', '제목', '요약', '공개', '연결']) // 맨 앞은 공개 범위를 바꿀 카드를 고르는 선택 칸이다
-  const rows = () => table.getAllByRole('row').slice(1).map((row) => [...row.querySelectorAll('td')].slice(1).map((td) => (td.classList.contains('col-title') ? td.querySelector('button')?.textContent : td.textContent))) // 선택 칸은 빼고, 제목 칸은 제목 버튼만 본다
-  expect(rows()).toEqual([['1', '인물', '나래', '', '작가 전용', '0'], ['2', '인물', '가람', '북부 기록관', '작가 전용', '0'], ['3', '장소', '항구', '', '작가 전용', '0']])
+  expect(table.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['보이는 설정 모두 선택', '번호', '분류', '제목', '상태', '요약', '공개', '연결']) // 맨 앞은 공개 범위를 바꿀 카드를 고르는 선택 칸이다
+  const rows = () => dataRows(table).slice(1).map((row) => [...row.querySelectorAll('td')].slice(1).map((td) => (td.classList.contains('col-title') ? td.querySelector('button')?.textContent : td.textContent))) // 선택 칸은 빼고, 제목 칸은 제목 버튼만 본다
+  expect(rows()).toEqual([['1', '인물', '나래', '정리 필요', '', '작가 전용', '0'], ['2', '인물', '가람', '정리 필요', '북부 기록관', '작가 전용', '0'], ['3', '장소', '항구', '—없음', '', '작가 전용', '0']]) // 상태 칸: 두 인물은 SOUL·GOAL이 비어 정리 필요, 항구는 —
   // 좁은 본문에서는 분류·요약 칸이 숨으므로 같은 내용을 제목 아래 한 줄에도 둔다(넓은 본문에서는 CSS가 이 줄을 숨긴다)
-  expect(table.getAllByRole('row').slice(1).map((row) => row.querySelector('.col-title .world-row-sub')?.textContent)).toEqual(['인물', '인물북부 기록관', '장소'])
+  expect(dataRows(table).slice(1).map((row) => row.querySelector('.col-title .world-row-sub')?.textContent)).toEqual(['인물', '인물북부 기록관', '장소'])
   expect(screen.queryByRole('region', { name: '선택한 설정 편집' })).toBeNull() // 행을 고르기 전에는 편집 화면이 없고 목록만 있다
   expect(screen.queryByRole('combobox', { name: '추가할 설정 유형' })).toBeNull() // 유형은 새 설정의 편집 화면에서 고른다
 
@@ -2027,7 +2028,9 @@ it('유형은 선택 상자 하나로만 보이고 같은 유형 칩이 따로 �
 
 // ── 설정 카드 공개 설정(DEC-53: 'N화부터 공개' 또는 기본 '작가 전용', 미연결 세계관은 '공개'(1화)와 '작가 전용') ─────────────────────────────
 const boardTable = () => within(screen.getByRole('table', { name: '설정 카드 목록' }))
-const visibilityOf = () => boardTable().getAllByRole('row').slice(1).map((row) => row.querySelector('.col-vis')?.textContent)
+/** 게시판 표 자신의 줄(머리 줄 포함). 열려 있는 미리보기 안의 정보 상자(nw-info) 표의 줄은 세지 않는다. */
+const dataRows = (scope: { getAllByRole: (role: 'row') => HTMLElement[] }) => scope.getAllByRole('row').filter((row) => !row.closest('.world-preview'))
+const visibilityOf = () => dataRows(boardTable()).slice(1).map((row) => row.querySelector('.col-vis')?.textContent)
 /** 일괄 공개는 접힌 `<details>`(summary `공개 범위 한 번에 바꾸기`)다. 줄을 고르면 펼쳐진다(jsdom은 닫힌 상자 안도 숨기지 않아 닫힌 채로도 질의된다). */
 const bulkDetails = () => screen.getByText('공개 범위 한 번에 바꾸기', { selector: 'summary' }).closest('details')!
 const bulk = () => within(bulkDetails())
@@ -2485,7 +2488,7 @@ it('설정 가져오기 한도 오류를 시트에 보이고 초안은 그대로
   expect(append).toHaveBeenCalledOnce()
   expect(screen.getByRole('dialog', { name: '다른 세계관에서 가져오기' })).toBeTruthy() // 닫지 않아 고른 것을 줄여 다시 할 수 있다
   expect(saveBar().getByText('저장됨')).toBeTruthy()
-  expect(boardTable().getAllByRole('row')).toHaveLength(2) // 머리글과 원래 카드만 남는다
+  expect(dataRows(boardTable())).toHaveLength(2) // 머리글과 원래 카드만 남는다
   expect(boardTable().getByRole('button', { name: '가람 인물' })).toBeTruthy()
 })
 
@@ -2934,7 +2937,7 @@ it('3,000자를 넘는 파일도 가져오되 그 문서에 초과를 표시하�
 it('설정집 게시판은 IDENTITY.md·SOUL.md·GOAL.md 중 빈 문서가 있는 인물 줄에 정리 필요를 보이고, 저장은 막지 않는다', async () => {
   const filled = { soul: '성격', goal: '목표' }
   const { saveStudio } = await show([person('가람', '본문'), withDocs(person('나래', '본문'), filled), withDocs(person('다온'), filled), place('항구')])
-  const flagged = () => boardTable().getAllByRole('row').slice(1).map((row) => [row.querySelector('.col-title button')?.textContent, within(row).queryByText('정리 필요') !== null])
+  const flagged = () => dataRows(boardTable()).slice(1).map((row) => [row.querySelector('.col-title button')?.textContent, row.querySelector('td.col-status')!.textContent!.includes('정리 필요')])
   expect(flagged()).toEqual([['가람', true], ['나래', false], ['다온', true], ['항구', false]]) // 다온은 본문(IDENTITY.md)이 비었고, 인물이 아닌 설정은 알리지 않는다
   openCard('가람 인물')
   pickDoc('SOUL.md 정리 필요')
@@ -3151,10 +3154,12 @@ async function runReview() {
   await ask.findByText(SUMMARY)
   fireEvent.click(aiSheet().getByRole('button', { name: '닫기' }))
 }
-const rowOf = (title: string) => boardTable().getAllByRole('row').find((row) => row.querySelector('.col-title button')?.textContent === title)!
-const titles = () => boardTable().getAllByRole('row').slice(1).map((row) => row.querySelector('.col-title button')?.textContent)
-/** 한 줄의 보완 상태 칸(정리 필요·연결 필요·AI 의견 N) */
-const todos = (title: string) => Array.from(rowOf(title).querySelectorAll('.world-todo'), (badge) => badge.textContent)
+const rowOf = (title: string) => dataRows(boardTable()).find((row) => row.querySelector('.col-title button')?.textContent === title)!
+const titles = () => dataRows(boardTable()).slice(1).map((row) => row.querySelector('.col-title button')?.textContent)
+/** 한 줄의 상태 칸. 좁은 배치용 제목 아래 줄(.world-row-status)의 같은 칩은 CSS가 좁을 때만 보이는데 jsdom에는 CSS가 없어 둘 다 있으므로, 칩은 늘 이 칸에서 찾는다. */
+const statusCell = (title: string) => within(rowOf(title).querySelector<HTMLElement>('td.col-status')!)
+/** 한 줄의 상태 칸 칩 글(정리 필요·연결 필요·공개 순서 N·AI 의견 N). */
+const todos = (title: string) => Array.from(rowOf(title).querySelectorAll('td.col-status .world-todo'), (badge) => badge.textContent)
 const cats = () => within(screen.getByRole('navigation', { name: '설정 분류' }))
 const findings = () => within(editor().getByRole('region', { name: 'AI 검토 의견' }))
 
@@ -3296,7 +3301,7 @@ it('설정이 있는 세계관에서 카드가 없는 분류는 분류 메뉴에
   cleanup()
   await show([])
   expect(cats().getAllByRole('listitem').map((item) => item.textContent)).toEqual(['전체 0'])
-  expect(boardTable().getByText('설정을 추가해 시작해 보세요.')).toBeTruthy()
+  expect(boardTable().getByText('설정을 추가해 시작해 보세요.').closest('td')!.colSpan).toBe(8) // 빈 안내 줄도 표의 열 수와 같다
 })
 
 it('AI 의견 N은 카드 줄에 붙고 누르면 그 카드의 편집 화면이 열리며, 보완 필요 분류는 상태가 있는 카드만 보인다', async () => {
@@ -3307,7 +3312,7 @@ it('AI 의견 N은 카드 줄에 붙고 누르면 그 카드의 편집 화면이
   reviewing(reviewOf([finding([harbor.item.id]), finding([harbor.item.id, garam.item.id])]))
   await runReview()
   expect(['가람', '항구', '탑'].map(todos)).toEqual([['AI 의견 1'], ['AI 의견 2'], []])
-  expect(within(rowOf('항구')).getByRole('button', { name: '항구 AI 의견 2건 보기' }).textContent).toBe('AI 의견 2')
+  expect(statusCell('항구').getByRole('button', { name: '항구 AI 의견 2건 보기' }).textContent).toBe('AI 의견 2')
   fireEvent.click(cats().getByRole('button', { name: '보완 필요 2' }))
   expect(titles()).toEqual(['가람', '항구'])
   expect(cats().getByRole('button', { name: '보완 필요 2' }).getAttribute('aria-current')).toBe('true')
@@ -3315,7 +3320,7 @@ it('AI 의견 N은 카드 줄에 붙고 누르면 그 카드의 편집 화면이
   fireEvent.click(cats().getByRole('button', { name: /^장소/ }))
   expect(titles()).toEqual(['항구', '탑'])
   expect(cats().getByRole('button', { name: '보완 필요 2' }).getAttribute('aria-current')).toBeNull() // 분류를 고르면 보완 필요는 풀린다
-  fireEvent.click(within(rowOf('항구')).getByRole('button', { name: '항구 AI 의견 2건 보기' }))
+  fireEvent.click(statusCell('항구').getByRole('button', { name: '항구 AI 의견 2건 보기' }))
   expect(where()).toMatch(/card=/)
   expect(editor().getByRole('textbox', { name: '설정 이름' })).toHaveProperty('value', '항구')
   expect(findings().getAllByRole('listitem')).toHaveLength(2)
@@ -3329,6 +3334,79 @@ it('정리 필요·연결 필요·AI 의견은 한 줄에 함께 보이고 보�
   await runReview()
   expect(['가람', '전쟁'].map(todos)).toEqual([['정리 필요'], ['연결 필요', 'AI 의견 1']])
   expect(cats().getByRole('button', { name: '보완 필요 2' })).toBeTruthy()
+})
+
+/** 상태 칸 테스트용 설정집: 가람은 정리 필요, 전쟁은 연결 필요, 궁궐은 공개 순서 1, 항구는 상태 없음 */
+const statusWorld = () => {
+  const [garam, war, harbor] = [person('가람', '본문'), eventCard('전쟁'), place('항구')]
+  const hall = { ...place('궁궐'), revealFromEpisode: 1 }
+  hall.item.text = '승상이 사는 곳.'
+  const minister = { ...place('승상'), revealFromEpisode: 5 }
+  return { garam, war, harbor, hall, minister, settings: [garam, war, harbor, hall, minister] }
+}
+
+it('설정집 게시판에는 상태 칸이 있어 정리 필요·연결 필요·공개 순서 N이 제목 옆이 아니라 그 칸에 모이고, 상태가 없는 줄은 —다', async () => {
+  await show(statusWorld().settings)
+  expect(boardTable().getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['보이는 설정 모두 선택', '번호', '분류', '제목', '상태', '요약', '공개', '연결'])
+  expect(['가람', '전쟁', '궁궐', '항구', '승상'].map(todos)).toEqual([['정리 필요'], ['연결 필요'], ['공개 순서 1'], [], []])
+  const empty = rowOf('항구').querySelector('td.col-status')!
+  expect([empty.querySelector('[aria-hidden=true]')!.textContent, empty.querySelector('.sr-only')!.textContent]).toEqual(['—', '없음']) // 칸이 비면 줄임표 대신 —(읽는 사람에게는 없음)
+  for (const title of ['가람', '전쟁', '궁궐']) {
+    const besideTitle = Array.from(rowOf(title).querySelectorAll('.col-title .world-todo'))
+    expect(besideTitle.every((chip) => chip.closest('.world-row-status')), title).toBe(true) // 제목 바로 옆에는 칩이 없다: 좁은 배치의 제목 아래 줄에만 있다
+  }
+})
+
+it('좁은 배치용으로 같은 칩이 제목 아래 한 줄(.world-row-status)에도 있고(CSS가 좁은 컨테이너에서만 보이며 눌러도 같은 편집 화면이 열린다), 상태가 없는 줄에는 그 줄이 없다', async () => {
+  const { garam, settings } = statusWorld()
+  await show(settings)
+  const line = rowOf('가람').querySelector<HTMLElement>('.col-title .world-row-status')!
+  expect(Array.from(line.querySelectorAll('button'), (button) => [button.textContent, button.getAttribute('aria-label')])).toEqual([['정리 필요', '가람 정리 필요 보기']]) // 상태 칸과 같은 칩
+  expect(rowOf('항구').querySelector('.col-title .world-row-status')).toBeNull()
+  fireEvent.click(line.querySelector('button')!)
+  expect(where()).toBe('/worldstudio/qa?card=' + garam.item.id)
+  expect(screen.queryByRole('region', { name: '가람 미리보기' })).toBeNull() // 줄까지 올라가 미리보기를 열지도 않는다
+})
+
+it('상태 칩을 누르면 미리보기를 거치지 않고 그 카드의 편집 화면이 칩에 맞는 화면으로 열린다: 정리 필요·AI 의견은 문서, 연결 필요는 관계, 공개 순서 N은 공개 순서', async () => {
+  const { garam, war, hall, settings } = statusWorld()
+  await show(settings)
+  reviewing(reviewOf([finding([garam.item.id])]))
+  await runReview()
+  expect(todos('가람')).toEqual(['정리 필요', 'AI 의견 1'])
+  const press = (title: string, name: string) => fireEvent.click(statusCell(title).getByRole('button', { name }))
+  const tab = () => screen.getByRole('tab', { selected: true }).querySelector('.world-activity-label')!.textContent // 배지 글자는 빼고 화면 이름만
+  press('가람', '가람 정리 필요 보기')
+  expect([where(), tab()]).toEqual(['/worldstudio/qa?card=' + garam.item.id, '문서'])
+  backToBoard()
+  expect(screen.queryByRole('region', { name: /미리보기/ })).toBeNull() // 칩은 줄까지 올라가 미리보기를 열지 않는다(편집 화면 뒤의 숨은 게시판이 아니라 돌아온 게시판에서 확인)
+  press('가람', '가람 AI 의견 1건 보기')
+  expect([where(), tab()]).toEqual(['/worldstudio/qa?card=' + garam.item.id, '문서'])
+  backToBoard()
+  press('전쟁', '전쟁 연결 필요 보기')
+  expect([where(), tab()]).toEqual(['/worldstudio/qa?card=' + war.item.id + '&pane=relations', '관계'])
+  backToBoard()
+  press('궁궐', '궁궐 공개 순서 1건 보기')
+  expect([where(), tab()]).toEqual(['/worldstudio/qa?card=' + hall.item.id + '&pane=order', '공개 순서'])
+  backToBoard()
+  expect(where()).toBe('/worldstudio/qa') // 돌아오면 주소에서 card와 pane이 모두 빠진다
+  press('가람', '가람 정리 필요 보기') // 다시 문서로: 지난번 화면(공개 순서)이 남지 않는다
+  expect(tab()).toBe('문서')
+})
+
+it('정렬의 보완 필요 많은 순은 정리 필요·연결 필요·공개 순서·AI 의견을 모두 센 수가 많은 카드부터 보이고 같은 수는 설정집 순서를 지키며 번호를 다시 매긴다', async () => {
+  const [garam, narae, war, harbor] = [person('가람', '본문'), person('나래', '본문'), eventCard('전쟁'), place('항구')]
+  await show([garam, narae, war, harbor])
+  reviewing(reviewOf([finding([narae.item.id]), finding([narae.item.id])]))
+  await runReview()
+  expect(titles()).toEqual(['가람', '나래', '항구', '전쟁']) // 설정집 순서(분류 순 → 넣은 순서)
+  const sort = screen.getByRole<HTMLSelectElement>('combobox', { name: '정렬' })
+  expect(Array.from(sort.options, (o) => o.textContent)).toEqual(['설정집 순', '연결 많은 순', '가나다순', '보완 필요 많은 순'])
+  fireEvent.change(sort, { target: { value: 'status' } })
+  expect(titles()).toEqual(['나래', '가람', '전쟁', '항구']) // 나래 3(정리 필요 1 + AI 의견 2) > 가람 1 = 전쟁 1 > 항구 0
+  expect(dataRows(boardTable()).slice(1).map((row) => row.querySelector('.col-no')!.textContent)).toEqual(['1', '2', '3', '4'])
+  fireEvent.change(sort, { target: { value: 'name' } })
+  expect(titles()).toEqual(['가람', '나래', '전쟁', '항구'])
 })
 
 it('수정안 보기는 지금 글과 바꿀 글을 나란히 보이고, 초안에 반영은 그 카드의 그 칸만 바꿔 저장하지 않은 변경이 되며 저장하면 서버로 간다', async () => {
@@ -3745,7 +3823,7 @@ it('이른 카드의 글에 더 늦게 공개되는 카드의 이름이 나오�
   hall.item.text = '승상이 사는 곳.'
   const minister = { ...place('승상'), revealFromEpisode: 5 }
   const { saveStudio } = await show([hall, minister])
-  expect(todos('궁궐')).toEqual(['공개 순서 확인'])
+  expect(todos('궁궐')).toEqual(['공개 순서 1'])
   expect(todos('승상')).toEqual([])
   openCard('궁궐 장소')
   expect(screen.queryByText('공개 순서 문제 없음')).toBeNull() // 문제가 있으면 개요 화면의 문제 없음 줄이 없다
@@ -4079,17 +4157,117 @@ it('행의 빈 곳을 눌러도 미리보기가 열리지만 선택 체크박스
   expect(screen.queryByRole('region', { name: /미리보기/ })).toBeNull()
 })
 
-it('미리보기의 닫기는 미리보기를 접고 제목으로 초점을 돌려주며, 바로 위 줄에 있는 분류·공개 범위는 되풀이하지 않고 연결된 설정(상위 5개)을 보인다', async () => {
+it('미리보기의 닫기와 Esc는 미리보기를 접고 제목으로 초점을 돌려준다', async () => {
   const [garam, narae] = [person('가람', '첫째'), person('나래', '둘째')]
   await show(friends([garam, narae], garam, narae))
-  fireEvent.click(screen.getByRole('button', { name: '가람 인물' }))
-  expect(previewOf('가람').queryByText('작가 전용')).toBeNull() // 공개 범위는 같은 줄의 공개 칸이 보인다
-  expect(previewOf('가람').queryByText('인물')).toBeNull() // 분류 칩도 같은 줄의 분류 칸에 있다
-  expect(document.querySelector('.world-preview-head')).toBeNull() // 썸네일이 없으면 머리 줄도 없다
-  expect(previewOf('가람').getByText('나래 · 친구')).toBeTruthy() // 연결된 설정: 이름 · 라벨
+  const title = screen.getByRole('button', { name: '가람 인물' })
+  fireEvent.click(title)
   fireEvent.click(previewOf('가람').getByRole('button', { name: '닫기' }))
   expect(screen.queryByRole('region', { name: '가람 미리보기' })).toBeNull()
-  expect(document.activeElement).toBe(screen.getByRole('button', { name: '가람 인물' }))
+  expect(document.activeElement).toBe(title)
+  fireEvent.click(title)
+  fireEvent.keyDown(previewOf('가람').getByRole('button', { name: '수정하기' }), { key: 'Escape' }) // 미리보기 안 어디서든
+  expect(screen.queryByRole('region', { name: '가람 미리보기' })).toBeNull()
+  expect(document.activeElement).toBe(title)
+  fireEvent.click(title)
+  fireEvent.keyDown(screen.getByRole('searchbox', { name: '설정 검색' }), { key: 'Escape' }) // 미리보기 밖의 Esc는 닫지 않는다
+  expect(screen.getByRole('region', { name: '가람 미리보기' })).toBeTruthy()
+})
+
+/** 미리보기 정보 상자 한 행의 값 */
+const infoValue = (scope: ReturnType<typeof within>, key: string) => scope.getByRole('rowheader', { name: key }).nextElementSibling!.textContent
+/** 첫머리 글·# 제목 둘·별칭·태그·17화부터 공개인 가람이 동료(설명 있음)와 사건(전쟁)으로 이어진 설정집 */
+const wikiWorld = () => {
+  const garam = { ...person('가람', '첫머리 글\n# 과거\n북쪽 성벽에서 자랐다.\n## 어린 시절\n눈이 많았다.'), aliases: ['서약사'], tags: ['주인공'], userCategory: '주요 인물', revealFromEpisode: 17 }
+  garam.item.category = 'history'
+  const [narae, war] = [person('나래', '둘째 본문'), eventCard('전쟁')]
+  let settings = putRelation([garam, narae, war], { subjectId: garam.item.id, targetId: narae.item.id, predicate: 'custom_relation', polarity: 'asserted', title: '동료', text: '함께 성벽을 지켰다', fromEpisode: 3 })
+  settings = putRelation(settings, { subjectId: garam.item.id, targetId: war.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', title: '참전', text: '선봉에 섰다', fromEpisode: 5 })
+  return { garam, narae, war, settings }
+}
+
+it('게시판 미리보기는 공개 카드 페이지 모양이다: 정보 상자(유형·설정 영역·내 분류·별칭·공개 범위·관계·태그)·번호 목차·첫머리와 접이식 본문·카드별 관계도(간단 목록·함께한 사건)·접힌 관계 자세히 보기', async () => {
+  const { settings } = wikiWorld()
+  await show(settings, '/worldstudio/qa', { linkedWorkId: 'w1' })
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' }))
+  const doc = previewOf('가람')
+  const info = within(document.querySelector<HTMLElement>('.world-preview table.nw-info')!)
+  expect(info.getByText('가람', { selector: 'caption' })).toBeTruthy()
+  expect([infoValue(info, '유형'), infoValue(info, '설정 영역'), infoValue(info, '내 분류'), infoValue(info, '별칭'), infoValue(info, '공개 범위'), infoValue(info, '관계'), infoValue(info, '태그')]).toEqual(['인물', '역사', '주요 인물', '서약사', '17화부터 공개', '2개', '주인공'])
+  expect(info.getAllByRole('rowheader').map((th) => th.textContent)).toEqual(['유형', '설정 영역', '내 분류', '별칭', '공개 범위', '관계', '태그']) // 공개 카드 페이지의 정보 상자와 같은 순서(유형·별칭 …)에 작가용 분류와 공개 범위가 더해진다
+  const toc = doc.getByRole('navigation', { name: '목차' })
+  expect(within(toc).getAllByRole('listitem').map((li) => li.querySelector('a')!.textContent)).toEqual(['1. 과거', '1.1. 어린 시절', '2. 관계', '2.1. 나래 — 동료', '2.2. 전쟁 — 참전'])
+  expect(doc.getByText('첫머리 글')).toBeTruthy() // 첫 제목 앞의 글은 번호 없는 첫머리
+  expect(doc.getByText('북쪽 성벽에서 자랐다.').closest('details')!.open).toBe(true) // 본문 문단은 펼쳐진 접이식
+  const map = within(doc.getByRole('region', { name: '카드별 관계도' }))
+  expect(map.getByText(/동료 · 3화부터/).tagName).toBe('LI') // 간단 목록: 상대 — 관계 이름 · N화부터
+  expect(map.getByText('함께한 사건 1').closest('details')!.open).toBe(false) // 사건은 접힌 목록에 모인다
+  const fold = document.querySelector<HTMLDetailsElement>('.world-preview details.nw-rels')!
+  expect(fold.querySelector('summary')!.textContent).toBe('관계 자세히 보기 (2)')
+  expect(fold.open).toBe(false)
+  expect([within(fold).getByText('함께 성벽을 지켰다'), within(fold).getByText('선봉에 섰다')]).toHaveLength(2) // 관계 설명은 접힌 묶음 안 문단
+  expect(document.querySelector('.world-preview-sum, .world-preview-meta, .world-preview-head')).toBeNull() // 이전의 요약·연결된 설정 목록은 없다
+  expect(doc.getByRole('group', { name: '가람 문서' }).tabIndex).toBe(0) // 높이를 제한한 문서는 키보드로 스크롤할 수 있다
+  expect(document.querySelector<HTMLTableCellElement>('tr.world-row-preview > td')!.colSpan).toBe(8) // 표의 열 수(8)와 같아 열 폭이 변하지 않는다
+})
+
+it('작가 전용 설정도 미리보기가 열리고(공개로 거르지 않는다) 공개 범위는 작가 전용이며, 본문이 비어 있으면 안내 한 줄이고 목차는 없다', async () => {
+  const [narae, daon] = [person('나래', '둘째 본문'), person('다온')]
+  await show([narae, daon])
+  fireEvent.click(screen.getByRole('button', { name: '나래 인물' }))
+  expect(infoValue(previewOf('나래'), '공개 범위')).toBe('작가 전용')
+  expect(previewOf('나래').getByText('둘째 본문')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '다온 인물' }))
+  expect(previewOf('다온').getByText('본문을 아직 쓰지 않았어요.')).toBeTruthy()
+  expect(previewOf('다온').queryByRole('navigation', { name: '목차' })).toBeNull()
+  expect(infoValue(previewOf('다온'), '관계')).toBe('0개')
+  const [harbor] = [place('항구')]
+  cleanup()
+  await show([harbor])
+  fireEvent.click(screen.getByRole('button', { name: '항구 장소' }))
+  expect([infoValue(previewOf('항구'), '유형'), infoValue(previewOf('항구'), '연결')]).toEqual(['장소', '0개']) // 인물이 아니면 관계가 아니라 연결 수다
+})
+
+it('미리보기 정보 상자의 이미지는 그 카드의 대표 이미지(읽지 않은 동안·읽지 못하면 비워 둔다)이고 같은 이미지는 한 번만 읽는다', async () => {
+  const { readCardImage } = await show([withImage(person('가람', '기존 내용')), person('나래')])
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' }))
+  expect(await within(document.querySelector<HTMLElement>('.world-preview .nw-info-image')!).findByRole('img', { name: '가람 이미지' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '나래 인물' }))
+  expect(document.querySelector('.world-preview .nw-info-image')).toBeNull() // 이미지가 없는 카드는 이미지 행이 없다
+  expect(readCardImage).toHaveBeenCalledOnce() // 줄 썸네일과 미리보기가 같은 읽기를 나눠 쓴다
+})
+
+it('미리보기의 공개 화면 보기는 공개된 설정이고 세계관이 공개 목록에 있을 때만 새 탭 링크로 있다', async () => {
+  const [pub, priv] = [{ ...person('가람', '본문'), revealFromEpisode: 1 }, person('나래', '본문')]
+  await show([pub, priv], '/worldstudio/qa', { visibility: 'public', currentRevisionId: 'rev-1' })
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' }))
+  const link = previewOf('가람').getByRole('link', { name: '공개 화면 보기' })
+  expect([link.getAttribute('href'), link.getAttribute('target'), link.getAttribute('rel')]).toEqual(['/worlds/qa/cards/' + pub.item.id, '_blank', 'noopener noreferrer'])
+  fireEvent.click(screen.getByRole('button', { name: '나래 인물' }))
+  expect(previewOf('나래').queryByRole('link', { name: '공개 화면 보기' })).toBeNull() // 작가 전용 설정은 공개 화면이 없다
+  cleanup()
+  await show([pub]) // 공개 목록에 없는(비공개) 세계관
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' }))
+  expect(previewOf('가람').queryByRole('link', { name: '공개 화면 보기' })).toBeNull()
+})
+
+it('미리보기 본문의 설정 링크와 관계도의 이웃은 그 카드의 편집 화면을 열고(수정하기와 같이 편집기는 미리보기 탭으로 시작) 모르는 카드의 링크는 글자만 남는다', async () => {
+  const [harbor, gone] = [place('항구'), place('옛 성')]
+  const garam = person('가람', '배는 ' + cardLinkMarkdown(harbor.item.id, '항구') + '로 가고 ' + cardLinkMarkdown(gone.item.id, '옛 성') + '은 잊었다.')
+  await show([garam, harbor, person('나래')]) // 옛 성은 설정집에 없다
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' }))
+  expect(Array.from(previewOf('가람').getByText(/옛 성/).closest('.card-md')!.querySelectorAll('button'), (button) => button.textContent)).toEqual(['항구']) // 설정집에 없는 카드의 링크는 글자만 남는다
+  expect(previewOf('가람').queryByRole('navigation', { name: '목차' })).toBeNull() // 본문 링크로만 이어진 항구는 관계가 아니라 관계 문단·목차·접힌 묶음이 없다
+  expect(document.querySelector('.world-preview details.nw-rels')).toBeNull()
+  fireEvent.click(previewOf('가람').getAllByRole('button', { name: '항구' }).find((button) => button.closest('.card-md'))!)
+  expect(where()).toBe('/worldstudio/qa?card=' + harbor.item.id)
+  expect(editor().getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('항구')
+  expect(fakeEditor.startTab.get('설정 본문')).toBe('preview')
+  backToBoard()
+  expect(screen.getByRole('region', { name: '가람 미리보기' })).toBeTruthy() // 편집 화면에 다녀와도 열린 채
+  const neighbor = within(previewOf('가람').getByRole('region', { name: '카드별 관계도' })).getAllByRole('button', { name: '항구' })[0]
+  fireEvent.click(neighbor)
+  expect(where()).toBe('/worldstudio/qa?card=' + harbor.item.id)
 })
 
 it('설정 편집 화면의 카드 레일에는 기존 관계가 섞이지 않고(메모·분류 확인은 남는다) 열려 있는 관계 항목만은 남으며, 두 쪽 이동에는 각각 이름이 있다', async () => {
@@ -4552,7 +4730,7 @@ it('편집 화면 왼쪽은 활동 막대다: 맨 위 설정 카드 목록 토�
   for (const gone of [body.querySelector('.world-overview'), editor().queryByRole('combobox', { name: '유형' }), editor().queryByRole('group', { name: '대표 이미지' }), editor().queryByRole('region', { name: '공개 범위' }), editor().queryByRole('region', { name: '연관 설정' }), screen.queryByRole('region', { name: '버전 그래프' })]) expect(gone).toBeNull()
   expect(where()).not.toContain('pane=')
   expect(editor().queryByText('상세 설정 · 선택')).toBeNull() // 사건·기존 관계 같은 카드가 아니면 상세 설정이 없다
-  expect(screen.getByRole('button', { name: '설정 카드' }).getAttribute('aria-expanded')).toBe('true') // 목록은 왼쪽 패널
+  expect(screen.getByRole('button', { name: '설정 카드 목록' }).getAttribute('aria-expanded')).toBe('true') // 목록은 왼쪽 패널
   expect(screen.getByRole('navigation', { name: '설정 카드 목록' })).toBeTruthy()
 })
 
@@ -4602,7 +4780,7 @@ it('설정 카드 목록 패널을 펴고 접는 것은 가운데 탭과 따로�
   await show(friends([garam, narae], garam, narae))
   openCard('가람 인물')
   const root = () => document.querySelector('.world-card-studio')!
-  const toggle = () => screen.getByRole('button', { name: '설정 카드' })
+  const toggle = () => screen.getByRole('button', { name: '설정 카드 목록' })
   openPane('관계')
   fireEvent.click(toggle()) // 목록을 접는다
   expect(toggle().getAttribute('aria-expanded')).toBe('false')
@@ -4640,7 +4818,7 @@ it('관계 탭은 관계 종류별로 묶고 알고 있음 같은 조용한 종�
   openCard('주인공 인물')
   relations()
   expect(screen.getByRole('tab', { name: '관계 5개' })).toBeTruthy()
-  const groups = [...document.querySelectorAll<HTMLDetailsElement>('details.card-relmap-kind')]
+  const groups = [...screen.getByRole('region', { name: '연관 설정' }).querySelectorAll<HTMLDetailsElement>('details.card-relmap-kind')]
   expect(groups.map((d) => [d.querySelector('summary')!.textContent, d.open])).toEqual([['가족 (2)', true], ['알고 있음 (3)', false]])
   const known = screen.getByRole('list', { name: '알고 있음 관계 목록' })
   expect(Array.from(known.children)).toHaveLength(3) // 접혀 있어도 목록은 있다(줄마다 '자세히'의 본문은 별개)

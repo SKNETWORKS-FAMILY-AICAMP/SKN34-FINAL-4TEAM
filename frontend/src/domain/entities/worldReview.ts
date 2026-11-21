@@ -28,8 +28,10 @@ export type ReviewBasis = Record<string, { body: string; characterDocs?: Charact
  */
 export type WorldReview = { reviewedCards: number; totalCards: number; findings: ReviewFinding[]; reviewedAt: Date; basis: ReviewBasis }
 
-/** 게시판 한 줄의 보완 상태. `cleanup`은 빈 인물 문서(`정리 필요`), `unlinked`는 `연결 필요`, `order`는 `공개 순서 확인`, `opinions`는 마지막 AI 검토가 그 카드에 남긴 지적 수다. */
-export type CardStatus = { cleanup: boolean; unlinked: boolean; opinions: number; order: boolean }
+/** 게시판 한 줄의 보완 상태. `cleanup`은 빈 인물 문서(`정리 필요`), `unlinked`는 `연결 필요`, `order`는 그 카드의 공개 순서 경고 건수(`공개 순서 N`, 편집 화면의 같은 배지와 같은 수), `opinions`는 마지막 AI 검토가 그 카드에 남긴 지적 수다. */
+export type CardStatus = { cleanup: boolean; unlinked: boolean; opinions: number; order: number }
+/** 한 줄의 보완할 일 수: 정리 필요·연결 필요는 1씩, 공개 순서·AI 의견은 건수대로다. 게시판의 `보완 필요 많은 순` 정렬이 쓴다. */
+export const problemCount = (status: CardStatus) => Number(status.cleanup) + Number(status.unlinked) + status.order + status.opinions
 
 /**
  * `연결 필요`인 카드 id: 사건·사물 카드가 어느 인물과도 **승인된 긍정 관계**로 이어지지 않았다. 시뮬레이션은 관계로 이어진 사건·사물만 인물이 기억하기 때문이다
@@ -89,12 +91,13 @@ export function publicationOrderIssues(settings: readonly StudioSetting[]): Orde
 /** 카드마다의 보완 상태(`정리 필요`·`연결 필요`·`공개 순서 확인`·`AI 의견 N`). 상태가 하나도 없는 카드는 담지 않는다. 여러 카드를 가리킨 지적은 가리킨 카드마다 한 건이다. */
 export function cardStatuses(settings: readonly StudioSetting[], findings: readonly ReviewFinding[], order: readonly OrderIssue[] = publicationOrderIssues(settings)): Map<string, CardStatus> {
   const unlinked = unlinkedCardIds(settings)
-  const ordered = new Set(order.map((issue) => issue.cardId))
+  const ordered = new Map<string, number>()
+  for (const { cardId } of order) ordered.set(cardId, (ordered.get(cardId) ?? 0) + 1)
   const opinions = new Map<string, number>()
   for (const { cardIds } of findings) for (const id of new Set(cardIds)) opinions.set(id, (opinions.get(id) ?? 0) + 1)
   const statuses = new Map<string, CardStatus>()
   for (const row of settings) {
-    const status = { cleanup: missingCharacterDocs(row).length > 0, unlinked: unlinked.has(row.item.id), opinions: opinions.get(row.item.id) ?? 0, order: ordered.has(row.item.id) }
+    const status = { cleanup: missingCharacterDocs(row).length > 0, unlinked: unlinked.has(row.item.id), opinions: opinions.get(row.item.id) ?? 0, order: ordered.get(row.item.id) ?? 0 }
     if (status.cleanup || status.unlinked || status.opinions || status.order) statuses.set(row.item.id, status)
   }
   return statuses

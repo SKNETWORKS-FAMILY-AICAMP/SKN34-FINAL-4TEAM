@@ -29,5 +29,8 @@ export function paneBadges({ relations, versions, dirty, issues }: { relations: 
   }
 }
 
+/** 주소 쿼리에 화면을 쓴다: 기본(문서)은 `pane`을 쓰지 않고 지운다(주소에 `pane`이 없는 것이 문서). 게시판 상태 칩과 활동 막대가 같은 규칙으로 쓴다. */
+export const setPaneQuery = (query: URLSearchParams, pane: CardPane) => (pane === DEFAULT_PANE ? query.delete('pane') : query.set('pane', pane))
+
 /** 아이콘 버튼의 읽는 이름: 화면 이름 뒤에 배지의 말을 붙인다. */
 export const tabName = (label: string, badge?: PaneBadge) => (badge ? label + ' ' + badge.label : label)

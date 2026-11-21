@@ -52,9 +52,9 @@ describe('세계관 작업실 레이아웃 규칙', () => {
   it('설정집 게시판은 본문 폭을 기준으로 삼는 컨테이너라 채팅 레일이 열려도 좁은 배치로 바뀌고, 숨는 분류·요약은 제목 아래 한 줄로 보인다(열 숨김 기준은 600px 미만, 분류 칩 줄은 1000px 이하)', () => {
     expect(rule(studio, '.world-card-library')).toMatch(/container:\s*worlds-board\s*\/\s*inline-size/)
     const narrow = block(studio, '@container worlds-board (max-width:599px)')
-    expect(narrow).toMatch(/\.world-card-library \.worlds-board-table :is\(\.col-sum,\.col-kind,\.col-num\)\{display:table-cell;visibility:hidden;width:0;padding:0;border:0\}/) // 숨기는 열은 폭 0의 보이지 않는 칸이다(열 수가 늘 7개)
+    expect(narrow).toMatch(/\.world-card-library \.worlds-board-table :is\(\.col-sum,\.col-kind,\.col-num\)\{display:table-cell;visibility:hidden;width:0;padding:0;border:0\}/) // 숨기는 열은 폭 0의 보이지 않는 칸이다(열 수가 늘 8개)
     expect(narrow).toMatch(/\.world-row-sub\{display:flex/)
-    expect(rule(studio, '.world-row-sub')).toMatch(/display:\s*none/) // 600px 이상 본문에서는 분류·요약 칸이 보이므로 숨긴다
+    expect(rule(studio, '.world-row-sub,.world-row-status')).toMatch(/display:\s*none/) // 600px 이상 본문에서는 분류·요약 칸이 보이므로 숨긴다(상태 칩 줄도 760px 이하에서만 보인다)
     // 채팅을 연 1440px(게시판 폭 약 748px)에서도 한 줄 행이 되도록 600px부터 요약 칸을 되살린다(번호 칸은 공용 규칙대로 숨긴 채): 특이도 (0,3,0)이 공용 (0,2,0)을 이긴다.
     expect(block(studio, '@container worlds-board (min-width:600px)')).toMatch(/\.world-card-library \.worlds-board-table \.col-sum\{display:table-cell\}/)
     expect(block(board, '@container worlds-board (max-width: 760px)')).toMatch(/:is\(\.col-no, \.col-sum\) \{ display: none; \}/) // 공용 게시판의 760px 규칙은 그대로다(공개 설정집 /worlds는 변화 없음)
@@ -112,9 +112,9 @@ describe('세계관 작업실 레이아웃 규칙', () => {
 
 // ── critique 단계: 게시판 열·분류 칩 줄·관계도 층 ──────────────────────────────────────────────────────────
 describe('게시판 열·분류 칩 줄(critique)', () => {
-  it('숨기는 게시판 열은 display:none이 아니라 폭 0의 보이지 않는 칸으로 남아 열 수가 늘 7개다(미리보기 colSpan=7과 맞아 열 폭이 변하지 않고 오른쪽 빈 칸이 없다)', () => {
+  it('숨기는 게시판 열은 display:none이 아니라 폭 0의 보이지 않는 칸으로 남아 열 수가 늘 8개다(미리보기 colSpan=8과 맞아 열 폭이 변하지 않고 오른쪽 빈 칸이 없다)', () => {
     const hidden = 'display:table-cell;visibility:hidden;width:0;padding:0;border:0'
-    expect(block(studio, '@container worlds-board (max-width:760px)')).toBe(`.world-card-library .worlds-board-table .col-no{${hidden}}`) // 공용 규칙이 숨기는 번호 칸
+    expect(block(studio, '@container worlds-board (max-width:760px)')).toBe(`.world-card-library .worlds-board-table :is(.col-no,.col-status){${hidden}}.world-row-status{display:block;margin-top:4px}`) // 공용 규칙이 숨기는 번호 칸과 이 화면의 상태 칸(칩은 제목 아래 줄로)
     expect(block(studio, '@container worlds-board (max-width:599px)')).toContain(`.world-card-library .worlds-board-table :is(.col-sum,.col-kind,.col-num){${hidden}}`)
     expect(studio).not.toMatch(/:is\(\.col-kind,\.col-num\)\{display:none\}/)
     // 특이도 (0,3,0)이 공용 (0,2,0)의 display:none을 이기고, 요약은 600px 이상 규칙이 table-cell로 되살린다.

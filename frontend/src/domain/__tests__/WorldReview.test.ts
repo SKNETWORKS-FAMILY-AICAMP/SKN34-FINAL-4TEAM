@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { characterDocText } from '../entities/characterDocs'
 import { newSetting, type CharacterDocs, type SettingItem, type StudioSetting } from '../entities/studioWorld'
 import {
-  applyReviewFix, cardFindings, cardStatuses, publicationOrderIssues, REVIEW_FIX_BLOCKED, reviewClock, reviewFixName, reviewFixState, reviewPartialNote, reviewSummary, unlinkedCardIds, visibleFindings,
+  applyReviewFix, cardFindings, cardStatuses, problemCount, publicationOrderIssues, REVIEW_FIX_BLOCKED, reviewClock, reviewFixName, reviewFixState, reviewPartialNote, reviewSummary, unlinkedCardIds, visibleFindings,
   type ReviewBasis, type ReviewFinding, type ReviewFix, type WorldReview,
 } from '../entities/worldReview'
 
@@ -66,9 +66,9 @@ describe('게시판 상태 집계', () => {
     const castle = place('성')
     const settings = [empty, full, war, castle, link(full, war)]
     const status = cardStatuses(settings, [finding([castle.item.id]), finding([castle.item.id, full.item.id])])
-    expect(status.get(empty.item.id)).toEqual({ cleanup: true, unlinked: false, opinions: 0, order: false })
-    expect(status.get(castle.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 2, order: false })
-    expect(status.get(full.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 1, order: false })
+    expect(status.get(empty.item.id)).toEqual({ cleanup: true, unlinked: false, opinions: 0, order: 0 })
+    expect(status.get(castle.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 2, order: 0 })
+    expect(status.get(full.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 1, order: 0 })
     expect(status.has(war.item.id)).toBe(false)
     expect(cardStatuses([...settings, event('고립된 사건')], []).size).toBe(2)
   })
@@ -339,11 +339,26 @@ describe('공개 순서 점검: 이른 카드의 글에 늦은 카드의 이름�
     expect(seen(moved(2, 3))).toEqual([2, 2]) // 앞당기면 입력한 회차부터다
   })
 
-  it('게시판 상태는 경고가 있는 카드에 order를 켜고, 경고만 있어도 상태가 있는 카드다', () => {
+  it('게시판 상태는 경고가 있는 카드에 그 카드의 경고 건수를 order로 담고, 경고만 있어도 상태가 있는 카드다', () => {
     const hall = pub(1, card('places', '궁궐', { text: '승상이 산다.' }))
     const minister = pub(5, card('places', '승상'))
     const status = cardStatuses([hall, minister], [])
-    expect(status.get(hall.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 0, order: true })
+    expect(status.get(hall.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 0, order: 1 })
     expect(status.has(minister.item.id)).toBe(false)
+  })
+
+  it('보완할 일 수는 정리 필요·연결 필요를 1씩, 공개 순서·AI 의견을 건수대로 더한다(게시판의 보완 필요 많은 순 기준)', () => {
+    expect(problemCount({ cleanup: true, unlinked: true, opinions: 2, order: 3 })).toBe(7)
+    expect(problemCount({ cleanup: false, unlinked: true, opinions: 0, order: 0 })).toBe(1)
+    expect(problemCount({ cleanup: false, unlinked: false, opinions: 0, order: 0 })).toBe(0)
+  })
+
+  it('경고가 여러 건이면 건수를 그대로 센다(편집 화면의 공개 순서 배지와 같은 수)', () => {
+    const hall = pub(1, card('places', '궁궐', { text: '승상이 살고 대신도 산다.' }))
+    const [minister, vassal] = [pub(5, card('places', '승상')), pub(6, card('places', '대신'))]
+    const settings = [hall, minister, vassal]
+    const issues = publicationOrderIssues(settings).filter((issue) => issue.cardId === hall.item.id)
+    expect(issues).toHaveLength(2)
+    expect(cardStatuses(settings, []).get(hall.item.id)!.order).toBe(2)
   })
 })

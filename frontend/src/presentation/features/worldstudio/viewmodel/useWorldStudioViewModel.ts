@@ -1,5 +1,5 @@
 import { cardLibraryRows, type WritingIssue, worldSealIssues, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
-import { type CardPane, DEFAULT_PANE, parseCardPane } from './cardPanels'
+import { type CardPane, parseCardPane, setPaneQuery } from './cardPanels'
 import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUERY, parseManageView, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
 import { useWorldCoverImage } from '../../../shared/useWorldCoverImage'
@@ -159,18 +159,18 @@ export function useWorldStudioViewModel(
     if (mode === 'manage') setView(step === 'relations' ? 'people' : 'book')
     else if (selected) editParams(dropCard)
   }
-  /** 설정 카드의 편집 화면을 연다(본문 화면은 지금 것 그대로). 게시판에서 들어올 때는 기록을 쌓아 뒤로가기·'← 설정집'이 게시판으로 돌아오게 하고, 편집 화면 안에서 다른 카드로 옮길 때는 같은 기록을 바꾼다. */
-  const editCard = (id: string) => {
+  /** 설정 카드의 편집 화면을 연다([pane]이 있으면 그 본문 화면으로, 게시판 상태 칩이 칩에 맞는 화면으로 연다. 없으면 지금 화면 그대로). 게시판에서 들어올 때는 기록을 쌓아 뒤로가기·'← 설정집'이 게시판으로 돌아오게 하고, 편집 화면 안에서 다른 카드로 옮길 때는 같은 기록을 바꾼다. */
+  const editCard = (id: string, pane?: CardPane) => {
     const row = editing?.settings.find((item) => item.item.id === id)
     if (row && cardLibraryRows([row], 'all', '').length && !cardLibraryRows([row], cardFilter, cardQuery).length) {
       setCardFilter('all')
       setCardQuery('')
     }
     dispatchFlow({ type: 'step', step: 'cards' })
-    editParams((query) => query.set('card', id), !!selected, selected ? location.state : { fromList: true })
+    editParams((query) => { query.set('card', id); if (pane) setPaneQuery(query, pane) }, !!selected, selected ? location.state : { fromList: true })
   }
   /** 편집 화면의 본문 화면을 바꾼다(기록을 쌓지 않는다). 기본인 문서는 주소에 쓰지 않는다. */
-  const setPane = (next: CardPane) => editParams((query) => (next === DEFAULT_PANE ? query.delete('pane') : query.set('pane', next)))
+  const setPane = (next: CardPane) => editParams((query) => setPaneQuery(query, next))
   /** 편집 화면을 닫고 설정집 화면으로 돌아온다. 게시판에서 들어왔으면 한 걸음 뒤로(기록이 쌓이지 않는다), 주소로 바로 들어왔으면 주소만 바꾼다. */
   const closeCard = () => {
     if (selected && cameFromBoard(location.state)) navigate(-1)

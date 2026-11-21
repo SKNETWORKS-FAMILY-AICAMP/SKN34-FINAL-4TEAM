@@ -235,8 +235,8 @@ it('잠긴 저장 버튼(개요 저장·사이드바/상단 저장·마법사 �
   expect(css).not.toMatch(/\.world-writing \.btn\.pri:disabled/) // 화면 전체로 넓히면 어두운 무대의 상대 선택·채팅 버튼까지 바뀐다
 })
 
-it('게시판 제목은 800이 아니라 650이라 줄마다 무거운 글자가 쌓이지 않고(AI 의견 배지 제외), 공개 칸의 N화부터는 보라 기둥도 굵은 기둥도 아니라 본문색 보통 굵기다', () => {
-  expect(rule((s) => s === '.world-card-library .worlds-board-table .col-title :is(a,button):not(.world-opinion)')?.body).toMatch(/font-weight:650/)
+it('게시판 제목은 800이 아니라 650이라 줄마다 무거운 글자가 쌓이지 않고(상태 칩 제외), 공개 칸의 N화부터는 보라 기둥도 굵은 기둥도 아니라 본문색 보통 굵기다', () => {
+  expect(rule((s) => s === '.world-card-library .worlds-board-table .col-title :is(a,button):not(.world-status-chip)')?.body).toMatch(/font-weight:650/)
   const vis = rule((s) => s === '.world-card-library .worlds-board-table .col-vis[data-public=true]')?.body ?? ''
   expect(vis).toMatch(/color:var\(--tfg\)/)
   expect(vis).not.toMatch(/font-weight/) // 공개/비공개는 글자('N화부터'·'비공개')와 색으로 이미 갈리므로 굵기까지 얹지 않는다
@@ -314,10 +314,14 @@ it('접기 버튼은 44×44 토글이고 펼친 동안에는 아이콘을 뒤집
   expect(rule((s) => s === '.world-menu-body')?.body).toMatch(/display:grid;gap:12px/) // .ep-menu의 gap과 같다
 })
 
-it('게시판 미리보기 줄은 표 칸 여백 없이 고른 줄과 같은 옅은 면 한 칸이고, 고른 줄과의 사이 선을 거두며, 요약은 4줄까지만 보인다 (R4)', () => {
+it('게시판 미리보기 줄은 표 칸 여백 없이 고른 줄과 같은 옅은 면 한 칸이고, 고른 줄과의 사이 선을 거두며, 위키 문서는 높이를 제한해 안에서 스크롤한다 (R4)', () => {
   expect(rule((s) => s === '.world-card-library .worlds-board-table tr.world-row-preview>td')?.body).toMatch(/padding:0;background:var\(--pri-soft\)/)
   expect(rule((s) => s === '.world-card-library .worlds-board-table tr.sel:has(+.world-row-preview) td')?.body).toMatch(/border-bottom-color:transparent/)
-  expect(rule((s) => s === '.world-preview-sum')?.body).toMatch(/-webkit-line-clamp:4/)
+  const doc = rule((s) => s === '.world-preview .world-preview-doc')?.body ?? ''
+  expect(doc).toMatch(/max-height:min\(60vh,640px\)/) // 긴 설정은 문서 안에서 스크롤해 수정하기·닫기가 늘 화면 안에 있다
+  expect(doc).toMatch(/overflow:auto/)
+  expect(doc).toMatch(/max-width:none;margin:0/) // 공개 카드 페이지용 틀(최대 폭 1040px·가운데 정렬)을 덜어 낸다
+  expect(css).not.toMatch(/\.world-preview-(sum|meta|head)/) // 이전의 요약·연결된 설정 목록·썸네일 머리는 위키 문서로 바뀌어 없다
 })
 
 it('쪽 이동의 select는 .ep-main의 큰 입력 패딩·위 여백을 이겨 값이 보인다 (높이 34px의 .inp.sm에 위아래 패딩 14px이 걸려 값이 잘렸다)', () => {
@@ -369,6 +373,25 @@ it('일괄 공개는 접힌 summary 한 줄(누르는 높이 44px)이고, 펼친
   expect(rule((s) => s === '.world-bulk>summary')?.body).toMatch(/cursor:pointer;min-height:44px/)
   expect(rule((s) => s === '.world-bulk-body')?.body).toMatch(/display:flex;flex-wrap:wrap;align-items:center;gap:8px/)
   expect(rule((s) => s === '.world-bulk')?.body).not.toMatch(/display:flex/) // details 자체에는 flex를 걸지 않는다
+})
+
+it('상태 칸은 156px 열이고 칩은 줄바꿈하며 쌓이는 12px 알약 버튼이다(제목 칸의 버튼 규칙보다 특이도가 높아 좁은 배치의 제목 아래 줄에서도 같은 모양)', () => {
+  expect(rule((s) => s === '.world-card-library .worlds-board-table .col-status')?.body).toMatch(/width:156px/)
+  expect(rule((s) => s === '.world-status')?.body).toMatch(/display:flex;flex-wrap:wrap/)
+  const chip = rule((s) => s === '.world-card-library .worlds-board-table .world-status-chip')?.body ?? ''
+  expect(chip).toMatch(/border-radius:999px/)
+  expect(chip).toMatch(/font-size:12px;font-weight:700/)
+  expect(chip).toMatch(/white-space:nowrap/)
+  expect(rule((s) => s === '.world-card-library .worlds-board-table .world-status-chip::after')?.body).toMatch(/inset:-8px -3px/) // 작은 칩의 누름 영역을 넓힌다
+  expect(css).not.toMatch(/\.world-opinion|\.worlds-badge\.world-todo/) // 제목 칸의 AI 의견 배지·옛 정리 필요 글자색 규칙은 상태 칩으로 바뀌어 없다
+})
+
+it('760px 이하에서는 상태 칸이 폭 0의 보이지 않는 칸으로 숨고(열 수는 늘 8개) 같은 칩이 제목 아래 줄(.world-row-status, hidden 속성을 display가 이긴다)로 보인다', () => {
+  const narrow = css.match(/@container worlds-board \(max-width:760px\)\{([^@]*?)\}\n/)?.[1] ?? ''
+  expect(narrow).toContain('.world-card-library .worlds-board-table :is(.col-no,.col-status){display:table-cell;visibility:hidden;width:0;padding:0;border:0}')
+  expect(narrow).toContain('.world-row-status{display:block;margin-top:4px}')
+  expect(css).toContain('.world-row-sub,.world-row-status{display:none}') // 넓은 표에서는 두 줄 모두 숨긴다(분류·요약 칸과 상태 칸이 보인다)
+  expect(css).not.toMatch(/\[hidden\][^{}]*world-row-status|world-row-status\[hidden\]/) // 숨김은 hidden 속성이 아니라 CSS다(.world-writing [hidden]의 !important와 다투지 않는다)
 })
 
 it('게시판 제목 옆 [n](.world-count)은 600px 이상 넓은 표에서 숨는다: 연결 칸이 같은 수를 보이고, 좁은 표에서는 연결 칸이 숨어 [n]이 대신한다', () => {
@@ -450,10 +473,10 @@ it('카드 편집 화면의 상단 바는 600px 이하에서 오른쪽 묶음(�
   expect(writingCss).toContain('.writing-bar-end { justify-content: flex-start; width: 100%; }') // 집필실 공용 규칙은 그대로다
 })
 
-it('게시판 미리보기는 왼쪽 안쪽 여백 56px(선택 칸 44 + 칸 여백 12)로 표 열에 맞고, 연결된 설정은 한 줄에 하나씩이다', () => {
+it('게시판 미리보기는 왼쪽 안쪽 여백 56px(선택 칸 44 + 칸 여백 12)로 표 열에 맞고, 720px 이하에서는 20px로 줄며 정보 상자가 본문 위로 쌓인다(공개 카드 페이지의 뷰포트 규칙은 채팅 레일을 몰라 컨테이너 쿼리로 대신한다)', () => {
   expect(rule((s) => s === '.world-preview')?.body).toMatch(/padding:6px 20px 16px 56px/)
-  expect(rule((s) => s === '.world-preview-meta ul')?.body).toMatch(/display:grid;gap:2px/)
-  expect(rule((s) => s === '.world-preview-meta ul')?.body).not.toMatch(/flex/)
+  expect(css).toContain('@container worlds-board (max-width:720px){.world-preview{padding-left:20px}.world-preview .nw-info{float:none;width:100%;margin:0 0 14px}}')
+  expect(rule((s) => s === '.world-preview .nw-info .worlds-tags')?.body).toBe('display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none') // 공개 카드 페이지의 태그 칩 줄(worlds.css는 이 화면에서 불러오지 않는다)
 })
 
 it('카드 레일의 쪽 이동은 레일 글과 같은 x(24px)에서 시작하는 왼쪽 정렬이고, 한 줄에 들어가도록 간격 6px·select 최소 폭 56px다(가운데 정렬로 263px를 꽉 채우던 것)', () => {

@@ -16,7 +16,7 @@ const tabs = () => screen.getAllByRole('tab')
 it('맨 위에 설정 카드 목록 토글이 있고 구분선 아래 세로 탭 줄(개요·문서·관계·버전·공개 순서)이 이어지며 고른 화면만 aria-selected이고 모두 본문을 가리킨다(툴팁은 이름)', () => {
   bar('relations')
   const bars = document.querySelector('.world-activity')!
-  expect(bars.firstElementChild!.getAttribute('title')).toBe('설정 카드') // 목록 토글이 탭보다 위다
+  expect(bars.firstElementChild!.getAttribute('title')).toBe('설정 카드 목록') // 목록 토글이 탭보다 위다
   expect(bars.querySelector('.world-activity-sep')).toBeTruthy()
   const list = screen.getByRole('tablist', { name: '카드 화면' })
   expect(list.getAttribute('aria-orientation')).toBe('vertical')
@@ -29,13 +29,13 @@ it('맨 위에 설정 카드 목록 토글이 있고 구분선 아래 세로 탭
 
 it('목록 토글은 탭이 아니라 버튼이다: 열려 있으면 aria-expanded이고 목록을 가리키며, 접히면 가리키지 않는다. 누르면 알린다', () => {
   const { onList } = bar('doc', { listOpen: true })
-  const toggle = screen.getByRole('button', { name: '설정 카드' })
+  const toggle = screen.getByRole('button', { name: '설정 카드 목록' })
   expect([toggle.getAttribute('aria-expanded'), toggle.getAttribute('aria-controls')]).toEqual(['true', 'cards'])
   fireEvent.click(toggle)
   expect(onList).toHaveBeenCalledTimes(1)
   cleanup()
   bar('doc', { listOpen: false })
-  const closed = screen.getByRole('button', { name: '설정 카드' })
+  const closed = screen.getByRole('button', { name: '설정 카드 목록' })
   expect([closed.getAttribute('aria-expanded'), closed.getAttribute('aria-controls')]).toEqual(['false', null])
 })
 
@@ -54,7 +54,7 @@ it('아이콘 버튼의 읽는 이름에 배지 수가 들어가고, 배지 글�
 it('아이콘 아래에는 늘 보이는 짧은 글자 라벨이 있다: 목록 토글은 카드 목록, 탭은 개요·문서·관계·버전·공개 순서이고, 읽는 이름(aria-label)과 겹치지 않게 라벨은 aria-hidden이다', () => {
   bar('doc', { badges: { relations: { text: '12', label: '12개' }, versions: { text: '', label: '저장 안 됨' } } })
   const label = (button: HTMLElement) => button.querySelector('.world-activity-label')!
-  const toggle = screen.getByRole('button', { name: '설정 카드' })
+  const toggle = screen.getByRole('button', { name: '설정 카드 목록' }) // 화면 라벨 '카드 목록'이 읽는 이름에 들어 있다(label in name)
   expect([label(toggle).textContent, label(toggle).getAttribute('aria-hidden')]).toEqual(['카드 목록', 'true'])
   expect(tabs().map((t) => label(t).textContent)).toEqual(['개요', '문서', '관계', '버전', '공개 순서'])
   expect(tabs().every((t) => label(t).getAttribute('aria-hidden') === 'true')).toBe(true)

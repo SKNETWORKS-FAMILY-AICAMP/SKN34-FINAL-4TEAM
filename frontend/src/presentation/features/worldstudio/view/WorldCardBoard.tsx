@@ -1,39 +1,61 @@
-import { Fragment, useEffect, useId, useRef, useState, type MouseEvent } from 'react'
+import { Fragment, useEffect, useId, useRef, useState } from 'react'
 
 import { cardTypeOf } from '../../../../domain/entities/studioCards'
 import { cardRevealEpisode, invalidReveal, REVEAL_EPISODE_ERROR, type StudioSetting } from '../../../../domain/entities/studioWorld'
 import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
 import type { CardStatus } from '../../../../domain/entities/worldReview'
+import { Go } from '../../../shared/Go'
 import { KindChip } from '../../../shared/KindChip'
-import { BOOK_SORTS, type BoardRow } from '../../../shared/worldBoard'
+import { type BoardRow } from '../../../shared/worldBoard'
 import { PageControls } from '../../../shared/PageControls'
 import { pageItems } from '../../../shared/pageItems'
 import { publishAllCards, revealLabel, setCardReveal, visibleSelection } from '../viewmodel/cardVisibility'
 import { importedSource } from '../../../shared/importCards'
-import { labelOf, settingLinks } from '../viewmodel/settingBoard'
-import { useCardBoard } from '../viewmodel/useCardBoard'
+import { labelOf } from '../viewmodel/settingBoard'
+import type { CardPane } from '../viewmodel/cardPanels'
+import { BOARD_SORTS, useCardBoard } from '../viewmodel/useCardBoard'
 import type { CardImages } from '../viewmodel/useCardImages'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
+import { cardPath } from '../../worlds/worldDetail'
 import { CardThumb } from './WorldCardImage'
+import { CardWikiPreview } from './WorldCardPreview'
 import { NewCardMenu } from './NewCardMenu'
 import { WorldImportSheet } from './WorldImportSheet'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
 
+/** 상태 칩 하나: 보이는 글, 읽는 이름, 눌렀을 때 그 카드의 편집 화면이 열릴 본문 화면(활동 막대의 탭). */
+type StatusChip = { text: string; name: string; pane: CardPane }
+const statusChips = (title: string, status: CardStatus): StatusChip[] => [
+  ...(status.cleanup ? [{ text: '정리 필요', name: `${title} 정리 필요 보기`, pane: 'doc' as const }] : []),
+  ...(status.unlinked ? [{ text: '연결 필요', name: `${title} 연결 필요 보기`, pane: 'relations' as const }] : []),
+  ...(status.order ? [{ text: `공개 순서 ${status.order}`, name: `${title} 공개 순서 ${status.order}건 보기`, pane: 'order' as const }] : []),
+  ...(status.opinions ? [{ text: `AI 의견 ${status.opinions}`, name: `${title} AI 의견 ${status.opinions}건 보기`, pane: 'doc' as const }] : []),
+]
+
+/** 상태 칸의 칩들(눌러서 그 카드의 편집 화면을 칩에 맞는 화면으로 연다). 줄까지 올라가 미리보기를 여닫지 않게 누름은 줄에 닿지 않는다. */
+function StatusChips({ chips, onOpen }: { chips: StatusChip[]; onOpen: (pane: CardPane) => void }) {
+  return (
+    <span className="world-status">
+      {chips.map((chip) => <button key={chip.text} type="button" className="world-todo world-status-chip" aria-label={chip.name} onClick={(e) => { e.stopPropagation(); onOpen(chip.pane) }}>{chip.text}</button>)}
+    </span>
+  )
+}
+
 /**
  * 게시판 한 줄. 줄(마우스)이나 제목 버튼(키보드·주 컨트롤)을 누르면 그 줄 바로 아래에 미리보기가 열리고 닫힌다(관리자 표의 행 선택과 같은 `tr.click`·`tr.sel`). 편집 화면은 미리보기의 `수정하기`가 연다. 제목 옆 `[n]`은 공개 설정집과 같은 관계·연결 수다(넓은 표에서는 연결 칸이 같은 수를 보이므로 CSS가 가리고, 읽는 사람에게는 글로 남는다).
  * 맨 앞 체크박스는 공개 설정을 한 번에 바꿀 카드를 고르고(미리보기를 열지 않는다), `공개` 칸은 그 카드의 공개 설정이다(`N화부터`·`작가 전용`, 소설이 연결되지 않은 세계관의 1화는 `공개`, DEC-53). 다른 세계관에서 가져온 카드는 `가져옴`과 출처를 제목 아래에 보인다.
- * 보완 상태는 제목 옆에 알린다(알리기만 하고 이 표시 때문에 저장·확정이 막히지는 않는다): 인물 문서(IDENTITY.md·SOUL.md·GOAL.md) 가운데 비어 있는 것이 있으면 `정리 필요`,
- * 사건·사물이 어느 인물과도 승인된 관계로 이어지지 않았으면 `연결 필요`, 이 카드의 글에 더 늦게 공개되는 카드의 이름이 나오면 `공개 순서 확인`(DEC-53, 누르면 미리보기를 거치지 않고 편집 화면에서 어느 글인지 본다), 마지막 AI 검토가 남긴 지적이 있으면 `AI 의견 N`(누르면 미리보기를 거치지 않고 그 카드의 편집 화면에서 지적을 본다)이다.
+ * 보완 상태는 제목 옆이 아니라 `상태` 칸에 칩으로 모인다(알리기만 하고 이 표시 때문에 저장·확정이 막히지는 않는다, 없으면 —): 인물 문서(IDENTITY.md·SOUL.md·GOAL.md) 가운데 비어 있는 것이 있으면 `정리 필요`,
+ * 사건·사물이 어느 인물과도 승인된 관계로 이어지지 않았으면 `연결 필요`, 이 카드의 글에 더 늦게 공개되는 카드의 이름이 나오면 `공개 순서 N`(DEC-53, N은 경고 건수), 마지막 AI 검토가 남긴 지적이 있으면 `AI 의견 N`이다.
+ * 칩을 누르면 미리보기를 거치지 않고 그 카드의 편집 화면이 칩에 맞는 화면(활동 막대 탭: 정리 필요·AI 의견은 문서, 연결 필요는 관계, 공개 순서는 공개 순서)으로 열린다.
  * 본문이 좁으면 번호·분류·요약·연결 칸이 숨는다(world-studio.css의 컨테이너 규칙). 그때 분류와 요약을 잃지 않도록 제목 아래 한 줄(`.world-row-sub`)에도 두고, 넓은 본문에서는 CSS가 그 줄을 숨긴다.
+ * 760px 이하에서는 상태 칸도 숨고 같은 칩이 제목 아래 한 줄(`.world-row-status`)로 보인다(`.world-row-sub`처럼 CSS만으로 둘 중 하나만 보이므로 브라우저의 접근성 트리에는 늘 한 벌이다. 화면 테스트는 CSS가 없어 두 벌이 다 있으니 상태 칸에서 칩을 찾는다).
  */
-function Row({ row, setting, status, images, picked, linked, previewing, previewId, onPick, onOpen, onToggle }: { row: BoardRow; setting?: StudioSetting; status?: CardStatus; images: CardImages; picked: boolean; linked: boolean; previewing: boolean; previewId: string; onPick: (id: string, on: boolean) => void; onOpen: (id: string) => void; onToggle: (id: string) => void }) {
+function Row({ row, setting, status, images, picked, linked, previewing, previewId, onPick, onOpen, onToggle }: { row: BoardRow; setting?: StudioSetting; status?: CardStatus; images: CardImages; picked: boolean; linked: boolean; previewing: boolean; previewId: string; onPick: (id: string, on: boolean) => void; onOpen: (id: string, pane: CardPane) => void; onToggle: (id: string) => void }) {
   const reveal = setting && cardRevealEpisode(setting)
-  // 줄 전체가 미리보기를 여닫으므로, 자기 일이 따로 있는 컨트롤(체크박스·바로 편집 화면으로 가는 배지)은 줄까지 올라가지 않게 한다(관리자 표의 행 선택과 같은 방식).
-  const open = (e: MouseEvent) => {
-    e.stopPropagation()
-    onOpen(row.cardId)
-  }
+  const chips = status ? statusChips(row.title, status) : []
+  // 줄 전체가 미리보기를 여닫으므로, 자기 일이 따로 있는 컨트롤(체크박스·상태 칩)은 줄까지 올라가지 않게 한다(관리자 표의 행 선택과 같은 방식).
+  const open = (pane: CardPane) => onOpen(row.cardId, pane)
   return (
     <tr className={'click' + (previewing ? ' sel' : '')} onClick={() => onToggle(row.cardId)}>
       <td className="col-pick" onClick={(e) => e.stopPropagation()}><label className="world-pick"><input type="checkbox" checked={picked} onChange={(e) => onPick(row.cardId, e.target.checked)} /><span className="sr-only">{row.title} 선택</span></label></td>
@@ -43,13 +65,11 @@ function Row({ row, setting, status, images, picked, linked, previewing, preview
         <CardThumb images={images} imageId={setting?.imageId} />
         <button type="button" data-card={row.cardId} aria-label={`${row.title} ${row.type}`} aria-expanded={previewing} aria-controls={previewing ? previewId : undefined} onClick={(e) => { e.stopPropagation(); onToggle(row.cardId) }}>{row.title}</button>
         {row.badge > 0 && <span className="worlds-badge"><span className="world-count" aria-hidden="true">[{row.badge}]</span><span className="sr-only">{row.kind === '인물' ? '관계' : '연결'} {row.badge}개</span></span>}
-        {status?.cleanup && <span className="worlds-badge world-todo">정리 필요</span>}
-        {status?.unlinked && <span className="worlds-badge world-todo">연결 필요</span>}
-        {status?.order && <button type="button" className="worlds-badge world-todo world-opinion" aria-label={`${row.title} 공개 순서 확인 보기`} onClick={open}>공개 순서 확인</button>}
-        {!!status?.opinions && <button type="button" className="worlds-badge world-todo world-opinion" aria-label={`${row.title} AI 의견 ${status.opinions}건 보기`} onClick={open}>AI 의견 {status.opinions}</button>}
         {setting?.importedFrom && <><span className="worlds-badge">가져옴</span><small className="world-imported-from">{importedSource(setting.importedFrom)}</small></>}
+        {chips.length > 0 && <span className="world-row-status"><StatusChips chips={chips} onOpen={open} /></span>}
         <span className="world-row-sub"><KindChip kind={row.kind} label={row.type} />{row.text && <span>{row.text}</span>}</span>
       </td>
+      <td className="col-status">{chips.length > 0 ? <StatusChips chips={chips} onOpen={open} /> : <><span aria-hidden="true">—</span><span className="sr-only">없음</span></>}</td>
       <td className="col-sum">{row.text}</td>
       <td className="col-vis" data-public={reveal !== undefined}>{revealLabel(reveal, linked)}</td>
       <td className="col-num">{row.connections}</td>
@@ -58,23 +78,24 @@ function Row({ row, setting, status, images, picked, linked, previewing, preview
 }
 
 /**
- * 고른 줄 바로 아래에 펼쳐지는 미리보기(한 칸짜리 줄): 썸네일(이미지가 있을 때만), 요약 전문(4줄까지), 이어진 설정(있을 때, 위 5개, `이름 · 라벨`), `수정하기`(편집 화면 `?card=`)와 `닫기`. 분류와 공개 범위는 바로 위 줄의 분류·공개 칸이 이미 보이므로 되풀이하지 않는다.
+ * 고른 줄 바로 아래에 펼쳐지는 미리보기(한 칸짜리 줄): 공개 카드 페이지와 같은 위키 모양의 문서(`CardWikiPreview`: 정보 상자·번호 목차·접이식 본문·카드별 관계도·접힌 관계 자세히 보기, 지금 초안의 값이라 작가 전용 카드도 그대로)와
+ * `수정하기`(편집 화면 `?card=`), `공개 화면 보기`(공개된 설정이고 세계관이 공개 목록에 있을 때만, 새 탭), `닫기`다. 문서 안의 설정 링크·관계도 이웃은 그 카드의 편집 화면을 연다([onOpen]).
  * 모든 폭에서 줄 바로 아래 인라인이라 오른쪽 AI 채팅 레일과 다투지 않고 표 폭도 줄지 않는다. 표의 행이 아니라 줄 안의 덩어리라 `presentation`이다(표 읽기 쪽은 데이터 줄만 센다).
- * 열릴 때 한 번 그 구획이 화면에 들어오게 가장 가까운 만큼만 스크롤한다(줄이 첫 화면 아래쪽이면 `수정하기`가 화면 밖이라 눌러도 반응이 없는 것처럼 보였다).
+ * 열릴 때 한 번 그 구획이 화면에 들어오게 가장 가까운 만큼만 스크롤한다(줄이 첫 화면 아래쪽이면 `수정하기`가 화면 밖이라 눌러도 반응이 없는 것처럼 보였다). 긴 문서는 CSS가 높이를 제한해 문서 안에서 스크롤하므로 버튼은 늘 보인다.
+ * `Esc`는 미리보기 안 어디서든 닫고 제목으로 초점을 돌려준다(`닫기`와 같다).
  * ponytail: 게시판 폭이 1,000px 이상(채팅 닫힘 + 사이드바 접힘 + 1440px 이상)일 때의 옆 패널(표 | 미리보기)은 만들지 않는다. 필요해지면 `@container worlds-board (min-width:1000px)`에서 이 줄을 sticky 옆 칸으로 옮긴다.
  */
-function RowPreview({ id, row, setting, images, links, onEdit, onClose }: { id: string; row: BoardRow; setting?: StudioSetting; images: CardImages; links: ReturnType<typeof settingLinks>; onEdit: (id: string) => void; onClose: () => void }) {
+function RowPreview({ id, row, setting, settings, linked, publicPath, images, onOpen, onEdit, onClose }: { id: string; row: BoardRow; setting?: StudioSetting; settings: readonly StudioSetting[]; linked: boolean; publicPath: string | null; images: CardImages; onOpen: (id: string) => void; onEdit: (id: string) => void; onClose: () => void }) {
   const section = useRef<HTMLElement>(null)
   useEffect(() => { section.current?.scrollIntoView?.({ block: 'nearest' }) }, []) // 미리보기는 열릴 때마다 새로 그려진다(jsdom에는 scrollIntoView가 없다)
   return (
     <tr className="world-row-preview" role="presentation">
-      <td colSpan={7} role="presentation">
-        <section ref={section} id={id} className="world-preview" aria-label={`${row.title} 미리보기`}>
-          {setting?.imageId && <div className="world-preview-head"><CardThumb images={images} imageId={setting.imageId} /></div>}
-          <p className="world-preview-sum">{row.text || '요약할 본문이 아직 없어요.'}</p>
-          {links.length > 0 && <dl className="world-preview-meta"><div><dt>연결된 설정</dt><dd><ul>{links.map((link) => <li key={`${link.id}:${link.label}`}>{link.title} · {link.label}</li>)}</ul></dd></div></dl>}
+      <td colSpan={8} role="presentation">
+        <section ref={section} id={id} className="world-preview" aria-label={`${row.title} 미리보기`} onKeyDown={(e) => { if (e.key === 'Escape') onClose() }}>
+          {setting && <CardWikiPreview settings={settings} setting={setting} row={row} linked={linked} images={images} onOpen={onOpen} />}
           <div className="world-preview-actions">
             <button type="button" className="btn pri sm" onClick={() => onEdit(row.cardId)}>수정하기</button>
+            {publicPath && <Go to={publicPath} target="_blank" rel="noopener noreferrer" className="btn sm">공개 화면 보기</Go>}
             <button type="button" className="btn sm" onClick={onClose}>닫기</button>
           </div>
         </section>
@@ -84,7 +105,7 @@ function RowPreview({ id, row, setting, images, links, onEdit, onClose }: { id: 
 }
 
 /**
- * 설정집 게시판(관리 모드의 설정집 보기, 작성 모드의 설정 카드 단계). 공개 설정집과 같은 게시판으로, 왼쪽 분류 메뉴 + 오른쪽 검색·정렬·결과 수·`다른 세계관에서 가져오기`·`+ 새 설정`을 둔 도구줄 아래 표(선택·번호·분류·제목[연결 수]·요약·공개·연결)다.
+ * 설정집 게시판(관리 모드의 설정집 보기, 작성 모드의 설정 카드 단계). 공개 설정집과 같은 게시판으로, 왼쪽 분류 메뉴 + 오른쪽 검색·정렬·결과 수·`다른 세계관에서 가져오기`·`+ 새 설정`을 둔 도구줄 아래 표(선택·번호·분류·제목[연결 수]·상태·요약·공개·연결, 8칸)다.
  * `onPreviewEdit`은 미리보기의 `수정하기`로 편집 화면에 들어갈 때 그 카드 id를 알려, 편집기가 미리보기 탭으로 시작하게 한다(레일·새 설정 같은 다른 입구는 알리지 않는다).
  * 내용 편집은 여기서 하지 않는다: 행(제목)을 누르면 그 줄 아래에 미리보기가 열리고(한 번에 하나, 편집 화면에 다녀와도 열린 채), 미리보기의 `수정하기`나 새 설정을 만들면 집필실 같은 편집 화면(`WorldCardStudio`, 주소 `?card=`)이 열리고, 삭제도 거기서 한다.
  * 편집 화면에서 돌아오면 그 카드의 행 제목에 초점이 가고, 미리보기를 닫으면 제목으로 초점이 돌아온다.
@@ -148,6 +169,9 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
     setPreview('')
     table.current?.querySelector<HTMLElement>(`[data-card="${id}"]`)?.focus()
   }
+  // 미리보기의 수정하기·본문의 설정 링크·관계도의 이웃은 같은 입구다: 읽던 글에서 넘어가므로 편집기가 미리보기 탭으로 시작한다(onPreviewEdit).
+  const openFromPreview = (id: string) => { onPreviewEdit?.(id); vm.editCard(id) }
+  const reveal = (id: string) => { const setting = byId.get(id); return setting && cardRevealEpisode(setting) }
   // 편집 화면을 보는 동안 그 카드를 기억했다가, 돌아오면(또는 되돌리기로 카드가 돌아오면) 그 행으로 초점을 옮긴다. 행이 없으면(필터 밖·삭제) 검색 칸으로 옮긴다.
   const back = useRef('')
   useEffect(() => {
@@ -197,7 +221,7 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
               <label className="worlds-sort">
                 <span>정렬</span>
                 <select className="inp" value={board.sort} onChange={(e) => board.selectSort(e.target.value)}>
-                  {BOOK_SORTS.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+                  {BOARD_SORTS.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
                 </select>
               </label>
               {/* 알림 영역은 늘 두어(스크린리더가 바뀐 글을 읽는다) 검색·분류·보완 필터가 걸린 동안에만 수를 채운다. 전체 수는 분류 메뉴의 전체가 이미 보인다. */}
@@ -232,7 +256,7 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
                 <thead>
                   <tr>
                     <th scope="col" className="col-pick"><label className="world-pick"><input ref={head} type="checkbox" disabled={!board.paged.items.length} checked={board.paged.items.length > 0 && visiblePicked === board.paged.items.length} onChange={(e) => { const on = e.target.checked; select((current) => { const next = new Set(current); for (const row of board.paged.items) { if (on) next.add(row.cardId); else next.delete(row.cardId) } return next }, on) }} /><span className="sr-only">보이는 설정 모두 선택</span></label></th>
-                    <th scope="col" className="col-no">번호</th><th scope="col" className="col-kind">분류</th><th scope="col" className="col-title">제목</th>
+                    <th scope="col" className="col-no">번호</th><th scope="col" className="col-kind">분류</th><th scope="col" className="col-title">제목</th><th scope="col" className="col-status">상태</th>
                     <th scope="col" className="col-sum">요약</th><th scope="col" className="col-vis">공개</th><th scope="col" className="col-num">연결</th>
                   </tr>
                 </thead>
@@ -242,11 +266,11 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
                     return (
                       <Fragment key={row.cardId}>
                         <Row row={row} setting={byId.get(row.cardId)} status={board.statuses.get(row.cardId)} images={vm.cardImages} picked={selected.has(row.cardId)} linked={linked} previewing={preview === row.cardId} previewId={previewId} onPick={pick} onOpen={vm.editCard} onToggle={toggle} />
-                        {preview === row.cardId && <RowPreview id={previewId} row={row} setting={byId.get(row.cardId)} images={vm.cardImages} links={settingLinks(world.settings, row.cardId).slice(0, 5)} onEdit={(id) => { onPreviewEdit?.(id); vm.editCard(id) }} onClose={() => closePreview(row.cardId)} />}
+                        {preview === row.cardId && <RowPreview id={previewId} row={row} setting={byId.get(row.cardId)} settings={world.settings} linked={linked} publicPath={vm.publicHref && reveal(row.cardId) !== undefined ? cardPath(world.id, row.cardId) : null} images={vm.cardImages} onOpen={openFromPreview} onEdit={openFromPreview} onClose={() => closePreview(row.cardId)} />}
                       </Fragment>
                     )
                   })}
-                  {!board.rows.length && <tr><td colSpan={7} className="muted">{board.total ? '조건에 맞는 설정이 없어요.' : '설정을 추가해 시작해 보세요.'}</td></tr>}
+                  {!board.rows.length && <tr><td colSpan={8} className="muted">{board.total ? '조건에 맞는 설정이 없어요.' : '설정을 추가해 시작해 보세요.'}</td></tr>}
                 </tbody>
               </table>
               <PageControls page={board.paged.page} pages={board.paged.pages} onPage={board.setPage} />

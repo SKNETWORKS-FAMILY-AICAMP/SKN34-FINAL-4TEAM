@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CARD_PANES, DEFAULT_PANE, paneBadges, parseCardPane, tabName } from './cardPanels'
+import { CARD_PANES, DEFAULT_PANE, paneBadges, parseCardPane, setPaneQuery, tabName } from './cardPanels'
 
 describe('화면(pane) 종류', () => {
   it('활동 막대 위에서 아래로 개요·문서·관계·버전·공개 순서이고 기본은 문서다', () => {
@@ -10,6 +10,18 @@ describe('화면(pane) 종류', () => {
   it('parseCardPane은 주소의 pane 값을 화면으로 바꾸고 없거나 모르는 값이면 문서다', () => {
     expect(['overview', 'doc', 'relations', 'versions', 'order'].map(parseCardPane)).toEqual(['overview', 'doc', 'relations', 'versions', 'order'])
     expect([null, '', 'nope', 'cards', 'ORDER'].map(parseCardPane)).toEqual(['doc', 'doc', 'doc', 'doc', 'doc'])
+  })
+})
+
+describe('setPaneQuery: 주소에 화면 쓰기', () => {
+  it('기본(문서)이면 주소에서 pane을 지우고 그 밖은 pane에 써서 다른 쿼리(card)는 그대로 둔다', () => {
+    const query = new URLSearchParams('card=a&pane=order')
+    setPaneQuery(query, 'doc')
+    expect(query.toString()).toBe('card=a')
+    setPaneQuery(query, 'relations')
+    expect(query.toString()).toBe('card=a&pane=relations')
+    setPaneQuery(query, 'overview')
+    expect(query.toString()).toBe('card=a&pane=overview')
   })
 })
 

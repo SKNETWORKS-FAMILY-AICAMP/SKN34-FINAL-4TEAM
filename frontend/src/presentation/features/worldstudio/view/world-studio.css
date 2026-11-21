@@ -165,19 +165,19 @@ body:has(.world-menu-account) .acctm{transform:translateY(calc(-100% - 60px));an
 /* 도구줄(검색·정렬·결과 수·가져오기·+ 새 설정): 공용 검색 칸이 260px에서 시작하면 채팅을 연 1440px(게시판 폭 748px)에서 다섯 항목이 약 845px라 '+ 새 설정'만 둘째 줄에 혼자 남았다. 220px에서 시작하면 약 713px로 한 줄이다(placeholder 약 164px는 들어간다). 공개 설정집(/worlds)은 이 규칙 밖이라 그대로다. */
 .world-card-library .worlds-search{flex-basis:220px;min-width:min(220px,100%)}
 .world-card-library .worlds-board-table .col-no{width:48px}.world-card-library .worlds-board-table .col-kind{width:92px}.world-card-library .worlds-board-table .col-num{width:56px}
+/* 상태 칸(정리 필요·연결 필요·공개 순서 N·AI 의견 N 칩): 칩 둘이 한 줄에 놓이는 폭이고 그 이상은 줄바꿈한다. 없으면 —(보조 글자색)다. */
+.world-card-library .worlds-board-table .col-status{width:156px;color:var(--tsub)}
 /* 제목 칸은 공용 게시판의 34%가 아니라 26%다(critique): 제목은 2~10자인데 34%(채팅을 연 1440px에서 약 250px)가 비어 요약이 17자쯤에서 …로 잘렸다. 줄어든 폭은 요약이 쓰고(약 +60px), 배지가 많아 길어진 제목은 overflow-wrap으로 줄바꿈한다. 공개 설정집(/worlds)은 이 화면 밖이라 그대로다. */
 .world-card-library .worlds-board-table th.col-title{width:26%}
 /* 표 머리(quieter): 전역 th의 회색 띠(--muted-bg) 대신 아래 선 하나다(관리자 표 .adm th와 같은 규칙, 이 화면 범위). 공용 worldBoard.css·/worlds/:id의 표는 그대로 띠다. */
 .world-card-library .worlds-board-table th{background:none;border-bottom:1px solid var(--line2)}
-/* 제목 글자는 공용 게시판의 800 대신 650이다(57행 목록에서 행마다 무거운 글자가 쌓이지 않게). 공개 설정집(/worlds)은 이 화면 밖이라 그대로고, 'AI 의견 N' 배지는 아래 전용 규칙(700)을 그대로 쓴다. */
-.world-card-library .worlds-board-table .col-title :is(a,button):not(.world-opinion){font-weight:650}
+/* 제목 글자는 공용 게시판의 800 대신 650이다(57행 목록에서 행마다 무거운 글자가 쌓이지 않게). 공개 설정집(/worlds)은 이 화면 밖이라 그대로고, 상태 칩은 아래 전용 규칙(700)을 그대로 쓴다(좁은 배치에서는 제목 칸 안의 줄에도 칩이 있다). */
+.world-card-library .worlds-board-table .col-title :is(a,button):not(.world-status-chip){font-weight:650}
 /* 카드 단위 공개(DEC-46): 맨 앞 선택 칸, `공개` 칸, 그 위의 한 번에 바꾸기 줄(접힌 summary 한 줄이고 줄을 고르면 펼쳐진다. 안쪽은 안내 + 선택 공개·선택 비공개·전체 공개). 가져온 카드는 제목 아래에 출처를 한 줄 더 보인다. */
 /* 선택 칸은 칸 여백을 없애고 라벨이 44×44px를 채운다(다른 칸의 위아래 여백 덕에 줄 높이는 그대로다). */
 .world-card-library .worlds-board-table .col-pick{width:44px;padding:0}.episode-app .world-pick{display:grid;place-items:center;min-height:44px;cursor:pointer}.world-pick input{width:16px;height:16px;accent-color:var(--pri)}
 .world-card-library .worlds-board-table .col-vis{width:68px;color:var(--tsub);white-space:nowrap}.world-card-library .worlds-board-table .col-vis[data-public=true]{color:var(--tfg)}
 .world-imported-from{display:block;margin-top:2px;color:var(--tsub);font-size:12px;font-weight:500}
-/* 빈 인물 문서가 있는 인물 줄의 `정리 필요`: 관계 수·가져옴(보조 글자색)과 구분되게 주의색 글자다. 편집 화면의 문서 버튼에 붙는 표시(.world-doc-flag)와 같은 색이다. 공용 .worlds-badge의 색을 불러오는 순서와 상관없이 이기도록 두 클래스로 쓴다. */
-.worlds-badge.world-todo{color:var(--acc-ink)}
 .world-bulk{margin-bottom:12px}
 .world-bulk>summary{cursor:pointer;min-height:44px;padding-block:10px}
 .world-bulk-body{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.world-bulk .world-reveal{margin-top:0}.world-bulk p{flex:1 1 100%;margin:0;line-height:1.5}.world-bulk [role=status]{color:var(--tsub);font-weight:600;font-variant-numeric:tabular-nums}
@@ -188,24 +188,27 @@ body:has(.world-menu-account) .acctm{transform:translateY(calc(-100% - 60px));an
    분류·제목·요약·공개·연결이 한 줄에 보이게 한다(특이도 (0,3,0)이 공용 (0,2,0)을 이긴다). 분류 칩 줄로 바뀌는 기준(760px)은 그대로다. 공개 설정집(/worlds)은 이 화면 밖이라 그대로다.
    600px 미만(폰·좁은 본문): 공용 게시판이 번호·요약을 숨길 때 분류·연결 칸도 숨겨 선택·제목·공개만 남기고 제목이 남은 폭을 쓴다.
    숨긴 분류와 요약은 제목 아래 한 줄(.world-row-sub: 유형 점·이름 + 요약 한 줄)로 보이고, 연결 수는 제목 옆 [n]이 대신한다(인물은 그중 관계로 이어진 수). 600px 이상에서는 그 줄을 숨긴다. */
-.world-row-sub{display:none}
+.world-row-sub,.world-row-status{display:none}
 @container worlds-board (min-width:600px){.world-card-library .worlds-board-table .col-sum{display:table-cell}}
 /* 넓은 표(600px 이상)에서는 연결 칸이 제목 옆 [n]과 같은 수를 보이므로 [n]을 가린다(읽는 사람에게는 .sr-only의 '관계·연결 N개'가 그대로 남는다). 좁은 표는 연결 칸이 숨어 [n]이 대신한다. */
 @container worlds-board (min-width:600px){.world-card-library .world-count{display:none}}
-/* 숨기는 열은 display:none이 아니라 폭 0의 보이지 않는 칸으로 남긴다(critique): 미리보기·빈 안내 줄이 colSpan=7 한 칸이라, 보이는 열이 7개보다 적으면(채팅을 연 1440px는 번호 칸이 숨어 6개) 표에 없는 열이 하나 더 생기고 table-layout:fixed가 남는 폭을 그 빈 열과 나눠 미리보기를 열 때마다 요약 칸이 절반으로 줄고 오른쪽에 빈 칸이 생겼다.
-   열 수가 늘 7이면 미리보기를 열고 닫아도 열 폭이 그대로다. visibility:hidden이라 눈에도 보조기기에도 없다. 760px 이하는 공용 규칙이 숨기는 번호 칸, 600px 미만은 요약·분류·연결 칸까지다(요약은 위 600px 이상 규칙이 되살린다). */
-@container worlds-board (max-width:760px){.world-card-library .worlds-board-table .col-no{display:table-cell;visibility:hidden;width:0;padding:0;border:0}}
+/* 숨기는 열은 display:none이 아니라 폭 0의 보이지 않는 칸으로 남긴다(critique): 미리보기·빈 안내 줄이 colSpan=8 한 칸이라, 보이는 열이 8개보다 적으면(채팅을 연 1440px는 번호·상태 칸이 숨어 6개) 표에 없는 열이 하나 더 생기고 table-layout:fixed가 남는 폭을 그 빈 열과 나눠 미리보기를 열 때마다 요약 칸이 절반으로 줄고 오른쪽에 빈 칸이 생겼다.
+   열 수가 늘 8이면 미리보기를 열고 닫아도 열 폭이 그대로다. visibility:hidden이라 눈에도 보조기기에도 없다. 760px 이하는 공용 규칙이 숨기는 번호 칸과 이 화면의 상태 칸, 600px 미만은 요약·분류·연결 칸까지다(요약은 위 600px 이상 규칙이 되살린다).
+   상태 칸이 숨는 760px 이하에서는 같은 칩이 제목 아래 한 줄(.world-row-status, 넓은 표에서는 위 규칙이 숨긴다)로 보인다. */
+@container worlds-board (max-width:760px){.world-card-library .worlds-board-table :is(.col-no,.col-status){display:table-cell;visibility:hidden;width:0;padding:0;border:0}.world-row-status{display:block;margin-top:4px}}
 @container worlds-board (max-width:599px){.world-card-library .worlds-board-table :is(.col-sum,.col-kind,.col-num){display:table-cell;visibility:hidden;width:0;padding:0;border:0}.world-card-library .worlds-board-table th.col-title{width:auto}.world-row-sub{display:flex;align-items:center;gap:6px;min-width:0;margin-top:4px;color:var(--tsub);font-size:12.5px;font-weight:500}.world-row-sub>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 
 /* 게시판 미리보기(R4): 고른 줄(tr.sel, 전역 보라 면) 바로 아래 한 칸짜리 줄이다. 표 칸 여백을 없애고 안쪽 덩어리(.world-preview)가 여백을 두며, 고른 줄과 같은 면이라 한 덩어리로 읽히게 둘 사이의 선을 거둔다.
-   모든 폭에서 줄 아래 인라인이다(AI 채팅 레일과 다투지 않는다). 요약은 4줄까지만 보이고 전체 글은 편집 화면에 있다. */
+   모든 폭에서 줄 아래 인라인이다(AI 채팅 레일과 다투지 않는다). 안쪽은 공개 카드 페이지와 같은 위키 문서(.nw, publicWiki.css)이고 높이를 제한해 긴 설정은 문서 안에서 스크롤하므로 수정하기·닫기가 늘 화면 안에 있다. */
 .world-card-library .worlds-board-table tr.world-row-preview>td{padding:0;background:var(--pri-soft)}
 .world-card-library .worlds-board-table tr.sel:has(+.world-row-preview) td{border-bottom-color:transparent}
 .world-preview{display:grid;gap:10px;min-width:0;padding:6px 20px 16px 56px}
-.world-preview-head{display:flex;align-items:center;gap:8px}.world-preview-head .board-thumb{margin-right:0}
-.world-preview-sum{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;margin:0;max-width:75ch;overflow:hidden;line-height:1.7;overflow-wrap:anywhere}
-.world-preview-meta{display:grid;gap:6px;margin:0}.world-preview-meta>div{display:flex;flex-wrap:wrap;gap:2px 12px}.world-preview-meta dt{flex:none;min-width:5.5em;color:var(--tsub);font-size:12.5px;font-weight:650}.world-preview-meta dd{min-width:0;margin:0;font-size:13.5px}
-.world-preview-meta ul{display:grid;gap:2px;margin:0;padding:0;list-style:none}
+/* 위키 문서(.nw)의 틀(최대 폭 1040px·가운데 정렬·큰 안쪽 여백)을 덜어 내고 높이를 제한한다. .nw와 특이도가 같아 순서에 기대지 않으려고 .world-preview를 붙인다. */
+.world-preview .world-preview-doc{max-height:min(60vh,640px);max-width:none;margin:0;padding:16px 20px 20px;overflow:auto;border:1px solid var(--line2);border-radius:10px;background:var(--surface)}
+/* 정보 상자의 태그 칩 줄(공개 카드 페이지는 worlds.css가 맡지만 이 화면은 그 파일을 불러오지 않는다). */
+.world-preview .nw-info .worlds-tags{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+/* 공개 카드 페이지의 좁은 배치(뷰포트 720px)는 채팅 레일을 몰라 이 줄에서는 게시판 폭(컨테이너)으로 정한다: 왼쪽 여백을 줄이고 정보 상자를 본문 위로 쌓는다. */
+@container worlds-board (max-width:720px){.world-preview{padding-left:20px}.world-preview .nw-info{float:none;width:100%;margin:0 0 14px}}
 .world-preview-actions{display:flex;flex-wrap:wrap;gap:8px}
 
 .world-legacy-list{margin-top:20px}.world-legacy-list>summary{cursor:pointer;min-height:44px;padding-block:10px}.world-legacy-list nav{display:grid;gap:6px;margin-top:8px}.world-legacy-list nav button{display:flex;justify-content:space-between;gap:10px;width:100%;padding:12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface);color:inherit;text-align:left;cursor:pointer;overflow-wrap:anywhere}.world-legacy-list small{color:var(--sub);font-size:12px}
@@ -392,9 +395,11 @@ a.world-card-link{text-decoration:none}
 @container worlds-board (max-width:1000px){.worlds-cats .worlds-cats-empty{min-height:44px;padding:0 16px}}
 /* 같은 칩 줄에서 고르지 않은 분류 칩은 옅은 테두리·600이라 바로 아래 버튼 줄과 무게가 겹치지 않는다. 고른 칩(aria-current: 보라 테두리·옅은 면)은 공용 규칙 그대로다. */
 @container worlds-board (max-width:1000px){.world-card-library .worlds-cats :is(a,button):not([aria-current]){border-color:var(--line);font-weight:600}}
-/* 줄의 `AI 의견 N`: 제목 칸의 버튼 규칙(굵은 제목 글자·넓힌 누름 영역)을 이 작은 배지에 맞게 줄이고, 눌러지는 것은 밑줄로 알린다. */
-.worlds-board-table .col-title .world-opinion{font-size:12px;font-weight:700;color:var(--acc-ink);text-decoration:underline;text-underline-offset:3px}
-.worlds-board-table .col-title .world-opinion::after{inset:-8px -4px}
+/* 상태 칩(정리 필요·연결 필요·공개 순서 N·AI 의견 N): 주의색 글자·테두리의 작은 알약 버튼이다. 제목 칸의 버튼 규칙(굵은 제목 글자·옅은 면 없음·넓힌 누름 영역)은 좁은 배치의 제목 아래 줄에서도 칩에 닿으므로 이 규칙이 특이도로 이긴다. 누름 영역은 가장자리를 넓혀 키운다. */
+.world-status{display:flex;flex-wrap:wrap;gap:4px 6px;min-width:0}
+.world-card-library .worlds-board-table .world-status-chip{position:relative;padding:2px 9px;border:1px solid color-mix(in srgb,var(--acc-ink) 38%,transparent);border-radius:999px;background:none;color:var(--acc-ink);font:inherit;font-size:12px;font-weight:700;line-height:1.5;white-space:nowrap;cursor:pointer}
+.world-card-library .worlds-board-table .world-status-chip:hover{background:color-mix(in srgb,var(--acc-ink) 10%,transparent);color:var(--acc-ink);text-decoration:none}
+.world-card-library .worlds-board-table .world-status-chip::after{content:'';position:absolute;inset:-8px -3px}
 /* 편집 화면 맨 위의 AI 검토 의견: 지적 문장·수정안(지금 글 / 바꿀 글을 나란히, 좁으면 위아래). */
 .world-findings{display:grid;gap:12px;min-width:0;margin-bottom:20px;padding:14px 16px;border:1px solid var(--tline);border-radius:14px;background:color-mix(in srgb,var(--tacc) 6%,var(--surface))}
 .world-findings h4{margin:0;font-size:14px}.world-findings h4 .small{margin-left:6px;font-weight:500}

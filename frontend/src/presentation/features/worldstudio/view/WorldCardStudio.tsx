@@ -12,7 +12,7 @@ import { PopMenu } from '../../../shared/PopMenu'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { VersionGraph } from '../../studio/view/VersionGraph'
 import '../../studio/view/writing.css'
-import { setCardReveal } from '../viewmodel/cardVisibility'
+import { revealBadge, setCardReveal } from '../viewmodel/cardVisibility'
 import { importedSource } from '../../../shared/importCards'
 import { cardRelationEntries } from '../viewmodel/cardRelationEntries'
 import { paneBadges } from '../viewmodel/cardPanels'
@@ -109,7 +109,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const over = docs.text.length > BODY_MAX
   const revealError = invalidReveal(setting)
   const reveal = cardRevealEpisode(setting)
-  const revealBadge = reveal === undefined ? '작가 전용' : !vm.linkedWorkId && reveal === 1 ? '공개' : reveal + '화부터 공개' // 공개 안내는 이 배지 한 곳과 관계도의 회차 탭에 모은다
+  const reachBadge = revealBadge(reveal, !!vm.linkedWorkId) // 공개 안내는 이 배지 한 곳과 관계도의 회차 탭에 모은다
   const unlinkedHelp = reveal !== undefined && reveal > 1
     ? `${reveal}화부터 공개로 정해져 있지만 소설이 연결되지 않아 지금은 공개되지 않아요.`
     : demo ? '데모에서는 소설 연결을 지원하지 않아 공개(1화부터)와 작가 전용(기본)만 고를 수 있어요.' : '소설을 연결하면 N화부터 공개로 정할 수 있어요. 지금은 공개(1화부터)와 작가 전용(기본)만 고를 수 있어요.'
@@ -204,7 +204,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                         {setting.importedFrom && <p className="small muted world-card-source"><span className="chip">가져옴</span>{importedSource(setting.importedFrom)}</p>}
                         {item.kind !== 'relation' && (
                           <section className="world-card-reach" aria-label="공개 범위">
-                            <h4>공개 범위 <span className="chip world-reach-badge">{revealBadge}</span></h4>
+                            <h4>공개 범위 <span className="chip world-reach-badge">{reachBadge}</span></h4>
                             {vm.linkedWorkId ? (
                               <>
                                 <label className="world-reveal">
@@ -278,7 +278,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                         <button className="btn sm world-relation-link" type="button" onClick={() => vm.openRelations(item.id)}>관계 편집</button>
                       </div>
                       <section className="world-card-links" aria-label="연관 설정">
-                        <CardRelationMap center={{ id: item.id, title: item.title || '이름 없는 설정', kind: CARD_KIND[cardTypeOf(item) as CardType] ?? '기타' }} badge={revealBadge} entries={entries} revealEpisode={reveal ?? null} onOpen={openLinked} emptyAction={<button type="button" className="btn sm" onClick={() => vm.openRelations(item.id)}>관계 추가</button>} quietKinds={KNOWLEDGE_KINDS} />
+                        <CardRelationMap center={{ id: item.id, title: item.title || '이름 없는 설정', kind: CARD_KIND[cardTypeOf(item) as CardType] ?? '기타' }} badge={reachBadge} entries={entries} revealEpisode={reveal ?? null} onOpen={openLinked} emptyAction={<button type="button" className="btn sm" onClick={() => vm.openRelations(item.id)}>관계 추가</button>} quietKinds={KNOWLEDGE_KINDS} />
                       </section>
                     </>
                   )}
