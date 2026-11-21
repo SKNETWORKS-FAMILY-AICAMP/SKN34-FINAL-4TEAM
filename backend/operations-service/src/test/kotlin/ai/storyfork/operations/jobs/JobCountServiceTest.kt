@@ -7,6 +7,8 @@ import ai.storyfork.operations.jobs.service.CONTENT_JOB_WINDOW
 import ai.storyfork.operations.jobs.service.JobCountService
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJob
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJobList
+import ai.storyfork.operations.llmops.service.EvaluationService
+import ai.storyfork.operations.llmops.service.dto.Evaluation
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.junit.jupiter.api.Assertions.*
@@ -19,7 +21,8 @@ import org.springframework.web.server.ResponseStatusException
 class JobCountServiceTest {
     private val runs = mock(JobRunRepository::class.java)
     private val content = mock(ContentClient::class.java)
-    private val service = JobCountService(runs, content)
+    private val evaluations = mock(EvaluationService::class.java)
+    private val service = JobCountService(runs, content, evaluations)
     private val now = Instant.parse("2026-11-19T05:00:00Z")
 
     private fun job(status: String, finishedAt: Instant? = null) = ContentPreprocessingJob(id = "j-$status", workId = "w", status = status, finishedAt = finishedAt)
@@ -73,5 +76,32 @@ class JobCountServiceTest {
         `when`(content.preprocessingJobs(CONTENT_JOB_WINDOW)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
 
         assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.counts(now) }.statusCode)
+    }
+
+    private fun evaluation(status: String, createdAt: Instant) = Evaluation("qa@v3-$status", "qa-regression", "qa", 3, status, null, createdAt, emptyList())
+
+    @Test
+    fun `the evaluation runs add their running ones and the failed ones that started after the moment`() {
+        val since = now.minus(24, ChronoUnit.HOURS)
+        // An evaluation has no finish time, so a failed one counts when it started after the moment: the first two do, the one exactly at it and the older one do not.
+        `when`(evaluations.recent(now)).thenReturn(listOf(
+            evaluation("running", now.minusSeconds(60)), evaluation("running", since.minusSeconds(60)), evaluation("completed", now.minusSeconds(60)),
+            evaluation("failed", now.minusSeconds(60)), evaluation("failed", since.plusSeconds(1)), evaluation("failed", since), evaluation("failed", since.minusSeconds(1)),
+        ))
+
+        val counts = service.evaluationCounts(since, now)
+
+        assertEquals(listOf(2, 2), listOf(counts.running, counts.failed))
+        // The other sources are not asked: the shared count that the alert rule uses stays as it was.
+        verifyNoInteractions(runs, content)
+    }
+
+    @Test
+    fun `no evaluation run counts as zero and a Langfuse failure reaches the caller`() {
+        assertEquals(listOf(0, 0), service.evaluationCounts(now, now).let { listOf(it.running, it.failed) })
+
+        `when`(evaluations.recent(now)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.evaluationCounts(now, now) }.statusCode)
     }
 }

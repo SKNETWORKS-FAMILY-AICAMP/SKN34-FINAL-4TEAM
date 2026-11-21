@@ -20,6 +20,8 @@ import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJob
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJobList
 import ai.storyfork.operations.llmops.service.AiUsageService
 import ai.storyfork.operations.llmops.json
+import ai.storyfork.operations.llmops.service.EvaluationService
+import ai.storyfork.operations.llmops.service.dto.Evaluation
 import ai.storyfork.operations.llmops.root
 import ai.storyfork.operations.report.entity.ReportStatus
 import ai.storyfork.operations.report.repository.ReportRepository
@@ -42,7 +44,8 @@ class DashboardServiceTest {
     private val reports = mock(ReportRepository::class.java)
     private val alerts = mock(OperationAlertRepository::class.java)
     private val runs = mock(JobRunRepository::class.java)
-    private val service = DashboardService(core, AiUsageService(langfuse), content, inquiries, reports, alerts, JobCountService(runs, content))
+    private val evaluations = mock(EvaluationService::class.java)
+    private val service = DashboardService(core, AiUsageService(langfuse), content, inquiries, reports, alerts, JobCountService(runs, content, evaluations))
 
     private val operator = OperationsMember(UUID.randomUUID(), true)
     private val bearer = "Bearer admin-access"
@@ -64,6 +67,8 @@ class DashboardServiceTest {
     private val funnel = json("""{"readers":{"viewed":12,"readAny":9,"readNext":4},"forks":{"baseEpisodes":[{"bucket":"1","count":1},{"bucket":"11+","count":0}]},"writers":{"medianHoursToPublish":null}}""")
 
     private fun job(status: String, finishedAt: Instant? = null) = ContentPreprocessingJob(id = "j-$status", workId = "w", status = status, finishedAt = finishedAt)
+
+    private fun evaluation(status: String, createdAt: Instant) = Evaluation("qa@v3-$status-$createdAt", "qa-regression", "qa", 3, status, null, createdAt, emptyList())
 
     // In progress: queued, running and loading. Failed in the last 24 hours: only the one that finished an hour ago.
     private val preprocessing = listOf(
@@ -150,15 +155,15 @@ class DashboardServiceTest {
         )
         for ((source, breakIt) in failing) {
             // Re-stubbing a call that already throws would throw while stubbing, so every round starts from fresh mocks.
-            reset(core, langfuse, content, inquiries, reports, alerts, runs)
+            reset(core, langfuse, content, inquiries, reports, alerts, runs, evaluations)
             givenAllSources()
             breakIt()
 
             val dashboard = service.get(operator, bearer, now)
 
             assertEquals(listOf(source), dashboard.unavailable, source)
-            // The jobs card adds Content's preprocessing jobs to the operations runs, so it follows Content.
-            assertEquals(source == "content", dashboard.jobs == null, source)
+            // The jobs card adds Content's preprocessing jobs and Langfuse's evaluation runs to the operations runs, so it follows both.
+            assertEquals(source == "content" || source == "langfuse", dashboard.jobs == null, source)
             assertEquals(source == "content", dashboard.funnel == null, source)
             assertEquals(source == "core", dashboard.members == null, source)
             assertEquals(source == "langfuse", dashboard.ai == null, source)
@@ -215,6 +220,45 @@ class DashboardServiceTest {
         assertNull(dashboard.jobs)
         assertEquals(7L, dashboard.pending.authorReviews)
         assertEquals(listOf("content"), dashboard.unavailable)
+    }
+
+    @Test
+    fun `the evaluation runs add their running and recently failed ones to the jobs card`() {
+        givenAllSources()
+        // Running now: one. Failed in 24 hours: the one that started an hour ago (an evaluation has no finish time); the one from 30 hours ago and the completed one do not count.
+        `when`(evaluations.recent(now)).thenReturn(listOf(
+            evaluation("running", now.minusSeconds(60)), evaluation("completed", now.minusSeconds(60)),
+            evaluation("failed", now.minus(1, ChronoUnit.HOURS)), evaluation("failed", now.minus(30, ChronoUnit.HOURS)),
+        ))
+
+        val dashboard = service.get(operator, bearer, now)
+
+        assertEquals(DashboardJobs(6, 3), dashboard.jobs)
+        assertEquals(emptyList<String>(), dashboard.unavailable)
+    }
+
+    @Test
+    fun `the evaluation runs failing to read blank only the jobs card and name langfuse once`() {
+        givenAllSources()
+        `when`(evaluations.recent(now)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+
+        val dashboard = service.get(operator, bearer, now)
+
+        // No partial count that leaves the evaluations out: the card is blank, like it is when Content cannot be read.
+        assertNull(dashboard.jobs)
+        assertEquals(listOf("langfuse"), dashboard.unavailable)
+        assertNotNull(dashboard.ai)
+        assertEquals(7L, dashboard.pending.authorReviews)
+        assertSame(funnel, dashboard.funnel)
+    }
+
+    @Test
+    fun `evaluation runs are not read when the other job sources already failed`() {
+        givenAllSources()
+        `when`(content.preprocessingJobs(CONTENT_JOB_WINDOW)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+
+        assertNull(service.get(operator, bearer, now).jobs)
+        verifyNoInteractions(evaluations)
     }
 
     @Test

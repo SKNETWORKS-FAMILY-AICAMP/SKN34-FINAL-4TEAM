@@ -8,11 +8,13 @@ import ai.storyfork.operations.jobs.repository.JobRunRepository
 import ai.storyfork.operations.jobs.repository.ScheduledJobRepository
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJob
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJobList
+import ai.storyfork.operations.jobs.service.dto.EVALUATION_FAILED_MESSAGE
 import ai.storyfork.operations.jobs.service.dto.JobPage
 import ai.storyfork.operations.jobs.service.dto.JobProgress
 import ai.storyfork.operations.jobs.service.dto.JobRun
 import ai.storyfork.operations.jobs.service.dto.ScheduleRequest
 import ai.storyfork.operations.jobs.service.dto.toRun
+import ai.storyfork.operations.llmops.service.dto.Evaluation
 import java.time.Instant
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
@@ -45,6 +47,20 @@ class JobDtosTest {
         assertNull(run.finishedAt)
         assertNull(run.error)
         assertEquals("work-1", run.targetId)
+    }
+
+    @Test
+    fun `an evaluation run becomes a manual evaluation run that started at its creation, with the run name as id and target`() {
+        fun evaluation(status: String) = Evaluation("qa@v3-20260310T010203Z-a1b2c3", "qa-regression", "qa", 3, status, null, t, emptyList())
+
+        val run = evaluation("running").toRun()
+
+        assertEquals(JobRun("qa@v3-20260310T010203Z-a1b2c3", "evaluation", "ai-evaluation", "running", "manual", null, t, null, null, "qa@v3-20260310T010203Z-a1b2c3"), run)
+        assertEquals(listOf("running", "succeeded", "failed"), listOf("running", "completed", "failed").map { evaluation(it).toRun().status })
+        // The run itself carries no reason, so a failed one shows the fixed message and no other status shows any.
+        assertEquals(EVALUATION_FAILED_MESSAGE, evaluation("failed").toRun().error)
+        assertNull(evaluation("completed").toRun().error)
+        assertNull(evaluation("running").toRun().error)
     }
 
     @Test
