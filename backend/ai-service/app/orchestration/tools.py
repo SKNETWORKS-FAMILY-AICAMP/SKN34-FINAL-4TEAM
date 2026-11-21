@@ -348,7 +348,10 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
             draft = content_mcp.read_draft(target['workId'], target['episode'])
             base = {'body': draft.body, 'revision': draft.revision}
         if 'patch' in data:
-            return writing.patch(PatchRequest.model_validate(data['patch']))
+            patch = PatchRequest.model_validate(data['patch'])
+            if target and not patch.context:  # 채팅 구간 입력(#497): Content는 구간만 검증하므로 허용 문맥은 여기서 채운다. gaps는 PatchResponse에 없어 버린다
+                patch.context, _ = _allowed_context(target, patch.instruction)
+            return writing.patch(patch)
         if task == 'patch' and selected and 'draft' not in data:  # 선택한 글이 있으면 입력 대기 없이 그 글을 수정한다. 반영 때 초안에 한 번만 있어야 한다
             return writing.patch(PatchRequest(selection=selected, instruction=request or '선택한 문장을 다듬어 주세요.'))
         if 'draft' in data:

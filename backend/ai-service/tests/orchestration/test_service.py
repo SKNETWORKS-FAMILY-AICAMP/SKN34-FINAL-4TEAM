@@ -30,7 +30,7 @@ from traced import MEMBER, attrs, bearer, status_of
 
 from app.writing.errors import WritingFailure
 
-from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, PLAN_READ, PLAN_REVISION, QA, REVIEW, SCENE_TEXT, SCOPE,
+from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, PLAN_READ, PLAN_REVISION, QA, RANGE_PATCH, REVIEW, SCENE_TEXT, SCOPE,
                     WEB, NO_WORLD, WORLD, WORLD_ENRICH, WORLD_PLANS, WORLD_REVIEW, WORLD_REVIEW_REQUEST, Step, fake_agents, fake_main, fake_scene, plan)
 
 REAL_WORLD = {name: getattr(world_review, name) for name in ('linked_request', 'review', 'linked_world', 'enrich', 'impact')}  # fake_agents가 바꾸기 전의 실제 함수
@@ -1944,6 +1944,21 @@ def test_author_plan_still_wins_and_gets_the_allowed_context(monkeypatch):
     calls = fake_agents(monkeypatch, plan(writing_step('draft')))
     run('써줘', target=TARGET, inputs={'writing_editing': DRAFT})
     assert names(calls) == ['judge', 'mcp', 'mcp', 'mcp', 'draft'] and json.loads(calls[4][1][0].context) == {**CONTEXT, 'settings': []}
+
+
+# 채팅 구간 입력(#497): Content가 구간만 검증해 patch로 바꿔 보내므로 허용 문맥은 AI가 Content MCP로 채운다.
+def test_a_patch_input_without_context_gets_the_allowed_context_the_instruction_as_query(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('patch')))
+    run('다듬어줘', target=TARGET, inputs={'writing_editing': RANGE_PATCH})
+    assert names(calls) == ['judge', 'mcp', 'mcp', 'mcp', 'patch']
+    assert calls[1][1] == ('work_context_read', {'id': 'work', 'episode': 3, 'query': '더 차갑게', 'includeSettings': False})
+    assert json.loads(calls[4][1][0].context) == {**CONTEXT, 'settings': []}
+
+
+def test_a_patch_input_that_already_has_context_never_reads_it_again(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('patch')))
+    run('다듬어줘', target=TARGET, inputs={'writing_editing': PATCH})
+    assert names(calls) == ['judge', 'patch'] and calls[1][1][0].context == '허용 문맥'
 
 
 # Writing의 설정 근거는 Q&A·Review와 같은 WorldStudio다(#523). work_context_read의 settings(옛 설정 문서)는 버린다.

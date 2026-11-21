@@ -7,9 +7,9 @@ import { chatPage, type ChatEvent, type ChatStep } from '../../../domain/entitie
 import { useWritingChatViewModel } from './useWritingChatViewModel'
 import { WritingChat } from './WritingChat'
 
-const { sessions, history, send } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn() }))
+const { sessions, history, send, writingEpisode } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), writingEpisode: vi.fn() }))
 vi.mock('../../../app/appContainer', () => ({ appContainer: { resolve: () => useCase } }))
-const useCase = { sessions, history, send }
+const useCase = { sessions, history, send, writingEpisode }
 
 afterEach(() => { cleanup(); vi.resetAllMocks() })
 
@@ -284,14 +284,80 @@ it('집필 입력 대기는 근거 회차가 아니라 열린(반영) 회차의 
   })
 })
 
-it('부분 수정(task=patch) 입력 대기는 새 원고 계획 칸을 띄우지 않고, 채팅에서 채울 수 없다고 알린다', async () => {
-  openThread([{ request: '3문단 말투만 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null,
-    steps: [{ feature: 'writing_editing', status: 'not_started', task: 'patch' }] } }])
+// 채팅 구간 입력(#497): 선택 구간 없는 부분 수정은 카드에서 반영 회차 초안의 구간을 골라 span으로 보낸다.
+const PATCH_BODY = '그는 웃었다. 바람이 찼다.'
+const waitingPatch = () => openThread([{ request: '3문단 말투만 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null,
+  steps: [{ feature: 'writing_editing', status: 'not_started', task: 'patch' }] } }])
+const patchForm = async () => {
+  waitingPatch()
+  writingEpisode.mockResolvedValue({ number: 2, draft: { title: '2화', body: PATCH_BODY, revision: 4 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: null, checkpointStatus: 'content_only', checkpoints: [] })
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
+  const draft = await within(form).findByLabelText(/수정할 초안/) as HTMLTextAreaElement
+  return { form, draft }
+}
+const choose = (draft: HTMLTextAreaElement, start: number, end: number) => {
+  draft.setSelectionRange(start, end)
+  fireEvent.select(draft)
+}
+
+it('부분 수정(task=patch) 입력 대기는 반영 회차의 초안을 읽기 전용으로 보여 주고, 구간을 고르기 전에는 이어서 실행을 잠근다', async () => {
+  const { form, draft } = await patchForm()
+  expect(writingEpisode).toHaveBeenCalledWith('w', 2, expect.anything())
+  expect(draft.value).toBe(PATCH_BODY)
+  expect(draft.readOnly).toBe(true)
   expect(within(form).queryByLabelText(/쓸 장면 계획/)).toBeNull()
-  expect(within(form).getByText(/화면에서 채울 수 없어요/)).toBeTruthy()
+  expect(within(form).queryByText(/화면에서 채울 수 없어요/)).toBeNull()
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+  choose(draft, 0, 7)
+  expect(within(form).getByText('선택한 글 7자')).toBeTruthy()
+  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', false)
+  choose(draft, 3, 3)  // 선택을 풀면 다시 잠근다
+  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+})
+
+it('고른 구간과 수정 지시를 writing_editing.span으로 보낸다', async () => {
+  send.mockResolvedValue(undefined)
+  const { form, draft } = await patchForm()
+  choose(draft, 0, 7)
+  fireEvent.change(within(form).getByLabelText(/수정 지시/), { target: { value: '더 차갑게' } })
+  fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({
+    targetEpisode: 2, resume: { approved: true, inputs: { writing_editing: { span: { episode: 2, revision: 4, start: 0, end: 7, instruction: '더 차갑게' } } } },
+  })
+})
+
+it('5,000자를 넘는 구간은 이어서 실행을 막고 한도를 알린다', async () => {
+  const { form, draft } = await patchForm()
+  writingEpisode.mockResolvedValue(undefined)
+  Object.defineProperty(draft, 'selectionStart', { value: 0, configurable: true })
+  Object.defineProperty(draft, 'selectionEnd', { value: 5001, configurable: true })
+  fireEvent.select(draft)
+  expect(within(form).getByText('5,000자 이하로 골라 주세요.')).toBeTruthy()
+  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+})
+
+it('수정 지시를 비우면 이번 요청 문장을 지시로 보낸다', async () => {
+  send.mockResolvedValue(undefined)
+  const { form, draft } = await patchForm()
+  choose(draft, 8, 14)
+  fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2].resume.inputs).toEqual({ writing_editing: { span: { episode: 2, revision: 4, start: 8, end: 14, instruction: '3문단 말투만 고쳐 줘' } } })
+})
+
+it('초안을 읽지 못하면 실패를 알리고 구간 고르기와 이어서 실행을 막으며, 다시 불러오면 초안을 보인다', async () => {
+  waitingPatch()
+  writingEpisode.mockRejectedValueOnce(new Error('offline'))
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
+  expect((await within(form).findByRole('alert')).textContent).toContain('초안을 읽지 못했어요')
+  expect(within(form).queryByLabelText(/수정할 초안/)).toBeNull()
+  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+  writingEpisode.mockResolvedValue({ number: 2, draft: { title: '2화', body: PATCH_BODY, revision: 4 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: null, checkpointStatus: 'content_only', checkpoints: [] })
+  fireEvent.click(within(form).getByRole('button', { name: '다시 불러오기' }))
+  expect(((await within(form).findByLabelText(/수정할 초안/)) as HTMLTextAreaElement).value).toBe(PATCH_BODY)
 })
 
 it('고증 조사 입력 대기는 질문을 적어야 이어서 실행하고, 질문을 research 단계 입력으로 보낸다(#545)', async () => {
