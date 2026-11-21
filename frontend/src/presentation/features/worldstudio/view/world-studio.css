@@ -103,6 +103,16 @@ body:has(.world-menu-account) .acctm{transform:translateY(calc(-100% - 60px));an
 .world-menu-body{order:2;flex:1 1 100%}
 }
 
+/* 관리 모드 관계도 보기(?view=people, .ep-content[data-view=people]): 세계관 머리(표지·이름 줄)를 그리지 않고 캔버스(React Flow)가 내용 열 전체 폭 × 화면에 남은 높이를 채운다. 관계 추가·관계 목록은 캔버스 아래로 스크롤한다.
+   내용 카드의 테두리·안쪽 여백을 없애 캔버스가 내용 열 폭을 다 쓰고(도구줄은 무대 안에 자기 여백이 있다), 그래프 | 폼 2열 대신 한 열이다. 캔버스 높이 = 화면 높이 − 캔버스 위쪽(--rf-top: 관계 기준 회차·도구줄까지의 문서 위치, CharacterCards가 잰다) − 범례(≈56px)이고 최소 480px다.
+   터치 기기는 캔버스 안의 한 손가락 끌기가 캔버스 이동이라 페이지를 스크롤할 자리를 남기려고 화면의 64%까지다. 채팅을 열면 내용 열이 좁아진 만큼 캔버스도 좁아진다. */
+.ep-content[data-view=people]>.ep-card{padding:0;border:0;background:none;margin-bottom:0}
+.ep-content[data-view=people]>.chip{display:flex;width:fit-content;margin:0 0 8px}
+.ep-content[data-view=people] .relationship-service-layout{grid-template-columns:minmax(0,1fr)}
+.ep-content[data-view=people] .relationship-service-form{max-height:none}
+.ep-content[data-view=people] .relationship-flow{height:max(480px,calc(100dvh - var(--rf-top,320px) - 56px))}
+@media(pointer:coarse){.ep-content[data-view=people] .relationship-flow{height:clamp(420px,64dvh,720px)}}
+
 /* AI 채팅: 집필실과 같은 오른쪽 레일(.studio-chat은 전역 스타일, 안쪽은 shared/chat). 본문(main) | 채팅 2열(채팅 350px 고정)이고 채팅은 상단바(65px) 아래에 붙어(sticky) 화면 높이를 쓴다(상단바가 없는 관리 모드는 화면 맨 위부터, 위 사이드바 규칙):
    머리 / 메시지(스크롤) / 입력(바닥). 배경은 페이지와 같고 왼쪽 선으로만 구분하며, 입력 카드·추천 칩·말풍선(--chat-card)만 한 단계 밝은 면으로 도드라진다. 왼쪽 사이드바·헤더는 본문(main) 열 안이다. 전송이 잠긴(준비 중) 동안은 1200px 이하에서 닫힌 채로 시작하고(WorldStudioPage), 좁은 화면(집필실과 같은 900px 이하)에서 열면 화면을 덮는 오른쪽 서랍이다. */
 .episode-app.with-chat{display:grid;grid-template-columns:minmax(0,1fr) 350px;align-items:start}

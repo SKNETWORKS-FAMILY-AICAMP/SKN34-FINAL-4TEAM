@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../../../../test/reactFlowStubs'
 import { act, cleanup, fireEvent, render as renderBare, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { afterEach, expect, it, vi } from 'vitest'
@@ -640,18 +641,17 @@ it('처음에는 관계가 가장 많은 인물을 가운데 둔 중심 카드 �
 })
 
 it('중심 카드 보기는 중심 카드를 보드 가운데에, 이웃을 그 둘레 원 위에 놓고 모든 선에 라벨이 있으며, 전체 보기는 카드를 골라도 라벨이 없고 선에 마우스를 올린 동안만 그 선의 라벨이 보인다', async () => {
-  vi.stubGlobal('PointerEvent', MouseEvent)
   await openHub()
   const center = screen.getByRole('group', { name: '허브 인물 카드' }), first = screen.getByRole('group', { name: '이웃 0 인물 카드' })
-  const at = (el: HTMLElement) => /translate\(([-\d.]+)px, ([-\d.]+)px\)/.exec(el.style.transform)!.slice(1).map(Number)
+  const at = (el: HTMLElement) => /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(el.style.transform)!.slice(1).map(Number)
   const [cx, cy] = at(center), [nx, ny] = at(first)
-  expect(Math.round(cx - nx)).toBe(0) // 첫 이웃은 중심 바로 위
+  expect(Math.abs(cx - nx)).toBeLessThan(1) // 첫 이웃은 중심 바로 위(부동소수 오차 안에서 같은 x)
   expect(ny).toBeLessThan(cy)
   expect(edgeLabels()).toBe(12) // 별 모양의 모든 선에 라벨
   fireEvent.click(screen.getByRole('button', { name: '전체 관계도로' }))
   expect(edgeLabels()).toBe(0) // 고르기 전에는 라벨이 없고(<title> 툴팁만)
   expect(screen.getAllByRole('button', { name: /관계선 편집: 허브 · 이웃/ })).toHaveLength(15) // 선은 그대로 읽히고 누를 수 있다
-  const press = (name: string) => { const card = screen.getByRole('group', { name }); fireEvent.pointerDown(card, { clientX: 20, clientY: 20 }); fireEvent.pointerUp(card, { clientX: 20, clientY: 20 }) }
+  const press = (name: string) => fireEvent.click(screen.getByRole('group', { name })) // 카드 본문 누르기는 React Flow의 노드 클릭이다
   press('이웃 3 인물 카드')
   expect(edgeLabels()).toBe(0) // 카드를 골라도 전체 보기에는 라벨이 없다(겹친 라벨을 피한다)
   fireEvent.mouseEnter(screen.getByRole('button', { name: /관계선 편집: 허브 · 이웃 3 · / }))
@@ -659,9 +659,8 @@ it('중심 카드 보기는 중심 카드를 보드 가운데에, 이웃을 그 
 })
 
 it('중심 카드를 보다가 두 카드를 차례로 누르면 가운데에 관계 작성 시트가 열려 첫 입력으로 초점이 가고, Esc는 변경이 있으면 확인한 뒤 닫으며 닫은 뒤 초점은 관계 작성 버튼에 있다', async () => {
-  vi.stubGlobal('PointerEvent', MouseEvent)
   await openHub()
-  const press = (name: string) => { const card = screen.getByRole('group', { name }); fireEvent.pointerDown(card, { clientX: 20, clientY: 20 }); fireEvent.pointerUp(card, { clientX: 20, clientY: 20 }) }
+  const press = (name: string) => fireEvent.click(screen.getByRole('group', { name })) // 카드 본문 누르기는 React Flow의 노드 클릭이다
   press('허브 인물 카드')
   expect(screen.queryByRole('dialog')).toBeNull() // 첫 누름은 주체만 정한다
   press('이웃 0 인물 카드')
@@ -739,7 +738,7 @@ it('그래프 위 한 줄 툴바: 중심 콤보에 지금 중심 카드가 보�
   expect(screen.queryByRole('group', { name: '관계도 중심 설정' })).toBeNull()
   expect(screen.queryByRole('navigation', { name: '설정 목록 페이지 이동' })).toBeNull()
   const toolbar = center.closest('.relationship-focus') as HTMLElement
-  expect(toolbar.compareDocumentPosition(document.querySelector('.relationship-cards-scroll')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 툴바는 그래프 위다
+  expect(toolbar.compareDocumentPosition(document.querySelector('.relationship-flow')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 툴바는 그래프 위다
   expect(within(toolbar).getByRole('navigation', { name: '이웃 페이지 이동' })).toBeTruthy()
   expect(within(toolbar).getByRole('button', { name: '전체 관계도로' })).toBeTruthy()
   fireEvent.change(center, { target: { value: '이웃 3' } })
@@ -752,12 +751,11 @@ it('그래프 위 한 줄 툴바: 중심 콤보에 지금 중심 카드가 보�
 })
 
 it("'관계 추가' 폼은 접힌 details로 시작하고, 카드를 눌러 두 설정을 고르면 채워진 폼이 펼쳐지며 작성 시트를 닫으면 초점이 관계 작성 버튼으로 돌아온다", async () => {
-  vi.stubGlobal('PointerEvent', MouseEvent)
   const { hub, others } = await openHub()
   const form = document.querySelector<HTMLDetailsElement>('details.relationship-add')!
   expect(form.open).toBe(false)
   expect(form.querySelector('summary')!.textContent).toBe('관계 추가')
-  const press = (name: string) => { const card = screen.getByRole('group', { name }); fireEvent.pointerDown(card, { clientX: 20, clientY: 20 }); fireEvent.pointerUp(card, { clientX: 20, clientY: 20 }) }
+  const press = (name: string) => fireEvent.click(screen.getByRole('group', { name })) // 카드 본문 누르기는 React Flow의 노드 클릭이다
   press('허브 인물 카드')
   press('이웃 0 인물 카드')
   await screen.findByRole('dialog', { name: '허브 ↔ 이웃 0 관계' })

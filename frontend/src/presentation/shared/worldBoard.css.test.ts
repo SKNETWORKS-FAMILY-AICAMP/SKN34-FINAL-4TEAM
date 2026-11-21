@@ -137,10 +137,8 @@ describe('게시판 열·분류 칩 줄(critique)', () => {
 })
 
 describe('관계도 층과 좁은 화면 넘침 방어(critique)', () => {
-  it('간선 그림(SVG)은 카드 아래 층(z-index:0 < 카드 1 < 라벨 2)이고 무대 위 카드 면은 반투명이 아니라 불투명이라 뒤를 지나는 간선이 카드 글자를 가로지르지 않는다', () => {
-    expect(rule(map, '.relationship-card-edges')).toMatch(/z-index:0/)
-    expect(rule(map, '.relationship-character-card')).toMatch(/z-index:1/)
-    expect(rule(map, '.relationship-card-labels')).toMatch(/position:absolute;inset:0;z-index:2;pointer-events:none;overflow:visible/)
+  it('간선 그림(React Flow 간선 층)은 카드 층 아래이고 라벨은 뷰포트 포털의 별도 SVG(카드 층 위, 눌리지 않는다)이며, 무대 위 카드 면은 반투명이 아니라 불투명이라 뒤를 지나는 간선이 카드 글자를 가로지르지 않는다', () => {
+    expect(rule(map, '.relationship-card-labels')).toMatch(/position:absolute;width:1px;height:1px;overflow:visible;pointer-events:none/)
     const stage = rule(map, '.relationship-stage')
     expect(stage).toMatch(/--rc-bg:color-mix\(in srgb,var\(--fixed-ink\) 7%,var\(--stage-2\)\)/)
     expect(stage).toMatch(/--rc-sel:color-mix\(in srgb,var\(--fixed-pri\) 20%,var\(--stage-2\)\)/)
@@ -151,6 +149,35 @@ describe('관계도 층과 좁은 화면 넘침 방어(critique)', () => {
     expect(map).toContain('.relationship-editor :is(.relationship-service-form,.relationship-list,.relationship-focus,.relationship-add,.relationship-stage){min-width:0;max-width:100%}')
     expect(map).toContain('.relationship-list>.adm-scroll,.relationship-focus>*{min-width:0;max-width:100%}')
     expect(rule(map, '.relationship-table')).toMatch(/width:100%;table-layout:fixed/)
+  })
+})
+
+describe('관계도 React Flow 캔버스(@xyflow/react)', () => {
+  it('캔버스는 무대 그라데이션이 비치게 배경을 투명으로 두고, 점 격자·컨트롤 색을 이 화면의 고정 토큰으로 덮는다(React Flow 기본 흰 배경·컨트롤 색을 쓰지 않는다)', () => {
+    const flow = rule(map, '.relationship-flow .react-flow')
+    expect(flow).toMatch(/--xy-background-color:transparent/)
+    expect(flow).toMatch(/--xy-background-pattern-color:color-mix\(in srgb,var\(--fixed-ink\) \d+%,transparent\)/)
+    expect(flow).toMatch(/--xy-controls-button-background-color:var\(--rc-bg\)/)
+    expect(flow).toMatch(/--xy-controls-button-color:var\(--rc-ink\)/)
+    expect(flow).toMatch(/--xy-controls-button-border-color:var\(--rc-line\)/)
+    expect(flow).not.toMatch(/#fff|white/i)
+  })
+
+  it('카드는 React Flow 노드 래퍼 안을 가득 채울 뿐 위치·층을 스스로 정하지 않고, 간선을 이으려고 둔 숨은 핸들은 보이지도 눌리지도 않는다', () => {
+    const card = rule(map, '.relationship-character-card')
+    expect(card).toMatch(/width:100%;height:100%/)
+    expect(card).not.toMatch(/position:absolute|left:0|top:0|z-index/)
+    expect(rule(map, '.relationship-handle')).toMatch(/opacity:0;pointer-events:none/)
+  })
+
+  it('직접 만든 보드(스크롤 상자·카드 보드·간선 SVG 층)의 규칙은 남기지 않는다', () => {
+    for (const gone of ['relationship-cards-scroll', 'relationship-cards-board', 'relationship-card-edges']) expect(map, gone).not.toContain(gone)
+  })
+
+  it('작성 모드(2열)의 캔버스 높이는 화면 높이를 따르는 범위이고 좁은 화면은 440px이며, 터치 기기는 카드 위 세로 손짓을 페이지 스크롤이 받는다', () => {
+    expect(rule(map, '.relationship-flow')).toMatch(/position:relative;height:clamp\(380px,55vh,590px\)/)
+    expect(map).toContain('@media(max-width:600px){.relationship-flow{height:440px}.relationship-character-card{border-radius:10px}}')
+    expect(map).toContain('@media(pointer:coarse){.relationship-character-card{touch-action:pan-y}.relationship-flow .react-flow__controls-button{width:44px;height:44px}}') // 컨트롤 버튼도 누르는 크기 44px
   })
 })
 

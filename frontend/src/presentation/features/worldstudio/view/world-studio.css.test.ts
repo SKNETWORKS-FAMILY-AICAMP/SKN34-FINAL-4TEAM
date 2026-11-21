@@ -544,3 +544,16 @@ it('사이드바 맨 아래 줄의 계정 메뉴(공용 AccountMenu는 아바타
   expect(menu).toMatch(/animation:none/) // popin의 from 프레임이 transform을 덮어 열릴 때 튀지 않게
   expect(narrow('body:has(.world-menu-account) .acctm')).toBe('')
 })
+
+// ── 관계도 보기: 세계관 머리 없이 캔버스가 내용 열을 가득 채운다(사용자 요청) ─────────────────────────────────
+it('관계도 보기(.ep-content[data-view=people])는 내용 카드의 안쪽 여백·테두리를 없애 캔버스가 내용 열 전체 폭을 쓰고, 그래프 | 폼 2열 대신 한 열이라 관계 추가·목록이 캔버스 아래에 온다', () => {
+  expect(rule((s) => s === '.ep-content[data-view=people]>.ep-card')?.body).toMatch(/padding:0;border:0;background:none;margin-bottom:0/)
+  expect(rule((s) => s === '.ep-content[data-view=people]>.chip')?.body).toMatch(/display:flex;width:fit-content;margin:0 0 8px/) // 머리가 없는 이 보기의 관계 입력 미적용 칩 한 줄
+  expect(rule((s) => s === '.ep-content[data-view=people] .relationship-service-layout')?.body).toMatch(/grid-template-columns:minmax\(0,1fr\)/)
+  expect(rule((s) => s === '.ep-content[data-view=people] .relationship-service-form')?.body).toMatch(/max-height:none/)
+})
+
+it('관계도 캔버스 높이는 100dvh에서 캔버스 위쪽(도구줄)과 범례만큼을 뺀 값이고 최소 480px다(위쪽 길이는 캔버스가 재서 --rf-top으로 준다). 터치 기기는 페이지를 스크롤할 자리를 남겨 화면의 64%까지다', () => {
+  expect(rule((s) => s === '.ep-content[data-view=people] .relationship-flow')?.body).toMatch(/height:max\(480px,calc\(100dvh - var\(--rf-top,320px\) - 56px\)\)/)
+  expect(mediaRule('(pointer:coarse)', '.ep-content[data-view=people] .relationship-flow')).toMatch(/height:clamp\(420px,64dvh,720px\)/)
+})

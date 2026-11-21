@@ -49,7 +49,8 @@ const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relation
  *   맨 위 줄(STORYFORK 로고 + 접기 토글), 서재로 돌아가는 링크, 보기 메뉴(개요·설정집·관계도·시간선·소설 연결, 주소 `?view=`, 기본은 설정집), 구분선 뒤 아래쪽으로 밀어 붙인 `AI 검토`(시트: 설정집 검토 + AI 후보 검토, 이름에 의견·후보 수가 붙는다)·`확정 버전 남기기`·상시 저장 영역,
  *   맨 아래 줄(알림·테마 버튼·계정 아바타)이다. 검색 버튼은 두지 않는다(Ctrl K 전역 단축키). 901px 이상에서는 맨 위 토글로 사이드바를 접을 수 있고 접으면 토글만 남고 서재로 돌아가는 링크와 저장 영역이 상단 줄(`.ep-top`)로 옮겨 간다(두 곳 동시 노출 없음).
  *   내용 열에는 공개 세계관 상세와 같은 모양의 헤더(표지·이름·칩·소개)와 그 아래 고른 보기의 내용(기본은 설정집 게시판, 개요는 정보 편집 폼, 소설 연결은 연결된 소설과 Fork)이 있다.
- *   만든 직후(`?new=1`)는 작성 모드(사이드바 없이 기본 정보 → 설정 카드 → 관계 연결 → 검토·저장 4단계 마법사)다. 사이드바가 없는 작성 모드와 세계관 없는 만들기 화면은 공용 상단바(Gnb)가 그대로다.
+ *   관계도 보기(`?view=people`)는 세계관 머리를 그리지 않고(이름은 화면 밖 h1, '관계 입력 미적용' 칩만 남는다) React Flow 캔버스가 내용 열 전체 폭 × 화면의 남은 높이를 채우며 관계 추가·목록이 그 아래다(`CharacterCards`, `world-studio.css`). 관리 모드에는 푸터도 없다.
+ *   만든 직후(`?new=1`)는 작성 모드(사이드바 없이 기본 정보 → 설정 카드 → 관계 연결 → 검토·저장 4단계 마법사)다. 사이드바가 없는 작성 모드와 세계관 없는 만들기 화면은 공용 상단바(Gnb)와 푸터가 그대로다.
  * - **편집 화면**(`?card=<id>`): 설정 카드를 열면(게시판 행의 미리보기 `수정하기`) 집필실과 같은 3단 화면(`WorldCardStudio`: 카드 목록·버전 그래프 레일 / 편집기 / AI 채팅)이 이 화면을 대신하고, `← {들어온 보기 이름}`·뒤로가기로 돌아온다.
  * 설정집 화면은 편집 화면 뒤에서 지우지 않고 숨겨 두어 필터·적용하지 않은 관계 입력·후보 검토 상태를 지킨다. 주소 `/worldstudio`(세계관 없음)에서만 새 세계관 만들기 화면을 그린다.
  * 소설 작성은 실행 모드의 작품 생성 화면에서 시작한다.
@@ -127,7 +128,7 @@ export function WorldStudioPage() {
           <WorldRevisions studio={vm} revisions={revisions} />
         </Sheet>
       )}
-      {!editingCard && <Footer />}
+      {!editingCard && !sidebarShell && <Footer />}
     </>
   )
 }
@@ -278,9 +279,12 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
           <WorldMenuAccount />
         </div>
       )}
-      <div className="ep-content">
+      <div className="ep-content" data-view={manage ? view : undefined}>
         {notices}
-        <WorldHeader vm={vm} world={world} />
+        {manage && view === 'people'
+          // 관계도 보기는 캔버스가 내용 열을 채우도록 세계관 머리(표지·이름·칩 줄)를 그리지 않는다. 이름은 화면 밖 h1로만 남겨 화면 구조(h1 하나)를 지키고, 머리의 칩이 알리던 '관계 입력 미적용'은 이 보기의 맨 위에 따로 둔다(적용하지 않은 관계 입력이 있다는 신호가 사라지지 않게).
+          ? <><h1 className="sr-only">{(vm.saved ?? world).name || '이름 없는 세계관'}</h1>{vm.relationDirty && <span role="status" className="chip wait">관계 입력 미적용</span>}</>
+          : <WorldHeader vm={vm} world={world} />}
         {!manage && (
           <nav className="world-step-nav" aria-label="세계관 작성 단계">
             <ol>

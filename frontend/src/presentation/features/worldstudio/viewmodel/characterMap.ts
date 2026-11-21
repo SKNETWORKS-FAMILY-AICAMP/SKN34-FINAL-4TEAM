@@ -60,22 +60,15 @@ export function defaultAnchor(graph:ReturnType<typeof buildWorldMap>) {
  return (most(graph.nodes.filter(n=>n.type==='character'))??most(graph.nodes))?.id??''
 }
 
-/** 원형 배치를 줄일 수 있는 가장 작은 배율. 이보다 더 줄여야 들어갈 만큼 좁은 폭(폰)은 줄이지 않고 상자 안에서 가로로 민다(카드 글자와 버튼이 너무 작아진다). */
-const MIN_RING_SCALE=.55
 /**
- * 중심 카드 보기의 원형 배치. 좌표는 카드의 왼쪽 위 모서리다(격자 배치와 같다). 중심 카드는 보드 가운데, 이웃 ${count}장은 그 둘레에 중심 바로 위에서 시계 방향으로 같은 간격으로 놓인다.
- * 반지름은 이웃끼리 겹치지 않을 만큼(카드 폭 × 개수 ÷ 2π × 1.25, 최소 260px)이라 중심과 이웃, 이웃끼리 카드가 겹치지 않는다(1.15면 9·11장에서 카드 모서리가 겹쳤다). 보드는 원이 들어갈 만큼 커지되 호스트 폭보다 좁아지지 않는다.
- * 원이 실제로 차지하는 폭이 호스트 폭보다 넓으면 카드째 같은 배율(scale, 0.55 이상)로 줄여 보드 폭이 호스트 폭을 넘지 않게 한다: 채팅을 연 1440px(본문 약 749px)에서 이웃 12장의 원은 약 1,150px라 예전에는 카드가 좌우로 잘리고 위·아래 카드는 상자 밖이었다.
- * 줄이면 center·ring의 카드 크기는 카드 폭 × scale, 높이 × scale이다. 줄여도 0.55에 못 미치는 폭(폰)은 줄이지 않고(scale 1) 보드가 호스트보다 넓어져 상자 안에서 가로로 민다.
+ * 중심 카드 보기의 원형 배치. 좌표는 카드의 왼쪽 위 모서리다(격자 배치와 같다). 중심 카드는 원점(0, 0)을 한가운데로 두고, 이웃 ${count}장은 그 둘레에 중심 바로 위에서 시계 방향으로 같은 간격으로 놓인다.
+ * 반지름은 이웃끼리 겹치지 않을 만큼(카드 폭 × 개수 ÷ 2π × 1.25, 최소 260px)이라 중심과 이웃, 이웃끼리 카드가 겹치지 않는다(1.15면 9·11장에서 카드 모서리가 겹쳤다).
+ * 화면에 맞춘 축소는 하지 않는다: 카드는 늘 같은 크기이고 캔버스(React Flow)의 화면 맞춤·확대·축소가 맡는다(예전에는 보드 폭에 맞춰 카드째 0.55배까지 줄였다).
  */
-export function ringLayout(count:number,width:number,cardW:number,cardH:number) {
- const margin=24,radius=count?Math.max(260,count*cardW/(2*Math.PI)*1.25):0
- const offsets=Array.from({length:count},(_,i)=>{const angle=-Math.PI/2+2*Math.PI*i/count;return {x:radius*Math.cos(angle),y:radius*Math.sin(angle)}})
- const halfW=Math.max(0,...offsets.map(o=>Math.abs(o.x)))+cardW/2,halfH=Math.max(0,...offsets.map(o=>Math.abs(o.y)))+cardH/2 // 원이 실제로 차지하는 반 폭·반 높이(위·아래 이웃뿐이면 좁다)
- const fit=(width-margin*2)/(2*halfW),scale=fit<1&&fit>=MIN_RING_SCALE?fit:1
- const boardWidth=Math.ceil(Math.max(width,2*halfW*scale+margin*2)-1e-6),boardHeight=Math.ceil(Math.max(360,2*halfH*scale+margin*2)-1e-6)
- const cx=boardWidth/2,cy=boardHeight/2,place=(x:number,y:number)=>({x:x-cardW*scale/2,y:y-cardH*scale/2})
- return {center:place(cx,cy),ring:offsets.map(o=>place(cx+o.x*scale,cy+o.y*scale)),width:boardWidth,height:boardHeight,scale}
+export function ringLayout(count:number,cardW:number,cardH:number) {
+ const radius=count?Math.max(260,count*cardW/(2*Math.PI)*1.25):0
+ const place=(x:number,y:number)=>({x:x-cardW/2,y:y-cardH/2})
+ return {center:place(0,0),ring:Array.from({length:count},(_,i)=>{const angle=-Math.PI/2+2*Math.PI*i/count;return place(radius*Math.cos(angle),radius*Math.sin(angle))})}
 }
 
 /** 선 라벨의 각도(도): 선 방향으로 눕히되 글자가 거꾸로 뒤집히지 않게 -90° 초과 90° 이하로 맞춘다. 이웃이 둘레에 퍼진 중심 보기에서 라벨이 자기 선을 따라 누워 이웃 선의 라벨과 겹치지 않는다. */

@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '../../../../test/reactFlowStubs'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router'
@@ -761,16 +762,11 @@ it('소설 버튼은 한 자리다: 연결된 소설이 없으면 소설 연결 
 })
 
 it('관계 연결 단계에서 그래프 카드를 차례로 두 번 누르면 관계 추가 폼의 주체·대상이 채워지고 관계 작성이 열린다', async () => {
-  vi.stubGlobal('PointerEvent', MouseEvent)
   const [garam, narae] = [person('가람'), person('나래')]
   await show([garam, narae, person('다온')])
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   expect(screen.getByText('카드 두 개를 차례로 누르면 관계를 이어요.')).toBeTruthy() // 행동 한 문장(위치 저장 안내는 행동과 무관하다)
-  const press = (name: string) => {
-    const card = screen.getByRole('group', { name })
-    fireEvent.pointerDown(card, { clientX: 20, clientY: 20 })
-    fireEvent.pointerUp(card, { clientX: 20, clientY: 20 })
-  }
+  const press = (name: string) => fireEvent.click(screen.getByRole('group', { name })) // 카드 본문 누르기는 React Flow의 노드 클릭이다
   press('가람 인물 카드')
   expect(screen.getByText(/가람의 연결 상대를 고르세요/)).toBeTruthy()
   expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '관계 주체' }).value).toBe(garam.item.id)
@@ -4147,13 +4143,14 @@ it('미리보기를 열면 그 미리보기 구획이 화면에 들어오게 가
 })
 
 // ── 관리 화면 critique 승인 항목: 히어로 data-view·돌아가기 버튼·좁은 화면 채팅 열기 버튼 자리·미리보기 탭으로 열기 ─────────────────
-it('헤더는 관리 모드에서는 보기마다, 작성 모드에서는 wizard로 data-view를 달아(히어로를 줄이는 CSS가 쓴다) /content 히어로와 구분한다', async () => {
+it('헤더는 관리 모드에서는 보기마다(관계도 보기만 헤더 없음), 작성 모드에서는 wizard로 data-view를 달아(히어로를 줄이는 CSS가 쓴다) /content 히어로와 구분한다', async () => {
   await showWorld()
-  const hero = () => document.querySelector('.world-manage-hero')!
-  expect(hero().getAttribute('data-view')).toBe('book') // 주소에 없으면 설정집
+  const hero = () => document.querySelector('.world-manage-hero')
+  expect(hero()!.getAttribute('data-view')).toBe('book') // 주소에 없으면 설정집
   for (const [label, view] of [['개요', 'overview'], ['관계도', 'people'], ['시간선', 'timeline'], ['소설 연결', 'novel'], ['설정집', 'book']] as const) {
     fireEvent.click(manageTabs().getByRole('button', { name: label }))
-    expect(hero().getAttribute('data-view'), label).toBe(view)
+    if (view === 'people') expect(hero(), label).toBeNull() // 관계도 보기는 캔버스가 내용 열을 채우도록 헤더를 그리지 않는다
+    else expect(hero()!.getAttribute('data-view'), label).toBe(view)
   }
   cleanup()
   await wizard()
@@ -4381,4 +4378,71 @@ it('오류·상태·AI 변경 알림은 세계관이 열려 있으면 사이드�
   expect(alert.textContent).toContain('저장 충돌')
   expect(inContent(alert)).toBe(true)
   expect(document.querySelector('main > .ep-alert, main > .ep-notice')).toBeNull() // 사이드바를 감싼 틀(section.world-content) 위에는 알림이 없다
+})
+
+// ── 관리 모드 푸터 없음·관계도 보기의 React Flow 캔버스(사용자 요청) ─────────────────────────────────────────────
+it('관리 모드(사이드바 화면)에는 푸터가 없고 — 읽는 동안·읽지 못했을 때도 — 작성 모드·새 세계관 만들기 화면은 푸터가 그대로다', async () => {
+  mount(undefined, '/worldstudio/qa') // 읽는 중
+  expect(document.querySelector('.foot')).toBeNull()
+  await screen.findByRole('heading', { name: '검증 세계', level: 1 })
+  expect(document.querySelector('.foot')).toBeNull()
+  expect(screen.queryByRole('contentinfo')).toBeNull()
+  cleanup()
+  mount(undefined, '/worldstudio/qa', { read: async () => { throw new Error('세계관을 읽지 못했습니다.') } })
+  await screen.findByRole('alert')
+  expect(document.querySelector('.foot')).toBeNull()
+  cleanup()
+  await wizard()
+  expect(screen.getByRole('contentinfo')).toBeTruthy()
+  cleanup()
+  await show(undefined, '/worldstudio')
+  expect(screen.getByRole('contentinfo')).toBeTruthy()
+})
+
+it('관계도 보기에서는 세계관 머리(표지·이름·칩 줄)를 그리지 않고 이름은 화면 밖 h1로만 남기며, 다른 보기는 머리가 그대로다', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people')
+  expect(document.querySelector('.world-manage-hero')).toBeNull()
+  const title = screen.getByRole('heading', { level: 1 })
+  expect(title.textContent).toBe('검증 세계') // h1은 하나 남아 화면 구조(이름)가 그대로 읽힌다
+  expect(title.classList.contains('sr-only')).toBe(true)
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  expect(document.querySelector('.world-manage-hero')).toBeTruthy()
+  expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
+  expect(document.querySelector('.world-manage-hero')).toBeNull()
+})
+
+it('관계도 보기는 React Flow 캔버스가 내용 열 전체 폭의 한 열이고(주소 view가 내용 열에 붙는다) 관계 추가·관계 목록은 그 아래에 있다', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people')
+  expect(document.querySelector('.ep-content')!.getAttribute('data-view')).toBe('people')
+  const flow = screen.getByRole('group', { name: '인물 카드 그래프' })
+  expect(flow.querySelector('.react-flow')).toBeTruthy()
+  expect(within(flow).getByRole('group', { name: '가람 인물 카드' })).toBeTruthy()
+  const stage = flow.closest('.relationship-stage') as HTMLElement
+  const form = document.querySelector('.relationship-service-form') as HTMLElement
+  expect(stage.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 캔버스 단 아래에 폼·목록
+  expect(within(form).getByRole('region', { name: '관계 목록' })).toBeTruthy()
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  expect(document.querySelector('.ep-content')!.getAttribute('data-view')).toBe('book')
+  cleanup()
+  await wizard()
+  expect(document.querySelector('.ep-content')!.getAttribute('data-view')).toBeNull() // 작성 모드는 그대로
+})
+
+it('관계도 보기에서 적용하지 않은 관계 입력이 있으면 세계관 머리가 없어도 관계 입력 미적용 칩이 내용 열 맨 위에 보이고, 다른 보기에서는 머리의 칩이 맡는다', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  await show([garam, narae], '/worldstudio/qa?view=people')
+  fireEvent.change(screen.getByRole('combobox', { name: '관계 주체' }), { target: { value: garam.item.id } })
+  fireEvent.change(screen.getByRole('combobox', { name: '관계 대상' }), { target: { value: narae.item.id } })
+  fireEvent.click(screen.getByRole('button', { name: '관계 작성' }))
+  fireEvent.change(screen.getByRole('textbox', { name: '실제 관계 1' }), { target: { value: '미적용 관계 원문' } })
+  const chip = await screen.findByText('관계 입력 미적용')
+  expect(chip.getAttribute('role')).toBe('status')
+  expect(chip.closest('.world-manage-hero')).toBeNull() // 머리는 이 보기에 없다
+  expect(chip.parentElement?.classList.contains('ep-content')).toBe(true) // 내용 열 바로 아래(캔버스 위)
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  expect(headerOf().getByText('관계 입력 미적용')).toBeTruthy() // 다른 보기는 머리의 칩이다(같은 칩이 두 군데 뜨지 않는다)
+  expect(screen.getAllByText('관계 입력 미적용')).toHaveLength(1)
 })

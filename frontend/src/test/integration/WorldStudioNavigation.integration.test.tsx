@@ -76,10 +76,10 @@ it('retains beforeunload protection while dirty',async()=>{
  window.dispatchEvent(event);expect(event.defaultPrevented).toBe(true)
 })
 
-it('protects navigation through the actual Gnb Go button',async()=>{
+it('protects navigation through the actual sidebar Go links',async()=>{
  await show();const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
- fireEvent.click(screen.getByRole('button',{name:'설정집'})) // Gnb는 설정집 화면에 있다(편집 화면은 집필실처럼 자체 상단 바를 쓴다)
- fireEvent.click(screen.getAllByRole('link',{name:/내 서재/})[0])
+ fireEvent.click(screen.getByRole('button',{name:'설정집'})) // 사이드바는 설정집 화면에 있다(편집 화면은 집필실처럼 자체 상단 바를 쓴다). 관리 모드에는 공용 상단바(Gnb)가 없어 로고·서재 링크가 사이드바에 있다
+ fireEvent.click(screen.getByRole('link',{name:'STORYFORK 홈으로'}))
  await waitFor(()=>expect(confirm).toHaveBeenCalledOnce())
  openCard('가람 인물')
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('보존할 편집 내용')
