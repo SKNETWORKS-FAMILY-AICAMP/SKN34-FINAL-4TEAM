@@ -74,6 +74,10 @@ Content `GET /internal/v1/operations/funnel`(운영 서비스 토큰 체인, 파
 - 회수는 쓸 수 있는 잔액 안에서만 된다(넘으면 409 `CREDIT_INSUFFICIENT`, 아무것도 바꾸지 않음). 만료가 가까운 지급부터 차감하고
   원장 종류는 `revoke`(사용 `spend`와 구분), `operation_key`는 `operator-revoke:<새 UUID>`다.
 - 없는 회원은 404. Core 실패는 502 `UPSTREAM_FAILED`(기존 운영 공통).
+- Core 내부 API(운영 서비스만, 인증은 `/internal/v1/members/**`와 같은 `X-Operations-Service-Token` + 운영자 Bearer 전달, Core가 `operator` 재확인):
+  `GET /internal/v1/credits/members/{memberId}` → `{"balance":{"total","items":[{"kind","remaining","expiresAt"}]},"history":{"items":[{"type":"grant|spend|expire|revoke","kind","amount","occurredAt"}]}}`,
+  `POST …/{memberId}/grants`·`…/revocations` `{"amount","reason"}` → 201 갱신 잔액 `{"total","items"}`. 오류는 problem+json `code` `CREDIT_INSUFFICIENT`(409)·`INVALID_CREDIT_REQUEST`(422), 404는 본문 없음. 운영은 응답을 그대로 중계한다.
+- 회원 본인 내역(`/me/credits/history`)에도 `revoke`(회수, −)와 지급 종류 `operator`(운영자 지급 크레딧)가 나온다.
 - 활동 기록: `CREDIT_GRANT`·`CREDIT_REVOKE`(대상 회원 ID, 금액, 사유). 지급·회수가 성공한 뒤에만 남긴다.
 - 화면: 크레딧 탭 데모를 지우고 회원 검색 → 잔액·내역 표 → 지급·회수 폼(금액·사유, 확인 대화). 처리 중 버튼을 잠근다.
 - ponytail: 요청 중복 방지 키가 없다. 버튼 잠금으로만 막으며, 네트워크 재시도로 두 번 들어갈 수 있다. 필요하면 요청 ID를 받는다.
