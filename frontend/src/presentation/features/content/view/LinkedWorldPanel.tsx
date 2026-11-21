@@ -53,7 +53,7 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
     <>
       {work.source && !linked && <InheritedWorldCard workId={work.id} sourceTitle={work.source.title} busy={busy} error={detachError} onDetach={detach} useCase={useCase} />}
       <section className='ep-card' aria-label='세계관 연결'>
-        <h2>세계관 연결</h2>
+        <h3>세계관 연결</h3>
         {!linked && <p className='ep-muted'>세계관 하나는 소설 하나에만 연결돼요. 독자 설정 위키는 연결한 세계관의 확정 버전에서 발행된 마지막 회차까지 공개된 설정 카드를 보여 줘요.</p>}
         {linked
           ? (
@@ -119,7 +119,7 @@ function InheritedWorldCard({ workId, sourceTitle, busy, error, onDetach, useCas
   if (data === null) return null
   return (
     <section className='tcard ep-card' aria-label='이어받는 원작 세계관'>
-      <h2>이어받는 원작 세계관</h2>
+      <h3>이어받는 원작 세계관</h3>
       {data && (
         <>
           <p>원작 「{sourceTitle}」 세계관을 {data.upto}화 기준으로 이어받는 중</p>

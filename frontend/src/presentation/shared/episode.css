@@ -56,8 +56,8 @@ body:has(.ep-menu-account) .acctm{transform:translateY(calc(-100% - 60px));anima
 /* 사이드바 맨 아래 줄에 테마 버튼이 있으면 오른쪽 아래에 떠 있는 테마 버튼(GlobalChrome이 공용 상단바가 없는 화면에 대신 그린다)은 숨긴다: 테마 버튼이 둘이 되지 않게(공용 상단바가 있는 화면은 storyfork.css의 body:has(.gnb) .thm-float가 같은 일을 한다). */
 body:has(.ep-menu-account) .thm-float{display:none}
 /* 900px 이하: 사이드바는 내용 위의 가로 블록이다. 로고(맨 위 줄)와 계정 줄이 그 블록 맨 위 한 줄에 놓이고(DOM 순서는 로고·본문·계정이라 order로 올린다) 줄이 모자라면 줄바꿈해 가로로 넘치지 않는다. 본문은 다음 줄이고(min-width:0: 그리드·플렉스 항목의 자동 최소 폭이 내용 폭이라 좁은 화면에서 칸이 늘어 문서가 가로로 넘치지 않게),
-   메뉴(nav)는 가로 스크롤 줄이다(관리자 화면과 같다). 접힘이 없어 토글을 숨기고, 접힌 상태로 좁아져도 본문은 그대로 보인다(작성자 CSS의 display가 UA의 [hidden]을 이긴다). 터치·좁은 화면의 누르는 높이는 44px. */
-@media(max-width:900px){.ep-manage{grid-template-columns:minmax(0,1fr);gap:16px}.ep-menu{position:static;height:auto;overflow:visible;flex-direction:row;flex-wrap:wrap;align-items:center;padding:0 0 8px;border-right:0;border-bottom:1px solid var(--line2)}.ep-menu-top{flex:1 1 auto}.ep-menu-toggle{display:none}.ep-menu-account{order:1}.ep-menu-body{order:2;flex:1 1 100%;min-width:0}.ep-menu nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}.ep-menu nav button{flex:none;white-space:nowrap}}
+   메뉴(nav)는 줄바꿈하는 줄이라 탭이 모두 보인다(가로 스크롤 줄은 잘린 탭이 있다는 신호가 없었다). 접힘이 없어 토글을 숨기고, 접힌 상태로 좁아져도 본문은 그대로 보인다(작성자 CSS의 display가 UA의 [hidden]을 이긴다). 터치·좁은 화면의 누르는 높이는 44px. */
+@media(max-width:900px){.ep-manage{grid-template-columns:minmax(0,1fr);gap:16px}.ep-menu{position:static;height:auto;overflow:visible;flex-direction:row;flex-wrap:wrap;align-items:center;padding:0 0 8px;border-right:0;border-bottom:1px solid var(--line2)}.ep-menu-top{flex:1 1 auto}.ep-menu-toggle{display:none}.ep-menu-account{order:1}.ep-menu-body{order:2;flex:1 1 100%;min-width:0}.ep-menu nav{display:flex;flex-wrap:wrap;gap:4px}.ep-menu nav button{flex:none;white-space:nowrap}}
 @media(max-width:600px),(pointer:coarse){.ep-menu nav button{min-height:44px}}
 .ep-main summary{cursor:pointer;min-height:44px;padding:12px 0;font-size:13px;line-height:1.6;overflow-wrap:anywhere}.ep-main summary:focus-visible{outline:2px solid var(--pri);outline-offset:3px}.ep-context{margin:24px 0;border-block:1px solid var(--line2);padding:16px 0}.ep-context h3{font-size:15px}.ep-context p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.8;margin:12px 0}.ep-context details{border-top:1px solid var(--line)}.ep-context small{overflow-wrap:anywhere}.ep-main input,.ep-main textarea{caret-color:var(--pri)}.ep-main button:disabled{cursor:not-allowed;opacity:.55}
 
@@ -86,7 +86,7 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-hero-cover .ep-edit{margin-top:0}
 .ep-edit fieldset{border:0;padding:0;margin:0;min-width:0;display:grid;gap:16px}
 .ep-edit-actions{display:flex;gap:8px;flex-wrap:wrap}.ep-suggest{display:grid;gap:8px;margin:12px 0}.ep-suggest>.btn{justify-self:start}.ep-suggest [role=group]>div{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}
-.episode-app .ep-card{padding:20px 24px;margin:0 0 32px}
+.episode-app .ep-card{padding:20px 24px;margin-bottom:32px}
 .ep-card p{margin-top:10px}
 .ep-card .ep-edit-actions{margin-top:14px}
 .ep-sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -105,6 +105,17 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .episode-app .ep-create .ep-create-title input:not([type=checkbox]){font:700 28px/1.35 var(--story);letter-spacing:-.02em}
 @media(max-width:900px){.episode-app .ep-hero{grid-template-columns:1fr;gap:20px}.ep-hero-cover{max-width:220px}.episode-app .ep-hero h1{font-size:30px}}
 @media(max-width:650px){.ep-field-row{grid-template-columns:1fr}.episode-app .ep-hero h1{font-size:26px}.episode-app .ep-card{padding:18px}}
+/* 작품 관리 히어로 축소(polish): 쉴 때(편집 중이 아닐 때)는 88px 표지 썸네일 + 제목·칩·소개(두 줄까지)·태그·통계 한 덩어리라 고른 탭의 내용이 첫 화면 안에서 시작한다(세계관 관리 머리와 같은 방식).
+   소개는 숨기지 않고 두 줄에서 말줄임한다(전문은 작품 정보 편집). 표지 편집 버튼(84px)이 들어가도록 열은 72px가 아니라 88px다. 편집 중에는 이 클래스가 빠져 옛 큰 히어로(240px 표지)가 폼에 넓은 칸을 준다. 900px 이하의 한 열 규칙·표지 폭 제한을 이기려고 선택자를 한 단계 높였다. */
+.episode-app .ep-hero.ep-hero-compact{grid-template-columns:88px minmax(0,1fr);gap:0 16px;padding:8px 0 16px}
+.ep-hero-compact .ep-hero-cover{max-width:none}
+.ep-hero-compact .ep-hero-cover [role=status]:empty{min-height:0}
+.episode-app .ep-hero-compact .ep-cover{border-radius:10px;box-shadow:var(--sh)}
+.ep-hero-compact .ep-hero-cover .btn{justify-self:stretch;padding-inline:0}
+.episode-app .ep-hero.ep-hero-compact h1{font-size:24px}
+.episode-app .ep-hero.ep-hero-compact .ep-chips{margin-top:8px}
+.episode-app .ep-hero.ep-hero-compact .sum{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:8px 0}
+.episode-app .ep-hero.ep-hero-compact .hashes{margin:0 0 8px}
 .ep-list{list-style:none;margin:0}
 .ep-list .ep{grid-template-columns:56px minmax(0,1fr) auto}
 .ep-list .ep>div{min-width:0;overflow-wrap:anywhere}
@@ -147,13 +158,13 @@ body:has(.ep-menu-account) .thm-float{display:none}
 @media(pointer:coarse){.ep-main input:not([type=checkbox]):not([type=radio]),.ep-main textarea,.ep-main select,.ep-feedback select.inp.sm{font-size:16px}}
 
 .ep-drafts { margin-bottom: 24px; }
-.ep-drafts h2 { margin: 0 0 8px; }
+.ep-drafts h3 { margin: 0 0 8px; font-size: 16px; }
 .ep-drafts ul { list-style: none; margin: 0; padding: 0; }
 .ep-drafts li { border-bottom: 1px solid var(--line2); }
 .ep-drafts a {
   display: block;
   min-height: 44px;
-  padding: 12px 4px;
+  padding: 12px 0;
   color: var(--pri-ink);
   overflow-wrap: anywhere;
 }
@@ -168,8 +179,10 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-settings-history { list-style: none; margin: 0; padding: 0; font-variant-numeric: tabular-nums; }
 .ep-settings-history li { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 10px 0; border-bottom: 1px solid var(--line2); }
 .ep-settings-history time { color: var(--sub); }
-/* 관리 화면 distill(작품 관리 탭 내용): 탭 내용은 히어로·카드와 같은 왼쪽 선에서 시작한다(읽기 폭 max-width는 그대로). 이야기 분기만 있던 윗여백 40px도 다른 탭과 맞춘다. */
-.ep-content :is(.ep-reading,.ep-fork,.ep-feedback){margin-inline:0}
+/* 관리 화면 distill(작품 관리 탭 내용): 탭 내용은 히어로·카드와 같은 왼쪽 선에서 시작하고 내용 열 폭을 다 쓴다(polish: 탭마다 650·760·1072로 달랐다. 읽기 폭 제한은 분기 폼·안내문에만 둔다). 이야기 분기만 있던 윗여백 40px도 다른 탭과 맞춘다. */
+.ep-content :is(.ep-reading,.ep-fork,.ep-feedback){margin-inline:0;max-width:none}
+.ep-content .ep-fork form{max-width:650px}
+.ep-content .ep-lead{max-width:62ch}
 .ep-content .ep-fork{margin-top:0}
 /* 이력 탭 저장본·AI 제안 항목은 제목·시각·버튼 세 줄이라 원고 본문용 여백을 줄인다. 직계(>) 제목·문단에만 닿아, 펼친 원고 안 문단(div.manuscript-body, margin:0)과 특이도가 겨루지 않는다. */
 .ep-content .ep-reading article{padding:12px 0 16px}
@@ -178,7 +191,7 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .episode-app .ep-card:not(.tcard){padding:0}
 /* 관리 화면 quieter(작품 관리): 배경 강조·카드·굵기를 줄여 도구가 작업 뒤로 물러나게 한다. 색은 토큰만 써서 라이트·다크가 함께 바뀐다. */
 /* 이력·운영 탭 제목은 탭 제목(h2 17px) > 묶음(h3 16px) > 항목(h4 15px, 덜 굵게)이다. 묶음은 직계(>)만 건드려 항목 안 '조회한 문맥' 소제목(.ep-context h3, 15px)은 그대로 둔다. */
-.ep-content .ep-reading>h3{font-size:16px}
+.ep-content .ep-reading>h3{font-size:16px;margin-top:32px}
 .ep-content .ep-reading h4{font-size:15px;font-weight:600}
 /* 안내·빈 상태 문단과 저장 시각은 다른 탭의 보조 문장(.ep-lead·.ep-notes)과 같은 보조색이다. 알림 역할(role)이 붙은 문단은 그대로 둔다. */
 .ep-content .ep-reading>p:not([role]){color:var(--sub)}
@@ -192,3 +205,15 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-feedback .sec{margin-top:32px}
 /* 관리 화면 polish(작품 관리): 탭 내용 묶음은 히어로·분기 정책·작품 삭제 구획처럼 위쪽 선 하나로 시작한다(선이 없으면 탭 내용이 위험 동작인 '작품 삭제'의 하위 내용처럼 읽혔다). */
 .ep-tab{border-top:1px solid var(--line2);padding-top:16px}
+/* 작품 관리 polish(A·B 리뷰): 분기 정책·포크 정보·작품 삭제가 운영 설정 탭으로 옮겨 갔다. 탭 제목(h2)은 탭 내용 묶음의 직계라 아래 간격을 두고, 세 구획의 제목은 탭 제목 아래 묶음 제목(h3, 16px)이다.
+   분기 정책·포크 정보·작품 삭제·세계관 패널·이야기 분기 머리글·받은 피드백의 구획 제목도 모두 이 묶음 제목(h3)이다(탭 제목은 메뉴 탭 이름과 똑같은 h2 하나). 작품 삭제는 탭 맨 아래 위험 구역이라 위 구획과 넉넉히 떨어진다. 스킵 링크가 초점을 주는 내용 열은 main처럼 초점 링을 그리지 않는다(storyfork.css의 main[tabindex="-1"]:focus와 같다). */
+.ep-tab>h2{margin:0 0 16px}
+.ep-tab :is(.ep-sec-head,.ep-card,.ep-fork,.ep-feedback .sec-h)>h3{font-size:16px;font-weight:700;line-height:1.5}
+.ep-tab .ep-delete{margin-top:48px}
+.ep-content[tabindex="-1"]:focus{outline:none}
+/* 비어 있는 상태 줄(.ep-notice)은 자리를 차지하지 않는다. 요소는 보조기기가 알림을 안정적으로 읽도록 늘 남기고 비었을 때 높이·간격만 0이다(내용 열 안에서만: 새 작품 만들기는 그대로). */
+.ep-content>.ep-notice:empty{min-height:0;margin:0}
+/* 잠긴 저장 버튼(.pri)은 채운 보라가 아니라 옅은 윤곽선이다: 채운 보라에 흐림(.55)만 줘서는 눌러도 되는 버튼처럼 보였다(세계관의 잠긴 저장 버튼과 같은 모양, 글자색을 아예 빼면 라이트에서 흰 글자가 남는다). */
+.episode-app :is(.ep-edit-actions,.ep-operating-settings .ep-form-footer) .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--ink)}
+/* 운영 설정의 저장 버튼과 잠긴 이유는 한 줄에 나란히 놓는다. */
+.ep-operating-settings .ep-form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}

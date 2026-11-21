@@ -20,6 +20,7 @@ function open(isOpen = true) {
         <ManageMenu name="작품" open={isOpen} onOpenChange={onOpenChange} back={{ to: '/lib?tab=write', label: '내가 쓰는 소설' }} tools={<button type="button">도구 하나</button>}>
           <nav aria-label="작품 메뉴"><button type="button">탭 하나</button></nav>
         </ManageMenu>
+        <div id="ep-content" tabIndex={-1} />
       </MemoryRouter>
     </Provider>,
   )
@@ -49,6 +50,17 @@ it('위에서 아래로 로고·접기 토글·돌아가기 링크·내용(메�
   expect(order[5].closest('.ep-menu-account')?.contains(order[7])).toBe(true)
   expect(order[5].closest('.ep-menu-body')).toBeNull() // 계정 줄은 본문 밖의 맨 아래 줄이다
   expect(screen.queryByRole('button', { name: '소설·세계관·설정 카드·캐릭터챗 검색' })).toBeNull() // 검색 버튼은 두지 않는다: Ctrl K(전역 QuickJump)가 남는다
+})
+
+it('첫 요소는 본문으로 바로가기 링크라 키보드 첫 Tab이 사이드바를 건너뛰어 내용 열(#ep-content)로 간다 — 공용 상단바가 없는 화면에서 상단바의 같은 링크를 대신한다', () => {
+  open()
+  const skip = screen.getByRole('link', { name: '본문으로 바로가기' })
+  expect(skip.classList.contains('skip-link')).toBe(true)
+  expect(skip.getAttribute('href')).toBe('#ep-content')
+  expect(document.querySelector('.ep-menu')?.firstElementChild).toBe(skip) // 로고·접기 토글보다 DOM에서 앞선다
+  fireEvent.click(skip)
+  expect(document.activeElement).toBe(document.getElementById('ep-content'))
+  expect(window.location.hash).toBe('') // 주소를 바꾸지 않는다(라우터 주소와 겹치지 않게)
 })
 
 it('접기 토글은 이름(name)으로 메뉴를 부르고 본문을 가리키며(aria-controls) 누르면 반대 값을 알린다', () => {

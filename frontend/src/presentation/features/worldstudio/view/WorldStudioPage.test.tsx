@@ -4509,6 +4509,13 @@ it('관리 모드는 공용 상단바(Gnb)를 그리지 않고, 사이드바가 
   expect(side.getByRole('link', { name: '알림함' }).getAttribute('href')).toBe('/notifications')
   expect(side.getByRole('button', { name: '다크 모드로' })).toBeTruthy()
   expect(side.getByRole('button', { name: '내 계정 메뉴' }).getAttribute('aria-haspopup')).toBe('menu')
+  // 상단바의 '본문으로 바로가기'가 없어진 대신 사이드바 맨 앞의 같은 링크가 내용 열(#ep-content)로 건너뛴다.
+  const skip = side.getByRole('link', { name: '본문으로 바로가기' })
+  expect(sidebar().firstElementChild).toBe(skip)
+  const column = document.getElementById('ep-content')!
+  expect(column.classList.contains('ep-content')).toBe(true)
+  fireEvent.click(skip)
+  expect(document.activeElement).toBe(column)
 })
 
 it('사이드바는 위에서 아래로 로고·접기 토글·내가 만드는 세계관·보기 메뉴·AI 검토·확정 버전 남기기·저장 영역·알림·테마·계정 순서이고, 도구 묶음과 계정 줄은 따로다', async () => {

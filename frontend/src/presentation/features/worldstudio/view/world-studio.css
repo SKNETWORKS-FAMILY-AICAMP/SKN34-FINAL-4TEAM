@@ -45,13 +45,10 @@ html:has(.world-writing){scrollbar-gutter:stable}
 @media(max-width:900px){.world-writing .ep-menu-body[hidden]{display:grid!important}}
 /* 보기 메뉴 줄(.world-menu-row): 900px 이하에서 닫힌 AI 채팅 열기 버튼(WorldChat이 slot으로 옮겨 그린다, critique 승인)을 탭 줄의 오른쪽 끝에 둔다. 넓은 화면에서는 줄을 풀어(display:contents) 메뉴가 예전처럼 .ep-menu-body의 직계 자식으로 놓이고, 슬롯은 비어 있어 숨는다.
    전역 .studio-chat-toggle(화면 오른쪽 아래 고정)은 이 줄 안에서만 제자리 버튼이 된다. 집필실의 같은 공용 버튼은 이 슬롯이 없어 그대로다.
-   메뉴 줄은 min-width:0다(본문 .ep-menu-body도 공용 규칙이 min-width:0): 그리드 항목의 자동 최소 폭은 내용의 최소 폭(탭 약 326px + 열기 버튼 약 140px)이라 358px 본문(390px 화면)에서 그리드 칸이 그만큼 늘어 문서가 가로로 넘쳤다. 0이면 칸은 본문 폭이고 탭 줄(nav)이 줄어들며 가로로 스크롤한다. */
+   메뉴 줄은 min-width:0다(본문 .ep-menu-body도 공용 규칙이 min-width:0): 그리드 항목의 자동 최소 폭은 내용의 최소 폭(탭 약 326px + 열기 버튼 약 140px)이라 358px 본문(390px 화면)에서 그리드 칸이 그만큼 늘어 문서가 가로로 넘쳤다. 0이면 칸은 본문 폭이고 탭 줄(nav)이 그 안에서 줄바꿈한다(공용 episode.css 규칙). */
 .world-menu-row{display:contents}
 .world-chat-slot:empty{display:none}
 @media(max-width:900px){.world-menu-row{min-width:0;display:flex;align-items:center;gap:8px}.world-menu-row nav{flex:1 1 auto;min-width:0}.world-chat-slot .studio-chat-toggle{position:static;flex:none;box-shadow:none;white-space:nowrap}}
-/* 900px 이하 보기 메뉴 탭 줄(polish): 탭 다섯 개가 한 줄에 다 들어가지 않는데 가로 스크롤 줄 끝(≈243px)이 탭 경계와 겹쳐 5번째 탭 소설 연결이 AI 채팅 열기 뒤로 통째로 가려지고 넘침 신호도 없었다(소설 연결로 들어와도 고른 탭이 화면 밖).
-   줄바꿈으로 바꿔 모든 탭과 고른 탭이 늘 보인다(+44px). 공용 .ep-menu nav(overflow-x:auto, /content 작품 관리 메뉴)와 특이도가 같아 지므로 .ep-menu-body를 더해 이긴다. */
-@media(max-width:900px){.ep-menu-body .world-menu-row nav{flex-wrap:wrap;overflow-x:visible}}
 /* AI 채팅 열기(quieter): 이 화면에서는 채운 보라가 아니라 윤곽선 버튼이다 — 첫 화면에서 가장 큰 채운 면이 아직 전송을 못 쓰는 채팅 버튼이라 고른 탭보다 먼저 보였다. 집필실(/studio)과 카드 편집 화면은 .episode-app 밖이라 그대로 보라다. 떠 있는 버튼(마법사, 채팅이 닫힌 901~1200px)의 그림자는 전역 .studio-chat-toggle이 남겨 찾을 수 있다. */
 .episode-app .studio-chat-toggle.btn.pri{background:var(--surface);border-color:var(--line2);color:var(--ink)}
 .episode-app .studio-chat-toggle.btn.pri:hover{background:var(--muted-bg)}

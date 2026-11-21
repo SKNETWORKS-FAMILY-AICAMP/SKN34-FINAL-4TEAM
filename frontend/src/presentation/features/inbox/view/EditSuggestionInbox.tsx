@@ -84,12 +84,14 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
 export function EditSuggestionInbox({ workId }: { workId?: string }) {
   const vm = useEditSuggestionInboxViewModel(workId)
   const [status, setStatus] = useState('')
+  // 작품 관리의 '받은 피드백' 탭(workId가 있다)에서는 탭 제목(h2) 아래 묶음 제목이라 h3다. 피드백함 화면에서는 쪽 제목(h1) 아래 구획이라 h2다.
+  const Heading = workId ? 'h3' : 'h2'
   // 방금 처리한 제안은 처리 결과로 상태가 바뀌어 필터와 어긋나도 보인다. 숨기면 카드 안의 결과 안내와 초점 대상이 함께 사라진다.
   // ponytail: 다음 처리 전에는 필터를 바꿔도 그 카드가 남는다. 거슬리면 필터를 바꿀 때 notice를 비운다.
   const visible = (item: EditSuggestion) => !status || item.status === status || item.id === vm.notice?.id
   return (
     <section className="sec" aria-labelledby="edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
-      <div className="sec-h"><h2 id="edit-suggestions-h">독자 수정 제안</h2><span className="muted small">독자가 보낸 문장 수정 제안</span></div>
+      <div className="sec-h"><Heading id="edit-suggestions-h">독자 수정 제안</Heading><span className="muted small">독자가 보낸 문장 수정 제안</span></div>
       {vm.isError && (
         <div className="panel" role="alert">
           <p>수정 제안을 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.</p>

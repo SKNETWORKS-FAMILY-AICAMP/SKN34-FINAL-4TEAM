@@ -432,9 +432,9 @@ it('게시판 표 머리는 회색 띠가 아니라 아래 선 하나다(관리�
 })
 
 // ── 5단계 polish: 정렬·간격·390 탭 줄·상태 마감(색·구조·문구는 그대로) ────────────────────────────────────────
-it('900px 이하 세계관 메뉴의 탭 줄(nav)은 줄바꿈해 탭 다섯 개가 모두 보인다(가로 스크롤 줄 끝에서 소설 연결이 AI 채팅 열기 뒤로 가려졌다). 공용 .ep-menu nav(/content 작품 관리 메뉴)는 그대로이고, 이 규칙은 .ep-menu-body를 더해 그 규칙을 이긴다', () => {
-  expect(css).toMatch(/@media\(max-width:900px\)\{\.ep-menu-body \.world-menu-row nav\{flex-wrap:wrap;overflow-x:visible\}\}/)
-  expect(episodeCss).toContain('.ep-menu nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}') // 공용 틀은 그대로다
+it('900px 이하 세계관 메뉴의 탭 줄(nav)도 공용 episode.css의 줄바꿈 규칙을 그대로 쓴다(탭 다섯 개가 모두 보인다) — 세계관 전용 덮어쓰기는 없다', () => {
+  expect(css).not.toMatch(/world-menu-row nav\{flex-wrap/)
+  expect(episodeCss).toContain('.ep-menu nav{display:flex;flex-wrap:wrap;gap:4px}')
 })
 
 it('공개 범위·장르 줄은 라벨은 위 선·컨트롤은 아래 선에 맞춘다: 높이가 다른 seg(약 48px)와 select(약 40px)의 아래를 맞추면 라벨이 10px 어긋났다', () => {

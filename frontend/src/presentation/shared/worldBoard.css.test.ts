@@ -273,7 +273,7 @@ describe('관계도 설정 패널', () => {
 })
 
 describe('390px 가로 넘침(critique 후속)', () => {
-  it('900px 이하 보기 메뉴 묶음·줄은 min-width:0라 탭 줄+채팅 열기 버튼의 최소 폭(약 480px)이 358px 본문의 그리드 칸을 늘리지 않고 탭 줄이 가로로 스크롤한다', () => {
+  it('900px 이하 보기 메뉴 묶음·줄은 min-width:0라 탭 줄+채팅 열기 버튼의 최소 폭(약 480px)이 358px 본문의 그리드 칸을 늘리지 않고 탭 줄이 그 안에서 줄바꿈한다', () => {
     expect(studio).toContain('@media(max-width:900px){.world-menu-row{min-width:0;display:flex;align-items:center;gap:8px}')
   })
 })

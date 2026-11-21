@@ -277,7 +277,7 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
           </div>
         </ManageMenu>
       )}
-      <div className="ep-content" data-view={manage ? view : undefined}>
+      <div id="ep-content" tabIndex={-1} className="ep-content" data-view={manage ? view : undefined}>
         {notices}
         {manage && view === 'people'
           // 관계도 보기는 캔버스가 내용 열을 채우도록 세계관 머리(표지·이름·칩 줄)를 그리지 않는다. 이름은 화면 밖 h1로만 남겨 화면 구조(h1 하나)를 지키고, 머리의 칩이 알리던 '관계 입력 미적용'은 이 보기의 맨 위에 따로 둔다(적용하지 않은 관계 입력이 있다는 신호가 사라지지 않게).

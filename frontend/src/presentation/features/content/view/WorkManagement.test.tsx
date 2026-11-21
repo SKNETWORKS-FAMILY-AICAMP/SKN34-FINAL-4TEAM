@@ -219,11 +219,12 @@ it('메뉴를 누르면 탭 내용 머리로 스크롤하고(처음 렌더에서
   expect(document.activeElement).toBe(menu) // 초점은 누른 버튼에 남아 이어서 다른 메뉴를 고를 수 있다
 })
 
-it('메뉴를 누르면 900px 이하의 가로 스크롤 줄에서 그 버튼이 보이게 옆으로만 옮긴다', () => {
+it('메뉴 줄은 좁은 화면에서 줄바꿈해 모든 탭이 보이므로, 눌러도 그 버튼을 옆으로 옮기지 않는다(탭 내용 머리로만 스크롤한다)', () => {
   open(3)
   const menu = screen.getByRole('button', { name: '이야기 분기' })
   fireEvent.click(menu)
-  expect(scrolled.find((s) => s.el === menu)?.arg).toEqual({ inline: 'nearest', block: 'nearest' }) // 세로는 건드리지 않는다
+  expect(scrolled.find((s) => s.el === menu)).toBeUndefined()
+  expect(scrolled.filter((s) => (s.arg as ScrollIntoViewOptions | undefined)?.block === 'start')).toHaveLength(1)
 })
 
 it('이력 탭의 저장본·AI 제안 항목 제목은 묶음 제목(h3) 바로 아래 단계(h4)라 헤딩 목록에서 묶음 경계가 보인다', () => {
@@ -236,7 +237,7 @@ it('이력 탭의 저장본·AI 제안 항목 제목은 묶음 제목(h3) 바로
 })
 
 // ── 이력 탭의 불러오는 중·실패: 탭을 누르면 탭 머리로 스크롤돼 화면 맨 위 알림이 화면 밖이므로 이력 구획 안에서 알린다 ──
-const historySection = () => screen.getByRole('heading', { name: '저장·AI·발행 이력', level: 2 }).closest('section')!
+const historySection = () => screen.getByRole('heading', { name: '저장·AI·발행 이력', level: 2 }).parentElement!.querySelector<HTMLElement>('.ep-reading')!
 /** 이력 탭을 연 채로 요청 상태(busy·origin·error·history)만 바꿔 다시 그리는 함수를 돌려준다. 요청 중에는 다른 탭이 잠기므로 탭은 먼저 연다. */
 const historyTab = () => {
   const view = openWith({})

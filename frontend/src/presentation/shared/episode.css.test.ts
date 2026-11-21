@@ -6,6 +6,24 @@ const sizes = (re: RegExp) => [...css.matchAll(re)].map((m) => Number(m[1]))
 // 규칙을 선택자와 선언부로 나눈다(@media 안의 규칙 포함). jsdom은 CSS를 적용하지 않아 글자로 확인한다.
 const rules = [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({ selector: m[1].trim(), body: m[2] }))
 const rule = (selector: string) => rules.find((r) => r.selector === selector)?.body ?? ''
+/** 주석을 지운 CSS에서 `@media <조건>{ … }` 안 규칙의 본문을 모은다(같은 조건의 덩어리가 여러 개여도 모두). 없으면 빈 글자다. */
+const bare = css.replace(/\/\*[\s\S]*?\*\//g, '')
+const mediaBody = (query: string, selector: string) => {
+  const head = `@media${query}{`
+  const bodies: string[] = []
+  for (let at = bare.indexOf(head); at !== -1; at = bare.indexOf(head, at + 1)) {
+    let depth = 0
+    let end = at + head.length - 1
+    for (; end < bare.length; end++) {
+      if (bare[end] === '{') depth++
+      else if (bare[end] === '}' && --depth === 0) break
+    }
+    for (const [, sel, body] of bare.slice(at + head.length, end).matchAll(/([^{}]+)\{([^}]*)\}/g)) if (sel.trim() === selector) bodies.push(body)
+  }
+  return bodies.join(';')
+}
+const wide = (selector: string) => mediaBody('(min-width:901px)', selector)
+const narrow = (selector: string) => mediaBody('(max-width:900px)', selector)
 
 describe('episode.css 접근성 계약', () => {
   it('글자 크기는 모두 12px 이상이고 font-size:0으로 숨기지 않는다', () => {
@@ -141,25 +159,6 @@ describe('episode.css 작품 관리 조용히 다듬기 계약', () => {
 })
 
 describe('episode.css 관리 화면 사이드바 틀 계약 (작품 관리·세계관 관리 공용 — 공용 상단바·푸터가 없고 사이드바가 상단바 역할을 한다)', () => {
-  /** 주석을 지운 CSS에서 `@media <조건>{ … }` 안 규칙의 본문을 모은다(같은 조건의 덩어리가 여러 개여도 모두). 없으면 빈 글자다. */
-  const bare = css.replace(/\/\*[\s\S]*?\*\//g, '')
-  const mediaBody = (query: string, selector: string) => {
-    const head = `@media${query}{`
-    const bodies: string[] = []
-    for (let at = bare.indexOf(head); at !== -1; at = bare.indexOf(head, at + 1)) {
-      let depth = 0
-      let end = at + head.length - 1
-      for (; end < bare.length; end++) {
-        if (bare[end] === '{') depth++
-        else if (bare[end] === '}' && --depth === 0) break
-      }
-      for (const [, sel, body] of bare.slice(at + head.length, end).matchAll(/([^{}]+)\{([^}]*)\}/g)) if (sel.trim() === selector) bodies.push(body)
-    }
-    return bodies.join(';')
-  }
-  const wide = (selector: string) => mediaBody('(min-width:901px)', selector)
-  const narrow = (selector: string) => mediaBody('(max-width:900px)', selector)
-
   it('2열 틀(메뉴 | 내용): 메뉴가 있는 화면만 본문의 폭 제한(1120px)·가운데 정렬을 풀어 메뉴가 화면 왼쪽 끝에 붙고, 내용 열 안의 글·표는 읽기 좋은 폭(1072px)까지만 쓰고 열 안에서 가운데에 둔다', () => {
     expect(rule('.ep-manage')).toMatch(/grid-template-columns:208px minmax\(0,1fr\)/)
     expect(rule('.ep-main:has(.ep-manage)')).toMatch(/max-width:none;margin-inline:0/)
@@ -242,13 +241,13 @@ describe('episode.css 관리 화면 사이드바 틀 계약 (작품 관리·세�
     expect(rule('.ep-top-actions')).toMatch(/display:flex;flex-wrap:wrap;align-items:center;gap:8px/)
   })
 
-  it('900px 이하: 사이드바는 내용 위 가로 블록이고 로고(맨 위 줄)와 계정 줄이 맨 위 한 줄에 놓이며(DOM 순서는 로고·본문·계정이라 order로 올린다) 본문이 다음 줄이다 — 메뉴(nav)는 가로 스크롤 줄이다', () => {
+  it('900px 이하: 사이드바는 내용 위 가로 블록이고 로고(맨 위 줄)와 계정 줄이 맨 위 한 줄에 놓이며(DOM 순서는 로고·본문·계정이라 order로 올린다) 본문이 다음 줄이다 — 메뉴(nav)는 줄바꿈하는 줄이다', () => {
     expect(narrow('.ep-manage')).toMatch(/grid-template-columns:minmax\(0,1fr\)/)
     expect(narrow('.ep-menu')).toMatch(/position:static;height:auto;overflow:visible;flex-direction:row;flex-wrap:wrap;align-items:center/)
     expect(narrow('.ep-menu-top')).toMatch(/flex:1 1 auto/)
     expect(narrow('.ep-menu-account')).toMatch(/order:1/)
     expect(narrow('.ep-menu-body')).toMatch(/order:2;flex:1 1 100%;min-width:0/)
-    expect(narrow('.ep-menu nav')).toMatch(/display:flex;gap:4px;overflow-x:auto/)
+    expect(narrow('.ep-menu nav')).toMatch(/display:flex;flex-wrap:wrap;gap:4px/) // 가로 스크롤이 아니라 줄바꿈이라 모든 탭이 보인다(아래 polish 계약)
     expect(narrow('.ep-menu nav button')).toMatch(/flex:none;white-space:nowrap/)
   })
 
@@ -363,5 +362,84 @@ describe('episode.css 관리 화면 polish(작품 관리)', () => {
 
   it('설정 변경 이력과 발행 이력의 시각은 숫자 폭이 같아 행마다 어긋나지 않는다', () => {
     expect(rule('.ep-settings-history')).toMatch(/font-variant-numeric:\s*tabular-nums/)
+  })
+})
+
+describe('episode.css 작품 관리 화면 polish 계약 (A·B 리뷰 반영)', () => {
+  it('[P0] 쉴 때의 히어로(.ep-hero-compact)는 88px 표지 썸네일 + 제목·칩·두 줄 소개·태그·통계 한 덩어리라 고른 탭의 내용이 첫 화면 안에서 시작한다 — 편집 중에는 이 클래스가 빠져 옛 큰 히어로(240px 표지)가 폼에 넓은 칸을 준다', () => {
+    expect(rule('.episode-app .ep-hero.ep-hero-compact')).toMatch(/grid-template-columns:88px minmax\(0,1fr\);gap:0 16px/)
+    expect(rule('.ep-hero-compact .ep-hero-cover')).toMatch(/max-width:none/) // 900px 이하의 표지 폭 제한(220px)을 덮는다
+    expect(rule('.episode-app .ep-hero.ep-hero-compact h1')).toMatch(/font-size:24px/)
+    const sum = rule('.episode-app .ep-hero.ep-hero-compact .sum')
+    expect(sum).toMatch(/-webkit-line-clamp:2/) // 소개는 숨기지 않고 두 줄까지만 보인다(전문은 작품 정보 편집에 있다)
+    expect(sum).toMatch(/overflow:hidden/)
+    expect(sum).not.toMatch(/display:none/)
+    expect(rule('.ep-hero-compact .ep-hero-cover [role=status]:empty')).toMatch(/min-height:0/) // 빈 결과 문구 자리가 썸네일 아래를 늘리지 않는다
+    // 작은 썸네일에 큰 표지의 짙고 넓은 그림자(24px 60px)와 18px 모서리를 그대로 두지 않는다. 표지 편집 버튼은 열 폭(88px)을 채워 넘치지 않는다.
+    expect(rule('.episode-app .ep-hero-compact .ep-cover')).toMatch(/border-radius:10px;box-shadow:var\(--sh\)/)
+    expect(rule('.ep-hero-compact .ep-hero-cover .btn')).toMatch(/justify-self:stretch;padding-inline:0/)
+    // 기본 히어로 규칙(240px 표지)은 그대로다: 새 작품 만들기·편집 중의 히어로.
+    expect(rule('.episode-app .ep-hero')).toMatch(/grid-template-columns:240px minmax\(0,1fr\)/)
+  })
+
+  it('[P1-1] 카드의 margin은 margin-bottom뿐이다: 단축 속성(margin:0 0 32px)이 내용 열 직계 자식의 가운데 정렬(margin-inline:auto)을 지워 분기 정책·세계관 본문 카드만 40px 어긋났다', () => {
+    const card = rule('.episode-app .ep-card')
+    expect(card).not.toMatch(/(^|;)\s*margin\s*:/)
+    expect(card).toMatch(/margin-bottom:32px/)
+    expect(rule('.ep-manage .ep-content>*')).toMatch(/margin-inline:auto/)
+  })
+
+  it('[P1-2] 900px 이하 메뉴 줄은 가로 스크롤이 아니라 줄바꿈이라 모든 탭이 보인다(잘린 탭·넘침 신호 없음)', () => {
+    const nav = narrow('.ep-menu nav')
+    expect(nav).toMatch(/display:flex;flex-wrap:wrap;gap:4px/)
+    expect(nav).not.toMatch(/overflow-x|scrollbar-width/)
+  })
+
+  it('[P2-4] 비어 있는 상태 줄(.ep-notice:empty)은 내용 열에서 자리를 차지하지 않는다 — 요소는 라이브 영역이라 남기고 높이만 0이다', () => {
+    expect(rule('.ep-content>.ep-notice:empty')).toMatch(/min-height:0;margin:0/)
+  })
+
+  it('[P2-5] 탭 구획(.ep-reading·.ep-fork·.ep-feedback)은 내용 열 폭을 다 쓰고, 읽기 폭 제한은 입력(분기 폼)과 안내문에만 둔다 — 탭마다 650·760·1072로 달랐던 폭이 하나다', () => {
+    expect(rule('.ep-content :is(.ep-reading,.ep-fork,.ep-feedback)')).toMatch(/max-width:none/)
+    expect(rule('.ep-content .ep-fork form')).toMatch(/max-width:650px/)
+    expect(rule('.ep-content .ep-lead')).toMatch(/max-width:62ch/)
+  })
+
+  it('[P2-5] 초안 링크는 안쪽 가로 여백이 없어 글자가 제목과 같은 x에서 시작하고, 제목은 탭 제목(h2)의 한 단계 아래(h3)다', () => {
+    expect(rule('.ep-drafts a')).toMatch(/padding:\s*12px 0(;|\s|$)/)
+    expect(rule('.ep-drafts h3')).toMatch(/font-size:\s*16px/)
+  })
+
+  it('[P2-7] 탭 내용 묶음의 직계 탭 제목(h2)은 아래 간격을 둔다', () => {
+    expect(rule('.ep-tab>h2')).toMatch(/margin:0 0 16px/)
+  })
+
+  it('[P2-8] 잠긴 저장 버튼(.pri)은 채운 보라가 아니라 옅은 윤곽선이라 눌러도 되는 버튼처럼 보이지 않는다 — 글자색을 --ink로 되돌려 라이트에서 흰 글자가 되지 않게 한다(세계관의 잠긴 저장 버튼과 같은 모양)', () => {
+    const locked = rules.find((r) => /\.btn\.pri:disabled$/.test(r.selector) && r.selector.includes('.ep-edit-actions'))
+    expect(locked?.body).toMatch(/background:none;border-color:var\(--line2\);color:var\(--ink\)/)
+    expect(locked?.selector).toContain('.ep-operating-settings .ep-form-footer')
+  })
+
+  it('[P2-8] 운영 설정의 저장 버튼과 잠긴 이유는 한 줄(.ep-form-actions)에 나란히 놓인다', () => {
+    expect(rule('.ep-operating-settings .ep-form-actions')).toMatch(/display:flex;flex-wrap:wrap;align-items:center/)
+  })
+
+  it('[P2-8] 하위 묶음(h3) 위 간격(32px)은 제목과 내용 사이 간격보다 커서 자동 처리·설정 변경 이력이 한 묶음처럼 읽히지 않는다', () => {
+    expect(rule('.ep-content .ep-reading>h3')).toMatch(/margin-top:32px/)
+    expect(rule('.ep-content .ep-reading>h3')).toMatch(/font-size:16px/)
+  })
+
+  it('탭 제목(h2) 아래 묶음 제목(h3) — 분기 정책·포크 정보·작품 삭제의 카드 머리, 세계관 패널, 이야기 분기 머리글, 받은 피드백의 구획 — 은 모두 같은 16px이다', () => {
+    const group = rule('.ep-tab :is(.ep-sec-head,.ep-card,.ep-fork,.ep-feedback .sec-h)>h3')
+    expect(group).toMatch(/font-size:16px/)
+    expect(group).toMatch(/font-weight:700/)
+  })
+
+  it('작품 삭제 구획은 운영 설정 탭 맨 아래에서 위 구획과 넉넉히(48px) 떨어진 위험 구역이다', () => {
+    expect(rule('.ep-tab .ep-delete')).toMatch(/margin-top:48px/)
+  })
+
+  it('스킵 링크가 초점을 주는 내용 열(.ep-content[tabindex="-1"])은 main처럼 초점 링을 그리지 않는다(내용 열 전체를 두르는 큰 링이 뜨지 않게)', () => {
+    expect(rule('.ep-content[tabindex="-1"]:focus')).toMatch(/outline:none/)
   })
 })
