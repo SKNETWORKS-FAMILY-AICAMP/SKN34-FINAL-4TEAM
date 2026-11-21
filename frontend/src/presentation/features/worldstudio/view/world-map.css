@@ -70,6 +70,21 @@
 .relationship-flow .react-flow__node:focus-visible{outline:2px solid var(--fixed-pri);outline-offset:3px;border-radius:14px}
 .relationship-character-card.selected{border:2px solid var(--rc-accent,var(--pri));padding:11px;background:var(--rc-sel,var(--pri-soft))}.relationship-character-card.target{border:2px dashed var(--rc-accent,var(--pri));padding:11px}.relationship-character-card.dim{opacity:.3}
 .relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--rc-sub,var(--sub));margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:12px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
+/* 시맨틱 줌(옵시디언식, 단계는 .relationship-flow의 data-level): 멀리(far)·중간(mid)에서는 카드 한 장이 유형 색 점 하나이고 노드 래퍼가 점 크기다(관계가 많을수록 크다).
+   고른 점은 보라 고리, 상대가 될 점은 점선 고리, 검색에 맞지 않는 점은 흐리게 보인다(카드와 같은 표시). 테두리·고리 두께·누르는 자리(점 둘레 10px)·이름 글자는 캔버스 배율을 나눠(--rf-zoom: CharacterCards가 갱신하는 CSS 변수) 화면에서 늘 같다.
+   이름은 중간에서는 모두, 멀리서는 관계가 많은 몇 장과 고른 카드(.shown)·마우스를 올리거나 키보드 초점이 있는 점에만 붙는다. */
+.relationship-dot{position:relative;width:100%;height:100%;border-radius:50%;border:calc(1.5px / var(--rf-zoom,1)) solid color-mix(in srgb,var(--fixed-ink) 35%,transparent);touch-action:none;user-select:none;cursor:grab}
+.relationship-dot::after{content:"";position:absolute;inset:calc(-10px / var(--rf-zoom,1));border-radius:50%}
+.relationship-dot.selected{box-shadow:0 0 0 calc(3px / var(--rf-zoom,1)) var(--rc-accent)}
+.relationship-dot.target{outline:calc(2px / var(--rf-zoom,1)) dashed var(--rc-accent);outline-offset:calc(3px / var(--rf-zoom,1))}
+.relationship-dot.dim{opacity:.3}
+.relationship-dot-name{display:none;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:calc(4px / var(--rf-zoom,1));font-size:calc(13px / var(--rf-zoom,1));line-height:1.2;font-weight:650;white-space:nowrap;color:var(--rc-ink);text-shadow:0 0 calc(4px / var(--rf-zoom,1)) var(--stage-2),0 0 calc(2px / var(--rf-zoom,1)) var(--stage-2);pointer-events:none}
+.relationship-dot-name.shown,.react-flow__node:is(:hover,:focus-within) .relationship-dot-name{display:block}
+.relationship-dot.dim+.relationship-dot-name{opacity:.3}
+/* 가까이(near)가 아니면: 끌어 잇는 점은 React Flow가 선을 그리려고 둘 뿐이라 숨기고, 선 가운데의 편집·삭제 버튼도 없다(선은 눌러서·메뉴로 편집한다). 중간의 선 라벨은 선 위에 화면 12px로 놓인다. */
+.relationship-flow:not([data-level=near]) .relationship-port{visibility:hidden}
+.relationship-flow:not([data-level=near]) .relationship-edge-tools{display:none}
+.relationship-flow[data-level=mid] .relationship-edge-label{font-size:calc(12px / var(--rf-zoom,1));stroke-width:calc(4px / var(--rf-zoom,1));dominant-baseline:central}
 /* 캔버스 왼쪽 위 도구(+ 설정 추가·배치 정돈·화면 맞춤): React Flow Panel의 기본 여백 15px을 줄이고 좁으면 줄바꿈한다. 패널이 열려 있는 동안 + 설정 추가 버튼은 눌린 모양이다. */
 .relationship-tools{display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 24px);margin:10px 12px}
 .relationship-tools .btn[aria-expanded=true]{background:var(--rc-sel);border-color:color-mix(in srgb,var(--rc-accent) 60%,var(--stage-2))}
@@ -91,7 +106,7 @@
 @media(max-width:600px){.relationship-flow{height:440px}.relationship-character-card{border-radius:10px}}
 /* 터치 기기: 카드 위에서 세로로 미는 손짓은 카드 끌기가 아니라 스크롤이 받는다(가로로 끌면 카드가 움직인다). 컨트롤 버튼은 누르는 크기 44px이고 연결 점도 키운다. 캔버스 안의 한 손가락 끌기는 캔버스 이동이라, 관계도 보기(world-studio.css)는 캔버스가 화면 끝까지 차 있어도 페이지 스크롤을 캔버스 위 줄에서 시작한다.
    메뉴 항목의 44px 보정은 전역 터치 보정과 같은 조건(600px 이하 또는 터치)이다: 기능 CSS의 36px이 그 화면의 전역 보정을 덮으므로 여기서 직접 정한다. */
-@media(pointer:coarse){.relationship-character-card{touch-action:pan-y}.relationship-flow .react-flow__controls-button{width:44px;height:44px}.relationship-port{width:22px;height:22px}}
+@media(pointer:coarse){.relationship-character-card,.relationship-dot{touch-action:pan-y}.relationship-flow .react-flow__controls-button{width:44px;height:44px}.relationship-port{width:22px;height:22px}}
 @media(max-width:600px),(pointer:coarse){.relationship-menu [role=menuitem]{min-height:44px}}
 /* 마우스 기기에서는 카드의 두 버튼(정보 편집·관계 연결)을 호버·초점·선택·상대를 고르는 중일 때만 보인다(distill): 그래프가 버튼 격자처럼 보이지 않게 한다. 투명할 뿐 사라지지 않아 키보드 초점·스크린리더는 그대로 닿고(래퍼나 버튼에 초점이 가면 보인다), 터치 화면은 이 규칙이 닿지 않아 늘 보인다. */
 @media(hover:hover){.relationship-stage .relationship-character-card>div{opacity:0}.relationship-stage :is(.react-flow__node:focus-within .relationship-character-card,.relationship-character-card:is(:hover,.selected,.target))>div{opacity:1}}

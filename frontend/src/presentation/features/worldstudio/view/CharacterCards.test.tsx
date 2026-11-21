@@ -345,19 +345,21 @@ function Adder({onType,editing}:{onType:(type:string)=>void;editing?:ReturnType<
 it('패널에서 유형을 고르면 onAdd(유형)로 초안에 더하고, 새 카드를 빈 자리에 놓아 선택(onMark)·확대하며 초점을 주고 기존 카드는 움직이지 않는다',async()=>{
  const onType=vi.fn(),editing=actions()
  render(<Adder onType={onType} editing={editing}/>)
- const before=Object.fromEntries(['가람','나래','다온','라온'].map(n=>[n,at(n)]))
+ // 카드 중심: 확대 단계가 바뀌면 상자(점 ↔ 카드)의 왼쪽 위는 달라져도 중심은 같다
+ const middle=(name:string)=>{const [x,y]=at(name),el=card(name);return [x+parseFloat(el.style.width)/2,y+parseFloat(el.style.height)/2]}
+ const before=Object.fromEntries(['가람','나래','다온','라온'].map(n=>[n,middle(n)]))
  fireEvent.click(screen.getByRole('button',{name:'+ 설정 추가'}))
  fireEvent.click(within(screen.getByRole('dialog',{name:'설정 추가'})).getByRole('button',{name:'장소'}))
  expect(onType).toHaveBeenCalledWith('location')
  expect(screen.queryByRole('dialog',{name:'설정 추가'})).toBeNull() // 고르면 패널이 닫힌다
  const fresh=await screen.findByRole('group',{name:'새 인물 인물 카드'})
  await waitFor(()=>expect(editing.onMark).toHaveBeenCalledWith(fresh.getAttribute('data-id')))
- for(const [name,place] of Object.entries(before))expect(at(name),name).toEqual(place) // 기존 카드는 그대로
- const [x,y]=at('새 인물')
+ for(const [name,place] of Object.entries(before)){const now=middle(name);expect(now[0],name).toBeCloseTo(place[0],5);expect(now[1],name).toBeCloseTo(place[1],5)} // 기존 카드는 그대로
+ const [x,y]=middle('새 인물')
  for(const place of Object.values(before))expect(Math.abs(place[0]-x)>=200||Math.abs(place[1]-y)>=150).toBe(true) // 겹치지 않는다
  await waitFor(()=>{ // 새 카드가 캔버스(800×600) 한가운데에 온다
-  expect(viewportOf()[0]+(x+100)*zoomOf()).toBeCloseTo(400,1)
-  expect(viewportOf()[1]+(y+75)*zoomOf()).toBeCloseTo(300,1)
+  expect(viewportOf()[0]+x*zoomOf()).toBeCloseTo(400,1)
+  expect(viewportOf()[1]+y*zoomOf()).toBeCloseTo(300,1)
  })
  expect(zoomOf()).toBeGreaterThanOrEqual(1)
  await waitFor(()=>expect(document.activeElement).toBe(fresh))
@@ -542,4 +544,107 @@ it('카드 오른쪽 점에서 다른 카드로 끌어 놓으면 그 쌍(출발 
  rerender(<Cards rows={rows} editing={choosing}/>)
  expect(port('나래','source').classList.contains('connectable')).toBe(false)
  Reflect.deleteProperty(document,'elementFromPoint')
+})
+
+// ── 시맨틱 줌(옵시디언식): 멀리서는 점, 가까이서는 카드 ───────────────────────────────────────────────────────────────
+/** 첫 인물이 나머지 모두와 이어진 허브 세계(관계 n−1개). */
+const hubWorld=(n:number)=>{const rows=crowd(n),hub=rows[0];return {hub,leaf:rows[1],rows:rows.slice(1).reduce((all,row)=>putRelation(all,{subjectId:hub.item.id,targetId:row.item.id,predicate:'friend_of',polarity:'asserted'}),rows)}}
+const dots=()=>document.querySelectorAll<HTMLElement>('.relationship-dot')
+const wrapperSize=(name:string)=>{const el=card(name);return {w:parseFloat(el.style.width),h:parseFloat(el.style.height)}}
+const shownNames=()=>Array.from(document.querySelectorAll('.relationship-dot-name.shown'),el=>el.textContent)
+
+it('카드가 많으면 처음에 전체가 보이게 맞추고 멀리서는 카드 대신 점을 그린다: 유형 색의 점, 카드 버튼·연결 점 없음, 관계가 많은 카드가 더 크고 이름은 관계가 많은 몇 장에만 붙으며 선에는 라벨이 없다',()=>{
+  const {rows,hub}=hubWorld(40)
+  render(<Cards rows={rows} editing={actions()}/>)
+  expect(zoomOf()).toBeLessThan(0.5)
+  expect(flowEl().getAttribute('data-level')).toBe('far')
+  expect(dots()).toHaveLength(40)
+  expect(document.querySelectorAll('.relationship-character-card')).toHaveLength(0)
+  expect(document.querySelectorAll('.relationship-port.connectionindicator')).toHaveLength(0) // 끌어 잇기는 가까이서만(점 요소는 React Flow가 선을 그리려고 숨겨 둘 뿐이다)
+  expect(document.querySelectorAll('.react-flow__edge')).toHaveLength(39) // 멀리서도 선은 그려진다(눌러 편집할 수 있다)
+  expect(within(flowEl()).queryAllByRole('button',{name:/관계 연결|정보 편집|상대 선택/})).toHaveLength(0)
+  expect(dots()[0].style.background).not.toBe('') // 유형 색
+  expect(wrapperSize('인물1').w).toBeGreaterThan(wrapperSize('인물2').w) // 허브(관계 39개)가 외톨이 쪽보다 크다
+  expect(wrapperSize('인물1').w).toBe(wrapperSize('인물1').h) // 점은 원이다
+  expect(shownNames()).toHaveLength(4) // 40장의 10%
+  expect(shownNames()).toContain(hub.item.title)
+  expect(labels()).toEqual([]) // 멀리서는 선 라벨이 없다
+  expect(card('인물1').getAttribute('aria-label')).toBe('인물1 인물 카드') // 점도 이름 있는 카드로 읽히고 Tab으로 닿는다
+  expect(card('인물1').tabIndex).toBe(0)
+})
+
+it('멀리서 점을 누르면 그 카드로 near 바로 아래 배율(0.85)까지 다가가 선택하고(연결 상대 고르기가 아니라) mid에서는 모든 이름과 선 라벨이 보이며, 한 단계 더 확대하면 카드가 된다',async()=>{
+  const {rows,leaf}=hubWorld(40),editing=actions()
+  render(<Cards rows={rows} editing={editing}/>)
+  fireEvent.click(card('인물2'))
+  expect(editing.onMark).toHaveBeenCalledWith(leaf.item.id)
+  expect(editing.onPick).not.toHaveBeenCalled()
+  await waitFor(()=>expect(zoomOf()).toBeCloseTo(0.85,2))
+  expect(flowEl().getAttribute('data-level')).toBe('mid')
+  const [vx,vy]=viewportOf(),[nx,ny]=at('인물2'),size=wrapperSize('인물2')
+  expect(vx+(nx+size.w/2)*0.85).toBeCloseTo(400,0) // 누른 점이 캔버스 가운데에 온다
+  expect(vy+(ny+size.h/2)*0.85).toBeCloseTo(300,0)
+  expect(shownNames()).toHaveLength(40)
+  expect(labels()).toHaveLength(39) // 관계 하나에 라벨 하나
+  expect(document.querySelectorAll('.relationship-character-card')).toHaveLength(0)
+  fireEvent.click(within(flowEl()).getByRole('button',{name:'확대'}))
+  await waitFor(()=>expect(flowEl().getAttribute('data-level')).toBe('near'))
+  expect(dots()).toHaveLength(0)
+  expect(card('인물2').querySelector('.relationship-character-card')).toBeTruthy()
+  expect(card('인물2').querySelectorAll('.relationship-port')).toHaveLength(2)
+})
+
+it('연결 상대를 고르는 중에는 멀리서 점을 눌러도 확대하지 않고 상대로 고른다',()=>{
+  const {rows,leaf}=hubWorld(40),editing=actions({targetSource:rows[0].item.id})
+  render(<Cards rows={rows} editing={editing}/>)
+  const before=zoomOf()
+  fireEvent.click(card('인물2'))
+  expect(editing.onPick).toHaveBeenCalledWith(leaf.item.id)
+  expect(zoomOf()).toBe(before)
+  expect(document.querySelectorAll('.relationship-dot.target')).toHaveLength(39) // 상대가 될 수 있는 점은 모든 단계에서 표시된다
+})
+
+it('선택한 점·흐린 점·메뉴·키보드는 멀리서도 같다: 선택한 점에 selected(aria-current), 이름이 맞지 않는 점에 dim, 오른쪽 클릭 메뉴와 Enter(정보 편집)',()=>{
+  const {rows,leaf}=hubWorld(40),editing=actions()
+  let vm!:ReturnType<typeof useWorldMapViewModel>
+  function Probe(){vm=useWorldMapViewModel(rows,buildCharacterMap);return <CharacterCards vm={vm} editing={editing}/>}
+  render(<Probe/>)
+  act(()=>vm.select(leaf.item.id))
+  expect(card('인물2').getAttribute('aria-current')).toBe('true')
+  expect(card('인물2').querySelector('.relationship-dot.selected')).toBeTruthy()
+  expect(shownNames()).toContain('인물2') // 고른 점은 멀리서도 이름이 보인다
+  act(()=>vm.setQuery('인물3'))
+  expect(document.querySelectorAll('.relationship-dot.dim')).toHaveLength(29) // 이름에 '인물3'이 든 11장(인물3·인물30~39)만 밝다
+  fireEvent.keyDown(card('인물5'),{key:'Enter'})
+  expect(editing.onSelect).toHaveBeenCalledWith(rows[4].item.id)
+  fireEvent.contextMenu(card('인물5'))
+  expect(screen.getByRole('menu',{name:'인물5 메뉴'})).toBeTruthy()
+})
+
+it('선의 가운데 편집·삭제 버튼은 가까이서만 뜬다(캔버스 단계가 CSS에 data-level로 알려진다)',async()=>{
+  const {rows}=hubWorld(40)
+  render(<Cards rows={rows} editing={actions()}/>)
+  expect(flowEl().getAttribute('data-level')).toBe('far')
+  fireEvent.click(card('인물2'));fireEvent.click(within(flowEl()).getByRole('button',{name:'확대'}))
+  await waitFor(()=>expect(flowEl().getAttribute('data-level')).toBe('near'))
+})
+
+it('캔버스는 확대 배율을 --rf-zoom으로 CSS에 알려(이름·선 라벨이 화면에서 늘 같은 크기) 배율이 바뀔 때마다 갱신한다',async()=>{
+  const {rows}=hubWorld(40)
+  render(<Cards rows={rows} editing={actions()}/>)
+  await waitFor(()=>expect(Number(flowEl().style.getPropertyValue('--rf-zoom'))).toBeCloseTo(zoomOf(),2))
+  fireEvent.click(card('인물2'))
+  await waitFor(()=>expect(Number(flowEl().style.getPropertyValue('--rf-zoom'))).toBeCloseTo(0.85,2))
+})
+
+it('배치 정돈은 힘 기반 배치를 다시 계산해 같은 입력이면 처음 열었을 때와 같은 자리로 돌려놓고, 끌어 둔 카드도 그 자리로 간다',async()=>{
+  const {rows}=triangle(),editing=actions()
+  render(<Cards rows={rows} editing={editing}/>)
+  const first=[at('가람'),at('나래'),at('다온')]
+  const garam=card('가람'),[x,y]=at('가람')
+  mouse(garam,'mouseDown',100,100);mouse(garam,'mouseMove',130,120);mouse(garam,'mouseMove',200,200);mouse(garam,'mouseUp',200,200)
+  expect(at('가람')).not.toEqual([x,y])
+  await new Promise(done=>setTimeout(done,10)) // 끌기를 마친 직후의 click 하나는 d3-drag가 삼킨다
+  fireEvent.click(within(flowEl()).getByRole('button',{name:'배치 정돈'}))
+  expect([at('가람'),at('나래'),at('다온')]).toEqual(first)
 })

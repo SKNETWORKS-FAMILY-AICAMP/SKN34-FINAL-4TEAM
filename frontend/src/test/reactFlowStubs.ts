@@ -4,6 +4,7 @@
  * - DOMMatrixReadOnly: 노드 측정 갱신이 뷰포트의 transform에서 배율(m22)을 읽는다. scale(n)만 읽고 없으면 1이다.
  * - offsetWidth·offsetHeight: React Flow가 상자·노드 크기를 읽는다(0이면 경고 #004와 500×500 대체값). 인라인 style의 px 폭·높이(노드 래퍼 200×150)가 있으면 그 값, 없으면 800×600이다.
  * - clientWidth·clientHeight: jsdom은 0이다. 캔버스는 상자가 보여 크기가 있을 때만 React Flow를 그리므로(0×0이면 경고·NaN 좌표) 800×600을 돌려준다. 숨긴 상자는 테스트가 이 getter를 0으로 덮어 흉내 낸다.
+ * - getBoundingClientRect: jsdom은 늘 0이라 끌기의 자동 이동(autoPan)이 포인터를 '캔버스 밖'으로 보고 손을 뗀 뒤에도 뷰포트를 계속 민다. React Flow 상자(.react-flow)만 800×600 자리에 있다고 알리고 다른 요소는 그대로 둔다.
  * vi.stubGlobal이 아니라 직접 대입한다: 테스트의 afterEach(vi.unstubAllGlobals)가 대역을 걷어 가지 않게.
  */
 const observers = new Set<ResizeObserverStub>()
@@ -33,5 +34,9 @@ Object.defineProperties(HTMLElement.prototype, {
   offsetWidth: { configurable: true, get(this: HTMLElement) { return handleSize(this) ?? px(this.style.width, 800) } },
   offsetHeight: { configurable: true, get(this: HTMLElement) { return handleSize(this) ?? px(this.style.height, 600) } },
 })
+const rectOf = Element.prototype.getBoundingClientRect
+Element.prototype.getBoundingClientRect = function (this: Element) {
+  return this.classList?.contains('react-flow') ? ({ left: 0, top: 0, right: 800, bottom: 600, width: 800, height: 600, x: 0, y: 0, toJSON() { return this } } as DOMRect) : rectOf.call(this)
+}
 Object.assign(globalThis, { ResizeObserver: ResizeObserverStub, DOMMatrixReadOnly: DOMMatrixReadOnlyStub })
 if (typeof window !== 'undefined') Object.assign(window, { ResizeObserver: ResizeObserverStub, DOMMatrixReadOnly: DOMMatrixReadOnlyStub })

@@ -184,7 +184,7 @@ describe('관계도 React Flow 캔버스(@xyflow/react)', () => {
   it('작성 모드의 캔버스 높이는 화면 높이를 따르는 범위이고 좁은 화면은 440px이며, 터치 기기는 카드 위 세로 손짓을 페이지 스크롤이 받고 컨트롤 버튼·연결 점이 누르는 크기로 커진다', () => {
     expect(rule(map, '.relationship-flow')).toMatch(/position:relative;height:clamp\(440px,66vh,760px\)/)
     expect(map).toContain('@media(max-width:600px){.relationship-flow{height:440px}.relationship-character-card{border-radius:10px}}')
-    expect(map).toContain('@media(pointer:coarse){.relationship-character-card{touch-action:pan-y}.relationship-flow .react-flow__controls-button{width:44px;height:44px}.relationship-port{width:22px;height:22px}}')
+    expect(map).toContain('@media(pointer:coarse){.relationship-character-card,.relationship-dot{touch-action:pan-y}.relationship-flow .react-flow__controls-button{width:44px;height:44px}.relationship-port{width:22px;height:22px}}')
   })
 })
 
@@ -334,5 +334,36 @@ describe('관계도 도구·추가 패널·오른쪽 클릭 메뉴·선 도구(n
     expect(rule(map, '.relationship-edge-hit:focus-visible')).toMatch(/outline:none;stroke:var\(--fixed-pri\);stroke-opacity:\.45/)
     expect(rule(map, '.relationship-flow .react-flow__node:focus-visible')).toMatch(/outline:2px solid var\(--fixed-pri\)/)
     expect(rule(map, '.relationship-flow .react-flow')).toMatch(/--xy-connectionline-stroke:var\(--edge-active\)/)
+  })
+})
+
+// ── 시맨틱 줌(옵시디언식): 멀리·중간에서는 점, 가까이서는 카드 ──────────────────────────────────────────────────────────
+describe('관계도 시맨틱 줌: 점·이름·선 라벨·단계별 숨김', () => {
+  it('점은 노드 래퍼(점 크기)를 가득 채운 원이고 테두리·고리·누르는 자리가 캔버스 배율(--rf-zoom)로 나뉘어 화면에서 늘 같은 굵기이며, 터치 기기에서도 세로 손짓은 페이지 스크롤이다', () => {
+    const dot = rule(map, '.relationship-dot')
+    expect(dot).toMatch(/position:relative;width:100%;height:100%;border-radius:50%/)
+    expect(dot).toMatch(/border:calc\(1\.5px \/ var\(--rf-zoom,1\)\) solid/)
+    expect(rule(map, '.relationship-dot::after')).toMatch(/position:absolute;inset:calc\(-10px \/ var\(--rf-zoom,1\)\)/) // 누르는 자리는 화면에서 점 둘레 10px
+    expect(rule(map, '.relationship-dot.selected')).toMatch(/box-shadow:0 0 0 calc\(3px \/ var\(--rf-zoom,1\)\) var\(--rc-accent\)/)
+    expect(rule(map, '.relationship-dot.target')).toMatch(/outline:calc\(2px \/ var\(--rf-zoom,1\)\) dashed var\(--rc-accent\)/)
+    expect(rule(map, '.relationship-dot.dim')).toMatch(/opacity:\.3/)
+    expect(map).toContain('@media(pointer:coarse){.relationship-character-card,.relationship-dot{touch-action:pan-y}')
+  })
+
+  it('점의 이름은 평소 숨고(멀리서는 관계가 많은 몇 장·고른 카드만 .shown, 마우스를 올리거나 키보드 초점이 있어도 보임) 화면에서 늘 13px로 읽히며, 흐린 점은 이름도 흐리다', () => {
+    const name = rule(map, '.relationship-dot-name')
+    expect(name).toMatch(/display:none;position:absolute;top:100%;left:50%/)
+    expect(name).toMatch(/font-size:calc\(13px \/ var\(--rf-zoom,1\)\)/)
+    expect(name).toMatch(/pointer-events:none/) // 이름이 점을 가리거나 누르지 않는다
+    expect(rule(map, '.relationship-dot-name.shown,.react-flow__node:is(:hover,:focus-within) .relationship-dot-name')).toMatch(/display:block/) // 키보드 초점이 있는 점도 이름이 보인다
+    expect(rule(map, '.relationship-dot.dim+.relationship-dot-name')).toMatch(/opacity:\.3/)
+  })
+
+  it('가까이(near)가 아니면 연결 점(핸들)은 보이지 않고 선 가운데의 편집·삭제 버튼은 없으며, 중간에서는 선 라벨이 선 위에 화면 12px로 놓인다', () => {
+    expect(rule(map, '.relationship-flow:not([data-level=near]) .relationship-port')).toMatch(/visibility:hidden/)
+    expect(rule(map, '.relationship-flow:not([data-level=near]) .relationship-edge-tools')).toMatch(/display:none/)
+    const label = rule(map, '.relationship-flow[data-level=mid] .relationship-edge-label')
+    expect(label).toMatch(/font-size:calc\(12px \/ var\(--rf-zoom,1\)\)/)
+    expect(label).toMatch(/dominant-baseline:central/)
   })
 })

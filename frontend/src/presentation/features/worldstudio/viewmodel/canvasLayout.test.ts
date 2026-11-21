@@ -1,16 +1,7 @@
 import { expect, it } from 'vitest'
-import { clampMenu, freeSpot, gridLayout, validConnection } from './canvasLayout'
+import { clampMenu, freeSpot, validConnection } from './canvasLayout'
 
 const node=(id:string,unnamed=false)=>({id,unnamed})
-
-it('gridLayout은 카드를 넣은 순서대로 격자(열 수 ≈ √(1.5n))에 깔고 서로 겹치지 않으며 카드 하나는 원점이다',()=>{
- expect(gridLayout([node('a')]).get('a')).toEqual({x:0,y:0})
- const nodes=Array.from({length:20},(_,i)=>node('n'+i))
- const spots=[...gridLayout(nodes).values()]
- expect(new Set(spots.map(p=>p.x+':'+p.y)).size).toBe(20)
- expect(Math.max(...spots.map(p=>p.x))/344+1).toBe(6) // ceil(√30)=6열
- for(let i=0;i<spots.length;i++)for(let j=i+1;j<spots.length;j++)expect(Math.abs(spots[i].x-spots[j].x)>=200||Math.abs(spots[i].y-spots[j].y)>=150).toBe(true)
-})
 
 it('freeSpot은 원하는 자리가 비어 있으면 그대로, 다른 카드와 겹치면 가까운 빈 자리로 옮기며 같은 입력에는 같은 답이다',()=>{
  expect(freeSpot({x:10,y:20},[])).toEqual({x:10,y:20})

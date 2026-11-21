@@ -21,6 +21,7 @@
     "@toast-ui/editor": "^3.2.2",
     "@xyflow/react": "^13.0.2",
     "awilix": "^13.0.5",
+    "d3-force": "^3.0.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-markdown": "^10.1.0",
@@ -34,6 +35,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/react": "^16.3.2",
+    "@types/d3-force": "^3.0.10",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

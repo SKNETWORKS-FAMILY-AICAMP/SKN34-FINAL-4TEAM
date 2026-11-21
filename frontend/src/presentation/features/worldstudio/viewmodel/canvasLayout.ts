@@ -1,12 +1,6 @@
-/** 관계도 카드의 화면 크기(캔버스 좌표)와 격자 배치의 카드 사이 간격. */
-export const CARD_W = 200, CARD_H = 150, GAP = 144
+/** 관계도 카드의 크기(캔버스 좌표). 가까이(near) 볼 때의 카드 상자이고, 멀리서는 같은 중심의 점이다. */
+export const CARD_W = 200, CARD_H = 150
 export type Point = { x: number; y: number }
-
-/** 카드를 넣은 순서대로 까는 격자 배치(열 수 ≈ √(1.5n)). 좌표는 카드의 왼쪽 위 모서리다. */
-export function gridLayout(nodes: readonly { id: string }[]): Map<string, Point> {
-  const columns = Math.max(1, Math.min(nodes.length || 1, Math.ceil(Math.sqrt(nodes.length * 1.5))))
-  return new Map(nodes.map((n, i) => [n.id, { x: (i % columns) * (CARD_W + GAP), y: Math.floor(i / columns) * (CARD_H + GAP) }]))
-}
 
 const overlaps = (a: Point, b: Point) => Math.abs(a.x - b.x) < CARD_W && Math.abs(a.y - b.y) < CARD_H
 

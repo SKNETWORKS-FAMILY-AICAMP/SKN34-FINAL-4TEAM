@@ -316,7 +316,8 @@ it('preserves the unapplied relationship text when connecting another card is ca
  function Harness(){const vm=useWorldStudioViewModel(useCase);current=vm;return vm.editing?<WorldRelationshipEditor studio={vm}/>:null}
  vi.spyOn(window,'confirm').mockReturnValue(false)
  render(<MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path='/worldstudio/:worldId' element={<Harness/>}/></Routes></MemoryRouter>)
- fireEvent.click(await screen.findByRole('button',{name:'가람 관계 연결'}))
+ await screen.findByRole('group',{name:'가람 인물 카드'});await toCards()
+ fireEvent.click(screen.getByRole('button',{name:'가람 관계 연결'}))
  fireEvent.click(screen.getByRole('button',{name:'나래 상대 선택'}))
  fireEvent.change(screen.getByRole('textbox',{name:'실제 관계 1'}),{target:{value:'작성 중인 관계'}})
  await waitFor(()=>expect(current!.relationDirty).toBe(true))
@@ -398,7 +399,10 @@ async function openTyped() {
       <Routes><Route path='/worldstudio/:worldId' element={<Harness />} /></Routes>
     </MemoryRouter>,
   )
-  return within(await screen.findByRole('group', { name: '관계도 유형 필터' }))
+  const filter = within(await screen.findByRole('group', { name: '관계도 유형 필터' }))
+  await screen.findByRole('group', { name: '가람 인물 카드' })
+  await toCards()
+  return filter
 }
 /** 유형 필터 버튼들(전체 · 유형…)의 눌림 상태. */
 const pressed = () => within(screen.getByRole('group', { name: '관계도 유형 필터' })).getAllByRole('button').map((b) => b.getAttribute('aria-pressed'))
@@ -578,25 +582,38 @@ async function openHub() {
   await screen.findByRole('group', { name: '허브 인물 카드' })
   return { hub, others }
 }
-const cardCount = () => document.querySelectorAll('.relationship-character-card').length
+const cardCount = () => document.querySelectorAll('.react-flow__node').length // 점이든 카드든 노드 하나가 카드 한 장이다
+/** 관계도를 카드 단계(near)까지 확대한다: 시맨틱 줌이라 카드가 많거나 퍼져 있으면 처음에는 점이고 카드 버튼은 가까이서만 있다. */
+async function toCards() {
+  const flow = document.querySelector('.relationship-flow')!
+  for (let i = 0; i < 24 && flow.getAttribute('data-level') !== 'near'; i++) {
+    fireEvent.click(screen.getByRole('button', { name: '확대' }))
+    await waitFor(() => {})
+  }
+  expect(flow.getAttribute('data-level')).toBe('near')
+}
 const edgeLabels = () => document.querySelectorAll('text.relationship-edge-label').length
 
-it('모든 카드를 한 그래프에 그리고(중심 카드·이웃 쪽 이동·전체 관계도로는 없다), 선에는 마우스를 올린 동안만 그 선의 라벨이 보인다', async () => {
+it('모든 카드를 한 그래프에 그리고(중심 카드·이웃 쪽 이동·전체 관계도로는 없다), 선 라벨은 멀리서는 없고 중간에서는 모든 선에, 가까이서는 마우스를 올린 동안 그 선에만 보인다', async () => {
   await openHub()
   expect(cardCount()).toBe(21) // 허브 + 이웃 15장 + 외톨이 5장 전체
   expect(screen.getByRole('group', { name: '외톨이 0 장소 카드' })).toBeTruthy()
   for (const gone of ['이웃 페이지 이동', '그래프 페이지 이동']) expect(screen.queryByRole('navigation', { name: gone })).toBeNull()
   for (const gone of ['전체 관계도로', '중심 카드로 보기']) expect(screen.queryByRole('button', { name: gone })).toBeNull()
-  expect(edgeLabels()).toBe(0) // 고르기 전에는 라벨이 없고(<title> 툴팁만)
+  expect(edgeLabels()).toBe(0) // 멀리서는 라벨이 없고(<title> 툴팁만)
   expect(screen.getAllByRole('button', { name: /관계선 편집: 허브 · 이웃/ })).toHaveLength(15) // 선은 그대로 읽히고 누를 수 있다
-  fireEvent.click(screen.getByRole('group', { name: '이웃 3 인물 카드' })) // 카드 본문 누르기는 React Flow의 노드 클릭이다
-  expect(edgeLabels()).toBe(0) // 카드를 골라도 라벨이 없다(겹친 라벨을 피한다)
+  fireEvent.click(screen.getByRole('group', { name: '이웃 3 인물 카드' })) // 멀리서 점을 누르면 그 카드로 다가간다(중간 단계)
+  await waitFor(() => expect(document.querySelector('.relationship-flow')!.getAttribute('data-level')).toBe('mid'))
+  expect(edgeLabels()).toBe(15) // 중간에서는 모든 선에 라벨
+  await toCards()
+  expect(edgeLabels()).toBe(0) // 가까이서는 다시 마우스를 올린 선에만(겹친 라벨을 피한다)
   fireEvent.mouseEnter(screen.getByRole('button', { name: /관계선 편집: 허브 · 이웃 3 · / }))
   expect(edgeLabels()).toBe(1) // 선에 마우스를 올린 동안만 그 선의 라벨
 })
 
 it('카드의 관계 연결 버튼으로 주체를 정하고 상대 선택을 누르면 가운데에 관계 작성 시트가 열려 첫 입력으로 초점이 가고, Esc는 변경이 있으면 확인한 뒤 닫는다', async () => {
   await openHub()
+  await toCards() // 카드 버튼은 가까이서만 있다
   fireEvent.click(screen.getByRole('button', { name: '허브 관계 연결' }))
   expect(screen.queryByRole('dialog')).toBeNull() // 주체만 정한 단계
   fireEvent.click(screen.getByRole('button', { name: '이웃 0 상대 선택' }))
@@ -616,8 +633,12 @@ it('카드의 관계 연결 버튼으로 주체를 정하고 상대 선택을 �
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 
-it('관계도 카드 모서리에는 유형 점이 있어 인물과 장소를 구분한다', async () => {
+it('관계도 점(멀리·중간)과 카드 모서리(가까이)에는 유형 색이 있어 인물과 장소를 구분한다', async () => {
   await openHub()
+  const far = (name: string) => screen.getByRole('group', { name }).querySelector<HTMLElement>('.relationship-dot')!
+  expect(far('허브 인물 카드').style.background).not.toBe('')
+  expect(far('허브 인물 카드').style.background).not.toBe(far('외톨이 0 장소 카드').style.background)
+  await toCards()
   const dot = (name: string) => screen.getByRole('group', { name }).querySelector<HTMLElement>('.relationship-kind')!
   expect(dot('허브 인물 카드').style.background).not.toBe('')
   expect(dot('허브 인물 카드').style.background).not.toBe(dot('외톨이 0 장소 카드').style.background)
@@ -649,11 +670,11 @@ it('그래프 위 한 줄에 설정 찾기가 있어, 쓰는 동안 이름에 �
   const bar = find.closest('.relationship-bar') as HTMLElement
   expect(bar.compareDocumentPosition(document.querySelector('.relationship-flow')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 그래프 위다
   fireEvent.change(find, { target: { value: '없는 이름' } }) // 없는 이름은 아무것도 고르지 않고 모든 카드를 흐린다
-  expect(document.querySelectorAll('.relationship-character-card.dim')).toHaveLength(21)
+  expect(document.querySelectorAll('.relationship-dot.dim')).toHaveLength(21) // 멀리서는 점이 흐려진다
   expect(document.querySelector('[aria-current=true]')).toBeNull()
   fireEvent.blur(find)
   expect(find.value).toBe('') // 쓰던 글을 비우고 흐림도 거둔다
-  expect(document.querySelectorAll('.relationship-character-card.dim')).toHaveLength(0)
+  expect(document.querySelectorAll('.relationship-dot.dim')).toHaveLength(0)
   fireEvent.change(find, { target: { value: '이웃 3' } })
   expect(screen.getByRole('group', { name: '이웃 3 인물 카드' }).getAttribute('aria-current')).toBe('true')
   expect(find.value).toBe('이웃 3') // 고른 뒤에도 쓴 글은 초점을 잃을 때까지 남는다
