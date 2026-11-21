@@ -1,3 +1,4 @@
+import importlib
 import logging
 from types import SimpleNamespace
 
@@ -190,3 +191,25 @@ def test_the_run_is_one_trace_for_the_feature_and_is_marked_failed_when_the_job_
     assert root.name == "manuscript_extraction" and found["langfuse.trace.tags"] == ["feature:manuscript_extraction"]
     assert found["session.id"] == "job" and found["langfuse.trace.metadata.work_id"] == "work"
     assert status_of(root) == "failed" and root.attributes["langfuse.observation.level"] == "ERROR"
+
+
+def test_the_celery_task_validates_the_payload_and_runs_the_worker(monkeypatch):
+    ran = []
+    monkeypatch.setattr(worker, "run", ran.append)
+    worker.run_job({"jobId": "job", "workId": "work", "episodes": [1, 2]})
+    assert ran == [REQUEST]
+
+
+def test_the_celery_task_is_the_contract_one_run_one_job_at_a_time_and_acked_after_the_run():
+    assert (worker.run_job.name, worker.run_job.queue) == ("preprocessing.run", "preprocessing")
+    conf = worker.celery.conf
+    assert (conf.task_acks_late, conf.worker_prefetch_multiplier, conf.task_ignore_result) == (True, 1, True)
+
+
+def test_the_broker_comes_from_ai_celery_broker_url(monkeypatch):
+    monkeypatch.setenv("AI_CELERY_BROKER_URL", "amqp://user:pw@rabbitmq:5672//")
+    try:
+        assert importlib.reload(worker).celery.conf.broker_url == "amqp://user:pw@rabbitmq:5672//"
+    finally:
+        monkeypatch.undo()
+        importlib.reload(worker)

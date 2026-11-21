@@ -2,6 +2,7 @@
 import logging
 import os
 import httpx
+from celery import Celery
 
 from app import tracing
 from app.manuscript_extraction import service
@@ -92,3 +93,15 @@ def run(request: JobRequest) -> None:
                 if not send("structure", {"identity": identity.model_dump(mode="json"), "payload": payload.model_dump(mode="json")}, []):
                     return
         send("load", {}, [])
+
+
+# 회차 원고 전처리 Celery 태스크(2026-11-20 사용자 결정). 작품 하나가 태스크 하나이고 ai-worker(동시성 1)가 큐 순서대로 하나씩 실행한다.
+# ponytail: 순차라 회차별 병렬은 없다. 태스크를 회차 단위로 나누고 Content claim(작업 단위 실행권)을 바꿔야 한다.
+# ponytail: acks_late 재배달은 Content claim이 거절(claimed=false)해 무해하지만 죽은 실행의 자동 재개는 아니다. 만료 뒤 사용자가 '같은 작업 재개'를 누른다.
+celery = Celery("preprocessing", broker=os.environ.get("AI_CELERY_BROKER_URL"))
+celery.conf.update(task_acks_late=True, worker_prefetch_multiplier=1, task_ignore_result=True)
+
+
+@celery.task(name="preprocessing.run", queue="preprocessing")
+def run_job(payload: dict) -> None:
+    run(JobRequest.model_validate(payload))
