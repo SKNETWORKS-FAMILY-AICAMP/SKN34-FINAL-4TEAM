@@ -98,6 +98,14 @@ services:
         condition: service_healthy
     environment: *ai-environment
 
+  # 작업 Celery 워커(회귀 평가·운영 정기 작업). ai-service와 같은 소스 빌드·환경이고 브로커가 준비된 뒤 시작한다.
+  ai-jobs-worker:
+    build: *ai-build
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment: *ai-environment
+
   core-api:
     build:
       context: ../backend/core-api
