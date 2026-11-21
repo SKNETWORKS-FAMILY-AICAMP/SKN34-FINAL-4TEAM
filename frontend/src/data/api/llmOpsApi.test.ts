@@ -42,6 +42,34 @@ describe('HttpOperationsDashboardRepository', () => {
     await expect(new HttpOperationsDashboardRepository(ok({ ai: { today: { requests: '많음' } } })).dashboard()).rejects.toThrow(FORMAT)
   })
 
+  const funnel = {
+    readers: { viewed: 400, readAny: 160, readNext: 40 },
+    reactions: { publishedEpisodes: 40, likes: 130, interests: 60, comments: 10 },
+    forks: { readers: 160, readerForked: 16, baseEpisodes: [{ bucket: '1', count: 5 }, { bucket: '2', count: 3 }, { bucket: '3', count: 0 }, { bucket: '4-5', count: 2 }, { bucket: '6-10', count: 1 }, { bucket: '11+', count: 4 }] },
+    writers: { forks: 25, saved: 20, published: 5, medianHoursToPublish: 12.5 },
+    proposals: { adopted: 30, total: 120 },
+    feedback: { approved: 8, decided: 16 },
+  }
+
+  it('서비스 지표(funnel)는 그대로 읽고, Content 실패로 null이거나 생략돼도 0으로 채우지 않는다', async () => {
+    expect((await new HttpOperationsDashboardRepository(ok({ funnel, unavailable: [] })).dashboard()).funnel).toEqual(funnel)
+    const failed = await new HttpOperationsDashboardRepository(ok({ funnel: null, unavailable: ['content'] })).dashboard()
+    expect([failed.funnel, failed.unavailable]).toEqual([null, ['content']])
+    expect((await new HttpOperationsDashboardRepository(ok({ openAlerts: 1 })).dashboard()).funnel).toBeUndefined()
+    // 직접 발행한 Fork가 없으면 중앙값이 null이다.
+    const none = { ...funnel, writers: { ...funnel.writers, published: 0, medianHoursToPublish: null } }
+    expect((await new HttpOperationsDashboardRepository(ok({ funnel: none })).dashboard()).funnel?.writers.medianHoursToPublish).toBeNull()
+  })
+
+  it('funnel이 계약과 다른 모양이면(구간 분포가 객체이거나 수가 글자) 거부한다', async () => {
+    const wrong = [
+      { ...funnel, forks: { ...funnel.forks, baseEpisodes: { '1': 5 } } },
+      { ...funnel, readers: { ...funnel.readers, viewed: '400' } },
+      { ...funnel, proposals: { adopted: 30 } },
+    ]
+    for (const bad of wrong) await expect(new HttpOperationsDashboardRepository(ok({ funnel: bad })).dashboard()).rejects.toThrow(FORMAT)
+  })
+
   it('경고는 상태만 query로 보내고(전체는 생략) 확인·조치 완료는 PUT으로 상태와 메모를 보낸다', async () => {
     const fetcher = ok({ items: [alert], page: 0, size: 100, total: 1 })
     const repo = new HttpOperationsDashboardRepository(fetcher)

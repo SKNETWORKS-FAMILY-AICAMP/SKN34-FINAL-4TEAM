@@ -101,3 +101,15 @@
 .adm .admin-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 0 24px; margin-top: 12px; }
 .adm .admin-chart { min-width: 0; margin: 0 0 16px; }
 .adm .admin-chart figcaption { margin: 0 0 8px; font-size: 14px; font-weight: 700; color: var(--ink2); }
+/* 서비스 지표(DEC-57): 개요 맨 위 구역. 단계 막대 아래 비율 목록은 이름 · 비율 ±오차 · n 줄이고, 숫자는 자릿수가 달라도 정렬되게 한다. */
+.adm .admin-funnel { margin-bottom: 12px; }
+.adm .admin-funnel h2 { margin-top: 0; }
+.adm .admin-funnel-group { min-width: 0; margin-bottom: 8px; }
+.adm .admin-funnel-rates { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+.adm .admin-funnel-rates li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; }
+.adm .admin-funnel-rates b { font-weight: 600; font-variant-numeric: tabular-nums; }
+/* 크레딧 탭(DEC-57): 고른 회원의 잔액·내역과 지급·회수 폼은 검색 결과 표 아래에 한 덩어리로 붙인다. */
+.adm .credit-member { margin-top: 20px; border-top: 1px solid var(--line2); }
+.adm .credit-member h3 { margin-top: 20px; }
+.adm .credit-member .kpi { margin: 12px 0; }
+.adm .credit-member h4 { margin: 24px 0 0; }

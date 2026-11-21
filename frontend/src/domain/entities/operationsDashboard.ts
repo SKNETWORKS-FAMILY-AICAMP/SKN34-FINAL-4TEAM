@@ -1,4 +1,5 @@
 import { count, percent, usd } from './llmOps'
+import type { Funnel } from './operationsFunnel'
 
 /** 운영 대시보드(DEC-55). 출처 하나가 실패하면 그 칸만 null이고 `unavailable`에 출처가 들어옵니다. 실패를 0으로 바꾸지 않습니다. */
 type AiSummary = { requests: number; failed: number; timeouts: number; failureRate?: number | null; costUser: number; costPlatform: number }
@@ -8,6 +9,8 @@ export type Dashboard = {
   jobs?: { running?: number | null; failedLast24h?: number | null } | null
   pending?: { inquiries?: number | null; reports?: number | null; authorReviews?: number | null } | null
   openAlerts?: number | null
+  /** 서비스 지표(DEC-57). Content를 읽지 못하면 null이고 `unavailable`에 content가 들어옵니다. */
+  funnel?: Funnel | null
   unavailable: string[]
 }
 /** value가 null이면 출처를 불러오지 못한 칸입니다. */

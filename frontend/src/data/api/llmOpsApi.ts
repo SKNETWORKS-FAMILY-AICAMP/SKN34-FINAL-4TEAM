@@ -18,6 +18,14 @@ const instant = z.string().datetime({ offset: true })
 const num = z.number().nullish()
 const text = z.string().nullish()
 
+const funnel = z.object({
+  readers: z.object({ viewed: z.number(), readAny: z.number(), readNext: z.number() }),
+  reactions: z.object({ publishedEpisodes: z.number(), likes: z.number(), interests: z.number(), comments: z.number() }),
+  forks: z.object({ readers: z.number(), readerForked: z.number(), baseEpisodes: z.array(z.object({ bucket: z.string(), count: z.number() })) }),
+  writers: z.object({ forks: z.number(), saved: z.number(), published: z.number(), medianHoursToPublish: num }),
+  proposals: z.object({ adopted: z.number(), total: z.number() }),
+  feedback: z.object({ approved: z.number(), decided: z.number() }),
+})
 const aiSummary = z.object({ requests: z.number(), failed: z.number(), timeouts: z.number(), failureRate: num, costUser: z.number(), costPlatform: z.number() })
 // 출처 하나가 실패하면 그 칸만 null이고, 칸 안의 값도 비어 올 수 있습니다.
 const dashboard = z.object({
@@ -26,6 +34,7 @@ const dashboard = z.object({
   jobs: z.object({ running: num, failedLast24h: num }).nullish(),
   pending: z.object({ inquiries: num, reports: num, authorReviews: num }).nullish(),
   openAlerts: num,
+  funnel: funnel.nullish(),
   unavailable: z.array(z.string()).default([]),
 })
 const alert = z.object({

@@ -148,6 +148,32 @@ describe('관리자 (A01~A18)', () => {
     within(await card('답변 대기 문의')).getByText('4건')
   })
 
+  it('개요 맨 위에 서비스 지표(전체 기간)가 숫자 카드보다 앞에 있고 단계 막대 4묶음·회차당 반응·Fork 기준 회차 분포와 비율·오차·n을 보인다', async () => {
+    renderAt('/admin?tab=data')
+    const section = await screen.findByRole('region', { name: '서비스 지표(전체 기간)' })
+    expect(section.compareDocumentPosition(document.querySelector('.kpi')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(within(section).getAllByRole('figure').map((figure) => figure.querySelector('figcaption')?.textContent)).toEqual([
+      '독자 이어 읽기', '독자의 Fork', 'Fork 작가의 저장·발행', 'AI 제안 채택·수정 제안 승인', '회차당 반응', 'Fork 기준 회차 분포',
+    ])
+    const lines = (name: string) => within(within(section).getByRole('list', { name })).getAllByRole('listitem').map((li) => li.textContent)
+    expect(lines('독자 이어 읽기 비율')).toEqual(['조회 → 1화 이상 읽음60.0% ±5.8%p · n=300', '1화 이상 → 이어 읽기40.0% ±7.5%p · n=180'])
+    expect(lines('Fork 작가의 저장·발행 비율')).toEqual(['Fork → 직접 저장68.0% ±20.0%p · n=25', '저장 → 직접 발행47.1% ±24.3%p · n=17'])
+    expect(lines('회차당 반응 값')).toEqual(['좋아요4.65 · 발행 회차 n=46', '관심2.11 · 발행 회차 n=46', '댓글0.83 · 발행 회차 n=46'])
+    within(section).getByText('첫 발행까지 걸린 시간의 중앙값 31.5시간')
+    within(section).getByText(/시연 데이터를 집계한 값이에요/)
+  })
+
+  it('Content를 읽지 못해 funnel이 비어 오면 서비스 지표는 0으로 채우지 않고 불러오지 못함으로 보인다', async () => {
+    const dashboard = appContainer.resolve('operationsDashboardUseCase')
+    const real = await dashboard.dashboard()
+    vi.spyOn(dashboard, 'dashboard').mockResolvedValue({ ...real, funnel: null, unavailable: ['content'] })
+    renderAt('/admin?tab=data')
+    const section = await screen.findByRole('region', { name: '서비스 지표(전체 기간)' })
+    within(section).getByText('불러오지 못함')
+    expect(within(section).queryAllByRole('figure')).toEqual([])
+    await screen.findByText(/일부 출처를 불러오지 못했어요: content/)
+  })
+
   it('운영 대시보드를 읽지 못하면 실패를 알리고 다시 불러오기로 복구한다', async () => {
     const dashboard = appContainer.resolve('operationsDashboardUseCase')
     vi.spyOn(dashboard, 'dashboard').mockRejectedValue(new Error('조회 실패'))

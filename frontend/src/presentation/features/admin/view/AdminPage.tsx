@@ -1,6 +1,7 @@
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
+import { LINK_PATH_MAX } from '../../../../domain/entities/event'
 import { ADMIN_PERMISSIONS, LLM_PAGES, type AdminTab, type LlmPage, adminTab, llmPage, llmPageHref } from '../../../../domain/entities/admin'
 import { ACTIVITY_FORBIDDEN, activityActionLabel, activityActor, activityDetail, activityTarget } from '../../../../domain/entities/adminActivity'
 import { REPORT_STATUSES, reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
@@ -21,6 +22,7 @@ import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { LIVE_TABS, useAdminViewModel, useForkIntegrity } from '../viewmodel/useAdminViewModel'
 import { AdminGenres } from './AdminGenres'
+import { CreditsOperations } from './CreditsOperations'
 import { JobMonitor } from './JobMonitor'
 import { LlmOps } from './LlmOps'
 import { OperationsDashboard } from './OperationsDashboard'
@@ -67,13 +69,13 @@ const TITLES: Record<Exclude<AdminTab, 'llm'>, [string, string]> = {
   jobs: ['정기 작업', '원고 전처리와 운영 정기 작업의 실행 기록을 보고 실패 작업과 일정을 관리합니다.'],
   events: ['이벤트 관리', '이벤트 내용과 기간을 관리합니다.'],
   notices: ['공지 게시', '공지를 작성하고 수정·삭제합니다.'],
-  credits: ['크레딧 관리', '크레딧 이용 현황과 정책 확정 상태를 확인합니다.'],
+  credits: ['크레딧 관리', '회원의 크레딧 잔액·내역을 조회하고 수동 지급·회수를 요청합니다.'],
   audit: ['관리자 활동 로그', '관리자가 수행한 변경 조치를 최신순으로 보여 줍니다.'],
   profile: ['관리자 프로필', '로그인한 관리자 계정 정보를 확인합니다.'],
 }
 const KINDS: [string, string][] = [['all', '전체'], ['original', '원작'], ['fork', '포크']]
 /** 데모 조회를 쓰지 않는 운영 API 탭: 상단 '목록 새로고침'(데모 조회만 다시 읽음) 대신 자기 패널의 새로고침·조회를 씁니다. */
-const OPS_TABS: AdminTab[] = ['data', 'llm', 'jobs', 'genres']
+const OPS_TABS: AdminTab[] = ['data', 'llm', 'jobs', 'genres', 'credits']
 /** 작품 탭의 권리 표시값. 검색도 화면에 보이는 이 문구로 합니다. */
 const rightsLabel = (w: OperationsWork) =>
   `${w.creationType === 'external_derivative' ? '외부 2차 창작' : '원작'} · ${w.rightsConfirmed ? '권리 확인됨' : '권리 미확인'}`
@@ -81,7 +83,7 @@ const has = (q: string, ...xs: string[]) =>
   !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
 const blocked = (vm: VM, key: string) => vm.mutationsBlocked || !!vm.actions[key]?.pending
 /** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리와 대시보드·LLMOps·작업 감시 패널)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
-const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule', 'genre']
+const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule', 'genre', 'credit']
 const IN_FORM = new RegExp(`^(notice|event|inquiry|report|${OPS_PANEL_KINDS.join('|')}):`)
 /** 행 조치 키(`member:<id>` 등)의 대상을 화면에 보이는 이름으로 바꿉니다. 목록에서 찾지 못하면 이름 없이 안내합니다. */
 function actionTarget(vm: VM, key: string): string | undefined {
@@ -345,6 +347,7 @@ function Body(p: BodyProps) {
   if (tab === 'llm') return <LlmOps vm={vm} page={p.page} />
   if (tab === 'jobs') return <JobMonitor vm={vm} />
   if (tab === 'genres') return <AdminGenres vm={vm} />
+  if (tab === 'credits') return <CreditsOperations vm={vm} />
   if (tab === 'rights') return <Rights {...p} />
   if (tab === 'admins') return <Admins vm={vm} />
   if (tab === 'users') return <Users {...p} />
@@ -435,38 +438,6 @@ function Body(p: BodyProps) {
         </div>
       </>
     )
-  } else if (tab === 'credits') {
-    T = (
-      <div className='panel'>
-        <div className='table-head'>
-          <h2 className='panel-title'>크레딧 원장</h2>
-          <span className='chip wait'>정책 미확정</span>
-        </div>
-        <p>현재 실제 잔액·충전·차감 내역은 연결되어 있지 않습니다.</p>
-        <Table label='크레딧 원장 표' style={{ marginTop: 14 }}>
-          <thead>
-            <tr>
-              <th scope='col'>일시</th>
-              <th scope='col'>계정</th>
-              <th scope='col'>유형</th>
-              <th scope='col'>변동</th>
-              <th scope='col'>상태</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan={5} className='muted' style={{ textAlign: 'center', padding: 24 }}>
-                표시할 실제 내역이 없어요.
-              </td>
-            </tr>
-          </tbody>
-        </Table>
-        <p className='admin-note'>
-          충전·회수·수동 조정은 정책, 권한, 복구 기준이 확정된 뒤 연결해야 합니다. 이 화면에서는
-          크레딧을 변경하지 않습니다.
-        </p>
-      </div>
-    )
   }
   return T
 }
@@ -500,7 +471,7 @@ function Audit({ vm }: { vm: VM }) {
         </ul>
       )}
       <p className='admin-note'>
-        최신 100건까지 보여 줘요. 회원·관리자 계정·신고·작품·장르·공지·이벤트·문의 답변의 변경 조치가 성공하면 운영 서버에 남고,
+        최신 100건까지 보여 줘요. 회원·관리자 계정·신고·작품·장르·공지·이벤트·문의 답변·크레딧 지급·회수의 변경 조치가 성공하면 운영 서버에 남고,
         조회나 실패한 요청은 기록하지 않아요. 활동 로그는 ‘관리자 계정 관리’ 권한이 있는 관리자만 볼 수 있어요.
       </p>
     </div>
@@ -1033,6 +1004,7 @@ function Events({ vm }: { vm: VM }) {
     body: row?.body ?? '',
     startsAt: toKoreanDateTimeInput(row?.startsAt ?? null),
     endsAt: toKoreanDateTimeInput(row?.endsAt ?? null),
+    linkPath: row?.linkPath ?? '',
   }
   const state = vm.actions[`event:${key}`]
   const busy = vm.mutationsBlocked || !!state?.pending
@@ -1144,6 +1116,19 @@ function Events({ vm }: { vm: VM }) {
                         두 기간은 선택 사항이에요. 한국시간(UTC+09:00)으로 입력하면 UTC로 저장해요. 비우면 해당 기간은 미정이며, 종료는
                         시작보다 빠를 수 없어요.
                       </p>
+                      <label className='field wide'>
+                        이동 경로(선택)<input
+                          className='inp'
+                          maxLength={LINK_PATH_MAX}
+                          placeholder='/lib?tab=worlds'
+                          value={form.linkPath}
+                          aria-describedby='event-link-help'
+                          onChange={(e) => vm.setEventDraft(key, { ...form, linkPath: e.target.value })}
+                        />
+                      </label>
+                      <p id='event-link-help' className='small muted wide'>
+                        사이트 안 경로만 쓸 수 있어요(/로 시작, 외부 주소·공백 불가, 200자 이하). 쓰면 회원 이벤트 안내에 ‘바로 가기’ 버튼이 보여요.
+                      </p>
                       <div className='rowend wide'>
                         <button type='submit' className='btn pri'>{state?.pending ? '저장 중…' : '이벤트 저장'}</button>
                         {row && (
@@ -1167,7 +1152,7 @@ function Events({ vm }: { vm: VM }) {
         )}
       <p className='admin-note'>
         진행 상태(상시·예정·진행 중·종료)는 시작·종료 시각으로 정해져요. 이벤트를 끝내려면 종료 시각을 수정해 주세요. 등록하면 바로
-        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요.
+        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요. 이동 경로는 관련 기능으로 가는 버튼만 만들어요.
       </p>
     </section>
   )

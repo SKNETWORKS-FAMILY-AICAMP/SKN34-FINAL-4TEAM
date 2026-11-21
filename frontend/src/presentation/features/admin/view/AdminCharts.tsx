@@ -1,8 +1,9 @@
 import type { ReactElement } from 'react'
-import { Bar, BarChart, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, ComposedChart, LabelList, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { count, millis, percent, usd, type EvaluationMetric } from '../../../../domain/entities/llmOps'
 import { RATIO_DOMAIN, costSummary, evaluationSummary, latencySummary, requestsSummary, type UsagePoint } from '../../../../domain/entities/llmOpsCharts'
+import { baseEpisodeSummary, groupSummary, reactionSummary, type FunnelGroup, type Reaction } from '../../../../domain/entities/operationsFunnel'
 
 // 색은 전역 테마 토큰이라 라이트·다크가 같이 바뀝니다. 옅은 --acc는 면 위에서 3:1이 안 되므로 같은 계열의 진한 --acc-ink 테두리를 두고(막대), 선은 --acc-ink를 씁니다.
 const PRIMARY = { fill: 'var(--pri)' }
@@ -16,6 +17,7 @@ const usdTick = (value: number) => `$${value}`
 const TIP: Record<string, (value: number) => string> = {
   requests: (value) => `${count(value)}건`, failureRate: percent, p95LatencyMs: millis, costUser: usd, costPlatform: usd,
   score: (value) => value.toFixed(3), baseline: (value) => value.toFixed(3),
+  count, perEpisode: (value) => value.toFixed(2),
 }
 const tooltip = (
   <Tooltip
@@ -91,6 +93,52 @@ export function EvaluationChart({ metrics }: { metrics: EvaluationMetric[] }) {
         {legend}
         <Bar dataKey="score" name="점수" {...PRIMARY} maxBarSize={36} radius={[4, 4, 0, 0]} />
         {metrics.some((metric) => metric.baseline != null) && <Bar dataKey="baseline" name="기준(baseline)" {...AMBER} maxBarSize={36} radius={[4, 4, 0, 0]} />}
+      </BarChart>
+    </ChartFrame>
+  )
+}
+
+/** 서비스 지표(DEC-57)의 단계 막대: 단계별 수를 가로 막대로 그리고 막대 끝에 수를 적습니다. 비율·오차는 차트 아래 목록에 있고 차트는 보조입니다. */
+export function FunnelChart({ group }: { group: FunnelGroup }) {
+  return (
+    <ChartFrame title={group.title} summary={groupSummary(group)} height={group.steps.length * 44 + 16}>
+      <BarChart data={group.steps} layout="vertical" margin={{ top: 4, right: 44, bottom: 0, left: 0 }} accessibilityLayer={false}>
+        <XAxis type="number" hide />
+        <YAxis type="category" dataKey="label" tick={TICK} tickLine={false} axisLine={{ stroke: 'var(--line2)' }} width={150} />
+        {tooltip}
+        <Bar dataKey="count" name="수" {...PRIMARY} maxBarSize={22} radius={[0, 4, 4, 0]}>
+          <LabelList dataKey="count" position="right" fill="var(--ink2)" fontSize={12} />
+        </Bar>
+      </BarChart>
+    </ChartFrame>
+  )
+}
+
+/** 발행 회차 하나당 좋아요·관심·댓글 평균. 발행 회차가 없으면 값이 null이라 막대를 그리지 않습니다. */
+export function ReactionsChart({ rows }: { rows: Reaction[] }) {
+  return (
+    <ChartFrame title="회차당 반응" summary={reactionSummary(rows)} height={200}>
+      <BarChart data={rows} margin={MARGIN} accessibilityLayer={false}>
+        <CartesianGrid stroke="var(--line)" vertical={false} />
+        <XAxis dataKey="label" tick={TICK} tickLine={false} axisLine={{ stroke: 'var(--line2)' }} />
+        <YAxis tick={TICK} tickLine={false} axisLine={false} width={40} />
+        {tooltip}
+        <Bar dataKey="perEpisode" name="회차당" {...PRIMARY} maxBarSize={36} radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ChartFrame>
+  )
+}
+
+/** Fork 기준 회차 구간별 Fork 수. 구간 이름과 순서는 서버가 준 그대로입니다. */
+export function BaseEpisodeChart({ bars }: { bars: { label: string; count: number }[] }) {
+  return (
+    <ChartFrame title="Fork 기준 회차 분포" summary={baseEpisodeSummary(bars)} height={200}>
+      <BarChart data={bars} margin={MARGIN} accessibilityLayer={false}>
+        <CartesianGrid stroke="var(--line)" vertical={false} />
+        <XAxis dataKey="label" tick={TICK} tickLine={false} axisLine={{ stroke: 'var(--line2)' }} />
+        <YAxis allowDecimals={false} tick={TICK} tickLine={false} axisLine={false} width={40} />
+        {tooltip}
+        <Bar dataKey="count" name="Fork 수" {...AMBER} maxBarSize={36} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ChartFrame>
   )

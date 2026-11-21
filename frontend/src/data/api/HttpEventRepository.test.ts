@@ -7,7 +7,7 @@ import { HttpEventRepository } from './HttpEventRepository'
 
 const ID = '0b6f3e5a-2c9d-4c0e-9a55-1f6f6d1f7a01'
 const event = {
-  id: ID, title: '가을 이벤트', body: '첫 줄\n둘째 줄', startsAt: '2026-11-08T00:00:00Z', endsAt: null,
+  id: ID, title: '가을 이벤트', body: '첫 줄\n둘째 줄', startsAt: '2026-11-08T00:00:00Z', endsAt: null, linkPath: '/lib?tab=worlds',
   createdAt: '2026-11-07T00:00:00Z', updatedAt: '2026-11-07T01:00:00.123456Z',
 }
 const list = { items: [event], page: 0, size: 100, totalElements: 1, totalPages: 1 }
@@ -33,6 +33,12 @@ describe('HttpEventRepository 독자 공개 API (비로그인)', () => {
       expect(init.headers?.Authorization).toBeUndefined()
       expect(init.body).toBeUndefined()
     }
+  })
+
+  it('이동 경로가 없거나 비어 오면 null이고, 글자가 아니면 거부한다', async () => {
+    const { linkPath: _omitted, ...without } = event
+    expect(await new HttpEventRepository(ok({ items: [without, { ...event, linkPath: null }] })).listPublic()).toEqual([{ ...event, linkPath: null }, { ...event, linkPath: null }])
+    await expect(new HttpEventRepository(ok({ items: [{ ...event, linkPath: 7 }] })).listPublic()).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
   })
 
   it('상세가 404이면 null이고, 그 밖의 실패는 없음으로 바꾸지 않는다', async () => {
@@ -67,7 +73,7 @@ describe('HttpEventRepository 관리자 API (회원 Bearer)', () => {
 
   it('등록은 POST로 JSON 본문을 보내고 201 응답의 이벤트를 돌려준다', async () => {
     const fetcher = ok(event, 201)
-    const input = { title: '가을 이벤트', body: '첫 줄\n둘째 줄', startsAt: '2026-11-08T00:00:00.000Z', endsAt: null }
+    const input = { title: '가을 이벤트', body: '첫 줄\n둘째 줄', startsAt: '2026-11-08T00:00:00.000Z', endsAt: null, linkPath: '/lib?tab=worlds' }
     expect(await new HttpEventRepository(fetcher).create(input)).toEqual(event)
     const [[url, init]] = callsOf(fetcher)
     expect(url).toBe('/api/v1/operations/admin/events')
@@ -77,7 +83,7 @@ describe('HttpEventRepository 관리자 API (회원 Bearer)', () => {
 
   it('전체 수정은 PUT으로 비운 기간(null)까지 그대로 보낸다', async () => {
     const fetcher = ok({ ...event, startsAt: null })
-    const input = { title: '수정', body: '본문', startsAt: null, endsAt: null }
+    const input = { title: '수정', body: '본문', startsAt: null, endsAt: null, linkPath: null }
     expect(await new HttpEventRepository(fetcher).update('a b/1', input)).toEqual({ ...event, startsAt: null })
     const [[url, init]] = callsOf(fetcher)
     expect(url).toBe('/api/v1/operations/admin/events/a%20b%2F1')

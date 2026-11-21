@@ -8,6 +8,7 @@ import { useDashboardViewModel, useWeeklyUsageViewModel } from '../viewmodel/use
 import type { useAdminViewModel } from '../viewmodel/useAdminViewModel'
 import { CostChart, RequestsChart } from './AdminCharts'
 import { LiveState } from './OperationsPanels'
+import { ServiceMetrics } from './ServiceMetrics'
 
 type VM = ReturnType<typeof useAdminViewModel>
 
@@ -26,6 +27,7 @@ export function OperationsDashboard({ vm, headSide }: { vm: VM; headSide: HTMLEl
       <LiveState vm={vm} label="운영 현황" state={dashboard} />
       {data && (
         <>
+          <ServiceMetrics funnel={data.funnel} />
           {data.unavailable.length > 0 && (
             <p className="admin-data-state" role="status">
               일부 출처를 불러오지 못했어요: {data.unavailable.join(', ')}. 해당 칸은 ‘불러오지 못함’으로 보여요(0으로 채우지 않아요).

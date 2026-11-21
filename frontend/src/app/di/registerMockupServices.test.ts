@@ -50,6 +50,10 @@ it('mockup 컨테이너의 운영 댓글은 서버 대신 데모 댓글을 운�
   expect((await comments.list()).find((c) => c.commentId === 'hanji-0')?.hidden).toBe(true)
 })
 
+it('운영 크레딧 저장소는 운영 API를 쓴다(회원 검색과 같이 서버 없는 시연용 대역은 두지 않는다)', () => {
+  expect(createAppContainer().resolve('operationsCreditRepository').constructor.name).toBe('HttpOperationsCreditRepository')
+})
+
 it('실제 모드 컨테이너의 운영 댓글은 운영 API 저장소를 쓴다', () => {
   expect(createAppContainer().resolve('operationsCommentRepository').constructor.name).toBe('HttpOperationsCommentRepository')
 })

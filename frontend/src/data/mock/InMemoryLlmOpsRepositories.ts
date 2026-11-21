@@ -34,6 +34,18 @@ export class InMemoryOperationsDashboardRepository implements OperationsDashboar
       jobs: { running: 1, failedLast24h: 1 },
       pending: { inquiries: 3, reports: 2, authorReviews: 5 },
       openAlerts: this.rows.filter((row) => row.status === 'open').length,
+      // 서비스 지표 예시(시연 데이터): 비율과 오차를 보이도록 단계마다 수가 줄어드는 값입니다.
+      funnel: {
+        readers: { viewed: 300, readAny: 180, readNext: 72 },
+        reactions: { publishedEpisodes: 46, likes: 214, interests: 97, comments: 38 },
+        forks: {
+          readers: 180, readerForked: 21,
+          baseEpisodes: [{ bucket: '1', count: 9 }, { bucket: '2', count: 6 }, { bucket: '3', count: 4 }, { bucket: '4-5', count: 3 }, { bucket: '6-10', count: 2 }, { bucket: '11+', count: 1 }],
+        },
+        writers: { forks: 25, saved: 17, published: 8, medianHoursToPublish: 31.5 },
+        proposals: { adopted: 64, total: 210 },
+        feedback: { approved: 11, decided: 19 },
+      },
       unavailable: [],
     }
   }
