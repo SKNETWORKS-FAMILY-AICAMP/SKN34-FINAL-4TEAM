@@ -32,6 +32,28 @@ Content `GET /internal/v1/operations/funnel`(운영 서비스 토큰 체인, 파
 | `proposals.adopted`·`total` | AI 제안 채택 수 / 생성 수(기존 stats와 같은 정의, 전체 기간) |
 | `feedback.approved`·`decided` | 수정 제안 승인 / 승인+거절(기존 stats와 같은 정의, 전체 기간) |
 
+세는 곳(Content `OperationsFunnelService`, 값마다 JPQL 쿼리 하나, 삭제된 작품은 `work.deleted_at`(DEC-42)로 거른다):
+
+| 칸 | 세는 곳·조건 |
+|---|---|
+| `readers.viewed` | `work_view`의 서로 다른 `member_id`. 비회원 조회는 기록되지 않아 빠지며 작품 삭제는 거르지 않는다. |
+| `readers.readAny` | `reading_episode`(회원이 연 회차)의 서로 다른 `member_id`. 삭제된 작품을 읽은 회원도 센다. |
+| `readers.readNext` | `reading_episode`에서 같은 `work_id`의 다른 `episode_number` 행이 더 있는 서로 다른 `member_id`(같은 회차를 다시 열어도 한 행). |
+| `reactions.publishedEpisodes` | `episode_current` 중 발행 버전이 있는 행(Fork가 물려받은 회차 포함, 삭제한 회차는 뷰가 뺀다)이며 삭제되지 않은 작품의 것. |
+| `reactions.likes`·`interests` | `work_like`·`work_interest` 행 수, 삭제되지 않은 작품의 것. |
+| `reactions.comments` | `episode_comment` 중 `deleted_at`이 없고 `hidden = false`이며 삭제되지 않은 작품의 것. |
+| `forks.readers` | `readers.readAny`와 같은 쿼리 결과. |
+| `forks.readerForked` | 삭제되지 않은 Fork(`fork`·`work`)의 `owner_id` 중 `reading_episode`에 기록이 있는 서로 다른 회원. |
+| `forks.baseEpisodes` | 삭제되지 않은 Fork를 `fork.source_checkpoint_id`→`checkpoint.episode_id`→`episode.sequence`(Fork를 만들 때 고정한 원작 회차 번호)별로 센 뒤 여섯 구간으로 합친다. 배열 `[{bucket, count}]`이며 구간 순서는 `1`·`2`·`3`·`4-5`·`6-10`·`11+` 고정이고 Fork가 없는 구간도 `count: 0`으로 싣는다. |
+| `writers.forks` | 삭제되지 않은 Fork 작품 수(`fork`·`work`). |
+| `writers.saved` | 그중 Fork 자기 회차(`episode.work_id`)에 `episode_version.is_saved = true`가 있는 수. 물려받은 회차의 복사본은 `is_saved = false`라 빠진다. |
+| `writers.published` | 그중 Fork 자기 회차 버전에 `publication_event`(`outcome = 'applied'`, `action`이 `publish`·`republish`·`replace`)가 있는 수. 물려받은 회차는 발행 기록이 없어 빠진다. |
+| `writers.medianHoursToPublish` | 위 Fork마다 `fork.created_at`→첫 발행 기록의 `occurred_at`(시간 단위)을 서비스에서 정렬해 중앙값(짝수 개는 가운데 둘의 평균)을 소수 1자리로 맞춘다. 발행한 Fork가 없으면 `null`. 발행한 Fork 수만큼 행을 읽는 시연 규모 구현이다. |
+| `proposals.adopted`·`total` | 운영 통계(`OperationsStatsService.proposalDecisions`)를 `1970-01-01`~요청 시각으로 호출: `ai_proposal.created_at`이 그 안인 제안 수(`total`)와 그중 `proposal_decision.decision = 'accept'`가 있는 수(`adopted`). |
+| `feedback.approved`·`decided` | 운영 통계(`OperationsStatsService.editSuggestions`)를 같은 기간으로 호출: `edit_suggestion.decided_at`이 그 안인 `approved` 수와 `approved`+`rejected` 수(보류는 결정이 아님). |
+
+응답 모양: `{ readers: {viewed, readAny, readNext}, reactions: {publishedEpisodes, likes, interests, comments}, forks: {readers, readerForked, baseEpisodes: [{bucket, count}]}, writers: {forks, saved, published, medianHoursToPublish}, proposals: {adopted, total}, feedback: {approved, decided} }`(`medianHoursToPublish`는 값이 없어도 키가 있고 `null`이다).
+
 수익(크레딧 사용·원작자 몫)과 사용성(SUS·과제 성공률)은 DB 퍼널이 아니라 이 화면에 두지 않는다(#650 2번·설문으로 다룬다).
 
 화면: 개요 첫 화면 맨 위에 "서비스 지표(전체 기간)" 구역. 단계 막대 4묶음(독자 조회→1화 이상→이어 읽기, 독자→Fork, Fork→저장→발행, AI 채택·피드백 반영)과

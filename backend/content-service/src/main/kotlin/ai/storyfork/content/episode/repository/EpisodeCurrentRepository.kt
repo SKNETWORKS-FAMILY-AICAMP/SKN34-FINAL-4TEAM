@@ -36,6 +36,13 @@ interface EpisodeCurrentRepository : JpaRepository<EpisodeCurrentEntity, String>
         where c.workId = :workId""")
     fun publishedBodies(@Param("workId") workId: String): List<String>
 
+    /**
+     * 지금 발행된(발행 버전이 있는) 회차 중 삭제되지 않은 작품의 것의 수다. Fork가 물려받은 회차도 독자가 읽는 발행 회차라 세고, 지운 회차는 뷰가 뺀다.
+     * 발행 기준은 [PublicationService.publishedEpisodes][ai.storyfork.content.publication.service.PublicationService.publishedEpisodes]와 같다(운영 퍼널, DEC-57).
+     */
+    @Query("select count(c) from EpisodeCurrentEntity c join WorkEntity w on w.id = c.workId where c.publishedVersionId is not null and w.deletedAt is null")
+    fun countPublished(): Long
+
     fun findAllByWorkIdOrderBySequence(workId: String): List<EpisodeCurrentEntity>
     fun findByWorkIdAndSequence(workId: String, sequence: Int): EpisodeCurrentEntity?
 }
