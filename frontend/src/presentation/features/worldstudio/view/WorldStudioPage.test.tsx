@@ -315,7 +315,7 @@ it('관리 보기 전환 메뉴가 왼쪽 사이드바에 있고(개요·설정�
 it('테마 전환은 사이드바 맨 아래 줄의 버튼 한 개가 맡는다: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않고 공용 상단바(Gnb)도 없다', async () => {
   await showWorld()
   const theme = screen.getByRole('button', { name: '다크 모드로' }) // 한 개
-  expect(theme.closest('.world-menu-account')).toBeTruthy()
+  expect(theme.closest('.ep-menu-account')).toBeTruthy()
   expect(theme.closest('.ep-menu')).toBeTruthy()
   expect(theme.closest('.gnb')).toBeNull()
 })
@@ -622,7 +622,7 @@ it('집필 메모 추가는 관리 사이드바에 없다(메모 유형 카드�
   await showWorld()
   expect(screen.queryByRole('button', { name: '집필 메모 추가' })).toBeNull()
   const review = screen.getByRole('button', { name: /^AI 검토/ })
-  expect(review.parentElement?.classList.contains('world-menu-tools')).toBe(true)
+  expect(review.parentElement?.classList.contains('ep-menu-tools')).toBe(true)
   expect(review.nextElementSibling).toBe(screen.getByRole('button', { name: '확정 버전 남기기' }))
 })
 
@@ -672,7 +672,7 @@ it('설정집 화면에도 확정 버전 남기기가 사이드바의 저장 영
   revisions = { ...noRevisions(), confirm }
   await showWorld()
   const button = () => screen.getByRole<HTMLButtonElement>('button', { name: '확정 버전 남기기' })
-  expect(screen.getByRole('group', { name: '저장 상태' }).closest('.world-menu-tools')?.contains(button())).toBe(true) // 저장 영역과 같은 사이드바 묶음
+  expect(screen.getByRole('group', { name: '저장 상태' }).closest('.ep-menu-tools')?.contains(button())).toBe(true) // 저장 영역과 같은 사이드바 묶음
   fireEvent.click(button())
   fireEvent.click(within(screen.getByRole('dialog', { name: '확정 버전' })).getByRole('button', { name: '저장된 초안을 확정 버전으로 남기기' }))
   expect(confirm).toHaveBeenCalledOnce() // 새 로직 없이 기존 확정 요청
@@ -4527,32 +4527,10 @@ it('사이드바는 위에서 아래로 로고·접기 토글·내가 만드는 
     side.getByRole('button', { name: '내 계정 메뉴' }),
   ]
   order.slice(1).forEach((el, i) => expect(order[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING, el.textContent || el.getAttribute('aria-label') || '').toBeTruthy())
-  expect(order[4].closest('.world-menu-tools')?.contains(order[6])).toBe(true) // AI 검토·확정 버전 남기기·저장 영역이 아래로 밀리는 한 묶음이다
-  expect(order[7].closest('.world-menu-account')?.contains(order[9])).toBe(true)
-  expect(order[7].closest('.world-menu-tools')).toBeNull() // 계정 줄은 그 묶음 밖의 맨 아래 줄이다
-  expect(order[0].closest('.world-menu-top')?.contains(order[1])).toBe(true) // 로고와 접기 토글이 맨 위 한 줄이다
-})
-
-it('사이드바의 알림 링크는 상단바와 같은 이름에 읽지 않은 알림 수를 붙인다', async () => {
-  vi.spyOn(appContainer.resolve('shellUseCase'), 'getBadges').mockResolvedValue({ unread: 3, pending: 0 })
-  await showWorld()
-  const link = await screen.findByRole('link', { name: '알림함, 읽지 않은 알림 3건' })
-  expect(link.closest('.ep-menu')).toBeTruthy()
-  expect(link.textContent).toBe('알림 3')
-})
-
-it('사이드바의 계정 아바타는 상단바와 같은 계정 메뉴를 열고 Esc로 닫으면 초점이 아바타로 돌아온다', async () => {
-  vi.spyOn(appContainer.resolve('creditLedgerUseCase'), 'balance').mockReturnValue(new Promise(() => {})) // 메뉴의 보유 크레딧은 읽는 중에 머문다
-  await showWorld()
-  const avatar = screen.getByRole('button', { name: '내 계정 메뉴' })
-  expect(avatar.closest('.world-menu-account')).toBeTruthy() // 공용 상단바의 아바타가 아니라 사이드바 맨 아래 줄의 것이다
-  expect(avatar.getAttribute('aria-expanded')).toBe('false')
-  fireEvent.click(avatar)
-  expect(avatar.getAttribute('aria-expanded')).toBe('true')
-  expect(screen.getByRole('menu', { name: '내 계정 메뉴' })).toBeTruthy()
-  fireEvent.keyDown(document, { key: 'Escape' })
-  expect(screen.queryByRole('menu')).toBeNull()
-  expect(document.activeElement).toBe(avatar)
+  expect(order[4].closest('.ep-menu-tools')?.contains(order[6])).toBe(true) // AI 검토·확정 버전 남기기·저장 영역이 아래로 밀리는 한 묶음이다
+  expect(order[7].closest('.ep-menu-account')?.contains(order[9])).toBe(true)
+  expect(order[7].closest('.ep-menu-tools')).toBeNull() // 계정 줄은 그 묶음 밖의 맨 아래 줄이다
+  expect(order[0].closest('.ep-menu-top')?.contains(order[1])).toBe(true) // 로고와 접기 토글이 맨 위 한 줄이다
 })
 
 it('작성 모드(마법사)와 새 세계관 만들기 화면은 사이드바가 없어 공용 상단바(Gnb)가 그대로이고 사이드바 계정 줄은 없다', async () => {
@@ -4560,12 +4538,12 @@ it('작성 모드(마법사)와 새 세계관 만들기 화면은 사이드바�
   expect(screen.getByRole('banner')).toBeTruthy()
   expect(screen.getByRole('navigation', { name: '주요 메뉴' })).toBeTruthy()
   expect(screen.getByRole('link', { name: 'STORYFORK 홈으로' }).closest('.gnb')).toBeTruthy()
-  expect(document.querySelector('.world-menu-account, .world-menu-top')).toBeNull()
+  expect(document.querySelector('.ep-menu-account, .ep-menu-top')).toBeNull()
   cleanup()
   await show(undefined, '/worldstudio')
   expect(screen.getByRole('banner')).toBeTruthy()
   expect(screen.getByRole('navigation', { name: '주요 메뉴' })).toBeTruthy()
-  expect(document.querySelector('.world-menu-account, .world-menu-top')).toBeNull()
+  expect(document.querySelector('.ep-menu-account, .ep-menu-top')).toBeNull()
 })
 
 it('내가 만드는 세계관 링크는 사이드바를 펼친 동안은 사이드바에만, 접으면 상단 줄(.ep-top)의 저장 영역 옆에만 있다(두 곳 동시 노출 없음)', async () => {

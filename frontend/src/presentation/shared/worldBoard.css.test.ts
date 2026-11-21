@@ -103,9 +103,8 @@ describe('세계관 작업실 레이아웃 규칙', () => {
     expect(studio).toMatch(/@media\(max-width:900px\)\{[^@]*\.world-chat\{[^}]*position:fixed/)
   })
 
-  it('관리 모드 사이드바의 도구 묶음은 줄바꿈하는 가로 줄이고 901px부터 구분선 뒤에 버튼과 상시 저장 영역을 세로로 쌓으며, 옛 탭 줄 규칙을 남기지 않는다', () => {
-    expect(rule(studio, '.world-menu-tools')).toMatch(/flex-wrap:\s*wrap/)
-    expect(studio).toMatch(/@media\(min-width:901px\)\{\.world-menu-tools\{[^}]*display:grid[^}]*border-top:\s*1px solid[^}]*\}\.world-menu-tools \.world-save-bar\{[^}]*flex-direction:column/)
+  it('관리 모드 사이드바의 도구 묶음 틀(줄바꿈하는 가로 줄, 901px부터 구분선 뒤 세로 묶음)은 공용 episode.css에 있고, 세계관 파일은 상시 저장 영역만 세로로 쌓으며, 옛 탭 줄 규칙을 남기지 않는다', () => {
+    expect(studio).toMatch(/@media\(min-width:901px\)\{[^@]*\.ep-menu-tools \.world-save-bar\{[^}]*flex-direction:column/)
     expect(studio).not.toMatch(/world-tabs-(row|end)/) // 탭 줄을 비운 것이 이 이동의 목적이다
   })
 })
@@ -275,7 +274,7 @@ describe('관계도 설정 패널', () => {
 
 describe('390px 가로 넘침(critique 후속)', () => {
   it('900px 이하 보기 메뉴 묶음·줄은 min-width:0라 탭 줄+채팅 열기 버튼의 최소 폭(약 480px)이 358px 본문의 그리드 칸을 늘리지 않고 탭 줄이 가로로 스크롤한다', () => {
-    expect(studio).toContain('@media(max-width:900px){.world-menu-body,.world-menu-row{min-width:0}.world-menu-row{display:flex;align-items:center;gap:8px}')
+    expect(studio).toContain('@media(max-width:900px){.world-menu-row{min-width:0;display:flex;align-items:center;gap:8px}')
   })
 })
 

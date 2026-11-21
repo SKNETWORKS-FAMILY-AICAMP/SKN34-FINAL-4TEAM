@@ -2,22 +2,62 @@
 @media(max-width:1100px){.ep-main{padding:8px 25px 56px}}@media(max-width:650px){.ep-main{padding:8px 18px 40px}.ep-main h1{font-size:25px}.ep-create{margin:18px 0 35px}.ep-steps{gap:15px;margin-top:38px}.ep-alert{display:block}.ep-alert button{margin-top:10px}.ep-form-footer{align-items:flex-start;flex-direction:column}.ep-form-footer button{align-self:flex-end}.ep-reading article>div{font-size:16px}}
 
 .episode-app .ep-check{min-height:44px;align-items:center}.episode-app .btn.sm{min-height:44px}.ep-reading details>div{white-space:pre-wrap;overflow-wrap:anywhere}/* 이력 탭 제목: 항목(h4)은 묶음(h3)보다 한 단계 낮게 둔다(글자 크기·굵기는 맨 아래 '관리 화면 quieter' 규칙). Tailwind preflight를 쓰지 않아 제목 기본 크기가 브라우저 값(h3 1.17em, h4 1em)이라 크기를 직접 정한다. */.ep-reading :is(h3,h4){margin:20px 0 12px}.ep-reading p{margin:16px 0;line-height:1.8}.episode-app ::selection{background:var(--pri-soft);color:var(--pri-ink)}
-/* 관리 화면 틀(작품 관리·세계관 관리 공용): 왼쪽 메뉴(.ep-menu) | 내용(.ep-content). 가운데 열에 가로 탭으로 늘어놓던 메뉴를 왼쪽 열로 옮겼다.
-   메뉴는 상단바(.gnb 64px + 선 1px) 아래 16px에 붙고(sticky) 키가 모자라면 안에서 스크롤한다. 메뉴가 있는 화면만 본문을 1360px까지 넓혀 내용 폭(≈1070px)을 지킨다(.ep-main 기본은 1120px).
+/* 관리 화면 틀(작품 관리·세계관 관리 공용): 공용 상단바(Gnb)·푸터 없이 왼쪽 사이드바(.ep-menu)가 상단바 역할을 하고 오른쪽이 내용(.ep-content)이다. 사이드바는 ManageMenu(shared/shell)가 그린다.
+   사이드바는 위에서 아래로 맨 위 줄(.ep-menu-top: STORYFORK 로고 + 접기 토글) / 본문(.ep-menu-body: 돌아가기 링크·메뉴(nav)·도구 묶음(.ep-menu-tools)) / 맨 아래 줄(.ep-menu-account: 알림·테마·계정)이다.
+   901px부터 사이드바는 화면 맨 위(top:0)에 붙어 화면 높이를 다 쓰는 세로 열이고, 위·아래 줄은 늘 보이고 본문만 키가 모자라면 안에서 스크롤한다. 도구 묶음은 margin-top:auto로 본문 아래쪽에 붙는다.
+   메뉴가 있는 화면만 본문의 폭 제한(.ep-main 기본 1120px)·가운데 정렬을 풀어 메뉴를 화면 왼쪽 끝에 붙이고, 남는 폭은 내용 열이 쓰되 안의 글·표는 읽기 좋은 폭(≈1070px)까지만 쓰고 열 안에서 가운데에 둔다. 메뉴가 없는 화면은 그대로다.
    항목 모양은 관리자 화면 메뉴(.adm .admin-nav, storyfork.css)와 같다: 38px·hover 옅은 면·선택은 옅은 강조 면. */
 .ep-manage{display:grid;grid-template-columns:208px minmax(0,1fr);gap:32px;align-items:start}
-.ep-main:has(.ep-manage){max-width:1360px}
+.ep-main:has(.ep-manage){max-width:none;margin-inline:0}
 .ep-content{min-width:0}
-.ep-menu{position:sticky;top:81px;max-height:calc(100dvh - 97px);overflow-y:auto;scrollbar-width:thin;display:grid;gap:12px;padding-right:12px;border-right:1px solid var(--line2)}
+.ep-manage .ep-content>*{max-width:1072px;margin-inline:auto}
+.ep-menu{position:sticky;top:0;height:100dvh;overflow-y:auto;scrollbar-width:thin;display:flex;flex-direction:column;gap:12px;padding:8px 12px 12px 0;border-right:1px solid var(--line2)}
 .ep-menu nav{display:grid;gap:3px}
 .ep-menu nav button{min-height:38px;padding:6px 10px;border:0;border-radius:9px;background:transparent;color:var(--sub);font-size:13.5px;font-weight:650;line-height:1.35;text-align:left}
 /* hover는 누를 수 있다는 단서만 준다. 선택한 항목과 잠긴 항목은 그대로 둔다. */
 .ep-menu nav button:hover:not(:disabled,[aria-current]){background:var(--muted-bg);color:var(--ink)}
 .ep-menu nav button[aria-current]{background:var(--pri-soft);color:var(--pri-ink)}
-/* 스크롤 상자(세로 열·가로 줄)는 바깥으로 넘친 초점 링을 자르므로 메뉴 안의 링은 안쪽에 그린다. */
-.ep-menu button:focus-visible{outline-offset:-2px}
-/* 900px 이하: 메뉴는 내용 위의 가로 스크롤 줄이 된다(관리자 화면과 같다). 터치·좁은 화면의 누르는 높이는 44px. */
-@media(max-width:900px){.ep-manage{grid-template-columns:minmax(0,1fr);gap:16px}.ep-menu{position:static;max-height:none;overflow:visible;padding:0 0 8px;border-right:0;border-bottom:1px solid var(--line2)}.ep-menu nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}.ep-menu nav button{flex:none;white-space:nowrap}}
+/* 스크롤 상자(세로 열·가로 줄)는 바깥으로 넘친 초점 링을 자르므로 사이드바 안의 링(버튼·링크)은 안쪽에 그린다. */
+.ep-menu button:focus-visible,.ep-menu a:focus-visible{outline-offset:-2px}
+/* 맨 위 줄: 로고는 전역 .logo의 600px 이하 글자 숨김 규칙(SF만 남긴다)을 이 줄에서는 덮어 글자를 지키고, 사이드바 폭(195px)에서 접기 토글(44px)과 한 줄에 들어가도록 15px이다.
+   토글은 44×44이고 펼친 동안은 아이콘을 뒤집어 왼쪽으로 접는 방향으로 보인다. */
+.ep-menu-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.ep-menu-logo{min-width:0;padding-left:4px;gap:6px;font-size:15px}
+.ep-menu-toggle{display:inline-grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:0;border-radius:9px;background:transparent;color:var(--sub);cursor:pointer}
+.ep-menu-toggle:hover{background:var(--muted-bg);color:var(--ink)}
+.ep-menu-toggle[aria-expanded=true] svg{transform:scaleX(-1)}
+.ep-menu-body{display:grid;gap:12px}
+/* 돌아가기 링크: 메뉴 항목과 같은 글자 크기·안쪽 여백이다(공용 .ep-back의 음수 왼쪽 여백·아래 여백은 없다). */
+.ep-menu .ep-menu-back{margin:0;padding:6px 10px;border-radius:9px;font-size:13.5px;font-weight:650}
+.ep-menu .ep-menu-back:hover{background:var(--muted-bg);color:var(--ink)}
+/* 도구 묶음(작품: 회차 작성하기·내 댓글·제보 / 세계관: AI 검토·확정 버전·저장 영역): 기본은 줄바꿈하는 가로 줄이다. 도구 버튼은 보기 메뉴(테두리 없음)보다 무겁지 않게 모든 폭에서 옅은 테두리·600이다(주 버튼 .pri는 그대로). */
+.ep-menu-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.ep-menu-tools .btn:not(.pri){border-color:var(--line);font-weight:600}
+/* 맨 아래 줄: 알림은 왼쪽, 테마·계정은 오른쪽 끝이다. 테마·계정 버튼은 알림 버튼(44px)과 같은 44px다. */
+.ep-menu-account{display:flex;align-items:center;gap:8px}
+.ep-menu-account .btn{margin-right:auto}
+.ep-menu-account :is(.thm,.avatar){flex:none;width:44px;height:44px}
+/* 901px 이상: 본문 위 8px(.ep-main)도 없애 열이 화면 맨 위에서 시작하고 내용 열은 16px 내려 시작한다. 본문(.ep-menu-body)이 남는 높이를 채우며 안에서 스크롤하고, 도구 묶음은 그 아래쪽에 위 선으로 구분돼 세로로 쌓인다.
+   접으면 44px 열이 되고(내용 열이 그만큼 넓어진다) 메뉴 옆 선·여백이 없어지며 로고·계정 줄과 본문(hidden)이 숨어 토글만 남는다 — 900px 이하는 이미 가로 블록이라 접힘이 없다.
+   계정 줄이 사이드바 맨 아래라 공용 AccountMenu(아바타 아래에 inline top·left로 맞춘다)의 메뉴를 아바타 위로 올린다: 자기 높이 + 아바타(44px) + 간격 16px(공용 메뉴가 아바타 아래에 두는 8px을 되돌리고 위로 8px 더)이고,
+   popin 애니메이션의 from 프레임이 transform을 덮어 열릴 때 튀므로 이 화면에서는 끈다. 900px 이하는 계정 줄이 맨 위로 올라와 기본(아래로 열림)이 맞다. */
+@media(min-width:901px){
+.ep-main:has(.ep-manage){padding-top:0}
+.ep-manage .ep-content{padding-top:16px}
+.ep-menu-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:thin}
+.ep-menu-body[hidden]{display:none}
+.ep-menu-tools{display:grid;margin-top:auto;padding-top:12px;border-top:1px solid var(--line2)}
+.ep-menu-account{padding-top:12px;border-top:1px solid var(--line2)}
+.ep-manage[data-menu=collapsed]{grid-template-columns:44px minmax(0,1fr);column-gap:20px}
+.ep-manage[data-menu=collapsed] .ep-menu{height:auto;padding-right:0;border-right:0}
+.ep-manage[data-menu=collapsed] :is(.ep-menu-logo,.ep-menu-account){display:none}
+body:has(.ep-menu-account) .acctm{transform:translateY(calc(-100% - 60px));animation:none}
+}
+/* 사이드바 맨 아래 줄에 테마 버튼이 있으면 오른쪽 아래에 떠 있는 테마 버튼(GlobalChrome이 공용 상단바가 없는 화면에 대신 그린다)은 숨긴다: 테마 버튼이 둘이 되지 않게(공용 상단바가 있는 화면은 storyfork.css의 body:has(.gnb) .thm-float가 같은 일을 한다). */
+body:has(.ep-menu-account) .thm-float{display:none}
+/* 900px 이하: 사이드바는 내용 위의 가로 블록이다. 로고(맨 위 줄)와 계정 줄이 그 블록 맨 위 한 줄에 놓이고(DOM 순서는 로고·본문·계정이라 order로 올린다) 줄이 모자라면 줄바꿈해 가로로 넘치지 않는다. 본문은 다음 줄이고(min-width:0: 그리드·플렉스 항목의 자동 최소 폭이 내용 폭이라 좁은 화면에서 칸이 늘어 문서가 가로로 넘치지 않게),
+   메뉴(nav)는 가로 스크롤 줄이다(관리자 화면과 같다). 접힘이 없어 토글을 숨기고, 접힌 상태로 좁아져도 본문은 그대로 보인다(작성자 CSS의 display가 UA의 [hidden]을 이긴다). 터치·좁은 화면의 누르는 높이는 44px. */
+@media(max-width:900px){.ep-manage{grid-template-columns:minmax(0,1fr);gap:16px}.ep-menu{position:static;height:auto;overflow:visible;flex-direction:row;flex-wrap:wrap;align-items:center;padding:0 0 8px;border-right:0;border-bottom:1px solid var(--line2)}.ep-menu-top{flex:1 1 auto}.ep-menu-toggle{display:none}.ep-menu-account{order:1}.ep-menu-body{order:2;flex:1 1 100%;min-width:0}.ep-menu nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}.ep-menu nav button{flex:none;white-space:nowrap}}
 @media(max-width:600px),(pointer:coarse){.ep-menu nav button{min-height:44px}}
 .ep-main summary{cursor:pointer;min-height:44px;padding:12px 0;font-size:13px;line-height:1.6;overflow-wrap:anywhere}.ep-main summary:focus-visible{outline:2px solid var(--pri);outline-offset:3px}.ep-context{margin:24px 0;border-block:1px solid var(--line2);padding:16px 0}.ep-context h3{font-size:15px}.ep-context p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.8;margin:12px 0}.ep-context details{border-top:1px solid var(--line)}.ep-context small{overflow-wrap:anywhere}.ep-main input,.ep-main textarea{caret-color:var(--pri)}.ep-main button:disabled{cursor:not-allowed;opacity:.55}
 
@@ -99,6 +139,8 @@
 /* 새 작품 만들기 정리: 상단 링크 한 줄, 폼 안 체크 항목은 grid 간격만 쓰고, 모바일 제목 입력은 placeholder가 잘리지 않게 줄인다. */
 .ep-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
 .ep-top .ep-back{margin-bottom:0}
+/* 접힌 사이드바의 주 행동(WorkActions)은 한 덩어리라 .ep-top의 space-between이 돌아가기 링크는 왼쪽, 행동은 오른쪽으로 나눈다. */
+.ep-top-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .episode-app .ep-create-fields .ep-check{margin:0}
 @media(max-width:650px){.episode-app .ep-create .ep-create-title input:not([type=checkbox]){font-size:20px}}
 /* iOS는 16px보다 작은 입력에 초점이 가면 화면을 확대한다. 손가락이 주 입력인 기기에서만 입력 글자를 16px로 올린다(큰 제목 입력과 데스크톱 밀도는 그대로). */

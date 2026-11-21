@@ -246,11 +246,6 @@ it('분류 칩 줄(게시판 폭 1000px 이하)에서 선택하지 않은 칩은
   expect(css).toMatch(/@container worlds-board \(max-width:1000px\)\{\.world-card-library \.worlds-cats :is\(a,button\):not\(\[aria-current\]\)\{border-color:var\(--line\);font-weight:600\}\}/)
 })
 
-it('사이드바의 도구 버튼(AI 검토·확정 버전)은 모든 폭에서 보기 메뉴보다 가벼운 옅은 테두리·600이다(900px 이하 가로 줄에서도 탭 줄보다 무겁지 않다) — 저장 버튼(.pri)은 그대로다', () => {
-  expect(css).toMatch(/\.world-menu-tools \.btn:not\(\.pri\)\{border-color:var\(--line\);font-weight:600\}/)
-  expect(css).not.toMatch(/@media\(min-width:901px\)\{[^@]*\.world-menu-tools \.btn:not\(\.pri\)/) // 데스크톱 전용 규칙이 아니다
-})
-
 it('채팅 머리의 브랜드 원은 집필실 채팅 머리(.chat-brand)와 같은 옅은 면이다 — 채운 보라는 전송 버튼만', () => {
   const soft = /background:\s*var\(--pri-soft\);\s*color:\s*var\(--pri-ink\)/
   expect(rule((s) => s === '.world-chat .chat-brand')?.body).toMatch(soft)
@@ -283,7 +278,8 @@ it('설정집 도구줄의 검색 칸은 220px에서 시작해, 채팅을 연 14
 })
 
 it('사이드바의 저장 영역은 901px부터 위 도구 버튼 묶음과 8px 더 떨어지고, 저장 상태 글자는 보기 메뉴 글자와 같은 x(안쪽 여백 10px)에서 시작한다', () => {
-  expect(css).toMatch(/@media\(min-width:901px\)\{\.world-menu-tools\{[^@]*\.world-menu-tools \.world-save-bar\{[^}]*margin-top:8px[^}]*\}\.world-menu-tools \.world-save-state\{padding-inline:10px\}/)
+  expect(wide('.ep-menu-tools .world-save-bar')).toMatch(/flex-direction:column;align-items:stretch;margin-top:8px/)
+  expect(wide('.ep-menu-tools .world-save-state')).toMatch(/padding-inline:10px/)
 })
 
 it('작성 단계 표시: 첫 원이 카드 왼쪽 가장자리에 맞고, 500px 이하에서는 지금 단계만 이름을 보이고 나머지는 번호 원만 남겨 네 단계가 가로 스크롤 없이 한 줄에 든다', () => {
@@ -298,20 +294,10 @@ it('이미지 타일 안내는 두 줄 길이를 고르게 나누고(text-wrap:b
 
 // ── 기능별 탭·게시판 미리보기·사이드바 접기(audit 단계: R1·R4) ────────────────────────────────────────
 
-it('사이드바 접기(R1): 901px부터만 접힌 틀이 44px 열이고 메뉴 옆 선·여백이 없어지며, 900px 이하(이미 가로 줄)에서는 접기 버튼을 숨기고 접힌 메뉴도 그대로 보인다 — 공용 episode.css는 건드리지 않는다', () => {
-  expect(css).toContain('@media(min-width:901px){.world-content.ep-manage[data-menu=collapsed]{grid-template-columns:44px minmax(0,1fr);column-gap:20px}.world-content.ep-manage[data-menu=collapsed] .ep-menu{padding-right:0;border-right:0}}')
-  // 900px 이하: 접힌 메뉴(hidden)를 되살린다. .world-writing [hidden]{display:none!important}를 이기려면 !important와 한 단계 높은 선택자가 필요하다.
-  expect(css).toContain('@media(max-width:900px){.world-menu-toggle{display:none}.world-writing .world-menu-body[hidden]{display:grid!important}}')
-  expect(episodeCss).not.toContain('data-menu') // /content 작품 관리 사이드바는 그대로
-  expect(episodeCss).not.toContain('world-menu')
-})
-
-it('접기 버튼은 44×44 토글이고 펼친 동안에는 아이콘을 뒤집어(왼쪽으로 접는 방향) 보이며, 메뉴 묶음은 보기 메뉴와 도구를 같은 세로 간격으로 쌓는다', () => {
-  const toggle = rule((s) => s === '.world-menu-toggle')?.body ?? ''
-  expect(toggle).toMatch(/width:44px;height:44px/)
-  expect(toggle).toMatch(/justify-self:start/)
-  expect(rule((s) => s === '.world-menu-toggle[aria-expanded=true] svg')?.body).toMatch(/transform:scaleX\(-1\)/)
-  expect(rule((s) => s === '.world-menu-body')?.body).toMatch(/display:grid;gap:12px/) // .ep-menu의 gap과 같다
+it('사이드바 접기: 접힌 틀·토글 규칙은 공용 episode.css 한 곳에 있고, 이 화면은 자기 [hidden] 규칙(.world-writing [hidden]{display:none!important})이 900px 이하에서 접힌 본문을 계속 숨기지 않게 !important로 되살린다', () => {
+  expect(narrow('.world-writing .ep-menu-body[hidden]')).toMatch(/display:grid!important/)
+  expect(css).not.toContain('data-menu')
+  expect(episodeCss).toContain('data-menu=collapsed')
 })
 
 it('게시판 미리보기 줄은 표 칸 여백 없이 고른 줄과 같은 옅은 면 한 칸이고, 고른 줄과의 사이 선을 거두며, 위키 문서는 높이를 제한해 안에서 스크롤한다 (R4)', () => {
@@ -354,7 +340,7 @@ it('관리 모드의 모든 보기(개요 포함)와 작성 모드(wizard)의 �
 it('900px 이하에서 닫힌 AI 채팅 열기 버튼은 보기 메뉴 줄의 오른쪽 끝 슬롯에 놓이고(제자리 버튼), 넓은 화면에서는 줄을 풀어 메뉴 배치가 그대로며 빈 슬롯은 숨는다', () => {
   expect(rule((s) => s === '.world-menu-row')?.body).toMatch(/display:contents/)
   expect(rule((s) => s === '.world-chat-slot:empty')?.body).toMatch(/display:none/)
-  expect(css).toContain('@media(max-width:900px){.world-menu-body,.world-menu-row{min-width:0}.world-menu-row{display:flex;align-items:center;gap:8px}.world-menu-row nav{flex:1 1 auto;min-width:0}.world-chat-slot .studio-chat-toggle{position:static;flex:none;box-shadow:none;white-space:nowrap}}')
+  expect(css).toContain('@media(max-width:900px){.world-menu-row{min-width:0;display:flex;align-items:center;gap:8px}.world-menu-row nav{flex:1 1 auto;min-width:0}.world-chat-slot .studio-chat-toggle{position:static;flex:none;box-shadow:none;white-space:nowrap}}')
   expect(writingCss).not.toContain('world-chat-slot') // 집필실의 같은 공용 버튼은 건드리지 않는다
 })
 
@@ -446,8 +432,8 @@ it('게시판 표 머리는 회색 띠가 아니라 아래 선 하나다(관리�
 })
 
 // ── 5단계 polish: 정렬·간격·390 탭 줄·상태 마감(색·구조·문구는 그대로) ────────────────────────────────────────
-it('900px 이하 세계관 메뉴의 탭 줄(nav)은 줄바꿈해 탭 다섯 개가 모두 보인다(가로 스크롤 줄 끝에서 소설 연결이 AI 채팅 열기 뒤로 가려졌다). 공용 .ep-menu nav(/content 작품 관리 메뉴)는 그대로이고, 이 규칙은 .world-menu-body를 더해 그 규칙을 이긴다', () => {
-  expect(css).toMatch(/@media\(max-width:900px\)\{\.world-menu-body \.world-menu-row nav\{flex-wrap:wrap;overflow-x:visible\}\}/)
+it('900px 이하 세계관 메뉴의 탭 줄(nav)은 줄바꿈해 탭 다섯 개가 모두 보인다(가로 스크롤 줄 끝에서 소설 연결이 AI 채팅 열기 뒤로 가려졌다). 공용 .ep-menu nav(/content 작품 관리 메뉴)는 그대로이고, 이 규칙은 .ep-menu-body를 더해 그 규칙을 이긴다', () => {
+  expect(css).toMatch(/@media\(max-width:900px\)\{\.ep-menu-body \.world-menu-row nav\{flex-wrap:wrap;overflow-x:visible\}\}/)
   expect(episodeCss).toContain('.ep-menu nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}') // 공용 틀은 그대로다
 })
 
@@ -507,58 +493,12 @@ const mediaRule = (query: string, selector: string) => {
 const wide = (selector: string) => mediaRule('(min-width:901px)', selector)
 const narrow = (selector: string) => mediaRule('(max-width:900px)', selector)
 
-it('관리 모드 사이드바는 901px 이상에서 화면 맨 위(top:0)에 붙어 화면 높이를 다 쓰는 세로 열이고(상단바가 없다), 가운데(뒤로 가기·보기 메뉴·도구)만 키가 모자라면 안에서 스크롤한다 — 공용 .ep-menu(top:81px, /content 작품 관리)는 그대로다', () => {
-  const side = wide('.world-content.ep-manage .ep-menu')
-  expect(side).toMatch(/top:0/)
-  expect(side).toMatch(/height:100dvh/)
-  expect(side).toMatch(/max-height:none/)
-  expect(side).toMatch(/display:flex;flex-direction:column/)
-  const body = wide('.world-content.ep-manage .world-menu-body')
-  expect(body).toMatch(/flex:1 1 auto/)
-  expect(body).toMatch(/min-height:0/)
-  expect(body).toMatch(/overflow-y:auto/)
-  expect(wide('.world-studio:has(.world-content.ep-manage)')).toMatch(/padding-top:0/) // 본문 위 8px도 없애 열이 화면 맨 위에서 시작한다
-  expect(episodeCss).toContain('.ep-menu{position:sticky;top:81px;max-height:calc(100dvh - 97px)') // 공용 틀은 그대로다
-  expect(episodeCss).not.toContain('world-menu')
-})
-
-it('도구 묶음(AI 검토·확정 버전·저장 영역)은 901px 이상에서 margin-top:auto로 사이드바 아래쪽에 붙고, 그 아래 맨 아래 줄(알림·테마·계정)이 위 선으로 구분된다', () => {
-  expect(wide('.world-menu-tools')).toMatch(/margin-top:auto/)
-  expect(wide('.world-menu-account')).toMatch(/padding-top:12px;border-top:1px solid var\(--line2\)/)
-  const account = rule((s) => s === '.world-menu-account')?.body ?? ''
-  expect(account).toMatch(/display:flex/)
-  expect(account).toMatch(/gap:8px/)
-  expect(rule((s) => s === '.world-menu-account .btn')?.body).toMatch(/margin-right:auto/) // 알림은 왼쪽, 테마·계정은 오른쪽 끝
-  expect(rule((s) => s === '.world-menu-account :is(.thm,.avatar)')?.body).toMatch(/flex:none;width:44px;height:44px/) // 누르는 크기는 44px로 알림 버튼과 같다
-})
-
-it('사이드바를 접으면(901px 이상) 로고와 계정 줄은 숨고 토글만 남으며 높이도 내용만큼이다 — 900px 이하는 접힘이 없다', () => {
-  const collapsed = '.world-content.ep-manage[data-menu=collapsed]'
-  expect(wide(collapsed + ' .ep-menu')).toMatch(/height:auto/)
-  expect(wide(collapsed + ' :is(.world-menu-logo,.world-menu-account)')).toMatch(/display:none/)
-  expect(narrow(collapsed + ' :is(.world-menu-logo,.world-menu-account)')).toBe('')
-})
-
-it('900px 이하 사이드바는 내용 위 가로 블록이고, 로고(맨 위 줄)와 계정 줄이 그 블록 맨 위 한 줄에 놓이며 줄이 모자라면 줄바꿈한다(가로 넘침 없음)', () => {
-  expect(narrow('.world-content.ep-manage .ep-menu')).toMatch(/display:flex;flex-wrap:wrap;align-items:center/)
-  expect(narrow('.world-menu-top')).toMatch(/flex:1 1 auto/)
-  expect(narrow('.world-menu-account')).toMatch(/order:1/)
-  expect(narrow('.world-menu-body')).toMatch(/order:2;flex:1 1 100%/)
-})
-
-it('로고는 전역 .logo의 600px 이하 font-size:0(글자 없이 SF만)을 이 줄에서는 덮어 글자를 지키고, 사이드바 폭(195px)에서 접기 토글과 한 줄에 들어가도록 15px이다', () => {
-  const logo = rule((s) => s === '.world-menu-logo')?.body ?? ''
-  expect(logo).toMatch(/font-size:15px/)
-  expect(logo).toMatch(/min-width:0/)
-})
-
-it('서재로 돌아가기 링크는 보기 메뉴 항목과 같은 글자 크기·안쪽 여백이고(위 여백·음수 왼쪽 여백 없음), 사이드바의 링크 초점 링은 스크롤 상자에 잘리지 않게 안쪽에 그린다', () => {
-  const back = rule((s) => s === '.ep-menu .world-menu-back')?.body ?? ''
-  expect(back).toMatch(/margin:0/)
-  expect(back).toMatch(/padding:6px 10px/)
-  expect(back).toMatch(/font-size:13\.5px/)
-  expect(rule((s) => s === '.ep-menu .world-menu-back:hover')?.body).toMatch(/background:var\(--muted-bg\);color:var\(--ink\)/)
-  expect(rule((s) => s === '.world-content .ep-menu a:focus-visible')?.body).toMatch(/outline-offset:-2px/)
+it('관리 화면 사이드바 틀(위치·접기·맨 위/아래 줄·넓은 화면 폭)은 공용 shared/episode.css 한 곳에만 있다 — 세계관 전용 파일에는 틀 규칙이 없고 세계관 전용 규칙(채팅 열기 슬롯·저장 영역·AI 채팅 레일)만 남는다', () => {
+  expect(css).not.toMatch(/world-menu-(top|logo|toggle|body|tools|account|back)\b/)
+  expect(css).not.toContain('.world-content.ep-manage')
+  expect(css).not.toMatch(/(^|\})\.ep-menu\{|\.ep-main:has\(|\.world-studio:has\(/m)
+  expect(episodeCss).not.toContain('world-menu') // 공용 파일은 세계관 전용 이름을 모른다
+  expect(episodeCss).not.toContain('world-content')
 })
 
 it('AI 채팅 레일은 상단바가 없는 관리 모드(901px 이상)에서 화면 맨 위부터 화면 높이를 쓰고, 상단바가 남는 작성 모드는 65px 아래 그대로다', () => {
@@ -567,15 +507,9 @@ it('AI 채팅 레일은 상단바가 없는 관리 모드(901px 이상)에서 �
   expect(narrow('.episode-app:has(.ep-manage) .world-chat')).toBe('') // 900px 이하는 화면을 덮는 서랍이다
 })
 
-it('사이드바 맨 아래 줄의 계정 메뉴(공용 AccountMenu는 아바타 아래에 맞춘다)는 901px 이상에서 아바타 위로 열리고, 맨 위 줄로 올라오는 900px 이하는 아래로 연다 — 공용 AccountMenu·.pop은 건드리지 않는다', () => {
-  const menu = wide('body:has(.world-menu-account) .acctm')
-  expect(menu).toMatch(/transform:translateY\(calc\(-100% - 60px\)\)/) // 자기 높이 + 아바타(44px) + 간격 16px(공용 메뉴가 아래에 두는 8px을 되돌리고 위로 8px 더)
-  expect(menu).toMatch(/animation:none/) // popin의 from 프레임이 transform을 덮어 열릴 때 튀지 않게
-  expect(narrow('body:has(.world-menu-account) .acctm')).toBe('')
-})
-
 // ── 관계도 보기: 세계관 머리 없이 캔버스가 내용 열을 가득 채운다(사용자 요청) ─────────────────────────────────
 it('관계도 보기(.ep-content[data-view=people])는 내용 카드의 안쪽 여백·테두리를 없애 캔버스가 내용 열 전체 폭을 쓰고, 캔버스 아래에는 폼·표가 없다', () => {
+  expect(rule((s) => s === '.ep-manage .ep-content[data-view=people]>*')?.body).toMatch(/max-width:none;margin-inline:0/) // 공용 틀의 읽기 폭(1072px) 제한을 이 보기에서만 푼다
   expect(rule((s) => s === '.ep-content[data-view=people]>.ep-card')?.body).toMatch(/padding:0;border:0;background:none;margin-bottom:0/)
   expect(rule((s) => s === '.ep-content[data-view=people]>.chip')?.body).toMatch(/display:flex;width:fit-content;margin:0 0 8px/) // 머리가 없는 이 보기의 관계 입력 미적용 칩 한 줄
   expect(css).not.toMatch(/relationship-service|relationship-list|relationship-table/) // 예전 하단 관계 추가 폼·관계 목록 표의 규칙은 없다
@@ -632,16 +566,4 @@ it('헤더 버튼 줄(.acts)은 한 줄로 흐른다: 독자 시점 안내문이
   expect(css).toMatch(/\.episode-app \.world-manage-hero \.acts\{[^}]*flex-wrap:wrap/)
   expect(css).not.toContain('acts-note')
   expect(css).not.toMatch(/\.world-manage-hero[^{]*\{[^}]*flex-basis:100%/)
-})
-
-it('넓은 화면(1920px 이상)에서도 세계관 관리 화면의 메뉴는 왼쪽 끝에, AI 채팅은 오른쪽 끝에 붙는다: 공용 틀의 max-width:1360px·가운데 정렬은 이 화면에서만 풀고 /content 작품 관리는 그대로다', () => {
-  expect(episodeCss).toContain('.ep-main:has(.ep-manage){max-width:1360px}') // 공용 틀(/content 작품 관리)은 그대로
-  expect(episodeCss).not.toContain('world-content')
-  const frame = css.match(/\.ep-main:has\(\.world-content\.ep-manage\)\{([^}]*)\}/)?.[1] ?? ''
-  expect(frame).toMatch(/max-width:\s*none/)
-  expect(frame).toMatch(/margin-inline:\s*0/)
-  // 본문 열(.ep-content)이 남는 폭을 쓰고, 안의 글·표는 읽기 좋은 폭(1072px)까지만 쓰며 열 안에서 가운데에 둔다. 관계도 보기(?view=people)는 열 전체 폭이다.
-  const inner = css.match(/\.world-content\.ep-manage \.ep-content:not\(\[data-view=people\]\)>\*\{([^}]*)\}/)?.[1] ?? ''
-  expect(inner).toMatch(/max-width:\s*1072px/)
-  expect(inner).toMatch(/margin-inline:\s*auto/)
 })

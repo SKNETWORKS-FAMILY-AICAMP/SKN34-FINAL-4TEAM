@@ -34,7 +34,7 @@ type Props = {
  * 작품 정보(제목·소개·장르·해시태그), 표지, 분기 정책은 영역마다 '편집' 버튼이 하나씩 있고 저장/취소로 바꾼다. 한 번에 한 영역만 편집한다.
  * 저장이 성공해야 읽기 표시로 돌아가며, 실패하면 폼과 입력을 그대로 둔다(오류는 화면 위 알림이 보인다).
  * 작품 유형은 등록 때 정해져 읽기 전용이고, 공개 상태는 회차 공개 흐름이 정하므로 읽기 전용이다.
- * 원고 작성은 이 화면이 아니라 집필실(`/studio/{id}`)에서 하므로 히어로의 '회차 작성하기'가 그리로 보낸다.
+ * 원고 작성은 이 화면이 아니라 집필실(`/studio/{id}`)에서 하므로 사이드바의 '회차 작성하기'(WorkActions)가 그리로 보낸다.
  * 작품이 바뀌면 호출 측이 key로 새로 만든다.
  */
 export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision, onMediaBusy, onSaveInfo, onSuggestTags, onSavePolicy, onStopFork, onDeleteWork }: Props) {
@@ -100,9 +100,6 @@ export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision,
                 작성 중인 초안 {draftCount === null ? <b>…<span className='sr-only'>불러오는 중</span></b> : <><b>{draftCount}</b>개</>}
               </span>
             )}
-          </div>
-          <div className='acts'>
-            <Go to={`/studio/${w.id}`} className='btn pri'>회차 작성하기</Go>
           </div>
         </div>
       </section>

@@ -9,13 +9,11 @@ import { Go } from '../../../shared/Go'
 import { McpChangeBanner } from '../../../shared/McpChangeBanner'
 import { PageControls } from '../../../shared/PageControls'
 import { pageItems } from '../../../shared/pageItems'
-import { BackChev, FoldIcon } from '../../../shared/icons'
+import { BackChev } from '../../../shared/icons'
 import { useScreenId } from '../../../shared/screenIds'
 import { Sheet } from '../../../shared/Sheet'
-import { AccountMenu } from '../../../shared/shell/AccountMenu'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
-import { ThemeButton } from '../../../shared/shell/ThemeButton'
-import { useGnbViewModel } from '../../../shared/shell/useGnbViewModel'
+import { ManageMenu } from '../../../shared/shell/ManageMenu'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { labelOf } from '../viewmodel/settingBoard'
@@ -213,8 +211,8 @@ function WorldPublish({ vm }: { vm: VM }) {
 
 /**
  * 작성 모드(세계관을 처음 만든 직후, 주소 `?new=1`)는 사이드바 없이 기본 정보부터 4단계 마법사다. 그 밖의 모든 진입은 관리 모드로, `/content` 작품 관리처럼
- * 왼쪽 사이드바(공용 틀 `.ep-manage`·`.ep-menu`·`.ep-content`, shared/episode.css)가 공용 상단바(Gnb)를 대신한다. 맨 위 줄(`.world-menu-top`)은 STORYFORK 로고 + 접기 토글이고 그 아래 서재로 돌아가는 링크와 보기 메뉴(개요·설정집·관계도·시간선·소설 연결, 주소 `?view=`, 기본은 설정집)로 화면을 바꾸며,
- * 구분선 뒤 아래쪽으로 밀어 붙인 `AI 검토`(시트)·`확정 버전 남기기`와 상시 저장 영역(`.world-menu-tools`), 맨 아래 줄(`.world-menu-account`, `WorldMenuAccount`)에 알림·테마·계정이 있다.
+ * 왼쪽 사이드바(공용 틀 `.ep-manage`·`.ep-menu`·`.ep-content`, shared/episode.css)가 공용 상단바(Gnb)를 대신하고 공용 `ManageMenu`(shared/shell)가 그린다. 맨 위 줄은 STORYFORK 로고 + 접기 토글이고 그 아래 서재로 돌아가는 링크와 보기 메뉴(개요·설정집·관계도·시간선·소설 연결, 주소 `?view=`, 기본은 설정집)로 화면을 바꾸며,
+ * 구분선 뒤 아래쪽으로 밀어 붙인 `AI 검토`(시트)·`확정 버전 남기기`와 상시 저장 영역(도구 묶음 `.ep-menu-tools`), 맨 아래 줄(`.ep-menu-account`)에 알림·테마·계정이 있다.
  * 내용 열 맨 위에는 오류·상태·AI 변경 알림(`notices`)이 있다(사이드바 위에 끼어 사이드바를 아래로 밀지 않게 페이지의 위쪽이 아니라 여기에 그린다).
  * 보기마다 내용 열은 그 보기의 내용만 보인다: 개요(이름·설명·공개·장르·표지 편집, `WorldInfoPanel`)·설정집(게시판)·관계도·시간선·소설 연결(연결된 소설과 Fork, `WorldNovelTab`).
  * 게시판·관계 편집기·(한 번 연) 개요 폼은 다른 보기에서도 숨겨 둘 뿐 지우지 않아 필터·선택·적용하지 않은 관계 입력·쓰던 이름과 고른 표지가 남고, 소설 연결은 볼 때만 그린다.
@@ -225,13 +223,11 @@ function WorldPublish({ vm }: { vm: VM }) {
  */
 function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen, chatSlotRef, onPreviewEdit, notices }: { vm: VM; world: StudioWorld; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; menuOpen: boolean; setMenuOpen: (open: boolean) => void; chatSlotRef: (slot: HTMLElement | null) => void; onPreviewEdit: (id: string) => void; notices: ReactNode }) {
   const heading = useRef<HTMLHeadingElement>(null)
-  const menuId = useId()
   const manage = vm.mode === 'manage'
   // 작성 모드는 마법사 단계이고, 관리 모드는 보기가 곧 화면이라 관계도이면 관계 화면, 그 밖은 설정 카드 쪽이다(게시판은 설정집일 때만 보인다).
   const view = manage ? vm.view : null
   const step: StudioStep = manage ? (view === 'people' ? 'relations' : 'cards') : vm.flow.step
   const timeline = view === 'timeline'
-  const toggleLabel = menuOpen ? '세계관 메뉴 접기' : '세계관 메뉴 펼치기' // 아이콘만 있는 버튼: 이름(aria-label)과 마우스 툴팁(title)이 같은 글이다
   // 개요 폼은 한 번 열면 숨길 뿐 지우지 않아(게시판·관계 편집기와 같다) 다른 보기에 다녀와도 쓰던 이름·설명·고른 표지가 남는다. 열기 전에는 그리지 않는다(장르 목록 같은 읽기를 미리 하지 않는다).
   const [overviewSeen, setOverviewSeen] = useState(false)
   if (view === 'overview' && !overviewSeen) setOverviewSeen(true)
@@ -248,14 +244,20 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
   return (
     <section className={'world-content' + (manage ? ' ep-manage' : '')} data-menu={manage && !menuOpen ? 'collapsed' : undefined} hidden={vm.flow.screen !== 'editor'} aria-busy={vm.busy}>
       {manage && (
-        <div className="ep-menu">
-          <div className="world-menu-top">
-            <Go to="/" className="logo world-menu-logo" aria-label="STORYFORK 홈으로" title="홈으로"><b>SF</b>STORYFORK</Go>
-            <button type="button" className="world-menu-toggle" aria-expanded={menuOpen} aria-controls={menuId} aria-label={toggleLabel} title={toggleLabel} onClick={() => setMenuOpen(!menuOpen)}><FoldIcon /></button>
-          </div>
-          <div id={menuId} className="world-menu-body" hidden={!menuOpen}>
-            {menuOpen && <Go to="/lib?tab=worlds" className="ep-back world-menu-back"><BackChev />내가 만드는 세계관</Go>}
-            <div className="world-menu-row">
+        <ManageMenu
+          name="세계관"
+          open={menuOpen}
+          onOpenChange={setMenuOpen}
+          back={{ to: '/lib?tab=worlds', label: '내가 만드는 세계관' }}
+          tools={(
+            <>
+              <WorldAiReview studio={vm} />
+              <VersionsButton vm={vm} supported={revisions.supported} open={openVersions} />
+              {!vm.selected && menuOpen && <WorldSaveBar vm={vm} />}
+            </>
+          )}
+        >
+          <div className="world-menu-row">
             <nav aria-label="세계관 메뉴">
               {MANAGE_VIEWS.map(([id, label]) => (
                 <button
@@ -272,15 +274,8 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
               ))}
             </nav>
             <div className="world-chat-slot" ref={chatSlotRef} />
-            </div>
-            <div className="world-menu-tools">
-              <WorldAiReview studio={vm} />
-              <VersionsButton vm={vm} supported={revisions.supported} open={openVersions} />
-              {!vm.selected && menuOpen && <WorldSaveBar vm={vm} />}
-            </div>
           </div>
-          <WorldMenuAccount />
-        </div>
+        </ManageMenu>
       )}
       <div className="ep-content" data-view={manage ? view : undefined}>
         {notices}
@@ -353,25 +348,6 @@ function VersionsButton({ vm, supported, open }: { vm: VM; supported: boolean; o
       <button type="button" className="btn sm" aria-haspopup="dialog" disabled={!!why} aria-describedby={why ? reason : undefined} onClick={open}>확정 버전 남기기</button>
       {why && <span id={reason} className="small muted">{why}</span>}
     </>
-  )
-}
-
-/**
- * 사이드바 맨 아래 줄: 공용 상단바(Gnb)가 맡던 알림·테마·계정. 데이터는 상단바와 같은 `useGnbViewModel`(읽지 않은 알림 수·이름 첫 글자)이고 이름·aria·계정 메뉴(`AccountMenu`)도 같다.
- * 이 화면은 로그인한 사용자만 연다(RequireRole)라 비로그인 모양(상단바 아바타의 게스트 아이콘)은 두지 않는다. 검색 버튼은 두지 않는다: Ctrl K(전역 QuickJump)가 남는다.
- */
-function WorldMenuAccount() {
-  const { initial, unread } = useGnbViewModel()
-  const [menuAnchor, setMenuAnchor] = useState<HTMLButtonElement | null>(null)
-  return (
-    <div className="world-menu-account">
-      <Go to="/notifications" className="btn sm" aria-label={`알림함${unread ? `, 읽지 않은 알림 ${unread}건` : ''}`}>
-        알림{unread > 0 && <> <span className="nb">{unread}</span></>}
-      </Go>
-      <ThemeButton />
-      <button type="button" className="avatar" aria-label="내 계정 메뉴" aria-haspopup="menu" aria-expanded={!!menuAnchor} onClick={(e) => setMenuAnchor(menuAnchor ? null : e.currentTarget)}><span>{initial}</span></button>
-      {menuAnchor && <AccountMenu anchor={menuAnchor} onClose={() => setMenuAnchor(null)} />}
-    </div>
   )
 }
 

@@ -31,12 +31,8 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 개요 탭의 정보 편집 폼은 /content 작품 정보 편집과 같은 ep-edit 틀이다(공용 규칙이 폭 560px·간격을 정한다). 표지 묶음의 이름은 같은 폼의 다른 입력 이름(.episode-app label)과 같은 글자이고, 맨 앞의 지금 표지(헤더와 같은 .cov)는 160px로 버튼 줄과 간격을 둔다. */
 .world-cover-edit{display:grid;gap:8px;min-width:0}.world-cover-label{font-size:13px;font-weight:650}.world-cover-now{width:160px}
 
-/* 관리 모드 왼쪽 사이드바(.ep-menu, shared/episode.css)의 아래쪽: AI 검토·확정 버전 버튼과 상시 저장 영역. 기본은 줄바꿈하는 가로 줄(사이드바가 내용 위 줄이 되는 900px 이하)이고,
-   901px부터는 보기 메뉴 밑 구분선 뒤에 세로로 쌓는다(저장 영역은 사이드바와 함께 따라와 늘 보인다). 도구 버튼은 보기 메뉴(테두리 없음)보다 무겁지 않게 모든 폭에서 옅은 테두리·600이고(quieter: 900px 이하의 가로 줄에서도 탭 줄보다 무겁지 않다) 모양·폭·높이는 그대로다.
-   저장 영역은 위 버튼 묶음과 8px 더 떨어져 상태 글자가 아래 저장 버튼 소속으로 읽히고, 글자는 보기 메뉴 글자와 같은 x(안쪽 10px)에서 시작한다. */
-.world-menu-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
-.world-menu-tools .btn:not(.pri){border-color:var(--line);font-weight:600}
-@media(min-width:901px){.world-menu-tools{display:grid;margin-top:auto;padding-top:12px;border-top:1px solid var(--line2)}.world-menu-tools .world-save-bar{flex-direction:column;align-items:stretch;margin-top:8px}.world-menu-tools .world-save-state{padding-inline:10px}}
+/* 관리 모드 사이드바의 도구 묶음(.ep-menu-tools, shared/episode.css)에 든 상시 저장 영역: 901px부터 위 AI 검토·확정 버전 버튼 묶음과 8px 더 떨어져 상태 글자가 아래 저장 버튼 소속으로 읽히고, 글자는 보기 메뉴 글자와 같은 x(안쪽 10px)에서 시작한다. */
+@media(min-width:901px){.ep-menu-tools .world-save-bar{flex-direction:column;align-items:stretch;margin-top:8px}.ep-menu-tools .world-save-state{padding-inline:10px}}
 .world-save-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px 12px}.world-save-state{font-size:13px;font-weight:650;white-space:nowrap}.world-save-state.ok{color:var(--tsub)}.world-save-state.wait{color:var(--pri-ink)}
 /* 저장을 막는 문제가 있어 잠긴 저장 버튼은 채운 보라가 아니라 옅은 윤곽선이다(저장할 것이 없으면 버튼 자체를 그리지 않는다). 사이드바·상단 바의 세계관 저장(.world-save-bar)·개요 폼의 저장(.world-info-edit)·마법사 검토·저장 단계의 세계관 저장(.world-save-actions)이 같은 모양이다(quieter).
    흐림(.45)은 공용 disabled 규칙이 맡고 글자색은 되돌리기(.btn 기본 --ink)와 같아 둘 다 잠기면 같은 흐림이다(polish: 이전엔 --sub라 저장이 더 흐렸다. 글자색을 아예 빼면 공용 .btn.pri의 --on-pri가 남아 라이트에서 글자가 흰색이라 보이지 않는다). 바뀐 것이 생겨 켜지면 원래대로 채운 보라다. 화면 전체(.world-writing)로 넓히지 않는다: 어두운 무대의 상대 선택·공용 채팅 같은 다른 잠긴 주 버튼의 모양까지 바뀐다. */
@@ -45,69 +41,32 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-save-issue{max-width:34ch;color:var(--danger);line-height:1.4;overflow-wrap:anywhere}
 .world-save-issue button{display:inline-flex;align-items:center;min-height:44px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 
-/* 사이드바 접기(R1): 이 화면 전용이다(공용 shared/episode.css의 /content 사이드바는 그대로). 맨 위 줄의 토글(44×44, 펼친 동안은 아이콘을 뒤집어 왼쪽으로 접는 방향)과 메뉴 묶음(.world-menu-body: 서재로 돌아가기 + 보기 메뉴 + 도구·저장 영역, 접으면 hidden으로 숨길 뿐 지우지 않는다).
-   901px부터만 접힌 틀(data-menu=collapsed)이 44px 열이 되고(내용 열이 그만큼 넓어진다) 메뉴 옆 선·여백을 거두며, 900px 이하는 이미 가로 줄이라 토글을 숨기고 접힌 메뉴도 그대로 보인다(.world-writing [hidden]의 !important를 이기려고 선택자를 한 단계 높였다). */
-.world-menu-toggle{display:inline-grid;place-items:center;justify-self:start;width:44px;height:44px;padding:0;border:0;border-radius:9px;background:transparent;color:var(--sub);cursor:pointer}
-.world-menu-toggle:hover{background:var(--muted-bg);color:var(--ink)}
-.world-menu-toggle[aria-expanded=true] svg{transform:scaleX(-1)}
-.world-menu-body{display:grid;gap:12px}
-@media(min-width:901px){.world-content.ep-manage[data-menu=collapsed]{grid-template-columns:44px minmax(0,1fr);column-gap:20px}.world-content.ep-manage[data-menu=collapsed] .ep-menu{padding-right:0;border-right:0}}
-@media(max-width:900px){.world-menu-toggle{display:none}.world-writing .world-menu-body[hidden]{display:grid!important}}
-/* 보기 메뉴 줄(.world-menu-row): 900px 이하에서 닫힌 AI 채팅 열기 버튼(WorldChat이 slot으로 옮겨 그린다, critique 승인)을 탭 줄의 오른쪽 끝에 둔다. 넓은 화면에서는 줄을 풀어(display:contents) 메뉴가 예전처럼 .world-menu-body의 직계 자식으로 놓이고, 슬롯은 비어 있어 숨는다.
+/* 사이드바 접기: 접힌 틀·토글 규칙은 공용 shared/episode.css다. 900px 이하는 이미 가로 줄이라 접힌 본문(hidden)도 그대로 보이는데, 이 화면의 .world-writing [hidden]{display:none!important}가 그것을 이기므로 선택자를 한 단계 높여 !important로 되살린다. */
+@media(max-width:900px){.world-writing .ep-menu-body[hidden]{display:grid!important}}
+/* 보기 메뉴 줄(.world-menu-row): 900px 이하에서 닫힌 AI 채팅 열기 버튼(WorldChat이 slot으로 옮겨 그린다, critique 승인)을 탭 줄의 오른쪽 끝에 둔다. 넓은 화면에서는 줄을 풀어(display:contents) 메뉴가 예전처럼 .ep-menu-body의 직계 자식으로 놓이고, 슬롯은 비어 있어 숨는다.
    전역 .studio-chat-toggle(화면 오른쪽 아래 고정)은 이 줄 안에서만 제자리 버튼이 된다. 집필실의 같은 공용 버튼은 이 슬롯이 없어 그대로다.
-   메뉴 묶음·줄은 min-width:0다: 그리드 항목의 자동 최소 폭은 내용의 최소 폭(탭 약 326px + 열기 버튼 약 140px)이라 358px 본문(390px 화면)에서 그리드 칸이 그만큼 늘어 문서가 가로로 넘쳤다. 0이면 칸은 본문 폭이고 탭 줄(nav)이 줄어들며 가로로 스크롤한다. */
+   메뉴 줄은 min-width:0다(본문 .ep-menu-body도 공용 규칙이 min-width:0): 그리드 항목의 자동 최소 폭은 내용의 최소 폭(탭 약 326px + 열기 버튼 약 140px)이라 358px 본문(390px 화면)에서 그리드 칸이 그만큼 늘어 문서가 가로로 넘쳤다. 0이면 칸은 본문 폭이고 탭 줄(nav)이 줄어들며 가로로 스크롤한다. */
 .world-menu-row{display:contents}
 .world-chat-slot:empty{display:none}
-@media(max-width:900px){.world-menu-body,.world-menu-row{min-width:0}.world-menu-row{display:flex;align-items:center;gap:8px}.world-menu-row nav{flex:1 1 auto;min-width:0}.world-chat-slot .studio-chat-toggle{position:static;flex:none;box-shadow:none;white-space:nowrap}}
+@media(max-width:900px){.world-menu-row{min-width:0;display:flex;align-items:center;gap:8px}.world-menu-row nav{flex:1 1 auto;min-width:0}.world-chat-slot .studio-chat-toggle{position:static;flex:none;box-shadow:none;white-space:nowrap}}
 /* 900px 이하 보기 메뉴 탭 줄(polish): 탭 다섯 개가 한 줄에 다 들어가지 않는데 가로 스크롤 줄 끝(≈243px)이 탭 경계와 겹쳐 5번째 탭 소설 연결이 AI 채팅 열기 뒤로 통째로 가려지고 넘침 신호도 없었다(소설 연결로 들어와도 고른 탭이 화면 밖).
-   줄바꿈으로 바꿔 모든 탭과 고른 탭이 늘 보인다(+44px). 공용 .ep-menu nav(overflow-x:auto, /content 작품 관리 메뉴)와 특이도가 같아 지므로 .world-menu-body를 더해 이긴다. */
-@media(max-width:900px){.world-menu-body .world-menu-row nav{flex-wrap:wrap;overflow-x:visible}}
+   줄바꿈으로 바꿔 모든 탭과 고른 탭이 늘 보인다(+44px). 공용 .ep-menu nav(overflow-x:auto, /content 작품 관리 메뉴)와 특이도가 같아 지므로 .ep-menu-body를 더해 이긴다. */
+@media(max-width:900px){.ep-menu-body .world-menu-row nav{flex-wrap:wrap;overflow-x:visible}}
 /* AI 채팅 열기(quieter): 이 화면에서는 채운 보라가 아니라 윤곽선 버튼이다 — 첫 화면에서 가장 큰 채운 면이 아직 전송을 못 쓰는 채팅 버튼이라 고른 탭보다 먼저 보였다. 집필실(/studio)과 카드 편집 화면은 .episode-app 밖이라 그대로 보라다. 떠 있는 버튼(마법사, 채팅이 닫힌 901~1200px)의 그림자는 전역 .studio-chat-toggle이 남겨 찾을 수 있다. */
 .episode-app .studio-chat-toggle.btn.pri{background:var(--surface);border-color:var(--line2);color:var(--ink)}
 .episode-app .studio-chat-toggle.btn.pri:hover{background:var(--muted-bg)}
 
-/* 상단바를 사이드바로 합치기(사용자 요청): 관리 모드는 공용 상단바(Gnb)를 그리지 않고 사이드바(.ep-menu)가 그 역할을 한다. 위에서 아래로 맨 위 줄(.world-menu-top: STORYFORK 로고 + 접기 토글) / 본문(.world-menu-body: 서재로 돌아가기·보기 메뉴·도구) / 맨 아래 줄(.world-menu-account: 알림·테마·계정)이다.
-   작성 모드·세계관 없는 만들기 화면은 사이드바가 없어 상단바 그대로다. 로고는 전역 .logo의 600px 이하 font-size:0(글자 없이 SF만)을 이 줄에서는 덮어 글자를 지키고, 사이드바 폭(195px)에서 접기 토글(44px)과 한 줄에 들어가도록 15px이다. */
-.world-menu-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
-.world-menu-top .world-menu-toggle{flex:none}
-.world-menu-logo{min-width:0;padding-left:4px;gap:6px;font-size:15px}
-/* 서재로 돌아가기: 보기 메뉴 항목과 같은 글자 크기·안쪽 여백이다(공용 .ep-back의 음수 왼쪽 여백·아래 여백은 없다). */
-.ep-menu .world-menu-back{margin:0;padding:6px 10px;border-radius:9px;font-size:13.5px;font-weight:650}
-.ep-menu .world-menu-back:hover{background:var(--muted-bg);color:var(--ink)}
-/* 사이드바의 링크(로고·돌아가기·알림) 초점 링은 안쪽에 그린다: 스크롤 상자(.ep-menu)가 바깥으로 넘친 링을 자르고 공용 규칙(.ep-menu button:focus-visible)은 버튼만 다룬다. */
-.world-content .ep-menu a:focus-visible{outline-offset:-2px}
-/* 맨 아래 줄: 알림은 왼쪽, 테마·계정은 오른쪽 끝이다. 테마·계정 버튼은 알림 버튼(44px)과 같은 44px다. */
-.world-menu-account{display:flex;align-items:center;gap:8px}
-.world-menu-account .btn{margin-right:auto}
-.world-menu-account :is(.thm,.avatar){flex:none;width:44px;height:44px}
-/* 901px 이상: 사이드바는 화면 맨 위(top:0)에 붙어 화면 높이를 다 쓰는 세로 열이다(상단바가 없어 공용 규칙의 top:81px·100dvh - 97px를 이 화면에서만 덮는다, /content 작품 관리는 그대로). 위·아래 줄은 늘 보이고 가운데(본문)만 키가 모자라면 안에서 스크롤한다.
-   도구 묶음은 margin-top:auto로 아래쪽에 붙는다(위 도구 규칙). 본문 위 8px(.ep-main)도 없애 열이 화면 맨 위에서 시작하고 내용 열은 16px 내려 시작한다.
-   접으면 토글만 남는다(로고·계정 줄 숨김, 높이는 내용만큼). AI 채팅 레일은 상단바(65px) 아래가 아니라 화면 맨 위부터다. 계정 줄이 사이드바 맨 아래라 공용 AccountMenu(아바타 아래에 inline top·left로 맞춘다)의 메뉴를 아바타 위로 올린다: 자기 높이 + 아바타(44px) + 간격 16px(공용 메뉴가 아바타 아래에 두는 8px을 되돌리고 위로 8px 더)이고,
-   popin 애니메이션의 from 프레임이 transform을 덮어 열릴 때 튀므로 이 화면에서는 끈다. 900px 이하는 계정 줄이 맨 위로 올라와 기본(아래로 열림)이 맞다. */
-@media(min-width:901px){
-.world-studio:has(.world-content.ep-manage){padding-top:0}
-.world-content.ep-manage .ep-menu{top:0;height:100dvh;max-height:none;display:flex;flex-direction:column;padding-block:8px 12px}
-.world-content.ep-manage .world-menu-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:thin}
-.world-content.ep-manage .ep-content{padding-top:16px}
-.world-menu-account{padding-top:12px;border-top:1px solid var(--line2)}
-.world-content.ep-manage[data-menu=collapsed] .ep-menu{height:auto}
-.world-content.ep-manage[data-menu=collapsed] :is(.world-menu-logo,.world-menu-account){display:none}
-.episode-app:has(.ep-manage) .world-chat{top:0;height:100dvh}
-body:has(.world-menu-account) .acctm{transform:translateY(calc(-100% - 60px));animation:none}
-}
-/* 900px 이하: 사이드바는 내용 위의 가로 블록이다. 로고(맨 위 줄)와 계정 줄이 그 블록 맨 위 한 줄에 놓이고(DOM 순서는 로고·본문·계정이라 order로 올린다) 줄이 모자라면 줄바꿈해 가로로 넘치지 않는다. */
-@media(max-width:900px){
-.world-content.ep-manage .ep-menu{display:flex;flex-wrap:wrap;align-items:center}
-.world-menu-top{flex:1 1 auto}
-.world-menu-account{order:1}
-.world-menu-body{order:2;flex:1 1 100%}
-}
+/* 상단바를 사이드바로 합치기: 관리 모드는 공용 상단바(Gnb)를 그리지 않고 사이드바(.ep-menu)가 그 역할을 한다. 사이드바 틀(위치·접기·맨 위/아래 줄·넓은 화면 폭)은 공용 shared/episode.css 한 곳이고(ManageMenu가 그린다), 이 파일에는 세계관 전용 규칙만 둔다.
+   AI 채팅 레일(.world-chat)은 상단바(65px) 아래가 아니라 상단바가 없는 관리 모드(901px 이상)에서 화면 맨 위부터 화면 높이를 쓴다. 900px 이하는 화면을 덮는 서랍이라 그대로다. */
+@media(min-width:901px){.episode-app:has(.ep-manage) .world-chat{top:0;height:100dvh}}
 
 /* 관리 모드 관계도 보기(?view=people, .ep-content[data-view=people]): 세계관 머리(표지·이름 줄)를 그리지 않고 캔버스(react-force-graph)가 내용 열 전체 폭 × 화면 끝까지를 채운다. 캔버스 아래에 이어지는 폼·표는 없다(관계는 캔버스에서 만든다).
    내용 카드의 테두리·안쪽 여백을 없애 캔버스가 내용 열 폭을 다 쓴다. 캔버스 높이 = 화면 높이 − 캔버스 위쪽(--rf-top: 캔버스까지의 문서 위치, RelationGraph가 잰다)이라 캔버스 아래 끝이 화면 끝에 닿고 최소 480px다.
    터치 기기도 같다(손가락 끌기는 캔버스 이동이라 페이지 스크롤은 캔버스 위 줄에서 시작한다). 채팅을 열면 내용 열이 좁아진 만큼 캔버스도 좁아진다. */
 .ep-content[data-view=people]>.ep-card{padding:0;border:0;background:none;margin-bottom:0}
 .ep-content[data-view=people]>.chip{display:flex;width:fit-content;margin:0 0 8px}
+/* 공용 틀(shared/episode.css)은 내용 열의 글·표를 읽기 좋은 폭(1072px)까지만 쓰게 한다. 관계도 보기의 캔버스는 열 전체 폭이다. */
+.ep-manage .ep-content[data-view=people]>*{max-width:none;margin-inline:0}
 .ep-content[data-view=people] .relationship-flow{height:max(480px,calc(100dvh - var(--rf-top,200px)))}
 /* 캔버스 위 세로 공간 줄이기. ① 관계 기준 회차는 폼과 상태 문구를 한 줄에 두고 위 여백 없이 카드 위에 붙인다(입력은 넓은 화면의 마우스 기기에서만 36px, 좁은 화면(600px 이하)·터치는 전역 44px 보정 그대로).
    ② 위 한 줄(.relationship-bar: 삭제된 설정과 이어진 관계 수·삭제 되돌리기 알림, 알림이 있을 때만 그려진다)은 세로 여백을 줄이고, 넓은 화면의 마우스 기기는 버튼을 32px 안팎으로 줄인다.
@@ -472,8 +431,3 @@ a.world-card-link{text-decoration:none}
 .world-pane .world-card-links{margin:0;padding:0;border:0}.world-pane .world-findings{margin-bottom:0}
 .world-pane .writing-graph{flex:none;margin:0;padding:0;border:0;max-height:none;overflow:visible}.world-pane .writing-graph h2{padding-inline:0}.world-pane .world-graph-actions,.world-pane .world-graph-note{padding-inline:0}
 .world-finding-more{width:100%;font-size:13px}.world-finding-more>summary{cursor:pointer;color:var(--tsub)}.world-finding-more ul{gap:6px;margin:6px 0 0;padding-left:16px;list-style:disc}
-
-/* 넓은 화면(1920px 이상): 세계관 관리 화면은 본문이 폭을 다 쓴다 — 메뉴는 왼쪽 끝에, AI 채팅은 오른쪽 끝에 붙는다. 공용 틀의 .ep-main:has(.ep-manage){max-width:1360px}(shared/episode.css)와 가운데 정렬은
-   이 화면(.world-content)에서만 풀고 /content 작품 관리는 그대로다. 남는 폭은 내용 열(.ep-content)이 쓰되 안의 글·표는 읽기 좋은 폭(≈1070px)까지만 쓰고 열 안에서 가운데에 둔다. 관계도 보기(?view=people)의 캔버스는 열 전체 폭이다. */
-.ep-main:has(.world-content.ep-manage){max-width:none;margin-inline:0}
-.world-content.ep-manage .ep-content:not([data-view=people])>*{max-width:1072px;margin-inline:auto}

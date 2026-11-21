@@ -140,23 +140,125 @@ describe('episode.css 작품 관리 조용히 다듬기 계약', () => {
   })
 })
 
-describe('episode.css 관리 화면 왼쪽 사이드바 계약', () => {
-  it('왼쪽 메뉴는 상단바 아래에 붙는(sticky) 열이고 넘치면 안에서 스크롤하며, 900px 이하에서는 내용 위의 가로 스크롤 줄이 된다', () => {
-    // 작품 관리·세계관 관리가 함께 쓰는 2열 틀: 메뉴 | 내용. 메뉴가 있는 화면만 본문 폭을 넓혀 내용 폭을 지킨다.
-    expect(rule('.ep-manage')).toMatch(/grid-template-columns:\d+px minmax\(0,1fr\)/)
-    expect(css).toMatch(/\.ep-main:has\(\.ep-manage\)\{[^}]*max-width:1[3-9]\d\dpx/)
+describe('episode.css 관리 화면 사이드바 틀 계약 (작품 관리·세계관 관리 공용 — 공용 상단바·푸터가 없고 사이드바가 상단바 역할을 한다)', () => {
+  /** 주석을 지운 CSS에서 `@media <조건>{ … }` 안 규칙의 본문을 모은다(같은 조건의 덩어리가 여러 개여도 모두). 없으면 빈 글자다. */
+  const bare = css.replace(/\/\*[\s\S]*?\*\//g, '')
+  const mediaBody = (query: string, selector: string) => {
+    const head = `@media${query}{`
+    const bodies: string[] = []
+    for (let at = bare.indexOf(head); at !== -1; at = bare.indexOf(head, at + 1)) {
+      let depth = 0
+      let end = at + head.length - 1
+      for (; end < bare.length; end++) {
+        if (bare[end] === '{') depth++
+        else if (bare[end] === '}' && --depth === 0) break
+      }
+      for (const [, sel, body] of bare.slice(at + head.length, end).matchAll(/([^{}]+)\{([^}]*)\}/g)) if (sel.trim() === selector) bodies.push(body)
+    }
+    return bodies.join(';')
+  }
+  const wide = (selector: string) => mediaBody('(min-width:901px)', selector)
+  const narrow = (selector: string) => mediaBody('(max-width:900px)', selector)
+
+  it('2열 틀(메뉴 | 내용): 메뉴가 있는 화면만 본문의 폭 제한(1120px)·가운데 정렬을 풀어 메뉴가 화면 왼쪽 끝에 붙고, 내용 열 안의 글·표는 읽기 좋은 폭(1072px)까지만 쓰고 열 안에서 가운데에 둔다', () => {
+    expect(rule('.ep-manage')).toMatch(/grid-template-columns:208px minmax\(0,1fr\)/)
+    expect(rule('.ep-main:has(.ep-manage)')).toMatch(/max-width:none;margin-inline:0/)
+    const inner = rule('.ep-manage .ep-content>*')
+    expect(inner).toMatch(/max-width:1072px/)
+    expect(inner).toMatch(/margin-inline:auto/)
+  })
+
+  it('메뉴가 없는 화면(/content 만들기·내 제보·독서·집필실)의 본문 틀은 그대로다: .ep-main 기본은 1120px 가운데 정렬이고, 폭을 바꾸는 규칙은 .ep-manage가 있을 때(:has)뿐이다', () => {
+    expect(rule('.ep-main')).toMatch(/max-width:1120px/)
+    expect(rule('.ep-main')).toMatch(/margin:0 auto/)
+    const widthRules = rules.filter((r) => /^\.ep-main\b/.test(r.selector) && /max-width|margin-inline/.test(r.body)).map((r) => r.selector)
+    expect(widthRules).toEqual(['.ep-main', '.ep-main:has(.ep-manage)'])
+  })
+
+  it('사이드바는 공용 상단바(.gnb)가 없어 화면 맨 위(top:0)에 붙어 화면 높이를 다 쓰는 세로 열이고, 위·아래 줄은 늘 보이고 본문(.ep-menu-body)만 키가 모자라면 안에서 스크롤한다 — 상단바 아래에 붙던 값(top:81px·100dvh - 97px)은 없다', () => {
     const menu = rule('.ep-menu')
-    expect(menu).toMatch(/position:sticky/)
-    expect(menu).toMatch(/top:\d+px/) // 상단바(.gnb) 바로 아래
-    expect(menu).toMatch(/max-height:calc\(100dvh/)
+    expect(menu).toMatch(/position:sticky;top:0;height:100dvh/)
+    expect(menu).toMatch(/display:flex;flex-direction:column/)
     expect(menu).toMatch(/overflow-y:auto/)
-    const narrow = [...css.matchAll(/@media\(max-width:900px\)\{((?:[^@{}]|\{[^{}]*\})*)\}/g)].map((m) => m[1]).join('')
-    expect(narrow).toMatch(/\.ep-manage\{[^}]*grid-template-columns:minmax\(0,1fr\)/)
-    expect(narrow).toMatch(/\.ep-menu\{[^}]*position:static/)
-    expect(narrow).toMatch(/\.ep-menu nav\{[^}]*display:flex[^}]*overflow-x:auto/)
-    expect(narrow).toMatch(/\.ep-menu nav button\{[^}]*flex:none[^}]*white-space:nowrap/)
-    // 스크롤 상자는 바깥으로 넘친 초점 링을 자르므로 메뉴 안의 링은 안쪽에 그린다.
-    expect(css).toMatch(/\.ep-menu button:focus-visible\{[^}]*outline-offset:-2px/)
+    expect(css).not.toMatch(/top:81px|100dvh - 97px/)
+    const body = wide('.ep-menu-body')
+    expect(body).toMatch(/flex:1 1 auto/)
+    expect(body).toMatch(/min-height:0/)
+    expect(body).toMatch(/overflow-y:auto/)
+    // 본문 위 8px(.ep-main)도 없애 열이 화면 맨 위에서 시작하고, 내용 열은 16px 내려 시작한다.
+    expect(wide('.ep-main:has(.ep-manage)')).toMatch(/padding-top:0/)
+    expect(wide('.ep-manage .ep-content')).toMatch(/padding-top:16px/)
+  })
+
+  it('맨 위 줄은 로고와 접기 토글이 한 줄이고, 로고는 전역 .logo의 600px 이하 font-size:0(글자 없이 SF만)을 덮어 사이드바 폭(195px)에서 토글과 한 줄에 들어가는 15px이다', () => {
+    expect(rule('.ep-menu-top')).toMatch(/display:flex;align-items:center;justify-content:space-between/)
+    const logo = rule('.ep-menu-logo')
+    expect(logo).toMatch(/font-size:15px/)
+    expect(logo).toMatch(/min-width:0/)
+  })
+
+  it('접기 버튼은 44×44 토글이고 펼친 동안은 아이콘을 뒤집어(왼쪽으로 접는 방향) 보이며, 본문은 메뉴·도구를 같은 12px 간격으로 쌓는다', () => {
+    expect(rule('.ep-menu-toggle')).toMatch(/width:44px;height:44px/)
+    expect(rule('.ep-menu-toggle[aria-expanded=true] svg')).toMatch(/transform:scaleX\(-1\)/)
+    expect(rule('.ep-menu-body')).toMatch(/display:grid;gap:12px/)
+  })
+
+  it('접기(901px 이상): 접힌 틀은 44px 열이고 메뉴 옆 선·여백이 없어지며 로고·계정 줄과 본문(hidden)이 숨는다 — 900px 이하(이미 가로 블록)에서는 토글을 숨기고 접힌 메뉴도 그대로 보인다', () => {
+    const collapsed = '.ep-manage[data-menu=collapsed]'
+    expect(wide(collapsed)).toMatch(/grid-template-columns:44px minmax\(0,1fr\);column-gap:20px/)
+    expect(wide(collapsed + ' .ep-menu')).toMatch(/height:auto;padding-right:0;border-right:0/)
+    expect(wide(collapsed + ' :is(.ep-menu-logo,.ep-menu-account)')).toMatch(/display:none/)
+    expect(wide('.ep-menu-body[hidden]')).toMatch(/display:none/)
+    expect(narrow('.ep-menu-toggle')).toMatch(/display:none/)
+    expect(narrow(collapsed)).toBe('')
+    // 900px 이하에는 hidden 규칙이 없다: 본문의 display(작성자 CSS)가 UA의 [hidden]을 이겨 접힌 메뉴도 그대로 보인다.
+    expect(narrow('.ep-menu-body[hidden]')).toBe('')
+  })
+
+  it('도구 묶음은 줄바꿈하는 가로 줄이고 901px부터 margin-top:auto로 본문 아래쪽에 붙어 위 선으로 구분되며 세로로 쌓인다 — 도구 버튼은 모든 폭에서 옅은 테두리·600이다(.pri는 그대로)', () => {
+    expect(rule('.ep-menu-tools')).toMatch(/display:flex;flex-wrap:wrap;align-items:center/)
+    expect(rule('.ep-menu-tools .btn:not(.pri)')).toMatch(/border-color:var\(--line\);font-weight:600/)
+    expect(wide('.ep-menu-tools')).toMatch(/display:grid;margin-top:auto;padding-top:12px;border-top:1px solid var\(--line2\)/)
+    expect(wide('.ep-menu-tools .btn:not(.pri)')).toBe('') // 데스크톱 전용 규칙이 아니다
+  })
+
+  it('맨 아래 줄(알림·테마·계정): 알림은 왼쪽, 테마·계정은 오른쪽 끝의 44px 버튼이고 901px부터 위 선으로 구분된다 — 아바타 아래에 맞추는 공용 AccountMenu는 이 줄에서 위로 열고(900px 이하는 맨 위 줄이라 아래로 연다), 열릴 때 튀지 않게 애니메이션을 끈다', () => {
+    expect(rule('.ep-menu-account')).toMatch(/display:flex;align-items:center;gap:8px/)
+    expect(rule('.ep-menu-account .btn')).toMatch(/margin-right:auto/)
+    expect(rule('.ep-menu-account :is(.thm,.avatar)')).toMatch(/flex:none;width:44px;height:44px/)
+    expect(wide('.ep-menu-account')).toMatch(/padding-top:12px;border-top:1px solid var\(--line2\)/)
+    const popup = wide('body:has(.ep-menu-account) .acctm')
+    expect(popup).toMatch(/transform:translateY\(calc\(-100% - 60px\)\)/) // 자기 높이 + 아바타(44px) + 간격 16px
+    expect(popup).toMatch(/animation:none/) // popin의 from 프레임이 transform을 덮어 열릴 때 튀지 않게
+    expect(narrow('body:has(.ep-menu-account) .acctm')).toBe('')
+  })
+
+  it('사이드바 맨 아래 줄에 테마 버튼이 있으면 오른쪽 아래에 떠 있는 테마 버튼(공용 상단바가 없는 화면의 대체, GlobalChrome)은 숨겨 테마 버튼이 둘이 되지 않는다 — 공용 상단바가 있는 화면은 storyfork.css의 body:has(.gnb) .thm-float가 같은 일을 한다', () => {
+    expect(rule('body:has(.ep-menu-account) .thm-float')).toMatch(/display:none/)
+  })
+
+  it('접힌 사이드바의 상단 줄(.ep-top)에서 주 행동은 한 덩어리(.ep-top-actions)라 돌아가기 링크는 왼쪽, 행동은 오른쪽에 놓인다(자식이 셋이면 space-between이 가운데 버튼을 흩뜨린다)', () => {
+    expect(rule('.ep-top')).toMatch(/justify-content:space-between/)
+    expect(rule('.ep-top-actions')).toMatch(/display:flex;flex-wrap:wrap;align-items:center;gap:8px/)
+  })
+
+  it('900px 이하: 사이드바는 내용 위 가로 블록이고 로고(맨 위 줄)와 계정 줄이 맨 위 한 줄에 놓이며(DOM 순서는 로고·본문·계정이라 order로 올린다) 본문이 다음 줄이다 — 메뉴(nav)는 가로 스크롤 줄이다', () => {
+    expect(narrow('.ep-manage')).toMatch(/grid-template-columns:minmax\(0,1fr\)/)
+    expect(narrow('.ep-menu')).toMatch(/position:static;height:auto;overflow:visible;flex-direction:row;flex-wrap:wrap;align-items:center/)
+    expect(narrow('.ep-menu-top')).toMatch(/flex:1 1 auto/)
+    expect(narrow('.ep-menu-account')).toMatch(/order:1/)
+    expect(narrow('.ep-menu-body')).toMatch(/order:2;flex:1 1 100%;min-width:0/)
+    expect(narrow('.ep-menu nav')).toMatch(/display:flex;gap:4px;overflow-x:auto/)
+    expect(narrow('.ep-menu nav button')).toMatch(/flex:none;white-space:nowrap/)
+  })
+
+  it('돌아가기 링크는 메뉴 항목과 같은 글자 크기·안쪽 여백이고(공용 .ep-back의 음수 왼쪽 여백 없음), 사이드바의 링크·버튼 초점 링은 스크롤 상자에 잘리지 않게 안쪽에 그린다', () => {
+    const back = rule('.ep-menu .ep-menu-back')
+    expect(back).toMatch(/margin:0/)
+    expect(back).toMatch(/padding:6px 10px/)
+    expect(back).toMatch(/font-size:13\.5px/)
+    expect(rule('.ep-menu .ep-menu-back:hover')).toMatch(/background:var\(--muted-bg\);color:var\(--ink\)/)
+    expect(rule('.ep-menu button:focus-visible,.ep-menu a:focus-visible')).toMatch(/outline-offset:-2px/)
   })
 })
 

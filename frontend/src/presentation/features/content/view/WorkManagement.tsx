@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { publicationActionLabel, savedVersionLabel, type Version, type Work } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { Go } from '../../../shared/Go'
@@ -6,6 +6,7 @@ import { Branch } from '../../../shared/icons'
 import { ManuscriptBody } from '../../../shared/media/MediaPanel'
 import { paginate } from '../../../shared/paginate'
 import { Pager } from '../../../shared/Pager'
+import { ManageMenu } from '../../../shared/shell/ManageMenu'
 import { EditSuggestionInbox } from '../../inbox/view/EditSuggestionInbox'
 import { FeedbackReportInbox } from '../../inbox/view/FeedbackReportInbox'
 import { inheritedRangeLabel } from '../viewmodel/inheritedRange'
@@ -25,13 +26,28 @@ type Props = {
   useCase?: EpisodeUseCase
   onForked: (id: string) => void
   onDeleted: () => void
+  /** 사이드바를 펼쳤는지. 접은 동안 돌아가기 링크와 주 행동을 상단 줄로 옮겨 그리는 호출 측(EpisodePage)이 상태를 갖는다. */
+  menuOpen: boolean
+  onMenuOpenChange: (open: boolean) => void
+  /** 맨 위 알림(오류·상태). 사이드바 위에 끼면 화면 높이를 쓰는 사이드바가 아래로 밀리므로 내용 열 맨 위에 그린다. */
+  notices?: ReactNode
+}
+
+/** 작품 관리의 주 행동: 사이드바의 도구 묶음에 있고, 사이드바를 접으면 상단 줄로 옮겨 그린다(EpisodePage). 원고 작성은 이 화면이 아니라 집필실이 맡는다. */
+export function WorkActions({ workId }: { workId: string }) {
+  return (
+    <>
+      <Go to={`/studio/${workId}`} className='btn sm pri'>회차 작성하기</Go>
+      <Go to='/content?view=reports' className='btn sm'>내 댓글·제보</Go>
+    </>
+  )
 }
 
 /**
- * 고른 내 작품의 관리 영역: 왼쪽 사이드바 메뉴(회차 목록·세계관 연결과 설정집 요약·이야기 분기·받은 피드백·운영 설정·이력)와 오른쪽 내용 열(맨 위 히어로·분기 정책(또는 포크 정보), 그 아래 고른 메뉴의 내용).
- * 작품이 바뀌면 호출 측이 key로 새로 만들어 메뉴 선택·분기 입력이 처음 상태로 돌아간다. 메뉴 틀(.ep-manage·.ep-menu·.ep-content)은 shared/episode.css이고 세계관 관리 화면과 함께 쓴다.
+ * 고른 내 작품의 관리 영역: 왼쪽 사이드바(공용 ManageMenu: 로고·돌아가기 링크·메뉴(회차 목록·세계관 연결과 설정집 요약·이야기 분기·받은 피드백·운영 설정·이력)·주 행동·알림·테마·계정)와 오른쪽 내용 열(맨 위 알림·히어로·분기 정책(또는 포크 정보), 그 아래 고른 메뉴의 내용).
+ * 공용 상단바(Gnb)는 없고 사이드바가 그 역할을 한다. 작품이 바뀌면 호출 측이 key로 새로 만들어 메뉴 선택·분기 입력이 처음 상태로 돌아간다. 메뉴 틀(.ep-manage·.ep-menu·.ep-content)은 shared/episode.css이고 세계관 관리 화면과 함께 쓴다.
  */
-export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Props) {
+export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted, menuOpen, onMenuOpenChange, notices }: Props) {
   const [tab, setTab] = useState<'read' | 'fork' | 'history' | 'world' | 'feedback' | 'settings'>('read')
   const [mediaBusy, setMediaBusy] = useState(false)
   const [bulkImportOpen, setBulkImportOpen] = useState(false)
@@ -64,8 +80,8 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
   // 회차별로 갈라진 공개 포크 수(소설 상세와 같은 목록). 불러오는 중이거나 읽지 못하면 undefined라 수를 감춘다(0편으로 채우지 않는다).
   const forkCounts = useEpisodeForkCounts(w.id)
   return (
-    <div className='ep-manage'>
-      <div className='ep-menu'>
+    <div className='ep-manage' data-menu={menuOpen ? undefined : 'collapsed'}>
+      <ManageMenu name='작품' open={menuOpen} onOpenChange={onMenuOpenChange} back={{ to: '/lib?tab=write', label: '내가 쓰는 소설' }} tools={menuOpen && <WorkActions workId={w.id} />}>
         <nav aria-label='작품 메뉴'>
           {([
             ['read', `공개 회차 · ${w.episodes.length}`],
@@ -92,8 +108,9 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
             </button>
           ))}
         </nav>
-      </div>
+      </ManageMenu>
       <div className='ep-content'>
+        {notices}
         <WorkOverview
           work={w}
           locked={locked}
@@ -111,8 +128,8 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
             return deleted
           }}
         />
-        {/* 탭 내용 묶음: 메뉴를 누르면 이 머리로 스크롤한다. scroll-margin은 sticky 상단바(.gnb)가 머리를 가리지 않게(회차 목록과 같은 값). */}
-        <div ref={tabContent} className='ep-tab' style={{ scrollMarginTop: 80 }}>
+        {/* 탭 내용 묶음: 메뉴를 누르면 이 머리로 스크롤한다. 상단바가 없어 scroll-margin은 위 여백만이다(회차 목록과 같은 값). */}
+        <div ref={tabContent} className='ep-tab' style={{ scrollMarginTop: 16 }}>
           {tab === 'settings' && <WorkSettingsPanel workId={w.id} useCase={useCase} />}
           {tab === 'world' && (
             <>
@@ -196,7 +213,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
                 ? (
                   // 소설 상세(/work/:id)의 회차 행(.ep)을 그대로 쓰고, 오른쪽에 자체 회차는 집필실로 가는 '수정하기', 상속 회차는 읽기 전용 칩을 둔다. 본문은 펼치지 않는다.
                   // 10개씩 나눠 보인다. 쪽을 옮기면 이 머리로 스크롤하므로 위의 sticky 상단바(.gnb)가 가리지 않게 scroll-margin을 둔다.
-                  <ol ref={episodeList} className='tcard eps ep-list' style={{ scrollMarginTop: 80 }}>
+                  <ol ref={episodeList} className='tcard eps ep-list' style={{ scrollMarginTop: 16 }}>
                     {view.items.map((e) => {
                       const forks = forkCounts?.[e.number] ?? 0
                       return (
