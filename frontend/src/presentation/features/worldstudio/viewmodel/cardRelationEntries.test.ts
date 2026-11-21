@@ -29,3 +29,9 @@ it('양 끝 카드가 없거나(지워진 설정) 승인하지 않은 관계는 
   const pending = rows.map((s) => (s.item.kind === 'relation' ? { ...s, item: { ...s.item, decision: 'candidate' as never } } : s))
   expect(cardRelationEntries(pending, a.item.id)).toEqual([])
 })
+
+it('본문 링크의 대상 카드가 지워졌으면 그 항목은 없다(없는 카드를 유형으로 읽다가 터지지 않는다)', () => {
+  const [a, gone] = [card('가'), card('나')]
+  a.item.text = cardLinkMarkdown(gone.item.id, '나')
+  expect(cardRelationEntries([a], a.item.id)).toEqual([])
+})

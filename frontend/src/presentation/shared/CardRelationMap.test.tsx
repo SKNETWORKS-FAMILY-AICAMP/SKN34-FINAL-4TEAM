@@ -57,6 +57,7 @@ it('회차 탭: 전체·관계가 생기거나 바뀌는 회차가 있고 N화 �
   expect(tabs.getByRole('tab', { name: '11화' }).getAttribute('aria-selected')).toBe('true')
   fireEvent.change(tabs.getByRole('combobox', { name: '더 많은 회차' }), { target: { value: '15' } })
   expect(listed()).toHaveLength(7) // 15화 시점에는 모두
+  expect(tabs.getByRole('tab', { name: '전체' }).tabIndex).toBe(0) // 탭 줄에 없는 회차를 골라도 Tab으로 들어올 자리가 남는다
   fireEvent.click(tabs.getByRole('tab', { name: '전체' }))
   expect(listed()).toHaveLength(7)
 })

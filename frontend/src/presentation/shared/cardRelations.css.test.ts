@@ -16,3 +16,8 @@ it('회차 탭은 고른 탭만 보라 글자·테두리이고, 이웃 링크 �
   expect(rule('.card-relmap-tabs')).toMatch(/flex-wrap:wrap/) // 좁은 화면에서 줄바꿈
   expect(rule('.card-relmap-link')).toMatch(/text-decoration:underline/)
 })
+
+it('터치 기기에서는 전역 터치 보정(누르는 칸 44px·입력 16px)을 이 화면이 직접 다시 정한다', () => {
+  expect(css).toMatch(/@media\(pointer:coarse\)\{[\s\S]*\.card-relmap-tabs button\[role=tab\][^{]*\{min-height:44px\}/)
+  expect(css).toMatch(/@media\(pointer:coarse\)\{[\s\S]*\.card-relmap-tabs select\{font-size:16px\}/)
+})

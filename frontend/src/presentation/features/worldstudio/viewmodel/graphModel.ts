@@ -57,13 +57,13 @@ const FALLBACK_COLOR = CARD_COLORS['기타']
  * 관계도(`vm.graph`)를 그래프 데이터로 바꾼다. 없는 카드나 자기 자신으로 가는 관계는 그리지 않고, 같은 쌍의 관계는 선 하나로 묶으며, 카드 크기는 이어진 관계 수(묶기 전 관계 한 줄마다 센다)로 정한다.
  * `previous`에 있는 카드는 같은 객체를 고쳐 돌려준다(좌표를 잇는다: 설정을 고쳐 다시 만들어도 배치가 처음부터 다시 펼쳐지지 않는다). `spawn`에 있는 새 카드는 그 좌표에서 시작한다.
  */
-export function buildGraph(nodes: readonly MapNode[], links: readonly MapLink[], previous: ReadonlyMap<string, GNode> = new Map(), spawn: ReadonlyMap<string, { x: number; y: number }> = new Map()): { nodes: GNode[]; links: GLink[]; maxDegree: number } {
+export function buildGraph(nodes: readonly MapNode[], links: readonly MapLink[], previous: ReadonlyMap<string, GNode> = new Map(), spawn: ReadonlyMap<string, { x: number; y: number }> = new Map()): { nodes: GNode[]; links: GLink[] } {
   const ids = new Set(nodes.map((n) => n.id))
   const rows = links.flatMap((l) => {
     const source = mapEndpoint(l.source), target = mapEndpoint(l.target)
     return ids.has(source) && ids.has(target) && source !== target ? [{ source, target, relation: { id: l.id, source, target, label: l.label, full: l.fullLabel ?? l.label, symmetric: !!l.symmetric } satisfies Relation }] : []
   })
-  const degree = degrees([...ids], rows), maxDegree = Math.max(0, ...degree.values())
+  const degree = degrees([...ids], rows)
   const graphNodes = nodes.map((n): GNode => {
     const d = degree.get(n.id) ?? 0
     const fields = { id: n.id, name: n.name, type: n.type, unnamed: !!n.unnamed, degree: d, color: n.type ? CARD_COLORS[CARD_KIND[n.type]] : FALLBACK_COLOR }
@@ -81,7 +81,7 @@ export function buildGraph(nodes: readonly MapNode[], links: readonly MapLink[],
       if (!relation.symmetric && !found.directed) { found.directed = true; found.source = source; found.target = target }
     }
   }
-  return { nodes: graphNodes, links: [...pairs.values()], maxDegree }
+  return { nodes: graphNodes, links: [...pairs.values()] }
 }
 
 /** 선에 올렸을 때 보이는 관계 이름: 관계가 하나면 그 이름, 여럿이면 첫 관계 '외 N개'다(합친 선의 굵기는 늘리지 않고 개수는 이 말로만 알린다). */

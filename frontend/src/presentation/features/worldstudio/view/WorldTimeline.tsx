@@ -37,20 +37,20 @@ function TimelineBoard({ timeline, settings, onOpenCard }: { timeline: Timeline;
   let rows = 1
   const placed = columns.map((col, c) => {
     const heavy = col.events.length > COLUMN_CAP, shown = !heavy || open.has(col.key), x = c * COL_W + COL_W / 2
+    if (heavy) stops.push('more:' + col.key)
     const events = shown ? col.events.map((event, i) => { const y = DOT_Y + (i + (heavy ? 1 : 0)) * ROW_H; dots.set(event.item.id, { x, y }); points.push({ x, y }); stops.push(event.item.id); return { event, y } }) : []
-    if (heavy) { points.unshift(...[]); stops.splice(stops.length - events.length, 0, 'more:' + col.key) }
     if (heavy && !shown) points.push({ x, y: DOT_Y })
     rows = Math.max(rows, events.length + (heavy ? 1 : 0))
     return { col, heavy, shown, x, events }
   })
   const active = stopId && stops.includes(stopId) ? stopId : stops.includes(current.item.id) ? current.item.id : stops[0]
   const width = columns.length * COL_W, height = DOT_Y + rows * ROW_H + 8
-  const label = columns.length ? columns[0].label + '–' + columns[columns.length - 1].label : ''
+  const label = columns[0].label + '–' + columns[columns.length - 1].label
   const toggle = (key: string) => setOpen((old) => { const next = new Set(old); if (!next.delete(key)) next.add(key); return next })
   const move = (e: KeyboardEvent<HTMLElement>) => { // ←→↑↓: 다음·이전 사건(열 순서, 같은 열은 위에서 아래로)
     const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0, target = e.target as HTMLElement
-    if (!step || !target.dataset.stop) return
-    const all = [...e.currentTarget.querySelectorAll<HTMLElement>('[data-stop]')], next = all[all.indexOf(target) + step]
+    if (!step || !target.hasAttribute('data-stop')) return
+    const buttons = [...e.currentTarget.querySelectorAll<HTMLElement>('[data-stop]')], next = buttons[buttons.indexOf(target) + step]
     if (next) { e.preventDefault(); next.focus() }
   }
   const related = [...current.participants.map((p) => [p.id, p.title] as const), ...current.item.relatedIds.filter((id) => !current.participants.some((p) => p.id === id)).map((id) => [id, titleOf.get(id) ?? '알 수 없는 항목'] as const)]

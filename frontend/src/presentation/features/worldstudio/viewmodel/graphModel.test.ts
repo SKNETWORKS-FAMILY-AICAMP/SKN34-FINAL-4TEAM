@@ -55,7 +55,6 @@ it('buildGraph는 같은 쌍의 관계를 선 하나로 묶고(관계는 모두 
  const ab=g.links.find(l=>l.id==='a|b')!
  expect(ab.relations.map(r=>r.label)).toEqual(['친구','동료']) // 방향이 달라도 한 쌍
  expect(g.nodes.map(n=>n.degree)).toEqual([3,2,1])
- expect(g.maxDegree).toBe(3)
 })
 
 it('buildGraph는 방향 있는 관계가 하나라도 있으면 선을 방향 있다고 하고 그 방향을 따르며, 대칭 관계만이면 방향이 없다',()=>{
@@ -119,7 +118,6 @@ it('홍길동전(카드 57장·관계 146개): 홍길동은 관계 54개·서로
  expect(g.links.length).toBeLessThan(146) // 같은 쌍의 관계가 묶였다
  const gil=g.nodes.find(n=>n.id==='gildong') as GNode
  expect(gil.degree).toBe(54)
- expect(g.maxDegree).toBe(54)
  const around=neighborhood('gildong',g.links.map(l=>({id:l.id,source:l.source as string,target:l.target as string})))
  expect(around.nodes.size).toBe(39) // 자신 + 이웃 38장
  expect(around.edges.size).toBe(g.links.filter(l=>l.source==='gildong'||l.target==='gildong').length)

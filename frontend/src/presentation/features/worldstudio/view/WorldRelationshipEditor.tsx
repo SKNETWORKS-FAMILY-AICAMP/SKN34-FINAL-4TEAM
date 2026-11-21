@@ -92,9 +92,12 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   }
   // 유형 필터의 새 숨김 집합을 적용한다. 선택한 카드나 연결을 시작한 카드의 유형이 숨겨지면 그 선택·연결 모드를 푼다(숨은 카드에는 상대 선택·관계 연결을 할 수 없다).
   const applyHidden = (next: ReadonlySet<CardType>) => {
-    const filtered = { ...filter, hidden: next }
-    setFilter(filtered)
+    setFilter({ ...filter, hidden: next })
     saveFilter(worldId, { hiddenTypes: [...next], hiddenKinds: [...filter.hiddenKinds] })
+    release(next)
+  }
+  // 새 숨김 집합이 숨기는 카드를 고른 상태·연결 시작 카드로 두지 않는다(숨은 카드에는 상대 선택·관계 연결을 할 수 없다).
+  const release = (next: ReadonlySet<CardType>) => {
     const gone = (id?: string) => { const type = map.graph.nodes.find((n) => n.id === id)?.type; return !!type && next.has(type) }
     if (gone(map.selected?.id)) map.select(null)
     if (choosing && gone(source)) setChoosing(false)
@@ -118,6 +121,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
     clearFilter(worldId)
     const base = defaultRelationView(map.graph)
     setFilter({ hidden: new Set(base.hiddenTypes), hiddenKinds: new Set(base.hiddenKinds) })
+    release(new Set(base.hiddenTypes))
   }
   const filters: Filters = {
     typed, onTyped: chooseFound, choices,

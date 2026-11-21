@@ -872,3 +872,14 @@ it('노드 중심 보기: 노드 메뉴의 이 설정 중심으로 보기가 그
   expect(screen.queryByRole('group', { name: '노드 중심 보기' })).toBeNull()
   expect(localStorage.getItem('storyfork.relation-filter.' + world.id)).toBeNull() // 중심 보기는 기억하지 않는다
 })
+
+it('필터 초기화가 연결을 시작한 노드(기본 보기에서는 숨는 장소)를 숨기면 연결 모드도 푼다', async () => {
+  const { ui } = await knowledgeWorld() // 이 파일의 시험은 모든 유형을 보이는 필터로 시작한다
+  render(ui())
+  await ready()
+  startConnect('항구')
+  expect(screen.getByRole('button', { name: '연결 취소' })).toBeTruthy()
+  fireEvent.click(openSettings().getByRole('button', { name: '필터 초기화' })) // 기본 보기: 인물만(항구는 숨는다)
+  expect(nodeNames()).not.toContain('항구')
+  expect(screen.queryByRole('button', { name: '연결 취소' })).toBeNull()
+})

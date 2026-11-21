@@ -31,7 +31,7 @@ export function CardRelationMap({ center, badge, entries, revealEpisode, hrefOf,
   const { ring, rest, people, events } = layoutOf(groupNeighbors(atEpisode(entries, choice)))
   const open = (to: string) => (onOpen ? onOpen(to) : hrefOf && navigate(hrefOf(to)))
   const link = (n: Neighbor) => (hrefOf ? <Go to={hrefOf(n.id)}>{n.title}</Go> : <button type="button" className="card-relmap-link" onClick={() => onOpen?.(n.id)}>{n.title}</button>)
-  const paged = pageItems(people, page, 50), pagedEvents = pageItems(events, 0, 200)
+  const paged = pageItems(people, page, 50)
   const items = [null, ...episodes.slice(0, TAB_MAX)], more = episodes.slice(TAB_MAX)
   const pick = (value: number | null) => { setTab(value); setPage(0) }
   const move = (e: KeyboardEvent<HTMLElement>) => { // 탭 줄: ←→·Home·End로 탭을 옮긴다
@@ -48,7 +48,7 @@ export function CardRelationMap({ center, badge, entries, revealEpisode, hrefOf,
       {episodes.length > 0 && (
         <div className="card-relmap-tabs" role="tablist" aria-label="공개 회차" onKeyDown={move}>
           {items.map((value) => (
-            <button key={value ?? 'all'} id={id + '-tab-' + (value ?? 'all')} type="button" role="tab" aria-selected={choice === value} tabIndex={choice === value ? 0 : -1} title={value !== null && hidden(value) ? '아직 독자에게 숨김' : undefined} onClick={() => pick(value)}>
+            <button key={value ?? 'all'} id={id + '-tab-' + (value ?? 'all')} type="button" role="tab" aria-selected={choice === value} tabIndex={choice === value || (value === null && !items.includes(choice)) ? 0 : -1} title={value !== null && hidden(value) ? '아직 독자에게 숨김' : undefined} onClick={() => pick(value)}>
               {value === null ? '전체' : value + '화'}{value !== null && hidden(value) && <small> 숨김</small>}
             </button>
           ))}
@@ -90,7 +90,7 @@ export function CardRelationMap({ center, badge, entries, revealEpisode, hrefOf,
       {events.length > 0 && (
         <details className="card-relmap-events">
           <summary>함께한 사건 {events.length}</summary>
-          <ul>{pagedEvents.items.map((n) => <li key={n.id}>{link(n)} — {label(n)}{n.first !== null && ' · ' + n.first + '화'}</li>)}</ul>
+          <ul>{events.map((n) => <li key={n.id}>{link(n)} — {label(n)}{n.first !== null && ' · ' + n.first + '화'}</li>)}</ul>
         </details>
       )}
     </section>

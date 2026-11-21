@@ -211,7 +211,7 @@ export default function RelationGraph({ vm, editing, find, filters }: Props) {
     const id = editing.onAdd(type)
     if (!id) return
     spawn.current.set(id, at ?? fromSurface(box.w / 2, box.h / 2))
-    if (!showOrphans) change('orphans', true) // 새 설정은 관계가 0이라 외톨이다: 숨겨 두면 보이지도 선택되지도 않는다
+    if (settings.orphans !== true) change('orphans', true) // 새 설정은 관계가 0이라 외톨이다: 숨겨 두면 보이지도 선택되지도 않는다(60개에서 61개로 넘어가 자동 숨김이 켜질 때도 있다)
     setAdding(false)
     setAdded({ id, seq: ++seq.current })
   }

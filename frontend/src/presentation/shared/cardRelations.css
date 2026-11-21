@@ -15,3 +15,5 @@
 .card-relmap-link{padding:0;border:0;background:none;color:var(--pri-ink);font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .card-relmap-events summary{cursor:pointer;color:var(--sub)}
 .card-relmap-empty{margin:0}
+/* 전역 터치 보정(누르는 칸 44px·입력 16px)을 위 규칙이 다시 정하므로 터치 기기에서는 이 화면이 직접 보정한다. */
+@media(pointer:coarse){.card-relmap-tabs button[role=tab],.card-relmap-tabs select{min-height:44px}.card-relmap-tabs select{font-size:16px}}

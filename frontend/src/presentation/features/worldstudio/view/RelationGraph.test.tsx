@@ -885,3 +885,17 @@ it('노드가 60개 이하인 작은 세계는 위성을 접지 않는다(두 �
  expect(screen.getByText('설정이 많을 때(60개 초과) 접혀요')).toBeTruthy()
  expect(screen.queryByRole('button', { name: '모두 펼치기' })).toBeNull()
 })
+
+it('노드가 정확히 60개일 때 설정을 더해 61개(큰 세계관)가 돼도 새 설정은 외톨이로 숨겨지지 않고 선택·강조된다', () => {
+ const marked = vi.fn()
+ function Live() {
+  const [rows, setRows] = useState<Rows>(() => ringOf(60))
+  return <Graph rows={rows} editing={actions({ onMark: marked, onAdd: () => { const added = newSetting('people'); added.item.title = '새 인물'; setRows((all) => [...all, added]); return added.item.id } })} />
+ }
+ render(<Live />)
+ expect(nodeNames()).toHaveLength(60) // 60개 이하라 외톨이 숨김은 아직 자동으로 꺼져 있다
+ fireEvent.click(screen.getByRole('button', { name: '+ 설정 추가' }))
+ fireEvent.click(within(screen.getByRole('dialog', { name: '설정 추가' })).getByRole('button', { name: '인물' }))
+ expect(nodeNames()).toContain('새 인물')
+ expect(marked).toHaveBeenCalledTimes(1)
+})

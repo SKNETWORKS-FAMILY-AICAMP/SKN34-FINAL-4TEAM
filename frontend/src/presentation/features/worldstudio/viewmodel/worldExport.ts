@@ -20,9 +20,6 @@ function parts(world: StudioWorld) {
   const relations = world.settings.filter((s) => s.item.kind === 'relation' && s.item.decision === 'approved' && ids.has(s.item.subjectId ?? '') && ids.has(s.item.targetId ?? ''))
   return { cards, relations }
 }
-/** 관계 이름과 설명: 자유 관계는 이름이 `text`에 있어 설명이 따로 없다. */
-const nameOf = (item: StudioWorld['settings'][number]['item']) => relationLabel(item)
-
 /** JSON: 카드(id·유형·제목·별칭·태그·본문·공개 회차)와 관계(출발·도착·이름·설명·시작 회차), 스키마 버전 하나. 회차가 없으면(작가 전용·시작 회차 미정) null이다. */
 export function worldToJson(world: StudioWorld) {
   const { cards, relations } = parts(world)
@@ -30,7 +27,7 @@ export function worldToJson(world: StudioWorld) {
     schemaVersion: EXPORT_SCHEMA_VERSION,
     world: { id: world.id, name: world.name, description: world.description },
     cards: cards.map((s) => ({ id: s.item.id, type: cardTypeOf(s.item), title: s.item.title, aliases: s.aliases ?? [], tags: s.tags, text: s.item.text, revealFromEpisode: cardRevealEpisode(s) ?? null })),
-    relations: relations.map((s) => ({ id: s.item.id, source: s.item.subjectId, target: s.item.targetId, name: nameOf(s.item), description: s.item.text === nameOf(s.item) ? '' : s.item.text, fromEpisode: s.item.fromEpisode ?? null })),
+    relations: relations.map((s) => ({ id: s.item.id, source: s.item.subjectId, target: s.item.targetId, name: relationLabel(s.item), description: s.item.text === relationLabel(s.item) ? '' : s.item.text, fromEpisode: s.item.fromEpisode ?? null })),
   }, null, 2)
 }
 
@@ -41,7 +38,7 @@ export function worldToJson(world: StudioWorld) {
 export function worldToMarkdown(world: StudioWorld) {
   const { cards, relations } = parts(world)
   const title = new Map(cards.map((s) => [s.item.id, s.item.title || NO_TITLE]))
-  const line = (arrow: string, other: string | null, item: (typeof relations)[number]['item']) => '- ' + arrow + title.get(other ?? '') + ' — ' + nameOf(item) + (item.fromEpisode ? ' (' + item.fromEpisode + '화부터)' : '')
+  const line = (arrow: string, other: string | null, item: (typeof relations)[number]['item']) => '- ' + arrow + title.get(other ?? '') + ' — ' + relationLabel(item) + (item.fromEpisode ? ' (' + item.fromEpisode + '화부터)' : '')
   const out = ['# ' + (world.name || '이름 없는 세계관'), '', ...(world.description ? [world.description, ''] : [''])]
   for (const type of cardTypes) {
     const group = cards.filter((s) => cardTypeOf(s.item) === type.id)
