@@ -29,6 +29,7 @@ import ai.storyfork.operations.llmops.service.LeakCheckService
 import ai.storyfork.operations.llmops.service.LlmopsSettingService
 import ai.storyfork.operations.llmops.service.MetricsService
 import ai.storyfork.operations.llmops.service.ModelService
+import ai.storyfork.operations.llmops.service.PipelineService
 import ai.storyfork.operations.llmops.service.PromptService
 import ai.storyfork.operations.llmops.service.TraceService
 import ai.storyfork.operations.llmops.service.dto.PromptPromoteRequest
@@ -99,6 +100,7 @@ class MemberSecurityIntegrationTest {
     @MockitoBean lateinit var metrics: MetricsService
     @MockitoBean lateinit var prompts: PromptService
     @MockitoBean lateinit var models: ModelService
+    @MockitoBean lateinit var pipelines: PipelineService
     @MockitoBean lateinit var evaluations: EvaluationService
     @MockitoBean lateinit var leakChecks: LeakCheckService
     @MockitoBean lateinit var llmopsSettings: LlmopsSettingService

@@ -300,7 +300,7 @@ class JobsIntegrationTest {
         scheduler.tick()
         execute(runsOf("ci_fail", id).single().path("id").asString())
         val failed = runsOf("ci_fail", id).single()
-        doThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY)).`when`(ai).startJob(anyRun(), eq("ci_fail"))
+        doThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY)).`when`(ai).startJob(anyRun(), eq("ci_fail") ?: "ci_fail")
 
         assertEquals(502, send("POST", "$base/runs/${failed.path("id").asString()}/retry", adminBearer).statusCode())
 

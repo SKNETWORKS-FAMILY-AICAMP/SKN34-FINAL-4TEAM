@@ -351,7 +351,9 @@ describe('관리자 (A01~A18)', () => {
     const real = (await jobs.runs({ status: '', kind: '', page: 0 }))!
     const name = 'qa@v3-20261120T010203Z-a1b2c3'
     const evaluation = { id: name, kind: 'evaluation', source: 'ai-evaluation', status: 'failed', trigger: 'manual', startedAt: '2026-11-20T01:02:03Z', error: '평가 결과가 기록되지 않은 채 시간이 지나 실패로 봤어요.', targetId: name }
-    vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, items: [evaluation, ...real.items], unavailable: ['ai-evaluation'] })
+    // 앞선 테스트가 메모리 저장소의 job-failed-1을 다시 실행해 대기로 바꿔 두므로(저장소는 파일 안에서 공유), 실패한 원고 전처리 행은 여기서 직접 만든다.
+    const failedPreprocessing = { id: 'job-failed-2', kind: 'manuscript_preprocessing', source: 'content-preprocessing', status: 'failed', trigger: 'user', startedAt: '2026-11-20T00:00:00Z', error: '전처리 중 AI 요청이 시간 초과됐어요.', targetId: 'demo-work' }
+    vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, items: [evaluation, failedPreprocessing, ...real.items], unavailable: ['ai-evaluation'] })
     renderAt('/admin?tab=jobs')
     await screen.findByText(/일부 출처의 실행 기록을 불러오지 못했어요: AI 평가/)
     const row = screen.getByText(evaluation.error).closest('tr') as HTMLElement
@@ -360,7 +362,7 @@ describe('관리자 (A01~A18)', () => {
     within(row).getByText('실패')
     expect(within(row).queryByRole('button', { name: /조치/ })).toBeNull()
     // 같은 목록의 실패한 원고 전처리는 그대로 다시 실행 메뉴가 있다.
-    screen.getByRole('button', { name: '「manuscript_preprocessing 실행 job-failed-1」 조치' })
+    screen.getByRole('button', { name: '「manuscript_preprocessing 실행 job-failed-2」 조치' })
   })
 
   it('분류·캐릭터챗 입력은 다른 화면에 갔다 와도 유지된다 (목업 S.admin.filters·chatForm)', async () => {
