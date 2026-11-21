@@ -92,3 +92,12 @@ Content `GET /internal/v1/operations/funnel`(운영 서비스 토큰 체인, 파
 
 - nginx·Vite: `/api/v1/operations/credits`와 하위 경로를 Operations로.
 - 운영 `MemberSecurityConfig` 경로 목록에 `credits` 추가.
+
+## 4. 장시간 작업을 Celery 큐로 모으고 작업 감시에서 보기 (2026-11-20 사용자 결정)
+
+develop의 원고 구축은 Celery 큐(`preprocessing.run`, 브로커 `rabbitmq`, 별도 `ai-worker` 컨테이너)로 실행된다. 같은 큐에 장시간 작업을 모아 작업 감시(`/admin?tab=jobs`)에서 함께 본다.
+
+- **회귀 평가 실행 이전:** AI `POST /internal/v1/evaluations`는 `BackgroundTasks` 대신 Celery 태스크 `evaluation.run`(큐 `evaluation`)을 올리고 지금처럼 202 `{runName}`을 돌려준다. `ai-worker`는 `-Q preprocessing,evaluation`, 동시성 1이라 원고 구축과 평가가 들어온 순서대로 하나씩 실행된다. 서버 재시작에도 큐에 남아 이어 실행된다(지금의 '재시작하면 끊김' 한계 해소). 결과 기록 방식(Langfuse Run·점수)은 그대로다.
+- **작업 감시 실행 기록:** 운영 `GET /jobs/runs`가 지금의 운영 정기 작업·Content 원고 구축에 더해 회귀 평가 Run을 같은 `JobRun` 모양으로 합친다: `kind=evaluation`, `source=ai-evaluation`, `status`는 평가의 `running|completed|failed`를 `running|succeeded|failed`로, `targetId`는 Run 이름, `startedAt`은 Run 생성 시각. 출처(Langfuse)를 읽지 못하면 다른 출처는 보이고 안내만 한다(기존 `unavailable` 규칙). 평가는 작업 감시에서 재실행하지 않는다(평가 화면에서 새로 실행).
+- 대시보드 작업 카드(`running`·`failedLast24h`)에도 평가 실행을 센다.
+- ponytail: 큐가 하나(동시성 1)라 긴 원고 구축 뒤에 평가가 기다린다. 필요하면 평가 전용 워커를 더한다.
