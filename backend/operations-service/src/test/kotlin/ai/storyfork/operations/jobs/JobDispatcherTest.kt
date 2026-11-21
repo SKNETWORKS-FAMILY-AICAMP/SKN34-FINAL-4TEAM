@@ -44,11 +44,24 @@ class JobDispatcherTest {
 
         assertFalse(dispatcher.dispatch(run))
 
-        assertEquals(listOf(JobStatus.FAILED), runs.savedStatuses)
         assertEquals(JobStatus.FAILED, run.status)
         assertEquals(JOB_NOT_ACCEPTED_MESSAGE, run.error)
         assertEquals(start, run.finishedAt)
         assertNull(run.startedAt)
+    }
+
+    @Test
+    fun `a worker that already took the run is never overwritten when the answer to the hand-over was lost, and the hand-over counts as done`() {
+        val run = queued()
+        doThrow(ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT)).`when`(ai).startJob(run.id, "alpha")
+        // The AI service queued the run and a worker took it before the answer was given up on.
+        runs.beforeClose = { it.status = JobStatus.RUNNING }
+
+        assertTrue(dispatcher.dispatch(run))
+
+        assertEquals(JobStatus.RUNNING, run.status)
+        assertNull(run.error)
+        assertNull(run.finishedAt)
     }
 
     @Test

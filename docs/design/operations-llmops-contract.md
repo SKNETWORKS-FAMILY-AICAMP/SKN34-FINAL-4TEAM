@@ -129,7 +129,7 @@ Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRu
 |---|---|
 | `POST /internal/v1/jobs/runs/{runId}/execute` (본문 없음) | 선점하면 handler를 끝까지 실행하고 200 + 끝난 `JobRun`(handler 실패도 failed 기록의 200). 선점하지 못하면(이미 실행 중·끝남·재배달) 실행도 변경도 없이 409, 없는 `runId`는 404, 토큰이 없거나 틀리면 401 |
 
-tick은 일정을 보기 전에 `queued`가 10분, `running`이 30분을 넘은 기록(워커가 죽었거나 execute 호출이 실패해 남은 것)을 failed+고정 사유(작업 워커 응답 없음)로 닫아 그 일정이 영원히 막히지 않게 한다. 재시작 때는 `running`을 failed로 닫는다(핸들러가 운영 프로세스 안에서 돌기 때문).
+tick은 일정을 보기 전에 `queued`가 10분, `running`이 30분을 넘은 기록(워커가 죽었거나 execute 호출이 실패해 남은 것)을 failed+고정 사유(작업 워커 응답 없음)로 닫아 그 일정이 영원히 막히지 않게 한다. 이 닫기와 AI 접수 실패 처리는 읽은 상태일 때만 failed로 바꾸는 조건부 UPDATE라 그사이 워커가 선점했거나 결과가 기록된 run은 덮어쓰지 않고, 접수 응답을 잃었어도 이미 워커가 선점했으면 접수된 것으로 본다. 재시작 때는 `running`을 failed로 닫는다(핸들러가 운영 프로세스 안에서 돌기 때문).
 
 | kind | 실행 위치 | 내용 |
 |---|---|---|

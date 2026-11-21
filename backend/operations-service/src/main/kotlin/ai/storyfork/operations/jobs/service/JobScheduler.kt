@@ -72,11 +72,9 @@ class JobScheduler(
         }
     }
 
+    /** Only if the run is still in the status it was read in, so a result that landed meanwhile is not overwritten. */
     private fun close(run: JobRunEntity, message: String) {
-        run.status = JobStatus.FAILED
-        run.error = message
-        run.finishedAt = now()
-        runs.save(run)
+        runs.close(run.id, run.status, JobStatus.FAILED, message, now())
     }
 
     /**

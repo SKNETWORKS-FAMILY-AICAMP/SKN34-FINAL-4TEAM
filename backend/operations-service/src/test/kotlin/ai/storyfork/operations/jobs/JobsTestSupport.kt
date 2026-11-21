@@ -59,6 +59,9 @@ class FakeSchedules(private val log: MutableList<String> = mutableListOf()) {
 class FakeRuns(private val log: MutableList<String> = mutableListOf()) {
     val rows = mutableListOf<JobRunEntity>()
     var saveFailure: (JobRunEntity) -> Throwable? = { null }
+
+    /** Runs inside the conditional close just before it looks at the status: what another thread does between a read and the close. */
+    var beforeClose: (JobRunEntity) -> Unit = {}
     val savedStatuses = mutableListOf<JobStatus>()
     val pageables = mutableListOf<Pageable>()
 
@@ -78,6 +81,20 @@ class FakeRuns(private val log: MutableList<String> = mutableListOf()) {
                 if (run != null && run.status == args[1]) {
                     run.status = args[2] as JobStatus
                     run.startedAt = args[3] as Instant
+                    1
+                } else 0
+            }
+            // The conditional close: failed only while the run is still in the status the caller read, so a late close never overwrites a later state.
+            "close" -> synchronized(rows) {
+                val run = rows.find { it.id == args[0] }
+                if (run != null) {
+                    beforeClose(run)
+                    saveFailure(run)?.let { error -> throw error }
+                }
+                if (run != null && run.status == args[1]) {
+                    run.status = args[2] as JobStatus
+                    run.error = args[3] as String
+                    run.finishedAt = args[4] as Instant
                     1
                 } else 0
             }

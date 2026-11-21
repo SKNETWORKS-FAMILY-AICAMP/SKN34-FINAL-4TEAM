@@ -218,6 +218,20 @@ class JobSchedulerTest {
     }
 
     @Test
+    fun `a stale run that finished while the sweep was closing it keeps what it finished with`() {
+        val schedule = schedule()
+        val stale = run(schedule, JobStatus.RUNNING, startedAt = start.minus(Duration.ofMinutes(31)))
+        // The worker's result lands between the sweep's read and its close.
+        runs.beforeClose = { it.status = JobStatus.SUCCEEDED }
+
+        scheduler().tick()
+
+        assertEquals(JobStatus.SUCCEEDED, stale.status)
+        assertNull(stale.error)
+        assertNull(stale.finishedAt)
+    }
+
+    @Test
     fun `runs exactly at their limits and finished runs are left alone, and the schedules they hold stay blocked`() {
         val first = schedule(kind = "alpha")
         val second = schedule(kind = "beta")

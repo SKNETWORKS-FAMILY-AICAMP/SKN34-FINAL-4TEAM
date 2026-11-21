@@ -41,4 +41,15 @@ interface JobRunRepository : JpaRepository<JobRunEntity, UUID> {
     @Modifying
     @Query("update JobRunEntity r set r.status = :toStatus, r.startedAt = :startedAt where r.id = :id and r.status = :fromStatus")
     fun claim(@Param("id") id: UUID, @Param("fromStatus") fromStatus: JobStatus, @Param("toStatus") toStatus: JobStatus, @Param("startedAt") startedAt: Instant): Int
+
+    /**
+     * Closes a run (status, reason, finish time) only while it is still in [fromStatus]: 1 when it was closed, 0 when it had already moved on (a worker took it, or its
+     * result was recorded), so a close that comes late, after a read, never overwrites what happened in between.
+     */
+    @Transactional
+    @Modifying
+    @Query("update JobRunEntity r set r.status = :toStatus, r.error = :error, r.finishedAt = :finishedAt where r.id = :id and r.status = :fromStatus")
+    fun close(
+        @Param("id") id: UUID, @Param("fromStatus") fromStatus: JobStatus, @Param("toStatus") toStatus: JobStatus, @Param("error") error: String, @Param("finishedAt") finishedAt: Instant,
+    ): Int
 }

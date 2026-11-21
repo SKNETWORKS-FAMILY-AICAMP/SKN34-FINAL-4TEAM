@@ -23,18 +23,16 @@ class JobDispatcher(private val runs: JobRunRepository, private val ai: AiClient
     protected open fun now(): Instant = Instant.now().truncatedTo(ChronoUnit.MICROS)
 
     /**
-     * True when the AI service took the run; it stays queued until a worker claims it. When the hand-over fails, whatever the reason, the run is recorded as failed
-     * with a fixed message and this is false: a run nobody was told about must not stay queued, since a queued run holds its schedule.
+     * True when the AI service took the run; it stays queued until a worker claims it. When the hand-over fails, whatever the reason, a run that is still queued is
+     * closed as failed with a fixed message and this is false: a run nobody was told about must not stay queued, since a queued run holds its schedule.
+     * The close is conditional on the run still being queued. If the answer was lost after the AI service queued the run and a worker has already taken it, the
+     * hand-over did work: that run is left alone (a later close must not overwrite what the worker is doing) and counts as handed over.
      */
     fun dispatch(run: JobRunEntity): Boolean = try {
         ai.startJob(run.id, run.kind)
         true
     } catch (error: Exception) {
         log.error("The AI service did not take job run {} ({})", run.id, run.kind, error)
-        run.status = JobStatus.FAILED
-        run.error = JOB_NOT_ACCEPTED_MESSAGE
-        run.finishedAt = now()
-        runs.save(run)
-        false
+        runs.close(run.id, JobStatus.QUEUED, JobStatus.FAILED, JOB_NOT_ACCEPTED_MESSAGE, now()) == 0
     }
 }
