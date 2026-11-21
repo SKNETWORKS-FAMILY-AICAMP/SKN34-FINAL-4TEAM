@@ -28,7 +28,7 @@ export type ReviewBasis = Record<string, { body: string; characterDocs?: Charact
  */
 export type WorldReview = { reviewedCards: number; totalCards: number; findings: ReviewFinding[]; reviewedAt: Date; basis: ReviewBasis }
 
-/** 게시판 한 줄의 보완 상태. `cleanup`은 빈 인물 문서(`정리 필요`), `unlinked`는 `연결 필요`, `order`는 `공개 순서 확인`, `opinions`는 마지막 AI 검토가 그 카드에 남긴 지적 수다. */
+/** 게시판 한 줄의 보완 상태. `cleanup`은 비어 있는 필수 인물 문서(IDENTITY·SOUL, `정리 필요`, GOAL은 선택이라 세지 않는다), `unlinked`는 `연결 필요`, `order`는 `공개 순서 확인`, `opinions`는 마지막 AI 검토가 그 카드에 남긴 지적 수다. */
 export type CardStatus = { cleanup: boolean; unlinked: boolean; opinions: number; order: boolean }
 
 /**

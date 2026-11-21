@@ -66,7 +66,8 @@ beforeEach(() => {
   inherited.mockResolvedValue(null)
   // 이 작품(work-id)에 연결된 세계관과 그 인물 카드가 시작 양식의 인물 후보다.
   owned.mockResolvedValue([{ id: 'world-1', linkedWorkId: 'work-id', settings: [] }])
-  readWorld.mockResolvedValue({ id: 'world-1', settings: [{ item: { id: 'c1', title: '카엘', kind: 'entity', entityType: 'character' }, userCategory: '', tags: [] }] })
+  // 필수 인물 문서(IDENTITY.md=본문·SOUL.md)를 채운 인물이라 시작 양식에서 고를 수 있다(GOAL.md는 선택, #357·#624).
+  readWorld.mockResolvedValue({ id: 'world-1', settings: [{ item: { id: 'c1', title: '카엘', kind: 'entity', entityType: 'character', text: '카엘 본문' }, characterDocs: { soul: '카엘 말투', goal: '', episodes: {} }, userCategory: '', tags: [] }] })
   history.mockImplementation(async () => ({ threadId: 'a', title: '', turns: store.reply ? [{ request: '시뮬레이션', reply: store.reply }] : [] }))
 })
 const originalModel = { active: model.active, episodes: model.episodes }

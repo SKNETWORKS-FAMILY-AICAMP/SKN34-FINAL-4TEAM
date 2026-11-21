@@ -55,11 +55,16 @@ describe('인물 문서의 이름과 글', () => {
 })
 
 describe('빠진 문서 알림(정리 필요)', () => {
-  it('인물 카드에서 IDENTITY.md·SOUL.md·GOAL.md 중 비어 있는(공백뿐인 것도) 문서를 순서대로 알린다', () => {
-    expect(missingCharacterDocs(person())).toEqual(['identity', 'soul', 'goal']) // 기존 인물 카드·가져온 인물 카드는 본문만 있다
-    expect(missingCharacterDocs(person('본문'))).toEqual(['soul', 'goal'])
+  it('인물 카드에서 필수인 IDENTITY.md·SOUL.md 중 비어 있는(공백뿐인 것도) 문서를 순서대로 알린다', () => {
+    expect(missingCharacterDocs(person())).toEqual(['identity', 'soul']) // 기존 인물 카드·가져온 인물 카드는 본문만 있다
+    expect(missingCharacterDocs(person('본문'))).toEqual(['soul'])
     expect(missingCharacterDocs(person('본문', docs({ soul: ' \n ', goal: '목표' })))).toEqual(['soul'])
     expect(missingCharacterDocs(person('본문', docs({ soul: '성격', goal: '목표' })))).toEqual([])
+  })
+
+  it('GOAL.md는 선택이라 비어 있어도(공백뿐이어도) 빠진 문서로 알리지 않는다(#624)', () => {
+    expect(missingCharacterDocs(person('본문', docs({ soul: '성격', goal: '' })))).toEqual([])
+    expect(missingCharacterDocs(person('본문', docs({ soul: '성격', goal: ' \n ' })))).toEqual([])
   })
 
   it('회차별 기억은 없어도 되고, 인물이 아닌 카드는 알리지 않는다', () => {

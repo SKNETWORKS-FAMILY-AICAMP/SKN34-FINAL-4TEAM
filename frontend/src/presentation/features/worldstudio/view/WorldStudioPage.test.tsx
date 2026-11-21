@@ -346,7 +346,7 @@ it('작성 검토는 열 때만 렌더하고 카드와 관계를 각각 페이�
 it('설정 카드 단계는 공개 설정집과 같은 분류 메뉴·검색·정렬·게시판 표로 카드를 보이고 행을 누르면 목록 대신 그 카드의 편집 화면이 열린다', async () => {
   await show([person('나래'), person('가람', '북부 기록관'), place('항구')])
   const menu = within(screen.getByRole('navigation', { name: '설정 분류' }))
-  expect(menu.getAllByRole('button').map((b) => b.textContent)).toEqual(['전체 3', '인물 2', '장소 1', '보완 필요 2']) // 두 인물은 SOUL·GOAL이 비어 정리 필요라 보완 필요 분류가 마지막에 선다
+  expect(menu.getAllByRole('button').map((b) => b.textContent)).toEqual(['전체 3', '인물 2', '장소 1', '보완 필요 2']) // 두 인물은 SOUL이 비어 정리 필요라 보완 필요 분류가 마지막에 선다
   const table = within(screen.getByRole('table', { name: '설정 카드 목록' }))
   expect(table.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['보이는 설정 모두 선택', '번호', '분류', '제목', '요약', '공개', '연결']) // 맨 앞은 공개 범위를 바꿀 카드를 고르는 선택 칸이다
   const rows = () => table.getAllByRole('row').slice(1).map((row) => [...row.querySelectorAll('td')].slice(1).map((td) => (td.classList.contains('col-title') ? td.querySelector('button')?.textContent : td.textContent))) // 선택 칸은 빼고, 제목 칸은 제목 버튼만 본다
@@ -2670,7 +2670,7 @@ it('인물 카드는 설명 대신 문서 목록(IDENTITY.md·SOUL.md·GOAL.md·
   await show([person('가람', '기존 내용'), place('항구')])
   openCard('가람 인물')
   expect(editor().queryByRole('textbox', { name: '설명' })).toBeNull()
-  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 정리 필요', 'GOAL.md 정리 필요']) // 비어 있는 문서는 정리 필요로 알린다
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 정리 필요', 'GOAL.md']) // 비어 있는 필수 문서(SOUL.md)는 정리 필요로 알리고, 선택인 GOAL.md는 비어 있어도 알리지 않는다(#624)
   expect(docList().getAllByRole<HTMLButtonElement>('button').every((b) => b.tagName === 'BUTTON' && b.type === 'button')).toBe(true) // 키보드로 옮겨 다니는 버튼이다
   expect(currentDoc()).toEqual(['IDENTITY.md'])
   expect(docBody('IDENTITY.md').value).toBe('기존 내용') // 기존 인물 카드의 본문이 그대로 IDENTITY.md다
@@ -2700,10 +2700,10 @@ it('문서를 바꿔 가며 쓰면 문서마다 초안에 남고 안내와 글�
   expect(editor().queryByText(/제목은 공개 페이지 목차에 나와요/)).toBeNull() // 공개 페이지 목차 안내는 공개되는 IDENTITY.md에만 있다
   expect(saveBar().getByText('저장됨')).toBeTruthy() // 문서를 옮겨 보기만 해서는 초안이 바뀌지 않는다
   fireEvent.change(docBody('SOUL.md'), { target: { value: '말수가 적다' } })
-  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md 정리 필요']) // 채운 문서는 정리 필요가 사라진다
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md']) // 채운 문서는 정리 필요가 사라진다
   expect(editor().getByText(/^SOUL\.md 6 \/ 3,000자 · 저장 전 수정이 있어요/)).toBeTruthy()
-  pickDoc('GOAL.md 정리 필요')
-  expect(docsPanel().getByText('무엇을 원하고 하려는가: 이 인물의 목표·동기·하려는 일.')).toBeTruthy()
+  pickDoc('GOAL.md')
+  expect(docsPanel().getByText('인물이 원하는 것, 피하고 싶은 것, 하려는 일이 있다면 적어 주세요. 비워도 돼요.')).toBeTruthy() // 목표는 선택 항목이다(#624)
   fireEvent.change(docBody('GOAL.md'), { target: { value: '스승의 원수를 찾는다' } })
   pickDoc('IDENTITY.md')
   expect(docBody('IDENTITY.md').value).toBe('기존 내용')
@@ -2757,7 +2757,7 @@ it('회차 기억 삭제는 회차 기억을 고른 동안에만 있고, 확인�
   expect(saveBar().getByText('저장됨')).toBeTruthy()
   confirm.mockReturnValue(true)
   fireEvent.click(docsPanel().getByRole('button', { name: '회차 기억 삭제' }))
-  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 정리 필요', 'GOAL.md 정리 필요', '03회차.md'])
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 정리 필요', 'GOAL.md', '03회차.md'])
   expect(currentDoc()).toEqual(['IDENTITY.md'])
   await waitFor(() => expect(document.activeElement).toBe(docButton('IDENTITY.md'))) // 누른 버튼이 사라진 자리 대신
   saveWorld()
@@ -2778,7 +2778,7 @@ it('.md 파일 불러오기는 여러 파일을 받아 파일 이름으로 문�
   expect(confirm).not.toHaveBeenCalled() // 비어 있던 문서라 덮어쓸 것이 없다
   expect(docBody('IDENTITY.md').value).toBe('이름: 가람') // 보고 있던 문서도 불러온 글로 다시 열린다
   openMemory()
-  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md 정리 필요', '03회차.md'])
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md', '03회차.md'])
   saveWorld()
   await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
   expect(saveStudio.mock.calls[0][0].settings[0]).toMatchObject({ item: { text: '이름: 가람' }, characterDocs: { soul: '말수가 적다', goal: '', episodes: { 3: '스승을 잃었다\n검을 받았다' } } })
@@ -2851,7 +2851,7 @@ it('3,000자를 넘는 파일도 가져오되 그 문서에 초과를 표시하�
   openCard('가람 인물')
   loadFiles(md('SOUL.md', '가'.repeat(3001)))
   await docsPanel().findByRole('status')
-  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 3,000자 초과', 'GOAL.md 정리 필요'])
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 3,000자 초과', 'GOAL.md'])
   expect(saveBar().getByRole('button', { name: '‘가람’: SOUL.md는 3,000자 이하로 줄여 주세요.' })).toBeTruthy()
   expect(saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(true)
   pickDoc('SOUL.md 3,000자 초과')
@@ -2869,24 +2869,23 @@ it('3,000자를 넘는 파일도 가져오되 그 문서에 초과를 표시하�
   expect(saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(true)
 })
 
-it('설정집 게시판은 IDENTITY.md·SOUL.md·GOAL.md 중 빈 문서가 있는 인물 줄에 정리 필요를 보이고, 저장은 막지 않는다', async () => {
+it('설정집 게시판은 IDENTITY.md·SOUL.md 중 빈 문서가 있는 인물 줄에 정리 필요를 보이고(GOAL.md는 선택), 저장은 막지 않는다', async () => {
   const filled = { soul: '성격', goal: '목표' }
   const { saveStudio } = await show([person('가람', '본문'), withDocs(person('나래', '본문'), filled), withDocs(person('다온'), filled), place('항구')])
   const flagged = () => boardTable().getAllByRole('row').slice(1).map((row) => [row.querySelector('.col-title button')?.textContent, within(row).queryByText('정리 필요') !== null])
   expect(flagged()).toEqual([['가람', true], ['나래', false], ['다온', true], ['항구', false]]) // 다온은 본문(IDENTITY.md)이 비었고, 인물이 아닌 설정은 알리지 않는다
   openCard('가람 인물')
-  pickDoc('SOUL.md 정리 필요')
-  fireEvent.change(docBody('SOUL.md'), { target: { value: '성격' } })
+  fireEvent.change(docBody('IDENTITY.md'), { target: { value: '고친 본문' } }) // 빈 SOUL.md는 그대로라 정리 필요도 그대로다
   backToBoard()
-  expect(flagged()[0]).toEqual(['가람', true]) // GOAL.md가 아직 비어 있다
+  expect(flagged()[0]).toEqual(['가람', true])
   expect(saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(false) // 알리기만 하고 막지 않는다
   saveWorld()
   await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
   openCard('가람 인물')
-  pickDoc('GOAL.md 정리 필요')
-  fireEvent.change(docBody('GOAL.md'), { target: { value: '목표' } })
+  pickDoc('SOUL.md 정리 필요')
+  fireEvent.change(docBody('SOUL.md'), { target: { value: '성격' } })
   backToBoard()
-  expect(flagged()[0]).toEqual(['가람', false])
+  expect(flagged()[0]).toEqual(['가람', false]) // GOAL.md는 비어 있어도 정리 필요가 아니다(#624)
 })
 
 it('인물이 아닌 유형으로 바꾸면 문서 목록 대신 설명 편집기가 나오고 문서를 저장하지 않는다고 알리며, 인물로 되돌리면 문서가 그대로다', async () => {
@@ -2928,9 +2927,9 @@ it('문서 탭은 작가의 말(정체성·성격·말투·목표·회차 기억
   const tab = (name: string) => docList().getByRole<HTMLButtonElement>('button', { name })
   const identity = tab('정체성 IDENTITY.md 공개')
   const soul = tab('성격·말투 SOUL.md 작가만 정리 필요') // 정리 필요는 지금처럼 탭 안의 글자다
-  const goal = tab('목표 GOAL.md 작가만 정리 필요')
+  const goal = tab('목표 · 선택 GOAL.md 작가만') // 목표는 선택이라 비어 있어도 정리 필요가 붙지 않는다(#624)
   const tabs = [identity, soul, goal]
-  expect(tabs.map((b) => b.querySelector('.world-doc-name')?.textContent)).toEqual(['정체성', '성격·말투', '목표'])
+  expect(tabs.map((b) => b.querySelector('.world-doc-name')?.textContent)).toEqual(['정체성', '성격·말투', '목표 · 선택'])
   expect(tabs.map((b) => b.querySelector('small.world-doc-file')?.textContent)).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md']) // 파일 이름은 보조 글씨
   expect(tabs.map((b) => b.querySelector('small.world-doc-scope')?.textContent)).toEqual(['공개', '작가만', '작가만']) // 공개 세계관·독자 설정 위키에 나가는 글은 IDENTITY.md뿐이다
   expect(memoryToggle().textContent).toContain('회차 기억 (0)')
@@ -3023,7 +3022,7 @@ it('⋯(인물 문서 더보기) 메뉴는 메뉴 밖을 누르거나 밖으로 
   fireEvent.pointerDown(docButton('SOUL.md 정리 필요')) // 탭을 바꾸러 밖을 누르면
   expect(menu.open).toBe(false)
   menu.open = true
-  act(() => docButton('GOAL.md 정리 필요').focus()) // Tab으로 밖에 초점이 가도
+  act(() => docButton('GOAL.md').focus()) // Tab으로 밖에 초점이 가도
   expect(menu.open).toBe(false)
   menu.open = true
   fireEvent.keyDown(docsPanel().getByLabelText('.md 파일 불러오기'), { key: 'Escape' }) // Esc는 닫고 초점을 ⋯로 돌려준다
@@ -3256,7 +3255,7 @@ it('AI 의견 N은 카드 줄에 붙고 누르면 그 카드의 편집 화면이
 })
 
 it('정리 필요·연결 필요·AI 의견은 한 줄에 함께 보이고 보완 필요 분류가 셋 모두를 센다', async () => {
-  const [garam, war] = [person('가람', '본문'), eventCard('전쟁')] // 가람은 SOUL·GOAL이 비어 정리 필요, 전쟁은 연결 필요
+  const [garam, war] = [person('가람', '본문'), eventCard('전쟁')] // 가람은 SOUL이 비어 정리 필요, 전쟁은 연결 필요
   await show([garam, war])
   expect(['가람', '전쟁'].map(todos)).toEqual([['정리 필요'], ['연결 필요']])
   reviewing(reviewOf([finding([war.item.id])]))

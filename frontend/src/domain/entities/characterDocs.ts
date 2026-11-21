@@ -54,11 +54,12 @@ export function withoutEpisodeDoc(docs: CharacterDocs, episode: number): Charact
 }
 
 /**
- * 인물 카드에서 비어 있는 문서(IDENTITY·SOUL·GOAL 순, 공백뿐이면 빈 것). 인물이 아니면 없다. '정리 필요'로 알리기만 하고 이것으로 저장·확정을 막지 않는다
- * (본문인 IDENTITY.md가 빈 카드의 확정은 기존 규칙 `worldSealIssues`가 따로 막는다: 서버가 확정 버전의 모든 카드에 본문을 요구한다).
+ * 인물 카드에서 비어 있는 필수 문서(IDENTITY·SOUL 순, 공백뿐이면 빈 것). 인물이 아니면 없다. GOAL.md는 선택이라 비어 있어도 빈 문서로 알리지 않는다(#624).
+ * '정리 필요'로 알리고 시뮬레이션 참여 인물 선택을 잠그는 기준이며(#357, AI 서비스 `simulation/service.py`의 `_filled`가 시작을 거절하는 규칙과 같다)
+ * 이것으로 저장·확정을 막지 않는다(본문인 IDENTITY.md가 빈 카드의 확정은 기존 규칙 `worldSealIssues`가 따로 막는다: 서버가 확정 버전의 모든 카드에 본문을 요구한다).
  */
 export const missingCharacterDocs = (setting: StudioSetting) =>
-  isCharacter(setting) ? (['identity', 'soul', 'goal'] as const).filter((key) => !characterDocText(setting, key).trim()) : []
+  isCharacter(setting) ? (['identity', 'soul'] as const).filter((key) => !characterDocText(setting, key).trim()) : []
 
 /**
  * 저장을 막는 문제(인물 카드): 0 이상의 정수가 아닌 회차 번호와 3,000자를 넘는 문서(카드 본문인 IDENTITY.md 포함).

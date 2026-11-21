@@ -14,7 +14,7 @@ const pov = z.union([z.literal('omniscient'), z.templateLiteral(['limited:', z.s
 const simulation: z.ZodType<CharacterSimulation> = z.object({
   mode: z.enum(['if', 'flow']),
   premise: z.string().nullish(),
-  beats: z.array(z.object({ index: z.number().int(), text: z.string(), status: z.enum(['done', 'pending', 'rejected']) })),
+  beats: z.array(z.object({ index: z.number().int(), text: z.string(), status: z.enum(['done', 'pending', 'rejected']), rejectedBy: z.string().nullish() })),
   turns: z.array(z.object({
     index: z.number().int(), kind: z.enum(['narration', 'character', 'monologue']).default('character'), pov,
     characterId: z.string().nullish().transform((id) => id ?? null), characterName: z.string(), prose: z.string(),

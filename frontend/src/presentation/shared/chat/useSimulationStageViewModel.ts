@@ -1,7 +1,7 @@
 import { useEffect, useEffectEvent, useState } from 'react'
 
 import {
-  characterNames, cleanSimulation, sceneProse, sceneRows, simulationIssue, simulationSummary, statusLabel, stopReasonText, type SimulationStart,
+  beatRejection, characterNames, cleanSimulation, sceneProse, sceneRows, simulationIssue, simulationSummary, statusLabel, stopReasonText, type SimulationStart,
 } from '../../../domain/entities/characterSimulation'
 import { bodyLength } from '../../../domain/entities/manuscriptLength'
 import { lastScene } from '../../../domain/entities/writingChat'
@@ -96,6 +96,8 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
     result,
     // 멈춘·실패한 장면의 이유: 서버는 사람이 읽을 문장을 단계 error에 주고 stopReason은 코드값이다. 문장이 없을 때만 코드를 문구로 바꾼다.
     stopText: stoppedOrFailed ? step?.error || (sim?.stopReason ? stopReasonText(sim.stopReason) : '') : '',
+    // 비트 거부로 멈춘 장면이면 거부한 인물 카드 id(모르면 null). 거부는 기획 쪽 문제라 '이대로 진행'은 없고 카드나 흐름을 고쳐 다시 시도한다(#356).
+    rejection: sim ? beatRejection(sim) : null,
     sceneError: step && !step.simulation && step.status === 'failed' ? step.error ?? '시뮬레이션을 완료하지 못했어요.' : '',
     answer: asked && !chat.simulation && !chat.pending ? chat.turns.at(-1)?.reply?.message ?? '' : '',
     // 이 무대에서 시작한 요청이 첫 턴을 만드는 중이다(아직 장면이 없다).
