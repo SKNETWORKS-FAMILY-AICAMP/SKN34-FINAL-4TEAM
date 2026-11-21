@@ -7,6 +7,7 @@ import ai.storyfork.operations.jobs.entity.JobTrigger
 import ai.storyfork.operations.jobs.entity.OPERATIONS_SCHEDULER
 import ai.storyfork.operations.jobs.entity.ScheduledJobEntity
 import ai.storyfork.operations.jobs.service.JOB_INTERRUPTED_MESSAGE
+import ai.storyfork.operations.jobs.service.JOB_NO_WORKER_MESSAGE
 import ai.storyfork.operations.jobs.service.JOB_NOT_ACCEPTED_MESSAGE
 import ai.storyfork.operations.jobs.service.JobDispatcher
 import ai.storyfork.operations.jobs.service.JobScheduler
@@ -15,6 +16,7 @@ import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.classic.spi.ThrowableProxy
 import ch.qos.logback.core.read.ListAppender
+import java.time.Duration
 import java.time.Instant
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -121,7 +123,7 @@ class JobSchedulerTest {
     @Test
     fun `a schedule that still has a running run is skipped`() {
         val schedule = schedule()
-        run(schedule, JobStatus.RUNNING, startedAt = Instant.parse("2026-03-09T03:00:00Z"))
+        run(schedule, JobStatus.RUNNING, startedAt = start.minusSeconds(60))
 
         scheduler().tick()
 
@@ -187,6 +189,64 @@ class JobSchedulerTest {
 
         assertEquals(listOf("alpha"), runs.rows.map { it.kind })
         verify(ai).startJob(runs.rows.single().id, "alpha")
+        assertEquals(listOf("database is down"), errorMessages())
+    }
+
+    @Test
+    fun `a queued run no worker took within ten minutes is closed as failed and its schedule queues the next run in the same tick`() {
+        val schedule = schedule()
+        val stale = run(schedule, JobStatus.QUEUED, createdAt = start.minus(Duration.ofMinutes(10)).minusSeconds(1))
+
+        scheduler().tick()
+
+        assertEquals(listOf(JobStatus.FAILED, JOB_NO_WORKER_MESSAGE, start), listOf(stale.status, stale.error, stale.finishedAt))
+        // The schedule is free again and its slot has passed, so the next run is queued and handed over right away.
+        val next = runs.rows.single { it.id != stale.id }
+        assertEquals(JobStatus.QUEUED, next.status)
+        verify(ai).startJob(next.id, "alpha")
+    }
+
+    @Test
+    fun `a running run that did not finish within thirty minutes is closed as failed so it stops holding its schedule`() {
+        val schedule = schedule()
+        val stale = run(schedule, JobStatus.RUNNING, startedAt = start.minus(Duration.ofMinutes(30)).minusSeconds(1))
+
+        scheduler().tick()
+
+        assertEquals(listOf(JobStatus.FAILED, JOB_NO_WORKER_MESSAGE, start), listOf(stale.status, stale.error, stale.finishedAt))
+        assertEquals(JobStatus.QUEUED, runs.rows.single { it.id != stale.id }.status)
+    }
+
+    @Test
+    fun `runs exactly at their limits and finished runs are left alone, and the schedules they hold stay blocked`() {
+        val first = schedule(kind = "alpha")
+        val second = schedule(kind = "beta")
+        val queued = run(first, JobStatus.QUEUED, createdAt = start.minus(Duration.ofMinutes(10)))
+        val running = run(second, JobStatus.RUNNING, startedAt = start.minus(Duration.ofMinutes(30)))
+        val done = listOf(JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED).map {
+            run(schedule(kind = "gamma", enabled = false), it, startedAt = start.minus(Duration.ofDays(2))).also { run -> run.finishedAt = start.minus(Duration.ofDays(2)) }
+        }
+
+        scheduler().tick()
+
+        assertEquals(listOf(JobStatus.QUEUED, JobStatus.RUNNING), listOf(queued.status, running.status))
+        assertEquals(listOf(JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED), done.map { it.status })
+        assertTrue(runs.savedStatuses.isEmpty())
+        assertEquals(5, runs.rows.size)
+        verifyNoInteractions(ai)
+    }
+
+    @Test
+    fun `a stale run that cannot be saved is logged and the other stale runs are still closed`() {
+        val schedule = schedule()
+        val broken = run(schedule, JobStatus.QUEUED, createdAt = start.minus(Duration.ofHours(1)))
+        val other = run(schedule, JobStatus.RUNNING, startedAt = start.minus(Duration.ofHours(2)))
+        runs.saveFailure = { saved -> if (saved === broken) IllegalStateException("database is down") else null }
+
+        scheduler().tick()
+
+        assertEquals(JobStatus.FAILED, other.status)
+        assertEquals(JOB_NO_WORKER_MESSAGE, other.error)
         assertEquals(listOf("database is down"), errorMessages())
     }
 
