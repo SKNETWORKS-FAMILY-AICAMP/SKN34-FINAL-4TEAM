@@ -20,15 +20,12 @@ function relationshipMap(settings:StudioSetting[],cards:StudioSetting[]) {
  for(const {item} of settings.filter(s=>s.item.kind==='relation'&&s.item.decision==='approved')) {
   if(!item.subjectId||!item.targetId||item.subjectId===item.targetId||!ids.has(item.subjectId)||!ids.has(item.targetId)){missingLinks++;continue}
   const fullLabel=relationLabel(item),label=Array.from(fullLabel).length>10?Array.from(fullLabel).slice(0,10).join('')+'…':fullLabel
-  links.push({id:item.id,source:item.subjectId,target:item.targetId,label,fullLabel,description:item.text,symmetric:!!relationDefinitions[item.predicate??'']?.symmetric,emotion:relationDefinitions[item.predicate??'']?.group==='emotion'})
+  links.push({id:item.id,source:item.subjectId,target:item.targetId,label,fullLabel,description:item.text,symmetric:!!relationDefinitions[item.predicate??'']?.symmetric})
  }
- const pairs=new Map<string,MapLink[]>()
- for(const link of links){const key=[link.source,link.target].sort().join(':');const pair=pairs.get(key)??[];pair.push(link);pairs.set(key,pair)}
- for(const pair of pairs.values())pair.forEach((link,index)=>{const direction=String(link.source)<String(link.target)?1:-1;link.curve=direction*(index-(pair.length-1)/2)*.35})
  return {nodes,links,missingLinks}
 }
 
-/** 관계도 유형 필터 버튼: 그래프에 노드가 있는 유형만 `cardTypes` 순서로, 그 개수와 함께. */
+/** 관계도 유형 필터 체크박스: 그래프에 노드가 있는 유형만 `cardTypes` 순서로, 그 개수와 함께. */
 export const cardTypeCounts=(nodes:MapNode[])=>cardTypes.map(({id,label})=>({id,label,count:nodes.filter(n=>n.type===id).length})).filter(t=>t.count>0)
 
 /** 숨긴 유형의 노드와 그 노드에 닿는 간선(한쪽 끝만 닿아도)을 뺀 그래프. 화면 보기용이라 원본은 그대로이고, 숨긴 유형이 없으면 같은 그래프를 돌려준다. */
@@ -38,13 +35,7 @@ export function hideCardTypes(graph:ReturnType<typeof buildWorldMap>,hidden:Read
  return {...graph,nodes,links:graph.links.filter(l=>ids.has(mapEndpoint(l.source))&&ids.has(mapEndpoint(l.target)))}
 }
 
-/** 선 라벨의 각도(도): 선 방향으로 눕히되 글자가 거꾸로 뒤집히지 않게 -90° 초과 90° 이하로 맞춘다. 이웃이 둘레에 퍼진 모양에서 라벨이 자기 선을 따라 누워 이웃 선의 라벨과 겹치지 않는다. */
-export function labelAngle(dx:number,dy:number) {
- const angle=Math.atan2(dy,dx)*180/Math.PI
- return angle>90?angle-180:angle<=-90?angle+180:angle
-}
-
-/** 유형 버튼을 눌렀을 때의 숨김 집합. 숨긴 유형은 다시 보이게 하고, 보이는 유형이 그것 하나뿐이면 끄지 않고(빈 그래프가 되지 않게) 같은 집합을 돌려준다. */
+/** 유형 체크박스를 눌렀을 때의 숨김 집합. 숨긴 유형은 다시 보이게 하고, 보이는 유형이 그것 하나뿐이면 끄지 않고(빈 그래프가 되지 않게) 같은 집합을 돌려준다. */
 export function toggleHiddenType(hidden:ReadonlySet<CardType>,type:CardType,present:readonly CardType[]):ReadonlySet<CardType> {
  const next=new Set(hidden)
  if(next.delete(type))return next

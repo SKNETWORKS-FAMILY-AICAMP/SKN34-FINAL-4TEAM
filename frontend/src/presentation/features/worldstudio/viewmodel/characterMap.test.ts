@@ -3,7 +3,7 @@ import {newSetting} from '../../../../domain/entities/studioWorld'
 import {putRelation} from '../../../../domain/entities/studioRelations'
 import {cardTypePatch,type CardType} from '../../../../domain/entities/studioCards'
 import {mapConnectionLabel,type MapNode} from './useWorldMapViewModel'
-import {buildCharacterMap,buildSettingRelationshipMap,cardTypeCounts,hideCardTypes,toggleHiddenType,labelAngle} from './characterMap'
+import {buildCharacterMap,buildSettingRelationshipMap,cardTypeCounts,hideCardTypes,toggleHiddenType} from './characterMap'
 import {settingBoardEntries} from './settingBoard'
 it('keeps locations and real directed relationships in the service card board',()=>{
  const person=newSetting('people'),place=newSetting('places')
@@ -33,16 +33,6 @@ it('shows direction and complete description for both endpoints without changing
  expect(mapConnectionLabel({...link,symmetric:true},'a')).toBe('부모가 자녀를 보호하고 양육하는 관계')
  expect(mapConnectionLabel({source:'a',target:'b',label:'이후 사건',reverseLabel:'이전 사건'},'b')).toBe('이전 사건')
 })
-it('separates the effective geometry of opposite and same-direction links without changing input',()=>{
- const a=newSetting('people'),b=newSetting('people')
- let rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'trusts',polarity:'asserted'})
- rows=putRelation(rows,{subjectId:b.item.id,targetId:a.item.id,predicate:'likes',polarity:'asserted'})
- rows=putRelation(rows,{subjectId:a.item.id,targetId:b.item.id,predicate:'wary_of',polarity:'asserted'})
- const before=structuredClone(rows),links=buildCharacterMap(rows).links
- expect(new Set(links.map(l=>l.curve!*(String(l.source)<String(l.target)?1:-1))).size).toBe(3)
- expect(rows).toEqual(before)
-})
-
 it('preserves an authored description even for a predefined directional relationship',()=>{
  const a=newSetting('people'),b=newSetting('people'),description='오랫동안 바다를 함께 건너온 동료를 믿는다'
  const rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'trusts',polarity:'asserted',text:description})
@@ -128,15 +118,4 @@ it('관계도 카드의 요약(노드 text)은 설정집 게시판 요약과 같
  expect(board).toBe('가람 나래와 오랜 친구.')
  expect(buildSettingRelationshipMap([a,b]).nodes[0].text).toBe(board)
  expect(buildCharacterMap([a,b]).nodes[0].text).toBe(board)
-})
-
-it('선 라벨의 각도: 선 방향으로 눕히되 글자가 거꾸로 뒤집히지 않게 -90° 초과 90° 이하로 둔다',()=>{
- expect(labelAngle(1,0)).toBeCloseTo(0)
- expect(labelAngle(-1,0)).toBeCloseTo(0) // 왼쪽으로 가는 선도 글자는 왼쪽에서 오른쪽으로 읽힌다
- expect(labelAngle(1,1)).toBeCloseTo(45)
- expect(labelAngle(-1,-1)).toBeCloseTo(45)
- expect(labelAngle(1,-1)).toBeCloseTo(-45)
- expect(labelAngle(-1,1)).toBeCloseTo(-45)
- expect(labelAngle(0,1)).toBeCloseTo(90)
- expect(labelAngle(0,-1)).toBeCloseTo(90) // 위로 가는 선과 아래로 가는 선의 글자 방향이 같다
 })

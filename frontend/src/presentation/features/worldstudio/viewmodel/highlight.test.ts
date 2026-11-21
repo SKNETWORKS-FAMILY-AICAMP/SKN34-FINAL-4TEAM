@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { focusStyle, neighborhood } from './highlight'
+import { neighborhood } from './highlight'
 
 const links=[{id:'e1',source:'a',target:'b'},{id:'e2',source:'c',target:'a'},{id:'e3',source:'b',target:'c'},{id:'e4',source:'d',target:'d'},{id:'e5',source:'a',target:'b'}]
 
@@ -18,23 +18,4 @@ it('관계가 없는 노드나 자기 자신으로 가는 선뿐인 노드는 �
  const d=neighborhood('d',links)
  expect([...d.nodes]).toEqual(['d'])
  expect([...d.edges]).toEqual(['e4'])
-})
-
-it('focusStyle은 대상이 아닌 노드를 흐리게 하고, 대상이 아닌 선은 선 래퍼·선 그룹·누르는 경로 어느 층의 opacity를 읽어도 흐림이 보이게 층마다 흐리며, 대상 선은 굵고 또렷하게 하고, id의 따옴표·역슬래시를 막는다',()=>{
- const css=focusStyle(new Set(['a','b']),new Set(['e1']))
- expect(css).toContain('.relationship-flow .react-flow__node:not([data-id="a"],[data-id="b"]){opacity:.18}')
- // opacity는 상속되지 않으므로 한 층만 흐리면 다른 층(자식)의 computed opacity는 1로 읽힌다: 래퍼와 그룹이 .4씩(겹쳐 16%), 그리지 않는 누르는 경로는 .15
- const dim='.relationship-flow .react-flow__edge:not([data-id="e1"],:hover,:focus-within)' // 마우스를 올리거나 초점이 간 선은 흐리지 않는다(편집·삭제 버튼이 그 안에 있다)
- expect(css).toContain(dim+'{opacity:.4}')
- expect(css).toContain(dim+' .relationship-edge{opacity:.4}')
- expect(css).toContain(dim+' .relationship-edge-hit{opacity:.15}')
- expect(css).toContain('.relationship-flow .react-flow__edge:is([data-id="e1"]) .relationship-edge > path:first-child{stroke:var(--edge-active);stroke-width:3px}')
- expect(css).not.toContain('pointer-events') // 흐린 노드·선도 눌린다
- expect(css).not.toContain('data-edge') // 선은 React Flow 래퍼의 data-id로 고른다
- const edgeless=focusStyle(new Set(['a']),new Set())
- expect(edgeless).toContain('.relationship-flow .react-flow__edge:not(:hover,:focus-within){opacity:.4}') // 닿는 선이 없으면 모든 선이 흐리다
- expect(edgeless).not.toContain(':not()')
- expect(edgeless).not.toContain(':is(')
- expect(focusStyle(new Set(),new Set())).toBe('') // 강조 대상이 없으면 아무것도 흐리게 하지 않는다
- expect(focusStyle(new Set(['x"y\\z']),new Set())).toContain('[data-id="x\\"y\\\\z"]')
 })

@@ -396,9 +396,6 @@ it('게시판 표 머리는 회색 띠가 아니라 아래 선 하나다(관리�
 })
 
 // ── 5단계 polish: 정렬·간격·390 탭 줄·상태 마감(색·구조·문구는 그대로) ────────────────────────────────────────
-/** 관계도·관계 목록 규칙이 있는 파일(이 테스트는 media 안의 규칙을 원문 정규식으로 본다) */
-const mapCss = readFileSync(new URL('./world-map.css', import.meta.url), 'utf8')
-
 it('900px 이하 세계관 메뉴의 탭 줄(nav)은 줄바꿈해 탭 다섯 개가 모두 보인다(가로 스크롤 줄 끝에서 소설 연결이 AI 채팅 열기 뒤로 가려졌다). 공용 .ep-menu nav(/content 작품 관리 메뉴)는 그대로이고, 이 규칙은 .world-menu-body를 더해 그 규칙을 이긴다', () => {
   expect(css).toMatch(/@media\(max-width:900px\)\{\.world-menu-body \.world-menu-row nav\{flex-wrap:wrap;overflow-x:visible\}\}/)
   expect(episodeCss).toContain('.ep-menu nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}') // 공용 틀은 그대로다
@@ -430,10 +427,6 @@ it('게시판 미리보기는 왼쪽 안쪽 여백 56px(선택 칸 44 + 칸 여�
   expect(rule((s) => s === '.world-preview')?.body).toMatch(/padding:6px 20px 16px 56px/)
   expect(rule((s) => s === '.world-preview-meta ul')?.body).toMatch(/display:grid;gap:2px/)
   expect(rule((s) => s === '.world-preview-meta ul')?.body).not.toMatch(/flex/)
-})
-
-it('설정 찾기는 600px 이하에서 입력이 한 줄 전체를 쓴다(위 한 줄의 필터 칩과 줄바꿈만 한다)', () => {
-  expect(mapCss).toContain('@media(max-width:600px){.episode-app .relationship-center{flex:1 1 100%}.episode-app .relationship-center input:not([type=checkbox]):not([type=radio]){width:100%}}')
 })
 
 it('카드 레일의 쪽 이동은 레일 글과 같은 x(24px)에서 시작하는 왼쪽 정렬이고, 한 줄에 들어가도록 간격 6px·select 최소 폭 56px다(가운데 정렬로 263px를 꽉 채우던 것)', () => {
@@ -543,7 +536,7 @@ it('관계도 캔버스 높이는 100dvh에서 캔버스 위쪽만 뺀 값이라
   expect(mediaRule('(pointer:coarse)', '.ep-content[data-view=people] .relationship-flow')).toBe('') // 64dvh 절충은 없다
 })
 
-// ── 관계도 보기: 캔버스 위 세로 공간을 줄인다(관계 기준 회차 한 줄, 위 한 줄(유형 필터·설정 찾기), 도구·안내문·범례는 캔버스 위에 겹침) ──────────────
+// ── 관계도 보기: 캔버스 위 세로 공간을 줄인다(관계 기준 회차 한 줄, 알림이 있을 때만 위 한 줄, 도구·안내문은 캔버스 위에 겹침) ──────────────
 const people = (tail: string) => rule((s) => s === `.ep-content[data-view=people] ${tail}`)?.body ?? ''
 it('관계도 보기의 관계 기준 회차는 폼과 안내(상태) 문구를 한 줄에 놓고 위 여백 없이 카드 위에 붙으며, 입력은 넓은 화면의 마우스 기기에서만 36px다(좁은 화면(600px 이하)·터치는 전역 44px 보정 그대로)', () => {
   const box = people('.relationship-episode')
@@ -554,25 +547,22 @@ it('관계도 보기의 관계 기준 회차는 폼과 안내(상태) 문구를 
   expect(mediaRule('(pointer:fine)', '.ep-content[data-view=people] .relationship-episode .inp')).toBe('') // 좁은 화면의 마우스 기기(좁힌 데스크톱 창)는 전역 44px 보정(max-width:600px)을 덮지 않는다
 })
 
-it('관계도 보기의 위 한 줄(.relationship-bar: 유형 필터·설정 찾기·도구 막대·삭제된 설정 알림)은 세로 여백만 줄이고, 넓은 화면의 마우스 기기는 버튼·입력을 32px 안팎으로 줄인다(도구 버튼도 이 줄에 있어 같다)', () => {
+it('관계도 보기의 위 한 줄(.relationship-bar: 삭제된 설정 알림만, 있을 때만 그려진다)은 세로 여백만 줄이고, 넓은 화면의 마우스 기기는 버튼을 32px 안팎으로 줄인다', () => {
   expect(people('.relationship-bar')).toMatch(/padding:6px 12px/)
   expect(mediaRule('(min-width:601px) and (pointer:fine)', '.ep-content[data-view=people] .relationship-bar .btn.sm')).toMatch(/height:32px/)
-  expect(mediaRule('(min-width:601px) and (pointer:fine)', '.ep-content[data-view=people] .relationship-center input:not([type=checkbox]):not([type=radio])')).toMatch(/padding:5px 12px/)
-  expect(css).not.toMatch(/relationship-toolbar|relationship-focus/) // 풀어 헤치던 도구줄·중심 줄은 없다
+  expect(css).not.toMatch(/relationship-center|relationship-toolbar|relationship-focus/) // 옛 설정 찾기 줄·도구줄·중심 줄은 없다(설정 찾기는 설정 패널로 옮겼다)
 })
 
-it('관계도 보기의 안내문과 범례는 한 묶음(.relationship-notes)으로 캔버스 아래 가운데(컨트롤·워터마크 자리를 비운 폭 안)에 겹쳐 안내문이 범례 위에 쌓이고, 눌리지 않게 하되 연결 취소 버튼만 누를 수 있다(캔버스 위쪽에는 겹치는 것이 없다)', () => {
+it('관계도 보기의 안내문은 묶음(.relationship-notes)으로 캔버스 아래 가운데에 겹쳐 눌리지 않게 하되 연결 취소 버튼만 누를 수 있다(캔버스 위쪽에는 겹치는 것이 없고, 범례는 없다)', () => {
   const notes = people('.relationship-notes')
-  expect(notes).toMatch(/position:absolute;bottom:10px;left:50%;z-index:10/) // React Flow 층(최대 6) 위
-  expect(notes).toMatch(/display:flex;flex-direction:column;align-items:center/) // 안내문 → 범례 순으로 쌓인다(범례 줄이 늘어나도 겹치지 않는다)
-  expect(notes).toMatch(/max-width:calc\(100% - 256px\)/) // 왼쪽 컨트롤(44px)·오른쪽 워터마크 자리
+  expect(notes).toMatch(/position:absolute;bottom:10px;left:50%;z-index:10/) // 도구(10)와 같고 설정 패널(20)·키보드 목록(25) 아래
+  expect(notes).toMatch(/display:flex;flex-direction:column;align-items:center/)
+  expect(notes).toMatch(/max-width:calc\(100% - 40px\)/)
   expect(notes).toMatch(/pointer-events:none/)
   const hint = people('.relationship-hint')
   expect(hint).toMatch(/border-radius:999px/)
-  expect(hint).not.toMatch(/position:absolute|top:/) // 묶음이 자리를 잡는다: 캔버스 왼쪽 위의 도구 줄 아래에 놓던 때의 top:52px·68px은 없다
+  expect(hint).not.toMatch(/position:absolute|top:/) // 묶음이 자리를 잡는다
   expect(people('.relationship-hint .btn')).toMatch(/pointer-events:auto/)
-  const legend = people('.relationship-legend')
-  expect(legend).toMatch(/border:0/) // 캔버스 아래 줄이던 윗선은 없다
-  expect(legend).not.toMatch(/position:absolute/)
+  expect(people('.relationship-legend')).toBe('') // 선 모양이 한 가지라 범례는 없다
   expect(mediaRule('(max-width:600px),(pointer:coarse)', '.ep-content[data-view=people] .relationship-hint')).toBe('')
 })

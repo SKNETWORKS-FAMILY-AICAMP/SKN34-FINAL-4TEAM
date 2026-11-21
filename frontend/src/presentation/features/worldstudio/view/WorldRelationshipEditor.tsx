@@ -1,57 +1,49 @@
-import CharacterCards from './CharacterCards'
+import RelationGraph from './RelationGraph'
 import { buildSettingRelationshipMap, cardTypeCounts, hideCardTypes, toggleHiddenType } from '../viewmodel/characterMap'
 import { Sheet } from '../../../shared/Sheet'
 import { useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import './world-map.css'
 import { cardTypeOf, cardTypes, type CardType } from '../../../../domain/entities/studioCards'
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CardDeletionConfirm } from './CardDeletionConfirm'
 import { RelationPairEditor } from './RelationPairEditor'
 import { DELETED_CARD_NAME, relationLabel } from '../../../../domain/entities/studioRelations'
+import type { Filters } from './GraphSettingsPanel'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 type VM = ReturnType<typeof useWorldStudioViewModel>
 
 /** 설정 찾기 선택지(datalist)의 크기: native 선택지는 200개를 감당해, 57장 세계관에서도 목록을 쪽으로 나누지 않는다. */
 const CHOICES = 200
 
-/** 범례의 선 모양: 실선(구조 관계), 점선(감정), 화살표(방향이 있는 관계). 색은 그래프 간선과 같은 토큰이다. */
-const LineKey = ({ tone, dashed, arrow }: { tone: 'edge' | 'emotion'; dashed?: boolean; arrow?: boolean }) => (
-  <svg className={'relationship-key ' + tone} viewBox="0 0 28 10" width="28" height="10" aria-hidden="true">
-    <line x1="1" y1="5" x2={arrow ? 21 : 27} y2="5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray={dashed ? '4 3' : undefined} />
-    {arrow && <path d="M21 1.5 27 5 21 8.5z" fill="currentColor" />}
-  </svg>
-)
-
 /**
- * 관계 연결 단계(관리 모드의 관계도 보기·작성 모드 3단계). 관계도 캔버스(`CharacterCards`, React Flow)에서만 조작한다(n8n처럼): 카드를 더하고(`+ 설정 추가` 패널·오른쪽 클릭), 카드를 끌어 잇고(좌·우 점),
- * 카드·선을 오른쪽 클릭 메뉴·더블클릭·Enter·Delete로 고치고 지운다. 하단의 '관계 추가' 폼과 관계 목록 표는 없다. 관계를 만들거나 고치는 곳은 모두 가운데에 뜨는 관계 작성 시트(`RelationPairEditor`, 720px)다.
- * 그래프 위 한 줄(`.relationship-bar`)에는 유형 필터(`관계도 유형 필터`)와 설정 찾기(`<input list>`: 이름을 쓰거나 목록에서 고르면 그 카드가 선택되고 캔버스 가운데로 옮겨 간다, 쓰는 동안 이름에 맞지 않는 카드는 흐려진다), 도구 막대(`+ 설정 추가`·`배치 정돈`·`화면 맞춤`, 캔버스가 이 줄의 자리(`.relationship-tools-slot`)에 그린다)가 함께 있고 좁으면 줄이 바뀐다.
- * 유형 필터는 이 화면에서만 쓰는 보기 상태라 주소·초안·저장과 무관하고, 숨긴 유형의 카드와 그 카드에 닿는 관계선만 그래프에서 뺀다. 선택했거나 연결을 시작한 카드가 숨겨지면 그 선택·연결 모드를 푼다.
- * 연결 모드: 카드의 '관계 연결' 버튼이나 메뉴로 주체를 정하면 안내문에 '연결 취소'가 뜨고(Esc도 취소) 다음에 누른 카드가 상대가 되어 시트가 열린다. 끌어 잇기(`onPair`)와 선 클릭·편집(`studio.editRelation`)도 같은 시트로 간다.
+ * 관계 연결 단계(관리 모드의 관계도 보기·작성 모드 3단계). 관계도 캔버스(`RelationGraph`, react-force-graph, 옵시디언 그래프 뷰처럼 점과 이름뿐)에서만 조작한다: 설정을 더하고(`+ 설정 추가` 패널·오른쪽 클릭),
+ * 노드·선을 오른쪽 클릭 메뉴·더블클릭·키보드 목록으로 고치고 이어 지운다. 하단의 '관계 추가' 폼과 관계 목록 표는 없다. 관계를 만들거나 고치는 곳은 모두 가운데에 뜨는 관계 작성 시트(`RelationPairEditor`, 720px)다.
+ * 설정 찾기(`<input list>`: 이름을 쓰거나 목록에서 고르면 그 설정이 선택되고 캔버스 가운데로 옮겨 간다, 쓰는 동안 이름에 맞지 않는 노드는 흐려진다)와 유형 필터(체크박스)는 캔버스의 설정 패널(톱니)의 필터 칸에 있다.
+ * 둘 다 이 화면에서만 쓰는 보기 상태라 주소·초안·저장과 무관하고, 숨긴 유형의 카드와 그 카드에 닿는 관계선만 그래프에서 뺀다(보이는 유형이 하나뿐이면 그 체크박스는 잠긴다). 선택했거나 연결을 시작한 카드가 숨겨지면 그 선택·연결 모드를 푼다. 패널을 닫으면 설정 찾기 글은 지워진다.
+ * 캔버스 위 한 줄(`.relationship-bar`)은 알림이 있을 때만 그려진다: 삭제된 설정과 이어진 지난 회차 관계 수, 삭제 되돌리기.
+ * 연결 모드: 노드의 '관계 연결' 메뉴로 주체를 정하면 안내문에 '연결 취소'가 뜨고(Esc도 취소) 다음에 누른 노드가 상대가 되어 시트가 열린다. 선 클릭·편집(`studio.editRelation`)도 같은 시트로 간다. 취소하면 초점은 메뉴를 열기 전 자리로 돌아간다.
  * 카드 삭제는 설정집 편집 화면과 같은 확인(`CardDeletionConfirm`: 함께 지워지는 관계·참조 막힘)을 시트로 열고, 회차를 고른 동안(`studio.deleteLock`)은 잠긴다. 지우면 되돌리기 알림이 뜬다. 관계 삭제는 확인 뒤 '편집본에 적용'과 같은 경로(applyRelations)이고 저장해야 서버에 닿는다.
  * 삭제된 설정과 이어진 지난 회차 관계(DEC-51)는 그릴 곳이 없어 개수만 한 줄로 알린다(저장하면 그대로 유지된다).
- * 안내문('연결 취소' 포함)과 범례는 캔버스 감싸개(`.relationship-canvas`) 안에 있어, 작성 모드는 캔버스 위·아래 줄이고 관리 모드 관계도 보기는 둘 다 캔버스 아래 가운데에 겹친 작은 글이다(`world-studio.css`: 안내문이 범례 위). 관계 기준 회차 칸은 이 편집기 바깥(`WorldStudioPage`)이라 편집기가 다시 열려도 초점이 남는다.
+ * 안내문('연결 취소' 포함)은 캔버스 감싸개(`.relationship-canvas`) 안에 있어, 작성 모드는 캔버스 위 줄이고 관리 모드 관계도 보기는 캔버스 아래 가운데에 겹친 작은 글이다(`world-studio.css`). 관계 기준 회차 칸은 이 편집기 바깥(`WorldStudioPage`)이라 편집기가 다시 열려도 초점이 남는다.
  */
 export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const map = useWorldMapViewModel(studio.editing!.settings, buildSettingRelationshipMap)
   const [choosing, setChoosing] = useState(false)
-  // 도구 막대(+ 설정 추가·배치 정돈·화면 맞춤)를 유형 필터·설정 찾기와 같은 줄에 두려고 캔버스가 이 요소에 그린다. 첫 렌더부터 있는 요소를 줄에 붙여(`attachTools`, 마운트 때 한 번) 첫 맞춤을 재기 전에 줄 높이가 정해진다(나중에 생기면 줄이 늘어 캔버스가 줄고 첫 맞춤이 어긋난다).
-  const [toolsSlot] = useState(() => document.createElement('div'))
-  const attachTools = useCallback((el: HTMLDivElement | null) => { el?.append(toolsSlot) }, [toolsSlot])
   const [hidden, setHidden] = useState<ReadonlySet<CardType>>(() => new Set())
-  const shown = hideCardTypes(map.graph, hidden)
+  const shown = useMemo(() => hideCardTypes(map.graph, hidden), [map.graph, hidden])
   const [typed, setTyped] = useState(''), [find, setFind] = useState<{ id: string; seq: number } | null>(null)
   // 설정 찾기의 선택지(datalist): 쓰는 글이 이름에 들어 있는 카드를 한 쪽 CHOICES개까지(글이 없으면 앞의 CHOICES개).
   const choices = shown.nodes.filter((n) => n.name.toLocaleLowerCase().includes(typed.trim().toLocaleLowerCase())).slice(0, CHOICES)
-  const findList = useId()
   const types = cardTypeCounts(map.graph.nodes), present = types.map((t) => t.id)
   const section = useRef<HTMLElement>(null), cancelConnect = useRef<HTMLButtonElement>(null)
-  const returnFocus = useRef('')
+  // 연결 모드를 시작한 자리(메뉴를 열기 전에 초점이 있던 요소): 연결을 취소하면 초점이 그리로 돌아간다.
+  const connectOpener = useRef<HTMLElement | null>(null), returnFocus = useRef(false)
   useEffect(() => {
     if (choosing) cancelConnect.current?.focus()
     else if (returnFocus.current) {
-      section.current?.querySelector<HTMLButtonElement>('[data-id="' + returnFocus.current + '"] button[aria-label$="관계 연결"]')?.focus()
-      returnFocus.current = ''
+      returnFocus.current = false
+      const back = connectOpener.current
+      ;(back?.isConnected ? back : section.current?.querySelector<HTMLElement>('.relationship-flow'))?.focus()
     }
   }, [choosing])
   const people = studio.editing!.settings.filter((s) => cardTypes.some((type) => type.id === cardTypeOf(s.item)))
@@ -79,8 +71,8 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
     const samePair = open && (item.subjectId === source && item.targetId === target || item.subjectId === target && item.targetId === source)
     if (samePair || selectPair(item.subjectId, item.targetId, true)) setFocusRequest(request)
   }, [studio.relationRequest, studio.editing?.settings, open, source, target, selectPair])
-  const stopChoosing = () => { returnFocus.current = source; setChoosing(false) }
-  // 카드 본문을 누를 때: 연결 모드면 상대(주체를 다시 누르면 연결 취소), 아니면 선택만 한다. 열린 초안은 selectPair가 확인을 거친다.
+  const stopChoosing = () => { returnFocus.current = true; setChoosing(false) }
+  // 노드를 누를 때: 연결 모드면 상대(주체를 다시 누르면 연결 취소), 아니면 선택만 한다. 열린 초안은 selectPair가 확인을 거친다.
   const pick = (id: string) => {
     if (!choosing) { map.select(id); return }
     if (id === source) stopChoosing()
@@ -95,13 +87,19 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   }
   const chooseFound = (value: string) => {
     setTyped(value)
-    map.setQuery(value) // 쓰는 동안 이름에 맞지 않는 카드는 흐려진다
+    map.setQuery(value) // 쓰는 동안 이름에 맞지 않는 노드는 흐려진다
     const hit = shown.nodes.find((n) => n.name === value) // 목록에서 고르거나 이름을 그대로 쓰면 그 카드를 찾은 것이다
     if (!hit) return
     map.select(hit.id)
     setFind((previous) => ({ id: hit.id, seq: (previous?.seq ?? 0) + 1 }))
   }
-  // 관계 작성 시트를 닫는다(닫기·Esc·배경). 입력한 변경이 있으면 버릴지 먼저 묻는다. 닫은 뒤 초점은 시트가 연 요소(카드)로 돌려준다.
+  const filters: Filters = {
+    typed, onTyped: chooseFound, choices,
+    // 보이는 유형이 하나뿐이면 그 체크박스는 잠긴다(toggleHiddenType이 같은 집합을 돌려줌): 그래프가 비지 않게.
+    types: types.map((t) => ({ ...t, locked: toggleHiddenType(hidden, t.id, present) === hidden })),
+    hidden, onToggleType: (id) => applyHidden(toggleHiddenType(hidden, id, present)),
+  }
+  // 관계 작성 시트를 닫는다(닫기·Esc·배경). 입력한 변경이 있으면 버릴지 먼저 묻는다. 닫은 뒤 초점은 시트가 연 요소(캔버스)로 돌려준다.
   const closePair = () => { if (studio.confirmRelationDiscard()) setOpen(false) }
   const { settings, deletedTitles } = studio.editing!
   const relations = settings.filter((s) => s.item.kind === 'relation')
@@ -149,46 +147,22 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
       <fieldset className='world-fields' disabled={studio.busy}>
         <legend className='sr-only'>관계 대상 선택</legend>
         <div className='relationship-stage'>
-          <div className='relationship-bar'>
-            {types.length > 0 && (
-              <div className='relationship-filter' role='group' aria-label='관계도 유형 필터'>
-                <button className='btn sm' type='button' aria-pressed={!present.some((t) => hidden.has(t))} onClick={() => applyHidden(new Set())}>전체</button>
-                {types.map(({ id, label, count }) => {
-                  const next = toggleHiddenType(hidden, id, present)
-                  // 보이는 유형이 하나뿐이면 그 버튼은 잠긴다(toggleHiddenType이 같은 집합을 돌려줌): 그래프가 비지 않게.
-                  return <button key={id} className='btn sm' type='button' aria-pressed={!hidden.has(id)} disabled={next === hidden} onClick={() => applyHidden(next)}>{label} {count}</button>
-                })}
-              </div>
-            )}
-            <label className='relationship-center'>
-              설정 찾기
-              <input
-                type='search'
-                role='combobox'
-                list={findList}
-                className='inp'
-                autoComplete='off'
-                value={typed}
-                placeholder='설정 이름으로 찾기'
-                onChange={(e) => chooseFound(e.target.value)}
-                onBlur={() => { setTyped(''); map.setQuery('') }}
-              />
-            </label>
-            <datalist id={findList}>{choices.map((node) => <option key={node.id} value={node.name} />)}</datalist>
-            <div className='relationship-tools-slot' ref={attachTools} />
-            {orphaned > 0 && <p className='relationship-orphans small muted'>삭제된 설정과 이어진 관계 {orphaned}개는 저장 시 그대로 유지돼요</p>}
-            {studio.deletedCard && (
-              <p role='status' className='world-delete-notice'>
-                <span>‘{studio.deletedCard.title || '이름 없는 설정'}’ {deletedNoun}이 삭제됐어요. 저장해야 반영돼요.</span>
-                <button className='btn sm' type='button' onClick={undoDeletion}>삭제 되돌리기</button>
-              </p>
-            )}
-          </div>
+          {(orphaned > 0 || studio.deletedCard) && (
+            <div className='relationship-bar'>
+              {orphaned > 0 && <p className='relationship-orphans small muted'>삭제된 설정과 이어진 관계 {orphaned}개는 저장 시 그대로 유지돼요</p>}
+              {studio.deletedCard && (
+                <p role='status' className='world-delete-notice'>
+                  <span>‘{studio.deletedCard.title || '이름 없는 설정'}’ {deletedNoun}이 삭제됐어요. 저장해야 반영돼요.</span>
+                  <button className='btn sm' type='button' onClick={undoDeletion}>삭제 되돌리기</button>
+                </p>
+              )}
+            </div>
+          )}
           <div className='relationship-canvas'>
-            <CharacterCards
-              vm={{ ...map, graph: shown }}
+            <RelationGraph
+              vm={{ graph: shown, selected: map.selected, visible: map.visible }}
               find={find}
-              toolsSlot={toolsSlot}
+              filters={filters}
               editing={{
                 busy: studio.busy,
                 selectedRelations: open ? relations.filter((s) => (s.item.subjectId === source && s.item.targetId === target) || (s.item.subjectId === target && s.item.targetId === source)).map((s) => s.item.id) : [],
@@ -196,8 +170,10 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                 deleteLock: studio.deleteLock,
                 onPick: pick,
                 onSelect: (id) => { if (studio.confirmRelationDiscard()) studio.editCard(id) },
-                onConnect: (id) => { if (selectPair(id, '', false)) setChoosing(true) },
-                onPair: (a, b) => { selectPair(a, b, true) },
+                onConnect: (id) => {
+                  connectOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+                  if (selectPair(id, '', false)) setChoosing(true)
+                },
                 onRelation: (id) => studio.editRelation(id),
                 onDeleteCard: askDeleteCard,
                 onDeleteRelation: removeRelation,
@@ -206,12 +182,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               }}
             />
             <div className='relationship-notes'>
-              <div className='relationship-hint' role='status'>{choosing ? <>{name(source)}의 연결 상대를 고르세요.<button ref={cancelConnect} className='btn sm' type='button' onClick={stopChoosing}>연결 취소</button></> : shown.nodes.length ? '카드 옆 점을 끌어 관계를 이어요. 오른쪽 클릭으로 메뉴를 열어요.' : '설정 카드가 없어요. + 설정 추가나 오른쪽 클릭으로 첫 카드를 더해 보세요.'}</div>
-              <ul className='relationship-legend' aria-label='범례'>
-                <li><LineKey tone='edge' />구조 관계</li>
-                <li><LineKey tone='emotion' dashed />감정(방향별)</li>
-                <li><LineKey tone='edge' arrow />방향이 있는 관계</li>
-              </ul>
+              <div className='relationship-hint' role='status'>{choosing ? <>{name(source)}의 연결 상대를 고르세요.<button ref={cancelConnect} className='btn sm' type='button' onClick={stopChoosing}>연결 취소</button></> : shown.nodes.length ? '노드를 누르면 이웃을 강조해요. 더블클릭은 정보 편집, 오른쪽 클릭은 메뉴(관계 연결·삭제)예요.' : '설정 카드가 없어요. + 설정 추가나 오른쪽 클릭으로 첫 카드를 더해 보세요.'}</div>
             </div>
           </div>
         </div>

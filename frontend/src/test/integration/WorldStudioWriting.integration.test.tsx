@@ -20,7 +20,7 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
 })
 // 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
 vi.mock('../../presentation/shared/LazyMarkdownEditor',()=>import('../markdownEditorFake'))
-vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=> <div>인물 카드 대역</div>}))
+vi.mock('../../presentation/features/worldstudio/view/RelationGraph',()=>({default:()=> <div>인물 카드 대역</div>}))
 beforeEach(()=>{
  const a=newSetting('people');a.item.title='가람';a.item.text='기존 원문';a.tags=['주인공']
  world={id:'qa-writing',name:'작성 검증',description:'세계의 배경',version:1,settings:[a],analysis:null}

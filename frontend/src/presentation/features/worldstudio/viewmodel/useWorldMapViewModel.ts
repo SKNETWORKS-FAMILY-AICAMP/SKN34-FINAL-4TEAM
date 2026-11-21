@@ -8,7 +8,7 @@ export const mapColors = { 인물:'#7960c7', 장소:'#328a7d', 조직:'#527daf',
 export type MapKind = keyof typeof mapColors
 /** `type`은 설정 카드 유형 id(`cardTypes`)다. 관계도(`characterMap`)만 채우고 관계도 유형 필터가 읽는다. `text`는 본문이 아니라 게시판과 같은 한 줄 요약(링크·마크다운 기호를 글자만 남김)이라 카드 요약·말풍선·검색이 모두 이 글을 본다. */
 export type MapNode = { id:string; name:string; kind:MapKind; type?:CardType; text:string; tags:string[]; unnamed?:boolean; x?:number; y?:number; vx?:number; vy?:number; fx?:number; fy?:number }
-export type MapLink = { id?:string; symmetric?:boolean; emotion?:boolean; curve?:number; source:string|MapNode; target:string|MapNode; label:string; fullLabel?:string; description?:string; reverseLabel?:string }
+export type MapLink = { id?:string; symmetric?:boolean; source:string|MapNode; target:string|MapNode; label:string; fullLabel?:string; description?:string; reverseLabel?:string }
 export const mapEndpoint = (node:string|MapNode) => typeof node==='string'?node:node.id
 export function mapConnectionLabel(link:MapLink,selectedId:string) {
  const incoming=mapEndpoint(link.target)===selectedId

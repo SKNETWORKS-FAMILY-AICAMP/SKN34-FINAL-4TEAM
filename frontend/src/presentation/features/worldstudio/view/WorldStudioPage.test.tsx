@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import '../../../../test/reactFlowStubs'
+import { clickLink, clickNode, fakeGraph, hoverLink, rightClickNode } from '../../../../test/forceGraphFake'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router'
@@ -43,6 +43,8 @@ let revisions: Revisions
 vi.mock('../viewmodel/useWorldRevisions', () => ({ useWorldRevisions: () => revisions }))
 // 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
 vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/markdownEditorFake'))
+// 관계도 캔버스(react-force-graph)는 그리지 않고 넘기는 값·메서드만 붙잡는 대역이다(공용: src/test/forceGraphFake).
+vi.mock('react-force-graph-2d', () => import('../../../../test/forceGraphFake'))
 // AI·외부 도구(MCP) 변경 감시(#553)는 훅 자체의 테스트(useMcpChangeWatch.test)가 확인하고, 여기서는 이 화면이 넘기는 값·배너 연결·다시 읽은 뒤의 편집기만 본다.
 const mcp = vi.hoisted(() => ({ stale: false, reload: vi.fn(), watch: vi.fn() }))
 vi.mock('../../../shared/useMcpChangeWatch', () => ({ useMcpChangeWatch: (...args: unknown[]) => { mcp.watch(...args); return { stale: mcp.stale, reload: mcp.reload } } }))
@@ -60,6 +62,7 @@ const revisionDetail = (revisionNo: number, name: string): WorldRevision => ({
 /** jsdom에는 URL.createObjectURL이 없어 표지 이미지(인증 읽기 → 객체 주소) 테스트가 쓰는 대역이다. 만든 순서대로 blob:cover-1, 2 …를 준다. */
 const objectUrls = { created: 0, createObjectURL: vi.fn(), revokeObjectURL: vi.fn() }
 beforeEach(() => {
+  fakeGraph.reset()
   // 장르 선택지·헤더 칩은 서버의 공개 장르 목록이라 운영과 같은 메모리 목록으로 대신한다(afterEach의 restoreAllMocks가 되돌린다).
   const genres = new InMemoryGenreRepository(new InMemoryOperationsGenreRepository())
   vi.spyOn(appContainer.resolve('genreUseCase'), 'list').mockImplementation(() => genres.list())
@@ -763,20 +766,20 @@ it('소설 버튼은 한 자리다: 연결된 소설이 없으면 소설 연결 
   expect(novelTab().queryByRole('button', { name: '소설 연결하기' })).toBeNull()
 })
 
-it('관계 연결 단계에서 카드 본문을 누르면 선택만 되고, 카드 메뉴의 관계 연결을 고른 뒤 다른 카드를 누르면 관계 작성 시트가 열린다', async () => {
+it('관계 연결 단계에서 노드를 누르면 선택만 되고, 노드 메뉴의 관계 연결을 고른 뒤 다른 노드를 누르면 관계 작성 시트가 열린다', async () => {
   const [garam] = [person('가람'), person('나래')]
   await show([garam, person('나래'), person('다온')])
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  expect(screen.getByText(/카드 옆 점을 끌어 관계를 이어요/)).toBeTruthy() // 행동 한 문장(위치 저장 안내는 행동과 무관하다)
-  fireEvent.click(canvasCard('가람')) // 카드 본문 누르기는 React Flow의 노드 클릭이다: 선택만 한다
+  expect(screen.getByText(/노드를 누르면 이웃을 강조해요/)).toBeTruthy() // 행동 한 문장(위치 저장 안내는 행동과 무관하다)
+  clickNode('가람') // 노드 누르기는 선택과 강조 고정이다
   expect(canvasCard('가람').getAttribute('aria-current')).toBe('true')
   expect(screen.queryByText(/연결 상대를 고르세요/)).toBeNull()
   expect(screen.queryByRole('dialog')).toBeNull()
-  fireEvent.contextMenu(canvasCard('가람'))
+  rightClickNode('가람')
   fireEvent.click(screen.getByRole('menuitem', { name: '관계 연결' }))
   expect(screen.getByText(/가람의 연결 상대를 고르세요/)).toBeTruthy()
   expect(screen.queryByRole('textbox', { name: '실제 관계 1' })).toBeNull() // 주체만 고른 단계에서는 열리지 않는다
-  fireEvent.click(canvasCard('나래'))
+  clickNode('나래')
   expect(screen.getByRole('dialog', { name: '가람 ↔ 나래 관계' })).toBeTruthy()
   expect(screen.getByRole('textbox', { name: '실제 관계 1' })).toBeTruthy()
   expect(screen.queryByText(/연결 상대를 고르세요/)).toBeNull()
@@ -785,17 +788,20 @@ it('관계 연결 단계에서 카드 본문을 누르면 선택만 되고, 카�
 // ── 관계 기준 회차(DEC-51): 관계도 보기·작성 모드 관계 연결 단계에서 고른다 ───────────────────────
 const episodePicker = () => within(screen.getByRole('region', { name: '관계 기준 회차' }))
 // ── 관계도 캔버스 조작: 하단 관계 추가 폼·관계 목록 표는 없고 캔버스에서만 잇고 지운다 ─────────────────────────
-const canvasCard = (name: string) => screen.getByRole('group', { name: name + ' 인물 카드' })
-const relationLine = (from: string, to: string) => screen.getByRole('button', { name: new RegExp('관계선 편집: ' + from + ' · ' + to) })
-/** 카드 오른쪽 클릭 메뉴의 '관계 연결' → 상대 카드 누르기(마우스로 누른 카드는 초점도 받는다): 관계 작성 시트가 열린다. */
+// 캔버스는 react-force-graph 대역(src/test/forceGraphFake)이다: 노드·선은 캔버스가 넘긴 graphData에서 읽고, 누르기·오른쪽 클릭·올리기는 캔버스가 넘긴 핸들러로 흉내 낸다.
+const canvasRoot = () => document.querySelector<HTMLElement>('.relationship-flow')!
+/** 키보드로 관계도 조작 목록의 설정 버튼(캔버스의 노드와 같은 일을 한다: 선택은 aria-current로 알린다). */
+const canvasCard = (name: string) => screen.getByRole('button', { name: new RegExp('^' + name + ' · ') })
+/** 두 설정 사이의 선(없으면 undefined): 같은 쌍의 관계는 선 하나에 묶여 있다. */
+const relationLine = (from: string, to: string) => fakeGraph.link(from, to)
+/** 노드 오른쪽 클릭 메뉴의 '관계 연결' → 상대 노드 누르기: 관계 작성 시트가 열린다. */
 const connectCards = (from: string, to: string) => {
-  fireEvent.contextMenu(canvasCard(from))
+  rightClickNode(from)
   fireEvent.click(screen.getByRole('menuitem', { name: '관계 연결' }))
-  canvasCard(to).focus()
-  fireEvent.click(canvasCard(to))
+  clickNode(to)
 }
-/** 선에 초점을 둔 채 Delete: 확인(window.confirm) 뒤 편집본에서 관계를 지운다. */
-const deleteLine = (from: string, to: string) => fireEvent.keyDown(relationLine(from, to), { key: 'Delete' })
+/** 마우스를 올린 선에서 Delete: 확인(window.confirm) 뒤 편집본에서 관계를 지운다(관계가 하나인 선). */
+const deleteLine = (from: string, to: string) => { hoverLink(from, to); fireEvent.keyDown(canvasRoot(), { key: 'Delete' }) }
 it('관계도 보기에서 회차를 고르면 그 회차로 다시 읽고, 회차 칸은 다시 열리지 않으며 요청이 끝나면 입력 칸으로 초점이 돌아온다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   const at = (episode?: number): StudioWorld => ({ id: 'qa', name: '검증 세계', description: '설명', version: 1, settings: episode === 1 ? [garam, narae] : friends([garam, narae], garam, narae), analysis: null, linkedWorkId: 'w1' })
@@ -806,7 +812,7 @@ it('관계도 보기에서 회차를 고르면 그 회차로 다시 읽고, 회�
   const apply = episodePicker().getByRole('button', { name: '이 회차 관계 보기' }), field = episodePicker().getByRole('textbox', { name: '관계 기준 화' })
   fireEvent.change(field, { target: { value: '1' } })
   fireEvent.click(apply)
-  await waitFor(() => expect(screen.queryByRole('button', { name: /관계선 편집: 가람 · 나래/ })).toBeNull()) // 1화 시점에는 그 관계가 없다
+  await waitFor(() => expect(relationLine('가람', '나래')).toBeUndefined()) // 1화 시점에는 그 관계가 없다
   expect(read).toHaveBeenLastCalledWith('qa', expect.any(AbortSignal), 1)
   expect(episodePicker().getByText('지금은 1화 시점의 관계예요.')).toBeTruthy()
   expect(episodePicker().getByRole('button', { name: '이 회차 관계 보기' })).toBe(apply) // 관계 편집기만 다시 열리고 회차 칸은 그대로다
@@ -888,7 +894,7 @@ it('소설을 연결한 세계관은 관계 편집 시트에 기존 시작 회�
   const [garam, narae] = [person('가람'), person('나래')]
   const settings = friends([garam, narae], garam, narae).map((s) => (s.item.kind === 'relation' ? { ...s, item: { ...s.item, fromEpisode: 2 } } : s))
   const { saveStudio } = await show(settings, '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
-  fireEvent.click(relationLine('가람', '나래'))
+  clickLink('가람', '나래')
   const from = () => screen.getByRole<HTMLInputElement>('textbox', { name: '실제 관계 1 시작 회차 화부터' })
   expect(from().value).toBe('2')
   fireEvent.change(from(), { target: { value: '4' } })
@@ -917,12 +923,12 @@ it('소설을 연결한 세계관에서 N화부터를 모르는 관계가 바뀌
   expect(saveButton().disabled).toBe(false)
 })
 
-it('관계선을 누르면 관계 작성 패널이 열리고, 선에서 Delete는 확인한 뒤에만 편집본에서 관계를 지운다', async () => {
+it('관계선을 누르면 관계 작성 패널이 열리고, 올린 선에서 Delete는 확인한 뒤에만 편집본에서 관계를 지운다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae))
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  expect(relationLine('가람', '나래').getAttribute('aria-label')).toBe('관계선 편집: 가람 · 나래 · 친구') // 선의 이름이 주체·대상·관계를 말한다
-  fireEvent.click(relationLine('가람', '나래'))
+  expect(relationLine('가람', '나래')!.relations.map((r) => r.full)).toEqual(['친구']) // 선이 나타내는 관계
+  clickLink('가람', '나래')
   expect(screen.getByRole('textbox', { name: '실제 관계 1' })).toBeTruthy() // 편집은 관계 작성 패널을 연다
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
   deleteLine('가람', '나래')
@@ -930,7 +936,7 @@ it('관계선을 누르면 관계 작성 패널이 열리고, 선에서 Delete�
   expect(relationLine('가람', '나래')).toBeTruthy() // 거절하면 그대로다
   confirm.mockReturnValue(true)
   deleteLine('가람', '나래')
-  expect(screen.queryByRole('button', { name: /관계선 편집: 가람 · 나래/ })).toBeNull()
+  expect(relationLine('가람', '나래')).toBeUndefined()
   expect(screen.queryByRole('dialog')).toBeNull() // 열려 있던 패널도 닫힌다
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
 })
@@ -2509,14 +2515,14 @@ it('관계 작성 패널의 닫기는 적용하지 않은 입력이 있으면 �
   confirm.mockReturnValue(true)
   close()
   expect(screen.queryByRole('dialog')).toBeNull()
-  await waitFor(() => expect(document.activeElement).toBe(canvasCard('나래'))) // 사라진 닫기 대신 시트를 연 카드로
+  await waitFor(() => expect(document.activeElement).toBe(canvasRoot())) // 사라진 닫기 대신 시트를 연 캔버스로
 })
 
-it('관계 작성 패널을 닫거나 적용해 닫으면 사라진 버튼 대신 시트를 연 카드로 초점이 돌아온다', async () => {
+it('관계 작성 패널을 닫거나 적용해 닫으면 사라진 버튼 대신 시트를 연 캔버스로 초점이 돌아온다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show([garam, narae])
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  const write = () => canvasCard('나래')
+  const write = canvasRoot
   connectCards('가람', '나래')
   const sheet = within(screen.getByRole('dialog', { name: '가람 ↔ 나래 관계' })) // 관계 작성 패널은 시트다
   expect(sheet.queryByRole('button', { name: '취소' })).toBeNull() // 닫는 길은 머리의 닫기(와 Esc·배경)뿐이다
@@ -2533,7 +2539,7 @@ it('관계 작성 패널을 닫거나 적용해 닫으면 사라진 버튼 대�
   const apply = screen.getByRole('button', { name: '편집본에 적용' })
   apply.focus()
   fireEvent.click(apply)
-  expect(relationLine('가람', '나래').getAttribute('aria-label')).toContain('오랜 벗') // 적용한 관계가 선에 나타난다
+  expect(relationLine('가람', '나래')!.relations.map((r) => r.full)).toContain('오랜 벗') // 적용한 관계가 선에 나타난다
   await waitFor(() => expect(document.activeElement).toBe(write()))
 })
 
@@ -2542,9 +2548,8 @@ it('관계선을 지우면 사라진 선 대신 캔버스로 초점이 간다', 
   await show(friends([garam, narae], garam, narae))
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   vi.spyOn(window, 'confirm').mockReturnValue(true)
-  relationLine('가람', '나래').focus()
   deleteLine('가람', '나래')
-  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('group', { name: '인물 카드 그래프' })))
+  await waitFor(() => expect(document.activeElement).toBe(canvasRoot()))
 })
 
 // ── 저장을 막는 사유(어느 설정인지·그 설정으로 가기)와 독자 공개 회차 입력의 오류 안내 ─────────────────────
@@ -4421,13 +4426,13 @@ it('관계도 보기에서는 세계관 머리(표지·이름·칩 줄)를 그�
   expect(document.querySelector('.world-manage-hero')).toBeNull()
 })
 
-it('관계도 보기는 React Flow 캔버스가 내용 열 전체 폭의 한 열이고(주소 view가 내용 열에 붙는다) 그 아래에 관계 추가 폼·관계 목록 표는 없다', async () => {
+it('관계도 보기는 그래프 캔버스가 내용 열 전체 폭의 한 열이고(주소 view가 내용 열에 붙는다) 그 아래에 관계 추가 폼·관계 목록 표는 없다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people')
   expect(document.querySelector('.ep-content')!.getAttribute('data-view')).toBe('people')
-  const flow = screen.getByRole('group', { name: '인물 카드 그래프' })
-  expect(flow.querySelector('.react-flow')).toBeTruthy()
-  expect(within(flow).getByRole('group', { name: '가람 인물 카드' })).toBeTruthy()
+  const flow = canvasRoot()
+  expect(within(flow).getByRole('img', { name: '관계도: 설정 2개 · 관계 1개' })).toBeTruthy() // 점과 이름뿐인 그래프 캔버스(스크린리더에는 요약과 키보드 목록)
+  expect(relationLine('가람', '나래')).toBeTruthy()
   expect(document.querySelector('.relationship-service-form')).toBeNull() // 하단 폼·표 칸 자체가 없다
   expect(screen.queryByText('관계 추가')).toBeNull()
   expect(screen.queryByRole('region', { name: '관계 목록' })).toBeNull()
@@ -4440,24 +4445,20 @@ it('관계도 보기는 React Flow 캔버스가 내용 열 전체 폭의 한 열
   expect(document.querySelector('.ep-content')!.getAttribute('data-view')).toBeNull() // 작성 모드는 그대로
 })
 
-it('관계도 보기의 안내문·범례는 캔버스 감싸개(.relationship-canvas) 안의 한 묶음(.relationship-notes)에서 캔버스에 겹치고, 유형 필터·설정 찾기·도구 막대는 캔버스 위 한 줄(.relationship-bar)이며, 관계 기준 회차는 그 바깥이라 편집기가 다시 열려도 그대로다', async () => {
+it('관계도 보기의 안내문은 캔버스 감싸개(.relationship-canvas) 안의 묶음(.relationship-notes)에서 캔버스에 겹치고, 도구(+ 설정 추가·톱니)는 캔버스 안 모서리라 위 줄이 없으며(알림이 있을 때만 .relationship-bar), 유형 필터·설정 찾기는 톱니의 설정 패널에 있고, 관계 기준 회차는 그 바깥이라 편집기가 다시 열려도 그대로다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people')
-  const canvas = screen.getByRole('group', { name: '인물 카드 그래프' }).closest('.relationship-canvas') as HTMLElement
+  const flow = canvasRoot(), canvas = flow.closest('.relationship-canvas') as HTMLElement
   expect(canvas).toBeTruthy()
   const notes = canvas.querySelector('.relationship-notes') as HTMLElement
-  expect(within(notes).getByText(/카드 옆 점을 끌어 관계를 이어요/).getAttribute('role')).toBe('status') // 안내문은 캔버스 아래에 겹치는 작은 글(상태 안내)
-  expect(within(notes).getByRole('list', { name: '범례' })).toBeTruthy()
-  const bar = document.querySelector('.relationship-bar') as HTMLElement
-  const filter = within(bar).getByRole('group', { name: '관계도 유형 필터' }), find = within(bar).getByRole('combobox', { name: '설정 찾기' })
-  expect(filter.compareDocumentPosition(find) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 유형 필터 → 설정 찾기(키보드 순서도 같다)
-  expect(within(bar).queryByRole('button', { name: '인물 추가' })).toBeNull()
-  const tools = within(bar).getByRole('toolbar', { name: '관계도 도구' }) // 도구는 같은 줄의 오른쪽에 있다
-  expect(within(tools).getAllByRole('button').map((b) => b.textContent)).toEqual(['+ 설정 추가', '배치 정돈', '화면 맞춤'])
-  expect(find.compareDocumentPosition(tools) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 설정 찾기 다음
-  expect(canvas.contains(tools)).toBe(false) // 캔버스 위에 겹치지 않는다
-  expect(bar.compareDocumentPosition(canvas) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 묶음은 캔버스 위
-  expect(bar.contains(screen.getByRole('region', { name: '관계 기준 회차' }))).toBe(false) // 회차 칸은 다시 열리는 편집기 바깥
+  expect(within(notes).getByText(/노드를 누르면 이웃을 강조해요/).getAttribute('role')).toBe('status') // 안내문은 캔버스 아래에 겹치는 작은 글(상태 안내)
+  expect(document.querySelector('.relationship-bar')).toBeNull() // 알림이 없으면 위 줄 자체가 없다
+  expect(within(flow).getByRole('button', { name: '+ 설정 추가' })).toBeTruthy() // 도구는 캔버스 안 모서리에 겹친다
+  fireEvent.click(within(flow).getByRole('button', { name: '그래프 설정' }))
+  const panel = within(screen.getByRole('group', { name: '그래프 설정' }))
+  expect(panel.getByRole('combobox', { name: '설정 찾기' })).toBeTruthy()
+  expect(panel.getByRole('checkbox', { name: '인물 2' })).toBeTruthy() // 유형 체크박스(유형 이름과 설정 수)
+  expect(screen.getByRole('region', { name: '관계 기준 회차' }).closest('.relationship-canvas')).toBeNull() // 회차 칸은 다시 열리는 편집기 바깥
 })
 
 it('카드가 하나도 없으면 안내문이 첫 카드를 더하는 길(+ 설정 추가·오른쪽 클릭)을 알린다', async () => {

@@ -1,12 +1,11 @@
 // @vitest-environment jsdom
 import {act,cleanup,fireEvent,render,screen,waitFor,within} from '@testing-library/react'
-import type {ComponentProps} from 'react'
-import {afterEach,expect,it,vi} from 'vitest'
+import {afterEach,beforeEach,expect,it,vi} from 'vitest'
 import {Link,Route,RouterProvider,Routes,createMemoryRouter,useLocation,useNavigate} from 'react-router'
 import {Provider} from 'react-redux'
 import {appContainer} from '../../app/appContainer'
 import {createAppStore} from '../../app/store'
-import '../reactFlowStubs'
+import {clickNode,fakeGraph,rightClickNode} from '../forceGraphFake'
 import {WorldStudioPage} from '../../presentation/features/worldstudio/view/WorldStudioPage'
 import {WorldStudioLeaveProvider} from '../../presentation/features/worldstudio/viewmodel/WorldStudioLeaveProvider'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
@@ -21,13 +20,10 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
 })
 // 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
 vi.mock('../../presentation/shared/LazyMarkdownEditor',()=>import('../markdownEditorFake'))
-// 관계도 캔버스는 관계 작성을 시작하는 시험에서만 실제로 그린다(나머지는 jsdom에서 그릴 필요가 없어 빈 대역).
-const canvas=vi.hoisted(()=>({real:false}))
-vi.mock('../../presentation/features/worldstudio/view/CharacterCards',async original=>{
- const actual=await original<typeof import('../../presentation/features/worldstudio/view/CharacterCards')>()
- return {default:(props:ComponentProps<typeof actual.default>)=>canvas.real?<actual.default {...props}/>:null}
-})
-afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllEnvs();canvas.real=false})
+// 관계도 캔버스(react-force-graph)는 그리지 않고 넘기는 값·메서드만 붙잡는 대역이다(공용: src/test/forceGraphFake).
+vi.mock('react-force-graph-2d',()=>import('../forceGraphFake'))
+beforeEach(()=>fakeGraph.reset())
+afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllEnvs()})
 const manageTab=(name:string)=>within(screen.getByRole('navigation',{name:'세계관 메뉴'})).getByRole('button',{name})
 function Destination(){const location=useLocation();return <div>도착 {location.pathname} {JSON.stringify(location.state)}</div>}
 function Links(){const navigate=useNavigate();return <><Link to="/link" state={{via:'link'}}>링크 이동</Link><button onClick={()=>navigate('/replace',{replace:true,state:{via:'replace'}})}>교체 이동</button><WorldStudioPage/></>}
@@ -140,11 +136,11 @@ it('keeps the typed name on the creation screen if creation fails and retries wi
 
 
 it('protects an unapplied relationship draft without blocking preserved step navigation',async()=>{
- canvas.real=true
  const router=await show(undefined,false,true),confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
  fireEvent.click(manageTab('관계도'))
- fireEvent.click(await screen.findByRole('button',{name:'가람 관계 연결'})) // 캔버스에서 두 카드를 이어 관계 작성 시트를 연다
- fireEvent.click(screen.getByRole('button',{name:'나래 상대 선택'}))
+ await waitFor(()=>expect(fakeGraph.props).not.toBeNull())
+ rightClickNode('가람');fireEvent.click(screen.getByRole('menuitem',{name:'관계 연결'})) // 캔버스에서 두 노드를 이어 관계 작성 시트를 연다
+ clickNode('나래')
  fireEvent.change(await screen.findByRole('textbox',{name:'실제 관계 1'}),{target:{value:'미적용 관계 원문'}})
  await screen.findByText('관계 입력 미적용')
  const event=new Event('beforeunload',{cancelable:true});window.dispatchEvent(event);expect(event.defaultPrevented).toBe(true)
