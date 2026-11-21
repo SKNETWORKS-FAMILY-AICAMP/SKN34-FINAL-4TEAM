@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-/** 크레딧 지급·잔액 조회·차감·소멸 기록. 잔액은 지급분에서 장부의 사용·소멸 합계와 예약 중인 양을 뺀 값이다. */
+/** 크레딧 지급·잔액 조회·차감·회수·소멸 기록. 잔액은 지급분에서 장부의 사용·회수·소멸 합계와 예약 중인 양을 뺀 값이다. */
 @Service
 class CreditService(
     private val grants: CreditGrantRepository,
@@ -40,7 +40,7 @@ class CreditService(
         grants.save(CreditGrantEntity(UUID.randomUUID(), memberId, CreditKind.SIGNUP_TRIAL.code, signupTrialAmount, now, CreditExpiry.signupTrial(now)))
     }
 
-    /** 보상·이벤트 크레딧을 지급한다. 소멸은 지급한 달의 월간 초기화 시점이다. 가입 체험은 [grantSignupTrial]로만 지급한다. */
+    /** 보상·이벤트·운영자 지급 크레딧을 지급한다. 소멸은 지급한 달의 월간 초기화 시점이다. 가입 체험은 [grantSignupTrial]로만 지급한다. */
     @Transactional
     fun grant(memberId: UUID, kind: CreditKind, amount: BigDecimal, now: Instant = Instant.now()): UUID {
         require(kind != CreditKind.SIGNUP_TRIAL) { "가입 체험 크레딧은 가입 시에만 지급합니다." }
@@ -91,6 +91,18 @@ class CreditService(
         val allocations = CreditAllocator.allocate(availableBalances(active), amount, now)
         ledger.saveAll(allocations.map { CreditLedgerEntryEntity(UUID.randomUUID(), it.grantId, "spend", it.amount, operationKey, now) })
         return allocations
+    }
+
+    /**
+     * 운영자가 회원의 크레딧을 [amount]만큼 회수한다(DEC-57). 소멸이 빠른 지급분부터 장부에 `revoke`로 남기며 예약 중인 양은 건드리지 않는다.
+     * 모자라면 [ai.storyfork.core.credit.domain.InsufficientCreditException]을 던지며 아무것도 바꾸지 않는다.
+     * 호출마다 새 `operator-revoke:<UUID>` 키를 쓰므로 같은 요청을 다시 보내면 다시 회수한다.
+     */
+    @Transactional
+    fun revoke(memberId: UUID, amount: BigDecimal, now: Instant = Instant.now()) {
+        val allocations = CreditAllocator.allocate(availableBalances(grants.lockActive(memberId, now)), amount, now)
+        val operationKey = "operator-revoke:" + UUID.randomUUID()
+        ledger.saveAll(allocations.map { CreditLedgerEntryEntity(UUID.randomUUID(), it.grantId, "revoke", it.amount, operationKey, now) })
     }
 
     /** 소멸 시각이 지난 지급분의 남은 양을 소멸로 기록한다. 이미 기록한 지급분은 건너뛴다. 기록한 건수를 반환한다. */
