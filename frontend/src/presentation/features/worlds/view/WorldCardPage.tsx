@@ -1,27 +1,28 @@
-import { useEffect, useId, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useLocation, useParams } from 'react-router'
 
 import type { PublicWorld } from '../../../../domain/entities/publicWorld'
 import { CardMarkdown, type CardLinkRender } from '../../../shared/CardMarkdown'
+import { CardRelationMap } from '../../../shared/CardRelationMap'
 import { PublicCardImage } from '../../../shared/PublicCardImage'
-import { numberCardSections, splitCardSections } from '../../../shared/cardSections'
+import { CardWikiBody, InfoRow, WikiInfoBox } from '../../../shared/cardWiki'
+import { wikiSections, type WikiList, type WikiRelation } from '../../../shared/cardWikiSections'
 import { Go } from '../../../shared/Go'
-import { Jump } from '../../../shared/Jump'
 import { jumpTo } from '../../../shared/jumpTo'
 import { KindChip } from '../../../shared/KindChip'
 import { relationAnchor, relationHistoryLine, relationNote } from '../../../shared/relationParagraph'
 import { useScreenId } from '../../../shared/screenIds'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
-import { CARD_COLORS } from '../../../shared/worldBoard'
 import { PageControls } from '../../../shared/PageControls'
 import { pageItems } from '../../../shared/pageItems'
 import { useAppSelector } from '../../../../app/store'
 import { useWorldImport } from '../viewmodel/useWorldImport'
 import { useWorldCardViewModel } from '../viewmodel/useWorldsViewModel'
+import { publicCardEntries } from '../cardRelationEntries'
 import { bookPath, cardImageSrc, cardPath, type CardPage, type CardRef } from '../worldDetail'
 import { ImportOutcomeNotice, WorldAddMenu } from './WorldImportMenu'
-import { DemoNotice, InfoRow, LoadFailed, WorldLink, WorldLoading } from './WorldParts'
+import { DemoNotice, LoadFailed, WorldLink, WorldLoading } from './WorldParts'
 import '../../reading/view/publicWiki.css'
 import './worlds.css'
 
@@ -47,10 +48,7 @@ function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
   const { card, affiliations, relations, backlinks } = page
   const related = [...relations, ...backlinks] // 관계 문단과 받는 쪽 링크(본문 링크로 가리킨 카드 포함)
   return (
-    <table className="nw-info" style={{ '--cat': CARD_COLORS[card.kind] } as CSSProperties}>
-      <caption>{card.title}</caption>
-      <tbody>
-        {card.imageId && <tr className="nw-info-image"><td colSpan={2}><PublicCardImage src={cardImageSrc(world.id, card.imageId)} title={card.title} /></td></tr>}
+    <WikiInfoBox kind={card.kind} title={card.title} image={card.imageId && <PublicCardImage src={cardImageSrc(world.id, card.imageId)} title={card.title} />}>
         <InfoRow k="유형"><KindChip kind={card.kind} label={card.type} /></InfoRow>
         {card.aliases.length > 0 && <InfoRow k="별칭">{card.aliases.join(', ')}</InfoRow>}
         {card.kind === '인물' ? (
@@ -61,70 +59,31 @@ function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
         ) : <InfoRow k="연결">{world.relationshipStatus === 'unavailable' ? '불러오지 못함' : `${related.length}개`}</InfoRow>}
         {card.tags.length > 0 && <InfoRow k="태그"><ul className="worlds-tags">{card.tags.map((tag) => <li key={tag} className="chip">{tag}</li>)}</ul></InfoRow>}
         <InfoRow k="세계관"><WorldLink w={world} /></InfoRow>
-      </tbody>
-    </table>
+    </WikiInfoBox>
   )
 }
 
-/** [id]는 문단 제목(summary)의 DOM id다. [heading]이 있으면 제목 자리에 그 요소를 그리고(관계 문단의 상대 카드 링크) [title]은 목차 글자다. */
-type Section = { id: string; no: string; depth: number; title: string; heading?: ReactNode; body: ReactNode; children: Section[] }
-
 /**
+ * 정보 상자 아래에는 카드별 관계도(`CardRelationMap`: 이 카드는 이렇게 연관됩니다, 회차 탭은 응답의 `history` 회차)가 있고, 긴 관계 문단은 `관계 자세히 보기 (N)`으로 접혀 있다(앵커 이동은 펼친다, DEC-54).
  * 문단: 본문(마크다운)의 `#`·`##`·`###` 제목마다 한 문단(단계대로 `1`·`1.1`·`1.1.1`, 하위 문단은 상위 문단 안) → 관계(이 카드에 문단으로 보이는 관계마다 `상대 — 관계명` 하위 문단과 관계 설명, DEC-54)
  * → 이 설정을 가리키는 관계(받는 쪽 링크) → 같은 유형의 다른 설정(최상위 번호를 이어 받음).
  * 목차는 이 문단들이고 본문 쪽은 작가가 쓴 제목 그대로다. 첫 제목 앞의 글은 제목 없는 첫머리(`lead`)라 목차·번호에 넣지 않는다(개요를 지어 붙이지 않는다).
  * `####` 이하는 문단 본문 안의 소제목이다. 내용이 없는 문단은 빠진다. 본문을 어떻게 나누는지는 독자 설정 위키와 같은 `splitCardSections`가 정한다. 본문과 관계 설명의 설정 링크는 [cardLink]로 그린다.
  */
-function sectionsOf(page: CardPage, worldId: string, cardLink: CardLinkRender): { lead: string; sections: Section[] } {
-  const parts = splitCardSections(page.card.text)
-  const text = numberCardSections(parts)
-  const top = text.filter((s) => s.depth === 1).length
-  const hasRelations = page.relations.length > 0
-  const lists = [
+function sectionsOf(page: CardPage, worldId: string, cardLink: CardLinkRender) {
+  const relations = page.relations.map((r): WikiRelation => {
+    const note = relationNote(r), history = relationHistoryLine(r.category, r.history)
+    return {
+      id: relationAnchor(page.card.cardId, r.relationId), title: r.label ? `${r.title} — ${r.label}` : r.title,
+      heading: <><Go to={cardPath(worldId, r.cardId)}>{r.title}</Go>{r.label && ` — ${r.label}`}{note && <>{' '}<small>{note}</small></>}</>,
+      body: (history || r.body) && <>{history && <p className="nw-relhist">{history}</p>}{r.body && <CardMarkdown text={r.body} cardLink={cardLink} />}</>,
+    }
+  })
+  const lists = ([
     ['backlinks', '이 설정을 가리키는 관계', page.backlinks, true, true],
     ['same', '같은 유형의 다른 설정', page.sameType, false, false],
-  ] as const
-  const flat: Section[] = [
-    ...text.map(({ title, body, no, depth }, i) => ({ id: `nw-s-text-${i}`, no, depth, title, body: body && <CardMarkdown text={body} cardLink={cardLink} />, children: [] })),
-    ...(hasRelations ? [{ id: 'nw-s-relations', no: String(top + 1), depth: 1, title: '관계', body: null, children: [] }] : []),
-    ...page.relations.map((r, i): Section => {
-      const note = relationNote(r), history = relationHistoryLine(r.category, r.history)
-      return {
-        id: relationAnchor(page.card.cardId, r.relationId), no: `${top + 1}.${i + 1}`, depth: 2, title: r.label ? `${r.title} — ${r.label}` : r.title,
-        heading: <><Go to={cardPath(worldId, r.cardId)}>{r.title}</Go>{r.label && ` — ${r.label}`}{note && <>{' '}<small>{note}</small></>}</>,
-        body: (history || r.body) && <>{history && <p className="nw-relhist">{history}</p>}{r.body && <CardMarkdown text={r.body} cardLink={cardLink} />}</>, children: [],
-      }
-    }),
-    ...lists.filter(([, , refs]) => refs.length > 0).map(([id, title, refs, withType, toRelation], i) => ({ id: `nw-s-${id}`, no: String(top + (hasRelations ? 1 : 0) + i + 1), depth: 1, title, body: <CardList worldId={worldId} refs={refs} withType={withType} toRelation={toRelation} />, children: [] })),
-  ]
-  // 단계(depth)대로 앞 문단의 하위로 넣는다. 번호를 매길 때 단계가 한 칸씩만 깊어지므로 부모는 늘 바로 앞 단계다.
-  const sections: Section[] = []
-  const path: Section[] = []
-  for (const s of flat) {
-    path.length = s.depth - 1
-    ;(path.at(-1)?.children ?? sections).push(s)
-    path.push(s)
-  }
-  return { lead: parts[0]?.level === 0 ? parts[0].body : '', sections }
-}
-
-/** 목차 한 단계: 하위 문단은 안쪽 목록으로 들여 쓴다. */
-const TocList = ({ sections }: { sections: Section[] }) => (
-  <ol>{sections.map((s) => (
-    <li key={s.id}><Jump to={s.id}><span className="nw-no">{s.no}.</span> {s.title}</Jump>{s.children.length > 0 && <TocList sections={s.children} />}</li>
-  ))}</ol>
-)
-
-/** 접이식 문단. 하위 문단을 안에 두어 상위를 접으면 함께 접힌다. 제목 단계는 h2(1단계)·h3·h4다. */
-function SectionView({ s }: { s: Section }) {
-  const Heading = s.depth === 1 ? 'h2' : s.depth === 2 ? 'h3' : 'h4'
-  return (
-    <details className="nw-sec" open>
-      <summary id={s.id}><Heading><span className="nw-no">{s.no}.</span> {s.heading ?? s.title}</Heading></summary>
-      {s.body && <div className="nw-doc">{s.body}</div>}
-      {s.children.map((c) => <SectionView key={c.id} s={c} />)}
-    </details>
-  )
+  ] as const).filter(([, , refs]) => refs.length > 0).map(([id, title, refs, withType, toRelation]): WikiList => ({ id, title, body: <CardList worldId={worldId} refs={refs} withType={withType} toRelation={toRelation} /> }))
+  return wikiSections(page.card.text, relations, lists, cardLink)
 }
 
 /**
@@ -162,6 +121,8 @@ export function WorldCardPage() {
   const shown = new Set(world?.cards.map((c) => c.id))
   const cardLink: CardLinkRender = (cardId, label) => (world && shown.has(cardId) ? <Go to={cardPath(world.id, cardId)}>{label}</Go> : undefined)
   const { lead, sections } = world && page ? sectionsOf(page, world.id, cardLink) : { lead: '', sections: [] }
+  // 긴 관계 문단('관계'와 하위 문단, 이 설정을 가리키는 관계)은 기본으로 접는다(`CardWikiBody`의 fold): 관계도가 한눈에 보이고, 앵커(#관계 문단)로 들어오면 `jumpTo`가 접힌 문단을 펼친다.
+  const relationTotal = page ? page.relations.length + page.backlinks.length : 0
   useScreenId('W04')
   useDocumentTitle(world && page ? `${page.card.title} · ${world.name}` : world ? '찾을 수 없는 설정' : isLoading || isError ? '세계관' : '찾을 수 없는 세계관')
   return (
@@ -197,12 +158,8 @@ export function WorldCardPage() {
                 <p className="nw-cat"><b>분류</b><Go to={`/worlds/${world.id}`}>{world.name}</Go><Go to={bookPath(world.id, page.card.kind)}>{page.card.kind}</Go></p>
                 <header className="nw-head"><h1 id={heading}>{page.card.title}</h1></header>
                 <CardInfoBox world={world} page={page} />
-                {sections.length > 0 && <nav className="nw-toc" id="nw-toc" tabIndex={-1} aria-label="목차">
-                  <b>목차</b>
-                  <TocList sections={sections} />
-                </nav>}
-                {lead && <div className="nw-doc nw-lead"><CardMarkdown text={lead} cardLink={cardLink} /></div>}
-                {sections.map((s) => <SectionView key={s.id} s={s} />)}
+                {world.relationshipStatus !== 'unavailable' && <CardRelationMap center={{ id: page.card.cardId, title: page.card.title, kind: page.card.kind }} entries={publicCardEntries(page)} hrefOf={(to) => cardPath(world.id, to)} />}
+                <CardWikiBody lead={lead} sections={sections} fold={['nw-s-relations', 'nw-s-backlinks']} foldCount={relationTotal} cardLink={cardLink} />
               </article>
               <nav className="worlds-cardnav" aria-label="이전·다음 설정">
                 {page.prev && <Go to={cardPath(world.id, page.prev.cardId)} rel="prev"><small>이전 설정</small>{' '}<b>{page.prev.title}</b></Go>}

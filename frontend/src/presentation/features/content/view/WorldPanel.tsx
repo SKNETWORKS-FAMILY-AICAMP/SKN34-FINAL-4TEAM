@@ -27,7 +27,7 @@ export function WorldPanel({ workId, useCase, locked = false, onMediaBusy }: { w
   return (
     <>
       <section className='ep-card' aria-label='세계관 설정집'>
-        <h2>{w.name}</h2>
+        <h3>{w.name}</h3>
         <p>
           {w.mode === 'following'
             ? '원작 추종 중 · 첫 설정 수정 시 전체 공개 설정이 독립해요.'
@@ -52,7 +52,7 @@ function SettingFiles({ workId, world: w, locked, onBusy }: { workId: string; wo
   const row = rows.find((setting) => setting.id === picked) ?? rows[0]
   return (
     <section className='ep-card' aria-label='설정 첨부'>
-      <h2>설정 첨부 파일</h2>
+      <h3>설정 첨부 파일</h3>
       {w.mode === 'following'
         ? <p className='ep-muted'>원작을 따라가는 설정에는 파일을 붙일 수 없어요.</p>
         : !row
