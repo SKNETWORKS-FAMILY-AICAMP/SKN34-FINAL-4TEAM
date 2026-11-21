@@ -88,7 +88,7 @@ it('keeps failed edits and AI candidates out of the saved confirmed view',async(
  backToBoard()
  expect(manageTab('시간선')).toBeTruthy()
  expect(screen.getByRole('button',{name:/^AI 검토/})).toBeTruthy()
- expect(screen.getByRole('button',{name:'집필 메모 추가'})).toBeTruthy()
+ expect(screen.getByRole('button',{name:'확정 버전 남기기'})).toBeTruthy()
  fireEvent.click(manageTab('시간선'))
  const confirmed=screen.getByRole('region',{name:'시간선'})
  expect(confirmed.textContent).toContain('기존 사건 원문')

@@ -1,5 +1,5 @@
 import '../../../shared/episode.css'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 
 import { relationLabel } from '../../../../domain/entities/studioRelations'
 import type { StudioWorld } from '../../../../domain/entities/studioWorld'
@@ -12,7 +12,10 @@ import { pageItems } from '../../../shared/pageItems'
 import { BackChev, FoldIcon } from '../../../shared/icons'
 import { useScreenId } from '../../../shared/screenIds'
 import { Sheet } from '../../../shared/Sheet'
+import { AccountMenu } from '../../../shared/shell/AccountMenu'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
+import { ThemeButton } from '../../../shared/shell/ThemeButton'
+import { useGnbViewModel } from '../../../shared/shell/useGnbViewModel'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { labelOf } from '../viewmodel/settingBoard'
@@ -38,20 +41,21 @@ import { WorldTimeline } from './WorldTimeline'
 import './world-studio.css'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
-/** `집필 메모 추가`: 새 메모를 초안에 더하고 그 편집 화면을 연다. 관리 모드는 왼쪽 사이드바의 `AI 검토` 아래에, 사이드바가 없는 작성 모드(마법사)는 헤더 행동 줄에 둔다. */
-const NoteButton = ({ vm }: { vm: VM }) => <button type="button" className="btn sm" onClick={() => { const id = vm.addCard('note'); if (id) vm.editCard(id) }}>집필 메모 추가</button>
 const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relations', '관계 연결 (선택)'], ['review', '검토·저장']] as const
 
 /**
  * 세계관 관리·작성 화면. 두 화면이다.
- * - **설정집 화면**(기본): `/content` 작품 관리와 같은 틀 — 공용 상단바 아래 서재로 돌아가는 링크, 그 아래 왼쪽 사이드바(`.ep-menu`)와 오른쪽 내용 열(`.ep-content`). 사이드바에는 보기 메뉴(개요·설정집·관계도·시간선·소설 연결, 주소 `?view=`, 기본은 설정집)와 구분선 뒤에
- *   `AI 검토`(시트: 설정집 검토 + AI 후보 검토, 이름에 의견·후보 수가 붙는다)·`집필 메모 추가`·`확정 버전 남기기`·상시 저장 영역이 세로로 있고(901px 이상에서는 맨 위 토글로 사이드바를 접을 수 있고 접으면 저장 영역이 상단 줄로 옮겨 간다), 내용 열에는 공개 세계관 상세와 같은 모양의 헤더(표지·이름·칩·소개)와 그 아래 고른 보기의 내용(기본은 설정집 게시판, 개요는 정보 편집 폼, 소설 연결은 연결된 소설과 Fork)이 있다.
- *   만든 직후(`?new=1`)는 작성 모드(사이드바 없이 기본 정보 → 설정 카드 → 관계 연결 → 검토·저장 4단계 마법사)다.
+ * - **설정집 화면**(기본): `/content` 작품 관리와 같은 틀이지만 공용 상단바(Gnb)는 그리지 않는다 — 왼쪽 사이드바(`.ep-menu`)가 상단바 역할을 맡고 오른쪽에 내용 열(`.ep-content`)이 있다. 사이드바는 위에서 아래로
+ *   맨 위 줄(STORYFORK 로고 + 접기 토글), 서재로 돌아가는 링크, 보기 메뉴(개요·설정집·관계도·시간선·소설 연결, 주소 `?view=`, 기본은 설정집), 구분선 뒤 아래쪽으로 밀어 붙인 `AI 검토`(시트: 설정집 검토 + AI 후보 검토, 이름에 의견·후보 수가 붙는다)·`확정 버전 남기기`·상시 저장 영역,
+ *   맨 아래 줄(알림·테마 버튼·계정 아바타)이다. 검색 버튼은 두지 않는다(Ctrl K 전역 단축키). 901px 이상에서는 맨 위 토글로 사이드바를 접을 수 있고 접으면 토글만 남고 서재로 돌아가는 링크와 저장 영역이 상단 줄(`.ep-top`)로 옮겨 간다(두 곳 동시 노출 없음).
+ *   내용 열에는 공개 세계관 상세와 같은 모양의 헤더(표지·이름·칩·소개)와 그 아래 고른 보기의 내용(기본은 설정집 게시판, 개요는 정보 편집 폼, 소설 연결은 연결된 소설과 Fork)이 있다.
+ *   만든 직후(`?new=1`)는 작성 모드(사이드바 없이 기본 정보 → 설정 카드 → 관계 연결 → 검토·저장 4단계 마법사)다. 사이드바가 없는 작성 모드와 세계관 없는 만들기 화면은 공용 상단바(Gnb)가 그대로다.
  * - **편집 화면**(`?card=<id>`): 설정 카드를 열면(게시판 행의 미리보기 `수정하기`) 집필실과 같은 3단 화면(`WorldCardStudio`: 카드 목록·버전 그래프 레일 / 편집기 / AI 채팅)이 이 화면을 대신하고, `← {들어온 보기 이름}`·뒤로가기로 돌아온다.
  * 설정집 화면은 편집 화면 뒤에서 지우지 않고 숨겨 두어 필터·적용하지 않은 관계 입력·후보 검토 상태를 지킨다. 주소 `/worldstudio`(세계관 없음)에서만 새 세계관 만들기 화면을 그린다.
  * 소설 작성은 실행 모드의 작품 생성 화면에서 시작한다.
  * 세계관이 열린 화면(주소에 id가 있는 경로)은 떠 있는 테마 버튼(GlobalChrome)을 그리지 않는다(집필실과 같은 규칙, 열린 채팅의 전송 버튼을 덮지 않게).
- * 공용 상단바(Gnb)가 있는 설정집 화면·작성 모드·세계관 없는 만들기 화면은 테마 버튼을 화면 안에 따로 두지 않고 상단바의 것 하나가 맡으며(세계관 없는 만들기 화면의 떠 있는 버튼은 CSS가 숨긴다), 상단바가 없는 편집 화면은 `WorldCardStudio` 상단 바에 있다.
+ * 테마 버튼은 공용 상단바(Gnb)가 있는 작성 모드·세계관 없는 만들기 화면에서는 상단바의 것 하나가 맡고(세계관 없는 만들기 화면의 떠 있는 버튼은 CSS가 숨긴다), 상단바가 없는 설정집 화면은 사이드바 맨 아래 줄, 편집 화면은 `WorldCardStudio` 상단 바에 있다.
+ * 관리 주소는 세계관을 읽는 동안·읽지 못했을 때도 상단바를 그리지 않는다(사이드바가 나타날 때 상단바가 사라지며 화면이 밀리지 않게, 그 사이의 뒤로 가기 링크는 상단 줄에 있다).
  */
 export function WorldStudioPage() {
   useScreenId('W01')
@@ -71,7 +75,7 @@ export function WorldStudioPage() {
   const revisions = useWorldRevisions(vm.reviewWorldId, !!vm.editing, vm.saved, vm.dirty || vm.relationDirty, vm.reload, vm.setReviewBusy)
   const [versionsOpen, setVersionsOpen] = useState(false)
   const closeVersions = () => setVersionsOpen(false)
-  // 사이드바 접기(901px 이상): 접은 동안 상시 저장 영역은 상단 줄(뒤로 가기 링크 오른쪽)로 옮겨 그린다. 상단 줄이 이 페이지에 있어 접힘 상태도 여기서 가진다.
+  // 사이드바 접기(901px 이상): 접은 동안 서재로 돌아가는 링크와 상시 저장 영역은 상단 줄로 옮겨 그린다. 상단 줄이 이 페이지에 있어 접힘 상태도 여기서 가진다.
   // ponytail: 접힘 상태를 저장하지 않는다(새로 고치면 펼침). 필요하면 worldStudioStorage에 한 키로 남긴다.
   const [menuOpen, setMenuOpen] = useState(true)
   // 900px 이하의 닫힌 AI 채팅 열기 버튼이 들어갈 자리(사이드바 탭 줄의 오른쪽 끝). 탭 줄이 그려지면 채워져 WorldChat이 그 안으로 버튼을 옮긴다.
@@ -79,29 +83,39 @@ export function WorldStudioPage() {
   // 게시판 미리보기의 `수정하기`로 연 카드(편집기를 미리보기 탭으로 시작한다). 편집 화면을 나가면 비운다.
   const [previewEntry, setPreviewEntry] = useState('')
   useEffect(() => { if (!editingCard) setPreviewEntry('') }, [editingCard])
+  // 관리 모드(주소에 세계관 id, 작성 모드 아님)는 공용 상단바(Gnb) 대신 사이드바가 그 역할을 맡는다. 읽는 동안·읽지 못했을 때도 같다: 사이드바가 나타날 때 상단바가 사라지며 화면이 밀리지 않게.
+  const sidebarShell = !!vm.reviewWorldId && vm.mode === 'manage'
+  // 사이드바를 펼친 동안은 서재로 돌아가는 링크가 사이드바에 있어 상단 줄(.ep-top)을 그리지 않는다(두 곳 동시 노출 없음). 사이드바가 없거나(작성 모드·만들기·읽는 중·읽지 못함) 접힌 동안만 그린다.
+  const sideMenu = sidebarShell && !!vm.editing && menuOpen
+  // 오류·상태·AI 변경 알림은 세계관이 열려 있으면 내용 열(WorldEditor) 맨 위에 그린다: 사이드바 위에 끼면 화면 높이를 다 쓰는 사이드바가 그만큼 아래로 밀려 맨 아래 줄(계정)이 화면 밖으로 잘린다(상태 알림은 다음 동작까지 남는다).
+  // 편집 화면이 열려 있는 동안은 같은 오류·알림을 그 화면이 보인다(숨은 설정집 화면에 같은 글이 겹쳐 있지 않게 한다).
+  const alertLine = !editingCard && vm.error && <p role="alert" className="ep-alert">{vm.error}</p>
+  const statusLine = !editingCard && vm.message && <p role="status" className="ep-notice">{vm.message}</p>
+  const changeBanner = !editingCard && <McpChangeBanner {...mcp} />
   return (
     <>
-      {!editingCard && <Gnb on="lib" />}
+      {!editingCard && !sidebarShell && <Gnb on="lib" />}
       <div className={'episode-app' + (vm.editing && chatOpen ? ' with-chat' : '')} hidden={editingCard}>
         <main id={editingCard ? undefined : 'main'} tabIndex={-1} className="ep-main world-studio world-writing">
-          <div className="ep-top">
-            <Go to="/lib?tab=worlds" className="ep-back"><BackChev />내가 만드는 세계관</Go>
-            {vm.editing && vm.mode === 'manage' && !menuOpen && !editingCard && <WorldSaveBar vm={vm} />}
-          </div>
-          {/* 편집 화면이 열려 있는 동안은 같은 오류·알림을 그 화면이 보인다(숨은 설정집 화면에 같은 글이 겹쳐 있지 않게 한다). */}
-          {!editingCard && vm.error && <p role="alert" className="ep-alert">{vm.error}</p>}
+          {!sideMenu && (
+            <div className="ep-top">
+              <Go to="/lib?tab=worlds" className="ep-back"><BackChev />내가 만드는 세계관</Go>
+              {vm.editing && vm.mode === 'manage' && !menuOpen && !editingCard && <WorldSaveBar vm={vm} />}
+            </div>
+          )}
+          {!vm.editing && alertLine}
           {failed && (
             <div className="ep-card-actions">
               <button type="button" className="btn sm" disabled={vm.busy} onClick={vm.retryLoad}>다시 시도</button>
               <Go to="/lib?tab=worlds" className="btn sm">내가 만드는 세계관으로 돌아가기</Go>
             </div>
           )}
-          {!editingCard && vm.message && <p role="status" className="ep-notice">{vm.message}</p>}
-          {!editingCard && <McpChangeBanner {...mcp} />}
+          {!vm.editing && statusLine}
+          {!vm.editing && changeBanner}
           {loading && <p role="status" className="ep-notice">세계관을 불러오고 있어요…</p>}
           {!vm.reviewWorldId && <WorldCreate vm={vm} />}
           {!vm.editing && vm.reviewWorldId && <InitialWorldReview key={vm.reviewWorldId} studio={vm} />}
-          {vm.editing && <WorldEditor vm={vm} world={vm.editing} revisions={revisions} openVersions={() => setVersionsOpen(true)} menuOpen={menuOpen} setMenuOpen={setMenuOpen} chatSlotRef={setChatSlot} onPreviewEdit={setPreviewEntry} />}
+          {vm.editing && <WorldEditor vm={vm} world={vm.editing} revisions={revisions} openVersions={() => setVersionsOpen(true)} menuOpen={menuOpen} setMenuOpen={setMenuOpen} chatSlotRef={setChatSlot} onPreviewEdit={setPreviewEntry} notices={<>{alertLine}{statusLine}{changeBanner}</>} />}
         </main>
         {/* 편집 화면이 열려 있는 동안은 그 화면이 채팅을 그린다. 숨은 설정집 화면의 채팅은 좁은 화면에서 body에 그려지는 서랍이라 여기서 빼지 않으면 편집 화면 위에 겹쳐 뜬다. */}
         {vm.editing && !editingCard && <WorldChat open={chatOpen} onOpenChange={setChatOpen} slot={chatSlot} linkedWorkId={vm.linkedWorkId} onWorldApplied={() => void vm.aiDraftChanged()} {...chatPage} />}
@@ -124,7 +138,7 @@ export function WorldStudioPage() {
  * 표지·이름·칩·소개(CSS가 모든 보기에서 72px 표지 + 제목·칩 한 덩어리로 줄이며 소개는 숨긴다: 소개 전문은 개요 탭의 입력에 있다)·공개 목록 안내와 공개 화면 링크·공개 설정 경고. 저장 상태는 왼쪽 사이드바(접으면 상단 줄)의 저장 영역이 보인다.
  * 헤더에는 공개 범위·장르 칩만 있고, 공개 목록에 나올 때(공개 + 확정 버전)만 공개 화면 링크가, 공개인데 확정 버전이 없을 때는 그 안내가 보인다.
  * 공개 세계관인데 공개로 둔 설정이 없으면 그 경고와 `전체 공개`를 보인다(어느 탭에서든 보여야 한다).
- * 작성 모드(만든 직후의 마법사)도 같은 줄어든 히어로다(`data-view="wizard"`): 행동 줄에 `집필 메모 추가`(설정 카드 단계에서만)·소설 버튼 한 자리(연결된 소설이 있으면 그 작품 관리로 가는 `소설 작성하기`, 없으면 `소설 연결하기`, 데모는 새 소설 폼으로 가는 `소설 작성하기`)와 `관리 화면으로`가 있고
+ * 작성 모드(만든 직후의 마법사)도 같은 줄어든 히어로다(`data-view="wizard"`): 행동 줄에 소설 버튼 한 자리(연결된 소설이 있으면 그 작품 관리로 가는 `소설 작성하기`, 없으면 `소설 연결하기`, 데모는 새 소설 폼으로 가는 `소설 작성하기`)와 `관리 화면으로`가 있고
  * 그 위에 연결된 소설 상태 줄(정보만)이 있다. 이름·설명·공개 설정은 기본 정보 단계에 있고 저장 상태는 헤더 칩이 보이며 '관리 화면으로'로 나갈 수 있다. 테마 전환 버튼은 이 화면 안에 두지 않고 공용 상단바(Gnb)가 맡는다.
  */
 function WorldHeader({ vm, world }: { vm: VM; world: StudioWorld }) {
@@ -168,7 +182,6 @@ function WorldHeader({ vm, world }: { vm: VM; world: StudioWorld }) {
         {!manage && <WorldLinkedLine vm={vm} />}
         {(!manage || vm.publicHref) && (
           <div className="acts">
-            {!manage && vm.flow.step === 'cards' && <NoteButton vm={vm} />}
             {!manage && <WorldNovelButton vm={vm} />}
             {vm.publicHref && <Go to={vm.publicHref} className="btn sm">공개 화면 보기</Go>}
             {!manage && <button type="button" className="btn sm" onClick={vm.leaveWizard}>관리 화면으로</button>}
@@ -196,15 +209,17 @@ function WorldPublish({ vm }: { vm: VM }) {
 
 /**
  * 작성 모드(세계관을 처음 만든 직후, 주소 `?new=1`)는 사이드바 없이 기본 정보부터 4단계 마법사다. 그 밖의 모든 진입은 관리 모드로, `/content` 작품 관리처럼
- * 왼쪽 사이드바(공용 틀 `.ep-manage`·`.ep-menu`·`.ep-content`, shared/episode.css)의 보기 메뉴(개요·설정집·관계도·시간선·소설 연결, 주소 `?view=`, 기본은 설정집)로 화면을 바꾸고, 그 아래 구분선 뒤에 `AI 검토`(시트)·`집필 메모 추가`·`확정 버전 남기기`와 상시 저장 영역을 세로로 둔다.
+ * 왼쪽 사이드바(공용 틀 `.ep-manage`·`.ep-menu`·`.ep-content`, shared/episode.css)가 공용 상단바(Gnb)를 대신한다. 맨 위 줄(`.world-menu-top`)은 STORYFORK 로고 + 접기 토글이고 그 아래 서재로 돌아가는 링크와 보기 메뉴(개요·설정집·관계도·시간선·소설 연결, 주소 `?view=`, 기본은 설정집)로 화면을 바꾸며,
+ * 구분선 뒤 아래쪽으로 밀어 붙인 `AI 검토`(시트)·`확정 버전 남기기`와 상시 저장 영역(`.world-menu-tools`), 맨 아래 줄(`.world-menu-account`, `WorldMenuAccount`)에 알림·테마·계정이 있다.
+ * 내용 열 맨 위에는 오류·상태·AI 변경 알림(`notices`)이 있다(사이드바 위에 끼어 사이드바를 아래로 밀지 않게 페이지의 위쪽이 아니라 여기에 그린다).
  * 보기마다 내용 열은 그 보기의 내용만 보인다: 개요(이름·설명·공개·장르·표지 편집, `WorldInfoPanel`)·설정집(게시판)·관계도·시간선·소설 연결(연결된 소설과 Fork, `WorldNovelTab`).
  * 게시판·관계 편집기·(한 번 연) 개요 폼은 다른 보기에서도 숨겨 둘 뿐 지우지 않아 필터·선택·적용하지 않은 관계 입력·쓰던 이름과 고른 표지가 남고, 소설 연결은 볼 때만 그린다.
- * 900px 이하에서는 사이드바가 내용 위의 가로 스크롤 줄이 되고 버튼·저장 영역은 줄바꿈하는 가로 줄이다. 901px 이상에서는 맨 위 토글(`세계관 메뉴 접기`)로 사이드바를 접어 내용 열을 넓힌다:
- * 접어도 메뉴 묶음은 숨길 뿐 지우지 않고(AI 검토 상태가 남는다) 저장 영역만 상단 줄로 옮겨 그린다(`WorldStudioPage`, 두 군데 동시에 뜨지 않는다).
+ * 900px 이하에서는 사이드바가 내용 위의 가로 블록이 되어 로고 줄(로고 + 계정 줄)이 맨 위에 오고 그 아래 메뉴·도구가 줄바꿈하는 가로 줄이다. 901px 이상에서는 맨 위 토글(`세계관 메뉴 접기`)로 사이드바를 접어 내용 열을 넓힌다:
+ * 접으면 토글만 남고(로고·계정 줄은 CSS가 숨긴다) 메뉴 묶음은 숨길 뿐 지우지 않으며(AI 검토 상태가 남는다) 서재로 돌아가는 링크와 저장 영역만 상단 줄로 옮겨 그린다(`WorldStudioPage`, 두 군데 동시에 뜨지 않는다).
  * 메뉴를 누르면 누른 버튼을 가로 줄 안에 보이게 하고 바뀐 내용 카드 머리로 스크롤한다(처음 열 때·같은 메뉴를 다시 누를 때는 하지 않고, 초점은 누른 버튼에 둔다).
  * 확정 버전은 편집 화면의 버전 그래프에서 남기고 본다. 시간선은 저장한 설정의 사건만 보인다.
  */
-function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen, chatSlotRef, onPreviewEdit }: { vm: VM; world: StudioWorld; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; menuOpen: boolean; setMenuOpen: (open: boolean) => void; chatSlotRef: (slot: HTMLElement | null) => void; onPreviewEdit: (id: string) => void }) {
+function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen, chatSlotRef, onPreviewEdit, notices }: { vm: VM; world: StudioWorld; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; menuOpen: boolean; setMenuOpen: (open: boolean) => void; chatSlotRef: (slot: HTMLElement | null) => void; onPreviewEdit: (id: string) => void; notices: ReactNode }) {
   const heading = useRef<HTMLHeadingElement>(null)
   const menuId = useId()
   const manage = vm.mode === 'manage'
@@ -230,8 +245,12 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
     <section className={'world-content' + (manage ? ' ep-manage' : '')} data-menu={manage && !menuOpen ? 'collapsed' : undefined} hidden={vm.flow.screen !== 'editor'} aria-busy={vm.busy}>
       {manage && (
         <div className="ep-menu">
-          <button type="button" className="world-menu-toggle" aria-expanded={menuOpen} aria-controls={menuId} aria-label={toggleLabel} title={toggleLabel} onClick={() => setMenuOpen(!menuOpen)}><FoldIcon /></button>
+          <div className="world-menu-top">
+            <Go to="/" className="logo world-menu-logo" aria-label="STORYFORK 홈으로" title="홈으로"><b>SF</b>STORYFORK</Go>
+            <button type="button" className="world-menu-toggle" aria-expanded={menuOpen} aria-controls={menuId} aria-label={toggleLabel} title={toggleLabel} onClick={() => setMenuOpen(!menuOpen)}><FoldIcon /></button>
+          </div>
           <div id={menuId} className="world-menu-body" hidden={!menuOpen}>
+            {menuOpen && <Go to="/lib?tab=worlds" className="ep-back world-menu-back"><BackChev />내가 만드는 세계관</Go>}
             <div className="world-menu-row">
             <nav aria-label="세계관 메뉴">
               {MANAGE_VIEWS.map(([id, label]) => (
@@ -252,14 +271,15 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
             </div>
             <div className="world-menu-tools">
               <WorldAiReview studio={vm} />
-              <NoteButton vm={vm} />
               <VersionsButton vm={vm} supported={revisions.supported} open={openVersions} />
               {!vm.selected && menuOpen && <WorldSaveBar vm={vm} />}
             </div>
           </div>
+          <WorldMenuAccount />
         </div>
       )}
       <div className="ep-content">
+        {notices}
         <WorldHeader vm={vm} world={world} />
         {!manage && (
           <nav className="world-step-nav" aria-label="세계관 작성 단계">
@@ -272,8 +292,8 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
             </ol>
           </nav>
         )}
-        {/* 탭 내용 묶음: 메뉴를 누르면 이 머리로 스크롤한다. scroll-margin은 sticky 상단바(.gnb)가 머리를 가리지 않게(/content 작품 관리와 같은 값). */}
-        <section ref={card} className="tcard ep-card" style={{ scrollMarginTop: 80 }}>
+        {/* 탭 내용 묶음: 메뉴를 누르면 이 머리로 스크롤한다(관리 모드뿐). scroll-margin은 머리 위 여백 16px이다: 상단바가 없어 /content 작품 관리의 80px(상단바 64px + 여백 16px)에서 상단바 몫을 뺀다. */}
+        <section ref={card} className="tcard ep-card" style={{ scrollMarginTop: 16 }}>
           {!manage && <h3 className="world-step-title" ref={heading} tabIndex={-1}>{steps[current][1]}</h3>}
           {!manage && (
             <fieldset className="world-fields world-basic" disabled={vm.busy} hidden={step !== 'info'}>
@@ -326,6 +346,25 @@ function VersionsButton({ vm, supported, open }: { vm: VM; supported: boolean; o
       <button type="button" className="btn sm" aria-haspopup="dialog" disabled={!!why} aria-describedby={why ? reason : undefined} onClick={open}>확정 버전 남기기</button>
       {why && <span id={reason} className="small muted">{why}</span>}
     </>
+  )
+}
+
+/**
+ * 사이드바 맨 아래 줄: 공용 상단바(Gnb)가 맡던 알림·테마·계정. 데이터는 상단바와 같은 `useGnbViewModel`(읽지 않은 알림 수·이름 첫 글자)이고 이름·aria·계정 메뉴(`AccountMenu`)도 같다.
+ * 이 화면은 로그인한 사용자만 연다(RequireRole)라 비로그인 모양(상단바 아바타의 게스트 아이콘)은 두지 않는다. 검색 버튼은 두지 않는다: Ctrl K(전역 QuickJump)가 남는다.
+ */
+function WorldMenuAccount() {
+  const { initial, unread } = useGnbViewModel()
+  const [menuAnchor, setMenuAnchor] = useState<HTMLButtonElement | null>(null)
+  return (
+    <div className="world-menu-account">
+      <Go to="/notifications" className="btn sm" aria-label={`알림함${unread ? `, 읽지 않은 알림 ${unread}건` : ''}`}>
+        알림{unread > 0 && <> <span className="nb">{unread}</span></>}
+      </Go>
+      <ThemeButton />
+      <button type="button" className="avatar" aria-label="내 계정 메뉴" aria-haspopup="menu" aria-expanded={!!menuAnchor} onClick={(e) => setMenuAnchor(menuAnchor ? null : e.currentTarget)}><span>{initial}</span></button>
+      {menuAnchor && <AccountMenu anchor={menuAnchor} onClose={() => setMenuAnchor(null)} />}
+    </div>
   )
 }
 

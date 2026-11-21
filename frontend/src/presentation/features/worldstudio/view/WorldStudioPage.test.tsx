@@ -253,11 +253,13 @@ it('탭 제목에 세계관을 쓴다', async () => {
   expect(document.title).toBe('세계관 · STORYFORK')
 })
 
-it('서재의 내가 만드는 세계관 탭으로 돌아가는 링크를 본문 맨 위에 둔다', async () => {
+it('서재의 내가 만드는 세계관 탭으로 돌아가는 링크는 사이드바 맨 위(로고 줄 바로 아래)에 있고, 사이드바를 펼친 동안은 상단 줄(.ep-top)을 그리지 않는다', async () => {
   await showWorld()
   const back = screen.getByRole('link', { name: '내가 만드는 세계관' })
   expect(back.getAttribute('href')).toBe('/lib?tab=worlds')
+  expect(back.closest('.ep-menu')).toBeTruthy()
   expect(screen.getByRole('main').contains(back)).toBe(true)
+  expect(document.querySelector('.ep-top')).toBeNull() // 두 곳에 동시에 두지 않는다
 })
 
 it('관리 헤더는 저장한 세계관의 소개와 설정 수·저장 버전·서버 연결 예정 칩, 저장 상태를 보이고 저장 전 입력은 상태만 바꾼다', async () => {
@@ -294,11 +296,12 @@ it('관리 보기 전환 메뉴가 왼쪽 사이드바에 있고(개요·설정�
   expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
 })
 
-it('테마 전환은 설정집 화면 안(본문·사이드바)에 따로 두지 않고 상단바(Gnb)의 버튼 한 개가 맡는다', async () => {
+it('테마 전환은 사이드바 맨 아래 줄의 버튼 한 개가 맡는다: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않고 공용 상단바(Gnb)도 없다', async () => {
   await showWorld()
-  expect(within(screen.getByRole('main')).queryByRole('button', { name: /모드로/ })).toBeNull() // 사이드바도 main 안이다: 저장 영역 옆에 있던 작은 테마 버튼은 사이드바로 옮기지 않고 없앴다
-  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 한 개: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않는다
-  expect(theme.closest('.gnb')).toBeTruthy()
+  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 한 개
+  expect(theme.closest('.world-menu-account')).toBeTruthy()
+  expect(theme.closest('.ep-menu')).toBeTruthy()
+  expect(theme.closest('.gnb')).toBeNull()
 })
 
 it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 전환 버튼을 한 개 두고, 가려진 설정집 화면의 버튼은 중복으로 보이지 않는다', async () => {
@@ -312,7 +315,7 @@ it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 
   expect(theme.className).toBe('btn sm')
 })
 
-it('작성 마법사도 헤더의 행동 줄(집필 메모 추가·관리 화면으로 옆)에 테마 버튼을 따로 두지 않고 상단바(Gnb)의 버튼 한 개가 맡는다', async () => {
+it('작성 마법사도 헤더의 행동 줄(소설 버튼·관리 화면으로 옆)에 테마 버튼을 따로 두지 않고 상단바(Gnb)의 버튼 한 개가 맡는다', async () => {
   await wizard()
   expect(within(screen.getByRole('main')).queryByRole('button', { name: /모드로/ })).toBeNull()
   expect(screen.getByRole('button', { name: '다크 모드로' }).closest('.gnb')).toBeTruthy() // 한 개
@@ -596,27 +599,19 @@ it('레일의 ⋮ 메뉴 삭제는 그 카드를 열어 같은 삭제 확인을 
   expect(screen.queryByRole('region', { name: '설정 삭제 확인' })).toBeNull()
 })
 
-it('집필 메모 추가는 사이드바의 AI 검토 바로 아래에 있어 어느 보기에서든 새 메모의 편집 화면을 열고 돌아오면 그 보기다', async () => {
+it('집필 메모 추가는 관리 사이드바에 없다(메모 유형 카드는 + 새 설정으로 만든다): AI 검토 바로 다음이 확정 버전 남기기다', async () => {
   await showWorld()
-  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  const memo = screen.getByRole('button', { name: '집필 메모 추가' })
-  expect(memo.previousElementSibling).toBe(screen.getByRole('button', { name: /^AI 검토/ })) // 관리 모드에서는 헤더가 아니라 사이드바다
-  expect(headerOf().queryByRole('button', { name: '집필 메모 추가' })).toBeNull()
-  fireEvent.click(memo)
-  expect(where()).toMatch(/^\/worldstudio\/qa\?view=people&card=[0-9a-f-]{36}$/)
-  expect(editor().getByRole('textbox', { name: '설정 이름' })).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '관계도' })) // 돌아가기 버튼은 들어온 보기의 이름이다
-  expect(where()).toBe('/worldstudio/qa?view=people')
-  expect(manageTabs().getByRole('button', { name: '관계도' }).getAttribute('aria-current')).toBe('page')
+  expect(screen.queryByRole('button', { name: '집필 메모 추가' })).toBeNull()
+  const review = screen.getByRole('button', { name: /^AI 검토/ })
+  expect(review.parentElement?.classList.contains('world-menu-tools')).toBe(true)
+  expect(review.nextElementSibling).toBe(screen.getByRole('button', { name: '확정 버전 남기기' }))
 })
 
-it('작성 모드에는 사이드바가 없어 집필 메모 추가가 헤더 행동 줄에 남지만 설정 카드 단계에서만 보인다', async () => {
+it('작성 모드 헤더의 행동 줄에도 집필 메모 추가는 없다: 설정 카드 단계에도 소설 버튼과 관리 화면으로만 있다', async () => {
   await wizard()
-  expect(headerOf().queryByRole('button', { name: '집필 메모 추가' })).toBeNull() // 기본 정보 단계의 행동은 다음 단계 하나다
-  fireEvent.click(screen.getByRole('button', { name: '다음 단계' }))
-  fireEvent.click(headerOf().getByRole('button', { name: '집필 메모 추가' }))
-  expect(where()).toMatch(/^\/worldstudio\/qa\?new=1&card=[0-9a-f-]{36}$/)
-  expect(editor().getByRole('textbox', { name: '설정 이름' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '다음 단계' })) // 설정 카드 단계
+  expect(screen.queryByRole('button', { name: '집필 메모 추가' })).toBeNull()
+  expect(headerOf().getAllByRole('button').map((b) => b.textContent)).toEqual(['소설 연결하기', '관리 화면으로'])
 })
 
 it('작성 모드의 설정 카드 단계도 같은 게시판과 편집 화면이고 마법사 표시(?new=1)를 주소에 지킨다', async () => {
@@ -3769,7 +3764,7 @@ it('관계 문구의 공개 순서 확인은 두 설정이 공개되는 회차�
 it('AI·외부 도구 변경 감시에 열린 세계관 id와 저장하지 않은 변경 여부, 다시 읽기를 넘긴다', async () => {
   await show()
   expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'world', targetId: 'qa', dirty: false, reload: expect.any(Function) })
-  fireEvent.click(screen.getByRole('button', { name: '집필 메모 추가' })) // 초안에 메모를 더하고 편집 화면을 연다
+  dirtyCard() // 설정 카드를 고쳐 초안을 바꾼다
   expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'world', targetId: 'qa', dirty: true, reload: expect.any(Function) })
 })
 
@@ -3816,7 +3811,7 @@ it('관리 모드 헤더에는 정보 편집 버튼·연결된 소설 줄·소�
   await wizard()
   expect(headerOf().getByText('연결된 소설이 없어요.')).toBeTruthy()
   expect(headerOf().getByRole('button', { name: '소설 연결하기' })).toBeTruthy()
-  expect(headerOf().queryByRole('button', { name: '집필 메모 추가' })).toBeNull() // 설정 카드 단계에서만 보인다
+  expect(headerOf().queryByRole('button', { name: '집필 메모 추가' })).toBeNull() // 작성 모드 헤더에도 없다
   expect(headerOf().getByRole('button', { name: '관리 화면으로' })).toBeTruthy()
 })
 
@@ -4259,4 +4254,131 @@ it('시간선 연결선은 점 중심 높이(행 top 22 + 시점 1lh + 간격 8 
   await show([first, second], '/worldstudio/qa?view=timeline')
   const d = document.querySelector('.world-timeline-board svg path[marker-end]')?.getAttribute('d') ?? ''
   expect(d).toMatch(/^M 40 58 C 190 58, -?\d+ 58, \d+ 58$/)
+})
+
+// ── 상단바를 사이드바로 합치기(사용자 요청): 관리 모드는 공용 상단바(Gnb)를 그리지 않고 사이드바가 그 역할을 맡는다 ─────────────────────
+const sidebar = () => screen.getByRole('navigation', { name: '세계관 메뉴' }).closest('.ep-menu') as HTMLElement
+
+it('관리 모드는 공용 상단바(Gnb)를 그리지 않고, 사이드바가 로고·알림·테마·계정을 맡으며 검색 버튼은 두지 않는다(Ctrl K 전역 단축키가 남는다)', async () => {
+  await showWorld()
+  expect(document.querySelector('.gnb')).toBeNull()
+  expect(screen.queryByRole('banner')).toBeNull()
+  expect(screen.queryByRole('navigation', { name: '주요 메뉴' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '소설·세계관·설정 카드·캐릭터챗 검색' })).toBeNull()
+  const side = within(sidebar())
+  const logo = side.getByRole('link', { name: 'STORYFORK 홈으로' }) // 상단바 로고와 같은 이름
+  expect(logo.getAttribute('href')).toBe('/')
+  expect(logo.textContent).toBe('SFSTORYFORK')
+  expect(side.getByRole('link', { name: '알림함' }).getAttribute('href')).toBe('/notifications')
+  expect(side.getByRole('button', { name: '다크 모드로' })).toBeTruthy()
+  expect(side.getByRole('button', { name: '내 계정 메뉴' }).getAttribute('aria-haspopup')).toBe('menu')
+})
+
+it('사이드바는 위에서 아래로 로고·접기 토글·내가 만드는 세계관·보기 메뉴·AI 검토·확정 버전 남기기·저장 영역·알림·테마·계정 순서이고, 도구 묶음과 계정 줄은 따로다', async () => {
+  await showWorld()
+  const side = within(sidebar())
+  const order = [
+    side.getByRole('link', { name: 'STORYFORK 홈으로' }),
+    side.getByRole('button', { name: '세계관 메뉴 접기' }),
+    side.getByRole('link', { name: '내가 만드는 세계관' }),
+    side.getByRole('navigation', { name: '세계관 메뉴' }),
+    side.getByRole('button', { name: /^AI 검토/ }),
+    side.getByRole('button', { name: '확정 버전 남기기' }),
+    side.getByRole('group', { name: '저장 상태' }),
+    side.getByRole('link', { name: '알림함' }),
+    side.getByRole('button', { name: '다크 모드로' }),
+    side.getByRole('button', { name: '내 계정 메뉴' }),
+  ]
+  order.slice(1).forEach((el, i) => expect(order[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING, el.textContent || el.getAttribute('aria-label') || '').toBeTruthy())
+  expect(order[4].closest('.world-menu-tools')?.contains(order[6])).toBe(true) // AI 검토·확정 버전 남기기·저장 영역이 아래로 밀리는 한 묶음이다
+  expect(order[7].closest('.world-menu-account')?.contains(order[9])).toBe(true)
+  expect(order[7].closest('.world-menu-tools')).toBeNull() // 계정 줄은 그 묶음 밖의 맨 아래 줄이다
+  expect(order[0].closest('.world-menu-top')?.contains(order[1])).toBe(true) // 로고와 접기 토글이 맨 위 한 줄이다
+})
+
+it('사이드바의 알림 링크는 상단바와 같은 이름에 읽지 않은 알림 수를 붙인다', async () => {
+  vi.spyOn(appContainer.resolve('shellUseCase'), 'getBadges').mockResolvedValue({ unread: 3, pending: 0 })
+  await showWorld()
+  const link = await screen.findByRole('link', { name: '알림함, 읽지 않은 알림 3건' })
+  expect(link.closest('.ep-menu')).toBeTruthy()
+  expect(link.textContent).toBe('알림 3')
+})
+
+it('사이드바의 계정 아바타는 상단바와 같은 계정 메뉴를 열고 Esc로 닫으면 초점이 아바타로 돌아온다', async () => {
+  vi.spyOn(appContainer.resolve('creditLedgerUseCase'), 'balance').mockReturnValue(new Promise(() => {})) // 메뉴의 보유 크레딧은 읽는 중에 머문다
+  await showWorld()
+  const avatar = screen.getByRole('button', { name: '내 계정 메뉴' })
+  expect(avatar.closest('.world-menu-account')).toBeTruthy() // 공용 상단바의 아바타가 아니라 사이드바 맨 아래 줄의 것이다
+  expect(avatar.getAttribute('aria-expanded')).toBe('false')
+  fireEvent.click(avatar)
+  expect(avatar.getAttribute('aria-expanded')).toBe('true')
+  expect(screen.getByRole('menu', { name: '내 계정 메뉴' })).toBeTruthy()
+  fireEvent.keyDown(document, { key: 'Escape' })
+  expect(screen.queryByRole('menu')).toBeNull()
+  expect(document.activeElement).toBe(avatar)
+})
+
+it('작성 모드(마법사)와 새 세계관 만들기 화면은 사이드바가 없어 공용 상단바(Gnb)가 그대로이고 사이드바 계정 줄은 없다', async () => {
+  await wizard()
+  expect(screen.getByRole('banner')).toBeTruthy()
+  expect(screen.getByRole('navigation', { name: '주요 메뉴' })).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'STORYFORK 홈으로' }).closest('.gnb')).toBeTruthy()
+  expect(document.querySelector('.world-menu-account, .world-menu-top')).toBeNull()
+  cleanup()
+  await show(undefined, '/worldstudio')
+  expect(screen.getByRole('banner')).toBeTruthy()
+  expect(screen.getByRole('navigation', { name: '주요 메뉴' })).toBeTruthy()
+  expect(document.querySelector('.world-menu-account, .world-menu-top')).toBeNull()
+})
+
+it('내가 만드는 세계관 링크는 사이드바를 펼친 동안은 사이드바에만, 접으면 상단 줄(.ep-top)의 저장 영역 옆에만 있다(두 곳 동시 노출 없음)', async () => {
+  await showWorld()
+  const back = () => screen.getAllByRole('link', { name: '내가 만드는 세계관' })
+  expect(back()).toHaveLength(1)
+  expect(back()[0].closest('.ep-menu')).toBeTruthy()
+  expect(document.querySelector('.ep-top')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '세계관 메뉴 접기' }))
+  expect(back()).toHaveLength(1)
+  const top = back()[0].closest('.ep-top') as HTMLElement
+  expect(top).toBeTruthy()
+  expect(within(top).getByRole('group', { name: '저장 상태' })).toBeTruthy()
+  expect(back()[0].closest('.ep-menu')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '세계관 메뉴 펼치기' }))
+  expect(back()).toHaveLength(1)
+  expect(back()[0].closest('.ep-menu')).toBeTruthy()
+  expect(document.querySelector('.ep-top')).toBeNull()
+})
+
+it('관리 주소는 세계관을 읽는 동안·읽지 못했을 때도 공용 상단바 없이 상단 줄의 뒤로 가기 링크로 서재에 돌아가게 하고, 다 읽으면 그 줄이 사이드바로 옮겨 간다', async () => {
+  mount(undefined, '/worldstudio/qa') // 읽는 중
+  expect(document.querySelector('.gnb')).toBeNull() // 사이드바가 나타날 때 상단바가 사라지며 화면이 밀리지 않는다
+  expect(screen.getByRole('link', { name: '내가 만드는 세계관' }).closest('.ep-top')).toBeTruthy()
+  await screen.findByRole('heading', { name: '검증 세계', level: 1 })
+  expect(screen.getByRole('link', { name: '내가 만드는 세계관' }).closest('.ep-menu')).toBeTruthy()
+  expect(document.querySelector('.ep-top')).toBeNull()
+  cleanup()
+  mount(undefined, '/worldstudio/qa', { read: async () => { throw new Error('세계관을 읽지 못했습니다.') } })
+  await screen.findByRole('alert')
+  expect(document.querySelector('.gnb')).toBeNull()
+  expect(screen.getByRole('link', { name: '내가 만드는 세계관' }).closest('.ep-top')).toBeTruthy()
+})
+
+it('내용 카드의 스크롤 여백은 상단바가 없어 /content 작품 관리의 80px에서 상단바 몫을 뺀 16px다', async () => {
+  await showWorld()
+  expect(document.querySelector<HTMLElement>('section.tcard.ep-card')!.style.scrollMarginTop).toBe('16px')
+})
+
+it('오류·상태·AI 변경 알림은 세계관이 열려 있으면 사이드바 위가 아니라 내용 열 맨 위에 그려 화면 높이를 쓰는 사이드바를 아래로 밀지 않는다', async () => {
+  mcp.stale = true
+  const { saveStudio } = await show(undefined, '/worldstudio/qa', { saveStudio: async () => { throw new Error('저장 충돌') } })
+  const side = sidebar()
+  const inContent = (el: HTMLElement) => el.closest('.ep-content') !== null && !!(side.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)
+  expect(inContent(screen.getByText('다른 곳에서 바뀌었어요').closest('[role="status"]') as HTMLElement)).toBe(true)
+  dirtyCard()
+  fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
+  const alert = await screen.findByRole('alert')
+  expect(alert.textContent).toContain('저장 충돌')
+  expect(inContent(alert)).toBe(true)
+  expect(document.querySelector('main > .ep-alert, main > .ep-notice')).toBeNull() // 사이드바를 감싼 틀(section.world-content) 위에는 알림이 없다
 })
