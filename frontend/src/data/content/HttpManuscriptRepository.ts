@@ -7,10 +7,13 @@ import { csrf } from '../api/csrf'
 const count = z.number().int().nonnegative()
 const previewEpisode = z.object({ title: z.string(), from: count, to: z.number().int().positive(), charCount: count, excerpt: z.string(), imageCount: count, warnings: z.array(z.string()) })
 const preview = z.object({ format: z.enum(['txt', 'epub']), unit: z.enum(['line', 'chapter']), unitCount: count, existingEpisodeCount: count, episodes: z.array(previewEpisode) })
+// 키는 서버가 항상 싣는다(null 포함). 없으면 응답 전체를 검증 실패로 본다.
+const worldBuild = z.object({ status: z.enum(['started', 'rejected']), jobId: z.string().nullable(), code: z.string().nullable(), message: z.string().nullable() }).nullable()
 const bulkBasis = z.object({ lastNumber: count, workRevision: count })
 const bulkResultRow = { number: z.number().int().positive(), title: z.string() }
 const bulkResponse = z.object({
   workRevision: count,
+  worldBuild,
   stopReason: z.string().nullish().transform((value) => value ?? null),
   results: z.array(z.discriminatedUnion('status', [
     z.object({ ...bulkResultRow, status: z.enum(['created', 'versioned']), versionId: z.string().min(1), reason: z.null() }),
@@ -18,7 +21,7 @@ const bulkResponse = z.object({
   ])),
 })
 const summary = z.object({
-  succeeded: count, failed: count,
+  succeeded: count, failed: count, worldBuild,
   results: z.array(z.object({ number: z.number().int().positive(), title: z.string(), status: z.enum(['created', 'versioned', 'partial', 'failed']), reason: z.string().nullable(), missingImages: count })),
 })
 // 50MB 파일을 두 번 올릴 수 있어 일반 요청보다 길게 기다린다.
@@ -81,7 +84,7 @@ export class HttpManuscriptRepository implements ManuscriptRepository {
     assertAuthVersion(version)
     return bulkBasis.parse(value)
   }
-  importBulkBatch(workId: string, rows: readonly BulkUploadRow[], expectedWorkRevision: number, signal?: AbortSignal) {
+  importBulkBatch(workId: string, rows: readonly BulkUploadRow[], expectedWorkRevision: number, startWorldBuild: boolean, signal?: AbortSignal) {
     const form = new FormData()
     // The title is in JSON. Keep part headers short even for long Unicode file names.
     for (const { file } of rows) {
@@ -89,7 +92,7 @@ export class HttpManuscriptRepository implements ManuscriptRepository {
       form.append('files', file, `episode.${extension}`)
     }
     const items = rows.map(({ number, title }) => ({ number, title }))
-    form.append('request', new Blob([JSON.stringify({ rightsConfirmed: true, expectedWorkRevision, items })],
+    form.append('request', new Blob([JSON.stringify({ rightsConfirmed: true, expectedWorkRevision, startWorldBuild, items })],
       { type: 'application/json' }))
     return this.upload(bulkResponse, `${worksPath(workId)}/manuscript-imports/bulk`, form, signal)
   }

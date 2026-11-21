@@ -9,6 +9,21 @@ import { WorkManagement } from './WorkManagement'
 // 히어로·정책 카드는 이 테스트가 보는 회차 목록과 무관하다. 포크 수는 12화에만 2편이 갈라졌다고 본다(회차 번호로 조회).
 vi.mock('./WorkOverview', () => ({ WorkOverview: () => null }))
 vi.mock('../viewmodel/useEpisodeForkCounts', () => ({ useEpisodeForkCounts: () => ({ 12: 2 }) }))
+// 세계관 추출 배지는 세계관 탭 패널과 같은 조회 훅을 쓴다. 상태는 테스트가 정하고, 배지가 (다시) 마운트돼 상태를 새로 읽은 횟수를 센다.
+const build = vi.hoisted(() => ({ current: { job: null, error: '' } as { job: { status: string } | null; error: string }, mounts: 0 }))
+vi.mock('../viewmodel/useManuscriptBuild', async () => {
+  const { useEffect } = await import('react')
+  return { useManuscriptBuild: () => { useEffect(() => { build.mounts += 1 }, []); return build.current } }
+})
+// 일괄 업로드 시트는 저장 결과로 닫히는 것만 필요해 대역이다. 시트 자체는 EpisodeBulkImportSheet.test가 본다.
+vi.mock('./EpisodeBulkImportSheet', async () => {
+  const { createElement } = await import('react')
+  return {
+    EpisodeBulkImportSheet: (props: { onClose: (refresh: boolean) => void }) => createElement('div', { role: 'dialog' },
+      createElement('button', { onClick: () => props.onClose(true) }, '저장하고 닫기'),
+      createElement('button', { onClick: () => props.onClose(false) }, '저장 없이 닫기')),
+  }
+})
 
 const episode = (number: number, versionId?: string): Episode => ({ number, version: 1, title: `${number}화 제목`, body: `${number}화 본문`, inherited: false, versionId })
 const work = (count: number): Work => ({
@@ -254,4 +269,56 @@ it('이력 조회가 실패하면 이력 구획 안에 오류 상자(.ep-alert, 
   expect(alert.classList.contains('ep-alert')).toBe(true)
   again({ origin: 'fork', error: '분기를 만들지 못했어요.' })
   expect(within(historySection()).queryByRole('alert')).toBeNull()
+})
+
+// ── 세계관 추출 배지(공개 회차 머리)·일괄 업로드 시트를 닫을 때의 재조회 ──────────────────────────────
+beforeEach(() => { build.current = { job: null, error: '' }; build.mounts = 0 })
+afterEach(() => { vi.unstubAllEnvs() })
+const showBuild = (status: string | null, error = '') => {
+  build.current = { job: status ? { status } : null, error }
+  return open(1)
+}
+const BADGE = '세계관 추출 중'
+
+it.each([['queued', true], ['running', true], ['loading', true], ['failed', false], ['unknown', false], ['completed', false]])('세계관 추출이 %s이면 배지를 보이는가: %s', (status, shown) => {
+  showBuild(status)
+  expect(screen.queryByText(BADGE) !== null).toBe(shown)
+  // 보이면 회차 목록 앞(공개 회차 머리)이다.
+  if (shown) expect(screen.getByText(BADGE).compareDocumentPosition(screen.getByRole('list')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+it('작업이 없거나(404) 조회에 실패하면 배지를 보이지 않고, 진행 중이던 작업도 조회가 실패하면 남기지 않는다', () => {
+  showBuild(null)
+  expect(screen.queryByText(BADGE)).toBeNull()
+  cleanup()
+  showBuild('running', '연결 끊김')
+  expect(screen.queryByText(BADGE)).toBeNull()
+})
+
+it('목업 빌드는 서버 조회가 없어 배지를 그리지도 조회하지도 않는다', () => {
+  vi.stubEnv('MODE', 'mockup')
+  showBuild('running')
+  expect(screen.queryByText(BADGE)).toBeNull()
+  expect(build.mounts).toBe(0)
+})
+
+it('일괄 업로드가 회차를 저장하고 닫히면 작품을 다시 읽고 배지도 상태를 다시 읽는다', () => {
+  const reload = vi.fn()
+  openWith({ reload }, 1)
+  expect(build.mounts).toBe(1)
+  fireEvent.click(screen.getByRole('button', { name: '회차 파일 일괄 업로드' }))
+  fireEvent.click(screen.getByRole('button', { name: '저장하고 닫기' }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(reload).toHaveBeenCalledTimes(1)
+  expect(build.mounts).toBe(2)
+})
+
+it('저장한 회차 없이 일괄 업로드 시트를 닫으면 아무것도 다시 읽지 않는다', () => {
+  const reload = vi.fn()
+  openWith({ reload }, 1)
+  fireEvent.click(screen.getByRole('button', { name: '회차 파일 일괄 업로드' }))
+  fireEvent.click(screen.getByRole('button', { name: '저장 없이 닫기' }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(reload).not.toHaveBeenCalled()
+  expect(build.mounts).toBe(1)
 })

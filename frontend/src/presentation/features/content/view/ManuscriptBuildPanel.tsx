@@ -21,7 +21,7 @@ export function ManuscriptBuildPanel({work,useCase}:{work:Pick<Work,'id'|'worldS
  return <section className="tcard ep-card" aria-label="원고로 세계관 만들기">
   <h2>원고로 세계관 만들기</h2>
   <p>저장된 원고로 비공개 세계관 초안을 만들어요.</p>
-  <p className="ep-muted">현재 저장된 회차 전체를 한 번 분석해 인물·설정·관계를 정리해요. 원고를 올리는 것만으로 분석하거나 발행하지 않아요. 이후 새 회차도 자동 반영하지 않아요.</p>
+  <p className="ep-muted">현재 저장된 회차 전체를 한 번 분석해 인물·설정·관계를 정리해요. 원고를 올리면 이 분석을 자동으로 시작하고, 발행은 하지 않아요. 이후 새 회차도 자동 반영하지 않아요.</p>
   {!job&&<><p>기존 카드가 있는 세계관은 자동으로 합치지 않아요. 연결된 세계관이 없다면 새 세계관을 만들어요.</p>
    {agree}
    <div className="ep-card-actions"><button className="btn pri" disabled={!vm.ready||vm.busy||!vm.consent||!!vm.error} onClick={()=>void vm.start()}>세계관 만들기</button></div>

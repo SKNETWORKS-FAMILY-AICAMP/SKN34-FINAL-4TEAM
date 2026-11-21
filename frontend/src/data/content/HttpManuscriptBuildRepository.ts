@@ -4,7 +4,7 @@ import {authenticatedUserId,authVersion,assertAuthVersion,protectedRequest} from
 import {csrf,withLock} from '../api/csrf'
 const uuid=z.string().uuid(),count=z.number().int().nonnegative()
 const receipt=z.object({jobId:uuid,stepId:uuid,worldId:uuid,draftRevision:count,relationshipVersion:count,cardIds:z.array(uuid),relationshipIds:z.array(uuid)})
-const result=z.object({jobId:uuid,worldId:uuid,status:z.enum(['queued','running','failed','loading','unknown','completed']),completedEpisodes:count,totalEpisodes:count.positive(),executionToken:uuid.nullable(),failureCode:z.string().nullable(),skippedItems:count,receipts:z.array(receipt)}).refine(r=>r.completedEpisodes<=r.totalEpisodes&&r.receipts.every(x=>x.jobId===r.jobId&&x.worldId===r.worldId)&&new Set(r.receipts.map(x=>x.stepId)).size===r.receipts.length&&(r.status!=='completed'||r.completedEpisodes===r.totalEpisodes&&r.receipts.length>0))
+const result=z.object({jobId:uuid,worldId:uuid,status:z.enum(['queued','running','failed','loading','unknown','completed']),completedEpisodes:count,totalEpisodes:count.positive(),executionToken:uuid.nullable(),failureCode:z.string().nullable(),skippedItems:count,requestKey:z.string().min(1),receipts:z.array(receipt)}).refine(r=>r.completedEpisodes<=r.totalEpisodes&&r.receipts.every(x=>x.jobId===r.jobId&&x.worldId===r.worldId)&&new Set(r.receipts.map(x=>x.stepId)).size===r.receipts.length&&(r.status!=='completed'||r.completedEpisodes===r.totalEpisodes&&r.receipts.length>0))
 const request=z.object({worldId:uuid,key:uuid,consent:z.literal(true)})
 const path=(work:string)=>`/api/v1/works/${uuid.parse(work)}/world-preprocessing`
 /** 계정·작품별 최초 key를 전송 전에 보존한다. 실패나 재로그인 때문에 새 key를 만들지 않는다. 기록을 바꾸는 것은 작업 없음 조회와 사용자가 연 '새로 시작'뿐이다. */
@@ -65,8 +65,10 @@ export class HttpManuscriptBuildRepository implements ManuscriptBuildRepository 
   const slot=this.slot(work),version=authVersion()
   return withLock(slot,async()=>{
    assertAuthVersion(version)
-   const body=this.saved(slot);if(!body)throw new Error('이 브라우저에 원래 요청 기록이 없어요. 시작한 브라우저에서 재개해 주세요.')
-   const current=await this.send(work,undefined,signal,true)
+   const saved=this.saved(slot),current=await this.send(work,undefined,signal,true)
+   // 이 브라우저가 시작한 작업이면 보존한 요청 그대로, 업로드가 서버에서 시작했거나 다른 브라우저·다른 작업의 기록이면 조회 응답의 worldId·requestKey로 같은 작업을 재개한다(기록은 바꾸지 않는다).
+   const body=current&&saved?.key!==current.requestKey?{worldId:current.worldId,key:current.requestKey,consent:true as const}:saved
+   if(!body)throw new Error('이 브라우저에 원래 요청 기록이 없어요. 시작한 브라우저에서 재개해 주세요.')
    if(!current)return this.send(work,body,signal).then(r=>{if(!r)throw new Error('작업을 확인하지 못했어요.');return r})
    if(current.worldId!==body.worldId)throw new Error('기존 요청과 세계관이 달라요.')
    if(['running','completed'].includes(current.status))return current

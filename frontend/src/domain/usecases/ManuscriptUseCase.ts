@@ -1,4 +1,4 @@
-import type { AdjustableEpisode, BulkImportResponse, BulkImportResult, BulkUploadRow, ManuscriptExportQuery, ManuscriptImportItem, ManuscriptPreview } from '../entities/manuscript'
+import type { AdjustableEpisode, BulkImportResponse, BulkImportResult, BulkUploadRow, ImportWorldBuild, ManuscriptExportQuery, ManuscriptImportItem, ManuscriptPreview } from '../entities/manuscript'
 import type { ManuscriptRepository } from '../repositories/ManuscriptRepository'
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -95,12 +95,16 @@ export class ManuscriptUseCase {
     }
 
     let revision = previewRevision
+    let worldBuild: ImportWorldBuild | null = null
     const results: BulkImportResult[] = []
-    for (const batch of splitIntoBatches(rows)) {
+    const batches = splitIntoBatches(rows)
+    for (const [index, batch] of batches.entries()) {
       let response: BulkImportResponse
       try {
         signal?.throwIfAborted()
-        response = await this.repository.importBulkBatch(workId, batch, revision, signal)
+        // 세계관 추출은 전송의 마지막 묶음에서만 접수한다(앞 묶음에서 접수하면 그때 저장된 회차만 작업에 들어간다).
+        // ponytail: 마지막 묶음의 파일이 모두 실패하면 서버가 접수하지 않아(worldBuild null) 앞 묶음이 저장돼도 추출이 시작되지 않는다. 서버가 작품에 저장된 회차로 판단하게 되면 사라진다.
+        response = await this.repository.importBulkBatch(workId, batch, revision, index === batches.length - 1, signal)
         if ((!response.stopReason && response.results.length !== batch.length) ||
           response.results.some((row, index) => row.number !== batch[index]?.number)) {
           throw new Error('파일별 처리 결과를 확인할 수 없어요.')
@@ -108,16 +112,17 @@ export class ManuscriptUseCase {
       } catch (error) {
         const detail = error instanceof Error ? error.message : '응답을 받지 못했어요.'
         return {
-          workRevision: revision, results,
+          workRevision: revision, results, worldBuild,
           stopReason: `${batch[0].number}화부터 저장 결과를 확인해 주세요. ${detail}`,
         }
       }
       results.push(...response.results)
       revision = response.workRevision
+      worldBuild = response.worldBuild
       onProgress([...results])
-      if (response.stopReason) return { workRevision: revision, results, stopReason: response.stopReason }
+      if (response.stopReason) return { workRevision: revision, results, worldBuild, stopReason: response.stopReason }
     }
-    return { workRevision: revision, results, stopReason: null }
+    return { workRevision: revision, results, worldBuild, stopReason: null }
   }
   async exportManuscript(workId: string, query: ManuscriptExportQuery, signal?: AbortSignal) {
     validateWork(workId)

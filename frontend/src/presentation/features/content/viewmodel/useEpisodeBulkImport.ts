@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
-import type { BulkImportBasis, BulkImportResult, BulkUploadRow } from '../../../../domain/entities/manuscript'
+import type { BulkImportBasis, BulkImportResult, BulkUploadRow, ImportWorldBuild } from '../../../../domain/entities/manuscript'
 import { BULK_SELECTION_LIMIT, type ManuscriptUseCase } from '../../../../domain/usecases/ManuscriptUseCase'
 
 type PreviewRow = BulkUploadRow & { id: number }
@@ -23,6 +23,7 @@ export function useEpisodeBulkImport(
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [stopReason, setStopReason] = useState<string | null>(null)
+  const [worldBuild, setWorldBuild] = useState<ImportWorldBuild | null>(null)
   const active = useRef<AbortController | null>(null)
 
   useEffect(() => {
@@ -113,6 +114,7 @@ export function useEpisodeBulkImport(
       apply(response.results)
       setRetryRevision(response.workRevision)
       setStopReason(response.stopReason)
+      setWorldBuild(response.worldBuild)
     } catch (cause: unknown) {
       if (controller.signal.aborted) return
       if (first) setSubmitted(null)
@@ -126,7 +128,7 @@ export function useEpisodeBulkImport(
 
   return {
     basis, rows, start, setStart, rightsConfirmed, setRightsConfirmed,
-    editable, busy, error, stopReason, progress, results, savedCount,
+    editable, busy, error, stopReason, worldBuild, progress, results, savedCount,
     failedCount: failedRows.length, canStart, canRetry,
     selectFiles, move, replaceFailed,
     refreshBasis: () => { setError(''); setBasisAttempt((value) => value + 1) },
