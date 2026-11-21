@@ -333,7 +333,7 @@ describe('관리자 (A01~A18)', () => {
     const real = (await jobs.runs({ status: '', kind: '', page: 0 }))!
     const runs = vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, unavailable: ['content-preprocessing'] })
     renderAt('/admin?tab=jobs')
-    await screen.findByText(/일부 출처의 실행 기록을 불러오지 못했어요: content-preprocessing/)
+    await screen.findByText(/일부 출처의 실행 기록을 불러오지 못했어요: 원고 전처리/)
     const row = (await screen.findByRole('button', { name: '「manuscript_preprocessing 실행 job-failed-1」 조치' })).closest('tr') as HTMLElement
     within(row).getByText('원고 전처리')
     within(row).getByText('38/100 (38%)')
@@ -344,6 +344,23 @@ describe('관리자 (A01~A18)', () => {
     await toastIs('실패한 작업의 재실행을 요청했어요.')
     await waitFor(() => expect(screen.queryByRole('button', { name: '「manuscript_preprocessing 실행 job-failed-1」 조치' })).toBeNull())
     within(screen.getByRole('region', { name: '정기 작업 일정 표' })).getByText('LLM 경고 점검')
+  })
+
+  it('정기 작업 탭은 회귀 평가 실행을 같은 기록에 보이되 실패해도 다시 실행 메뉴는 없고, 평가 출처 실패도 알린다', async () => {
+    const jobs = appContainer.resolve('jobMonitorUseCase')
+    const real = (await jobs.runs({ status: '', kind: '', page: 0 }))!
+    const name = 'qa@v3-20261120T010203Z-a1b2c3'
+    const evaluation = { id: name, kind: 'evaluation', source: 'ai-evaluation', status: 'failed', trigger: 'manual', startedAt: '2026-11-20T01:02:03Z', error: '평가 결과가 기록되지 않은 채 시간이 지나 실패로 봤어요.', targetId: name }
+    vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, items: [evaluation, ...real.items], unavailable: ['ai-evaluation'] })
+    renderAt('/admin?tab=jobs')
+    await screen.findByText(/일부 출처의 실행 기록을 불러오지 못했어요: AI 평가/)
+    const row = screen.getByText(evaluation.error).closest('tr') as HTMLElement
+    within(row).getByText('회귀 평가')
+    within(row).getByText('AI 평가')
+    within(row).getByText('실패')
+    expect(within(row).queryByRole('button', { name: /조치/ })).toBeNull()
+    // 같은 목록의 실패한 원고 전처리는 그대로 다시 실행 메뉴가 있다.
+    screen.getByRole('button', { name: '「manuscript_preprocessing 실행 job-failed-1」 조치' })
   })
 
   it('분류·캐릭터챗 입력은 다른 화면에 갔다 와도 유지된다 (목업 S.admin.filters·chatForm)', async () => {
