@@ -8,6 +8,7 @@ import ai.storyfork.operations.dashboard.service.dto.Dashboard
 import ai.storyfork.operations.dashboard.service.dto.DashboardAi
 import ai.storyfork.operations.dashboard.service.dto.DashboardJobs
 import ai.storyfork.operations.dashboard.service.dto.DashboardPending
+import ai.storyfork.operations.llmops.json
 import ai.storyfork.operations.llmops.testMapper
 import ai.storyfork.operations.security.OperationsMember
 import java.util.UUID
@@ -22,11 +23,14 @@ class DashboardJsonTest {
     @Test
     fun `a full dashboard has the contract fields`() {
         val summary = AiSummary(10, 2, 1, 0.2, 0.5, 1.5)
+        val funnel = json("""{"readers":{"viewed":12,"readAny":9,"readNext":4},"writers":{"medianHoursToPublish":null}}""")
         val tree = testMapper.readTree(testMapper.writeValueAsString(
-            Dashboard(MemberStats(100, 5, 1), DashboardAi(summary, summary), DashboardJobs(5, 2), DashboardPending(2, 5, 7), 3, emptyList()),
+            Dashboard(MemberStats(100, 5, 1), DashboardAi(summary, summary), DashboardJobs(5, 2), DashboardPending(2, 5, 7), 3, funnel, emptyList()),
         ))
 
-        assertEquals(listOf("members", "ai", "jobs", "pending", "openAlerts", "unavailable"), names(tree))
+        assertEquals(listOf("members", "ai", "jobs", "pending", "openAlerts", "funnel", "unavailable"), names(tree))
+        // The funnel is Content's JSON as it came, so a key Content adds later reaches the screen without a change here.
+        assertEquals(funnel, tree.path("funnel"))
         assertEquals(listOf("total", "joinedLast7Days", "withdrawalPending"), names(tree.path("members")))
         assertEquals(listOf("today", "last7Days"), names(tree.path("ai")))
         assertEquals(listOf("requests", "failed", "timeouts", "failureRate", "costUser", "costPlatform"), names(tree.path("ai").path("today")))
@@ -41,10 +45,10 @@ class DashboardJsonTest {
     @Test
     fun `an unavailable card is null and not missing but pending always keeps its database numbers`() {
         val tree = testMapper.readTree(testMapper.writeValueAsString(
-            Dashboard(null, null, null, DashboardPending(2, 5, null), 0, listOf("core", "langfuse", "content")),
+            Dashboard(null, null, null, DashboardPending(2, 5, null), 0, null, listOf("core", "langfuse", "content")),
         ))
 
-        for (card in listOf("members", "ai", "jobs")) assertTrue(tree.path(card).isNull, card)
+        for (card in listOf("members", "ai", "jobs", "funnel")) assertTrue(tree.path(card).isNull, card)
         assertEquals(listOf("inquiries", "reports", "authorReviews"), names(tree.path("pending")))
         assertEquals(2, tree.path("pending").path("inquiries").asInt())
         assertEquals(5, tree.path("pending").path("reports").asInt())

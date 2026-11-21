@@ -60,6 +60,9 @@ class DashboardServiceTest {
 
     private val dayAgo = now.minus(24, ChronoUnit.HOURS)
 
+    // Content owns the funnel's shape, so the dashboard only carries it: a node is enough to see it arrive untouched.
+    private val funnel = json("""{"readers":{"viewed":12,"readAny":9,"readNext":4},"forks":{"baseEpisodes":[{"bucket":"1","count":1},{"bucket":"11+","count":0}]},"writers":{"medianHoursToPublish":null}}""")
+
     private fun job(status: String, finishedAt: Instant? = null) = ContentPreprocessingJob(id = "j-$status", workId = "w", status = status, finishedAt = finishedAt)
 
     // In progress: queued, running and loading. Failed in the last 24 hours: only the one that finished an hour ago.
@@ -76,6 +79,7 @@ class DashboardServiceTest {
         `when`(langfuse.allTraces(weekAgo, now)).thenReturn(traces)
         `when`(langfuse.observationUsage(weekAgo, now)).thenReturn(usage)
         `when`(content.operationsStats(weekAgo, now)).thenReturn(ContentOperationsStats(3, 4, ProposalDecisionStats(1, 2), EditSuggestionStats(1, 1)))
+        `when`(content.funnel()).thenReturn(funnel)
         `when`(inquiries.countWaitingMemberInquiries()).thenReturn(2L)
         `when`(reports.countByStatus(ReportStatus.RECEIVED)).thenReturn(5L)
         `when`(alerts.countByStatus("open")).thenReturn(3L)
@@ -100,6 +104,8 @@ class DashboardServiceTest {
         assertEquals(3L, dashboard.openAlerts)
         // Own runs queued or running (2) plus Content jobs queued, running or loading (3); failed in 24 hours: one own run and one Content job.
         assertEquals(DashboardJobs(5, 2), dashboard.jobs)
+        // The whole-period funnel is Content's answer, carried as it is.
+        assertSame(funnel, dashboard.funnel)
         assertEquals(emptyList<String>(), dashboard.unavailable)
     }
 
@@ -153,6 +159,7 @@ class DashboardServiceTest {
             assertEquals(listOf(source), dashboard.unavailable, source)
             // The jobs card adds Content's preprocessing jobs to the operations runs, so it follows Content.
             assertEquals(source == "content", dashboard.jobs == null, source)
+            assertEquals(source == "content", dashboard.funnel == null, source)
             assertEquals(source == "core", dashboard.members == null, source)
             assertEquals(source == "langfuse", dashboard.ai == null, source)
             // Waiting inquiries and received reports are database values, so only the author-review count follows Content.
@@ -190,6 +197,7 @@ class DashboardServiceTest {
 
         assertEquals(listOf("core", "langfuse", "content"), dashboard.unavailable)
         assertNull(dashboard.jobs)
+        assertNull(dashboard.funnel)
         assertNull(dashboard.members)
         assertNull(dashboard.ai)
         assertEquals(listOf(4L, 6L), listOf(dashboard.pending.inquiries, dashboard.pending.reports))
@@ -210,7 +218,21 @@ class DashboardServiceTest {
     }
 
     @Test
-    fun `once Content has failed its job list is not asked for a second timeout`() {
+    fun `the funnel failing alone blanks only the funnel and names content once`() {
+        givenAllSources()
+        `when`(content.funnel()).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+
+        val dashboard = service.get(operator, bearer, now)
+
+        // The funnel is read last, so the cards Content already answered stay.
+        assertNull(dashboard.funnel)
+        assertEquals(listOf("content"), dashboard.unavailable)
+        assertEquals(7L, dashboard.pending.authorReviews)
+        assertEquals(DashboardJobs(5, 2), dashboard.jobs)
+    }
+
+    @Test
+    fun `once Content has failed its job list and funnel are not asked for a second timeout`() {
         givenAllSources()
         `when`(content.operationsStats(weekAgo, now)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
 
@@ -218,7 +240,9 @@ class DashboardServiceTest {
 
         assertEquals(listOf("content"), dashboard.unavailable)
         assertNull(dashboard.jobs)
+        assertNull(dashboard.funnel)
         verify(content, never()).preprocessingJobs(CONTENT_JOB_WINDOW)
+        verify(content, never()).funnel()
     }
 
     @Test
