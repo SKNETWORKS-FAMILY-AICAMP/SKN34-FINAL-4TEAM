@@ -19,7 +19,8 @@ class LlmopsControllerTest {
     private val evaluations = mock(EvaluationService::class.java)
     private val leakChecks = mock(LeakCheckService::class.java)
     private val settings = mock(LlmopsSettingService::class.java)
-    private val controller = LlmopsController(traces, metrics, prompts, models, evaluations, leakChecks, settings)
+    private val pipelines = mock(PipelineService::class.java)
+    private val controller = LlmopsController(traces, metrics, prompts, models, evaluations, leakChecks, settings, pipelines)
     private val member = OperationsMember(UUID.randomUUID(), true)
     private val from = Instant.parse("2026-11-18T00:00:00Z")
     private val to = Instant.parse("2026-11-19T00:00:00Z")
@@ -33,6 +34,17 @@ class LlmopsControllerTest {
 
         assertSame(page, controller.traces(member, from, to, "qa", "failed", "user-1", "req-9", 2))
         assertSame(detail, controller.trace(member, "t-1"))
+    }
+
+    @Test
+    fun `pipeline routes pass the window the node the level and the page`() {
+        val pipeline = Pipeline(emptyList())
+        val records = PipelineRecordPage(emptyList(), 1, 20, 0)
+        `when`(pipelines.pipeline(member, from, to)).thenReturn(pipeline)
+        `when`(pipelines.records(member, "guard", from, to, "ERROR", 1)).thenReturn(records)
+
+        assertSame(pipeline, controller.pipeline(member, from, to))
+        assertSame(records, controller.pipelineRecords(member, "guard", from, to, "ERROR", 1))
     }
 
     @Test

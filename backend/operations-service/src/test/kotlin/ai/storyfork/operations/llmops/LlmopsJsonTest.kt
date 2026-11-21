@@ -18,7 +18,7 @@ class LlmopsJsonTest {
     @Test
     fun `a trace item and a trace detail have the contract fields`() {
         val item = TraceItem("t-1", at, "qa", "failed", 2500, 100, 20, 0.05, null, "w-1")
-        val observation = TraceObservation("o-1", "llm", "GENERATION", at, null, 0, "gpt-5", 100, null, "ERROR", null, "qa/answer", 3)
+        val observation = TraceObservation("o-1", "llm", "GENERATION", at, null, 0, "gpt-5", 100, null, "ERROR", null, "qa/answer", 3, "o-0", json("""[{"role":"user"}]"""), null, json("""{"turn":"1"}"""))
         val detail = TraceDetail("t-1", at, "qa", "failed", 2500, 100, 20, 0.05, "user-1", "w-1", json("""{"q":"질문"}"""), null, listOf(observation))
 
         val itemTree = tree(TracePage(listOf(item), 0, 20, 57))
@@ -31,9 +31,30 @@ class LlmopsJsonTest {
         assertEquals(listOf("id", "timestamp", "feature", "status", "latencyMs", "inputTokens", "outputTokens", "cost", "userId", "workId", "input", "output", "observations"), detailTree.names())
         assertEquals("질문", detailTree.path("input").path("q").asString())
         assertTrue(detailTree.path("output").isNull)
-        assertEquals(listOf("id", "name", "type", "startTime", "endTime", "latencyMs", "model", "inputTokens", "outputTokens", "level", "statusMessage", "promptName", "promptVersion"),
-            detailTree.path("observations").path(0).names())
+        assertEquals(listOf("id", "name", "type", "startTime", "endTime", "latencyMs", "model", "inputTokens", "outputTokens", "level", "statusMessage", "promptName", "promptVersion",
+            "parentObservationId", "input", "output", "metadata"), detailTree.path("observations").path(0).names())
         assertTrue(detailTree.path("observations").path(0).path("endTime").isNull)
+        assertEquals(listOf("o-0", "user", true, "1"), detailTree.path("observations").path(0).let {
+            listOf(it.path("parentObservationId").asString(), it.path("input").path(0).path("role").asString(), it.path("output").isNull, it.path("metadata").path("turn").asString())
+        })
+    }
+
+    @Test
+    fun `a pipeline and its records have the contract fields`() {
+        val node = PipelineNode("guard", "Decision Guard", listOf("main"), false, 12, 1, null, listOf("decision_guard.judge"))
+        val record = PipelineRecord("o-1", "t-1", "decision_guard", "SPAN", at, 120, "DEFAULT", null, null, null, null, json("""{"request":"질문"}"""), null, null)
+
+        val pipeline = tree(Pipeline(listOf(node)))
+        val page = tree(PipelineRecordPage(listOf(record), 0, 20, 41))
+
+        assertEquals(listOf("nodes"), pipeline.names())
+        assertEquals(listOf("id", "label", "next", "standalone", "count", "errors", "p95LatencyMs", "promptNames"), pipeline.path("nodes").path(0).names())
+        assertTrue(pipeline.path("nodes").path(0).path("p95LatencyMs").isNull)
+        assertEquals(listOf("items", "page", "size", "total"), page.names())
+        assertEquals(listOf("id", "traceId", "name", "type", "startTime", "latencyMs", "level", "statusMessage", "model", "promptName", "promptVersion", "input", "output", "metadata"),
+            page.path("items").path(0).names())
+        assertEquals("질문", page.path("items").path(0).path("input").path("request").asString())
+        assertTrue(page.path("items").path(0).path("output").isNull)
     }
 
     @Test

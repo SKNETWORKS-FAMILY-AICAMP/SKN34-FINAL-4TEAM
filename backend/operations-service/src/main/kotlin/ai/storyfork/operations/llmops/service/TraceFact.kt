@@ -4,6 +4,7 @@ import ai.storyfork.operations._common.client.doubleOrNull
 import ai.storyfork.operations._common.client.instant
 import ai.storyfork.operations._common.client.instantOrNull
 import ai.storyfork.operations._common.client.textOrNull
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import kotlin.math.ceil
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.node.StringNode
 
 /** The service's day: "today" and the day keys of the metrics are Korean days, like the notice dates of Core. */
 internal val KST: ZoneId = ZoneId.of("Asia/Seoul")
@@ -55,6 +57,26 @@ internal fun JsonNode.ioValue(): JsonNode? = when {
     stringValue().isBlank() -> null
     stringValue().trimStart().let { it.startsWith("{") || it.startsWith("[") } -> runCatching { ioReader.readTree(stringValue()) }.getOrDefault(this)
     else -> this
+}
+
+/** The most characters of an observation's input, output or metadata a screen gets; the whole text stays in Langfuse. */
+private const val BODY_LIMIT = 8_000
+
+/**
+ * An observation's input, output or metadata as a screen shows it: like [ioValue], but a body longer than [BODY_LIMIT] characters (a JSON object or array counts
+ * as its compact text) is cut to its first [BODY_LIMIT] characters and stays text however it began, since with its end gone it is no longer valid JSON.
+ */
+internal fun JsonNode.clipped(): JsonNode? {
+    val body = ioValue() ?: return null
+    val text = if (body.isString) body.stringValue() else body.toString()
+    return if (text.length <= BODY_LIMIT) body else StringNode.valueOf(text.take(BODY_LIMIT))
+}
+
+/** How long an observation ran in milliseconds; 0 for one without an end (it never ended). */
+internal fun JsonNode.latencyMs(): Long {
+    val start = path("startTime").instantOrNull()
+    val end = path("endTime").instantOrNull()
+    return if (start != null && end != null) Duration.between(start, end).toMillis() else 0
 }
 
 private fun JsonNode.startedAt(): Instant = path("startTime").instant()
