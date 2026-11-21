@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import ForceGraph2D, { type ForceGraphMethods } from 'react-force-graph-2d'
 
-import { NODE_HEIGHT, NODE_WIDTH, layoutPipeline, nodeStats, pipelineSummary, type PipelineNode, type PlacedNode } from '../../../../domain/entities/llmOpsPipeline'
+import { NODE_HEIGHT, NODE_WIDTH, layoutPipeline, linkCurve, nodeStats, pipelineSummary, type PipelineNode, type PlacedNode } from '../../../../domain/entities/llmOpsPipeline'
 
 type GraphNode = PlacedNode & { fx: number; fy: number }
-/** force-graph가 그래프를 읽을 때 source·target을 노드 객체로 바꾸므로 둘 다 받는다. */
-type GraphLink = { source: string | GraphNode; target: string | GraphNode }
+/** force-graph가 그래프를 읽을 때 source·target을 노드 객체로 바꾸므로 둘 다 받는다. back은 되돌아가는 선이다. */
+type GraphLink = { source: string | GraphNode; target: string | GraphNode; back: boolean }
 type Palette = { ink: string; sub: string; line: string; surface: string; danger: string; pri: string; font: string }
 
 const PAD = 24
@@ -24,7 +24,8 @@ function readPalette(el: Element | null): Palette {
 
 /**
  * AI 파이프라인 캔버스(DEC-58). 노드는 layoutPipeline이 정한 고정 좌표(fx·fy)라 움직이지 않고, 끌기·이동·확대는 끄며(페이지 스크롤을 가로채지 않는다) 크기에 맞춰 전체가 들어오는 비율만 맞춘다.
- * 이름·건수·오류 수를 상자에 직접 그리고(오류가 있으면 위험 색, 고른 노드는 주 색 테두리) 선은 앞 노드 오른쪽에서 다음 노드 왼쪽으로 잇는다.
+ * 이름·건수·오류 수를 상자에 직접 그리고(오류가 있으면 위험 색, 고른 노드는 주 색 테두리) 선은 앞 노드 오른쪽에서 다음 노드 왼쪽으로 잇는다. 결과를 메인에 돌려주는
+ * 되돌아가는 선(업무 Agent→메인)은 같은 길의 선과 겹치지 않게 비켜 점선으로 따로 그리고, 업무 Agent 묶음 라벨(읽기·검토·작성)은 선·노드 아래에 글자로 그린다.
  * 캔버스는 보조라 role="img" 요약만 갖고, 같은 노드를 키보드로 고르는 버튼 목록은 화면이 캔버스 아래에 둔다. ResizeObserver가 없는 jsdom에서는 크기를 못 재 틀(role="img")만 그린다.
  */
 export default function AdminPipelineCanvas({ nodes, selected, onSelect }: { nodes: PipelineNode[]; selected: string | null; onSelect: (id: string) => void }) {
@@ -71,21 +72,33 @@ export default function AdminPipelineCanvas({ nodes, selected, onSelect }: { nod
     ctx.fillStyle = bad ? p.danger : p.sub
     ctx.fillText(nodeStats(node), node.x, node.y + 11, NODE_WIDTH - 12)
   }
-  const paintLink = (link: { source?: unknown; target?: unknown }, ctx: CanvasRenderingContext2D, zoom: number) => {
+  const paintLabels = (ctx: CanvasRenderingContext2D) => {
+    const p = palette.current
+    ctx.save()
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'middle'
+    ctx.font = `600 10.5px ${p.font}`
+    ctx.fillStyle = p.sub
+    for (const label of layout.labels) ctx.fillText(label.text, label.x, label.y)
+    ctx.restore()
+  }
+  const paintLink = (link: { source?: unknown; target?: unknown; back?: boolean }, ctx: CanvasRenderingContext2D, zoom: number) => {
     const from = endOf(link.source), to = endOf(link.target)
     if (!from || !to) return
-    const p = palette.current, hot = selected !== null && (from.id === selected || to.id === selected)
-    const startX = from.x + NODE_WIDTH / 2, endX = to.x - NODE_WIDTH / 2, middle = (startX + endX) / 2
+    const p = palette.current, hot = selected !== null && (from.id === selected || to.id === selected), back = link.back === true
+    const { points: [start, bendFrom, bendTo, end], dir } = linkCurve(from, to, back)
     ctx.strokeStyle = ctx.fillStyle = hot ? p.pri : p.line
     ctx.lineWidth = (hot ? 1.5 : 1) / zoom
+    ctx.setLineDash(back ? [4 / zoom, 3 / zoom] : []) // 되돌아가는 선은 점선이라 앞으로 가는 선보다 옅다
     ctx.beginPath()
-    ctx.moveTo(startX, from.y)
-    ctx.bezierCurveTo(middle, from.y, middle, to.y, endX, to.y)
+    ctx.moveTo(start.x, start.y)
+    ctx.bezierCurveTo(bendFrom.x, bendFrom.y, bendTo.x, bendTo.y, end.x, end.y)
     ctx.stroke()
+    ctx.setLineDash([])
     ctx.beginPath()
-    ctx.moveTo(endX, to.y)
-    ctx.lineTo(endX - 7, to.y - 4)
-    ctx.lineTo(endX - 7, to.y + 4)
+    ctx.moveTo(end.x, end.y)
+    ctx.lineTo(end.x - dir * 7, end.y - 4)
+    ctx.lineTo(end.x - dir * 7, end.y + 4)
     ctx.closePath()
     ctx.fill()
   }
@@ -96,7 +109,7 @@ export default function AdminPipelineCanvas({ nodes, selected, onSelect }: { nod
         <ForceGraph2D<GraphNode, GraphLink>
           ref={graph} graphData={data} width={width} height={height} backgroundColor="rgba(0,0,0,0)"
           cooldownTicks={0} warmupTicks={0} enableNodeDrag={false} enablePanInteraction={false} enableZoomInteraction={false}
-          nodeLabel={() => ''} onRenderFramePre={() => { palette.current = readPalette(host.current) }}
+          nodeLabel={() => ''} onRenderFramePre={(ctx) => { palette.current = readPalette(host.current); paintLabels(ctx) }}
           nodeCanvasObject={paintNode}
           nodePointerAreaPaint={(node, color, ctx) => { ctx.fillStyle = color; ctx.fillRect(node.x - NODE_WIDTH / 2, node.y - NODE_HEIGHT / 2, NODE_WIDTH, NODE_HEIGHT) }}
           linkCanvasObjectMode={() => 'replace'} linkCanvasObject={paintLink}

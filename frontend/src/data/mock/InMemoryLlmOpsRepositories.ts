@@ -61,21 +61,21 @@ const trace = (id: string, feature: string, status: string, minutes: number, lat
 })
 
 const flowNode = (id: string, label: string, next: string[], count: number, errors = 0, p95LatencyMs: number | null = null, promptNames: string[] = []): PipelineNode => ({ id, label, next, standalone: false, count, errors, p95LatencyMs, promptNames })
-/** 서버 고정 목록(DEC-58)과 같은 노드 id. 건수·오류 수는 예시입니다. */
+/** 서버 고정 목록(DEC-58, PipelineNodes.kt)과 같은 노드 id·순서·연결. 업무 Agent는 결과를 메인에 돌려주고(되돌아가는 선) 반영은 작성 Agent 셋에서만 이어집니다. 건수·오류 수는 예시입니다. */
 const PIPELINE: PipelineNode[] = [
   flowNode('request', '집필 AI 요청', ['guard'], 52, 0, 6200),
   flowNode('guard', 'Decision Guard', ['main'], 104, 1, 820, ['decision_guard.judge']),
-  flowNode('main', '메인 에이전트', ['qa', 'writing', 'manuscript_review', 'world', 'research', 'rating', 'character_simulation', 'mcp'], 71, 1, 5400, ['main-agent']),
-  flowNode('qa', '작품 질문', ['apply'], 30, 1, 3100, ['qa-answer']),
-  flowNode('writing', '기획·집필·수정', ['apply'], 14, 0, 9800, ['writing-assist']),
-  flowNode('manuscript_review', '원고 검수', ['apply'], 9, 0, 7700),
-  flowNode('world', '세계관', ['apply'], 6, 0, 4200),
-  flowNode('research', '고증 조사', ['apply'], 4, 0, 6100),
-  flowNode('rating', '심의 등급', ['apply'], 3, 0, 2800),
-  flowNode('character_simulation', '인물 시뮬레이션', ['apply', 'novelbrain'], 2, 0, 12000),
+  flowNode('main', '메인 에이전트', ['qa', 'manuscript_review', 'rating', 'research', 'writing', 'world', 'character_simulation', 'mcp'], 71, 1, 5400, ['main-agent']),
+  flowNode('qa', '작품 질문', ['main'], 30, 1, 3100, ['qa-answer']),
+  flowNode('manuscript_review', '원고 검수', ['main'], 9, 0, 7700),
+  flowNode('rating', '심의 등급', ['main'], 3, 0, 2800),
+  flowNode('research', '고증 조사', ['main'], 4, 0, 6100),
+  flowNode('writing', '기획·집필·수정', ['apply', 'main'], 14, 0, 9800, ['writing-assist']),
+  flowNode('world', '세계관', ['apply', 'main'], 6, 0, 4200),
+  flowNode('character_simulation', '인물 시뮬레이션', ['apply', 'novelbrain', 'main'], 2, 0, 12000),
   flowNode('novelbrain', 'NovelBrain 기억 회상', [], 18, 0, 410),
   flowNode('mcp', 'Content MCP 도구', [], 23, 1, 640),
-  flowNode('apply', '작가 승인 반영', [], 11, 0, 900),
+  flowNode('apply', '작가 승인 반영', ['mcp'], 11, 0, 900),
   ...([['proposals', '전개 제안'], ['initial_world', '초기 세계관 분석'], ['manuscript_extraction', '원고 설정 추출'], ['work_tags', '장르·키워드 추천'], ['world_review', '설정집 검토'], ['rating_direct', '심의 등급(단독)'], ['writing_editing', '새 원고·부분 수정']] as const)
     .map(([id, label]): PipelineNode => ({ ...flowNode(id, label, [], 5), standalone: true })),
 ]

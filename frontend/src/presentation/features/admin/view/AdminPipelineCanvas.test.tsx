@@ -7,9 +7,12 @@ import AdminPipelineCanvas from './AdminPipelineCanvas'
 
 // 실제 react-force-graph(d3·canvas)는 그리지 않고 캔버스가 넘기는 값만 붙잡는다.
 type GraphNode = { id: string; x: number; y: number; fx: number; fy: number }
+type GraphLink = { source: string; target: string; back: boolean }
 type GraphProps = {
-  graphData: { nodes: GraphNode[]; links: unknown[] }; width: number; height: number
+  graphData: { nodes: GraphNode[]; links: GraphLink[] }; width: number; height: number
   enableNodeDrag: boolean; enablePanInteraction: boolean; enableZoomInteraction: boolean; cooldownTicks: number; onNodeClick: (node: GraphNode) => void
+  onRenderFramePre: (ctx: CanvasRenderingContext2D, scale: number) => void
+  linkCanvasObject: (link: GraphLink, ctx: CanvasRenderingContext2D, scale: number) => void
 }
 const forceGraph = vi.hoisted(() => ({ props: null as null | GraphProps }))
 vi.mock('react-force-graph-2d', () => ({ default: (props: GraphProps) => { forceGraph.props = props; return null } }))
@@ -22,6 +25,16 @@ const measure = (width: number) => vi.stubGlobal('ResizeObserver', class {
   disconnect() {}
 })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); forceGraph.props = null })
+
+// 캔버스 그리기 호출을 이름·인자로 기록하는 대역(속성 대입은 그대로 저장한다).
+const recorder = () => {
+  const calls: [string, ...unknown[]][] = [], state: Record<string, unknown> = {}
+  const ctx = new Proxy(state, {
+    get: (target, name: string) => (name in target ? target[name] : (...args: unknown[]) => { calls.push([name, ...args]) }),
+    set: (target, name: string, value) => { target[name] = value; return true },
+  })
+  return { ctx: ctx as unknown as CanvasRenderingContext2D, calls }
+}
 
 const node = (id: string, next: string[] = [], extra: Partial<PipelineNode> = {}): PipelineNode => ({ id, label: id, next, standalone: false, count: 3, errors: 0, promptNames: [], ...extra })
 const nodes = [node('request', ['guard']), node('guard', ['main'], { errors: 2 }), node('main'), node('rating_direct', [], { standalone: true })]
@@ -61,4 +74,26 @@ it('선택만 바뀌어 다시 그릴 때는 같은 그래프 데이터를 넘�
   expect(forceGraph.props!.graphData).toBe(first)
   rerender(draw([...nodes, node('apply')], 'guard'))
   expect(forceGraph.props!.graphData).not.toBe(first)
+})
+
+it('되돌아가는 선(업무 Agent→메인)은 back으로 넘기고, 그릴 때 점선으로 그려 앞으로 가는 선과 구분한다', () => {
+  measure(900)
+  render(draw([node('request', ['guard']), node('guard', ['main']), node('main', ['qa']), node('qa', ['main'])]))
+  const { links } = forceGraph.props!.graphData
+  expect(links.map((link) => link.back)).toEqual([false, false, false, true])
+  const dashes = (link: GraphLink) => {
+    const { ctx, calls } = recorder()
+    forceGraph.props!.linkCanvasObject(link, ctx, 1)
+    return calls.filter(([name]) => name === 'setLineDash').map(([, dash]) => dash)
+  }
+  expect(dashes(links[2])).toEqual([[], []])
+  expect(dashes(links[3])).toEqual([[4, 3], []])
+})
+
+it('업무 Agent 묶음 라벨(읽기·검토, 작성)은 프레임을 그리기 전에 글자로 그린다', () => {
+  measure(900)
+  render(draw([node('main', ['qa', 'writing']), node('qa', ['main']), node('writing', ['main'])]))
+  const { ctx, calls } = recorder()
+  forceGraph.props!.onRenderFramePre(ctx, 1)
+  expect(calls.filter(([name]) => name === 'fillText').map(([, text]) => text)).toEqual(['읽기·검토', '작성'])
 })

@@ -2,75 +2,25 @@ import { describe, expect, it } from 'vitest'
 
 import { lastPage } from '../entities/operations'
 import {
-  NODE_HEIGHT, NODE_WIDTH, PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, layoutPipeline, nodeStats, pipelineSummary, promptTargets, recalledTitles, recordResult, serverLevel, splitOutput, verdictText,
+  LABEL_HEIGHT, NODE_HEIGHT, NODE_WIDTH, PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, layoutPipeline, linkCurve, nodeStats, pipelineSummary, promptTargets, recalledTitles, recordResult, serverLevel, splitOutput, verdictText,
   type PipelineNode, type PipelineRecord,
 } from '../entities/llmOpsPipeline'
 
 const node = (id: string, next: string[] = [], extra: Partial<PipelineNode> = {}): PipelineNode => ({ id, label: id, next, standalone: false, count: 0, errors: 0, promptNames: [], ...extra })
-const AGENTS = ['qa', 'writing', 'manuscript_review', 'world', 'research', 'rating', 'character_simulation']
-// 계약(DEC-58) 표의 흐름: 요청 → Guard → 메인 → 업무 Agent 7개·도구 → 반영.
-const flow = () => [node('request', ['guard']), node('guard', ['main']), node('main', [...AGENTS, 'mcp']), ...AGENTS.map((id) => node(id, ['apply'])), node('mcp'), node('apply')]
+const READ = ['qa', 'manuscript_review', 'rating', 'research'], WRITE = ['writing', 'world', 'character_simulation']
+const AGENTS = [...READ, ...WRITE]
+// 운영 서버(PipelineNodes.kt)의 흐름(DEC-58): 요청 → Guard → 메인 → 업무 Agent 7개(읽기·검토 4개, 작성 3개)·도구, 작성 Agent → 반영 → 도구(메인→도구 직접 선도 있다).
+// 모든 업무 Agent는 결과를 메인에 돌려주는 선(되돌아가는 선)이 있어 흐름이 순환이고, 인물 시뮬레이션은 NovelBrain 기억 회상도 잇는다. 노드 배열은 서버 순서다.
+const flow = () => [
+  node('request', ['guard']), node('guard', ['main']), node('main', [...AGENTS, 'mcp']),
+  ...READ.map((id) => node(id, ['main'])),
+  ...WRITE.map((id) => node(id, [...(id === 'character_simulation' ? ['apply', 'novelbrain'] : ['apply']), 'main'])),
+  node('novelbrain'), node('mcp'), node('apply', ['mcp']),
+]
 // 운영 서버(PipelineNodes.kt)가 정한 단독 기능 7개(단독 rating은 흐름의 rating과 구분하려 rating_direct).
 const SOLO = ['proposals', 'initial_world', 'manuscript_extraction', 'work_tags', 'world_review', 'rating_direct', 'writing_editing']
 const solo = () => SOLO.map((id) => node(id, [], { standalone: true }))
 const placedById = (nodes: PipelineNode[]) => Object.fromEntries(layoutPipeline(nodes).nodes.map((n) => [n.id, n]))
-
-describe('layoutPipeline: 서버가 준 노드를 고정 좌표(왼→오 흐름)에 놓는다', () => {
-  it('요청 → Guard → 메인 → 업무 Agent·도구 → 반영 순으로 칸(x)이 늘고, 같은 칸의 노드는 서버 순서대로 겹치지 않게 세로로 쌓는다', () => {
-    const placed = placedById(flow())
-    const xs = ['request', 'guard', 'main', 'qa', 'apply'].map((id) => placed[id].x)
-    expect(xs).toEqual([...xs].sort((a, b) => a - b))
-    expect(new Set(xs).size).toBe(5)
-    for (let i = 1; i < xs.length; i++) expect(xs[i] - xs[i - 1]).toBeGreaterThanOrEqual(NODE_WIDTH)
-    const column = [...AGENTS, 'mcp'].map((id) => placed[id])
-    expect(new Set(column.map((n) => n.x))).toEqual(new Set([placed.qa.x]))
-    for (let i = 1; i < column.length; i++) expect(column[i].y - column[i - 1].y).toBeGreaterThanOrEqual(NODE_HEIGHT)
-    // 반영은 모든 업무 Agent보다 오른쪽 칸이다(도구는 메인의 다음 칸이라 같은 칸에 남는다).
-    expect(placed.apply.x).toBeGreaterThan(placed.qa.x)
-  })
-
-  it('단독 기능은 흐름 아래에 따로, 한 줄에 5개를 넘지 않게 고르게 나눠 흐름 가운데 아래에 놓는다', () => {
-    const placed = placedById([...flow(), ...solo()])
-    const flowIds = ['request', 'guard', 'main', ...AGENTS, 'mcp', 'apply']
-    const flowBottom = Math.max(...flowIds.map((id) => placed[id].y)) + NODE_HEIGHT / 2
-    for (const id of SOLO) expect(placed[id].y - NODE_HEIGHT / 2, id).toBeGreaterThan(flowBottom)
-    const rows = new Map<number, number[]>()
-    for (const id of SOLO) rows.set(placed[id].y, [...(rows.get(placed[id].y) ?? []), placed[id].x])
-    const lines = [...rows.entries()].sort(([a], [b]) => a - b).map(([, xs]) => xs)
-    expect(lines.map((xs) => xs.length)).toEqual([4, 3])
-    const center = (placed.request.x + placed.apply.x) / 2
-    for (const xs of lines) expect((Math.min(...xs) + Math.max(...xs)) / 2).toBeCloseTo(center)
-  })
-
-  it('원점이 가운데가 되게 놓고, 크기는 노드 상자까지 포함한다', () => {
-    const layout = layoutPipeline([...flow(), ...solo()])
-    const xs = layout.nodes.map((n) => n.x), ys = layout.nodes.map((n) => n.y)
-    expect(layout.width).toBe(Math.max(...xs) - Math.min(...xs) + NODE_WIDTH)
-    expect(layout.height).toBe(Math.max(...ys) - Math.min(...ys) + NODE_HEIGHT)
-    expect(Math.min(...xs) + Math.max(...xs)).toBeCloseTo(0)
-    expect(Math.min(...ys) + Math.max(...ys)).toBeCloseTo(0)
-  })
-
-  it('선은 next를 따라 그리고 없는 노드를 가리키는 선은 버린다', () => {
-    expect(layoutPipeline([node('a', ['b', 'ghost']), node('b')]).links).toEqual([{ source: 'a', target: 'b' }])
-    expect(layoutPipeline(flow()).links).toHaveLength(1 + 1 + 8 + 7)
-  })
-
-  it('순환이 있어도 끝나고 모든 노드를 놓으며, 같은 입력이면 같은 좌표다', () => {
-    const loop = [node('a', ['b']), node('b', ['a'])]
-    expect(layoutPipeline(loop).nodes.map((n) => n.id)).toEqual(['a', 'b'])
-    expect(layoutPipeline(flow())).toEqual(layoutPipeline(flow()))
-  })
-
-  it('노드가 없으면 크기 0이다', () => {
-    expect(layoutPipeline([])).toEqual({ nodes: [], links: [], width: 0, height: 0 })
-  })
-})
-
-// 운영 서버가 NovelBrain 기억 회상(novelbrain)을 인물 시뮬레이션 다음에 이은 두 모양: 반영과 나란히 이은 것, 인물 시뮬레이션과 반영 사이에 끼운 것.
-const linkedAfter = (id: string, next: string[]) => (n: PipelineNode) => (n.id === id ? { ...n, next } : n)
-const novelBrainBeside = () => [...flow().map(linkedAfter('character_simulation', ['apply', 'novelbrain'])), node('novelbrain')]
-const novelBrainBetween = () => [...flow().map(linkedAfter('character_simulation', ['novelbrain'])), node('novelbrain', ['apply'])]
 /** 같은 칸(x)의 노드들이 세로로 겹치지 않는지: 칸마다 y를 정렬해 이웃 간격이 노드 높이 이상이어야 한다. */
 const overlapping = (nodes: PipelineNode[]) => {
   const columns = new Map<number, number[]>()
@@ -78,19 +28,146 @@ const overlapping = (nodes: PipelineNode[]) => {
   return [...columns.values()].some((ys) => ys.sort((a, b) => a - b).some((y, i) => i > 0 && y - ys[i - 1] < NODE_HEIGHT))
 }
 
-describe('layoutPipeline: NovelBrain 기억 회상과 모르는 노드', () => {
-  it('NovelBrain 기억 회상(인물 시뮬레이션 다음)은 어느 쪽으로 이었든 인물 시뮬레이션 오른쪽 칸에 놓이고 다른 노드와 겹치지 않는다', () => {
-    for (const nodes of [novelBrainBeside(), novelBrainBetween()]) {
-      const placed = placedById(nodes)
-      expect(placed.novelbrain.x).toBeGreaterThan(placed.character_simulation.x)
-      expect(placed.apply.x).toBeGreaterThan(placed.character_simulation.x)
-      expect(overlapping(nodes)).toBe(false)
+describe('layoutPipeline: 서버가 준 노드를 고정 좌표(왼→오 흐름)에 놓는다', () => {
+  it('요청 → Guard → 메인 → 업무 Agent 열 → 반영 → 도구 순으로 칸(x)이 늘고, 업무 Agent 7개는 되돌아가는 선이 있어도 한 칸에 모인다', () => {
+    const placed = placedById(flow())
+    const xs = ['request', 'guard', 'main', 'qa', 'apply', 'mcp'].map((id) => placed[id].x)
+    expect(xs).toEqual([...xs].sort((a, b) => a - b))
+    expect(new Set(xs).size).toBe(6)
+    for (let i = 1; i < xs.length; i++) expect(xs[i] - xs[i - 1]).toBeGreaterThanOrEqual(NODE_WIDTH)
+    expect(new Set(AGENTS.map((id) => placed[id].x))).toEqual(new Set([placed.qa.x]))
+  })
+
+  it('칸은 서버 배열 순서와 무관하고(순환을 따라간 순서에 칸이 밀리지 않는다), 업무 Agent 열은 읽기·검토가 위·작성이 아래로 겹치지 않게 쌓인다', () => {
+    const placed = placedById(flow())
+    const mixed = placedById([...flow()].reverse())
+    for (const id of Object.keys(placed)) expect(mixed[id].x, id).toBeCloseTo(placed[id].x)
+    // 서버 순서대로 위에서 아래로 쌓고, 서버가 두 묶음을 섞어 줘도 읽기·검토가 위다.
+    const ys = AGENTS.map((id) => placed[id].y)
+    expect(ys).toEqual([...ys].sort((a, b) => a - b))
+    for (let i = 1; i < ys.length; i++) expect(ys[i] - ys[i - 1]).toBeGreaterThanOrEqual(NODE_HEIGHT)
+    expect(Math.max(...READ.map((id) => mixed[id].y))).toBeLessThan(Math.min(...WRITE.map((id) => mixed[id].y)))
+    expect(overlapping([...flow()].reverse())).toBe(false)
+  })
+
+  it('요청·Guard·메인은 한 줄에 놓이고 그 줄이 두 묶음 사이 빈칸 가운데를 지나며, 빈칸은 묶음 안 간격보다 넓다(라벨 자리)', () => {
+    const placed = placedById(flow())
+    expect(new Set(['request', 'guard', 'main'].map((id) => placed[id].y)).size).toBe(1)
+    const above = placed.research.y + NODE_HEIGHT / 2, below = placed.writing.y - NODE_HEIGHT / 2
+    expect((above + below) / 2).toBeCloseTo(placed.main.y)
+    expect(below - above).toBeGreaterThan(placed.world.y - placed.writing.y - NODE_HEIGHT)
+  })
+
+  it('메인→도구 직접 선(곡선)은 가운데 줄의 빈칸을 지나 어떤 노드 상자도 가로지르지 않는다', () => {
+    const placed = placedById(flow())
+    const [p0, p1, p2, p3] = linkCurve(placed.main, placed.mcp, false).points
+    for (let i = 0; i <= 100; i++) {
+      const t = i / 100, u = 1 - t
+      const x = u ** 3 * p0.x + 3 * u * u * t * p1.x + 3 * u * t * t * p2.x + t ** 3 * p3.x
+      const y = u ** 3 * p0.y + 3 * u * u * t * p1.y + 3 * u * t * t * p2.y + t ** 3 * p3.y
+      for (const n of Object.values(placed).filter((other) => other.id !== 'main' && other.id !== 'mcp')) {
+        // 선이 노드 가장자리에서 3px 안으로 들어오면 가로지른 것으로 본다.
+        expect(Math.abs(x - n.x) < NODE_WIDTH / 2 + 3 && Math.abs(y - n.y) < NODE_HEIGHT / 2 + 3, `${n.id} ${i}`).toBe(false)
+      }
     }
-    // 반영과 나란히 이으면 같은 칸, 인물 시뮬레이션과 반영 사이에 끼우면 반영이 그 오른쪽 칸이다.
-    const beside = placedById(novelBrainBeside())
-    expect(beside.novelbrain.x).toBe(beside.apply.x)
-    const between = placedById(novelBrainBetween())
-    expect(between.apply.x).toBeGreaterThan(between.novelbrain.x)
+  })
+
+  it('단독 기능은 흐름 아래에 따로, 한 줄에 5개를 넘지 않게 고르게 나눠 흐름 가운데 아래에 놓는다', () => {
+    const placed = placedById([...flow(), ...solo()])
+    const flowIds = ['request', 'guard', 'main', ...AGENTS, 'novelbrain', 'mcp', 'apply']
+    const flowBottom = Math.max(...flowIds.map((id) => placed[id].y)) + NODE_HEIGHT / 2
+    for (const id of SOLO) expect(placed[id].y - NODE_HEIGHT / 2, id).toBeGreaterThan(flowBottom)
+    const rows = new Map<number, number[]>()
+    for (const id of SOLO) rows.set(placed[id].y, [...(rows.get(placed[id].y) ?? []), placed[id].x])
+    const lines = [...rows.entries()].sort(([a], [b]) => a - b).map(([, xs]) => xs)
+    expect(lines.map((xs) => xs.length)).toEqual([4, 3])
+    const center = (placed.request.x + placed.mcp.x) / 2
+    for (const xs of lines) expect((Math.min(...xs) + Math.max(...xs)) / 2).toBeCloseTo(center)
+  })
+
+  it('원점이 가운데가 되게 놓고, 크기는 노드 상자와 묶음 라벨까지 포함한다', () => {
+    const layout = layoutPipeline([...flow(), ...solo()])
+    const lefts = layout.nodes.map((n) => n.x - NODE_WIDTH / 2), rights = layout.nodes.map((n) => n.x + NODE_WIDTH / 2)
+    const tops = [...layout.nodes.map((n) => n.y - NODE_HEIGHT / 2), ...layout.labels.map((l) => l.y - LABEL_HEIGHT / 2)], bottoms = layout.nodes.map((n) => n.y + NODE_HEIGHT / 2)
+    expect(layout.width).toBeCloseTo(Math.max(...rights) - Math.min(...lefts))
+    expect(layout.height).toBeCloseTo(Math.max(...bottoms) - Math.min(...tops))
+    expect(Math.min(...lefts) + Math.max(...rights)).toBeCloseTo(0)
+    expect(Math.min(...tops) + Math.max(...bottoms)).toBeCloseTo(0)
+  })
+
+  it('업무 Agent 묶음 라벨은 읽기·검토 묶음과 작성 묶음의 첫 노드 위에(왼쪽 가장자리에 맞춰) 달리고, 두 번째 라벨은 두 묶음 사이 빈칸에 들어가며, 묶음 노드가 없으면 달리지 않는다', () => {
+    const layout = layoutPipeline(flow()), placed = placedById(flow())
+    expect(layout.labels.map((label) => label.text)).toEqual(['읽기·검토', '작성'])
+    const [read, write] = layout.labels
+    expect([read.x, write.x]).toEqual([placed.qa.x - NODE_WIDTH / 2, placed.writing.x - NODE_WIDTH / 2])
+    expect(read.y + LABEL_HEIGHT / 2).toBeLessThan(placed.qa.y - NODE_HEIGHT / 2)
+    expect(write.y + LABEL_HEIGHT / 2).toBeLessThan(placed.writing.y - NODE_HEIGHT / 2)
+    expect(write.y - LABEL_HEIGHT / 2).toBeGreaterThan(placed.research.y + NODE_HEIGHT / 2)
+    expect(layoutPipeline([node('request', ['guard']), node('guard')]).labels).toEqual([])
+  })
+
+  it('선은 next를 따라 그리고 없는 노드를 가리키는 선은 버리며, 업무 Agent→메인 7개만 되돌아가는 선(back)이다', () => {
+    expect(layoutPipeline([node('a', ['b', 'ghost']), node('b')]).links).toEqual([{ source: 'a', target: 'b', back: false }])
+    const links = layoutPipeline(flow()).links
+    expect(links).toHaveLength(1 + 1 + 8 + 7 + 3 + 1 + 1)
+    expect(links.filter((link) => link.back).map((link) => link.source).sort()).toEqual([...AGENTS].sort())
+    expect(links.filter((link) => link.back).every((link) => link.target === 'main')).toBe(true)
+    // 메인→도구 직접 선과 반영→도구 선은 앞으로 가는 선이다.
+    expect(links).toContainEqual({ source: 'main', target: 'mcp', back: false })
+    expect(links).toContainEqual({ source: 'apply', target: 'mcp', back: false })
+  })
+
+  it('순환이 있어도 끝나고 모든 노드를 앞에서 이어진 순서대로 놓으며, 돌아오는 선만 back이고 같은 입력이면 같은 좌표다', () => {
+    const two = layoutPipeline([node('a', ['b']), node('b', ['a'])])
+    expect(two.nodes.map((n) => [n.id, n.x])).toEqual([['a', -(NODE_WIDTH + 48) / 2], ['b', (NODE_WIDTH + 48) / 2]])
+    expect(two.links).toEqual([{ source: 'a', target: 'b', back: false }, { source: 'b', target: 'a', back: true }])
+    const self = layoutPipeline([node('a', ['a'])])
+    expect(self.nodes.map((n) => n.id)).toEqual(['a'])
+    expect(self.links).toEqual([{ source: 'a', target: 'a', back: true }])
+    const ring = layoutPipeline([node('a', ['b']), node('b', ['c']), node('c', ['a'])])
+    expect(ring.links.map((link) => link.back)).toEqual([false, false, true])
+    expect(new Set(ring.nodes.map((n) => n.x)).size).toBe(3)
+    // 앞이 있는 노드부터 따라가므로 순환 안쪽 노드가 먼저 적혀 있어도 요청이 맨 앞 칸이다.
+    const entered = placedById([node('a', ['b']), node('b', ['a']), node('request', ['a'])])
+    expect(entered.request.x).toBeLessThan(entered.a.x)
+    expect(entered.a.x).toBeLessThan(entered.b.x)
+    expect(layoutPipeline(flow())).toEqual(layoutPipeline(flow()))
+  })
+
+  it('노드가 없으면 크기 0이다', () => {
+    expect(layoutPipeline([])).toEqual({ nodes: [], links: [], labels: [], width: 0, height: 0 })
+  })
+})
+
+describe('linkCurve: 선의 곡선', () => {
+  const from = { x: 0, y: 0 }, to = { x: 180, y: 62 }
+
+  it('앞으로 가는 선은 앞 노드 오른쪽 가장자리에서 다음 노드 왼쪽 가장자리로, 양 끝이 수평으로 닿게 이어 오른쪽을 가리킨다', () => {
+    const { points: [p0, p1, p2, p3], dir } = linkCurve(from, to, false)
+    expect([p0, p3]).toEqual([{ x: NODE_WIDTH / 2, y: 0 }, { x: 180 - NODE_WIDTH / 2, y: 62 }])
+    expect([p1.y, p2.y, p1.x === p2.x]).toEqual([p0.y, p3.y, true])
+    expect(dir).toBe(1)
+  })
+
+  it('되돌아가는 선은 거꾸로 오른쪽 노드 왼쪽 가장자리에서 왼쪽 노드 오른쪽 가장자리로 이어 왼쪽을 가리키고, 같은 두 노드의 앞으로 가는 선과 겹치지 않게 아래로 비켜 그린다', () => {
+    const forward = linkCurve(from, to, false), back = linkCurve(to, from, true)
+    const [b0, , , b3] = back.points
+    expect([b0.x, b3.x, back.dir]).toEqual([to.x - NODE_WIDTH / 2, from.x + NODE_WIDTH / 2, -1])
+    expect(b0.y).toBeGreaterThan(to.y)
+    expect(b3.y - from.y).toBe(b0.y - to.y)
+    expect([b0.y > forward.points[3].y, b3.y > forward.points[0].y]).toEqual([true, true])
+  })
+})
+
+const linkedAfter = (id: string, next: string[]) => (n: PipelineNode) => (n.id === id ? { ...n, next } : n)
+
+describe('layoutPipeline: NovelBrain 기억 회상과 모르는 노드', () => {
+  it('NovelBrain 기억 회상(인물 시뮬레이션 다음)은 인물 시뮬레이션 오른쪽 같은 줄에 놓이고, 같은 칸의 반영과 겹치지 않는다', () => {
+    const placed = placedById(flow())
+    expect(placed.novelbrain.x).toBeGreaterThan(placed.character_simulation.x)
+    expect(placed.novelbrain.y).toBeCloseTo(placed.character_simulation.y)
+    expect(placed.novelbrain.x).toBe(placed.apply.x)
+    expect(overlapping(flow())).toBe(false)
   })
 
   it('모르는 id의 노드도 빠지지 않는다: 연결이 있으면 그 노드 오른쪽 칸에, 연결이 없으면 첫 칸(요청과 같은 칸)에 겹치지 않게 놓인다', () => {
@@ -99,7 +176,7 @@ describe('layoutPipeline: NovelBrain 기억 회상과 모르는 노드', () => {
     expect(loose.mystery.x).toBe(loose.request.x)
     expect(Math.abs(loose.mystery.y - loose.request.y)).toBeGreaterThanOrEqual(NODE_HEIGHT)
     expect(overlapping([...flow(), node('mystery')])).toBe(false)
-    const wired = [...flow().map(linkedAfter('qa', ['apply', 'mystery'])), node('mystery')]
+    const wired = [...flow().map(linkedAfter('qa', ['main', 'mystery'])), node('mystery')]
     expect(placedById(wired).mystery.x).toBeGreaterThan(placedById(wired).qa.x)
     expect(overlapping(wired)).toBe(false)
     // 단독 기능으로 오면 단독 줄(흐름 아래)에 놓인다.
@@ -107,6 +184,7 @@ describe('layoutPipeline: NovelBrain 기억 회상과 모르는 노드', () => {
     expect(solo.mystery.y).toBeGreaterThan(solo.apply.y)
   })
 })
+
 
 describe('노드 표시 글', () => {
   it('요약은 노드 수와 오류가 있는 노드 수를, 건수 줄은 건수와 오류 수를 쉼표 숫자로 말한다', () => {
