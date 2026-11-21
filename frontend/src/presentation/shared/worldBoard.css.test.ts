@@ -136,8 +136,8 @@ describe('게시판 열·분류 칩 줄(critique)', () => {
 })
 
 describe('관계도 층과 좁은 화면 넘침 방어(critique)', () => {
-  it('간선 그림(React Flow 간선 층)은 카드 층 아래이고 라벨은 뷰포트 포털의 별도 SVG(카드 층 위, 눌리지 않는다)이며, 무대 위 카드 면은 반투명이 아니라 불투명이라 뒤를 지나는 간선이 카드 글자를 가로지르지 않는다', () => {
-    expect(rule(map, '.relationship-card-labels')).toMatch(/position:absolute;width:1px;height:1px;overflow:visible;pointer-events:none/)
+  it('간선 그림(React Flow 간선 층)은 카드 층 아래이고 이름표는 화면 좌표의 별도 층(카드 층 위·도구 막대 아래, 눌리지 않는다)이며, 무대 위 카드 면은 반투명이 아니라 불투명이라 뒤를 지나는 간선이 카드 글자를 가로지르지 않는다', () => {
+    expect(rule(map, '.relationship-names')).toMatch(/position:absolute;inset:0;z-index:5;overflow:hidden;pointer-events:none/)
     const stage = rule(map, '.relationship-stage')
     expect(stage).toMatch(/--rc-bg:color-mix\(in srgb,var\(--fixed-ink\) 7%,var\(--stage-2\)\)/)
     expect(stage).toMatch(/--rc-sel:color-mix\(in srgb,var\(--fixed-pri\) 20%,var\(--stage-2\)\)/)
@@ -248,12 +248,12 @@ describe('관계도 무대 조용히 다듬기', () => {
     expect(rule(map, '.relationship-stage .relationship-filter .btn[aria-pressed=false]:hover')).toMatch(/color:var\(--fixed-ink\)/)
   })
 
-  it('관계선·화살촉·범례 선은 무대에 섞어 낮추고(밝은 하늘색 14선이 카드보다 눈에 띄었다) 라벨은 회색 글자다 — 선은 무대 위 3:1 이상, 라벨은 4.5:1 이상, 고른 선(흰색)은 그대로라 더 뜬다', () => {
+  it('관계선·화살촉·범례 선은 무대에 섞어 낮추고(밝은 하늘색 14선이 카드보다 눈에 띄었다) 선 위 관계 이름은 회색 글자다 — 선은 무대 위 3:1 이상, 이름은 4.5:1 이상, 고른 선(흰색)은 그대로라 더 뜬다', () => {
     const stage = rule(map, '.relationship-stage')
     expect(stage).toMatch(/--edge:color-mix\(in srgb,#A9C6FF 70%,var\(--stage-2\)\)/) // 무대 위 4.7~6.0:1
     expect(stage).toMatch(/--edge-emotion:color-mix\(in srgb,#FFD98A 75%,var\(--stage-2\)\)/) // 6.5~8.4:1
     expect(stage).toMatch(/--edge-active:var\(--fixed-ink\)/)
-    expect(rule(map, '.relationship-stage .relationship-edge-label')).toMatch(/fill:var\(--fixed-sub\)/) // 선 색을 따르던 라벨을 회색 글자로(6.3:1 이상)
+    expect(rule(map, '.relationship-edge-name')).toMatch(/color:var\(--fixed-sub\)/) // 선 색을 따르던 이름을 회색 글자로(6.3:1 이상)
   })
 
 })
@@ -325,11 +325,12 @@ describe('관계도 도구·추가 패널·오른쪽 클릭 메뉴·선 도구(n
     expect(block(map, '@media(pointer:coarse)')).not.toMatch(/relationship-menu/) // 위 묶음이 맡는다
   })
 
-  it('선의 편집·삭제 버튼은 평소 숨고 선에 마우스를 올리거나 초점이 있을 때 뜨며, 선과 버튼 사이 틈을 지나는 동안 사라지지 않게 숨김이 늦춰진다(visibility 전환 지연)', () => {
-    expect(rule(map, '.relationship-edge-tools')).toMatch(/visibility:hidden;opacity:0;transition:opacity \.12s \.2s,visibility 0s \.32s/)
-    expect(rule(map, '.relationship-edge:is(:hover,:focus-within) .relationship-edge-tools')).toMatch(/visibility:visible;opacity:1;transition-delay:0s/)
+  it('선의 편집·삭제 버튼은 마우스를 올린(또는 초점이 간) 선에만 그려지므로 숨김 규칙이 없고(요소가 없다), 선과 버튼 사이 틈을 잇는 bridge는 투명하지만 눌린다', () => {
+    expect(map).not.toMatch(/relationship-edge-tools\{visibility|relationship-edge:is\(:hover,:focus-within\) \.relationship-edge-tools/)
+    // bridge 선택자가 .relationship-edge-tools rect(특이도 0,1,1)보다 세야 투명이 이긴다: 그렇지 않으면 버튼 밑에 불투명한 상자가 비친다.
+    expect(rule(map, '.relationship-edge-tools .relationship-edge-bridge')).toMatch(/fill:transparent;stroke:none;cursor:default;pointer-events:all/)
+    expect(rule(map, '.relationship-edge-tools rect')).toMatch(/fill:var\(--rc-bg,var\(--surface\)\)/)
   })
-
   it('키보드 초점은 보이는 표시가 있다: 선은 반투명 보라 띠, 카드(노드 래퍼)는 카드 둘레의 보라 윤곽선이고 끌어 잇는 선은 고른 선과 같은 색이다', () => {
     expect(rule(map, '.relationship-edge-hit:focus-visible')).toMatch(/outline:none;stroke:var\(--fixed-pri\);stroke-opacity:\.45/)
     expect(rule(map, '.relationship-flow .react-flow__node:focus-visible')).toMatch(/outline:2px solid var\(--fixed-pri\)/)
@@ -338,32 +339,41 @@ describe('관계도 도구·추가 패널·오른쪽 클릭 메뉴·선 도구(n
 })
 
 // ── 시맨틱 줌(옵시디언식): 멀리·중간에서는 점, 가까이서는 카드 ──────────────────────────────────────────────────────────
-describe('관계도 시맨틱 줌: 점·이름·선 라벨·단계별 숨김', () => {
-  it('점은 노드 래퍼(점 크기)를 가득 채운 원이고 테두리·고리·누르는 자리가 캔버스 배율(--rf-zoom)로 나뉘어 화면에서 늘 같은 굵기이며, 터치 기기에서도 세로 손짓은 페이지 스크롤이다', () => {
+describe('관계도 시맨틱 줌: 점·이름표 층·강조·단계별 크기', () => {
+  it('배율을 CSS 변수로 쓰지 않는다(쓰면 휠 틱마다 하위 요소 수천 개의 스타일을 다시 계산한다): 점 크기는 단계(data-level)별 고정값(--dot-*)이고 이름은 화면 좌표 층이 맡는다', () => {
+    expect(map).not.toContain('--rf-zoom')
+    expect(rule(map, '.relationship-flow[data-level=far]')).toMatch(/^--dot-line:4px;--dot-ring:10px;--dot-hit:34px$/)
+    expect(rule(map, '.relationship-flow[data-level=mid]')).toMatch(/^--dot-line:2px;--dot-ring:5px;--dot-hit:14px$/)
+    expect(map).not.toMatch(/--dot-name|--dot-gap|--edge-label|relationship-dot-name|relationship-edge-label|relationship-card-labels/) // 점 안의 이름·SVG 선 라벨은 없다
+  })
+
+  it('점은 노드 래퍼(점 크기)를 가득 채운 원이고 테두리·고리·누르는 자리가 그 단계의 고정 크기이며, 터치 기기에서도 세로 손짓은 페이지 스크롤이다', () => {
     const dot = rule(map, '.relationship-dot')
     expect(dot).toMatch(/position:relative;width:100%;height:100%;border-radius:50%/)
-    expect(dot).toMatch(/border:calc\(1\.5px \/ var\(--rf-zoom,1\)\) solid/)
-    expect(rule(map, '.relationship-dot::after')).toMatch(/position:absolute;inset:calc\(-10px \/ var\(--rf-zoom,1\)\)/) // 누르는 자리는 화면에서 점 둘레 10px
-    expect(rule(map, '.relationship-dot.selected')).toMatch(/box-shadow:0 0 0 calc\(3px \/ var\(--rf-zoom,1\)\) var\(--rc-accent\)/)
-    expect(rule(map, '.relationship-dot.target')).toMatch(/outline:calc\(2px \/ var\(--rf-zoom,1\)\) dashed var\(--rc-accent\)/)
+    expect(dot).toMatch(/border:var\(--dot-line,2px\) solid/)
+    expect(rule(map, '.relationship-dot::after')).toMatch(/position:absolute;inset:calc\(var\(--dot-hit,14px\) \* -1\)/) // 누르는 자리: 점 둘레
+    expect(rule(map, '.relationship-dot.selected')).toMatch(/box-shadow:0 0 0 var\(--dot-ring,5px\) var\(--rc-accent\)/)
+    expect(rule(map, '.relationship-dot.target')).toMatch(/outline:var\(--dot-line,2px\) dashed var\(--rc-accent\)/)
     expect(rule(map, '.relationship-dot.dim')).toMatch(/opacity:\.3/)
     expect(map).toContain('@media(pointer:coarse){.relationship-character-card,.relationship-dot{touch-action:pan-y}')
   })
 
-  it('점의 이름은 평소 숨고(멀리서는 관계가 많은 몇 장·고른 카드만 .shown, 마우스를 올리거나 키보드 초점이 있어도 보임) 화면에서 늘 13px로 읽히며, 흐린 점은 이름도 흐리다', () => {
-    const name = rule(map, '.relationship-dot-name')
-    expect(name).toMatch(/display:none;position:absolute;top:100%;left:50%/)
-    expect(name).toMatch(/font-size:calc\(13px \/ var\(--rf-zoom,1\)\)/)
-    expect(name).toMatch(/pointer-events:none/) // 이름이 점을 가리거나 누르지 않는다
-    expect(rule(map, '.relationship-dot-name.shown,.react-flow__node:is(:hover,:focus-within) .relationship-dot-name')).toMatch(/display:block/) // 키보드 초점이 있는 점도 이름이 보인다
-    expect(rule(map, '.relationship-dot.dim+.relationship-dot-name')).toMatch(/opacity:\.3/)
+  it('이름표(점 이름·선 위 관계 이름)는 화면 좌표 층의 absolute 요소로 배율을 따라 커지지 않고(글자는 늘 12px 이상: CSS 기본 12px에 큰 노드만 인라인 13·14px), 누르는 것을 가로채지 않으며, 검색 밖 점은 이름도 흐리고 강조 모드에서 이웃 밖은 더 흐리다', () => {
+    const all = rule(map, '.relationship-names>*')
+    expect(all).toMatch(/position:absolute;left:0;top:0;transform-origin:0 0/) // 선 이름은 왼쪽 위 기준으로 눕는다
+    expect(all).toMatch(/white-space:nowrap/)
+    expect(all).not.toMatch(/font-size/) // 크기는 각 이름표가 정한다(배율과 무관)
+    const name = rule(map, '.relationship-name')
+    const size = Number(/font-size:(\d+)px/.exec(name)?.[1])
+    expect(size).toBeGreaterThanOrEqual(12) // 화면 기준 최소 크기
+    expect(name).not.toMatch(/calc|var\(--rf/) // 배율로 키우지 않는다
+    expect(Number(/font-size:(\d+)px/.exec(rule(map, '.relationship-edge-name'))?.[1])).toBeGreaterThanOrEqual(12)
+    expect(rule(map, '.relationship-edge-name')).toMatch(/background:var\(--edge-halo\)/) // 무대색 바탕: 뒤를 지나는 선이 글자를 가로지르지 않는다
+    expect(rule(map, '.relationship-name.dim')).toMatch(/opacity:\.3/)
+    expect(rule(map, '.relationship-name.faded')).toMatch(/opacity:\.18/)
   })
 
-  it('가까이(near)가 아니면 연결 점(핸들)은 보이지 않고 선 가운데의 편집·삭제 버튼은 없으며, 중간에서는 선 라벨이 선 위에 화면 12px로 놓인다', () => {
+  it('가까이(near)가 아니면 연결 점(핸들)은 보이지 않는다', () => {
     expect(rule(map, '.relationship-flow:not([data-level=near]) .relationship-port')).toMatch(/visibility:hidden/)
-    expect(rule(map, '.relationship-flow:not([data-level=near]) .relationship-edge-tools')).toMatch(/display:none/)
-    const label = rule(map, '.relationship-flow[data-level=mid] .relationship-edge-label')
-    expect(label).toMatch(/font-size:calc\(12px \/ var\(--rf-zoom,1\)\)/)
-    expect(label).toMatch(/dominant-baseline:central/)
   })
 })

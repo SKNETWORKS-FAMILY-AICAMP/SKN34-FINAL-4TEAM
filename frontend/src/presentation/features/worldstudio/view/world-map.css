@@ -51,40 +51,42 @@
 .relationship-port{width:12px;height:12px;border:2px solid var(--rc-accent,var(--pri));border-radius:50%;background:var(--rc-bg,var(--surface))}
 .relationship-port::after{content:"";position:absolute;inset:-10px;border-radius:50%}
 .relationship-port:is(:hover,.connectingfrom,.connectingto,.valid){background:var(--rc-accent,var(--pri));box-shadow:0 0 0 4px color-mix(in srgb,var(--rc-accent,var(--pri)) 30%,transparent)}
-/* 층: 간선(React Flow 간선 층) < 카드 < 라벨(뷰포트 포털의 SVG). 카드 면은 위 .relationship-stage 변수가 불투명이라 카드 뒤를 지나는 간선이 글자를 가로지르지 않고, 라벨은 카드 위에서도 읽힌다. */
-.relationship-card-labels{position:absolute;width:1px;height:1px;overflow:visible;pointer-events:none}
-.relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-character-card h4 img{object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px}.relationship-edge-label{font-size:12px;pointer-events:none;paint-order:stroke;stroke:var(--edge-halo,var(--surface));stroke-width:4px;stroke-linejoin:round}
+/* 층: 간선(React Flow 간선 층) < 카드 < 이름표 층(.relationship-names, z-index 5) < 도구 막대·컨트롤(React Flow Panel: z-index 5지만 DOM에서 뒤라 위). 이름표 층은 화면 좌표라 확대 배율을 따라 커지지 않고 누르는 것을 가로채지 않는다.
+   카드 면은 위 .relationship-stage 변수가 불투명이라 카드 뒤를 지나는 간선이 글자를 가로지르지 않고, 이름표는 카드 위에서도 읽힌다. */
+.relationship-names{position:absolute;inset:0;z-index:5;overflow:hidden;pointer-events:none}
+.relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-character-card h4 img{object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px}
 /* 선에 키보드 초점이 가면 그 선을 반투명 보라 띠로 보인다(SVG 경로의 윤곽선은 브라우저마다 달라 쓰지 않는다). */
 .relationship-edge-hit:focus-visible{outline:none;stroke:var(--fixed-pri);stroke-opacity:.45}
-/* 선에 마우스를 올리거나 초점이 있으면 선 가운데 위쪽에 작은 편집·삭제 버튼이 뜬다(n8n식). 선과 버튼 사이 틈을 지나는 동안 사라지지 않게 숨김은 0.2초 늦춘다(visibility 전환 지연: 그동안에도 눌린다). */
-.relationship-edge-tools{visibility:hidden;opacity:0;transition:opacity .12s .2s,visibility 0s .32s}
-.relationship-edge:is(:hover,:focus-within) .relationship-edge-tools{visibility:visible;opacity:1;transition-delay:0s}
+/* 선에 마우스를 올리거나 초점이 있으면 선 가운데 위쪽에 작은 편집·삭제 버튼이 뜬다(n8n식, 그 선에만 요소를 만든다: 숨김 규칙이 없다). 투명한 bridge가 선과 버튼 사이 틈을 이어 그 틈을 지나는 동안 사라지지 않는다. */
+.relationship-edge-tools .relationship-edge-bridge{fill:transparent;stroke:none;cursor:default;pointer-events:all}
 .relationship-edge-tools rect{fill:var(--rc-bg,var(--surface));stroke:var(--rc-line,var(--line2));cursor:pointer}
 .relationship-edge-tools text{fill:var(--rc-ink,var(--ink));font-size:11px;font-weight:650;pointer-events:none;user-select:none}
 .relationship-edge-tools g:hover rect{fill:color-mix(in srgb,var(--rc-ink,var(--ink)) 16%,var(--rc-bg,var(--surface)))}
 .relationship-edge-tools [data-action=delete] text{fill:color-mix(in srgb,var(--danger) 55%,var(--rc-ink,var(--ink)))}
-/* 관계 라벨(quieter): 선 색을 따라 밝은 하늘색이던 글자를 회색(--fixed-sub, 무대 위 6.3:1 이상)으로 낮춘다. CSS가 SVG fill 속성을 이긴다. */
-.relationship-stage .relationship-edge-label{fill:var(--fixed-sub)}
 /* 카드는 React Flow 노드 래퍼(200×150, 위치·끌기는 React Flow가 정한다) 안을 가득 채운다. 래퍼에 키보드 초점이 가면 카드 둘레에 보라 윤곽선을 그린다(React Flow 기본 윤곽선은 래퍼 상자라 둥근 카드와 어긋난다). */
 .relationship-character-card{width:100%;height:100%;border:1px solid var(--rc-line,var(--line2));border-radius:12px;padding:12px;background:var(--rc-bg,var(--surface));color:var(--rc-ink,var(--ink));box-shadow:0 3px 12px #24233010;touch-action:none;user-select:none;cursor:grab}
 .relationship-flow .react-flow__node:focus-visible{outline:2px solid var(--fixed-pri);outline-offset:3px;border-radius:14px}
 .relationship-character-card.selected{border:2px solid var(--rc-accent,var(--pri));padding:11px;background:var(--rc-sel,var(--pri-soft))}.relationship-character-card.target{border:2px dashed var(--rc-accent,var(--pri));padding:11px}.relationship-character-card.dim{opacity:.3}
 .relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--rc-sub,var(--sub));margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:12px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
 /* 시맨틱 줌(옵시디언식, 단계는 .relationship-flow의 data-level): 멀리(far)·중간(mid)에서는 카드 한 장이 유형 색 점 하나이고 노드 래퍼가 점 크기다(관계가 많을수록 크다).
-   고른 점은 보라 고리, 상대가 될 점은 점선 고리, 검색에 맞지 않는 점은 흐리게 보인다(카드와 같은 표시). 테두리·고리 두께·누르는 자리(점 둘레 10px)·이름 글자는 캔버스 배율을 나눠(--rf-zoom: CharacterCards가 갱신하는 CSS 변수) 화면에서 늘 같다.
-   이름은 중간에서는 모두, 멀리서는 관계가 많은 몇 장과 고른 카드(.shown)·마우스를 올리거나 키보드 초점이 있는 점에만 붙는다. */
-.relationship-dot{position:relative;width:100%;height:100%;border-radius:50%;border:calc(1.5px / var(--rf-zoom,1)) solid color-mix(in srgb,var(--fixed-ink) 35%,transparent);touch-action:none;user-select:none;cursor:grab}
-.relationship-dot::after{content:"";position:absolute;inset:calc(-10px / var(--rf-zoom,1));border-radius:50%}
-.relationship-dot.selected{box-shadow:0 0 0 calc(3px / var(--rf-zoom,1)) var(--rc-accent)}
-.relationship-dot.target{outline:calc(2px / var(--rf-zoom,1)) dashed var(--rc-accent);outline-offset:calc(3px / var(--rf-zoom,1))}
+   고른 점은 보라 고리, 상대가 될 점은 점선 고리, 검색에 맞지 않는 점은 흐리게 보인다(카드와 같은 표시).
+   테두리·고리·누르는 자리(점 둘레)는 단계별 고정값(캔버스 단위)이다: 배율을 CSS 변수로 알리면 휠 틱마다 하위 요소 수천 개의 스타일을 다시 계산하므로 알리지 않는다. 단계 안에서는 확대에 따라 점과 같이 커지고 작아진다.
+   멀리(배율 0.05~0.5)는 값이 커야 읽히고 중간(0.5~0.9)은 작다. 이름은 점 안이 아니라 아래 이름표 층이 화면 크기로 그린다. */
+.relationship-flow[data-level=far]{--dot-line:4px;--dot-ring:10px;--dot-hit:34px}
+.relationship-flow[data-level=mid]{--dot-line:2px;--dot-ring:5px;--dot-hit:14px}
+.relationship-dot{position:relative;width:100%;height:100%;border-radius:50%;border:var(--dot-line,2px) solid color-mix(in srgb,var(--fixed-ink) 35%,transparent);touch-action:none;user-select:none;cursor:grab}
+.relationship-dot::after{content:"";position:absolute;inset:calc(var(--dot-hit,14px) * -1);border-radius:50%}
+.relationship-dot.selected{box-shadow:0 0 0 var(--dot-ring,5px) var(--rc-accent)}
+.relationship-dot.target{outline:var(--dot-line,2px) dashed var(--rc-accent);outline-offset:var(--dot-line,2px)}
 .relationship-dot.dim{opacity:.3}
-.relationship-dot-name{display:none;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:calc(4px / var(--rf-zoom,1));font-size:calc(13px / var(--rf-zoom,1));line-height:1.2;font-weight:650;white-space:nowrap;color:var(--rc-ink);text-shadow:0 0 calc(4px / var(--rf-zoom,1)) var(--stage-2),0 0 calc(2px / var(--rf-zoom,1)) var(--stage-2);pointer-events:none}
-.relationship-dot-name.shown,.react-flow__node:is(:hover,:focus-within) .relationship-dot-name{display:block}
-.relationship-dot.dim+.relationship-dot-name{opacity:.3}
-/* 가까이(near)가 아니면: 끌어 잇는 점은 React Flow가 선을 그리려고 둘 뿐이라 숨기고, 선 가운데의 편집·삭제 버튼도 없다(선은 눌러서·메뉴로 편집한다). 중간의 선 라벨은 선 위에 화면 12px로 놓인다. */
+/* 이름표 층(화면 좌표라 확대 배율을 따라 커지지 않는다): 점 이름은 점 바로 아래 화면 4px에 놓이고(위치·크기는 placeLabels가 인라인으로 정한다) 글자는 늘 화면 12px 이상(큰 노드 13·14px)이다.
+   선 위 관계 이름은 같은 층에서 선 위에 선 방향으로 눕고(왼쪽 위 기준, 무대색 바탕이라 뒤의 선이 글자를 가로지르지 않는다) 선 색이 아니라 회색 글자(quieter: --fixed-sub, 무대 위 6.3:1 이상)다. 검색 밖 점은 이름도 흐리고(.dim) 강조 모드에서 이웃이 아닌 점은 더 흐리다(.faded). */
+.relationship-names>*{position:absolute;left:0;top:0;transform-origin:0 0;white-space:nowrap;line-height:1.3;text-shadow:0 0 5px var(--edge-halo),0 0 2px var(--edge-halo)}
+.relationship-name{font-size:12px;font-weight:650;color:var(--rc-ink)}
+.relationship-name.dim{opacity:.3}.relationship-name.faded{opacity:.18}
+.relationship-edge-name{padding:0 4px;border-radius:4px;background:var(--edge-halo);font-size:12px;color:var(--fixed-sub)}
+/* 가까이(near)가 아니면 끌어 잇는 점은 React Flow가 선을 그리려고 둘 뿐이라 숨긴다. */
 .relationship-flow:not([data-level=near]) .relationship-port{visibility:hidden}
-.relationship-flow:not([data-level=near]) .relationship-edge-tools{display:none}
-.relationship-flow[data-level=mid] .relationship-edge-label{font-size:calc(12px / var(--rf-zoom,1));stroke-width:calc(4px / var(--rf-zoom,1));dominant-baseline:central}
 /* 캔버스 왼쪽 위 도구(+ 설정 추가·배치 정돈·화면 맞춤): React Flow Panel의 기본 여백 15px을 줄이고 좁으면 줄바꿈한다. 패널이 열려 있는 동안 + 설정 추가 버튼은 눌린 모양이다. */
 .relationship-tools{display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 24px);margin:10px 12px}
 .relationship-tools .btn[aria-expanded=true]{background:var(--rc-sel);border-color:color-mix(in srgb,var(--rc-accent) 60%,var(--stage-2))}

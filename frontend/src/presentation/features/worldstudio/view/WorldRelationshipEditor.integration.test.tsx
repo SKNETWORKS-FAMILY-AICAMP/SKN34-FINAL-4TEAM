@@ -592,23 +592,29 @@ async function toCards() {
   }
   expect(flow.getAttribute('data-level')).toBe('near')
 }
-const edgeLabels = () => document.querySelectorAll('text.relationship-edge-label').length
+/** 선 위 관계 이름(화면 좌표 이름표 층): 모든 단계에서 기본 숨김이고 마우스를 올리거나 초점이 간·고른 선에만 보인다. */
+const edgeLabels = () => document.querySelectorAll('.relationship-edge-name').length
 
-it('모든 카드를 한 그래프에 그리고(중심 카드·이웃 쪽 이동·전체 관계도로는 없다), 선 라벨은 멀리서는 없고 중간에서는 모든 선에, 가까이서는 마우스를 올린 동안 그 선에만 보인다', async () => {
+it('모든 카드를 한 그래프에 그리고(중심 카드·이웃 쪽 이동·전체 관계도로는 없다), 선 위 관계 이름은 모든 단계에서 기본 숨김이며 마우스를 올린 동안 그 선에만 보인다', async () => {
   await openHub()
   expect(cardCount()).toBe(21) // 허브 + 이웃 15장 + 외톨이 5장 전체
   expect(screen.getByRole('group', { name: '외톨이 0 장소 카드' })).toBeTruthy()
   for (const gone of ['이웃 페이지 이동', '그래프 페이지 이동']) expect(screen.queryByRole('navigation', { name: gone })).toBeNull()
   for (const gone of ['전체 관계도로', '중심 카드로 보기']) expect(screen.queryByRole('button', { name: gone })).toBeNull()
-  expect(edgeLabels()).toBe(0) // 멀리서는 라벨이 없고(<title> 툴팁만)
+  expect(edgeLabels()).toBe(0) // 멀리서는 관계 이름이 없고(<title> 툴팁만)
   expect(screen.getAllByRole('button', { name: /관계선 편집: 허브 · 이웃/ })).toHaveLength(15) // 선은 그대로 읽히고 누를 수 있다
   fireEvent.click(screen.getByRole('group', { name: '이웃 3 인물 카드' })) // 멀리서 점을 누르면 그 카드로 다가간다(중간 단계)
   await waitFor(() => expect(document.querySelector('.relationship-flow')!.getAttribute('data-level')).toBe('mid'))
-  expect(edgeLabels()).toBe(15) // 중간에서는 모든 선에 라벨
+  expect(edgeLabels()).toBe(0) // 중간에서도 기본 숨김(예전에는 모든 선에 라벨)
+  const line = () => screen.getByRole('button', { name: /관계선 편집: 허브 · 이웃 3 · / })
+  fireEvent.mouseEnter(line())
+  expect(edgeLabels()).toBe(1) // 선에 마우스를 올린 동안만 그 선의 이름
+  fireEvent.mouseLeave(line())
+  expect(edgeLabels()).toBe(0)
   await toCards()
-  expect(edgeLabels()).toBe(0) // 가까이서는 다시 마우스를 올린 선에만(겹친 라벨을 피한다)
-  fireEvent.mouseEnter(screen.getByRole('button', { name: /관계선 편집: 허브 · 이웃 3 · / }))
-  expect(edgeLabels()).toBe(1) // 선에 마우스를 올린 동안만 그 선의 라벨
+  expect(edgeLabels()).toBe(0) // 가까이서도 기본 숨김
+  fireEvent.mouseEnter(line())
+  expect(edgeLabels()).toBe(1)
 })
 
 it('카드의 관계 연결 버튼으로 주체를 정하고 상대 선택을 누르면 가운데에 관계 작성 시트가 열려 첫 입력으로 초점이 가고, Esc는 변경이 있으면 확인한 뒤 닫는다', async () => {
