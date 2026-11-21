@@ -583,3 +583,15 @@ it('헤더 버튼 줄(.acts)은 한 줄로 흐른다: 독자 시점 안내문이
   expect(css).not.toContain('acts-note')
   expect(css).not.toMatch(/\.world-manage-hero[^{]*\{[^}]*flex-basis:100%/)
 })
+
+it('넓은 화면(1920px 이상)에서도 세계관 관리 화면의 메뉴는 왼쪽 끝에, AI 채팅은 오른쪽 끝에 붙는다: 공용 틀의 max-width:1360px·가운데 정렬은 이 화면에서만 풀고 /content 작품 관리는 그대로다', () => {
+  expect(episodeCss).toContain('.ep-main:has(.ep-manage){max-width:1360px}') // 공용 틀(/content 작품 관리)은 그대로
+  expect(episodeCss).not.toContain('world-content')
+  const frame = css.match(/\.ep-main:has\(\.world-content\.ep-manage\)\{([^}]*)\}/)?.[1] ?? ''
+  expect(frame).toMatch(/max-width:\s*none/)
+  expect(frame).toMatch(/margin-inline:\s*0/)
+  // 본문 열(.ep-content)이 남는 폭을 쓰고, 안의 글·표는 읽기 좋은 폭(1072px)까지만 쓰며 열 안에서 가운데에 둔다. 관계도 보기(?view=people)는 열 전체 폭이다.
+  const inner = css.match(/\.world-content\.ep-manage \.ep-content:not\(\[data-view=people\]\)>\*\{([^}]*)\}/)?.[1] ?? ''
+  expect(inner).toMatch(/max-width:\s*1072px/)
+  expect(inner).toMatch(/margin-inline:\s*auto/)
+})

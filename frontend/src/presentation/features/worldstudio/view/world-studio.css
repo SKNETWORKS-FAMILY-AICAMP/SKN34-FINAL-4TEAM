@@ -427,3 +427,8 @@ a.world-card-link{text-decoration:none}
 @media(pointer:coarse){.episode-app .world-compact input:not([type=checkbox]):not([type=radio]),.episode-app .world-compact select,.world-rail-tools input{font-size:16px}}
 .world-card-links-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.world-card-links-head h4{margin:0}
 .world-reach-badge{margin-left:8px;font-weight:600}
+
+/* 넓은 화면(1920px 이상): 세계관 관리 화면은 본문이 폭을 다 쓴다 — 메뉴는 왼쪽 끝에, AI 채팅은 오른쪽 끝에 붙는다. 공용 틀의 .ep-main:has(.ep-manage){max-width:1360px}(shared/episode.css)와 가운데 정렬은
+   이 화면(.world-content)에서만 풀고 /content 작품 관리는 그대로다. 남는 폭은 내용 열(.ep-content)이 쓰되 안의 글·표는 읽기 좋은 폭(≈1070px)까지만 쓰고 열 안에서 가운데에 둔다. 관계도 보기(?view=people)의 캔버스는 열 전체 폭이다. */
+.ep-main:has(.world-content.ep-manage){max-width:none;margin-inline:0}
+.world-content.ep-manage .ep-content:not([data-view=people])>*{max-width:1072px;margin-inline:auto}
