@@ -50,16 +50,19 @@ class PipelineServiceTest {
         val agents = listOf("qa", "writing", "manuscript_review", "world", "research", "rating", "character_simulation")
 
         assertEquals(
-            listOf("request", "guard", "main") + agents + listOf("mcp", "apply", "proposals", "initial_world", "manuscript_extraction", "work_tags", "world_review", "rating_direct", "writing_editing"),
+            listOf("request", "guard", "main") + agents + listOf("novelbrain", "mcp", "apply", "proposals", "initial_world", "manuscript_extraction", "work_tags", "world_review", "rating_direct", "writing_editing"),
             nodes.map { it.id },
         )
-        assertEquals(listOf("집필 AI 요청", "Decision Guard", "메인 에이전트", "Content MCP 도구", "작가 승인 반영"), listOf("request", "guard", "main", "mcp", "apply").map { byId.getValue(it).label })
+        assertEquals(listOf("집필 AI 요청", "Decision Guard", "메인 에이전트", "NovelBrain 기억 회상", "Content MCP 도구", "작가 승인 반영"),
+            listOf("request", "guard", "main", "novelbrain", "mcp", "apply").map { byId.getValue(it).label })
         assertEquals(listOf("guard"), byId.getValue("request").next)
         assertEquals(listOf("main"), byId.getValue("guard").next)
         assertEquals(agents + "mcp", byId.getValue("main").next)
-        for (id in agents) assertEquals(listOf("apply"), byId.getValue(id).next, id)
-        // Tools and the approval end the flow, and a standalone feature stands beside it: it has no links.
-        assertEquals(listOf(emptyList<String>(), emptyList<String>()), listOf("mcp", "apply").map { byId.getValue(it).next })
+        for (id in agents - "character_simulation") assertEquals(listOf("apply"), byId.getValue(id).next, id)
+        // The simulation also leads to the NovelBrain recall its characters make.
+        assertEquals(listOf("apply", "novelbrain"), byId.getValue("character_simulation").next)
+        // The recall, the tools and the approval end the flow, and a standalone feature stands beside it: it has no links.
+        assertEquals(List(3) { emptyList<String>() }, listOf("novelbrain", "mcp", "apply").map { byId.getValue(it).next })
         assertEquals(listOf("proposals", "initial_world", "manuscript_extraction", "work_tags", "world_review", "rating_direct", "writing_editing"), nodes.filter { it.standalone }.map { it.id })
         assertTrue(nodes.filter { it.standalone }.all { it.next.isEmpty() })
         assertTrue(nodes.flatMap { it.next }.all { it in byId })
@@ -77,12 +80,13 @@ class PipelineServiceTest {
             ObservationGroup("step.writing_editing", "DEFAULT", null, 6), ObservationGroup("writing.generation", "DEFAULT", "writing.draft", 6),
             ObservationGroup("mcp.work_read", "DEFAULT", null, 4), ObservationGroup("mcp.world_studio_edit_draft", "ERROR", null, 1),
             ObservationGroup("step.world.apply", "DEFAULT", null, 2),
+            ObservationGroup("novelbrain.recall", "DEFAULT", null, 9), ObservationGroup("novelbrain.recall", "ERROR", null, 1),
             // A name no node lists is counted nowhere.
             ObservationGroup("somebody_elses_span", "DEFAULT", null, 99),
         ))
         `when`(langfuse.observationLatencies(from, to, orchestration)).thenReturn(mapOf(
             "decision_guard" to 100.0, "decision_guard.generation" to 820.4, "step.story_context" to 3000.0, "qa.generation" to 2500.0,
-            "mcp.work_read" to 50.0, "mcp.world_studio_edit_draft" to 400.0, "somebody_elses_span" to 9999.0,
+            "mcp.work_read" to 50.0, "mcp.world_studio_edit_draft" to 400.0, "novelbrain.recall" to 350.0, "somebody_elses_span" to 9999.0,
         ))
         `when`(langfuse.observationGroups(from, to, standalone)).thenReturn(listOf(
             ObservationGroup("proposals", "DEFAULT", null, 3), ObservationGroup("proposals.generation", "DEFAULT", "proposals.suggest", 3),
@@ -100,6 +104,7 @@ class PipelineServiceTest {
         assertEquals(listOf<Any?>(10L, 0L, 3000L, listOf("story_context.answer")), figures("qa"))
         assertEquals(listOf<Any?>(5L, 1L, 400L, emptyList<String>()), figures("mcp"))
         assertEquals(listOf<Any?>(2L, 0L, null, emptyList<String>()), figures("apply"))
+        assertEquals(listOf<Any?>(10L, 1L, 350L, emptyList<String>()), figures("novelbrain"))
         assertEquals(listOf<Any?>(0L, 0L, null, emptyList<String>()), figures("request"))
         // The same names are counted in the request they belong to: the rating agent of the chat and the rating of its own request are two nodes.
         assertEquals(listOf<Any?>(14L, 0L, null, listOf("rating.assess")), figures("rating"))
@@ -107,7 +112,7 @@ class PipelineServiceTest {
         assertEquals(listOf<Any?>(6L, 0L, 12000L, listOf("proposals.suggest")), figures("proposals"))
         assertEquals(listOf<Any?>(12L, 0L, null, listOf("writing.draft")), figures("writing"))
         assertEquals(listOf<Any?>(4L, 0L, 9000L, listOf("writing.draft")), figures("writing_editing"))
-        assertEquals(20L + 10 + 14 + 5 + 2 + 3 + 6 + 12 + 4, nodes.values.sumOf { it.count })
+        assertEquals(20L + 10 + 14 + 5 + 2 + 3 + 6 + 12 + 4 + 10, nodes.values.sumOf { it.count })
     }
 
     @Test
@@ -192,6 +197,7 @@ class PipelineServiceTest {
             "research" to setOf("step.research", "research.generation", "research.platform_pick", "research.platform_refer"),
             "rating" to setOf("step.rating", "rating.generation"),
             "character_simulation" to setOf("step.character_simulation", "step.character_simulation.plan", "simulation.plan", "simulation.act", "simulation.narrate", "simulation.check", "simulation.director", "simulation.turn"),
+            "novelbrain" to setOf("novelbrain.recall"),
             "apply" to setOf("step.writing_editing.apply", "step.world.apply", "step.character_simulation.apply"),
         )
         for ((id, names) in expected) service.records(operators.llm, id, from, to, null, 0)
@@ -204,6 +210,20 @@ class PipelineServiceTest {
         for (id in requests.keys) service.records(operators.llm, id, from, to, null, 0)
 
         assertEquals(requests.map { (key, prefix) -> listOf(key, emptySet<String>(), prefix) }, rules().takeLast(requests.size).map { it.take(3) })
+    }
+
+    @Test
+    fun `a record's metadata leaves out the keys the Langfuse SDK adds and keeps the rest`() {
+        val sdk = mapOf("scope.attributes.public_key" to "pk-lf-1", "scope.name" to "langfuse-sdk", "resourceAttributes.service.name" to "storyfork-ai")
+        val judged = observation("t-1", "o1", name = "decision_guard", metadata = mapOf("turn" to "1") + sdk)
+        val bare = observation("t-1", "o2", name = "decision_guard", metadata = sdk)
+        `when`(langfuse.pipelineObservations(from, to, "orchestration", guardNames, null, null, 0, 20)).thenReturn(TraceRoots(listOf(judged, bare), 2))
+
+        val items = service.records(operators.llm, "guard", from, to, null, 0).items
+
+        assertEquals(listOf("turn"), items[0].metadata?.propertyNames()?.toList())
+        // With nothing left there is no metadata: null, not an empty object.
+        assertNull(items[1].metadata)
     }
 
     @Test

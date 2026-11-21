@@ -78,7 +78,7 @@ class TraceService(private val permissions: AdminPermissionRepository, private v
             path("usageDetails").path("input").takeIf { it.isNumber }?.asLong(), path("usageDetails").path("output").takeIf { it.isNumber }?.asLong(),
             path("level").textOrNull() ?: "DEFAULT", path("statusMessage").textOrNull(), path("promptName").textOrNull(),
             path("promptVersion").takeIf { it.isNumber }?.asInt(),
-            path("parentObservationId").textOrNull(), path("input").clipped(), path("output").clipped(), path("metadata").clipped(),
+            path("parentObservationId").textOrNull(), path("input").clipped(), path("output").clipped(), path("metadata").ownMetadata(),
         )
     }
 

@@ -24,7 +24,7 @@ private fun chat(id: String, label: String, next: List<String>, vararg names: St
 private fun alone(id: String, label: String, feature: String = id, prefix: String = feature) =
     NodeSpec(id, label, emptyList(), feature, prefix = prefix, standalone = true)
 
-/** The nodes in flow order: the request, the guard, the main agent, its seven agents and its tools, the approval, then the standalone features. */
+/** The nodes in flow order: the request, the guard, the main agent, its seven agents (the recall of the simulation after it) and its tools, the approval, then the standalone features. */
 internal val PIPELINE_NODES = listOf(
     chat("request", "집필 AI 요청", listOf("guard"), "orchestration"),
     chat("guard", "Decision Guard", listOf("main"), "decision_guard", "decision_guard.generation"),
@@ -37,8 +37,10 @@ internal val PIPELINE_NODES = listOf(
         "world_review.impact.generation"),
     chat("research", "고증 조사", APPLY, "step.research", "research.generation", "research.platform_pick", "research.platform_refer"),
     chat("rating", "심의 등급", APPLY, "step.rating", "rating.generation"),
-    chat("character_simulation", "인물 시뮬레이션", APPLY, "step.character_simulation", "step.character_simulation.plan", "simulation.plan", "simulation.act", "simulation.narrate",
+    chat("character_simulation", "인물 시뮬레이션", APPLY + "novelbrain", "step.character_simulation", "step.character_simulation.plan", "simulation.plan", "simulation.act", "simulation.narrate",
         "simulation.check", "simulation.director", "simulation.turn"),
+    // The recall NovelBrain makes for the characters of the simulation (it is also made inside the rating, which has no link to it).
+    chat("novelbrain", "NovelBrain 기억 회상", emptyList(), "novelbrain.recall"),
     NodeSpec("mcp", "Content MCP 도구", emptyList(), CHAT, prefix = "mcp."),
     chat("apply", "작가 승인 반영", emptyList(), "step.writing_editing.apply", "step.world.apply", "step.character_simulation.apply"),
     alone("proposals", "전개 제안"),

@@ -72,6 +72,18 @@ internal fun JsonNode.clipped(): JsonNode? {
     return if (text.length <= BODY_LIMIT) body else StringNode.valueOf(text.take(BODY_LIMIT))
 }
 
+/** The metadata keys the Langfuse SDK and its OpenTelemetry exporter add to every observation (scope.name, scope.attributes.public_key, resourceAttributes.service.name, ...). */
+private val SDK_METADATA_PREFIXES = listOf("scope.", "resourceAttributes.")
+
+/**
+ * An observation's own metadata for a screen: without the keys the SDK adds, which bury the ones that explain a judgement, then [clipped]. null when none are left,
+ * so a screen shows no metadata instead of an empty object.
+ */
+internal fun JsonNode.ownMetadata(): JsonNode? {
+    val own = properties().filterNot { (key, _) -> SDK_METADATA_PREFIXES.any { key.startsWith(it) } }
+    return if (own.isEmpty()) null else ioReader.createObjectNode().apply { own.forEach { (key, value) -> set(key, value) } }.clipped()
+}
+
 /** How long an observation ran in milliseconds; 0 for one without an end (it never ended). */
 internal fun JsonNode.latencyMs(): Long {
     val start = path("startTime").instantOrNull()

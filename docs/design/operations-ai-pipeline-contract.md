@@ -27,7 +27,8 @@ LLM Ops `프롬프트·모델` 쪽(`/admin?tab=llm&view=prompts`)에 **전체** 
 | `world` 세계관 | `step.world`, `world_review`, `world_review.generation`, `world_review.enrich`(`.generation`), `world_review.impact`(`.generation`) | apply |
 | `research` 고증 조사 | `step.research`, `research.generation`·`.platform_pick`·`.platform_refer` | apply |
 | `rating` 심의 등급 | `step.rating`, `rating.generation` | apply |
-| `character_simulation` 인물 시뮬레이션 | `step.character_simulation`, `step.character_simulation.plan`, `simulation.plan`·`.act`·`.narrate`·`.check`·`.director`·`.turn` | apply |
+| `character_simulation` 인물 시뮬레이션 | `step.character_simulation`, `step.character_simulation.plan`, `simulation.plan`·`.act`·`.narrate`·`.check`·`.director`·`.turn` | apply, novelbrain |
+| `novelbrain` NovelBrain 기억 회상 | `novelbrain.recall` | — |
 | `mcp` Content MCP 도구 | `mcp.`로 시작하는 이름 | — |
 | `apply` 작가 승인 반영 | `step.writing_editing.apply`, `step.world.apply`, `step.character_simulation.apply` | — |
 
@@ -54,8 +55,8 @@ AI 코드의 단독 요청 중 `manuscript_review`·`web_research`는 노드가 
 | 경로 | 내용 |
 |---|---|
 | `GET /llmops/pipeline?from&to` | `{nodes:[{id,label,next:[id],standalone,count,errors,p95LatencyMs?,promptNames:[string]}]}` — 노드별 observation 수·ERROR level 수·p95 지연과 그 노드 generation에 연결된 프롬프트 이름. 기본 기간은 최근 7일이고 비었거나 거꾸로면 400. p95는 노드 이름별 p95 중 가장 큰 값이고 측정된 지연이 없으면 null이다 |
-| `GET /llmops/pipeline/{nodeId}/records?from&to&level&page` | 그 노드 observation 목록(최신순, 20개씩) `{items:[{id,traceId,name,type,startTime,latencyMs,level,statusMessage?,model?,promptName?,promptVersion?,input?,output?,metadata?}], page, size, total}`(trace 목록과 같은 쪽 모양). 본문은 칸마다 앞 8,000자까지(JSON 글은 JSON으로, 넘으면 앞 8,000자만 글로). `level`은 Langfuse level 하나(`DEBUG`·`DEFAULT`·`WARNING`·`ERROR`, 없으면 전체, 그 밖의 값은 400). 쪽은 0부터이고 최신 1,000개까지만 닿는다(쪽 번호 50부터 400). 없는 `nodeId`는 404 |
-| `GET /llmops/traces/{id}` (기존 확장) | observation마다 `parentObservationId`·`input`·`output`·`metadata`를 더한다(같은 8,000자 제한) — 작업 하나의 실행 흐름 트리. `parentObservationId`는 부모 단계의 id(루트는 null)이고 `input`·`output`·`metadata`는 JSON 글이면 JSON으로 준다 |
+| `GET /llmops/pipeline/{nodeId}/records?from&to&level&page` | 그 노드 observation 목록(최신순, 20개씩) `{items:[{id,traceId,name,type,startTime,latencyMs,level,statusMessage?,model?,promptName?,promptVersion?,input?,output?,metadata?}], page, size, total}`(trace 목록과 같은 쪽 모양). 본문은 칸마다 앞 8,000자까지(JSON 글은 JSON으로, 넘으면 앞 8,000자만 글로). `metadata`에서는 Langfuse SDK가 모든 observation에 붙이는 `scope.`·`resourceAttributes.`로 시작하는 키를 뺀다(8,000자는 남은 키 기준, 남는 키가 없으면 null). `level`은 Langfuse level 하나(`DEBUG`·`DEFAULT`·`WARNING`·`ERROR`, 없으면 전체, 그 밖의 값은 400). 쪽은 0부터이고 최신 1,000개까지만 닿는다(쪽 번호 50부터 400). 없는 `nodeId`는 404 |
+| `GET /llmops/traces/{id}` (기존 확장) | observation마다 `parentObservationId`·`input`·`output`·`metadata`를 더한다(같은 8,000자 제한) — 작업 하나의 실행 흐름 트리. `parentObservationId`는 부모 단계의 id(루트는 null)이고 `input`·`output`·`metadata`는 JSON 글이면 JSON으로 주고 `metadata`에서는 위와 같이 SDK 키를 뺀다 |
 
 Langfuse 실패는 502 `UPSTREAM_FAILED`(기존 규칙).
 Guard의 거절은 level이 아니라 `decision_guard` 출력 `allowed=false`(level DEFAULT)라 `level` 필터로는 걸러지지 않는다. 화면은 기록의 출력으로 거절을 표시한다.
@@ -74,3 +75,4 @@ Guard의 거절은 level이 아니라 `decision_guard` 출력 `allowed=false`(le
 - 본문 8,000자 자르기 때문에 긴 원고는 끝이 보이지 않는다. 전문은 Langfuse에서 본다(개발자용).
 - 노드 p95는 풀링 백분위가 아니라 노드 이름별 p95 중 가장 큰 값이다(노드마다 쿼리를 따로 보내지 않으려는 단순화). 건수·오류 수·프롬프트 이름은 Metrics API 집계라 정확하다.
 - 이름으로만 가르므로 `retrieval`은 시뮬레이션이 불러도 작품 질문 노드에 센다. 목록에 없는 이름은 어느 노드에도 세지 않는다.
+- `novelbrain.recall`은 rating 안에서 불러도 `novelbrain` 노드에 센다(선은 인물 시뮬레이션에서만 이어진다).

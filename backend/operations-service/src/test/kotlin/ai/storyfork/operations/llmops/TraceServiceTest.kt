@@ -196,6 +196,36 @@ class TraceServiceTest {
     }
 
     @Test
+    fun `a step's metadata leaves out the keys the Langfuse SDK adds and keeps the rest`() {
+        val sdk = mapOf("scope.attributes.public_key" to "pk-lf-1", "scope.version" to "4.18.0", "resourceAttributes.service.name" to "storyfork-ai", "resourceAttributes.telemetry.sdk.version" to "1.0")
+        val guard = observation("t-1", "o1", name = "decision_guard", parent = "root-t-1", startTime = "2026-11-19T01:00:01Z", input = """{"scope.x":1}""",
+            metadata = mapOf("turn" to "1", "scopes" to "kept", "resource" to "kept") + sdk)
+        val bare = observation("t-1", "o2", parent = "root-t-1", startTime = "2026-11-19T01:00:02Z", metadata = sdk)
+        `when`(langfuse.traceObservations("t-1")).thenReturn(listOf(root("t-1"), guard, bare))
+
+        val steps = service.detail(operators.llm, "t-1").observations
+
+        // Only the keys that start with "scope." or "resourceAttributes." go: the request root keeps its own, and so do names that merely look alike.
+        assertEquals(listOf("request_id", "fork", "status"), steps[0].metadata?.propertyNames()?.toList())
+        assertEquals(listOf("turn", "scopes", "resource"), steps[1].metadata?.propertyNames()?.toList())
+        assertEquals("1", steps[1].metadata?.path("turn")?.asString())
+        // The input is the writer's own text, whatever its keys are called.
+        assertEquals(1, steps[1].input?.path("scope.x")?.asInt())
+        // With nothing left the step has no metadata: null, not an empty object a screen would show as one.
+        assertNull(steps[2].metadata)
+    }
+
+    @Test
+    fun `the 8000 character limit of metadata counts only the keys that are shown`() {
+        val big = observation("t-1", "o1", parent = "root-t-1", startTime = "2026-11-19T01:00:01Z", metadata = mapOf("note" to "다".repeat(100), "scope.attributes.big" to "라".repeat(9_000)))
+        `when`(langfuse.traceObservations("t-1")).thenReturn(listOf(root("t-1"), big))
+
+        val metadata = service.detail(operators.llm, "t-1").observations[1].metadata
+
+        assertEquals(listOf(true, "다".repeat(100)), listOf(metadata?.isObject, metadata?.path("note")?.asString()))
+    }
+
+    @Test
     fun `a step body longer than 8000 characters is cut to its first 8000 and a body within the limit stays whole`() {
         val text = "가".repeat(9_000)
         val longJson = """{"text":"${"나".repeat(9_000)}"}"""
