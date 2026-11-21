@@ -4440,18 +4440,22 @@ it('관계도 보기는 React Flow 캔버스가 내용 열 전체 폭의 한 열
   expect(document.querySelector('.ep-content')!.getAttribute('data-view')).toBeNull() // 작성 모드는 그대로
 })
 
-it('관계도 보기의 안내문·범례는 캔버스 감싸개(.relationship-canvas) 안에서 캔버스에 겹치고, 유형 필터와 설정 찾기는 캔버스 위 한 줄(.relationship-bar)이며, 관계 기준 회차는 그 바깥이라 편집기가 다시 열려도 그대로다', async () => {
+it('관계도 보기의 안내문·범례는 캔버스 감싸개(.relationship-canvas) 안의 한 묶음(.relationship-notes)에서 캔버스에 겹치고, 유형 필터·설정 찾기·도구 막대는 캔버스 위 한 줄(.relationship-bar)이며, 관계 기준 회차는 그 바깥이라 편집기가 다시 열려도 그대로다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people')
   const canvas = screen.getByRole('group', { name: '인물 카드 그래프' }).closest('.relationship-canvas') as HTMLElement
   expect(canvas).toBeTruthy()
-  expect(within(canvas).getByText(/카드 옆 점을 끌어 관계를 이어요/).getAttribute('role')).toBe('status') // 안내문은 캔버스 위에 겹치는 작은 글(상태 안내)
-  expect(within(canvas).getByRole('list', { name: '범례' })).toBeTruthy()
+  const notes = canvas.querySelector('.relationship-notes') as HTMLElement
+  expect(within(notes).getByText(/카드 옆 점을 끌어 관계를 이어요/).getAttribute('role')).toBe('status') // 안내문은 캔버스 아래에 겹치는 작은 글(상태 안내)
+  expect(within(notes).getByRole('list', { name: '범례' })).toBeTruthy()
   const bar = document.querySelector('.relationship-bar') as HTMLElement
   const filter = within(bar).getByRole('group', { name: '관계도 유형 필터' }), find = within(bar).getByRole('combobox', { name: '설정 찾기' })
   expect(filter.compareDocumentPosition(find) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 유형 필터 → 설정 찾기(키보드 순서도 같다)
-  expect(within(bar).queryByRole('button', { name: '인물 추가' })).toBeNull() // 도구는 캔버스 안 도구 막대에 있다
-  expect(within(canvas).getByRole('toolbar', { name: '관계도 도구' })).toBeTruthy()
+  expect(within(bar).queryByRole('button', { name: '인물 추가' })).toBeNull()
+  const tools = within(bar).getByRole('toolbar', { name: '관계도 도구' }) // 도구는 같은 줄의 오른쪽에 있다
+  expect(within(tools).getAllByRole('button').map((b) => b.textContent)).toEqual(['+ 설정 추가', '배치 정돈', '화면 맞춤'])
+  expect(find.compareDocumentPosition(tools) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 설정 찾기 다음
+  expect(canvas.contains(tools)).toBe(false) // 캔버스 위에 겹치지 않는다
   expect(bar.compareDocumentPosition(canvas) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 묶음은 캔버스 위
   expect(bar.contains(screen.getByRole('region', { name: '관계 기준 회차' }))).toBe(false) // 회차 칸은 다시 열리는 편집기 바깥
 })

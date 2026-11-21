@@ -9,14 +9,14 @@
 .relationship-stage{--stage-1:#182742;--stage-2:#0b1324;--stage-3:#080e1b;--edge:color-mix(in srgb,#A9C6FF 70%,var(--stage-2));--edge-emotion:color-mix(in srgb,#FFD98A 75%,var(--stage-2));--edge-active:var(--fixed-ink);--edge-halo:var(--stage-3);--stage-tint:color-mix(in srgb,var(--fixed-ink) 8%,transparent);--rc-bg:color-mix(in srgb,var(--fixed-ink) 7%,var(--stage-2));--rc-line:color-mix(in srgb,var(--fixed-ink) 18%,transparent);--rc-ink:var(--fixed-ink);--rc-sub:var(--fixed-sub);--rc-sel:color-mix(in srgb,var(--fixed-pri) 20%,var(--stage-2));--rc-accent:var(--fixed-pri);min-width:0;max-width:100%;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:radial-gradient(ellipse at 50% 46%,var(--stage-1) 0%,var(--stage-2) 56%,var(--stage-3) 100%)}
 /* 고른 카드는 보라 틴트 면이라 보조 글자(--fixed-sub)의 대비가 무대 가운데에서 4.22:1까지 내려간다. 고른 카드만 밝게 섞어 5.64:1 이상으로 올린다. */
 .relationship-stage .relationship-character-card.selected{--rc-sub:color-mix(in srgb,var(--fixed-sub) 70%,var(--fixed-ink))}
-/* 그래프 위 한 줄(유형 필터 · 설정 찾기 · 삭제된 설정 알림): 자리가 모자랄 때만 줄이 늘어난다. 도구(+ 설정 추가·배치 정돈·화면 맞춤)는 캔버스 왼쪽 위에 떠 있다.
+/* 그래프 위 한 줄(유형 필터 · 설정 찾기 · 도구 · 삭제된 설정 알림): 자리가 모자랄 때만 줄이 늘어난다. 도구(+ 설정 추가·배치 정돈·화면 맞춤)는 같은 줄 오른쪽에 있고 캔버스 위에 겹치지 않는다.
    안내·알림 글자는 전역 .muted(--sub, 라이트 #5F6370)면 어두운 무대 위 대비가 2.5~3.1:1이라 고정 면의 보조 글자색(--fixed-sub)을 쓴다. */
 .relationship-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:10px 16px}
 .relationship-bar>p{flex:1 1 100%;margin:0}
 .relationship-stage .muted{color:var(--fixed-sub)}
 .relationship-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 16px 10px;color:var(--fixed-sub);font-size:12.5px;line-height:1.6}.relationship-hint .btn{margin-left:auto}
-/* 캔버스 감싸개: 안내문(DOM은 캔버스 뒤)은 order로 캔버스 위에, 범례는 캔버스 아래에 둔다(작성 모드). 관리 모드 관계도 보기는 둘을 캔버스 위에 겹친다(world-studio.css). */
-.relationship-canvas{position:relative;display:flex;flex-direction:column}.relationship-canvas>.relationship-hint{order:-1}
+/* 캔버스 감싸개: 안내문(DOM은 캔버스 뒤)은 order로 캔버스 위에, 범례는 캔버스 아래에 둔다(작성 모드). 둘을 묶은 .relationship-notes는 자리를 차지하지 않는다(display:contents). 관리 모드 관계도 보기는 묶음을 캔버스 아래 가운데에 겹친다(world-studio.css). */
+.relationship-canvas{position:relative;display:flex;flex-direction:column}.relationship-notes{display:contents}.relationship-canvas .relationship-hint{order:-1}
 .relationship-stage .btn{background:var(--stage-tint);border-color:color-mix(in srgb,var(--fixed-ink) 20%,transparent);color:var(--fixed-ink)}.relationship-stage .btn:hover{background:color-mix(in srgb,var(--fixed-ink) 16%,transparent)}.relationship-stage .btn.pri{background:var(--fixed-pri);border-color:var(--fixed-pri);color:var(--on-fixed-pri)}.relationship-stage .btn.pri:hover{background:color-mix(in srgb,var(--fixed-pri) 75%,var(--fixed-ink))}
 /* 유형 필터 칩: 켜진(보이는) 유형은 보라 틴트 면 + 낮춘 보라 테두리, 꺼진 유형은 기본 무대 버튼에 글자만 물러난(--fixed-sub) 모양이다(quieter).
    기본이 '모두 켜짐'이라 밝은 보라 테두리(--rc-accent, 무대 위 6.8~8.8:1) 여섯 개가 그래프보다 먼저 보였다. 켜짐 표시는 지우지 않고(선택 상태, 비문자 3:1) 무대 색에 60% 섞어 3.0~3.9:1로 낮춘다. 꺼진 칩의 보조 글자는 hover 면 위에서 3.8:1이라 hover에서 다시 밝힌다. */
@@ -51,7 +51,7 @@
 .relationship-port{width:12px;height:12px;border:2px solid var(--rc-accent,var(--pri));border-radius:50%;background:var(--rc-bg,var(--surface))}
 .relationship-port::after{content:"";position:absolute;inset:-10px;border-radius:50%}
 .relationship-port:is(:hover,.connectingfrom,.connectingto,.valid){background:var(--rc-accent,var(--pri));box-shadow:0 0 0 4px color-mix(in srgb,var(--rc-accent,var(--pri)) 30%,transparent)}
-/* 층: 간선(React Flow 간선 층) < 카드 < 이름표 층(.relationship-names, z-index 5) < 도구 막대·컨트롤(React Flow Panel: z-index 5지만 DOM에서 뒤라 위). 이름표 층은 화면 좌표라 확대 배율을 따라 커지지 않고 누르는 것을 가로채지 않는다.
+/* 층: 간선(React Flow 간선 층) < 카드 < 이름표 층(.relationship-names, z-index 5) < 컨트롤(React Flow Panel: z-index 5지만 DOM에서 뒤라 위). 이름표 층은 화면 좌표라 확대 배율을 따라 커지지 않고 누르는 것을 가로채지 않는다.
    카드 면은 위 .relationship-stage 변수가 불투명이라 카드 뒤를 지나는 간선이 글자를 가로지르지 않고, 이름표는 카드 위에서도 읽힌다. */
 .relationship-names{position:absolute;inset:0;z-index:5;overflow:hidden;pointer-events:none}
 .relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-character-card h4 img{object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px}
@@ -87,8 +87,9 @@
 .relationship-edge-name{padding:0 4px;border-radius:4px;background:var(--edge-halo);font-size:12px;color:var(--fixed-sub)}
 /* 가까이(near)가 아니면 끌어 잇는 점은 React Flow가 선을 그리려고 둘 뿐이라 숨긴다. */
 .relationship-flow:not([data-level=near]) .relationship-port{visibility:hidden}
-/* 캔버스 왼쪽 위 도구(+ 설정 추가·배치 정돈·화면 맞춤): React Flow Panel의 기본 여백 15px을 줄이고 좁으면 줄바꿈한다. 패널이 열려 있는 동안 + 설정 추가 버튼은 눌린 모양이다. */
-.relationship-tools{display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 24px);margin:10px 12px}
+/* 도구(+ 설정 추가·배치 정돈·화면 맞춤): 캔버스 위 한 줄(.relationship-bar)의 오른쪽 자리에 놓이고(줄이 바뀌어도 오른쪽) 좁으면 도구끼리도 줄바꿈한다. 패널이 열려 있는 동안 + 설정 추가 버튼은 눌린 모양이다. */
+.relationship-tools-slot{margin-left:auto}
+.relationship-tools{display:flex;flex-wrap:wrap;gap:6px}
 .relationship-tools .btn[aria-expanded=true]{background:var(--rc-sel);border-color:color-mix(in srgb,var(--rc-accent) 60%,var(--stage-2))}
 /* + 설정 추가 패널(n8n의 노드 추가 패널): 캔버스 오른쪽에 붙어 열리고 좁은 화면(600px 이하)에서는 캔버스 아래에서 올라오는 시트다. z-index는 React Flow 층(최대 6)과 안내·범례(10) 위다. */
 .relationship-add-panel{position:absolute;top:0;right:0;bottom:0;z-index:20;display:flex;flex-direction:column;gap:10px;width:min(300px,100%);padding:14px;overflow:auto;border-left:1px solid var(--rc-line);background:color-mix(in srgb,var(--stage-3) 94%,transparent);color:var(--fixed-ink)}

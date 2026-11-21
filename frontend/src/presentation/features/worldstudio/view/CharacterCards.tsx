@@ -1,5 +1,6 @@
 import '@xyflow/react/dist/style.css'
-import { Background, BackgroundVariant, ControlButton, Controls, Handle, Panel, Position, ReactFlow, ReactFlowProvider, getViewportForBounds, useReactFlow, useReactFlowStoreApi, useViewportStore, type AriaLabelConfig, type Connection, type Edge, type EdgeProps, type Node, type NodeProps, type NodeTypes, type EdgeTypes, type OnNodesChange, type Viewport } from '@xyflow/react'
+import { Background, BackgroundVariant, ControlButton, Controls, Handle, Position, ReactFlow, ReactFlowProvider, getViewportForBounds, useReactFlow, useReactFlowStoreApi, useViewportStore, type AriaLabelConfig, type Connection, type Edge, type EdgeProps, type Node, type NodeProps, type NodeTypes, type EdgeTypes, type OnNodesChange, type Viewport } from '@xyflow/react'
+import { createPortal } from 'react-dom'
 import { createContext, memo, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type FocusEvent as ReactFocusEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type MutableRefObject, type PointerEvent as ReactPointerEvent } from 'react'
 import { presentationPortrait } from '../../../../app/presentationPortraits'
 import { cardTypes, type CardType } from '../../../../domain/entities/studioCards'
@@ -75,17 +76,17 @@ function useStableList<T extends { id: string }>(list: T[]): T[] {
 
 /**
  * 카드·선·이름표 층이 쓰는 값. 편집기가 다시 그려져도 바뀌지 않는다(바뀌면 모든 카드·선이 다시 그려진다): 편집 동작은 `live`(가장 최근 것)에서 부를 때 읽고, hover·초점은 저장소로 나눠 읽는다
- * (`hot`: 마우스를 올리거나 초점이 간 선, `hover`: 마우스를 올리거나 키보드 초점이 간 카드, `pinned`: 눌러 고정한 강조 카드).
+ * (`hot`: 마우스를 올리거나 초점이 간 선, `hover`: 마우스가 올라간 카드, `focused`: 키보드 초점(`:focus-visible`)이 있는 카드, `pinned`: 눌러 고정한 강조 카드).
  * 바뀌는 것은 `busy`(처리 중)·`source`(연결을 시작한 카드)뿐이다: 연결 모드를 켜고 끌 때는 모든 카드의 버튼이 바뀌어야 하고, 같은 렌더에서 DOM이 바뀌어야 편집기가 그 직후 초점을 돌려줄 수 있다.
  */
-type Graph = { live: MutableRefObject<Actions>; marker: string; hot: Store<string>; hover: Store<string>; pinned: Store<string>; openMenu: (menu: MenuState) => void; reveal: (card: HTMLElement, center: Point) => void; pressed: MutableRefObject<boolean>; busy: boolean; source: string | null }
+type Graph = { live: MutableRefObject<Actions>; marker: string; hot: Store<string>; hover: Store<string>; focused: Store<string>; pinned: Store<string>; openMenu: (menu: MenuState) => void; reveal: (card: HTMLElement, center: Point) => void; pressed: MutableRefObject<boolean>; busy: boolean; source: string | null }
 const GraphContext = createContext<Graph>(undefined as unknown as Graph)
 
 /**
  * 화면 맞춤: 카드 글자가 읽히도록 원래 크기(1배)까지만 키우고 0.05배까지 줄인다(카드 수백 장이 한 화면에 들어온다). 처음·도구 막대·컨트롤의 화면 맞춤이 같은 값을 쓴다.
- * 여백은 캔버스 위에 겹친 것의 자리다: 위는 왼쪽 위 도구 막대 + 안내문(112px: 터치는 도구 버튼이 44px라 안내문이 68px부터 시작한다), 왼쪽은 아래 컨트롤(72px), 아래는 가운데 범례(72px). 카드가 그 밑으로 들어가지 않는다.
+ * 여백은 캔버스 위에 겹친 것의 자리다: 위는 숨 쉴 자리(24px: 도구 막대는 캔버스 위 한 줄로 올라가 캔버스에 겹치지 않는다), 왼쪽은 아래 컨트롤(72px), 아래는 가운데 안내문 + 범례(88px). 카드가 그 밑으로 들어가지 않는다.
  */
-const FIT = { padding: { top: '112px', right: '24px', bottom: '72px', left: '72px' }, minZoom: 0.05, maxZoom: 1 } as const
+const FIT = { padding: { top: '24px', right: '24px', bottom: '88px', left: '72px' }, minZoom: 0.05, maxZoom: 1 } as const
 /** + 설정 추가 패널의 폭(CSS `width:min(300px,100%)`와 같다): 패널이 열린 채 화면 맞춤을 하면 그만큼(+16px)을 오른쪽에 비워 카드가 패널 밑에 들어가지 않게 한다. */
 const PANEL_W = 300
 /** 카드가 이만큼 많으면 화면 밖 카드는 그리지 않는다(onlyRenderVisibleElements). 적을 때는 모두 그려 키보드(Tab)로 모든 카드에 닿는다. */
@@ -185,7 +186,7 @@ const RelationLine = memo(function RelationLine({ id, data }: EdgeProps<FlowRela
   // 멀리·중간에서는 선이 화면에서 늘 가늘다(non-scaling-stroke: 캔버스를 줄여도 굵어지지 않고 누르는 자리도 12px로 남는다). 화살표는 멀리서는 그리지 않는다.
   const thin = data.level !== 'near', vector = thin ? 'non-scaling-stroke' : undefined
   return (
-    <g className="relationship-edge" data-edge={id} onMouseEnter={() => hot.set(id)} onMouseLeave={() => hot.set('')}>
+    <g className="relationship-edge" onMouseEnter={() => hot.set(id)} onMouseLeave={() => hot.set('')}>
       <path d={data.d} fill="none" stroke={data.color} strokeWidth={thin ? (data.active ? 2 : data.level === 'far' ? 1 : 1.5) : data.active ? 3 : 2} vectorEffect={vector} strokeDasharray={data.dashed ? '6 4' : undefined} markerEnd={data.arrow && data.level !== 'far' ? 'url(#' + marker + ')' : undefined} />
       <path d={data.d} className="relationship-edge-hit" fill="none" stroke="transparent" strokeWidth={thin ? 12 : 16} vectorEffect={vector} role="button" tabIndex={0} aria-label={data.name} onClick={edit} onKeyDown={onKeyDown} onFocus={() => hot.set(id)} onBlur={() => hot.set('')}><title>{data.title}</title></path>
       {/* 마우스를 올리거나 초점이 간 선(가까이서만) 가운데 위쪽에 작은 편집·삭제 버튼이 뜬다(n8n처럼): 나머지 선은 이 요소를 만들지 않는다. 키보드·보조기기는 선의 Enter·Delete와 오른쪽 클릭 메뉴(ContextMenu 키)가 맡으므로 보조기기에서 숨긴다.
@@ -204,10 +205,10 @@ const RelationLine = memo(function RelationLine({ id, data }: EdgeProps<FlowRela
 /** 이벤트 대상이 속한 카드(노드 래퍼)의 id. 카드 밖이면 ''이다. */
 const nodeIdOf = (target: EventTarget | null) => (target instanceof Element ? target.closest('.react-flow__node')?.getAttribute('data-id') ?? '' : '')
 
-/** 지금 강조할 대상: 마우스를 올리거나 키보드 초점이 간 카드(없으면 눌러 고정한 카드)와 그 이웃·닿는 선. 없거나 이미 지워진 카드면 null이다. */
+/** 지금 강조할 대상: 마우스가 올라간 카드, 없으면 키보드 초점이 있는 카드, 없으면 눌러 고정한 카드와 그 이웃·닿는 선. 이웃은 React Flow에 주는 선(`edges`) 그대로 구한다. 없거나 이미 지워진 카드면 null이다. */
 function useAround(nodes: readonly LabelNode[], edges: readonly FlowRelation[]) {
-  const { hover, pinned } = useContext(GraphContext)
-  const hovered = useSlice(hover, (id) => id), held = useSlice(pinned, (id) => id), id = hovered || held
+  const { hover, focused, pinned } = useContext(GraphContext)
+  const hovered = useSlice(hover, (id) => id), keyed = useSlice(focused, (id) => id), held = useSlice(pinned, (id) => id), id = hovered || keyed || held
   return useMemo(() => (id && nodes.some((n) => n.id === id) ? { id, ...neighborhood(id, edges.map((e) => ({ id: e.id, source: e.source, target: e.target }))) } : null), [id, nodes, edges])
 }
 
@@ -275,7 +276,8 @@ const finite = (p?: Point): p is Point => !!p && Number.isFinite(p.x) && Number.
 /** 카드 중심(캔버스 좌표): 점·카드 어느 단계에서도 카드의 왼쪽 위 모서리(`p`)에서 같은 자리다. */
 const cardCenter = (p: Point): Point => ({ x: p.x + CARD_W / 2, y: p.y + CARD_H / 2 })
 
-type CanvasProps = { vm: ReturnType<typeof useWorldMapViewModel>; editing: Actions; find?: { id: string; seq: number } | null }
+/** `toolsSlot`: 도구 막대(+ 설정 추가·배치 정돈·화면 맞춤)를 그릴 자리다. 편집기가 유형 필터·설정 찾기와 같은 줄에 두려고 캔버스 밖(위 한 줄)에 만든 요소를 주고, 아직 없으면(첫 렌더) null이다. */
+type CanvasProps = { vm: ReturnType<typeof useWorldMapViewModel>; editing: Actions; find?: { id: string; seq: number } | null; toolsSlot: HTMLElement | null }
 
 /**
  * 카드 그래프(React Flow 캔버스, `@xyflow/react`는 이 파일에서만 쓴다): n8n처럼 캔버스에서 바로 조작한다.
@@ -283,19 +285,20 @@ type CanvasProps = { vm: ReturnType<typeof useWorldMapViewModel>; editing: Actio
  * - 시맨틱 줌(옵시디언식): 확대 배율이 0.5 미만이면 카드 한 장이 관계 수에 비례하는 점 하나(far: 가는 선, 이름은 관계가 많은 몇 장만), 0.5 이상 0.9 미만이면 점 + 이름(mid), 0.9 이상이면 카드(near: 이름·초상·소개·끌어 잇는 점·버튼)다.
  *   배율이 아니라 단계가 바뀔 때만 다시 그린다(배율은 CSS 변수로도 쓰지 않는다: 휠 틱마다 하위 요소 전체의 스타일을 다시 계산하게 된다). 카드 위치는 단계와 상관없이 같은 중심을 쓴다. 처음 배치와 '배치 정돈'은 힘 기반 배치(d3-force, 한 번에 계산, 어느 단계에서도 노드 상자가 겹치지 않는다)다.
  * - 이름표·강조: 점 이름과 선 위 관계 이름은 화면 좌표 층(`LabelLayer`)이 그린다. 카드에 마우스를 올리거나 초점이 가면(없으면 눌러 고정한 카드) 그 카드·이웃·사이 선만 또렷하고 나머지는 흐리다(`FocusStyle`의 CSS 한 덩어리).
- * - 도구: 왼쪽 위 도구 막대(`+ 설정 추가` 패널·`배치 정돈`·`화면 맞춤`), 왼쪽 아래 컨트롤(확대·축소·화면 맞춤). 새 카드는 보이는 화면 가운데(오른쪽 클릭이면 그 자리)에서 가장 가까운 빈 자리에 놓고 선택·확대하며 기존 카드는 움직이지 않는다. 끌어 놓은 카드가 다른 카드와 겹치면 가장 가까운 빈 자리로 옮긴다.
+ * - 도구: 캔버스 위 한 줄의 도구 막대(`+ 설정 추가` 패널·`배치 정돈`·`화면 맞춤`: 편집기가 준 `toolsSlot`에 그려 캔버스를 가리지 않는다), 왼쪽 아래 컨트롤(확대·축소·화면 맞춤). 새 카드는 보이는 화면 가운데(오른쪽 클릭이면 그 자리)에서 가장 가까운 빈 자리에 놓고 선택·확대하며 기존 카드는 움직이지 않는다. 끌어 놓은 카드가 다른 카드와 겹치면 가장 가까운 빈 자리로 옮긴다.
  * - 오른쪽 클릭 메뉴(빈 곳·카드·선, 키보드는 ContextMenu 키·Shift+F10, 터치는 카드 길게 누르기), 카드 좌·우 점에서 끌어 잇기, 카드 더블클릭 = 정보 편집, 선 클릭·Enter = 편집, 선 Delete = 삭제, 선 가운데의 편집·삭제 버튼(마우스를 올린 선 하나).
  * - 빈 캔버스에 초점이 있을 때(눌러서 초점을 줄 수 있고 Tab 순서에는 끼지 않는다) Tab은 `+ 설정 추가` 패널을 연다. 카드·선의 Tab은 평소대로 다음 요소로 간다.
  * - 성능: 카드·선은 memo하고 내용이 같으면 같은 객체를 React Flow에 준다(카드 하나를 끌면 그 카드와 닿은 선만 다시 그린다). hover·초점은 저장소라 Canvas를 다시 그리지 않는다. 카드가 40장 이상이면 화면 밖 카드는 그리지 않는다.
  *   카드·선의 키·초점은 캔버스 상자 하나가 받는다(위임): 노드마다 핸들러 객체를 새로 만들지 않는다.
+ * 첫 화면: 이어지지 않은 카드도 무리 가장자리에 놓이므로(`forceLayout`) 전체 맞춤이 무리를 가운데에 놓는다. 멀리서는 관계 상위 8~12개 카드의 이름을 붙이고 겹치면 작은 노드부터 숨긴다(점은 가려도 된다).
  * 선 위 관계 이름은 모든 단계에서 기본 숨김이고, 선에 마우스를 올리거나 키보드 초점이 간 선·고른(관계 작성 중인) 선에만 그린다. 나머지 선은 <title> 툴팁·누르는 영역의 이름(aria)으로만 읽힌다(겹친 선의 이름이 서로 가리지 않게).
- * 층: 간선(React Flow 간선 층) < 카드 < 이름표 층(화면 좌표 div, 도구 막대·컨트롤 아래). 캔버스 높이는 CSS가 정하고, 이 컴포넌트는 캔버스 위쪽의 문서 위치만 `--rf-top`으로 알린다(관계도 보기가 '화면 높이 − 위쪽'을 채운다. 상자가 보일 때·창 크기·단계가 바뀔 때·위 줄의 크기가 바뀔 때만 잰다).
+ * 층: 간선(React Flow 간선 층) < 카드 < 이름표 층(화면 좌표 div, 컨트롤 아래). 캔버스 높이는 CSS가 정하고, 이 컴포넌트는 캔버스 위쪽의 문서 위치만 `--rf-top`으로 알린다(관계도 보기가 '화면 높이 − 위쪽'을 채운다. 상자가 보일 때·창 크기·단계가 바뀔 때·위 줄의 크기가 바뀔 때만 잰다).
  */
 export default function CharacterCards(props: CanvasProps) {
   return <ReactFlowProvider><Canvas {...props} /></ReactFlowProvider>
 }
 
-function Canvas({ vm, editing, find }: CanvasProps) {
+function Canvas({ vm, editing, find, toolsSlot }: CanvasProps) {
   const rf = useReactFlow()
   const rfRef = useRef(rf)
   rfRef.current = rf
@@ -323,8 +326,8 @@ function Canvas({ vm, editing, find }: CanvasProps) {
     })
   }, [nodesIn, positions])
   const marker = useId().replaceAll(':', '')
-  const [hot] = useState(() => createStore('')), [hover] = useState(() => createStore('')), [pinned] = useState(() => createStore('')) // hot: 마우스를 올리거나 초점을 둔 선, hover: 마우스를 올리거나 키보드 초점이 간 카드, pinned: 눌러 고정한 강조 카드
-  const input = useRef<'keyboard' | 'pointer'>('keyboard') // 마지막 조작: 마우스를 벗어날 때 키보드 초점이 남은 카드로 강조를 돌려줄지 가른다(마우스로 눌러 초점이 간 카드는 벗어나면 풀려야 고정을 푸는 두 번째 누르기가 보인다)
+  // hot: 마우스를 올리거나 초점을 둔 선. 강조 카드는 출처마다 따로 둔다: hover(마우스), focused(키보드 초점), pinned(누른 고정). 마우스를 벗어나면 키보드 초점이나 고정으로 저절로 돌아간다.
+  const [hot] = useState(() => createStore('')), [hover] = useState(() => createStore('')), [focused] = useState(() => createStore('')), [pinned] = useState(() => createStore(''))
   const [panel, setPanel] = useState(false), [menu, setMenu] = useState<MenuState | null>(null), [added, setAdded] = useState<{ id: string; seq: number } | null>(null)
   const panelOpener = useRef<HTMLElement | null>(null), seq = useRef(0)
   const at = (id: string) => { const p = positions.get(id) ?? pending.current.get(id); return finite(p) ? p : undefined } // NaN·무한대 좌표는 그리지 않는다
@@ -440,7 +443,7 @@ function Canvas({ vm, editing, find }: CanvasProps) {
     const view = card.closest('.react-flow')?.getBoundingClientRect(), box = card.getBoundingClientRect()
     if (view && (box.left < view.left || box.right > view.right || box.top < view.top || box.bottom > view.bottom)) void rfRef.current.setCenter(center.x, center.y, { zoom: rfRef.current.getZoom() })
   }, [])
-  const context = useMemo<Graph>(() => ({ live, marker, hot, hover, pinned, openMenu, reveal, pressed, busy: editing.busy, source: editing.targetSource }), [marker, hot, hover, pinned, openMenu, reveal, editing.busy, editing.targetSource])
+  const context = useMemo<Graph>(() => ({ live, marker, hot, hover, focused, pinned, openMenu, reveal, pressed, busy: editing.busy, source: editing.targetSource }), [marker, hot, hover, focused, pinned, openMenu, reveal, editing.busy, editing.targetSource])
   // 카드(노드 래퍼) 자체에 초점이 있을 때의 키: 래퍼마다 핸들러를 만들지 않고 캔버스 상자가 받는다(카드 안 버튼의 키는 그 버튼이 쓴다).
   const nodeKeyDown = (e: ReactKeyboardEvent<HTMLElement>, id: string, card: Element) => {
     if (e.key === 'Enter') { e.preventDefault(); if (!editing.busy) editing.onSelect(id) }
@@ -533,11 +536,20 @@ function Canvas({ vm, editing, find }: CanvasProps) {
     ]
   }
   const menuLabel = (m: MenuState) => m.kind === 'pane' ? '캔버스 메뉴' : m.kind === 'node' ? title(m.id) + ' 메뉴' : '관계선 메뉴'
+  // 도구 막대: 편집기가 만든 캔버스 위 한 줄(유형 필터·설정 찾기와 같은 줄)에 그린다. 캔버스를 가리지 않아 맞춤 여백이 위를 비울 필요가 없다. 캔버스 밖이라 캔버스 상자의 키·초점 처리(위임)가 이 버튼들로 오지 않는다.
+  const tools = (
+    <div className="relationship-tools" role="toolbar" aria-label="관계도 도구">
+      <button type="button" className="btn sm" aria-haspopup="dialog" aria-expanded={panel} onClick={(e) => { if (panel) closePanel(); else openPanel(e.currentTarget) }}>+ 설정 추가</button>
+      <button type="button" className="btn sm" onClick={relayout}>배치 정돈</button>
+      <button type="button" className="btn sm" onClick={() => fitAll()}>화면 맞춤</button>
+    </div>
+  )
   return (
+    <>
+    {toolsSlot && createPortal(tools, toolsSlot)}
     <div
       ref={host} className="relationship-flow" data-level={level} role="group" aria-label={subject + ' 카드 그래프'} tabIndex={-1}
       onKeyDown={(e) => {
-        input.current = 'keyboard'
         const target = e.target as Element
         if (e.key === 'Escape' && pinned.get()) { pinned.set(''); return } // 고정한 강조를 푼다(메뉴·패널은 Esc를 스스로 받고 전파하지 않는다)
         if (target === e.currentTarget) { // 캔버스 자체에 초점이 있을 때(카드·선·버튼·입력칸의 키는 그쪽이 쓴다)
@@ -548,16 +560,15 @@ function Canvas({ vm, editing, find }: CanvasProps) {
         const id = target.classList.contains('react-flow__node') ? target.getAttribute('data-id') : null // 카드 래퍼 자체일 때만(안쪽 버튼의 키는 제외)
         if (id) nodeKeyDown(e, id, target)
       }}
-      onFocus={(e) => { // 카드(또는 그 안 버튼)에 초점이 가면 마우스를 올린 것처럼 강조하고, 카드 래퍼 자체면 화면 밖일 때 가운데로 옮긴다
+      onFocus={(e) => { // 카드(또는 그 안 버튼)에 키보드 초점이 가면 마우스를 올린 것처럼 강조하고(마우스로 눌러 간 초점은 아니다: 그러면 고정을 푸는 두 번째 누르기가 보이지 않는다), 카드 래퍼 자체면 화면 밖일 때 가운데로 옮긴다
         const target = e.target as HTMLElement, id = nodeIdOf(target)
-        if (id) hover.set(id)
+        if (id && target.matches(':focus-visible')) focused.set(id)
         const p = target.classList.contains('react-flow__node') && id ? at(id) : undefined
         if (p) reveal(target, cardCenter(p))
       }}
-      onBlur={(e) => { const id = nodeIdOf(e.target); if (id && nodeIdOf(e.relatedTarget) !== id) hover.set('') }}
+      onBlur={(e) => { const id = nodeIdOf(e.target); if (id && nodeIdOf(e.relatedTarget) !== id) focused.set('') }}
       onMouseOver={(e) => { const id = nodeIdOf(e.target); if (id) hover.set(id) }}
-      onPointerDownCapture={() => { input.current = 'pointer' }}
-      onMouseOut={(e) => { const id = nodeIdOf(e.target); if (id && nodeIdOf(e.relatedTarget) !== id) hover.set(input.current === 'keyboard' ? nodeIdOf(document.activeElement) : '') }} // 키보드로 조작 중이면 초점이 남은 카드로 돌아간다
+      onMouseOut={(e) => { const id = nodeIdOf(e.target); if (id && nodeIdOf(e.relatedTarget) !== id) hover.set('') }}
     >
       <svg className="relationship-marker-defs" aria-hidden="true"><defs><marker id={marker} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--edge,var(--pri-ink))" /></marker></defs></svg>
       {start && <GraphContext.Provider value={context}>
@@ -575,16 +586,12 @@ function Canvas({ vm, editing, find }: CanvasProps) {
           <Controls showInteractive={false} showFitView={false}>
             <ControlButton onClick={() => fitAll()} title={ARIA['controls.fitView.ariaLabel']} aria-label={ARIA['controls.fitView.ariaLabel']}><FitIcon /></ControlButton>
           </Controls>
-          <Panel position="top-left" className="relationship-tools" role="toolbar" aria-label="관계도 도구">
-            <button type="button" className="btn sm" aria-haspopup="dialog" aria-expanded={panel} onClick={(e) => { if (panel) closePanel(); else openPanel(e.currentTarget) }}>+ 설정 추가</button>
-            <button type="button" className="btn sm" onClick={relayout}>배치 정돈</button>
-            <button type="button" className="btn sm" onClick={() => fitAll()}>화면 맞춤</button>
-          </Panel>
         </ReactFlow>
         {ready && <FocusStyle nodes={labelNodes} edges={edges} />}
       </GraphContext.Provider>}
       {panel && <AddCardPanel busy={editing.busy} onAdd={(type) => addAt(type)} onClose={closePanel} />}
       {menu && <RelationContextMenu key={menu.kind + ':' + menu.x + ':' + menu.y} label={menuLabel(menu)} x={menu.x} y={menu.y} entries={menuEntries(menu)} onClose={() => setMenu(null)} />}
     </div>
+    </>
   )
 }

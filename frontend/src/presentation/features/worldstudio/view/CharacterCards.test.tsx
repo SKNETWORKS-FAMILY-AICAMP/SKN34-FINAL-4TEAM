@@ -8,7 +8,7 @@ import { useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import { buildCharacterMap } from '../viewmodel/characterMap'
 import { putRelation } from '../../../../domain/entities/studioRelations'
 import CharacterCards from './CharacterCards'
-afterEach(()=>{cleanup();vi.unstubAllGlobals();vi.useRealTimers()})
+afterEach(()=>{cleanup();vi.unstubAllGlobals();vi.useRealTimers();vi.restoreAllMocks()})
 // CardNode가 그려질 때마다 presentationPortrait를 한 번 부른다: 그 횟수로 카드(노드) 다시 그리기를 센다.
 const portraitCalls=vi.hoisted(()=>({n:0}))
 vi.mock('../../../../app/presentationPortraits',async original=>{
@@ -27,7 +27,8 @@ function triangle(){
  return {a,b,c,rows}
 }
 const crowd=(n:number)=>Array.from({length:n},(_,i)=>{const s=newSetting('people');s.item.title='인물'+(i+1);return s})
-function Cards({rows,editing,find}:{rows:Rows;editing:ReturnType<typeof actions>;find?:{id:string;seq:number}|null}){const vm=useWorldMapViewModel(rows,buildCharacterMap);return <CharacterCards vm={vm} editing={editing} find={find}/>}
+/** 도구 막대 자리: 편집기는 캔버스 위 한 줄(.relationship-bar)에 자리를 만들어 주고 캔버스가 거기에 도구를 그린다. 시험에서는 캔버스 앞의 빈 요소다. */
+function Cards({rows,editing,find}:{rows:Rows;editing:ReturnType<typeof actions>;find?:{id:string;seq:number}|null}){const vm=useWorldMapViewModel(rows,buildCharacterMap),[slot,setSlot]=useState<HTMLElement|null>(null);return <><div ref={setSlot}/><CharacterCards vm={vm} editing={editing} find={find} toolsSlot={slot}/></>}
 const flowEl=()=>screen.getByRole('group',{name:/카드 그래프$/})
 const card=(name:string)=>screen.getByRole('group',{name:name+' 인물 카드'})
 const at=(name:string)=>{const el=card(name);return /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(el.style.transform)!.slice(1).map(Number)}
@@ -36,19 +37,26 @@ const zoomOf=()=>Number(/scale\(([\d.]+)\)/.exec(document.querySelector<HTMLElem
 /** 캔버스(800×600) 안에 카드(200×150) 전체가 들어오는지. */
 const insideCanvas=(name:string)=>{const [vx,vy]=viewportOf(),z=zoomOf(),[x,y]=at(name);return vx+x*z>=0&&vy+y*z>=0&&vx+(x+200)*z<=800&&vy+(y+150)*z<=600}
 const hit=(re:RegExp)=>screen.getByRole('button',{name:re})
+/** jsdom은 :focus-visible을 늘 거짓으로 답한다: 실제로 focus()를 받은 요소를 키보드 초점으로 본다(마우스로 눌러 간 초점은 아니다: 이 스텁을 켜지 않는다). */
+const keyboardFocus=(el:HTMLElement)=>{
+ const real=Element.prototype.matches
+ vi.spyOn(Element.prototype,'matches').mockImplementation(function(this:Element,selector:string){return selector===':focus-visible'?this===document.activeElement:real.call(this,selector)})
+ act(()=>el.focus())
+}
 /** 선 위 관계 이름(화면 좌표 층): 기본 숨김이고 마우스를 올리거나 초점이 간·고른 선에만 보인다. */
 const labels=()=>Array.from(document.querySelectorAll('.relationship-edge-name'),t=>t.textContent)
 /** React Flow의 끌기(d3-drag)는 mousedown·mouseup의 view(창)를 쓴다. jsdom은 생성자의 view로 vitest의 window를 받지 않으니(Window 판별 실패) 이벤트를 만든 뒤에 붙인다. */
 const mouse=(el:Element,type:'mouseDown'|'mouseMove'|'mouseUp',x:number,y:number)=>{const e=createEvent[type](el,{clientX:x,clientY:y,button:0});Object.defineProperty(e,'view',{value:window});fireEvent(el,e)}
 
-it('캔버스는 점 격자 배경·확대/축소/화면 맞춤 컨트롤(잠금 버튼 없음)과 왼쪽 위 도구 막대(+ 설정 추가·배치 정돈·화면 맞춤) 위에 카드를 놓고, 카드 버튼은 끌기에 먹히지 않는 nodrag이며 각자 콜백만 부른다',()=>{
+it('캔버스는 점 격자 배경·확대/축소/화면 맞춤 컨트롤(잠금 버튼 없음)과 도구 막대(+ 설정 추가·배치 정돈·화면 맞춤, 캔버스 밖 위 한 줄의 자리에 그려 캔버스를 가리지 않는다)와 함께 카드를 놓고, 카드 버튼은 끌기에 먹히지 않는 nodrag이며 각자 콜백만 부른다',()=>{
  const {rows,a}=triangle(),editing=actions()
  render(<Cards rows={rows} editing={editing}/>)
  const flow=flowEl()
  expect(flow.querySelector('.react-flow__background-pattern.dots')).toBeTruthy()
  for(const name of ['확대','축소','화면에 맞추기'])expect(within(flow).getByRole('button',{name})).toBeTruthy()
  expect(within(flow).queryByRole('button',{name:/잠금|interactiv/i})).toBeNull()
- const tools=within(flow).getByRole('toolbar',{name:'관계도 도구'})
+ const tools=screen.getByRole('toolbar',{name:'관계도 도구'})
+ expect(flow.contains(tools)).toBe(false) // 도구는 캔버스 위에 겹치지 않는다
  expect(within(tools).getAllByRole('button').map(b=>b.textContent)).toEqual(['+ 설정 추가','배치 정돈','화면 맞춤'])
  const garam=card('가람')
  expect(garam.getAttribute('data-id')).toBe(a.item.id)
@@ -116,7 +124,7 @@ it('캔버스 상자가 숨겨져 크기가 0이면 React Flow를 그리지 않�
 
 it('고른 카드는 aria-current와 selected, 상대를 고르는 중 다른 카드는 target, 검색에 걸리지 않은 카드는 dim이다',()=>{
  const {rows,b}=triangle(),editing=actions({targetSource:b.item.id})
- function Harness(){const vm=useWorldMapViewModel(rows,buildCharacterMap);return <><button onClick={()=>vm.select(b.item.id)}>고르기</button><button onClick={()=>vm.setQuery('가람')}>검색</button><CharacterCards vm={vm} editing={editing}/></>}
+ function Harness(){const vm=useWorldMapViewModel(rows,buildCharacterMap);return <><button onClick={()=>vm.select(b.item.id)}>고르기</button><button onClick={()=>vm.setQuery('가람')}>검색</button><CharacterCards vm={vm} editing={editing} toolsSlot={null}/></>}
  render(<Harness/>)
  fireEvent.click(screen.getByRole('button',{name:'고르기'}))
  expect(card('나래').getAttribute('aria-current')).toBe('true')
@@ -205,15 +213,20 @@ it('간선 그림은 카드 아래 층이고, 선 위 관계 이름은 모든 �
   expect(labels()).toHaveLength(1)
 })
 
-it('카드(버튼)에 키보드 초점이 가도 선 위 관계 이름은 보이지 않고(카드 초점은 이웃 강조 모드만 켠다), 선 이름은 선에 마우스를 올린 때만이다',()=>{
+it('카드(버튼)에 키보드 초점이 가도 선 위 관계 이름은 보이지 않고(카드 초점은 이웃 강조 모드만 켠다), 초점이 옮겨 가면 따라가며, 마우스로 눌러 간 초점은 강조를 켜지 않는다',()=>{
   const {rows}=triangle()
   render(<Cards rows={rows} editing={actions()}/>)
-  const button=within(card('가람')).getByRole('button',{name:'가람 정보 편집'})
-  fireEvent.focus(button)
+  const button=within(card('가람')).getByRole('button',{name:'가람 정보 편집'}),other=within(card('나래')).getByRole('button',{name:'나래 정보 편집'})
+  keyboardFocus(button)
   expect(labels()).toEqual([])
-  expect(document.querySelector('.relationship-focus-style')!.getAttribute('data-focus')).toBe(card('가람').getAttribute('data-id')) // 강조는 켜진다
-  fireEvent.blur(button,{relatedTarget:within(card('나래')).getByRole('button',{name:'나래 정보 편집'})})
-  expect(document.querySelector('.relationship-focus-style')).toBeNull()
+  expect(focusId()).toBe(idOf('가람')) // 강조는 켜진다
+  act(()=>other.focus())
+  expect(focusId()).toBe(idOf('나래'))
+  act(()=>other.blur())
+  expect(focusId()).toBeUndefined()
+  vi.restoreAllMocks() // :focus-visible 스텁을 걷는다: 이제 초점은 마우스로 눌러 간 것이다(jsdom은 :focus-visible을 거짓으로 답한다)
+  act(()=>button.focus())
+  expect(focusId()).toBeUndefined() // 켜지면 고정을 푸는 두 번째 누르기가 보이지 않는다
 })
 
 it('처음에는 모든 카드가 상자 안에 들어오게 화면을 맞추고, 도구 막대와 컨트롤의 화면 맞춤은 끌어 옮기거나 확대한 뒤에도 같은 맞춤으로 되돌린다',async()=>{
@@ -593,8 +606,8 @@ it('카드가 많으면 처음에 전체가 보이게 맞추고 멀리서는 카
   expect(dots()[0].style.background).not.toBe('') // 유형 색
   expect(wrapperSize('인물1').w).toBeGreaterThan(wrapperSize('인물2').w) // 허브(관계 39개)가 외톨이 쪽보다 크다
   expect(wrapperSize('인물1').w).toBe(wrapperSize('인물1').h) // 점은 원이다
-  expect(shownNames()).toHaveLength(4) // 40장의 10%
-  expect(shownNames()).toContain(hub.item.title)
+  expect(shownNames().length).toBeGreaterThan(1);expect(shownNames().length).toBeLessThanOrEqual(8) // 관계 상위 8장(겹치면 작은 노드부터 숨는다)
+  expect(shownNames()[0]).toBe(hub.item.title) // 가장 큰 허브의 이름이 맨 앞
   expect(labels()).toEqual([]) // 멀리서는 선 라벨이 없다
   expect(card('인물1').getAttribute('aria-label')).toBe('인물1 인물 카드') // 점도 이름 있는 카드로 읽히고 Tab으로 닿는다
   expect(card('인물1').tabIndex).toBe(0)
@@ -639,7 +652,7 @@ it('연결 상대를 고르는 중에는 멀리서 점을 눌러도 확대하지
 it('선택한 점·흐린 점·메뉴·키보드는 멀리서도 같다: 선택한 점에 selected(aria-current), 이름이 맞지 않는 점에 dim, 오른쪽 클릭 메뉴와 Enter(정보 편집)',()=>{
   const {rows,leaf}=hubWorld(40),editing=actions()
   let vm!:ReturnType<typeof useWorldMapViewModel>
-  function Probe(){vm=useWorldMapViewModel(rows,buildCharacterMap);return <CharacterCards vm={vm} editing={editing}/>}
+  function Probe(){vm=useWorldMapViewModel(rows,buildCharacterMap);return <CharacterCards vm={vm} editing={editing} toolsSlot={null}/>}
   render(<Probe/>)
   act(()=>vm.select(leaf.item.id))
   expect(card('인물2').getAttribute('aria-current')).toBe('true')
@@ -690,7 +703,7 @@ it('배치 정돈은 힘 기반 배치를 다시 계산해 같은 입력이면 �
   mouse(garam,'mouseDown',100,100);mouse(garam,'mouseMove',130,120);mouse(garam,'mouseMove',200,200);mouse(garam,'mouseUp',200,200)
   expect(at('가람')).not.toEqual([x,y])
   await new Promise(done=>setTimeout(done,10)) // 끌기를 마친 직후의 click 하나는 d3-drag가 삼킨다
-  fireEvent.click(within(flowEl()).getByRole('button',{name:'배치 정돈'}))
+  fireEvent.click(screen.getByRole('button',{name:'배치 정돈'}))
   expect([at('가람'),at('나래'),at('다온')]).toEqual(first)
 })
 
@@ -710,11 +723,11 @@ it('개발 모드(StrictMode)에서도 처음 열 때 전체 맞춤이 적용된
   expect(dots()).toHaveLength(40)
 })
 
-it('처음 맞춘 화면은 왼쪽 위 도구 막대·안내문, 아래 범례·컨트롤 자리를 비워 카드가 그 밑으로 들어가지 않는다',()=>{
+it('처음 맞춘 화면은 아래 안내문·범례, 왼쪽 컨트롤 자리를 비워 카드가 그 밑으로 들어가지 않고 위는 숨 쉴 자리(24px)만 둔다(도구 막대는 캔버스 밖이라 위를 비울 필요가 없다)',()=>{
   const {rows}=hubWorld(40)
   render(<Cards rows={rows} editing={actions()}/>)
   const z=zoomOf(),[vx,vy]=viewportOf(),boxes=['인물1','인물2','인물20','인물40'].map(name=>{const [x,y]=at(name),el=card(name),cx=x+parseFloat(el.style.width)/2,cy=y+parseFloat(el.style.height)/2;return {name,l:vx+(cx-100)*z,r:vx+(cx+100)*z,t:vy+(cy-75)*z,b:vy+(cy+75)*z}})
-  for(const b of boxes){expect(b.l,b.name).toBeGreaterThanOrEqual(71);expect(b.r,b.name).toBeLessThanOrEqual(777);expect(b.t,b.name).toBeGreaterThanOrEqual(111);expect(b.b,b.name).toBeLessThanOrEqual(529)} // 캔버스 800×600: 왼쪽 72·오른쪽 24·위 112·아래 72
+  for(const b of boxes){expect(b.l,b.name).toBeGreaterThanOrEqual(71);expect(b.r,b.name).toBeLessThanOrEqual(777);expect(b.t,b.name).toBeGreaterThanOrEqual(23);expect(b.b,b.name).toBeLessThanOrEqual(513)} // 캔버스 800×600: 왼쪽 72·오른쪽 24·위 24·아래 72
 })
 
 it('같은 단계 안의 확대, 선 hover, 카드 안 버튼 초점, 메뉴 열기·닫기는 카드(노드)를 다시 그리지 않는다',async()=>{
@@ -822,7 +835,7 @@ it('카드에 마우스를 올리면 그 카드·직접 이어진 이웃·그 �
   expect(css).toContain('[data-id="'+hub.item.id+'"]') // 허브는 잎의 이웃이다
   expect(css).not.toContain('[data-id="'+rows[2].item.id+'"]') // 다른 잎은 이웃이 아니라 흐리다
   const edgeId=rows.find(s=>s.item.kind==='relation'&&s.item.targetId===leaf.item.id)!.item.id
-  expect(css).toContain('[data-edge="'+edgeId+'"]')
+  expect(css).toMatch(new RegExp('\\.react-flow__edge:is\\([^)]*\\[data-id="'+edgeId+'"\\]')) // 선은 React Flow 선 래퍼의 data-id로 고른다
   expect(css).not.toContain('pointer-events') // 흐려도 눌린다
   expect(shownNames()).toContain('인물1');expect(shownNames()).toContain('인물2') // 이웃·자신의 이름표
   expect(labels()).toEqual([]) // 강조한 선이라도 선 위 관계 이름은 숨김
@@ -911,7 +924,7 @@ it('강조 모드(hover·키보드 초점·고정·해제)는 카드(노드)를 
   fireEvent.mouseOver(card('가람'));expect(focusId()).toBe(idOf('가람'))
   fireEvent.mouseOut(card('가람'),{relatedTarget:card('나래')});fireEvent.mouseOver(card('나래'))
   fireEvent.mouseOut(card('나래'),{relatedTarget:document.body})
-  fireEvent.focus(button);expect(focusId()).toBe(idOf('다온'));fireEvent.blur(button)
+  keyboardFocus(button);expect(focusId()).toBe(idOf('다온'));act(()=>button.blur())
   fireEvent.click(card('가람'));expect(focusId()).toBe(idOf('가람')) // 고정
   fireEvent.click(card('가람'));expect(focusId()).toBeUndefined() // 같은 카드 다시 누르기로 해제
   fireEvent.click(card('가람'));fireEvent.keyDown(card('가람'),{key:'Escape'});expect(focusId()).toBeUndefined()
@@ -929,18 +942,18 @@ it('강조 모드의 hover·해제는 멀리·중간의 점도 하나도 다시 
   expect(portraitCalls.n).toBe(base)
 })
 
-it('이름표 층은 카드 층(렌더러) 뒤, 도구 막대·컨트롤 앞에 있어(같은 z-index 5에서 DOM 순서) 이름표가 카드 위에 보이되 도구를 가리지 않는다',()=>{
+it('이름표 층은 카드 층(렌더러) 뒤, 컨트롤 앞에 있어(같은 z-index 5에서 DOM 순서) 이름표가 카드 위에 보이되 컨트롤을 가리지 않는다',()=>{
   const {rows}=triangle()
   render(<Cards rows={rows} editing={actions()}/>)
   const layer=document.querySelector('.relationship-names')!
   expect(document.querySelector('.react-flow__renderer')!.compareDocumentPosition(layer)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  for(const el of [document.querySelector('.relationship-tools')!,document.querySelector('.react-flow__controls')!])expect(layer.compareDocumentPosition(el)&Node.DOCUMENT_POSITION_FOLLOWING,el.className).toBeTruthy()
+  expect(layer.compareDocumentPosition(document.querySelector('.react-flow__controls')!)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })
 
 it('검색·유형 필터에 맞지 않는 점은 이름도 흐리고(.dim) 필터를 풀면 되돌아오며, 강조 모드에서 이웃이 아닌 점의 이름은 더 흐리다(.faded) — 이웃·자신은 또렷하다',()=>{
   const {rows}=hubWorld(40)
   let vm!:ReturnType<typeof useWorldMapViewModel>
-  function Probe(){vm=useWorldMapViewModel(rows,buildCharacterMap);return <CharacterCards vm={vm} editing={actions()}/>}
+  function Probe(){vm=useWorldMapViewModel(rows,buildCharacterMap);return <CharacterCards vm={vm} editing={actions()} toolsSlot={null}/>}
   render(<Probe/>)
   const classes=(name:string)=>[...document.querySelectorAll('.relationship-name')].find(el=>el.textContent===name)?.className
   expect(classes('인물1')).toBe('relationship-name') // 허브: 필터도 강조도 없다
@@ -998,17 +1011,17 @@ it('시연 크기(57노드·142선)에서 점(멀리·중간)과 카드(가까�
   expect(wrapperBoxes().map(b=>b.id+':'+b.cx.toFixed(3)+','+b.cy.toFixed(3)).sort()).toEqual(centers) // 결정적
 })
 
-it('키보드 초점이 있는 카드는 마우스가 다른 카드를 지나가도 벗어나면 다시 강조되고(CodeRabbit), 마우스로 조작 중이면 카드를 벗어날 때 풀린다',()=>{
+it('키보드 초점이 있는 카드는 마우스가 다른 카드를 지나가도 벗어나면 다시 강조된다(마우스가 먼저, 그다음 키보드 초점, 그다음 고정: 출처마다 따로라 서로 지우지 않는다)',()=>{
   const {rows}=triangle()
   render(<Cards rows={rows} editing={actions()}/>)
   const garam=within(card('가람')).getByRole('button',{name:'가람 정보 편집'})
-  fireEvent.keyDown(garam,{key:'ArrowDown'}) // 키보드로 조작 중
-  act(()=>garam.focus())
+  keyboardFocus(garam)
   expect(focusId()).toBe(idOf('가람'))
-  fireEvent.mouseOver(card('나래'));expect(focusId()).toBe(idOf('나래'))
+  fireEvent.mouseOver(card('나래'));expect(focusId()).toBe(idOf('나래')) // 마우스가 우선
   fireEvent.mouseOut(card('나래'),{relatedTarget:document.body})
-  expect(focusId()).toBe(idOf('가람')) // 초점이 남은 카드로 돌아온다
-  fireEvent.pointerDown(card('나래')) // 마우스 조작: 눌러 초점이 간 카드는 마우스를 벗어나면 풀린다
-  fireEvent.mouseOver(card('나래'));fireEvent.mouseOut(card('나래'),{relatedTarget:document.body})
-  expect(focusId()).toBeUndefined()
+  expect(focusId()).toBe(idOf('가람')) // 키보드 초점으로 돌아온다
+  fireEvent.click(card('다온')) // 고정은 키보드 초점 다음이다
+  expect(focusId()).toBe(idOf('가람'))
+  act(()=>garam.blur())
+  expect(focusId()).toBe(idOf('다온')) // 초점이 사라지면 고정으로
 })

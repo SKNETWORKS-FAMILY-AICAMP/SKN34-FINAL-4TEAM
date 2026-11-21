@@ -20,8 +20,8 @@ export function degrees(ids: readonly string[], links: readonly { source: string
 /** 점 지름: 관계가 많을수록 크다. 면적이 관계 수에 비례하도록 √로 늘린다(관계 수에 비례해 지름을 늘리면 허브가 화면을 덮는다). */
 export const dotDiameter = (degree: number, maxDegree: number) => Math.round(DOT_MIN + (DOT_MAX - DOT_MIN) * (maxDegree > 0 ? Math.sqrt(Math.min(degree, maxDegree) / maxDegree) : 0))
 
-/** 멀리 볼 때 이름을 붙이는 카드 수: 약 10%, 최소 3개·최대 12개. */
-export const labelLimit = (count: number) => Math.min(12, Math.max(3, Math.ceil(count * 0.1)))
+/** 멀리 볼 때 이름을 붙이는 카드 수: 관계가 많은 상위 8~12개(카드의 약 20%, 최소 8개·최대 12개). */
+export const labelLimit = (count: number) => Math.min(12, Math.max(8, Math.ceil(count * 0.2)))
 /** 멀리 볼 때 이름을 붙이는 카드: 관계가 있는 카드 중 관계가 많은 쪽부터 `limit`개(같으면 `order`에서 앞선 카드). */
 export function topDegreeIds(order: readonly string[], degree: ReadonlyMap<string, number>, limit: number): Set<string> {
   const ranked = order.map((id, index) => ({ id, index, n: degree.get(id) ?? 0 })).filter((row) => row.n > 0)

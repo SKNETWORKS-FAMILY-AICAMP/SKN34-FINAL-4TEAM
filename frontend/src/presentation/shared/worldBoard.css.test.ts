@@ -176,9 +176,10 @@ describe('관계도 React Flow 캔버스(@xyflow/react)', () => {
     for (const gone of ['relationship-cards-scroll', 'relationship-cards-board', 'relationship-card-edges']) expect(map, gone).not.toContain(gone)
   })
 
-  it('캔버스 감싸개는 안내문을 캔버스 위(order:-1), 범례를 캔버스 아래에 두고 겹침의 기준이 된다(관리 모드 관계도 보기는 world-studio.css가 둘을 캔버스 위에 겹친다)', () => {
+  it('캔버스 감싸개는 안내문을 캔버스 위(order:-1), 범례를 캔버스 아래에 두고 겹침의 기준이 된다: 두 글을 묶은 .relationship-notes는 자리를 차지하지 않는다(display:contents). 관리 모드 관계도 보기는 world-studio.css가 묶음을 캔버스 아래 가운데에 겹친다', () => {
     expect(rule(map, '.relationship-canvas')).toMatch(/position:relative;display:flex;flex-direction:column/)
-    expect(rule(map, '.relationship-canvas>.relationship-hint')).toMatch(/order:-1/)
+    expect(rule(map, '.relationship-notes')).toMatch(/display:contents/)
+    expect(rule(map, '.relationship-canvas .relationship-hint')).toMatch(/order:-1/)
   })
 
   it('작성 모드의 캔버스 높이는 화면 높이를 따르는 범위이고 좁은 화면은 440px이며, 터치 기기는 카드 위 세로 손짓을 페이지 스크롤이 받고 컨트롤 버튼·연결 점이 누르는 크기로 커진다', () => {
@@ -299,8 +300,9 @@ it('인물 카드의 두 버튼은 마우스 기기에서만 호버·초점(노�
 
 // ── n8n식 캔버스 조작: 도구·추가 패널·오른쪽 클릭 메뉴·선 도구·키보드 초점 ─────────────────────────────────────────────
 describe('관계도 도구·추가 패널·오른쪽 클릭 메뉴·선 도구(n8n식)', () => {
-  it('왼쪽 위 도구는 줄바꿈하는 flex라 좁은 화면에서도 캔버스 밖으로 넘치지 않고, 열려 있는 + 설정 추가 버튼은 눌린 모양이다', () => {
-    expect(rule(map, '.relationship-tools')).toMatch(/display:flex;flex-wrap:wrap;gap:6px;max-width:calc\(100% - 24px\);margin:10px 12px/)
+  it('도구는 캔버스 위 한 줄(.relationship-bar)의 오른쪽 자리(.relationship-tools-slot, margin-left:auto: 줄이 바뀌어도 오른쪽)에 줄바꿈하는 flex로 놓여 캔버스를 가리지 않고, 열려 있는 + 설정 추가 버튼은 눌린 모양이다', () => {
+    expect(rule(map, '.relationship-tools-slot')).toMatch(/margin-left:auto/)
+    expect(rule(map, '.relationship-tools')).toMatch(/^display:flex;flex-wrap:wrap;gap:6px$/) // 캔버스 위에 띄우던 바깥 여백·폭 제한은 없다
     expect(rule(map, '.relationship-tools .btn[aria-expanded=true]')).toMatch(/background:var\(--rc-sel\)/)
   })
 

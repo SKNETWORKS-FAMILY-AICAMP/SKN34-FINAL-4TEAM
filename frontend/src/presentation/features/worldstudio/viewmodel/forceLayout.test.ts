@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest'
+import { HONGGILDONG_CARDS, HONGGILDONG_LINKS } from '../../../../test/honggildongGraph'
 import { CARD_H, CARD_W, GAP } from './canvasLayout'
 import { forceLayout } from './forceLayout'
 import { degrees, dotDiameter } from './zoomLevel'
@@ -77,4 +78,22 @@ it('카드가 많아도(200장) 겹침이 0이다(마무리 패스가 남은 겹
  const nodes=ids(200,'m'),links=Array.from({length:300},(_,i)=>({source:'m'+(i*7%200),target:'m'+((i*13+5)%200)})).filter(l=>l.source!==l.target)
  const placed=forceLayout(nodes,links),spots=nodes.map(n=>placed.get(n.id)!)
  for(let i=0;i<spots.length;i++)for(let j=i+1;j<spots.length;j++)expect(Math.abs(spots[i].x-spots[j].x)>=CARD_W+GAP||Math.abs(spots[i].y-spots[j].y)>=CARD_H+GAP).toBe(true)
+})
+
+it('이어지지 않은 카드는 이어진 무리에서 멀리 달아나지 않고 가장자리 가까이 놓여, 전체 맞춤이 무리만 맞춘 것과 거의 같고 무리가 가운데에 온다(홍길동전: 규칙 카드 3장이 이어지지 않음)',()=>{
+ const nodes=HONGGILDONG_CARDS.map(([id])=>({id})),links=HONGGILDONG_LINKS.map(([source,target])=>({source,target}))
+ const placed=forceLayout(nodes,links)
+ const linked=new Set(links.flatMap(l=>[l.source,l.target])),loose=nodes.map(n=>n.id).filter(id=>!linked.has(id))
+ expect(loose).toHaveLength(3)
+ const bounds=(list:string[])=>{const ps=list.map(id=>placed.get(id)!);return {x0:Math.min(...ps.map(p=>p.x)),y0:Math.min(...ps.map(p=>p.y)),x1:Math.max(...ps.map(p=>p.x))+CARD_W,y1:Math.max(...ps.map(p=>p.y))+CARD_H}}
+ const cluster=bounds([...linked]),everything=bounds(nodes.map(n=>n.id))
+ for(const id of loose){ // 무리 사각형에서 카드 한 장(200) 안쪽
+  const p=placed.get(id)!,gapX=Math.max(cluster.x0-(p.x+CARD_W),0,p.x-cluster.x1),gapY=Math.max(cluster.y0-(p.y+CARD_H),0,p.y-cluster.y1)
+  expect(Math.hypot(gapX,gapY),id).toBeLessThanOrEqual(CARD_W)
+ }
+ const fit=(b:typeof cluster)=>Math.min((1140-96)/(b.x1-b.x0),(700-96)/(b.y1-b.y0)) // 1140×700 캔버스에 맞추는 배율
+ expect(fit(everything)).toBeGreaterThanOrEqual(fit(cluster)*0.9) // 외톨이 때문에 맞춤 배율이 10% 넘게 작아지지 않는다
+ const mid=(b:typeof cluster)=>[(b.x0+b.x1)/2,(b.y0+b.y1)/2],[ex,ey]=mid(everything),[cx,cy]=mid(cluster)
+ expect(Math.abs(ex-cx)).toBeLessThanOrEqual((cluster.x1-cluster.x0)*0.05) // 전체의 가운데가 무리의 가운데(맞춤이 무리를 가운데에 놓는다)
+ expect(Math.abs(ey-cy)).toBeLessThanOrEqual((cluster.y1-cluster.y0)*0.05)
 })

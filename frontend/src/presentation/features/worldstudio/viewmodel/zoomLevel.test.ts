@@ -24,8 +24,8 @@ it('dotDiameter는 관계가 없으면 최소, 가장 많으면 최대이고 그
  expect(dotDiameter(2.5,10)).toBe(Math.round(DOT_MIN+(DOT_MAX-DOT_MIN)/2))
 })
 
-it('labelLimit은 카드가 적어도 3개, 많아도 12개이고 그 사이는 약 10%다',()=>{
- expect([0,5,30,31,100,1000].map(labelLimit)).toEqual([3,3,3,4,10,12])
+it('labelLimit은 멀리서 이름을 붙이는 카드 수라 관계 상위 8~12개이고(카드가 적어도 8개, 많아도 12개, 그 사이는 약 20%) 57장이면 12개다',()=>{
+ expect([0,5,40,41,50,57,100,1000].map(labelLimit)).toEqual([8,8,8,9,10,12,12,12])
 })
 
 it('topDegreeIds는 관계가 있는 카드 중 관계가 많은 쪽부터 limit개(같으면 앞선 카드)이고 관계 없는 카드는 뽑지 않는다',()=>{

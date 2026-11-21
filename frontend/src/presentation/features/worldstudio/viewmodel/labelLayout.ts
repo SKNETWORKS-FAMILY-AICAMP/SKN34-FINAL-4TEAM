@@ -21,20 +21,19 @@ export function labelWidth(name: string, size: number) {
 /**
  * 멀리·중간에서 이름표를 놓는다(화면 좌표, 결정적). 이름표는 확대 배율을 따라 커지지 않고 노드 바로 아래 화면 4px에 붙으므로 겹침도 화면에서 가린다:
  * 우선순위는 `always`(강조한 노드·이웃·고른 카드: 겹쳐도 보이고 먼저 자리를 잡는다) > 관계가 많은 노드(큰 노드) > 앞선 노드이고,
- * 나머지는 이미 놓은 이름표나 다른 노드의 몸통(점)과 겹치면 숨긴다. `candidates`가 아닌 노드는 `always`가 아니면 이름표가 없고, 화면 밖 노드는 둘 다 만들지 않는다.
+ * 나머지는 이미 놓은 이름표와 겹치면 숨긴다(작은 노드부터). 다른 노드의 점은 가려도 된다: 이웃 점이 빽빽이 둘러싼 가장 큰 노드의 이름이 그 점들 때문에 사라지지 않게. `candidates`가 아닌 노드는 `always`가 아니면 이름표가 없고, 화면 밖 노드는 둘 다 만들지 않는다.
  */
 export function placeLabels(nodes: readonly LabelNode[], view: View, candidates: ReadonlySet<string>, always: ReadonlySet<string>): Label[] {
   const margin = 200
   const seen = nodes.map((node, index) => ({ node, index, sx: node.cx * view.k + view.x, sy: node.cy * view.k + view.y })).filter(({ sx, sy }) => sx > -margin && sx < view.w + margin && sy > -margin && sy < view.h + margin)
-  const grid = createGrid<Box & { id: string }>(3)
-  for (const { node, sx, sy } of seen) { const body = Math.max(node.d * view.k, 4); grid.add({ cx: sx, cy: sy, w: body, h: body, id: node.id }) }
+  const grid = createGrid<Box & { id: string }>(3) // 놓은 이름표만 담는다
   const order = seen.filter(({ node }) => always.has(node.id) || candidates.has(node.id)).sort((a, b) => Number(always.has(b.node.id)) - Number(always.has(a.node.id)) || b.node.degree - a.node.degree || a.index - b.index)
   const placed: Label[] = []
   for (const { node, sx, sy } of order) {
     const size = labelSize(node.d), w = labelWidth(node.name, size) + 8, h = size * 1.3, top = sy + (node.d * view.k) / 2 + LABEL_GAP
     const box = { cx: sx, cy: top + h / 2, w, h, id: node.id }
     if (!always.has(node.id) && grid.hits(box)) continue
-    grid.add({ ...box, id: node.id + '#label' })
+    grid.add({ ...box, id: node.id })
     placed.push({ id: node.id, x: sx, y: top, size })
   }
   return placed

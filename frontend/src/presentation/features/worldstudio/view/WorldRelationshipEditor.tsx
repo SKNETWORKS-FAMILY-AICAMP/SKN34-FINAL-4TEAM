@@ -25,16 +25,19 @@ const LineKey = ({ tone, dashed, arrow }: { tone: 'edge' | 'emotion'; dashed?: b
 /**
  * 관계 연결 단계(관리 모드의 관계도 보기·작성 모드 3단계). 관계도 캔버스(`CharacterCards`, React Flow)에서만 조작한다(n8n처럼): 카드를 더하고(`+ 설정 추가` 패널·오른쪽 클릭), 카드를 끌어 잇고(좌·우 점),
  * 카드·선을 오른쪽 클릭 메뉴·더블클릭·Enter·Delete로 고치고 지운다. 하단의 '관계 추가' 폼과 관계 목록 표는 없다. 관계를 만들거나 고치는 곳은 모두 가운데에 뜨는 관계 작성 시트(`RelationPairEditor`, 720px)다.
- * 그래프 위 한 줄(`.relationship-bar`)에는 유형 필터(`관계도 유형 필터`)와 설정 찾기(`<input list>`: 이름을 쓰거나 목록에서 고르면 그 카드가 선택되고 캔버스 가운데로 옮겨 간다, 쓰는 동안 이름에 맞지 않는 카드는 흐려진다)가 있다.
+ * 그래프 위 한 줄(`.relationship-bar`)에는 유형 필터(`관계도 유형 필터`)와 설정 찾기(`<input list>`: 이름을 쓰거나 목록에서 고르면 그 카드가 선택되고 캔버스 가운데로 옮겨 간다, 쓰는 동안 이름에 맞지 않는 카드는 흐려진다), 도구 막대(`+ 설정 추가`·`배치 정돈`·`화면 맞춤`, 캔버스가 이 줄의 자리(`.relationship-tools-slot`)에 그린다)가 함께 있고 좁으면 줄이 바뀐다.
  * 유형 필터는 이 화면에서만 쓰는 보기 상태라 주소·초안·저장과 무관하고, 숨긴 유형의 카드와 그 카드에 닿는 관계선만 그래프에서 뺀다. 선택했거나 연결을 시작한 카드가 숨겨지면 그 선택·연결 모드를 푼다.
  * 연결 모드: 카드의 '관계 연결' 버튼이나 메뉴로 주체를 정하면 안내문에 '연결 취소'가 뜨고(Esc도 취소) 다음에 누른 카드가 상대가 되어 시트가 열린다. 끌어 잇기(`onPair`)와 선 클릭·편집(`studio.editRelation`)도 같은 시트로 간다.
  * 카드 삭제는 설정집 편집 화면과 같은 확인(`CardDeletionConfirm`: 함께 지워지는 관계·참조 막힘)을 시트로 열고, 회차를 고른 동안(`studio.deleteLock`)은 잠긴다. 지우면 되돌리기 알림이 뜬다. 관계 삭제는 확인 뒤 '편집본에 적용'과 같은 경로(applyRelations)이고 저장해야 서버에 닿는다.
  * 삭제된 설정과 이어진 지난 회차 관계(DEC-51)는 그릴 곳이 없어 개수만 한 줄로 알린다(저장하면 그대로 유지된다).
- * 안내문('연결 취소' 포함)과 범례는 캔버스 감싸개(`.relationship-canvas`) 안에 있어, 작성 모드는 캔버스 위·아래 줄이고 관리 모드 관계도 보기는 둘 다 캔버스 위에 겹친 작은 글이다(`world-studio.css`). 관계 기준 회차 칸은 이 편집기 바깥(`WorldStudioPage`)이라 편집기가 다시 열려도 초점이 남는다.
+ * 안내문('연결 취소' 포함)과 범례는 캔버스 감싸개(`.relationship-canvas`) 안에 있어, 작성 모드는 캔버스 위·아래 줄이고 관리 모드 관계도 보기는 둘 다 캔버스 아래 가운데에 겹친 작은 글이다(`world-studio.css`: 안내문이 범례 위). 관계 기준 회차 칸은 이 편집기 바깥(`WorldStudioPage`)이라 편집기가 다시 열려도 초점이 남는다.
  */
 export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const map = useWorldMapViewModel(studio.editing!.settings, buildSettingRelationshipMap)
   const [choosing, setChoosing] = useState(false)
+  // 도구 막대(+ 설정 추가·배치 정돈·화면 맞춤)를 유형 필터·설정 찾기와 같은 줄에 두려고 캔버스가 이 요소에 그린다. 첫 렌더부터 있는 요소를 줄에 붙여(`attachTools`, 마운트 때 한 번) 첫 맞춤을 재기 전에 줄 높이가 정해진다(나중에 생기면 줄이 늘어 캔버스가 줄고 첫 맞춤이 어긋난다).
+  const [toolsSlot] = useState(() => document.createElement('div'))
+  const attachTools = useCallback((el: HTMLDivElement | null) => { el?.append(toolsSlot) }, [toolsSlot])
   const [hidden, setHidden] = useState<ReadonlySet<CardType>>(() => new Set())
   const shown = hideCardTypes(map.graph, hidden)
   const [typed, setTyped] = useState(''), [find, setFind] = useState<{ id: string; seq: number } | null>(null)
@@ -172,6 +175,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               />
             </label>
             <datalist id={findList}>{choices.map((node) => <option key={node.id} value={node.name} />)}</datalist>
+            <div className='relationship-tools-slot' ref={attachTools} />
             {orphaned > 0 && <p className='relationship-orphans small muted'>삭제된 설정과 이어진 관계 {orphaned}개는 저장 시 그대로 유지돼요</p>}
             {studio.deletedCard && (
               <p role='status' className='world-delete-notice'>
@@ -184,6 +188,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
             <CharacterCards
               vm={{ ...map, graph: shown }}
               find={find}
+              toolsSlot={toolsSlot}
               editing={{
                 busy: studio.busy,
                 selectedRelations: open ? relations.filter((s) => (s.item.subjectId === source && s.item.targetId === target) || (s.item.subjectId === target && s.item.targetId === source)).map((s) => s.item.id) : [],
@@ -200,12 +205,14 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                 onMark: (id) => map.select(id),
               }}
             />
-            <div className='relationship-hint' role='status'>{choosing ? <>{name(source)}의 연결 상대를 고르세요.<button ref={cancelConnect} className='btn sm' type='button' onClick={stopChoosing}>연결 취소</button></> : shown.nodes.length ? '카드 옆 점을 끌어 관계를 이어요. 오른쪽 클릭으로 메뉴를 열어요.' : '설정 카드가 없어요. + 설정 추가나 오른쪽 클릭으로 첫 카드를 더해 보세요.'}</div>
-            <ul className='relationship-legend' aria-label='범례'>
-              <li><LineKey tone='edge' />구조 관계</li>
-              <li><LineKey tone='emotion' dashed />감정(방향별)</li>
-              <li><LineKey tone='edge' arrow />방향이 있는 관계</li>
-            </ul>
+            <div className='relationship-notes'>
+              <div className='relationship-hint' role='status'>{choosing ? <>{name(source)}의 연결 상대를 고르세요.<button ref={cancelConnect} className='btn sm' type='button' onClick={stopChoosing}>연결 취소</button></> : shown.nodes.length ? '카드 옆 점을 끌어 관계를 이어요. 오른쪽 클릭으로 메뉴를 열어요.' : '설정 카드가 없어요. + 설정 추가나 오른쪽 클릭으로 첫 카드를 더해 보세요.'}</div>
+              <ul className='relationship-legend' aria-label='범례'>
+                <li><LineKey tone='edge' />구조 관계</li>
+                <li><LineKey tone='emotion' dashed />감정(방향별)</li>
+                <li><LineKey tone='edge' arrow />방향이 있는 관계</li>
+              </ul>
+            </div>
           </div>
         </div>
       </fieldset>
