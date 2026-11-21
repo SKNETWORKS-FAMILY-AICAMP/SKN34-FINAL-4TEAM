@@ -311,15 +311,16 @@ def test_the_worker_runs_the_plan_it_received_on_the_dataset_it_reads_at_that_mo
 
 
 @pytest.mark.parametrize('case, logged', [('no_dataset', '평가 세트를 찾을 수 없어요.'), ('empty_dataset', '평가 세트에 항목이 없어요.')])
-def test_a_plan_whose_dataset_is_gone_by_run_time_is_logged_with_a_fixed_message_and_runs_nothing(monkeypatch, caplog, case, logged):
+def test_a_plan_whose_dataset_is_gone_by_run_time_fails_the_task_with_a_fixed_message_and_runs_nothing(monkeypatch, caplog, case, logged):
     dataset, client, plan = prepared(monkeypatch, [item(1, QA)])
     job = service.to_job(plan)
     client.dataset = None if case == 'no_dataset' else FakeDataset([])
     calls = stub_models(monkeypatch)
 
-    with caplog.at_level(logging.ERROR):
-        service.run_job(job)  # 예외를 올리지 않는다
+    with caplog.at_level(logging.ERROR), pytest.raises(EvaluationFailure) as error:
+        service.run_job(job)  # Run을 만들기 전 실패는 태스크 실패로 올린다(고정 문구)
 
+    assert str(error.value) == logged
     assert plan.run_name in caplog.text and logged in caplog.text and '지시문' not in caplog.text
     assert (dataset.experiment, client.scores, calls.generate) == (None, [], [])
 

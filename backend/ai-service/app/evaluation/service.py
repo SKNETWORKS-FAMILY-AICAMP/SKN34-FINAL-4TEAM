@@ -85,13 +85,14 @@ def to_job(plan: Plan) -> dict:
 
 
 def run_job(job: dict) -> None:
-    """워커의 진입점: to_job이 만든 인자로 계획을 되살려 run한다(예외를 올리지 않는다). 평가 세트는 이 시점에 이름으로 다시 읽는다."""
+    """워커의 진입점: to_job이 만든 인자로 계획을 되살려 run한다. 평가 세트는 이 시점에 이름으로 다시 읽는다.
+    Run을 만들기 전에 실패하면(세트가 지워졌거나 비었거나 Langfuse에 닿지 못함) 고정 문구 EvaluationFailure를 올려 태스크를 실패로 남기고, Run을 만든 뒤의 실패는 run이 예외 없이 로그로만 남긴다."""
     request = EvaluationRequest.model_validate(job['request'])
     try:
         dataset = _dataset(_client(), request.dataset)
-    except EvaluationFailure as error:  # 큐에서 기다리는 동안 세트가 지워졌거나 비었거나 Langfuse에 닿지 못했다: 고정 문구
+    except EvaluationFailure as error:  # 고정 문구라 로그에 남겨도 안전하다. 접수한 Run 이름과 이어 볼 수 있게 함께 남긴다
         logger.error('회귀 평가 %s 실패: %s', job['runName'], error)
-        return
+        raise
     baseline = job['baseline']
     run(Plan(request, job['runName'], dataset, job['instructions'], job['tolerance'], Baseline(**baseline) if baseline else None))
 
