@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { lastPage } from '../entities/operations'
 import {
-  NODE_HEIGHT, NODE_WIDTH, PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, layoutPipeline, nodeStats, pipelineSummary, promptTargets, recordResult, serverLevel, splitOutput,
+  NODE_HEIGHT, NODE_WIDTH, PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, layoutPipeline, nodeStats, pipelineSummary, promptTargets, recordResult, serverLevel, splitOutput, verdictText,
   type PipelineNode, type PipelineRecord,
 } from '../entities/llmOpsPipeline'
 
@@ -138,6 +138,27 @@ describe('Guard 판정·메인 출력 읽기', () => {
     expect(splitOutput({ text: '조회할게요.', toolCalls: [call, { args: {} }, 'x', null] })).toEqual({ text: '조회할게요.', calls: [call] })
     expect(splitOutput({ toolCalls: [call] })).toEqual({ text: '', calls: [call] })
     expect(splitOutput({ text: '글', toolCalls: [] })).toEqual({ text: '글', calls: [] })
+  })
+
+  it('toolCalls·text 말고 다른 필드가 있는 출력은 메인 에이전트 모양이 아니라 JSON 그대로 보이고 다른 필드를 버리지 않는다', () => {
+    const output = { toolCalls: [], summary: '조사 결과' }
+    expect(splitOutput(output)).toEqual({ text: JSON.stringify(output, null, 2), calls: [] })
+    const withCall = { text: '글', toolCalls: [{ name: 'ask_story_qa', args: {} }], extra: 1 }
+    expect(splitOutput(withCall)).toEqual({ text: JSON.stringify(withCall, null, 2), calls: [] })
+  })
+
+  it('Guard 결과 칸의 보조 글은 거절 이유 코드와 필요한 기능을 쓰고, 기능은 집필 채팅이 쓰는 표시 이름이며 모르는 코드는 그대로 둔다', () => {
+    expect(verdictText({ allowed: true, reason: null, capabilities: ['writing_editing', 'story_context'] })).toBe('기능 기획·집필·수정, 작품 질문')
+    expect(verdictText({ allowed: true, reason: null, capabilities: ['story_context', 'brand_new'] })).toBe('기능 작품 질문, brand_new')
+    expect(verdictText({ allowed: false, reason: 'out_of_scope', capabilities: [] })).toBe('out_of_scope')
+    expect(verdictText({ allowed: true, reason: null, capabilities: [] })).toBe('')
+    // 객체 기본 속성 이름이 표시 이름 대신 함수로 새지 않는다.
+    expect(verdictText({ allowed: true, reason: null, capabilities: ['constructor'] })).toBe('기능 constructor')
+  })
+
+  it('Decision Guard가 고를 수 있는 일곱 기능 코드는 모두 표시 이름이 있다(코드가 그대로 보이지 않는다)', () => {
+    const codes = ['story_context', 'manuscript_review', 'world', 'character_simulation', 'writing_editing', 'research', 'rating']
+    for (const code of codes) expect(verdictText({ allowed: true, reason: null, capabilities: [code] }), code).not.toBe(`기능 ${code}`)
   })
 
   it('그 밖의 출력은 글은 그대로, 객체는 들여쓴 JSON이고 비어 있으면 빈 글이다', () => {

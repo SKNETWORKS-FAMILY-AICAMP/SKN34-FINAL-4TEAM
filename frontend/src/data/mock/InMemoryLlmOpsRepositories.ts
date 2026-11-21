@@ -82,7 +82,7 @@ const entry = (id: string, traceId: string, name: string, minutes: number, extra
 /** 노드별 기록 예시(최신순). 추적 id는 데모 추적(trace-1~4)이라 실행 흐름 보기도 열립니다. Guard의 거절은 수준이 아니라 출력의 allowed=false입니다. */
 const PIPELINE_RECORDS: Record<string, PipelineRecord[]> = {
   guard: [
-    entry('guard-1', 'trace-1', 'decision_guard', 5, { latencyMs: 410, input: { request: '세계수의 비밀을 알려줘' }, output: { allowed: true, reason: null, capabilities: ['qa'] } }),
+    entry('guard-1', 'trace-1', 'decision_guard', 5, { latencyMs: 410, input: { request: '세계수의 비밀을 알려줘' }, output: { allowed: true, reason: null, capabilities: ['story_context'] } }),
     entry('guard-2', 'trace-2', 'decision_guard', 40, { latencyMs: 380, input: { request: '오늘 날씨 어때?' }, output: { allowed: false, reason: 'out_of_scope', capabilities: [] } }),
     entry('guard-3', 'trace-3', 'decision_guard', 95, { latencyMs: 30000, level: 'ERROR', statusMessage: '판정 응답 시간 초과(예시)', input: { request: '3화를 검수하고 고쳐 줘' } }),
     entry('guard-4', 'trace-1', 'decision_guard.generation', 5, { type: 'GENERATION', model: 'gpt-demo', promptName: 'decision_guard.judge', promptVersion: 1, latencyMs: 395, input: [{ role: 'user', content: '세계수의 비밀을 알려줘' }], output: { answers: [{ name: 'guard', choice: 'in_scope' }] } }),

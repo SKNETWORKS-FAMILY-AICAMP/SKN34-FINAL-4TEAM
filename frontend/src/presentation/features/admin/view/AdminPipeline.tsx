@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties } from 
 
 import { LLM_FORBIDDEN, PERIODS, bodyText, millis, traceStatusLabel, type Observation } from '../../../../domain/entities/llmOps'
 import {
-  PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, nodeStats, promptTargets, recordResult, splitOutput, type GuardVerdict, type PipelineNode, type PipelineRecord,
+  PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, nodeStats, promptTargets, recordResult, splitOutput, verdictText, type PipelineNode, type PipelineRecord,
 } from '../../../../domain/entities/llmOpsPipeline'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
@@ -17,7 +17,7 @@ const PipelineCanvas = lazy(() => import('./AdminPipelineCanvas'))
 
 /**
  * 프롬프트·모델 쪽의 '전체' 보기(DEC-58): 집필 AI 파이프라인을 고정 좌표 캔버스로 보이고, 노드(Decision Guard·메인 에이전트·업무 Agent·도구)를 고르면
- * 그 노드의 observation 기록(결과 필터·표, 펼치면 입력·출력·메타데이터·도구 호출, 실행 흐름, 프롬프트 보기)을 오른쪽(좁으면 아래)에 보인다.
+ * 그 노드의 observation 기록(결과 필터·표, 펼치면 입력·출력·메타데이터·도구 호출, 실행 흐름, 프롬프트 보기)을 캔버스와 노드 버튼 아래에 전체 폭으로 보인다(옆에 두면 표가 반쪽 폭에서 넘친다).
  * 캔버스는 보조라 같은 노드를 키보드로 고르는 버튼 목록을 캔버스 아래에 둔다. 노드를 고르면 기록 제목으로, 닫으면 눌렀던 노드 버튼으로 초점을 옮긴다.
  */
 export function AdminPipeline({ vm, l }: { vm: VM; l: LlmVM }) {
@@ -37,7 +37,7 @@ export function AdminPipeline({ vm, l }: { vm: VM; l: LlmVM }) {
       <LiveState vm={vm} label="AI 파이프라인 현황" state={l.pipeline} forbidden={LLM_FORBIDDEN} />
       {nodes && (nodes.length
         ? (
-          <div className={`pipe-body${node ? ' with-records' : ''}`}>
+          <div className="pipe-body">
             <div className="pipe-diagram">
               <Suspense fallback={<p className="admin-data-state" role="status">파이프라인 그림을 불러오고 있어요.</p>}>
                 <PipelineCanvas nodes={nodes} selected={l.nodeId} onSelect={l.selectNode} />
@@ -123,8 +123,6 @@ function NodeRecords({ vm, l, node }: { vm: VM; l: LlmVM; node: PipelineNode }) 
     </section>
   )
 }
-
-const verdictText = ({ reason, capabilities }: GuardVerdict) => [reason, capabilities.length ? `기능 ${capabilities.join(', ')}` : null].filter(Boolean).join(' · ')
 
 function RecordRow({ l, node, row }: { l: LlmVM; node: PipelineNode; row: PipelineRecord }) {
   const [open, setOpen] = useState(false)

@@ -1,4 +1,5 @@
 import { bodyText, count } from './llmOps'
+import { featureLabel } from './writingChat'
 
 /**
  * AI 파이프라인 관찰 값(DEC-58)과 순수 함수. 노드 목록·건수는 운영 서비스가 Langfuse observation에서 모아 주고, 화면은 그 노드를 고정 좌표에 그립니다.
@@ -128,6 +129,10 @@ export function guardVerdict(record: Pick<PipelineRecord, 'name' | 'output' | 'm
   }
 }
 
+/** Guard 결과 칸의 보조 글: 거절 이유 코드와 필요한 기능. 기능은 집필 채팅이 쓰는 표시 이름(featureLabel)이고 모르는 코드는 그대로 둡니다. */
+export const verdictText = ({ reason, capabilities }: GuardVerdict) =>
+  [reason, capabilities.length ? `기능 ${capabilities.map((code) => (Object.hasOwn(featureLabel, code) ? featureLabel[code] : code)).join(', ')}` : null].filter(Boolean).join(' · ')
+
 /** 기록 표 결과 칸: 오류만 위험 색이고 거절·차단(메인이 돌려보낸 도구 호출)은 오류가 아니라 판정이라 중립입니다. */
 export function recordResult(record: Pick<PipelineRecord, 'name' | 'level' | 'output' | 'metadata'>): { label: string; tone: '' | 'ok' | 'bad' } {
   if (record.level === 'ERROR') return { label: '오류', tone: 'bad' }
@@ -138,9 +143,9 @@ export function recordResult(record: Pick<PipelineRecord, 'name' | 'level' | 'ou
 }
 
 type ToolCall = { name: string; args?: unknown }
-/** 출력을 글과 도구 호출로 나눕니다. 메인 에이전트 출력({text, toolCalls})만 나뉘고 이름 없는 호출은 버립니다. 그 밖은 글 그대로, 객체는 들여쓴 JSON입니다. */
+/** 출력을 글과 도구 호출로 나눕니다. 메인 에이전트 출력({text, toolCalls}, 다른 필드 없음)만 나뉘고 이름 없는 호출은 버립니다. 그 밖은 글 그대로, 객체는 다른 필드를 잃지 않게 들여쓴 JSON입니다. */
 export function splitOutput(output: unknown): { text: string; calls: ToolCall[] } {
-  if (isObject(output) && Array.isArray(output.toolCalls)) {
+  if (isObject(output) && Array.isArray(output.toolCalls) && Object.keys(output).every((key) => key === 'text' || key === 'toolCalls')) {
     return {
       text: typeof output.text === 'string' ? output.text : '',
       calls: output.toolCalls.flatMap((c): ToolCall[] => (isObject(c) && typeof c.name === 'string' ? [{ name: c.name, args: c.args }] : [])),

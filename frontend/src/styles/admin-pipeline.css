@@ -7,8 +7,8 @@
 .adm .pipe-views a:hover { color: var(--ink); }
 .adm .pipe-views a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--pri); }
 
-/* 캔버스(왼)와 노드 기록(오른쪽, 좁으면 아래). 기록이 없을 때는 캔버스가 전체 폭을 쓴다. */
-.adm .admin-pipeline .pipe-body { display: grid; gap: 20px; align-items: start; }
+/* 캔버스 위·노드 기록 아래로 쌓는다(오른쪽 반쪽 폭에 두면 표 칸이 잘리고 페이지가 가로로 늘어났다). 한 칸(minmax(0, 1fr))에 min-width 0이라 넓은 표도 칸을 넘기지 못하고 자기 영역 안에서만 스크롤된다. */
+.adm .admin-pipeline .pipe-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
 .adm .admin-pipeline .pipe-diagram,
 .adm .admin-pipeline .pipe-records { min-width: 0; }
 /* content-box라 캔버스가 재는 폭·높이(내용 크기)가 그대로 캔버스 크기다. */
@@ -24,12 +24,8 @@
 .adm .admin-pipeline .pipe-node.bad .small { color: var(--danger); }
 @media (max-width: 600px), (pointer: coarse) { .adm .admin-pipeline .pipe-node { min-height: 44px; } }
 
-/* 노드 기록 패널: 넓은 화면에서는 캔버스 오른쪽에 세로 선 하나로 나눈다. */
+/* 노드 기록 패널: 캔버스·노드 버튼 아래에서 전체 폭을 쓰고 위쪽 선 하나로 나눈다. */
 .adm .admin-pipeline .pipe-records { padding-top: 4px; border-top: 1px solid var(--line2); }
-@media (min-width: 1100px) {
-  .adm .admin-pipeline .pipe-body.with-records { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .adm .admin-pipeline .pipe-body.with-records .pipe-records { padding: 0 0 0 20px; border-top: 0; border-left: 1px solid var(--line2); }
-}
 .adm .admin-pipeline .pipe-records .table-head { margin-top: 12px; }
 .adm .admin-pipeline .pipe-records .admin-filter { margin-top: 8px; }
 .adm .admin-pipeline .pipe-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 4px 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; white-space: nowrap; cursor: pointer; }

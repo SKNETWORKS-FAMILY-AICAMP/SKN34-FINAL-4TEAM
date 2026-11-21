@@ -67,6 +67,8 @@ it('노드를 고르면 기록 패널이 열려 제목으로 초점이 가고, �
   fireEvent.click(button)
   const records = await panel('Decision Guard')
   await waitFor(() => expect(document.activeElement).toBe(within(records).getByRole('heading', { name: 'Decision Guard 기록' })))
+  // 기록 패널은 캔버스·노드 버튼 아래에 쌓인다(옆에 두면 표가 넘쳤다).
+  expect([...document.querySelector('.pipe-body')!.children].map((el) => el.className)).toEqual(['pipe-diagram', 'pipe-records'])
   expect(button.getAttribute('aria-current')).toBe('true')
   within(records).getByText(/p95 지연 820ms · 프롬프트 decision_guard\.judge/)
   fireEvent.click(within(records).getByRole('button', { name: '기록 닫기' }))
@@ -80,7 +82,7 @@ it('Guard 기록은 결과 칸에 허용·거절과 이유·기능을, 오류는
   await pick(/Decision Guard/)
   const rows = await table('Decision Guard')
   expect(dataRows(rows)).toHaveLength(4)
-  expect(rows.getByText('허용').closest('td')!.textContent).toContain('기능 qa')
+  expect(rows.getByText('허용').closest('td')!.textContent).toContain('기능 작품 질문') // 기능 코드(story_context)가 아니라 집필 채팅과 같은 표시 이름
   expect(rows.getByText('거절').closest('td')!.textContent).toContain('out_of_scope')
   expect(rows.getByText('거절').className).not.toContain('bad')
   expect(rows.getByText('오류').className).toContain('bad')
