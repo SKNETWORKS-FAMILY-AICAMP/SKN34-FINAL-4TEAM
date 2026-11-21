@@ -52,13 +52,13 @@ it('노드는 캔버스 아래 버튼 목록(요청 흐름·단독 기능)으로
   renderPipeline()
   const flow = within(await screen.findByRole('group', { name: '요청 흐름' }))
   const solo = within(screen.getByRole('group', { name: '단독 기능' }))
-  expect([flow.getAllByRole('button').length, solo.getAllByRole('button').length]).toEqual([12, 7])
+  expect([flow.getAllByRole('button').length, solo.getAllByRole('button').length]).toEqual([13, 7])
   const guard = flow.getByRole('button', { name: /Decision Guard/ })
   within(guard).getByText('104건 · 오류 1건')
   expect(guard.className).toContain('bad')
   expect(flow.getByRole('button', { name: /^집필 AI 요청/ }).className).not.toContain('bad')
   // 캔버스는 요약 이름만 가진 보조 그림이다(jsdom에서는 틀만 그린다).
-  await screen.findByRole('img', { name: '집필 AI 파이프라인: 노드 19개, 오류가 있는 노드 4개' })
+  await screen.findByRole('img', { name: '집필 AI 파이프라인: 노드 20개, 오류가 있는 노드 4개' })
 })
 
 it('노드를 고르면 기록 패널이 열려 제목으로 초점이 가고, 닫으면 눌렀던 노드 버튼으로 돌아온다', async () => {
@@ -222,4 +222,22 @@ it('서버는 기록을 최신 1,000건까지만 주므로 그 밖의 쪽으로�
   await screen.findByText(/전체 3,000건 · 50\/50쪽/)
   expect((screen.getByRole('button', { name: '다음' }) as HTMLButtonElement).disabled).toBe(true)
   screen.getByText(/최신 1,000건까지만 볼 수 있어요/)
+})
+
+it('NovelBrain 기억 회상 노드는 인물 시뮬레이션 바로 뒤에 이어지고, 기록을 펼치면 회상한 기억(recalled)의 제목 목록을 보인다', async () => {
+  renderPipeline()
+  const flow = within(await screen.findByRole('group', { name: '요청 흐름' }))
+  const labels = flow.getAllByRole('button').map((button) => button.querySelector('b')?.textContent)
+  expect(labels.indexOf('NovelBrain 기억 회상')).toBe(labels.indexOf('인물 시뮬레이션') + 1)
+  await pick(/NovelBrain 기억 회상/)
+  await table('NovelBrain 기억 회상')
+  fireEvent.click(document.querySelector<HTMLButtonElement>('.pipe-records button.pipe-toggle')!)
+  const detail = within(document.querySelector<HTMLElement>('.pipe-detail')!)
+  detail.getByText('회상한 기억')
+  // 카드 항목은 제목, 관계·원고 항목은 제목이 없어 ref로 보인다.
+  expect(detail.getAllByRole('listitem').map((item) => item.textContent)).toEqual(['세계수', 'relation:r-kl', 'manuscript:m1'])
+  // 회상이 없는 기록은 빈 목록 대신 '없음'을 보인다.
+  fireEvent.click(document.querySelector<HTMLButtonElement>('.pipe-records button.pipe-toggle')!)
+  fireEvent.click(document.querySelectorAll<HTMLButtonElement>('.pipe-records button.pipe-toggle')[1])
+  within(document.querySelector<HTMLElement>('.pipe-detail')!).getByText('없음')
 })

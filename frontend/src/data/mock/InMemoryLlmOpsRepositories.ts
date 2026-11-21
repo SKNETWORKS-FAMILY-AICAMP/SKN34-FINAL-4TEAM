@@ -72,7 +72,8 @@ const PIPELINE: PipelineNode[] = [
   flowNode('world', '세계관', ['apply'], 6, 0, 4200),
   flowNode('research', '고증 조사', ['apply'], 4, 0, 6100),
   flowNode('rating', '심의 등급', ['apply'], 3, 0, 2800),
-  flowNode('character_simulation', '인물 시뮬레이션', ['apply'], 2, 0, 12000),
+  flowNode('character_simulation', '인물 시뮬레이션', ['apply', 'novelbrain'], 2, 0, 12000),
+  flowNode('novelbrain', 'NovelBrain 기억 회상', [], 18, 0, 410),
   flowNode('mcp', 'Content MCP 도구', [], 23, 1, 640),
   flowNode('apply', '작가 승인 반영', [], 11, 0, 900),
   ...([['proposals', '전개 제안'], ['initial_world', '초기 세계관 분석'], ['manuscript_extraction', '원고 설정 추출'], ['work_tags', '장르·키워드 추천'], ['world_review', '설정집 검토'], ['rating_direct', '심의 등급(단독)'], ['writing_editing', '새 원고·부분 수정']] as const)
@@ -96,6 +97,14 @@ const PIPELINE_RECORDS: Record<string, PipelineRecord[]> = {
     // 메인이 실행하지 않고 돌려보낸 도구 호출: level은 DEFAULT이고 이름은 input, 이유는 output에 남는다.
     entry('main-3', 'trace-2', 'main_agent.blocked', 40, { input: { name: 'ask_writing' }, output: { reason: '이번 요청에서 노출되지 않은 도구예요.' } }),
     entry('main-4', 'trace-3', 'main_agent', 95, { type: 'GENERATION', model: 'gpt-demo', promptName: 'main-agent', promptVersion: 1, latencyMs: 30000, level: 'ERROR', statusMessage: '모델 응답 실패(예시)' }),
+  ],
+  // NovelBrain 기억 회상(novelbrain.recall): 출력의 recalled가 인물이 그 시점에 떠올린 근거다. 카드 항목은 제목이 있고 관계·원고 항목은 ref와 점수뿐이다(본문은 남기지 않는다).
+  novelbrain: [
+    entry('novelbrain-1', 'trace-1', 'novelbrain.recall', 6, {
+      latencyMs: 330, input: { character: '카엘', episode: 3, query: '카엘이 아는 세계수의 비밀' },
+      output: { count: 3, recalled: [{ ref: 'card:wtree#identity', card_id: 'wtree', title: '세계수', score: 0.82 }, { ref: 'relation:r-kl', score: 0.64 }, { ref: 'manuscript:m1', score: 0.51 }] },
+    }),
+    entry('novelbrain-2', 'trace-4', 'novelbrain.recall', 150, { latencyMs: 280, input: { character: '리안', episode: 3, query: '리안의 맹세' }, output: { count: 0, recalled: [] } }),
   ],
 }
 const recordsOf = (node: PipelineNode): PipelineRecord[] => PIPELINE_RECORDS[node.id]

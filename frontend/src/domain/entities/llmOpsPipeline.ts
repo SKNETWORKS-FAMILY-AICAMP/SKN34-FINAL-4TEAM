@@ -167,5 +167,18 @@ export function filterRecords<T extends Pick<PipelineRecord, 'name' | 'level' | 
   return records.filter((r) => (result === 'ERROR' ? r.level === 'ERROR' || rejected(r) : r.level === result && !rejected(r)))
 }
 
+/**
+ * NovelBrain 기억 회상 기록의 recalled 목록 제목. 항목은 글(제목) 또는 객체이고 객체는 title, 없으면 name, 없으면 ref를 제목으로 읽으며 그것도 없으면 건너뜁니다.
+ * 출력에 recalled 목록이 없으면 metadata에서 읽고, 둘 다 목록이 아니면 null입니다(회상 기록이 아님).
+ */
+export function recalledTitles(record: Pick<PipelineRecord, 'output' | 'metadata'>): string[] | null {
+  const source = [record.output, record.metadata].find((v) => isObject(v) && Array.isArray(v.recalled))
+  if (!isObject(source)) return null
+  return (source.recalled as unknown[]).flatMap((item) => {
+    const title = typeof item === 'string' ? item : isObject(item) ? [item.title, item.name, item.ref].find((v) => typeof v === 'string' && v !== '') : undefined
+    return typeof title === 'string' && title !== '' ? [title] : []
+  })
+}
+
 /** 프롬프트 보기 대상: 그 기록의 프롬프트이고, 기록에 없으면 노드에 연결된 프롬프트입니다. */
 export const promptTargets = (node: Pick<PipelineNode, 'promptNames'>, record: Pick<PipelineRecord, 'promptName'>) => (record.promptName ? [record.promptName] : node.promptNames)

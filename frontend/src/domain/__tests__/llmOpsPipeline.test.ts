@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { lastPage } from '../entities/operations'
 import {
-  NODE_HEIGHT, NODE_WIDTH, PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, layoutPipeline, nodeStats, pipelineSummary, promptTargets, recordResult, serverLevel, splitOutput, verdictText,
+  NODE_HEIGHT, NODE_WIDTH, PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, layoutPipeline, nodeStats, pipelineSummary, promptTargets, recalledTitles, recordResult, serverLevel, splitOutput, verdictText,
   type PipelineNode, type PipelineRecord,
 } from '../entities/llmOpsPipeline'
 
@@ -64,6 +64,47 @@ describe('layoutPipeline: 서버가 준 노드를 고정 좌표(왼→오 흐름
 
   it('노드가 없으면 크기 0이다', () => {
     expect(layoutPipeline([])).toEqual({ nodes: [], links: [], width: 0, height: 0 })
+  })
+})
+
+// 운영 서버가 NovelBrain 기억 회상(novelbrain)을 인물 시뮬레이션 다음에 이은 두 모양: 반영과 나란히 이은 것, 인물 시뮬레이션과 반영 사이에 끼운 것.
+const linkedAfter = (id: string, next: string[]) => (n: PipelineNode) => (n.id === id ? { ...n, next } : n)
+const novelBrainBeside = () => [...flow().map(linkedAfter('character_simulation', ['apply', 'novelbrain'])), node('novelbrain')]
+const novelBrainBetween = () => [...flow().map(linkedAfter('character_simulation', ['novelbrain'])), node('novelbrain', ['apply'])]
+/** 같은 칸(x)의 노드들이 세로로 겹치지 않는지: 칸마다 y를 정렬해 이웃 간격이 노드 높이 이상이어야 한다. */
+const overlapping = (nodes: PipelineNode[]) => {
+  const columns = new Map<number, number[]>()
+  for (const n of layoutPipeline(nodes).nodes) columns.set(n.x, [...(columns.get(n.x) ?? []), n.y])
+  return [...columns.values()].some((ys) => ys.sort((a, b) => a - b).some((y, i) => i > 0 && y - ys[i - 1] < NODE_HEIGHT))
+}
+
+describe('layoutPipeline: NovelBrain 기억 회상과 모르는 노드', () => {
+  it('NovelBrain 기억 회상(인물 시뮬레이션 다음)은 어느 쪽으로 이었든 인물 시뮬레이션 오른쪽 칸에 놓이고 다른 노드와 겹치지 않는다', () => {
+    for (const nodes of [novelBrainBeside(), novelBrainBetween()]) {
+      const placed = placedById(nodes)
+      expect(placed.novelbrain.x).toBeGreaterThan(placed.character_simulation.x)
+      expect(placed.apply.x).toBeGreaterThan(placed.character_simulation.x)
+      expect(overlapping(nodes)).toBe(false)
+    }
+    // 반영과 나란히 이으면 같은 칸, 인물 시뮬레이션과 반영 사이에 끼우면 반영이 그 오른쪽 칸이다.
+    const beside = placedById(novelBrainBeside())
+    expect(beside.novelbrain.x).toBe(beside.apply.x)
+    const between = placedById(novelBrainBetween())
+    expect(between.apply.x).toBeGreaterThan(between.novelbrain.x)
+  })
+
+  it('모르는 id의 노드도 빠지지 않는다: 연결이 있으면 그 노드 오른쪽 칸에, 연결이 없으면 첫 칸(요청과 같은 칸)에 겹치지 않게 놓인다', () => {
+    const loose = placedById([...flow(), node('mystery')])
+    expect(Object.keys(loose)).toContain('mystery')
+    expect(loose.mystery.x).toBe(loose.request.x)
+    expect(Math.abs(loose.mystery.y - loose.request.y)).toBeGreaterThanOrEqual(NODE_HEIGHT)
+    expect(overlapping([...flow(), node('mystery')])).toBe(false)
+    const wired = [...flow().map(linkedAfter('qa', ['apply', 'mystery'])), node('mystery')]
+    expect(placedById(wired).mystery.x).toBeGreaterThan(placedById(wired).qa.x)
+    expect(overlapping(wired)).toBe(false)
+    // 단독 기능으로 오면 단독 줄(흐름 아래)에 놓인다.
+    const solo = placedById([...flow(), node('mystery', [], { standalone: true })])
+    expect(solo.mystery.y).toBeGreaterThan(solo.apply.y)
   })
 })
 
@@ -167,6 +208,19 @@ describe('Guard 판정·메인 출력 읽기', () => {
     expect(splitOutput({ text: '도구 목록 없음' })).toEqual({ text: JSON.stringify({ text: '도구 목록 없음' }, null, 2), calls: [] })
     expect(splitOutput(null)).toEqual({ text: '', calls: [] })
     expect(splitOutput(undefined)).toEqual({ text: '', calls: [] })
+  })
+
+  it('NovelBrain 회상 기록은 recalled 목록의 제목을 읽고(글 항목·title·name·ref 순), 출력에 없으면 metadata에서 읽으며, 목록이 아니면 null이다', () => {
+    const recalled = ['리안', { title: '카엘', ref: 'card:1' }, { name: '세계수', ref: 'card:2' }, { ref: 'ep:2#4' }, {}, 5, null, { title: '' }]
+    expect(recalledTitles(rec({ name: 'novelbrain.recall', output: { recalled, gaps: [] } }))).toEqual(['리안', '카엘', '세계수', 'ep:2#4'])
+    // AI가 남기는 모양: 카드 항목은 제목이 있고 관계·원고 항목은 ref와 점수뿐이라 ref로 보인다.
+    const traced = { count: 3, recalled: [{ ref: 'card:lira#identity', card_id: 'lira', title: '리라', score: 0.8 }, { ref: 'relation:r-kl', score: 0.6 }, { ref: 'manuscript:m1', score: 0.5 }] }
+    expect(recalledTitles(rec({ name: 'novelbrain.recall', output: traced }))).toEqual(['리라', 'relation:r-kl', 'manuscript:m1'])
+    expect(recalledTitles(rec({ metadata: { recalled: [{ title: '메타데이터 쪽' }] } }))).toEqual(['메타데이터 쪽'])
+    expect(recalledTitles(rec({ output: { recalled: [] } }))).toEqual([])
+    expect(recalledTitles(rec({ output: { recalled: '카엘' } }))).toBeNull()
+    expect(recalledTitles(rec({ output: '글' }))).toBeNull()
+    expect(recalledTitles(rec())).toBeNull()
   })
 
   it('프롬프트 보기 대상은 그 기록의 프롬프트이고, 없으면 노드에 연결된 프롬프트다', () => {

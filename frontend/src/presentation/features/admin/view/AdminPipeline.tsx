@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties } from 
 
 import { LLM_FORBIDDEN, PERIODS, bodyText, millis, traceStatusLabel, type Observation } from '../../../../domain/entities/llmOps'
 import {
-  PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, nodeStats, promptTargets, recordResult, splitOutput, verdictText, type PipelineNode, type PipelineRecord,
+  PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, nodeStats, promptTargets, recalledTitles, recordResult, splitOutput, verdictText, type PipelineNode, type PipelineRecord,
 } from '../../../../domain/entities/llmOpsPipeline'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
@@ -158,9 +158,9 @@ function RecordRow({ l, node, row }: { l: LlmVM; node: PipelineNode; row: Pipeli
   )
 }
 
-/** 입력·출력·메타데이터는 받은 그대로(칸마다 앞 8,000자까지) 보이고, 메인 에이전트 출력만 글과 도구 호출(이름·인자)로 나눈다. */
+/** 입력·출력·메타데이터는 받은 그대로(칸마다 앞 8,000자까지) 보이고, 메인 에이전트 출력만 글과 도구 호출(이름·인자)로 나누며, NovelBrain 회상 기록(recalled 목록)은 회상한 기억의 제목 목록을 더한다. */
 function RecordDetail({ row, guard }: { row: PipelineRecord; guard: boolean }) {
-  const output = splitOutput(row.output)
+  const output = splitOutput(row.output), recalled = recalledTitles(row)
   return (
     <dl className="pipe-fields">
       {row.statusMessage && <><dt>상태 메시지</dt><dd>{row.statusMessage}</dd></>}
@@ -168,6 +168,12 @@ function RecordDetail({ row, guard }: { row: PipelineRecord; guard: boolean }) {
       <dd><pre className="admin-prose">{bodyText(row.input) || '기록 없음'}</pre></dd>
       <dt>출력</dt>
       <dd><pre className="admin-prose">{output.text || '기록 없음'}</pre></dd>
+      {recalled && (
+        <>
+          <dt>회상한 기억</dt>
+          <dd>{recalled.length ? <ul className="pipe-recalled">{recalled.map((title, i) => <li key={i}>{title}</li>)}</ul> : '없음'}</dd>
+        </>
+      )}
       {output.calls.length > 0 && (
         <>
           <dt>도구 호출</dt>
