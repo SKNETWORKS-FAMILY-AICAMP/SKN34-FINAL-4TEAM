@@ -693,7 +693,7 @@ class ConfigurationTest(unittest.TestCase):
             for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
                 self.assertNotIn(private, text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
-        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres)', text)
+        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits)', text)
 
     def test_operations_works_public_routes_go_to_operations(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
@@ -758,6 +758,22 @@ class ConfigurationTest(unittest.TestCase):
         for route in ['/api/v1/operations/genres-extra', '/api/v1/operations/genre']:
             with self.subTest(vite=route):
                 self.assertNotRegex(route, operations_pattern)
+
+    def test_operations_credits_routes_go_to_operations(self):
+        # DEC-57: 운영 크레딧(회원별 잔액·내역, 수동 지급·회수)은 접두와 하위 경로를 Operations로 보낸다(일반 /api(Core)보다 구체적).
+        routes = ['/api/v1/operations/credits', '/api/v1/operations/credits/members/7c9e',
+                  '/api/v1/operations/credits/members/7c9e/grants', '/api/v1/operations/credits/members/7c9e/revocations']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in routes:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://operations-service:8082', nginx_upstream(read(path), route))
+        pattern = re.search(r"'(\^/api/v1/operations/[^']*)':\s*\{", read('frontend/vite.config.ts'))[1].replace('\\\\', '\\')
+        for route in routes:
+            with self.subTest(vite=route):
+                self.assertRegex(route, pattern)
+        for route in ['/api/v1/operations/credits-extra', '/api/v1/operations/credit']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, pattern)
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)
