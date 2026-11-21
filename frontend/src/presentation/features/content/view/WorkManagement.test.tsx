@@ -109,6 +109,15 @@ it('요청을 처리하는 동안 다른 탭은 잠그되 지금 보고 있는 �
   expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['공개 회차 · 3', false], ['세계관·설정집', true], ['이야기 분기', true], ['받은 피드백', true], ['운영 설정', true], ['저장·AI·발행 이력', true]])
 })
 
+it('작품 메뉴는 왼쪽 사이드바에 있고 고른 메뉴의 내용은 그 뒤의 내용 열에 그려진다(DOM 순서 = 시각 순서)', () => {
+  open(3)
+  const side = screen.getByRole('navigation', { name: '작품 메뉴' }).closest('.ep-menu') as HTMLElement
+  const content = side.nextElementSibling as HTMLElement
+  expect(content.classList.contains('ep-content')).toBe(true)
+  expect(side.parentElement?.className).toBe('ep-manage') // 두 열은 같은 2열 틀의 자식이다
+  expect(within(content).getByRole('list')).toBeTruthy() // 기본 메뉴(공개 회차)의 회차 목록
+})
+
 // ── 초안 목록(소유자 회차 조회)에서 오는 표시: 저장 버전 순번·작성 중인 초안 ──────────────────────────
 const saved = (id: string, number = 1) => ({ id, episode: number, title: '첫 화', body: '저장된 원고', revision: 7, savedAt: '2026-11-02T00:00:00Z' })
 const row = (number: number, extra: Partial<WritingEpisode> = {}): WritingEpisode => ({
@@ -178,4 +187,71 @@ it('공개한 회차가 없을 때 안내는 작성 중인 초안이 있으면 "
   first.unmount()
   openWith({ writing: { id: 'w', rows: [] } })
   expect(screen.getByText('아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.')).toBeTruthy()
+})
+
+// ── 메뉴를 누르면 고른 탭의 내용으로 화면을 옮긴다: 탭 내용이 히어로·분기 정책 카드 아래(접힌 선 밖)에서 시작해, 눌러도 바뀐 것이 안 보였다 ──
+it('메뉴를 누르면 탭 내용 머리로 스크롤하고(처음 렌더에서는 하지 않는다) 초점은 누른 메뉴 버튼에 남는다', () => {
+  open(3)
+  expect(scrolled).toEqual([]) // 처음 렌더(공개 회차)에서는 스크롤하지 않는다
+  const menu = screen.getByRole('button', { name: '이야기 분기' })
+  menu.focus()
+  fireEvent.click(menu)
+  const head = scrolled.filter((s) => (s.arg as ScrollIntoViewOptions | undefined)?.block === 'start')
+  expect(head).toHaveLength(1)
+  const target = head[0].el as HTMLElement
+  expect(head[0].arg).toEqual({ block: 'start' })
+  expect(target.contains(screen.getByRole('heading', { name: '그 순간, 다른 선택을 했다면' }))).toBe(true) // 대상은 탭 내용을 감싼 요소이고
+  expect(target.classList.contains('ep-content')).toBe(false) // 히어로까지 든 내용 열 전체가 아니라
+  expect(target.parentElement?.classList.contains('ep-content')).toBe(true) // 그 안의 탭 내용 묶음이다
+  expect(target.style.scrollMarginTop).toBe('80px') // 위의 sticky 상단바(.gnb)가 머리를 가리지 않게(회차 목록 Pager와 같은 값)
+  expect(target.classList.contains('ep-tab')).toBe(true) // 위 히어로·분기 정책·작품 삭제 구획과 선으로 나뉘는 클래스(episode.css)
+  expect(document.activeElement).toBe(menu) // 초점은 누른 버튼에 남아 이어서 다른 메뉴를 고를 수 있다
+})
+
+it('메뉴를 누르면 900px 이하의 가로 스크롤 줄에서 그 버튼이 보이게 옆으로만 옮긴다', () => {
+  open(3)
+  const menu = screen.getByRole('button', { name: '이야기 분기' })
+  fireEvent.click(menu)
+  expect(scrolled.find((s) => s.el === menu)?.arg).toEqual({ inline: 'nearest', block: 'nearest' }) // 세로는 건드리지 않는다
+})
+
+it('이력 탭의 저장본·AI 제안 항목 제목은 묶음 제목(h3) 바로 아래 단계(h4)라 헤딩 목록에서 묶음 경계가 보인다', () => {
+  const versions = [saved('v1')]
+  const proposal = { id: 'p1', text: '제안 본문', model: 'gpt', revision: 1, status: 'pending' as const, prompt: '지시문' }
+  openWith({ writing: { id: 'w', rows: [row(1, { versions })] }, history: { versions, proposals: [proposal], publicationHistory: [] } })
+  openHistory()
+  expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['발행 이력', '원고 저장본', 'AI 요청·제안'])
+  expect(screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)).toEqual(['1화 · 저장 버전 1 · 첫 화', 'gpt · 검토 대기'])
+})
+
+// ── 이력 탭의 불러오는 중·실패: 탭을 누르면 탭 머리로 스크롤돼 화면 맨 위 알림이 화면 밖이므로 이력 구획 안에서 알린다 ──
+const historySection = () => screen.getByRole('heading', { name: '저장·AI·발행 이력', level: 2 }).closest('section')!
+/** 이력 탭을 연 채로 요청 상태(busy·origin·error·history)만 바꿔 다시 그리는 함수를 돌려준다. 요청 중에는 다른 탭이 잠기므로 탭은 먼저 연다. */
+const historyTab = () => {
+  const view = openWith({})
+  openHistory()
+  return (extra: object) => view.rerender(
+    <MemoryRouter><WorkManagement vm={{ ...vm, ...extra } as never} work={work(0)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>,
+  )
+}
+
+it('이력을 불러오는 동안에는 이력 구획 안에서 상태 문구(role=status)로 알리고, 다른 요청 중이거나 불러온 이력이 있으면 띄우지 않는다', () => {
+  const again = historyTab()
+  again({ busy: true, origin: 'history' })
+  expect(within(historySection()).getByRole('status').textContent).toBe('이력을 불러오고 있어요…')
+  // 다른 요청(예: 히어로의 분기 정책 저장)이 진행 중일 때는 이력을 읽는 중이 아니다.
+  again({ busy: true, origin: '' })
+  expect(within(historySection()).queryByRole('status')).toBeNull()
+  again({ busy: true, origin: 'history', history: { versions: [], proposals: [], publicationHistory: [] } })
+  expect(within(historySection()).queryByRole('status')).toBeNull()
+})
+
+it('이력 조회가 실패하면 이력 구획 안에 오류 상자(.ep-alert, role=alert)로 알리고, 다른 요청의 오류는 이 구획에 올리지 않는다', () => {
+  const again = historyTab()
+  again({ origin: 'history', error: '이력을 불러오지 못했어요.' })
+  const alert = within(historySection()).getByRole('alert')
+  expect(alert.textContent).toBe('이력을 불러오지 못했어요.')
+  expect(alert.classList.contains('ep-alert')).toBe(true)
+  again({ origin: 'fork', error: '분기를 만들지 못했어요.' })
+  expect(within(historySection()).queryByRole('alert')).toBeNull()
 })

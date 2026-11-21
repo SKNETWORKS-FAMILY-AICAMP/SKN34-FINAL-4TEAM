@@ -23,7 +23,10 @@ vi.mock('../../../shared/shell/Gnb', () => ({
 /** EpisodePage는 주소의 ?work= 로 화면이 정해지므로 라우터 안에서 그린다. 세계관 탭의 세계관 연결 카드가 공용 조회 훅(useAsyncData)으로 store를 읽어 Provider로 감싼다. */
 const render = (ui: ReactElement, entry = '/content') => renderIn(<Provider store={createAppStore()}><MemoryRouter initialEntries={[entry]}>{ui}</MemoryRouter></Provider>)
 /** 이동을 확인하려고 현재 주소를 화면에 적어 둔다. */
-const Where = () => { const here = useLocation(); return <p>위치 {here.pathname}{here.search}</p> }
+const Where = () => {
+  const { pathname, search, state } = useLocation()
+  return <><p>위치 {pathname}{search}</p>{state?.deletedWorkTitle && <p>삭제 완료 작품 {state.deletedWorkTitle}</p>}</>
+}
 
 beforeEach(async () => {
   // 장르 선택지는 서버의 공개 장르 목록이라 운영과 같은 메모리 목록으로 대신한다(afterEach의 restoreAllMocks가 되돌린다).
@@ -863,6 +866,7 @@ it('deletes the original after confirmation and returns to the library only afte
   fireEvent.click(button)
   expect(confirm).toHaveBeenCalledWith('「옛 제목」 작품을 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 이 작품에서 만들어진 포크는 유지돼요.')
   expect(remove).not.toHaveBeenCalled()
+  expect(screen.queryByText(/^삭제 완료 작품/)).toBeNull()
   expect(screen.getByText('위치 /content?work=w')).toBeTruthy()
 
   confirm.mockReturnValue(true)
@@ -872,6 +876,7 @@ it('deletes the original after confirmation and returns to the library only afte
   expect(screen.getByText('위치 /content?work=w')).toBeTruthy()
   complete(new Response(null, { status: 204 }))
   expect(await screen.findByText('위치 /lib?tab=write')).toBeTruthy()
+  expect(screen.getByText('삭제 완료 작품 옛 제목')).toBeTruthy()
 })
 
 it('keeps the original management page open and displays the server reason after deletion fails', async () => {
@@ -884,6 +889,7 @@ it('keeps the original management page open and displays the server reason after
   const button = screen.getByRole<HTMLButtonElement>('button', { name: '작품 삭제' })
   fireEvent.click(button)
   expect(await screen.findByText('작품을 찾을 수 없어요.', { selector: '[role="alert"]' })).toBeTruthy()
+  expect(screen.queryByText(/^삭제 완료 작품/)).toBeNull()
   expect(screen.getByText('위치 /content?work=w')).toBeTruthy()
   expect(button.disabled).toBe(false)
 })
@@ -988,6 +994,7 @@ it('asks about the irreversible consequences before deleting a fork and then ret
   fireEvent.click(screen.getByRole('button', { name: '포크 삭제' }))
   expect(confirm).toHaveBeenCalledWith('「내 포크」 포크를 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 같은 원작에서 포크를 다시 만들 수 없어요.')
   expect(await screen.findByText('위치 /lib?tab=write')).toBeTruthy()
+  expect(screen.getByText('삭제 완료 작품 내 포크')).toBeTruthy()
   expect(fetcher.mock.calls.some(([input, init]) => String(input) === '/api/v1/works/w' && init?.method === 'DELETE')).toBe(true)
 })
 

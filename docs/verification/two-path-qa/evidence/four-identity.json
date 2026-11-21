@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "manuscript-identity.v1",
+  "inputHashes": {
+    "1": "c1c4e8ccf18a3b387f43ddd8616d9be96aac63450c2bc5e699f528f3c11bb065",
+    "2": "950b54da0762d54067d0dad15d61f999a3a84fb42fc60ddb23a208e700a6cc62",
+    "3": "dfa4dd696d46b1945fb6b5c2575f5ae1dd8f28d8aaf9392faeb0f52d6ca8cf88",
+    "4": "5abf11d980ad1cc54d811b08fd75780bd2eba2ca47b7803590cab7c11ee08425"
+  },
+  "mapping": {
+    "1:m1": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+    "1:m2": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+    "1:m3": "entity-f47222a3-0608-5ec3-afa7-60228d49856d",
+    "2:m1": "entity-b777d45c-085c-5cb2-8f76-47042107e5da",
+    "3:m1": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+    "4:m1": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+    "4:m2": "entity-f47222a3-0608-5ec3-afa7-60228d49856d"
+  },
+  "decisions": [
+    {
+      "link": {
+        "left": "1:m1",
+        "right": "1:m2",
+        "basis": "explicit_alias",
+        "confirmedAt": 1,
+        "evidenceEpisode": 1,
+        "quote": "길동은 홍길동이라고도 불린다."
+      },
+      "status": "merged",
+      "reason": "explicit_alias"
+    },
+    {
+      "link": {
+        "left": "1:m2",
+        "right": "2:m1",
+        "basis": "distinct",
+        "confirmedAt": 2,
+        "evidenceEpisode": 2,
+        "quote": "상인 홍길동은 의적 홍길동과 다른 사람이다."
+      },
+      "status": "distinct",
+      "reason": "distinct"
+    },
+    {
+      "link": {
+        "left": "1:m1",
+        "right": "3:m1",
+        "basis": "explicit_coreference",
+        "confirmedAt": 3,
+        "evidenceEpisode": 3,
+        "quote": "길동은 1화에 나온 의적 길동 본인이다."
+      },
+      "status": "merged",
+      "reason": "explicit_coreference"
+    },
+    {
+      "link": {
+        "left": "1:m1",
+        "right": "4:m1",
+        "basis": "explicit_coreference",
+        "confirmedAt": 4,
+        "evidenceEpisode": 4,
+        "quote": "길동은 1화에 나온 의적 길동 본인이다."
+      },
+      "status": "merged",
+      "reason": "explicit_coreference"
+    },
+    {
+      "link": {
+        "left": "1:m3",
+        "right": "4:m2",
+        "basis": "explicit_coreference",
+        "confirmedAt": 4,
+        "evidenceEpisode": 4,
+        "quote": "활빈당은 1화의 그 활빈당이다."
+      },
+      "status": "merged",
+      "reason": "explicit_coreference"
+    }
+  ]
+}

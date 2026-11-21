@@ -1,0 +1,55 @@
+# note: interactive (clickable / focusable) elements only.
+- title: "작품 관리 · QA 브라우저 최초 구축 4화 1117 · STORYFORK" [url=http://127.0.0.1:5187/content?work=ef742e9c-a0f3-4b2b-bc69-b22fb4491160]
+- link "본문으로 바로가기" [ref=e3]
+- banner:
+  - link "STORYFORK 홈으로" [ref=e4]: "SF STORYFORK"
+  - navigation "주요 메뉴" [ref=e5]:
+    - link "세계관" [ref=e6]
+    - link "랭킹" [ref=e7]
+    - link "캐릭터챗" [ref=e8]
+    - link "내 서재" [ref=e9]
+  - button "소설·인물·회차 검색" [ref=e10]: "🔍 소설·인물·회차 검색 Ctrl K"
+  - link "알림함" [ref=e11]: "알림"
+  - button "내 계정 메뉴" [ref=e12]: "개"
+- main:
+  - link "내가 쓰는 소설" [ref=e13]
+  - link "내 댓글·제보" [ref=e14]
+  - status: "최신 원고를 불러왔어요."
+  - region:
+    - text: "기본 작품 표지"
+    - status
+    - button "표지 편집" [ref=e16]
+    - heading "QA 브라우저 최초 구축 4화 1117" [level=1]
+    - button "작품 정보 편집" [ref=e17]
+    - text: "판타지 원작 비공개 작품 합성 원고만 사용하는 격리 QA입니다.공개 회차  0 화 작성 중  1 화"
+    - link "회차 작성하기" [ref=e18]
+  - region "분기 정책" [ref=e19]:
+    - heading "분기 정책" [level=2]
+    - button "분기 정책 편집" [ref=e20]
+    - text: "분기 만들기 허용 안 함 분기 작품 최초 공개 허용 안 함"
+  - navigation "작품 메뉴" [ref=e21]:
+    - button "회차 · 0" [ref=e22]
+    - button "세계관·설정집" [ref=e23]
+    - button "이야기 분기" [ref=e24]
+    - button "받은 피드백" [ref=e25]
+    - button "저장·AI·발행 이력" [ref=e26]
+  - region "원고로 세계관 만들기" [ref=e30]:
+    - heading "원고로 세계관 만들기" [level=2]
+    - text: "저장된 원고로 비공개 세계관 초안을 만들어요.현재 저장된 회차 전체를 한 번 분석해 인물·설정·관계를 정리해요. 원고를 올리는 것만으로 분석하거나 발행하지 않아요. 이후 새 회차도 자동 반영하지 않아요."
+    - status: "세계관 초안이 준비됐어요"
+    - text: "추출 결과 저장  4 / 4 화 아직 확정하거나 공개하지 않았어요. 작업실에서 내용을 검토·수정한 뒤 직접 확정해 주세요. 첫 등장 회차는 출처 정보이며 독자 공개 회차는 별도로 지정해야 해요."
+    - link "세계관 초안 열기" [ref=e38]
+    - button "작업 상태 다시 확인" [ref=e32]
+  - region "세계관 연결" [ref=e33]:
+    - heading "세계관 연결" [level=2]
+    - text: "세계관 하나는 소설 하나에만 연결돼요. 독자 설정 위키는 연결한 세계관의 확정 버전에서 독자 공개 회차를 정한 설정 카드를 보여 줘요.연결된 세계관:"
+    - link "QA 브라우저 최초 구축 4화 1117" [ref=e34]
+    - button "연결 해제" [ref=e35]
+  - region "세계관 설정집" [ref=e36]:
+    - heading "QA 브라우저 최초 구축 4화 1117 설정집" [level=2]
+    - text: "내 작품의 세계관 · 확정 설정만 문맥에 사용해요."
+- contentinfo: "STORYFORK SKN34 최종 프로젝트 4팀"
+- status
+- text: "U01 홈"
+- button "화면 ID 끄기" [ref=e1]
+- button "다크 모드로" [ref=e2]: "☾"

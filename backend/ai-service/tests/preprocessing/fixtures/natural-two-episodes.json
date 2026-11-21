@@ -1,0 +1,253 @@
+{
+  "description": "자연스러운 문장에 모델이 프롬프트대로 낼 법한 출력을 붙인 테스트용 두 회차. 실제 작품 인용이나 모델 평가 결과가 아니다. 계획·지도 모양·소문·어릴 때부터 같은 낱말, 이름 없는 문장, 어긋난 인용, 링크 없는 재등장을 일부러 넣었다.",
+  "episodes": [
+    {
+      "number": 1,
+      "title": "폐역",
+      "body": "서하는 폐역 앞에 섰다. 겨울바람이 플랫폼을 쓸고 지나갔다.\n\"늦었네.\" 도윤이 웃으며 말했다. 도윤은 서하의 오랜 친구였다.\n서하는 왼손으로 낡은 열쇠를 꺼냈다. 열쇠는 어머니가 남긴 것이었다.\n폐역은 십 년 전 사고 이후로 버려진 곳이었다.\n서하는 오늘 밤 안에 금고를 열 계획이었다.",
+      "output": {
+        "mentions": [
+          {
+            "id": "m1",
+            "name": "서하",
+            "kind": "character",
+            "quote": "서하는 폐역 앞에 섰다."
+          },
+          {
+            "id": "m2",
+            "name": "도윤",
+            "kind": "character",
+            "quote": "도윤이 웃으며 말했다."
+          },
+          {
+            "id": "m3",
+            "name": "폐역",
+            "kind": "location",
+            "quote": "폐역은 십 년 전 사고 이후로 버려진 곳이었다."
+          },
+          {
+            "id": "m4",
+            "name": "열쇠",
+            "kind": "object",
+            "quote": "열쇠는 어머니가 남긴 것이었다."
+          }
+        ],
+        "statements": [
+          {
+            "id": "s1",
+            "kind": "event",
+            "certainty": "asserted",
+            "subjects": [
+              "m1",
+              "m3"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "memory",
+            "occurredEpisode": 1,
+            "knownFromEpisode": 1,
+            "quote": "서하는 폐역 앞에 섰다."
+          },
+          {
+            "id": "s2",
+            "kind": "description",
+            "certainty": "asserted",
+            "subjects": [
+              "m3"
+            ],
+            "knowers": [],
+            "document": "identity",
+            "occurredEpisode": null,
+            "knownFromEpisode": 1,
+            "quote": "폐역은 십 년 전 사고 이후로 버려진 곳이었다."
+          },
+          {
+            "id": "s3",
+            "kind": "plan",
+            "certainty": "intended",
+            "subjects": [
+              "m1"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "goal",
+            "occurredEpisode": null,
+            "knownFromEpisode": 1,
+            "quote": "서하는 오늘 밤 안에 금고를 열 계획이었다."
+          },
+          {
+            "id": "s4",
+            "kind": "description",
+            "certainty": "asserted",
+            "subjects": [
+              "m4"
+            ],
+            "knowers": [],
+            "document": "identity",
+            "occurredEpisode": null,
+            "knownFromEpisode": 1,
+            "quote": "열쇠는 어머니가 남긴 것이었다."
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "source": "m1",
+            "target": "m2",
+            "label": "친구",
+            "change": "started",
+            "quote": "도윤은 서하의 오랜 친구였다."
+          }
+        ]
+      }
+    },
+    {
+      "number": 2,
+      "title": "다시 폐역으로",
+      "body": "다음 날, 서하는 다시 폐역으로 향했다.\n도윤은 계획대로 뒷문을 열었다.\n그녀는 문득 깨달았다. 어제 본 그림자는 사람이 아니었다.\n폐역 지하에는 지도 모양의 낙서가 가득했다.\n\"이 근처에 소문난 점집이 있었지.\" 도윤이 말했다.\n서하는 어릴 때부터 이 역의 종소리를 기억하고 있었다.\n서하는 도윤이 자신의 사촌이라는 사실을 알게 되었다.",
+      "output": {
+        "mentions": [
+          {
+            "id": "m1",
+            "name": "서하",
+            "kind": "character",
+            "quote": "다음 날, 서하는 다시 폐역으로 향했다."
+          },
+          {
+            "id": "m2",
+            "name": "도윤",
+            "kind": "character",
+            "quote": "도윤은 계획대로 뒷문을 열었다."
+          },
+          {
+            "id": "m3",
+            "name": "폐역",
+            "kind": "location",
+            "quote": "폐역 지하에는 지도 모양의 낙서가 가득했다."
+          }
+        ],
+        "statements": [
+          {
+            "id": "s1",
+            "kind": "event",
+            "certainty": "asserted",
+            "subjects": [
+              "m1",
+              "m3"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "memory",
+            "occurredEpisode": 2,
+            "knownFromEpisode": 2,
+            "quote": "다음 날, 서하는 다시 폐역으로 향했다."
+          },
+          {
+            "id": "s2",
+            "kind": "event",
+            "certainty": "asserted",
+            "subjects": [
+              "m2"
+            ],
+            "knowers": [
+              "m2"
+            ],
+            "document": "memory",
+            "occurredEpisode": 2,
+            "knownFromEpisode": 2,
+            "quote": "도윤은 계획대로 뒷문을 열었다."
+          },
+          {
+            "id": "s3",
+            "kind": "description",
+            "certainty": "asserted",
+            "subjects": [
+              "m3"
+            ],
+            "knowers": [],
+            "document": "identity",
+            "occurredEpisode": null,
+            "knownFromEpisode": 2,
+            "quote": "폐역 지하에는 지도 모양의 낙서가 가득했다."
+          },
+          {
+            "id": "s4",
+            "kind": "fact",
+            "certainty": "asserted",
+            "subjects": [
+              "m2"
+            ],
+            "knowers": [
+              "m2"
+            ],
+            "document": "memory",
+            "occurredEpisode": null,
+            "knownFromEpisode": 2,
+            "quote": "\"이 근처에 소문난 점집이 있었지.\" 도윤이 말했다."
+          },
+          {
+            "id": "s5",
+            "kind": "fact",
+            "certainty": "asserted",
+            "subjects": [
+              "m1"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "memory",
+            "occurredEpisode": 0,
+            "knownFromEpisode": 0,
+            "quote": "서하는 어릴 때부터 이 역의 종소리를 기억하고 있었다."
+          },
+          {
+            "id": "s6",
+            "kind": "fact",
+            "certainty": "asserted",
+            "subjects": [
+              "m1"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "memory",
+            "occurredEpisode": null,
+            "knownFromEpisode": 2,
+            "quote": "그녀는 문득 깨달았다. 어제 본 그림자는 사람이 아니었다."
+          },
+          {
+            "id": "s7",
+            "kind": "fact",
+            "certainty": "asserted",
+            "subjects": [
+              "m1"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "memory",
+            "occurredEpisode": null,
+            "knownFromEpisode": 2,
+            "quote": "서하는 폐역으로 되돌아왔다."
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "source": "m1",
+            "target": "m2",
+            "label": "사촌",
+            "change": "started",
+            "quote": "서하는 도윤이 자신의 사촌이라는 사실을 알게 되었다."
+          }
+        ]
+      }
+    }
+  ],
+  "resolution": {
+    "links": []
+  }
+}

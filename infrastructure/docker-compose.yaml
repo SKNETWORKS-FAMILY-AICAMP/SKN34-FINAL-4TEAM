@@ -70,6 +70,8 @@ services:
       AI_SERVICE_READ_TIMEOUT: ${AI_SERVICE_READ_TIMEOUT:-12s}
       AI_GENERATION_READ_TIMEOUT: ${AI_GENERATION_READ_TIMEOUT:-75s}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+      # 원고 기반 최초 세계관 구축(app.manuscript-build.enabled, Spring 완화 바인딩 이름). 실모델 4화 실측 뒤 시연용으로 켠다.
+      APP_MANUSCRIPTBUILD_ENABLED: ${APP_MANUSCRIPTBUILD_ENABLED:-true}
       # 알림 사건 발행(outbox → storyfork.events). Core와 같은 rabbitmq 컨테이너·자격을 쓴다.
       CORE_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}
       CORE_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}

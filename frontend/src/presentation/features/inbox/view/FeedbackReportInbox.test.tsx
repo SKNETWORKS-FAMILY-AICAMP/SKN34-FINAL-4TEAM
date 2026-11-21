@@ -104,3 +104,15 @@ it('처리 기록은 마지막 처리 시각을 보이고 최초 확인 시각�
   expect(card('r3').getByText(/최초 확인/).textContent).toBe(`작가봄 · 최초 확인 ${at(first)}`)
   expect(card('r3').queryByText(/마지막 처리/)).toBeNull()
 })
+
+it('처리 방법 안내는 제보가 있을 때만 그리고, 0건이면 빈 상태 문구만 보인다', async () => {
+  const list = vi.spyOn(reports(), 'listInbox').mockResolvedValue([])
+  const empty = open()
+  await screen.findByText('접수된 독자 제보가 없어요.')
+  expect(screen.queryByText(/확인하거나 답변하면 독자의 내 서재에/)).toBeNull()
+  empty.unmount()
+  list.mockResolvedValue([report()])
+  open()
+  await screen.findByRole('heading', { name: '독자 제보 1' })
+  screen.getByText(/확인하거나 답변하면 독자의 내 서재에/)
+})

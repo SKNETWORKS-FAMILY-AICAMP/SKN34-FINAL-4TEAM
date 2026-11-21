@@ -2,7 +2,7 @@
 import pytest
 from fastapi import BackgroundTasks, HTTPException
 
-from app.preprocessing import router, service
+from app.preprocessing import router, worker
 from app.preprocessing.models import JobRequest
 
 TOKEN = 'preprocessing-token'
@@ -13,7 +13,7 @@ def test_accepts_the_job_and_schedules_the_run_after_the_response(monkeypatch):
     monkeypatch.setenv('INTERNAL_TOKEN', TOKEN)
     background = BackgroundTasks()
     assert router.accept_preprocessing_job(REQUEST, background, TOKEN) is None
-    assert [(task.func, task.args) for task in background.tasks] == [(service.run_job, (REQUEST,))]
+    assert [(task.func, task.args) for task in background.tasks] == [(worker.run, (REQUEST,))]
 
 
 def test_wrong_or_missing_token_is_403_and_schedules_nothing(monkeypatch):

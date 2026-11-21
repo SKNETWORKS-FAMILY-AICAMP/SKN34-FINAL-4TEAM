@@ -76,7 +76,8 @@ export function FeedbackReportInbox({ workId }: { workId?: string }) {
     // 다른 섹션과 같은 .sec/.sec-h 제목이다. 이 섹션은 화면의 첫 섹션이라 위쪽 간격(.sec의 margin-top)만 없앤다.
     <section className="sec" aria-label="독자 제보" aria-busy={!reports && !vm.isError} style={{ marginTop: 0, marginBottom: 18 }}>
       <div className="sec-h"><h2>{reports ? `독자 제보 ${reports.length}` : '독자 제보'}</h2></div>
-      <p className="small muted">내 작품 회차에 독자가 남긴 제보예요. 확인하거나 답변하면 독자의 내 서재에 상태가 바로 표시돼요. 비공개 제보는 작가만 볼 수 있고, 공개 답변을 달면 답변만 다른 독자에게 보여요.</p>
+      {/* 처리 방법 안내는 제보가 있을 때만 쓸모가 있다. 0건·불러오는 중에는 빈 상태 문구보다 먼저 읽히지 않게 그리지 않는다. */}
+      {!!reports?.length && <p className="small muted">내 작품 회차에 독자가 남긴 제보예요. 확인하거나 답변하면 독자의 내 서재에 상태가 바로 표시돼요. 비공개 제보는 작가만 볼 수 있고, 공개 답변을 달면 답변만 다른 독자에게 보여요.</p>}
       {vm.isError && (
         <div role="alert">
           <p>독자 제보를 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.</p>

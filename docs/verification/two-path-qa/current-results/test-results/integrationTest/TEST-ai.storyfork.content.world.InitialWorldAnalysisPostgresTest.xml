@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.storyfork.content.world.InitialWorldAnalysisPostgresTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-17T03:09:00.534Z" hostname="d7bace9fe281" time="60.406">
+  <properties/>
+  <testcase name="Neo4j success and failed PG finalization retain IDs block writers and recover after restart()" classname="ai.storyfork.content.world.InitialWorldAnalysisPostgresTest" time="10.902"/>
+  <testcase name="held rejected and old decisions cannot apply and remaining candidates become stale after partial success()" classname="ai.storyfork.content.world.InitialWorldAnalysisPostgresTest" time="7.728"/>
+  <testcase name="process death expires on read and changed basis remains stale without a new call()" classname="ai.storyfork.content.world.InitialWorldAnalysisPostgresTest" time="2.533"/>
+  <testcase name="review history is append only idempotent owner bound and persistent()" classname="ai.storyfork.content.world.InitialWorldAnalysisPostgresTest" time="6.574"/>
+  <testcase name="concurrent duplicate runs once outside lock and survives lost reply and restart()" classname="ai.storyfork.content.world.InitialWorldAnalysisPostgresTest" time="5.569"/>
+  <testcase name="approved additions preserve entities original relations and confirmed version with durable receipt()" classname="ai.storyfork.content.world.InitialWorldAnalysisPostgresTest" time="7.183"/>
+  <testcase name="invalid outputs timeout transport loss and rollback never leave partial candidates()" classname="ai.storyfork.content.world.InitialWorldAnalysisPostgresTest" time="3.795"/>
+  <testcase name="late response is never completed and lost commit acknowledgment returns persisted result()" classname="ai.storyfork.content.world.InitialWorldAnalysisPostgresTest" time="3.323"/>
+  <testcase name="concurrent reviews serialize and failed inserts leave no partial history()" classname="ai.storyfork.content.world.InitialWorldAnalysisPostgresTest" time="2.56"/>
+  <testcase name="failures around real Neo4j commit and PG acknowledgement resume the same application concurrently()" classname="ai.storyfork.content.world.InitialWorldAnalysisPostgresTest" time="10.209"/>
+  <system-out><![CDATA[2026-11-17T03:09:00.754Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:01.048Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 266 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:01.328Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_68301b604bd640df980bf9c664783860 (PostgreSQL 17.11)
+2026-11-17T03:09:01.459Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "worldstudio" ...
+2026-11-17T03:09:01.474Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+2026-11-17T03:09:01.659Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": null
+2026-11-17T03:09:01.744Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "1 - independent worldstudio"
+2026-11-17T03:09:02.078Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+2026-11-17T03:09:02.142Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+2026-11-17T03:09:02.332Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+2026-11-17T03:09:02.374Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "5 - initial decision request identity"
+2026-11-17T03:09:02.414Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "6 - world publication"
+2026-11-17T03:09:02.452Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "7 - world cover"
+2026-11-17T03:09:02.487Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "8 - setting card image"
+2026-11-17T03:09:02.536Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "9 - manuscript initial build"
+2026-11-17T03:09:02.632Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 9 migrations to schema "worldstudio", now at version v9 (execution time 00:00.682s)
+2026-11-17T03:09:02.674Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:02.881Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:02.938Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_68301b604bd640df980bf9c664783860]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_68301b604bd640df980bf9c664783860/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:04.151Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:04.336Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:08.761Z  WARN 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jdbc.error             : HHH000247: ErrorCode: 0, SQLState: P0001
+2026-11-17T03:09:08.761Z  WARN 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jdbc.error             : ERROR: injected PG finalize failure
+  Where: PL/pgSQL function worldstudio.reject_application_completion() line 1 at RAISE
+2026-11-17T03:09:08.861Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:08.877Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:08.931Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 49 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:08.988Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_68301b604bd640df980bf9c664783860 (PostgreSQL 17.11)
+2026-11-17T03:09:09.039Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 10 migrations (execution time 00:00.022s)
+2026-11-17T03:09:09.079Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": 9
+2026-11-17T03:09:09.081Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Schema "worldstudio" is up to date. No migration necessary.
+2026-11-17T03:09:09.104Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:09.151Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:09.181Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_68301b604bd640df980bf9c664783860]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_68301b604bd640df980bf9c664783860/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:09.724Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:09.824Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:11.407Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:11.536Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:11.679Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 139 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:11.812Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_93c4981616c4466099597e57a6ff038f (PostgreSQL 17.11)
+2026-11-17T03:09:11.872Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "worldstudio" ...
+2026-11-17T03:09:11.880Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+2026-11-17T03:09:11.977Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": null
+2026-11-17T03:09:11.998Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "1 - independent worldstudio"
+2026-11-17T03:09:12.375Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+2026-11-17T03:09:12.416Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+2026-11-17T03:09:12.594Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+2026-11-17T03:09:12.631Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "5 - initial decision request identity"
+2026-11-17T03:09:12.675Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "6 - world publication"
+2026-11-17T03:09:12.720Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "7 - world cover"
+2026-11-17T03:09:12.760Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "8 - setting card image"
+2026-11-17T03:09:12.804Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "9 - manuscript initial build"
+2026-11-17T03:09:12.885Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 9 migrations to schema "worldstudio", now at version v9 (execution time 00:00.718s)
+2026-11-17T03:09:12.905Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:12.968Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:13.017Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_93c4981616c4466099597e57a6ff038f]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_93c4981616c4466099597e57a6ff038f/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:13.742Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:13.858Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:19.159Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:19.225Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:19.257Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 29 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:19.302Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_a1c6572fb52a4346a9ab8165cd3bf3be (PostgreSQL 17.11)
+2026-11-17T03:09:19.325Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "worldstudio" ...
+2026-11-17T03:09:19.330Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+2026-11-17T03:09:19.376Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": null
+2026-11-17T03:09:19.388Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "1 - independent worldstudio"
+2026-11-17T03:09:19.578Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+2026-11-17T03:09:19.604Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+2026-11-17T03:09:19.718Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+2026-11-17T03:09:19.734Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "5 - initial decision request identity"
+2026-11-17T03:09:19.752Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "6 - world publication"
+2026-11-17T03:09:19.771Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "7 - world cover"
+2026-11-17T03:09:19.786Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "8 - setting card image"
+2026-11-17T03:09:19.812Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "9 - manuscript initial build"
+2026-11-17T03:09:19.874Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 9 migrations to schema "worldstudio", now at version v9 (execution time 00:00.400s)
+2026-11-17T03:09:19.886Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:19.928Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:19.959Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_a1c6572fb52a4346a9ab8165cd3bf3be]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_a1c6572fb52a4346a9ab8165cd3bf3be/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:20.321Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:20.392Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:21.690Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:21.775Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:21.824Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 46 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:21.913Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_16f56cd6d9684da087203e81e1490536 (PostgreSQL 17.11)
+2026-11-17T03:09:21.957Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "worldstudio" ...
+2026-11-17T03:09:21.967Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+2026-11-17T03:09:22.064Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": null
+2026-11-17T03:09:22.090Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "1 - independent worldstudio"
+2026-11-17T03:09:22.443Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+2026-11-17T03:09:22.486Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+2026-11-17T03:09:22.644Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+2026-11-17T03:09:22.675Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "5 - initial decision request identity"
+2026-11-17T03:09:22.706Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "6 - world publication"
+2026-11-17T03:09:22.734Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "7 - world cover"
+2026-11-17T03:09:22.756Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "8 - setting card image"
+2026-11-17T03:09:22.806Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "9 - manuscript initial build"
+2026-11-17T03:09:22.924Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 9 migrations to schema "worldstudio", now at version v9 (execution time 00:00.696s)
+2026-11-17T03:09:22.950Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:23.029Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:23.074Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_16f56cd6d9684da087203e81e1490536]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_16f56cd6d9684da087203e81e1490536/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:23.605Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:23.698Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:26.633Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:26.654Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:26.713Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 56 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:26.786Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_16f56cd6d9684da087203e81e1490536 (PostgreSQL 17.11)
+2026-11-17T03:09:26.850Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 10 migrations (execution time 00:00.033s)
+2026-11-17T03:09:26.892Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": 9
+2026-11-17T03:09:26.894Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Schema "worldstudio" is up to date. No migration necessary.
+2026-11-17T03:09:26.910Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:26.964Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:27.003Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_16f56cd6d9684da087203e81e1490536]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_16f56cd6d9684da087203e81e1490536/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:27.464Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:27.605Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:28.259Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:28.363Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:28.445Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 78 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:28.550Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_52cb8913b7ea40d6b13b9d94815a32b6 (PostgreSQL 17.11)
+2026-11-17T03:09:28.592Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "worldstudio" ...
+2026-11-17T03:09:28.600Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+2026-11-17T03:09:28.675Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": null
+2026-11-17T03:09:28.689Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "1 - independent worldstudio"
+2026-11-17T03:09:28.987Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+2026-11-17T03:09:29.022Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+2026-11-17T03:09:29.192Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+2026-11-17T03:09:29.218Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "5 - initial decision request identity"
+2026-11-17T03:09:29.252Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "6 - world publication"
+2026-11-17T03:09:29.278Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "7 - world cover"
+2026-11-17T03:09:29.297Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "8 - setting card image"
+2026-11-17T03:09:29.333Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "9 - manuscript initial build"
+2026-11-17T03:09:29.409Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 9 migrations to schema "worldstudio", now at version v9 (execution time 00:00.612s)
+2026-11-17T03:09:29.421Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:29.458Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:29.503Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_52cb8913b7ea40d6b13b9d94815a32b6]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_52cb8913b7ea40d6b13b9d94815a32b6/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:30.318Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:30.431Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:32.280Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:32.302Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:32.356Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 50 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:32.398Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_52cb8913b7ea40d6b13b9d94815a32b6 (PostgreSQL 17.11)
+2026-11-17T03:09:32.440Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 10 migrations (execution time 00:00.016s)
+2026-11-17T03:09:32.469Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": 9
+2026-11-17T03:09:32.470Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Schema "worldstudio" is up to date. No migration necessary.
+2026-11-17T03:09:32.481Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:32.511Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:32.537Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_52cb8913b7ea40d6b13b9d94815a32b6]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_52cb8913b7ea40d6b13b9d94815a32b6/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:32.931Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:33.087Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:33.840Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:33.941Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:33.992Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 47 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:34.090Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_5b2bb2468265441880ce9b5f225860a4 (PostgreSQL 17.11)
+2026-11-17T03:09:34.148Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "worldstudio" ...
+2026-11-17T03:09:34.167Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+2026-11-17T03:09:34.272Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": null
+2026-11-17T03:09:34.290Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "1 - independent worldstudio"
+2026-11-17T03:09:34.551Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+2026-11-17T03:09:34.592Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+2026-11-17T03:09:34.736Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+2026-11-17T03:09:34.753Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "5 - initial decision request identity"
+2026-11-17T03:09:34.773Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "6 - world publication"
+2026-11-17T03:09:34.793Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "7 - world cover"
+2026-11-17T03:09:34.808Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "8 - setting card image"
+2026-11-17T03:09:34.832Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "9 - manuscript initial build"
+2026-11-17T03:09:34.899Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 9 migrations to schema "worldstudio", now at version v9 (execution time 00:00.520s)
+2026-11-17T03:09:34.911Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:34.971Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:35.008Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_5b2bb2468265441880ce9b5f225860a4]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_5b2bb2468265441880ce9b5f225860a4/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:35.512Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:35.650Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:41.028Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:41.099Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:41.132Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 31 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:41.192Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_622594b460d04ca1887d844a65a43249 (PostgreSQL 17.11)
+2026-11-17T03:09:41.214Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "worldstudio" ...
+2026-11-17T03:09:41.218Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+2026-11-17T03:09:41.263Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": null
+2026-11-17T03:09:41.271Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "1 - independent worldstudio"
+2026-11-17T03:09:41.451Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+2026-11-17T03:09:41.480Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+2026-11-17T03:09:41.579Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+2026-11-17T03:09:41.592Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "5 - initial decision request identity"
+2026-11-17T03:09:41.608Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "6 - world publication"
+2026-11-17T03:09:41.623Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "7 - world cover"
+2026-11-17T03:09:41.637Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "8 - setting card image"
+2026-11-17T03:09:41.662Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "9 - manuscript initial build"
+2026-11-17T03:09:41.714Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 9 migrations to schema "worldstudio", now at version v9 (execution time 00:00.369s)
+2026-11-17T03:09:41.726Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:41.750Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:41.771Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_622594b460d04ca1887d844a65a43249]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_622594b460d04ca1887d844a65a43249/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:42.017Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:42.095Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:44.651Z  WARN 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jdbc.error             : HHH000247: ErrorCode: 0, SQLState: P0001
+2026-11-17T03:09:44.652Z  WARN 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jdbc.error             : ERROR: injected commit failure
+  Where: PL/pgSQL function worldstudio.reject_completion() line 1 at RAISE
+2026-11-17T03:09:44.816Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:44.907Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:44.952Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 40 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:45.019Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_28ee2ccc257742c7b998de9c409d94ce (PostgreSQL 17.11)
+2026-11-17T03:09:45.053Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "worldstudio" ...
+2026-11-17T03:09:45.061Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+2026-11-17T03:09:45.118Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": null
+2026-11-17T03:09:45.128Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "1 - independent worldstudio"
+2026-11-17T03:09:45.377Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+2026-11-17T03:09:45.410Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+2026-11-17T03:09:45.574Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+2026-11-17T03:09:45.604Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "5 - initial decision request identity"
+2026-11-17T03:09:45.629Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "6 - world publication"
+2026-11-17T03:09:45.662Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "7 - world cover"
+2026-11-17T03:09:45.680Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "8 - setting card image"
+2026-11-17T03:09:45.727Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "9 - manuscript initial build"
+2026-11-17T03:09:45.817Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 9 migrations to schema "worldstudio", now at version v9 (execution time 00:00.575s)
+2026-11-17T03:09:45.843Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:45.891Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:45.929Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_28ee2ccc257742c7b998de9c409d94ce]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_28ee2ccc257742c7b998de9c409d94ce/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:46.276Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:46.390Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:48.145Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:48.232Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:48.280Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 45 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:48.346Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_2d41b3dc49bd490a8de35bcc6ad0297e (PostgreSQL 17.11)
+2026-11-17T03:09:48.376Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "worldstudio" ...
+2026-11-17T03:09:48.382Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+2026-11-17T03:09:48.438Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": null
+2026-11-17T03:09:48.448Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "1 - independent worldstudio"
+2026-11-17T03:09:48.645Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+2026-11-17T03:09:48.670Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+2026-11-17T03:09:48.760Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+2026-11-17T03:09:48.770Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "5 - initial decision request identity"
+2026-11-17T03:09:48.788Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "6 - world publication"
+2026-11-17T03:09:48.801Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "7 - world cover"
+2026-11-17T03:09:48.812Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "8 - setting card image"
+2026-11-17T03:09:48.833Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "9 - manuscript initial build"
+2026-11-17T03:09:48.875Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 9 migrations to schema "worldstudio", now at version v9 (execution time 00:00.359s)
+2026-11-17T03:09:48.884Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:48.906Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:48.925Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_2d41b3dc49bd490a8de35bcc6ad0297e]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_2d41b3dc49bd490a8de35bcc6ad0297e/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:49.099Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:49.172Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:50.256Z  WARN 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jdbc.error             : HHH000247: ErrorCode: 0, SQLState: P0001
+2026-11-17T03:09:50.257Z  WARN 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jdbc.error             : ERROR: injected review failure
+  Where: PL/pgSQL function worldstudio.reject_review() line 1 at RAISE
+2026-11-17T03:09:50.713Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:09:50.775Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-17T03:09:50.797Z  INFO 173 --- [storyfork-content-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 19 ms. Found 22 JPA repository interfaces.
+2026-11-17T03:09:50.839Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/ws_independent_1b6384b1a5034b0db0ed54cf4e025397 (PostgreSQL 17.11)
+2026-11-17T03:09:50.863Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "worldstudio" ...
+2026-11-17T03:09:50.867Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+2026-11-17T03:09:50.905Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "worldstudio": null
+2026-11-17T03:09:50.912Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "1 - independent worldstudio"
+2026-11-17T03:09:51.032Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+2026-11-17T03:09:51.056Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+2026-11-17T03:09:51.128Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+2026-11-17T03:09:51.139Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "5 - initial decision request identity"
+2026-11-17T03:09:51.151Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "6 - world publication"
+2026-11-17T03:09:51.164Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "7 - world cover"
+2026-11-17T03:09:51.175Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "8 - setting card image"
+2026-11-17T03:09:51.192Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "worldstudio" to version "9 - manuscript initial build"
+2026-11-17T03:09:51.231Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 9 migrations to schema "worldstudio", now at version v9 (execution time 00:00.257s)
+2026-11-17T03:09:51.238Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: worldstudio]
+2026-11-17T03:09:51.258Z  INFO 173 --- [storyfork-content-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-17T03:09:51.279Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://postgres:5432/ws_independent_1b6384b1a5034b0db0ed54cf4e025397]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.11
+	Default catalog/schema: ws_independent_1b6384b1a5034b0db0ed54cf4e025397/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-17T03:09:51.481Z  INFO 173 --- [storyfork-content-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-17T03:09:51.548Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'worldstudio'
+2026-11-17T03:10:00.922Z  INFO 173 --- [storyfork-content-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

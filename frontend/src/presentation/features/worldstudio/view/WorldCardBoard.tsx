@@ -162,7 +162,6 @@ export function WorldCardBoard({ vm }: { vm: VM }) {
             </div>
             <div className="world-bulk" role="group" aria-label="공개 범위 한 번에 바꾸기">
               <p className="small muted">{linked ? '고른 설정 모두에 같은 N화부터 공개를 정해요. 작가 전용으로 두면 독자와 공개 세계관에 보이지 않아요.' : '공개로 둔 설정만 공개 세계관에 보여요.'} 저장한 뒤 ‘확정 버전 남기기’를 해야 반영돼요.</p>
-              <p className="small muted">선택 공개·비공개는 현재 페이지에 보이는 선택만 바꿔요. 다른 페이지나 필터에 가려진 선택은 유지돼요.</p>
               <span className="small" role="status">{done?.settings === world.settings ? done.text : selectionText}</span>
               {done?.settings === world.settings && <span className="small">{selectionText}</span>}
               {linked && (

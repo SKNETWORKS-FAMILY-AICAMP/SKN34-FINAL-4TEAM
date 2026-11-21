@@ -1,0 +1,132 @@
+# note: interactive (clickable / focusable) elements only.
+- title: "세계관 · STORYFORK" [url=http://127.0.0.1:5187/worldstudio/c156dafc-259b-445d-a305-703697f4a34a?view=people]
+- link "본문으로 바로가기" [ref=e175]
+- banner:
+  - link "STORYFORK 홈으로" [ref=e176]: "SF STORYFORK"
+  - navigation "주요 메뉴" [ref=e177]:
+    - link "세계관" [ref=e178]
+    - link "랭킹" [ref=e179]
+    - link "캐릭터챗" [ref=e180]
+    - link "내 서재" [ref=e181]
+  - button "소설·인물·회차 검색" [ref=e182]: "🔍 소설·인물·회차 검색 Ctrl K"
+  - link "알림함" [ref=e183]: "알림"
+  - button "내 계정 메뉴" [ref=e184]: "개"
+- main:
+  - link "내가 만드는 세계관" [ref=e49]
+  - status: "서버에 현재 세계관을 저장했어요. 관계는 회차별로 기록하며 과거 관계 복원은 지원하지 않아요."
+  - region:
+    - region:
+      - text: "비공개"
+      - heading "QA 브라우저 최초 구축 4화 1117" [level=1]
+      - button "세계관 정보 편집" [ref=e51]: "편집"
+      - text: "설정  5 개 저장 버전  5 비공개 편집을 눌러 세계관 소개를 적어 보세요.로그인한 내 세계관을 서버에 저장해요. 관계는 회차별로 기록하며 관계 이력 복원·과거 세계관 전체 복원은 지원하지 않아요.연결된 소설: QA 브라우저 최초 구축 4화 1117"
+      - link "소설 작성하기" [ref=e52]
+    - navigation "세계관 메뉴" [ref=e53]:
+      - button "설정집" [ref=e54]
+      - button "관계도" [ref=e55]
+      - button "시간선" [ref=e56]
+    - button "AI 검토" [ref=e57]
+    - button "집필 메모 추가" [ref=e58]
+    - button "확정 버전 남기기" [ref=e59]
+    - group "저장 상태":
+      - status: "저장됨"
+      - text: "관계는 1화 기준으로 저장돼요."
+      - button "세계관 저장" [ref=e185] [disabled]
+    - button "다크 모드로" [ref=e61]: "☾"
+    - region:
+      - button "설정집으로 돌아가기" [ref=e202]
+      - region "관계 기준 회차" [ref=e203]:
+        - text: "관계 기준"
+        - textbox "관계 기준화" [ref=e204] [placeholder="최신"]: "1"
+        - text: "화"
+        - button "이 회차 관계 보기" [ref=e205] [disabled]
+        - button "최신으로" [ref=e206]
+        - status: "지금은 1화 시점의 관계예요."
+        - text: "비워 두면 최신 회차예요. 세계관을 저장하면 이 회차의 관계로 기록하고, 설정 카드의 변경은 회차와 상관없이 그대로 저장돼요."
+      - region "관계 편집" [ref=e231]:
+        - text: "구조적 관계와 방향별 감정을 따로 작성해요.관계 대상 선택"
+        - heading "관계도" [level=4]
+        - button "인물 추가" [ref=e232]
+        - button "배치 정돈" [ref=e233]
+        - status: "카드를 차례로 두 번 누르면 관계를 이을 수 있어요. 실선은 구조 관계, 점선은 감정이에요. 위치는 저장되지 않아요."
+        - group "관계도 유형 필터":
+          - button "전체" [ref=e234]
+          - button "인물 2" [ref=e235]
+          - button "조직 1" [ref=e236]
+          - button "사건 2" [ref=e237]
+        - group "설정 카드 그래프" [ref=e238] [scrollable]:
+          - group "설정 사이 관계선":
+            - button "관계선 편집: 길동 · 활빈당 · 활빈당 소속 의적 (작가 확인)" [ref=e283]
+            - text: "활빈당 소속 의적 …"
+          - group "4화 사건 s1 사건 카드":
+            - heading "4화 사건 s1" [level=4]
+            - text: "발생: 4화 / 참여: 길동, 활빈당\n[event] 길동은 활빈당을 탈퇴했다."
+            - button "4화 사건 s1 정보 편집" [ref=e240]: "정보 편집"
+            - button "4화 사건 s1 관계 연결" [ref=e241]: "관계 연결"
+          - group "길동 인물 카드":
+            - heading "길동" [level=4]
+            - text: "길동\n작가 검토: 약자를 돕는 의적."
+            - button "길동 정보 편집" [ref=e242]: "정보 편집"
+            - button "길동 관계 연결" [ref=e243]: "관계 연결"
+          - group "활빈당 조직 카드":
+            - heading "활빈당" [level=4]
+            - text: "활빈당"
+            - button "활빈당 정보 편집" [ref=e244]: "정보 편집"
+            - button "활빈당 관계 연결" [ref=e245]: "관계 연결"
+          - group "3화 사건 s1 사건 카드":
+            - heading "3화 사건 s1" [level=4]
+            - text: "발생: 3화 / 참여: 길동\n[event] 길동은 산을 넘었다."
+            - button "3화 사건 s1 정보 편집" [ref=e246]: "정보 편집"
+            - button "3화 사건 s1 관계 연결" [ref=e247]: "관계 연결"
+          - group "홍길동 인물 카드":
+            - heading "홍길동" [level=4]
+            - text: "홍길동"
+            - button "홍길동 정보 편집" [ref=e248]: "정보 편집"
+            - button "홍길동 관계 연결" [ref=e249]: "관계 연결"
+        - text: "구조 관계 감정(방향별)방향이 있는 관계"
+        - region "관계 추가" [ref=e250]:
+          - heading "관계 추가" [level=4]
+          - text: "그래프에서 카드를 차례로 두 번 누르거나, 아래에서 두 설정을 고르세요.관계 주체"
+          - combobox "관계 주체" [ref=e251]:
+            - option "선택하세요"
+            - option "4화 사건 s1" value="5f5ba41e-187b-3b6b-9fa0-323b0dc9e451"
+            - option "길동" (selected) value="9fbaefe8-4b86-3552-9224-1ce1ceb42aa8"
+            - option "활빈당" value="c3b88364-8003-3e21-9ad6-7b99d0ff7a79"
+            - option "3화 사건 s1" value="eca65066-2b85-3534-80c4-e35c1bc7c38b"
+            - option "홍길동" value="f122f1c8-561b-3f23-a4d5-f26cfa97ce44"
+          - text: "관계 대상"
+          - combobox "관계 대상" [ref=e252]:
+            - option "선택하세요"
+            - option "4화 사건 s1" value="5f5ba41e-187b-3b6b-9fa0-323b0dc9e451"
+            - option "길동" value="9fbaefe8-4b86-3552-9224-1ce1ceb42aa8"
+            - option "활빈당" (selected) value="c3b88364-8003-3e21-9ad6-7b99d0ff7a79"
+            - option "3화 사건 s1" value="eca65066-2b85-3534-80c4-e35c1bc7c38b"
+            - option "홍길동" value="f122f1c8-561b-3f23-a4d5-f26cfa97ce44"
+          - button "관계 작성" [ref=e253]
+          - button "선택한 인물 삭제" [ref=e254] [disabled]
+          - text: "설정 삭제는 최신 회차에서 할 수 있어요."
+        - region "관계 목록" [ref=e255]:
+          - heading "관계 목록" [level=4]: "관계 목록  1 개"
+          - text: "저장할 관계 목록 주체 관계 대상 편집·삭제 길동 활빈당 소속 의적 (작가 확인)활빈당"
+          - button "길동 · 활빈당 소속 의적 (작가 확인) · 활빈당 편집" [ref=e284]: "편집"
+          - button "길동 · 활빈당 소속 의적 (작가 확인) · 활빈당 삭제" [ref=e285]: "삭제"
+- complementary "AI 채팅":
+  - heading "AI 채팅" [level=2]
+  - button "접기" [ref=e186]
+  - text: "대화 고르기"
+  - combobox "대화 고르기" [ref=e187] [disabled]:
+    - option "새 대화" (selected)
+  - button "새 대화" [ref=e188] [disabled]
+  - button "대화 메뉴" [ref=e189]
+  - log "대화 내용":
+    - alert:
+      - text: "대화를 찾을 수 없어요."
+      - button "다시 불러오기" [ref=e190]
+  - textbox "메시지" [ref=e191] [disabled] [placeholder="AI에게 무엇이든 물어보세요"]
+  - button "첨부" [ref=e192]
+  - button "음성 입력 (준비 중)" [ref=e193] [disabled]
+  - button "전송" [ref=e194] [disabled]
+  - text: "회차를 하나 이상 발행하면 AI와 대화할 수 있어요. AI는 발행한 회차를 근거로 답해요."
+- contentinfo: "STORYFORK SKN34 최종 프로젝트 4팀"
+- status
+- text: "W01 세계관 · 내 세계관 관리"

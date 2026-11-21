@@ -328,7 +328,7 @@ it('토스트는 글자 수에 비례한 시간만큼 머문 뒤 비우고, 그 
   } finally { vi.useRealTimers() }
 })
 
-it.each([[true, ''], [false, 'translateY(-6px) scale(1.0700)']])('동작 줄이기 설정이 %s이면 마우스 근처 카드(.prox)의 변형은 %j이다 — 줄이기 설정에서는 카드를 움직이지 않는다', (reduced, transform) => {
+it.each([[true, 50, ''], [false, 50, 'translateY(-3px)'], [false, 150, '']])('동작 줄이기 설정이 %s이고 마우스가 가로 %i에 있으면 카드(.prox, 가로 0~100)의 변형은 %j이다 — 줄이기 설정에서는 움직이지 않고, 카드 밖 가까이에서는 커지지 않으며, 올라온 카드만 살짝 뜬다', (reduced, x, transform) => {
   vi.stubGlobal('matchMedia', vi.fn((query: string) => Object.assign(new EventTarget(), { matches: reduced && query === '(prefers-reduced-motion: reduce)' })))
   vi.stubGlobal('requestAnimationFrame', (run: FrameRequestCallback) => { run(0); return 1 })
   const card = document.createElement('a')
@@ -337,7 +337,7 @@ it.each([[true, ''], [false, 'translateY(-6px) scale(1.0700)']])('동작 줄이�
   document.body.append(card)
   try {
     renderChrome()
-    fireEvent.mouseMove(document, { clientX: 50, clientY: 50 })
+    fireEvent.mouseMove(document, { clientX: x, clientY: 50 })
     expect(card.style.transform).toBe(transform)
   } finally { card.remove() }
 })

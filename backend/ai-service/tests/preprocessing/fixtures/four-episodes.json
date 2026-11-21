@@ -1,0 +1,278 @@
+{
+  "description": "테스트용으로 직접 작성한 홍길동 모티프 원문. 실제 작품 인용이나 모델 평가 결과가 아니다.",
+  "episodes": [
+    {
+      "number": 1,
+      "title": "의적의 계획",
+      "body": "길동은 홍길동이라고도 불린다.\n활빈당은 의적 조직이다.\n길동은 약자를 돕는 성격이다.\n길동은 산을 넘을 계획이었다.\n길동은 이야기 시작 전부터 자신의 출생을 알고 있었다.\n길동은 활빈당에 가입했다.",
+      "output": {
+        "mentions": [
+          {
+            "id": "m1",
+            "name": "길동",
+            "kind": "character",
+            "quote": "길동은 홍길동이라고도 불린다."
+          },
+          {
+            "id": "m2",
+            "name": "홍길동",
+            "kind": "character",
+            "quote": "길동은 홍길동이라고도 불린다."
+          },
+          {
+            "id": "m3",
+            "name": "활빈당",
+            "kind": "organization",
+            "quote": "활빈당은 의적 조직이다."
+          }
+        ],
+        "statements": [
+          {
+            "id": "s1",
+            "kind": "description",
+            "certainty": "asserted",
+            "subjects": [
+              "m1"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "soul",
+            "occurredEpisode": null,
+            "knownFromEpisode": 1,
+            "quote": "길동은 약자를 돕는 성격이다."
+          },
+          {
+            "id": "s2",
+            "kind": "plan",
+            "certainty": "intended",
+            "subjects": [
+              "m1"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "goal",
+            "occurredEpisode": null,
+            "knownFromEpisode": 1,
+            "quote": "길동은 산을 넘을 계획이었다."
+          },
+          {
+            "id": "s3",
+            "kind": "fact",
+            "certainty": "asserted",
+            "subjects": [
+              "m1"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "memory",
+            "occurredEpisode": 0,
+            "knownFromEpisode": 0,
+            "quote": "길동은 이야기 시작 전부터 자신의 출생을 알고 있었다."
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "source": "m1",
+            "target": "m3",
+            "label": "소속",
+            "change": "started",
+            "quote": "길동은 활빈당에 가입했다."
+          }
+        ]
+      }
+    },
+    {
+      "number": 2,
+      "title": "동명이인",
+      "body": "상인 홍길동은 의적 홍길동과 다른 사람이다.\n상인 홍길동은 의적이 사라졌을 것이라고 추측했다.",
+      "output": {
+        "mentions": [
+          {
+            "id": "m1",
+            "name": "홍길동",
+            "kind": "character",
+            "quote": "상인 홍길동은 의적 홍길동과 다른 사람이다."
+          }
+        ],
+        "statements": [
+          {
+            "id": "s1",
+            "kind": "conjecture",
+            "certainty": "uncertain",
+            "subjects": [
+              "m1"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "memory",
+            "occurredEpisode": null,
+            "knownFromEpisode": 2,
+            "quote": "상인 홍길동은 의적이 사라졌을 것이라고 추측했다."
+          }
+        ],
+        "relationships": []
+      }
+    },
+    {
+      "number": 3,
+      "title": "계획의 실행",
+      "body": "길동은 1화에 나온 의적 길동 본인이다.\n길동은 산을 넘었다.\n길동은 이제 백성을 다스리고 싶어 했다.\n길동만이 비밀 지도를 보았다.",
+      "output": {
+        "mentions": [
+          {
+            "id": "m1",
+            "name": "길동",
+            "kind": "character",
+            "quote": "길동은 1화에 나온 의적 길동 본인이다."
+          }
+        ],
+        "statements": [
+          {
+            "id": "s1",
+            "kind": "event",
+            "certainty": "asserted",
+            "subjects": [
+              "m1"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "memory",
+            "occurredEpisode": 3,
+            "knownFromEpisode": 3,
+            "quote": "길동은 산을 넘었다."
+          },
+          {
+            "id": "s2",
+            "kind": "goal",
+            "certainty": "intended",
+            "subjects": [
+              "m1"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "goal",
+            "occurredEpisode": null,
+            "knownFromEpisode": 3,
+            "quote": "길동은 이제 백성을 다스리고 싶어 했다."
+          },
+          {
+            "id": "s3",
+            "kind": "fact",
+            "certainty": "asserted",
+            "subjects": [
+              "m1"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "memory",
+            "occurredEpisode": null,
+            "knownFromEpisode": 3,
+            "quote": "길동만이 비밀 지도를 보았다."
+          }
+        ],
+        "relationships": []
+      }
+    },
+    {
+      "number": 4,
+      "title": "탈퇴",
+      "body": "길동은 1화에 나온 의적 길동 본인이다.\n활빈당은 1화의 그 활빈당이다.\n길동은 활빈당을 탈퇴했다.",
+      "output": {
+        "mentions": [
+          {
+            "id": "m1",
+            "name": "길동",
+            "kind": "character",
+            "quote": "길동은 1화에 나온 의적 길동 본인이다."
+          },
+          {
+            "id": "m2",
+            "name": "활빈당",
+            "kind": "organization",
+            "quote": "활빈당은 1화의 그 활빈당이다."
+          }
+        ],
+        "statements": [
+          {
+            "id": "s1",
+            "kind": "event",
+            "certainty": "asserted",
+            "subjects": [
+              "m1",
+              "m2"
+            ],
+            "knowers": [
+              "m1"
+            ],
+            "document": "memory",
+            "occurredEpisode": 4,
+            "knownFromEpisode": 4,
+            "quote": "길동은 활빈당을 탈퇴했다."
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "source": "m1",
+            "target": "m2",
+            "label": "소속",
+            "change": "ended",
+            "quote": "길동은 활빈당을 탈퇴했다."
+          }
+        ]
+      }
+    }
+  ],
+  "resolution": {
+    "links": [
+      {
+        "left": "1:m1",
+        "right": "1:m2",
+        "basis": "explicit_alias",
+        "confirmedAt": 1,
+        "evidenceEpisode": 1,
+        "quote": "길동은 홍길동이라고도 불린다."
+      },
+      {
+        "left": "1:m2",
+        "right": "2:m1",
+        "basis": "distinct",
+        "confirmedAt": 2,
+        "evidenceEpisode": 2,
+        "quote": "상인 홍길동은 의적 홍길동과 다른 사람이다."
+      },
+      {
+        "left": "1:m1",
+        "right": "3:m1",
+        "basis": "explicit_coreference",
+        "confirmedAt": 3,
+        "evidenceEpisode": 3,
+        "quote": "길동은 1화에 나온 의적 길동 본인이다."
+      },
+      {
+        "left": "1:m1",
+        "right": "4:m1",
+        "basis": "explicit_coreference",
+        "confirmedAt": 4,
+        "evidenceEpisode": 4,
+        "quote": "길동은 1화에 나온 의적 길동 본인이다."
+      },
+      {
+        "left": "1:m3",
+        "right": "4:m2",
+        "basis": "explicit_coreference",
+        "confirmedAt": 4,
+        "evidenceEpisode": 4,
+        "quote": "활빈당은 1화의 그 활빈당이다."
+      }
+    ]
+  }
+}

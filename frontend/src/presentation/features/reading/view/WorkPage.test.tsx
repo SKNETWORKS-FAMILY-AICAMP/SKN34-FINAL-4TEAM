@@ -37,6 +37,32 @@ it.each([
   } finally { works[index] = original }
 })
 
+it('읽기 버튼을 해시태그와 긴 작품 소개 앞에 둔다', async () => {
+  const work = appContainer.resolve('mockDb').works.find((candidate) => candidate.id === 'postman')!
+  const saved = work.summary
+  const summary = '도시를 가로지르는 우편배달부의 여정. '.repeat(40).trim()
+  work.summary = summary
+  try {
+    renderApp('/work/postman')
+    const read = await screen.findByRole('link', { name: '읽기 시작' })
+    const introduction = screen.getByText(summary, { selector: '.whero .sum' })
+    const firstTag = document.querySelector('.whero .hashes a')!
+    expect(read.compareDocumentPosition(firstTag) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(read.compareDocumentPosition(introduction) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  } finally { work.summary = saved }
+})
+
+it('해시태그가 없으면 빈 해시태그 줄을 그리지 않는다(버튼과 통계 사이 여백이 두 배가 되지 않게)', async () => {
+  const work = appContainer.resolve('mockDb').works.find((candidate) => candidate.id === 'postman')!
+  const saved = work.hash
+  work.hash = []
+  try {
+    renderApp('/work/postman')
+    await screen.findByRole('link', { name: '읽기 시작' })
+    expect(document.querySelector('.whero .hashes')).toBeNull()
+  } finally { work.hash = saved }
+})
+
 const expectOneMain = () => {
   const mains = document.querySelectorAll('main')
   expect(mains).toHaveLength(1)
@@ -64,8 +90,8 @@ it('소설 상세의 제목은 단계를 건너뛰지 않는다', async () => {
   renderApp('/work/postman', createAppStore({ role: 'user' }))
   await screen.findByRole('heading', { name: '회색 도시의 우편배달부', level: 1 })
   // 오른쪽 포크 안내 상자의 제목은 h1 바로 아래 구역 제목이다(화면 읽기 프로그램의 제목 이동이 끊기지 않게).
-  expect(screen.getByRole('heading', { name: '이 소설, 다르게 쓰고 싶다면', level: 2 })).toBeTruthy()
-  const levels = screen.getAllByRole('heading').map((h) => Number(h.getAttribute('aria-level') ?? h.tagName.slice(1)))
+  expect(screen.getByRole('heading', { name: '이 소설, 다르게 쓰고 싶다면' }).tagName).toBe('H2')
+  const levels = screen.getAllByRole('heading').map((h) => Number(h.tagName.slice(1)))
   expect(levels.filter((level, i) => i > 0 && level > levels[i - 1] + 1)).toEqual([])
 })
 

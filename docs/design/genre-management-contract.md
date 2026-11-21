@@ -25,7 +25,7 @@
 
 ## 세계관 장르 합치기
 
-- WorldStudio 마이그레이션 V14(V13은 열린 PR #552 몫이라 비운다)가 `world.genre`의 CHECK 제약을 지우고 기존 값을 Content 장르 코드로 바꾼다.
+- WorldStudio 마이그레이션 V14(V13은 결번이다)가 `world.genre`의 CHECK 제약을 지우고 기존 값을 Content 장르 코드로 바꾼다.
 
   | 옛 코드 | 새 코드 | 이름 |
   |---|---|---|

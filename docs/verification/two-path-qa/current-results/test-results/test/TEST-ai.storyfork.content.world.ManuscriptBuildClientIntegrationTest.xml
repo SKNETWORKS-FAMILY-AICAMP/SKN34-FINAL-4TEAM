@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.storyfork.content.world.ManuscriptBuildClientIntegrationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-17T05:50:15.980Z" hostname="9cb58bc2282a" time="0.222">
+  <properties/>
+  <testcase name="provider timeout invalid output and rejected input remain distinct without retry()" classname="ai.storyfork.content.world.ManuscriptBuildClientIntegrationTest" time="0.218"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

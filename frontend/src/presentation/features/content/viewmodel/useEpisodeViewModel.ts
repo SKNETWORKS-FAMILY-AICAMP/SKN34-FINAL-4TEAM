@@ -4,7 +4,7 @@ import type { WritingEpisode, History, Work, WorkRegistration, WorkTagSuggestion
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecases/MediaUseCase'
 
-type Origin = '' | 'create' | 'fork' | 'link' | 'detach'
+type Origin = '' | 'create' | 'fork' | 'link' | 'detach' | 'history'
 
 /**
  * `/content` 작품 관리 화면: 작품 생성·작품 정보(제목·소개·장르·해시태그)·표지·분기 정책·분기 정보(공개 중단)·작품 삭제(원작·포크)·분기 만들기·세계관 연결·이력 조회.
@@ -23,7 +23,7 @@ export function useEpisodeViewModel(
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   /**
-   * 마지막 요청을 보낸 자리. 작품 만들기·분기 만들기·세계관 연결은 그 폼·카드가 결과를 직접 보이고(화면 맨 위 알림은 스크롤해 내려간 자리에서 보이지 않는다),
+   * 마지막 요청을 보낸 자리. 작품 만들기·분기 만들기·세계관 연결·이력 조회는 그 폼·카드·구획이 결과를 직접 보이고(화면 맨 위 알림은 스크롤해 내려간 자리에서 보이지 않는다),
    * 자리가 없는 요청('')의 결과는 화면 맨 위 알림이 보인다.
    */
   const [origin, setOrigin] = useState<Origin>('')
@@ -168,7 +168,7 @@ export function useEpisodeViewModel(
     loadHistory: () =>
       run(async () => {
         if (active) setLoaded({ id: active.id, history: await useCase.history(active.id) })
-      }),
+      }, 'history'),
     /** 작품 제목·소개와 바뀐 장르·해시태그 수정. 서버가 돌려준 작품(새 revision 포함)으로 화면을 바꾼다. */
     updateWork: (title: string, summary: string, taxonomy?: WorkTaxonomy) =>
       run(async () => {

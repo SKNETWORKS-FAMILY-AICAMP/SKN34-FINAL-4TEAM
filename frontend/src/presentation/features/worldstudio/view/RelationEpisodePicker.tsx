@@ -56,7 +56,7 @@ export function RelationEpisodePicker({ studio }: { studio: VM }) {
       </form>
       {error && <p id={`${id}-error`} role='alert' className='small world-field-error'>{error}</p>}
       <p id={`${id}-help`} role='status' className='small muted'>{lock || (episode === null ? '지금은 최신 회차의 관계예요.' : `지금은 ${episode}화 시점의 관계예요.`)}</p>
-      {!lock && <p className='small muted'>비워 두면 최신 회차예요. 이 칸은 어느 회차 시점의 관계로 볼지만 정해요. 관계를 몇 화부터로 기록할지는 관계마다 적고, 관계를 삭제하면 고른 회차에서 끝나는 것으로 저장돼요.</p>}
+      {!lock && <p className='small muted'>이 칸은 어느 회차 시점의 관계로 볼지만 정해요. 관계를 몇 화부터로 기록할지는 관계마다 적고, 관계를 삭제하면 고른 회차에서 끝나는 것으로 저장돼요.</p>}
     </section>
   )
 }

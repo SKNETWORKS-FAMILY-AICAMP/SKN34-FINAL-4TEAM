@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.storyfork.content.world.ManuscriptExtractionVerifierTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-17T05:50:19.654Z" hostname="9cb58bc2282a" time="0.031">
+  <properties/>
+  <testcase name="altered original quote hash and entity references are rejected()" classname="ai.storyfork.content.world.ManuscriptExtractionVerifierTest" time="0.019"/>
+  <testcase name="valid source evidence and IDs produce a version bound persisted envelope()" classname="ai.storyfork.content.world.ManuscriptExtractionVerifierTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

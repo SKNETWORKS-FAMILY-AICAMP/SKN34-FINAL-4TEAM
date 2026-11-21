@@ -5,15 +5,23 @@
  * 그래프 | 관계 폼 2열은 뷰포트가 아니라 편집기 자신의 폭(컨테이너)으로 정한다: 오른쪽 AI 채팅 레일이 열리면 뷰포트가 넓어도 본문이 좁아 그래프가 230px까지 눌렸다.
  */
 .relationship-editor{container:relationship-editor / inline-size}
-.relationship-stage{--stage-1:#182742;--stage-2:#0b1324;--stage-3:#080e1b;--edge:#A9C6FF;--edge-emotion:#FFD98A;--edge-active:var(--fixed-ink);--edge-halo:var(--stage-3);--stage-tint:color-mix(in srgb,var(--fixed-ink) 8%,transparent);--rc-bg:color-mix(in srgb,var(--fixed-ink) 7%,transparent);--rc-line:color-mix(in srgb,var(--fixed-ink) 18%,transparent);--rc-ink:var(--fixed-ink);--rc-sub:var(--fixed-sub);--rc-sel:color-mix(in srgb,var(--fixed-pri) 20%,transparent);--rc-accent:var(--fixed-pri);min-width:0;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:radial-gradient(ellipse at 50% 46%,var(--stage-1) 0%,var(--stage-2) 56%,var(--stage-3) 100%);box-shadow:var(--sh)}
+/* 무대는 카드 안의 평평한 면이다: 어두운 면 위의 그림자는 보이지 않고 겹만 하나 늘려서 두지 않는다. */
+.relationship-stage{--stage-1:#182742;--stage-2:#0b1324;--stage-3:#080e1b;--edge:#A9C6FF;--edge-emotion:#FFD98A;--edge-active:var(--fixed-ink);--edge-halo:var(--stage-3);--stage-tint:color-mix(in srgb,var(--fixed-ink) 8%,transparent);--rc-bg:color-mix(in srgb,var(--fixed-ink) 7%,transparent);--rc-line:color-mix(in srgb,var(--fixed-ink) 18%,transparent);--rc-ink:var(--fixed-ink);--rc-sub:var(--fixed-sub);--rc-sel:color-mix(in srgb,var(--fixed-pri) 20%,transparent);--rc-accent:var(--fixed-pri);min-width:0;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:radial-gradient(ellipse at 50% 46%,var(--stage-1) 0%,var(--stage-2) 56%,var(--stage-3) 100%)}
 /* 고른 카드는 보라 틴트 면이라 보조 글자(--fixed-sub)의 대비가 무대 가운데에서 4.22:1까지 내려간다. 고른 카드만 밝게 섞어 5.64:1 이상으로 올린다. */
 .relationship-stage .relationship-character-card.selected{--rc-sub:color-mix(in srgb,var(--fixed-sub) 70%,var(--fixed-ink))}
-.relationship-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 16px 6px}.relationship-toolbar h4{margin:0 auto 0 0;font-size:14px;font-weight:800;letter-spacing:.02em}
+.relationship-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 16px 6px}.relationship-toolbar h4{margin:0 auto 0 0;font-size:14px;font-weight:700}
 .relationship-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 16px 10px;color:var(--fixed-sub);font-size:12.5px;line-height:1.6}.relationship-hint .btn{margin-left:auto}
 .relationship-stage .btn{background:var(--stage-tint);border-color:color-mix(in srgb,var(--fixed-ink) 20%,transparent);color:var(--fixed-ink)}.relationship-stage .btn:hover{background:color-mix(in srgb,var(--fixed-ink) 16%,transparent)}.relationship-stage .btn.pri{background:var(--fixed-pri);border-color:var(--fixed-pri);color:var(--on-fixed-pri)}.relationship-stage .btn.pri:hover{background:color-mix(in srgb,var(--fixed-pri) 75%,var(--fixed-ink))}
 /* 유형 필터 줄: 안내 아래·그래프 위. 켜진(보이는) 유형은 고른 카드와 같은 보라 틴트·테두리라 꺼진 유형(기본 무대 버튼)과 구분된다. */
 .relationship-filter{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
+.relationship-filter .btn{font-weight:600}
 .relationship-stage .relationship-filter .btn[aria-pressed=true]{background:var(--rc-sel);border-color:var(--rc-accent)}
+/* 그래프 아래 검색·중심 설정 칩·페이지 이동·안내 묶음: 무대에는 안쪽 여백이 없어 이 글자들이 둥근 모서리에 붙었으므로 툴바와 같은 16px(좁은 화면 12px)에 맞춘다.
+   칩은 줄바꿈 대신 한 줄 가로 스크롤이다. 스크롤 상자는 안쪽을 잘라 초점 고리(2px + 간격 3px)가 잘리므로 안쪽 여백 5px을 주고 같은 값의 음수 바깥 여백으로 자리를 되돌린다.
+   안내·페이지 글자는 전역 .muted(--sub, 라이트 #5F6370)면 어두운 무대 위 대비가 2.5~3.1:1이라 고정 면의 보조 글자색(--fixed-sub)을 쓴다. 페이지 이동 바의 위 여백은 이 묶음의 gap이 대신하고, 버튼은 그리드 칸을 채우지 않고 제 폭이다. */
+.relationship-focus{display:grid;gap:8px;padding:0 16px 12px}
+.relationship-focus [role=group]{display:flex;gap:6px;overflow-x:auto;padding:5px;margin:-5px}
+.relationship-focus :is(.muted,.page-controls){color:var(--fixed-sub)}.relationship-focus .page-controls{margin-top:0}.relationship-focus>.btn{justify-self:start}
 .episode-app .relationship-stage :focus-visible{outline-color:var(--fixed-pri)}
 .relationship-stage .relationship-cards-scroll{background:none;scrollbar-color:color-mix(in srgb,var(--fixed-ink) 30%,transparent) transparent}
 .relationship-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding:10px 16px 12px;border-top:1px solid var(--stage-tint);list-style:none;color:var(--fixed-sub);font-size:11.5px}.relationship-legend li{display:inline-flex;align-items:center;gap:6px}.relationship-key.edge{color:var(--edge)}.relationship-key.emotion{color:var(--edge-emotion)}
@@ -22,7 +30,7 @@
 .relationship-group h4{font-size:16px;margin:0 0 12px;overflow-wrap:anywhere}.relationship-row{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
 .relationship-row details{margin-block:14px}.relationship-row summary{cursor:pointer;color:var(--sub);font-size:13px}
 .relationship-remove{margin-top:12px}.relationship-apply{position:sticky;bottom:-20px;background:var(--surface);display:flex;gap:10px;padding:16px 0;border-top:1px solid var(--line)}
-@media(max-width:600px){.relationship-toolbar{padding:12px 12px 4px}.relationship-hint{padding:4px 12px 10px}.relationship-filter{padding-inline:12px}.relationship-legend{padding-inline:12px}.relationship-apply{bottom:-18px}}
+@media(max-width:600px){.relationship-toolbar{padding:12px 12px 4px}.relationship-hint{padding:4px 12px 10px}.relationship-filter{padding-inline:12px}.relationship-legend{padding-inline:12px}.relationship-focus{padding-inline:12px}.relationship-apply{bottom:-12px}}
 .relationship-cards-scroll{height:clamp(380px,55vh,590px);overflow:auto;overscroll-behavior:contain;background:var(--surface);scrollbar-color:var(--pri) var(--surface)}
 .relationship-cards-board{position:relative;min-height:360px}.relationship-card-edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
 .relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-character-card h4 img{object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px}.relationship-edge-label{font-size:12px;pointer-events:none;paint-order:stroke;stroke:var(--edge-halo,var(--surface));stroke-width:4px;stroke-linejoin:round}
@@ -34,11 +42,13 @@
 @media(pointer:coarse){.relationship-character-card{touch-action:pan-y}.relationship-cards-scroll{overscroll-behavior:auto}}
 
 .relationship-service-layout{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start}
-.relationship-service-form{min-width:0;max-height:760px;overflow:auto;padding:20px;border:1px solid var(--line2);border-radius:16px;background:var(--surface);box-shadow:var(--sh)}
+.relationship-service-form{min-width:0;max-height:760px;overflow:auto;padding:20px;border:1px solid var(--line2);border-radius:16px;background:var(--surface)}
 .relationship-service-form>*+*{margin-top:24px;padding-top:24px;border-top:1px solid var(--line2)}.relationship-service-form h4{margin:0;font-size:15px}
 .relationship-add,.relationship-list{display:grid;gap:12px;align-content:start}.relationship-pair{min-width:0}.relationship-add .field{margin-bottom:0}.relationship-actions{display:flex;flex-wrap:wrap;gap:8px}
 .relationship-table{width:100%;table-layout:fixed}.relationship-table :is(th,td){padding:8px 6px;text-align:left;vertical-align:middle;font-size:13px;overflow-wrap:anywhere}.relationship-table th{font-size:12px}
 .relationship-card-link{padding:0;border:0;background:none;color:var(--pri-ink);font:inherit;text-align:left;text-decoration:underline;cursor:pointer;overflow-wrap:anywhere}
 .relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}.relationship-row-actions .relationship-remove{margin-top:0}
 @container relationship-editor (max-width:950px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{max-height:none}}
+/* 편집기가 좁으면(390px 폰, 채팅 레일을 연 좁은 본문) 관계 목록 표의 작업 칸을 126px 고정에서 64px로 줄이고 버튼을 줄바꿈해, 주체·관계·대상 칸이 한 글자씩 끊기지 않게 한다. */
+@container relationship-editor (max-width:520px){.relationship-table :is(th,td):last-child{width:64px}.relationship-row-actions{white-space:normal}.relationship-row-actions .btn+.btn{margin:6px 0 0}}
 @media(max-width:600px){.relationship-service-form{padding:12px}}

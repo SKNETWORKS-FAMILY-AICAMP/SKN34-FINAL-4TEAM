@@ -58,21 +58,14 @@ export function WorkPage() {
   return (
     <>
     <Gnb />
-    <div className={`calm calm-${w.theme}`} style={{ minHeight: '100vh' }}>
+    <div className={`calm calm-${w.theme}`}>
       <main className="wrap" id="main" tabIndex={-1}>
         <section className="whero">
           <div className="cover"><CoverOf w={w} /></div>
           <div className="whero-body">
             <div>
-              <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok" style={{ marginLeft: 8 }}>🤖 AI 자율 연재 중</span>}{sv.days && <span className="g wsched">{sv.days}</span>}{sv.badge && <span className={`chip ${sv.badge === '연재 중' ? 'ok' : sv.badge === '휴재' ? 'wait' : ''}`} style={{ marginLeft: 8 }}>{sv.badge}</span>}{p && <Go to={`/work/${p.id}`} className="chip ok" style={{ marginLeft: 8 }}><Branch /> 「{p.title}」 {w.forkAt}화에서 분기</Go>}
+              <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok">🤖 AI 자율 연재 중</span>}{sv.days && <span className="g wsched">{sv.days}</span>}{sv.badge && <span className={`chip ${sv.badge === '연재 중' ? 'ok' : sv.badge === '휴재' ? 'wait' : ''}`}>{sv.badge}</span>}{p && <Go to={`/work/${p.id}`} className="chip ok"><Branch /> 「{p.title}」 {w.forkAt}화에서 분기</Go>}
               <h1>{w.title}</h1><div className="by">{w.by}</div>{p && <div className="by" style={{ marginTop: 6 }}>“{w.dir}”</div>}
-            </div>
-            {d.summary && <p className="sum">{d.summary}</p>}
-            <div className="hashes">{(w.hash || p?.hash || []).map((h) => <Go key={h} to={`/tag/${encodeURIComponent(h.replace(/^#/, ''))}`} title={`${h} 소설 모아 보기`}>{h}</Go>)}</div>
-            <div className="stats">
-              {(w.canonical || w.statisticsSupported!==false) && <span title="좋아요"><Like /><span className="sr-only">좋아요 </span><b id="lkc">{kfmt(likes)}</b></span>}
-              {w.statisticsSupported!==false && <><span title="조회"><Eye /><span className="sr-only">조회 </span><b>{kfmt(w.views)}</b></span><span title="댓글"><Bubble /><span className="sr-only">댓글 </span><b>{w.cmts || 0}</b></span></>}
-              <span title="포크 소설"><Branch /><span className="sr-only">이 소설에서 갈라진 포크 소설 </span><b>{forks.length}</b><span className="sr-only">편</span></span>
             </div>
             <div className="acts">
               {visible.length > 0 && <Go to={`/read/${id}/${start}`} className="tbtn pri">읽기 시작</Go>}
@@ -87,6 +80,13 @@ export function WorkPage() {
                 : <Go to="/login" className="tbtn" onClick={vm.requireLogin}>관심 등록</Go>)}
               {vm.canReport && <button type="button" className="tbtn weak" aria-label={`${w.title} 소설 신고`} onClick={vm.startReport}><Flag /> 소설 신고</button>}
             </div>
+            {!!(w.hash || p?.hash)?.length && <div className="hashes">{(w.hash || p?.hash || []).map((h) => <Go key={h} to={`/tag/${encodeURIComponent(h.replace(/^#/, ''))}`} title={`${h} 소설 모아 보기`}>{h}</Go>)}</div>}
+            <div className="stats">
+              {(w.canonical || w.statisticsSupported!==false) && <span title="좋아요"><Like /><span className="sr-only">좋아요 </span><b id="lkc">{kfmt(likes)}</b></span>}
+              {w.statisticsSupported!==false && <><span title="조회"><Eye /><span className="sr-only">조회 </span><b>{kfmt(w.views)}</b></span><span title="댓글"><Bubble /><span className="sr-only">댓글 </span><b>{w.cmts || 0}</b></span></>}
+              <span title="포크 소설"><Branch /><span className="sr-only">이 소설에서 갈라진 포크 소설 </span><b>{forks.length}</b><span className="sr-only">편</span></span>
+            </div>
+            {d.summary && <p className="sum">{d.summary}</p>}
           </div>
         </section>
         <div className="wgrid">
@@ -122,15 +122,14 @@ export function WorkPage() {
             </div>
           </section>
           <aside className="tcard forkbox">
-            {/* 이 상자의 제목은 h1 바로 아래 구역이라 2단계로 알린다(모양은 전역 .forkbox h3 규칙을 그대로 쓴다). */}
             {p ? (
-              <><h3 aria-level={2}>원작 보기</h3><p>이 소설은 「{p.title}」 {w.forkAt}화를 기준으로 분기했어요.{w.canonical ? ' 그 뒤 이야기는 이 소설에서 따로 이어져요.' : ' 이후 바뀐 설정은 이 소설에만 저장돼요.'}</p><Go to={`/work/${p.id}`} className="tbtn">원작으로 가기</Go></>
+              <><h2>원작 보기</h2><p>이 소설은 「{p.title}」 {w.forkAt}화를 기준으로 분기했어요.{w.canonical ? ' 그 뒤 이야기는 이 소설에서 따로 이어져요.' : ' 이후 바뀐 설정은 이 소설에만 저장돼요.'}</p><Go to={`/work/${p.id}`} className="tbtn">원작으로 가기</Go></>
             ) : w.parentDeleted ? (
-              <><h3 aria-level={2}>삭제된 원작</h3><p>이 소설은 「{w.parentTitle}」 {w.forkAt}화를 기준으로 분기했어요. 원작이 삭제돼 원작으로 이동할 수 없고, 분기 전 회차 본문은 독자에게 보이지 않아요.</p></>
+              <><h2>삭제된 원작</h2><p>이 소설은 「{w.parentTitle}」 {w.forkAt}화를 기준으로 분기했어요. 원작이 삭제돼 원작으로 이동할 수 없고, 분기 전 회차 본문은 독자에게 보이지 않아요.</p></>
             ) : forkList.length ? (
-              <><h3 aria-level={2}>이 소설, 다르게 쓰고 싶다면</h3><p>{w.owner === '운영팀' ? '운영팀이' : '작가가'} <b style={{ color: 'var(--pri-ink)' }}>{w.forkAll || (w.forkEps ?? []).length === w.eps.length ? '전체 회차' : forkList.join('·') + '화'}</b>에서 포크를 허용했어요.<br />고른 회차까지의 세계관과 인물을 그대로 가져가요.</p><Go to="/writing-policy?method=fork" state={{ target: `/fork/${id}` }} className="tbtn pri">✎ 포크하기</Go></>
+              <><h2>이 소설, 다르게 쓰고 싶다면</h2><p>{w.owner === '운영팀' ? '운영팀이' : '작가가'} <b style={{ color: 'var(--pri-ink)' }}>{w.forkAll || (w.forkEps ?? []).length === w.eps.length ? '전체 회차' : forkList.join('·') + '화'}</b>에서 포크를 허용했어요.<br />고른 회차까지의 세계관과 인물을 그대로 가져가요.</p><Go to="/writing-policy?method=fork" state={{ target: `/fork/${id}` }} className="tbtn pri">✎ 포크하기</Go></>
             ) : (
-              <><h3 aria-level={2}>포크를 허용하지 않은 소설</h3><p>이 작품에서는 포크 생성이 지원되지 않거나 허용된 회차가 없어요. 공개된 회차를 읽을 수 있어요.</p><button type="button" className="tbtn" disabled>✎ 포크하기 불가</button></>
+              <><h2>포크를 허용하지 않은 소설</h2><p>이 작품에서는 포크 생성이 지원되지 않거나 허용된 회차가 없어요. 공개된 회차를 읽을 수 있어요.</p></>
             )}
             {!w.parent && (
               <div className="ifs">

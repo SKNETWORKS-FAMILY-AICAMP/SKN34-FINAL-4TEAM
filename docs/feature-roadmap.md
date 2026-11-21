@@ -190,10 +190,10 @@
 <tr><td>해시태그 0~10개 검증·저장</td><td>✅</td></tr>
 <tr><td>AI 장르·키워드 추천 <small>(작가 본인 작품의 제목·소개·발행 회차 앞 3개로 후보만 받고 저장은 기존 작품 수정 API가 함, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/372">#372</a>)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/397">PR #397</a></td></tr>
 <tr><td>작품 등록 권리 확인·기록</td><td>✅</td></tr>
-<tr><td>작품 상세 조회</td><td>✅ <small>(#366: 소개 없는 원작·출처 불완전 Fork의 소개 줄 숨김 소스 구현, 로컬 단위 54개·CI 통과. #508: 상단 장식을 배경색으로 교체, 태블릿·휴대폰은 표지와 제목을 나란히 배치, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/582">PR #582</a> CI 통과)</small></td></tr>
+<tr><td>작품 상세 조회</td><td>✅ <small>(#366: 소개 없는 원작·출처 불완전 Fork의 소개 줄 숨김 소스 구현, 로컬 단위 54개·CI 통과. #508: 상단 장식을 배경색으로 교체, 태블릿·휴대폰은 표지와 제목을 나란히 배치, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/582">PR #582</a> CI 통과. #608: Fork 카드 h2. #616: 해시태그·소개 전문보다 읽기 버튼 먼저 배치, 해시태그 없으면 빈 줄 숨김, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/627">PR #627</a>)</small></td></tr>
 <tr><td>내 작품 목록 조회</td><td>✅</td></tr>
 <tr><td>작품 기본 정보 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/99">PR #99</a></td></tr>
-<tr><td>작품 삭제 요청 <small>(소유자 작품 관리에서 원작·Fork 삭제, 확인·성공 후 서재 이동·실패 사유 안내. DEC-42 소프트 삭제, #108·#467)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/106">PR #106</a></td></tr>
+<tr><td>작품 삭제 요청 <small>(소유자 작품 관리에서 원작·Fork 삭제, 확인·성공 후 서재 집필 탭에서 작품명 안내·실패 사유 안내. DEC-42 소프트 삭제, #108·#467·#614)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/106">PR #106</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/627">PR #627</a></td></tr>
 <tr><td>원작 삭제 시 Fork 작품 유지 <small>(원작 소프트 삭제, Fork는 원작 참조 유지·분기 전 회차 본문 독자 숨김, DEC-42, #108. "삭제된 원작" 안내·분기 전 회차 숨김 안내는 PR #251)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/221">PR #221</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/251">PR #251</a></td></tr>
 <tr><td>세계관 설정 문서가 있는 작품 삭제 <small>(소프트 삭제, 설정·저장 버전이 있어도 삭제되고 데이터는 남음, DEC-42, #108)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/221">PR #221</a></td></tr>
 <tr><td rowspan="45">회차·원고 관리</td><td rowspan="9">10 회차·원고 CRUD</td><td>회차 생성</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/10">#10</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
@@ -250,7 +250,7 @@
 <tr><td>예약 발행 조회 <small>(예약 시각·실행 결과)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/256">PR #256</a></td></tr>
 <tr><td>예약 발행 변경 <small>(실행 전)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/256">PR #256</a></td></tr>
 <tr><td>예약 발행 취소 <small>(실행 전)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/256">PR #256</a></td></tr>
-<tr><td rowspan="15">Fork 관리</td><td rowspan="9">14 Fork CRUD</td><td>Fork 생성 <small>(공개·허용 기준 회차를 쓰기 전 검사; HTTP 생성 연결·선택 단위 확인)</small></td><td>✅</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/268">PR #268</a></td></tr>
+<tr><td rowspan="15">Fork 관리</td><td rowspan="9">14 Fork CRUD</td><td>Fork 생성 <small>(공개·허용 기준 회차를 쓰기 전 검사, HTTP 생성 연결·선택 단위 확인. #615: 생성·완료 화면에 작품 상세와 같은 테마 배경색 적용. 생성 단계 제목은 h2, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/627">PR #627</a>)</small></td><td>✅</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/93">PR #93</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/268">PR #268</a></td></tr>
 <tr><td>Fork 상세 조회 <small>(내 서재 카드 안 접이식 영역)</small></td><td>✅</td></tr>
 <tr><td>내 Fork 목록 조회</td><td>✅</td></tr>
 <tr><td>Fork 원작 정보 조회</td><td>✅</td></tr>
@@ -359,8 +359,8 @@
 <tr><td>자동 교정 설정 변경</td><td>❌</td></tr>
 <tr><td>자율 연재 설정 변경</td><td>❌</td></tr>
 <tr><td>작품 설정 변경 이력 조회</td><td>❌ <small>(집필 방식 변경 이력 조회 구현, 병합·Required CI 미확인)</small></td></tr>
-<tr><td rowspan="6">저장 공간 관리</td><td rowspan="6">36 사용량·정리 관리</td><td>내 저장 사용량 조회</td><td>❌ <small>(서버·화면 구현, PR #580 병합 전)</small></td><td rowspan="6"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/579">#579</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/580">PR #580</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/87">#87</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90">PR #90</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a></td></tr>
-<tr><td>저장 항목 목록 조회</td><td>❌ <small>(서버·화면 구현, PR #580 병합 전)</small></td></tr>
+<tr><td rowspan="6">저장 공간 관리</td><td rowspan="6">36 사용량·정리 관리</td><td>내 저장 사용량 조회</td><td>✅ <small>(PR #580 병합. #613: 실제 표지 업로드 전후 집계가 같은지 CI HTTP 테스트로 검증)</small></td><td rowspan="6"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/579">#579</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/580">PR #580</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/87">#87</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/90">PR #90</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/95">PR #95</a></td></tr>
+<tr><td>저장 항목 목록 조회</td><td>✅ <small>(PR #580 병합)</small></td></tr>
 <tr><td>정리 대상 선택</td><td>❌</td></tr>
 <tr><td>정리 요청</td><td>❌</td></tr>
 <tr><td>정리 결과 조회</td><td>❌</td></tr>
@@ -823,3 +823,12 @@ Draft·미병합: 최신 승인 검증·UUID/payload 예약, replace:false 추�
 
 - #415 작품 생성 후 집필실 진입, 작성 중 초안 목록·공개 상태·버전과 글자 수 표시를 보완했다. #409는 단일 탭에서 첫 발행과 독자 조회가 모두 성공했다.
 - [x] 수정 제안의 초안·발행 반영 구분과 해당 회차 연결(#411), 작가 피드백함 유형·상태 필터와 처리자·시각 및 독자 보류 안내(#418).
+
+### 원고 기반 최초 세계관 구축 — 로컬 통합 검증
+
+- [x] 명시적 접수·고정 원문 snapshot·V15 job/result/load_step·Content의 기존 부분 추가 저장 연결(미커밋 작업).
+- [x] 제공사 대역 기반 4화 실제 HTTP → PostgreSQL/Neo4j → 작가 명시적 확정 수용 검증.
+- [x] 관리 화면 시작/상태/동일 작업 재개와 기존 작업실 연결. 격리 QA의 실로그인·4화 브라우저 편집/확정/재로그인, 실패 후 Content 프로세스 재시작·재개 확인([근거](verification/two-path-qa/browser-qa.md)). 실행 중 강제 종료/실배포/실모델 검증은 별도.
+- [x] 실제 문체 원고 대응(2026-11-20 결정, [정책](design/manuscript-preprocessing-contract.md#추출정체-정리-정책-2026-11-20-사용자-확정)): Content 검증·적재 반영(저장 회차 스냅샷에서 끝의 빈 초안 제외, 금칙어·시작 전 문구 요구 삭제, `same_name`·`rule`, 겹친 관계 제외, 추출 중 변경 사유 기록, 접수 거절 사유와 접수 행 정리, `skippedItems`)을 단위 테스트로 확인했다. AI 추출(항목 단위 제외·같은 이름 병합·프롬프트 교체)과 화면(새로 시작·제외 건수)도 같은 PR에서 반영했다.
+- [x] 실행 활성화: 실모델 `gpt-6-luna`로 four-episodes 1회 실측(회차당 5~12초, 제외 항목 0, 카드 11장, 같은 이름 병합 3건·별칭 후보 1건) 뒤 base compose에서 켠다. 실제 문체 장편의 품질 평가는 후속.
+- 10화 및 장애 확대 결과는 [현재 검증 기록](verification/two-path-qa/final-connection.md) 참조. 20~30화 성능은 후속, 100화 이상은 이번 범위 제외.
