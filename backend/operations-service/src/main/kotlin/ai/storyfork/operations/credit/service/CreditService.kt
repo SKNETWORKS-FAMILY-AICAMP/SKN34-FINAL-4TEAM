@@ -39,6 +39,6 @@ class CreditService(
         return core.revokeCredits(authorization, memberId, request).also { activities.record(member, "CREDIT_REVOKE", "MEMBER", memberId, request.detail()) }
     }
 
-    // Core trims the reason before it stores it, so the record carries the same text.
-    private fun CreditAdjustRequest.detail() = "$amount · ${reason.trim()}"
+    // Core checks the trimmed reason and does not keep it: the activity record is where it is kept, so it holds the same trimmed text.
+    private fun CreditAdjustRequest.detail() = "${amount?.toPlainString()} · ${reason.orEmpty().trim()}"
 }

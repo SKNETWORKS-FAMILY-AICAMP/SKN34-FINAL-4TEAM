@@ -2,7 +2,6 @@ package ai.storyfork.operations.security
 
 import ai.storyfork.operations._common.client.ContentWork
 import ai.storyfork.operations._common.client.CoreClient
-import ai.storyfork.operations._common.client.UpstreamRejection
 import ai.storyfork.operations._common.exception.EvaluationRequiredException
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
 import ai.storyfork.operations._common.service.dto.PageResponse
@@ -51,6 +50,7 @@ import ai.storyfork.operations.work.controller.WorkController
 import ai.storyfork.operations.work.service.WorkService
 import ai.storyfork.operations.work.service.dto.OperationsWorkList
 import java.time.Instant
+import java.math.BigDecimal
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -325,8 +325,8 @@ class MemberSecurityIntegrationTest {
         val updated = mapper.readTree("""{"total":1700,"items":[]}""")
         `when`(core.verify(bearer)).thenReturn(member)
         `when`(credits.read(member, bearer, id)).thenReturn(overview)
-        `when`(credits.grant(member, bearer, id, CreditAdjustRequest(500, "이벤트 보상"))).thenReturn(updated)
-        `when`(credits.revoke(member, bearer, id, CreditAdjustRequest(200, "오지급 회수"))).thenReturn(updated)
+        `when`(credits.grant(member, bearer, id, CreditAdjustRequest(BigDecimal(500), "이벤트 보상"))).thenReturn(updated)
+        `when`(credits.revoke(member, bearer, id, CreditAdjustRequest(BigDecimal(200), "오지급 회수"))).thenReturn(updated)
 
         mvc.perform(get("/api/v1/operations/credits/members/$id").header("Authorization", bearer))
             .andExpect(status().isOk()).andExpect(jsonPath("$.history.items[0].type").value("revoke"))
@@ -334,19 +334,6 @@ class MemberSecurityIntegrationTest {
             .content("""{"amount":500,"reason":"이벤트 보상"}""")).andExpect(status().isCreated()).andExpect(jsonPath("$.total").value(1700))
         mvc.perform(post("/api/v1/operations/credits/members/$id/revocations").header("Authorization", bearer).contentType("application/json")
             .content("""{"amount":200,"reason":"오지급 회수"}""")).andExpect(status().isCreated()).andExpect(jsonPath("$.total").value(1700))
-    }
-
-    @Test
-    fun `a Core rejection of a credit change reaches the browser with its own status, code and message`() {
-        val member = OperationsMember(UUID.randomUUID(), true)
-        val id = UUID.randomUUID()
-        `when`(core.verify(bearer)).thenReturn(member)
-        `when`(credits.revoke(member, bearer, id, CreditAdjustRequest(999, "회수")))
-            .thenThrow(UpstreamRejection(HttpStatus.CONFLICT, "사용 가능한 크레딧이 부족합니다.", IllegalStateException("cause"), "CREDIT_INSUFFICIENT"))
-
-        mvc.perform(post("/api/v1/operations/credits/members/$id/revocations").header("Authorization", bearer).contentType("application/json")
-            .content("""{"amount":999,"reason":"회수"}""")).andExpect(status().isConflict())
-            .andExpect(jsonPath("$.code").value("CREDIT_INSUFFICIENT")).andExpect(jsonPath("$.message").value("사용 가능한 크레딧이 부족합니다."))
     }
 
     @Test

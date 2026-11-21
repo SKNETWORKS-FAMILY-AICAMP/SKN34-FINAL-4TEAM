@@ -7,6 +7,7 @@ import ai.storyfork.operations._common.client.UpstreamRejection
 import ai.storyfork.operations._common.client.operationsRestClient
 import ai.storyfork.operations.credit.service.dto.CreditAdjustRequest
 import java.net.ConnectException
+import java.math.BigDecimal
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -28,8 +29,8 @@ class CoreCreditClientTest {
     /** 세 호출을 한 번씩. */
     private fun allCalls(client: CoreClient): List<() -> Unit> = listOf(
         { client.credits(bearer, memberId) },
-        { client.grantCredits(bearer, memberId, CreditAdjustRequest(500, "이벤트 보상")) },
-        { client.revokeCredits(bearer, memberId, CreditAdjustRequest(200, "오지급 회수")) },
+        { client.grantCredits(bearer, memberId, CreditAdjustRequest(BigDecimal(500), "이벤트 보상")) },
+        { client.revokeCredits(bearer, memberId, CreditAdjustRequest(BigDecimal(200), "오지급 회수")) },
     )
 
     @Test
@@ -53,8 +54,8 @@ class CoreCreditClientTest {
         val answer = """{"total":1700,"items":[{"kind":"operator","remaining":500,"expiresAt":"2026-12-20T00:00:00Z"}]}"""
         val factory = RecordingRequestFactory { Reply(201, answer) }
 
-        val granted = client(factory).grantCredits(bearer, memberId, CreditAdjustRequest(500, "이벤트 보상"))
-        val revoked = client(factory).revokeCredits(bearer, memberId, CreditAdjustRequest(200, "오지급 회수"))
+        val granted = client(factory).grantCredits(bearer, memberId, CreditAdjustRequest(BigDecimal(500), "이벤트 보상"))
+        val revoked = client(factory).revokeCredits(bearer, memberId, CreditAdjustRequest(BigDecimal(200), "오지급 회수"))
 
         assertEquals(listOf(HttpMethod.POST, HttpMethod.POST), factory.calls.map { it.method })
         assertEquals(listOf("/internal/v1/credits/members/$memberId/grants", "/internal/v1/credits/members/$memberId/revocations"), factory.calls.map { it.uri.path })
@@ -93,8 +94,8 @@ class CoreCreditClientTest {
         val invalid = client(RecordingRequestFactory { Reply(422, """{"status":422,"detail":"금액은 1~100000이어야 합니다.","code":"INVALID_CREDIT_REQUEST"}""") })
         val missing = client(RecordingRequestFactory { Reply(404) })
 
-        val conflict = assertThrows(UpstreamRejection::class.java) { revoke.revokeCredits(bearer, memberId, CreditAdjustRequest(999, "회수")) }
-        val rule = assertThrows(UpstreamRejection::class.java) { invalid.grantCredits(bearer, memberId, CreditAdjustRequest(0, "지급")) }
+        val conflict = assertThrows(UpstreamRejection::class.java) { revoke.revokeCredits(bearer, memberId, CreditAdjustRequest(BigDecimal(999), "회수")) }
+        val rule = assertThrows(UpstreamRejection::class.java) { invalid.grantCredits(bearer, memberId, CreditAdjustRequest(BigDecimal(0), "지급")) }
         val notFound = assertThrows(ResponseStatusException::class.java) { missing.credits(bearer, memberId) }
 
         assertEquals(409, conflict.statusCode.value())

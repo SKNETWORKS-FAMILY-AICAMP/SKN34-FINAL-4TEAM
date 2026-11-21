@@ -7,6 +7,7 @@ import ai.storyfork.operations.credit.service.CreditService
 import ai.storyfork.operations.credit.service.dto.CreditAdjustRequest
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.security.OperationsMember
+import java.math.BigDecimal
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -48,7 +49,7 @@ class CreditServiceTest {
     @Test
     fun `grant returns the updated balance untouched and records the member, the amount and the trimmed reason after Core succeeded`() {
         grantCredits(admin)
-        val request = CreditAdjustRequest(500, "  이벤트 보상  ")
+        val request = CreditAdjustRequest(BigDecimal(500), "  이벤트 보상  ")
         `when`(core.grantCredits(bearer, target, request)).thenReturn(updated)
 
         assertSame(updated, service.grant(admin, bearer, target, request))
@@ -62,7 +63,7 @@ class CreditServiceTest {
     @Test
     fun `revoke returns the updated balance untouched and records the member, the amount and the reason after Core succeeded`() {
         grantCredits(admin)
-        val request = CreditAdjustRequest(200, "오지급 회수")
+        val request = CreditAdjustRequest(BigDecimal(200), "오지급 회수")
         `when`(core.revokeCredits(bearer, target, request)).thenReturn(updated)
 
         assertSame(updated, service.revoke(admin, bearer, target, request))
@@ -76,7 +77,7 @@ class CreditServiceTest {
     @Test
     fun `an operator without credits permission or a stale grant without operator is denied before Core`() {
         grantCredits(staleGrant)
-        val request = CreditAdjustRequest(500, "이벤트 보상")
+        val request = CreditAdjustRequest(BigDecimal(500), "이벤트 보상")
         for (member in listOf(operatorWithoutCredits, staleGrant)) {
             assertEquals(HttpStatus.FORBIDDEN, status { service.read(member, bearer, target) })
             assertEquals(HttpStatus.FORBIDDEN, status { service.grant(member, bearer, target, request) })
@@ -88,14 +89,14 @@ class CreditServiceTest {
     @Test
     fun `a Core failure or rejection reaches the caller untouched and leaves no activity`() {
         grantCredits(admin)
-        val insufficient = CreditAdjustRequest(999_999, "회수")
+        val insufficient = CreditAdjustRequest(BigDecimal(999_999), "회수")
         val rejection = UpstreamRejection(HttpStatus.CONFLICT, "사용 가능한 크레딧이 부족합니다.", IllegalStateException("cause"), "CREDIT_INSUFFICIENT")
         `when`(core.revokeCredits(bearer, target, insufficient)).thenThrow(rejection)
-        `when`(core.grantCredits(bearer, target, CreditAdjustRequest(500, "지급"))).thenThrow(ResponseStatusException(HttpStatus.NOT_FOUND))
+        `when`(core.grantCredits(bearer, target, CreditAdjustRequest(BigDecimal(500), "지급"))).thenThrow(ResponseStatusException(HttpStatus.NOT_FOUND))
         `when`(core.credits(bearer, target)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
 
         assertSame(rejection, assertThrows(UpstreamRejection::class.java) { service.revoke(admin, bearer, target, insufficient) })
-        assertEquals(HttpStatus.NOT_FOUND, status { service.grant(admin, bearer, target, CreditAdjustRequest(500, "지급")) })
+        assertEquals(HttpStatus.NOT_FOUND, status { service.grant(admin, bearer, target, CreditAdjustRequest(BigDecimal(500), "지급")) })
         assertEquals(HttpStatus.BAD_GATEWAY, status { service.read(admin, bearer, target) })
         verifyNoInteractions(activities)
     }
