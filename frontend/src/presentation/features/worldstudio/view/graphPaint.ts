@@ -1,6 +1,7 @@
 import type { GraphSettings } from '../viewmodel/graphForces'
 import { drawRadius, endId, labelFont, nodeRadius, relationNames, textAlpha, type GLink, type GNode } from '../viewmodel/graphModel'
-import { labelWidth, placeLabels, type Label, type LabelNode, type View } from '../viewmodel/labelLayout'
+import { textWidth } from '../../../shared/textWidth'
+import { placeLabels, type Label, type LabelNode, type View } from '../viewmodel/labelLayout'
 import { CANVAS_FONT } from '../../worlds/worldAtlas'
 
 /*
@@ -89,7 +90,7 @@ export function labelHit(node: GNode, k: number, s: PaintState) {
   if (!s.folded.has(node.id)) return null
   const size = labelFont(weightOf(node, s), s.maxDegree)
   const top = radiusOf(node, s, k)
-  return { halfW: (labelWidth(labelText(node, s), size) + 8) / 2 / k, top, bottom: top + (4 + size * 1.3) / k }
+  return { halfW: (textWidth(labelText(node, s), size) + 8) / 2 / k, top, bottom: top + (4 + size * 1.3) / k }
 }
 
 export type Hit = { kind: 'node' | 'link'; id: string }
@@ -197,7 +198,7 @@ export function paintLinkLabels(ctx: CanvasRenderingContext2D, links: readonly G
     const a = link.source, b = link.target
     if (typeof a !== 'object' || typeof b !== 'object') continue
     const text = relationNames(link), x = ((a.x ?? 0) + (b.x ?? 0)) / 2, y = ((a.y ?? 0) + (b.y ?? 0)) / 2
-    const w = (labelWidth(text, 12) + 10) / k, h = 18 / k
+    const w = (textWidth(text, 12) + 10) / k, h = 18 / k
     ctx.globalAlpha = 1
     ctx.fillStyle = CHIP_FILL
     ctx.fillRect(x - w / 2, y - h / 2, w, h)

@@ -1,4 +1,4 @@
-import { textWidth as labelWidth } from '../../../shared/textWidth'
+import { textWidth } from '../../../shared/textWidth'
 import { createGrid, type Box } from './canvasLayout'
 
 /** 이름표를 붙일 노드(그래프 좌표): 중심, 점 지름(`d`), 이름, 글자 크기(`size`, 화면 px), 우선순위(`degree`: 이어진 관계 수이고, 큰 값이 먼저 자리를 잡는다. 강조한 이웃에는 더 큰 값을 넘긴다). */
@@ -9,9 +9,6 @@ export type View = { x: number; y: number; k: number; w: number; h: number }
 export type Label = { id: string; x: number; y: number; size: number }
 /** 노드와 이름표 사이 간격(화면 px). */
 const LABEL_GAP = 4
-
-/** 이름표 글자 폭 어림(화면 px): 카드별 관계도와 같은 `shared/textWidth`다. */
-export { labelWidth }
 
 /**
  * 이름표를 놓는다(화면 좌표, 결정적). 이름표는 확대 배율을 따라 커지지 않고 노드 바로 아래 화면 4px에 붙으므로 겹침도 화면에서 가린다:
@@ -25,7 +22,7 @@ export function placeLabels(nodes: readonly LabelNode[], view: View, candidates:
   const order = seen.filter(({ node }) => always.has(node.id) || candidates.has(node.id)).sort((a, b) => Number(always.has(b.node.id)) - Number(always.has(a.node.id)) || b.node.degree - a.node.degree || a.index - b.index)
   const placed: Label[] = []
   for (const { node, sx, sy } of order) {
-    const size = node.size, w = labelWidth(node.name, size) + 8, h = size * 1.3, top = sy + (node.d * view.k) / 2 + LABEL_GAP
+    const size = node.size, w = textWidth(node.name, size) + 8, h = size * 1.3, top = sy + (node.d * view.k) / 2 + LABEL_GAP
     const box = { cx: sx, cy: top + h / 2, w, h, id: node.id }
     if (!always.has(node.id) && grid.hits(box)) continue
     grid.add({ ...box, id: node.id })

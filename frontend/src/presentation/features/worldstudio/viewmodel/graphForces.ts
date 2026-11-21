@@ -1,4 +1,4 @@
-import { labelWidth } from './labelLayout'
+import { textWidth } from '../../../shared/textWidth'
 
 /*
  * 관계도 그래프의 설정(옵시디언 그래프 뷰의 오른쪽 위 톱니)과 그 값이 되는 힘. 설정은 화면 상태일 뿐 저장하지 않는다.
@@ -47,7 +47,7 @@ export type LabelBox = { halfW: number; up: number; down: number }
  * 이름표 포함 상자: 이름표는 화면 12px로 그려지므로 배율 1에서의 크기로 어림한다(글자 폭 + 여백 8). 긴 이름이 배치를 터뜨리지 않게 이름 쪽 반쪽 폭은 70까지만 센다.
  * 확대 배율이 1보다 작으면 이름표가 이보다 커 보이는데, 그때는 겹치는 이름표를 숨기는 규칙(`placeLabels`)이 맡는다.
  */
-export const labelBox = (name: string, radius: number): LabelBox => ({ halfW: Math.max(radius, Math.min(70, (labelWidth(name, 12) + 8) / 2)), up: radius, down: radius + 4 + 12 * 1.3 })
+export const labelBox = (name: string, radius: number): LabelBox => ({ halfW: Math.max(radius, Math.min(70, (textWidth(name, 12) + 8) / 2)), up: radius, down: radius + 4 + 12 * 1.3 })
 /** 점만 차지하는 상자: 외톨이는 이름표 자리를 비우지 않아 수백 개여도 촘촘하다(이름표는 겹치면 숨는다). */
 export const dotBox = (radius: number): LabelBox => ({ halfW: radius, up: radius, down: radius })
 

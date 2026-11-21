@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { labelWidth, placeLabels, type LabelNode } from './labelLayout'
+import { placeLabels, type LabelNode } from './labelLayout'
 
 const node=(id:string,cx:number,cy:number,d=44,degree=1,name=id,size=12):LabelNode=>({id,cx,cy,d,degree,name,size})
 const view={x:0,y:0,k:1,w:800,h:600}
@@ -15,12 +15,6 @@ it('이름표는 노드 바로 아래 화면 4px에 놓이고 글자는 확대 �
  expect(far.y).toBeCloseTo(200*0.1+50+22*0.1+4,5)
  expect(placeLabels([node('big',200,200,36,50,'큰 노드',14)],view,all(node('big',0,0)),new Set())[0].size).toBe(14) // 관계가 많은 노드는 더 큰 글자
  for(const k of [0.05,0.2,0.5,0.9,1.75])expect(placeLabels([a],{x:0,y:0,k,w:4000,h:4000},all(a),new Set())[0]?.size,'k='+k).toBe(12)
-})
-
-it('labelWidth는 한글을 글자당 한 칸(글자 크기)으로, 영문·숫자를 약 0.56칸으로 어림한다',()=>{
- expect(labelWidth('가람',12)).toBe(24)
- expect(labelWidth('abcd',12)).toBeCloseTo(4*0.56*12,5)
- expect(labelWidth('가a',10)).toBeCloseTo(10+5.6,5)
 })
 
 it('이름표 상자가 겹치면 관계가 적은 쪽(큰 노드 우선)의 이름을 숨기고, 같으면 앞선 노드가 남는다',()=>{

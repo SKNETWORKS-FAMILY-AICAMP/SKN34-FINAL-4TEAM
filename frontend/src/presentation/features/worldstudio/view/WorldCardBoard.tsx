@@ -85,7 +85,7 @@ function Row({ row, setting, status, images, picked, linked, previewing, preview
  * `Esc`는 미리보기 안 어디서든 닫고 제목으로 초점을 돌려준다(`닫기`와 같다).
  * ponytail: 게시판 폭이 1,000px 이상(채팅 닫힘 + 사이드바 접힘 + 1440px 이상)일 때의 옆 패널(표 | 미리보기)은 만들지 않는다. 필요해지면 `@container worlds-board (min-width:1000px)`에서 이 줄을 sticky 옆 칸으로 옮긴다.
  */
-function RowPreview({ id, row, setting, settings, linked, publicPath, images, onOpen, onEdit, onClose }: { id: string; row: BoardRow; setting?: StudioSetting; settings: readonly StudioSetting[]; linked: boolean; publicPath: string | null; images: CardImages; onOpen: (id: string) => void; onEdit: (id: string) => void; onClose: () => void }) {
+function RowPreview({ id, row, setting, settings, linked, publicPath, images, onOpen, onClose }: { id: string; row: BoardRow; setting?: StudioSetting; settings: readonly StudioSetting[]; linked: boolean; publicPath: string | null; images: CardImages; onOpen: (id: string) => void; onClose: () => void }) {
   const section = useRef<HTMLElement>(null)
   useEffect(() => { section.current?.scrollIntoView?.({ block: 'nearest' }) }, []) // 미리보기는 열릴 때마다 새로 그려진다(jsdom에는 scrollIntoView가 없다)
   return (
@@ -94,7 +94,7 @@ function RowPreview({ id, row, setting, settings, linked, publicPath, images, on
         <section ref={section} id={id} className="world-preview" aria-label={`${row.title} 미리보기`} onKeyDown={(e) => { if (e.key === 'Escape') onClose() }}>
           {setting && <CardWikiPreview settings={settings} setting={setting} row={row} linked={linked} images={images} onOpen={onOpen} />}
           <div className="world-preview-actions">
-            <button type="button" className="btn pri sm" onClick={() => onEdit(row.cardId)}>수정하기</button>
+            <button type="button" className="btn pri sm" onClick={() => onOpen(row.cardId)}>수정하기</button>
             {publicPath && <Go to={publicPath} target="_blank" rel="noopener noreferrer" className="btn sm">공개 화면 보기</Go>}
             <button type="button" className="btn sm" onClick={onClose}>닫기</button>
           </div>
@@ -266,7 +266,7 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
                     return (
                       <Fragment key={row.cardId}>
                         <Row row={row} setting={byId.get(row.cardId)} status={board.statuses.get(row.cardId)} images={vm.cardImages} picked={selected.has(row.cardId)} linked={linked} previewing={preview === row.cardId} previewId={previewId} onPick={pick} onOpen={vm.editCard} onToggle={toggle} />
-                        {preview === row.cardId && <RowPreview id={previewId} row={row} setting={byId.get(row.cardId)} settings={world.settings} linked={linked} publicPath={vm.publicHref && reveal(row.cardId) !== undefined ? cardPath(world.id, row.cardId) : null} images={vm.cardImages} onOpen={openFromPreview} onEdit={openFromPreview} onClose={() => closePreview(row.cardId)} />}
+                        {preview === row.cardId && <RowPreview id={previewId} row={row} setting={byId.get(row.cardId)} settings={world.settings} linked={linked} publicPath={vm.publicHref && reveal(row.cardId) !== undefined ? cardPath(world.id, row.cardId) : null} images={vm.cardImages} onOpen={openFromPreview} onClose={() => closePreview(row.cardId)} />}
                       </Fragment>
                     )
                   })}
