@@ -13,9 +13,18 @@ import ai.storyfork.content.manuscript.EpubFixture.epub
 import ai.storyfork.content.manuscript.EpubFixture.xhtml
 import ai.storyfork.content.manuscript.service.ManuscriptImportService
 import ai.storyfork.content.manuscript.service.dto.*
+import ai.storyfork.content.preprocessing.service.PreprocessingService
+import ai.storyfork.content.preprocessing.service.dto.PreprocessingJobResponse
 import ai.storyfork.content.work.service.WorkAccessService
+import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
+import ai.storyfork.content.world.controller.WorldStudioExceptionHandler
+import ai.storyfork.content.world.domain.WorldConflict
+import ai.storyfork.content.world.domain.WorldNotFound
+import ai.storyfork.content.world.domain.WorldStudioFailure
+import ai.storyfork.content.world.service.dto.ManuscriptBuildRequest
 import java.time.Instant
+import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,6 +32,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.*
+import org.springframework.dao.DataAccessResourceFailureException
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.TransactionStatus
@@ -36,8 +46,10 @@ class ManuscriptImportServiceTest {
     private val attachments = mock(AttachmentService::class.java)
     private val manager = mock(PlatformTransactionManager::class.java)
     private val access = mock(WorkAccessService::class.java)
+    private val preprocessing = mock(PreprocessingService::class.java)
+    private val worlds = mock(WorkWorldService::class.java)
     private var workRevision = 10
-    private val service = ManuscriptImportService(episodes, versions, attachments, TransactionTemplate(manager), access)
+    private val service = ManuscriptImportService(episodes, versions, attachments, TransactionTemplate(manager), access, preprocessing, worlds)
 
     // 실제 서비스 대신 메모리에 회차를 두고, 서비스가 부른 일을 기록한다.
     private val store = sortedMapOf<Int, EpisodeResponse>()
@@ -99,6 +111,8 @@ class ManuscriptImportServiceTest {
             .`when`(episodes).deleteEpisode(str("work"), str("owner"), anyInt(), anyInt())
         doAnswer { discarded += it.getArgument<String>(2); null }
             .`when`(attachments).discardUnreferencedEpisodeImage(str("work"), anyInt(), anyString(), str("owner"))
+        `when`(worlds.linkedWorldId(str("work"), str("owner"))).thenAnswer { linkedWorld }
+        `when`(preprocessing.start(str("work"), str("owner"), anyOf(ManuscriptBuildRequest::class.java, ManuscriptBuildRequest(UUID(0, 0), "x", true)))).thenAnswer { startResult() }
     }
 
     // "1화\n본문1\n2화\n본문2…" 형태의 TXT. n번째 회차는 줄 [2(n-1), 2n)이다.
@@ -136,6 +150,107 @@ class ManuscriptImportServiceTest {
         val response = service.importBulk("work", "owner", listOf(novel(1), novel(1)), request)
         assertEquals(listOf("failed", "versioned"), response.results.map { it.status })
         assertNull(response.stopReason)
+    }
+
+    // ---- 업로드 자동 시작(가져오기가 저장한 뒤 시작 API와 같은 접수를 확인 없이 시도한다) ----
+
+    private var linkedWorld: UUID? = UUID.randomUUID()
+    private var startResult: () -> PreprocessingJobResponse = { PreprocessingJobResponse("job-1", "work", "queued", 0, 1, emptyList(), null, null, null) }
+    private val started = ManuscriptImportWorldBuild("started", "job-1", null, null)
+    private fun buildRequests() = mockingDetails(preprocessing).invocations.filter { it.method.name == "start" }.map { it.getArgument<ManuscriptBuildRequest>(2) }
+    private fun sequences(mock: Any, method: String) = mockingDetails(mock).invocations.filter { it.method.name == method }.map { it.sequenceNumber }
+
+    @Test fun `confirm starts the world build once after the episodes are saved and reports it as started`() {
+        val response = confirm(novel(2), item(1, 1), item(2, 2))
+        assertEquals(2, response.succeeded)
+        assertEquals(started, response.worldBuild)
+        val request = buildRequests().single()
+        assertEquals(listOf<Any?>(linkedWorld, true), listOf(request.worldId, request.consent))
+        assertTrue(Regex("import:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}").matches(request.key), request.key)
+        assertTrue(sequences(versions, "saveWithVersion").max() < sequences(preprocessing, "start").single(), "저장이 끝난 뒤에 접수한다")
+    }
+
+    @Test fun `an unlinked work starts the build with a new world and every import gets its own key`() {
+        linkedWorld = null
+        confirm(novel(1), item(1, 1))
+        confirm(novel(1), item(1, 1))
+        val (first, second) = buildRequests()
+        assertNotEquals(first.worldId, second.worldId)
+        assertNotEquals(first.key, second.key)
+    }
+
+    @Test fun `a refused start is reported in the response and the saved episodes stay`() {
+        for ((failure, code) in listOf(
+            ContentFailure(409, "이미 설정이 있는 세계관에는 원고에서 만든 설정을 더할 수 없어요. 설정이 없는 세계관으로 시작해 주세요.") to null,
+            ContentFailure(409, "이미 진행 중이거나 완료된 전처리 작업이 있어요.") to null,
+            ContentFailure(502, "전처리를 시작하지 못했어요. 잠시 뒤 다시 시도해 주세요.", "PREPROCESSING_AI_FAILED") to "PREPROCESSING_AI_FAILED",
+            ContentFailure(503, "초기 세계관 구축은 아직 활성화되지 않았습니다.") to null,
+        )) {
+            startResult = { throw failure }
+            val response = confirm(novel(1), item(1, 1))
+            assertEquals(ManuscriptImportWorldBuild("rejected", null, code, failure.message), response.worldBuild)
+            assertEquals(1, response.succeeded, "접수 실패가 저장을 되돌리지 않는다")
+        }
+    }
+
+    @Test fun `WorldStudio failures are reported with the code and text the start API answers`() {
+        val handler = WorldStudioExceptionHandler()
+        val unavailable = WorldStudioFailure(WorldStudioFailure.Reason.UNAVAILABLE)
+        for ((failure, answer) in listOf(
+            WorldConflict() to handler.conflict(), WorldNotFound() to handler.missing(), unavailable to handler.failure(unavailable),
+            IllegalArgumentException("input") to handler.invalid(), DataAccessResourceFailureException("db down") to handler.persistence(),
+        )) {
+            startResult = { throw failure }
+            val body = answer.body!!
+            assertEquals(ManuscriptImportWorldBuild("rejected", null, body.code, body.detail), confirm(novel(1), item(1, 1)).worldBuild)
+        }
+    }
+
+    @Test fun `an unexpected start failure is answered as a rejection without leaking its message`() {
+        startResult = { throw IllegalStateException("db password=secret") }
+        val shown = confirm(novel(1), item(1, 1)).worldBuild!!
+        assertEquals(listOf<Any?>("rejected", null, null), listOf(shown.status, shown.jobId, shown.code))
+        assertTrue(shown.message.orEmpty().isNotBlank())
+        assertFalse(shown.message.orEmpty().contains("secret"))
+    }
+
+    @Test fun `nothing saved means no world build attempt`() {
+        val response = confirm(novel(1), item(9, 1))
+        assertEquals(listOf("9:failed"), statuses(response))
+        assertNull(response.worldBuild)
+        verifyNoInteractions(preprocessing, worlds)
+    }
+
+    @Test fun `bulk starts the world build after saving and also when it stopped early with some episodes saved`() {
+        val request = BulkImportRequest(true, workRevision, (1..2).map { BulkImportItem(it, "업로드 $it") })
+        val whole = service.importBulk("work", "owner", listOf(novel(1), novel(1)), request)
+        assertNull(whole.stopReason)
+        assertEquals(started, whole.worldBuild)
+        assertEquals(1, buildRequests().size)
+
+        // 2화의 저장 결과를 알 수 없어 멈춰도 1화는 저장됐으니 접수는 시도한다.
+        store.clear()
+        saveFailure = { number -> if (number == 2) RuntimeException("commit failed") else null }
+        val stopped = service.importBulk("work", "owner", listOf(novel(1), novel(1)), BulkImportRequest(true, workRevision, request.items))
+        assertNotNull(stopped.stopReason)
+        assertEquals(started, stopped.worldBuild)
+        assertEquals(2, buildRequests().size)
+    }
+
+    @Test fun `bulk without any saved episode does not start a world build`() {
+        val broken = MockMultipartFile("files", "broken.epub", "application/epub+zip", byteArrayOf(1))
+        val response = service.importBulk("work", "owner", listOf(broken), BulkImportRequest(true, workRevision, listOf(BulkImportItem(1, "깨진 파일"))))
+        assertEquals(listOf("failed"), response.results.map { it.status })
+        assertNull(response.worldBuild)
+        verifyNoInteractions(preprocessing, worlds)
+    }
+
+    @Test fun `bulk with startWorldBuild false saves the episodes but does not attempt the build`() {
+        val request = BulkImportRequest(true, workRevision, listOf(BulkImportItem(1, "업로드 1")), startWorldBuild = false)
+        val response = service.importBulk("work", "owner", listOf(novel(1)), request)
+        assertEquals(listOf("created"), response.results.map { it.status })
+        assertNull(response.worldBuild)
+        verifyNoInteractions(preprocessing, worlds)
     }
 
     // ---- 미리보기 ----

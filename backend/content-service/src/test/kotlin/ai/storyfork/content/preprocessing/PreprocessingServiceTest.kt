@@ -203,15 +203,21 @@ class PreprocessingServiceTest {
 
     // ---- list ----
 
-    @Test fun `list pages newest first and filters by status`() {
+    @Test fun `list pages the jobs that have a V15 build row newest first and filters by status`() {
         val failed = failedJob(listOf(2))
-        `when`(jobs.findAll(PageRequest.of(0, 20, newestFirst))).thenReturn(PageImpl(listOf(failed), PageRequest.of(0, 20, newestFirst), 41))
-        `when`(jobs.findAllByStatus(FAILED, PageRequest.of(1, 50, newestFirst))).thenReturn(PageImpl(listOf(failed), PageRequest.of(1, 50, newestFirst), 51))
+        `when`(jobs.snapshots(PageRequest.of(0, 20, newestFirst))).thenReturn(PageImpl(listOf(failed), PageRequest.of(0, 20, newestFirst), 41))
+        `when`(jobs.snapshotsByStatus(listOf("failed"), PageRequest.of(1, 50, newestFirst))).thenReturn(PageImpl(listOf(failed), PageRequest.of(1, 50, newestFirst), 51))
 
         val all = service.list(null, null, null)
         assertEquals(41L, all.total)
         assertEquals(listOf(PreprocessingJobResponse("job", "work", FAILED, 1, 3, listOf(2), "고정 사유", t0.toString(), t1.toString())), all.items)
         assertEquals(51L, service.list("failed", "1", "50").total)
+    }
+
+    @Test fun `the loading filter reads the V15 unknown state too`() {
+        `when`(jobs.snapshotsByStatus(listOf("loading", "unknown"), PageRequest.of(0, 20, newestFirst))).thenReturn(PageImpl(listOf(job(LOADING)), PageRequest.of(0, 20, newestFirst), 1))
+
+        assertEquals(listOf(LOADING), service.list("loading", null, null).items.map { it.status })
     }
 
     @Test fun `list rejects an unknown status and bad paging with 422`() {

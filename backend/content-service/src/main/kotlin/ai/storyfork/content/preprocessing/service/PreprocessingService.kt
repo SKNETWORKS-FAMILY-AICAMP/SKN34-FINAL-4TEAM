@@ -111,13 +111,18 @@ class PreprocessingService(
             view(jobs.saveAndFlush(job))
         })
 
-    /** 운영 감시용 목록이다. 최신 접수 순이고 [status]는 소문자 상태 이름, [page]는 0부터, [size]는 1~100(기본 20)이며 틀린 값은 422다. */
+    /**
+     * 운영 감시용 목록이다. V15 작업 행(manuscript_build_job)이 있는 작업만 최신 접수 순으로 보인다. [status]는 소문자 상태 이름, [page]는 0부터, [size]는 1~100(기본 20)이며 틀린 값은 422다.
+     * 작업 행의 `unknown`(적재 결과 확인 대기)은 운영 화면이 모르는 상태라 `loading`으로 보이고, `loading` 필터는 둘 다 찾는다.
+     */
     fun list(status: String?, page: String?, size: String?): PreprocessingJobListResponse {
         checkContent(status == null || status in PreprocessingStatus.ALL, 422, "status 값을 확인해 주세요.")
         // page를 채워 부르면 workPage는 항상 값을 준다(기본 size는 그쪽 기본값).
         val window = requireNotNull(workPage(page ?: "0", size))
         val request = PageRequest.of(window.page, window.size, NEWEST_FIRST)
-        val found = if (status == null) jobs.findAll(request) else jobs.findAllByStatus(status, request)
+        val found = if (status == null) jobs.snapshots(request)
+            else jobs.snapshotsByStatus(if (status == PreprocessingStatus.LOADING) listOf(status, UNCONFIRMED) else listOf(status), request)
+        // ponytail: 행 선택·상태 필터는 V15 작업 행이 정하고 표시값(진행 수·실패 회차·시각·사유)은 V15 트리거가 같은 id의 V41 행에 미러링한 것이다. 골격 preprocessing_job 정리는 후속이다.
         return PreprocessingJobListResponse(found.content.map(::view), found.totalElements)
     }
 
@@ -192,6 +197,8 @@ class PreprocessingService(
         /** AI가 접수하지 않았을 때 작업에 남기는 고정 사유다. 호출 오류의 내용은 담지 않는다. */
         const val AI_CALL_FAILED = "AI 서비스가 전처리 요청을 받지 못했어요."
         private const val OPEN_JOB_EXISTS = "이미 진행 중이거나 완료된 전처리 작업이 있어요."
+        /** V15 작업 행에만 있는 상태다(적재 결과 확인 대기). V41 미러·운영 화면에서는 loading이다. */
+        private const val UNCONFIRMED = "unknown"
         private val NEWEST_FIRST = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.asc("id"))
     }
 }
