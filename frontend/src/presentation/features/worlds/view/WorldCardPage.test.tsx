@@ -376,3 +376,17 @@ it('이미지가 없는 카드(imageId가 null이거나 없음)의 정보 상자
   await renderAt(cardPath('sw', 'c-uuid-2'))
   expect(screen.queryByRole('img')).toBeNull()
 })
+
+// ── 카드별 관계도와 접힌 관계 문단(사용자 결정): 정보 상자 아래 관계도, 긴 관계 문단은 기본 접힘 ──
+it('정보 상자 아래에 카드별 관계도가 있다: 그림은 aria-hidden이고 사건이 아닌 이웃은 간단 목록(상대 — 관계명)에, 사건은 접힌 함께한 사건에 있으며 이웃은 그 카드 페이지로 가는 링크다', async () => {
+  await open(2)
+  const map = document.querySelector<HTMLElement>('section.card-relmap')!
+  expect(map.compareDocumentPosition(screen.getByRole('table', { name: '늙은 항해사 오르' })) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy() // 정보 상자 뒤
+  expect(map.querySelector('svg')!.getAttribute('aria-hidden')).toBe('true')
+  const list = within(within(map).getByRole('list', { name: '관계 목록' }))
+  expect(list.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['견습 항해사 미라 — 스승-제자', '조석신 하엘 — 숭배']) // 관계 수가 같으면 이름순
+  expect(list.getByRole('link', { name: '조석신 하엘' }).getAttribute('href')).toBe(cardPath(WORLD, 1))
+  const events = within(map).getByText('함께한 사건 1').closest('details')!
+  expect(events.open).toBe(false)
+  expect(within(events).getByRole('link', { name: '일곱 번째 섬의 실종' }).getAttribute('href')).toBe(cardPath(WORLD, 6))
+})

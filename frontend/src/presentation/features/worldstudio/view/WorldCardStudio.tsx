@@ -15,8 +15,11 @@ import { VersionGraph } from '../../studio/view/VersionGraph'
 import '../../studio/view/writing.css'
 import { setCardReveal } from '../viewmodel/cardVisibility'
 import { importedSource } from '../../../shared/importCards'
-import { kinds, labelOf, settingLinks } from '../viewmodel/settingBoard'
+import { cardRelationEntries } from '../viewmodel/cardRelationEntries'
+import { kinds, labelOf } from '../viewmodel/settingBoard'
+import { CARD_KIND } from '../../../shared/worldBoard'
 import { useCardBoard } from '../viewmodel/useCardBoard'
+import { CardRelationMap } from '../../../shared/CardRelationMap'
 import { PageControls } from '../../../shared/PageControls'
 import { pageItems } from '../../../shared/pageItems'
 import { useCharacterDocs } from '../viewmodel/useCharacterDocs'
@@ -82,7 +85,8 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const legacy = world.settings.filter((s) => ['review', 'note'].includes(cardTypeOf(s.item)) || (s.item.id === item.id && cardTypeOf(s.item) === 'relation'))
   const [legacyPage, setLegacyPage] = useState(0)
   const legacyItems = pageItems(legacy, legacyPage, 50)
-  const links = settingLinks(world.settings, item.id)
+  const entries = cardRelationEntries(world.settings, item.id)
+  const relationCount = entries.filter((e) => !e.id.startsWith('link:')).length
   // 설정 링크(DEC-53)로 고를 수 있는 같은 세계관의 카드(편집 중인 카드와 카드가 아닌 기존 항목은 뺀다)와 이 카드에서 나온 공개 순서 경고
   const linkChoices = world.settings.flatMap((s) => (s.item.id !== item.id && cardTypes.some((t) => t.id === cardTypeOf(s.item)) ? [{ id: s.item.id, title: s.item.title || '이름 없는 설정', type: labelOf(s), aliases: s.aliases }] : []))
   const orderIssues = board.orderIssues.filter((issue) => issue.cardId === item.id)
@@ -96,6 +100,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const over = docs.text.length > BODY_MAX
   const revealError = invalidReveal(setting)
   const reveal = cardRevealEpisode(setting)
+  const revealBadge = reveal === undefined ? '작가 전용' : !vm.linkedWorkId && reveal === 1 ? '공개' : reveal + '화부터 공개' // 공개 안내는 이 배지 한 곳과 관계도의 회차 탭에 모은다
   const unlinkedHelp = reveal !== undefined && reveal > 1
     ? `${reveal}화부터 공개로 정해져 있지만 소설이 연결되지 않아 지금은 공개되지 않아요.`
     : demo ? '데모에서는 소설 연결을 지원하지 않아 공개(1화부터)와 작가 전용(기본)만 고를 수 있어요.' : '소설을 연결하면 N화부터 공개로 정할 수 있어요. 지금은 공개(1화부터)와 작가 전용(기본)만 고를 수 있어요.'
@@ -221,12 +226,12 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                     <p className="small muted">저장 후 ‘확정 버전 남기기’를 해야 반영돼요.</p>
                   </section>
                 )}
-                {cardTypeOf(item) === 'character' && <button className="btn sm world-relation-link" type="button" onClick={() => vm.openRelations(item.id)}>관계 연결로 이동</button>}
                 <section className="world-card-links" aria-label="연관 설정">
-                  <h4>연관 설정·관계</h4>
-                  {links.length
-                    ? <ul>{links.map((l) => <li key={`${l.id}:${l.label}`}><button type="button" className="world-card-link" onClick={() => openLinked(l.id)}>{l.title} <small>{l.label}</small></button></li>)}</ul>
-                    : <p className="small muted">이어진 설정이 없어요.</p>}
+                  <div className="world-card-links-head">
+                    <h4>연관 설정·관계 <span className="small muted">관계 {relationCount}</span></h4>
+                    <button className="btn sm world-relation-link" type="button" onClick={() => vm.openRelations(item.id)}>관계 편집</button>
+                  </div>
+                  <CardRelationMap center={{ id: item.id, title: item.title || '이름 없는 설정', kind: CARD_KIND[cardTypeOf(item) as CardType] ?? '기타' }} badge={revealBadge} entries={entries} revealEpisode={reveal ?? null} onOpen={openLinked} emptyAction={<button type="button" className="btn sm" onClick={() => vm.openRelations(item.id)}>관계 추가</button>} />
                 </section>
                 <details className="world-additional" key={item.id}>
                   <summary>상세 설정 · 선택</summary>

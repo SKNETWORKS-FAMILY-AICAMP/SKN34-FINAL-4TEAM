@@ -426,3 +426,4 @@ a.world-card-link{text-decoration:none}
 .episode-app .world-reveal{display:flex}.episode-app .world-reveal input:not([type=checkbox]):not([type=radio]){width:72px;margin-top:0;padding:8px 10px}
 /* 터치 기기: iOS는 16px보다 작은 입력에 초점이 가면 화면을 확대한다. 위 도구줄·레일 검색의 13.5px 규칙은 shared/episode.css의 16px 보정보다 특이도가 높아((0,4,1) 대 (0,3,1)) 그대로 남으므로, 같은 선택자(:not()까지)로 맨 뒤에서 되돌린다. */
 @media(pointer:coarse){.episode-app .world-compact input:not([type=checkbox]):not([type=radio]),.episode-app .world-compact select,.world-rail-tools input{font-size:16px}}
+.world-card-links-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.world-card-links-head h4{margin:0}

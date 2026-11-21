@@ -3,6 +3,7 @@ import { useLocation, useParams } from 'react-router'
 
 import type { PublicWorld } from '../../../../domain/entities/publicWorld'
 import { CardMarkdown, type CardLinkRender } from '../../../shared/CardMarkdown'
+import { CardRelationMap } from '../../../shared/CardRelationMap'
 import { PublicCardImage } from '../../../shared/PublicCardImage'
 import { numberCardSections, splitCardSections } from '../../../shared/cardSections'
 import { Go } from '../../../shared/Go'
@@ -19,6 +20,7 @@ import { pageItems } from '../../../shared/pageItems'
 import { useAppSelector } from '../../../../app/store'
 import { useWorldImport } from '../viewmodel/useWorldImport'
 import { useWorldCardViewModel } from '../viewmodel/useWorldsViewModel'
+import { publicCardEntries } from '../cardRelationEntries'
 import { bookPath, cardImageSrc, cardPath, type CardPage, type CardRef } from '../worldDetail'
 import { ImportOutcomeNotice, WorldAddMenu } from './WorldImportMenu'
 import { DemoNotice, InfoRow, LoadFailed, WorldLink, WorldLoading } from './WorldParts'
@@ -70,6 +72,7 @@ function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
 type Section = { id: string; no: string; depth: number; title: string; heading?: ReactNode; body: ReactNode; children: Section[] }
 
 /**
+ * 정보 상자 아래에는 카드별 관계도(`CardRelationMap`: 이 카드는 이렇게 연관됩니다, 회차 탭은 응답의 `history` 회차)가 있고.
  * 문단: 본문(마크다운)의 `#`·`##`·`###` 제목마다 한 문단(단계대로 `1`·`1.1`·`1.1.1`, 하위 문단은 상위 문단 안) → 관계(이 카드에 문단으로 보이는 관계마다 `상대 — 관계명` 하위 문단과 관계 설명, DEC-54)
  * → 이 설정을 가리키는 관계(받는 쪽 링크) → 같은 유형의 다른 설정(최상위 번호를 이어 받음).
  * 목차는 이 문단들이고 본문 쪽은 작가가 쓴 제목 그대로다. 첫 제목 앞의 글은 제목 없는 첫머리(`lead`)라 목차·번호에 넣지 않는다(개요를 지어 붙이지 않는다).
@@ -197,6 +200,7 @@ export function WorldCardPage() {
                 <p className="nw-cat"><b>분류</b><Go to={`/worlds/${world.id}`}>{world.name}</Go><Go to={bookPath(world.id, page.card.kind)}>{page.card.kind}</Go></p>
                 <header className="nw-head"><h1 id={heading}>{page.card.title}</h1></header>
                 <CardInfoBox world={world} page={page} />
+                {world.relationshipStatus !== 'unavailable' && <CardRelationMap center={{ id: page.card.cardId, title: page.card.title, kind: page.card.kind }} entries={publicCardEntries(page)} hrefOf={(to) => cardPath(world.id, to)} />}
                 {sections.length > 0 && <nav className="nw-toc" id="nw-toc" tabIndex={-1} aria-label="목차">
                   <b>목차</b>
                   <TocList sections={sections} />

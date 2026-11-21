@@ -405,14 +405,15 @@ it('편집 패널은 분류 칩과 이 카드에 이어진 설정·관계를 읽
   expect(panel.getByRole<HTMLSelectElement>('combobox', { name: '유형' }).value).toBe('character') // 같은 유형 칩이 따로 없고 선택 상자 하나로 보인다
   const links = within(panel.getByRole('region', { name: '연관 설정' }))
   expect(links.queryByText('읽기 전용')).toBeNull() // 눌러서 여는 목록에 '읽기 전용' 표시가 붙으면 헷갈린다
-  const link = links.getByRole('button', { name: '나래 친구' })
+  const link = links.getByRole('button', { name: '나래' }) // 목록 줄은 '나래 — 친구'이고 버튼은 상대 이름이다
+  expect(link.closest('li')!.textContent).toContain('나래 — 친구')
   link.focus()
   fireEvent.click(link)
   expect(screen.getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('나래')
   await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('textbox', { name: '설정 이름' }))) // 눌러서 사라진 링크 대신 새 카드의 이름 입력으로
   backToBoard()
   openCard('항구 장소')
-  expect(within(screen.getByRole('region', { name: '연관 설정' })).getByText('이어진 설정이 없어요.')).toBeTruthy() // 관계 연결로 가는 길은 위 버튼 하나다
+  expect(within(screen.getByRole('region', { name: '연관 설정' })).getByText(/아직 연결된 설정이 없어요/)).toBeTruthy() // 관계 편집으로 가는 길은 머리 줄의 버튼과 빈 상태의 관계 추가다
   backToBoard()
   // 제목 옆 수: 인물은 관계 수([1]), 읽는 사람에게는 '관계 1개'로 읽힌다
   expect(screen.getByRole('table', { name: '설정 카드 목록' }).textContent).toContain('관계 1개')
@@ -4483,4 +4484,22 @@ it('관계도 보기에서 적용하지 않은 관계 입력이 있으면 세계
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   expect(headerOf().getByText('관계 입력 미적용')).toBeTruthy() // 다른 보기는 머리의 칩이다(같은 칩이 두 군데 뜨지 않는다)
   expect(screen.getAllByText('관계 입력 미적용')).toHaveLength(1)
+})
+
+it('카드 편집 화면의 연관 설정·관계 절은 관계 수·관계 편집(모든 유형)·카드별 관계도·간단 목록이고, 공개 순서는 문제가 없으면 한 줄이다', async () => {
+  const [garam, narae, harbor] = [person('가람'), person('나래'), place('항구')]
+  await show(friends([garam, narae, harbor], garam, narae))
+  openCard('가람 인물')
+  const links = within(screen.getByRole('region', { name: '연관 설정' }))
+  expect(links.getByRole('heading', { name: /연관 설정·관계/ }).textContent).toContain('관계 1')
+  expect(links.getByRole('list', { name: '관계 목록' }).textContent).toContain('나래 — 친구')
+  expect(document.querySelector('svg.card-relmap-svg')?.getAttribute('aria-hidden')).toBe('true')
+  fireEvent.click(links.getByRole('button', { name: '관계 편집' }))
+  expect(await screen.findByRole('region', { name: '관계 편집' })).toBeTruthy() // 기존 관계 편집(관계도 화면)으로 간다
+  expect(where()).toBe('/worldstudio/qa?view=people')
+  cleanup()
+  await show(friends([garam, narae, harbor], garam, narae))
+  openCard('항구 장소') // 인물이 아닌 카드도 같은 머리 줄이다
+  expect(within(screen.getByRole('region', { name: '연관 설정' })).getByRole('button', { name: '관계 편집' })).toBeTruthy()
+  expect(within(screen.getByRole('region', { name: '연관 설정' })).getByRole('button', { name: '관계 추가' })).toBeTruthy() // 이웃이 없으면 빈 상태의 관계 추가
 })

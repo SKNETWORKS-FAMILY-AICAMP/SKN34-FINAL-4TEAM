@@ -1,0 +1,17 @@
+/* 카드별 관계도(작가 편집 화면·공개 카드 페이지 공용): 고정 좌표 SVG라 상자 폭에 맞춰 줄고, 선은 1px(non-scaling-stroke)다. */
+.card-relmap{display:grid;gap:10px;margin:12px 0}
+.card-relmap-tabs{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.card-relmap-tabs button[role=tab]{padding:4px 12px;border:1px solid var(--line3);border-radius:999px;background:var(--surface);color:var(--sub);font:inherit;font-size:13px;cursor:pointer}
+.card-relmap-tabs button[role=tab][aria-selected=true]{border-color:var(--pri);color:var(--pri-ink);font-weight:700}
+.card-relmap-tabs select{padding:4px 8px;border:1px solid var(--line3);border-radius:8px;background:var(--surface);color:var(--sub);font:inherit;font-size:13px}
+.card-relmap-svg{width:100%;max-width:560px;height:auto;color:var(--line3)}
+.card-relmap-svg line{stroke:currentColor;stroke-width:1;vector-effect:non-scaling-stroke}
+.card-relmap-svg text{fill:var(--ink);font-size:12px;paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+.card-relmap-svg .card-relmap-edge{fill:var(--sub);font-size:11px}
+.card-relmap-svg .card-relmap-center{font-size:14px;font-weight:700}
+.card-relmap-svg .card-relmap-badge{fill:var(--sub);font-size:12px}
+.card-relmap-node{cursor:pointer}.card-relmap-node:hover circle{stroke:var(--ink);stroke-width:2px}
+.card-relmap-list,.card-relmap-events ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.card-relmap-link{padding:0;border:0;background:none;color:var(--pri-ink);font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.card-relmap-events summary{cursor:pointer;color:var(--sub)}
+.card-relmap-empty{margin:0}
