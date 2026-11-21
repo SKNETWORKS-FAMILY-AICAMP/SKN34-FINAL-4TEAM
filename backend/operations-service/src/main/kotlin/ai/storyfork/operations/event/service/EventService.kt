@@ -17,8 +17,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 
-private const val LINK_PATH_MAX = 200
-
 @Service
 @Transactional(readOnly = true)
 class EventService(private val events: EventRepository) {
@@ -63,13 +61,13 @@ class EventService(private val events: EventRepository) {
         require(request.body.isNotBlank() && '\u0000' !in request.body)
         require(request.startsAt == null || request.endsAt == null || !request.endsAt.isBefore(request.startsAt))
         // The "바로 가기" button follows this path, so it must stay inside the site. It is a rule of its own (DEC-57): 422, not the 400 above.
-        if (request.linkPath?.let(::inSitePath) == false) throw ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT)
+        if (!validLinkPath(request.linkPath)) throw ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT)
     }
 
-    // One leading "/", at most 200 characters, and no "//" anywhere (that also rules out "//host" and "://"), backslash (browsers read "/\host"
-    // as "//host"), whitespace or control character.
-    private fun inSitePath(path: String) = path.length <= LINK_PATH_MAX && path.startsWith("/") && "//" !in path &&
-        path.none { it == '\\' || it.isWhitespace() || it.isISOControl() }
+    // No link is fine. Otherwise one leading "/", at most 200 characters, and no "//" anywhere (that also rules out "//host" and "://"),
+    // backslash (browsers read "/\host" as "//host"), whitespace or control character.
+    private fun validLinkPath(path: String?) = path == null ||
+        (path.length <= 200 && path.startsWith("/") && "//" !in path && path.none { it == '\\' || it.isWhitespace() || it.isISOControl() })
 
     private fun EventEntity.toResponse() = EventResponse(id, title, body, startsAt, endsAt, createdAt, updatedAt, linkPath)
 }
