@@ -291,7 +291,7 @@ it('관리 보기 전환 메뉴가 왼쪽 사이드바에 있고(개요·설정�
   expect(screen.getByRole('button', { name: 'AI 검토' })).toBeTruthy() // 의견·후보가 없으면 이름에 수를 붙이지 않는다
   expect(manageTabs().getByRole('button', { name: '설정집' }).getAttribute('aria-current')).toBe('page')
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  expect(screen.getByText('아직 연결한 관계가 없어요.')).toBeTruthy()
+  expect(screen.getByRole('region', { name: '관계 편집' })).toBeTruthy()
   expect(screen.queryByRole('table', { name: '설정 카드 목록' })).toBeNull()
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
@@ -565,7 +565,9 @@ it('유형과 관계없이 카드를 지울 수 있다: 이어진 관계 수를 
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
   await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('searchbox', { name: '설정 검색' }))) // 행이 없어졌으니 목록의 첫 컨트롤로
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  expect(screen.queryByRole('button', { name: /삭제 되돌리기/ })).toBeNull() // 관계도의 되돌리기는 인물 삭제만(관계 주체 선택지에 없는 유형을 고르지 않는다)
+  const people = within(screen.getByRole('region', { name: '관계 편집' }))
+  expect(people.getByText(/‘항구’ 설정이 삭제됐어요/)).toBeTruthy() // 관계도에도 같은 알림과 되돌리기가 뜬다
+  expect(people.getByRole('button', { name: '삭제 되돌리기' })).toBeTruthy()
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   fireEvent.click(screen.getByRole('button', { name: '되돌리기' }))
   expect(table().getByRole('button', { name: '항구 장소' })).toBeTruthy()
@@ -724,7 +726,7 @@ it.each([
   mount(undefined, ['/before', `/worldstudio/qa?tab=${tab}`])
   await screen.findByRole('heading', { name: '검증 세계', level: 1 })
   await waitFor(() => expect(where()).toBe(expected))
-  if (tab === 'people') expect(screen.getByText('아직 연결한 관계가 없어요.')).toBeTruthy()
+  if (tab === 'people') expect(screen.getByRole('region', { name: '관계 편집' })).toBeTruthy()
   else expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
   if (tab === 'analysis') expect(screen.getByRole('dialog', { name: 'AI 검토' })).toBeTruthy() // AI 후보 검토는 AI 검토 시트의 한 절이 됐다
   else expect(screen.queryByRole('dialog')).toBeNull()
@@ -761,35 +763,50 @@ it('소설 버튼은 한 자리다: 연결된 소설이 없으면 소설 연결 
   expect(novelTab().queryByRole('button', { name: '소설 연결하기' })).toBeNull()
 })
 
-it('관계 연결 단계에서 그래프 카드를 차례로 두 번 누르면 관계 추가 폼의 주체·대상이 채워지고 관계 작성이 열린다', async () => {
-  const [garam, narae] = [person('가람'), person('나래')]
-  await show([garam, narae, person('다온')])
+it('관계 연결 단계에서 카드 본문을 누르면 선택만 되고, 카드 메뉴의 관계 연결을 고른 뒤 다른 카드를 누르면 관계 작성 시트가 열린다', async () => {
+  const [garam] = [person('가람'), person('나래')]
+  await show([garam, person('나래'), person('다온')])
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  expect(screen.getByText('카드 두 개를 차례로 누르면 관계를 이어요.')).toBeTruthy() // 행동 한 문장(위치 저장 안내는 행동과 무관하다)
-  const press = (name: string) => fireEvent.click(screen.getByRole('group', { name })) // 카드 본문 누르기는 React Flow의 노드 클릭이다
-  press('가람 인물 카드')
+  expect(screen.getByText(/카드 옆 점을 끌어 관계를 이어요/)).toBeTruthy() // 행동 한 문장(위치 저장 안내는 행동과 무관하다)
+  fireEvent.click(canvasCard('가람')) // 카드 본문 누르기는 React Flow의 노드 클릭이다: 선택만 한다
+  expect(canvasCard('가람').getAttribute('aria-current')).toBe('true')
+  expect(screen.queryByText(/연결 상대를 고르세요/)).toBeNull()
+  expect(screen.queryByRole('dialog')).toBeNull()
+  fireEvent.contextMenu(canvasCard('가람'))
+  fireEvent.click(screen.getByRole('menuitem', { name: '관계 연결' }))
   expect(screen.getByText(/가람의 연결 상대를 고르세요/)).toBeTruthy()
-  expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '관계 주체' }).value).toBe(garam.item.id)
-  expect(screen.queryByRole('textbox', { name: '실제 관계 1' })).toBeNull() // 첫 번째 누름만으로는 열리지 않는다
-  press('나래 인물 카드')
-  expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '관계 대상' }).value).toBe(narae.item.id)
+  expect(screen.queryByRole('textbox', { name: '실제 관계 1' })).toBeNull() // 주체만 고른 단계에서는 열리지 않는다
+  fireEvent.click(canvasCard('나래'))
+  expect(screen.getByRole('dialog', { name: '가람 ↔ 나래 관계' })).toBeTruthy()
   expect(screen.getByRole('textbox', { name: '실제 관계 1' })).toBeTruthy()
   expect(screen.queryByText(/연결 상대를 고르세요/)).toBeNull()
 })
 
 // ── 관계 기준 회차(DEC-51): 관계도 보기·작성 모드 관계 연결 단계에서 고른다 ───────────────────────
 const episodePicker = () => within(screen.getByRole('region', { name: '관계 기준 회차' }))
+// ── 관계도 캔버스 조작: 하단 관계 추가 폼·관계 목록 표는 없고 캔버스에서만 잇고 지운다 ─────────────────────────
+const canvasCard = (name: string) => screen.getByRole('group', { name: name + ' 인물 카드' })
+const relationLine = (from: string, to: string) => screen.getByRole('button', { name: new RegExp('관계선 편집: ' + from + ' · ' + to) })
+/** 카드 오른쪽 클릭 메뉴의 '관계 연결' → 상대 카드 누르기(마우스로 누른 카드는 초점도 받는다): 관계 작성 시트가 열린다. */
+const connectCards = (from: string, to: string) => {
+  fireEvent.contextMenu(canvasCard(from))
+  fireEvent.click(screen.getByRole('menuitem', { name: '관계 연결' }))
+  canvasCard(to).focus()
+  fireEvent.click(canvasCard(to))
+}
+/** 선에 초점을 둔 채 Delete: 확인(window.confirm) 뒤 편집본에서 관계를 지운다. */
+const deleteLine = (from: string, to: string) => fireEvent.keyDown(relationLine(from, to), { key: 'Delete' })
 it('관계도 보기에서 회차를 고르면 그 회차로 다시 읽고, 회차 칸은 다시 열리지 않으며 요청이 끝나면 입력 칸으로 초점이 돌아온다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   const at = (episode?: number): StudioWorld => ({ id: 'qa', name: '검증 세계', description: '설명', version: 1, settings: episode === 1 ? [garam, narae] : friends([garam, narae], garam, narae), analysis: null, linkedWorkId: 'w1' })
   const read = vi.fn(async (_id: string, _signal?: AbortSignal, episode?: number) => structuredClone(at(episode)))
   await show(friends([garam, narae], garam, narae), '/worldstudio/qa', { linkedWorkId: 'w1', relationEpisodes: true, read })
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  expect(screen.getByRole('button', { name: '가람 · 친구 · 나래 편집' })).toBeTruthy() // 최신 회차의 관계
+  expect(relationLine('가람', '나래')).toBeTruthy() // 최신 회차의 관계
   const apply = episodePicker().getByRole('button', { name: '이 회차 관계 보기' }), field = episodePicker().getByRole('textbox', { name: '관계 기준 화' })
   fireEvent.change(field, { target: { value: '1' } })
   fireEvent.click(apply)
-  expect(await screen.findByText('아직 연결한 관계가 없어요.')).toBeTruthy()
+  await waitFor(() => expect(screen.queryByRole('button', { name: /관계선 편집: 가람 · 나래/ })).toBeNull()) // 1화 시점에는 그 관계가 없다
   expect(read).toHaveBeenLastCalledWith('qa', expect.any(AbortSignal), 1)
   expect(episodePicker().getByText('지금은 1화 시점의 관계예요.')).toBeTruthy()
   expect(episodePicker().getByRole('button', { name: '이 회차 관계 보기' })).toBe(apply) // 관계 편집기만 다시 열리고 회차 칸은 그대로다
@@ -808,7 +825,7 @@ it('회차 선택은 데모(메모리)·소설 미연결·저장하지 않은 �
   await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
   expect(episodePicker().getByRole<HTMLInputElement>('textbox', { name: '관계 기준 화' }).disabled).toBe(false)
   vi.spyOn(window, 'confirm').mockReturnValue(true)
-  fireEvent.click(screen.getByRole('button', { name: '가람 · 친구 · 나래 삭제' })) // 초안을 바꾸면 다시 읽을 때 잃으므로 잠근다
+  deleteLine('가람', '나래') // 초안을 바꾸면 다시 읽을 때 잃으므로 잠근다
   expect(episodePicker().getByText('저장하지 않은 변경이 있어 회차를 바꿀 수 없어요. 먼저 세계관을 저장하세요.')).toBeTruthy()
 })
 
@@ -847,7 +864,7 @@ it('지난 회차를 연 채 관계를 삭제하면 그 관계가 어느 회차�
   const [garam, narae] = [person('가람'), person('나래')]
   const note = '삭제한 관계 1개는 1화에서 끝나는 것으로 저장돼요.'
   vi.spyOn(window, 'confirm').mockReturnValue(true)
-  const removeRelation = () => fireEvent.click(screen.getByRole('button', { name: '가람 · 친구 · 나래 삭제' }))
+  const removeRelation = () => deleteLine('가람', '나래')
   await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
   await pickEpisode(1)
   expect(saveBar().queryByText(note)).toBeNull() // 회차를 골랐을 뿐 지우지 않았다
@@ -867,17 +884,15 @@ it('지난 회차를 연 채 관계를 삭제하면 그 관계가 어느 회차�
   expect(within(screen.getByRole('region', { name: '세계관 검토' })).getByText(note)).toBeTruthy()
 })
 
-it('소설을 연결한 세계관은 관계 목록에 시작 회차를 보이고, 관계 편집 행의 N화부터를 적어 적용하면 그 회차가 저장 요청의 관계 행에 담긴다 (DEC-54 2단계)', async () => {
+it('소설을 연결한 세계관은 관계 편집 시트에 기존 시작 회차가 채워져 있고, N화부터를 적어 적용하면 그 회차가 저장 요청의 관계 행에 담긴다 (DEC-54 2단계)', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   const settings = friends([garam, narae], garam, narae).map((s) => (s.item.kind === 'relation' ? { ...s, item: { ...s.item, fromEpisode: 2 } } : s))
   const { saveStudio } = await show(settings, '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
-  const table = () => within(screen.getByRole('table', { name: '저장할 관계 목록' }))
-  expect(table().getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['주체', '관계', '대상', '시작 회차', '편집·삭제'])
-  expect([...table().getAllByRole('row')[1].querySelectorAll('td')].slice(0, 4).map((td) => td.textContent)).toEqual(['가람', '친구', '나래', '2화부터'])
-  fireEvent.click(table().getByRole('button', { name: '가람 · 친구 · 나래 편집' }))
-  fireEvent.change(screen.getByRole('textbox', { name: '실제 관계 1 시작 회차 화부터' }), { target: { value: '4' } })
+  fireEvent.click(relationLine('가람', '나래'))
+  const from = () => screen.getByRole<HTMLInputElement>('textbox', { name: '실제 관계 1 시작 회차 화부터' })
+  expect(from().value).toBe('2')
+  fireEvent.change(from(), { target: { value: '4' } })
   fireEvent.click(screen.getByRole('button', { name: '편집본에 적용' }))
-  expect(table().getByText('4화부터')).toBeTruthy()
   saveWorld()
   await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
   expect(saveStudio.mock.calls[0][0].settings.find((s) => s.item.kind === 'relation')?.item.fromEpisode).toBe(4)
@@ -902,23 +917,21 @@ it('소설을 연결한 세계관에서 N화부터를 모르는 관계가 바뀌
   expect(saveButton().disabled).toBe(false)
 })
 
-it('관계 목록 표는 주체·관계·대상과 편집·삭제를 보이고 삭제는 확인한 뒤에만 편집본에서 지운다', async () => {
+it('관계선을 누르면 관계 작성 패널이 열리고, 선에서 Delete는 확인한 뒤에만 편집본에서 관계를 지운다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae))
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  const table = within(screen.getByRole('table', { name: '저장할 관계 목록' }))
-  expect(table.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['주체', '관계', '대상', '편집·삭제'])
-  expect([...table.getAllByRole('row')[1].querySelectorAll('td')].slice(0, 3).map((td) => td.textContent)).toEqual(['가람', '친구', '나래'])
-  fireEvent.click(table.getByRole('button', { name: '가람 · 친구 · 나래 편집' }))
+  expect(relationLine('가람', '나래').getAttribute('aria-label')).toBe('관계선 편집: 가람 · 나래 · 친구') // 선의 이름이 주체·대상·관계를 말한다
+  fireEvent.click(relationLine('가람', '나래'))
   expect(screen.getByRole('textbox', { name: '실제 관계 1' })).toBeTruthy() // 편집은 관계 작성 패널을 연다
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
-  fireEvent.click(table.getByRole('button', { name: '가람 · 친구 · 나래 삭제' }))
+  deleteLine('가람', '나래')
   expect(confirm).toHaveBeenCalledOnce()
-  expect(screen.getByRole('table', { name: '저장할 관계 목록' })).toBeTruthy()
+  expect(relationLine('가람', '나래')).toBeTruthy() // 거절하면 그대로다
   confirm.mockReturnValue(true)
-  fireEvent.click(table.getByRole('button', { name: '가람 · 친구 · 나래 삭제' }))
-  expect(screen.queryByRole('table', { name: '저장할 관계 목록' })).toBeNull()
-  expect(screen.getByText('아직 연결한 관계가 없어요.')).toBeTruthy()
+  deleteLine('가람', '나래')
+  expect(screen.queryByRole('button', { name: /관계선 편집: 가람 · 나래/ })).toBeNull()
+  expect(screen.queryByRole('dialog')).toBeNull() // 열려 있던 패널도 닫힌다
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
 })
 
@@ -1068,7 +1081,7 @@ it('보기를 옮기면 주소 ?view=가 바뀌고 그 주소로 다시 열면(�
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   expect(where()).toBe('/worldstudio/qa?view=people')
   expect(manageTabs().getByRole('button', { name: '관계도' }).getAttribute('aria-current')).toBe('page')
-  expect(screen.getByText('아직 연결한 관계가 없어요.')).toBeTruthy()
+  expect(screen.getByRole('region', { name: '관계 편집' })).toBeTruthy()
   fireEvent.click(manageTabs().getByRole('button', { name: '시간선' }))
   expect(where()).toBe('/worldstudio/qa?view=timeline')
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
@@ -1080,7 +1093,7 @@ it('보기를 옮기면 주소 ?view=가 바뀌고 그 주소로 다시 열면(�
   cleanup()
   await show(undefined, '/worldstudio/qa?view=people') // 관계 편집기도 주소만으로 열린다
   expect(manageTabs().getByRole('button', { name: '관계도' }).getAttribute('aria-current')).toBe('page')
-  expect(screen.getByText('아직 연결한 관계가 없어요.')).toBeTruthy()
+  expect(screen.getByRole('region', { name: '관계 편집' })).toBeTruthy()
   cleanup()
   await show(undefined, '/worldstudio/qa?view=nope') // 모르는 값은 설정집이다
   expect(manageTabs().getByRole('button', { name: '설정집' }).getAttribute('aria-current')).toBe('page')
@@ -2485,9 +2498,7 @@ it('관계 작성 패널의 닫기는 적용하지 않은 입력이 있으면 �
   const [garam, narae] = [person('가람'), person('나래')]
   await show([garam, narae])
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  fireEvent.change(screen.getByRole('combobox', { name: '관계 주체' }), { target: { value: garam.item.id } })
-  fireEvent.change(screen.getByRole('combobox', { name: '관계 대상' }), { target: { value: narae.item.id } })
-  fireEvent.click(screen.getByRole('button', { name: '관계 작성' }))
+  connectCards('가람', '나래')
   fireEvent.click(screen.getByRole('button', { name: '실제 관계 추가' }))
   fireEvent.change(screen.getByRole('textbox', { name: '실제 관계 1' }), { target: { value: '오랜 벗' } })
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
@@ -2498,17 +2509,15 @@ it('관계 작성 패널의 닫기는 적용하지 않은 입력이 있으면 �
   confirm.mockReturnValue(true)
   close()
   expect(screen.queryByRole('dialog')).toBeNull()
-  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '관계 작성' }))) // 사라진 닫기 대신 관계 작성 버튼으로
+  await waitFor(() => expect(document.activeElement).toBe(canvasCard('나래'))) // 사라진 닫기 대신 시트를 연 카드로
 })
 
-it('관계 작성 패널을 닫거나 적용해 닫으면 사라진 버튼 대신 관계 작성 버튼으로 초점이 돌아온다', async () => {
+it('관계 작성 패널을 닫거나 적용해 닫으면 사라진 버튼 대신 시트를 연 카드로 초점이 돌아온다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show([garam, narae])
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
-  fireEvent.change(screen.getByRole('combobox', { name: '관계 주체' }), { target: { value: garam.item.id } })
-  fireEvent.change(screen.getByRole('combobox', { name: '관계 대상' }), { target: { value: narae.item.id } })
-  const write = () => screen.getByRole('button', { name: '관계 작성' })
-  fireEvent.click(write())
+  const write = () => canvasCard('나래')
+  connectCards('가람', '나래')
   const sheet = within(screen.getByRole('dialog', { name: '가람 ↔ 나래 관계' })) // 관계 작성 패널은 시트다
   expect(sheet.queryByRole('button', { name: '취소' })).toBeNull() // 닫는 길은 머리의 닫기(와 Esc·배경)뿐이다
   expect(sheet.getByText('감정은 방향마다 따로 정해요.')).toBeTruthy()
@@ -2518,25 +2527,24 @@ it('관계 작성 패널을 닫거나 적용해 닫으면 사라진 버튼 대�
   fireEvent.click(cancel)
   expect(screen.queryByRole('dialog')).toBeNull()
   await waitFor(() => expect(document.activeElement).toBe(write()))
-  fireEvent.click(write())
+  connectCards('가람', '나래')
   fireEvent.click(screen.getByRole('button', { name: '실제 관계 추가' }))
   fireEvent.change(screen.getByRole('textbox', { name: '실제 관계 1' }), { target: { value: '오랜 벗' } })
   const apply = screen.getByRole('button', { name: '편집본에 적용' })
   apply.focus()
   fireEvent.click(apply)
-  expect(within(screen.getByRole('table', { name: '저장할 관계 목록' })).getByText('오랜 벗')).toBeTruthy()
+  expect(relationLine('가람', '나래').getAttribute('aria-label')).toContain('오랜 벗') // 적용한 관계가 선에 나타난다
   await waitFor(() => expect(document.activeElement).toBe(write()))
 })
 
-it('관계 목록에서 관계를 지우면 사라진 삭제 버튼 대신 관계 목록으로 초점이 간다', async () => {
+it('관계선을 지우면 사라진 선 대신 캔버스로 초점이 간다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae))
   fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   vi.spyOn(window, 'confirm').mockReturnValue(true)
-  const remove = screen.getByRole('button', { name: '가람 · 친구 · 나래 삭제' })
-  remove.focus()
-  fireEvent.click(remove)
-  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('region', { name: '관계 목록' })))
+  relationLine('가람', '나래').focus()
+  deleteLine('가람', '나래')
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('group', { name: '인물 카드 그래프' })))
 })
 
 // ── 저장을 막는 사유(어느 설정인지·그 설정으로 가기)와 독자 공개 회차 입력의 오류 안내 ─────────────────────
@@ -4413,17 +4421,18 @@ it('관계도 보기에서는 세계관 머리(표지·이름·칩 줄)를 그�
   expect(document.querySelector('.world-manage-hero')).toBeNull()
 })
 
-it('관계도 보기는 React Flow 캔버스가 내용 열 전체 폭의 한 열이고(주소 view가 내용 열에 붙는다) 관계 추가·관계 목록은 그 아래에 있다', async () => {
+it('관계도 보기는 React Flow 캔버스가 내용 열 전체 폭의 한 열이고(주소 view가 내용 열에 붙는다) 그 아래에 관계 추가 폼·관계 목록 표는 없다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people')
   expect(document.querySelector('.ep-content')!.getAttribute('data-view')).toBe('people')
   const flow = screen.getByRole('group', { name: '인물 카드 그래프' })
   expect(flow.querySelector('.react-flow')).toBeTruthy()
   expect(within(flow).getByRole('group', { name: '가람 인물 카드' })).toBeTruthy()
-  const stage = flow.closest('.relationship-stage') as HTMLElement
-  const form = document.querySelector('.relationship-service-form') as HTMLElement
-  expect(stage.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 캔버스 단 아래에 폼·목록
-  expect(within(form).getByRole('region', { name: '관계 목록' })).toBeTruthy()
+  expect(document.querySelector('.relationship-service-form')).toBeNull() // 하단 폼·표 칸 자체가 없다
+  expect(screen.queryByText('관계 추가')).toBeNull()
+  expect(screen.queryByRole('region', { name: '관계 목록' })).toBeNull()
+  expect(screen.queryByRole('table', { name: '저장할 관계 목록' })).toBeNull()
+  expect(screen.queryByRole('combobox', { name: '관계 주체' })).toBeNull()
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   expect(document.querySelector('.ep-content')!.getAttribute('data-view')).toBe('book')
   cleanup()
@@ -4431,28 +4440,32 @@ it('관계도 보기는 React Flow 캔버스가 내용 열 전체 폭의 한 열
   expect(document.querySelector('.ep-content')!.getAttribute('data-view')).toBeNull() // 작성 모드는 그대로
 })
 
-it('관계도 보기의 안내문·범례는 캔버스 감싸개(.relationship-canvas) 안에서 캔버스에 겹치고, 도구줄·중심·유형 필터는 캔버스 위 한 묶음(.relationship-bar)이며, 관계 기준 회차는 그 바깥이라 편집기가 다시 열려도 그대로다', async () => {
+it('관계도 보기의 안내문·범례는 캔버스 감싸개(.relationship-canvas) 안에서 캔버스에 겹치고, 유형 필터와 설정 찾기는 캔버스 위 한 줄(.relationship-bar)이며, 관계 기준 회차는 그 바깥이라 편집기가 다시 열려도 그대로다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people')
   const canvas = screen.getByRole('group', { name: '인물 카드 그래프' }).closest('.relationship-canvas') as HTMLElement
   expect(canvas).toBeTruthy()
-  expect(within(canvas).getByText('카드 두 개를 차례로 누르면 관계를 이어요.').getAttribute('role')).toBe('status') // 안내문은 캔버스 위에 겹치는 작은 글(상태 안내 그대로)
+  expect(within(canvas).getByText(/카드 옆 점을 끌어 관계를 이어요/).getAttribute('role')).toBe('status') // 안내문은 캔버스 위에 겹치는 작은 글(상태 안내)
   expect(within(canvas).getByRole('list', { name: '범례' })).toBeTruthy()
   const bar = document.querySelector('.relationship-bar') as HTMLElement
-  expect(Array.from(bar.children, (child) => child.className)).toEqual(['relationship-toolbar', 'relationship-focus', 'relationship-filter']) // 도구줄 → 중심 → 유형 필터(키보드 순서도 같다)
-  expect(within(bar).getByRole('button', { name: '인물 추가' })).toBeTruthy()
-  expect(within(bar).getByRole('combobox')).toBeTruthy()
-  expect(within(bar).getByRole('group', { name: '관계도 유형 필터' })).toBeTruthy()
+  const filter = within(bar).getByRole('group', { name: '관계도 유형 필터' }), find = within(bar).getByRole('combobox', { name: '설정 찾기' })
+  expect(filter.compareDocumentPosition(find) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 유형 필터 → 설정 찾기(키보드 순서도 같다)
+  expect(within(bar).queryByRole('button', { name: '인물 추가' })).toBeNull() // 도구는 캔버스 안 도구 막대에 있다
+  expect(within(canvas).getByRole('toolbar', { name: '관계도 도구' })).toBeTruthy()
   expect(bar.compareDocumentPosition(canvas) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 묶음은 캔버스 위
   expect(bar.contains(screen.getByRole('region', { name: '관계 기준 회차' }))).toBe(false) // 회차 칸은 다시 열리는 편집기 바깥
+})
+
+it('카드가 하나도 없으면 안내문이 첫 카드를 더하는 길(+ 설정 추가·오른쪽 클릭)을 알린다', async () => {
+  await show([], '/worldstudio/qa?view=people')
+  expect(screen.getByText(/첫 카드를 더해 보세요/).getAttribute('role')).toBe('status')
+  expect(screen.getByRole('button', { name: '+ 설정 추가' })).toBeTruthy()
 })
 
 it('관계도 보기에서 적용하지 않은 관계 입력이 있으면 세계관 머리가 없어도 관계 입력 미적용 칩이 내용 열 맨 위에 보이고, 다른 보기에서는 머리의 칩이 맡는다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show([garam, narae], '/worldstudio/qa?view=people')
-  fireEvent.change(screen.getByRole('combobox', { name: '관계 주체' }), { target: { value: garam.item.id } })
-  fireEvent.change(screen.getByRole('combobox', { name: '관계 대상' }), { target: { value: narae.item.id } })
-  fireEvent.click(screen.getByRole('button', { name: '관계 작성' }))
+  connectCards('가람', '나래')
   fireEvent.change(screen.getByRole('textbox', { name: '실제 관계 1' }), { target: { value: '미적용 관계 원문' } })
   const chip = await screen.findByText('관계 입력 미적용')
   expect(chip.getAttribute('role')).toBe('status')

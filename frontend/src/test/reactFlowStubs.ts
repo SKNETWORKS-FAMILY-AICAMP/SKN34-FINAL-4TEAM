@@ -27,9 +27,11 @@ Object.defineProperties(Element.prototype, {
   clientWidth: { configurable: true, get: () => 800 },
   clientHeight: { configurable: true, get: () => 600 },
 })
+/** 핸들(.react-flow__handle)의 크기: 12px(끌어 잇기가 가까운 핸들을 찾는 데 쓴다). 그 밖의 요소는 인라인 style의 px 크기, 없으면 800×600이다. */
+const handleSize = (el: HTMLElement) => (el.classList.contains('react-flow__handle') ? 12 : undefined)
 Object.defineProperties(HTMLElement.prototype, {
-  offsetWidth: { configurable: true, get(this: HTMLElement) { return px(this.style.width, 800) } },
-  offsetHeight: { configurable: true, get(this: HTMLElement) { return px(this.style.height, 600) } },
+  offsetWidth: { configurable: true, get(this: HTMLElement) { return handleSize(this) ?? px(this.style.width, 800) } },
+  offsetHeight: { configurable: true, get(this: HTMLElement) { return handleSize(this) ?? px(this.style.height, 600) } },
 })
 Object.assign(globalThis, { ResizeObserver: ResizeObserverStub, DOMMatrixReadOnly: DOMMatrixReadOnlyStub })
 if (typeof window !== 'undefined') Object.assign(window, { ResizeObserver: ResizeObserverStub, DOMMatrixReadOnly: DOMMatrixReadOnlyStub })

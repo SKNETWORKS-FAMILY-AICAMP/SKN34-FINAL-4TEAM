@@ -69,9 +69,8 @@ describe('세계관 작업실 레이아웃 규칙', () => {
     expect(rule(studio, '.world-card-reach .world-consent')).toMatch(/min-height:44px/)
   })
 
-  it('관계 편집기는 뷰포트가 아니라 자기 폭이 좁을 때 그래프와 관계 폼을 위아래로 쌓는다', () => {
-    expect(rule(map, '.relationship-editor')).toMatch(/container:\s*relationship-editor\s*\/\s*inline-size/)
-    expect(block(map, '@container relationship-editor (max-width:950px)')).toMatch(/\.relationship-service-layout\{grid-template-columns:minmax\(0,1fr\)\}/)
+  it('관계 편집기는 그래프 옆 폼이 없는 캔버스 한 칸이라 2열 분기(컨테이너·뷰포트)와 하단 폼·표의 규칙이 없다', () => {
+    expect(map).not.toMatch(/@container relationship-editor|container:\s*relationship-editor|relationship-service|relationship-list|relationship-table/)
     expect(map).not.toMatch(/@media\(max-width:1050px\)/)
   })
 
@@ -145,10 +144,9 @@ describe('관계도 층과 좁은 화면 넘침 방어(critique)', () => {
     expect(stage).not.toMatch(/--rc-(bg|sel):[^;]*transparent/) // 투명을 섞으면 카드 뒤 간선이 비친다
   })
 
-  it('390px 가로 넘침 방어(측정 필요): 그리드·플렉스 항목이 안쪽의 넓은 내용(관계 목록 표 최소 600px·중심 칩 줄)에 밀려 커지지 않게 min-width:0이다', () => {
-    expect(map).toContain('.relationship-editor :is(.relationship-service-form,.relationship-list,.relationship-focus,.relationship-add,.relationship-stage){min-width:0;max-width:100%}')
-    expect(map).toContain('.relationship-list>.adm-scroll,.relationship-focus>*{min-width:0;max-width:100%}')
-    expect(rule(map, '.relationship-table')).toMatch(/width:100%;table-layout:fixed/)
+  it('390px 가로 넘침 방어(측정 필요): 무대가 안쪽의 넓은 내용(필터 칩 줄·설정 찾기 입력)에 밀려 커지지 않게 min-width:0·max-width:100%이고, 무대 위 한 줄은 줄바꿈한다', () => {
+    expect(rule(map, '.relationship-stage')).toMatch(/min-width:0;max-width:100%;overflow:hidden/)
+    expect(rule(map, '.relationship-bar')).toMatch(/display:flex;flex-wrap:wrap/)
   })
 })
 
@@ -163,11 +161,15 @@ describe('관계도 React Flow 캔버스(@xyflow/react)', () => {
     expect(flow).not.toMatch(/#fff|white/i)
   })
 
-  it('카드는 React Flow 노드 래퍼 안을 가득 채울 뿐 위치·층을 스스로 정하지 않고, 간선을 이으려고 둔 숨은 핸들은 보이지도 눌리지도 않는다', () => {
+  it('카드는 React Flow 노드 래퍼 안을 가득 채울 뿐 위치·층을 스스로 정하지 않고, 연결 점(.relationship-port)은 카드 가장자리의 12px 원(터치는 22px)이며 둘레 ::after가 누르는 자리를 넓힌다', () => {
     const card = rule(map, '.relationship-character-card')
     expect(card).toMatch(/width:100%;height:100%/)
     expect(card).not.toMatch(/position:absolute|left:0|top:0|z-index/)
-    expect(rule(map, '.relationship-handle')).toMatch(/opacity:0;pointer-events:none/)
+    expect(map).not.toContain('relationship-handle') // 간선을 잇기 위해 숨겨 둔 핸들은 없다(점이 실제 끌기 자리다)
+    expect(rule(map, '.relationship-port')).toMatch(/width:12px;height:12px;border:2px solid/)
+    expect(rule(map, '.relationship-port::after')).toMatch(/position:absolute;inset:-10px/)
+    expect(block(map, '@media(pointer:coarse)')).toMatch(/\.relationship-port\{width:22px;height:22px\}/)
+    expect(rule(map, '.relationship-port:is(:hover,.connectingfrom,.connectingto,.valid)')).not.toMatch(/transform/) // React Flow가 점 자리에 쓰는 translate를 덮는다
   })
 
   it('직접 만든 보드(스크롤 상자·카드 보드·간선 SVG 층)의 규칙은 남기지 않는다', () => {
@@ -179,10 +181,10 @@ describe('관계도 React Flow 캔버스(@xyflow/react)', () => {
     expect(rule(map, '.relationship-canvas>.relationship-hint')).toMatch(/order:-1/)
   })
 
-  it('작성 모드(2열)의 캔버스 높이는 화면 높이를 따르는 범위이고 좁은 화면은 440px이며, 터치 기기는 카드 위 세로 손짓을 페이지 스크롤이 받는다', () => {
-    expect(rule(map, '.relationship-flow')).toMatch(/position:relative;height:clamp\(380px,55vh,590px\)/)
+  it('작성 모드의 캔버스 높이는 화면 높이를 따르는 범위이고 좁은 화면은 440px이며, 터치 기기는 카드 위 세로 손짓을 페이지 스크롤이 받고 컨트롤 버튼·연결 점이 누르는 크기로 커진다', () => {
+    expect(rule(map, '.relationship-flow')).toMatch(/position:relative;height:clamp\(440px,66vh,760px\)/)
     expect(map).toContain('@media(max-width:600px){.relationship-flow{height:440px}.relationship-character-card{border-radius:10px}}')
-    expect(map).toContain('@media(pointer:coarse){.relationship-character-card{touch-action:pan-y}.relationship-flow .react-flow__controls-button{width:44px;height:44px}}') // 컨트롤 버튼도 누르는 크기 44px
+    expect(map).toContain('@media(pointer:coarse){.relationship-character-card{touch-action:pan-y}.relationship-flow .react-flow__controls-button{width:44px;height:44px}.relationship-port{width:22px;height:22px}}')
   })
 })
 
@@ -198,19 +200,18 @@ describe('설정 카드 썸네일(#401)', () => {
 })
 
 describe('관계도 무대 안 묶음과 좁은 화면 적용 바', () => {
-  it('그래프 위 한 줄 툴바(중심 콤보·이웃 쪽 이동·전체 관계도로)는 줄바꿈하는 flex이고 툴바와 같은 안쪽 여백(16px, 좁은 화면 12px)이며, 안내 글은 늘 한 줄을 쓰고, 어두운 무대 위 글은 고정 보조색이다', () => {
-    expect(rule(map, '.relationship-focus')).toMatch(/display:\s*flex;\s*flex-wrap:\s*wrap;\s*align-items:\s*center;\s*gap:\s*8px 12px;\s*padding:\s*0 16px 10px/)
-    expect(rule(map, '.relationship-focus>p')).toMatch(/flex:\s*1 1 100%/)
-    expect(map).not.toContain('.relationship-focus [role=group]') // 중심 설정 칩 줄은 없다(콤보 하나로 묶었다)
-    expect(rule(map, '.relationship-focus :is(.muted,.page-controls)')).toMatch(/color:\s*var\(--fixed-sub\)/) // --sub(라이트 #5F6370)는 무대 위 대비가 2.5~3.1:1이다
-    expect(block(map, '@media(max-width:600px)')).toMatch(/\.relationship-focus\{padding-inline:12px\}/) // 툴바·안내·필터·범례와 같은 왼쪽 선
+  it('그래프 위 한 줄(.relationship-bar: 유형 필터·설정 찾기·알림)은 줄바꿈하는 flex이고 안쪽 여백 16px(좁은 화면 12px)이며, 알림 글은 늘 한 줄을 쓰고, 어두운 무대 위 글은 고정 보조색이다', () => {
+    expect(rule(map, '.relationship-bar')).toMatch(/display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:10px 16px/)
+    expect(rule(map, '.relationship-bar>p')).toMatch(/flex:1 1 100%/)
+    expect(rule(map, '.relationship-stage .muted')).toMatch(/color:var\(--fixed-sub\)/) // --sub(라이트 #5F6370)는 무대 위 대비가 2.5~3.1:1이다
+    expect(block(map, '@media(max-width:600px)')).toMatch(/\.relationship-bar\{padding-inline:12px\}/) // 안내·범례와 같은 왼쪽 선
+    expect(map).not.toMatch(/relationship-toolbar|relationship-focus/) // 예전 도구줄·중심 줄은 없다
   })
 
-  it('적용 바는 폼 안쪽 여백만큼만 아래로 내려 붙는다(sticky bottom = -padding): 넓은 화면 20px, 좁은 화면 12px', () => {
-    expect(rule(map, '.relationship-service-form')).toMatch(/padding:\s*20px/)
-    expect(rule(map, '.relationship-apply')).toMatch(/bottom:\s*-20px/)
-    expect(map).toMatch(/@media\(max-width:600px\)\{\.relationship-service-form\{padding:12px\}\}/)
-    expect(block(map, '@media(max-width:600px)')).toMatch(/\.relationship-apply\{bottom:-12px\}/) // 18px면 폼 밖으로 6px 잘린다
+  it('관계 작성 시트의 적용 바는 시트 안쪽 여백을 이용해 바닥에 붙고(sticky), 옛 하단 폼 열의 bottom 값은 두지 않는다', () => {
+    expect(rule(map, '.relationship-apply')).toMatch(/position:sticky/)
+    expect(rule(map, '.relationship-apply')).not.toMatch(/bottom/)
+    expect(block(map, '@media(max-width:600px)')).not.toMatch(/relationship-apply/)
   })
 })
 
@@ -235,10 +236,7 @@ describe('관계도 무대 조용히 다듬기', () => {
     expect(stage).toMatch(/radial-gradient\(ellipse at 50% 46%,var\(--stage-1\) 0%,var\(--stage-2\) 56%,var\(--stage-3\) 100%\)/)
   })
 
-  it('구획 제목 h4는 700·자간 없음이고 유형 필터 버튼은 600이며, 켜진 칩은 보라 틴트 면 + 낮춘 테두리(3:1 이상 유지)·꺼진 칩은 글자만 물러난다', () => {
-    const h4 = rule(map, '.relationship-toolbar h4')
-    expect(h4).toMatch(/font-weight:700/)
-    expect(h4).not.toMatch(/letter-spacing/)
+  it('유형 필터 버튼은 600이며, 켜진 칩은 보라 틴트 면 + 낮춘 테두리(3:1 이상 유지)·꺼진 칩은 글자만 물러난다', () => {
     expect(rule(map, '.relationship-filter .btn')).toMatch(/font-weight:600/)
     const on = rule(map, '.relationship-stage .relationship-filter .btn[aria-pressed=true]')
     expect(on).toMatch(/background:var\(--rc-sel\)/)
@@ -258,26 +256,9 @@ describe('관계도 무대 조용히 다듬기', () => {
     expect(rule(map, '.relationship-stage .relationship-edge-label')).toMatch(/fill:var\(--fixed-sub\)/) // 선 색을 따르던 라벨을 회색 글자로(6.3:1 이상)
   })
 
-  it('관계 목록 행의 조작은 알약 테두리 없는 글자 버튼이고(hover는 옅은 면), 주체·대상 이름은 본문색 + 옅은 밑줄 링크다(밑줄이 링크 표시라 3:1 이상인 --line3)', () => {
-    const actions = rule(map, '.relationship-row-actions .btn')
-    expect(actions).toMatch(/border-color:transparent/)
-    expect(actions).toMatch(/background:none/)
-    expect(actions).toMatch(/font-weight:600/)
-    expect(rule(map, '.relationship-row-actions .btn:hover')).toMatch(/background:var\(--muted-bg\)/) // 비레이어 background:none이 전역 hover 면을 이기므로 다시 정한다
-    const link = rule(map, '.relationship-card-link')
-    expect(link).toMatch(/color:inherit/)
-    expect(link).toMatch(/text-decoration:underline/)
-    expect(link).toMatch(/text-decoration-color:var\(--line3\)/)
-    expect(rule(map, '.relationship-card-link:hover')).toMatch(/color:var\(--pri-ink\);text-decoration-color:currentColor/)
-  })
-
-  it('관계 목록 표 머리는 회색 띠가 아니라 아래 선 하나이고, 공용 게시판(/worlds/:id)의 머리 띠는 그대로다', () => {
-    expect(rule(map, '.relationship-table th')).toMatch(/font-size:12px;background:none;border-bottom:1px solid var\(--line2\)/)
-    expect(rule(board, '.worlds-board-table th')).not.toMatch(/background/) // 공용 worldBoard.css는 머리 면을 정하지 않고 전역 th를 쓴다
-  })
 })
 
-describe('관계 작성 시트와 관계 목록 표(R5)', () => {
+describe('관계 작성 시트(R5)', () => {
   it('관계 작성 패널은 시트라 입력·select·textarea를 폭 100%·15px로 키우고(터치 기기는 확대 방지로 16px), 실제 관계 문구 칸은 최소 3줄에서 글 길이를 따라 자란다', () => {
     const fields = ':is(input:not([type=checkbox]):not([type=radio]),select,textarea)'
     expect(map).toContain('.relationship-sheet ' + fields + '{box-sizing:border-box;width:100%;font-size:15px}')
@@ -289,15 +270,6 @@ describe('관계 작성 시트와 관계 목록 표(R5)', () => {
 
   it('적용 바는 시트 안쪽 여백(.sheet padding 26px)만큼 아래로 내려 붙어 시트 바닥에 닿는다', () => {
     expect(rule(map, '.relationship-sheet .relationship-apply')).toMatch(/bottom:-26px/)
-    expect(rule(map, '.relationship-apply')).toMatch(/bottom:-20px/) // 위 폼(오른쪽 열) 규칙은 그대로
-  })
-
-  it('관계 목록 표는 칸 폭을 정하고(주체 18%·대상 20%·시작 회차 84px·작업 126px) 글자는 14px이며, 좁은 편집기용 작업 칸 64px 규칙은 없다(전역 가로 스크롤 상자가 대신한다)', () => {
-    expect(rule(map, '.relationship-table :is(th,td)')).toMatch(/font-size:14px/)
-    expect(map).toMatch(/\.relationship-table th\.col-subject\{width:18%\}\.relationship-table th\.col-target\{width:20%\}\.relationship-table th\.col-from\{width:84px\}/)
-    expect(rule(map, '.relationship-table :is(th,td):last-child')).toMatch(/width:126px/)
-    expect(map).not.toMatch(/relationship-editor \(max-width:520px\)/)
-    expect(map).not.toMatch(/last-child\{width:64px\}/)
   })
 
   it('관계도 카드의 유형 점은 8px 원이다', () => {
@@ -306,10 +278,7 @@ describe('관계 작성 시트와 관계 목록 표(R5)', () => {
 })
 
 describe('관계도 컨트롤 정리(critique 승인)', () => {
-  it("'관계 추가'는 접힌 details라 요약 줄이 44px이고 안쪽 묶음이 간격을 정하며(details를 grid로 두지 않는다), 중심 콤보는 .episode-app 틀 규칙을 이기도록 .episode-app 아래에서 정한다", () => {
-    expect(rule(map, '.relationship-add>summary')).toMatch(/min-height:44px/)
-    expect(rule(map, '.relationship-add-body')).toMatch(/display:grid;gap:12px/)
-    expect(map).not.toMatch(/\.relationship-add,\.relationship-list\{display:grid/)
+  it('설정 찾기 콤보는 .episode-app 틀 규칙을 이기도록 .episode-app 아래에서 정하고, 입력은 터치 기기의 16px 보정을 건드리지 않는다', () => {
     expect(rule(map, '.episode-app .relationship-center')).toMatch(/display:inline-flex/)
     const input = rule(map, '.episode-app .relationship-center input:not([type=checkbox]):not([type=radio])')
     expect(input).toMatch(/margin-top:0/)
@@ -318,17 +287,52 @@ describe('관계도 컨트롤 정리(critique 승인)', () => {
 })
 
 describe('390px 가로 넘침(critique 후속)', () => {
-  it('관계 목록 표의 가로 스크롤 상자는 기준 위치(position:relative)라 안의 sr-only(position:absolute) 요소가 상자 밖으로 나가 문서 폭을 늘리지 않는다 (마지막 칸 머리의 오른쪽 맞춤 숨은 글자가 표 오른쪽 끝에 놓여 390px에서 innerWidth가 646으로 늘던 원인)', () => {
-    expect(rule(map, '.relationship-list>.adm-scroll')).toMatch(/position:relative/)
-    expect(map).toContain('.relationship-list>.adm-scroll,.relationship-focus>*{min-width:0;max-width:100%}') // 앞선 min-width 방어는 그대로
-  })
-
   it('900px 이하 보기 메뉴 묶음·줄은 min-width:0라 탭 줄+채팅 열기 버튼의 최소 폭(약 480px)이 358px 본문의 그리드 칸을 늘리지 않고 탭 줄이 가로로 스크롤한다', () => {
     expect(studio).toContain('@media(max-width:900px){.world-menu-body,.world-menu-row{min-width:0}.world-menu-row{display:flex;align-items:center;gap:8px}')
   })
 })
 
 // ── 3단계 distill: 그래프 카드의 두 버튼은 마우스 기기에서만 호버·초점·선택·상대일 때 보인다 ───────────────────────────
-it('인물 카드의 두 버튼은 마우스 기기에서만 호버·초점·선택·상대일 때 보이고, 터치 화면은 늘 보인다', () => {
-  expect(block(map, '@media(hover:hover)')).toBe('.relationship-stage .relationship-character-card>div{opacity:0}.relationship-stage .relationship-character-card:is(:hover,:focus-within,.selected,.target)>div{opacity:1}')
+it('인물 카드의 두 버튼은 마우스 기기에서만 호버·초점(노드 래퍼나 버튼)·선택·상대일 때 보이고, 터치 화면은 늘 보인다', () => {
+  expect(block(map, '@media(hover:hover)')).toBe('.relationship-stage .relationship-character-card>div{opacity:0}.relationship-stage :is(.react-flow__node:focus-within .relationship-character-card,.relationship-character-card:is(:hover,.selected,.target))>div{opacity:1}')
+})
+
+// ── n8n식 캔버스 조작: 도구·추가 패널·오른쪽 클릭 메뉴·선 도구·키보드 초점 ─────────────────────────────────────────────
+describe('관계도 도구·추가 패널·오른쪽 클릭 메뉴·선 도구(n8n식)', () => {
+  it('왼쪽 위 도구는 줄바꿈하는 flex라 좁은 화면에서도 캔버스 밖으로 넘치지 않고, 열려 있는 + 설정 추가 버튼은 눌린 모양이다', () => {
+    expect(rule(map, '.relationship-tools')).toMatch(/display:flex;flex-wrap:wrap;gap:6px;max-width:calc\(100% - 24px\);margin:10px 12px/)
+    expect(rule(map, '.relationship-tools .btn[aria-expanded=true]')).toMatch(/background:var\(--rc-sel\)/)
+  })
+
+  it('+ 설정 추가 패널은 캔버스 오른쪽에 붙어 React Flow 층(최대 6)·안내·범례(10) 위에 뜨고, 600px 이하에서는 캔버스 아래에서 올라오는 시트다', () => {
+    const panel = rule(map, '.relationship-add-panel')
+    expect(panel).toMatch(/position:absolute;top:0;right:0;bottom:0;z-index:20/)
+    expect(panel).toMatch(/width:min\(300px,100%\)/)
+    expect(map).toMatch(/@media\(max-width:600px\)\{\.relationship-add-panel\{top:auto;left:0;width:auto;max-height:min\(72%,420px\)/)
+  })
+
+  it('오른쪽 클릭 메뉴는 body 포털의 fixed라 무대 토큰이 아니라 전역 면 토큰을 쓰고(라이트·다크를 따른다), 시트·서랍(.back-dim 100)보다 위다', () => {
+    const menu = rule(map, '.relationship-menu')
+    expect(menu).toMatch(/position:fixed;z-index:120/)
+    expect(menu).toMatch(/background:var\(--surface\);color:var\(--ink\)/)
+    expect(menu).not.toMatch(/--stage|--rc-|--fixed/)
+    expect(rule(map, '.relationship-menu [role=menuitem][aria-disabled=true]')).toMatch(/cursor:not-allowed/)
+  })
+
+  it('오른쪽 클릭 메뉴는 화면보다 키가 커져도(8유형 하위 목록 + 낮은 가로 화면) 뷰포트 안에서 안쪽으로 스크롤하고, 좁은 화면·터치에서는 항목이 44px다', () => {
+    expect(rule(map, '.relationship-menu')).toMatch(/max-height:calc\(100dvh - 16px\);overflow-y:auto/)
+    expect(map).toMatch(/@media\(max-width:600px\),\(pointer:coarse\)\{\.relationship-menu \[role=menuitem\]\{min-height:44px\}\}/)
+    expect(block(map, '@media(pointer:coarse)')).not.toMatch(/relationship-menu/) // 위 묶음이 맡는다
+  })
+
+  it('선의 편집·삭제 버튼은 평소 숨고 선에 마우스를 올리거나 초점이 있을 때 뜨며, 선과 버튼 사이 틈을 지나는 동안 사라지지 않게 숨김이 늦춰진다(visibility 전환 지연)', () => {
+    expect(rule(map, '.relationship-edge-tools')).toMatch(/visibility:hidden;opacity:0;transition:opacity \.12s \.2s,visibility 0s \.32s/)
+    expect(rule(map, '.relationship-edge:is(:hover,:focus-within) .relationship-edge-tools')).toMatch(/visibility:visible;opacity:1;transition-delay:0s/)
+  })
+
+  it('키보드 초점은 보이는 표시가 있다: 선은 반투명 보라 띠, 카드(노드 래퍼)는 카드 둘레의 보라 윤곽선이고 끌어 잇는 선은 고른 선과 같은 색이다', () => {
+    expect(rule(map, '.relationship-edge-hit:focus-visible')).toMatch(/outline:none;stroke:var\(--fixed-pri\);stroke-opacity:\.45/)
+    expect(rule(map, '.relationship-flow .react-flow__node:focus-visible')).toMatch(/outline:2px solid var\(--fixed-pri\)/)
+    expect(rule(map, '.relationship-flow .react-flow')).toMatch(/--xy-connectionline-stroke:var\(--edge-active\)/)
+  })
 })

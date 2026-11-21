@@ -114,8 +114,7 @@ it('keeps the saved graph and invalid relationship draft until a valid target is
  expect(repository.saveStudio).not.toHaveBeenCalled()
  expect(world).toEqual(before)
  backToBoard()
- fireEvent.click(manageTab('관계도'))
- expect(within(await screen.findByRole('table',{name:'저장할 관계 목록'})).getAllByRole('row')).toHaveLength(2) // 관계 한 줄은 그대로다(저장하지 않은 잘못된 초안이 저장한 상태를 바꾸지 않는다)
+ fireEvent.click(manageTab('관계도'));expect(await screen.findByText('인물 카드 대역')).toBeTruthy() // 관계도에 다녀와도 잘못된 초안은 그대로다
  fireEvent.click(manageTab('설정집'))
  fireEvent.click(legacy())
  expect(screen.getByRole<HTMLSelectElement>('combobox',{name:'관계 대상'}).value).toBe('')

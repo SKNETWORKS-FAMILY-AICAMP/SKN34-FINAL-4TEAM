@@ -398,8 +398,6 @@ it('게시판 표 머리는 회색 띠가 아니라 아래 선 하나다(관리�
 // ── 5단계 polish: 정렬·간격·390 탭 줄·상태 마감(색·구조·문구는 그대로) ────────────────────────────────────────
 /** 관계도·관계 목록 규칙이 있는 파일(이 테스트는 media 안의 규칙을 원문 정규식으로 본다) */
 const mapCss = readFileSync(new URL('./world-map.css', import.meta.url), 'utf8')
-const mapRules = [...mapCss.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)].map(([, selector, body]) => ({ selector: selector.trim(), body }))
-const mapRule = (matches: (selector: string) => boolean) => mapRules.find((r) => matches(r.selector))
 
 it('900px 이하 세계관 메뉴의 탭 줄(nav)은 줄바꿈해 탭 다섯 개가 모두 보인다(가로 스크롤 줄 끝에서 소설 연결이 AI 채팅 열기 뒤로 가려졌다). 공용 .ep-menu nav(/content 작품 관리 메뉴)는 그대로이고, 이 규칙은 .world-menu-body를 더해 그 규칙을 이긴다', () => {
   expect(css).toMatch(/@media\(max-width:900px\)\{\.world-menu-body \.world-menu-row nav\{flex-wrap:wrap;overflow-x:visible\}\}/)
@@ -423,13 +421,6 @@ it('시간선 상세는 카드 글자 선과 같은 x에서 시작하고(좌우 
   expect(timelineCss.match(/\.world-timeline-event\{([^}]*)\}/)?.[1]).not.toMatch(/gap:15px/)
 })
 
-it("'관계 추가' 접힘 summary는 기본 ▶ 표시가 보이는 list-item이다(display:flex면 Chromium이 marker를 그리지 않는다). 누르는 높이는 44px다", () => {
-  const summary = mapRule((s) => s === '.relationship-add>summary')?.body ?? ''
-  expect(summary).toMatch(/display:list-item/)
-  expect(summary).not.toMatch(/display:flex/)
-  expect(summary).toMatch(/min-height:44px;padding-block:10px/)
-})
-
 it('카드 편집 화면의 상단 바는 600px 이하에서 오른쪽 묶음(저장 상태·테마)이 100% 폭으로 다음 줄에 내려가지 않고 같은 줄 오른쪽 끝에 붙는다', () => {
   expect(css).toMatch(/@media\(max-width:600px\)\{\.world-card-studio \.writing-bar-end\{width:auto;margin-left:auto\}\}/)
   expect(writingCss).toContain('.writing-bar-end { justify-content: flex-start; width: 100%; }') // 집필실 공용 규칙은 그대로다
@@ -441,8 +432,8 @@ it('게시판 미리보기는 왼쪽 안쪽 여백 56px(선택 칸 44 + 칸 여�
   expect(rule((s) => s === '.world-preview-meta ul')?.body).not.toMatch(/flex/)
 })
 
-it('관계도 툴바는 600px 이하에서 중심 입력이 한 줄 전체를 쓰고, 쪽 이동 앞의 라벨(이웃·그래프)은 화면에서만 숨겨 버튼이 혼자 줄에 떨어지지 않는다(nav 이름은 그대로)', () => {
-  expect(mapCss).toMatch(/@media\(max-width:600px\)\{\.episode-app \.relationship-center\{flex:1 1 100%\}\.episode-app \.relationship-center input:not\(\[type=checkbox\]\):not\(\[type=radio\]\)\{width:100%\}\.relationship-focus \.page-controls>span:first-child\{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset\(50%\);white-space:nowrap;border:0\}\}/)
+it('설정 찾기는 600px 이하에서 입력이 한 줄 전체를 쓴다(위 한 줄의 필터 칩과 줄바꿈만 한다)', () => {
+  expect(mapCss).toContain('@media(max-width:600px){.episode-app .relationship-center{flex:1 1 100%}.episode-app .relationship-center input:not([type=checkbox]):not([type=radio]){width:100%}}')
 })
 
 it('카드 레일의 쪽 이동은 레일 글과 같은 x(24px)에서 시작하는 왼쪽 정렬이고, 한 줄에 들어가도록 간격 6px·select 최소 폭 56px다(가운데 정렬로 263px를 꽉 채우던 것)', () => {
@@ -451,11 +442,6 @@ it('카드 레일의 쪽 이동은 레일 글과 같은 x(24px)에서 시작하�
   expect(nav).toMatch(/justify-content:flex-start/)
   expect(nav).toMatch(/gap:6px/)
   expect(rule((s) => s === '.world-card-studio .writing-rail .page-controls select.inp')?.body).toMatch(/min-width:56px/)
-})
-
-it('관계 목록의 삭제는 편집과 달리 위험색 글자이고 hover 면은 그대로다', () => {
-  expect(mapRule((s) => s === '.relationship-row-actions .btn:last-child')?.body).toMatch(/color:var\(--danger\)/)
-  expect(mapRule((s) => s === '.relationship-row-actions .btn:hover')?.body).toMatch(/background:var\(--muted-bg\)/)
 })
 
 // ── 상단바를 사이드바로 합치기: 관리 모드는 공용 상단바(Gnb) 없이 사이드바(.ep-menu)가 화면 높이를 쓴다 ────────────────────────────────
@@ -546,19 +532,18 @@ it('사이드바 맨 아래 줄의 계정 메뉴(공용 AccountMenu는 아바타
 })
 
 // ── 관계도 보기: 세계관 머리 없이 캔버스가 내용 열을 가득 채운다(사용자 요청) ─────────────────────────────────
-it('관계도 보기(.ep-content[data-view=people])는 내용 카드의 안쪽 여백·테두리를 없애 캔버스가 내용 열 전체 폭을 쓰고, 그래프 | 폼 2열 대신 한 열이라 관계 추가·목록이 캔버스 아래에 온다', () => {
+it('관계도 보기(.ep-content[data-view=people])는 내용 카드의 안쪽 여백·테두리를 없애 캔버스가 내용 열 전체 폭을 쓰고, 캔버스 아래에는 폼·표가 없다', () => {
   expect(rule((s) => s === '.ep-content[data-view=people]>.ep-card')?.body).toMatch(/padding:0;border:0;background:none;margin-bottom:0/)
   expect(rule((s) => s === '.ep-content[data-view=people]>.chip')?.body).toMatch(/display:flex;width:fit-content;margin:0 0 8px/) // 머리가 없는 이 보기의 관계 입력 미적용 칩 한 줄
-  expect(rule((s) => s === '.ep-content[data-view=people] .relationship-service-layout')?.body).toMatch(/grid-template-columns:minmax\(0,1fr\)/)
-  expect(rule((s) => s === '.ep-content[data-view=people] .relationship-service-form')?.body).toMatch(/max-height:none/)
+  expect(css).not.toMatch(/relationship-service|relationship-list|relationship-table/) // 예전 하단 관계 추가 폼·관계 목록 표의 규칙은 없다
 })
 
-it('관계도 캔버스 높이는 100dvh에서 캔버스 위쪽만 뺀 값이라 캔버스 아래 끝이 화면 끝에 닿고 최소 480px다(위쪽 길이는 캔버스가 재서 --rf-top으로 준다). 터치 기기도 같다(스크롤은 캔버스 위 줄·아래 목록에서 시작한다)', () => {
+it('관계도 캔버스 높이는 100dvh에서 캔버스 위쪽만 뺀 값이라 캔버스 아래 끝이 화면 끝에 닿고 최소 480px다(위쪽 길이는 캔버스가 재서 --rf-top으로 준다). 터치 기기도 같다(스크롤은 캔버스 위 줄에서 시작한다)', () => {
   expect(rule((s) => s === '.ep-content[data-view=people] .relationship-flow')?.body).toMatch(/height:max\(480px,calc\(100dvh - var\(--rf-top,200px\)\)\)/)
   expect(mediaRule('(pointer:coarse)', '.ep-content[data-view=people] .relationship-flow')).toBe('') // 64dvh 절충은 없다
 })
 
-// ── 관계도 보기: 캔버스 위 세로 공간을 줄인다(관계 기준 회차 한 줄, 도구줄·중심, 유형 필터, 안내문·범례는 캔버스 위에 겹침) ──────────────
+// ── 관계도 보기: 캔버스 위 세로 공간을 줄인다(관계 기준 회차 한 줄, 위 한 줄(유형 필터·설정 찾기), 도구·안내문·범례는 캔버스 위에 겹침) ──────────────
 const people = (tail: string) => rule((s) => s === `.ep-content[data-view=people] ${tail}`)?.body ?? ''
 it('관계도 보기의 관계 기준 회차는 폼과 안내(상태) 문구를 한 줄에 놓고 위 여백 없이 카드 위에 붙으며, 입력은 넓은 화면의 마우스 기기에서만 36px다(좁은 화면(600px 이하)·터치는 전역 44px 보정 그대로)', () => {
   const box = people('.relationship-episode')
@@ -569,18 +554,17 @@ it('관계도 보기의 관계 기준 회차는 폼과 안내(상태) 문구를 
   expect(mediaRule('(pointer:fine)', '.ep-content[data-view=people] .relationship-episode .inp')).toBe('') // 좁은 화면의 마우스 기기(좁힌 데스크톱 창)는 전역 44px 보정(max-width:600px)을 덮지 않는다
 })
 
-it('관계도 보기의 도구줄(제목·인물 추가·배치 정돈)과 중심 줄은 풀어 헤쳐 필터와 한 묶음(.relationship-bar)에서 줄바꿈만 하며 자리가 모자랄 때만 줄이 늘어난다', () => {
-  expect(people('.relationship-bar')).toMatch(/display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:6px 12px/)
-  expect(people(':is(.relationship-toolbar,.relationship-focus)')).toMatch(/display:contents/)
-  expect(people('.relationship-toolbar h4')).toMatch(/margin:0 4px 0 0/) // 제목 뒤 auto 여백이 버튼을 오른쪽 끝으로 밀지 않는다
-  expect(people('.relationship-filter')).toMatch(/padding:0/) // 묶음이 여백을 가진다
-  expect(mediaRule('(min-width:601px) and (pointer:fine)', '.ep-content[data-view=people] .relationship-bar .btn.sm')).toMatch(/height:32px/)
+it('관계도 보기의 위 한 줄(.relationship-bar: 유형 필터·설정 찾기·삭제된 설정 알림)은 세로 여백만 줄이고, 넓은 화면의 마우스 기기는 버튼·입력을 32px 안팎으로 줄인다(캔버스 왼쪽 위의 도구 버튼도 같다)', () => {
+  expect(people('.relationship-bar')).toMatch(/padding:6px 12px/)
+  expect(mediaRule('(min-width:601px) and (pointer:fine)', '.ep-content[data-view=people] :is(.relationship-bar,.relationship-tools) .btn.sm')).toMatch(/height:32px/)
   expect(mediaRule('(min-width:601px) and (pointer:fine)', '.ep-content[data-view=people] .relationship-center input:not([type=checkbox]):not([type=radio])')).toMatch(/padding:5px 12px/)
+  expect(css).not.toMatch(/relationship-toolbar|relationship-focus/) // 풀어 헤치던 도구줄·중심 줄은 없다
 })
 
-it('관계도 보기의 안내문은 캔버스 왼쪽 위, 범례는 캔버스 아래 가운데(컨트롤·워터마크 자리를 비운 폭 안)에 겹쳐 놓고, 눌리지 않게 하되 연결 취소 버튼만 누를 수 있다', () => {
+it('관계도 보기의 안내문은 캔버스 왼쪽 위 도구 줄 바로 아래, 범례는 캔버스 아래 가운데(컨트롤·워터마크 자리를 비운 폭 안)에 겹쳐 놓고, 눌리지 않게 하되 연결 취소 버튼만 누를 수 있다', () => {
   const hint = people('.relationship-hint')
-  expect(hint).toMatch(/position:absolute;top:8px;left:12px;z-index:10/) // React Flow 층(최대 6) 위
+  expect(hint).toMatch(/position:absolute;top:52px;left:12px;z-index:10/) // React Flow 층(최대 6) 위, 도구 버튼 32px + 위아래 여백 10px 아래
+  expect(mediaRule('(max-width:600px),(pointer:coarse)', '.ep-content[data-view=people] .relationship-hint')).toMatch(/top:68px/) // 터치·좁은 화면은 도구 버튼이 44px
   expect(hint).toMatch(/pointer-events:none/)
   expect(people('.relationship-hint .btn')).toMatch(/pointer-events:auto/)
   const legend = people('.relationship-legend')
