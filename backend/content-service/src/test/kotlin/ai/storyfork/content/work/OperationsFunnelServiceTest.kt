@@ -24,6 +24,7 @@ import java.time.Instant
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
+import org.springframework.data.jpa.repository.Query
 import tools.jackson.databind.json.JsonMapper
 
 /** 운영 퍼널 집계(DEC-57) 조립을 저장소 대역으로 검증한다. 실제 JPQL·HTTP·서비스 토큰은 InternalOperationsFunnelIntegrationTest가 CI에서 확인한다. */
@@ -51,7 +52,7 @@ class OperationsFunnelServiceTest {
         `when`(views.countViewers()).thenReturn(40)
         `when`(readings.countReaders()).thenReturn(30)
         `when`(readings.countRepeatReaders()).thenReturn(12)
-        `when`(episodes.countPublished()).thenReturn(25)
+        `when`(episodes.countDirectlyPublished()).thenReturn(25)
         `when`(likes.countOfLiveWorks()).thenReturn(9)
         `when`(interests.countOfLiveWorks()).thenReturn(7)
         `when`(comments.countVisible()).thenReturn(5)
@@ -125,5 +126,11 @@ class OperationsFunnelServiceTest {
         assertTrue(tree.path("writers").path("medianHoursToPublish").isNull)
         assertEquals(setOf("adopted", "total"), tree.path("proposals").propertyNames().toSet())
         assertEquals(setOf("approved", "decided"), tree.path("feedback").propertyNames().toSet())
+    }
+
+    // 쿼리 의미는 CI 통합 테스트가 확인하지만, 같은 원작 회차를 Fork 수만큼 되풀이해 세지 않는 조건이 빠지면 로컬에서도 바로 깨지게 쿼리 문장을 고정한다.
+    @Test fun `published episodes are only the ones a work published itself and never the episodes a Fork inherited`() {
+        val query = EpisodeCurrentRepository::class.java.getMethod("countDirectlyPublished").getAnnotation(Query::class.java).value.replace(Regex("\\s+"), " ")
+        assertTrue("c.inherited = false" in query, query)
     }
 }

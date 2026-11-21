@@ -161,9 +161,9 @@ class InternalOperationsFunnelIntegrationTest {
         delete(f4); delete(gone)
 
         val after=read()
-        // 발행된 회차: orig 1 + deep 3 + 물려받은 회차(f1·f2·f3 각 1, f5 3) + f2가 직접 발행한 1 = 11. 삭제된 gone·f4의 것은 뺀다.
+        // 직접 발행한 회차: orig 1 + deep 3 + f2가 직접 발행한 1 = 5. Fork가 물려받은 원작 회차(f1·f2·f3 각 1, f5 3)와 삭제된 gone·f4의 것은 뺀다.
         val expected=mapOf("readers.viewed" to 2L,"readers.readAny" to 7L,"readers.readNext" to 1L,
-            "reactions.publishedEpisodes" to 11L,"reactions.likes" to 2L,"reactions.interests" to 1L,"reactions.comments" to 2L,
+            "reactions.publishedEpisodes" to 5L,"reactions.likes" to 2L,"reactions.interests" to 1L,"reactions.comments" to 2L,
             "forks.readers" to 7L,"forks.readerForked" to 2L,
             "writers.forks" to 4L,"writers.saved" to 2L,"writers.published" to 1L,
             "proposals.adopted" to 1L,"proposals.total" to 2L,"feedback.approved" to 1L,"feedback.decided" to 2L)

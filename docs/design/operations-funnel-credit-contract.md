@@ -20,7 +20,7 @@ Content `GET /internal/v1/operations/funnel`(운영 서비스 토큰 체인, 파
 | `readers.viewed` | 작품 상세를 조회한 회원 수(조회 기록에 회원이 있는 것만) |
 | `readers.readAny` | 회차를 하나 이상 읽은 회원 수 |
 | `readers.readNext` | 같은 작품에서 회차를 둘 이상 읽은 회원 수 |
-| `reactions.publishedEpisodes` | 현재 발행된 회차 수(삭제 작품 제외) |
+| `reactions.publishedEpisodes` | 현재 발행된 회차 수(삭제 작품 제외, Fork가 물려받은 원작 회차는 빼고 각 작품이 직접 발행한 회차만) |
 | `reactions.likes`·`interests`·`comments` | 좋아요·관심·회차 댓글 수(삭제·숨김 제외) |
 | `forks.readers` | `readers.readAny`와 같은 집단 |
 | `forks.readerForked` | 그중 Fork 작품을 하나 이상 만든 회원 수 |
@@ -39,7 +39,7 @@ Content `GET /internal/v1/operations/funnel`(운영 서비스 토큰 체인, 파
 | `readers.viewed` | `work_view`(공개 회차를 열 때 회원·회차·날짜별로 남기는 조회 기록, 작품 상세만 연 조회를 따로 남기는 표는 없다)의 서로 다른 `member_id`. 비회원 조회는 기록되지 않아 빠지며 작품 삭제는 거르지 않는다. |
 | `readers.readAny` | `reading_episode`(회원이 연 회차)의 서로 다른 `member_id`. 삭제된 작품을 읽은 회원도 센다. |
 | `readers.readNext` | `reading_episode`에서 같은 `work_id`의 다른 `episode_number` 행이 더 있는 서로 다른 `member_id`(같은 회차를 다시 열어도 한 행). |
-| `reactions.publishedEpisodes` | `episode_current` 중 발행 버전이 있는 행(Fork가 물려받은 회차 포함, 삭제한 회차는 뷰가 뺀다)이며 삭제되지 않은 작품의 것. |
+| `reactions.publishedEpisodes` | `episode_current` 중 발행 버전이 있고 물려받은 회차가 아닌(`inherited = false`) 행(삭제한 회차는 뷰가 뺀다)이며 삭제되지 않은 작품의 것. Fork가 물려받은 원작 회차는 같은 회차가 Fork 수만큼 되풀이해 세어지므로 빼고 각 작품이 직접 발행한 회차만 센다. |
 | `reactions.likes`·`interests` | `work_like`·`work_interest` 행 수, 삭제되지 않은 작품의 것. |
 | `reactions.comments` | `episode_comment` 중 `deleted_at`이 없고 `hidden = false`이며 삭제되지 않은 작품의 것. |
 | `forks.readers` | `readers.readAny`와 같은 쿼리 결과. |

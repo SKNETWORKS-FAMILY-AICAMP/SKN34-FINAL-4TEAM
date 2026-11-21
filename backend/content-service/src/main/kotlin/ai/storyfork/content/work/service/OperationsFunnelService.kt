@@ -44,7 +44,7 @@ class OperationsFunnelService(
         val firstPublications = forks.firstPublications()
         return OperationsFunnelResponse(
             readers = FunnelReaders(viewed = views.countViewers(), readAny = readers, readNext = readings.countRepeatReaders()),
-            reactions = FunnelReactions(publishedEpisodes = episodes.countPublished(), likes = likes.countOfLiveWorks(), interests = interests.countOfLiveWorks(), comments = comments.countVisible()),
+            reactions = FunnelReactions(publishedEpisodes = episodes.countDirectlyPublished(), likes = likes.countOfLiveWorks(), interests = interests.countOfLiveWorks(), comments = comments.countVisible()),
             forks = FunnelForks(readers = readers, readerForked = forks.countOwnersWhoRead(), baseEpisodes = baseEpisodeBuckets(forks.countByBaseEpisode())),
             writers = FunnelWriters(forks = forks.countLive(), saved = forks.countSaved(), published = firstPublications.size.toLong(), medianHoursToPublish = medianHours(firstPublications)),
             proposals = stats.proposalDecisions(Instant.EPOCH, now),

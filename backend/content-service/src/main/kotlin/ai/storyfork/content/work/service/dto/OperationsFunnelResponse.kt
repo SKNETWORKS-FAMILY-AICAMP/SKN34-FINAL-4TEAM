@@ -17,7 +17,7 @@ data class OperationsFunnelResponse(
 /** 독자 단계: 공개 회차 조회 기록이 있는 회원([viewed], 작품 상세 전용 조회 기록은 없다), 회차를 하나 이상 읽은 회원([readAny]), 같은 작품에서 회차를 둘 이상 읽은 회원([readNext])이다. */
 data class FunnelReaders(val viewed: Long, val readAny: Long, val readNext: Long)
 
-/** 반응: 지금 발행된 회차 수와 좋아요·관심·댓글 수다(삭제된 작품과 삭제·숨김 댓글은 뺀다). */
+/** 반응: 각 작품이 직접 발행한 현재 발행 회차 수(Fork가 물려받은 원작 회차는 뺀다)와 좋아요·관심·댓글 수다(삭제된 작품과 삭제·숨김 댓글은 뺀다). */
 data class FunnelReactions(val publishedEpisodes: Long, val likes: Long, val interests: Long, val comments: Long)
 
 /** 독자→Fork: [readers]는 [FunnelReaders.readAny]와 같은 집단, [readerForked]는 그중 Fork를 만든 회원, [baseEpisodes]는 Fork 기준 회차 분포다. */
