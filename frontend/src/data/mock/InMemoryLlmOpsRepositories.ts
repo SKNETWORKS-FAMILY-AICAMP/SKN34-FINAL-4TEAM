@@ -3,6 +3,7 @@ import { EVALUATION_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
 import type {
   Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
+import type { PipelineNode, PipelineRecord, PipelineRecordQuery } from '../../domain/entities/llmOpsPipeline'
 import { OperationsError, OperationsRejected, type OperationsPage } from '../../domain/entities/operations'
 import type { Alert, AlertRule, AlertRuleInput, AlertStatus } from '../../domain/entities/operationsAlert'
 import type { Dashboard } from '../../domain/entities/operationsDashboard'
@@ -59,6 +60,47 @@ const trace = (id: string, feature: string, status: string, minutes: number, lat
   id, timestamp: ago(minutes), feature, status, latencyMs, inputTokens: 1200, outputTokens: 340, cost, userId: 'demo-member', workId: 'demo-work',
 })
 
+const flowNode = (id: string, label: string, next: string[], count: number, errors = 0, p95LatencyMs: number | null = null, promptNames: string[] = []): PipelineNode => ({ id, label, next, standalone: false, count, errors, p95LatencyMs, promptNames })
+/** 서버 고정 목록(DEC-58)과 같은 노드 id. 건수·오류 수는 예시입니다. */
+const PIPELINE: PipelineNode[] = [
+  flowNode('request', '집필 AI 요청', ['guard'], 52, 0, 6200),
+  flowNode('guard', 'Decision Guard', ['main'], 104, 1, 820, ['decision_guard.judge']),
+  flowNode('main', '메인 에이전트', ['qa', 'writing', 'manuscript_review', 'world', 'research', 'rating', 'character_simulation', 'mcp'], 71, 1, 5400, ['main-agent']),
+  flowNode('qa', '작품 질문', ['apply'], 30, 1, 3100, ['qa-answer']),
+  flowNode('writing', '기획·집필·수정', ['apply'], 14, 0, 9800, ['writing-assist']),
+  flowNode('manuscript_review', '원고 검수', ['apply'], 9, 0, 7700),
+  flowNode('world', '세계관', ['apply'], 6, 0, 4200),
+  flowNode('research', '고증 조사', ['apply'], 4, 0, 6100),
+  flowNode('rating', '심의 등급', ['apply'], 3, 0, 2800),
+  flowNode('character_simulation', '인물 시뮬레이션', ['apply'], 2, 0, 12000),
+  flowNode('mcp', 'Content MCP 도구', [], 23, 1, 640),
+  flowNode('apply', '작가 승인 반영', [], 11, 0, 900),
+  ...([['proposals', '전개 제안'], ['initial_world', '초기 세계관 분석'], ['manuscript_extraction', '원고 설정 추출'], ['work_tags', '장르·키워드 추천'], ['world_review', '설정집 검토'], ['rating_direct', '심의 등급(단독)'], ['writing_editing', '새 원고·부분 수정']] as const)
+    .map(([id, label]): PipelineNode => ({ ...flowNode(id, label, [], 5), standalone: true })),
+]
+const entry = (id: string, traceId: string, name: string, minutes: number, extra: Partial<PipelineRecord> = {}): PipelineRecord => ({ id, traceId, name, type: 'SPAN', startTime: ago(minutes), latencyMs: 600, level: 'DEFAULT', ...extra })
+/** 노드별 기록 예시(최신순). 추적 id는 데모 추적(trace-1~4)이라 실행 흐름 보기도 열립니다. Guard의 거절은 수준이 아니라 출력의 allowed=false입니다. */
+const PIPELINE_RECORDS: Record<string, PipelineRecord[]> = {
+  guard: [
+    entry('guard-1', 'trace-1', 'decision_guard', 5, { latencyMs: 410, input: { request: '세계수의 비밀을 알려줘' }, output: { allowed: true, reason: null, capabilities: ['qa'] } }),
+    entry('guard-2', 'trace-2', 'decision_guard', 40, { latencyMs: 380, input: { request: '오늘 날씨 어때?' }, output: { allowed: false, reason: 'out_of_scope', capabilities: [] } }),
+    entry('guard-3', 'trace-3', 'decision_guard', 95, { latencyMs: 30000, level: 'ERROR', statusMessage: '판정 응답 시간 초과(예시)', input: { request: '3화를 검수하고 고쳐 줘' } }),
+    entry('guard-4', 'trace-1', 'decision_guard.generation', 5, { type: 'GENERATION', model: 'gpt-demo', promptName: 'decision_guard.judge', promptVersion: 1, latencyMs: 395, input: [{ role: 'user', content: '세계수의 비밀을 알려줘' }], output: { answers: [{ name: 'guard', choice: 'in_scope' }] } }),
+  ],
+  main: [
+    entry('main-1', 'trace-1', 'main_agent', 5, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'main-agent', promptVersion: 1, latencyMs: 2100, input: [{ role: 'user', content: '세계수의 비밀을 알려줘' }],
+      output: { text: '스토리 Q&A로 조회할게요.', toolCalls: [{ name: 'ask_story_qa', args: { request: '세계수의 비밀' } }] },
+    }),
+    entry('main-2', 'trace-4', 'main_agent', 180, { type: 'GENERATION', model: 'gpt-demo', promptName: 'main-agent', promptVersion: 1, latencyMs: 1700, output: { text: '조회 결과를 정리했어요.', toolCalls: [] } }),
+    // 메인이 실행하지 않고 돌려보낸 도구 호출: level은 DEFAULT이고 이름은 input, 이유는 output에 남는다.
+    entry('main-3', 'trace-2', 'main_agent.blocked', 40, { input: { name: 'ask_writing' }, output: { reason: '이번 요청에서 노출되지 않은 도구예요.' } }),
+    entry('main-4', 'trace-3', 'main_agent', 95, { type: 'GENERATION', model: 'gpt-demo', promptName: 'main-agent', promptVersion: 1, latencyMs: 30000, level: 'ERROR', statusMessage: '모델 응답 실패(예시)' }),
+  ],
+}
+const recordsOf = (node: PipelineNode): PipelineRecord[] => PIPELINE_RECORDS[node.id]
+  ?? [entry(`${node.id}-1`, 'trace-1', `step.${node.id}`, 8, { latencyMs: 900, input: { request: '예시 입력' }, output: '예시 출력' }), ...(node.errors ? [entry(`${node.id}-2`, 'trace-2', `step.${node.id}`, 60, { level: 'ERROR', statusMessage: '단계 실패(예시)' })] : [])]
+
 export class InMemoryLlmOpsRepository implements LlmOpsRepository {
   private readonly traceRows = [
     trace('trace-1', 'qa', 'success', 5, 1840, 0.0042), trace('trace-2', 'writing', 'failed', 40, 920, 0.0011),
@@ -71,6 +113,8 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
       { version: 1, labels: [], createdAt: ago(9000) },
     ] },
     { name: 'writing-assist', versions: [{ version: 1, labels: ['production'], createdAt: ago(9000) }] },
+    { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production'], createdAt: ago(9000) }] },
+    { name: 'main-agent', versions: [{ version: 1, labels: ['production'], createdAt: ago(9000) }] },
   ]
   private readonly modelRows: Model[] = [
     { id: 'model-1', modelName: 'gpt-demo', matchPattern: '(?i)^gpt-demo$', inputPrice: 0.0000025, outputPrice: 0.00001 },
@@ -101,8 +145,12 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     return {
       ...row, input: { question: '세계수의 비밀은 무엇인가요?' }, output: failed ? null : '아직 공개되지 않은 설정이라 말씀드릴 수 없어요.',
       observations: [
-        { id: `${id}-1`, name: 'retrieve', type: 'SPAN', startTime: row.timestamp, endTime: row.timestamp, latencyMs: 210, level: 'DEFAULT' },
-        { id: `${id}-2`, name: 'generate', type: 'GENERATION', startTime: row.timestamp, endTime: row.timestamp, latencyMs: row.latencyMs, model: 'gpt-demo', inputTokens: 1200, outputTokens: 340, level: failed ? 'ERROR' : 'DEFAULT', statusMessage: failed ? '모델 응답 실패(예시)' : null, promptName: 'qa-answer', promptVersion: 2 },
+        { id: `${id}-1`, name: 'retrieve', type: 'SPAN', startTime: row.timestamp, endTime: row.timestamp, latencyMs: 210, level: 'DEFAULT', input: { question: '세계수의 비밀은 무엇인가요?' }, output: { passages: 2 }, metadata: { source: 'story_context' } },
+        {
+          id: `${id}-2`, parentObservationId: `${id}-1`, name: 'generate', type: 'GENERATION', startTime: row.timestamp, endTime: row.timestamp, latencyMs: row.latencyMs, model: 'gpt-demo', inputTokens: 1200, outputTokens: 340,
+          level: failed ? 'ERROR' : 'DEFAULT', statusMessage: failed ? '모델 응답 실패(예시)' : null, promptName: 'qa-answer', promptVersion: 2,
+          input: [{ role: 'user', content: '세계수의 비밀은 무엇인가요?' }], output: failed ? null : '아직 공개되지 않은 설정이라 말씀드릴 수 없어요.', metadata: { turn: 1 },
+        },
       ],
     }
   }
@@ -133,6 +181,11 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     this.evaluationRows.unshift({ runId: `run-${this.evaluationRows.length + 1}`, ...input, status: 'running', passed: null, createdAt: new Date().toISOString(), metrics: [] })
   }
   async leakChecks() { return structuredClone(this.leakRows) }
+  async pipeline() { return structuredClone(PIPELINE) }
+  /** level은 서버처럼 Langfuse 수준과 같은 기록만 남깁니다. */
+  async pipelineRecords({ nodeId, level, page }: PipelineRecordQuery) {
+    return structuredClone(paged(recordsOf(found(PIPELINE.find((n) => n.id === nodeId))).filter((row) => !level || row.level === level), page))
+  }
   async alertRules() { return structuredClone(this.ruleRows) }
   async updateAlertRule(key: string, input: AlertRuleInput) { Object.assign(found(this.ruleRows.find((rule) => rule.key === key)), input, { updatedAt: new Date().toISOString() }) }
   async settings() { return { ...this.setting } }

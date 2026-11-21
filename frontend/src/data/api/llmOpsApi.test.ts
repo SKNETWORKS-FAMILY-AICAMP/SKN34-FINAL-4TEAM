@@ -287,3 +287,66 @@ describe('HttpJobMonitorRepository', () => {
     ])
   })
 })
+
+describe('HttpLlmOpsRepository AI 파이프라인(DEC-58)', () => {
+  const range = { from: '2026-11-14T00:00:00.000Z', to: '2026-11-21T00:00:00.000Z' }
+  const node = { id: 'guard', label: 'Decision Guard', next: ['main'], standalone: false, count: 12, errors: 1, p95LatencyMs: 820, promptNames: ['decision_guard.judge'] }
+  const record = {
+    id: 'o1', traceId: 't1', name: 'decision_guard', type: 'SPAN', startTime: AT, latencyMs: 120, level: 'DEFAULT',
+    input: { request: '질문' }, output: { allowed: true, reason: null, capabilities: ['qa'] }, metadata: { source: 'writing' },
+  }
+  const recordsOf = (items: unknown[]) => ({ items, page: 1, size: 20, total: 41 })
+  const q = { nodeId: 'qa/1', ...range, level: 'ERROR', page: 1 }
+
+  it('노드 목록은 기간을 query로 보내 {nodes}에서 꺼내고, p95 지연과 프롬프트 이름이 비어 와도 받는다', async () => {
+    const apply = { ...node, id: 'apply', next: [], standalone: true, p95LatencyMs: null, promptNames: [] }
+    const mcp = { id: 'mcp', label: 'Content MCP 도구', next: [], standalone: false, count: 0, errors: 0 }
+    const fetcher = ok({ nodes: [node, apply, mcp] })
+    const nodes = await new HttpLlmOpsRepository(fetcher).pipeline(range)
+    expect(callsOf(fetcher)[0][0]).toBe('/api/v1/operations/llmops/pipeline?from=2026-11-14T00%3A00%3A00.000Z&to=2026-11-21T00%3A00%3A00.000Z')
+    expect(nodes).toEqual([node, apply, { ...mcp, promptNames: [] }])
+  })
+
+  it('노드가 계약과 다른 모양이면(건수가 글자, next가 배열이 아님, standalone 없음, nodes 없음) 거부한다', async () => {
+    const wrong = [{ nodes: [{ ...node, count: '12' }] }, { nodes: [{ ...node, next: 'main' }] }, { nodes: [{ ...node, standalone: undefined }] }, { items: [node] }]
+    for (const bad of wrong) await expect(new HttpLlmOpsRepository(ok(bad)).pipeline(range)).rejects.toThrow(FORMAT)
+  })
+
+  it('노드 기록은 노드 id를 인코딩하고 채운 조건만 query로 보내며, 입력·출력·메타데이터는 모양을 가리지 않고 그대로 준다', async () => {
+    const failed = { id: 'o2', traceId: 't2', name: 'main_agent', type: 'GENERATION', startTime: AT, latencyMs: null, level: 'ERROR', statusMessage: '실패', model: 'm', promptName: 'main', promptVersion: 3, output: '글' }
+    const fetcher = ok(recordsOf([record, failed]))
+    const repo = new HttpLlmOpsRepository(fetcher)
+    const page = await repo.pipelineRecords(q)
+    await repo.pipelineRecords({ nodeId: 'guard', from: '', to: '', level: '', page: 0 })
+    expect(callsOf(fetcher).map(([url]) => url)).toEqual([
+      '/api/v1/operations/llmops/pipeline/qa%2F1/records?from=2026-11-14T00%3A00%3A00.000Z&to=2026-11-21T00%3A00%3A00.000Z&level=ERROR&page=1',
+      '/api/v1/operations/llmops/pipeline/guard/records?page=0',
+    ])
+    expect(page).toMatchObject({ page: 1, size: 20, total: 41, unavailable: [] })
+    expect(page.items[0]).toEqual(record)
+    expect(page.items[1]).toMatchObject({ latencyMs: null, level: 'ERROR', statusMessage: '실패', promptName: 'main', promptVersion: 3, output: '글' })
+  })
+
+  it('기록의 모양이 다르면 거부한다(수준이 글자가 아님, 합계 없음)', async () => {
+    await expect(new HttpLlmOpsRepository(ok(recordsOf([{ ...record, level: 3 }]))).pipelineRecords(q)).rejects.toThrow(FORMAT)
+    await expect(new HttpLlmOpsRepository(ok({ items: [record], page: 0, size: 20 })).pipelineRecords(q)).rejects.toThrow(FORMAT)
+  })
+
+  it('권한 없음(403)은 OperationsForbidden이고 Langfuse 같은 연결 서비스 실패(502)는 반영 여부를 단정하지 않는 안내다', async () => {
+    await expect(new HttpLlmOpsRepository(fail(403)).pipeline(range)).rejects.toThrow(OperationsForbidden)
+    await expect(new HttpLlmOpsRepository(fail(403)).pipelineRecords(q)).rejects.toThrow(OperationsForbidden)
+    await expect(new HttpLlmOpsRepository(fail(502, { code: 'UPSTREAM_FAILED', message: 'Upstream failed.' })).pipeline(range))
+      .rejects.toThrow(new OperationsError('연결된 서비스(Langfuse·AI·Core·Content)에서 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'))
+  })
+
+  it('추적 상세의 단계는 부모 단계와 입력·출력·메타데이터까지 준다(실행 흐름 트리)', async () => {
+    const root = { id: 'o1', name: 'orchestration', type: 'SPAN', startTime: AT, level: 'DEFAULT' }
+    const step = {
+      id: 'o2', parentObservationId: 'o1', name: 'decision_guard.generation', type: 'GENERATION', startTime: AT, endTime: AT, latencyMs: 80, model: 'gpt', level: 'DEFAULT',
+      input: [{ role: 'user', content: '질문' }], output: { answers: [] }, metadata: { turn: 1 },
+    }
+    const detail = await new HttpLlmOpsRepository(ok({ ...trace, observations: [root, step, { ...root, id: 'o3', parentObservationId: null }] })).trace('t1')
+    expect(detail.observations.map((o) => [o.id, o.parentObservationId ?? null])).toEqual([['o1', null], ['o2', 'o1'], ['o3', null]])
+    expect(detail.observations[1]).toMatchObject({ input: [{ role: 'user', content: '질문' }], output: { answers: [] }, metadata: { turn: 1 } })
+  })
+})

@@ -1,6 +1,7 @@
 import type {
   Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../entities/llmOps'
+import type { PipelineNode, PipelineQuery, PipelineRecord, PipelineRecordQuery } from '../entities/llmOpsPipeline'
 import type { OperationsPage } from '../entities/operations'
 import type { AlertRule, AlertRuleInput } from '../entities/operationsAlert'
 
@@ -20,6 +21,10 @@ export interface LlmOpsRepository {
   evaluation(runId: string): Promise<Evaluation>
   runEvaluation(input: EvaluationInput): Promise<void>
   leakChecks(): Promise<LeakCheck[]>
+  /** AI 파이프라인(DEC-58): 노드별 observation 수·오류 수·p95 지연과 그 노드에 연결된 프롬프트 이름. */
+  pipeline(query: PipelineQuery): Promise<PipelineNode[]>
+  /** 한 노드의 observation 기록(최신순, 한 쪽 20건). level은 Langfuse 수준(DEFAULT·WARNING·ERROR)이고 비면 전체입니다. */
+  pipelineRecords(query: PipelineRecordQuery): Promise<OperationsPage<PipelineRecord>>
   alertRules(): Promise<AlertRule[]>
   updateAlertRule(key: string, input: AlertRuleInput): Promise<void>
   settings(): Promise<LlmOpsSettings>

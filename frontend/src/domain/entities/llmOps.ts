@@ -9,10 +9,12 @@ export type TraceItem = {
   latencyMs?: number | null; inputTokens?: number | null; outputTokens?: number | null; cost?: number | null
   userId?: string | null; workId?: string | null
 }
-type Observation = {
+export type Observation = {
   id: string; name: string; type: string; startTime?: string | null; endTime?: string | null; latencyMs?: number | null
   model?: string | null; inputTokens?: number | null; outputTokens?: number | null; level: string
   statusMessage?: string | null; promptName?: string | null; promptVersion?: number | null
+  /** 실행 흐름 트리(DEC-58): 부모 단계와 단계마다 입력·출력·메타데이터(칸마다 앞 8,000자까지). */
+  parentObservationId?: string | null; input?: unknown; output?: unknown; metadata?: unknown
 }
 export type TraceDetail = TraceItem & { input?: unknown; output?: unknown; observations: Observation[] }
 /** 비어 있는 값(전체)은 서버에 보내지 않습니다. from·to는 UTC ISO 시각, page는 0부터입니다. */
