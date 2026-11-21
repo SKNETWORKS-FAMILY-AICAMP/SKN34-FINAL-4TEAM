@@ -13,6 +13,8 @@ import { login } from '../../../../data/api/auth'
 import { HttpAdminActivityRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository } from '../../../../data/api/operationsApi'
 import { InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import type { AdminActivity } from '../../../../domain/entities/adminActivity'
+import { OperationsForbidden, OperationsRejected } from '../../../../domain/entities/operations'
+import { CREDIT_INSUFFICIENT_MESSAGE, CREDITS_FORBIDDEN, MEMBER_SEARCH_FORBIDDEN, type MemberCredits } from '../../../../domain/entities/operationsCredit'
 import type { OperationsComment } from '../../../../domain/entities/operationsComment'
 import type { OperationsWork } from '../../../../domain/entities/operationsWork'
 import { AdminActivityUseCase } from '../../../../domain/usecases/AdminActivityUseCase'
@@ -23,6 +25,9 @@ import { kstDateTime } from '../../../shared/format'
 import { AdminPage } from './AdminPage'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.title = 'STORYFORK' })
+
+// 파이프라인 캔버스(react-force-graph, d3·canvas)는 jsdom에서 그리지 않는다. 프롬프트·모델 쪽의 기본 보기(전체)가 불러오기만 해도 대역으로 막는다.
+vi.mock('react-force-graph-2d', () => ({ default: () => null }))
 
 const renderAdmin = (tab: string, view?: string) => render(
   <Provider store={createAppStore({ role: 'admin' })}>
@@ -41,7 +46,7 @@ it('신고·권리 탭은 운영 API 실패를 데모 행이나 빈 목록으로
 })
 
 // users·admins·rights 표는 운영 API 응답이 있어야 그려지므로(rights는 이 환경에서 유일하던 예시 격리 점검 표를 지웠다), notices·events는 표 없이 목록 패널만 그리므로, data(관리 개요)는 표 없이 숫자 카드와 차트만 그리므로(아래 별도 테스트) 렌더 통합 대상에서 뺍니다.
-it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'credits', 'genres'])(
+it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'genres'])(
   '%s 탭의 모든 표에 캡션·열 머리 범위·키보드 스크롤 영역이 있다',
   async (tab) => {
     renderAdmin(tab)
@@ -62,10 +67,10 @@ it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'cred
 it('data 탭의 숫자 카드는 이름과 값을 글자로 갖고 차트는 캡션과 role=img 요약 aria-label을 갖는다', async () => {
   renderAdmin('data')
   await waitFor(() => {
-    expect(document.querySelectorAll('.kpi > div').length).toBeGreaterThan(0)
+    expect(document.querySelectorAll('.admin-summary > div').length).toBeGreaterThan(0)
     expect(document.querySelectorAll('.admin-chart').length).toBeGreaterThan(0)
   })
-  for (const card of document.querySelectorAll('.kpi > div')) {
+  for (const card of document.querySelectorAll('.admin-summary > div')) {
     expect(card.querySelector(':scope > small')?.textContent?.trim()).toBeTruthy()
     expect(card.querySelector(':scope > b')?.textContent?.trim()).toBeTruthy()
   }
@@ -639,18 +644,18 @@ it('상단바 닉네임 버튼이 프로필·로그아웃 메뉴를 열고, 바�
   expect(within(screen.getByRole('menu')).getByRole('menuitem', { name: '프로필' }).getAttribute('aria-current')).toBe('page')
 })
 
-it('API 표시는 데모 탭에만 둔다: 메뉴 ‘데모’ 배지와 제목 옆 ‘데모 화면’ 칩은 데모 탭(캐릭터챗·크레딧)에만 있고 실제 API 탭에는 둘 다, 범례 줄도 없다', async () => {
+it('API 표시는 데모 탭에만 둔다: 메뉴 ‘데모’ 배지와 제목 옆 ‘데모 화면’ 칩은 데모 탭(캐릭터챗)에만 있고 실제 API 탭(크레딧 포함)에는 둘 다, 범례 줄도 없다', async () => {
   renderAdmin('works')
   const menu = await screen.findByRole('navigation', { name: '관리자 업무' })
   // 실제 API 탭: 배지도, 설명 연결도 없다.
-  for (const name of ['개요', '사용자', '작품', '신고·권리', '경고', '추적·지표', '활동 로그']) {
+  for (const name of ['개요', '사용자', '작품', '신고·권리', '경고', '추적·지표', '크레딧', '활동 로그']) {
     const link = within(menu).getByRole('link', { name })
     expect([link.querySelector('.nav-demo'), link.getAttribute('aria-describedby')], name).toEqual([null, null])
   }
   expect(menu.querySelector('.nav-live, .nav-legend')).toBeNull()
   expect(document.querySelector('.admin-head .chip')).toBeNull()
   // 데모 탭: 배지는 읽지 않게(aria-hidden) 두고, 링크 이름은 그대로 둔 채 설명으로 데모임을 알린다.
-  for (const name of ['캐릭터챗', '크레딧']) {
+  for (const name of ['캐릭터챗']) {
     const link = within(menu).getByRole('link', { name })
     const badge = link.querySelector('.nav-demo')
     expect([badge?.textContent, badge?.getAttribute('aria-hidden')], name).toEqual(['데모', 'true'])
@@ -729,9 +734,19 @@ it('LLM Ops는 view가 없거나 모르는 값이면 경고 쪽이다: 운영 �
   }
 })
 
-it('LLM Ops 프롬프트·모델 쪽(view=prompts)은 프롬프트 패널 아래에 모델 패널을, 평가·누설 검사 쪽(view=quality)은 평가·누설 검사 기록·표본 비율 폼을 쌓는다', async () => {
+it('LLM Ops 프롬프트·모델 쪽(view=prompts)은 보기 전환(sub)에 따라 전체(AI 파이프라인)·프롬프트·모델 중 하나만, 평가·누설 검사 쪽(view=quality)은 평가·누설 검사 기록·표본 비율 폼을 쌓는다', async () => {
+  // sub가 없으면 전체, 프롬프트와 모델은 따로 보인다(예전에는 한 쪽에 프롬프트 패널 아래 모델 패널이 쌓였다).
   renderAdmin('llm', 'prompts')
-  expect(before(await region('프롬프트'), await region('모델 단가'))).toBe(true)
+  await region('AI 파이프라인')
+  expect([screen.queryByRole('region', { name: '프롬프트' }), screen.queryByRole('region', { name: '모델 단가' })]).toEqual([null, null])
+  cleanup()
+  renderAdmin('llm', 'prompts&sub=prompts')
+  await region('프롬프트')
+  expect([screen.queryByRole('region', { name: 'AI 파이프라인' }), screen.queryByRole('region', { name: '모델 단가' })]).toEqual([null, null])
+  cleanup()
+  renderAdmin('llm', 'prompts&sub=models')
+  await region('모델 단가')
+  expect([screen.queryByRole('region', { name: 'AI 파이프라인' }), screen.queryByRole('region', { name: '프롬프트' })]).toEqual([null, null])
   cleanup()
   renderAdmin('llm', 'quality')
   const evaluations = await region('회귀 평가')
@@ -782,7 +797,7 @@ it('LLM Ops는 쪽을 옮기면 열어 둔 추적 상세를 닫아, 돌아오면
   // 상세가 열려 있는 동안은 그 상세만 보인다(지표 패널은 목록으로 돌아오면 다시 나온다).
   expect(screen.queryByRole('region', { name: 'LLM 지표' })).toBeNull()
   fireEvent.click(within(menu).getByRole('link', { name: '프롬프트·모델' }))
-  await region('프롬프트')
+  await region('AI 파이프라인')
   fireEvent.click(within(menu).getByRole('link', { name: '추적·지표' }))
   await region('LLM 추적')
   expect(screen.queryByRole('region', { name: '추적 상세' })).toBeNull()
@@ -1012,8 +1027,8 @@ it('신고 표의 ⋮ 메뉴를 여는 누름은 행 선택까지 올라가지 �
   } finally { Reflect.deleteProperty(Element.prototype, 'scrollIntoView') }
 })
 
-// 데모 조회(d)가 있어야 본문을 그리는 데모 탭(캐릭터챗·크레딧)은 조회 중·실패일 때 본문이 없다. 그때 화면은 빈 채로 두지 않고 제목 아래 안내가 로딩·오류와 다시 불러오기를 맡는다.
-const DEMO_TABS = [['characterChats', '캐릭터챗 관리', '캐릭터챗 목록'], ['credits', '크레딧 관리', '크레딧 원장']] as const
+// 데모 조회(d)가 있어야 본문을 그리는 데모 탭(캐릭터챗)은 조회 중·실패일 때 본문이 없다. 그때 화면은 빈 채로 두지 않고 제목 아래 안내가 로딩·오류와 다시 불러오기를 맡는다.
+const DEMO_TABS = [['characterChats', '캐릭터챗 관리', '캐릭터챗 목록']] as const
 
 it.each(DEMO_TABS)('%s 탭은 데모 조회가 아직 오지 않았으면 제목 아래에 불러오는 중임을 알리고, 오면 본문을 그린다', async (tab, title, body) => {
   const admin = appContainer.resolve('adminUseCase')
@@ -1057,6 +1072,109 @@ it.each(OPS_BODIES)('%s 탭은 데모 조회가 아직 오지 않았어도 본�
   renderAdmin(tab)
   await screen.findByRole('heading', { level: 2, name: heading })
   expect(screen.queryByText('관리자 데이터를 불러오고 있어요.')).toBeNull()
+})
+
+// 크레딧 탭(DEC-57): 회원 검색(MemberUseCase)과 운영 크레딧 UseCase를 대역으로 잇고, 검색 → ⋮ 선택 → 잔액·내역 → 지급·회수를 화면에서 따라간다.
+const yeonhwa = { id: 'm1', email: 'yeonhwa@example.invalid', nickname: '연화봉러', role: 'MEMBER' as const, restricted: false, createdAt: '2026-11-01T00:00:00Z' }
+const credit: MemberCredits = {
+  balance: { total: 130, items: [{ kind: 'operator', remaining: 100, expiresAt: '2027-01-01T00:00:00Z' }, { kind: 'reward', remaining: 30, expiresAt: '2027-02-01T00:00:00Z' }] },
+  history: [{ type: 'revoke', kind: 'reward', amount: 5, occurredAt: '2026-11-10T02:00:00Z' }, { type: 'grant', kind: 'operator', amount: 100, occurredAt: '2026-11-10T01:00:00Z' }],
+}
+async function openMemberCredits(overview: MemberCredits | null = credit) {
+  vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([yeonhwa])
+  const useCase = appContainer.resolve('operationsCreditUseCase')
+  const member = vi.spyOn(useCase, 'member').mockResolvedValue(overview)
+  renderAdmin('credits')
+  fireEvent.change(await screen.findByLabelText('회원 검색'), { target: { value: '연화' } })
+  fireEvent.click(screen.getByRole('button', { name: '검색' }))
+  const row = (await screen.findByText('연화봉러', { selector: 'b' })).closest('tr') as HTMLElement
+  fireEvent.click(openRowMenu(row).getByRole('menuitem', { name: '크레딧 보기·조정' }))
+  await screen.findByRole('heading', { name: '연화봉러 님의 크레딧' })
+  return { useCase, member }
+}
+const fillChange = (amount: string, reason: string) => {
+  fireEvent.change(screen.getByLabelText('금액'), { target: { value: amount } })
+  fireEvent.change(screen.getByLabelText('사유'), { target: { value: reason } })
+}
+
+it('크레딧 탭은 데모가 아니라 회원 검색 → ⋮ 선택 → 지급분별 잔액·내역 표를 실제 API 값으로 보인다', async () => {
+  const { member } = await openMemberCredits()
+  expect(demoChip()).toBeNull()
+  expect(member).toHaveBeenCalledWith('m1')
+  within(screen.getByText('보유 크레딧').closest('div') as HTMLElement).getByText('130')
+  const body = (name: string) => within(screen.getByRole('region', { name })).getAllByRole('row').slice(1).map((row) => cells(row))
+  expect(body('지급분별 잔액 표').map((row) => row.slice(0, 2))).toEqual([['운영자 지급 크레딧', '100'], ['보상 크레딧', '30']])
+  expect(body('크레딧 내역 표').map((row) => row.slice(1))).toEqual([['회수', '보상 크레딧', '-5'], ['지급', '운영자 지급 크레딧', '+100']])
+  expect(document.body.textContent).not.toContain('정책 미확정')
+})
+
+it('크레딧 지급은 확인 대화 뒤 금액·사유를 보내고, 성공하면 입력을 비우며 잔액·내역을 다시 읽는다', async () => {
+  const { useCase, member } = await openMemberCredits()
+  const grant = vi.spyOn(useCase, 'grant').mockResolvedValue(undefined)
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fillChange('500', '이벤트 보상')
+  fireEvent.click(screen.getByRole('button', { name: '지급' }))
+  expect(confirm).toHaveBeenCalledWith('연화봉러 님에게 크레딧 500만큼 지급할까요? 사유는 활동 로그에 남아요.')
+  await screen.findByText('연화봉러 님에게 크레딧 500만큼 지급했어요.')
+  expect(grant).toHaveBeenCalledWith('m1', 500, '이벤트 보상')
+  await waitFor(() => expect((screen.getByLabelText('금액') as HTMLInputElement).value).toBe(''))
+  expect((screen.getByLabelText('사유') as HTMLTextAreaElement).value).toBe('')
+  await waitFor(() => expect(member.mock.calls.length).toBeGreaterThan(1))
+})
+
+it('금액이나 사유가 비어 있으면 대화도 요청도 없고, 확인을 취소하면 회수를 요청하지 않는다', async () => {
+  const { useCase } = await openMemberCredits()
+  const revoke = vi.spyOn(useCase, 'revoke').mockResolvedValue(undefined)
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  fireEvent.click(screen.getByRole('button', { name: '회수' }))
+  expect(confirm).not.toHaveBeenCalled()
+  fillChange('20', '오지급 회수')
+  fireEvent.click(screen.getByRole('button', { name: '회수' }))
+  expect(confirm).toHaveBeenCalledWith('연화봉러 님의 크레딧 20만큼 회수할까요? 쓸 수 있는 잔액 안에서만 회수되고, 사유는 활동 로그에 남아요.')
+  expect(revoke).not.toHaveBeenCalled()
+})
+
+it('회수가 잔액을 넘어 거절되면(409) 이유를 알리고 입력은 그대로 두며 완료로 표시하지 않는다', async () => {
+  const { useCase } = await openMemberCredits()
+  vi.spyOn(useCase, 'revoke').mockRejectedValue(new OperationsRejected(CREDIT_INSUFFICIENT_MESSAGE))
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fillChange('999', '회수')
+  fireEvent.click(screen.getByRole('button', { name: '회수' }))
+  expect((await within(screen.getByRole('region', { name: '크레딧 운영' })).findByRole('alert')).textContent).toContain(CREDIT_INSUFFICIENT_MESSAGE)
+  expect((screen.getByLabelText('금액') as HTMLInputElement).value).toBe('999')
+  expect(screen.queryByText(/회수했어요/)).toBeNull()
+  expect(screen.getByRole('button', { name: '회수' }).closest('fieldset')?.disabled).toBe(false)
+})
+
+it('처리 중에는 입력·버튼을 잠그고 같은 요청을 한 번만 보낸다', async () => {
+  const { useCase } = await openMemberCredits()
+  let done!: () => void
+  const grant = vi.spyOn(useCase, 'grant').mockImplementation(() => new Promise<void>((resolve) => { done = resolve }))
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fillChange('10', '확인')
+  fireEvent.click(screen.getByRole('button', { name: '지급' }))
+  await waitFor(() => expect(screen.getByRole('button', { name: '지급' }).closest('fieldset')?.disabled).toBe(true))
+  // 잠긴 fieldset 안의 클릭이 jsdom에서는 전달돼도 같은 키의 조치 실행기가 두 번째 요청을 막는다.
+  fireEvent.click(screen.getByRole('button', { name: '지급' }))
+  expect(grant).toHaveBeenCalledTimes(1)
+  await screen.findByText('요청을 처리하고 있어요. 중복으로 보내지 마세요.')
+  await act(async () => { done() })
+  await screen.findByText('연화봉러 님에게 크레딧 10만큼 지급했어요.')
+})
+
+it('크레딧 운영 권한이 없으면(403) 잔액 대신 권한 안내만 보이고 지급·회수 폼은 그리지 않는다', async () => {
+  await openMemberCredits(null)
+  expect((await screen.findByRole('alert')).textContent).toBe(CREDITS_FORBIDDEN)
+  expect(screen.queryByRole('form', { name: '크레딧 지급·회수' })).toBeNull()
+})
+
+it('회원 검색 권한(사용자 관리)이 없으면 다시 불러오기 없이 권한 안내만 보인다', async () => {
+  vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockRejectedValue(new OperationsForbidden('권한 없음'))
+  renderAdmin('credits')
+  fireEvent.change(await screen.findByLabelText('회원 검색'), { target: { value: '연화' } })
+  fireEvent.click(screen.getByRole('button', { name: '검색' }))
+  expect((await screen.findByRole('alert')).textContent).toBe(MEMBER_SEARCH_FORBIDDEN)
+  expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull()
 })
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).

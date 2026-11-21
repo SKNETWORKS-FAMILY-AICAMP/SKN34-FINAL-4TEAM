@@ -52,6 +52,11 @@ class ContentClient(private val http: RestClient) {
         http.get().uri("/internal/v1/works/{id}/fork-integrity", workId).retrieve().body<ForkIntegrity>()
     }
 
+    /** Whole-period user-journey counts (DEC-57). Content owns the shape, so the dashboard carries its JSON as it is, like the genre rows. */
+    fun funnel(): JsonNode = upstream {
+        http.get().uri("/internal/v1/operations/funnel").retrieve().body<JsonNode>()
+    }
+
     fun operationsStats(from: Instant, to: Instant): ContentOperationsStats = upstream {
         http.get().uri {
             it.path("/internal/v1/operations/stats").queryParam("from", "{from}").queryParam("to", "{to}")

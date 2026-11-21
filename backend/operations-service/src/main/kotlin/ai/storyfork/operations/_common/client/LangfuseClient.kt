@@ -12,8 +12,11 @@ import tools.jackson.databind.json.JsonMapper
 /** Token and cost sums of one trace's generations for one model, read from the metrics API. */
 data class ObservationUsage(val traceId: String, val model: String?, val inputTokens: Long, val outputTokens: Long, val cost: Double)
 
-/** One page of request roots (a root observation per trace, newest first) and how many roots match in all. */
+/** One page of observations, newest first (a root per trace for the trace list, the observations of a node for the pipeline), and how many match in all. */
 class TraceRoots(val items: List<JsonNode>, val total: Long)
+
+/** How many observations carry one name at one level under one prompt (the prompt of the model call, if any). */
+data class ObservationGroup(val name: String, val level: String, val promptName: String?, val count: Long)
 
 private const val PAGE_SIZE = 100
 private const val MAX_LIST_PAGES = 5
@@ -49,6 +52,9 @@ private fun condition(type: String, column: String, operator: String, value: Any
     listOfNotNull("type" to type, "column" to column, key?.let { "key" to it }, "operator" to operator, "value" to value).toMap()
 
 private val ROOT = condition("boolean", "isRootObservation", "=", true)
+
+/** Every observation of a request carries the tag feature:<key> of that request (the AI service tracing), so the tag says which request an observation is in. */
+private fun featureTag(keys: List<String>) = condition("arrayOptions", "tags", "any of", keys.map { "feature:$it" })
 
 private fun window(from: Instant?, to: Instant?) =
     listOfNotNull(from?.let { condition("datetime", "startTime", ">=", it.toString()) }, to?.let { condition("datetime", "startTime", "<", it.toString()) })
@@ -88,6 +94,39 @@ class LangfuseClient(private val http: RestClient, private val mapper: JsonMappe
         cursorPages("/api/public/v2/observations", listOf("fields" to DETAIL_FIELDS, "filter" to mapper.writeValueAsString(listOf(condition("string", "traceId", "=", id)))), OBSERVATION_PAGE) {
             MAX_TRACE_OBSERVATIONS - it.size
         }
+
+    /**
+     * How many observations carry each name, level and prompt in the requests tagged feature:<key> (any of [features]) over the window. The Metrics API groups
+     * them, so the counts are exact however many observations there are. ponytail: Langfuse answers 1,000 groups at most (names x levels x prompts).
+     */
+    fun observationGroups(from: Instant, to: Instant, features: List<String>): List<ObservationGroup> =
+        featureMetrics(from, to, features, listOf("name", "level", "promptName"), "count", "count").values().map { row ->
+            ObservationGroup(row.path("name").asString(), row.path("level").textOrNull() ?: "DEFAULT", row.path("promptName").textOrNull(), row.path("count_count").doubleOrNull()?.toLong() ?: 0)
+        }
+
+    /** The p95 latency in milliseconds of each observation name over the same requests; a name with no measured latency is left out, never 0. */
+    fun observationLatencies(from: Instant, to: Instant, features: List<String>): Map<String, Double> =
+        featureMetrics(from, to, features, listOf("name"), "latency", "p95").values()
+            .mapNotNull { row -> row.path("p95_latency").doubleOrNull()?.let { row.path("name").asString() to it } }.toMap()
+
+    /**
+     * A page of the observations a pipeline node owns, newest first: those of the requests tagged feature:<[feature]> whose name is one of [names] or starts with
+     * [prefix], and has [level] if given. One of [names] and [prefix] is required, since an empty name list would narrow nothing and read every observation.
+     * [skip] observations are passed over like for traces (the Observations API only walks forward by cursor), so only the newest 1,000 are reachable.
+     */
+    fun pipelineObservations(from: Instant, to: Instant, feature: String, names: Set<String>, prefix: String?, level: String?, skip: Int, limit: Int): TraceRoots {
+        require(prefix != null || names.isNotEmpty()) { "A node owns no observation name." }
+        val conditions = listOfNotNull(
+            featureTag(listOf(feature)),
+            if (prefix != null) condition("string", "name", "starts with", prefix) else condition("stringOptions", "name", "any of", names.toList()),
+            level?.let { condition("string", "level", "=", it) },
+        )
+        val wanted = minOf(skip + limit, MAX_TRACES)
+        val rows = cursorPages("/api/public/v2/observations", listOf("fields" to DETAIL_FIELDS, "filter" to mapper.writeValueAsString(conditions + window(from, to))), OBSERVATION_PAGE) {
+            wanted - it.size
+        }
+        return TraceRoots(rows.drop(skip).take(limit), count(conditions, from, to))
+    }
 
     /**
      * Token and cost sums per trace and model over the window; [traceIds] narrows it to one page of traces. Langfuse groups by a trace id only when the rows
@@ -146,7 +185,7 @@ class LangfuseClient(private val http: RestClient, private val mapper: JsonMappe
     private fun traceConditions(feature: String?, status: String?, userId: String?, requestId: String?): List<Map<String, Any?>> = listOfNotNull(
         ROOT,
         if (status == null) condition("stringObject", "metadata", "is set", "", "status") else condition("stringObject", "metadata", "=", status, "status"),
-        feature?.let { condition("arrayOptions", "tags", "any of", listOf("feature:$it")) },
+        feature?.let { featureTag(listOf(it)) },
         userId?.let { condition("string", "userId", "=", it) },
         requestId?.let { condition("stringObject", "metadata", "=", it, "request_id") },
     )
@@ -156,6 +195,12 @@ class LangfuseClient(private val http: RestClient, private val mapper: JsonMappe
         "view" to "observations", "metrics" to listOf(mapOf("measure" to "count", "aggregation" to "count")),
         "filters" to conditions, "fromTimestamp" to from.toString(), "toTimestamp" to to.toString(),
     )).values().firstOrNull()?.path("count_count")?.doubleOrNull()?.toLong() ?: 0L
+
+    /** One Metrics API v2 aggregate, grouped by [dimensions], over the observations of the requests tagged feature:<key> (any of [features]). */
+    private fun featureMetrics(from: Instant, to: Instant, features: List<String>, dimensions: List<String>, measure: String, aggregation: String): JsonNode = metrics(mapOf(
+        "view" to "observations", "dimensions" to dimensions.map { mapOf("field" to it) }, "metrics" to listOf(mapOf("measure" to measure, "aggregation" to aggregation)),
+        "filters" to listOf(featureTag(features)), "fromTimestamp" to from.toString(), "toTimestamp" to to.toString(), "config" to mapOf("row_limit" to USAGE_ROW_LIMIT),
+    ))
 
     private fun metrics(query: Map<String, Any?>): JsonNode =
         get("/api/public/v2/metrics", params = listOf("query" to mapper.writeValueAsString(query)), missing = emptySet()).path("data")

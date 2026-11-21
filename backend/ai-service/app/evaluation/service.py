@@ -14,7 +14,7 @@ import json
 import logging
 import os
 import secrets
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from statistics import fmean
 from time import sleep
@@ -68,9 +68,7 @@ def prepare(request: EvaluationRequest) -> Plan:
     client = _client()
     scoring.require_model()
     tolerance = _tolerance()
-    dataset = _fetch(client.get_dataset, request.dataset, missing='평가 세트를 찾을 수 없어요.')
-    if not dataset.items:
-        raise EvaluationFailure(422, '평가 세트에 항목이 없어요.')
+    dataset = _dataset(client, request.dataset)
     prompt = _fetch(client.get_prompt, request.prompt, version=request.version, missing='프롬프트 버전을 찾을 수 없어요.')
     if not isinstance(prompt.prompt, str):  # 채팅 프롬프트는 메시지 목록이라 지시문으로 쓸 수 없다
         raise EvaluationFailure(422, '텍스트 프롬프트만 평가할 수 있어요.')
@@ -79,10 +77,31 @@ def prepare(request: EvaluationRequest) -> Plan:
                 _baseline(client, dataset, request))
 
 
-def run(plan: Plan) -> None:
-    """백그라운드 실행(예외를 올리지 않는다). 결과는 Langfuse의 Run 점수로만 남는다.
+def to_job(plan: Plan) -> dict:
+    """Celery 태스크(evaluation.run)의 인자: prepare가 확인을 마친 평가 한 건을 JSON으로 만든다. 평가 세트 항목(채점 입력)은 싣지 않고 워커가 이름으로 읽는다.
+    프롬프트 본문(instructions)이 들어 있으니 이 값을 로그·오류에 남기지 않는다."""
+    return {'request': plan.request.model_dump(), 'runName': plan.run_name, 'instructions': plan.instructions, 'tolerance': plan.tolerance,
+            'baseline': asdict(plan.baseline) if plan.baseline else None}
 
-    ponytail: FastAPI BackgroundTasks라 서버를 재시작하면 진행 중이던 평가가 끊기고 그 Run은 passed 점수 없이 남는다. Celery 병합 후 작업으로 옮긴다.
+
+def run_job(job: dict) -> None:
+    """워커의 진입점: to_job이 만든 인자로 계획을 되살려 run한다. 평가 세트는 이 시점에 이름으로 다시 읽는다.
+    Run을 만들기 전에 실패하면(세트가 지워졌거나 비었거나 Langfuse에 닿지 못함) 고정 문구 EvaluationFailure를 올려 태스크를 실패로 남기고, Run을 만든 뒤의 실패는 run이 예외 없이 로그로만 남긴다."""
+    request = EvaluationRequest.model_validate(job['request'])
+    try:
+        dataset = _dataset(_client(), request.dataset)
+    except EvaluationFailure as error:  # 고정 문구라 로그에 남겨도 안전하다. 접수한 Run 이름과 이어 볼 수 있게 함께 남긴다
+        logger.error('회귀 평가 %s 실패: %s', job['runName'], error)
+        raise
+    baseline = job['baseline']
+    run(Plan(request, job['runName'], dataset, job['instructions'], job['tolerance'], Baseline(**baseline) if baseline else None))
+
+
+def run(plan: Plan) -> None:
+    """워커의 실행(예외를 올리지 않는다). 결과는 Langfuse의 Run 점수로만 남는다.
+
+    ponytail: acks_late라 워커가 실행 도중 죽거나 RabbitMQ consumer_timeout(기본 30분)을 넘기면 같은 작업이 다시 배달돼 처음부터 다시 돌고, 먼저 돌던 Run은 passed 점수 없이 남을 수 있다.
+    시작 전에 같은 이름의 Run을 찾아 건너뛰는 것은 필요해지면 더한다.
     """
     try:
         _run(plan)
@@ -177,6 +196,14 @@ def _input(item) -> dict:
     if not isinstance(item.input, dict):
         raise EvaluationFailure(422, '평가 항목의 input은 객체여야 합니다.')
     return item.input
+
+
+def _dataset(client, name: str):
+    """이름의 평가 세트(항목이 있는 것). prepare와 워커가 같은 확인을 한다."""
+    dataset = _fetch(client.get_dataset, name, missing='평가 세트를 찾을 수 없어요.')
+    if not dataset.items:
+        raise EvaluationFailure(422, '평가 세트에 항목이 없어요.')
+    return dataset
 
 
 def _client():

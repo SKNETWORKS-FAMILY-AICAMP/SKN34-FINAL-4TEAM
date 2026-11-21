@@ -12,6 +12,12 @@ data class CreditSettleRequest(val memberId: UUID, val operationKey: String, val
 /** 실패·시간 초과·취소한 작업의 예약을 차감 없이 푼다. */
 data class CreditReleaseRequest(val memberId: UUID, val operationKey: String)
 
+/**
+ * 운영자가 회원의 크레딧을 [amount]만큼 지급·회수한다(DEC-57). [amount]는 1~100000의 정수, [reason]은 앞뒤 공백을 뺀 1~200자다.
+ * 사유는 Core에 저장하지 않고 운영 서비스가 활동 기록으로 남긴다. 규칙 위반을 서비스가 한 곳에서 422로 알리도록 null도 받는다.
+ */
+data class CreditAdjustRequest(val amount: BigDecimal?, val reason: String?)
+
 /** 요청 한 건과 [tokens]만큼 AI를 쓰려는 회원의 요청을 받을지 묻는다. */
 data class AiRateLimitRequest(val memberId: UUID, val tokens: Int)
 

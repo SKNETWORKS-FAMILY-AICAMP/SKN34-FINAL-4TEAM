@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, JOB_STATUSES, jobKindLabel, jobProgress, jobSourceLabel, jobStatusLabel, jobTriggerLabel, type JobRun, type Schedule } from '../../../../domain/entities/jobMonitor'
+import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, JOB_STATUSES, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, jobTriggerLabel, type JobRun, type Schedule } from '../../../../domain/entities/jobMonitor'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
 import { PopMenu } from '../../../shared/PopMenu'
@@ -58,7 +58,7 @@ function Runs({ vm, j }: { vm: VM; j: Jobs }) {
       <ActionLines vm={vm} prefix="run:" />
       {page && page.unavailable.length > 0 && (
         <p className="admin-data-state" role="status">
-          일부 출처의 실행 기록을 불러오지 못했어요: {page.unavailable.join(', ')}. 불러온 출처의 기록만 보여서 원고 전처리 작업이 빠졌을 수 있어요.
+          일부 출처의 실행 기록을 불러오지 못했어요: {page.unavailable.map(jobSourceLabel).join(', ')}. 불러온 출처의 기록만 보여서 그 출처의 작업이 빠졌을 수 있어요.
         </p>
       )}
       {page && (page.items.length
@@ -109,7 +109,7 @@ function RunRow({ run, j, busy }: { run: JobRun; j: Jobs; busy: boolean }) {
         {run.targetId && <div className="small muted">대상 {run.targetId}</div>}
       </td>
       <td className="act-menu">
-        {run.status === 'failed'
+        {jobRetryable(run)
           ? (
             <PopMenu className="row-menu" label={`「${kind} 실행 ${run.id}」 조치`} icon={<MoreVerticalIcon />}>
               <button

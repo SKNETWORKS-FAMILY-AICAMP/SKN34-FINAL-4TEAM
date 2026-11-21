@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
+import { isSitePath } from '../../../../domain/entities/event'
 import { supportStatusLabel } from '../../../../domain/entities/supportInquiry'
 import { Cov } from '../../../shared/art'
 import { EventStatusChip } from '../../../shared/EventStatusChip'
@@ -96,18 +97,20 @@ function NoticeBoard({ vm, id }: { vm: VM; id: string | null }) {
 
 const CLAMP: CSSProperties = { display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }
 const PROSE: CSSProperties = { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }
+/** 세로 카드 안에서 '바로 가기' 버튼이 카드 폭으로 늘어나지 않게 합니다. */
+const GO: CSSProperties = { alignSelf: 'flex-start' }
 
-/** U35E 이벤트: 운영 공개 API의 목록과 UUID 상세. 참여·보상·기능 이동은 연결하지 않았습니다. */
+/** U35E 이벤트: 운영 공개 API의 목록과 UUID 상세. 참여·보상은 연결하지 않았고, 관련 기능 이동은 사이트 안 이동 경로(linkPath)가 있을 때만 '바로 가기'로 앱 안에서 이동합니다(DEC-57). */
 function EventBoard({ vm, id }: { vm: VM; id: string | null }) {
   if (vm.loadFailed) return <><h2>이벤트</h2><p role="alert">이벤트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn" onClick={vm.retryLoad}>다시 불러오기</button></>
   if (!vm.data) return <><h2>이벤트</h2><p role="status" className="note2">이벤트를 불러오고 있어요.</p></>
   const { events, event } = vm.data
   if (id !== null) return event
-    ? <><h2>이벤트</h2><article className="tcard mecard" style={{ maxWidth: 740 }}><Go to="/me/event" className="btn sm">← 목록으로</Go><div className="top"><EventStatusChip status={vm.eventStatusNow(event)} /><small className="muted">{kstPeriod(event)}</small></div><h3>{event.title}</h3><p style={PROSE}>{event.body}</p></article></>
+    ? <><h2>이벤트</h2><article className="tcard mecard" style={{ maxWidth: 740 }}><Go to="/me/event" className="btn sm">← 목록으로</Go><div className="top"><EventStatusChip status={vm.eventStatusNow(event)} /><small className="muted">{kstPeriod(event)}</small></div><h3>{event.title}</h3><p style={PROSE}>{event.body}</p>{isSitePath(event.linkPath) && <Go to={event.linkPath} className="btn sm pri" style={GO}>바로 가기</Go>}</article></>
     : <><h2>이벤트</h2><p className="note2">이벤트를 찾을 수 없어요.</p><Go to="/me/event" className="btn sm">목록으로</Go></>
   return <><h2>이벤트</h2>{events.length
     ? <div className="evg">{events.map((e) => (
-      <div className="tcard evc" key={e.id}><Link className="evmain" to={`/me/event?id=${e.id}`}><div className="top"><EventStatusChip status={vm.eventStatusNow(e)} /><small className="muted">{kstPeriod(e)}</small></div><b>{e.title}</b><p style={CLAMP}>{e.body}</p></Link></div>
+      <div className="tcard evc" key={e.id}><Link className="evmain" to={`/me/event?id=${e.id}`}><div className="top"><EventStatusChip status={vm.eventStatusNow(e)} /><small className="muted">{kstPeriod(e)}</small></div><b>{e.title}</b><p style={CLAMP}>{e.body}</p></Link>{isSitePath(e.linkPath) && <Go to={e.linkPath} className="btn sm" style={GO}>바로 가기</Go>}</div>
     ))}</div>
     : <p className="note2">등록된 이벤트가 없어요.</p>}<p className="note2" style={{ marginTop: 12 }}>보상·경품은 정해지지 않았어요. 이벤트는 기능 체험 안내예요.</p></>
 }

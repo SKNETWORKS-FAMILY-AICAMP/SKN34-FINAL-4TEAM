@@ -294,6 +294,27 @@ describe('이벤트 운영 API 화면', () => {
     expect(document.querySelector('.admin-head .chip')).toBeNull()
   })
 
+  it('이동 경로(선택)는 사이트 안 경로만 저장하고, 밖의 주소는 요청 없이 안내하며, 저장한 값은 다시 열어도 남는다', async () => {
+    renderAt('/admin?tab=events')
+    fireEvent.click(await screen.findByRole('button', { name: '이벤트 작성' }))
+    fill('이벤트 제목', '경로 이벤트')
+    fill('이벤트 내용', '본문')
+    fill('이동 경로(선택)', 'https://evil.example')
+    fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))
+    await within(region()).findByText(/이동 경로는 \/로 시작하는 사이트 안 경로/)
+    expect(await repository().listAdmin()).toEqual([])
+    fill('이동 경로(선택)', ' /lib?tab=worlds ')
+    fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))
+    await screen.findByRole('heading', { name: '경로 이벤트' })
+    for (const row of await repository().listAdmin()) seeded.push(row.id)
+    expect((screen.getByLabelText('이동 경로(선택)') as HTMLInputElement).value).toBe('/lib?tab=worlds')
+    expect((await repository().listAdmin())[0].linkPath).toBe('/lib?tab=worlds')
+    // 경로를 비워 저장하면(전체 수정) 이벤트의 경로도 비워진다.
+    fill('이동 경로(선택)', '')
+    fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))
+    await waitFor(async () => expect((await repository().listAdmin())[0].linkPath).toBeNull())
+  })
+
   it('저장이 실패하면 입력을 지키고 안내하며, 응답을 기다리는 동안 다시 보낼 수 없다', async () => {
     let fail!: (error: Error) => void
     const save = vi.spyOn(useCase(), 'save').mockImplementationOnce(() => new Promise<never>((_, reject) => { fail = reject }))

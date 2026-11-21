@@ -59,8 +59,11 @@ class EvaluationService(
 
     internal fun list(member: OperationsMember, now: Instant): EvaluationListResponse {
         permissions.requirePermission(member, LLM)
-        return EvaluationListResponse(evaluations(runs(now, null).take(MAX_LISTED_RUNS), now))
+        return EvaluationListResponse(recent(now))
     }
+
+    /** The newest [MAX_LISTED_RUNS] runs with their evaluation, for a reader that checks its own permission: the job monitor and the dashboard's jobs card. */
+    internal fun recent(now: Instant): List<Evaluation> = evaluations(runs(now, null).take(MAX_LISTED_RUNS), now)
 
     fun detail(member: OperationsMember, runId: String): Evaluation = detail(member, runId, Instant.now())
 

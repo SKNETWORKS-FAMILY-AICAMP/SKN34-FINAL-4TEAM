@@ -12,8 +12,10 @@ import java.util.UUID
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
 
 @Service
 @Transactional(readOnly = true)
@@ -23,7 +25,7 @@ class EventService(private val events: EventRepository) {
         validate(request)
         return events.save(EventEntity(
             title = request.title, body = request.body,
-            startsAt = request.startsAt, endsAt = request.endsAt,
+            startsAt = request.startsAt, endsAt = request.endsAt, linkPath = request.linkPath,
         )).toResponse()
     }
 
@@ -42,6 +44,7 @@ class EventService(private val events: EventRepository) {
         event.body = request.body
         event.startsAt = request.startsAt
         event.endsAt = request.endsAt
+        event.linkPath = request.linkPath
         event.updatedAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
         return event.toResponse()
     }
@@ -57,7 +60,14 @@ class EventService(private val events: EventRepository) {
         require(request.title.isNotBlank() && '\u0000' !in request.title)
         require(request.body.isNotBlank() && '\u0000' !in request.body)
         require(request.startsAt == null || request.endsAt == null || !request.endsAt.isBefore(request.startsAt))
+        // The "바로 가기" button follows this path, so it must stay inside the site. It is a rule of its own (DEC-57): 422, not the 400 above.
+        if (!validLinkPath(request.linkPath)) throw ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT)
     }
 
-    private fun EventEntity.toResponse() = EventResponse(id, title, body, startsAt, endsAt, createdAt, updatedAt)
+    // No link is fine. Otherwise one leading "/", at most 200 characters, and no "//" anywhere (that also rules out "//host" and "://"),
+    // backslash (browsers read "/\host" as "//host"), whitespace or control character.
+    private fun validLinkPath(path: String?) = path == null ||
+        (path.length <= 200 && path.startsWith("/") && "//" !in path && path.none { it == '\\' || it.isWhitespace() || it.isISOControl() })
+
+    private fun EventEntity.toResponse() = EventResponse(id, title, body, startsAt, endsAt, createdAt, updatedAt, linkPath)
 }

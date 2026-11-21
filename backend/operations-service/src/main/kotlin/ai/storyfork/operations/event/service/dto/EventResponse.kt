@@ -11,4 +11,5 @@ data class EventResponse(
     val endsAt: Instant?,
     val createdAt: Instant,
     val updatedAt: Instant,
+    val linkPath: String? = null,
 )

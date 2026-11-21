@@ -174,4 +174,72 @@ class TraceServiceTest {
         assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.list(operators.llm, null, null, null, null, null, null, 0) }.statusCode)
         assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.detail(operators.llm, "t-2") }.statusCode)
     }
+
+    @Test
+    fun `a trace detail step carries its parent input output and metadata for the flow tree`() {
+        val request = root("t-1", "2026-11-19T01:00:00Z", "orchestration", "success", 3.0)
+        val guard = observation("t-1", "o1", name = "decision_guard", parent = "root-t-1", startTime = "2026-11-19T01:00:00.100Z",
+            input = """{"request":"질문"}""", output = """{"allowed":true,"capabilities":["story_context"]}""", metadata = mapOf("turn" to "1"))
+        val main = generation("t-1", "o2", name = "main_agent", parent = "o1", startTime = "2026-11-19T01:00:01Z", input = """[{"role":"user","content":"질문"}]""", output = "그냥 글")
+        `when`(langfuse.traceObservations("t-1")).thenReturn(listOf(main, guard, request))
+
+        val steps = service.detail(operators.llm, "t-1").observations
+
+        assertEquals(listOf(null, "root-t-1", "o1"), steps.map { it.parentObservationId })
+        assertNull(steps[0].input)
+        // Text that is a JSON object or array comes back as JSON, any other text stays text.
+        assertEquals("질문", steps[1].input?.path("request")?.asString())
+        assertEquals(listOf<Any?>(true, "story_context"), listOf(steps[1].output?.path("allowed")?.asBoolean(), steps[1].output?.path("capabilities")?.path(0)?.asString()))
+        assertEquals("1", steps[1].metadata?.path("turn")?.asString())
+        assertEquals("user", steps[2].input?.path(0)?.path("role")?.asString())
+        assertEquals("그냥 글", steps[2].output?.asString())
+    }
+
+    @Test
+    fun `a step's metadata leaves out the keys the Langfuse SDK adds and keeps the rest`() {
+        val sdk = mapOf("scope.attributes.public_key" to "pk-lf-1", "scope.version" to "4.18.0", "resourceAttributes.service.name" to "storyfork-ai", "resourceAttributes.telemetry.sdk.version" to "1.0")
+        val guard = observation("t-1", "o1", name = "decision_guard", parent = "root-t-1", startTime = "2026-11-19T01:00:01Z", input = """{"scope.x":1}""",
+            metadata = mapOf("turn" to "1", "scopes" to "kept", "resource" to "kept") + sdk)
+        val bare = observation("t-1", "o2", parent = "root-t-1", startTime = "2026-11-19T01:00:02Z", metadata = sdk)
+        `when`(langfuse.traceObservations("t-1")).thenReturn(listOf(root("t-1"), guard, bare))
+
+        val steps = service.detail(operators.llm, "t-1").observations
+
+        // Only the keys that start with "scope." or "resourceAttributes." go: the request root keeps its own, and so do names that merely look alike.
+        assertEquals(listOf("request_id", "fork", "status"), steps[0].metadata?.propertyNames()?.toList())
+        assertEquals(listOf("turn", "scopes", "resource"), steps[1].metadata?.propertyNames()?.toList())
+        assertEquals("1", steps[1].metadata?.path("turn")?.asString())
+        // The input is the writer's own text, whatever its keys are called.
+        assertEquals(1, steps[1].input?.path("scope.x")?.asInt())
+        // With nothing left the step has no metadata: null, not an empty object a screen would show as one.
+        assertNull(steps[2].metadata)
+    }
+
+    @Test
+    fun `the 8000 character limit of metadata counts only the keys that are shown`() {
+        val big = observation("t-1", "o1", parent = "root-t-1", startTime = "2026-11-19T01:00:01Z", metadata = mapOf("note" to "다".repeat(100), "scope.attributes.big" to "라".repeat(9_000)))
+        `when`(langfuse.traceObservations("t-1")).thenReturn(listOf(root("t-1"), big))
+
+        val metadata = service.detail(operators.llm, "t-1").observations[1].metadata
+
+        assertEquals(listOf(true, "다".repeat(100)), listOf(metadata?.isObject, metadata?.path("note")?.asString()))
+    }
+
+    @Test
+    fun `a step body longer than 8000 characters is cut to its first 8000 and a body within the limit stays whole`() {
+        val text = "가".repeat(9_000)
+        val longJson = """{"text":"${"나".repeat(9_000)}"}"""
+        val cut = observation("t-1", "o1", parent = "root-t-1", startTime = "2026-11-19T01:00:01Z", input = text, output = longJson, metadata = mapOf("note" to "다".repeat(9_000)))
+        val whole = observation("t-1", "o2", parent = "root-t-1", startTime = "2026-11-19T01:00:02Z", input = "가".repeat(8_000), output = """{"text":"${"나".repeat(100)}"}""")
+        `when`(langfuse.traceObservations("t-1")).thenReturn(listOf(root("t-1"), cut, whole))
+
+        val steps = service.detail(operators.llm, "t-1").observations
+
+        assertEquals(text.take(8_000), steps[1].input?.asString())
+        // A cut JSON body is text, not JSON: its end is gone.
+        assertEquals(listOf<Any?>(true, longJson.take(8_000)), listOf(steps[1].output?.isString, steps[1].output?.asString()))
+        assertEquals(listOf<Any?>(true, 8_000), listOf(steps[1].metadata?.isString, steps[1].metadata?.asString()?.length))
+        assertEquals(8_000, steps[2].input?.asString()?.length)
+        assertTrue(steps[2].output?.isObject == true)
+    }
 }

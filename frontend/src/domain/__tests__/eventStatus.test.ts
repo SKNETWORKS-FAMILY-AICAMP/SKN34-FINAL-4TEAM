@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { EVENT_STATUS_LABELS, eventStatus } from '../entities/event'
+import { EVENT_STATUS_LABELS, eventStatus, isSitePath } from '../entities/event'
 
 const NOW = new Date('2026-11-09T00:00:00.000Z')
 const before = '2026-11-08T00:00:00Z'
@@ -43,5 +43,22 @@ describe('이벤트 진행 상태 계산 (운영 이벤트 계약)', () => {
 
   it('화면 라벨은 계약의 한글 이름을 쓴다', () => {
     expect(EVENT_STATUS_LABELS).toEqual({ always: '상시', upcoming: '예정', ongoing: '진행 중', ended: '종료' })
+  })
+})
+
+describe('이벤트 이동 경로 (DEC-57, 사이트 안 경로만)', () => {
+  it.each([['/', '/'], ['/lib', '/lib'], ['쿼리·해시', '/work/abc?tab=2#top'], ['쿼리', '/me/event?id=0b6f'], ['200자', '/' + 'a'.repeat(199)]])('%s 경로는 받는다', (_name, path) => {
+    expect(isSitePath(path)).toBe(true)
+  })
+
+  it.each([
+    ['빈 값', ''], ['/로 시작하지 않음', 'lib'], ['외부 URL', 'https://evil.example'], ['스크립트', 'javascript:alert(1)'], ['프로토콜 상대', '//evil.example'], ['/ 안의 ://', '/a://b'],
+    ['안의 공백', '/a b'], ['앞 공백', ' /lib'], ['뒤 공백', '/lib '], ['탭', '/a\tb'], ['백슬래시', '/\\evil.example'], ['201자', '/' + 'a'.repeat(200)],
+  ])('%s는 받지 않는다', (_name, path) => {
+    expect(isSitePath(path)).toBe(false)
+  })
+
+  it('경로가 없으면(null·undefined) 받지 않는다', () => {
+    expect([isSitePath(null), isSitePath(undefined)]).toEqual([false, false])
   })
 })

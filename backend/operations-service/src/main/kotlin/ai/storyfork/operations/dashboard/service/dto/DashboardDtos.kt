@@ -1,6 +1,7 @@
 package ai.storyfork.operations.dashboard.service.dto
 
 import ai.storyfork.operations._common.client.MemberStats
+import tools.jackson.databind.JsonNode
 
 /** [failureRate] is null when there was no request, so a quiet period is not shown as a 0% failure rate. */
 data class AiSummary(
@@ -14,8 +15,11 @@ data class DashboardJobs(val running: Int, val failedLast24h: Int)
 /** Waiting inquiries and received reports are operations database values; only [authorReviews] comes from Content, so only it can be null. */
 data class DashboardPending(val inquiries: Long, val reports: Long, val authorReviews: Long?)
 
-/** A card whose source failed is null and its source is named in [unavailable]; a failure is never shown as 0. */
+/**
+ * A card whose source failed is null and its source is named in [unavailable]; a failure is never shown as 0.
+ * [funnel] is Content's whole-period journey counts as Content sent them (contract DEC-57, section 1), so the screen follows Content's shape.
+ */
 data class Dashboard(
     val members: MemberStats?, val ai: DashboardAi?, val jobs: DashboardJobs?, val pending: DashboardPending,
-    val openAlerts: Long, val unavailable: List<String>,
+    val openAlerts: Long, val funnel: JsonNode?, val unavailable: List<String>,
 )

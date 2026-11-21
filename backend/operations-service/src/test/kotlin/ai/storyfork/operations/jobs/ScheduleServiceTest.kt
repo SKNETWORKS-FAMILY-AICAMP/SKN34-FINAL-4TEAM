@@ -7,6 +7,7 @@ import ai.storyfork.operations.jobs.entity.JobTrigger
 import ai.storyfork.operations.jobs.entity.ScheduledJobEntity
 import ai.storyfork.operations.jobs.service.ScheduleService
 import ai.storyfork.operations.jobs.service.dto.ScheduleRequest
+import ai.storyfork.operations.jobs.service.dto.toRun
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.security.OperationsMember
 import java.time.Instant
@@ -172,7 +173,9 @@ class ScheduleServiceTest {
 
         val queued = service.requeue(admin, failed)
 
+        // The run it returns is the one it saved, which the retry then hands to the AI service.
         val saved = runs.rows.single { it.id != failed.id }
+        assertSame(saved, queued)
         assertEquals(schedule.id, saved.scheduleId)
         assertEquals("alpha", saved.kind)
         assertEquals(JobStatus.QUEUED, saved.status)
@@ -180,8 +183,7 @@ class ScheduleServiceTest {
         assertEquals(failed.id, saved.retryOf)
         assertNull(failed.retryOf)
         assertNull(saved.startedAt)
-        assertEquals(saved.id.toString(), queued.id)
-        assertEquals(listOf("queued", "manual", "operations-scheduler"), listOf(queued.status, queued.trigger, queued.source))
+        assertEquals(listOf("queued", "manual", "operations-scheduler"), queued.toRun().let { listOf(it.status, it.trigger, it.source) })
         verify(activities).record(admin, "JOB_RETRY", "JOB_RUN", failed.id, "alpha")
     }
 
@@ -202,7 +204,7 @@ class ScheduleServiceTest {
     }
 
     /** The run a retry queued, as the scheduler would find it in the repository. */
-    private fun rerun(failed: JobRunEntity) = service.requeue(admin, failed).let { queued -> runs.rows.single { it.id.toString() == queued.id } }
+    private fun rerun(failed: JobRunEntity) = service.requeue(admin, failed).let { queued -> runs.rows.single { it.id == queued.id } }
 
     @Test
     fun `a failed run that was already re-run is 409 whatever its re-run is doing or did, and no second run is queued`() {
