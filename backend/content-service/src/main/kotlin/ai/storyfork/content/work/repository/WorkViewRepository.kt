@@ -14,7 +14,7 @@ interface WorkViewRepository : JpaRepository<WorkViewEntity, WorkViewEntity.Key>
     @Query("select v.episodeNumber, count(v) from WorkViewEntity v where v.workId = :workId group by v.episodeNumber")
     fun countByEpisode(@Param("workId") workId: String): List<Array<Any>>
 
-    /** 작품 상세(공개 회차)를 조회한 서로 다른 회원 수다. 비회원 조회는 기록되지 않아 세지 않는다(운영 퍼널, DEC-57). */
+    /** 공개 회차 조회 기록(작품 상세만 연 조회는 기록이 없다)이 있는 서로 다른 회원 수다. 비회원 조회는 기록되지 않아 세지 않는다(운영 퍼널, DEC-57). */
     @Query("select count(distinct v.memberId) from WorkViewEntity v")
     fun countViewers(): Long
 }

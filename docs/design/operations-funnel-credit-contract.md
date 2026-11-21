@@ -36,7 +36,7 @@ Content `GET /internal/v1/operations/funnel`(운영 서비스 토큰 체인, 파
 
 | 칸 | 세는 곳·조건 |
 |---|---|
-| `readers.viewed` | `work_view`의 서로 다른 `member_id`. 비회원 조회는 기록되지 않아 빠지며 작품 삭제는 거르지 않는다. |
+| `readers.viewed` | `work_view`(공개 회차를 열 때 회원·회차·날짜별로 남기는 조회 기록, 작품 상세만 연 조회를 따로 남기는 표는 없다)의 서로 다른 `member_id`. 비회원 조회는 기록되지 않아 빠지며 작품 삭제는 거르지 않는다. |
 | `readers.readAny` | `reading_episode`(회원이 연 회차)의 서로 다른 `member_id`. 삭제된 작품을 읽은 회원도 센다. |
 | `readers.readNext` | `reading_episode`에서 같은 `work_id`의 다른 `episode_number` 행이 더 있는 서로 다른 `member_id`(같은 회차를 다시 열어도 한 행). |
 | `reactions.publishedEpisodes` | `episode_current` 중 발행 버전이 있는 행(Fork가 물려받은 회차 포함, 삭제한 회차는 뷰가 뺀다)이며 삭제되지 않은 작품의 것. |

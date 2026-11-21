@@ -14,7 +14,7 @@ data class OperationsFunnelResponse(
     val feedback: EditSuggestionStats,
 )
 
-/** 독자 단계: 작품 상세를 조회한 회원([viewed]), 회차를 하나 이상 읽은 회원([readAny]), 같은 작품에서 회차를 둘 이상 읽은 회원([readNext])이다. */
+/** 독자 단계: 공개 회차 조회 기록이 있는 회원([viewed], 작품 상세 전용 조회 기록은 없다), 회차를 하나 이상 읽은 회원([readAny]), 같은 작품에서 회차를 둘 이상 읽은 회원([readNext])이다. */
 data class FunnelReaders(val viewed: Long, val readAny: Long, val readNext: Long)
 
 /** 반응: 지금 발행된 회차 수와 좋아요·관심·댓글 수다(삭제된 작품과 삭제·숨김 댓글은 뺀다). */
