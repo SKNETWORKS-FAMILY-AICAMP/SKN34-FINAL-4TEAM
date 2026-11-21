@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, chatPage, cleanScene, draftNotice, featureLabel, pendingChanges, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
+import { chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -9,6 +9,27 @@ const episode = (number: number, publishedVersionId: string | null) => ({ number
 
 // 근거 회차(지식 상한, 발행된 판본 필요)와 반영 회차(targetEpisode, 작가가 연 회차: 초안이어도 된다)를 분리한다.
 // 서버는 targetEpisode ≥ episode(근거)만 받으므로 근거는 열린 회차보다 뒤가 되지 않게 고른다.
+// 끝난 장면 다시 보기(#420): 마지막 턴이 시뮬레이션이 아니어도 대화에 남은 가장 최근 장면을 무대가 읽기 전용으로 보인다.
+describe('lastScene', () => {
+  const sim = { mode: 'if', premise: '만약', beats: [], turns: [], notes: [], status: 'completed', stopReason: null } as unknown as CharacterSimulation
+  const sceneStep = (extra: Partial<ChatStep> = {}): ChatStep => ({ feature: 'character_simulation', status: 'completed', simulation: sim, ...extra })
+  const turn = (steps: ChatStep[]) => ({ request: '요청', reply: { status: 'completed' as const, steps, missingInputs: [] } })
+
+  it('마지막 턴이 시뮬레이션이 아니어도 대화에 남은 가장 최근 장면 단계를 돌려준다', () => {
+    const older = sceneStep({ applied: { episode: 3, revision: 1 } })
+    const newer = sceneStep({ approval: 'declined' })
+    expect(lastScene([turn([older]), turn([newer]), turn([{ feature: 'story_context', status: 'completed' }])])).toBe(newer)
+    expect(lastScene([turn([older]), turn([])])).toBe(older)
+  })
+
+  it('장면을 읽지 못한(simulation 없는) 단계와 응답이 없는 턴은 건너뛰고, 장면이 없으면 null이다', () => {
+    const readable = sceneStep()
+    expect(lastScene([turn([readable]), turn([sceneStep({ simulation: null, status: 'failed' })]), { request: '요청', reply: null }])).toBe(readable)
+    expect(lastScene([turn([sceneStep({ simulation: null, status: 'failed' })])])).toBeNull()
+    expect(lastScene([])).toBeNull()
+  })
+})
+
 describe('chatBasis', () => {
   it('열린 회차가 발행돼 있으면 그 회차가 근거이자 반영 회차다', () => {
     const list = [episode(1, 'v1'), episode(2, 'v2'), episode(3, null)]

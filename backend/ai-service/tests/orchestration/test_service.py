@@ -1015,6 +1015,24 @@ def test_each_resume_writes_one_more_turn_and_the_finished_scene_waits_for_appro
     assert log.director == [['narration'], ['monologue', 'speech'], ['narration', 'monologue', 'speech'], ['end']]
 
 
+def test_a_scene_wait_and_the_history_that_restores_it_carry_the_reflection_episode_like_the_approval_question(monkeypatch):
+    fake_agents(monkeypatch, plan('character_simulation'))
+    fake_scene(monkeypatch)
+    writer(monkeypatch)
+    thread = str(uuid4())
+    first = write_turn(thread, request=REQUEST, scope=SCOPE, target={**TARGET, 'episode': 5, 'baseEpisode': 3})
+    assert (first.awaitingScene, first.awaitingApproval, first.approvalEpisode) == ('character_simulation', None, 5)  # 장면 대기도 반영 회차(5화)를 싣는다(#364)
+    assert scene_turn(thread).approvalEpisode == 5
+    restored = conversation('history', thread, ME).turns[-1].reply  # 새로 고침: 체크포인트에서 복원한 장면 대기
+    assert (restored.awaitingScene, restored.approvalEpisode) == ('character_simulation', 5)
+
+
+def test_the_conversation_of_a_scene_in_progress_keeps_its_title_in_the_session_list(monkeypatch):
+    thread, *_ = start_scene(monkeypatch)
+    scene_turn(thread)
+    assert [(s.threadId, s.title) for s in conversation('sessions', ME)] == [(thread, REQUEST)]
+
+
 def test_scene_approval_writes_all_turns_in_order_joined_by_blank_lines_with_the_resuming_users_token(monkeypatch):
     thread, _, calls, _, applied = start_scene(monkeypatch)
     finish_scene(thread)

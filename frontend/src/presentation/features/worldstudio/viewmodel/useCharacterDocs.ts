@@ -58,7 +58,7 @@ export function useCharacterDocs(studio: Studio, setting: StudioSetting) {
     editorKey: `${cardId}:${person ? doc : ''}:${revision}`,
     /** 회차별 기억이 있는 회차 번호(오름차순) */
     episodes,
-    /** 문서 버튼에 붙일 표시: 3,000자를 넘었거나(저장을 막는다) 비어 있다(IDENTITY·SOUL·GOAL, 알리기만 한다). */
+    /** 문서 버튼에 붙일 표시: 3,000자를 넘었거나(저장을 막는다) 비어 있다(필수인 IDENTITY·SOUL만, 알리기만 한다. GOAL은 선택이라 비어도 표시가 없다). */
     flagOf: (key: CharacterDocKey): 'over' | 'missing' | undefined => (characterDocText(setting, key).length > CHARACTER_DOC_MAX ? 'over' : missing.includes(key) ? 'missing' : undefined),
     select: (key: CharacterDocKey) => setPicked({ card: cardId, doc: key }),
     /** 편집기를 지금 초안의 글로 다시 만든다. 편집기 밖에서 글이 바뀌었을 때(AI 검토의 수정안 반영) 보이는 글을 맞춘다. */

@@ -16,8 +16,9 @@ const message = (error: unknown, fallback: string) => (error instanceof Error &&
  * workId가 없거나(연결 소설 없음) basis가 없으면(발행 회차 없음) 보내지 않는다.
  * getPage(#554)는 새 메시지(보내기·고쳐 다시 보내기)를 보내는 순간의 화면 정보를 읽는다. 편집기의 선택 글은 상태가 아니라 보내는 때 읽어야 해서 값이 아니라 함수다.
  * 이어가기(승인·입력·장면 조작)에는 싣지 않는다.
+ * 승인한 계획 저장(계획 수정 revise_plan, Content 도구 story_plan_create·story_plan_update)은 회차 초안이 아니라 계획을 바꾸므로 onPlanApplied(#637)로만 알린다.
  */
-export function useWritingChatViewModel(workId: string | null, basis: ChatBasis | null, onApplied?: (episode: number) => void, onWorldApplied?: () => void, getPage?: () => ChatPage | undefined) {
+export function useWritingChatViewModel(workId: string | null, basis: ChatBasis | null, onApplied?: (episode: number) => void, onWorldApplied?: () => void, getPage?: () => ChatPage | undefined, onPlanApplied?: () => void) {
   const useCase = appContainer.resolve('writingChatUseCase')
   const [sessions, setSessions] = useState<ChatSession[] | null>(null)
   const [threadId, setThreadId] = useState<string | null>(null)
@@ -120,10 +121,12 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
         if (event.type === 'error') { ok = false; setError(event.message) }
         if (event.type === 'waiting' && event.awaitingScene === 'character_simulation') sceneWaits = true
         // World 반영은 회차 초안이 아니라 설정집 초안을 바꾼다(applied.episode는 회차가 아니다). 승인한 Content 세계관 카드 수정(#554)도 같다.
-        // 계획 수정(#578)은 저장된 계획만 바꿔 회차 초안·설정집 초안 어느 쪽도 다시 읽을 필요가 없다.
+        // 계획 수정(#578)과 Content 계획 도구는 저장된 계획만 바꿔 회차 초안·설정집 초안 어느 쪽도 다시 읽을 필요가 없고, 계획 패널·시작 양식이 계획을 다시 읽는다(#637).
         if (event.type === 'step' && event.step.applied) {
-          const world = event.step.feature === 'world' || event.step.result?.tool === 'world_studio_edit_draft'
-          if (world) worldApplied.current?.(); else if (event.step.task !== 'revise_plan') onApplied?.(event.step.applied.episode)
+          const tool = event.step.result?.tool
+          if (event.step.feature === 'world' || tool === 'world_studio_edit_draft') worldApplied.current?.()
+          else if (event.step.task === 'revise_plan' || tool === 'story_plan_create' || tool === 'story_plan_update') onPlanApplied?.()
+          else onApplied?.(event.step.applied.episode)
         }
         apply(event)
       }, controller.signal, editIndex)

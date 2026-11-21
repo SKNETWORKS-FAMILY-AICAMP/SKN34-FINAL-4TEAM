@@ -107,13 +107,19 @@ describe('인물 시뮬레이션 단계 결과(#58)', () => {
   })
 
   it('저장된 대화의 승인 대기 응답에서도 같은 장면을 읽고, 흐름 모드의 null 전제·멈춤 사유도 받는다', async () => {
-    const stopped = scene({ mode: 'flow', premise: null, beats: [{ index: 0, text: '성문 대면', status: 'rejected' }], status: 'stopped', stopReason: '카엘이 비트를 거부했어요.' })
+    const stopped = scene({ mode: 'flow', premise: null, beats: [{ index: 0, text: '성문 대면', status: 'rejected', rejectedBy: 'card-1' }], status: 'stopped', stopReason: '카엘이 비트를 거부했어요.' })
     const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '대화', turns: [{ request: '시뮬레이션', reply: {
       status: 'waiting', steps: [simStep(stopped)], missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 3,
     } }] }))
     const reply = (await new HttpWritingChatRepository(fetcher).history('w1', 't1')).turns[0].reply
     expect(reply?.approvalEpisode).toBe(3)
     expect(reply?.steps[0].simulation).toEqual(stopped)
+  })
+
+  it('서버가 거부하지 않은 비트에 보내는 rejectedBy: null도 받는다(비트 모양은 늘 같다)', async () => {
+    const events = await run(stepEvent(simStep(scene({ beats: [{ index: 0, text: '성문 대면', status: 'done', rejectedBy: null }] }))))
+    const beats = events.flatMap((e) => (e.type === 'step' ? [e.step.simulation?.beats] : []))
+    expect(beats).toEqual([[{ index: 0, text: '성문 대면', status: 'done', rejectedBy: null }]])
   })
 
   it.each([
