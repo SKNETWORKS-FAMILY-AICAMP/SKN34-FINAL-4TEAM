@@ -56,7 +56,7 @@ export function CardWikiPreview({ settings, setting, row, linked, images, onOpen
         <InfoRow k={row.kind === '인물' ? '관계' : '연결'}>{row.badge}개</InfoRow>
         {setting.tags.length > 0 && <InfoRow k="태그"><ul className="worlds-tags">{setting.tags.map((tag) => <li key={tag} className="chip">{tag}</li>)}</ul></InfoRow>}
       </WikiInfoBox>
-      <CardRelationMap center={{ id: item.id, title, kind }} badge={revealBadge(reach, linked)} entries={entries} revealEpisode={reach ?? null} onOpen={onOpen} quietKinds={KNOWLEDGE_KINDS} />
+      <CardRelationMap center={{ id: item.id, title, kind }} entries={entries} revealEpisode={reach ?? null} onOpen={onOpen} quietKinds={KNOWLEDGE_KINDS} />
       {!item.text.trim() && <p className="nw-empty">본문을 아직 쓰지 않았어요.</p>}
       <CardWikiBody lead={lead} sections={sections} fold={['nw-s-relations']} foldCount={relations.length} cardLink={cardLink} />
     </div>

@@ -6,7 +6,7 @@ import { CardRelationMap } from './CardRelationMap'
 import type { RelationEntry } from './cardRelations'
 import type { CardKind } from './worldBoard'
 
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 let n = 0
 const entry = (other: string, steps: [string, number | null, string?][], kind: CardKind = '인물'): RelationEntry => ({ id: 'r' + ++n, otherId: other, otherTitle: other, otherKind: kind, steps: steps.map(([name, episode, body]) => ({ name, episode, ...(body ? { body } : {}) })) })
@@ -18,6 +18,60 @@ const rowText = (li: HTMLElement) => [...li.childNodes].filter((node) => node.no
 const listed = () => within(screen.getByRole('list', { name: '관계 목록' })).getAllByRole('listitem').filter((li) => li.parentElement?.getAttribute('aria-label') === '관계 목록').map((li) => rowText(li))
 
 const rowTextOf = (title: string) => rowText(screen.getByRole('button', { name: title }).closest('li')!)
+
+/** 관계도 상자(.card-relmap)의 화면 폭을 정한다: jsdom에는 배치가 없어 clientWidth가 늘 0이라 폭을 모르는 그림(가장 넓은 그림)이 된다. 다른 요소는 0 그대로다. */
+const boxWidth = (px: number) => vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) { return this.classList.contains('card-relmap') ? px : 0 })
+const manyRows = (count: number) => Array.from({ length: count }, (_, i) => entry('이웃' + i, [['친구', i + 1]]))
+
+it('상자가 좁으면 그림을 축소하지 않고(viewBox 가로 = 상자 px) 둘레 이웃을 줄이며(306px에서 8명) 나머지는 외 N개와 아래 목록으로 알린다', () => {
+  boxWidth(306)
+  render(ui({ entries: manyRows(20) }))
+  expect(svg().getAttribute('viewBox')).toBe('0 0 306 300')
+  expect(svg().querySelectorAll('.card-relmap-node')).toHaveLength(8)
+  expect(screen.getByText('외 12개는 아래 목록에서 볼 수 있어요')).toBeTruthy()
+  expect(listed()).toHaveLength(20) // 목록에는 모두 있다
+  for (const dot of svg().querySelectorAll('.card-relmap-node circle')) { // 둘레 점은 모두 좁은 상자 안이다
+    expect(Number(dot.getAttribute('cx'))).toBeGreaterThanOrEqual(9)
+    expect(Number(dot.getAttribute('cx'))).toBeLessThanOrEqual(306 - 9)
+    expect(Number(dot.getAttribute('cy'))).toBeGreaterThanOrEqual(9)
+    expect(Number(dot.getAttribute('cy'))).toBeLessThanOrEqual(300 - 9)
+  }
+})
+
+it('폭을 모르거나(재기 전·숨김) 640px 이상이면 가장 넓은 그림(640×360, 이웃 16명)이다', () => {
+  for (const px of [0, 640, 900]) {
+    boxWidth(px)
+    render(ui({ entries: manyRows(20) }))
+    expect(svg().getAttribute('viewBox'), String(px)).toBe('0 0 640 360')
+    expect(svg().querySelectorAll('.card-relmap-node'), String(px)).toHaveLength(16)
+    cleanup()
+  }
+})
+
+it('어느 폭에서도 글자는 화면 기준 최소 크기다(이름 12px·선 이름 11px): viewBox 가로가 곧 화면 폭이라 CSS 글자 크기 그대로 보이고, 이웃 수는 폭에 맞춰 줄어든다', () => {
+  let before = 0 // CSS의 글자 크기(이름 12px·선 이름 11px)와 상자 폭 규칙은 cardRelations.css.test가 고정한다
+  for (const px of [640, 560, 420, 306, 240]) {
+    boxWidth(px)
+    render(ui({ entries: manyRows(20) }))
+    const width = Number(svg().getAttribute('viewBox')!.split(' ')[2]), rendered = Math.min(px, 640) // CSS: width:100%; max-width:640px
+    expect(rendered / width, px + 'px 배율').toBe(1) // 축소하지 않는다
+    expect(12 * (rendered / width), px + 'px 이름').toBeGreaterThanOrEqual(12)
+    expect(11 * (rendered / width), px + 'px 선 이름').toBeGreaterThanOrEqual(11)
+    const nodes = svg().querySelectorAll('.card-relmap-node').length
+    if (before) expect(nodes, px + 'px 이웃 수').toBeLessThanOrEqual(before) // 좁을수록 줄거나 같다
+    before = nodes
+    cleanup()
+  }
+})
+
+it('좁은 그림의 가운데 카드 글은 둘레 점과 겹치지 않게 말줄임이고, 가운데 글 아래로 지나는 선 이름은 숨는다(목록에는 모두 있다)', () => {
+  boxWidth(306)
+  render(ui({ entries: manyRows(8), center: { ...center, title: '홍길동의 아주 긴 이름의 카드' }, badge: '17화부터 공개' }))
+  const texts = [...svg().querySelectorAll('text')].map((t) => t.textContent)
+  expect(texts).toContain('17화부터 공개') // 배지는 둘레 점 안쪽 폭에 들어 그대로다
+  expect(svg().querySelector('.card-relmap-center')!.textContent!.endsWith('…')).toBe(true)
+  expect(svg().querySelectorAll('.card-relmap-edge')).toHaveLength(5) // 8개 중 가운데 글 아래의 셋은 숨는다
+})
 
 it('그림은 aria-hidden이고 둘레에는 사건이 아닌 이웃 최대 16명만 두며, 넘치는 수를 알리고 아래 목록에는 모두 있다', () => {
   const rows = Array.from({ length: 20 }, (_, i) => entry('이웃' + i, [['친구', i + 1]]))

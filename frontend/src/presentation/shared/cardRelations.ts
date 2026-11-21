@@ -67,25 +67,51 @@ export function kindGroups(neighbors: readonly Neighbor[], quiet: readonly strin
 
 const byWeight = (a: Neighbor, b: Neighbor) => b.weight - a.weight || a.title.localeCompare(b.title, 'ko')
 /**
- * 그림에 둘 이웃(`ring`): 사건이 아닌 이웃을 관계 수·바뀐 횟수가 많은 순으로 16개까지 뽑아 유형별로 모은다(인물 먼저). `rest`는 둘레에 못 둔 수다.
+ * 그림에 둘 이웃(`ring`): 사건이 아닌 이웃을 관계 수·바뀐 횟수가 많은 순으로 `ringMax`(기본 16, 좁은 그림은 `mapGeometry`가 줄인다)개까지 뽑아 유형별로 모은다(인물 먼저). `rest`는 둘레에 못 둔 수다.
  * `people`은 사건이 아닌 모든 이웃(목록용, 유형 묶음 순·묶음 안은 많은 순)이고 사건(`events`)은 처음 이어진 회차 순이다(회차를 모르면 뒤).
  */
-export function layoutOf(neighbors: readonly Neighbor[]) {
+export function layoutOf(neighbors: readonly Neighbor[], ringMax = RING_MAX) {
   const others = neighbors.filter((n) => n.kind !== '사건')
   const grouped = (list: readonly Neighbor[]) => KINDS.flatMap((kind) => list.filter((n) => n.kind === kind))
-  const ring = grouped([...others].sort(byWeight).slice(0, RING_MAX))
+  const ring = grouped([...others].sort(byWeight).slice(0, ringMax))
   const events = neighbors.filter((n) => n.kind === '사건').sort((a, b) => (a.first ?? Infinity) - (b.first ?? Infinity) || a.title.localeCompare(b.title, 'ko'))
   return { ring, rest: others.length - ring.length, people: grouped([...others].sort(byWeight)), events }
 }
 
 /*
- * 그림의 기하(순수): 상자 크기·둘레 위치·이웃 이름·선 이름. 이웃 이름이 상자 밖으로 잘리지 않게 좌우에 이름 자리를 두고(왼쪽 이웃은 오른쪽 끝을 맞추고 오른쪽 이웃은 왼쪽 끝을 맞춘다)
+ * 그림의 기하(순수): 상자 크기·둘레 위치·이웃 이름·선 이름. 글자는 어느 화면에서도 읽히게 그림을 축소하지 않는다: viewBox 가로를 상자의 화면 px 그대로 두어(1:1) 이름 12px·선 이름 11px이 CSS 크기 그대로 보이고,
+ * 상자가 좁으면 축소하는 대신 둘레 반지름과 둘레 이웃 수를 줄인다(`mapGeometry`, 나머지 이웃은 아래 목록). 이웃 이름이 상자 밖으로 잘리지 않게 좌우에 이름 자리를 두고(왼쪽 이웃은 오른쪽 끝을 맞추고 오른쪽 이웃은 왼쪽 끝을 맞춘다)
  * 폭이 모자라면 말줄임으로 줄이며, 선 이름은 선의 바깥쪽에 놓고 겹치면 숨긴다(아래 간단 목록에 모두 있다).
  */
-/** 그림 상자(viewBox)와 둘레(타원)의 가로·세로 반지름. 가로로 넓게 잡아 좌우 이웃의 이름 자리를 남긴다. */
-export const MAP_W = 640, MAP_H = 360, MAP_RX = 200, MAP_RY = 125
-/** 이웃 노드 반지름과 노드~이름 간격, 상자 가장자리 여백(px). */
-const NODE_R = 9, TEXT_GAP = 14, EDGE_PAD = 4
+/** 그림 상자(viewBox)의 가장 넓은 가로(px). 상자가 이보다 넓어도 그림은 이 크기다(CSS max-width와 같다). */
+export const MAP_W = 640
+/** 이보다 좁은 상자는 기하를 더 줄이지 못해 그림이 상자에 맞춰 줄어든다(글자도 그만큼 작아진다). */
+const MAP_W_MIN = 240
+/** 이웃 노드 반지름과 노드~이름 간격, 상자 가장자리 여백(px), 둘레 이웃의 최소 간격(px: 이름이 겹치지 않을 만큼). */
+const NODE_R = 9, TEXT_GAP = 14, EDGE_PAD = 4, RING_SPACING = 56
+
+/** 그림 상자 `w`×`h`(viewBox)와 둘레(타원)의 가로·세로 반지름 `rx`·`ry`, 둘레에 둘 이웃의 상한 `ringMax`. */
+export type MapGeometry = { w: number; h: number; rx: number; ry: number; ringMax: number }
+const perimeter = (a: number, b: number) => Math.PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)))
+/**
+ * 쓸 수 있는 가로(`available`, 화면 px, 모르면 0)에 맞춘 기하. 넓은 상자(640px 이상·모름)는 640×360, 반지름 200×125, 이웃 16명이고 좁으면 viewBox 가로가 그 폭이다(240px 아래는 240).
+ * 좌우 이웃의 이름 자리는 폭의 30%(70~120px)를 남기고 나머지가 가로 반지름이다. 세로 반지름은 가로의 5/8이되 가운데 글자(원·이름·공개 범위)가 둘레 점과 겹치지 않게 95px 아래로는 줄이지 않고,
+ * 이웃 수는 둘레 길이를 `RING_SPACING`으로 나눈 만큼이다(306px이면 8명).
+ */
+export function mapGeometry(available: number): MapGeometry {
+  const w = available > 0 ? Math.round(Math.min(MAP_W, Math.max(MAP_W_MIN, available))) : MAP_W
+  const rx = Math.round(Math.max(56, w / 2 - Math.min(120, Math.max(70, w * 0.3))))
+  const ry = Math.max(95, Math.round(rx * 0.625))
+  return { w, h: 2 * ry + 110, rx, ry, ringMax: Math.min(RING_MAX, Math.floor(perimeter(rx, ry) / RING_SPACING)) }
+}
+const FULL_MAP = mapGeometry(0)
+
+/** 글자 상자(앞서 놓은 글자와 겹치는지 보는 자리): 가운데 [cx]·글줄 기준선 [baseline]. */
+export type Box = { l: number; r: number; t: number; b: number }
+const boxOf = (cx: number, baseline: number, text: string, size: number): Box => {
+  const half = textWidth(text, size) / 2 + 3
+  return { l: cx - half, r: cx + half, t: baseline - size, b: baseline + 4 }
+}
 
 /** 글자 수로 줄인다: `max`자를 넘으면 앞 `max`자 뒤에 …를 붙인다. */
 export const clip = (text: string, max: number) => (Array.from(text).length > max ? Array.from(text).slice(0, max).join('') + '…' : text)
@@ -100,30 +126,40 @@ export function ellipsize(text: string, maxWidth: number, size: number) {
 /** 둘레에 놓은 이웃: 노드 중심 좌표와 각도(위가 −π/2, 시계 방향). */
 export type Spot = { n: Neighbor; x: number; y: number; angle: number }
 /** 이웃을 타원 둘레에 위에서 시계 방향으로 고르게 놓는다. */
-export const ringSpots = (ring: readonly Neighbor[]): Spot[] => ring.map((n, i) => {
+export const ringSpots = (ring: readonly Neighbor[], geo: MapGeometry = FULL_MAP): Spot[] => ring.map((n, i) => {
   const angle = -Math.PI / 2 + (2 * Math.PI * i) / ring.length
-  return { n, angle, x: MAP_W / 2 + MAP_RX * Math.cos(angle), y: MAP_H / 2 + MAP_RY * Math.sin(angle) }
+  return { n, angle, x: geo.w / 2 + geo.rx * Math.cos(angle), y: geo.h / 2 + geo.ry * Math.sin(angle) }
 })
 
 /** 이웃 이름의 자리: 좌우 이웃은 노드 옆(왼쪽은 end·오른쪽은 start), 위아래 이웃은 노드 위·아래 가운데(middle)이고 폭이 모자라면 말줄임이다. */
-export function nodeText({ n, x, y, angle }: Spot, size = 12) {
+export function nodeText({ n, x, y, angle }: Spot, geo: MapGeometry = FULL_MAP, size = 12) {
   const side = Math.cos(angle)
-  if (side > 0.3) return { x: x + TEXT_GAP, y: y + 4, anchor: 'start' as const, text: ellipsize(n.title, MAP_W - EDGE_PAD - (x + TEXT_GAP), size) }
+  if (side > 0.3) return { x: x + TEXT_GAP, y: y + 4, anchor: 'start' as const, text: ellipsize(n.title, geo.w - EDGE_PAD - (x + TEXT_GAP), size) }
   if (side < -0.3) return { x: x - TEXT_GAP, y: y + 4, anchor: 'end' as const, text: ellipsize(n.title, x - TEXT_GAP - EDGE_PAD, size) }
-  return { x, y: y + (Math.sin(angle) > 0 ? NODE_R + 17 : -(NODE_R + 7)), anchor: 'middle' as const, text: ellipsize(n.title, 2 * Math.min(x, MAP_W - x) - 2 * EDGE_PAD, size) }
+  return { x, y: y + (Math.sin(angle) > 0 ? NODE_R + 17 : -(NODE_R + 7)), anchor: 'middle' as const, text: ellipsize(n.title, 2 * Math.min(x, geo.w - x) - 2 * EDGE_PAD, size) }
+}
+
+/**
+ * 가운데 카드의 글(원 아래 38px에 이름, 54px에 배지): 둘레 이웃 점과 겹치지 않게 폭을 줄이고(이름은 12자까지, 좁은 그림은 말줄임) 선 이름이 피할 자리(`boxes`)도 함께 준다.
+ */
+export function centerTexts(title: string, badge: string | undefined, geo: MapGeometry = FULL_MAP) {
+  const room = 2 * (geo.rx - NODE_R - 10), x = geo.w / 2, y = geo.h / 2
+  const name = { x, y: y + 38, size: 14, text: ellipsize(clip(title, 12), room, 14) }
+  const tag = badge ? { x, y: y + 54, size: 12, text: ellipsize(badge, room, 12) } : undefined
+  return { name, tag, boxes: [name, ...(tag ? [tag] : [])].map((line) => boxOf(line.x, line.y, line.text, line.size)) }
 }
 
 /** 선 이름 자리: 가운데에서 노드까지의 65% 지점이다(가운데 근처에 몰리지 않게). */
 const EDGE_AT = 0.65
 export type EdgeText = { id: string; x: number; y: number; text: string }
 /**
- * 선 이름(관계 이름만, 8자 넘으면 말줄임, 외 N은 목록에): 관계가 많은 이웃부터 자리를 잡고 앞서 놓은 이름과 겹치면 숨긴다.
+ * 선 이름(관계 이름만, 8자 넘으면 말줄임, 외 N은 목록에): 관계가 많은 이웃부터 자리를 잡고 앞서 놓은 이름이나 [avoid](가운데 카드의 글)와 겹치면 숨긴다.
  */
-export function edgeTexts(spots: readonly Spot[], size = 11): EdgeText[] {
-  const placed: { l: number; r: number; t: number; b: number }[] = [], shown: EdgeText[] = []
+export function edgeTexts(spots: readonly Spot[], geo: MapGeometry = FULL_MAP, avoid: readonly Box[] = [], size = 11): EdgeText[] {
+  const placed: Box[] = [...avoid], shown: EdgeText[] = []
   for (const { n, x, y } of [...spots].sort((a, b) => b.n.weight - a.n.weight)) {
-    const text = clip(n.name, 8), cx = MAP_W / 2 + (x - MAP_W / 2) * EDGE_AT, cy = MAP_H / 2 + (y - MAP_H / 2) * EDGE_AT
-    const half = textWidth(text, size) / 2 + 3, box = { l: cx - half, r: cx + half, t: cy - size, b: cy + 4 }
+    const text = clip(n.name, 8), cx = geo.w / 2 + (x - geo.w / 2) * EDGE_AT, cy = geo.h / 2 + (y - geo.h / 2) * EDGE_AT
+    const box = boxOf(cx, cy, text, size)
     if (placed.some((p) => box.l < p.r && p.l < box.r && box.t < p.b && p.t < box.b)) continue
     placed.push(box)
     shown.push({ id: n.id, x: cx, y: cy, text })

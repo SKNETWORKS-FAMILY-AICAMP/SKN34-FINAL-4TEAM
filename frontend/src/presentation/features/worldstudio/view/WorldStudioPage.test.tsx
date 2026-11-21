@@ -3368,6 +3368,24 @@ it('좁은 배치용으로 같은 칩이 제목 아래 한 줄(.world-row-status
   expect(screen.queryByRole('region', { name: '가람 미리보기' })).toBeNull() // 줄까지 올라가 미리보기를 열지도 않는다
 })
 
+/** 관계도 상자(.card-relmap)의 화면 폭을 정한다(jsdom에는 배치가 없어 clientWidth가 늘 0이다). */
+const mapWidth = (px: number) => vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) { return this.classList.contains('card-relmap') ? px : 0 })
+
+it('좁은 상자에서도 카드별 관계도 글자는 축소되지 않는다(이름 12px·선 이름 11px): 편집 화면 관계 탭과 게시판 미리보기 모두 viewBox 가로가 상자 폭 그대로이고 둘레 이웃이 줄어든다', async () => {
+  const [garam, ...others] = ['가람', ...Array.from({ length: 11 }, (_, i) => '이웃' + i)].map((name) => person(name))
+  const settings = others.reduce((rows, other, i) => putRelation(rows, { subjectId: garam.item.id, targetId: other.item.id, predicate: 'custom_relation', polarity: 'asserted', title: '동료', text: '동료 ' + i, fromEpisode: 1 }), [garam, ...others])
+  mapWidth(306)
+  await show(settings)
+  fireEvent.click(screen.getByRole('button', { name: '가람 인물' })) // 게시판 미리보기
+  const inPreview = previewOf('가람').getByRole('region', { name: '카드별 관계도' }).querySelector('svg')!
+  expect(inPreview.getAttribute('viewBox')).toBe('0 0 306 300')
+  expect(inPreview.querySelectorAll('.card-relmap-node')).toHaveLength(8) // 이웃 11명 중 8명만 둘레에 둔다
+  fireEvent.click(previewOf('가람').getByRole('button', { name: '수정하기' }))
+  const inEditor = relations().getByRole('region', { name: '카드별 관계도' }).querySelector('svg')! // 편집 화면 관계 탭
+  expect(inEditor.getAttribute('viewBox')).toBe('0 0 306 300')
+  expect(inEditor.querySelectorAll('.card-relmap-node')).toHaveLength(8)
+})
+
 it('상태 칩을 누르면 미리보기를 거치지 않고 그 카드의 편집 화면이 칩에 맞는 화면으로 열린다: 정리 필요·AI 의견은 문서, 연결 필요는 관계, 공개 순서 N은 공개 순서', async () => {
   const { garam, war, hall, settings } = statusWorld()
   await show(settings)

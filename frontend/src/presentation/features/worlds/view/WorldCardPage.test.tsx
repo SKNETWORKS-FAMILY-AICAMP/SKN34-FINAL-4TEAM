@@ -391,6 +391,16 @@ it('정보 상자 아래에 카드별 관계도가 있다: 그림은 aria-hidden
   expect(within(events).getByRole('link', { name: '일곱 번째 섬의 실종' }).getAttribute('href')).toBe(cardPath(WORLD, 6))
 })
 
+it('상자가 좁아도 카드별 관계도 글자는 축소되지 않는다(이름 12px·선 이름 11px): viewBox 가로가 상자 폭 그대로이고 폭이 넓으면 가장 넓은 그림이다', async () => {
+  const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) { return this.classList.contains('card-relmap') ? 306 : 0 })
+  await open(2)
+  expect(document.querySelector('section.card-relmap svg')!.getAttribute('viewBox')).toBe('0 0 306 300')
+  cleanup()
+  width.mockImplementation(function (this: HTMLElement) { return this.classList.contains('card-relmap') ? 900 : 0 })
+  await open(2)
+  expect(document.querySelector('section.card-relmap svg')!.getAttribute('viewBox')).toBe('0 0 640 360')
+})
+
 it('긴 관계 문단(관계·이 설정을 가리키는 관계)은 관계 자세히 보기 (N)으로 기본 접혀 있고 문단은 지워지지 않으며, 목차 링크·앵커 주소로 들어오면 펼쳐서 그 문단으로 간다 (DEC-54)', async () => {
   await open(2)
   const wrapper = document.querySelector<HTMLDetailsElement>('details.nw-rels')!

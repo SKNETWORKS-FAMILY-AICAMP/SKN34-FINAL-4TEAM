@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAP_H, MAP_RY, MAP_W, RING_MAX, atEpisode, clip, edgeTexts, ellipsize, episodeTabs, groupNeighbors, kindGroups, layoutOf, nodeText, ringSpots, type RelationEntry } from './cardRelations'
+import { MAP_W, RING_MAX, atEpisode, centerTexts, clip, edgeTexts, ellipsize, episodeTabs, groupNeighbors, kindGroups, layoutOf, mapGeometry, nodeText, ringSpots, type RelationEntry } from './cardRelations'
 import { textWidth } from './textWidth'
 import type { CardKind } from './worldBoard'
 
@@ -103,10 +103,11 @@ describe('ringSpots·nodeText: 이웃 이름이 상자 밖으로 잘리지 않�
   it('이웃은 타원 둘레에 위(가운데 위)에서 시계 방향으로 놓인다', () => {
     const spots = ringSpots(people(4, '이웃'))
     expect(spots).toHaveLength(4)
-    expect([spots[0].x, spots[0].y]).toEqual([MAP_W / 2, MAP_H / 2 - MAP_RY])
-    expect(spots[1].x).toBeGreaterThan(MAP_W / 2) // 시계 방향: 오른쪽
-    expect(spots[2].y).toBeGreaterThan(MAP_H / 2) // 아래
-    expect(spots[3].x).toBeLessThan(MAP_W / 2) // 왼쪽
+    const full = mapGeometry(0)
+    expect([spots[0].x, spots[0].y]).toEqual([full.w / 2, full.h / 2 - full.ry])
+    expect(spots[1].x).toBeGreaterThan(full.w / 2) // 시계 방향: 오른쪽
+    expect(spots[2].y).toBeGreaterThan(full.h / 2) // 아래
+    expect(spots[3].x).toBeLessThan(full.w / 2) // 왼쪽
   })
 
   it('왼쪽 이웃의 이름은 노드 왼쪽에 오른쪽 끝을 맞추고(end), 오른쪽 이웃은 오른쪽에 왼쪽 끝을 맞추며(start), 위·아래 이웃은 가운데(middle)다', () => {
@@ -135,9 +136,87 @@ describe('ringSpots·nodeText: 이웃 이름이 상자 밖으로 잘리지 않�
   })
 })
 
+describe('mapGeometry: 글자는 어느 상자 폭에서도 화면 기준 최소 크기(이름 12px·관계 이름 11px)를 지킨다', () => {
+  const people = (count: number, title: string) => layoutOf(groupNeighbors(Array.from({ length: count }, (_, i) => entry(title + i, [['관계', 1 + i]])))).ring
+
+  it('상자 폭을 모르거나(0) 640px 이상이면 가장 넓은 기하(640×360, 반지름 200×125, 이웃 16명)다: 넓은 화면의 그림은 그대로다', () => {
+    for (const available of [0, 640, 800, 1400]) expect(mapGeometry(available), String(available)).toEqual({ w: MAP_W, h: 360, rx: 200, ry: 125, ringMax: RING_MAX })
+  })
+
+  it('그림은 축소하지 않는다: 폭이 240~640이면 viewBox 가로가 그 폭(화면 px)이라 CSS 글자 크기 그대로(이름 12px·선 이름 11px) 보이고, 240 아래만 상자에 맞춰 줄어든다', () => {
+    for (const available of [240, 270, 292, 306, 360, 420, 520, 560, 639, 640, 900]) {
+      const geo = mapGeometry(available), rendered = Math.min(available, MAP_W) // CSS: width:100%; max-width:640px
+      expect(geo.w, String(available)).toBe(Math.min(available, MAP_W))
+      expect(12 * (rendered / geo.w), '이름 ' + available).toBeGreaterThanOrEqual(12)
+      expect(11 * (rendered / geo.w), '선 이름 ' + available).toBeGreaterThanOrEqual(11)
+    }
+    expect(mapGeometry(200).w).toBe(240) // 240px보다 좁은 상자는 그림만 줄인다(알려진 한계)
+  })
+
+  it('좁을수록 둘레 반지름과 이웃 수가 줄고(306px에서 8명), 세로 반지름은 가운데 글자와 겹치지 않을 만큼(95px) 남긴다', () => {
+    const geos = [240, 306, 420, 520, 640].map(mapGeometry)
+    for (const [a, b] of geos.slice(1).map((geo, i) => [geos[i], geo])) {
+      expect(b.rx).toBeGreaterThanOrEqual(a.rx)
+      expect(b.ringMax).toBeGreaterThanOrEqual(a.ringMax)
+      expect(b.h).toBeGreaterThanOrEqual(a.h)
+    }
+    expect(mapGeometry(306)).toMatchObject({ w: 306, h: 300, ringMax: 8 })
+    expect(Math.min(...geos.map((geo) => geo.ry))).toBeGreaterThanOrEqual(95)
+    for (const geo of geos) expect(geo.h, String(geo.w)).toBe(2 * geo.ry + 110)
+  })
+
+  it('layoutOf는 둘레 이웃을 ringMax까지만 뽑고 나머지는 rest로 센다', () => {
+    const neighbors = groupNeighbors(Array.from({ length: 20 }, (_, i) => entry('이웃' + i, [['친구', i + 1]])))
+    expect([layoutOf(neighbors).ring.length, layoutOf(neighbors).rest]).toEqual([16, 4])
+    expect([layoutOf(neighbors, 8).ring.length, layoutOf(neighbors, 8).rest]).toEqual([8, 12])
+  })
+
+  it('어느 폭에서도 둘레 이웃 점과 이름이 상자 안이고(긴 이름은 말줄임), 가운데 카드와 겹치지 않는다', () => {
+    for (const available of [240, 270, 306, 360, 420, 560, 640]) {
+      const geo = mapGeometry(available)
+      for (let count = 1; count <= geo.ringMax; count++) {
+        for (const spot of ringSpots(people(count, '다드 로드리고 가나다라마바사아자차카타파하'), geo)) {
+          const where = available + 'px ' + count + '명 ' + spot.n.title
+          const t = nodeText(spot, geo), w = textWidth(t.text, 12)
+          const [from, to] = t.anchor === 'start' ? [t.x, t.x + w] : t.anchor === 'end' ? [t.x - w, t.x] : [t.x - w / 2, t.x + w / 2]
+          expect(from, where).toBeGreaterThanOrEqual(0)
+          expect(to, where).toBeLessThanOrEqual(geo.w)
+          expect(spot.x, where).toBeGreaterThanOrEqual(9)
+          expect(spot.x, where).toBeLessThanOrEqual(geo.w - 9)
+          expect(spot.y, where).toBeGreaterThanOrEqual(9)
+          expect(spot.y, where).toBeLessThanOrEqual(geo.h - 9)
+          expect(Math.hypot(spot.x - geo.w / 2, spot.y - geo.h / 2), where).toBeGreaterThan(20 + 9) // 가운데 원(반지름 20)과 겹치지 않는다
+        }
+      }
+    }
+  })
+
+  it('가운데 카드의 글은 둘레 이웃 점과 겹치지 않게 폭이 줄고(좁은 그림은 말줄임·넓은 그림은 12자까지 그대로), 선 이름은 그 글 자리를 피한다', () => {
+    const title = '홍길동의 아주 긴 이름의 카드', full = centerTexts(title, '17화부터 공개')
+    expect([full.name.text, full.tag?.text]).toEqual([clip(title, 12), '17화부터 공개'])
+    const geo = mapGeometry(306), compact = centerTexts(title, '17화부터 공개', geo)
+    expect(compact.name.text.endsWith('…')).toBe(true)
+    for (const line of [compact.name, compact.tag!]) expect(textWidth(line.text, line.size), line.text).toBeLessThanOrEqual(2 * (geo.rx - 9 - 10)) // 가장 가까운 둘레 점(가운데에서 rx) 안쪽
+    expect(centerTexts('홍길동', undefined, geo).tag).toBeUndefined()
+    const spots = ringSpots(people(8, '이웃'), geo), boxes = centerTexts('홍길동', '작가 전용', geo).boxes
+    expect(edgeTexts(spots, geo)).toHaveLength(8) // 겹치지 않으면 모두 남는다
+    expect(edgeTexts(spots, geo, boxes).map((t) => t.id)).toEqual(['이웃0', '이웃1', '이웃2', '이웃6', '이웃7']) // 가운데 글 아래의 세 선(오른쪽 아래·아래·왼쪽 아래)은 가운데 글과 겹쳐 숨는다
+    const wide = ringSpots(people(16, '이웃'))
+    expect(edgeTexts(wide, mapGeometry(0), centerTexts('홍길동', '작가 전용').boxes)).toEqual(edgeTexts(wide)) // 넓은 그림은 가운데 글이 선 이름을 가리지 않아 그대로다
+  })
+
+  it('이웃은 위에서 시계 방향으로 놓이고 이름 자리·선 이름도 같은 기하를 따른다(가운데 = 상자 한가운데)', () => {
+    const geo = mapGeometry(306), spots = ringSpots(people(4, '이웃'), geo)
+    expect([spots[0].x, spots[0].y]).toEqual([geo.w / 2, geo.h / 2 - geo.ry])
+    expect(spots[1].x).toBeCloseTo(geo.w / 2 + geo.rx, 5)
+    const [text] = edgeTexts(spots, geo)
+    expect(Math.hypot(text.x - geo.w / 2, text.y - geo.h / 2)).toBeLessThan(Math.hypot(spots[0].x - geo.w / 2, spots[0].y - geo.h / 2))
+  })
+})
+
 describe('edgeTexts: 선 이름', () => {
   const spotsOf = (rows: RelationEntry[]) => ringSpots(layoutOf(groupNeighbors(rows)).ring)
-  const center = { x: MAP_W / 2, y: MAP_H / 2 }
+  const full = mapGeometry(0), center = { x: full.w / 2, y: full.h / 2 }
 
   it('선 이름은 관계 이름만이고(8자 넘으면 말줄임, 외 N은 붙이지 않는다) 선의 바깥쪽 60~70% 지점에 놓인다', () => {
     const spots = spotsOf([entry('가', [['초부석을 들어 올림 관계', 1]]), entry('가', [['친구', 2]])])
