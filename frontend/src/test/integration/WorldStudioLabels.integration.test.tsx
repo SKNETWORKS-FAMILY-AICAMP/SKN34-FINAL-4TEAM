@@ -24,6 +24,7 @@ it('does not dirty or rewrite a saved card when unchanged tag and alias fields l
  render(<Provider store={createAppStore({role:'user'})}><MemoryRouter initialEntries={['/worldstudio/labels']}><Routes><Route path="/worldstudio/:worldId" element={<WorldStudioPage/>}/></Routes></MemoryRouter></Provider>)
  await screen.findByRole('heading',{name:'태그 검증',level:1})
  openCard('가람 인물') // 설정집에서 카드를 골라(미리보기) 수정하기를 눌러야 편집 화면이 열린다
+ fireEvent.click(screen.getByRole('tab',{name:'개요'})) // 별칭·태그는 개요 탭에 있다
  const tag=screen.getByLabelText(/태그 \(쉼표로 구분\)/),alias=screen.getByLabelText(/^별칭/)
  fireEvent.focus(tag);fireEvent.blur(tag);fireEvent.focus(alias);fireEvent.blur(alias)
  expect(current.dirty).toBe(false)

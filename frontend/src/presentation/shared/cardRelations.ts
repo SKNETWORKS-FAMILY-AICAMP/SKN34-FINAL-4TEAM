@@ -32,12 +32,16 @@ export function atEpisode(entries: readonly RelationEntry[], episode: number | n
   })
 }
 
-/** 같은 상대의 관계를 이웃 하나로 묶는다(처음 나온 순서). */
-export function groupNeighbors(entries: readonly RelationEntry[]): Neighbor[] {
+/**
+ * 같은 상대의 관계를 이웃 하나로 묶는다(처음 나온 순서). 대표 이름은 가장 늦은 회차의 관계 이름인데, `quiet`(알고 있음 같은 조용한 종류)가 아닌 관계가 있으면 그 가운데서 고른다
+ * (늦은 회차의 '알고 있음'이 앞선 '형제'를 가리지 않게).
+ */
+export function groupNeighbors(entries: readonly RelationEntry[], quiet: readonly string[] = []): Neighbor[] {
   const groups = new Map<string, RelationEntry[]>()
   for (const e of entries) (groups.get(e.otherId) ?? groups.set(e.otherId, []).get(e.otherId)!).push(e)
   return [...groups].map(([id, list]) => {
-    const rep = list.reduce((best, e) => (at(latest(e).episode) >= at(latest(best).episode) ? e : best))
+    const calm = list.filter((e) => !quiet.includes(latest(e).name)), pool = calm.length ? calm : list
+    const rep = pool.reduce((best, e) => (at(latest(e).episode) >= at(latest(best).episode) ? e : best))
     const steps = list.flatMap((e) => e.steps).flatMap((s) => (s.episode === null ? [] : [{ name: s.name, episode: s.episode }])).sort((a, b) => a.episode - b.episode)
     return {
       id, title: list[0].otherTitle, kind: list[0].otherKind, entries: list, name: latest(rep).name, more: list.length - 1,
@@ -46,6 +50,19 @@ export function groupNeighbors(entries: readonly RelationEntry[]): Neighbor[] {
       notes: list.flatMap((e) => { const { name, body } = latest(e); return body?.trim() ? [{ name, body: body.trim() }] : [] }).filter((note, i, all) => all.findIndex((x) => x.body === note.body) === i),
     }
   })
+}
+
+/** 관계 종류(대표 이름) 한 묶음: `quiet`면 알고 있음 같은 조용한 종류라 기본으로 접는다. */
+export type KindGroup = { name: string; quiet: boolean; items: Neighbor[] }
+/** 이웃을 대표 이름별로 묶는다: 의미 있는 종류는 많은 순(같으면 이름 순)으로 위에, 조용한 종류는 맨 아래에 `quiet` 순서대로. 묶음 안은 들어온 순서다. */
+export function kindGroups(neighbors: readonly Neighbor[], quiet: readonly string[]): KindGroup[] {
+  const byName = new Map<string, Neighbor[]>()
+  for (const n of neighbors) (byName.get(n.name) ?? byName.set(n.name, []).get(n.name)!).push(n)
+  const all = [...byName].map(([name, items]) => ({ name, quiet: quiet.includes(name), items }))
+  return [
+    ...all.filter((g) => !g.quiet).sort((a, b) => b.items.length - a.items.length || a.name.localeCompare(b.name, 'ko')),
+    ...all.filter((g) => g.quiet).sort((a, b) => quiet.indexOf(a.name) - quiet.indexOf(b.name)),
+  ]
 }
 
 const byWeight = (a: Neighbor, b: Neighbor) => b.weight - a.weight || a.title.localeCompare(b.title, 'ko')

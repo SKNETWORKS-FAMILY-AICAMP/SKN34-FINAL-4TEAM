@@ -1,4 +1,5 @@
 import { cardLibraryRows, type WritingIssue, worldSealIssues, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
+import { type CardPane, DEFAULT_PANE, parseCardPane } from './cardPanels'
 import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUERY, parseManageView, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
 import { useWorldCoverImage } from '../../../shared/useWorldCoverImage'
@@ -36,6 +37,9 @@ const AI_DRAFT_CHANGED = '설정집 초안이 AI 반영으로 바뀌었어요. �
 /** 편집 화면을 게시판에서 들어와 연 기록인지(그 앞 기록이 게시판이라 '← 설정집'이 한 걸음 뒤로 가면 된다). */
 const cameFromBoard = (state: unknown) => typeof state === 'object' && state !== null && 'fromList' in state && state.fromList === true
 
+/** 편집 중인 카드를 주소에서 지운다: 그 카드의 화면(`pane`)도 함께다. */
+const dropCard = (query: URLSearchParams) => { query.delete('card'); query.delete('pane') }
+
 export function useWorldStudioViewModel(
   useCase: WorldStudioUseCase = appContainer.resolve('worldStudioUseCase'),
   reviewUseCase: WorldReviewUseCase | null = appContainer.resolve('worldReviewUseCase'),
@@ -50,6 +54,7 @@ export function useWorldStudioViewModel(
   const mode = studioMode(params)
   const view = parseManageView(params.get('view'))
   const cardParam = params.get('card') ?? ''
+  const pane = parseCardPane(params.get('pane')) // 설정 카드 편집 화면에서 고른 본문 화면(개요·문서·관계·버전·공개 순서): 주소가 정본이라 새로고침·공유해도 유지된다
   const legacyTab = params.get('tab')
   // 보기·마법사 표시·편집 중인 카드는 주소의 쿼리라 새로고침해도 유지되고, 바꿀 때는 기본으로 기록을 쌓지 않는다(같은 화면 이동이라 이탈 확인도 하지 않는다).
   // setSearchParams는 같은 틱에 두 번 부르면 뒤 호출이 앞 호출을 덮으므로, 주소를 바꾸는 동작은 한 번의 호출로 묶는다.
@@ -63,7 +68,7 @@ export function useWorldStudioViewModel(
   const setView = (next: ManageView) => {
     if (next === view && !selected) return
     editParams((query) => {
-      query.delete('card')
+      dropCard(query)
       if (next === 'book') query.delete('view')
       else query.set('view', next)
     })
@@ -113,7 +118,7 @@ export function useWorldStudioViewModel(
     if (!editing || !cardParam || selected) return
     setParams((current) => {
       const next = new URLSearchParams(current)
-      next.delete('card')
+      dropCard(next)
       return next
     }, { replace: true })
   }, [editing, cardParam, selected, setParams])
@@ -152,9 +157,9 @@ export function useWorldStudioViewModel(
     dispatchFlow({ type: 'step', step })
     if (step === 'relations' && editing) setRelationWorld(editing.id)
     if (mode === 'manage') setView(step === 'relations' ? 'people' : 'book')
-    else if (selected) editParams((query) => query.delete('card'))
+    else if (selected) editParams(dropCard)
   }
-  /** 설정 카드의 편집 화면을 연다. 게시판에서 들어올 때는 기록을 쌓아 뒤로가기·'← 설정집'이 게시판으로 돌아오게 하고, 편집 화면 안에서 다른 카드로 옮길 때는 같은 기록을 바꾼다. */
+  /** 설정 카드의 편집 화면을 연다(본문 화면은 지금 것 그대로). 게시판에서 들어올 때는 기록을 쌓아 뒤로가기·'← 설정집'이 게시판으로 돌아오게 하고, 편집 화면 안에서 다른 카드로 옮길 때는 같은 기록을 바꾼다. */
   const editCard = (id: string) => {
     const row = editing?.settings.find((item) => item.item.id === id)
     if (row && cardLibraryRows([row], 'all', '').length && !cardLibraryRows([row], cardFilter, cardQuery).length) {
@@ -164,10 +169,12 @@ export function useWorldStudioViewModel(
     dispatchFlow({ type: 'step', step: 'cards' })
     editParams((query) => query.set('card', id), !!selected, selected ? location.state : { fromList: true })
   }
+  /** 편집 화면의 본문 화면을 바꾼다(기록을 쌓지 않는다). 기본인 문서는 주소에 쓰지 않는다. */
+  const setPane = (next: CardPane) => editParams((query) => (next === DEFAULT_PANE ? query.delete('pane') : query.set('pane', next)))
   /** 편집 화면을 닫고 설정집 화면으로 돌아온다. 게시판에서 들어왔으면 한 걸음 뒤로(기록이 쌓이지 않는다), 주소로 바로 들어왔으면 주소만 바꾼다. */
   const closeCard = () => {
     if (selected && cameFromBoard(location.state)) navigate(-1)
-    else editParams((query) => query.delete('card'))
+    else editParams(dropCard)
   }
   /** 관계도 보기를 열고 그 관계의 편집 패널을 연다(관계 편집기가 이 요청을 받아 두 설정을 고르고 그 행에 초점을 둔다). */
   const editRelation = (id: string) => {
@@ -371,6 +378,8 @@ export function useWorldStudioViewModel(
     goStep,
     editCard,
     closeCard,
+    pane,
+    setPane,
     saveState,
     resume: () => dispatchFlow({ type: 'resume' }),
     openRelations: (id: string) => {

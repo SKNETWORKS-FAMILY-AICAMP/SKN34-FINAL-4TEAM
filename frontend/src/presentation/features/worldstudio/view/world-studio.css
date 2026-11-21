@@ -277,15 +277,9 @@ a.world-card-link{text-decoration:none}
 .world-card-studio .writing-rail .page-controls select.inp{min-width:56px}
 .world-card-studio .page-controls>span:first-child{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 .world-graph-actions{padding-inline:24px}.world-graph-note{margin:0;padding-inline:24px;line-height:1.6}
-/* 카드 편집 화면 머리(#401): 왼쪽 열은 이름 입력·유형 선택(+가져온 출처), 오른쪽 열은 대표 이미지 타일이다(--tile 폭, 데스크톱 150px). 이미지 블록은 이름·유형 두 행을 오른쪽에서 잇고, 타일 아래에 바꾸기·빼기와 올리는 중 안내가 놓인다.
-   편집 열이 좁으면(머리 컨테이너 460px 미만: 390px 폰, 그리고 AI 채팅을 연 901~1200px대도 편집 열이 300px대다) 150px 타일 옆에서 이름 입력이 120~260px로 줄어 이름이 잘리므로, 이름 줄을 폭 전체로 두고 88px 타일을 그 아래 왼쪽으로 내려 유형 선택이 그 오른쪽에 온다.
-   전환 기준을 뷰포트 @media가 아니라 컨테이너 쿼리로 둔 까닭이 그것이다. 래퍼(.world-card-header)만 컨테이너로 삼는 것은, 편집 열 전체에 containment를 걸면 안쪽 팝업(position: fixed)의 기준이 바뀌기 때문이다. */
-.world-card-head{--tile:150px;display:grid;grid-template-columns:minmax(0,1fr) var(--tile);grid-template-areas:"name image" "meta image";grid-template-rows:auto 1fr;column-gap:24px;align-items:start;margin-bottom:12px}
-.world-card-head>.writing-title{grid-area:name}.world-card-head>.world-card-meta{grid-area:meta}.world-card-head>.world-card-image{grid-area:image}
-.world-card-header{container:world-card-head/inline-size}
-@container world-card-head (max-width:459px){.world-card-head{--tile:88px;grid-template-columns:var(--tile) minmax(0,1fr);grid-template-areas:"name name" "image meta";grid-template-rows:auto;column-gap:12px}}
-.world-card-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
-.world-card-meta .world-type{display:flex;flex-direction:row;align-items:center;gap:8px;margin:0;color:var(--tsub);font-size:13px}.world-card-meta .world-type select{width:auto;padding-block:6px;padding-inline-start:10px}
+/* 카드 편집 화면 머리: 이름 입력 하나다(유형·대표 이미지·공개 범위·분류는 왼쪽 개요 패널로 옮겼다). 공개 순서 문제가 있을 때만 이름 아래에 작은 배지가 붙고 누르면 공개 순서 패널이 열린다. */
+.world-card-header{display:grid;justify-items:start;gap:6px;margin-bottom:12px}.world-card-header>.writing-title{justify-self:stretch;width:100%}
+.world-order-badge{border:0;font-family:inherit;cursor:pointer}.world-order-badge:hover{text-decoration:underline;text-underline-offset:3px}
 /* 대표 이미지 타일: 세계관 관리 헤더의 표지와 같은 전역 .cov(3:4·모서리 14px·--sh 그림자)를 그대로 쓰고 여기서는 다시 정하지 않는다. 빈 타일만 점선 테두리·그림자 없음으로 구분하고, 그 안의 이미지 추가 라벨이 타일 전체를 덮어 눌리는 면이 타일 전체다.
    읽는 중·읽지 못한 때의 빈 자리(.world-card-tile-wait)도 같은 타일이라 줄이 흔들리지 않는다. .cov svg(전역 100%)가 안쪽 + 아이콘을 늘리지 않게 아이콘 크기를 정한다. */
 .world-card-image{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
@@ -299,7 +293,6 @@ a.world-card-link{text-decoration:none}
 /* 타일은 overflow:hidden이라 안쪽 라벨의 초점 고리가 잘리므로 고리는 타일 바깥에 그리고 라벨 자신의 고리는 끈다. */
 .world-card-tile:has(input:focus-visible){outline:2px solid var(--tacc);outline-offset:3px}.world-card-studio .world-card-tile .world-card-tile-add:has(input:focus-visible){outline:0}
 .world-card-image-actions{display:flex;flex-wrap:wrap;gap:8px}.world-card-image-note{margin:0;line-height:1.5}
-@container world-card-head (max-width:459px){.world-card-studio .world-card-tile .world-card-tile-add{padding:8px 4px;font-size:12px}.world-card-tile-note{inset:auto;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}} /* 88px 타일 안에는 안내가 들어가지 않아 화면에서만 숨기고 입력의 설명으로는 남긴다 */
 /* 레일 항목의 썸네일은 왼쪽에 띄워 제목·상태 줄이 그 옆으로 흐르게 한다(.writing-episode는 집필실과 함께 쓰는 규칙이라 건드리지 않는다). */
 .world-card-studio .writing-episode .board-thumb{float:left;margin:2px 10px 0 0}
 /* 설명: 마크다운 편집기(shared/MarkdownEditor, Toast UI Editor)는 글 높이만큼 자라고 스크롤은 편집 열이 맡는다. 불러오는 동안은 편집기 최소 높이(320px)와 탭 줄만큼 자리를 비운다. 저장 중에는 잠기고(inert) 흐려진다.
@@ -427,6 +420,47 @@ a.world-card-link{text-decoration:none}
 @media(pointer:coarse){.episode-app .world-compact input:not([type=checkbox]):not([type=radio]),.episode-app .world-compact select,.world-rail-tools input{font-size:16px}}
 .world-card-links-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.world-card-links-head h4{margin:0}
 .world-reach-badge{margin-left:8px;font-weight:600}
+/*
+ * 설정 카드 편집 화면 왼쪽: 활동 막대(VS Code식 세로 아이콘, 48px)와 설정 카드 목록 패널. 막대의 탭 아이콘은 가운데 본문 전체를 그 화면(개요·문서·관계·버전·공개 순서)으로 바꾸고,
+ * 맨 위 목록 아이콘만 왼쪽에 설정 카드 목록 패널을 펴고 접는다(가운데 화면은 그대로). 목록이 펼쳐져 있으면 --writing-rail은 막대 + 패널 폭이고 접히면 막대 폭뿐이라
+ * (집필실 하단 바의 채팅 열기 버튼 여백 계산이 그 값을 쓴다) 가운데가 그만큼 넓어진다. 900px 이하(편집 화면이 1열)는 막대가 가로 줄이 되고 목록 패널이 그 아래 접히는 영역이다.
+ * 집필실 writing.css·전역 규칙은 건드리지 않는다.
+ */
+.writing-studio.world-card-studio{--world-panel:280px;--writing-rail:calc(var(--world-panel) + 48px)}
+.writing-studio.world-card-studio[data-list=closed]{--writing-rail:48px}
+@media(min-width:901px) and (max-width:1200px){.writing-studio.world-card-studio{--world-panel:240px}}
+.world-card-side{display:flex;min-width:0;min-height:0}
+.world-activity{display:flex;flex:none;flex-direction:column;align-items:center;gap:4px;box-sizing:border-box;width:48px;padding:12px 0;border-right:1px solid var(--tline)}
+.world-activity-tabs{display:flex;flex-direction:column;align-items:center;gap:4px}
+.world-activity-sep{width:24px;height:1px;margin:4px 0;background:var(--tline)}
+.world-activity-tab{position:relative;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:10px;background:none;color:var(--tsub);cursor:pointer}
+.world-activity-tab:hover{background:var(--muted-bg);color:var(--tfg)}.world-activity-tab:is([aria-selected=true],[aria-expanded=true]){background:var(--pri-soft);color:var(--pri-ink)}
+.world-activity-tab:focus-visible{outline:2px solid var(--tacc);outline-offset:2px}
+.world-activity-badge{position:absolute;top:1px;right:0;box-sizing:border-box;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--tacc);color:var(--on-pri);font-size:10.5px;font-weight:700;line-height:16px;text-align:center}
+.world-activity-badge.dot{top:6px;right:6px;min-width:0;width:10px;height:10px;padding:0;border:2px solid var(--tbg)}
+.world-activity-badge.warn{background:var(--acc-soft);color:var(--acc-ink);box-shadow:0 0 0 1px color-mix(in srgb,var(--acc-ink) 40%,transparent)}
+.world-panel{width:calc(var(--writing-rail) - 48px)}
+@media(min-width:901px){.world-card-studio .writing-rail .writing-episodes{flex:1 1 auto}}
+@media(max-width:900px){
+  .world-card-side{flex-direction:column}
+  .world-activity{flex-direction:row;width:auto;gap:4px;padding:6px 12px;border-right:0;border-bottom:1px solid var(--tline);overflow-x:auto}
+  .world-activity-tabs{flex-direction:row}
+  .world-activity-sep{width:1px;height:24px;margin:0 4px}
+  .world-panel{width:auto;max-height:min(60vh,480px);overflow:auto}
+}
+/* 가운데 본문의 화면(탭 패널): 이름 입력은 모든 화면 위에 고정이고 개요에서만 큰 제목이다(다른 화면은 작은 제목). 화면 머리줄(.world-pane-head)은 제목과 오른쪽 버튼(관계 편집)이다. */
+.world-card-studio .world-card-header .writing-title{font-size:18px}
+.world-card-studio[data-pane=overview] .world-card-header .writing-title{font-size:28px}
+.world-pane{min-width:0}.world-pane-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.world-pane-head h2{margin:0;font-size:16px}
+/* 개요 화면: 대표 이미지 타일(160px, 3:4)과 카드 기본값 칸(유형·공개 범위·분류·별칭·태그)이 나란하고, 좁으면 아래로 줄바꿈한다. */
+.world-overview{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;margin-top:8px}
+.world-overview .world-card-image{--tile:160px;flex:none;width:var(--tile)}
+.world-overview-fields{display:grid;gap:14px;flex:1 1 280px;min-width:0;max-width:520px}.world-overview-fields .field{margin-bottom:0}
+.world-overview .world-card-reach{margin-block:4px 0}
+/* 관계·버전·공개 순서 화면: 가운데 절의 위 여백·상자를 화면 폭에 맞게 푼다(버전 그래프는 집필실 레일용 규칙을 이 화면에서만 덮는다). */
+.world-pane .world-card-links{margin:0;padding:0;border:0}.world-pane .world-findings{margin-bottom:0}
+.world-pane .writing-graph{flex:none;margin:0;padding:0;border:0;max-height:none;overflow:visible}.world-pane .writing-graph h2{padding-inline:0}.world-pane .world-graph-actions,.world-pane .world-graph-note{padding-inline:0}
+.world-finding-more{width:100%;font-size:13px}.world-finding-more>summary{cursor:pointer;color:var(--tsub)}.world-finding-more ul{gap:6px;margin:6px 0 0;padding-left:16px;list-style:disc}
 
 /* 넓은 화면(1920px 이상): 세계관 관리 화면은 본문이 폭을 다 쓴다 — 메뉴는 왼쪽 끝에, AI 채팅은 오른쪽 끝에 붙는다. 공용 틀의 .ep-main:has(.ep-manage){max-width:1360px}(shared/episode.css)와 가운데 정렬은
    이 화면(.world-content)에서만 풀고 /content 작품 관리는 그대로다. 남는 폭은 내용 열(.ep-content)이 쓰되 안의 글·표는 읽기 좋은 폭(≈1070px)까지만 쓰고 열 안에서 가운데에 둔다. 관계도 보기(?view=people)의 캔버스는 열 전체 폭이다. */

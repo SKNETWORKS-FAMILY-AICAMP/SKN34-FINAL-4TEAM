@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAP_H, MAP_RY, MAP_W, RING_MAX, atEpisode, clip, edgeTexts, ellipsize, episodeTabs, groupNeighbors, layoutOf, nodeText, ringSpots, type RelationEntry } from './cardRelations'
+import { MAP_H, MAP_RY, MAP_W, RING_MAX, atEpisode, clip, edgeTexts, ellipsize, episodeTabs, groupNeighbors, kindGroups, layoutOf, nodeText, ringSpots, type RelationEntry } from './cardRelations'
 import { textWidth } from './textWidth'
 import type { CardKind } from './worldBoard'
 
@@ -164,5 +164,27 @@ describe('edgeTexts: 선 이름', () => {
 
   it('겹치지 않으면 모두 남는다', () => {
     expect(edgeTexts(spotsOf([entry('가', [['친구', 1]]), entry('나', [['동료', 1]]), entry('다', [['스승', 1]]), entry('라', [['제자', 1]])]))).toHaveLength(4)
+  })
+})
+
+describe('조용한 관계 종류(알고 있음 등)', () => {
+  const quiet = ['알고 있음', '전해 들음']
+
+  it('조용한 종류가 아닌 관계가 있으면 그 이름이 이웃의 대표 이름이다(늦은 회차의 조용한 관계가 가리지 않는다). 없으면 기존 규칙(가장 늦은 회차)이다', () => {
+    const rows = [entry('길현', [['형제', 2]]), entry('길현', [['알고 있음', 10]])]
+    expect(groupNeighbors(rows, quiet)[0]).toMatchObject({ name: '형제', more: 1 })
+    expect(groupNeighbors(rows)[0].name).toBe('알고 있음')
+    expect(groupNeighbors([entry('나래', [['알고 있음', 3]]), entry('나래', [['전해 들음', 5]])], quiet)[0].name).toBe('전해 들음') // 조용한 것뿐이면 그 가운데 가장 늦은 이름
+  })
+
+  it('kindGroups: 대표 이름별로 묶고 의미 있는 종류는 많은 순(같으면 이름 순)으로 위에, 조용한 종류는 맨 아래에 quiet 순서대로 둔다', () => {
+    const people = layoutOf(groupNeighbors([
+      entry('가', [['알고 있음', 1]]), entry('나', [['친구', 1]]), entry('다', [['알고 있음', 1]]), entry('라', [['가족', 1]]), entry('마', [['전해 들음', 1]]), entry('바', [['가족', 1]]), entry('사', [['알고 있음', 1]]),
+    ], quiet)).people
+    const groups = kindGroups(people, quiet)
+    expect(groups.map((g) => [g.name, g.quiet, g.items.map((n) => n.title)])).toEqual([
+      ['가족', false, ['라', '바']], ['친구', false, ['나']], ['알고 있음', true, ['가', '다', '사']], ['전해 들음', true, ['마']],
+    ])
+    expect(kindGroups([], quiet)).toEqual([])
   })
 })

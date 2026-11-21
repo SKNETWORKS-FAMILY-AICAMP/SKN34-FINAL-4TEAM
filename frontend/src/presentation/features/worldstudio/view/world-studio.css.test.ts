@@ -79,16 +79,28 @@ it('인물 문서 탭은 전역 문서 버튼(.world-rail-kinds button, 한 줄 
   expect(rule((s) => s === '.world-doc-list .world-doc-tab[data-current=true]')?.body).toMatch(/border-color:[^;]*;[^}]*background:/)
 })
 
-it('카드 편집 화면 머리는 왼쪽(이름·유형)과 오른쪽(대표 이미지 타일) 두 열이고, 편집 열이 좁으면(컨테이너 460px 미만: 좁은 화면뿐 아니라 AI 채팅을 연 900px대도) 이름 입력이 폭을 다 쓰도록 88px 타일을 이름 아래 왼쪽으로 내린다', () => {
-  const head = rule((s) => s === '.world-card-head')?.body ?? ''
-  expect(head).toMatch(/--tile:\s*150px/) // 데스크톱 타일 폭
-  expect(head).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)\s*var\(--tile\)/)
-  expect(head).toMatch(/grid-template-areas:\s*"name image" "meta image"/) // 이미지 블록은 이름·유형 두 행을 오른쪽에서 잇는다
-  // 전환 기준은 뷰포트가 아니라 편집 열의 실제 폭이다: 채팅을 연 901~1200px에서는 편집 열이 300px대라 150px 타일 옆에서 이름 입력이 120px로 짜부러진다.
-  expect(rule((s) => s === '.world-card-header')?.body).toMatch(/container:\s*world-card-head\s*\/\s*inline-size/)
-  // 좁으면 이름 줄은 폭 전체를 쓰고(390px에서 이름 입력이 258px로 줄지 않게) 타일은 그 아래 왼쪽, 유형 선택은 타일 오른쪽에 온다.
-  expect(css).toMatch(/@container world-card-head \(max-width:\s*459px\)\{\.world-card-head\{[^}]*--tile:\s*88px;[^}]*grid-template-areas:\s*"name name" "image meta"/)
-  expect(css).not.toMatch(/@media \(max-width:\s*600px\)\{\.world-card-head/) // 뷰포트 기준 전환은 두지 않는다
+it('카드 편집 화면 머리는 이름 입력 하나이고(유형·대표 이미지·공개 범위는 개요 탭), 개요 탭에서만 큰 제목이며 다른 탭은 작은 제목이다. 개요는 이미지 타일(160px)과 카드 기본값 칸이 나란하고 좁으면 줄바꿈한다', () => {
+  expect(rule((s) => s === '.world-card-header')?.body).toMatch(/display:\s*grid/)
+  expect(css).not.toContain('.world-card-head{') // 옛 두 열 머리(#401)와 컨테이너 쿼리는 없다
+  expect(css).not.toContain('@container world-card-head')
+  expect(rule((s) => s === '.world-card-studio .world-card-header .writing-title')?.body).toMatch(/font-size:\s*18px/)
+  expect(rule((s) => s === '.world-card-studio[data-pane=overview] .world-card-header .writing-title')?.body).toMatch(/font-size:\s*28px/)
+  const overview = rule((s) => s === '.world-overview')?.body ?? ''
+  expect(overview).toMatch(/display:\s*flex/)
+  expect(overview).toMatch(/flex-wrap:\s*wrap/)
+  expect(rule((s) => s === '.world-overview .world-card-image')?.body).toMatch(/--tile:\s*160px/)
+})
+
+it('활동 막대: 목록 패널이 펼쳐져 있으면 --writing-rail이 막대(48px)+패널 폭이고 접히면 막대 폭뿐이며, 900px 이하에서는 막대가 가로 줄이고 목록 패널이 그 아래다. 집필실 writing.css는 건드리지 않는다', () => {
+  expect(css).toMatch(/\.writing-studio\.world-card-studio\{--world-panel:280px;--writing-rail:calc\(var\(--world-panel\) \+ 48px\)\}/)
+  expect(css).toMatch(/\.writing-studio\.world-card-studio\[data-list=closed\]\{--writing-rail:48px\}/)
+  expect(css).toMatch(/@media\(min-width:901px\) and \(max-width:1200px\)\{\.writing-studio\.world-card-studio\{--world-panel:240px\}\}/)
+  expect(rule((s) => s === '.world-activity')?.body).toMatch(/width:48px/)
+  expect(rule((s) => s === '.world-panel')?.body).toMatch(/width:calc\(var\(--writing-rail\) - 48px\)/)
+  expect(css).toMatch(/@media\(max-width:900px\)\{\s*\.world-card-side\{flex-direction:column\}\s*\.world-activity\{flex-direction:row;width:auto/)
+  expect(css).toContain('.world-activity-tab:is([aria-selected=true],[aria-expanded=true])') // 고른 탭과 펼친 목록 토글이 같은 강조다
+  expect(writingCss).not.toContain('world-activity')
+  expect(writingCss).not.toContain('world-panel')
 })
 
 it('대표 이미지 타일은 헤더 표지(.cov)의 3:4·둥근 모서리·그림자를 그대로 쓰고 빈 타일만 얇은(1px) 점선 테두리(--line3)·그림자 없음으로 구분하며, 빈 타일 안 이미지 추가는 타일 전체를 덮는다', () => {
@@ -155,11 +167,6 @@ it('설정집 일괄 공개 회차 줄은 .episode-app의 label(block)·입력(�
   expect(input).toMatch(/margin-top:\s*0/)
   expect(input).toMatch(/padding:\s*8px 10px/)
   expect(input).not.toMatch(/font/) // 터치 기기의 16px(확대 방지) 보정은 .episode-app 규칙이 계속 맡는다
-})
-
-it('카드 편집의 유형 라벨은 전역 .field의 세로 쌓기(column)를 이겨 "유형 [select]"가 한 줄이다', () => {
-  // 전역 .field는 flex-direction:column인데 .world-card-meta .world-type은 display·align-items만 다시 정해, 세로 축 가운데 정렬로 라벨이 select 위 가운데에 떴다.
-  expect(rule((s) => s === '.world-card-meta .world-type')?.body).toMatch(/flex-direction:\s*row/)
 })
 
 it('650px 이하에서는 세계관 관리 헤더의 표지를 72px로 줄여 제목 옆에 두고(칩·소개·버튼은 전체 폭) 고른 탭의 내용이 첫 화면에 들어온다 (공용 .ep-hero-cover와 /content 작품 관리 표지는 그대로)', () => {

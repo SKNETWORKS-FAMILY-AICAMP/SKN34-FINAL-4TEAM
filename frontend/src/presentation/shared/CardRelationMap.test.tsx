@@ -158,3 +158,27 @@ it('이웃이 아주 많아도(89명·사건 80) 그림 16개·목록은 50개�
   expect(screen.getByText('외 73개는 아래 목록에서 볼 수 있어요')).toBeTruthy()
   expect(screen.getByText('함께한 사건 80').closest('details')!.open).toBe(false)
 })
+
+const quiet = ['알고 있음', '전해 들음']
+const harry = () => [...Array.from({ length: 5 }, (_, i) => entry('지인' + i, [['알고 있음', 1]])), entry('빌', [['가족', 2]]), entry('지니', [['가족', 3]]), entry('론', [['친구', 4]])]
+
+it('quietKinds를 주면 목록이 관계 종류별 묶음이다: 의미 있는 종류는 위에 열려 있고 알고 있음 (5) 같은 조용한 묶음은 기본으로 접혀 있다(수십 줄이 한꺼번에 늘어서지 않는다)', () => {
+  render(ui({ entries: harry(), quietKinds: quiet }))
+  const groups = [...document.querySelectorAll<HTMLDetailsElement>('details.card-relmap-kind')]
+  expect(groups.map((d) => [d.querySelector('summary')!.textContent, d.open])).toEqual([['가족 (2)', true], ['친구 (1)', true], ['알고 있음 (5)', false]])
+  expect(within(screen.getByRole('list', { name: '가족 관계 목록' })).getAllByRole('listitem').map((li) => rowText(li))).toEqual(['빌 — 가족 · 2화부터', '지니 — 가족 · 3화부터'])
+  expect(within(screen.getByRole('list', { name: '알고 있음 관계 목록' })).getAllByRole('listitem')).toHaveLength(5) // 접혀 있어도 키보드·낭독기가 펼쳐서 읽는다
+  expect(screen.queryByRole('list', { name: '관계 목록' })).toBeNull() // 묶음이 아닌 한 덩어리 목록은 없다
+})
+
+it('묶음의 목록도 50개씩 쪽으로 나뉜다(묶음마다 따로)', () => {
+  render(ui({ entries: Array.from({ length: 55 }, (_, i) => entry('이웃' + i, [['알고 있음', 1]])), quietKinds: quiet }))
+  expect(within(screen.getByRole('list', { name: '알고 있음 관계 목록' })).getAllByRole('listitem')).toHaveLength(50)
+  expect(screen.getByText('알고 있음 (55)')).toBeTruthy()
+})
+
+it('quietKinds가 없으면 기존처럼 한 덩어리 목록이다(공개 카드 페이지)', () => {
+  render(ui({ entries: harry() }))
+  expect(document.querySelector('details.card-relmap-kind')).toBeNull()
+  expect(listed()).toHaveLength(8)
+})
