@@ -317,7 +317,7 @@ function WorldEditor({ vm, world, revisions, openVersions, menuOpen, setMenuOpen
           {timeline && (
             <section className="world-confirmed" aria-label="시간선">
               <h3>저장된 시간선</h3>
-              <WorldTimeline items={vm.saved?.settings.map((s) => s.item) ?? []} />
+              <WorldTimeline settings={vm.saved?.settings ?? []} onOpenCard={vm.editCard} />
             </section>
           )}
           {vm.relationWorld === world.id && (

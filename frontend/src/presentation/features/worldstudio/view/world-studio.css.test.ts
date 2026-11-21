@@ -566,3 +566,12 @@ it('관계도 보기의 안내문은 묶음(.relationship-notes)으로 캔버스
   expect(people('.relationship-legend')).toBe('') // 선 모양이 한 가지라 범례는 없다
   expect(mediaRule('(max-width:600px),(pointer:coarse)', '.ep-content[data-view=people] .relationship-hint')).toBe('')
 })
+
+it('시간선은 가로 시간축이다: 설명은 컨테이너가 880px 이상이면 오른쪽 320px 패널이고 좁으면 아래이며, 접힌 열 버튼(사건 N)은 알약 모양이고, 구간 이동 줄은 좁으면 줄바꿈한다', () => {
+  expect(timelineCss).toMatch(/\.world-timeline\{[^}]*container-type:inline-size/) // 사이드바를 접고 펴도 컨테이너 폭으로 맞는다
+  expect(timelineCss).toMatch(/@container \(min-width:880px\)\{\.world-timeline-body\{grid-template-columns:minmax\(0,1fr\) 320px\}\}/)
+  expect(timelineCss.match(/\.world-timeline-body\{([^}]*)\}/)?.[1]).toMatch(/display:grid/)
+  expect(timelineCss.match(/\.world-timeline-more\{([^}]*)\}/)?.[1]).toMatch(/border-radius:999px/)
+  expect(timelineCss.match(/\.world-timeline-pager\{([^}]*)\}/)?.[1]).toMatch(/flex-wrap:wrap/)
+  expect(timelineCss.match(/\.world-timeline-board svg\{([^}]*)\}/)?.[1]).toMatch(/pointer-events:none/) // 눈금·선이 사건 버튼 누르기를 가리지 않는다
+})

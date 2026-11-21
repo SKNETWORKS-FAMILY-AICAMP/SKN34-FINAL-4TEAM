@@ -704,7 +704,7 @@ it('시간선은 설정집 화면의 보기 전환이고(?view=timeline) 저장�
   expect(screen.queryByRole('table', { name: '설정 카드 목록' })).toBeNull()
   expect(screen.getByRole('heading', { name: '저장된 시간선' })).toBeTruthy()
   expect(screen.queryByText(/저장한 설정만 보여드려요/)).toBeNull() // 제목이 이미 저장분이라고 말한다
-  expect(Array.from(within(screen.getByRole('region', { name: '사건 시간선' })).getAllByRole('button'), (b) => b.textContent)).toEqual(['1년건국'])
+  expect(Array.from(within(screen.getByRole('region', { name: '사건 시간선' })).getAllByRole('button'), (b) => b.textContent)).toEqual(['건국1년'])
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   expect(where()).toBe('/worldstudio/qa')
   expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
@@ -717,10 +717,10 @@ it('시간선은 저장한 설정 기준이라 작성 중인 수정은 저장하
   backToBoard()
   fireEvent.click(manageTabs().getByRole('button', { name: '시간선' }))
   const events = () => Array.from(within(screen.getByRole('region', { name: '사건 시간선' })).getAllByRole('button'), (b) => b.textContent)
-  expect(events()).toEqual(['1년건국'])
+  expect(events()).toEqual(['건국1년'])
   fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
   await waitFor(() => expect(saveBar().getByText('저장됨')).toBeTruthy())
-  expect(events()).toEqual(['1년건국 선포'])
+  expect(events()).toEqual(['건국 선포1년'])
 })
 
 it.each([
@@ -4260,14 +4260,14 @@ it('게시판 제목 옆 [n]은 world-count 클래스를 달아 CSS가 넓은 �
   expect(badge.querySelector('.sr-only')?.textContent).toBe('관계 1개')
 })
 
-// ── 5단계 polish: 시간선 연결선은 점 중심 높이에서 이어진다 ─────────────────────────────────────────────────────
-it('시간선 연결선은 점 중심 높이(행 top 22 + 시점 1lh + 간격 8 + 점 반지름 7 ≈ 58)에서 점 중심(x 40)을 잇는다', async () => {
+// ── 시간선(가로 시간축): afterId 화살표는 점 중심에서 점 중심으로 이어진다 ─────────────────────────────────────────────────────
+it('시간선 afterId 화살표는 앞선 사건의 점 중심에서 뒤 사건의 점 중심(열 가운데 x 66·첫 행 y 64·행 간격 92)으로 이어진다', async () => {
   const first = eventCard('건국')
   const second = eventCard('전쟁', '3년')
   second.item.afterId = first.item.id
   await show([first, second], '/worldstudio/qa?view=timeline')
   const d = document.querySelector('.world-timeline-board svg path[marker-end]')?.getAttribute('d') ?? ''
-  expect(d).toMatch(/^M 40 58 C 190 58, -?\d+ 58, \d+ 58$/)
+  expect(d).toBe('M 66 64 Q 96 146 66 156') // 같은 열(시점 미정)의 첫 행(64)과 둘째 행(64+92)을 휘어 잇는다
 })
 
 // ── 상단바를 사이드바로 합치기(사용자 요청): 관리 모드는 공용 상단바(Gnb)를 그리지 않고 사이드바가 그 역할을 맡는다 ─────────────────────
