@@ -57,7 +57,7 @@
 .relationship-character-card.selected{border:2px solid var(--rc-accent,var(--pri));padding:11px;background:var(--rc-sel,var(--pri-soft))}.relationship-character-card.target{border:2px dashed var(--rc-accent,var(--pri));padding:11px}.relationship-character-card.dim{opacity:.3}
 .relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--rc-sub,var(--sub));margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:12px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
 @media(max-width:600px){.relationship-flow{height:440px}.relationship-character-card{border-radius:10px}}
-/* 터치 기기: 카드 위에서 세로로 미는 손짓은 카드 끌기가 아니라 스크롤이 받는다(가로로 끌면 카드가 움직인다). 컨트롤 버튼은 누르는 크기 44px다. 캔버스 안의 한 손가락 끌기는 캔버스 이동이라, 관계도 보기(world-studio.css)는 캔버스 높이를 화면의 64%까지로 줄여 페이지를 스크롤할 자리를 남긴다. */
+/* 터치 기기: 카드 위에서 세로로 미는 손짓은 카드 끌기가 아니라 스크롤이 받는다(가로로 끌면 카드가 움직인다). 컨트롤 버튼은 누르는 크기 44px다. 캔버스 안의 한 손가락 끌기는 캔버스 이동이라, 관계도 보기(world-studio.css)는 캔버스가 화면 끝까지 차 있어도 페이지 스크롤을 캔버스 위 줄·아래 목록에서 시작한다. */
 @media(pointer:coarse){.relationship-character-card{touch-action:pan-y}.relationship-flow .react-flow__controls-button{width:44px;height:44px}}
 /* 마우스 기기에서는 카드의 두 버튼(정보 편집·관계 연결)을 호버·초점·선택·상대를 고르는 중일 때만 보인다(distill): 그래프가 버튼 격자처럼 보이지 않게 한다. 투명할 뿐 사라지지 않아 키보드 초점·스크린리더는 그대로 닿고(:focus-within이 보이게 한다), 터치 화면은 이 규칙이 닿지 않아 늘 보인다. */
 @media(hover:hover){.relationship-stage .relationship-character-card>div{opacity:0}.relationship-stage .relationship-character-card:is(:hover,:focus-within,.selected,.target)>div{opacity:1}}
