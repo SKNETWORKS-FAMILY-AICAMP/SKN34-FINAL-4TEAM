@@ -108,6 +108,18 @@ def test_an_identity_relation_that_touches_a_narrator_style_card_is_ignored_inst
 
 # --- 고른 카드의 이름으로, 본체의 문서로 ------------------------------------------------------------------------------------
 
+def test_the_other_name_card_is_judged_after_merging_with_its_body_so_it_needs_the_bodys_soul_not_one_of_its_own(monkeypatch):
+    fake_content(monkeypatch, read=DUAL)
+    assert service.plan_from_form(PLAN, TARGET) == PLAN  # 승상은 SOUL이 없어도 본체의 SOUL·GOAL로 연기하니 고를 수 있다(#357)
+    empty_soul = [PEOPLE[0], card(BODY, '홍길동', 'BODY-IDENTITY', docs={'soul': ' ', 'goal': 'BODY-GOAL', 'episodes': {}})]
+    no_body_text = [card(MASK, '승상', ''), PEOPLE[1]]
+    for people, missing, fine in ((empty_soul, 'SOUL.md', 'IDENTITY.md'), (no_body_text, 'IDENTITY.md', 'SOUL.md')):  # 본체의 SOUL이 비었다 / 가면 카드 자신의 본문이 비었다
+        fake_content(monkeypatch, read=world(identity(I1, MASK, BODY), people=people))
+        with pytest.raises(SimulationFailure) as error:
+            service.plan_from_form(PLAN, TARGET)
+        assert error.value.status == 422 and '승상' in str(error.value) and missing in str(error.value) and fine not in str(error.value)
+
+
 def test_the_other_name_card_acts_under_its_own_name_with_the_bodys_soul_goal_and_memories_up_to_the_base_episode(monkeypatch):
     fake_novelbrain(monkeypatch)
     _, (asked, extra, _) = view(monkeypatch)
@@ -203,14 +215,17 @@ def test_two_cards_without_an_identity_relation_are_two_people(monkeypatch):
     fake_novelbrain(monkeypatch)
     plan = SimulationPlan(mode='if', premise='IF-PREMISE', characterIds=[MASK, BODY])
     loaded, (asked, _, _) = view(monkeypatch, read=world(), plan=plan)
-    assert service.plan_from_form(plan, TARGET) == plan
+    with pytest.raises(SimulationFailure) as error:  # 한 사람으로 묶지 않으니 본체의 SOUL을 받지 못해 승상 자신의 빈 SOUL이 그대로 판정된다(#357)
+        service.plan_from_form(plan, TARGET)
+    assert error.value.status == 422 and 'SOUL.md' in str(error.value) and service.SAME_PERSON not in str(error.value)
     assert asked['present'] == ['승상', '홍길동'] and 'BODY-SOUL' not in text(asked['known']) and 'BODY-IDENTITY' not in text(asked['known'])
     assert loaded.characters[MASK].soul == '' and loaded.characters[BODY].soul.startswith('BODY-SOUL')
 
 
 def test_a_denied_identity_relation_is_not_a_link(monkeypatch):
     plan = SimulationPlan(mode='if', premise='전제', characterIds=[MASK, BODY])
-    fake_content(monkeypatch, read=world(identity(I1, MASK, BODY, polarity='denied')))
+    mask = card(MASK, '승상', 'MASK-IDENTITY 왕을 보좌하는 재상', docs={'soul': 'MASK-SOUL 격식 있는 존댓말', 'goal': '', 'episodes': {}})  # 자기 SOUL이 있어 두 사람으로 고를 수 있다
+    fake_content(monkeypatch, read=world(identity(I1, MASK, BODY, polarity='denied'), people=[mask, PEOPLE[1]]))
     assert service.plan_from_form(plan, TARGET) == plan
 
 

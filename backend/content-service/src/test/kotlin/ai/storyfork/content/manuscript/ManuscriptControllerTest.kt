@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 
 class ManuscriptControllerTest {
     private val imports = mock(ManuscriptImportService::class.java)
@@ -58,6 +60,13 @@ class ManuscriptControllerTest {
         val advice = AnnotatedElementUtils.findMergedAnnotation(ContentExceptionHandler::class.java, RestControllerAdvice::class.java)!!
         assertTrue("ai.storyfork.content.manuscript.controller" in advice.basePackages)
         assertEquals("ai.storyfork.content.manuscript.controller", ManuscriptController::class.java.packageName)
+    }
+
+    @Test fun `bulk request JSON starts the world build unless it says startWorldBuild false`() {
+        val mapper = JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+        val body = """{"rightsConfirmed":true,"expectedWorkRevision":7,"items":[{"number":2,"title":"2화"}]"""
+        assertTrue(mapper.readValue("$body}", BulkImportRequest::class.java).startWorldBuild)
+        assertFalse(mapper.readValue("$body,\"startWorldBuild\":false}", BulkImportRequest::class.java).startWorldBuild)
     }
 
     @Test fun `bulk import uses the authenticated owner and keeps the basis response out of caches`() {

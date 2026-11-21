@@ -1,5 +1,7 @@
 # NovelBrain 평가 결과 (#58)
 
+> 처음 본다면 그림으로 정리한 [NovelBrain 한눈에 보기](novelbrain-overview.md)부터 읽는다.
+
 > 실행: 2026-11-14, 같은 날 갱신(하나씩 빼기·짝 검정 추가, 작업 A의 시작점 낱말 경계 수정 반영, MuSiQue 답을 수정 뒤 문맥으로 다시 풀기, TimeChara 검증 600건 전체 평가, 한국어 장편 평가 세트 KoTimeChara 53편·3,328문항 추가)과 2026-11-15 재계산(한국어 샘플에 카드 공개 회차 연결, 엄격 근거 규칙으로 영어 그래프를 다시 만들어 검색·MuSiQue 답 갱신). 대상: `backend/ai-service/app/novelbrain`(작업 A 브랜치 `238cead0`). 계약: [인물 시뮬레이션·NovelBrain 계약](../design/character-simulation-contract.md#평가).
 > 스크립트·집계 수치: [`backend/ai-service/eval/novelbrain/`](../../backend/ai-service/eval/novelbrain/README.md)(`results/*.json`). 원문·번역·색인·모델 응답 원본은 저장소에 없다. 수집 소설의 제목·원문·발췌·요약·질문·응답도 저장소와 이 문서에 없다.
 

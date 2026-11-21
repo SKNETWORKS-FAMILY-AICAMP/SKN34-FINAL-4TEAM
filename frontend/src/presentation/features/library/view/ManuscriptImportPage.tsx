@@ -1,5 +1,6 @@
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
+import { ImportUploadNotice, ImportWorldBuildResult } from '../../../shared/ImportWorldBuild'
 import { useScreenId } from '../../../shared/screenIds'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
@@ -93,6 +94,7 @@ function ImportPreview({ vm, plan }: { vm: VM; plan: Plan }) {
             </div>
           </li>
         })}</ol>
+        <ImportUploadNotice />
         <div className="rowend"><button type="button" className="btn pri" disabled={!vm.canConfirm} onClick={() => void vm.confirm()}>{vm.busy === 'confirm' ? '등록하는 중이에요…' : `${vm.included}개 회차 등록`}</button></div>
       </fieldset>
       {vm.busy && <button type="button" className="btn sm" onClick={vm.cancel}>요청 취소</button>}
@@ -101,7 +103,7 @@ function ImportPreview({ vm, plan }: { vm: VM; plan: Plan }) {
   )
 }
 
-function ImportResult({ vm, result: { results, failed } }: { vm: VM; result: Summary }) {
+function ImportResult({ vm, result: { results, failed, worldBuild } }: { vm: VM; result: Summary }) {
   const failures = results.filter((r) => r.status === 'failed')
   const partials = results.filter((r) => r.status === 'partial')
   const saved = results.filter((r) => r.status === 'created' || r.status === 'versioned')
@@ -111,6 +113,9 @@ function ImportResult({ vm, result: { results, failed } }: { vm: VM; result: Sum
       {results.length > 0 && failed === 0 && !failures.length && !partials.length
         ? <p role="status">모든 회차를 등록했어요.</p>
         : <p role="status">{results.length}개 중 {results.length - failures.length}개를 저장했고 {failures.length}개는 저장하지 못했어요.{partials.length > 0 && ` 이미지를 일부 가져오지 못한 회차가 ${partials.length}개 있어요.`} 전체가 등록된 것은 아니에요. 아래 항목을 확인해 주세요.</p>}
+      <ImportWorldBuildResult worldBuild={worldBuild}>
+        <Go to={`/content?work=${encodeURIComponent(vm.workId)}&tab=world`} className="btn sm">작품 관리 세계관 탭 열기</Go>
+      </ImportWorldBuildResult>
       {failures.length > 0 && <section className="mi-result mi-failed" role="alert" aria-label="저장하지 못한 회차">
         <h3>저장하지 못한 회차 {failures.length}개</h3>
         <ul>{failures.map((r) => <li key={r.number}><b>{r.number}화 · {r.title}</b><span>{r.reason ?? '저장하지 못했어요.'}</span></li>)}</ul>

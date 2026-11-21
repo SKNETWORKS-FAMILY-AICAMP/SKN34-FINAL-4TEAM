@@ -3,6 +3,16 @@ import { beatCharacterIds, inheritedCharacters, planBeats, worldCharacters } fro
 import { useAsyncData } from '../useAsyncData'
 
 /**
+ * 이 작품에 연결된 내 세계관의 id. 없으면(연결 없음·아직 읽는 중·읽지 못함) null이다. 이어받은 원작 세계관은 읽기 전용이라 편집 화면이 없으므로 null이다.
+ * 비트 거부로 멈춘 장면이 거부한 인물 카드의 설정집 편집 화면(`/worldstudio/{id}?card=`)으로 잇는 데 쓴다(#356).
+ */
+export function useLinkedWorldId(workId: string) {
+  const worlds = appContainer.resolve('worldStudioUseCase')
+  const { data } = useAsyncData(async (signal) => (await worlds.list(signal)).find((world) => world.linkedWorkId === workId)?.id ?? null, [worlds, workId])
+  return data ?? null
+}
+
+/**
  * 시뮬레이션 시작 양식(#58 버튼 진입)이 쓰는 값. 양식이 열릴 때마다 다시 읽어 플롯·세계관에서 고친 것을 따른다.
  * - 인물 후보: 이 작품에 연결된 WorldStudio 세계관의 인물 카드(내 세계관 목록에서 linkedWorkId가 이 작품인 것을 읽는다).
  *   서버가 characterIds를 연결 세계관의 활성 인물 카드 id로 검증하므로 레거시 설정집이나 장면 계획의 인물 id는 쓰지 않는다.

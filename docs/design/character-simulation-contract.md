@@ -9,7 +9,7 @@
 | 목표 | 세계관 정본에서 **인물이 기준 회차까지 아는 것만** 찾는 기억 추론(NovelBrain) 위에서, 인물별로 격리된 에이전트와 나레이터가 턴을 이어 가는 시뮬레이션을 집필실 무대에서 실시간으로 보여 주고, 결과를 웹소설 장면(나레이션 지문 + 독백 + `"대사"`)으로 이어 붙여 작가 승인 시 회차 원고에 저장한다. |
 | 진입 | 집필실 [시뮬레이션] 버튼으로 시작한다(아래 '버튼 진입'). 채팅 자유 입력은 Decision Guard가 명시적 시뮬레이션 요청(`character_simulation`)으로 판정하면 메인 에이전트의 `ask_character_simulation` 도구가 계획을 세우고 같은 장면 실행(`scene` 노드)에 들어온다(#473). 화면은 집필실 중앙의 **무대 패널**이고 채팅에는 상태 한 줄만 남는다(아래 '무대'). Decision Guard는 이번 요청만으로 먼저 판정하고 고른 기능이 없을 때만 이전 요청을 붙인다(집필 요청이 섞이면 시뮬레이션 요청이 집필로 끌려갔다). |
 | 모드 | **IF 모드**: 메인 에이전트와 정한 "만약 ~했다면?" 전제 하나만 강제, 인물은 자유. **흐름 모드**: 메인 에이전트와 정한 비트(장면·사건 순서)를 따른다. 흐름 모드는 메인 에이전트 단독 집필에서 생기는 오류를 인물 격리로 해결하는 장치다. |
-| 인물 입력 | DEC-47 인물 문서. `IDENTITY.md`(카드 본문)·`SOUL.md`(말투·사고)·`GOAL.md`(목표)·`memory/NN회차.md` 중 **기준 회차 이하**만. 다른 인물의 문서·비공개 생각은 넣지 않는다. |
+| 인물 입력 | DEC-47 인물 문서. `IDENTITY.md`(카드 본문)·`SOUL.md`(말투·사고)·`GOAL.md`(목표)·`memory/NN회차.md` 중 **기준 회차 이하**만. 다른 인물의 문서·비공개 생각은 넣지 않는다. 필수는 `IDENTITY.md`·`SOUL.md`이고 `GOAL.md`는 선택이다([필수 인물 문서](#필수-인물-문서와-시작-검증--357624)). |
 | 모델 | 인물 행동·나레이션·독백·검사·요약은 OpenAI `gpt-6-luna`(DEC-28, 기존 `OPENAI_MODEL` 설정), 연출 결정은 OpenAI Decisions(`gpt-6-luna`)다. |
 | 실행 틀 | 장면은 LangChain `create_agent` + 미들웨어·훅·콜백·이벤트 리스너로 쓴다(#362, 사용자 결정 2026-11-14). Q&A·집필·고증·검수 업무 Agent도 #373(DEC-52)에서 `create_agent` + 공통 미들웨어(`app/agent_runtime.py`)로 바뀌었고, 이들을 묶는 바깥 오케스트레이션은 LangGraph 그래프 그대로다. |
 | 연출·시점 | 인물이 말하기 전에 매 턴 연출 결정(나레이션·독백·인물 대사·마무리, 화자, 시점)을 거친다. 시점은 전지적·인물의 3인칭 제한·인물의 1인칭이며 비트마다 바뀔 수 있다. 독백은 나레이터가 시점 인물의 지식 범위로 쓴다. |
@@ -71,7 +71,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - 인물 대사 한도 12턴(나레이션·독백은 세지 않고 전체 40턴이 안전 한도), 재생성 2회. 위반 반복·비트 거부·한도는 부분 결과(`status: stopped|failed`, `stopReason`)를 남기고 그 상태로는 승인 대상이 아니다(UC-09 E2). 대화 안에서는 멈춘 장면을 작가가 이어 가거나 `stop`으로 끝낼 수 있고, `stop`한 장면은 `completed`가 되어 승인 질문으로 이어진다(아래 '실패·중단').
 - 인물 턴은 "대사"와 짧은 행동 묘사만 쓴다. 배경·장소·분위기 묘사는 나레이터 몫이다(인물 지침에서 금지). **대사만 인물의 말투(SOUL)**를 쓰고 대사 밖의 행동 묘사는 시점 규칙을 따른 서술체(-다)다: 전지적·3인칭 제한·다른 인물의 1인칭 시점이면 3인칭, 1인칭 시점이면 그 시점 인물만 1인칭이다(입력 `actionStyle: {person: third|first, subject}`를 서버가 정해 인물과 검사에 준다). 대사 따옴표는 서버가 직선 큰따옴표(`"`)로 통일한다(원고와 사용자 요구 `지문 + "대사"`에 맞춘 코디네이터 결정 2026-11-14. 「」·『』·둥근 큰따옴표 “ ”를 후처리로 바꾸고 짝 없는 따옴표·작은따옴표는 두며, DEC-48은 대사 따옴표를 정하지 않아 충돌하지 않는다).
 - 같은 인물이 이 장면에서 앞서 한 대사와 거의 같은 대사를 되풀이하면(대사 부분만, 공백·문장부호를 뺀 글자열 유사도 0.8 이상, 10자 이상) 모델 검사 전에 서버가 걸러 다시 쓰게 한다(검사 종류 `repetition`, 라벨 '같은 말 반복'). 계속 되풀이하면 `check_failed`로 멈춘다. 다른 인물의 대사와는 비교하지 않는다.
-- 인물이 자기 성격대로 비트를 거부하면 오류가 아니라 **기획 쪽 문제**로 보고 `stopReason: beat_rejected`로 멈춘다. 작가는 줄을 고치거나 흐름을 바꿔 다시 요청한다.
+- 인물이 자기 성격대로 비트를 거부하면 오류가 아니라 **기획 쪽 문제**로 보고 `stopReason: beat_rejected`로 멈춘다. '이대로 진행'(건너뛰기·강제)은 없다(2026-11-19 사용자 결정, #356): 작가는 거부한 인물의 설정집 카드나 흐름을 고쳐 다시 시도한다. 거부한 인물의 카드 id는 거부한 비트(`status: rejected`)의 `rejectedBy`에 실리고(「동일 인물」의 다른 이름 카드를 골랐으면 그 카드 id다. SOUL·GOAL·회차 기억은 본체 카드에서 고친다), 화면은 멈춘 무대에 그 카드의 편집 화면(`/worldstudio/{세계관 id}?card=<카드 id>`, 새 탭이라 무대와 쓰던 원고가 남는다)으로 가는 `설정집에서 고치기`와 장면 계획으로 가는 `흐름 고치기`를 보인다. 고친 뒤 `next`로 다시 시도하면 AI가 요청마다 세계관을 새로 읽으므로(`load_world`) 쌓은 턴을 지킨 채 그 비트부터 고친 문서로 이어 쓰고 거부 표시는 풀린다. 비트는 장면을 시작할 때 정해져 중간에 바꿀 수 없으므로 흐름(장면 계획)을 고쳤다면 장면을 끝내고 새 시뮬레이션으로 다시 시작한다.
 - 작가가 중간에 넣는 한마디는 끼어들기 메모로 다음 턴에 반영한다(아래 '장면 조작').
 
 ### 흐름 모드가 해결하는 오류
@@ -92,7 +92,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 {
   "mode": "if" | "flow",
   "premise": "IF 전제(흐름 모드는 null)",
-  "beats": [{"index": 0, "text": "성문 대면", "status": "done" | "pending" | "rejected"}],
+  "beats": [{"index": 0, "text": "성문 대면", "status": "done" | "pending" | "rejected", "rejectedBy": "거부한 인물의 카드 id(status가 rejected일 때만, 아니면 null)"}],
   "turns": [{
     "index": 0, "kind": "narration" | "monologue" | "character",
     "characterId": "card-id(나레이션은 null, 독백은 시점 인물)", "characterName": "카엘(나레이션은 '나레이션')",
@@ -181,7 +181,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 ### 실패·중단
 
-- 검사 반복 위반(`check_failed`)·비트 거부(`beat_rejected`)·한도(`turn_limit`)는 그 턴을 붙이지 않고 쌓은 턴과 메모를 지킨 채 `status: stopped`(호출 실패는 `failed`)와 이유를 남긴다. 턴이 하나 이상 있으면 `waiting`(awaitingScene)으로 계속 멈춰 있고(단계는 `failed`로 이유를 보인다) 작가가 줄을 고치거나 다시 말하게 하거나 `next`로 다시 시도하거나 `stop`으로 지금까지를 끝낼 수 있다. 화면은 이때 자동 재생을 멈춘다.
+- 검사 반복 위반(`check_failed`)·비트 거부(`beat_rejected`)·한도(`turn_limit`)는 그 턴을 붙이지 않고 쌓은 턴과 메모를 지킨 채 `status: stopped`(호출 실패는 `failed`)와 이유를 남긴다. 턴이 하나 이상 있으면 `waiting`(awaitingScene)으로 계속 멈춰 있고(단계는 `failed`로 이유를 보인다) 작가가 줄을 고치거나 다시 말하게 하거나 `next`로 다시 시도하거나 `stop`으로 지금까지를 끝낼 수 있다. 화면은 이때 자동 재생을 멈춘다. 비트 거부는 거부한 비트의 `rejectedBy`로 거부한 인물을 알리고, 다시 시도(`next`·`redo`)하면 거부 표시가 비트의 진행 상태와 함께 다시 계산되어 풀린다.
 - 첫 턴이 실패해 쌓은 턴이 없으면 이어 갈 장면이 없어 단계를 `failed`(부분 결과 `stopped|failed`, 승인 없음)로 끝낸다.
 - 호출 한도 안전망(`call_limit`)이 끊으면 에이전트가 끝나므로 이어 갈 수 없다. 쌓은 턴은 그대로 두고 `status: stopped`·`stopReason: call_limit`·단계 `failed`로 끝낸다(승인 없음, 실패를 숨기지 않되 결과는 남긴다).
 - 작가가 `stop`한 장면은 `completed`라서 승인 질문이 이어진다. 승인 없이 끝나는 것은 `failed`뿐이다.
@@ -198,7 +198,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - 시작 양식(무대 패널): **IF**는 전제 한 줄("만약 ~했다면")과 참여 인물(연결 세계관의 인물 카드, 연결한 세계관이 없는 Fork는 이어받은 원작 세계관의 공개 인물 카드, 1~6명)이다. **흐름**은 이 작품의 장면 계획(`story_plan`, `kind=scene`) 중 열린 회차(`episode_number`)가 같은 것들을 순서대로 비트로 쓰고(`제목: 내용`을 200자로 자름, 최대 8개), 참여 인물은 그 계획들의 `characters` 합집합이다(양식에서 고칠 수 있다). 그 회차의 장면 계획이 없으면 안내하고 비트를 직접 입력하게 한다.
 - 시작은 채팅 메시지다: `operation: 'character_simulation'`, `request`(요약 문장, 예 "흐름 모드 시뮬레이션: 장면 계획 3개"), `simulation: {mode: 'if'|'flow', premise?: ≤500자, beats?: ≤8개 × ≤200자, characterIds: 1~6개 × ≤100자}`.
 - Content `WritingAiRequest.simulation`: `mode`·길이·개수를 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422, 권한 확인 전에 거절). 값은 그대로 AI에 넘긴다.
-- 근거 회차와 반영 회차(#58): 요청의 `episode`·`episodeVersionId`는 **근거 회차**다. 발행된 판본이어야 하고 Q&A 조회 범위와 세계관의 지식 상한(기준 회차)을 정한다. 작가가 발행 전 초안을 열어 두면 화면은 마지막 발행 회차를 근거로 보낸다. 승인 뒤 결과를 쓸 **반영 회차**는 선택 필드 `targetEpisode`(없으면 `episode`와 같다)이며 작가가 연 회차를 보낸다. Content는 새 요청에서만 `targetEpisode >= episode`이고 그 작품의 활성 회차(발행 전 초안도 가능)인지 확인하고 어긋나면 422다(이어가기에서는 무시한다). AI에는 `target {workId, episode: 반영 회차, baseEpisode?: 근거 회차}`로 넘기며 `baseEpisode`는 둘이 다를 때만 온다. AI는 승인 반영과 승인 질문의 `approvalEpisode`에 `target.episode`를, 시뮬레이션이 세계관을 읽는 기준 회차에 `target.baseEpisode ?? target.episode`를 쓴다. 화면은 무대의 승인 문구("N화 초안 끝에")를 반영 회차로 보이고 근거와 다르면 시작 양식에 "근거: M화까지 / 반영: N화 초안"을 보인다. 새로 고친 뒤 승인 대기 장면이 복원되면 집필실은 `approvalEpisode`로 편집기를 그 회차에 맞춘다. 장면 대기(`awaitingScene`) 응답에는 `approvalEpisode`가 없어(승인 질문에만 싣는다) 그 복원에서는 서버가 반영 회차를 알려 주지 않고, 집필실이 열린 회차를 따라 바꿔 둔 주소의 `?ep=n`이 편집기 회차를 정한다.
+- 근거 회차와 반영 회차(#58): 요청의 `episode`·`episodeVersionId`는 **근거 회차**다. 발행된 판본이어야 하고 Q&A 조회 범위와 세계관의 지식 상한(기준 회차)을 정한다. 작가가 발행 전 초안을 열어 두면 화면은 마지막 발행 회차를 근거로 보낸다. 승인 뒤 결과를 쓸 **반영 회차**는 선택 필드 `targetEpisode`(없으면 `episode`와 같다)이며 작가가 연 회차를 보낸다. Content는 새 요청에서만 `targetEpisode >= episode`이고 그 작품의 활성 회차(발행 전 초안도 가능)인지 확인하고 어긋나면 422다(이어가기에서는 무시한다). AI에는 `target {workId, episode: 반영 회차, baseEpisode?: 근거 회차}`로 넘기며 `baseEpisode`는 둘이 다를 때만 온다. AI는 승인 반영과 `approvalEpisode`(승인 질문과 장면 대기(`awaitingScene`) 응답에 같은 값으로 싣는다, #364)에 `target.episode`를, 시뮬레이션이 세계관을 읽는 기준 회차에 `target.baseEpisode ?? target.episode`를 쓴다. 화면은 무대의 승인 문구("N화 초안 끝에")를 반영 회차로 보이고 근거와 다르면 시작 양식에 "근거: M화까지 / 반영: N화 초안"을 보인다. 새로 고친 뒤 승인 대기·장면 대기 장면이 복원되면 집필실은 `approvalEpisode`로 편집기를 그 회차에 맞춘다(주소의 `?ep=n`이 다른 회차를 가리켜도 같다). 입력 대기와 Content 쓰기 도구 승인(`content_action`)에는 싣지 않는다.
 - AI `OrchestrationRequest.simulation`: `SimulationPlan`과 같은 한도(전제 500자, 비트 8개×200자, 인물 6명×100자, 모르는 필드 거절)로 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422).
   있으면 `ask_character_simulation`이 계획 모델을 부르지 않고 이 값을 계획으로 쓰되, 인물 id가 연결 세계관의 활성 인물 카드인지와 모드별 필수값(IF 전제, 흐름 비트 1개 이상)을 확인한다. 어긋나면 되묻지 않고 단계 `failed`와 이유로 끝낸다.
 
@@ -228,6 +228,18 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 | 이름 | 작가가 고른 카드의 제목을 화자 이름·`present`·검사의 `others`·장면 줄에 쓴다 |
 | 오류 | 같은 묶음의 두 카드를 고르면 422다. 읽은 identity가 저장 규칙(인물끼리·방향 있음·가면 하나에 본체 하나·사슬·순환 없음)을 어기면 무시·대체 없이 409로 단계 `failed`다. 저장 검사가 최신 시점만 보므로([규칙](worldstudio-independent-schema.md#동일-인물-관계--dec-53)) 중간 회차에만 남은 사슬은 그 회차로 읽는 Fork(원작 읽기 전용)에서 409가 되고 원작 소유자가 관계를 고쳐야 풀린다(한계, 숨기거나 대신 읽지 않는다) |
 | 다른 인물 | 묶음을 합쳐 받지 않는다. 다른 인물은 자기 관계·기억·공개 규칙이 허용한 카드(보통 가면 카드)만 알고, 정체를 아는 인물은 자기 회차 기억 문서(`memory/NN회차.md`)에 적어 안다. 본체가 작가 전용(공개 회차 없음)이면 인물 지식에 시점 제한이 없어 다른 인물이 본체를 알 수 있으므로 화면이 경고한다 |
+
+## 필수 인물 문서와 시작 검증 — #357·#624
+
+**상태: 사용자 결정(2026-11-19 빈 문서 인물은 선택을 막는다 #357 · 2026-11-20 목표 문서는 선택 #624), 소스 구현·로컬 단위 테스트 통과, 병합·hosted CI 통합 확인 전.** 인물 문서(DEC-47) 가운데 시뮬레이션에 꼭 필요한 것은 `IDENTITY.md`(카드 본문)·`SOUL.md`다. 빈 문서를 사실로 채우지 않고, 확인 뒤 진행이 아니라 **선택 자체를 막는다**([UC-09 E3](../usecase-spec/UC-09.md)).
+
+| 항목 | 규칙 |
+|---|---|
+| 필수·선택 | `IDENTITY.md`·`SOUL.md`는 필수, `GOAL.md`는 선택이다(공백뿐이면 빈 문서). 회차 기억(`memory/NN회차.md`)은 원래 선택이다. |
+| 판정 | 화면 `domain/entities/characterDocs.ts`의 `missingCharacterDocs`와 AI `simulation/service.py`의 `_filled`가 같은 규칙이다. 「동일 인물」 다른 이름 카드는 본체와 합친 카드(`_characters`)로 판정한다: 본문(IDENTITY)은 그 카드 자신의 것이고 SOUL은 본체의 것이다. 이어받은 원작 세계관(Fork)은 `SOUL.md`·`GOAL.md`를 이어받지 않으므로([Fork 이어받기](#fork-이어받기-365)) `IDENTITY.md`만 본다. |
+| 화면 | 시작 양식의 인물 목록에서 빈 문서가 있는 인물은 체크가 잠기고 이름 옆에 `비어 있는 문서: SOUL.md · 세계관 관리 화면에서 채워 주세요`를 보인다. 흐름 모드가 비트 문장의 이름으로 미리 채우는 참여 인물에도 같은 규칙이라 잠긴 인물은 미리 고르지 않는다. |
+| 서버 | 화면 잠금만으로 대신하지 않고 거절한다: 버튼 진입 `plan_from_form`은 422(`인물 문서가 비어 있어요: 카엘(SOUL.md). 세계관 관리 화면에서 채워 주세요.`), 채팅 계획 경로의 모델이 고른 `plan`과 매 턴 시작 확인 `check_plan`도 같은 422다. `check_plan`은 요청마다 세계관을 새로 읽으므로 장면 중에 작가가 문서를 비우면 다음 시도가 `failed`로 멈춘다(빈 문서로 연기하지 않는다). |
+| 목표(GOAL) | 있으면 지금처럼 인물 문맥(`known`)에 `목표(GOAL)`로 들어간다. 비어 있으면 문맥에 그 항목이 없고(`_docs`가 빈 문서를 뺀다) 인물은 성격·기억·장면 상황으로 연기하며 목표를 지어내지 않는다. 설정집의 '정리 필요'·'보완 필요'에도 이유로 들어가지 않는다. |
 
 ## 평가
 

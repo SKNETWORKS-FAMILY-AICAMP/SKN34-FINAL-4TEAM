@@ -226,7 +226,7 @@ function cardRow(c: z.infer<typeof card>): StudioSetting {
   // 키가 있는데(JSON null 포함) 회차 값이 잘못됐으면 서버는 작가 전용으로 닫으므로(옛 `visibility`로 열지 않는다) 화면도 같게 읽고, 저장하면 비공개로 맞춘다. 키가 없을 때만 옛 공개 카드다.
   const stored = m.revealFromEpisode, episode = revealFromEpisode.safeParse(stored), closed = stored !== undefined && !episode.success
   const from = importedFrom.safeParse(m.importedFrom), docs = characterDocs.safeParse(m.characterDocs), picture = uuid.safeParse(m.imageId)
-  return {...row,...serverMetadataOf(m,['preprocessing']),...(c.visibility==='public'&&!closed&&{visibility:c.visibility}),...(episode.success&&{revealFromEpisode:episode.data}),...(from.success&&{importedFrom:from.data}),
+  return {...row,...serverMetadataOf(m,['preprocessing','manuscriptBuild']),...(c.visibility==='public'&&!closed&&{visibility:c.visibility}),...(episode.success&&{revealFromEpisode:episode.data}),...(from.success&&{importedFrom:from.data}),
     ...(docs.success&&c.cardType==='character'&&{characterDocs:docs.data}),...(picture.success&&{imageId:picture.data})}
 }
 // 관계 한 줄의 행: 양 끝·극성·관계명·설명은 정본이 이기고(극성이 없으면 긍정), 관계 종류(predicate)는 서버의 유형·방향과 맞는 studio 값만 쓰고 아니면 정본에서 다시 만든다.
@@ -236,7 +236,7 @@ function relationRow(r: z.infer<typeof relation>): StudioSetting {
   const known = relationDefinitions[row.item.predicate ?? ''], stored = known && known.group !== 'other' ? relationship(row) : undefined
   const predicate = stored && stored.category === r.category && stored.direction === r.direction ? row.item.predicate
     : r.category === 'identity' ? 'identity_of' : r.category === 'emotional' ? (r.direction === 'symmetric' ? 'preserved_emotion_symmetric' : 'custom_emotion') : r.direction === 'symmetric' ? 'custom_relation' : 'custom_relation_directed'
-  return { ...row, ...serverMetadataOf(m, ['preprocessing', 'evidence']), item: { ...row.item, predicate } }
+  return { ...row, ...serverMetadataOf(m, ['preprocessing', 'evidence', 'manuscriptBuild']), item: { ...row.item, predicate } }
 }
 function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   if (value.worldId !== id) throw invalid()

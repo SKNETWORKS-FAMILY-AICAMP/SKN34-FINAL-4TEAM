@@ -1,3 +1,5 @@
+import {ManuscriptBuildUseCase} from '../../domain/usecases/ManuscriptBuildUseCase'
+import {HttpManuscriptBuildRepository} from '../../data/content/HttpManuscriptBuildRepository'
 import {InitialWorldUseCase} from '../../domain/usecases/InitialWorldUseCase'
 import {HttpInitialWorldRepository} from '../../data/world-studio/HttpInitialWorldRepository'
 import {WorldReviewUseCase} from '../../domain/usecases/WorldReviewUseCase'
@@ -131,6 +133,8 @@ export function registerAppServices(container: AppContainer) {
     signupUseCase: asFunction(({ signupRepository }) => new SignupUseCase(signupRepository)).singleton(),
     mediaRepository: asFunction(() => new HttpMediaRepository()).singleton(),
     mediaUseCase: asFunction(({ mediaRepository }) => new MediaUseCase(mediaRepository)).singleton(),
+    manuscriptBuildRepository: asFunction(() => new HttpManuscriptBuildRepository()).singleton(),
+    manuscriptBuildUseCase: asFunction(({manuscriptBuildRepository}) => new ManuscriptBuildUseCase(manuscriptBuildRepository)).singleton(),
     manuscriptRepository: asFunction(() => new HttpManuscriptRepository()).singleton(),
     manuscriptUseCase: asFunction(({ manuscriptRepository }) => new ManuscriptUseCase(manuscriptRepository)).singleton(),
     episodeRepository: asFunction(() => new HttpEpisodeRepository()).singleton(),

@@ -60,7 +60,7 @@ const finding = (cardIds: string[], over: Partial<ReviewFinding> = {}): ReviewFi
 
 describe('게시판 상태 집계', () => {
   it('정리 필요·연결 필요·AI 의견 수를 카드마다 세고 상태가 없는 카드는 담지 않는다', () => {
-    const empty = person('빈 인물') // IDENTITY는 있으나 SOUL·GOAL이 비어 정리 필요
+    const empty = person('빈 인물') // IDENTITY는 있으나 SOUL이 비어 정리 필요
     const full = person('가람', { soul: '말수가 적다', goal: '스승을 찾는다' })
     const war = event('전쟁')
     const castle = place('성')
@@ -71,6 +71,11 @@ describe('게시판 상태 집계', () => {
     expect(status.get(full.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 1, order: 0 })
     expect(status.has(war.item.id)).toBe(false)
     expect(cardStatuses([...settings, event('고립된 사건')], []).size).toBe(2)
+  })
+
+  it('GOAL.md만 비운 인물은 정리 필요가 아니다(목표는 선택, #624)', () => {
+    const goalless = person('도윤', { soul: '말수가 적다' })
+    expect(cardStatuses([goalless], []).size).toBe(0)
   })
 
   it('같은 카드를 한 지적에 두 번 적어도 한 건이고, 초안에 없는 카드의 지적은 세지 않는다', () => {

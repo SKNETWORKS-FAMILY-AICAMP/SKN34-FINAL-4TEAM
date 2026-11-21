@@ -992,6 +992,14 @@ it('shows the world link panel above the settings book summary in the world tab'
   expect(screen.queryByText('연결 예정')).toBeNull()
 })
 
+it('opens the world tab first when the address has tab=world', async () => {
+  stubCover()
+  myWorlds([{ id: WORLD_ID, name: '별빛 세계' }])
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([{ ...owned, worldStudioId: WORLD_ID }]), 'GET /api/v1/works/w/world': () => Response.json(settingsBook) }), '옛 제목', '/content?work=w&tab=world')
+  expect(within(screen.getByRole('navigation', { name: '작품 메뉴' })).getByRole('button', { name: '세계관·설정집' }).getAttribute('aria-current')).toBe('page')
+  expect(await screen.findByRole('region', { name: '세계관 설정집' })).toBeTruthy()
+})
+
 it('links and unlinks my world from the world tab and shows the server reason when the world is already linked', async () => {
   stubCover()
   myWorlds([{ id: WORLD_ID, name: '별빛 세계' }])

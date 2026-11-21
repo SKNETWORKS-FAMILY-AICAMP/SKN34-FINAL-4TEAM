@@ -14,6 +14,8 @@ Python `>=3.11,<3.15`와 uv를 사용합니다.
 ```bash
 uv sync --locked --extra dev
 uv run --locked uvicorn app.main:create_app --factory --reload --port 8000
+# 회차 원고 전처리(Celery 큐 preprocessing)는 AI_CELERY_BROKER_URL·CONTENT_SERVICE_BASE_URL을 설정하고 워커를 따로 띄운다
+uv run --locked celery -A app.preprocessing.worker worker -Q preprocessing --concurrency=1 --loglevel=INFO
 ```
 
 로컬 개발 검증은 변경·직접 영향 범위의 **단위 테스트만** 선택합니다. TestClient·HTTP는 통합 계층이며 로컬에서 통합/시스템·전체 suite·컨테이너를 실행하지 않습니다.

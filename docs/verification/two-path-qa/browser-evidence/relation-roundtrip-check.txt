@@ -1,0 +1,1 @@
+PASS: stable relation UUID/endpoints, exact manuscriptBuild evidence, explicit author description saved at episode 1; episode 4 ended record unchanged.

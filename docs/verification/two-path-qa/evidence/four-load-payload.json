@@ -1,0 +1,82 @@
+{
+  "cards": [
+    {
+      "key": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+      "cardType": "character",
+      "title": "길동",
+      "aliases": [
+        "홍길동"
+      ],
+      "body": "길동",
+      "revealFromEpisode": 1,
+      "characterDocs": {
+        "soul": "[description] 길동은 약자를 돕는 성격이다.",
+        "goal": "[plan] 길동은 산을 넘을 계획이었다.",
+        "episodes": {
+          "00": "[fact] 길동은 이야기 시작 전부터 자신의 출생을 알고 있었다.",
+          "01": "[description] 길동은 약자를 돕는 성격이다.\n[plan] 길동은 산을 넘을 계획이었다.",
+          "03": "[event] 길동은 산을 넘었다.\n[goal] 길동은 이제 백성을 다스리고 싶어 했다.\n[fact] 길동만이 비밀 지도를 보았다.",
+          "04": "[event] 길동은 활빈당을 탈퇴했다."
+        }
+      }
+    },
+    {
+      "key": "entity-b777d45c-085c-5cb2-8f76-47042107e5da",
+      "cardType": "character",
+      "title": "홍길동",
+      "aliases": [],
+      "body": "홍길동",
+      "revealFromEpisode": 2,
+      "characterDocs": {
+        "soul": "",
+        "goal": "",
+        "episodes": {
+          "02": "[conjecture] 상인 홍길동은 의적이 사라졌을 것이라고 추측했다."
+        }
+      }
+    },
+    {
+      "key": "entity-f47222a3-0608-5ec3-afa7-60228d49856d",
+      "cardType": "organization",
+      "title": "활빈당",
+      "aliases": [],
+      "body": "활빈당",
+      "revealFromEpisode": 1,
+      "characterDocs": null
+    },
+    {
+      "key": "event-a8b315b4-0231-53fe-86bb-decf00724e75",
+      "cardType": "event",
+      "title": "3화 사건 s1",
+      "aliases": [],
+      "body": "발생: 3화 / 참여: 길동\n[event] 길동은 산을 넘었다.",
+      "revealFromEpisode": 3,
+      "characterDocs": null
+    },
+    {
+      "key": "event-fedc555a-249b-5695-b674-8413eceda354",
+      "cardType": "event",
+      "title": "4화 사건 s1",
+      "aliases": [],
+      "body": "발생: 4화 / 참여: 길동, 활빈당\n[event] 길동은 활빈당을 탈퇴했다.",
+      "revealFromEpisode": 4,
+      "characterDocs": null
+    }
+  ],
+  "relations": [
+    {
+      "fromKey": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+      "toKey": "entity-f47222a3-0608-5ec3-afa7-60228d49856d",
+      "label": "소속",
+      "fromEpisode": 1,
+      "ended": false
+    },
+    {
+      "fromKey": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
+      "toKey": "entity-f47222a3-0608-5ec3-afa7-60228d49856d",
+      "label": "소속",
+      "fromEpisode": 4,
+      "ended": true
+    }
+  ]
+}

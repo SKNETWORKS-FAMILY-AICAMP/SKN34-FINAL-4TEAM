@@ -21,11 +21,14 @@ const preview: ManuscriptPreview = {
   format: 'txt', unit: 'line', unitCount: 30, existingEpisodeCount: 2,
   episodes: [episode('1화 시작', 0, 10), episode('2화', 10, 20, { imageCount: 2, warnings: ['지원하지 않는 이미지 2개는 빠져요.'] }), episode('3화', 20, 30, { charCount: 41000, warnings: ['본문이 40,000자를 넘어 등록할 수 없어요.'] })],
 }
-const mixed: ManuscriptImportSummary = { succeeded: 2, failed: 1, results: [
+const mixed: ManuscriptImportSummary = { succeeded: 2, failed: 1, worldBuild: null, results: [
   { number: 1, title: '1화 시작', status: 'versioned', reason: null, missingImages: 0 },
   { number: 2, title: '2화', status: 'partial', reason: '이미지 1개를 가져오지 못했어요.', missingImages: 1 },
   { number: 3, title: '3화', status: 'failed', reason: '본문이 40,000자를 넘어 등록할 수 없어요.', missingImages: 0 },
 ] }
+// 가져오기가 회차를 저장하면 서버가 같은 요청에서 세계관 추출 접수를 시도하고 결과를 worldBuild에 싣는다(저장하지 못했으면 null).
+const started = { status: 'started', jobId: 'job-1', code: null, message: null } as const
+const rejected = { status: 'rejected', jobId: null, code: 'PREPROCESSING_LOAD_REVIEW_REQUIRED', message: '이전 작업의 적재 여부를 먼저 확인해 주세요.' } as const
 const RIGHTS = ['이 원고는 내가 쓴 저작물이거나, 등록할 권리를 가지고 있어요.', '출판 계약 등으로 이 원고의 등록·이용이 제한되지 않아요.', '원고에 포함된 이미지를 사용할 권한이 있어요.']
 const upload = () => new File(['1화 시작\n본문'], '원고.txt', { type: 'text/plain' })
 
@@ -195,6 +198,49 @@ it('확정은 조정한 목록을 보내고 성공·일부 성공·실패를 따
   expect(within(saved).getByText('기존 회차에 새 버전으로 저장했어요')).toBeTruthy()
   expect(screen.getByRole('link', { name: '집필실에서 확인' }).getAttribute('href')).toBe(`/studio/${A}`)
   expect(screen.getByText(/이 화면을 떠나면 다시 볼 수 없어요/)).toBeTruthy()
+  // 접수하지 않았으면(worldBuild null) 세계관 추출 문구는 그리지 않는다.
+  expect(screen.queryByText(/세계관 추출/)).toBeNull()
+})
+
+it('등록 버튼 곁에 OpenAI 전송 안내 한 줄을 두고 별도 확인 없이 등록한다', async () => {
+  await toPreview()
+  const notice = screen.getByText('업로드한 원고는 세계관 자동 추출을 위해 OpenAI로 전송돼요.')
+  const button = screen.getByRole('button', { name: '3개 회차 등록' })
+  expect(notice.closest('fieldset')).toBe(button.closest('fieldset'))
+  expect(screen.queryByLabelText(/OpenAI/)).toBeNull()
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fireEvent.click(button)
+  await screen.findByRole('heading', { name: '등록 결과' })
+  expect(confirm).not.toHaveBeenCalled()
+  expect(fakes.manuscriptUseCase.confirm).toHaveBeenCalledTimes(1)
+})
+
+it('세계관 추출이 시작되면 등록 결과에 진행을 볼 곳과 작품 관리 세계관 탭 링크를 알린다', async () => {
+  await toPreview()
+  fakes.manuscriptUseCase.confirm.mockResolvedValue({ ...mixed, worldBuild: started })
+  fireEvent.click(screen.getByRole('button', { name: '3개 회차 등록' }))
+  const note = await screen.findByText('세계관 추출을 시작했어요. 작품 관리 > 세계관에서 진행을 볼 수 있어요.')
+  expect(note.getAttribute('role')).toBe('status')
+  expect(within(note).getByRole('link', { name: '작품 관리 세계관 탭 열기' }).getAttribute('href')).toBe(`/content?work=${A}&tab=world`)
+  expect(screen.getByText(/3개 중 2개를 저장했고 1개는 저장하지 못했어요/)).toBeTruthy()
+})
+
+it('세계관 추출이 거절되면 서버가 준 사유를 그대로 알리고 등록 결과는 그대로 둔다', async () => {
+  await toPreview()
+  fakes.manuscriptUseCase.confirm.mockResolvedValue({ ...mixed, worldBuild: rejected })
+  fireEvent.click(screen.getByRole('button', { name: '3개 회차 등록' }))
+  await screen.findByRole('heading', { name: '등록 결과' })
+  expect(screen.getByText(rejected.message).getAttribute('role')).toBe('alert')
+  expect(screen.queryByText(/세계관 추출을 시작했어요/)).toBeNull()
+  expect(screen.queryByRole('link', { name: '작품 관리 세계관 탭 열기' })).toBeNull()
+  expect(screen.getByRole('region', { name: '저장한 회차' })).toBeTruthy()
+})
+
+it('거절 사유가 비어 있으면 시작하지 못했다고만 알린다', async () => {
+  await toPreview()
+  fakes.manuscriptUseCase.confirm.mockResolvedValue({ ...mixed, worldBuild: { ...rejected, code: null, message: null } })
+  fireEvent.click(screen.getByRole('button', { name: '3개 회차 등록' }))
+  expect((await screen.findByText('세계관 추출을 시작하지 못했어요.')).getAttribute('role')).toBe('alert')
 })
 
 it('모든 회차가 저장됐을 때만 전체 성공으로 알리고, 다른 파일 가져오기는 입력을 비운 설정 화면으로 돌아간다', async () => {

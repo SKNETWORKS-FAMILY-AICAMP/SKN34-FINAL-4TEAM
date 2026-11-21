@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="4" failures="0" errors="0" time="0.5084665">
+    <testsuite name="src/presentation/features/content/view/ManuscriptBuildPanel.test.tsx" timestamp="2026-11-17T06:54:22.390Z" hostname="DESKTOP-H26CIFA" tests="4" failures="0" errors="0" skipped="0" time="0.5084665">
+        <testcase classname="src/presentation/features/content/view/ManuscriptBuildPanel.test.tsx" name="화면 진입과 업로드만으로 시작하지 않으며 동의 후 명시적으로 접수한다" time="0.3326353">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/ManuscriptBuildPanel.test.tsx" name="실패 이유와 동일 작업 재개를 표시하고 완료 후 기존 작업실을 연다" time="0.0808898">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/ManuscriptBuildPanel.test.tsx" name="조회 실패를 새 작업 없음으로 취급하지 않는다" time="0.0379357">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/ManuscriptBuildPanel.test.tsx" name="비공개 업로드 회차가 공개 회차 목록에 없어도 명시적으로 최초 구축을 요청한다" time="0.0536588">
+        </testcase>
+    </testsuite>
+</testsuites>
