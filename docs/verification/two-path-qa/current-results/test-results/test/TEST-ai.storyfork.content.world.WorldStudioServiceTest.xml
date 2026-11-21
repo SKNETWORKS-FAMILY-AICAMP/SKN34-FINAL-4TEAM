@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.storyfork.content.world.WorldStudioServiceTest" tests="59" skipped="0" failures="0" errors="0" timestamp="2026-11-17T05:50:37.955Z" hostname="9cb58bc2282a" time="7.15">
+  <properties/>
+  <testcase name="matching token with foreign graph endpoints is not a coherent current view()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.008"/>
+  <testcase name="a card without an image id never asks the image table()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.027"/>
+  <testcase name="a null image id is no image and never asks the image table()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.018"/>
+  <testcase name="confirmed context denies other owners and missing foreign or unsealed revisions()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.006"/>
+  <testcase name="soul repair persists through real edit and save after graph interruption()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.046"/>
+  <testcase name="manuscript receipt completes with draft and retries before reading changed graph()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.029"/>
+  <testcase name="a revision conflict on an existing pending receipt is not a definite rejection()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.014"/>
+  <testcase name="initial input uses owner and remains unchanged while validated under the world lock()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.012"/>
+  <testcase name="an episode below 1 is an input error before anything is prepared()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.004"/>
+  <testcase name="new card identities are reserved before graph writes so another world cannot capture a pending id()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.026"/>
+  <testcase name="rejection is not reported as safely released if its PostgreSQL recovery commit fails()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.017"/>
+  <testcase name="stale input and foreign cards fail before any graph mutation()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.021"/>
+  <testcase name="callback receives a fresh snapshot instead of caller mutable lists()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.007"/>
+  <testcase name="an incomplete relationship is rejected as an input error before anything is prepared()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.02"/>
+  <testcase name="invalid relationship membership and enums never prepare or mutate stores()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.013"/>
+  <testcase name="an already acknowledged graph write can never be released as a rejected write()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.015"/>
+  <testcase name="publishing again keeps publishedAt, private clears it, and the genre is stored as sent()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.004"/>
+  <testcase name="active card total allows ten thousand after upserts and removals()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.27"/>
+  <testcase name="template repair replaces old active cards while retaining their history and retrying()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.37"/>
+  <testcase name="an image of this world is saved with the card()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.014"/>
+  <testcase name="initial input rejects current revision change even when draft and graph versions are unchanged()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.006"/>
+  <testcase name="manuscript hash survives jsonb object order and nested document conversion()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.022"/>
+  <testcase name="pending manuscript load blocks ordinary draft and confirmation()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.014"/>
+  <testcase name="relationship replacement at the limit is validated before graph preparation()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.028"/>
+  <testcase name="an edit that leaves a relation to a removed card as it is still changes the other relations()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.013"/>
+  <testcase name="a single request still rejects one thousand and one cards and duplicate ids()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.005"/>
+  <testcase name="deleting a card while naming an episode is an input error before anything is prepared()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.015"/>
+  <testcase name="retrying an acknowledged edit accepts the relation that stays on a removed card()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.013"/>
+  <testcase name="initial input rejects unauthorized stale and incomplete state before callback()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.01"/>
+  <testcase name="a retry is not rejected for relations the graph already holds()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.016"/>
+  <testcase name="legacy draft without a Neo4j marker is not an empty successful graph()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.004"/>
+  <testcase name="a past episode may point at a card that was removed later but never at a foreign one()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.004"/>
+  <testcase name="an edit merges with the relations of its episode, saves them there and answers for that episode()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.012"/>
+  <testcase name="the owner reads the relations as of an episode()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.004"/>
+  <testcase name="racing prepare during graph read never installs a successful mismatched view()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.004"/>
+  <testcase name="concurrent completion of the same request before prepare is not labeled unapplied()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.008"/>
+  <testcase name="a relation that stays on a card deleted earlier does not block deleting another card()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.01"/>
+  <testcase name="pending and mismatched graph states fail closed()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.007"/>
+  <testcase name="deleting a card while a relation still ends on it is an input error before anything is prepared()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.029"/>
+  <testcase name="invalid publication bodies fail as input errors before the world is even locked()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.003"/>
+  <testcase name="no surrounding Spring transaction can span the Neo4j calls()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.007"/>
+  <testcase name="confirmed context preserves frozen sources and applied semantics without reading drafts candidates or graph()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.005"/>
+  <testcase name="large upsert changes only requested cards after a graph failure and retry()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.209"/>
+  <testcase name="owner summaries and the world detail carry visibility and genre()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.004"/>
+  <testcase name="a card image id that is not a UUID is an input error before anything is read or prepared()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.004"/>
+  <testcase name="an image of another world or an unknown image is an input error and the previous draft stays()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.011"/>
+  <testcase name="owner summaries and the world detail say whether a cover is stored()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.003"/>
+  <testcase name="only the owner can change publication()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.002"/>
+  <testcase name="unowned world fails before reading draft or Neo4j()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.002"/>
+  <testcase name="stale revision discovered just before prepare is explicitly rejected without a new receipt()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.008"/>
+  <testcase name="whole world restore is explicitly unsupported rather than restoring current relations as history()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.004"/>
+  <testcase name="graph failure leaves a retriable receipt and does not change PostgreSQL draft content()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.014"/>
+  <testcase name="an edit without an episode merges with and saves the latest relations()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.008"/>
+  <testcase name="owner publishes with a genre and a world without a saved revision is reported as not listed()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.003"/>
+  <testcase name="deleting a card on the latest episode is saved once the relation that ends on it is ended or left out()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.016"/>
+  <testcase name="definite foreign graph identity rejection releases only its receipt without changing the current draft()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.014"/>
+  <testcase name="rejection recovery never clears a different pending receipt()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.006"/>
+  <testcase name="active card total rejects ten thousand and one before preparing any writes()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.069"/>
+  <testcase name="a new or changed relation needs two active cards and every relation needs cards of this world()" classname="ai.storyfork.content.world.WorldStudioServiceTest" time="0.013"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

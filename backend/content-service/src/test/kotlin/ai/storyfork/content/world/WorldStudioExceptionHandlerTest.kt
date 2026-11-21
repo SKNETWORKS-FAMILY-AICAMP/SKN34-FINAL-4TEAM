@@ -1,5 +1,6 @@
 package ai.storyfork.content.world
 
+import ai.storyfork.content.preprocessing.controller.PreprocessingController
 import ai.storyfork.content.world.controller.WorldStudioExceptionHandler
 import ai.storyfork.content.world.domain.WorldRestoreBlocked
 import ai.storyfork.content.world.domain.WorldStudioFailure
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.server.ResponseStatusException
 
 class WorldStudioExceptionHandlerTest {
@@ -43,6 +45,14 @@ class WorldStudioExceptionHandlerTest {
     @Test fun `a long list of blocked cards is cut to five names and a count`() {
         val detail=handler.restoreBlocked(WorldRestoreBlocked((1..8).map { "카드$it" })).body!!.detail
         assertTrue(detail.contains("카드1, 카드2, 카드3, 카드4, 카드5 외 3개"));assertFalse(detail.contains("카드6"))
+    }
+
+@Test fun `the owner preprocessing endpoints use the same 404 409 and 422 mapping as the build callbacks`() {
+        val covered=WorldStudioExceptionHandler::class.java.getAnnotation(RestControllerAdvice::class.java).assignableTypes.toList()
+        assertTrue(PreprocessingController::class in covered,"WorldNotFound·WorldConflict·IllegalArgumentException이 500이 되지 않게 한다")
+        // 지워진 세계관의 작업 상태 조회는 WorldNotFound라 404로 끝난다.
+        val missing=handler.missing()
+        assertEquals(404,missing.statusCode.value());assertEquals("WORLD_NOT_FOUND",missing.body?.code)
     }
 
     @Test fun `failure is not a Spring web exception`() {

@@ -1,0 +1,7 @@
+content-1  | 2026-11-17T06:39:25.368Z  INFO 1 --- [storyfork-content-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+content-1  | 2026-11-17T06:39:25.375Z  INFO 1 --- [storyfork-content-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+content-1  | 2026-11-17T06:39:25.483Z  INFO 1 --- [storyfork-content-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'worldstudio'
+content-1  | 2026-11-17T06:39:25.486Z  INFO 1 --- [storyfork-content-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'setting-attachments'
+content-1  | 2026-11-17T06:39:25.488Z  INFO 1 --- [storyfork-content-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+content-1  | 2026-11-17T06:39:25.495Z  INFO 1 --- [storyfork-content-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+content-1  | 2026-11-17T06:39:25.496Z  INFO 1 --- [storyfork-content-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'content'

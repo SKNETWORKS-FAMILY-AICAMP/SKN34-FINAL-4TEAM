@@ -156,9 +156,9 @@ describe('storyfork.css theme tokens', () => {
 
   it('keeps the work hero genre label at 4.5:1 over the page background', () => {
     const label = sheet.find((r) => !r.media && r.selector === '.whero .g')
-    expect(declOf(label, 'color')).toBe('var(--l,var(--tacc)) var(--d,var(--pri-ink))')
-    expect(contrast(pair('pri')[0], pair('bg')[0])).toBeGreaterThanOrEqual(4.5)
-    expect(contrast(pair('pri-ink')[1], pair('bg')[1])).toBeGreaterThanOrEqual(4.5)
+    // 장르 표시는 제목 위 눈썹이 아니라 보조 글자(--tsub, 기본값이 --sub)다. 페이지 배경에서 라이트·다크 모두 4.5:1 이상이다.
+    expect(declOf(label, 'color')).toBe('var(--tsub)')
+    for (const mode of [0, 1]) expect(contrast(pair('sub')[mode], pair('bg')[mode]), mode ? 'dark' : 'light').toBeGreaterThanOrEqual(4.5)
   })
 
   it('limits the work detail cover-beside-title layout to the work page so .whero.ep-hero management screens keep theirs', () => {
@@ -168,6 +168,16 @@ describe('storyfork.css theme tokens', () => {
     expect(narrow.filter((rule) => selectorsOf(rule).some((s) => /^\.whero\b/.test(s)) && /display:contents|grid-column|minmax/.test(rule.body))).toEqual([])
     expect(sheet.filter((rule) => !rule.media && /^\.whero \.cover$/.test(rule.selector) && /box-shadow/.test(rule.body))).toEqual([])
     expect(declOf(sheet.find((rule) => rule.media === '(max-width:600px)' && rule.selector === '.whero .cover'), 'max-width')).toBe('130px')
+  })
+
+  it('limits the new h2 step styling to the fork form', () => {
+    const headings = sheet.filter((rule) => selectorsOf(rule).includes('main.fork .fstep h2'))
+    expect(headings.some((rule) => selectorsOf(rule).includes('.fstep h3'))).toBe(true)
+    expect(sheet.some((rule) => selectorsOf(rule).includes('.fstep h2'))).toBe(false)
+  })
+
+  it('aligns the work-detail cover with the top of long work information', () => {
+    expect(declOf(sheet.find((rule) => !rule.media && rule.selector === '.calm .whero'), 'align-items')).toBe('start')
   })
 })
 

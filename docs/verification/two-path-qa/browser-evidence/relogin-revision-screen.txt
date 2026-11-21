@@ -1,0 +1,143 @@
+# note: interactive (clickable / focusable) elements only.
+- title: "세계관 · STORYFORK" [url=http://127.0.0.1:5187/worldstudio/c156dafc-259b-445d-a305-703697f4a34a]
+- link "본문으로 바로가기" [ref=e36]
+- banner:
+  - link "STORYFORK 홈으로" [ref=e37]: "SF STORYFORK"
+  - navigation "주요 메뉴" [ref=e38]:
+    - link "세계관" [ref=e39]
+    - link "랭킹" [ref=e40]
+    - link "캐릭터챗" [ref=e41]
+    - link "내 서재" [ref=e42]
+  - button "소설·인물·회차 검색" [ref=e43]: "🔍 소설·인물·회차 검색 Ctrl K"
+  - link "알림함" [ref=e44]: "알림"
+  - button "내 계정 메뉴" [ref=e45]: "개"
+- main:
+  - link "내가 만드는 세계관" [ref=e46]
+  - region:
+    - region:
+      - text: "비공개"
+      - heading "QA 브라우저 최초 구축 4화 1117" [level=1]
+      - button "세계관 정보 편집" [ref=e47]: "편집"
+      - text: "설정  5 개 저장 버전  5 비공개 편집을 눌러 세계관 소개를 적어 보세요.로그인한 내 세계관을 서버에 저장해요. 관계는 회차별로 기록하며 관계 이력 복원·과거 세계관 전체 복원은 지원하지 않아요.연결된 소설: QA 브라우저 최초 구축 4화 1117"
+      - link "소설 작성하기" [ref=e48]
+    - navigation "세계관 메뉴" [ref=e49]:
+      - button "설정집" [ref=e50]
+      - button "관계도" [ref=e51]
+      - button "시간선" [ref=e52]
+    - button "AI 검토" [ref=e53]
+    - button "집필 메모 추가" [ref=e54]
+    - button "확정 버전 남기기" [ref=e55]
+    - group "저장 상태":
+      - status: "저장됨"
+      - button "세계관 저장" [ref=e56] [disabled]
+    - button "다크 모드로" [ref=e57]: "☾"
+    - region:
+      - text: "설정집"
+      - navigation "설정 분류" [ref=e58]:
+        - button "전체" [ref=e59]: "전체  5"
+        - button "인물" [ref=e60]: "인물  2"
+        - button "조직" [ref=e61]: "조직  1"
+        - button "사건" [ref=e62]: "사건  2"
+        - text: "장소  비어 있음 규칙  비어 있음 기타  비어 있음"
+        - button "보완 필요" [ref=e63]: "보완 필요  3"
+      - text: "설정 검색"
+      - textbox "설정 검색" [ref=e64] [placeholder="제목·본문·태그 검색"]
+      - text: "정렬"
+      - combobox "정렬" [ref=e65]:
+        - option "설정집 순" (selected) value="book"
+        - option "연결 많은 순" value="links"
+        - option "가나다순" value="name"
+      - status: "설정  5 개"
+      - button "다른 세계관에서 가져오기" [ref=e66]
+      - button "새 설정" [ref=e67]
+      - group "공개 범위 한 번에 바꾸기":
+        - text: "공개로 둔 설정만 공개 세계관에 보여요. 저장한 뒤 ‘확정 버전 남기기’를 해야 반영돼요."
+        - status
+        - button "선택 공개" [ref=e68] [disabled]
+        - button "선택 비공개" [ref=e69] [disabled]
+        - button "전체 공개" [ref=e70]
+      - text: "설정 카드 목록"
+      - label [ref=e71]:
+        - checkbox "보이는 설정 모두 선택" [ref=e72]
+        - text: "보이는 설정 모두 선택"
+      - text: "번호 분류 제목 요약 공개 연결"
+      - label [ref=e73]:
+        - checkbox "길동 선택" [ref=e74]
+        - text: "길동  선택"
+      - text: "1 인물"
+      - button "길동 인물" [ref=e75]: "길동"
+      - text: "길동 작가 검토: 약자를 돕는 의적.비공개 0"
+      - label [ref=e76]:
+        - checkbox "홍길동 선택" [ref=e77]
+        - text: "홍길동  선택"
+      - text: "2 인물"
+      - button "홍길동 인물" [ref=e78]: "홍길동"
+      - text: "정리 필요 홍길동 비공개 0"
+      - label [ref=e79]:
+        - checkbox "활빈당 선택" [ref=e80]
+        - text: "활빈당  선택"
+      - text: "3 조직"
+      - button "활빈당 조직" [ref=e81]: "활빈당"
+      - text: "활빈당 비공개 0"
+      - label [ref=e82]:
+        - checkbox "4화 사건 s1 선택" [ref=e83]
+        - text: "4화 사건 s1  선택"
+      - text: "4 사건"
+      - button "4화 사건 s1 사건" [ref=e84]: "4화 사건 s1"
+      - text: "연결 필요 발생: 4화 / 참여: 길동, 활빈당 [event] 길동은 활빈당을 탈퇴했다.비공개 0"
+      - label [ref=e85]:
+        - checkbox "3화 사건 s1 선택" [ref=e86]
+        - text: "3화 사건 s1  선택"
+      - text: "5 사건"
+      - button "3화 사건 s1 사건" [ref=e87]: "3화 사건 s1"
+      - text: "연결 필요 발생: 3화 / 참여: 길동 [event] 길동은 산을 넘었다.비공개 0"
+- complementary "AI 채팅":
+  - heading "AI 채팅" [level=2]
+  - button "접기" [ref=e88]
+  - text: "대화 고르기"
+  - combobox "대화 고르기" [ref=e89] [disabled]:
+    - option "새 대화" (selected)
+  - button "새 대화" [ref=e90] [disabled]
+  - button "대화 메뉴" [ref=e91]
+  - log "대화 내용":
+    - alert:
+      - text: "대화를 찾을 수 없어요."
+      - button "다시 불러오기" [ref=e92]
+  - textbox "메시지" [ref=e93] [disabled] [placeholder="AI에게 무엇이든 물어보세요"]
+  - button "첨부" [ref=e94]
+  - button "음성 입력 (준비 중)" [ref=e95] [disabled]
+  - button "전송" [ref=e96] [disabled]
+  - text: "회차를 하나 이상 발행하면 AI와 대화할 수 있어요. AI는 발행한 회차를 근거로 답해요."
+- contentinfo: "STORYFORK SKN34 최종 프로젝트 4팀"
+- status
+- text: "W01 세계관 · 내 세계관 관리"
+- dialog "확정 버전" [ref=e103] [scrollable]:
+  - button "닫기" [ref=e97]
+  - region "세계관 확정 버전" [ref=e98]:
+    - heading "확정 버전" [level=3]
+    - text: "초안 저장과 별개로, 현재 저장된 카드·설정의 내용을 변경되지 않는 버전으로 남겨요. AI 후보 승인·반영이나 작품 공개·회차 발행과는 다른 작업이에요.현재 초안의 기준: 확정 버전 1"
+    - button "저장된 초안을 확정 버전으로 남기기" [ref=e99]
+    - button "최신 저장 상태 확인" [ref=e100]
+    - heading "확정 버전 목록" [level=4]
+    - button "확정 버전 1 · QA 브라우저 최초 구축 4화 1117 · 현재 기준" [ref=e102]
+    - text: "2026. 11. 17. 오후 3:45:08"
+    - region "확정 버전 읽기 전용" [ref=e104]:
+      - heading "확정 버전 1 · 읽기 전용" [level=4]: "확정 버전  1 · 읽기 전용"
+      - text: "현재 작성 중인 초안이 아닌, 확정 당시의 카드·설정이에요."
+      - heading "QA 브라우저 최초 구축 4화 1117" [level=5]
+      - note: "관계의 과거 상태는 저장하지 않아요. 현재 관계를 이 버전의 관계로 표시하지 않으며, 버전 복원 기능도 지원하지 않아요."
+      - article:
+        - heading "4화 사건 s1" [level=5]
+        - text: "발생: 4화 / 참여: 길동, 활빈당\n[event] 길동은 활빈당을 탈퇴했다."
+      - article:
+        - heading "길동" [level=5]
+        - text: "길동\n작가 검토: 약자를 돕는 의적.별칭: 홍길동"
+      - article:
+        - heading "활빈당" [level=5]
+        - text: "활빈당"
+      - article:
+        - heading "3화 사건 s1" [level=5]
+        - text: "발생: 3화 / 참여: 길동\n[event] 길동은 산을 넘었다."
+      - article:
+        - heading "홍길동" [level=5]
+        - text: "홍길동"

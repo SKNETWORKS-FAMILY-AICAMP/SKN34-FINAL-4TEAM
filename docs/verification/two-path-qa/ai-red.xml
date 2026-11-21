@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="3" failures="0" skipped="0" tests="3" time="11.783" timestamp="2026-11-17T12:17:10.435303+09:00" hostname="DESKTOP-H26CIFA"><testcase classname="" name="tests.preprocessing.test_models" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\MoonSungHo\.codex\worktrees\initial-world-two-path-qa\SKN34-FINAL-4TEAM\backend\ai-service\tests\preprocessing\test_models.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\..\..\AppData\Roaming\uv\python\cpython-3.11.16-windows-x86_64-none\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\preprocessing\test_models.py:4: in &lt;module&gt;
+    from app.preprocessing.models import Card, CharacterDocs
+E   ModuleNotFoundError: No module named 'app.preprocessing'</error></testcase><testcase classname="" name="tests.preprocessing.test_agent" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\MoonSungHo\.codex\worktrees\initial-world-two-path-qa\SKN34-FINAL-4TEAM\backend\ai-service\tests\preprocessing\test_agent.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\..\..\AppData\Roaming\uv\python\cpython-3.11.16-windows-x86_64-none\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\preprocessing\test_agent.py:5: in &lt;module&gt;
+    from app.preprocessing import agent
+E   ModuleNotFoundError: No module named 'app.preprocessing'</error></testcase><testcase classname="" name="tests.preprocessing.test_service" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\MoonSungHo\.codex\worktrees\initial-world-two-path-qa\SKN34-FINAL-4TEAM\backend\ai-service\tests\preprocessing\test_service.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\..\..\AppData\Roaming\uv\python\cpython-3.11.16-windows-x86_64-none\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\preprocessing\test_service.py:4: in &lt;module&gt;
+    from app.preprocessing import service
+E   ModuleNotFoundError: No module named 'app.preprocessing'</error></testcase></testsuite></testsuites>

@@ -301,6 +301,18 @@ it.each([401,403,409,503])('preserves explicit server errors (%s), never falls b
  await expect(repo.read(id)).rejects.toThrow()
 })
 
+it('원고 정체 후보와 첫 등장 회차를 공개 설정 없이 다시 저장한다',async()=>{
+ const server=wire(), row=server.cards[0]
+ const preprocessing={firstEpisode:1,identityCandidates:[{fromCardId:row.id,toCardId:server.cards[1].id,episode:3,quote:'가면의 정체가 드러났다.'}]}
+ const cards=[{...row,semanticMetadata:{...row.semanticMetadata,preprocessing}},server.cards[1]]
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json({...server,cards})).mockResolvedValueOnce(Response.json({...server,cards,draftRevision:3}))
+ const repo=new HttpWorldStudioRepository(fetcher), loaded=await repo.read(id)
+ await repo.saveStudio({...loaded,settings:loaded.settings.map(s=>s.item.id===row.id?{...s,item:{...s.item,text:'수정'}}:s)})
+ const saved=JSON.parse(fetcher.mock.calls[1][1].body).cards[0]
+ expect(saved.semanticMetadata.preprocessing).toEqual(preprocessing)
+ expect(saved.semanticMetadata.revealFromEpisode).toBeUndefined()
+})
+
 it.each(['directed','symmetric'] as const)('preserves 6-B partial metadata when editing %s relations',async direction=>{
  const generated=crypto.randomUUID(),analysisId=crypto.randomUUID(),candidateId=crypto.randomUUID()
  const preprocessing={semanticType:'goal',provenance:'ai_extraction',analysisId,candidateId,decisionSequence:2,basisDraftRevision:1,evidence:[{sourceId:'description',start:0,end:2,quote:'원문',quoteHash:'a'.repeat(64)}],condition:'조건',timeText:'미래',polarity:'asserted'}
@@ -790,6 +802,33 @@ it('still rejects a relation whose endpoint is neither an active nor a deleted c
  const fetcher=vi.fn().mockResolvedValue(Response.json({...value,relationships:value.relationships.map(r=>r.id===goneRelation.item.id?{...r,targetCardId:crypto.randomUUID()}:r)}))
  await expect(new HttpWorldStudioRepository(fetcher).read(id,undefined,2)).rejects.toThrow('응답')
 })
+it('실제 원고 적재 응답의 별칭 문서 근거와 회차 관계를 편집 저장 재조회한다',async()=>{
+ const response=JSON.parse(readFileSync(new URL('../../../../backend/content-service/src/test/resources/initial-build/manuscript-draft.json',import.meta.url),'utf8'))
+ let current=response
+ const fetcher=vi.fn(async(_path:unknown,init?:RequestInit)=>{
+  if(init?.method==='PUT'){
+   const body=JSON.parse(String(init.body))
+   current={...current,draftRevision:current.draftRevision+1,cards:current.cards.map((c:{id:string})=>body.cards.find((r:{id:string})=>r.id===c.id)??c)}
+  }
+  return Response.json(current)
+ })
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(response.worldId,undefined,1)
+ const hero=loaded.settings.find(s=>s.item.title==='길동')!
+ expect(hero.aliases).toContain('홍길동')
+ const {authorEdit}=await import('../../domain/entities/studioWorld')
+ const saved=await repo.saveStudio({...loaded,settings:loaded.settings.map(s=>s.item.id===hero.item.id?authorEdit(s,{text:s.item.text+'\n작가 수정'}):s)},undefined,1)
+ const roundtrip=await repo.read(response.worldId,undefined,1)
+ expect(roundtrip.settings).toEqual(saved.settings)
+ const original=response.cards.find((c:{id:string})=>c.id===hero.item.id),card=current.cards.find((c:{id:string})=>c.id===hero.item.id)
+ expect(card.semanticMetadata.manuscriptBuild).toEqual(original.semanticMetadata.manuscriptBuild)
+ expect(card.semanticMetadata.characterDocs).toEqual(original.semanticMetadata.characterDocs)
+ expect(card.semanticMetadata.studio.item.origin).toBe('author_addition')
+ expect(card.semanticMetadata.studio.item.evidence).toEqual([])
+ expect(card.visibility).toBe('private')
+ expect(card.semanticMetadata).not.toHaveProperty('revealFromEpisode')
+ expect(current.relationships).toEqual(response.relationships)
+})
+
 it('puts the draft cards back to a confirmed version with the draft revision it saw and installs the draft the server answers',async()=>{
  const fetcher=vi.fn().mockResolvedValue(Response.json({...wire(5),baseWorldRevisionId:revisionId}))
  const restored=await new HttpWorldStudioRepository(fetcher).restoreRevision(id,revisionId,4)

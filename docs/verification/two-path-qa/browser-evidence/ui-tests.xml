@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="115" failures="0" errors="0" time="10.744967">
+    <testsuite name="src/data/content/manuscriptBuild.test.ts" timestamp="2026-11-17T06:48:42.043Z" hostname="DESKTOP-H26CIFA" tests="5" failures="0" errors="0" skipped="0" time="0.3540681">
+        <testcase classname="src/data/content/manuscriptBuild.test.ts" name="접수 응답 유실과 새 인스턴스에서도 같은 key와 세계관을 유지한다" time="0.2428234">
+        </testcase>
+        <testcase classname="src/data/content/manuscriptBuild.test.ts" name="상태 조회는 POST하지 않으며 완료 receipt 없는 성공은 거절한다" time="0.032588">
+        </testcase>
+        <testcase classname="src/data/content/manuscriptBuild.test.ts" name="실패 재개는 현재 token을 사용하며 진행 중인 작업을 중복 실행하지 않는다" time="0.0480269">
+        </testcase>
+        <testcase classname="src/data/content/manuscriptBuild.test.ts" name="다른 계정의 요청 기록을 재개에 사용하지 않는다" time="0.0131708">
+        </testcase>
+        <testcase classname="src/data/content/manuscriptBuild.test.ts" name="unknown 적재 복구는 원래 key와 payload를 보내며 신규 실행 token을 만들지 않는다" time="0.0117426">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/data/world-studio/http.test.ts" timestamp="2026-11-17T06:48:42.072Z" hostname="DESKTOP-H26CIFA" tests="99" failures="0" errors="0" skipped="0" time="4.7343114">
+        <testcase classname="src/data/world-studio/http.test.ts" name="대형 세계관 변경은 같은 회차 기준의 변경 카드만 보낸다" time="1.7573529">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="조회 기준이 없거나 revision 또는 회차가 다르면 저장하지 않는다" time="0.0243385">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="변경 없음과 삭제는 전체 교체 없이 명시적으로 보낸다" time="0.0250562">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="요청 한도를 초과하는 변경은 전송 전에 거절한다" time="0.0650969">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="변경 없는 저장과 관계 수정은 각 차분만 보낸다" time="0.0283474">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="2MB를 넘는 변경은 전송 전에 거절하고 후속 저장을 잠그지 않는다" time="0.0806302">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="요청 크기 계산은 숫자를 서로게이트로 취급하지 않는다" time="0.0901195">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="서로게이트는 서버 이스케이프를 고려해 요청 전에 크기를 검사한다" time="0.3114111">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="조회 없이 저장하지 않는다" time="0.0173524">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="응답 유실 후 새 revision을 읽어도 원래 차분과 key로 재시도한다" time="0.0248308">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads legacy canonical cards without studio metadata and keeps their text" time="0.0101967">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="orders template cards by their preserved template order rather than UUID" time="0.0116896">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads all real template resource cards through the HTTP contract" time="1.1402092">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="rejects malformed studio metadata instead of silently replacing it" time="0.0101652">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="loads only an authenticated coherent current graph with lossless relation metadata" time="0.0158471">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="saves new cards and relations separately with CSRF and upsert" time="0.0130464">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="retries the exact key and body after ambiguous failure and will not replace a pending input" time="0.0184428">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="allows corrected input after a definite validation rejection, but not after an ambiguous write" time="0.0155335">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="allows rereading and saving a fresh revision after an explicit no-write conflict" time="0.0185879">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves the exact pending body for an ambiguous 409 WORLD_CONFLICT" time="0.0175827">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves the exact pending body for an ambiguous 409 RELATIONSHIP_VERSION_MISMATCH" time="0.0156465">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves the exact pending body for an ambiguous 503 RELATIONSHIP_WRITE_INCOMPLETE" time="0.0129776">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves the exact pending body for an ambiguous 503 WORLD_WRITE_UNCONFIRMED" time="0.0120929">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves the exact pending body for an ambiguous 409 undefined" time="0.0136328">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves the exact pending body for an ambiguous 503 WORLD_WRITE_REJECTED" time="0.0135505">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="propagates the caller cancellation signal to a mutation" time="0.0122066">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reuses the world UUID after a lost create response" time="0.0076753">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="does not render incomplete as an empty successful graph" time="0.0047744">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="does not render migration_required as an empty successful graph" time="0.0039369">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="does not render not_recorded as an empty successful graph" time="0.0042747">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="rejects another world and invalid relation endpoints instead of installing stale success" time="0.0075129">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves explicit server errors (401), never falls back to memory" time="0.0057358">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves explicit server errors (403), never falls back to memory" time="0.0043801">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves explicit server errors (409), never falls back to memory" time="0.0043179">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves explicit server errors (503), never falls back to memory" time="0.0046018">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves 6-B partial metadata when editing directed relations" time="0.0281868">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="preserves 6-B partial metadata when editing symmetric relations" time="0.0233852">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads immutable revision cards separately and refuses current relations in history" time="0.0255405">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="retains the exact confirmation key across response loss and repository recreation until acknowledged" time="0.0243157">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="releases only a definitely rejected stale confirmation, allowing a deliberate new request on refreshed draft" time="0.0122995">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="acknowledges only the current owner/world and creates a fresh key only on a later explicit confirmation" time="0.0203519">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="puts the publication change with CSRF and maps the 200 result" time="0.0084286">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="sends an unset genre as null and maps a private or unlisted result" time="0.0055787">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reports the server detail when the publication change is rejected (404)" time="0.0054984">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reports the server detail when the publication change is rejected (422)" time="0.0052062">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="does not report success for a malformed publication result or another world" time="0.0097332">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads the world visibility and genre, and treats a response without them as private with no genre" time="0.015438">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="maps the publication of each summary in the list and defaults an older summary to private" time="0.0064966">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="never sends the world publication with a draft save and keeps the one the server returns" time="0.0144364">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads hasCover of the world and of each summary, defaulting an older response to no cover" time="0.0158344">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="uploads or replaces the cover as multipart file with Bearer and CSRF but no JSON content type" time="0.0098424">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="does not report an upload success for a malformed result or another world, and reports the server detail on rejection" time="0.0136212">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="deletes the cover with CSRF and accepts the 204 without a body" time="0.0108718">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads the owner cover bytes with Bearer, and reports a missing or empty cover instead of an empty image" time="0.0147653">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="rejects a cover request for an id that is not a UUID before sending anything" time="0.0065829">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="uploads a card image as multipart file with Bearer and CSRF but no JSON content type and returns the new image id" time="0.0070888">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="does not report a card image upload for a malformed result and reports the server detail on rejection" time="0.0154242">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads the owner card image bytes with Bearer, and reports a missing, failed or empty image instead of an empty one" time="0.0274695">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="rejects a card image request for a world or image id that is not a UUID before sending anything" time="0.0049865">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads the top-level imageId of a card into the row and writes it back to the same top-level key only for that card" time="0.0134787">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="does not resurrect a removed image: a row without imageId is written without the key even though the server had sent one" time="0.0183214">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops a malformed imageId instead of failing the whole read, so the next save does not send it back" time="0.0259513">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads linkedWorkId of the world, of a draft save response and of each summary, defaulting an older response to null" time="0.0576078">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="saves each card visibility from its row and keeps the reader reveal episode and import source as top-level metadata, never inside studio" time="0.0108148">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads a public card, its reader reveal episode and import source into row fields and leaves a private card without them" time="0.0104992">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops a malformed reader reveal episode (&quot;3&quot;) and a malformed import source without failing the load" time="0.0066296">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops a malformed reader reveal episode (0) and a malformed import source without failing the load" time="0.0065051">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops a malformed reader reveal episode (-1) and a malformed import source without failing the load" time="0.0069042">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops a malformed reader reveal episode (1.5) and a malformed import source without failing the load" time="0.0073675">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops a malformed reader reveal episode (null) and a malformed import source without failing the load" time="0.0061791">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="treats the row as the source of truth: a cleared reveal episode or import source is not revived from other server metadata on the next save" time="0.0308877">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="saves the character documents of a character card as top-level metadata, never inside studio, and omits the key when every document is empty" time="0.0078377">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="keeps an empty episode memory the author created, and does not save character documents for a card that is not a character" time="0.0121117">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads the character documents of a character card into the row field and leaves other cards without it" time="0.0079706">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops malformed character documents (&quot;글&quot;) without failing the load" time="0.0054715">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops malformed character documents ({&quot;soul&quot;:1,&quot;goal&quot;:&quot;&quot;,&quot;episodes&quot;:{}}) without failing the load" time="0.005277">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops malformed character documents ({&quot;soul&quot;:&quot;&quot;,&quot;goal&quot;:&quot;&quot;}) without failing the load" time="0.0057268">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops malformed character documents ({&quot;soul&quot;:&quot;&quot;,&quot;goal&quot;:&quot;&quot;,&quot;episodes&quot;:[&quot;기억&quot;]}) without failing the load" time="0.0060676">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops malformed character documents ({&quot;soul&quot;:&quot;&quot;,&quot;goal&quot;:&quot;&quot;,&quot;episodes&quot;:{&quot;-1&quot;:&quot;기억&quot;}}) without failing the load" time="0.0055508">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops malformed character documents ({&quot;soul&quot;:&quot;&quot;,&quot;goal&quot;:&quot;&quot;,&quot;episodes&quot;:{&quot;1.5&quot;:&quot;기억&quot;}}) without failing the load" time="0.0075549">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops malformed character documents ({&quot;soul&quot;:&quot;&quot;,&quot;goal&quot;:&quot;&quot;,&quot;episodes&quot;:{&quot;03&quot;:&quot;기억&quot;}}) without failing the load" time="0.0055907">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops malformed character documents ({&quot;soul&quot;:&quot;&quot;,&quot;goal&quot;:&quot;&quot;,&quot;episodes&quot;:{&quot;3&quot;:7}}) without failing the load" time="0.0062714">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops malformed character documents (null) without failing the load" time="0.0054743">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops malformed character documents ({&quot;soul&quot;:&quot;&quot;,&quot;goal&quot;:7,&quot;episodes&quot;:{}}) without failing the load" time="0.006853">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="drops malformed character documents ({&quot;soul&quot;:&quot;&quot;,&quot;memory&quot;:7,&quot;episodes&quot;:{}}) without failing the load" time="0.0151319">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="ignores character documents stored on a card that is not a character" time="0.0087781">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="treats the row as the source of truth for character documents: a deleted episode memory or cleared documents are not revived from server metadata on the next save" time="0.0247847">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads documents saved before GOAL.md: memory is prepended to 00회차 with one blank line, goal is empty, soul and the other episodes are kept" time="0.0085186">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="moves memory into 00회차 as it is when the card has none, and does not drop a document that only has memory" time="0.017295">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="saves a migrated document again without the memory key and with goal, so the old memory text is not lost" time="0.0164399">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="merges memory into 00회차 even when the document already carries goal" time="0.0064128">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="declares that it reads and saves relations per episode" time="0.0023676">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads the relations of the given episode with ?episode= and keeps the plain path without one" time="0.0104979">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="sends the chosen episode in the draft save body and omits it for the latest episode" time="0.0179827">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="retries an ambiguous save with the exact episode and refuses to change the episode while it is pending" time="0.0295386">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="reads a relation whose endpoint is a card deleted later, and leaves it unchanged on save" time="0.0491451">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="keeps the titles of the deleted cards to name them in a past episode, and has none when nothing was deleted" time="0.0182999">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="still rejects a relation whose endpoint is neither an active nor a deleted card of the world" time="0.0068989">
+        </testcase>
+        <testcase classname="src/data/world-studio/http.test.ts" name="실제 원고 적재 응답의 별칭 문서 근거와 회차 관계를 편집 저장 재조회한다" time="0.0478629">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/presentation/features/content/view/ManuscriptBuildPanel.test.tsx" timestamp="2026-11-17T06:48:42.209Z" hostname="DESKTOP-H26CIFA" tests="4" failures="0" errors="0" skipped="0" time="1.9244313">
+        <testcase classname="src/presentation/features/content/view/ManuscriptBuildPanel.test.tsx" name="화면 진입과 업로드만으로 시작하지 않으며 동의 후 명시적으로 접수한다" time="1.3899637">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/ManuscriptBuildPanel.test.tsx" name="실패 이유와 동일 작업 재개를 표시하고 완료 후 기존 작업실을 연다" time="0.1817642">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/ManuscriptBuildPanel.test.tsx" name="조회 실패를 새 작업 없음으로 취급하지 않는다" time="0.0808133">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/ManuscriptBuildPanel.test.tsx" name="비공개 업로드 회차가 공개 회차 목록에 없어도 명시적으로 최초 구축을 요청한다" time="0.2550044">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/presentation/features/content/view/WorkManagement.test.tsx" timestamp="2026-11-17T06:48:42.223Z" hostname="DESKTOP-H26CIFA" tests="7" failures="0" errors="0" skipped="0" time="3.7321562">
+        <testcase classname="src/presentation/features/content/view/WorkManagement.test.tsx" name="회차가 10개 이하면 전부 한 번에 보이고 페이지 이동 버튼은 없다" time="0.9932604">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/WorkManagement.test.tsx" name="회차가 10개를 넘으면 1쪽에 1~10화만 보이고 이전은 막히며 현재 쪽이 표시된다" time="0.2585753">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/WorkManagement.test.tsx" name="다음·쪽 번호·이전으로 쪽을 옮기면 그 쪽의 회차만 보이고 처음과 끝에서 막힌다" time="0.759433">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/WorkManagement.test.tsx" name="쪽을 바꾸면 회차 목록 머리로 스크롤한다" time="0.3913999">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/WorkManagement.test.tsx" name="회차별 포크 수는 쪽 안의 순서가 아니라 회차 번호로 붙는다" time="0.459726">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/WorkManagement.test.tsx" name="쪽을 나눠도 이야기 분기의 기준 회차 선택에는 모든 회차가 있다" time="0.7396964">
+        </testcase>
+        <testcase classname="src/presentation/features/content/view/WorkManagement.test.tsx" name="요청을 처리하는 동안 다른 탭은 잠그되 지금 보고 있는 탭은 잠그지 않아, 누른 탭에서 키보드 초점이 사라지지 않는다" time="0.1125928">
+        </testcase>
+    </testsuite>
+</testsuites>

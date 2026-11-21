@@ -97,7 +97,7 @@ function TopButton() {
   return <button ref={button} type="button" id="top" className={on ? 'on' : ''} hidden={!on} tabIndex={on ? 0 : -1} aria-label="맨 위로" onClick={() => scrollTo({ top: 0, behavior: typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>↑</button>
 }
 
-/** 목업 applyProx(): 마우스 근처 .prox 카드를 살짝 키웁니다. 터치 기기와 동작 줄이기 설정에서는 끕니다. */
+/** 목업 applyProx(): 마우스가 올라온 .prox 카드만 살짝 띄웁니다(커지지 않음). 터치 기기와 동작 줄이기 설정에서는 끕니다. */
 function useProximity() {
   useEffect(() => {
     // 동작 줄이기에서는 전환이 꺼져 있어 카드가 마우스를 따라 뚝뚝 튄다. 아예 걸지 않는다.
@@ -113,10 +113,8 @@ function useProximity() {
       for (const el of document.querySelectorAll<HTMLElement>('.prox')) {
         const b = el.getBoundingClientRect()
         if (b.bottom < 0 || b.top > innerHeight) continue
-        const d = Math.hypot(mx - (b.left + b.width / 2), my - (b.top + b.height / 2))
-        const t = Math.max(0, 1 - d / (Math.max(b.width, b.height) * 0.9 + 60))
         const inside = mx >= b.left && mx <= b.right && my >= b.top && my <= b.bottom
-        el.style.transform = `translateY(${-(inside ? 6 : t * 2)}px) scale(${(1 + t * 0.035 + (inside ? 0.035 : 0)).toFixed(4)})`
+        el.style.transform = inside ? 'translateY(-3px)' : ''
         el.classList.toggle('near', inside)
       }
     }
@@ -153,8 +151,8 @@ export function GlobalChrome() {
       {showTools && <>{import.meta.env.DEV && <div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>}
       {!writing && <div className="screen-controls">
         {import.meta.env.DEV && <button type="button" className="btn sm" onClick={() => dispatch(uiActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>}
-        {/* 관리자 화면은 상단바에 테마 버튼이 있어 떠 있는 버튼이 표를 가리지 않게 뺍니다. */}
-        {pathname !== '/admin' && <ThemeButton className="btn sm" />}
+        {/* 관리자 화면은 상단바에 테마 버튼이 있어 떠 있는 버튼이 표를 가리지 않게 뺍니다. 공용 상단바(Gnb)가 있는 화면은 thm-float를 CSS가 숨긴다. */}
+        {pathname !== '/admin' && <ThemeButton className="btn sm thm-float" />}
       </div>}</>}
     </>
   )

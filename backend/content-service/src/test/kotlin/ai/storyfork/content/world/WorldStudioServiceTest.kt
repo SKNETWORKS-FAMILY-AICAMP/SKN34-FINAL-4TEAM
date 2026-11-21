@@ -42,21 +42,72 @@ class WorldStudioServiceTest {
     private val images=mock(SettingCardImageRepository::class.java)
     private val graph=mock(Neo4jRelationshipRepository::class.java)
     private val genres=mock(GenreRepository::class.java)
+    private val buildJobs=mock(ManuscriptBuildJobRepository::class.java)
+    private val buildSteps=mock(ManuscriptBuildLoadStepRepository::class.java)
     private val manager=mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
-    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,genres)
+    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,genres,buildJobs,buildSteps)
     private val world=UUID.randomUUID()
     private val actor=UUID.randomUUID()
     private val draft=WorldDraft(worldId=world,name="편집본",draftRevision=2)
     private val state=WorldRelationshipState(world,3,"creation","previous","previous",1,true)
+    @Test fun `manuscript hash survives jsonb object order and nested document conversion`() {
+        val card=CardPayload(UUID.randomUUID(),"인물","원문","character","basic",semanticMetadata=linkedMapOf(
+            "z" to mapOf("second" to 2,"first" to 1),"characterDocs" to ManuscriptCharacterDocs("성격","목표",mapOf("01" to "기억"))))
+        val request=EditWorldDraftRequest(0,"세계관","",listOf(card),key="same")
+        val reordered=request.copy(cards=listOf(card.copy(semanticMetadata=linkedMapOf(
+            "characterDocs" to mapOf("episodes" to mapOf("01" to "기억"),"goal" to "목표","soul" to "성격"),"z" to mapOf("first" to 1,"second" to 2)))))
+        assertEquals(service.manuscriptRequestHash(world,request),service.manuscriptRequestHash(world,reordered))
+    }
     private fun owned(marker:Boolean=true) {
         `when`(worlds.lockOwned(world,actor)).thenReturn(StudioWorld(world,actor))
         `when`(drafts.findById(world)).thenReturn(Optional.of(draft))
         `when`(states.findById(world)).thenReturn(if(marker) Optional.of(state) else Optional.empty())
         `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,emptyList()) }
     }
+    @Test fun `pending manuscript load blocks ordinary draft and confirmation`() {
+        owned()
+        val job=ManuscriptBuildJob(workId="work",worldId=world,ownerSubject=actor,requestKey="build",requestHash="a".repeat(64),manifest=emptyMap(),status="loading")
+        `when`(buildJobs.findFirstByWorldIdAndStatusIn(world,listOf("loading","unknown"))).thenReturn(job)
+        assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"other","",key="other")) }
+        assertThrows(WorldStudioFailure::class.java) { service.save(world,actor,SaveWorldRequest(2,"confirm")) }
+        val input=mock(ai.storyfork.content.world.service.InitialWorldInput::class.java)
+        `when`(input.worldId).thenReturn(world)
+        var prepared=false
+        assertThrows(WorldStudioFailure::class.java) { service.withInitialWorldInput(actor,input) { prepared=true;true } }
+        assertFalse(prepared)
+        verifyNoInteractions(graph)
+    }
+    @Test fun `manuscript receipt completes with draft and retries before reading changed graph`() {
+        owned()
+        val job=ManuscriptBuildJob(workId="work",worldId=world,ownerSubject=actor,requestKey="build",requestHash="a".repeat(64),manifest=emptyMap(),status="loading")
+        job.status="unknown";job.failureCode="LOAD_RESULT_UNCONFIRMED"
+        val request=EditWorldDraftRequest(2,"편집본","",key="reserved")
+        @Suppress("UNCHECKED_CAST")
+        val json=mapper.readValue(mapper.writeValueAsBytes(request),Map::class.java) as Map<String,Any?>
+        val hash=java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsBytes(listOf("edit",world,request))))
+        val step=ManuscriptBuildLoadStep(jobId=job.id,sequence=1,requestPayload=json,requestHash=hash)
+        `when`(buildJobs.findFirstByWorldIdAndStatusIn(world,listOf("loading","unknown"))).thenAnswer { if(job.status=="completed") null else job }
+        `when`(buildJobs.findById(job.id)).thenReturn(Optional.of(job))
+        `when`(buildSteps.findById(step.id)).thenReturn(Optional.of(step))
+        `when`(buildSteps.findAllByJobIdOrderBySequence(job.id)).thenReturn(listOf(step))
+        doAnswer {
+            assertNull(step.receipt)
+            RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList())
+        }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        val receipt=service.editManuscriptAddition(world,actor,step.id)
+        assertEquals(3L,(receipt["draftRevision"] as Number).toLong())
+        assertEquals("applied",step.status);assertEquals("completed",job.status)
+        assertNull(job.failureCode)
+        assertTrue(state.completed);assertEquals(3L,draft.draftRevision)
+        clearInvocations(graph)
+        draft.draftRevision=20;state.graphVersion=21
+        assertEquals(receipt,service.editManuscriptAddition(world,actor,step.id))
+        verifyNoInteractions(graph)
+    }
+
     @Test fun `template genre backfill changes only a null owned world's genre`() {
         val owner = GenreTemplateSeeder.TEMPLATE_OWNER
         val entity = StudioWorld(world, owner, UUID.randomUUID(), visibility = "public", publishedAt = java.time.Instant.EPOCH)

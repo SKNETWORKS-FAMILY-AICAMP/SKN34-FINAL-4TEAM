@@ -17,6 +17,10 @@ import ai.storyfork.content.preprocessing.service.dto.PreprocessingJobResponse
 import ai.storyfork.content.preprocessing.service.dto.PreprocessingProgressRequest
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
+import ai.storyfork.content.world.service.ManuscriptBuildService
+import ai.storyfork.content.world.service.ManuscriptBuildInput
+import ai.storyfork.content.world.service.ManuscriptBuildSource
+import ai.storyfork.content.world.service.dto.ManuscriptBuildRequest
 import java.time.Instant
 import java.util.Optional
 import java.util.UUID
@@ -42,8 +46,9 @@ class PreprocessingServiceTest {
     private val jobs = mock(PreprocessingJobRepository::class.java)
     private val ai = mock(PreprocessingAiClient::class.java)
     private val manager = mock(PlatformTransactionManager::class.java)
-    private val service = PreprocessingService(works, episodes, jobs, ai, TransactionTemplate(manager))
-    private val work = WorkEntity(id = "work", ownerId = "owner", title = "메밀꽃 필 무렵", worldStudioId = world)
+    private val build = mock(ManuscriptBuildService::class.java)
+    private val service = PreprocessingService(works, episodes, jobs, ai, build, TransactionTemplate(manager))
+    private val work = WorkEntity(id = "work", ownerId = "00000000-0000-0000-0000-000000000001", title = "메밀꽃 필 무렵", worldStudioId = world)
     private val newestFirst = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.asc("id"))
 
     /** saveAndFlush가 불린 시점의 (상태, 사유)다. 같은 객체를 다시 저장해도 저장 순서를 구분할 수 있다. */
@@ -54,12 +59,15 @@ class PreprocessingServiceTest {
     private fun aiRequests() = mockingDetails(ai).invocations.filter { it.method.name == "accept" }.map { it.arguments[0] as PreprocessingAiRequest }
     private fun savedJobs() = mockingDetails(jobs).invocations.filter { it.method.name == "saveAndFlush" }.map { it.arguments[0] as PreprocessingJobEntity }
     private fun rejected(block: () -> Unit) = assertThrows(ContentFailure::class.java, block)
-    private fun job(status: String, id: String = "job") = PreprocessingJobEntity(id = id, workId = "work", memberId = "owner", status = status, total = 3)
+    private fun job(status: String, id: String = "job") = PreprocessingJobEntity(id = id, workId = "work", memberId = "00000000-0000-0000-0000-000000000001", status = status, total = 3)
     private fun failedJob(failedEpisodes: List<Int> = emptyList()) = job(FAILED).apply {
         done = 1; this.failedEpisodes = failedEpisodes; failedReason = "고정 사유"; startedAt = t0; finishedAt = t1
     }
 
     @BeforeEach fun stubs() {
+        val sources = listOf(1, 2, 5).map { ManuscriptBuildSource(it,"e$it","v$it","title","body") }
+        `when`(build.freeze("work","00000000-0000-0000-0000-000000000001")).thenReturn(ManuscriptBuildInput(sources))
+        `when`(jobs.requeueSnapshot("job")).thenReturn(1)
         `when`(manager.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
         `when`(works.findById("work")).thenReturn(Optional.of(work))
         `when`(episodes.savedNumbers("work")).thenReturn(listOf(1, 2, 5))
@@ -71,10 +79,10 @@ class PreprocessingServiceTest {
     // ---- start ----
 
     @Test fun `start queues one job for the saved episodes and hands it to the AI service after the first save`() {
-        val response = service.start("work", "owner")
+        val response = service.start("work", "00000000-0000-0000-0000-000000000001")
 
         val saved = savedJobs().single()
-        assertEquals(listOf<Any?>("work", world, "owner", QUEUED, 0, 3), listOf(saved.workId, saved.worldId, saved.memberId, saved.status, saved.done, saved.total))
+        assertEquals(listOf<Any?>("work", world, "00000000-0000-0000-0000-000000000001", QUEUED, 0, 3), listOf(saved.workId, saved.worldId, saved.memberId, saved.status, saved.done, saved.total))
         assertEquals(PreprocessingJobResponse(saved.id, "work", QUEUED, 0, 3, emptyList(), null, null, null), response)
         assertEquals(listOf(PreprocessingAiRequest(saved.id, "work", listOf(1, 2, 5))), aiRequests())
         val order = inOrder(jobs, ai)
@@ -86,17 +94,17 @@ class PreprocessingServiceTest {
     @Test fun `only the owner of a live work can start and nothing is created otherwise`() {
         for (other in listOf(work.copyOwner("other"), work.copyDeleted())) {
             `when`(works.findById("work")).thenReturn(Optional.of(other))
-            assertEquals(404, rejected { service.start("work", "owner") }.status)
+            assertEquals(404, rejected { service.start("work", "00000000-0000-0000-0000-000000000001") }.status)
         }
         `when`(works.findById("work")).thenReturn(Optional.empty())
-        assertEquals(404, rejected { service.start("work", "owner") }.status)
+        assertEquals(404, rejected { service.start("work", "00000000-0000-0000-0000-000000000001") }.status)
         verify(jobs, never()).saveAndFlush(anyJob())
         verifyNoInteractions(ai)
     }
 
     @Test fun `a work without a saved episode is 422 and nothing is created`() {
         `when`(episodes.savedNumbers("work")).thenReturn(emptyList())
-        assertEquals(422, rejected { service.start("work", "owner") }.status)
+        assertEquals(422, rejected { service.start("work", "00000000-0000-0000-0000-000000000001") }.status)
         verify(jobs, never()).saveAndFlush(anyJob())
         verifyNoInteractions(ai)
     }
@@ -104,34 +112,44 @@ class PreprocessingServiceTest {
     @Test fun `an open or completed latest job is 409 and a failed one allows a new job`() {
         for (status in listOf(QUEUED, RUNNING, LOADING, COMPLETED)) {
             `when`(jobs.findFirstByWorkIdOrderByCreatedAtDesc("work")).thenReturn(job(status, "old"))
-            assertEquals(409, rejected { service.start("work", "owner") }.status, status)
+            assertEquals(409, rejected { service.start("work", "00000000-0000-0000-0000-000000000001") }.status, status)
         }
         verify(jobs, never()).saveAndFlush(anyJob())
         verifyNoInteractions(ai)
 
         `when`(jobs.findFirstByWorkIdOrderByCreatedAtDesc("work")).thenReturn(failedJob())
-        assertEquals(QUEUED, service.start("work", "owner").status)
+        assertEquals(QUEUED, service.start("work", "00000000-0000-0000-0000-000000000001").status)
         assertEquals(1, aiRequests().size)
+    }
+
+    @Test fun `a delayed request key from an older job cannot create a third job`() {
+        val previous = failedJob()
+        `when`(jobs.findFirstByWorkIdOrderByCreatedAtDesc("work")).thenReturn(previous)
+        `when`(jobs.requestKeyExists("work", "old-key")).thenReturn(true)
+        val request = ManuscriptBuildRequest(world, "old-key", true)
+        assertEquals(409, rejected { service.start("work", work.ownerId, request) }.status)
+        assertEquals(FAILED, previous.status)
+        assertTrue(savedJobs().isEmpty())
+        verifyNoInteractions(ai)
     }
 
     @Test fun `losing the unique index race is 409 and the AI service is not called`() {
         doThrow(DataIntegrityViolationException("duplicate")).`when`(jobs).saveAndFlush(anyJob())
-        assertEquals(409, rejected { service.start("work", "owner") }.status)
+        assertEquals(409, rejected { service.start("work", "00000000-0000-0000-0000-000000000001") }.status)
         verifyNoInteractions(ai)
     }
 
-    @Test fun `an AI service failure leaves the job failed with the fixed reason and answers 502`() {
+    @Test fun `a lost acceptance response keeps the claim and answers 502`() {
         doThrow(PreprocessingAiFailure("AI_UNAVAILABLE")).`when`(ai).accept(anyRequest())
 
-        val failure = rejected { service.start("work", "owner") }
+        val failure = rejected { service.start("work", "00000000-0000-0000-0000-000000000001") }
 
         assertEquals(502, failure.status)
-        assertEquals(listOf<Pair<String, String?>>(QUEUED to null, FAILED to PreprocessingService.AI_CALL_FAILED), savedStates)
+        assertEquals(listOf<Pair<String, String?>>(QUEUED to null), savedStates)
         val order = inOrder(jobs, ai)
         order.verify(jobs).saveAndFlush(anyJob())
         order.verify(ai).accept(anyRequest())
-        order.verify(jobs).saveAndFlush(anyJob())
-        assertNotNull(savedJobs().first().finishedAt)
+        assertNull(savedJobs().first().finishedAt)
     }
 
     // ---- latest ----
@@ -140,14 +158,14 @@ class PreprocessingServiceTest {
         val running = job(RUNNING, "j2").apply { done = 2; startedAt = t0 }
         `when`(jobs.findFirstByWorkIdOrderByCreatedAtDesc("work")).thenReturn(running)
 
-        assertEquals(PreprocessingJobResponse("j2", "work", RUNNING, 2, 3, emptyList(), null, t0.toString(), null), service.latest("work", "owner"))
+        assertEquals(PreprocessingJobResponse("j2", "work", RUNNING, 2, 3, emptyList(), null, t0.toString(), null), service.latest("work", "00000000-0000-0000-0000-000000000001"))
 
         assertEquals(404, rejected { service.latest("work", "other") }.status)
         verify(jobs, times(1)).findFirstByWorkIdOrderByCreatedAtDesc("work")
     }
 
     @Test fun `latest without any job is 404 with its own code`() {
-        val failure = rejected { service.latest("work", "owner") }
+        val failure = rejected { service.latest("work", "00000000-0000-0000-0000-000000000001") }
         assertEquals(404, failure.status)
         assertEquals("PREPROCESSING_NOT_STARTED", failure.code)
     }
@@ -203,9 +221,57 @@ class PreprocessingServiceTest {
         verifyNoInteractions(jobs)
     }
 
+    @Test fun `restarted service quarantines a queued job with no snapshot on read retry and new admission`() {
+        val orphan = job(QUEUED, UUID.randomUUID().toString())
+        `when`(jobs.lock(orphan.id)).thenReturn(orphan)
+        `when`(jobs.findFirstByWorkIdOrderByCreatedAtDesc("work")).thenReturn(orphan)
+        val response = service.latest("work", work.ownerId)
+        assertEquals(QUEUED, response.status)
+        assertEquals("manual_review", response.recovery)
+        assertNull(response.build)
+        for (action in listOf<() -> Unit>({ service.retry(orphan.id) }, { service.start("work", work.ownerId) })) {
+            val error = rejected(action)
+            assertEquals(409, error.status)
+            assertEquals("PREPROCESSING_SNAPSHOT_MISSING", error.code)
+        }
+        assertEquals(QUEUED, orphan.status)
+        assertNull(orphan.finishedAt)
+        assertTrue(savedJobs().isEmpty())
+        verifyNoInteractions(ai)
+    }
+
+    @Test fun `legacy retry without an immutable input returns 409 and preserves the failed row`() {
+        val old = failedJob(listOf(2))
+        `when`(jobs.lock(old.id)).thenReturn(old)
+        `when`(jobs.findFirstByWorkIdOrderByCreatedAtDesc(old.workId)).thenReturn(old)
+        `when`(jobs.frozenNumbers(old.id, old.workId, old.memberId)).thenReturn(emptyList())
+        val error = rejected { service.retry(old.id) }
+        assertEquals(409, error.status)
+        assertEquals("PREPROCESSING_SNAPSHOT_MISSING", error.code)
+        assertEquals(FAILED, old.status)
+        assertEquals(t1, old.finishedAt)
+        assertEquals(listOf(2), old.failedEpisodes)
+        verify(jobs, never()).saveAndFlush(anyJob())
+        verifyNoInteractions(ai)
+    }
+
+    @Test fun `unconfirmed or partial load blocks a new request without changing the old job`() {
+        val old = failedJob()
+        `when`(jobs.findFirstByWorkIdOrderByCreatedAtDesc("work")).thenReturn(old)
+        `when`(jobs.requiresLoadReview("work")).thenReturn(true)
+        val error = rejected { service.start("work", "00000000-0000-0000-0000-000000000001") }
+        assertEquals(409, error.status)
+        assertEquals("PREPROCESSING_LOAD_REVIEW_REQUIRED", error.code)
+        assertEquals(FAILED, old.status)
+        assertEquals(t1, old.finishedAt)
+        verify(jobs, never()).saveAndFlush(anyJob())
+        verifyNoInteractions(ai)
+    }
+
     // ---- retry ----
 
     @Test fun `retry requeues the latest failed job and sends its failed episodes or else all saved ones`() {
+        `when`(jobs.frozenNumbers("job", "work", "00000000-0000-0000-0000-000000000001")).thenReturn(listOf(1, 2, 5))
         val withFailures = failedJob(listOf(2, 5))
         `when`(jobs.lock("job")).thenReturn(withFailures)
         `when`(jobs.findFirstByWorkIdOrderByCreatedAtDesc("work")).thenReturn(withFailures)
@@ -236,7 +302,8 @@ class PreprocessingServiceTest {
         verifyNoInteractions(ai)
     }
 
-    @Test fun `retry that the AI service refuses leaves the job failed again and answers 502`() {
+    @Test fun `an unconfirmed retry delivery keeps the same claim and answers 502`() {
+        `when`(jobs.frozenNumbers("job", "work", "00000000-0000-0000-0000-000000000001")).thenReturn(listOf(1, 2, 5))
         val failed = failedJob(listOf(2))
         `when`(jobs.lock("job")).thenReturn(failed)
         `when`(jobs.findFirstByWorkIdOrderByCreatedAtDesc("work")).thenReturn(failed)
@@ -244,11 +311,12 @@ class PreprocessingServiceTest {
 
         assertEquals(502, rejected { service.retry("job") }.status)
 
-        assertEquals(listOf<Pair<String, String?>>(QUEUED to null, FAILED to PreprocessingService.AI_CALL_FAILED), savedStates)
+        assertEquals(listOf<Pair<String, String?>>(QUEUED to null), savedStates)
         assertEquals(listOf(2), failed.failedEpisodes, "실패 회차 기록은 AI의 다음 보고 전까지 지우지 않는다")
     }
 
     @Test fun `retry that loses the unique index race is 409 and the AI service is not called`() {
+        `when`(jobs.frozenNumbers("job", "work", "00000000-0000-0000-0000-000000000001")).thenReturn(listOf(1, 2, 5))
         val failed = failedJob()
         `when`(jobs.lock("job")).thenReturn(failed)
         `when`(jobs.findFirstByWorkIdOrderByCreatedAtDesc("work")).thenReturn(failed)
@@ -256,6 +324,38 @@ class PreprocessingServiceTest {
 
         assertEquals(409, rejected { service.retry("job") }.status)
         verifyNoInteractions(ai)
+    }
+
+    // ---- 입력 준비 실패 ----
+
+    private fun anyUuid():UUID=any(UUID::class.java) ?: UUID(0,0)
+    private fun anyBuildRequest():ManuscriptBuildRequest=any(ManuscriptBuildRequest::class.java) ?: ManuscriptBuildRequest(world,"key",true)
+    private fun anyInput():ManuscriptBuildInput=any(ManuscriptBuildInput::class.java) ?: ManuscriptBuildInput(listOf(ManuscriptBuildSource(1,"e","v","title","body")))
+    private fun prepareFails(error:Throwable) {
+        doThrow(error).`when`(build).prepare(anyUuid(),anyString(),anyUuid(),anyBuildRequest(),anyInput())
+        `when`(jobs.lock(anyString())).thenAnswer { savedJobs().last() }
+    }
+
+    @Test fun `a refused input preparation removes the intake row instead of locking the work`() {
+        val reason=ContentFailure(409,"이미 설정이 있는 세계관에는 원고로 세계관을 만들 수 없어요.")
+        prepareFails(reason)
+
+        assertSame(reason,rejected { service.start("work","00000000-0000-0000-0000-000000000001") })
+
+        val intake=savedJobs().single()
+        verify(jobs).delete(intake)
+        assertEquals(listOf<Pair<String,String?>>(QUEUED to null),savedStates,"접수가 성립하지 않았으니 실패 행을 남기지 않는다")
+        verifyNoInteractions(ai)
+    }
+
+    @Test fun `a failure after the immutable input exists keeps the row as failed for review`() {
+        `when`(jobs.frozenNumbers(anyString(),anyString(),anyString())).thenReturn(listOf(1,2,5))
+        prepareFails(IllegalStateException("late"))
+
+        assertThrows(IllegalStateException::class.java) { service.start("work","00000000-0000-0000-0000-000000000001") }
+
+        assertEquals(FAILED,savedJobs().last().status)
+        verify(jobs,never()).delete(anyJob())
     }
 
     private fun WorkEntity.copyOwner(owner: String) = WorkEntity(id = id, ownerId = owner, title = title, worldStudioId = worldStudioId)

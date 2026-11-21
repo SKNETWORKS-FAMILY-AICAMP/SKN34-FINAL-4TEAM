@@ -1,4 +1,7 @@
+import { useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 import { Cov, CoverOf } from '../../../shared/art'
+import { toast } from '../../../shared/events'
 import { kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
@@ -16,6 +19,15 @@ const TABS = [['read', '읽는 중'], ['write', '내가 쓰는 소설'], ['world
 export function LibraryPage() {
   const vm = useLibraryViewModel()
   const d = vm.data
+  const { pathname, search, state } = useLocation()
+  const navigate = useNavigate()
+  const deletedWorkTitle: unknown = state?.deletedWorkTitle
+  const librarySettled = d !== undefined || vm.isError
+  useEffect(() => {
+    if (!librarySettled || typeof deletedWorkTitle !== 'string' || !deletedWorkTitle) return
+    toast(`「${deletedWorkTitle}」 작품을 삭제했어요.`)
+    navigate({ pathname, search }, { replace: true, state: null })
+  }, [deletedWorkTitle, librarySettled, navigate, pathname, search])
   useDocumentTitle('내 서재')
   if (!d) return <><Gnb on="lib"/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
   // 서버가 없는 목업 빌드는 읽기 기록도 메모리라 안내가 다르다. 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.

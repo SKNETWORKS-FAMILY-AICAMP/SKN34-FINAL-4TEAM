@@ -102,7 +102,7 @@ export function ReviewBody({ studio, vm }: { studio: VM; vm: Review }) {
       <h3>AI 후보 검토</h3>
       <p>저장한 초안을 분석해 AI가 제안한 설정 후보예요. 승인한 후보만 ‘초안에 반영’해야 설정에 추가돼요.</p>
       {unsaved && <p role="status">작성 중인 입력이 있어요. 먼저 저장해 주세요.</p>}
-      {vm.error && <p role="alert" className="world-error">{vm.error}</p>}
+      {vm.error && <p role="alert" className="ep-alert">{vm.error}</p>}
       {vm.message && <p role="status">{vm.message}</p>}
       {vm.pending && <div className="initial-recovery"><p>결과를 확인하지 못한 요청이 있어요. 새 요청을 만들지 않고 기존 요청을 그대로 확인해요. 새로고침·재로그인 후에도 이 브라우저에서 이어서 확인할 수 있어요.</p><button className="btn" disabled={vm.busy} onClick={vm.recover}>같은 요청으로 확인·복구</button></div>}
       {!analysis && !vm.busy && (
