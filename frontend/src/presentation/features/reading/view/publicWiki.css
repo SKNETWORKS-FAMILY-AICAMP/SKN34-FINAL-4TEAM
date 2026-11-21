@@ -17,13 +17,14 @@
 .nw-toc ol ol { padding-left: 18px; }
 .nw-toc li a { display: inline-block; padding: 3px 0; color: var(--tfg); font-size: 14px; }
 .nw-toc li a:hover { color: var(--nw-acc); }
-.nw-sec { margin-top: 8px; }
-.nw-sec > summary { list-style: none; display: flex; align-items: center; min-height: 44px; border-bottom: 1px solid var(--tline); cursor: pointer; }
-.nw-sec > summary::-webkit-details-marker { display: none; }
-.nw-sec > summary::before { content: '▾' / ''; width: 22px; font-size: 16px; color: var(--tsub); transition: transform .2s ease-out; }
-.nw-sec:not([open]) > summary::before { transform: rotate(-90deg); }
-.nw-sec > summary h2 { font-size: 24px; font-weight: 800; }
+.nw-sec, .nw-rels { margin-top: 8px; }
+.nw-sec > summary, .nw-rels > summary { list-style: none; display: flex; align-items: center; min-height: 44px; border-bottom: 1px solid var(--tline); cursor: pointer; }
+.nw-sec > summary::-webkit-details-marker, .nw-rels > summary::-webkit-details-marker { display: none; }
+.nw-sec > summary::before, .nw-rels > summary::before { content: '▾' / ''; width: 22px; font-size: 16px; color: var(--tsub); transition: transform .2s ease-out; }
+.nw-sec:not([open]) > summary::before, .nw-rels:not([open]) > summary::before { transform: rotate(-90deg); }
+.nw-sec > summary h2, .nw-rels > summary h2 { font-size: 24px; font-weight: 800; }
 .nw-doc, .nw-relsec, .nw-sec > summary, .nw-toc { scroll-margin-top: 80px; }
+.nw-rels > summary { scroll-margin-top: 80px; }
 .nw-doc { display: flow-root; padding: 20px 0 8px; }
 .nw-doc + .nw-doc { border-top: 1px dashed var(--tline); }
 .nw-doc h3 { margin: 0 0 12px; font-size: 19px; font-weight: 800; }

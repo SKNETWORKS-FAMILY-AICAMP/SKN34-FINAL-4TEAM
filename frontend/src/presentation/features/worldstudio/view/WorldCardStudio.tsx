@@ -203,7 +203,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                 {docs.doc === 'identity' && <p className="small muted world-card-help"># · ## · ### 제목은 공개 페이지 목차에 나와요.</p>}
                 {item.kind !== 'relation' && (
                   <section className="world-card-reach" aria-label="공개 범위">
-                    <h4>공개 범위</h4>
+                    <h4>공개 범위 <span className="chip world-reach-badge">{revealBadge}</span></h4>
                     {vm.linkedWorkId ? (
                       <>
                         <label className="world-reveal">
@@ -212,7 +212,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                           화부터 공개
                         </label>
                         {revealError && <p id={`${listId}-reveal-error`} role="alert" className="small world-field-error">{REVEAL_EPISODE_ERROR}</p>}
-                        <p id={`${listId}-reveal`} className="small muted">비워 두면 작가 전용이에요. 이 회차가 발행되면 독자에게 보여요.</p>
+                        <p id={`${listId}-reveal`} className="small muted">비워 두면 작가 전용이에요.</p>
                       </>
                     ) : (
                       <>

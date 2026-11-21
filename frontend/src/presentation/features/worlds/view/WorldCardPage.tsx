@@ -72,7 +72,7 @@ function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
 type Section = { id: string; no: string; depth: number; title: string; heading?: ReactNode; body: ReactNode; children: Section[] }
 
 /**
- * 정보 상자 아래에는 카드별 관계도(`CardRelationMap`: 이 카드는 이렇게 연관됩니다, 회차 탭은 응답의 `history` 회차)가 있고.
+ * 정보 상자 아래에는 카드별 관계도(`CardRelationMap`: 이 카드는 이렇게 연관됩니다, 회차 탭은 응답의 `history` 회차)가 있고, 긴 관계 문단은 `관계 자세히 보기 (N)`으로 접혀 있다(앵커 이동은 펼친다, DEC-54).
  * 문단: 본문(마크다운)의 `#`·`##`·`###` 제목마다 한 문단(단계대로 `1`·`1.1`·`1.1.1`, 하위 문단은 상위 문단 안) → 관계(이 카드에 문단으로 보이는 관계마다 `상대 — 관계명` 하위 문단과 관계 설명, DEC-54)
  * → 이 설정을 가리키는 관계(받는 쪽 링크) → 같은 유형의 다른 설정(최상위 번호를 이어 받음).
  * 목차는 이 문단들이고 본문 쪽은 작가가 쓴 제목 그대로다. 첫 제목 앞의 글은 제목 없는 첫머리(`lead`)라 목차·번호에 넣지 않는다(개요를 지어 붙이지 않는다).
@@ -117,6 +117,16 @@ const TocList = ({ sections }: { sections: Section[] }) => (
     <li key={s.id}><Jump to={s.id}><span className="nw-no">{s.no}.</span> {s.title}</Jump>{s.children.length > 0 && <TocList sections={s.children} />}</li>
   ))}</ol>
 )
+
+/** 관계 문단 묶음: 기본으로 접혀 있다(`관계 자세히 보기 (N)`). 안의 문단은 그대로고 목차·앵커 이동이 이 묶음을 펼친다. */
+function RelationDetails({ count, children }: { count: number; children: ReactNode }) {
+  return (
+    <details className="nw-rels" id="nw-rels">
+      <summary><h2>관계 자세히 보기 ({count})</h2></summary>
+      {children}
+    </details>
+  )
+}
 
 /** 접이식 문단. 하위 문단을 안에 두어 상위를 접으면 함께 접힌다. 제목 단계는 h2(1단계)·h3·h4다. */
 function SectionView({ s }: { s: Section }) {
@@ -165,6 +175,9 @@ export function WorldCardPage() {
   const shown = new Set(world?.cards.map((c) => c.id))
   const cardLink: CardLinkRender = (cardId, label) => (world && shown.has(cardId) ? <Go to={cardPath(world.id, cardId)}>{label}</Go> : undefined)
   const { lead, sections } = world && page ? sectionsOf(page, world.id, cardLink) : { lead: '', sections: [] }
+  // 긴 관계 문단('관계'와 하위 문단, 이 설정을 가리키는 관계)은 기본으로 접는다: 관계도가 한눈에 보이고, 앵커(#관계 문단)로 들어오면 `jumpTo`가 접힌 문단을 펼친다.
+  const details = sections.filter((s) => s.id === 'nw-s-relations' || s.id === 'nw-s-backlinks')
+  const relationTotal = page ? page.relations.length + page.backlinks.length : 0
   useScreenId('W04')
   useDocumentTitle(world && page ? `${page.card.title} · ${world.name}` : world ? '찾을 수 없는 설정' : isLoading || isError ? '세계관' : '찾을 수 없는 세계관')
   return (
@@ -206,7 +219,7 @@ export function WorldCardPage() {
                   <TocList sections={sections} />
                 </nav>}
                 {lead && <div className="nw-doc nw-lead"><CardMarkdown text={lead} cardLink={cardLink} /></div>}
-                {sections.map((s) => <SectionView key={s.id} s={s} />)}
+                {sections.map((s) => (details.includes(s) ? (s === details[0] ? <RelationDetails key="nw-rels" count={relationTotal}>{details.map((d) => <SectionView key={d.id} s={d} />)}</RelationDetails> : null) : <SectionView key={s.id} s={s} />))}
               </article>
               <nav className="worlds-cardnav" aria-label="이전·다음 설정">
                 {page.prev && <Go to={cardPath(world.id, page.prev.cardId)} rel="prev"><small>이전 설정</small>{' '}<b>{page.prev.title}</b></Go>}

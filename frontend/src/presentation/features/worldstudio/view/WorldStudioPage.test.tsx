@@ -2237,9 +2237,11 @@ it('공개 회차는 소설을 연결한 세계관에서만 입력할 수 있고
   expect(editor().queryByRole('switch', { name: '이 설정 공개' })).toBeNull() // 연결된 세계관은 공개 설정이 입력 하나다
   expect(revealField().disabled).toBe(false)
   expect(revealField().value).toBe('') // 비어 있으면 작가 전용(기본)이다
-  expect(editor().getByText('비워 두면 작가 전용이에요. 이 회차가 발행되면 독자에게 보여요.')).toBeTruthy() // 입력의 설명(aria-describedby)은 남기고 짧게
+  expect(editor().getByText('비워 두면 작가 전용이에요.')).toBeTruthy() // 입력의 설명(aria-describedby)은 남기고 짧게
+  expect(within(editor().getByRole('region', { name: '공개 범위' })).getByText('작가 전용', { selector: '.world-reach-badge' })).toBeTruthy() // 공개 안내는 제목 옆 배지 한 곳이다
   fireEvent.change(revealField(), { target: { value: '3' } })
   expect(revealField().value).toBe('3')
+  expect(within(editor().getByRole('region', { name: '공개 범위' })).getByText('3화부터 공개', { selector: '.world-reach-badge' })).toBeTruthy()
   fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
   await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
   // 회차 값을 정하면 visibility는 공개로 맞춰 저장한다.
@@ -4494,6 +4496,8 @@ it('카드 편집 화면의 연관 설정·관계 절은 관계 수·관계 편�
   expect(links.getByRole('heading', { name: /연관 설정·관계/ }).textContent).toContain('관계 1')
   expect(links.getByRole('list', { name: '관계 목록' }).textContent).toContain('나래 — 친구')
   expect(document.querySelector('svg.card-relmap-svg')?.getAttribute('aria-hidden')).toBe('true')
+  expect(editor().getByText('공개 순서 문제 없음')).toBeTruthy()
+  expect(editor().queryByRole('region', { name: '공개 순서 확인' })).toBeNull()
   fireEvent.click(links.getByRole('button', { name: '관계 편집' }))
   expect(await screen.findByRole('region', { name: '관계 편집' })).toBeTruthy() // 기존 관계 편집(관계도 화면)으로 간다
   expect(where()).toBe('/worldstudio/qa?view=people')
