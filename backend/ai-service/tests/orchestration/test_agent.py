@@ -634,6 +634,8 @@ def test_the_patch_summary_names_the_changed_passage_so_the_answer_cannot_claim_
     run(target=TARGET)
     summary = json.loads(tool_messages(calls)[1].content)
     assert (summary['kind'], summary['selection']) == ('patch', '그는 웃었다.')
+    # after를 빼기만 하면 종합 답변이 '수정안 본문이 없다'고 실패처럼 말한다
+    assert '결과 카드' in summary.get('proposal', '') and '그는 차갑게 웃었다.' not in tool_messages(calls)[1].content
 
 
 
