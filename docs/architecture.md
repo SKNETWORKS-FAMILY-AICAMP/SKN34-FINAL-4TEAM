@@ -41,7 +41,7 @@ Browser → React Web → /api
 | 관계 그래프 DB | 인물·엔티티 관계 저장·조회; 문서·원고 전문은 제외 | MVP 방향(DEC-26), 제품·연동 미정 |
 | `pg_git` (`seanwevans/pg_git`) | MVP 이후 PostgreSQL 확장 도입을 신중히 추진 | MVP 미적용. 포크·설치·개발은 아직 안 함(DEC-27·30) |
 | S3 호환 object storage | 설정 이미지·TXT/MD/CSV/PDF 첨부, RDB에는 비공개 object key와 인증 API 참조 | #87 선택적 Core API 구현; 로컬 MinIO 소스 빌드, 배포 대상 AWS S3(실제 AWS 미검증) |
-| Elasticsearch·Langfuse·SMTP | 검색 확장·AI 관측·이메일 | 로컬 SMTP를 가입 인증·비밀번호 복구·이메일 변경에 사용, 운영 제공사는 미정 |
+| Elasticsearch·Langfuse·SMTP | 검색 확장·AI 관측·이메일 | Elasticsearch는 Content의 원고 색인·검색에 항상 쓴다(끄는 설정 없음, 운영은 외부 `MANUSCRIPT_INDEX_URL` 필요). 로컬 SMTP를 가입 인증·비밀번호 복구·이메일 변경에 사용, 운영 제공사는 미정 |
 | 모델 API·프레임워크 | 선택적 AI 집필·시뮬레이션 | 팀 선정 미정. 콘텐츠의 명시적 생성은 설정한 OpenAI 모델 호출 |
 
 저장 경계: 설정·원고 전문 및 콘텐츠의 확정 버전·되돌리기·체크포인트·Fork는 PostgreSQL, 관계 정보는 그래프 DB에서 다룹니다. 콘텐츠 변경을 기존 버전 덮어쓰기로 처리하지 않습니다. 두 DB의 연결 키·정본 여부·동기화·복구, Fork의 기준 관계 고정과 AI 조회 경로는 아직 설계하지 않았습니다. Gitea는 사용하지 않습니다. 세계관 설정은 항목별 공개·비공개와 회차별 공개 범위를 두고 사용자 권한·미발행 원고·인물별 인지 범위를 구분합니다(DEC-36).

@@ -19,7 +19,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
    짧은 장면 미리보기를 만들어 글에 붙인다. 크레딧은 작성자 부담이고, 실패하면 글을 저장하지 않고 차감도 없다.
 5. **마감·실행**: 정해진 요일·시각이 되거나 소유자가 **지금 마감·실행**을 누르면 게시판이 마감되고 실행된다.
    - 입력: 연재 방향, **1위 선택지**(동률은 앞 번호, 표가 없으면 1번, 선택지가 없으면 생략), **추천 상위 3개 제안 글**(동률은 먼저 쓴 글, 숨긴 글 제외, 미리보기 포함), 작품 문맥(최근 발행 회차 본문, 세계관이 연결돼 있으면 그 카드도).
-   - AI: 1위 선택지를 이번 회차의 중심 전개로 삼고 제안 글을 참고해 회차 기획·원고(직전 회차들과 비슷한 분량, 최소 2,500자) → 검수(설정 충돌·개연성·19세 이용가·**1위 선택지 반영**). 검수 실패면 원고를 1회 다시 쓰고, 그래도 실패면 실패를 돌려준다.
+   - AI: 1위 선택지를 이번 회차의 중심 전개로 삼고 제안 글을 참고해 회차 기획·원고(직전 회차들과 비슷한 분량, 최소 5,000자) → 검수(설정 충돌·개연성·19세 이용가·**1위 선택지 반영**). 검수 실패면 원고를 1회 다시 쓰고, 그래도 실패면 실패를 돌려준다.
    - Content: 성공하면 다음 회차를 저장·발행하고 게시판을 `published`로 닫은 뒤 다음 게시판을 연다. 종합 문장(`summary`)은 닫힌 게시판에 공개한다.
      실패하면 게시판은 `failed`와 고정 문구 사유로 남고 발행하지 않는다. 자동 재시도는 없고 소유자가 지금 실행으로 다시 시도한다(선택지·투표·제안·추천은 새 게시판으로 옮긴다).
 6. **기록**: AI 집필 탭에서 게시판별 상태(`open`·`queued`·`running`·`published`·`failed`)·발행 회차·실패 사유를 본다.
@@ -40,7 +40,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 2. AI 요청에 `creditLimit`(상한)을 싣는다. AI의 `CreditMiddleware`(`app/agent_runtime.py`, LangChain `AgentMiddleware`)가 요청 안의 모든 모델 호출 사용량(입력+출력 토큰)을 더해
    **1 크레딧 = 1,000 토큰**(코드 상수, 소수 4자리 올림)으로 금액을 확정하고, 다음 모델 호출 전에 누적 금액이 상한 이상이면 호출하지 않고 402 고정 문구로 끝낸다.
 3. AI 응답의 `credits`(확정 금액)로 Content가 `…/settle`을 부른다. AI 실패·시간 초과면 `…/release`. AI는 Core를 부르지 않는다(과금 확정은 Core, 호출 판단은 Content).
-4. 부담: `simulation` 제안 글은 작성자, 선택지 생성·회차 실행은 작품 소유자. 상한은 `.env`의 `SERIAL_SIMULATION_CREDIT_LIMIT`(기본 5)·`SERIAL_CHOICE_CREDIT_LIMIT`(기본 5)·`SERIAL_EPISODE_CREDIT_LIMIT`(기본 150, 실측 약 80).
+4. 부담: `simulation` 제안 글은 작성자, 선택지 생성·회차 실행은 작품 소유자. 상한은 `.env`의 `SERIAL_SIMULATION_CREDIT_LIMIT`(기본 5)·`SERIAL_CHOICE_CREDIT_LIMIT`(기본 5)·`SERIAL_EPISODE_CREDIT_LIMIT`(기본 250: 3,900자 회차 실측 약 60, 5,000자 이상·재작성 대비).
    AI가 상한 초과 402 `CREDIT_LIMIT_EXCEEDED`를 돌려주면 실행 실패 사유는 `크레딧 상한을 넘었습니다.`다(일반 실패 문구와 구분).
    가입 체험 지급이 기본 0이므로 시연 계정에는 관리자 크레딧 지급으로 미리 넣어 둔다.
 5. trace metadata `credit_reservation_id`에 예약 id를 단다(운영 비용 집계).
@@ -71,7 +71,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 | `POST /internal/v1/serial/simulations` | `{workId, episodeNumber, premise, beats, context, creditLimit}`(context = 공개 회차·공개 카드 JSON) | `{scene, credits, usage}` |
 | `POST /internal/v1/serial/episodes` | `{workId, episodeNumber, direction, choice:{text, votes}\|null, proposals:[{title, body, likes, scene?}], context, creditLimit}` | `{summary, title, text, review:{passed, issues}, credits, usage}`. 검수 2회 실패는 422 `SERIAL_REVIEW_FAILED` |
 
-- 회차 원고가 2,500자 미만이면 모델 검수 없이 검수 실패로 보고 1회 다시 쓴다. 회차 집필은 출력 8,000토큰·180초(최악 합계 약 570초, Content 읽기 한도 10분 안). 내용이 바뀐 프롬프트는 Langfuse 등록본에 가리지 않게 새 이름을 쓴다: `serial.vote_summary`·`serial.episode_review_v2`·`serial.choices_v2`·`serial.simulation_v2`·`serial.episode_summary`.
+- 회차 원고가 5,000자 미만이면 모델 검수 없이 검수 실패로 보고 1회 다시 쓴다. 회차 집필은 5,000자 이상을 쓰도록 출력 한도를 늘리되 최악 합계가 Content 읽기 한도 10분 안에 들게 정한다(AI 구현이 값을 정하고 이 줄을 갱신). 내용이 바뀐 프롬프트는 Langfuse 등록본에 가리지 않게 새 이름을 쓴다: `serial.vote_summary`·`serial.episode_review_v2`·`serial.choices_v2`·`serial.simulation_v2`·`serial.episode_summary`.
 - 원고 생성은 기존 `app/writing/`의 기획·원고 지시를 재사용하고, 검수·종합·장면 미리보기만 새 프롬프트(`serial.*`, `tracing.prompt` 규칙)다.
 - 사용자 토큰·Content MCP를 쓰지 않는다. 시뮬레이션만 추적 회원용 선택 헤더 `X-User-Authorization`(제출자 Bearer)을 받는다(인가에는 쓰지 않음). 일정 실행에는 사용자 토큰이 없어서 Content가 허용 문맥을 만들어 넘긴다(새 원고 생성과 같은 방식).
 
@@ -117,6 +117,11 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 - **문맥 JSON**(선택지·회차 실행·시뮬레이션 공통 `serialContext`): 작품 제목·소개, **최근 3화 원문**, **그 이전 회차의 요약 전부**(`summaries:[{number, title, summary}]`, 요약이 아직 없는 회차는 빠짐), 설정 카드. 6만 자 한도 안에서 요약이 넘치면 오래된 요약부터 뺀다.
 - **관련 장면 검색**(회차 실행만): 1위 선택지 글과 추천 상위 제안 글 제목을 질의로 기존 원고 검색(`ManuscriptQaService`의 벡터 검색 → 발행 원문 재대조, 독자 범위)을 한 번 불러, 최근 3화 이전 회차에서 찾은 인용 최대 6개(각 ≤256자)를 문맥 `related:[{episode, quote}]`로 붙인다. 검색이 실패하면 임의로 빼고 진행하지 않고 실행을 실패(사유 `관련 장면 검색에 실패했습니다.`, 예약 해제)로 끝낸다. 검색 결과가 0개인 것은 실패가 아니다(`related` 빈 목록).
 - AI 프롬프트는 `summaries`로 전체 흐름을, `related`로 이어 쓸 옛 장면을 참고하라고 쓴다. AI는 검색·색인을 부르지 않는다(Content가 문맥을 만든다).
+
+## AI 자율 집필 선택 경고 (2026-11-22 사용자 결정)
+
+- 운영 설정에서 집필 방식을 `AI 자율 집필`로 **저장할 때** 확인 대화 상자로 경고한다: AI가 인물 설정을 바탕으로 회차를 쓰므로 세계관·설정집에 **인물 카드(성격·말투·목표·관계처럼 인물 페르소나로 쓸 내용)**를 반드시 작성해 달라는 안내와 `세계관·설정집으로` 이동, `계속 저장`·`취소`. 취소하면 저장하지 않는다.
+- 경고일 뿐 저장을 막지 않는다(서버 검사 없음). 이미 autonomous인 작품을 다시 저장할 때는 띄우지 않는다.
 
 ## 화면 (2026-11-22 사용자 결정)
 
