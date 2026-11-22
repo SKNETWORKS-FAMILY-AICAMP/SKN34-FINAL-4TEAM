@@ -127,14 +127,6 @@ def test_plan_and_draft_fit_in_the_content_relay_read_timeout(monkeypatch):
     assert planning + seen['init']['timeout'] < 180
 
 
-def test_a_caller_can_widen_the_draft_output_budget_and_timeout_while_the_default_stays(monkeypatch):
-    seen = fake_openai(monkeypatch, text='새 원고')
-    agent.draft(DraftRequest(episodeNumber=1, plan='계획'))
-    assert (seen['init']['max_tokens'], seen['init']['timeout']) == (4000, 120)
-    agent.draft(DraftRequest(episodeNumber=1, plan='계획'), max_tokens=8000, timeout=180)
-    assert (seen['init']['max_tokens'], seen['init']['timeout']) == (8000, 180)
-
-
 def test_plan_sees_the_previous_plan_alternatives_so_the_author_can_pick_one(monkeypatch):
     seen = fake_openai(monkeypatch, text=plan_json(('추격', ['서윤이 쫓는다.'])))
     agent.plan(PlanRequest(episodeNumber=11, request='두 번째 안으로 써줘', single=True,

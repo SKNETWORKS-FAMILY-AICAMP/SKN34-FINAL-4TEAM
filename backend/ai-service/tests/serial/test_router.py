@@ -1,5 +1,6 @@
 """#659 HTTP 경계: 내부 토큰, 고정 문구 오류와 code, 요청 하나 = trace 하나."""
 
+import asyncio
 import json
 
 import pytest
@@ -10,14 +11,16 @@ from app.serial import router
 from app.serial.models import (ChoicesRequest, ChoicesResponse, EpisodeRequest, EpisodeResponse, SimulationRequest, SimulationResponse,
                                SummaryRequest, SummaryResponse)
 
+from app.simulation import service as simulation_engine
+
 from traced import MEMBER, attrs, bearer, status_of
 
-from .stubs import (CHOICES, DRAFT, EPISODE_SUMMARY, FAIL, PASS, PLAN, REWRITE, SUMMARY, answers, choices_request, episode, simulation,
-                    summaries_request)
+from .stubs import (CHOICES, DRAFT, EPISODE_SUMMARY, FAIL, PASS, PLAN, REWRITE, SUMMARY, WORLD, answers, choices_request, episode, simulation,
+                    staged_engine, summaries_request)
 
 TOKEN = 'serial-token'
 SIMULATE = lambda **overrides: router.simulate(SimulationRequest.model_validate(simulation(**overrides)), TOKEN)  # noqa: E731
-RUN = lambda **overrides: router.episode(EpisodeRequest.model_validate(episode(**overrides)), TOKEN)  # noqa: E731
+RUN = lambda **overrides: asyncio.run(router.episode(EpisodeRequest.model_validate(episode(**overrides)), TOKEN))  # noqa: E731
 
 
 @pytest.fixture(autouse=True)
@@ -29,7 +32,7 @@ def internal_token(monkeypatch):
     lambda: router.choices(ChoicesRequest.model_validate(choices_request()), 'wrong'),
     lambda: router.summaries(SummaryRequest.model_validate(summaries_request()), 'wrong'),
     lambda: router.simulate(SimulationRequest.model_validate(simulation()), 'wrong'),
-    lambda: router.episode(EpisodeRequest.model_validate(episode()), 'wrong')], ids=['choices', 'summaries', 'simulation', 'episode'])
+    lambda: asyncio.run(router.episode(EpisodeRequest.model_validate(episode()), 'wrong'))], ids=['choices', 'summaries', 'simulation', 'episode'])
 def test_wrong_token_is_403_and_never_calls_the_model(monkeypatch, call):
     calls = answers(monkeypatch)
     with pytest.raises(HTTPException) as error:
@@ -113,6 +116,7 @@ def test_without_a_bearer_the_simulation_is_served_and_the_trace_stays_anonymous
 
 
 def test_a_served_episode_is_returned_as_one_trace_root(monkeypatch, spans):
+    staged_engine(monkeypatch)
     answers(monkeypatch, SUMMARY, PLAN, DRAFT, PASS)
 
     result = RUN(creditReservationId='res-2')
@@ -122,7 +126,10 @@ def test_a_served_episode_is_returned_as_one_trace_root(monkeypatch, spans):
     found = attrs(root)
     assert root.name == 'serial.episode' and found['langfuse.trace.tags'] == ['feature:serial.episode'] and status_of(root) == 'success'
     assert found['langfuse.trace.metadata.work_id'] == 'work-1' and found['langfuse.trace.metadata.credit_reservation_id'] == 'res-2'
-    assert len([s for s in spans() if s.parent is not None and s.name.endswith('generation')]) >= 1  # 모델 호출은 루트 아래 generation
+    # 모델 호출(종합·기획·집필·검수)은 스레드로 보내도 같은 루트 아래 generation이다(시뮬레이션 엔진의 호출은 엔진이 따로 추적한다).
+    generations = [s.name for s in spans() if s.parent is not None and attrs(s).get('langfuse.observation.type') == 'generation']
+    assert generations == ['serial.summary', 'writing.plan', 'serial.draft', 'serial.review']
+    assert {s.context.trace_id for s in spans()} == {root.context.trace_id}
 
 
 @pytest.mark.parametrize('replies, overrides, status, body', [
@@ -131,6 +138,7 @@ def test_a_served_episode_is_returned_as_one_trace_root(monkeypatch, spans):
     ([SUMMARY, ({'wrong': 1}, 10, 5)], {}, 502, {'detail': '기획 모델 응답을 확인할 수 없습니다.'}),  # 재사용한 Writing 기능의 실패도 같은 모양
 ], ids=['credit-limit', 'review-failed', 'writing-failure'])
 def test_feature_failures_keep_the_fixed_phrase_and_add_a_code_for_the_two_contract_cases(monkeypatch, spans, replies, overrides, status, body):
+    staged_engine(monkeypatch)
     answers(monkeypatch, *replies)
 
     response = RUN(**overrides)
@@ -138,6 +146,17 @@ def test_feature_failures_keep_the_fixed_phrase_and_add_a_code_for_the_two_contr
     assert response.status_code == status and json.loads(response.body) == body
     [root] = [s for s in spans() if s.parent is None]
     assert status_of(root) == 'failed' and root.attributes['langfuse.observation.level'] == 'ERROR'
+
+
+def test_a_failure_of_the_simulation_engine_keeps_its_own_status_and_phrase_without_a_code(monkeypatch, spans):
+    staged_engine(monkeypatch)
+    calls = answers(monkeypatch)
+
+    response = RUN(world={**WORLD, 'cards': []})
+
+    assert response.status_code == 409 and json.loads(response.body) == {'detail': simulation_engine.NO_CHARACTERS} and calls == []
+    [root] = [s for s in spans() if s.parent is None]
+    assert status_of(root) == 'failed'
 
 
 ROUTES = ['/internal/v1/serial/choices', '/internal/v1/serial/summaries', '/internal/v1/serial/simulations', '/internal/v1/serial/episodes']

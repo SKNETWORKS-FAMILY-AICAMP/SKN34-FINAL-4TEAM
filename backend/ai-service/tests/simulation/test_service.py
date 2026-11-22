@@ -145,6 +145,19 @@ def test_load_world_without_scope_does_not_retrieve(monkeypatch):
     assert service.load_world(TARGET, '요청', None).manuscript == []
 
 
+def test_world_from_builds_the_same_world_from_a_read_response_without_reading_content_or_retrieving(monkeypatch):
+    calls = fake_content(monkeypatch)
+    loaded = service.load_world(TARGET, '요청', None)
+    before = len(calls)
+
+    built = service.world_from(loaded.read, EPISODE)
+
+    assert len(calls) == before  # 호출자가 응답을 가져왔으니 Content를 읽지 않는다
+    assert (built.episode, built.snapshot, built.style, built.characters, built.bodies) == (
+        EPISODE, loaded.snapshot, loaded.style, loaded.characters, loaded.bodies)
+    assert built.manuscript == [] and built.notice is None
+
+
 def test_the_context_reads_the_world_once_for_the_whole_request(monkeypatch):
     calls = fake_content(monkeypatch)
     ctx = context()

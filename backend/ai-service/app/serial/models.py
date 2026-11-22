@@ -1,6 +1,6 @@
 """AI 자율 연재 계약(#659): 다음 전개 선택지, 회차 요약, 시뮬레이션 장면 미리보기, 다음 회차 생성·검수. 요청 한도는 docs/design/ai-serial-contract.md와 같다."""
 
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -59,6 +59,9 @@ class EpisodeRequest(ContextRun):
     direction: str = Field(default='', max_length=2000)
     choice: TopChoice | None = None  # 선택지가 없으면 null
     proposals: list[Proposal] = Field(default=[], max_length=3)
+    # 인물 시뮬레이션의 입력: Content가 읽은 연결 세계관(없으면 Fork가 이어받는 원작 세계관)의 MCP world_studio_read(id, 직전 발행 회차) 응답 모양에
+    # 「동일 인물」 관계를 최신 시점으로 읽은 identity를 더한 것. 일정 실행에는 사용자 토큰이 없어 AI가 Content MCP를 부르지 않는다. 모양 검사는 엔진(world_from)이 한다.
+    world: dict[str, Any]
 
 
 class ChoiceList(BaseModel):

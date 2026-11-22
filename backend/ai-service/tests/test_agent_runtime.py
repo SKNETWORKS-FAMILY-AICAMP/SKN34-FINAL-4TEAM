@@ -298,3 +298,40 @@ def test_a_call_after_the_limit_is_reached_never_reaches_the_model_and_is_the_fe
     assert (error.value.status, str(error.value)) == (402, '크레딧 상한을 넘었습니다.') and 'messages' not in seen
     # 확정 금액은 예약한 상한을 넘지 않고(Core 정산 규칙), 실제 토큰은 그대로 남는다.
     assert credit.credits == 0.02 and (credit.input_tokens, credit.output_tokens) == (20, 10)
+
+
+def test_the_ledger_adds_the_model_events_of_a_run_outside_create_agent_and_stops_at_the_limit():
+    """장면 에이전트처럼 create_agent 밖에서 모델을 부르는 실행은 호출마다 MODEL_EVENT로 토큰을 알린다. 원장이 같은 CreditMiddleware에 더하고 상한에 닿으면 다음 호출 전에 끝낸다."""
+    from langchain_core.callbacks import dispatch_custom_event
+    from langchain_core.runnables import RunnableLambda
+
+    credit = agent_runtime.CreditMiddleware(1.5, Failure)  # 호출 하나가 1.2크레딧
+    reached = []
+
+    def calls(_):
+        for name in ('act', 'check', 'narrate'):
+            dispatch_custom_event(agent_runtime.MODEL_EVENT, {'name': name, 'ms': 1, 'failed': False, 'inputTokens': 1000, 'outputTokens': 200})
+            reached.append(name)
+
+    with pytest.raises(Failure) as error:
+        RunnableLambda(calls).invoke(None, {'callbacks': [agent_runtime.CreditLedger(credit)]})
+
+    assert (error.value.status, str(error.value)) == (402, '크레딧 상한을 넘었습니다.')
+    assert reached == ['act']  # 둘째 호출이 상한(1.5)을 넘겨 알린 뒤 바로 끝나므로 셋째 호출은 없다
+    assert (credit.input_tokens, credit.output_tokens) == (2000, 400) and credit.credits == 1.5
+
+
+def test_the_ledger_counts_failed_calls_without_usage_as_zero_and_ignores_other_events():
+    from langchain_core.callbacks import dispatch_custom_event
+    from langchain_core.runnables import RunnableLambda
+
+    credit = agent_runtime.CreditMiddleware(10, Failure)
+
+    def calls(_):
+        dispatch_custom_event(agent_runtime.MODEL_EVENT, {'name': 'act', 'ms': 1, 'failed': True, 'inputTokens': None, 'outputTokens': None})
+        dispatch_custom_event(agent_runtime.STEP_EVENT, {'feature': 'x'})
+        dispatch_custom_event(agent_runtime.MODEL_EVENT, {'name': 'check', 'ms': 1, 'failed': False, 'inputTokens': 100, 'outputTokens': 50})
+
+    RunnableLambda(calls).invoke(None, {'callbacks': [agent_runtime.CreditLedger(credit)]})
+
+    assert (credit.input_tokens, credit.output_tokens) == (100, 50)

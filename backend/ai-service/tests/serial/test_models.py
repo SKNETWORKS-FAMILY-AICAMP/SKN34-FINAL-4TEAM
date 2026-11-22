@@ -59,6 +59,14 @@ def test_episode_request_over_the_limits_is_rejected(field, value):
         EpisodeRequest.model_validate(episode(**{field: value}))
 
 
+def test_the_episode_request_needs_the_world_the_simulation_plays():
+    without = {key: value for key, value in episode().items() if key != 'world'}
+    with pytest.raises(ValidationError):
+        EpisodeRequest.model_validate(without)
+    with pytest.raises(ValidationError):
+        EpisodeRequest.model_validate(episode(world='세계관'))
+
+
 def test_a_review_that_did_not_pass_must_say_what_to_fix():
     assert Review(passed=True, issues=[]).passed is True
     assert Review(passed=False, issues=['설정 충돌']).issues == ['설정 충돌']

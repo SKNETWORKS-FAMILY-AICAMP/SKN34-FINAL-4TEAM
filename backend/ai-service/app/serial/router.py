@@ -1,7 +1,7 @@
 """AI 자율 연재 내부 API(#659). 결과는 제안이고 저장·발행·과금 확정(settle)은 Content가 한다.
 
 Content MCP는 쓰지 않는다. 사용자 토큰도 문맥·인가에는 쓰지 않으며, 시뮬레이션의 선택 X-User-Authorization만 추적의 회원 식별에 쓴다
-(선택지 생성·회차 요약·회차 실행은 일정 점검이 불러 사용자 토큰이 없다).
+(선택지 생성·회차 요약·회차 실행은 일정 점검이 불러 사용자 토큰이 없다). 회차 실행은 인물 시뮬레이션 엔진을 거치므로 앱의 이벤트 루프에서 도는 비동기 라우트다.
 """
 
 from fastapi import APIRouter, Header
@@ -13,9 +13,11 @@ from app.serial import service
 from app.serial.errors import SerialFailure
 from app.serial.models import (ChoicesRequest, ChoicesResponse, EpisodeRequest, EpisodeResponse, SimulationRequest,
                                SimulationResponse, SummaryRequest, SummaryResponse)
+from app.simulation.errors import SimulationFailure
 from app.writing.errors import WritingFailure
 
 router = APIRouter()
+FAILURES = (SerialFailure, WritingFailure, SimulationFailure)  # 모두 상태 코드와 고정 문구만 가진다
 
 
 @router.post('/internal/v1/serial/choices', response_model=ChoicesResponse)
@@ -44,10 +46,14 @@ def simulate(data: SimulationRequest, x_internal_token: str = Header(default='')
 
 
 @router.post('/internal/v1/serial/episodes', response_model=EpisodeResponse)
-def episode(data: EpisodeRequest, x_internal_token: str = Header(default='')) -> EpisodeResponse | JSONResponse:
-    """1위 선택지·추천 상위 제안 글·연재 방향으로 다음 회차(제목·원고)와 종합·검수 결과·확정 크레딧을 돌려준다. 발행은 Content가 한다."""
+async def episode(data: EpisodeRequest, x_internal_token: str = Header(default='')) -> EpisodeResponse | JSONResponse:
+    """1위 선택지·추천 상위 제안 글·연재 방향·연결 세계관(world)으로 다음 회차(제목·원고)와 종합·검수 결과·확정 크레딧을 돌려준다. 발행은 Content가 한다."""
     require_internal_token(x_internal_token)
-    return _serve('serial.episode', service.episode, data)
+    try:
+        with tracing.request('serial.episode', work_id=data.workId, credit_reservation_id=data.creditReservationId):
+            return await service.episode(data)
+    except FAILURES as error:
+        return _failure(error)
 
 
 def _serve(feature: str, call, data, user_id: str | None = None):
@@ -55,6 +61,10 @@ def _serve(feature: str, call, data, user_id: str | None = None):
     try:
         with tracing.request(feature, user_id=user_id, work_id=data.workId, credit_reservation_id=data.creditReservationId):
             return call(data)
-    except (SerialFailure, WritingFailure) as error:
-        code = getattr(error, 'code', None)
-        return JSONResponse({'detail': str(error), **({'code': code} if code else {})}, status_code=error.status)
+    except FAILURES as error:
+        return _failure(error)
+
+
+def _failure(error: SerialFailure | WritingFailure | SimulationFailure) -> JSONResponse:
+    code = getattr(error, 'code', None)
+    return JSONResponse({'detail': str(error), **({'code': code} if code else {})}, status_code=error.status)

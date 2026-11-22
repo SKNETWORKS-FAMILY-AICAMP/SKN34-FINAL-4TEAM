@@ -139,15 +139,38 @@ class CreditMiddleware(AgentMiddleware):
         tokens = self.input_tokens + self.output_tokens
         return min(-(-tokens * 10_000 // TOKENS_PER_CREDIT) / 10_000, self.limit)  # 정수 올림나눗셈(부동소수 오차 없이 소수 4자리 올림)
 
-    def wrap_model_call(self, request, handler):
+    def gate(self) -> None:
+        """누적 금액이 상한 이상이면 failure(402)로 끝낸다. 다음 모델 호출 전에 부른다."""
         if self.credits >= self.limit:
             raise self.failure(402, '크레딧 상한을 넘었습니다.')
+
+    def record(self, input_tokens: int, output_tokens: int) -> None:
+        self.input_tokens += input_tokens
+        self.output_tokens += output_tokens
+
+    def wrap_model_call(self, request, handler):
+        self.gate()
         response = handler(request)
         usage = response.result[-1].usage_metadata
         if usage:
-            self.input_tokens += usage['input_tokens']
-            self.output_tokens += usage['output_tokens']
+            self.record(usage['input_tokens'], usage['output_tokens'])
         return response
+
+
+class CreditLedger(BaseCallbackHandler):
+    """create_agent 밖에서 모델을 부르는 실행(인물 시뮬레이션의 장면 에이전트)이 호출마다 알리는 MODEL_EVENT를 같은 CreditMiddleware에 더한다(#659).
+
+    호출 하나가 끝나 사용량을 알리면 더하고, 상한 이상이면 raise_error로 그 실행을 바로 끝낸다(다음 모델 호출은 없다). 사용량 없는 실패 호출은 0으로 센다.
+    """
+    raise_error = True
+
+    def __init__(self, credit: CreditMiddleware):
+        self.credit = credit
+
+    def on_custom_event(self, name: str, data: dict, **kwargs) -> None:
+        if name == MODEL_EVENT:
+            self.credit.record(data['inputTokens'] or 0, data['outputTokens'] or 0)
+            self.credit.gate()
 
 
 def run(name: str, label: str, failure: type[Exception], instructions: str, data: dict, *, prompt_name: str | None = None, max_tokens: int,
