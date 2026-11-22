@@ -157,6 +157,16 @@ def test_a_write_waits_for_approval_showing_the_real_tool_and_arguments_and_runs
     assert writes(log) == [] and waiting.steps == []
 
 
+def test_a_content_action_wait_hands_back_the_basis_too(monkeypatch):
+    fake_agents(monkeypatch, only_content(('world_studio_edit_draft', EDIT)))
+    content(monkeypatch)
+    thread = str(uuid4())
+    events = stream(thread, request='자세히 써줘', page=PAGE, target={**TARGET, 'baseEpisode': 2, 'episodeVersionId': 'r2'})
+    basis = {'episode': 2, 'episodeVersionId': 'r2'}
+    assert events[-1][1]['basis'] == basis
+    assert asyncio.run(service.history(thread, SCOPE)).turns[-1].reply.model_dump()['basis'] == basis
+
+
 def test_approving_runs_the_write_once_with_the_authors_token_and_only_the_given_card_changes(monkeypatch):
     fake_agents(monkeypatch, only_content(('world_studio_edit_draft', EDIT)))
     log = content(monkeypatch)

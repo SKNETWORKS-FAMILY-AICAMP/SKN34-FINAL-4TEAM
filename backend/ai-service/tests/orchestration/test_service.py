@@ -1729,6 +1729,36 @@ def test_approval_response_names_the_original_target_episode(monkeypatch):
 
     assert result.approvalEpisode == TARGET['episode']
 
+@pytest.mark.parametrize(('target', 'basis'), [
+    ({**TARGET, 'baseEpisode': 2, 'episodeVersionId': 'r2'}, {'episode': 2, 'episodeVersionId': 'r2'}),
+    ({**TARGET, 'episodeVersionId': 'r3'}, {'episode': 3, 'episodeVersionId': 'r3'}),
+    (TARGET, None),  # 판본을 저장하기 전에 멈춘 턴(#668)
+])
+@pytest.mark.parametrize('waits_for', ['input', 'approval', 'scene'])
+def test_every_wait_hands_back_the_basis_of_the_stopped_turn(monkeypatch, waits_for, target, basis):
+    fake_agents(monkeypatch, plan({'input': 'research', 'approval': 'writing_editing', 'scene': 'character_simulation'}[waits_for]))
+    fake_scene(monkeypatch)
+    writer(monkeypatch)
+    thread = str(uuid4())
+    waiting = write_turn(thread, request=REQUEST, scope=SCOPE, target=target,
+                         inputs={'writing_editing': PATCH} if waits_for == 'approval' else {})
+
+    assert waiting.status == 'waiting'
+    saved = conversation('history', thread, 'user:1/work:1').turns[-1].reply
+    assert waiting.model_dump()['basis'] == saved.model_dump()['basis'] == basis
+
+
+def test_resume_without_a_token_keeps_the_token_of_the_stopped_turn(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('research', 'story_context'))
+    write_turn(thread, request='조사하고 설명해줘', scope={'scopeToken': 'old.token'}, target=TARGET)
+
+    done = write_turn(thread, resume={'approved': True, 'inputs': {'research': WEB}})
+
+    assert (done.status, done.basis) == ('completed', None)
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['old.token']
+
+
 def test_reediting_a_waiting_first_turn_still_replaces_old_history(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, plan('story_context'))

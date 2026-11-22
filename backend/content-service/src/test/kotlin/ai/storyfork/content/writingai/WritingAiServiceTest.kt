@@ -30,7 +30,9 @@ import tools.jackson.databind.json.JsonMapper
 
 class WritingAiServiceTest {
     private val scopes = mock(QaScopeService::class.java)
-    private val client = mock(WritingAiClient::class.java)
+    private val client = mock(WritingAiClient::class.java).also {
+        `when`(it.history(anyString(), anyString())).thenReturn(JsonMapper.builder().build().readTree("""{"turns":[]}"""))
+    }
     private val grants = QaScopeGrants()
     private val access = mock(WorkAccessService::class.java)
     private val episodes = mock(EpisodeService::class.java)
@@ -61,7 +63,8 @@ class WritingAiServiceTest {
         assertEquals("길드 규칙은?", body["request"])
         assertEquals(mapOf("threadId" to response.threadId, "scope" to "user:owner/work:work"), body["conversation"])
         assertEquals(QaScopeGrant("work", "owner", 2, "r2"), grants.read(token(body["scope"])))
-        assertEquals(mapOf("workId" to "work", "episode" to 2), body["target"])
+        assertEquals(mapOf("workId" to "work", "episode" to 2, "episodeVersionId" to "r2"), body["target"])
+        verify(client, never()).history(anyString(), anyString())  // 새 요청은 이력을 읽지 않는다
     }
 
     private fun grounded() = `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2"))).thenReturn(
@@ -73,7 +76,7 @@ class WritingAiServiceTest {
         `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
         `when`(forks.existsById("work")).thenReturn(true)
         service.run("work", "owner", "Bearer user", ask)
-        assertEquals(mapOf("workId" to "work", "episode" to 2, "fork" to true), sent()["target"])
+        assertEquals(mapOf("workId" to "work", "episode" to 2, "episodeVersionId" to "r2", "fork" to true), sent()["target"])
     }
 
     @Test
@@ -82,7 +85,7 @@ class WritingAiServiceTest {
         `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
         service.run("work", "owner", "Bearer user", ask.copy(targetEpisode = 5))  // 2화까지 발행됐고 작가는 5화 초안을 열어 두었다
         val body = sent()
-        assertEquals(mapOf("workId" to "work", "episode" to 5, "baseEpisode" to 2), body["target"])  // 반영은 5화, 지식 상한은 근거 2화
+        assertEquals(mapOf("workId" to "work", "episode" to 5, "baseEpisode" to 2, "episodeVersionId" to "r2"), body["target"])  // 반영은 5화, 지식 상한은 근거 2화
         assertEquals(QaScopeGrant("work", "owner", 2, "r2"), grants.read(token(body["scope"])))  // 근거 조회 범위는 그대로
         verify(scopes).resolve("work", "owner", QaScopeRequest(2, "r2"))
         verify(episodes).read("work", "owner", 5)  // 반영 회차가 이 작품의 활성 회차인지 확인한다
@@ -93,7 +96,7 @@ class WritingAiServiceTest {
         grounded()
         `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
         service.run("work", "owner", "Bearer user", ask.copy(targetEpisode = 2))
-        assertEquals(mapOf("workId" to "work", "episode" to 2), sent()["target"])
+        assertEquals(mapOf("workId" to "work", "episode" to 2, "episodeVersionId" to "r2"), sent()["target"])
         verifyNoInteractions(episodes)
     }
 
@@ -125,6 +128,8 @@ class WritingAiServiceTest {
 
     @Test
     fun `resume sends a fresh scope token without a new request`() {
+        `when`(client.history("thread", "user:owner/work:work")).thenReturn(
+            mapper.readTree("""{"turns":[{"reply":{"basis":{"episode":2,"episodeVersionId":"r2"}}}]}"""))
         `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
         service.run("work", "owner", "Bearer user", ask.copy(request = null, resume = WritingAiResume(true), threadId = "thread"))
         val body = sent()
@@ -133,6 +138,35 @@ class WritingAiServiceTest {
         assertEquals(true, resume["approved"])
         assertEquals("owner", grants.read(token(resume["scope"]))?.owner)
         assertEquals("thread", (body["conversation"] as Map<*, *>)["threadId"])
+    }
+
+    @Test
+    fun `resuming while another episode is open keeps the stopped turn's basis on every resume path`() {
+        // 2화·r2 근거로 멈춘 뒤 작가가 10화를 열었다(#668)
+        `when`(client.history("thread", "user:owner/work:work")).thenReturn(mapper.readTree(
+            """{"turns":[{"reply":{"basis":{"episode":9,"episodeVersionId":"r9"}}},{"reply":{"basis":{"episode":2,"episodeVersionId":"r2"}}}]}"""))
+        val paths = mapOf("input" to WritingAiResume(true, mapper.readTree("""{"research":{"question":"길"}}""")),
+            "approve" to WritingAiResume(true), "reject" to WritingAiResume(false),
+            "scene" to WritingAiResume(true, scene = WritingAiScene("next")), "refresh" to WritingAiResume(false, refresh = true))
+        val issued = paths.mapValues { (_, resume) ->
+            val opened = WritingAiRequest(resume = resume, episode = 10, episodeVersionId = "r10")
+            grants.read(token((service.message("work", "owner", "thread", opened)["resume"] as Map<*, *>)["scope"]))
+        }
+        assertEquals(paths.mapValues { QaScopeGrant("work", "owner", 2, "r2") }, issued)
+        verifyNoInteractions(scopes)  // 판본이 바뀌었어도 승인·거절은 막지 않는다. 검색 때 Content가 저장된 판본으로 확인한다
+    }
+
+    @Test
+    fun `resume without a stored basis sends no token so the AI keeps the token of that turn`() {
+        val unknown = listOf("""{"turns":[]}""", """{"turns":[{"reply":null}]}""",
+            """{"turns":[{"reply":{"approvalEpisode":2}}]}""", """{"turns":[{"reply":{"basis":null}}]}""",
+            """{"turns":[{"reply":{"basis":{"episode":2,"episodeVersionId":"r2"}}},{"reply":{"basis":null}}]}""")  // 앞 턴의 근거를 빌리지 않는다
+        for (history in unknown) {
+            `when`(client.history("thread", "user:owner/work:work")).thenReturn(mapper.readTree(history))
+            val resume = service.message("work", "owner", "thread",
+                WritingAiRequest(resume = WritingAiResume(true), episode = 10, episodeVersionId = "r10"))["resume"] as Map<*, *>
+            assertEquals(mapOf("approved" to true), resume, history)
+        }
     }
 
     @Test
@@ -288,16 +322,41 @@ class WritingAiServiceTest {
 
     @Test
     fun `another author's work or a missing episode keeps its own error`() {
+        waitingOn(2)
         `when`(episodes.read("work", "owner", 2)).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
         assertEquals(404, refusedWith(spanInputs(0, 3)))
-        verifyNoInteractions(client)
     }
 
     @Test
     fun `inputs without a span go through untouched and never read the draft`() {
+        waitingOn(2)
         val draft = mapper.readTree("""{"writing_editing":{"draft":{"episodeNumber":2,"plan":"선장이 도착한다."}}}""")
         assertEquals(draft, resumedWith(draft)["inputs"])
-        verifyNoInteractions(episodes, client)
+        val fix = mapper.readTree("""{"writing_editing":{"fix":1}}""")
+        assertEquals(fix, resumedWith(fix)["inputs"])
+        verifyNoInteractions(episodes)
+    }
+
+    @Test
+    fun `direct patch input is a 422 because only a checked span becomes a patch`() {
+        waitingOn(2)
+        val patch = mapper.readTree("""{"writing_editing":{"patch":{"selection":"$picked","instruction":"더 차갑게"}}}""")
+        assertEquals(422, refusedWith(patch))
+        verifyNoInteractions(episodes)
+    }
+
+    @Test
+    fun `direct draft input is accepted only for the waiting episode and without its own context`() {
+        fun draft(number: String, more: String = "") =
+            mapper.readTree("""{"writing_editing":{"draft":{"episodeNumber":$number,"plan":"선장이 도착한다."$more}}}""")
+        waitingOn(2)
+        for (bad in listOf(draft("10"), draft("\"2\""), draft("2.0"), draft("null"),
+            draft("2", ""","context":"10화까지의 줄거리""""), mapper.readTree("""{"writing_editing":{"draft":"2화"}}"""))) {
+            assertEquals(422, refusedWith(bad), bad.toString())
+        }
+        waitingOn(null)  // 반영 회차를 알 수 없으면 통과시키지 않는다
+        assertEquals(422, refusedWith(draft("2")))
+        assertEquals(422, refusedWith(draft("0")))
     }
 
     // 시뮬레이션 무대의 장면 조작(resume.scene): 형식·길이만 확인해 AI로 그대로 넘긴다. 조작별 필수 필드는 AI가 다시 확인한다.
@@ -533,7 +592,7 @@ class WritingAiServiceTest {
         val page = WritingAiPage("/studio/work?ep=3", "studio", episode = 3, selection = "그는 웃었다.")
         service.run("work", owner, "Bearer user", pageAsk(page).copy(targetEpisode = 3))
         val body = sent()
-        assertEquals(mapOf("workId" to "work", "episode" to 3, "baseEpisode" to 2), body["target"])
+        assertEquals(mapOf("workId" to "work", "episode" to 3, "baseEpisode" to 2, "episodeVersionId" to "r2"), body["target"])
         assertEquals(mapOf("path" to page.path, "kind" to "studio", "episode" to 3, "selection" to "그는 웃었다."), body["page"])
     }
 

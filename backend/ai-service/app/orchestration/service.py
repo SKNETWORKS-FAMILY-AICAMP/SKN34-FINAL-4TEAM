@@ -496,10 +496,13 @@ def _response(state: dict) -> OrchestrationResponse:
                    else SCENE_MESSAGE if scene else WAITING_MESSAGE)
         if approval and state.get('message'):  # 승인 대기는 메인 에이전트가 답을 종합한 뒤라 그 답과 승인 안내를 함께 보인다
             message = '\n\n'.join((state['message'], message))
+        target = state.get('target') or {}
+        basis = ({'episode': target.get('baseEpisode') or target['episode'], 'episodeVersionId': version}
+                 if (version := target.get('episodeVersionId')) else None)
         # 장면은 에이전트 상태에서 진행 중이라 바깥 상태의 단계에는 아직 결과가 없다. 멈춘 payload의 단계가 현재 모습이다.
-        state = {**state, 'status': 'waiting', 'message': message, 'steps': waiting.get('steps', state.get('steps', [])),
+        state = {**state, 'basis': basis, 'status': 'waiting', 'message': message, 'steps': waiting.get('steps', state.get('steps', [])),
                  'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval, 'awaitingScene': scene, 'pendingAction': waiting.get('pendingAction'),
-                 'approvalEpisode': (state.get('target') or {}).get('episode') if approval in APPROVABLE or scene or waiting.get('missingInputs') else None}
+                 'approvalEpisode': target.get('episode') if approval in APPROVABLE or scene or waiting.get('missingInputs') else None}
     return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
 
 
