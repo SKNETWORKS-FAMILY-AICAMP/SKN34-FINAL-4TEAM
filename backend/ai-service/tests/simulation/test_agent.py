@@ -43,29 +43,37 @@ def reply(text=None, status='completed', usage=True, output=None, **extra):
             **({'usage': counts} if usage else {}), **extra}
 
 
-def ok(parsed) -> httpx.Response:
-    return httpx.Response(200, json=reply(parsed.model_dump_json()))
+def completion(text=None, finish='stop', usage=True, refusal=None) -> dict:
+    """Chat Completions 응답 본문. text가 assistant 메시지 내용이고, usage가 참이면 입력 10·출력 4토큰을 담는다."""
+    message = {'role': 'assistant', 'content': text, **({'refusal': refusal} if refusal else {})}
+    return {'id': 'chatcmpl-1', 'object': 'chat.completion', 'created': 0, 'model': 'resolved-model', 'choices': [{'index': 0, 'message': message, 'finish_reason': finish}],
+            **({'usage': {'prompt_tokens': 10, 'completion_tokens': 4, 'total_tokens': 14}} if usage else {})}
+
+
+def ok(parsed, chat=False) -> httpx.Response:
+    return httpx.Response(200, json=(completion if chat else reply)(parsed.model_dump_json()))
 
 
 def provider(monkeypatch, respond=None):
     """ChatOpenAI는 실제 클래스를 쓰고 HTTP만 대역으로 막는다(네트워크 없음). respond(요청 본문) -> httpx.Response, 없으면 요청한 응답 형식의 예를 돌려준다.
-    받은 요청마다 경로·본문·timeout·인증 머리글을 담은 목록을 돌려준다."""
+    받은 요청마다 호스트·경로·본문·timeout·인증 머리글을 담은 목록을 돌려준다. 요청이 Chat Completions면 그 형식의 응답을 준다."""
     monkeypatch.setenv('OPENAI_API_KEY', 'test-key')
     monkeypatch.setenv('OPENAI_MODEL', 'test-model')
     sent = []
 
     def handler(request):
         body = json.loads(request.content)
-        sent.append(SimpleNamespace(path=request.url.path, body=body, timeout=request.extensions['timeout']['read'], auth=request.headers.get('authorization')))
-        return respond(body) if respond else ok(BY_SCHEMA[body['text']['format']['name']])
+        chat = request.url.path.endswith('/chat/completions')
+        sent.append(SimpleNamespace(host=request.url.host, path=request.url.path, body=body, timeout=request.extensions['timeout']['read'], auth=request.headers.get('authorization')))
+        return respond(body) if respond else ok(BY_SCHEMA[(body['response_format']['json_schema'] if chat else body['text']['format'])['name']], chat)
 
     monkeypatch.setattr(agent, 'ChatOpenAI', partial(ChatOpenAI, http_client=httpx.Client(transport=httpx.MockTransport(handler))))
     return sent
 
 
 def texts(request) -> tuple[str, str]:
-    """요청 입력의 (system 메시지, user 메시지) 본문."""
-    system, user = request.body['input']
+    """요청 입력(Responses의 input, Chat Completions의 messages)의 (system 메시지, user 메시지) 본문."""
+    system, user = request.body.get('input') or request.body['messages']
     assert (system['role'], user['role']) == ('system', 'user')
     return system['content'], user['content']
 
@@ -261,3 +269,130 @@ def test_an_effort_outside_the_five_openai_values_is_a_503_before_any_model_call
     with pytest.raises(SimulationFailure) as error:
         CALLS[name][0]()
     assert (error.value.status, str(error.value)) == (503, '시뮬레이션 추론 강도 설정을 확인해 주세요.') and built == []
+
+
+# --- act 전용 제공사(SIMULATION_ACT_*): OpenAI 호환 제공사(Hemmingway·OpenRouter)는 Chat Completions로 간다 ------------------------------------------
+
+ACT_ENV = {'SIMULATION_ACT_BASE_URL': 'https://hemmingway.io/v1', 'SIMULATION_ACT_API_KEY': 'hem-key', 'SIMULATION_ACT_MODEL': 'hemmingway-27b'}
+
+
+def act_provider(monkeypatch, respond=None, **env):
+    """provider에 act 전용 제공사 설정을 더한다. env로 값을 바꾸고 None이면 그 변수를 지운다."""
+    sent = provider(monkeypatch, respond)
+    for name, value in {**ACT_ENV, **env}.items():
+        if value is None:
+            monkeypatch.delenv(name, raising=False)
+        else:
+            monkeypatch.setenv(name, value)
+    return sent
+
+
+def test_with_an_act_base_url_only_act_goes_to_that_provider_as_chat_completions(monkeypatch):
+    sent = act_provider(monkeypatch)
+    assert agent.act(SECRET_DOC) == ACTION
+    [request] = sent
+    body, (tokens, timeout) = request.body, LIMITS['act']
+    assert (request.host, request.path, request.auth, request.timeout) == ('hemmingway.io', '/v1/chat/completions', 'Bearer hem-key', timeout)  # OpenAI 키가 아니라 act 전용 키다
+    assert body['model'] == 'hemmingway-27b' and body['max_completion_tokens'] == tokens
+    assert body['reasoning_effort'] == 'low' and 'store' not in body and 'reasoning' not in body  # 추론 강도는 reasoning_effort로 보내고 store는 보내지 않는다
+    assert body['response_format']['type'] == 'json_schema' and body['response_format']['json_schema']['strict'] is True and body['response_format']['json_schema']['name'] == 'Action'
+    assert all(texts(request))  # system·user 메시지
+
+
+@pytest.mark.parametrize('name', ['plan', 'narrate', 'check'])
+def test_the_other_calls_stay_on_openai_when_the_act_provider_is_set(monkeypatch, name):
+    sent = act_provider(monkeypatch)
+    CALLS[name][0]()
+    [request] = sent
+    assert (request.host, request.path, request.auth) == ('api.openai.com', '/v1/responses', 'Bearer test-key')
+    assert request.body['model'] == 'test-model' and request.body['store'] is False and request.body['reasoning'] == {'effort': 'low'}
+
+
+@pytest.mark.parametrize('effort', EFFORTS)
+def test_the_effort_switch_is_sent_as_reasoning_effort_to_the_act_provider(monkeypatch, effort):
+    sent = act_provider(monkeypatch)
+    monkeypatch.setenv('SIMULATION_REASONING_EFFORT', effort)
+    agent.act(SECRET_DOC)
+    assert sent[0].body['reasoning_effort'] == effort
+
+
+@pytest.mark.parametrize('key', [None, '', '  '])
+def test_an_act_base_url_needs_its_own_key_and_never_borrows_the_openai_key(monkeypatch, key):
+    sent = act_provider(monkeypatch, SIMULATION_ACT_API_KEY=key)
+    with pytest.raises(SimulationFailure) as error:
+        agent.act(SECRET_DOC)
+    assert (error.value.status, str(error.value)) == (503, '시뮬레이션 모델 설정이 필요합니다.') and sent == []  # OPENAI_API_KEY는 어디로도 나가지 않는다
+    agent.narrate(SECRET_DOC)  # 다른 호출은 OpenAI 설정 그대로 돈다
+    assert [request.host for request in sent] == ['api.openai.com']
+
+
+def test_the_act_provider_model_falls_back_to_the_openai_model(monkeypatch):
+    sent = act_provider(monkeypatch, SIMULATION_ACT_MODEL=None)
+    agent.act(SECRET_DOC)
+    assert sent[0].host == 'hemmingway.io' and sent[0].body['model'] == 'test-model'
+
+
+def test_an_act_model_alone_swaps_only_the_act_model_on_the_openai_path(monkeypatch):
+    sent = act_provider(monkeypatch, SIMULATION_ACT_BASE_URL=None, SIMULATION_ACT_API_KEY=None, SIMULATION_ACT_MODEL='gpt-6.1-terra')
+    agent.act(SECRET_DOC)
+    agent.narrate(SECRET_DOC)
+    assert [(r.host, r.path, r.auth, r.body['model']) for r in sent] == [('api.openai.com', '/v1/responses', 'Bearer test-key', 'gpt-6.1-terra'),
+                                                                         ('api.openai.com', '/v1/responses', 'Bearer test-key', 'test-model')]
+
+
+@pytest.mark.parametrize('value', ['', '  '])
+def test_blank_act_settings_mean_the_default_openai_path(monkeypatch, value):
+    sent = act_provider(monkeypatch, **dict.fromkeys(ACT_ENV, value))
+    agent.act(SECRET_DOC)
+    assert (sent[0].host, sent[0].path, sent[0].auth, sent[0].body['model']) == ('api.openai.com', '/v1/responses', 'Bearer test-key', 'test-model')
+
+
+CHAT_UNUSABLE = {  # act 제공사가 응답했지만 쓸 수 없는 경우
+    'length-even-if-the-json-parses': completion(ACTION.model_dump_json(), finish='length'),
+    'content-filter': completion(finish='content_filter'),
+    'not-json': completion('JSON이 아니다'),
+    'json-in-a-code-fence': completion('```json\n' + ACTION.model_dump_json() + '\n```'),  # 고쳐 읽지 않는다
+    'empty-content': completion(''),
+}
+
+
+@pytest.mark.parametrize('body', CHAT_UNUSABLE.values(), ids=CHAT_UNUSABLE)
+def test_a_truncated_filtered_unparseable_or_refused_act_provider_response_is_502_with_the_fixed_message(monkeypatch, body):
+    act_provider(monkeypatch, lambda _: httpx.Response(200, json=body))
+    with pytest.raises(SimulationFailure) as error:
+        agent.act(SECRET_DOC)
+    assert (error.value.status, str(error.value)) == (502, FIXED_502) and 'KAEL' not in str(error.value)
+
+
+@pytest.mark.parametrize('status', [500, 429, 401, 404])
+def test_an_act_provider_failure_is_503_without_retry_and_without_the_provider_text(monkeypatch, status):
+    sent = act_provider(monkeypatch, lambda _: httpx.Response(status, json={'error': {'message': 'KAEL-SOUL 본문이 담긴 제공사 메시지', 'type': 'x'}}))
+    with pytest.raises(SimulationFailure) as error:
+        agent.act(SECRET_DOC)
+    assert (error.value.status, str(error.value)) == (503, FIXED_503) and 'KAEL' not in str(error.value)
+    assert [request.host for request in sent] == ['hemmingway.io']  # 한 번만 보내고 다시 보내지 않는다
+
+
+def test_an_act_provider_call_reports_usage_latency_and_the_resolved_model_like_any_other(monkeypatch, spans):
+    listener = Listener()
+    act_provider(monkeypatch)
+    RunnableLambda(lambda _: agent.act(SECRET_DOC)).invoke(None, {'callbacks': [listener]})
+    act_provider(monkeypatch, lambda _: httpx.Response(200, json=completion(finish='length')))
+    with pytest.raises(SimulationFailure):
+        RunnableLambda(lambda _: agent.act(SECRET_DOC)).invoke(None, {'callbacks': [listener]})
+    (name, ok_event), (_, failed) = listener.events
+    assert name == MODEL_EVENT and (ok_event['name'], ok_event['failed'], ok_event['inputTokens'], ok_event['outputTokens']) == ('act', False, 10, 4)
+    assert (failed['name'], failed['failed'], failed['inputTokens']) == ('act', True, None)
+    ok_span, failed_span = spans()
+    assert ok_span.attributes['langfuse.observation.model.name'] == 'resolved-model'
+    assert ok_span.attributes['langfuse.observation.usage_details'] == '{"input": 10, "output": 4}'
+    assert failed_span.attributes['langfuse.observation.level'] == 'ERROR'
+
+
+@pytest.mark.parametrize('effort', ['LOW', 'xhigh'])
+def test_an_effort_outside_the_five_openai_values_is_a_503_before_the_call_to_the_act_provider_too(monkeypatch, effort):
+    sent = act_provider(monkeypatch)
+    monkeypatch.setenv('SIMULATION_REASONING_EFFORT', effort)
+    with pytest.raises(SimulationFailure) as error:
+        agent.act(SECRET_DOC)
+    assert (error.value.status, str(error.value)) == (503, '시뮬레이션 추론 강도 설정을 확인해 주세요.') and sent == []

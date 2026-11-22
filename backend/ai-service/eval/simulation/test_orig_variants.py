@@ -154,6 +154,9 @@ def test_patched_swaps_the_instructions_for_the_run_and_restores_them():
         assert agent.ACT_INSTRUCTIONS == before[0]
 
 
+ENV_OFF = ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY', 'SIMULATION_REASONING_EFFORT', 'SIMULATION_ACT_BASE_URL', 'SIMULATION_ACT_API_KEY', 'SIMULATION_ACT_MODEL')   # 개발자 셸·.env의 값이 단위 테스트에 새지 않게 지운다
+
+
 def fake_chat(seen):
     """agent.ChatOpenAI 대역: 만든 인자와 응답 형식·받은 메시지를 호출마다 seen에 쌓고 응답 형식의 값을 돌려준다(네트워크 없음)."""
     class Chat:
@@ -174,7 +177,7 @@ def test_patched_act_instructions_reach_the_model_request(monkeypatch):
     monkeypatch.setattr(agent, 'ChatOpenAI', fake_chat(seen))
     monkeypatch.setenv('OPENAI_API_KEY', 'k')
     monkeypatch.setenv('OPENAI_MODEL', 'm')
-    for key in ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY'):
+    for key in ENV_OFF:
         monkeypatch.delenv(key, raising=False)
     with ov.patched('P1'):
         agent.act({'self': {}})
@@ -203,7 +206,7 @@ def test_act_only_effort_candidates_change_the_act_request_and_nothing_else(monk
     monkeypatch.setattr(agent, 'ChatOpenAI', chat)
     monkeypatch.setenv('OPENAI_API_KEY', 'k')
     monkeypatch.setenv('OPENAI_MODEL', 'm')
-    for key in ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY', 'SIMULATION_REASONING_EFFORT'):
+    for key in ENV_OFF:
         monkeypatch.delenv(key, raising=False)
     data = {'self': {}, 'scene': [], 'known': [], 'checks': [], 'direction': {}}
     for name in (None, 'E1', 'E2'):
@@ -250,7 +253,7 @@ def test_model_candidate_swaps_the_model_of_act_and_narrate_requests_only(monkey
     monkeypatch.setattr(agent, 'ChatOpenAI', fake_chat(seen))
     monkeypatch.setenv('OPENAI_API_KEY', 'k')
     monkeypatch.setenv('OPENAI_MODEL', 'luna')
-    for key in ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY', 'SIMULATION_REASONING_EFFORT'):
+    for key in ENV_OFF:
         monkeypatch.delenv(key, raising=False)
     data = {'self': {}, 'scene': [], 'known': [], 'checks': [], 'direction': {}}
     with ov.patched('M1'):

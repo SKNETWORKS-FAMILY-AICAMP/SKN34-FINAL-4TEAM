@@ -46,6 +46,7 @@
 - 질문·응답·모델 응답 본문은 오류 메시지·로그에 넣지 않는다. 호출 실패·채점 실패는 점수를 꾸미지 않고 `errors`·`failedJudge`로 센다.
 - **해리 포터 원문 기반 세계관**(`build-hp`·`seed-hp`, 방법·누설 방지·한계는 [결과 문서 §8](../../../../docs/evaluation/simulation.md#8-원문-기반-세계관해리-포터)): `build-hp`는 장부 누적 상한(`--limit-usd`, 기본 18달러)을 시작 전 예상과 호출 사이 모두 지키고, 끝낸 호출은 디스크 캐시에 남아 같은 명령이 이어 받는다.
   `seed-hp`는 로컬 스택(localhost만)에만 넣고 공유·원격 DB에는 넣지 않는다. 다시 실행하면 회차마다 서버의 그 시점 관계와 world.json의 그 시점 관계를 비교해 다른 것만 보낸다(서버는 관계를 지우지 않고 종료 연결을 쓰므로 줄어든 관계도 이렇게 끝난다). 비밀번호는 환경변수 `STORYFORK_SEED_PASSWORD`로만 받고 출력하지 않는다.
+- **act 제공사 변수(`SIMULATION_ACT_*`)**: 서비스의 act가 그대로 따르므로 평가 실행기는 환경 변수만 정하면 된다(`orig_cli.py run`의 act 호출이 그 제공사로 간다). 제공사는 Chat Completions·`reasoning_effort`라 OpenAI Responses 전용 후보 E1·E2(`reasoning`)와 `--via ocx`(게이트웨이 고정)는 함께 쓰지 않는다.
 - **`--via ocx`**: OpenAI 상한에 닿으면 안내하는 이어 받기 경로다(로컬 OpenCodex 게이트웨이, 금액 0, 모델 gpt-6-luna). `speed`는 거절한다. ocx 호출은 장부에 `via: ocx`·금액 0으로 남고 품질 결과의 문항 기록에 `via`가 남는다(openai·ocx가 섞이면 `report`가 알린다).
 - **원문 기반 평가 세트(`orig_*`)**: OpenAI 호출은 별도 장부 `.data/cost-orig.jsonl`(상한 35달러)로 세고, 유료 명령마다 같은 명령 안에서 키 파일을 불러온다. 원문·문항·모델 응답은 `.data/orig`·`.data/hp`(git 무시)에만 있고 `results/orig-*.json`에는 집계만 있다. 화자 판별의 두 경로는 응답 캐시를 따로 쓴다(같은 캐시면 일치가 거짓이 된다).
 - 의존성 파일은 바꾸지 않았다.
