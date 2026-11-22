@@ -282,6 +282,21 @@ def test_act_uses_terra_by_default_and_every_other_call_uses_the_openai_model(mo
         ('api.openai.com', '/v1/responses', 'test-model', {'effort': 'low'})]
 
 
+@pytest.mark.parametrize('name', ['act', 'narrate'])
+def test_an_explicit_instruction_body_is_sent_as_is_and_the_production_prompt_is_not_read(monkeypatch, name):
+    sent = provider(monkeypatch)
+
+    def forbidden(*_):
+        raise AssertionError('회귀 평가가 지정한 버전 본문을 쓸 때는 production 프롬프트를 읽지 않는다')
+    monkeypatch.setattr(tracing, 'prompt', forbidden)
+
+    call = {'act': agent.act, 'narrate': agent.narrate}[name]
+    call(SECRET_DOC, '평가할 버전 본문')
+
+    [request] = sent
+    assert texts(request)[0] == '평가할 버전 본문'
+
+
 # --- act 전용 제공사(SIMULATION_ACT_*): OpenAI 호환 제공사(Hemmingway·OpenRouter)는 Chat Completions로 간다 ------------------------------------------
 
 ACT_ENV = {'SIMULATION_ACT_BASE_URL': 'https://hemmingway.io/v1', 'SIMULATION_ACT_API_KEY': 'hem-key', 'SIMULATION_ACT_MODEL': 'hemmingway-27b'}

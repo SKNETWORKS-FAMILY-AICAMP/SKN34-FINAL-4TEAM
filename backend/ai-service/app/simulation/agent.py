@@ -44,14 +44,16 @@ def plan(request: str, history: list[str], characters: list[dict]) -> PlanDraft:
     return _parse('plan', PLAN_INSTRUCTIONS, data, PlanDraft, 1200, 40)
 
 
-def act(data: dict) -> Action:
-    """한 인물의 입력(그 인물이 아는 것만)으로 소설 문단 하나와 다른 인물에게 보일 행동을 만든다."""
-    return _parse('act', ACT_INSTRUCTIONS, data, Action, 1500, 60)
+def act(data: dict, instructions: str | None = None) -> Action:
+    """한 인물의 입력(그 인물이 아는 것만)으로 소설 문단 하나와 다른 인물에게 보일 행동을 만든다.
+    instructions는 회귀 평가가 지정한 프롬프트 버전 본문이다(있으면 production 버전을 읽지 않고 그대로 쓴다)."""
+    return _parse('act', ACT_INSTRUCTIONS, data, Action, 1500, 60, instructions)
 
 
-def narrate(data: dict) -> Narration:
-    """나레이터(메인 에이전트)가 지문·독백 한 문단과 그 자리의 모두에게 보일 것을 만든다. 시점·목적·허용된 지식은 입력이 정한다."""
-    return _parse('narrate', NARRATE_INSTRUCTIONS, data, Narration, 1500, 60)
+def narrate(data: dict, instructions: str | None = None) -> Narration:
+    """나레이터(메인 에이전트)가 지문·독백 한 문단과 그 자리의 모두에게 보일 것을 만든다. 시점·목적·허용된 지식은 입력이 정한다.
+    instructions는 회귀 평가가 지정한 프롬프트 버전 본문이다(있으면 production 버전을 읽지 않고 그대로 쓴다)."""
+    return _parse('narrate', NARRATE_INSTRUCTIONS, data, Narration, 1500, 60, instructions)
 
 
 def check(data: dict) -> Verdict:
@@ -75,7 +77,7 @@ def _details(usage: dict | None) -> dict | None:
     return usage and {'input': usage['input_tokens'], 'output': usage['output_tokens']}
 
 
-def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel], max_tokens: int, timeout: int):
+def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel], max_tokens: int, timeout: int, fixed: str | None = None):
     base_url, key, model, thinking = _endpoint(name)
     if not key or not model:
         raise SimulationFailure(503, '시뮬레이션 모델 설정이 필요합니다.')
@@ -84,8 +86,8 @@ def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel
     effort = os.environ.get(EFFORT, '').strip() or DEFAULT_EFFORT
     if effort and effort not in EFFORTS:  # 모델을 부르기 전에 막는다(고친 값을 짐작해 쓰지 않는다)
         raise SimulationFailure(503, BAD_EFFORT)
-    try:  # 지시문은 Langfuse 프롬프트 character_simulation.<호출>의 production 버전이고 instructions(코드 문자열)는 기본값이다
-        managed = tracing.prompt(f'character_simulation.{name}', instructions)
+    try:  # 지시문은 Langfuse 프롬프트 character_simulation.<호출>의 production 버전이고 instructions(코드 문자열)는 기본값이다. fixed(회귀 평가의 버전 본문)가 있으면 그것을 그대로 쓴다
+        managed = tracing.prompt(f'character_simulation.{name}', instructions) if fixed is None else tracing.Prompt(fixed)
     except tracing.PromptUnavailable:
         raise SimulationFailure(503, PROMPT_UNAVAILABLE) from None
     started, usage = time.monotonic(), None
