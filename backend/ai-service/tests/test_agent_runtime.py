@@ -262,3 +262,39 @@ def test_a_step_from_an_agent_inside_an_orchestration_node_reaches_the_outer_cus
         return [(mode, data) async for _, mode, data in graph.compile().astream({'done': False}, stream_mode=['updates', 'custom'], subgraphs=True)]
 
     assert ('custom', {'feature': 'character_simulation'}) in asyncio.run(collect())
+
+
+def test_credit_middleware_adds_up_the_usage_of_every_run_it_is_given(monkeypatch):
+    fake_chat(monkeypatch, text='{"text": "주인공"}')  # 호출마다 입력 10 + 출력 5 토큰
+    credit = agent_runtime.CreditMiddleware(1, Failure)
+
+    run(credit=credit)
+    run(schema=Answer, credit=credit)
+
+    assert (credit.input_tokens, credit.output_tokens) == (20, 10)
+    assert credit.credits == 0.03  # 1,000토큰 = 1크레딧
+
+
+def test_credits_are_rounded_up_to_four_decimals(monkeypatch):
+    monkeypatch.setattr(agent_runtime, 'TOKENS_PER_CREDIT', 7000)
+    fake_chat(monkeypatch, text='새 원고')
+    credit = agent_runtime.CreditMiddleware(1, Failure)
+
+    run(credit=credit)
+
+    assert credit.credits == 0.0022  # 15/7000 = 0.00214…
+
+
+def test_a_call_after_the_limit_is_reached_never_reaches_the_model_and_is_the_features_402(monkeypatch):
+    seen = fake_chat(monkeypatch, text='새 원고')
+    credit = agent_runtime.CreditMiddleware(0.02, Failure)  # 호출 하나가 0.015
+    run(credit=credit)
+    run(credit=credit)  # 상한 아래에서 시작한 호출은 상한을 넘겨도 끝까지 간다
+    seen.pop('messages')
+
+    with pytest.raises(Failure) as error:
+        run(credit=credit)
+
+    assert (error.value.status, str(error.value)) == (402, '크레딧 상한을 넘었습니다.') and 'messages' not in seen
+    # 확정 금액은 예약한 상한을 넘지 않고(Core 정산 규칙), 실제 토큰은 그대로 남는다.
+    assert credit.credits == 0.02 and (credit.input_tokens, credit.output_tokens) == (20, 10)

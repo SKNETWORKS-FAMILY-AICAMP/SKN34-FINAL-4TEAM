@@ -9,7 +9,7 @@ Content가 권한·판본·선택 범위를 확정해 허용 자료만 보낸다
 
 from app import agent_runtime
 from app.writing.errors import WritingFailure
-from app.writing.models import (PLAN_CONTENT_MAX, PLAN_TITLE_MAX, DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanOutput, PlanPick,
+from app.writing.models import (PLAN_CONTENT_MAX, PLAN_TITLE_MAX, BeatPlan, DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanOutput, PlanPick,
                                 PlanPickRequest, PlanRequest, PlanResponse, PlanReviseRequest, PlanRevision, PlanText)
 from app.writing.prompt import (DRAFT_INSTRUCTIONS, PATCH_INSTRUCTIONS, PICK_PLAN_INSTRUCTIONS, PLAN_INSTRUCTIONS,
                                 REVISE_PLAN_INSTRUCTIONS)
@@ -18,18 +18,18 @@ BAD_PLAN = '기획 모델 응답을 확인할 수 없습니다.'
 BAD_REVISION = '계획 수정 모델 응답을 확인할 수 없습니다.'
 
 
-def draft(data: DraftRequest) -> DraftResponse:
-    """BeatPlan/콘티와 허용 문맥으로 새 회차 원고 제안을 만든다."""
-    text, meta = _write('draft', 4000, DRAFT_INSTRUCTIONS, data)
+def draft(data: DraftRequest, credit: agent_runtime.CreditMiddleware | None = None) -> DraftResponse:
+    """BeatPlan/콘티와 허용 문맥으로 새 회차 원고 제안을 만든다. credit은 크레딧을 세는 요청(AI 자율 연재)만 준다."""
+    text, meta = _write('draft', 4000, DRAFT_INSTRUCTIONS, data, credit)
     return DraftResponse(text=text, **meta)
 
 
-def plan(data: PlanRequest) -> PlanResponse:
+def plan(data: PlanRequest, credit: agent_runtime.CreditMiddleware | None = None) -> PlanResponse:
     """요청과 허용 문맥으로 전개 계획을 만든다. 원고 문장은 만들지 않는다."""
     # 바로 집필은 기획(50초)+원고(120초)를 한 단계에서 잇는다. Content 중계 읽기 한도 3분 안에 끝나야 한다.
     message, result = agent_runtime.run('writing.plan', '기획', WritingFailure, PLAN_INSTRUCTIONS, data.model_dump(),
                                         prompt_name='writing_editing.plan', max_tokens=4000, timeout=50,
-                                        trace=data.model_dump(exclude={'context'}), schema=PlanOutput)
+                                        trace=data.model_dump(exclude={'context'}), schema=PlanOutput, credit=credit)
     if not 1 <= len(result.plans) <= (1 if data.single else 3) or any(not p.beats or len(p.beats) > 12 for p in result.plans):
         raise WritingFailure(502, BAD_PLAN)
     return PlanResponse(**result.model_dump(), **agent_runtime.meta(message))
@@ -38,9 +38,13 @@ def plan(data: PlanRequest) -> PlanResponse:
 def plan_and_draft(data: PlanRequest) -> DraftResponse:
     """바로 집필: 계획 하나를 정하고 그 계획으로 원고를 쓴다. 쓴 계획을 결과에 함께 둔다."""
     chosen = plan(data.model_copy(update={'single': True})).plans[0]
-    text = '\n'.join([chosen.title, *(f'{i}. {b}' for i, b in enumerate(chosen.beats, 1))])[:4000]
-    written = draft(DraftRequest(episodeNumber=data.episodeNumber, plan=text, context=data.context))
+    written = draft(DraftRequest(episodeNumber=data.episodeNumber, plan=plan_text(chosen), context=data.context))
     return written.model_copy(update={'plan': chosen})
+
+
+def plan_text(plan: BeatPlan) -> str:
+    """계획(제목·비트 순서)을 원고 집필 요청의 plan 문장으로 잇는다."""
+    return '\n'.join([plan.title, *(f'{i}. {b}' for i, b in enumerate(plan.beats, 1))])[:4000]
 
 
 def patch(data: PatchRequest) -> PatchResponse:
@@ -68,11 +72,12 @@ def revise_plan(data: PlanReviseRequest) -> PlanRevision:
     return PlanRevision(planId=data.plan.id, kind=data.plan.kind, revision=data.revision, before=before, after=after, **agent_runtime.meta(message))
 
 
-def _write(kind: str, max_tokens: int, instructions: str, data: DraftRequest | PatchRequest) -> tuple[str, dict]:
+def _write(kind: str, max_tokens: int, instructions: str, data: DraftRequest | PatchRequest,
+           credit: agent_runtime.CreditMiddleware | None = None) -> tuple[str, dict]:
     # 허용 문맥(context)은 설정 본문을 담아 추적 결정 범위 밖이라 남기지 않는다.
     message, _ = agent_runtime.run('writing.generation', '집필', WritingFailure, instructions, data.model_dump(),
                                    prompt_name=f'writing_editing.{kind}', max_tokens=max_tokens, timeout=120,
-                                   trace=data.model_dump(exclude={'context'}))
+                                   trace=data.model_dump(exclude={'context'}), credit=credit)
     text = message.text.strip()
     if not text:
         raise WritingFailure(502, '집필 모델 응답을 확인할 수 없습니다.')
