@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { chatPage, type ChatEvent, type ChatStep } from '../../../domain/entities/writingChat'
 import { useWritingChatViewModel } from './useWritingChatViewModel'
@@ -799,4 +799,115 @@ it('승인한 Content 계획 도구(story_plan_create·story_plan_update)도 계
   await run({ type: 'step', step: done('story_plan_update', 3) })
   expect(onPlanApplied).toHaveBeenCalledTimes(2)
   expect(onApplied).not.toHaveBeenCalled()
+})
+
+// 첨부(#617): 고른 파일을 Base64로 읽어 새 요청 본문의 attachments로 보내고, 진행 중 턴과 기록의 내 메시지에는 이름만 칩으로 보인다.
+describe('집필 AI 채팅 첨부(#617)', () => {
+  const png = () => new File([new Uint8Array([137, 80, 78, 71])], '지도.png', { type: 'image/png' })
+  const note = (text = '북문은 밤에 닫힌다.') => new File([text], '메모.md', { type: '' })
+  const attach = (...files: File[]) => fireEvent.drop(document.querySelector('.chat-card')!, { dataTransfer: { files } })
+  const ask = (text: string) => { fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: text } }); fireEvent.click(screen.getByRole('button', { name: '전송' })) }
+  const chipsOf = (name: string) => within(screen.getByRole('list', { name })).getAllByRole('listitem').map((li) => li.textContent)
+
+  it('고른 이미지·텍스트를 Base64로 읽어 새 요청에 싣고, 보낸 첨부는 입력창에서 비운다', async () => {
+    openThread([])
+    send.mockResolvedValue(undefined)
+    renderChat()
+    await screen.findByText('새 대화', { selector: 'h3' })
+    attach(png(), note())
+    ask('이 자료로 장면을 이어 줘')
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(send.mock.calls[0][2]).toMatchObject({
+      episode: 1, episodeVersionId: 'v', request: '이 자료로 장면을 이어 줘',
+      attachments: [
+        { name: '지도.png', mediaType: 'image/png', data: btoa(String.fromCharCode(137, 80, 78, 71)) },
+        { name: '메모.md', mediaType: 'text/markdown', data: btoa(String.fromCharCode(...new TextEncoder().encode('북문은 밤에 닫힌다.'))) },
+      ],
+    })
+    await waitFor(() => expect(screen.queryByRole('list', { name: '보낼 첨부' })).toBeNull())
+  })
+
+  it('첨부 없이 보낸 요청은 attachments 키 없이 예전과 같은 본문이다', async () => {
+    openThread([])
+    send.mockResolvedValue(undefined)
+    renderChat()
+    await screen.findByText('새 대화', { selector: 'h3' })
+    ask('첨부 없는 질문')
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(send.mock.calls[0][2]).toEqual({ episode: 1, episodeVersionId: 'v', request: '첨부 없는 질문' })
+  })
+
+  it('진행 중인 내 메시지에 첨부 칩이 보이고, 끝난 뒤 이력을 다시 읽으면 기록의 칩으로 이어진다', async () => {
+    openThread([])
+    let finish!: () => void
+    send.mockImplementation(() => new Promise<void>((resolve) => { finish = resolve }))
+    renderChat()
+    await screen.findByText('새 대화', { selector: 'h3' })
+    attach(png(), note())
+    ask('이 자료를 봐줘')
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(chipsOf('첨부')).toEqual(['이미지 · 지도.png', '텍스트 · 메모.md'])
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+      request: '이 자료를 봐줘', reply: { status: 'completed', message: '봤어요.', steps: [], missingInputs: [] },
+      attachments: [{ name: '지도.png', kind: 'image' }, { name: '메모.md', kind: 'text' }],
+    }] })
+    await act(async () => finish())
+    expect(await screen.findByText('봤어요.')).toBeTruthy()
+    expect(chipsOf('첨부')).toEqual(['이미지 · 지도.png', '텍스트 · 메모.md'])
+  })
+
+  it('이력의 첨부 없는 턴과 옛 기록(첨부 키 없음)에는 칩이 없다', async () => {
+    openThread([{ request: '옛 질문', reply: null }, { request: '새 질문', reply: null, attachments: [] }])
+    renderChat()
+    await screen.findByText('옛 질문')
+    expect(screen.queryByRole('list', { name: '첨부' })).toBeNull()
+  })
+
+  it('텍스트가 20,000자를 넘으면 보내지 않고 이유를 알리며 글과 첨부를 그대로 둔다', async () => {
+    openThread([])
+    renderChat()
+    await screen.findByText('새 대화', { selector: 'h3' })
+    attach(note('가'.repeat(20001)))
+    ask('이 글을 봐줘')
+    expect(await screen.findByText('메모.md: 텍스트 파일은 20,000자까지 보낼 수 있어요.')).toBeTruthy()
+    expect(send).not.toHaveBeenCalled()
+    expect((screen.getByRole('textbox', { name: '메시지' }) as HTMLTextAreaElement).value).toBe('이 글을 봐줘')
+    expect(chipsOf('보낼 첨부')).toEqual(['텍스트 · 메모.md×'])
+  })
+
+  it('승인·입력 이어가기와 메시지 고치기에는 첨부를 싣지 않는다', async () => {
+    openThread([{ request: '이어 써 줘', reply: { status: 'waiting', steps: [{ feature: 'writing_editing', status: 'completed', result: { text: '선장은 내렸다.' } }], missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 1 },
+      attachments: [{ name: '지도.png', kind: 'image' }] }])
+    send.mockResolvedValue(undefined)
+    renderChat()
+    fireEvent.click(await screen.findByRole('button', { name: '초안에 반영' }))
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(send.mock.calls[0][2]).toEqual({ episode: 1, episodeVersionId: 'v', resume: { approved: true } })
+  })
+
+  it('고친 메시지는 첨부 없이 글만 다시 보내고 고친 턴의 기록에는 칩이 남지 않는다', async () => {
+    openThread([{ request: '첫 질문', reply: { status: 'completed', message: '답', steps: [], missingInputs: [] }, attachments: [{ name: '지도.png', kind: 'image' }] }])
+    send.mockResolvedValue(undefined)
+    renderChat()
+    await screen.findByText('첫 질문')
+    fireEvent.click(screen.getByRole('button', { name: '이 메시지 고치기' }))
+    fireEvent.change(screen.getByLabelText('고칠 메시지'), { target: { value: '고친 질문' } })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '고친 질문', reply: null, attachments: [] }] })
+    fireEvent.click(screen.getByRole('button', { name: '고쳐서 다시 보내기' }))
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(send.mock.calls[0][2]).toEqual({ episode: 1, episodeVersionId: 'v', request: '고친 질문' })
+    expect(send.mock.calls[0][5]).toBe(0)
+    await screen.findByText('고친 질문')
+    expect(screen.queryByRole('list', { name: '첨부' })).toBeNull()
+  })
+
+  it('이어가는 중에도 멈춘 턴의 첨부 칩을 그 턴의 내 메시지에 그대로 보인다', async () => {
+    openThread([{ request: '이 지도로 이어 써 줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 1 },
+      attachments: [{ name: '지도.png', kind: 'image' }] }])
+    send.mockImplementation(() => new Promise<void>(() => {}))
+    renderChat()
+    fireEvent.click(await screen.findByRole('button', { name: '초안에 반영' }))
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(chipsOf('첨부')).toEqual(['이미지 · 지도.png'])
+  })
 })

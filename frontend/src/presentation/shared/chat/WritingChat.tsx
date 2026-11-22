@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
+import { checkAttachment, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
 import { draftNotice, featureLabel, PLAN_LABEL, referenceHref, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
@@ -16,6 +17,7 @@ const simState = { running: 'run', paused: 'run', completed: 'done', stopped: 's
 const stepState = (step: ChatStep, running: string[]) =>
   step.status === 'failed' ? 'fail' : step.status === 'skipped' ? 'skip' : step.simulation ? simState[step.simulation.status] : step.status === 'completed' ? 'done' : running.includes(step.feature) ? 'run' : 'wait'
 /** 인물 시뮬레이션(#58) 입력 예시. 누르면 입력창에 글만 채운다. */
+const attachmentsOf = (list?: ChatTurnAttachment[]) => (list?.length ? list.map((a, i) => ({ id: `${i}`, ...a })) : undefined) // 기록·진행 중 턴의 첨부(이름·종류) 칩. 비면 칩을 그리지 않는다.
 const simulationExamples = ['IF 시뮬레이션: "만약 ~했다면?"', '흐름 시뮬레이션: 비트를 적어 요청']
 
 /**
@@ -245,7 +247,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
   // 고치는 중이면 그 턴부터, 이어가는 중이면 멈춘 턴을 감추고 진행 표시로 대신한다.
   const shown = live?.editIndex !== undefined ? vm.turns.slice(0, live.editIndex) : live?.resumed ? vm.turns.slice(0, -1) : vm.turns
   const messages: ChatMessage[] = shown.flatMap((turn, i) => [
-    { id: `u${i}`, role: 'user' as const, text: turn.request },
+    { id: `u${i}`, role: 'user' as const, text: turn.request, attachments: attachmentsOf(turn.attachments) },
     ...(turn.reply && turn.reply.status !== 'waiting' ? [{
       id: `a${i}`,
       role: 'assistant' as const,
@@ -274,7 +276,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
       </div>
     </>
   }
-  if (live) messages.push({ id: 'live', role: 'user', text: live.request })
+  if (live) messages.push({ id: 'live', role: 'user', text: live.request, attachments: attachmentsOf(live.attachments) })
   const actions = (m: ChatMessage) => {
     if (m.role !== 'user' || m.id === 'live') return null
     const index = Number(m.id.slice(1))
@@ -324,7 +326,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
         </PopMenu>
       </>}
     </div>
-    <ChatPanel messages={messages} onSend={vm.send} busy={vm.pending} disabledReason={vm.lockedReason} inputError={vm.inputError}
+    <ChatPanel messages={messages} onSend={(text, files) => vm.send(text, files.length ? { files } : undefined)} checkFile={checkAttachment} busy={vm.pending} disabledReason={vm.lockedReason} inputError={vm.inputError}
       emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}

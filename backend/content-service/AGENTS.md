@@ -37,6 +37,7 @@
 - 남이 바꾼 변경 알림(#553): 내용·설정을 바꾸는 MCP 쓰기 도구는 성공한 뒤 `McpChangeNotice`가 콘텐츠 주인에게 `content.mcp.world-changed`·`work-changed`를 `content_event_outbox`에 별도 저장하고(저장 실패는 로그만), 운영자 내부 API(작품 제한·해제, 댓글 숨김·해제)는 상태가 실제로 바뀔 때만 같은 트랜잭션에서 `content.operator.*`를 쓴다. 대상 도구 목록은 [계약](../../docs/design/mcp-change-notice-contract.md)이다.
 - 집필 AI 채팅 요청의 `page`(#554)는 `WritingAiService`가 새 요청에서만 받아 사용자 권한으로 다시 확인한다(studio 회차는 활성 회차, world 세계관은 `WorkWorldService.linkedWorldId`가 이 작품에 연결된 작가 본인의 것, 카드는 `WorldStudioService.draft`의 삭제되지 않은 카드이며 어긋나면 404·422). 통과한 값만 AI에 싣고 `path`는 인가에 쓰지 않는다.
 - 채팅 구간 입력(#497): resume의 `inputs.writing_editing.span {episode, revision, start, end, instruction}`은 `WritingAiService.message`가 SSE 시작 전에 작품 소유·초안 revision(409)·`WritingSelection.of`(422)로 확인해 AI `patch {selection, instruction, precedingText, followingText}`로 바꿔 보낸다. `context`는 싣지 않고 AI가 Content MCP로 채운다. `span`이 없으면 `inputs`는 그대로 통과한다.
+- 채팅 첨부(#617): `WritingAiRequest.attachments`(최대 3개, `{name 1~200자, mediaType 5종, data Base64 6,990,508자 이하}`)는 `WritingAiService.message`가 SSE 시작 전에 새 요청에서만 받고(`resume`과 함께 오면 422) AI 본문 `attachments`에 그대로 싣는다. 디코딩·정확한 크기·UTF-8은 AI가 확인하고 Content는 저장하지 않는다. 비었거나 없으면 키를 싣지 않는다. [계약](../../docs/writing-ai-architecture/02-ai-architecture.md#채팅-첨부-617)
 - 로컬은 이 디렉터리에서 `./gradlew unitTest --tests 'ai.storyfork.content.<대상 클래스>' --no-daemon`으로 순수 단위만 실행한다.
   Spring/HTTP/DB/Flyway 검사는 CI `integrationTest`에서 실행한다.
 

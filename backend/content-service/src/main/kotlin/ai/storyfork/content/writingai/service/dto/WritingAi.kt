@@ -14,6 +14,8 @@ import tools.jackson.databind.JsonNode
  * targetEpisode는 AI가 승인 뒤 초안을 쓸 회차다(작가가 연 회차, 발행 전 초안이어도 된다). 없으면 episode와 같고, 있으면 episode 이상이어야
  * 하며 그 작품의 활성 회차여야 한다. 근거 회차(episode)는 그대로 지식 상한이다. 새 요청에서만 쓰고 이어가기에서는 무시한다.
  * simulation은 [시뮬레이션] 버튼의 시작 양식이며 operation이 character_simulation인 새 요청에서만 받는다.
+ * attachments는 이번 새 요청에 붙인 이미지·텍스트 파일(#617, Base64)이다. 새 요청에서만 받고 이어가기와 함께 오면 422다. 개수·형식·Base64 길이만 확인해
+ * AI로 그대로 넘기고 디코딩·정확한 크기·UTF-8은 AI가 확인한다.
  * page는 작가가 지금 보는 화면과 그 내용(#554)이다. 새 요청에서만 쓰고 이어가기에서는 무시한다. 길이·형식은 DTO가, 권한(회차·세계관·카드)은
  * [ai.storyfork.content.writingai.service.WritingAiService]가 사용자 기준으로 다시 확인한 뒤 AI에 그대로 싣는다.
  */
@@ -27,6 +29,14 @@ data class WritingAiRequest(
     @field:Valid val simulation: WritingAiSimulation? = null,
     val targetEpisode: Int? = null,
     @field:Valid val page: WritingAiPage? = null,
+    @field:Valid @field:Size(max = 3) val attachments: List<WritingAiAttachment>? = null,
+)
+
+/** 채팅 첨부 하나. data는 Base64이고 최대 길이는 5MB를 Base64로 바꾼 길이(AI의 이미지 5MB 한도)다. GIF는 받지 않는다. */
+data class WritingAiAttachment(
+    @field:Size(min = 1, max = 200) val name: String,
+    @field:Pattern(regexp = "image/png|image/jpeg|image/webp|text/plain|text/markdown") val mediaType: String,
+    @field:NotBlank @field:Size(max = 6_990_508) val data: String,
 )
 
 /**

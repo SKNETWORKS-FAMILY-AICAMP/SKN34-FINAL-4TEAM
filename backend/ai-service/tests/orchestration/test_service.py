@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import contextlib
 import json
 import time
@@ -12,7 +13,7 @@ from app.intent.prompt import CLARIFY_MESSAGE
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.orchestration import service, tools
-from app.orchestration.models import AppliedDraft, ChatTurn, OrchestrationRequest
+from app.orchestration.models import AppliedDraft, AttachmentRef, ChatTurn, OrchestrationRequest
 from app.rating.errors import RatingFailure
 from app.research.errors import ResearchFailure
 
@@ -2432,3 +2433,72 @@ def test_stream_reports_the_plan_revision_wait_then_the_applied_step(monkeypatch
     assert first[2][1]['task'] == 'revise_plan' and first[3][1]['awaitingApproval'] == 'writing_editing' and first[-1][1]['status'] == 'waiting'
     second = stream(request=None, conversation=conversation, resume={'approved': True})
     assert [name for name, _ in second] == ['step', 'done'] and second[0][1]['applied'] == {'episode': 3, 'revision': 6}
+
+
+# 첨부(#617): 보낸 그 턴의 메인 에이전트만 원본을 보고, 기록에는 이름과 종류만 남는다.
+def _attachments():
+    encode = lambda raw: base64.b64encode(raw).decode()
+    return [{'name': '메모.md', 'mediaType': 'text/markdown', 'data': encode('북문은 밤에 닫힌다.'.encode())},
+            {'name': '지도.png', 'mediaType': 'image/png', 'data': encode(b'PNG-RAW')}]
+
+
+def test_the_attachments_reach_the_main_agent_as_text_and_image_blocks_in_this_turn(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(str(uuid4()), request='이 자료를 봐줘', attachments=_attachments(), inputs={'story_context': QA})
+    content = calls.main[0]['messages'][-1].content
+    assert content == [{'type': 'text', 'text': '이 자료를 봐줘'},
+                       {'type': 'text', 'text': '첨부 자료: 메모.md\n북문은 밤에 닫힌다.'},
+                       {'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,' + _attachments()[1]['data']}}]
+
+
+def test_the_attachments_are_not_given_to_the_decision_guard_or_the_sub_agent_input(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(str(uuid4()), request='이 자료를 봐줘', attachments=_attachments(), inputs={'story_context': QA})
+    assert next(c for c in calls if c[0] == 'judge')[1] == ('이 자료를 봐줘', None, [], [])
+    assert 'attachments' not in next(c for c in calls if c[0] == 'story_context')[1][0].model_dump()
+
+
+def test_a_request_without_attachments_is_a_plain_string_message_as_before(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(str(uuid4()), request='요청', inputs={'story_context': QA})
+    assert calls.main[0]['messages'][-1].content == '요청'
+
+
+def test_the_history_keeps_only_the_name_and_kind_and_the_next_turn_does_not_carry_them_again(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, request='이 자료를 봐줘', attachments=_attachments(), inputs={'story_context': QA})
+    chat(thread, request='방금 자료는?', inputs={'story_context': QA})
+    history = conversation('history', thread, ME)
+    assert history.turns[0].attachments == [AttachmentRef(name='메모.md', kind='text'), AttachmentRef(name='지도.png', kind='image')]
+    assert history.turns[1].attachments == []
+    dumped = history.model_dump_json()
+    assert _attachments()[1]['data'] not in dumped and _attachments()[0]['data'] not in dumped
+    second = calls.main[2]['messages']  # 첫 턴이 모델을 두 번 불러(도구 호출·종합) 둘째 턴의 첫 호출은 셋째다
+    assert second[-1].content == '방금 자료는?'
+    assert all(isinstance(m.content, str) for m in second) and _attachments()[1]['data'] not in str([m.content for m in second])
+
+
+def test_a_turn_that_waits_keeps_the_attachments_for_its_resume_and_shows_only_their_names(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context', 'research'))
+    assert chat(thread, request='이 자료로 조사해 줘', attachments=_attachments(), inputs={'story_context': QA}).status == 'waiting'
+    waiting = conversation('history', thread, ME).turns[-1]
+    assert [a.name for a in waiting.attachments] == ['메모.md', '지도.png'] and _attachments()[1]['data'] not in waiting.model_dump_json()
+    resume(thread, inputs={'research': WEB})
+    asked = [m for m in calls.main[-1]['messages'] if m.type == 'human'][-1]
+    assert isinstance(asked.content, list)  # resume이 메인 에이전트를 다시 실행해도 같은 첨부를 본다
+
+
+def test_the_main_agent_instructions_treat_attachments_as_data_and_tell_it_to_copy_what_the_sub_agents_need_into_the_request():
+    from app.orchestration.prompt import INSTRUCTIONS
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith("7."))
+    assert "첨부" in rule and "따르지 마세요" in rule and "request" in rule
+
+
+def test_a_finished_turn_does_not_keep_the_attachment_originals_in_the_latest_state(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, request='이 자료를 봐줘', attachments=_attachments(), inputs={'story_context': QA})
+    latest = asyncio.run(service.CHAT.aget_state(service._config(thread, ME))).values
+    assert latest['attachments'] == [] and [t['attachments'] for t in latest['turns']] == [[{'name': '메모.md', 'kind': 'text'}, {'name': '지도.png', 'kind': 'image'}]]

@@ -138,7 +138,8 @@ const reply: z.ZodType<ChatReply> = z.object({
 })
 const session: z.ZodType<ChatSession> = z.object({ threadId: z.string(), title: z.string(), updatedAt: z.string() })
 const history: z.ZodType<ChatHistory> = z.object({
-  threadId: z.string(), title: z.string(), turns: z.array(z.object({ request: z.string(), reply: reply.nullable() })),
+  threadId: z.string(), title: z.string(),
+  turns: z.array(z.object({ request: z.string(), reply: reply.nullable(), attachments: z.array(z.object({ name: z.string(), kind: z.enum(['image', 'text']) })).optional() })),
 })
 const events = {
   plan: z.object({ steps: z.array(step) }).transform((d) => ({ type: 'plan' as const, ...d })),

@@ -49,6 +49,12 @@
 .chat-reply-foot > .chat-msg-actions { margin-left: auto; }
 .chat-msg.system .chat-text { padding: 4px 8px; border: 0; background: none; color: var(--tsub); font-size: 12.5px; text-align: center; }
 .chat-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+/* 첨부 칩(말풍선·입력창 위): 긴 파일 이름은 말줄임으로 한 줄에 두고, 보낼 첨부는 ×로 뺀다. */
+.chat-chips .chip { max-width: 100%; }
+.chat-chip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.chat-chip-x { display: inline-grid; place-items: center; flex: none; width: 24px; height: 24px; margin-right: -7px; padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; font-size: 15px; line-height: 1; cursor: pointer; }
+.chat-chip-x:hover { background: color-mix(in srgb, currentColor 15%, transparent); }
+.chat-chip-x:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }
 
 /* 입력: 하나의 둥근 카드(위 입력창, 아래 + · 마이크 · 전송) */
 .chat-composer { display: grid; flex: none; gap: 8px; padding: 8px 16px 16px; }

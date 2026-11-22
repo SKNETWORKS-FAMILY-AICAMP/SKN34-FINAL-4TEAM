@@ -29,6 +29,7 @@ interrupt로 작가 승인을 기다린다. 승인 resume이면 그 요청의 �
 (옛 갈래 checkpoint는 남지만 최신 상태가 아니라 보이지 않는다). scope가 다른 대화는 없는 대화로 본다.
 """
 
+import base64
 import dataclasses
 import operator
 import os
@@ -55,8 +56,8 @@ from app.intent import service as intent
 from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE, REJECT_MESSAGES
 from app.orchestration import agent, mcp_tools
-from app.orchestration.models import (CONTENT_ACTION, ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse,
-                                      Resume)
+from app.orchestration.models import (CONTENT_ACTION, ChatHistory, ChatSession, ChatTurn, OrchestrationRequest,
+                                      OrchestrationResponse, Resume)
 from app.orchestration.prompt import screen
 from app.orchestration.tools import HISTORY_TURNS, history as _history, previous as _previous, task as _task
 from app.simulation import service as simulation
@@ -125,6 +126,7 @@ class State(TypedDict, total=False):
     steps: list[dict]
     missingInputs: list[str]
     scope: str | None
+    attachments: list[dict]  # 이번 턴의 첨부(Attachment JSON, Base64 포함). 이번 턴의 메인 에이전트만 본다. 다음 새 턴의 _initial이 비워 덮고 turns에는 이름·종류만 남는다(#617).
     page: dict | None  # 작가가 지금 보는 화면(PageContext JSON). 그 턴의 메인 에이전트·Decision Guard만 본다. turns에는 남기지 않는다.
     retrievalScope: dict | None  # Content가 확인한 Q&A 조회 키. 있으면 Q&A가 Retrieval로 근거를 받는다.
     target: dict | None  # Content가 확인한 Writing 반영 대상(workId·episode). 토큰은 담지 않는다.
@@ -149,6 +151,25 @@ def _clarified(state: State) -> tuple[str, str] | None:
     if state.get('operation') or not feature or not last or (last[0].get('reply') or {}).get('message') != CLARIFY_MESSAGE:
         return None
     return feature, last[0]['request']
+
+
+def _content(text: str, attachments: list[dict]):
+    """메인 에이전트가 이번 턴에 받는 사람 메시지. 첨부가 없으면 글 그대로다. 있으면 글 조각 뒤에 텍스트 첨부(머리말 + 본문)와 이미지 조각(Responses API `image_url` 블록)을 붙인다."""
+    if not attachments:
+        return text
+    blocks: list[dict] = [{'type': 'text', 'text': text}]
+    for item in attachments:  # 형식·크기는 요청 검증(Attachment)이 이미 확인했다
+        blocks.append({'type': 'image_url', 'image_url': {'url': f"data:{item['mediaType']};base64,{item['data']}"}} if _is_image(item)
+                      else {'type': 'text', 'text': f"첨부 자료: {item['name']}\n{base64.b64decode(item['data']).decode('utf-8')}"})
+    return blocks
+
+
+def _is_image(item: dict) -> bool:
+    return item['mediaType'].startswith('image/')
+
+
+def _refs(attachments: list[dict]) -> list[dict]:
+    return [{'name': a['name'], 'kind': 'image' if _is_image(a) else 'text'} for a in attachments]
 
 
 def _conversation(state: State) -> list:
@@ -187,7 +208,7 @@ async def _run_main_agent(state: State, config: RunnableConfig) -> State:
         run_as = None
     turn = {**state, 'task': run_as, 'decide': decide}
     asking = _task(turn) + (f"\n\n{screen(state['page'])}" if state.get('page') else '')
-    seed = {'messages': [*_conversation(state), HumanMessage(asking)], 'steps': [], 'inputs': state['inputs'],
+    seed = {'messages': [*_conversation(state), HumanMessage(_content(asking, state.get('attachments', [])))], 'steps': [], 'inputs': state['inputs'],
             'retrievalScope': state.get('retrievalScope'), 'stopped': None, 'simulationPlan': None, 'writingBase': None}
     out = await agent.build(await mcp_tools.specs()).ainvoke(seed, config, context=turn)
     decision, steps = out['decision'], out.get('steps', [])
@@ -308,10 +329,10 @@ def finish(state: State) -> State:
         question = state['inputs'].get('story_context', {}).get('question') or _task(state)[:500]
         qa = {'question': question, 'answer': answer[:2000]}
     reply = _response({**state, **done}).model_dump(mode='json')
-    turn = [{'request': state['request'], 'qa': qa, 'reply': reply}]
+    turn = [{'request': state['request'], 'qa': qa, 'reply': reply, 'attachments': _refs(state.get('attachments', []))}]
     if state.get('replaceHistory'):
-        return {**done, 'turns': Overwrite(turn), 'title': state['request'][:TITLE_LENGTH], 'replaceHistory': False}
-    return {**done, 'turns': turn}
+        return {**done, 'turns': Overwrite(turn), 'title': state['request'][:TITLE_LENGTH], 'replaceHistory': False, 'attachments': []}
+    return {**done, 'turns': turn, 'attachments': []}  # 첨부 원본은 이 턴이 끝나면 상태에서 비운다(turns에는 이름·종류만 남는다)
 
 
 def _next(state: State) -> str:
@@ -393,6 +414,7 @@ def _initial(data: OrchestrationRequest) -> State:
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
             'steps': [], 'missingInputs': [], 'writingBaseRevision': None, 'replaceHistory': False, 'simulationPlan': None, 'task': None,
             'scene': None, 'sceneAction': None, 'simulationForm': data.simulation.model_dump(mode='json') if data.simulation else None,
+            'attachments': [a.model_dump() for a in data.attachments],
             'scope': data.conversation.scope if data.conversation else None, 'page': data.page.model_dump(exclude_none=True) if data.page else None,
             'retrievalScope': data.scope.model_dump() if data.scope else None,
             'target': data.target.model_dump(exclude_none=True) if data.target else None}
@@ -527,9 +549,10 @@ async def history(thread_id: str, scope: str) -> ChatHistory:
     _, snapshot = await _owned(thread_id, scope)
     values = snapshot.values
     previous = [] if snapshot.interrupts and values.get('replaceHistory') else values.get('turns', [])
-    turns = [ChatTurn(request=t['request'], reply=t.get('reply')) for t in previous]
+    turns = [ChatTurn(request=t['request'], reply=t.get('reply'), attachments=t.get('attachments', [])) for t in previous]
     if snapshot.interrupts:
-        turns.append(ChatTurn(request=values['request'], reply=_response({**values, '__interrupt__': snapshot.interrupts})))
+        turns.append(ChatTurn(request=values['request'], reply=_response({**values, '__interrupt__': snapshot.interrupts}),
+                              attachments=_refs(values.get('attachments', []))))
     return ChatHistory(threadId=thread_id, title=_title(values), turns=turns)
 
 

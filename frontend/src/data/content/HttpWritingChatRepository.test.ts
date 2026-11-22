@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../../test/testLocks'
 import { login } from '../api/auth'
+import type { ChatAttachmentPayload } from '../../domain/entities/chatAttachment'
 import { stepText, type ChatEvent } from '../../domain/entities/writingChat'
 import { HttpWritingChatRepository } from './HttpWritingChatRepository'
 
@@ -65,6 +66,31 @@ describe('집필 AI 채팅 세션', () => {
     const history = await repo.history('w1', 't1')
     expect(fetcher.mock.calls[1][0]).toBe('/api/v1/works/w1/chat/sessions/t1')
     expect(history.turns[0].reply?.awaitingApproval).toBe('writing_editing')
+  })
+})
+
+describe('집필 AI 채팅 첨부(#617)', () => {
+  const attachments: ChatAttachmentPayload[] = [{ name: '메모.md', mediaType: 'text/markdown', data: 'IyDshqTsoJU=' }, { name: '지도.png', mediaType: 'image/png', data: 'iVBORw0KGgo=' }]
+
+  it('새 요청 본문에 첨부를 그대로 싣는다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(sse('event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))
+    await new HttpWritingChatRepository(fetcher).send('w1', 't1', { ...input, attachments }, () => {})
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ ...input, attachments })
+  })
+
+  it('이력의 턴은 첨부의 이름·종류만 읽고, 첨부가 없거나 빈 턴과 옛 기록도 그대로 읽는다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '길드', turns: [
+      { request: '이 자료를 봐줘', reply: null, attachments: [{ name: '메모.md', kind: 'text' }, { name: '지도.png', kind: 'image' }] },
+      { request: '첨부 없음', reply: null, attachments: [] },
+      { request: '옛 기록', reply: null },
+    ] }))
+    const history = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(history.turns.map((t) => t.attachments)).toEqual([[{ name: '메모.md', kind: 'text' }, { name: '지도.png', kind: 'image' }], [], undefined])
+  })
+
+  it('알 수 없는 첨부 종류가 오면 이력 전체를 형식 오류로 본다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '', turns: [{ request: '요청', reply: null, attachments: [{ name: 'a.wav', kind: 'audio' }] }] }))
+    await expect(new HttpWritingChatRepository(fetcher).history('w1', 't1')).rejects.toThrow()
   })
 })
 
