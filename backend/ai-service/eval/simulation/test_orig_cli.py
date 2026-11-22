@@ -73,6 +73,31 @@ def test_a_default_run_counts_act_at_the_terra_rate_in_the_openai_ledger_and_lab
     assert not (home / 'cost-hemmingway.jsonl').exists()   # OpenAI 모델은 Hemmingway 장부로 가지 않는다
 
 
+def test_an_existing_run_file_from_another_act_model_is_refused_before_any_call(home, monkeypatch):
+    runs = home / 'orig' / 'hp' / 'runs'
+    runs.mkdir(parents=True)
+    luna = {'id': 'hp-1-0001', 'variant': 'P1', 'error': None, 'skipped': None, 'usage': [], 'via': {'sut': 'openai', 'judge': 'ocx', 'judgeModel': 'gpt-6-luna'}}
+    (runs / '1-P1.jsonl').write_text(json.dumps(luna) + '\n')
+    with pytest.raises(SystemExit, match='act 모델'):   # 옛 luna 기록에 terra 기록을 이어 붙여 한 실행이 둘로 섞이지 않는다
+        oc.cmd_run(args(tag=None))
+    assert len(rows(runs / '1-P1.jsonl')) == 1 and not (home / 'cost-orig.jsonl').exists()
+    monkeypatch.setenv('SIMULATION_ACT_MODEL', 'gpt-6-luna')
+    (runs / '1-P1.jsonl').write_text(json.dumps({**luna, 'via': {**luna['via'], 'act': {'provider': 'openai', 'model': 'gpt-6.1-terra', 'thinking': 'default'}}}) + '\n')
+    with pytest.raises(SystemExit, match='act 모델'):   # 반대로 terra 기록에 luna 기록을 잇는 것도 막는다
+        oc.cmd_run(args(tag=None))
+
+
+def test_only_the_dialogue_records_carry_the_act_label(home, monkeypatch):
+    def evaluate_check(item, corpus, llm, cost, variant, variant_name):
+        call = {'name': 'check', 'ms': 5, 'failed': False, 'inputTokens': 1000, 'outputTokens': 100}
+        return {'id': item['id'], 'variant': variant_name, 'error': None, 'skipped': None, 'usage': rn.settle(cost, SimpleNamespace(calls=[call]))}
+
+    monkeypatch.setattr(rn, 'evaluate_check', evaluate_check)
+    oc.cmd_run(args(tag=None, sets='1,4', variant=None))
+    assert all('act' in r['via'] for r in rows(home / 'orig' / 'hp' / 'runs' / '1-A.jsonl'))
+    assert all('act' not in r['via'] for r in rows(home / 'orig' / 'hp' / 'runs' / '4-A.jsonl'))   # act를 부르지 않는 세트의 기록에는 act 표기가 없다
+
+
 def test_a_run_with_the_act_model_back_on_luna_keeps_the_plain_luna_ledger_and_the_variant_name_as_the_tag(home, monkeypatch):
     monkeypatch.setenv('SIMULATION_ACT_MODEL', 'gpt-6-luna')
     oc.cmd_run(args(tag=None))
@@ -133,7 +158,10 @@ def test_scenes_results_say_which_act_model_ran_and_refuse_an_external_provider(
     monkeypatch.setattr(rn, 'scene_drift', lambda records: {})
     monkeypatch.setattr(sim_stats, 'summarize_speed', lambda records: {'turnMs': {}, 'usdPerScene': 0.0})
 
+    outs = []
+
     async def run_speed(specs, worlds, cost, limit, out, keep):
+        outs.append(out.name)
         return [{'id': 'hp-1-flow', 'status': 'completed', 'stopReason': None}]
 
     monkeypatch.setattr(sim_speed, 'run_speed', run_speed)
@@ -141,9 +169,10 @@ def test_scenes_results_say_which_act_model_ran_and_refuse_an_external_provider(
     terra, luna = home / 'results' / 'orig-hp-scenes-base-gpt-6.1-terra.json', home / 'results' / 'orig-hp-scenes-base.json'
     oc.cmd_scenes(scenes)
     assert json.loads(terra.read_text())['act'] == {'provider': 'openai', 'model': 'gpt-6.1-terra', 'thinking': 'default'} and not luna.exists()   # 서비스 기본 act 모델을 결과가 밝히고 옛(luna act) 결과 이름은 덮어쓰지 않는다
+    assert outs == ['scenes-base-gpt-6.1-terra.jsonl']   # 재개 기록도 모델별이라 옛 luna 기록을 terra 결과로 재사용하지 않는다
     monkeypatch.setenv('SIMULATION_ACT_MODEL', 'gpt-6-luna')
     oc.cmd_scenes(scenes)
-    assert 'act' not in json.loads(luna.read_text())   # luna면 예전과 같은 이름·모양
+    assert 'act' not in json.loads(luna.read_text()) and outs[-1] == 'scenes-base.jsonl'   # luna면 예전과 같은 이름·모양
     for name, value in ACT_ENV.items():
         monkeypatch.setenv(name, value)
     with pytest.raises(SystemExit, match='act 제공사'):   # 외부 제공사의 호출은 OpenAI 장부에 섞이지 않게 장면 실행에서는 막는다

@@ -287,7 +287,7 @@ def cmd_run(args) -> None:
                  else usd_llm(ORIG / 'cache-judge-openai', COST, args.limit_usd))
     variants = orig_variants.spec_of(args.variant)   # None·빈 이름이면 빈 명세(기준선)
     tag = args.tag or args.variant or 'A'   # --tag가 있으면 그 이름(같은 후보를 다른 모델로 잴 때 H1처럼), 없으면 후보 이름, 둘 다 없으면 A
-    via = {'sut': args.via, 'judge': args.judge, 'judgeModel': args.judge_model, **({'act': act} if act else {})}
+    via = {'sut': args.via, 'judge': args.judge, 'judgeModel': args.judge_model}
     with orig_variants.patched(args.variant):   # 지시문·질문 구성 후보는 이 실행 안에서만 끼운다
         for key in sets:
             if key not in rows:   # 문항이 없는 세트(dev의 ③독백·④)는 estimate가 뺀다: 건너뛴다
@@ -295,13 +295,18 @@ def cmd_run(args) -> None:
             items = sample_of(load_items(home(args), key), args.limit) if args.limit else load_items(home(args), key)
             items = sorted(items, key=lambda i: (i['base'], i['id']))   # 기준 회차 순서로 돌려 세계관(World)을 다시 만드는 일을 줄인다
             out = rn.run_path(orig_judge.runs_folder(ORIG / home(args), grader), key, tag)
+            keyed = act if key == '1' else None   # act를 부르는 세트(①)의 기록만 act 모델을 밝힌다
+            taken = rn.load_done(out)
+            if taken and rn.act_of(list(taken.values())) != keyed:   # 한 실행 기록에 act 모델이 다른 기록이 섞이지 않게 호출 전에 막는다
+                label = lambda a: a['model'] if a else 'OPENAI_MODEL'  # noqa: E731
+                raise SystemExit(f"{out.name}의 기존 기록은 act 모델이 다르다(기존 {label(rn.act_of(list(taken.values())))} → 지금 {label(keyed)}). --tag로 다른 이름을 쓴다.")
             item_usd = rows[key]['itemMaxUsd']
             if key == '2':
                 records = rn.run_direct(items, corpus, cost, args.limit_usd, args.workers, out, item_usd, variants and variants.get('2'), args.variant)
             else:
                 evaluate = {'1': rn.evaluate_dialogue, '3n': rn.evaluate_narration, '3m': rn.evaluate_narration, '4': rn.evaluate_check}[key]
                 variant = variants and variants.get(key)
-                records = rn.run_items(items, lambda item, e=evaluate, v=variant: {**e(item, corpus, judge_llm, cost, v, args.variant), 'via': via}, cost, args.limit_usd, args.workers, out, item_usd)
+                records = rn.run_items(items, lambda item, e=evaluate, v=variant, k=keyed: {**e(item, corpus, judge_llm, cost, v, args.variant), 'via': {**via, 'act': k} if k else via}, cost, args.limit_usd, args.workers, out, item_usd)
             print(f"{NAMES[key]} 끝: {len(records)}문항 · 장부 {cost.spent():.2f}달러 / 상한 {args.limit_usd:.2f}달러", flush=True)
 
 
@@ -330,12 +335,13 @@ def cmd_scenes(args) -> None:
     if args.skip_narration_check:
         os.environ['SIMULATION_SKIP_NARRATION_CHECK'] = '1'   # 전지적 나레이션 검사(입력 약 30만 토큰)를 건너뛴다: 비용이 장면당 약 0.35 → 0.05달러
     folder = ORIG / 'hp' / 'scenes'
+    suffix = f"-{act['model']}" if act else ''   # luna act가 아니면 모델 이름을 붙여 재개 기록·결과 파일을 옛(luna act) 것과 나눈다
 
     async def play() -> dict:   # 한 이벤트 루프에서 차례로(연출 분류기의 HTTP 연결이 루프에 묶인다)
         done = {}
         for name in args.runs:
             with orig_variants.patched(None if name == 'base' else name):
-                done[name] = await sim_speed.run_speed(specs, worlds, cost, args.limit_usd, rn.run_path(folder, 'scenes', name), args.keep_text)
+                done[name] = await sim_speed.run_speed(specs, worlds, cost, args.limit_usd, rn.run_path(folder, 'scenes', f'{name}{suffix}'), args.keep_text)
             print(f"{name}: 장면 {len(done[name])}개 끝 · 장부 {cost.spent():.2f}달러 / 상한 {args.limit_usd:.2f}달러", flush=True)
         return done
 
@@ -343,7 +349,6 @@ def cmd_scenes(args) -> None:
     for name, records in asyncio.run(play()).items():
         data = {'run': name, 'skipNarrationCheck': args.skip_narration_check, 'scenes': [s['id'] for s in specs], 'speed': sim_stats.summarize_speed(records), 'drift': rn.scene_drift(records),
                 'outcomes': {r['id']: r['status'] if not r.get('stopReason') else f"{r['status']}:{r['stopReason']}" for r in records}, **({'act': act} if act else {})}
-        suffix = f"-{act['model']}" if act else ''   # luna act가 아니면 모델 이름을 붙여 옛(luna act) 결과 파일을 덮어쓰지 않는다
         (RESULTS / f'orig-hp-scenes-{name}{suffix}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
         print(name, json.dumps({'outcomes': data['outcomes'], 'drift': data['drift'], 'turnMs': data['speed']['turnMs'], 'usdPerScene': data['speed']['usdPerScene']}, ensure_ascii=False))
 
