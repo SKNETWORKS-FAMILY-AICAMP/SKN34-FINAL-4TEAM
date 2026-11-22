@@ -1,0 +1,223 @@
+package ai.storyfork.content.serial.service
+
+import ai.storyfork.content._common.exception.ContentFailure
+import ai.storyfork.content.auth.service.CoreAuthVerificationService
+import ai.storyfork.content.auth.service.CoreCreditService
+import ai.storyfork.content.publication.service.PublicationService
+import ai.storyfork.content.serial.client.GeneratedEpisode
+import ai.storyfork.content.serial.client.SerialAiClient
+import ai.storyfork.content.serial.client.SerialAiFailure
+import ai.storyfork.content.serial.domain.KST
+import ai.storyfork.content.serial.domain.SerialCard
+import ai.storyfork.content.serial.domain.SerialEpisode
+import ai.storyfork.content.serial.domain.SerialReason
+import ai.storyfork.content.serial.domain.cleanOpinion
+import ai.storyfork.content.serial.domain.serialContext
+import ai.storyfork.content.serial.entity.SerialBoardEntity
+import ai.storyfork.content.serial.entity.SerialOpinionEntity
+import ai.storyfork.content.serial.service.dto.SerialOpinionCreated
+import ai.storyfork.content.serial.service.dto.SerialOpinionRequest
+import ai.storyfork.content.work.service.WorkService
+import ai.storyfork.content.work.service.WorkWorldService
+import ai.storyfork.content.world.service.WorldStudioService
+import java.math.BigDecimal
+import java.time.Instant
+import java.time.ZonedDateTime
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Service
+import tools.jackson.databind.json.JsonMapper
+
+/** 회차 실행 중 어느 단계에서 어떤 고정 사유로 실패했는지 나른다. 사유는 [SerialReason]뿐이다. */
+private class SerialRunFailure(val reason: String, cause: Throwable? = null) : RuntimeException(reason, cause)
+
+/**
+ * AI 자율 연재의 외부 호출 순서를 맡는다. DB 규칙은 [SerialService]가 짧은 트랜잭션으로 하고, 여기서는 Core 크레딧·AI를 DB 트랜잭션·잠금 밖에서 부른다.
+ * - 시뮬레이션 의견([submit]): 제출자의 상한 예약 → 공개 문맥으로 장면 생성 → 의견 저장 → 실제 사용량 정산. 실패면 해제하고 저장하지 않는다.
+ * - 회차 실행([tick]): 1분마다 낡은 실행·게시판 맞춤·지금 실행 요청(queued)·일정 도래를 처리한다. 선점 → 소유자 상한 예약 → 의견·문맥으로 AI 생성 → 저장·발행 → 정산.
+ *   실패면 해제하고 게시판을 고정 사유로 닫는다. 정산은 저장·발행이 끝난 뒤에 해서 발행에 실패한 실행은 차감하지 않는다.
+ * 단일 서버를 전제한다(다중 서버 분산 잠금은 하지 않는다).
+ */
+@Service
+class SerialRunner(
+    private val serial: SerialService,
+    private val credits: CoreCreditService,
+    private val ai: SerialAiClient,
+    private val publication: PublicationService,
+    private val works: WorkService,
+    private val workWorlds: WorkWorldService,
+    private val worldStudio: WorldStudioService,
+    private val auth: CoreAuthVerificationService,
+    private val mapper: JsonMapper,
+    @Value("\${SERIAL_SIMULATION_CREDIT_LIMIT:5}") private val simulationLimit: BigDecimal,
+    @Value("\${SERIAL_EPISODE_CREDIT_LIMIT:50}") private val episodeLimit: BigDecimal,
+) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    // ponytail: 이 서버 안에서만 막는다. 같은 회원의 같은 작품 시뮬레이션이 동시에 두 번 정산되지 않게 하는 용도다.
+    private val submitting: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+    init {
+        require(simulationLimit.signum() > 0 && episodeLimit.signum() > 0) { "SERIAL_SIMULATION_CREDIT_LIMIT·SERIAL_EPISODE_CREDIT_LIMIT must be positive" }
+    }
+
+    // ---- 의견 제출
+
+    /** 의견을 낸다. 일반 의견은 바로 저장하고, 시뮬레이션 의견은 제출자 크레딧으로 장면 미리보기를 만든 뒤 저장한다(잔액 부족은 409 INSUFFICIENT_CREDIT 그대로). */
+    fun submit(workId: String, member: String, request: SerialOpinionRequest): SerialOpinionCreated {
+        val clean = cleanOpinion(request)
+        if (clean.kind != "simulation") return serial.add(workId, member, clean)
+        val guard = workId + ":" + member
+        if (!submitting.add(guard)) throw ContentFailure(409, "이미 의견을 보내는 중이에요. 잠시 뒤 확인해 주세요.", "OPINION_EXISTS")
+        try {
+            val board = serial.openBoardFor(workId, member)
+            val context = readerContext(workId, board)
+            val key = "serial-sim:" + UUID.randomUUID()
+            val reservation = credits.reserve(member, key, simulationLimit)
+            val scene = try {
+                ai.simulate(mapOf(
+                    "workId" to workId, "episodeNumber" to board.episodeNumber, "premise" to clean.premise, "beats" to clean.beats,
+                    "context" to context, "creditLimit" to simulationLimit, "creditReservationId" to reservation,
+                ))
+            } catch (error: Exception) {
+                release(member, key)
+                log.warn("serial simulation failed: {}", error.toString())
+                throw ContentFailure(502, "시뮬레이션 미리보기를 만들지 못했어요. 크레딧은 차감되지 않았어요.")
+            }
+            val created = try {
+                serial.add(workId, member, clean, scene.text)
+            } catch (error: Exception) {
+                release(member, key) // 그 사이 게시판이 닫혔거나 의견이 생겼다: 저장하지 못했으니 차감하지 않는다.
+                throw error
+            }
+            settle(member, key, scene.credits)
+            return created
+        } finally {
+            submitting.remove(guard)
+        }
+    }
+
+    // ---- 일정 점검
+
+    /** 1분마다 도는 점검 하나다(전용 스케줄러). 단계마다 따로 잡아 한 단계·한 게시판의 실패가 다른 것을 막지 않는다. */
+    @Scheduled(fixedDelay = 60_000, scheduler = "serialScheduler")
+    fun tick() = tick(ZonedDateTime.now(KST))
+
+    internal fun tick(now: ZonedDateTime) {
+        val at = now.toInstant()
+        attempt("stale") { serial.staleRunning(at).forEach { board -> attempt(board.id) { stale(board, at) } } }
+        attempt("reconcile") { serial.enabledWorkIds().forEach { id -> attempt(id) { serial.reconcile(id) } } }
+        attempt("queued") { serial.queued().forEach { board -> attempt(board.id) { run(board, "queued", now) } } }
+        attempt("due") { serial.due(now).forEach { board -> attempt(board.id) { run(board, "open", now) } } }
+    }
+
+    /** 서버 재시작 따위로 running에 남은 게시판이다: 예약을 풀어 보고(실패해도 계속) 실패로 닫는다. */
+    private fun stale(board: SerialBoardEntity, at: Instant) {
+        serial.owner(board.workId)?.let { release(it, runKey(board.id)) }
+        serial.fail(board.id, SerialReason.AI, at)
+    }
+
+    private fun run(board: SerialBoardEntity, from: String, now: ZonedDateTime) {
+        val at = now.toInstant()
+        if (!serial.claim(board.id, from, now.toLocalDate(), at)) return
+        val key = runKey(board.id)
+        var owner: String? = null
+        var held = false // 예약했지만 아직 정산·해제하지 않았다.
+        try {
+            val input = serial.runInput(board.id)
+            owner = input.owner
+            // 예약 발행과 같이 소유자 명의로 일정에 발행하므로 Core가 회원 존재·제한 여부를 먼저 확인한다.
+            failing(SerialReason.PUBLISH) { auth.verifyScheduledMember(input.owner) }
+            val context = failing(SerialReason.AI) { ownerContext(input) }
+            val reservation = try {
+                credits.reserve(input.owner, key, episodeLimit)
+            } catch (error: Exception) {
+                throw SerialRunFailure(if ((error as? ContentFailure)?.code == "INSUFFICIENT_CREDIT") SerialReason.CREDIT else SerialReason.AI, error)
+            }
+            held = true
+            val episode = generate(input, context, reservation)
+            failing(SerialReason.PUBLISH) { serial.publish(board.id, input.owner, episode, at) }
+            // 정산은 발행이 끝난 뒤다. 발행되지 않은 실행은 아래 catch에서 차감 없이 해제한다.
+            held = false
+            settle(input.owner, key, episode.credits)
+        } catch (error: Exception) {
+            if (held) owner?.let { release(it, key) }
+            val reason = (error as? SerialRunFailure)?.reason ?: SerialReason.AI
+            log.warn("serial run {} failed ({}): {}", board.id, reason, error.cause?.toString() ?: error.toString())
+            serial.fail(board.id, reason, at)
+        }
+    }
+
+    private fun generate(input: RunInput, context: String, reservation: String): GeneratedEpisode {
+        val body = mapOf(
+            "workId" to input.workId, "episodeNumber" to input.number, "direction" to input.direction,
+            "opinions" to input.opinions.map { mapOf("kind" to it.opinion.kind, "body" to it.opinion.body.take(1000), "votes" to it.votes, "scene" to scene(it.opinion)) },
+            "context" to context, "creditLimit" to episodeLimit, "creditReservationId" to reservation,
+        )
+        val episode = try {
+            ai.episode(body)
+        } catch (error: Exception) {
+            throw SerialRunFailure(if ((error as? SerialAiFailure)?.reviewFailed == true) SerialReason.REVIEW else SerialReason.AI, error)
+        }
+        // 검수를 통과하지 못한 원고는 발행하지 않는다(AI는 두 번 실패하면 422를 돌려주므로 보통 오지 않는다).
+        if (!episode.reviewPassed) throw SerialRunFailure(SerialReason.REVIEW)
+        return episode
+    }
+
+    private fun scene(opinion: SerialOpinionEntity): String? = if (opinion.kind == "simulation") opinion.simulation?.get("scene") as? String else null
+
+    /** 회차 실행의 문맥: 소유자가 허용한 모든 것, 곧 가장 최근 발행 회차와 연결된 세계관이 있으면 그 세계관 초안의 활성 카드다(세계관이 없으면 회차만). */
+    private fun ownerContext(input: RunInput): String {
+        val episodes = publication.publishedEpisodes(input.workId).items.map { SerialEpisode(it.number, it.title, it.body) }
+        val cards = workWorlds.linkedWorldId(input.workId, input.owner)?.let { world ->
+            worldStudio.draft(world, UUID.fromString(input.owner)).cards.filter { it.lifecycle == "active" }.map { SerialCard(it.title, it.cardType, it.body, it.aliases) }
+        }.orEmpty()
+        return serialContext(mapper, input.title, input.summary, episodes, cards)
+    }
+
+    /** 시뮬레이션의 문맥: 독자에게 공개된 회차와 독자 설정 위키의 카드만이다(세계관이 연결돼 있지 않으면 회차만). */
+    private fun readerContext(workId: String, board: OpenBoard): String {
+        val episodes = works.publicEpisodes(workId).map { SerialEpisode(it.number, it.title, it.body) }
+        val cards = workWorlds.readerCards(workId, null).cards.map { SerialCard(it.title, it.cardType, it.text, it.aliases) }
+        return serialContext(mapper, board.title, board.summary, episodes, cards)
+    }
+
+    // ---- 크레딧 마무리
+
+    /** 확정 금액으로 정산한다. 정산이 안 되면 예약을 풀고(차감 없음) 기록만 남긴다: 이미 저장·발행한 결과는 되돌리지 않는다. */
+    private fun settle(member: String, key: String, amount: BigDecimal) {
+        try {
+            credits.settle(member, key, amount)
+        } catch (error: Exception) {
+            log.warn("serial settle {} failed; releasing the hold: {}", key, error.toString())
+            release(member, key)
+        }
+    }
+
+    private fun release(member: String, key: String) {
+        try {
+            credits.release(member, key)
+        } catch (error: Exception) {
+            log.warn("serial release {} failed: {}", key, error.toString())
+        }
+    }
+
+    private fun runKey(boardId: String) = "serial-run:" + boardId
+
+    private fun <T> failing(reason: String, block: () -> T): T = try {
+        block()
+    } catch (error: Exception) {
+        throw SerialRunFailure(reason, error)
+    }
+
+    private fun attempt(what: String, block: () -> Unit) {
+        try {
+            block()
+        } catch (error: Exception) {
+            log.warn("serial {} failed: {}", what, error.toString())
+        }
+    }
+}

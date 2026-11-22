@@ -1,0 +1,284 @@
+package ai.storyfork.content.serial
+
+import ai.storyfork.content._common.exception.ContentFailure
+import ai.storyfork.content.auth.client.CoreAuthClient
+import ai.storyfork.content.auth.client.ScheduledMemberPayload
+import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.auth.service.CoreCreditService
+import ai.storyfork.content.auth.service.CoreNicknameService
+import ai.storyfork.content.fixture.ContentTestConfig
+import ai.storyfork.content.fixture.ContentTestDriver
+import ai.storyfork.content.fixture.CsrfFixture
+import ai.storyfork.content.fixture.DraftRequest
+import ai.storyfork.content.fixture.PublishRequest
+import ai.storyfork.content.serial.client.GeneratedEpisode
+import ai.storyfork.content.serial.client.SerialAiClient
+import ai.storyfork.content.serial.client.SerialAiFailure
+import ai.storyfork.content.serial.client.SerialScene
+import ai.storyfork.content.serial.domain.KST
+import ai.storyfork.content.serial.service.SerialRunner
+import ai.storyfork.content.serial.service.SerialService
+import ai.storyfork.content.work.service.WorkService
+import ai.storyfork.content.work.service.dto.CreateWorkRequest
+import java.math.BigDecimal
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Instant
+import java.time.LocalDate
+import java.util.UUID
+import javax.sql.DataSource
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.*
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.context.annotation.Import
+import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.json.JsonMapper
+
+/**
+ * AI 자율 연재의 HTTP 계약(경로·Security·CSRF·상태 코드·코드값)과 V43 저장·실행을 실제 PostgreSQL로 검증한다. Core(회원 확인·닉네임·크레딧)와 AI는 대역이고
+ * 일정 점검은 [runner]를 직접 불러 한 번 돌린다(앱의 1분 스케줄러가 먼저 가져가도 같은 결과라 상태가 바뀔 때까지 기다린다).
+ * TEST_CONTENT_DATABASE_URL이 있을 때만 실행하며, DB는 다른 테스트와 공유하므로 각 테스트는 자신이 만든 작품의 행만 비교한다.
+ */
+@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties=[
+    "DATABASE_URL=\${TEST_CONTENT_DATABASE_URL}",
+    "DATABASE_USER=content_test","DATABASE_PASSWORD=",
+    "CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32",
+])
+@Import(ContentTestConfig::class)
+@EnabledIfEnvironmentVariable(named="TEST_CONTENT_DATABASE_URL",matches=".+")
+class SerialPostgresTest {
+    @LocalServerPort var port=0
+    @MockitoBean lateinit var core: CoreAuthClient
+    @MockitoBean lateinit var nicknames: CoreNicknameService
+    @MockitoBean lateinit var credits: CoreCreditService
+    @MockitoBean lateinit var ai: SerialAiClient
+    @Autowired lateinit var works: WorkService
+    @Autowired lateinit var driver: ContentTestDriver
+    @Autowired lateinit var runner: SerialRunner
+    @Autowired lateinit var serial: SerialService
+    @Autowired @Qualifier("contentDataSource") lateinit var source: DataSource
+    @Autowired lateinit var json: JsonMapper
+    private val jdbc get()=JdbcTemplate(source)
+    private val client=HttpClient.newHttpClient()
+    private val episodeRequests=mutableListOf<Map<*,*>>()
+    private val generated=GeneratedEpisode("독자들은 재회를 원했다.","2화 제목","2화 본문",BigDecimal("1.5"))
+    // 오늘이 아닌 요일만 고르면 일정이 도래하지 않아(시각과 무관하게) 테스트가 지금 실행(queued)으로만 움직인다.
+    private val notToday get()=LocalDate.now(KST).plusDays(1).dayOfWeek.name.take(3)
+    private val enable get()="""{"enabled":true,"days":["$notToday"],"time":"21:00","direction":"따뜻한 분위기로"}"""
+
+    @BeforeEach fun stubs() {
+        episodeRequests.clear()
+        `when`(credits.reserve(ArgumentMatchers.anyString(),ArgumentMatchers.anyString(),ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)).thenReturn("res-1")
+        `when`(ai.episode(ArgumentMatchers.anyMap<String,Any?>())).thenAnswer { call -> episodeRequests.add(call.arguments[0] as Map<*,*>); generated }
+        `when`(ai.simulate(ArgumentMatchers.anyMap<String,Any?>())).thenReturn(SerialScene("달빛이 비치는 복도였다.",BigDecimal("0.4")))
+        `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenAnswer { call -> (call.arguments[0] as Collection<*>).associate { it as String to "회원" } }
+    }
+
+    private fun member(): UUID=UUID.randomUUID().also {id ->
+        `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id))
+    }
+    private fun call(method: String,path: String,member: UUID? = null,body: String? = null,csrf: Boolean = true): HttpResponse<String> {
+        val request=HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port$path")).header("Accept","application/json")
+            .method(method,if(body==null) HttpRequest.BodyPublishers.noBody() else HttpRequest.BodyPublishers.ofString(body))
+        if(body!=null) request.header("Content-Type","application/json")
+        if(method!="GET" && csrf) request.header("Cookie",CsrfFixture.cookie).header("X-CSRF-TOKEN",CsrfFixture.token())
+        if(member!=null) request.header("Authorization","Bearer $member")
+        return client.send(request.build(),HttpResponse.BodyHandlers.ofString())
+    }
+    private fun node(response: HttpResponse<String>): JsonNode=json.readTree(response.body())
+    private fun code(response: HttpResponse<String>)=node(response).path("code").asString()
+    private fun ids(view: JsonNode)=view.path("opinions").values().map {it.path("id").asString()}
+    private fun count(sql: String,vararg args: Any)=jdbc.queryForObject(sql,Int::class.java,*args)!!
+    private fun created(response: HttpResponse<String>): String {
+        assertEquals(201,response.statusCode(),response.body())
+        return node(response).path("id").asString()
+    }
+    private fun statuses(work: String)=jdbc.queryForList("SELECT status FROM serial_board WHERE work_id=? ORDER BY opened_at, id",String::class.java,work).filterNotNull()
+    private fun await(what: String,check: () -> Boolean) {
+        val deadline=System.currentTimeMillis()+30_000
+        while(System.currentTimeMillis()<deadline) {
+            if(check()) return
+            Thread.sleep(200)
+        }
+        throw AssertionError("timeout waiting for $what")
+    }
+
+    /** 1화를 발행한 공개 작품이다(발행이 다음 회차의 빈 초안을 만든다). Core는 일정 발행의 회원 확인도 이 회원으로 답한다. */
+    private fun work(owner: UUID): String {
+        val id=works.create(owner.toString(),CreateWorkRequest("연재 테스트","소개","ORIGINAL",listOf("판타지"),emptyList(),true)).id
+        val draft=driver.edit(id,owner.toString(),DraftRequest("1화","본문",0))
+        driver.publish(id,owner.toString(),PublishRequest(draft.revision,true,true,true,driver.history(id,owner.toString()).versions.last().id))
+        `when`(core.verifyScheduledMember(ScheduledMemberPayload(owner.toString()))).thenReturn(VerifiedMemberResponse(owner))
+        return id
+    }
+
+    @Test fun `an owner turns it on readers take part and the run publishes the next episode and opens the next board`() {
+        val owner=member(); val one=member(); val two=member(); val poor=member(); val stranger=member()
+        val id=work(owner)
+        val path="/api/v1/works/$id"
+
+        // 설정: 저장한 적이 없으면 꺼짐 기본값 200, 소유자만 읽고 남은 404·비로그인 401이며 꺼져 있으면 지금 실행은 409 SERIAL_DISABLED다.
+        val initial=call("GET","$path/ai-serial",owner)
+        assertEquals(200,initial.statusCode(),initial.body())
+        assertEquals(listOf<Any?>(false,"21:00",0,""),node(initial).let {listOf(it.path("enabled").asBoolean(),it.path("time").asString(),it.path("days").size(),it.path("direction").asString())})
+        assertEquals(404,call("GET","$path/ai-serial",stranger).statusCode())
+        assertEquals(401,call("GET","$path/ai-serial").statusCode())
+        val off=call("POST","$path/ai-serial/run",owner)
+        assertEquals(409,off.statusCode()); assertEquals("SERIAL_DISABLED",code(off))
+
+        // 켜기 전에는 열린 게시판이 없고(익명도 200으로 읽는다), 잘못된 설정은 422, CSRF 없음은 403, 남의 작품은 404다.
+        val closed=call("GET","$path/serial-board")
+        assertEquals(200,closed.statusCode(),closed.body())
+        assertTrue(node(closed).path("board").isNull)
+        assertEquals(422,call("PUT","$path/ai-serial",owner,"""{"enabled":true,"days":[],"time":"21:00","direction":""}""").statusCode())
+        assertEquals(403,call("PUT","$path/ai-serial",owner,enable,csrf=false).statusCode())
+        assertEquals(404,call("PUT","$path/ai-serial",stranger,enable).statusCode())
+
+        // 켜면 마지막 발행 회차+1(2화)의 게시판이 열린다. 세계관 연결은 필요 없다.
+        val saved=call("PUT","$path/ai-serial",owner,enable)
+        assertEquals(200,saved.statusCode(),saved.body())
+        assertEquals(listOf(true,"21:00"),node(saved).let {listOf(it.path("enabled").asBoolean(),it.path("time").asString())})
+        val board=node(call("GET","$path/serial-board")).path("board")
+        assertEquals(2,board.path("episodeNumber").asInt())
+        val boardId=board.path("id").asString()
+        assertEquals(listOf("open"),statuses(id))
+
+        // 의견은 회원마다 한 개(409 OPINION_EXISTS), 비로그인은 401이다.
+        val firstId=created(call("POST","$path/serial-board/opinions",one,"""{"kind":"general","body":"두 사람이 다시 만나면 좋겠어요"}"""))
+        val again=call("POST","$path/serial-board/opinions",one,"""{"kind":"general","body":"또 쓰기"}""")
+        assertEquals(409,again.statusCode()); assertEquals("OPINION_EXISTS",code(again))
+        assertEquals(401,call("POST","$path/serial-board/opinions",null,"""{"kind":"general","body":"익명"}""").statusCode())
+        assertEquals(422,call("POST","$path/serial-board/opinions",stranger,"""{"kind":"setting","body":"카드 제안"}""").statusCode())
+
+        // 시뮬레이션은 제출자 크레딧으로 예약 → AI 장면 → 저장 → 실제 사용량 정산이다. 크레딧이 모자라면 409 INSUFFICIENT_CREDIT이고 저장되지 않는다.
+        val simId=created(call("POST","$path/serial-board/opinions",two,"""{"kind":"simulation","body":"","simulation":{"premise":"폐교에서 마주친다","beats":["문이 열린다"]}}"""))
+        verify(credits).settle(ArgumentMatchers.eq(two.toString()) ?: "",ArgumentMatchers.startsWith("serial-sim:") ?: "",ArgumentMatchers.eq(BigDecimal("0.4")) ?: BigDecimal.ONE)
+        doThrow(ContentFailure(409,"크레딧이 부족합니다.","INSUFFICIENT_CREDIT")).`when`(credits).reserve(ArgumentMatchers.eq(poor.toString()) ?: "",ArgumentMatchers.anyString(),ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)
+        val broke=call("POST","$path/serial-board/opinions",poor,"""{"kind":"simulation","body":"","simulation":{"premise":"전제","beats":[]}}""")
+        assertEquals(409,broke.statusCode()); assertEquals("INSUFFICIENT_CREDIT",code(broke))
+        assertEquals(0,count("SELECT count(*) FROM serial_opinion WHERE author_id=?",poor.toString()))
+
+        // 투표: 두 회원이 시뮬레이션 의견에 던지면 득표순 맨 앞이고 장면이 붙어 있다. 옮기기·취소가 되고 한 회원은 한 표다.
+        assertEquals(204,call("PUT","$path/serial-board/vote",one,"""{"opinionId":"$simId"}""").statusCode())
+        assertEquals(204,call("PUT","$path/serial-board/vote",two,"""{"opinionId":"$simId"}""").statusCode())
+        val voted=node(call("GET","$path/serial-board",one))
+        assertEquals(listOf(simId,firstId),ids(voted))
+        assertEquals(listOf(2,0),voted.path("opinions").values().map {it.path("votes").asInt()})
+        assertEquals("달빛이 비치는 복도였다.",voted.path("opinions")[0].path("simulation").path("scene").asString())
+        assertEquals(listOf(firstId,simId),listOf(voted.path("myOpinionId").asString(),voted.path("myVoteOpinionId").asString()))
+        assertEquals(204,call("PUT","$path/serial-board/vote",one,"""{"opinionId":"$firstId"}""").statusCode())
+        assertEquals(204,call("DELETE","$path/serial-board/vote",two).statusCode())
+        assertEquals(1,count("SELECT count(*) FROM serial_vote WHERE board_id=?",boardId))
+        assertEquals(listOf(firstId,simId),ids(node(call("GET","$path/serial-board"))))
+
+        // 소유자만 의견을 숨기고(남은 404), 숨긴 의견은 목록에서 빠지지만 그 회원의 한 개 제한은 그대로다.
+        assertEquals(404,call("POST","$path/serial-board/opinions/$firstId/hide",one).statusCode())
+        assertEquals(204,call("POST","$path/serial-board/opinions/$firstId/hide",owner).statusCode())
+        val hidden=node(call("GET","$path/serial-board",one))
+        assertEquals(listOf(simId),ids(hidden))
+        assertEquals(firstId,hidden.path("myOpinionId").asString())
+
+        // 지금 실행: 202 본문 없음 → 일정 점검이 선점해 AI로 회차를 만들고 소유자 명의로 저장·발행한 뒤 정산하고 다음 게시판을 연다.
+        val run=call("POST","$path/ai-serial/run",owner)
+        assertEquals(202,run.statusCode(),run.body())
+        assertEquals("",run.body())
+        runner.tick()
+        await("the board to be published") {"published" in statuses(id)}
+        assertEquals(listOf("published","open"),statuses(id))
+        val records=node(call("GET","$path/ai-serial/boards",owner))
+        assertTrue(records.isArray)
+        assertEquals(listOf("open","published"),records.values().map {it.path("status").asString()})
+        assertEquals(listOf(3,2),records.values().map {it.path("episodeNumber").asInt()})
+        assertEquals(2,records[1].path("publishedEpisodeNumber").asInt())
+        assertTrue(records[1].path("closedAt").isString)
+        val pub=node(call("GET","/api/v1/public/works/$id")).path("episodes").values().first {it.path("number").asInt()==2}
+        assertEquals(listOf("2화 제목","2화 본문"),listOf(pub.path("title").asString(),pub.path("body").asString()))
+        val next=node(call("GET","$path/serial-board"))
+        assertEquals(listOf<Any?>(3,"독자들은 재회를 원했다.",0),listOf(next.path("board").path("episodeNumber").asInt(),next.path("summary").asString(),next.path("opinions").size()))
+        verify(credits).reserve(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.eq("serial-run:$boardId") ?: "",ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)
+        verify(credits).settle(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.eq("serial-run:$boardId") ?: "",ArgumentMatchers.eq(BigDecimal("1.5")) ?: BigDecimal.ONE)
+
+        // AI에는 방향·득표 상위 의견(숨긴 의견 제외, 시뮬레이션 장면 포함)·문맥·상한·예약 id를 보냈다.
+        val request=episodeRequests.single()
+        assertEquals(listOf<Any?>(id,2,"따뜻한 분위기로","res-1"),listOf(request["workId"],request["episodeNumber"],request["direction"],request["creditReservationId"]))
+        val sent=request["opinions"] as List<*>
+        assertEquals(1,sent.size)
+        assertEquals(listOf<Any?>("simulation","달빛이 비치는 복도였다."),(sent[0] as Map<*,*>).let {listOf(it["kind"],it["scene"])})
+        assertTrue((request["context"] as String).contains("1화"))
+    }
+
+    @Test fun `a failed run is recorded with its fixed reason and reopens the same episode with the opinions so the owner can retry`() {
+        val owner=member(); val reader=member()
+        val id=work(owner)
+        val path="/api/v1/works/$id"
+        assertEquals(200,call("PUT","$path/ai-serial",owner,enable).statusCode())
+        val opinion=created(call("POST","$path/serial-board/opinions",reader,"""{"kind":"general","body":"두 사람이 다시 만나면 좋겠어요"}"""))
+
+        // 검수를 통과하지 못한 실행: 예약은 풀리고 게시판은 failed와 고정 사유로 남으며 아무것도 발행되지 않는다.
+        `when`(ai.episode(ArgumentMatchers.anyMap<String,Any?>())).thenThrow(SerialAiFailure(reviewFailed=true))
+        assertEquals(202,call("POST","$path/ai-serial/run",owner).statusCode())
+        runner.tick()
+        await("the board to fail") {"failed" in statuses(id)}
+        assertEquals(listOf("failed","open"),statuses(id))
+        val failedId=jdbc.queryForObject("SELECT id FROM serial_board WHERE work_id=? AND status='failed'",String::class.java,id)!!
+        verify(credits).release(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.eq("serial-run:$failedId") ?: "")
+        verify(credits,never()).settle(ArgumentMatchers.anyString(),ArgumentMatchers.anyString(),ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)
+        val records=node(call("GET","$path/ai-serial/boards",owner)).values().toList()
+        assertEquals(listOf("open","failed"),records.map {it.path("status").asString()})
+        assertEquals("검수를 통과하지 못했습니다.",records[1].path("failureReason").asString())
+        assertEquals(listOf(2,2),records.map {it.path("episodeNumber").asInt()})
+        assertEquals(1,count("SELECT count(*) FROM episode_current WHERE work_id=? AND published_version_id IS NOT NULL",id))
+
+        // 같은 대상 회차의 새 게시판이 열려 있고 독자의 의견이 그대로 옮겨져 있어 같은 입력으로 다시 시도할 수 있다.
+        val view=node(call("GET","$path/serial-board",reader))
+        assertEquals(listOf(opinion),ids(view))
+        assertEquals(opinion,view.path("myOpinionId").asString())
+        `when`(ai.episode(ArgumentMatchers.anyMap<String,Any?>())).thenAnswer { call -> episodeRequests.add(call.arguments[0] as Map<*,*>); generated }
+        assertEquals(202,call("POST","$path/ai-serial/run",owner).statusCode())
+        runner.tick()
+        await("the retry to be published") {"published" in statuses(id)}
+        assertEquals(listOf("failed","published","open"),statuses(id))
+        val sent=episodeRequests.single()["opinions"] as List<*>
+        assertEquals(listOf("두 사람이 다시 만나면 좋겠어요"),sent.map {(it as Map<*,*>)["body"]})
+    }
+
+    @Test fun `the database keeps one active board per work and one opinion and vote per member and the claim is conditional`() {
+        val owner=member()
+        val id=work(owner)
+        val first=UUID.randomUUID().toString()
+        val second=UUID.randomUUID().toString()
+        val insert="INSERT INTO serial_board(id,work_id,episode_number,status,opened_at) VALUES (?,?,?,?,now())"
+        jdbc.update(insert,first,id,2,"open")
+        // 작품당 열린(open·queued·running) 게시판은 하나이고 끝난 게시판은 세지 않는다.
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(insert,second,id,3,"queued")}
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(insert,second,id,3,"closed")}
+        jdbc.update("UPDATE serial_board SET status='published' WHERE id=?",first)
+        jdbc.update(insert,second,id,3,"open")
+
+        val opinion=UUID.randomUUID().toString()
+        val add="INSERT INTO serial_opinion(id,board_id,author_id,kind,body,created_at) VALUES (?,?,?,?,'본문',now())"
+        jdbc.update(add,opinion,second,"member","general")
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(add,UUID.randomUUID().toString(),second,"member","general")}
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(add,UUID.randomUUID().toString(),second,"other","setting")}
+        jdbc.update("INSERT INTO serial_vote(board_id,member_id,opinion_id) VALUES (?,?,?)",second,"member",opinion)
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update("INSERT INTO serial_vote(board_id,member_id,opinion_id) VALUES (?,?,?)",second,"member",opinion)}
+
+        // 실행 선점은 한 번만 성공한다.
+        assertTrue(serial.claim(second,"open",LocalDate.now(KST),Instant.now()))
+        assertFalse(serial.claim(second,"open",LocalDate.now(KST),Instant.now()))
+        assertEquals("running",jdbc.queryForObject("SELECT status FROM serial_board WHERE id=?",String::class.java,second))
+        assertNotNull(jdbc.queryForObject("SELECT closed_at FROM serial_board WHERE id=?",java.sql.Timestamp::class.java,second))
+    }
+}

@@ -64,6 +64,7 @@ docker compose down
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` | Core/Content → AI |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` | Core → AI Health |
 | `AI_GENERATION_READ_TIMEOUT` | `75s` | Content → AI 생성 |
+| `SERIAL_SIMULATION_CREDIT_LIMIT` / `SERIAL_EPISODE_CREDIT_LIMIT` | `5` / `50` | Content만, AI 자율 연재의 크레딧 예약 상한(시뮬레이션 의견은 제출자, 회차 실행은 작품 소유자 부담) |
 | `CORE_AUTH_BASE_URL` | native `http://127.0.0.1:8080`, Compose 내부 DNS | Content → Core 인증 확인 |
 | `CORE_AUTH_CONNECT_TIMEOUT` / `CORE_AUTH_READ_TIMEOUT` | `1s` / `3s` | Content 인증 확인 |
 | `CONTENT_CORE_AUTH_TOKEN` | 빈 값 | Core/Content만, 활성화 시 필수 |
