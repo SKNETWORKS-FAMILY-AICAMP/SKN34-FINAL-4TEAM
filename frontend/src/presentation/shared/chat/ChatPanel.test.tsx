@@ -43,6 +43,21 @@ describe('함께 보낼 것 안내', () => {
   })
 })
 
+describe('접근성(#639)', () => {
+  it('잠김 사유와 입력 오류가 함께 있으면 입력창 설명에 둘 다 잇는다', () => {
+    render(<ChatPanel messages={[]} onSend={() => true} disabledReason="잠김" inputError="선택한 글이 너무 길어요." />)
+    const described = (box().getAttribute('aria-describedby') ?? '').split(' ').map((id) => document.getElementById(id)?.textContent)
+    expect(described).toEqual(['잠김', '선택한 글이 너무 길어요.'])
+  })
+
+  it('실패한 답 말풍선은 스크린리더에도 실패로 읽힌다', () => {
+    render(<ChatPanel messages={[{ id: 'a', role: 'assistant', text: '답을 만들지 못했어요.', failed: true }, { id: 'b', role: 'assistant', text: '답' }]} />)
+    const [failed, ok] = within(screen.getByRole('log', { name: '대화 내용' })).getAllByRole('listitem').filter((li) => li.classList.contains('chat-msg'))
+    expect(within(failed).getByText('실패한 답변')).toBeTruthy()
+    expect(within(ok).queryByText('실패한 답변')).toBeNull()
+  })
+})
+
 describe('공용 채팅 메시지', () => {
   it('역할별로 화자를 구분하고 텍스트와 첨부 칩을 그린다', () => {
     const messages: ChatMessage[] = [

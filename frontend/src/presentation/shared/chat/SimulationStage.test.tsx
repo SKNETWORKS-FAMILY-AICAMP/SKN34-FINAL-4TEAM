@@ -8,7 +8,7 @@ import { createAppStore } from '../../../app/store'
 import { sceneLine, type CharacterSimulation, type SimulationTurn } from '../../../domain/entities/characterSimulation'
 import type { StoryPlan } from '../../../domain/entities/storyPlan'
 import type { StudioSetting } from '../../../domain/entities/studioWorld'
-import type { ChatBasis, ChatEvent, ChatMessageInput, ChatReply, ChatStep } from '../../../domain/entities/writingChat'
+import { chatPage, type ChatBasis, type ChatEvent, type ChatMessageInput, type ChatPage, type ChatReply, type ChatStep } from '../../../domain/entities/writingChat'
 import { SimulationStage } from './SimulationStage'
 import { useSimulationStageViewModel } from './useSimulationStageViewModel'
 import { useWritingChatViewModel } from './useWritingChatViewModel'
@@ -85,8 +85,8 @@ const serve = (...next: Handler[]) => { handlers = next }
 // 근거(지식 상한)는 발행된 3화, 작가가 연 반영 회차는 발행 전 4화 초안이다(근거와 반영 회차가 묶여 4화가 아닌 3화에 반영되던 버그 시나리오).
 const BASIS: ChatBasis = { episode: 3, episodeVersionId: 'v3', targetEpisode: 4 }
 const onApplied = vi.fn()
-function Host({ basis = BASIS, plansVersion = 0, startBlocker = '' }: { basis?: ChatBasis | null; plansVersion?: number; startBlocker?: string }) {
-  const chat = useWritingChatViewModel('w', basis, onApplied)
+function Host({ basis = BASIS, plansVersion = 0, startBlocker = '', getPage }: { basis?: ChatBasis | null; plansVersion?: number; startBlocker?: string; getPage?: () => ChatPage | undefined }) {
+  const chat = useWritingChatViewModel('w', basis, onApplied, undefined, getPage)
   const stage = useSimulationStageViewModel(chat)
   return <>
     <button type="button" onClick={stage.show}>시뮬레이션</button>
@@ -127,6 +127,17 @@ beforeEach(() => {
   })
 })
 afterEach(() => { cleanup(); vi.resetAllMocks(); vi.restoreAllMocks() })
+
+it('편집기 선택 글이 5,000자를 넘으면 무대 시작은 보내지 않고 그 이유를 보이며 직전 답을 답처럼 보이지 않는다(#639)', async () => {
+  reload({ status: 'completed', steps: [], missingInputs: [], message: '직전 턴의 답' })
+  const getPage = () => chatPage({ path: '/studio/w', kind: 'studio', episode: 3, selection: '가'.repeat(5001) })
+  render(<Provider store={createAppStore()}><Host getPage={getPage} /></Provider>)
+  await waitFor(() => expect(history).toHaveBeenCalled())
+  await begin()
+  expect((await box().findByText(/5,000자까지/)).getAttribute('role')).toBe('alert')
+  expect(box().queryByText('직전 턴의 답')).toBeNull()
+  expect(send).not.toHaveBeenCalled()
+})
 
 // ── 시작 양식(버튼 진입) ──
 const openForm = async () => {

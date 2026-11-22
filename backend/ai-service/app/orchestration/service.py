@@ -211,22 +211,28 @@ async def _run_main_agent(state: State, config: RunnableConfig) -> State:
     asking = _task(turn) + (f"\n\n{screen(state['page'])}" if state.get('page') else '')
     seed = {'messages': [*_conversation(state), HumanMessage(_content(asking, state.get('attachments', [])))], 'steps': [], 'inputs': state['inputs'],
             'retrievalScope': state.get('retrievalScope'), 'stopped': None, 'simulationPlan': None, 'writingBase': None}
-    out = await agent.build(await mcp_tools.specs()).ainvoke(seed, config, context=turn)
+    found = await mcp_tools.specs()
+    unavailable = '' if found is not None else f'\n\n{mcp_tools.UNAVAILABLE}'
+    out = await agent.build(found or []).ainvoke(seed, config, context=turn)
     decision, steps = out['decision'], out.get('steps', [])
     if not decision['allowed']:
         return {'status': 'rejected', 'message': REJECT_MESSAGES[decision['reason']], 'steps': []}
     done: State = {'steps': steps, 'inputs': out.get('inputs', state['inputs']), 'retrievalScope': out.get('retrievalScope'),
-                   'simulationPlan': out.get('simulationPlan'), 'task': run_as, 'message': out['messages'][-1].text,
+                   'simulationPlan': out.get('simulationPlan'), 'task': run_as,
+                   'message': out['messages'][-1].text + unavailable,
                    'writingBaseRevision': (out.get('writingBase') or {}).get('revision')}
     stopped = out.get('stopped') or {}
     if stopped.get('status') == 'clarify':
-        return {**done, 'status': 'clarify', 'message': stopped['message']}
+        return {**done, 'status': 'clarify', 'message': stopped['message'] + unavailable}
     if out['messages'][-1].name == agent.FAILED:
         return {**done, 'status': 'failed'}
     if stopped:
         return {**done, 'status': stopped['status'], 'missingInputs': stopped.get('missingInputs', [])}
-    if not steps and not any(isinstance(m, ToolMessage) and m.name in mcp_tools.NAMES for m in out['messages']):  # 도구를 하나도 부르지 않았다: 메인 에이전트의 확인 질문(2026-11-17 사용자 결정). Content 읽기만 한 턴은 질문이 아니다.
+    content = [m for m in out['messages'] if isinstance(m, ToolMessage) and m.name in mcp_tools.NAMES]
+    if not steps and not content:  # 도구를 하나도 부르지 않았다: 메인 에이전트의 확인 질문(2026-11-17 사용자 결정). Content 읽기만 한 턴은 질문이 아니다.
         return {**done, 'status': 'clarify'}
+    if not steps and all(m.name in mcp_tools.READ and m.status == 'error' for m in content):  # Content 읽기만 불렀고 모두 실패·차단됐으면 성공처럼 끝내지 않는다(#639). 작가가 거절한 쓰기는 실패가 아니다.
+        return {**done, 'status': 'failed'}
     return {**done, 'status': 'running'}
 
 

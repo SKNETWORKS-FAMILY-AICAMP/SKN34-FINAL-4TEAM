@@ -11,6 +11,7 @@ from app.intent.models import DecisionResult
 from app.orchestration import agent, mcp_tools, service, tools
 from app.orchestration.models import OrchestrationRequest
 from app.orchestration.prompt import UNSUPPORTED_MESSAGE
+from app.simulation.models import SimulationPlan
 
 from .stubs import QA, WEB, Planned, Step, fake_agents, fake_main, fake_scene, plan
 
@@ -132,9 +133,33 @@ def test_a_failed_read_returns_the_reason_to_the_model_and_leaves_no_failed_step
     calls = fake_agents(monkeypatch, only_content(('episode_read', {'id': 'work', 'number': 'x'}), ('episode_read', {'id': 'work', 'number': 3})))
     log = content(monkeypatch, fail={'episode_read': ContentMcpFailure(422, '입력 값을 확인하세요.')})
     result = turn(str(uuid4()), request='3화 읽어줘')
-    assert (result.status, result.steps) == ('completed', []) and len(log) == 2  # 실패한 읽기 뒤에도 모델이 다시 부를 수 있다
+    assert (result.status, result.steps) == ('failed', []) and len(log) == 2  # 실패한 읽기 뒤에도 모델이 다시 부를 수 있다. 모두 실패하면 턴은 실패다(#639)
     failed = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'episode_read' and m.status == 'error')
     assert failed.content == '[실패] 회차 읽기: 입력 값을 확인하세요.'
+
+
+def test_a_turn_whose_content_reads_all_failed_or_were_refused_is_failed_keeping_the_answer(monkeypatch):
+    fake_agents(monkeypatch, only_content([('work_read', {'id': 'work'}), ('episode_list', {'id': 'someone-elses'})]))
+    content(monkeypatch, fail={'work_read': ContentMcpFailure(422, '입력 값을 확인하세요.')})
+    result = turn(str(uuid4()), request='작품 정보를 알려줘')
+    assert (result.status, result.steps, result.message) == ('failed', [], '종합 답변')
+
+
+def test_one_successful_read_among_failed_ones_still_completes_the_turn(monkeypatch):
+    fake_agents(monkeypatch, only_content([('work_read', {'id': 'work'}), ('episode_list', {'id': 'work'})]))
+    content(monkeypatch, fail={'work_read': ContentMcpFailure(422, '입력 값을 확인하세요.')})
+    assert turn(str(uuid4()), request='작품과 회차를 알려줘').status == 'completed'
+
+
+def test_when_the_content_tools_cannot_be_listed_the_turn_runs_without_them_and_says_so(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+
+    async def down(names):
+        raise ContentMcpFailure(503, 'Content MCP를 호출할 수 없습니다.')
+    monkeypatch.setattr(mcp_tools.content_mcp, 'tool_specs', down)
+    result = turn(str(uuid4()), inputs={'story_context': {'question': 'q', 'excerpts': [{'id': 'a', 'episode': 1, 'quote': '인용'}]}})
+    assert result.status == 'completed' and not set(mcp_tools.NAMES) & set(calls.main[0]['tools'])  # 서브 에이전트 기능은 그대로 실행한다
+    assert result.message == f'종합 답변\n\n{mcp_tools.UNAVAILABLE}' and 'Content' not in mcp_tools.UNAVAILABLE
 
 
 def test_content_tool_calls_are_capped_per_turn_separately_from_the_sub_agent_limit(monkeypatch):
@@ -145,6 +170,16 @@ def test_content_tool_calls_are_capped_per_turn_separately_from_the_sub_agent_li
     limited = [m for m in calls.main[-1]['messages'] if getattr(m, 'content', '').startswith('[한도]')]
     assert len(limited) == 2
 
+
+
+def test_a_turn_stopped_to_ask_back_still_says_the_content_tools_were_unavailable(monkeypatch):
+    fake_agents(monkeypatch, plan('character_simulation'), drafted=SimulationPlan(mode='flow', beats=['성문 대면']))
+
+    async def down(names):
+        raise ContentMcpFailure(503, 'Content MCP를 호출할 수 없습니다.')
+    monkeypatch.setattr(mcp_tools.content_mcp, 'tool_specs', down)
+    result = turn(str(uuid4()), request='성문 장면을 시뮬레이션해줘')
+    assert result.status == 'clarify' and '참여 인물' in result.message and result.message.endswith(f'\n\n{mcp_tools.UNAVAILABLE}')
 
 # 쓰기: 작가 승인(HITL)
 

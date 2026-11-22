@@ -239,6 +239,17 @@ it('계획 없음 안내는 미저장 원고를 유지하며 집필실 안 플�
   } finally { model.dirty = false }
 })
 
+it('저장하지 않은 원고가 있으면 Content 작업 승인 [실행]을 잠그고 먼저 저장하라고 알린다(#639)', async () => {
+  model.dirty = true
+  try {
+    stored({ status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action',
+      pendingAction: { tool: 'work_update', label: '작품 정보 수정', args: { id: 'work-id', data: { description: '새 소개' } } } })
+    renderStudio()
+    expect((await screen.findByRole('button', { name: '실행' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.getByText(/먼저 저장해 주세요/)).toBeTruthy()
+  } finally { model.dirty = false }
+})
+
 it('작품에 편집할 회차가 없으면 시뮬레이션 버튼을 잠근다', () => {
   model.active = null
   renderStudio()

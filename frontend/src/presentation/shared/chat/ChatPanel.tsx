@@ -133,6 +133,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
         {m.role === 'assistant' && <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>}
         <div className="chat-bubble">
           <span className="chat-who sr-only">{who[m.role]}</span>
+          {m.failed && <span className="sr-only">실패한 답변</span>}
           {m.format === 'markdown' ? <div className="chat-text chat-md"><CardMarkdown text={m.text} /></div> : <p className="chat-text">{m.text}</p>}
           {!!m.attachments?.length && <ul className="chat-chips" aria-label="첨부">{m.attachments.map(a => <li key={a.id} className="chip"><span className="chat-chip-name">{kindLabel[a.kind]} · {a.name}</span></li>)}</ul>}
           {renderCard?.(m)}
@@ -155,7 +156,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
         {!!picked.length && <ul className="chat-chips chat-picked" aria-label="보낼 첨부">{picked.map((p, i) => <li key={`${p.name}-${i}`} className="chip">
           <span className="chat-chip-name">{kindLabel[p.kind]} · {p.name}</span><button type="button" className="chat-chip-x" aria-label={`${p.name} 빼기`} onClick={() => remove(i)}>×</button>
         </li>)}</ul>}
-        <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={disabledReason ? reasonId : inputError ? errorId : note ? noteId : undefined}
+        <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={[disabledReason && reasonId, inputError && errorId, note && noteId].filter(Boolean).join(' ') || undefined}
           onChange={e => changeDraft(e.target.value)}
           onKeyDown={e => {
             // Safari는 조합 확정 Enter를 isComposing=false, keyCode=229로 보낸다

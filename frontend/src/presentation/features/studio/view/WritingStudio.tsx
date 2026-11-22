@@ -307,7 +307,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     {/* 집필실 안의 집필 AI 채팅(#331). 인물 시뮬레이션 장면은 채팅에 상태 한 줄만 보이고 무대 열기가 무대를 연다. */}
     {chatOpen?<aside className="studio-chat writing-chat" aria-label="AI 채팅">
       <div className="studio-chat-head"><h2><span className="chat-brand" aria-hidden="true"><SparkIcon size={16} /></span>AI 채팅</h2><button ref={chatToggle} type="button" className="writing-icon-btn" aria-label="접기" title="접기" onClick={()=>setChatOpen(false)}><FoldIcon /></button></div>
-      <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={openStage} sendNote={sendNote}/>
+      <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={openStage} sendNote={sendNote} unsaved={vm.dirty}/>
     </aside>:<button ref={chatToggle} type="button" className="studio-chat-toggle btn pri" onClick={()=>setChatOpen(true)}>AI 채팅 열기</button>}
   </>}</main>
           {settingsOpen&&active&&<Sheet sid="U13" label="회차 설정" panelClass="sheet writing-settings-sheet" onClose={()=>setSettingsOpen(false)}>

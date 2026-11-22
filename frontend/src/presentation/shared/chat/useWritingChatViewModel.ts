@@ -136,7 +136,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
           const tool = event.step.result?.tool
           if (event.step.feature === 'world' || tool === 'world_studio_edit_draft') worldApplied.current?.()
           else if (event.step.task === 'revise_plan' || tool === 'story_plan_create' || tool === 'story_plan_update') onPlanApplied?.()
-          else onApplied?.(event.step.applied.episode)
+          else if (event.step.feature !== 'content_action') onApplied?.(event.step.applied.episode) // 작품 정보 수정(work_update)은 원고를 바꾸지 않는다(#639)
         }
         apply(event)
       }, controller.signal, editIndex)

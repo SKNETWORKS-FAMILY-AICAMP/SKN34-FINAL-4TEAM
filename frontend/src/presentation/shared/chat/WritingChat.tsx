@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { checkAttachment, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
@@ -266,6 +266,8 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
   const [renaming, setRenaming] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
   const live = vm.live
+  // 고쳐 보낸 전송이 시작되면 폼을 닫는다(#639): 실패 뒤 이력이 바뀌어도 그 번호의 다른 메시지에 옛 글이 뜨지 않는다. 보내기 전에 막히면(inputError) live가 없어 폼이 남는다.
+  useEffect(() => { if (live?.editIndex !== undefined) setEditing(null) }, [live?.editIndex])
   function selectConversation(id: string) {
     setEditing(null)
     if (id) vm.select(id)
@@ -308,7 +310,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
     if (m.role !== 'user' || m.id === 'live') return null
     const index = Number(m.id.slice(1))
     if (editing?.index === index) {
-      return <form className="chat-edit" onSubmit={async (e) => { e.preventDefault(); const text = editing.text.trim(); if (text && await vm.edit(index, text)) setEditing(null) }}>
+      return <form className="chat-edit" onSubmit={(e) => { e.preventDefault(); const text = editing.text.trim(); if (text) void vm.edit(index, text) }}>
         <label className="sr-only" htmlFor={`${id}-edit`}>고칠 메시지</label>
         <textarea id={`${id}-edit`} rows={2} value={editing.text} maxLength={2000} autoFocus onChange={(e) => setEditing({ index, text: e.target.value })}
           onKeyDown={(e) => { if (e.key === 'Escape') setEditing(null) }} />

@@ -182,6 +182,7 @@ export function worldProposalIsStale(action: PendingAction, draft?: WorldDraftRe
 export type PendingChange = { name: string; before: string | null; after: string }
 /**
  * 세계관 설정 카드 수정(world_studio_edit_draft)이 바꿀 이름·설명의 수정 전과 후. 저장된 카드는 cardOf로 찾고 없으면 새 설정이다.
+ * cardOf가 없는 화면(집필실)은 새 카드인지 알 수 없어 '설정 카드'라고만 하고 수정 전은 비운다(#639).
  * 다른 도구나 모양이 어긋난 인자는 칸을 만들지 않는다(화면이 도구 인자를 그대로 보인다).
  */
 export function pendingChanges(action: PendingAction, cardOf?: (id: string) => { title: string; body: string } | undefined): PendingChange[] {
@@ -193,7 +194,7 @@ export function pendingChanges(action: PendingAction, cardOf?: (id: string) => {
     if (!card || typeof card !== 'object') return []
     const { id, title, body } = card as { id?: unknown; title?: unknown; body?: unknown }
     const old = typeof id === 'string' ? cardOf?.(id) : undefined
-    const name = old?.title ?? (typeof title === 'string' && title ? title : '새 설정')
+    const name = old?.title ?? (typeof title === 'string' && title ? title : cardOf ? '새 설정' : '설정 카드')
     return [
       ...(typeof title === 'string' && title !== old?.title ? [{ name: `${name} · 이름`, before: old?.title ?? null, after: title }] : []),
       ...(typeof body === 'string' && body !== old?.body ? [{ name: `${name} · 설명`, before: old?.body ?? null, after: body }] : []),

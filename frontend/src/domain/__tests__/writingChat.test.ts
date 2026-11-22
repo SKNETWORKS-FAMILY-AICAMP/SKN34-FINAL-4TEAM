@@ -475,6 +475,10 @@ describe('pendingChanges', () => {
       .toEqual([{ name: '새 설정 · 이름', before: null, after: '새 설정' }, { name: '새 설정 · 설명', before: null, after: '본문' }])
   })
 
+  it('저장된 카드를 찾을 방법이 없는 화면(집필실)은 새 설정이라고 단정하지 않는다(#639)', () => {
+    expect(pendingChanges(edit([{ id: 'k', body: '과묵한 기사' }]))).toEqual([{ name: '설정 카드 · 설명', before: null, after: '과묵한 기사' }])
+  })
+
   it('카드 수정이 아닌 도구나 모양이 어긋난 인자는 칸을 만들지 않는다(화면이 도구 인자를 그대로 보인다)', () => {
     expect(pendingChanges({ tool: 'work_update', label: '작품 정보 수정', args: { id: 'w' } })).toEqual([])
     expect(pendingChanges({ tool: 'world_studio_edit_draft', label: '', args: { id: 'w', request: 3 } })).toEqual([])

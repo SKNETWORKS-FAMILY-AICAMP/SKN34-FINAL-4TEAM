@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { chatPage, type ChatEvent, type ChatStep } from '../../../domain/entities/writingChat'
 import { useWritingChatViewModel } from './useWritingChatViewModel'
+import { NO_BEFORE } from './PendingActionCard'
 import { WritingChat } from './WritingChat'
 
 const { sessions, history, send, open, writingEpisode } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), writingEpisode: vi.fn() }))
@@ -29,6 +30,34 @@ it('discards a message edit when switching to another conversation', async () =>
   fireEvent.change(screen.getByLabelText('대화 고르기'), { target: { value: 'b' } })
   expect(await screen.findByText('둘째 질문')).toBeTruthy()
   expect(screen.queryByLabelText('고칠 메시지')).toBeNull()
+})
+
+it('고쳐 보낸 전송이 시작되면 수정 폼을 닫아, 실패 뒤 이력을 다시 읽어도 그 자리의 다른 메시지에 옛 수정 글이 뜨지 않는다(#639)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '첫 질문', reply: null }, { request: '둘째 질문', reply: null }] })
+  send.mockRejectedValue(new Error('서버 오류'))
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('둘째 질문')
+  fireEvent.click(screen.getAllByRole('button', { name: '이 메시지 고치기' })[1])
+  fireEvent.change(screen.getByLabelText('고칠 메시지'), { target: { value: '고친 질문' } })
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '첫 질문', reply: null }, { request: '다른 메시지', reply: null }] })
+  fireEvent.click(screen.getByRole('button', { name: '고쳐서 다시 보내기' }))
+  expect(await screen.findByText('다른 메시지')).toBeTruthy()
+  expect(screen.queryByLabelText('고칠 메시지')).toBeNull()
+})
+
+it('보내기 전에 막힌 수정(선택 글 5,000자 초과)은 고친 글을 담은 폼을 남긴다(#639)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '첫 질문', reply: null }] })
+  const getPage = () => chatPage({ path: '/studio/w', kind: 'studio', episode: 1, selection: '가'.repeat(5001) })
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} getPage={getPage} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('첫 질문')
+  fireEvent.click(screen.getByRole('button', { name: '이 메시지 고치기' }))
+  fireEvent.change(screen.getByLabelText('고칠 메시지'), { target: { value: '고친 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '고쳐서 다시 보내기' }))
+  expect(await screen.findByText(/5,000자까지/)).toBeTruthy()
+  expect((screen.getByLabelText('고칠 메시지') as HTMLTextAreaElement).value).toBe('고친 질문')
+  expect(send).not.toHaveBeenCalled()
 })
 
 it('목록이 오기 전에 새 대화를 고르면 늦게 온 목록이 최근 대화로 바꾸지 않는다(#636 E2E)', async () => {
@@ -684,6 +713,16 @@ it('멈춘 턴의 반영 회차를 모르면 열린 회차로 대신하지 않�
 const pendingAction = { tool: 'world_studio_edit_draft', label: '세계관 설정 카드 수정', args: { id: 'w1', request: { expectedDraftRevision: 4, cards: [{ id: 'k', body: '과묵한 기사. 십 년째 같은 자리에 선다.' }] } } }
 const approvalTurn = () => openThread([{ request: '이 설정 설명을 더 자세히 써줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action', pendingAction } }])
 
+it('카드를 찾을 수 없는 화면(집필실)의 카드 수정 승인은 새 설정이라고 하지 않고 수정 전을 볼 수 없다고 알리며, 거절하면 실행하지 않는다고 보인다(#639)', async () => {
+  approvalTurn()
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const changes = await screen.findByRole('list', { name: '바뀌는 내용' })
+  expect(within(changes).getByText('설정 카드 · 설명')).toBeTruthy()
+  expect(screen.queryByText(/새 설정/)).toBeNull()
+  expect(screen.getByText(NO_BEFORE)).toBeTruthy()
+  expect(screen.getByText(/실행하지 않기를 누르면 아무것도 바뀌지 않아요/)).toBeTruthy()
+})
+
 it('새 메시지를 보낼 때만 지금 화면(page)을 싣고, 이어가기에는 싣지 않는다', async () => {
   openThread([])
   send.mockResolvedValue(undefined)
@@ -839,7 +878,7 @@ it('실행할 인자를 읽지 못한 승인 대기는 가짜 카드 없이 알�
   expect(screen.queryByRole('button', { name: '실행' })).toBeNull()
 })
 
-it('승인한 Content 세계관 카드 수정이 반영되면 설정집을 다시 읽고, 다른 도구는 회차 초안 다시 읽기를 부른다', async () => {
+it('승인한 Content 세계관 카드 수정이 반영되면 설정집을 다시 읽고, 원고와 무관한 작품 정보 수정은 회차 초안을 다시 읽지 않는다(#639)', async () => {
   const onWorldApplied = vi.fn()
   const onApplied = vi.fn()
   const { run } = await worldStream({ onApplied, onWorldApplied })
@@ -848,7 +887,7 @@ it('승인한 Content 세계관 카드 수정이 반영되면 설정집을 다�
   expect(onWorldApplied).toHaveBeenCalledTimes(1)
   expect(onApplied).not.toHaveBeenCalled()
   await run({ type: 'step', step: done('work_update', 9) })
-  expect(onApplied).toHaveBeenCalledWith(3)
+  expect(onApplied).not.toHaveBeenCalled()
   // 진행 표시는 승인한 작업을 단계마다 덧붙인다(계획에 없던 단계도 사라지지 않는다).
   expect(screen.getAllByText('Content 작업').length).toBe(2)
 })
