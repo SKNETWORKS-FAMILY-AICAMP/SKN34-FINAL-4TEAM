@@ -177,7 +177,7 @@ uv run --locked --extra dev python eval/simulation/orig_cli.py compare --corpus 
 
 ## 10. 운영 LLMOps 등록 형식(내보내기)
 
-공개 세트 ①~④ 중 **저작권 만료·자유 이용 문항만** `backend/ai-service/app/evaluation/datasets/`의 기존 jsonl 형식(`id`·`input`·`expectedOutput`·`metadata.source`·`metadata.criteria`)으로 내보낸다. 파일은 **고전·근대 소설**(저작권 만료)과 **SCP**(CC BY-SA 3.0)로 나눈다. `app/evaluation`의 실행 경로는 바꾸지 않는다(다음 작업). SCP 파일의 항목은 `metadata.license`·`metadata.source`(URL·저자)를 가지며 그 파일 전체가 CC BY-SA 3.0이다. 해리 포터는 내보내지 않는다.
+공개 세트의 ① 대사와 ③ 나레이션·독백 중 **저작권 만료·자유 이용 문항**을 지시문별 평가 세트로 `backend/ai-service/app/evaluation/datasets/` 바로 아래에 내보낸다(`orig_cli.py export`): `simulation.act.jsonl`(지시문 `character_simulation.act`, 대사 24)·`simulation.narrate.jsonl`(`character_simulation.narrate`, 나레이션 24·독백 22). ② 연출·④ 검사는 승격할 지시문이 이번 범위(P1·N3)가 아니라 내보내지 않는다. 항목은 `id`·`input`(서비스가 그 호출에 보내는 값 `{set, data}` 그대로)·`expectedOutput`(원작의 다음 글)·`metadata`다. `metadata.judge`가 위 채점과 같은 입력이다: 인물 `character`·직전 장면 전체 `scene`(모델 입력의 장면은 줄어 있어 채점용을 따로 둔다)·시점 위반 정답표 `facts`(그 인물이 아직 모르는 사실 `{id, text}`). 고전·근대 소설(저작권 만료)과 SCP(CC BY-SA 3.0)는 한 파일에 섞이고 항목마다 `metadata.license`·`metadata.source`(작품·저자·URL·회차)가 있다. 운영 회귀 평가는 이 세트를 실제 서비스 호출(`agent.act`·`narrate`에 평가 대상 버전 본문)로 만들고 위 루브릭으로 채점한다([운영 LLMOps 계약](../design/operations-llmops-contract.md)). 해리 포터는 내보내지 않는다.
 
 ## 11. 결과
 
@@ -450,7 +450,7 @@ v2(전 호출 `reasoning.effort=low`, 대사 검사 금지 목록 20개, §11.5)
 
 ### 13.9 채택 제안의 새 프롬프트 버전 본문
 
-코드 시드(`prompt.ACT_INSTRUCTIONS`·`NARRATE_INSTRUCTIONS`, Langfuse 버전 1)는 그대로 두고, 아래 본문을 Langfuse에 새 버전으로 등록하자는 제안이다(등록과 production 지정은 코디네이터). 운영 화면에서 등록·승격하는 절차와 막힌 곳(시뮬레이션 평가 세트 미등록)은 [v3 보고서 6장](simulation-v3.md#6-운영-화면에서-p1n3-반영하는-절차)에 있다. 본문은 시드 뒤에 한 문단을 이어 붙인 것이고 평가는 이 문자열로 쟀다(`orig_variants.ACT_V1`·`NARRATE_V3`). 등록한 뒤에는 §13.4·§13.5와 같은 문항을 새 버전으로 한 번 더 재서 Langfuse 경로까지 확인하는 것을 권한다.
+코드 시드(`prompt.ACT_INSTRUCTIONS`·`NARRATE_INSTRUCTIONS`, Langfuse 버전 1)는 그대로 두고, 아래 본문을 Langfuse에 새 버전으로 등록하자는 제안이다(등록과 production 지정은 코디네이터). 운영 화면에서 등록·평가·승격하는 절차는 [v3 보고서 6장](simulation-v3.md#6-운영-화면에서-p1n3-반영하는-절차)에 있다. 본문은 시드 뒤에 한 문단을 이어 붙인 것이고 평가는 이 문자열로 쟀다(`orig_variants.ACT_V1`·`NARRATE_V3`). 등록한 뒤에는 §13.4·§13.5와 같은 문항을 새 버전으로 한 번 더 재서 Langfuse 경로까지 확인하는 것을 권한다.
 
 **`character_simulation.act` 새 버전(P1)**: ① 말투 +0.17(p<0.001)·의도 +0.09(p=0.056), 입력 +168토큰. 덧붙인 문단은 「말투 지침:」부터 끝까지다.
 

@@ -26,7 +26,7 @@
 | `v2_charts.py`·`v3_charts.py` | **버전 보고서 그림**([v2](../../../../docs/evaluation/simulation-v2.md)·[v3](../../../../docs/evaluation/simulation-v3.md)): 결과 집계(`results/*.json`)에서 그림을 다시 그린다(`uv run --with matplotlib python eval/simulation/v3_charts.py`, matplotlib는 그릴 때만 불러오고 값을 읽는 순수 함수만 단위 테스트한다) |
 | `sim_v4.py`·`sim_scene_judge.py`·`v4_report.py`·`v4_cli.py`·`v4_charts.py` | **V4 시험**([보고서](../../../../docs/evaluation/simulation-v4-draft-parallel.md)): 슈퍼바이저 초안 → 턴별 병렬 수정·검사(평가 전용, `app/` 변경 없음), 장면 채점(계획·설정 기준), 조건 비교 집계(Fisher·순열 검정), 실행(`run`·`judge`·`report`, `--via ocx|openai`)과 그림 |
 | `orig_judge.py`·`orig_agree.py`·`judge_cli.py` | **채점 보강**([결과 문서 §14](../../../../docs/evaluation/simulation-original.md#14-채점-모델-교체gpt-62-sol말투-기준ab-선택p1b-확인-2026-11-22)): 채점 모델을 바꿔 저장된 생성을 다시 채점(`regrade`, 생성은 다시 안 함, 기록은 채점 방식마다 `runs-<이름>`), 말투 기준(`voiceRef`) 채점, 같은 문항 두 생성의 A/B 선택(`judge-pair`, 순서를 바꿔 두 번), 두 채점의 일치(`agree`, 두 채점이 모두 채점한 문항만). `run --judge-model`로 만든 후보의 생성 기록은 `--source <모델>`로 읽는다. 순수 함수와 테스트는 모델·코퍼스를 대역으로 둔다 |
-| `orig_run.py`·`orig_export.py` | 서비스 함수 호출·채점·집계·짝 비교와 LLMOps 형식 내보내기(`app/evaluation/datasets/simulation/`) |
+| `orig_run.py`·`orig_export.py` | 서비스 함수 호출·채점·집계·짝 비교와 LLMOps 형식 내보내기(`app/evaluation/datasets/simulation.act.jsonl`·`simulation.narrate.jsonl`) |
 | `test_*.py` | 위 순수 로직과 실행 흐름의 단위 테스트(모델·채점·Content는 대역, 호출 없음) |
 | `results/*.json` | `run`이 쓰는 집계(커밋 대상, 질문·응답 없음). 아직 없다 |
 
