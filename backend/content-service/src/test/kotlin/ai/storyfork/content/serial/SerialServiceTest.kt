@@ -207,48 +207,65 @@ class SerialServiceTest {
 
         val saved = service.saveSettings("w", owner, request(days = listOf("WED", "MON"), time = "07:30", direction = "  따뜻한 분위기로  "))
 
-        assertEquals(SerialSettingsResponse(true, listOf("MON", "WED"), "07:30", "따뜻한 분위기로"), saved)
+        // 처음 저장한 작품은 꺼짐이다: 켜기는 운영 설정의 집필 방식(autonomous)이 한다.
+        assertEquals(SerialSettingsResponse(false, listOf("MON", "WED"), "07:30", "따뜻한 분위기로"), saved)
         assertEquals(saved, service.settings("w", owner))
         assertEquals("MON,WED", settingRows.getValue("w").days)
         assertEquals(LocalTime.of(7, 30), settingRows.getValue("w").runTime)
+        assertTrue(boardRows.isEmpty())
     }
 
-    @Test fun `an enabled serial opens the board for the next episode`() {
+    @Test fun `saving ignores the enabled flag in both directions`() {
+        work()
+        val on = serial(enabled = true, days = "MON")
+        val before = board()
+
+        // 요청의 enabled는 받지 않는다: 켜진 설정은 enabled=false를 보내도 꺼지지 않고 게시판도 그대로다.
+        assertTrue(service.saveSettings("w", owner, request(enabled = false, days = listOf("TUE"))).enabled)
+        assertEquals(listOf<Any?>(true, "TUE", "open"), listOf(on.enabled, on.days, before.status))
+
+        // 꺼진 설정은 enabled=true를 보내도 켜지지 않고 게시판도 열리지 않는다.
+        boardRows.clear(); settingRows.clear()
+        val off = serial(enabled = false, days = "MON")
+        assertFalse(service.saveSettings("w", owner, request(enabled = true, days = listOf("TUE"))).enabled)
+        assertEquals(listOf<Any?>(false, "TUE", true), listOf(off.enabled, off.days, boardRows.isEmpty()))
+    }
+
+    @Test fun `turning it on creates the settings row with defaults and opens the board for the next episode`() {
         work()
         nextEpisode = 4
 
-        service.saveSettings("w", owner, request())
+        service.setEnabled("w", true)
 
+        val row = settingRows.getValue("w")
+        assertEquals(listOf<Any?>(true, "", LocalTime.of(21, 0), ""), listOf(row.enabled, row.days, row.runTime, row.direction))
         val opened = boardRows.single()
         assertEquals(listOf("w", 4, "open"), listOf(opened.workId, opened.episodeNumber, opened.status))
         assertNull(opened.closedAt)
     }
 
-    @Test fun `no world link is needed to turn it on`() {
+    @Test fun `turning it on keeps the saved schedule and does not open a second board`() {
         work()
+        val row = serial(enabled = false, days = "MON,WED", time = LocalTime.of(7, 30), direction = "방향")
+        val existing = board(status = "running")
 
-        // 세계관 연결에 관한 확인이 어디에도 없다: 작품 접근 확인만 거치고 저장된다.
-        assertTrue(service.saveSettings("w", owner, request()).enabled)
-        verify(access).own("w", owner)
+        service.setEnabled("w", true)
+        service.setEnabled("w", true)
+
+        assertEquals(listOf<Any?>(true, "MON,WED", LocalTime.of(7, 30), "방향"), listOf(row.enabled, row.days, row.runTime, row.direction))
+        assertEquals(listOf(existing), boardRows)
     }
 
-    @Test fun `no board opens before the first episode is published`() {
+    @Test fun `no board opens before the first episode is published and a run then has no board`() {
         work()
         nextEpisode = 1
 
-        service.saveSettings("w", owner, request())
+        service.setEnabled("w", true)
 
+        // AI는 1화를 쓰지 않는다: 발행된 회차가 없으면 게시판이 없고 지금 실행은 409 SERIAL_NO_BOARD다.
         assertTrue(boardRows.isEmpty())
         assertTrue(settingRows.getValue("w").enabled)
-    }
-
-    @Test fun `saving again keeps the single active board`() {
-        work()
-        val existing = board(status = "running")
-
-        service.saveSettings("w", owner, request())
-
-        assertEquals(listOf(existing), boardRows)
+        assertEquals(listOf<Any?>(409, "SERIAL_NO_BOARD"), status { service.run("w", owner) }.let { listOf(it.status, it.code) })
     }
 
     @Test fun `turning it off while a run is queued or running is refused and changes nothing`() {
@@ -256,30 +273,35 @@ class SerialServiceTest {
             boardRows.clear(); settingRows.clear()
             work(); val row = serial(direction = "그대로"); val active = board(status = state)
 
-            val failure = status { service.saveSettings("w", owner, request(enabled = false, days = emptyList(), direction = "바뀐 방향")) }
+            val failure = status { service.setEnabled("w", false) }
 
             assertEquals(listOf<Any?>(409, "SERIAL_RUNNING"), listOf(failure.status, failure.code), state)
             assertEquals(listOf<Any?>(true, "그대로", state), listOf(row.enabled, row.direction, active.status), state)
         }
     }
 
-    @Test fun `saving while already off is not a turn-off even with a run board left over`() {
+    @Test fun `turning it off when it is already off or was never set is not a turn-off even with a run board left over`() {
         for (state in listOf("queued", "running")) {
             boardRows.clear(); settingRows.clear()
             work(); val row = serial(enabled = false, days = "MON"); val leftover = board(status = state)
 
-            // 막는 것은 켜짐에서 끄기로 바뀔 때뿐이다: 이미 꺼진 설정의 요일·시각·방향 저장은 실행 상태와 무관하게 된다.
-            service.saveSettings("w", owner, request(enabled = false, days = listOf("TUE"), time = "20:30", direction = "새 방향"))
+            service.setEnabled("w", false)
 
-            assertEquals(listOf<Any?>(false, "TUE", LocalTime.of(20, 30), "새 방향", state), listOf(row.enabled, row.days, row.runTime, row.direction, leftover.status), state)
+            assertEquals(listOf<Any?>(false, "MON", state), listOf(row.enabled, row.days, leftover.status), state)
         }
+        boardRows.clear(); settingRows.clear()
+        work()
+
+        service.setEnabled("w", false)
+
+        assertTrue(settingRows.isEmpty())
     }
 
     @Test fun `turning it off while only an open board waits works and leaves that board open`() {
         work(); serial()
         val open = board()
 
-        service.saveSettings("w", owner, request(enabled = false, days = emptyList()))
+        service.setEnabled("w", false)
 
         assertFalse(settingRows.getValue("w").enabled)
         assertEquals(listOf("open"), boardRows.map { it.status })
@@ -760,6 +782,15 @@ class SerialServiceTest {
 
         assertEquals(5, input.number)
         assertEquals(5, running.episodeNumber)
+    }
+
+    @Test fun `the run input is refused when no episode is published so the AI never writes episode one`() {
+        work(); serial(); board(status = "running")
+        nextEpisode = 1
+
+        val failure = status { service.runInput("b1") }
+
+        assertEquals(listOf<Any?>(409, "SERIAL_NO_BOARD"), listOf(failure.status, failure.code))
     }
 
     @Test fun `the run input is refused for a deleted work`() {

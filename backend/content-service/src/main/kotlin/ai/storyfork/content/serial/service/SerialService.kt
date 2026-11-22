@@ -91,24 +91,35 @@ class SerialService(
     }
 
     /**
-     * 설정을 저장한다(세계관 연결은 필요 없다). 입력 오류(422)는 작품 확인(404)보다 먼저 판정한다. 켜져 있고 발행된 회차가 있으면 다음 회차 게시판을 열고,
-     * 켜짐에서 끄기로 바뀔 때 실행 중(queued·running)이면 409 SERIAL_RUNNING이다(켜진 동안은 소유자가 원고를 못 바꾸므로 실행이 저장·발행하는 도중에 잠금이 풀리지 않게 한다).
-     * 이미 꺼진 설정의 저장과 요일·시각·방향 수정은 실행 상태와 무관하게 된다.
+     * 요일·시각·방향을 저장한다(세계관 연결은 필요 없다). 입력 오류(422)는 작품 확인(404)보다 먼저 판정한다. 요청의 enabled는 받지 않는다(있어도 무시):
+     * 켜기·끄기는 운영 설정의 집필 방식(autonomous)이 하고 [setEnabled]가 받는다. 처음 저장한 작품은 꺼진 채 일정만 남고 게시판은 열지 않는다.
      */
     fun saveSettings(workId: String, owner: String, request: SerialSettingsRequest): SerialSettingsResponse {
         val clean = cleanSettings(request)
         access.own(workId, owner)
-        val existing = serialRepo.findById(workId).orElse(null)
-        if (!clean.enabled && existing?.enabled == true && boardRepo.findFirstByWorkIdAndStatusIn(workId, RUNNING) != null) throw conflict("SERIAL_RUNNING", "AI 집필을 실행하는 중이라 지금은 끌 수 없어요. 끝난 뒤에 다시 시도해 주세요.")
-        val row = existing ?: AiSerialEntity(workId = workId)
-        row.enabled = clean.enabled
+        val row = serialRepo.findById(workId).orElse(null) ?: AiSerialEntity(workId = workId)
         row.days = clean.days
         row.runTime = clean.runTime
         row.direction = clean.direction
         row.updatedAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
         serialRepo.save(row)
-        if (clean.enabled) openIfNeeded(workId)
         return row.response()
+    }
+
+    /**
+     * 집필 방식이 autonomous가 되면 켜고 다른 방식이 되면 끈다. [ai.storyfork.content.work.service.WorkSettingsService]가 소유 확인(작품 잠금)을 쥔 같은 트랜잭션에서 부른다.
+     * 처음 켜는 작품은 기본값(요일 없음·21:00·방향 없음)으로 설정 행을 만들고, 켜지면 발행된 회차가 있을 때 다음 회차 게시판을 연다(발행된 회차가 없으면 열지 않는다: AI는 1화를 쓰지 않는다).
+     * 켜짐에서 끄려는데 실행 중(queued·running)이면 409 SERIAL_RUNNING이다(켜진 동안은 소유자가 2화부터 못 바꾸므로 실행이 저장·발행하는 도중에 잠금이 풀리지 않게 한다). 이미 그 상태면 아무것도 하지 않는다.
+     */
+    fun setEnabled(workId: String, enabled: Boolean) {
+        val existing = serialRepo.findById(workId).orElse(null)
+        if ((existing?.enabled ?: false) == enabled) return
+        if (!enabled && boardRepo.findFirstByWorkIdAndStatusIn(workId, RUNNING) != null) throw conflict("SERIAL_RUNNING", "AI 자율 집필을 실행하는 중이라 집필 방식을 바꿀 수 없어요. 끝난 뒤에 다시 시도해 주세요.")
+        val row = existing ?: AiSerialEntity(workId = workId)
+        row.enabled = enabled
+        row.updatedAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
+        serialRepo.save(row)
+        if (enabled) openIfNeeded(workId)
     }
 
     /** 열린 게시판을 지금 마감·실행하도록 queued로 바꾼다. 실제 실행은 1분 안의 일정 점검이 한다. 꺼짐·열린 게시판 없음·이미 실행 중은 409다. */
@@ -251,7 +262,10 @@ class SerialService(
         val board = boardRepo.findById(boardId).orElseThrow { ContentFailure(404, "게시판을 찾을 수 없어요.") }
         val work = works.findById(board.workId).orElse(null)
         checkContent(work != null && work.deletedAt == null, 404, "작품을 찾을 수 없어요.")
-        board.episodeNumber = publication.nextEpisodeNumber(board.workId)
+        val number = publication.nextEpisodeNumber(board.workId)
+        // AI는 1화를 쓰지 않는다: 발행된 회차가 없으면 쓸 회차가 없다(게시판은 1화가 발행된 뒤에만 열리므로 정상 흐름에서는 일어나지 않는다).
+        if (number < 2) throw conflict("SERIAL_NO_BOARD", "발행된 회차가 없어 AI가 이어 쓸 회차가 없어요.")
+        board.episodeNumber = number
         val direction = serialRepo.findById(board.workId).orElse(null)?.direction.orEmpty()
         val top = topOpinions(opinionRepo.findAllByBoardId(boardId), voteRepo.findAllByBoardId(boardId))
         return RunInput(board.workId, boardId, work!!.ownerId, work.title, work.description, board.episodeNumber, direction, top)

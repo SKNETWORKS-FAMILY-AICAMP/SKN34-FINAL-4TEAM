@@ -635,9 +635,9 @@ class EditSuggestionServiceTest {
         assertEquals(listOf("begin", "commit(approved)"), events)
     }
 
-    @Test fun `approval is refused while AI writing is on and records no failed apply`() {
-        val saved = row()
-        doThrow(ContentFailure(409, SERIAL_LOCKED_MESSAGE, "SERIAL_LOCKED")).`when`(access).requireManuscriptWritable("work")
+    @Test fun `approval of a later episode is refused while AI writing is on and records no failed apply`() {
+        val saved = row(number = 2)
+        doThrow(ContentFailure(409, SERIAL_LOCKED_MESSAGE, "SERIAL_LOCKED")).`when`(access).requireEpisodeWritable("work", 2)
 
         val error = failure { service.approve("work", "s1", "owner") }
 
@@ -646,6 +646,17 @@ class EditSuggestionServiceTest {
         assertEquals(listOf<Any?>("pending", null, null), listOf(saved.status, saved.applyResult, saved.decidedAt))
         assertTrue(saveRequests.isEmpty())
         assertEquals(listOf("begin", "rollback(pending)"), events)
+    }
+
+    @Test fun `approval of episode 1 asks the lock about episode 1 and is applied`() {
+        val saved = row()
+        doThrow(ContentFailure(409, SERIAL_LOCKED_MESSAGE, "SERIAL_LOCKED")).`when`(access).requireEpisodeWritable("work", 2)
+
+        // AI 자율 집필 중에도 1화는 직접 쓸 수 있다: 승인은 제안의 회차(1화)로 잠금을 묻고 그대로 반영한다.
+        service.approve("work", "s1", "owner")
+
+        assertEquals(listOf("approved", "applied"), listOf(saved.status, saved.applyResult))
+        verify(access).requireEpisodeWritable("work", 1)
     }
 
     @Test fun `holding and rejecting leave the manuscript alone so the lock does not stop them`() {

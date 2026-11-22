@@ -2,7 +2,7 @@ package ai.storyfork.content.serial.service.dto
 
 import java.time.Instant
 
-/** 소유자의 자율 연재 설정 요청이다. days는 MON~SUN(대문자, 1~7개), time은 KST의 HH:mm, direction은 2,000자 이내다. 값 검증은 [ai.storyfork.content.serial.domain.cleanSettings]가 한다. */
+/** 소유자의 자율 연재 설정 요청이다. days는 MON~SUN(대문자, 1~7개), time은 KST의 HH:mm, direction은 2,000자 이내다. enabled는 받지 않고 무시한다(켜기·끄기는 운영 설정의 집필 방식 autonomous). 값 검증은 [ai.storyfork.content.serial.domain.cleanSettings]가 한다. */
 data class SerialSettingsRequest(val enabled: Boolean = false, val days: List<String> = emptyList(), val time: String = "21:00", val direction: String = "")
 
 data class SerialSettingsResponse(val enabled: Boolean, val days: List<String>, val time: String, val direction: String)

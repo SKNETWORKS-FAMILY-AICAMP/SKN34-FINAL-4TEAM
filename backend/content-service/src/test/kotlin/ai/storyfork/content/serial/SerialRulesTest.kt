@@ -76,21 +76,19 @@ class SerialRulesTest {
     // ---- 요일·시각 검증
 
     @Test fun `days are validated and stored in Monday-first order`() {
-        assertEquals("MON,WED", serialDays(listOf("MON", "WED"), true))
-        assertEquals("MON,WED,SUN", serialDays(listOf("SUN", "WED", "MON"), true))
-        assertEquals("MON,TUE,WED,THU,FRI,SAT,SUN", serialDays(listOf("SUN", "SAT", "FRI", "THU", "WED", "TUE", "MON"), true))
+        assertEquals("MON,WED", serialDays(listOf("MON", "WED")))
+        assertEquals("MON,WED,SUN", serialDays(listOf("SUN", "WED", "MON")))
+        assertEquals("MON,TUE,WED,THU,FRI,SAT,SUN", serialDays(listOf("SUN", "SAT", "FRI", "THU", "WED", "TUE", "MON")))
         assertEquals(setOf(DayOfWeek.MONDAY, DayOfWeek.SUNDAY), serialDaySet("MON,SUN"))
         assertEquals(emptySet<DayOfWeek>(), serialDaySet(""))
     }
 
-    @Test fun `days must be distinct known codes and enabling needs at least one`() {
+    @Test fun `days must be distinct known codes and at least one`() {
         for (bad in listOf(listOf("MON", "MON"), listOf("mon"), listOf("MONDAY"), listOf(""), listOf("MON", "XXX"))) {
-            assertEquals(422, status { serialDays(bad, true) }, bad.toString())
-            assertEquals(422, status { serialDays(bad, false) }, bad.toString())
+            assertEquals(422, status { serialDays(bad) }, bad.toString())
         }
-        assertEquals(422, status { serialDays(emptyList(), true) })
-        // 끄는 저장은 요일이 비어도 된다.
-        assertEquals("", serialDays(emptyList(), false))
+        // 일정 저장은 켜기·끄기와 무관하게(켜기는 집필 방식이 한다) 요일이 하나 이상이어야 한다.
+        assertEquals(422, status { serialDays(emptyList()) })
     }
 
     @Test fun `time is a strict 24-hour HH-mm`() {

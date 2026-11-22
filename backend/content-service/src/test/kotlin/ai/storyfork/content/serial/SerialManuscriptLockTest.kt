@@ -58,15 +58,15 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 
 /**
- * AI 집필이 켜져 있는 동안 소유자의 원고 수정 잠금(계약 'AI 집필 중 원고 잠금')을 DB 없이 검증한다.
- * 판정은 WorkAccessService 한 함수([WorkAccessService.requireManuscriptWritable])이고, 원고를 바꾸는 서비스 진입점은 소유 확인 뒤에 그 함수를 부른다.
- * REST 컨트롤러·Content MCP 쓰기 도구·집필 AI의 반영(MCP episode_update_draft)·수정 제안 승인은 모두 같은 서비스를 거치므로 서비스에서 막으면 같이 막힌다.
+ * AI 자율 집필(집필 방식 autonomous = ai_serial.enabled)이 켜져 있는 동안 소유자는 1화만 직접 쓴다(계약 'AI 자율 집필 = 집필 방식')를 DB 없이 검증한다.
+ * 판정은 WorkAccessService의 두 함수다: [WorkAccessService.requireEpisodeWritable](회차 단위, 1화는 통과)와 [WorkAccessService.requireManuscriptWritable](회차를 가리지 않는 쓰기).
+ * 원고를 바꾸는 서비스 진입점은 소유 확인 뒤에 자기 대상 회차 번호로 그 함수를 부른다. REST·Content MCP 쓰기 도구·집필 AI의 반영(MCP episode_update_draft)·수정 제안 승인이 모두 같은 서비스를 거친다.
  * 자율 연재 실행 자신의 저장만 별도 진입점(...ForSerial)으로 잠금을 건너뛰고, 그 진입점은 SerialService만 부른다.
  */
 class SerialManuscriptLockTest {
     private val owner = "owner"
     private val t0 = Instant.parse("2026-11-23T12:10:00Z")
-    private val lockedMessage = "AI 집필 중에는 원고를 수정할 수 없습니다. AI 집필을 끄면 수정할 수 있어요."
+    private val lockedMessage = "AI 자율 집필 중에는 1화만 직접 쓸 수 있어요. 운영 설정 > 집필 방식을 바꾸면 모든 회차를 쓸 수 있어요."
 
     // ---- 판정 규칙(실제 WorkAccessService)
     private val serials = mock(AiSerialRepository::class.java)
@@ -76,7 +76,7 @@ class SerialManuscriptLockTest {
 
     private fun settings(enabled: Boolean) = AiSerialEntity("w", enabled, "MON", LocalTime.of(21, 0), "", null, t0)
 
-    // ---- 진입점(서비스는 실제, 저장소는 대역). access는 잠금이 켜진 것처럼 거절한다.
+    // ---- 진입점(서비스는 실제, 저장소는 대역). access는 잠금이 켜진 것처럼 2화와 작품 단위 쓰기를 거절한다.
     private val access = mock(WorkAccessService::class.java)
     private val works = mock(WorkRepository::class.java)
     private val episodes = mock(EpisodeRepository::class.java)
@@ -92,12 +92,13 @@ class SerialManuscriptLockTest {
     private val versionEpisodes = mock(EpisodeRepository::class.java)
     // 버전·발행 서비스에는 대역 EpisodeService를 넣어, 그 서비스 자신의 첫 줄에서 막히는지(안쪽 EpisodeService에 기대지 않는지) 본다.
     private val episodeMock = mock(EpisodeService::class.java)
+    private val versionPublication = mock(PublicationService::class.java)
 
     @Suppress("UNCHECKED_CAST")
     private val imageProviders = mock(ObjectProvider::class.java) as ObjectProvider<ContentImageRepository>
     private val episodeService = EpisodeService(access, works, episodes, drafts, current, versions, imageProviders, mock(EntityManager::class.java),
         mock(ForkRepository::class.java), mock(CheckpointEpisodeRepository::class.java), events)
-    private val episodeVersions = EpisodeVersionService(access, episodeMock, mock(PublicationService::class.java), world, versionEpisodes, drafts, versions,
+    private val episodeVersions = EpisodeVersionService(access, episodeMock, versionPublication, world, versionEpisodes, drafts, versions,
         mock(CheckpointRepository::class.java), mock(CheckpointEpisodeRepository::class.java), mock(CheckpointSettingRepository::class.java), mock(EntityManager::class.java))
     private val publication = PublicationService(access, episodeMock, episodes, current, versions, events, visibilityRepo, rights, drafts, works,
         mock(ForkPolicyHistoryRepository::class.java), mock(ForkPolicyEpisodeRepository::class.java), mock(WorkInterestService::class.java), mock(EntityManager::class.java))
@@ -110,31 +111,46 @@ class SerialManuscriptLockTest {
 
     init {
         doThrow(ContentFailure(409, SERIAL_LOCKED_MESSAGE, "SERIAL_LOCKED")).`when`(access).requireManuscriptWritable("w")
+        doThrow(ContentFailure(409, SERIAL_LOCKED_MESSAGE, "SERIAL_LOCKED")).`when`(access).requireEpisodeWritable("w", 2)
+        `when`(scheduleEpisodes.findByWorkIdAndSequence("w", 1)).thenReturn(EpisodeEntity("e1", "w", 1))
         `when`(scheduleEpisodes.findByWorkIdAndSequence("w", 2)).thenReturn(EpisodeEntity("e2", "w", 2))
+        // 1화가 이미 발행돼 있다: 새 회차는 2화이고, 작품 단위 저장·발행의 대상도 2화다.
+        `when`(current.lastNumber("w")).thenReturn(1)
+        `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(EpisodeCurrentEntity("e1", "w", 1, "v1")))
+        `when`(versionPublication.nextEpisodeNumber("w")).thenReturn(2)
     }
 
-    // 원고를 바꾸는 서비스 진입점 전부(REST·MCP가 부르는 그 메서드들). 실행 결과는 보지 않고 던지는 예외만 본다.
-    private val entries: List<Pair<String, (String) -> Any?>> = listOf(
+    // 회차 단위로 원고를 바꾸는 서비스 진입점(REST·MCP가 부르는 그 메서드들). 실행 결과는 보지 않고 던지는 예외만 본다.
+    private val episodeEntries: List<Pair<String, (String, Int) -> Any?>> = listOf(
+        "draft save" to { who: String, n: Int -> episodeService.update("w", who, n, draftRequest) },
+        "draft delete" to { who: String, n: Int -> episodeService.deleteDraft("w", who, n, 0) },
+        "episode delete" to { who: String, n: Int -> episodeService.deleteEpisode("w", who, n, 0) },
+        "version save with episode" to { who: String, n: Int -> episodeVersions.saveWithVersion("w", who, n, draftRequest) },
+        "version save" to { who: String, n: Int -> episodeVersions.save("w", who, n, draftRequest) },
+        "version restore" to { who: String, n: Int -> episodeVersions.restore("w", who, n, RevertRequest(0, "v")) },
+        "publish" to { who: String, n: Int -> publication.publishEpisode("w", who, n, publishRequest) },
+        "episode visibility" to { who: String, n: Int -> publication.visibility("w", who, n, PublicationVisibilityRequest(0, false)) },
+        "schedule create" to { who: String, n: Int -> schedules.create("w", who, n, scheduleRequest) },
+        "schedule update" to { who: String, n: Int -> schedules.update("w", who, n, "s1", scheduleRequest) },
+    )
+
+    // 회차를 가리지 않는 진입점: 새 회차는 이미 회차가 있을 때, 작품 단위 저장·발행은 대상(마지막 발행+1)이 2화 이상일 때 잠긴다.
+    private val workEntries: List<Pair<String, (String) -> Any?>> = listOf(
         "episode create" to { who: String -> episodeService.create("w", who, CreateEpisodeRequest("새 회차")) },
-        "draft save" to { who: String -> episodeService.update("w", who, 1, draftRequest) },
-        "draft delete" to { who: String -> episodeService.deleteDraft("w", who, 1, 0) },
-        "episode delete" to { who: String -> episodeService.deleteEpisode("w", who, 1, 0) },
-        "version save with episode" to { who: String -> episodeVersions.saveWithVersion("w", who, 1, draftRequest) },
-        "version save" to { who: String -> episodeVersions.save("w", who, 1, draftRequest) },
-        "version restore" to { who: String -> episodeVersions.restore("w", who, 1, RevertRequest(0, "v")) },
         "current draft save" to { who: String -> episodeVersions.saveCurrent("w", who, draftRequest) },
-        "publish" to { who: String -> publication.publishEpisode("w", who, 1, publishRequest) },
         "publish current" to { who: String -> publication.publishCurrent("w", who, publishRequest) },
-        "episode visibility" to { who: String -> publication.visibility("w", who, 1, PublicationVisibilityRequest(0, false)) },
-        "schedule create" to { who: String -> schedules.create("w", who, 2, scheduleRequest) },
-        "schedule update" to { who: String -> schedules.update("w", who, 2, "s1", scheduleRequest) },
     )
 
     private fun failure(block: () -> Unit) = assertThrows(ContentFailure::class.java, block)
 
+    private fun assertLocked(name: String, block: () -> Unit) {
+        val failure = failure(block)
+        assertEquals(listOf<Any?>(409, "SERIAL_LOCKED", lockedMessage), listOf(failure.status, failure.code, failure.message), name)
+    }
+
     // ---- 판정
 
-    @Test fun `AI writing that is on locks the manuscript with the fixed 409`() {
+    @Test fun `AI autonomous writing that is on locks work level writes with the fixed 409`() {
         `when`(serials.findById("w")).thenReturn(Optional.of(settings(true)))
 
         val failure = failure { rule.requireManuscriptWritable("w") }
@@ -142,31 +158,79 @@ class SerialManuscriptLockTest {
         assertEquals(listOf<Any?>(409, "SERIAL_LOCKED", lockedMessage), listOf(failure.status, failure.code, failure.message))
     }
 
-    @Test fun `AI writing that is off or was never set leaves the manuscript writable`() {
+    @Test fun `AI autonomous writing that is off or was never set leaves the manuscript writable`() {
         `when`(serials.findById("w")).thenReturn(Optional.of(settings(false)))
         rule.requireManuscriptWritable("w")
+        rule.requireEpisodeWritable("w", 2)
 
         `when`(serials.findById("w")).thenReturn(Optional.empty())
         rule.requireManuscriptWritable("w")
+        rule.requireEpisodeWritable("w", 2)
+    }
+
+    @Test fun `episode one stays writable while it is on but later episodes are locked`() {
+        `when`(serials.findById("w")).thenReturn(Optional.of(settings(true)))
+
+        rule.requireEpisodeWritable("w", 1)
+        for (number in listOf(2, 3, 10)) {
+            val failure = failure { rule.requireEpisodeWritable("w", number) }
+            assertEquals(listOf<Any?>(409, "SERIAL_LOCKED", lockedMessage), listOf(failure.status, failure.code, failure.message), "episode $number")
+        }
     }
 
     // ---- 진입점
 
-    @Test fun `every manuscript entry refuses the owner with the fixed 409 while AI writing is on`() {
-        for ((name, call) in entries) {
-            val failure = failure { call(owner) }
-            assertEquals(listOf<Any?>(409, "SERIAL_LOCKED", lockedMessage), listOf(failure.status, failure.code, failure.message), name)
+    @Test fun `every entry refuses the owner for episode 2 and for work level writes with the fixed 409`() {
+        for ((name, call) in episodeEntries) assertLocked(name) { call(owner, 2) }
+        for ((name, call) in workEntries) assertLocked(name) { call(owner) }
+
+        // 막힌 요청은 아무것도 쓰지 않는다(읽기만 한다).
+        verifyNoInteractions(episodes, drafts, versions, works, events, visibilityRepo, rights, scheduleRepo, episodeMock, versionEpisodes, world)
+    }
+
+    @Test fun `every episode entry asks the lock about its own episode number so episode 1 stays writable`() {
+        for ((name, call) in episodeEntries) {
+            val error = runCatching { call(owner, 1) }.exceptionOrNull()
+            // 잠금은 통과한다: 이어지는 대역 때문에 다른 예외가 날 수 있어도 SERIAL_LOCKED는 아니다.
+            assertFalse(error is ContentFailure && error.code == "SERIAL_LOCKED", name)
         }
-        // 막힌 요청은 아무것도 읽지도 쓰지도 않는다.
-        verifyNoInteractions(episodes, drafts, current, versions, works, events, visibilityRepo, rights, scheduleRepo, episodeMock, versionEpisodes, world)
+
+        verify(access, times(episodeEntries.size)).requireEpisodeWritable("w", 1)
+        verify(access, never()).requireManuscriptWritable(ArgumentMatchers.anyString())
+    }
+
+    @Test fun `a new episode is open when no episode exists and locked once one does`() {
+        `when`(current.lastNumber("w")).thenReturn(0)
+        `when`(episodes.saveAndFlush(ArgumentMatchers.any(EpisodeEntity::class.java) ?: EpisodeEntity("x", "w", 1))).thenAnswer { it.arguments[0] }
+        `when`(works.findById("w")).thenReturn(Optional.of(WorkEntity(id = "w", revision = 5)))
+
+        // 활성 회차가 하나도 없으면(1화 만들기) 잠그지 않는다: 가드를 부르지 않고 만들기까지 간다.
+        runCatching { episodeService.create("w", owner, CreateEpisodeRequest("1화")) }
+
+        verify(drafts).save(ArgumentMatchers.any(EpisodeDraftEntity::class.java) ?: EpisodeDraftEntity("x"))
+        verify(access, never()).requireManuscriptWritable(ArgumentMatchers.anyString())
+    }
+
+    @Test fun `work level saves are open when the target is episode 1`() {
+        // 발행된 회차가 없으면 작품 단위 저장·발행의 대상은 1화다.
+        `when`(versionPublication.nextEpisodeNumber("w")).thenReturn(1)
+        `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(emptyList())
+
+        runCatching { episodeVersions.saveCurrent("w", owner, draftRequest) }
+        runCatching { publication.publishCurrent("w", owner, publishRequest) }
+
+        verify(access, times(2)).requireEpisodeWritable("w", 1)
+        verify(access, never()).requireManuscriptWritable(ArgumentMatchers.anyString())
     }
 
     @Test fun `a stranger still gets 404 before the lock is consulted`() {
         doThrow(ContentFailure(404, "작품을 찾을 수 없어요.")).`when`(access).own("w", "stranger")
 
-        for ((name, call) in entries) assertEquals(404, failure { call("stranger") }.status, name)
+        for ((name, call) in episodeEntries) assertEquals(404, failure { call("stranger", 2) }.status, name)
+        for ((name, call) in workEntries) assertEquals(404, failure { call("stranger") }.status, name)
 
         verify(access, never()).requireManuscriptWritable(ArgumentMatchers.anyString())
+        verify(access, never()).requireEpisodeWritable(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt())
     }
 
     // ---- 막지 않는 경로
@@ -176,6 +240,7 @@ class SerialManuscriptLockTest {
     private val row = EpisodeCurrentEntity("e", "w", 1)
 
     @Test fun `the serial run's own entries skip the lock and still write`() {
+        `when`(current.lastNumber("w")).thenReturn(0)
         `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(row))
         `when`(episodes.findByWorkIdAndSequence("w", 1)).thenReturn(episode)
         `when`(episodes.findAllById(listOf("e"))).thenReturn(listOf(episode))
@@ -190,6 +255,7 @@ class SerialManuscriptLockTest {
         assertEquals("AI 본문", draft.content)
 
         verify(access, never()).requireManuscriptWritable(ArgumentMatchers.anyString())
+        verify(access, never()).requireEpisodeWritable(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt())
     }
 
     @Test fun `the serial run saves its version through its own entry`() {
@@ -201,16 +267,18 @@ class SerialManuscriptLockTest {
 
         verify(episodeMock, never()).update(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyInt(), ArgumentMatchers.any(DraftRequest::class.java) ?: draftRequest)
         verify(access, never()).requireManuscriptWritable(ArgumentMatchers.anyString())
+        verify(access, never()).requireEpisodeWritable(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt())
     }
 
     @Test fun `a schedule registered earlier still publishes while AI writing is on`() {
-        // 예약 실행(publishScheduled)은 켜기 전에 소유자가 등록한 것을 이행하는 경로라 잠그지 않는다: 잠금 자리를 지나 회차를 읽는 데까지 간다.
+        // 예약 실행(publishScheduled)은 켜기 전에 소유자가 등록한 발행을 이행하는 경로라 잠그지 않는다: 잠금 자리를 지나 회차를 읽는 데까지 간다.
         `when`(episodeMock.read("w", owner, 2)).thenReturn(EpisodeResponse(2, DraftResponse("t", "b", 0), emptyList(), null, true, null))
 
         assertEquals(403, failure { publication.publishScheduled("w", owner, 2, "v") }.status)
 
         verify(episodeMock).read("w", owner, 2)
         verify(access, never()).requireManuscriptWritable(ArgumentMatchers.anyString())
+        verify(access, never()).requireEpisodeWritable(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt())
     }
 
     @Test fun `listing and canceling a schedule stay possible while AI writing is on`() {
@@ -223,6 +291,7 @@ class SerialManuscriptLockTest {
 
         assertEquals("canceled", pending.status)
         verify(access, never()).requireManuscriptWritable(ArgumentMatchers.anyString())
+        verify(access, never()).requireEpisodeWritable(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt())
     }
 
     // ---- 우회는 자율 연재 실행만

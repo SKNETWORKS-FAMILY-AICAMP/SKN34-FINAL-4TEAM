@@ -24,7 +24,7 @@ class SerialController(private val service: SerialService, private val runner: S
     @GetMapping("/ai-serial")
     fun settings(@PathVariable id: String, principal: Principal): SerialSettingsResponse = service.settings(id, principal.name)
 
-    /** 설정을 저장한다(세계관 연결은 필요 없다). 입력 오류는 422다. 켜져 있고 발행된 회차가 있으면 다음 회차 게시판이 열린다. */
+    /** 요일·시각·방향을 저장한다(세계관 연결은 필요 없다). 입력 오류는 422다. 요청의 enabled는 무시한다: 켜기·끄기는 운영 설정의 집필 방식(autonomous)이다. */
     @PutMapping("/ai-serial")
     fun save(@PathVariable id: String, principal: Principal, @RequestBody data: SerialSettingsRequest): SerialSettingsResponse = service.saveSettings(id, principal.name, data)
 

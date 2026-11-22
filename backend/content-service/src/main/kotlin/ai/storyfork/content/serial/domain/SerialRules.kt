@@ -34,7 +34,7 @@ object SerialReason {
 
 /** AI 집필이 켜져 있는 동안 소유자가 원고를 바꾸려 하면 409로 거절하는 코드와 고정 문구다(서버 판정, 화면 잠금은 보조). */
 const val SERIAL_LOCKED = "SERIAL_LOCKED"
-const val SERIAL_LOCKED_MESSAGE = "AI 집필 중에는 원고를 수정할 수 없습니다. AI 집필을 끄면 수정할 수 있어요."
+const val SERIAL_LOCKED_MESSAGE = "AI 자율 집필 중에는 1화만 직접 쓸 수 있어요. 운영 설정 > 집필 방식을 바꾸면 모든 회차를 쓸 수 있어요."
 
 private val DAY_CODES = DayOfWeek.entries.map { it.name.take(3) }
 private val TIME = Regex("([01]\\d|2[0-3]):[0-5]\\d")
@@ -44,19 +44,19 @@ private fun clean(text: String) = text.none { it == NUL }
 
 // ---- 설정
 
-data class CleanSettings(val enabled: Boolean, val days: String, val runTime: LocalTime, val direction: String)
+data class CleanSettings(val days: String, val runTime: LocalTime, val direction: String)
 
 /** 설정 요청을 검증해 저장 형태로 바꾼다. 어긋나면 422다. */
 fun cleanSettings(request: SerialSettingsRequest): CleanSettings {
     val direction = request.direction.trim()
     checkContent(direction.length <= 2000 && clean(direction), message = "연재 방향은 2,000자 이내로 입력해 주세요.")
-    return CleanSettings(request.enabled, serialDays(request.days, request.enabled), serialTime(request.time), direction)
+    return CleanSettings(serialDays(request.days), serialTime(request.time), direction)
 }
 
-/** 요일 코드(MON~SUN)를 중복 없이 검증해 월요일부터의 순서로 'MON,WED'처럼 저장한다. 켜는 저장은 하나 이상이 필요하고 끄는 저장은 비어도 된다. */
-fun serialDays(codes: List<String>, enabled: Boolean): String {
+/** 요일 코드(MON~SUN)를 중복 없이 검증해 월요일부터의 순서로 'MON,WED'처럼 저장한다. 일정을 저장할 때는 하나 이상이 필요하다(켜기·끄기는 집필 방식이 한다). */
+fun serialDays(codes: List<String>): String {
     checkContent(codes.all { it in DAY_CODES } && codes.distinct().size == codes.size, message = "요일은 MON~SUN 중에서 중복 없이 골라 주세요.")
-    checkContent(!enabled || codes.isNotEmpty(), message = "연재 요일을 하나 이상 골라 주세요.")
+    checkContent(codes.isNotEmpty(), message = "연재 요일을 하나 이상 골라 주세요.")
     return DAY_CODES.filter { it in codes }.joinToString(",")
 }
 

@@ -77,7 +77,10 @@ class SerialPostgresTest {
     private val generated=GeneratedEpisode("독자들은 재회를 원했다.","2화 제목","2화 본문",BigDecimal("1.5"))
     // 오늘이 아닌 요일만 고르면 일정이 도래하지 않아(시각과 무관하게) 테스트가 지금 실행(queued)으로만 움직인다.
     private val notToday get()=LocalDate.now(KST).plusDays(1).dayOfWeek.name.take(3)
-    private val enable get()="""{"enabled":true,"days":["$notToday"],"time":"21:00","direction":"따뜻한 분위기로"}"""
+    // 요청의 enabled는 서버가 무시한다(켜기·끄기는 운영 설정의 집필 방식). 일부러 true를 실어 보낸다.
+    private val schedule get()="""{"enabled":true,"days":["$notToday"],"time":"21:00","direction":"따뜻한 분위기로"}"""
+    // 집필 방식을 autonomous로 저장하면 AI 자율 집필이 켜진다(새 작품은 저장한 적이 없어 revision 0).
+    private fun autonomous(owner: UUID,path: String,revision: Int = 0)=call("PUT","$path/operating-settings",owner,"""{"revision":$revision,"writingMode":"autonomous"}""")
 
     @BeforeEach fun stubs() {
         episodeRequests.clear()
@@ -142,18 +145,25 @@ class SerialPostgresTest {
         val off=call("POST","$path/ai-serial/run",owner)
         assertEquals(409,off.statusCode()); assertEquals("SERIAL_DISABLED",code(off))
 
-        // 켜기 전에는 열린 게시판이 없고(익명도 200으로 읽는다), 잘못된 설정은 422, CSRF 없음은 403, 남의 작품은 404다.
+        // 켜기 전에는 열린 게시판이 없고(익명도 200으로 읽는다), 잘못된 일정은 422, CSRF 없음은 403, 남의 작품은 404다.
         val closed=call("GET","$path/serial-board")
         assertEquals(200,closed.statusCode(),closed.body())
         assertTrue(node(closed).path("board").isNull)
-        assertEquals(422,call("PUT","$path/ai-serial",owner,"""{"enabled":true,"days":[],"time":"21:00","direction":""}""").statusCode())
-        assertEquals(403,call("PUT","$path/ai-serial",owner,enable,csrf=false).statusCode())
-        assertEquals(404,call("PUT","$path/ai-serial",stranger,enable).statusCode())
+        assertEquals(422,call("PUT","$path/ai-serial",owner,"""{"days":[],"time":"21:00","direction":""}""").statusCode())
+        assertEquals(403,call("PUT","$path/ai-serial",owner,schedule,csrf=false).statusCode())
+        assertEquals(404,call("PUT","$path/ai-serial",stranger,schedule).statusCode())
 
-        // 켜면 마지막 발행 회차+1(2화)의 게시판이 열린다. 세계관 연결은 필요 없다.
-        val saved=call("PUT","$path/ai-serial",owner,enable)
-        assertEquals(200,saved.statusCode(),saved.body())
-        assertEquals(listOf(true,"21:00"),node(saved).let {listOf(it.path("enabled").asBoolean(),it.path("time").asString())})
+        // 일정만 저장하면 요청의 enabled(true)를 무시해 꺼진 채이고 게시판도 열리지 않는다.
+        val scheduled=call("PUT","$path/ai-serial",owner,schedule)
+        assertEquals(200,scheduled.statusCode(),scheduled.body())
+        assertEquals(listOf(false,"21:00"),node(scheduled).let {listOf(it.path("enabled").asBoolean(),it.path("time").asString())})
+        assertTrue(statuses(id).isEmpty())
+
+        // 집필 방식을 autonomous로 저장하면 켜지고 마지막 발행 회차+1(2화)의 게시판이 열린다. 세계관 연결은 필요 없다.
+        val mode=autonomous(owner,path)
+        assertEquals(200,mode.statusCode(),mode.body())
+        assertEquals("autonomous",node(mode).path("current").path("writingMode").asString())
+        assertTrue(node(call("GET","$path/ai-serial",owner)).path("enabled").asBoolean())
         val board=node(call("GET","$path/serial-board")).path("board")
         assertEquals(2,board.path("episodeNumber").asInt())
         val boardId=board.path("id").asString()
@@ -228,7 +238,7 @@ class SerialPostgresTest {
         val owner=member(); val reader=member()
         val id=work(owner)
         val path="/api/v1/works/$id"
-        assertEquals(200,call("PUT","$path/ai-serial",owner,enable).statusCode())
+        assertEquals(200,autonomous(owner,path).statusCode())
         val opinion=created(call("POST","$path/serial-board/opinions",reader,"""{"kind":"general","body":"두 사람이 다시 만나면 좋겠어요"}"""))
 
         // 검수를 통과하지 못한 실행: 예약은 풀리고 게시판은 failed와 고정 사유로 남으며 아무것도 발행되지 않는다.
@@ -260,14 +270,22 @@ class SerialPostgresTest {
         assertEquals(listOf("두 사람이 다시 만나면 좋겠어요"),sent.map {(it as Map<*,*>)["body"]})
     }
 
-    @Test fun `the manuscript is locked while AI writing is on and turning it off waits for a run to end`() {
+    @Test fun `AI autonomous writing lets the owner write only episode 1 and leaving it waits for a run to end`() {
         val owner=member(); val stranger=member()
         val id=work(owner)
         val path="/api/v1/works/$id"
         val draft="""{"title":"2화","body":"쓰던 글","revision":0,"authorNote":""}"""
-        assertEquals(200,call("PUT","$path/ai-serial",owner,enable).statusCode())
+        assertEquals(200,autonomous(owner,path).statusCode())
 
-        // 켜져 있는 동안은 소유자도 원고를 바꿀 수 없다: 회차 만들기·초안 저장·버전 저장·발행·공개 범위·예약·삭제가 모두 409 SERIAL_LOCKED다.
+        // 켜져 있는 동안 소유자는 1화만 직접 쓴다: 1화 초안·버전 저장은 된다.
+        val first=call("GET","$path/episodes/1",owner)
+        assertEquals(200,first.statusCode(),first.body())
+        val saved=call("PUT","$path/episodes/1/draft",owner,"""{"title":"1화","body":"고친 1화","revision":${node(first).path("draft").path("revision").asInt()},"authorNote":""}""")
+        assertEquals(200,saved.statusCode(),saved.body())
+        val versioned=call("POST","$path/episodes/1/versions",owner,"""{"title":"1화","body":"고친 1화 저장","revision":${node(saved).path("draft").path("revision").asInt()},"authorNote":""}""")
+        assertEquals(200,versioned.statusCode(),versioned.body())
+
+        // 2화부터의 회차 쓰기와 작품 단위 쓰기(1화가 발행돼 대상은 2화)는 409 SERIAL_LOCKED다. 이미 1화가 있어 새 회차도 잠긴다.
         val locked=listOf(
             call("POST","$path/episodes",owner,"""{"title":"새 회차"}"""),
             call("PUT","$path/episodes/2/draft",owner,draft),
@@ -275,7 +293,7 @@ class SerialPostgresTest {
             call("PUT","$path/draft",owner,draft),
             call("DELETE","$path/episodes/2/draft?revision=0",owner),
             call("POST","$path/episodes/2/publish",owner,"""{"revision":0,"rightsConfirmed":true,"versionId":"v"}"""),
-            call("PUT","$path/episodes/1/visibility",owner,"""{"revision":0,"visible":false}"""),
+            call("POST","$path/publish",owner,"""{"revision":0,"rightsConfirmed":true,"versionId":"v"}"""),
             call("POST","$path/episodes/2/publication-schedules",owner,"""{"versionId":"v","scheduledAt":"2099-01-01T00:00:00Z","rightsConfirmed":true}"""),
         )
         locked.forEachIndexed {i,response ->
@@ -286,21 +304,43 @@ class SerialPostgresTest {
         assertEquals(404,call("PUT","$path/episodes/2/draft",stranger,draft).statusCode())
         assertEquals(200,call("GET","$path/episodes",owner).statusCode())
 
-        // 실행 중에는 끄기 저장이 409 SERIAL_RUNNING이다. 앱 스케줄러(1분)가 실행을 끝내 결과가 흔들리지 않도록 running 상태를 직접 만든다(실행하는 주체가 없어 아무도 끝내지 않는다). 요일·시각·방향 수정은 된다.
-        val off="""{"enabled":false,"days":["$notToday"],"time":"21:00","direction":""}"""
+        // 실행 중에는 다른 집필 방식으로 바꿀 수 없다(409 SERIAL_RUNNING). 앱 스케줄러(1분)가 실행을 끝내 결과가 흔들리지 않도록 running 상태를 직접 만든다(실행하는 주체가 없어 아무도 끝내지 않는다). 일정 수정은 된다.
+        val assisted="""{"revision":1,"writingMode":"assisted"}"""
         jdbc.update("UPDATE serial_board SET status='running', closed_at=now() WHERE work_id=? AND status='open'",id)
-        val refused=call("PUT","$path/ai-serial",owner,off)
+        val refused=call("PUT","$path/operating-settings",owner,assisted)
         assertEquals(409,refused.statusCode(),refused.body())
         assertEquals("SERIAL_RUNNING",code(refused))
-        assertEquals(200,call("PUT","$path/ai-serial",owner,enable.replace("따뜻한 분위기로","다른 분위기로")).statusCode())
+        assertEquals(200,call("PUT","$path/ai-serial",owner,schedule.replace("따뜻한 분위기로","다른 분위기로")).statusCode())
         jdbc.update("UPDATE serial_board SET status='open', closed_at=NULL WHERE work_id=? AND status='running'",id)
 
-        // 실행 자신의 저장·발행은 잠금에 막히지 않는다(스케줄러가 먼저 가져가도 같은 결과). 끝나면 끌 수 있고, 꺼지면 소유자가 다시 원고를 바꿀 수 있다.
+        // 실행 자신의 저장·발행은 잠금에 막히지 않는다(스케줄러가 먼저 가져가도 같은 결과). 끝나면 다른 방식으로 바꿀 수 있고, 꺼지면 소유자가 모든 회차를 쓸 수 있다.
         assertEquals(202,call("POST","$path/ai-serial/run",owner).statusCode())
         runner.tick()
         await("the run to publish") {"published" in statuses(id)}
-        assertEquals(200,call("PUT","$path/ai-serial",owner,off).statusCode())
+        val back=call("PUT","$path/operating-settings",owner,assisted)
+        assertEquals(200,back.statusCode(),back.body())
+        assertFalse(node(call("GET","$path/ai-serial",owner)).path("enabled").asBoolean())
         assertEquals(201,call("POST","$path/episodes",owner,"""{"title":"새 회차"}""").statusCode())
+    }
+
+    @Test fun `AI autonomous writing opens no board before episode 1 is published and the owner writes episode 1 himself`() {
+        val owner=member()
+        val id=works.create(owner.toString(),CreateWorkRequest("연재 테스트","소개","ORIGINAL",listOf("판타지"),emptyList(),true)).id
+        val path="/api/v1/works/$id"
+        assertEquals(200,autonomous(owner,path).statusCode())
+
+        // AI는 1화를 쓰지 않는다: 발행된 회차가 없으면 게시판이 없고 지금 실행은 409 SERIAL_NO_BOARD다.
+        assertTrue(statuses(id).isEmpty())
+        val run=call("POST","$path/ai-serial/run",owner)
+        assertEquals(409,run.statusCode(),run.body())
+        assertEquals("SERIAL_NO_BOARD",code(run))
+
+        // 1화는 소유자가 직접 쓴다: 대상이 1화인 작품 단위 저장·발행은 자율 집필 중에도 된다. 발행되면 1분 점검이 2화 게시판을 연다.
+        val draft=driver.edit(id,owner.toString(),DraftRequest("1화","본문",0))
+        driver.publish(id,owner.toString(),PublishRequest(draft.revision,true,true,true,driver.history(id,owner.toString()).versions.last().id))
+        runner.tick()
+        await("the board for episode 2 to open") {statuses(id)==listOf("open")}
+        assertEquals(2,node(call("GET","$path/serial-board")).path("board").path("episodeNumber").asInt())
     }
 
     @Test fun `the database keeps one active board per work and one opinion and vote per member and the claim is conditional`() {
