@@ -37,8 +37,10 @@ import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.CardPayload
+import ai.storyfork.content.world.service.dto.InheritedWorldResponse
 import ai.storyfork.content.world.service.dto.ReaderWorldCardResponse
 import ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse
+import ai.storyfork.content.world.service.dto.RelationshipPayload
 import ai.storyfork.content.world.service.dto.WorldDraftResponse
 import java.math.BigDecimal
 import java.time.Instant
@@ -49,6 +51,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
+import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
 /**
@@ -96,6 +99,22 @@ class SerialRunnerTest {
     private fun anyMap() = ArgumentMatchers.anyMap<String, Any?>()
     private fun status(block: () -> Unit) = assertThrows(ContentFailure::class.java, block)
 
+    // 회차 실행은 세계관이 필수다(인물 시뮬레이션을 건너뛰는 길이 없다): 연결 세계관이거나 Fork가 이어받는 원작 세계관이다.
+    private val heroId = UUID.randomUUID()
+    private val shadowId = UUID.randomUUID()
+    private val heroCard = CardPayload(heroId, "주인공", "용감하다", "character", "basic", aliases = listOf("영웅"), visibility = "private")
+    private val shadowCard = CardPayload(shadowId, "그림자", "정체를 숨긴다", "character", "basic")
+    private val removedCard = CardPayload(UUID.randomUUID(), "지운 카드", "없음", "other", "basic", lifecycle = "removed")
+    private val subject = UUID.fromString(owner)
+
+    private fun relation(category: String, source: UUID, target: UUID, label: String = "") =
+        RelationshipPayload(UUID.randomUUID(), source, target, category, label = label, direction = "directed")
+
+    /** Fork가 자기 세계관 없이 이어받는 원작 세계관이다(대상 4화의 직전 3화 기준). */
+    private fun inheritsWorld(vararg relations: RelationshipPayload) {
+        `when`(workWorlds.inheritedWorld("w", owner, "3")).thenReturn(InheritedWorldResponse("w", worldId, 3, listOf(heroCard, shadowCard, removedCard), relations.toList()))
+    }
+
     private fun queue() {
         `when`(serial.queued()).thenReturn(listOf(board))
         `when`(serial.due(now)).thenReturn(emptyList())
@@ -106,6 +125,7 @@ class SerialRunnerTest {
         `when`(auth.verifyScheduledMember(owner)).thenReturn(UUID.fromString(owner))
         `when`(publication.publishedEpisodes("w")).thenReturn(PublishedEpisodeListResponse(published(1, 2, 3)))
         `when`(workWorlds.linkedWorldId("w", owner)).thenReturn(null)
+        inheritsWorld()
         `when`(credits.reserve(owner, key, BigDecimal("150"))).thenReturn("res-1")
         `when`(ai.episode(anyMap())).thenAnswer { call -> episodeRequests.add(call.arguments[0] as Map<*, *>); generated }
     }
@@ -136,9 +156,14 @@ class SerialRunnerTest {
         runner.tick(now)
 
         val body = episodeRequests.single()
-        assertEquals(setOf("workId", "episodeNumber", "direction", "choice", "proposals", "context", "creditLimit", "creditReservationId"), body.keys)
+        assertEquals(setOf("workId", "episodeNumber", "direction", "choice", "proposals", "context", "world", "creditLimit", "creditReservationId"), body.keys)
         assertEquals(listOf("w", 4, "따뜻하게"), listOf(body["workId"], body["episodeNumber"], body["direction"]))
         assertEquals(BigDecimal("150"), body["creditLimit"])
+        // world는 JSON 객체이고 「동일 인물」 관계가 없어도 identity 키는 빈 배열로 있다(AI의 world 모양: world_studio_read 응답 + identity).
+        val world = body["world"] as JsonNode
+        assertTrue(world.isObject)
+        assertTrue(world.path("identity").isArray)
+        assertEquals(0, world.path("identity").size())
         // 비용 집계용으로 Core 예약 id를 싣는다(AI trace의 credit_reservation_id).
         assertEquals("res-1", body["creditReservationId"])
         assertEquals(mapOf("text" to "선택지 둘", "votes" to 3), body["choice"])
@@ -184,6 +209,7 @@ class SerialRunnerTest {
         val removed = CardPayload(UUID.randomUUID(), "지운 카드", "없음", "other", "basic", lifecycle = "removed")
         val draft = WorldDraftResponse(worldId, 3, null, null, "세계", "", listOf(hero, removed), emptyList())
         `when`(worldStudio.draft(worldId, UUID.fromString(owner))).thenReturn(draft)
+        `when`(worldStudio.draft(worldId, UUID.fromString(owner), 3)).thenReturn(draft)
 
         runner.tick(now)
 
@@ -346,6 +372,7 @@ class SerialRunnerTest {
     @Test fun `a context that cannot be built fails before any credit is reserved`() {
         queue()
         `when`(workWorlds.linkedWorldId("w", owner)).thenReturn(worldId)
+        `when`(worldStudio.draft(worldId, UUID.fromString(owner), 3)).thenReturn(WorldDraftResponse(worldId, 3, null, null, "세계", "", listOf(heroCard), emptyList()))
         `when`(worldStudio.draft(worldId, UUID.fromString(owner))).thenThrow(IllegalStateException("neo4j down"))
 
         runner.tick(now)
@@ -866,6 +893,134 @@ class SerialRunnerTest {
         verify(serial).fail("b1", "관련 장면 검색에 실패했습니다.", at)
         verifyNoInteractions(credits, ai)
         verify(serial, never()).publish(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(GeneratedEpisode::class.java) ?: generated, ArgumentMatchers.any(Instant::class.java) ?: at)
+    }
+
+    // ---- 인물 시뮬레이션 입력: 세계관
+
+    @Test fun `a linked world is read at the previous episode and sent with the identity relations of the latest time`() {
+        queue()
+        `when`(workWorlds.linkedWorldId("w", owner)).thenReturn(worldId)
+        val friend = relation("emotional", heroId, shadowId, "친구")
+        val sameInTheEnd = relation("identity", shadowId, heroId)
+        val atTheTime = WorldDraftResponse(worldId, 3, null, null, "세계", "설명", listOf(heroCard, shadowCard, removedCard), listOf(friend), relationshipEpisodes = mapOf(friend.id to 2))
+        `when`(worldStudio.draft(worldId, subject, 3)).thenReturn(atTheTime)
+        `when`(worldStudio.draft(worldId, subject)).thenReturn(atTheTime.copy(relationships = listOf(friend, sameInTheEnd)))
+
+        runner.tick(now)
+
+        val world = episodeRequests.single()["world"] as JsonNode
+        // MCP world_studio_read(id, episode)의 서비스 읽기와 같은 모양이다: 직전 회차(대상 4화의 3화) 시점의 카드·관계.
+        assertEquals(listOf(worldId.toString(), "세계", "설명"), listOf(world.path("worldId").asString(), world.path("name").asString(), world.path("description").asString()))
+        assertEquals(listOf("주인공", "그림자", "지운 카드"), world.path("cards").values().map { it.path("title").asString() })
+        assertEquals(listOf("character", "active", "영웅"), world.path("cards")[0].let { listOf(it.path("cardType").asString(), it.path("lifecycle").asString(), it.path("aliases")[0].asString()) })
+        assertEquals(listOf(friend.id.toString()), world.path("relationships").values().map { it.path("id").asString() })
+        assertEquals(2, world.path("relationshipEpisodes").path(friend.id.toString()).asInt())
+        // 「동일 인물」 관계만 최신 시점으로 따로 읽어 identity에 덧붙인다(기준 회차 시점으로는 아직 묶이지 않은 두 카드의 관계다).
+        val identity = world.path("identity")
+        assertEquals(listOf(sameInTheEnd.id.toString()), identity.values().map { it.path("id").asString() })
+        assertEquals(listOf("identity", shadowId.toString(), heroId.toString()), identity[0].let { listOf(it.path("category").asString(), it.path("sourceCardId").asString(), it.path("targetCardId").asString()) })
+        verify(worldStudio).draft(worldId, subject, 3)
+        // 연결 세계관이 있으면 그것이 우선이다: 이어받는 원작 세계관은 읽지 않는다.
+        verify(workWorlds, never()).inheritedWorld(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+    }
+
+    @Test fun `a work without its own world sends the original world it inherits with the identity relations of that answer`() {
+        queue()
+        val friend = relation("emotional", heroId, shadowId, "친구")
+        val same = relation("identity", shadowId, heroId)
+        inheritsWorld(friend, same)
+
+        runner.tick(now)
+
+        val world = episodeRequests.single()["world"] as JsonNode
+        // MCP work_inherited_world와 같은 모양(Fork 기준 회차까지, 상한은 직전 회차)이고 identity는 그 응답의 「동일 인물」 관계다.
+        assertEquals(listOf("w", worldId.toString(), 3), listOf(world.path("workId").asString(), world.path("worldId").asString(), world.path("upto").asInt()))
+        assertEquals(listOf("주인공", "그림자", "지운 카드"), world.path("cards").values().map { it.path("title").asString() })
+        assertEquals(listOf(friend.id.toString(), same.id.toString()), world.path("relationships").values().map { it.path("id").asString() })
+        assertEquals(listOf(same.id.toString()), world.path("identity").values().map { it.path("id").asString() })
+        verify(workWorlds).inheritedWorld("w", owner, "3")
+        // 연결된 세계관이 없으니 소유자의 세계관 작업실은 읽지 않는다.
+        verifyNoInteractions(worldStudio)
+    }
+
+    @Test fun `a world re-linked while the run is being prepared cannot mix two worlds in one request`() {
+        queue()
+        val other = UUID.randomUUID()
+        // 연결을 두 번 읽는다면 두 번째는 다른 세계관이다: 한 번만 읽어 요청의 world와 문맥의 카드가 같은 세계관에서 나와야 한다.
+        `when`(workWorlds.linkedWorldId("w", owner)).thenReturn(worldId, other)
+        val mine = WorldDraftResponse(worldId, 3, null, null, "세계", "", listOf(heroCard), emptyList())
+        `when`(worldStudio.draft(worldId, subject, 3)).thenReturn(mine)
+        `when`(worldStudio.draft(worldId, subject)).thenReturn(mine)
+        `when`(worldStudio.draft(other, subject, 3)).thenReturn(mine.copy(worldId = other, cards = listOf(shadowCard)))
+        `when`(worldStudio.draft(other, subject)).thenReturn(mine.copy(worldId = other, cards = listOf(shadowCard)))
+
+        runner.tick(now)
+
+        val body = episodeRequests.single()
+        assertEquals(worldId.toString(), (body["world"] as JsonNode).path("worldId").asString())
+        assertEquals(listOf("주인공"), mapper.readTree(body["context"] as String).path("cards").values().map { it.path("title").asString() })
+        verify(workWorlds, times(1)).linkedWorldId("w", owner)
+        // 최신 시점 읽기(문맥의 카드와 identity)도 한 번이다: 기준 회차 읽기 하나와 합쳐 세계관을 두 번만 읽는다.
+        verify(worldStudio, times(1)).draft(worldId, subject)
+        verify(worldStudio, times(1)).draft(worldId, subject, 3)
+    }
+
+    @Test fun `the world is read at the episode right before the target episode`() {
+        queue()
+        `when`(serial.runInput("b1")).thenReturn(input.copy(number = 7))
+        `when`(workWorlds.inheritedWorld("w", owner, "6")).thenReturn(InheritedWorldResponse("w", worldId, 6, listOf(heroCard)))
+
+        runner.tick(now)
+
+        verify(workWorlds).inheritedWorld("w", owner, "6")
+        assertEquals(6, (episodeRequests.single()["world"] as JsonNode).path("upto").asInt())
+    }
+
+    @Test fun `the world is read before the related search and the credit reservation`() {
+        searching()
+
+        runner.tick(now)
+
+        val order = inOrder(workWorlds, qa, credits, ai)
+        order.verify(workWorlds).inheritedWorld("w", owner, "3")
+        order.verify(qa).searchRelated("w", relatedQuery, QaEpisodeRef(3, "v3"), 6)
+        order.verify(credits).reserve(owner, key, BigDecimal("150"))
+        order.verify(ai).episode(anyMap())
+    }
+
+    @Test fun `with no linked and no inherited world the run fails before the search the credit and the AI`() {
+        searching()
+        `when`(workWorlds.inheritedWorld("w", owner, "3")).thenReturn(InheritedWorldResponse("w", null, 0))
+
+        runner.tick(now)
+
+        // 인물 시뮬레이션을 건너뛰는 길은 없다: AI를 부르지 않고 고정 사유로 끝낸다. 예약 앞이라 해제할 것도 없다.
+        verify(serial).fail("b1", "연결된 세계관이 없어 시뮬레이션으로 집필할 수 없습니다.", at)
+        verifyNoInteractions(qa, credits, ai)
+        verify(serial, never()).publish(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(GeneratedEpisode::class.java) ?: generated, ArgumentMatchers.any(Instant::class.java) ?: at)
+    }
+
+    @Test fun `a linked world that cannot be read fails the run without a fallback before any credit is reserved`() {
+        searching()
+        `when`(workWorlds.linkedWorldId("w", owner)).thenReturn(worldId)
+        `when`(worldStudio.draft(worldId, subject, 3)).thenThrow(ContentFailure(503, "관계 저장을 확인할 수 없어요."))
+
+        runner.tick(now)
+
+        // 읽지 못한 연결 세계관을 이어받는 세계관·빈 세계관으로 대신하지 않는다.
+        verify(serial).fail("b1", "AI 생성에 실패했습니다.", at)
+        verifyNoInteractions(qa, credits, ai)
+        verify(workWorlds, never()).inheritedWorld(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+    }
+
+    @Test fun `an inherited world whose relations cannot be read fails the run instead of running without relations`() {
+        searching()
+        `when`(workWorlds.inheritedWorld("w", owner, "3")).thenReturn(InheritedWorldResponse("w", worldId, 3, listOf(heroCard), relationshipStatus = "unavailable"))
+
+        runner.tick(now)
+
+        verify(serial).fail("b1", "AI 생성에 실패했습니다.", at)
+        verifyNoInteractions(qa, credits, ai)
     }
 
     // ---- 제안 글 제출: 일반

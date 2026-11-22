@@ -30,6 +30,7 @@ import ai.storyfork.content.serial.service.dto.SerialProposalRequest
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.service.WorldStudioService
+import ai.storyfork.content.world.service.dto.RelationshipPayload
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.ZonedDateTime
@@ -38,16 +39,21 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.node.ObjectNode
 
 /** 회차 실행 중 어느 단계에서 어떤 고정 사유로 실패했는지 나른다. 사유는 [SerialReason]뿐이다. */
 private class SerialRunFailure(val reason: String, cause: Throwable? = null) : RuntimeException(reason, cause)
+
+/** 회차 실행이 읽은 세계관이다: AI 요청의 [world]와, 같은 읽기에서 나온 문맥용 활성 카드([cards], 연결된 세계관일 때만)다. */
+private class OwnerWorld(val world: ObjectNode, val cards: List<SerialCard>)
 
 /**
  * AI 자율 연재의 외부 호출 순서를 맡는다. DB 규칙은 [SerialService]가 짧은 트랜잭션으로 하고, 여기서는 Core 크레딧·AI를 DB 트랜잭션·잠금 밖에서 부른다.
  * - 시뮬레이션 제안 글([submit]): 작성자의 상한 예약 → 공개 문맥으로 장면 생성 → 글 저장 → 실제 사용량 정산. 실패면 해제하고 저장하지 않는다.
  * - 점검([tick], 1분마다): 낡은 실행·게시판 맞춤·지금 실행 요청(queued)·일정 도래의 회차 실행을 처리한 뒤, 선택지가 없는 열린 게시판의 선택지를 만들고, 마지막으로 요약이 없는 공개 회차의 요약을 만든다.
- *   회차 실행은 선점 → 관련 장면 검색(독자 범위, 실패하면 이 실행 실패) → 소유자 상한 예약 → 1위 선택지·추천 상위 제안 글·문맥(최근 회차 원문·이전 회차 요약·관련 장면 인용)으로 AI 생성 → 저장·발행 → 정산이다.
+ *   회차 실행은 선점 → 세계관 읽기(인물 시뮬레이션의 필수 입력, 없으면 이 실행 실패) → 관련 장면 검색(독자 범위, 실패하면 이 실행 실패) → 소유자 상한 예약 → 1위 선택지·추천 상위 제안 글·문맥(최근 회차 원문·이전 회차 요약·관련 장면 인용)·세계관으로 AI 생성 → 저장·발행 → 정산이다.
  *   실패면 해제하고 게시판을 고정 사유로 닫는다. 정산은 저장·발행이 끝난 뒤에 해서 발행에 실패한 실행은 차감하지 않는다.
  *   선택지 생성은 시도 기록 → 공개 문맥 → 소유자 상한 예약 → AI → 4개 저장 → 정산이고, 실패하면 해제하고 10분 뒤에 다시 시도한다. 회차 요약은 점검마다 최대 3개를 같은 순서(예약 → AI → 저장 → 정산)로 만들고 실패하면 다음 점검에 다시 한다.
  * 단일 서버를 전제한다(다중 서버 분산 잠금은 하지 않는다).
@@ -150,9 +156,11 @@ class SerialRunner internal constructor( // 원고 검색(ManuscriptQaService)�
             // 예약 발행과 같이 소유자 명의로 일정에 발행하므로 Core가 회원 존재·제한 여부를 먼저 확인한다.
             failing(SerialReason.PUBLISH) { auth.verifyScheduledMember(input.owner) }
             val published = failing(SerialReason.AI) { publication.publishedEpisodes(input.workId).items }
+            // 회차 집필은 인물 시뮬레이션을 반드시 거치므로 세계관이 없으면 AI를 부르지 않고 이 실행을 실패로 끝낸다(대신할 세계관을 찾지 않는다). 크레딧 예약 앞이라 해제할 것도 없다.
+            val owned = failing(SerialReason.AI) { ownerWorld(input) } ?: throw SerialRunFailure(SerialReason.NO_WORLD)
             // 관련 장면 검색은 문맥에 들어가므로 크레딧 예약 앞이다(검색이 실패하면 임의로 빼지 않고 이 실행을 실패로 끝낸다).
             val related = failing(SerialReason.SEARCH) { relatedScenes(input, published) }
-            val context = failing(SerialReason.AI) { ownerContext(input, published, related) }
+            val context = failing(SerialReason.AI) { ownerContext(input, published, related, owned.cards) }
             val reservation = try {
                 credits.reserve(input.owner, key, episodeLimit)
             } catch (error: Exception) {
@@ -161,7 +169,7 @@ class SerialRunner internal constructor( // 원고 검색(ManuscriptQaService)�
                 throw SerialRunFailure(if (shortage) SerialReason.CREDIT else SerialReason.AI, error)
             }
             held = true
-            val episode = generate(input, context, reservation)
+            val episode = generate(input, context, owned.world, reservation)
             try {
                 serial.publish(board.id, input.owner, episode, at)
             } catch (error: Exception) {
@@ -234,12 +242,12 @@ class SerialRunner internal constructor( // 원고 검색(ManuscriptQaService)�
         }
     }
 
-    private fun generate(input: RunInput, context: String, reservation: String): GeneratedEpisode {
+    private fun generate(input: RunInput, context: String, world: ObjectNode, reservation: String): GeneratedEpisode {
         val body = mapOf(
             "workId" to input.workId, "episodeNumber" to input.number, "direction" to input.direction,
             "choice" to input.choice?.let { mapOf("text" to it.choice.text, "votes" to it.votes) },
             "proposals" to input.proposals.map { mapOf("title" to it.proposal.title, "body" to it.proposal.body.take(PROPOSAL_BODY_MAX), "likes" to it.likes, "scene" to scene(it.proposal)) },
-            "context" to context, "creditLimit" to episodeLimit, "creditReservationId" to reservation,
+            "context" to context, "world" to world, "creditLimit" to episodeLimit, "creditReservationId" to reservation,
         )
         val episode = try {
             ai.episode(body)
@@ -256,15 +264,39 @@ class SerialRunner internal constructor( // 원고 검색(ManuscriptQaService)�
     private fun scene(proposal: SerialProposalEntity): String? = if (proposal.kind == "simulation") proposal.simulation?.get("scene") as? String else null
 
     /**
-     * 회차 실행의 문맥: 소유자가 허용한 모든 것, 곧 가장 최근 발행 회차 3개의 원문과 그 이전 회차의 요약, 관련 장면 인용([related]), 연결된 세계관이 있으면 그 세계관 초안의 활성 카드다(세계관이 없으면 카드 없음).
+     * 회차 실행의 문맥: 소유자가 허용한 모든 것, 곧 가장 최근 발행 회차 3개의 원문과 그 이전 회차의 요약, 관련 장면 인용([related]), 연결된 세계관이 있으면 그 세계관 초안의 활성 카드([cards], 세계관 읽기와 같은 읽기에서 나온 것)다.
      */
-    private fun ownerContext(input: RunInput, published: List<PublishedEpisodeResponse>, related: List<SerialRelated>): String {
+    private fun ownerContext(input: RunInput, published: List<PublishedEpisodeResponse>, related: List<SerialRelated>, cards: List<SerialCard>): String {
         val episodes = published.map { SerialEpisode(it.number, it.title, it.body) }
-        val cards = workWorlds.linkedWorldId(input.workId, input.owner)?.let { world ->
-            worldStudio.draft(world, UUID.fromString(input.owner)).cards.filter { it.lifecycle == "active" }.map { SerialCard(it.title, it.cardType, it.body, it.aliases) }
-        }.orEmpty()
         return serialContext(mapper, input.title, input.summary, episodes, cards, summariesFor(input.workId, episodes), related)
     }
+
+    /**
+     * 회차 실행이 AI의 인물 시뮬레이션에 넘기는 세계관이다. 일정 실행에는 사용자 토큰이 없어 AI가 Content MCP를 부를 수 없으므로 Content가 읽어 요청의 `world`로 싣는다.
+     * MCP `world_studio_read(id, episode)`와 같은 서비스 읽기([WorldStudioService.draft])를 소유자 권한으로, 기준 회차(대상 회차의 직전 회차: 대상은 마지막 회차+1이다) 시점의 관계로 읽고
+     * 「동일 인물」 관계만 최신 시점으로 한 번 더 읽어 `identity`에 덧붙인다(공개 회차 전에 작가가 이어 둔 두 카드는 기준 회차 시점으로는 묶이지 않는다. AI의 `read_world`와 같은 규칙).
+     * 연결된 세계관이 없으면 Fork가 이어받는 원작 세계관([WorkWorldService.inheritedWorld], MCP `work_inherited_world`와 같은 읽기)을 싣고 `identity`는 그 응답의 관계에서 가려낸다. 둘 다 없으면 null이다.
+     * 읽지 못하면 예외다: 읽지 못한 연결 세계관을 이어받는 세계관·관계 없는 세계관으로 대신하지 않는다.
+     * 연결과 최신 시점 초안은 한 번만 읽어 요청의 `world`와 문맥의 카드가 같은 세계관의 같은 읽기에서 나오게 한다(두 번 읽는 사이 연결이 바뀌어 두 세계관이 섞이지 않게).
+     */
+    private fun ownerWorld(input: RunInput): OwnerWorld? {
+        val basis = input.number - 1
+        val subject = UUID.fromString(input.owner)
+        val linked = workWorlds.linkedWorldId(input.workId, input.owner)
+        if (linked != null) {
+            val latest = worldStudio.draft(linked, subject)
+            val cards = latest.cards.filter { it.lifecycle == "active" }.map { SerialCard(it.title, it.cardType, it.body, it.aliases) }
+            return OwnerWorld(world(worldStudio.draft(linked, subject, basis), latest.relationships), cards)
+        }
+        val inherited = workWorlds.inheritedWorld(input.workId, input.owner, basis.toString())
+        if (inherited.worldId == null) return null
+        check(inherited.relationshipStatus == "current") { "원작 세계관의 관계를 읽을 수 없어요." } // MCP world_studio_read가 관계 저장 미완료에 503으로 답하는 것과 같다.
+        return OwnerWorld(world(inherited, inherited.relationships), emptyList())
+    }
+
+    /** 세계관 읽기 응답([read])의 JSON에 `identity`(최신 시점 관계 [latest] 가운데 「동일 인물」 관계)를 덧붙인 AI 요청의 `world`다. */
+    private fun world(read: Any, latest: List<RelationshipPayload>): ObjectNode =
+        mapper.valueToTree<ObjectNode>(read).set("identity", mapper.valueToTree<JsonNode>(latest.filter { it.category == "identity" }))
 
     /**
      * 관련 장면 검색: 1위 선택지 글과 추천 상위 제안 글 제목을 질의로 독자 범위에서 최근 3화 이전 회차의 인용을 최대 6개 찾는다.

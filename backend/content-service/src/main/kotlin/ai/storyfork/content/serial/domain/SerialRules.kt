@@ -47,6 +47,7 @@ object SerialReason {
     const val PUBLISH = "발행에 실패했습니다."
     const val DRAFT = "작성 중인 원고가 있어 발행하지 않았습니다."
     const val SEARCH = "관련 장면 검색에 실패했습니다."
+    const val NO_WORLD = "연결된 세계관이 없어 시뮬레이션으로 집필할 수 없습니다."
 }
 
 /** AI 집필이 켜져 있는 동안 소유자가 원고를 바꾸려 하면 409로 거절하는 코드와 고정 문구다(서버 판정, 화면 잠금은 보조). */

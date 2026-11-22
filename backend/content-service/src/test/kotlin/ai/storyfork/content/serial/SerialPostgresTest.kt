@@ -22,7 +22,10 @@ import ai.storyfork.content.serial.domain.KST
 import ai.storyfork.content.serial.service.SerialRunner
 import ai.storyfork.content.serial.service.SerialService
 import ai.storyfork.content.work.service.WorkService
+import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.CreateWorkRequest
+import ai.storyfork.content.world.service.dto.CardPayload
+import ai.storyfork.content.world.service.dto.InheritedWorldResponse
 import java.math.BigDecimal
 import java.net.URI
 import java.net.http.HttpClient
@@ -46,6 +49,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
@@ -69,6 +73,8 @@ class SerialPostgresTest {
     @MockitoBean lateinit var ai: SerialAiClient
     // 원고 검색은 실제 Elasticsearch·임베딩 없이 대역이다(이 시나리오들은 최근 3화 이전 회차가 없어 호출하지도 않는다). 색인 빈 자체는 상시라 CI의 Elasticsearch가 필요하다.
     @MockitoBean internal lateinit var manuscriptQa: ManuscriptQaService
+    // 회차 실행은 세계관이 필수다(인물 시뮬레이션을 건너뛰는 길이 없다). 이 시나리오의 작품들은 연결 세계관이 없으니 Fork가 이어받는 원작 세계관만 대역으로 주고 나머지 읽기는 실제 서비스를 쓴다.
+    @MockitoSpyBean lateinit var workWorlds: WorkWorldService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var driver: ContentTestDriver
     @Autowired lateinit var runner: SerialRunner
@@ -97,6 +103,8 @@ class SerialPostgresTest {
         jdbc.update("UPDATE ai_serial SET enabled=false WHERE enabled")
         `when`(credits.reserve(ArgumentMatchers.anyString(),ArgumentMatchers.anyString(),ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)).thenReturn("res-1")
         `when`(ai.episode(ArgumentMatchers.anyMap<String,Any?>())).thenAnswer { call -> episodeRequests.add(call.arguments[0] as Map<*,*>); generated }
+        doAnswer { call -> InheritedWorldResponse(call.arguments[0] as String,UUID.randomUUID(),1,listOf(CardPayload(UUID.randomUUID(),"주인공","용감하다","character","basic"))) }
+            .`when`(workWorlds).inheritedWorld(ArgumentMatchers.anyString(),ArgumentMatchers.anyString(),ArgumentMatchers.anyString())
         `when`(ai.simulate(ArgumentMatchers.anyMap<String,Any?>())).thenReturn(SerialScene("달빛이 비치는 복도였다.",BigDecimal("0.4")))
         `when`(ai.choices(ArgumentMatchers.anyMap<String,Any?>())).thenReturn(GeneratedChoices(choiceTexts,BigDecimal("0.2")))
         `when`(ai.summarize(ArgumentMatchers.anyMap<String,Any?>())).thenAnswer { call -> summaryRequests.add(call.arguments[0] as Map<*,*>); GeneratedSummary("두 사람은 폐교에서 재회했다.",BigDecimal("0.3")) }
@@ -283,6 +291,10 @@ class SerialPostgresTest {
         assertEquals(listOf(2,0),sent.map {(it as Map<*,*>)["likes"]})
         assertEquals(listOf<Any?>("달빛이 비치는 복도였다.",null),sent.map {(it as Map<*,*>)["scene"]})
         assertTrue((request["context"] as String).contains("1화"))
+        // 인물 시뮬레이션의 입력인 세계관도 실었다(연결이 없어 이어받는 세계관, JSON 객체이고 identity 키가 있다).
+        val world=request["world"] as JsonNode
+        assertEquals(listOf("주인공"),world.path("cards").values().map {it.path("title").asString()})
+        assertTrue(world.path("identity").isArray)
     }
 
     @Test fun `a failed run is recorded with its fixed reason and reopens the same episode with the choices votes and proposals so the owner can retry`() {
@@ -329,6 +341,28 @@ class SerialPostgresTest {
         val request=episodeRequests.single()
         assertEquals(mapOf("text" to choiceTexts[2],"votes" to 1),request["choice"])
         assertEquals(listOf("재회"),(request["proposals"] as List<*>).map {(it as Map<*,*>)["title"]})
+    }
+
+    @Test fun `a run of a work with no world fails with its own reason before any credit is reserved and reopens the same episode`() {
+        val owner=member()
+        val id=work(owner)
+        val path="/api/v1/works/$id"
+        // 이 작품은 연결 세계관도 이어받는 세계관도 없다: 실제 서비스가 답하도록 대역을 되돌린다.
+        doCallRealMethod().`when`(workWorlds).inheritedWorld(ArgumentMatchers.anyString(),ArgumentMatchers.anyString(),ArgumentMatchers.anyString())
+        assertEquals(200,autonomous(owner,path).statusCode())
+        assertEquals(202,call("POST","$path/ai-serial/run",owner).statusCode())
+        runner.tick()
+        await("the board to fail") {"failed" in statuses(id)}
+
+        // 인물 시뮬레이션을 건너뛰는 길은 없다: 고정 사유로 실패하고 AI도 크레딧 예약(serial-run)도 없으며, 같은 대상 회차의 새 게시판이 열려 있다.
+        assertEquals(listOf("failed","open"),statuses(id))
+        val records=node(call("GET","$path/ai-serial/boards",owner)).values().toList()
+        assertEquals(listOf("open","failed"),records.map {it.path("status").asString()})
+        assertEquals("연결된 세계관이 없어 시뮬레이션으로 집필할 수 없습니다.",records[1].path("failureReason").asString())
+        assertEquals(listOf(2,2),records.map {it.path("episodeNumber").asInt()})
+        assertTrue(episodeRequests.none {it["workId"]==id})
+        verify(credits,never()).reserve(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.startsWith("serial-run:") ?: "",ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)
+        assertEquals(1,count("SELECT count(*) FROM episode_current WHERE work_id=? AND published_version_id IS NOT NULL",id))
     }
 
     @Test fun `AI autonomous writing lets the owner write only episode 1 and leaving it waits for a run to end`() {

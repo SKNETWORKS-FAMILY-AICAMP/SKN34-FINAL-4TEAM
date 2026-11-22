@@ -150,10 +150,11 @@ class SerialRulesTest {
         }
     }
 
-    @Test fun `a credit limit overrun and a failed related search have their own fixed reasons apart from the other failures`() {
+    @Test fun `a credit limit overrun a failed related search and a missing world have their own fixed reasons apart from the other failures`() {
         assertEquals("크레딧 상한을 넘었습니다.", SerialReason.LIMIT)
         assertEquals("관련 장면 검색에 실패했습니다.", SerialReason.SEARCH)
-        val all = listOf(SerialReason.CREDIT, SerialReason.REVIEW, SerialReason.AI, SerialReason.PUBLISH, SerialReason.DRAFT, SerialReason.LIMIT, SerialReason.SEARCH)
+        assertEquals("연결된 세계관이 없어 시뮬레이션으로 집필할 수 없습니다.", SerialReason.NO_WORLD)
+        val all = listOf(SerialReason.CREDIT, SerialReason.REVIEW, SerialReason.AI, SerialReason.PUBLISH, SerialReason.DRAFT, SerialReason.LIMIT, SerialReason.SEARCH, SerialReason.NO_WORLD)
         assertEquals(all.size, all.toSet().size)
     }
 
