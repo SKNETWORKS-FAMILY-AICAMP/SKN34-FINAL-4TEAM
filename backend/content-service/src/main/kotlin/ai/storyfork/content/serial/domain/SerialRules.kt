@@ -29,6 +29,7 @@ object SerialReason {
     const val REVIEW = "검수를 통과하지 못했습니다."
     const val AI = "AI 생성에 실패했습니다."
     const val PUBLISH = "발행에 실패했습니다."
+    const val DRAFT = "작성 중인 원고가 있어 발행하지 않았습니다."
 }
 
 private val DAY_CODES = DayOfWeek.entries.map { it.name.take(3) }

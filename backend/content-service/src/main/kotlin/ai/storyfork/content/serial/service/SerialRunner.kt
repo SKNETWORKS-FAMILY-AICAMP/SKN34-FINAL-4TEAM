@@ -76,7 +76,13 @@ class SerialRunner(
             val board = serial.openBoardFor(workId, member)
             val context = readerContext(workId, board)
             val key = "serial-sim:" + UUID.randomUUID()
-            val reservation = credits.reserve(member, key, simulationLimit)
+            val reservation = try {
+                credits.reserve(member, key, simulationLimit)
+            } catch (error: Exception) {
+                // 잔액 부족이 아닌 실패(시간 초과·연동 실패)는 응답을 잃었어도 Core에 예약이 남았을 수 있다: 같은 키로 해제를 한 번 부른다(예약이 없어 404여도 삼킨다).
+                if ((error as? ContentFailure)?.code != "INSUFFICIENT_CREDIT") release(member, key)
+                throw error
+            }
             val scene = try {
                 ai.simulate(mapOf(
                     "workId" to workId, "episodeNumber" to board.episodeNumber, "premise" to clean.premise, "beats" to clean.beats,
@@ -135,11 +141,18 @@ class SerialRunner(
             val reservation = try {
                 credits.reserve(input.owner, key, episodeLimit)
             } catch (error: Exception) {
-                throw SerialRunFailure(if ((error as? ContentFailure)?.code == "INSUFFICIENT_CREDIT") SerialReason.CREDIT else SerialReason.AI, error)
+                val shortage = (error as? ContentFailure)?.code == "INSUFFICIENT_CREDIT"
+                if (!shortage) release(input.owner, key) // 시간 초과로 응답을 잃었어도 Core에 예약이 남았을 수 있다(예약이 없어 404여도 삼킨다).
+                throw SerialRunFailure(if (shortage) SerialReason.CREDIT else SerialReason.AI, error)
             }
             held = true
             val episode = generate(input, context, reservation)
-            failing(SerialReason.PUBLISH) { serial.publish(board.id, input.owner, episode, at) }
+            try {
+                serial.publish(board.id, input.owner, episode, at)
+            } catch (error: Exception) {
+                // 소유자가 쓰던 원고가 있어 막힌 실행은 따로 알린다(AI 원고로 덮지 않는다).
+                throw SerialRunFailure(if ((error as? ContentFailure)?.code == "SERIAL_DRAFT_EXISTS") SerialReason.DRAFT else SerialReason.PUBLISH, error)
+            }
             // 정산은 발행이 끝난 뒤다. 발행되지 않은 실행은 아래 catch에서 차감 없이 해제한다.
             held = false
             settle(input.owner, key, episode.credits)

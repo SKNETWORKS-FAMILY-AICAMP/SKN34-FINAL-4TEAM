@@ -151,7 +151,7 @@ class SerialServiceTest {
         `when`(voteRepo.findByBoardIdAndMemberId(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenAnswer { call ->
             voteRows.find { it.boardId == call.arguments[0] && it.memberId == call.arguments[1] }
         }
-        `when`(voteRepo.save(anyVote())).thenAnswer { call -> (call.arguments[0] as SerialVoteEntity).also { v -> if (voteRows.none { it === v }) voteRows.add(v) } }
+        `when`(voteRepo.saveAndFlush(anyVote())).thenAnswer { call -> (call.arguments[0] as SerialVoteEntity).also { v -> if (voteRows.none { it === v }) voteRows.add(v) } }
         doAnswer { call -> voteRows.removeAll(call.arguments[0] as Collection<*>); null }.`when`(voteRepo).deleteAll(ArgumentMatchers.anyCollection<SerialVoteEntity>())
         doAnswer { call -> voteRows.remove(call.arguments[0] as SerialVoteEntity); null }.`when`(voteRepo).delete(anyVote())
         `when`(voteRepo.saveAll(ArgumentMatchers.anyCollection<SerialVoteEntity>())).thenAnswer { call ->
@@ -471,6 +471,19 @@ class SerialServiceTest {
         assertTrue(voteRows.isEmpty())
     }
 
+    @Test fun `a concurrent first vote by the same member is a conflict and not a server error`() {
+        work()
+        board()
+        opinion("a")
+        // 사전 조회는 비어 있었지만 저장 순간 다른 요청이 같은 회원의 첫 표를 먼저 넣은 경우(기본키가 마지막 방어)
+        doThrow(DataIntegrityViolationException("serial_vote_pkey")).`when`(voteRepo).saveAndFlush(anyVote())
+
+        val failure = status { service.vote("w", alice, "a") }
+
+        assertEquals(listOf(409, "VOTE_CONFLICT"), listOf(failure.status, failure.code))
+        assertTrue(voteRows.isEmpty())
+    }
+
     // ---- 숨김
 
     @Test fun `the owner hides an opinion and only that one`() {
@@ -622,6 +635,17 @@ class SerialServiceTest {
         assertEquals(LocalDate.parse("2026-11-23"), row.lastRunDate)
     }
 
+    @Test fun `claiming takes the work lock first so run and disable cannot be overwritten`() {
+        work(); serial(); board()
+
+        assertTrue(service.claim("b1", "open", LocalDate.parse("2026-11-23"), t0))
+
+        // 지금 실행(open → queued)·끄기 저장(queued → open)은 작품 잠금 아래에서 상태를 쓰므로 선점도 같은 잠금을 쥐고 해야 서로를 덮지 않는다.
+        val order = inOrder(access, boardRepo)
+        order.verify(access).lockScope("w")
+        order.verify(boardRepo).claim("b1", "open", t0)
+    }
+
     @Test fun `claiming from the wrong state or an unknown board does nothing`() {
         work()
         val row = serial()
@@ -629,6 +653,7 @@ class SerialServiceTest {
 
         assertFalse(service.claim("b1", "open", LocalDate.parse("2026-11-23"), t0))
         assertFalse(service.claim("unknown", "open", LocalDate.parse("2026-11-23"), t0))
+        verify(access, never()).lockScope("unknown")
 
         assertEquals("queued", queued.status)
         assertNull(row.lastRunDate)
@@ -766,6 +791,35 @@ class SerialServiceTest {
         boardRows.clear(); board(id = "b2", status = "running")
         assertEquals(404, status { service.publish("b2", "someone-else", generated, t0) }.status)
         verifyNoInteractions(versions)
+    }
+
+    @Test fun `publishing never overwrites a draft the owner is writing`() {
+        work(); serial()
+        val running = board(number = 4, status = "running")
+        `when`(episodeRepo.findByWorkIdAndSequence("w", 4)).thenReturn(EpisodeEntity(id = "e4", workId = "w", sequence = 4))
+        `when`(episodes.read("w", owner, 4)).thenReturn(EpisodeResponse(4, DraftResponse("내 원고", "작가가 쓰던 본문", 2), emptyList(), null, false, null))
+
+        val failure = status { service.publish("b1", owner, generated, t0) }
+
+        // 쓰던 본문이 있으면 AI 원고로 덮지 않는다: 저장도 발행도 없고 실패 처리와 예약 해제는 호출한 러너가 한다.
+        assertEquals(listOf(409, "SERIAL_DRAFT_EXISTS", "작성 중인 원고가 있어 발행하지 않았습니다."), listOf(failure.status, failure.code, failure.message))
+        verifyNoInteractions(versions)
+        verify(publication, never()).publishScheduled(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyInt(), ArgumentMatchers.anyString())
+        assertEquals("running", running.status)
+        assertEquals(1, boardRows.size)
+    }
+
+    @Test fun `a draft with only whitespace is empty and is replaced as before`() {
+        work(); serial(); board(number = 4, status = "running")
+        `when`(episodeRepo.findByWorkIdAndSequence("w", 4)).thenReturn(EpisodeEntity(id = "e4", workId = "w", sequence = 4))
+        `when`(episodes.read("w", owner, 4)).thenReturn(EpisodeResponse(4, DraftResponse("새 회차", " \n  ", 3), emptyList(), null, false, null))
+        `when`(versions.saveWithVersion("w", owner, 4, DraftRequest("새 제목", "새 본문", 3, ""))).thenReturn(VersionResponse("v-new", "새 제목", "새 본문", 4, 4, "2026-11-23T12:10:00Z"))
+        doAnswer { nextEpisode = 5; null }.`when`(publication).publishScheduled("w", owner, 4, "v-new")
+
+        service.publish("b1", owner, generated, t0)
+
+        verify(publication).publishScheduled("w", owner, 4, "v-new")
+        assertEquals("published", boardRows.first { it.id == "b1" }.status)
     }
 
     @Test fun `a failing publication leaves the board running for the caller to fail`() {

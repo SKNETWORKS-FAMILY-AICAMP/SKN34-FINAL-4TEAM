@@ -14,6 +14,7 @@ import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.serial.client.GeneratedEpisode
 import ai.storyfork.content.serial.domain.CleanOpinion
 import ai.storyfork.content.serial.domain.RankedOpinion
+import ai.storyfork.content.serial.domain.SerialReason
 import ai.storyfork.content.serial.domain.STALE_RUNNING_MINUTES
 import ai.storyfork.content.serial.domain.cleanSettings
 import ai.storyfork.content.serial.domain.isSerialDue
@@ -176,7 +177,14 @@ class SerialService(
         val board = open(workId)
         val target = opinionRepo.findById(opinionId).orElse(null)?.takeIf { it.boardId == board.id && !it.hidden } ?: throw ContentFailure(404, "의견을 찾을 수 없어요.")
         val mine = voteRepo.findByBoardIdAndMemberId(board.id, member)
-        if (mine == null) voteRepo.save(SerialVoteEntity(board.id, member, target.id)) else mine.opinionId = target.id
+        if (mine == null) {
+            try {
+                voteRepo.saveAndFlush(SerialVoteEntity(board.id, member, target.id))
+            } catch (_: DataIntegrityViolationException) {
+                // 같은 회원의 첫 표가 동시에 들어왔다(기본키가 마지막 방어). 이 트랜잭션은 이어 쓸 수 없으니 409로 알리고 다시 누르면 옮긴다.
+                throw conflict("VOTE_CONFLICT", "투표를 처리하는 중이에요. 잠시 뒤 다시 눌러 주세요.")
+            }
+        } else mine.opinionId = target.id
     }
 
     /** 내 표를 취소한다. 던진 표가 없어도 괜찮다. */
@@ -217,8 +225,11 @@ class SerialService(
      * 이미 다른 점검이 가져갔거나 상태가 달라졌으면 false다.
      */
     fun claim(boardId: String, from: String, today: LocalDate, now: Instant): Boolean {
+        val workId = boardRepo.findById(boardId).orElse(null)?.workId ?: return false
+        // 지금 실행(open → queued)·끄기 저장(queued → open)은 작품 잠금 아래에서 상태를 쓴다. 선점도 같은 잠금을 쥐어야 그 쓰기가 running을 덮어쓰지 않는다.
+        access.lockScope(workId)
         if (boardRepo.claim(boardId, from, now) != 1) return false
-        boardRepo.findById(boardId).ifPresent { board -> serialRepo.findById(board.workId).ifPresent { it.lastRunDate = today } }
+        serialRepo.findById(workId).ifPresent { it.lastRunDate = today }
         return true
     }
 
@@ -254,7 +265,10 @@ class SerialService(
         val draft = if (episodeRepo.findByWorkIdAndSequence(board.workId, number) == null) {
             episodes.create(board.workId, owner, CreateEpisodeRequest(title)).also { checkContent(it.number == number, 409, "회차 번호가 어긋났어요.") }
         } else {
-            episodes.read(board.workId, owner, number)
+            // 소유자가 이 회차에 쓰던 본문이 있으면 AI 원고로 덮지 않는다(초안은 저장 버전이 없어 되돌릴 수 없다). 빈 초안(예: 1화 발행이 만든 '새 회차')만 쓴다.
+            episodes.read(board.workId, owner, number).also {
+                if (it.draft.body.isNotBlank()) throw ContentFailure(409, SerialReason.DRAFT, "SERIAL_DRAFT_EXISTS")
+            }
         }
         val saved = versions.saveWithVersion(board.workId, owner, number, DraftRequest(title, episode.text, draft.draft.revision, ""))
         publication.publishScheduled(board.workId, owner, number, saved.id)

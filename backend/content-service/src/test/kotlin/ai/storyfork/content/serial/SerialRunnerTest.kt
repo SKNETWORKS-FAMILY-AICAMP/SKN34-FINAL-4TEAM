@@ -250,6 +250,40 @@ class SerialRunnerTest {
         verify(serial).fail("b1", "발행에 실패했습니다.", at)
     }
 
+    @Test fun `a draft the owner is writing fails the run with its own reason and releases the hold`() {
+        queue()
+        doThrow(ContentFailure(409, "작성 중인 원고가 있어 발행하지 않았습니다.", "SERIAL_DRAFT_EXISTS")).`when`(serial).publish("b1", owner, generated, at)
+
+        runner.tick(now)
+
+        verify(credits).release(owner, key)
+        verify(credits, never()).settle(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ZERO)
+        verify(serial).fail("b1", "작성 중인 원고가 있어 발행하지 않았습니다.", at)
+    }
+
+    @Test fun `a reserve that fails for another reason than a shortage releases the same key once`() {
+        queue()
+        // 시간 초과로 응답을 잃었어도 Core에는 예약이 남았을 수 있다: 같은 키로 해제를 한 번 부른다.
+        doThrow(CoreAuthException(504, "CORE_CREDIT_TIMEOUT", "slow")).`when`(credits).reserve(owner, key, BigDecimal("50"))
+
+        runner.tick(now)
+
+        verify(credits, times(1)).release(owner, key)
+        verify(serial).fail("b1", "AI 생성에 실패했습니다.", at)
+        verifyNoInteractions(ai)
+    }
+
+    @Test fun `a release that finds no reservation is swallowed and the run still fails`() {
+        queue()
+        doThrow(CoreAuthException(503, "CORE_CREDIT_UNAVAILABLE", "down")).`when`(credits).reserve(owner, key, BigDecimal("50"))
+        doThrow(CoreAuthException(502, "CORE_CREDIT_UPSTREAM_ERROR", "404 RESERVATION_NOT_FOUND")).`when`(credits).release(owner, key)
+
+        runner.tick(now)
+
+        verify(credits, times(1)).release(owner, key)
+        verify(serial).fail("b1", "AI 생성에 실패했습니다.", at)
+    }
+
     @Test fun `a failed settlement after publishing keeps the published episode and releases the hold`() {
         queue()
         doThrow(CoreAuthException(503, "CORE_CREDIT_UNAVAILABLE", "down")).`when`(credits).settle(owner, key, BigDecimal("1.2345"))
@@ -440,6 +474,19 @@ class SerialRunnerTest {
 
         assertEquals(409, failure.status)
         assertEquals("INSUFFICIENT_CREDIT", failure.code)
+        verifyNoInteractions(ai)
+        verify(credits, never()).release(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+        verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString())
+    }
+
+    @Test fun `a simulation reserve that fails for another reason releases the same key and charges nothing`() {
+        simulationStubs()
+        doThrow(CoreAuthException(503, "CORE_CREDIT_UNAVAILABLE", "down")).`when`(credits).reserve(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "", ArgumentMatchers.eq(BigDecimal("5")) ?: BigDecimal.ONE)
+
+        val failure = assertThrows(CoreAuthException::class.java) { runner.submit("w", member, simulation()) }
+
+        assertEquals(503, failure.status)
+        verify(credits, times(1)).release(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "")
         verifyNoInteractions(ai)
         verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString())
     }
