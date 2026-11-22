@@ -96,7 +96,7 @@ it('하위 탭은 연재 설정·게시판 기록 둘이고 연재 설정이 처
   expect(screen.queryByRole('button', { name: '설정 저장' })).toBeNull()
 })
 
-it('하위 탭은 방향키·Home·End로 옮기고 선택한 탭만 Tab 순서에 들어가며, 탭을 바꾸면 이전 알림을 지운다', async () => {
+it('하위 탭은 방향키·Home·End로 옮기고 선택한 탭만 Tab 순서에 들어가며, 알림은 요청을 보낸 탭에서만 보인다', async () => {
   const repo = await open()
   const stops = () => ['연재 설정', '게시판 기록'].map((name) => subTab(name).tabIndex)
   expect(stops()).toEqual([0, -1])
@@ -110,9 +110,10 @@ it('하위 탭은 방향키·Home·End로 옮기고 선택한 탭만 Tab 순서�
   expect(subTab('게시판 기록').getAttribute('aria-selected')).toBe('true')
   expect(stops()).toEqual([-1, 0])
   await screen.findByRole('table')
-  expect(screen.queryByText('설정을 저장했어요.')).toBeNull() // 설정 저장의 알림은 다른 탭에 남지 않는다
+  expect(screen.queryByText('설정을 저장했어요.')).toBeNull() // 설정 저장의 알림은 다른 탭에 보이지 않는다
   fireEvent.keyDown(subTab('게시판 기록'), { key: 'ArrowRight' })
   expect(document.activeElement).toBe(subTab('연재 설정'))
+  expect(screen.getByText('설정을 저장했어요.')).toBeTruthy() // 저장을 보낸 탭으로 돌아오면 보인다
   fireEvent.keyDown(subTab('연재 설정'), { key: 'End' })
   expect(document.activeElement).toBe(subTab('게시판 기록'))
   fireEvent.keyDown(subTab('게시판 기록'), { key: 'Home' })

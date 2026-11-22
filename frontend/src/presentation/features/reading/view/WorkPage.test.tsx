@@ -807,6 +807,7 @@ it('AI 자율 집필이 꺼져 있으면 다음 회차 탭이 없고, 데모 작
     await waitFor(() => expect(board).toHaveBeenCalled())
     expect(mainTabs()).toEqual(['회차', '정보', '소식'])
     expect(screen.queryByRole('tab', { name: '다음 회차' })).toBeNull()
+    expect(screen.queryByText(/다음 회차 게시판을 불러오지 못했어요/)).toBeNull() // 정상 비활성은 실패가 아니다
   } finally { server.restore() }
   board.mockClear()
   cleanup()
@@ -815,6 +816,41 @@ it('AI 자율 집필이 꺼져 있으면 다음 회차 탭이 없고, 데모 작
   await screen.findByRole('heading', { name: /전체 댓글/ })
   expect(board).not.toHaveBeenCalled()
   expect(mainTabs()).toEqual(['회차', '정보', '소식'])
+})
+
+it('다음 회차 게시판을 처음 읽다 실패하면 정상 비활성처럼 숨기지 않고 탭 줄 위에 실패와 다시 불러오기를 보이며, 다시 불러오면 탭이 나타난다', async () => {
+  const server = serverWorks()
+  server.read.mockResolvedValue({ likes: 0, liked: false })
+  const board = vi.spyOn(appContainer.resolve('serialUseCase'), 'board').mockRejectedValueOnce(new Error('서버 오류')).mockResolvedValue(serialOn)
+  try {
+    renderApp('/work/guunmong', createAppStore({ role: 'user', memberId: 'member-9' }))
+    const failure = await screen.findByText(/다음 회차 게시판을 불러오지 못했어요/)
+    expect(mainTabs()).toEqual(['회차', '정보', '소식'])
+    const alert = failure.closest('[role=alert]') as HTMLElement
+    expect(alert.nextElementSibling?.getAttribute('role')).toBe('tablist') // 탭 줄 바로 위
+    fireEvent.click(within(alert).getByRole('button', { name: '다시 불러오기' }))
+    await waitFor(() => expect(mainTabs()).toEqual(['회차', '정보', '소식', '다음 회차']))
+    expect(screen.queryByText(/다음 회차 게시판을 불러오지 못했어요/)).toBeNull()
+    expect(board).toHaveBeenCalledTimes(2)
+  } finally { server.restore() }
+})
+
+it('이미 읽은 게시판을 다시 읽다 실패하면 탭은 그대로이고 실패는 탭 안 배너로만 알린다 (탭 줄 위 안내는 첫 조회 실패 전용)', async () => {
+  const server = serverWorks()
+  server.read.mockResolvedValue({ likes: 0, liked: false })
+  const board = vi.spyOn(appContainer.resolve('serialUseCase'), 'board').mockResolvedValue(serialOn)
+  try {
+    const store = createAppStore({ role: 'user', memberId: 'member-9' })
+    renderApp('/work/guunmong', store)
+    await waitFor(() => expect(screen.queryByRole('tab', { name: '다음 회차' })).not.toBeNull())
+    fireEvent.click(screen.getByRole('tab', { name: '다음 회차' }))
+    await screen.findByRole('tablist', { name: '다음 회차 하위 탭' })
+    board.mockRejectedValueOnce(new Error('서버 오류'))
+    act(() => { store.dispatch(sessionActions.dataChanged()) })
+    await screen.findByText('최신 게시판을 불러오지 못했어요.')
+    expect(mainTabs()).toEqual(['회차', '정보', '소식', '다음 회차'])
+    expect(screen.queryByText(/다음 회차 게시판을 불러오지 못했어요/)).toBeNull()
+  } finally { server.restore() }
 })
 
 it('다음 회차 탭을 연 채 서버가 AI 자율 집필이 꺼졌다고 다시 알려 주면 탭이 사라지고 회차 탭으로 돌아온다 (없는 탭을 고른 채로 두지 않는다)', async () => {

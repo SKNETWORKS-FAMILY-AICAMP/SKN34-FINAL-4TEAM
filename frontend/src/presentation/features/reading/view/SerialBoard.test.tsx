@@ -281,14 +281,16 @@ it('제안 게시판: 열린 게시판이 없으면 글쓰기를 잠그고 이�
   expect(screen.queryByRole('list', { name: '제안 목록' })).toBeNull()
 })
 
-it('게시판을 읽지 못하면 빈 게시판으로 숨기지 않고 실패와 다시 불러오기를 보인다', async () => {
+it('쓴 뒤 최신 게시판을 다시 읽지 못하면 이전 게시판을 지우지 않고 실패와 다시 불러오기를 함께 보인다', async () => {
   const repo = fakeRepo()
-  repo.board.mockRejectedValueOnce(new Error('서버 오류'))
   open(repo)
-  const alert = await screen.findByRole('alert')
-  expect(alert.textContent).toContain('불러오지 못했어요')
-  expect(screen.queryByRole('tablist')).toBeNull()
-  fireEvent.click(within(alert).getByRole('button', { name: '다시 불러오기' }))
   await ready()
-  expect(screen.queryByRole('alert')).toBeNull()
+  repo.board.mockRejectedValueOnce(new Error('서버 오류'))
+  fireEvent.click(screen.getByRole('radio', { name: /^2번/ }))
+  const failure = await screen.findByText('최신 게시판을 불러오지 못했어요.')
+  expect(screen.getByRole('list', { name: '다음 전개 선택지' }).children).toHaveLength(4)
+  repo.board.mockResolvedValue(board({ myChoiceId: 'c2' }))
+  fireEvent.click(within(failure.closest('[role=alert]') as HTMLElement).getByRole('button', { name: '다시 불러오기' }))
+  await waitFor(() => expect(screen.queryByText('최신 게시판을 불러오지 못했어요.')).toBeNull())
+  expect((screen.getByRole('radio', { name: /^2번/ }) as HTMLInputElement).checked).toBe(true)
 })

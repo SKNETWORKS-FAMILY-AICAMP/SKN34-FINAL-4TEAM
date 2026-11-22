@@ -79,7 +79,7 @@ it('입력을 바꾸면 저장할 수 있고, 저장하면 저장 완료를 알�
   expect(hook.result.current.boards).toEqual([record({ id: 'b2' }), record()])
 })
 
-it('하위 탭은 연재 설정이 처음이고, 탭을 바꾸면 이전 요청의 알림을 지운다', async () => {
+it('하위 탭은 연재 설정이 처음이고, 알림은 요청을 보낸 탭에서만 보이며 그 탭으로 돌아오면 다시 보인다', async () => {
   const hook = setup()
   await loaded(hook)
   expect(hook.result.current.sub).toBe('settings')
@@ -89,6 +89,40 @@ it('하위 탭은 연재 설정이 처음이고, 탭을 바꾸면 이전 요청�
   act(() => hook.result.current.setSub('history'))
   expect(hook.result.current.sub).toBe('history')
   expect(hook.result.current.notice).toBeUndefined()
+  act(() => hook.result.current.setSub('settings'))
+  expect(hook.result.current.notice).toMatchObject({ ok: true, text: '설정을 저장했어요.' })
+})
+
+it('탭을 옮긴 뒤 끝난 저장의 결과(실패도)는 옮겨 간 탭에 끼어들지 않고 저장을 보낸 탭에서 보인다', async () => {
+  const repo = fakeRepo()
+  let finish!: (failure: Error) => void
+  repo.saveSettings.mockImplementation(() => new Promise<void>((_resolve, reject) => { finish = reject }))
+  const hook = setup(repo)
+  await loaded(hook)
+  act(() => hook.result.current.edit({ direction: '새 방향' }))
+  let saving!: Promise<void>
+  act(() => { saving = hook.result.current.save() })
+  act(() => hook.result.current.setSub('history'))
+  await act(async () => { finish(new Error('작품 소유자만 할 수 있어요.')); await saving })
+  expect(hook.result.current.notice).toBeUndefined()
+  act(() => hook.result.current.setSub('settings'))
+  expect(hook.result.current.notice).toMatchObject({ ok: false, text: '작품 소유자만 할 수 있어요.' })
+})
+
+it('탭을 옮긴 뒤 끝난 지금 실행의 결과는 옮겨 간 탭에 끼어들지 않고 실행을 보낸 탭에서 보인다', async () => {
+  const repo = fakeRepo()
+  let finish!: () => void
+  repo.run.mockImplementation(() => new Promise<void>((resolve) => { finish = resolve }))
+  const hook = setup(repo)
+  await loaded(hook)
+  act(() => hook.result.current.setSub('history'))
+  let running!: Promise<void>
+  act(() => { running = hook.result.current.run() })
+  act(() => hook.result.current.setSub('settings'))
+  await act(async () => { finish(); await running })
+  expect(hook.result.current.notice).toBeUndefined()
+  act(() => hook.result.current.setSub('history'))
+  expect(hook.result.current.notice).toMatchObject({ ok: true, text: '실행을 요청했어요. 곧 집필이 시작돼요.' })
 })
 
 it('규칙을 어긴 입력은 저장 버튼이 잠기고 저장 요청도 보내지 않는다', async () => {

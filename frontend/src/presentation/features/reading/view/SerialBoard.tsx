@@ -142,22 +142,13 @@ function Proposals({ vm, view }: { vm: Vm; view: SerialBoardView }) {
 
 /**
  * 소설 상세 '다음 회차' 탭의 내용(UC-18, [계약](../../../../../../docs/design/ai-serial-contract.md)): 하위 탭 '투표 | 제안 게시판'.
- * 탭은 AI 자율 집필이 켜져 있을 때만 소설 상세가 보이므로 이 컴포넌트는 읽은 게시판(read)이 있을 때 그려진다. 읽는 중이면 안내를, 읽기 실패는 숨기지 않고 다시 불러오기를 보인다.
+ * 탭은 AI 자율 집필이 켜져 있을 때만 소설 상세가 보이므로 이 컴포넌트는 읽은 게시판(read)이 있을 때 그려진다. 첫 조회의 읽는 중·실패는 소설 상세 몫이고, 쓴 뒤 최신 게시판을 다시 읽지 못하면 이전 게시판을 둔 채 배너로 다시 불러오기를 보인다.
  * 비로그인은 읽기만 하고 투표·글쓰기·추천 자리에 로그인 안내를 받는다(권한은 서버가 다시 확인한다). 작품이 바뀌면 호출 측이 key로 새로 만든다.
  */
 export function SerialBoard({ work, read, useCase }: { work: Work; read: ReturnType<typeof useSerialBoardRead>; useCase?: SerialUseCase }) {
   const vm = useSerialBoardViewModel(work, read, useCase)
   const { view } = vm
-  if (!view) {
-    return vm.isError
-      ? (
-        <div role="alert" className="ws-retry">
-          <span className="muted">다음 회차 게시판을 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.</span>
-          <button type="button" className="btn sm" onClick={vm.retry}>다시 불러오기</button>
-        </div>
-      )
-      : <p role="status" className="muted">다음 회차 게시판을 불러오고 있어요…</p>
-  }
+  if (!view) return null // 소설 상세가 첫 조회를 마친 뒤에만 이 탭을 그린다(첫 조회 실패는 소설 상세가 탭 줄 위에서 알린다).
   /** 하위 탭의 방향키·Home·End로 탭을 옮긴다(소설 상세 탭과 같은 키 동작). 선택한 탭만 Tab 순서에 들어간다. */
   const moveSub = (e: KeyboardEvent) => {
     const i = SUBS.findIndex(([k]) => k === vm.sub)

@@ -100,6 +100,13 @@ export function WorkPage() {
         </section>
         <div className="wgrid">
           <section className="tcard eps">
+            {/* 첫 조회가 실패했으면 정상 비활성(탭 없음)과 구별해 알리고 다시 읽게 한다. 다시 읽다 실패한 경우는 탭 안 배너가 맡는다. */}
+            {serial.isError && !serial.data && (
+              <div role="alert" className="ws-retry ws-top">
+                <span className="muted">다음 회차 게시판을 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.</span>
+                <button type="button" className="btn sm" onClick={serial.retry}>다시 불러오기</button>
+              </div>
+            )}
             <div className="wtabs" role="tablist" aria-label="소설 상세 탭" onKeyDown={moveTab}>
               {tabs.map(([k, label]) => <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={current === k} aria-controls="panel-work" tabIndex={current === k ? 0 : -1} className={current === k ? 'on' : ''} onClick={() => setTab(k)}>{label}</button>)}
             </div>

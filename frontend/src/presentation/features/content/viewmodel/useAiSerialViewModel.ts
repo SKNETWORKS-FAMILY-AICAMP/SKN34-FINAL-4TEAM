@@ -7,6 +7,8 @@ import type { SerialUseCase } from '../../../../domain/usecases/SerialUseCase'
 /** 대기·실행 중인 게시판이 있는 동안 기록을 다시 읽는 간격(ms). ponytail: 고정 5초 주기 읽기(열린 화면마다 한 요청). 화면이 많아지면 알림 SSE 신호로 바꾼다. */
 const POLL_MS = 5000
 
+type Sub = 'settings' | 'history'
+
 const messageOf = (failure: unknown, fallback: string) => (failure instanceof Error && failure.message ? failure.message : fallback)
 const same = (a: SerialSettings, b: SerialSettings) =>
   a.enabled === b.enabled && a.time === b.time && a.direction.trim() === b.direction.trim() && a.days.length === b.days.length && a.days.every((day) => b.days.includes(day))
@@ -17,7 +19,7 @@ const same = (a: SerialSettings, b: SerialSettings) =>
  * 서버 값 다시 읽기(설정·기록)는 따로 해서 각 실패를 따로 알린다(읽기 실패가 저장 실패로 보이지 않게). 실행은 받아졌든 거절됐든 기록을 다시 읽는다.
  * 기록은 대기·실행 중인 게시판이 있는 동안만 주기적으로 다시 읽는다. 화면을 떠나면 읽기·쓰기 요청을 함께 취소한다. 작품이 바뀌면 호출 측이 key로 새로 만든다.
  * 켜짐은 운영 설정의 집필 방식(AI 자율 집필)이 정하므로 이 화면은 요일·시각·방향만 저장하고 enabled는 서버 값을 읽기만 한다.
- * 화면은 하위 탭 '연재 설정 | 게시판 기록'이고(sub, 연재 설정이 처음) 탭을 바꾸면 이전 요청의 알림을 지운다.
+ * 화면은 하위 탭 '연재 설정 | 게시판 기록'이고(sub, 연재 설정이 처음) 저장·실행 알림은 요청을 보낸 탭에서만 보인다(다른 탭에서 끝나도 실패를 잃지 않는다).
  */
 export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = appContainer.resolve('serialUseCase')) {
   const [saved, setSaved] = useState<SerialSettings>()
@@ -28,8 +30,8 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
   const [attempt, setAttempt] = useState(0)
   const [saving, setSaving] = useState(false)
   const [running, setRunning] = useState(false)
-  const [notice, setNotice] = useState<SerialNotice>()
-  const [sub, setSubTab] = useState<'settings' | 'history'>('settings')
+  const [notice, setNotice] = useState<SerialNotice & { sub: Sub }>()
+  const [sub, setSub] = useState<Sub>('settings')
   const busy = useRef(false)
   // StrictMode의 가짜 언마운트 뒤에도 새 신호를 쓰도록 effect 안에서 만든다.
   const leaving = useRef<AbortController>(null)
@@ -110,10 +112,10 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
       if (signal?.aborted) return
       setSaved({ ...form, ...sent })
       setForm({ ...form, ...sent })
-      setNotice({ ok: true, text: '설정을 저장했어요.' })
+      setNotice({ ok: true, text: '설정을 저장했어요.', sub })
       ok = true
     } catch (failure) {
-      if (!signal?.aborted) setNotice({ ok: false, text: messageOf(failure, '설정을 저장하지 못했어요.') })
+      if (!signal?.aborted) setNotice({ ok: false, text: messageOf(failure, '설정을 저장하지 못했어요.'), sub })
     } finally {
       busy.current = false
       setSaving(false)
@@ -130,9 +132,9 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
     const signal = leaving.current?.signal
     try {
       await useCase.run(workId, signal)
-      if (!signal?.aborted) setNotice({ ok: true, text: '실행을 요청했어요. 곧 집필이 시작돼요.' })
+      if (!signal?.aborted) setNotice({ ok: true, text: '실행을 요청했어요. 곧 집필이 시작돼요.', sub })
     } catch (failure) {
-      if (!signal?.aborted) setNotice({ ok: false, text: messageOf(failure, '실행을 요청하지 못했어요.') })
+      if (!signal?.aborted) setNotice({ ok: false, text: messageOf(failure, '실행을 요청하지 못했어요.'), sub })
     } finally {
       busy.current = false
       setRunning(false)
@@ -155,9 +157,11 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
     form,
     /** 게시판 기록(최신순). undefined: 불러오는 중이거나 읽기 실패(boardsError) */
     boards,
-    loadError, boardsError, notice, saving, running, dirty, formError, canSave,
-    sub,
-    setSub: (next: 'settings' | 'history') => { setSubTab(next); setNotice(undefined) },
+    loadError, boardsError, saving, running, dirty, formError, canSave,
+    /** 저장·실행 결과 알림. 요청을 보낸 탭에서만 보이고(탭을 옮긴 뒤 끝난 요청의 결과도 그 탭에서 보인다), 다음 입력·요청이 지운다. */
+    notice: notice?.sub === sub ? { ok: notice.ok, text: notice.text } : undefined,
+    /** 하위 탭('연재 설정'이 처음) */
+    sub, setSub,
     /** 지금 마감·실행을 못 하는 이유. null이면 할 수 있다. */
     runBlock,
     edit: (patch: Partial<SerialScheduleInput>) => change((current) => ({ ...current, ...patch })),
