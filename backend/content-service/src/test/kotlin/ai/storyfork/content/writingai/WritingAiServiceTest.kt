@@ -383,6 +383,16 @@ class WritingAiServiceTest {
     }
 
     @Test
+    fun `resume forwards a proposal refresh and never lets it approve`() {
+        fun body(resume: WritingAiResume) = service.message("work", "owner", "thread", ask.copy(request = null, resume = resume))["resume"] as Map<*, *>
+        val refreshed = body(WritingAiResume(false, refresh = true))
+        assertEquals(false, refreshed["approved"])
+        assertEquals(true, refreshed["refresh"])
+        assertFalse("refresh" in body(WritingAiResume(false)))  // 보낸 요청에만 싣는다
+        assertEquals(422, assertThrows(ContentFailure::class.java) { body(WritingAiResume(true, refresh = true)) }.status)
+    }
+
+    @Test
     fun `an edit is always a new request, never a resume`() {
         val failure = assertThrows(ContentFailure::class.java) {
             service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true)), fromTurn = 1)

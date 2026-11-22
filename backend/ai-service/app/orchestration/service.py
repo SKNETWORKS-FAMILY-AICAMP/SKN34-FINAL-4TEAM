@@ -74,6 +74,11 @@ APPROVAL_MESSAGES = {'writing_editing': 'Writing 결과를 원고 초안에 반�
                      'world': '설정 보강 제안을 세계관 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
                      CONTENT_ACTION: '아래 작업을 실행할지 승인해 주세요. 거절하면 실행하지 않아요.'}
 CONTENT_ACTION_REJECTED = '작가가 거절해 실행하지 않았어요. 같은 작업을 다시 시도하지 마세요.'
+# 제안 다시 받기(#662)의 답. 기존 거절 문구(다시 시도 금지)와 규칙 5(같은 도구 재호출 금지)의 예외임을 모델에게 알린다.
+# HITL이 앞에 "User rejected the tool call …"을 붙이므로 거절 자체는 부정하지 않고 이유가 '오래된 제안'임을 말한다.
+CONTENT_ACTION_REFRESH = ('저장된 초안이 바뀌어 이 제안이 오래됐고, 작가가 새 제안을 요청했어요. 이 제안은 실행하지 않았어요. '
+                          'world_studio_read로 저장본을 다시 읽고, 그 내용과 draftRevision을 기준으로 이 수정만 다시 제안하세요. 이번에는 같은 도구를 다시 불러도 돼요. '
+                          '앞에서 받은 저장하지 않은 편집 내용이 아니라 방금 읽은 저장본이 최신이에요. 이미 실행한 다른 작업은 다시 부르지 마세요.')
 # 같은 기능(writing_editing) 안에서 작업(task)이 승인 문구를 가르는 경우. 계획 수정은 원고 초안이 아니라 저장된 계획을 고친다.
 TASK_APPROVAL_MESSAGES = {'revise_plan': '계획 수정안을 저장할지 승인해 주세요. 거절하면 저장하지 않아요.'}
 CANCELLED_MESSAGE = '요청을 취소해 아무 작업도 실행하지 않았어요.'
@@ -444,10 +449,15 @@ async def _target(data: OrchestrationRequest):
         return CHAT, config, state, dict(state)
     if not snapshot.interrupts:
         raise NothingToResume()
-    _check_scene(data.resume, snapshot.interrupts[0].value)
+    waiting = snapshot.interrupts[0].value
+    _check_scene(data.resume, waiting)
+    asked = waiting.get('action_requests')
+    if data.resume.refresh and not asked:  # 다른 대기에 그대로 넘기면 취소·거절로 처리된다
+        raise NothingToResume()
     answer = data.resume.model_dump(mode='json', exclude_none=True)
-    if asked := snapshot.interrupts[0].value.get('action_requests'):  # Content 쓰기 도구 승인(HITL): {approved}를 HumanInTheLoopMiddleware의 결정으로 바꾼다
-        answer = {'decisions': [{'type': 'approve'} if data.resume.approved else {'type': 'reject', 'message': CONTENT_ACTION_REJECTED}] * len(asked)}
+    if asked:  # Content 쓰기 도구 승인(HITL): {approved, refresh}를 HumanInTheLoopMiddleware의 결정으로 바꾼다
+        declined = CONTENT_ACTION_REFRESH if data.resume.refresh else CONTENT_ACTION_REJECTED
+        answer = {'decisions': [{'type': 'approve'} if data.resume.approved else {'type': 'reject', 'message': declined}] * len(asked)}
     return CHAT, config, Command(resume=answer), dict(snapshot.values)
 
 

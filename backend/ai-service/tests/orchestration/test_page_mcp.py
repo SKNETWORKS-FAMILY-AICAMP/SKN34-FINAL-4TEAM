@@ -344,6 +344,42 @@ def test_declining_a_scene_after_an_applied_write_does_not_claim_nothing_ran(mon
     assert (done.status, done.message) == ('cancelled', '장면은 반영하지 않았어요. 앞서 끝난 작업은 그대로예요.')  # 저장은 이미 됐다(#661)
 
 
+def refresh(thread):
+    data = OrchestrationRequest(conversation={'threadId': thread, 'scope': SCOPE}, resume={'approved': False, 'refresh': True})
+    return asyncio.run(service.run(data, 'Bearer user'))
+
+
+def test_refreshing_a_stale_proposal_asks_again_in_place_without_repeating_the_applied_write(monkeypatch):
+    create = ('story_plan_create', {'workId': 'work', 'data': {'title': '재회'}})
+    again = ('world_studio_edit_draft', {'id': 'w1', 'request': {**EDIT['request'], 'expectedDraftRevision': 5}})
+    calls = fake_agents(monkeypatch, only_content(create, ('world_studio_edit_draft', EDIT), ('world_studio_read', {'id': 'w1'}), again))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, page=PAGE)
+    assert resume(thread, True).pendingAction.tool == 'world_studio_edit_draft'
+    new = refresh(thread)
+    assert (new.status, new.pendingAction.args['request']['expectedDraftRevision']) == ('waiting', 5)
+    assert [s.feature for s in new.steps] == ['content_action'] and [name for name, _ in writes(log)] == ['story_plan_create']  # 앞서 저장한 쓰기는 한 번뿐이다(#662)
+    told = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'world_studio_edit_draft')
+    assert told.content.endswith(service.CONTENT_ACTION_REFRESH)  # 거절(다시 시도 금지)이 아니라 다시 읽고 제안하라는 답이다
+    done = resume(thread, True)
+    assert done.status == 'completed' and [name for name, _ in writes(log)] == ['story_plan_create', 'world_studio_edit_draft']
+
+
+def test_refresh_is_refused_when_no_content_write_is_waiting_and_the_wait_is_kept(monkeypatch):
+    fake_agents(monkeypatch, plan(Step('research', task='web')))
+    thread = str(uuid4())
+    assert turn(thread, request='고증해줘').missingInputs == ['research']
+    with pytest.raises(service.NothingToResume):
+        refresh(thread)  # 그대로 잇는다면 입력 취소가 돼 버린다
+    assert asyncio.run(service.history(thread, SCOPE)).turns[-1].reply.status == 'waiting'
+
+
+def test_refresh_never_approves():
+    with pytest.raises(ValueError):
+        OrchestrationRequest(conversation={'threadId': 't', 'scope': SCOPE}, resume={'approved': True, 'refresh': True})
+
+
 # 선택한 글
 
 def test_a_selected_text_runs_the_patch_without_waiting_for_input_while_without_one_it_waits(monkeypatch):

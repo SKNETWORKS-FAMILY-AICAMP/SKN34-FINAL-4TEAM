@@ -177,6 +177,7 @@ internal class WritingAiService(
             checkContent(form.premise == null || form.premise.isNotBlank(), message="시뮬레이션 전제는 비워 둘 수 없어요.")  // 값이 있으면 AI가 1자 이상을 요구한다
         }
         checkContent(request.attachments.isNullOrEmpty() || request.resume == null, message = "첨부는 새 요청에만 보낼 수 있어요.")
+        checkContent(request.resume?.refresh != true || !request.resume.approved, message = "제안 다시 받기는 승인과 함께 보낼 수 없어요.")
         request.resume?.scene?.let { scene ->
             checkContent(scene.text == null || scene.text.isNotBlank(), message="고친 줄의 글은 비워 둘 수 없어요.")  // AI가 edit의 빈 글을 거절하면 502가 된다
         }
@@ -199,6 +200,7 @@ internal class WritingAiService(
                     put("scope", scope)
                     request.resume.inputs?.let { put("inputs", patchInputs(workId, owner, it)) }
                     request.resume.scene?.let { put("scene", body(it)) }
+                    if (request.resume.refresh == true) put("refresh", true)
                 })
             } else {
                 put("request", request.request)

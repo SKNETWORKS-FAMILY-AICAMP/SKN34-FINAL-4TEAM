@@ -33,7 +33,7 @@ export function PendingActionCard({ action, children, cardOf, unsaved = false, p
       <p>수정 후: {change.after}</p>
     </li>)}</ul>}
     {stale
-      ? <p className="chat-note" role="status">같은 요청을 다시 보내 현재 초안에 맞는 제안을 받아 보세요.</p>
+      ? <p className="chat-note" role="status">현재 초안에 맞는 제안을 다시 받아 보세요. 이미 끝난 작업은 다시 실행하지 않아요.</p>
       : <>
         <div className="chat-hitl-preview chat-hitl-args" tabIndex={0} aria-label="실행할 도구와 인자"><code>{action.tool}</code>{'\n'}{JSON.stringify(action.args, null, 2)}</div>
         <p className="chat-note">실행을 누르면 이 내용이 초안에 반영돼요.</p>

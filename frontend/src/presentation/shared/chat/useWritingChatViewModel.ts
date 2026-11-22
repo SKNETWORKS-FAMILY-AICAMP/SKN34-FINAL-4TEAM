@@ -193,6 +193,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     },
     edit: (index: number, text: string) => stream(text, { request: text }, index),
     resume: (approved: boolean, inputs?: ChatStepInputs) => stream(turns.at(-1)?.request ?? '', { resume: { approved, inputs } }),
+    /** 오래된 Content 쓰기 제안만 다시 받는다(#662). 턴을 다시 실행하면 이미 저장한 쓰기까지 다시 제안된다. */
+    refreshProposal: () => stream(turns.at(-1)?.request ?? '', { resume: { approved: false, refresh: true } }),
     /** 무대의 장면 조작(다음 턴·줄 수정·다시 말하기·끝내기). 멈춘 장면을 이어 가는 요청이라 approved는 서버 검증용으로 함께 보낸다. */
     sceneAction: (action: SceneAction) => stream(turns.at(-1)?.request ?? '', { resume: { approved: true, scene: action } }),
     deleteFrom: (index: number) => change(async () => {

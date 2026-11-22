@@ -465,7 +465,7 @@
 <tr><td>허용 문맥 미리보기</td><td>❌</td></tr>
 <tr><td>이어쓰기 요청</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/441">PR #441</a></td></tr>
 <tr><td>부분 수정 요청</td><td>❌ <small>(Content·AI API와 승인 반영 구현 · 채팅 입력 대기 카드에서 구간 선택 화면 연결(#497) · 브라우저 확인·통합 테스트 CI 대기)</small></td></tr>
-<tr><td>세계관 카드 수정 제안 다시 받기 <small>(#588, 초안을 저장한 뒤 같은 요청을 다시 실행하고 새 제안을 승인)</small></td><td>✅</td></tr>
+<tr><td>세계관 카드 수정 제안 다시 받기 <small>(#588·#662, 초안을 저장한 뒤 멈춘 자리에서 제안만 다시 받아 승인·이미 저장한 작업은 재실행 없음)</small></td><td>✅</td></tr>
 <tr><td>집필 AI 선택 구간 길이 안내 <small>(#589, 5,000자를 넘으면 전송 전 안내와 요청 문장 보존)</small></td><td>✅</td></tr>
 <tr><td>집필 AI 분류 실패 표시 <small>(#590, 제공사 분류 실패와 차단 응답을 오류 로그 서식으로 표시)</small></td><td>✅</td></tr>
 <tr><td>집필 AI 채팅 전송 입력 초기화 <small>(#591, 요청이 말풍선에 나타나면 입력창을 바로 비우고 실패 때 새 입력을 보존)</small></td><td>✅</td></tr>

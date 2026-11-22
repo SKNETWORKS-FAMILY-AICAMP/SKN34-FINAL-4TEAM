@@ -148,12 +148,20 @@ class Resume(BaseModel):
 
     scene은 시뮬레이션 무대의 장면 조작(next·edit·redo·stop)이다. scene이 있으면 approved는 적용하지 않고 장면을 처리한 뒤 다시 멈춘다
     (승인·거절은 scene 없는 resume으로만 한다).
+    refresh는 Content 쓰기 승인 대기에서 오래된 제안을 실행하지 않고 멈춘 자리에서 새 제안을 받는 답이다(#662, approved=false).
     """
     model_config = ConfigDict(extra='forbid')
     approved: bool
     inputs: StepInputs = StepInputs()
     scope: RetrievalScope | None = None  # Content가 resume 때 새로 서명한 Q&A 조회 토큰
     scene: SceneAction | None = None
+    refresh: bool = False
+
+    @model_validator(mode='after')
+    def refresh_never_approves(self):
+        if self.refresh and self.approved:
+            raise ValueError('refresh는 approved=false로만 보낼 수 있습니다.')
+        return self
 
 
 class OrchestrationRequest(BaseModel):

@@ -744,7 +744,7 @@ it('저장하지 않은 편집이 있으면 승인 버튼을 막고 먼저 저�
   expect(send).not.toHaveBeenCalled()
 })
 
-it('저장 뒤 이전 제안은 승인할 수 없고 같은 요청을 현재 화면으로 다시 실행한다', async () => {
+it('저장 뒤 이전 제안은 승인할 수 없고 멈춘 자리에서 제안만 다시 받는다(#662)', async () => {
   approvalTurn()
   send.mockResolvedValue(undefined)
   const props = { workId: 'w', basis, emptyTitle: '새 대화', emptyText: '', suggestions: [], getPage: () => ({ kind: 'world' as const, path: '/worldstudio/w1', worldId: 'w1' }) }
@@ -754,8 +754,10 @@ it('저장 뒤 이전 제안은 승인할 수 없고 같은 요청을 현재 화
   expect(screen.queryByRole('button', { name: '실행' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '저장한 초안으로 제안 다시 받기' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
-  expect(send.mock.calls[0][2]).toMatchObject({ request: '이 설정 설명을 더 자세히 써줘', page: props.getPage() })
-  expect(send.mock.calls[0][2]).not.toHaveProperty('resume')
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: false, refresh: true } })
+  // 요청을 다시 실행하면 같은 턴에서 이미 저장한 쓰기까지 다시 제안된다
+  expect(send.mock.calls[0][2]).not.toHaveProperty('request')
+  expect(send.mock.calls[0][5]).toBeUndefined() // 메시지 수정(editIndex)이 아니다
 })
 
 it('실행할 인자를 읽지 못한 승인 대기는 가짜 카드 없이 알린다', async () => {

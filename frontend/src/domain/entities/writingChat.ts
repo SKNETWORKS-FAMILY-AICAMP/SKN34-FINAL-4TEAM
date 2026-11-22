@@ -208,8 +208,8 @@ export type SceneAction =
   | { action: 'edit'; turn: number; text: string }
   | { action: 'redo'; turn: number; note?: string }
   | { action: 'stop' }
-/** 멈춘 실행을 이어 가는 답. 장면 조작이면 scene을 싣고, approved는 서버 검증을 위해 함께 보낸다(장면 조작 뒤에는 다시 멈춘다). */
-export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction }
+/** 멈춘 실행을 이어 가는 답. 장면 조작이면 scene을 싣고, approved는 서버 검증을 위해 함께 보낸다(장면 조작 뒤에는 다시 멈춘다). refresh는 오래된 Content 쓰기 제안을 멈춘 자리에서 다시 받는 답이다(#662, approved는 false). */
+export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction; refresh?: true }
 /** 새 요청(operation이 있으면 의도 분류를 건너뛰고 그 기능을 실행, 시뮬레이션은 시작 양식 값을 싣는다)이거나 멈춘 실행을 잇는 답이다. */
 /** attachments는 새 요청에서만 보내는 이번 턴의 참고 자료(최대 3개, #617)다. 이어가기·메시지 수정에는 싣지 않는다. */
 export type ChatSendBody = { request: string; operation?: ChatFeature; simulation?: SimulationStart; page?: ChatPage; attachments?: ChatAttachmentPayload[] } | { resume: ChatResume }
