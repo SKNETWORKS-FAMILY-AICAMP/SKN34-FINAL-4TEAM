@@ -7,7 +7,7 @@
 
 ## 흐름
 
-1. **켜기**: 세계관을 연결한 작품의 소유자(원작·Fork)가 작품 관리의 **AI 집필** 탭(Fork 탭 옆)에서 켠다.
+1. **켜기**: 작품 소유자(원작·Fork)가 세계관 연결 여부와 상관없이 작품 관리의 **AI 집필** 탭(Fork 탭 옆)에서 켠다.
    요일(1~7개)·시각(KST, 하루 1회)·연재 방향(≤2,000자)을 저장한다. 1화는 소유자가 직접 써서 발행한다.
 2. **게시판**: 켜져 있고 발행된 회차가 있으면 "다음 회차는 어떻게 흘러갈까요?" 게시판이 하나 열린다
    (대상 = 마지막 발행 회차 + 1). 작품당 열린 게시판은 하나이고, AI가 회차를 발행하면 다음 게시판이 열린다.
@@ -21,7 +21,7 @@
    연결 세계관의 **초안**에 카드를 추가·수정하고(확정 버전은 소유자가 따로 만든다) 의견에 `approved`를 표시한다. 거절은 `rejected`.
    독자가 남의 세계관을 직접 바꾸지 않는다(DEC-36: 제안과 승인·반영 구분).
 5. **마감·실행**: 정해진 요일·시각이 되거나 소유자가 **지금 마감·실행**을 누르면 게시판이 마감되고 실행된다.
-   - 입력: 연재 방향, 득표 상위 3개 의견(동률은 먼저 쓴 것, 숨긴 의견 제외, 시뮬레이션 미리보기 포함), 작품 문맥(새 원고 생성과 같은 소유자 허용 문맥).
+   - 입력: 연재 방향, 득표 상위 3개 의견(동률은 먼저 쓴 것, 숨긴 의견 제외, 시뮬레이션 미리보기 포함), 작품 문맥(최근 발행 회차 본문, 세계관이 연결돼 있으면 그 카드도).
    - AI: 의견 종합 → 회차 기획·원고 → 검수(문맥 기준 설정 충돌·개연성·19세 이용가 판정). 검수 실패면 원고를 1회 다시 쓰고, 그래도 실패면 실패를 돌려준다.
    - Content: 성공하면 다음 회차를 저장·발행하고 게시판을 `published`로 닫은 뒤 다음 게시판을 연다. 종합 문장(`summary`)은 닫힌 게시판에 공개한다.
      실패하면 게시판은 `failed`와 고정 문구 사유로 남고 발행하지 않는다. 자동 재시도는 없고 소유자가 지금 실행으로 다시 시도한다.
@@ -54,7 +54,7 @@
 | 메서드·경로 | 누가 | 설명 |
 |---|---|---|
 | `GET /api/v1/works/{id}/ai-serial` | 소유자 | 설정 `{enabled, days:["MON",…], time:"HH:mm", direction}` |
-| `PUT /api/v1/works/{id}/ai-serial` | 소유자 | 설정 저장. 세계관 미연결 409 `WORLD_NOT_LINKED`, 발행 회차 없음은 저장되지만 게시판은 1화 발행 뒤 열림 |
+| `PUT /api/v1/works/{id}/ai-serial` | 소유자 | 설정 저장(세계관 연결은 필요 없음, 2026-11-22 사용자 결정). 발행 회차 없음은 저장되지만 게시판은 1화 발행 뒤 열림 |
 | `POST /api/v1/works/{id}/ai-serial/run` | 소유자 | 열린 게시판을 `queued`로. 꺼짐 409 `SERIAL_DISABLED`, 열린 게시판 없음 409 `SERIAL_NO_BOARD`, 이미 실행 중 409 `SERIAL_RUNNING`. 202 |
 | `GET /api/v1/works/{id}/ai-serial/boards` | 소유자 | 게시판 기록 최신순(상태·대상 회차·발행 회차·사유·마감 시각, 최대 50) |
 | `GET /api/v1/works/{id}/serial-board` | 누구나(공개 작품) | 열린 게시판(없으면 `null`)과 의견 목록(득표순, 숨긴 의견 제외), 로그인이면 내 의견·내 투표. 마지막 닫힌 게시판의 `summary` |
@@ -63,7 +63,7 @@
 | `DELETE /api/v1/works/{id}/serial-board/vote` | 로그인 | 투표 취소 |
 | `POST /api/v1/works/{id}/serial-board/opinions/{opinionId}/hide` | 소유자 | 의견 숨김(악성 의견) |
 | `GET /api/v1/works/{id}/setting-proposals` | 소유자 | `setting` 의견 목록(상태 `pending`·`approved`·`rejected`) |
-| `POST /api/v1/works/{id}/setting-proposals/{opinionId}/approve`·`/reject` | 소유자 | 승인은 세계관 초안에 반영(초안 revision 충돌 409) |
+| `POST /api/v1/works/{id}/setting-proposals/{opinionId}/approve`·`/reject` | 소유자 | 승인은 세계관 초안에 반영(초안 revision 충돌 409, 연결 세계관이 없으면 409 `WORLD_NOT_LINKED`라 승인 불가·거절만 가능) |
 
 ### AI 내부 API (`X-Internal-Token`, 새 패키지 `app/serial/`)
 
