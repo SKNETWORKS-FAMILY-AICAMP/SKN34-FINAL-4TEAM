@@ -67,6 +67,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 | 메서드·경로 | 입력 | 출력 |
 |---|---|---|
 | `POST /internal/v1/serial/choices` | `{workId, episodeNumber, direction, context, creditLimit, creditReservationId}` | `{choices:[4개 문자열], credits, usage}` |
+| `POST /internal/v1/serial/summaries` | `{workId, episodeNumber, title, body, creditLimit, creditReservationId}` | `{summary(≤400자), credits, usage}` |
 | `POST /internal/v1/serial/simulations` | `{workId, episodeNumber, premise, beats, context, creditLimit}`(context = 공개 회차·공개 카드 JSON) | `{scene, credits, usage}` |
 | `POST /internal/v1/serial/episodes` | `{workId, episodeNumber, direction, choice:{text, votes}\|null, proposals:[{title, body, likes, scene?}], context, creditLimit}` | `{summary, title, text, review:{passed, issues}, credits, usage}`. 검수 2회 실패는 422 `SERIAL_REVIEW_FAILED` |
 
@@ -108,6 +109,14 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 - 작품 정보·표지·분기 정책, 세계관·설정집, 댓글·제보 처리, 게시판 의견 숨기기는 막지 않는다. 예약 발행은 2화부터 등록·변경만 막고 취소는 막지 않으며, 켜기 전에 등록된 예약의 실행도 막지 않는다.
 - 화면: 집필실은 1화가 아니면 "AI 자율 집필 중" 안내와 읽기 전용, 새 회차 버튼은 1화가 있으면 잠근다. 작품 관리의 회차 목록은 각 회차에서 집필실 그 회차로 바로 가고(1화 외는 잠금·이유), 판정은 서버다. 화면은 켜짐 여부를 열 때와 집필 방식을 저장한 뒤 읽고, 읽는 중·읽기 실패면 잠그지 않는다.
 - 켜기 전에 써 둔 2화 이후 초안은 위 '작성 중인 원고' 검사가 계속 지킨다.
+
+## 문맥: 이전 회차 요약 + 관련 장면 검색 (2026-11-22 사용자 결정, C안)
+
+- **원고 색인은 항상 켠다.** `MANUSCRIPT_INDEX_ENABLED` 플래그를 없애고 Content는 늘 Elasticsearch 원고 색인(`ManuscriptIndexConfig`)을 쓴다. local Compose도 Elasticsearch를 항상 띄운다(dev는 이미 켜져 있음). CI·테스트 Compose도 같이 맞춘다.
+- **회차 요약**: AI 자율 집필 작품의 공개 회차마다 300자 안팎(≤400자) 요약을 하나씩 둔다. 1분 점검이 요약 없는(또는 발행 버전이 바뀐) 공개 회차를 오래된 회차부터 점검당 최대 3개 AI `POST /internal/v1/serial/summaries`로 만들어 Content `serial_episode_summary(episode_id, version_id, summary, created_at)`에 저장한다(소유자 크레딧, 상한 `SERIAL_SUMMARY_CREDIT_LIMIT` 기본 3, 실패는 다음 점검에 다시).
+- **문맥 JSON**(선택지·회차 실행·시뮬레이션 공통 `serialContext`): 작품 제목·소개, **최근 3화 원문**, **그 이전 회차의 요약 전부**(`summaries:[{number, title, summary}]`, 요약이 아직 없는 회차는 빠짐), 설정 카드. 6만 자 한도 안에서 요약이 넘치면 오래된 요약부터 뺀다.
+- **관련 장면 검색**(회차 실행만): 1위 선택지 글과 추천 상위 제안 글 제목을 질의로 기존 원고 검색(`ManuscriptQaService`의 벡터 검색 → 발행 원문 재대조, 독자 범위)을 한 번 불러, 최근 3화 이전 회차에서 찾은 인용 최대 6개(각 ≤256자)를 문맥 `related:[{episode, quote}]`로 붙인다. 검색이 실패하면 임의로 빼고 진행하지 않고 실행을 실패(사유 `관련 장면 검색에 실패했습니다.`, 예약 해제)로 끝낸다. 검색 결과가 0개인 것은 실패가 아니다(`related` 빈 목록).
+- AI 프롬프트는 `summaries`로 전체 흐름을, `related`로 이어 쓸 옛 장면을 참고하라고 쓴다. AI는 검색·색인을 부르지 않는다(Content가 문맥을 만든다).
 
 ## 화면 (2026-11-22 사용자 결정)
 
