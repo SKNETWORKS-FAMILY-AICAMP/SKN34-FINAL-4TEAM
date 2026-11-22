@@ -386,21 +386,21 @@ def model_input(key: str, item: dict, corpus, rn) -> dict:
 
 
 def cmd_export(args) -> None:
-    """공개 세트 ①~④ 중 저작권 만료·자유 이용 문항만 app/evaluation/datasets/simulation/에 기존 평가 세트 jsonl 형식으로 쓴다(고전·근대 소설 파일과 SCP 파일을 나눈다)."""
+    """공개 세트의 ① 대사와 ③ 나레이션·독백 중 저작권 만료·자유 이용 문항을 app/evaluation/datasets/ 바로 아래 지시문별 평가 세트(simulation.act·simulation.narrate)로 쓴다.
+    항목마다 채점 입력(metadata.judge: 인물·직전 장면·시점 위반 정답표)을 함께 넣어 운영 회귀 평가가 원문 평가와 같은 채점을 한다."""
     import orig_export
     import orig_run as rn
     corpus = corpus_of('public')
-    folder = Path(__file__).resolve().parents[2] / 'app' / 'evaluation' / 'datasets' / 'simulation'
-    folder.mkdir(parents=True, exist_ok=True)
-    files = {'free': ('original.jsonl', 'sim.orig'), 'scp': ('original-scp.jsonl', 'sim.orig.scp')}
-    for group, (name, prefix) in files.items():
-        lines = []
-        for key in KEYS:
+    folder = Path(__file__).resolve().parents[2] / 'app' / 'evaluation' / 'datasets'
+    for name, keys in orig_export.SETS.items():
+        picked = []
+        for key in keys:
             free, scp = orig_export.split_by_license(load_items('public', key))
-            for n, item in enumerate(orig_export.pick(free if group == 'free' else scp, args.per_set), 1):
-                lines.append(json.dumps(orig_export.record(key, item, f'{prefix}-{key}-{n:02d}', model_input(key, item, corpus, rn)), ensure_ascii=False))
-        (folder / name).write_text('\n'.join(lines) + '\n', encoding='utf-8')
-        print(f'{name}: 항목 {len(lines)}개 · {(folder / name).stat().st_size:,}바이트')
+            for item in [*orig_export.pick(free, args.per_set), *orig_export.pick(scp, args.per_set)]:
+                picked.append((item, model_input(key, item, corpus, rn), rn.facts_for(corpus, item, person=item['kind'] != 'narration')))
+        lines = [json.dumps(row, ensure_ascii=False) for row in orig_export.dataset_rows(name, picked)]
+        (folder / f'{name}.jsonl').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+        print(f'{name}.jsonl: 항목 {len(lines)}개 · {(folder / f"{name}.jsonl").stat().st_size:,}바이트')
 
 
 def grader_suffix(args) -> str:
