@@ -46,6 +46,16 @@ def test_a_regrade_writes_the_new_graders_folder_with_its_own_cache_and_leaves_t
     assert len(llm.asked) == 1
 
 
+def test_regrade_and_judge_pair_default_to_the_sol_judge_and_pairs_read_the_generations_from_the_sol_folder(monkeypatch):
+    seen = {}
+    for name in ('cmd_regrade', 'cmd_judge_pair'):
+        monkeypatch.setattr(jc, name, lambda args, name=name: seen.update({name: args}))
+    jc.main(['regrade', '--corpus', 'hp'])
+    jc.main(['judge-pair', '--corpus', 'hp', '--pairs', 'H1:P1'])
+    assert seen['cmd_regrade'].judge_model == 'gpt-6.2-sol' and seen['cmd_regrade'].source == 'gpt-6-luna'   # 다시 채점할 생성 기록은 기존 runs에서 읽는다
+    assert seen['cmd_judge_pair'].judge_model == 'gpt-6.2-sol' and seen['cmd_judge_pair'].source == 'gpt-6.2-sol'   # 새 후보는 sol 폴더에 쌓이고 옛 후보도 거기 사본이 있다
+
+
 def test_a_regrade_never_targets_the_source_folder_and_the_voice_ref_pass_is_for_dialogue_only(home):
     for bad in (args(judge_model=oj.LUNA), args(voice_ref=True, sets='1,3n')):
         with pytest.raises(SystemExit):

@@ -22,7 +22,7 @@ from pathlib import Path
 
 from urllib.parse import urlparse
 
-from orig_common import COST, COST_ACT, LUNA, ORIG, RESULTS, SEED
+from orig_common import COST, COST_ACT, JUDGE, LUNA, ORIG, RESULTS, SEED
 
 SIZES = {'public': {'act': 150, 'direct': 150, 'narrate': 70, 'monologue': 30, 'check_pass': 50, 'check_fail': 50},
          'hp': {'act': 400, 'direct': 300, 'narrate': 160, 'monologue': 40, 'check_pass': 150, 'check_fail': 150}}
@@ -257,8 +257,8 @@ def cmd_run(args) -> None:
     from llm import usd_llm
     sets = args.sets.split(',')
     act = act_provider()   # act가 외부 OpenAI 호환 제공사면(SIMULATION_ACT_BASE_URL) 그 호출은 OpenAI 장부와 따로 센다
-    if act and (sets != ['1'] or args.via == 'ocx'):
-        raise SystemExit('act 제공사(SIMULATION_ACT_BASE_URL)는 ① 대사만 돈다(다른 세트의 호출은 OpenAI라 장부가 섞인다). --via ocx(게이트웨이로 고정)와도 함께 쓰지 않는다.')
+    if act and (sets != ['1'] or args.via == 'ocx' or args.judge != 'ocx'):
+        raise SystemExit('act 제공사(SIMULATION_ACT_BASE_URL)는 ① 대사만 돈다(다른 세트의 호출은 OpenAI라 장부가 섞인다). --via ocx(게이트웨이로 고정)·--judge openai(채점 비용이 OpenAI 장부로 간다)와도 함께 쓰지 않는다.')
     rate = act_rate(act)
     if args.via == 'ocx':
         if '2' in sets:
@@ -273,7 +273,7 @@ def cmd_run(args) -> None:
     import orig_judge
     import orig_variants
     if args.judge == 'openai' and args.judge_model != orig_judge.LUNA:
-        raise SystemExit('--judge-model은 --judge ocx에서만 쓴다(openai 채점은 cost.MODEL 고정).')
+        raise SystemExit('--judge openai는 채점 모델이 gpt-6-luna(cost.MODEL)로 고정이라 --judge-model gpt-6-luna와 함께 쓴다.')
     grader = orig_judge.grader_name(args.judge_model)   # 한 실행 기록 폴더 = 한 채점 모델(지금까지의 luna는 runs)
     judge_llm = (sim_via.ocx_llm(orig_judge.judge_cache(ORIG, grader), COST, args.judge_model) if args.judge == 'ocx'
                  else usd_llm(ORIG / 'cache-judge-openai', COST, args.limit_usd))
@@ -466,7 +466,7 @@ def main(argv=None) -> None:
         p.add_argument('--dev', action='store_true', help='hp-dev 세트로(후보 고르기용)')
         p.add_argument('--judge', choices=('openai', 'ocx'), default='ocx', help='채점 경로(ocx는 금액 0)')
         if name == 'run':
-            p.add_argument('--judge-model', default=LUNA, help='ocx 채점 모델(게이트웨이 이름, 기본은 지금까지의 gpt-6-luna). 기록은 runs-<모델>에 따로 쌓인다')
+            p.add_argument('--judge-model', default=JUDGE, help='ocx 채점 모델(게이트웨이 이름, 기본 gpt-6.2-sol, 처음의 gpt-6-luna는 이름으로만). 기록은 runs-<모델>에 따로 쌓인다(luna만 runs)')
             p.add_argument('--via', choices=('openai', 'ocx'), default='openai', help='생성(서비스 함수) 호출 경로')
             p.add_argument('--variant', default=None, help='입력 구성 후보(orig_variants.VARIANTS)')
             p.add_argument('--tag', default=None, help='실행 기록 이름(후보 없이 채택한 서비스 구성으로 다시 잴 때 B 등, 기본 A)')
@@ -486,12 +486,12 @@ def main(argv=None) -> None:
     summary = command('summary', cmd_summary, '모든 실행을 기준선과 짝 비교해 한 파일로 집계(호출 없음)')
     summary.add_argument('--base', default='base2', help='기준선 실행 기록 이름')
     summary.add_argument('--dev', action='store_true')
-    summary.add_argument('--grader', default=LUNA, help='채점 방식(runs-<이름> 폴더, 기본은 지금까지의 gpt-6-luna = runs). regrade가 만든 이름을 쓴다')
+    summary.add_argument('--grader', default=JUDGE, help='채점 방식(runs-<이름> 폴더, 기본 gpt-6.2-sol, gpt-6-luna = runs). regrade가 만든 이름을 쓴다')
     compare = command('compare', cmd_compare, '후보와 기준선(A)의 짝 비교(호출 없음)')
     compare.add_argument('--variant', required=True)
     compare.add_argument('--base', default='A', help='기준선 실행 기록 이름(v2 기준선은 v2)')
     compare.add_argument('--dev', action='store_true')
-    compare.add_argument('--grader', default=LUNA, help='채점 방식(runs-<이름> 폴더, 기본은 지금까지의 gpt-6-luna = runs)')
+    compare.add_argument('--grader', default=JUDGE, help='채점 방식(runs-<이름> 폴더, 기본 gpt-6.2-sol, gpt-6-luna = runs)')
     args = parser.parse_args(argv)
     args.handler(args)
 

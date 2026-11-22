@@ -14,6 +14,7 @@ import sim_via
 ACT_ENV = {'SIMULATION_ACT_BASE_URL': 'https://hemmingway.io/v1', 'SIMULATION_ACT_API_KEY': 'hem-key', 'SIMULATION_ACT_MODEL': 'hemmingway-1', 'SIMULATION_ACT_THINKING': 'off'}
 ACT = {'provider': 'hemmingway.io', 'model': 'hemmingway-1', 'thinking': 'off'}
 ITEMS = [{'id': 'hp-1-0001', 'base': 1}, {'id': 'hp-1-0002', 'base': 2}]
+JUDGES = []   # sim_via.ocx_llm 대역이 받은 (캐시 폴더, 장부, 채점 모델)
 
 
 def args(**changes):
@@ -39,7 +40,8 @@ def home(tmp_path, monkeypatch):
     monkeypatch.setattr(oc, 'corpus_of', lambda name: SimpleNamespace(name=name))
     monkeypatch.setattr(oc, 'load_items', lambda folder, key: ITEMS)
     monkeypatch.setattr(oc, 'item_chars', lambda *a: 9000)
-    monkeypatch.setattr(sim_via, 'ocx_llm', lambda *a, **k: object())
+    JUDGES.clear()
+    monkeypatch.setattr(sim_via, 'ocx_llm', lambda *a, **k: JUDGES.append(a) or object())
     monkeypatch.setattr(ov, 'MODEL_CALLS', {})
 
     def evaluate(item, corpus, llm, cost, variant, variant_name):
@@ -74,6 +76,7 @@ def test_a_run_without_an_act_provider_keeps_the_openai_ledger_and_the_variant_n
 @pytest.mark.parametrize('changes, env, message', [
     ({'sets': '1,3n'}, {}, '① 대사만'),
     ({'via': 'ocx'}, {}, '--via ocx'),
+    ({'judge': 'openai'}, {}, '--judge openai'),
     ({}, {'SIMULATION_ACT_MODEL': 'mystery-model'}, '단가'),
     ({'limit_usd': 0.005}, {}, '상한'),   # luna 단가 예상(0.0035달러)은 통과하고 Hemmingway 단가 예상(0.0103달러)은 넘는다
 ])
@@ -83,6 +86,24 @@ def test_an_act_provider_run_stops_before_any_call_when_it_would_mix_ledgers_or_
     with pytest.raises(SystemExit, match=message):
         oc.cmd_run(args(**changes))
     assert not (home / 'orig' / 'hp' / 'runs' / '1-H1.jsonl').exists() and not (home / 'cost-hemmingway.jsonl').exists()
+
+
+def test_a_sol_graded_run_keeps_its_records_and_judge_cache_apart_from_the_luna_ones(home):
+    oc.cmd_run(args(judge_model='gpt-6.2-sol', tag=None))
+    assert len(rows(home / 'orig' / 'hp' / 'runs-gpt-6.2-sol' / '1-P1.jsonl')) == 2 and not (home / 'orig' / 'hp' / 'runs').exists()
+    assert JUDGES == [(home / 'orig' / 'cache-judge-gpt-6.2-sol', home / 'cost-orig.jsonl', 'gpt-6.2-sol')]
+
+
+def test_the_default_judge_is_sol_and_luna_only_by_name(monkeypatch):
+    seen = {}
+    for name in ('cmd_run', 'cmd_summary', 'cmd_compare'):
+        monkeypatch.setattr(oc, name, lambda args, name=name: seen.update({name: args}))
+    oc.main(['run', '--corpus', 'hp'])
+    oc.main(['summary', '--corpus', 'hp'])
+    oc.main(['compare', '--corpus', 'hp', '--variant', 'H1'])
+    assert (seen['cmd_run'].judge_model, seen['cmd_summary'].grader, seen['cmd_compare'].grader) == ('gpt-6.2-sol',) * 3   # 채점은 sol이 기본이다
+    oc.main(['run', '--corpus', 'hp', '--judge-model', 'gpt-6-luna'])
+    assert seen['cmd_run'].judge_model == 'gpt-6-luna'
 
 
 def test_the_estimate_prices_input_and_the_assumed_output_at_the_given_rate(home):

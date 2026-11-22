@@ -1,5 +1,5 @@
 """채점 보강 실행기(평가 전용): 저장된 생성을 다른 채점 모델로 다시 채점하고(regrade, 생성은 다시 하지 않는다), 같은 문항의 두 생성을 A/B로 고르게 하고(judge-pair),
-두 채점 방식의 일치를 낸다(agree). 채점은 ocx(금액 0)이고 기록은 채점 방식마다 따로 쌓인다(runs-<이름>·pairs-<이름>, 원본 runs는 건드리지 않는다).
+두 채점 방식의 일치를 낸다(agree). 채점은 ocx(금액 0)이고 기본 채점 모델은 gpt-6.2-sol이다(처음의 gpt-6-luna는 --judge-model로만). 기록은 채점 방식마다 따로 쌓인다(runs-<이름>·pairs-<이름>, 원본 runs는 건드리지 않는다).
 
     cd backend/ai-service
     uv run --locked --extra dev python eval/simulation/judge_cli.py regrade --corpus hp --sets 1,3n,3m --judge-model gpt-6.2-sol           # → runs-gpt-6.2-sol
@@ -19,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from orig_cli import corpus_of, home, load_items, no_langfuse  # noqa: E402
-from orig_common import COST, LUNA, ORIG, RESULTS  # noqa: E402
+from orig_common import COST, JUDGE, LUNA, ORIG, RESULTS  # noqa: E402
 
 
 def run_tag(path: Path) -> str:
@@ -126,7 +126,7 @@ def main(argv=None) -> None:
     regrade = command('regrade', cmd_regrade, '저장된 생성을 다른 채점 모델로 다시 채점(ocx)')
     regrade.add_argument('--sets', default='1,3n,3m')
     regrade.add_argument('--tags', nargs='*', default=None, help='다시 채점할 실행 이름(기본은 폴더의 모두)')
-    regrade.add_argument('--judge-model', default=LUNA, help='ocx 채점 모델(게이트웨이 이름)')
+    regrade.add_argument('--judge-model', default=JUDGE, help='ocx 채점 모델(게이트웨이 이름, 기본 gpt-6.2-sol)')
     regrade.add_argument('--voice-ref', action='store_true', help='① 채점 입력에 말투 기준(voiceRef) 줄을 더하고 voiceRef 점수를 받는다')
     regrade.add_argument('--name', default=None, help='채점 방식 이름(기본은 모델 이름[+ref]; 같은 모델의 재채점은 다른 이름)')
     regrade.add_argument('--source', default=LUNA, help='생성 기록을 읽을 채점 방식 폴더(기본 runs; run --judge-model로 만든 후보는 그 모델 이름의 폴더에만 있다)')
@@ -134,9 +134,9 @@ def main(argv=None) -> None:
     pair = command('judge-pair', cmd_judge_pair, '같은 문항의 두 생성을 A/B로(순서를 바꿔 두 번) 고르게 한다(ocx)')
     pair.add_argument('--set', default='1')
     pair.add_argument('--pairs', nargs='+', required=True, help='후보:기준선(예: P1:base2)')
-    pair.add_argument('--judge-model', default=LUNA)
+    pair.add_argument('--judge-model', default=JUDGE, help='ocx 채점 모델(기본 gpt-6.2-sol)')
     pair.add_argument('--name', default=None)
-    pair.add_argument('--source', default=LUNA, help='생성 기록을 읽을 채점 방식 폴더(기본 runs)')
+    pair.add_argument('--source', default=JUDGE, help='생성 기록을 읽을 채점 방식 폴더(기본 runs-gpt-6.2-sol: 새 후보가 쌓이고 옛 후보도 사본이 있다)')
     pair.add_argument('--workers', type=int, default=8)
     agree = command('agree', cmd_agree, '두 채점 방식의 문항별 일치·후보 순위·짝 비교 방향(호출 없음)')
     agree.add_argument('--pairs', nargs='+', required=True, help='기준:견줄 채점 방식 이름(예: gpt-6-luna:gpt-6.2-sol, 같은 모델의 재채점은 gpt-6-luna:luna-retest)')
