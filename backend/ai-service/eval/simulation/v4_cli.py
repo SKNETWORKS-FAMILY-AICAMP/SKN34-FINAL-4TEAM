@@ -66,7 +66,7 @@ def use_ocx_for_generation() -> None:
     """이 프로세스의 act·나레이션·검사·초안 호출만 ocx로 보낸다. 환경변수는 그대로라 연출(Decisions)은 OpenAI API로 간다. 키는 ocx용 더미를 쓴다."""
     import sim_via
     from app.simulation import agent
-    agent.OpenAI = lambda **options: sim_via.client(**{**options, 'api_key': 'ocx'})
+    agent.ChatOpenAI = sim_via.chat
 
 
 def scene_specs(ids, rounds: int) -> list[dict]:

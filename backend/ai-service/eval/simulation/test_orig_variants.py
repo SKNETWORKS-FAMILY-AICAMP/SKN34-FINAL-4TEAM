@@ -65,10 +65,11 @@ import asyncio  # noqa: E402
 from types import SimpleNamespace  # noqa: E402
 
 import orig_run as orr  # noqa: E402
+from langchain_core.messages import AIMessage  # noqa: E402
 from langchain_typesafe import Choice  # noqa: E402
 
 from app.simulation import agent, director  # noqa: E402
-from app.simulation.models import Action, SimulationPlan  # noqa: E402
+from app.simulation.models import SimulationPlan  # noqa: E402
 
 
 def scene_from(*rows):
@@ -153,23 +154,24 @@ def test_patched_swaps_the_instructions_for_the_run_and_restores_them():
         assert agent.ACT_INSTRUCTIONS == before[0]
 
 
+def fake_chat(seen):
+    """agent.ChatOpenAI 대역: 만든 인자와 응답 형식·받은 메시지를 호출마다 seen에 쌓고 응답 형식의 값을 돌려준다(네트워크 없음)."""
+    class Chat:
+        def __init__(self, **options):
+            self.options = options
+
+        def with_structured_output(self, schema, **kwargs):
+            def invoke(messages):
+                seen.append({**self.options, 'schema': schema, 'messages': messages})
+                fields = {'prose': '"응."', 'observed': '응', 'refusesBeat': False, 'refusalReason': None, 'checks': [], 'beatDone': False, 'sceneComplete': False}
+                return {'raw': AIMessage('', response_metadata={'status': 'completed', 'model_name': 'm'}), 'parsed': schema.model_construct(**fields), 'parsing_error': None}
+            return SimpleNamespace(invoke=invoke)
+    return Chat
+
+
 def test_patched_act_instructions_reach_the_model_request(monkeypatch):
     seen = []
-
-    class Client:
-        def __init__(self, **kwargs):
-            pass
-
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *exc):
-            return False
-
-        responses = SimpleNamespace(parse=lambda **kwargs: seen.append(kwargs) or SimpleNamespace(
-            status='completed', model='m', usage=None, output_parsed=Action(prose='"응."', observed='응', refusesBeat=False, refusalReason=None)))
-
-    monkeypatch.setattr(agent, 'OpenAI', Client)
+    monkeypatch.setattr(agent, 'ChatOpenAI', fake_chat(seen))
     monkeypatch.setenv('OPENAI_API_KEY', 'k')
     monkeypatch.setenv('OPENAI_MODEL', 'm')
     for key in ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY'):
@@ -177,7 +179,7 @@ def test_patched_act_instructions_reach_the_model_request(monkeypatch):
     with ov.patched('P1'):
         agent.act({'self': {}})
     agent.act({'self': {}})
-    assert seen[0]['instructions'] == ov.ACT_V1 and seen[1]['instructions'] == agent.ACT_INSTRUCTIONS != ov.ACT_V1   # 주입은 그 실행 안에서만이다
+    assert seen[0]['messages'][0].content == ov.ACT_V1 and seen[1]['messages'][0].content == agent.ACT_INSTRUCTIONS != ov.ACT_V1   # 주입은 그 실행 안에서만이다
 
 
 def test_soul_first_only_reorders_the_known_docs():
@@ -195,25 +197,10 @@ def test_registry_names_cover_the_planned_candidates():
 
 
 
-def fake_openai(seen):
-    class Client:
-        def __init__(self, **kwargs):
-            pass
-
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *exc):
-            return False
-
-        responses = SimpleNamespace(parse=lambda **kwargs: seen.append(kwargs) or SimpleNamespace(status='completed', model='m', usage=None, output_parsed=kwargs['text_format'].model_construct(
-            **{'prose': '"응."', 'observed': '응', 'refusesBeat': False, 'refusalReason': None, 'checks': [], 'beatDone': False, 'sceneComplete': False}), ))
-    return Client
-
-
 def test_act_only_effort_candidates_change_the_act_request_and_nothing_else(monkeypatch):
     seen = []
-    monkeypatch.setattr(agent, 'OpenAI', fake_openai(seen))
+    chat = fake_chat(seen)
+    monkeypatch.setattr(agent, 'ChatOpenAI', chat)
     monkeypatch.setenv('OPENAI_API_KEY', 'k')
     monkeypatch.setenv('OPENAI_MODEL', 'm')
     for key in ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY', 'SIMULATION_REASONING_EFFORT'):
@@ -228,13 +215,13 @@ def test_act_only_effort_candidates_change_the_act_request_and_nothing_else(monk
         assert check['reasoning'] == {'effort': 'low'}      # 검사는 v2 기본값 그대로다
         assert act.get('reasoning') == {None: {'effort': 'low'}, 'E1': {'effort': 'medium'}, 'E2': None}[name]   # E2는 reasoning 인자 자체를 보내지 않는다(v1 요청)
         assert ('reasoning' in act) == (name != 'E2')
-    assert agent.OpenAI is not None and not hasattr(agent.OpenAI, '_client')   # 주입이 끝나면 원래 클래스로 돌아온다
+    assert agent.ChatOpenAI is chat   # 주입이 끝나면 원래 클래스로 돌아온다
 
 
 
 def test_spec_of_merges_plus_joined_candidates_and_refuses_clashing_hooks():
     spec = ov.spec_of('E1+N2')
-    assert [a for _, a, _ in spec['wrap']] == ['OpenAI'] and [a for _, a, _ in spec['patch']] == ['NARRATE_INSTRUCTIONS']
+    assert [a for _, a, _ in spec['wrap']] == ['ChatOpenAI'] and [a for _, a, _ in spec['patch']] == ['NARRATE_INSTRUCTIONS']
     assert ov.spec_of('D1+P1')['2'] is ov.d1_hints and ov.spec_of(None) == {}
     import pytest
     with pytest.raises(ValueError):
@@ -242,10 +229,10 @@ def test_spec_of_merges_plus_joined_candidates_and_refuses_clashing_hooks():
 
 
 def test_patched_applies_every_part_of_a_combined_candidate_and_restores_all():
-    before = (agent.NARRATE_INSTRUCTIONS, agent.OpenAI, director.DIRECTOR_INSTRUCTIONS)
+    before = (agent.NARRATE_INSTRUCTIONS, agent.ChatOpenAI, director.DIRECTOR_INSTRUCTIONS)
     with ov.patched('E1+N2+D3'):
-        assert agent.NARRATE_INSTRUCTIONS == ov.NARRATE_V2 and agent.OpenAI is not before[1] and director.DIRECTOR_INSTRUCTIONS == ov.DIRECTOR_V1
-    assert (agent.NARRATE_INSTRUCTIONS, agent.OpenAI, director.DIRECTOR_INSTRUCTIONS) == before
+        assert agent.NARRATE_INSTRUCTIONS == ov.NARRATE_V2 and agent.ChatOpenAI is not before[1] and director.DIRECTOR_INSTRUCTIONS == ov.DIRECTOR_V1
+    assert (agent.NARRATE_INSTRUCTIONS, agent.ChatOpenAI, director.DIRECTOR_INSTRUCTIONS) == before
 
 
 
@@ -260,7 +247,7 @@ def test_n3_scopes_the_style_guidance_to_non_monologue_narration():
 
 def test_model_candidate_swaps_the_model_of_act_and_narrate_requests_only(monkeypatch):
     seen = []
-    monkeypatch.setattr(agent, 'OpenAI', fake_openai(seen))
+    monkeypatch.setattr(agent, 'ChatOpenAI', fake_chat(seen))
     monkeypatch.setenv('OPENAI_API_KEY', 'k')
     monkeypatch.setenv('OPENAI_MODEL', 'luna')
     for key in ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY', 'SIMULATION_REASONING_EFFORT'):

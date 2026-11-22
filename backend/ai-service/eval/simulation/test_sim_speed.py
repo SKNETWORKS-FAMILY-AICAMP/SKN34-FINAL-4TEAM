@@ -2,7 +2,6 @@
 
 import asyncio
 import time
-from types import SimpleNamespace
 
 import pytest
 from langchain_core.callbacks import adispatch_custom_event
@@ -27,7 +26,7 @@ def models(monkeypatch):
     calls = []
 
     def report(name, tin=1000, tout=100):
-        agent._report(name, time.monotonic() - 0.02, SimpleNamespace(input_tokens=tin, output_tokens=tout), failed=False)
+        agent._report(name, time.monotonic() - 0.02, {'input_tokens': tin, 'output_tokens': tout}, failed=False)
         calls.append(name)
 
     async def decide(state, allowed, cast, last_pov=None):

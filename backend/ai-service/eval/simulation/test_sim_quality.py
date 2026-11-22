@@ -3,7 +3,6 @@
 import json
 import threading
 import time
-from types import SimpleNamespace
 
 import pytest
 
@@ -68,7 +67,7 @@ def act_returns(monkeypatch, *proses):
 
     def act(data):
         seen.append(data)
-        agent._report('act', time.monotonic(), SimpleNamespace(input_tokens=1000, output_tokens=200), failed=False)
+        agent._report('act', time.monotonic(), {'input_tokens': 1000, 'output_tokens': 200}, failed=False)
         return Action(prose=queue.pop(0) if len(queue) > 1 else queue[0], observed='he spoke', refusesBeat=False, refusalReason=None)
 
     monkeypatch.setattr(agent, 'act', act)
@@ -81,7 +80,7 @@ def check_returns(monkeypatch, *fails):
 
     def check(payload):
         seen.append(payload)
-        agent._report('check', time.monotonic(), SimpleNamespace(input_tokens=3000, output_tokens=100), failed=False)
+        agent._report('check', time.monotonic(), {'input_tokens': 3000, 'output_tokens': 100}, failed=False)
         failed = queue.pop(0) if len(queue) > 1 else queue[0]
         return Verdict(checks=[CheckItem(kind=k, passed=k not in failed, detail='d', refs=[]) for k in payload['checks']], beatDone=False, sceneComplete=False)
 

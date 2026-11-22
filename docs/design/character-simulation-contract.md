@@ -14,7 +14,7 @@
 | 실행 틀 | 장면은 LangChain `create_agent` + 미들웨어·훅·콜백·이벤트 리스너로 쓴다(#362, 사용자 결정 2026-11-14). Q&A·집필·고증·검수 업무 Agent도 #373(DEC-52)에서 `create_agent` + 공통 미들웨어(`app/agent_runtime.py`)로 바뀌었고, 이들을 묶는 바깥 오케스트레이션은 LangGraph 그래프 그대로다. |
 | 연출·시점 | 인물이 말하기 전에 매 턴 연출 결정(나레이션·독백·인물 대사·마무리, 화자, 시점)을 거친다. 시점은 전지적·인물의 3인칭 제한·인물의 1인칭이며 비트마다 바뀔 수 있다. 독백은 나레이터가 시점 인물의 지식 범위로 쓴다. |
 | 저장 | 시뮬레이션 기록은 대화 체크포인트에만 남는다. 장면이 끝나면 승인 질문(`waiting`, `awaitingApproval`)으로 작가 승인을 받고, 승인 시에만 Content MCP로 열린 회차 초안 끝에 나레이션·독백·대사를 순서대로 이어 붙인다(DEC-36, UC-09 최소 보장). 원고·설정 정본 자동 반영은 없다. |
-| 새 의존성 | `langchain`(v1)·`langchain-typesafe==0.0.1a3`(사용자 승인 2026-11-14, `uv add`로 `pyproject.toml`·lockfile 갱신, 다른 패키지 버전은 바뀌지 않았다). 시뮬레이션은 `langchain-openai`를 쓰지 않는다(아래 '실행 틀'의 모델 슬롯. 업무 Agent용으로 #373에서 추가됐다). BM25·PPR·RRF는 표준 라이브러리로 계산한다. 평가 스크립트의 일회성 도구는 `uv run --with`로만 쓰고 `pyproject.toml`·lockfile을 바꾸지 않는다. |
+| 새 의존성 | `langchain`(v1)·`langchain-typesafe==0.0.1a3`(사용자 승인 2026-11-14, `uv add`로 `pyproject.toml`·lockfile 갱신, 다른 패키지 버전은 바뀌지 않았다). 시뮬레이션의 모델 호출(`agent.py`)도 업무 Agent와 같은 `langchain-openai`(#373에서 추가, 새 의존성 없음)의 `ChatOpenAI`로 보낸다(사용자 지시 2026-11-22, 이전에는 OpenAI SDK `responses.parse` 직접 호출. 아래 '모델 호출은 `ChatOpenAI`'). BM25·PPR·RRF는 표준 라이브러리로 계산한다. 평가 스크립트의 일회성 도구는 `uv run --with`로만 쓰고 `pyproject.toml`·lockfile을 바꾸지 않는다. |
 
 ## NovelBrain — 차례로 쌓는 4단계
 
@@ -132,7 +132,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 | Callback | `UsageLedger`(공통, `app/agent_runtime.py`, #373) | 모델 호출마다 토큰·지연·실패(`agent.py`와 연출 결정 `director.py`가 공통 `MODEL_EVENT`로 알림)와 도구 실패를 모아, `ProgressMiddleware`가 단계 항목을 알릴 때(`STEP_EVENT`) 추적 span `simulation.turn`(턴 번호·상태는 `scene_agent.turn`)으로 남긴다. 본문·키는 없다 |
 
 - 도구(`tools.py`)는 `narrate`·`monologue`·`speak`·`end_scene`이며 기존 입력 조립(NovelBrain recall·인물 격리)·`act`·`check`·검증을 그대로 쓴다. 같은 턴을 재생성할 때는 조회한 입력을 다시 만들지 않는다.
-- **모델 슬롯**: 어느 도구를 쓸지는 연출 결정(Decisions)이 정하므로 `create_agent`의 모델은 호출되지 않는 자리 표시(`DirectorModel`)다. 그래서 `langchain-openai`가 필요 없고 장면에는 모델 노드의 호출 비용이 없다.
+- **모델 슬롯**: 어느 도구를 쓸지는 연출 결정(Decisions)이 정하므로 `create_agent`의 모델은 호출되지 않는 자리 표시(`DirectorModel`)다. 그래서 장면에는 모델 노드의 호출 비용이 없다(인물·나레이션·검사·계획 호출은 도구 안에서 `agent.py`가 `ChatOpenAI`로 보낸다).
 - **오케스트레이션 연결**: 바깥 그래프의 `character_simulation` 노드가 에이전트를 실행한다. 에이전트 상태(장면 `Scene` JSON 포함)는 바깥 그래프의 체크포인터(PostgreSQL)에 저장되고, 에이전트의 `interrupt`는 바깥 그래프로 전달돼 `waiting`이 된다. 같은 대화의 `resume`이 노드를 다시 실행하면 에이전트는 멈춘 자리에서 이어 간다. 노드는 요청마다 새로 만든 값(`SceneContext`: 계획·대상·요청·조회 토큰)만 넘기고 세계관·원고 발췌는 한 요청에 한 번 읽는다.
 - 대화가 없으면(체크포인트 없음) 턴 사이에서 멈출 수 없어 `StageMiddleware` 없이 장면이 끝날 때까지 한 번에 돈다.
 
@@ -263,6 +263,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - 연출 결정은 Decisions가 확률을 주지 않아 선택값만 쓴다(신뢰도 기준 없음). 장면은 에이전트 상태(대화 체크포인트)에만 있어 보관 기간 정리가 없다.
 - 원고 발췌 검색은 요청(턴)마다 같은 검색어로 한 번씩 한다. 인물 시점 나레이션·독백의 조회는 그 인물의 대사 입력과 같은 규칙이다.
 - 검사는 `prose`만 본다. 다른 인물에게 가는 `observed`(공개 요약)는 같은 호출에서 `prose`와 함께 만들어지고 쓰는 모델은 금지 목록을 받지 않아 따로 검사하지 않는다. 작가가 `edit`한 글은 작가 글이 정본이라 통째로 공개 기록이 된다(속마음을 섞어 고치면 다음 인물이 보게 된다).
+- **모델 호출은 `ChatOpenAI`(Responses API)다**(2026-11-22 사용자 지시, 요청·응답 계약은 그대로): `agent._parse`가 호출마다 `ChatOpenAI(use_responses_api=True, store=False, max_retries=0, max_tokens, timeout, reasoning={'effort': …})`를 만들고 `with_structured_output(<응답 형식>, method='json_schema', strict=True, include_raw=True)`로 한 번 부른다(업무 Agent의 `app/agent_runtime.py`와 같은 방식이고 공통화는 하지 않았다). 지시문(Langfuse 프롬프트 `character_simulation.<호출>`)은 Responses 입력의 system 메시지, 입력 JSON은 user 메시지다(이전에는 `instructions` 필드·문자열 input이었고 프롬프트는 같다). 스키마 위반·잘린 JSON·`status != completed`·파싱 결과 없음은 502, 제공사 오류는 503(고정 문구, 제공사 메시지는 담지 않는다), 자동 재시도·fallback은 없고, 사용량은 응답의 `usage_metadata`로 generation과 `MODEL_EVENT`에 같은 값을 남긴다.
 - **추론 강도 기본값은 `low`다**(시뮬레이션 v2, #642): 계획·인물 턴·나레이션·검사 네 호출 모두 `reasoning.effort`를 보낸다. 값은 `SIMULATION_REASONING_EFFORT`(`none|minimal|low|medium|high`, 그 밖은 모델 호출 전 503)이고 비어 있으면 `low`다. 해리 포터 세계관 평가에서 시공간 정확도 0.45 대 0.45(15:15, p=1.0), 장면 p50 10.8→7.9초였다([v2 보고서](../evaluation/simulation-v2.md)). 강제 연출 생략·나레이션 검사 생략·세계관 캐시 스위치는 품질 미측정이라 기본값이 꺼짐이다.
 - **인물 대사 검사의 금지 목록은 줄여서 준다**(#646, [원문 기반 평가](../evaluation/simulation-original.md#8-후보-입력-구성과-채택-규칙)의 V2): `service.check_payload`가 `forbidden`을 검사할 문단과 직전 장면 6줄과 두 글자 조각이 많이 겹치는 `service.FORBIDDEN_LIMIT`(20)개만 모델에 보낸다(원래 순서 유지, 20개 이하면 그대로). 해리 포터 원문 기반 평가 300문항의 같은 문항 짝 비교에서 검사 입력이 1회당 약 4.8만 → 1.1만 토큰으로 77% 줄고 판정 정확도는 통계적으로 같았다. 줄인 범위 밖의 누설은 이 검사가 놓칠 수 있다(서버 규칙 검사 `_problem`은 인칭·되풀이만 본다). 독백·나레이션 검사의 금지 목록은 평가하지 않아 줄이지 않는다(전지적 나레이션 검사는 미공개 설정 전체가 입력이라 따로 크다).
 - 호출 한도(`LOOP_LIMIT`=80)는 장면 한 건의 모델 노드 실행 합계다. 다시 말하기(`redo`)도 한 번씩 센다. 작가가 쓴 메모(`next`+`note`)와 흐름 모드의 비트 전환은 인물 대사 12턴 한도보다 먼저 나레이션을 쓰게 하지만 전체 40턴 안전 한도는 넘지 못한다(그때는 메모를 반영하거나 비트를 넘기지 못하고 `turn_limit`로 멈추며, 마무리 나레이션만 한도에서도 쓴다).

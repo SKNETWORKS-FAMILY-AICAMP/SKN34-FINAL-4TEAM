@@ -15,7 +15,7 @@
 | `hp_build.py` | 장 → 모델 추출 → 정체 정리(영어 이름) → 인물 IDENTITY·SOUL·GOAL → `.data/hp/world.json`(시연 세계관 형식, 서버 한도 안·인물당 관계 상한) · `preview.md` |
 | `hp_traits.py` | SOUL·GOAL 다시 쓰기: 원문 전체의 변하지 않는 면만 쓰게 하는 요청, 반전·결과 금지 낱말(정해 둔 것 + 인물의 뒤 회차에만 나오는 고유명사) 검사 |
 | `hp_seed.py` | `world.json`을 로컬 스택에 배치로 적재하고 다시 실행하면 서버를 world.json과 같게 맞춘다(바뀐 카드·관계 갱신, 줄어든 관계는 종료 연결로 끝냄; `seed.py` 함수 재사용, localhost만, 비밀번호는 환경변수) |
-| `sim_via.py` | `--via ocx`: 로컬 OpenCodex 게이트웨이(구독 경로) 어댑터와 금액 0 장부 |
+| `sim_via.py` | `--via ocx`: 로컬 OpenCodex 게이트웨이(구독 경로)용 채점 어댑터·시뮬레이션 `ChatOpenAI` 대체(`chat`, 429 대기 포함)와 금액 0 장부 |
 | `sim_quality.py` | 품질: 질문 → 운영 인물 턴 경로(`character_view` → `act` → 서버 규칙 → `check` → 재생성) → 공개 기준 채점 |
 | `sim_speed.py` | 속도: 고정 장면을 장면 에이전트로 끝까지 돌려 `UsageLedger` 기록을 집계 단위로 만든다 |
 | `sim_stats.py` | 백분위·품질/속도 집계·표 출력(순수 함수) |

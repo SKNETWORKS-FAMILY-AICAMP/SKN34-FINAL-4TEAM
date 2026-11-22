@@ -36,10 +36,7 @@ class FakeResponses:
 
 class FakeOpenAI:
     def __init__(self, responses):
-        self.responses, self.closed = responses, False
-
-    def close(self):
-        self.closed = True
+        self.responses = responses
 
 
 def test_a_string_input_becomes_a_message_list_and_store_model_are_forced_without_touching_the_original():
@@ -77,13 +74,6 @@ def test_errors_other_than_a_rate_limit_are_not_retried():
     assert waits == [] and len(inner.calls) == 1
 
 
-def test_the_client_works_in_a_with_statement_and_closes_the_inner_client():
-    inner = FakeOpenAI(FakeResponses())
-    with via.Client(inner) as client:
-        assert isinstance(client, via.Client) and not inner.closed
-    assert inner.closed
-
-
 def test_ocx_rows_cost_nothing_and_say_via_so_the_openai_total_and_cap_ignore_them(tmp_path):
     path = tmp_path / 'cost.jsonl'
     paid, free = CostLog(path), via.OcxCostLog(path)
@@ -101,15 +91,51 @@ def test_the_ocx_llm_keeps_the_openai_cache_key_but_sends_the_gateway_model_and_
     assert llm.client._inner.base_url.host == '127.0.0.1' and llm.client._inner.base_url.port == 10100
 
 
-def test_switching_to_ocx_changes_this_process_only_and_hands_the_simulation_agent_the_adapter(monkeypatch):
+def test_switching_to_ocx_changes_this_process_only_and_hands_the_simulation_agent_the_gateway_chat(monkeypatch):
     monkeypatch.setenv('OPENAI_API_KEY', 'sk-real')
     monkeypatch.setenv('OPENAI_BASE_URL', 'https://api.openai.com/v1')
-    monkeypatch.setattr(agent, 'OpenAI', agent.OpenAI)   # 테스트가 끝나면 원래 클래스로 되돌린다
+    monkeypatch.setattr(agent, 'ChatOpenAI', agent.ChatOpenAI)   # 테스트가 끝나면 원래 클래스로 되돌린다
     via.use_ocx()
     import os
-    assert os.environ['OPENAI_BASE_URL'] == via.GATEWAY and os.environ['OPENAI_API_KEY'] == 'ocx'
-    with agent.OpenAI(api_key='ocx', timeout=3, max_retries=0) as client:
-        assert isinstance(client, via.Client) and client._inner.base_url.port == 10100
+    assert os.environ['OPENAI_BASE_URL'] == via.GATEWAY and os.environ['OPENAI_API_KEY'] == 'ocx' and agent.ChatOpenAI is via.chat
+
+
+def fake_chat(monkeypatch, invoke):
+    """sim_via가 만드는 ChatOpenAI 대역: 만든 인자를 목록에 모으고 구조화 출력의 invoke는 주어진 함수다."""
+    made = []
+    monkeypatch.setattr(via, 'ChatOpenAI', lambda **options: made.append(options) or SimpleNamespace(with_structured_output=lambda schema, **kwargs: SimpleNamespace(invoke=invoke)))
+    return made
+
+
+def test_the_ocx_chat_sends_the_gateway_address_model_and_key_whatever_the_service_asked_for(monkeypatch):
+    made = fake_chat(monkeypatch, lambda messages: 'ok')
+    chat = via.chat(model='gpt-5.6-luna', api_key='sk-real', base_url='https://api.openai.com/v1', store=False, max_tokens=5, reasoning={'effort': 'low'})
+    assert chat.with_structured_output(dict, include_raw=True).invoke(['m']) == 'ok'
+    assert made == [{'model': via.MODEL, 'api_key': 'ocx', 'base_url': via.GATEWAY, 'store': False, 'max_tokens': 5, 'reasoning': {'effort': 'low'}}]
+
+
+def test_the_ocx_chat_waits_out_a_rate_limit_like_the_judge_client_and_does_not_retry_other_errors(monkeypatch):
+    outcomes, waits, asked = [rate_limit(), rate_limit(), 'ok'], [], []
+
+    def invoke(messages):
+        asked.append(messages)
+        outcome = outcomes.pop(0)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    fake_chat(monkeypatch, invoke)
+    structured = via.chat(wait=waits.append, model='m').with_structured_output(dict)
+    assert structured.invoke(['x']) == 'ok' and waits == [15, 30] and asked == [['x']] * 3
+    outcomes[:] = [openai.APIConnectionError(request=httpx.Request('POST', 'http://gateway'))]
+    waits.clear()
+    with pytest.raises(openai.APIConnectionError):
+        structured.invoke(['x'])
+    assert waits == []
+    outcomes[:] = [rate_limit() for _ in range(len(via.WAITS) + 1)]
+    with pytest.raises(openai.RateLimitError):
+        structured.invoke(['x'])
+    assert waits == list(via.WAITS) and sum(waits) < 600   # 10분 안에 포기하고 그 오류를 올린다
 
 
 

@@ -204,33 +204,20 @@ DIRECTOR_V2 = (_DIRECTOR_HEAD + '3) 대사 한 줄이 끝나면 그 말에 곁�
 
 
 def _edit_requests(edit):
-    """agent.OpenAI 장식자: responses.parse 인자를 edit(kwargs) -> kwargs로 고친다(평가 전용, 요청 모양만 바꾸고 응답은 그대로 돌려준다)."""
-    def wrap(real_openai):
-        class Client:
-            def __init__(self, **options):
-                self._client = real_openai(**options)
-
-            def __enter__(self):
-                self._client.__enter__()
-                return self
-
-            def __exit__(self, *exc):
-                return self._client.__exit__(*exc)
-
-            @property
-            def responses(self):
-                real = self._client.responses
-                return SimpleNamespace(parse=lambda **kwargs: real.parse(**edit(kwargs)))
-        return Client
+    """agent.ChatOpenAI 장식자: 모델을 만들 때의 인자를 edit(인자, 응답 형식) -> 인자로 고친다(평가 전용, 요청 모양만 바꾸고 응답은 그대로 돌려준다).
+    응답 형식은 호출 이름을 가려내는 열쇠다(Action이 act). 모델은 응답 형식이 정해지는 with_structured_output에서 만든다."""
+    def wrap(real_chat):
+        return lambda **options: SimpleNamespace(
+            with_structured_output=lambda schema, **kwargs: real_chat(**edit(options, schema)).with_structured_output(schema, **kwargs))
     return wrap
 
 
 def act_reasoning(effort: str | None):
-    """act 호출만 reasoning.effort를 바꾼다(E1: 값, E2: None = reasoning 인자를 보내지 않음, v1 요청). 응답 형식이 Action인 요청의 reasoning만 고치고 계획·나레이션·검사는 그대로 둔다."""
-    def edit(kwargs):
-        if kwargs.get('text_format') is not Action:
-            return kwargs
-        return {k: v for k, v in kwargs.items() if k != 'reasoning'} | ({'reasoning': {'effort': effort}} if effort else {})
+    """act 호출만 reasoning.effort를 바꾼다(E1: 값, E2: None = reasoning 인자를 보내지 않음, v1 요청). 응답 형식이 Action인 호출의 reasoning만 고치고 계획·나레이션·검사는 그대로 둔다."""
+    def edit(options, schema):
+        if schema is not Action:
+            return options
+        return {k: v for k, v in options.items() if k != 'reasoning'} | ({'reasoning': {'effort': effort}} if effort else {})
     return _edit_requests(edit)
 
 
@@ -240,8 +227,8 @@ MODEL_CALLS: dict[str, str] = {}      # patched가 채운다: 모델 호출 이�
 
 
 def model_for(model: str):
-    """act·나레이션(응답 형식 Action·Narration) 요청의 모델만 바꾼다(M1). 연출(Decisions)·검사·계획은 OPENAI_MODEL 그대로다."""
-    return _edit_requests(lambda kwargs: {**kwargs, 'model': model} if kwargs.get('text_format') in (Action, Narration) else kwargs)
+    """act·나레이션(응답 형식 Action·Narration) 호출의 모델만 바꾼다(M1). 연출(Decisions)·검사·계획은 OPENAI_MODEL 그대로다."""
+    return _edit_requests(lambda options, schema: {**options, 'model': model} if schema in (Action, Narration) else options)
 
 
 def _director(hints=False, single=False, text=None) -> dict:
@@ -298,5 +285,5 @@ VARIANTS = {'V1': {'1': v1_act, '3n': v1_narrate, '3m': v1_narrate}, 'V2': {'4':
             'D123': _director(hints=True, single=True, text=DIRECTOR_V1), 'D124': _director(hints=True, single=True, text=DIRECTOR_V2),
             'P1': {'patch': ((agent, 'ACT_INSTRUCTIONS', ACT_V1),)}, 'P1b': {'patch': ((agent, 'ACT_INSTRUCTIONS', ACT_V1B),)}, 'P2': {'1': soul_first}, 'P3': {'1': soul_first, 'patch': ((agent, 'ACT_INSTRUCTIONS', ACT_V1),)},
             'N1': {'patch': ((agent, 'NARRATE_INSTRUCTIONS', NARRATE_V1),)}, 'N2': {'patch': ((agent, 'NARRATE_INSTRUCTIONS', NARRATE_V2),)}, 'N3': {'patch': ((agent, 'NARRATE_INSTRUCTIONS', NARRATE_V3),)},
-            'E1': {'wrap': ((agent, 'OpenAI', act_reasoning('medium')),)}, 'E2': {'wrap': ((agent, 'OpenAI', act_reasoning(None)),)},
-            'M1': {'wrap': ((agent, 'OpenAI', model_for(TERRA)),), 'models': (('act', TERRA), ('narrate', TERRA))}}
+            'E1': {'wrap': ((agent, 'ChatOpenAI', act_reasoning('medium')),)}, 'E2': {'wrap': ((agent, 'ChatOpenAI', act_reasoning(None)),)},
+            'M1': {'wrap': ((agent, 'ChatOpenAI', model_for(TERRA)),), 'models': (('act', TERRA), ('narrate', TERRA))}}

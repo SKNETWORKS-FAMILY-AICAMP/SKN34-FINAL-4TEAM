@@ -1,12 +1,12 @@
 import json
-from contextlib import nullcontext
+from functools import partial
 from types import SimpleNamespace
 
+import httpx
 import pytest
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.runnables import RunnableLambda
-from openai import OpenAIError
-from pydantic import ValidationError
+from langchain_openai import ChatOpenAI
 
 from app import tracing
 from app.agent_runtime import MODEL_EVENT
@@ -22,64 +22,88 @@ PLAN = PlanDraft(mode='flow', premise=None, beats=['성문 대면'], characterId
 VERDICT = Verdict(checks=[CheckItem(kind='beat', passed=True, detail='비트를 따랐어요.', refs=[])], beatDone=True, sceneComplete=False)
 SECRET_DOC = {'known': [{'ref': 'k#soul', 'text': 'KAEL-SOUL 말이 짧다'}]}
 
-CALLS = {  # 모델 호출 네 가지: (호출, 응답 형식)
+CALLS = {  # 모델 호출 네 가지: (호출, 응답 형식, 모델이 돌려줄 예)
     'plan': (lambda: agent.plan('카엘과 리나가 성문에서 만나면?', ['이전 요청'], [{'id': 'k', 'name': '카엘'}]), PlanDraft, PLAN),
     'act': (lambda: agent.act(SECRET_DOC), Action, ACTION),
     'narrate': (lambda: agent.narrate(SECRET_DOC), Narration, NARRATION),
     'check': (lambda: agent.check(SECRET_DOC), Verdict, VERDICT),
 }
+LIMITS = {'plan': (1200, 40), 'act': (1500, 60), 'narrate': (1500, 60), 'check': (1500, 60)}  # 호출별 (최대 출력 토큰, timeout 초)
+BY_SCHEMA = {schema.__name__: parsed for _, schema, parsed in CALLS.values()}
+FIXED_502 = '시뮬레이션 모델 응답을 확인할 수 없습니다.'
+FIXED_503 = '시뮬레이션 모델 호출에 실패했습니다.'
 
 
-def provider(monkeypatch, parse):
+def reply(text=None, status='completed', usage=True, output=None, **extra):
+    """Responses API 응답 본문. text가 있으면 output_text 하나이고, usage가 참이면 입력 10·출력 4토큰을 담는다."""
+    content = [{'type': 'output_text', 'text': text, 'annotations': []}] if text is not None else []
+    message = {'id': 'msg_1', 'type': 'message', 'role': 'assistant', 'status': 'completed', 'content': content}
+    counts = {'input_tokens': 10, 'output_tokens': 4, 'total_tokens': 14, 'input_tokens_details': {'cached_tokens': 0}, 'output_tokens_details': {'reasoning_tokens': 0}}
+    return {'id': 'resp_1', 'object': 'response', 'created_at': 0, 'status': status, 'model': 'resolved-model', 'output': output or ([message] if content else []),
+            **({'usage': counts} if usage else {}), **extra}
+
+
+def ok(parsed) -> httpx.Response:
+    return httpx.Response(200, json=reply(parsed.model_dump_json()))
+
+
+def provider(monkeypatch, respond=None):
+    """ChatOpenAI는 실제 클래스를 쓰고 HTTP만 대역으로 막는다(네트워크 없음). respond(요청 본문) -> httpx.Response, 없으면 요청한 응답 형식의 예를 돌려준다.
+    받은 요청마다 경로·본문·timeout·인증 머리글을 담은 목록을 돌려준다."""
     monkeypatch.setenv('OPENAI_API_KEY', 'test-key')
     monkeypatch.setenv('OPENAI_MODEL', 'test-model')
-    monkeypatch.setattr(agent, 'OpenAI', lambda **_: nullcontext(SimpleNamespace(responses=SimpleNamespace(parse=parse))))
+    sent = []
+
+    def handler(request):
+        body = json.loads(request.content)
+        sent.append(SimpleNamespace(path=request.url.path, body=body, timeout=request.extensions['timeout']['read'], auth=request.headers.get('authorization')))
+        return respond(body) if respond else ok(BY_SCHEMA[body['text']['format']['name']])
+
+    monkeypatch.setattr(agent, 'ChatOpenAI', partial(ChatOpenAI, http_client=httpx.Client(transport=httpx.MockTransport(handler))))
+    return sent
 
 
-def completed(parsed):
-    return SimpleNamespace(status='completed', output_parsed=parsed, model='resolved-model',
-                           usage=SimpleNamespace(input_tokens=10, output_tokens=4))
+def texts(request) -> tuple[str, str]:
+    """요청 입력의 (system 메시지, user 메시지) 본문."""
+    system, user = request.body['input']
+    assert (system['role'], user['role']) == ('system', 'user')
+    return system['content'], user['content']
 
 
 @pytest.mark.parametrize('name', CALLS)
 def test_each_call_is_one_stateless_structured_output_request(monkeypatch, name):
-    call, text_format, parsed = CALLS[name]
-    seen = []
-
-    def parse(**kwargs):
-        seen.append(kwargs)
-        return completed(parsed)
-
-    provider(monkeypatch, parse)
+    call, schema, parsed = CALLS[name]
+    sent = provider(monkeypatch)
     assert call() == parsed
-    assert len(seen) == 1
-    kwargs = seen[0]
+    [request] = sent  # 자동 재시도 없음: 호출 하나가 요청 하나다
+    body, (tokens, timeout) = request.body, LIMITS[name]
+    assert request.path == '/v1/responses' and request.auth == 'Bearer test-key' and request.timeout == timeout  # Responses API
     # 이전 호출의 대화 상태를 이어받지 않는다: 저장(store)도, 이전 응답 id도 없다.
-    assert kwargs['store'] is False and 'previous_response_id' not in kwargs
-    assert kwargs['text_format'] is text_format and kwargs['model'] == 'test-model'
-    assert kwargs['instructions'] and kwargs['input']
+    assert body['store'] is False and 'previous_response_id' not in body
+    assert body['model'] == 'test-model' and body['max_output_tokens'] == tokens
+    assert {k: body['text']['format'][k] for k in ('type', 'strict', 'name')} == {'type': 'json_schema', 'strict': True, 'name': schema.__name__}  # 제공사 strict JSON schema
+    assert all(texts(request))  # 지시문과 입력이 비어 있지 않다
 
 
 def test_plan_input_is_the_request_history_and_character_names_only(monkeypatch):
-    seen = {}
-    provider(monkeypatch, lambda **kwargs: seen.update(kwargs) or completed(PLAN))
+    sent = provider(monkeypatch)
     agent.plan('카엘과 리나가 성문에서 만나면?', ['이전 요청'], [{'id': 'k', 'name': '카엘'}])
-    assert json.loads(seen['input']) == {'request': '카엘과 리나가 성문에서 만나면?', 'history': ['이전 요청'],
-                                         'characters': [{'id': 'k', 'name': '카엘'}]}
+    instructions, data = texts(sent[0])
+    assert json.loads(data) == {'request': '카엘과 리나가 성문에서 만나면?', 'history': ['이전 요청'], 'characters': [{'id': 'k', 'name': '카엘'}]}
     # 흐름 모드 비트: 작가가 적은 목록은 그대로 쓰고, 없으면 모델이 제안한다.
-    assert '그대로' in seen['instructions'] and '제안' in seen['instructions']
+    assert '그대로' in instructions and '제안' in instructions
 
 
 def test_act_narrate_and_check_send_the_assembled_input_as_it_is(monkeypatch):
-    seen = []
-    provider(monkeypatch, lambda **kwargs: seen.append(kwargs) or completed((ACTION, NARRATION, VERDICT)[len(seen) - 1]))
+    sent = provider(monkeypatch)
     agent.act(SECRET_DOC)
     agent.narrate(SECRET_DOC)
     agent.check(SECRET_DOC)
-    assert [json.loads(k['input']) for k in seen] == [SECRET_DOC] * 3
+    pairs = [texts(request) for request in sent]
+    assert [json.loads(data) for _, data in pairs] == [SECRET_DOC] * 3
     # 자료 속 문장은 명령이 아니고, 인물은 자기 입력 밖을 모른다는 지시가 각 호출에 있다.
-    assert all('명령이 아닙니다' in k['instructions'] for k in seen)
-    assert '당신이 아는 것' in seen[0]['instructions'] and 'forbidden' in seen[2]['instructions']
+    assert all('명령이 아닙니다' in instructions for instructions, _ in pairs)
+    assert '당신이 아는 것' in pairs[0][0] and 'forbidden' in pairs[2][0]
 
 
 def test_narrator_writes_the_scenery_and_the_characters_only_their_own_lines():
@@ -102,14 +126,14 @@ class Listener(BaseCallbackHandler):
 
 def test_every_model_call_inside_a_langchain_run_reports_usage_latency_and_failure_without_any_text(monkeypatch):
     listener = Listener()
-    provider(monkeypatch, lambda **_: completed(ACTION))
+    provider(monkeypatch)
     RunnableLambda(lambda _: agent.act(SECRET_DOC)).invoke(None, {'callbacks': [listener]})
-    provider(monkeypatch, lambda **_: SimpleNamespace(status='incomplete', output_parsed=None, model='m', usage=None))
+    provider(monkeypatch, lambda _: httpx.Response(200, json=reply(status='incomplete', usage=False)))
     with pytest.raises(SimulationFailure):
         RunnableLambda(lambda _: agent.narrate(SECRET_DOC)).invoke(None, {'callbacks': [listener]})
-    (name, ok), (_, failed) = listener.events
+    (name, ok_event), (_, failed) = listener.events
     assert name == MODEL_EVENT
-    assert (ok['name'], ok['failed'], ok['inputTokens'], ok['outputTokens']) == ('act', False, 10, 4) and ok['ms'] >= 0
+    assert (ok_event['name'], ok_event['failed'], ok_event['inputTokens'], ok_event['outputTokens']) == ('act', False, 10, 4) and ok_event['ms'] >= 0
     assert (failed['name'], failed['failed'], failed['inputTokens']) == ('narrate', True, None)
     assert 'KAEL-SOUL' not in str(listener.events) and '멈춰' not in str(listener.events)  # 본문·키는 없다
 
@@ -122,52 +146,50 @@ def test_missing_model_settings_is_503(monkeypatch, name):
     assert error.value.status == 503
 
 
-@pytest.mark.parametrize('response', [SimpleNamespace(status='incomplete', output_parsed=None),
-                                      SimpleNamespace(status='completed', output_parsed=None)])
-def test_incomplete_or_empty_model_response_is_502(monkeypatch, response):
-    provider(monkeypatch, lambda **_: response)
+def refusal() -> dict:
+    return reply(output=[{'id': 'msg_1', 'type': 'message', 'role': 'assistant', 'status': 'completed', 'content': [{'type': 'refusal', 'refusal': 'KAEL-SOUL 거절 문구'}]}])
+
+
+UNUSABLE = {  # 응답을 받았지만 쓸 수 없는 경우
+    'incomplete-without-output': reply(status='incomplete', incomplete_details={'reason': 'max_output_tokens'}),
+    'truncated-by-the-token-limit': reply('{"prose": "카엘이 말', status='incomplete', incomplete_details={'reason': 'max_output_tokens'}),
+    'incomplete-even-if-the-json-parses': reply(ACTION.model_dump_json(), status='incomplete', incomplete_details={'reason': 'max_output_tokens'}),
+    'not-json': reply('JSON이 아니다'),
+    'provider-reports-an-error': reply(status='failed', error={'code': 'server_error', 'message': 'KAEL-SOUL 제공사 메시지'}),
+    'refusal': refusal(),
+}
+
+
+@pytest.mark.parametrize('body', UNUSABLE.values(), ids=UNUSABLE)
+def test_an_incomplete_unparseable_or_refused_model_response_is_502_with_the_fixed_message(monkeypatch, body):
+    provider(monkeypatch, lambda _: httpx.Response(200, json=body))
     with pytest.raises(SimulationFailure) as error:
         agent.act(SECRET_DOC)
-    assert error.value.status == 502
+    assert (error.value.status, str(error.value)) == (502, FIXED_502) and 'KAEL' not in str(error.value)
 
 
-def test_unparseable_model_response_is_502(monkeypatch):
-    with pytest.raises(ValidationError) as invalid:
-        Action.model_validate({})
-
-    def parse(**_):
-        raise invalid.value
-
-    provider(monkeypatch, parse)
+@pytest.mark.parametrize('status', [500, 429, 401, 400])
+def test_provider_failure_is_503_and_keeps_the_provider_text_out_of_the_message(monkeypatch, status):
+    sent = provider(monkeypatch, lambda _: httpx.Response(status, json={'error': {'message': 'KAEL-SOUL 본문이 담긴 제공사 메시지', 'type': 'x'}}))
     with pytest.raises(SimulationFailure) as error:
         agent.act(SECRET_DOC)
-    assert error.value.status == 502
-
-
-def test_provider_failure_is_503_and_keeps_the_provider_text_out_of_the_message(monkeypatch):
-    def parse(**_):
-        raise OpenAIError('KAEL-SOUL 본문이 담긴 제공사 메시지')
-
-    provider(monkeypatch, parse)
-    with pytest.raises(SimulationFailure) as error:
-        agent.act(SECRET_DOC)
-    assert error.value.status == 503 and 'KAEL' not in str(error.value)
+    assert (error.value.status, str(error.value)) == (503, FIXED_503) and 'KAEL' not in str(error.value)
+    assert len(sent) == 1  # 429·500도 자동으로 다시 보내지 않는다
 
 
 def test_generation_trace_has_model_usage_and_failure_but_no_character_documents(monkeypatch, spans):
-    provider(monkeypatch, lambda **_: completed(ACTION))
+    provider(monkeypatch)
     agent.act(SECRET_DOC)
-    provider(monkeypatch, lambda **_: SimpleNamespace(status='incomplete', output_parsed=None, model='m', usage=None))
+    provider(monkeypatch, lambda _: httpx.Response(200, json=reply(status='incomplete', usage=False)))
     with pytest.raises(SimulationFailure):
         agent.act(SECRET_DOC)
-    ok, failed = spans()
-    assert ok.name == 'simulation.act' and ok.attributes['langfuse.observation.type'] == 'generation'
-    assert ok.attributes['langfuse.observation.model.name'] == 'resolved-model'
-    assert ok.attributes['langfuse.observation.usage_details'] == '{"input": 10, "output": 4}'
+    ok_span, failed = spans()
+    assert ok_span.name == 'simulation.act' and ok_span.attributes['langfuse.observation.type'] == 'generation'
+    assert ok_span.attributes['langfuse.observation.model.name'] == 'resolved-model'
+    assert ok_span.attributes['langfuse.observation.usage_details'] == '{"input": 10, "output": 4}'
     assert failed.attributes['langfuse.observation.level'] == 'ERROR'
     # 설정 본문·생성 문단은 팀 결정 범위(질문·원고·답변) 밖이라 추적에 남기지 않는다.
-    assert all('KAEL-SOUL' not in str(dict(s.attributes)) and '멈춰' not in str(dict(s.attributes)) for s in (ok, failed))
-
+    assert all('KAEL-SOUL' not in str(dict(s.attributes)) and '멈춰' not in str(dict(s.attributes)) for s in (ok_span, failed))
 
 
 DEFAULTS = {'plan': prompt.PLAN_INSTRUCTIONS, 'act': prompt.ACT_INSTRUCTIONS, 'narrate': prompt.NARRATE_INSTRUCTIONS,
@@ -177,14 +199,14 @@ DEFAULTS = {'plan': prompt.PLAN_INSTRUCTIONS, 'act': prompt.ACT_INSTRUCTIONS, 'n
 @pytest.mark.parametrize('name', CALLS)
 def test_each_call_uses_its_managed_prompt_and_the_generation_links_that_version(monkeypatch, spans, name):
     call, _, parsed = CALLS[name]
-    seen, asked = {}, []
-    provider(monkeypatch, lambda **kwargs: seen.update(kwargs) or completed(parsed))
+    asked = []
+    sent = provider(monkeypatch)
     version = SimpleNamespace(name=f'character_simulation.{name}', version=2, is_fallback=False)
     monkeypatch.setattr(tracing, 'prompt', lambda n, default: asked.append((n, default)) or tracing.Prompt('관리된 지시', version))
 
     call()
 
-    assert asked == [(f'character_simulation.{name}', DEFAULTS[name])] and seen['instructions'] == '관리된 지시'
+    assert asked == [(f'character_simulation.{name}', DEFAULTS[name])] and texts(sent[0])[0] == '관리된 지시'
     [span] = spans()
     found = attrs(span)
     assert span.name == f'simulation.{name}'
@@ -193,8 +215,7 @@ def test_each_call_uses_its_managed_prompt_and_the_generation_links_that_version
 
 @pytest.mark.parametrize('name', CALLS)
 def test_an_unavailable_prompt_is_a_503_before_the_model_call(monkeypatch, name):
-    called = []
-    provider(monkeypatch, lambda **kwargs: called.append(kwargs))
+    sent = provider(monkeypatch)
 
     def unavailable(n, default):
         raise tracing.PromptUnavailable
@@ -202,7 +223,7 @@ def test_an_unavailable_prompt_is_a_503_before_the_model_call(monkeypatch, name)
     monkeypatch.setattr(tracing, 'prompt', unavailable)
     with pytest.raises(SimulationFailure) as error:
         CALLS[name][0]()
-    assert (error.value.status, str(error.value)) == (503, '시뮬레이션 프롬프트를 불러올 수 없습니다.') and called == []
+    assert (error.value.status, str(error.value)) == (503, '시뮬레이션 프롬프트를 불러올 수 없습니다.') and sent == []
 
 
 # --- 추론 강도 스위치(#642) -------------------------------------------------------------------------------------------------
@@ -213,24 +234,20 @@ EFFORTS = ('none', 'minimal', 'low', 'medium', 'high')
 @pytest.mark.parametrize('name', CALLS)
 @pytest.mark.parametrize('value', [None, '', '  '])
 def test_without_the_effort_switch_every_call_sends_low_effort(monkeypatch, name, value):
-    call, _, parsed = CALLS[name]
-    seen = []
-    provider(monkeypatch, lambda **kwargs: seen.append(kwargs) or completed(parsed))
+    sent = provider(monkeypatch)
     if value is not None:
         monkeypatch.setenv('SIMULATION_REASONING_EFFORT', value)
-    call()
-    assert len(seen) == 1 and seen[0]['reasoning'] == {'effort': 'low'}  # 시뮬레이션 v2 기본값(빈 값 포함)
+    CALLS[name][0]()
+    assert len(sent) == 1 and sent[0].body['reasoning'] == {'effort': 'low'}  # 시뮬레이션 v2 기본값(빈 값 포함)
 
 
 @pytest.mark.parametrize('name', CALLS)
 @pytest.mark.parametrize('effort', EFFORTS)
 def test_the_effort_switch_is_sent_as_reasoning_effort_on_every_call(monkeypatch, name, effort):
-    call, _, parsed = CALLS[name]
-    seen = []
-    provider(monkeypatch, lambda **kwargs: seen.append(kwargs) or completed(parsed))
+    sent = provider(monkeypatch)
     monkeypatch.setenv('SIMULATION_REASONING_EFFORT', effort)
-    call()
-    assert seen[0]['reasoning'] == {'effort': effort}
+    CALLS[name][0]()
+    assert sent[0].body['reasoning'] == {'effort': effort}
 
 
 @pytest.mark.parametrize('name', CALLS)
@@ -240,7 +257,7 @@ def test_an_effort_outside_the_five_openai_values_is_a_503_before_any_model_call
     monkeypatch.setenv('OPENAI_API_KEY', 'test-key')
     monkeypatch.setenv('OPENAI_MODEL', 'test-model')
     monkeypatch.setenv('SIMULATION_REASONING_EFFORT', effort)
-    monkeypatch.setattr(agent, 'OpenAI', lambda **_: built.append(1))
+    monkeypatch.setattr(agent, 'ChatOpenAI', lambda **_: built.append(1))
     with pytest.raises(SimulationFailure) as error:
         CALLS[name][0]()
     assert (error.value.status, str(error.value)) == (503, '시뮬레이션 추론 강도 설정을 확인해 주세요.') and built == []

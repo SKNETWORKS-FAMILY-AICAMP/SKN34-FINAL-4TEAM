@@ -1,5 +1,7 @@
 """인물 시뮬레이션 모델 호출: 계획·인물 턴·나레이션·검사를 각각 Structured Outputs 1회로 요청한다.
 
+호출은 업무 Agent(app/agent_runtime.py)와 같은 `langchain-openai`의 `ChatOpenAI`(Responses API, store=False, 자동 재시도 없음)이고 구조화 출력은
+제공사 strict JSON schema(`with_structured_output(method='json_schema', strict=True)`)다. 지시문은 system 메시지, 입력 JSON은 user 메시지로 보낸다.
 호출마다 새 입력만 보낸다(store=False, 이전 응답 id 없음). 그래서 한 인물의 입력과 모델 대화 상태가 다음 인물에게 이어지지 않는다.
 키·모델은 호출 시 읽고(OPENAI_API_KEY·OPENAI_MODEL), 제공사 실패·불완전 응답은 고정 문구의 SimulationFailure로 바꾼다.
 추적에는 모델·사용량·실패만 남긴다. 설정 문서·생성 문단은 팀 결정 범위(질문·원고·답변) 밖이라 남기지 않는다.
@@ -12,8 +14,10 @@ import os
 import time
 
 from langchain_core.callbacks import dispatch_custom_event
-from openai import OpenAI, OpenAIError
-from pydantic import BaseModel, ValidationError
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+from openai import OpenAIError
+from pydantic import BaseModel
 
 from app import tracing
 from app.agent_runtime import MODEL_EVENT
@@ -26,6 +30,7 @@ EFFORT = 'SIMULATION_REASONING_EFFORT'
 EFFORTS = ('none', 'minimal', 'low', 'medium', 'high')  # OpenAI reasoning.effort 값 그대로. 그 밖은 설정 오류다
 BAD_EFFORT = '시뮬레이션 추론 강도 설정을 확인해 주세요.'
 DEFAULT_EFFORT = 'low'  # 시뮬레이션 v2 기본값
+UNUSABLE = '시뮬레이션 모델 응답을 확인할 수 없습니다.'
 
 
 def plan(request: str, history: list[str], characters: list[dict]) -> PlanDraft:
@@ -61,35 +66,35 @@ def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel
     except tracing.PromptUnavailable:
         raise SimulationFailure(503, PROMPT_UNAVAILABLE) from None
     started, usage = time.monotonic(), None
+    structured = ChatOpenAI(model=model, api_key=key, use_responses_api=True, store=False, max_tokens=max_tokens, timeout=timeout, max_retries=0,
+                            reasoning={'effort': effort}).with_structured_output(text_format, method='json_schema', strict=True, include_raw=True)
     try:
-        with OpenAI(api_key=key, timeout=timeout, max_retries=0) as client, \
-                tracing.observe(f'simulation.{name}', as_type='generation', model=model, prompt=managed.client) as generation:
+        with tracing.observe(f'simulation.{name}', as_type='generation', model=model, prompt=managed.client) as generation:
             try:
-                result = client.responses.parse(
-                    model=model, store=False, max_output_tokens=max_tokens, text_format=text_format,
-                    instructions=managed.text, input=json.dumps(data, ensure_ascii=False),
-                    reasoning={'effort': effort})
-            except ValidationError:
-                raise SimulationFailure(502, '시뮬레이션 모델 응답을 확인할 수 없습니다.') from None
+                out = structured.invoke([SystemMessage(managed.text), HumanMessage(json.dumps(data, ensure_ascii=False))])
+            # 스키마 위반·잘린 JSON(pydantic ValidationError는 ValueError)과 langchain-openai가 응답의 error를 올리는 ValueError는 쓸 수 없는 응답이다.
+            except ValueError:
+                raise SimulationFailure(502, UNUSABLE) from None
             except OpenAIError:
                 raise SimulationFailure(503, '시뮬레이션 모델 호출에 실패했습니다.') from None
-            usage = getattr(result, 'usage', None)
-            generation.update(model=getattr(result, 'model', model),
-                              usage_details=usage and {'input': usage.input_tokens, 'output': usage.output_tokens})
-            if result.status != 'completed' or result.output_parsed is None:
-                raise SimulationFailure(502, '시뮬레이션 모델 응답을 확인할 수 없습니다.')
+            raw, parsed = out['raw'], out['parsed']
+            usage = raw.usage_metadata
+            generation.update(model=raw.response_metadata.get('model_name', model),
+                              usage_details=usage and {'input': usage['input_tokens'], 'output': usage['output_tokens']})
+            if raw.response_metadata.get('status') != 'completed' or parsed is None:
+                raise SimulationFailure(502, UNUSABLE)
     except SimulationFailure:
         _report(name, started, usage, failed=True)
         raise
     _report(name, started, usage, failed=False)
-    return result.output_parsed
+    return parsed
 
 
-def _report(name: str, started: float, usage, failed: bool) -> None:
-    """호출 하나의 지연·토큰·실패를 LangChain 콜백에 알린다(본문·키는 없다). LangChain 실행 밖이면 알릴 곳이 없어 건너뛴다."""
+def _report(name: str, started: float, usage: dict | None, failed: bool) -> None:
+    """호출 하나의 지연·토큰·실패를 LangChain 콜백에 알린다(본문·키는 없다). usage는 응답의 usage_metadata다. LangChain 실행 밖이면 알릴 곳이 없어 건너뛴다."""
     try:
         dispatch_custom_event(MODEL_EVENT, {
             'name': name, 'ms': round((time.monotonic() - started) * 1000), 'failed': failed,
-            'inputTokens': getattr(usage, 'input_tokens', None), 'outputTokens': getattr(usage, 'output_tokens', None)})
+            'inputTokens': usage and usage['input_tokens'], 'outputTokens': usage and usage['output_tokens']})
     except RuntimeError:
         pass

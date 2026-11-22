@@ -24,6 +24,17 @@ def test_the_ocx_cost_counts_only_the_director_calls_that_still_go_to_openai():
     assert cost.rows == [('director', 300, 5, {'failed': False})] and ocx.spent() == 1.25
 
 
+def test_ocx_generation_hands_the_simulation_agent_the_gateway_chat_and_leaves_the_environment_alone(monkeypatch):
+    import os
+
+    import sim_via
+    from app.simulation import agent
+    monkeypatch.setattr(agent, 'ChatOpenAI', agent.ChatOpenAI)   # 테스트가 끝나면 원래 클래스로 되돌린다
+    before = dict(os.environ)
+    c.use_ocx_for_generation()
+    assert agent.ChatOpenAI is sim_via.chat and dict(os.environ) == before   # 연출(Decisions)은 환경 그대로 OpenAI API로 간다
+
+
 def test_records_and_grades_live_side_by_side_per_condition_and_route_and_plus_is_a_safe_file_name():
     assert c.records_path('P1+N3', 'ocx').name == 'P1_N3-ocx.jsonl' and c.grades_path('P1+N3', 'ocx').name == 'P1_N3-ocx.grades.jsonl'
     assert c.records_path('v4', 'openai').parent == c.records_path('base', 'ocx').parent

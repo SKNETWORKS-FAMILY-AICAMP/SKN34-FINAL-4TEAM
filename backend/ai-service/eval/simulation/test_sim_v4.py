@@ -122,7 +122,7 @@ def models(monkeypatch):
                           fail_acts=(), refuse=(), seen={})
 
     def report(name, tin, tout):
-        agent._report(name, time.monotonic() - 0.02, SimpleNamespace(input_tokens=tin, output_tokens=tout), failed=False)
+        agent._report(name, time.monotonic() - 0.02, {'input_tokens': tin, 'output_tokens': tout}, failed=False)
 
     def note(name):
         with log.lock:
