@@ -27,7 +27,8 @@ const open = async (saved: WritingMode | null, { world = true }: { world?: boole
   return { useCase, onSaved, onOpenWorld, select, save: screen.getByRole('button', { name: '집필 방식 저장' }) }
 }
 const TITLE = 'AI 자율 집필로 저장할까요?'
-const MESSAGE = 'AI 자율 집필은 인물 설정을 바탕으로 AI가 회차를 씁니다. 세계관·설정집에 인물 카드(성격·말투·목표·관계)를 꼭 작성해 주세요.'
+// 계약 'AI 자율 집필 선택 경고': 회차 집필이 연결된 세계관의 인물 카드로 인물 시뮬레이션을 돌리므로 없으면 회차 실행이 실패한다.
+const MESSAGE = 'AI 자율 집필은 연결된 세계관의 인물 카드로 인물 시뮬레이션을 돌려 회차를 씁니다. 세계관을 연결하고 인물 카드(성격·말투·목표·관계)를 꼭 작성해 주세요. 없으면 회차 실행이 실패해요.'
 const dialog = () => screen.getByRole('alertdialog', { name: TITLE })
 const choose = (select: HTMLElement, mode: WritingMode) => fireEvent.change(select, { target: { value: mode } })
 
