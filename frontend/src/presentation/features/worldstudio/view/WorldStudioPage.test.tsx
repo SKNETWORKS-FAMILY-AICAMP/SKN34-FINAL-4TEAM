@@ -3750,3 +3750,27 @@ it('다른 곳에서 바뀐 세계관을 다시 읽으면 열어 둔 카드 편�
   expect(body().value).toBe('다른 곳에서 바뀐 글')
   expect(mcp.watch).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: false }))
 })
+
+// ── 원고로 세계관을 만들거나 업데이트할 때 남는 '확인 필요'(서버 semanticMetadata.manuscriptBuild.needsReview → 카드의 needsReview) ──
+const needsReview = (row: StudioSetting): StudioSetting => ({ ...row, needsReview: true })
+
+it('확인 필요로 남은 카드에만 게시판 제목 옆에 확인 필요 칩이 붙는다', async () => {
+  await show([needsReview(place('항구')), place('마을')])
+  expect(todos('항구')).toEqual(['확인 필요'])
+  expect(todos('마을')).toEqual([])
+})
+
+it('설정 편집 화면 레일에서도 확인 필요 카드의 항목에만 칩이 붙고 읽는 이름에도 들어간다', async () => {
+  await show([needsReview(place('항구')), place('마을')])
+  openCard('항구 장소')
+  expect(rail().getByRole('button', { name: '항구 장소 확인 필요' }).textContent).toContain('확인 필요')
+  expect(rail().getByRole('button', { name: '마을 장소' }).textContent).not.toContain('확인 필요')
+})
+
+it('확인 필요 카드를 고쳐도 확인 필요 칩은 그대로 남는다', async () => {
+  await show([needsReview(place('항구'))])
+  openCard('항구 장소')
+  fireEvent.change(editor().getByRole('textbox', { name: '설정 이름' }), { target: { value: '큰 항구' } })
+  backToBoard()
+  expect(todos('큰 항구')).toEqual(['확인 필요'])
+})

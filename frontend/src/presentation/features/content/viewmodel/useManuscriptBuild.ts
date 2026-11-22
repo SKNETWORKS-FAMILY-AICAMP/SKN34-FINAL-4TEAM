@@ -1,5 +1,6 @@
 import {useCallback,useEffect,useRef,useState} from 'react'
 import {appContainer} from '../../../../app/appContainer'
+import {worldBuildBadge} from '../../../../domain/entities/manuscriptBuild'
 import type {ManuscriptBuild} from '../../../../domain/repositories/ManuscriptBuildRepository'
 import type {ManuscriptBuildUseCase} from '../../../../domain/usecases/ManuscriptBuildUseCase'
 export function useManuscriptBuild(workId:string,worldId:string|null|undefined,useCase:ManuscriptBuildUseCase=appContainer.resolve('manuscriptBuildUseCase')){
@@ -19,8 +20,9 @@ export function useManuscriptBuild(workId:string,worldId:string|null|undefined,u
  },[useCase,workId,worldId,failedWorld,consent])
  // 최초 조회만 자동 실행한다. 화면 진입/업로드/새로고침으로 POST하지 않는다.
  useEffect(()=>{setJob(null);setConsent(false);setReady(false);void run('read');return()=>{active.current?.abort();active.current=null}},[workId,useCase]) // eslint-disable-line react-hooks/exhaustive-deps
+ // 최초 구축이나 발행 회차 업데이트가 진행 중인 동안(배지가 보이는 동안)만 2초마다 다시 읽는다.
  useEffect(()=>{
-  if(busy||error||!job||!['queued','running','loading'].includes(job.status))return
+  if(busy||error||!worldBuildBadge(job))return
   const timer=setTimeout(()=>void run('read',true),2000);return()=>clearTimeout(timer)
  },[busy,error,job,run])
  return {job,consent,setConsent,error,ready,busy,refresh:()=>run('read'),start:()=>run('start'),startNew:()=>run('startNew'),resume:()=>run('resume')}

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { publicationActionLabel, savedVersionLabel, type Version, type Work } from '../../../../domain/entities/content'
+import { worldBuildBadge } from '../../../../domain/entities/manuscriptBuild'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { Go } from '../../../shared/Go'
 import { Branch } from '../../../shared/icons'
@@ -328,15 +329,15 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
 }
 
 /**
- * 공개 회차 머리의 '세계관 추출 중' 배지다(initial-build-storage-contract). 세계관 탭 패널과 같은 `useManuscriptBuild`의 조회·2초 갱신을 그대로 쓰되 진행 중(queued·running·loading)일 때만 보인다.
+ * 공개 회차 머리의 '세계관 추출 중'·'세계관 업데이트 중' 배지다(initial-build-storage-contract). 세계관 탭 패널과 같은 `useManuscriptBuild`의 조회·2초 갱신을 그대로 쓰되 진행 중(queued·running·loading)일 때만 보인다.
+ * 최초 구축이 먼저이고(둘 다 진행 중이면 '세계관 추출 중'), 발행 회차 업데이트(`job.update`)는 그다음이다(판정은 `worldBuildBadge`).
  * 작업 없음(404)·끝난 작업·조회 실패는 그리지 않는다: 실패를 완료나 진행 중으로 보이지 않고 오류는 패널이 보인다.
  * ponytail: 진행 중 조회가 한 번 실패하면 배지는 사라지고 탭을 옮기거나 새로 고칠 때까지 다시 읽지 않는다. 재시도·알림 연동은 후속.
  */
 function WorldBuildBadge({ work }: { work: Pick<Work, 'id' | 'worldStudioId'> }) {
   const { job, error } = useManuscriptBuild(work.id, work.worldStudioId)
-  return !error && job && ['queued', 'running', 'loading'].includes(job.status)
-    ? <div className='ep-notes'><p><span className='chip wait'>세계관 추출 중</span></p></div>
-    : null
+  const label = error ? null : worldBuildBadge(job)
+  return label ? <div className='ep-notes'><p><span className='chip wait'>{label}</span></p></div> : null
 }
 
 /**
