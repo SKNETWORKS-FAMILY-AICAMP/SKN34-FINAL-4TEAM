@@ -1,0 +1,256 @@
+{
+  "comparisons": {
+    "v4 vs P1+N3": {
+      "completed": {
+        "a": 8,
+        "b": 5,
+        "na": 8,
+        "nb": 8,
+        "p": 0.19999999999999973
+      },
+      "metrics": {
+        "calls": {
+          "diff": -3.75,
+          "p": 0.5153242337883106
+        },
+        "costUsd": {
+          "diff": 0.004959125000000009,
+          "p": 0.6909654517274136
+        },
+        "elapsedMs": {
+          "diff": -17644.5,
+          "p": 0.03444827758612069
+        },
+        "firstTurnMs": {
+          "diff": 7190.0,
+          "p": 9.99950002499875e-05
+        },
+        "follows": {
+          "diff": null,
+          "p": null
+        },
+        "leakShare": {
+          "diff": null,
+          "p": null
+        },
+        "overall": {
+          "diff": null,
+          "p": null
+        },
+        "plan": {
+          "diff": null,
+          "p": null
+        },
+        "retryShare": {
+          "diff": 0.022321428571428575,
+          "p": 0.6380180990950453
+        },
+        "serialSteps": {
+          "diff": -14.25,
+          "p": 9.99950002499875e-05
+        },
+        "tokensIn": {
+          "diff": 18842.125,
+          "p": 0.7553122343882805
+        },
+        "tokensOut": {
+          "diff": 992.25,
+          "p": 0.0735963201839908
+        },
+        "voice": {
+          "diff": null,
+          "p": null
+        },
+        "voiceDrift": {
+          "diff": null,
+          "p": null
+        }
+      }
+    }
+  },
+  "conditions": {
+    "P1+N3": {
+      "calls": {
+        "mean": 18,
+        "p50": 15,
+        "p95": 44
+      },
+      "completed": {
+        "ci": [
+          0.6755843804891231,
+          1.0
+        ],
+        "k": 8,
+        "n": 8,
+        "rate": 1.0
+      },
+      "costUsd": {
+        "mean": 0.037555824999999994,
+        "p50": 0.037503400000000006,
+        "p95": 0.08179759999999998
+      },
+      "elapsedMs": {
+        "mean": 35405,
+        "p50": 32154,
+        "p95": 83713
+      },
+      "firstTurnMs": {
+        "mean": 3601.625,
+        "p50": 2865,
+        "p95": 6083
+      },
+      "graded": 0,
+      "leakTurnRate": null,
+      "mean": {
+        "follows": {
+          "ci": null,
+          "mean": null,
+          "n": 0
+        },
+        "overall": {
+          "ci": null,
+          "mean": null,
+          "n": 0
+        },
+        "plan": {
+          "ci": null,
+          "mean": null,
+          "n": 0
+        },
+        "voice": {
+          "ci": null,
+          "mean": null,
+          "n": 0
+        },
+        "voiceDrift": {
+          "ci": null,
+          "mean": null,
+          "n": 0
+        }
+      },
+      "n": 8,
+      "repeatRate": 0.0,
+      "retryRate": 0.038461538461538464,
+      "serialSteps": {
+        "mean": 18,
+        "p50": 15,
+        "p95": 44
+      },
+      "stops": {},
+      "tokensIn": {
+        "mean": 176939.375,
+        "p50": 180755,
+        "p95": 382126
+      },
+      "tokensOut": {
+        "mean": 1806.625,
+        "p50": 1282,
+        "p95": 4477
+      },
+      "turns": {
+        "mean": 6.5,
+        "p50": 5,
+        "p95": 16
+      }
+    },
+    "v4": {
+      "calls": {
+        "mean": 14.25,
+        "p50": 15,
+        "p95": 19
+      },
+      "completed": {
+        "ci": [
+          0.30573785458380187,
+          0.863158240538479
+        ],
+        "k": 5,
+        "n": 8,
+        "rate": 0.625
+      },
+      "costUsd": {
+        "mean": 0.04251495,
+        "p50": 0.0377838,
+        "p95": 0.08339060000000001
+      },
+      "elapsedMs": {
+        "mean": 17760.5,
+        "p50": 18058,
+        "p95": 21699
+      },
+      "firstTurnMs": {
+        "mean": 10791.625,
+        "p50": 10318,
+        "p95": 16460
+      },
+      "graded": 0,
+      "leakTurnRate": null,
+      "mean": {
+        "follows": {
+          "ci": null,
+          "mean": null,
+          "n": 0
+        },
+        "overall": {
+          "ci": null,
+          "mean": null,
+          "n": 0
+        },
+        "plan": {
+          "ci": null,
+          "mean": null,
+          "n": 0
+        },
+        "voice": {
+          "ci": null,
+          "mean": null,
+          "n": 0
+        },
+        "voiceDrift": {
+          "ci": null,
+          "mean": null,
+          "n": 0
+        }
+      },
+      "n": 8,
+      "repeatRate": 0.0,
+      "retryRate": 0.06779661016949153,
+      "serialSteps": {
+        "mean": 3.75,
+        "p50": 3,
+        "p95": 5
+      },
+      "stops": {
+        "check_failed": 1,
+        "goal_unconfirmed": 2
+      },
+      "tokensIn": {
+        "mean": 195781.5,
+        "p50": 169041,
+        "p95": 395983
+      },
+      "tokensOut": {
+        "mean": 2798.875,
+        "p50": 2961,
+        "p95": 3495
+      },
+      "turns": {
+        "mean": 7.375,
+        "p50": 7,
+        "p95": 9
+      }
+    }
+  },
+  "ids": [
+    "hp-1-if",
+    "hp-1-flow",
+    "hp-2-if",
+    "hp-3-flow",
+    "hp-3-if",
+    "hp-4-flow",
+    "hp-5-if",
+    "hp-5-flow"
+  ],
+  "rounds": 10,
+  "via": "openai"
+}

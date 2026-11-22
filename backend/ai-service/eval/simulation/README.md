@@ -23,6 +23,7 @@
 | `orig_turns.py`·`orig_align.py` | 원문을 대사·지문 턴으로 자르고(따옴표 규칙) 화자·독백만 두 경로(OpenAI·ocx) 판별이 일치할 때 확정 |
 | `orig_corpus.py`·`orig_collect.py` | 원천(공개 세트 파일·해리 포터 world.json) 읽기와 공개 원천 수집(고전은 `kt_select` 재사용) |
 | `orig_sets.py`·`orig_variants.py` | 문항 생성(자격·정답 유출·편중 없는 뽑기·사실 주입)과 평가 때만 끼우는 후보(입력 구성 V1~V5·연출 D·act·나레이션 지시문 P·N·추론 강도 E·모델 M, [결과 문서 §13](../../../../docs/evaluation/simulation-original.md#13-품질-끌어올리기-1단계--v2-기준선과-후보-짝-비교-2026-11-22)) |
+| `sim_v4.py`·`sim_scene_judge.py`·`v4_report.py`·`v4_cli.py`·`v4_charts.py` | **V4 시험**([보고서](../../../../docs/evaluation/simulation-v4-draft-parallel.md)): 슈퍼바이저 초안 → 턴별 병렬 수정·검사(평가 전용, `app/` 변경 없음), 장면 채점(계획·설정 기준), 조건 비교 집계(Fisher·순열 검정), 실행(`run`·`judge`·`report`, `--via ocx|openai`)과 그림 |
 | `orig_run.py`·`orig_export.py` | 서비스 함수 호출·채점·집계·짝 비교와 LLMOps 형식 내보내기(`app/evaluation/datasets/simulation/`) |
 | `test_*.py` | 위 순수 로직과 실행 흐름의 단위 테스트(모델·채점·Content는 대역, 호출 없음) |
 | `results/*.json` | `run`이 쓰는 집계(커밋 대상, 질문·응답 없음). 아직 없다 |
