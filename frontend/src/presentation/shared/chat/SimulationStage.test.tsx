@@ -508,6 +508,7 @@ it('턴마다 나레이션은 지문 블록으로, 인물 줄은 이름과 말�
   expect(box().getByRole('list', { name: '장면 대본' }).getAttribute('aria-live')).toBe('polite')
   expect(lines()[0].classList.contains('stage-narration')).toBe(true)
   expect(lines()[0].textContent).toContain('성문은 닫혀 있었다.')
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
   await act(async () => { toSecond() })
   await waitFor(() => expect(lines()).toHaveLength(3))
   expect(within(lines()[1]).getByText('카엘')).toBeTruthy()
