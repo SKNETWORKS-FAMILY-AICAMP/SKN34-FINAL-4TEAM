@@ -19,6 +19,11 @@
 | `sim_quality.py` | 품질: 질문 → 운영 인물 턴 경로(`character_view` → `act` → 서버 규칙 → `check` → 재생성) → 공개 기준 채점 |
 | `sim_speed.py` | 속도: 고정 장면을 장면 에이전트로 끝까지 돌려 `UsageLedger` 기록을 집계 단위로 만든다 |
 | `sim_stats.py` | 백분위·품질/속도 집계·표 출력(순수 함수) |
+| `orig_cli.py` | **원문 기반 평가 세트**([설계](../../../../docs/evaluation/simulation-original.md)) 명령 `collect`·`label`·`align`·`build-sets`·`review`·`estimate`·`run`·`report`·`compare`·`export`. 공개 세트(고전 5·근대 5·SCP 5)와 해리 포터(`--corpus public|hp`) |
+| `orig_turns.py`·`orig_align.py` | 원문을 대사·지문 턴으로 자르고(따옴표 규칙) 화자·독백만 두 경로(OpenAI·ocx) 판별이 일치할 때 확정 |
+| `orig_corpus.py`·`orig_collect.py` | 원천(공개 세트 파일·해리 포터 world.json) 읽기와 공개 원천 수집(고전은 `kt_select` 재사용) |
+| `orig_sets.py`·`orig_variants.py` | 문항 생성(자격·정답 유출·편중 없는 뽑기·사실 주입)과 후보 입력 구성 V1~V4 |
+| `orig_run.py`·`orig_export.py` | 서비스 함수 호출·채점·집계·짝 비교와 LLMOps 형식 내보내기(`app/evaluation/datasets/simulation/`) |
 | `test_*.py` | 위 순수 로직과 실행 흐름의 단위 테스트(모델·채점·Content는 대역, 호출 없음) |
 | `results/*.json` | `run`이 쓰는 집계(커밋 대상, 질문·응답 없음). 아직 없다 |
 
@@ -40,4 +45,5 @@
 - **해리 포터 원문 기반 세계관**(`build-hp`·`seed-hp`, 방법·누설 방지·한계는 [결과 문서 §8](../../../../docs/evaluation/simulation.md#8-원문-기반-세계관해리-포터)): `build-hp`는 장부 누적 상한(`--limit-usd`, 기본 18달러)을 시작 전 예상과 호출 사이 모두 지키고, 끝낸 호출은 디스크 캐시에 남아 같은 명령이 이어 받는다.
   `seed-hp`는 로컬 스택(localhost만)에만 넣고 공유·원격 DB에는 넣지 않는다. 다시 실행하면 회차마다 서버의 그 시점 관계와 world.json의 그 시점 관계를 비교해 다른 것만 보낸다(서버는 관계를 지우지 않고 종료 연결을 쓰므로 줄어든 관계도 이렇게 끝난다). 비밀번호는 환경변수 `STORYFORK_SEED_PASSWORD`로만 받고 출력하지 않는다.
 - **`--via ocx`**: OpenAI 상한에 닿으면 안내하는 이어 받기 경로다(로컬 OpenCodex 게이트웨이, 금액 0, 모델 gpt-6-luna). `speed`는 거절한다. ocx 호출은 장부에 `via: ocx`·금액 0으로 남고 품질 결과의 문항 기록에 `via`가 남는다(openai·ocx가 섞이면 `report`가 알린다).
+- **원문 기반 평가 세트(`orig_*`)**: OpenAI 호출은 별도 장부 `.data/cost-orig.jsonl`(상한 35달러)로 세고, 유료 명령마다 같은 명령 안에서 키 파일을 불러온다. 원문·문항·모델 응답은 `.data/orig`·`.data/hp`(git 무시)에만 있고 `results/orig-*.json`에는 집계만 있다. 화자 판별의 두 경로는 응답 캐시를 따로 쓴다(같은 캐시면 일치가 거짓이 된다).
 - 의존성 파일은 바꾸지 않았다.

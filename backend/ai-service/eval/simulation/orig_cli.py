@@ -174,6 +174,7 @@ def item_chars(key: str, item: dict, corpus, rn) -> int:
 
 
 def sample_of(items: list[dict], n: int) -> list[dict]:
+    """같은 간격으로 n개(모자라면 전부). 세트의 앞부분이 한쪽 종류(④의 원작)로 몰려 있어도 고르게 뽑는다."""
     return [items[i * len(items) // n] for i in range(min(n, len(items)))]
 
 
@@ -183,7 +184,7 @@ def estimate(corpus, keys, judge: str, limit: int | None, sample: int = SAMPLE) 
     from cost import usd
     rows, total = {}, 0.0
     for key in keys:
-        items = load_items(corpus.name, key)[:limit]
+        items = sample_of(load_items(corpus.name, key), limit) if limit else load_items(corpus.name, key)
         if not items:
             continue
         chars = [item_chars(key, item, corpus, rn) for item in sample_of(items, sample)]
@@ -229,7 +230,7 @@ def cmd_run(args) -> None:
     tag = args.variant or 'A'
     via = {'sut': args.via, 'judge': args.judge}
     for key in sets:
-        items = load_items(corpus.name, key)[:args.limit]
+        items = sample_of(load_items(corpus.name, key), args.limit) if args.limit else load_items(corpus.name, key)
         out = ORIG / corpus.name / 'runs' / f'{key}-{tag}.jsonl'
         item_usd = rows[key]['itemMaxUsd']
         if key == '2':
@@ -257,6 +258,38 @@ def cmd_report(args) -> None:
                 'via': records[0].get('via') if records else None, 'summary': getattr(rn, SUMMARIES[key])(records)}
         (RESULTS / f'orig-{args.corpus}-{key}{"" if tag == "A" else "-" + tag}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
         print(f"{NAMES[key]} ({tag}): {json.dumps(data['summary'], ensure_ascii=False)[:420]}")
+
+
+def model_input(key: str, item: dict, corpus, rn) -> dict:
+    """내보낼 문항의 모델 입력: 서비스가 그 문항에서 모델에 보내는 값 그대로(다음 작업이 같은 입력으로 프롬프트 버전을 돌릴 수 있게)."""
+    if key == '1':
+        view = rn.act_view(item, corpus)
+        return {'set': 'dialogue', 'data': {**view['asked'], 'actionStyle': view['style']}}
+    if key == '2':
+        state, cast, last = rn.direct_view(item, corpus)
+        return {'set': 'direct', 'state': state, 'cast': cast, 'allowed': rn.ALLOWED, 'lastPov': last}
+    if key in ('3n', '3m'):
+        return {'set': 'narration' if key == '3n' else 'monologue', 'data': rn.narrate_data(item, corpus)}
+    view = rn.act_view(item, corpus)
+    return {'set': 'check', 'data': {**view['asked'], **view['extra'], 'actionStyle': view['style'], 'checks': view['kinds'], 'paragraph': item['gold']}}
+
+
+def cmd_export(args) -> None:
+    """공개 세트 ①~④ 중 저작권 만료·자유 이용 문항만 app/evaluation/datasets/simulation/에 기존 평가 세트 jsonl 형식으로 쓴다(고전·근대 소설 파일과 SCP 파일을 나눈다)."""
+    import orig_export
+    import orig_run as rn
+    corpus = corpus_of('public')
+    folder = Path(__file__).resolve().parents[2] / 'app' / 'evaluation' / 'datasets' / 'simulation'
+    folder.mkdir(parents=True, exist_ok=True)
+    files = {'free': ('original.jsonl', 'sim.orig'), 'scp': ('original-scp.jsonl', 'sim.orig.scp')}
+    for group, (name, prefix) in files.items():
+        lines = []
+        for key in KEYS:
+            free, scp = orig_export.split_by_license(load_items('public', key))
+            for n, item in enumerate(orig_export.pick(free if group == 'free' else scp, args.per_set), 1):
+                lines.append(json.dumps(orig_export.record(key, item, f'{prefix}-{key}-{n:02d}', model_input(key, item, corpus, rn)), ensure_ascii=False))
+        (folder / name).write_text('\n'.join(lines) + '\n', encoding='utf-8')
+        print(f'{name}: 항목 {len(lines)}개 · {(folder / name).stat().st_size:,}바이트')
 
 
 def cmd_compare(args) -> None:
@@ -308,6 +341,8 @@ def main(argv=None) -> None:
             p.add_argument('--workers', type=int, default=12)
     report = command('report', cmd_report, 'results/orig-*.json(집계만)')
     report.add_argument('--variant', default=None)
+    export = command('export', cmd_export, '공개 세트 문항을 LLMOps 평가 세트 형식으로(호출 없음)', corpus=False)
+    export.add_argument('--per-set', type=int, default=12, help='세트·라이선스 묶음마다 내보낼 문항 수')
     compare = command('compare', cmd_compare, '후보와 기준선(A)의 짝 비교(호출 없음)')
     compare.add_argument('--variant', required=True)
     args = parser.parse_args(argv)
