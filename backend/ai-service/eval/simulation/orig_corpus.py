@@ -15,6 +15,7 @@ from kt_label import knows
 from kt_world import load_world
 import sim_worlds
 
+WORLD_SLOTS = 8
 HEADING = re.compile(r'^\s*(?:제\s*\d+\s*장|chapter\s*\d+|에필로그|epilogue)', re.I)
 
 
@@ -175,6 +176,8 @@ class HpCorpus:
         """(기준 회차 시점 service.World, 인물 key → World 카드 id)."""
         with self._lock:
             if base not in self._worlds:
+                if len(self._worlds) >= WORLD_SLOTS:   # 회차마다 카드 3,770개짜리 World라 오래된 것부터 버린다(문항을 기준 회차 순서로 돌리면 다시 만들 일이 거의 없다)
+                    del self._worlds[next(iter(self._worlds))]
                 self._worlds[base] = sim_worlds._world_at(self.data, base)
             return self._worlds[base]
 

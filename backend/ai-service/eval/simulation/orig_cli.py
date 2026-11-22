@@ -227,10 +227,11 @@ def cmd_run(args) -> None:
     if args.variant:
         import orig_variants
         variants = orig_variants.VARIANTS[args.variant]
-    tag = args.variant or 'A'
+    tag = args.variant or args.tag or 'A'   # 후보 없이 채택한 서비스 구성으로 다시 잴 때는 --tag B
     via = {'sut': args.via, 'judge': args.judge}
     for key in sets:
         items = sample_of(load_items(corpus.name, key), args.limit) if args.limit else load_items(corpus.name, key)
+        items = sorted(items, key=lambda i: (i['base'], i['id']))   # 기준 회차 순서로 돌려 세계관(World)을 다시 만드는 일을 줄인다
         out = ORIG / corpus.name / 'runs' / f'{key}-{tag}.jsonl'
         item_usd = rows[key]['itemMaxUsd']
         if key == '2':
@@ -247,7 +248,7 @@ SUMMARIES = {'1': 'summarize_dialogue', '2': 'summarize_direct', '3n': 'summariz
 
 def cmd_report(args) -> None:
     import orig_run as rn
-    tag = args.variant or 'A'
+    tag = args.variant or args.tag or 'A'
     RESULTS.mkdir(exist_ok=True)
     for key in KEYS:
         out = ORIG / args.corpus / 'runs' / f'{key}-{tag}.jsonl'
@@ -300,8 +301,9 @@ def cmd_compare(args) -> None:
         base_path, cand_path = (ORIG / args.corpus / 'runs' / f'{key}-{tag}.jsonl' for tag in ('A', args.variant))
         if base_path.exists() and cand_path.exists():
             out[key] = rn.compare_runs(key, list(rn.load_done(base_path).values()), list(rn.load_done(cand_path).values()))
-            shown.append(f"{NAMES[key]}: " + ' · '.join(f"{m} {v['up']}↑{v['down']}↓{v['tie']}= (평균차 {v['meanDiff']:+.2f}, p={v['p']:.3f}, n={v['n']})" for m, v in out[key]['metrics'].items())
-                         + f" · 입력 토큰 {out[key]['tokens']['base'] or 0:,.0f}→{out[key]['tokens']['cand'] or 0:,.0f}")
+            line = lambda metrics: ' · '.join(f"{m} {v['up']}↑{v['down']}↓{v['tie']}= (평균차 {v['meanDiff'] or 0:+.2f}, p={v['p']:.3f}, n={v['n']})" for m, v in metrics.items())   # noqa: E731
+            shown.append(f"{NAMES[key]}: " + line(out[key]['metrics']) + f" · 입력 토큰 {out[key]['tokens']['base'] or 0:,.0f}→{out[key]['tokens']['cand'] or 0:,.0f}"
+                         + f"\n    입력이 바뀐 {out[key]['applied']['n']}문항만: " + line(out[key]['applied']['metrics']))
     RESULTS.mkdir(exist_ok=True)
     (RESULTS / f'orig-{args.corpus}-compare-{args.variant}.json').write_text(json.dumps({'corpus': args.corpus, 'variant': args.variant, 'sets': out}, ensure_ascii=False, indent=2, sort_keys=True))
     print('\n'.join(shown) or '비교할 실행 기록이 없다.')
@@ -338,9 +340,11 @@ def main(argv=None) -> None:
         if name == 'run':
             p.add_argument('--via', choices=('openai', 'ocx'), default='openai', help='생성(서비스 함수) 호출 경로')
             p.add_argument('--variant', default=None, help='입력 구성 후보(orig_variants.VARIANTS)')
+            p.add_argument('--tag', default=None, help='실행 기록 이름(후보 없이 채택한 서비스 구성으로 다시 잴 때 B 등, 기본 A)')
             p.add_argument('--workers', type=int, default=12)
     report = command('report', cmd_report, 'results/orig-*.json(집계만)')
     report.add_argument('--variant', default=None)
+    report.add_argument('--tag', default=None)
     export = command('export', cmd_export, '공개 세트 문항을 LLMOps 평가 세트 형식으로(호출 없음)', corpus=False)
     export.add_argument('--per-set', type=int, default=12, help='세트·라이선스 묶음마다 내보낼 문항 수')
     compare = command('compare', cmd_compare, '후보와 기준선(A)의 짝 비교(호출 없음)')

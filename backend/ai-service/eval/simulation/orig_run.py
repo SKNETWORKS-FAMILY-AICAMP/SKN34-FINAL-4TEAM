@@ -223,9 +223,9 @@ def evaluate_check(item: dict, corpus, llm, cost, variant=None, variant_name=Non
     """④ 한 문항: check 한 번. 거절 = 어느 검사든 실패. 주입 문항은 사실이 검사 입력의 금지 목록에 있었는지(covered)도 남긴다."""
     record, ledger = blank(item, variant_name), UsageLedger('simulation.orig', lambda step: {})
     view = act_view(item, corpus, variant)
-    body = {**view['asked'], **view['extra'], 'actionStyle': view['style'], 'checks': view['kinds'], 'paragraph': item['gold']}
+    body = service.check_payload({**view['asked'], **view['extra'], 'actionStyle': view['style']}, view['kinds'], item['gold'], 'character')   # 운영과 같은 검사 입력
     record |= {'label': item['label'], 'inChars': size_of(body),
-               'covered': covered(item['inject']['text'], view['extra']['forbidden']) if item['label'] == 'reject' else None}
+               'covered': covered(item['inject']['text'], body['forbidden']) if item['label'] == 'reject' else None}
 
     def run(_):
         verdict = agent.check(body)
@@ -387,8 +387,9 @@ def summarize_check(records: list[dict]) -> dict:
     grounded = [r for r in injected if r.get('covered')]
     return {'n': len(records), 'errors': sum(r.get('error') is not None for r in records),
             'accuracy': rate([r['verdict']['rejected'] == (r['label'] == 'reject') for r in ok]),
-            'falseAlarm': rate([r['verdict']['rejected'] for r in passed]), 'miss': rate([not r['verdict']['rejected'] for r in injected]),
-            'missLeakOnly': rate([not r['verdict']['leak'] for r in injected]),
+            'accuracyLeakOnly': rate([r['verdict']['leak'] == (r['label'] == 'reject') for r in ok]),
+            'falseAlarm': rate([r['verdict']['rejected'] for r in passed]), 'falseAlarmLeakOnly': rate([r['verdict']['leak'] for r in passed]),
+            'miss': rate([not r['verdict']['rejected'] for r in injected]), 'missLeakOnly': rate([not r['verdict']['leak'] for r in injected]),
             'covered': {'miss': rate([not r['verdict']['rejected'] for r in grounded]), 'missLeakOnly': rate([not r['verdict']['leak'] for r in grounded])},
             **cost_stats(records, 'check')}
 
@@ -421,8 +422,12 @@ def compare_runs(key: str, base: list[dict], cand: list[dict]) -> dict:
     pick = lambda records: [r for r in records if r['id'] in shared]   # noqa: E731
     base_cost, cand_cost = cost_stats(pick(base), CALL[key]), cost_stats(pick(cand), CALL[key])
     ratio = cand_cost['inputTokens'] / base_cost['inputTokens'] if base_cost['inputTokens'] and cand_cost['inputTokens'] else None
+    size = {r['id']: r.get('inChars') for r in base}
+    changed = {r['id'] for r in cand if r['id'] in shared and r.get('inChars') != size.get(r['id'])}   # 후보가 입력을 실제로 바꾼 문항
+    keep = lambda values: {k: v for k, v in values.items() if k in changed}   # noqa: E731
     return {'metrics': {name: paired(a[name], b.get(name, {})) for name in a}, 'tokens': {'base': base_cost['inputTokens'], 'cand': cand_cost['inputTokens'], 'ratio': ratio},
-            'callMs': {'base': base_cost['callMs']['p50'], 'cand': cand_cost['callMs']['p50']}}
+            'callMs': {'base': base_cost['callMs']['p50'], 'cand': cand_cost['callMs']['p50']},
+            'applied': {'n': len(changed), 'metrics': {name: paired(keep(a[name]), b.get(name, {})) for name in a}}}
 
 
 def paired(a: dict, b: dict) -> dict:

@@ -2,7 +2,7 @@
 
 V1 말투 예시: 기준 회차 이전 원문에서 그 인물이 한 대사(꼬리표에 이름이 먼저 나오는 줄) 5~8줄을 known에, ③ 나레이션은 앞 회차 지문 몇 문단을 문체 예시(style)에 넣는다. 지금 장면과 겹침이 큰 줄이 먼저다.
 V2 금지 목록 장면 관련분만(#646): 검사 입력의 forbidden에서 검사할 문단·직전 줄과 겹침이 큰 항목 상위 N개만 남긴다.
-V3 관계 장면 관련분만(#646): known의 관계 줄에서 장면 인물과 이어진 관계(같은 쌍)·직전 줄과 겹침이 큰 관계 상위 N개만 남긴다. V4 = V2 + V3.
+V3 관계 장면 관련분만(#646): known의 관계 줄에서 장면 인물과 이어진 관계(같은 쌍)·직전 줄과 겹침이 큰 관계 상위 N개만 남긴다. V4 = V2 + V3. V5 = V3의 상한을 48로(①만).
 후크는 act 계열(①·④) (asked, extra, item, corpus) → (asked, extra), narrate 계열(③) (data, extra, item, corpus) → (data, extra)다.
 """
 
@@ -105,6 +105,11 @@ def v4_check(asked: dict, extra: dict, item: dict, corpus) -> tuple[dict, dict]:
     return v2_forbidden(*v3_relations(asked, extra, item, corpus), item, corpus)
 
 
+def v5_relations(asked: dict, extra: dict, item: dict, corpus) -> tuple[dict, dict]:
+    """V3보다 덜 줄인다(관계 48개까지): 장면과 무관한 관계가 인물 이해에 주는 도움을 덜 버리는지 본다."""
+    return v3_relations(asked, extra, item, corpus, cap=48)
+
+
 # 세트 키 → 후크. 키가 없는 세트는 입력을 바꾸지 않는다.
 VARIANTS = {'V1': {'1': v1_act, '3n': v1_narrate, '3m': v1_narrate}, 'V2': {'4': v2_forbidden}, 'V3': {'1': v3_relations, '4': v3_relations},
-            'V4': {'1': v3_relations, '4': v4_check}}
+            'V4': {'1': v3_relations, '4': v4_check}, 'V5': {'1': v5_relations}}

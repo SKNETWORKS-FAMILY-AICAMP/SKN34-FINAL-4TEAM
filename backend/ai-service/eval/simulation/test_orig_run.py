@@ -82,6 +82,7 @@ def test_summarize_check_accuracy_false_alarm_and_miss():
     got = orr.summarize_check(records)
     assert got['accuracy']['rate'] == 3 / 5 and got['falseAlarm'] == {'n': 2, 'rate': 0.5, 'ci': got['falseAlarm']['ci']} and got['miss']['rate'] == 1 / 3
     assert got['missLeakOnly']['rate'] == 2 / 3 and got['covered']['miss']['rate'] == 1 / 2   # 누설 항목만 본 놓침률, 금지 목록에 근거가 있던 주입만 본 놓침률
+    assert got['falseAlarmLeakOnly'] == {'n': 2, 'rate': 0.0, 'ci': got['falseAlarmLeakOnly']['ci']} and got['accuracyLeakOnly']['rate'] == 3 / 5   # 누설 검사만 본 오경보율·정확도(말투 같은 다른 검사 때문에 거절된 것을 빼고 본다)
 
 
 def test_paired_signs_per_item_and_skips_missing():
@@ -102,3 +103,11 @@ def test_metrics_of_and_compare_runs_pair_same_items():
     checks_cand = [check(0, 'pass', True), check(1, 'reject', True), check(2, 'reject', True)]
     got = orr.compare_runs('4', checks_base, checks_cand)
     assert got['metrics']['correct']['up'] == 1 and got['metrics']['correct']['down'] == 1 and got['metrics']['caught']['up'] == 1 and got['metrics']['passOk']['down'] == 1
+
+
+def test_compare_runs_also_pairs_only_items_whose_input_changed():
+    base = [{**act(0, 3, 3), 'inChars': 100}, {**act(1, 2, 2), 'inChars': 100}, {**act(2, 4, 4), 'inChars': 100}]
+    cand = [{**act(0, 5, 3), 'inChars': 100}, {**act(1, 3, 2), 'inChars': 150}, {**act(2, 2, 4), 'inChars': 150}]   # 문항 0은 후보가 입력을 바꾸지 못해 같은 입력이다
+    got = orr.compare_runs('1', base, cand)
+    assert got['metrics']['voice']['n'] == 3 and got['metrics']['voice']['up'] == 2
+    assert got['applied']['n'] == 2 and got['applied']['metrics']['voice'] == {'n': 2, 'up': 1, 'down': 1, 'tie': 0, 'p': 1.0, 'meanDiff': -0.5}   # 입력이 바뀐 문항만(1: +1, 2: -2)
