@@ -144,3 +144,11 @@ def test_a_scene_run_with_transcript_keeps_who_said_what_and_which_beat_each_tur
     assert [t['beat'] for t in turns] == [0, 0, 1, 1, None] and turns[1]['done'] is True and turns[0]['done'] is False   # 나레이션도 그 비트에 속한다(맨 끝 마무리만 없음)
     assert record['transcript']['beats'] == ['done', 'done']
     assert 'transcript' not in play(FLOW)   # 켜지 않으면 기록에 글을 남기지 않는다(기본 기록은 집계용)
+
+
+
+def test_a_scene_record_has_the_uniform_fields_the_engine_comparison_reads(models):
+    record = play(FLOW)
+    names = sorted(name for step in record['steps'] for name in step['calls'])
+    assert record['engine'] == 'turn' and record['elapsedMs'] >= record['firstTurnMs'] == record['steps'][0]['wallMs']
+    assert sorted(c['name'] for c in record['calls']) == names and record['serialSteps'] == len(names)   # 턴 방식은 호출이 모두 차례로 이어진다

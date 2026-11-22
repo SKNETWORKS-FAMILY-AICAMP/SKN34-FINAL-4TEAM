@@ -48,8 +48,9 @@ async def run_scene(spec: dict, plan, world, cost=None, transcript: bool = False
                                    pausing=False, loaded=world)
     seed = {'messages': [HumanMessage('장면을 진행해 주세요.')], 'scene': service.new_scene(plan).model_dump(mode='json'), 'pending': False,
             'decision': None, 'action': None}
-    ledger = TimedLedger()
+    ledger, began = TimedLedger(), time.monotonic()
     out = await scene_agent.scene_agent(False).ainvoke(seed, {'callbacks': [ledger]}, context=context)
+    elapsed = round((time.monotonic() - began) * 1000)
     final = Scene.model_validate(out['scene'])
     if final.result.status in ('running', 'paused'):  # 에이전트는 끝나거나 멈춰야 끝난다: 이어 갈 장면인데 끝났다면 호출 한도(안전망)가 끊은 것이다(오케스트레이션과 같은 판정)
         final = service.stop_scene(final, '호출 한도에서 멈췄어요.', 'stopped', 'call_limit')
@@ -57,12 +58,14 @@ async def run_scene(spec: dict, plan, world, cost=None, transcript: bool = False
     if cost is not None:
         for call in calls:
             cost.record(call['name'], call['inputTokens'] or 0, call['outputTokens'] or 0, failed=call['failed'])
-    record = {'id': spec['id'], 'mode': plan.mode, 'status': final.result.status, 'stopReason': final.result.stopReason, 'error': final.error,
+    record = {'id': spec['id'], 'engine': 'turn', 'mode': plan.mode, 'status': final.result.status, 'stopReason': final.result.stopReason, 'error': final.error,
             'turns': [{'kind': t.kind, 'pov': t.pov, 'regenerated': t.regenerated} for t in final.result.turns],
             'steps': [{'turn': r['turn'], 'ms': r['ms'], 'wallMs': r['wallMs'], 'modelCalls': r['modelCalls'], 'failures': r['failures'],
                        'inputTokens': r['inputTokens'], 'outputTokens': r['outputTokens'], 'usd': sum(_usd(c) for c in r['calls']),
                        'calls': [c['name'] for c in r['calls']]} for r in ledger.records],
-            'unpriced': sum(c['inputTokens'] is None for c in calls)}
+            'unpriced': sum(c['inputTokens'] is None for c in calls),
+            # 엔진 비교용 공통 항목: 턴 방식은 모든 호출이 차례로 이어져(직렬 단계 = 호출 수) 첫 턴이 보일 때까지는 첫 단계의 경과 시간이다
+            'elapsedMs': elapsed, 'firstTurnMs': ledger.records[0]['wallMs'] if ledger.records else None, 'serialSteps': len(calls), 'calls': calls}
     if transcript:  # 정지한 장면은 턴과 trail 길이가 어긋날 수 있어 짧은 쪽까지만 짝짓는다
         record['transcript'] = {'beats': [b.status for b in final.result.beats], 'turns': [{'kind': t.kind, 'by': t.characterName, 'text': t.prose, 'beat': e.beat, 'done': e.done, 'ended': e.ended}
                                                                                        for t, e in zip(final.result.turns, final.trail, strict=False)]}

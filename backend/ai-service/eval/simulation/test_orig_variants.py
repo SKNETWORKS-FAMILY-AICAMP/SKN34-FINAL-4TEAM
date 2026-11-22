@@ -277,3 +277,11 @@ def test_model_candidate_swaps_the_model_of_act_and_narrate_requests_only(monkey
     with ov.patched('E1+M1'):   # 추론 강도와 모델 후보는 함께 끼울 수 있다
         agent.act(data)
     assert seen[0]['model'] == ov.TERRA and seen[0]['reasoning'] == {'effort': 'medium'}
+
+
+
+def test_p1b_adds_a_beat_advancing_sentence_to_the_p1_paragraph_and_combines_with_n3():
+    assert ov.ACT_V1B.startswith(ov.ACT_V1) and ov.ACT_BEAT in ov.ACT_V1B and 'currentBeat' in ov.ACT_BEAT and '되풀이' in ov.ACT_BEAT
+    with ov.patched('P1b+N3'):
+        assert ov.agent.ACT_INSTRUCTIONS == ov.ACT_V1B and ov.agent.NARRATE_INSTRUCTIONS == ov.NARRATE_V3
+    assert ov.agent.ACT_INSTRUCTIONS == ov.prompt.ACT_INSTRUCTIONS   # 끼운 것은 되돌아온다

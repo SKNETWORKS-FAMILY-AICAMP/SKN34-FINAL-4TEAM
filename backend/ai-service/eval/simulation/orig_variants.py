@@ -175,6 +175,8 @@ NARRATE_EXTRA_2 = (
     NARRATE_EXTRA + ' scene의 맨 끝 줄이 대사였다면 그 말에 곁들일 표정·몸짓·시선·목소리, 듣는 인물의 반응처럼 대사로 옮기기 어려운 움직임을 짚는 데 쓰고, 맨 끝 줄이 지문이었다면 장면의 다음 움직임이나 주변의 변화를 보태세요.')
 NARRATE_EXTRA_3 = NARRATE_EXTRA_2.replace('문체 지침:', '지문(purpose가 monologue가 아닐 때만 적용)의 문체 지침:', 1)   # 독백에는 걸리지 않게 범위를 좁힌 N2
 ACT_V1 = prompt.ACT_INSTRUCTIONS + ' ' + ACT_EXTRA
+ACT_BEAT = ' 장면 계획에 현재 비트(direction.currentBeat)가 있으면 이번 대사가 그 비트가 말하는 일을 한 걸음 진전시키거나 마무리하게 하세요. IF 장면이면 premise가 사실인 채로 이야기를 앞으로 진행하세요. 앞 줄에 곧바로 반응하더라도 같은 말을 되풀이하지 말고 비트가 요구하는 내용을 말이나 행동으로 보태세요.'
+ACT_V1B = ACT_V1 + ACT_BEAT   # P1b: P1이 비트 셋인 흐름 장면의 완료를 늦추는지(⑤ hp-3-flow)에 대한 시험 후보
 NARRATE_V1 = prompt.NARRATE_INSTRUCTIONS + ' ' + NARRATE_EXTRA
 NARRATE_V2 = prompt.NARRATE_INSTRUCTIONS + ' ' + NARRATE_EXTRA_2
 NARRATE_V3 = prompt.NARRATE_INSTRUCTIONS + ' ' + NARRATE_EXTRA_3
@@ -288,7 +290,7 @@ VARIANTS = {'V1': {'1': v1_act, '3n': v1_narrate, '3m': v1_narrate}, 'V2': {'4':
             'D1': _director(hints=True), 'D2': _director(single=True), 'D3': _director(text=DIRECTOR_V1), 'D4': _director(text=DIRECTOR_V2),
             'D12': _director(hints=True, single=True), 'D13': _director(hints=True, text=DIRECTOR_V1), 'D14': _director(hints=True, text=DIRECTOR_V2),
             'D123': _director(hints=True, single=True, text=DIRECTOR_V1), 'D124': _director(hints=True, single=True, text=DIRECTOR_V2),
-            'P1': {'patch': ((agent, 'ACT_INSTRUCTIONS', ACT_V1),)}, 'P2': {'1': soul_first}, 'P3': {'1': soul_first, 'patch': ((agent, 'ACT_INSTRUCTIONS', ACT_V1),)},
+            'P1': {'patch': ((agent, 'ACT_INSTRUCTIONS', ACT_V1),)}, 'P1b': {'patch': ((agent, 'ACT_INSTRUCTIONS', ACT_V1B),)}, 'P2': {'1': soul_first}, 'P3': {'1': soul_first, 'patch': ((agent, 'ACT_INSTRUCTIONS', ACT_V1),)},
             'N1': {'patch': ((agent, 'NARRATE_INSTRUCTIONS', NARRATE_V1),)}, 'N2': {'patch': ((agent, 'NARRATE_INSTRUCTIONS', NARRATE_V2),)}, 'N3': {'patch': ((agent, 'NARRATE_INSTRUCTIONS', NARRATE_V3),)},
             'E1': {'wrap': ((agent, 'OpenAI', act_reasoning('medium')),)}, 'E2': {'wrap': ((agent, 'OpenAI', act_reasoning(None)),)},
             'M1': {'wrap': ((agent, 'OpenAI', model_for(TERRA)),), 'models': (('act', TERRA), ('narrate', TERRA))}}
