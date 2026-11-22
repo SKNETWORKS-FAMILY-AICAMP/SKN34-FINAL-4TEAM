@@ -127,3 +127,22 @@ def test_review_md_lists_context_gold_and_check_label():
     text = os_.review_md(sets['4'], 3, seed=1)
     assert text.count('\n## fake-4-') == 3 and '직전 줄:' in text and '[ ] 판별 맞음' in text
     assert '거절(주입 사실' in os_.review_md([i for i in sets['4'] if i['label'] == 'reject'], 1) and '통과(원작 그대로)' in os_.review_md([i for i in sets['4'] if i['label'] == 'pass'], 1)
+
+
+def test_build_items_for_a_dev_split_avoids_the_main_items_and_uses_its_own_prefix():
+    size = {'act': 6, 'direct': 6, 'narrate': 4, 'monologue': 2, 'check_pass': 0, 'check_fail': 0}
+    main, _ = os_.build_items(Corp(), [long_rec(2), long_rec(3)], size, seed=1)
+    taken = {(i['ep'], i['t'], i['use']) for items in main.values() for i in items}
+    dev, stats = os_.build_items(Corp(), [long_rec(2), long_rec(3)], {**size, 'act': 4, 'direct': 3, 'narrate': 2, 'monologue': 1}, seed=2, exclude=taken, prefix='fakedev')
+    assert dev['1'] and all((i['ep'], i['t'], i['use']) not in taken for items in dev.values() for i in items)
+    assert dev['1'][0]['id'] == 'fakedev-1-0001' and dev['4'] == [] and stats['pool']['act'] > 0
+
+
+
+def test_pair_md_puts_two_runs_side_by_side_for_the_items_both_have():
+    items = [{'id': f'x-1-{i:04d}', 'speaker': '해리', 'kind': 'dialogue', 'gold': f'"정답{i}"', 'context': [{'by': '론', 'text': f'"직전{i}"'}]} for i in range(4)]
+    left = {f'x-1-{i:04d}': {'generated': f'왼쪽{i}', 'grade': {'voice': 2, 'intent': 3, 'leaked': []}} for i in range(4)}
+    right = {f'x-1-{i:04d}': {'generated': f'오른쪽{i}', 'grade': {'voice': 4, 'intent': 1, 'leaked': ['f']}} for i in range(3)}   # 마지막 문항은 오른쪽 기록이 없다
+    text = os_.pair_md(items, left, right, ('luna', 'terra'), 2, seed=1)
+    assert text.count('\n## ') == 2 and '왼쪽' in text and '오른쪽' in text and 'luna' in text and 'terra' in text
+    assert 'x-1-0003' not in text and '말투 2 · 의도 3' in text and '말투 4 · 의도 1 · 누설' in text and '정답' in text and '직전' in text

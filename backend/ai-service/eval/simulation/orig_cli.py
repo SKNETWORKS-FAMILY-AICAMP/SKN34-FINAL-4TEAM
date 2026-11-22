@@ -25,6 +25,8 @@ from orig_common import COST, ORIG, RESULTS, SEED
 SIZES = {'public': {'act': 150, 'direct': 150, 'narrate': 70, 'monologue': 30, 'check_pass': 50, 'check_fail': 50},
          'hp': {'act': 400, 'direct': 300, 'narrate': 160, 'monologue': 40, 'check_pass': 150, 'check_fail': 150}}
 REVIEW = {'public': 20, 'hp': 40}
+DEV_SIZES = {'act': 100, 'direct': 150, 'narrate': 60, 'monologue': 0, 'check_pass': 0, 'check_fail': 0}   # 후보 고르기용 dev 세트(본 평가 문항과 겹치지 않는다)
+DEV_SEED = 653
 KEYS = ('1', '2', '3n', '3m', '4')
 NAMES = {'1': '① 대사', '2': '② 연출', '3n': '③ 나레이션', '3m': '③ 독백', '4': '④ 검사'}
 SAMPLE = 20   # 예상 금액·문항당 최대 금액을 재는 표본 문항 수
@@ -38,6 +40,11 @@ def no_langfuse() -> None:
 def need_openai() -> None:
     if not os.environ.get('OPENAI_API_KEY') or not os.environ.get('OPENAI_MODEL'):
         raise SystemExit('OPENAI_API_KEY·OPENAI_MODEL이(가) 필요하다. 키 파일을 같은 명령 안에서 불러온 뒤 실행한다(값은 출력하지 않는다).')
+
+
+def home(args) -> str:
+    """문항·실행 기록을 두는 폴더 이름: 본 평가는 해리 포터(hp), --dev는 후보 고르기용 hp-dev(같은 원천·판별을 쓰고 문항만 다르다)."""
+    return f'{args.corpus}-dev' if getattr(args, 'dev', False) else args.corpus
 
 
 def corpus_of(name: str):
@@ -133,8 +140,12 @@ def cmd_build_sets(args) -> None:
     import orig_sets
     corpus = corpus_of(args.corpus)
     records = load_records(corpus)
-    sets, stats = orig_sets.build_items(corpus, records, SIZES[args.corpus], SEED)
-    folder = ORIG / corpus.name / 'sets'
+    if args.dev:   # 본 평가 문항을 피해 같은 분포에서 따로 뽑는다
+        taken = {(i['ep'], i['t'], i['use']) for key in KEYS for i in load_items(corpus.name, key)}
+        sets, stats = orig_sets.build_items(corpus, records, DEV_SIZES, DEV_SEED, exclude=taken, prefix=f'{corpus.name}dev')
+    else:
+        sets, stats = orig_sets.build_items(corpus, records, SIZES[args.corpus], SEED)
+    folder = ORIG / home(args) / 'sets'
     folder.mkdir(parents=True, exist_ok=True)
     for key, items in sets.items():
         (folder / f'{key}.jsonl').write_text(''.join(json.dumps(item, ensure_ascii=False) + '\n' for item in items))
@@ -160,6 +171,17 @@ def cmd_review(args) -> None:
             print(f'{NAMES[key]}: {min(REVIEW[args.corpus], len(items))}개 → {path}')
 
 
+def cmd_review_pair(args) -> None:
+    """같은 문항에 두 실행이 쓴 글을 나란히 보는 검수 표본(.data/orig/<corpus>/review-pair-…md). 채점 모델이 한쪽 글(예: 다른 모델의 글)을 낮게 볼 수 있어 점수 차이가 애매할 때 쓴다."""
+    import orig_run as rn
+    import orig_sets
+    runs = ORIG / home(args) / 'runs'
+    left, right = (rn.load_done(rn.run_path(runs, args.set, name)) for name in (args.left, args.right))
+    path = ORIG / home(args) / f'review-pair-{args.set}-{args.left}-vs-{args.right}.md'
+    path.write_text(orig_sets.pair_md(load_items(home(args), args.set), left, right, (args.left, args.right), args.n, SEED), encoding='utf-8')
+    print(f'{path}에 썼다')
+
+
 def item_chars(key: str, item: dict, corpus, rn) -> int:
     """문항 하나의 모델 입력 글자 수(조립만 하고 호출은 하지 않는다)."""
     if key == '1':
@@ -178,13 +200,13 @@ def sample_of(items: list[dict], n: int) -> list[dict]:
     return [items[i * len(items) // n] for i in range(min(n, len(items)))]
 
 
-def estimate(corpus, keys, judge: str, limit: int | None, sample: int = SAMPLE) -> tuple[dict, float]:
+def estimate(corpus, keys, judge: str, limit: int | None, sample: int = SAMPLE, folder: str | None = None) -> tuple[dict, float]:
     """세트별 {문항 수, 평균 입력 글자, 예상 금액, 문항당 최대 금액}과 합계(호출 없음). 표본 문항의 입력을 실제로 조립해 재고 전체로 늘린다."""
     import orig_run as rn
     from cost import usd
     rows, total = {}, 0.0
     for key in keys:
-        items = sample_of(load_items(corpus.name, key), limit) if limit else load_items(corpus.name, key)
+        items = sample_of(load_items(folder or corpus.name, key), limit) if limit else load_items(folder or corpus.name, key)
         if not items:
             continue
         chars = [item_chars(key, item, corpus, rn) for item in sample_of(items, sample)]
@@ -198,7 +220,7 @@ def estimate(corpus, keys, judge: str, limit: int | None, sample: int = SAMPLE) 
 
 def cmd_estimate(args) -> None:
     corpus = corpus_of(args.corpus)
-    rows, total = estimate(corpus, args.sets.split(','), args.judge, args.limit)
+    rows, total = estimate(corpus, args.sets.split(','), args.judge, args.limit, folder=home(args))
     for key, row in rows.items():
         print(f"{NAMES[key]}: 문항 {row['items']} · 입력 평균 {row['meanChars']:,}자(약 {row['meanChars'] / 2:,.0f}토큰) · 예상 {row['usd']:.2f}달러 · 문항당 최대 {row['itemMaxUsd']:.3f}달러")
     print(f"합계 약 {total:.2f}달러(출력은 ①③④ 700토큰·②100토큰 어림, 채점 {args.judge}) / 상한 {args.limit_usd:.2f}달러" + (' — 상한을 넘는다' if total > args.limit_usd else ''))
@@ -217,30 +239,68 @@ def cmd_run(args) -> None:
             raise SystemExit('② 연출은 /v1/decisions가 게이트웨이에 없어 OpenAI API로만 돈다(--via ocx 불가).')
         sim_via.use_ocx()
     corpus = corpus_of(args.corpus)
-    rows, total = estimate(corpus, sets, args.judge, args.limit)
+    rows, total = estimate(corpus, sets, args.judge, args.limit, folder=home(args))
     print(json.dumps({k: {'items': v['items'], 'meanChars': v['meanChars'], 'usd': round(v['usd'], 2)} for k, v in rows.items()}, ensure_ascii=False))
     cost = CostLog(COST)
     if args.via == 'openai' and cost.spent() + total > args.limit_usd:
         raise SystemExit(f'예상 {total:.2f}달러가 남은 상한(장부 {cost.spent():.2f}달러 / {args.limit_usd:.2f}달러)을 넘어 호출 없이 멈춘다.')
     judge_llm = sim_via.ocx_llm(ORIG / 'cache-judge-ocx', COST) if args.judge == 'ocx' else usd_llm(ORIG / 'cache-judge-openai', COST, args.limit_usd)
-    variants = None
-    if args.variant:
-        import orig_variants
-        variants = orig_variants.VARIANTS[args.variant]
+    import orig_variants
+    variants = orig_variants.spec_of(args.variant)   # None·빈 이름이면 빈 명세(기준선)
     tag = args.variant or args.tag or 'A'   # 후보 없이 채택한 서비스 구성으로 다시 잴 때는 --tag B
     via = {'sut': args.via, 'judge': args.judge}
-    for key in sets:
-        items = sample_of(load_items(corpus.name, key), args.limit) if args.limit else load_items(corpus.name, key)
-        items = sorted(items, key=lambda i: (i['base'], i['id']))   # 기준 회차 순서로 돌려 세계관(World)을 다시 만드는 일을 줄인다
-        out = ORIG / corpus.name / 'runs' / f'{key}-{tag}.jsonl'
-        item_usd = rows[key]['itemMaxUsd']
-        if key == '2':
-            records = rn.run_direct(items, corpus, cost, args.limit_usd, args.workers, out, item_usd, variants and variants.get('2'), args.variant)
-        else:
-            evaluate = {'1': rn.evaluate_dialogue, '3n': rn.evaluate_narration, '3m': rn.evaluate_narration, '4': rn.evaluate_check}[key]
-            variant = variants and variants.get(key)
-            records = rn.run_items(items, lambda item, e=evaluate, v=variant: {**e(item, corpus, judge_llm, cost, v, args.variant), 'via': via}, cost, args.limit_usd, args.workers, out, item_usd)
-        print(f"{NAMES[key]} 끝: {len(records)}문항 · 장부 {cost.spent():.2f}달러 / 상한 {args.limit_usd:.2f}달러", flush=True)
+    import orig_variants
+    with orig_variants.patched(args.variant):   # 지시문·질문 구성 후보는 이 실행 안에서만 끼운다
+        for key in sets:
+            items = sample_of(load_items(home(args), key), args.limit) if args.limit else load_items(home(args), key)
+            items = sorted(items, key=lambda i: (i['base'], i['id']))   # 기준 회차 순서로 돌려 세계관(World)을 다시 만드는 일을 줄인다
+            out = rn.run_path(ORIG / home(args) / 'runs', key, tag)
+            item_usd = rows[key]['itemMaxUsd']
+            if key == '2':
+                records = rn.run_direct(items, corpus, cost, args.limit_usd, args.workers, out, item_usd, variants and variants.get('2'), args.variant)
+            else:
+                evaluate = {'1': rn.evaluate_dialogue, '3n': rn.evaluate_narration, '3m': rn.evaluate_narration, '4': rn.evaluate_check}[key]
+                variant = variants and variants.get(key)
+                records = rn.run_items(items, lambda item, e=evaluate, v=variant: {**e(item, corpus, judge_llm, cost, v, args.variant), 'via': via}, cost, args.limit_usd, args.workers, out, item_usd)
+            print(f"{NAMES[key]} 끝: {len(records)}문항 · 장부 {cost.spent():.2f}달러 / 상한 {args.limit_usd:.2f}달러", flush=True)
+
+
+SCENE_IDS = ('hp-1-flow', 'hp-3-flow', 'hp-4-flow', 'hp-5-flow', 'hp-1-if')   # 해리 포터 고정 장면 중 흐름 4(비트 있음)·IF 1
+
+
+def cmd_scenes(args) -> None:
+    """후보를 해리 포터 고정 장면에서 끝까지 돌려(장면 에이전트 전체, 기존 속도 실행기 sim_speed.run_speed 재사용) 완료율·턴 속도·재생성(흐트러짐)을 본다.
+    --runs의 이름마다(base = 후보 없음) 같은 장면을 차례로 돌고, 지시문·질문 구성 후보는 그 실행 안에서만 끼운다."""
+    need_openai()
+    no_langfuse()
+    import asyncio
+    import orig_run as rn
+    import orig_variants
+    import sim_speed
+    import sim_stats
+    import sim_worlds
+    from cost import CostLog
+    cost = CostLog(COST)
+    worlds = sim_worlds.Worlds([], {}, sim_worlds.load_hp())   # 해리 포터 장면은 TimeChara 행 없이 world.json만 쓴다
+    specs = rn.repeated([s for s in sim_worlds.SCENES if s['id'] in args.ids.split(',')], args.repeat)
+    if args.skip_narration_check:
+        os.environ['SIMULATION_SKIP_NARRATION_CHECK'] = '1'   # 전지적 나레이션 검사(입력 약 30만 토큰)를 건너뛴다: 비용이 장면당 약 0.35 → 0.05달러
+    folder = ORIG / 'hp' / 'scenes'
+
+    async def play() -> dict:   # 한 이벤트 루프에서 차례로(연출 분류기의 HTTP 연결이 루프에 묶인다)
+        done = {}
+        for name in args.runs:
+            with orig_variants.patched(None if name == 'base' else name):
+                done[name] = await sim_speed.run_speed(specs, worlds, cost, args.limit_usd, rn.run_path(folder, 'scenes', name), args.keep_text)
+            print(f"{name}: 장면 {len(done[name])}개 끝 · 장부 {cost.spent():.2f}달러 / 상한 {args.limit_usd:.2f}달러", flush=True)
+        return done
+
+    RESULTS.mkdir(exist_ok=True)
+    for name, records in asyncio.run(play()).items():
+        data = {'run': name, 'skipNarrationCheck': args.skip_narration_check, 'scenes': [s['id'] for s in specs], 'speed': sim_stats.summarize_speed(records), 'drift': rn.scene_drift(records),
+                'outcomes': {r['id']: r['status'] if not r.get('stopReason') else f"{r['status']}:{r['stopReason']}" for r in records}}
+        (RESULTS / f'orig-hp-scenes-{name}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+        print(name, json.dumps({'outcomes': data['outcomes'], 'drift': data['drift'], 'turnMs': data['speed']['turnMs'], 'usdPerScene': data['speed']['usdPerScene']}, ensure_ascii=False))
 
 
 SUMMARIES = {'1': 'summarize_dialogue', '2': 'summarize_direct', '3n': 'summarize_narration', '3m': 'summarize_narration', '4': 'summarize_check'}
@@ -251,13 +311,13 @@ def cmd_report(args) -> None:
     tag = args.variant or args.tag or 'A'
     RESULTS.mkdir(exist_ok=True)
     for key in KEYS:
-        out = ORIG / args.corpus / 'runs' / f'{key}-{tag}.jsonl'
+        out = ORIG / home(args) / 'runs' / f'{key}-{tag}.jsonl'
         if not out.exists():
             continue
         records = list(rn.load_done(out).values())
-        data = {'corpus': args.corpus, 'set': key, 'name': NAMES[key], 'variant': tag, 'items': len(load_items(args.corpus, key)), 'ran': len(records),
+        data = {'corpus': home(args), 'set': key, 'name': NAMES[key], 'variant': tag, 'items': len(load_items(home(args), key)), 'ran': len(records),
                 'via': records[0].get('via') if records else None, 'summary': getattr(rn, SUMMARIES[key])(records)}
-        (RESULTS / f'orig-{args.corpus}-{key}{"" if tag == "A" else "-" + tag}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+        (RESULTS / f'orig-{home(args)}-{key}{"" if tag == "A" else "-" + tag}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
         print(f"{NAMES[key]} ({tag}): {json.dumps(data['summary'], ensure_ascii=False)[:420]}")
 
 
@@ -293,19 +353,34 @@ def cmd_export(args) -> None:
         print(f'{name}: 항목 {len(lines)}개 · {(folder / name).stat().st_size:,}바이트')
 
 
+def cmd_summary(args) -> None:
+    """모든 실행(runs/<세트>-<이름>.jsonl)을 한 파일로 집계한다: results/orig-<corpus>-summary-<기준선>.json. 기준선이 아닌 실행은 같은 문항으로 기준선과 짝 비교한 값이 붙는다."""
+    import orig_run as rn
+    folder, out = ORIG / home(args) / 'runs', {}
+    for key in KEYS:
+        runs = {p.stem.split('-', 1)[1]: list(rn.load_done(p).values()) for p in sorted(folder.glob(f'{key}-*.jsonl'))}
+        if args.base in runs:
+            out[key] = rn.summary_of(key, runs, args.base, getattr(rn, SUMMARIES[key]))
+    RESULTS.mkdir(exist_ok=True)
+    path = RESULTS / f'orig-{home(args)}-summary-{args.base}.json'
+    path.write_text(json.dumps({'corpus': home(args), 'base': args.base, 'sets': out}, ensure_ascii=False, separators=(',', ':'), sort_keys=True))
+    print(f"{path.name}: 세트 {', '.join(out)} · 실행 {sum(len(v) for v in out.values())}개 · {path.stat().st_size:,}바이트")
+
+
 def cmd_compare(args) -> None:
-    """같은 문항에서 후보(--variant)와 기준선(A)을 짝 비교해 results/orig-<corpus>-compare-<후보>.json에 집계만 쓴다."""
+    """같은 문항에서 후보(--variant)와 기준선(--base, 기본 A)을 짝 비교해 results/orig-<corpus>-compare-<후보>[-vs-<기준선>].json에 집계만 쓴다."""
     import orig_run as rn
     out, shown = {}, []
     for key in KEYS:
-        base_path, cand_path = (ORIG / args.corpus / 'runs' / f'{key}-{tag}.jsonl' for tag in ('A', args.variant))
+        base_path, cand_path = (ORIG / home(args) / 'runs' / f'{key}-{tag}.jsonl' for tag in (args.base, args.variant))
         if base_path.exists() and cand_path.exists():
             out[key] = rn.compare_runs(key, list(rn.load_done(base_path).values()), list(rn.load_done(cand_path).values()))
             line = lambda metrics: ' · '.join(f"{m} {v['up']}↑{v['down']}↓{v['tie']}= (평균차 {v['meanDiff'] or 0:+.2f}, p={v['p']:.3f}, n={v['n']})" for m, v in metrics.items())   # noqa: E731
             shown.append(f"{NAMES[key]}: " + line(out[key]['metrics']) + f" · 입력 토큰 {out[key]['tokens']['base'] or 0:,.0f}→{out[key]['tokens']['cand'] or 0:,.0f}"
                          + f"\n    입력이 바뀐 {out[key]['applied']['n']}문항만: " + line(out[key]['applied']['metrics']))
     RESULTS.mkdir(exist_ok=True)
-    (RESULTS / f'orig-{args.corpus}-compare-{args.variant}.json').write_text(json.dumps({'corpus': args.corpus, 'variant': args.variant, 'sets': out}, ensure_ascii=False, indent=2, sort_keys=True))
+    (RESULTS / f'orig-{home(args)}-compare-{args.variant}{"" if args.base == "A" else "-vs-" + args.base}.json').write_text(
+        json.dumps({'corpus': home(args), 'variant': args.variant, 'base': args.base, 'sets': out}, ensure_ascii=False, indent=2, sort_keys=True))
     print('\n'.join(shown) or '비교할 실행 기록이 없다.')
 
 
@@ -330,12 +405,19 @@ def main(argv=None) -> None:
     align.add_argument('--first', choices=('openai', 'ocx'), default='openai', help='첫 판별 경로(둘째는 항상 ocx)')
     align.add_argument('--workers', type=int, default=6, help='회차 하나의 청크를 동시에 부르는 수')
     align.add_argument('--episodes', type=int, default=3, help='동시에 판별하는 회차 수')
-    command('build-sets', cmd_build_sets, '문항 생성(호출 없음)')
+    command('build-sets', cmd_build_sets, '문항 생성(호출 없음)').add_argument('--dev', action='store_true', help='후보 고르기용 dev 세트(본 평가 문항을 피해 따로 뽑는다, hp만)')
     command('review', cmd_review, '검수 표본(호출 없음)')
+    pair = command('review-pair', cmd_review_pair, '두 실행의 글을 나란히 보는 검수 표본(호출 없음)')
+    pair.add_argument('--set', required=True, help='세트 키(1·2·3n·3m·4)')
+    pair.add_argument('--left', required=True)
+    pair.add_argument('--right', required=True)
+    pair.add_argument('--n', type=int, default=20)
+    pair.add_argument('--dev', action='store_true')
     for name, handler, help_ in (('estimate', cmd_estimate, '예상 금액(호출 없음)'), ('run', cmd_run, '실제 호출(비용 승인 뒤에만)')):
         p = command(name, handler, help_, limit_usd=35.0)
         p.add_argument('--sets', default=','.join(KEYS), help='쉼표로: 1,2,3n,3m,4')
-        p.add_argument('--limit', type=int, default=None, help='세트마다 앞의 N문항만(시험 실행)')
+        p.add_argument('--limit', type=int, default=None, help='세트마다 같은 간격으로 N문항만(시험 실행)')
+        p.add_argument('--dev', action='store_true', help='hp-dev 세트로(후보 고르기용)')
         p.add_argument('--judge', choices=('openai', 'ocx'), default='ocx', help='채점 경로(ocx는 금액 0)')
         if name == 'run':
             p.add_argument('--via', choices=('openai', 'ocx'), default='openai', help='생성(서비스 함수) 호출 경로')
@@ -345,10 +427,22 @@ def main(argv=None) -> None:
     report = command('report', cmd_report, 'results/orig-*.json(집계만)')
     report.add_argument('--variant', default=None)
     report.add_argument('--tag', default=None)
+    report.add_argument('--dev', action='store_true')
     export = command('export', cmd_export, '공개 세트 문항을 LLMOps 평가 세트 형식으로(호출 없음)', corpus=False)
     export.add_argument('--per-set', type=int, default=12, help='세트·라이선스 묶음마다 내보낼 문항 수')
+    scenes = command('scenes', cmd_scenes, '후보를 해리 포터 고정 장면에서 끝까지(완료율·흐트러짐·속도, 실제 호출)', corpus=False, limit_usd=35.0)
+    scenes.add_argument('--runs', nargs='+', required=True, help='후보 이름들(base = 후보 없음, E1+N2처럼 +로 이으면 함께)')
+    scenes.add_argument('--ids', default=','.join(SCENE_IDS), help='장면 id(쉼표)')
+    scenes.add_argument('--repeat', type=int, default=1, help='같은 장면을 N번(2번째부터 id에 #k, 이미 끝낸 장면은 이어 받는다)')
+    scenes.add_argument('--keep-text', action='store_true', help='진단용으로 턴마다 글·말한 이·비트 진행을 기록에 남긴다(글이 들어가므로 .data에만)')
+    scenes.add_argument('--skip-narration-check', action='store_true', help='전지적 나레이션 검사를 건너뛴다(비용 절감, 운영 설정과 다르다)')
+    summary = command('summary', cmd_summary, '모든 실행을 기준선과 짝 비교해 한 파일로 집계(호출 없음)')
+    summary.add_argument('--base', default='base2', help='기준선 실행 기록 이름')
+    summary.add_argument('--dev', action='store_true')
     compare = command('compare', cmd_compare, '후보와 기준선(A)의 짝 비교(호출 없음)')
     compare.add_argument('--variant', required=True)
+    compare.add_argument('--base', default='A', help='기준선 실행 기록 이름(v2 기준선은 v2)')
+    compare.add_argument('--dev', action='store_true')
     args = parser.parse_args(argv)
     args.handler(args)
 

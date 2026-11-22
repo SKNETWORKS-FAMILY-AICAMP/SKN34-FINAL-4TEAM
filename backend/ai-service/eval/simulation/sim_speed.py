@@ -41,8 +41,9 @@ def _usd(call: dict) -> float:
     return request_usd(call['inputTokens'] or 0, call['outputTokens'] or 0)  # 토큰을 알려 주지 않은 호출은 0으로 세고 unpriced로 센다
 
 
-async def run_scene(spec: dict, plan, world, cost=None) -> dict:
-    """장면 하나를 끝까지 돌린 기록 {id, mode, status, stopReason, error, turns, steps, unpriced}. 단계(step) 하나가 한 턴이고 cost가 있으면 호출마다 비용 장부에 남긴다."""
+async def run_scene(spec: dict, plan, world, cost=None, transcript: bool = False) -> dict:
+    """장면 하나를 끝까지 돌린 기록 {id, mode, status, stopReason, error, turns, steps, unpriced}. 단계(step) 하나가 한 턴이고 cost가 있으면 호출마다 비용 장부에 남긴다.
+    transcript가 켜지면 진단용으로 턴마다 말한 이·글·진행한 비트를 transcript에 더한다(글이 들어가므로 기록은 .data에만 둔다)."""
     context = service.SceneContext(plan=plan, target={'workId': 'eval', 'episode': world.episode}, request=spec['id'], scope=None, steps=[dict(STEP)],
                                    pausing=False, loaded=world)
     seed = {'messages': [HumanMessage('장면을 진행해 주세요.')], 'scene': service.new_scene(plan).model_dump(mode='json'), 'pending': False,
@@ -56,15 +57,19 @@ async def run_scene(spec: dict, plan, world, cost=None) -> dict:
     if cost is not None:
         for call in calls:
             cost.record(call['name'], call['inputTokens'] or 0, call['outputTokens'] or 0, failed=call['failed'])
-    return {'id': spec['id'], 'mode': plan.mode, 'status': final.result.status, 'stopReason': final.result.stopReason, 'error': final.error,
+    record = {'id': spec['id'], 'mode': plan.mode, 'status': final.result.status, 'stopReason': final.result.stopReason, 'error': final.error,
             'turns': [{'kind': t.kind, 'pov': t.pov, 'regenerated': t.regenerated} for t in final.result.turns],
             'steps': [{'turn': r['turn'], 'ms': r['ms'], 'wallMs': r['wallMs'], 'modelCalls': r['modelCalls'], 'failures': r['failures'],
                        'inputTokens': r['inputTokens'], 'outputTokens': r['outputTokens'], 'usd': sum(_usd(c) for c in r['calls']),
                        'calls': [c['name'] for c in r['calls']]} for r in ledger.records],
             'unpriced': sum(c['inputTokens'] is None for c in calls)}
+    if transcript:  # 정지한 장면은 턴과 trail 길이가 어긋날 수 있어 짧은 쪽까지만 짝짓는다
+        record['transcript'] = {'beats': [b.status for b in final.result.beats], 'turns': [{'kind': t.kind, 'by': t.characterName, 'text': t.prose, 'beat': e.beat, 'done': e.done, 'ended': e.ended}
+                                                                                       for t, e in zip(final.result.turns, final.trail, strict=False)]}
+    return record
 
 
-async def run_speed(specs: list[dict], worlds, cost, limit_usd: float, out: Path) -> list[dict]:
+async def run_speed(specs: list[dict], worlds, cost, limit_usd: float, out: Path, transcript: bool = False) -> list[dict]:
     """고정 장면을 순서대로 끝까지 돌려 끝난 것부터 out(JSONL)에 덧붙인다(이미 있는 장면은 다시 하지 않는다). 여유가 남지 않으면 새 장면을 시작하지 않고 CallCapExceeded다."""
     out.parent.mkdir(parents=True, exist_ok=True)
     done = {r['id']: r for r in map(json.loads, out.read_text().splitlines())} if out.exists() else {}
@@ -74,7 +79,7 @@ async def run_speed(specs: list[dict], worlds, cost, limit_usd: float, out: Path
         if cost.spent() + SCENE_RESERVE_USD > limit_usd:
             raise CallCapExceeded(f'비용 상한 ${limit_usd:.2f}에 가까워졌다(끝낸 장면 {len(done)}/{len(specs)}). 같은 명령으로 이어 받는다.')
         plan, world = worlds.scene(spec)
-        done[spec['id']] = await run_scene(spec, plan, world, cost)
+        done[spec['id']] = await run_scene(spec, plan, world, cost, transcript)
         with out.open('a') as file:
             file.write(json.dumps(done[spec['id']], ensure_ascii=False) + '\n')
     return [done[spec['id']] for spec in specs]

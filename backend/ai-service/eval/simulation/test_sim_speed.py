@@ -132,3 +132,15 @@ def test_a_run_stops_before_a_scene_when_the_cost_limit_could_be_crossed(models,
     with pytest.raises(CallCapExceeded):
         asyncio.run(s.run_speed([FLOW], w.Worlds([], {}), cost, limit_usd=2.4, out=tmp_path / 'speed.jsonl'))
     assert models == []  # 장면 하나가 쓸 수 있는 여유(SCENE_RESERVE_USD)가 남지 않으면 시작하지 않는다
+
+
+
+def test_a_scene_run_with_transcript_keeps_who_said_what_and_which_beat_each_turn_moved(models):
+    plan, world = w.Worlds([], {}).scene(FLOW)
+    record = asyncio.run(s.run_scene(FLOW, plan, world, transcript=True))
+    turns = record['transcript']['turns']
+    assert [t['kind'] for t in turns] == ['narration', 'character', 'narration', 'character', 'narration']
+    assert turns[0]['text'] == '바람이 불었다.' and turns[1]['text'] == '그는 말했다. "안녕."' and turns[1]['by'] == '길현' and turns[0]['by'] == '나레이션'
+    assert [t['beat'] for t in turns] == [0, 0, 1, 1, None] and turns[1]['done'] is True and turns[0]['done'] is False   # 나레이션도 그 비트에 속한다(맨 끝 마무리만 없음)
+    assert record['transcript']['beats'] == ['done', 'done']
+    assert 'transcript' not in play(FLOW)   # 켜지 않으면 기록에 글을 남기지 않는다(기본 기록은 집계용)

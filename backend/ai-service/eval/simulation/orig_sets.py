@@ -138,13 +138,33 @@ def review_md(items: list[dict], n: int, seed: int = SEED) -> str:
     return '\n'.join(out)
 
 
-def build_items(corpus, records: list[dict], size: dict[str, int], seed: int = SEED) -> tuple[dict[str, list[dict]], dict]:
+def pair_md(items: list[dict], left: dict, right: dict, labels: tuple[str, str], n: int, seed: int = SEED) -> str:
+    """같은 문항에 두 실행(left·right: 문항 id → 기록)이 쓴 글을 나란히 보여 주는 검수 표본(양쪽 기록이 있는 문항 중 n개, 고정 시드). 채점 모델이 한쪽 글을 낮게 볼 수 있어 점수 차이가 애매할 때 사람이 읽고 정한다."""
+    both = [i for i in items if i['id'] in left and i['id'] in right and left[i['id']].get('generated') and right[i['id']].get('generated')]
+    out = [f'# 나란히 보기 표본 ({min(n, len(both))}개): {labels[0]} ↔ {labels[1]}', '', '어느 글이 정답과 더 같은 말투·문체인지 표시한다(채점 점수는 참고).', '']
+
+    def score(record: dict) -> str:
+        g = record['grade'] or {}
+        parts = [f"{k} {g[v]}" for k, v in (('말투', 'voice'), ('의도', 'intent'), ('문체', 'style'), ('정보', 'info')) if v in g]
+        return ' · '.join(parts) + (' · 누설 있음' if g.get('leaked') else '') if g else '채점 없음'
+
+    for item in random.Random(seed).sample(both, min(n, len(both))):
+        out += [f"## {item['id']} — {item['kind']} · {item['speaker'] or '지문'}", '- 직전 줄:', *[f"  {k}. [{line['by']}] {line['text']}" for k, line in enumerate(item['context'][-3:], 1)], f"- **정답**: {item['gold']}"]
+        out += [f"- {label}({score(records[item['id']])}): {records[item['id']]['generated']}" for label, records in zip(labels, (left, right), strict=True)]
+        out += ['- 검수: [ ] 왼쪽이 낫다  [ ] 오른쪽이 낫다  [ ] 비슷하다', '']
+    return '\n'.join(out)
+
+
+def build_items(corpus, records: list[dict], size: dict[str, int], seed: int = SEED, exclude=frozenset(), prefix: str | None = None) -> tuple[dict[str, list[dict]], dict]:
     """세트 이름 → 문항. size = {'act': ①, 'direct': ②, 'narrate': ③나레이션, 'monologue': ③독백, 'check_pass': ④원작, 'check_fail': ④주입}.
-    각 세트는 작품·인물(나레이션은 회차)로 돌려 뽑고, 정답 유출·장면 인물 부족·주입할 사실 없음으로 버린 수를 stats에 센다. 후보가 모자라면 있는 만큼이다."""
+    각 세트는 작품·인물(나레이션은 회차)로 돌려 뽑고, 정답 유출·장면 인물 부족·주입할 사실 없음으로 버린 수를 stats에 센다. 후보가 모자라면 있는 만큼이다.
+    exclude는 쓰지 않을 (회차 id, 턴 번호, 용도) 모음이고(후보 선택용 dev 세트가 본 평가 문항을 피한다), prefix는 문항 id 앞머리(기본 corpus 이름)다."""
     works, pools = corpus.works(), {use: [] for use in ('act', 'direct', 'narrate', 'monologue')}
     recs, name_of = {r['ep']['id']: r for r in records}, {r['ep']['id']: episode_names(corpus, r['ep']) for r in records}
     for rec in records:
         for c in candidates(corpus, rec, name_of[rec['ep']['id']]):
+            if (c['ep'], c['t'], c['use']) in exclude:
+                continue
             if c['use'] != 'narrate' or works[c['work']]['person'] != 'first':   # 1인칭 작품은 서술자 카드가 없어 나레이션 문항을 만들지 않는다
                 pools[c['use']].append(c)
     stats, sets, rng = {'dropped': Counter(), 'pool': {use: len(p) for use, p in pools.items()}}, {}, random.Random(seed)
@@ -193,6 +213,6 @@ def build_items(corpus, records: list[dict], size: dict[str, int], seed: int = S
     sets['4'] = [{**c, 'label': 'pass'} for c in passed] + [{**c, 'label': 'reject'} for c in failed]
     for number, items in sets.items():
         for i, item in enumerate(items, 1):
-            item['id'] = f"{corpus.name}-{number}-{i:04d}"
+            item['id'] = f"{prefix or corpus.name}-{number}-{i:04d}"
     stats['dropped'] = dict(stats['dropped'])
     return sets, stats

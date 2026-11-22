@@ -111,3 +111,83 @@ def test_compare_runs_also_pairs_only_items_whose_input_changed():
     got = orr.compare_runs('1', base, cand)
     assert got['metrics']['voice']['n'] == 3 and got['metrics']['voice']['up'] == 2
     assert got['applied']['n'] == 2 and got['applied']['metrics']['voice'] == {'n': 2, 'up': 1, 'down': 1, 'tie': 0, 'p': 1.0, 'meanDiff': -0.5}   # 입력이 바뀐 문항만(1: +1, 2: -2)
+
+
+def test_run_path_refuses_run_names_that_differ_only_in_case(tmp_path):
+    import pytest
+    (tmp_path / '4-V2.jsonl').write_text('')
+    assert orr.run_path(tmp_path, '4', 'V2') == tmp_path / '4-V2.jsonl'
+    with pytest.raises(SystemExit):   # macOS 파일 시스템은 대소문자를 가리지 않아 4-v2.jsonl이 4-V2.jsonl을 덮어쓰고 섞는다
+        orr.run_path(tmp_path, '4', 'v2')
+    assert orr.run_path(tmp_path, '1', 'v2') == tmp_path / '1-v2.jsonl'   # 세트가 다르면 다른 파일이다
+
+
+
+def scene(kinds_regen, status='completed', reason=None):
+    return {'id': 's', 'status': status, 'stopReason': reason, 'turns': [{'kind': k, 'pov': 'omniscient', 'regenerated': r} for k, r in kinds_regen], 'steps': []}
+
+
+def test_scene_drift_compares_regenerations_in_the_second_half_with_the_first():
+    scenes = [scene([('narration', 0), ('character', 0), ('character', 1), ('character', 1)]), scene([('narration', 0), ('character', 1)], 'stopped', 'check_failed')]
+    got = orr.scene_drift(scenes)
+    assert got['scenes'] == 2 and got['turns'] == 6 and got['stopped'] == 1 and got['completedRate'] == 0.5
+    assert got['regenFirstHalf'] == 0.0 and got['regenSecondHalf'] == 1.0 and got['drift'] == 1.0   # 앞쪽 절반 턴 [0,0,0]·뒤쪽 절반 턴 [1,1,1]을 장면 합쳐 평균
+
+
+
+def test_settle_prices_terra_calls_by_their_rate_and_keeps_the_usd_of_each_call(tmp_path):
+    from types import SimpleNamespace
+
+    import orig_variants as ov
+    from cost import CostLog, request_usd
+    cost = CostLog(tmp_path / 'cost.jsonl')
+    calls = [{'name': 'act', 'inputTokens': 10_000, 'outputTokens': 1_000, 'failed': False, 'ms': 5}, {'name': 'check', 'inputTokens': 10_000, 'outputTokens': 1_000, 'failed': False, 'ms': 5}]
+    with ov.patched('M1'):
+        done = orr.settle(cost, SimpleNamespace(calls=[dict(c) for c in calls]))
+    assert done[0]['usd'] == 0.015 and done[1]['usd'] == request_usd(10_000, 1_000)   # act는 terra 단가(1.00·5.00), 검사는 기본 모델 단가
+    assert [r.get('model') for r in cost.rows()] == ['gpt-6.1-terra', None] and cost.spent() == 0.015 + request_usd(10_000, 1_000)
+    plain = orr.settle(CostLog(tmp_path / 'other.jsonl'), SimpleNamespace(calls=[dict(calls[0])]))
+    assert plain[0]['usd'] == request_usd(10_000, 1_000)   # 후보가 아니면 기본 단가
+
+
+def test_cost_stats_reports_the_average_usd_per_call_even_for_older_records_without_it():
+    from cost import request_usd
+    old = {'id': 'a', 'usage': [{'name': 'act', 'ms': 10, 'failed': False, 'inputTokens': 1000, 'outputTokens': 100}]}
+    new = {'id': 'b', 'usage': [{'name': 'act', 'ms': 20, 'failed': False, 'inputTokens': 1000, 'outputTokens': 100, 'usd': 0.01}]}
+    got = orr.cost_stats([old, new], 'act')
+    assert got['usdPerCall'] == (request_usd(1000, 100) + 0.01) / 2   # usd가 없는 옛 기록은 토큰으로 기본 단가를 곱해 센다
+
+
+
+def test_summary_of_summarizes_every_run_and_pairs_the_others_with_the_base():
+    runs = {'base': [act(0, 3, 3), act(1, 2, 2)], 'cand': [act(0, 4, 3), act(1, 2, 3)]}
+    got = orr.summary_of('1', runs, 'base', orr.summarize_dialogue)
+    assert set(got) == {'base', 'cand'} and got['base']['vsBase'] is None and got['cand']['summary']['voice']['mean'] == 3.0
+    assert got['cand']['vsBase']['metrics']['voice']['up'] == 1 and got['cand']['vsBase']['metrics']['intent']['up'] == 1
+    import pytest
+    with pytest.raises(KeyError):
+        orr.summary_of('1', {'cand': runs['cand']}, 'base', orr.summarize_dialogue)   # 기준선 기록이 없으면 짝 비교를 짐작하지 않는다
+
+
+
+def direct_rec(i, gold, pred_kind, pred_speaker, ok):
+    return {'id': f'd{i}', 'error': None, 'skipped': None, 'gold': {'kind': gold[0], 'speaker': gold[1]}, 'pred': {'kind': pred_kind, 'speaker': pred_speaker, 'ok': ok}, 'usage': []}
+
+
+def test_metrics_of_direct_pairs_exact_kind_and_speaker_given_the_same_kind():
+    recs = [direct_rec(0, ('dialogue', '해리'), 'dialogue', '해리', True), direct_rec(1, ('dialogue', '해리'), 'dialogue', '론', False), direct_rec(2, ('narration', ''), 'dialogue', '론', False),
+            direct_rec(3, ('monologue', '해리'), 'narration', '', False)]
+    got = orr.metrics_of('2', recs)
+    assert got['exact'] == {'d0': 1, 'd1': 0, 'd2': 0, 'd3': 0} and got['kind'] == {'d0': 1, 'd1': 1, 'd2': 0, 'd3': 0}
+    assert got['speaker'] == {'d0': 1, 'd1': 0}   # 종류를 맞힌 대사·독백 문항만(나레이션 정답과 종류를 틀린 문항은 화자를 따지지 않는다)
+    base = [direct_rec(0, ('dialogue', '해리'), 'dialogue', '론', False), direct_rec(1, ('dialogue', '해리'), 'dialogue', '론', False)]
+    paired = orr.compare_runs('2', base, recs[:2])
+    assert paired['metrics']['exact']['up'] == 1 and paired['metrics']['speaker']['up'] == 1 and paired['metrics']['kind']['tie'] == 2
+
+
+
+def test_repeated_keeps_the_first_round_ids_and_marks_the_later_rounds():
+    specs = [{'id': 'a', 'cast': ['x']}, {'id': 'b'}]
+    got = orr.repeated(specs, 3)
+    assert [s['id'] for s in got] == ['a', 'b', 'a#2', 'b#2', 'a#3', 'b#3'] and got[2]['cast'] == ['x']
+    assert [s['id'] for s in orr.repeated(specs, 1)] == ['a', 'b'] and [s['id'] for s in specs] == ['a', 'b']   # 한 번이면 그대로, 원본은 건드리지 않는다

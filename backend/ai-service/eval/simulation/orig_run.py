@@ -14,7 +14,7 @@ from orig_common import RESULTS  # noqa: F401,I001  경로 설정이 아래 impo
 from langchain_core.runnables import RunnableLambda
 from pydantic import BaseModel, ValidationError
 
-from cost import usd
+from cost import request_usd, usd
 from llm import CallCapExceeded, LlmFailure
 from metrics import sign_test, wilson_interval
 from sim_stats import percentile
@@ -24,6 +24,7 @@ from app.simulation import agent, director, service
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import Decision, SimulationPlan, Trail, Turn
 
+import orig_variants
 from orig_corpus import _bigrams, top_facts
 from orig_sets import leaked
 
@@ -132,12 +133,13 @@ def narrate_data(item: dict, corpus, variant=None) -> dict:
     return variant(data, extra, item, corpus)[0] if variant else data
 
 
-def direct_view(item: dict, corpus):
-    """② director.decide의 입력: (장면 요약, 장면 인물 [{id, name}], 직전 시점)."""
+def direct_view(item: dict, corpus, variant=None):
+    """② director.decide의 입력: (장면 요약, 장면 인물 [{id, name}], 직전 시점). variant가 있으면 (state, scene, cast, item) → state로 평가 입력만 바꾼다."""
     world, card, plan, scene = prepare(item, corpus)
     cast = [{'id': card[n], 'name': n} for n in item['cast'] if n in card]
     turns = scene.result.turns
-    return service.director_state(plan, scene, None), cast, (turns[-1].pov if turns else None)
+    state = service.director_state(plan, scene, None)
+    return (variant(state, scene, cast, item) if variant else state), cast, (turns[-1].pov if turns else None)
 
 
 # ---- 판정(순수) ----
@@ -165,9 +167,12 @@ def covered(fact: str, forbidden: list[dict]) -> bool:
 # ---- 한 문항 실행 ----
 
 def settle(cost, ledger, estimate: int = 0) -> list[dict]:
-    """모델 호출마다 토큰·금액을 비용 장부에 남기고(토큰을 모르면 입력 어림으로) 호출 기록을 돌려준다."""
+    """모델 호출마다 토큰·금액을 비용 장부에 남기고(토큰을 모르면 입력 어림으로) 호출 기록을 돌려준다. 호출 기록에는 그 호출의 금액(usd)도 더한다.
+    모델 후보(orig_variants.MODEL_CALLS)가 바꾼 호출은 그 모델의 단가(orig_variants.RATES)로 세고 장부 줄에 모델 이름을 남긴다."""
     for call in ledger.calls:
-        cost.record(call['name'], call['inputTokens'] if call['inputTokens'] is not None else estimate, call['outputTokens'] or 0, failed=call['failed'])
+        model = orig_variants.MODEL_CALLS.get(call['name'])
+        call['usd'] = cost.record(call['name'], call['inputTokens'] if call['inputTokens'] is not None else estimate, call['outputTokens'] or 0, failed=call['failed'],
+                                  **({'rate': orig_variants.RATES[model], 'model': model} if model else {}))
     return ledger.calls
 
 
@@ -242,7 +247,7 @@ def evaluate_check(item: dict, corpus, llm, cost, variant=None, variant_name=Non
 async def evaluate_direct(item: dict, corpus, cost, variant=None, variant_name=None) -> dict:
     """② 한 문항: director.decide 한 번(허용 턴은 나레이션·독백·대사 모두). 연출 Decisions가 토큰을 주지 않으면 입력 글자 수로 어림해 장부에 센다."""
     record, ledger = blank(item, variant_name), UsageLedger('simulation.orig', lambda step: {})
-    state, cast, last = direct_view(item, corpus)
+    state, cast, last = direct_view(item, corpus, variant)
     record |= {'gold': {'kind': item['kind'], 'speaker': item['speaker']}}
     guess = int(size_of(state) / CHARS_PER_TOKEN)
 
@@ -257,6 +262,14 @@ async def evaluate_direct(item: dict, corpus, cost, variant=None, variant_name=N
 
 
 # ---- 실행(이어 받기·금액 상한) ----
+
+def run_path(folder: Path, key: str, tag: str) -> Path:
+    """세트 key의 실행 기록 파일. 이름이 대소문자만 다른 기록(4-V2와 4-v2)이 이미 있으면 거절한다(macOS는 같은 파일로 보고 섞는다)."""
+    taken = {p.stem.lower(): p.stem for p in folder.glob(f'{key}-*.jsonl')} if folder.exists() else {}
+    if taken.get(f'{key}-{tag}'.lower(), f'{key}-{tag}') != f'{key}-{tag}':
+        raise SystemExit(f'실행 기록 이름 {key}-{tag}가 기존 {taken[f"{key}-{tag}".lower()]}와 대소문자만 다르다. 다른 이름을 쓴다.')
+    return folder / f'{key}-{tag}.jsonl'
+
 
 def load_done(out: Path) -> dict:
     return {r['id']: r for r in map(json.loads, out.read_text().splitlines())} if out.exists() else {}
@@ -339,7 +352,8 @@ def cost_stats(records: list[dict], name: str) -> dict:
     """호출당 입력·출력 토큰 평균과 지연(ms) 중앙값·95분위(모델 호출을 마친 문항만)."""
     calls = [c for r in records if not r.get('skipped') and not r.get('error') for c in r.get('usage', []) if c['name'] == name and not c['failed']]
     known = [c for c in calls if c['inputTokens'] is not None]
-    return {'inputTokens': sum(c['inputTokens'] for c in known) / len(known) if known else None,
+    priced = [c['usd'] if 'usd' in c else request_usd(c['inputTokens'], c['outputTokens'] or 0) for c in calls if 'usd' in c or c['inputTokens'] is not None]   # usd가 없는 옛 기록은 토큰으로 기본 단가를 곱한다
+    return {'usdPerCall': sum(priced) / len(priced) if priced else None, 'inputTokens': sum(c['inputTokens'] for c in known) / len(known) if known else None,
             'outputTokens': sum(c['outputTokens'] or 0 for c in known) / len(known) if known else None,
             'callMs': {'p50': percentile([c['ms'] for c in calls], 50), 'p95': percentile([c['ms'] for c in calls], 95)}}
 
@@ -394,6 +408,30 @@ def summarize_check(records: list[dict]) -> dict:
             **cost_stats(records, 'check')}
 
 
+def repeated(specs: list[dict], times: int) -> list[dict]:
+    """같은 장면을 times번 돈다: 첫 번째는 원래 id 그대로라 이미 끝낸 기록을 이어 받고, 두 번째부터 id에 #k를 붙인다(한 번의 장면 결과는 우연이 커서 겹쳐 본다)."""
+    return [spec if k == 1 else {**spec, 'id': f"{spec['id']}#{k}"} for k in range(1, times + 1) for spec in specs]
+
+
+def summary_of(key: str, runs: dict[str, list[dict]], base: str, summarize) -> dict:
+    """한 세트의 실행들(이름 → 기록)을 모두 집계하고, 기준선(base)이 아닌 실행에는 같은 문항 짝 비교(compare_runs)를 붙인다. 기준선 기록이 없으면 KeyError다."""
+    return {tag: {'summary': summarize(records), 'vsBase': None if tag == base else compare_runs(key, runs[base], records)} for tag, records in runs.items()}
+
+
+def scene_drift(scenes: list[dict]) -> dict:
+    """장면 기록들의 흐트러짐: 장면마다 턴을 앞쪽 절반·뒤쪽 절반(가운데 턴은 뒤쪽)으로 나눠 장면을 합쳐 낸 턴당 재생성 수 평균과 그 차이(양수일수록 뒤로 갈수록 검사에 더 걸린다),
+    멈춘(completed가 아닌) 장면 수와 완료율. 재생성은 검사가 걸러 다시 쓴 횟수라 사람이 읽는 흐트러짐의 대리 지표다."""
+    first, second = [], []
+    for scene in scenes:
+        regen = [t['regenerated'] for t in scene['turns']]
+        first += regen[:len(regen) // 2]
+        second += regen[len(regen) // 2:]
+    a, b = (sum(v) / len(v) if v else None for v in (first, second))
+    stopped = sum(s['status'] != 'completed' for s in scenes)
+    return {'scenes': len(scenes), 'turns': sum(len(s['turns']) for s in scenes), 'stopped': stopped, 'completedRate': 1 - stopped / len(scenes) if scenes else None,
+            'regenFirstHalf': a, 'regenSecondHalf': b, 'drift': None if a is None or b is None else b - a}
+
+
 CALL = {'1': 'act', '2': 'director', '3n': 'narrate', '3m': 'narrate', '4': 'check'}   # 세트 → 주 모델 호출 이름
 
 
@@ -408,6 +446,11 @@ def metrics_of(key: str, records: list[dict]) -> dict[str, dict]:
             if r.get('grade'):
                 for name, value in r['grade'].items():
                     out.setdefault('clean' if name == 'leaked' else name, {})[r['id']] = int(not value) if name == 'leaked' else value
+        elif key == '2' and r.get('pred'):   # 완전 일치·종류 일치, 화자는 두 실행 모두 종류를 맞힌 대사·독백 문항만 따진다(그 밖은 값이 없어 짝에서 빠진다)
+            out.setdefault('exact', {})[r['id']] = int(r['pred']['ok'])
+            out.setdefault('kind', {})[r['id']] = int(r['pred']['kind'] == r['gold']['kind'])
+            if r['gold']['kind'] != 'narration' and r['pred']['kind'] == r['gold']['kind']:
+                out.setdefault('speaker', {})[r['id']] = int(r['pred']['speaker'] == r['gold']['speaker'])
         elif key == '4' and r.get('verdict'):
             rejected = r['verdict']['rejected']
             out.setdefault('correct', {})[r['id']] = int(rejected == (r['label'] == 'reject'))
