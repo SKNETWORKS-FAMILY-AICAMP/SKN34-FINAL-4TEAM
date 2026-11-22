@@ -212,14 +212,14 @@ EFFORTS = ('none', 'minimal', 'low', 'medium', 'high')
 
 @pytest.mark.parametrize('name', CALLS)
 @pytest.mark.parametrize('value', [None, '', '  '])
-def test_without_the_effort_switch_the_request_is_what_it_was_before(monkeypatch, name, value):
+def test_without_the_effort_switch_every_call_sends_low_effort(monkeypatch, name, value):
     call, _, parsed = CALLS[name]
     seen = []
     provider(monkeypatch, lambda **kwargs: seen.append(kwargs) or completed(parsed))
     if value is not None:
         monkeypatch.setenv('SIMULATION_REASONING_EFFORT', value)
     call()
-    assert len(seen) == 1 and 'reasoning' not in seen[0]  # 빈 값은 지정 안 함이다
+    assert len(seen) == 1 and seen[0]['reasoning'] == {'effort': 'low'}  # 시뮬레이션 v2 기본값(빈 값 포함)
 
 
 @pytest.mark.parametrize('name', CALLS)

@@ -17,7 +17,7 @@ from app.simulation import agent, director, scene_agent, service  # noqa: E402
 EFFORT, SKIP_DIRECTOR, WORLD_CACHE, SKIP_NARRATION = agent.EFFORT, director.SKIP_FORCED, service.WORLD_CACHE, scene_agent.SKIP_NARRATION_CHECK
 SWITCHES = (EFFORT, SKIP_DIRECTOR, WORLD_CACHE, SKIP_NARRATION)
 
-CONFIGS = {'A': {}, 'B': {EFFORT: 'low'}}  # A는 모두 끈 지금 동작이고, 뒤로 갈수록 앞 설정에 스위치를 하나씩 더한다
+CONFIGS = {'A': {}, 'B': {EFFORT: 'low'}}  # A는 스위치를 지정하지 않은 서비스 기본값(v1 측정 당시 effort 미지정, v2부터 effort low라 B와 같다)이고, 뒤로 갈수록 앞 설정에 스위치를 하나씩 더한다
 CONFIGS['C'] = {**CONFIGS['B'], SKIP_DIRECTOR: '1'}
 CONFIGS['D'] = {**CONFIGS['C'], WORLD_CACHE: '1'}
 CONFIGS['E'] = {**CONFIGS['D'], SKIP_NARRATION: '1'}

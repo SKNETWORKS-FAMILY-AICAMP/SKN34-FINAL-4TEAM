@@ -4,7 +4,7 @@
 키·모델은 호출 시 읽고(OPENAI_API_KEY·OPENAI_MODEL), 제공사 실패·불완전 응답은 고정 문구의 SimulationFailure로 바꾼다.
 추적에는 모델·사용량·실패만 남긴다. 설정 문서·생성 문단은 팀 결정 범위(질문·원고·답변) 밖이라 남기지 않는다.
 LangChain 실행(장면 에이전트의 도구) 안에서 부르면 호출마다 사용량·지연·실패를 공통 `MODEL_EVENT`로 알려 사용량 장부(app/agent_runtime.UsageLedger)가 모은다.
-속도 스위치(#642): 환경 변수 `SIMULATION_REASONING_EFFORT`가 비어 있지 않으면 네 호출 모두 `reasoning.effort`로 보낸다(호출 때 읽고, 기본은 지정하지 않는다).
+속도 스위치(#642): 네 호출 모두 `reasoning.effort`를 보낸다. 값은 환경 변수 `SIMULATION_REASONING_EFFORT`(호출 때 읽음)이고 비어 있으면 시뮬레이션 v2 기본값 `low`다(원문 기반·HP 평가에서 품질이 같고 장면 p50 10.8→7.9초, docs/evaluation/simulation-v2.md).
 """
 
 import json
@@ -25,6 +25,7 @@ from app.simulation.prompt import ACT_INSTRUCTIONS, CHECK_INSTRUCTIONS, NARRATE_
 EFFORT = 'SIMULATION_REASONING_EFFORT'
 EFFORTS = ('none', 'minimal', 'low', 'medium', 'high')  # OpenAI reasoning.effort 값 그대로. 그 밖은 설정 오류다
 BAD_EFFORT = '시뮬레이션 추론 강도 설정을 확인해 주세요.'
+DEFAULT_EFFORT = 'low'  # 시뮬레이션 v2 기본값
 
 
 def plan(request: str, history: list[str], characters: list[dict]) -> PlanDraft:
@@ -52,7 +53,7 @@ def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel
     key, model = os.environ.get('OPENAI_API_KEY'), os.environ.get('OPENAI_MODEL')
     if not key or not model:
         raise SimulationFailure(503, '시뮬레이션 모델 설정이 필요합니다.')
-    effort = os.environ.get(EFFORT, '').strip()
+    effort = os.environ.get(EFFORT, '').strip() or DEFAULT_EFFORT
     if effort and effort not in EFFORTS:  # 모델을 부르기 전에 막는다(고친 값을 짐작해 쓰지 않는다)
         raise SimulationFailure(503, BAD_EFFORT)
     try:  # 지시문은 Langfuse 프롬프트 character_simulation.<호출>의 production 버전이고 instructions(코드 문자열)는 기본값이다
@@ -67,7 +68,7 @@ def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel
                 result = client.responses.parse(
                     model=model, store=False, max_output_tokens=max_tokens, text_format=text_format,
                     instructions=managed.text, input=json.dumps(data, ensure_ascii=False),
-                    **({'reasoning': {'effort': effort}} if effort else {}))
+                    reasoning={'effort': effort})
             except ValidationError:
                 raise SimulationFailure(502, '시뮬레이션 모델 응답을 확인할 수 없습니다.') from None
             except OpenAIError:
