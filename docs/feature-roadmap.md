@@ -501,15 +501,17 @@
 <tr><td>일러스트 후보 거절</td><td>❌</td></tr>
 <tr><td>일러스트 후보 삭제</td><td>❌</td></tr>
 <tr><td>채택 이미지 원고 삽입</td><td>❌</td></tr>
-<tr><td rowspan="10">자율 연재 관리</td><td rowspan="10">39 일정·생성·발행 관리</td><td>자율 연재 일정 등록</td><td>❌</td><td rowspan="10"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
-<tr><td>자율 연재 일정 조회</td><td>❌</td></tr>
-<tr><td>자율 연재 일정 수정</td><td>❌</td></tr>
-<tr><td>자율 연재 켜기</td><td>❌</td></tr>
-<tr><td>자율 연재 일시정지</td><td>❌</td></tr>
-<tr><td>진행 중 생성 중지 요청</td><td>❌</td></tr>
-<tr><td>다음 회차 자동 생성</td><td>❌</td></tr>
-<tr><td>생성 회차 발행 조건 검사</td><td>❌</td></tr>
-<tr><td>생성 회차 자동 발행</td><td>❌</td></tr>
+<tr><td rowspan="12">자율 연재 관리</td><td rowspan="12">39 일정·생성·발행 관리 <small>(<a href="design/ai-serial-contract.md">계약</a>)</small></td><td>자율 연재 설정(켜기·요일·시각·방향) 등록·조회·수정</td><td>❌</td><td rowspan="12"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/659">#659</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td>회차별 다음 회차 의견 게시판 열기</td><td>❌</td></tr>
+<tr><td>의견 제출(일반·시뮬레이션·설정 카드 추가·변경)</td><td>❌</td></tr>
+<tr><td>의견 투표·옮기기·취소</td><td>❌</td></tr>
+<tr><td>시뮬레이션 의견 장면 미리보기(제출자 크레딧)</td><td>❌</td></tr>
+<tr><td>설정 제안 승인·거절(세계관 초안 반영)</td><td>❌</td></tr>
+<tr><td>지금 마감·실행 요청</td><td>❌</td></tr>
+<tr><td>일정 도래 시 자동 실행</td><td>❌</td></tr>
+<tr><td>득표 상위 의견 종합 → 다음 회차 생성·검수</td><td>❌</td></tr>
+<tr><td>검수 통과 회차 자동 발행·다음 게시판 열기</td><td>❌</td></tr>
+<tr><td>AI 미들웨어 토큰 확정 금액 크레딧 차감</td><td>❌</td></tr>
 <tr><td>자율 연재 실행 기록 조회</td><td>❌</td></tr>
 <tr><td rowspan="5">캐릭터챗 관리</td><td rowspan="5">77 캐릭터 응답·문맥 보호</td><td>추천 질문 선택 후 캐릭터 답변 요청</td><td>❌</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/47">#47</a></td></tr>
 <tr><td>자유 질문 입력 후 캐릭터 답변 요청</td><td>❌</td></tr>
