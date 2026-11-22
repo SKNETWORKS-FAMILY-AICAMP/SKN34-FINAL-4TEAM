@@ -116,7 +116,9 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     const value: unknown = await response.json().catch(() => undefined)
     if (!response.ok) {
       const error = z.object({detail:z.string()}).safeParse(value)
-      throw new Error(error.success ? error.data.detail : '요청을 처리하지 못했어요. 입력과 서버 상태를 확인해 주세요.')
+      // 서버 오류 code(예: SERIAL_RUNNING)는 호출 측이 고정 문구를 고를 수 있게 Error.cause에 싣는다. 문구는 그대로다.
+      const code = z.object({code:z.string()}).safeParse(value)
+      throw new Error(error.success ? error.data.detail : '요청을 처리하지 못했어요. 입력과 서버 상태를 확인해 주세요.', code.success ? {cause:code.data.code} : undefined)
     }
     if(method==='DELETE' && response.status!==204) throw new Error('삭제 완료 응답을 확인할 수 없어요. 다시 불러와 상태를 확인해 주세요.')
     const parsed = schema.safeParse(value)

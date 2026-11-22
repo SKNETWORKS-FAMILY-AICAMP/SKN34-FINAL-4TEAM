@@ -11,6 +11,7 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useWorkViewModel } from '../viewmodel/useWorkViewModel'
 import { ReportSheet } from './Sheets'
+import { SerialBoard } from './SerialBoard'
 import { WorkComments } from './WorkComments'
 import { WorkInfo, serialView } from './WorkInfo'
 import { WorkNotices } from './WorkNotices'
@@ -142,7 +143,7 @@ export function WorkPage() {
             )}
           </aside>
         </div>
-        {isPub(w) && <><WorkComments workId={w.id} canonical={!!w.canonical} start={visible.length > 0 ? start : undefined} /><WorkRecommendations work={w} /></>}
+        {isPub(w) && <>{w.canonical && <SerialBoard key={w.id} work={w} />}<WorkComments workId={w.id} canonical={!!w.canonical} start={visible.length > 0 ? start : undefined} /><WorkRecommendations work={w} /></>}
       </main>
     </div>
     <Footer />

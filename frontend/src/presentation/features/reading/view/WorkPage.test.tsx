@@ -766,3 +766,36 @@ it('추천이 모두 비면 추천 섹션을 만들지 않는다', async () => {
   await waitFor(() => expect(document.querySelector('.wrecs')).toBeNull())
   expect(screen.queryByRole('heading', { name: '비슷한 작품' })).toBeNull()
 })
+
+const openBoard = { board: { id: 'b1', episodeNumber: 4 }, opinions: [], myOpinionId: null, myVoteOpinionId: null, summary: null }
+
+it('서버 작품 상세는 열린 의견 게시판이 있으면 "다음 회차 의견" 섹션을 전체 댓글 위에 그린다 (UC-18)', async () => {
+  const server = serverWorks()
+  server.read.mockResolvedValue({ likes: 0, liked: false })
+  const board = vi.spyOn(appContainer.resolve('serialUseCase'), 'board').mockResolvedValue(openBoard)
+  try {
+    renderApp('/work/guunmong', createAppStore({ role: 'user', memberId: 'member-9' }))
+    const section = await screen.findByRole('heading', { level: 2, name: '다음 회차 의견' })
+    expect(board).toHaveBeenCalledWith('guunmong', expect.any(AbortSignal))
+    const comments = screen.getByRole('heading', { level: 2, name: /전체 댓글/ })
+    expect(section.compareDocumentPosition(comments) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  } finally { server.restore() }
+})
+
+it('열린 의견 게시판이 없으면 섹션을 그리지 않고, 데모 작품은 게시판을 읽지도 않는다', async () => {
+  const board = vi.spyOn(appContainer.resolve('serialUseCase'), 'board').mockResolvedValue({ ...openBoard, board: null, summary: '지난 종합' })
+  const server = serverWorks()
+  server.read.mockResolvedValue({ likes: 0, liked: false })
+  try {
+    renderApp('/work/guunmong', createAppStore({ role: 'user' }))
+    await screen.findByRole('heading', { name: /전체 댓글/ })
+    await waitFor(() => expect(board).toHaveBeenCalled())
+    expect(screen.queryByRole('heading', { name: '다음 회차 의견' })).toBeNull()
+  } finally { server.restore() }
+  board.mockClear()
+  cleanup()
+  renderApp('/work/guunmong')
+  await screen.findByRole('heading', { name: '구운몽', level: 1 })
+  await screen.findByRole('heading', { name: /전체 댓글/ })
+  expect(board).not.toHaveBeenCalled()
+})

@@ -888,7 +888,7 @@ it('lists the management tabs including operating settings, and opens the episod
   stubCover()
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
   const nav = screen.getByRole('navigation', { name: '작품 메뉴' })
-  expect(within(nav).getAllByRole('button').map((b) => b.textContent)).toEqual(['공개 회차 · 0', '세계관·설정집', '이야기 분기', '받은 피드백', '운영 설정', '저장·AI·발행 이력'])
+  expect(within(nav).getAllByRole('button').map((b) => b.textContent)).toEqual(['공개 회차 · 0', '세계관·설정집', '이야기 분기', 'AI 집필', '받은 피드백', '운영 설정', '저장·AI·발행 이력'])
   expect(within(nav).getByRole('button', { name: '공개 회차 · 0' }).getAttribute('aria-current')).toBe('page')
   // 공개한 회차가 없어도 안내 문구는 남는다. 집필실로 가는 같은 목적지의 버튼은 사이드바의 '회차 작성하기' 하나뿐이다(본문의 '새 회차 집필하기'는 없앴다).
   expect(screen.getByText('아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.')).toBeTruthy()
@@ -1048,6 +1048,9 @@ it('titles every tab body (one h2, first in the tab) with exactly the words of i
   myWorlds([])
   vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listInbox').mockResolvedValue([])
   vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'inbox').mockResolvedValue([])
+  // AI 집필 탭은 컨테이너의 서버 UseCase로 읽는다(응답 모양은 data 단위 테스트가 본다).
+  vi.spyOn(appContainer.resolve('serialUseCase'), 'settings').mockResolvedValue({ enabled: false, days: [], time: '21:00', direction: '' })
+  vi.spyOn(appContainer.resolve('serialUseCase'), 'boards').mockResolvedValue([])
   await openWork(contentApi({
     'GET /api/v1/works': () => Response.json([owned]),
     'GET /api/v1/works/w/world': () => Response.json(settingsBook),
@@ -1058,6 +1061,7 @@ it('titles every tab body (one h2, first in the tab) with exactly the words of i
     '공개 회차 · 0': () => screen.findByRole('heading', { level: 3, name: '작성 중인 초안' }), // 초안 묶음 제목은 탭 제목 아래 h3다
     '세계관·설정집': () => screen.findByRole('region', { name: '세계관 설정집' }),
     '이야기 분기': async () => screen.getByRole('heading', { level: 3, name: '그 순간, 다른 선택을 했다면' }),
+    'AI 집필': () => screen.findByRole('checkbox', { name: 'AI 집필 켜기' }),
     '받은 피드백': () => screen.findByRole('heading', { level: 3, name: '독자 제보 0' }),
     '운영 설정': () => screen.findByRole('button', { name: '집필 방식 저장' }),
     '저장·AI·발행 이력': () => screen.findByText('발행 이력이 없어요.'),

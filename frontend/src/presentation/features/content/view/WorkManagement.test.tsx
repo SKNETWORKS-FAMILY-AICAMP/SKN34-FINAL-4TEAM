@@ -11,6 +11,8 @@ import { WorkManagement } from './WorkManagement'
 
 // 히어로·정책 카드는 이 테스트가 보는 회차 목록과 무관하다. 포크 수는 12화에만 2편이 갈라졌다고 본다(회차 번호로 조회).
 vi.mock('./WorkOverview', () => ({ WorkOverview: () => null }))
+// AI 집필 탭의 내용은 AiSerialPanel.test가 본다. 여기서는 탭이 이 패널을 그리는지만 본다.
+vi.mock('./AiSerialPanel', () => ({ AiSerialPanel: ({ workId }: { workId: string }) => <p>AI 집필 패널 {workId}</p> }))
 vi.mock('../viewmodel/useEpisodeForkCounts', () => ({ useEpisodeForkCounts: () => ({ 12: 2 }) }))
 // 세계관 추출 배지는 세계관 탭 패널과 같은 조회 훅을 쓴다. 상태는 테스트가 정하고, 배지가 (다시) 마운트돼 상태를 새로 읽은 횟수를 센다.
 const build = vi.hoisted(() => ({ current: { job: null, error: '' } as { job: { status: string; update?: { status: string } } | null; error: string }, mounts: 0 }))
@@ -61,6 +63,9 @@ it('운영 설정 탭은 저장 성공 응답으로 집필 방식 변경 이력�
 
   fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
   fireEvent.change(await screen.findByRole('combobox', { name: '집필 방식' }), { target: { value: 'assisted' } })
+  // 자동 처리의 AI 자율 연재 줄은 '꺼짐'으로 단정하지 않고(AI 집필 탭에서 켜면 어긋난다) 그 탭으로 안내한다.
+  expect(screen.getByText('AI 집필 탭에서 설정')).toBeTruthy()
+  expect(screen.queryByText('꺼짐')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '집필 방식 저장' }))
 
   expect(await screen.findByText('집필 방식을 저장했어요.')).toBeTruthy()
@@ -132,7 +137,27 @@ it('쪽을 나눠도 이야기 분기의 기준 회차 선택에는 모든 회�
 it('요청을 처리하는 동안 다른 탭은 잠그되 지금 보고 있는 탭은 잠그지 않아, 누른 탭에서 키보드 초점이 사라지지 않는다', () => {
   render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, busy: true } as never} work={work(3)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
   const tabs = within(screen.getByRole('navigation', { name: '작품 메뉴' })).getAllByRole('button') as HTMLButtonElement[]
-  expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['공개 회차 · 3', false], ['세계관·설정집', true], ['이야기 분기', true], ['받은 피드백', true], ['운영 설정', true], ['저장·AI·발행 이력', true]])
+  expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['공개 회차 · 3', false], ['세계관·설정집', true], ['이야기 분기', true], ['AI 집필', true], ['받은 피드백', true], ['운영 설정', true], ['저장·AI·발행 이력', true]])
+})
+
+it('AI 집필 탭은 이야기 분기 다음에 있고, 누르면 탭 제목(h2)과 AI 집필 패널을 그린다', () => {
+  open(3)
+  const names = within(screen.getByRole('navigation', { name: '작품 메뉴' })).getAllByRole('button').map((tab) => tab.textContent)
+  expect(names.indexOf('AI 집필')).toBe(names.indexOf('이야기 분기') + 1)
+  expect(screen.queryByText(/AI 집필 패널/)).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'AI 집필' }))
+  expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('AI 집필')
+  expect(screen.getByText('AI 집필 패널 w')).toBeTruthy()
+})
+
+it('서버가 없는 시연(목업)에서는 AI 집필 패널 대신 지원하지 않는다는 안내만 그린다', () => {
+  vi.stubEnv('MODE', 'mockup')
+  try {
+    open(3)
+    fireEvent.click(screen.getByRole('button', { name: 'AI 집필' }))
+    expect(screen.getByText('데모에서는 지원하지 않아요.')).toBeTruthy()
+    expect(screen.queryByText(/AI 집필 패널/)).toBeNull()
+  } finally { vi.unstubAllEnvs() }
 })
 
 it('작품 메뉴는 왼쪽 사이드바에 있고 고른 메뉴의 내용은 그 뒤의 내용 열에 그려진다(DOM 순서 = 시각 순서)', () => {

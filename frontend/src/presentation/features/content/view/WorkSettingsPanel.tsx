@@ -46,7 +46,7 @@ export function WorkSettingsPanel({ workId, useCase }: { workId: string; useCase
           <dl className='ep-facts'>
             <div><dt>설정 추출</dt><dd>수동</dd></div>
             <div><dt>표기 교정</dt><dd>작가 검토</dd></div>
-            <div><dt>AI 자율 연재</dt><dd>꺼짐</dd></div>
+            <div><dt>AI 자율 연재</dt><dd>AI 집필 탭에서 설정</dd></div>
           </dl>
           <h3>설정 변경 이력</h3>
           {settings.history.length ? (

@@ -487,3 +487,26 @@ describe('Fork 세계관 독립(#583)', () => {
     }
   })
 })
+
+describe('오류 응답의 code', () => {
+  const failure = (body: unknown) => new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json(body, { status: 409 })))
+
+  it('code가 있으면 Error.cause에 싣고 문구는 detail 그대로다', async () => {
+    const error = await failure({ detail: '이미 실행 중이에요.', code: 'SERIAL_RUNNING' }).deleteWork('w').catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error).message).toBe('이미 실행 중이에요.')
+    expect((error as Error).cause).toBe('SERIAL_RUNNING')
+  })
+
+  it('detail 없이 code만 와도 code를 싣고 문구는 기본 안내다', async () => {
+    const error = await failure({ code: 'INSUFFICIENT_CREDIT' }).deleteWork('w').catch((e: unknown) => e)
+    expect((error as Error).message).toContain('요청을 처리하지 못했어요')
+    expect((error as Error).cause).toBe('INSUFFICIENT_CREDIT')
+  })
+
+  it('code가 없으면 cause도 없다', async () => {
+    const error = await failure({ detail: '서버 문구' }).deleteWork('w').catch((e: unknown) => e)
+    expect((error as Error).message).toBe('서버 문구')
+    expect((error as Error).cause).toBeUndefined()
+  })
+})

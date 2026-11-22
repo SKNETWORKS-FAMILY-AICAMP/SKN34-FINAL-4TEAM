@@ -15,6 +15,7 @@ import { useEpisodeForkCounts } from '../viewmodel/useEpisodeForkCounts'
 import type { useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
 import { useManuscriptBuild } from '../viewmodel/useManuscriptBuild'
 import { ContextPreview } from './ContextPreview'
+import { AiSerialPanel } from './AiSerialPanel'
 import { EpisodeBulkImportSheet } from './EpisodeBulkImportSheet'
 import { LinkedWorldPanel } from './LinkedWorldPanel'
 import { ManuscriptBuildPanel } from './ManuscriptBuildPanel'
@@ -55,7 +56,7 @@ export function WorkActions({ workId }: { workId: string }) {
  * 공용 상단바(Gnb)는 없고 사이드바가 그 역할을 한다. 작품이 바뀌면 호출 측이 key로 새로 만들어 메뉴 선택·분기 입력이 처음 상태로 돌아간다. 메뉴 틀(.ep-manage·.ep-menu·.ep-content)은 shared/episode.css이고 세계관 관리 화면과 함께 쓴다.
  */
 export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onDeleted, menuOpen, onMenuOpenChange, notices }: Props) {
-  const [tab, setTab] = useState<'read' | 'fork' | 'history' | 'world' | 'feedback' | 'settings'>(initialTab ?? 'read')
+  const [tab, setTab] = useState<'read' | 'fork' | 'serial' | 'history' | 'world' | 'feedback' | 'settings'>(initialTab ?? 'read')
   // 한 번에 한 영역만 편집한다: 히어로의 작품 정보·표지와 운영 설정 탭의 분기 정책이 이 상태를 나눠 쓴다.
   const [editing, setEditing] = useState<WorkEditing>(null)
   const [mediaBusy, setMediaBusy] = useState(false)
@@ -102,6 +103,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
     ['read', `공개 회차 · ${w.episodes.length}`],
     ['world', '세계관·설정집'],
     ['fork', '이야기 분기'],
+    ['serial', 'AI 집필'],
     ['feedback', '받은 피드백'],
     ['settings', '운영 설정'],
     ['history', '저장·AI·발행 이력'],
@@ -354,6 +356,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                 )}
             </section>
           )}
+          {/* AI 집필(UC-18)은 서버 기능이라 서버 없는 시연(목업)에서는 지원하지 않는다고만 알린다. */}
+          {tab === 'serial' && (mockup ? <p className='ep-empty'>데모에서는 지원하지 않아요.</p> : <AiSerialPanel workId={w.id} />)}
           {tab === 'feedback' && (
             // 독자가 이 작품에 보낸 문장 제보·수정 제안. 작가 피드백함(/inbox)의 View를 그대로 쓰고, 서버에 workId로 이 작품 것만 묻는다.
             <div className='ep-feedback'>
