@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import type { ChatAttachment, ChatMessage } from '../../../domain/entities/chat'
 import { attachmentKind, type AttachmentCheck } from '../../../domain/entities/chatAttachment'
 import { CardMarkdown } from '../CardMarkdown'
@@ -13,7 +13,6 @@ const kindLabel = { image: '이미지', text: '텍스트' } as const
 const menuLabel = { image: '이미지 첨부', text: '텍스트 파일 첨부' } as const
 // 파일 선택 창이 거르는 형식(허용 여부는 checkFile이 다시 판정한다). 텍스트는 Windows에서 .md의 type이 비어 있어 확장자도 함께 건다.
 const accept = { image: 'image/png,image/jpeg,image/webp', text: '.txt,.md,text/plain,text/markdown' } as const
-const nearBottom = (el: HTMLElement, height = el.clientHeight) => el.scrollHeight - el.scrollTop - height < 80
 /** 보내려고 고른 파일. kind는 칩 표시용이다. */
 type Picked = { file: File; name: string; kind: ChatAttachment['kind'] }
 
@@ -54,9 +53,6 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   const box = useRef<HTMLTextAreaElement>(null)
   const log = useRef<HTMLDivElement>(null)
   const pinned = useRef(true)
-  useEffect(() => {
-    if (pinned.current && log.current) log.current.scrollTop = log.current.scrollHeight
-  }, [streaming])
   const files = useRef<Record<ChatAttachment['kind'], HTMLInputElement | null>>({ image: null, text: null })
   const [picked, setPicked] = useState<Picked[]>([])
   const [rejected, setRejected] = useState<string[]>([])
@@ -69,13 +65,10 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   const locked = !!disabledReason || !onSend
   const attachOff = locked || !checkFile
   const note = locked ? '' : sendNote
-  // 안내 줄은 대화 영역을 줄인다. 바뀌기 전 높이로 보아 맨 아래를 읽던 중이면 승인 버튼이 가려지지 않게 따라 내려간다.
-  const logHeight = useRef<number>(undefined)
-  useLayoutEffect(() => {
-    const el = log.current!
-    if (logHeight.current !== undefined && nearBottom(el, logHeight.current)) el.scrollTop = el.scrollHeight
-    logHeight.current = el.clientHeight
-  }, [note])
+  // 흐르는 글이 늘거나 안내 줄이 대화 영역을 줄여도, 맨 아래를 읽던 중이면 따라 내려간다(승인 버튼이 가려지지 않게).
+  useEffect(() => {
+    if (pinned.current && log.current) log.current.scrollTop = log.current.scrollHeight
+  }, [streaming, note])
   // busy를 넘기지 않는 화면에서도 응답을 기다리는 동안 같은 입력을 다시 보내지 않는다.
   // ref는 같은 틱의 중복 호출을 막고, pending은 그 사이 전송 버튼을 잠가 보이게 한다.
   const sending = useRef(false)
@@ -122,7 +115,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   }
   return <div className="chat-panel">
     <div ref={log} className="chat-log" role="log" aria-label="대화 내용" aria-live="polite"
-      onScroll={e => { pinned.current = nearBottom(e.currentTarget) }}>
+      onScroll={e => { const el = e.currentTarget; pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80 }}>
       {messages.length || after ? <><ol>{messages.map(m => <li key={m.id} className={`chat-msg ${m.role}`} data-failed={m.failed || undefined}>
         {m.role === 'assistant' && <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>}
         <div className="chat-bubble">

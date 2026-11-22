@@ -19,13 +19,15 @@ describe('함께 보낼 것 안내', () => {
     ['생김', 591, 564, 349, 1000], // 전 간격 60, 후 87
     ['생김', 591, 564, 100, 100],
     ['없어짐', 564, 591, 336, 336], // 전 간격 100, 후 73
-  ])('안내가 %s(%i→%i): 맨 아래에서 읽던 때만 따라 내려간다(#636, scrollTop=%i)', (change, before, after, scrollTop, expected) => {
+    ['생김', 591, 300, 100, 100, 1000], // 그사이 창 높이가 줄었어도 위를 읽던 중이면 그대로
+  ])('안내가 %s(%i→%i): 맨 아래에서 읽던 때만 따라 내려간다(#636, scrollTop=%i)', (change, before, after, scrollTop, expected, scrollHeight = 1000) => {
     let height = before
     const measured = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(() => height)
     const panel = (note: boolean) => <ChatPanel messages={[]} onSend={() => true} sendNote={note ? '선택한 글 7자가 함께 보내져요.' : ''} />
     const { rerender } = render(panel(change === '없어짐'))
     const log = screen.getByRole('log', { name: '대화 내용' })
-    Object.defineProperties(log, { scrollHeight: { value: 1000 }, scrollTop: { value: scrollTop, writable: true } })
+    Object.defineProperties(log, { scrollHeight: { value: scrollHeight }, scrollTop: { value: scrollTop, writable: true } })
+    fireEvent.scroll(log) // 안내가 바뀌기 전에 읽던 자리
     height = after
     rerender(panel(change === '생김'))
     expect(log.scrollTop).toBe(expected)
