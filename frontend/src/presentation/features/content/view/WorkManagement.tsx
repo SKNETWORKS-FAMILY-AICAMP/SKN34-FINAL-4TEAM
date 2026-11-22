@@ -50,9 +50,9 @@ export function WorkActions({ workId, serialLocked = false, episodeCount }: { wo
   const why = useId()
   return (
     <>
-      {/* AI 자율 집필 중에는 활성 회차가 하나도 없을 때(1화 만들기)만 새 회차를 쓴다: 회차가 있으면 같은 이름의 잠긴 버튼과 이유를 보인다(회차 수를 아직 못 읽었으면 연다). */}
+      {/* AI 자율 집필 중에는 활성 회차가 하나도 없을 때(1화 만들기)만 새 회차를 쓴다: 회차가 있으면 새 회차 대신 집필실(1화 편집·나머지 읽기)로 가는 링크와 이유를 보인다(회차 수를 아직 못 읽었으면 연다). */}
       {serialNewEpisodeLocked(serialLocked, episodeCount)
-        ? <><button type='button' className='btn sm pri' disabled aria-describedby={why}>회차 작성하기</button><span id={why} className='small muted'>{SERIAL_LOCK_NOTICE}</span></>
+        ? <><Go to={`/studio/${workId}`} className='btn sm pri' aria-describedby={why}>집필실 열기</Go><span id={why} className='small muted'>{SERIAL_LOCK_NOTICE}</span></>
         : <Go to={`/studio/${workId}`} className='btn sm pri'>회차 작성하기</Go>}
       <Go to='/content?view=reports' className='btn sm'>내 댓글·제보</Go>
     </>
@@ -231,6 +231,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
           {tab === 'read' && (
             <>
               {!mockup && <WorldBuildBadge key={buildCheck} work={w} />}
+              {/* 원고 편집은 모두 집필실에서 한다: 회차 목록 머리에 집필실로 바로 가는 창구를 둔다. */}
+              <p><Go to={`/studio/${w.id}`} className='btn sm'>집필실 열기</Go></p>
               {vm.writing?.error && <p className="ep-alert" role="alert">{vm.writing.error}</p>}
               {/* AI 자율 집필 중에는 1화만 쓴다: 2화부터의 집필실 링크(작성 중인 초안·수정하기)를 잠그고 이유는 여기서 한 번 알린다. */}
               {serialLocked && <div className='ep-notes'><p id={lockNote} role='status'>{SERIAL_LOCK_NOTICE}</p></div>}

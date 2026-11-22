@@ -312,18 +312,28 @@ const openAutonomous = (rows: WritingEpisode[] | undefined, count = 3) => {
   return view
 }
 
-it('AI 자율 집필 중이면 회차 작성하기는 활성 회차가 있을 때만 같은 이름의 잠긴 버튼이 되고 이유를 알린다 (회차가 0개거나 아직 못 읽었으면 연다)', () => {
+it('AI 자율 집필 중이면 회차 작성하기는 활성 회차가 있을 때 집필실 열기 링크와 이유로 바뀐다 (회차가 0개거나 아직 못 읽었으면 회차 작성하기)', () => {
   openAutonomous([row(1)], 0)
   expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
-  const button = screen.getByRole('button', { name: '회차 작성하기' }) as HTMLButtonElement
-  expect(button.disabled).toBe(true)
-  expect(button.closest('.ep-menu-tools')).toBeTruthy()
-  expect(document.getElementById(button.getAttribute('aria-describedby')!)?.textContent).toBe(LOCK)
+  expect(screen.queryByRole('button', { name: '회차 작성하기' })).toBeNull()
+  const open = screen.getAllByRole('link', { name: '집필실 열기' }).find((a) => a.closest('.ep-menu-tools'))!
+  expect(open.getAttribute('href')).toBe('/studio/w')
+  expect(document.getElementById(open.getAttribute('aria-describedby')!)?.textContent).toBe(LOCK)
   expect(screen.getByRole('link', { name: '내 댓글·제보' }).getAttribute('href')).toBe('/content?view=reports')
   for (const rows of [[], undefined]) {
     cleanup()
     openAutonomous(rows, 0)
     expect(screen.getByRole('link', { name: '회차 작성하기' }).getAttribute('href')).toBe('/studio/w')
+  }
+})
+
+it('공개 회차 탭 머리에 집필실로 바로 가는 집필실 열기 링크가 있다 (AI 자율 집필 여부와 상관없이)', () => {
+  for (const locked of [false, true]) {
+    cleanup()
+    render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, writing: { id: 'w', rows: [] } } as never} work={work(0)} serialLocked={locked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+    toRead()
+    const open = screen.getAllByRole('link', { name: '집필실 열기' }).find((a) => !a.closest('.ep-menu-tools'))!
+    expect(open.getAttribute('href')).toBe('/studio/w')
   }
 })
 

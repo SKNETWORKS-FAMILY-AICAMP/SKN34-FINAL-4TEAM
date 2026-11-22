@@ -1093,7 +1093,7 @@ it('titles every tab body (one h2, first in the tab) with exactly the words of i
   }
 })
 
-it('offers one way into the writing studio for a new episode — the sidebar 회차 작성하기 — whatever the tab shows', async () => {
+it('offers the sidebar 회차 작성하기 for a new episode and a 집필실 열기 link at the head of the episode list (all editing happens in the studio)', async () => {
   stubCover()
   await openRead(contentApi({
     'GET /api/v1/works': () => Response.json([{ ...owned, episodes: [episode(1)] }]),
@@ -1101,11 +1101,11 @@ it('offers one way into the writing studio for a new episode — the sidebar 회
   }))
   await screen.findByRole('heading', { name: '작성 중인 초안' })
   const newEntry = () => [...document.querySelectorAll('a')].filter((a) => a.getAttribute('href') === '/studio/w')
-  expect(newEntry().map((a) => a.textContent)).toEqual(['회차 작성하기'])
-  expect(newEntry()[0].closest('.ep-menu-tools')).toBeTruthy() // 본문이 아니라 사이드바 도구 묶음에 있다
+  expect(newEntry().map((a) => a.textContent)).toEqual(['회차 작성하기', '집필실 열기'])
+  expect(newEntry()[0].closest('.ep-menu-tools')).toBeTruthy() // 새 회차는 사이드바 도구 묶음, 본문 머리에는 집필실로 가는 창구
   expect(screen.queryByRole('link', { name: '새 회차 집필하기' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '작품 메뉴 접기' }))
-  expect(newEntry().map((a) => a.textContent)).toEqual(['회차 작성하기']) // 사이드바를 접어도 하나(상단 줄로 옮겨 간다)
+  expect(newEntry().map((a) => a.textContent)).toEqual(['회차 작성하기', '집필실 열기']) // 사이드바를 접어도 회차 작성하기는 하나(상단 줄로 옮겨 간다)
   expect(newEntry()[0].closest('.ep-top')).toBeTruthy()
 })
 
@@ -1113,19 +1113,19 @@ it('offers one way into the writing studio for a new episode — the sidebar 회
 const LOCK_NOTICE = 'AI 자율 집필 중에는 1화만 직접 쓸 수 있어요. 운영 설정 > 집필 방식을 바꾸면 모든 회차를 쓸 수 있어요.'
 const serialRead = (answer: () => Promise<ReturnType<typeof serialSettings>>) => vi.spyOn(appContainer.resolve('serialUseCase'), 'settings').mockImplementation(answer)
 
-it('locks 회차 작성하기 in the sidebar and in the folded top row while AI 자율 집필 is on and an episode exists', async () => {
+it('turns 회차 작성하기 into a 집필실 열기 link with the reason in the sidebar and the folded top row while AI 자율 집필 is on and an episode exists', async () => {
   stubCover()
   serialRead(() => Promise.resolve(serialSettings({ enabled: true })))
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]), 'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1)]) }))
-  const sidebar = await within(document.querySelector<HTMLElement>('.ep-menu')!).findByRole('button', { name: '회차 작성하기' }) as HTMLButtonElement
-  expect(sidebar.disabled).toBe(true)
+  const sidebar = await within(document.querySelector<HTMLElement>('.ep-menu')!).findByRole('link', { name: '집필실 열기' })
+  expect(sidebar.getAttribute('href')).toBe('/studio/w')
   expect(sidebar.closest('.ep-menu-tools')).toBeTruthy()
   expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '회차 작성하기' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '작품 메뉴 접기' }))
   const top = within(document.querySelector<HTMLElement>('.ep-top')!)
-  expect((top.getByRole('button', { name: '회차 작성하기' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(top.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w')
   expect(top.getByText(LOCK_NOTICE)).toBeTruthy()
-  expect(screen.getAllByRole('button', { name: '회차 작성하기' })).toHaveLength(1)
 })
 
 it('keeps 회차 작성하기 open while AI 자율 집필 is on but no episode exists yet, so episode 1 can be written', async () => {
