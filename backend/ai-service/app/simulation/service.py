@@ -32,6 +32,8 @@ from app.simulation.models import (GAP_LABELS, Action, Beat, Evidence, Narration
 TURN_LIMIT = 12   # 인물 대사 턴 수 한도. 나레이션·독백은 세지 않는다.
 MAX_TURNS = 40    # 나레이션·독백까지 합친 턴 수 안전 한도(연출이 서술만 되풀이하지 않게)
 REGENERATIONS = 2
+FORBIDDEN_LIMIT = 20  # 인물 대사 검사 입력의 금지 목록 상한(#646): 문단·직전 장면과 겹침이 큰 항목만 남긴다. 원문 기반 평가(해리 포터 ④ 300문항)에서 검사 입력 토큰이 77% 줄고 판정 정확도는 통계적으로 같았다
+SCENE_LINES = 6       # 금지 목록을 고를 때 문단과 함께 보는 직전 장면 줄 수
 CUT = 200  # 모델이 쓴 이유·설명을 작가에게 보일 때 자르는 길이(Structured Outputs 스키마에는 길이 제약을 못 둔다)
 KINDS = {'if': ['knowledge_leak', 'voice_mix', 'relation', 'premise'],
          'flow': ['knowledge_leak', 'voice_mix', 'relation', 'beat']}
@@ -628,6 +630,34 @@ def narrated(narration: Narration, monologue: bool) -> Narration:
     if not narration.prose.strip() or (not monologue and not narration.observed.strip()):
         raise SimulationFailure(502, BAD_NARRATION)
     return narration
+
+
+def _grams(text: str) -> set[str]:
+    folded = re.sub(r'[\W_]+', '', text)
+    return {folded[i:i + 2] for i in range(len(folded) - 1)}
+
+
+def relevant(docs: list[dict], query: str, cap: int) -> list[dict]:
+    """docs({text, …}) 중 query와 두 글자 조각이 많이 겹치는 cap개를 원래 순서대로. cap 이하면 그대로 돌려준다.
+
+    ponytail: 두 글자 조각의 겹침 개수라 낱말을 바꿔 말한 누설은 점수가 낮다. 벡터·BM25가 필요해지면 recall 쪽 순위를 쓴다.
+    """
+    if len(docs) <= cap:
+        return docs
+    marks = _grams(query)
+    keep = sorted(sorted(range(len(docs)), key=lambda i: -len(_grams(docs[i]['text']) & marks))[:cap])
+    return [docs[i] for i in keep]
+
+
+def check_payload(payload: dict, kinds: list[str], paragraph: str, kind: str) -> dict:
+    """검사 모델 입력: 턴 입력(payload)에 검사 종류와 검사할 문단을 더한다. 인물 대사(kind가 character)는 금지 목록을 문단·직전 장면 줄과 겹침이 큰 FORBIDDEN_LIMIT개로 줄인다(#646).
+    줄인 범위 밖의 누설은 이 검사가 놓칠 수 있다(서버 규칙 검사 _problem은 인칭·되풀이만 본다). 평가의 같은 문항 짝 비교에서 정답 판정은 통계적으로 같았다(주입 거절 7↑12↓, p=0.36).
+    독백·나레이션 검사는 평가하지 않아 그대로 둔다."""
+    body = {**payload, 'checks': kinds, 'paragraph': paragraph}
+    if kind == 'character':
+        scene = ' '.join(line['text'] for line in payload.get('scene', [])[-SCENE_LINES:])
+        body['forbidden'] = relevant(payload.get('forbidden', []), f'{paragraph} {scene}', FORBIDDEN_LIMIT)
+    return body
 
 
 def verify(verdict: Verdict, kinds: list[str], payload: dict) -> None:

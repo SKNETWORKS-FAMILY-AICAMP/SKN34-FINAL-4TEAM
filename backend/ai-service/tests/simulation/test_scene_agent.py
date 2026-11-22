@@ -670,3 +670,14 @@ def test_the_server_rules_still_hold_back_an_omniscient_narration_when_the_narra
     scene = run_auto()
     assert len(h.calls.narrate) == 3 and h.calls.review == []  # 서버 규칙에 걸리면 모델 검사 없이도 다시 쓰고 끝내 안 되면 멈춘다
     assert (scene.result.status, scene.result.stopReason) == ('stopped', 'check_failed')
+
+
+
+def test_a_dialogue_check_gets_only_the_forbidden_docs_most_like_the_paragraph_and_other_turns_are_not_limited(monkeypatch):
+    # #646: 인물 대사 검사 입력의 금지 목록은 문단·직전 장면과 겹침이 큰 FORBIDDEN_LIMIT개만이다(전지적 나레이션 검사·독백은 줄이지 않는다).
+    monkeypatch.setattr(service, 'FORBIDDEN_LIMIT', 1)
+    h = setup(monkeypatch, monologue(f'limited:{KAEL}'), speech(LINA), verdicts=lambda payload: verdict(payload, scene_complete=len(h.calls.act) == 1))
+    run_auto()
+    mono, dialogue = h.calls.check[0], h.calls.check[1]
+    assert mono['checks'] == ['knowledge_leak', 'voice_mix'] and 'LINA-EP0-SECRET' in text(mono['forbidden'])   # 독백은 그대로
+    assert dialogue['checks'] == IF_KINDS and len(dialogue['forbidden']) == 1 and h.calls.review[0]['forbidden']      # 대사는 한 개, 전지적 나레이션 검사는 그대로
