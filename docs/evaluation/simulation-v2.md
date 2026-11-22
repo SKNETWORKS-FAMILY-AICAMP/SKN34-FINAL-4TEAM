@@ -1,6 +1,6 @@
 # 인물 시뮬레이션 v2 보고서 — v1과 무엇이 달라졌나
 
-> 대상 브랜치 `feat/simulation-original-eval`(#642 속도 측정 위). 수치는 [속도·품질 평가](simulation.md)와 [원문 기반 평가](simulation-original.md)의 실제 실행 결과이고, 그림은 `backend/ai-service/eval/simulation/v2_charts.py`가 결과 집계에서 다시 그린다.
+> 이후 변경(act 모델 terra·지시문 P1·N3)은 [v3 보고서](simulation-v3.md)다. 대상 브랜치 `feat/simulation-original-eval`(#642 속도 측정 위). 수치는 [속도·품질 평가](simulation.md)와 [원문 기반 평가](simulation-original.md)의 실제 실행 결과이고, 그림은 `backend/ai-service/eval/simulation/v2_charts.py`가 결과 집계에서 다시 그린다.
 
 ## 한 줄 요약
 

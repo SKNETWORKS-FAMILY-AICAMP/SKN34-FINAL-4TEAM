@@ -1,7 +1,7 @@
 # 인물 시뮬레이션 턴 속도·품질 성적표 (#642)
 
 > 상태: **실행 전.** 스위치 4종과 실행기(`backend/ai-service/eval/simulation/`)는 구현했고, 실제 호출(`run`)은 비용 승인 뒤에 한다. 아래 결과 표는 `report` 출력으로 채운다.
-> 원문 기반 평가 세트(대사·연출·나레이션·검사·장면, 소설 원문이 정답): [simulation-original.md](simulation-original.md). v1 → v2 변경과 그림: [simulation-v2.md](simulation-v2.md).
+> 원문 기반 평가 세트(대사·연출·나레이션·검사·장면, 소설 원문이 정답): [simulation-original.md](simulation-original.md). v1 → v2 변경과 그림: [simulation-v2.md](simulation-v2.md). v2 → v3(act 모델 terra·지시문 P1·N3)와 운영 화면 반영 절차: [simulation-v3.md](simulation-v3.md).
 > 계약: [인물 시뮬레이션·NovelBrain 계약](../design/character-simulation-contract.md). 스위치 설명: [AI 서비스 README](../../backend/ai-service/README.md#인물-시뮬레이션-턴-속도-스위치와-성적표-642). 실행기: [`eval/simulation/README.md`](../../backend/ai-service/eval/simulation/README.md).
 
 ## 1. 목적
