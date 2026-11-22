@@ -68,7 +68,7 @@ class SerialRunner internal constructor( // 원고 검색(ManuscriptQaService)�
     @Value("\${SERIAL_SIMULATION_CREDIT_LIMIT:5}") private val simulationLimit: BigDecimal,
     @Value("\${SERIAL_CHOICE_CREDIT_LIMIT:5}") private val choiceLimit: BigDecimal,
     @Value("\${SERIAL_SUMMARY_CREDIT_LIMIT:5}") private val summaryLimit: BigDecimal,
-    @Value("\${SERIAL_EPISODE_CREDIT_LIMIT:150}") private val episodeLimit: BigDecimal,
+    @Value("\${SERIAL_EPISODE_CREDIT_LIMIT:250}") private val episodeLimit: BigDecimal,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 

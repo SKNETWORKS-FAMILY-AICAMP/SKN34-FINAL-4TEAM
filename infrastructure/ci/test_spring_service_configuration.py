@@ -56,23 +56,23 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         self.assertNotIn("CREDIT_SIGNUP_TRIAL_AMOUNT", compose.replace(core, ""))
 
     def test_ai_serial_credit_limits_reach_only_content_with_the_same_defaults_everywhere(self):
-        # AI 자율 연재(#659)의 크레딧 예약 상한이다(시뮬레이션 5·선택지 5·회차 요약 5·회차 150). 코드 기본값·.env.example·base compose가 같은 값이고 Content에만 넘긴다.
+        # AI 자율 연재(#659)의 크레딧 예약 상한이다(시뮬레이션 5·선택지 5·회차 요약 5·회차 250). 코드 기본값·.env.example·base compose가 같은 값이고 Content에만 넘긴다.
         example = (ROOT / ".env.example").read_text(encoding="utf-8")
         self.assertRegex(example, r"(?m)^SERIAL_SIMULATION_CREDIT_LIMIT=5$")
         self.assertRegex(example, r"(?m)^SERIAL_CHOICE_CREDIT_LIMIT=5$")
         self.assertRegex(example, r"(?m)^SERIAL_SUMMARY_CREDIT_LIMIT=5$")
-        self.assertRegex(example, r"(?m)^SERIAL_EPISODE_CREDIT_LIMIT=150$")
+        self.assertRegex(example, r"(?m)^SERIAL_EPISODE_CREDIT_LIMIT=250$")
         runner = (ROOT / "backend/content-service/src/main/kotlin/ai/storyfork/content/serial/service/SerialRunner.kt").read_text(encoding="utf-8")
         self.assertIn(r"\${SERIAL_SIMULATION_CREDIT_LIMIT:5}", runner)
         self.assertIn(r"\${SERIAL_CHOICE_CREDIT_LIMIT:5}", runner)
         self.assertIn(r"\${SERIAL_SUMMARY_CREDIT_LIMIT:5}", runner)
-        self.assertIn(r"\${SERIAL_EPISODE_CREDIT_LIMIT:150}", runner)
+        self.assertIn(r"\${SERIAL_EPISODE_CREDIT_LIMIT:250}", runner)
         compose = (ROOT / "infrastructure/docker-compose.yaml").read_text(encoding="utf-8")
         content = compose.split("\n  content-service:\n", 1)[1].split("\n  operations-service:\n", 1)[0]
         self.assertIn("SERIAL_SIMULATION_CREDIT_LIMIT: ${SERIAL_SIMULATION_CREDIT_LIMIT:-5}", content)
         self.assertIn("SERIAL_CHOICE_CREDIT_LIMIT: ${SERIAL_CHOICE_CREDIT_LIMIT:-5}", content)
         self.assertIn("SERIAL_SUMMARY_CREDIT_LIMIT: ${SERIAL_SUMMARY_CREDIT_LIMIT:-5}", content)
-        self.assertIn("SERIAL_EPISODE_CREDIT_LIMIT: ${SERIAL_EPISODE_CREDIT_LIMIT:-150}", content)
+        self.assertIn("SERIAL_EPISODE_CREDIT_LIMIT: ${SERIAL_EPISODE_CREDIT_LIMIT:-250}", content)
         self.assertNotIn("SERIAL_", compose.replace(content, ""))
 
     def test_content_service_is_always_enabled_without_feature_flag(self):
