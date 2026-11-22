@@ -262,6 +262,14 @@ def test_the_main_agent_is_told_that_editing_chosen_text_needs_no_review_finding
         assert '고칠 때만 task=patch' not in told, told
 
 
+def test_the_main_agent_is_told_how_to_choose_between_the_selection_and_a_finding():
+    """#636: 검수를 함께 요청해도 선택 글은 fix 없이 고치고, 지적을 고칠 때는 선택 글이 남아 있어도 fix를 넣는다."""
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith('2.'))
+    for told in (rule, agent.TOOLS['writing_editing'].description):
+        assert '검수를 함께 요청했어도' in told, told
+        assert '선택한 글이 남아 있어도' in told, told
+
+
 def test_a_tool_returns_a_summary_for_the_main_agent_and_the_raw_result_as_its_artifact(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context'))
     result = run(inputs={'story_context': QA})

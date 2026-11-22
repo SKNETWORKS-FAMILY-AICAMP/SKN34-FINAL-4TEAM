@@ -247,6 +247,8 @@ type WritingChatProps = {
   cardOf?: (id: string) => { title: string; body: string } | undefined
   unsaved?: boolean
   worldDraft?: WorldDraftRevision
+  /** 다음 메시지에 함께 보내지는 화면의 선택 글 안내(집필실, #636). */
+  sendNote?: string
 }
 
 export function WritingChat({ chat, basis = null, onApplied, onWorldApplied, getPage, ...rest }: WritingChatProps) {
@@ -258,7 +260,7 @@ function OwnedChat({ basis, onApplied, onWorldApplied, getPage, ...rest }: Omit<
   return <WorkChat vm={vm} {...rest} />
 }
 
-function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage, cardOf, unsaved, worldDraft }: { vm: ChatViewModel } & Pick<WritingChatProps, 'workId' | 'emptyTitle' | 'emptyText' | 'suggestions' | 'onOpenStage' | 'cardOf' | 'unsaved' | 'worldDraft'>) {
+function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage, cardOf, unsaved, worldDraft, sendNote }: { vm: ChatViewModel } & Pick<WritingChatProps, 'workId' | 'emptyTitle' | 'emptyText' | 'suggestions' | 'onOpenStage' | 'cardOf' | 'unsaved' | 'worldDraft' | 'sendNote'>) {
   const id = useId()
   const [editing, setEditing] = useState<{ index: number; text: string } | null>(null)
   const [renaming, setRenaming] = useState<string | null>(null)
@@ -351,7 +353,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
         </PopMenu>
       </>}
     </div>
-    <ChatPanel messages={messages} onSend={(text, files) => vm.send(text, files.length ? { files } : undefined)} checkFile={checkAttachment} busy={vm.pending} disabledReason={vm.lockedReason} inputError={vm.inputError}
+    <ChatPanel messages={messages} onSend={(text, files) => vm.send(text, files.length ? { files } : undefined)} checkFile={checkAttachment} busy={vm.pending} disabledReason={vm.lockedReason} inputError={vm.inputError} sendNote={sendNote}
       emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions} streaming={live?.answer}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}

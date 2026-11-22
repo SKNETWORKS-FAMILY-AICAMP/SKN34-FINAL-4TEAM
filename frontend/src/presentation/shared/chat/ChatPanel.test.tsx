@@ -12,6 +12,16 @@ const box = () => screen.getByRole('textbox', { name: '메시지' }) as HTMLText
 const send = () => screen.getByRole('button', { name: '전송' }) as HTMLButtonElement
 const type = (text: string) => fireEvent.change(box(), { target: { value: text } })
 
+describe('함께 보낼 것 안내', () => {
+  it('입력창이 안내를 설명으로 읽고, 잠긴 동안에는 보낼 수 없으므로 보이지 않는다(#636)', () => {
+    const note = '선택한 글 7자가 함께 보내져요.'
+    const { rerender } = render(<ChatPanel messages={[]} onSend={() => true} sendNote={note} />)
+    expect(box().getAttribute('aria-describedby')).toBe(screen.getByText(note).id)
+    rerender(<ChatPanel messages={[]} onSend={() => true} sendNote={note} disabledReason="잠김" />)
+    expect(screen.queryByText(note)).toBeNull()
+  })
+})
+
 describe('공용 채팅 메시지', () => {
   it('역할별로 화자를 구분하고 텍스트와 첨부 칩을 그린다', () => {
     const messages: ChatMessage[] = [
