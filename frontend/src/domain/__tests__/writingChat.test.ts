@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
+import { chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -518,5 +518,25 @@ describe('계획 수정안 결과 글(#578)', () => {
     const failed = planRevision({}, { status: 'failed', approval: 'approved', error: '제안한 뒤 계획이 바뀌어 저장하지 않았어요. 다시 요청해 주세요.' })
     expect(stepText(failed)).toBe('실패: 제안한 뒤 계획이 바뀌어 저장하지 않았어요. 다시 요청해 주세요.')
     expect(replyOutcome({ status: 'failed', missingInputs: [], steps: [failed] })).toEqual(['[기획·집필·수정] 실패: 제안한 뒤 계획이 바뀌어 저장하지 않았어요. 다시 요청해 주세요.'])
+  })
+})
+
+describe('흐르는 답변 본문(#618)', () => {
+  const after = (...events: ChatEvent[]) => events.reduce(streamedAnswer, '')
+  const delta = (text: string | null): ChatEvent => ({ type: 'answer', delta: text })
+  const done = (status: ChatStatus): ChatEvent => ({ type: 'done', reply: { status, steps: [], missingInputs: [] } })
+
+  it('조각을 순서대로 잇고 단계 이벤트에는 그대로 둔다', () => {
+    expect(after(delta('길드는 '), { type: 'started', feature: 'rating' }, delta('밤에 닫아요.'))).toBe('길드는 밤에 닫아요.')
+  })
+  it('초기화(null) 뒤에는 새 글만 남는다', () => {
+    expect(after(delta('확인해 볼게요.'), delta(null), delta('닫아요.'))).toBe('닫아요.')
+  })
+  it('실패하면 쓰다 만 글을 버린다', () => {
+    expect(after(delta('쓰다 만'), { type: 'error', message: '끊김' })).toBe('')
+    expect(after(delta('쓰다 만'), done('failed'))).toBe('')
+  })
+  it('정상 종료는 저장된 답으로 바뀔 때까지 글을 남긴다', () => {
+    expect(after(delta('닫아요.'), done('completed'))).toBe('닫아요.')
   })
 })

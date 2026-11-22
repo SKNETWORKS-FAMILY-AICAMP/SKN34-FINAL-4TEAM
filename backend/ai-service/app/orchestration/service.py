@@ -651,6 +651,9 @@ def _main_events(update: dict) -> list[ServerSentEvent]:
 async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIterator[ServerSentEvent]:
     """같은 그래프를 흘려 plan → (started → step)* → done 이벤트를 보낸다.
 
+    메인 모델이 글을 쓰는 동안에는 사이사이 answer {delta}가 온다(#618). delta가 null이면 받은 글을 비운다. 표시용이고 저장하지 않으며
+    완성된 답은 done의 message다.
+
     plan은 Decision Guard가 판정한 기능이고, started는 도구가 입력을 다 받고 실제로 실행하기 직전에 알린다. interrupt로 멈추면
     waiting(계획·빠진 입력·승인·장면 대기)과 done(status=waiting)으로 끝난다. 시뮬레이션 장면은 노드가 끝나기 전에 턴이 끝날 때마다
     장면 에이전트의 이벤트를 받아 step 이벤트(그때까지의 누적 결과, 단계 status는 아직 not_started)로 중계하고, 모델을 부르지 않은 조작
@@ -672,6 +675,8 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
                 if mode == 'custom':
                     if 'started' in update:  # 도구가 입력을 다 받고 실제로 실행하기 직전에 알린 기능
                         yield ServerSentEvent(event='started', data={'feature': update['started']})
+                    elif 'answer' in update:  # 메인 모델이 쓰는 중인 답변 조각(agent.AnswerStream)
+                        yield ServerSentEvent(event='answer', data={'delta': update['answer']})
                     else:  # 장면 에이전트가 턴이 끝날 때 낸 그때까지의 결과
                         relayed = True
                         yield ServerSentEvent(event='step', data=update)

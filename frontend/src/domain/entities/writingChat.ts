@@ -104,14 +104,20 @@ export type ChatReply = {
 export type ChatTurn = { request: string; reply: ChatReply | null; attachments?: ChatTurnAttachment[] }
 export type ChatSession = { threadId: string; title: string; updatedAt: string }
 export type ChatHistory = { threadId: string; title: string; turns: ChatTurn[] }
-/** 오케스트레이션 SSE 이벤트. plan → (started → step)* → waiting? → done, 실패는 error 하나. */
+/** 오케스트레이션 SSE 이벤트. plan → (started → step)* → waiting? → done, 실패는 error 하나. 답변을 쓰는 동안 사이사이 answer가 온다(#618). */
 export type ChatEvent =
   | { type: 'plan'; steps: ChatStep[] }
   | { type: 'started'; feature: ChatFeature }
   | { type: 'step'; step: ChatStep }
   | { type: 'waiting'; steps: ChatStep[]; missingInputs: ChatFeature[]; awaitingApproval?: ChatFeature | null; awaitingScene?: ChatFeature | null; pendingAction?: PendingAction | null }
   | { type: 'done'; reply: ChatReply }
+  | { type: 'answer'; delta: string | null }
   | { type: 'error'; message: string }
+/** 쓰는 중인 답변 본문(#618). delta가 null이면 비우고, 실패하면 쓰다 만 글을 버린다. 정상 종료에는 저장된 답으로 바뀔 때까지 남긴다. */
+export function streamedAnswer(text: string, event: ChatEvent): string {
+  if (event.type === 'answer') return event.delta === null ? '' : text + event.delta
+  return event.type === 'error' || (event.type === 'done' && event.reply.status === 'failed') ? '' : text
+}
 /**
  * Q&A 근거 기준(지식 상한). Content가 발행 회차만 기준으로 받는다.
  * targetEpisode는 결과를 반영할 회차(작가가 연 회차, 발행 전 초안이어도 된다)이고 없으면 서버가 근거 회차와 같게 본다.

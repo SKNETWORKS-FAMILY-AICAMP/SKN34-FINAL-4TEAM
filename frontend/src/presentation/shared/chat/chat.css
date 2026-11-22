@@ -19,6 +19,7 @@
 .chat-msg { display: flex; align-items: flex-end; gap: 8px; min-width: 0; }
 .chat-msg.user { justify-content: flex-end; }
 .chat-msg.system { justify-content: center; }
+.chat-writing { margin-top: 20px; }
 .chat-avatar { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--pri-soft); color: var(--pri-ink); }
 .chat-bubble { display: flex; flex-direction: column; gap: 4px; min-width: 0; max-width: 88%; }
 .chat-msg.user .chat-bubble { align-items: flex-end; }

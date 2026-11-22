@@ -224,7 +224,7 @@ flowchart TD
 #### 응답·스트리밍·추적
 
 - 응답은 `OrchestrationResponse` 모양을 유지하고, `message`에 메인 에이전트의 종합 답변(실행하지 않은 턴은 고정 문구)을 담는다. `steps[]`의 기능별 원본 결과·`sources`·`coverage`·상태와 `waiting`·`awaitingApproval`·`missingInputs`는 그대로다.
-- SSE는 `plan` 이벤트에 Decision Guard 판정(노출 기능을 대기 단계로)을 싣고, 서브 에이전트 도구가 입력을 다 받고 실행하기 직전(custom stream)에 `started`, 결과가 나오면 `step`, 마지막에 `done`이다. 병렬 묶음의 `started`·`step`은 실제로 일어난 순서로 보내고 `done`의 `steps`는 모델이 부른 순서다(#474). `plan`은 Decision Guard 판정일 뿐이다. 메인 에이전트가 부르지 않은 기능은 `done`의 `steps`와 대화 이력에 없으므로, 진행 중 대기로 보이던 그 단계는 턴이 끝나면 화면에서 사라진다(2026-11-18 사용자 결정, 현행 유지). 모델 출력은 완성본 단위로 보낸다.
+- SSE는 `plan` 이벤트에 Decision Guard 판정(노출 기능을 대기 단계로)을 싣고, 서브 에이전트 도구가 입력을 다 받고 실행하기 직전(custom stream)에 `started`, 결과가 나오면 `step`, 마지막에 `done`이다. 병렬 묶음의 `started`·`step`은 실제로 일어난 순서로 보내고 `done`의 `steps`는 모델이 부른 순서다(#474). `plan`은 Decision Guard 판정일 뿐이다. 메인 에이전트가 부르지 않은 기능은 `done`의 `steps`와 대화 이력에 없으므로, 진행 중 대기로 보이던 그 단계는 턴이 끝나면 화면에서 사라진다(2026-11-18 사용자 결정, 현행 유지). 단계 결과는 완성본 단위로, 메인 에이전트의 답변 본문만 조각으로 보낸다([답변 본문 스트리밍](#답변-본문-스트리밍-618)).
 - Langfuse trace는 `plan` 자리에 `decision_guard`, 메인 모델 호출마다 `main_agent` generation, 서브 에이전트마다 기존 `step.<기능>`을 붙인다. 병렬 묶음의 단계는 같은 부모 아래 시간이 겹친 span으로 보인다.
 
 이력: #473 전에는 Intent Router가 기능 순서(최대 3단계)·`clarity`·`review_check`·`writing_task`를 분류하고 바깥 그래프의 `plan`(계획 검증)·`gate`(입력 대기)·`simulation_plan`·기능 노드가 그 순서대로 실행했으며, 종합 모델 없이 원본 결과만 묶었다(PR #477에서 교체).
@@ -257,7 +257,7 @@ flowchart TD
 - 판정이 거절이면 `rejected`, 고른 기능이 없으면 `clarify`와 고정 문구를 돌려준다. 도구 입력이 빠지면 대화 없는 요청은 `needs_input`(빠진 기능은 `missingInputs`, 앞서 끝난 단계는 보존)으로 끝내고, 대화 안에서는 아래 HITL로 멈춘다. 조건부 수정은 이번 턴 Manuscript Review 결과의 확정 지적만 고친다(#370, 아래 조건부 수정).
 - 코드가 검증해 넘기는 연결은 Manuscript Review → 조건부 수정과 Writing/Editing → Manuscript Review다(“MVP · 순차”). 기능 실패는 그 단계의 `failed`로 남기고, 완료 결과를 보존한다. 새 도구 호출은 [실패 뒤 정지](#코드가-지키는-실행-경계) 규칙을 따른다. 단계는 호출 순서의 원본 결과이고 `message`는 메인 에이전트의 종합 답변이다.
 - #499 이전 체크포인트의 `review` 단계는 기록 그대로 읽고, 입력을 기다리던 검수도 재개할 수 있다. 요청의 옛 `operation: "review"`와 `inputs.review`는 AI 서비스가 판정·실행 전에 새 이름으로 변환한다.
-- `POST /internal/v1/orchestrations/stream`은 같은 그래프를 노드 단위로 흘리는 SSE다. 이벤트는 `plan`(판정 기능) → 도구마다 `started`(실제로 실행할 기능)·`step`(그 단계의 결과·실패) → `done`(위 응답과 같은 최종 결과)이다. 응답 헤더를 보낸 뒤라 판정 실패는 `error` 이벤트 하나로 알리고 끝낸다. 내부 인증은 스트림 전에 검사한다. Agent의 모델 호출은 스트리밍하지 않아 단계 결과는 완성본 단위로 온다.
+- `POST /internal/v1/orchestrations/stream`은 같은 그래프를 노드 단위로 흘리는 SSE다. 이벤트는 `plan`(판정 기능) → 도구마다 `started`(실제로 실행할 기능)·`step`(그 단계의 결과·실패) → `done`(위 응답과 같은 최종 결과)이다. 응답 헤더를 보낸 뒤라 판정 실패는 `error` 이벤트 하나로 알리고 끝낸다. 내부 인증은 스트림 전에 검사한다. 업무 Agent의 모델 호출은 스트리밍하지 않아 단계 결과는 완성본 단위로 온다. 메인 에이전트가 글을 쓰는 동안에는 사이사이 `answer {delta}`가 온다([답변 본문 스트리밍](#답변-본문-스트리밍-618)).
 - 공통 Retrieval: 요청에 Content가 서명한 `scope {scopeToken}`이 있으면 Q&A 단계가 `inputs.story_context` 없이 원고 근거는 Content 내부 검색 API로, 설정·관계 근거는 `target`의 작품·근거 회차로 Content MCP 세계관을 읽어 받는다(#490, [근거 경로](07-retrieval-contract-and-mocks.md#qa-세계관-근거-490)). 원고 근거([계약](07-retrieval-contract-and-mocks.md#공통-retrieval-도구-오케스트레이션-2026-11-12-사용자-결정)). 그래서 Q&A는 입력 대기 없이 실행된다. resume의 `scope`로 Content가 새로 서명한 토큰이 오면 저장된 토큰을 바꾼다. 작가용 진입점은 Content `POST /api/v1/works/{id}/writing-ai/orchestrations`다. 결과에는 인용 근거(`sources`)와 `coverage`가 붙는다.
 - 멀티턴(#57): 요청에 `conversation {threadId, scope}`가 있으면 체크포인터의 그 대화에 턴을 쌓는다. `threadId`는 Content가 발급하고 `scope`는 Content가 확인한 사용자·작품(예: `user:1/work:2`)이다. 첫 턴의 scope와 다르면 409(SSE는 `error`)이며 실행하지 않는다. 다음 턴의 Q&A에는 최근 5턴의 질문·답을 `history`로 넘긴다. Decision Guard는 이번 요청만으로 먼저 판정하고 고른 기능이 없을 때만 최근 5턴의 요청을 `history`로 붙여 한 번 더 판정한다(아래 Router 절). 메인 에이전트는 최근 5턴의 요청·종합 답변을 메시지로 받는다. 둘 다 "그 목표" 같은 지칭 해석용 자료이고 근거가 아니다(Q&A 인용은 여전히 발췌만). Writing에는 대화 기록 전체를 보내지 않고, 기획·바로 집필 단계에만 최근 5턴 중 가장 최근 기획 결과(계획 대안)를 `previousPlans`로 넘겨 "첫 번째 안으로" 같은 지칭을 풀게 한다(#387, 사용자 결정 2026-11-17). 웹 조사에는 대화 기록을 보내지 않는다(외부 전송 최소화). 턴마다 단계·메시지·누락 목록은 새로 시작한다. Q&A의 질문·검색어는 메인 에이전트가 정한 `ask_story_qa(request)`의 앞 500자다. 메인 모델이 대화 속 지칭을 풀어 적을 수 있지만 근거는 Retrieval 발췌뿐이다. 대화 기록(`turns[].qa.question`)에는 작가가 보낸 요청이 남아 실제 검색 질문과 다를 수 있다.
 - HITL(사용자 요청 2026-11-12): 대화 안에서 도구 입력이 빠지면 그 `ask_*` 도구가 LangGraph `interrupt`로 멈추고 `waiting`(끝난 단계와 대기 단계·`missingInputs`, SSE는 `waiting` 이벤트 뒤 `done`)을 돌려준다. Content가 작가에게 보여 주고 선택 구간·콘티·검색 발췌·외부 전송 동의 같은 입력을 준비해 같은 `conversation`으로 `resume {approved, inputs}`를 보내면 판정·앞선 도구를 다시 실행하지 않고 멈춘 도구 호출만 이어 실행한다. 입력이 여전히 모자라면 다시 `waiting`, `approved=false`면 그 도구는 실행하지 않고 남은 호출 없이 끝난 결과만 종합해 `cancelled`다. 멈춘 실행이 없는데 resume하면 409다. 대기 중에 새 `request`를 보내면 새 턴으로 시작하고 멈춘 실행은 이어가지 않는다. 인물 시뮬레이션은 같은 `resume`에 장면 조작 `scene {action: next|edit|redo|stop, turn?, text?, note?}`을 실어 보내며(턴마다 `awaitingScene`으로 멈추고, `scene`이 있으면 `approved`는 적용하지 않는다) 자세한 규칙은 [시뮬레이션 계약](../design/character-simulation-contract.md#무대stage-턴마다-멈추는-실행-2026-11-14-사용자-결정)을 본다.
@@ -345,6 +345,17 @@ Decision Guard가 `manuscript_review`와 `writing_editing`을 함께 판정하�
 웹 조사는 외부 사실을 확인하는 도구다. 검색 결과의 문장은 명령이 아니며, 웹 페이지가 작품 설정이나 원고를 직접 수정할 수 없다. 외부 전송 동의와 개인정보·비공개 원고 최소화가 선행한다.
 
 이전의 3개 업무 역할 통합안은 사용자 결정으로 채택하지 않는다. 업무 Agent와 기존 기능 경계를 유지한다(설정집 검토를 더한 것은 2026-11-18, World·Research로 묶고 World & Plot을 World `impact`로 흡수한 것은 2026-11-19 사용자 결정). 이전 제안은 [검토 이력](08-agent-consolidation-proposal.md)이며 현행 설계가 아니다.
+
+## 답변 본문 스트리밍 (#618)
+
+2026-11-22 사용자 결정. 메인 에이전트가 답을 쓰는 동안 채팅 말풍선에 본문을 순서대로 보인다.
+
+- **이벤트:** SSE `answer {delta: string | null}`. 글자면 이어 붙이고 `null`이면 받은 글을 비운다. 메인 모델 호출이 시작될 때, 그 호출이 도구를 부르기 시작할 때, 그 호출이 실패했을 때 `null`을 보낸다. 도구 호출 전의 중간 멘트는 잠깐 보였다가 사라지고 마지막 답만 남는다.
+- **정본:** 조각은 표시용이며 체크포인트·이력에 남기지 않는다. 완성된 답은 `done`의 `message`이고 화면은 끝난 뒤 이력을 다시 읽어 말풍선을 바꾼다(두 번 보이지 않는다). 승인·입력 대기로 끝나면 흐르던 글 대신 대기 카드가 남고, 답은 턴이 끝난 뒤 이력의 말풍선으로 보인다.
+- **실패:** 쓰다 만 글은 버린다. 제공사 오류·전송 끊김·조각 시간 초과·잘린 응답은 `done(status=failed)`와 고정 실패 문구이고 끝낸 단계는 보존한다. 서버와의 연결이 끊기면(`done`·`error` 없이 종료) 화면이 끊김으로 알리고 저장된 이력을 다시 읽는다.
+- **범위:** 메인 에이전트의 `ChatOpenAI`만 `streaming`과 콜백(`agent.AnswerStream`)으로 흘린다. LangGraph `stream_mode='messages'`는 콜백이 하위로 상속돼 업무 Agent의 모델 호출까지 스트리밍으로 바꾸므로 쓰지 않는다. 추론·도구 인자·서브 에이전트 결과는 조각으로 보내지 않는다.
+- **시간:** `timeout=120`은 스트림에서 조각 사이 대기 한도다. 턴 전체는 Content 중계 3분·화면 200초 한도를 따른다. `reasoning_effort=high`의 추론이 끝나야 첫 글자가 온다.
+- **중계:** Content는 받은 바이트를 그대로 flush하고 `X-Accel-Buffering: no`를 보내므로 바뀌지 않는다.
 
 ## 메인 에이전트의 답변 종합 (#473)
 

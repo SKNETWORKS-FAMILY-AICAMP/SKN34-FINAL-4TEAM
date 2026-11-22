@@ -566,6 +566,36 @@ it('오래 걸린 스트림의 World 반영 알림은 시작할 때의 핸들러
   expect(first).not.toHaveBeenCalled()
 })
 
+it('생성이 끝나기 전에 답변 본문을 갱신하고, 초기화와 실패에는 비운다(#618)', async () => {
+  const { run } = await worldStream({})
+  await run({ type: 'answer', delta: '확인해 ' })
+  await run({ type: 'answer', delta: '볼게요.' })
+  const writing = screen.getByText('확인해 볼게요.')
+  expect(writing.closest('[aria-live]')?.getAttribute('aria-live')).toBe('off') // 조각마다 읽어 주지 않는다
+  await run({ type: 'answer', delta: null })
+  expect(screen.queryByText('확인해 볼게요.')).toBeNull()
+  await run({ type: 'answer', delta: '**반영**했어요.' })
+  expect(screen.getByText('반영').tagName).toBe('STRONG')
+  await run({ type: 'error', message: '응답이 중간에 끊겼어요.' })
+  expect(screen.queryByText('반영')).toBeNull()
+  expect(screen.getByRole('alert').textContent).toContain('응답이 중간에 끊겼어요.')
+})
+
+it('흐르는 답은 맨 아래에서 읽을 때만 따라 내려간다(#618)', async () => {
+  const { run } = await worldStream({})
+  const log = screen.getByRole('log', { name: '대화 내용' })
+  let height = 900
+  Object.defineProperty(log, 'scrollHeight', { configurable: true, get: () => height })
+  Object.defineProperty(log, 'clientHeight', { configurable: true, value: 300 })
+  await run({ type: 'answer', delta: '첫 줄' })
+  expect(log.scrollTop).toBe(900)
+  log.scrollTop = 100 // 위로 올려 읽는 중
+  fireEvent.scroll(log)
+  height = 1200
+  await run({ type: 'answer', delta: ' 다음 줄' })
+  expect(log.scrollTop).toBe(100)
+})
+
 it('AI가 처리 중일 때 전송한 요청은 말풍선에 있고 입력창은 비어 있다', async () => {
   openThread([])
   send.mockImplementation(() => new Promise(() => {}))

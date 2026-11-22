@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import type { ChatAttachment, ChatMessage } from '../../../domain/entities/chat'
 import { attachmentKind, type AttachmentCheck } from '../../../domain/entities/chatAttachment'
 import { CardMarkdown } from '../CardMarkdown'
@@ -28,8 +28,9 @@ type Picked = { file: File; name: string; kind: ChatAttachment['kind'] }
  * - after: 메시지 뒤에 이어 그릴 것(진행 표시·승인 카드). 있으면 빈 상태 대신 그린다.
  * - renderCard: 메시지 글 바로 아래에 이어 그릴 카드(인물 시뮬레이션 장면 등). 이 카드가 있는 말풍선은 폭을 채운다.
  * - renderActions: 메시지 말풍선 아래의 행동(수정·삭제 등).
+ * - streaming: 흐르는 중인 글(없으면 undefined). 바뀌거나 끝날 때(완성된 답·실패 안내) 맨 아래에서 읽던 대화만 따라 내려간다(#618).
  */
-export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledReason, inputError, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, renderCard, renderActions }: {
+export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledReason, inputError, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, streaming, renderCard, renderActions }: {
   messages: ChatMessage[]
   onSend?: (text: string, files: File[]) => boolean | Promise<boolean>
   busy?: boolean
@@ -40,6 +41,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   emptyText?: string
   suggestions?: string[]
   after?: ReactNode
+  streaming?: string
   renderCard?: (message: ChatMessage) => ReactNode
   renderActions?: (message: ChatMessage) => ReactNode
 }) {
@@ -47,6 +49,11 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   const draftEdits = useRef(0)
   const changeDraft = (value: string) => { draftEdits.current += 1; setDraft(value); setFailed(false) }
   const box = useRef<HTMLTextAreaElement>(null)
+  const log = useRef<HTMLDivElement>(null)
+  const pinned = useRef(true)
+  useEffect(() => {
+    if (pinned.current && log.current) log.current.scrollTop = log.current.scrollHeight
+  }, [streaming])
   const files = useRef<Record<ChatAttachment['kind'], HTMLInputElement | null>>({ image: null, text: null })
   const [picked, setPicked] = useState<Picked[]>([])
   const [rejected, setRejected] = useState<string[]>([])
@@ -80,6 +87,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
     const text = draft.trim()
     if (!text || busy || locked || sending.current) return
     sending.current = true
+    pinned.current = true // 보낸 사람은 새 답을 보려는 것이다
     setPending(true)
     setFailed(false)
     const submittedEdits = draftEdits.current
@@ -101,7 +109,8 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
     }
   }
   return <div className="chat-panel">
-    <div className="chat-log" role="log" aria-label="대화 내용" aria-live="polite">
+    <div ref={log} className="chat-log" role="log" aria-label="대화 내용" aria-live="polite"
+      onScroll={e => { const el = e.currentTarget; pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80 }}>
       {messages.length || after ? <><ol>{messages.map(m => <li key={m.id} className={`chat-msg ${m.role}`} data-failed={m.failed || undefined}>
         {m.role === 'assistant' && <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>}
         <div className="chat-bubble">

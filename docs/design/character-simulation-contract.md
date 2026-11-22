@@ -85,7 +85,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 ### SSE·응답
 
-- 기존 이벤트(`plan`·`started`·`step`·`waiting`·`done`·`error`)를 그대로 쓴다. 새 이벤트 종류는 없다. 턴이 끝날 때마다의 `step`은 그때까지의 **누적** 결과를 담으며 화면은 같은 단계 항목을 교체한다.
+- 기존 이벤트(`plan`·`started`·`step`·`waiting`·`done`·`error`)를 그대로 쓴다. 장면용 새 이벤트 종류는 없다(`answer`는 메인 에이전트의 답변 본문용이며 장면 글을 싣지 않는다, #618). 턴이 끝날 때마다의 `step`은 그때까지의 **누적** 결과를 담으며 화면은 같은 단계 항목을 교체한다.
 - `character_simulation` 단계 결과(`StepResult.result`)와 턴마다의 `step` 이벤트는 다음 모양을 쓴다.
 
 ```json

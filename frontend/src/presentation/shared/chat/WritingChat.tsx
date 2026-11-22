@@ -6,6 +6,7 @@ import { draftNotice, featureLabel, PLAN_LABEL, referenceHref, replyOutcome, rep
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
+import { CardMarkdown } from '../CardMarkdown'
 import { ChatPanel } from './ChatPanel'
 import { PendingActionCard } from './PendingActionCard'
 import { useEpisodeDraft } from './useEpisodeDraft'
@@ -52,13 +53,14 @@ function References({ step }: { step: ChatStep }) {
 /**
  * 진행 중인 턴의 단계 목록. 단계가 끝나는 대로 결과를 바로 아래에 보인다(SSE 순서 그대로).
  * 장면 한 줄은 상태 알림(role="status") 밖에 둔다: 알림 영역은 바뀔 때마다 통째로 읽혀 턴마다 다시 읽히기 때문이다.
+ * 쓰는 중인 답(#618)도 밖에 두고 aria-live를 끈다: 조각마다 읽지 않고 완성된 답이 대화에 들어올 때 한 번 읽힌다.
  */
 function Progress({ live, onOpenStage }: { live: LiveTurn; onOpenStage?: () => void }) {
   return <>
     <div className="chat-msg assistant">
       <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>
       <div className="chat-bubble chat-progress" role="status" aria-label="AI 진행 상황">
-        <p className="chat-progress-title">{live.steps.length ? '작업을 실행하고 있어요' : '요청을 살펴보고 있어요'}<span className="chat-dots" aria-hidden="true"><i /><i /><i /></span></p>
+        <p className="chat-progress-title">{live.answer ? '답변을 쓰고 있어요' : live.steps.length ? '작업을 실행하고 있어요' : '요청을 살펴보고 있어요'}<span className="chat-dots" aria-hidden="true"><i /><i /><i /></span></p>
         {!!live.steps.length && <ol className="chat-steps">{live.steps.map((step, i) => {
           const state = stepState(step, live.running)
           // 장면 카드가 그리는 단계는 한 줄 요약을 되풀이하지 않는다. 실패 사유는 그대로 보인다.
@@ -74,6 +76,10 @@ function Progress({ live, onOpenStage }: { live: LiveTurn; onOpenStage?: () => v
       </div>
     </div>
     {live.steps.map((step) => step.simulation && <div key={step.feature} className="chat-scene"><SceneLine simulation={step.simulation} onOpenStage={onOpenStage} /></div>)}
+    {live.answer && <div className="chat-msg assistant chat-writing" aria-live="off">
+      <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>
+      <div className="chat-bubble"><div className="chat-text chat-md"><CardMarkdown text={live.answer} /></div></div>
+    </div>}
   </>
 }
 
@@ -327,7 +333,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
       </>}
     </div>
     <ChatPanel messages={messages} onSend={(text, files) => vm.send(text, files.length ? { files } : undefined)} checkFile={checkAttachment} busy={vm.pending} disabledReason={vm.lockedReason} inputError={vm.inputError}
-      emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions}
+      emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions} streaming={live?.answer}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}
         {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} workId={workId ?? ''} request={vm.turns.at(-1)?.request ?? ''} reply={vm.waiting} episode={vm.targetEpisode} pending={vm.pending} onResume={(approved, inputs) => void vm.resume(approved, inputs)} onOpenStage={onOpenStage} cardOf={cardOf} unsaved={unsaved} worldDraft={worldDraft}

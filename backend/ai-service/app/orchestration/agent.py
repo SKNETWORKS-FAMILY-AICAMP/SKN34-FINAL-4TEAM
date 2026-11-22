@@ -12,20 +12,25 @@ Retrieval·웹 검색·원고 반영 도구는 없고, 서브 에이전트에 �
 - `ToolCallLimit`(라이브러리 상속): 서브 에이전트 기능당 1회, 턴당 3회(MCP 도구는 세지 않는다). MCP 도구는 따로 턴당 10회(`mcpCalls`).
   `ModelCallLimitMiddleware`(라이브러리): 메인 모델 호출 8회(2026-11-17 5회 → #554에서 올림).
   재개(resume) 뒤에도 세도록 체크포인트에 남는 thread 한도를 쓴다. 메인 에이전트 상태는 턴마다 새로 시작한다.
-- `MainModelMiddleware`: 메인 모델 호출을 Langfuse `main_agent` generation으로 남기고, 제공사 오류·잘린 응답은 끝낸 단계를 보존한 채
+- `MainModelMiddleware`: 메인 모델 호출을 Langfuse `main_agent` generation으로 남기고, 제공사 오류·전송 끊김·잘린 응답은 끝낸 단계를 보존한 채
   고정 실패 문구로 끝낸다(예외로 올리면 단계 결과를 잃는다).
+- `AnswerStream`: 메인 모델이 쓰는 답변 본문 조각을 custom stream으로 흘린다(#618, SSE `answer`). 이 모델에만 단 콜백이라
+  업무 Agent 호출은 스트리밍으로 바뀌지 않는다(`stream_mode='messages'`는 하위 모델 호출까지 바꿔 쓰지 않는다).
 """
 
 import operator
 import os
 from typing import Annotated, Any, NotRequired
 
+import httpx2
 from langchain.agents import create_agent
 from langchain.agents.middleware import (AgentMiddleware, AgentState, HumanInTheLoopMiddleware, ModelCallLimitMiddleware, ToolCallLimitMiddleware,
                                          hook_config)
 from langchain.agents.middleware.types import ModelResponse
+from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_openai import ChatOpenAI
+from langgraph.config import get_stream_writer
 from langgraph.types import Command
 from openai import OpenAIError
 
@@ -203,6 +208,25 @@ class ToolCallLimit(ToolCallLimitMiddleware):
         return super().after_model(counted, runtime)
 
 
+class AnswerStream(BaseCallbackHandler):
+    """답변 본문 조각을 {answer: 글}로 알린다(#618). 추론·도구 인자는 보내지 않는다.
+
+    None은 지금까지의 글을 비우라는 뜻이다. 모델 호출이 시작될 때와, 앞에 쓴 글이 답이 아니라 중간 멘트였음을 알게 되는
+    도구 호출 시작 때, 그리고 MainModelMiddleware가 실패로 끝낼 때 보낸다(2026-11-22 사용자 결정).
+    """
+    run_inline = True  # 조각 순서와 stream writer의 실행 문맥을 지킨다
+
+    def on_chat_model_start(self, *args, **kwargs) -> None:
+        get_stream_writer()({'answer': None})
+
+    def on_llm_new_token(self, token, *, chunk, **kwargs) -> None:
+        # token은 Responses API에서 글이 아니라 content 블록 목록이다. 본문 글은 message.text만 읽는다.
+        if text := chunk.message.text:
+            get_stream_writer()({'answer': text})
+        if any(call.get('name') for call in chunk.message.tool_call_chunks):
+            get_stream_writer()({'answer': None})
+
+
 class MainModelMiddleware(AgentMiddleware):
     """메인 모델 호출 하나를 추적하고, 쓸 수 없는 응답은 고정 실패 메시지로 끝낸다. 실패를 성공으로 바꾸지 않는다(status=failed).
 
@@ -220,10 +244,11 @@ class MainModelMiddleware(AgentMiddleware):
         with tracing.observe('main_agent', as_type='generation', model=request.model.model_name, prompt=self.prompt) as generation:
             try:
                 response = await handler(request)
-            except (OpenAIError, ValueError) as error:
-                # langchain-openai는 응답 오류도 ValueError로 올려 둘 다 실패로 끝낸다. 제공사 오류가 아니면 원인이 가려지지 않게
-                # 예외 종류를 남긴다(메시지는 입력을 담을 수 있어 남기지 않는다).
+            except (OpenAIError, ValueError, httpx2.HTTPError, TimeoutError) as error:
+                # langchain-openai는 응답 오류도 ValueError로 올리고, 스트림을 읽던 중의 끊김·조각 시간 초과는 SDK가 감싸지 않는다.
+                # 모두 실패로 끝낸다. 제공사 오류가 아니면 원인이 가려지지 않게 예외 종류를 남긴다(메시지는 입력을 담을 수 있어 남기지 않는다).
                 generation.update(level='ERROR', status_message=MAIN_FAILED_MESSAGE if isinstance(error, OpenAIError) else type(error).__name__)
+                request.runtime.stream_writer({'answer': None})  # 쓰다 만 글은 버린다(#618)
                 return failed
             message = response.result[-1]
             usage = message.usage_metadata
@@ -231,6 +256,7 @@ class MainModelMiddleware(AgentMiddleware):
                               usage_details=usage and {'input': usage['input_tokens'], 'output': usage['output_tokens']})
             if message.response_metadata.get('status') != 'completed':  # 토큰 한도로 잘린 응답
                 generation.update(level='ERROR', status_message=MAIN_FAILED_MESSAGE)
+                request.runtime.stream_writer({'answer': None})
                 return failed
         return response
 
@@ -246,7 +272,7 @@ def build(found: list[dict] = ()):
     except tracing.PromptUnavailable:
         raise IntentFailure() from None
     chat = ChatOpenAI(model=os.environ['OPENAI_MODEL'], api_key=os.environ['OPENAI_API_KEY'], use_responses_api=True, store=False,
-                      reasoning_effort='high', max_tokens=8000, timeout=120, max_retries=0)
+                      reasoning_effort='high', max_tokens=8000, timeout=120, max_retries=0, streaming=True, callbacks=[AnswerStream()])
     mcp = mcp_tools.tools(found)
     approval = {t.name: {'allowed_decisions': ['approve', 'reject'], 'when': _unanswered, 'description': mcp_tools.LABELS[t.name]}
                 for t in mcp if t.name in mcp_tools.WRITE}
