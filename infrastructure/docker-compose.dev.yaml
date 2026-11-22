@@ -79,10 +79,30 @@ services:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
     platform: linux/amd64
     labels: *cd-labels
-    environment:
+    environment: &ai-environment
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
       OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-luna}
+
+  # 회차 원고 전처리 Celery 워커. ai-service와 같은 이미지·환경이고 브로커가 준비된 뒤 시작한다.
+  ai-worker:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment: *ai-environment
+
+  # 작업 Celery 워커(회귀 평가·운영 정기 작업). ai-service와 같은 이미지·환경이고 브로커가 준비된 뒤 시작한다.
+  ai-jobs-worker:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
+    platform: linux/amd64
+    labels: *cd-labels
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment: *ai-environment
 
   core-api:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-core-api:develop

@@ -234,6 +234,71 @@ def test_form_plan_the_world_or_the_mode_does_not_allow_fails_clearly_instead_of
     assert error.value.status == 422 and said in str(error.value)
 
 
+# --- 필수 인물 문서(#357·#624): IDENTITY.md·SOUL.md가 비면 고를 수 없고 GOAL.md는 선택이다 -----------------------------------------------------
+
+def kael(body='KAEL-IDENTITY 북문을 지키는 기사', **docs):
+    """카엘 카드. docs로 SOUL·GOAL을 바꾼다(기본은 둘 다 채움)."""
+    return card(KAEL, '카엘', body, docs={'soul': 'KAEL-SOUL 퉁명스러운 반말', 'goal': 'KAEL-GOAL 왕가를 지킨다', 'episodes': {}, **docs})
+
+
+def read_with(carded):
+    """READ의 카엘 자리에 [carded]를 둔 세계관."""
+    return {**READ, 'cards': [carded, *(c for c in READ['cards'] if c['id'] != carded['id'])]}
+
+
+KAEL_ALONE = SimulationPlan(mode='if', premise='만약 북문이 열려 있었다면?', characterIds=[KAEL])
+FILL_IN = '세계관 관리 화면에서 채워 주세요'
+
+
+@pytest.mark.parametrize('carded, names', [
+    (kael(soul=' \n'), ['SOUL.md']),
+    (kael(body=''), ['IDENTITY.md']),
+    (kael(body=' ', soul=''), ['IDENTITY.md', 'SOUL.md']),
+    (card(KAEL, '카엘', 'KAEL-IDENTITY'), ['SOUL.md']),  # 인물 문서가 아예 없는 카드
+])
+def test_a_character_with_an_empty_required_doc_is_refused_and_the_error_names_the_docs(monkeypatch, carded, names):
+    fake_content(monkeypatch, read=read_with(carded))
+    with pytest.raises(SimulationFailure) as error:
+        service.plan_from_form(KAEL_ALONE, TARGET)
+    message = str(error.value)
+    assert error.value.status == 422 and '카엘' in message and FILL_IN in message
+    assert [name for name in ('IDENTITY.md', 'SOUL.md', 'GOAL.md') if name in message] == names  # 빈 문서 이름만 알린다(GOAL.md는 말하지 않는다)
+
+
+def test_the_goal_doc_is_optional_so_a_character_without_a_goal_can_take_part(monkeypatch):
+    fake_content(monkeypatch, read=read_with(kael(goal='  ')))
+    assert service.plan_from_form(KAEL_ALONE, TARGET) == KAEL_ALONE
+    service.check_plan(KAEL_ALONE, service.load_world(TARGET, '요청', None))  # 매 턴의 시작 확인도 통과한다
+
+
+def test_the_chat_planning_paths_refuse_it_too_the_model_planned_start_and_the_start_check_of_every_turn(monkeypatch):
+    fake_content(monkeypatch, read=read_with(kael(soul='')))
+    monkeypatch.setattr(service.agent, 'plan', lambda *args: PlanDraft(mode='if', premise='전제', beats=[], characterIds=[KAEL]))
+    with pytest.raises(SimulationFailure) as planned:
+        service.plan('카엘로 만약 장면을', [], TARGET)
+    with pytest.raises(SimulationFailure) as checked:
+        service.check_plan(KAEL_ALONE, service.load_world(TARGET, '요청', None))
+    assert (planned.value.status, checked.value.status) == (422, 422)
+    assert str(planned.value) == str(checked.value) and 'SOUL.md' in str(checked.value)
+
+
+def test_inherited_characters_are_judged_by_their_body_alone_because_the_authors_docs_are_never_inherited(monkeypatch):
+    fake_content(monkeypatch, worlds=[], inherited=INHERITED)
+    assert service.plan_from_form(PLAN_IF, TARGET) == PLAN_IF  # 이어받은 인물은 SOUL·GOAL이 없어도 된다(#365)
+    blank = {**INHERITED, 'cards': [{**INHERITED['cards'][0], 'body': ' '}, INHERITED['cards'][1]]}
+    fake_content(monkeypatch, worlds=[], inherited=blank)
+    with pytest.raises(SimulationFailure) as error:
+        service.plan_from_form(PLAN_IF, TARGET)
+    assert error.value.status == 422 and 'IDENTITY.md' in str(error.value) and 'SOUL.md' not in str(error.value)
+
+
+def test_a_missing_goal_is_left_out_of_the_characters_context_instead_of_being_invented(monkeypatch):
+    fake_novelbrain(monkeypatch)  # 작성된 GOAL.md가 문맥에 들어가는 것은 아래 character_input 테스트들이 이미 지킨다
+    _, (asked, _, _) = view(monkeypatch, plan=KAEL_ALONE, read=read_with(kael(goal='')))
+    assert f'card:{KAEL}#goal' not in [doc['ref'] for doc in asked['known']] and '목표(GOAL)' not in text(asked['known'])
+    assert {f'card:{KAEL}#identity', f'card:{KAEL}#soul'} <= {doc['ref'] for doc in asked['known']}  # 나머지 문서는 그대로다
+
+
 # --- 장면 상태(순수 함수) ----------------------------------------------------------------------------------------------
 
 def scene_of(plan=PLAN_IF, *entries):
@@ -373,9 +438,11 @@ def test_redo_gives_back_the_beats_the_dropped_turns_had_finished():
 
 def test_a_stopped_scene_keeps_its_turns_and_marks_the_beat_that_was_refused():
     scene = scene_of(PLAN_FLOW, ('narration', {}))
-    stopped = service.stop_scene(scene, '카엘이 비트를 따르지 않아 멈췄어요.', 'stopped', 'beat_rejected', rejected=0)
-    assert [b.status for b in stopped.result.beats] == ['rejected', 'pending'] and len(stopped.result.turns) == 1
-    assert [b.status for b in scene.result.beats] == ['pending', 'pending']
+    stopped = service.stop_scene(scene, '카엘이 비트를 따르지 않아 멈췄어요.', 'stopped', 'beat_rejected', rejected=0, by=KAEL)
+    assert [(b.status, b.rejectedBy) for b in stopped.result.beats] == [('rejected', KAEL), ('pending', None)] and len(stopped.result.turns) == 1
+    assert [(b.status, b.rejectedBy) for b in scene.result.beats] == [('pending', None), ('pending', None)]
+    retried = service.apply_action(stopped, SceneAction(action='next'))  # 다시 시도하면 거부 표시가 비트의 거부와 함께 풀린다
+    assert [(b.status, b.rejectedBy) for b in retried.result.beats] == [('pending', None), ('pending', None)]
 
 
 # --- 턴 입력의 격리 ----------------------------------------------------------------------------------------------------

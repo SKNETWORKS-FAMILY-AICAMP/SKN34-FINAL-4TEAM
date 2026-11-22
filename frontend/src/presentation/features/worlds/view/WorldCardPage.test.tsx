@@ -376,3 +376,44 @@ it('이미지가 없는 카드(imageId가 null이거나 없음)의 정보 상자
   await renderAt(cardPath('sw', 'c-uuid-2'))
   expect(screen.queryByRole('img')).toBeNull()
 })
+
+// ── 카드별 관계도와 접힌 관계 문단(사용자 결정): 정보 상자 아래 관계도, 긴 관계 문단은 기본 접힘 ──
+it('정보 상자 아래에 카드별 관계도가 있다: 그림은 aria-hidden이고 사건이 아닌 이웃은 간단 목록(상대 — 관계명)에, 사건은 접힌 함께한 사건에 있으며 이웃은 그 카드 페이지로 가는 링크다', async () => {
+  await open(2)
+  const map = document.querySelector<HTMLElement>('section.card-relmap')!
+  expect(map.compareDocumentPosition(screen.getByRole('table', { name: '늙은 항해사 오르' })) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy() // 정보 상자 뒤
+  expect(map.querySelector('svg')!.getAttribute('aria-hidden')).toBe('true')
+  const list = within(within(map).getByRole('list', { name: '관계 목록' }))
+  expect(list.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['견습 항해사 미라 — 스승-제자', '조석신 하엘 — 숭배']) // 관계 수가 같으면 이름순
+  expect(list.getByRole('link', { name: '조석신 하엘' }).getAttribute('href')).toBe(cardPath(WORLD, 1))
+  const events = within(map).getByText('함께한 사건 1').closest('details')!
+  expect(events.open).toBe(false)
+  expect(within(events).getByRole('link', { name: '일곱 번째 섬의 실종' }).getAttribute('href')).toBe(cardPath(WORLD, 6))
+})
+
+it('상자가 좁아도 카드별 관계도 글자는 축소되지 않는다(이름 12px·선 이름 11px): viewBox 가로가 상자 폭 그대로이고 폭이 넓으면 가장 넓은 그림이다', async () => {
+  const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) { return this.classList.contains('card-relmap') ? 306 : 0 })
+  await open(2)
+  expect(document.querySelector('section.card-relmap svg')!.getAttribute('viewBox')).toBe('0 0 306 300')
+  cleanup()
+  width.mockImplementation(function (this: HTMLElement) { return this.classList.contains('card-relmap') ? 900 : 0 })
+  await open(2)
+  expect(document.querySelector('section.card-relmap svg')!.getAttribute('viewBox')).toBe('0 0 640 360')
+})
+
+it('긴 관계 문단(관계·이 설정을 가리키는 관계)은 관계 자세히 보기 (N)으로 기본 접혀 있고 문단은 지워지지 않으며, 목차 링크·앵커 주소로 들어오면 펼쳐서 그 문단으로 간다 (DEC-54)', async () => {
+  await open(2)
+  const wrapper = document.querySelector<HTMLDetailsElement>('details.nw-rels')!
+  expect(wrapper.querySelector(':scope > summary')!.textContent).toBe('관계 자세히 보기 (3)')
+  expect(wrapper.open).toBe(false)
+  expect(within(wrapper).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toHaveLength(3) // 관계마다 하위 문단은 그대로 있다
+  expect(wrapper.contains(document.getElementById('nw-s-relations'))).toBe(true)
+  expect(document.getElementById('nw-s-same')!.closest('details.nw-rels')).toBeNull() // 같은 유형의 다른 설정은 접히지 않는다
+  fireEvent.click(within(screen.getByRole('navigation', { name: '목차' })).getByRole('link', { name: /^1\.2\./ }))
+  expect(wrapper.open).toBe(true) // 목차로 들어가면 묶음이 펼쳐진다
+  const anchor = document.querySelector<HTMLElement>('summary[id^="rel-"]')!.id
+  cleanup()
+  await renderAt(cardPath(WORLD, 2) + '#' + anchor) // 다른 페이지가 이 관계 문단의 앵커로 보낸 주소
+  expect(document.querySelector<HTMLDetailsElement>('details.nw-rels')!.open).toBe(true)
+  expect(document.activeElement).toBe(document.getElementById(anchor))
+})

@@ -73,6 +73,8 @@ const looseMetadata = z.record(z.string(), z.unknown())
 // 카드 semanticMetadata의 최상위 키(DEC-46·53): 공개 시작 회차와 가져온 출처. 모양이 어긋난 값은 읽지 않는다. 회차는 서버(`shownCardEpisode`)와 같이 1 이상 Int 범위의 정수만 읽는다.
 const revealFromEpisode = z.number().int().min(1).max(2147483647)
 const importedFrom = z.object({ worldId: z.string(), worldName: z.string(), authorNickname: z.string(), revisionNo: z.number().int(), cardId: z.string() })
+// 원고 구축·업데이트가 이름이 같은 카드를 둘 이상 만나 남기는 '확인 필요'는 서버 메타데이터 `manuscriptBuild` 안의 true뿐이다. 그 밖의 값은 읽지 않고, `manuscriptBuild` 자체는 serverMetadataOf가 그대로 돌려보낸다.
+const manuscriptReview = z.object({ needsReview: z.literal(true) })
 // 인물 문서(SOUL.md·GOAL.md·회차별 기억)도 인물 카드 semanticMetadata의 최상위 키 `characterDocs`다. IDENTITY.md는 카드 본문(body)이라 여기 없다.
 // DEC-47 이전에 저장한 문서는 `memory`가 있고 `goal`이 없어 둘 다 선택으로 받고, 읽을 때 지금 모양으로 옮긴다(memory는 00회차 앞에 이어 붙임).
 // 필수로 두면 옛 문서 전체가 버려져 다음 저장에서 사라진다.
@@ -80,7 +82,7 @@ const characterDocs = z.object({ soul: z.string(), goal: z.string().optional(), 
 // 카드 공개·독자 공개 회차·가져온 출처·인물 문서·대표 이미지는 행 필드가 정본이라 `studio` 안에 넣지 않는다. 회차·출처·문서·이미지는 최상위 키로 쓰고 값이 없으면(문서는 전부 비었거나 인물이 아니면) 키도 넣지 않는다.
 function metadataOf(row:StudioSetting) {
   // 관계의 N화부터(`fromEpisode`)와 읽은 그대로의 기록된 시작 회차(`recordedFrom`)도 서버가 연결의 회차로 따로 가지므로(요청의 relationshipEpisodes) 관계 본문(`studio.item`)에는 넣지 않는다.
-  const {serverMetadata,visibility:_,revealFromEpisode:reveal,importedFrom:source,characterDocs:_docs,imageId:image,item:{fromEpisode:_from,recordedFrom:_recorded,...item},...view}=row
+  const {serverMetadata,visibility:_,revealFromEpisode:reveal,importedFrom:source,characterDocs:_docs,imageId:image,needsReview:_review,item:{fromEpisode:_from,recordedFrom:_recorded,...item},...view}=row
   const docs=storedCharacterDocs(row)
   return {...serverMetadata,studio:{...view,item},...(reveal!==undefined&&{revealFromEpisode:reveal}),...(source&&{importedFrom:source}),...(docs&&{characterDocs:docs}),...(image&&{imageId:image})}
 }
@@ -225,9 +227,9 @@ function cardRow(c: z.infer<typeof card>): StudioSetting {
   // 공개 회차·가져온 출처·인물 문서·대표 이미지는 서버 메타데이터에 남기지 않고 행 필드로 옮긴다(지운 값이 다음 저장에서 되살아나지 않게). 어긋난 값은 버리고 읽기는 계속한다.
   // 키가 있는데(JSON null 포함) 회차 값이 잘못됐으면 서버는 작가 전용으로 닫으므로(옛 `visibility`로 열지 않는다) 화면도 같게 읽고, 저장하면 비공개로 맞춘다. 키가 없을 때만 옛 공개 카드다.
   const stored = m.revealFromEpisode, episode = revealFromEpisode.safeParse(stored), closed = stored !== undefined && !episode.success
-  const from = importedFrom.safeParse(m.importedFrom), docs = characterDocs.safeParse(m.characterDocs), picture = uuid.safeParse(m.imageId)
-  return {...row,...serverMetadataOf(m,['preprocessing']),...(c.visibility==='public'&&!closed&&{visibility:c.visibility}),...(episode.success&&{revealFromEpisode:episode.data}),...(from.success&&{importedFrom:from.data}),
-    ...(docs.success&&c.cardType==='character'&&{characterDocs:docs.data}),...(picture.success&&{imageId:picture.data})}
+  const from = importedFrom.safeParse(m.importedFrom), docs = characterDocs.safeParse(m.characterDocs), picture = uuid.safeParse(m.imageId), review = manuscriptReview.safeParse(m.manuscriptBuild)
+  return {...row,...serverMetadataOf(m,['preprocessing','manuscriptBuild']),...(c.visibility==='public'&&!closed&&{visibility:c.visibility}),...(episode.success&&{revealFromEpisode:episode.data}),...(from.success&&{importedFrom:from.data}),
+    ...(docs.success&&c.cardType==='character'&&{characterDocs:docs.data}),...(picture.success&&{imageId:picture.data}),...(review.success&&{needsReview:true})}
 }
 // 관계 한 줄의 행: 양 끝·극성·관계명·설명은 정본이 이기고(극성이 없으면 긍정), 관계 종류(predicate)는 서버의 유형·방향과 맞는 studio 값만 쓰고 아니면 정본에서 다시 만든다.
 function relationRow(r: z.infer<typeof relation>): StudioSetting {
@@ -236,7 +238,7 @@ function relationRow(r: z.infer<typeof relation>): StudioSetting {
   const known = relationDefinitions[row.item.predicate ?? ''], stored = known && known.group !== 'other' ? relationship(row) : undefined
   const predicate = stored && stored.category === r.category && stored.direction === r.direction ? row.item.predicate
     : r.category === 'identity' ? 'identity_of' : r.category === 'emotional' ? (r.direction === 'symmetric' ? 'preserved_emotion_symmetric' : 'custom_emotion') : r.direction === 'symmetric' ? 'custom_relation' : 'custom_relation_directed'
-  return { ...row, ...serverMetadataOf(m, ['preprocessing', 'evidence']), item: { ...row.item, predicate } }
+  return { ...row, ...serverMetadataOf(m, ['preprocessing', 'evidence', 'manuscriptBuild']), item: { ...row.item, predicate } }
 }
 function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   if (value.worldId !== id) throw invalid()

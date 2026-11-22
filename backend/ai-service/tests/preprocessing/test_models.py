@@ -1,8 +1,8 @@
-"""#343 전처리 접수 요청·진행 보고 DTO. 계약 본문만 받고 URL 경로에 들어갈 작업 ID는 안전한 문자만 허용한다."""
+"""#343 전처리 접수 요청 DTO. 계약 본문만 받고 URL 경로에 들어갈 작업 ID는 안전한 문자만 허용한다."""
 import pytest
 from pydantic import ValidationError
 
-from app.preprocessing.models import JobRequest, Progress
+from app.preprocessing.models import JobRequest
 
 JOB = {'jobId': '3f2b9c1e-0000-4000-8000-000000000001', 'workId': 'work-1', 'episodes': [1, 2, 5]}
 
@@ -27,11 +27,3 @@ def test_job_request_requires_every_field():
     for key in JOB:
         with pytest.raises(ValidationError):
             JobRequest.model_validate({k: v for k, v in JOB.items() if k != key})
-
-
-def test_progress_reports_only_the_contract_stages():
-    Progress(stage='loading', done=0, total=0, failedEpisodes=[])
-    with pytest.raises(ValidationError):
-        Progress(stage='done', done=0, total=0, failedEpisodes=[])
-    with pytest.raises(ValidationError):
-        Progress(stage='extracting', done=-1, total=3, failedEpisodes=[])

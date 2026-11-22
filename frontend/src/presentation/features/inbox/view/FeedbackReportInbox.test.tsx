@@ -20,6 +20,7 @@ const report = (extra: Partial<FeedbackReport> = {}): FeedbackReport => ({
 const reports = () => appContainer.resolve('feedbackReportUseCase')
 const card = (id: string) => within(document.querySelector<HTMLElement>(`[data-report="${id}"]`)!)
 const open = () => render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><FeedbackReportInbox /></MemoryRouter></Provider>)
+const openFor = (workId?: string) => render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><FeedbackReportInbox workId={workId} /></MemoryRouter></Provider>)
 
 it('처리에 실패하면 서버 문구를 토스트뿐 아니라 그 제보 카드 안의 경고로 남긴다', async () => {
   vi.spyOn(reports(), 'listInbox').mockResolvedValue([report(), report({ id: 'r2', reporterName: '독자B' })])
@@ -103,4 +104,25 @@ it('처리 기록은 마지막 처리 시각을 보이고 최초 확인 시각�
   // 처리 시각이 기록되기 전의 제보는 최초 확인만 보인다.
   expect(card('r3').getByText(/최초 확인/).textContent).toBe(`작가봄 · 최초 확인 ${at(first)}`)
   expect(card('r3').queryByText(/마지막 처리/)).toBeNull()
+})
+
+it('처리 방법 안내는 제보가 있을 때만 그리고, 0건이면 빈 상태 문구만 보인다', async () => {
+  const list = vi.spyOn(reports(), 'listInbox').mockResolvedValue([])
+  const empty = open()
+  await screen.findByText('접수된 독자 제보가 없어요.')
+  expect(screen.queryByText(/확인하거나 답변하면 독자의 내 서재에/)).toBeNull()
+  empty.unmount()
+  list.mockResolvedValue([report()])
+  open()
+  await screen.findByRole('heading', { name: '독자 제보 1' })
+  screen.getByText(/확인하거나 답변하면 독자의 내 서재에/)
+})
+
+it('제목 단계는 쓰는 자리를 따른다: 작품 관리의 받은 피드백 탭(workId 있음)은 탭 제목(h2) 아래라 h3이고, 피드백함 화면은 h2다', async () => {
+  vi.spyOn(reports(), 'listInbox').mockResolvedValue([])
+  openFor('guunmong')
+  expect((await screen.findByRole('heading', { name: '독자 제보 0' })).tagName).toBe('H3')
+  cleanup()
+  openFor()
+  expect((await screen.findByRole('heading', { name: '독자 제보 0' })).tagName).toBe('H2')
 })

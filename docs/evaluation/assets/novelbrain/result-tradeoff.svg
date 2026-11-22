@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="224" viewBox="0 0 820 224" font-family="'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif">
+<rect width="820" height="224" fill="#ffffff"/>
+<defs><marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<text x="30" y="40" font-size="20" fill="#1f2937" text-anchor="start" font-weight="bold">대가: 정보를 주면 「그 자리에 없었다」를 틀리기 쉽다</text>
+<text x="30" y="66" font-size="14" fill="#6b7280" text-anchor="start" font-weight="normal">past-absence 유형(인물이 보지 못한 과거 사건을 묻는 질문) 정답률, 한국어 KoTimeChara 520문항</text>
+<text x="218" y="109" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">검색 없음</text>
+<rect x="230" y="94" width="470.0" height="22" rx="4" fill="#9ca3af"/>
+<text x="708.0" y="110" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.94</text>
+<text x="218" y="143" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">전체 (필터 포함)</text>
+<rect x="230" y="128" width="400.0" height="22" rx="4" fill="#dc2626"/>
+<text x="638.0" y="144" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.80</text>
+<text x="30" y="210" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal">문맥을 받으면 「안다·봤다」고 답하는 쪽으로 기운다(12:88, p&lt;0.001). 필터 때문에 한국어 설정 질문 재현율도 1.00 → 0.86으로 내려갔다.</text>
+</svg>

@@ -29,6 +29,13 @@ it('본문 랜드마크 하나 안에서 기존 #home 구성을 유지한다', a
   expect(main.querySelectorAll('#home .chips, #home .hero, #home .t10')).toHaveLength(3)
 })
 
+it('급상승·방금 업데이트 두 칸만 한 줄에 두고 소설 모아 보기 구역은 없다', async () => {
+  renderHome()
+  await screen.findByText('다르게 이어진 포크 소설')
+  expect(screen.queryByRole('heading', { name: '소설 모아 보기' })).toBeNull()
+  expect(document.querySelectorAll('#home .tri > div')).toHaveLength(2)
+})
+
 it('나도 쓰기 카드는 원작 랭킹으로 가며 포크할 원작을 고르는 곳임을 문구로 알린다', async () => {
   renderHome()
   const ring = await screen.findByRole('link', { name: /나도 쓰기/ })

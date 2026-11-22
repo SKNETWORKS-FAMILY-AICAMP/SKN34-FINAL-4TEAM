@@ -42,7 +42,7 @@ def test_result_dumps_the_contract_json_shape():
                     evidence=[Evidence(ref='card:g', source='graph')], pov='limited:k', editedByAuthor=True)],
         notes=[Note(afterTurn=0, text='비가 쏟아진다')], status='paused', stopReason=None)
     assert result.model_dump(mode='json') == {
-        'mode': 'flow', 'premise': None, 'beats': [{'index': 0, 'text': '성문 대면', 'status': 'done'}],
+        'mode': 'flow', 'premise': None, 'beats': [{'index': 0, 'text': '성문 대면', 'status': 'done', 'rejectedBy': None}],
         'turns': [{'index': 0, 'kind': 'narration', 'characterId': None, 'characterName': '나레이션', 'prose': '성문 위로 비가 내렸다.',
                    'checks': [], 'regenerated': 0, 'evidence': [], 'pov': 'omniscient', 'editedByAuthor': False},
                   {'index': 1, 'kind': 'monologue', 'characterId': 'k', 'characterName': '카엘', 'prose': '리나를 믿어도 될까.',

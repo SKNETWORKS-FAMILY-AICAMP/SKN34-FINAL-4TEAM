@@ -1,0 +1,7 @@
+// Fast, isolated pure input-boundary tests; not a substitute for service integration tests.
+gradle.projectsEvaluated {
+    rootProject.sourceSets.main.kotlin.setIncludes(['**/world/service/ManuscriptBuild*.kt', '**/world/studio/entity/ManuscriptBuild.kt', '**/world/studio/entity/StudioWorld.kt', '**/world/studio/repository/ManuscriptBuildRepositories.kt', '**/world/studio/repository/StudioWorldRepository.kt', '**/world/domain/WorldConflict.kt', '**/world/domain/WorldNotFound.kt'])
+    rootProject.sourceSets.test.kotlin.setIncludes(['**/world/ManuscriptBuildInputTest.kt', '**/world/ManuscriptBuildResultsTest.kt', '**/world/ManuscriptBuildResultStoreTest.kt'])
+    rootProject.sourceSets.test.java.setIncludes([])
+    rootProject.sourceSets.test.java.setSrcDirs([])
+}

@@ -75,7 +75,7 @@ export function StoryPlanPanel({ workId, demo = false, vm, episode, episodes }: 
   return <section className={`plan-workspace${vm.embedded ? ' plan-embedded' : ''}`} aria-busy={vm.busy} onClickCapture={event => { if (!vm.editor) pressed.current = event.target instanceof Element ? event.target.closest('button') : null }}>
     <div className="plan-heading"><div><h2>플롯</h2><p className="muted">플롯과 장면을 계획하세요. 저장해도 원고·사전에는 자동 반영되지 않아요.</p></div><span className="chip">비공개 계획</span></div>
     {demo && <p className="note2">메모리 데모예요. 새로고침하면 계획이 초기화되고 서버에는 저장되지 않아요.</p>}
-    <div className="plan-feedback" aria-live="polite">{!vm.ready ? <p role="status">계획과 참조 목록을 불러오고 있어요…</p> : vm.busy ? <p role="status">처리 중…</p> : vm.notice && !vm.deleting ? <p role="status">{vm.notice}</p> : <p className="muted">{vm.dirty ? '저장하지 않은 변경이 있어요.' : '계획은 저장 버튼을 눌러 보관해요.'}</p>}</div>
+    <div className="plan-feedback" aria-live="polite">{!vm.ready ? <p role="status">계획과 참조 목록을 불러오고 있어요…</p> : vm.busy ? <p role="status">처리 중…</p> : vm.notice && !vm.deleting ? <p role="status">{vm.notice}</p> : vm.dirty ? <p className="muted">저장하지 않은 변경이 있어요.</p> : null}</div>
     {vm.error && !vm.editor && !vm.deleting && <div className="ep-alert" role="alert"><p>{vm.error}</p><button type="button" className="btn sm" disabled={vm.busy} onClick={vm.reload}>다시 불러오기</button></div>}
     {vm.embedded && <label className="field">계획 회차<select className="inp" value={filter ?? 'unset'} onChange={e => setFilter(e.target.value === 'all' ? 'all' : e.target.value === 'unset' ? null : Number(e.target.value))}>
       <option value="all">모든 회차</option><option value="unset">회차 미정</option>

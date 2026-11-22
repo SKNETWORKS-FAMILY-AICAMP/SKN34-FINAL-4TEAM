@@ -118,7 +118,6 @@ export class ReadingUseCase {
       /** 순위 섹션이 실제 순위인가: 서버 랭킹이거나 좋아요·조회 지표가 있는 목업. 지표 없는 서버 작품의 단순 목록이면 false입니다. */
       ranked: !!server || !pub.some((w) => w.statisticsSupported === false),
       fresh: server ? server.fresh.items : pub.slice().sort(sorter('new')).slice(0, 5),
-      picks: pub.slice(0, 6),
       /** 오늘의 발견: 랭킹·최신과 겹치지 않게 오래된 작품부터. 서버 작품은 갱신 시각이 없어 공개 목록(생성 최신순)을 뒤집습니다. */
       discover: (pub.some((w) => w.statisticsSupported === false) ? pub.slice() : pub.slice().sort(sorter('new'))).reverse(),
       weekly: server ? server.weekly.items : origs.slice(0, 4),
@@ -224,6 +223,15 @@ export class ReadingUseCase {
     const counts: Record<number, number> = {}
     for (const { forkAt } of forksOf(await this.workRepository.listWorks(), id)) if (forkAt) counts[forkAt] = (counts[forkAt] ?? 0) + 1
     return counts
+  }
+
+  /**
+   * 이 작품에서 갈라진 공개 Fork 목록(세계관 관리의 '소설 연결' 탭). 소설 상세·`/ifs`·회차별 포크 수와 같은 목록(forksOf: 숨김·비공개가 아니고 자체 회차가 1개 이상)이라 새 API 없이 읽는다.
+   * 작품 목록을 읽지 못하면 빈 목록으로 채우지 않고 던진다.
+   * ponytail: 공개 작품 전체 목록을 읽어 거른다(forkCountsByEpisode와 같다). 작품이 많아지면 작품별 Fork 목록 API로 바꾼다.
+   */
+  async forksOf(id: string) {
+    return forksOf(await this.workRepository.listWorks(), id)
   }
 
   /**

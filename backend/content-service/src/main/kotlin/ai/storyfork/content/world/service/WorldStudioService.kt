@@ -33,6 +33,7 @@ class WorldStudioService(
     private val states:WorldRelationshipStateRepository,private val templatePublications:TemplatePublicationOnceRepository,private val expandedSeeds:ExpandedSeedProgressRepository,private val applications:InitialWorldApplicationRepository,private val images:SettingCardImageRepository,private val graph:Neo4jRelationshipRepository,
     @Qualifier("worldStudioTransactionManager") manager:PlatformTransactionManager,private val mapper:JsonMapper,
     private val genres:GenreRepository,
+    private val buildJobs:ManuscriptBuildJobRepository,private val buildSteps:ManuscriptBuildLoadStepRepository,
 ) {
     private val log=org.slf4j.LoggerFactory.getLogger(javaClass)
     private val transaction=TransactionTemplate(manager)
@@ -384,6 +385,7 @@ class WorldStudioService(
     /** 외부 호출 없이 잠금 안에서 검증하며, 콜백은 인자로 받은 새 스냅샷만 사용해야 한다. */
     internal fun <T:Any> withInitialWorldInput(subject:UUID,input:InitialWorldInput,action:(InitialWorldInput)->T):T=tx {
         val world=owned(input.worldId,subject)
+        guardApplication(input.worldId,null)
         guardNoExpanded(input.worldId)
         val current=state(input.worldId);ready(current)
         val latest=readDraft(world,current)
@@ -400,6 +402,58 @@ class WorldStudioService(
         return edit(worldId,subject,request,applicationId)
     }
 
+    private fun manuscriptRequest(request:EditWorldDraftRequest):EditWorldDraftRequest {
+        fun ordered(value:Any?):Any?=when(value) {
+            is Map<*,*> -> value.entries.associate { (key,item)->key.toString() to ordered(item) }.toSortedMap()
+            is List<*> -> value.map(::ordered)
+            else -> value
+        }
+        val json=mapper.readValue(mapper.writeValueAsBytes(request),Map::class.java)
+        return mapper.convertValue(ordered(json),EditWorldDraftRequest::class.java)
+    }
+    internal fun manuscriptRequestHash(worldId:UUID,request:EditWorldDraftRequest)=hash("edit",worldId,manuscriptRequest(request))
+
+    /** 분석 기준이 그대로일 때만 전체 적재 단계를 예약한다. 콜백에는 DB 기록만 허용한다. */
+    internal fun <T:Any> prepareManuscript(worldId:UUID,subject:UUID,basis:WorldDraftResponse,action:()->T):T=tx {
+        val world=owned(worldId,subject);guardNoExpanded(worldId);guardApplication(worldId,null)
+        val current=state(worldId);ready(current)
+        if(draft(worldId).draftRevision!=basis.draftRevision || current.graphVersion!=basis.relationshipVersion ||
+            world.currentRevisionId!=basis.currentRevisionId) throw WorldConflict()
+        action()
+    }
+
+    /** 고정한 단계만 재시도한다. 성공 receipt는 이후 초안/관계가 바뀌어도 그대로 돌려준다. */
+    internal fun editManuscriptAddition(worldId:UUID,subject:UUID,stepId:UUID):Map<String,Any?> {
+        check(!org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive())
+        val prepared=tx {
+            owned(worldId,subject)
+            val step=buildSteps.findById(stepId).orElseThrow { WorldNotFound() }
+            val job=buildJobs.findById(step.jobId).orElseThrow { WorldNotFound() }
+            if(job.worldId!=worldId || job.ownerSubject!=subject) throw WorldNotFound()
+            val request=manuscriptRequest(mapper.convertValue(step.requestPayload,EditWorldDraftRequest::class.java))
+            require(!request.replace)
+            if(step.requestHash!=manuscriptRequestHash(worldId,request)) throw WorldConflict()
+            if(step.receipt==null && job.status !in listOf("loading","unknown")) throw WorldConflict()
+            request to step.receipt
+        }
+        prepared.second?.let { return it }
+        try { edit(worldId,subject,prepared.first,null,stepId=stepId) }
+        catch(failure:RuntimeException) {
+            val receipt=transaction.execute {
+                owned(worldId,subject)
+                val step=buildSteps.findById(stepId).orElseThrow { WorldNotFound() }
+                if(step.receipt!=null) step.receipt else {
+                    val job=buildJobs.findById(step.jobId).orElseThrow { WorldNotFound() }
+                    step.status="unknown";job.status="unknown"
+                    buildSteps.flush();buildJobs.flush();null
+                }
+            }
+            if(receipt!=null) return receipt
+            throw failure
+        }
+        return tx { owned(worldId,subject);checkNotNull(buildSteps.findById(stepId).orElseThrow { WorldNotFound() }.receipt) }
+    }
+
     internal fun validateEditRequest(request:EditWorldDraftRequest) {
         validateName(request.name,request.description);validateKey(request.key);validEpisode(request.episode)
         // 관계별 회차(DEC-54 2단계)는 이 요청에서 삭제하지 않는 관계에만, 1 이상의 정수로 정한다.
@@ -412,21 +466,23 @@ class WorldStudioService(
         require(mapper.writeValueAsBytes(request).size<=2_000_000) { "세계관 입력 크기를 확인하세요." }
     }
 
-    private fun guardApplication(worldId:UUID,applicationId:UUID?) {
+    private fun guardApplication(worldId:UUID,applicationId:UUID?,stepId:UUID?=null) {
         val pending=applications.findFirstByWorldIdAndStatusIn(worldId,listOf("applying","unknown"))
         if(pending!=null && pending.id!=applicationId) throw WorldStudioFailure.incomplete()
+        val build=buildJobs.findFirstByWorldIdAndStatusIn(worldId,listOf("loading","unknown"))
+        if(build!=null && (stepId==null || buildSteps.findById(stepId).orElse(null)?.jobId!=build.id)) throw WorldStudioFailure.incomplete()
     }
 
     private fun guardNoExpanded(worldId:UUID) {
         if(expandedSeeds.findById(worldId).orElse(null)?.completed==false) throw WorldConflict()
     }
 
-    private fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest,applicationId:UUID?,expanded:ExpandedWrite?=null):WorldDraftResponse {
+    private fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest,applicationId:UUID?,expanded:ExpandedWrite?=null,stepId:UUID?=null):WorldDraftResponse {
         validateEditRequest(request)
         val hash=hash("edit",worldId,request)
         val loaded=tx {
             val world=owned(worldId,subject);if(expanded!=null) guardExpanded(world,expanded) else guardNoExpanded(worldId)
-            guardApplication(worldId,applicationId);requireCardImages(worldId,request.cards)
+            guardApplication(worldId,applicationId,stepId);requireCardImages(worldId,request.cards)
             val state=state(worldId);val draft=draft(worldId)
             val same=state.requestKey==request.key && state.expectedDraftRevision==request.expectedDraftRevision
             if(same && state.requestHash!=hash) throw WorldConflict()
@@ -436,10 +492,12 @@ class WorldStudioService(
                 if(!state.completed && !same) throw WorldStudioFailure.incomplete()
                 expected(draft,request.expectedDraftRevision,unprepared=state.completed)
             }
+            // 업데이트 작업의 적재 단계(2026-11-22)는 맞춘 기존 카드의 인물 기억을 더하려고 이미 있는 카드 초안을 다시 쓴다. 최초 구축 단계와 직접 입력 적용은 그대로 기존 카드를 거절한다.
+            val updating=stepId!=null && buildSteps.findById(stepId).flatMap { buildJobs.findById(it.jobId) }.map { it.kind=="update" }.orElse(false)
             request.cards.forEach { card ->
                 val existing=cards.findById(card.id).orElse(null)
                 if(existing!=null && existing.worldId!=worldId) throw WorldNotFound()
-                if(applicationId!=null && !(state.completed && same) && cardDrafts.existsById(card.id)) throw WorldConflict()
+                if((applicationId!=null || stepId!=null) && !(state.completed && same) && cardDrafts.existsById(card.id) && !updating) throw WorldConflict()
             }
             EditPlan(readDraft(world,state),state.completed && same,state.graphVersion)
         }
@@ -481,7 +539,7 @@ class WorldStudioService(
         }
         tx {
             val world=owned(worldId,subject);if(expanded!=null) guardExpanded(world,expanded) else guardNoExpanded(worldId)
-            guardApplication(worldId,applicationId);val state=state(worldId)
+            guardApplication(worldId,applicationId,stepId);val state=state(worldId)
             val same=state.requestKey==request.key && state.expectedDraftRevision==request.expectedDraftRevision
             expected(draft(worldId),request.expectedDraftRevision,unprepared=state.completed && !same && !alreadyApplied)
             if(state.graphVersion!=loaded.graphVersion) throw WorldConflict()
@@ -503,7 +561,7 @@ class WorldStudioService(
             // Only this callback rejection proves the graph transaction did not apply; transport/CAS failures stay pending.
             if(alreadyApplied) throw WorldStudioFailure.mismatch()
             // Application reservations keep their identity even on proven rejection; only same request resumes.
-            if(applicationId!=null) throw WorldStudioFailure.incomplete()
+            if(applicationId!=null || stepId!=null) throw WorldStudioFailure.incomplete()
             tx {
                 owned(worldId,subject);val state=state(worldId)
                 if(state.completed || state.graphVersion!=loaded.graphVersion || state.requestKey!=request.key || state.requestHash!=hash ||
@@ -516,7 +574,7 @@ class WorldStudioService(
         tx {
             val world=owned(worldId,subject);val progress=expanded?.let { guardExpanded(world,it) }
             if(expanded==null) guardNoExpanded(worldId)
-            guardApplication(worldId,applicationId);val state=state(worldId);val draft=draft(worldId)
+            guardApplication(worldId,applicationId,stepId);val state=state(worldId);val draft=draft(worldId)
             if(state.requestKey!=request.key || state.requestHash!=hash) throw WorldConflict()
             if(!state.completed) {
                 expected(draft,request.expectedDraftRevision)
@@ -536,6 +594,23 @@ class WorldStudioService(
                         mapper.convertValue(application.additionPayload,EditWorldDraftRequest::class.java)!=request) throw WorldConflict()
                     application.status="applied";application.resultDraftRevision=draft.draftRevision
                     applications.flush()
+                }
+                if(stepId!=null) {
+                    val step=buildSteps.findById(stepId).orElseThrow { WorldConflict() }
+                    val job=buildJobs.findById(step.jobId).orElseThrow { WorldConflict() }
+                    if(job.worldId!=worldId || job.ownerSubject!=subject || job.status !in listOf("loading","unknown") ||
+                        mapper.convertValue(step.requestPayload,EditWorldDraftRequest::class.java)!=request) throw WorldConflict()
+                    step.status="applied"
+                    @Suppress("UNCHECKED_CAST")
+                    val receipt=mapper.readValue(mapper.writeValueAsBytes(mapOf("jobId" to job.id,"stepId" to step.id,
+                        "worldId" to worldId,"draftRevision" to draft.draftRevision,"relationshipVersion" to stored.version,
+                        "cardIds" to request.cards.map { it.id },"relationshipIds" to request.relationships.map { it.id })),Map::class.java) as Map<String,Any?>
+                    step.receipt=receipt;buildSteps.flush()
+                    val steps=buildSteps.findAllByJobIdOrderBySequence(job.id)
+                    if(steps.isNotEmpty() && steps.all { it.status=="applied" }) {
+                        job.status="completed";job.failureCode=null
+                    } else job.status="loading"
+                    buildJobs.flush()
                 }
                 states.flush()
             }

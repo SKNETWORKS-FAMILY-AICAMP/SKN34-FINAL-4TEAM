@@ -89,7 +89,7 @@ class DecisionGuardMiddleware(AgentMiddleware):
         turn, asked = runtime.context, runtime.context['decide']
         with tracing.observe('decision_guard', input={'request': asked['request']}) as span:
             decided = intent.judge(asked['request'], asked['operation'], asked['materials'], asked['history'])
-            span.update(metadata=decided.model_dump())
+            span.update(output=decided.model_dump())
         done = {'decision': {**decided.model_dump(), 'operation': asked['operation']}}  # operation은 UI가 기능을 골랐는지(Content 도구 노출 판단)
         if not decided.allowed:  # 기능이 비어도 허용됐다면 메인이 MCP 도구만으로 실행한다(#554)
             done['jump_to'] = 'end'
@@ -159,23 +159,28 @@ class DynamicToolMiddleware(AgentMiddleware):
         return result
 
 
+def _refused(call: dict, content: str) -> ToolMessage:
+    """실행하지 않고 모델에게 돌려보내는 도구 호출의 오류 ToolMessage. 이름과 모델이 받은 이유를 `main_agent.blocked` span으로 남긴다(DEC-58)."""
+    with tracing.observe('main_agent.blocked', input={'name': call['name']}, output={'reason': content}):
+        pass
+    return ToolMessage(content=content, tool_call_id=call['id'], name=call['name'], status='error')
+
+
 def _blocked(call: dict) -> ToolMessage:
-    return ToolMessage(content=f"[차단] {call['name']}: 이번 요청에서 부를 수 없는 도구예요. 다시 부르지 마세요.",
-                       tool_call_id=call['id'], name=call['name'], status='error')
+    return _refused(call, f"[차단] {call['name']}: 이번 요청에서 부를 수 없는 도구예요. 다시 부르지 마세요.")
 
 
 def _deferred(call: dict) -> ToolMessage:
-    return ToolMessage(content=f"[순차] {call['name']}: 다른 도구와 함께 실행할 수 없어 실행하지 않았어요. "
-                               '함께 부른 도구의 결과를 본 뒤 이 도구만 따로 다시 부르세요.',
-                       tool_call_id=call['id'], name=call['name'], status='error')
+    return _refused(call, f"[순차] {call['name']}: 다른 도구와 함께 실행할 수 없어 실행하지 않았어요. "
+                          '함께 부른 도구의 결과를 본 뒤 이 도구만 따로 다시 부르세요.')
 
 
 def _foreign(call: dict, reason: str) -> ToolMessage:
-    return ToolMessage(content=f"[차단] {call['name']}: {reason}", tool_call_id=call['id'], name=call['name'], status='error')
+    return _refused(call, f"[차단] {call['name']}: {reason}")
 
 
 def _limited(call: dict) -> ToolMessage:
-    return ToolMessage(content=f"[한도] {call['name']}: {mcp_tools.LIMIT_REACHED} 더 부르지 마세요.", tool_call_id=call['id'], name=call['name'], status='error')
+    return _refused(call, f"[한도] {call['name']}: {mcp_tools.LIMIT_REACHED} 더 부르지 마세요.")
 
 
 def _unanswered(request) -> bool:
@@ -227,7 +232,9 @@ class MainModelMiddleware(AgentMiddleware):
                 return failed
             message = response.result[-1]
             usage = message.usage_metadata
-            generation.update(model=message.response_metadata.get('model_name'), output=message.text or [c['name'] for c in message.tool_calls],
+            # DEC-58: 도구를 부른 이유는 그 인자(ask_*의 요청문)와 같은 응답의 글이라 둘 다 output에 남긴다.
+            generation.update(model=message.response_metadata.get('model_name'),
+                              output={'text': message.text, 'toolCalls': [{'name': c['name'], 'args': c['args']} for c in message.tool_calls]},
                               usage_details=usage and {'input': usage['input_tokens'], 'output': usage['output_tokens']})
             if message.response_metadata.get('status') != 'completed':  # 토큰 한도로 잘린 응답
                 generation.update(level='ERROR', status_message=MAIN_FAILED_MESSAGE)

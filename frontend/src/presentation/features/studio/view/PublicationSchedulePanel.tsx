@@ -14,7 +14,7 @@ export function PublicationSchedulePanel({ workId, episode }: { workId: string; 
   // 예약 발행도 공개 경로라 고른 저장 버전 본문이 5,000자 이상이어야 한다(UC-10). 예약 취소는 분량과 무관하다.
   const chosen = versions.find(version => version.id === vm.form.versionId)
   const tooShort = chosen ? publishBlocker(chosen.body) : ''
-  return <section aria-label={`${episode.number}화 예약 발행`}>
+  return <section className="publication-schedule" aria-label={`${episode.number}화 예약 발행`}>
     <h2>{episode.number}화 예약 발행</h2>
     <p className="small muted">예약 시각은 한국 표준시(KST)입니다. 예약 결과와 실제 발행 결과를 각각 확인할 수 있어요.</p>
     <button type="button" className="btn sm" disabled={vm.busy} onClick={() => void vm.reload()}>예약 결과 새로고침</button>

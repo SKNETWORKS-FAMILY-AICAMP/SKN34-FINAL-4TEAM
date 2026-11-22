@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 
 import type { PublicWorldRef } from '../../../../domain/entities/publicWorld'
 import { coverSrc } from '../../../shared/cover'
@@ -22,7 +21,7 @@ export const LoadFailed = ({ what, onRetry }: { what: string; onRetry: () => voi
 )
 
 /** 나무위키 정보 상자(`nw-info`)의 한 행 */
-export const InfoRow = ({ k, children }: { k: string; children: ReactNode }) => <tr><th scope="row">{k}</th><td>{children}</td></tr>
+export { InfoRow } from '../../../shared/cardWiki'
 
 /**
  * 홈 `Cov`와 같은 표지: 소유자가 올린 표지(`hasCover`, 공개 cover 주소를 `<img>`로 직접)이거나 기본 표지, 그리고 왼쪽 위 장르 태그.

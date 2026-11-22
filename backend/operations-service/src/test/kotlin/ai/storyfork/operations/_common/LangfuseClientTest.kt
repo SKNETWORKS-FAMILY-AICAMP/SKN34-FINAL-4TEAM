@@ -1,6 +1,7 @@
 package ai.storyfork.operations._common
 
 import ai.storyfork.operations._common.client.LangfuseClient
+import ai.storyfork.operations._common.client.ObservationGroup
 import ai.storyfork.operations._common.client.langfuseRestClient
 import java.time.Instant
 import java.util.Base64
@@ -239,6 +240,8 @@ class LangfuseClientTest {
         val reads = listOf<(LangfuseClient) -> Unit>(
             { it.traces(null, null, null, null, null, null, 0, 20) }, { it.allTraces(from, to) }, { it.traceObservations("t-1") },
             { it.observationUsage(from, to) }, { it.experiments(from, null) }, { it.experimentScores(listOf("e-1")) },
+            { it.observationGroups(from, to, listOf("rating")) }, { it.observationLatencies(from, to, listOf("rating")) },
+            { it.pipelineObservations(from, to, "rating", setOf("rating.generation"), null, null, 0, 20) },
         )
 
         for (upstream in listOf(404, 401, 403, 400, 500, 503)) {
@@ -315,6 +318,106 @@ class LangfuseClientTest {
     }
 
     @Test
+    fun `observation groups are one Metrics query over the tagged requests grouped by name level and prompt`() {
+        val rows = """{"data":[
+            {"name":"decision_guard","level":"DEFAULT","promptName":null,"count_count":"12"},
+            {"name":"main_agent","level":"ERROR","promptName":"orchestration.main","count_count":3},
+            {"name":"step.world","level":"DEFAULT","promptName":"","count_count":"7"}]}"""
+        val factory = RecordingRequestFactory { Reply(200, rows) }
+
+        val groups = client(factory).observationGroups(from, to, listOf("orchestration", "rating"))
+
+        val call = factory.calls.single()
+        assertEquals(metrics, call.uri.path)
+        val query = mapper.readTree(call.query.getValue("query").single())
+        assertEquals("observations", query.path("view").asString())
+        assertEquals(listOf("name", "level", "promptName"), query.path("dimensions").values().map { it.path("field").asString() })
+        assertEquals(listOf("count" to "count"), query.path("metrics").values().map { it.path("measure").asString() to it.path("aggregation").asString() })
+        assertEquals("2026-11-18T00:00:00Z", query.path("fromTimestamp").asString())
+        assertEquals("2026-11-19T00:00:00Z", query.path("toTimestamp").asString())
+        // The largest row limit: Langfuse's default of 100 rows would cut a long list of names.
+        assertEquals(1000, query.path("config").path("row_limit").asInt())
+        val tags = query.path("filters").values().toList().single()
+        assertEquals(listOf("arrayOptions", "tags", "any of"), listOf(tags.path("type").asString(), tags.path("column").asString(), tags.path("operator").asString()))
+        assertEquals(listOf("feature:orchestration", "feature:rating"), tags.path("value").values().map { it.asString() })
+        // A count comes as a number or a numeric string, and "no prompt" as null or blank.
+        assertEquals(
+            listOf(ObservationGroup("decision_guard", "DEFAULT", null, 12), ObservationGroup("main_agent", "ERROR", "orchestration.main", 3), ObservationGroup("step.world", "DEFAULT", null, 7)),
+            groups,
+        )
+    }
+
+    @Test
+    fun `observation latencies are the p95 of each name from one Metrics query`() {
+        val rows = """{"data":[{"name":"step.world","p95_latency":"1250.5"},{"name":"decision_guard","p95_latency":820},{"name":"main_agent.blocked","p95_latency":null}]}"""
+        val factory = RecordingRequestFactory { Reply(200, rows) }
+
+        val latencies = client(factory).observationLatencies(from, to, listOf("orchestration"))
+
+        // A name without a measured latency has no p95: it is left out, never 0.
+        assertEquals(mapOf("step.world" to 1250.5, "decision_guard" to 820.0), latencies)
+        val query = mapper.readTree(factory.calls.single().query.getValue("query").single())
+        assertEquals("observations", query.path("view").asString())
+        assertEquals(listOf("name"), query.path("dimensions").values().map { it.path("field").asString() })
+        assertEquals(listOf("latency" to "p95"), query.path("metrics").values().map { it.path("measure").asString() to it.path("aggregation").asString() })
+        assertEquals(1000, query.path("config").path("row_limit").asInt())
+        assertEquals(listOf("feature:orchestration"), query.path("filters").values().single().path("value").values().map { it.asString() })
+    }
+
+    @Test
+    fun `node records are read by feature tag name and level inside the filter parameter newest first`() {
+        val factory = RecordingRequestFactory { call -> Reply(200, if (call.uri.path == metrics) count(41) else page("t1", "t2")) }
+
+        val rows = client(factory).pipelineObservations(from, to, "orchestration", setOf("decision_guard", "decision_guard.generation"), null, "ERROR", 0, 20)
+
+        assertEquals(listOf("o-t1", "o-t2"), rows.items.map { it.path("id").asString() })
+        assertEquals(41L, rows.total)
+        val (read, total) = factory.calls
+        assertEquals(observations, read.uri.path)
+        assertEquals(setOf("fields", "filter", "limit"), read.query.keys)
+        assertEquals(listOf("20"), read.query["limit"])
+        // The bodies, the metadata, the model, the prompt and the latency come with the record.
+        assertTrue(read.query.getValue("fields").single().split(",").containsAll(listOf("core", "basic", "io", "metadata", "model", "prompt", "metrics")))
+        val all = conditions(read.query.getValue("filter").single())
+        val tags = all.of("tags")
+        assertEquals(listOf("arrayOptions", "any of", "feature:orchestration"), listOf(tags.path("type").asString(), tags.path("operator").asString(), tags.path("value").values().single().asString()))
+        val name = all.of("name")
+        assertEquals(listOf("stringOptions", "any of"), listOf(name.path("type").asString(), name.path("operator").asString()))
+        assertEquals(listOf("decision_guard", "decision_guard.generation"), name.path("value").values().map { it.asString() })
+        val level = all.of("level")
+        assertEquals(listOf("string", "=", "ERROR"), listOf(level.path("type").asString(), level.path("operator").asString(), level.path("value").asString()))
+        val times = all.filter { it.path("column").asString() == "startTime" }
+        assertEquals(listOf(">=", "<"), times.map { it.path("operator").asString() })
+        assertEquals(listOf("2026-11-18T00:00:00Z", "2026-11-19T00:00:00Z"), times.map { it.path("value").asString() })
+        // The total is a Metrics count over the same conditions; its time bounds are query fields.
+        assertEquals(metrics, total.uri.path)
+        val counted = mapper.readTree(total.query.getValue("query").single())
+        assertEquals(all.filter { it.path("column").asString() != "startTime" }, counted.path("filters").values().toList())
+        assertEquals(listOf("2026-11-18T00:00:00Z", "2026-11-19T00:00:00Z"), listOf(counted.path("fromTimestamp").asString(), counted.path("toTimestamp").asString()))
+    }
+
+    @Test
+    fun `a family of names is read by prefix and later pages skip the newer rows and no name rule at all is refused before any call`() {
+        val factory = RecordingRequestFactory { call -> Reply(200, if (call.uri.path == metrics) count(9) else page("t1", "t2", "t3", "t4")) }
+        val langfuse = client(factory)
+
+        val rows = langfuse.pipelineObservations(from, to, "orchestration", emptySet(), "mcp.", null, 2, 2)
+
+        assertEquals(listOf("o-t3", "o-t4"), rows.items.map { it.path("id").asString() })
+        val read = factory.calls.first { it.uri.path == observations }
+        // Four rows are wanted: two passed over and two shown.
+        assertEquals(listOf("4"), read.query["limit"])
+        val all = conditions(read.query.getValue("filter").single())
+        val name = all.of("name")
+        assertEquals(listOf("string", "starts with", "mcp."), listOf(name.path("type").asString(), name.path("operator").asString(), name.path("value").asString()))
+        assertTrue(all.none { it.path("column").asString() == "level" })
+        // An empty name list would narrow nothing and read every observation of the project.
+        factory.calls.clear()
+        assertThrows(IllegalArgumentException::class.java) { langfuse.pipelineObservations(from, to, "orchestration", emptySet(), null, null, 0, 20) }
+        assertTrue(factory.calls.isEmpty())
+    }
+
+    @Test
     fun `experiments are read from a start time with their metadata 100 per page up to 500`() {
         val full = """{"data":[${items(100, "e")}],"meta":{"cursor":"more"}}"""
         val factory = RecordingRequestFactory { Reply(200, full) }
@@ -379,6 +482,9 @@ class LangfuseClientTest {
         langfuse.observationUsage(from, to)
         langfuse.experiments(from, null)
         langfuse.experimentScores(listOf("e-1"))
+        langfuse.observationGroups(from, to, listOf("orchestration"))
+        langfuse.observationLatencies(from, to, listOf("orchestration"))
+        langfuse.pipelineObservations(from, to, "orchestration", setOf("main_agent"), null, null, 0, 20)
 
         // /api/public/traces, /observations, /sessions, /scores, /v2/scores, /metrics and /datasets/{name}/runs answer 404 on a v4 server.
         assertEquals(setOf(observations, metrics, "/api/public/experiments", "/api/public/v3/scores"), factory.calls.map { it.uri.path }.toSet())

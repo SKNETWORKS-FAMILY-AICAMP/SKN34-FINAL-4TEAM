@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.storyfork.content.world.ManuscriptBuildSnapshotTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-17T05:50:18.900Z" hostname="9cb58bc2282a" time="0.751">
+  <properties/>
+  <testcase name="missing saved episode fails the full snapshot instead of silently skipping it()" classname="ai.storyfork.content.world.ManuscriptBuildSnapshotTest" time="0.009"/>
+  <testcase name="inherited episodes are not treated as this initial import()" classname="ai.storyfork.content.world.ManuscriptBuildSnapshotTest" time="0.004"/>
+  <testcase name="four unpublished saved episodes preserve original IDs and do not read unsaved draft()" classname="ai.storyfork.content.world.ManuscriptBuildSnapshotTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

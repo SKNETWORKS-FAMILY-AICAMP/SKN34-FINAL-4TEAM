@@ -3,24 +3,8 @@ import {newSetting} from '../../../../domain/entities/studioWorld'
 import {putRelation} from '../../../../domain/entities/studioRelations'
 import {cardTypePatch,type CardType} from '../../../../domain/entities/studioCards'
 import {mapConnectionLabel,type MapNode} from './useWorldMapViewModel'
-import {buildCharacterMap,buildSettingRelationshipMap,cardTypeCounts,hideCardTypes,toggleHiddenType,mapNeighbors} from './characterMap'
+import {buildCharacterMap,buildSettingRelationshipMap,cardTypeCounts,hideCardTypes,toggleHiddenType} from './characterMap'
 import {settingBoardEntries} from './settingBoard'
-it('선택한 카드의 다른 페이지 이웃과 관계를 유지한다',()=>{
- const cards=Array.from({length:101},(_,i)=>{const s=newSetting('people');s.item.title=`설정 ${i}`;return s})
- const rows=putRelation(cards,{subjectId:cards[0].item.id,targetId:cards[100].item.id,predicate:'custom_relation_directed',polarity:'asserted',text:'동료'})
- const graph=mapNeighbors(buildSettingRelationshipMap(rows),cards[0].item.id,0,49)
- expect(graph.nodes.map(n=>n.id)).toEqual([cards[0].item.id,cards[100].item.id])
- expect(graph.links).toHaveLength(1)
-})
-it('이웃 페이지는 유형 필터를 따르고 입력과 관계 편집 상태를 바꾸지 않는다',()=>{
- const {a,b,place,graph}=typedWorld(),before=structuredClone(graph)
- const visible=hideCardTypes(graph,new Set<CardType>(['ability']))
- const second=mapNeighbors(visible,a.item.id,1,1)
- expect(second.nodes.map(n=>n.id)).toEqual([a.item.id,place.item.id])
- expect(second.links.map(l=>[l.source,l.target])).toEqual([[a.item.id,place.item.id]])
- expect(mapNeighbors(visible,a.item.id,0,1).nodes.map(n=>n.id)).toEqual([a.item.id,b.item.id])
- expect(graph).toEqual(before)
-})
 it('keeps locations and real directed relationships in the service card board',()=>{
  const person=newSetting('people'),place=newSetting('places')
  person.item.title='가람';place.item.title='항구'
@@ -49,16 +33,6 @@ it('shows direction and complete description for both endpoints without changing
  expect(mapConnectionLabel({...link,symmetric:true},'a')).toBe('부모가 자녀를 보호하고 양육하는 관계')
  expect(mapConnectionLabel({source:'a',target:'b',label:'이후 사건',reverseLabel:'이전 사건'},'b')).toBe('이전 사건')
 })
-it('separates the effective geometry of opposite and same-direction links without changing input',()=>{
- const a=newSetting('people'),b=newSetting('people')
- let rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'trusts',polarity:'asserted'})
- rows=putRelation(rows,{subjectId:b.item.id,targetId:a.item.id,predicate:'likes',polarity:'asserted'})
- rows=putRelation(rows,{subjectId:a.item.id,targetId:b.item.id,predicate:'wary_of',polarity:'asserted'})
- const before=structuredClone(rows),links=buildCharacterMap(rows).links
- expect(new Set(links.map(l=>l.curve!*(String(l.source)<String(l.target)?1:-1))).size).toBe(3)
- expect(rows).toEqual(before)
-})
-
 it('preserves an authored description even for a predefined directional relationship',()=>{
  const a=newSetting('people'),b=newSetting('people'),description='오랫동안 바다를 함께 건너온 동료를 믿는다'
  const rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'trusts',polarity:'asserted',text:description})
@@ -144,4 +118,13 @@ it('관계도 카드의 요약(노드 text)은 설정집 게시판 요약과 같
  expect(board).toBe('가람 나래와 오랜 친구.')
  expect(buildSettingRelationshipMap([a,b]).nodes[0].text).toBe(board)
  expect(buildCharacterMap([a,b]).nodes[0].text).toBe(board)
+})
+it('서버에서 읽은 자유 관계는 label(항목 이름)이 관계 이름이고 본문(text)은 설명이다 — 관계 종류가 본문 문장으로 갈리지 않는다',()=>{
+ const a=newSetting('people'),b=newSetting('people')
+ a.item.title='길동';b.item.title='길현'
+ const rows=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation_directed',polarity:'asserted',title:'알고 있음',text:'길동은 초부석을 들어 올려 이복형 길현에게 보였다.'})
+ const [link]=buildSettingRelationshipMap(rows).links
+ expect(link.fullLabel).toBe('알고 있음')
+ expect(link.label).toBe('알고 있음')
+ expect(link.description).toBe('길동은 초부석을 들어 올려 이복형 길현에게 보였다.')
 })

@@ -89,3 +89,12 @@ it('작품을 만들면 새 작품의 id를 돌려주고, 입력이 잘못되면
   expect(id).toBeNull()
   expect(result.current.error).toBe('작품 제목을 입력해 주세요.')
 })
+
+it('이력 조회의 실패는 이력 구획에서 보이도록 요청한 자리를 history로 알린다 (화면 맨 위 알림이 아니라)', async () => {
+  const api = { list: vi.fn().mockResolvedValue([first]), history: vi.fn().mockRejectedValue(new Error('이력을 불러오지 못했어요.')) }
+  const { result } = open(api, 'w1')
+  await act(async () => {})
+  await act(async () => { await result.current.loadHistory() })
+  expect(result.current.error).toBe('이력을 불러오지 못했어요.')
+  expect(result.current.origin).toBe('history')
+})

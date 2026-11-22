@@ -30,7 +30,7 @@ type Props = {
 
 /**
  * 세계관·설정집 탭의 세계관 연결(DEC-46): 소설과 내 세계관(WorldStudio)은 1:1로 연결한다.
- * 연결돼 있으면 그 세계관 관리 화면으로 가는 이름과 `연결 해제`를, 아니면 다른 소설에 연결되지 않은 내 세계관을 골라 `세계관 연결`을 보인다.
+ * 연결돼 있으면 그 세계관 관리 화면으로 가는 이름과 `연결 해제`를, 아니면 다른 소설에 연결되지 않은 내 세계관을 골라 `세계관 연결`을 보인다. 1:1·독자 위키 공개 범위 설명은 고를 때 필요한 정보라 연결 전에만 보인다.
  * 드롭다운 기본값은 `선택 안 함`이라 고르기 전에는 버튼이 잠기고 이유를 알린다(UC-24 E1: 세계관을 고르지 않으면 연결하지 않는다). 해제하면 고른 값도 비워, 다시 나타난 양식이 직전에 연결했던 세계관을 고른 채 시작하지 않는다.
  * 내 세계관 목록은 탭을 열 때 공용 `useAsyncData`로 읽고 불러오는 중·실패(다시 불러오기)·고를 세계관 없음을 따로 알린다. 다시 읽기가 실패해도 앞서 읽은 목록은 남기고 실패를 함께 알린다.
  * 자기 세계관이 없는 Fork는 이 카드 위에 `이어받는 원작 세계관` 카드를 따로 둔다(#583, DEC-37): 원작 세계관을 읽기 전용으로 보이고 `내 세계관으로 만들어 수정하기`로 독립한다. 성공하면 새 세계관 관리 화면으로 간다.
@@ -52,9 +52,9 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
   return (
     <>
       {work.source && !linked && <InheritedWorldCard workId={work.id} sourceTitle={work.source.title} busy={busy} error={detachError} onDetach={detach} useCase={useCase} />}
-      <section className='tcard ep-card' aria-label='세계관 연결'>
-        <h2>세계관 연결</h2>
-        <p className='ep-muted'>세계관 하나는 소설 하나에만 연결돼요. 독자 설정 위키는 연결한 세계관의 확정 버전에서 발행된 마지막 회차까지 공개된 설정 카드를 보여 줘요.</p>
+      <section className='ep-card' aria-label='세계관 연결'>
+        <h3>세계관 연결</h3>
+        {!linked && <p className='ep-muted'>세계관 하나는 소설 하나에만 연결돼요. 독자 설정 위키는 연결한 세계관의 확정 버전에서 발행된 마지막 회차까지 공개된 설정 카드를 보여 줘요.</p>}
         {linked
           ? (
             <>
@@ -119,7 +119,7 @@ function InheritedWorldCard({ workId, sourceTitle, busy, error, onDetach, useCas
   if (data === null) return null
   return (
     <section className='tcard ep-card' aria-label='이어받는 원작 세계관'>
-      <h2>이어받는 원작 세계관</h2>
+      <h3>이어받는 원작 세계관</h3>
       {data && (
         <>
           <p>원작 「{sourceTitle}」 세계관을 {data.upto}화 기준으로 이어받는 중</p>

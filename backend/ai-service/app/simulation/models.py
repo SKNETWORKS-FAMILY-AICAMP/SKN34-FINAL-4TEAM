@@ -43,6 +43,7 @@ class Beat(BaseModel):
     index: int
     text: str
     status: Literal['done', 'pending', 'rejected']
+    rejectedBy: str | None = None  # 이 비트를 따르지 않은 인물의 카드 id(status가 rejected일 때만). 화면이 그 카드의 설정집 편집 화면으로 잇는다(#356)
 
 
 class Check(BaseModel):

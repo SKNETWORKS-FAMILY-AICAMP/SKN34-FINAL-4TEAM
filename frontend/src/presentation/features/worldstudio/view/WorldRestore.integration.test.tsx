@@ -74,7 +74,7 @@ async function openVersion() {
 it('확정 버전 시트에서 되돌리면 서버가 바꾼 초안을 다시 읽어 설정집에 보이고 저장하지 않은 변경으로 남기지 않는다', async () => {
   const { read, restoreRevision } = serve()
   const sheet = await openVersion()
-  expect(screen.getByRole('button', { name: /가람 수정/, hidden: true })).toBeTruthy() // 되돌리기 전 설정집
+  expect(screen.getByRole('button', { name: '가람 수정 인물', hidden: true })).toBeTruthy() // 되돌리기 전 설정집(제목 버튼: 상태 칩의 읽는 이름도 카드 제목으로 시작하므로 느슨한 정규식 대신 이름 전체로 찾는다)
   const ask = vi.spyOn(window, 'confirm').mockReturnValue(true)
   fireEvent.click(await sheet.findByRole('button', { name: '이 버전으로 초안 되돌리기' }))
   expect(String(ask.mock.calls[0][0])).toContain('사라지는 설정 카드 1개') // 다온
@@ -83,12 +83,12 @@ it('확정 버전 시트에서 되돌리면 서버가 바꾼 초안을 다시 �
   await waitFor(() => expect(document.activeElement).toBe(sheet.getByRole('button', { name: '이 버전으로 초안 되돌리기' })))
   expect(read.mock.calls.length).toBeGreaterThanOrEqual(2) // 처음 읽기 + 되돌린 뒤 다시 읽기
   fireEvent.click(sheet.getByRole('button', { name: '닫기' }))
-  expect(await screen.findByRole('button', { name: /가람 확정/ })).toBeTruthy()
-  expect(screen.queryByRole('button', { name: /가람 수정/ })).toBeNull()
-  expect(screen.queryByRole('button', { name: /다온/ })).toBeNull()
+  expect(await screen.findByRole('button', { name: '가람 확정 인물' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /가람 수정/ })).toBeNull() // 되돌린 뒤에는 제목 버튼도 상태 칩도 없다
+  expect(screen.queryByRole('button', { name: /다온/ })).toBeNull() // 되돌린 뒤에는 제목 버튼도 상태 칩도 없다
   const bar = within(screen.getByRole('group', { name: '저장 상태' }))
   expect(bar.getByText('저장됨')).toBeTruthy() // 서버 초안이 바뀐 상태이지 저장하지 않은 변경이 아니다
-  expect(bar.getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(true)
+  expect(bar.queryByRole('button', { name: '세계관 저장' })).toBeNull() // 저장할 것이 없으면 버튼도 없다
 })
 
 it('서버가 되돌리기를 거절하면 그 이유를 그대로 알리고 설정집은 그대로다', async () => {
@@ -101,6 +101,6 @@ it('서버가 되돌리기를 거절하면 그 이유를 그대로 알리고 설
   expect(restoreRevision).toHaveBeenCalledOnce()
   expect(sheet.queryByText(/초안을 되돌렸어요/)).toBeNull()
   fireEvent.click(sheet.getByRole('button', { name: '닫기' }))
-  expect(screen.getByRole('button', { name: /가람 수정/ })).toBeTruthy()
-  expect(screen.getByRole('button', { name: /다온/ })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '가람 수정 인물' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '다온 인물' })).toBeTruthy()
 })

@@ -1,44 +1,90 @@
 /*
- * 관계 연결 단계: 왼쪽은 공개 인물관계도와 같은 어두운 면(라이트·다크 모두 고정 색, 홈 지도와 같은 그라데이션)에 인물·설정 카드 그래프·범례를 올리고, 오른쪽은 관계 추가·목록 카드다.
- * 카드·간선 색은 --rc-*·--edge* 토큰으로 읽고 기본값은 밝은 화면 색이라, 같은 CharacterCards를 쓰는 읽기 전용 관계도(탐색 도구)는 그대로다.
- * 무대에만 있는 고정 색(그라데이션 3색·간선 2색)은 아래 변수 한 곳에서 정하고, 그 위의 흰색·보라 틴트는 전역의 고정 면 토큰(--fixed-ink·--fixed-pri)을 섞어 만든다.
- * 그래프 | 관계 폼 2열은 뷰포트가 아니라 편집기 자신의 폭(컨테이너)으로 정한다: 오른쪽 AI 채팅 레일이 열리면 뷰포트가 넓어도 본문이 좁아 그래프가 230px까지 눌렸다.
+ * 관계 연결 단계: 공개 인물관계도와 같은 어두운 면(라이트·다크 모두 고정 색)에 인물·설정 관계도(react-force-graph 캔버스, 옵시디언 그래프 뷰처럼 점과 이름뿐)를 올린다.
+ * 관계는 캔버스에서 바로 만든다: 오른쪽 클릭 메뉴(노드 '관계 연결'·'정보 편집')와 '+ 설정 추가' 패널로 설정을 더하고 잇고 지운다. 관계 추가 폼·관계 목록 표는 없다(관계 작성은 가운데 시트).
+ * 점·선·이름의 색은 캔버스에 직접 그리는 graphPaint가 정하고, 이 파일은 무대·도구·설정 패널·키보드 목록·메뉴·시트만 정한다.
+ * 무대에만 있는 고정 색(면 2색)은 아래 변수 한 곳에서 정하고, 그 위의 흰색·보라 틴트는 전역의 고정 면 토큰(--fixed-ink·--fixed-pri)을 섞어 만든다.
  */
-.relationship-editor{container:relationship-editor / inline-size}
-.relationship-stage{--stage-1:#182742;--stage-2:#0b1324;--stage-3:#080e1b;--edge:#A9C6FF;--edge-emotion:#FFD98A;--edge-active:var(--fixed-ink);--edge-halo:var(--stage-3);--stage-tint:color-mix(in srgb,var(--fixed-ink) 8%,transparent);--rc-bg:color-mix(in srgb,var(--fixed-ink) 7%,transparent);--rc-line:color-mix(in srgb,var(--fixed-ink) 18%,transparent);--rc-ink:var(--fixed-ink);--rc-sub:var(--fixed-sub);--rc-sel:color-mix(in srgb,var(--fixed-pri) 20%,transparent);--rc-accent:var(--fixed-pri);min-width:0;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:radial-gradient(ellipse at 50% 46%,var(--stage-1) 0%,var(--stage-2) 56%,var(--stage-3) 100%);box-shadow:var(--sh)}
-/* 고른 카드는 보라 틴트 면이라 보조 글자(--fixed-sub)의 대비가 무대 가운데에서 4.22:1까지 내려간다. 고른 카드만 밝게 섞어 5.64:1 이상으로 올린다. */
-.relationship-stage .relationship-character-card.selected{--rc-sub:color-mix(in srgb,var(--fixed-sub) 70%,var(--fixed-ink))}
-.relationship-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 16px 6px}.relationship-toolbar h4{margin:0 auto 0 0;font-size:14px;font-weight:800;letter-spacing:.02em}
+/* 무대는 카드 안의 평평한 면이다(옵시디언처럼 격자도 그라데이션도 없는 한 색): 어두운 면 위의 그림자는 보이지 않고 겹만 하나 늘려서 두지 않는다. */
+.relationship-stage{--stage-2:#0b1324;--stage-3:#080e1b;--stage-tint:color-mix(in srgb,var(--fixed-ink) 8%,transparent);--rc-line:color-mix(in srgb,var(--fixed-ink) 18%,transparent);--rc-sel:color-mix(in srgb,var(--fixed-pri) 20%,var(--stage-2));--rc-accent:var(--fixed-pri);min-width:0;max-width:100%;overflow:hidden;border-radius:16px;color:var(--fixed-ink);background:var(--stage-2)}
+/* 그래프 위 한 줄(알림만: 삭제된 설정과 이어진 관계 수·삭제 되돌리기): 알림이 있을 때만 그려지고 자리가 모자랄 때 줄이 늘어난다. 도구(+ 설정 추가·톱니)는 캔버스에 겹쳐 있어 이 줄에 없다.
+   안내·알림 글자는 전역 .muted(--sub, 라이트 #5F6370)면 어두운 무대 위 대비가 2.5~3.1:1이라 고정 면의 보조 글자색(--fixed-sub)을 쓴다. */
+.relationship-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:10px 16px}
+.relationship-bar>p{flex:1 1 100%;margin:0}
+.relationship-stage .muted{color:var(--fixed-sub)}
 .relationship-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 16px 10px;color:var(--fixed-sub);font-size:12.5px;line-height:1.6}.relationship-hint .btn{margin-left:auto}
+/* 캔버스 감싸개: 안내문(DOM은 캔버스 뒤)은 order로 캔버스 위에 둔다(작성 모드). 안내문을 묶은 .relationship-notes는 자리를 차지하지 않는다(display:contents). 관리 모드 관계도 보기는 묶음을 캔버스 아래 가운데에 겹친다(world-studio.css). */
+.relationship-canvas{position:relative;display:flex;flex-direction:column}.relationship-notes{display:contents}.relationship-canvas .relationship-hint{order:-1}
 .relationship-stage .btn{background:var(--stage-tint);border-color:color-mix(in srgb,var(--fixed-ink) 20%,transparent);color:var(--fixed-ink)}.relationship-stage .btn:hover{background:color-mix(in srgb,var(--fixed-ink) 16%,transparent)}.relationship-stage .btn.pri{background:var(--fixed-pri);border-color:var(--fixed-pri);color:var(--on-fixed-pri)}.relationship-stage .btn.pri:hover{background:color-mix(in srgb,var(--fixed-pri) 75%,var(--fixed-ink))}
-/* 유형 필터 줄: 안내 아래·그래프 위. 켜진(보이는) 유형은 고른 카드와 같은 보라 틴트·테두리라 꺼진 유형(기본 무대 버튼)과 구분된다. */
-.relationship-filter{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
-.relationship-stage .relationship-filter .btn[aria-pressed=true]{background:var(--rc-sel);border-color:var(--rc-accent)}
 .episode-app .relationship-stage :focus-visible{outline-color:var(--fixed-pri)}
-.relationship-stage .relationship-cards-scroll{background:none;scrollbar-color:color-mix(in srgb,var(--fixed-ink) 30%,transparent) transparent}
-.relationship-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding:10px 16px 12px;border-top:1px solid var(--stage-tint);list-style:none;color:var(--fixed-sub);font-size:11.5px}.relationship-legend li{display:inline-flex;align-items:center;gap:6px}.relationship-key.edge{color:var(--edge)}.relationship-key.emotion{color:var(--edge-emotion)}
 
 .relationship-group{padding-block:20px;border-top:1px solid var(--line)}
 .relationship-group h4{font-size:16px;margin:0 0 12px;overflow-wrap:anywhere}.relationship-row{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
 .relationship-row details{margin-block:14px}.relationship-row summary{cursor:pointer;color:var(--sub);font-size:13px}
-.relationship-remove{margin-top:12px}.relationship-apply{position:sticky;bottom:-20px;background:var(--surface);display:flex;gap:10px;padding:16px 0;border-top:1px solid var(--line)}
-@media(max-width:600px){.relationship-toolbar{padding:12px 12px 4px}.relationship-hint{padding:4px 12px 10px}.relationship-filter{padding-inline:12px}.relationship-legend{padding-inline:12px}.relationship-apply{bottom:-18px}}
-.relationship-cards-scroll{height:clamp(380px,55vh,590px);overflow:auto;overscroll-behavior:contain;background:var(--surface);scrollbar-color:var(--pri) var(--surface)}
-.relationship-cards-board{position:relative;min-height:360px}.relationship-card-edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
-.relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-character-card h4 img{object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px}.relationship-edge-label{font-size:12px;pointer-events:none;paint-order:stroke;stroke:var(--edge-halo,var(--surface));stroke-width:4px;stroke-linejoin:round}
-.relationship-character-card{position:absolute;left:0;top:0;border:1px solid var(--rc-line,var(--line2));border-radius:12px;padding:12px;background:var(--rc-bg,var(--surface));color:var(--rc-ink,var(--ink));box-shadow:0 3px 12px #24233010;touch-action:none;user-select:none;cursor:grab}
-.relationship-character-card.selected{border:2px solid var(--rc-accent,var(--pri));padding:11px;background:var(--rc-sel,var(--pri-soft))}.relationship-character-card.target{border:2px dashed var(--rc-accent,var(--pri));padding:11px}.relationship-character-card.dim{opacity:.3}
-.relationship-character-card h4{font-size:16px;margin:0 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.relationship-character-card p{font-size:12px;color:var(--rc-sub,var(--sub));margin:0 0 18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6}.relationship-character-card>div{display:flex;gap:4px}.relationship-character-card .btn{flex:1;min-width:0;padding:7px 3px;font-size:12px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
-@media(max-width:600px){.relationship-cards-scroll{height:440px}.relationship-character-card{border-radius:10px}}
-/* 터치 기기: 카드 위에서 세로로 미는 손짓은 카드 끌기가 아니라 스크롤이 받고(가로로 끌면 카드가 움직인다), 그래프 끝에 닿으면 페이지 스크롤로 이어진다. 안 그러면 화면을 거의 채운 그래프가 스크롤을 삼킨다. */
-@media(pointer:coarse){.relationship-character-card{touch-action:pan-y}.relationship-cards-scroll{overscroll-behavior:auto}}
+.relationship-remove{margin-top:12px}.relationship-apply{position:sticky;background:var(--surface);display:flex;gap:10px;padding:16px 0;border-top:1px solid var(--line)}
+@media(max-width:600px){.relationship-bar{padding-inline:12px}.relationship-hint{padding:4px 12px 10px}}
+/* 관계도 캔버스(react-force-graph-2d, 옵시디언 그래프 뷰처럼): 캔버스는 투명이고 무대 면(--stage-2, 평평한 한 색)이 비친다. 점·선·이름은 캔버스에 직접 그리므로 색은 graphPaint가 정한다.
+   상자 높이는 늘 정해져 있어야 한다(캔버스는 크기 없는 부모에서 그리지 못한다): 작성 모드는 화면 높이를 따르는 범위이고, 관리 모드 관계도 보기는 world-studio.css가 화면의 남은 높이를 채운다. --rf-top(캔버스 위쪽의 문서 위치)은 RelationGraph가 잰다.
+   연결 상대를 고르는 중에는 캔버스 위 커서가 십자다(react-force-graph가 캔버스에 인라인으로 정하는 포인터를 덮는다). */
+.relationship-flow{position:relative;height:clamp(440px,66vh,760px)}
+.relationship-surface{position:absolute;inset:0}
+.relationship-flow.connecting canvas{cursor:crosshair!important}
+/* 도구: 왼쪽 위 + 설정 추가, 오른쪽 위 톱니(설정 패널). 캔버스에 겹쳐 한 줄을 차지하지 않고, 패널이 열려 있는 동안은 눌린 모양이다. */
+.relationship-add-button{position:absolute;top:10px;left:10px;z-index:10}
+.relationship-gear{position:absolute;top:10px;right:10px;z-index:30;display:inline-flex;align-items:center;justify-content:center;width:32px;padding:0}
+:is(.relationship-add-button,.relationship-gear)[aria-expanded=true]{background:var(--rc-sel);border-color:color-mix(in srgb,var(--rc-accent) 60%,var(--stage-2))}
+/* 설정 패널(옵시디언의 톱니): 캔버스 오른쪽 위에 겹치고 안쪽이 길면 스크롤하며, 600px 이하에서는 아래에서 올라오는 시트다. 구획(필터·표시·힘)은 위에서 아래로 쌓는다. z-index는 도구(10)와 톱니(30) 사이다.
+   .episode-app 틀의 입력 규칙(폭 100%·패딩·위 여백)을 이기려고 설정 찾기·슬라이더는 .episode-app 아래에서 다시 정한다(입력은 :not()까지 베낌). */
+.relationship-settings{position:absolute;top:50px;right:10px;bottom:10px;z-index:20;display:flex;flex-direction:column;gap:6px;box-sizing:border-box;width:min(280px,calc(100% - 20px));padding:12px 14px;overflow:auto;border:1px solid var(--rc-line);border-radius:12px;background:color-mix(in srgb,var(--stage-3) 94%,transparent);color:var(--fixed-ink);font-size:13px}
+.relationship-settings-actions{display:flex;flex-wrap:wrap;gap:6px}
+.relationship-settings section{display:grid;gap:8px;padding-top:10px;border-top:1px solid var(--rc-line)}
+.relationship-settings h4{margin:0;font-size:12px;font-weight:700;color:var(--fixed-sub)}
+.relationship-settings label{display:flex;align-items:center;gap:8px}
+.relationship-settings fieldset{display:grid;gap:6px;margin:0;padding:0;border:0}.relationship-settings legend{padding:0;margin-bottom:4px;color:var(--fixed-sub)}
+.relationship-settings .relationship-find{display:grid;gap:4px;color:var(--fixed-sub);font-weight:650}
+.episode-app .relationship-settings .relationship-find input:not([type=checkbox]):not([type=radio]){width:100%;margin-top:0;padding:8px 12px}
+.episode-app .relationship-settings .relationship-kinds input:not([type=checkbox]):not([type=radio]){width:100%;margin-top:0;padding:8px 12px}
+.relationship-kinds-list{display:grid;gap:6px;max-height:11rem;overflow:auto}
+.relationship-local{position:absolute;top:48px;left:10px;z-index:15;display:flex;flex-wrap:wrap;align-items:center;gap:8px;box-sizing:border-box;max-width:calc(100% - 20px);padding:6px 10px;border:1px solid var(--rc-line);border-radius:10px;background:color-mix(in srgb,var(--stage-3) 94%,transparent);color:var(--fixed-ink);font-size:13px}
+.relationship-slider{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center}
+.episode-app .relationship-settings .relationship-slider input[type=range]{grid-column:1/-1;width:100%;min-height:0;margin:0;padding:0;border:0;background:none;accent-color:var(--fixed-pri)}
+@media(max-width:600px){.relationship-settings{top:auto;left:0;right:0;bottom:0;width:auto;max-height:min(60%,380px);border-width:1px 0 0;border-radius:16px 16px 0 0}}
+/* 키보드로 관계도 조작 목록(GraphKeyboardList): 초점이 있을 때만 보이고(없으면 1px로 줄여 스크린리더에만 읽힌다) 캔버스 왼쪽 아래에 겹친다. 설정 버튼은 한 줄씩, 그 설정의 관계 목록은 들여써 아래에 펼쳐진다. z-index는 패널(20) 위다. */
+.relationship-keys{position:absolute;left:10px;bottom:10px;z-index:25;box-sizing:border-box;max-width:min(380px,calc(100% - 20px));max-height:45%;padding:10px 12px;overflow:auto;border:1px solid var(--rc-line);border-radius:12px;background:color-mix(in srgb,var(--stage-3) 94%,transparent);color:var(--fixed-ink);font-size:13px}
+.relationship-keys:not(:focus-within){width:1px;height:1px;padding:0;overflow:hidden;border:0;clip-path:inset(50%);white-space:nowrap}
+.relationship-keys p{margin:0 0 6px}
+.relationship-keys ul{margin:0;padding:0;list-style:none}.relationship-keys ul ul{margin:2px 0 4px 12px;padding-left:8px;border-left:2px solid var(--rc-line)}
+.relationship-keys button{display:block;width:100%;padding:6px 8px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.relationship-keys button:is(:hover,:focus-visible){background:var(--stage-tint)}
+/* + 설정 추가 패널: 캔버스 오른쪽에 붙어 열리고 좁은 화면(600px 이하)에서는 캔버스 아래에서 올라오는 시트다. z-index는 도구(10)·안내문(10) 위이고 설정 패널(20)과 같은 자리를 쓴다(둘은 함께 열리지 않는다). */
+.relationship-add-panel{position:absolute;top:0;right:0;bottom:0;z-index:20;display:flex;flex-direction:column;gap:10px;width:min(300px,100%);padding:14px;overflow:auto;border-left:1px solid var(--rc-line);background:color-mix(in srgb,var(--stage-3) 94%,transparent);color:var(--fixed-ink)}
+.relationship-add-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.relationship-add-head h4{margin:0;font-size:15px}
+.relationship-add-panel ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.relationship-add-panel li .btn{display:flex;align-items:center;width:100%;text-align:left;font-weight:600}
+.relationship-add-panel p{margin:0}
+@media(max-width:600px){.relationship-add-panel{top:auto;left:0;width:auto;max-height:min(72%,420px);border-top:1px solid var(--rc-line);border-left:0;border-radius:16px 16px 0 0}}
+/* 오른쪽 클릭 메뉴(캔버스·카드·선): body 포털이라 무대 밖이므로 무대 토큰이 아니라 전역 면 토큰(라이트·다크 모두 따라간다)을 쓴다. z-index는 시트·채팅 서랍(.back-dim 100)보다 위다. 하위 목록(여기에 설정 추가 ▸ 유형)은 부모 항목 아래로 들여써 펼친다. */
+.relationship-menu{position:fixed;z-index:120;display:grid;gap:2px;min-width:180px;max-width:min(280px,calc(100vw - 16px));max-height:calc(100dvh - 16px);overflow-y:auto;padding:6px;border:1px solid var(--line2);border-radius:12px;background:var(--surface);color:var(--ink);box-shadow:var(--sh);font-family:var(--ui);font-size:14px}
+.relationship-menu [role=menuitem]{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:36px;padding:7px 12px;border:0;border-radius:8px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.relationship-menu [role=menuitem]:is(:hover,:focus-visible){background:var(--muted-bg)}
+.relationship-menu [role=menuitem][aria-disabled=true]{color:var(--sub);cursor:not-allowed}
+.relationship-menu [aria-haspopup=menu]::after{content:"▸"}.relationship-menu [aria-haspopup=menu][aria-expanded=true]::after{content:"▾"}
+.relationship-menu p{margin:0 12px 6px}
+.relationship-submenu{display:grid;gap:2px;margin:2px 0 4px 10px;padding-left:6px;border-left:2px solid var(--line2)}
+@media(max-width:600px){.relationship-flow{height:440px}}
+/* 터치 기기: 톱니·+ 설정 추가·패널 버튼은 누르는 크기 44px다. 캔버스 안의 한 손가락 끌기는 캔버스 이동(두 손가락은 확대)이라, 관계도 보기(world-studio.css)는 캔버스가 화면 끝까지 차 있어도 페이지 스크롤을 캔버스 위 줄에서 시작한다.
+   메뉴 항목의 44px 보정은 전역 터치 보정과 같은 조건(600px 이하 또는 터치)이다: 기능 CSS의 36px이 그 화면의 전역 보정을 덮으므로 여기서 직접 정한다. */
+@media(pointer:coarse){.relationship-gear{width:44px;height:44px}.relationship-add-button,.relationship-settings .btn{min-height:44px}}
+@media(max-width:600px),(pointer:coarse){.relationship-menu [role=menuitem]{min-height:44px}}
 
-.relationship-service-layout{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start}
-.relationship-service-form{min-width:0;max-height:760px;overflow:auto;padding:20px;border:1px solid var(--line2);border-radius:16px;background:var(--surface);box-shadow:var(--sh)}
-.relationship-service-form>*+*{margin-top:24px;padding-top:24px;border-top:1px solid var(--line2)}.relationship-service-form h4{margin:0;font-size:15px}
-.relationship-add,.relationship-list{display:grid;gap:12px;align-content:start}.relationship-pair{min-width:0}.relationship-add .field{margin-bottom:0}.relationship-actions{display:flex;flex-wrap:wrap;gap:8px}
-.relationship-table{width:100%;table-layout:fixed}.relationship-table :is(th,td){padding:8px 6px;text-align:left;vertical-align:middle;font-size:13px;overflow-wrap:anywhere}.relationship-table th{font-size:12px}
-.relationship-card-link{padding:0;border:0;background:none;color:var(--pri-ink);font:inherit;text-align:left;text-decoration:underline;cursor:pointer;overflow-wrap:anywhere}
-.relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}.relationship-row-actions .relationship-remove{margin-top:0}
-@container relationship-editor (max-width:950px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{max-height:none}}
-@media(max-width:600px){.relationship-service-form{padding:12px}}
+/* 유형 점(인물·장소·사건 …, + 설정 추가 패널의 유형 목록): 게시판 칩과 같은 유형 색이라 사건 수십 장이 인물과 섞여도 구분된다. */
+.relationship-kind{display:inline-block;width:8px;height:8px;margin-right:8px;border-radius:50%;vertical-align:middle}
+/* 관계 작성 패널(R5)은 가운데에 뜨는 시트(.world-sheet, 720px)다. 시트는 body에 그려져 .episode-app·.ep-main 밖이라 그 틀의 입력 규칙이 닿지 않으므로 전역 .inp·.ta를 이 안에서 키운다:
+   폭 100%·15px(터치 기기는 확대 방지로 16px), 실제 관계 문구 칸은 최소 3줄에서 글 길이를 따라 자란다. */
+.relationship-sheet :is(input:not([type=checkbox]):not([type=radio]),select,textarea){box-sizing:border-box;width:100%;font-size:15px}
+.relationship-sheet textarea{field-sizing:content;min-height:calc(3lh + 24px)}
+/* N화부터 라벨과 숫자 칸(88px)은 .episode-app 틀 밖이라 그쪽 규칙이 닿지 않으므로 같은 모양을 다시 정한다. */
+.relationship-sheet .relationship-from{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}
+.relationship-sheet .relationship-from input:not([type=checkbox]):not([type=radio]){width:88px}
+/* 적용 바는 시트 안쪽 여백(.sheet padding 26px)만큼 아래로 내려 붙어 시트 바닥에 닿는다(sticky bottom = -padding, 위 폼의 -20px·-12px와 같은 규칙). */
+.relationship-sheet .relationship-apply{bottom:-26px}
+@media(pointer:coarse){.relationship-sheet :is(input:not([type=checkbox]):not([type=radio]),select,textarea){font-size:16px}}

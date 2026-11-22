@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import type { CreditBalance, CreditHistoryItem } from '../entities/creditLedger'
-import { creditHistoryLabel, creditKindLabel } from '../entities/creditLedger'
+import { creditHistoryLabel, creditHistorySign, creditKindLabel } from '../entities/creditLedger'
 import type { CreditLedgerRepository } from '../repositories/CreditLedgerRepository'
 import { CreditLedgerUseCase } from '../usecases/CreditLedgerUseCase'
 
@@ -47,9 +47,12 @@ describe('크레딧 표시 이름', () => {
     expect(creditKindLabel('signup-trial')).toBe('가입 체험 크레딧')
     expect(creditKindLabel('reward')).toBe('보상 크레딧')
     expect(creditKindLabel('event')).toBe('이벤트 크레딧')
+    expect(creditKindLabel('operator')).toBe('운영자 지급 크레딧')
     expect(creditKindLabel('new-kind')).toBe('new-kind')
   })
-  it('내역 종류를 지급·사용·소멸로 부른다', () => {
-    expect(creditHistoryLabel).toEqual({ grant: '지급', spend: '사용', expire: '소멸' })
+  it('내역 종류를 지급·사용·소멸로 부르고 운영자 회수는 사용과 구분해 회수로 부른다', () => {
+    expect(creditHistoryLabel).toEqual({ grant: '지급', spend: '사용', expire: '소멸', revoke: '회수' })
+    // 내역 표의 변동 부호: 지급만 +이고 사용·소멸·회수는 -다.
+    expect(creditHistorySign).toEqual({ grant: '+', spend: '-', expire: '-', revoke: '-' })
   })
 })

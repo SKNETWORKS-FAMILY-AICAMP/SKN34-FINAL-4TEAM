@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
 import { Go } from '../../../shared/Go'
+import { ImportUploadNotice, ImportWorldBuildResult } from '../../../shared/ImportWorldBuild'
 import { Sheet } from '../../../shared/Sheet'
 import { paginate } from '../../../shared/paginate'
 import { useEpisodeBulkImport } from '../viewmodel/useEpisodeBulkImport'
@@ -144,11 +145,13 @@ export function EpisodeBulkImportSheet({ workId, onClose }: {
         {!vm.busy && vm.savedCount > 0 && <p className="muted small">
           저장한 회차는 비공개 초안이에요. <Go to={`/studio/${workId}`}>집필실</Go>에서 확인하고 발행해 주세요.
         </p>}
+        <ImportWorldBuildResult worldBuild={vm.worldBuild} className="small" />
         {(vm.editable || vm.canRetry) && <label className="episode-bulk-rights">
           <input type="checkbox" checked={vm.rightsConfirmed}
             onChange={(event) => vm.setRightsConfirmed(event.currentTarget.checked)} />
           원고 등록 권한이 있고 계약상 등록·이용 제한이 없음을 확인했어요.
         </label>}
+        <ImportUploadNotice />
         <div className="episode-bulk-actions">
           <button type="button" className="btn" disabled={vm.busy} onClick={close}>닫기</button>
           {!vm.basis && vm.error && <button type="button" className="btn" onClick={vm.refreshBasis}>회차 정보 다시 읽기</button>}

@@ -43,6 +43,10 @@ describe('관리자 활동 기록 표시 규칙 (72)', () => {
     expect(activityDetail({ action: 'GENRE_REORDER', detail: null })).toBeNull()
   })
 
+  it('크레딧 운영 조치 2종(DEC-57)도 한국어 이름으로 보인다', () => {
+    expect([activityActionLabel('CREDIT_GRANT'), activityActionLabel('CREDIT_REVOKE')]).toEqual(['크레딧 지급', '크레딧 회수'])
+  })
+
   it('모르는 조치는 코드 그대로 보이고 객체 기본 속성 이름도 함수로 새지 않는다', () => {
     expect(activityActionLabel('FUTURE_ACTION')).toBe('FUTURE_ACTION')
     expect(activityActionLabel('toString')).toBe('toString')

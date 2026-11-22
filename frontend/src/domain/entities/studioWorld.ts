@@ -35,7 +35,9 @@ export type StudioSetting = {serverMetadata?:Record<string,unknown>;item:Setting
  /** 카드 대표 이미지 id(#401): 이 세계관에 올린 이미지(`uploadCardImage`)의 id다. 올린 이미지는 바뀌지 않아 교체는 새 id로 바꾸는 것이고, 없으면 이미지 없는 카드다. 관계 행에는 쓰지 않는다. */
  imageId?:string
  /** 장르 템플릿 카드의 읽기 순서(서버 `semanticMetadata.studio.templateOrder`). 없으면 뒤로 간다. */
- templateOrder?:number}
+ templateOrder?:number
+ /** 원고로 세계관을 만들거나 업데이트할 때 이름이 같은 카드가 둘 이상이라 작가 확인을 남긴 카드다(서버 `semanticMetadata.manuscriptBuild.needsReview`, initial-build-storage-contract). true일 때만 있고 읽기 전용 표시값이라 저장 때 `studio`에 쓰지 않는다(서버 메타데이터가 그대로 돌아간다). */
+ needsReview?:boolean}
 /**
  * 카드의 유효 공개 회차(DEC-53)다: `revealFromEpisode`가 있으면 그 값, 없고 `visibility`가 공개면 1(옛 공개 카드), 그 밖은 작가 전용(undefined).
  * 서버 `shownCardEpisode`와 같은 규칙이되, 서버 값이 잘못된 경우(키는 있는데 JSON null·문자열·0·소수 등)는 서버가 작가 전용으로 닫으므로 읽는 어댑터(`HttpWorldStudioRepository`)가

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 /** 전처리 작업 테이블 계약(V41)이다. 엔티티와 칼럼이 어긋나면 ddl-auto=validate 때문에 CI 통합 테스트 전체가 깨지므로 DB 없이 이름을 대조한다. */
 class PreprocessingSchemaTest {
     private val sql = Files.readString(Path.of("src/main/resources/db/migration/preprocessing/V41__manuscript_preprocessing_job.sql"))
+    private val update = Files.readString(Path.of("src/main/resources/db/migration/preprocessing/V43__preprocessing_job_kind.sql"))
 
     @Test fun `the job table keeps the contract fields with a status check and one open or completed job per work`() {
         assertTrue(sql.contains("CREATE TABLE preprocessing_job ("))
@@ -24,12 +25,22 @@ class PreprocessingSchemaTest {
             "같은 작품의 진행 중·완료 작업은 하나다. 동시 접수와 옛 작업 재실행의 마지막 방어다")
     }
 
+    @Test fun `the update kind frees the completed initial job's slot and allows one open update job per work`() {
+        assertTrue(update.contains("ALTER TABLE preprocessing_job ADD COLUMN kind text NOT NULL DEFAULT 'initial' CHECK (kind IN ('initial','update'));"))
+        assertTrue(update.contains("DROP INDEX preprocessing_job_one_per_work;"))
+        assertTrue(update.contains("CREATE UNIQUE INDEX preprocessing_job_one_per_work ON preprocessing_job (work_id) WHERE kind='initial' AND status IN ('queued','running','loading','completed');"),
+            "최초 구축은 이전처럼 작품당 진행 중·완료 하나다")
+        assertTrue(update.contains("CREATE UNIQUE INDEX preprocessing_job_one_open_update_per_work ON preprocessing_job (work_id) WHERE kind='update' AND status IN ('queued','running','loading');"),
+            "업데이트 작업은 완료된 최초 구축 옆에 접수되고 동시에는 하나만 진행한다")
+    }
+
     @Test fun `the entity maps exactly the table columns`() {
         val table = Regex("CREATE TABLE preprocessing_job \\((.*?)\\n\\);", RegexOption.DOT_MATCHES_ALL).find(sql)!!.groupValues[1]
         val sqlColumns = table.lines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("--") }
             .map { it.substringBefore(' ') }.toSet()
         val entityColumns = PreprocessingJobEntity::class.java.declaredFields.mapNotNull { it.getAnnotation(Column::class.java)?.name }.toSet()
-        assertEquals(sqlColumns, entityColumns)
+        val added = Regex("ADD COLUMN (\\w+)").findAll(update).map { it.groupValues[1] }.toSet()
+        assertEquals(sqlColumns + added, entityColumns)
     }
 
     @Test fun `the migration leaf and the persistence packages are registered`() {

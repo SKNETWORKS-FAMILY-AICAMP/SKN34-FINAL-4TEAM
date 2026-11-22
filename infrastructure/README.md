@@ -6,7 +6,7 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 
 ## 서비스와 진입점
 
-현재 Compose의 앱은 **web·core-api·content-service·operations-service·ai-service 다섯 개**입니다. Core는 회원·인증·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio, AI는 요청된 모델 실행을 소유합니다. 정산·알림·운영 업무는 목표 책임이며 구현 완료를 뜻하지 않습니다. 로컬·develop·prod는 여기에 **Langfuse(LLMOps, DEC-55)를 같은 프로젝트로 함께 켭니다**([Langfuse 절](#집필-ai-추적용-langfuse-302)). 새 큐/worker/Start 서버는 추가하지 않습니다.
+현재 Compose의 앱은 **web·core-api·content-service·operations-service·ai-service 다섯 개**입니다. Core는 회원·인증·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio, AI는 요청된 모델 실행을 소유합니다. 정산·알림·운영 업무는 목표 책임이며 구현 완료를 뜻하지 않습니다. 로컬·develop·prod는 여기에 **Langfuse(LLMOps, DEC-55)를 같은 프로젝트로 함께 켭니다**([Langfuse 절](#집필-ai-추적용-langfuse-302)). 회차 원고 전처리 Celery 큐의 워커 `ai-worker`(ai-service와 같은 이미지의 별도 컨테이너, 브로커는 알림 사건과 같은 RabbitMQ 컨테이너·자격)만 더하며 그 밖의 새 큐/worker/Start 서버는 추가하지 않습니다.
 
 [`docker-compose.yaml`](docker-compose.yaml)은 공통 환경·내부 포트만 정의하는 base로 **단독 실행하지 않습니다**.
 
@@ -27,7 +27,7 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 Browser → web nginx
            ├─ /api/v1/works 및 /api/v1/public/works(+하위)·/api/v1/public/genres → Content:8081 → AI:8000
            │                                                   └→ Core 내부 인증 확인
-           ├─ /api/v1/operations/{reports,members,admins,support,works,comments,genres,admin/notices,public/notices,admin/events,public/events,admin/activities}(+하위) → Operations:8082 → Core·Content 내부 API
+           ├─ /api/v1/operations/{reports,members,admins,support,works,comments,genres,credits,admin/notices,public/notices,admin/events,public/events,admin/activities}(+하위) → Operations:8082 → Core·Content 내부 API
            ├─ /api/v1/operations/{dashboard,llmops,alerts,jobs}(+하위) → Operations:8082 → Langfuse Public API·AI·Core·Content 내부 API
            └─ 나머지 /api → Core:8080 → AI Health
 ```
@@ -66,7 +66,8 @@ docker compose down
 | `CORE_AUTH_CONNECT_TIMEOUT` / `CORE_AUTH_READ_TIMEOUT` | `1s` / `3s` | Content 인증 확인 |
 | `CONTENT_CORE_AUTH_TOKEN` | 빈 값 | Core/Content만, 활성화 시 필수 |
 | `DATABASE_*` | 빈 계정, `storyfork` DB | Core·Content(Studio 포함)·운영 공용 PostgreSQL(운영은 전용 `operations` schema) |
-| `INTERNAL_TOKEN` | 빈 값 | Content·Operations·AI (Content/AI 생성, Operations → AI 평가 위임) |
+| `INTERNAL_TOKEN` | 빈 값 | Content·Operations·AI (Content/AI 생성, Operations → AI 작업 접수, AI 작업 워커 → Operations 정기 작업 실행) |
+| `AI_CELERY_BROKER_URL` | Compose는 `CORE_RABBITMQ_*`로 `amqp://<user>:<password>@rabbitmq:5672//`를 조립(비밀번호가 URL에 들어가 영문·숫자 권장), 네이티브는 빈 값 | AI(ai-service·ai-worker)만, 전처리 Celery 큐 |
 | `OPERATIONS_SERVICE_TOKEN` | 빈 값(운영 호출 거절) | Operations·Core·Content |
 | `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | 빈 값(네이티브는 추적 끔, Compose는 필수) | AI·Operations, Langfuse 서버의 초기 프로젝트 키(세 곳이 같은 값) |
 | `CREDIT_SIGNUP_TRIAL_AMOUNT` | `0`(가입 체험 크레딧을 지급하지 않음) | Core만, 양수면 가입한 회원에게 한 번 지급(30일 뒤 소멸) |

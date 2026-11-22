@@ -11,7 +11,7 @@ const textOf = (episode: number | null) => (episode === null ? '' : String(episo
  * 회차를 바꾸면 관계 편집기는 새로 열리지만(`relationKey`) 이 칸은 그 바깥이라 그대로다. 요청 중에는 칸이 잠겨 초점이 body로 빠지므로, 이 칸에서 시작한 요청이 끝나면 입력 칸으로 돌려준다.
  * 다른 길(AI 반영·확정 버전 뒤 재조회)로 회차가 바뀌면 입력 칸도 따라간다.
  * 입력은 카드 편집기의 `독자 공개 N화부터`처럼 label이 입력과 단위를 함께 감싸 "관계 기준 N화"가 접근성 이름이 되고 한 줄로 붙어 있다(줄바꿈은 label 단위로만).
- * 잠금 이유와 지금 보는 회차는 잠겨 초점을 못 받는 입력의 설명에만 두지 않고 화면에 읽히는 `role="status"` 문구로 둔다. 잠겨 있을 때는 아래 도움말이 이유와 모순이라(데모·소설 미연결) 숨긴다.
+ * 잠금 이유와 지금 보는 회차는 잠겨 초점을 못 받는 입력의 설명에만 두지 않고 화면에 읽히는 `role="status"` 문구로 둔다. 관계를 몇 화부터로 기록하는지는 관계 작성 시트가, 삭제한 관계가 끝나는 회차는 저장 영역이 알리므로 여기서 긴 도움말로 되풀이하지 않는다.
  */
 export function RelationEpisodePicker({ studio }: { studio: VM }) {
   const id = useId()
@@ -56,7 +56,6 @@ export function RelationEpisodePicker({ studio }: { studio: VM }) {
       </form>
       {error && <p id={`${id}-error`} role='alert' className='small world-field-error'>{error}</p>}
       <p id={`${id}-help`} role='status' className='small muted'>{lock || (episode === null ? '지금은 최신 회차의 관계예요.' : `지금은 ${episode}화 시점의 관계예요.`)}</p>
-      {!lock && <p className='small muted'>비워 두면 최신 회차예요. 이 칸은 어느 회차 시점의 관계로 볼지만 정해요. 관계를 몇 화부터로 기록할지는 관계마다 적고, 관계를 삭제하면 고른 회차에서 끝나는 것으로 저장돼요.</p>}
     </section>
   )
 }

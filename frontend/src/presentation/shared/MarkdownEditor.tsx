@@ -1,7 +1,8 @@
 import Editor, { type CustomHTMLRenderer, type MdNode, type PluginContext } from '@toast-ui/editor'
 import '@toast-ui/editor/dist/i18n/ko-kr'
-import '@toast-ui/editor/dist/theme/toastui-editor-dark.css'
+// 같은 특이도의 다크 규칙이 이기도록 기본 CSS를 먼저 불러온다
 import '@toast-ui/editor/dist/toastui-editor.css'
+import '@toast-ui/editor/dist/theme/toastui-editor-dark.css'
 import { useEffect, useId, useRef, useState } from 'react'
 
 import { cardLinkMarkdown, cardLinkOf } from '../../domain/entities/cardLinks'
@@ -51,6 +52,8 @@ type Props = {
   onChange: (markdown: string) => void
   /** 있으면 편집기 위에 `설정 링크` 버튼(같은 세계관 카드를 찾아 `[글자](card:<id>)`를 넣는다)과 미리보기의 링크 이동이 생긴다. 만들 때 있었는지만 읽는다. */
   cardLinks?: CardLinks
+  /** `'preview'`면 만들 때 미리보기 탭으로 연다(원문의 `[글자](card:<id>)` 링크가 먼저 보이지 않게). 만들 때만 읽는다. */
+  startTab?: 'preview'
 }
 
 /**
@@ -67,11 +70,11 @@ type Props = {
  * 버튼은 Toast 도구 줄 밖에 둔다: 도구 줄은 좁으면 끝 항목을 `더보기`(숨겨진 목록)로 옮기는데, 도구 줄 안의 버튼은 그때 눌러 쓰기 어렵다.
  * 인라인 `[[` 자동완성은 두지 않는다. 미리보기의 설정 링크를 누르면 `cardLinks.open`으로 그 카드를 연다(고른 카드가 `cards`에 없으면 아무 일도 하지 않는다).
  */
-export function MarkdownEditor({ label, initialValue, placeholder, onChange, cardLinks }: Props) {
+export function MarkdownEditor({ label, initialValue, placeholder, onChange, cardLinks, startTab }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const latest = useRef(onChange)
   const links = useRef(cardLinks)
-  const [mount] = useState({ label, initialValue, placeholder, linking: cardLinks !== undefined }) // 만들 때의 값만 쓴다
+  const [mount] = useState({ label, initialValue, placeholder, linking: cardLinks !== undefined, preview: startTab === 'preview' }) // 만들 때의 값만 쓴다
   const { dark } = useTheme()
   const hint = useId()
   const editorRef = useRef<Editor | null>(null)
@@ -120,6 +123,7 @@ export function MarkdownEditor({ label, initialValue, placeholder, onChange, car
     const tabList = el.querySelector('.toastui-editor-md-tab-container .toastui-editor-tabs')
     tabList?.setAttribute('role', 'tablist')
     tabList?.querySelectorAll('.tab-item').forEach((tab) => tab.setAttribute('role', 'tab'))
+    if (mount.preview) tabList?.querySelectorAll<HTMLElement>('.tab-item')[1]?.click() // 편집하기·미리보기 두 탭 가운데 미리보기
     const keys = (e: KeyboardEvent) => {
       const tab = e.target instanceof Element ? e.target.closest<HTMLElement>('.tab-item') : null
       if (!tab) return

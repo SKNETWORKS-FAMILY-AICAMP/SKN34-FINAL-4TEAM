@@ -169,9 +169,9 @@ class SceneCheckMiddleware(AgentMiddleware):
                 made = (await handler(again)).artifact
                 if made['refusal'] is not None:  # 인물이 성격상 비트를 따를 수 없다고 한다: 기획 쪽 문제라 다시 쓰지 않는다
                     beat = next(b for b in scene.result.beats if b.index == made['beat'])
-                    message = (f'{made["characterName"]}이(가) 비트 “{beat.text}”을(를) 따르지 않아 멈췄어요. 흐름을 고치거나 이대로 진행할지 정해 주세요. '
+                    message = (f'{made["characterName"]}이(가) 비트 “{beat.text}”을(를) 따르지 않아 멈췄어요. 인물 설정이나 흐름을 고친 뒤 다시 시도해 주세요. '
                                f'이유: {made["refusal"][:service.CUT]}')
-                    return await self._done(call, context, service.stop_scene(scene, message, 'stopped', 'beat_rejected', made['beat']), 'error')
+                    return await self._done(call, context, service.stop_scene(scene, message, 'stopped', 'beat_rejected', made['beat'], made['characterId']), 'error')
                 spec = made['check']
                 if problem := _problem(made, scene):
                     failed = [problem]

@@ -20,4 +20,8 @@ interface WorkLikeRepository : JpaRepository<WorkLikeEntity, WorkLikeEntity.Key>
     @Modifying
     @Query("delete from WorkLikeEntity l where l.workId = :workId and l.memberId = :memberId")
     fun deleteLike(@Param("workId") workId: String, @Param("memberId") memberId: String): Int
+
+    /** 삭제되지 않은 작품에 남은 좋아요 수다(운영 퍼널, DEC-57). */
+    @Query("select count(l) from WorkLikeEntity l join WorkEntity w on w.id = l.workId where w.deletedAt is null")
+    fun countOfLiveWorks(): Long
 }

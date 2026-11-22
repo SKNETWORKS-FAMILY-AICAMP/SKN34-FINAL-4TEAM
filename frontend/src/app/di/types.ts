@@ -56,6 +56,8 @@ export type AppCradle = {
   eventUseCase: import('../../domain/usecases/EventUseCase').EventUseCase
   operationsWorkRepository: import('../../domain/repositories/OperationsWorkRepository').OperationsWorkRepository
   operationsWorkUseCase: import('../../domain/usecases/OperationsWorkUseCase').OperationsWorkUseCase
+  operationsCreditRepository: import('../../domain/repositories/OperationsCreditRepository').OperationsCreditRepository
+  operationsCreditUseCase: import('../../domain/usecases/OperationsCreditUseCase').OperationsCreditUseCase
   operationsCommentRepository: import('../../domain/repositories/OperationsCommentRepository').OperationsCommentRepository
   operationsCommentUseCase: import('../../domain/usecases/OperationsCommentUseCase').OperationsCommentUseCase
   adminActivityRepository: import('../../domain/repositories/AdminActivityRepository').AdminActivityRepository
@@ -79,6 +81,8 @@ export type AppCradle = {
   publicWorldUseCase: import('../../domain/usecases/PublicWorldUseCase').PublicWorldUseCase
   mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase
   mediaRepository: import('../../domain/repositories/MediaRepository').MediaRepository
+  manuscriptBuildRepository: import('../../domain/repositories/ManuscriptBuildRepository').ManuscriptBuildRepository
+  manuscriptBuildUseCase: import('../../domain/usecases/ManuscriptBuildUseCase').ManuscriptBuildUseCase
   manuscriptUseCase: import('../../domain/usecases/ManuscriptUseCase').ManuscriptUseCase
   manuscriptRepository: import('../../domain/repositories/ManuscriptRepository').ManuscriptRepository
   episodeUseCase: EpisodeUseCase

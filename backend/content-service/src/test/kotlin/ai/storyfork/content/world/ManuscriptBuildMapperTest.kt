@@ -1,0 +1,158 @@
+package ai.storyfork.content.world
+
+import ai.storyfork.content.world.service.*
+import ai.storyfork.content.world.service.dto.*
+import java.util.UUID
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+
+class ManuscriptBuildMapperTest {
+    private val job=UUID.randomUUID()
+    private val draft=WorldDraftResponse(UUID.randomUUID(),0,null,null,"원고 세계관","",emptyList(),emptyList())
+    private val payload=ManuscriptLoadPayload(listOf(ManuscriptCard("hero","character","길동",listOf("홍길동"),"길동",1,
+        ManuscriptCharacterDocs("정의롭다","백성을 돕는다",mapOf("01" to "산채를 보았다"))),
+        ManuscriptCard("group","organization","활빈당",emptyList(),"활빈당",1)),
+        listOf(ManuscriptRelation("hero","group","소속",1,false),ManuscriptRelation("hero","group","소속",4,true)))
+    @Test fun `mapping is private keeps metadata and reserves stable relation lifecycle across steps`() {
+        val requests=ManuscriptBuildMapper.build(job,draft,payload,mapOf("hero" to listOf(mapOf("sourceId" to "version-1","quote" to "길동"))))
+        assertEquals(listOf(1,4),requests.map { it.episode })
+        assertEquals(listOf(0L,1L),requests.map { it.expectedDraftRevision })
+        assertEquals(requests.first().relationships.single().id,requests.last().relationships.single().id)
+        assertEquals("removed",requests.last().relationships.single().lifecycle)
+        assertTrue(requests.all { !it.replace })
+        val hero=requests.first().cards.first { it.title=="길동" }
+        assertEquals(setOf("01"),payload.cards.first().characterDocs!!.episodes.keys)
+        assertEquals("private",hero.visibility)
+        assertEquals(hero.aliases,(hero.semanticMetadata["studio"] as Map<*,*>)["aliases"])
+        assertFalse(hero.semanticMetadata.containsKey("revealFromEpisode"))
+        assertEquals(1,(hero.semanticMetadata["preprocessing"] as Map<*,*>)["firstEpisode"])
+        assertEquals(mapOf("1" to "산채를 보았다"),(hero.semanticMetadata["characterDocs"] as Map<*,*>)["episodes"])
+        assertTrue(hero.semanticMetadata.containsKey("studio"))
+        assertEquals(requests,ManuscriptBuildMapper.build(job,draft,payload,mapOf("hero" to listOf(mapOf("sourceId" to "version-1","quote" to "길동")))))
+    }
+    @Test fun `unknown endpoints duplicate keys and preexisting cards are blocked before reservation`() {
+        assertThrows(IllegalArgumentException::class.java) { ManuscriptBuildMapper.build(job,draft,payload.copy(cards=payload.cards+payload.cards.first()),emptyMap()) }
+        val ambiguous=payload.cards.first().copy(characterDocs=ManuscriptCharacterDocs("","",mapOf("01" to "가","001" to "나")))
+        assertThrows(IllegalArgumentException::class.java) { ManuscriptBuildMapper.build(job,draft,payload.copy(cards=listOf(ambiguous,payload.cards.last())),emptyMap()) }
+        assertThrows(IllegalArgumentException::class.java) { ManuscriptBuildMapper.build(job,draft,payload.copy(relations=listOf(ManuscriptRelation("absent","group","소속",1,false))),emptyMap()) }
+        assertThrows(IllegalArgumentException::class.java) { ManuscriptBuildMapper.build(job,draft.copy(cards=listOf(CardPayload(UUID.randomUUID(),"기존","원문","character","basic"))),payload,emptyMap()) }
+    }
+    @Test fun `a restated start and an end without its start are left out instead of failing the whole load`() {
+        val relations=listOf(ManuscriptRelation("hero","group","소속",1,false),ManuscriptRelation("hero","group","소속",2,false),
+            ManuscriptRelation("group","hero","동맹",3,true),ManuscriptRelation("hero","group","소속",4,true),ManuscriptRelation("hero","group","소속",5,true))
+        val requests=ManuscriptBuildMapper.build(job,draft,payload.copy(relations=relations),emptyMap())
+        assertEquals(listOf(1 to "active",4 to "removed"),requests.flatMap { request -> request.relationships.map { request.episode to it.lifecycle } })
+        assertEquals(listOf(1,4),requests.map { it.episode })
+    }
+    @Test fun `a relationship's description is its evidence quote and its label stays the relation name`() {
+        val proof=mapOf("sourceId" to "version-1","quote" to "길동은 활빈당에 가입했다.")
+        val requests=ManuscriptBuildMapper.build(job,draft,payload,mapOf("relation:4:hero:5:group:소속:1" to listOf(proof)))
+        val start=requests.first().relationships.single()
+        assertEquals("소속",start.label)
+        assertEquals("길동은 활빈당에 가입했다.",start.body)
+        val item=(start.semanticMetadata["studio"] as Map<*,*>)["item"] as Map<*,*>
+        assertEquals("길동은 활빈당에 가입했다.",item["text"])
+    }
+    @Test fun `a rule card is an item of rule kind in the special area`() {
+        val rule=ManuscriptCard("law","rule","금기",emptyList(),"[규칙] 밤에는 문을 열지 않는다.",2)
+        val card=ManuscriptBuildMapper.build(job,draft,payload.copy(cards=payload.cards+rule),emptyMap()).first().cards.first { it.title=="금기" }
+        assertEquals("rule",card.cardType)
+        assertEquals("special",card.areaCode)
+        val item=(card.semanticMetadata["studio"] as Map<*,*>)["item"] as Map<*,*>
+        assertEquals("rule",item["kind"])
+        assertNull(item["entityType"])
+    }
+    // ---- 업데이트(발행 회차 반영): 적재 요청의 카드를 기준 초안의 카드와 맞춘다 ----
+
+    private val heroId=UUID.randomUUID()
+    private fun existing(id:UUID=UUID.randomUUID(),title:String,type:String="character",aliases:List<String> = emptyList(),episodes:Map<String,String>?=null,lifecycle:String="active")=
+        CardPayload(id,title,"원본 본문",type,"basic",aliases=aliases,visibility="public",lifecycle=lifecycle,
+            semanticMetadata=if(episodes==null) emptyMap() else mapOf("revealFromEpisode" to 3,"characterDocs" to mapOf("soul" to "원본 SOUL","goal" to "원본 GOAL","episodes" to episodes)))
+    private fun basisOf(vararg cards:CardPayload)=draft.copy(draftRevision=7,cards=cards.toList())
+    private fun hero(episodes:Map<String,String>,first:Int=11,title:String="길동",aliases:List<String> = emptyList())=
+        ManuscriptCard("hero","character",title,aliases,"새 본문",first,ManuscriptCharacterDocs("새 SOUL","새 GOAL",episodes))
+    private fun update(basis:WorldDraftResponse,cards:List<ManuscriptCard>,relations:List<ManuscriptRelation> = emptyList())=
+        ManuscriptBuildMapper.build(job,basis,ManuscriptLoadPayload(cards,relations),emptyMap(),update=true)
+    private fun review(card:CardPayload)=(card.semanticMetadata["manuscriptBuild"] as Map<*,*>)["needsReview"]
+
+    @Test fun `an existing card of the same type and name only gains the episode memories it lacks`() {
+        val old=existing(heroId,"길동",aliases=listOf("홍길동"),episodes=mapOf("0" to "시작 전","1" to "산채","12" to "원본 12화"))
+        val requests=update(basisOf(old),listOf(hero(mapOf("00" to "11화 기억","12" to "새 12화","13" to "13화 기억"))))
+
+        val card=requests.single().cards.single()
+        assertEquals(heroId,card.id)
+        val docs=card.semanticMetadata["characterDocs"] as Map<*,*>
+        assertEquals(mapOf("0" to "시작 전","1" to "산채","11" to "11화 기억","12" to "원본 12화","13" to "13화 기억"),docs["episodes"],
+            "요청의 00 기억은 이 작업에서 처음 등장한 회차(11화)의 기억으로 옮기고 이미 있는 회차 키는 그대로 둔다")
+        assertEquals("원본 SOUL",docs["soul"]);assertEquals("원본 GOAL",docs["goal"])
+        assertEquals(old.copy(semanticMetadata=old.semanticMetadata+("characterDocs" to docs)),card,"본문·제목·별칭·공개 설정·그 밖의 메타데이터는 그대로다")
+        assertEquals(7L,requests.single().expectedDraftRevision)
+        assertFalse(requests.single().replace)
+        assertEquals(requests,update(basisOf(old),listOf(hero(mapOf("00" to "11화 기억","12" to "새 12화","13" to "13화 기억")))))
+    }
+    @Test fun `an alias that equals an existing name matches too and the 00 memory goes to the first appearance`() {
+        val old=existing(heroId,"김철수",episodes=mapOf("1" to "첫 만남"))
+        val card=update(basisOf(old),listOf(hero(mapOf("00" to "비밀"),first=13,title="철수",aliases=listOf("김철수")))).single().cards.single()
+        assertEquals(heroId,card.id)
+        assertEquals(mapOf("1" to "첫 만남","13" to "비밀"),(card.semanticMetadata["characterDocs"] as Map<*,*>)["episodes"],
+            "매니페스트의 첫 회차(11화)가 아니라 이 인물이 처음 나온 13화다. 앞 회차로 옮기면 독자에게 뒤 회차 내용이 먼저 보인다")
+    }
+    @Test fun `a card with no match is added as a new private card and another type or a removed card is no match`() {
+        val others=basisOf(existing(title="길동",type="location"),existing(title="길동",lifecycle="removed"),existing(title="의적",episodes=mapOf("1" to "a")))
+        val card=update(others,listOf(hero(mapOf("00" to "시작 전","11" to "11화")))).single().cards.single()
+        assertTrue(card.id !in others.cards.map { it.id })
+        assertEquals("private",card.visibility)
+        assertNull(review(card))
+        assertEquals(mapOf("0" to "시작 전","11" to "11화"),(card.semanticMetadata["characterDocs"] as Map<*,*>)["episodes"],"새 카드의 00 기억은 그대로 시작 전 기억이다")
+        assertEquals("새 본문",card.body)
+    }
+    @Test fun `two matching cards make a new card that is flagged for review`() {
+        val twins=basisOf(existing(title="길동",episodes=mapOf("1" to "a")),existing(title="홍길동",aliases=listOf("길동"),episodes=mapOf("1" to "b")))
+        val card=update(twins,listOf(hero(mapOf("11" to "11화")))).single().cards.single()
+        assertTrue(card.id !in twins.cards.map { it.id })
+        assertEquals(true,review(card))
+        assertEquals("private",card.visibility)
+        assertEquals("manuscript_extraction",(card.semanticMetadata["manuscriptBuild"] as Map<*,*>)["provenance"])
+    }
+    @Test fun `two new cards that match the same existing card are both added as flagged new cards`() {
+        val old=existing(heroId,"길동",episodes=mapOf("1" to "a"))
+        val other=ManuscriptCard("other","character","의적",listOf("길동"),"본문",12,ManuscriptCharacterDocs("","",mapOf("12" to "b")))
+        val cards=update(basisOf(old),listOf(hero(mapOf("11" to "a")),other)).single().cards
+        assertEquals(2,cards.size)
+        assertTrue(cards.none { it.id==heroId })
+        assertTrue(cards.all { review(it)==true })
+    }
+    @Test fun `an event card is always new`() {
+        val old=existing(title="11화 · 사건",type="event")
+        val event=ManuscriptCard("event","event","11화 · 사건",emptyList(),"발생: 11화",11)
+        val card=update(basisOf(old),listOf(event)).single().cards.single()
+        assertTrue(card.id!=old.id)
+        assertNull(review(card))
+    }
+    @Test fun `a matched card that gains nothing is left out and one without docs gets only the new memories`() {
+        val place=existing(title="활빈당",type="organization")
+        val group=ManuscriptCard("group","organization","활빈당",emptyList(),"새 본문",11)
+        val bare=existing(heroId,"길동")
+        val requests=update(basisOf(place,bare),listOf(group,hero(mapOf("11" to "11화"))))
+        val card=requests.single().cards.single()
+        assertEquals(heroId,card.id)
+        assertEquals(mapOf("soul" to "","goal" to "","episodes" to mapOf("11" to "11화")),card.semanticMetadata["characterDocs"])
+        assertEquals(bare.body,card.body)
+        val untouched=update(basisOf(place),listOf(group))
+        assertTrue(untouched.single().cards.isEmpty(),"바뀔 것이 없는 맞춘 카드는 요청에 싣지 않는다")
+    }
+    @Test fun `relations use the matched card id and are added at their own episode without touching existing ones`() {
+        val old=existing(heroId,"길동",episodes=mapOf("1" to "산채"))
+        val group=ManuscriptCard("group","organization","활빈당",emptyList(),"활빈당",12)
+        val requests=update(basisOf(old),listOf(hero(mapOf("12" to "12화")),group),listOf(ManuscriptRelation("hero","group","소속",12,false)))
+
+        assertEquals(listOf(1,12),requests.map { it.episode })
+        assertEquals(listOf(7L,8L),requests.map { it.expectedDraftRevision })
+        assertTrue(requests.none { it.replace })
+        val relation=requests.last().relationships.single()
+        assertEquals(heroId,relation.sourceCardId)
+        assertEquals(requests.first().cards.single { it.title=="활빈당" }.id,relation.targetCardId)
+        assertEquals("active",relation.lifecycle)
+        assertTrue(requests.first().relationships.isEmpty(),"기준 초안의 관계를 다시 보내 교체하지 않는다")
+    }
+}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.storyfork.content.world.ManuscriptBuildExecutionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-17T05:50:16.206Z" hostname="9cb58bc2282a" time="1.972">
+  <properties/>
+  <testcase name="loading unknown completed and wrong owner never start extraction()" classname="ai.storyfork.content.world.ManuscriptBuildExecutionTest" time="0.037"/>
+  <testcase name="queued job grants one execution and duplicate delivery never grants another()" classname="ai.storyfork.content.world.ManuscriptBuildExecutionTest" time="0.017"/>
+  <testcase name="expired execution requires explicit matching previous token and old worker cannot fail resumed work()" classname="ai.storyfork.content.world.ManuscriptBuildExecutionTest" time="0.018"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -40,7 +40,7 @@ Health 확인에는 `OPENAI_API_KEY`가 필요하지 않습니다.
 
 포트는 `WEB_PORT`·`CORE_API_PORT`·`CONTENT_SERVICE_PORT`·`DATABASE_PORT`·`CORE_MAILPIT_*_PORT`로 변경합니다.
 기존 프로세스가 5173/8080 등을 사용 중이면 시작은 실패하므로 **기존 앱을 임의 중지하지 말고** 포트와 `AUTH_PUBLIC_ORIGIN`을 조정하세요.
-CORS는 web 포트에서 계산하며 `APP_CORS_ALLOWED_ORIGIN`으로 단일 origin을 지정할 수 있습니다. AI는 내부 전용입니다.
+CORS는 web 포트에서 계산하며 `APP_CORS_ALLOWED_ORIGIN`으로 단일 origin을 지정할 수 있습니다. 별도 포트의 Vite로 Compose 백엔드에 연결할 때 표지 업로드가 403이면 먼저 Content가 허용한 origin과 브라우저 접속 주소의 스킴·호스트·포트가 일치하는지, Core가 발급한 CSRF 헤더와 쿠키가 함께 전송됐는지 확인합니다. AI는 내부 전용입니다.
 키는 AI 런타임에만 전달하고 VITE/build ARG에는 넣지 않습니다. **소스 빌드는 HMR이 아닙니다.**
 web은 nginx 정적 runtime이고 소스 mount가 없어 변경 후 다시 build해야 합니다. hot reload는 아래 네이티브 명령을 사용합니다.
 
@@ -81,7 +81,7 @@ Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 �
 기존 서비스별 `.env.local` 등이 있으면 Vite가 별도로 읽을 수 있으므로 필요한 값을 루트로 수동 통합하세요.
 네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 `http://ai-service:8000`을 고정 사용합니다.
 
-[Content](../backend/content-service/README.md)는 loopback 8081의 실제 업무 앱이며 콘텐츠/Studio 모두 비활성일 때 DB 없이 시작하도록 구성했습니다. 활성화에는 DB·Core 인증 설정이 필요합니다. [운영](../backend/operations-service/README.md)은 loopback 8082의 독립 CRUD이며 PostgreSQL 연결과 operations schema 초기화 권한이 필요합니다. 기본 빈 서비스 토큰으로는 보호 접근을 허용하지 않습니다. nginx/Vite에는 브라우저용 `/api/v1/operations/{reports,members,admins,support,works,comments,admin/notices,public/notices,admin/events,public/events,admin/activities}` 하위 경로만 연결합니다. Content의 Compose·nginx/Vite·공개 API 연결 소스와 실제 앱/DB/배포 검증은 구분합니다.
+[Content](../backend/content-service/README.md)는 loopback 8081의 실제 업무 앱이며 콘텐츠/Studio 모두 비활성일 때 DB 없이 시작하도록 구성했습니다. 활성화에는 DB·Core 인증 설정이 필요합니다. [운영](../backend/operations-service/README.md)은 loopback 8082의 독립 CRUD이며 PostgreSQL 연결과 operations schema 초기화 권한이 필요합니다. 기본 빈 서비스 토큰으로는 보호 접근을 허용하지 않습니다. nginx/Vite에는 브라우저용 `/api/v1/operations/{reports,members,admins,support,works,comments,genres,credits,admin/notices,public/notices,admin/events,public/events,admin/activities,dashboard,llmops,alerts,jobs}` 하위 경로만 연결합니다. Content의 Compose·nginx/Vite·공개 API 연결 소스와 실제 앱/DB/배포 검증은 구분합니다.
 
 ## 검증
 
@@ -137,7 +137,7 @@ Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통�
 
 `health`: web 정적 응답과 nginx → Core → AI Health.
 `auth`: CSRF 없는 변경 403, 가입 → Mailpit 메일 토큰 → 이메일 확인 → 잘못된 비밀번호 401 → 로그인·프로필·DB 회원 저장.
-`content`: 실제 로그인 UUID로 Content 작품 생성 → 회차 저장 → stale 409 → DB 원고/소유권·미인증 401, Core 중단 시 Content 503 및 복구. Content jar의 독립 Studio migration도 확인합니다.
+`content`: 실제 로그인 UUID로 Content 작품 생성 → 회차 저장 → stale 409 → DB 원고/소유권·미인증 401, 같은 origin의 multipart 표지 업로드 전후 저장 사용량이 같은지 확인(#613), Core 중단 시 Content 503 및 복구. Content jar의 독립 Studio migration도 확인합니다.
 `ai`: auth/content를 재사용하고 실제 Content → AI HTTP의 제공사 설정 누락 503, 원고 불변·실패 job·성공 제안 없음.
 선택된 시나리오의 준비 흐름은 한 번만 실행합니다. 실제 모델 성공·과금·브라우저 입력/클릭은 검증하지 않습니다.
 

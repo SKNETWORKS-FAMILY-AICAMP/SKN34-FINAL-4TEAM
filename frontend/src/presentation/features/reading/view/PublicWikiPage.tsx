@@ -3,7 +3,7 @@ import { Navigate, useParams, useSearchParams } from 'react-router'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
-import { Footer, Gnb } from '../../../shared/shell/Gnb'
+import { Footer } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useWorkWikiViewModel } from '../viewmodel/useWorkWikiViewModel'
 import { PublicWikiArticle } from './PublicWiki'
@@ -21,17 +21,17 @@ export function PublicWikiPage() {
   const vm = useWorkWikiViewModel(id, Number(params.get('upto')) || undefined)
   const w = vm.work
   useDocumentTitle(w ? `${w.title}/설정 위키` : '설정 위키')
-  if (w === undefined) return <><Gnb /><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry} /></main></>
+  if (w === undefined) return <main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry} /></main>
   if (w === null) return <UnavailableWork />
   if (!w.canonical) return <Navigate replace to={`/work/${id}`} />
   return (
     <>
-      <div className={`calm calm-${w.theme}`} style={{ minHeight: '100vh' }}>
+      <div className={`calm calm-${w.theme}`}>
         <main className="wrap" id="main" tabIndex={-1}>
           <div className="topbar">
             {fromEpisode
-              ? <Go to={`/read/${id}/${vm.upto}`} className="back" aria-label={`${w.title} ${vm.upto}화로 돌아가기`}><BackChev />{vm.upto}화</Go>
-              : <Go to={`/work/${id}`} className="back" aria-label={`${w.title} 소설 상세로 돌아가기`}><BackChev />{w.title}</Go>}
+              ? <Go to={`/read/${id}/${vm.upto}`} className="back" aria-label={`${w.title} ${vm.upto}화로 돌아가기`}><BackChev /><span>{vm.upto}화</span></Go>
+              : <Go to={`/work/${id}`} className="back" aria-label={`${w.title} 소설 상세로 돌아가기`}><BackChev /><span>{w.title}</span></Go>}
           </div>
           <PublicWikiArticle work={w} upto={vm.upto} relationsUnavailable={vm.relationsUnavailable} />
         </main>

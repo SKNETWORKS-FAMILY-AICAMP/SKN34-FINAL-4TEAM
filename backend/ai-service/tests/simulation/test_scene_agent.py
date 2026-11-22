@@ -7,7 +7,7 @@ from app.simulation.errors import SimulationFailure
 from app.simulation.models import Note, SceneAction, SimulationPlan
 from app.simulation.prompt import FEEDBACK, NARRATION_FEEDBACK
 
-from .stubs import (KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, Run, action, fake_content, monologue, narration, narrating, run_auto, speech,
+from .stubs import (KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, Run, action, card, fake_content, monologue, narration, narrating, run_auto, speech,
                     staged as setup, text, verdict)
 
 IF_KINDS = ['knowledge_leak', 'voice_mix', 'relation', 'premise']
@@ -190,6 +190,36 @@ def test_beat_refusal_stops_as_a_planning_problem_without_regenerating(monkeypat
     assert [b.status for b in scene.result.beats] == ['rejected', 'pending'] and [t.kind for t in scene.result.turns] == ['narration']
     assert len(h.calls.act) == 1 and h.calls.check == []
     assert '카엘' in scene.error and 'REASON' in scene.error and 'B0-NOW' in scene.error
+    # '이대로 진행'은 없다(#356): 인물 설정이나 흐름을 고친 뒤 다시 시도하는 길뿐이고, 화면이 그 카드로 잇도록 거부한 인물 id가 결과에 실린다.
+    assert '이대로' not in scene.error and '고친 뒤 다시 시도' in scene.error
+    assert [b.rejectedBy for b in scene.result.beats] == [KAEL, None]
+
+
+def test_after_the_author_fixes_the_refusing_card_retrying_continues_from_that_beat_with_the_fixed_docs_and_the_turns_kept(monkeypatch):
+    h = setup(monkeypatch, speech(KAEL), acts=[action(refuses=True, reason='REASON 자존심'), action()], verdicts=lambda payload: verdict(payload, beat_done=True))
+    run = Run(PLAN_FLOW).start().next()  # 첫 지문 뒤 카엘이 첫 비트를 거부한다
+    assert (run.shown['status'], run.shown['result']['stopReason']) == ('failed', 'beat_rejected')
+    assert [(b['status'], b['rejectedBy']) for b in run.shown['result']['beats']] == [('rejected', KAEL), ('pending', None)]
+    assert 'KAEL-SOUL 말이 짧고' in text(h.calls.act[0])
+    opening = run.scene.result.turns[0]
+    fixed = card(KAEL, '카엘', 'KAEL-IDENTITY 북문을 지키는 기사', docs={'soul': 'KAEL-SOUL-FIXED 명령이면 받아들이는 기사', 'goal': 'KAEL-GOAL 왕가를 지킨다', 'episodes': {}})
+    fake_content(monkeypatch, read={**READ, 'cards': [fixed, *READ['cards'][1:]]})  # 작가가 설정집에서 그 카드를 고쳤다
+    run.next()  # 같은 장면을 다시 시도한다: AI는 요청마다 세계관을 새로 읽는다
+    assert run.scene.result.turns[0] == opening and [t.kind for t in run.scene.result.turns] == ['narration', 'character']  # 쌓은 턴은 그대로다
+    assert [(b.status, b.rejectedBy) for b in run.scene.result.beats] == [('done', None), ('pending', None)]
+    retried = text(h.calls.act[1])
+    assert 'KAEL-SOUL-FIXED' in retried and 'KAEL-SOUL 말이 짧고' not in retried  # 고친 문서로 이어 쓴다
+    assert h.calls.act[1]['direction']['currentBeat']['ref'] == 'beat:0'  # 거부했던 그 비트부터다
+
+
+def test_a_card_blanked_while_the_scene_waits_stops_the_next_try_with_the_empty_docs_named(monkeypatch):
+    h = setup(monkeypatch, speech(KAEL))
+    run = Run().start()
+    blanked = card(KAEL, '카엘', 'KAEL-IDENTITY 북문을 지키는 기사', docs={'soul': '', 'goal': 'KAEL-GOAL 왕가를 지킨다', 'episodes': {}})
+    fake_content(monkeypatch, read={**READ, 'cards': [blanked, *READ['cards'][1:]]})  # 그 사이 작가가 SOUL.md를 비웠다
+    run.next()
+    assert run.waiting and (run.scene.result.status, h.calls.act) == ('failed', [])  # 빈 문서로 연기하지 않고 멈춰서 작가가 채우게 한다
+    assert 'SOUL.md' in run.scene.error and '카엘' in run.scene.error
 
 
 def test_a_refusal_means_nothing_in_if_mode_and_a_long_reason_is_cut(monkeypatch):

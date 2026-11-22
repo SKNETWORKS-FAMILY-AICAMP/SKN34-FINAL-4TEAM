@@ -22,7 +22,7 @@
 
 > **V12(설정집 AI 검토 결과, #555):** `world_review_result`를 추가한다. 세계관마다 마지막 검토 한 행(`world_id` PK·FK, `result jsonb`, `reviewed_at timestamptz`)이고 성공한 검토가 같은 행을 덮어쓴다. AI 호출·응답 검증이 실패하면 저장하지 않아 이전 결과가 남는다. 기존 행·기존 SQL 이력·체크섬은 바꾸지 않는다. V1~V12 12건, 테이블은 22개다. [검토 계약](../../../../../../../../docs/design/world-review-contract.md#검토-결과-저장-2026-11-19-사용자-결정).
 
-> **V14(세계관 장르 통합, DEC-56):** `world.genre`의 CHECK 제약(`world_genre_check`)을 지우고 옛 영문 코드 일곱 개를 Content 장르 코드로 바꾸는 UPDATE(fantasy→genre-01, wuxia→genre-03, romance→genre-06, modern→genre-10, sf→genre-14, mystery→genre-18, classic→genre-28)만 한다. 장르 코드가 Content `genre` 표에 있는지·활성인지는 별도 이력이라 FK 없이 서비스가 확인한다. V13은 다른 열린 PR 몫이라 비워 두었으므로 적용 개수는 V1~V12와 V14의 13건이고 표는 22개 그대로다. [장르 관리 계약](../../../../../../../../docs/design/genre-management-contract.md).
+> **V14(세계관 장르 통합, DEC-56):** `world.genre`의 CHECK 제약(`world_genre_check`)을 지우고 옛 영문 코드 일곱 개를 Content 장르 코드로 바꾸는 UPDATE(fantasy→genre-01, wuxia→genre-03, romance→genre-06, modern→genre-10, sf→genre-14, mystery→genre-18, classic→genre-28)만 한다. 장르 코드가 Content `genre` 표에 있는지·활성인지는 별도 이력이라 FK 없이 서비스가 확인한다. V13은 결번이라(원고 기반 최초 구축은 V15로 재번호했다) V14까지의 적용 개수는 V1~V12와 V14의 13건이고 표는 22개 그대로다. [장르 관리 계약](../../../../../../../../docs/design/genre-management-contract.md).
 
 ## 실행 계약
 
@@ -86,3 +86,7 @@ Service는 검증된 JWT subject를 인자로 받아 world.owner_subject를 먼�
 각 fixture는 `ws_independent_<uuid>` DB를 생성하고 자신이 만든 DB만 제거한다. 독립 SQL은 Auth/Content 없는 DB에서, 공통 JPA는 Auth를 포함한 Core 기본 연결에서 Content 없이 저장·복원·과거 조회·커밋 실패·동시성·무결성을 검증한다. CI도 전용 임시 PostgreSQL service에서만 실행한다. 사용자·공용 개발·운영 DB에 이 환경변수를 설정하지 않는다.
 
 이미 실행한 Content 공존 검증은 일회성 데이터 보호 회귀다. 그 테스트만 별도로 `TEST_WORLDSTUDIO_COEXISTENCE_ONCE=true`를 지정했을 때 실행하도록 보존했으며 기본 검증 명령에는 포함하지 않는다. Content V1~V7은 독립 WorldStudio의 선행 조건이 아니다.
+
+> **V15(원고 기반 최초 세계관 구축):** 최초 구축 작업과 회차별 결과, 적재 요청 기록을 담는 세 테이블을 추가한다. V12의 설정집 검토 기록은 유지되며 V1~V12·V14·V15의 14건이 적용되고 이력 표를 제외한 테이블은 25개다. V13은 결번이다(V14가 먼저 병합돼 outOfOrder 없이 채울 수 없어 V15로 재번호했다).
+
+> **V16(발행 회차 업데이트 작업, 2026-11-22):** `manuscript_build_job`에 `kind`(`initial`|`update`, 기존 행 `initial`, CHECK)와 `basis jsonb`(update 작업의 기준 초안, claim 때 정한다)를 더하는 additive `ALTER TABLE` 둘뿐이다. V15 불변 트리거가 비교하는 입력 칼럼(manifest 등)과 완료 행 불변은 그대로이고 `basis`·`kind`는 그 칼럼에 들지 않는다. V1~V12·V14~V16의 15건이 적용되고 표는 25개 그대로다. [계약](../../../../../../../../docs/design/initial-build-storage-contract.md#발행-회차로-세계관-업데이트-2026-11-22-사용자-결정).

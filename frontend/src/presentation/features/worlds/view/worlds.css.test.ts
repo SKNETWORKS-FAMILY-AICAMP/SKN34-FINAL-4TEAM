@@ -22,3 +22,10 @@ it('방향 이동 버튼은 좁은 화면과 터치 기기에서 44px 정사각�
   expect(base).toBeGreaterThan(-1)
   expect(touch).toBeGreaterThan(base)
 })
+
+it('개요 탭의 구성 요약 알약은 좁은 화면과 터치 기기에서 44px이고 기본(36px) 규칙보다 뒤에 온다', () => {
+  const base = css.indexOf('.worlds-overview-links a { display: inline-flex; min-height: 36px;')
+  const touch = css.search(/@media \(max-width: 600px\), \(pointer: coarse\) \{[^@]*\.worlds-overview-links a \{ min-height: 44px; \}/)
+  expect(base).toBeGreaterThan(-1)
+  expect(touch).toBeGreaterThan(base)
+})

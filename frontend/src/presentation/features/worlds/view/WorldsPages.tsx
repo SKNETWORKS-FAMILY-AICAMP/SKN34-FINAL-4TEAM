@@ -134,7 +134,7 @@ function WorldRail({ title, worlds }: { title: string; worlds: readonly PublicWo
 type Listing = { worlds: readonly PublicWorldSummary[]; total: number; isLoading: boolean; isError: boolean; retry: () => void }
 
 /**
- * 홈의 필터 결과·소설 모아 보기와 같은 격자. 장르 칩이면 그 장르 쿼리를 따로 읽으므로 이 목록의 불러오는 중·실패(다시 시도)를 여기서 알린다.
+ * 홈의 필터 결과와 같은 격자. 장르 칩이면 그 장르 쿼리를 따로 읽으므로 이 목록의 불러오는 중·실패(다시 시도)를 여기서 알린다.
  * 서버가 센 전체 수(`total`)가 불러온 수보다 크면 최근 공개 순 앞쪽만 보인다고 머리에 적는다.
  */
 function WorldGrid({ title, list }: { title: string; list: Listing }) {

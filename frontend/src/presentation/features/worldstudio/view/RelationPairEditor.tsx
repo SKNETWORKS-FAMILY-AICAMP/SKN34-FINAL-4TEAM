@@ -11,8 +11,9 @@ type Pair = ReturnType<typeof useRelationPairViewModel>
  * 관계 행의 'N화부터' 칸(DEC-54 2단계, 소설을 연결한 세계관만). 이 관계의 내용이 보이기 시작하는 회차이고 적용하려면 1 이상의 정수가 있어야 한다. 기존 관계는 서버가 준 시작 회차가 채워져 있다.
  * 잘못된 값은 칸을 `aria-invalid`로 두고 이유를 칸의 설명(`aria-describedby`)으로 잇는다. 공개 회차 입력처럼 숫자만 받는다.
  * 이미 기록된 시작 회차보다 늦춘 값은 막지 않고, 서버가 기존 연결을 남겨 독자에게는 기록된 회차부터 보인다는 사실을 같은 방식으로 칸 아래에서 알린다.
+ * '이 회차의 기록으로 저장해요' 도움말은 행마다 되풀이하지 않고 시트 위에 한 문단으로 두며(`helpId`), 모든 칸의 설명(`aria-describedby`)이 그 한 문단을 가리킨다.
  */
-function FromEpisode({ field, row, vm }: { field: string; row: RelationDraftRow; vm: Pair }) {
+function FromEpisode({ field, row, vm, helpId }: { field: string; row: RelationDraftRow; vm: Pair; helpId: string }) {
   const id = useId(), invalid = vm.fromInvalid(row), delayed = vm.fromDelayed(row)
   return (
     <>
@@ -25,7 +26,7 @@ function FromEpisode({ field, row, vm }: { field: string; row: RelationDraftRow;
           autoComplete='off'
           className='inp'
           aria-invalid={invalid}
-          aria-describedby={`${invalid ? `${id}-error ` : ''}${delayed !== undefined ? `${id}-delayed ` : ''}${id}-help`}
+          aria-describedby={`${invalid ? `${id}-error ` : ''}${delayed !== undefined ? `${id}-delayed ` : ''}${helpId}`}
           value={row.value.fromEpisode ?? ''}
           onChange={(e) => vm.writeFrom(row, e.target.value)}
         />
@@ -33,9 +34,6 @@ function FromEpisode({ field, row, vm }: { field: string; row: RelationDraftRow;
       </label>
       {invalid && <p id={`${id}-error`} className='small world-field-error'>{RELATION_FROM_ERROR}</p>}
       {delayed !== undefined && <p id={`${id}-delayed`} role='status' className='small relationship-from-note'>{relationFromDelayedNote(delayed)}</p>}
-      <p id={`${id}-help`} className='small muted'>
-        이 내용을 이 회차의 기록으로 저장해요. 같은 회차에 다시 저장하면 그 회차의 기록을 고쳐요.
-      </p>
     </>
   )
 }
@@ -63,6 +61,7 @@ export function RelationPairEditor(
   const name = (id: string | null) =>
     studio.editing!.settings.find((s) => s.item.id === id)?.item.title || '새 설정'
   const vm = useRelationPairViewModel(studio, source, target, onClose)
+  const fromHelp = useId()
   const { rows, removed, error, change } = vm
   useEffect(() => onDirty?.(vm.dirty), [onDirty, vm.dirty])
   const group = (kind: 'fact' | 'emotion', from: string, to: string, label: string) => {
@@ -83,9 +82,10 @@ export function RelationPairEditor(
                 {field}
                 {kind === 'fact'
                   ? (
-                    <input
-                      className='inp'
-                      list='relationship-examples'
+                    <textarea
+                      className='ta'
+                      rows={2}
+                      data-autofocus={i === 0 ? '' : undefined}
                       value={r.value.text ?? ''}
                       maxLength={3000}
                       placeholder='예: 아버지와 서자, 인정받지 못한 가족'
@@ -105,7 +105,7 @@ export function RelationPairEditor(
               {r.value.id && !isFreeRelation(r.value.predicate) && (
                 <p className='small muted'>기존 관계: {relationLabel(r.value)}</p>
               )}
-              {studio.relationFrom && <FromEpisode field={field} row={r} vm={vm} />}
+              {studio.relationFrom && <FromEpisode field={field} row={r} vm={vm} helpId={fromHelp} />}
               {kind === 'fact' && (
                 <>
                   <label className='field'>
@@ -167,7 +167,6 @@ export function RelationPairEditor(
               )}
               <details>
                 <summary>항목 이름 직접 쓰기</summary>
-                {r.value.title && <p className='small'>{r.value.title}</p>}
                 <label className='field'>
                   {field} 이름<input
                     className='inp'
@@ -215,7 +214,7 @@ export function RelationPairEditor(
                 </select>
               </label>
               <p className='small'>{name(r.value.subjectId)}은(는) {name(r.value.targetId)}의 다른 이름이에요.</p>
-              {studio.relationFrom && <FromEpisode field={field} row={r} vm={vm} />}
+              {studio.relationFrom && <FromEpisode field={field} row={r} vm={vm} helpId={fromHelp} />}
               {studio.relationFrom && !vm.fromInvalid(r) && r.value.fromEpisode !== undefined && (
                 <p className='small'>{r.value.fromEpisode}화부터 독자에게 정체가 드러나요.</p>
               )}
@@ -246,15 +245,12 @@ export function RelationPairEditor(
   }
   return (
     <>
-      <datalist id='relationship-examples'>
-        <option value='친구' />
-        <option value='아버지와 서자, 인정받지 못한 가족' />
-        <option value='오랜 동료이자 경쟁자' />
-      </datalist>
-      <p className='small muted'>
-        실제 관계는 여러 개일 수 있어요. 감정은 각 방향을 따로 정하며, 반대 방향으로 복사하지
-        않아요.
-      </p>
+      <p className='small muted'>감정은 방향마다 따로 정해요.</p>
+      {studio.relationFrom && (
+        <p id={fromHelp} className='small muted'>
+          관계마다 아래 ‘시작 회차’ 칸에 적은 회차의 기록으로 저장해요. 같은 회차에 다시 저장하면 그 회차의 기록을 고쳐요.
+        </p>
+      )}
       {group('fact', source, target, '실제 관계')}
       {group('emotion', source, target, `${name(source)} → ${name(target)} 감정`)}
       {group('emotion', target, source, `${name(target)} → ${name(source)} 감정`)}
@@ -264,14 +260,11 @@ export function RelationPairEditor(
           관계 항목 {removed.length}개를 삭제할 예정이에요. 다른 관계와 감정은 유지돼요.
         </p>
       )}
-      {error && <p role='alert' className='world-error'>{studio.error || error}</p>}
+      {error && <p role='alert' className='ep-alert'>{studio.error || error}</p>}
       <div className='relationship-apply'>
         <button type='button' className='btn pri' onClick={vm.apply}>편집본에 적용</button>
-        <button type='button' className='btn' onClick={() => { if (studio.confirmRelationDiscard()) onClose() }}>취소</button>
       </div>
-      <p className='small muted'>
-        적용 후 세계관 저장 버튼을 눌러야 저장돼요. 취소하면 이 패널에서 입력한 변경만 버려요.
-      </p>
+      <p className='small muted'>적용 후 세계관을 저장해야 저장돼요.</p>
     </>
   )
 }

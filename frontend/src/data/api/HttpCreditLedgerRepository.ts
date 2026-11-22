@@ -5,8 +5,8 @@ import type { CreditLedgerRepository } from '../../domain/repositories/CreditLed
 import { authVersion, protectedRequest } from './auth'
 
 const at = z.string().datetime({ offset: true })
-const balanceSchema = z.object({ total: z.number(), items: z.array(z.object({ kind: z.string(), remaining: z.number(), expiresAt: at })) })
-const historySchema = z.object({ items: z.array(z.object({ type: z.enum(['grant', 'spend', 'expire']), kind: z.string(), amount: z.number(), occurredAt: at })) })
+export const balanceSchema = z.object({ total: z.number(), items: z.array(z.object({ kind: z.string(), remaining: z.number(), expiresAt: at })) })
+export const historySchema = z.object({ items: z.array(z.object({ type: z.enum(['grant', 'spend', 'expire', 'revoke']), kind: z.string(), amount: z.number(), occurredAt: at })) })
 
 /** 인증된 Core 크레딧 API(/api/v1/me/credits·history) 구현. 데모 크레딧은 섞지 않습니다. */
 export class HttpCreditLedgerRepository implements CreditLedgerRepository {

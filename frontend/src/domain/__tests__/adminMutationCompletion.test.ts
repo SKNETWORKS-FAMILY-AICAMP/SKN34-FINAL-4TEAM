@@ -60,7 +60,7 @@ beforeEach(() => {
 })
 
 const notice = { title: '제출한 제목', body: '제출한 본문' }
-const event = { ...notice, startsAt: '', endsAt: '' }
+const event = { ...notice, startsAt: '', endsAt: '', linkPath: '' }
 // 공지·이벤트 저장·삭제는 NoticeUseCase(save·delete)·EventUseCase(save·remove) 대역으로 보내므로 메서드 이름은 사례 구분용입니다.
 type Method = 'saveNotice' | 'deleteNotice' | 'saveEvent' | 'deleteEvent'
 const cases: { name: string; prepare: (vm: VM, changed?: boolean) => void; submit: (vm: VM) => Promise<boolean>; method: Method; other?: (vm: VM) => void }[] = [
@@ -284,8 +284,9 @@ describe('이벤트 기간 입력 경계', () => {
   it('한국시간 입력은 UTC로, 빈 입력은 null로 UseCase에 전달한다', async () => {
     doubles.event.save.mockResolvedValueOnce({ id: 'saved' })
     const vm = useAdminViewModel('events')
-    expect(await vm.saveEvent(null, { ...event, startsAt: '2026-11-05T09:30', endsAt: '' })).toBe(true)
-    expect(doubles.event.save).toHaveBeenCalledWith(null, { title: event.title, body: event.body, startsAt: '2026-11-05T00:30:00.000Z', endsAt: null })
+    expect(await vm.saveEvent(null, { ...event, startsAt: '2026-11-05T09:30', endsAt: '', linkPath: '/lib?tab=worlds' })).toBe(true)
+    // 이동 경로(DEC-57)는 입력한 글자 그대로 넘기고 공백·빈 값 정리와 사이트 안 경로 검사는 EventUseCase가 맡는다.
+    expect(doubles.event.save).toHaveBeenCalledWith(null, { title: event.title, body: event.body, startsAt: '2026-11-05T00:30:00.000Z', endsAt: null, linkPath: '/lib?tab=worlds' })
   })
 
   it.each(['2026-02-30T09:00', '2026-11-05T24:00', '2026-11-05', '임의 기간'])('형식이 틀린 입력은 UseCase에 닿기 전에 거절한다: %s', async (startsAt) => {

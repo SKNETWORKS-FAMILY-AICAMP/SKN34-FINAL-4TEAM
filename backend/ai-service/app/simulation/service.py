@@ -119,7 +119,8 @@ def plan(request: str, history: list[str], target: dict | None) -> SimulationPla
     고치지 않고 실패한다.
     """
     work_id, episode = _target(target)
-    snapshot, _, identity = _world(read_world(work_id, episode), episode)
+    read = read_world(work_id, episode)
+    snapshot, _, identity = _world(read, episode)
     characters, bodies = _characters(snapshot, identity)
     cast = [{'id': c.id, 'name': c.title} for c in characters.values()]
     if not cast:
@@ -131,6 +132,7 @@ def plan(request: str, history: list[str], target: dict | None) -> SimulationPla
     if not set(drafted.characterIds) <= {c['id'] for c in cast}:
         raise SimulationFailure(502, BAD_PLAN)
     _one_person_each(drafted.characterIds, bodies)
+    _filled(drafted.characterIds, characters, read)
     return drafted
 
 
@@ -142,11 +144,13 @@ def plan_from_form(form: SimulationPlan, target: dict | None) -> SimulationPlan:
     if gaps := form.gaps():
         raise SimulationFailure(422, f'시뮬레이션 설정에 {", ".join(GAP_LABELS[g] for g in gaps)}이(가) 빠졌어요.')
     work_id, episode = _target(target)
-    snapshot, _, identity = _world(read_world(work_id, episode), episode)
+    read = read_world(work_id, episode)
+    snapshot, _, identity = _world(read, episode)
     characters, bodies = _characters(snapshot, identity)
     if not set(form.characterIds) <= set(characters):
         raise SimulationFailure(422, NOT_IN_WORLD)
     _one_person_each(form.characterIds, bodies)
+    _filled(form.characterIds, characters, read)
     return form
 
 
@@ -289,6 +293,24 @@ def _one_person_each(ids: list[str], bodies: dict[str, str]) -> None:
         raise SimulationFailure(422, SAME_PERSON)
 
 
+def _filled(ids: list[str], characters: dict[str, Card], read: dict) -> None:
+    """고른 인물의 필수 인물 문서가 모두 있는지 본다(#357). 빈 문서는 사실로 채우지 않고 시작 자체를 거절한다(화면의 `missingCharacterDocs`와 같은 규칙).
+
+    필수는 IDENTITY.md(카드 본문)·SOUL.md이고 GOAL.md는 선택이다(#624): 목표가 없으면 인물은 성격·기억·장면 상황으로 연기하고 목표를 지어내지 않는다(`_docs`가 빈 문서를 뺀다).
+    판정은 「동일 인물」을 합친 카드(`_characters`)의 문서로 한다. 이어받은 원작 세계관(`work_inherited_world` 응답에만 있는 `upto`가 있다)은 SOUL.md·GOAL.md가
+    작가용이라 이어받지 않으므로(#365) IDENTITY.md만 본다.
+    """
+    inherited = 'upto' in read
+    gaps = []
+    for i in dict.fromkeys(ids):
+        card = characters[i]
+        docs = [('IDENTITY.md', card.text), *([] if inherited else [('SOUL.md', card.soul)])]
+        if empty := [name for name, body in docs if not body.strip()]:
+            gaps.append(f'{card.title}({", ".join(empty)})')
+    if gaps:
+        raise SimulationFailure(422, f'인물 문서가 비어 있어요: {", ".join(gaps)}. 세계관 관리 화면에서 채워 주세요.')
+
+
 # --- 장면 상태(순수 함수) ----------------------------------------------------------------------------------------------
 
 def new_scene(plan: SimulationPlan) -> Scene:
@@ -303,6 +325,7 @@ def check_plan(plan: SimulationPlan, world: World) -> None:
     if plan.gaps() or not set(plan.characterIds) <= set(world.characters):
         raise SimulationFailure(422, INVALID_PLAN)
     _one_person_each(plan.characterIds, world.bodies)
+    _filled(plan.characterIds, world.characters, world.read)
 
 
 def current_beat(result: SimulationResult) -> Beat | None:
@@ -313,6 +336,7 @@ def _sync_beats(scene: Scene) -> None:
     """비트의 끝남은 턴 기록에서 다시 센다. 지운 턴이 끝냈던 비트와 거부했던 비트는 다시 진행 중이 된다."""
     for beat in scene.result.beats:
         beat.status = 'done' if any(e.beat == beat.index and e.done for e in scene.trail) else 'pending'
+        beat.rejectedBy = None
 
 
 def apply_action(scene: Scene, action: SceneAction) -> Scene:
@@ -419,13 +443,13 @@ def add_turn(scene: Scene, turn: Turn, entry: Trail) -> Scene:
     return scene
 
 
-def stop_scene(scene: Scene, message: str, status: str, reason: str | None = None, rejected: int | None = None) -> Scene:
-    """멈춘 장면: 쌓은 턴과 작가의 메모는 그대로 두고 상태·이유만 바꾼다. rejected는 따르지 않은 비트 번호다."""
+def stop_scene(scene: Scene, message: str, status: str, reason: str | None = None, rejected: int | None = None, by: str | None = None) -> Scene:
+    """멈춘 장면: 쌓은 턴과 작가의 메모는 그대로 두고 상태·이유만 바꾼다. rejected는 따르지 않은 비트 번호, by는 따르지 않은 인물의 카드 id다."""
     scene = scene.model_copy(deep=True)
     scene.result.status, scene.result.stopReason, scene.error = status, reason, message
     for beat in scene.result.beats:
         if beat.index == rejected:
-            beat.status = 'rejected'
+            beat.status, beat.rejectedBy = 'rejected', by
     return scene
 
 

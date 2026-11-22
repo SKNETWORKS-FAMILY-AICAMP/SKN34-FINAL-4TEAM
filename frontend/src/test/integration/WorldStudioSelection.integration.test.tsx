@@ -8,6 +8,8 @@ import {WorldStudioPage} from '../../presentation/features/worldstudio/view/Worl
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
 import {putRelation} from '../../domain/entities/studioRelations'
+/** 게시판 제목은 미리보기를 열고 `수정하기`가 편집 화면을 연다. 이미 미리보기가 열려 있으면(편집 화면에 다녀온 뒤) 제목을 다시 누르지 않는다(접힌다). */
+const openCard=(name:string)=>{const title=screen.getByRole('button',{name});if(title.getAttribute('aria-expanded')!=='true')fireEvent.click(title);fireEvent.click(screen.getByRole('button',{name:'수정하기'}))}
 let useCase:WorldStudioUseCase
 let world:StudioWorld
 let ids:string[]
@@ -36,7 +38,7 @@ async function show(wizard=false){
  if(wizard)fireEvent.click(screen.getByRole('button',{name:'설정 카드'}))
 }
 it.each(['검색','유형'] as const)('%s 필터가 카드를 제외해도 편집본을 보존한다',async mode=>{
- await show();fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ await show();openCard('가람 인물')
  fireEvent.change(screen.getByRole('textbox',{name:'IDENTITY.md'}),{target:{value:'보존할 내용'}})
  const rail=()=>within(screen.getByRole('navigation',{name:'설정 카드 목록'}))
  // 편집 화면의 레일 필터가 편집 중인 카드를 목록에서 빼도 편집 화면과 편집본은 그대로다
@@ -56,7 +58,7 @@ it('shows an empty result without an unrelated editor',async()=>{
 })
 it('keeps focus and identifies an edited card that no longer matches the filter',async()=>{
  await show();fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:'가람'}})
- fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ openCard('가람 인물')
  const name=screen.getByRole<HTMLInputElement>('textbox',{name:'설정 이름'})
  name.focus();fireEvent.change(name,{target:{value:'바뀐 이름'}})
  expect(name.value).toBe('바뀐 이름');expect(document.activeElement).toBe(name)
@@ -66,48 +68,40 @@ it('keeps focus and identifies an edited card that no longer matches the filter'
  fireEvent.click(screen.getByRole('button',{name:'설정집'}))
  expect(screen.getByText('조건에 맞는 설정이 없어요.')).toBeTruthy()
 })
+/** 검토 단계에서 `index`번째 관계의 `관계 수정`을 눌러 그 관계의 두 설정을 관계도에서 연다(관계 작성 시트가 열린다). */
+const requestRelation=(index:number)=>{fireEvent.click(screen.getByRole('button',{name:'검토·저장'}));fireEvent.click(within(screen.getByRole('region',{name:'세계관 검토'})).getAllByRole('button',{name:'관계 수정'})[index])}
 it('opens a requested pair only after preserving or discarding the current draft',async()=>{
- await show(true);fireEvent.click(screen.getByRole('button',{name:'관계 연결 (선택)'}))
- fireEvent.change(screen.getByRole('combobox',{name:'관계 주체'}),{target:{value:ids[0]}})
- fireEvent.change(screen.getByRole('combobox',{name:'관계 대상'}),{target:{value:ids[1]}})
- fireEvent.click(screen.getByRole('button',{name:'관계 작성'}))
- fireEvent.change(screen.getByRole('combobox',{name:'실제 관계 1'}),{target:{value:'보존할 관계 초안'}})
- fireEvent.click(screen.getByRole('button',{name:'검토·저장'}))
+ await show(true);requestRelation(0)
+ fireEvent.change(await screen.findByRole('textbox',{name:'실제 관계 1'}),{target:{value:'보존할 관계 초안'}})
  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
- fireEvent.click(within(screen.getByRole('region',{name:'세계관 검토'})).getAllByRole('button',{name:'관계 수정'})[2])
+ requestRelation(2)
  await waitFor(()=>expect(confirm).toHaveBeenCalledOnce())
- expect(screen.getByRole<HTMLSelectElement>('combobox',{name:'관계 주체'}).value).toBe(ids[0])
- expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('보존할 관계 초안')
- fireEvent.click(screen.getByRole('button',{name:'검토·저장'}))
+ expect(screen.getByRole('dialog',{name:'가람 ↔ 나래 관계'})).toBeTruthy()
+ expect(screen.getByRole<HTMLInputElement>('textbox',{name:'실제 관계 1'}).value).toBe('보존할 관계 초안')
  confirm.mockReturnValue(true)
- fireEvent.click(within(screen.getByRole('region',{name:'세계관 검토'})).getAllByRole('button',{name:'관계 수정'})[2])
- await waitFor(()=>expect(screen.getByRole<HTMLSelectElement>('combobox',{name:'관계 주체'}).value).toBe(ids[1]))
- expect(screen.getByRole<HTMLSelectElement>('combobox',{name:'관계 대상'}).value).toBe(ids[2])
- expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('세 번째 관계')
+ requestRelation(2)
+ await waitFor(()=>expect(screen.getByRole('dialog',{name:'나래 ↔ 항구 관계'})).toBeTruthy())
+ expect(screen.getByRole<HTMLInputElement>('textbox',{name:'실제 관계 1'}).value).toBe('세 번째 관계')
 })
 it('focuses the requested relationship ID among several for the same pair',async()=>{
  await show(true);fireEvent.click(screen.getByRole('button',{name:'검토·저장'}))
  fireEvent.click(within(screen.getByRole('region',{name:'세계관 검토'})).getAllByRole('button',{name:'관계 수정'})[1])
- await waitFor(()=>expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 2'}).value).toBe('두 번째 관계'))
- await waitFor(()=>expect(document.activeElement).toBe(screen.getByRole('combobox',{name:'실제 관계 2'})))
+ await waitFor(()=>expect(screen.getByRole<HTMLInputElement>('textbox',{name:'실제 관계 2'}).value).toBe('두 번째 관계'))
+ await waitFor(()=>expect(document.activeElement).toBe(screen.getByRole('textbox',{name:'실제 관계 2'})))
 })
 
 it('opens another relationship in the same pair without discarding an unapplied draft',async()=>{
- await show(true);fireEvent.click(screen.getByRole('button',{name:'관계 연결 (선택)'}))
- fireEvent.change(screen.getByRole('combobox',{name:'관계 주체'}),{target:{value:ids[0]}})
- fireEvent.change(screen.getByRole('combobox',{name:'관계 대상'}),{target:{value:ids[1]}})
- fireEvent.click(screen.getByRole('button',{name:'관계 작성'}))
- fireEvent.change(screen.getByRole('combobox',{name:'실제 관계 1'}),{target:{value:'유지할 첫 관계'}})
- fireEvent.click(screen.getByRole('button',{name:'검토·저장'}))
+ await show(true);requestRelation(0)
+ fireEvent.change(await screen.findByRole('textbox',{name:'실제 관계 1'}),{target:{value:'유지할 첫 관계'}})
  const confirm=vi.spyOn(window,'confirm')
- fireEvent.click(within(screen.getByRole('region',{name:'세계관 검토'})).getAllByRole('button',{name:'관계 수정'})[1])
- await waitFor(()=>expect(document.activeElement).toBe(screen.getByRole('combobox',{name:'실제 관계 2'})))
- expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('유지할 첫 관계')
+ requestRelation(1)
+ await waitFor(()=>expect(document.activeElement).toBe(screen.getByRole('textbox',{name:'실제 관계 2'})))
+ expect(screen.getByRole<HTMLInputElement>('textbox',{name:'실제 관계 1'}).value).toBe('유지할 첫 관계')
  expect(confirm).not.toHaveBeenCalled()
 })
 
 it('preserves the original filtered-out edit after a server save failure',async()=>{
- await show();fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ await show();openCard('가람 인물')
  fireEvent.change(screen.getByRole('textbox',{name:'IDENTITY.md'}),{target:{value:'저장 실패 후 남길 내용'}})
  fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:'항구'}})
  saveStudio.mockRejectedValueOnce(new Error('저장 실패'))
@@ -116,7 +110,7 @@ it('preserves the original filtered-out edit after a server save failure',async(
  fireEvent.change(screen.getByRole('searchbox',{name:'설정 검색'}),{target:{value:''}})
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('저장 실패 후 남길 내용')
  fireEvent.click(screen.getByRole('button',{name:'설정집'}))
- fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ openCard('가람 인물')
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('저장 실패 후 남길 내용')
  expect(world.settings[0].item.text).toBe('')
 })

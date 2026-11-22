@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 
-/** 로그인한 회원 본인의 크레딧 잔액과 지급·사용·소멸 내역을 조회한다. */
+/** 로그인한 회원 본인의 크레딧 잔액과 지급·사용·회수·소멸 내역을 조회한다. */
 @RestController
 class CreditController(private val credits: CreditService) {
     private fun member(jwt: Jwt): UUID = try { UUID.fromString(jwt.subject) } catch (_: IllegalArgumentException) { throw ResponseStatusException(HttpStatus.UNAUTHORIZED) }
@@ -20,7 +20,7 @@ class CreditController(private val credits: CreditService) {
     @GetMapping("/api/v1/me/credits")
     fun balance(@AuthenticationPrincipal jwt: Jwt): CreditBalanceResponse = credits.balance(member(jwt))
 
-    /** 본인의 지급·사용·소멸 내역을 최신순으로 반환한다. */
+    /** 본인의 지급·사용·회수·소멸 내역을 최신순으로 반환한다. 운영자 회수는 type `revoke`다. */
     @GetMapping("/api/v1/me/credits/history")
     fun history(@AuthenticationPrincipal jwt: Jwt): CreditHistoryResponse = credits.history(member(jwt))
 }
