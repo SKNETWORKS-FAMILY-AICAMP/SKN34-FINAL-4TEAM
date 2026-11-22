@@ -40,7 +40,7 @@ def test_prepare_names_the_run_and_reads_the_requested_prompt_version(monkeypatc
     _, _, plan = prepared(monkeypatch, [item(1, QA)])
 
     assert re.fullmatch(r'qa\.answer@v3-\d{8}T\d{6}Z-[0-9a-f]{6}', plan.run_name)
-    assert (plan.instructions, plan.tolerance, plan.baseline) == ('지시문', 0.05, None)  # production 라벨이 없으면 기준 Run도 없다
+    assert (plan.instructions, plan.tolerance, plan.baseline) == ('지시문', 0.1, None)  # 기본 허용 오차는 0.1이고, production 라벨이 없으면 기준 Run도 없다
 
 
 @pytest.mark.parametrize('case, status', [
@@ -106,26 +106,26 @@ def test_run_scores_each_item_and_records_the_run_result(monkeypatch):
     assert calls.generate == [('지시문', QA), ('지시문', other)]  # 지정 버전의 프롬프트로 항목 입력을 실행한다
     assert calls.ragas == [(QA['question'], QA['contexts'], '답: ' + QA['question']), (other['question'], other['contexts'], '답: ' + other['question'])]
     assert dataset.experiment['run_name'] == plan.run_name
-    assert dataset.experiment['metadata'] == {'prompt': 'qa.answer', 'version': '3', 'dataset': 'qa.grounding', 'tolerance': '0.05',
+    assert dataset.experiment['metadata'] == {'prompt': 'qa.answer', 'version': '3', 'dataset': 'qa.grounding', 'tolerance': '0.1',
                                               'baselineRun': '', 'baselineVersion': ''}
     scores = {s['name']: s for s in client.scores}
     assert {s['dataset_run_id'] for s in client.scores} == {FakeDataset.RUN_ID}
     assert (scores['faithfulness']['value'], scores['context_precision']['value']) == (0.75, 0.8)
     assert scores['passed']['value'] == 1.0 and scores['passed']['data_type'] == 'BOOLEAN'
-    assert scores['passed']['metadata'] == {'failedItems': 0, 'totalItems': 2, 'tolerance': 0.05, 'baselineRun': None, 'baselineVersion': None}
+    assert scores['passed']['metadata'] == {'failedItems': 0, 'totalItems': 2, 'tolerance': 0.1, 'baselineRun': None, 'baselineVersion': None}
     assert client.flushed == 1
 
 
 def test_run_compares_each_metric_with_the_baseline_run(monkeypatch):
     runs = [experiment('qa.answer@v2-a', {'faithfulness': 0.95, 'context_precision': 0.7})]
     dataset, client, plan = prepared(monkeypatch, [item(1, QA)], experiments=runs, prompts=PRODUCTION)
-    stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.85, 'context_precision': 0.9})  # 0.85 < 0.95 - 0.05
+    stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.8, 'context_precision': 0.9})  # 0.8 < 0.95 - 0.1
 
     service.run(plan)
 
     scores = {s['name']: s for s in client.scores}
-    assert scores['faithfulness']['metadata'] == {'baseline': 0.95, 'delta': -0.1, 'tolerance': 0.05}
-    assert scores['context_precision']['metadata'] == {'baseline': 0.7, 'delta': 0.2, 'tolerance': 0.05}
+    assert scores['faithfulness']['metadata'] == {'baseline': 0.95, 'delta': -0.15, 'tolerance': 0.1}
+    assert scores['context_precision']['metadata'] == {'baseline': 0.7, 'delta': 0.2, 'tolerance': 0.1}
     assert scores['passed']['value'] == 0.0
     assert scores['passed']['metadata']['baselineRun'] == 'qa.answer@v2-a' and scores['passed']['metadata']['baselineVersion'] == 2
     assert (dataset.experiment['metadata']['baselineRun'], dataset.experiment['metadata']['baselineVersion']) == ('qa.answer@v2-a', '2')
@@ -134,7 +134,7 @@ def test_run_compares_each_metric_with_the_baseline_run(monkeypatch):
 def test_tolerance_comes_from_the_environment(monkeypatch):
     runs = [experiment('qa.answer@v2-a', {'faithfulness': 0.95, 'context_precision': 0.8})]
     dataset, client, plan = prepared(monkeypatch, [item(1, QA)], experiments=runs, prompts=PRODUCTION, tolerance='0.2')
-    stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.8, 'context_precision': 0.8})  # -0.15는 기본 0.05면 불통과, 0.2면 통과
+    stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.8, 'context_precision': 0.8})  # -0.15는 기본 0.1이면 불통과, 0.2면 통과
 
     service.run(plan)
 
@@ -289,7 +289,7 @@ def test_a_plan_travels_to_the_worker_as_json_without_the_dataset_items(monkeypa
 
     assert json.loads(json.dumps(job)) == job  # 브로커를 지나도 같다
     assert job == {'request': {'dataset': 'qa.grounding', 'prompt': 'qa.answer', 'version': 3}, 'runName': plan.run_name, 'instructions': '지시문',
-                   'tolerance': 0.05, 'baseline': {'run': 'qa.answer@v2-a', 'version': 2, 'metrics': {'faithfulness': 0.95, 'context_precision': 0.7}}}
+                   'tolerance': 0.1, 'baseline': {'run': 'qa.answer@v2-a', 'version': 2, 'metrics': {'faithfulness': 0.95, 'context_precision': 0.7}}}
     assert QA['question'] not in json.dumps(job, ensure_ascii=False)  # 채점 입력은 싣지 않는다: 워커가 평가 세트를 이름으로 읽는다
 
 
@@ -299,7 +299,7 @@ def test_the_worker_runs_the_plan_it_received_on_the_dataset_it_reads_at_that_mo
     job = json.loads(json.dumps(service.to_job(plan)))  # 브로커를 지난 인자
     other = {**QA, 'question': '초낭은 누구인가?'}
     client.dataset = FakeDataset([item(2, other)])  # 큐에서 기다리는 동안 평가 세트가 바뀌었다
-    calls = stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.85, 'context_precision': 0.9})
+    calls = stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.8, 'context_precision': 0.9})
 
     service.run_job(job)
 
@@ -307,7 +307,7 @@ def test_the_worker_runs_the_plan_it_received_on_the_dataset_it_reads_at_that_mo
     assert client.dataset.experiment['run_name'] == plan.run_name  # 응답한 Run 이름 그대로
     assert client.dataset.experiment['metadata']['baselineRun'] == 'qa.answer@v2-a'
     scores = {s['name']: s for s in client.scores}
-    assert scores['faithfulness']['metadata'] == {'baseline': 0.95, 'delta': -0.1, 'tolerance': 0.05}  # 기준 Run도 인자로 받은 그대로 비교한다
+    assert scores['faithfulness']['metadata'] == {'baseline': 0.95, 'delta': -0.15, 'tolerance': 0.1}  # 기준 Run도 인자로 받은 그대로 비교한다
     assert scores['passed']['value'] == 0.0
 
 
@@ -370,7 +370,7 @@ def test_a_simulation_run_generates_with_the_service_call_and_records_the_rubric
     assert calls.generate == [('act', '지시문', ACT_INPUT)] * 2 and evaluation.generate == [] and evaluation.geval == []   # 업무 Agent 틀·G-Eval은 쓰지 않는다
     scores = {s['name']: s for s in client.scores}
     assert set(scores) == {'voice', 'intent', 'pov_ok', 'passed'}  # G-Eval 점수 하나가 아니라 지표 셋을 따로 남긴다
-    assert (scores['voice']['value'], scores['intent']['value'], scores['pov_ok']['value']) == (5.0, 3.0, 0.5)   # 시점 위반 없음 1·있음 0의 평균
+    assert (scores['voice']['value'], scores['intent']['value'], scores['pov_ok']['value']) == (1.0, 0.5, 0.5)   # (점수-1)/4로 0~1에 기록한다. 시점 위반 없음 1·있음 0의 평균
     assert scores['passed']['value'] == 1.0 and scores['passed']['metadata']['failedItems'] == 0
     assert dataset.experiment['metadata']['dataset'] == 'simulation.act'
 
@@ -384,21 +384,21 @@ def test_a_narration_run_scores_style_info_and_pov_ok(monkeypatch):
     service.run(plan)
 
     assert [(kind, data['set']) for kind, _, data in calls.generate] == [('narrate', 'narration'), ('narrate', 'monologue')]
-    assert {s['name']: s['value'] for s in client.scores} == {'style': 4.0, 'info': 2.0, 'pov_ok': 1.0, 'passed': 1.0}
+    assert {s['name']: s['value'] for s in client.scores} == {'style': 0.75, 'info': 0.25, 'pov_ok': 1.0, 'passed': 1.0}
 
 
 def test_a_simulation_run_compares_each_rubric_metric_with_the_baseline_run(monkeypatch):
-    runs = [experiment('character_simulation.act@v1-a', {'voice': 3.5, 'intent': 3.0, 'pov_ok': 1.0}),
+    runs = [experiment('character_simulation.act@v1-a', {'voice': 0.875, 'intent': 0.5, 'pov_ok': 1.0}),
             experiment('character_simulation.act@v1-old', {'geval': 0.9})]   # 지표 이름이 다른 옛 Run은 기준이 아니다
     dataset, client, plan = prepared(monkeypatch, act_items(), request=ACT_REQUEST, experiments=runs, prompts=ACT_PRODUCTION)
-    stub_simulation(monkeypatch, grade=lambda payload: {'voice': 3, 'intent': 4, 'leaked': []})   # voice 3.0 < 3.5 - 0.05
+    stub_simulation(monkeypatch, grade=lambda payload: {'voice': 3, 'intent': 4, 'leaked': []})   # voice 0.5 < 0.875 - 0.1
 
     service.run(plan)
 
-    assert plan.baseline == service.Baseline('character_simulation.act@v1-a', 1, {'voice': 3.5, 'intent': 3.0, 'pov_ok': 1.0})
+    assert plan.baseline == service.Baseline('character_simulation.act@v1-a', 1, {'voice': 0.875, 'intent': 0.5, 'pov_ok': 1.0})
     scores = {s['name']: s for s in client.scores}
-    assert scores['voice']['metadata'] == {'baseline': 3.5, 'delta': -0.5, 'tolerance': 0.05}
-    assert scores['intent']['metadata']['delta'] == 1.0 and scores['pov_ok']['metadata']['delta'] == 0.0
+    assert scores['voice']['metadata'] == {'baseline': 0.875, 'delta': -0.375, 'tolerance': 0.1}
+    assert scores['intent']['metadata']['delta'] == 0.25 and scores['pov_ok']['metadata']['delta'] == 0.0
     assert scores['passed']['value'] == 0.0 and scores['passed']['metadata']['baselineVersion'] == 1
 
 
@@ -421,7 +421,7 @@ def test_a_failed_simulation_item_stays_a_failure_instead_of_a_zero_score(monkey
     service.run(plan)
 
     scores = {s['name']: s for s in client.scores}
-    assert scores['voice']['value'] == 4.0  # 실패한 항목을 0점으로 평균에 섞지 않는다
+    assert scores['voice']['value'] == 0.75  # 실패한 항목을 0점으로 평균에 섞지 않는다
     assert scores['passed']['value'] == 0.0 and (scores['passed']['metadata']['failedItems'], scores['passed']['metadata']['totalItems']) == (1, 2)
 
 

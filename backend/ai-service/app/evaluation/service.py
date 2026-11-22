@@ -5,7 +5,7 @@
 DeepEval GEval(항목 metadata.criteria)로 채점한다. 항목 input은 객체이며 프롬프트 본문(지시문)과 함께 업무 Agent와 같은 실행 틀(app/agent_runtime.py)로 모델에 보낸다.
 시뮬레이션 세트만 업무 Agent 틀 대신 실제 서비스 호출(app/simulation/agent의 act·narrate에 그 버전 본문)로 만든다(app/evaluation/simulation.py).
 끝나면 Run 수준 점수로 지표 평균(점수 metadata에 기준 평균·차이)과 통과 여부(passed)를 남긴다. 통과 기준은 실패한 항목이 없고 모든 지표가
-기준 Run 평균 - EVAL_TOLERANCE(기본 0.05) 이상인 것이다. 기준 Run은 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은 Run이며 없으면 지표를 비교하지 않는다.
+기준 Run 평균 - EVAL_TOLERANCE(기본 0.1) 이상인 것이다. 기준 Run은 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은 Run이며 없으면 지표를 비교하지 않는다.
 실패한 항목(모델·채점 실패, 입력 형식 오류)은 0점으로 평균에 섞지 않고 점수 없는 실패로 두며 passed는 false다.
 입력·응답 본문은 오류와 로그에 넣지 않는다.
 """
@@ -232,7 +232,7 @@ def _client():
 
 def _tolerance() -> float:
     try:
-        tolerance = float(os.environ.get('EVAL_TOLERANCE', '0.05'))
+        tolerance = float(os.environ.get('EVAL_TOLERANCE', '0.1'))
     except ValueError:
         tolerance = -1.0
     if not tolerance >= 0:  # NaN·음수

@@ -80,10 +80,19 @@ def test_dialogue_is_scored_with_the_original_rubric_as_voice_intent_and_pov_ok(
 
     got = asyncio.run(simulation.evaluate('act', ACT_INPUT, '"갑시다."', '"가자."', META))
 
-    assert [(e.name, e.value) for e in got] == [('voice', 4.0), ('intent', 2.0), ('pov_ok', 1.0)]
+    assert [(e.name, e.value) for e in got] == [('voice', 0.75), ('intent', 0.25), ('pov_ok', 1.0)]   # 1~5점은 (점수-1)/4로 0~1에 기록한다
     [(instructions, payload, schema)] = calls
     assert (instructions, schema) == (rubric.DIALOGUE_JUDGE, rubric.DialogueGrade)
     assert payload == rubric.dialogue_payload('길동', JUDGE['scene'], '"가자."', '"갑시다."', JUDGE['facts'])   # 원문 평가와 같은 입력(직전 장면 전체와 정답표)
+
+
+@pytest.mark.parametrize('score, value', [(1, 0.0), (2, 0.25), (3, 0.5), (4, 0.75), (5, 1.0)])
+def test_the_rubric_scores_are_recorded_from_zero_to_one_like_the_other_metrics(monkeypatch, score, value):
+    graded(monkeypatch, {'voice': score, 'intent': score, 'leaked': ['f1']})
+
+    got = asyncio.run(simulation.evaluate('act', ACT_INPUT, '"갑시다."', '"가자."', META))
+
+    assert [(e.name, e.value) for e in got] == [('voice', value), ('intent', value), ('pov_ok', 0.0)]   # 시점 위반 여부는 원래 0·1이라 그대로다
 
 
 def test_a_pov_violation_scores_zero_and_names_only_the_fact_ids(monkeypatch):
@@ -101,7 +110,7 @@ def test_narration_and_monologue_are_scored_with_the_narration_rubric(monkeypatc
 
     got = asyncio.run(simulation.evaluate('narrate', {'set': kind, 'data': DATA}, '문이 열렸다.', '다음 문단', META))
 
-    assert [(e.name, e.value) for e in got] == [('style', 3.0), ('info', 5.0), ('pov_ok', 1.0)]
+    assert [(e.name, e.value) for e in got] == [('style', 0.5), ('info', 1.0), ('pov_ok', 1.0)]
     [(instructions, payload, schema)] = calls
     assert (instructions, schema) == (rubric.NARRATION_JUDGE, rubric.NarrationGrade)
     assert payload == rubric.narration_payload(kind, '길동', JUDGE['scene'], '다음 문단', '문이 열렸다.', JUDGE['facts'])

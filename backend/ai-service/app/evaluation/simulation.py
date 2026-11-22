@@ -4,6 +4,7 @@
 응답 확인·따옴표 통일도 서비스와 같다. act는 서비스 기본 모델(terra)·구조화 출력 그대로다.
 채점은 G-Eval이 아니라 원문 평가 루브릭(rubric.py)이다: 정답(expectedOutput)을 보여 준 채점 모델이 대사는 voice·intent, 지문·독백은 style·info를 1~5로 매기고
 시점 위반은 pov_ok(위반이 없으면 1, 있으면 0)로 낸다. 지표는 모두 높을수록 좋고 Run 점수는 지표별 평균이다. 채점 입력은 항목의 metadata.judge(character·scene·facts)다.
+운영 Run·항목 점수는 Ragas·GEval처럼 0~1이라 1~5점은 (점수-1)/4로 바꿔 기록한다(pov_ok는 그대로). 원문 평가(eval/simulation)의 1~5 기록·보고서는 바뀌지 않는다.
 """
 
 from langfuse import Evaluation
@@ -40,7 +41,7 @@ async def evaluate(kind: str, item_input: dict, output: str, expected, metadata)
         payload = rubric.narration_payload(item_input['set'], character, scene, expected, output, facts)
     grade = await scoring.rubric_grade(instructions, payload, schema)
     leaked = grade.pop('leaked')
-    scores = [Evaluation(name=name, value=float(grade[name])) for name in METRICS[kind][:2]]
+    scores = [Evaluation(name=name, value=(grade[name] - 1) / 4) for name in METRICS[kind][:2]]   # 1~5점을 0~1에 기록한다(Ragas·GEval과 같은 눈금이라 허용 오차를 함께 쓴다)
     return scores + [Evaluation(name='pov_ok', value=float(not leaked), comment='시점 위반 사실 id: ' + ', '.join(leaked) if leaked else None)]   # 사실 본문은 남기지 않는다
 
 
