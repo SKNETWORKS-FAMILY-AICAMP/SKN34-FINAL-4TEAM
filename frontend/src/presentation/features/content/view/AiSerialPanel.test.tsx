@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it } from 'vitest'
 
-import { SERIAL_ERROR_MESSAGES, type SerialBoardRecord, type SerialSettings } from '../../../../domain/entities/aiSerial'
+import type { SerialBoardRecord, SerialSettings } from '../../../../domain/entities/aiSerial'
 import { SerialUseCase } from '../../../../domain/usecases/SerialUseCase'
 import { fakeSerialRepo, record, settings } from '../../../../test/serialFixtures'
 import { kstDateTime } from '../../../shared/format'
@@ -111,12 +111,25 @@ it.each([
   expect(screen.getByText(new RegExp(why)).id).toBe(run().getAttribute('aria-describedby'))
 })
 
-it('실행 요청이 409로 거절되면 코드별 문구를 경고로 알린다', async () => {
+it('실행 요청이 409로 거절되면 서버 문구를 경고로 알린다', async () => {
   const repo = fakeRepo()
-  repo.run.mockRejectedValueOnce(new Error(SERIAL_ERROR_MESSAGES.SERIAL_RUNNING))
+  repo.run.mockRejectedValueOnce(new Error('이미 실행 중이에요.'))
   await open(repo)
   fireEvent.click(run())
-  expect((await screen.findByRole('alert')).textContent).toContain(SERIAL_ERROR_MESSAGES.SERIAL_RUNNING)
+  expect((await screen.findByRole('alert')).textContent).toContain('이미 실행 중이에요.')
+})
+
+it('저장은 성공했는데 설정을 다시 읽다 실패하면 저장 완료와 읽기 실패를 따로 알리고 입력 칸은 그대로 둔다', async () => {
+  const repo = await open()
+  fireEvent.change(screen.getByLabelText(/연재 방향/), { target: { value: '새 방향' } })
+  repo.settings.mockRejectedValueOnce(new Error('설정 서버 오류'))
+  fireEvent.click(save())
+  await waitFor(() => expect(screen.getByRole('status').textContent).toContain('설정을 저장했어요'))
+  const failure = await screen.findByRole('alert')
+  expect(failure.textContent).toContain('저장은 됐')
+  expect(failure.textContent).toContain('설정 서버 오류')
+  expect((screen.getByLabelText(/연재 방향/) as HTMLTextAreaElement).value).toBe('새 방향')
+  expect((save() as HTMLButtonElement).disabled).toBe(true)
 })
 
 it('설정을 읽지 못하면 입력 칸 대신 실패와 다시 불러오기를 보인다 (빈 설정으로 채우지 않는다)', async () => {
@@ -136,6 +149,10 @@ it('기록만 읽지 못하면 설정은 그대로 두고 기록 실패와 새�
   await screen.findByRole('checkbox', { name: 'AI 집필 켜기' })
   expect((await screen.findByRole('alert')).textContent).toContain('기록 서버 오류')
   expect(screen.queryByRole('table')).toBeNull()
+  // 읽지 못한 채로 '불러오는 중'이라고 하지 않고 실패라고 알려 준다.
+  expect((run() as HTMLButtonElement).disabled).toBe(true)
+  const why = screen.getByText(/불러오지 못해/)
+  expect(why.id).toBe(run().getAttribute('aria-describedby'))
   fireEvent.click(screen.getByRole('button', { name: '기록 새로 고침' }))
   expect(await screen.findByRole('table')).toBeTruthy()
 })

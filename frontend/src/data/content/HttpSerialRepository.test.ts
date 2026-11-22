@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../../test/testLocks'
-import { SERIAL_ERROR_MESSAGES } from '../../domain/entities/aiSerial'
+import { INSUFFICIENT_CREDIT_MESSAGE } from '../../domain/entities/aiSerial'
 import { login, refresh } from '../api/auth'
 import { HttpSerialRepository } from './HttpSerialRepository'
 
@@ -171,19 +171,18 @@ describe('독자 의견 게시판', () => {
 describe('오류 문구', () => {
   beforeEach(signIn)
   const fail = (status: number, body: unknown) => new HttpSerialRepository(vi.fn().mockResolvedValue(Response.json(body, { status })))
+  const simulate = (repo: HttpSerialRepository) => repo.submitOpinion('w1', { kind: 'simulation', body: '', simulation: { premise: '전제', beats: [] } })
 
-  it.each([
-    ['SERIAL_DISABLED', (repo: HttpSerialRepository) => repo.run('w1')],
-    ['SERIAL_NO_BOARD', (repo: HttpSerialRepository) => repo.run('w1')],
-    ['SERIAL_RUNNING', (repo: HttpSerialRepository) => repo.run('w1')],
-    ['OPINION_EXISTS', (repo: HttpSerialRepository) => repo.submitOpinion('w1', { kind: 'general', body: '의견' })],
-    ['INSUFFICIENT_CREDIT', (repo: HttpSerialRepository) => repo.submitOpinion('w1', { kind: 'simulation', body: '', simulation: { premise: '전제', beats: [] } })],
-  ])('409 %s는 서버 문구 대신 정해 둔 한국어 문구로 알린다', async (code, call) => {
-    await expect(call(fail(409, { detail: 'Server English text.', code }))).rejects.toThrow(new Error(SERIAL_ERROR_MESSAGES[code]))
+  it('크레딧 부족(409 INSUFFICIENT_CREDIT)은 서버 문구 대신 정해 둔 한국어 문구로 알린다 (detail 없는 Core 오류도 같다)', async () => {
+    await expect(simulate(fail(409, { detail: 'Server English text.', code: 'INSUFFICIENT_CREDIT' }))).rejects.toThrow(new Error(INSUFFICIENT_CREDIT_MESSAGE))
+    await expect(simulate(fail(409, { code: 'INSUFFICIENT_CREDIT', message: 'Not enough credits.' }))).rejects.toThrow(new Error(INSUFFICIENT_CREDIT_MESSAGE))
   })
 
-  it('detail 없이 code만 와도(Core 오류를 그대로 전달) 고정 문구로 알린다', async () => {
-    await expect(fail(409, { code: 'INSUFFICIENT_CREDIT', message: 'Not enough credits.' }).submitOpinion('w1', { kind: 'general', body: '의견' })).rejects.toThrow(new Error(SERIAL_ERROR_MESSAGES.INSUFFICIENT_CREDIT))
+  it.each([
+    ['OPINION_EXISTS', '이 게시판에는 이미 의견을 냈어요.', (repo: HttpSerialRepository) => repo.submitOpinion('w1', { kind: 'general', body: '의견' })],
+    ['VOTE_CONFLICT', '투표를 처리하는 중이에요. 잠시 뒤 다시 눌러 주세요.', (repo: HttpSerialRepository) => repo.vote('w1', 'o1')],
+  ])('409 %s는 서버가 준 한국어 detail을 그대로 알린다 (SERIAL_* 등 나머지 code도 같은 길이다)', async (code, detail, call) => {
+    await expect(call(fail(409, { detail, code }))).rejects.toThrow(new Error(detail))
   })
 
   it('모르는 code나 code 없는 오류는 서버 detail을 그대로 전달하고, detail도 없으면 기본 문구다', async () => {
@@ -191,8 +190,23 @@ describe('오류 문구', () => {
     await expect(fail(403, { detail: '작품 소유자만 할 수 있어요.' }).saveSettings('w1', { enabled: false, days: ['MON'], time: '21:00', direction: '' })).rejects.toThrow('작품 소유자만 할 수 있어요.')
     await expect(new HttpSerialRepository(vi.fn().mockResolvedValue(new Response('<html>bad gateway</html>', { status: 502 }))).run('w1')).rejects.toThrow('요청을 처리하지 못했어요.')
   })
+})
 
-  it('Object 프로토타입 이름이 code로 와도 고정 문구로 착각하지 않는다', async () => {
-    await expect(fail(409, { detail: '서버 안내', code: 'toString' }).run('w1')).rejects.toThrow('서버 안내')
+describe('요청 제한 시간', () => {
+  beforeEach(signIn)
+  const created = () => vi.fn().mockResolvedValue(new Response(null, { status: 201 }))
+
+  it('시뮬레이션 의견 제출만 AI 장면 미리보기를 기다리도록 150초이고, 그 밖의 요청은 공용 기본값(80초)이다', async () => {
+    const timeout = vi.spyOn(AbortSignal, 'timeout')
+    try {
+      await new HttpSerialRepository(created()).submitOpinion('w1', { kind: 'simulation', body: '', simulation: { premise: '전제', beats: [] } })
+      expect(timeout).toHaveBeenCalledWith(150000)
+      expect(timeout).not.toHaveBeenCalledWith(80000)
+      timeout.mockClear()
+      await new HttpSerialRepository(created()).submitOpinion('w1', { kind: 'general', body: '의견' })
+      await new HttpSerialRepository(created()).vote('w1', 'o1')
+      expect(timeout).toHaveBeenCalledWith(80000)
+      expect(timeout).not.toHaveBeenCalledWith(150000)
+    } finally { timeout.mockRestore() }
   })
 })

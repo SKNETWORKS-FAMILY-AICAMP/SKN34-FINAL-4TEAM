@@ -39,24 +39,21 @@ export type SerialBoardRecord = {
   closedAt: string | null
 }
 
-/** 서버 오류 코드별 고정 문구. 서버 문구가 영문이거나 달라도 같은 안내를 보이려고 code를 우선한다(모르는 code는 서버 문구 그대로). */
-export const SERIAL_ERROR_MESSAGES: Record<string, string> = {
-  SERIAL_DISABLED: 'AI 집필이 꺼져 있어요. 켜고 저장한 뒤 실행해 주세요.',
-  SERIAL_NO_BOARD: '지금 열린 의견 게시판이 없어요. AI 집필이 켜져 있고 1화가 발행된 작품에 게시판이 열려요.',
-  SERIAL_RUNNING: '이미 실행 중이에요. 끝나면 기록에서 결과를 확인해 주세요.',
-  OPINION_EXISTS: '이미 이 게시판에 의견을 냈어요. 의견은 게시판마다 하나만 낼 수 있어요.',
-  INSUFFICIENT_CREDIT: '크레딧이 부족해서 시뮬레이션 미리보기를 만들지 못했어요. 크레딧을 확인해 주세요.',
-}
+/**
+ * 크레딧 부족(409 INSUFFICIENT_CREDIT)은 서버 문구 대신 이 문구를 보인다. 그 밖의 409(OPINION_EXISTS·SERIAL_*·VOTE_CONFLICT 등)는 서버가 한국어 detail을 주므로 그대로 보인다.
+ */
+export const INSUFFICIENT_CREDIT_MESSAGE = '크레딧이 부족해서 시뮬레이션 미리보기를 만들지 못했어요. 크레딧을 확인해 주세요.'
 
 /**
- * 지금 마감·실행을 못 하는 이유(할 수 있으면 null). 서버가 같은 조건을 409(SERIAL_DISABLED·SERIAL_RUNNING·SERIAL_NO_BOARD)로 다시 검사하므로 문구도 그 고정 문구와 같다.
- * saved는 서버에 저장된 설정이다: 켠 값을 저장하기 전의 화면 입력으로는 실행되지 않는다.
+ * 지금 마감·실행을 못 하는 이유(할 수 있으면 null). 서버가 같은 조건을 409(SERIAL_DISABLED·SERIAL_RUNNING·SERIAL_NO_BOARD)로 다시 검사한다.
+ * saved는 서버에 저장된 설정이다: 켠 값을 저장하기 전의 화면 입력으로는 실행되지 않는다. failed는 설정·기록 읽기가 실패했다는 표시다
+ * (읽지 못했는데 '불러오는 중'이라고 하면 기다려도 풀리지 않는 실패를 숨기게 된다).
  */
-export function serialRunBlock(saved: SerialSettings | undefined, boards: SerialBoardRecord[] | undefined) {
-  if (!saved || !boards) return '설정과 기록을 불러오는 중이에요.'
-  if (!saved.enabled) return SERIAL_ERROR_MESSAGES.SERIAL_DISABLED
-  if (boards.some(({ status }) => status === 'queued' || status === 'running')) return SERIAL_ERROR_MESSAGES.SERIAL_RUNNING
-  if (!boards.some(({ status }) => status === 'open')) return SERIAL_ERROR_MESSAGES.SERIAL_NO_BOARD
+export function serialRunBlock(saved: SerialSettings | undefined, boards: SerialBoardRecord[] | undefined, failed = false) {
+  if (!saved || !boards) return failed ? '설정이나 기록을 불러오지 못해 실행할 수 없어요. 새로 고친 뒤 다시 시도해 주세요.' : '설정과 기록을 불러오는 중이에요.'
+  if (!saved.enabled) return 'AI 집필을 켜고 저장하면 실행할 수 있어요.'
+  if (boards.some(({ status }) => status === 'queued' || status === 'running')) return '이미 실행 중이에요. 끝나면 기록에서 결과를 확인해 주세요.'
+  if (!boards.some(({ status }) => status === 'open')) return '열린 의견 게시판이 없어요. 1화를 발행하면 게시판이 열려요.'
   return null
 }
 

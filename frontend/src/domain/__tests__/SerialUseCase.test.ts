@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { seedWorks } from '../../data/mock/seed'
 import {
-  BEATS_MAX, BEAT_MAX, OPINION_BODY_MAX, PREMISE_MAX, SERIAL_DIRECTION_MAX, SERIAL_ERROR_MESSAGES,
+  BEATS_MAX, BEAT_MAX, OPINION_BODY_MAX, PREMISE_MAX, SERIAL_DIRECTION_MAX,
   canHideOpinions, opinionInputError, opinionRequest, serialRunBlock, serialSettingsError, serialSettingsInput,
 } from '../entities/aiSerial'
 import { SerialUseCase } from '../usecases/SerialUseCase'
@@ -36,13 +36,16 @@ describe('AI 집필 설정 규칙', () => {
 
 describe('지금 마감·실행 가능 여부', () => {
   const on = settings()
-  it('설정·기록을 아직 읽지 못했으면 이유를 알린다', () => {
-    expect(serialRunBlock(undefined, [record()])).toContain('불러오')
-    // 막는 이유의 문구는 서버가 같은 조건에서 돌려주는 409 문구와 같다.
-    expect(serialRunBlock(settings({ enabled: false }), [record()])).toBe(SERIAL_ERROR_MESSAGES.SERIAL_DISABLED)
-    expect(serialRunBlock(on, [record({ status: 'running' })])).toBe(SERIAL_ERROR_MESSAGES.SERIAL_RUNNING)
-    expect(serialRunBlock(on, [])).toBe(SERIAL_ERROR_MESSAGES.SERIAL_NO_BOARD)
-    expect(serialRunBlock(on, undefined)).toContain('불러오')
+  it('설정·기록을 읽는 중이면 그렇게, 읽지 못했으면 실패로 이유를 알린다', () => {
+    expect(serialRunBlock(undefined, [record()])).toContain('불러오는 중')
+    expect(serialRunBlock(on, undefined)).toContain('불러오는 중')
+    // 읽기에 실패했는데 '불러오는 중'이라고 하면 기다려도 풀리지 않는 것을 숨기게 된다.
+    for (const block of [serialRunBlock(undefined, [record()], true), serialRunBlock(on, undefined, true)]) {
+      expect(block).toContain('불러오지 못')
+      expect(block).not.toContain('불러오는 중')
+    }
+    // 둘 다 읽어 둔 뒤에는 읽기 실패 표시가 막는 규칙을 바꾸지 않는다.
+    expect(serialRunBlock(on, [record()], true)).toBeNull()
   })
 
   it('꺼져 있으면 켜고 저장하라고 알린다 (켠 값을 저장하기 전의 화면 입력은 보지 않는다)', () => {
@@ -58,16 +61,6 @@ describe('지금 마감·실행 가능 여부', () => {
 
   it('켜져 있고 열린 게시판이 있으면 막지 않는다', () => {
     expect(serialRunBlock(on, [record({ status: 'open' }), record({ id: 'b0', status: 'failed' })])).toBeNull()
-  })
-})
-
-describe('서버 오류 코드별 문구', () => {
-  it('계약의 409 코드마다 고정 한국어 문구가 있다', () => {
-    for (const code of ['SERIAL_DISABLED', 'SERIAL_NO_BOARD', 'SERIAL_RUNNING', 'OPINION_EXISTS', 'INSUFFICIENT_CREDIT']) expect(SERIAL_ERROR_MESSAGES[code], code).toMatch(/[가-힣]/)
-    expect(SERIAL_ERROR_MESSAGES.INSUFFICIENT_CREDIT).toContain('크레딧')
-    expect(SERIAL_ERROR_MESSAGES.OPINION_EXISTS).toContain('이미')
-    // 열린 게시판이 없다는 409는 소유자의 실행뿐 아니라 독자의 의견·투표에서도 와서, 독자에게도 어색하지 않은 말이다.
-    expect(SERIAL_ERROR_MESSAGES.SERIAL_NO_BOARD).not.toContain('발행하면')
   })
 })
 
@@ -113,15 +106,14 @@ describe('의견 숨김 권한 표시 (서버가 다시 확인한다)', () => {
 })
 
 describe('AI 자율 연재 UseCase', () => {
-  it('설정 저장은 검증하고 다듬은 값을 보내고 서버가 저장한 값을 다시 읽어 돌려준다', async () => {
+  it('설정 저장은 검증하고 다듬은 값을 보내고 그 값을 돌려준다 (서버 값 다시 읽기는 호출 측이 따로 한다)', async () => {
     const { repo, useCase } = setup()
     const signal = new AbortController().signal
-    repo.settings.mockResolvedValue(settings({ days: ['MON', 'SUN'], direction: '서버 값' }))
     const saved = await useCase.saveSettings('w1', settings({ days: ['SUN', 'MON'], direction: ' 입력 ' }), signal)
     expect(repo.saveSettings).toHaveBeenCalledWith('w1', settings({ days: ['SUN', 'MON'], direction: '입력' }), signal)
-    expect(repo.settings).toHaveBeenCalledWith('w1', signal)
-    expect(saved).toEqual(settings({ days: ['MON', 'SUN'], direction: '서버 값' }))
-    expect(repo.saveSettings.mock.invocationCallOrder[0]).toBeLessThan(repo.settings.mock.invocationCallOrder[0])
+    expect(saved).toEqual(settings({ days: ['SUN', 'MON'], direction: '입력' }))
+    // 저장(PUT)이 끝난 뒤 읽기가 실패해도 저장 실패로 보이지 않게 저장은 읽지 않는다.
+    expect(repo.settings).not.toHaveBeenCalled()
   })
 
   it.each([
@@ -134,11 +126,10 @@ describe('AI 자율 연재 UseCase', () => {
     untouched(repo)
   })
 
-  it('저장 요청이 실패하면 다시 읽지 않고 그 실패를 그대로 던진다', async () => {
+  it('저장 요청이 거절되면 그 실패를 그대로 던진다', async () => {
     const { repo, useCase } = setup()
     repo.saveSettings.mockRejectedValue(new Error('서버 거절'))
     await expect(useCase.saveSettings('w1', settings())).rejects.toThrow('서버 거절')
-    expect(repo.settings).not.toHaveBeenCalled()
   })
 
   it('의견 제출은 검증한 요청 본문을 보낸다', async () => {

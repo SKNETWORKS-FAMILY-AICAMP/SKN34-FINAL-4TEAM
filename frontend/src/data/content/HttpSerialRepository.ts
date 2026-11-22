@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { SERIAL_ERROR_MESSAGES, type OpinionRequest, type SerialSettings } from '../../domain/entities/aiSerial'
+import { INSUFFICIENT_CREDIT_MESSAGE, type OpinionRequest, type SerialSettings } from '../../domain/entities/aiSerial'
 import type { SerialRepository } from '../../domain/repositories/SerialRepository'
 import { getAccessToken } from '../api/auth'
 import { HttpEpisodeRepository } from './HttpEpisodeRepository'
@@ -25,11 +25,11 @@ const boardView = z.object({
 const serial = (workId: string) => `/works/${encodeURIComponent(workId)}/ai-serial`
 const board = (workId: string) => `/works/${encodeURIComponent(workId)}/serial-board`
 
-/** 알려진 오류 code(409)는 정해 둔 한국어 문구로, 모르는 code나 code 없는 오류는 서버 문구 그대로 던진다. */
-const described = (error: unknown) => {
-  const code = error instanceof Error && typeof error.cause === 'string' ? error.cause : undefined
-  return code && Object.hasOwn(SERIAL_ERROR_MESSAGES, code) ? new Error(SERIAL_ERROR_MESSAGES[code]) : error
-}
+/** 시뮬레이션 의견은 서버가 AI 장면 미리보기를 기다린다(Content의 AI 읽기 75초 + 저장·정산 여유): 공용 기본값(80초)보다 길게 기다린다. */
+const SIMULATION_TIMEOUT_MS = 150_000
+
+/** 크레딧 부족(409 INSUFFICIENT_CREDIT)만 정해 둔 문구로 바꾸고, 나머지 오류는 서버가 준 한국어 문구 그대로 던진다. */
+const described = (error: unknown) => (error instanceof Error && error.cause === 'INSUFFICIENT_CREDIT' ? new Error(INSUFFICIENT_CREDIT_MESSAGE) : error)
 
 /**
  * AI 자율 연재 API([계약](../../../../docs/design/ai-serial-contract.md)). Bearer·CSRF·응답 검증은 HttpEpisodeRepository.request를 그대로 쓴다.
@@ -40,9 +40,9 @@ export class HttpSerialRepository implements SerialRepository {
   private readonly api: HttpEpisodeRepository
   constructor(fetcher?: typeof fetch) { this.api = new HttpEpisodeRepository(fetcher) }
 
-  private async call<T>(path: string, schema: z.ZodType<T>, method: string, body?: unknown, signal?: AbortSignal, anonymous?: boolean) {
+  private async call<T>(path: string, schema: z.ZodType<T>, method: string, body?: unknown, signal?: AbortSignal, anonymous?: boolean, timeoutMs?: number) {
     try {
-      return await this.api.request(path, schema, method, body, signal, anonymous)
+      return await this.api.request(path, schema, method, body, signal, anonymous, timeoutMs)
     } catch (error) {
       throw described(error)
     }
@@ -53,7 +53,9 @@ export class HttpSerialRepository implements SerialRepository {
   async run(workId: string, signal?: AbortSignal) { await this.call(serial(workId) + '/run', z.unknown(), 'POST', undefined, signal) }
   boards(workId: string, signal?: AbortSignal) { return this.call(serial(workId) + '/boards', z.array(record), 'GET', undefined, signal) }
   board(workId: string, signal?: AbortSignal) { return this.call(board(workId), boardView, 'GET', undefined, signal, !getAccessToken()) }
-  async submitOpinion(workId: string, request: OpinionRequest, signal?: AbortSignal) { await this.call(board(workId) + '/opinions', z.unknown(), 'POST', request, signal) }
+  async submitOpinion(workId: string, request: OpinionRequest, signal?: AbortSignal) {
+    await this.call(board(workId) + '/opinions', z.unknown(), 'POST', request, signal, undefined, request.kind === 'simulation' ? SIMULATION_TIMEOUT_MS : undefined)
+  }
   async vote(workId: string, opinionId: string, signal?: AbortSignal) { await this.call(board(workId) + '/vote', z.unknown(), 'PUT', { opinionId }, signal) }
   async cancelVote(workId: string, signal?: AbortSignal) { await this.call(board(workId) + '/vote', z.unknown(), 'DELETE', undefined, signal) }
   async hideOpinion(workId: string, opinionId: string, signal?: AbortSignal) { await this.call(board(workId) + `/opinions/${encodeURIComponent(opinionId)}/hide`, z.unknown(), 'POST', undefined, signal) }

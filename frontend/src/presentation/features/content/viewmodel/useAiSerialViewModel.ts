@@ -13,7 +13,8 @@ const same = (a: SerialSettings, b: SerialSettings) =>
 
 /**
  * 작품 관리 'AI 집필' 탭([계약](../../../../../../docs/design/ai-serial-contract.md)): 설정 읽기·저장, 지금 마감·실행, 게시판 기록.
- * 저장·실행은 한 번에 하나만 보내고, 성공하면 서버 값을 다시 읽어 보인다(저장은 서버가 저장한 값, 실행은 기록). 거절·실패는 입력을 그대로 두고 알리며 곧바로 다시 시도할 수 있다.
+ * 저장·실행은 한 번에 하나만 보내고, 거절·실패는 입력을 그대로 두고 알리며 곧바로 다시 시도할 수 있다. 저장(PUT)이 성공하면 곧바로 저장 완료로 알리고,
+ * 서버 값 다시 읽기(설정·기록)는 따로 해서 각 실패를 따로 알린다(읽기 실패가 저장 실패로 보이지 않게). 실행은 받아졌든 거절됐든 기록을 다시 읽는다.
  * 기록은 대기·실행 중인 게시판이 있는 동안만 주기적으로 다시 읽는다. 화면을 떠나면 읽기·쓰기 요청을 함께 취소한다. 작품이 바뀌면 호출 측이 key로 새로 만든다.
  */
 export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = appContainer.resolve('serialUseCase')) {
@@ -74,11 +75,23 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
   const formError = form ? serialSettingsError(form) : null
   const dirty = !!form && !!saved && !same(form, saved)
   const canSave = dirty && !formError && !saving
-  const runBlock = serialRunBlock(saved, boards)
+  const runBlock = serialRunBlock(saved, boards, !!loadError || !!boardsError)
 
   const change = (update: (current: SerialSettings) => SerialSettings) => {
     setForm((current) => current && update(current))
     setNotice(undefined)
+  }
+
+  /** 서버가 저장한 설정을 다시 읽어 기준 설정만 맞춘다(입력 칸은 건드리지 않는다: 그새 고친 입력을 지우지 않게). 실패는 설정 읽기 실패로 따로 알린다. */
+  async function rereadSettings(signal?: AbortSignal) {
+    try {
+      const result = await useCase.settings(workId, signal)
+      if (signal?.aborted) return
+      setSaved(result)
+      setLoadError('')
+    } catch (failure) {
+      if (!signal?.aborted) setLoadError('저장은 됐지만 최신 설정을 다시 불러오지 못했어요. ' + messageOf(failure, '연결 상태를 확인해 주세요.'))
+    }
   }
 
   async function save() {
@@ -86,22 +99,24 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
     busy.current = true
     setSaving(true)
     setNotice(undefined)
+    const signal = leaving.current?.signal
     let ok = false
     try {
-      const result = await useCase.saveSettings(workId, form, leaving.current?.signal)
-      if (leaving.current?.signal.aborted) return
-      setSaved(result)
-      setForm(result)
+      // 저장(PUT)이 끝났으면 보낸 값을 기준으로 삼고 저장 완료를 알린다. 서버 값 다시 읽기는 아래에서 따로 한다.
+      const sent = await useCase.saveSettings(workId, form, signal)
+      if (signal?.aborted) return
+      setSaved(sent)
+      setForm(sent)
       setNotice({ ok: true, text: '설정을 저장했어요.' })
       ok = true
     } catch (failure) {
-      if (!leaving.current?.signal.aborted) setNotice({ ok: false, text: messageOf(failure, '설정을 저장하지 못했어요.') })
+      if (!signal?.aborted) setNotice({ ok: false, text: messageOf(failure, '설정을 저장하지 못했어요.') })
     } finally {
       busy.current = false
       setSaving(false)
     }
-    // 저장하면 게시판이 열릴 수 있어 기록도 서버 값으로 다시 읽는다.
-    if (ok) await refreshBoards()
+    // 설정과 기록은 각각 읽고 한쪽이 실패해도 저장 완료 알림과 다른 쪽 읽기는 그대로다. 저장하면 게시판이 열릴 수 있어 기록도 서버 값으로 다시 읽는다.
+    if (ok) await Promise.all([rereadSettings(signal), refreshBoards()])
   }
 
   async function run() {
@@ -109,17 +124,18 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
     busy.current = true
     setRunning(true)
     setNotice(undefined)
+    const signal = leaving.current?.signal
     try {
-      await useCase.run(workId, leaving.current?.signal)
-      if (!leaving.current?.signal.aborted) setNotice({ ok: true, text: '실행을 요청했어요. 곧 집필이 시작돼요.' })
+      await useCase.run(workId, signal)
+      if (!signal?.aborted) setNotice({ ok: true, text: '실행을 요청했어요. 곧 집필이 시작돼요.' })
     } catch (failure) {
-      if (!leaving.current?.signal.aborted) setNotice({ ok: false, text: messageOf(failure, '실행을 요청하지 못했어요.') })
+      if (!signal?.aborted) setNotice({ ok: false, text: messageOf(failure, '실행을 요청하지 못했어요.') })
     } finally {
       busy.current = false
       setRunning(false)
     }
-    // 요청이 받아졌든 거절됐든 서버가 지금 보는 상태를 다시 보인다.
-    await refreshBoards()
+    // 요청이 받아졌든 거절됐든 서버가 지금 보는 상태를 다시 보인다. 화면을 떠나 취소됐으면 보일 곳이 없어 읽지 않는다.
+    if (!signal?.aborted) await refreshBoards()
   }
 
   function reload() {

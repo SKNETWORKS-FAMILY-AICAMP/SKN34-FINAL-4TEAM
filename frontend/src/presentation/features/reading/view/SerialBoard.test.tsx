@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
-import { SERIAL_ERROR_MESSAGES, type SerialBoardView } from '../../../../domain/entities/aiSerial'
+import { INSUFFICIENT_CREDIT_MESSAGE, type SerialBoardView } from '../../../../domain/entities/aiSerial'
 import { SerialUseCase } from '../../../../domain/usecases/SerialUseCase'
 import { board as baseBoard, fakeSerialRepo, opinion, serverWork as work } from '../../../../test/serialFixtures'
 import { kstDateTime } from '../../../shared/format'
@@ -160,14 +160,14 @@ it('시뮬레이션을 보내는 동안은 미리보기를 만드는 중임을 �
 
 it('이미 낸 의견·크레딧 부족 같은 거절은 코드별 문구를 경고로 알리고 입력은 그대로 둔다', async () => {
   const repo = fakeRepo()
-  repo.submitOpinion.mockRejectedValueOnce(new Error(SERIAL_ERROR_MESSAGES.INSUFFICIENT_CREDIT))
+  repo.submitOpinion.mockRejectedValueOnce(new Error(INSUFFICIENT_CREDIT_MESSAGE))
   open(repo)
   await ready()
   const form = within(screen.getByRole('form', { name: '의견 쓰기' }))
   fireEvent.click(form.getByRole('radio', { name: '시뮬레이션' }))
   fireEvent.change(form.getByLabelText('시뮬레이션 전제'), { target: { value: '편지를 읽었다면' } })
   fireEvent.click(form.getByRole('button', { name: '의견 올리기' }))
-  expect((await screen.findByRole('alert')).textContent).toContain(SERIAL_ERROR_MESSAGES.INSUFFICIENT_CREDIT)
+  expect((await screen.findByRole('alert')).textContent).toContain(INSUFFICIENT_CREDIT_MESSAGE)
   expect((form.getByLabelText('시뮬레이션 전제') as HTMLTextAreaElement).value).toBe('편지를 읽었다면')
 })
 
@@ -198,4 +198,21 @@ it('게시판을 읽지 못하면 빈 섹션으로 숨기지 않고 실패와 �
   expect((await screen.findByRole('alert')).textContent).toContain('불러오지 못했어요')
   fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
   await ready()
+})
+
+it('규칙을 넘은 입력은 이유를 보이고, 입력 칸과 보내기 버튼이 그 문구를 aria-describedby로 가리킨다', async () => {
+  open(fakeRepo())
+  await ready()
+  const form = within(screen.getByRole('form', { name: '의견 쓰기' }))
+  const text = form.getByLabelText('다음 전개 의견')
+  expect(text.getAttribute('aria-describedby')).toBeNull() // 문제가 없으면 연결하지 않는다
+  fireEvent.change(text, { target: { value: '가'.repeat(1001) } })
+  const hint = form.getByText(/1,000자까지/)
+  expect(hint.id).not.toBe('')
+  for (const el of [text, form.getByRole('button', { name: '의견 올리기' })]) expect(el.getAttribute('aria-describedby')).toBe(hint.id)
+  fireEvent.click(form.getByRole('radio', { name: '시뮬레이션' }))
+  fireEvent.change(form.getByLabelText('시뮬레이션 전제'), { target: { value: '전제' } })
+  fireEvent.change(form.getByLabelText('장면 비트'), { target: { value: '1\n2\n3\n4\n5\n6' } })
+  const beatsHint = form.getByText(/5개까지/)
+  for (const el of [form.getByLabelText('시뮬레이션 전제'), form.getByLabelText('장면 비트'), form.getByRole('button', { name: '의견 올리기' })]) expect(el.getAttribute('aria-describedby')).toBe(beatsHint.id)
 })

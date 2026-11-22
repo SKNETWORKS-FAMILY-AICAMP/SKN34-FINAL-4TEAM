@@ -5,7 +5,7 @@ import { Provider } from 'react-redux'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
-import { SERIAL_ERROR_MESSAGES, type SerialBoardView } from '../../../../domain/entities/aiSerial'
+import { INSUFFICIENT_CREDIT_MESSAGE, type SerialBoardView } from '../../../../domain/entities/aiSerial'
 import { SerialUseCase } from '../../../../domain/usecases/SerialUseCase'
 import { board, fakeSerialRepo, serverWork as work } from '../../../../test/serialFixtures'
 import { useSerialBoardViewModel } from './useSerialBoardViewModel'
@@ -85,27 +85,27 @@ it('시뮬레이션 의견은 크레딧 차감을 알리고 계정 크레딧 표
   expect(hook.store.getState().session.dataVersion).toBe(before + 1)
 })
 
-it('이미 낸 의견(409)은 코드별 문구로 알리고 게시판을 다시 읽어 입력 폼이 사라지게 한다', async () => {
+it('이미 낸 의견(409)은 서버가 준 문구를 그대로 알리고 게시판을 다시 읽어 입력 폼이 사라지게 한다', async () => {
   const repo = fakeRepo()
-  repo.submitOpinion.mockRejectedValueOnce(new Error(SERIAL_ERROR_MESSAGES.OPINION_EXISTS))
+  repo.submitOpinion.mockRejectedValueOnce(new Error('이 게시판에는 이미 의견을 냈어요.'))
   const hook = setup(repo)
   await loaded(hook)
   repo.board.mockResolvedValue(board({ myOpinionId: 'o7' }))
   let ok = true
   await act(async () => { ok = await hook.result.current.submit({ kind: 'general', body: '다시 냄' }) })
   expect(ok).toBe(false)
-  expect(hook.result.current.notice).toEqual({ ok: false, text: SERIAL_ERROR_MESSAGES.OPINION_EXISTS })
+  expect(hook.result.current.notice).toEqual({ ok: false, text: '이 게시판에는 이미 의견을 냈어요.' })
   await waitFor(() => expect(hook.result.current.view?.myOpinionId).toBe('o7'))
   expect(hook.store.getState().session.dataVersion).toBe(0)
 })
 
 it('크레딧이 부족하면(409) 시뮬레이션 의견을 저장하지 않았다는 문구로 알린다', async () => {
   const repo = fakeRepo()
-  repo.submitOpinion.mockRejectedValueOnce(new Error(SERIAL_ERROR_MESSAGES.INSUFFICIENT_CREDIT))
+  repo.submitOpinion.mockRejectedValueOnce(new Error(INSUFFICIENT_CREDIT_MESSAGE))
   const hook = setup(repo)
   await loaded(hook)
   await act(async () => { await hook.result.current.submit({ kind: 'simulation', premise: '전제', beats: [] }) })
-  expect(hook.result.current.notice).toEqual({ ok: false, text: SERIAL_ERROR_MESSAGES.INSUFFICIENT_CREDIT })
+  expect(hook.result.current.notice).toEqual({ ok: false, text: INSUFFICIENT_CREDIT_MESSAGE })
 })
 
 it('규칙을 어긴 의견은 요청 없이 안내 문구로 거절한다', async () => {
@@ -161,4 +161,58 @@ it('의견 숨김은 확인한 뒤에만 요청하고, 취소하면 아무것도
   await act(async () => { expect(await hook.result.current.hide('o1')).toBe(true) })
   expect(hook.repo.hideOpinion).toHaveBeenCalledWith('postman', 'o1', expect.any(AbortSignal))
   expect(hook.result.current.notice).toEqual({ ok: true, text: '의견을 숨겼어요.' })
+})
+
+it('의견 폼: 일반 의견은 글이 있으면 보낼 수 있고 1,000자를 넘으면 이유와 함께 잠긴다', async () => {
+  const hook = setup()
+  await loaded(hook)
+  // 빈 입력은 보내기만 잠겨 있고 이유는 없다(쓴 글이 규칙을 넘었을 때만 이유를 보인다).
+  expect(hook.result.current.form).toMatchObject({ kind: 'general', body: '', canSubmit: false, problem: null })
+  act(() => hook.result.current.form.setBody('다음엔 반전이 좋겠어요'))
+  expect(hook.result.current.form).toMatchObject({ canSubmit: true, problem: null })
+  act(() => hook.result.current.form.setBody('가'.repeat(1001)))
+  expect(hook.result.current.form.canSubmit).toBe(false)
+  expect(hook.result.current.form.problem).toContain('1,000자')
+})
+
+it('의견 폼: 시뮬레이션은 전제가 있어야 보낼 수 있고 비트가 5개·200자를 넘으면 이유와 함께 잠긴다', async () => {
+  const hook = setup()
+  await loaded(hook)
+  act(() => { hook.result.current.form.setKind('simulation'); hook.result.current.form.setBeats('하나\n둘\n셋\n넷\n다섯\n여섯') })
+  // 전제가 없으면 아직 빈 입력이다(비트가 많아도 이유는 전제를 쓴 뒤에 보인다).
+  expect(hook.result.current.form).toMatchObject({ kind: 'simulation', canSubmit: false, problem: null })
+  act(() => hook.result.current.form.setPremise('편지를 읽었다면'))
+  expect(hook.result.current.form.canSubmit).toBe(false)
+  expect(hook.result.current.form.problem).toContain('5개')
+  act(() => hook.result.current.form.setBeats('하나\n\n둘'))
+  expect(hook.result.current.form).toMatchObject({ canSubmit: true, problem: null })
+  act(() => hook.result.current.form.setBeats('가'.repeat(201)))
+  expect(hook.result.current.form.problem).toContain('200자')
+})
+
+it('의견 폼: 보내는 동안은 잠기고, 성공하면 입력을 비우고 실패하면 그대로 둔다', async () => {
+  const repo = fakeRepo()
+  repo.submitOpinion.mockRejectedValueOnce(new Error('서버 거절'))
+  const hook = setup(repo)
+  await loaded(hook)
+  act(() => hook.result.current.form.setBody('내 의견'))
+  await act(async () => { expect(await hook.result.current.form.send()).toBe(false) })
+  expect(hook.result.current.form.body).toBe('내 의견')
+  let finish = () => {}
+  repo.submitOpinion.mockImplementation(() => new Promise<void>((resolve) => { finish = resolve }))
+  let sending!: Promise<boolean>
+  act(() => { sending = hook.result.current.form.send() })
+  expect(hook.result.current.form.canSubmit).toBe(false)
+  await act(async () => { finish(); expect(await sending).toBe(true) })
+  expect(repo.submitOpinion).toHaveBeenLastCalledWith('postman', { kind: 'general', body: '내 의견' }, expect.any(AbortSignal))
+  expect(hook.result.current.form.body).toBe('')
+})
+
+it('의견 폼: 시뮬레이션을 보내면 전제와 비트 입력을 모두 비운다', async () => {
+  const hook = setup()
+  await loaded(hook)
+  act(() => { hook.result.current.form.setKind('simulation'); hook.result.current.form.setPremise('편지를 읽었다면'); hook.result.current.form.setBeats('문을 연다\n편지를 펼친다') })
+  await act(async () => { expect(await hook.result.current.form.send()).toBe(true) })
+  expect(hook.repo.submitOpinion).toHaveBeenCalledWith('postman', { kind: 'simulation', body: '', simulation: { premise: '편지를 읽었다면', beats: ['문을 연다', '편지를 펼친다'] } }, expect.any(AbortSignal))
+  expect(hook.result.current.form).toMatchObject({ premise: '', beats: '', canSubmit: false })
 })

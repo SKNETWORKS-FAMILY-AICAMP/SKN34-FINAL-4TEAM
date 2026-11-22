@@ -12,12 +12,16 @@ export class SerialUseCase {
     return this.repository.settings(workId, signal)
   }
 
-  /** 저장 응답 모양에 기대지 않고, 저장이 성공하면 서버가 저장한 값을 다시 읽어 돌려준다. */
+  /**
+   * 검증하고 다듬은 값을 저장(PUT)하고 그 값을 돌려준다. 저장 응답 모양에 기대지 않고, 서버 값을 다시 읽는 것은 호출 측이 따로 한다
+   * (저장은 성공했는데 읽기만 실패한 것이 저장 실패로 보이지 않게).
+   */
   async saveSettings(workId: string, settings: SerialSettings, signal?: AbortSignal) {
     const error = serialSettingsError(settings)
     if (error) throw new Error(error)
-    await this.repository.saveSettings(workId, serialSettingsInput(settings), signal)
-    return this.repository.settings(workId, signal)
+    const input = serialSettingsInput(settings)
+    await this.repository.saveSettings(workId, input, signal)
+    return input
   }
 
   run(workId: string, signal?: AbortSignal) {
