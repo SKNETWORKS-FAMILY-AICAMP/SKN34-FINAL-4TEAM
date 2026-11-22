@@ -53,6 +53,23 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   const box = useRef<HTMLTextAreaElement>(null)
   const log = useRef<HTMLDivElement>(null)
   const pinned = useRef(true)
+  useEffect(() => {
+    if (pinned.current && log.current) log.current.scrollTop = log.current.scrollHeight
+  }, [streaming])
+  // 선택 안내 같은 줄이 생기면 대화 영역이 줄어든다. 줄기 전에 맨 아래를 읽던 중이면 따라 내려가 승인 버튼을 가리지 않는다.
+  // pinned로는 알 수 없다: 이력을 막 불러온 대화는 맨 위를 보이는데 스크롤한 적이 없어 true로 남는다.
+  useEffect(() => {
+    const el = log.current
+    if (!el || typeof ResizeObserver !== 'function') return
+    let height = el.clientHeight
+    const watch = new ResizeObserver(() => {
+      if (el.clientHeight === height) return
+      if (el.scrollHeight - el.scrollTop - height < 80) el.scrollTop = el.scrollHeight
+      height = el.clientHeight
+    })
+    watch.observe(el)
+    return () => watch.disconnect()
+  }, [])
   const files = useRef<Record<ChatAttachment['kind'], HTMLInputElement | null>>({ image: null, text: null })
   const [picked, setPicked] = useState<Picked[]>([])
   const [rejected, setRejected] = useState<string[]>([])
@@ -65,10 +82,6 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   const locked = !!disabledReason || !onSend
   const attachOff = locked || !checkFile
   const note = locked ? '' : sendNote
-  // 흐르는 글이 늘거나 안내 줄이 대화 영역을 줄여도, 맨 아래를 읽던 중이면 따라 내려간다(승인 버튼이 가려지지 않게).
-  useEffect(() => {
-    if (pinned.current && log.current) log.current.scrollTop = log.current.scrollHeight
-  }, [streaming, note])
   // busy를 넘기지 않는 화면에서도 응답을 기다리는 동안 같은 입력을 다시 보내지 않는다.
   // ref는 같은 틱의 중복 호출을 막고, pending은 그 사이 전송 버튼을 잠가 보이게 한다.
   const sending = useRef(false)

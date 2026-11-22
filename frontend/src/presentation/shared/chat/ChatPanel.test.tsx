@@ -13,25 +13,25 @@ const send = () => screen.getByRole('button', { name: '전송' }) as HTMLButtonE
 const type = (text: string) => fireEvent.change(box(), { target: { value: text } })
 
 describe('함께 보낼 것 안내', () => {
-  // 안내 줄(27px)에 따라 대화 영역은 591 ↔ 564다. 바뀌기 전에 맨 아래에서 80px 안을 읽고 있었는지로 정한다.
+  // 안내 줄(27px)에 따라 대화 영역은 591 ↔ 564다. 줄기 전에 맨 아래에서 80px 안을 읽고 있었는지로 정한다.
   it.each([
-    ['생김', 591, 564, 409, 1000], // 전 간격 0
-    ['생김', 591, 564, 349, 1000], // 전 간격 60, 후 87
-    ['생김', 591, 564, 100, 100],
-    ['없어짐', 564, 591, 336, 336], // 전 간격 100, 후 73
-    ['생김', 591, 300, 100, 100, 1000], // 그사이 창 높이가 줄었어도 위를 읽던 중이면 그대로
-  ])('안내가 %s(%i→%i): 맨 아래에서 읽던 때만 따라 내려간다(#636, scrollTop=%i)', (change, before, after, scrollTop, expected, scrollHeight = 1000) => {
+    ['맨 아래', 591, 564, 409, 1000],
+    ['경계 안(전 60·후 87)', 591, 564, 349, 1000],
+    ['스크롤한 적 없이 맨 위', 591, 564, 0, 0],
+    ['커지기 전 경계 밖(전 100·후 73)', 564, 591, 336, 336],
+  ])('대화 영역 높이가 바뀌면 맨 아래에서 읽던 때만 따라 내려간다(#636, %s)', (_, before, after, scrollTop, expected) => {
     let height = before
+    let resized = () => {}
+    vi.stubGlobal('ResizeObserver', class { constructor(run: () => void) { resized = run } observe() {} disconnect() {} })
     const measured = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(() => height)
-    const panel = (note: boolean) => <ChatPanel messages={[]} onSend={() => true} sendNote={note ? '선택한 글 7자가 함께 보내져요.' : ''} />
-    const { rerender } = render(panel(change === '없어짐'))
-    const log = screen.getByRole('log', { name: '대화 내용' })
-    Object.defineProperties(log, { scrollHeight: { value: scrollHeight }, scrollTop: { value: scrollTop, writable: true } })
-    fireEvent.scroll(log) // 안내가 바뀌기 전에 읽던 자리
-    height = after
-    rerender(panel(change === '생김'))
-    expect(log.scrollTop).toBe(expected)
-    measured.mockRestore()
+    try {
+      render(<ChatPanel messages={[]} onSend={() => true} />)
+      const log = screen.getByRole('log', { name: '대화 내용' })
+      Object.defineProperties(log, { scrollHeight: { value: 1000 }, scrollTop: { value: scrollTop, writable: true } })
+      height = after
+      resized()
+      expect(log.scrollTop).toBe(expected)
+    } finally { measured.mockRestore(); vi.unstubAllGlobals() }
   })
 
   it('입력창이 안내를 설명으로 읽고, 잠긴 동안에는 보낼 수 없으므로 보이지 않는다(#636)', () => {
