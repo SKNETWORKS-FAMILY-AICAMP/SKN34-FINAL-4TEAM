@@ -253,7 +253,7 @@ class OrchestrationResponse(BaseModel):
     awaitingApproval: AwaitingApproval | None = None
     pendingAction: PendingAction | None = None  # awaitingApproval이 content_action일 때 실행을 기다리는 도구와 인자
     awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다
-    approvalEpisode: int | None = None  # 승인 질문과 장면 대기에서 결과를 반영할 회차(target.episode). 화면은 새로 고친 뒤 이 값으로 편집기 회차를 맞춘다
+    approvalEpisode: int | None = None  # 승인 질문·장면 대기·입력 대기(#635)에서 결과를 반영할 회차(target.episode). 편집기 회차 맞춤은 입력 대기를 빼고, 구간 카드는 이 회차에 고정한다
 
 
 class ChatSession(BaseModel):

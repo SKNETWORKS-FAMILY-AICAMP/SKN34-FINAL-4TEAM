@@ -206,6 +206,11 @@ class WritingAiServiceTest {
     private fun spanInputs(start: Int, end: Int, revision: Int = 4, instruction: String? = "더 차갑게", episode: Int = 2) = mapper.readTree(
         """{"writing_editing":{"span":{"episode":$episode,"revision":$revision,"start":$start,"end":$end${instruction?.let { ""","instruction":"$it"""" } ?: ""}}}}""")
 
+    private fun waitingOn(episode: Int?) {
+        val history = mapper.readTree("""{"turns":[{"reply":{"approvalEpisode":9}},{"reply":{"approvalEpisode":$episode}}]}""")
+        `when`(client.history("thread", "user:owner/work:work")).thenReturn(history)
+    }
+
     private fun resumedWith(inputs: tools.jackson.databind.JsonNode) =
         service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true, inputs)))["resume"] as Map<*, *>
 
@@ -213,7 +218,19 @@ class WritingAiServiceTest {
         assertThrows(ContentFailure::class.java) { resumedWith(inputs) }.status
 
     @Test
+    fun `a span on another episode than the waiting turn reflects into is a 422`() {
+        `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf(picked))
+        waitingOn(3)  // 3화를 고치려고 멈췄는데 2화에서 고른 구간이 왔다
+        assertEquals(422, refusedWith(spanInputs(0, 3)))
+        waitingOn(null)  // 반영 회차를 알 수 없으면 통과시키지 않는다
+        assertEquals(422, refusedWith(spanInputs(0, 3)))
+        `when`(client.history("thread", "user:owner/work:work")).thenReturn(mapper.readTree("""{"turns":[]}"""))
+        assertEquals(422, refusedWith(spanInputs(0, 3)))
+    }
+
+    @Test
     fun `a chosen span becomes a patch with the selection the surrounding text and the instruction but no context`() {
+        waitingOn(2)
         `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf(before + picked + after))
         val patch = resumedWith(spanInputs(2500, 2500 + picked.length))["inputs"]
         assertEquals(mapper.readTree("""{"writing_editing":{"patch":{"selection":"$picked","instruction":"더 차갑게",
@@ -224,6 +241,7 @@ class WritingAiServiceTest {
 
     @Test
     fun `a span outside the other inputs leaves them as they were`() {
+        waitingOn(2)
         `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf(picked))
         val inputs = mapper.readTree("""{"research":{"question":"한양에서 동래까지?"},"writing_editing":{"span":{"episode":2,"revision":4,"start":0,"end":3,"instruction":"다듬어 줘"}}}""")
         val sent = resumedWith(inputs)["inputs"]
@@ -233,6 +251,7 @@ class WritingAiServiceTest {
 
     @Test
     fun `spans that break the selection rules are a 422 and nothing reaches the AI`() {
+        waitingOn(2)
         val body = "그는 웃었다. 😀 바람이 찼다."  // 공백이 7, 이모지(서로게이트 쌍)가 8~9에 있다
         `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf(body))
         assertEquals(422, refusedWith(spanInputs(3, 3)))  // 빈 구간
@@ -242,7 +261,7 @@ class WritingAiServiceTest {
         assertEquals(422, refusedWith(spanInputs(0, 9)))  // 서로게이트 쌍의 중간에서 끝남
         assertEquals(422, refusedWith(spanInputs(9, 12)))  // 서로게이트 쌍의 중간에서 시작
         assertEquals(422, refusedWith(mapper.readTree("""{"writing_editing":{"span":{"episode":2,"revision":4,"start":7,"end":8,"instruction":"x"}}}""")))  // 공백뿐
-        verifyNoInteractions(client)
+        verify(client, never()).orchestrate(anyMap(), anyString())
         `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf("가".repeat(6000)))
         assertEquals(422, refusedWith(spanInputs(0, 5001)))  // 5,000자 초과
         resumedWith(spanInputs(0, 5000))  // 5,000자는 허용
@@ -250,12 +269,14 @@ class WritingAiServiceTest {
 
     @Test
     fun `a draft saved after the span was chosen is a 409`() {
+        waitingOn(2)
         `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf(picked, revision = 5))
         assertEquals(409, refusedWith(spanInputs(0, 3, revision = 4)))
     }
 
     @Test
     fun `a missing instruction or a malformed span is a 422 and an over-long instruction too`() {
+        waitingOn(2)
         `when`(episodes.read("work", "owner", 2)).thenReturn(draftOf(picked))
         assertEquals(422, refusedWith(spanInputs(0, 3, instruction = null)))
         assertEquals(422, refusedWith(spanInputs(0, 3, instruction = " ")))
@@ -276,7 +297,7 @@ class WritingAiServiceTest {
     fun `inputs without a span go through untouched and never read the draft`() {
         val draft = mapper.readTree("""{"writing_editing":{"draft":{"episodeNumber":2,"plan":"선장이 도착한다."}}}""")
         assertEquals(draft, resumedWith(draft)["inputs"])
-        verifyNoInteractions(episodes)
+        verifyNoInteractions(episodes, client)
     }
 
     // 시뮬레이션 무대의 장면 조작(resume.scene): 형식·길이만 확인해 AI로 그대로 넘긴다. 조작별 필수 필드는 AI가 다시 확인한다.
@@ -488,6 +509,41 @@ class WritingAiServiceTest {
         assertEquals(422, assertThrows(ContentFailure::class.java) {
             service.run("work", owner, "Bearer user", pageAsk(WritingAiPage("/studio/work?ep=9", "studio", episode = 9)))
         }.status)
+        verifyNoInteractions(client)
+    }
+
+    @Test
+    fun `a studio page on another episode than the reflect episode is a 422 and nothing reaches the AI`() {
+        groundedFor(owner)
+        val selected = "그는 웃었다."
+        for (request in listOf(
+            pageAsk(WritingAiPage("/studio/work?ep=2", "studio", episode = 2, selection = selected)).copy(targetEpisode = 3),
+            pageAsk(WritingAiPage("/studio/work?ep=3", "studio", episode = 3, selection = selected)),  // 반영 회차가 없으면 근거 회차(2화)에 쓴다
+            pageAsk(WritingAiPage("/studio/work?ep=2", "studio", episode = 2)).copy(targetEpisode = 3),  // 선택 글이 없어도 화면 원고가 섞인다
+        )) {
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", owner, "Bearer user", request) }.status)
+        }
+        verifyNoInteractions(client)
+    }
+
+    @Test
+    fun `a studio page on the unpublished reflect episode goes to the AI as it is`() {
+        groundedFor(owner)
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        val page = WritingAiPage("/studio/work?ep=3", "studio", episode = 3, selection = "그는 웃었다.")
+        service.run("work", owner, "Bearer user", pageAsk(page).copy(targetEpisode = 3))
+        val body = sent()
+        assertEquals(mapOf("workId" to "work", "episode" to 3, "baseEpisode" to 2), body["target"])
+        assertEquals(mapOf("path" to page.path, "kind" to "studio", "episode" to 3, "selection" to "그는 웃었다."), body["page"])
+    }
+
+    @Test
+    fun `a selection without its episode is a 422 on either screen`() {
+        groundedFor(owner)
+        for (page in listOf(WritingAiPage("/studio/work", "studio", selection = "그는 웃었다."),
+            WritingAiPage("/worldstudio", "world", selection = "그는 웃었다."))) {
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", owner, "Bearer user", pageAsk(page)) }.status)
+        }
         verifyNoInteractions(client)
     }
 

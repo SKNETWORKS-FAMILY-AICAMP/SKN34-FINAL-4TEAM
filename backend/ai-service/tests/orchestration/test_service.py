@@ -2040,8 +2040,12 @@ def test_planning_without_a_target_fails_the_step(monkeypatch):
 
 def test_patch_task_without_selection_still_waits_for_input(monkeypatch):
     fake_agents(monkeypatch, plan(writing_step('patch')))
-    result = chat(str(uuid4()), target=TARGET)
+    thread = str(uuid4())
+    result = chat(thread, target=TARGET)
     assert (result.status, result.missingInputs) == ('waiting', ['writing_editing'])
+    # 구간 카드와 Content의 구간 검증은 열린 회차가 아니라 멈춘 턴의 반영 회차를 쓴다(#635)
+    assert result.approvalEpisode == TARGET['episode']
+    assert conversation('history', thread, 'user:1/work:1').turns[-1].reply.approvalEpisode == TARGET['episode']
 
 
 UNSUPPORTED = '요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요.'  # 미구현 기능을 판정하던 때의 고정 문구(옛 기록에만 남는다)

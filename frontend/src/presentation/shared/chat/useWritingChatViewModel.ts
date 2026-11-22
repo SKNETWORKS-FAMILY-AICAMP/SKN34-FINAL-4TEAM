@@ -16,7 +16,8 @@ const message = (error: unknown, fallback: string) => (error instanceof Error &&
  * 집필실·세계관 화면의 집필 AI 채팅(#331). 대화 원본은 AI 세이버이고, 이 Hook은 Content API로 읽고 보낸 뒤
  * 스트림이 끝나거나 실패하면 이력을 다시 읽어 저장된 상태를 그대로 보인다(실패를 성공처럼 남기지 않는다).
  * workId가 없거나(연결 소설 없음) basis가 없으면(발행 회차 없음) 보내지 않는다.
- * getPage(#554)는 새 메시지(보내기·고쳐 다시 보내기)를 보내는 순간의 화면 정보를 읽는다. 편집기의 선택 글은 상태가 아니라 보내는 때 읽어야 해서 값이 아니라 함수다.
+ * getPage(#554)는 새 메시지(보내기·고쳐 다시 보내기)를 보내는 순간, 어떤 기다림(첨부 읽기·새 대화 열기)보다 먼저 읽는다(#635). 반영 회차(basis)와 같은 시점이어야 한다.
+ * 편집기의 선택 글은 상태가 아니라 보내는 때 읽어야 해서 값이 아니라 함수다.
  * 이어가기(승인·입력·장면 조작)에는 싣지 않는다.
  * 승인한 계획 저장(계획 수정 revise_plan, Content 도구 story_plan_create·story_plan_update)은 회차 초안이 아니라 계획을 바꾸므로 onPlanApplied(#637)로만 알린다.
  */
@@ -94,12 +95,12 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   })
 
   /** 스트림 하나를 끝까지 읽고 이력·목록을 다시 읽는다. 실패도 저장 여부는 이력이 알려 준다. */
-  async function stream(request: string, input: ChatSendBody, editIndex?: number) {
+  async function stream(request: string, input: ChatSendBody, editIndex?: number, readPage = page.current) {
     if (active.current) return false
     if (!useCase || !workId || !basis) { setError(lockedReason ?? '지금은 보낼 수 없어요.'); return false }
     let screen: ChatPage | undefined
     try {
-      screen = 'request' in input ? page.current?.() : undefined
+      screen = 'request' in input ? readPage?.() : undefined
     } catch (failure) {
       setInputError(message(failure, '보낼 화면 정보를 읽지 못했어요.'))
       return false
@@ -173,7 +174,9 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     available: !!useCase && !!workId && !!basis, basisEpisode: basis?.episode ?? null,
     // 결과를 반영할 회차(작가가 연 회차). 근거 회차와 다를 수 있다(5화 초안은 4화까지를 근거로 5화에 반영한다).
     targetEpisode: basis?.targetEpisode ?? basis?.episode ?? null,
-    simulation: simulationStep?.simulation ?? null, simulationStep, awaiting, approvalEpisode: waiting?.approvalEpisode ?? null,
+    simulation: simulationStep?.simulation ?? null, simulationStep, awaiting,
+    // 편집기를 맞출 회차는 승인·장면 대기에만 있다. 입력 대기의 반영 회차(#635)는 카드만 쓴다.
+    approvalEpisode: waiting?.missingInputs.length ? null : waiting?.approvalEpisode ?? null,
     streaming: !!live, deciding: !!live?.decision, sceneTicket,
     dismissError: () => setError(''),
     select: (id: string) => { if (active.current || id === threadId) return; current.current = id; setTurns([]); setError(''); setInputError(''); setThreadId(id) },
@@ -182,14 +185,16 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     send: async (text: string, extra?: { operation?: ChatFeature; simulation?: SimulationStart; files?: File[] }) => {
       const { files, ...rest } = extra ?? {}
       let attachments: ChatAttachmentPayload[] | undefined
+      let screen: ChatPage | undefined
       try {
+        screen = page.current?.()
         // 잠겼거나 다른 스트림이 도는 중이면 읽지 않는다(stream이 이유와 함께 거절한다).
         attachments = files?.length && !active.current && !lockedReason ? await readAttachments(files) : undefined
       } catch (failure) {
-        setInputError(message(failure, '첨부 파일을 읽지 못했어요.'))
+        setInputError(message(failure, '보낼 화면 정보나 첨부 파일을 읽지 못했어요.'))
         return false
       }
-      return stream(text, { request: text, ...rest, ...(attachments ? { attachments } : {}) })
+      return stream(text, { request: text, ...rest, ...(attachments ? { attachments } : {}) }, undefined, () => screen)
     },
     edit: (index: number, text: string) => stream(text, { request: text }, index),
     resume: (approved: boolean, inputs?: ChatStepInputs) => stream(turns.at(-1)?.request ?? '', { resume: { approved, inputs } }),

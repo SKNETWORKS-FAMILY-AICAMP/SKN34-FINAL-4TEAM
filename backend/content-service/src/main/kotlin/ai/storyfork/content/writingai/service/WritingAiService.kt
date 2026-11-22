@@ -87,13 +87,18 @@ internal class WritingAiService(
     }
 
     /**
-     * 작가가 보는 화면(#554)을 사용자 권한으로 다시 확인한다. studio의 회차는 이 작품의 활성 회차여야 하고(422), world의 세계관은 이 작품에 연결된
-     * 작가 본인의 세계관이어야 하며(아니면 422·남의 것은 404) 카드는 그 세계관의 삭제되지 않은 카드여야 한다(422). 화면이 준 id는 인가 근거가 아니다.
+     * 작가가 보는 화면(#554)을 사용자 권한으로 다시 확인한다. studio의 회차는 이 작품의 활성 회차이면서 반영 회차(reflect)와 같아야 하고(422),
+     * 선택 글은 회차 없이 받지 않는다(#635). world의 세계관은 이 작품에 연결된 작가 본인의 세계관이어야 하며(아니면 422·남의 것은 404)
+     * 카드는 그 세계관의 삭제되지 않은 카드여야 한다(422). 화면이 준 id는 인가 근거가 아니다.
      */
-    private fun checkPage(workId: String, owner: String, page: WritingAiPage) {
+    private fun checkPage(workId: String, owner: String, page: WritingAiPage, reflect: Int) {
+        checkContent(page.selection == null || page.episode != null, message = "선택한 글의 회차를 알 수 없어요. 집필실에서 회차를 열고 다시 보내 주세요.")
         if (page.kind == "studio") {
             checkContent(page.worldId == null && page.cardId == null, message = "집필실 화면 정보가 올바르지 않아요.")
-            page.episode?.let { requireEpisode(workId, owner, it) }
+            page.episode?.let {
+                requireEpisode(workId, owner, it)
+                checkContent(it == reflect, message = "화면의 회차와 반영할 회차가 달라요. 회차를 다시 열고 보내 주세요.")
+            }
             return
         }
         checkContent(page.episode == null && (page.worldId != null || page.cardId == null), message = "세계관 화면 정보가 올바르지 않아요.")
@@ -132,9 +137,10 @@ internal class WritingAiService(
      * AI의 `patch`(선택 문장·앞뒤 2,000자·지시)로 바꾼다. 작품 소유는 회차 조회가 확인하고(남의 작품·없는 회차는 그 오류),
      * 초안 revision이 다르면 409, 구간 규칙(공백 아님·5,000자 이하·서로게이트 분할 금지)은 부분 수정과 같은 [WritingSelection]이 422로 막는다.
      * 허용 문맥은 싣지 않는다(AI가 Content MCP로 채운다). span이 없으면 inputs를 그대로 통과시킨다.
-     * shortcut: span.episode가 대화의 반영 회차와 같은지는 보지 않는다. 다르면 AI의 apply가 선택 문장이 그 초안에 한 번 있는지 다시 확인해 409로 막는다.
+     * span.episode는 AI가 저장한 멈춘 턴(이력의 마지막)의 반영 회차(approvalEpisode)와 같아야 하며 다르거나 알 수 없으면 422다(#635).
+     * shortcut: 그 한 값을 위해 대화 이력 전체를 읽는다. 긴 대화에서 느리면 AI에 대기 상태만 읽는 경로를 둔다.
      */
-    private fun patchInputs(workId: String, owner: String, inputs: JsonNode): JsonNode {
+    private fun patchInputs(workId: String, owner: String, threadId: String, inputs: JsonNode): JsonNode {
         val span = inputs.path("writing_editing").path("span")
         if (span.isMissingNode) return inputs
         fun whole(name: String) = span.path(name).takeIf { it.isIntegralNumber && it.canConvertToInt() }?.asInt()
@@ -146,6 +152,9 @@ internal class WritingAiService(
         checkContent(episode != null && revision != null && start != null && end != null &&
             instruction != null && instruction.isNotBlank() && instruction.length <= 2000, message = "수정 구간과 지시를 다시 확인해 주세요.")
         val draft = episodes.read(workId, owner, episode!!).draft
+        val turns = client.history(threadId, scopeOf(workId, owner)).path("turns")
+        checkContent(turns.path(turns.size() - 1).path("reply").path("approvalEpisode").asInt(0) == episode,
+            message = "이 대화에서 고칠 회차의 구간이 아니에요. 대화를 다시 불러온 뒤 구간을 골라 주세요.")
         checkContent(draft.revision == revision, 409, "초안이 바뀌었어요. 수정할 구간을 다시 선택해 주세요.")
         val selection = WritingSelection.of(draft.body, start!!, end!!)
         val replaced = (inputs as ObjectNode).deepCopy()
@@ -188,7 +197,7 @@ internal class WritingAiService(
             // 모델 호출 전에 권한 밖 작품·회차를 막는다. 실제 근거 조회 때 Content가 다시 확정한다.
             scopes.resolve(workId, owner, QaScopeRequest(request.episode, request.episodeVersionId))
             if (reflect != request.episode) requireEpisode(workId, owner, reflect)
-            request.page?.let { checkPage(workId, owner, it) }
+            request.page?.let { checkPage(workId, owner, it, reflect) }
         }
         val scope = mapOf("scopeToken" to grants.issue(
             QaScopeGrant(workId, owner, request.episode, request.episodeVersionId)))
@@ -198,7 +207,7 @@ internal class WritingAiService(
                 put("resume", buildMap {
                     put("approved", request.resume.approved)
                     put("scope", scope)
-                    request.resume.inputs?.let { put("inputs", patchInputs(workId, owner, it)) }
+                    request.resume.inputs?.let { put("inputs", patchInputs(workId, owner, threadId, it)) }
                     request.resume.scene?.let { put("scene", body(it)) }
                     if (request.resume.refresh == true) put("refresh", true)
                 })
