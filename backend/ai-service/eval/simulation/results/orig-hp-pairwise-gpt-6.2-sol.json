@@ -1,4 +1,11 @@
 {
+  "acts": {
+    "H1": {
+      "model": "hemmingway-1",
+      "provider": "hemmingway.io",
+      "thinking": "off"
+    }
+  },
   "corpus": "hp",
   "grader": "gpt-6.2-sol",
   "items": 400,
@@ -31,6 +38,66 @@
         "ties": 29,
         "winRate": 0.5317073170731708,
         "wins": 109
+      }
+    },
+    "H1 vs P1": {
+      "aRate": 0.5,
+      "failed": 0,
+      "losses": 19,
+      "n": 20,
+      "noRef": {
+        "aRate": 0.5,
+        "failed": 0,
+        "losses": 8,
+        "n": 9,
+        "p": 0.0390625,
+        "ties": 0,
+        "winRate": 0.1111111111111111,
+        "wins": 1
+      },
+      "p": 4.00543212890625e-05,
+      "ties": 0,
+      "winRate": 0.05,
+      "wins": 1,
+      "withRef": {
+        "aRate": 0.5,
+        "failed": 0,
+        "losses": 11,
+        "n": 11,
+        "p": 0.0009765625,
+        "ties": 0,
+        "winRate": 0.0,
+        "wins": 0
+      }
+    },
+    "H1 vs P1+M1": {
+      "aRate": 0.5,
+      "failed": 0,
+      "losses": 18,
+      "n": 20,
+      "noRef": {
+        "aRate": 0.5,
+        "failed": 0,
+        "losses": 8,
+        "n": 9,
+        "p": 0.0390625,
+        "ties": 0,
+        "winRate": 0.1111111111111111,
+        "wins": 1
+      },
+      "p": 0.0004024505615234375,
+      "ties": 0,
+      "winRate": 0.1,
+      "wins": 2,
+      "withRef": {
+        "aRate": 0.5,
+        "failed": 0,
+        "losses": 10,
+        "n": 11,
+        "p": 0.01171875,
+        "ties": 0,
+        "winRate": 0.09090909090909091,
+        "wins": 1
       }
     },
     "P1 vs base2": {

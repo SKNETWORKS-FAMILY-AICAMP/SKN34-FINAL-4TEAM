@@ -1,0 +1,81 @@
+{
+  "acts": {
+    "variant": {
+      "model": "hemmingway-1",
+      "provider": "hemmingway.io",
+      "thinking": "off"
+    }
+  },
+  "base": "P1",
+  "corpus": "hp",
+  "grader": "gpt-6.2-sol",
+  "sets": {
+    "1": {
+      "applied": {
+        "metrics": {
+          "clean": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          },
+          "intent": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          },
+          "voice": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          }
+        },
+        "n": 0
+      },
+      "callMs": {
+        "base": 2128.0,
+        "cand": 4197.5
+      },
+      "metrics": {
+        "clean": {
+          "down": 0,
+          "meanDiff": 0.05,
+          "n": 20,
+          "p": 1.0,
+          "tie": 19,
+          "up": 1
+        },
+        "intent": {
+          "down": 10,
+          "meanDiff": -0.75,
+          "n": 20,
+          "p": 0.01171875,
+          "tie": 9,
+          "up": 1
+        },
+        "voice": {
+          "down": 8,
+          "meanDiff": -0.4,
+          "n": 20,
+          "p": 0.0390625,
+          "tie": 11,
+          "up": 1
+        }
+      },
+      "tokens": {
+        "base": 7529.95,
+        "cand": 7654.05,
+        "ratio": 1.0164808531265148
+      }
+    }
+  },
+  "variant": "H1"
+}

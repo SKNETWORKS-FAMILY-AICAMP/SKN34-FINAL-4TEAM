@@ -139,7 +139,7 @@
 
 ## 7. 채점·집계
 
-- 채점 모델은 ocx(`gpt-6-luna`, 금액 0)를 기본으로 하고 `--judge openai`면 `cost.MODEL`(`gpt-5.6-luna`)이다. 다른 ocx 모델은 `run`·`judge_cli.py regrade`의 `--judge-model`(§14)이고 캐시 열쇠·기록 폴더·장부 `model`이 채점 모델마다 따로다. 생성 호출(서비스 함수)은 OpenAI `gpt-6-luna`다. 점수 범위·금지 id는 서버 쪽에서 다시 검증한다.
+- 채점 모델은 ocx `gpt-6.2-sol`(금액 0)이 기본이다(2026-11-22 사용자 지시, §14·§15. §11~§13의 기록은 처음의 `gpt-6-luna`로 채점했고 `runs/`·`cache-judge-ocx`에 그대로 있으며 `--judge-model gpt-6-luna`·`--grader gpt-6-luna`로만 쓴다). `--judge openai`면 `cost.MODEL`(`gpt-5.6-luna`)이고 `--judge-model gpt-6-luna`와 함께 쓴다. 다른 ocx 모델은 `run`·`judge_cli.py regrade`의 `--judge-model`(§14)이고 캐시 열쇠·기록 폴더·장부 `model`이 채점 모델마다 따로다. 생성 호출(서비스 함수)은 OpenAI `gpt-6-luna`다. 점수 범위·금지 id는 서버 쪽에서 다시 검증한다.
 - 호출 실패·잘린 응답·파싱 실패는 점수를 꾸미지 않고 `errors`·`failedJudge`로 센다. 정답 유출로 건너뛴 문항은 `skipped`다. 평균은 채점된 문항만으로 낸다.
 - 평균은 정규 근사 95% 구간, 비율은 Wilson 95% 구간이다. 호출당 입력·출력 토큰과 지연(p50·p95)을 같이 남긴다. 후보 비교는 같은 문항의 정확 부호 검정(`metrics.sign_test`)이다.
 
@@ -513,7 +513,7 @@ set -a; . <키 파일>; set +a; uv run --locked --extra dev python eval/simulati
 
 ### 14.2 방법
 
-- **채점 모델 선택**: `run·regrade --judge-model`(기본 `gpt-6-luna`). 응답 캐시 열쇠에 채점 모델 이름이 들어가고 채점 방식마다 캐시 폴더가 따로라, luna 캐시가 sol 결과로 재사용되지 않는다(기본 모델은 §13의 캐시 열쇠를 그대로 써서 기존 기록이 유지된다). 장부 줄에는 ocx 호출도 `model`을 적는다. 게이트웨이는 `gpt-6.2-sol`을 `responses.parse`(구조화 출력·`store=False`·메시지 목록 입력)로 받고 응답 `model`이 `gpt-6.2-sol`이며 추론 토큰 0·호출당 약 2~3초다. 게이트웨이 계정의 429(쿨다운)가 잦아 동시 6~8로 낮춰 재시도했다(계정은 바꾸지 않았다).
+- **채점 모델 선택**: `run·regrade·judge-pair --judge-model`(처음 기본은 `gpt-6-luna`였고 2026-11-22부터 `gpt-6.2-sol`이다. `summary·compare --grader`도 같다). 응답 캐시 열쇠에 채점 모델 이름이 들어가고 채점 방식마다 캐시 폴더가 따로라, luna 캐시가 sol 결과로 재사용되지 않는다(기본 모델은 §13의 캐시 열쇠를 그대로 써서 기존 기록이 유지된다). 장부 줄에는 ocx 호출도 `model`을 적는다. 게이트웨이는 `gpt-6.2-sol`을 `responses.parse`(구조화 출력·`store=False`·메시지 목록 입력)로 받고 응답 `model`이 `gpt-6.2-sol`이며 추론 토큰 0·호출당 약 2~3초다. 게이트웨이 계정의 429(쿨다운)가 잦아 동시 6~8로 낮춰 재시도했다(계정은 바꾸지 않았다).
 - **다시 채점**(`judge_cli.py regrade`): `runs/`의 생성을 읽어 채점만 다시 한다. 기록은 채점 방식마다 폴더가 따로이고(`runs-gpt-6.2-sol`·`runs-gpt-6.2-sol+ref`·`runs-luna-retest`·`runs-sol-retest`) 원본 `runs/`는 건드리지 않는다(생성 기록을 읽는 폴더는 기본 `runs`이고, `run --judge-model`로 만든 후보는 `--source <모델 이름>`으로 고른다). 대상은 ① 본 11개 실행(base2·A·E1·E2·P1·P1b·P1+E1·P1+M1·V1·V3·V5)·③ 나레이션 5개·독백 5개·dev ① 7개·dev ③ 나레이션 5개다. 채점 실패(일시 오류, 약 0.4%)는 점수 없이 남겼다가 이어 받기에서 다시 불러 0건으로 채웠다.
 - **voiceRef**(`--voice-ref`, ①만): 그 인물이 기준 회차 이전 원문에서 한 대사(꼬리표에 인물 이름이 나오는 8~200자 줄) 중 정답·직전 장면의 줄과 같거나 정답과 두 글자 조각이 50% 이상 겹치는 줄을 뺀 나머지에서 문항 id를 시드로 고른 최대 8줄(회차 순)을 채점 입력에 더하고, 「내용·상황과 상관없이 이 인물의 말투인가」를 1~5로 정답 기반 말투·의도와 따로 받는다. 5줄 미만이면 그 문항은 voiceRef가 없다: 본 400 중 234, dev 100 중 67문항이다.
 - **A/B**(`judge-pair`): 같은 문항의 두 후보 글을 A·B로 보여 주고 정답·voiceRef에 비춰 어느 쪽이 그 인물이 한 말 같은지 고르게 한다. **순서를 바꿔 두 번** 묻고 두 번 다 같은 글이면 승·패, 엇갈리면 무승부(자리 쏠림이 판정을 정하지 않게). 집계는 무승부를 뺀 승:패의 정확 부호 검정이다. 채점은 sol만 했다.
@@ -685,6 +685,7 @@ V4 보고서 §3.5에서 비트 셋 흐름 장면(hp-3-flow)의 완료율이 P1+
 
 ```bash
 cd backend/ai-service
+# sol이 기본이라 --judge-model gpt-6.2-sol은 생략해도 된다(judge-pair는 생성 기록도 runs-gpt-6.2-sol에서 읽는다)
 uv run --locked --extra dev python eval/simulation/judge_cli.py regrade --corpus hp --sets 1,3n,3m --judge-model gpt-6.2-sol                              # → runs-gpt-6.2-sol (--dev: dev 세트)
 uv run --locked --extra dev python eval/simulation/judge_cli.py regrade --corpus hp --sets 1 --judge-model gpt-6.2-sol --voice-ref                       # → runs-gpt-6.2-sol+ref (voiceRef 점수 추가)
 uv run --locked --extra dev python eval/simulation/judge_cli.py regrade --corpus hp --sets 1 --tags base2 P1 --judge-model gpt-6-luna --name luna-retest   # 같은 모델 재채점(일치의 상한 어림)
@@ -705,3 +706,37 @@ set -a; . <키 파일>; set +a; uv run --locked --extra dev python eval/simulati
 - **일치의 상한 어림**은 base2·P1 두 실행 800건의 재채점으로만 했고, ③ 재채점은 하지 않았다.
 - **terra 호출당·장면당 비용·지연 어림**은 생성이 같아 §13.7과 같고 단가는 제3자 출처다.
 - 채점 실패(일시 오류 약 0.4%)는 재시도로 모두 채웠다. 게이트웨이 계정의 429(쿨다운)로 대량 채점이 느렸다(초당 약 2~3건).
+
+## 15. Hemmingway act 시험: 20문항 맛보기에서 탈락 (2026-11-22)
+
+인물 대사(act) 호출만 OpenAI 호환 제공사 Hemmingway(`https://hemmingway.io/v1`)의 `hemmingway-1`로 보내(서비스의 act 제공사 변수, 코드는 [계약 문서](../design/character-simulation-contract.md)) luna act와 견줬다. **같은 20문항에서 sol 채점으로도 말투·의도가 모두 낮고 A/B에서 거의 전패라 400문항 본 비교 전에 시험을 끝냈고 서비스는 OpenAI를 유지한다**(사용자 결정).
+
+- **조건**: 같은 지시문(P1 본문)·같은 입력, 추론 강도 low, 생각 끔(`SIMULATION_ACT_THINKING=off` → `enable_thinking=false`), 실행 태그 `H1`(기록의 `via.act`에 provider `hemmingway.io`·model `hemmingway-1`·thinking `off`). 문항은 ① 본 400에서 같은 간격으로 뽑은 20개이고 luna P1·terra P1+M1·v2 base2의 같은 문항과 짝 비교한다. **채점은 sol(`gpt-6.2-sol`)이 주이고 luna는 참고다**: 실행 때 채점 기본값이 luna였던 것을 sol로 바꿨고(§7) H1은 sol로 다시 채점했다(생성은 그대로, Hemmingway 추가 호출 없음, ocx 금액 0).
+
+| ① 같은 20문항 | H1: hemmingway-1 | P1(luna) | P1+M1(terra) | base2(luna) |
+|---|---|---|---|---|
+| 말투 sol(luna) | 2.70 (2.10) | 3.10 (2.90) | 3.40 (3.00) | 2.95 (2.75) |
+| 의도 sol(luna) | 1.75 (1.65) | 2.50 (2.55) | 2.65 (2.55) | 2.65 (2.60) |
+| 시점 위반 sol(luna) | 0/20 (0/20) | 1/20 (1/20) | 0/20 (1/20) | 1/20 (2/20) |
+| 오류(502·503) | 0 | 0 | 0 | 0 |
+| act 지연 p50 / p95 | 4.2초 / 7.3초 | 2.1초 / 2.5초 | 2.6초 / 3.4초 | 2.6초 / 3.2초 |
+| 입력·출력 토큰 평균 | 7,654 · 98 | 7,530 · 112 | 7,530 · 92 | 7,362 · 125 |
+| 호출당 달러 | 0.0058 | 0.0016 | 0.0080 | 0.0016 |
+
+- **A/B(sol, 순서를 바꿔 두 번 묻고 두 번 같은 쪽일 때만 승패)**: H1 대 P1 **1승 19패**(승률 5%, p<0.001), H1 대 P1+M1 2승 18패(10%, p<0.001)다. 말투 기준 줄이 있는 11문항에서는 P1에 0승 11패다.
+- **짝 비교 점수(sol)**: H1 대 P1 말투 1↑ 8↓(−0.40, p=0.039)·의도 1↑ 10↓(−0.75, p=0.012), 대 P1+M1 말투 1↑ 12↓(−0.70, p=0.003)·의도 2↑ 12↓(−0.90, p=0.013), 대 base2 말투 3↑ 8↓(−0.25, p=0.23)·의도 2↑ 12↓(−0.90, p=0.013). 시점 위반은 20문항으로 가르지 못한다. luna(참고)는 같은 방향이고 말투 차이가 더 크다(대 P1 말투 1↑ 13↓ −0.80, p=0.002·의도 2↑ 12↓ −0.90, p=0.013). 글을 읽어 보면 번역투라는 평가다(사용자 검토).
+- **비용·지연**: 호출당 0.0058달러는 luna(0.0016)의 약 3.6배다(Hemmingway 입력 0.72·캐시 입력 0.072·출력(생각 포함) 2.70달러/100만 토큰, 응답의 캐시 토큰 수를 몰라 전부 입력 단가로 센 상한). 지연은 동시 4에서 잰 값이라 제공사 대기가 섞였을 수 있다. 같은 입력이면 출력이 똑같았다(결정적 디코딩이거나 응답 캐시).
+- **맛보기에서 안 것**: 생각을 켜 두면 생각 토큰이 출력 토큰에 섞여 hemmingway-1은 평균 579토큰(생각을 끄면 81~104)이다. `reasoning_effort`는 minimal과 low가 같고 medium만 다르다. `max_completion_tokens`는 적용된다(길이 초과는 502).
+- **하지 않은 것**: ① 400문항, 생각 low의 dev 100문항은 사용자 결정으로 하지 않았다. 20문항이라 표본이 작고(sol A/B의 p는 작지만 문항이 적다) 이 표는 탈락 사유일 뿐 Hemmingway의 일반 평가가 아니다.
+- **Hemmingway 비용**: 합계 약 0.33달러(상한 5달러). 본 시험 66호출 0.242달러(20문항 + 보류 지시 전에 돌던 400문항 실행에서 끝난 46호출, `.data/cost-hemmingway.jsonl`) + 맛보기·추가 시험 약 0.083달러(단가 계산 상한). OpenAI 장부(30.0978달러)는 변함없다.
+- **남긴 것**: act 제공사 변수(`SIMULATION_ACT_*`)와 평가 실행기의 제공사 단가·별도 장부·`via.act` 표기는 기본값이 OpenAI라 그대로 둔다. 결과 파일은 `results/orig-hp-compare-H1-vs-{P1,P1+M1,base2}-gpt-6.2-sol.json`과 `orig-hp-pairwise-gpt-6.2-sol.json`(`acts`에 provider·model 표기)이고 H1 기록은 `.data/orig/hp/checks/1-H1-taste20.jsonl`(luna 채점)·`runs-gpt-6.2-sol/1-H1.jsonl`(sol 채점)이다.
+
+```bash
+cd backend/ai-service
+set -a; . <키 파일>; set +a; SIMULATION_ACT_BASE_URL=https://hemmingway.io/v1 SIMULATION_ACT_API_KEY="$HEMMINGWAY_API_KEY" SIMULATION_ACT_MODEL=hemmingway-1 SIMULATION_ACT_THINKING=off \
+  uv run --locked --extra dev python eval/simulation/orig_cli.py run --corpus hp --sets 1 --limit 20 --variant P1 --tag H1 --limit-usd 4.9 --workers 4   # 채점 기본은 sol이다
+# 이 시험은 채점이 luna일 때 돌아 H1 기록(checks/)을 runs-hemm-taste/1-H1.jsonl로 복사해 sol로 다시 채점했다
+uv run --locked --extra dev python eval/simulation/judge_cli.py regrade --corpus hp --sets 1 --tags H1 --source hemm-taste
+uv run --locked --extra dev python eval/simulation/judge_cli.py judge-pair --corpus hp --set 1 --pairs H1:P1 H1:P1+M1
+uv run --locked --extra dev python eval/simulation/orig_cli.py compare --corpus hp --variant H1 --base P1
+```
