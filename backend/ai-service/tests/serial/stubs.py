@@ -17,8 +17,8 @@ CONTEXT = json.dumps({'title': '작품', 'summary': '', 'episodes': [{'number': 
 CHOICE = {'text': '서윤이 모든 진실을 털어놓는다', 'votes': 3}
 
 
-def story(opening: str, length: int = 3000) -> str:
-    """정확히 length자인 원고(최소 분량 2,500자 경계를 재려고 공백 없이 채운다)."""
+def story(opening: str, length: int = 6000) -> str:
+    """정확히 length자인 원고(기본은 최소 분량 5,000자를 넘는 길이, 경계를 재려고 공백 없이 채운다)."""
     return opening + '가' * (length - len(opening))
 
 

@@ -17,9 +17,11 @@ from app.writing.models import BeatPlan, DraftRequest, PlanRequest
 
 CHOICE_COUNT, CHOICE_MAX = 4, 300  # 선택지 수와 글자 수(계약)
 SCENE_MAX, SUMMARY_MAX, EPISODE_SUMMARY_MAX, TITLE_MAX = 1500, 1000, 400, 120  # 장면 미리보기(계약)·투표 종합 문장·회차 요약(계약)·회차 제목(Content 한도 120자)
-MIN_TEXT = 2500  # 회차 원고 최소 분량(글자). 직전 회차들과 비슷한 분량은 프롬프트가 맡고, 이 아래는 검수 실패다.
-# Writing 기본(4,000토큰·120초)보다 넉넉히: 직전 회차 분량의 원고가 잘리지 않게. 회차 실행 최악 합계는 570초(종합 40+기획 50+집필 180+검수 60+재작성 180+검수 60).
-DRAFT_TOKENS, DRAFT_TIMEOUT = 8000, 180
+MIN_TEXT = 5000  # 회차 원고 최소 분량(글자). 직전 회차들과 비슷한 분량은 프롬프트가 맡고, 이 아래는 검수 실패다.
+# Writing 기본(4,000토큰·120초)보다 넉넉히: 5,000자 이상은 약 3,500~4,500토큰이고 추론 토큰도 출력 한도에 들어 12,000토큰으로 잡았다.
+# timeout은 Content 읽기 한도(10분)에서 나온다: 종합 30+기획 50+집필 195+검수 50+재작성 195+검수 50 = 최악 합계 570초(30초 여유는 프롬프트 읽기·전송).
+# 시간이 모자라면 집필 timeout을 올리지 말고 호출을 줄인다.
+DRAFT_TOKENS, DRAFT_TIMEOUT = 12000, 195
 NO_INPUT = '투표와 제안 글이 없어 연재 방향대로 이어 갔습니다.'
 # Writing 기획·집필 지시는 그대로라 문맥 JSON(Content serialContext)의 이전 회차 요약·관련 장면 쓰는 법을 요청 자료로 알린다.
 CONTEXT_GUIDE = '문맥의 summaries로 전체 흐름을, related(있으면)로 이어 쓸 옛 장면을 참고하되 related의 문장을 그대로 베끼지 않는다.'
@@ -88,7 +90,7 @@ def _summary(data: EpisodeRequest, credit: agent_runtime.CreditMiddleware) -> st
     brief = {'episodeNumber': data.episodeNumber, 'choice': data.choice and data.choice.model_dump(),
              'proposals': [proposal.model_dump() for proposal in data.proposals]}
     _, result = agent_runtime.run('serial.summary', '투표·제안 종합', SerialFailure, SUMMARY_INSTRUCTIONS, brief, prompt_name='serial.vote_summary',
-                                  max_tokens=1500, timeout=40, trace=brief, schema=Summary, credit=credit)
+                                  max_tokens=1500, timeout=30, trace=brief, schema=Summary, credit=credit)
     summary = result.summary.strip()
     if not summary or len(summary) > SUMMARY_MAX:
         raise SerialFailure(502, '투표·제안 종합 모델 응답을 확인할 수 없습니다.')
@@ -107,13 +109,13 @@ def _review(data: EpisodeRequest, title: str, text: str, credit: agent_runtime.C
         return Review(passed=False, issues=[f'분량이 {len(text)}자로 최소 {MIN_TEXT:,}자에 못 미친다. 비트마다 장면을 풀어 {MIN_TEXT:,}자 이상으로 쓴다.'])
     brief = {'episodeNumber': data.episodeNumber, 'title': title, 'text': text, 'choice': data.choice and data.choice.text}
     _, result = agent_runtime.run('serial.review', '검수', SerialFailure, REVIEW_INSTRUCTIONS, {**brief, 'context': data.context},
-                                  prompt_name='serial.episode_review_v2', max_tokens=2000, timeout=60, trace=brief, schema=Review, credit=credit)
+                                  prompt_name='serial.episode_review_v2', max_tokens=2000, timeout=50, trace=brief, schema=Review, credit=credit)
     return result
 
 
 def _plan_request(data: EpisodeRequest, summary: str) -> str:
     """기획 요청 문장: 중심 전개(1위 선택지)·연재 방향·제안 종합 순. PlanRequest.request 한도(2,000자)에 맞춘다."""
-    lines = ['다음 회차를 기획한다. 계획 제목은 회차 제목으로 쓰이므로 짧게 짓고 비트는 5~8개로 짠다. 직전 회차의 결말을 되풀이하지 않고 그 직후 장면에서 시작한다. ' + CONTEXT_GUIDE]
+    lines = ['다음 회차를 기획한다. 계획 제목은 회차 제목으로 쓰이므로 짧게 짓고 비트는 6~10개로 짠다. 직전 회차의 결말을 되풀이하지 않고 그 직후 장면에서 시작한다. ' + CONTEXT_GUIDE]
     if data.choice:
         lines.append(f'중심 전개(독자 투표 1위): {data.choice.text}\n이 전개를 이번 회차의 핵심 사건으로 삼아 비트 대부분을 여기에 쓴다.')
     if data.direction.strip():

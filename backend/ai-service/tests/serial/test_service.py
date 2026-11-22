@@ -105,12 +105,13 @@ def test_episode_chains_summary_plan_draft_and_review_with_the_top_choice_as_the
     # 1위 선택지는 기획 요청의 맨 앞에 글자 그대로 들어가고, 소유자의 연재 방향, 제안 종합이 뒤따른다.
     request = plan['request']
     assert request.index(CHOICE['text']) < request.index('서윤의 성장 이야기') < request.index(SUMMARY[0]['summary'])
+    assert '비트는 6~10개' in request  # 5,000자 이상을 채울 장면 수
     assert plan['single'] is True and plan['context'] == CONTEXT and draft['context'] == CONTEXT
     # 문맥의 이전 회차 요약(summaries)과 관련 장면(related)은 쓰는 법을 요청 자료로 알린다(Writing 지시는 그대로이므로).
     assert 'summaries' in plan['request'] and 'related' in plan['request'] and 'summaries' in draft['plan'] and 'related' in draft['plan']
     # 집필 요청은 계획에 분량·되풀이 금지·중심 전개 조건을 붙인다(Writing 집필 지시는 plan의 분량 요청을 따른다).
     assert '진실의 밤' in draft['plan'] and '1. 서윤이 망설인다' in draft['plan']
-    assert '최소 2,500자' in draft['plan'] and '되풀이하지 않고' in draft['plan'] and CHOICE['text'] in draft['plan']
+    assert '최소 5,000자' in draft['plan'] and '되풀이하지 않고' in draft['plan'] and CHOICE['text'] in draft['plan']
     assert review == {'episodeNumber': 2, 'title': '진실의 밤', 'text': DRAFT[0], 'choice': CHOICE['text'], 'context': CONTEXT}
 
 
@@ -121,7 +122,7 @@ def test_the_serial_draft_gets_a_larger_output_budget_than_writings_default(monk
 
     plan_init, draft_init = calls[1]['init'], calls[2]['init']
     assert (plan_init['max_tokens'], plan_init['timeout']) == (4000, 50)  # 기획은 Writing 기본 그대로
-    assert (draft_init['max_tokens'], draft_init['timeout']) == (8000, 180)  # 직전 회차 분량의 원고가 잘리지 않게
+    assert (draft_init['max_tokens'], draft_init['timeout']) == (12000, 195)  # 5,000자 이상 원고(추론 토큰 포함)가 잘리지 않게
 
 
 def test_without_a_vote_result_nothing_asks_for_a_central_development(monkeypatch):
@@ -156,7 +157,7 @@ def test_a_short_draft_fails_the_review_without_a_model_review_and_is_rewritten_
     result = run_episode()
 
     assert (result.text, result.review.passed) == (REWRITE[0], True) and len(calls) == 5  # 다시 쓸 원고에는 모델 검수를 쓰지 않는다
-    assert f'분량이 {len(SHORT[0])}자로 최소 2,500자에 못 미친다' in sent(calls[3])[1]['plan']
+    assert f'분량이 {len(SHORT[0])}자로 최소 5,000자에 못 미친다' in sent(calls[3])[1]['plan']
     assert sent(calls[4])[0] == REVIEW_INSTRUCTIONS and sent(calls[4])[1]['text'] == REWRITE[0]
     assert result.credits == 2.27 and result.usage.model_dump() == {'inputTokens': 1700, 'outputTokens': 570}
 
@@ -170,10 +171,10 @@ def test_two_short_drafts_are_422_review_failed(monkeypatch):
     assert (error.value.status, error.value.code) == (422, 'SERIAL_REVIEW_FAILED') and len(calls) == 4
 
 
-@pytest.mark.parametrize('length, model_calls', [(2499, 5), (2500, 4)])
-def test_the_minimum_length_is_2500_characters(monkeypatch, length, model_calls):
+@pytest.mark.parametrize('length, model_calls', [(4999, 5), (5000, 4)])
+def test_the_minimum_length_is_5000_characters(monkeypatch, length, model_calls):
     draft = (story('서윤이 말했다.', length), 400, 200)
-    calls = answers(monkeypatch, SUMMARY, PLAN, draft, *([REWRITE] if length < 2500 else []), PASS)
+    calls = answers(monkeypatch, SUMMARY, PLAN, draft, *([REWRITE] if length < 5000 else []), PASS)
 
     result = run_episode()
 
@@ -285,3 +286,12 @@ def test_the_summary_credit_is_capped_at_the_reserved_limit(monkeypatch):
 @pytest.mark.parametrize('instructions', [CHOICES_INSTRUCTIONS, SIMULATION_INSTRUCTIONS, REVIEW_INSTRUCTIONS], ids=['choices', 'simulation', 'review'])
 def test_the_prompts_that_read_the_context_say_how_to_use_summaries_and_related(instructions):
     assert 'summaries' in instructions and 'related' in instructions and '그대로 베끼지 않는다' in instructions
+
+
+def test_the_worst_case_total_of_model_timeouts_fits_the_content_read_limit(monkeypatch):
+    # 가장 긴 경로(종합 → 기획 → 집필 → 검수 실패 → 재작성 → 재검수): 호출마다 정한 timeout의 합이 Content 읽기 한도 10분에서 30초 여유를 둔 안에 든다.
+    calls = answers(monkeypatch, SUMMARY, PLAN, DRAFT, FAIL, REWRITE, PASS)
+
+    run_episode()
+
+    assert len(calls) == 6 and sum(call['init']['timeout'] for call in calls) <= 600 - 30

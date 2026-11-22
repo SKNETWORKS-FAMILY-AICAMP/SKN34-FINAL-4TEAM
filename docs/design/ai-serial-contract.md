@@ -71,7 +71,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 | `POST /internal/v1/serial/simulations` | `{workId, episodeNumber, premise, beats, context, creditLimit}`(context = 공개 회차·공개 카드 JSON) | `{scene, credits, usage}` |
 | `POST /internal/v1/serial/episodes` | `{workId, episodeNumber, direction, choice:{text, votes}\|null, proposals:[{title, body, likes, scene?}], context, creditLimit}` | `{summary, title, text, review:{passed, issues}, credits, usage}`. 검수 2회 실패는 422 `SERIAL_REVIEW_FAILED` |
 
-- 회차 원고가 5,000자 미만이면 모델 검수 없이 검수 실패로 보고 1회 다시 쓴다. 회차 집필은 5,000자 이상을 쓰도록 출력 한도를 늘리되 최악 합계가 Content 읽기 한도 10분 안에 들게 정한다(AI 구현이 값을 정하고 이 줄을 갱신). 내용이 바뀐 프롬프트는 Langfuse 등록본에 가리지 않게 새 이름을 쓴다: `serial.vote_summary`·`serial.episode_review_v2`·`serial.choices_v2`·`serial.simulation_v2`·`serial.episode_summary`.
+- 회차 원고가 5,000자 미만이면 모델 검수 없이 검수 실패로 보고 1회 다시 쓴다. 회차 집필은 출력 12,000토큰·195초다(Writing 기본 4,000토큰·120초): 5,000자 이상은 약 3,500~4,500토큰이고 추론 토큰도 출력 한도에 들기 때문이다. 호출별 timeout은 종합 30·기획 50·집필 195·검수 50·재작성 195·재검수 50초로 최악 합계 570초이며 Content 읽기 한도 10분에서 30초(프롬프트 읽기·전송)를 남긴다. 내용이 바뀐 프롬프트는 Langfuse 등록본에 가리지 않게 새 이름을 쓴다: `serial.vote_summary`·`serial.episode_review_v2`·`serial.choices_v2`·`serial.simulation_v2`·`serial.episode_summary`.
 - 원고 생성은 기존 `app/writing/`의 기획·원고 지시를 재사용하고, 검수·종합·장면 미리보기만 새 프롬프트(`serial.*`, `tracing.prompt` 규칙)다.
 - 사용자 토큰·Content MCP를 쓰지 않는다. 시뮬레이션만 추적 회원용 선택 헤더 `X-User-Authorization`(제출자 Bearer)을 받는다(인가에는 쓰지 않음). 일정 실행에는 사용자 토큰이 없어서 Content가 허용 문맥을 만들어 넘긴다(새 원고 생성과 같은 방식).
 
