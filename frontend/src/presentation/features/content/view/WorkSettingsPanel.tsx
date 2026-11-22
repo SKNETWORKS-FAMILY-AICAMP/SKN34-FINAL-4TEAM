@@ -1,12 +1,37 @@
 import { useId } from 'react'
 import { writingModeLabels, type WritingMode } from '../../../../domain/entities/operatingSettings'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import { Sheet } from '../../../shared/Sheet'
 import { useWorkSettingsViewModel } from '../viewmodel/useWorkSettingsViewModel'
 
 const dateTime = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Seoul' })
 
-/** 운영 설정 탭의 집필 방식·자동 처리·변경 이력. 탭 제목(h2 '운영 설정')은 호출 측(WorkManagement)이 그린다: 서버 없는 시연에서는 이 패널 없이 제목만 남는다. */
-export function WorkSettingsPanel({ workId, useCase, onSaved }: { workId: string; useCase?: EpisodeUseCase; onSaved?: () => void }) {
+const AUTONOMOUS_TITLE = 'AI 자율 집필로 저장할까요?'
+
+/**
+ * AI 자율 집필을 새로 저장할 때의 경고 확인 대화 상자(계약 'AI 자율 집필 선택 경고'): AI가 인물 설정으로 회차를 쓰므로 인물 카드를 작성해 달라고 안내한다. 경고일 뿐 저장을 막지 않는다.
+ * 처음 초점은 저장이 아닌 안전한 세계관·설정집으로에 두고(Enter를 한 번 더 눌러도 저장되지 않는다), 호출 측이 이동을 잠갔으면(onOpenWorld 없음) 그 버튼도 잠그고 첫 버튼(취소)이 초점을 받는다.
+ */
+function AutonomousWarning({ onOpenWorld, onProceed, onCancel }: { onOpenWorld?: () => void; onProceed: () => void; onCancel: () => void }) {
+  const message = useId()
+  return (
+    <Sheet sid='U25' label={AUTONOMOUS_TITLE} role='alertdialog' describedBy={message} onClose={onCancel}>
+      <h3>{AUTONOMOUS_TITLE}</h3>
+      <p id={message}>AI 자율 집필은 인물 설정을 바탕으로 AI가 회차를 씁니다. 세계관·설정집에 인물 카드(성격·말투·목표·관계)를 꼭 작성해 주세요.</p>
+      <div className='rowend'>
+        <button type='button' className='btn' onClick={onCancel}>취소</button>
+        <button type='button' className='btn' onClick={onProceed}>계속 저장</button>
+        <button type='button' className='btn pri' disabled={!onOpenWorld} data-autofocus={onOpenWorld ? '' : undefined} onClick={onOpenWorld}>세계관·설정집으로</button>
+      </div>
+    </Sheet>
+  )
+}
+
+/**
+ * 운영 설정 탭의 집필 방식·자동 처리·변경 이력. 탭 제목(h2 '운영 설정')은 호출 측(WorkManagement)이 그린다: 서버 없는 시연에서는 이 패널 없이 제목만 남는다.
+ * onOpenWorld는 AI 자율 집필 경고의 '세계관·설정집으로'가 부른다(작품 관리의 세계관·설정집 탭으로 옮긴다). 주지 않으면 그 버튼은 잠긴다.
+ */
+export function WorkSettingsPanel({ workId, useCase, onSaved, onOpenWorld }: { workId: string; useCase?: EpisodeUseCase; onSaved?: () => void; onOpenWorld?: () => void }) {
   const vm = useWorkSettingsViewModel(workId, useCase, onSaved)
   const settings = vm.settings
   const reason = useId()
@@ -44,6 +69,7 @@ export function WorkSettingsPanel({ workId, useCase, onSaved }: { workId: string
             </div>
           </form>
           {vm.notice && <p role='status'>{vm.notice}</p>}
+          {vm.confirming && <AutonomousWarning onOpenWorld={onOpenWorld && (() => { vm.cancelConfirm(); onOpenWorld() })} onProceed={() => void vm.confirmSave()} onCancel={vm.cancelConfirm} />}
           <h3>자동 처리</h3>
           <dl className='ep-facts'>
             <div><dt>설정 추출</dt><dd>수동</dd></div>

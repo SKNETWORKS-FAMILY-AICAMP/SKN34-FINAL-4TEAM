@@ -16,6 +16,10 @@ vi.mock('./WorkBrief', () => ({ WorkBrief: () => <p>작품 요약 머리</p> }))
 vi.mock('./AiSerialPanel', () => ({ AiSerialPanel: ({ workId }: { workId: string }) => <p>AI 집필 패널 {workId}</p> }))
 // 내 댓글·제보 탭의 내용은 MyCommentsReports.test가 본다. 여기서는 탭이 이 화면을 (탭 안 모양으로) 그리는지만 본다.
 vi.mock('../../library/view/MyCommentsReports', () => ({ MyCommentsReports: ({ embedded }: { embedded?: boolean }) => <p>내 댓글·제보 내용 {embedded ? '탭 안' : '쪽'}</p> }))
+// 세계관·설정집 탭의 내용은 각 패널의 테스트가 본다. 여기서는 탭이 열리는지만 본다.
+vi.mock('./WorldPanel', () => ({ WorldPanel: () => <p>세계관 설정집 패널</p> }))
+vi.mock('./LinkedWorldPanel', () => ({ LinkedWorldPanel: () => <p>세계관 연결 패널</p> }))
+vi.mock('./ManuscriptBuildPanel', () => ({ ManuscriptBuildPanel: () => <p>원고로 세계관 만들기 패널</p> }))
 vi.mock('../viewmodel/useEpisodeForkCounts', () => ({ useEpisodeForkCounts: () => ({ 12: 2 }) }))
 // 세계관 추출 배지는 세계관 탭 패널과 같은 조회 훅을 쓴다. 상태는 테스트가 정하고, 배지가 (다시) 마운트돼 상태를 새로 읽은 횟수를 센다.
 const build = vi.hoisted(() => ({ current: { job: null, error: '' } as { job: { status: string; update?: { status: string } } | null; error: string }, mounts: 0 }))
@@ -100,11 +104,46 @@ it('집필 방식에 AI 자율 집필을 더해 설명과 함께 보이고, 저�
   expect(screen.getByText('AI 자율 집필을 저장하면 1화 발행 뒤 독자 투표와 제안을 모아 AI가 다음 회차를 씁니다. 그동안 1화만 직접 쓸 수 있어요.')).toBeTruthy()
   fireEvent.change(select, { target: { value: 'autonomous' } })
   fireEvent.click(screen.getByRole('button', { name: '집필 방식 저장' }))
+  // AI 자율 집필은 저장할 때 인물 카드 경고를 거친다(계약 'AI 자율 집필 선택 경고'): 계속 저장해야 서버로 간다.
+  expect(useCase.updateWorkSettings).not.toHaveBeenCalled()
+  fireEvent.click(within(screen.getByRole('alertdialog', { name: 'AI 자율 집필로 저장할까요?' })).getByRole('button', { name: '계속 저장' }))
   expect(await screen.findByText('집필 방식을 저장했어요.')).toBeTruthy()
   expect(useCase.updateWorkSettings).toHaveBeenCalledWith('w', 0, 'autonomous', expect.any(AbortSignal))
   expect(screen.getByRole('listitem').textContent).toContain('AI 자율 집필')
   // 켜짐 여부(집필실·작품 관리의 잠금)는 호출 측이 서버 값을 다시 읽는다.
   expect(onSerialSaved).toHaveBeenCalledTimes(1)
+})
+
+it('AI 자율 집필 경고의 세계관·설정집으로는 저장하지 않고 세계관·설정집 탭을 열며, 메뉴를 누른 것처럼 탭 내용 머리로 스크롤한다', async () => {
+  const useCase = { workSettings: vi.fn().mockResolvedValue(settingsOf('direct')), updateWorkSettings: vi.fn() }
+  const select = await openSettingsTab(useCase)
+  fireEvent.change(select, { target: { value: 'autonomous' } })
+  fireEvent.click(screen.getByRole('button', { name: '집필 방식 저장' }))
+  scrolled.length = 0
+  fireEvent.click(within(screen.getByRole('alertdialog', { name: 'AI 자율 집필로 저장할까요?' })).getByRole('button', { name: '세계관·설정집으로' }))
+  expect(useCase.updateWorkSettings).not.toHaveBeenCalled()
+  expect(screen.queryByRole('alertdialog')).toBeNull()
+  expect(screen.getByRole('button', { name: '세계관·설정집' }).getAttribute('aria-current')).toBe('page')
+  expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('세계관·설정집')
+  expect(screen.getByText('세계관 설정집 패널')).toBeTruthy()
+  expect(screen.queryByRole('combobox', { name: '집필 방식' })).toBeNull() // 운영 설정 탭을 떠났다
+  const head = scrolled.filter((s) => (s.arg as ScrollIntoViewOptions | undefined)?.block === 'start')
+  expect(head).toHaveLength(1)
+  expect((head[0].el as HTMLElement).classList.contains('ep-tab')).toBe(true)
+})
+
+it('작품 메뉴가 잠긴 동안(요청 중)에는 AI 자율 집필 경고의 세계관·설정집으로도 잠가, 메뉴가 막는 이동을 우회하지 않는다', async () => {
+  const useCase = { workSettings: vi.fn().mockResolvedValue(settingsOf('direct')), updateWorkSettings: vi.fn() }
+  const view = render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
+  fireEvent.change(await screen.findByRole('combobox', { name: '집필 방식' }), { target: { value: 'autonomous' } })
+  fireEvent.click(screen.getByRole('button', { name: '집필 방식 저장' }))
+  const world = () => within(screen.getByRole('alertdialog', { name: 'AI 자율 집필로 저장할까요?' })).getByRole('button', { name: '세계관·설정집으로' }) as HTMLButtonElement
+  expect(world().disabled).toBe(false)
+  view.rerender(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, busy: true } as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  expect(world().disabled).toBe(true)
+  fireEvent.click(world())
+  expect(screen.getByRole('button', { name: '운영 설정' }).getAttribute('aria-current')).toBe('page')
 })
 
 it('실행 중이라 다른 집필 방식으로 바꾸는 저장이 409로 거절되면 서버 문구를 그대로 알리고 호출 측에는 알리지 않는다', async () => {

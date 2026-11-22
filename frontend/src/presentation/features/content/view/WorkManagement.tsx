@@ -85,6 +85,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   const locked = vm.busy || mediaBusy
   // 편집 중에는 작품을 다시 읽는 동작(공개 중단·삭제)을 잠가 저장하지 않은 입력이 새 revision의 폼 리셋으로 사라지지 않게 한다.
   const blocked = locked || editing !== null
+  // 세계관·설정집 탭으로 옮긴다. 메뉴를 누른 것과 같이 탭 내용 머리로 스크롤하고(아래 effect), 원고로 세계관 만들기 버튼과 운영 설정의 AI 자율 집필 경고가 함께 쓴다.
+  const openWorld = () => { picked.current = true; setTab('world') }
   const deleteWork = async () => {
     const deleted = await vm.deleteWork()
     if (deleted) onDeleted()
@@ -155,7 +157,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
           {tab === 'settings' && (
             <>
               {/* 운영 설정 API는 서버 없는 시연(목업)에 없다. 분기 정책·포크 정보·작품 삭제는 모두 있으므로 탭은 남긴다. */}
-              {!mockup && <WorkSettingsPanel workId={w.id} useCase={useCase} onSaved={onSerialSaved} />}
+              {!mockup && <WorkSettingsPanel workId={w.id} useCase={useCase} onSaved={onSerialSaved} onOpenWorld={blocked ? undefined : openWorld} />}
               {w.source
                 ? <ForkInfo source={w.source} isPublic={w.visibility === 'public'} blocked={blocked} onStopFork={vm.stopFork} onDeleteWork={deleteWork} />
                 : (
@@ -297,7 +299,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               {!mockup && (
                 <div className='ep-list-foot'>
                   {/* 메뉴를 누른 것과 같이 세계관 탭 내용 머리(원고로 세계관 만들기 카드)로 스크롤한다(위 effect). */}
-                  <button type='button' className='btn' disabled={locked} onClick={() => { picked.current = true; setTab('world') }}>원고로 세계관 만들기</button>
+                  <button type='button' className='btn' disabled={locked} onClick={openWorld}>원고로 세계관 만들기</button>
                   <button type="button" className="btn" disabled={locked} onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>
                 </div>
               )}
