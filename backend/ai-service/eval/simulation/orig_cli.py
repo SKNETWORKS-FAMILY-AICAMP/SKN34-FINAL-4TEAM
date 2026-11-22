@@ -343,7 +343,8 @@ def cmd_scenes(args) -> None:
     for name, records in asyncio.run(play()).items():
         data = {'run': name, 'skipNarrationCheck': args.skip_narration_check, 'scenes': [s['id'] for s in specs], 'speed': sim_stats.summarize_speed(records), 'drift': rn.scene_drift(records),
                 'outcomes': {r['id']: r['status'] if not r.get('stopReason') else f"{r['status']}:{r['stopReason']}" for r in records}, **({'act': act} if act else {})}
-        (RESULTS / f'orig-hp-scenes-{name}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+        suffix = f"-{act['model']}" if act else ''   # luna act가 아니면 모델 이름을 붙여 옛(luna act) 결과 파일을 덮어쓰지 않는다
+        (RESULTS / f'orig-hp-scenes-{name}{suffix}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
         print(name, json.dumps({'outcomes': data['outcomes'], 'drift': data['drift'], 'turnMs': data['speed']['turnMs'], 'usdPerScene': data['speed']['usdPerScene']}, ensure_ascii=False))
 
 

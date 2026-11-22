@@ -138,12 +138,12 @@ def test_scenes_results_say_which_act_model_ran_and_refuse_an_external_provider(
 
     monkeypatch.setattr(sim_speed, 'run_speed', run_speed)
     scenes = argparse.Namespace(ids='hp-1-flow', repeat=1, runs=['base'], limit_usd=5.0, skip_narration_check=True, keep_text=False)
-    result = home / 'results' / 'orig-hp-scenes-base.json'
+    terra, luna = home / 'results' / 'orig-hp-scenes-base-gpt-6.1-terra.json', home / 'results' / 'orig-hp-scenes-base.json'
     oc.cmd_scenes(scenes)
-    assert json.loads(result.read_text())['act'] == {'provider': 'openai', 'model': 'gpt-6.1-terra', 'thinking': 'default'}   # 서비스 기본 act 모델을 결과가 밝힌다
+    assert json.loads(terra.read_text())['act'] == {'provider': 'openai', 'model': 'gpt-6.1-terra', 'thinking': 'default'} and not luna.exists()   # 서비스 기본 act 모델을 결과가 밝히고 옛(luna act) 결과 이름은 덮어쓰지 않는다
     monkeypatch.setenv('SIMULATION_ACT_MODEL', 'gpt-6-luna')
     oc.cmd_scenes(scenes)
-    assert 'act' not in json.loads(result.read_text())   # luna면 예전과 같은 모양
+    assert 'act' not in json.loads(luna.read_text())   # luna면 예전과 같은 이름·모양
     for name, value in ACT_ENV.items():
         monkeypatch.setenv(name, value)
     with pytest.raises(SystemExit, match='act 제공사'):   # 외부 제공사의 호출은 OpenAI 장부에 섞이지 않게 장면 실행에서는 막는다
