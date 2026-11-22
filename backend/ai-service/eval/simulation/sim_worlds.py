@@ -20,6 +20,7 @@ import prepare as nb_prepare  # noqa: E402  eval/novelbrain/prepare.py
 from timechara import build_world, chapter_tuple, common_names, cutoff, ordinal_map, parse_tables, sample_by_type, snapshot  # noqa: E402
 
 import hp_chapters  # noqa: E402
+from hp_build import UNKNOWN_SOUL  # noqa: E402
 from app.simulation import service  # noqa: E402
 from app.simulation.errors import SimulationFailure  # noqa: E402
 from app.simulation.models import Decision, SimulationPlan, Trail, Turn  # noqa: E402
@@ -85,9 +86,11 @@ def prepare(per_type: int = PER_TYPE) -> None:
 
 def tc_world(world: dict, episode: int) -> service.World:
     """TimeChara 세계관의 episode화 시점 `service.World`(Content 호출·원고 발췌 없음). 카드는 전부, 관계는 그 회차까지만(`timechara.snapshot`)이고
-    인물이 무엇을 아는지는 운영과 같은 NovelBrain 필터가 가린다."""
+    인물이 무엇을 아는지는 운영과 같은 NovelBrain 필터가 가린다. TimeChara에는 인물 문서가 없어 운영의 필수 인물 문서 규칙(#357·#624)을 지키도록
+    인물 카드의 IDENTITY는 이름으로, SOUL은 '아직 드러나지 않았다'로 채운다(입력이 조금 늘어난다)."""
     snap = snapshot(world, episode)
-    return service.World(episode, {}, snap, [], {c.id: c for c in snap.cards if c.cardType == 'character'}, [], None, {})
+    fill = lambda card: card.model_copy(update={'text': card.text or card.title, 'soul': card.soul or UNKNOWN_SOUL})  # noqa: E731
+    return service.World(episode, {}, snap, [], {c.id: fill(c) for c in snap.cards if c.cardType == 'character'}, [], None, {})
 
 
 def seed_module():

@@ -132,6 +132,13 @@ def test_harry_potter_scenes_end_at_their_book_and_name_cast_by_the_names_in_the
         worlds.scene({**spec, 'cast': [HARRY, 'Nobody']})  # 데이터에 없는 이름은 짐작하지 않고 멈춘다
 
 
+def test_the_thin_world_characters_carry_the_required_documents_so_the_production_plan_check_accepts_them(worlds):
+    spec = {'id': 'hp-x', 'world': 'harry_potter', 'book': 3, 'mode': 'if', 'cast': [HARRY, RON], 'premise': '만약?'}
+    plan, world = worlds.scene(spec)
+    assert all(c.text and c.soul for c in world.characters.values())   # IDENTITY.md·SOUL.md는 필수다(#357·#624): TimeChara에는 인물 문서가 없어 이름과 '드러나지 않았다'로 채운다
+    service.check_plan(plan, world)
+
+
 def hp_data():
     """합성 원문 세계관: 1화 해리, 2화(1권 17장)에 헤르미온느·론, 3화 = 3권 22장, 4화 = 5권 38장."""
     def who(name, **fields):
