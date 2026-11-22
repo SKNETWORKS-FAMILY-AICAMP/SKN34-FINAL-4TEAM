@@ -62,7 +62,6 @@ def kinds_of(found):
 
 
 def test_candidates_by_use_and_eligibility():
-    text = ' '.join(t['text'] for t in rec()['turns'])
     found = os_.candidates(FakeCorpus(), rec(), names={'해리': 'h', '론': 'r', '네빌': 'n'})
     uses = kinds_of(found)
     assert (3, 'act') in uses and (2, 'act') not in uses     # 앞 줄이 3개 미만이면 자격이 없다

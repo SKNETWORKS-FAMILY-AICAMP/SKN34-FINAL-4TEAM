@@ -31,7 +31,7 @@ def align_episode(text: str, names: list[str], first_person: bool, first, second
     with ThreadPoolExecutor(workers) as pool:   # 두 경로의 모든 청크를 한꺼번에 낸다
         a, b = ([f.result() for f in row] for row in [[pool.submit(ask_labels, llm, chunk) for chunk in chunks] for llm in (first, second)])
     merged, failed = {}, 0
-    for chunk, la, lb in zip(chunks, a, b):
+    for chunk, la, lb in zip(chunks, a, b, strict=True):
         merged |= ot.merge_labels(chunk['turns'], la, lb)
         failed += la is None or lb is None
     return {'turns': [{**t, **merged[t['i']]} for t in turns], 'chunks': len(chunks), 'failedChunks': failed}

@@ -436,4 +436,4 @@ def paired(a: dict, b: dict) -> dict:
     xs, ys = [a[k] for k in keys], [b[k] for k in keys]
     test = sign_test(xs, ys)
     return {'n': len(keys), 'up': test['up'], 'down': test['down'], 'tie': len(keys) - test['up'] - test['down'], 'p': test['p'],
-            'meanDiff': sum(x - y for x, y in zip(xs, ys)) / len(keys) if keys else None}
+            'meanDiff': sum(x - y for x, y in zip(xs, ys, strict=True)) / len(keys) if keys else None}

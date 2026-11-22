@@ -41,8 +41,6 @@ def test_failed_chunk_is_unlabeled_and_counted():
 
 
 def test_truncated_json_counts_as_failed_chunk():
-    from pydantic import ValidationError
-
     class Cut(FakeLlm):
         def ask(self, *a, **k):
             ot.Labels.model_validate_json('{"labels":[{"i"')   # 잘린 JSON: SDK parse가 던지는 것과 같은 ValidationError
