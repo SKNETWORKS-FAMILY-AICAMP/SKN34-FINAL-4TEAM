@@ -270,6 +270,13 @@ def test_the_main_agent_is_told_how_to_choose_between_the_selection_and_a_findin
         assert '선택한 글이 남아 있어도' in told, told
 
 
+def test_the_review_summary_says_the_whole_episode_was_reviewed(monkeypatch):
+    """#636 E2E: 선택한 글이 실리면 그 문장만 검수했다고 답했다. 검수는 늘 회차 본문 전체를 본다."""
+    calls = fake_agents(monkeypatch, plan(Step('manuscript_review', check='mechanical')))
+    run(target=TARGET)
+    assert json.loads(tool_messages(calls)[0].content).get('range') == '회차 본문 전체'
+
+
 def test_a_tool_returns_a_summary_for_the_main_agent_and_the_raw_result_as_its_artifact(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context'))
     result = run(inputs={'story_context': QA})

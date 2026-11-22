@@ -159,7 +159,8 @@ def _world_summary(r: dict) -> dict:
 
 SUMMARIES: dict[str, Callable[[dict], dict]] = {
     'story_context': lambda r: {'claims': [{k: c[k] for k in ('text', 'kind', 'sourceIds')} for c in r['claims']], 'gaps': r['gaps']},
-    'manuscript_review': lambda r: {'revision': r['revision'], 'basis': 'writing_candidate' if r.get('candidate') else 'saved_draft',
+    # range: 선택한 글이 실린 턴에도 그 문장만 검수했다고 답하지 않게 범위를 알린다(#636).
+    'manuscript_review': lambda r: {'revision': r['revision'], 'basis': 'writing_candidate' if r.get('candidate') else 'saved_draft', 'range': '회차 본문 전체',
                                     'gaps': r['gaps'], 'findings': [
         {'fix': i, 'status': f['status'], 'category': f['category'], 'quote': f['quote'], 'reason': f['reason']}
         for i, f in enumerate(r['findings'])]},
