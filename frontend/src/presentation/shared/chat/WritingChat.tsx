@@ -2,7 +2,7 @@ import { useId, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { checkAttachment, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
-import { draftNotice, featureLabel, PLAN_LABEL, referenceHref, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
+import { cancelNotice, draftNotice, featureLabel, PLAN_LABEL, referenceHref, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
@@ -96,7 +96,7 @@ function SceneWait({ reply, onOpenStage }: { reply: ChatReply; onOpenStage?: () 
   </div>
 }
 
-/** 승인 카드 안의 같은 턴에 먼저 끝난 단계 목록(#493·#587). */
+/** 승인·입력 대기 카드 안의 같은 턴에 먼저 끝난 단계 목록(#493·#587·#661). */
 function FinishedSteps({ steps }: { steps: ChatStep[] }) {
   if (!steps.length) return null
   return <>
@@ -164,6 +164,8 @@ function Waiting({ workId, request, reply, episode, pending, onResume, onOpenSta
     </section>
   }
   const reviewed = reply.steps.find((s) => s.feature === 'manuscript_review')
+  // 조건부 수정은 검수 결과를 아래에 따로 보이므로 끝난 작업 목록에서 뺀다.
+  const preview = needs.includes('writing_editing') && fixing ? reviewed : undefined
   const confirmed = (reviewed?.manuscriptReview?.findings ?? [])
     .flatMap((f, i) => (f.status === 'confirmed' ? [{ ...f, index: i }] : []))
   const wanted = (instruction.trim() || request).slice(0, 2000)
@@ -181,12 +183,13 @@ function Waiting({ workId, request, reply, episode, pending, onResume, onOpenSta
   }
   return <form className="chat-hitl" aria-labelledby={`${id}-t`} onSubmit={(e) => { e.preventDefault(); if (filled) onResume(true, inputs) }}>
     <h3 id={`${id}-t`}>작업에 필요한 내용을 알려 주세요</h3>
-    <p className="chat-note">{needs.map((f) => featureLabel[f] ?? f).join(' · ')} 단계가 입력을 기다려요. 취소하면 아무 작업도 실행하지 않아요.</p>
+    <FinishedSteps steps={finished.filter((s) => s !== preview)} />
+    <p className="chat-note">{needs.map((f) => featureLabel[f] ?? f).join(' · ')} 단계가 입력을 기다려요. {cancelNotice(reply)}</p>
     {needs.includes('research') && <label className="chat-field">조사할 질문
       <input value={question} maxLength={500} onChange={(e) => setQuestion(e.target.value)} placeholder="예: 조선 후기 한양에서 동래까지 며칠 걸렸나요?" />
     </label>}
     {/* 대기 중에는 검수 답이 채팅에 그려지지 않으므로 제안·의심 지적·확인 못 한 부분을 여기서 보인다(#391) */}
-    {needs.includes('writing_editing') && fixing && reviewed && <div className="chat-hitl-preview" tabIndex={0} aria-label="검수 결과">{stepText(reviewed)}</div>}
+    {preview && <div className="chat-hitl-preview" tabIndex={0} aria-label="검수 결과">{stepText(preview)}</div>}
     {needs.includes('writing_editing') && fixing && <fieldset className="chat-choice">
       <legend>고칠 지적{episode ? ` · ${episode}화 초안` : ''}</legend>
       {confirmed.map((f) => <label key={f.index}>

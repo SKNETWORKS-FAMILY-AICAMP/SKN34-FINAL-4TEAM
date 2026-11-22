@@ -360,6 +360,28 @@ it('초안을 읽지 못하면 실패를 알리고 구간 고르기와 이어서
   expect(((await within(form).findByLabelText(/수정할 초안/)) as HTMLTextAreaElement).value).toBe(PATCH_BODY)
 })
 
+it('입력 대기 카드는 같은 턴에 이미 끝난 작업과 사실에 맞는 취소 안내를 보인다(#661)', async () => {
+  openThread([{ request: '계획 추가하고 고증해 줘', reply: { status: 'waiting', missingInputs: ['research'], awaitingApproval: null, steps: [
+    { feature: 'content_action', status: 'completed', approval: 'approved', result: { tool: 'story_plan_create', label: '플롯·장면 계획 추가' }, applied: { episode: 2, revision: 1 } },
+    { feature: 'research', status: 'not_started' },
+  ] } }])
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const others = await screen.findByLabelText('같이 끝난 작업')
+  expect(within(others).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['Content 작업플롯·장면 계획 추가 완료'])
+  expect(screen.getByText(/취소하면 남은 작업은 실행하지 않아요. 이미 끝난 작업은 그대로예요./)).toBeTruthy()
+})
+
+it('조건부 수정 입력 대기는 따로 보이는 검수 결과를 끝난 작업 목록에 되풀이하지 않는다(#661)', async () => {
+  const finding = { category: 'spelling', quote: '웃엇다', reason: '맞춤법', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 0, end: 3 }
+  openThread([{ request: '검수하고 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null, steps: [
+    { feature: 'manuscript_review', status: 'completed', manuscriptReview: { check: 'mechanical', episode: 1, revision: 4, findings: [finding], gaps: [] } },
+    { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' },
+  ] } }])
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  expect((await screen.findByLabelText('검수 결과')).textContent).toContain('웃엇다')
+  expect(screen.queryByLabelText('같이 끝난 작업')).toBeNull()
+})
+
 it('고증 조사 입력 대기는 질문을 적어야 이어서 실행하고, 질문을 research 단계 입력으로 보낸다(#545)', async () => {
   openThread([{ request: '고증 확인해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['research'], awaitingApproval: null } }])
   send.mockResolvedValue(undefined)

@@ -186,7 +186,7 @@ flowchart TD
 
 #### 입력 대기와 승인 (HITL)
 
-- **입력 대기:** 서브 에이전트 도구에 작가가 줘야 할 입력이 없으면 도구가 `interrupt({steps, missingInputs})`로 멈춘다. 현재 `waiting` 응답과 `resume {approved, inputs, scope?}` 계약을 그대로 쓴다. resume하면 메인 에이전트를 다시 계획시키지 않고 멈춘 도구 호출만 이어 실행한다. 이 도구는 interrupt 앞에 부수효과를 두지 않는다. `approved=false`면 그 도구는 `cancelled`이고 남은 호출 없이 이미 끝난 결과만 종합한다. 대화가 없으면 멈출 수 없어 `needs_input`으로 끝낸다.
+- **입력 대기:** 서브 에이전트 도구에 작가가 줘야 할 입력이 없으면 도구가 `interrupt({steps, missingInputs})`로 멈춘다. 현재 `waiting` 응답과 `resume {approved, inputs, scope?}` 계약을 그대로 쓴다. resume하면 메인 에이전트를 다시 계획시키지 않고 멈춘 도구 호출만 이어 실행한다. 이 도구는 interrupt 앞에 부수효과를 두지 않는다. `approved=false`면 그 도구는 `cancelled`이고 남은 호출 없이 이미 끝난 결과만 종합한다. 입력 카드는 payload `steps`의 끝난 단계를 '같이 끝난 작업'으로 보이고, 끝난 작업이 있으면 취소해도 그대로라고 알린다(#661). 대화가 없으면 멈출 수 없어 `needs_input`으로 끝낸다.
   - Manuscript Review 검사 종류를 메인 에이전트가 정하지 못하면(`check` 없음) 지금처럼 작가가 맞춤법·표기 / 설정·개연성을 고른다.
   - 조건부 수정에서 확정 지적이 여러 개인데 `fix`가 없으면 작가가 지적 번호를 고른다.
   - 부분 수정의 선택 구간, 웹 조사의 질문·동의처럼 Content·작가가 주는 입력도 같다.

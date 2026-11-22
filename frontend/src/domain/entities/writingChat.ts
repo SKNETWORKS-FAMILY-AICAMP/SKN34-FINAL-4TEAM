@@ -367,6 +367,11 @@ export function replyText(reply: ChatReply): string {
   return steps.join('\n\n') || (reply.message ? '' : '응답 내용이 없어요.')
 }
 
+/** 입력 대기의 취소 안내(#661). 취소해도 이미 끝난 작업(저장한 쓰기 포함)은 되돌아가지 않는다. */
+export const cancelNotice = (reply: ChatReply): string => (reply.steps.some((s) => s.status === 'completed')
+  ? '취소하면 남은 작업은 실행하지 않아요. 이미 끝난 작업은 그대로예요.'
+  : '취소하면 아무 작업도 실행하지 않아요.')
+
 const stepLabel = (s: ChatStep) => `[${featureLabel[s.feature] ?? s.feature}]`
 const appliedLine = (s: ChatStep) => (s.applied
   ? (s.feature === 'world' ? '→ 설정집 초안에 반영했어요.' : s.feature === 'content_action' ? '→ 승인한 작업을 실행했어요.' : s.task === 'revise_plan' ? '→ 계획에 저장했어요.' : `→ ${s.applied.episode}화 초안에 반영했어요.`)
