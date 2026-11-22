@@ -260,6 +260,49 @@ class SerialPostgresTest {
         assertEquals(listOf("두 사람이 다시 만나면 좋겠어요"),sent.map {(it as Map<*,*>)["body"]})
     }
 
+    @Test fun `the manuscript is locked while AI writing is on and turning it off waits for a run to end`() {
+        val owner=member(); val stranger=member()
+        val id=work(owner)
+        val path="/api/v1/works/$id"
+        val draft="""{"title":"2화","body":"쓰던 글","revision":0,"authorNote":""}"""
+        assertEquals(200,call("PUT","$path/ai-serial",owner,enable).statusCode())
+
+        // 켜져 있는 동안은 소유자도 원고를 바꿀 수 없다: 회차 만들기·초안 저장·버전 저장·발행·공개 범위·예약·삭제가 모두 409 SERIAL_LOCKED다.
+        val locked=listOf(
+            call("POST","$path/episodes",owner,"""{"title":"새 회차"}"""),
+            call("PUT","$path/episodes/2/draft",owner,draft),
+            call("POST","$path/episodes/2/versions",owner,draft),
+            call("PUT","$path/draft",owner,draft),
+            call("DELETE","$path/episodes/2/draft?revision=0",owner),
+            call("POST","$path/episodes/2/publish",owner,"""{"revision":0,"rightsConfirmed":true,"versionId":"v"}"""),
+            call("PUT","$path/episodes/1/visibility",owner,"""{"revision":0,"visible":false}"""),
+            call("POST","$path/episodes/2/publication-schedules",owner,"""{"versionId":"v","scheduledAt":"2099-01-01T00:00:00Z","rightsConfirmed":true}"""),
+        )
+        locked.forEachIndexed {i,response ->
+            assertEquals(409,response.statusCode(),"$i ${response.body()}")
+            assertEquals("SERIAL_LOCKED",code(response),"$i")
+        }
+        // 소유 확인이 먼저라 남은 404이고, 읽기는 막지 않는다.
+        assertEquals(404,call("PUT","$path/episodes/2/draft",stranger,draft).statusCode())
+        assertEquals(200,call("GET","$path/episodes",owner).statusCode())
+
+        // 실행 중에는 끄기 저장이 409 SERIAL_RUNNING이다. 앱 스케줄러(1분)가 실행을 끝내 결과가 흔들리지 않도록 running 상태를 직접 만든다(실행하는 주체가 없어 아무도 끝내지 않는다). 요일·시각·방향 수정은 된다.
+        val off="""{"enabled":false,"days":["$notToday"],"time":"21:00","direction":""}"""
+        jdbc.update("UPDATE serial_board SET status='running', closed_at=now() WHERE work_id=? AND status='open'",id)
+        val refused=call("PUT","$path/ai-serial",owner,off)
+        assertEquals(409,refused.statusCode(),refused.body())
+        assertEquals("SERIAL_RUNNING",code(refused))
+        assertEquals(200,call("PUT","$path/ai-serial",owner,enable.replace("따뜻한 분위기로","다른 분위기로")).statusCode())
+        jdbc.update("UPDATE serial_board SET status='open', closed_at=NULL WHERE work_id=? AND status='running'",id)
+
+        // 실행 자신의 저장·발행은 잠금에 막히지 않는다(스케줄러가 먼저 가져가도 같은 결과). 끝나면 끌 수 있고, 꺼지면 소유자가 다시 원고를 바꿀 수 있다.
+        assertEquals(202,call("POST","$path/ai-serial/run",owner).statusCode())
+        runner.tick()
+        await("the run to publish") {"published" in statuses(id)}
+        assertEquals(200,call("PUT","$path/ai-serial",owner,off).statusCode())
+        assertEquals(201,call("POST","$path/episodes",owner,"""{"title":"새 회차"}""").statusCode())
+    }
+
     @Test fun `the database keeps one active board per work and one opinion and vote per member and the claim is conditional`() {
         val owner=member()
         val id=work(owner)

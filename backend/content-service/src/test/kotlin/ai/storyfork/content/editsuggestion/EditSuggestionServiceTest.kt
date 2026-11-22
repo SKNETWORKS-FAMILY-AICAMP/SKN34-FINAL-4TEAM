@@ -24,6 +24,7 @@ import ai.storyfork.content.episode_version.service.dto.VersionResponse
 import ai.storyfork.content.fork.service.dto.SourceResponse
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
+import ai.storyfork.content.serial.domain.SERIAL_LOCKED_MESSAGE
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import java.time.Instant
@@ -632,6 +633,29 @@ class EditSuggestionServiceTest {
         assertEquals(listOf<Any?>("approved", "applied", saved.appliedVersionId), listOf(approved.status, approved.applyResult, approved.appliedVersionId))
         // 저장과 상태 기록은 한 트랜잭션이라 성공하면 commit 한 번이다.
         assertEquals(listOf("begin", "commit(approved)"), events)
+    }
+
+    @Test fun `approval is refused while AI writing is on and records no failed apply`() {
+        val saved = row()
+        doThrow(ContentFailure(409, SERIAL_LOCKED_MESSAGE, "SERIAL_LOCKED")).`when`(access).requireManuscriptWritable("work")
+
+        val error = failure { service.approve("work", "s1", "owner") }
+
+        // 반영 실패로 기록하지 않고(승인 상태도 바꾸지 않고) 요청을 거절하므로, 끈 뒤 같은 제안을 그대로 승인할 수 있다.
+        assertEquals(listOf<Any?>(409, "SERIAL_LOCKED"), listOf(error.status, error.code))
+        assertEquals(listOf<Any?>("pending", null, null), listOf(saved.status, saved.applyResult, saved.decidedAt))
+        assertTrue(saveRequests.isEmpty())
+        assertEquals(listOf("begin", "rollback(pending)"), events)
+    }
+
+    @Test fun `holding and rejecting leave the manuscript alone so the lock does not stop them`() {
+        val held = row("s1"); val rejected = row("s2", proposer = "reader2")
+        doThrow(ContentFailure(409, SERIAL_LOCKED_MESSAGE, "SERIAL_LOCKED")).`when`(access).requireManuscriptWritable("work")
+
+        service.hold("work", "s1", "owner")
+        service.reject("work", "s2", "owner", null)
+
+        assertEquals(listOf("held", "rejected"), listOf(held.status, rejected.status))
     }
 
     @Test fun `approval applies the edited text when the owner saved one`() {

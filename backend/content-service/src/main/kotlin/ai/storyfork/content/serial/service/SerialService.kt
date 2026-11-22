@@ -58,6 +58,7 @@ data class RunInput(
 
 private val HH_MM = DateTimeFormatter.ofPattern("HH:mm")
 private val ACTIVE = listOf("open", "queued", "running")
+private val RUNNING = listOf("queued", "running")
 
 private fun conflict(code: String, message: String) = ContentFailure(409, message, code)
 
@@ -91,11 +92,12 @@ class SerialService(
 
     /**
      * 설정을 저장한다(세계관 연결은 필요 없다). 입력 오류(422)는 작품 확인(404)보다 먼저 판정한다. 켜져 있고 발행된 회차가 있으면 다음 회차 게시판을 열고,
-     * 끄면 실행 요청(queued)을 열린 상태로 되돌린다(꺼져 있으면 지금 실행도 하지 않는다). 이미 실행 중인 게시판은 그대로 끝까지 간다.
+     * 끄기는 실행 중(queued·running)이면 409 SERIAL_RUNNING이다(켜진 동안은 소유자가 원고를 못 바꾸므로 실행이 저장·발행하는 도중에 잠금이 풀리지 않게 한다). 요일·시각·방향은 언제든 고칠 수 있다.
      */
     fun saveSettings(workId: String, owner: String, request: SerialSettingsRequest): SerialSettingsResponse {
         val clean = cleanSettings(request)
         access.own(workId, owner)
+        if (!clean.enabled && boardRepo.findFirstByWorkIdAndStatusIn(workId, RUNNING) != null) throw conflict("SERIAL_RUNNING", "AI 집필을 실행하는 중이라 지금은 끌 수 없어요. 끝난 뒤에 다시 시도해 주세요.")
         val row = serialRepo.findById(workId).orElse(null) ?: AiSerialEntity(workId = workId)
         row.enabled = clean.enabled
         row.days = clean.days
@@ -103,7 +105,7 @@ class SerialService(
         row.direction = clean.direction
         row.updatedAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
         serialRepo.save(row)
-        if (clean.enabled) openIfNeeded(workId) else boardRepo.findFirstByWorkIdAndStatus(workId, "queued")?.status = "open"
+        if (clean.enabled) openIfNeeded(workId)
         return row.response()
     }
 
@@ -257,7 +259,7 @@ class SerialService(
 
     /**
      * AI가 만든 회차를 소유자 명의로 저장·발행하고 게시판을 published로 닫은 뒤 다음 게시판을 연다(한 트랜잭션).
-     * 새 회차 만들기·버전 저장은 기존 서비스를 쓰고, 발행은 예약 발행([PublicationService.publishScheduled])과 같은 경로다: 사람이 누르는 권리 확인 대신 소유자가 켠 자율 연재를 사전 승인으로 보고
+     * 새 회차 만들기·버전 저장은 기존 서비스의 자율 연재 전용 진입점을 쓰고(켜진 동안 소유자의 원고 수정을 막는 AI 집필 잠금을 건너뛴다), 발행은 예약 발행([PublicationService.publishScheduled])과 같은 경로다: 사람이 누르는 권리 확인 대신 소유자가 켠 자율 연재를 사전 승인으로 보고
      * 권리 확인 응답을 기록한다. 그 사이 사람이 대상 회차를 이미 발행했다면 덮어쓰지 않고 409다.
      */
     fun publish(boardId: String, owner: String, episode: GeneratedEpisode, now: Instant) {
@@ -270,14 +272,14 @@ class SerialService(
         val title = episode.title.trim().take(120).dropLastWhile { it.isHighSurrogate() }
         // 회차 행이 있는지는 저장소로 먼저 본다: 합류한 서비스([EpisodeService.read])의 404를 잡으면 그 서비스가 바깥 트랜잭션을 rollback-only로 만들어 커밋 때 전부 되돌아간다.
         val draft = if (episodeRepo.findByWorkIdAndSequence(board.workId, number) == null) {
-            episodes.create(board.workId, owner, CreateEpisodeRequest(title)).also { checkContent(it.number == number, 409, "회차 번호가 어긋났어요.") }
+            episodes.createForSerial(board.workId, owner, CreateEpisodeRequest(title)).also { checkContent(it.number == number, 409, "회차 번호가 어긋났어요.") }
         } else {
             // 소유자가 이 회차에 쓰던 본문이 있으면 AI 원고로 덮지 않는다(초안은 저장 버전이 없어 되돌릴 수 없다). 빈 초안(예: 1화 발행이 만든 '새 회차')만 쓴다.
             episodes.read(board.workId, owner, number).also {
                 if (it.draft.body.isNotBlank()) throw ContentFailure(409, SerialReason.DRAFT, "SERIAL_DRAFT_EXISTS")
             }
         }
-        val saved = versions.saveWithVersion(board.workId, owner, number, DraftRequest(title, episode.text, draft.draft.revision, ""))
+        val saved = versions.saveWithVersionForSerial(board.workId, owner, number, DraftRequest(title, episode.text, draft.draft.revision, ""))
         publication.publishScheduled(board.workId, owner, number, saved.id)
         board.status = "published"
         board.summary = episode.summary.trim().take(2000).ifBlank { null }

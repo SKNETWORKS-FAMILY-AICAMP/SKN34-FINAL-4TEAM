@@ -32,6 +32,10 @@ object SerialReason {
     const val DRAFT = "작성 중인 원고가 있어 발행하지 않았습니다."
 }
 
+/** AI 집필이 켜져 있는 동안 소유자가 원고를 바꾸려 하면 409로 거절하는 코드와 고정 문구다(서버 판정, 화면 잠금은 보조). */
+const val SERIAL_LOCKED = "SERIAL_LOCKED"
+const val SERIAL_LOCKED_MESSAGE = "AI 집필 중에는 원고를 수정할 수 없습니다. AI 집필을 끄면 수정할 수 있어요."
+
 private val DAY_CODES = DayOfWeek.entries.map { it.name.take(3) }
 private val TIME = Regex("([01]\\d|2[0-3]):[0-5]\\d")
 private val NUL = Char(0)

@@ -251,26 +251,39 @@ class SerialServiceTest {
         assertEquals(listOf(existing), boardRows)
     }
 
-    @Test fun `turning it off sends a queued board back to open and opens nothing`() {
-        work()
-        serial()
-        val queued = board(status = "queued")
+    @Test fun `turning it off while a run is queued or running is refused and changes nothing`() {
+        for (state in listOf("queued", "running")) {
+            boardRows.clear(); settingRows.clear()
+            work(); val row = serial(direction = "그대로"); val active = board(status = state)
 
-        service.saveSettings("w", owner, request(enabled = false, days = emptyList()))
+            val failure = status { service.saveSettings("w", owner, request(enabled = false, days = emptyList(), direction = "바뀐 방향")) }
 
-        assertEquals("open", queued.status)
-        assertFalse(settingRows.getValue("w").enabled)
-        assertEquals(1, boardRows.size)
+            assertEquals(listOf<Any?>(409, "SERIAL_RUNNING"), listOf(failure.status, failure.code), state)
+            assertEquals(listOf<Any?>(true, "그대로", state), listOf(row.enabled, row.direction, active.status), state)
+        }
     }
 
-    @Test fun `turning it off keeps a running board running`() {
-        work()
-        serial()
-        val running = board(status = "running")
+    @Test fun `turning it off while only an open board waits works and leaves that board open`() {
+        work(); serial()
+        val open = board()
 
         service.saveSettings("w", owner, request(enabled = false, days = emptyList()))
 
-        assertEquals("running", running.status)
+        assertFalse(settingRows.getValue("w").enabled)
+        assertEquals(listOf("open"), boardRows.map { it.status })
+        assertEquals("open", open.status)
+    }
+
+    @Test fun `days time and direction can still be changed while a run is queued or running`() {
+        for (state in listOf("queued", "running")) {
+            boardRows.clear(); settingRows.clear()
+            work(); serial(); val active = board(status = state)
+
+            service.saveSettings("w", owner, request(days = listOf("TUE"), time = "20:30", direction = "새 방향"))
+
+            val row = settingRows.getValue("w")
+            assertEquals(listOf<Any?>(true, "TUE", LocalTime.of(20, 30), "새 방향", state), listOf(row.enabled, row.days, row.runTime, row.direction, active.status), state)
+        }
     }
 
     // ---- 지금 마감·실행
@@ -749,7 +762,7 @@ class SerialServiceTest {
     private val generated = GeneratedEpisode("종합 문장", "새 제목", "새 본문", BigDecimal("1.2345"))
 
     private fun stubPublish(number: Int = 4) {
-        `when`(versions.saveWithVersion("w", owner, number, DraftRequest("새 제목", "새 본문", 0, ""))).thenReturn(VersionResponse("v-new", "새 제목", "새 본문", 1, number, "2026-11-23T12:10:00Z"))
+        `when`(versions.saveWithVersionForSerial("w", owner, number, DraftRequest("새 제목", "새 본문", 0, ""))).thenReturn(VersionResponse("v-new", "새 제목", "새 본문", 1, number, "2026-11-23T12:10:00Z"))
         doAnswer { nextEpisode = number + 1; null }.`when`(publication).publishScheduled("w", owner, number, "v-new")
     }
 
@@ -758,7 +771,7 @@ class SerialServiceTest {
         val running = board(number = 4, status = "running")
         // 회차 행이 없다: 합류한 서비스의 404를 잡으면 바깥 트랜잭션이 rollback-only가 되므로 저장소로 먼저 확인한다.
         `when`(episodeRepo.findByWorkIdAndSequence("w", 4)).thenReturn(null)
-        `when`(episodes.create("w", owner, CreateEpisodeRequest("새 제목"))).thenReturn(episode(4))
+        `when`(episodes.createForSerial("w", owner, CreateEpisodeRequest("새 제목"))).thenReturn(episode(4))
         stubPublish()
 
         service.publish("b1", owner, generated, t0)
@@ -768,8 +781,8 @@ class SerialServiceTest {
         val order = inOrder(access, episodeRepo, episodes, versions, publication, boardRepo)
         order.verify(access).own("w", owner)
         order.verify(episodeRepo).findByWorkIdAndSequence("w", 4)
-        order.verify(episodes).create("w", owner, CreateEpisodeRequest("새 제목"))
-        order.verify(versions).saveWithVersion("w", owner, 4, DraftRequest("새 제목", "새 본문", 0, ""))
+        order.verify(episodes).createForSerial("w", owner, CreateEpisodeRequest("새 제목"))
+        order.verify(versions).saveWithVersionForSerial("w", owner, 4, DraftRequest("새 제목", "새 본문", 0, ""))
         order.verify(publication).publishScheduled("w", owner, 4, "v-new")
         // 끝난 게시판의 상태가 먼저 반영돼야 같은 작품의 다음 게시판이 부분 유니크에 걸리지 않는다.
         order.verify(boardRepo).saveAndFlush(running)
@@ -778,16 +791,30 @@ class SerialServiceTest {
         order.verify(boardRepo).saveAndFlush(next)
     }
 
+    @Test fun `publishing never goes through the entries that AI writing locks`() {
+        work(); serial(); board(number = 4, status = "running")
+        `when`(episodeRepo.findByWorkIdAndSequence("w", 4)).thenReturn(null)
+        `when`(episodes.createForSerial("w", owner, CreateEpisodeRequest("새 제목"))).thenReturn(episode(4))
+        stubPublish()
+
+        service.publish("b1", owner, generated, t0)
+
+        // 공개 진입점(REST·MCP가 쓰는 것)은 켜진 동안 소유자도 막으므로, 자율 연재 실행은 자기 진입점으로만 저장한다.
+        verify(episodes, never()).create(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CreateEpisodeRequest::class.java) ?: CreateEpisodeRequest("x"))
+        verify(episodes, never()).update(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyInt(), ArgumentMatchers.any(DraftRequest::class.java) ?: DraftRequest("t", "b", 0))
+        verify(versions, never()).saveWithVersion(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyInt(), ArgumentMatchers.any(DraftRequest::class.java) ?: DraftRequest("t", "b", 0))
+    }
+
     @Test fun `publishing writes into an existing draft instead of creating another episode`() {
         work(); serial(); board(number = 4, status = "running")
         `when`(episodeRepo.findByWorkIdAndSequence("w", 4)).thenReturn(EpisodeEntity(id = "e4", workId = "w", sequence = 4))
         `when`(episodes.read("w", owner, 4)).thenReturn(episode(4, revision = 3))
-        `when`(versions.saveWithVersion("w", owner, 4, DraftRequest("새 제목", "새 본문", 3, ""))).thenReturn(VersionResponse("v-new", "새 제목", "새 본문", 4, 4, "2026-11-23T12:10:00Z"))
+        `when`(versions.saveWithVersionForSerial("w", owner, 4, DraftRequest("새 제목", "새 본문", 3, ""))).thenReturn(VersionResponse("v-new", "새 제목", "새 본문", 4, 4, "2026-11-23T12:10:00Z"))
         doAnswer { nextEpisode = 5; null }.`when`(publication).publishScheduled("w", owner, 4, "v-new")
 
         service.publish("b1", owner, generated, t0)
 
-        verify(episodes, never()).create("w", owner, CreateEpisodeRequest("새 제목"))
+        verify(episodes, never()).createForSerial("w", owner, CreateEpisodeRequest("새 제목"))
         verify(publication).publishScheduled("w", owner, 4, "v-new")
         assertEquals("published", boardRows.first { it.id == "b1" }.status)
     }
@@ -795,12 +822,12 @@ class SerialServiceTest {
     @Test fun `a long generated title is cut to the episode title limit`() {
         work(); serial(); board(number = 4, status = "running")
         val title = "가".repeat(130)
-        `when`(episodes.create("w", owner, CreateEpisodeRequest("가".repeat(120)))).thenReturn(episode(4))
-        `when`(versions.saveWithVersion("w", owner, 4, DraftRequest("가".repeat(120), "새 본문", 0, ""))).thenReturn(VersionResponse("v-new", "t", "새 본문", 1, 4, "x"))
+        `when`(episodes.createForSerial("w", owner, CreateEpisodeRequest("가".repeat(120)))).thenReturn(episode(4))
+        `when`(versions.saveWithVersionForSerial("w", owner, 4, DraftRequest("가".repeat(120), "새 본문", 0, ""))).thenReturn(VersionResponse("v-new", "t", "새 본문", 1, 4, "x"))
 
         service.publish("b1", owner, generated.copy(title = title), t0)
 
-        verify(episodes).create("w", owner, CreateEpisodeRequest("가".repeat(120)))
+        verify(episodes).createForSerial("w", owner, CreateEpisodeRequest("가".repeat(120)))
     }
 
     @Test fun `publishing is refused when a human already published the target episode`() {
@@ -848,7 +875,7 @@ class SerialServiceTest {
         work(); serial(); board(number = 4, status = "running")
         `when`(episodeRepo.findByWorkIdAndSequence("w", 4)).thenReturn(EpisodeEntity(id = "e4", workId = "w", sequence = 4))
         `when`(episodes.read("w", owner, 4)).thenReturn(EpisodeResponse(4, DraftResponse("새 회차", " \n  ", 3), emptyList(), null, false, null))
-        `when`(versions.saveWithVersion("w", owner, 4, DraftRequest("새 제목", "새 본문", 3, ""))).thenReturn(VersionResponse("v-new", "새 제목", "새 본문", 4, 4, "2026-11-23T12:10:00Z"))
+        `when`(versions.saveWithVersionForSerial("w", owner, 4, DraftRequest("새 제목", "새 본문", 3, ""))).thenReturn(VersionResponse("v-new", "새 제목", "새 본문", 4, 4, "2026-11-23T12:10:00Z"))
         doAnswer { nextEpisode = 5; null }.`when`(publication).publishScheduled("w", owner, 4, "v-new")
 
         service.publish("b1", owner, generated, t0)
@@ -862,7 +889,7 @@ class SerialServiceTest {
         val running = board(number = 4, status = "running")
         `when`(episodeRepo.findByWorkIdAndSequence("w", 4)).thenReturn(EpisodeEntity(id = "e4", workId = "w", sequence = 4))
         `when`(episodes.read("w", owner, 4)).thenReturn(episode(4))
-        `when`(versions.saveWithVersion("w", owner, 4, DraftRequest("새 제목", "새 본문", 0, ""))).thenReturn(VersionResponse("v-new", "t", "b", 1, 4, "x"))
+        `when`(versions.saveWithVersionForSerial("w", owner, 4, DraftRequest("새 제목", "새 본문", 0, ""))).thenReturn(VersionResponse("v-new", "t", "b", 1, 4, "x"))
         doThrow(ContentFailure(403, "권리 제한 중인 작품은 공개할 수 없어요.")).`when`(publication).publishScheduled("w", owner, 4, "v-new")
 
         assertEquals(403, status { service.publish("b1", owner, generated, t0) }.status)

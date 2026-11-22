@@ -162,6 +162,8 @@ class EditSuggestionService(
 
     private fun approveAndApply(id: String, suggestionId: String, owner: String): SuggestionResponse {
         val row=owned(id,suggestionId,owner)
+        // 승인은 원고를 바꾸므로 잠금이면 반영 실패로 기록하지 않고 여기서 거절한다(상태는 그대로라 끈 뒤 다시 승인할 수 있다).
+        access.requireManuscriptWritable(id)
         checkContent(EditSuggestionRules.canApprove(row.status,row.applyResult),409,STATE_CONFLICT)
         checkContent(current.findByWorkIdAndSequence(id,row.episodeNumber)?.publishedVersionId==row.publishedVersionId,409,BASE_CHANGED)
         val episode=episodes.read(id,owner,row.episodeNumber)

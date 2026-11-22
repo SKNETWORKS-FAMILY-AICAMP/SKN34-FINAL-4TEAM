@@ -44,6 +44,15 @@ class EpisodeService(
     }
     fun create(id: String, owner: String, data: CreateEpisodeRequest): EpisodeResponse {
         access.own(id,owner)
+        access.requireManuscriptWritable(id)
+        return createEpisode(id,data)
+    }
+    /** 자율 연재 실행 자신의 저장이다(AI 집필 잠금을 건너뛴다). SerialService만 부르고 공개 API는 [create]만 쓴다. */
+    fun createForSerial(id: String, owner: String, data: CreateEpisodeRequest): EpisodeResponse {
+        access.own(id,owner)
+        return createEpisode(id,data)
+    }
+    private fun createEpisode(id: String, data: CreateEpisodeRequest): EpisodeResponse {
         validate(data.title,"")
         val last=current.lastNumber(id)
         checkContent(last<Int.MAX_VALUE,409,"회차 번호를 더 생성할 수 없어요.")
@@ -55,6 +64,15 @@ class EpisodeService(
     }
     fun update(id: String, owner: String, number: Int, data: DraftRequest): EpisodeResponse {
         access.own(id,owner)
+        access.requireManuscriptWritable(id)
+        return updateDraft(id,number,data)
+    }
+    /** 자율 연재 실행 자신의 저장이다(AI 집필 잠금을 건너뛴다). SerialService가 [EpisodeVersionService.saveWithVersionForSerial]로만 부른다. */
+    fun updateForSerial(id: String, owner: String, number: Int, data: DraftRequest): EpisodeResponse {
+        access.own(id,owner)
+        return updateDraft(id,number,data)
+    }
+    private fun updateDraft(id: String, number: Int, data: DraftRequest): EpisodeResponse {
         val before=readCurrent(id,number)
         checkContent(!before.inherited,403,"원작 기준 회차는 수정할 수 없어요.")
         checkContent(ai.storyfork.content.episode.domain.EpisodeMutationPolicy.acceptsRevision(data.revision,before.draft.revision),409,"다른 편집이 저장됐어요. 입력을 보관하고 최신 원고를 다시 불러와 주세요.")
@@ -78,7 +96,9 @@ class EpisodeService(
         return EpisodeOrderScopeResponse(number,candidates,listOf("이미지 참조 또는 참조 확인 불가·저장 버전·설정 공개 범위·AI·Fork 참조를 넘는 이동 제한", "후보 조회만 제공하며 실제 순서 변경과 최종 정책은 미확정입니다."))
     }
     fun deleteDraft(id: String, owner: String, number: Int, revision: Int) {
-        val before=read(id,owner,number)
+        access.own(id,owner)
+        access.requireManuscriptWritable(id)
+        val before=readCurrent(id,number)
         checkContent(!before.inherited,403,"원작 기준 회차는 삭제할 수 없어요.")
         checkContent(before.draft.revision==revision,409,"초안이 변경됐어요. 다시 불러와 주세요.")
         val e=episodes.findByWorkIdAndSequence(id,number) ?: missing()
@@ -90,7 +110,9 @@ class EpisodeService(
         em.flush()
     }
     fun deleteEpisode(id: String, owner: String, number: Int, revision: Int) {
-        val before=read(id,owner,number)
+        access.own(id,owner)
+        access.requireManuscriptWritable(id)
+        val before=readCurrent(id,number)
         checkContent(!before.inherited,403,"원작 기준 회차는 삭제할 수 없어요.")
         checkContent(before.draft.revision==revision,409,"회차가 변경됐어요. 다시 불러와 주세요.")
         val e=episodes.findByWorkIdAndSequence(id,number) ?: missing()
