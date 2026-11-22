@@ -236,9 +236,9 @@ describe('episode.css 관리 화면 사이드바 틀 계약 (작품 관리·세�
     expect(rule('body:has(.ep-menu-account) .thm-float')).toMatch(/display:none/)
   })
 
-  it('접힌 사이드바의 상단 줄(.ep-top)에서 주 행동은 한 덩어리(.ep-top-actions)라 돌아가기 링크는 왼쪽, 행동은 오른쪽에 놓인다(자식이 셋이면 space-between이 가운데 버튼을 흩뜨린다)', () => {
+  it('접힌 사이드바의 상단 줄(.ep-top)은 돌아가기 링크 하나만 담는다: 주 행동 묶음(.ep-top-actions)은 없어졌다(작품 관리의 사이드바 도구 묶음 삭제)', () => {
     expect(rule('.ep-top')).toMatch(/justify-content:space-between/)
-    expect(rule('.ep-top-actions')).toMatch(/display:flex;flex-wrap:wrap;align-items:center;gap:8px/)
+    expect(rule('.ep-top-actions')).toBe('')
   })
 
   it('900px 이하: 사이드바는 내용 위 가로 블록이고 로고(맨 위 줄)와 계정 줄이 맨 위 한 줄에 놓이며(DOM 순서는 로고·본문·계정이라 order로 올린다) 본문이 다음 줄이다 — 메뉴(nav)는 줄바꿈하는 줄이다', () => {

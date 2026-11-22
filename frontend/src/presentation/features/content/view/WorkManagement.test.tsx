@@ -14,6 +14,8 @@ vi.mock('./WorkOverview', () => ({ WorkOverview: () => <p>작품 개요 히어�
 vi.mock('./WorkBrief', () => ({ WorkBrief: () => <p>작품 요약 머리</p> }))
 // AI 집필 탭의 내용은 AiSerialPanel.test가 본다. 여기서는 탭이 이 패널을 그리는지만 본다.
 vi.mock('./AiSerialPanel', () => ({ AiSerialPanel: ({ workId }: { workId: string }) => <p>AI 집필 패널 {workId}</p> }))
+// 내 댓글·제보 탭의 내용은 MyCommentsReports.test가 본다. 여기서는 탭이 이 화면을 (탭 안 모양으로) 그리는지만 본다.
+vi.mock('../../library/view/MyCommentsReports', () => ({ MyCommentsReports: ({ embedded }: { embedded?: boolean }) => <p>내 댓글·제보 내용 {embedded ? '탭 안' : '쪽'}</p> }))
 vi.mock('../viewmodel/useEpisodeForkCounts', () => ({ useEpisodeForkCounts: () => ({ 12: 2 }) }))
 // 세계관 추출 배지는 세계관 탭 패널과 같은 조회 훅을 쓴다. 상태는 테스트가 정하고, 배지가 (다시) 마운트돼 상태를 새로 읽은 횟수를 센다.
 const build = vi.hoisted(() => ({ current: { job: null, error: '' } as { job: { status: string; update?: { status: string } } | null; error: string }, mounts: 0 }))
@@ -181,7 +183,7 @@ it('쪽을 나눠도 이야기 분기의 기준 회차 선택에는 모든 회�
 it('요청을 처리하는 동안 다른 탭은 잠그되 지금 보고 있는 탭은 잠그지 않아, 누른 탭에서 키보드 초점이 사라지지 않는다', () => {
   render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, busy: true } as never} work={work(3)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
   const tabs = within(screen.getByRole('navigation', { name: '작품 메뉴' })).getAllByRole('button') as HTMLButtonElement[]
-  expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['개요', false], ['공개 회차 · 3', true], ['세계관·설정집', true], ['이야기 분기', true], ['AI 집필', true], ['받은 피드백', true], ['운영 설정', true], ['저장·AI·발행 이력', true]])
+  expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['개요', false], ['공개 회차 · 3', true], ['세계관·설정집', true], ['이야기 분기', true], ['AI 집필', true], ['받은 피드백', true], ['내 댓글·제보', true], ['운영 설정', true], ['저장·AI·발행 이력', true]])
 })
 
 it('AI 집필 탭은 이야기 분기 다음에 있고, 누르면 탭 제목(h2)과 AI 집필 패널을 그린다', () => {
@@ -192,6 +194,16 @@ it('AI 집필 탭은 이야기 분기 다음에 있고, 누르면 탭 제목(h2)
   fireEvent.click(screen.getByRole('button', { name: 'AI 집필' }))
   expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('AI 집필')
   expect(screen.getByText('AI 집필 패널 w')).toBeTruthy()
+})
+
+it('내 댓글·제보 탭은 받은 피드백 다음에 있고, 누르면 탭 제목(h2)과 내 댓글·제보 내용을 탭 안(embedded) 모양으로 그린다', () => {
+  open(3)
+  const names = within(screen.getByRole('navigation', { name: '작품 메뉴' })).getAllByRole('button').map((tab) => tab.textContent)
+  expect(names.indexOf('내 댓글·제보')).toBe(names.indexOf('받은 피드백') + 1)
+  expect(screen.queryByText(/내 댓글·제보 내용/)).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '내 댓글·제보' }))
+  expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('내 댓글·제보')
+  expect(screen.getByText('내 댓글·제보 내용 탭 안')).toBeTruthy()
 })
 
 it('서버가 없는 시연(목업)에서는 AI 집필 패널 대신 지원하지 않는다는 안내만 그린다', () => {
@@ -315,28 +327,25 @@ const openAutonomous = (rows: WritingEpisode[] | undefined, count = 3) => {
   return view
 }
 
-it('AI 자율 집필 중이면 회차 작성하기는 활성 회차가 있을 때 집필실 열기 링크와 이유로 바뀐다 (회차가 0개거나 아직 못 읽었으면 회차 작성하기)', () => {
-  openAutonomous([row(1)], 0)
-  expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
-  expect(screen.queryByRole('button', { name: '회차 작성하기' })).toBeNull()
-  const open = screen.getAllByRole('link', { name: '집필실 열기' }).find((a) => a.closest('.ep-menu-tools'))!
-  expect(open.getAttribute('href')).toBe('/studio/w')
-  expect(document.getElementById(open.getAttribute('aria-describedby')!)?.textContent).toBe(LOCK)
-  expect(screen.getByRole('link', { name: '내 댓글·제보' }).getAttribute('href')).toBe('/content?view=reports')
-  for (const rows of [[], undefined]) {
+it('사이드바에는 도구 묶음이 없다: 회차 작성하기·집필실 열기·내 댓글·제보 링크가 없고, AI 자율 집필 중에도 같다 (집필실로 가는 길은 공개 회차 탭 머리의 집필실 열기뿐)', () => {
+  for (const serialLocked of [false, true]) {
     cleanup()
-    openAutonomous(rows, 0)
-    expect(screen.getByRole('link', { name: '회차 작성하기' }).getAttribute('href')).toBe('/studio/w')
+    render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, writing: { id: 'w', rows: [row(1)] } } as never} work={work(0)} serialLocked={serialLocked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+    toRead()
+    const side = document.querySelector('.ep-menu') as HTMLElement
+    expect(side.querySelector('.ep-menu-tools')).toBeNull()
+    for (const name of ['회차 작성하기', '집필실 열기', '내 댓글·제보']) expect(within(side).queryByRole('link', { name }), name).toBeNull()
+    expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
+    expect(screen.getAllByRole('link', { name: '집필실 열기' })).toHaveLength(1) // 공개 회차 탭 머리의 창구 하나
   }
 })
 
-it('공개 회차 탭 머리에 집필실로 바로 가는 집필실 열기 링크가 있다 (AI 자율 집필 여부와 상관없이)', () => {
+it('공개 회차 탭 머리에 집필실로 바로 가는 집필실 열기 링크가 있다 (회차가 0개여도, AI 자율 집필 여부와 상관없이)', () => {
   for (const locked of [false, true]) {
     cleanup()
     render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, writing: { id: 'w', rows: [] } } as never} work={work(0)} serialLocked={locked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
     toRead()
-    const open = screen.getAllByRole('link', { name: '집필실 열기' }).find((a) => !a.closest('.ep-menu-tools'))!
-    expect(open.getAttribute('href')).toBe('/studio/w')
+    expect(screen.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w')
   }
 })
 
