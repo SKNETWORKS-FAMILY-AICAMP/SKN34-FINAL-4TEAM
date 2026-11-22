@@ -263,6 +263,18 @@ class SerialServiceTest {
         }
     }
 
+    @Test fun `saving while already off is not a turn-off even with a run board left over`() {
+        for (state in listOf("queued", "running")) {
+            boardRows.clear(); settingRows.clear()
+            work(); val row = serial(enabled = false, days = "MON"); val leftover = board(status = state)
+
+            // 막는 것은 켜짐에서 끄기로 바뀔 때뿐이다: 이미 꺼진 설정의 요일·시각·방향 저장은 실행 상태와 무관하게 된다.
+            service.saveSettings("w", owner, request(enabled = false, days = listOf("TUE"), time = "20:30", direction = "새 방향"))
+
+            assertEquals(listOf<Any?>(false, "TUE", LocalTime.of(20, 30), "새 방향", state), listOf(row.enabled, row.days, row.runTime, row.direction, leftover.status), state)
+        }
+    }
+
     @Test fun `turning it off while only an open board waits works and leaves that board open`() {
         work(); serial()
         val open = board()

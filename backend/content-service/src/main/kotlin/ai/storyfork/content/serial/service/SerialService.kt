@@ -92,13 +92,15 @@ class SerialService(
 
     /**
      * 설정을 저장한다(세계관 연결은 필요 없다). 입력 오류(422)는 작품 확인(404)보다 먼저 판정한다. 켜져 있고 발행된 회차가 있으면 다음 회차 게시판을 열고,
-     * 끄기는 실행 중(queued·running)이면 409 SERIAL_RUNNING이다(켜진 동안은 소유자가 원고를 못 바꾸므로 실행이 저장·발행하는 도중에 잠금이 풀리지 않게 한다). 요일·시각·방향은 언제든 고칠 수 있다.
+     * 켜짐에서 끄기로 바뀔 때 실행 중(queued·running)이면 409 SERIAL_RUNNING이다(켜진 동안은 소유자가 원고를 못 바꾸므로 실행이 저장·발행하는 도중에 잠금이 풀리지 않게 한다).
+     * 이미 꺼진 설정의 저장과 요일·시각·방향 수정은 실행 상태와 무관하게 된다.
      */
     fun saveSettings(workId: String, owner: String, request: SerialSettingsRequest): SerialSettingsResponse {
         val clean = cleanSettings(request)
         access.own(workId, owner)
-        if (!clean.enabled && boardRepo.findFirstByWorkIdAndStatusIn(workId, RUNNING) != null) throw conflict("SERIAL_RUNNING", "AI 집필을 실행하는 중이라 지금은 끌 수 없어요. 끝난 뒤에 다시 시도해 주세요.")
-        val row = serialRepo.findById(workId).orElse(null) ?: AiSerialEntity(workId = workId)
+        val existing = serialRepo.findById(workId).orElse(null)
+        if (!clean.enabled && existing?.enabled == true && boardRepo.findFirstByWorkIdAndStatusIn(workId, RUNNING) != null) throw conflict("SERIAL_RUNNING", "AI 집필을 실행하는 중이라 지금은 끌 수 없어요. 끝난 뒤에 다시 시도해 주세요.")
+        val row = existing ?: AiSerialEntity(workId = workId)
         row.enabled = clean.enabled
         row.days = clean.days
         row.runTime = clean.runTime
