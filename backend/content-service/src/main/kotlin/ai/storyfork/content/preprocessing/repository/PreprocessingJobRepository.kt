@@ -53,7 +53,10 @@ interface PreprocessingJobRepository : JpaRepository<PreprocessingJobEntity, Str
     @Query("select b from ManuscriptBuildJob b where b.workId=:work and b.status='completed'")
     fun completedBuilds(@Param("work") work: String): List<ManuscriptBuildJob>
 
-    /** 이미 세계관 초안에 반영된 회차 번호다: 끝난(completed) 작업 manifest에 들어 있던 번호의 합집합이다. */
+    /**
+     * 이미 세계관 초안에 반영된 회차 번호다: 끝난(completed) 작업 manifest에 들어 있던 번호의 합집합이다.
+     * ponytail: manifest(원고 본문 포함)를 통째로 읽어 번호만 쓴다. 회차가 수백 개로 늘어 첫 발행 점검이 느려지면 manifest 번호만 뽑는 쿼리로 바꾼다.
+     */
     fun reflectedNumbers(work: String): Set<Int> = completedBuilds(work).flatMapTo(mutableSetOf()) { manifestNumbers(it) }
 
     @Query("select count(b)>0 from ManuscriptBuildJob b where b.workId=:work and b.requestKey=:key")
