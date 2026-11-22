@@ -18,9 +18,10 @@ BAD_PLAN = '기획 모델 응답을 확인할 수 없습니다.'
 BAD_REVISION = '계획 수정 모델 응답을 확인할 수 없습니다.'
 
 
-def draft(data: DraftRequest, credit: agent_runtime.CreditMiddleware | None = None) -> DraftResponse:
-    """BeatPlan/콘티와 허용 문맥으로 새 회차 원고 제안을 만든다. credit은 크레딧을 세는 요청(AI 자율 연재)만 준다."""
-    text, meta = _write('draft', 4000, DRAFT_INSTRUCTIONS, data, credit)
+def draft(data: DraftRequest, credit: agent_runtime.CreditMiddleware | None = None, *, max_tokens: int = 4000,
+          timeout: int = 120) -> DraftResponse:
+    """BeatPlan/콘티와 허용 문맥으로 새 회차 원고 제안을 만든다. credit·max_tokens·timeout은 AI 자율 연재(크레딧을 세고 긴 원고를 쓰는 요청)만 준다."""
+    text, meta = _write('draft', max_tokens, DRAFT_INSTRUCTIONS, data, credit, timeout)
     return DraftResponse(text=text, **meta)
 
 
@@ -73,10 +74,10 @@ def revise_plan(data: PlanReviseRequest) -> PlanRevision:
 
 
 def _write(kind: str, max_tokens: int, instructions: str, data: DraftRequest | PatchRequest,
-           credit: agent_runtime.CreditMiddleware | None = None) -> tuple[str, dict]:
+           credit: agent_runtime.CreditMiddleware | None = None, timeout: int = 120) -> tuple[str, dict]:
     # 허용 문맥(context)은 설정 본문을 담아 추적 결정 범위 밖이라 남기지 않는다.
     message, _ = agent_runtime.run('writing.generation', '집필', WritingFailure, instructions, data.model_dump(),
-                                   prompt_name=f'writing_editing.{kind}', max_tokens=max_tokens, timeout=120,
+                                   prompt_name=f'writing_editing.{kind}', max_tokens=max_tokens, timeout=timeout,
                                    trace=data.model_dump(exclude={'context'}), credit=credit)
     text = message.text.strip()
     if not text:

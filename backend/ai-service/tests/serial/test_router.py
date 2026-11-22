@@ -7,11 +7,11 @@ from fastapi import HTTPException
 
 from app.main import create_app
 from app.serial import router
-from app.serial.models import EpisodeRequest, EpisodeResponse, SimulationRequest, SimulationResponse
+from app.serial.models import ChoicesRequest, ChoicesResponse, EpisodeRequest, EpisodeResponse, SimulationRequest, SimulationResponse
 
 from traced import MEMBER, attrs, bearer, status_of
 
-from .stubs import DRAFT, FAIL, PASS, PLAN, REWRITE, SUMMARY, answers, episode, simulation
+from .stubs import CHOICES, DRAFT, FAIL, PASS, PLAN, REWRITE, SUMMARY, answers, choices_request, episode, simulation
 
 TOKEN = 'serial-token'
 SIMULATE = lambda **overrides: router.simulate(SimulationRequest.model_validate(simulation(**overrides)), TOKEN)  # noqa: E731
@@ -24,13 +24,36 @@ def internal_token(monkeypatch):
 
 
 @pytest.mark.parametrize('call', [
+    lambda: router.choices(ChoicesRequest.model_validate(choices_request()), 'wrong'),
     lambda: router.simulate(SimulationRequest.model_validate(simulation()), 'wrong'),
-    lambda: router.episode(EpisodeRequest.model_validate(episode()), 'wrong')], ids=['simulation', 'episode'])
+    lambda: router.episode(EpisodeRequest.model_validate(episode()), 'wrong')], ids=['choices', 'simulation', 'episode'])
 def test_wrong_token_is_403_and_never_calls_the_model(monkeypatch, call):
     calls = answers(monkeypatch)
     with pytest.raises(HTTPException) as error:
         call()
     assert error.value.status_code == 403 and calls == []
+
+
+def test_served_choices_are_returned_as_one_trace_root_with_work_and_reservation(monkeypatch, spans):
+    answers(monkeypatch, CHOICES)
+
+    result = router.choices(ChoicesRequest.model_validate(choices_request(creditReservationId='res-3')), TOKEN)
+
+    assert isinstance(result, ChoicesResponse) and result.choices == CHOICES[0]['choices']
+    [root] = [s for s in spans() if s.parent is None]
+    found = attrs(root)
+    assert root.name == 'serial.choices' and found['langfuse.trace.tags'] == ['feature:serial.choices'] and status_of(root) == 'success'
+    assert found['langfuse.trace.metadata.work_id'] == 'work-1' and found['langfuse.trace.metadata.credit_reservation_id'] == 'res-3'
+
+
+def test_unusable_choices_are_a_fixed_502_without_a_code(monkeypatch, spans):
+    answers(monkeypatch, ({'choices': ['하나']}, 10, 5))
+
+    response = router.choices(ChoicesRequest.model_validate(choices_request()), TOKEN)
+
+    assert response.status_code == 502 and json.loads(response.body) == {'detail': '선택지 모델 응답을 확인할 수 없습니다.'}
+    [root] = [s for s in spans() if s.parent is None]
+    assert status_of(root) == 'failed' and root.attributes['langfuse.observation.level'] == 'ERROR'
 
 
 def test_a_served_simulation_is_returned_as_one_trace_root_with_work_and_reservation(monkeypatch, spans):
@@ -92,18 +115,15 @@ def test_feature_failures_keep_the_fixed_phrase_and_add_a_code_for_the_two_contr
     assert status_of(root) == 'failed' and root.attributes['langfuse.observation.level'] == 'ERROR'
 
 
-def test_both_routes_are_registered_and_ask_for_the_internal_token():
-    spec = create_app().openapi()
-    for path in ['/internal/v1/serial/simulations', '/internal/v1/serial/episodes']:
-        header = next(p for p in spec['paths'][path]['post']['parameters'] if p['name'] == 'x-internal-token')
-        assert header['in'] == 'header' and not header['required'], path
+ROUTES = ['/internal/v1/serial/choices', '/internal/v1/serial/simulations', '/internal/v1/serial/episodes']
 
 
-def test_only_the_simulation_route_takes_the_optional_member_bearer():
-    """시뮬레이션에는 의견을 낸 회원이 있고, 회차 실행은 일정으로도 돌아 사용자 토큰이 없다."""
+def test_all_routes_ask_for_the_internal_token_and_only_the_simulation_route_takes_the_optional_member_bearer():
+    """시뮬레이션에는 글을 쓴 회원이 있고, 선택지 생성·회차 실행은 일정 점검이 불러 사용자 토큰이 없다."""
     paths = create_app().openapi()['paths']
-    headers = {path: {p['name']: p for p in paths[path]['post']['parameters']} for path in
-               ['/internal/v1/serial/simulations', '/internal/v1/serial/episodes']}
-    submitter = headers['/internal/v1/serial/simulations']['x-user-authorization']
-    assert submitter['in'] == 'header' and not submitter['required']
-    assert 'x-user-authorization' not in headers['/internal/v1/serial/episodes']
+    for path in ROUTES:
+        headers = {p['name']: p for p in paths[path]['post']['parameters']}
+        assert headers['x-internal-token']['in'] == 'header' and not headers['x-internal-token']['required'], path
+        assert ('x-user-authorization' in headers) == path.endswith('simulations'), path
+        if 'x-user-authorization' in headers:
+            assert headers['x-user-authorization']['in'] == 'header' and not headers['x-user-authorization']['required']

@@ -1,26 +1,28 @@
-"""#659 요청 한도(계약)와 검수 결과 불변식."""
+"""#659 요청 한도(계약)와 모델 구조화 출력·검수 결과 불변식."""
 
 import pytest
 from pydantic import ValidationError
 
-from app.serial.models import EpisodeRequest, Review, SimulationRequest
+from app.serial.models import ChoicesRequest, EpisodeRequest, Review, SimulationRequest
 
-from .stubs import episode, simulation
+from .stubs import choices_request, episode, simulation
 
-OPINION = {'kind': 'general', 'body': '의견', 'votes': 0, 'scene': None}
+PROPOSAL = {'title': '제안', 'body': '본문', 'likes': 0, 'scene': None}
 
 
 def test_the_limits_themselves_are_accepted():
     SimulationRequest.model_validate(simulation(premise='가' * 500, beats=['나' * 200] * 5, context='x' * 60000, creditLimit=0.0001))
-    EpisodeRequest.model_validate(episode(direction='가' * 2000, context='x' * 60000, opinions=[
-        {'kind': 'general', 'body': '나' * 1000, 'votes': 0, 'scene': None},
-        {'kind': 'simulation', 'body': '다' * 1000, 'votes': 9, 'scene': '라' * 1500}, OPINION]))
+    ChoicesRequest.model_validate(choices_request(direction='가' * 2000, context='x' * 60000, creditLimit=0.0001))
+    EpisodeRequest.model_validate(episode(direction='가' * 2000, context='x' * 60000, choice={'text': '가' * 300, 'votes': 0}, proposals=[
+        {'title': '나' * 100, 'body': '다' * 2000, 'likes': 0, 'scene': '라' * 1500}, PROPOSAL, PROPOSAL]))
 
 
-def test_beats_opinions_and_direction_may_be_empty():
+def test_beats_choice_proposals_and_direction_may_be_empty():
     assert SimulationRequest.model_validate(simulation(beats=[])).beats == []
-    request = EpisodeRequest.model_validate(episode(opinions=[], direction=''))
-    assert request.opinions == [] and request.direction == ''
+    assert ChoicesRequest.model_validate(choices_request(direction='')).direction == ''
+    request = EpisodeRequest.model_validate(episode(choice=None, proposals=[], direction=''))
+    assert (request.choice, request.proposals, request.direction) == (None, [], '')
+    assert EpisodeRequest.model_validate(episode(proposals=[PROPOSAL | {'body': ''}])).proposals[0].body == ''  # 시뮬레이션 제안은 미리보기만 있을 수 있다
 
 
 @pytest.mark.parametrize('field, value', [
@@ -32,11 +34,18 @@ def test_simulation_request_over_the_limits_is_rejected(field, value):
 
 
 @pytest.mark.parametrize('field, value', [
+    ('workId', ''), ('episodeNumber', 0), ('direction', '가' * 2001), ('context', ''), ('context', 'x' * 60001), ('creditLimit', 0)])
+def test_choices_request_over_the_limits_is_rejected(field, value):
+    with pytest.raises(ValidationError):
+        ChoicesRequest.model_validate(choices_request(**{field: value}))
+
+
+@pytest.mark.parametrize('field, value', [
     ('workId', ''), ('episodeNumber', 0), ('direction', '가' * 2001), ('context', ''), ('context', 'x' * 60001), ('creditLimit', 0),
-    ('opinions', [OPINION] * 4),
-    ('opinions', [OPINION | {'kind': 'setting'}]),  # 설정 제안은 범위 밖: 의견은 일반·시뮬레이션뿐
-    ('opinions', [OPINION | {'body': ''}]), ('opinions', [OPINION | {'body': '가' * 1001}]),
-    ('opinions', [OPINION | {'votes': -1}]), ('opinions', [OPINION | {'scene': '가' * 1501}])])
+    ('choice', {'text': '', 'votes': 1}), ('choice', {'text': '가' * 301, 'votes': 1}), ('choice', {'text': '선택', 'votes': -1}),
+    ('proposals', [PROPOSAL] * 4),
+    ('proposals', [PROPOSAL | {'title': ''}]), ('proposals', [PROPOSAL | {'title': '가' * 101}]), ('proposals', [PROPOSAL | {'body': '가' * 2001}]),
+    ('proposals', [PROPOSAL | {'likes': -1}]), ('proposals', [PROPOSAL | {'scene': '가' * 1501}])])
 def test_episode_request_over_the_limits_is_rejected(field, value):
     with pytest.raises(ValidationError):
         EpisodeRequest.model_validate(episode(**{field: value}))

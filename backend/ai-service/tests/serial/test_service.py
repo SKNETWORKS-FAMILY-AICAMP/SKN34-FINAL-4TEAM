@@ -1,15 +1,20 @@
-"""#659 자율 연재 실행 흐름: 장면 미리보기, 의견 종합 → 기획·원고 → 검수(1회 재작성), 요청 안 모든 모델 호출의 크레딧 누적·상한."""
+"""#659 자율 연재 실행 흐름: 선택지, 장면 미리보기, 투표·제안 종합 → 기획·원고(최소 분량) → 검수(1회 재작성), 요청 안 모든 모델 호출의 크레딧 누적·상한."""
 
 import pytest
 
 from app import tracing
 from app.serial import service
 from app.serial.errors import SerialFailure
-from app.serial.models import EpisodeRequest, SimulationRequest
-from app.serial.prompt import REVIEW_INSTRUCTIONS, SIMULATION_INSTRUCTIONS, SUMMARY_INSTRUCTIONS
+from app.serial.models import ChoicesRequest, EpisodeRequest, SimulationRequest
+from app.serial.prompt import CHOICES_INSTRUCTIONS, REVIEW_INSTRUCTIONS, SIMULATION_INSTRUCTIONS, SUMMARY_INSTRUCTIONS
 from app.writing.prompt import DRAFT_INSTRUCTIONS, PLAN_INSTRUCTIONS
 
-from .stubs import CONTEXT, DRAFT, FAIL, PASS, PLAN, REWRITE, SUMMARY, answers, episode, sent, simulation
+from .stubs import (CHOICE, CHOICES, CONTEXT, DRAFT, FAIL, PASS, PLAN, REWRITE, SHORT, SUMMARY, answers, choices_request, episode, sent,
+                    simulation, story)
+
+
+def choices(**overrides):
+    return service.choices(ChoicesRequest.model_validate(choices_request(**overrides)))
 
 
 def simulate(**overrides):
@@ -18,6 +23,31 @@ def simulate(**overrides):
 
 def run_episode(**overrides):
     return service.episode(EpisodeRequest.model_validate(episode(**overrides)))
+
+
+def test_choices_asks_for_four_directions_from_the_context_and_direction_and_confirms_credits(monkeypatch):
+    asked = []
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt(default))
+    calls = answers(monkeypatch, CHOICES)
+
+    result = choices()
+
+    assert result.model_dump() == {'choices': CHOICES[0]['choices'], 'credits': 0.3, 'usage': {'inputTokens': 200, 'outputTokens': 100}}
+    assert asked == [('serial.choices', CHOICES_INSTRUCTIONS)]
+    instructions, data = sent(calls[0])
+    assert instructions == CHOICES_INSTRUCTIONS and data == {'episodeNumber': 2, 'direction': '서윤의 성장 이야기', 'context': CONTEXT}
+
+
+@pytest.mark.parametrize('picked', [
+    ['가', '나', '다'], ['가', '나', '다', '라', '마'], ['가', '나', '다', '라', '라'], ['가', '나', '다', '다'], ['가', '나', '다', '  '],
+    ['가', '나', '다', '라' * 301]], ids=['three', 'five', 'five-with-duplicate', 'duplicate', 'blank', 'too-long'])
+def test_choices_that_break_the_rules_are_a_fixed_502_not_corrected(monkeypatch, picked):
+    answers(monkeypatch, ({'choices': picked}, 10, 5))
+
+    with pytest.raises(SerialFailure) as error:
+        choices()
+
+    assert (error.value.status, str(error.value)) == (502, '선택지 모델 응답을 확인할 수 없습니다.')
 
 
 def test_simulation_writes_a_scene_from_the_public_context_and_confirms_credits(monkeypatch):
@@ -50,7 +80,7 @@ def test_a_scene_outside_the_contract_is_502_and_is_not_trimmed(monkeypatch, sce
     assert (error.value.status, str(error.value)) == (502, '장면 미리보기 모델 응답을 확인할 수 없습니다.')
 
 
-def test_episode_chains_summary_plan_draft_and_review_and_confirms_credits_over_all_of_them(monkeypatch):
+def test_episode_chains_summary_plan_draft_and_review_with_the_top_choice_as_the_central_development(monkeypatch):
     asked = []
     monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt(default))
     calls = answers(monkeypatch, SUMMARY, PLAN, DRAFT, PASS)
@@ -59,23 +89,85 @@ def test_episode_chains_summary_plan_draft_and_review_and_confirms_credits_over_
 
     assert result.model_dump() == {'summary': SUMMARY[0]['summary'], 'title': '진실의 밤', 'text': DRAFT[0], 'review': {'passed': True, 'issues': []},
                                    'credits': 1.67, 'usage': {'inputTokens': 1300, 'outputTokens': 370}}
-    assert asked == [('serial.summary', SUMMARY_INSTRUCTIONS), ('writing_editing.plan', PLAN_INSTRUCTIONS),
-                     ('writing_editing.draft', DRAFT_INSTRUCTIONS), ('serial.review', REVIEW_INSTRUCTIONS)]
+    assert asked == [('serial.vote_summary', SUMMARY_INSTRUCTIONS), ('writing_editing.plan', PLAN_INSTRUCTIONS),
+                     ('writing_editing.draft', DRAFT_INSTRUCTIONS), ('serial.episode_review', REVIEW_INSTRUCTIONS)]
     summary, plan, draft, review = (sent(call)[1] for call in calls)
-    assert set(summary) == {'episodeNumber', 'opinions'}  # 공개되는 종합 문장은 연재 방향·작품 문맥을 보지 못한다
-    assert [o['votes'] for o in summary['opinions']] == [3, 1] and summary['opinions'][1]['scene'] == '서윤이 입을 열었다.'
-    assert SUMMARY[0]['summary'] in plan['request'] and '서윤의 성장 이야기' in plan['request'] and plan['single'] is True
-    assert plan['context'] == CONTEXT and draft['context'] == CONTEXT
+    assert set(summary) == {'episodeNumber', 'choice', 'proposals'}  # 공개되는 종합 문장은 연재 방향·작품 문맥을 보지 못한다
+    assert summary['choice'] == CHOICE and [p['likes'] for p in summary['proposals']] == [2, 1] and summary['proposals'][1]['scene'] == '서윤이 입을 열었다.'
+    # 1위 선택지는 기획 요청의 맨 앞에 글자 그대로 들어가고, 소유자의 연재 방향, 제안 종합이 뒤따른다.
+    request = plan['request']
+    assert request.index(CHOICE['text']) < request.index('서윤의 성장 이야기') < request.index(SUMMARY[0]['summary'])
+    assert plan['single'] is True and plan['context'] == CONTEXT and draft['context'] == CONTEXT
+    # 집필 요청은 계획에 분량·되풀이 금지·중심 전개 조건을 붙인다(Writing 집필 지시는 plan의 분량 요청을 따른다).
     assert '진실의 밤' in draft['plan'] and '1. 서윤이 망설인다' in draft['plan']
-    assert review == {'episodeNumber': 2, 'title': '진실의 밤', 'text': DRAFT[0], 'context': CONTEXT}
+    assert '최소 2,500자' in draft['plan'] and '되풀이하지 않고' in draft['plan'] and CHOICE['text'] in draft['plan']
+    assert review == {'episodeNumber': 2, 'title': '진실의 밤', 'text': DRAFT[0], 'choice': CHOICE['text'], 'context': CONTEXT}
 
 
-def test_without_opinions_the_summary_call_is_skipped(monkeypatch):
+def test_the_serial_draft_gets_a_larger_output_budget_than_writings_default(monkeypatch):
+    calls = answers(monkeypatch, SUMMARY, PLAN, DRAFT, PASS)
+
+    run_episode()
+
+    plan_init, draft_init = calls[1]['init'], calls[2]['init']
+    assert (plan_init['max_tokens'], plan_init['timeout']) == (4000, 50)  # 기획은 Writing 기본 그대로
+    assert (draft_init['max_tokens'], draft_init['timeout']) == (8000, 180)  # 직전 회차 분량의 원고가 잘리지 않게
+
+
+def test_without_a_vote_result_nothing_asks_for_a_central_development(monkeypatch):
+    calls = answers(monkeypatch, SUMMARY, PLAN, DRAFT, PASS)
+
+    run_episode(choice=None)
+
+    summary, plan, draft, review = (sent(call)[1] for call in calls)
+    assert summary['choice'] is None and review['choice'] is None
+    assert '중심 전개' not in plan['request'] and '중심 전개' not in draft['plan']
+
+
+def test_without_a_choice_and_proposals_the_summary_call_is_skipped(monkeypatch):
     calls = answers(monkeypatch, PLAN, DRAFT, PASS)
 
-    result = run_episode(opinions=[])
+    result = run_episode(choice=None, proposals=[])
 
-    assert len(calls) == 3 and result.summary == service.NO_OPINIONS
+    assert len(calls) == 3 and result.summary == service.NO_INPUT
+
+
+def test_a_choice_alone_is_still_summarized(monkeypatch):
+    calls = answers(monkeypatch, SUMMARY, PLAN, DRAFT, PASS)
+
+    run_episode(proposals=[])
+
+    assert len(calls) == 4 and sent(calls[0])[1]['proposals'] == []
+
+
+def test_a_short_draft_fails_the_review_without_a_model_review_and_is_rewritten_once_with_its_length_in_the_issues(monkeypatch):
+    calls = answers(monkeypatch, SUMMARY, PLAN, SHORT, REWRITE, PASS)
+
+    result = run_episode()
+
+    assert (result.text, result.review.passed) == (REWRITE[0], True) and len(calls) == 5  # 다시 쓸 원고에는 모델 검수를 쓰지 않는다
+    assert f'분량이 {len(SHORT[0])}자로 최소 2,500자에 못 미친다' in sent(calls[3])[1]['plan']
+    assert sent(calls[4])[0] == REVIEW_INSTRUCTIONS and sent(calls[4])[1]['text'] == REWRITE[0]
+    assert result.credits == 2.27 and result.usage.model_dump() == {'inputTokens': 1700, 'outputTokens': 570}
+
+
+def test_two_short_drafts_are_422_review_failed(monkeypatch):
+    calls = answers(monkeypatch, SUMMARY, PLAN, SHORT, SHORT)
+
+    with pytest.raises(SerialFailure) as error:
+        run_episode()
+
+    assert (error.value.status, error.value.code) == (422, 'SERIAL_REVIEW_FAILED') and len(calls) == 4
+
+
+@pytest.mark.parametrize('length, model_calls', [(2499, 5), (2500, 4)])
+def test_the_minimum_length_is_2500_characters(monkeypatch, length, model_calls):
+    draft = (story('서윤이 말했다.', length), 400, 200)
+    calls = answers(monkeypatch, SUMMARY, PLAN, draft, *([REWRITE] if length < 2500 else []), PASS)
+
+    result = run_episode()
+
+    assert len(calls) == model_calls and result.review.passed
 
 
 def test_a_failed_review_rewrites_once_from_the_same_plan_with_the_issues_then_reviews_the_new_text(monkeypatch):
@@ -86,7 +178,8 @@ def test_a_failed_review_rewrites_once_from_the_same_plan_with_the_issues_then_r
     assert (result.title, result.text, result.review.passed) == ('진실의 밤', REWRITE[0], True)
     instructions, rewrite = sent(calls[4])
     assert instructions == DRAFT_INSTRUCTIONS and '진실의 밤' in rewrite['plan'] and '1. 서윤이 망설인다' in rewrite['plan']
-    assert FAIL[0]['issues'][0] in rewrite['plan'] and rewrite['context'] == CONTEXT
+    assert '검수에서 지적된 문제를 고쳐 다시 쓴다' in rewrite['plan'] and FAIL[0]['issues'][0] in rewrite['plan']
+    assert CHOICE['text'] in rewrite['plan'] and rewrite['context'] == CONTEXT
     assert sent(calls[5])[1]['text'] == REWRITE[0]
     assert result.credits == 2.8 and result.usage.model_dump() == {'inputTokens': 2200, 'outputTokens': 600}  # 여섯 호출 모두 센다
 
@@ -112,8 +205,8 @@ def test_the_credit_limit_ends_the_run_with_402_before_the_next_model_call(monke
 
 
 @pytest.mark.parametrize('replies, message', [
-    ([({'summary': '  '}, 10, 5)], '의견 종합 모델 응답을 확인할 수 없습니다.'),
-    ([({'summary': '가' * 1001}, 10, 5)], '의견 종합 모델 응답을 확인할 수 없습니다.'),
+    ([({'summary': '  '}, 10, 5)], '투표·제안 종합 모델 응답을 확인할 수 없습니다.'),
+    ([({'summary': '가' * 1001}, 10, 5)], '투표·제안 종합 모델 응답을 확인할 수 없습니다.'),
     ([SUMMARY, ({'plans': [{'title': '가' * 121, 'beats': ['장면']}], 'notes': []}, 10, 5)], '기획 모델 응답을 확인할 수 없습니다.'),
     ([SUMMARY, ({'plans': [{'title': '  ', 'beats': ['장면']}], 'notes': []}, 10, 5)], '기획 모델 응답을 확인할 수 없습니다.'),
     ([SUMMARY, PLAN, DRAFT, ({'passed': False, 'issues': []}, 10, 5)], '검수 모델 응답을 확인할 수 없습니다.'),
@@ -127,14 +220,16 @@ def test_a_result_that_breaks_the_rules_is_a_fixed_502_not_a_corrected_one(monke
     assert (error.value.status, str(error.value)) == (502, message)
 
 
-def test_the_longest_direction_and_plan_and_issues_still_fit_the_writing_request_limits(monkeypatch):
+def test_the_longest_direction_choice_summary_plan_and_issues_still_fit_the_writing_request_limits(monkeypatch):
+    long_summary = ({'summary': '라' * 1000}, 100, 50)
     long_plan = ({'plans': [{'title': '진실의 밤', 'beats': ['가' * 300] * 12}], 'notes': []}, 300, 100)
     long_issues = ({'passed': False, 'issues': ['나' * 300] * 8}, 500, 30)
-    calls = answers(monkeypatch, SUMMARY, long_plan, DRAFT, long_issues, REWRITE, PASS)
+    calls = answers(monkeypatch, long_summary, long_plan, DRAFT, long_issues, REWRITE, PASS)
 
-    run_episode(direction='다' * 2000)
+    run_episode(direction='다' * 2000, choice={'text': '마' * 300, 'votes': 1})
 
-    assert len(sent(calls[1])[1]['request']) <= 2000  # 기획 요청 한도
+    request = sent(calls[1])[1]['request']
+    assert len(request) <= 2000 and '마' * 300 in request  # 기획 요청 한도: 중심 전개(선택지)는 잘리지 않는다
     rewrite_plan = sent(calls[4])[1]['plan']
     assert len(rewrite_plan) <= 4000  # 집필 계획 한도
-    assert rewrite_plan.count('\n- ') == 5 and '나' * 200 in rewrite_plan and '나' * 201 not in rewrite_plan  # 지적은 앞 5개·각 200자
+    assert rewrite_plan.count('나' * 200) == 5 and '나' * 201 not in rewrite_plan  # 지적은 앞 5개·각 200자

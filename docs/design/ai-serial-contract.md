@@ -70,6 +70,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 | `POST /internal/v1/serial/simulations` | `{workId, episodeNumber, premise, beats, context, creditLimit}`(context = 공개 회차·공개 카드 JSON) | `{scene, credits, usage}` |
 | `POST /internal/v1/serial/episodes` | `{workId, episodeNumber, direction, choice:{text, votes}\|null, proposals:[{title, body, likes, scene?}], context, creditLimit}` | `{summary, title, text, review:{passed, issues}, credits, usage}`. 검수 2회 실패는 422 `SERIAL_REVIEW_FAILED` |
 
+- 회차 원고가 2,500자 미만이면 모델 검수 없이 검수 실패로 보고 1회 다시 쓴다. 회차 집필은 출력 8,000토큰·180초(최악 합계 약 570초, Content 읽기 한도 10분 안). 내용이 바뀐 프롬프트는 Langfuse 등록본에 가리지 않게 `serial.vote_summary`·`serial.episode_review`로 새 이름을 쓴다(선택지는 `serial.choices`).
 - 원고 생성은 기존 `app/writing/`의 기획·원고 지시를 재사용하고, 검수·종합·장면 미리보기만 새 프롬프트(`serial.*`, `tracing.prompt` 규칙)다.
 - 사용자 토큰·Content MCP를 쓰지 않는다. 시뮬레이션만 추적 회원용 선택 헤더 `X-User-Authorization`(제출자 Bearer)을 받는다(인가에는 쓰지 않음). 일정 실행에는 사용자 토큰이 없어서 Content가 허용 문맥을 만들어 넘긴다(새 원고 생성과 같은 방식).
 
