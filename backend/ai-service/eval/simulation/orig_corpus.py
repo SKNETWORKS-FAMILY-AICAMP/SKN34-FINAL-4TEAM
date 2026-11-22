@@ -14,6 +14,7 @@ import orig_turns
 from kt_label import knows
 from kt_world import load_world
 import sim_worlds
+from app.evaluation.rubric import bigrams as _bigrams   # 운영 회귀 평가와 같은 함수
 
 WORLD_SLOTS = 8
 HEADING = re.compile(r'^\s*(?:제\s*\d+\s*장|chapter\s*\d+|에필로그|epilogue)', re.I)
@@ -88,20 +89,9 @@ def kt_facts(knowledge: list[dict], name: str | None, last: int, base: int) -> l
     return facts
 
 
-def _bigrams(text: str) -> set[str]:
-    folded = re.sub(r'[\W_]+', '', text)
-    return {folded[i:i + 2] for i in range(len(folded) - 1)}
-
-
 def shared(a: str, b: str) -> int:
     """두 글이 함께 가진 두 글자 조각의 수(낱말 겹침의 어림)."""
     return len(_bigrams(a) & _bigrams(b))
-
-
-def top_facts(text: str, facts: list[dict], k: int) -> list[dict]:
-    """text와 겹침이 큰 사실 k개(같으면 입력 순서). 판정 모델에 보일 후보를 줄이는 데 쓴다."""
-    marks = _bigrams(text)
-    return sorted(facts, key=lambda f: -len(_bigrams(f['text']) & marks))[:k]
 
 
 class PublicCorpus:

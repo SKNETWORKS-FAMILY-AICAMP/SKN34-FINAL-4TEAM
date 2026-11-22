@@ -49,11 +49,8 @@ def test_kt_facts_uses_knows_for_past_and_everything_after_for_future():
     assert [(f['id'], f['kind']) for f in oc.kt_facts(KNOWLEDGE, '갑', last=3, base=2)] == [('E2.1', 'absent'), ('E4.1', 'future')]
 
 
-def test_bigram_overlap_and_top_facts():
+def test_bigram_overlap():   # top_facts는 app.evaluation.rubric으로 옮겨 tests/evaluation/test_rubric.py가 본다
     assert oc.shared('기차를 탄다', '해리는 기차를 탔다') > oc.shared('숲에 간다', '해리는 기차를 탔다')
-    facts = [{'id': 'a', 'text': '숲에 간다.'}, {'id': 'b', 'text': '기차를 탄다.'}, {'id': 'c', 'text': '전혀 다른 이야기.'}]
-    assert [f['id'] for f in oc.top_facts('해리는 기차를 탔다', facts, 2)][0] == 'b'
-    assert len(oc.top_facts('해리는 기차를 탔다', facts, 2)) == 2
 
 
 def test_sample_units_even_per_book_and_skips_first_unit():
