@@ -68,7 +68,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
       setTitle(history.title)
       setTurns(history.turns)
     } catch (failure) {
-      if (current.current === id) { setTurns([]); setError(message(failure, '대화를 불러오지 못했어요.')) }
+      // 먼저 난 오류가 원인이다: 새 대화의 첫 요청이 거절되면 이력은 아직 없어 404이고 거절 사유를 덮으면 안 된다(#635).
+      if (current.current === id) { setTurns([]); setError((cause) => cause || message(failure, '대화를 불러오지 못했어요.')) }
     }
   }, [useCase, workId])
 

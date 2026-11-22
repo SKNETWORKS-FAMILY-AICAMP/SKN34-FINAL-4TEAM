@@ -712,6 +712,20 @@ it('새 대화를 여는 동안 회차를 옮겨도 여는 것보다 먼저 읽�
   expect(send.mock.calls[0][2]).toMatchObject({ targetEpisode: 2, page: { episode: 2 } })
 })
 
+it('새 대화의 첫 요청이 거절되면 빈 대화의 404가 아니라 거절 사유를 보인다(#635)', async () => {
+  sessions.mockResolvedValue([])
+  open.mockResolvedValue('new')
+  send.mockRejectedValue(new Error('화면의 회차와 반영할 회차가 달라요.'))
+  history.mockRejectedValue(new Error('대화를 찾을 수 없어요.'))
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '다듬어줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(history).toHaveBeenCalled())
+  await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('화면의 회차와 반영할 회차가 달라요.'))
+  expect(screen.getByRole('textbox', { name: '메시지' })).toHaveProperty('value', '다듬어줘')
+})
+
 it('선택 글이 너무 길면 전송하지 않고 입력을 남긴다', async () => {
   openThread([])
   const getPage = () => chatPage({ path: '/studio/w', kind: 'studio', selection: '가'.repeat(5001) })
