@@ -32,6 +32,10 @@ vi.mock('../../../shared/plans/useStoryPlanViewModel', () => ({ useStoryPlanView
 const mcp = vi.hoisted(() => ({ stale: false, reload: vi.fn(), watch: vi.fn() }))
 vi.mock('../../../shared/useMcpChangeWatch', () => ({ useMcpChangeWatch: (...args: unknown[]) => { mcp.watch(...args); return { stale: mcp.stale, reload: mcp.reload } } }))
 afterEach(() => { mcp.stale = false })
+// AI 집필 중 원고 잠금: 켜짐 여부 읽기는 useSerialLock.test가 본다. 여기서는 잠겼을 때 집필실이 입력·버튼을 잠그고 안내하는지만 본다.
+const serial = vi.hoisted(() => ({ locked: false }))
+vi.mock('../../../shared/useSerialLock', () => ({ useSerialLock: () => ({ locked: serial.locked, reread: vi.fn() }) }))
+afterEach(() => { serial.locked = false })
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p>, StoredImage: () => null }))
 vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="설정 버전 이력"><h2>설정 버전 이력</h2><p>{workId}</p></section> }))
@@ -1349,4 +1353,56 @@ it('다른 곳에서 바뀌었다는 배너는 바뀐 것이 있을 때만 보�
   const banner = screen.getByText('다른 곳에서 바뀌었어요').closest('[role="status"]') as HTMLElement
   fireEvent.click(within(banner).getByRole('button', { name: '다시 불러오기' }))
   expect(mcp.reload).toHaveBeenCalledTimes(1)
+})
+
+// ── AI 집필 중 원고 잠금(계약 'AI 집필 중 원고 잠금'): 서버가 409 SERIAL_LOCKED로 막는 수정을 화면도 미리 잠그고 안내한다 ──
+const LOCK = 'AI 집필 중이라 원고를 수정할 수 없어요. 작품 관리 > AI 집필에서 끄면 수정할 수 있어요.'
+const bodyBox = () => screen.getByRole('textbox', { name: '원고 본문' }) as HTMLTextAreaElement
+const titleBox = () => screen.getByRole('textbox', { name: '회차 제목' }) as HTMLInputElement
+const disabledOf = (scope: Pick<typeof screen, 'getByRole'>, name: string) => (scope.getByRole('button', { name }) as HTMLButtonElement).disabled
+
+it('AI 집필이 꺼져 있으면 안내 없이 원고를 고칠 수 있고 버전 저장·새 회차도 열려 있다', () => {
+  renderStudio()
+  expect(screen.queryByText(LOCK)).toBeNull()
+  expect(bodyBox().readOnly).toBe(false)
+  expect(titleBox().readOnly).toBe(false)
+  expect(disabledOf(screen, '버전 저장')).toBe(false)
+  expect(disabledOf(screen, '새 회차')).toBe(false)
+})
+
+it('AI 집필 중이면 위쪽 안내를 보이고 제목·본문을 읽기 전용으로 두며 버전 저장·새 회차를 잠근다 (보기 전용 버튼은 그대로다)', () => {
+  serial.locked = true
+  renderStudio()
+  expect(screen.getByText(LOCK).getAttribute('role')).toBe('status')
+  expect(bodyBox().readOnly).toBe(true)
+  expect(titleBox().readOnly).toBe(true)
+  expect(disabledOf(screen, '버전 저장')).toBe(true)
+  expect(disabledOf(screen, '새 회차')).toBe(true)
+  expect(disabledOf(screen, '버전 · 공개')).toBe(false)
+})
+
+it('AI 집필 중이면 회차 설정 시트에서도 이유를 알리고 작가의 말·본문 이미지·공개 중단·초안·회차 삭제를 잠근다 (발행 이력 보기는 그대로다)', () => {
+  serial.locked = true
+  model.active = { ...originalActive, publishedVersionId: 'v1' }
+  renderStudio()
+  openSettings()
+  const dialog = within(screen.getByRole('dialog', { name: '회차 설정' }))
+  expect(dialog.getByText(LOCK)).toBeTruthy()
+  expect((dialog.getByLabelText('작가의 말') as HTMLTextAreaElement).readOnly).toBe(true)
+  expect((dialog.getByLabelText('본문 이미지 추가') as HTMLInputElement).disabled).toBe(true)
+  for (const name of ['회차 공개 중단', '초안 삭제', '회차 삭제']) expect(disabledOf(dialog, name), name).toBe(true)
+  expect(disabledOf(dialog, '발행 이력')).toBe(false)
+})
+
+it('AI 집필 중이면 버전·공개 시트에서 복원·공개·체크포인트 되돌리기를 권리를 확인한 뒤에도 잠그고 이유를 알린다', () => {
+  serial.locked = true
+  model.active = { ...originalActive, versions: [savedVersion('v1')], checkpoints: [{ versionId: 'v1', publishedAt: '2026-11-04T00:00:00Z', active: false }] }
+  renderStudio()
+  fireEvent.click(versionsButton())
+  const dialog = within(screen.getByRole('dialog', { name: '원고 저장본 · 공개' }))
+  expect(dialog.getByText(LOCK)).toBeTruthy()
+  fireEvent.change(dialog.getByLabelText('검토할 저장 버전'), { target: { value: 'v1' } })
+  fireEvent.click(dialog.getByLabelText(/이 저장 원고를 공개할 권리/))
+  fireEvent.click(dialog.getByLabelText(/이 체크포인트를 다시 공개할 권리/))
+  for (const name of ['선택 버전을 새 버전으로 복원', '선택한 저장 버전 공개', '이 체크포인트로 되돌리기']) expect(disabledOf(dialog, name), name).toBe(true)
 })

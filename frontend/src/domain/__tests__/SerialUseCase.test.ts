@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { seedWorks } from '../../data/mock/seed'
 import {
   BEATS_MAX, BEAT_MAX, OPINION_BODY_MAX, PREMISE_MAX, SERIAL_DIRECTION_MAX,
-  canHideOpinions, opinionInputError, opinionRequest, serialRunBlock, serialSettingsError, serialSettingsInput,
+  SERIAL_LOCK_NOTICE, canHideOpinions, opinionInputError, opinionRequest, serialOffBlock, serialRunBlock, serialRunning, serialSettingsError, serialSettingsInput,
 } from '../entities/aiSerial'
 import { SerialUseCase } from '../usecases/SerialUseCase'
 import { board, fakeSerialRepo, record, settings } from '../../test/serialFixtures'
@@ -61,6 +61,32 @@ describe('지금 마감·실행 가능 여부', () => {
 
   it('켜져 있고 열린 게시판이 있으면 막지 않는다', () => {
     expect(serialRunBlock(on, [record({ status: 'open' }), record({ id: 'b0', status: 'failed' })])).toBeNull()
+  })
+})
+
+describe('AI 집필 중 원고 잠금', () => {
+  const on = settings()
+  it('집필실과 작품 관리가 같은 안내 문장을 쓴다', () => {
+    expect(SERIAL_LOCK_NOTICE).toBe('AI 집필 중이라 원고를 수정할 수 없어요. 작품 관리 > AI 집필에서 끄면 수정할 수 있어요.')
+  })
+
+  it('대기·실행 중인 게시판이 있을 때만 실행 중이다 (기록을 읽지 못했으면 실행 중으로 보지 않는다)', () => {
+    expect(serialRunning([record({ status: 'queued' })])).toBe(true)
+    expect(serialRunning([record({ status: 'open' }), record({ id: 'b0', status: 'running' })])).toBe(true)
+    for (const status of ['open', 'published', 'failed'] as const) expect(serialRunning([record({ status })]), status).toBe(false)
+    expect(serialRunning([])).toBe(false)
+    expect(serialRunning(undefined)).toBe(false)
+  })
+
+  it('켜 둔 설정은 게시판이 대기·실행 중인 동안 끌 수 없다고 알린다 (서버가 끄는 저장을 409 SERIAL_RUNNING으로 거절하는 조건과 같다)', () => {
+    for (const status of ['queued', 'running'] as const) expect(serialOffBlock(on, [record({ status })]), status).toContain('끌 수 없어요')
+    expect(serialOffBlock(on, [record({ status: 'open' }), record({ id: 'b0', status: 'published' })])).toBeNull()
+  })
+
+  it('이미 꺼져 있거나 아직 읽지 못했으면 막지 않는다 (판정은 서버 409가 한다)', () => {
+    expect(serialOffBlock(settings({ enabled: false }), [record({ status: 'running' })])).toBeNull()
+    expect(serialOffBlock(undefined, [record({ status: 'running' })])).toBeNull()
+    expect(serialOffBlock(on, undefined)).toBeNull()
   })
 })
 

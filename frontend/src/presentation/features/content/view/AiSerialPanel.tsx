@@ -11,10 +11,11 @@ import './ai-serial.css'
  * 탭 제목(h2 'AI 집필')은 호출 측(WorkManagement)이 그린다. 서버가 없는 시연(목업)에서는 호출 측이 이 패널을 그리지 않는다.
  * 설정·기록·실행 결과는 모두 서버 응답 그대로이고, 저장·실행의 거절은 서버 문구(또는 코드별 고정 문구)로 알린다.
  */
-export function AiSerialPanel({ workId, useCase }: { workId: string; useCase?: SerialUseCase }) {
-  const vm = useAiSerialViewModel(workId, useCase)
+export function AiSerialPanel({ workId, useCase, onSaved }: { workId: string; useCase?: SerialUseCase; onSaved?: () => void }) {
+  const vm = useAiSerialViewModel(workId, useCase, onSaved)
   const { form, boards } = vm
   const saveWhy = useId()
+  const offWhy = useId()
   const runWhy = useId()
   const tableTitle = useId()
   return (
@@ -34,8 +35,9 @@ export function AiSerialPanel({ workId, useCase }: { workId: string; useCase?: S
         <>
           <form onSubmit={(event) => { event.preventDefault(); void vm.save() }}>
             <label className='ep-check'>
-              <input type='checkbox' checked={form.enabled} disabled={vm.saving} onChange={(event) => vm.edit({ enabled: event.target.checked })} /> AI 집필 켜기
+              <input type='checkbox' checked={form.enabled} disabled={vm.saving || (!!vm.offBlock && form.enabled)} aria-describedby={vm.offBlock ? offWhy : undefined} onChange={(event) => vm.edit({ enabled: event.target.checked })} /> AI 집필 켜기
             </label>
+            {vm.offBlock && <p id={offWhy} className='small muted'>{vm.offBlock}</p>}
             <fieldset disabled={vm.saving}>
               <legend>연재 요일</legend>
               {SERIAL_DAYS.map(([day, name]) => (

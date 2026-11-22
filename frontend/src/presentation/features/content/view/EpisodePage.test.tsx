@@ -12,6 +12,7 @@ import { login } from '../../../../data/api/auth'
 import { appContainer } from '../../../../app/appContainer'
 import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import { createAppStore } from '../../../../app/store'
+import { settings as serialSettings } from '../../../../test/serialFixtures'
 
 /** 상단바·푸터는 공용 Gnb·Footer라 이 화면 테스트에서는 호출만 기록하는 대역으로 바꾼다(실제 Gnb는 Redux 스토어가 필요하다). */
 const shell = vi.hoisted(() => ({ gnb: vi.fn(), footer: vi.fn() }))
@@ -1092,6 +1093,37 @@ it('offers one way into the writing studio for a new episode — the sidebar 회
   fireEvent.click(screen.getByRole('button', { name: '작품 메뉴 접기' }))
   expect(newEntry().map((a) => a.textContent)).toEqual(['회차 작성하기']) // 사이드바를 접어도 하나(상단 줄로 옮겨 간다)
   expect(newEntry()[0].closest('.ep-top')).toBeTruthy()
+})
+
+// ── AI 집필 중 원고 잠금(계약 'AI 집필 중 원고 잠금'): 소유자 설정이 켜져 있으면 집필실로 가는 링크를 잠그고 이유를 보인다. 읽지 못하면 잠그지 않는다(서버가 판정) ──
+const LOCK_NOTICE = 'AI 집필 중이라 원고를 수정할 수 없어요. 작품 관리 > AI 집필에서 끄면 수정할 수 있어요.'
+
+it('locks 회차 작성하기 in the sidebar and in the folded top row while AI 집필 is on', async () => {
+  stubCover()
+  vi.spyOn(appContainer.resolve('serialUseCase'), 'settings').mockResolvedValue(serialSettings({ enabled: true }))
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  const sidebar = await within(document.querySelector<HTMLElement>('.ep-menu')!).findByRole('button', { name: '회차 작성하기' }) as HTMLButtonElement
+  expect(sidebar.disabled).toBe(true)
+  expect(sidebar.closest('.ep-menu-tools')).toBeTruthy()
+  expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '작품 메뉴 접기' }))
+  const top = within(document.querySelector<HTMLElement>('.ep-top')!)
+  expect((top.getByRole('button', { name: '회차 작성하기' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(top.getByText(LOCK_NOTICE)).toBeTruthy()
+  expect(screen.getAllByRole('button', { name: '회차 작성하기' })).toHaveLength(1)
+})
+
+it.each([
+  ['AI 집필이 꺼져 있으면', () => Promise.resolve(serialSettings({ enabled: false }))],
+  ['켜짐 여부를 읽지 못하면 (서버의 409가 판정한다)', () => Promise.reject(new Error('설정 서버 오류'))],
+])('%s 회차 작성하기는 집필실 링크로 남는다', async (_name, answer) => {
+  stubCover()
+  const read = vi.spyOn(appContainer.resolve('serialUseCase'), 'settings').mockImplementation(answer)
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
+  await waitFor(() => expect(read).toHaveBeenCalled())
+  await act(async () => {})
+  expect(screen.getByRole('link', { name: '회차 작성하기' }).getAttribute('href')).toBe('/studio/w')
+  expect(screen.queryByText(LOCK_NOTICE)).toBeNull()
 })
 
 // ── Fork 세계관 독립(#583): 자기 세계관이 없는 Fork의 세계관 탭 ──

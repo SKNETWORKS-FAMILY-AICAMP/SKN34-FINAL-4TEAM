@@ -12,7 +12,9 @@ import { WorkManagement } from './WorkManagement'
 // 히어로·정책 카드는 이 테스트가 보는 회차 목록과 무관하다. 포크 수는 12화에만 2편이 갈라졌다고 본다(회차 번호로 조회).
 vi.mock('./WorkOverview', () => ({ WorkOverview: () => null }))
 // AI 집필 탭의 내용은 AiSerialPanel.test가 본다. 여기서는 탭이 이 패널을 그리는지만 본다.
-vi.mock('./AiSerialPanel', () => ({ AiSerialPanel: ({ workId }: { workId: string }) => <p>AI 집필 패널 {workId}</p> }))
+vi.mock('./AiSerialPanel', () => ({
+  AiSerialPanel: ({ workId, onSaved }: { workId: string; onSaved?: () => void }) => <><p>AI 집필 패널 {workId}</p><button type='button' onClick={onSaved}>설정 저장 알림</button></>,
+}))
 vi.mock('../viewmodel/useEpisodeForkCounts', () => ({ useEpisodeForkCounts: () => ({ 12: 2 }) }))
 // 세계관 추출 배지는 세계관 탭 패널과 같은 조회 훅을 쓴다. 상태는 테스트가 정하고, 배지가 (다시) 마운트돼 상태를 새로 읽은 횟수를 센다.
 const build = vi.hoisted(() => ({ current: { job: null, error: '' } as { job: { status: string; update?: { status: string } } | null; error: string }, mounts: 0 }))
@@ -238,6 +240,46 @@ it('공개한 회차가 없을 때 안내는 작성 중인 초안이 있으면 "
   first.unmount()
   openWith({ writing: { id: 'w', rows: [] } })
   expect(screen.getByText('아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.')).toBeTruthy()
+})
+
+// ── AI 집필 중 원고 잠금(계약 'AI 집필 중 원고 잠금'): 서버가 원고 수정을 막는 동안 집필실로 가는 링크를 잠그고 이유를 보인다 ──
+const LOCK = 'AI 집필 중이라 원고를 수정할 수 없어요. 작품 관리 > AI 집필에서 끄면 수정할 수 있어요.'
+const openLocked = (count = 2) => render(
+  <MemoryRouter><WorkManagement {...shell} vm={{ ...vm, writing: { id: 'w', rows: [row(3)] } } as never} work={work(count)} serialLocked onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>,
+)
+
+it('AI 집필 중이면 사이드바의 회차 작성하기를 같은 이름의 잠긴 버튼으로 바꾸고 이유를 알린다 (내 댓글·제보는 그대로다)', () => {
+  openLocked()
+  expect(screen.queryByRole('link', { name: '회차 작성하기' })).toBeNull()
+  const button = screen.getByRole('button', { name: '회차 작성하기' }) as HTMLButtonElement
+  expect(button.disabled).toBe(true)
+  expect(button.closest('.ep-menu-tools')).toBeTruthy()
+  expect(document.getElementById(button.getAttribute('aria-describedby')!)?.textContent).toBe(LOCK)
+  expect(screen.getByRole('link', { name: '내 댓글·제보' }).getAttribute('href')).toBe('/content?view=reports')
+})
+
+it('AI 집필 중이면 회차 목록의 수정하기와 작성 중인 초안도 집필실로 보내지 않고 이유를 한 번 알린다', () => {
+  openLocked()
+  expect(screen.queryByRole('link', { name: /수정하기/ })).toBeNull()
+  const edits = screen.getAllByRole('button', { name: /수정하기/ }) as HTMLButtonElement[]
+  expect(edits.map((button) => button.getAttribute('aria-label'))).toEqual(['1화 1화 제목 수정하기', '2화 2화 제목 수정하기'])
+  const note = document.getElementById(edits[0].getAttribute('aria-describedby')!)!
+  expect(note.textContent).toBe(LOCK)
+  for (const button of edits) {
+    expect(button.disabled).toBe(true)
+    expect(button.getAttribute('aria-describedby')).toBe(note.id)
+  }
+  const drafts = screen.getByRole('heading', { name: '작성 중인 초안' }).closest('section')!
+  expect(within(drafts).queryAllByRole('link')).toEqual([])
+  expect(drafts.textContent).toContain('3화 · 3화 초안')
+})
+
+it('AI 집필 탭이 설정을 저장하면 호출 측에 알린다 (켜짐 여부를 다시 읽어 회차 작성하기 잠금을 맞춘다)', () => {
+  const onSerialSaved = vi.fn()
+  render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} onSerialSaved={onSerialSaved} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  fireEvent.click(screen.getByRole('button', { name: 'AI 집필' }))
+  fireEvent.click(screen.getByRole('button', { name: '설정 저장 알림' }))
+  expect(onSerialSaved).toHaveBeenCalledOnce()
 })
 
 // ── 메뉴를 누르면 고른 탭의 내용으로 화면을 옮긴다: 탭 내용이 히어로·분기 정책 카드 아래(접힌 선 밖)에서 시작해, 눌러도 바뀐 것이 안 보였다 ──

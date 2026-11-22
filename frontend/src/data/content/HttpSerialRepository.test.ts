@@ -181,6 +181,8 @@ describe('오류 문구', () => {
   it.each([
     ['OPINION_EXISTS', '이 게시판에는 이미 의견을 냈어요.', (repo: HttpSerialRepository) => repo.submitOpinion('w1', { kind: 'general', body: '의견' })],
     ['VOTE_CONFLICT', '투표를 처리하는 중이에요. 잠시 뒤 다시 눌러 주세요.', (repo: HttpSerialRepository) => repo.vote('w1', 'o1')],
+    // 게시판이 대기·실행 중일 때 끄는 저장은 서버가 거절한다.
+    ['SERIAL_RUNNING', 'AI가 집필 중이라 지금은 끌 수 없어요.', (repo: HttpSerialRepository) => repo.saveSettings('w1', { enabled: false, days: ['MON'], time: '21:00', direction: '' })],
   ])('409 %s는 서버가 준 한국어 detail을 그대로 알린다 (SERIAL_* 등 나머지 code도 같은 길이다)', async (code, detail, call) => {
     await expect(call(fail(409, { detail, code }))).rejects.toThrow(new Error(detail))
   })

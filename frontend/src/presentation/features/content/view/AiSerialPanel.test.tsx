@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 
 import type { SerialBoardRecord, SerialSettings } from '../../../../domain/entities/aiSerial'
 import { SerialUseCase } from '../../../../domain/usecases/SerialUseCase'
@@ -109,6 +109,36 @@ it.each([
   await open(fakeRepo(saved, rows))
   expect((run() as HTMLButtonElement).disabled).toBe(true)
   expect(screen.getByText(new RegExp(why)).id).toBe(run().getAttribute('aria-describedby'))
+})
+
+// 게시판이 대기·실행 중이면 서버가 끄는 저장을 409 SERIAL_RUNNING으로 거절한다(요일·시각·방향 수정은 된다). 화면은 켠 상태의 체크박스를 미리 잠그고 이유를 알린다.
+it('게시판이 실행 중이면 켜 둔 AI 집필을 끌 수 없다고 알리고 체크박스를 잠근다 (요일·방향 수정과 저장은 된다)', async () => {
+  const repo = await open(fakeRepo(settings(), [record({ status: 'running' })]))
+  const toggle = screen.getByRole('checkbox', { name: 'AI 집필 켜기' }) as HTMLInputElement
+  expect(toggle.checked).toBe(true)
+  expect(toggle.disabled).toBe(true)
+  expect(document.getElementById(toggle.getAttribute('aria-describedby')!)?.textContent).toContain('끌 수 없어요')
+  fireEvent.click(day('금'))
+  fireEvent.change(screen.getByLabelText(/연재 방향/), { target: { value: '새 방향' } })
+  expect((save() as HTMLButtonElement).disabled).toBe(false)
+  fireEvent.click(save())
+  await waitFor(() => expect(screen.getByRole('status').textContent).toContain('설정을 저장했어요'))
+  expect(repo.saveSettings).toHaveBeenCalledWith('w1', expect.objectContaining({ enabled: true, direction: '새 방향' }), expect.any(AbortSignal))
+})
+
+// 켜짐 여부는 작품 관리의 '회차 작성하기' 잠금이 같이 쓴다: 저장이 성공했을 때만 호출 측이 서버 값을 다시 읽게 알린다.
+it('저장이 성공하면 onSaved를 부르고 실패하면 부르지 않는다', async () => {
+  const onSaved = vi.fn()
+  const repo = fakeRepo()
+  repo.saveSettings.mockRejectedValueOnce(new Error('거절됐어요.'))
+  render(<AiSerialPanel workId='w1' useCase={new SerialUseCase(repo)} onSaved={onSaved} />)
+  await screen.findByRole('table')
+  fireEvent.change(screen.getByLabelText(/연재 방향/), { target: { value: '새 방향' } })
+  fireEvent.click(save())
+  await screen.findByRole('alert')
+  expect(onSaved).not.toHaveBeenCalled()
+  fireEvent.click(save())
+  await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1))
 })
 
 it('실행 요청이 409로 거절되면 서버 문구를 경고로 알린다', async () => {

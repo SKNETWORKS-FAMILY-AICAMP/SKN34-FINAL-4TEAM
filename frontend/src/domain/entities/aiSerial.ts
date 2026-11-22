@@ -44,6 +44,22 @@ export type SerialBoardRecord = {
  */
 export const INSUFFICIENT_CREDIT_MESSAGE = '크레딧이 부족해서 시뮬레이션 미리보기를 만들지 못했어요. 크레딧을 확인해 주세요.'
 
+/** 대기·실행 중인 게시판이 있는가. 기록을 읽지 못했으면(undefined) 실행 중으로 보지 않는다. */
+export const serialRunning = (boards: SerialBoardRecord[] | undefined) => !!boards?.some(({ status }) => status === 'queued' || status === 'running')
+
+/**
+ * AI 집필이 켜져 있는 동안 서버는 소유자의 원고 수정(회차 만들기·저장·발행·예약 발행·공개 변경·삭제·버전 복원·가져오기·집필 AI 쓰기 도구)을 409 SERIAL_LOCKED로 막는다.
+ * 집필실·작품 관리는 이 문장으로 미리 알리며 입력·버튼을 잠근다. 화면 잠금은 보조이고 판정은 서버가 한다(켜짐 여부를 읽지 못하면 잠그지 않는다).
+ */
+export const SERIAL_LOCK_NOTICE = 'AI 집필 중이라 원고를 수정할 수 없어요. 작품 관리 > AI 집필에서 끄면 수정할 수 있어요.'
+
+/**
+ * 켜 둔 AI 집필을 끌 수 없는 이유(끌 수 있으면 null). 게시판이 대기·실행 중이면 서버가 끄는 저장을 409 SERIAL_RUNNING으로 거절한다(요일·시각·방향 수정은 된다).
+ * 설정이나 기록을 아직 읽지 못했으면 막지 않고 서버에 맡긴다.
+ */
+export const serialOffBlock = (saved: SerialSettings | undefined, boards: SerialBoardRecord[] | undefined) =>
+  saved?.enabled && serialRunning(boards) ? 'AI 집필을 실행하는 중이라 지금은 끌 수 없어요. 끝난 뒤에 다시 시도해 주세요.' : null
+
 /**
  * 지금 마감·실행을 못 하는 이유(할 수 있으면 null). 서버가 같은 조건을 409(SERIAL_DISABLED·SERIAL_RUNNING·SERIAL_NO_BOARD)로 다시 검사한다.
  * saved는 서버에 저장된 설정이다: 켠 값을 저장하기 전의 화면 입력으로는 실행되지 않는다. failed는 설정·기록 읽기가 실패했다는 표시다
@@ -52,7 +68,7 @@ export const INSUFFICIENT_CREDIT_MESSAGE = '크레딧이 부족해서 시뮬레�
 export function serialRunBlock(saved: SerialSettings | undefined, boards: SerialBoardRecord[] | undefined, failed = false) {
   if (!saved || !boards) return failed ? '설정이나 기록을 불러오지 못해 실행할 수 없어요. 새로 고친 뒤 다시 시도해 주세요.' : '설정과 기록을 불러오는 중이에요.'
   if (!saved.enabled) return 'AI 집필을 켜고 저장하면 실행할 수 있어요.'
-  if (boards.some(({ status }) => status === 'queued' || status === 'running')) return '이미 실행 중이에요. 끝나면 기록에서 결과를 확인해 주세요.'
+  if (serialRunning(boards)) return '이미 실행 중이에요. 끝나면 기록에서 결과를 확인해 주세요.'
   if (!boards.some(({ status }) => status === 'open')) return '열린 의견 게시판이 없어요. 1화를 발행하면 게시판이 열려요.'
   return null
 }

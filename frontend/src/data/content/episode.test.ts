@@ -498,6 +498,18 @@ describe('오류 응답의 code', () => {
     expect((error as Error).cause).toBe('SERIAL_RUNNING')
   })
 
+  // AI 집필이 켜져 있는 동안 소유자의 원고 수정은 서버가 거절한다(계약 'AI 집필 중 원고 잠금'). 화면은 그 문구를 그대로 보인다.
+  it.each([
+    ['초안 저장(PUT)', (repo: HttpEpisodeRepository) => repo.writeEpisode('w', 1, { title: '제목', body: '원고', revision: 1 }, false)],
+    ['저장 버전 발행(POST)', (repo: HttpEpisodeRepository) => repo.publishEpisode('w', 1, 1, 'v1', true)],
+    ['회차 삭제(DELETE)', (repo: HttpEpisodeRepository) => repo.deleteEpisode('w', 1, 1)],
+  ])('%s의 409 SERIAL_LOCKED는 서버 detail을 그대로 알리고 code를 cause에 싣는다', async (_name, call) => {
+    const detail = 'AI 집필 중에는 원고를 수정할 수 없습니다. AI 집필을 끄면 수정할 수 있어요.'
+    const error = await call(failure({ detail, code: 'SERIAL_LOCKED' })).catch((e: unknown) => e)
+    expect((error as Error).message).toBe(detail)
+    expect((error as Error).cause).toBe('SERIAL_LOCKED')
+  })
+
   it('detail 없이 code만 와도 code를 싣고 문구는 기본 안내다', async () => {
     const error = await failure({ code: 'INSUFFICIENT_CREDIT' }).deleteWork('w').catch((e: unknown) => e)
     expect((error as Error).message).toContain('요청을 처리하지 못했어요')
