@@ -7,11 +7,13 @@ from fastapi import HTTPException
 
 from app.main import create_app
 from app.serial import router
-from app.serial.models import ChoicesRequest, ChoicesResponse, EpisodeRequest, EpisodeResponse, SimulationRequest, SimulationResponse
+from app.serial.models import (ChoicesRequest, ChoicesResponse, EpisodeRequest, EpisodeResponse, SimulationRequest, SimulationResponse,
+                               SummaryRequest, SummaryResponse)
 
 from traced import MEMBER, attrs, bearer, status_of
 
-from .stubs import CHOICES, DRAFT, FAIL, PASS, PLAN, REWRITE, SUMMARY, answers, choices_request, episode, simulation
+from .stubs import (CHOICES, DRAFT, EPISODE_SUMMARY, FAIL, PASS, PLAN, REWRITE, SUMMARY, answers, choices_request, episode, simulation,
+                    summaries_request)
 
 TOKEN = 'serial-token'
 SIMULATE = lambda **overrides: router.simulate(SimulationRequest.model_validate(simulation(**overrides)), TOKEN)  # noqa: E731
@@ -25,8 +27,9 @@ def internal_token(monkeypatch):
 
 @pytest.mark.parametrize('call', [
     lambda: router.choices(ChoicesRequest.model_validate(choices_request()), 'wrong'),
+    lambda: router.summaries(SummaryRequest.model_validate(summaries_request()), 'wrong'),
     lambda: router.simulate(SimulationRequest.model_validate(simulation()), 'wrong'),
-    lambda: router.episode(EpisodeRequest.model_validate(episode()), 'wrong')], ids=['choices', 'simulation', 'episode'])
+    lambda: router.episode(EpisodeRequest.model_validate(episode()), 'wrong')], ids=['choices', 'summaries', 'simulation', 'episode'])
 def test_wrong_token_is_403_and_never_calls_the_model(monkeypatch, call):
     calls = answers(monkeypatch)
     with pytest.raises(HTTPException) as error:
@@ -52,6 +55,28 @@ def test_unusable_choices_are_a_fixed_502_without_a_code(monkeypatch, spans):
     response = router.choices(ChoicesRequest.model_validate(choices_request()), TOKEN)
 
     assert response.status_code == 502 and json.loads(response.body) == {'detail': '선택지 모델 응답을 확인할 수 없습니다.'}
+    [root] = [s for s in spans() if s.parent is None]
+    assert status_of(root) == 'failed' and root.attributes['langfuse.observation.level'] == 'ERROR'
+
+
+def test_served_summaries_are_returned_as_one_trace_root_with_work_and_reservation(monkeypatch, spans):
+    answers(monkeypatch, EPISODE_SUMMARY)
+
+    result = router.summaries(SummaryRequest.model_validate(summaries_request(creditReservationId='res-4')), TOKEN)
+
+    assert isinstance(result, SummaryResponse) and result.summary == EPISODE_SUMMARY[0]['summary']
+    [root] = [s for s in spans() if s.parent is None]
+    found = attrs(root)
+    assert root.name == 'serial.summaries' and found['langfuse.trace.tags'] == ['feature:serial.summaries'] and status_of(root) == 'success'
+    assert found['langfuse.trace.metadata.work_id'] == 'work-1' and found['langfuse.trace.metadata.credit_reservation_id'] == 'res-4'
+
+
+def test_an_unusable_summary_is_a_fixed_502_without_a_code(monkeypatch, spans):
+    answers(monkeypatch, ({'summary': '가' * 401}, 10, 5))
+
+    response = router.summaries(SummaryRequest.model_validate(summaries_request()), TOKEN)
+
+    assert response.status_code == 502 and json.loads(response.body) == {'detail': '회차 요약 모델 응답을 확인할 수 없습니다.'}
     [root] = [s for s in spans() if s.parent is None]
     assert status_of(root) == 'failed' and root.attributes['langfuse.observation.level'] == 'ERROR'
 
@@ -115,11 +140,11 @@ def test_feature_failures_keep_the_fixed_phrase_and_add_a_code_for_the_two_contr
     assert status_of(root) == 'failed' and root.attributes['langfuse.observation.level'] == 'ERROR'
 
 
-ROUTES = ['/internal/v1/serial/choices', '/internal/v1/serial/simulations', '/internal/v1/serial/episodes']
+ROUTES = ['/internal/v1/serial/choices', '/internal/v1/serial/summaries', '/internal/v1/serial/simulations', '/internal/v1/serial/episodes']
 
 
 def test_all_routes_ask_for_the_internal_token_and_only_the_simulation_route_takes_the_optional_member_bearer():
-    """시뮬레이션에는 글을 쓴 회원이 있고, 선택지 생성·회차 실행은 일정 점검이 불러 사용자 토큰이 없다."""
+    """시뮬레이션에는 글을 쓴 회원이 있고, 선택지 생성·회차 요약·회차 실행은 일정 점검이 불러 사용자 토큰이 없다."""
     paths = create_app().openapi()['paths']
     for path in ROUTES:
         headers = {p['name']: p for p in paths[path]['post']['parameters']}

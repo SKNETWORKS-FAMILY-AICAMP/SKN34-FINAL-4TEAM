@@ -71,7 +71,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 | `POST /internal/v1/serial/simulations` | `{workId, episodeNumber, premise, beats, context, creditLimit}`(context = 공개 회차·공개 카드 JSON) | `{scene, credits, usage}` |
 | `POST /internal/v1/serial/episodes` | `{workId, episodeNumber, direction, choice:{text, votes}\|null, proposals:[{title, body, likes, scene?}], context, creditLimit}` | `{summary, title, text, review:{passed, issues}, credits, usage}`. 검수 2회 실패는 422 `SERIAL_REVIEW_FAILED` |
 
-- 회차 원고가 2,500자 미만이면 모델 검수 없이 검수 실패로 보고 1회 다시 쓴다. 회차 집필은 출력 8,000토큰·180초(최악 합계 약 570초, Content 읽기 한도 10분 안). 내용이 바뀐 프롬프트는 Langfuse 등록본에 가리지 않게 `serial.vote_summary`·`serial.episode_review`로 새 이름을 쓴다(선택지는 `serial.choices`).
+- 회차 원고가 2,500자 미만이면 모델 검수 없이 검수 실패로 보고 1회 다시 쓴다. 회차 집필은 출력 8,000토큰·180초(최악 합계 약 570초, Content 읽기 한도 10분 안). 내용이 바뀐 프롬프트는 Langfuse 등록본에 가리지 않게 새 이름을 쓴다: `serial.vote_summary`·`serial.episode_review_v2`·`serial.choices_v2`·`serial.simulation_v2`·`serial.episode_summary`.
 - 원고 생성은 기존 `app/writing/`의 기획·원고 지시를 재사용하고, 검수·종합·장면 미리보기만 새 프롬프트(`serial.*`, `tracing.prompt` 규칙)다.
 - 사용자 토큰·Content MCP를 쓰지 않는다. 시뮬레이션만 추적 회원용 선택 헤더 `X-User-Authorization`(제출자 Bearer)을 받는다(인가에는 쓰지 않음). 일정 실행에는 사용자 토큰이 없어서 Content가 허용 문맥을 만들어 넘긴다(새 원고 생성과 같은 방식).
 
@@ -113,7 +113,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 ## 문맥: 이전 회차 요약 + 관련 장면 검색 (2026-11-22 사용자 결정, C안)
 
 - **원고 색인은 항상 켠다.** `MANUSCRIPT_INDEX_ENABLED` 플래그를 없애고 Content는 늘 Elasticsearch 원고 색인(`ManuscriptIndexConfig`)을 쓴다. local Compose도 Elasticsearch를 항상 띄운다(dev는 이미 켜져 있음). CI·테스트 Compose도 같이 맞춘다.
-- **회차 요약**: AI 자율 집필 작품의 공개 회차마다 300자 안팎(≤400자) 요약을 하나씩 둔다. 1분 점검이 요약 없는(또는 발행 버전이 바뀐) 공개 회차를 오래된 회차부터 점검당 최대 3개 AI `POST /internal/v1/serial/summaries`로 만들어 Content `serial_episode_summary(episode_id, version_id, summary, created_at)`에 저장한다(소유자 크레딧, 상한 `SERIAL_SUMMARY_CREDIT_LIMIT` 기본 3, 실패는 다음 점검에 다시).
+- **회차 요약**: AI 자율 집필 작품의 공개 회차마다 300자 안팎(≤400자) 요약을 하나씩 둔다. 1분 점검이 요약 없는(또는 발행 버전이 바뀐) 공개 회차를 오래된 회차부터 점검당 최대 3개 AI `POST /internal/v1/serial/summaries`로 만들어 Content `serial_episode_summary(episode_id, version_id, summary, created_at)`에 저장한다(소유자 크레딧, 상한 `SERIAL_SUMMARY_CREDIT_LIMIT` 기본 5(회차 본문 하나가 약 3크레딧), 실패는 다음 점검에 다시).
 - **문맥 JSON**(선택지·회차 실행·시뮬레이션 공통 `serialContext`): 작품 제목·소개, **최근 3화 원문**, **그 이전 회차의 요약 전부**(`summaries:[{number, title, summary}]`, 요약이 아직 없는 회차는 빠짐), 설정 카드. 6만 자 한도 안에서 요약이 넘치면 오래된 요약부터 뺀다.
 - **관련 장면 검색**(회차 실행만): 1위 선택지 글과 추천 상위 제안 글 제목을 질의로 기존 원고 검색(`ManuscriptQaService`의 벡터 검색 → 발행 원문 재대조, 독자 범위)을 한 번 불러, 최근 3화 이전 회차에서 찾은 인용 최대 6개(각 ≤256자)를 문맥 `related:[{episode, quote}]`로 붙인다. 검색이 실패하면 임의로 빼고 진행하지 않고 실행을 실패(사유 `관련 장면 검색에 실패했습니다.`, 예약 해제)로 끝낸다. 검색 결과가 0개인 것은 실패가 아니다(`related` 빈 목록).
 - AI 프롬프트는 `summaries`로 전체 흐름을, `related`로 이어 쓸 옛 장면을 참고하라고 쓴다. AI는 검색·색인을 부르지 않는다(Content가 문맥을 만든다).

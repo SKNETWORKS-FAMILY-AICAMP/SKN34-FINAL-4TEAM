@@ -1,7 +1,7 @@
 """AI 자율 연재 내부 API(#659). 결과는 제안이고 저장·발행·과금 확정(settle)은 Content가 한다.
 
 Content MCP는 쓰지 않는다. 사용자 토큰도 문맥·인가에는 쓰지 않으며, 시뮬레이션의 선택 X-User-Authorization만 추적의 회원 식별에 쓴다
-(선택지 생성·회차 실행은 일정 점검이 불러 사용자 토큰이 없다).
+(선택지 생성·회차 요약·회차 실행은 일정 점검이 불러 사용자 토큰이 없다).
 """
 
 from fastapi import APIRouter, Header
@@ -12,7 +12,7 @@ from app.internal_auth import require_internal_token
 from app.serial import service
 from app.serial.errors import SerialFailure
 from app.serial.models import (ChoicesRequest, ChoicesResponse, EpisodeRequest, EpisodeResponse, SimulationRequest,
-                               SimulationResponse)
+                               SimulationResponse, SummaryRequest, SummaryResponse)
 from app.writing.errors import WritingFailure
 
 router = APIRouter()
@@ -23,6 +23,13 @@ def choices(data: ChoicesRequest, x_internal_token: str = Header(default='')) ->
     """문맥·연재 방향으로 독자가 투표할 다음 전개 선택지 4개와 확정 크레딧을 돌려준다. 저장은 Content가 한다."""
     require_internal_token(x_internal_token)
     return _serve('serial.choices', service.choices, data)
+
+
+@router.post('/internal/v1/serial/summaries', response_model=SummaryResponse)
+def summaries(data: SummaryRequest, x_internal_token: str = Header(default='')) -> SummaryResponse | JSONResponse:
+    """발행된 회차 하나의 줄거리 요약(≤400자)과 확정 크레딧을 돌려준다. 이후 회차 문맥의 summaries가 되고 저장은 Content가 한다."""
+    require_internal_token(x_internal_token)
+    return _serve('serial.summaries', service.summarize, data)
 
 
 @router.post('/internal/v1/serial/simulations', response_model=SimulationResponse)

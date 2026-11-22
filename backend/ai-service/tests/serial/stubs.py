@@ -10,8 +10,10 @@ from app import agent_runtime
 
 from fake_chat import FakeChat
 
-CONTEXT = json.dumps({'title': '작품', 'summary': '', 'episodes': [{'number': 1, 'title': '1화', 'body': '서윤이 문을 열었다.'}], 'cards': []},
-                     ensure_ascii=False)
+# Content의 serialContext 모양: 작품 제목·소개, 최근 회차 원문(episodes), 그 이전 회차 요약(summaries), 설정 카드, 회차 실행만 관련 장면 인용(related)
+CONTEXT = json.dumps({'title': '작품', 'summary': '', 'episodes': [{'number': 4, 'title': '4화', 'body': '서윤이 문을 열었다.'}],
+                      'summaries': [{'number': 1, 'title': '1화', 'summary': '서윤이 편지를 발견한다.'}], 'cards': [],
+                      'related': [{'episode': 1, 'quote': '편지는 서랍 맨 아래에 있었다.'}]}, ensure_ascii=False)
 CHOICE = {'text': '서윤이 모든 진실을 털어놓는다', 'votes': 3}
 
 
@@ -29,10 +31,15 @@ REWRITE = (story('서윤은 처음부터 모든 것을 차분히 털어놓았다
 SHORT = ('서윤이 이야기를 꺼냈다.', 400, 200)
 PASS = ({'passed': True, 'issues': []}, 500, 20)
 FAIL = ({'passed': False, 'issues': ['1화의 설정과 어긋난다: 서윤의 나이']}, 500, 30)
+EPISODE_SUMMARY = ({'summary': '서윤이 편지를 발견하고 카이를 의심한다. 카이는 편지를 숨긴 사실을 부인한다.'}, 120, 60)
 
 
 def choices_request(**overrides) -> dict:
     return {'workId': 'work-1', 'episodeNumber': 2, 'direction': '서윤의 성장 이야기', 'context': CONTEXT, 'creditLimit': 5} | overrides
+
+
+def summaries_request(**overrides) -> dict:
+    return {'workId': 'work-1', 'episodeNumber': 3, 'title': '3화', 'body': '서윤이 편지를 발견했다.', 'creditLimit': 3} | overrides
 
 
 def simulation(**overrides) -> dict:

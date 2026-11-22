@@ -3,9 +3,9 @@
 import pytest
 from pydantic import ValidationError
 
-from app.serial.models import ChoicesRequest, EpisodeRequest, Review, SimulationRequest
+from app.serial.models import ChoicesRequest, EpisodeRequest, Review, SimulationRequest, SummaryRequest
 
-from .stubs import choices_request, episode, simulation
+from .stubs import choices_request, episode, simulation, summaries_request
 
 PROPOSAL = {'title': '제안', 'body': '본문', 'likes': 0, 'scene': None}
 
@@ -13,6 +13,7 @@ PROPOSAL = {'title': '제안', 'body': '본문', 'likes': 0, 'scene': None}
 def test_the_limits_themselves_are_accepted():
     SimulationRequest.model_validate(simulation(premise='가' * 500, beats=['나' * 200] * 5, context='x' * 60000, creditLimit=0.0001))
     ChoicesRequest.model_validate(choices_request(direction='가' * 2000, context='x' * 60000, creditLimit=0.0001))
+    SummaryRequest.model_validate(summaries_request(title='가' * 120, body='나' * 40000, creditLimit=0.0001))
     EpisodeRequest.model_validate(episode(direction='가' * 2000, context='x' * 60000, choice={'text': '가' * 300, 'votes': 0}, proposals=[
         {'title': '나' * 100, 'body': '다' * 2000, 'likes': 0, 'scene': '라' * 1500}, PROPOSAL, PROPOSAL]))
 
@@ -31,6 +32,13 @@ def test_beats_choice_proposals_and_direction_may_be_empty():
 def test_simulation_request_over_the_limits_is_rejected(field, value):
     with pytest.raises(ValidationError):
         SimulationRequest.model_validate(simulation(**{field: value}))
+
+
+@pytest.mark.parametrize('field, value', [
+    ('workId', ''), ('episodeNumber', 0), ('title', ''), ('title', '가' * 121), ('body', ''), ('body', '가' * 40001), ('creditLimit', 0)])
+def test_summary_request_over_the_limits_is_rejected(field, value):
+    with pytest.raises(ValidationError):
+        SummaryRequest.model_validate(summaries_request(**{field: value}))
 
 
 @pytest.mark.parametrize('field, value', [

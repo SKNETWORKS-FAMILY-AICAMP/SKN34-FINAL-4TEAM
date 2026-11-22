@@ -5,16 +5,21 @@ import pytest
 from app import tracing
 from app.serial import service
 from app.serial.errors import SerialFailure
-from app.serial.models import ChoicesRequest, EpisodeRequest, SimulationRequest
-from app.serial.prompt import CHOICES_INSTRUCTIONS, REVIEW_INSTRUCTIONS, SIMULATION_INSTRUCTIONS, SUMMARY_INSTRUCTIONS
+from app.serial.models import ChoicesRequest, EpisodeRequest, SimulationRequest, SummaryRequest
+from app.serial.prompt import (CHOICES_INSTRUCTIONS, EPISODE_SUMMARY_INSTRUCTIONS, REVIEW_INSTRUCTIONS, SIMULATION_INSTRUCTIONS,
+                               SUMMARY_INSTRUCTIONS)
 from app.writing.prompt import DRAFT_INSTRUCTIONS, PLAN_INSTRUCTIONS
 
-from .stubs import (CHOICE, CHOICES, CONTEXT, DRAFT, FAIL, PASS, PLAN, REWRITE, SHORT, SUMMARY, answers, choices_request, episode, sent,
-                    simulation, story)
+from .stubs import (CHOICE, CHOICES, CONTEXT, DRAFT, EPISODE_SUMMARY, FAIL, PASS, PLAN, REWRITE, SHORT, SUMMARY, answers, choices_request,
+                    episode, sent, simulation, story, summaries_request)
 
 
 def choices(**overrides):
     return service.choices(ChoicesRequest.model_validate(choices_request(**overrides)))
+
+
+def summarize(**overrides):
+    return service.summarize(SummaryRequest.model_validate(summaries_request(**overrides)))
 
 
 def simulate(**overrides):
@@ -33,7 +38,7 @@ def test_choices_asks_for_four_directions_from_the_context_and_direction_and_con
     result = choices()
 
     assert result.model_dump() == {'choices': CHOICES[0]['choices'], 'credits': 0.3, 'usage': {'inputTokens': 200, 'outputTokens': 100}}
-    assert asked == [('serial.choices', CHOICES_INSTRUCTIONS)]
+    assert asked == [('serial.choices_v2', CHOICES_INSTRUCTIONS)]
     instructions, data = sent(calls[0])
     assert instructions == CHOICES_INSTRUCTIONS and data == {'episodeNumber': 2, 'direction': '서윤의 성장 이야기', 'context': CONTEXT}
 
@@ -51,6 +56,8 @@ def test_choices_that_break_the_rules_are_a_fixed_502_not_corrected(monkeypatch,
 
 
 def test_simulation_writes_a_scene_from_the_public_context_and_confirms_credits(monkeypatch):
+    asked = []
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt(default))
     calls = answers(monkeypatch, ('서윤이 입을 열었다.', 1000, 500))
 
     result = simulate()
@@ -60,6 +67,7 @@ def test_simulation_writes_a_scene_from_the_public_context_and_confirms_credits(
     # 모델은 전제·비트·공개 문맥만 받는다(작품·예약·상한 정보는 보내지 않는다).
     assert instructions == SIMULATION_INSTRUCTIONS
     assert data == {'episodeNumber': 2, 'premise': '서윤이 비밀을 털어놓는다', 'beats': ['망설임', '고백'], 'context': CONTEXT}
+    assert asked == [('serial.simulation_v2', SIMULATION_INSTRUCTIONS)]
 
 
 def test_confirmed_credits_never_exceed_the_reserved_limit_but_usage_is_the_real_tokens(monkeypatch):
@@ -90,7 +98,7 @@ def test_episode_chains_summary_plan_draft_and_review_with_the_top_choice_as_the
     assert result.model_dump() == {'summary': SUMMARY[0]['summary'], 'title': '진실의 밤', 'text': DRAFT[0], 'review': {'passed': True, 'issues': []},
                                    'credits': 1.67, 'usage': {'inputTokens': 1300, 'outputTokens': 370}}
     assert asked == [('serial.vote_summary', SUMMARY_INSTRUCTIONS), ('writing_editing.plan', PLAN_INSTRUCTIONS),
-                     ('writing_editing.draft', DRAFT_INSTRUCTIONS), ('serial.episode_review', REVIEW_INSTRUCTIONS)]
+                     ('writing_editing.draft', DRAFT_INSTRUCTIONS), ('serial.episode_review_v2', REVIEW_INSTRUCTIONS)]
     summary, plan, draft, review = (sent(call)[1] for call in calls)
     assert set(summary) == {'episodeNumber', 'choice', 'proposals'}  # 공개되는 종합 문장은 연재 방향·작품 문맥을 보지 못한다
     assert summary['choice'] == CHOICE and [p['likes'] for p in summary['proposals']] == [2, 1] and summary['proposals'][1]['scene'] == '서윤이 입을 열었다.'
@@ -98,6 +106,8 @@ def test_episode_chains_summary_plan_draft_and_review_with_the_top_choice_as_the
     request = plan['request']
     assert request.index(CHOICE['text']) < request.index('서윤의 성장 이야기') < request.index(SUMMARY[0]['summary'])
     assert plan['single'] is True and plan['context'] == CONTEXT and draft['context'] == CONTEXT
+    # 문맥의 이전 회차 요약(summaries)과 관련 장면(related)은 쓰는 법을 요청 자료로 알린다(Writing 지시는 그대로이므로).
+    assert 'summaries' in plan['request'] and 'related' in plan['request'] and 'summaries' in draft['plan'] and 'related' in draft['plan']
     # 집필 요청은 계획에 분량·되풀이 금지·중심 전개 조건을 붙인다(Writing 집필 지시는 plan의 분량 요청을 따른다).
     assert '진실의 밤' in draft['plan'] and '1. 서윤이 망설인다' in draft['plan']
     assert '최소 2,500자' in draft['plan'] and '되풀이하지 않고' in draft['plan'] and CHOICE['text'] in draft['plan']
@@ -233,3 +243,45 @@ def test_the_longest_direction_choice_summary_plan_and_issues_still_fit_the_writ
     rewrite_plan = sent(calls[4])[1]['plan']
     assert len(rewrite_plan) <= 4000  # 집필 계획 한도
     assert rewrite_plan.count('나' * 200) == 5 and '나' * 201 not in rewrite_plan  # 지적은 앞 5개·각 200자
+
+
+def test_summarize_writes_a_short_plot_summary_of_a_published_episode_and_confirms_credits(monkeypatch):
+    asked = []
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt(default))
+    calls = answers(monkeypatch, EPISODE_SUMMARY)
+
+    result = summarize()
+
+    assert result.model_dump() == {'summary': EPISODE_SUMMARY[0]['summary'], 'credits': 0.18, 'usage': {'inputTokens': 120, 'outputTokens': 60}}
+    assert asked == [('serial.episode_summary', EPISODE_SUMMARY_INSTRUCTIONS)]
+    instructions, data = sent(calls[0])
+    assert instructions == EPISODE_SUMMARY_INSTRUCTIONS and data == {'episodeNumber': 3, 'title': '3화', 'body': '서윤이 편지를 발견했다.'}
+
+
+def test_a_summary_of_exactly_400_characters_is_accepted(monkeypatch):
+    answers(monkeypatch, ({'summary': '가' * 400}, 10, 5))
+
+    assert summarize().summary == '가' * 400
+
+
+@pytest.mark.parametrize('summary', ['  ', '가' * 401])
+def test_a_summary_outside_the_rules_is_a_fixed_502_and_is_not_trimmed(monkeypatch, summary):
+    answers(monkeypatch, ({'summary': summary}, 10, 5))
+
+    with pytest.raises(SerialFailure) as error:
+        summarize()
+
+    assert (error.value.status, str(error.value)) == (502, '회차 요약 모델 응답을 확인할 수 없습니다.')
+
+
+def test_the_summary_credit_is_capped_at_the_reserved_limit(monkeypatch):
+    answers(monkeypatch, ({'summary': '줄거리 요약'}, 4000, 500))  # 회차 원문 하나가 기본 상한 3크레딧을 넘는다
+
+    result = summarize(creditLimit=3)
+
+    assert result.credits == 3 and result.usage.inputTokens == 4000
+
+
+@pytest.mark.parametrize('instructions', [CHOICES_INSTRUCTIONS, SIMULATION_INSTRUCTIONS, REVIEW_INSTRUCTIONS], ids=['choices', 'simulation', 'review'])
+def test_the_prompts_that_read_the_context_say_how_to_use_summaries_and_related(instructions):
+    assert 'summaries' in instructions and 'related' in instructions and '그대로 베끼지 않는다' in instructions
