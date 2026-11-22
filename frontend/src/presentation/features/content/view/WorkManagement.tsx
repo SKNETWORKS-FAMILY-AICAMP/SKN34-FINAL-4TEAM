@@ -22,6 +22,7 @@ import { LinkedWorldPanel } from './LinkedWorldPanel'
 import { ManuscriptBuildPanel } from './ManuscriptBuildPanel'
 import { ForkInfo, WorkDelete, WorkPolicy } from './WorkOperations'
 import { WorkOverview, type WorkEditing } from './WorkOverview'
+import { WorkBrief } from './WorkBrief'
 import { WorkSettingsPanel } from './WorkSettingsPanel'
 import { WorldPanel } from './WorldPanel'
 
@@ -143,6 +144,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
       </ManageMenu>
       <div id='ep-content' tabIndex={-1} className='ep-content'>
         {notices}
+        {/* 개요 밖 탭 위에는 짧은 작품 요약만 둔다(세계관 관리와 같은 모양). 작품 정보·표지 편집은 개요 탭에서만 한다. */}
+        {tab !== 'overview' && <WorkBrief key={`${w.id}-${vm.coverRevision}`} work={w} draftCount={vm.writing ? drafts?.length : null} />}
         {/* 탭 내용 묶음: 메뉴를 누르면 이 머리로 스크롤한다. 상단바가 없어 scroll-margin은 위 여백만이다(회차 목록과 같은 값). */}
         <div ref={tabContent} className='ep-tab' style={{ scrollMarginTop: 16 }}>
           {/* 탭 제목(h2)은 메뉴 탭 이름과 똑같은 글이다: 어느 탭에 있는지 본문에서도 읽힌다. 탭 안의 묶음 제목은 h3다. */}

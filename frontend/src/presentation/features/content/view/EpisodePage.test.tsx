@@ -523,7 +523,7 @@ it('keeps the fork policy and the work deletion out of the shared top: the conte
   ]
   order.slice(1).forEach((el, i) => expect(order[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING, el.textContent || '').toBeTruthy())
   expect(document.querySelector('.ep-tab')?.lastElementChild).toBe(order[3]) // 삭제는 탭 맨 아래 위험 구역이다
-  expect(structure()).toEqual(['ep-notice', 'ep-tab']) // 탭을 옮겨도 열의 직계 구조는 같다
+  expect(structure()).toEqual(['ep-notice', 'whero', 'ep-tab']) // 개요 밖 탭은 상태 줄과 탭 사이에 짧은 작품 요약(.ep-brief)만 더한다
   // 두 구획의 제목은 운영 설정 탭 제목(h2) 아래 묶음 제목(h3)이다. 삭제 버튼의 이름·확인 흐름은 그대로다.
   expect(within(order[2]).getByRole('heading', { level: 3, name: '분기 정책' })).toBeTruthy()
   expect(within(order[3]).getByRole('heading', { level: 3, name: '작품 삭제' })).toBeTruthy()
@@ -634,6 +634,22 @@ it('shows the work like a detail page with a hero and exactly one edit button pe
   await openSettings()
   oneEach(AREAS.slice(2)) // 운영 설정 탭에는 분기 정책의 편집 버튼만 하나 있다.
   for (const name of AREAS.slice(0, 2)) expect(screen.queryByRole('button', { name }), name).toBeNull() // 히어로의 두 영역은 개요 탭에 있다.
+})
+
+it('shows a brief work header (cover thumbnail, title, chips) above every tab except 개요, without the edit buttons', async () => {
+  stubCover()
+  // 표지 조회는 서버 작품(UUID)에만 요청하므로 UUID를 쓴다.
+  const uuid = '00000000-0000-4000-8000-000000000001'
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([{ ...owned, id: uuid }]) }), '옛 제목', `/content?work=${uuid}`)
+  expect(document.querySelector('.ep-brief')).toBeNull() // 개요 탭은 편집할 수 있는 전체 히어로다
+  toReadTab()
+  const brief = within(document.querySelector<HTMLElement>('.ep-brief')!)
+  expect(brief.getByRole('heading', { level: 1, name: '옛 제목' })).toBeTruthy()
+  expect(brief.getByText('판타지 · SF')).toBeTruthy()
+  expect(await brief.findByAltText('기본 작품 표지')).toBeTruthy()
+  for (const name of ['작품 정보 편집', '표지 편집']) expect(screen.queryByRole('button', { name }), name).toBeNull()
+  await openSettings()
+  expect(document.querySelector('.ep-brief')).toBeTruthy()
 })
 
 it('edits the title and summary in place, saves them through the work API and returns to the read view', async () => {
@@ -903,7 +919,8 @@ it('lists the management tabs including the overview and operating settings, and
   expect(screen.queryByText('아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.')).toBeNull()
   toReadTab()
   expect(within(nav).getByRole('button', { name: '공개 회차 · 0' }).getAttribute('aria-current')).toBe('page')
-  expect(screen.queryByRole('heading', { level: 1 })).toBeNull() // 공개 회차 탭은 회차 목록만 보인다.
+  expect(document.querySelector('.ep-hero')).toBeNull() // 공개 회차 탭은 편집 히어로 없이 위의 짧은 작품 요약과 회차 목록만 보인다.
+  expect(within(document.querySelector<HTMLElement>('.ep-brief')!).getByRole('heading', { level: 1, name: '옛 제목' })).toBeTruthy()
   // 공개한 회차가 없어도 안내 문구는 남는다. 집필실로 가는 같은 목적지의 버튼은 사이드바의 '회차 작성하기' 하나뿐이다(본문의 '새 회차 집필하기'는 없앴다).
   expect(screen.getByText('아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.')).toBeTruthy()
   expect(screen.getByRole('link', { name: '회차 작성하기' }).getAttribute('href')).toBe('/studio/w')

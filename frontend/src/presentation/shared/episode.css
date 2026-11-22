@@ -217,3 +217,9 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .episode-app :is(.ep-edit-actions,.ep-operating-settings .ep-form-footer) .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--ink)}
 /* 운영 설정의 저장 버튼과 잠긴 이유는 한 줄에 나란히 놓는다. */
 .ep-operating-settings .ep-form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+
+/* 작품 관리의 개요 밖 탭 위 짧은 작품 요약(WorkBrief): 세계관 관리 헤더처럼 72px 표지 썸네일 + 제목·칩·회차 수 */
+.episode-app .ep-brief{display:grid;grid-template-columns:72px minmax(0,1fr);gap:0 16px;align-items:center;padding:8px 0 16px}
+.episode-app .ep-brief h1{font-family:var(--tfont);font-size:24px;line-height:1.2;letter-spacing:-.03em;font-weight:700;margin:0;min-width:0}
+.episode-app .ep-brief .ep-chips{margin-top:8px}
+.episode-app .ep-brief .stats{margin-top:6px}

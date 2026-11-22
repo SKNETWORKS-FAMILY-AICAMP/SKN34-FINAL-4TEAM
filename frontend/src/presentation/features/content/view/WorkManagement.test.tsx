@@ -11,6 +11,7 @@ import { WorkManagement } from './WorkManagement'
 
 // 히어로(WorkOverview)는 개요 탭의 내용이다. 그 안(작품 정보·표지 편집)은 EpisodePage.test가 보고, 여기서는 개요 탭이 히어로를 그리는지만 본다. 포크 수는 12화에만 2편이 갈라졌다고 본다(회차 번호로 조회).
 vi.mock('./WorkOverview', () => ({ WorkOverview: () => <p>작품 개요 히어로</p> }))
+vi.mock('./WorkBrief', () => ({ WorkBrief: () => <p>작품 요약 머리</p> }))
 // AI 집필 탭의 내용은 AiSerialPanel.test가 본다. 여기서는 탭이 이 패널을 그리는지만 본다.
 vi.mock('./AiSerialPanel', () => ({ AiSerialPanel: ({ workId }: { workId: string }) => <p>AI 집필 패널 {workId}</p> }))
 vi.mock('../viewmodel/useEpisodeForkCounts', () => ({ useEpisodeForkCounts: () => ({ 12: 2 }) }))
@@ -295,9 +296,11 @@ it('작품 메뉴 맨 앞에 개요 탭이 있고 기본으로 열려 히어로�
   expect(menu.getByRole('button', { name: '개요' }).getAttribute('aria-current')).toBe('page')
   expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('개요')
   expect(screen.getByText('작품 개요 히어로')).toBeTruthy()
+  expect(screen.queryByText('작품 요약 머리')).toBeNull() // 개요 탭에는 요약 머리가 없다
   expect(screen.queryByRole('list')).toBeNull() // 회차 목록은 공개 회차 탭에 있다
   fireEvent.click(menu.getByRole('button', { name: /^공개 회차/ }))
   expect(screen.queryByText('작품 개요 히어로')).toBeNull() // 히어로는 개요 탭에만 있다
+  expect(screen.getByText('작품 요약 머리')).toBeTruthy() // 다른 탭은 위에 짧은 작품 요약(편집 없음)
   expect(titles()).toEqual(['1화 제목', '2화 제목'])
 })
 
