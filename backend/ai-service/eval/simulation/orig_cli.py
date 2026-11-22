@@ -20,7 +20,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from orig_common import COST, ORIG, RESULTS, SEED
+from orig_common import COST, LUNA, ORIG, RESULTS, SEED
 
 SIZES = {'public': {'act': 150, 'direct': 150, 'narrate': 70, 'monologue': 30, 'check_pass': 50, 'check_fail': 50},
          'hp': {'act': 400, 'direct': 300, 'narrate': 160, 'monologue': 40, 'check_pass': 150, 'check_fail': 150}}
@@ -244,11 +244,16 @@ def cmd_run(args) -> None:
     cost = CostLog(COST)
     if args.via == 'openai' and cost.spent() + total > args.limit_usd:
         raise SystemExit(f'예상 {total:.2f}달러가 남은 상한(장부 {cost.spent():.2f}달러 / {args.limit_usd:.2f}달러)을 넘어 호출 없이 멈춘다.')
-    judge_llm = sim_via.ocx_llm(ORIG / 'cache-judge-ocx', COST) if args.judge == 'ocx' else usd_llm(ORIG / 'cache-judge-openai', COST, args.limit_usd)
+    import orig_judge
     import orig_variants
+    if args.judge == 'openai' and args.judge_model != orig_judge.LUNA:
+        raise SystemExit('--judge-model은 --judge ocx에서만 쓴다(openai 채점은 cost.MODEL 고정).')
+    grader = orig_judge.grader_name(args.judge_model)   # 한 실행 기록 폴더 = 한 채점 모델(지금까지의 luna는 runs)
+    judge_llm = (sim_via.ocx_llm(orig_judge.judge_cache(ORIG, grader), COST, args.judge_model) if args.judge == 'ocx'
+                 else usd_llm(ORIG / 'cache-judge-openai', COST, args.limit_usd))
     variants = orig_variants.spec_of(args.variant)   # None·빈 이름이면 빈 명세(기준선)
     tag = args.variant or args.tag or 'A'   # 후보 없이 채택한 서비스 구성으로 다시 잴 때는 --tag B
-    via = {'sut': args.via, 'judge': args.judge}
+    via = {'sut': args.via, 'judge': args.judge, 'judgeModel': args.judge_model}
     import orig_variants
     with orig_variants.patched(args.variant):   # 지시문·질문 구성 후보는 이 실행 안에서만 끼운다
         for key in sets:
@@ -256,7 +261,7 @@ def cmd_run(args) -> None:
                 continue
             items = sample_of(load_items(home(args), key), args.limit) if args.limit else load_items(home(args), key)
             items = sorted(items, key=lambda i: (i['base'], i['id']))   # 기준 회차 순서로 돌려 세계관(World)을 다시 만드는 일을 줄인다
-            out = rn.run_path(ORIG / home(args) / 'runs', key, tag)
+            out = rn.run_path(orig_judge.runs_folder(ORIG / home(args), grader), key, tag)
             item_usd = rows[key]['itemMaxUsd']
             if key == '2':
                 records = rn.run_direct(items, corpus, cost, args.limit_usd, args.workers, out, item_usd, variants and variants.get('2'), args.variant)
@@ -355,34 +360,41 @@ def cmd_export(args) -> None:
         print(f'{name}: 항목 {len(lines)}개 · {(folder / name).stat().st_size:,}바이트')
 
 
+def grader_suffix(args) -> str:
+    """집계 파일 이름 끝: 지금까지의 채점(luna)은 없고, 다른 채점 방식은 -<이름>."""
+    return '' if args.grader == LUNA else f'-{args.grader}'
+
+
 def cmd_summary(args) -> None:
     """모든 실행(runs/<세트>-<이름>.jsonl)을 한 파일로 집계한다: results/orig-<corpus>-summary-<기준선>.json. 기준선이 아닌 실행은 같은 문항으로 기준선과 짝 비교한 값이 붙는다."""
     import orig_run as rn
-    folder, out = ORIG / home(args) / 'runs', {}
+    import orig_judge
+    folder, out = orig_judge.runs_folder(ORIG / home(args), args.grader), {}
     for key in KEYS:
         runs = {p.stem.split('-', 1)[1]: list(rn.load_done(p).values()) for p in sorted(folder.glob(f'{key}-*.jsonl'))}
         if args.base in runs:
             out[key] = rn.summary_of(key, runs, args.base, getattr(rn, SUMMARIES[key]))
     RESULTS.mkdir(exist_ok=True)
-    path = RESULTS / f'orig-{home(args)}-summary-{args.base}.json'
-    path.write_text(json.dumps({'corpus': home(args), 'base': args.base, 'sets': out}, ensure_ascii=False, separators=(',', ':'), sort_keys=True))
+    path = RESULTS / f'orig-{home(args)}-summary-{args.base}{grader_suffix(args)}.json'
+    path.write_text(json.dumps({'corpus': home(args), 'base': args.base, 'grader': args.grader, 'sets': out}, ensure_ascii=False, separators=(',', ':'), sort_keys=True))
     print(f"{path.name}: 세트 {', '.join(out)} · 실행 {sum(len(v) for v in out.values())}개 · {path.stat().st_size:,}바이트")
 
 
 def cmd_compare(args) -> None:
     """같은 문항에서 후보(--variant)와 기준선(--base, 기본 A)을 짝 비교해 results/orig-<corpus>-compare-<후보>[-vs-<기준선>].json에 집계만 쓴다."""
+    import orig_judge
     import orig_run as rn
     out, shown = {}, []
     for key in KEYS:
-        base_path, cand_path = (ORIG / home(args) / 'runs' / f'{key}-{tag}.jsonl' for tag in (args.base, args.variant))
+        base_path, cand_path = (orig_judge.runs_folder(ORIG / home(args), args.grader) / f'{key}-{tag}.jsonl' for tag in (args.base, args.variant))
         if base_path.exists() and cand_path.exists():
             out[key] = rn.compare_runs(key, list(rn.load_done(base_path).values()), list(rn.load_done(cand_path).values()))
             line = lambda metrics: ' · '.join(f"{m} {v['up']}↑{v['down']}↓{v['tie']}= (평균차 {v['meanDiff'] or 0:+.2f}, p={v['p']:.3f}, n={v['n']})" for m, v in metrics.items())   # noqa: E731
             shown.append(f"{NAMES[key]}: " + line(out[key]['metrics']) + f" · 입력 토큰 {out[key]['tokens']['base'] or 0:,.0f}→{out[key]['tokens']['cand'] or 0:,.0f}"
                          + f"\n    입력이 바뀐 {out[key]['applied']['n']}문항만: " + line(out[key]['applied']['metrics']))
     RESULTS.mkdir(exist_ok=True)
-    (RESULTS / f'orig-{home(args)}-compare-{args.variant}{"" if args.base == "A" else "-vs-" + args.base}.json').write_text(
-        json.dumps({'corpus': home(args), 'variant': args.variant, 'base': args.base, 'sets': out}, ensure_ascii=False, indent=2, sort_keys=True))
+    (RESULTS / f'orig-{home(args)}-compare-{args.variant}{"" if args.base == "A" else "-vs-" + args.base}{grader_suffix(args)}.json').write_text(
+        json.dumps({'corpus': home(args), 'variant': args.variant, 'base': args.base, 'grader': args.grader, 'sets': out}, ensure_ascii=False, indent=2, sort_keys=True))
     print('\n'.join(shown) or '비교할 실행 기록이 없다.')
 
 
@@ -422,6 +434,7 @@ def main(argv=None) -> None:
         p.add_argument('--dev', action='store_true', help='hp-dev 세트로(후보 고르기용)')
         p.add_argument('--judge', choices=('openai', 'ocx'), default='ocx', help='채점 경로(ocx는 금액 0)')
         if name == 'run':
+            p.add_argument('--judge-model', default=LUNA, help='ocx 채점 모델(게이트웨이 이름, 기본은 지금까지의 gpt-6-luna). 기록은 runs-<모델>에 따로 쌓인다')
             p.add_argument('--via', choices=('openai', 'ocx'), default='openai', help='생성(서비스 함수) 호출 경로')
             p.add_argument('--variant', default=None, help='입력 구성 후보(orig_variants.VARIANTS)')
             p.add_argument('--tag', default=None, help='실행 기록 이름(후보 없이 채택한 서비스 구성으로 다시 잴 때 B 등, 기본 A)')
@@ -441,10 +454,12 @@ def main(argv=None) -> None:
     summary = command('summary', cmd_summary, '모든 실행을 기준선과 짝 비교해 한 파일로 집계(호출 없음)')
     summary.add_argument('--base', default='base2', help='기준선 실행 기록 이름')
     summary.add_argument('--dev', action='store_true')
+    summary.add_argument('--grader', default=LUNA, help='채점 방식(runs-<이름> 폴더, 기본은 지금까지의 gpt-6-luna = runs). regrade가 만든 이름을 쓴다')
     compare = command('compare', cmd_compare, '후보와 기준선(A)의 짝 비교(호출 없음)')
     compare.add_argument('--variant', required=True)
     compare.add_argument('--base', default='A', help='기준선 실행 기록 이름(v2 기준선은 v2)')
     compare.add_argument('--dev', action='store_true')
+    compare.add_argument('--grader', default=LUNA, help='채점 방식(runs-<이름> 폴더, 기본은 지금까지의 gpt-6-luna = runs)')
     args = parser.parse_args(argv)
     args.handler(args)
 

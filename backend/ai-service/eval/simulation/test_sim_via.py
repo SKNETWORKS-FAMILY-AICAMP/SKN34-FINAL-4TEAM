@@ -1,8 +1,11 @@
 """sim_via: ocx(로컬 게이트웨이) 어댑터의 입력 변환·429 대기·장부·환경 전환을 가짜 클라이언트로 검사한다. 네트워크 호출 없음."""
 
+from types import SimpleNamespace
+
 import httpx
 import openai
 import pytest
+from pydantic import BaseModel
 
 import sim_via as via
 from app.simulation import agent
@@ -107,3 +110,35 @@ def test_switching_to_ocx_changes_this_process_only_and_hands_the_simulation_age
     assert os.environ['OPENAI_BASE_URL'] == via.GATEWAY and os.environ['OPENAI_API_KEY'] == 'ocx'
     with agent.OpenAI(api_key='ocx', timeout=3, max_retries=0) as client:
         assert isinstance(client, via.Client) and client._inner.base_url.port == 10100
+
+
+
+class Out(BaseModel):
+    answer: str
+
+
+class ParsedResponses(FakeResponses):
+    """Llm._call이 읽는 모양(status·output_parsed·usage·model)의 응답을 돌려주는 가짜."""
+
+    def _answer(self, method, options):
+        self.calls.append((method, options))
+        return SimpleNamespace(status='completed', output_parsed=Out(answer='ok'), usage=SimpleNamespace(input_tokens=10, output_tokens=2, input_tokens_details=None), model=options['model'])
+
+
+def test_adapt_and_the_client_send_the_chosen_gateway_model_instead_of_the_default():
+    assert via.adapt({'input': 'x', 'model': 'gpt-5.6-luna'}, 'gpt-6.2-sol')['model'] == 'gpt-6.2-sol' and via.adapt({'input': 'x'})['model'] == via.MODEL
+    inner = FakeResponses()
+    via.Client(FakeOpenAI(inner), model='gpt-6.2-sol').responses.parse(model='gpt-5.6-luna', input='a')
+    assert inner.calls[0][1]['model'] == 'gpt-6.2-sol'
+
+
+def test_a_judge_model_is_sent_keyed_in_the_cache_and_written_to_the_ledger(tmp_path, monkeypatch):
+    inner = ParsedResponses()
+    monkeypatch.setattr(via.openai, 'OpenAI', lambda **options: FakeOpenAI(inner))
+    sol = via.ocx_llm(tmp_path / 'cache', tmp_path / 'cost.jsonl', 'gpt-6.2-sol')
+    assert sol.model == 'gpt-6.2-sol' and sol.ask('judge', '지시', '입력', schema=Out).answer == 'ok'
+    assert inner.calls[0][1]['model'] == 'gpt-6.2-sol'
+    luna = via.ocx_llm(tmp_path / 'cache', tmp_path / 'cost.jsonl')   # 같은 캐시 폴더여도 다른 모델의 답을 재사용하지 않는다
+    assert sol.is_cached('지시', '입력', schema=Out) and not luna.is_cached('지시', '입력', schema=Out)
+    assert luna.ask('judge', '지시', '입력', schema=Out).answer == 'ok' and inner.calls[1][1]['model'] == via.MODEL and len(inner.calls) == 2
+    assert [(r['model'], r['via'], r['usd']) for r in CostLog(tmp_path / 'cost.jsonl').rows()] == [('gpt-6.2-sol', 'ocx', 0.0), (via.MODEL, 'ocx', 0.0)]

@@ -72,13 +72,13 @@ def parse_grade(out: BaseModel, fact_ids: list[str]) -> dict | None:
     return grade
 
 
-def judge(llm, instructions: str, payload: dict, schema: type[BaseModel]) -> dict | None:
-    """정답을 보여 준 모델 채점 한 번. 호출·파싱이 실패하면 None이다."""
+def judge(llm, instructions: str, payload: dict, schema: type[BaseModel], parse=parse_grade) -> dict | None:
+    """정답을 보여 준 모델 채점 한 번. 호출·파싱이 실패하면 None이다. parse(응답, 사실 id 목록)는 응답을 확인해 점수 dict로 바꾼다."""
     try:
         out = llm.ask('judge', instructions, json.dumps(payload, ensure_ascii=False), schema=schema, max_output_tokens=1500)
     except (LlmFailure, ValidationError):   # 호출 실패·잘린 JSON은 채점 실패다
         return None
-    return parse_grade(out, [f['id'] for f in payload['facts']])
+    return parse(out, [f['id'] for f in payload['facts']])
 
 
 # ---- 서비스 입력 조립(모델 호출 없음) ----
@@ -190,6 +190,18 @@ def size_of(data) -> int:
     return len(json.dumps(data, ensure_ascii=False))
 
 
+def dialogue_payload(item: dict, corpus, prose: str) -> dict:
+    """① 채점 입력: 인물·직전 장면·정답·생성 글과 금지 사실 후보(생성 글과 겹침이 큰 순). 생성 때와 재채점 때 같은 입력이 되게 한 곳에서 만든다."""
+    return {'character': item['speaker'], 'scene': [{'by': l['by'], 'text': l['text']} for l in item['context']], 'gold': item['gold'], 'generated': prose,
+            'facts': [{'id': f['id'], 'text': f['text']} for f in top_facts(prose, facts_for(corpus, item), FACTS)]}
+
+
+def narration_payload(item: dict, corpus, prose: str) -> dict:
+    """③ 채점 입력(독백이면 그 인물이 모를 사실, 나레이션이면 이 회차 뒤의 사실이 금지 사실이다)."""
+    return {'kind': item['kind'], 'character': item['speaker'], 'scene': [{'by': l['by'], 'text': l['text']} for l in item['context']], 'gold': item['gold'], 'generated': prose,
+            'facts': [{'id': f['id'], 'text': f['text']} for f in top_facts(prose, facts_for(corpus, item, person=item['kind'] == 'monologue'), FACTS)]}
+
+
 def evaluate_dialogue(item: dict, corpus, llm, cost, variant=None, variant_name=None) -> dict:
     """① 한 문항: act 한 번(재생성·검사 없이 첫 응답) → 정답을 보여 준 모델 채점."""
     record, ledger = blank(item, variant_name), UsageLedger('simulation.orig', lambda step: {})
@@ -202,9 +214,7 @@ def evaluate_dialogue(item: dict, corpus, llm, cost, variant=None, variant_name=
     except SimulationFailure as failure:
         return {**record, 'error': failure.status, 'grade': None, 'usage': settle(cost, ledger, int(size_of(data) / CHARS_PER_TOKEN))}
     prose = service.normalize_quotes(action.prose.strip())
-    payload = {'character': item['speaker'], 'scene': [{'by': l['by'], 'text': l['text']} for l in item['context']], 'gold': item['gold'], 'generated': prose,
-               'facts': [{'id': f['id'], 'text': f['text']} for f in top_facts(prose, facts_for(corpus, item), FACTS)]}
-    return {**record, 'generated': prose, 'grade': judge(llm, DIALOGUE_JUDGE, payload, DialogueGrade), 'inChars': size_of(data), 'usage': settle(cost, ledger)}
+    return {**record, 'generated': prose, 'grade': judge(llm, DIALOGUE_JUDGE, dialogue_payload(item, corpus, prose), DialogueGrade), 'inChars': size_of(data), 'usage': settle(cost, ledger)}
 
 
 def evaluate_narration(item: dict, corpus, llm, cost, variant=None, variant_name=None) -> dict:
@@ -219,9 +229,7 @@ def evaluate_narration(item: dict, corpus, llm, cost, variant=None, variant_name
     except SimulationFailure as failure:
         return {**record, 'error': failure.status, 'grade': None, 'usage': settle(cost, ledger, int(size_of(data) / CHARS_PER_TOKEN))}
     prose = written.prose.strip()
-    payload = {'kind': item['kind'], 'character': item['speaker'], 'scene': [{'by': l['by'], 'text': l['text']} for l in item['context']], 'gold': item['gold'], 'generated': prose,
-               'facts': [{'id': f['id'], 'text': f['text']} for f in top_facts(prose, facts_for(corpus, item, person=monologue), FACTS)]}
-    return {**record, 'generated': prose, 'grade': judge(llm, NARRATION_JUDGE, payload, NarrationGrade), 'inChars': size_of(data), 'usage': settle(cost, ledger)}
+    return {**record, 'generated': prose, 'grade': judge(llm, NARRATION_JUDGE, narration_payload(item, corpus, prose), NarrationGrade), 'inChars': size_of(data), 'usage': settle(cost, ledger)}
 
 
 def evaluate_check(item: dict, corpus, llm, cost, variant=None, variant_name=None) -> dict:
@@ -370,7 +378,8 @@ def summarize_dialogue(records: list[dict]) -> dict:
     graded, head = _graded(records)
     by_kind = {k: {'n': len(rs), 'voice': mean_ci([r['grade']['voice'] for r in rs])['mean'], 'intent': mean_ci([r['grade']['intent'] for r in rs])['mean']}
                for k in sorted({r['workKind'] for r in graded}) for rs in [[r for r in graded if r['workKind'] == k]]}
-    return {**head, 'voice': mean_ci([r['grade']['voice'] for r in graded]), 'intent': mean_ci([r['grade']['intent'] for r in graded]),
+    ref = [r['grade']['voiceRef'] for r in graded if r['grade'].get('voiceRef') is not None]   # 말투 기준(voiceRef) 채점이 있으면(재채점) 따로 낸다
+    return {**head, 'voice': mean_ci([r['grade']['voice'] for r in graded]), 'intent': mean_ci([r['grade']['intent'] for r in graded]), **({'voiceRef': mean_ci(ref)} if ref else {}),
             'leak': rate([r['grade']['leaked'] for r in graded]), **cost_stats(records, 'act'), 'byKind': by_kind}
 
 

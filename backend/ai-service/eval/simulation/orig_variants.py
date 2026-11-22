@@ -43,21 +43,27 @@ def _speaks(tag: str, mine: set[str], rest: list[str]) -> bool:
     return bool(where) and min(where, key=where.get) in mine
 
 
-def voice_lines(corpus, item: dict, k: int = VOICE_LINES) -> list[str]:
-    """기준 회차 이전 원문에서 그 인물이 한 대사 k줄(지금 장면과 겹침이 큰 순으로 고른 뒤 회차 순서로)."""
+def speaker_lines(corpus, item: dict) -> list[tuple[int, int, str]]:
+    """기준 회차 이전 원문에서 그 인물이 한 대사 (회차, 줄 번호, 글) 전부(꼬리표에 이름이 먼저 나오는 줄, 규칙 추출). 인물 카드가 없으면 빈 목록이다."""
     me = next((p for p in corpus.people(item['work']) if p['id'] == item['speaker_id']), None)
     if me is None:
         return []
     mine = {me['title'], *(a for a in me.get('aliases', []) if len(a) >= 2)}
-    rest, scene, found = [n for n in item['cast'] if n != item['speaker']], _bigrams(_scene(item)), []
+    rest, found = [n for n in item['cast'] if n != item['speaker']], []
     for ep, turns in _episodes(corpus):
         if ep['work'] != item['work'] or ep['n'] > item['base']:
             continue
         for t in turns:
             size = len(t['text'])
             if t['kind'] == 'dialogue' and t['tag'] and VOICE_LEN[0] <= size <= VOICE_LEN[1] and _speaks(t['tag'], mine, rest):
-                found.append((len(_bigrams(t['text']) & scene), ep['n'], t['i'], t['text']))
-    best = sorted(found, reverse=True)[:k]
+                found.append((ep['n'], t['i'], t['text']))
+    return found
+
+
+def voice_lines(corpus, item: dict, k: int = VOICE_LINES) -> list[str]:
+    """기준 회차 이전 원문에서 그 인물이 한 대사 k줄(지금 장면과 겹침이 큰 순으로 고른 뒤 회차 순서로)."""
+    scene = _bigrams(_scene(item))
+    best = sorted(((len(_bigrams(text) & scene), n, i, text) for n, i, text in speaker_lines(corpus, item)), reverse=True)[:k]
     return [text for _, _, _, text in sorted(best, key=lambda f: (f[1], f[2]))]
 
 

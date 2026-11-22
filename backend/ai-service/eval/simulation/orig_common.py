@@ -14,5 +14,6 @@ ORIG = DATA / 'orig'          # 공개 세트(고전·근대·SCP)와 해리 포
 HP_DIR = DATA / 'hp'          # 해리 포터 번역본·world.json(sim_worlds.HP_DIR와 같다)
 COST = DATA / 'cost-orig.jsonl'   # 이 작업의 OpenAI 장부(이전 .data/cost.jsonl과 따로 센다)
 RESULTS = HERE / 'results'
+LUNA = 'gpt-6-luna'   # 지금까지의 채점 모델(게이트웨이 이름, sim_via.MODEL과 같다). 이 채점의 기록은 runs, 응답 캐시는 cache-judge-ocx에 있다
 SEED = 651
 K, CONTEXT_CHARS = 6, 1800    # 직전 원문 줄 수와 글자 수 상한
