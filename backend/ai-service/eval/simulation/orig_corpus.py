@@ -139,9 +139,8 @@ class PublicCorpus:
         """(기준 회차 시점 service.World, 인물 id → World 카드 id). 같은 회차는 한 번만 만든다."""
         with self._lock:
             if (wid, base) not in self._worlds:
-                self._worlds[wid, base] = (sim_worlds.tc_world(self._load(wid)['world'], base), None)
-            world, _ = self._worlds[wid, base]
-        return world, {p['id']: p['id'] for p in self.people(wid)}
+                self._worlds[wid, base] = sim_worlds.tc_world(self._load(wid)['world'], base)
+            return self._worlds[wid, base], {p['id']: p['id'] for p in self.people(wid)}
 
     def facts(self, wid: str, person: dict | None, ep: dict) -> list[dict]:
         return kt_facts(self._load(wid)['knowledge'], person and person['title'], ep['n'], ep['base'])
