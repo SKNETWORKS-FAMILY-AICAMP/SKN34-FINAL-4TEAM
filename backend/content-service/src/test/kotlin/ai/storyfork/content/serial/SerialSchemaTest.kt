@@ -3,12 +3,14 @@ package ai.storyfork.content.serial
 import ai.storyfork.content.serial.entity.AiSerialEntity
 import ai.storyfork.content.serial.entity.SerialBoardEntity
 import ai.storyfork.content.serial.entity.SerialChoiceEntity
+import ai.storyfork.content.serial.entity.SerialEpisodeSummaryEntity
 import ai.storyfork.content.serial.entity.SerialProposalEntity
 import ai.storyfork.content.serial.entity.SerialProposalLikeEntity
 import ai.storyfork.content.serial.entity.SerialVoteEntity
 import ai.storyfork.content.serial.repository.AiSerialRepository
 import ai.storyfork.content.serial.repository.SerialBoardRepository
 import ai.storyfork.content.serial.repository.SerialChoiceRepository
+import ai.storyfork.content.serial.repository.SerialEpisodeSummaryRepository
 import ai.storyfork.content.serial.repository.SerialProposalLikeRepository
 import ai.storyfork.content.serial.repository.SerialProposalRepository
 import ai.storyfork.content.serial.repository.SerialVoteRepository
@@ -31,7 +33,7 @@ class SerialSchemaTest {
     private fun mapped(entity: Class<*>) = entity.declaredFields.mapNotNull { it.getAnnotation(Column::class.java)?.name }.toSet()
 
     @Test fun `V43 has the contract tables and nothing for setting proposals`() {
-        assertEquals(setOf("ai_serial", "serial_board", "serial_choice", "serial_proposal", "serial_proposal_like", "serial_vote"), tables.keys)
+        assertEquals(setOf("ai_serial", "serial_board", "serial_choice", "serial_proposal", "serial_proposal_like", "serial_vote", "serial_episode_summary"), tables.keys)
         assertFalse(sql.contains("setting"), "설정 제안은 이 기능에서 제외됐다")
         // 투표·제안 개편은 V43을 직접 고친 것이다: 의견 표는 남지 않는다.
         assertFalse(sql.contains("serial_opinion") || sql.contains("opinion_id"))
@@ -44,12 +46,14 @@ class SerialSchemaTest {
         assertEquals(columns("serial_proposal"), mapped(SerialProposalEntity::class.java))
         assertEquals(columns("serial_proposal_like"), mapped(SerialProposalLikeEntity::class.java))
         assertEquals(columns("serial_vote"), mapped(SerialVoteEntity::class.java))
+        assertEquals(columns("serial_episode_summary"), mapped(SerialEpisodeSummaryEntity::class.java))
         assertEquals(setOf("work_id", "enabled", "days", "run_time", "direction", "last_run_date", "updated_at"), columns("ai_serial"))
         assertEquals(setOf("id", "work_id", "episode_number", "status", "summary", "published_episode_number", "failure_reason", "opened_at", "closed_at", "choices_tried_at"), columns("serial_board"))
         assertEquals(setOf("id", "board_id", "position", "text"), columns("serial_choice"))
         assertEquals(setOf("id", "board_id", "author_id", "kind", "title", "body", "simulation", "hidden", "created_at"), columns("serial_proposal"))
         assertEquals(setOf("proposal_id", "member_id"), columns("serial_proposal_like"))
         assertEquals(setOf("board_id", "member_id", "choice_id"), columns("serial_vote"))
+        assertEquals(setOf("episode_id", "version_id", "summary", "created_at"), columns("serial_episode_summary"))
     }
 
     @Test fun `one active board per work is enforced by a partial unique index`() {
@@ -73,6 +77,13 @@ class SerialSchemaTest {
         assertTrue(tables.getValue("ai_serial").contains("work_id varchar(36) PRIMARY KEY REFERENCES work(id)"))
     }
 
+    @Test fun `one summary per episode that points at the published version it was made from`() {
+        // 회차마다 요약은 하나다: 발행 버전이 바뀌면 같은 행을 새 버전의 요약으로 바꾼다. 이력 표(episode_version)는 불변이라 FK가 안전하다.
+        assertTrue(tables.getValue("serial_episode_summary").contains("episode_id varchar(36) PRIMARY KEY REFERENCES episode(id)"))
+        assertTrue(tables.getValue("serial_episode_summary").contains("version_id varchar(36) NOT NULL REFERENCES episode_version(id)"))
+        assertTrue(tables.getValue("serial_episode_summary").contains("summary text NOT NULL"))
+    }
+
     @Test fun `the derived query names resolve against their entities`() {
         val repositories = mapOf(
             AiSerialRepository::class.java to AiSerialEntity::class.java,
@@ -81,6 +92,7 @@ class SerialSchemaTest {
             SerialProposalRepository::class.java to SerialProposalEntity::class.java,
             SerialProposalLikeRepository::class.java to SerialProposalLikeEntity::class.java,
             SerialVoteRepository::class.java to SerialVoteEntity::class.java,
+            SerialEpisodeSummaryRepository::class.java to SerialEpisodeSummaryEntity::class.java,
         )
         for ((repository, entity) in repositories) {
             for (method in repository.declaredMethods.filter { it.getAnnotation(Query::class.java) == null }) {

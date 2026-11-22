@@ -6,6 +6,7 @@ import ai.storyfork.content.auth.client.ScheduledMemberPayload
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
 import ai.storyfork.content.auth.service.CoreCreditService
 import ai.storyfork.content.auth.service.CoreNicknameService
+import ai.storyfork.content.context.service.ManuscriptQaService
 import ai.storyfork.content.fixture.ContentTestConfig
 import ai.storyfork.content.fixture.ContentTestDriver
 import ai.storyfork.content.fixture.CsrfFixture
@@ -13,6 +14,7 @@ import ai.storyfork.content.fixture.DraftRequest
 import ai.storyfork.content.fixture.PublishRequest
 import ai.storyfork.content.serial.client.GeneratedChoices
 import ai.storyfork.content.serial.client.GeneratedEpisode
+import ai.storyfork.content.serial.client.GeneratedSummary
 import ai.storyfork.content.serial.client.SerialAiClient
 import ai.storyfork.content.serial.client.SerialAiFailure
 import ai.storyfork.content.serial.client.SerialScene
@@ -65,6 +67,8 @@ class SerialPostgresTest {
     @MockitoBean lateinit var nicknames: CoreNicknameService
     @MockitoBean lateinit var credits: CoreCreditService
     @MockitoBean lateinit var ai: SerialAiClient
+    // 원고 검색은 실제 Elasticsearch·임베딩 없이 대역이다(이 시나리오들은 최근 3화 이전 회차가 없어 호출하지도 않는다). 색인 빈 자체는 상시라 CI의 Elasticsearch가 필요하다.
+    @MockitoBean internal lateinit var manuscriptQa: ManuscriptQaService
     @Autowired lateinit var works: WorkService
     @Autowired lateinit var driver: ContentTestDriver
     @Autowired lateinit var runner: SerialRunner
@@ -75,6 +79,7 @@ class SerialPostgresTest {
     private val client=HttpClient.newHttpClient()
     // 앱의 1분 스케줄러 스레드가 먼저 실행해도 같은 목록에 쌓이므로 스레드 안전한 목록이다.
     private val episodeRequests=java.util.concurrent.CopyOnWriteArrayList<Map<*,*>>()
+    private val summaryRequests=java.util.concurrent.CopyOnWriteArrayList<Map<*,*>>()
     private val generated=GeneratedEpisode("독자들은 재회를 원했다.","2화 제목","2화 본문",BigDecimal("1.5"))
     private val choiceTexts=listOf("두 사람이 다시 만난다","편지가 도착한다","오래된 문이 열린다","비밀이 밝혀진다")
     // 오늘이 아닌 요일만 고르면 일정이 도래하지 않아(시각과 무관하게) 테스트가 지금 실행(queued)으로만 움직인다.
@@ -86,6 +91,7 @@ class SerialPostgresTest {
 
     @BeforeEach fun stubs() {
         episodeRequests.clear()
+        summaryRequests.clear()
         // 공유 DB에 앞선 실행이 남긴 실행 요청(queued·running)과 켜진 연재는 이 테스트의 tick이 함께 집어 AI 요청이 섞이므로 먼저 닫는다(serial 표는 이 테스트만 쓴다).
         jdbc.update("UPDATE serial_board SET status='failed', failure_reason='테스트 정리', closed_at=coalesce(closed_at, now()) WHERE status IN ('queued','running')")
         jdbc.update("UPDATE ai_serial SET enabled=false WHERE enabled")
@@ -93,6 +99,7 @@ class SerialPostgresTest {
         `when`(ai.episode(ArgumentMatchers.anyMap<String,Any?>())).thenAnswer { call -> episodeRequests.add(call.arguments[0] as Map<*,*>); generated }
         `when`(ai.simulate(ArgumentMatchers.anyMap<String,Any?>())).thenReturn(SerialScene("달빛이 비치는 복도였다.",BigDecimal("0.4")))
         `when`(ai.choices(ArgumentMatchers.anyMap<String,Any?>())).thenReturn(GeneratedChoices(choiceTexts,BigDecimal("0.2")))
+        `when`(ai.summarize(ArgumentMatchers.anyMap<String,Any?>())).thenAnswer { call -> summaryRequests.add(call.arguments[0] as Map<*,*>); GeneratedSummary("두 사람은 폐교에서 재회했다.",BigDecimal("0.3")) }
         `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenAnswer { call -> (call.arguments[0] as Collection<*>).associate { it as String to "회원" } }
     }
 
@@ -187,6 +194,13 @@ class SerialPostgresTest {
         assertEquals(choiceTexts,choices.values().map {it.path("text").asString()})
         val c=choices.values().map {it.path("id").asString()}
         verify(credits,timeout(30_000)).settle(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.startsWith("serial-choice:$boardId:") ?: "",ArgumentMatchers.eq(BigDecimal("0.2")) ?: BigDecimal.ONE)
+
+        // 같은 점검의 마지막 단계가 요약 없는 공개 회차(1화)의 요약을 만든다: 소유자 크레딧 예약 → AI(제목·본문만) → 저장(요약을 만든 발행 버전과 함께) → 정산(serial-summary 키).
+        await("the summary of episode 1") {count("SELECT count(*) FROM serial_episode_summary s JOIN episode e ON e.id=s.episode_id WHERE e.work_id=? AND e.sequence=1",id)==1}
+        assertEquals(1,count("SELECT count(*) FROM serial_episode_summary s JOIN episode_current e ON e.id=s.episode_id WHERE e.work_id=? AND e.sequence=1 AND s.version_id=e.published_version_id",id))
+        assertEquals(listOf<Any?>(id,1,"1화","본문"),summaryRequests.first {it["workId"]==id}.let {listOf(it["workId"],it["episodeNumber"],it["title"],it["body"])})
+        // 앱 스케줄러와 이 테스트의 점검이 겹치면 같은 요약을 두 번 청할 수 있어 한 번 이상으로 본다.
+        verify(credits,timeout(30_000).atLeastOnce()).settle(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.startsWith("serial-summary:") ?: "",ArgumentMatchers.eq(BigDecimal("0.3")) ?: BigDecimal.ONE)
 
         // 제안 게시판: 글은 회원마다 개수 제한 없이 쓰고(201 {id}), 비로그인은 401, 잘못된 입력은 422다.
         val firstId=created(call("POST","$path/serial-board/proposals",one,"""{"kind":"general","title":"재회 장면","body":"두 사람이 다시 만나면 좋겠어요"}"""))
@@ -390,7 +404,7 @@ class SerialPostgresTest {
         assertEquals(2,node(call("GET","$path/serial-board")).path("board").path("episodeNumber").asInt())
     }
 
-    @Test fun `the database keeps one active board per work four numbered choices one like per member and one vote per member and the claim is conditional`() {
+    @Test fun `the database keeps one active board per work four numbered choices one like and one vote per member one summary per episode and the claim is conditional`() {
         val owner=member()
         val id=work(owner)
         val first=UUID.randomUUID().toString()
@@ -424,6 +438,15 @@ class SerialPostgresTest {
         jdbc.update("INSERT INTO serial_vote(board_id,member_id,choice_id) VALUES (?,?,?)",second,"member",choice)
         assertThrows(DataIntegrityViolationException::class.java) {jdbc.update("INSERT INTO serial_vote(board_id,member_id,choice_id) VALUES (?,?,?)",second,"member",choice)}
         assertThrows(DataIntegrityViolationException::class.java) {jdbc.update("INSERT INTO serial_vote(board_id,member_id,choice_id) VALUES (?,?,?)",second,"other","no-such-choice")}
+
+        // 요약은 회차마다 하나이고 존재하는 회차·발행 버전만 가리킨다. 거절되는 삽입마다 제약 하나만 어기게 순서를 둔다.
+        val episodeId=jdbc.queryForObject("SELECT id FROM episode WHERE work_id=? AND sequence=1",String::class.java,id)!!
+        val versionId=jdbc.queryForObject("SELECT id FROM episode_version WHERE episode_id=? ORDER BY created_at LIMIT 1",String::class.java,episodeId)!!
+        val addSummary="INSERT INTO serial_episode_summary(episode_id,version_id,summary,created_at) VALUES (?,?,?,now())"
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(addSummary,episodeId,"no-such-version","요약")} // 회차는 있고 버전만 없다: 버전 FK
+        jdbc.update(addSummary,episodeId,versionId,"요약")
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(addSummary,episodeId,versionId,"다시")} // 회차당 하나: 기본키
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(addSummary,"no-such-episode",versionId,"요약")} // 버전은 있고 회차만 없다: 회차 FK
 
         // 실행 선점은 켜진 연재에서만, 한 번만 성공한다(설정 행이 없거나 꺼졌으면 시작하지 않는다).
         assertFalse(serial.claim(second,"open",LocalDate.now(KST),Instant.now()))

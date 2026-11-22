@@ -32,6 +32,12 @@ const val CHOICES_RETRY_MINUTES = 10L
 const val PROPOSAL_TITLE_MAX = 100
 const val PROPOSAL_BODY_MAX = 2000
 
+/** 회차 요약(AI가 회차마다 300자 안팎)의 글자 수 한도, 점검 한 번에 만드는 요약 수, 회차 실행에 붙이는 관련 장면 인용의 최대 수와 그 검색 질의의 글자 수 한도다. */
+const val SUMMARY_MAX = 400
+const val SUMMARIES_PER_TICK = 3
+const val RELATED_MAX = 6
+const val RELATED_QUERY_MAX = 500
+
 /** 실행이 실패한 게시판에 남기는 고정 사유다. 원문·예외 메시지를 싣지 않는다. */
 object SerialReason {
     const val CREDIT = "크레딧이 부족합니다."
@@ -40,6 +46,7 @@ object SerialReason {
     const val AI = "AI 생성에 실패했습니다."
     const val PUBLISH = "발행에 실패했습니다."
     const val DRAFT = "작성 중인 원고가 있어 발행하지 않았습니다."
+    const val SEARCH = "관련 장면 검색에 실패했습니다."
 }
 
 /** AI 집필이 켜져 있는 동안 소유자가 원고를 바꾸려 하면 409로 거절하는 코드와 고정 문구다(서버 판정, 화면 잠금은 보조). */
@@ -110,6 +117,9 @@ fun cleanChoices(texts: List<String>): List<String>? {
     return trimmed.takeIf { it.size == CHOICE_COUNT && it.all { text -> text.isNotEmpty() && text.length <= CHOICE_MAX && clean(text) } }
 }
 
+/** AI가 만든 회차 요약을 검증한다: 앞뒤 공백을 뗀 뒤 1~[SUMMARY_MAX]자에 NUL이 없어야 한다. 어긋나면 null이다(줄여 쓰지 않는다). */
+fun cleanSummary(text: String): String? = text.trim().takeIf { it.isNotEmpty() && it.length <= SUMMARY_MAX && clean(it) }
+
 // ---- 제안 글
 
 /** 추천 수를 붙인 제안 글이다. */
@@ -157,43 +167,76 @@ fun cleanProposal(request: SerialProposalRequest): CleanProposal {
 data class SerialEpisode(val number: Int, val title: String, val body: String)
 data class SerialCard(val title: String, val type: String, val text: String, val aliases: List<String>)
 
+/** 이전 회차 한 편의 요약이다(AI가 만들어 Content가 저장한 것). */
+data class SerialSummary(val number: Int, val title: String, val summary: String)
+
+/** 회차 실행에 붙이는 관련 장면 인용이다: 최근 3화 이전 회차에서 원고 검색이 찾아 발행 원문과 다시 대조한 구절. */
+data class SerialRelated(val episode: Int, val quote: String)
+
 private const val CARD_SHARE = 3
-private const val RECENT_EPISODES = 3
+
+/** 문맥에 원문을 싣는 가장 최근 회차 수다. 이보다 오래된 회차는 요약과 관련 장면 검색으로만 닿는다. */
+const val RECENT_EPISODES = 3
 
 private fun truncated(text: String, size: Int) = text.take(size).dropLastWhile { it.isHighSurrogate() }
 private fun size(card: SerialCard) = card.title.length + card.text.length + card.aliases.sumOf { it.length }
 
 /**
- * AI에 보낼 문맥 JSON 문자열이다(작품 제목·소개, 가장 최근 회차 3개, 설정 카드). 글자 수는 [SERIAL_CONTEXT_LIMIT] 이내이며 줄바꿈·따옴표처럼 JSON에서 길어지는 글자도 센다.
- * 카드는 글자 예산의 1/3까지 앞에서부터 담고, 나머지를 가장 최근 회차부터 채운다: 본문은 앞부분만 남기고 예산이 바닥나면 더 오래된 회차가 줄거나 빠진다.
+ * 관련 장면 검색의 질의: 1위 선택지 글과 추천 상위 제안 글의 제목을 줄바꿈으로 이은 것이다(공백뿐인 것은 뺀다, [RELATED_QUERY_MAX]자까지).
+ * 질의할 것이 없으면(선택지도 제안 글도 없음) null이다.
+ */
+fun relatedQuery(choice: String?, titles: List<String>): String? =
+    truncated((listOfNotNull(choice) + titles).map { it.trim() }.filter { it.isNotEmpty() }.joinToString("\n"), RELATED_QUERY_MAX).trimEnd().ifEmpty { null }
+
+/**
+ * AI에 보낼 문맥 JSON 문자열이다(작품 제목·소개, 가장 최근 회차 3개, 그 이전 회차의 요약, 설정 카드, 회차 실행이면 관련 장면 인용). 글자 수는 [SERIAL_CONTEXT_LIMIT] 이내이며 줄바꿈·따옴표처럼 JSON에서 길어지는 글자도 센다.
+ * 제목·소개와 관련 장면 인용(최대 6개)은 늘 싣는다. 카드는 글자 예산의 1/3까지 앞에서부터 담고, 그다음 가장 최근 회차부터 원문을 채운다: 본문은 앞부분만 남기고 예산이 바닥나면 더 오래된 회차가 줄거나 빠진다.
+ * 요약은 그 뒤 남은 글자만큼 [RECENT_EPISODES]화 이전 회차의 것을 가장 최근 쪽부터 통째로 담고(번호순으로 싣는다) 넘치면 오래된 요약부터 빠진다. 요약이 없는 회차는 그냥 빠진다.
+ * [related]가 null이면 related 키를 싣지 않고(선택지·시뮬레이션), 빈 목록이면 검색했지만 찾은 것이 없다는 뜻이다.
  * ponytail: 긴 회차는 뒷부분(가장 최근 장면)이 잘린다. 이어 쓰기 품질이 문제면 회차의 끝부분을 남기는 쪽으로 바꾼다.
  */
-fun serialContext(mapper: JsonMapper, title: String, summary: String, episodes: List<SerialEpisode>, cards: List<SerialCard>): String {
+fun serialContext(
+    mapper: JsonMapper, title: String, summary: String, episodes: List<SerialEpisode>, cards: List<SerialCard>,
+    summaries: List<SerialSummary> = emptyList(), related: List<SerialRelated>? = null,
+): String {
     var budget = SERIAL_CONTEXT_LIMIT
     while (true) {
-        val json = mapper.writeValueAsString(assemble(title, summary, episodes, cards, budget))
+        val json = mapper.writeValueAsString(assemble(title, summary, episodes, cards, summaries, related, budget))
         if (json.length <= SERIAL_CONTEXT_LIMIT || budget <= 0) return json
         // JSON이 원문보다 길어진 만큼(이스케이프·키 이름)을 글자 예산에서 덜어 다시 만든다.
         budget -= json.length - SERIAL_CONTEXT_LIMIT + 8
     }
 }
 
-private fun assemble(title: String, summary: String, episodes: List<SerialEpisode>, cards: List<SerialCard>, budget: Int): Map<String, Any> {
-    val room = maxOf(0, budget - title.length - summary.length)
+private fun assemble(
+    title: String, summary: String, episodes: List<SerialEpisode>, cards: List<SerialCard>, summaries: List<SerialSummary>, related: List<SerialRelated>?, budget: Int,
+): Map<String, Any> {
+    val room = maxOf(0, budget - title.length - summary.length - (related?.sumOf { it.quote.length } ?: 0))
     var cardRoom = room / CARD_SHARE
     val pickedCards = cards.takeWhile { card -> (size(card) <= cardRoom).also { fits -> if (fits) cardRoom -= size(card) } }
     var left = room - pickedCards.sumOf { size(it) }
+    val recent = episodes.takeLast(RECENT_EPISODES)
     val pickedEpisodes = ArrayDeque<SerialEpisode>()
-    for (episode in episodes.takeLast(RECENT_EPISODES).asReversed()) {
+    for (episode in recent.asReversed()) {
         if (left <= 0) break
         val body = truncated(episode.body, left)
         pickedEpisodes.addFirst(episode.copy(body = body))
         left -= body.length
     }
-    return mapOf(
-        "title" to title,
-        "summary" to summary,
-        "episodes" to pickedEpisodes.map { mapOf("number" to it.number, "title" to it.title, "body" to it.body) },
-        "cards" to pickedCards.map { mapOf("title" to it.title, "type" to it.type, "text" to it.text, "aliases" to it.aliases) },
-    )
+    val firstRecent = recent.firstOrNull()?.number ?: Int.MAX_VALUE
+    val pickedSummaries = ArrayDeque<SerialSummary>()
+    for (item in summaries.filter { it.number < firstRecent }.sortedBy { it.number }.asReversed()) {
+        val cost = item.title.length + item.summary.length
+        if (cost > left) break
+        pickedSummaries.addFirst(item)
+        left -= cost
+    }
+    return buildMap {
+        put("title", title)
+        put("summary", summary)
+        put("episodes", pickedEpisodes.map { mapOf("number" to it.number, "title" to it.title, "body" to it.body) })
+        put("summaries", pickedSummaries.map { mapOf("number" to it.number, "title" to it.title, "summary" to it.summary) })
+        put("cards", pickedCards.map { mapOf("title" to it.title, "type" to it.type, "text" to it.text, "aliases" to it.aliases) })
+        related?.let { found -> put("related", found.map { mapOf("episode" to it.episode, "quote" to it.quote) }) }
+    }
 }

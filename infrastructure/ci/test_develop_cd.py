@@ -90,7 +90,7 @@ class DevelopDeploymentTest(unittest.TestCase):
         self.assertIn("\n  manuscript-index:\n    labels: *cd-labels", dev)
         content = dev.split("\n  content-service:\n", 1)[1].split("\n\n", 1)[0]
         self.assertIn("elasticsearch:\n        condition: service_healthy", content)
-        self.assertIn('MANUSCRIPT_INDEX_ENABLED: "true"', content)
+        self.assertNotIn("MANUSCRIPT_INDEX_ENABLED", dev)  # 원고 색인은 끄는 플래그 없이 항상 켠다(2026-11-22).
         self.assertIn("MANUSCRIPT_INDEX_URL: http://elasticsearch:9200", content)
 
     def test_langfuse_compose_is_staged_like_the_other_files_for_the_dev_include(self):

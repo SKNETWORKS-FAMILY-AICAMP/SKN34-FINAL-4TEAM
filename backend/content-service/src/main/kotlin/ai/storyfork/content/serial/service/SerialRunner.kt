@@ -3,16 +3,25 @@ package ai.storyfork.content.serial.service
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.auth.service.CoreAuthVerificationService
 import ai.storyfork.content.auth.service.CoreCreditService
+import ai.storyfork.content.context.service.ManuscriptQaService
+import ai.storyfork.content.context.service.dto.QaEpisodeRef
 import ai.storyfork.content.publication.service.PublicationService
+import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
 import ai.storyfork.content.serial.client.GeneratedEpisode
 import ai.storyfork.content.serial.client.SerialAiClient
 import ai.storyfork.content.serial.client.SerialAiFailure
 import ai.storyfork.content.serial.domain.KST
 import ai.storyfork.content.serial.domain.PROPOSAL_BODY_MAX
+import ai.storyfork.content.serial.domain.RECENT_EPISODES
+import ai.storyfork.content.serial.domain.RELATED_MAX
+import ai.storyfork.content.serial.domain.SUMMARIES_PER_TICK
 import ai.storyfork.content.serial.domain.SerialCard
 import ai.storyfork.content.serial.domain.SerialEpisode
 import ai.storyfork.content.serial.domain.SerialReason
+import ai.storyfork.content.serial.domain.SerialRelated
+import ai.storyfork.content.serial.domain.SerialSummary
 import ai.storyfork.content.serial.domain.cleanProposal
+import ai.storyfork.content.serial.domain.relatedQuery
 import ai.storyfork.content.serial.domain.serialContext
 import ai.storyfork.content.serial.entity.SerialBoardEntity
 import ai.storyfork.content.serial.entity.SerialProposalEntity
@@ -37,14 +46,17 @@ private class SerialRunFailure(val reason: String, cause: Throwable? = null) : R
 /**
  * AI 자율 연재의 외부 호출 순서를 맡는다. DB 규칙은 [SerialService]가 짧은 트랜잭션으로 하고, 여기서는 Core 크레딧·AI를 DB 트랜잭션·잠금 밖에서 부른다.
  * - 시뮬레이션 제안 글([submit]): 작성자의 상한 예약 → 공개 문맥으로 장면 생성 → 글 저장 → 실제 사용량 정산. 실패면 해제하고 저장하지 않는다.
- * - 점검([tick], 1분마다): 낡은 실행·게시판 맞춤·지금 실행 요청(queued)·일정 도래의 회차 실행을 처리한 뒤, 선택지가 없는 열린 게시판의 선택지를 만든다.
- *   회차 실행은 선점 → 소유자 상한 예약 → 1위 선택지·추천 상위 제안 글·문맥으로 AI 생성 → 저장·발행 → 정산이다. 실패면 해제하고 게시판을 고정 사유로 닫는다. 정산은 저장·발행이 끝난 뒤에 해서 발행에 실패한 실행은 차감하지 않는다.
- *   선택지 생성은 시도 기록 → 소유자 상한 예약 → 공개 문맥으로 AI → 4개 저장 → 정산이고, 실패하면 해제하고 10분 뒤에 다시 시도한다.
+ * - 점검([tick], 1분마다): 낡은 실행·게시판 맞춤·지금 실행 요청(queued)·일정 도래의 회차 실행을 처리한 뒤, 선택지가 없는 열린 게시판의 선택지를 만들고, 마지막으로 요약이 없는 공개 회차의 요약을 만든다.
+ *   회차 실행은 선점 → 관련 장면 검색(독자 범위, 실패하면 이 실행 실패) → 소유자 상한 예약 → 1위 선택지·추천 상위 제안 글·문맥(최근 회차 원문·이전 회차 요약·관련 장면 인용)으로 AI 생성 → 저장·발행 → 정산이다.
+ *   실패면 해제하고 게시판을 고정 사유로 닫는다. 정산은 저장·발행이 끝난 뒤에 해서 발행에 실패한 실행은 차감하지 않는다.
+ *   선택지 생성은 시도 기록 → 공개 문맥 → 소유자 상한 예약 → AI → 4개 저장 → 정산이고, 실패하면 해제하고 10분 뒤에 다시 시도한다. 회차 요약은 점검마다 최대 3개를 같은 순서(예약 → AI → 저장 → 정산)로 만들고 실패하면 다음 점검에 다시 한다.
  * 단일 서버를 전제한다(다중 서버 분산 잠금은 하지 않는다).
  */
 @Service
-class SerialRunner(
+class SerialRunner internal constructor( // 원고 검색(ManuscriptQaService)이 internal이라 생성자도 internal이다(Spring은 그대로 주입한다).
     private val serial: SerialService,
+    private val summaries: SerialSummaryService,
+    private val qa: ManuscriptQaService,
     private val credits: CoreCreditService,
     private val ai: SerialAiClient,
     private val publication: PublicationService,
@@ -55,13 +67,14 @@ class SerialRunner(
     private val mapper: JsonMapper,
     @Value("\${SERIAL_SIMULATION_CREDIT_LIMIT:5}") private val simulationLimit: BigDecimal,
     @Value("\${SERIAL_CHOICE_CREDIT_LIMIT:5}") private val choiceLimit: BigDecimal,
+    @Value("\${SERIAL_SUMMARY_CREDIT_LIMIT:5}") private val summaryLimit: BigDecimal,
     @Value("\${SERIAL_EPISODE_CREDIT_LIMIT:150}") private val episodeLimit: BigDecimal,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     init {
-        require(simulationLimit.signum() > 0 && choiceLimit.signum() > 0 && episodeLimit.signum() > 0) {
-            "SERIAL_SIMULATION_CREDIT_LIMIT·SERIAL_CHOICE_CREDIT_LIMIT·SERIAL_EPISODE_CREDIT_LIMIT must be positive"
+        require(simulationLimit.signum() > 0 && choiceLimit.signum() > 0 && summaryLimit.signum() > 0 && episodeLimit.signum() > 0) {
+            "SERIAL_SIMULATION_CREDIT_LIMIT·SERIAL_CHOICE_CREDIT_LIMIT·SERIAL_SUMMARY_CREDIT_LIMIT·SERIAL_EPISODE_CREDIT_LIMIT must be positive"
         }
     }
 
@@ -115,6 +128,8 @@ class SerialRunner(
         attempt("due") { serial.due(now).forEach { board -> attempt(board.id) { run(board, "open", now) } } }
         // 선택지는 실행 뒤에 만든다: 방금 마감해 실행하는 게시판에는 만들지 않고, 방금 발행돼 열린 다음 게시판은 같은 점검에서 바로 만든다.
         attempt("choices") { serial.choiceTargets(at).forEach { board -> attempt(board.id) { choose(board, at) } } }
+        // 요약은 맨 끝이다: 실행·선택지가 먼저이고, 요약이 아직 없어도 문맥에서 그 회차만 빠질 뿐 실행은 막지 않는다.
+        attempt("summaries") { summaries.targets(SUMMARIES_PER_TICK).forEach { target -> attempt(target.episodeId) { summarize(target, at) } } }
     }
 
     /** 서버 재시작 따위로 running에 남은 게시판이다: 예약을 풀어 보고(실패해도 계속) 실패로 닫는다. */
@@ -134,7 +149,10 @@ class SerialRunner(
             owner = input.owner
             // 예약 발행과 같이 소유자 명의로 일정에 발행하므로 Core가 회원 존재·제한 여부를 먼저 확인한다.
             failing(SerialReason.PUBLISH) { auth.verifyScheduledMember(input.owner) }
-            val context = failing(SerialReason.AI) { ownerContext(input) }
+            val published = failing(SerialReason.AI) { publication.publishedEpisodes(input.workId).items }
+            // 관련 장면 검색은 문맥에 들어가므로 크레딧 예약 앞이다(검색이 실패하면 임의로 빼지 않고 이 실행을 실패로 끝낸다).
+            val related = failing(SerialReason.SEARCH) { relatedScenes(input, published) }
+            val context = failing(SerialReason.AI) { ownerContext(input, published, related) }
             val reservation = try {
                 credits.reserve(input.owner, key, episodeLimit)
             } catch (error: Exception) {
@@ -162,33 +180,57 @@ class SerialRunner(
     }
 
     /**
-     * 선택지가 없는 열린 게시판의 선택지 4개를 만든다: 시도 기록(작품 잠금 안) → 소유자 상한 예약 → 공개 문맥으로 AI → 저장 → 정산. 실패하면 해제하고 10분 뒤에 다시 시도한다(그동안 화면은 '선택지를 준비하고 있어요').
+     * 선택지가 없는 열린 게시판의 선택지 4개를 만든다: 시도 기록(작품 잠금 안) → 공개 문맥 → 소유자 상한 예약 → AI → 저장 → 정산. 실패하면 해제하고 10분 뒤에 다시 시도한다(그동안 화면은 '선택지를 준비하고 있어요').
      * 회차 실행과 달리 실패를 게시판에 남기지 않는다: 선택지가 없어도 게시판은 제안·실행이 되고, 실행 입력의 1위 선택지만 빠진다.
      */
     private fun choose(board: SerialBoardEntity, at: Instant) {
         val input = serial.beginChoices(board.workId, board.id, at) ?: return
-        val key = "serial-choice:" + board.id + ":" + at.toEpochMilli()
-        var held = false // 예약했지만 아직 정산·해제하지 않았다.
-        try {
-            val context = readerContext(input.workId, input.title, input.summary)
-            val reservation = try {
-                credits.reserve(input.owner, key, choiceLimit)
-            } catch (error: Exception) {
-                if ((error as? ContentFailure)?.code != "INSUFFICIENT_CREDIT") release(input.owner, key) // 응답을 잃었어도 Core에 예약이 남았을 수 있다.
-                throw error
-            }
-            held = true
+        val context = readerContext(input.workId, input.title, input.summary)
+        paid(input.owner, "serial-choice:" + board.id + ":" + at.toEpochMilli(), choiceLimit, "serial choices " + board.id) { reservation ->
             val generated = ai.choices(mapOf(
                 "workId" to input.workId, "episodeNumber" to input.number, "direction" to input.direction,
                 "context" to context, "creditLimit" to choiceLimit, "creditReservationId" to reservation,
             ))
             serial.saveChoices(input.workId, input.boardId, generated.choices)
-            // 정산은 저장이 끝난 뒤다. 저장하지 못한 생성(그 사이 게시판이 닫힘)은 아래 catch에서 차감 없이 해제한다.
+            generated.credits
+        }
+    }
+
+    /**
+     * 요약이 없는(또는 발행 버전이 바뀐) 공개 회차 하나의 요약을 만든다: 소유자 상한 예약 → AI(제목·본문만) → 저장 → 정산. 실패하면 해제하고 다음 점검이 다시 한다.
+     * 키에 시도 시각을 넣어 다음 점검의 재시도가 닫힌 예약의 키를 다시 쓰지 않게 한다(Core는 닫힌 예약 키의 재예약을 거절한다).
+     */
+    private fun summarize(target: SummaryTarget, at: Instant) {
+        paid(target.owner, "serial-summary:" + target.episodeId + ":" + at.toEpochMilli(), summaryLimit, "serial summary " + target.episodeId) { reservation ->
+            val made = ai.summarize(mapOf(
+                "workId" to target.workId, "episodeNumber" to target.number, "title" to target.title, "body" to target.body,
+                "creditLimit" to summaryLimit, "creditReservationId" to reservation,
+            ))
+            summaries.save(target.episodeId, target.versionId, made.summary)
+            made.credits
+        }
+    }
+
+    /**
+     * [owner]의 상한 [limit]을 예약하고, [work]가 AI 호출과 저장을 끝내 돌려준 확정 금액으로 정산한다(정산은 저장 뒤이므로 저장하지 못하면 차감 없이 해제한다).
+     * 어느 단계가 실패해도 예약을 해제하고(예약 호출이 잔액 부족이 아닌 이유로 실패했으면 응답을 잃은 예약도 같은 키로 해제) 로그만 남긴다: 선택지·요약처럼 다음 점검이 다시 하는 일에 쓴다.
+     */
+    private fun paid(owner: String, key: String, limit: BigDecimal, what: String, work: (reservation: String) -> BigDecimal) {
+        var held = false // 예약했지만 아직 정산·해제하지 않았다.
+        try {
+            val reservation = try {
+                credits.reserve(owner, key, limit)
+            } catch (error: Exception) {
+                if ((error as? ContentFailure)?.code != "INSUFFICIENT_CREDIT") release(owner, key) // 응답을 잃었어도 Core에 예약이 남았을 수 있다.
+                throw error
+            }
+            held = true
+            val amount = work(reservation)
             held = false
-            settle(input.owner, key, generated.credits)
+            settle(owner, key, amount)
         } catch (error: Exception) {
-            if (held) release(input.owner, key)
-            log.warn("serial choices {} failed; retrying later: {}", board.id, error.toString())
+            if (held) release(owner, key)
+            log.warn("{} failed; retrying later: {}", what, error.toString())
         }
     }
 
@@ -213,22 +255,42 @@ class SerialRunner(
 
     private fun scene(proposal: SerialProposalEntity): String? = if (proposal.kind == "simulation") proposal.simulation?.get("scene") as? String else null
 
-    /** 회차 실행의 문맥: 소유자가 허용한 모든 것, 곧 가장 최근 발행 회차와 연결된 세계관이 있으면 그 세계관 초안의 활성 카드다(세계관이 없으면 회차만). */
-    private fun ownerContext(input: RunInput): String {
-        val episodes = publication.publishedEpisodes(input.workId).items.map { SerialEpisode(it.number, it.title, it.body) }
+    /**
+     * 회차 실행의 문맥: 소유자가 허용한 모든 것, 곧 가장 최근 발행 회차 3개의 원문과 그 이전 회차의 요약, 관련 장면 인용([related]), 연결된 세계관이 있으면 그 세계관 초안의 활성 카드다(세계관이 없으면 카드 없음).
+     */
+    private fun ownerContext(input: RunInput, published: List<PublishedEpisodeResponse>, related: List<SerialRelated>): String {
+        val episodes = published.map { SerialEpisode(it.number, it.title, it.body) }
         val cards = workWorlds.linkedWorldId(input.workId, input.owner)?.let { world ->
             worldStudio.draft(world, UUID.fromString(input.owner)).cards.filter { it.lifecycle == "active" }.map { SerialCard(it.title, it.cardType, it.body, it.aliases) }
         }.orEmpty()
-        return serialContext(mapper, input.title, input.summary, episodes, cards)
+        return serialContext(mapper, input.title, input.summary, episodes, cards, summariesFor(input.workId, episodes), related)
     }
 
     /**
-     * 시뮬레이션·선택지의 문맥: 독자에게 공개된 회차(독자 열람과 같은 읽기)와 독자 설정 위키의 카드만이다(세계관이 연결돼 있지 않으면 회차만).
+     * 관련 장면 검색: 1위 선택지 글과 추천 상위 제안 글 제목을 질의로 독자 범위에서 최근 3화 이전 회차의 인용을 최대 6개 찾는다.
+     * 최근 3화 이전 회차가 없거나 질의할 것이 없으면 검색하지 않고 빈 목록이다. 검색 단계가 실패하면 예외다(호출한 쪽이 이 실행을 [SerialReason.SEARCH]로 끝낸다).
+     */
+    private fun relatedScenes(input: RunInput, published: List<PublishedEpisodeResponse>): List<SerialRelated> {
+        val basis = published.dropLast(RECENT_EPISODES).lastOrNull() ?: return emptyList()
+        val query = relatedQuery(input.choice?.choice?.text, input.proposals.map { it.proposal.title }) ?: return emptyList()
+        return qa.searchRelated(input.workId, query, QaEpisodeRef(basis.number, basis.versionId), RELATED_MAX).map { SerialRelated(it.episode, it.quote) }
+    }
+
+    /**
+     * 시뮬레이션·선택지의 문맥: 독자에게 공개된 회차(독자 열람과 같은 읽기)와 독자 설정 위키의 카드만이다(세계관이 연결돼 있지 않으면 회차만). 이전 회차 요약도 싣는다.
      * 선택지는 독자에게 회차보다 먼저 공개되므로 소유자의 비공개 세계관 초안·공개 중단 회차는 싣지 않는다.
      */
     private fun readerContext(workId: String, title: String, summary: String): String {
         val episodes = works.publicEpisodes(workId).map { SerialEpisode(it.number, it.title, it.body) }
-        return serialContext(mapper, title, summary, episodes, readerCards(workId))
+        return serialContext(mapper, title, summary, episodes, readerCards(workId), summariesFor(workId, episodes))
+    }
+
+    /**
+     * 회차의 저장된 요약이다(최근 [RECENT_EPISODES]화는 원문이 있어 [serialContext]가 뺀다). 요약이 아직 없거나 발행 버전이 바뀐 회차는 빠지고, 독자에게 본문이 가려진 회차(원작이 삭제된 Fork의 상속 회차)의 요약도 싣지 않는다.
+     */
+    private fun summariesFor(workId: String, episodes: List<SerialEpisode>): List<SerialSummary> {
+        val stored = summaries.stored(workId)
+        return episodes.mapNotNull { episode -> stored[episode.number]?.takeIf { episode.body.isNotBlank() }?.let { SerialSummary(episode.number, episode.title, it) } }
     }
 
     private fun readerCards(workId: String): List<SerialCard> = workWorlds.readerCards(workId, null).cards.map { SerialCard(it.title, it.cardType, it.text, it.aliases) }

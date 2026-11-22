@@ -57,3 +57,10 @@ CREATE TABLE serial_vote (
     choice_id varchar(36) NOT NULL REFERENCES serial_choice(id),
     PRIMARY KEY (board_id, member_id)
 );
+-- 공개 회차 하나의 줄거리 요약이다(회차 문맥의 이전 회차 요약). 회차마다 하나이고 요약을 만든 발행 버전을 함께 적는다: 발행 버전이 바뀌면 낡은 요약이라 다시 만든다.
+CREATE TABLE serial_episode_summary (
+    episode_id varchar(36) PRIMARY KEY REFERENCES episode(id),
+    version_id varchar(36) NOT NULL REFERENCES episode_version(id),
+    summary text NOT NULL,
+    created_at timestamptz NOT NULL
+);

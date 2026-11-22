@@ -142,9 +142,18 @@ class SerialRulesTest {
         }
     }
 
-    @Test fun `a credit limit overrun has its own fixed reason apart from the other failures`() {
+    @Test fun `an AI summary must be one to four hundred trimmed characters without NUL`() {
+        assertEquals("두 사람은 폐교에서 재회했다.", cleanSummary("  두 사람은 폐교에서 재회했다.  "))
+        assertEquals(400, cleanSummary("가".repeat(400))!!.length)
+        for (bad in listOf("", "   ", "가".repeat(401), "요약" + Char(0))) {
+            assertNull(cleanSummary(bad), bad.take(20))
+        }
+    }
+
+    @Test fun `a credit limit overrun and a failed related search have their own fixed reasons apart from the other failures`() {
         assertEquals("크레딧 상한을 넘었습니다.", SerialReason.LIMIT)
-        val all = listOf(SerialReason.CREDIT, SerialReason.REVIEW, SerialReason.AI, SerialReason.PUBLISH, SerialReason.DRAFT, SerialReason.LIMIT)
+        assertEquals("관련 장면 검색에 실패했습니다.", SerialReason.SEARCH)
+        val all = listOf(SerialReason.CREDIT, SerialReason.REVIEW, SerialReason.AI, SerialReason.PUBLISH, SerialReason.DRAFT, SerialReason.LIMIT, SerialReason.SEARCH)
         assertEquals(all.size, all.toSet().size)
     }
 
@@ -312,5 +321,104 @@ class SerialRulesTest {
         assertTrue(json.length <= SERIAL_CONTEXT_LIMIT)
         assertFalse(body.last().isHighSurrogate())
         assertTrue(body.isNotEmpty())
+    }
+
+    // ---- 이전 회차 요약·관련 장면
+
+    private fun summary(number: Int, text: String = "요약 $number") = SerialSummary(number, "제 ${number}화", text)
+    private fun summaryNumbers(json: String) = mapper.readTree(json).path("summaries").values().map { it.path("number").asInt() }
+
+    @Test fun `summaries cover only the episodes before the three recent ones and come oldest first`() {
+        val episodes = (1..6).map { episode(it, "본문 $it") }
+
+        // 요약은 어떤 순서로 넘어와도 번호순으로 싣고, 최근 3화(4·5·6)는 원문이 있으므로 요약을 싣지 않는다.
+        val json = serialContext(mapper, "작품", "소개", episodes, emptyList(), (1..6).reversed().map { summary(it) })
+
+        val tree = mapper.readTree(json)
+        assertEquals(listOf(4, 5, 6), tree.path("episodes").values().map { it.path("number").asInt() })
+        assertEquals(listOf(1, 2, 3), summaryNumbers(json))
+        assertEquals(listOf("number", "summary", "title"), tree.path("summaries")[0].propertyNames().toList().sorted())
+        assertEquals(listOf("제 1화", "요약 1"), listOf(tree.path("summaries")[0].path("title").asString(), tree.path("summaries")[0].path("summary").asString()))
+    }
+
+    @Test fun `an episode without a summary is just absent and no summaries at all is an empty list`() {
+        val episodes = (1..5).map { episode(it, "본문") }
+
+        assertEquals(listOf(1), summaryNumbers(serialContext(mapper, "작품", "소개", episodes, emptyList(), listOf(summary(1)))))
+        val none = mapper.readTree(serialContext(mapper, "작품", "소개", episodes, emptyList()))
+        assertTrue(none.has("summaries"))
+        assertEquals(0, none.path("summaries").size())
+    }
+
+    @Test fun `with three or fewer episodes there is nothing older to summarize`() {
+        val json = serialContext(mapper, "작품", "소개", (1..3).map { episode(it, "본문") }, emptyList(), (1..3).map { summary(it) })
+
+        assertEquals(emptyList<Int>(), summaryNumbers(json))
+    }
+
+    @Test fun `when summaries do not fit the oldest go first and every kept summary is whole`() {
+        val episodes = (1..203).map { episode(it, "본문 $it") }
+        // 원문 400자지만 줄바꿈·따옴표가 JSON에서 두 글자가 되어 한도를 넘기 쉽다.
+        val long = "\"요약\n".repeat(100)
+
+        val json = serialContext(mapper, "작품", "소개", episodes, emptyList(), (1..200).map { summary(it, long) })
+
+        assertTrue(json.length <= SERIAL_CONTEXT_LIMIT, "length=" + json.length)
+        val numbers = summaryNumbers(json)
+        assertTrue(numbers.isNotEmpty() && numbers.size < 200, "kept=" + numbers.size)
+        // 가장 최근 쪽(200)에서부터 이어서 남고 오래된 번호가 빠진다.
+        assertEquals((200 - numbers.size + 1..200).toList(), numbers)
+        assertTrue(mapper.readTree(json).path("summaries").values().all { it.path("summary").asString() == long })
+    }
+
+    @Test fun `recent episode bodies outrank summaries when the context is full`() {
+        val heavy = "가".repeat(30_000)
+
+        val json = serialContext(mapper, "작품", "소개", (1..5).map { episode(it, heavy) }, emptyList(), listOf(summary(1), summary(2)))
+
+        assertTrue(json.length <= SERIAL_CONTEXT_LIMIT)
+        assertEquals(emptyList<Int>(), summaryNumbers(json))
+        assertTrue(mapper.readTree(json).path("episodes").size() > 0)
+    }
+
+    @Test fun `related quotes are added only when given and keep their order`() {
+        val episodes = (1..5).map { episode(it, "본문") }
+        assertFalse(mapper.readTree(serialContext(mapper, "작품", "소개", episodes, emptyList())).has("related"))
+
+        val tree = mapper.readTree(serialContext(mapper, "작품", "소개", episodes, emptyList(), emptyList(), listOf(SerialRelated(2, "옛 장면 하나"), SerialRelated(1, "옛 장면 둘"))))
+
+        assertEquals(listOf(2, 1), tree.path("related").values().map { it.path("episode").asInt() })
+        assertEquals(listOf("옛 장면 하나", "옛 장면 둘"), tree.path("related").values().map { it.path("quote").asString() })
+        assertEquals(listOf("episode", "quote"), tree.path("related")[0].propertyNames().toList().sorted())
+        // 검색을 했지만 찾은 것이 없으면 빈 목록이다(실패가 아니다).
+        val empty = mapper.readTree(serialContext(mapper, "작품", "소개", episodes, emptyList(), emptyList(), emptyList()))
+        assertTrue(empty.has("related"))
+        assertEquals(0, empty.path("related").size())
+    }
+
+    @Test fun `related quotes keep their place and the context still fits when bodies and cards are huge`() {
+        val heavy = "가".repeat(30_000)
+        val related = (1..6).map { SerialRelated(it, "인용 $it " + "나".repeat(240)) }
+
+        val json = serialContext(mapper, "작품", "소개", (1..9).map { episode(it, heavy) }, (1..40).map { card(it, "카드 본문 ".repeat(300)) }, emptyList(), related)
+
+        assertTrue(json.length <= SERIAL_CONTEXT_LIMIT, "length=" + json.length)
+        assertEquals(related.map { it.quote }, mapper.readTree(json).path("related").values().map { it.path("quote").asString() })
+    }
+
+    @Test fun `the related query joins the choice and the proposal titles and drops blanks`() {
+        assertEquals("두 사람이 다시 만난다\n폐교 장면\n재회", relatedQuery("두 사람이 다시 만난다", listOf("폐교 장면", "  ", "재회")))
+        assertEquals("폐교 장면", relatedQuery(null, listOf(" 폐교 장면 ")))
+        assertEquals("선택지만", relatedQuery("선택지만", emptyList()))
+        assertNull(relatedQuery(null, emptyList()))
+        assertNull(relatedQuery("  ", listOf("")))
+    }
+
+    @Test fun `the related query is cut to five hundred characters without splitting a surrogate pair`() {
+        val query = relatedQuery("가".repeat(300), listOf("😀".repeat(100), "나".repeat(100)))!!
+
+        assertTrue(query.length <= 500, "length=" + query.length)
+        assertFalse(query.last().isHighSurrogate())
+        assertTrue(query.startsWith("가".repeat(300) + "\n"))
     }
 }

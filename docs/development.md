@@ -25,6 +25,7 @@ native `include`로 재사용합니다. `storyfork-local` 프로젝트의 새 `s
 기존 `COMPOSE_FILE`·`COMPOSE_PROJECT_NAME` override가 있으면 먼저 확인해 다른 프로젝트를 가리키지 않게 하세요.
 콘텐츠는 항상 활성이며 Core/Content의 별도 `CONTENT_CORE_AUTH_TOKEN`, 생성 시 Content/AI의 `INTERNAL_TOKEN`이 필요합니다([콘텐츠 설정](content-integration.md#인증과-실행)). **새 Content 이력은 개발용 fresh 전용**이며 기존 history에 바로 배포하지 않습니다. 정확한 대상·보존/복구 범위 승인 전 실제 DB/volume을 지우지 않습니다.
 WorldStudio(Neo4j)와 알림 사건(RabbitMQ)은 기능 플래그·compose profile 없이 local·개발 배포에서 항상 함께 뜹니다. `.env`에 `NEO4J_PASSWORD`, `CORE_RABBITMQ_PASSWORD`만 정하면 되고, WorldStudio schema는 Content 시작 시 Flyway가 적용합니다. 관계 계약은 [현재 관계 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)을 따릅니다.
+원고 색인(Elasticsearch)도 끄는 플래그(`MANUSCRIPT_INDEX_ENABLED`) 없이 local·개발 배포에서 항상 함께 뜨고 Content가 healthy를 기다립니다(2026-11-22 사용자 결정: 원고 Q&A와 AI 자율 연재의 관련 장면 검색이 씁니다). 첫 시작은 이미지를 받고 인덱스를 만드느라 더 걸리고 호스트 포트 9200을 씁니다([인프라 문서](../infrastructure/README.md#원고-색인용-elasticsearch-56-항상-켬)).
 Langfuse(LLMOps)도 같은 방식으로 항상 함께 뜹니다. `.env`에 `LANGFUSE_*` 값(`.env.example` 참고)이 필요하고 첫 시작은 이미지를 받느라 몇 분 걸리며, 웹은 개발자용 `http://127.0.0.1:3000`(`LANGFUSE_WEB_PORT`)입니다. 절차와 예전 별도 Langfuse 스택에서의 이전은 [인프라 문서](../infrastructure/README.md#로컬에서-켜기)를 따릅니다.
 Health 확인에는 `OPENAI_API_KEY`가 필요하지 않습니다.
 집필 AI 대화(채팅·HITL)를 쓰려면 `AI_CHECKPOINT_DATABASE_URL`을 Core·Content의 `storyfork`가 아닌 전용 DB `storyfork_ai`로 설정합니다(예시는 `.env.example`). AI가 시작할 때 그 DB가 없으면 만들고, 비워 두면 대화 요청만 503입니다. 같은 `storyfork`로 설정하면 빈 DB에서 Core가 시작하지 못합니다(#337).
@@ -120,7 +121,7 @@ JUnit/Vitest/pytest 단위·통합 테스트는 서비스 디렉터리에, pytes
 
 변경 선택 후 단위·통합 서비스 행렬과 설정 검사는 서로 독립적으로 병렬 실행합니다. 시스템은 필요한 단위·통합·설정 검사가 성공한 뒤 실행하며, 실패·취소 시 생략합니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
 Core/Content/Operations의 혼합 경계 클래스는 통합에 두며 Kotlin/Java의 Spring/HTTP/DB 분류 누락을 회귀로 검사합니다.
-Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. #132는 Content 통합 job에만 격리 Neo4j를 추가해 현재 관계 CRUD·재시도·부분 실패·권한·재조회와 카드 history의 not_recorded를 검증하도록 구성했습니다. Studio HTTP 통합의 Core 인증은 대역이며 실제 Core 로그인/nginx Studio 시스템 시나리오·hosted 실행 결과는 별도 대기입니다. Operations 통합은 job별 임시 PostgreSQL의 `TEST_OPERATIONS_DATABASE_URL/USER/PASSWORD`와 서비스 토큰/독립 CRUD·Flyway·JPA를 확인하도록 구성합니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
+Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. #132는 Content 통합 job에만 격리 Neo4j를 추가해 현재 관계 CRUD·재시도·부분 실패·권한·재조회와 카드 history의 not_recorded를 검증하도록 구성했습니다. 원고 색인이 늘 켜져 있어 모든 Content Spring 컨텍스트가 시작할 때 Elasticsearch에 접속하므로 Content 통합 job에는 격리 Elasticsearch service(`127.0.0.1:9200`)도 있습니다(로컬에서 Content 통합 테스트를 돌릴 때도 필요하며 `INTERNAL_TOKEN`도 비어 있으면 안 됩니다). Studio HTTP 통합의 Core 인증은 대역이며 실제 Core 로그인/nginx Studio 시스템 시나리오·hosted 실행 결과는 별도 대기입니다. Operations 통합은 job별 임시 PostgreSQL의 `TEST_OPERATIONS_DATABASE_URL/USER/PASSWORD`와 서비스 토큰/독립 CRUD·Flyway·JPA를 확인하도록 구성합니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
 
 #### 변경·영향 선택
 

@@ -64,7 +64,7 @@ docker compose down
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` | Core/Content → AI |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` | Core → AI Health |
 | `AI_GENERATION_READ_TIMEOUT` | `75s` | Content → AI 생성 |
-| `SERIAL_SIMULATION_CREDIT_LIMIT` / `SERIAL_CHOICE_CREDIT_LIMIT` / `SERIAL_EPISODE_CREDIT_LIMIT` | `5` / `5` / `150` | Content만, AI 자율 연재의 크레딧 예약 상한(시뮬레이션 제안 글은 작성자, 선택지 생성·회차 실행은 작품 소유자 부담) |
+| `SERIAL_SIMULATION_CREDIT_LIMIT` / `SERIAL_CHOICE_CREDIT_LIMIT` / `SERIAL_SUMMARY_CREDIT_LIMIT` / `SERIAL_EPISODE_CREDIT_LIMIT` | `5` / `5` / `5` / `150` | Content만, AI 자율 연재의 크레딧 예약 상한(시뮬레이션 제안 글은 작성자, 선택지 생성·회차 요약·회차 실행은 작품 소유자 부담) |
 | `CORE_AUTH_BASE_URL` | native `http://127.0.0.1:8080`, Compose 내부 DNS | Content → Core 인증 확인 |
 | `CORE_AUTH_CONNECT_TIMEOUT` / `CORE_AUTH_READ_TIMEOUT` | `1s` / `3s` | Content 인증 확인 |
 | `CONTENT_CORE_AUTH_TOKEN` | 빈 값 | Core/Content만, 활성화 시 필수 |
@@ -136,9 +136,13 @@ env ATTACHMENT_S3_ENDPOINT=http://127.0.0.1:9000 \
 
 API·복구 한계는 호환 위치에 보존한 [첨부 계약](../backend/core-api/README.md#설정-이미지일반-파일-87)을 따릅니다. 설정 검사 `infrastructure/tests/test_attachment_environment.py`는 앱/DB/컨테이너를 시작하지 않지만 전체 클래스의 Compose JSON 렌더링은 CI configuration에서 실행합니다. 로컬 자동 검사는 native 문서 계약 같은 순수 메서드와 `config --quiet`만 선택합니다.
 
-## 로컬 원고 검색용 Elasticsearch (#56)
+## 원고 색인용 Elasticsearch (#56, 항상 켬)
 
-Docker Desktop을 실행한 뒤 저장소 루트에서 Elasticsearch 단일 노드를 시작합니다. 공식 9.5.6 이미지를 사용하며 메모리 상한은 1GiB입니다. 별도 Compose 프로젝트이므로 앱 스택이나 `.env` 설정이 필요하지 않습니다.
+원고 색인(Elasticsearch)은 **끄는 플래그 없이 항상 켜져 있습니다**(2026-11-22 사용자 결정으로 `MANUSCRIPT_INDEX_ENABLED`를 없앴습니다). Content는 시작할 때 인덱스를 확인하므로 Elasticsearch가 없으면 시작하지 않고, 원고 Q&A(Retrieval)와 AI 자율 연재의 관련 장면 검색이 이 색인을 씁니다. 로컬 Compose 스택(`docker compose up`)·개발 서버 배포·CI 시스템 Compose는 `elasticsearch` 서비스를 항상 함께 띄우고 Content가 healthy가 될 때까지 기다립니다. CI 통합 단계도 Content 작업에 같은 이미지를 service로 띄웁니다. 운영(prod) 설정은 내장 서비스·볼륨을 두지 않으므로 외부 Elasticsearch 주소 `MANUSCRIPT_INDEX_URL`이 필수입니다(비우면 `config`가 실패합니다).
+
+### 네이티브 Content용 단독 Elasticsearch
+
+앱 스택 없이 Content만 네이티브로 실행할 때 쓰는 별도 Compose 프로젝트입니다. Docker Desktop을 실행한 뒤 저장소 루트에서 Elasticsearch 단일 노드를 시작합니다. 공식 9.5.6 이미지를 사용하며 메모리 상한은 1GiB입니다. 앱 스택이나 `.env` 설정이 필요하지 않습니다. 로컬 Compose 스택의 `elasticsearch` 서비스와 같은 이미지·설정이고 호스트 포트도 같은 9200이라 **둘을 함께 띄우지 않습니다**.
 
 ```powershell
 docker compose -f infrastructure/docker-compose.elasticsearch.yaml up -d --wait
@@ -147,7 +151,7 @@ curl.exe --fail --silent --show-error 'http://127.0.0.1:9200/_cluster/health?pre
 
 상태가 `green` 또는 `yellow`이면 요청을 받을 수 있습니다. 로컬 개발 전용 HTTP이며 인증을 끄고 `127.0.0.1`에만 포트를 엽니다. 종료하려면 같은 Compose 파일로 `stop`을 실행합니다. 인덱스 데이터는 `manuscript-index` 볼륨에 남습니다.
 
-`MANUSCRIPT_INDEX_ENABLED=true`인 Content는 시작할 때 인덱스가 없으면 [v1 매핑](elasticsearch/manuscript-chunks-v1.json)으로 한 번 만듭니다. Content는 같은 내용의 `src/main/resources/manuscript/manuscript-chunks-v1.json`을 쓰고, 두 파일은 단위 테스트로 일치를 확인합니다. 기존 인덱스는 다시 만들거나 지우지 않고 매핑만 검증합니다. 매핑이 다르거나 샤드를 배정하지 못하면 Content가 시작하지 않습니다.
+Content는 시작할 때 인덱스가 없으면 [v1 매핑](elasticsearch/manuscript-chunks-v1.json)으로 한 번 만듭니다. Content는 같은 내용의 `src/main/resources/manuscript/manuscript-chunks-v1.json`을 쓰고, 두 파일은 단위 테스트로 일치를 확인합니다. 기존 인덱스는 다시 만들거나 지우지 않고 매핑만 검증합니다. 매핑이 다르거나 샤드를 배정하지 못하면 Content가 시작하지 않습니다.
 
 PostgreSQL의 원고·판본이 정본입니다. [원고 검색 계약](../docs/writing-ai-architecture/07-retrieval-contract-and-mocks.md#원고-벡터-인덱스-v1)에서 384차원 모델, 작품·Fork·판본 필터, 검증 결과를 확인할 수 있습니다.
 
@@ -155,25 +159,25 @@ PostgreSQL의 원고·판본이 정본입니다. [원고 검색 계약](../docs/
 
 1. 같은 Content DB에 전용 v1 인덱스 하나를 사용합니다. 여러 개발 DB를 쓴다면 각각 `storyfork-manuscript-v1-<이름>` 인덱스를 만들고 `MANUSCRIPT_INDEX_NAME`에 지정합니다. 대조 작업은 선택한 DB의 공개 판본에 없는 청크를 해당 인덱스에서 제거합니다.
 2. 모델 리비전 `614241f622f53c4eeff9890bdc4f31cfecc418b3`의 `onnx/`에서 `tokenizer.json`과 `model_qint8_avx512_vnni.onnx`를 같은 로컬 디렉터리에 받습니다. 이 경로를 `MANUSCRIPT_EMBEDDING_MODEL_DIR`로 지정하고 AI Service를 `uv run --locked --extra manuscript uvicorn app.main:create_app --factory --reload`로 시작합니다. [고정 리비전 모델 파일](https://huggingface.co/intfloat/multilingual-e5-small/tree/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx)
-3. Content 터미널에 `MANUSCRIPT_INDEX_ENABLED=true`와 해당 DB의 `DATABASE_*`를 설정하고 평소대로 Content를 시작합니다. 두 서비스의 `INTERNAL_TOKEN`은 같아야 하며, 네이티브 실행에서는 필요한 값을 루트 `.env`에서 각 터미널에 설정합니다. Elasticsearch 기본 주소는 `http://127.0.0.1:9200`입니다.
+3. Content 터미널에 해당 DB의 `DATABASE_*`를 설정하고 평소대로 Content를 시작합니다(색인은 늘 켜져 있어 별도 설정이 없습니다). 두 서비스의 `INTERNAL_TOKEN`은 같아야 하며, 네이티브 실행에서는 필요한 값을 루트 `.env`에서 각 터미널에 설정합니다. Elasticsearch 기본 주소는 `http://127.0.0.1:9200`입니다.
 4. Content 로그의 `manuscript index reconciled`와 `curl.exe --fail http://127.0.0.1:9200/storyfork-manuscript-v1/_count`로 첫 적재를 확인합니다. 이후 변경은 기본 60초 주기에서 확인할 수 있습니다.
 
-### 로컬 compose 스택에서 켜기 (#475)
+### 로컬 compose 스택 (#475)
 
-로컬 compose(`storyfork-local`)의 Content는 원고 색인을 기본으로 끕니다. 켜면 원고 Q&A(Retrieval)가 동작합니다. 임베딩 모델은 ai-service 이미지에 이미 들어 있어서 따로 받을 필요가 없습니다.
+로컬 compose(`storyfork-local`)는 원고 색인용 `elasticsearch` 서비스를 항상 함께 띄웁니다(호스트 `127.0.0.1:9200`, 데이터는 `storyfork-local_manuscript-index` 볼륨). Content는 이 서비스가 healthy가 된 뒤 `http://elasticsearch:9200`으로 접속하므로 첫 시작은 이미지를 받고 인덱스를 만드느라 시간이 더 걸립니다. 임베딩 모델은 ai-service 이미지에 이미 들어 있어서 따로 받을 필요가 없습니다.
 
-1. 위 명령으로 Elasticsearch를 먼저 띄웁니다. Content 컨테이너는 `http://host.docker.internal:9200`으로 이 ES에 접속합니다.
-2. 루트 `.env`에 `MANUSCRIPT_INDEX_ENABLED=true`를 넣고 `docker compose up -d --build --wait`로 다시 시작합니다. 네이티브 Content와 다른 DB를 쓴다면 `MANUSCRIPT_INDEX_NAME`을 `storyfork-manuscript-v1-<이름>`처럼 따로 정합니다(대조 작업이 그 DB에 없는 청크를 지웁니다).
-3. Content 로그의 `manuscript index reconciled`로 첫 적재를 확인한 뒤, 집필실 채팅에서 발행 회차에 대한 작품 질문을 보냅니다. `MANUSCRIPT_INDEX_URL`은 네이티브 실행용 값이라 compose에서는 읽지 않습니다.
+1. 루트 `.env`에 따로 넣을 설정은 없습니다. 네이티브 Content와 다른 DB를 쓴다면 `MANUSCRIPT_INDEX_NAME`을 `storyfork-manuscript-v1-<이름>`처럼 따로 정합니다(대조 작업이 그 DB에 없는 청크를 지웁니다). `MANUSCRIPT_INDEX_URL`은 네이티브 실행용 값이라 compose에서는 읽지 않습니다.
+2. Content 로그의 `manuscript index reconciled`로 첫 적재를 확인한 뒤, 집필실 채팅에서 발행 회차에 대한 작품 질문을 보냅니다.
+3. 단독 Elasticsearch(위)를 따로 띄워 두었다면 먼저 `stop`합니다: 호스트 포트 9200이 겹칩니다.
 
-켜기 전에 ES 상태가 `green` 또는 `yellow`인지 확인합니다. Content는 시작할 때 인덱스를 만들거나 매핑을 검증합니다.
+CI의 시스템 Compose(`infrastructure/ci/compose.test.yaml`)는 같은 `elasticsearch` 서비스를 호스트 포트 없이 띄우고 Content가 healthy를 기다립니다. CI 통합 단계(`.github/workflows/ci.yml`)는 Content 작업에 Elasticsearch service(`127.0.0.1:9200`)를 띄우므로 모든 Spring 컨텍스트가 인덱스를 만들 수 있습니다.
 
 ### 개발 서버 자동 배포(CD)
 
 develop CI가 성공하면 CD가 [`docker-compose.dev.yaml`](docker-compose.dev.yaml)로 Elasticsearch를 함께 띄웁니다. 별도 수동 작업은 없습니다.
 
 - **Elasticsearch**: 로컬과 같은 공식 이미지 `docker.elastic.co/elasticsearch/elasticsearch:9.5.6`를 단일 노드로 실행하며 보안 기능은 끕니다. 호스트 포트를 열지 않고 Compose 내부 네트워크에서만 접근합니다. 데이터는 `storyfork-develop-cd_manuscript-index` 볼륨에 저장하고 배포할 때마다 그대로 둡니다. CD는 `down -v`를 실행하지 않습니다.
-- **Content**: `MANUSCRIPT_INDEX_ENABLED=true`와 `MANUSCRIPT_INDEX_URL=http://elasticsearch:9200`로 시작합니다. 인덱스가 없으면 생성하고, 있으면 매핑을 검증합니다. 실패하면 Content가 healthy가 되지 않아 `up --wait`가 실패합니다.
+- **Content**: `MANUSCRIPT_INDEX_URL=http://elasticsearch:9200`로 시작합니다(색인은 끄는 플래그 없이 항상 켭니다). 인덱스가 없으면 생성하고, 있으면 매핑을 검증합니다. 실패하면 Content가 healthy가 되지 않아 `up --wait`가 실패합니다.
 - **AI 이미지**: `--extra manuscript`(numpy·onnxruntime·tokenizers, `uv.lock` 고정)를 설치합니다. 고정 리비전 `614241f6…`의 `onnx/model_qint8_avx512_vnni.onnx`와 `onnx/tokenizer.json`은 빌드할 때 `ADD --checksum`으로 받으며, SHA-256이 다르면 빌드가 실패합니다. 위치는 `MANUSCRIPT_EMBEDDING_MODEL_DIR=/app/models/multilingual-e5-small`입니다. 서버에는 모델 디렉터리나 `.env` 값을 따로 둘 필요가 없습니다.
 - **배포 확인**: 스택이 healthy가 된 뒤 CD가 `ai-service`에서 E5 임베딩을 한 번 실행합니다. 실패하면 이전 이미지를 정리하지 않고 CD를 실패로 끝냅니다.
 

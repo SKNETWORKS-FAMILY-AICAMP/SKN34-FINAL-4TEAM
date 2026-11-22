@@ -4,11 +4,15 @@ import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.auth.client.exception.CoreAuthException
 import ai.storyfork.content.auth.service.CoreAuthVerificationService
 import ai.storyfork.content.auth.service.CoreCreditService
+import ai.storyfork.content.context.service.ManuscriptQaService
+import ai.storyfork.content.context.service.dto.QaEpisodeRef
+import ai.storyfork.content.context.service.dto.QaSource
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeListResponse
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
 import ai.storyfork.content.serial.client.GeneratedChoices
 import ai.storyfork.content.serial.client.GeneratedEpisode
+import ai.storyfork.content.serial.client.GeneratedSummary
 import ai.storyfork.content.serial.client.SerialAiClient
 import ai.storyfork.content.serial.client.SerialAiFailure
 import ai.storyfork.content.serial.client.SerialScene
@@ -24,6 +28,8 @@ import ai.storyfork.content.serial.service.OpenBoard
 import ai.storyfork.content.serial.service.RunInput
 import ai.storyfork.content.serial.service.SerialRunner
 import ai.storyfork.content.serial.service.SerialService
+import ai.storyfork.content.serial.service.SerialSummaryService
+import ai.storyfork.content.serial.service.SummaryTarget
 import ai.storyfork.content.serial.service.dto.SerialProposalCreated
 import ai.storyfork.content.serial.service.dto.SerialProposalRequest
 import ai.storyfork.content.serial.service.dto.SerialSimulationRequest
@@ -46,7 +52,7 @@ import org.mockito.Mockito.*
 import tools.jackson.databind.json.JsonMapper
 
 /**
- * AI 자율 연재의 외부 호출 순서를 검증한다: 크레딧 예약 → AI → (저장·발행) → 정산, 실패면 해제와 고정 문구 사유. 회차 실행·선택지 생성·시뮬레이션 제안 글 세 흐름이다.
+ * AI 자율 연재의 외부 호출 순서를 검증한다: 크레딧 예약 → AI → (저장·발행) → 정산, 실패면 해제와 고정 문구 사유. 회차 실행·선택지 생성·회차 요약·시뮬레이션 제안 글 네 흐름과 문맥(이전 회차 요약·관련 장면 검색)이다.
  * DB 규칙은 SerialServiceTest가 보고 여기서는 SerialService·Core·AI를 대역으로 둔다. 실제 HTTP는 CI가 확인한다.
  */
 class SerialRunnerTest {
@@ -59,6 +65,8 @@ class SerialRunnerTest {
     private val key = "serial-run:b1"
 
     private val serial = mock(SerialService::class.java)
+    private val summaries = mock(SerialSummaryService::class.java)
+    private val qa = mock(ManuscriptQaService::class.java)
     private val credits = mock(CoreCreditService::class.java)
     private val ai = mock(SerialAiClient::class.java)
     private val publication = mock(PublicationService::class.java)
@@ -67,7 +75,7 @@ class SerialRunnerTest {
     private val worldStudio = mock(WorldStudioService::class.java)
     private val auth = mock(CoreAuthVerificationService::class.java)
     private val mapper = JsonMapper.builder().build()
-    private val runner = SerialRunner(serial, credits, ai, publication, works, workWorlds, worldStudio, auth, mapper, BigDecimal("5"), BigDecimal("3"), BigDecimal("150"))
+    private val runner = SerialRunner(serial, summaries, qa, credits, ai, publication, works, workWorlds, worldStudio, auth, mapper, BigDecimal("5"), BigDecimal("3"), BigDecimal("4"), BigDecimal("150"))
 
     private val episodeRequests = mutableListOf<Map<*, *>>()
     private val simulationRequests = mutableListOf<Map<*, *>>()
@@ -580,6 +588,284 @@ class SerialRunnerTest {
         // 점검 한 번에 선택지 단계는 한 번뿐이다(실행 앞에서 미리 만들지 않는다).
         verify(serial, times(1)).choiceTargets(at)
         verify(serial, times(1)).beginChoices("w", "b1", at)
+    }
+
+    // ---- 회차 요약 생성
+
+    private val summaryTarget = SummaryTarget("w", owner, "e-1", "ver-1", 1, "제 1화", "본문 1")
+    private val summaryKey get() = "serial-summary:e-1:" + at.toEpochMilli()
+    private val summaryRequests = mutableListOf<Map<*, *>>()
+    private val madeSummary = GeneratedSummary("두 사람이 재회했다.", BigDecimal("2.5"))
+
+    private fun summarizing(targets: List<SummaryTarget> = listOf(summaryTarget)) {
+        `when`(serial.queued()).thenReturn(emptyList())
+        `when`(serial.due(now)).thenReturn(emptyList())
+        `when`(serial.staleRunning(at)).thenReturn(emptyList())
+        `when`(serial.enabledWorkIds()).thenReturn(emptyList())
+        `when`(summaries.targets(3)).thenReturn(targets)
+        targets.forEach { target -> `when`(credits.reserve(owner, "serial-summary:" + target.episodeId + ":" + at.toEpochMilli(), BigDecimal("4"))).thenReturn("res-" + target.episodeId) }
+        `when`(ai.summarize(anyMap())).thenAnswer { call -> summaryRequests.add(call.arguments[0] as Map<*, *>); madeSummary }
+    }
+
+    private fun neverSummarySaved() = verify(summaries, never()).save(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+
+    @Test fun `a missing summary is generated saved and then settled with the summary limit`() {
+        summarizing()
+
+        runner.tick(now)
+
+        val order = inOrder(summaries, credits, ai)
+        order.verify(summaries).targets(3)
+        order.verify(credits).reserve(owner, summaryKey, BigDecimal("4"))
+        order.verify(ai).summarize(anyMap())
+        order.verify(summaries).save("e-1", "ver-1", "두 사람이 재회했다.")
+        // 정산은 저장이 끝난 뒤다: 저장하지 못하면 차감 없이 해제한다.
+        order.verify(credits).settle(owner, summaryKey, BigDecimal("2.5"))
+        verify(credits, never()).release(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+        verify(serial, never()).fail(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(Instant::class.java) ?: at)
+    }
+
+    @Test fun `the summary request carries the title body limit and reservation`() {
+        summarizing()
+
+        runner.tick(now)
+
+        val body = summaryRequests.single()
+        assertEquals(setOf("workId", "episodeNumber", "title", "body", "creditLimit", "creditReservationId"), body.keys)
+        assertEquals(listOf("w", 1, "제 1화", "본문 1"), listOf(body["workId"], body["episodeNumber"], body["title"], body["body"]))
+        // 요약 상한은 시뮬레이션·선택지·회차 실행 상한과 따로다.
+        assertEquals(BigDecimal("4"), body["creditLimit"])
+        assertEquals("res-e-1", body["creditReservationId"])
+    }
+
+    @Test fun `not enough credit for a summary tries again next tick without calling the AI or releasing`() {
+        summarizing()
+        doThrow(ContentFailure(409, "크레딧이 부족합니다.", "INSUFFICIENT_CREDIT")).`when`(credits).reserve(owner, summaryKey, BigDecimal("4"))
+
+        runner.tick(now)
+
+        verifyNoInteractions(ai)
+        verify(credits, never()).release(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+        neverSummarySaved()
+        // 요약 실패는 게시판과 무관하다: 실행 실패로 남기지 않는다.
+        verify(serial, never()).fail(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(Instant::class.java) ?: at)
+    }
+
+    @Test fun `an AI failure or an unreadable answer releases the hold and saves no summary`() {
+        for (failure in listOf(SerialAiFailure(), SerialAiFailure(limitExceeded = true), IllegalStateException("boom"))) {
+            reset(serial, summaries, credits, ai)
+            summarizing()
+            `when`(ai.summarize(anyMap())).thenThrow(failure)
+
+            runner.tick(now)
+
+            verify(credits).release(owner, summaryKey)
+            neverSummarySaved()
+            neverSettled()
+        }
+    }
+
+    @Test fun `a failed summary save after generation releases the hold instead of settling`() {
+        summarizing()
+        doThrow(IllegalStateException("db down")).`when`(summaries).save("e-1", "ver-1", "두 사람이 재회했다.")
+
+        runner.tick(now)
+
+        verify(credits).release(owner, summaryKey)
+        neverSettled()
+    }
+
+    @Test fun `a failed settlement keeps the saved summary and releases the hold`() {
+        summarizing()
+        doThrow(CoreAuthException(504, "CORE_CREDIT_TIMEOUT", "slow")).`when`(credits).settle(owner, summaryKey, BigDecimal("2.5"))
+
+        runner.tick(now)
+
+        verify(summaries).save("e-1", "ver-1", "두 사람이 재회했다.")
+        verify(credits, times(1)).release(owner, summaryKey)
+    }
+
+    @Test fun `a summary reserve that fails for another reason than a shortage releases the same key once`() {
+        summarizing()
+        doThrow(CoreAuthException(504, "CORE_CREDIT_TIMEOUT", "slow")).`when`(credits).reserve(owner, summaryKey, BigDecimal("4"))
+
+        runner.tick(now)
+
+        verify(credits, times(1)).release(owner, summaryKey)
+        verifyNoInteractions(ai)
+        neverSummarySaved()
+    }
+
+    @Test fun `one broken summary does not stop the next one`() {
+        val second = summaryTarget.copy(episodeId = "e-2", versionId = "ver-2", number = 2, title = "제 2화", body = "본문 2")
+        summarizing(listOf(summaryTarget, second))
+        var calls = 0
+        `when`(ai.summarize(anyMap())).thenAnswer { calls++; if (calls == 1) throw SerialAiFailure() else madeSummary }
+
+        runner.tick(now)
+
+        verify(credits).release(owner, summaryKey)
+        verify(summaries).save("e-2", "ver-2", "두 사람이 재회했다.")
+        verify(credits).settle(owner, "serial-summary:e-2:" + at.toEpochMilli(), BigDecimal("2.5"))
+    }
+
+    @Test fun `a failure while listing the summary targets does not stop the tick`() {
+        summarizing()
+        `when`(summaries.targets(3)).thenThrow(IllegalStateException("db down"))
+
+        assertDoesNotThrow { runner.tick(now) }
+        verifyNoInteractions(ai)
+    }
+
+    @Test fun `summaries are made last after the runs and the choices`() {
+        queue()
+        `when`(serial.choiceTargets(at)).thenReturn(listOf(choiceBoard))
+        `when`(serial.beginChoices("w", "b1", at)).thenReturn(null)
+
+        runner.tick(now)
+
+        val order = inOrder(serial, summaries)
+        order.verify(serial).claim("b1", "queued", today, at)
+        order.verify(serial).publish("b1", owner, generated, at)
+        order.verify(serial).beginChoices("w", "b1", at)
+        order.verify(summaries).targets(3)
+        // 점검 한 번에 요약 단계는 한 번이고 한 번에 3개까지만 청한다.
+        verify(summaries, times(1)).targets(3)
+    }
+
+    // ---- 문맥의 이전 회차 요약
+
+    private fun summaryNumbers(context: String) = mapper.readTree(context).path("summaries").values().map { it.path("number").asInt() }
+
+    @Test fun `the owner context carries the stored summaries of the episodes before the recent three`() {
+        queue()
+        `when`(publication.publishedEpisodes("w")).thenReturn(PublishedEpisodeListResponse(published(1, 2, 3, 4, 5, 6)))
+        `when`(summaries.stored("w")).thenReturn(mapOf(1 to "첫 요약", 2 to "둘째 요약", 4 to "넷째 요약"))
+
+        runner.tick(now)
+
+        val tree = mapper.readTree(episodeRequests.single()["context"] as String)
+        // 최근 3화(4·5·6)는 원문이 있으니 요약을 싣지 않고, 요약이 아직 없는 3화는 빠진다.
+        assertEquals(listOf(4, 5, 6), tree.path("episodes").values().map { it.path("number").asInt() })
+        assertEquals(listOf(1, 2), tree.path("summaries").values().map { it.path("number").asInt() })
+        assertEquals(listOf("제 1화", "첫 요약"), listOf(tree.path("summaries")[0].path("title").asString(), tree.path("summaries")[0].path("summary").asString()))
+    }
+
+    @Test fun `stored summaries that cannot be read fail the run before any credit is reserved`() {
+        queue()
+        `when`(summaries.stored("w")).thenThrow(IllegalStateException("db down"))
+
+        runner.tick(now)
+
+        verify(serial).fail("b1", "AI 생성에 실패했습니다.", at)
+        verifyNoInteractions(credits, ai)
+    }
+
+    @Test fun `the choices context carries the summaries too`() {
+        choosing()
+        `when`(works.publicEpisodes("w")).thenReturn(published(1, 2, 3, 4, 5))
+        `when`(summaries.stored("w")).thenReturn(mapOf(1 to "첫 요약", 2 to "둘째 요약", 3 to "셋째 요약"))
+
+        runner.tick(now)
+
+        // 최근 3화(3·4·5)는 원문이라 1·2화의 요약만이다. 선택지에는 관련 장면 검색이 없어 related 키도 없다.
+        val context = choiceRequests.single()["context"] as String
+        assertEquals(listOf(1, 2), summaryNumbers(context))
+        assertFalse(mapper.readTree(context).has("related"))
+        verifyNoInteractions(qa)
+    }
+
+    @Test fun `the simulation context carries the summaries too`() {
+        simulationStubs()
+        `when`(works.publicEpisodes("w")).thenReturn(published(1, 2, 3, 4, 5))
+        `when`(summaries.stored("w")).thenReturn(mapOf(1 to "첫 요약", 2 to "둘째 요약"))
+
+        runner.submit("w", member, simulation())
+
+        val context = simulationRequests.single()["context"] as String
+        assertEquals(listOf(1, 2), summaryNumbers(context))
+        assertFalse(mapper.readTree(context).has("related"))
+    }
+
+    @Test fun `a summary of an episode whose reader body is hidden is left out of a reader context`() {
+        choosing()
+        // 원작이 삭제된 Fork의 상속 회차는 독자에게 본문이 가려진다: 그 요약도 싣지 않는다.
+        `when`(works.publicEpisodes("w")).thenReturn(published(1, 2, 3, 4, 5).map { if (it.number == 1) it.copy(body = "") else it })
+        `when`(summaries.stored("w")).thenReturn(mapOf(1 to "가려진 회차의 요약", 2 to "공개 회차의 요약"))
+
+        runner.tick(now)
+
+        assertEquals(listOf(2), summaryNumbers(choiceRequests.single()["context"] as String))
+    }
+
+    // ---- 관련 장면 검색
+
+    private fun source(episode: Int, quote: String) = QaSource("s" + episode, "w", null, "e" + episode, episode, "v" + episode, 0, quote.length, quote)
+    private val relatedQuery = "선택지 둘\n제목 a\n제목 b"
+
+    private fun searching() {
+        queue()
+        `when`(publication.publishedEpisodes("w")).thenReturn(PublishedEpisodeListResponse(published(1, 2, 3, 4, 5, 6)))
+    }
+
+    @Test fun `a run searches the manuscript once before reserving credit and puts the quotes in the context`() {
+        searching()
+        `when`(qa.searchRelated("w", relatedQuery, QaEpisodeRef(3, "v3"), 6)).thenReturn(listOf(source(2, "옛 장면 하나"), source(1, "옛 장면 둘")))
+
+        runner.tick(now)
+
+        // 질의는 1위 선택지 글과 추천 상위 제안 글의 제목이고, 기준은 최근 3화 이전의 마지막 회차(3화)다. 검색은 크레딧 예약 앞이다.
+        val order = inOrder(qa, credits, ai)
+        order.verify(qa).searchRelated("w", relatedQuery, QaEpisodeRef(3, "v3"), 6)
+        order.verify(credits).reserve(owner, key, BigDecimal("150"))
+        order.verify(ai).episode(anyMap())
+        verify(qa, times(1)).searchRelated("w", relatedQuery, QaEpisodeRef(3, "v3"), 6)
+        val related = mapper.readTree(episodeRequests.single()["context"] as String).path("related")
+        assertEquals(listOf(2 to "옛 장면 하나", 1 to "옛 장면 둘"), related.values().map { it.path("episode").asInt() to it.path("quote").asString() })
+    }
+
+    @Test fun `with no episode older than the recent three there is nothing to search and related is empty`() {
+        queue() // 발행 회차 1~3화뿐이다.
+
+        runner.tick(now)
+
+        verifyNoInteractions(qa)
+        val related = mapper.readTree(episodeRequests.single()["context"] as String).path("related")
+        assertTrue(related.isArray)
+        assertEquals(0, related.size())
+    }
+
+    @Test fun `without a choice or proposal titles there is no query so no search`() {
+        searching()
+        `when`(serial.runInput("b1")).thenReturn(input.copy(choice = null, proposals = emptyList()))
+
+        runner.tick(now)
+
+        verifyNoInteractions(qa)
+        assertEquals(0, mapper.readTree(episodeRequests.single()["context"] as String).path("related").size())
+    }
+
+    @Test fun `a search that finds nothing is not a failure and the run goes on`() {
+        searching() // qa 대역은 기본으로 빈 목록을 돌려준다.
+
+        runner.tick(now)
+
+        verify(qa).searchRelated("w", relatedQuery, QaEpisodeRef(3, "v3"), 6)
+        verify(serial).publish("b1", owner, generated, at)
+        verify(serial, never()).fail(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(Instant::class.java) ?: at)
+        assertEquals(0, mapper.readTree(episodeRequests.single()["context"] as String).path("related").size())
+    }
+
+    @Test fun `a failed search ends the run with its own reason before any credit is reserved`() {
+        searching()
+        `when`(qa.searchRelated("w", relatedQuery, QaEpisodeRef(3, "v3"), 6)).thenThrow(ContentFailure(503, "원고 검색을 완료할 수 없어요."))
+
+        runner.tick(now)
+
+        // 검색을 빼고 진행하지 않는다. 예약 앞이라 해제할 것도 없다.
+        verify(serial).fail("b1", "관련 장면 검색에 실패했습니다.", at)
+        verifyNoInteractions(credits, ai)
+        verify(serial, never()).publish(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(GeneratedEpisode::class.java) ?: generated, ArgumentMatchers.any(Instant::class.java) ?: at)
     }
 
     // ---- 제안 글 제출: 일반

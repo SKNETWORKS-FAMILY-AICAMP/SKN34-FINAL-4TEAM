@@ -1,6 +1,7 @@
 package ai.storyfork.content.serial.client
 
 import ai.storyfork.content.serial.domain.cleanChoices
+import ai.storyfork.content.serial.domain.cleanSummary
 import java.math.BigDecimal
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestClient
@@ -14,6 +15,9 @@ data class SerialScene(val text: String, val credits: BigDecimal)
 
 /** AI가 만든 다음 전개 선택지 4개(검증된 글)와 확정 크레딧이다. */
 data class GeneratedChoices(val choices: List<String>, val credits: BigDecimal)
+
+/** AI가 만든 공개 회차 하나의 줄거리 요약(검증된 글, 400자 이하)과 확정 크레딧이다. */
+data class GeneratedSummary(val summary: String, val credits: BigDecimal)
 
 /** AI가 만든 다음 회차다. [summary]는 투표·제안 종합 문장(공개), [reviewPassed]는 AI 검수 결과, [credits]는 확정 크레딧이다. */
 data class GeneratedEpisode(val summary: String, val title: String, val text: String, val credits: BigDecimal, val reviewPassed: Boolean = true)
@@ -74,6 +78,12 @@ internal fun parseChoices(node: JsonNode?): GeneratedChoices {
     return GeneratedChoices(cleanChoices(texts) ?: invalid(), credits(node))
 }
 
+/** 요약 응답 {summary, credits, usage}를 검증한다: 요약이 비었거나 400자를 넘거나 크레딧을 읽을 수 없으면 실패다(줄여 쓰지 않는다). */
+internal fun parseSummary(node: JsonNode?): GeneratedSummary {
+    if (node == null || !node.isObject) invalid()
+    return GeneratedSummary(cleanSummary(text(node, "summary")) ?: invalid(), credits(node))
+}
+
 /** 회차 응답 {summary, title, text, review:{passed, issues}, credits, usage}를 검증한다. 제목·본문·크레딧이 없으면 실패이고 review.passed가 없으면 통과하지 못한 것으로 본다. */
 internal fun parseEpisode(node: JsonNode?): GeneratedEpisode {
     if (node == null || !node.isObject) invalid()
@@ -84,13 +94,15 @@ internal fun parseEpisode(node: JsonNode?): GeneratedEpisode {
 }
 
 /**
- * AI 서비스의 자율 연재 내부 API(시뮬레이션 장면·선택지·회차 생성) 호출이다. 사용자 토큰·MCP를 쓰지 않고 [token]만 보낸다.
- * 시뮬레이션은 회원 요청 안에서 부르므로 회원 Bearer를 전달하는 클라이언트(추적에 회원을 남긴다)를, 선택지와 회차 실행은 일정 점검 스레드에서 부르므로 긴 읽기 한도의 클라이언트를 쓴다.
+ * AI 서비스의 자율 연재 내부 API(시뮬레이션 장면·선택지·회차 요약·회차 생성) 호출이다. 사용자 토큰·MCP를 쓰지 않고 [token]만 보낸다.
+ * 시뮬레이션은 회원 요청 안에서 부르므로 회원 Bearer를 전달하는 클라이언트(추적에 회원을 남긴다)를, 선택지·회차 요약·회차 실행은 일정 점검 스레드에서 부르므로 긴 읽기 한도의 클라이언트를 쓴다.
  */
 class SerialAiClient(private val simulationClient: RestClient, private val episodeClient: RestClient, private val token: String) {
     fun simulate(body: Map<String, Any?>): SerialScene = parseScene(post(simulationClient, "/internal/v1/serial/simulations", body))
 
     fun choices(body: Map<String, Any?>): GeneratedChoices = parseChoices(post(episodeClient, "/internal/v1/serial/choices", body))
+
+    fun summarize(body: Map<String, Any?>): GeneratedSummary = parseSummary(post(episodeClient, "/internal/v1/serial/summaries", body))
 
     fun episode(body: Map<String, Any?>): GeneratedEpisode = parseEpisode(post(episodeClient, "/internal/v1/serial/episodes", body))
 

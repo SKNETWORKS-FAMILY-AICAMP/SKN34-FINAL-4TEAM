@@ -6,6 +6,7 @@ import ai.storyfork.content.serial.client.isReviewFailure
 import ai.storyfork.content.serial.client.parseChoices
 import ai.storyfork.content.serial.client.parseEpisode
 import ai.storyfork.content.serial.client.parseScene
+import ai.storyfork.content.serial.client.parseSummary
 import java.math.BigDecimal
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -77,6 +78,26 @@ class SerialAiClientTest {
             assertFalse(failure { parseChoices(json(bad)) }, bad.take(60))
         }
         assertFalse(failure { parseChoices(null) })
+    }
+
+    // ---- 회차 요약 응답
+
+    @Test fun `a summary answer keeps the trimmed text and the exact credits`() {
+        val answer = parseSummary(json("""{"summary":"  두 사람은 폐교에서 재회했다.  ","credits":2.5,"usage":{"inputTokens":3000,"outputTokens":300}}"""))
+
+        assertEquals("두 사람은 폐교에서 재회했다.", answer.summary)
+        same("2.5", answer.credits)
+        assertEquals(400, parseSummary(json("""{"summary":"${"가".repeat(400)}","credits":1}""")).summary.length)
+    }
+
+    @Test fun `a summary answer that is empty or too long or has unreadable credits is a failure and is never cut short`() {
+        for (bad in listOf(
+            """{"credits":1}""", """{"summary":"","credits":1}""", """{"summary":"  ","credits":1}""", """{"summary":null,"credits":1}""", """{"summary":["a"],"credits":1}""",
+            """{"summary":"${"가".repeat(401)}","credits":1}""", """{"summary":"요약"}""", """{"summary":"요약","credits":-1}""", """[]""", """null""",
+        )) {
+            assertFalse(failure { parseSummary(json(bad)) }, bad.take(60))
+        }
+        assertFalse(failure { parseSummary(null) })
     }
 
     // ---- 시뮬레이션 응답
