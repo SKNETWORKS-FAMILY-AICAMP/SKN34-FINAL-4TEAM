@@ -407,7 +407,7 @@ class SerialRunnerTest {
         `when`(workWorlds.readerCards("w", null)).thenReturn(ReaderWorldCardsResponse("w", worldId, 2, listOf(ReaderWorldCardResponse(UUID.randomUUID(), "공개 카드", "공개 본문", "location", listOf("별칭"), emptyList(), 1))))
         `when`(credits.reserve(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "", ArgumentMatchers.eq(BigDecimal("5")) ?: BigDecimal.ONE)).thenReturn("res-sim")
         `when`(ai.simulate(anyMap())).thenAnswer { call -> simulationRequests.add(call.arguments[0] as Map<*, *>); SerialScene("장면 미리보기", BigDecimal("0.4321")) }
-        `when`(serial.add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString()))
+        `when`(serial.add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
             .thenReturn(SerialOpinionCreated("o9"))
     }
 
@@ -421,7 +421,7 @@ class SerialRunnerTest {
         order.verify(serial).openBoardFor("w", member)
         order.verify(credits).reserve(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "", ArgumentMatchers.eq(BigDecimal("5")) ?: BigDecimal.ONE)
         order.verify(ai).simulate(anyMap())
-        order.verify(serial).add("w", member, cleanOpinion(simulation()), "장면 미리보기")
+        order.verify(serial).add("w", member, cleanOpinion(simulation()), "장면 미리보기", "b1")
         order.verify(credits).settle(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "", ArgumentMatchers.eq(BigDecimal("0.4321")) ?: BigDecimal.ONE)
         verify(credits, never()).release(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
     }
@@ -463,7 +463,7 @@ class SerialRunnerTest {
         assertEquals(502, failure.status)
         verify(credits).release(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "")
         verify(credits, never()).settle(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ZERO)
-        verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString())
+        verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
     }
 
     @Test fun `not enough credit for a simulation passes the conflict through and calls nothing else`() {
@@ -476,7 +476,7 @@ class SerialRunnerTest {
         assertEquals("INSUFFICIENT_CREDIT", failure.code)
         verifyNoInteractions(ai)
         verify(credits, never()).release(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
-        verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString())
+        verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
     }
 
     @Test fun `a simulation reserve that fails for another reason releases the same key and charges nothing`() {
@@ -488,7 +488,7 @@ class SerialRunnerTest {
         assertEquals(503, failure.status)
         verify(credits, times(1)).release(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "")
         verifyNoInteractions(ai)
-        verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString())
+        verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
     }
 
     @Test fun `a simulation for a closed board or an existing opinion is refused before any credit`() {
@@ -501,7 +501,7 @@ class SerialRunnerTest {
 
     @Test fun `if the opinion cannot be saved after the scene the hold is released and nobody is charged`() {
         simulationStubs()
-        `when`(serial.add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString()))
+        `when`(serial.add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
             .thenThrow(ContentFailure(409, "지금 열린 의견 게시판이 없어요.", "SERIAL_NO_BOARD"))
 
         assertEquals("SERIAL_NO_BOARD", status { runner.submit("w", member, simulation()) }.code)

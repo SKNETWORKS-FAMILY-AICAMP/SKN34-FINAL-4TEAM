@@ -94,7 +94,7 @@ class SerialRunner(
                 throw ContentFailure(502, "시뮬레이션 미리보기를 만들지 못했어요. 크레딧은 차감되지 않았어요.")
             }
             val created = try {
-                serial.add(workId, member, clean, scene.text)
+                serial.add(workId, member, clean, scene.text, board.boardId)
             } catch (error: Exception) {
                 release(member, key) // 그 사이 게시판이 닫혔거나 의견이 생겼다: 저장하지 못했으니 차감하지 않는다.
                 throw error

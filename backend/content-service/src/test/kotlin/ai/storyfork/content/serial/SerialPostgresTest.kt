@@ -72,7 +72,8 @@ class SerialPostgresTest {
     @Autowired lateinit var json: JsonMapper
     private val jdbc get()=JdbcTemplate(source)
     private val client=HttpClient.newHttpClient()
-    private val episodeRequests=mutableListOf<Map<*,*>>()
+    // 앱의 1분 스케줄러 스레드가 먼저 실행해도 같은 목록에 쌓이므로 스레드 안전한 목록이다.
+    private val episodeRequests=java.util.concurrent.CopyOnWriteArrayList<Map<*,*>>()
     private val generated=GeneratedEpisode("독자들은 재회를 원했다.","2화 제목","2화 본문",BigDecimal("1.5"))
     // 오늘이 아닌 요일만 고르면 일정이 도래하지 않아(시각과 무관하게) 테스트가 지금 실행(queued)으로만 움직인다.
     private val notToday get()=LocalDate.now(KST).plusDays(1).dayOfWeek.name.take(3)
@@ -80,6 +81,9 @@ class SerialPostgresTest {
 
     @BeforeEach fun stubs() {
         episodeRequests.clear()
+        // 공유 DB에 앞선 실행이 남긴 실행 요청(queued·running)과 켜진 연재는 이 테스트의 tick이 함께 집어 AI 요청이 섞이므로 먼저 닫는다(serial 표는 이 테스트만 쓴다).
+        jdbc.update("UPDATE serial_board SET status='failed', failure_reason='테스트 정리', closed_at=coalesce(closed_at, now()) WHERE status IN ('queued','running')")
+        jdbc.update("UPDATE ai_serial SET enabled=false WHERE enabled")
         `when`(credits.reserve(ArgumentMatchers.anyString(),ArgumentMatchers.anyString(),ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)).thenReturn("res-1")
         `when`(ai.episode(ArgumentMatchers.anyMap<String,Any?>())).thenAnswer { call -> episodeRequests.add(call.arguments[0] as Map<*,*>); generated }
         `when`(ai.simulate(ArgumentMatchers.anyMap<String,Any?>())).thenReturn(SerialScene("달빛이 비치는 복도였다.",BigDecimal("0.4")))
@@ -208,7 +212,8 @@ class SerialPostgresTest {
         val next=node(call("GET","$path/serial-board"))
         assertEquals(listOf<Any?>(3,"독자들은 재회를 원했다.",0),listOf(next.path("board").path("episodeNumber").asInt(),next.path("summary").asString(),next.path("opinions").size()))
         verify(credits).reserve(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.eq("serial-run:$boardId") ?: "",ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)
-        verify(credits).settle(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.eq("serial-run:$boardId") ?: "",ArgumentMatchers.eq(BigDecimal("1.5")) ?: BigDecimal.ONE)
+        // 정산은 발행 뒤다: 앱 스케줄러가 먼저 선점했다면 published를 본 시점에 아직 부르기 전일 수 있어 기다린다.
+        verify(credits,timeout(30_000)).settle(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.eq("serial-run:$boardId") ?: "",ArgumentMatchers.eq(BigDecimal("1.5")) ?: BigDecimal.ONE)
 
         // AI에는 방향·득표 상위 의견(숨긴 의견 제외, 시뮬레이션 장면 포함)·문맥·상한·예약 id를 보냈다.
         val request=episodeRequests.single()
@@ -227,7 +232,8 @@ class SerialPostgresTest {
         val opinion=created(call("POST","$path/serial-board/opinions",reader,"""{"kind":"general","body":"두 사람이 다시 만나면 좋겠어요"}"""))
 
         // 검수를 통과하지 못한 실행: 예약은 풀리고 게시판은 failed와 고정 사유로 남으며 아무것도 발행되지 않는다.
-        `when`(ai.episode(ArgumentMatchers.anyMap<String,Any?>())).thenThrow(SerialAiFailure(reviewFailed=true))
+        // 이미 스텁한 mock은 when(...) 안의 호출이 기존 답을 먼저 부르므로(기록용 답은 빈 요청을 남기고 던지는 답은 던진다) doThrow·doAnswer로 다시 건다.
+        doThrow(SerialAiFailure(reviewFailed=true)).`when`(ai).episode(ArgumentMatchers.anyMap<String,Any?>())
         assertEquals(202,call("POST","$path/ai-serial/run",owner).statusCode())
         runner.tick()
         await("the board to fail") {"failed" in statuses(id)}
@@ -245,7 +251,7 @@ class SerialPostgresTest {
         val view=node(call("GET","$path/serial-board",reader))
         assertEquals(listOf(opinion),ids(view))
         assertEquals(opinion,view.path("myOpinionId").asString())
-        `when`(ai.episode(ArgumentMatchers.anyMap<String,Any?>())).thenAnswer { call -> episodeRequests.add(call.arguments[0] as Map<*,*>); generated }
+        doAnswer { call -> episodeRequests.add(call.arguments[0] as Map<*,*>); generated }.`when`(ai).episode(ArgumentMatchers.anyMap<String,Any?>())
         assertEquals(202,call("POST","$path/ai-serial/run",owner).statusCode())
         runner.tick()
         await("the retry to be published") {"published" in statuses(id)}
@@ -275,7 +281,9 @@ class SerialPostgresTest {
         jdbc.update("INSERT INTO serial_vote(board_id,member_id,opinion_id) VALUES (?,?,?)",second,"member",opinion)
         assertThrows(DataIntegrityViolationException::class.java) {jdbc.update("INSERT INTO serial_vote(board_id,member_id,opinion_id) VALUES (?,?,?)",second,"member",opinion)}
 
-        // 실행 선점은 한 번만 성공한다.
+        // 실행 선점은 켜진 연재에서만, 한 번만 성공한다(설정 행이 없거나 꺼졌으면 시작하지 않는다).
+        assertFalse(serial.claim(second,"open",LocalDate.now(KST),Instant.now()))
+        jdbc.update("INSERT INTO ai_serial(work_id,enabled,days,run_time,direction,updated_at) VALUES (?,true,?,'21:00','',now())",id,notToday)
         assertTrue(serial.claim(second,"open",LocalDate.now(KST),Instant.now()))
         assertFalse(serial.claim(second,"open",LocalDate.now(KST),Instant.now()))
         assertEquals("running",jdbc.queryForObject("SELECT status FROM serial_board WHERE id=?",String::class.java,second))

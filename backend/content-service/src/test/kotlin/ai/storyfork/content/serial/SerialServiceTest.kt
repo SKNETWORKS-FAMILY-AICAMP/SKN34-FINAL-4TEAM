@@ -398,6 +398,22 @@ class SerialServiceTest {
         assertNull(opinionRows.first { it.authorId == bob }.simulation)
     }
 
+    @Test fun `a simulation opinion is not saved on another board than the one it was made for`() {
+        work()
+        board(id = "b1", number = 4, status = "published")
+        board(id = "b2", number = 5)
+        val simulation = CleanOpinion("simulation", "전제", "전제", emptyList())
+
+        // AI를 기다리는 사이 b1이 발행돼 다음 게시판 b2가 열렸다: 이전 회차 문맥으로 만든 장면을 b2에 저장하지 않는다(러너가 예약을 해제한다).
+        val failure = status { service.add("w", alice, simulation, "장면", "b1") }
+
+        assertEquals(listOf(409, "SERIAL_NO_BOARD"), listOf(failure.status, failure.code))
+        assertTrue(opinionRows.isEmpty())
+        // 처음 본 게시판이 지금도 열려 있으면 그대로 저장한다.
+        service.add("w", alice, simulation, "장면", "b2")
+        assertEquals(listOf("b2"), opinionRows.map { it.boardId })
+    }
+
     @Test fun `checking before a simulation returns the open board and refuses a second opinion`() {
         work()
         val open = board(number = 5)
@@ -633,6 +649,25 @@ class SerialServiceTest {
         assertEquals("running", open.status)
         assertEquals(t0, open.closedAt)
         assertEquals(LocalDate.parse("2026-11-23"), row.lastRunDate)
+    }
+
+    @Test fun `claiming refuses a serial that was turned off before the claim`() {
+        work(); val row = serial(enabled = false); val open = board()
+
+        // 일정 점검이 열린 게시판을 읽은 뒤 소유자가 끄기를 저장한 경우다: 작품 잠금 안에서 enabled를 다시 보고 시작하지 않는다.
+        assertFalse(service.claim("b1", "open", LocalDate.parse("2026-11-23"), t0))
+
+        assertEquals("open", open.status)
+        assertNull(row.lastRunDate)
+        verify(boardRepo, never()).claim(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), anyInstant())
+    }
+
+    @Test fun `claiming a work that has no settings row starts nothing`() {
+        work(); val open = board()
+
+        assertFalse(service.claim("b1", "open", LocalDate.parse("2026-11-23"), t0))
+
+        assertEquals("open", open.status)
     }
 
     @Test fun `claiming takes the work lock first so run and disable cannot be overwritten`() {

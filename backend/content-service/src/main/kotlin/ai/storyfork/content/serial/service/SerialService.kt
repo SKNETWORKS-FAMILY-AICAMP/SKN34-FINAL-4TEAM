@@ -158,9 +158,14 @@ class SerialService(
         return OpenBoard(board.id, board.episodeNumber, work.title, work.summary)
     }
 
-    /** 열린 게시판에 의견을 저장한다. 시뮬레이션 의견은 AI가 만든 [scene]을 함께 저장한다. 같은 회원의 두 번째 의견은 409 OPINION_EXISTS다(동시 요청은 유니크 제약이 막는다). */
-    fun add(workId: String, member: String, opinion: CleanOpinion, scene: String? = null): SerialOpinionCreated {
+    /**
+     * 열린 게시판에 의견을 저장한다. 시뮬레이션 의견은 AI가 만든 [scene]을 함께 저장하고, [boardId](시뮬레이션이 처음 확인한 게시판)가 있으면 지금 열린 게시판이 그것일 때만 저장한다(아니면 409 SERIAL_NO_BOARD).
+     * 같은 회원의 두 번째 의견은 409 OPINION_EXISTS다(동시 요청은 유니크 제약이 막는다).
+     */
+    fun add(workId: String, member: String, opinion: CleanOpinion, scene: String? = null, boardId: String? = null): SerialOpinionCreated {
         val board = openBoardFor(workId, member)
+        // 시뮬레이션은 AI를 기다리는 사이 게시판이 발행돼 다음 게시판이 열릴 수 있다. 처음 확인한 게시판([boardId])이 아니면 저장하지 않는다(러너가 예약을 해제한다).
+        if (boardId != null && board.boardId != boardId) throw conflict("SERIAL_NO_BOARD", "의견을 쓰던 게시판이 마감됐어요. 새 게시판에 다시 써 주세요.")
         val simulation = if (opinion.kind == "simulation") mapOf("premise" to opinion.premise, "beats" to opinion.beats, "scene" to scene) else null
         val row = SerialOpinionEntity(id = contentId(), boardId = board.boardId, authorId = member, kind = opinion.kind, body = opinion.body, simulation = simulation)
         try {
@@ -228,6 +233,8 @@ class SerialService(
         val workId = boardRepo.findById(boardId).orElse(null)?.workId ?: return false
         // 지금 실행(open → queued)·끄기 저장(queued → open)은 작품 잠금 아래에서 상태를 쓴다. 선점도 같은 잠금을 쥐어야 그 쓰기가 running을 덮어쓰지 않는다.
         access.lockScope(workId)
+        // 일정 점검이 열린 게시판을 읽은 뒤 소유자가 끄기를 저장했을 수 있다: 같은 잠금 안에서 enabled를 다시 보고 꺼졌으면 시작하지 않는다(이미 running인 실행만 끝까지 간다).
+        if (serialRepo.findById(workId).orElse(null)?.enabled != true) return false
         if (boardRepo.claim(boardId, from, now) != 1) return false
         serialRepo.findById(workId).ifPresent { it.lastRunDate = today }
         return true
