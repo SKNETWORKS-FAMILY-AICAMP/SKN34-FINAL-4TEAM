@@ -13,6 +13,15 @@ const send = () => screen.getByRole('button', { name: '전송' }) as HTMLButtonE
 const type = (text: string) => fireEvent.change(box(), { target: { value: text } })
 
 describe('함께 보낼 것 안내', () => {
+  it.each([[409, 1000], [100, 100]])('안내로 대화 영역이 줄면 맨 아래에서 읽던 때만 따라 내려간다(#636, scrollTop=%i)', (scrollTop, expected) => {
+    const { rerender } = render(<ChatPanel messages={[]} onSend={() => true} />)
+    const log = screen.getByRole('log', { name: '대화 내용' })
+    // 안내 줄(27px)이 생겨 591 → 564로 줄어든 뒤의 치수
+    Object.defineProperties(log, { scrollHeight: { value: 1000 }, clientHeight: { value: 564 }, scrollTop: { value: scrollTop, writable: true } })
+    rerender(<ChatPanel messages={[]} onSend={() => true} sendNote="선택한 글 7자가 함께 보내져요." />)
+    expect(log.scrollTop).toBe(expected)
+  })
+
   it('입력창이 안내를 설명으로 읽고, 잠긴 동안에는 보낼 수 없으므로 보이지 않는다(#636)', () => {
     const note = '선택한 글 7자가 함께 보내져요.'
     const { rerender } = render(<ChatPanel messages={[]} onSend={() => true} sendNote={note} />)
