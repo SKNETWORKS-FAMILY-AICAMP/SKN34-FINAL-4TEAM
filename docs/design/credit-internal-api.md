@@ -3,7 +3,7 @@
 [서비스 경계](service-boundaries.md) · [크레딧 원장 프론트 계약](credit-ledger-contract.md) · [요구사항 F-CRD](../requirements.md#f-crd-01)
 
 Content가 AI 작업에 크레딧을 쓸 때 부르는 Core 내부 API다. 백엔드 정본은 `InternalCreditController.kt`다.
-지금은 이 API를 부르는 기능이 없다. AI 작업당 크레딧 가격·토큰 환산 비율, 화면의 비용 안내·동의 기록은 정해지지 않았다(F-CRD-01 가격 미정, DEC-22).
+첫 호출 기능은 AI 자율 연재다([계약](ai-serial-contract.md#크레딧-사용자-결정-langchain-미들웨어로-금액-확정-후-차감): 1 크레딧 = 1,000 토큰, AI 미들웨어가 확정한 금액으로 정산). 그 밖의 AI 작업 가격, 화면의 비용 안내·동의 기록은 정해지지 않았다(F-CRD-01, DEC-22).
 
 ## 인증
 

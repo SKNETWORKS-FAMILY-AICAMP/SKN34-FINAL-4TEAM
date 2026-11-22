@@ -226,6 +226,15 @@ export class ReadingUseCase {
   }
 
   /**
+   * 이 작품에서 갈라진 공개 Fork 목록(세계관 관리의 '소설 연결' 탭). 소설 상세·`/ifs`·회차별 포크 수와 같은 목록(forksOf: 숨김·비공개가 아니고 자체 회차가 1개 이상)이라 새 API 없이 읽는다.
+   * 작품 목록을 읽지 못하면 빈 목록으로 채우지 않고 던진다.
+   * ponytail: 공개 작품 전체 목록을 읽어 거른다(forkCountsByEpisode와 같다). 작품이 많아지면 작품별 Fork 목록 API로 바꾼다.
+   */
+  async forksOf(id: string) {
+    return forksOf(await this.workRepository.listWorks(), id)
+  }
+
+  /**
    * 목업 reader(): 회차를 열면서 이어 읽기와 읽음을 서버 독서 기록에 남깁니다. 볼 수 없는 작품은 null,
    * 숨긴 회차는 'hidden'(상세로 보냄)입니다. 기록은 기다리지 않고 회차를 먼저 돌려주며, 저장 결과는 recording으로 받습니다
    * (실패하면 reject하므로 호출자가 알려야 합니다. 기록하지 않는 경우는 바로 끝납니다).

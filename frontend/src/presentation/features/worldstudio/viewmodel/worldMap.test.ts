@@ -11,7 +11,7 @@ it('renders only approved data, preserves saved objects and handles an empty wor
  const before=structuredClone(rows),map=buildWorldMap(rows)
  expect(map.nodes).toHaveLength(4);expect(map.links).toHaveLength(3);expect(map.missingLinks).toBe(1)
  const people=buildCharacterMap(rows)
- expect(people.nodes).toHaveLength(2);expect(people.links[0]).toMatchObject({source:a.item.id,target:b.item.id,emotion:true,id:rows[3].item.id})
+ expect(people.nodes).toHaveLength(2);expect(people.links[0]).toMatchObject({source:a.item.id,target:b.item.id,symmetric:false,id:rows[3].item.id})
  map.nodes[0].name='canvas mutation';expect(rows).toEqual(before)
  a.item.decision='pending';expect(buildWorldMap([a]).nodes).toHaveLength(0)
 })

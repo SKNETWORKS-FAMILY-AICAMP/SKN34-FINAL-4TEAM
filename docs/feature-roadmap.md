@@ -154,7 +154,7 @@
 <tr><td>설정 카드 유형 변경 <small>(Draft 검토 후보)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/97">PR #97</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112">PR #112</a></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/97">PR #97</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132">#132</a></td></tr>
 <tr><td>세계관 주제 영역 변경 <small>(Draft 검토 후보)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/97">PR #97</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/112">PR #112</a></td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/97">PR #97</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/132">#132</a></td></tr>
 <tr><td>구조화 wiki 대상 편집·rich 원본 복사/following detach를 409로 거절해 상세 손실 방지</td><td>❌</td><td>—</td></tr>
-<tr><td rowspan="1">57 세계관·작품 연결</td><td>작품에 사용할 기존 세계관 선택·연결</td><td>❌ <small>(부분: 내 세계관(WorldStudio)과의 1:1 연결만 서버 API(<code>PUT /api/v1/works/{id}/world-studio</code>)와 작품 관리·세계관 관리 화면에 소스 구현(DEC-46, 로컬 단위 테스트 통과, hosted CI 통합 미확인, <a href="design/public-world-contract.md">계약</a>). 남의 세계관을 골라 연결하는 흐름은 없음. 실제 모드의 공개 세계관 상세는 '연결된 소설 표시 준비 중'만 보이고, 메모리 데모의 하단 '이 세계관을 쓴 작품'만 데모 데이터)</small></td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a></td></tr>
+<tr><td rowspan="1">57 세계관·작품 연결</td><td>작품에 사용할 기존 세계관 선택·연결</td><td>❌ <small>(부분: 내 세계관(WorldStudio)과의 1:1 연결만 서버 API(<code>PUT /api/v1/works/{id}/world-studio</code>)와 작품 관리·세계관 관리 화면에 소스 구현(DEC-46, 로컬 단위 테스트 통과, hosted CI 통합 미확인, <a href="design/public-world-contract.md">계약</a>). 세계관 관리 화면은 '소설 연결' 탭에서 연결된 소설과 그 공개 Fork 목록(새 API 없이 공개 작품 목록 기준)을 함께 보인다. 남의 세계관을 골라 연결하는 흐름은 없음. 실제 모드의 공개 세계관 상세는 '연결된 소설 표시 준비 중'만 보이고, 메모리 데모의 하단 '이 세계관을 쓴 작품'만 데모 데이터)</small></td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a></td></tr>
 <tr><td rowspan="3">59 설정 문서 속성 편집</td><td>설정 문서 사용자 정의 속성 추가</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a></td></tr>
 <tr><td>설정 문서 사용자 정의 속성 이름 변경</td><td>❌</td></tr>
 <tr><td>설정 문서 사용자 정의 속성 값 수정</td><td>❌</td></tr>
@@ -501,15 +501,16 @@
 <tr><td>일러스트 후보 거절</td><td>❌</td></tr>
 <tr><td>일러스트 후보 삭제</td><td>❌</td></tr>
 <tr><td>채택 이미지 원고 삽입</td><td>❌</td></tr>
-<tr><td rowspan="10">자율 연재 관리</td><td rowspan="10">39 일정·생성·발행 관리</td><td>자율 연재 일정 등록</td><td>❌</td><td rowspan="10"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
-<tr><td>자율 연재 일정 조회</td><td>❌</td></tr>
-<tr><td>자율 연재 일정 수정</td><td>❌</td></tr>
-<tr><td>자율 연재 켜기</td><td>❌</td></tr>
-<tr><td>자율 연재 일시정지</td><td>❌</td></tr>
-<tr><td>진행 중 생성 중지 요청</td><td>❌</td></tr>
-<tr><td>다음 회차 자동 생성</td><td>❌</td></tr>
-<tr><td>생성 회차 발행 조건 검사</td><td>❌</td></tr>
-<tr><td>생성 회차 자동 발행</td><td>❌</td></tr>
+<tr><td rowspan="11">자율 연재 관리</td><td rowspan="11">39 일정·생성·발행 관리 <small>(<a href="design/ai-serial-contract.md">계약</a>)</small></td><td>자율 연재 설정(켜기·요일·시각·방향) 등록·조회·수정</td><td>❌</td><td rowspan="11"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/659">#659</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td>회차별 다음 회차 의견 게시판 열기</td><td>❌</td></tr>
+<tr><td>의견 제출(일반·시뮬레이션)</td><td>❌</td></tr>
+<tr><td>의견 투표·옮기기·취소</td><td>❌</td></tr>
+<tr><td>시뮬레이션 의견 장면 미리보기(제출자 크레딧)</td><td>❌</td></tr>
+<tr><td>지금 마감·실행 요청</td><td>❌</td></tr>
+<tr><td>일정 도래 시 자동 실행</td><td>❌</td></tr>
+<tr><td>득표 상위 의견 종합 → 다음 회차 생성·검수</td><td>❌</td></tr>
+<tr><td>검수 통과 회차 자동 발행·다음 게시판 열기</td><td>❌</td></tr>
+<tr><td>AI 미들웨어 토큰 확정 금액 크레딧 차감</td><td>❌</td></tr>
 <tr><td>자율 연재 실행 기록 조회</td><td>❌</td></tr>
 <tr><td rowspan="5">캐릭터챗 관리</td><td rowspan="5">77 캐릭터 응답·문맥 보호</td><td>추천 질문 선택 후 캐릭터 답변 요청</td><td>❌</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/47">#47</a></td></tr>
 <tr><td>자유 질문 입력 후 캐릭터 답변 요청</td><td>❌</td></tr>

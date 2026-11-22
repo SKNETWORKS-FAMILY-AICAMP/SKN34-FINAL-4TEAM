@@ -121,7 +121,7 @@ describe('관계 행의 N화부터 입력 (DEC-54 2단계)', () => {
   it('설명을 적은 행은 N화부터가 없으면 잘못이라 칸에 이유를 잇고, 적으면 그 회차를 가진 채 적용한다', () => {
     const [garam, narae] = pair()
     const applied = open([garam, narae], null)
-    fireEvent.change(screen.getByRole('combobox', { name: '실제 관계 1' }), { target: { value: '오랜 친구' } })
+    fireEvent.change(screen.getByRole('textbox', { name: '실제 관계 1' }), { target: { value: '오랜 친구' } })
     const field = screen.getByRole<HTMLInputElement>('textbox', { name: '실제 관계 1 시작 회차 화부터' })
     expect(field.getAttribute('aria-invalid')).toBe('true')
     expect(document.getElementById(field.getAttribute('aria-describedby')!.split(' ')[0])?.textContent).toBe(RELATION_FROM_ERROR)
@@ -158,7 +158,7 @@ describe('관계 행의 N화부터 입력 (DEC-54 2단계)', () => {
   it('소설을 연결하지 않은 세계관은 칸이 없고 설명만 적어도 적용한다(1화로 저장된다)', () => {
     const applied = open(pair(), null, false)
     expect(screen.queryByRole('textbox', { name: /시작 회차/ })).toBeNull()
-    fireEvent.change(screen.getByRole('combobox', { name: '실제 관계 1' }), { target: { value: '오랜 친구' } })
+    fireEvent.change(screen.getByRole('textbox', { name: '실제 관계 1' }), { target: { value: '오랜 친구' } })
     apply()
     expect(applied).toHaveLength(1)
     expect(applied[0][0].fromEpisode).toBeUndefined()
@@ -183,7 +183,7 @@ describe('관계 행의 N화부터 입력 (DEC-54 2단계)', () => {
 
   it('아직 기록하지 않은 새 관계에는 늦춘다는 안내가 없다', () => {
     open(pair(), null)
-    fireEvent.change(screen.getByRole('combobox', { name: '실제 관계 1' }), { target: { value: '오랜 친구' } })
+    fireEvent.change(screen.getByRole('textbox', { name: '실제 관계 1' }), { target: { value: '오랜 친구' } })
     typeFrom('실제 관계 1 시작 회차 화부터', '9')
     expect(screen.queryByText(/이미 .*화부터 기록돼 있어/)).toBeNull()
   })
