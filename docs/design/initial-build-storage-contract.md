@@ -101,7 +101,7 @@ DEC-47 저장/화면의 episodes key는 "0", "3" 형태다. 추출 결과의 파
   - 맞는 카드가 둘 이상이면 새 카드로 더하고 `semanticMetadata.manuscriptBuild.needsReview=true`를 남긴다. 화면은 이 카드를 '확인 필요'로 보인다.
   - 관계는 맞춘 카드 ID로 바꿔 DEC-51 회차별 관계로 더한다. 기존 관계는 교체하지 않는다. 사건 카드는 새 카드다.
 - **확정:** 초안에 더하기만 하고, 확정은 작가가 기존 revisions API로 한다.
-- **조회·화면:** `GET /works/{id}/world-preprocessing` 응답에 `update`(가장 최근 업데이트 작업의 `{jobId, status, episodes, failureCode}`, 없으면 null)를 더한다. 기존 필드는 계속 최초 구축 작업을 가리킨다. 작품 관리 '공개 회차' 머리에는 `update.status`가 `queued`·`running`·`loading`이면 '세계관 업데이트 중' 배지를 보인다.
+- **조회·화면:** `GET /works/{id}/world-preprocessing` 응답 최상위(`build`와 나란히)에 `update`(가장 최근 업데이트 작업의 `{jobId, status, episodes:[회차 번호], failureCode}`, 없으면 null)를 더한다. 기존 필드는 계속 최초 구축 작업을 가리킨다. 작품 관리 '공개 회차' 머리에는 `update.status`가 `queued`·`running`·`loading`이면 '세계관 업데이트 중' 배지를 보인다.
 - **한계:** 실패한 업데이트는 운영 작업 감시의 재실행으로 같은 작업을 다시 돌린다. 실패 작업은 끝나지 않은 작업이 아니므로, 다음 발행이 그 회차를 다시 담아 새 작업으로 접수한다. 그 회차가 이미 다른 작업으로 반영됐으면 이전 실패 작업의 재실행은 409다. 이름이 다른 같은 대상(별칭이 처음 나온 경우)은 자동으로 합치지 않는다.
 
 ## 최초 구축 사용자 화면
