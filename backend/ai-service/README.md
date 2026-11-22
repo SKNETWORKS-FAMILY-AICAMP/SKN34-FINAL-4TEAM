@@ -53,7 +53,7 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 
 ## 인물 시뮬레이션 턴 속도 스위치와 성적표 (#642)
 
-턴 하나는 연출 결정(Decisions) → 대사·나레이션 생성 → 검사(위반 시 최대 2회 재생성)의 모델 호출을 차례로 기다린다. 모델은 `gpt-6-luna`로 두고(생성·검사·계획 호출은 `langchain-openai`의 `ChatOpenAI`, Responses API·`store=False`·자동 재시도 없음·strict JSON schema 구조화 출력), 아래 스위치가 대기 시간을 얼마나 줄이고 품질을 얼마나 잃는지
+턴 하나는 연출 결정(Decisions) → 대사·나레이션 생성 → 검사(위반 시 최대 2회 재생성)의 모델 호출을 차례로 기다린다. 모델은 `gpt-6-luna`로 두되 인물 대사(act)만 `gpt-6.1-terra`다(사용자 결정 2026-11-23, 근거 [원문 평가 §14](../../docs/evaluation/simulation-original.md#14-채점-모델-교체gpt-62-sol말투-기준ab-선택p1b-확인-2026-11-22), `SIMULATION_ACT_MODEL`로 덮어쓴다)(생성·검사·계획 호출은 `langchain-openai`의 `ChatOpenAI`, Responses API·`store=False`·자동 재시도 없음·strict JSON schema 구조화 출력), 아래 스위치가 대기 시간을 얼마나 줄이고 품질을 얼마나 잃는지
 [성적표](../../docs/evaluation/simulation.md)로 잰다. 스위치는 **호출 때 읽고, 기본값(빈 값)은 지금 동작 그대로**다. `.env.example`에는 빈 기본값 주석으로 있고 compose는 이 값을 AI 컨테이너에 넘기지 않는다(성적표는 프로세스 환경에서 직접 읽는다. 채택하면 base compose·인프라 문서에 연결한다).
 
 | 환경 변수 | 값 | 효과 |
@@ -64,7 +64,7 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 | `SIMULATION_SKIP_NARRATION_CHECK` | `1` | 전지적(omniscient) 나레이션 턴은 검사 모델을 부르지 않고 통과로 붙인다. 서버 규칙 검사(`_problem`)와 인물 시점 나레이션·독백·대사의 검사는 그대로다 |
 | `SIMULATION_ACT_BASE_URL` | OpenAI 호환 제공사 주소(예 `https://hemmingway.io/v1`, 비우면 OpenAI) | **인물 대사(act) 호출만** 그 제공사로 보낸다. 제공사에는 Responses API가 없어 Chat Completions로 보내고 추론 강도는 `reasoning_effort`로 보낸다(`store`는 보내지 않는다). 계획·나레이션·검사는 OpenAI 그대로다. 길이 초과·콘텐츠 필터·깨진 JSON 응답은 502, 제공사 오류는 503이다(고쳐 읽거나 OpenAI로 다시 보내지 않는다) |
 | `SIMULATION_ACT_API_KEY` | 그 제공사의 키 | base URL이 있으면 필수다(없으면 모델을 부르기 전에 503 설정 오류). `OPENAI_API_KEY`를 외부 제공사로 보내지 않고, base URL이 없으면 이 키는 쓰지 않는다(제공사 키를 OpenAI로 보내지 않는다) |
-| `SIMULATION_ACT_MODEL` | act 호출의 모델(비우면 `OPENAI_MODEL`) | base URL 없이 모델만 정하면 act만 다른 OpenAI 모델을 쓴다(Responses API) |
+| `SIMULATION_ACT_MODEL` | act 호출의 모델(비우면 base URL이 없을 때 `gpt-6.1-terra`, 있을 때 `OPENAI_MODEL`) | **act의 기본 모델은 terra다**(`agent.ACT_MODEL`, 사용자 결정 2026-11-23). luna로 되돌리려면 `SIMULATION_ACT_MODEL=gpt-6-luna`. base URL 없이 모델만 정하면 act만 그 OpenAI 모델을 쓴다(Responses API). 평가 도구는 act를 그 모델의 단가로 센다 |
 | `SIMULATION_ACT_THINKING` | `off`(비우면 제공사 기본) | base URL이 있을 때만 읽는다. `off`면 제공사의 생각을 끈다(`enable_thinking=false`를 `extra_body`로 보낸다): Hemmingway는 생각 토큰이 출력 토큰에 섞여 비용·지연이 3~5배라 끈 조건이 luna와 길이·지연이 맞는다. 그 밖의 값은 모델을 부르기 전에 503 설정 오류다 |
 
 성적표 실행기는 [`eval/simulation/`](eval/simulation/README.md)에 있다(`prepare`·`estimate`·`run`·`report`, 해리 포터 원문 기반 세계관은 `build-hp`·`show-hp`·`seed-hp`와 `--world hp`). `run`·`build-hp`는 실제 OpenAI를 부르므로 비용 승인 뒤에만 쓴다(OpenAI 상한에 닿으면 `--via ocx`로 이어 받는 안내가 나온다).

@@ -55,6 +55,19 @@ def models(monkeypatch):
     return calls
 
 
+def test_act_calls_are_priced_by_the_service_act_model_in_the_ledger_and_the_step_cost(models, tmp_path, monkeypatch):
+    monkeypatch.setenv('OPENAI_MODEL', 'gpt-6-luna')
+    for name in ('SIMULATION_ACT_MODEL', 'SIMULATION_ACT_BASE_URL'):
+        monkeypatch.delenv(name, raising=False)
+    cost = CostLog(tmp_path / 'cost.jsonl')
+    plan, world = w.Worlds([], {}).scene(FLOW)
+    record = asyncio.run(s.run_scene(FLOW, plan, world, cost))
+    acts = [row for row in cost.rows() if row['kind'] == 'act']
+    assert acts and all(row['model'] == 'gpt-6.1-terra' and row['usd'] == pytest.approx((1000 * 1.00 + 100 * 5.00) / 1_000_000) for row in acts)   # 서비스 기본 act 모델 terra의 단가
+    assert all('model' not in row for row in cost.rows() if row['kind'] != 'act')
+    assert sum(step['usd'] for step in record['steps']) == pytest.approx(cost.spent())   # 턴별 금액도 장부와 같은 단가다
+
+
 def play(spec):
     plan, world = w.Worlds([], {}).scene(spec)
     return asyncio.run(s.run_scene(spec, plan, world))

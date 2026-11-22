@@ -73,8 +73,9 @@ def evaluate(row: dict, worlds, llm, templates: dict, personalities: dict) -> di
     except SimulationFailure as failure:
         attempts = None
         record['error'] = failure.status
+    from orig_variants import priced   # act는 서비스가 쓰는 모델(기본 terra)의 단가로 센다. 평가 모듈은 이 도구보다 늦게 생겨 필요할 때 불러온다
     for call in ledger.calls:
-        llm.cost.record(call['name'], call['inputTokens'] or 0, call['outputTokens'] or 0, failed=call['failed'])
+        llm.cost.record(call['name'], call['inputTokens'] or 0, call['outputTokens'] or 0, failed=call['failed'], **priced(call['name']))
     if attempts is None:
         return {**record, 'usage': ledger.calls}
     first, final = attempts[0], attempts[-1]

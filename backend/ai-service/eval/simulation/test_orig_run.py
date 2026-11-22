@@ -135,19 +135,37 @@ def test_scene_drift_compares_regenerations_in_the_second_half_with_the_first():
 
 
 
-def test_settle_prices_terra_calls_by_their_rate_and_keeps_the_usd_of_each_call(tmp_path):
+def test_settle_prices_terra_calls_by_their_rate_and_keeps_the_usd_of_each_call(tmp_path, monkeypatch):
     from types import SimpleNamespace
 
     import orig_variants as ov
     from cost import CostLog, request_usd
     cost = CostLog(tmp_path / 'cost.jsonl')
     calls = [{'name': 'act', 'inputTokens': 10_000, 'outputTokens': 1_000, 'failed': False, 'ms': 5}, {'name': 'check', 'inputTokens': 10_000, 'outputTokens': 1_000, 'failed': False, 'ms': 5}]
+    monkeypatch.setenv('OPENAI_MODEL', 'gpt-6-luna')
+    monkeypatch.setenv('SIMULATION_ACT_MODEL', 'gpt-6-luna')   # 서비스의 act 기본(terra)을 luna로 되돌려 후보(M1)가 terra로 바꾸는 것만 본다
     with ov.patched('M1'):
         done = orr.settle(cost, SimpleNamespace(calls=[dict(c) for c in calls]))
     assert done[0]['usd'] == 0.015 and done[1]['usd'] == request_usd(10_000, 1_000)   # act는 terra 단가(1.00·5.00), 검사는 기본 모델 단가
     assert [r.get('model') for r in cost.rows()] == ['gpt-6.1-terra', None] and cost.spent() == 0.015 + request_usd(10_000, 1_000)
     plain = orr.settle(CostLog(tmp_path / 'other.jsonl'), SimpleNamespace(calls=[dict(calls[0])]))
     assert plain[0]['usd'] == request_usd(10_000, 1_000)   # 후보가 아니면 기본 단가
+
+
+def test_settle_prices_the_service_default_act_model_even_without_a_candidate(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    import orig_variants as ov
+    from cost import CostLog, request_usd
+    monkeypatch.setenv('OPENAI_MODEL', 'gpt-6-luna')
+    monkeypatch.delenv('SIMULATION_ACT_MODEL', raising=False)
+    monkeypatch.delenv('SIMULATION_ACT_BASE_URL', raising=False)
+    monkeypatch.setattr(ov, 'MODEL_CALLS', {})
+    cost = CostLog(tmp_path / 'cost.jsonl')
+    calls = [{'name': 'act', 'inputTokens': 10_000, 'outputTokens': 1_000, 'failed': False, 'ms': 5}, {'name': 'check', 'inputTokens': 10_000, 'outputTokens': 1_000, 'failed': False, 'ms': 5}]
+    done = orr.settle(cost, SimpleNamespace(calls=[dict(c) for c in calls]))
+    assert done[0]['usd'] == 0.015 and done[1]['usd'] == request_usd(10_000, 1_000)   # act는 서비스 기본 모델 terra의 단가, 검사는 luna
+    assert [r.get('model') for r in cost.rows()] == ['gpt-6.1-terra', None]
 
 
 def test_cost_stats_reports_the_average_usd_per_call_even_for_older_records_without_it():

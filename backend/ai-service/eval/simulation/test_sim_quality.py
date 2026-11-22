@@ -168,12 +168,15 @@ def test_no_personality_text_means_no_personality_score_and_a_blocked_answer_is_
 
 
 def test_every_model_call_of_the_run_goes_to_the_cost_ledger(monkeypatch, worlds, judge):
+    for name in ('SIMULATION_ACT_MODEL', 'SIMULATION_ACT_BASE_URL'):
+        monkeypatch.delenv(name, raising=False)
     act_returns(monkeypatch, 'A.', 'B.')
     check_returns(monkeypatch, ('relation',), ())
     record = q.evaluate(ROWS[0], worlds, judge, TEMPLATES, {})
     assert record['flagged'] and not record['leakFlagged']  # 호칭 위반은 위반이지만 누설 적발이 아니다
     rows = judge.cost.rows()
-    assert [r['kind'] for r in rows] == ['act', 'check', 'act', 'check'] and judge.cost.spent() == pytest.approx(2 * usd(1000, 200) + 2 * usd(3000, 100))
+    assert [r['kind'] for r in rows] == ['act', 'check', 'act', 'check'] and judge.cost.spent() == pytest.approx(2 * (1000 * 1.00 + 200 * 5.00) / 1_000_000 + 2 * usd(3000, 100))   # act는 서비스 기본 모델 terra의 단가
+    assert [r.get('model') for r in rows] == ['gpt-6.1-terra', None, 'gpt-6.1-terra', None]
 
 
 def test_a_failing_model_call_is_a_recorded_error_and_not_graded(monkeypatch, worlds, judge):

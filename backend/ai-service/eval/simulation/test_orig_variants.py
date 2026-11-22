@@ -1,5 +1,7 @@
 """후보 입력 구성(orig_variants): 말투 예시(V1), 금지 목록 장면 관련분만(V2), 관계 장면 관련분만(V3). 입력만 바꾸는 순수 함수다."""
 
+import pytest
+
 import orig_variants as ov
 from app.simulation import prompt as prompt_text
 
@@ -246,6 +248,23 @@ def test_n3_scopes_the_style_guidance_to_non_monologue_narration():
         assert agent.NARRATE_INSTRUCTIONS == ov.NARRATE_V3
     assert agent.NARRATE_INSTRUCTIONS == prompt_text.NARRATE_INSTRUCTIONS
 
+
+
+def test_the_ledger_prices_act_by_the_model_the_service_uses_unless_it_is_the_openai_model(monkeypatch):
+    for key in ENV_OFF:
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv('OPENAI_MODEL', 'gpt-6-luna')
+    monkeypatch.setattr(ov, 'MODEL_CALLS', {})
+    assert ov.priced('act') == {'rate': ov.RATES[ov.TERRA], 'model': ov.TERRA}   # 서비스 기본 act 모델은 terra다
+    assert ov.priced('narrate') == ov.priced('check') == {}   # 나머지 호출은 OPENAI_MODEL(luna)의 기본 단가
+    monkeypatch.setenv('SIMULATION_ACT_MODEL', 'gpt-6-luna')
+    assert ov.priced('act') == {}   # luna로 되돌리면 기본 단가
+    monkeypatch.setattr(ov, 'MODEL_CALLS', {'narrate': ov.TERRA})
+    assert ov.priced('narrate')['model'] == ov.TERRA   # 후보(M1)가 정한 모델이 먼저다
+    monkeypatch.setattr(ov, 'MODEL_CALLS', {})
+    monkeypatch.setenv('SIMULATION_ACT_MODEL', 'mystery-model')
+    with pytest.raises(SystemExit, match='단가'):   # 단가를 모르는 모델은 조용히 luna 단가로 세지 않는다
+        ov.priced('act')
 
 
 def test_model_candidate_swaps_the_model_of_act_and_narrate_requests_only(monkeypatch):

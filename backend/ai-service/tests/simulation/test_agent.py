@@ -88,7 +88,7 @@ def test_each_call_is_one_stateless_structured_output_request(monkeypatch, name)
     assert request.path == '/v1/responses' and request.auth == 'Bearer test-key' and request.timeout == timeout  # Responses API
     # 이전 호출의 대화 상태를 이어받지 않는다: 저장(store)도, 이전 응답 id도 없다.
     assert body['store'] is False and 'previous_response_id' not in body
-    assert body['model'] == 'test-model' and body['max_output_tokens'] == tokens
+    assert body['model'] == ('gpt-6.1-terra' if name == 'act' else 'test-model') and body['max_output_tokens'] == tokens  # act만 기본 모델이 terra다
     assert {k: body['text']['format'][k] for k in ('type', 'strict', 'name')} == {'type': 'json_schema', 'strict': True, 'name': schema.__name__}  # 제공사 strict JSON schema
     assert all(texts(request))  # 지시문과 입력이 비어 있지 않다
 
@@ -271,6 +271,17 @@ def test_an_effort_outside_the_five_openai_values_is_a_503_before_any_model_call
     assert (error.value.status, str(error.value)) == (503, '시뮬레이션 추론 강도 설정을 확인해 주세요.') and built == []
 
 
+def test_act_uses_terra_by_default_and_every_other_call_uses_the_openai_model(monkeypatch):
+    sent = provider(monkeypatch)
+    for call, _, _ in CALLS.values():
+        call()
+    assert [(r.host, r.path, r.body['model'], r.body['reasoning']) for r in sent] == [  # CALLS 순서 plan·act·narrate·check, 추론 강도 low 그대로
+        ('api.openai.com', '/v1/responses', 'test-model', {'effort': 'low'}),
+        ('api.openai.com', '/v1/responses', 'gpt-6.1-terra', {'effort': 'low'}),
+        ('api.openai.com', '/v1/responses', 'test-model', {'effort': 'low'}),
+        ('api.openai.com', '/v1/responses', 'test-model', {'effort': 'low'})]
+
+
 # --- act 전용 제공사(SIMULATION_ACT_*): OpenAI 호환 제공사(Hemmingway·OpenRouter)는 Chat Completions로 간다 ------------------------------------------
 
 ACT_ENV = {'SIMULATION_ACT_BASE_URL': 'https://hemmingway.io/v1', 'SIMULATION_ACT_API_KEY': 'hem-key', 'SIMULATION_ACT_MODEL': 'hemmingway-27b'}
@@ -338,11 +349,11 @@ def test_the_act_provider_model_falls_back_to_the_openai_model(monkeypatch):
     assert sent[0].host == 'hemmingway.io' and sent[0].body['model'] == 'test-model'
 
 
-def test_an_act_model_alone_swaps_only_the_act_model_on_the_openai_path(monkeypatch):
-    sent = act_provider(monkeypatch, SIMULATION_ACT_BASE_URL=None, SIMULATION_ACT_API_KEY=None, SIMULATION_ACT_MODEL='gpt-6.1-terra')
+def test_an_act_model_alone_swaps_only_the_act_model_on_the_openai_path(monkeypatch):  # luna로 되돌리는 길이기도 하다
+    sent = act_provider(monkeypatch, SIMULATION_ACT_BASE_URL=None, SIMULATION_ACT_API_KEY=None, SIMULATION_ACT_MODEL='gpt-6-luna')
     agent.act(SECRET_DOC)
     agent.narrate(SECRET_DOC)
-    assert [(r.host, r.path, r.auth, r.body['model']) for r in sent] == [('api.openai.com', '/v1/responses', 'Bearer test-key', 'gpt-6.1-terra'),
+    assert [(r.host, r.path, r.auth, r.body['model']) for r in sent] == [('api.openai.com', '/v1/responses', 'Bearer test-key', 'gpt-6-luna'),
                                                                          ('api.openai.com', '/v1/responses', 'Bearer test-key', 'test-model')]
 
 
@@ -350,7 +361,7 @@ def test_an_act_model_alone_swaps_only_the_act_model_on_the_openai_path(monkeypa
 def test_blank_act_settings_mean_the_default_openai_path(monkeypatch, value):
     sent = act_provider(monkeypatch, **dict.fromkeys(ACT_ENV, value))
     agent.act(SECRET_DOC)
-    assert (sent[0].host, sent[0].path, sent[0].auth, sent[0].body['model']) == ('api.openai.com', '/v1/responses', 'Bearer test-key', 'test-model')
+    assert (sent[0].host, sent[0].path, sent[0].auth, sent[0].body['model']) == ('api.openai.com', '/v1/responses', 'Bearer test-key', 'gpt-6.1-terra')  # 빈 설정 = 기본 act 모델 terra
 
 
 CHAT_UNUSABLE = {  # act 제공사가 응답했지만 쓸 수 없는 경우

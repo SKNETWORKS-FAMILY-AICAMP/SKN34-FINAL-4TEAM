@@ -6,6 +6,7 @@
 키·모델은 호출 시 읽고(OPENAI_API_KEY·OPENAI_MODEL), 제공사 실패·불완전 응답은 고정 문구의 SimulationFailure로 바꾼다.
 추적에는 모델·사용량·실패만 남긴다. 설정 문서·생성 문단은 팀 결정 범위(질문·원고·답변) 밖이라 남기지 않는다.
 LangChain 실행(장면 에이전트의 도구) 안에서 부르면 호출마다 사용량·지연·실패를 공통 `MODEL_EVENT`로 알려 사용량 장부(app/agent_runtime.UsageLedger)가 모은다.
+인물 대사(act)의 기본 모델은 `ACT_MODEL`(gpt-6.1-terra, 사용자 결정 2026-11-23, 근거 원문 평가 §14)이고 나머지 호출은 OPENAI_MODEL(gpt-6-luna)이다. `SIMULATION_ACT_MODEL`로 act 모델만 덮어쓴다(luna로 되돌리기: gpt-6-luna).
 act 전용 제공사: `SIMULATION_ACT_BASE_URL`(OpenAI 호환 제공사, 예 Hemmingway·OpenRouter)이 있으면 act 호출만 그 제공사의 Chat Completions로 보낸다(Responses API가 없다).
 키는 `SIMULATION_ACT_API_KEY`가 있어야 하고(없으면 모델을 부르기 전에 503, OPENAI_API_KEY를 외부로 보내지 않는다. base URL이 없으면 이 키는 쓰지 않는다) 모델은 `SIMULATION_ACT_MODEL`(비면 OPENAI_MODEL)이다. 추론 강도는 `reasoning_effort`로 보내고 store는 보내지 않는다. `SIMULATION_ACT_THINKING=off`면 제공사의 생각을 끈다(`enable_thinking=false`, 생각 토큰이 출력에 섞여 비용·지연을 늘린다). 다른 호출은 OpenAI 그대로다.
 속도 스위치(#642): 네 호출 모두 `reasoning.effort`를 보낸다. 값은 환경 변수 `SIMULATION_REASONING_EFFORT`(호출 때 읽음)이고 비어 있으면 시뮬레이션 v2 기본값 `low`다(HP 장면 p50 10.8→7.9초, 시공간 정확도·검사 판정은 v1과 같고 ① 대사 말투만 −0.12(p=0.025), docs/evaluation/simulation-v2.md·simulation-original.md §13).
@@ -33,6 +34,7 @@ EFFORTS = ('none', 'minimal', 'low', 'medium', 'high')  # OpenAI reasoning.effor
 BAD_EFFORT = '시뮬레이션 추론 강도 설정을 확인해 주세요.'
 BAD_THINKING = '시뮬레이션 act 생각 설정을 확인해 주세요.'
 DEFAULT_EFFORT = 'low'  # 시뮬레이션 v2 기본값
+ACT_MODEL = 'gpt-6.1-terra'  # 인물 대사(act)의 기본 모델(사용자 결정 2026-11-23). SIMULATION_ACT_MODEL로 덮어쓰고, 외부 제공사(BASE_URL)에는 쓰지 않는다(그쪽은 OPENAI_MODEL로 되돌아간다)
 UNUSABLE = '시뮬레이션 모델 응답을 확인할 수 없습니다.'
 
 
@@ -58,12 +60,14 @@ def check(data: dict) -> Verdict:
 
 
 def _endpoint(name: str) -> tuple[str | None, str | None, str | None, str | None]:
-    """호출의 (base URL, 키, 모델, 생각 설정). act만 SIMULATION_ACT_BASE_URL·API_KEY·MODEL을 따르고(공백은 빈 값) 나머지 호출과 빈 값은 OPENAI_*다.
+    """호출의 (base URL, 키, 모델, 생각 설정). act만 SIMULATION_ACT_BASE_URL·API_KEY·MODEL을 따르고(공백은 빈 값) 나머지 호출은 OPENAI_*다.
+    act의 빈 모델은 base URL이 없으면 ACT_MODEL(gpt-6.1-terra)이고 있으면(외부 제공사) OPENAI_MODEL이다.
     생각 설정(SIMULATION_ACT_THINKING)은 base URL이 있을 때만 읽는다.
     키는 base URL(OpenAI 호환 제공사)이 있으면 SIMULATION_ACT_API_KEY뿐이고(OPENAI_API_KEY를 외부로 보내지 않는다) 없으면 OPENAI_API_KEY뿐이다(제공사 키를 OpenAI로 보내지 않는다)."""
     own = lambda var: (os.environ.get(f'SIMULATION_ACT_{var}', '').strip() or None) if name == 'act' else None  # noqa: E731
     base_url = own('BASE_URL')
-    return base_url, own('API_KEY') if base_url else os.environ.get('OPENAI_API_KEY'), own('MODEL') or os.environ.get('OPENAI_MODEL'), own('THINKING') if base_url else None
+    default_model = ACT_MODEL if name == 'act' and not base_url else os.environ.get('OPENAI_MODEL')
+    return base_url, own('API_KEY') if base_url else os.environ.get('OPENAI_API_KEY'), own('MODEL') or default_model, own('THINKING') if base_url else None
 
 
 def _details(usage: dict | None) -> dict | None:

@@ -45,17 +45,21 @@ def need_openai() -> None:
 
 
 def act_provider() -> dict | None:
-    """act가 외부 OpenAI 호환 제공사로 가는 설정이면 {provider(호스트), model, thinking(off·default)}, 아니면 None. 서비스(agent._endpoint)가 읽는 환경 변수를 그대로 읽는다(키는 읽지 않는다)."""
+    """act가 OPENAI_MODEL이 아닌 모델로 가는 설정이면 {provider(호스트, OpenAI는 openai), model, thinking(off·default)}, 같으면 None이다.
+    서비스(agent._endpoint)가 읽는 환경 변수를 그대로 읽는다(키는 읽지 않는다). 서비스 기본 act 모델이 gpt-6.1-terra(OpenAI)라 환경 변수가 없어도 openai 표기다."""
+    import orig_variants
     from app.simulation import agent
     base_url, _, model, thinking = agent._endpoint('act')
-    return {'provider': urlparse(base_url).hostname, 'model': model, 'thinking': thinking or 'default'} if base_url else None
+    if base_url:
+        return {'provider': urlparse(base_url).hostname, 'model': model, 'thinking': thinking or 'default'}
+    return {'provider': 'openai', 'model': model, 'thinking': 'default'} if orig_variants.act_model() else None
 
 
 def act_rate(act: dict | None) -> tuple[float, float, float] | None:
-    """act 제공사 모델의 단가(입력·캐시 입력·출력, 달러/100만 토큰). act가 기본 경로면 None이고 단가를 모르는 모델이면 호출 전에 멈춘다."""
+    """act 모델의 단가(입력·캐시 입력·출력, 달러/100만 토큰). act가 기본 경로(OPENAI_MODEL)면 None이고 단가를 모르는 모델이면 호출 전에 멈춘다."""
     import orig_variants
     if act and act['model'] not in orig_variants.RATES:
-        raise SystemExit(f"act 제공사 모델 {act['model']}의 단가를 모른다(orig_variants.RATES에 더한다).")
+        raise SystemExit(f"act 모델 {act['model']}의 단가를 모른다(orig_variants.RATES에 더한다).")
     return act and orig_variants.RATES[act['model']]
 
 
@@ -219,10 +223,9 @@ def sample_of(items: list[dict], n: int) -> list[dict]:
 
 def estimate(corpus, keys, judge: str, limit: int | None, sample: int = SAMPLE, folder: str | None = None, rate=None) -> tuple[dict, float]:
     """세트별 {문항 수, 평균 입력 글자, 예상 금액, 문항당 최대 금액}과 합계(호출 없음). 표본 문항의 입력을 실제로 조립해 재고 전체로 늘린다.
-    rate(입력·캐시 입력·출력 단가)가 있으면 act 제공사 실행이라 그 단가로 세고 채점(ocx)은 더하지 않는다."""
+    rate(입력·캐시 입력·출력 단가)가 있으면 act 호출을 하는 ① 대사를 그 단가로 센다(서비스 기본 act 모델 terra·act 제공사). 연출·나레이션·검사는 기본 단가다."""
     import orig_run as rn
     from cost import usd
-    price = usd if rate is None else (lambda tokens_in, tokens_out: (tokens_in * rate[0] + tokens_out * rate[2]) / 1_000_000)
     rows, total = {}, 0.0
     for key in keys:
         items = sample_of(load_items(folder or corpus.name, key), limit) if limit else load_items(folder or corpus.name, key)
@@ -231,9 +234,11 @@ def estimate(corpus, keys, judge: str, limit: int | None, sample: int = SAMPLE, 
         chars = [item_chars(key, item, corpus, rn) for item in sample_of(items, sample)]
         mean = sum(chars) / len(chars)
         out = 100 if key == '2' else 700
-        per = price(int(mean / rn.CHARS_PER_TOKEN), out) + (usd(rn.JUDGE_IN, rn.JUDGE_OUT) if judge == 'openai' and key != '2' and rate is None else 0)
+        keyed = rate if key == '1' else None
+        price = usd if keyed is None else (lambda tokens_in, tokens_out: (tokens_in * keyed[0] + tokens_out * keyed[2]) / 1_000_000)
+        per = price(int(mean / rn.CHARS_PER_TOKEN), out) + (usd(rn.JUDGE_IN, rn.JUDGE_OUT) if judge == 'openai' and key != '2' else 0)
         longest = max(chars) * 1.3
-        item_max = usd(int(longest / rn.CHARS_PER_TOKEN), 100) if key == '2' else rn.estimate_item_usd(longest) if rate is None else price(int(longest / rn.CHARS_PER_TOKEN), rn.GEN_OUT)
+        item_max = usd(int(longest / rn.CHARS_PER_TOKEN), 100) if key == '2' else rn.estimate_item_usd(longest) if keyed is None else price(int(longest / rn.CHARS_PER_TOKEN), rn.GEN_OUT)
         rows[key] = {'items': len(items), 'meanChars': round(mean), 'usd': per * len(items), 'itemMaxUsd': item_max}
         total += rows[key]['usd']
     return rows, total
@@ -256,9 +261,12 @@ def cmd_run(args) -> None:
     from cost import CostLog
     from llm import usd_llm
     sets = args.sets.split(',')
-    act = act_provider()   # act가 외부 OpenAI 호환 제공사면(SIMULATION_ACT_BASE_URL) 그 호출은 OpenAI 장부와 따로 센다
-    if act and (sets != ['1'] or args.via == 'ocx' or args.judge != 'ocx'):
-        raise SystemExit('act 제공사(SIMULATION_ACT_BASE_URL)는 ① 대사만 돈다(다른 세트의 호출은 OpenAI라 장부가 섞인다). --via ocx(게이트웨이로 고정)·--judge openai(채점 비용이 OpenAI 장부로 간다)와도 함께 쓰지 않는다.')
+    act = act_provider()   # act가 OPENAI_MODEL이 아닌 모델로 가면(서비스 기본 gpt-6.1-terra·SIMULATION_ACT_MODEL·외부 제공사) 기록에 밝히고 그 모델 단가로 센다
+    if act and args.via == 'ocx':
+        raise SystemExit('--via ocx는 게이트웨이 모델(gpt-6-luna) 하나라 act 모델이 OPENAI_MODEL과 다르면 쓰지 않는다(서비스 기본 gpt-6.1-terra는 SIMULATION_ACT_MODEL=gpt-6-luna로 되돌린 뒤).')
+    external = bool(act) and act['provider'] != 'openai'   # 외부 제공사(SIMULATION_ACT_BASE_URL)의 호출은 OpenAI 장부와 따로 센다
+    if external and (sets != ['1'] or args.judge != 'ocx'):
+        raise SystemExit('act 제공사(SIMULATION_ACT_BASE_URL)는 ① 대사만 돈다(다른 세트의 호출은 OpenAI라 장부가 섞인다). --judge openai(채점 비용이 OpenAI 장부로 간다)와도 함께 쓰지 않는다.')
     rate = act_rate(act)
     if args.via == 'ocx':
         if '2' in sets:
@@ -267,7 +275,7 @@ def cmd_run(args) -> None:
     corpus = corpus_of(args.corpus)
     rows, total = estimate(corpus, sets, args.judge, args.limit, folder=home(args), rate=rate)
     print(json.dumps({k: {'items': v['items'], 'meanChars': v['meanChars'], 'usd': round(v['usd'], 2)} for k, v in rows.items()}, ensure_ascii=False))
-    cost = CostLog(COST_ACT if act else COST)
+    cost = CostLog(COST_ACT if external else COST)
     if args.via == 'openai' and cost.spent() + total > args.limit_usd:   # act 제공사 실행도 via는 openai다(위 확인)
         raise SystemExit(f'예상 {total:.2f}달러가 남은 상한(장부 {cost.spent():.2f}달러 / {args.limit_usd:.2f}달러)을 넘어 호출 없이 멈춘다.')
     import orig_judge
@@ -280,8 +288,6 @@ def cmd_run(args) -> None:
     variants = orig_variants.spec_of(args.variant)   # None·빈 이름이면 빈 명세(기준선)
     tag = args.tag or args.variant or 'A'   # --tag가 있으면 그 이름(같은 후보를 다른 모델로 잴 때 H1처럼), 없으면 후보 이름, 둘 다 없으면 A
     via = {'sut': args.via, 'judge': args.judge, 'judgeModel': args.judge_model, **({'act': act} if act else {})}
-    if act:
-        orig_variants.MODEL_CALLS['act'] = act['model']   # act 호출은 그 모델 단가(orig_variants.RATES)로 세고 장부 줄에 모델 이름이 남는다
     with orig_variants.patched(args.variant):   # 지시문·질문 구성 후보는 이 실행 안에서만 끼운다
         for key in sets:
             if key not in rows:   # 문항이 없는 세트(dev의 ③독백·④)는 estimate가 뺀다: 건너뛴다
@@ -314,6 +320,10 @@ def cmd_scenes(args) -> None:
     import sim_stats
     import sim_worlds
     from cost import CostLog
+    act = act_provider()   # 서비스 기본 act 모델(gpt-6.1-terra)이 OPENAI_MODEL과 달라 결과가 밝히고, 장부(sim_speed)가 그 모델 단가로 센다
+    if act and act['provider'] != 'openai':
+        raise SystemExit('act 제공사(SIMULATION_ACT_BASE_URL)는 run의 ① 대사만 돈다(장면의 호출은 OpenAI 장부로 간다).')
+    act_rate(act)   # 단가를 모르는 act 모델이면 호출 전에 멈춘다
     cost = CostLog(COST)
     worlds = sim_worlds.Worlds([], {}, sim_worlds.load_hp())   # 해리 포터 장면은 TimeChara 행 없이 world.json만 쓴다
     specs = rn.repeated([s for s in sim_worlds.SCENES if s['id'] in args.ids.split(',')], args.repeat)
@@ -332,7 +342,7 @@ def cmd_scenes(args) -> None:
     RESULTS.mkdir(exist_ok=True)
     for name, records in asyncio.run(play()).items():
         data = {'run': name, 'skipNarrationCheck': args.skip_narration_check, 'scenes': [s['id'] for s in specs], 'speed': sim_stats.summarize_speed(records), 'drift': rn.scene_drift(records),
-                'outcomes': {r['id']: r['status'] if not r.get('stopReason') else f"{r['status']}:{r['stopReason']}" for r in records}}
+                'outcomes': {r['id']: r['status'] if not r.get('stopReason') else f"{r['status']}:{r['stopReason']}" for r in records}, **({'act': act} if act else {})}
         (RESULTS / f'orig-hp-scenes-{name}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
         print(name, json.dumps({'outcomes': data['outcomes'], 'drift': data['drift'], 'turnMs': data['speed']['turnMs'], 'usdPerScene': data['speed']['usdPerScene']}, ensure_ascii=False))
 

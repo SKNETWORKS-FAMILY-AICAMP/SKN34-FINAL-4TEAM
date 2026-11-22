@@ -65,7 +65,16 @@ def test_an_act_provider_run_counts_its_calls_in_its_own_ledger_at_its_own_rate_
     assert not (home / 'cost-orig.jsonl').exists()   # OpenAI 장부는 건드리지 않는다
 
 
-def test_a_run_without_an_act_provider_keeps_the_openai_ledger_and_the_variant_name_as_the_tag(home):
+def test_a_default_run_counts_act_at_the_terra_rate_in_the_openai_ledger_and_labels_the_records(home):
+    oc.cmd_run(args(tag=None))
+    records = rows(home / 'orig' / 'hp' / 'runs' / '1-P1.jsonl')
+    assert [r['via']['act'] for r in records] == [{'provider': 'openai', 'model': 'gpt-6.1-terra', 'thinking': 'default'}] * 2   # 서비스 기본 act 모델이 terra라 기록이 스스로 밝힌다
+    assert [(r['kind'], r['model'], round(r['usd'], 6)) for r in rows(home / 'cost-orig.jsonl')] == [('act', 'gpt-6.1-terra', 0.0015)] * 2   # 1,000×1.00 + 100×5.00
+    assert not (home / 'cost-hemmingway.jsonl').exists()   # OpenAI 모델은 Hemmingway 장부로 가지 않는다
+
+
+def test_a_run_with_the_act_model_back_on_luna_keeps_the_plain_luna_ledger_and_the_variant_name_as_the_tag(home, monkeypatch):
+    monkeypatch.setenv('SIMULATION_ACT_MODEL', 'gpt-6-luna')
     oc.cmd_run(args(tag=None))
     records = rows(home / 'orig' / 'hp' / 'runs' / '1-P1.jsonl')
     assert len(records) == 2 and all('act' not in r['via'] for r in records)
@@ -106,6 +115,57 @@ def test_the_default_judge_is_sol_and_luna_only_by_name(monkeypatch):
     assert seen['cmd_run'].judge_model == 'gpt-6-luna'
 
 
+def test_a_default_run_estimates_act_at_the_terra_rate_and_stops_when_that_exceeds_the_cap(home):
+    with pytest.raises(SystemExit, match='상한'):   # luna 단가 예상(0.0041달러)은 통과하고 terra 단가 예상(0.019달러)은 넘는다
+        oc.cmd_run(args(limit_usd=0.01))
+    assert not (home / 'orig' / 'hp' / 'runs' / '1-H1.jsonl').exists() and not (home / 'cost-orig.jsonl').exists()
+
+
+def test_scenes_results_say_which_act_model_ran_and_refuse_an_external_provider(home, monkeypatch):
+    import sim_speed
+    import sim_stats
+    import sim_worlds
+    monkeypatch.setenv('SIMULATION_SKIP_NARRATION_CHECK', '0')   # cmd_scenes가 환경에 쓰는 값을 시험 뒤에 되돌린다
+    monkeypatch.setattr(sim_worlds, 'load_hp', lambda: None)
+    monkeypatch.setattr(sim_worlds, 'Worlds', lambda *a: None)
+    monkeypatch.setattr(sim_worlds, 'SCENES', [{'id': 'hp-1-flow'}])
+    monkeypatch.setattr(rn, 'repeated', lambda specs, n: specs)
+    monkeypatch.setattr(rn, 'scene_drift', lambda records: {})
+    monkeypatch.setattr(sim_stats, 'summarize_speed', lambda records: {'turnMs': {}, 'usdPerScene': 0.0})
+
+    async def run_speed(specs, worlds, cost, limit, out, keep):
+        return [{'id': 'hp-1-flow', 'status': 'completed', 'stopReason': None}]
+
+    monkeypatch.setattr(sim_speed, 'run_speed', run_speed)
+    scenes = argparse.Namespace(ids='hp-1-flow', repeat=1, runs=['base'], limit_usd=5.0, skip_narration_check=True, keep_text=False)
+    result = home / 'results' / 'orig-hp-scenes-base.json'
+    oc.cmd_scenes(scenes)
+    assert json.loads(result.read_text())['act'] == {'provider': 'openai', 'model': 'gpt-6.1-terra', 'thinking': 'default'}   # 서비스 기본 act 모델을 결과가 밝힌다
+    monkeypatch.setenv('SIMULATION_ACT_MODEL', 'gpt-6-luna')
+    oc.cmd_scenes(scenes)
+    assert 'act' not in json.loads(result.read_text())   # luna면 예전과 같은 모양
+    for name, value in ACT_ENV.items():
+        monkeypatch.setenv(name, value)
+    with pytest.raises(SystemExit, match='act 제공사'):   # 외부 제공사의 호출은 OpenAI 장부에 섞이지 않게 장면 실행에서는 막는다
+        oc.cmd_scenes(scenes)
+
+
+def test_the_rate_prices_only_the_act_set_and_the_other_sets_keep_the_luna_price(home):
+    corpus = SimpleNamespace(name='hp')
+    plain, _ = oc.estimate(corpus, ['1', '3n'], 'ocx', None)
+    rated, _ = oc.estimate(corpus, ['1', '3n'], 'ocx', None, rate=ov.RATES[ov.TERRA])
+    assert rated['3n'] == plain['3n'] and rated['1']['usd'] > plain['1']['usd']   # ③ 나레이션은 act 모델이 아니다
+
+
+def test_via_ocx_needs_the_act_model_back_on_the_gateway_luna(home, monkeypatch):
+    with pytest.raises(SystemExit, match='--via ocx'):   # 게이트웨이는 luna 하나라 act 기본(terra)을 그대로 보낼 수 없다
+        oc.cmd_run(args(via='ocx'))
+    monkeypatch.setenv('SIMULATION_ACT_MODEL', 'gpt-6-luna')
+    monkeypatch.setattr(sim_via, 'use_ocx', lambda: None)
+    oc.cmd_run(args(via='ocx', tag='O1'))
+    assert len(rows(home / 'orig' / 'hp' / 'runs' / '1-O1.jsonl')) == 2
+
+
 def test_the_estimate_prices_input_and_the_assumed_output_at_the_given_rate(home):
     corpus = SimpleNamespace(name='hp')
     tokens = int(9000 / rn.CHARS_PER_TOKEN)
@@ -115,13 +175,16 @@ def test_the_estimate_prices_input_and_the_assumed_output_at_the_given_rate(home
     assert hemmingway['1']['usd'] != luna['1']['usd'] and hemmingway['1']['itemMaxUsd'] == pytest.approx((int(9000 * 1.3 / rn.CHARS_PER_TOKEN) * 0.72 + rn.GEN_OUT * 2.70) / 1_000_000)
 
 
-def test_act_provider_reads_the_service_settings_and_is_none_without_a_base_url(home, monkeypatch):
-    assert oc.act_provider() is None
+def test_act_provider_reads_the_service_settings_and_is_none_when_act_runs_the_openai_model(home, monkeypatch):
+    assert oc.act_provider() == {'provider': 'openai', 'model': 'gpt-6.1-terra', 'thinking': 'default'}   # 서비스 기본: OpenAI terra
+    monkeypatch.setenv('SIMULATION_ACT_MODEL', 'gpt-6-luna')
+    assert oc.act_provider() is None   # OPENAI_MODEL과 같으면 기본 경로다
     monkeypatch.setenv('SIMULATION_ACT_THINKING', 'off')
     assert oc.act_provider() is None   # base URL이 없으면 서비스도 이 설정을 읽지 않는다
     monkeypatch.setenv('SIMULATION_ACT_BASE_URL', 'https://hemmingway.io/v1')
     monkeypatch.setenv('SIMULATION_ACT_API_KEY', 'hem-key')
-    assert oc.act_provider() == {'provider': 'hemmingway.io', 'model': 'gpt-6-luna', 'thinking': 'off'}   # 모델은 비면 OPENAI_MODEL
+    monkeypatch.delenv('SIMULATION_ACT_MODEL')
+    assert oc.act_provider() == {'provider': 'hemmingway.io', 'model': 'gpt-6-luna', 'thinking': 'off'}   # 외부 제공사의 모델은 비면 OPENAI_MODEL
     monkeypatch.setenv('SIMULATION_ACT_MODEL', 'hemmingway-1.5')
     monkeypatch.delenv('SIMULATION_ACT_THINKING')
     assert oc.act_provider() == {'provider': 'hemmingway.io', 'model': 'hemmingway-1.5', 'thinking': 'default'}

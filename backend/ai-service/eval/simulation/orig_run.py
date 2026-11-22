@@ -168,11 +168,10 @@ def covered(fact: str, forbidden: list[dict]) -> bool:
 
 def settle(cost, ledger, estimate: int = 0) -> list[dict]:
     """모델 호출마다 토큰·금액을 비용 장부에 남기고(토큰을 모르면 입력 어림으로) 호출 기록을 돌려준다. 호출 기록에는 그 호출의 금액(usd)도 더한다.
-    모델 후보(orig_variants.MODEL_CALLS)가 바꾼 호출은 그 모델의 단가(orig_variants.RATES)로 세고 장부 줄에 모델 이름을 남긴다."""
+    OPENAI_MODEL이 아닌 모델로 간 호출(후보 M1이 바꾼 것, 서비스 기본 act 모델 terra, SIMULATION_ACT_MODEL)은 그 모델의 단가(orig_variants.RATES)로 세고 장부 줄에 모델 이름을 남긴다."""
     for call in ledger.calls:
-        model = orig_variants.MODEL_CALLS.get(call['name'])
         call['usd'] = cost.record(call['name'], call['inputTokens'] if call['inputTokens'] is not None else estimate, call['outputTokens'] or 0, failed=call['failed'],
-                                  **({'rate': orig_variants.RATES[model], 'model': model} if model else {}))
+                                  **orig_variants.priced(call['name']))
     return ledger.calls
 
 

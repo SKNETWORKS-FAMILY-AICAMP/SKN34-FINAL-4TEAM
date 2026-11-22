@@ -37,8 +37,15 @@ class TimedLedger(UsageLedger):
         self.records[-1]['wallMs'] = round((self.marks[-1] - self.marks[-2]) * 1000)
 
 
+def _priced(call: dict) -> dict:
+    """장부에 더할 모델 단가 인자(orig_variants.priced): act는 서비스가 쓰는 모델(기본 terra)의 단가다. 평가 모듈은 이 도구보다 늦게 생겨 필요할 때 불러온다."""
+    from orig_variants import priced
+    return priced(call['name'])
+
+
 def _usd(call: dict) -> float:
-    return request_usd(call['inputTokens'] or 0, call['outputTokens'] or 0)  # 토큰을 알려 주지 않은 호출은 0으로 세고 unpriced로 센다
+    tokens_in, tokens_out, rate = call['inputTokens'] or 0, call['outputTokens'] or 0, _priced(call).get('rate')   # 토큰을 알려 주지 않은 호출은 0으로 세고 unpriced로 센다
+    return request_usd(tokens_in, tokens_out) if rate is None else (tokens_in * rate[0] + tokens_out * rate[2]) / 1_000_000
 
 
 async def run_scene(spec: dict, plan, world, cost=None, transcript: bool = False) -> dict:
@@ -57,7 +64,7 @@ async def run_scene(spec: dict, plan, world, cost=None, transcript: bool = False
     calls = [c for r in ledger.records for c in r['calls']] + ledger.calls  # 끝까지 알림이 가지 못한 호출도 센다
     if cost is not None:
         for call in calls:
-            cost.record(call['name'], call['inputTokens'] or 0, call['outputTokens'] or 0, failed=call['failed'])
+            cost.record(call['name'], call['inputTokens'] or 0, call['outputTokens'] or 0, failed=call['failed'], **_priced(call))
     record = {'id': spec['id'], 'engine': 'turn', 'mode': plan.mode, 'status': final.result.status, 'stopReason': final.result.stopReason, 'error': final.error,
             'turns': [{'kind': t.kind, 'pov': t.pov, 'regenerated': t.regenerated} for t in final.result.turns],
             'steps': [{'turn': r['turn'], 'ms': r['ms'], 'wallMs': r['wallMs'], 'modelCalls': r['modelCalls'], 'failures': r['failures'],

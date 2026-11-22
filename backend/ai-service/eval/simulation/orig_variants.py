@@ -11,6 +11,7 @@ act 지시문 P1·소울 먼저 P2·둘 다 P3, narrate 지시문 N1·N2·N3(N2�
 
 from orig_common import SEED  # noqa: F401,I001  경로 설정이 import보다 먼저여야 한다
 
+import os
 from contextlib import contextmanager
 from types import SimpleNamespace
 
@@ -226,6 +227,21 @@ HEMMINGWAY = (0.72, 0.072, 2.70)   # 입력·캐시 입력·출력(생각 포함
 RATES = {TERRA: (1.00, 0.05, 5.00),   # 입력·캐시 입력·출력, 달러/100만 토큰(제3자 출처, 공식 단가를 확인하면 정정한다)
          'hemmingway-1': HEMMINGWAY, 'hemmingway-1.5': HEMMINGWAY, 'hemmingway-27b': HEMMINGWAY}   # act 제공사 실행의 모델: 캐시 입력은 토큰 수를 몰라 전부 입력 단가로 센다(상한)
 MODEL_CALLS: dict[str, str] = {}      # patched가 채운다: 모델 호출 이름 → 모델(장부가 그 모델 단가로 센다)
+
+
+def act_model() -> str | None:
+    """서비스가 act에 쓰는 모델이 OPENAI_MODEL과 다르면 그 모델(서비스 기본 gpt-6.1-terra·SIMULATION_ACT_MODEL·외부 제공사), 같으면 None이다(기본 luna 단가)."""
+    model = agent._endpoint('act')[2]
+    return model if model != os.environ.get('OPENAI_MODEL') else None
+
+
+def priced(name: str) -> dict:
+    """장부 record에 더할 인자: 그 호출의 모델이 OPENAI_MODEL이 아니면 그 모델의 단가(rate)와 이름(model), 같으면 빈 dict(기본 단가).
+    후보(M1)가 바꾼 호출(MODEL_CALLS)이 먼저고 act는 서비스가 쓰는 모델이다. 단가를 모르는 모델은 조용히 luna 단가로 세지 않고 멈춘다."""
+    model = MODEL_CALLS.get(name) or (act_model() if name == 'act' else None)
+    if model and model not in RATES:
+        raise SystemExit(f'{name} 호출의 모델 {model}의 단가를 모른다(orig_variants.RATES에 더한다).')
+    return {'rate': RATES[model], 'model': model} if model else {}
 
 
 def model_for(model: str):
