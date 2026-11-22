@@ -16,16 +16,12 @@
    - `general`: 다음 전개 의견(≤1,000자).
    - `simulation`: 전제(≤500자)와 장면 비트(≤5개, 각 ≤200자)를 넣으면 AI가 **독자에게 공개된 회차·설정 카드만** 문맥으로
      짧은 장면 미리보기를 만들어 의견에 붙인다. 크레딧은 제출자 부담이다. 실패하면 의견을 저장하지 않고 차감도 없다.
-   - `setting`: 설정 카드 추가(`add`: 카드 유형·제목·본문) 또는 변경(`change`: 독자에게 보이는 카드 하나·바꿀 본문) 제안.
-4. **설정 제안 승인**: 작품 관리의 **설정 제안** 탭(세계관 탭 옆)에 `setting` 의견이 쌓인다. 소유자가 승인하면
-   연결 세계관의 **초안**에 카드를 추가·수정하고(확정 버전은 소유자가 따로 만든다) 의견에 `approved`를 표시한다. 거절은 `rejected`.
-   독자가 남의 세계관을 직접 바꾸지 않는다(DEC-36: 제안과 승인·반영 구분).
-5. **마감·실행**: 정해진 요일·시각이 되거나 소유자가 **지금 마감·실행**을 누르면 게시판이 마감되고 실행된다.
+4. **마감·실행**: 정해진 요일·시각이 되거나 소유자가 **지금 마감·실행**을 누르면 게시판이 마감되고 실행된다.
    - 입력: 연재 방향, 득표 상위 3개 의견(동률은 먼저 쓴 것, 숨긴 의견 제외, 시뮬레이션 미리보기 포함), 작품 문맥(최근 발행 회차 본문, 세계관이 연결돼 있으면 그 카드도).
    - AI: 의견 종합 → 회차 기획·원고 → 검수(문맥 기준 설정 충돌·개연성·19세 이용가 판정). 검수 실패면 원고를 1회 다시 쓰고, 그래도 실패면 실패를 돌려준다.
    - Content: 성공하면 다음 회차를 저장·발행하고 게시판을 `published`로 닫은 뒤 다음 게시판을 연다. 종합 문장(`summary`)은 닫힌 게시판에 공개한다.
      실패하면 게시판은 `failed`와 고정 문구 사유로 남고 발행하지 않는다. 자동 재시도는 없고 소유자가 지금 실행으로 다시 시도한다.
-6. **기록**: AI 집필 탭에서 게시판별 상태(`open`·`queued`·`running`·`published`·`failed`)·발행 회차·실패 사유를 본다.
+5. **기록**: AI 집필 탭에서 게시판별 상태(`open`·`queued`·`running`·`published`·`failed`)·발행 회차·실패 사유를 본다.
 
 ## 일정
 
@@ -58,12 +54,10 @@
 | `POST /api/v1/works/{id}/ai-serial/run` | 소유자 | 열린 게시판을 `queued`로. 꺼짐 409 `SERIAL_DISABLED`, 열린 게시판 없음 409 `SERIAL_NO_BOARD`, 이미 실행 중 409 `SERIAL_RUNNING`. 202 |
 | `GET /api/v1/works/{id}/ai-serial/boards` | 소유자 | 게시판 기록 최신순(상태·대상 회차·발행 회차·사유·마감 시각, 최대 50) |
 | `GET /api/v1/works/{id}/serial-board` | 누구나(공개 작품) | 열린 게시판(없으면 `null`)과 의견 목록(득표순, 숨긴 의견 제외), 로그인이면 내 의견·내 투표. 마지막 닫힌 게시판의 `summary` |
-| `POST /api/v1/works/{id}/serial-board/opinions` | 로그인 | 의견 제출 `{kind, body, simulation?:{premise, beats}, setting?:{action, cardId?, cardType?, title?, body}}`. 이미 냈으면 409 `OPINION_EXISTS` |
+| `POST /api/v1/works/{id}/serial-board/opinions` | 로그인 | 의견 제출 `{kind, body, simulation?:{premise, beats}}`. 이미 냈으면 409 `OPINION_EXISTS` |
 | `PUT /api/v1/works/{id}/serial-board/vote` | 로그인 | `{opinionId}` 투표·옮기기 |
 | `DELETE /api/v1/works/{id}/serial-board/vote` | 로그인 | 투표 취소 |
 | `POST /api/v1/works/{id}/serial-board/opinions/{opinionId}/hide` | 소유자 | 의견 숨김(악성 의견) |
-| `GET /api/v1/works/{id}/setting-proposals` | 소유자 | `setting` 의견 목록(상태 `pending`·`approved`·`rejected`) |
-| `POST /api/v1/works/{id}/setting-proposals/{opinionId}/approve`·`/reject` | 소유자 | 승인은 세계관 초안에 반영(초안 revision 충돌 409, 연결 세계관이 없으면 409 `WORLD_NOT_LINKED`라 승인 불가·거절만 가능) |
 
 ### AI 내부 API (`X-Internal-Token`, 새 패키지 `app/serial/`)
 
@@ -79,10 +73,10 @@
 
 - `ai_serial(work_id PK, enabled, days text, run_time time, direction text, last_run_date date, updated_at)`
 - `serial_board(id, work_id, episode_number, status, summary, published_episode_number, failure_reason, opened_at, closed_at)`, 작품당 `open|queued|running` 하나(부분 유니크).
-- `serial_opinion(id, board_id, author_id, kind, body, simulation jsonb, setting jsonb, setting_status, hidden, created_at)`, `(board_id, author_id)` 유니크.
+- `serial_opinion(id, board_id, author_id, kind, body, simulation jsonb, hidden, created_at)`, `(board_id, author_id)` 유니크.
 - `serial_vote(board_id, member_id, opinion_id)`, PK `(board_id, member_id)`.
 - 작성자 표시명은 저장하지 않고 `CoreNicknameService`로 채운다.
 
 ## 범위 밖 (MVP 이후)
 
-다중 서버 분산 잠금, 연속 실패 자동 중단·월 한도, 생성 중지, 실행 실패 알림, 시뮬레이션 보상(작가 승인 시 50%), 독자 인물 시뮬레이션(턴별 진행) 개방.
+독자 설정 카드 추가·변경 제안과 소유자 승인(2026-11-22 사용자 결정으로 제외, 의견은 일반·시뮬레이션만), 다중 서버 분산 잠금, 연속 실패 자동 중단·월 한도, 생성 중지, 실행 실패 알림, 시뮬레이션 보상(작가 승인 시 50%), 독자 인물 시뮬레이션(턴별 진행) 개방.
