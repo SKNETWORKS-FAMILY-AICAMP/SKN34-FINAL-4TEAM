@@ -9,6 +9,7 @@ import ai.storyfork.content.episode_version.entity.EpisodeVersionEntity
 import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
 import ai.storyfork.content.publication.entity.*
 import ai.storyfork.content.publication.repository.*
+import ai.storyfork.content.preprocessing.service.PreprocessingService
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.publication.service.dto.*
 import ai.storyfork.content.work.entity.WorkEntity
@@ -23,6 +24,7 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.util.Optional
 
 @ExtendWith(MockitoExtension::class)
@@ -41,6 +43,7 @@ class PublicationServiceTest {
     @Mock lateinit var selectedPolicyEpisodes: ForkPolicyEpisodeRepository
     @Mock lateinit var em: EntityManager
     @Mock lateinit var interests: ai.storyfork.content.interest.service.WorkInterestService
+    @Mock lateinit var preprocessing: PreprocessingService
     @InjectMocks lateinit var service: PublicationService
 
     private val work=WorkAccessResult("w","owner","제목","",4,"world","public",true,true,null)
@@ -67,14 +70,14 @@ class PublicationServiceTest {
         service.visibility("w","owner",2,PublicationVisibilityRequest(4,false))
         assertEquals("unpublish",savedAction().action)
         assertEquals("ev",savedAction().episodeVersionId)
-        verifyNoInteractions(rights,visibility,interests)
+        verifyNoInteractions(rights,visibility,interests,preprocessing)
         verify(versions,never()).save(any(EpisodeVersionEntity::class.java))
     }
     @Test fun `republish restores suspended version and rechecks rights`() {
         prepare("suspended");history("unpublish");writable()
         service.visibility("w","owner",2,PublicationVisibilityRequest(4,true,true))
         assertEquals("republish",savedAction().action)
-        verifyNoInteractions(interests)
+        verifyNoInteractions(interests,preprocessing)
         assertEquals("ev",savedAction().episodeVersionId)
         verify(episodeService).requireImageReferences("w",2,"본문")
     }
@@ -151,7 +154,39 @@ class PublicationServiceTest {
         `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(EpisodeCurrentEntity(id="e",sequence=2,publishedVersionId="previous")))
         service.publishEpisode("w","owner",2,PublishRequest(4,true,versionId="v"))
         assertEquals("replace",savedAction().action)
-        verifyNoInteractions(interests)
+        verifyNoInteractions(interests,preprocessing)
+    }
+
+    // ---- 첫 발행이 커밋된 뒤 발행 회차로 세계관 초안을 업데이트하는 작업을 접수한다(2026-11-22) ----
+
+    /** 앞 회차 1은 이미 발행됐고 회차 2의 저장 버전 v를 지금 처음 발행한다. */
+    private fun firstPublish() {
+        writable()
+        val saved=ai.storyfork.content.episode_version.service.dto.VersionResponse("v","제목","본문",1,2,"2026-11-01T00:00:00Z")
+        `when`(access.own("w","owner")).thenReturn(work)
+        `when`(episodeService.read("w","owner",2)).thenReturn(EpisodeResponse(2,DraftResponse("제목","초안",4),listOf(saved),null,false,null,publicationStatus="draft"))
+        `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(EpisodeCurrentEntity(id="e1",sequence=1,publishedVersionId="v1")))
+    }
+    private fun publishFirst()=service.publishEpisode("w","owner",2,PublishRequest(4,true,versionId="v"))
+
+    @Test fun `a first publish asks for the world update once and only after the transaction commits`() {
+        firstPublish()
+        TransactionSynchronizationManager.initSynchronization()
+        try {
+            publishFirst()
+            assertEquals("publish",savedAction().action)
+            verifyNoInteractions(preprocessing)
+            TransactionSynchronizationManager.getSynchronizations().forEach { it.afterCommit() }
+        } finally { TransactionSynchronizationManager.clear() }
+        verify(preprocessing).startUpdate("w","owner","ev")
+        verifyNoMoreInteractions(preprocessing)
+    }
+    @Test fun `outside a transaction the first publish asks right away and a failed request never breaks the publish`() {
+        firstPublish()
+        `when`(preprocessing.startUpdate("w","owner","ev")).thenThrow(IllegalStateException("원고 본문이 든 문구"))
+        publishFirst()
+        verify(preprocessing).startUpdate("w","owner","ev")
+        assertEquals("publish",savedAction().action)
     }
 
 }
