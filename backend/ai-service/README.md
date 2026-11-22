@@ -65,7 +65,7 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 
 성적표 실행기는 [`eval/simulation/`](eval/simulation/README.md)에 있다(`prepare`·`estimate`·`run`·`report`, 해리 포터 원문 기반 세계관은 `build-hp`·`show-hp`·`seed-hp`와 `--world hp`). `run`·`build-hp`는 실제 OpenAI를 부르므로 비용 승인 뒤에만 쓴다(OpenAI 상한에 닿으면 `--via ocx`로 이어 받는 안내가 나온다).
 스위치마다 켰을 때·껐을 때의 호출 수를 단위 테스트가 단언한다: `uv run --locked --extra dev python -m pytest -m 'not integration' tests/simulation eval/simulation`.
-소설 원문을 정답으로 하는 평가 세트(①대사 ②연출 ③나레이션·독백 ④검사)는 `eval/simulation/orig_cli.py`이고 설계·결과·후보 비교는 [원문 기반 평가](../../docs/evaluation/simulation-original.md)다. 거기서 채택한 변경은 인물 대사 검사 입력의 금지 목록 상한 하나(`service.FORBIDDEN_LIMIT`=20, `service.check_payload`, #646)다.
+소설 원문을 정답으로 하는 평가 세트(①대사 ②연출 ③나레이션·독백 ④검사)는 `eval/simulation/orig_cli.py`이고 설계·결과·후보 비교는 [원문 기반 평가](../../docs/evaluation/simulation-original.md)다. 거기서 채택한 변경은 인물 대사 검사 입력의 금지 목록 상한 하나(`service.FORBIDDEN_LIMIT`=20, `service.check_payload`, #646)다. v2 기준선 이후의 act·나레이션 지시문 제안(P1·N3)과 V4(초안 → 병렬 수정) 시험은 평가 전용이라 서비스는 그대로이고, 결과는 [원문 기반 평가 §13](../../docs/evaluation/simulation-original.md)·[V4 보고서](../../docs/evaluation/simulation-v4-draft-parallel.md)에 있다.
 
 ## 회귀 평가·누설 판정 (DEC-55)
 
