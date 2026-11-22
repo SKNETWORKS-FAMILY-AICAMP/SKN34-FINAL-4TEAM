@@ -252,6 +252,8 @@ def cmd_run(args) -> None:
     import orig_variants
     with orig_variants.patched(args.variant):   # 지시문·질문 구성 후보는 이 실행 안에서만 끼운다
         for key in sets:
+            if key not in rows:   # 문항이 없는 세트(dev의 ③독백·④)는 estimate가 뺀다: 건너뛴다
+                continue
             items = sample_of(load_items(home(args), key), args.limit) if args.limit else load_items(home(args), key)
             items = sorted(items, key=lambda i: (i['base'], i['id']))   # 기준 회차 순서로 돌려 세계관(World)을 다시 만드는 일을 줄인다
             out = rn.run_path(ORIG / home(args) / 'runs', key, tag)

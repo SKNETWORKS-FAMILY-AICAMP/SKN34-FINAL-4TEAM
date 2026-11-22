@@ -121,7 +121,9 @@ def cmd_run(args) -> None:
     import sim_v4
     import sim_worlds
     from cost import CostLog
-    if not args.narration_check:
+    if args.narration_check:   # 환경에 남아 있던 생략 설정도 푼다
+        os.environ.pop('SIMULATION_SKIP_NARRATION_CHECK', None)
+    else:
         os.environ['SIMULATION_SKIP_NARRATION_CHECK'] = '1'
     if args.via == 'ocx':
         use_ocx_for_generation()
@@ -152,7 +154,7 @@ def cmd_judge(args) -> None:
         return {'id': record['id'], 'grade': grade}
 
     for cond in args.cond:
-        records, done = read_jsonl(records_path(cond, args.via)), read_jsonl(grades_path(cond, args.via))
+        records, done = select(read_jsonl(records_path(cond, args.via)), scenes, 10 ** 6), read_jsonl(grades_path(cond, args.via))   # --ids의 장면만(없는 장면은 채점 입력을 못 만든다)
         todo = [r for i, r in records.items() if i not in done]
         with ThreadPoolExecutor(args.workers) as pool, grades_path(cond, args.via).open('a') as file:
             for graded in pool.map(judge, todo):
