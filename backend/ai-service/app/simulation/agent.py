@@ -7,7 +7,7 @@
 추적에는 모델·사용량·실패만 남긴다. 설정 문서·생성 문단은 팀 결정 범위(질문·원고·답변) 밖이라 남기지 않는다.
 LangChain 실행(장면 에이전트의 도구) 안에서 부르면 호출마다 사용량·지연·실패를 공통 `MODEL_EVENT`로 알려 사용량 장부(app/agent_runtime.UsageLedger)가 모은다.
 act 전용 제공사: `SIMULATION_ACT_BASE_URL`(OpenAI 호환 제공사, 예 Hemmingway·OpenRouter)이 있으면 act 호출만 그 제공사의 Chat Completions로 보낸다(Responses API가 없다).
-키는 `SIMULATION_ACT_API_KEY`가 있어야 하고(없으면 모델을 부르기 전에 503, OPENAI_API_KEY를 외부로 보내지 않는다. base URL이 없으면 이 키는 쓰지 않는다) 모델은 `SIMULATION_ACT_MODEL`(비면 OPENAI_MODEL)이다. 추론 강도는 `reasoning_effort`로 보내고 store는 보내지 않는다. 다른 호출은 OpenAI 그대로다.
+키는 `SIMULATION_ACT_API_KEY`가 있어야 하고(없으면 모델을 부르기 전에 503, OPENAI_API_KEY를 외부로 보내지 않는다. base URL이 없으면 이 키는 쓰지 않는다) 모델은 `SIMULATION_ACT_MODEL`(비면 OPENAI_MODEL)이다. 추론 강도는 `reasoning_effort`로 보내고 store는 보내지 않는다. `SIMULATION_ACT_THINKING=off`면 제공사의 생각을 끈다(`enable_thinking=false`, 생각 토큰이 출력에 섞여 비용·지연을 늘린다). 다른 호출은 OpenAI 그대로다.
 속도 스위치(#642): 네 호출 모두 `reasoning.effort`를 보낸다. 값은 환경 변수 `SIMULATION_REASONING_EFFORT`(호출 때 읽음)이고 비어 있으면 시뮬레이션 v2 기본값 `low`다(HP 장면 p50 10.8→7.9초, 시공간 정확도·검사 판정은 v1과 같고 ① 대사 말투만 −0.12(p=0.025), docs/evaluation/simulation-v2.md·simulation-original.md §13).
 """
 
@@ -31,6 +31,7 @@ from app.simulation.prompt import ACT_INSTRUCTIONS, CHECK_INSTRUCTIONS, NARRATE_
 EFFORT = 'SIMULATION_REASONING_EFFORT'
 EFFORTS = ('none', 'minimal', 'low', 'medium', 'high')  # OpenAI reasoning.effort 값 그대로. 그 밖은 설정 오류다
 BAD_EFFORT = '시뮬레이션 추론 강도 설정을 확인해 주세요.'
+BAD_THINKING = '시뮬레이션 act 생각 설정을 확인해 주세요.'
 DEFAULT_EFFORT = 'low'  # 시뮬레이션 v2 기본값
 UNUSABLE = '시뮬레이션 모델 응답을 확인할 수 없습니다.'
 
@@ -56,12 +57,13 @@ def check(data: dict) -> Verdict:
     return _parse('check', CHECK_INSTRUCTIONS, data, Verdict, 1500, 60)
 
 
-def _endpoint(name: str) -> tuple[str | None, str | None, str | None]:
-    """호출의 (base URL, 키, 모델). act만 SIMULATION_ACT_BASE_URL·API_KEY·MODEL을 따르고(공백은 빈 값) 나머지 호출과 빈 값은 OPENAI_*다.
+def _endpoint(name: str) -> tuple[str | None, str | None, str | None, str | None]:
+    """호출의 (base URL, 키, 모델, 생각 설정). act만 SIMULATION_ACT_BASE_URL·API_KEY·MODEL을 따르고(공백은 빈 값) 나머지 호출과 빈 값은 OPENAI_*다.
+    생각 설정(SIMULATION_ACT_THINKING)은 base URL이 있을 때만 읽는다.
     키는 base URL(OpenAI 호환 제공사)이 있으면 SIMULATION_ACT_API_KEY뿐이고(OPENAI_API_KEY를 외부로 보내지 않는다) 없으면 OPENAI_API_KEY뿐이다(제공사 키를 OpenAI로 보내지 않는다)."""
     own = lambda var: (os.environ.get(f'SIMULATION_ACT_{var}', '').strip() or None) if name == 'act' else None  # noqa: E731
     base_url = own('BASE_URL')
-    return base_url, own('API_KEY') if base_url else os.environ.get('OPENAI_API_KEY'), own('MODEL') or os.environ.get('OPENAI_MODEL')
+    return base_url, own('API_KEY') if base_url else os.environ.get('OPENAI_API_KEY'), own('MODEL') or os.environ.get('OPENAI_MODEL'), own('THINKING') if base_url else None
 
 
 def _details(usage: dict | None) -> dict | None:
@@ -70,9 +72,11 @@ def _details(usage: dict | None) -> dict | None:
 
 
 def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel], max_tokens: int, timeout: int):
-    base_url, key, model = _endpoint(name)
+    base_url, key, model, thinking = _endpoint(name)
     if not key or not model:
         raise SimulationFailure(503, '시뮬레이션 모델 설정이 필요합니다.')
+    if thinking not in (None, 'off'):  # 끄는 값만 있다: 오타를 짐작해 쓰지 않는다
+        raise SimulationFailure(503, BAD_THINKING)
     effort = os.environ.get(EFFORT, '').strip() or DEFAULT_EFFORT
     if effort and effort not in EFFORTS:  # 모델을 부르기 전에 막는다(고친 값을 짐작해 쓰지 않는다)
         raise SimulationFailure(503, BAD_EFFORT)
@@ -82,7 +86,7 @@ def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel
         raise SimulationFailure(503, PROMPT_UNAVAILABLE) from None
     started, usage = time.monotonic(), None
     # OpenAI 호환 제공사(Hemmingway·OpenRouter)에는 Responses API가 없다: Chat Completions로 보내고 추론 강도는 reasoning_effort로 보낸다(store는 보내지 않는다).
-    api = ({'base_url': base_url, 'use_responses_api': False, 'reasoning_effort': effort} if base_url
+    api = ({'base_url': base_url, 'use_responses_api': False, 'reasoning_effort': effort, **({'extra_body': {'enable_thinking': False}} if thinking else {})} if base_url
            else {'use_responses_api': True, 'store': False, 'reasoning': {'effort': effort}})
     structured = ChatOpenAI(model=model, api_key=key, max_tokens=max_tokens, timeout=timeout, max_retries=0, **api).with_structured_output(
         text_format, method='json_schema', strict=True, include_raw=True)

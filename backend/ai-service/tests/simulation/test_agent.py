@@ -402,3 +402,36 @@ def test_an_effort_outside_the_five_openai_values_is_a_503_before_the_call_to_th
     with pytest.raises(SimulationFailure) as error:
         agent.act(SECRET_DOC)
     assert (error.value.status, str(error.value)) == (503, '시뮬레이션 추론 강도 설정을 확인해 주세요.') and sent == []
+
+
+# --- act 제공사의 생각 끄기(SIMULATION_ACT_THINKING=off → enable_thinking=false) ---------------------------------------------------------------
+
+def test_the_thinking_switch_turns_the_act_providers_thinking_off_and_nothing_else(monkeypatch):
+    sent = act_provider(monkeypatch, SIMULATION_ACT_THINKING='off')
+    agent.act(SECRET_DOC)
+    agent.narrate(SECRET_DOC)
+    act, narrate = sent
+    assert act.host == 'hemmingway.io' and act.body['enable_thinking'] is False and act.body['reasoning_effort'] == 'low'  # 추론 강도는 그대로 보낸다
+    assert narrate.host == 'api.openai.com' and 'enable_thinking' not in narrate.body  # 다른 호출은 OpenAI 그대로다
+
+
+@pytest.mark.parametrize('value', [None, '', '  '])
+def test_without_the_thinking_switch_nothing_is_sent_about_thinking(monkeypatch, value):
+    sent = act_provider(monkeypatch, SIMULATION_ACT_THINKING=value)
+    agent.act(SECRET_DOC)
+    assert sent[0].host == 'hemmingway.io' and 'enable_thinking' not in sent[0].body
+
+
+@pytest.mark.parametrize('value', ['off', 'bogus'])
+def test_the_thinking_switch_is_ignored_without_a_base_url(monkeypatch, value):
+    sent = act_provider(monkeypatch, SIMULATION_ACT_BASE_URL=None, SIMULATION_ACT_API_KEY=None, SIMULATION_ACT_MODEL=None, SIMULATION_ACT_THINKING=value)
+    agent.act(SECRET_DOC)
+    assert [(r.host, r.path) for r in sent] == [('api.openai.com', '/v1/responses')] and 'enable_thinking' not in sent[0].body  # 기본 경로는 그대로다
+
+
+@pytest.mark.parametrize('value', ['on', 'false', 'OFF', 'low'])
+def test_a_thinking_value_other_than_off_is_a_503_before_any_model_call(monkeypatch, value):
+    sent = act_provider(monkeypatch, SIMULATION_ACT_THINKING=value)
+    with pytest.raises(SimulationFailure) as error:
+        agent.act(SECRET_DOC)
+    assert (error.value.status, str(error.value)) == (503, '시뮬레이션 act 생각 설정을 확인해 주세요.') and sent == []

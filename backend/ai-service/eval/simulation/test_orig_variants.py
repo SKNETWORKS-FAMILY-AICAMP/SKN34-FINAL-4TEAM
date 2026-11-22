@@ -154,7 +154,7 @@ def test_patched_swaps_the_instructions_for_the_run_and_restores_them():
         assert agent.ACT_INSTRUCTIONS == before[0]
 
 
-ENV_OFF = ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY', 'SIMULATION_REASONING_EFFORT', 'SIMULATION_ACT_BASE_URL', 'SIMULATION_ACT_API_KEY', 'SIMULATION_ACT_MODEL')   # 개발자 셸·.env의 값이 단위 테스트에 새지 않게 지운다
+ENV_OFF = ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY', 'SIMULATION_REASONING_EFFORT', 'SIMULATION_ACT_BASE_URL', 'SIMULATION_ACT_API_KEY', 'SIMULATION_ACT_MODEL', 'SIMULATION_ACT_THINKING')   # 개발자 셸·.env의 값이 단위 테스트에 새지 않게 지운다
 
 
 def fake_chat(seen):
