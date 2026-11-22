@@ -680,6 +680,29 @@ it('Content 쓰기 승인 카드는 모델의 요약이 아니라 실제 도구�
   expect(JSON.parse(args.slice('world_studio_edit_draft'.length))).toEqual(pendingAction.args)
 })
 
+it('Content 쓰기 승인 카드는 같은 턴에 먼저 끝난 단계를 실행 버튼 위에 보인다(#587)', async () => {
+  openThread([{ request: '확인하고 고쳐줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'content_action', pendingAction, steps: [
+    { feature: 'story_context', status: 'completed', result: { claims: [{ text: '카엘은 북문을 지킨다.' }] } },
+    { feature: 'writing_editing', status: 'completed', result: { text: '카엘이 문을 닫았다.' } },
+    { feature: 'content_action', status: 'completed', approval: 'approved', result: { tool: 'work_update', label: '작품 정보 수정' }, applied: { episode: 3, revision: 9 } },
+    { feature: 'rating', status: 'not_started' },
+  ] } }])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const others = await screen.findByLabelText('같이 끝난 작업')
+  // 이 승인의 대상은 Content 작업이라 아직 반영을 묻지 않은 원고 제안도 앞 단계로 보인다
+  expect(within(others).getAllByRole('listitem').map((item) => item.textContent)).toEqual(
+    ['작품 질문카엘은 북문을 지킨다.', '기획·집필·수정카엘이 문을 닫았다.', 'Content 작업작품 정보 수정 완료'])
+  expect(screen.getByText('같이 끝난 작업')).toBeTruthy() // 실행할 내용으로 읽히지 않게 이름이 화면에도 보인다
+  expect(others.compareDocumentPosition(screen.getByRole('button', { name: '실행' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+it('앞 단계가 없는 Content 쓰기 승인 카드에는 빈 목록을 그리지 않는다(#587)', async () => {
+  approvalTurn()
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('button', { name: '실행' })
+  expect(screen.queryByLabelText('같이 끝난 작업')).toBeNull()
+})
+
 it('거절하면 실행하지 않는다는 resume을 보낸다', async () => {
   approvalTurn()
   send.mockResolvedValue(undefined)

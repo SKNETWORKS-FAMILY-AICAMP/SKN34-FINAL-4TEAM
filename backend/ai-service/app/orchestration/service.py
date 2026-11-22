@@ -468,21 +468,21 @@ def _check_scene(resume: Resume, waiting: dict) -> None:
         raise SceneRejected(SCENE_NO_TURN)
 
 
-def _waiting(value: dict, steps: list) -> dict:
+def _waiting(value: dict) -> dict:
     """멈춘 payload. Content 쓰기 도구 승인(HITL)은 awaitingApproval=content_action과 실제 실행할 도구·인자(pendingAction)로 바꾼다.
 
-    승인 전까지 이 턴에서 끝난 단계는 메인 에이전트 상태에 있어 이 payload에 없다. 스트림은 본 단계를 steps로 넘기고, 새로 고쳐 읽는 이력에는 승인이 끝난 뒤에 보인다.
+    이 턴에서 끝난 단계는 agent.WriteApproval이 payload에 실어 응답·스트림·이력이 같다(#587). 그 전에 멈춘 체크포인트에는 없어 빈 목록이다.
     """
     if 'action_requests' not in value:
         return value
     action = value['action_requests'][0]
-    return {'steps': steps, 'awaitingApproval': CONTENT_ACTION,
+    return {'steps': value.get('steps', []), 'awaitingApproval': CONTENT_ACTION,
             'pendingAction': {'tool': action['name'], 'label': mcp_tools.LABELS.get(action['name'], action['name']), 'args': action['args']}}
 
 
 def _response(state: dict) -> OrchestrationResponse:
     if state.get('__interrupt__'):
-        waiting = _waiting(state['__interrupt__'][0].value, state.get('steps', []))
+        waiting = _waiting(state['__interrupt__'][0].value)
         approval, scene = waiting.get('awaitingApproval'), waiting.get('awaitingScene')
         message = (TASK_APPROVAL_MESSAGES.get(waiting.get('approvalTask')) or APPROVAL_MESSAGES[approval] if approval
                    else SCENE_MESSAGE if scene else WAITING_MESSAGE)
@@ -664,7 +664,7 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
               NothingToResume: NOTHING_TO_RESUME_MESSAGE, ConversationUnavailable: CONVERSATION_UNAVAILABLE_MESSAGE,
               ConversationNotFound: CONVERSATION_NOT_FOUND_MESSAGE}
     content_mcp.AUTHORIZATION.set(authorization)
-    relayed, seen = False, []  # seen: 메인 에이전트가 이 실행에서 알린 단계(Content 쓰기 승인 대기의 waiting에 싣는다)
+    relayed = False
     try:
         graph, config, payload, state = await _begin(data, authorization)
         if config is not None and data.resume is None and data.fromTurn is None:
@@ -684,13 +684,11 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
                 if namespace:  # 메인 에이전트의 판정·도구 결과만 알리고 장면 에이전트 안쪽 노드의 갱신은 알리지 않는다
                     if len(namespace) == 1 and namespace[0].startswith('main_agent'):
                         for event in _main_events(update):
-                            if event.event == 'step':
-                                seen.append(event.data)
                             yield event
                     continue
                 for node, change in update.items():
                     if node == '__interrupt__':
-                        state['__interrupt__'] = [dataclasses.replace(change[0], value=_waiting(change[0].value, seen))]
+                        state['__interrupt__'] = [dataclasses.replace(change[0], value=_waiting(change[0].value))]
                         waiting = state['__interrupt__'][0].value
                         if waiting.get('awaitingScene') and not relayed:  # 턴 이벤트 없이 멈췄다(edit): 고친 장면을 알린다
                             yield ServerSentEvent(event='step', data=next(s for s in waiting['steps'] if s['feature'] == waiting['awaitingScene']))

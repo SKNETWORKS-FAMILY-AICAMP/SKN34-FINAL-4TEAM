@@ -4,14 +4,15 @@ import asyncio
 from uuid import uuid4
 
 import pytest
+from langchain.agents.middleware import HumanInTheLoopMiddleware
 
 from app.content_mcp.errors import ContentMcpFailure
 from app.intent.models import DecisionResult
-from app.orchestration import mcp_tools, service, tools
+from app.orchestration import agent, mcp_tools, service, tools
 from app.orchestration.models import OrchestrationRequest
 from app.orchestration.prompt import UNSUPPORTED_MESSAGE
 
-from .stubs import Planned, Step, fake_agents, fake_main, plan
+from .stubs import QA, Planned, Step, fake_agents, fake_main, plan
 
 TARGET = {'workId': 'work', 'episode': 3}
 PAGE = {'path': '/worldstudio/w1?card=k', 'kind': 'world', 'worldId': 'w1', 'cardId': 'k', 'view': 'cards',
@@ -259,7 +260,7 @@ def test_a_write_in_a_batch_with_a_read_waits_for_its_own_turn_so_only_one_card_
     assert deferred.content.startswith('[순차]')
 
 
-def test_the_stream_reports_the_pending_action_with_the_steps_seen_so_far_then_the_applied_step(monkeypatch):
+def test_the_stream_reports_the_pending_action_then_the_applied_step(monkeypatch):
     fake_agents(monkeypatch, only_content(('world_studio_edit_draft', EDIT)))
     content(monkeypatch)
     thread = str(uuid4())
@@ -279,6 +280,56 @@ def test_the_history_of_a_waiting_turn_shows_the_pending_action(monkeypatch):
     turn(thread, page=PAGE)
     reply = asyncio.run(service.history(thread, SCOPE)).turns[-1].reply
     assert (reply.status, reply.awaitingApproval, reply.pendingAction.tool) == ('waiting', 'content_action', 'world_studio_edit_draft')
+
+
+ASKED_THEN_EDIT = [('ask_story_qa', {}), ('world_studio_edit_draft', EDIT)]
+
+
+def test_a_write_approval_shows_the_earlier_step_of_the_turn_in_the_response_and_the_history(monkeypatch):
+    fake_agents(monkeypatch, only_content(*ASKED_THEN_EDIT, capabilities=['story_context']))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    waiting = turn(thread, page=PAGE, inputs={'story_context': QA})
+    assert (waiting.awaitingApproval, [(s.feature, s.status) for s in waiting.steps]) == ('content_action', [('story_context', 'completed')])
+    assert waiting.steps[0].result.claims[0].text == '밤에 닫는다' and writes(log) == []
+    assert asyncio.run(service.history(thread, SCOPE)).turns[-1].reply.steps == waiting.steps  # 새로 고쳐 읽어도 같다(#587)
+
+
+def test_rejecting_the_write_approval_keeps_the_earlier_step_once(monkeypatch):
+    calls = fake_agents(monkeypatch, only_content(*ASKED_THEN_EDIT, capabilities=['story_context']))
+    content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, page=PAGE, inputs={'story_context': QA})
+    done = resume(thread, False)
+    assert [s.feature for s in done.steps] == ['story_context'] and [name for name, *_ in calls].count('story_context') == 1
+
+
+def test_a_second_write_approval_in_a_resumed_stream_shows_the_write_already_applied(monkeypatch):
+    second = ('work_update', {'id': 'work', 'request': {'title': '새 제목'}})
+    fake_agents(monkeypatch, only_content(*ASKED_THEN_EDIT, second, capabilities=['story_context']))
+    content(monkeypatch)
+    thread = str(uuid4())
+    stream(thread, request='물어보고 고쳐줘', target=TARGET, page=PAGE, inputs={'story_context': QA})
+    events = dict(stream(thread, request=None, resume={'approved': True}))
+    assert events['waiting']['pendingAction']['tool'] == 'work_update'
+    # 이 실행에서 본 단계만이 아니라 앞선 실행에서 끝난 단계까지 순서대로 싣는다
+    assert [s['feature'] for s in events['waiting']['steps']] == ['story_context', 'content_action']
+    assert [s['feature'] for s in events['done']['steps']] == ['story_context', 'content_action']
+    reply = asyncio.run(service.history(thread, SCOPE)).turns[-1].reply
+    assert [s.feature for s in reply.steps] == ['story_context', 'content_action'] and reply.steps[1].applied.revision == 5
+
+
+def test_an_approval_saved_before_steps_were_in_the_payload_is_still_read_and_resumed(monkeypatch):
+    fake_agents(monkeypatch, only_content(*ASKED_THEN_EDIT, capabilities=['story_context']))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    with monkeypatch.context() as before:  # #587 전에 멈춘 체크포인트: payload에 steps가 없다
+        before.setattr(agent, 'WriteApproval', HumanInTheLoopMiddleware)
+        turn(thread, page=PAGE, inputs={'story_context': QA})
+    old = asyncio.run(service.history(thread, SCOPE)).turns[-1].reply
+    assert (old.awaitingApproval, old.steps) == ('content_action', [])
+    # 미들웨어의 노드 이름이 바뀌면 멈춘 자리를 찾지 못한다
+    assert [s.feature for s in resume(thread, True).steps] == ['story_context', 'content_action'] and len(writes(log)) == 1
 
 
 # 선택한 글

@@ -96,6 +96,17 @@ function SceneWait({ reply, onOpenStage }: { reply: ChatReply; onOpenStage?: () 
   </div>
 }
 
+/** 승인 카드 안의 같은 턴에 먼저 끝난 단계 목록(#493·#587). */
+function FinishedSteps({ steps }: { steps: ChatStep[] }) {
+  if (!steps.length) return null
+  return <>
+    <p className="chat-note" aria-hidden="true">같이 끝난 작업</p>
+    <ul className="chat-hitl-others" tabIndex={0} aria-label="같이 끝난 작업">{steps.map((s, i) => <li key={`${s.feature}-${i}`}>
+      <span className="chat-step-name">{featureLabel[s.feature] ?? s.feature}</span><p>{stepText(s)}</p>
+    </li>)}</ul>
+  </>
+}
+
 /** 멈춘 턴: 초안 반영 승인(World 제안은 설정집 초안, #546) 또는 빠진 단계 입력. 승인 전에는 원고·설정집이 바뀌지 않는다. */
 function Waiting({ workId, request, reply, episode, pending, onResume, onOpenStage, cardOf, unsaved, worldDraft, onRefreshProposal }: {
   workId: string; request: string; reply: ChatReply; episode: number | null; pending: boolean; onResume: (approved: boolean, inputs?: ChatStepInputs) => void; onOpenStage?: () => void
@@ -124,12 +135,16 @@ function Waiting({ workId, request, reply, episode, pending, onResume, onOpenSta
   // 같은 턴에 끝난 다른 단계(심의 등급 등). 승인을 기다리는 동안 대기 응답은 메시지 목록에 없어 여기서만 보인다(#493).
   // 같은 턴의 후보 검수(#538)는 반영 여부를 정할 근거라 부가 작업 목록에 묻지 않고 미리보기 바로 아래에 따로 보인다.
   const candidateReview = reply.steps.find((s) => s.feature === 'manuscript_review' && s.status === 'completed' && s.manuscriptReview?.candidate)
-  const others = reply.steps.filter((s) => s !== draft && s !== candidateReview && (s.status === 'completed' || s.status === 'failed'))
+  const finished = reply.steps.filter((s) => s.status === 'completed' || s.status === 'failed')
+  const others = finished.filter((s) => s !== draft && s !== candidateReview)
   if (reply.awaitingApproval === 'character_simulation' || reply.awaitingScene === 'character_simulation') return <SceneWait reply={reply} onOpenStage={onOpenStage} />
   // Content 쓰기 도구 승인(#554): 실제 도구·인자를 보인다. 실행할 인자를 읽지 못했으면 승인을 받을 수 없어 카드를 만들지 않는다.
   if (reply.awaitingApproval === 'content_action') {
     return reply.pendingAction
-      ? <PendingActionCard action={reply.pendingAction} cardOf={cardOf} unsaved={unsaved} pending={pending} worldDraft={worldDraft} onRefresh={onRefreshProposal} onResume={(approved) => onResume(approved)} />
+      ? <PendingActionCard action={reply.pendingAction} cardOf={cardOf} unsaved={unsaved} pending={pending} worldDraft={worldDraft} onRefresh={onRefreshProposal} onResume={(approved) => onResume(approved)}>
+        {/* 승인 대상이 Content 작업이라 원고 제안·후보 검수도 앞 단계다(빼지 않는다). */}
+        <FinishedSteps steps={finished} />
+      </PendingActionCard>
       : <p className="chat-note" role="alert">승인할 작업을 읽지 못했어요. 대화를 다시 불러와 주세요.</p>
   }
   if (reply.awaitingApproval) {
@@ -140,9 +155,7 @@ function Waiting({ workId, request, reply, episode, pending, onResume, onOpenSta
       {candidateReview && <div className="chat-hitl-preview" tabIndex={0} aria-label="후보 검수 결과">{stepText(candidateReview)}</div>}
       {planLine && <p className="chat-plan" tabIndex={0}><b>{PLAN_LABEL}</b>{planLine.slice(PLAN_LABEL.length)}</p>}
       {notice && <p className="chat-plan" tabIndex={0}>{notice}</p>}
-      {!!others.length && <ul className="chat-hitl-others" tabIndex={0} aria-label="같이 끝난 작업">{others.map((s, i) => <li key={`${s.feature}-${i}`}>
-        <span className="chat-step-name">{featureLabel[s.feature] ?? s.feature}</span><p>{stepText(s)}</p>
-      </li>)}</ul>}
+      <FinishedSteps steps={others} />
       <p className="chat-note">{world ? '반영하면 설정집 초안만 바뀌고 확정 버전은 남지 않아요.' : revising ? '저장하면 이 계획의 제목·내용만 바뀌고 원고 초안은 바뀌지 않아요.' : '반영하면 작업 중인 초안만 바뀌고 발행되지 않아요.'} {revising ? '저장하지' : '반영하지'} 않아도 제안은 대화에 남아요.</p>
       <div className="chat-hitl-actions">
         <button type="button" className="btn sm pri" disabled={pending || ((world || revising) && !draft)} onClick={() => onResume(true)}>{world ? '설정집 초안에 반영' : revising ? '계획에 저장' : '초안에 반영'}</button>

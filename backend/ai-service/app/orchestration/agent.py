@@ -4,7 +4,8 @@
 Retrieval·웹 검색·원고 반영 도구는 없고, 서브 에이전트에 해당하지 않는 간단한 작업용 Content MCP 도구 10개(`mcp_tools.py`, #554: 읽기 6 자동·쓰기 4 작가 승인 뒤 실행)가
 있다. 모델의 판단은 인가·승인·정본 적용이 아니고 아래 미들웨어와 도구가 경계를 지킨다.
 - `DecisionGuardMiddleware.before_agent`: 턴당 1회 Decision Guard(`intent.judge`). 거절이면 모델을 부르지 않고 끝낸다. 허용됐지만 기능이 비면 MCP 도구만으로 진행한다.
-- `HumanInTheLoopMiddleware`: 쓰기 MCP 도구 4개는 작가가 승인(approve)한 뒤에만 실행한다(reject면 실행하지 않는다). 다른 미들웨어가 이미 답한 호출은 묻지 않는다.
+- `WriteApproval`(`HumanInTheLoopMiddleware` 상속): 쓰기 MCP 도구 4개는 작가가 승인(approve)한 뒤에만 실행한다(reject면 실행하지 않는다). 다른 미들웨어가 이미 답한 호출은 묻지 않는다.
+  멈출 때 그때까지의 단계를 payload에 싣는다(#587).
 - `DynamicToolMiddleware`: 판정 기능의 도구와 MCP 도구만 모델에 보이고 실행 직전 다시 확인한다(MCP 도구는 `mcp_tools.execute`가 실행). 실패·취소·입력 대기·시뮬레이션 계획 뒤와
   모델 호출 상한의 마지막 호출에는 도구를 치운다(FinalAnswerMiddleware 방식). 한 모델 턴의 병렬 묶음은 조회형(PARALLEL)만 함께 실행하고
   단독 도구·입력이 빠진 호출은 실행하지 않고 돌려 다음 모델 턴에 따로 부르게 한다(#474, 2026-11-17 사용자 결정). 함께 실행하는 호출은
@@ -31,6 +32,7 @@ from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_openai import ChatOpenAI
 from langgraph.config import get_stream_writer
+from langgraph.errors import GraphInterrupt
 from langgraph.types import Command
 from openai import OpenAIError
 
@@ -208,6 +210,19 @@ class ToolCallLimit(ToolCallLimitMiddleware):
         return super().after_model(counted, runtime)
 
 
+class WriteApproval(HumanInTheLoopMiddleware):
+    """승인 대기 payload에 이번 턴의 끝난 단계를 싣는다(#587). 바깥 그래프는 이 에이전트의 상태를 읽지 못한다."""
+    name = HumanInTheLoopMiddleware.__name__  # 이름이 노드 이름이라 바꾸면 이미 멈춘 체크포인트를 이어 가지 못한다
+
+    def after_model(self, state, runtime) -> dict | None:
+        try:
+            return super().after_model(state, runtime)
+        except GraphInterrupt as pause:
+            for waiting in pause.args[0]:  # 체크포인트에 저장되기 전의 payload다
+                waiting.value['steps'] = state.get('steps', [])
+            raise
+
+
 class AnswerStream(BaseCallbackHandler):
     """답변 본문 조각을 {answer: 글}로 알린다(#618). 추론·도구 인자는 보내지 않는다.
 
@@ -279,7 +294,7 @@ def build(found: list[dict] = ()):
     return create_agent(chat, tools=[*TOOLS.values(), *mcp], system_prompt=managed.text, state_schema=MainState, context_schema=dict, middleware=[
         # after_model 훅은 목록의 역순으로 돈다: 모델 호출 수 → 노출·묶음 확인 → 도구 한도 → 쓰기 승인. 순서를 바꾸면 막힌 호출이 한도를 쓰거나 승인을 묻는다.
         DecisionGuardMiddleware(), MainModelMiddleware(managed.client),
-        *([HumanInTheLoopMiddleware(interrupt_on=approval)] if approval else []),
+        *([WriteApproval(interrupt_on=approval)] if approval else []),
         ToolCallLimit(thread_limit=TOOL_CALLS),
         *(ToolCallLimit(tool_name=t.name, thread_limit=1) for t in TOOLS.values()),
         DynamicToolMiddleware(), ModelCallLimitMiddleware(thread_limit=MODEL_CALLS, exit_behavior='end')])
