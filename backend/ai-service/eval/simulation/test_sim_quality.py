@@ -179,6 +179,16 @@ def test_every_model_call_of_the_run_goes_to_the_cost_ledger(monkeypatch, worlds
     assert [r.get('model') for r in rows] == ['gpt-6.1-terra', None, 'gpt-6.1-terra', None]
 
 
+def test_an_act_model_without_a_rate_stops_before_any_model_call(monkeypatch, worlds, judge):
+    monkeypatch.delenv('SIMULATION_ACT_BASE_URL', raising=False)
+    monkeypatch.setenv('SIMULATION_ACT_MODEL', 'mystery-model')
+    acts = act_returns(monkeypatch, 'A.')
+    check_returns(monkeypatch, ())
+    with pytest.raises(SystemExit, match='단가'):
+        q.evaluate(ROWS[0], worlds, judge, TEMPLATES, {})
+    assert acts == [] and judge.calls == [] and judge.cost.rows() == []   # 유료 호출을 하고 나서 단가를 몰라 기록을 잃지 않는다
+
+
 def test_a_failing_model_call_is_a_recorded_error_and_not_graded(monkeypatch, worlds, judge):
     def act(data):
         raise SimulationFailure(503, '고정 문구')

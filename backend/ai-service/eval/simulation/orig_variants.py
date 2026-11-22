@@ -230,9 +230,9 @@ MODEL_CALLS: dict[str, str] = {}      # patched가 채운다: 모델 호출 이�
 
 
 def act_model() -> str | None:
-    """서비스가 act에 쓰는 모델이 OPENAI_MODEL과 다르면 그 모델(서비스 기본 gpt-6.1-terra·SIMULATION_ACT_MODEL·외부 제공사), 같으면 None이다(기본 luna 단가)."""
-    model = agent._endpoint('act')[2]
-    return model if model != os.environ.get('OPENAI_MODEL') else None
+    """서비스가 act에 쓰는 모델이 OPENAI_MODEL과 다르거나 외부 제공사면 그 모델(서비스 기본 gpt-6.1-terra·SIMULATION_ACT_MODEL·제공사), 아니면 None이다(기본 luna 단가)."""
+    base_url, _, model, _ = agent._endpoint('act')
+    return model if base_url or model != os.environ.get('OPENAI_MODEL') else None   # 외부 제공사는 모델 이름이 OPENAI_MODEL과 같아도 그 단가로 센다
 
 
 def priced(name: str) -> dict:

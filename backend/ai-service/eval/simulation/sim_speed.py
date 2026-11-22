@@ -37,20 +37,21 @@ class TimedLedger(UsageLedger):
         self.records[-1]['wallMs'] = round((self.marks[-1] - self.marks[-2]) * 1000)
 
 
-def _priced(call: dict) -> dict:
-    """장부에 더할 모델 단가 인자(orig_variants.priced): act는 서비스가 쓰는 모델(기본 terra)의 단가다. 평가 모듈은 이 도구보다 늦게 생겨 필요할 때 불러온다."""
+def _priced(name: str) -> dict:
+    """장부에 더할 모델 단가 인자(orig_variants.priced): act는 서비스가 쓰는 모델(기본 terra)의 단가이고 단가를 모르는 모델이면 멈춘다. 평가 모듈은 이 도구보다 늦게 생겨 필요할 때 불러온다."""
     from orig_variants import priced
-    return priced(call['name'])
+    return priced(name)
 
 
 def _usd(call: dict) -> float:
-    tokens_in, tokens_out, rate = call['inputTokens'] or 0, call['outputTokens'] or 0, _priced(call).get('rate')   # 토큰을 알려 주지 않은 호출은 0으로 세고 unpriced로 센다
+    tokens_in, tokens_out, rate = call['inputTokens'] or 0, call['outputTokens'] or 0, _priced(call['name']).get('rate')   # 토큰을 알려 주지 않은 호출은 0으로 세고 unpriced로 센다
     return request_usd(tokens_in, tokens_out) if rate is None else (tokens_in * rate[0] + tokens_out * rate[2]) / 1_000_000
 
 
 async def run_scene(spec: dict, plan, world, cost=None, transcript: bool = False) -> dict:
     """장면 하나를 끝까지 돌린 기록 {id, mode, status, stopReason, error, turns, steps, unpriced}. 단계(step) 하나가 한 턴이고 cost가 있으면 호출마다 비용 장부에 남긴다.
     transcript가 켜지면 진단용으로 턴마다 말한 이·글·진행한 비트를 transcript에 더한다(글이 들어가므로 기록은 .data에만 둔다)."""
+    _priced('act')   # 단가를 모르는 act 모델이면 유료 호출을 하기 전에 멈춘다(끝난 뒤에 알면 기록을 잃는다)
     context = service.SceneContext(plan=plan, target={'workId': 'eval', 'episode': world.episode}, request=spec['id'], scope=None, steps=[dict(STEP)],
                                    pausing=False, loaded=world)
     seed = {'messages': [HumanMessage('장면을 진행해 주세요.')], 'scene': service.new_scene(plan).model_dump(mode='json'), 'pending': False,
@@ -64,7 +65,7 @@ async def run_scene(spec: dict, plan, world, cost=None, transcript: bool = False
     calls = [c for r in ledger.records for c in r['calls']] + ledger.calls  # 끝까지 알림이 가지 못한 호출도 센다
     if cost is not None:
         for call in calls:
-            cost.record(call['name'], call['inputTokens'] or 0, call['outputTokens'] or 0, failed=call['failed'], **_priced(call))
+            cost.record(call['name'], call['inputTokens'] or 0, call['outputTokens'] or 0, failed=call['failed'], **_priced(call['name']))
     record = {'id': spec['id'], 'engine': 'turn', 'mode': plan.mode, 'status': final.result.status, 'stopReason': final.result.stopReason, 'error': final.error,
             'turns': [{'kind': t.kind, 'pov': t.pov, 'regenerated': t.regenerated} for t in final.result.turns],
             'steps': [{'turn': r['turn'], 'ms': r['ms'], 'wallMs': r['wallMs'], 'modelCalls': r['modelCalls'], 'failures': r['failures'],

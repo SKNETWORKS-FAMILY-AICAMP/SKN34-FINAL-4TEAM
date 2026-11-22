@@ -267,6 +267,16 @@ def test_the_ledger_prices_act_by_the_model_the_service_uses_unless_it_is_the_op
         ov.priced('act')
 
 
+def test_an_external_act_provider_is_priced_even_when_its_model_name_equals_the_openai_model(monkeypatch):
+    for key in ENV_OFF:
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv('OPENAI_MODEL', 'hemmingway-1')
+    monkeypatch.setenv('SIMULATION_ACT_BASE_URL', 'https://hemmingway.io/v1')
+    monkeypatch.setenv('SIMULATION_ACT_API_KEY', 'hem-key')
+    monkeypatch.setattr(ov, 'MODEL_CALLS', {})
+    assert ov.priced('act') == {'rate': ov.RATES['hemmingway-1'], 'model': 'hemmingway-1'}   # 외부 제공사의 호출은 모델 이름이 같아도 그 단가다
+
+
 def test_model_candidate_swaps_the_model_of_act_and_narrate_requests_only(monkeypatch):
     seen = []
     monkeypatch.setattr(agent, 'ChatOpenAI', fake_chat(seen))

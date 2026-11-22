@@ -68,6 +68,14 @@ def test_act_calls_are_priced_by_the_service_act_model_in_the_ledger_and_the_ste
     assert sum(step['usd'] for step in record['steps']) == pytest.approx(cost.spent())   # 턴별 금액도 장부와 같은 단가다
 
 
+def test_an_act_model_without_a_rate_stops_the_scene_before_any_model_call(models, monkeypatch):
+    monkeypatch.delenv('SIMULATION_ACT_BASE_URL', raising=False)
+    monkeypatch.setenv('SIMULATION_ACT_MODEL', 'mystery-model')
+    with pytest.raises(SystemExit, match='단가'):
+        play(FLOW)
+    assert models == []   # 유료 호출을 하고 나서 단가를 몰라 기록을 잃지 않는다
+
+
 def play(spec):
     plan, world = w.Worlds([], {}).scene(spec)
     return asyncio.run(s.run_scene(spec, plan, world))
