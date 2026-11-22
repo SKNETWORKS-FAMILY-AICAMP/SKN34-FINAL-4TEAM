@@ -4825,3 +4825,31 @@ it('관계 탭은 관계 종류별로 묶고 알고 있음 같은 조용한 종�
   const known = screen.getByRole('list', { name: '알고 있음 관계 목록' })
   expect(Array.from(known.children)).toHaveLength(3) // 접혀 있어도 목록은 있다(줄마다 '자세히'의 본문은 별개)
 })
+
+// ── 원고로 세계관을 만들거나 업데이트할 때 남는 '확인 필요'(서버 semanticMetadata.manuscriptBuild.needsReview → 카드의 needsReview) ──
+const needsReview = (row: StudioSetting): StudioSetting => ({ ...row, needsReview: true })
+
+it('확인 필요로 남은 카드에만 상태 칸에 확인 필요 칩이 붙고, 누르면 그 카드의 편집 화면이 문서 탭으로 열린다', async () => {
+  const harbor = needsReview(place('항구'))
+  await show([harbor, place('마을')])
+  expect(todos('항구')).toEqual(['확인 필요'])
+  expect(todos('마을')).toEqual([])
+  fireEvent.click(statusCell('항구').getByRole('button', { name: '항구 확인 필요 보기' }))
+  expect(where()).toBe('/worldstudio/qa?card=' + harbor.item.id)
+  expect(screen.getByRole('tab', { selected: true }).querySelector('.world-activity-label')?.textContent).toBe('문서')
+})
+
+it('설정 카드 목록 패널(편집 화면)에서도 확인 필요 카드의 항목에만 칩이 붙고 읽는 이름에도 들어간다', async () => {
+  await show([needsReview(place('항구')), place('마을')])
+  openCard('항구 장소')
+  expect(rail().getByRole('button', { name: '항구 장소 확인 필요' }).textContent).toContain('확인 필요')
+  expect(rail().getByRole('button', { name: '마을 장소' }).textContent).not.toContain('확인 필요')
+})
+
+it('확인 필요 카드를 고쳐도 확인 필요 칩은 그대로 남는다', async () => {
+  await show([needsReview(place('항구'))])
+  openCard('항구 장소')
+  fireEvent.change(editor().getByRole('textbox', { name: '설정 이름' }), { target: { value: '큰 항구' } })
+  backToBoard()
+  expect(todos('큰 항구')).toEqual(['확인 필요'])
+})

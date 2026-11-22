@@ -282,6 +282,8 @@ a.world-card-link{text-decoration:none}
 .world-doc-list .world-doc-tab[data-current=true]{border-color:var(--tacc);background:var(--pri-soft);color:var(--pri-ink)}
 .world-doc-memory{display:grid;gap:10px;padding:12px;border:1px solid var(--tline);border-radius:12px;background:var(--tcard,var(--surface))}.world-doc-memory>p{margin:0;line-height:1.6}
 .world-doc-flag{color:var(--acc-ink);font-size:12px}.world-doc-flag[data-flag=over]{color:var(--danger)}
+/* 목록 패널 항목의 `확인 필요`(원고 구축·업데이트가 이름이 같은 카드를 둘 이상 만나 남긴 표시): 유형 글 뒤에 이어 붙는 주의색 글자다. */
+.world-card-studio .writing-episode .world-review-flag{margin-left:6px;color:var(--acc-ink);font-size:12px;font-weight:700}
 .world-doc-add{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--tsub);font-size:13px;font-weight:650}.world-doc-add label{display:inline-flex;align-items:center;gap:8px}
 .world-doc-guide strong{color:var(--tfg)}
 .world-doc-tools{display:flex;justify-content:flex-end}

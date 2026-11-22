@@ -7,10 +7,14 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.*
 import org.springframework.data.repository.query.Param
+import java.util.UUID
 
 interface PreprocessingJobRepository : JpaRepository<PreprocessingJobEntity, String> {
-    /** 작품의 가장 최근에 접수한 작업이다. 접수·소유자 화면·재실행 가능 여부가 모두 이 한 건을 기준으로 한다. */
-    fun findFirstByWorkIdOrderByCreatedAtDesc(workId: String): PreprocessingJobEntity?
+    /**
+     * 작품의 가장 최근에 접수한 [kind] 종류의 작업이다. 최초 구축의 접수·소유자 화면·재실행 가능 여부는 initial의 이 한 건을,
+     * 업데이트의 화면 표시·재실행 가능 여부는 update의 이 한 건을 기준으로 한다.
+     */
+    fun findFirstByWorkIdAndKindOrderByCreatedAtDesc(workId: String, kind: String): PreprocessingJobEntity?
 
     /**
      * 운영 목록의 출처다. V15 작업 행(manuscript_build_job)이 있는 작업의 V41 행만 돌려준다(작업 행은 원고 본문이 든 manifest를 가져서 목록에서 읽지 않는다).
@@ -39,8 +43,21 @@ interface PreprocessingJobRepository : JpaRepository<PreprocessingJobEntity, Str
 
     fun frozenNumbers(id: String, work: String, member: String): List<Int> {
         val row = snapshot(id, work, member) ?: return emptyList()
-        return (row.manifest.getValue("episodes") as List<*>).map { ((it as Map<*, *>)["number"] as Number).toInt() }
+        return manifestNumbers(row)
     }
+
+    /** 세계관에 끝나지 않은 구축 작업(V15 queued·running·loading·unknown)이 있는가. 업데이트 접수 조건이다. */
+    @Query("select count(b) > 0 from ManuscriptBuildJob b where b.worldId=:world and b.status in ('queued','running','loading','unknown')")
+    fun openOn(@Param("world") world: UUID): Boolean
+
+    @Query("select b from ManuscriptBuildJob b where b.workId=:work and b.status='completed'")
+    fun completedBuilds(@Param("work") work: String): List<ManuscriptBuildJob>
+
+    /**
+     * 이미 세계관 초안에 반영된 회차 번호다: 끝난(completed) 작업 manifest에 들어 있던 번호의 합집합이다.
+     * ponytail: manifest(원고 본문 포함)를 통째로 읽어 번호만 쓴다. 회차가 수백 개로 늘어 첫 발행 점검이 느려지면 manifest 번호만 뽑는 쿼리로 바꾼다.
+     */
+    fun reflectedNumbers(work: String): Set<Int> = completedBuilds(work).flatMapTo(mutableSetOf()) { manifestNumbers(it) }
 
     @Query("select count(b)>0 from ManuscriptBuildJob b where b.workId=:work and b.requestKey=:key")
     fun requestKeyExists(@Param("work") work: String, @Param("key") key: String): Boolean
@@ -69,3 +86,6 @@ interface PreprocessingJobRepository : JpaRepository<PreprocessingJobEntity, Str
     @Query("select j from PreprocessingJobEntity j where j.id = :id")
     fun lock(@Param("id") id: String): PreprocessingJobEntity?
 }
+
+private fun manifestNumbers(row: ManuscriptBuildJob): List<Int> =
+    (row.manifest.getValue("episodes") as List<*>).map { ((it as Map<*, *>)["number"] as Number).toInt() }

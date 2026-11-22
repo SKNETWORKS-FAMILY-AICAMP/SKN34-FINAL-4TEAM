@@ -60,4 +60,21 @@ class ManuscriptBuildExecutionTest {
         assertThrows(RuntimeException::class.java) { service.claim(job.id,UUID.randomUUID(),now,now.plusSeconds(60)) }
         assertThrows(IllegalArgumentException::class.java) { service.claim(job.id,owner,now,now) }
     }
+    @Test fun `an accepted job the AI never received fails without a token and a started one is left alone`() {
+        service.failQueued(job.id,owner,"AI_INTAKE_FAILED")
+        assertEquals("failed",job.status)
+        assertEquals("AI_INTAKE_FAILED",job.failureCode)
+        assertNull(job.executionToken)
+
+        job.status="queued";job.failureCode=null
+        val token=service.claim(job.id,owner,now,now.plusSeconds(60))
+        assertThrows(RuntimeException::class.java) { service.failQueued(job.id,owner,"AI_INTAKE_FAILED") }
+        assertEquals("running",job.status)
+        assertEquals(token,job.executionToken)
+
+        job.status="queued";job.executionToken=null;job.deadline=null
+        assertThrows(RuntimeException::class.java) { service.failQueued(job.id,UUID.randomUUID(),"AI_INTAKE_FAILED") }
+        assertThrows(IllegalArgumentException::class.java) { service.failQueued(job.id,owner,"lower case") }
+        assertEquals("queued",job.status)
+    }
 }

@@ -13,7 +13,7 @@ import { WorkManagement } from './WorkManagement'
 vi.mock('./WorkOverview', () => ({ WorkOverview: () => null }))
 vi.mock('../viewmodel/useEpisodeForkCounts', () => ({ useEpisodeForkCounts: () => ({ 12: 2 }) }))
 // 세계관 추출 배지는 세계관 탭 패널과 같은 조회 훅을 쓴다. 상태는 테스트가 정하고, 배지가 (다시) 마운트돼 상태를 새로 읽은 횟수를 센다.
-const build = vi.hoisted(() => ({ current: { job: null, error: '' } as { job: { status: string } | null; error: string }, mounts: 0 }))
+const build = vi.hoisted(() => ({ current: { job: null, error: '' } as { job: { status: string; update?: { status: string } } | null; error: string }, mounts: 0 }))
 vi.mock('../viewmodel/useManuscriptBuild', async () => {
   const { useEffect } = await import('react')
   return { useManuscriptBuild: () => { useEffect(() => { build.mounts += 1 }, []); return build.current } }
@@ -286,11 +286,12 @@ it('이력 조회가 실패하면 이력 구획 안에 오류 상자(.ep-alert, 
 // ── 세계관 추출 배지(공개 회차 머리)·일괄 업로드 시트를 닫을 때의 재조회 ──────────────────────────────
 beforeEach(() => { build.current = { job: null, error: '' }; build.mounts = 0 })
 afterEach(() => { vi.unstubAllEnvs() })
-const showBuild = (status: string | null, error = '') => {
-  build.current = { job: status ? { status } : null, error }
+const showBuild = (status: string | null, error = '', update?: string) => {
+  build.current = { job: status ? { status, ...(update ? { update: { status: update } } : {}) } : null, error }
   return open(1)
 }
 const BADGE = '세계관 추출 중'
+const UPDATE_BADGE = '세계관 업데이트 중'
 
 it.each([['queued', true], ['running', true], ['loading', true], ['failed', false], ['unknown', false], ['completed', false]])('세계관 추출이 %s이면 배지를 보이는가: %s', (status, shown) => {
   showBuild(status)
@@ -333,4 +334,13 @@ it('저장한 회차 없이 일괄 업로드 시트를 닫으면 아무것도 �
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(reload).not.toHaveBeenCalled()
   expect(build.mounts).toBe(1)
+})
+
+// ── 발행 회차로 세계관 업데이트: 같은 조회의 `update`가 진행 중이면 '세계관 업데이트 중' 배지(initial-build-storage-contract) ──
+it.each([['running', true], ['failed', false]])('최초 구축이 끝나고 업데이트가 %s이면 업데이트 배지를 보이는가: %s', (status, shown) => {
+  showBuild('completed', '', status)
+  expect(screen.queryByText(UPDATE_BADGE) !== null).toBe(shown)
+  expect(screen.queryByText(BADGE)).toBeNull()
+  // 보이면 회차 목록 앞(공개 회차 머리)이다.
+  if (shown) expect(screen.getByText(UPDATE_BADGE).compareDocumentPosition(screen.getByRole('list')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })

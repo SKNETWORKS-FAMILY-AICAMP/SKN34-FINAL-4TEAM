@@ -492,10 +492,12 @@ class WorldStudioService(
                 if(!state.completed && !same) throw WorldStudioFailure.incomplete()
                 expected(draft,request.expectedDraftRevision,unprepared=state.completed)
             }
+            // 업데이트 작업의 적재 단계(2026-11-22)는 맞춘 기존 카드의 인물 기억을 더하려고 이미 있는 카드 초안을 다시 쓴다. 최초 구축 단계와 직접 입력 적용은 그대로 기존 카드를 거절한다.
+            val updating=stepId!=null && buildSteps.findById(stepId).flatMap { buildJobs.findById(it.jobId) }.map { it.kind=="update" }.orElse(false)
             request.cards.forEach { card ->
                 val existing=cards.findById(card.id).orElse(null)
                 if(existing!=null && existing.worldId!=worldId) throw WorldNotFound()
-                if((applicationId!=null || stepId!=null) && !(state.completed && same) && cardDrafts.existsById(card.id)) throw WorldConflict()
+                if((applicationId!=null || stepId!=null) && !(state.completed && same) && cardDrafts.existsById(card.id) && !updating) throw WorldConflict()
             }
             EditPlan(readDraft(world,state),state.completed && same,state.graphVersion)
         }

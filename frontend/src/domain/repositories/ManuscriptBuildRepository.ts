@@ -6,6 +6,8 @@ export type ManuscriptBuild = {
  /** 작업을 접수한 요청 key. 업로드가 서버에서 시작한 작업은 `import:<uuid>`라 이 브라우저에 요청 기록이 없다: 같은 작업 재개는 이 key로 한다. */
  requestKey:string
  receipts:{jobId:string;stepId:string;worldId:string;draftRevision:number;relationshipVersion:number;cardIds:string[];relationshipIds:string[]}[]
+ /** 가장 최근 '발행 회차로 세계관 업데이트' 작업(initial-build-storage-contract)이다. 업데이트가 없거나 서버가 아직 보내지 않으면 null이고, 위의 다른 필드는 계속 최초 구축 작업이다. */
+ update:{jobId:string;status:ManuscriptBuild['status'];episodes:number[];failureCode:string|null}|null
 }
 export interface ManuscriptBuildRepository {
  read(workId:string,signal?:AbortSignal):Promise<ManuscriptBuild|null>

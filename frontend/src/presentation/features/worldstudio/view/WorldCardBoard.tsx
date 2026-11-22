@@ -26,6 +26,8 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
 
 /** 상태 칩 하나: 보이는 글, 읽는 이름, 눌렀을 때 그 카드의 편집 화면이 열릴 본문 화면(활동 막대의 탭). */
 type StatusChip = { text: string; name: string; pane: CardPane }
+/** 원고로 세계관을 만들거나 업데이트할 때 이름이 같은 카드가 둘 이상이라 작가 확인을 남긴 카드(`needsReview`)의 칩이다. 보완 상태(`CardStatus`)가 아니라 카드의 표시값이라 상태가 없는 카드에도 붙는다. */
+const reviewChip = (title: string): StatusChip => ({ text: '확인 필요', name: `${title} 확인 필요 보기`, pane: 'doc' })
 const statusChips = (title: string, status: CardStatus): StatusChip[] => [
   ...(status.cleanup ? [{ text: '정리 필요', name: `${title} 정리 필요 보기`, pane: 'doc' as const }] : []),
   ...(status.unlinked ? [{ text: '연결 필요', name: `${title} 연결 필요 보기`, pane: 'relations' as const }] : []),
@@ -46,14 +48,14 @@ function StatusChips({ chips, onOpen }: { chips: StatusChip[]; onOpen: (pane: Ca
  * 게시판 한 줄. 줄(마우스)이나 제목 버튼(키보드·주 컨트롤)을 누르면 그 줄 바로 아래에 미리보기가 열리고 닫힌다(관리자 표의 행 선택과 같은 `tr.click`·`tr.sel`). 편집 화면은 미리보기의 `수정하기`가 연다. 제목 옆 `[n]`은 공개 설정집과 같은 관계·연결 수다(넓은 표에서는 연결 칸이 같은 수를 보이므로 CSS가 가리고, 읽는 사람에게는 글로 남는다).
  * 맨 앞 체크박스는 공개 설정을 한 번에 바꿀 카드를 고르고(미리보기를 열지 않는다), `공개` 칸은 그 카드의 공개 설정이다(`N화부터`·`작가 전용`, 소설이 연결되지 않은 세계관의 1화는 `공개`, DEC-53). 다른 세계관에서 가져온 카드는 `가져옴`과 출처를 제목 아래에 보인다.
  * 보완 상태는 제목 옆이 아니라 `상태` 칸에 칩으로 모인다(알리기만 하고 이 표시 때문에 저장·확정이 막히지는 않는다, 없으면 —): 인물의 필수 문서(IDENTITY.md·SOUL.md, GOAL.md는 선택) 가운데 비어 있는 것이 있으면 `정리 필요`,
- * 사건·사물이 어느 인물과도 승인된 관계로 이어지지 않았으면 `연결 필요`, 이 카드의 글에 더 늦게 공개되는 카드의 이름이 나오면 `공개 순서 N`(DEC-53, N은 경고 건수), 마지막 AI 검토가 남긴 지적이 있으면 `AI 의견 N`이다.
- * 칩을 누르면 미리보기를 거치지 않고 그 카드의 편집 화면이 칩에 맞는 화면(활동 막대 탭: 정리 필요·AI 의견은 문서, 연결 필요는 관계, 공개 순서는 공개 순서)으로 열린다.
+ * 사건·사물이 어느 인물과도 승인된 관계로 이어지지 않았으면 `연결 필요`, 이 카드의 글에 더 늦게 공개되는 카드의 이름이 나오면 `공개 순서 N`(DEC-53, N은 경고 건수), 마지막 AI 검토가 남긴 지적이 있으면 `AI 의견 N`, 원고로 세계관을 만들거나 업데이트할 때 이름이 같은 카드가 둘 이상이라 작가 확인을 남긴 카드(`needsReview`: 보완 상태가 아니라 카드의 표시값이라 `보완 필요` 필터·건수에는 들어가지 않는다)는 `확인 필요`다.
+ * 칩을 누르면 미리보기를 거치지 않고 그 카드의 편집 화면이 칩에 맞는 화면(활동 막대 탭: 정리 필요·AI 의견·확인 필요는 문서, 연결 필요는 관계, 공개 순서는 공개 순서)으로 열린다.
  * 본문이 좁으면 번호·분류·요약·연결 칸이 숨는다(world-studio.css의 컨테이너 규칙). 그때 분류와 요약을 잃지 않도록 제목 아래 한 줄(`.world-row-sub`)에도 두고, 넓은 본문에서는 CSS가 그 줄을 숨긴다.
  * 760px 이하에서는 상태 칸도 숨고 같은 칩이 제목 아래 한 줄(`.world-row-status`)로 보인다(`.world-row-sub`처럼 CSS만으로 둘 중 하나만 보이므로 브라우저의 접근성 트리에는 늘 한 벌이다. 화면 테스트는 CSS가 없어 두 벌이 다 있으니 상태 칸에서 칩을 찾는다).
  */
 function Row({ row, setting, status, images, picked, linked, previewing, previewId, onPick, onOpen, onToggle }: { row: BoardRow; setting?: StudioSetting; status?: CardStatus; images: CardImages; picked: boolean; linked: boolean; previewing: boolean; previewId: string; onPick: (id: string, on: boolean) => void; onOpen: (id: string, pane: CardPane) => void; onToggle: (id: string) => void }) {
   const reveal = setting && cardRevealEpisode(setting)
-  const chips = status ? statusChips(row.title, status) : []
+  const chips = [...(status ? statusChips(row.title, status) : []), ...(setting?.needsReview ? [reviewChip(row.title)] : [])]
   // 줄 전체가 미리보기를 여닫으므로, 자기 일이 따로 있는 컨트롤(체크박스·상태 칩)은 줄까지 올라가지 않게 한다(관리자 표의 행 선택과 같은 방식).
   const open = (pane: CardPane) => onOpen(row.cardId, pane)
   return (

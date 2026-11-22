@@ -123,13 +123,14 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
     </div>
   )
   const imageOf = new Map(world.settings.map((s) => [s.item.id, s.imageId]))
+  const reviewIds = new Set(world.settings.flatMap((s) => (s.needsReview ? [s.item.id] : [])))
   const rail = (id: string, title: string, sub: string) => {
-    const on = id === item.id
+    const on = id === item.id, review = reviewIds.has(id)
     return (
       <div className="writing-episode-row" key={id}>
-        <button type="button" className={`writing-episode${on ? ' on' : ''}`} aria-pressed={on} aria-label={`${title} ${sub}`} disabled={vm.busy} onClick={() => { setConfirm(''); if (!on) vm.editCard(id) }}>
+        <button type="button" className={`writing-episode${on ? ' on' : ''}`} aria-pressed={on} aria-label={`${title} ${sub}${review ? ' 확인 필요' : ''}`} disabled={vm.busy} onClick={() => { setConfirm(''); if (!on) vm.editCard(id) }}>
           <CardThumb images={vm.cardImages} imageId={imageOf.get(id)} />
-          <strong>{title}</strong><small>{sub}</small>
+          <strong>{title}</strong><small>{sub}{review && <span className="world-review-flag">확인 필요</span>}</small>
         </button>
         {/* 항목마다 그 카드를 대상으로 하는 메뉴. 카드를 먼저 연 뒤 같은 삭제 확인을 보인다. */}
         <PopMenu className="writing-episode-more" label={`${title} 더보기`} icon={<MoreVerticalIcon />}>

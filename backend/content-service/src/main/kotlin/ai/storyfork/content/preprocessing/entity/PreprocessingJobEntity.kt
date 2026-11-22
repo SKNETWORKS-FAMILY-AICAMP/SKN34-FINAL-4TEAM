@@ -2,6 +2,7 @@ package ai.storyfork.content.preprocessing.entity
 
 import ai.storyfork.content._common.exception.checkContent
 import ai.storyfork.content.preprocessing.domain.PREPROCESSING_STAGES
+import ai.storyfork.content.preprocessing.domain.PreprocessingKind
 import ai.storyfork.content.preprocessing.domain.PreprocessingStatus
 import ai.storyfork.content.preprocessing.domain.checkProgress
 import jakarta.persistence.*
@@ -41,6 +42,9 @@ class PreprocessingJobEntity(
     var startedAt: Instant? = null,
     @field:Column(name = "finished_at")
     var finishedAt: Instant? = null,
+    /** initial: 빈 세계관의 최초 구축, update: 발행 회차를 세계관 초안에 더하는 작업(2026-11-22). 접수 때 정한다. */
+    @field:Column(name = "kind")
+    var kind: String = PreprocessingKind.INITIAL,
 ) {
     /**
      * AI가 보고한 단계·진행을 기록한다. 종료한 작업은 409, 값 오류는 422다. [failed]가 있으면 그 고정 사유로 작업을 끝낸다.

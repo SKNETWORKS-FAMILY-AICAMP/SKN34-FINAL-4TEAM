@@ -88,3 +88,5 @@ Service는 검증된 JWT subject를 인자로 받아 world.owner_subject를 먼�
 이미 실행한 Content 공존 검증은 일회성 데이터 보호 회귀다. 그 테스트만 별도로 `TEST_WORLDSTUDIO_COEXISTENCE_ONCE=true`를 지정했을 때 실행하도록 보존했으며 기본 검증 명령에는 포함하지 않는다. Content V1~V7은 독립 WorldStudio의 선행 조건이 아니다.
 
 > **V15(원고 기반 최초 세계관 구축):** 최초 구축 작업과 회차별 결과, 적재 요청 기록을 담는 세 테이블을 추가한다. V12의 설정집 검토 기록은 유지되며 V1~V12·V14·V15의 14건이 적용되고 이력 표를 제외한 테이블은 25개다. V13은 결번이다(V14가 먼저 병합돼 outOfOrder 없이 채울 수 없어 V15로 재번호했다).
+
+> **V16(발행 회차 업데이트 작업, 2026-11-22):** `manuscript_build_job`에 `kind`(`initial`|`update`, 기존 행 `initial`, CHECK)와 `basis jsonb`(update 작업의 기준 초안, claim 때 정한다)를 더하는 additive `ALTER TABLE` 둘뿐이다. V15 불변 트리거가 비교하는 입력 칼럼(manifest 등)과 완료 행 불변은 그대로이고 `basis`·`kind`는 그 칼럼에 들지 않는다. V1~V12·V14~V16의 15건이 적용되고 표는 25개 그대로다. [계약](../../../../../../../../docs/design/initial-build-storage-contract.md#발행-회차로-세계관-업데이트-2026-11-22-사용자-결정).

@@ -180,8 +180,9 @@ class ContentBoundaryTest {
         // V24 stays vacant: V25 reached the shared DB first and Flyway runs without outOfOrder, so a lower version could never be applied there.
         // V38 adds scene positions, V39 records author handling time, V40 adds work operating settings history,
         // V41 adds the manuscript preprocessing job table in its own preprocessing leaf (#343, DEC-50),
-        // and V42 adds genre management columns to the V1 genre table (active·position·featured·emoji, UNIQUE name; DEC-56).
-        assertEquals((1..23) + (25..31) + (36..42), versions.sorted())
+        // V42 adds genre management columns to the V1 genre table (active·position·featured·emoji, UNIQUE name; DEC-56),
+        // and V43 adds the preprocessing job kind (initial|update) so a completed initial build and its update jobs can coexist (preprocessing leaf).
+        assertEquals((1..23) + (25..31) + (36..43), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->
