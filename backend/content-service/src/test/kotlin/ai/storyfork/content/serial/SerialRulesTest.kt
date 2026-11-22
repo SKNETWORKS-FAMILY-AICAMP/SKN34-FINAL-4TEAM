@@ -2,9 +2,11 @@ package ai.storyfork.content.serial
 
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.serial.domain.*
-import ai.storyfork.content.serial.entity.SerialOpinionEntity
+import ai.storyfork.content.serial.entity.SerialChoiceEntity
+import ai.storyfork.content.serial.entity.SerialProposalEntity
+import ai.storyfork.content.serial.entity.SerialProposalLikeEntity
 import ai.storyfork.content.serial.entity.SerialVoteEntity
-import ai.storyfork.content.serial.service.dto.SerialOpinionRequest
+import ai.storyfork.content.serial.service.dto.SerialProposalRequest
 import ai.storyfork.content.serial.service.dto.SerialSimulationRequest
 import java.time.DayOfWeek
 import java.time.Instant
@@ -15,7 +17,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.json.JsonMapper
 
-/** AI 자율 연재의 순수 규칙(일정 도래·상위 의견 선정·입력 검증·문맥 크기)을 DB·HTTP 없이 고정한다. */
+/** AI 자율 연재의 순수 규칙(일정 도래·1위 선택지와 추천 상위 제안 선정·입력 검증·문맥 크기)을 DB·HTTP 없이 고정한다. */
 class SerialRulesTest {
     private fun kst(date: String, time: String) = ZonedDateTime.of(LocalDate.parse(date), LocalTime.parse(time), KST)
     private fun status(block: () -> Unit) = assertThrows(ContentFailure::class.java, block).status
@@ -100,109 +102,156 @@ class SerialRulesTest {
         }
     }
 
-    // ---- 상위 의견
+    // ---- 선택지 순위
 
-    private fun opinion(id: String, at: Long, hidden: Boolean = false, kind: String = "general") =
-        SerialOpinionEntity(id = id, boardId = "b", authorId = "author-$id", kind = kind, body = "의견 $id", hidden = hidden, createdAt = Instant.ofEpochSecond(at))
-    private fun vote(member: String, opinionId: String) = SerialVoteEntity("b", member, opinionId)
-    private fun ids(ranked: List<RankedOpinion>) = ranked.map { it.opinion.id }
+    private fun choice(position: Int) = SerialChoiceEntity(id = "c$position", boardId = "b", position = position, text = "선택지 $position")
+    private fun choices() = (1..4).map { choice(it) }
+    private fun vote(member: String, choiceId: String) = SerialVoteEntity("b", member, choiceId)
 
-    @Test fun `the top opinions are ordered by votes and counted`() {
-        val opinions = listOf(opinion("a", 1), opinion("b", 2), opinion("c", 3))
-        val votes = listOf(vote("m1", "c"), vote("m2", "c"), vote("m3", "b"))
+    @Test fun `the top choice has the most votes and each choice carries its count in position order`() {
+        val votes = listOf(vote("m1", "c3"), vote("m2", "c3"), vote("m3", "c2"))
 
-        val top = topOpinions(opinions, votes)
-
-        assertEquals(listOf("c", "b", "a"), ids(top))
-        assertEquals(listOf(2, 1, 0), top.map { it.votes })
+        assertEquals("c3", topChoice(choices(), votes)!!.choice.id)
+        assertEquals(2, topChoice(choices(), votes)!!.votes)
+        // 화면 순서는 번호 순이다: 득표가 많아도 자리를 옮기지 않는다.
+        assertEquals(listOf("c1", "c2", "c3", "c4"), rankChoices(choices(), votes).map { it.choice.id })
+        assertEquals(listOf(0, 1, 2, 0), rankChoices(choices(), votes).map { it.votes })
     }
 
-    @Test fun `equal votes go to the opinion written first and then to the smaller id`() {
-        val tie = listOf(opinion("late", 30), opinion("early", 10), opinion("mid", 20))
-        assertEquals(listOf("early", "mid", "late"), ids(topOpinions(tie, emptyList())))
-
-        val sameTime = listOf(opinion("z", 5), opinion("a", 5))
-        assertEquals(listOf("a", "z"), ids(topOpinions(sameTime, emptyList())))
-
-        // 득표가 많으면 늦게 쓴 의견이 먼저다.
-        assertEquals("late", ids(topOpinions(tie, listOf(vote("m1", "late")))).first())
+    @Test fun `equal votes go to the smaller position and no votes at all means choice one`() {
+        assertEquals("c1", topChoice(choices(), emptyList())!!.choice.id)
+        assertEquals("c2", topChoice(choices(), listOf(vote("m1", "c4"), vote("m2", "c2"), vote("m3", "c4"), vote("m4", "c2")))!!.choice.id)
+        // 입력 순서와 상관없이 번호가 작은 쪽이다.
+        assertEquals("c1", topChoice(choices().reversed(), listOf(vote("m1", "c3"), vote("m2", "c1"), vote("m3", "c3"), vote("m4", "c1")))!!.choice.id)
     }
 
-    @Test fun `hidden opinions never count even with the most votes`() {
-        val opinions = listOf(opinion("bad", 1, hidden = true), opinion("good", 2), opinion("fine", 3))
-        val votes = listOf(vote("m1", "bad"), vote("m2", "bad"), vote("m3", "bad"), vote("m4", "good"))
-
-        assertEquals(listOf("good", "fine"), ids(topOpinions(opinions, votes)))
-        assertEquals(listOf("good", "fine"), ids(rankOpinions(opinions, votes)))
+    @Test fun `there is no top choice without choices and votes for unknown choices change nothing`() {
+        assertNull(topChoice(emptyList(), listOf(vote("m1", "c1"))))
+        assertEquals("c1", topChoice(choices(), listOf(vote("m1", "elsewhere"), vote("m2", "elsewhere")))!!.choice.id)
+        assertEquals(listOf(0, 0, 0, 0), rankChoices(choices(), listOf(vote("m1", "elsewhere"))).map { it.votes })
     }
 
-    @Test fun `only the top three are chosen and zero-vote opinions fill in when few have votes`() {
-        val opinions = (1..5).map { opinion("o$it", it.toLong()) }
-        val votes = listOf(vote("m1", "o5"), vote("m2", "o5"), vote("m3", "o4"))
-
-        assertEquals(listOf("o5", "o4", "o1"), ids(topOpinions(opinions, votes)))
-        assertEquals(5, rankOpinions(opinions, votes).size)
-        assertEquals(emptyList<RankedOpinion>(), topOpinions(emptyList(), emptyList()))
-    }
-
-    @Test fun `votes for other opinions or unknown ids do not change the order`() {
-        val opinions = listOf(opinion("a", 1), opinion("b", 2))
-        val votes = listOf(vote("m1", "elsewhere"), vote("m2", "b"))
-
-        assertEquals(listOf("b", "a"), ids(topOpinions(opinions, votes)))
-    }
-
-    // ---- 의견 입력 검증
-
-    private fun general(body: String = "다음에는 두 사람이 만나면 좋겠어요") = SerialOpinionRequest("general", body)
-    private fun simulation(premise: String = "두 사람이 폐교에서 마주친다", beats: List<String> = listOf("문이 열린다"), body: String = "") =
-        SerialOpinionRequest("simulation", body, SerialSimulationRequest(premise, beats))
-
-    @Test fun `a general opinion keeps trimmed text`() {
-        val clean = cleanOpinion(general("  두 사람이 만나면 좋겠어요  "))
-
-        assertEquals(CleanOpinion("general", "두 사람이 만나면 좋겠어요", null, emptyList()), clean)
-    }
-
-    @Test fun `a general opinion needs one to one thousand visible characters and no NUL`() {
-        assertEquals(1000, cleanOpinion(general("가".repeat(1000))).body.length)
-        for (bad in listOf("", "   ", "가".repeat(1001), "본문" + Char(0), Char(0xA0).toString())) {
-            assertEquals(422, status { cleanOpinion(general(bad)) }, bad.take(20))
+    @Test fun `AI choices must be exactly four trimmed texts of one to three hundred characters`() {
+        assertEquals(listOf("가", "나", "다", "라"), cleanChoices(listOf(" 가 ", "나", "다", "라 ")))
+        assertEquals(300, cleanChoices(listOf("가".repeat(300), "나", "다", "라"))!![0].length)
+        for (bad in listOf(
+            emptyList<String>(), listOf("가", "나", "다"), listOf("가", "나", "다", "라", "마"), listOf("가", "나", "다", ""), listOf("가", "나", "다", "  "),
+            listOf("가".repeat(301), "나", "다", "라"), listOf("가", "나", "다", "라" + Char(0)),
+        )) {
+            assertNull(cleanChoices(bad), bad.toString().take(40))
         }
     }
 
-    @Test fun `an unknown kind or a kind with the wrong block is rejected`() {
-        assertEquals(422, status { cleanOpinion(SerialOpinionRequest("setting", "x")) })
-        assertEquals(422, status { cleanOpinion(SerialOpinionRequest("", "x")) })
-        assertEquals(422, status { cleanOpinion(SerialOpinionRequest("GENERAL", "x")) })
-        // 일반 의견에 시뮬레이션 입력을 섞지 않는다. 시뮬레이션 의견에는 시뮬레이션 입력이 있어야 한다.
-        assertEquals(422, status { cleanOpinion(SerialOpinionRequest("general", "x", SerialSimulationRequest("전제", emptyList()))) })
-        assertEquals(422, status { cleanOpinion(SerialOpinionRequest("simulation", "x")) })
+    @Test fun `a credit limit overrun has its own fixed reason apart from the other failures`() {
+        assertEquals("크레딧 상한을 넘었습니다.", SerialReason.LIMIT)
+        val all = listOf(SerialReason.CREDIT, SerialReason.REVIEW, SerialReason.AI, SerialReason.PUBLISH, SerialReason.DRAFT, SerialReason.LIMIT)
+        assertEquals(all.size, all.toSet().size)
     }
 
-    @Test fun `a simulation opinion takes a premise up to 500 and up to five beats of 200`() {
-        val limit = simulation("가".repeat(500), List(5) { "나".repeat(200) })
-        val clean = cleanOpinion(limit)
+    // ---- 제안 글 순위
+
+    private fun proposal(id: String, at: Long, hidden: Boolean = false, kind: String = "general") =
+        SerialProposalEntity(id = id, boardId = "b", authorId = "author-$id", kind = kind, title = "제목 $id", body = "본문 $id", hidden = hidden, createdAt = Instant.ofEpochSecond(at))
+    private fun like(member: String, proposalId: String) = SerialProposalLikeEntity(proposalId, member)
+    private fun ids(ranked: List<RankedProposal>) = ranked.map { it.proposal.id }
+
+    @Test fun `the top proposals are ordered by likes and counted`() {
+        val proposals = listOf(proposal("a", 1), proposal("b", 2), proposal("c", 3))
+        val likes = listOf(like("m1", "c"), like("m2", "c"), like("m3", "b"))
+
+        val top = topProposals(proposals, likes)
+
+        assertEquals(listOf("c", "b", "a"), ids(top))
+        assertEquals(listOf(2, 1, 0), top.map { it.likes })
+    }
+
+    @Test fun `equal likes go to the proposal written first and then to the smaller id`() {
+        val tie = listOf(proposal("late", 30), proposal("early", 10), proposal("mid", 20))
+        assertEquals(listOf("early", "mid", "late"), ids(topProposals(tie, emptyList())))
+
+        val sameTime = listOf(proposal("z", 5), proposal("a", 5))
+        assertEquals(listOf("a", "z"), ids(topProposals(sameTime, emptyList())))
+
+        // 추천이 많으면 늦게 쓴 글이 먼저다.
+        assertEquals("late", ids(topProposals(tie, listOf(like("m1", "late")))).first())
+    }
+
+    @Test fun `hidden proposals never count even with the most likes`() {
+        val proposals = listOf(proposal("bad", 1, hidden = true), proposal("good", 2), proposal("fine", 3))
+        val likes = listOf(like("m1", "bad"), like("m2", "bad"), like("m3", "bad"), like("m4", "good"))
+
+        assertEquals(listOf("good", "fine"), ids(topProposals(proposals, likes)))
+        assertEquals(listOf("good", "fine"), ids(rankProposals(proposals, likes)))
+    }
+
+    @Test fun `only the top three are chosen and zero-like proposals fill in when few have likes`() {
+        val proposals = (1..5).map { proposal("p$it", it.toLong()) }
+        val likes = listOf(like("m1", "p5"), like("m2", "p5"), like("m3", "p4"))
+
+        assertEquals(listOf("p5", "p4", "p1"), ids(topProposals(proposals, likes)))
+        assertEquals(5, rankProposals(proposals, likes).size)
+        assertEquals(emptyList<RankedProposal>(), topProposals(emptyList(), emptyList()))
+    }
+
+    @Test fun `likes for other proposals or unknown ids do not change the order`() {
+        val proposals = listOf(proposal("a", 1), proposal("b", 2))
+        val likes = listOf(like("m1", "elsewhere"), like("m2", "b"))
+
+        assertEquals(listOf("b", "a"), ids(topProposals(proposals, likes)))
+    }
+
+    // ---- 제안 글 입력 검증
+
+    private fun general(title: String = "다음 전개 제안", body: String = "다음에는 두 사람이 만나면 좋겠어요") = SerialProposalRequest("general", title, body)
+    private fun simulation(title: String = "폐교 장면", premise: String = "두 사람이 폐교에서 마주친다", beats: List<String> = listOf("문이 열린다"), body: String = "") =
+        SerialProposalRequest("simulation", title, body, SerialSimulationRequest(premise, beats))
+
+    @Test fun `a general proposal keeps trimmed title and text`() {
+        val clean = cleanProposal(general("  다음 전개 제안  ", "  두 사람이 만나면 좋겠어요  "))
+
+        assertEquals(CleanProposal("general", "다음 전개 제안", "두 사람이 만나면 좋겠어요", null, emptyList()), clean)
+    }
+
+    @Test fun `a general proposal needs a title up to 100 and a text up to 2000 visible characters and no NUL`() {
+        assertEquals(100, cleanProposal(general(title = "가".repeat(100))).title.length)
+        assertEquals(2000, cleanProposal(general(body = "가".repeat(2000))).body.length)
+        for (bad in listOf("", "   ", "가".repeat(101), "제목" + Char(0), Char(0xA0).toString())) assertEquals(422, status { cleanProposal(general(title = bad)) }, "title " + bad.take(20))
+        for (bad in listOf("", "   ", "가".repeat(2001), "본문" + Char(0), Char(0xA0).toString())) assertEquals(422, status { cleanProposal(general(body = bad)) }, "body " + bad.take(20))
+    }
+
+    @Test fun `an unknown kind or a kind with the wrong block is rejected`() {
+        assertEquals(422, status { cleanProposal(SerialProposalRequest("setting", "제목", "x")) })
+        assertEquals(422, status { cleanProposal(SerialProposalRequest("", "제목", "x")) })
+        assertEquals(422, status { cleanProposal(SerialProposalRequest("GENERAL", "제목", "x")) })
+        // 일반 글에 시뮬레이션 입력을 섞지 않는다. 시뮬레이션 글에는 시뮬레이션 입력이 있어야 한다.
+        assertEquals(422, status { cleanProposal(SerialProposalRequest("general", "제목", "x", SerialSimulationRequest("전제", emptyList()))) })
+        assertEquals(422, status { cleanProposal(SerialProposalRequest("simulation", "제목", "x")) })
+    }
+
+    @Test fun `a simulation proposal takes a premise up to 500 and up to five beats of 200`() {
+        val limit = simulation(premise = "가".repeat(500), beats = List(5) { "나".repeat(200) })
+        val clean = cleanProposal(limit)
 
         assertEquals(500, clean.premise!!.length)
         assertEquals(List(5) { "나".repeat(200) }, clean.beats)
-        assertEquals(emptyList<String>(), cleanOpinion(simulation(beats = emptyList())).beats)
+        assertEquals(emptyList<String>(), cleanProposal(simulation(beats = emptyList())).beats)
     }
 
     @Test fun `bad simulation input is rejected`() {
         for (bad in listOf(
             simulation(premise = ""), simulation(premise = "  "), simulation(premise = "가".repeat(501)), simulation(premise = "전제" + Char(0)),
             simulation(beats = List(6) { "비트" }), simulation(beats = listOf("")), simulation(beats = listOf("  ")), simulation(beats = listOf("가".repeat(201))),
-            simulation(body = "가".repeat(1001)),
+            simulation(body = "가".repeat(2001)), simulation(title = ""), simulation(title = "가".repeat(101)),
         )) {
-            assertEquals(422, status { cleanOpinion(bad) }, bad.toString().take(60))
+            assertEquals(422, status { cleanProposal(bad) }, bad.toString().take(60))
         }
     }
 
-    @Test fun `a simulation opinion without a comment shows its premise as the body`() {
-        assertEquals("두 사람이 폐교에서 마주친다", cleanOpinion(simulation()).body)
-        assertEquals("제 의견은 이래요", cleanOpinion(simulation(body = " 제 의견은 이래요 ")).body)
-        assertEquals(listOf("문이 열린다"), cleanOpinion(simulation(beats = listOf(" 문이 열린다 "))).beats)
+    @Test fun `a simulation proposal without a comment shows its premise as the body`() {
+        assertEquals("두 사람이 폐교에서 마주친다", cleanProposal(simulation()).body)
+        assertEquals("제 글은 이래요", cleanProposal(simulation(body = " 제 글은 이래요 ")).body)
+        assertEquals(listOf("문이 열린다"), cleanProposal(simulation(beats = listOf(" 문이 열린다 "))).beats)
+        assertEquals("폐교 장면", cleanProposal(simulation(title = " 폐교 장면 ")).title)
     }
 
     // ---- AI에 보낼 문맥

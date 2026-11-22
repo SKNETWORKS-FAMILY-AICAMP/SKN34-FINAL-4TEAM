@@ -36,38 +36,49 @@ class SerialWireContractTest {
         assertEquals("2026-11-23T12:10:00Z", rows[1].path("closedAt").asString())
     }
 
-    @Test fun `the reader board has board opinions my ids and summary`() {
-        val empty = mapper.readTree(mapper.writeValueAsString(SerialBoardResponse(null, emptyList(), null, null, null)))
-        assertEquals(listOf("board", "myOpinionId", "myVoteOpinionId", "opinions", "summary"), empty.propertyNames().toList().sorted())
-        assertTrue(empty.path("board").isNull && empty.path("summary").isNull && empty.path("myOpinionId").isNull && empty.path("myVoteOpinionId").isNull)
-        assertEquals(0, empty.path("opinions").size())
+    @Test fun `the reader board has enabled board choices my choice proposals and summary`() {
+        val empty = mapper.readTree(mapper.writeValueAsString(SerialBoardResponse(false, null, emptyList(), null, emptyList(), null)))
+        assertEquals(listOf("board", "choices", "enabled", "myChoiceId", "proposals", "summary"), empty.propertyNames().toList().sorted())
+        assertTrue(empty.path("board").isNull && empty.path("summary").isNull && empty.path("myChoiceId").isNull)
+        assertFalse(empty.path("enabled").asBoolean())
+        assertEquals(listOf(0, 0), listOf(empty.path("choices").size(), empty.path("proposals").size()))
 
         val full = mapper.readTree(mapper.writeValueAsString(SerialBoardResponse(
+            true,
             SerialBoardRef("b1", 4),
-            listOf(SerialOpinionView("o1", "하나", "simulation", "본문", SerialSimulationView("전제", listOf("비트"), null), 2, t0)),
-            "o1", "o2", "종합",
+            listOf(SerialChoiceView("c1", 1, "두 사람이 폐교에서 만난다", 3), SerialChoiceView("c2", 2, "편지가 도착한다", 0)),
+            "c1",
+            listOf(SerialProposalView("p1", "하나", "simulation", "제목", "본문", SerialSimulationView("전제", listOf("비트"), null), 2, true, false, t0)),
+            "종합",
         )))
+        assertTrue(full.path("enabled").asBoolean())
         assertEquals(listOf("episodeNumber", "id"), full.path("board").propertyNames().toList().sorted())
-        val opinion = full.path("opinions")[0]
-        assertEquals(listOf("authorName", "body", "createdAt", "id", "kind", "simulation", "votes"), opinion.propertyNames().toList().sorted())
-        assertEquals(listOf("beats", "premise", "scene"), opinion.path("simulation").propertyNames().toList().sorted())
-        assertTrue(opinion.path("simulation").path("scene").isNull)
-        assertEquals(2, opinion.path("votes").asInt())
-        assertEquals("2026-11-23T12:10:00Z", opinion.path("createdAt").asString())
+        assertEquals("c1", full.path("myChoiceId").asString())
+        val choice = full.path("choices")[0]
+        assertEquals(listOf("id", "position", "text", "votes"), choice.propertyNames().toList().sorted())
+        assertEquals(listOf(1, 3), listOf(choice.path("position").asInt(), choice.path("votes").asInt()))
+        val proposal = full.path("proposals")[0]
+        assertEquals(listOf("authorName", "body", "createdAt", "id", "kind", "likedByMe", "likes", "mine", "simulation", "title"), proposal.propertyNames().toList().sorted())
+        assertEquals(listOf("beats", "premise", "scene"), proposal.path("simulation").propertyNames().toList().sorted())
+        assertTrue(proposal.path("simulation").path("scene").isNull)
+        assertEquals(listOf(2, true, false), listOf(proposal.path("likes").asInt(), proposal.path("likedByMe").asBoolean(), proposal.path("mine").asBoolean()))
+        assertEquals("2026-11-23T12:10:00Z", proposal.path("createdAt").asString())
     }
 
-    @Test fun `a general opinion has a null simulation`() {
-        val json = mapper.writeValueAsString(SerialOpinionView("o1", "하나", "general", "본문", null, 0, t0))
+    @Test fun `a general proposal has a null simulation`() {
+        val json = mapper.writeValueAsString(SerialProposalView("p1", "하나", "general", "제목", "본문", null, 0, false, true, t0))
 
         assertTrue(mapper.readTree(json).path("simulation").isNull)
         assertTrue(mapper.readTree(json).has("simulation"))
     }
 
-    @Test fun `the opinion and vote requests read the agreed bodies`() {
-        val sim = mapper.readValue("""{"kind":"simulation","body":"","simulation":{"premise":"전제","beats":["비트1","비트2"]}}""", SerialOpinionRequest::class.java)
-        assertEquals(SerialOpinionRequest("simulation", "", SerialSimulationRequest("전제", listOf("비트1", "비트2"))), sim)
-        assertEquals(SerialOpinionRequest("general", "의견"), mapper.readValue("""{"kind":"general","body":"의견"}""", SerialOpinionRequest::class.java))
-        assertEquals(SerialVoteRequest("o1"), mapper.readValue("""{"opinionId":"o1"}""", SerialVoteRequest::class.java))
+    @Test fun `the proposal vote and created bodies match the agreed shapes`() {
+        val sim = mapper.readValue("""{"kind":"simulation","title":"폐교 장면","body":"","simulation":{"premise":"전제","beats":["비트1","비트2"]}}""", SerialProposalRequest::class.java)
+        assertEquals(SerialProposalRequest("simulation", "폐교 장면", "", SerialSimulationRequest("전제", listOf("비트1", "비트2"))), sim)
+        assertEquals(SerialProposalRequest("general", "제목", "본문"), mapper.readValue("""{"kind":"general","title":"제목","body":"본문"}""", SerialProposalRequest::class.java))
+        assertEquals(SerialProposalRequest(), mapper.readValue("{}", SerialProposalRequest::class.java))
+        assertEquals(SerialVoteRequest("c1"), mapper.readValue("""{"choiceId":"c1"}""", SerialVoteRequest::class.java))
         assertEquals(SerialVoteRequest(), mapper.readValue("{}", SerialVoteRequest::class.java))
+        assertEquals(listOf("id"), keys(mapper.writeValueAsString(SerialProposalCreated("p1"))))
     }
 }

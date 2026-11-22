@@ -2,9 +2,11 @@ package ai.storyfork.content.serial.domain
 
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content._common.exception.checkContent
-import ai.storyfork.content.serial.entity.SerialOpinionEntity
+import ai.storyfork.content.serial.entity.SerialChoiceEntity
+import ai.storyfork.content.serial.entity.SerialProposalEntity
+import ai.storyfork.content.serial.entity.SerialProposalLikeEntity
 import ai.storyfork.content.serial.entity.SerialVoteEntity
-import ai.storyfork.content.serial.service.dto.SerialOpinionRequest
+import ai.storyfork.content.serial.service.dto.SerialProposalRequest
 import ai.storyfork.content.serial.service.dto.SerialSettingsRequest
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -19,13 +21,21 @@ val KST: ZoneId = ZoneId.of("Asia/Seoul")
 /** AI에 보내는 context(JSON 문자열)의 글자 수 한도다. AI 서비스가 이 값을 넘는 요청을 거절한다. */
 const val SERIAL_CONTEXT_LIMIT = 60_000
 
-/** 게시판 실행에 쓰는 득표 상위 의견 수와 running이 이만큼 지나면 낡은 것으로 보는 시간(분)이다. */
-const val TOP_OPINIONS = 3
+/** 게시판 실행에 쓰는 추천 상위 제안 글 수와 running이 이만큼 지나면 낡은 것으로 보는 시간(분)이다. */
+const val TOP_PROPOSALS = 3
 const val STALE_RUNNING_MINUTES = 30L
+
+/** 선택지(AI가 게시판마다 4개, 각 300자 이내)와 선택지 생성이 실패했을 때 다시 시도하기까지의 시간(분), 제안 글의 제목·본문 한도(글자 수)다. */
+const val CHOICE_COUNT = 4
+const val CHOICE_MAX = 300
+const val CHOICES_RETRY_MINUTES = 10L
+const val PROPOSAL_TITLE_MAX = 100
+const val PROPOSAL_BODY_MAX = 2000
 
 /** 실행이 실패한 게시판에 남기는 고정 사유다. 원문·예외 메시지를 싣지 않는다. */
 object SerialReason {
     const val CREDIT = "크레딧이 부족합니다."
+    const val LIMIT = "크레딧 상한을 넘었습니다."
     const val REVIEW = "검수를 통과하지 못했습니다."
     const val AI = "AI 생성에 실패했습니다."
     const val PUBLISH = "발행에 실패했습니다."
@@ -79,43 +89,66 @@ fun isSerialDue(days: String, runTime: LocalTime, lastRunDate: LocalDate?, now: 
     return !kst.isBefore(start) && kst.isBefore(start.plusHours(1))
 }
 
-// ---- 의견
+// ---- 선택지
 
-/** 득표 수를 붙인 의견이다. */
-data class RankedOpinion(val opinion: SerialOpinionEntity, val votes: Int)
+/** 득표 수를 붙인 선택지다. */
+data class RankedChoice(val choice: SerialChoiceEntity, val votes: Int)
 
-/** 숨기지 않은 의견을 득표 많은 순, 같으면 먼저 쓴 순(같은 시각이면 id 순)으로 줄 세운다. */
-fun rankOpinions(opinions: List<SerialOpinionEntity>, votes: List<SerialVoteEntity>): List<RankedOpinion> {
-    val counts = votes.groupingBy { it.opinionId }.eachCount()
-    return opinions.filter { !it.hidden }.map { RankedOpinion(it, counts[it.id] ?: 0) }
-        .sortedWith(compareByDescending<RankedOpinion> { it.votes }.thenBy { it.opinion.createdAt }.thenBy { it.opinion.id })
+/** 선택지를 번호순(화면 순서)으로 득표 수와 함께 돌려준다. 득표가 많아도 자리를 옮기지 않는다. */
+fun rankChoices(choices: List<SerialChoiceEntity>, votes: List<SerialVoteEntity>): List<RankedChoice> {
+    val counts = votes.groupingBy { it.choiceId }.eachCount()
+    return choices.sortedBy { it.position }.map { RankedChoice(it, counts[it.id] ?: 0) }
 }
 
-/** 회차 실행에 쓰는 득표 상위 의견이다. 표가 없는 의견도 자리가 남으면 들어간다. */
-fun topOpinions(opinions: List<SerialOpinionEntity>, votes: List<SerialVoteEntity>, limit: Int = TOP_OPINIONS): List<RankedOpinion> = rankOpinions(opinions, votes).take(limit)
+/** 이번 회차의 중심 전개가 될 1위 선택지다: 득표가 가장 많은 것, 같으면 앞 번호(표가 없으면 1번). 선택지가 없으면 null이다. */
+fun topChoice(choices: List<SerialChoiceEntity>, votes: List<SerialVoteEntity>): RankedChoice? =
+    rankChoices(choices, votes).minWithOrNull(compareByDescending<RankedChoice> { it.votes }.thenBy { it.choice.position })
 
-data class CleanOpinion(val kind: String, val body: String, val premise: String?, val beats: List<String>)
+/** AI가 만든 선택지 글을 검증한다: 정확히 [CHOICE_COUNT]개이고 각각 앞뒤 공백을 뗀 뒤 1~[CHOICE_MAX]자에 NUL이 없어야 한다. 어긋나면 null이다. */
+fun cleanChoices(texts: List<String>): List<String>? {
+    val trimmed = texts.map { it.trim() }
+    return trimmed.takeIf { it.size == CHOICE_COUNT && it.all { text -> text.isNotEmpty() && text.length <= CHOICE_MAX && clean(text) } }
+}
 
-/** 의견 제출을 검증해 저장 형태로 바꾼다(앞뒤 공백 제거). 시뮬레이션 의견에 설명이 없으면 전제를 본문으로 보인다. 어긋나면 422다. */
-fun cleanOpinion(request: SerialOpinionRequest): CleanOpinion {
+// ---- 제안 글
+
+/** 추천 수를 붙인 제안 글이다. */
+data class RankedProposal(val proposal: SerialProposalEntity, val likes: Int)
+
+/** 숨기지 않은 글을 추천 많은 순, 같으면 먼저 쓴 순(같은 시각이면 id 순)으로 줄 세운다. */
+fun rankProposals(proposals: List<SerialProposalEntity>, likes: List<SerialProposalLikeEntity>): List<RankedProposal> {
+    val counts = likes.groupingBy { it.proposalId }.eachCount()
+    return proposals.filter { !it.hidden }.map { RankedProposal(it, counts[it.id] ?: 0) }
+        .sortedWith(compareByDescending<RankedProposal> { it.likes }.thenBy { it.proposal.createdAt }.thenBy { it.proposal.id })
+}
+
+/** 회차 실행에 쓰는 추천 상위 제안 글이다. 추천이 없는 글도 자리가 남으면 들어간다. */
+fun topProposals(proposals: List<SerialProposalEntity>, likes: List<SerialProposalLikeEntity>, limit: Int = TOP_PROPOSALS): List<RankedProposal> = rankProposals(proposals, likes).take(limit)
+
+data class CleanProposal(val kind: String, val title: String, val body: String, val premise: String?, val beats: List<String>)
+
+/** 제안 글을 검증해 저장 형태로 바꾼다(앞뒤 공백 제거). 시뮬레이션 글에 설명이 없으면 전제를 본문으로 보인다. 어긋나면 422다. */
+fun cleanProposal(request: SerialProposalRequest): CleanProposal {
+    val title = request.title.trim()
     val body = request.body.trim()
     val simulation = request.simulation
+    checkContent(title.isNotBlank() && title.length <= PROPOSAL_TITLE_MAX && clean(title), message = "제목은 1~100자로 입력해 주세요.")
     return when (request.kind) {
         "general" -> {
-            checkContent(simulation == null, message = "일반 의견에는 시뮬레이션 입력을 보낼 수 없어요.")
-            checkContent(body.isNotBlank() && body.length <= 1000 && clean(body), message = "의견은 1~1,000자로 입력해 주세요.")
-            CleanOpinion("general", body, null, emptyList())
+            checkContent(simulation == null, message = "일반 글에는 시뮬레이션 입력을 보낼 수 없어요.")
+            checkContent(body.isNotBlank() && body.length <= PROPOSAL_BODY_MAX && clean(body), message = "본문은 1~2,000자로 입력해 주세요.")
+            CleanProposal("general", title, body, null, emptyList())
         }
         "simulation" -> {
-            checkContent(simulation != null, message = "시뮬레이션 의견에는 전제와 장면 비트가 필요해요.")
+            checkContent(simulation != null, message = "시뮬레이션 글에는 전제와 장면 비트가 필요해요.")
             val premise = simulation!!.premise.trim()
             val beats = simulation.beats.map { it.trim() }
             checkContent(premise.isNotBlank() && premise.length <= 500 && clean(premise), message = "전제는 1~500자로 입력해 주세요.")
             checkContent(beats.size <= 5 && beats.all { it.isNotBlank() && it.length <= 200 && clean(it) }, message = "장면 비트는 200자 이내로 5개까지 입력해 주세요.")
-            checkContent(body.length <= 1000 && clean(body), message = "의견은 1,000자 이내로 입력해 주세요.")
-            CleanOpinion("simulation", body.ifBlank { premise }, premise, beats)
+            checkContent(body.length <= PROPOSAL_BODY_MAX && clean(body), message = "본문은 2,000자 이내로 입력해 주세요.")
+            CleanProposal("simulation", title, body.ifBlank { premise }, premise, beats)
         }
-        else -> throw ContentFailure(422, "의견 유형은 일반(general)·시뮬레이션(simulation) 중 하나로 보내 주세요.")
+        else -> throw ContentFailure(422, "글 유형은 일반(general)·시뮬레이션(simulation) 중 하나로 보내 주세요.")
     }
 }
 

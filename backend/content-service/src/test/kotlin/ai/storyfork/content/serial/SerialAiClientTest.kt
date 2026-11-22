@@ -1,9 +1,11 @@
 package ai.storyfork.content.serial
 
 import ai.storyfork.content.serial.client.SerialAiFailure
+import ai.storyfork.content.serial.client.isLimitExceeded
+import ai.storyfork.content.serial.client.isReviewFailure
+import ai.storyfork.content.serial.client.parseChoices
 import ai.storyfork.content.serial.client.parseEpisode
 import ai.storyfork.content.serial.client.parseScene
-import ai.storyfork.content.serial.client.isReviewFailure
 import java.math.BigDecimal
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -26,12 +28,55 @@ class SerialAiClientTest {
         assertFalse(isReviewFailure(500, """{"detail":"x","code":"SERIAL_REVIEW_FAILED"}"""))
     }
 
-    @Test fun `a credit limit overrun and an unreadable or empty body are plain failures`() {
+    @Test fun `a credit limit overrun and an unreadable or empty body are not review failures`() {
         assertFalse(isReviewFailure(402, """{"detail":"크레딧 상한을 넘었습니다.","code":"CREDIT_LIMIT_EXCEEDED"}"""))
         for (body in listOf(null, "", "   ", "not json", "[1,2]", """{"code":42}""", """{"code":null}""")) {
             assertFalse(isReviewFailure(422, body), body.toString())
         }
         assertFalse(isReviewFailure(503, null))
+    }
+
+    @Test fun `only a 402 with the limit code is a credit limit overrun`() {
+        assertTrue(isLimitExceeded(402, """{"detail":"크레딧 상한을 넘었습니다.","code":"CREDIT_LIMIT_EXCEEDED"}"""))
+        assertFalse(isLimitExceeded(402, """{"detail":"x"}"""))
+        assertFalse(isLimitExceeded(402, """{"detail":"x","code":"OTHER"}"""))
+        assertFalse(isLimitExceeded(500, """{"detail":"x","code":"CREDIT_LIMIT_EXCEEDED"}"""))
+        // 검수 실패(422)와 서로 섞이지 않는다.
+        assertFalse(isLimitExceeded(422, """{"detail":"x","code":"SERIAL_REVIEW_FAILED"}"""))
+        assertFalse(isReviewFailure(402, """{"detail":"x","code":"CREDIT_LIMIT_EXCEEDED"}"""))
+        for (body in listOf(null, "", "   ", "not json", "[1,2]", """{"code":42}""", """{"code":null}""")) {
+            assertFalse(isLimitExceeded(402, body), body.toString())
+        }
+    }
+
+    @Test fun `a failure says which of review and limit it is and a plain failure says neither`() {
+        assertEquals(listOf(true, false), SerialAiFailure(reviewFailed = true).let { listOf(it.reviewFailed, it.limitExceeded) })
+        assertEquals(listOf(false, true), SerialAiFailure(limitExceeded = true).let { listOf(it.reviewFailed, it.limitExceeded) })
+        assertEquals(listOf(false, false), SerialAiFailure().let { listOf(it.reviewFailed, it.limitExceeded) })
+    }
+
+    // ---- 선택지 응답
+
+    private val okChoices = """{"choices":[" 두 사람이 폐교에서 만난다 ","편지가 도착한다","오래된 문이 열린다","비밀이 밝혀진다"],"credits":0.25,"usage":{"inputTokens":10,"outputTokens":20}}"""
+
+    @Test fun `a choices answer keeps four trimmed texts in order and the exact credits`() {
+        val answer = parseChoices(json(okChoices))
+
+        assertEquals(listOf("두 사람이 폐교에서 만난다", "편지가 도착한다", "오래된 문이 열린다", "비밀이 밝혀진다"), answer.choices)
+        same("0.25", answer.credits)
+        same("2", parseChoices(json("""{"choices":["a","b","c","d"],"credits":"2"}""")).credits)
+    }
+
+    @Test fun `a choices answer with the wrong count a bad text or unreadable credits is a failure`() {
+        for (bad in listOf(
+            """{"credits":1}""", """{"choices":[],"credits":1}""", """{"choices":["a","b","c"],"credits":1}""", """{"choices":["a","b","c","d","e"],"credits":1}""",
+            """{"choices":["a","b","c",""],"credits":1}""", """{"choices":["a","b","c","  "],"credits":1}""", """{"choices":["a","b","c",4],"credits":1}""",
+            """{"choices":["a","b","c",null],"credits":1}""", """{"choices":["a","b","c","${"가".repeat(301)}"],"credits":1}""", """{"choices":"abcd","credits":1}""",
+            """{"choices":["a","b","c","d"]}""", """{"choices":["a","b","c","d"],"credits":-1}""", """[]""", """null""",
+        )) {
+            assertFalse(failure { parseChoices(json(bad)) }, bad.take(60))
+        }
+        assertFalse(failure { parseChoices(null) })
     }
 
     // ---- 시뮬레이션 응답

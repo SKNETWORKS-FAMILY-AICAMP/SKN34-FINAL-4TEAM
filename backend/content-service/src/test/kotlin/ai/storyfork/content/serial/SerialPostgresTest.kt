@@ -11,6 +11,7 @@ import ai.storyfork.content.fixture.ContentTestDriver
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.fixture.DraftRequest
 import ai.storyfork.content.fixture.PublishRequest
+import ai.storyfork.content.serial.client.GeneratedChoices
 import ai.storyfork.content.serial.client.GeneratedEpisode
 import ai.storyfork.content.serial.client.SerialAiClient
 import ai.storyfork.content.serial.client.SerialAiFailure
@@ -47,7 +48,7 @@ import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
 /**
- * AI 자율 연재의 HTTP 계약(경로·Security·CSRF·상태 코드·코드값)과 V43 저장·실행을 실제 PostgreSQL로 검증한다. Core(회원 확인·닉네임·크레딧)와 AI는 대역이고
+ * AI 자율 연재의 HTTP 계약(경로·Security·CSRF·상태 코드·코드값)과 V43 저장(AI 4지선다·제안 게시판)·선택지 생성·실행을 실제 PostgreSQL로 검증한다. Core(회원 확인·닉네임·크레딧)와 AI는 대역이고
  * 일정 점검은 [runner]를 직접 불러 한 번 돌린다(앱의 1분 스케줄러가 먼저 가져가도 같은 결과라 상태가 바뀔 때까지 기다린다).
  * TEST_CONTENT_DATABASE_URL이 있을 때만 실행하며, DB는 다른 테스트와 공유하므로 각 테스트는 자신이 만든 작품의 행만 비교한다.
  */
@@ -75,6 +76,7 @@ class SerialPostgresTest {
     // 앱의 1분 스케줄러 스레드가 먼저 실행해도 같은 목록에 쌓이므로 스레드 안전한 목록이다.
     private val episodeRequests=java.util.concurrent.CopyOnWriteArrayList<Map<*,*>>()
     private val generated=GeneratedEpisode("독자들은 재회를 원했다.","2화 제목","2화 본문",BigDecimal("1.5"))
+    private val choiceTexts=listOf("두 사람이 다시 만난다","편지가 도착한다","오래된 문이 열린다","비밀이 밝혀진다")
     // 오늘이 아닌 요일만 고르면 일정이 도래하지 않아(시각과 무관하게) 테스트가 지금 실행(queued)으로만 움직인다.
     private val notToday get()=LocalDate.now(KST).plusDays(1).dayOfWeek.name.take(3)
     // 요청의 enabled는 서버가 무시한다(켜기·끄기는 운영 설정의 집필 방식). 일부러 true를 실어 보낸다.
@@ -90,6 +92,7 @@ class SerialPostgresTest {
         `when`(credits.reserve(ArgumentMatchers.anyString(),ArgumentMatchers.anyString(),ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)).thenReturn("res-1")
         `when`(ai.episode(ArgumentMatchers.anyMap<String,Any?>())).thenAnswer { call -> episodeRequests.add(call.arguments[0] as Map<*,*>); generated }
         `when`(ai.simulate(ArgumentMatchers.anyMap<String,Any?>())).thenReturn(SerialScene("달빛이 비치는 복도였다.",BigDecimal("0.4")))
+        `when`(ai.choices(ArgumentMatchers.anyMap<String,Any?>())).thenReturn(GeneratedChoices(choiceTexts,BigDecimal("0.2")))
         `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenAnswer { call -> (call.arguments[0] as Collection<*>).associate { it as String to "회원" } }
     }
 
@@ -106,7 +109,9 @@ class SerialPostgresTest {
     }
     private fun node(response: HttpResponse<String>): JsonNode=json.readTree(response.body())
     private fun code(response: HttpResponse<String>)=node(response).path("code").asString()
-    private fun ids(view: JsonNode)=view.path("opinions").values().map {it.path("id").asString()}
+    private fun ids(view: JsonNode)=view.path("proposals").values().map {it.path("id").asString()}
+    private fun votes(view: JsonNode)=view.path("choices").values().map {it.path("votes").asInt()}
+    private fun choiceCount(work: String)=count("SELECT count(*) FROM serial_choice c JOIN serial_board b ON b.id=c.board_id WHERE b.work_id=?",work)
     private fun count(sql: String,vararg args: Any)=jdbc.queryForObject(sql,Int::class.java,*args)!!
     private fun created(response: HttpResponse<String>): String {
         assertEquals(201,response.statusCode(),response.body())
@@ -131,7 +136,7 @@ class SerialPostgresTest {
         return id
     }
 
-    @Test fun `an owner turns it on readers take part and the run publishes the next episode and opens the next board`() {
+    @Test fun `an owner turns it on the check makes four choices readers vote and propose and the run publishes the next episode and opens the next board`() {
         val owner=member(); val one=member(); val two=member(); val poor=member(); val stranger=member()
         val id=work(owner)
         val path="/api/v1/works/$id"
@@ -169,40 +174,70 @@ class SerialPostgresTest {
         val boardId=board.path("id").asString()
         assertEquals(listOf("open"),statuses(id))
 
-        // 의견은 회원마다 한 개(409 OPINION_EXISTS), 비로그인은 401이다.
-        val firstId=created(call("POST","$path/serial-board/opinions",one,"""{"kind":"general","body":"두 사람이 다시 만나면 좋겠어요"}"""))
-        val again=call("POST","$path/serial-board/opinions",one,"""{"kind":"general","body":"또 쓰기"}""")
-        assertEquals(409,again.statusCode()); assertEquals("OPINION_EXISTS",code(again))
-        assertEquals(401,call("POST","$path/serial-board/opinions",null,"""{"kind":"general","body":"익명"}""").statusCode())
-        assertEquals(422,call("POST","$path/serial-board/opinions",stranger,"""{"kind":"setting","body":"카드 제안"}""").statusCode())
+        // 켜진 직후 화면에는 제안 글이 없다(선택지는 앱 스케줄러가 먼저 만들었을 수 있어 개수를 단언하지 않는다): enabled는 true다.
+        val fresh=node(call("GET","$path/serial-board"))
+        assertTrue(fresh.path("enabled").asBoolean())
+        assertEquals(0,fresh.path("proposals").size())
 
-        // 시뮬레이션은 제출자 크레딧으로 예약 → AI 장면 → 저장 → 실제 사용량 정산이다. 크레딧이 모자라면 409 INSUFFICIENT_CREDIT이고 저장되지 않는다.
-        val simId=created(call("POST","$path/serial-board/opinions",two,"""{"kind":"simulation","body":"","simulation":{"premise":"폐교에서 마주친다","beats":["문이 열린다"]}}"""))
+        // 1분 점검이 선택지 4개를 만든다: 소유자 크레딧 예약 → AI → 저장 → 정산(serial-choice 키). 번호 1~4다.
+        runner.tick()
+        await("the four choices") {choiceCount(id)==4}
+        val choices=node(call("GET","$path/serial-board")).path("choices")
+        assertEquals(listOf(1,2,3,4),choices.values().map {it.path("position").asInt()})
+        assertEquals(choiceTexts,choices.values().map {it.path("text").asString()})
+        val c=choices.values().map {it.path("id").asString()}
+        verify(credits,timeout(30_000)).settle(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.startsWith("serial-choice:$boardId:") ?: "",ArgumentMatchers.eq(BigDecimal("0.2")) ?: BigDecimal.ONE)
+
+        // 제안 게시판: 글은 회원마다 개수 제한 없이 쓰고(201 {id}), 비로그인은 401, 잘못된 입력은 422다.
+        val firstId=created(call("POST","$path/serial-board/proposals",one,"""{"kind":"general","title":"재회 장면","body":"두 사람이 다시 만나면 좋겠어요"}"""))
+        val secondId=created(call("POST","$path/serial-board/proposals",one,"""{"kind":"general","title":"또 쓰기","body":"같은 회원이 한 번 더 쓴다"}"""))
+        assertEquals(401,call("POST","$path/serial-board/proposals",null,"""{"kind":"general","title":"익명","body":"익명"}""").statusCode())
+        assertEquals(422,call("POST","$path/serial-board/proposals",stranger,"""{"kind":"setting","title":"카드 제안","body":"x"}""").statusCode())
+        assertEquals(422,call("POST","$path/serial-board/proposals",stranger,"""{"kind":"general","title":"","body":"제목 없음"}""").statusCode())
+
+        // 시뮬레이션 글은 작성자 크레딧으로 예약 → AI 장면 → 저장 → 실제 사용량 정산이다. 크레딧이 모자라면 409 INSUFFICIENT_CREDIT이고 저장되지 않는다.
+        val simId=created(call("POST","$path/serial-board/proposals",two,"""{"kind":"simulation","title":"폐교 장면","body":"","simulation":{"premise":"폐교에서 마주친다","beats":["문이 열린다"]}}"""))
         verify(credits).settle(ArgumentMatchers.eq(two.toString()) ?: "",ArgumentMatchers.startsWith("serial-sim:") ?: "",ArgumentMatchers.eq(BigDecimal("0.4")) ?: BigDecimal.ONE)
         doThrow(ContentFailure(409,"크레딧이 부족합니다.","INSUFFICIENT_CREDIT")).`when`(credits).reserve(ArgumentMatchers.eq(poor.toString()) ?: "",ArgumentMatchers.anyString(),ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)
-        val broke=call("POST","$path/serial-board/opinions",poor,"""{"kind":"simulation","body":"","simulation":{"premise":"전제","beats":[]}}""")
+        val broke=call("POST","$path/serial-board/proposals",poor,"""{"kind":"simulation","title":"전제만","body":"","simulation":{"premise":"전제","beats":[]}}""")
         assertEquals(409,broke.statusCode()); assertEquals("INSUFFICIENT_CREDIT",code(broke))
-        assertEquals(0,count("SELECT count(*) FROM serial_opinion WHERE author_id=?",poor.toString()))
+        assertEquals(0,count("SELECT count(*) FROM serial_proposal WHERE author_id=?",poor.toString()))
 
-        // 투표: 두 회원이 시뮬레이션 의견에 던지면 득표순 맨 앞이고 장면이 붙어 있다. 옮기기·취소가 되고 한 회원은 한 표다.
-        assertEquals(204,call("PUT","$path/serial-board/vote",one,"""{"opinionId":"$simId"}""").statusCode())
-        assertEquals(204,call("PUT","$path/serial-board/vote",two,"""{"opinionId":"$simId"}""").statusCode())
+        // 투표: 한 회원은 한 표이고 선택지 번호순은 그대로다. 옮기기·취소가 되고 없는 선택지는 404, 비로그인은 401이다.
+        assertEquals(204,call("PUT","$path/serial-board/vote",one,"""{"choiceId":"${c[2]}"}""").statusCode())
+        assertEquals(204,call("PUT","$path/serial-board/vote",two,"""{"choiceId":"${c[2]}"}""").statusCode())
+        assertEquals(404,call("PUT","$path/serial-board/vote",two,"""{"choiceId":"unknown"}""").statusCode())
+        assertEquals(401,call("PUT","$path/serial-board/vote",null,"""{"choiceId":"${c[0]}"}""").statusCode())
         val voted=node(call("GET","$path/serial-board",one))
-        assertEquals(listOf(simId,firstId),ids(voted))
-        assertEquals(listOf(2,0),voted.path("opinions").values().map {it.path("votes").asInt()})
-        assertEquals("달빛이 비치는 복도였다.",voted.path("opinions")[0].path("simulation").path("scene").asString())
-        assertEquals(listOf(firstId,simId),listOf(voted.path("myOpinionId").asString(),voted.path("myVoteOpinionId").asString()))
-        assertEquals(204,call("PUT","$path/serial-board/vote",one,"""{"opinionId":"$firstId"}""").statusCode())
+        assertEquals(listOf(0,0,2,0),votes(voted))
+        assertEquals(c[2],voted.path("myChoiceId").asString())
+        assertEquals(204,call("PUT","$path/serial-board/vote",one,"""{"choiceId":"${c[1]}"}""").statusCode())
         assertEquals(204,call("DELETE","$path/serial-board/vote",two).statusCode())
         assertEquals(1,count("SELECT count(*) FROM serial_vote WHERE board_id=?",boardId))
-        assertEquals(listOf(firstId,simId),ids(node(call("GET","$path/serial-board"))))
+        assertEquals(listOf(0,1,0,0),votes(node(call("GET","$path/serial-board"))))
 
-        // 소유자만 의견을 숨기고(남은 404), 숨긴 의견은 목록에서 빠지지만 그 회원의 한 개 제한은 그대로다.
-        assertEquals(404,call("POST","$path/serial-board/opinions/$firstId/hide",one).statusCode())
-        assertEquals(204,call("POST","$path/serial-board/opinions/$firstId/hide",owner).statusCode())
-        val hidden=node(call("GET","$path/serial-board",one))
-        assertEquals(listOf(simId),ids(hidden))
-        assertEquals(firstId,hidden.path("myOpinionId").asString())
+        // 추천: 글마다 회원당 한 번(되풀이해도 한 행)이고 취소가 되며 없는 글은 404, 비로그인은 401이다. 목록은 최신순이다.
+        assertEquals(204,call("PUT","$path/serial-board/proposals/$simId/like",one).statusCode())
+        assertEquals(204,call("PUT","$path/serial-board/proposals/$simId/like",one).statusCode())
+        assertEquals(204,call("PUT","$path/serial-board/proposals/$simId/like",two).statusCode())
+        assertEquals(204,call("PUT","$path/serial-board/proposals/$firstId/like",two).statusCode())
+        assertEquals(204,call("DELETE","$path/serial-board/proposals/$firstId/like",two).statusCode())
+        assertEquals(404,call("PUT","$path/serial-board/proposals/unknown/like",one).statusCode())
+        assertEquals(401,call("PUT","$path/serial-board/proposals/$simId/like").statusCode())
+        assertEquals(2,count("SELECT count(*) FROM serial_proposal_like WHERE proposal_id=?",simId))
+        val liked=node(call("GET","$path/serial-board",one))
+        val rows=liked.path("proposals").values().toList()
+        assertEquals(listOf(simId,secondId,firstId),rows.map {it.path("id").asString()})
+        assertEquals(listOf(2,0,0),rows.map {it.path("likes").asInt()})
+        assertEquals(listOf(true,false,false),rows.map {it.path("likedByMe").asBoolean()})
+        assertEquals(listOf(false,true,true),rows.map {it.path("mine").asBoolean()})
+        assertEquals("달빛이 비치는 복도였다.",rows[0].path("simulation").path("scene").asString())
+
+        // 소유자만 제안 글을 숨기고(남은 404), 숨긴 글은 목록에서 빠지며 더는 추천할 수 없다.
+        assertEquals(404,call("POST","$path/serial-board/proposals/$secondId/hide",one).statusCode())
+        assertEquals(204,call("POST","$path/serial-board/proposals/$secondId/hide",owner).statusCode())
+        assertEquals(listOf(simId,firstId),ids(node(call("GET","$path/serial-board",one))))
+        assertEquals(404,call("PUT","$path/serial-board/proposals/$secondId/like",one).statusCode())
 
         // 지금 실행: 202 본문 없음 → 일정 점검이 선점해 AI로 회차를 만들고 소유자 명의로 저장·발행한 뒤 정산하고 다음 게시판을 연다.
         val run=call("POST","$path/ai-serial/run",owner)
@@ -220,26 +255,33 @@ class SerialPostgresTest {
         val pub=node(call("GET","/api/v1/public/works/$id")).path("episodes").values().first {it.path("number").asInt()==2}
         assertEquals(listOf("2화 제목","2화 본문"),listOf(pub.path("title").asString(),pub.path("body").asString()))
         val next=node(call("GET","$path/serial-board"))
-        assertEquals(listOf<Any?>(3,"독자들은 재회를 원했다.",0),listOf(next.path("board").path("episodeNumber").asInt(),next.path("summary").asString(),next.path("opinions").size()))
+        assertEquals(listOf<Any?>(3,"독자들은 재회를 원했다.",0),listOf(next.path("board").path("episodeNumber").asInt(),next.path("summary").asString(),next.path("proposals").size()))
         verify(credits).reserve(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.eq("serial-run:$boardId") ?: "",ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)
         // 정산은 발행 뒤다: 앱 스케줄러가 먼저 선점했다면 published를 본 시점에 아직 부르기 전일 수 있어 기다린다.
         verify(credits,timeout(30_000)).settle(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.eq("serial-run:$boardId") ?: "",ArgumentMatchers.eq(BigDecimal("1.5")) ?: BigDecimal.ONE)
 
-        // AI에는 방향·득표 상위 의견(숨긴 의견 제외, 시뮬레이션 장면 포함)·문맥·상한·예약 id를 보냈다.
+        // AI에는 방향·1위 선택지(득표 포함)·추천 상위 제안 글(숨긴 글 제외, 추천 많은 순, 시뮬레이션 장면 포함)·문맥·상한·예약 id를 보냈다.
         val request=episodeRequests.single()
         assertEquals(listOf<Any?>(id,2,"따뜻한 분위기로","res-1"),listOf(request["workId"],request["episodeNumber"],request["direction"],request["creditReservationId"]))
-        val sent=request["opinions"] as List<*>
-        assertEquals(1,sent.size)
-        assertEquals(listOf<Any?>("simulation","달빛이 비치는 복도였다."),(sent[0] as Map<*,*>).let {listOf(it["kind"],it["scene"])})
+        assertEquals(mapOf("text" to choiceTexts[1],"votes" to 1),request["choice"])
+        val sent=request["proposals"] as List<*>
+        assertEquals(listOf("폐교 장면","재회 장면"),sent.map {(it as Map<*,*>)["title"]})
+        assertEquals(listOf(2,0),sent.map {(it as Map<*,*>)["likes"]})
+        assertEquals(listOf<Any?>("달빛이 비치는 복도였다.",null),sent.map {(it as Map<*,*>)["scene"]})
         assertTrue((request["context"] as String).contains("1화"))
     }
 
-    @Test fun `a failed run is recorded with its fixed reason and reopens the same episode with the opinions so the owner can retry`() {
+    @Test fun `a failed run is recorded with its fixed reason and reopens the same episode with the choices votes and proposals so the owner can retry`() {
         val owner=member(); val reader=member()
         val id=work(owner)
         val path="/api/v1/works/$id"
         assertEquals(200,autonomous(owner,path).statusCode())
-        val opinion=created(call("POST","$path/serial-board/opinions",reader,"""{"kind":"general","body":"두 사람이 다시 만나면 좋겠어요"}"""))
+        runner.tick()
+        await("the four choices") {choiceCount(id)==4}
+        val choice=node(call("GET","$path/serial-board",reader)).path("choices")[2].path("id").asString()
+        assertEquals(204,call("PUT","$path/serial-board/vote",reader,"""{"choiceId":"$choice"}""").statusCode())
+        val proposal=created(call("POST","$path/serial-board/proposals",reader,"""{"kind":"general","title":"재회","body":"두 사람이 다시 만나면 좋겠어요"}"""))
+        assertEquals(204,call("PUT","$path/serial-board/proposals/$proposal/like",reader).statusCode())
 
         // 검수를 통과하지 못한 실행: 예약은 풀리고 게시판은 failed와 고정 사유로 남으며 아무것도 발행되지 않는다.
         // 이미 스텁한 mock은 when(...) 안의 호출이 기존 답을 먼저 부르므로(기록용 답은 빈 요청을 남기고 던지는 답은 던진다) doThrow·doAnswer로 다시 건다.
@@ -250,24 +292,29 @@ class SerialPostgresTest {
         assertEquals(listOf("failed","open"),statuses(id))
         val failedId=jdbc.queryForObject("SELECT id FROM serial_board WHERE work_id=? AND status='failed'",String::class.java,id)!!
         verify(credits).release(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.eq("serial-run:$failedId") ?: "")
-        verify(credits,never()).settle(ArgumentMatchers.anyString(),ArgumentMatchers.anyString(),ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)
+        verify(credits,never()).settle(ArgumentMatchers.eq(owner.toString()) ?: "",ArgumentMatchers.eq("serial-run:$failedId") ?: "",ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ONE)
         val records=node(call("GET","$path/ai-serial/boards",owner)).values().toList()
         assertEquals(listOf("open","failed"),records.map {it.path("status").asString()})
         assertEquals("검수를 통과하지 못했습니다.",records[1].path("failureReason").asString())
         assertEquals(listOf(2,2),records.map {it.path("episodeNumber").asInt()})
         assertEquals(1,count("SELECT count(*) FROM episode_current WHERE work_id=? AND published_version_id IS NOT NULL",id))
 
-        // 같은 대상 회차의 새 게시판이 열려 있고 독자의 의견이 그대로 옮겨져 있어 같은 입력으로 다시 시도할 수 있다.
+        // 같은 대상 회차의 새 게시판이 열려 있고 선택지·투표·제안 글·추천이 그대로 옮겨져 있어 같은 입력으로 다시 시도할 수 있다(선택지는 다시 만들지 않는다).
+        assertEquals(0,count("SELECT count(*) FROM serial_choice WHERE board_id=?",failedId))
         val view=node(call("GET","$path/serial-board",reader))
-        assertEquals(listOf(opinion),ids(view))
-        assertEquals(opinion,view.path("myOpinionId").asString())
+        assertEquals(4,view.path("choices").size())
+        assertEquals(listOf(0,0,1,0),votes(view))
+        assertEquals(choice,view.path("myChoiceId").asString())
+        assertEquals(listOf(proposal),ids(view))
+        assertEquals(listOf(1),view.path("proposals").values().map {it.path("likes").asInt()})
         doAnswer { call -> episodeRequests.add(call.arguments[0] as Map<*,*>); generated }.`when`(ai).episode(ArgumentMatchers.anyMap<String,Any?>())
         assertEquals(202,call("POST","$path/ai-serial/run",owner).statusCode())
         runner.tick()
         await("the retry to be published") {"published" in statuses(id)}
         assertEquals(listOf("failed","published","open"),statuses(id))
-        val sent=episodeRequests.single()["opinions"] as List<*>
-        assertEquals(listOf("두 사람이 다시 만나면 좋겠어요"),sent.map {(it as Map<*,*>)["body"]})
+        val request=episodeRequests.single()
+        assertEquals(mapOf("text" to choiceTexts[2],"votes" to 1),request["choice"])
+        assertEquals(listOf("재회"),(request["proposals"] as List<*>).map {(it as Map<*,*>)["title"]})
     }
 
     @Test fun `AI autonomous writing lets the owner write only episode 1 and leaving it waits for a run to end`() {
@@ -343,7 +390,7 @@ class SerialPostgresTest {
         assertEquals(2,node(call("GET","$path/serial-board")).path("board").path("episodeNumber").asInt())
     }
 
-    @Test fun `the database keeps one active board per work and one opinion and vote per member and the claim is conditional`() {
+    @Test fun `the database keeps one active board per work four numbered choices one like per member and one vote per member and the claim is conditional`() {
         val owner=member()
         val id=work(owner)
         val first=UUID.randomUUID().toString()
@@ -356,13 +403,27 @@ class SerialPostgresTest {
         jdbc.update("UPDATE serial_board SET status='published' WHERE id=?",first)
         jdbc.update(insert,second,id,3,"open")
 
-        val opinion=UUID.randomUUID().toString()
-        val add="INSERT INTO serial_opinion(id,board_id,author_id,kind,body,created_at) VALUES (?,?,?,?,'본문',now())"
-        jdbc.update(add,opinion,second,"member","general")
-        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(add,UUID.randomUUID().toString(),second,"member","general")}
+        // 선택지는 게시판마다 번호 1~4가 한 번씩이다.
+        val choice=UUID.randomUUID().toString()
+        val addChoice="INSERT INTO serial_choice(id,board_id,position,text) VALUES (?,?,?,'선택지')"
+        jdbc.update(addChoice,choice,second,1)
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(addChoice,UUID.randomUUID().toString(),second,1)}
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(addChoice,UUID.randomUUID().toString(),second,0)}
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(addChoice,UUID.randomUUID().toString(),second,5)}
+
+        // 제안 글은 같은 회원이 같은 게시판에 여러 개 쓸 수 있고 유형은 general·simulation뿐이다.
+        val proposal=UUID.randomUUID().toString()
+        val add="INSERT INTO serial_proposal(id,board_id,author_id,kind,title,body,created_at) VALUES (?,?,?,?,'제목','본문',now())"
+        jdbc.update(add,proposal,second,"member","general")
+        jdbc.update(add,UUID.randomUUID().toString(),second,"member","general")
         assertThrows(DataIntegrityViolationException::class.java) {jdbc.update(add,UUID.randomUUID().toString(),second,"other","setting")}
-        jdbc.update("INSERT INTO serial_vote(board_id,member_id,opinion_id) VALUES (?,?,?)",second,"member",opinion)
-        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update("INSERT INTO serial_vote(board_id,member_id,opinion_id) VALUES (?,?,?)",second,"member",opinion)}
+
+        // 추천은 글마다 회원당 한 번, 표는 게시판마다 회원당 한 번이고 없는 선택지에는 던질 수 없다.
+        jdbc.update("INSERT INTO serial_proposal_like(proposal_id,member_id) VALUES (?,?)",proposal,"member")
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update("INSERT INTO serial_proposal_like(proposal_id,member_id) VALUES (?,?)",proposal,"member")}
+        jdbc.update("INSERT INTO serial_vote(board_id,member_id,choice_id) VALUES (?,?,?)",second,"member",choice)
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update("INSERT INTO serial_vote(board_id,member_id,choice_id) VALUES (?,?,?)",second,"member",choice)}
+        assertThrows(DataIntegrityViolationException::class.java) {jdbc.update("INSERT INTO serial_vote(board_id,member_id,choice_id) VALUES (?,?,?)",second,"other","no-such-choice")}
 
         // 실행 선점은 켜진 연재에서만, 한 번만 성공한다(설정 행이 없거나 꺼졌으면 시작하지 않는다).
         assertFalse(serial.claim(second,"open",LocalDate.now(KST),Instant.now()))

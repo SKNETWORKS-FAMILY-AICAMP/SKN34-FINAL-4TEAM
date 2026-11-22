@@ -7,21 +7,25 @@ import ai.storyfork.content.auth.service.CoreCreditService
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeListResponse
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
+import ai.storyfork.content.serial.client.GeneratedChoices
 import ai.storyfork.content.serial.client.GeneratedEpisode
 import ai.storyfork.content.serial.client.SerialAiClient
 import ai.storyfork.content.serial.client.SerialAiFailure
 import ai.storyfork.content.serial.client.SerialScene
-import ai.storyfork.content.serial.domain.CleanOpinion
-import ai.storyfork.content.serial.domain.RankedOpinion
-import ai.storyfork.content.serial.domain.cleanOpinion
+import ai.storyfork.content.serial.domain.CleanProposal
+import ai.storyfork.content.serial.domain.RankedChoice
+import ai.storyfork.content.serial.domain.RankedProposal
+import ai.storyfork.content.serial.domain.cleanProposal
 import ai.storyfork.content.serial.entity.SerialBoardEntity
-import ai.storyfork.content.serial.entity.SerialOpinionEntity
+import ai.storyfork.content.serial.entity.SerialChoiceEntity
+import ai.storyfork.content.serial.entity.SerialProposalEntity
+import ai.storyfork.content.serial.service.ChoiceInput
 import ai.storyfork.content.serial.service.OpenBoard
 import ai.storyfork.content.serial.service.RunInput
 import ai.storyfork.content.serial.service.SerialRunner
 import ai.storyfork.content.serial.service.SerialService
-import ai.storyfork.content.serial.service.dto.SerialOpinionCreated
-import ai.storyfork.content.serial.service.dto.SerialOpinionRequest
+import ai.storyfork.content.serial.service.dto.SerialProposalCreated
+import ai.storyfork.content.serial.service.dto.SerialProposalRequest
 import ai.storyfork.content.serial.service.dto.SerialSimulationRequest
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.WorkWorldService
@@ -42,7 +46,7 @@ import org.mockito.Mockito.*
 import tools.jackson.databind.json.JsonMapper
 
 /**
- * AI 자율 연재의 외부 호출 순서를 검증한다: 크레딧 예약 → AI → (저장·발행) → 정산, 실패면 해제와 고정 문구 사유.
+ * AI 자율 연재의 외부 호출 순서를 검증한다: 크레딧 예약 → AI → (저장·발행) → 정산, 실패면 해제와 고정 문구 사유. 회차 실행·선택지 생성·시뮬레이션 제안 글 세 흐름이다.
  * DB 규칙은 SerialServiceTest가 보고 여기서는 SerialService·Core·AI를 대역으로 둔다. 실제 HTTP는 CI가 확인한다.
  */
 class SerialRunnerTest {
@@ -63,20 +67,21 @@ class SerialRunnerTest {
     private val worldStudio = mock(WorldStudioService::class.java)
     private val auth = mock(CoreAuthVerificationService::class.java)
     private val mapper = JsonMapper.builder().build()
-    private val runner = SerialRunner(serial, credits, ai, publication, works, workWorlds, worldStudio, auth, mapper, BigDecimal("5"), BigDecimal("50"))
+    private val runner = SerialRunner(serial, credits, ai, publication, works, workWorlds, worldStudio, auth, mapper, BigDecimal("5"), BigDecimal("3"), BigDecimal("150"))
 
     private val episodeRequests = mutableListOf<Map<*, *>>()
     private val simulationRequests = mutableListOf<Map<*, *>>()
     private val generated = GeneratedEpisode("종합 문장", "새 제목", "새 본문", BigDecimal("1.2345"))
     private val board = SerialBoardEntity(id = "b1", workId = "w", episodeNumber = 4, status = "queued", openedAt = at.minusSeconds(600))
 
-    private fun opinion(id: String, kind: String = "general", scene: String? = null) = SerialOpinionEntity(
-        id = id, boardId = "b1", authorId = "a-$id", kind = kind, body = "의견 $id",
+    private fun proposal(id: String, kind: String = "general", scene: String? = null) = SerialProposalEntity(
+        id = id, boardId = "b1", authorId = "a-$id", kind = kind, title = "제목 $id", body = "본문 $id",
         simulation = if (kind == "simulation") mapOf("premise" to "전제", "beats" to listOf("비트"), "scene" to scene) else null, createdAt = at.minusSeconds(100),
     )
+    private val topChoice = RankedChoice(SerialChoiceEntity(id = "c2", boardId = "b1", position = 2, text = "선택지 둘"), 3)
     private val input = RunInput(
         "w", "b1", owner, "작품", "소개", 4, "따뜻하게",
-        listOf(RankedOpinion(opinion("a"), 3), RankedOpinion(opinion("b", "simulation", "장면 미리보기"), 1)),
+        topChoice, listOf(RankedProposal(proposal("a"), 3), RankedProposal(proposal("b", "simulation", "장면 미리보기"), 1)),
     )
 
     private fun published(vararg numbers: Int) = numbers.map { PublishedEpisodeResponse(it, 1, "v$it", "제 $it" + "화", "본문 $it") }
@@ -93,7 +98,7 @@ class SerialRunnerTest {
         `when`(auth.verifyScheduledMember(owner)).thenReturn(UUID.fromString(owner))
         `when`(publication.publishedEpisodes("w")).thenReturn(PublishedEpisodeListResponse(published(1, 2, 3)))
         `when`(workWorlds.linkedWorldId("w", owner)).thenReturn(null)
-        `when`(credits.reserve(owner, key, BigDecimal("50"))).thenReturn("res-1")
+        `when`(credits.reserve(owner, key, BigDecimal("150"))).thenReturn("res-1")
         `when`(ai.episode(anyMap())).thenAnswer { call -> episodeRequests.add(call.arguments[0] as Map<*, *>); generated }
     }
 
@@ -108,7 +113,7 @@ class SerialRunnerTest {
         order.verify(serial).claim("b1", "queued", today, at)
         order.verify(serial).runInput("b1")
         order.verify(auth).verifyScheduledMember(owner)
-        order.verify(credits).reserve(owner, key, BigDecimal("50"))
+        order.verify(credits).reserve(owner, key, BigDecimal("150"))
         order.verify(ai).episode(anyMap())
         order.verify(serial).publish("b1", owner, generated, at)
         // 정산은 저장·발행이 끝난 뒤다: 발행이 실패하면 차감 없이 해제한다.
@@ -117,25 +122,38 @@ class SerialRunnerTest {
         verify(serial, never()).fail(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(Instant::class.java) ?: at)
     }
 
-    @Test fun `the episode request carries the direction the top opinions with votes and scene and the limit`() {
+    @Test fun `the episode request carries the direction the top choice the proposals with likes and scene and the limit`() {
         queue()
 
         runner.tick(now)
 
         val body = episodeRequests.single()
-        assertEquals(setOf("workId", "episodeNumber", "direction", "opinions", "context", "creditLimit", "creditReservationId"), body.keys)
+        assertEquals(setOf("workId", "episodeNumber", "direction", "choice", "proposals", "context", "creditLimit", "creditReservationId"), body.keys)
         assertEquals(listOf("w", 4, "따뜻하게"), listOf(body["workId"], body["episodeNumber"], body["direction"]))
-        assertEquals(BigDecimal("50"), body["creditLimit"])
+        assertEquals(BigDecimal("150"), body["creditLimit"])
         // 비용 집계용으로 Core 예약 id를 싣는다(AI trace의 credit_reservation_id).
         assertEquals("res-1", body["creditReservationId"])
-        val opinions = body["opinions"] as List<*>
+        assertEquals(mapOf("text" to "선택지 둘", "votes" to 3), body["choice"])
         assertEquals(
             listOf(
-                mapOf("kind" to "general", "body" to "의견 a", "votes" to 3, "scene" to null),
-                mapOf("kind" to "simulation", "body" to "의견 b", "votes" to 1, "scene" to "장면 미리보기"),
+                mapOf("title" to "제목 a", "body" to "본문 a", "likes" to 3, "scene" to null),
+                mapOf("title" to "제목 b", "body" to "본문 b", "likes" to 1, "scene" to "장면 미리보기"),
             ),
-            opinions,
+            body["proposals"],
         )
+    }
+
+    @Test fun `a board without choices or proposals sends a null choice and an empty list`() {
+        queue()
+        `when`(serial.runInput("b1")).thenReturn(input.copy(choice = null, proposals = emptyList()))
+
+        runner.tick(now)
+
+        val body = episodeRequests.single()
+        // 선택지가 없으면 키는 두고 값은 null이다(AI 요청의 choice: {text, votes} | null).
+        assertTrue(body.containsKey("choice"))
+        assertNull(body["choice"])
+        assertEquals(emptyList<Any>(), body["proposals"])
     }
 
     @Test fun `the owner context holds the three latest published episodes and no cards without a linked world`() {
@@ -193,7 +211,7 @@ class SerialRunnerTest {
 
     @Test fun `not enough credit fails the board without calling the AI or releasing anything`() {
         queue()
-        doThrow(ContentFailure(409, "크레딧이 부족합니다.", "INSUFFICIENT_CREDIT")).`when`(credits).reserve(owner, key, BigDecimal("50"))
+        doThrow(ContentFailure(409, "크레딧이 부족합니다.", "INSUFFICIENT_CREDIT")).`when`(credits).reserve(owner, key, BigDecimal("150"))
 
         runner.tick(now)
 
@@ -212,6 +230,18 @@ class SerialRunnerTest {
         verify(credits).release(owner, key)
         verify(serial).fail("b1", "검수를 통과하지 못했습니다.", at)
         verify(credits, never()).settle(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ZERO)
+    }
+
+    @Test fun `a credit limit overrun releases the reservation and says the limit was exceeded`() {
+        queue()
+        `when`(ai.episode(anyMap())).thenThrow(SerialAiFailure(limitExceeded = true))
+
+        runner.tick(now)
+
+        verify(credits).release(owner, key)
+        verify(serial).fail("b1", "크레딧 상한을 넘었습니다.", at)
+        verify(credits, never()).settle(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ZERO)
+        verify(serial, never()).publish(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(GeneratedEpisode::class.java) ?: generated, ArgumentMatchers.any(Instant::class.java) ?: at)
     }
 
     @Test fun `an AI failure releases and says generation failed`() {
@@ -264,7 +294,7 @@ class SerialRunnerTest {
     @Test fun `a reserve that fails for another reason than a shortage releases the same key once`() {
         queue()
         // 시간 초과로 응답을 잃었어도 Core에는 예약이 남았을 수 있다: 같은 키로 해제를 한 번 부른다.
-        doThrow(CoreAuthException(504, "CORE_CREDIT_TIMEOUT", "slow")).`when`(credits).reserve(owner, key, BigDecimal("50"))
+        doThrow(CoreAuthException(504, "CORE_CREDIT_TIMEOUT", "slow")).`when`(credits).reserve(owner, key, BigDecimal("150"))
 
         runner.tick(now)
 
@@ -275,7 +305,7 @@ class SerialRunnerTest {
 
     @Test fun `a release that finds no reservation is swallowed and the run still fails`() {
         queue()
-        doThrow(CoreAuthException(503, "CORE_CREDIT_UNAVAILABLE", "down")).`when`(credits).reserve(owner, key, BigDecimal("50"))
+        doThrow(CoreAuthException(503, "CORE_CREDIT_UNAVAILABLE", "down")).`when`(credits).reserve(owner, key, BigDecimal("150"))
         doThrow(CoreAuthException(502, "CORE_CREDIT_UPSTREAM_ERROR", "404 RESERVATION_NOT_FOUND")).`when`(credits).release(owner, key)
 
         runner.tick(now)
@@ -378,50 +408,226 @@ class SerialRunnerTest {
         verify(serial).reconcile("b")
     }
 
-    // ---- 의견 제출: 일반
+    // ---- 선택지 생성
 
-    private fun general() = SerialOpinionRequest("general", "다음에는 만나면 좋겠어요")
-    private fun simulation() = SerialOpinionRequest("simulation", "", SerialSimulationRequest("두 사람이 폐교에서 마주친다", listOf("문이 열린다", "그림자가 움직인다")))
+    private val choiceKey = "serial-choice:b1:" + at.toEpochMilli()
+    private val choiceInput = ChoiceInput("w", "b1", owner, "작품", "소개", 4, "따뜻하게")
+    private val choiceBoard = SerialBoardEntity(id = "b1", workId = "w", episodeNumber = 4, status = "open", openedAt = at.minusSeconds(600))
+    private val choiceRequests = mutableListOf<Map<*, *>>()
+    private val generatedChoices = GeneratedChoices(listOf("가", "나", "다", "라"), BigDecimal("0.25"))
 
-    @Test fun `a general opinion is saved directly without credit or AI`() {
-        `when`(serial.add("w", member, cleanOpinion(general()))).thenReturn(SerialOpinionCreated("o1"))
+    private fun choosing() {
+        `when`(serial.queued()).thenReturn(emptyList())
+        `when`(serial.due(now)).thenReturn(emptyList())
+        `when`(serial.staleRunning(at)).thenReturn(emptyList())
+        `when`(serial.enabledWorkIds()).thenReturn(emptyList())
+        `when`(serial.choiceTargets(at)).thenReturn(listOf(choiceBoard))
+        `when`(serial.beginChoices("w", "b1", at)).thenReturn(choiceInput)
+        `when`(works.publicEpisodes("w")).thenReturn(published(1, 2, 3))
+        `when`(workWorlds.readerCards("w", null)).thenReturn(ReaderWorldCardsResponse("w", worldId, 3, listOf(ReaderWorldCardResponse(UUID.randomUUID(), "공개 카드", "공개 본문", "location", listOf("별칭"), emptyList(), 1))))
+        `when`(credits.reserve(owner, choiceKey, BigDecimal("3"))).thenReturn("res-choice")
+        `when`(ai.choices(anyMap())).thenAnswer { call -> choiceRequests.add(call.arguments[0] as Map<*, *>); generatedChoices }
+    }
 
-        assertEquals(SerialOpinionCreated("o1"), runner.submit("w", member, general()))
+    private fun neverSaved() = verify(serial, never()).saveChoices(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyList<String>())
+    private fun neverSettled() = verify(credits, never()).settle(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ZERO)
+
+    @Test fun `an open board without choices gets four generated saved and then settled`() {
+        choosing()
+
+        runner.tick(now)
+
+        val order = inOrder(serial, credits, ai)
+        order.verify(serial).beginChoices("w", "b1", at)
+        order.verify(credits).reserve(owner, choiceKey, BigDecimal("3"))
+        order.verify(ai).choices(anyMap())
+        order.verify(serial).saveChoices("w", "b1", listOf("가", "나", "다", "라"))
+        // 정산은 저장이 끝난 뒤다: 저장하지 못하면 차감 없이 해제한다.
+        order.verify(credits).settle(owner, choiceKey, BigDecimal("0.25"))
+        verify(credits, never()).release(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+        verify(serial, never()).fail(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(Instant::class.java) ?: at)
+    }
+
+    @Test fun `the choices request carries the direction the choice limit the reservation and a public-only context`() {
+        choosing()
+
+        runner.tick(now)
+
+        val body = choiceRequests.single()
+        assertEquals(setOf("workId", "episodeNumber", "direction", "context", "creditLimit", "creditReservationId"), body.keys)
+        assertEquals(listOf("w", 4, "따뜻하게"), listOf(body["workId"], body["episodeNumber"], body["direction"]))
+        // 선택지 상한은 시뮬레이션·회차 실행 상한과 따로다.
+        assertEquals(BigDecimal("3"), body["creditLimit"])
+        assertEquals("res-choice", body["creditReservationId"])
+        val context = mapper.readTree(body["context"] as String)
+        assertEquals("작품", context.path("title").asString())
+        assertEquals(listOf(1, 2, 3), context.path("episodes").values().map { it.path("number").asInt() })
+        assertEquals(listOf("공개 카드"), context.path("cards").values().map { it.path("title").asString() })
+        // 선택지는 독자에게 먼저 공개되므로 독자 열람과 같은 읽기만 한다: 소유자용 회차 읽기·비공개 세계관 초안은 쓰지 않는다.
+        verifyNoInteractions(worldStudio, publication)
+        verify(workWorlds, never()).linkedWorldId(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+    }
+
+    @Test fun `a board that no longer needs choices is left alone`() {
+        choosing()
+        `when`(serial.beginChoices("w", "b1", at)).thenReturn(null)
+
+        runner.tick(now)
+
+        verifyNoInteractions(credits, ai)
+        neverSaved()
+    }
+
+    @Test fun `not enough credit for choices tries again later without calling the AI or releasing`() {
+        choosing()
+        doThrow(ContentFailure(409, "크레딧이 부족합니다.", "INSUFFICIENT_CREDIT")).`when`(credits).reserve(owner, choiceKey, BigDecimal("3"))
+
+        runner.tick(now)
+
+        verifyNoInteractions(ai)
+        verify(credits, never()).release(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+        neverSaved()
+        // 선택지 실패는 게시판을 닫지 않는다: 회차 실행 실패가 아니다.
+        verify(serial, never()).fail(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(Instant::class.java) ?: at)
+    }
+
+    @Test fun `an AI failure or an unreadable answer releases the hold and saves nothing`() {
+        for (failure in listOf(SerialAiFailure(), SerialAiFailure(limitExceeded = true), IllegalStateException("boom"))) {
+            reset(serial, credits, ai)
+            choosing()
+            `when`(ai.choices(anyMap())).thenThrow(failure)
+
+            runner.tick(now)
+
+            verify(credits).release(owner, choiceKey)
+            neverSaved()
+            neverSettled()
+        }
+    }
+
+    @Test fun `a failed save after generation releases the hold instead of settling`() {
+        choosing()
+        doThrow(ContentFailure(409, "선택지를 붙일 열린 게시판이 없어요.", "SERIAL_NO_BOARD")).`when`(serial).saveChoices("w", "b1", listOf("가", "나", "다", "라"))
+
+        runner.tick(now)
+
+        verify(credits).release(owner, choiceKey)
+        neverSettled()
+    }
+
+    @Test fun `a failed settlement keeps the saved choices and releases the hold`() {
+        choosing()
+        doThrow(CoreAuthException(504, "CORE_CREDIT_TIMEOUT", "slow")).`when`(credits).settle(owner, choiceKey, BigDecimal("0.25"))
+
+        runner.tick(now)
+
+        verify(serial).saveChoices("w", "b1", listOf("가", "나", "다", "라"))
+        verify(credits, times(1)).release(owner, choiceKey)
+    }
+
+    @Test fun `a choices reserve that fails for another reason than a shortage releases the same key once`() {
+        choosing()
+        // 시간 초과로 응답을 잃었어도 Core에는 예약이 남았을 수 있다: 같은 키로 해제를 한 번 부른다.
+        doThrow(CoreAuthException(504, "CORE_CREDIT_TIMEOUT", "slow")).`when`(credits).reserve(owner, choiceKey, BigDecimal("3"))
+
+        runner.tick(now)
+
+        verify(credits, times(1)).release(owner, choiceKey)
+        verifyNoInteractions(ai)
+        neverSaved()
+    }
+
+    @Test fun `a context that cannot be built makes no reservation`() {
+        choosing()
+        `when`(works.publicEpisodes("w")).thenThrow(ContentFailure(404, "공개 작품을 찾을 수 없어요."))
+
+        runner.tick(now)
+
+        verifyNoInteractions(credits, ai)
+        neverSaved()
+    }
+
+    @Test fun `one broken choice target does not stop the next one`() {
+        choosing()
+        val second = SerialBoardEntity(id = "b2", workId = "w2", episodeNumber = 2, status = "open", openedAt = at.minusSeconds(600))
+        `when`(serial.choiceTargets(at)).thenReturn(listOf(choiceBoard, second))
+        `when`(serial.beginChoices("w", "b1", at)).thenThrow(IllegalStateException("db down"))
+        `when`(serial.beginChoices("w2", "b2", at)).thenReturn(null)
+
+        runner.tick(now)
+
+        verify(serial).beginChoices("w2", "b2", at)
+    }
+
+    @Test fun `a failure while listing choice targets does not stop the tick`() {
+        choosing()
+        `when`(serial.choiceTargets(at)).thenThrow(IllegalStateException("db down"))
+
+        assertDoesNotThrow { runner.tick(now) }
+    }
+
+    @Test fun `choices are made after the runs so a board that is closing is never filled`() {
+        queue()
+        `when`(serial.choiceTargets(at)).thenReturn(listOf(choiceBoard))
+        `when`(serial.beginChoices("w", "b1", at)).thenReturn(null)
+
+        runner.tick(now)
+
+        val order = inOrder(serial)
+        order.verify(serial).claim("b1", "queued", today, at)
+        order.verify(serial).publish("b1", owner, generated, at)
+        order.verify(serial).beginChoices("w", "b1", at)
+        // 점검 한 번에 선택지 단계는 한 번뿐이다(실행 앞에서 미리 만들지 않는다).
+        verify(serial, times(1)).choiceTargets(at)
+        verify(serial, times(1)).beginChoices("w", "b1", at)
+    }
+
+    // ---- 제안 글 제출: 일반
+
+    private fun general() = SerialProposalRequest("general", "다음 전개", "다음에는 만나면 좋겠어요")
+    private fun simulation() = SerialProposalRequest("simulation", "폐교 장면", "", SerialSimulationRequest("두 사람이 폐교에서 마주친다", listOf("문이 열린다", "그림자가 움직인다")))
+
+    @Test fun `a general proposal is saved directly without credit or AI`() {
+        `when`(serial.add("w", member, cleanProposal(general()))).thenReturn(SerialProposalCreated("p1"))
+
+        assertEquals(SerialProposalCreated("p1"), runner.submit("w", member, general()))
 
         verifyNoInteractions(credits, ai)
     }
 
     @Test fun `bad input is refused before anything is read`() {
-        assertEquals(422, status { runner.submit("w", member, SerialOpinionRequest("general", " ")) }.status)
-        assertEquals(422, status { runner.submit("w", member, SerialOpinionRequest("setting", "x")) }.status)
+        assertEquals(422, status { runner.submit("w", member, SerialProposalRequest("general", "제목", " ")) }.status)
+        assertEquals(422, status { runner.submit("w", member, SerialProposalRequest("general", " ", "본문")) }.status)
+        assertEquals(422, status { runner.submit("w", member, SerialProposalRequest("setting", "제목", "x")) }.status)
 
         verifyNoInteractions(serial, credits, ai)
     }
 
-    // ---- 의견 제출: 시뮬레이션
+    // ---- 제안 글 제출: 시뮬레이션
 
     private fun openBoard() = OpenBoard("b1", 4, "작품", "소개")
     private fun simulationStubs() {
-        `when`(serial.openBoardFor("w", member)).thenReturn(openBoard())
+        `when`(serial.openBoardFor("w")).thenReturn(openBoard())
         `when`(works.publicEpisodes("w")).thenReturn(published(1, 2))
         `when`(workWorlds.readerCards("w", null)).thenReturn(ReaderWorldCardsResponse("w", worldId, 2, listOf(ReaderWorldCardResponse(UUID.randomUUID(), "공개 카드", "공개 본문", "location", listOf("별칭"), emptyList(), 1))))
         `when`(credits.reserve(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "", ArgumentMatchers.eq(BigDecimal("5")) ?: BigDecimal.ONE)).thenReturn("res-sim")
         `when`(ai.simulate(anyMap())).thenAnswer { call -> simulationRequests.add(call.arguments[0] as Map<*, *>); SerialScene("장면 미리보기", BigDecimal("0.4321")) }
-        `when`(serial.add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
-            .thenReturn(SerialOpinionCreated("o9"))
+        `when`(serial.add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanProposal::class.java) ?: cleanProposal(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
+            .thenReturn(SerialProposalCreated("p9"))
     }
+    private fun neverAdded() = verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanProposal::class.java) ?: cleanProposal(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
 
-    @Test fun `a simulation reserves the limit generates the scene saves the opinion and then settles the real amount`() {
+    @Test fun `a simulation reserves the limit generates the scene saves the proposal and then settles the real amount`() {
         simulationStubs()
 
         val created = runner.submit("w", member, simulation())
 
-        assertEquals(SerialOpinionCreated("o9"), created)
+        assertEquals(SerialProposalCreated("p9"), created)
         val order = inOrder(serial, credits, ai)
-        order.verify(serial).openBoardFor("w", member)
+        order.verify(serial).openBoardFor("w")
         order.verify(credits).reserve(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "", ArgumentMatchers.eq(BigDecimal("5")) ?: BigDecimal.ONE)
         order.verify(ai).simulate(anyMap())
-        order.verify(serial).add("w", member, cleanOpinion(simulation()), "장면 미리보기", "b1")
+        order.verify(serial).add("w", member, cleanProposal(simulation()), "장면 미리보기", "b1")
         order.verify(credits).settle(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "", ArgumentMatchers.eq(BigDecimal("0.4321")) ?: BigDecimal.ONE)
         verify(credits, never()).release(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
     }
@@ -462,8 +668,8 @@ class SerialRunnerTest {
 
         assertEquals(502, failure.status)
         verify(credits).release(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "")
-        verify(credits, never()).settle(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ZERO)
-        verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+        neverSettled()
+        neverAdded()
     }
 
     @Test fun `not enough credit for a simulation passes the conflict through and calls nothing else`() {
@@ -476,7 +682,7 @@ class SerialRunnerTest {
         assertEquals("INSUFFICIENT_CREDIT", failure.code)
         verifyNoInteractions(ai)
         verify(credits, never()).release(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
-        verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+        neverAdded()
     }
 
     @Test fun `a simulation reserve that fails for another reason releases the same key and charges nothing`() {
@@ -488,51 +694,61 @@ class SerialRunnerTest {
         assertEquals(503, failure.status)
         verify(credits, times(1)).release(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "")
         verifyNoInteractions(ai)
-        verify(serial, never()).add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
+        neverAdded()
     }
 
-    @Test fun `a simulation for a closed board or an existing opinion is refused before any credit`() {
-        `when`(serial.openBoardFor("w", member)).thenThrow(ContentFailure(409, "이 게시판에는 이미 의견을 냈어요.", "OPINION_EXISTS"))
+    @Test fun `a simulation without an open board is refused before any credit`() {
+        `when`(serial.openBoardFor("w")).thenThrow(ContentFailure(409, "지금 열린 게시판이 없어요.", "SERIAL_NO_BOARD"))
 
-        assertEquals("OPINION_EXISTS", status { runner.submit("w", member, simulation()) }.code)
+        assertEquals("SERIAL_NO_BOARD", status { runner.submit("w", member, simulation()) }.code)
 
         verifyNoInteractions(credits, ai)
     }
 
-    @Test fun `if the opinion cannot be saved after the scene the hold is released and nobody is charged`() {
+    @Test fun `if the proposal cannot be saved after the scene the hold is released and nobody is charged`() {
         simulationStubs()
-        `when`(serial.add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanOpinion::class.java) ?: cleanOpinion(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
-            .thenThrow(ContentFailure(409, "지금 열린 의견 게시판이 없어요.", "SERIAL_NO_BOARD"))
+        `when`(serial.add(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(CleanProposal::class.java) ?: cleanProposal(simulation()), ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
+            .thenThrow(ContentFailure(409, "지금 열린 게시판이 없어요.", "SERIAL_NO_BOARD"))
 
         assertEquals("SERIAL_NO_BOARD", status { runner.submit("w", member, simulation()) }.code)
 
         verify(credits).release(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "")
-        verify(credits, never()).settle(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ZERO)
+        neverSettled()
     }
 
-    @Test fun `a failed settlement keeps the saved opinion and releases the hold`() {
+    @Test fun `a failed settlement keeps the saved proposal and releases the hold`() {
         simulationStubs()
         doThrow(CoreAuthException(504, "CORE_CREDIT_TIMEOUT", "slow")).`when`(credits).settle(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "", ArgumentMatchers.eq(BigDecimal("0.4321")) ?: BigDecimal.ONE)
 
-        assertEquals(SerialOpinionCreated("o9"), runner.submit("w", member, simulation()))
+        assertEquals(SerialProposalCreated("p9"), runner.submit("w", member, simulation()))
 
         verify(credits).release(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "")
     }
 
-    @Test fun `a second simulation by the same member at the same time is an existing opinion without touching credit`() {
+    @Test fun `the same member may run a second simulation while the first still waits for the AI with its own reservation`() {
         simulationStubs()
-        var second: ContentFailure? = null
+        val keys = mutableListOf<String>()
+        `when`(credits.reserve(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "", ArgumentMatchers.eq(BigDecimal("5")) ?: BigDecimal.ONE)).thenAnswer { call ->
+            keys.add(call.arguments[1] as String)
+            "res-" + keys.size
+        }
+        var nested: SerialProposalCreated? = null
+        var entered = false
         `when`(ai.simulate(anyMap())).thenAnswer {
-            // 첫 요청이 AI를 기다리는 동안 같은 회원의 같은 작품 요청이 들어온 경우다.
-            second = assertThrows(ContentFailure::class.java) { runner.submit("w", member, simulation()) }
+            // 첫 요청이 AI를 기다리는 동안 같은 회원이 같은 작품에 다시 보내도 서로 막지 않는다(제안 글은 개수 제한이 없다).
+            if (!entered) {
+                entered = true
+                nested = runner.submit("w", member, simulation())
+            }
             SerialScene("장면 미리보기", BigDecimal("0.4321"))
         }
 
         runner.submit("w", member, simulation())
 
-        assertEquals(listOf(409, "OPINION_EXISTS"), listOf(second!!.status, second!!.code))
-        verify(credits, times(1)).reserve(ArgumentMatchers.eq(member) ?: member, ArgumentMatchers.startsWith("serial-sim:") ?: "", ArgumentMatchers.eq(BigDecimal("5")) ?: BigDecimal.ONE)
-        // 끝난 뒤에는 같은 회원이 다시 제출할 수 있는 상태로 돌아온다(막이 풀린다).
-        assertDoesNotThrow { runner.submit("w", member, simulation()) }
+        assertEquals(SerialProposalCreated("p9"), nested)
+        assertEquals(2, keys.size)
+        assertEquals(2, keys.toSet().size)
+        verify(serial, times(2)).add("w", member, cleanProposal(simulation()), "장면 미리보기", "b1")
+        verify(credits, never()).release(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())
     }
 }

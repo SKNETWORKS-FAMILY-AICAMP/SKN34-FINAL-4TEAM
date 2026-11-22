@@ -28,20 +28,19 @@ class SerialWiringTest {
         assertEquals(
             setOf(
                 "GET /ai-serial", "PUT /ai-serial", "POST /ai-serial/run", "GET /ai-serial/boards", "GET /serial-board",
-                "POST /serial-board/opinions", "PUT /serial-board/vote", "DELETE /serial-board/vote", "POST /serial-board/opinions/{opinionId}/hide",
+                "PUT /serial-board/vote", "DELETE /serial-board/vote", "POST /serial-board/proposals",
+                "PUT /serial-board/proposals/{proposalId}/like", "DELETE /serial-board/proposals/{proposalId}/like", "POST /serial-board/proposals/{proposalId}/hide",
             ),
             mappings().map { it.first + " " + it.second }.toSet(),
         )
-        assertEquals(9, mappings().size)
+        assertEquals(11, mappings().size)
     }
 
     @Test fun `the status codes follow the agreed wire contract`() {
         val status = SerialController::class.java.declaredMethods.associate { it.name to it.getAnnotation(ResponseStatus::class.java)?.value?.value() }
         assertEquals(202, status["run"])
-        assertEquals(201, status["opinion"])
-        assertEquals(204, status["vote"])
-        assertEquals(204, status["cancelVote"])
-        assertEquals(204, status["hide"])
+        assertEquals(201, status["propose"])
+        for (name in listOf("vote", "cancelVote", "like", "unlike", "hide")) assertEquals(204, status[name], name)
         // 설정·기록·독자 게시판은 기본 200이다.
         for (name in listOf("settings", "save", "boards", "board")) assertNull(status[name], name)
     }

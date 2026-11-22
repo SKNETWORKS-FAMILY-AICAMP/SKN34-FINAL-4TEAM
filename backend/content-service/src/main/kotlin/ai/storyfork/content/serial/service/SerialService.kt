@@ -12,28 +12,36 @@ import ai.storyfork.content.episode.service.dto.DraftRequest
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.serial.client.GeneratedEpisode
-import ai.storyfork.content.serial.domain.CleanOpinion
-import ai.storyfork.content.serial.domain.RankedOpinion
+import ai.storyfork.content.serial.domain.CHOICES_RETRY_MINUTES
+import ai.storyfork.content.serial.domain.CleanProposal
+import ai.storyfork.content.serial.domain.RankedChoice
+import ai.storyfork.content.serial.domain.RankedProposal
 import ai.storyfork.content.serial.domain.SerialReason
 import ai.storyfork.content.serial.domain.STALE_RUNNING_MINUTES
 import ai.storyfork.content.serial.domain.cleanSettings
 import ai.storyfork.content.serial.domain.isSerialDue
-import ai.storyfork.content.serial.domain.rankOpinions
+import ai.storyfork.content.serial.domain.rankChoices
 import ai.storyfork.content.serial.domain.serialDaySet
-import ai.storyfork.content.serial.domain.topOpinions
+import ai.storyfork.content.serial.domain.topChoice
+import ai.storyfork.content.serial.domain.topProposals
 import ai.storyfork.content.serial.entity.AiSerialEntity
 import ai.storyfork.content.serial.entity.SerialBoardEntity
-import ai.storyfork.content.serial.entity.SerialOpinionEntity
+import ai.storyfork.content.serial.entity.SerialChoiceEntity
+import ai.storyfork.content.serial.entity.SerialProposalEntity
+import ai.storyfork.content.serial.entity.SerialProposalLikeEntity
 import ai.storyfork.content.serial.entity.SerialVoteEntity
 import ai.storyfork.content.serial.repository.AiSerialRepository
 import ai.storyfork.content.serial.repository.SerialBoardRepository
-import ai.storyfork.content.serial.repository.SerialOpinionRepository
+import ai.storyfork.content.serial.repository.SerialChoiceRepository
+import ai.storyfork.content.serial.repository.SerialProposalLikeRepository
+import ai.storyfork.content.serial.repository.SerialProposalRepository
 import ai.storyfork.content.serial.repository.SerialVoteRepository
 import ai.storyfork.content.serial.service.dto.SerialBoardRecord
 import ai.storyfork.content.serial.service.dto.SerialBoardRef
 import ai.storyfork.content.serial.service.dto.SerialBoardResponse
-import ai.storyfork.content.serial.service.dto.SerialOpinionCreated
-import ai.storyfork.content.serial.service.dto.SerialOpinionView
+import ai.storyfork.content.serial.service.dto.SerialChoiceView
+import ai.storyfork.content.serial.service.dto.SerialProposalCreated
+import ai.storyfork.content.serial.service.dto.SerialProposalView
 import ai.storyfork.content.serial.service.dto.SerialSettingsRequest
 import ai.storyfork.content.serial.service.dto.SerialSettingsResponse
 import ai.storyfork.content.serial.service.dto.SerialSimulationView
@@ -48,12 +56,16 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-/** 의견을 받을 수 있는 열린 게시판과 그 작품의 표시 정보다. 시뮬레이션이 AI를 부르기 전에 확인한 값이다. */
+/** 제안 글을 받을 수 있는 열린 게시판과 그 작품의 표시 정보다. 시뮬레이션이 AI를 부르기 전에 확인한 값이다. */
 data class OpenBoard(val boardId: String, val episodeNumber: Int, val title: String, val summary: String)
 
-/** 회차 실행에 쓰는 입력이다: 소유자·연재 방향·득표 상위 의견과, 실행 시점의 다음 회차 번호다. */
+/** 선택지 생성에 쓰는 입력이다: 소유자·작품 표시 정보·연재 방향과 선택지를 만들 대상 회차 번호다. */
+data class ChoiceInput(val workId: String, val boardId: String, val owner: String, val title: String, val summary: String, val number: Int, val direction: String)
+
+/** 회차 실행에 쓰는 입력이다: 소유자·연재 방향·1위 선택지(선택지가 없으면 null)·추천 상위 제안 글과, 실행 시점의 다음 회차 번호다. */
 data class RunInput(
-    val workId: String, val boardId: String, val owner: String, val title: String, val summary: String, val number: Int, val direction: String, val opinions: List<RankedOpinion>,
+    val workId: String, val boardId: String, val owner: String, val title: String, val summary: String, val number: Int, val direction: String,
+    val choice: RankedChoice?, val proposals: List<RankedProposal>,
 )
 
 private val HH_MM = DateTimeFormatter.ofPattern("HH:mm")
@@ -63,7 +75,7 @@ private val RUNNING = listOf("queued", "running")
 private fun conflict(code: String, message: String) = ContentFailure(409, message, code)
 
 /**
- * AI 자율 연재(UC-18)의 DB 쪽 규칙이다: 설정, 회차마다 열리는 의견 게시판, 의견·투표·숨김, 지금 실행 요청, 그리고 일정 점검([SerialRunner])이 쓰는 실행 선점·발행·실패 처리.
+ * AI 자율 연재(UC-18)의 DB 쪽 규칙이다: 설정, 회차마다 열리는 게시판(AI 선택지 투표·제안 글·추천·숨김), 지금 실행 요청, 그리고 일정 점검([SerialRunner])이 쓰는 선택지 시도 기록·실행 선점·발행·실패 처리.
  * 외부 호출(Core 크레딧·AI)은 여기서 하지 않는다: 이 서비스의 메서드는 모두 짧은 트랜잭션이라 AI를 기다리는 동안 DB 트랜잭션·잠금을 열지 않는다.
  * 쓰기는 작품 소유 확인([WorkAccessService.own])이 작품 행을 잠근 뒤에 하며 단일 서버를 전제한다(다중 서버 분산 잠금은 하지 않는다).
  */
@@ -77,7 +89,9 @@ class SerialService(
     private val versions: EpisodeVersionService,
     private val serialRepo: AiSerialRepository,
     private val boardRepo: SerialBoardRepository,
-    private val opinionRepo: SerialOpinionRepository,
+    private val choiceRepo: SerialChoiceRepository,
+    private val proposalRepo: SerialProposalRepository,
+    private val likeRepo: SerialProposalLikeRepository,
     private val voteRepo: SerialVoteRepository,
     private val works: WorkRepository,
     private val nicknames: CoreNicknameService,
@@ -126,7 +140,7 @@ class SerialService(
     fun run(workId: String, owner: String) {
         access.own(workId, owner)
         if (serialRepo.findById(workId).orElse(null)?.enabled != true) throw conflict("SERIAL_DISABLED", "AI 집필이 꺼져 있어요. 켠 뒤에 실행해 주세요.")
-        val board = boardRepo.findFirstByWorkIdAndStatusIn(workId, ACTIVE) ?: throw conflict("SERIAL_NO_BOARD", "마감할 의견 게시판이 아직 없어요. 1화를 발행하면 열려요.")
+        val board = boardRepo.findFirstByWorkIdAndStatusIn(workId, ACTIVE) ?: throw conflict("SERIAL_NO_BOARD", "마감할 게시판이 아직 없어요. 1화를 발행하면 열려요.")
         if (board.status != "open") throw conflict("SERIAL_RUNNING", "이미 실행 중이에요.")
         board.status = "queued"
     }
@@ -142,60 +156,58 @@ class SerialService(
     // ---- 독자 게시판
 
     /**
-     * 공개 작품의 열린 게시판과 의견(득표순, 숨긴 의견 제외)이다. [member]가 있으면 그 회원의 의견·투표를 채운다. 비공개·없는 작품은 404다.
-     * 의견을 받는 게시판은 open뿐이라 마감·실행 중(queued·running)에는 board가 null이다. summary는 마지막으로 발행된 게시판의 종합 문장이다.
+     * 공개 작품의 열린 게시판과 AI 선택지(번호순·득표 수), 제안 글(최신순 최대 200개, 숨긴 글 제외)이다. [member]가 있으면 그 회원의 투표(myChoiceId)와 글마다 추천·작성 여부를 채운다. 비공개·없는 작품은 404다.
+     * 투표·제안을 받는 게시판은 open뿐이라 마감·실행 중(queued·running)에는 board가 null이고 choices·proposals는 비어 있다. summary는 마지막으로 발행된 게시판의 종합 문장이다.
      * ponytail: 트랜잭션 안에서 Core 닉네임을 조회한다(다른 응답과 같은 시연 규모 방식).
      */
     fun board(workId: String, member: String?): SerialBoardResponse {
         access.published(workId)
+        val enabled = serialRepo.findById(workId).orElse(null)?.enabled == true
         val summary = boardRepo.findFirstByWorkIdAndStatusOrderByOpenedAtDesc(workId, "published")?.summary
-        val open = boardRepo.findFirstByWorkIdAndStatus(workId, "open") ?: return SerialBoardResponse(null, emptyList(), null, null, summary)
-        val rows = opinionRepo.findAllByBoardId(open.id)
-        val voteRows = voteRepo.findAllByBoardId(open.id)
-        val ranked = rankOpinions(rows, voteRows)
-        val names = nicknames.nicknames(ranked.map { it.opinion.authorId })
-        val shown = ranked.map { it.opinion.id }.toSet()
+        val open = boardRepo.findFirstByWorkIdAndStatus(workId, "open") ?: return SerialBoardResponse(enabled, null, emptyList(), null, emptyList(), summary)
+        val votes = voteRepo.findAllByBoardId(open.id)
+        val rows = proposalRepo.findTop200ByBoardIdAndHiddenFalseOrderByCreatedAtDescIdDesc(open.id)
+        val likes = likesOf(rows)
+        val counts = likes.groupingBy { it.proposalId }.eachCount()
+        val liked = likes.filter { it.memberId == member }.map { it.proposalId }.toSet()
+        val names = nicknames.nicknames(rows.map { it.authorId })
         return SerialBoardResponse(
+            enabled,
             SerialBoardRef(open.id, open.episodeNumber),
-            ranked.map { SerialOpinionView(it.opinion.id, names[it.opinion.authorId] ?: WITHDRAWN_MEMBER_NAME, it.opinion.kind, it.opinion.body, simulationView(it.opinion), it.votes, it.opinion.createdAt) },
-            // 숨겨진 의견도 그 회원의 의견이라 한 게시판에 하나라는 제한은 그대로다. 숨겨진 의견에 던진 표는 보이지 않으므로 내 투표가 아니다.
-            member?.let { who -> rows.firstOrNull { it.authorId == who }?.id },
-            member?.let { who -> voteRows.firstOrNull { it.memberId == who }?.opinionId?.takeIf { it in shown } },
+            rankChoices(choiceRepo.findAllByBoardId(open.id), votes).map { SerialChoiceView(it.choice.id, it.choice.position, it.choice.text, it.votes) },
+            member?.let { who -> votes.firstOrNull { it.memberId == who }?.choiceId },
+            rows.map {
+                SerialProposalView(it.id, names[it.authorId] ?: WITHDRAWN_MEMBER_NAME, it.kind, it.title, it.body, simulationView(it), counts[it.id] ?: 0, it.id in liked, it.authorId == member, it.createdAt)
+            },
             summary,
         )
     }
 
-    /** 의견을 낼 수 있는지 확인한다: 공개 작품(404)·열린 게시판(409 SERIAL_NO_BOARD)·아직 의견 없음(409 OPINION_EXISTS). 시뮬레이션이 크레딧을 쓰기 전에 부른다. */
-    fun openBoardFor(workId: String, member: String): OpenBoard {
+    /** 제안 글을 쓸 수 있는지 확인한다: 공개 작품(404)·열린 게시판(409 SERIAL_NO_BOARD). 시뮬레이션이 크레딧을 쓰기 전에 부른다. */
+    fun openBoardFor(workId: String): OpenBoard {
         val work = access.published(workId)
         val board = open(workId)
-        if (opinionRepo.findByBoardIdAndAuthorId(board.id, member) != null) throw conflict("OPINION_EXISTS", "이 게시판에는 이미 의견을 냈어요.")
         return OpenBoard(board.id, board.episodeNumber, work.title, work.summary)
     }
 
     /**
-     * 열린 게시판에 의견을 저장한다. 시뮬레이션 의견은 AI가 만든 [scene]을 함께 저장하고, [boardId](시뮬레이션이 처음 확인한 게시판)가 있으면 지금 열린 게시판이 그것일 때만 저장한다(아니면 409 SERIAL_NO_BOARD).
-     * 같은 회원의 두 번째 의견은 409 OPINION_EXISTS다(동시 요청은 유니크 제약이 막는다).
+     * 열린 게시판에 제안 글을 저장한다(회원당 개수 제한 없음). 시뮬레이션 글은 AI가 만든 [scene]을 함께 저장하고, [boardId](시뮬레이션이 처음 확인한 게시판)가 있으면 지금 열린 게시판이 그것일 때만 저장한다(아니면 409 SERIAL_NO_BOARD).
      */
-    fun add(workId: String, member: String, opinion: CleanOpinion, scene: String? = null, boardId: String? = null): SerialOpinionCreated {
-        val board = openBoardFor(workId, member)
+    fun add(workId: String, member: String, proposal: CleanProposal, scene: String? = null, boardId: String? = null): SerialProposalCreated {
+        val board = openBoardFor(workId)
         // 시뮬레이션은 AI를 기다리는 사이 게시판이 발행돼 다음 게시판이 열릴 수 있다. 처음 확인한 게시판([boardId])이 아니면 저장하지 않는다(러너가 예약을 해제한다).
-        if (boardId != null && board.boardId != boardId) throw conflict("SERIAL_NO_BOARD", "의견을 쓰던 게시판이 마감됐어요. 새 게시판에 다시 써 주세요.")
-        val simulation = if (opinion.kind == "simulation") mapOf("premise" to opinion.premise, "beats" to opinion.beats, "scene" to scene) else null
-        val row = SerialOpinionEntity(id = contentId(), boardId = board.boardId, authorId = member, kind = opinion.kind, body = opinion.body, simulation = simulation)
-        try {
-            opinionRepo.saveAndFlush(row)
-        } catch (_: DataIntegrityViolationException) {
-            throw conflict("OPINION_EXISTS", "이 게시판에는 이미 의견을 냈어요.")
-        }
-        return SerialOpinionCreated(row.id)
+        if (boardId != null && board.boardId != boardId) throw conflict("SERIAL_NO_BOARD", "글을 쓰던 게시판이 마감됐어요. 새 게시판에 다시 써 주세요.")
+        val simulation = if (proposal.kind == "simulation") mapOf("premise" to proposal.premise, "beats" to proposal.beats, "scene" to scene) else null
+        val row = SerialProposalEntity(id = contentId(), boardId = board.boardId, authorId = member, kind = proposal.kind, title = proposal.title, body = proposal.body, simulation = simulation)
+        proposalRepo.save(row)
+        return SerialProposalCreated(row.id)
     }
 
-    /** 투표하거나 다른 의견으로 옮긴다(같은 의견에 다시 해도 한 표다). 자기 의견에도 할 수 있고 숨긴·다른 게시판·없는 의견은 404다. */
-    fun vote(workId: String, member: String, opinionId: String) {
+    /** 선택지에 투표하거나 다른 선택지로 옮긴다(같은 선택지에 다시 해도 한 표다). 소유자도 한다. 열린 게시판의 선택지가 아니거나 없으면 404다. */
+    fun vote(workId: String, member: String, choiceId: String) {
         access.published(workId)
         val board = open(workId)
-        val target = opinionRepo.findById(opinionId).orElse(null)?.takeIf { it.boardId == board.id && !it.hidden } ?: throw ContentFailure(404, "의견을 찾을 수 없어요.")
+        val target = choiceRepo.findById(choiceId).orElse(null)?.takeIf { it.boardId == board.id } ?: throw ContentFailure(404, "선택지를 찾을 수 없어요.")
         val mine = voteRepo.findByBoardIdAndMemberId(board.id, member)
         if (mine == null) {
             try {
@@ -204,7 +216,7 @@ class SerialService(
                 // 같은 회원의 첫 표가 동시에 들어왔다(기본키가 마지막 방어). 이 트랜잭션은 이어 쓸 수 없으니 409로 알리고 다시 누르면 옮긴다.
                 throw conflict("VOTE_CONFLICT", "투표를 처리하는 중이에요. 잠시 뒤 다시 눌러 주세요.")
             }
-        } else mine.opinionId = target.id
+        } else mine.choiceId = target.id
     }
 
     /** 내 표를 취소한다. 던진 표가 없어도 괜찮다. */
@@ -214,12 +226,32 @@ class SerialService(
         voteRepo.findByBoardIdAndMemberId(board.id, member)?.let { voteRepo.delete(it) }
     }
 
-    /** 소유자가 의견을 숨긴다(악성 의견). 이 작품의 게시판에 있는 의견만 숨길 수 있다. */
-    fun hide(workId: String, owner: String, opinionId: String) {
+    /** 제안 글을 추천한다(글마다 회원당 한 번, 이미 했으면 그대로다). 열린 게시판의 숨기지 않은 글만이고 자기 글에도 할 수 있다. 없는·숨긴·다른 게시판 글은 404다. */
+    fun like(workId: String, member: String, proposalId: String) {
+        access.published(workId)
+        val target = proposalOnOpenBoard(workId, proposalId)
+        if (likeRepo.findByProposalIdAndMemberId(target.id, member) != null) return
+        try {
+            likeRepo.saveAndFlush(SerialProposalLikeEntity(target.id, member))
+        } catch (_: DataIntegrityViolationException) {
+            // 같은 회원의 첫 추천이 동시에 들어왔다(기본키가 마지막 방어). 투표와 같이 409로 알리고 화면을 새로 읽게 한다.
+            throw conflict("LIKE_CONFLICT", "추천을 처리하는 중이에요. 잠시 뒤 다시 눌러 주세요.")
+        }
+    }
+
+    /** 내 추천을 취소한다. 추천한 적이 없어도 괜찮다. 글을 찾는 규칙은 [like]와 같다. */
+    fun unlike(workId: String, member: String, proposalId: String) {
+        access.published(workId)
+        val target = proposalOnOpenBoard(workId, proposalId)
+        likeRepo.findByProposalIdAndMemberId(target.id, member)?.let { likeRepo.delete(it) }
+    }
+
+    /** 소유자가 제안 글을 숨긴다(악성 글). 이 작품의 게시판에 있는 글만 숨길 수 있다. */
+    fun hide(workId: String, owner: String, proposalId: String) {
         access.own(workId, owner)
-        val row = opinionRepo.findById(opinionId).orElse(null)
+        val row = proposalRepo.findById(proposalId).orElse(null)
         val board = row?.let { boardRepo.findById(it.boardId).orElse(null) }
-        if (row == null || board == null || board.workId != workId) throw ContentFailure(404, "의견을 찾을 수 없어요.")
+        if (row == null || board == null || board.workId != workId) throw ContentFailure(404, "제안 글을 찾을 수 없어요.")
         row.hidden = true
     }
 
@@ -237,6 +269,44 @@ class SerialService(
 
     /** 서버 재시작 따위로 running에 [STALE_RUNNING_MINUTES]분 넘게 남은 게시판이다. */
     fun staleRunning(now: Instant): List<SerialBoardEntity> = boardRepo.findAllByStatusAndClosedAtBefore("running", now.minus(STALE_RUNNING_MINUTES, ChronoUnit.MINUTES))
+
+    /**
+     * 선택지를 만들어야 하는 게시판이다: 켜져 있고 삭제되지 않은 작품의 열린 게시판 가운데 선택지가 아직 없고, 마지막 시도가 없거나 [CHOICES_RETRY_MINUTES]분 넘게 지난 것.
+     * 실제 시작은 [beginChoices]가 작품 잠금 안에서 다시 확인한다.
+     */
+    fun choiceTargets(now: Instant): List<SerialBoardEntity> {
+        val retryBefore = now.minus(CHOICES_RETRY_MINUTES, ChronoUnit.MINUTES)
+        return serialRepo.findAllByEnabledTrue()
+            .filter { works.findById(it.workId).orElse(null)?.deletedAt == null }
+            .mapNotNull { boardRepo.findFirstByWorkIdAndStatus(it.workId, "open") }
+            .filter { board -> board.choicesTriedAt.let { it == null || !it.isAfter(retryBefore) } && !choiceRepo.existsByBoardId(board.id) }
+    }
+
+    /**
+     * 선택지 생성을 시작한다: 작품 잠금 안에서 조건(켜짐·열린 게시판·선택지 없음·마지막 시도 10분 경과·공개 작품)을 다시 확인하고 시도 시각을 적은 뒤 입력을 돌려준다. 조건이 달라졌으면 null이다.
+     * 시도 시각은 실패해도 남아 10분 뒤에야 다시 시도한다(Core 예약 키의 시도 시각이기도 하다).
+     */
+    fun beginChoices(workId: String, boardId: String, now: Instant): ChoiceInput? {
+        access.lockScope(workId)
+        val setting = serialRepo.findById(workId).orElse(null)?.takeIf { it.enabled } ?: return null
+        val board = boardRepo.findById(boardId).orElse(null)?.takeIf { it.workId == workId && it.status == "open" } ?: return null
+        val tried = board.choicesTriedAt
+        if ((tried != null && tried.isAfter(now.minus(CHOICES_RETRY_MINUTES, ChronoUnit.MINUTES))) || choiceRepo.existsByBoardId(boardId)) return null
+        // 선택지는 독자에게 보이는 게시판에만 만든다: 독자가 읽을 수 없는 작품(비공개·제한·삭제)에는 시도하지도 크레딧을 쓰지도 않는다.
+        val work = access.get(workId).takeIf { it.publiclyVisible() } ?: return null
+        board.choicesTriedAt = now
+        return ChoiceInput(workId, boardId, work.ownerId, work.title, work.summary, board.episodeNumber, setting.direction)
+    }
+
+    /**
+     * AI가 만든 선택지를 번호 1~4로 게시판에 저장한다(작품 잠금 안). 그 사이 게시판이 열려 있지 않거나(지금 실행·마감·실패) 이미 선택지가 있으면 409 SERIAL_NO_BOARD이고 러너가 예약을 해제한다(차감 없음).
+     */
+    fun saveChoices(workId: String, boardId: String, texts: List<String>) {
+        access.lockScope(workId)
+        val board = boardRepo.findById(boardId).orElse(null)?.takeIf { it.workId == workId && it.status == "open" } ?: throw conflict("SERIAL_NO_BOARD", "선택지를 붙일 열린 게시판이 없어요.")
+        if (choiceRepo.existsByBoardId(board.id)) throw conflict("SERIAL_NO_BOARD", "이미 선택지가 있어요.")
+        choiceRepo.saveAll(texts.mapIndexed { index, text -> SerialChoiceEntity(id = contentId(), boardId = board.id, position = index + 1, text = text) })
+    }
 
     fun owner(workId: String): String? = works.findById(workId).orElse(null)?.ownerId
 
@@ -256,7 +326,7 @@ class SerialService(
     }
 
     /**
-     * 선점한 게시판의 실행 입력이다. 그 사이 사람이 직접 발행해 대상 회차가 이미 발행됐으면 지금의 마지막+1로 맞추고, 삭제된 작품은 404다.
+     * 선점한 게시판의 실행 입력이다(1위 선택지와 추천 상위 3개 제안 글). 그 사이 사람이 직접 발행해 대상 회차가 이미 발행됐으면 지금의 마지막+1로 맞추고, 삭제된 작품은 404다.
      */
     fun runInput(boardId: String): RunInput {
         val board = boardRepo.findById(boardId).orElseThrow { ContentFailure(404, "게시판을 찾을 수 없어요.") }
@@ -267,8 +337,9 @@ class SerialService(
         if (number < 2) throw conflict("SERIAL_NO_BOARD", "발행된 회차가 없어 AI가 이어 쓸 회차가 없어요.")
         board.episodeNumber = number
         val direction = serialRepo.findById(board.workId).orElse(null)?.direction.orEmpty()
-        val top = topOpinions(opinionRepo.findAllByBoardId(boardId), voteRepo.findAllByBoardId(boardId))
-        return RunInput(board.workId, boardId, work!!.ownerId, work.title, work.description, board.episodeNumber, direction, top)
+        val choice = topChoice(choiceRepo.findAllByBoardId(boardId), voteRepo.findAllByBoardId(boardId))
+        val rows = proposalRepo.findAllByBoardId(boardId)
+        return RunInput(board.workId, boardId, work!!.ownerId, work.title, work.description, board.episodeNumber, direction, choice, topProposals(rows, likesOf(rows)))
     }
 
     // ---- 실행 결과
@@ -306,7 +377,7 @@ class SerialService(
     }
 
     /**
-     * 실행 중인 게시판을 failed와 고정 사유로 닫는다. 켜져 있으면 같은 대상 회차의 새 게시판을 열고 독자의 의견·투표를 옮겨, 소유자가 지금 실행으로 같은 입력을 다시 시도할 수 있게 한다.
+     * 실행 중인 게시판을 failed와 고정 사유로 닫는다. 켜져 있으면 같은 대상 회차의 새 게시판을 열고 선택지·투표·제안 글(추천은 글을 따라간다)과 선택지 시도 시각을 옮겨, 소유자가 지금 실행으로 같은 입력을 다시 시도할 수 있게 한다.
      * running이 아니면(이미 끝남) 아무것도 하지 않는다. 마감 시각은 선점 때 적은 값을 둔다.
      */
     fun fail(boardId: String, reason: String, now: Instant) {
@@ -318,11 +389,13 @@ class SerialService(
         board.closedAt = board.closedAt ?: now
         boardRepo.saveAndFlush(board)
         val retry = openIfNeeded(board.workId) ?: return
-        opinionRepo.findAllByBoardId(board.id).forEach { it.boardId = retry.id }
-        // 표의 기본키에 게시판이 들어 있어 옮기지 않고 새 게시판의 표로 다시 만든다.
+        retry.choicesTriedAt = board.choicesTriedAt
+        choiceRepo.findAllByBoardId(board.id).forEach { it.boardId = retry.id }
+        proposalRepo.findAllByBoardId(board.id).forEach { it.boardId = retry.id }
+        // 표의 기본키에 게시판이 들어 있어 옮기지 않고 새 게시판의 표로 다시 만든다(선택지는 옮겼으니 같은 선택지를 가리킨다).
         val votes = voteRepo.findAllByBoardId(board.id)
         voteRepo.deleteAll(votes)
-        voteRepo.saveAll(votes.map { SerialVoteEntity(retry.id, it.memberId, it.opinionId) })
+        voteRepo.saveAll(votes.map { SerialVoteEntity(retry.id, it.memberId, it.choiceId) })
     }
 
     /**
@@ -343,7 +416,16 @@ class SerialService(
     // ---- 내부
 
     private fun open(workId: String): SerialBoardEntity =
-        boardRepo.findFirstByWorkIdAndStatus(workId, "open") ?: throw conflict("SERIAL_NO_BOARD", "지금 열린 의견 게시판이 없어요.")
+        boardRepo.findFirstByWorkIdAndStatus(workId, "open") ?: throw conflict("SERIAL_NO_BOARD", "지금 열린 게시판이 없어요.")
+
+    /** 열린 게시판의 숨기지 않은 글이다(추천·추천 취소 대상). */
+    private fun proposalOnOpenBoard(workId: String, proposalId: String): SerialProposalEntity {
+        val board = open(workId)
+        return proposalRepo.findById(proposalId).orElse(null)?.takeIf { it.boardId == board.id && !it.hidden } ?: throw ContentFailure(404, "제안 글을 찾을 수 없어요.")
+    }
+
+    private fun likesOf(rows: List<SerialProposalEntity>): List<SerialProposalLikeEntity> =
+        if (rows.isEmpty()) emptyList() else likeRepo.findAllByProposalIdIn(rows.map { it.id })
 
     /** 켜져 있고(삭제되지 않은 작품) 발행된 회차가 있으며 열린 게시판이 없을 때 마지막 발행 회차+1 대상으로 새 게시판을 연다. 작품 잠금을 쥔 호출만 부른다. */
     private fun openIfNeeded(workId: String): SerialBoardEntity? {
@@ -356,7 +438,7 @@ class SerialService(
 
     private fun AiSerialEntity.response() = SerialSettingsResponse(enabled, serialDaySet(days).sortedBy { it.value }.map { it.name.take(3) }, runTime.format(HH_MM), direction)
 
-    private fun simulationView(row: SerialOpinionEntity): SerialSimulationView? = row.simulation?.let {
+    private fun simulationView(row: SerialProposalEntity): SerialSimulationView? = row.simulation?.let {
         SerialSimulationView(it["premise"] as? String ?: "", (it["beats"] as? List<*>)?.map { beat -> beat.toString() } ?: emptyList(), it["scene"] as? String)
     }
 }
