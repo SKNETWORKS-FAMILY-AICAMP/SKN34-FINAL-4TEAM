@@ -361,7 +361,12 @@ def test_refreshing_a_stale_proposal_asks_again_in_place_without_repeating_the_a
     assert (new.status, new.pendingAction.args['request']['expectedDraftRevision']) == ('waiting', 5)
     assert [s.feature for s in new.steps] == ['content_action'] and [name for name, _ in writes(log)] == ['story_plan_create']  # 앞서 저장한 쓰기는 한 번뿐이다(#662)
     told = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'world_studio_edit_draft')
-    assert told.content.endswith(service.CONTENT_ACTION_REFRESH)  # 거절(다시 시도 금지)이 아니라 다시 읽고 제안하라는 답이다
+    # reject로 답하면 라이브러리가 "User rejected …"와 오류 상태를 붙여, 두 번째부터 모델이 거절로 읽고 제안을 포기한다
+    assert (told.content, told.status) == (agent.REFRESH, 'success')
+    # 프롬프트 규칙 4·5 때문에 문구만으로는 실모델이 재제안을 포기한다: 다시 읽기와 재제안을 도구 선택으로 강제한다
+    read, propose = calls.main[-2:]
+    assert [c['settings'].get('tool_choice') for c in (read, propose)] == ['world_studio_read', 'world_studio_edit_draft']
+    assert read['settings']['parallel_tool_calls'] is False and not any(c['settings'].get('tool_choice') for c in calls.main[:-2])
     done = resume(thread, True)
     assert done.status == 'completed' and [name for name, _ in writes(log)] == ['story_plan_create', 'world_studio_edit_draft']
 
@@ -372,6 +377,25 @@ def test_refresh_is_refused_when_no_content_write_is_waiting_and_the_wait_is_kep
     assert turn(thread, request='고증해줘').missingInputs == ['research']
     with pytest.raises(service.NothingToResume):
         refresh(thread)  # 그대로 잇는다면 입력 취소가 돼 버린다
+    assert asyncio.run(service.history(thread, SCOPE)).turns[-1].reply.status == 'waiting'
+
+
+def test_a_failed_reread_does_not_force_a_proposal_without_the_saved_draft(monkeypatch):
+    calls = fake_agents(monkeypatch, only_content(('world_studio_edit_draft', EDIT), ('world_studio_read', {'id': 'w1'})))
+    log = content(monkeypatch, fail={'world_studio_read': ContentMcpFailure(502, '세계관을 읽지 못했어요.')})
+    thread = str(uuid4())
+    turn(thread, page=PAGE)
+    assert refresh(thread).status == 'completed' and writes(log) == []
+    assert not calls.main[-1]['settings'].get('tool_choice')  # 저장본을 읽지 못했으면 그 사실을 답한다
+
+
+def test_refresh_only_covers_the_world_card_proposal_that_can_go_stale(monkeypatch):
+    fake_agents(monkeypatch, only_content(('work_update', {'id': 'work', 'request': {'title': '새 제목'}})))
+    content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread)
+    with pytest.raises(service.NothingToResume):
+        refresh(thread)
     assert asyncio.run(service.history(thread, SCOPE)).turns[-1].reply.status == 'waiting'
 
 
