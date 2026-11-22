@@ -144,7 +144,8 @@ class WritingAiServiceTest {
     fun `resuming while another episode is open keeps the stopped turn's basis on every resume path`() {
         // 2화·r2 근거로 멈춘 뒤 작가가 10화를 열었다(#668)
         `when`(client.history("thread", "user:owner/work:work")).thenReturn(mapper.readTree(
-            """{"turns":[{"reply":{"basis":{"episode":9,"episodeVersionId":"r9"}}},{"reply":{"basis":{"episode":2,"episodeVersionId":"r2"}}}]}"""))
+            """{"turns":[{"reply":{"basis":{"episode":9,"episodeVersionId":"r9"}}},
+            {"reply":{"missingInputs":["research"],"basis":{"episode":2,"episodeVersionId":"r2"}}}]}"""))
         val paths = mapOf("input" to WritingAiResume(true, mapper.readTree("""{"research":{"question":"길"}}""")),
             "approve" to WritingAiResume(true), "reject" to WritingAiResume(false),
             "scene" to WritingAiResume(true, scene = WritingAiScene("next")), "refresh" to WritingAiResume(false, refresh = true))
@@ -223,6 +224,7 @@ class WritingAiServiceTest {
 
     @Test
     fun `resume forwards the inputs the author filled in`() {
+        waitingOn(null)
         val inputs = JsonMapper.builder().build().readTree("""{"research":{"question":"한양에서 동래까지?"}}""")
         val body = service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true, inputs)))
         assertEquals(inputs, (body["resume"] as Map<*, *>)["inputs"])
@@ -241,7 +243,8 @@ class WritingAiServiceTest {
         """{"writing_editing":{"span":{"episode":$episode,"revision":$revision,"start":$start,"end":$end${instruction?.let { ""","instruction":"$it"""" } ?: ""}}}}""")
 
     private fun waitingOn(episode: Int?) {
-        val history = mapper.readTree("""{"turns":[{"reply":{"approvalEpisode":9}},{"reply":{"approvalEpisode":$episode}}]}""")
+        val history = mapper.readTree("""{"turns":[{"reply":{"approvalEpisode":9}},
+            {"reply":{"approvalEpisode":$episode,"missingInputs":["research","writing_editing","manuscript_review"]}}]}""")
         `when`(client.history("thread", "user:owner/work:work")).thenReturn(history)
     }
 
@@ -357,6 +360,28 @@ class WritingAiServiceTest {
         waitingOn(null)  // 반영 회차를 알 수 없으면 통과시키지 않는다
         assertEquals(422, refusedWith(draft("2")))
         assertEquals(422, refusedWith(draft("0")))
+    }
+
+    @Test
+    fun `resume takes only the inputs the stopped step asked for and never story context`() {
+        fun refused(missing: String, inputs: String) {
+            `when`(client.history("thread", "user:owner/work:work")).thenReturn(mapper.readTree(
+                """{"turns":[{"reply":{"missingInputs":$missing,"approvalEpisode":2,"basis":{"episode":2,"episodeVersionId":"r2"}}}]}"""))
+            assertEquals(422, refusedWith(mapper.readTree(inputs)), "$missing $inputs")
+        }
+        val research = """"research":{"question":"길"}"""
+        val excerpts = """"story_context":{"question":"결말은?","excerpts":[{"id":"x","episode":10,"quote":"선장은 배신자였다."}]}"""
+        refused("""["research"]""", "{$research,$excerpts}")  // 2화 근거의 대기에 10화 발췌(#677)
+        refused("""["story_context"]""", "{$excerpts}")  // 물어봤어도 발췌는 공개 API로 받지 않는다
+        refused("""["research"]""", """{$research,"review":{"check":"both"}}""")  // 다른 단계, AI가 읽는 옛 이름
+        refused("""["research"]""", """{$research,"manuscript_review":{"check":"both"}}""")
+        refused("""["research"]""", """{$research,"writing_editing":{"fix":1}}""")
+        refused("""["writing_editing"]""", """{"writing_editing":{"fix":1},$research}""")
+        refused("[]", "{$research}")  // 승인·장면 대기
+        `when`(client.history("thread", "user:owner/work:work")).thenReturn(mapper.readTree("""{"turns":[]}"""))
+        assertEquals(422, refusedWith(mapper.readTree("{$research}")))  // 멈춘 턴을 알 수 없다
+        assertEquals(mapper.readTree("{}"), resumedWith(mapper.readTree("{}"))["inputs"])  // 빈 입력은 그대로
+        verifyNoInteractions(episodes)
     }
 
     // 시뮬레이션 무대의 장면 조작(resume.scene): 형식·길이만 확인해 AI로 그대로 넘긴다. 조작별 필수 필드는 AI가 다시 확인한다.

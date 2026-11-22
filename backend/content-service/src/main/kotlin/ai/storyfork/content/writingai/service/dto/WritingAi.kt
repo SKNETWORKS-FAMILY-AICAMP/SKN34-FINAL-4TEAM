@@ -75,7 +75,8 @@ data class WritingAiSimulation(
 
 /**
  * inputs는 AI가 입력 대기로 멈췄을 때 작가가 채운 단계 입력(예: research.question)이며 AI가 계약으로 검증한다.
- * writing_editing만 Content가 먼저 확인한다: span은 patch로 바꾸고, 직접 보낸 patch와 멈춘 턴의 반영 회차가 아니거나 context가 있는 draft는 422다(#668).
+ * 키는 멈춘 단계가 물은 입력(missingInputs)이어야 하고 story_context는 받지 않는다(아니면 422, #677).
+ * 값은 writing_editing만 Content가 먼저 확인한다: span은 patch로 바꾸고, 직접 보낸 patch와 멈춘 턴의 반영 회차가 아니거나 context가 있는 draft는 422다(#668).
  * scene은 시뮬레이션 무대의 장면 조작이다. scene이 있으면 AI는 approved를 적용하지 않고 장면을 처리한 뒤 다시 멈춘다.
  * refresh는 Content 쓰기 승인 대기에서 오래된 제안 대신 새 제안을 받는 답이며(#662) approved=false와만 함께 온다.
  */
