@@ -39,6 +39,20 @@ class ManuscriptBuildExecution(
         })
     }
 
+    /**
+     * 접수한 업데이트 작업을 AI가 받지 못했다. 실행권이 없는 queued 작업만 실패로 끝내 다음 발행이 그 회차를 다시 담게 한다.
+     * 응답만 잃고 AI가 받았다면 그 claim이 먼저 실행권을 가져가 이 요청이 거절되고, 늦게 도착한 접수는 claim이 queued가 아니라서 거절한다.
+     */
+    fun failQueued(id:UUID,owner:UUID,code:String) {
+        require(code.matches(Regex("[A-Z][A-Z0-9_]{0,99}")))
+        transaction.executeWithoutResult {
+            val job=owned(id,owner)
+            if(job.status!="queued" || job.executionToken!=null) throw WorldConflict()
+            job.status="failed";job.failureCode=code
+            jobs.flush()
+        }
+    }
+
     /** 이전 worker의 실패 응답으로 재개한 실행이나 적재 결과를 덮어쓰지 않는다. */
     fun fail(id:UUID,owner:UUID,token:UUID,code:String) {
         require(code.matches(Regex("[A-Z][A-Z0-9_]{0,99}")))

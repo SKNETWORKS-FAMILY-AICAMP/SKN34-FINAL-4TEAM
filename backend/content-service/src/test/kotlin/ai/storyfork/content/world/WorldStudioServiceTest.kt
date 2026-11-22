@@ -1002,6 +1002,54 @@ class WorldStudioServiceTest {
         verify(states,never()).flush()
         verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
     }
+
+    // ---- 발행 회차로 세계관 업데이트(2026-11-22): 적재 단계가 기존 카드의 인물 기억을 더한다 ----
+
+    private fun updateStep(kind:String,existingFields:CardFields,request:EditWorldDraftRequest):Triple<ManuscriptBuildJob,ManuscriptBuildLoadStep,SettingCardDraft> {
+        owned()
+        val card=request.cards.single()
+        val job=ManuscriptBuildJob(workId="work",worldId=world,ownerSubject=actor,requestKey="build",requestHash="a".repeat(64),manifest=emptyMap(),status="loading",kind=kind)
+        @Suppress("UNCHECKED_CAST")
+        val json=mapper.readValue(mapper.writeValueAsBytes(request),Map::class.java) as Map<String,Any?>
+        val step=ManuscriptBuildLoadStep(jobId=job.id,sequence=1,requestPayload=json,requestHash=service.manuscriptRequestHash(world,request))
+        val existing=SettingCardDraft(cardId=card.id,worldId=world,fields=existingFields)
+        `when`(cards.findById(card.id)).thenReturn(Optional.of(SettingCard(card.id,world)))
+        `when`(cardDrafts.existsById(card.id)).thenReturn(true)
+        `when`(cardDrafts.findById(card.id)).thenReturn(Optional.of(existing))
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(existing))
+        `when`(buildJobs.findFirstByWorldIdAndStatusIn(world,listOf("loading","unknown"))).thenReturn(job)
+        `when`(buildJobs.findById(job.id)).thenReturn(Optional.of(job))
+        `when`(buildSteps.findById(step.id)).thenReturn(Optional.of(step))
+        `when`(buildSteps.findAllByJobIdOrderBySequence(job.id)).thenReturn(listOf(step))
+        doAnswer { RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList()) }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        return Triple(job,step,existing)
+    }
+    private fun memory(vararg episodes:Pair<String,String>)=mapOf("characterDocs" to mapOf("soul" to "성격","goal" to "목표","episodes" to mapOf(*episodes)))
+
+    @Test fun `an update step rewrites an existing card draft with the memories it adds`() {
+        val id=UUID.randomUUID()
+        val old=CardFields("인물","원문","character","basic","",emptyList(),emptyList(),memory("1" to "산채"),"public","active")
+        val added=CardPayload(id,"인물","원문","character","basic",semanticMetadata=memory("1" to "산채","11" to "새 기억"),visibility="public")
+        val (job,step,existing)=updateStep("update",old,EditWorldDraftRequest(2,"편집본","",listOf(added),key="reserved"))
+
+        val receipt=service.editManuscriptAddition(world,actor,step.id)
+
+        assertEquals(memory("1" to "산채","11" to "새 기억"),existing.fields.semanticMetadata)
+        assertEquals("public",existing.fields.visibility)
+        assertEquals("applied",step.status);assertEquals("completed",job.status)
+        assertEquals(listOf(id.toString()),receipt["cardIds"],"영수증의 카드 ID에 맞춘 기존 카드도 든다")
+        verify(cards,never()).saveAndFlush(any())
+    }
+    @Test fun `an initial step still refuses a card that already exists`() {
+        val id=UUID.randomUUID()
+        val old=CardFields("인물","원문","character","basic","",emptyList(),emptyList(),memory("1" to "산채"),"private","active")
+        val (_,step,existing)=updateStep("initial",old,EditWorldDraftRequest(2,"편집본","",listOf(CardPayload(id,"인물","원문","character","basic",semanticMetadata=memory("1" to "다른 기억"))),key="reserved"))
+
+        assertThrows(WorldConflict::class.java) { service.editManuscriptAddition(world,actor,step.id) }
+
+        assertEquals(memory("1" to "산채"),existing.fields.semanticMetadata)
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+    }
     private fun anyUUID():UUID=any(UUID::class.java) ?: UUID(0,0)
     /** 회차(null=최신)는 어떤 값이든 맞는 매처다. */
     private fun anyEpisode():Int?=any()
