@@ -76,3 +76,55 @@ def test_candidates_by_use_and_eligibility():
 
 def test_candidates_need_a_previous_episode():
     assert os_.candidates(FakeCorpus(), rec(n=1, base=0), names={'해리': 'h'}) == []
+
+
+class Corp(FakeCorpus):
+    name = 'fake'
+
+    def works(self):
+        return {'w': {'id': 'w', 'kind': 'modern', 'title': '시험', 'author': '저자', 'license': '저작권 만료', 'source': 'x', 'person': 'third'}}
+
+    def facts(self, work, person, ep):
+        return [{'id': 'f1', 'episode': 9, 'kind': 'future', 'text': '먼 미래: 아주 먼 미래의 사건이 일어났다.', 'body': '아주 먼 미래의 사건이 일어났다.'}]
+
+
+def long_rec(n):
+    rows = []
+    for k in range(24):
+        if k % 8 == 3:
+            rows.append(('narration', f'{n}화 {k}번째 지문이다. 비가 오는 저녁의 호그와트 성은 조용했고 복도에는 아무도 없었으며 촛불만 흔들렸다.', '', '', True))
+        elif k % 8 == 5:
+            rows.append(('narration', f'{n}화 {k}번째 속마음이다. 해리는 속으로 이 평화가 오래가지 않을 거라고 생각했다. 어쩐지 불안했다.', '', '해리', True))
+        else:
+            rows.append(('dialogue', f'"{n}화 {k}번째 대사입니다. 오늘은 어디로 갈 건지 말해 줘."', ['해리', '론'][k % 2], '', False))
+    turns = [{'i': i, 'kind': k, 'text': t, 'tag': '', 'par': i, 'whole': w, 'speaker': s, 'monologue': m, 'status': 'agreed'} for i, (k, t, s, m, w) in enumerate(rows)]
+    return {'ep': {'id': f'w#{n}', 'work': 'w', 'n': n, 'base': n - 1, 'text': '해리 론 ' + ' '.join(t['text'] for t in turns)}, 'turns': turns}
+
+
+def test_build_items_sizes_labels_and_ids():
+    sets, stats = os_.build_items(Corp(), [long_rec(2), long_rec(3)], {'act': 6, 'direct': 6, 'narrate': 4, 'monologue': 2, 'check_pass': 3, 'check_fail': 3}, seed=1)
+    assert [len(sets[k]) for k in ('1', '2', '3n', '3m')] == [6, 6, 4, 2] and len(sets['4']) == 6
+    assert sets['1'][0]['id'] == 'fake-1-0001' and sets['4'][-1]['id'] == 'fake-4-0006'
+    assert [i['label'] for i in sets['4']] == ['pass'] * 3 + ['reject'] * 3
+    reject = [i for i in sets['4'] if i['label'] == 'reject']
+    assert all(i['inject']['text'] in i['gold'] and i['original'] in i['gold'] or i['inject']['text'] in i['gold'] for i in reject) and all(i['gold'] != i['original'] for i in reject)
+    assert all(len(i['context']) >= 3 and i['source']['title'] == '시험' for s in sets.values() for i in s)
+    assert {i['kind'] for i in sets['2']} == {'dialogue', 'narration', 'monologue'} and all(len(i['cast']) >= 2 for i in sets['2'])
+    again, _ = os_.build_items(Corp(), [long_rec(2), long_rec(3)], {'act': 6, 'direct': 6, 'narrate': 4, 'monologue': 2, 'check_pass': 3, 'check_fail': 3}, seed=1)
+    assert [i['id'] for i in again['1']] == [i['id'] for i in sets['1']] and [i['t'] for i in again['1']] == [i['t'] for i in sets['1']]   # 고정 시드
+    assert stats['pool']['act'] > 0 and stats['dropped'] == {}
+
+
+def test_monologue_shortfall_is_filled_by_narration():
+    recs = [long_rec(2)]
+    for t in recs[0]['turns']:
+        t['monologue'] = ''   # 독백이 하나도 없다
+    sets, _ = os_.build_items(Corp(), recs, {'act': 2, 'direct': 3, 'narrate': 3, 'monologue': 2, 'check_pass': 1, 'check_fail': 1}, seed=1)
+    assert len(sets['3m']) == 0 and len(sets['3n']) == 5   # ③의 합계(3 + 2)를 지킨다
+
+
+def test_review_md_lists_context_gold_and_check_label():
+    sets, _ = os_.build_items(Corp(), [long_rec(2), long_rec(3)], {'act': 3, 'direct': 3, 'narrate': 2, 'monologue': 1, 'check_pass': 2, 'check_fail': 2}, seed=1)
+    text = os_.review_md(sets['4'], 3, seed=1)
+    assert text.count('\n## fake-4-') == 3 and '직전 줄:' in text and '[ ] 판별 맞음' in text
+    assert '거절(주입 사실' in os_.review_md([i for i in sets['4'] if i['label'] == 'reject'], 1) and '통과(원작 그대로)' in os_.review_md([i for i in sets['4'] if i['label'] == 'pass'], 1)

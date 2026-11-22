@@ -40,6 +40,16 @@ def test_failed_chunk_is_unlabeled_and_counted():
     assert [t['status'] for t in got['turns']] == ['agreed'] * 4 + ['unlabeled'] * 3   # 두 번째 청크(4~6번)는 모두 판별 못 한 것
 
 
+def test_truncated_json_counts_as_failed_chunk():
+    from pydantic import ValidationError
+
+    class Cut(FakeLlm):
+        def ask(self, *a, **k):
+            ot.Labels.model_validate_json('{"labels":[{"i"')   # 잘린 JSON: SDK parse가 던지는 것과 같은 ValidationError
+    got = oa.align_episode(TEXT, ['해리', '론'], False, Cut({}), FakeLlm({i: '해리' for i in range(6)}), size=4, workers=1)
+    assert got['failedChunks'] == 2 and all(t['status'] == 'unlabeled' for t in got['turns'])
+
+
 def test_agreement_summary_counts_dialogue_and_narration():
     turns = [{'kind': 'dialogue', 'status': 'agreed'}, {'kind': 'dialogue', 'status': 'unlabeled'}, {'kind': 'narration', 'status': 'agreed', 'monologue': '해리'}, {'kind': 'narration', 'status': 'agreed', 'monologue': ''}]
     assert oa.agreement(turns) == {'dialogue': 2, 'dialogueAgreed': 1, 'narration': 2, 'narrationAgreed': 2, 'monologue': 1}

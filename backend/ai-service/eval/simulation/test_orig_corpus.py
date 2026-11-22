@@ -54,3 +54,9 @@ def test_bigram_overlap_and_top_facts():
     facts = [{'id': 'a', 'text': '숲에 간다.'}, {'id': 'b', 'text': '기차를 탄다.'}, {'id': 'c', 'text': '전혀 다른 이야기.'}]
     assert [f['id'] for f in oc.top_facts('해리는 기차를 탔다', facts, 2)][0] == 'b'
     assert len(oc.top_facts('해리는 기차를 탔다', facts, 2)) == 2
+
+
+def test_sample_units_even_per_book_and_skips_first_unit():
+    eps = [{'id': f'b1-{i:02d}', 'base': i - 1} for i in range(1, 11)] + [{'id': f'b2-{i:02d}', 'base': 10 + i} for i in range(1, 5)]
+    assert [e['id'] for e in oc.sample_units(eps, 3)] == ['b1-02', 'b1-05', 'b1-08', 'b2-01', 'b2-02', 'b2-03']   # 1권 첫 덩어리(기준 0)는 빠진다
+    assert [e['id'] for e in oc.sample_units(eps[:3], 5)] == ['b1-02', 'b1-03']                                    # 후보가 모자라면 있는 만큼

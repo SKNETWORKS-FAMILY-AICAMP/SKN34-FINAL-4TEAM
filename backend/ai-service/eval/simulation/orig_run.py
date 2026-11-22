@@ -12,7 +12,7 @@ from pathlib import Path
 
 from orig_common import RESULTS  # noqa: F401,I001  경로 설정이 아래 import보다 먼저여야 한다
 from langchain_core.runnables import RunnableLambda
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from cost import usd
 from llm import CallCapExceeded, LlmFailure
@@ -75,7 +75,7 @@ def judge(llm, instructions: str, payload: dict, schema: type[BaseModel]) -> dic
     """정답을 보여 준 모델 채점 한 번. 호출·파싱이 실패하면 None이다."""
     try:
         out = llm.ask('judge', instructions, json.dumps(payload, ensure_ascii=False), schema=schema, max_output_tokens=1500)
-    except LlmFailure:
+    except (LlmFailure, ValidationError):   # 호출 실패·잘린 JSON은 채점 실패다
         return None
     return parse_grade(out, [f['id'] for f in payload['facts']])
 
@@ -185,7 +185,7 @@ def size_of(data) -> int:
     return len(json.dumps(data, ensure_ascii=False))
 
 
-def evaluate_dialogue(item: dict, corpus, llm, variant=None, variant_name=None) -> dict:
+def evaluate_dialogue(item: dict, corpus, llm, cost, variant=None, variant_name=None) -> dict:
     """① 한 문항: act 한 번(재생성·검사 없이 첫 응답) → 정답을 보여 준 모델 채점."""
     record, ledger = blank(item, variant_name), UsageLedger('simulation.orig', lambda step: {})
     view = act_view(item, corpus, variant)
@@ -195,14 +195,14 @@ def evaluate_dialogue(item: dict, corpus, llm, variant=None, variant_name=None) 
     try:
         action = RunnableLambda(lambda _: service.acted(agent.act(data))).invoke(None, {'callbacks': [ledger]})
     except SimulationFailure as failure:
-        return {**record, 'error': failure.status, 'grade': None, 'usage': settle(llm.cost, ledger, int(size_of(data) / CHARS_PER_TOKEN))}
+        return {**record, 'error': failure.status, 'grade': None, 'usage': settle(cost, ledger, int(size_of(data) / CHARS_PER_TOKEN))}
     prose = service.normalize_quotes(action.prose.strip())
     payload = {'character': item['speaker'], 'scene': [{'by': l['by'], 'text': l['text']} for l in item['context']], 'gold': item['gold'], 'generated': prose,
                'facts': [{'id': f['id'], 'text': f['text']} for f in top_facts(prose, facts_for(corpus, item), FACTS)]}
-    return {**record, 'generated': prose, 'grade': judge(llm, DIALOGUE_JUDGE, payload, DialogueGrade), 'inChars': size_of(data), 'usage': settle(llm.cost, ledger)}
+    return {**record, 'generated': prose, 'grade': judge(llm, DIALOGUE_JUDGE, payload, DialogueGrade), 'inChars': size_of(data), 'usage': settle(cost, ledger)}
 
 
-def evaluate_narration(item: dict, corpus, llm, variant=None, variant_name=None) -> dict:
+def evaluate_narration(item: dict, corpus, llm, cost, variant=None, variant_name=None) -> dict:
     """③ 한 문항: narrate 한 번 → 채점(문체·정보·시점 위반). 독백이면 그 인물이 모를 사실, 나레이션이면 이 회차 뒤의 사실이 금지 사실이다."""
     record, ledger = blank(item, variant_name), UsageLedger('simulation.orig', lambda step: {})
     data = narrate_data(item, corpus, variant)
@@ -212,14 +212,14 @@ def evaluate_narration(item: dict, corpus, llm, variant=None, variant_name=None)
     try:
         written = RunnableLambda(lambda _: service.narrated(agent.narrate(data), monologue=monologue)).invoke(None, {'callbacks': [ledger]})
     except SimulationFailure as failure:
-        return {**record, 'error': failure.status, 'grade': None, 'usage': settle(llm.cost, ledger, int(size_of(data) / CHARS_PER_TOKEN))}
+        return {**record, 'error': failure.status, 'grade': None, 'usage': settle(cost, ledger, int(size_of(data) / CHARS_PER_TOKEN))}
     prose = written.prose.strip()
     payload = {'kind': item['kind'], 'character': item['speaker'], 'scene': [{'by': l['by'], 'text': l['text']} for l in item['context']], 'gold': item['gold'], 'generated': prose,
                'facts': [{'id': f['id'], 'text': f['text']} for f in top_facts(prose, facts_for(corpus, item, person=monologue), FACTS)]}
-    return {**record, 'generated': prose, 'grade': judge(llm, NARRATION_JUDGE, payload, NarrationGrade), 'inChars': size_of(data), 'usage': settle(llm.cost, ledger)}
+    return {**record, 'generated': prose, 'grade': judge(llm, NARRATION_JUDGE, payload, NarrationGrade), 'inChars': size_of(data), 'usage': settle(cost, ledger)}
 
 
-def evaluate_check(item: dict, corpus, llm, variant=None, variant_name=None) -> dict:
+def evaluate_check(item: dict, corpus, llm, cost, variant=None, variant_name=None) -> dict:
     """④ 한 문항: check 한 번. 거절 = 어느 검사든 실패. 주입 문항은 사실이 검사 입력의 금지 목록에 있었는지(covered)도 남긴다."""
     record, ledger = blank(item, variant_name), UsageLedger('simulation.orig', lambda step: {})
     view = act_view(item, corpus, variant)
@@ -235,8 +235,8 @@ def evaluate_check(item: dict, corpus, llm, variant=None, variant_name=None) -> 
     try:
         verdict = RunnableLambda(run).invoke(None, {'callbacks': [ledger]})
     except SimulationFailure as failure:
-        return {**record, 'error': failure.status, 'verdict': None, 'usage': settle(llm.cost, ledger, int(record['inChars'] / CHARS_PER_TOKEN))}
-    return {**record, 'verdict': check_outcome(verdict), 'usage': settle(llm.cost, ledger)}
+        return {**record, 'error': failure.status, 'verdict': None, 'usage': settle(cost, ledger, int(record['inChars'] / CHARS_PER_TOKEN))}
+    return {**record, 'verdict': check_outcome(verdict), 'usage': settle(cost, ledger)}
 
 
 async def evaluate_direct(item: dict, corpus, cost, variant=None, variant_name=None) -> dict:
@@ -391,6 +391,38 @@ def summarize_check(records: list[dict]) -> dict:
             'missLeakOnly': rate([not r['verdict']['leak'] for r in injected]),
             'covered': {'miss': rate([not r['verdict']['rejected'] for r in grounded]), 'missLeakOnly': rate([not r['verdict']['leak'] for r in grounded])},
             **cost_stats(records, 'check')}
+
+
+CALL = {'1': 'act', '2': 'director', '3n': 'narrate', '3m': 'narrate', '4': 'check'}   # 세트 → 주 모델 호출 이름
+
+
+def metrics_of(key: str, records: list[dict]) -> dict[str, dict]:
+    """세트별 짝 비교에 쓰는 문항별 값(높을수록 좋다; 에러·건너뜀·채점 실패 문항은 값이 없다).
+    ①·③: 점수(말투·의도 / 문체·정보)와 clean(시점 위반 없음 1/0). ④: correct(맞게 판정), passOk(원작을 통과시킴), caught(주입을 거절함)."""
+    out: dict[str, dict] = {}
+    for r in records:
+        if r.get('error') or r.get('skipped'):
+            continue
+        if key in ('1', '3n', '3m'):
+            if r.get('grade'):
+                for name, value in r['grade'].items():
+                    out.setdefault('clean' if name == 'leaked' else name, {})[r['id']] = int(not value) if name == 'leaked' else value
+        elif key == '4' and r.get('verdict'):
+            rejected = r['verdict']['rejected']
+            out.setdefault('correct', {})[r['id']] = int(rejected == (r['label'] == 'reject'))
+            out.setdefault('passOk' if r['label'] == 'pass' else 'caught', {})[r['id']] = int(not rejected if r['label'] == 'pass' else rejected)
+    return out
+
+
+def compare_runs(key: str, base: list[dict], cand: list[dict]) -> dict:
+    """같은 문항의 기준선(base)과 후보(cand) 실행 기록을 짝 비교한다: 지표마다 부호 검정(up = 후보가 높은 문항), 호출당 입력 토큰 평균과 비(같은 문항만), 호출 지연 중앙값."""
+    a, b = metrics_of(key, cand), metrics_of(key, base)
+    shared = {r['id'] for r in base if not r.get('error') and not r.get('skipped')} & {r['id'] for r in cand if not r.get('error') and not r.get('skipped')}
+    pick = lambda records: [r for r in records if r['id'] in shared]   # noqa: E731
+    base_cost, cand_cost = cost_stats(pick(base), CALL[key]), cost_stats(pick(cand), CALL[key])
+    ratio = cand_cost['inputTokens'] / base_cost['inputTokens'] if base_cost['inputTokens'] and cand_cost['inputTokens'] else None
+    return {'metrics': {name: paired(a[name], b.get(name, {})) for name in a}, 'tokens': {'base': base_cost['inputTokens'], 'cand': cand_cost['inputTokens'], 'ratio': ratio},
+            'callMs': {'base': base_cost['callMs']['p50'], 'cand': cand_cost['callMs']['p50']}}
 
 
 def paired(a: dict, b: dict) -> dict:

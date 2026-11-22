@@ -8,17 +8,18 @@ from concurrent.futures import ThreadPoolExecutor
 
 from orig_common import SEED  # noqa: F401,I001  경로 설정이 llm import보다 먼저여야 한다
 from llm import LlmFailure
+from pydantic import ValidationError
 
 import orig_turns as ot
 
-ALIGN_TOKENS = 3000
+ALIGN_TOKENS = 8000   # 추론 토큰도 출력 상한에 들어가 작으면 JSON이 잘린다
 
 
 def ask_labels(llm, chunk: dict) -> dict | None:
     """청크 하나를 한 경로에 보내 {줄 번호: (화자, 독백 인물)}. 호출·파싱이 실패하면 None."""
     try:
         out = llm.ask('align', ot.LABEL_INSTRUCTIONS, json.dumps(chunk, ensure_ascii=False), schema=ot.Labels, max_output_tokens=ALIGN_TOKENS)
-    except LlmFailure:
+    except (LlmFailure, ValidationError):   # 호출 실패·잘린 JSON은 판별 못 한 청크다
         return None
     return ot.read_labels(out, chunk['turns'], chunk['names'])
 
@@ -27,9 +28,8 @@ def align_episode(text: str, names: list[str], first_person: bool, first, second
     """회차 본문을 턴으로 자르고 두 경로의 판별에서 같은 턴만 확정한다: {turns(status·speaker·monologue 포함), chunks, failedChunks}."""
     turns = ot.split_turns(text)
     chunks = ot.label_chunks(turns, names, first_person, size)
-    with ThreadPoolExecutor(workers) as pool:
-        a = list(pool.map(lambda chunk: ask_labels(first, chunk), chunks))
-        b = list(pool.map(lambda chunk: ask_labels(second, chunk), chunks))
+    with ThreadPoolExecutor(workers) as pool:   # 두 경로의 모든 청크를 한꺼번에 낸다
+        a, b = ([f.result() for f in row] for row in [[pool.submit(ask_labels, llm, chunk) for chunk in chunks] for llm in (first, second)])
     merged, failed = {}, 0
     for chunk, la, lb in zip(chunks, a, b):
         merged |= ot.merge_labels(chunk['turns'], la, lb)

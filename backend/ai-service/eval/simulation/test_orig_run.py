@@ -89,3 +89,16 @@ def test_paired_signs_per_item_and_skips_missing():
     b = {'x': 4, 'y': 4, 'z': 1, 'w': 2}
     got = orr.paired(a, b)
     assert got == {'n': 3, 'up': 1, 'down': 1, 'tie': 1, 'p': 1.0, 'meanDiff': 0.0}   # a(후보)가 높으면 up
+
+
+def test_metrics_of_and_compare_runs_pair_same_items():
+    base = [act(0, 3, 3), act(1, 2, 2, ['f']), act(2, 4, 4)]
+    cand = [act(0, 4, 3, tokens=60), act(1, 2, 3, tokens=60), {**act(2, 4, 4), 'error': 502, 'grade': None}]
+    got = orr.compare_runs('1', base, cand)
+    assert got['metrics']['voice'] == {'n': 2, 'up': 1, 'down': 0, 'tie': 1, 'p': 1.0, 'meanDiff': 0.5}   # 에러 난 문항은 짝에서 뺀다
+    assert got['metrics']['intent']['up'] == 1 and got['metrics']['clean']['up'] == 1 and got['metrics']['clean']['down'] == 0   # 문항 1은 후보가 누설 없음(기준선은 누설)
+    assert got['tokens'] == {'base': 100.0, 'cand': 60.0, 'ratio': 0.6}
+    checks_base = [check(0, 'pass', False), check(1, 'reject', False), check(2, 'reject', True)]
+    checks_cand = [check(0, 'pass', True), check(1, 'reject', True), check(2, 'reject', True)]
+    got = orr.compare_runs('4', checks_base, checks_cand)
+    assert got['metrics']['correct']['up'] == 1 and got['metrics']['correct']['down'] == 1 and got['metrics']['caught']['up'] == 1 and got['metrics']['passOk']['down'] == 1

@@ -35,6 +35,15 @@ def episode_names(corpus, ep: dict) -> dict[str, str]:
     return names_in(ep['text'], corpus.people(ep['work']), upto=ep['n'])
 
 
+def sample_units(episodes: list[dict], per_book: int) -> list[dict]:
+    """해리 포터 회차에서 권마다 per_book개를 고르게(같은 간격) 뽑는다. 기준 회차가 0인 첫 덩어리는 문항을 못 만들어 뺀다."""
+    books: dict[str, list[dict]] = {}
+    for ep in episodes:
+        if ep['base'] >= 1:
+            books.setdefault(ep['id'].split('-')[0], []).append(ep)
+    return [units[i * len(units) // min(per_book, len(units))] for units in books.values() for i in range(min(per_book, len(units)))]
+
+
 def hp_units(index: dict, ordinals: dict) -> list[dict]:
     """chapters/index.json의 장 덩어리 → [{id, file, book, n(덩어리 마지막 장의 회차), base(첫 장의 회차 − 1)}]. 묶인 장의 기억은 마지막 장의 것으로 센다(world.json 규칙)."""
     units = []

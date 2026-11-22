@@ -122,6 +122,22 @@ def finish(corpus, rec: dict, cand: dict, names: dict[str, str], works: dict) ->
     return {**cand, 'context': context, 'cast': cast, 'ids': keep, 'person': work['person'], 'source': {k: work.get(k) for k in ('title', 'author', 'license', 'source', 'kind')}}, None
 
 
+def review_md(items: list[dict], n: int, seed: int = SEED) -> str:
+    """사람 검수용 표본: 문항 n개(고정 시드)의 출처·직전 줄·정답·④ 라벨을 마크다운으로. 화자·독백 판별과 주입 사실이 맞는지 보게 한다."""
+    kinds = {'dialogue': '대사', 'narration': '나레이션', 'monologue': '독백'}
+    out = ['# 검수 표본 (' + str(min(n, len(items))) + '개)', '', '화자·독백 판별이 원문과 맞는지, ④의 주입 사실이 그 시점에 정말 몰랐을 사실인지 표시한다.', '']
+    for item in random.Random(seed).sample(items, min(n, len(items))):
+        src = item['source']
+        out += [f"## {item['id']} — {src['title']} ({src['author']}, {src['license']})", f"- 회차 {item['n']}(기준 {item['base']}) · 정답 종류: {kinds[item['kind']]}" + (f" · 화자: {item['speaker']}" if item['speaker'] else '')
+                + f" · 장면 인물: {', '.join(item['cast'])}", '- 직전 줄:']
+        out += [f"  {i}. [{line['by']}] {line['text']}" for i, line in enumerate(item['context'], 1)]
+        out += [f"- **정답**: {item['original'] if 'original' in item else item['gold']}"]
+        if 'label' in item:
+            out += [f"- ④ 라벨: {'거절(주입 사실 ' + item['inject']['kind'] + '): ' + item['inject']['text'] + ' → ' + item['gold'] if item['label'] == 'reject' else '통과(원작 그대로)'}"]
+        out += ['- 검수: [ ] 판별 맞음  [ ] 틀림', '']
+    return '\n'.join(out)
+
+
 def build_items(corpus, records: list[dict], size: dict[str, int], seed: int = SEED) -> tuple[dict[str, list[dict]], dict]:
     """세트 이름 → 문항. size = {'act': ①, 'direct': ②, 'narrate': ③나레이션, 'monologue': ③독백, 'check_pass': ④원작, 'check_fail': ④주입}.
     각 세트는 작품·인물(나레이션은 회차)로 돌려 뽑고, 정답 유출·장면 인물 부족·주입할 사실 없음으로 버린 수를 stats에 센다. 후보가 모자라면 있는 만큼이다."""
@@ -153,8 +169,8 @@ def build_items(corpus, records: list[dict], size: dict[str, int], seed: int = S
     cap = lambda n, pool: max(3, -(-n // max(1, len({c['speaker'] for c in pool}))) * 2)   # noqa: E731  인물마다 평균의 두 배까지
     sets['1'] = take(pools['act'], size['act'], cap=cap(size['act'], pools['act']))
     used = {c['id'] for c in sets['1']}
-    sets['3n'] = take(pools['narrate'], size['narrate'], sub='ep')
     sets['3m'] = take(pools['monologue'], size['monologue'], cap=cap(size['monologue'], pools['monologue']))
+    sets['3n'] = take(pools['narrate'], size['narrate'] + size['monologue'] - len(sets['3m']), sub='ep')   # 독백이 모자라면 나레이션으로 메워 ③의 합계를 지킨다
     direct = pools['direct']
     quota = {'dialogue': size['direct'] // 2, 'narration': size['direct'] // 3, 'monologue': size['direct'] - size['direct'] // 2 - size['direct'] // 3}
     sets['2'] = []
