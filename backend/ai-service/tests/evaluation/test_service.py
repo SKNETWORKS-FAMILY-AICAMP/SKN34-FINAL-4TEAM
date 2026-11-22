@@ -8,7 +8,8 @@ from app.evaluation import service
 from app.evaluation.errors import EvaluationFailure
 from app.evaluation.models import LeakCheckRequest, LeakCheckResponse
 
-from .stubs import CRITERIA, DATASET_ID, GEVAL_REQUEST, QA, QA_REQUEST, FakeDataset, experiment, install, item, prepared, prompt, stub_models
+from .stubs import (ACT_INPUT, ACT_REQUEST, CRITERIA, DATASET_ID, GEVAL_REQUEST, JUDGE, NARRATE_REQUEST, QA, QA_REQUEST, FakeDataset, experiment, install, item, prepared,
+                    prompt, stub_models, stub_simulation)
 
 PRODUCTION = {('qa.answer', 'production'): prompt('옛 지시문', 2)}
 
@@ -346,3 +347,89 @@ def test_leak_check_failure_keeps_status_and_message(monkeypatch):
         service.leak_check(LeakCheckRequest(response='응답', references=['카드']))
 
     assert (error.value.status, str(error.value)) == (502, '평가 채점에 실패했습니다.')
+
+
+# --- 시뮬레이션 세트(simulation.act·simulation.narrate): 서비스 호출로 만들고 원문 평가 루브릭으로 채점한다 ---
+
+GOLD = '"가자."'
+SIM_META = {'judge': JUDGE}
+ACT_PRODUCTION = {('character_simulation.act', 'production'): prompt('옛 act 지시문', 1)}
+
+
+def act_items(count=2):
+    return [item(n, ACT_INPUT, GOLD, SIM_META, 'simulation.act') for n in range(1, count + 1)]
+
+
+def test_a_simulation_run_generates_with_the_service_call_and_records_the_rubric_metrics(monkeypatch):
+    dataset, client, plan = prepared(monkeypatch, act_items(), request=ACT_REQUEST)
+    evaluation = stub_models(monkeypatch)
+    calls = stub_simulation(monkeypatch, grade=lambda payload: {'voice': 5 if payload['generated'] == '"갑시다."' else 1, 'intent': 3, 'leaked': ['f1'] if len(calls.grade) == 1 else []})
+
+    service.run(plan)
+
+    assert calls.generate == [('act', '지시문', ACT_INPUT)] * 2 and evaluation.generate == [] and evaluation.geval == []   # 업무 Agent 틀·G-Eval은 쓰지 않는다
+    scores = {s['name']: s for s in client.scores}
+    assert set(scores) == {'voice', 'intent', 'pov_ok', 'passed'}  # G-Eval 점수 하나가 아니라 지표 셋을 따로 남긴다
+    assert (scores['voice']['value'], scores['intent']['value'], scores['pov_ok']['value']) == (5.0, 3.0, 0.5)   # 시점 위반 없음 1·있음 0의 평균
+    assert scores['passed']['value'] == 1.0 and scores['passed']['metadata']['failedItems'] == 0
+    assert dataset.experiment['metadata']['dataset'] == 'simulation.act'
+
+
+def test_a_narration_run_scores_style_info_and_pov_ok(monkeypatch):
+    items = [item(1, {'set': 'narration', 'data': ACT_INPUT['data']}, '다음 문단', SIM_META, 'simulation.narrate'),
+             item(2, {'set': 'monologue', 'data': ACT_INPUT['data']}, '독백', SIM_META, 'simulation.narrate')]
+    _, client, plan = prepared(monkeypatch, items, request=NARRATE_REQUEST)
+    calls = stub_simulation(monkeypatch, grade=lambda payload: {'style': 4, 'info': 2, 'leaked': []})
+
+    service.run(plan)
+
+    assert [(kind, data['set']) for kind, _, data in calls.generate] == [('narrate', 'narration'), ('narrate', 'monologue')]
+    assert {s['name']: s['value'] for s in client.scores} == {'style': 4.0, 'info': 2.0, 'pov_ok': 1.0, 'passed': 1.0}
+
+
+def test_a_simulation_run_compares_each_rubric_metric_with_the_baseline_run(monkeypatch):
+    runs = [experiment('character_simulation.act@v1-a', {'voice': 3.5, 'intent': 3.0, 'pov_ok': 1.0}),
+            experiment('character_simulation.act@v1-old', {'geval': 0.9})]   # 지표 이름이 다른 옛 Run은 기준이 아니다
+    dataset, client, plan = prepared(monkeypatch, act_items(), request=ACT_REQUEST, experiments=runs, prompts=ACT_PRODUCTION)
+    stub_simulation(monkeypatch, grade=lambda payload: {'voice': 3, 'intent': 4, 'leaked': []})   # voice 3.0 < 3.5 - 0.05
+
+    service.run(plan)
+
+    assert plan.baseline == service.Baseline('character_simulation.act@v1-a', 1, {'voice': 3.5, 'intent': 3.0, 'pov_ok': 1.0})
+    scores = {s['name']: s for s in client.scores}
+    assert scores['voice']['metadata'] == {'baseline': 3.5, 'delta': -0.5, 'tolerance': 0.05}
+    assert scores['intent']['metadata']['delta'] == 1.0 and scores['pov_ok']['metadata']['delta'] == 0.0
+    assert scores['passed']['value'] == 0.0 and scores['passed']['metadata']['baselineVersion'] == 1
+
+
+@pytest.mark.parametrize('where', ['generate', 'grade'])
+def test_a_failed_simulation_item_stays_a_failure_instead_of_a_zero_score(monkeypatch, where):
+    _, client, plan = prepared(monkeypatch, [item(1, ACT_INPUT, GOLD, SIM_META, 'simulation.act'), item(2, {**ACT_INPUT, 'data': {'self': {'id': 'c2'}}}, GOLD, SIM_META, 'simulation.act')],
+                               request=ACT_REQUEST)
+
+    def generate(kind, instructions, data):
+        if where == 'generate' and data['data']['self']['id'] == 'c2':
+            raise EvaluationFailure(503, '모델 호출에 실패했습니다.')
+        return '"갑시다."'
+
+    def grade(payload):
+        if where == 'grade' and len(calls.grade) == 2:
+            raise EvaluationFailure(502, '평가 채점에 실패했습니다.')
+        return {'voice': 4, 'intent': 3, 'leaked': []}
+    calls = stub_simulation(monkeypatch, generate=generate, grade=grade)
+
+    service.run(plan)
+
+    scores = {s['name']: s for s in client.scores}
+    assert scores['voice']['value'] == 4.0  # 실패한 항목을 0점으로 평균에 섞지 않는다
+    assert scores['passed']['value'] == 0.0 and (scores['passed']['metadata']['failedItems'], scores['passed']['metadata']['totalItems']) == (1, 2)
+
+
+@pytest.mark.parametrize('dataset, prompt_name', [('simulation.act', 'character_simulation.narrate'), ('simulation.narrate', 'character_simulation.act'), ('simulation.act', 'qa.answer')])
+def test_a_simulation_set_only_evaluates_the_instructions_of_its_own_call(monkeypatch, dataset, prompt_name):
+    install(monkeypatch, FakeDataset(act_items(), dataset), {(prompt_name, 1): prompt('지시문', 1)})
+
+    with pytest.raises(EvaluationFailure) as error:
+        service.prepare(service.EvaluationRequest(dataset=dataset, prompt=prompt_name, version=1))
+
+    assert error.value.status == 422   # 다른 호출의 지시문으로 돌리면 점수가 뜻이 없다

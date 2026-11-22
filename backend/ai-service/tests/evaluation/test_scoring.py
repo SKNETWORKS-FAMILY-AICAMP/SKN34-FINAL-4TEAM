@@ -1,14 +1,18 @@
 import asyncio
 import importlib
+import json
 import logging
 import os
 import sys
 import types
+from functools import partial
 from types import SimpleNamespace
 
+import httpx
 import pytest
+from openai import AsyncOpenAI
 
-from app.evaluation import scoring, service
+from app.evaluation import rubric, scoring, service
 from app.evaluation.errors import EvaluationFailure
 from app.evaluation.models import LeakCheckRequest
 
@@ -204,3 +208,118 @@ def test_libraries_do_not_send_telemetry_or_write_to_disk(monkeypatch):
     importlib.reload(scoring)
 
     assert (os.environ['DEEPEVAL_TELEMETRY_OPT_OUT'], os.environ['DEEPEVAL_FILE_SYSTEM'], os.environ['RAGAS_DO_NOT_TRACK']) == ('1', 'READ_ONLY', 'true')
+
+
+@pytest.mark.parametrize('setting, expected', [('judge-sol', 'judge-sol'), ('  judge-sol  ', 'judge-sol'), ('', 'judge-model'), ('   ', 'judge-model'), (None, 'judge-model')])
+def test_the_judge_model_is_the_evaluation_setting_and_falls_back_to_the_openai_model(monkeypatch, setting, expected):
+    if setting is None:
+        monkeypatch.delenv('EVALUATION_JUDGE_MODEL', raising=False)
+    else:
+        monkeypatch.setenv('EVALUATION_JUDGE_MODEL', setting)
+
+    assert scoring.require_model() == ('sk-test', expected)
+
+
+def test_ragas_and_geval_use_the_judge_model(monkeypatch):
+    monkeypatch.setenv('EVALUATION_JUDGE_MODEL', 'judge-sol')
+    ragas = fake_ragas(monkeypatch)
+    asyncio.run(scoring.ragas_scores('질문', ['문맥'], '답'))
+    deepeval = fake_deepeval(monkeypatch)
+    asyncio.run(scoring.geval('기준', '입력', '응답'))
+
+    assert ragas['llm'][0] == 'judge-sol' and deepeval['model']['model'] == 'judge-sol'
+
+
+# --- 시뮬레이션 루브릭 채점: 원문 평가의 judge와 같은 호출(Responses API 구조화 출력 한 번) ---
+
+PAYLOAD = rubric.dialogue_payload('길동', [{'by': '길동', 'text': '"가자."'}], '"가자."', '"갑시다."', [{'id': 'f1', 'text': '해리는 입학했다'}])
+
+
+def responses_reply(text, status='completed'):
+    """Responses API 응답 본문(output_text 하나, 입력 10·출력 4토큰)."""
+    content = [{'type': 'output_text', 'text': text, 'annotations': []}] if text is not None else []
+    message = {'id': 'msg_1', 'type': 'message', 'role': 'assistant', 'status': 'completed', 'content': content}
+    counts = {'input_tokens': 10, 'output_tokens': 4, 'total_tokens': 14, 'input_tokens_details': {'cached_tokens': 0}, 'output_tokens_details': {'reasoning_tokens': 0}}
+    return {'id': 'resp_1', 'object': 'response', 'created_at': 0, 'status': status, 'model': 'resolved-model', 'output': [message] if content else [], 'usage': counts}
+
+
+def judge_client(monkeypatch, respond):
+    """AsyncOpenAI는 실제 클래스를 쓰고 HTTP만 대역으로 막는다(네트워크 없음). 받은 요청 본문 목록을 돌려준다."""
+    sent = []
+
+    def handler(request):
+        sent.append(json.loads(request.content))
+        return respond(sent[-1])
+
+    monkeypatch.setattr(scoring, 'AsyncOpenAI', partial(AsyncOpenAI, http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler))))
+    return sent
+
+
+def test_rubric_grade_asks_the_judge_once_with_the_rubric_and_returns_the_scores(monkeypatch):
+    sent = judge_client(monkeypatch, lambda body: httpx.Response(200, json=responses_reply(json.dumps({'voice': 4, 'intent': 2, 'leaked': ['f1']}))))
+    monkeypatch.setenv('EVALUATION_JUDGE_MODEL', 'judge-sol')
+
+    grade = asyncio.run(scoring.rubric_grade(rubric.DIALOGUE_JUDGE, PAYLOAD, rubric.DialogueGrade))
+
+    assert grade == {'voice': 4, 'intent': 2, 'leaked': ['f1']}
+    [body] = sent  # 자동 재시도 없음: 호출 하나가 요청 하나다
+    assert (body['model'], body['store'], body['max_output_tokens'], body['instructions']) == ('judge-sol', False, 1500, rubric.DIALOGUE_JUDGE)
+    assert json.loads(body['input']) == PAYLOAD and body['text']['format']['name'] == 'DialogueGrade' and body['text']['format']['strict'] is True
+
+
+@pytest.mark.parametrize('reply', [responses_reply(json.dumps({'voice': 4, 'intent': 2, 'leaked': []})), responses_reply('{"voice": 4, "inte')], ids=['scored', 'failed'])
+def test_the_judge_client_is_closed_after_every_grade_scored_or_not(monkeypatch, reply):
+    closed = []
+
+    class Tracked(AsyncOpenAI):
+        async def close(self):
+            closed.append(True)
+            await super().close()
+
+    monkeypatch.setattr(scoring, 'AsyncOpenAI', partial(Tracked, http_client=httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=reply)))))
+
+    try:
+        asyncio.run(scoring.rubric_grade(rubric.DIALOGUE_JUDGE, PAYLOAD, rubric.DialogueGrade))
+    except EvaluationFailure:
+        pass   # 채점이 실패여도 클라이언트는 닫는다
+
+    assert closed == [True]
+
+
+UNFIT = {
+    'score-out-of-range': responses_reply(json.dumps({'voice': 6, 'intent': 2, 'leaked': []})),
+    'unknown-fact-id': responses_reply(json.dumps({'voice': 4, 'intent': 2, 'leaked': ['zzz']})),
+    'truncated-json': responses_reply('{"voice": 4, "inte'),
+    'incomplete': responses_reply(json.dumps({'voice': 4, 'intent': 2, 'leaked': []}), status='incomplete'),
+    'no-output': responses_reply(None),
+}
+
+
+@pytest.mark.parametrize('body', UNFIT.values(), ids=UNFIT)
+def test_a_rubric_response_that_does_not_fit_is_a_scoring_failure_and_never_a_score(monkeypatch, body):
+    judge_client(monkeypatch, lambda _: httpx.Response(200, json=body))
+
+    with pytest.raises(EvaluationFailure) as error:
+        asyncio.run(scoring.rubric_grade(rubric.DIALOGUE_JUDGE, PAYLOAD, rubric.DialogueGrade))
+
+    assert (error.value.status, str(error.value)) == (502, scoring.SCORING_FAILED)
+
+
+def test_a_rubric_provider_failure_is_a_fixed_502_that_leaks_neither_content_nor_the_provider_message(monkeypatch, caplog):
+    judge_client(monkeypatch, lambda _: httpx.Response(500, json={'error': {'message': '원고 본문 일부', 'type': 'server_error'}}))
+
+    with caplog.at_level(logging.DEBUG), pytest.raises(EvaluationFailure) as error:
+        asyncio.run(scoring.rubric_grade(rubric.DIALOGUE_JUDGE, PAYLOAD, rubric.DialogueGrade))
+
+    assert (error.value.status, str(error.value)) == (502, scoring.SCORING_FAILED) and error.value.__suppress_context__
+    assert '원고 본문 일부' not in caplog.text and '"갑시다."' not in caplog.text and 'InternalServerError' in caplog.text
+
+
+def test_rubric_grade_needs_the_model_settings(monkeypatch):
+    monkeypatch.delenv('OPENAI_MODEL')
+    monkeypatch.delenv('EVALUATION_JUDGE_MODEL', raising=False)
+
+    with pytest.raises(EvaluationFailure) as error:
+        asyncio.run(scoring.rubric_grade(rubric.DIALOGUE_JUDGE, PAYLOAD, rubric.DialogueGrade))
+
+    assert error.value.status == 503

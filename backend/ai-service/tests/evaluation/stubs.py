@@ -23,6 +23,10 @@ ISO = '2026-11-19T01:05:00.000Z'
 QA = {'question': '길동의 어머니는 누구인가?', 'contexts': ['길동의 어머니는 시비 춘섬이다.', '초낭은 홍문의 총첩이다.']}
 QA_REQUEST = EvaluationRequest(dataset='qa.grounding', prompt='qa.answer', version=3)
 GEVAL_REQUEST = EvaluationRequest(dataset='world.conflict', prompt='world.check', version=1)
+ACT_REQUEST = EvaluationRequest(dataset='simulation.act', prompt='character_simulation.act', version=2)
+NARRATE_REQUEST = EvaluationRequest(dataset='simulation.narrate', prompt='character_simulation.narrate', version=2)
+ACT_INPUT = {'set': 'dialogue', 'data': {'self': {'id': 'c1', 'name': '길동'}, 'scene': [{'ref': 'scene:0', 'by': '길동', 'text': '"가자."'}]}}
+JUDGE = {'character': '길동', 'scene': [{'by': '길동', 'text': '"가자."'}], 'facts': [{'id': 'f1', 'text': '미래 사건'}]}
 CRITERIA = {'criteria': '충돌 지점을 짚으면 높은 점수'}
 
 
@@ -180,4 +184,21 @@ def stub_models(monkeypatch, *, generate=None, ragas=None, geval=None):
     monkeypatch.setattr(service.agent, 'generate', run)
     monkeypatch.setattr(service.scoring, 'ragas_scores', ragas_scores)
     monkeypatch.setattr(service.scoring, 'geval', judge)
+    return calls
+
+
+def stub_simulation(monkeypatch, *, generate=None, grade=None):
+    """시뮬레이션 세트의 서비스 호출 생성과 루브릭 채점 대역. 호출 기록을 돌려준다. generate(kind, instructions, input)·grade(payload)는 기본 응답을 바꾸는 함수다."""
+    calls = SimpleNamespace(generate=[], grade=[])
+
+    def run(kind, instructions, data):
+        calls.generate.append((kind, instructions, data))
+        return generate(kind, instructions, data) if generate else '"갑시다."'
+
+    async def rubric_grade(instructions, payload, schema):
+        calls.grade.append((instructions, payload, schema))
+        return dict(grade(payload) if grade else {'voice': 4, 'intent': 3, 'leaked': []})
+
+    monkeypatch.setattr(service.simulation, 'generate', run)
+    monkeypatch.setattr(service.scoring, 'rubric_grade', rubric_grade)
     return calls
