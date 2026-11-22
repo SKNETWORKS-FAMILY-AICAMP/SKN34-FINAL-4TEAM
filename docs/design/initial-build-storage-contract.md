@@ -86,6 +86,24 @@ DEC-47 저장/화면의 episodes key는 "0", "3" 형태다. 추출 결과의 파
 - **운영 화면:** Content 내부 `GET /internal/v1/preprocessing-jobs`·`POST …/{id}/retry`의 출처를 `manuscript_build_job`으로 바꾼다(응답 형식 유지). 재실행은 실패한 작업을 같은 작업으로 다시 접수한다. 목록은 `manuscript_build_job` 행만 고르고 진행 수·시각은 트리거가 맞춰 둔 같은 id의 `preprocessing_job` 행에서 읽는다(`unknown`은 `loading`으로 보인다).
 - **회차 관리 표시:** 작품 관리는 기존 `GET /works/{id}/world-preprocessing`을 읽어 `queued`·`running`·`loading`이면 '세계관 추출 중' 배지를 보인다. 새 API는 없다.
 
+## 발행 회차로 세계관 업데이트 (2026-11-22 사용자 결정)
+
+최초 구축이 끝난 작품에서 회차를 발행하면, 업로드 자동 시작과 같은 방식으로 그 회차를 세계관 **초안**에 더한다. 별도 화면·동의 단계는 없다. 위 '범위와 정본'의 "완료 후 신규 회차 자동 갱신 제외"와 409('이미 설정이 있는 세계관…')는 최초 구축(`kind=initial`)에만 적용한다.
+
+- **기록:** `manuscript_build_job`에 `kind`(`initial`|`update`, 기존 행 `initial`)를 더한다. 업데이트도 같은 테이블·결과·적재 단계·`preprocessing_job` 트리거·운영 목록·재실행을 그대로 쓴다. 요청 key는 `publish:<episodeVersionId>`, 동의 기록은 `consent=true`다.
+- **시작 조건:** 발행 동작이 `publish`(첫 발행, 수동·예약 모두)일 때만 시도한다. `replace`·`republish`·되돌리기는 시도하지 않는다. 작품에 세계관이 연결돼 있고, 그 작품·세계관의 `initial` 작업이 `completed`이며, 같은 세계관에 끝나지 않은(`queued`·`running`·`loading`·`unknown`) 작업이 없을 때만 접수한다. 조건이 맞지 않거나 접수가 실패해도 발행은 그대로 성공하고, 사유는 코드 문자열로 로그에만 남긴다.
+- **대상 회차:** 발행된 회차 중 아직 반영되지 않은 회차 전체다. 반영된 회차는 `completed` 작업 manifest에 들어 있던 회차 번호다. 앞선 작업이 진행 중이라 접수하지 못한 회차는 다음 발행 때 함께 들어간다. manifest는 각 회차의 **발행본** 버전(제목·본문·sourceHash)이다. Fork 상속 회차는 넣지 않는다.
+- **기준 초안:** 업데이트 작업은 `claim` 때의 세계관 초안을 기준으로 고정한다. 추출 중에 초안이 바뀌면 최초 구축과 같이 `WORLD_CHANGED`로 실패한다.
+- **AI:** 바꾸지 않는다. 같은 `preprocessing.run` 태스크(`ai-worker`, 동시성 1)가 manifest 회차를 추출하고 정체를 정리해 같은 적재 요청을 보낸다.
+- **적재(Content):** 적재 요청의 카드를 기준 초안의 카드와 맞춘다.
+  - 종류(`cardType`)와 이름(제목 또는 별칭)이 같은 기존 카드가 **정확히 하나**면 같은 대상으로 본다. 그 카드의 본문·제목·별칭·SOUL·GOAL·공개 설정은 바꾸지 않고, 인물 기억(`characterDocs.episodes`)에서 아직 없는 회차 키만 더한다. 적재 요청의 `00` 기억은 이 작업에서 처음 등장한 회차의 기억으로 옮긴다.
+  - 맞는 카드가 없으면 새 카드(`visibility=private`)로 더한다.
+  - 맞는 카드가 둘 이상이면 새 카드로 더하고 `semanticMetadata.manuscriptBuild.needsReview=true`를 남긴다. 화면은 이 카드를 '확인 필요'로 보인다.
+  - 관계는 맞춘 카드 ID로 바꿔 DEC-51 회차별 관계로 더한다. 기존 관계는 교체하지 않는다. 사건 카드는 새 카드다.
+- **확정:** 초안에 더하기만 하고, 확정은 작가가 기존 revisions API로 한다.
+- **조회·화면:** `GET /works/{id}/world-preprocessing` 응답에 `update`(가장 최근 업데이트 작업의 `{jobId, status, episodes, failureCode}`, 없으면 null)를 더한다. 기존 필드는 계속 최초 구축 작업을 가리킨다. 작품 관리 '공개 회차' 머리에는 `update.status`가 `queued`·`running`·`loading`이면 '세계관 업데이트 중' 배지를 보인다.
+- **한계:** 실패한 업데이트는 운영 작업 감시의 재실행으로 같은 작업을 다시 돌린다. 실패 작업은 끝나지 않은 작업이 아니므로, 다음 발행이 그 회차를 다시 담아 새 작업으로 접수한다. 그 회차가 이미 다른 작업으로 반영됐으면 이전 실패 작업의 재실행은 409다. 이름이 다른 같은 대상(별칭이 처음 나온 경우)은 자동으로 합치지 않는다.
+
 ## 최초 구축 사용자 화면
 
 View → ViewModel → ManuscriptBuildUseCase → HttpManuscriptBuildRepository → 기존 Content API를 사용한다. 목업에서는 이 실행 패널을 그리지 않는다.
