@@ -153,10 +153,10 @@ def test_tools_are_bound_with_parallel_calls_and_the_model_has_no_retries_or_sto
     assert (init['model'], init['use_responses_api'], init['store'], init['max_retries']) == ('test-model', True, False, 0)
 
 
-def test_the_main_model_reasons_at_high_effort(monkeypatch):
+def test_the_main_model_reasons_at_high_effort_with_room_for_reasoning_tokens(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context'))
     run(inputs={'story_context': QA})
-    assert calls.main.init['reasoning_effort'] == 'high'
+    assert (calls.main.init['reasoning_effort'], calls.main.init['max_tokens']) == ('high', 8000)
 
 
 def test_a_failed_sub_agent_closes_the_tools_and_the_main_agent_only_answers(monkeypatch):

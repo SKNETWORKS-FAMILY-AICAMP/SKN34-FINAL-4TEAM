@@ -246,7 +246,7 @@ def build(found: list[dict] = ()):
     except tracing.PromptUnavailable:
         raise IntentFailure() from None
     chat = ChatOpenAI(model=os.environ['OPENAI_MODEL'], api_key=os.environ['OPENAI_API_KEY'], use_responses_api=True, store=False,
-                      reasoning_effort='high', max_tokens=4000, timeout=120, max_retries=0)
+                      reasoning_effort='high', max_tokens=8000, timeout=120, max_retries=0)
     mcp = mcp_tools.tools(found)
     approval = {t.name: {'allowed_decisions': ['approve', 'reject'], 'when': _unanswered, 'description': mcp_tools.LABELS[t.name]}
                 for t in mcp if t.name in mcp_tools.WRITE}
