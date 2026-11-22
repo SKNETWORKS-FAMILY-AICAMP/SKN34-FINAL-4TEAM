@@ -36,6 +36,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const active = useRef<AbortController | null>(null)
   const current = useRef<string | null>(null)
   const sessionsRequest = useRef<AbortController | null>(null)
+  // 작가가 새 대화를 골랐다. 늦게 온 첫 목록이 최근 대화로 바꾸지 않는다(current의 null은 아직 고르지 않음과 같아 따로 둔다).
+  const choseNew = useRef(false)
   // 작품(또는 UseCase)이 바뀔 때마다 오른다. 이전 작품의 요청이 뒤늦게 이 작품의 목록·장면 신호를 건드리지 못하게 한다.
   const generation = useRef(0)
   current.current = threadId
@@ -54,7 +56,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
       const rows = await useCase.sessions(workId, controller.signal)
       if (controller.signal.aborted) return
       setSessions(rows)
-      if (pick && rows[0] && !current.current) setThreadId(rows[0].threadId)
+      if (pick && rows[0] && !current.current && !choseNew.current) setThreadId(rows[0].threadId)
     } catch (failure) {
       if (!controller.signal.aborted) setError(message(failure, '대화 목록을 불러오지 못했어요.'))
     }
@@ -75,6 +77,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
 
   // 작품이 바뀌면 처음부터: 목록을 읽고 가장 최근 대화를 연다.
   useEffect(() => {
+    choseNew.current = false
     setSessions(null); setThreadId(null); setTurns([]); setLive(null); setPending(false); setError(''); setInputError('')
     void refreshSessions(true)
     return () => { generation.current += 1; sessionsRequest.current?.abort(); active.current?.abort(); active.current = null }
@@ -181,7 +184,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     streaming: !!live, deciding: !!live?.decision, sceneTicket,
     dismissError: () => setError(''),
     select: (id: string) => { if (active.current || id === threadId) return; current.current = id; setTurns([]); setError(''); setInputError(''); setThreadId(id) },
-    startNew: () => { if (active.current) return; current.current = null; setThreadId(null); setTurns([]); setTitle(''); setError(''); setInputError('') },
+    startNew: () => { if (active.current) return; choseNew.current = true; current.current = null; setThreadId(null); setTurns([]); setTitle(''); setError(''); setInputError('') },
     /** files는 새 요청의 첨부다. 보내기 전에 읽고(텍스트 한도 확인) 읽지 못하면 이유를 입력 아래에 알리고 보내지 않는다(글·첨부는 입력창이 되돌린다). */
     send: async (text: string, extra?: { operation?: ChatFeature; simulation?: SimulationStart; files?: File[] }) => {
       const { files, ...rest } = extra ?? {}
