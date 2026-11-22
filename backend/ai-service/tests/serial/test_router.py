@@ -9,7 +9,7 @@ from app.main import create_app
 from app.serial import router
 from app.serial.models import EpisodeRequest, EpisodeResponse, SimulationRequest, SimulationResponse
 
-from traced import attrs, status_of
+from traced import MEMBER, attrs, bearer, status_of
 
 from .stubs import DRAFT, FAIL, PASS, PLAN, REWRITE, SUMMARY, answers, episode, simulation
 
@@ -46,6 +46,24 @@ def test_a_served_simulation_is_returned_as_one_trace_root_with_work_and_reserva
     assert status_of(root) == 'success'
 
 
+def test_the_optional_bearer_identifies_the_member_who_submitted_the_simulation(monkeypatch, spans):
+    answers(monkeypatch, ('서윤이 입을 열었다.', 100, 50))
+
+    router.simulate(SimulationRequest.model_validate(simulation()), TOKEN, bearer())
+
+    [root] = [s for s in spans() if s.parent is None]
+    assert attrs(root)['user.id'] == MEMBER
+
+
+def test_without_a_bearer_the_simulation_is_served_and_the_trace_stays_anonymous(monkeypatch, spans):
+    answers(monkeypatch, ('서윤이 입을 열었다.', 100, 50))
+
+    assert router.simulate(SimulationRequest.model_validate(simulation()), TOKEN, '').scene == '서윤이 입을 열었다.'
+
+    [root] = [s for s in spans() if s.parent is None]
+    assert 'user.id' not in root.attributes
+
+
 def test_a_served_episode_is_returned_as_one_trace_root(monkeypatch, spans):
     answers(monkeypatch, SUMMARY, PLAN, DRAFT, PASS)
 
@@ -79,3 +97,13 @@ def test_both_routes_are_registered_and_ask_for_the_internal_token():
     for path in ['/internal/v1/serial/simulations', '/internal/v1/serial/episodes']:
         header = next(p for p in spec['paths'][path]['post']['parameters'] if p['name'] == 'x-internal-token')
         assert header['in'] == 'header' and not header['required'], path
+
+
+def test_only_the_simulation_route_takes_the_optional_member_bearer():
+    """시뮬레이션에는 의견을 낸 회원이 있고, 회차 실행은 일정으로도 돌아 사용자 토큰이 없다."""
+    paths = create_app().openapi()['paths']
+    headers = {path: {p['name']: p for p in paths[path]['post']['parameters']} for path in
+               ['/internal/v1/serial/simulations', '/internal/v1/serial/episodes']}
+    submitter = headers['/internal/v1/serial/simulations']['x-user-authorization']
+    assert submitter['in'] == 'header' and not submitter['required']
+    assert 'x-user-authorization' not in headers['/internal/v1/serial/episodes']

@@ -1,4 +1,8 @@
-"""AI 자율 연재 내부 API(#659). 결과는 제안이고 저장·발행·과금 확정(settle)은 Content가 한다. 사용자 토큰·Content MCP는 쓰지 않는다."""
+"""AI 자율 연재 내부 API(#659). 결과는 제안이고 저장·발행·과금 확정(settle)은 Content가 한다.
+
+Content MCP는 쓰지 않는다. 사용자 토큰도 문맥·인가에는 쓰지 않으며, 시뮬레이션의 선택 X-User-Authorization만 추적의 회원 식별에 쓴다
+(회차 실행은 일정으로도 돌아 사용자 토큰이 없다).
+"""
 
 from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
@@ -14,11 +18,16 @@ router = APIRouter()
 
 
 @router.post('/internal/v1/serial/simulations', response_model=SimulationResponse)
-def simulate(data: SimulationRequest, x_internal_token: str = Header(default='')) -> SimulationResponse | JSONResponse:
-    """독자에게 공개된 문맥(회차·카드)만으로 의견에 붙일 짧은 장면 미리보기와 확정 크레딧을 돌려준다."""
+def simulate(data: SimulationRequest, x_internal_token: str = Header(default=''),
+             x_user_authorization: str = Header(default='')) -> SimulationResponse | JSONResponse:
+    """독자에게 공개된 문맥(회차·카드)만으로 의견에 붙일 짧은 장면 미리보기와 확정 크레딧을 돌려준다.
+
+    X-User-Authorization(선택)은 의견을 낸 회원을 추적에 남기는 회원 식별에만 쓴다.
+    """
     require_internal_token(x_internal_token)
     try:
-        with tracing.request('serial.simulation', work_id=data.workId, credit_reservation_id=data.creditReservationId):
+        with tracing.request('serial.simulation', user_id=tracing.member_id(x_user_authorization), work_id=data.workId,
+                             credit_reservation_id=data.creditReservationId):
             return service.simulate(data)
     except (SerialFailure, WritingFailure) as error:
         return _failure(error)
