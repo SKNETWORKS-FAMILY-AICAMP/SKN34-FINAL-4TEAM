@@ -36,7 +36,7 @@ export function WorkSettingsPanel({ workId, useCase, onSaved }: { workId: string
             </label>
             <div className='ep-form-footer'>
               <span>AI 협업 집필을 저장하면 넓은 화면에서 집필실과 AI 채팅이 함께 열려요.</span>
-              <span>AI 자율 집필을 저장하면 1화 발행 뒤 독자 의견을 모아 AI가 다음 회차를 씁니다. 그동안 1화만 직접 쓸 수 있어요.</span>
+              <span>AI 자율 집필을 저장하면 1화 발행 뒤 독자 투표와 제안을 모아 AI가 다음 회차를 씁니다. 그동안 1화만 직접 쓸 수 있어요.</span>
               <div className='ep-form-actions'>
                 <button className='btn pri sm' disabled={!vm.canSave} aria-describedby={why ? reason : undefined}>{vm.saving ? '저장 중…' : '집필 방식 저장'}</button>
                 {why && <span id={reason} className='small muted'>{why}</span>}

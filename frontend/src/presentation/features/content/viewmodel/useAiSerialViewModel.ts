@@ -17,6 +17,7 @@ const same = (a: SerialSettings, b: SerialSettings) =>
  * 서버 값 다시 읽기(설정·기록)는 따로 해서 각 실패를 따로 알린다(읽기 실패가 저장 실패로 보이지 않게). 실행은 받아졌든 거절됐든 기록을 다시 읽는다.
  * 기록은 대기·실행 중인 게시판이 있는 동안만 주기적으로 다시 읽는다. 화면을 떠나면 읽기·쓰기 요청을 함께 취소한다. 작품이 바뀌면 호출 측이 key로 새로 만든다.
  * 켜짐은 운영 설정의 집필 방식(AI 자율 집필)이 정하므로 이 화면은 요일·시각·방향만 저장하고 enabled는 서버 값을 읽기만 한다.
+ * 화면은 하위 탭 '연재 설정 | 게시판 기록'이고(sub, 연재 설정이 처음) 탭을 바꾸면 이전 요청의 알림을 지운다.
  */
 export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = appContainer.resolve('serialUseCase')) {
   const [saved, setSaved] = useState<SerialSettings>()
@@ -28,6 +29,7 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
   const [saving, setSaving] = useState(false)
   const [running, setRunning] = useState(false)
   const [notice, setNotice] = useState<SerialNotice>()
+  const [sub, setSubTab] = useState<'settings' | 'history'>('settings')
   const busy = useRef(false)
   // StrictMode의 가짜 언마운트 뒤에도 새 신호를 쓰도록 effect 안에서 만든다.
   const leaving = useRef<AbortController>(null)
@@ -154,6 +156,8 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
     /** 게시판 기록(최신순). undefined: 불러오는 중이거나 읽기 실패(boardsError) */
     boards,
     loadError, boardsError, notice, saving, running, dirty, formError, canSave,
+    sub,
+    setSub: (next: 'settings' | 'history') => { setSubTab(next); setNotice(undefined) },
     /** 지금 마감·실행을 못 하는 이유. null이면 할 수 있다. */
     runBlock,
     edit: (patch: Partial<SerialScheduleInput>) => change((current) => ({ ...current, ...patch })),

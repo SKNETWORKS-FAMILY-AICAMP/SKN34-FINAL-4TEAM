@@ -79,6 +79,18 @@ it('입력을 바꾸면 저장할 수 있고, 저장하면 저장 완료를 알�
   expect(hook.result.current.boards).toEqual([record({ id: 'b2' }), record()])
 })
 
+it('하위 탭은 연재 설정이 처음이고, 탭을 바꾸면 이전 요청의 알림을 지운다', async () => {
+  const hook = setup()
+  await loaded(hook)
+  expect(hook.result.current.sub).toBe('settings')
+  act(() => hook.result.current.edit({ direction: '새 방향' }))
+  await act(() => hook.result.current.save())
+  expect(hook.result.current.notice?.ok).toBe(true)
+  act(() => hook.result.current.setSub('history'))
+  expect(hook.result.current.sub).toBe('history')
+  expect(hook.result.current.notice).toBeUndefined()
+})
+
 it('규칙을 어긴 입력은 저장 버튼이 잠기고 저장 요청도 보내지 않는다', async () => {
   const hook = setup()
   await loaded(hook)
@@ -116,7 +128,7 @@ it('꺼져 있거나 열린 게시판이 없으면 지금 실행을 막고 요�
   expect(off.repo.run).not.toHaveBeenCalled()
   const none = setup(fakeRepo(settings(), [record({ status: 'published' })]))
   await loaded(none)
-  expect(none.result.current.runBlock).toContain('열린 의견 게시판이 없어요')
+  expect(none.result.current.runBlock).toContain('열린 게시판이 없어요')
 })
 
 it('지금 마감·실행은 한 번만 요청하고 202 뒤에 기록을 다시 읽어 실행 대기를 보인다', async () => {

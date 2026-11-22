@@ -1,7 +1,7 @@
-import { opinionInputError, opinionRequest, serialSettingsError, serialSettingsInput, type OpinionInput, type SerialSettings } from '../entities/aiSerial'
+import { proposalInputError, proposalRequest, serialSettingsError, serialSettingsInput, type ProposalInput, type SerialSettings } from '../entities/aiSerial'
 import type { SerialRepository } from '../repositories/SerialRepository'
 
-/** AI 자율 연재: 소유자의 설정·실행·기록과 독자의 의견·투표. 입력 검증이 던지는 예외는 저장소를 부르기 전의 안내 문구다. */
+/** AI 자율 연재: 소유자의 설정·실행·기록과 독자의 투표·제안 글·추천. 입력 검증이 던지는 예외는 저장소를 부르기 전의 안내 문구다. */
 export class SerialUseCase {
   private readonly repository: SerialRepository
   constructor(repository: SerialRepository) {
@@ -36,21 +36,29 @@ export class SerialUseCase {
     return this.repository.board(workId, signal)
   }
 
-  async submitOpinion(workId: string, input: OpinionInput, signal?: AbortSignal) {
-    const error = opinionInputError(input)
-    if (error) throw new Error(error)
-    return this.repository.submitOpinion(workId, opinionRequest(input), signal)
-  }
-
-  vote(workId: string, opinionId: string, signal?: AbortSignal) {
-    return this.repository.vote(workId, opinionId, signal)
+  vote(workId: string, choiceId: string, signal?: AbortSignal) {
+    return this.repository.vote(workId, choiceId, signal)
   }
 
   cancelVote(workId: string, signal?: AbortSignal) {
     return this.repository.cancelVote(workId, signal)
   }
 
-  hideOpinion(workId: string, opinionId: string, signal?: AbortSignal) {
-    return this.repository.hideOpinion(workId, opinionId, signal)
+  async submitProposal(workId: string, input: ProposalInput, signal?: AbortSignal) {
+    const error = proposalInputError(input)
+    if (error) throw new Error(error)
+    return this.repository.submitProposal(workId, proposalRequest(input), signal)
+  }
+
+  likeProposal(workId: string, proposalId: string, signal?: AbortSignal) {
+    return this.repository.likeProposal(workId, proposalId, signal)
+  }
+
+  unlikeProposal(workId: string, proposalId: string, signal?: AbortSignal) {
+    return this.repository.unlikeProposal(workId, proposalId, signal)
+  }
+
+  hideProposal(workId: string, proposalId: string, signal?: AbortSignal) {
+    return this.repository.hideProposal(workId, proposalId, signal)
   }
 }

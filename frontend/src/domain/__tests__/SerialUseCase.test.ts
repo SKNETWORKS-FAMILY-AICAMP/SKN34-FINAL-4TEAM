@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import { seedWorks } from '../../data/mock/seed'
 import {
-  BEATS_MAX, BEAT_MAX, OPINION_BODY_MAX, PREMISE_MAX, SERIAL_DIRECTION_MAX,
-  SERIAL_LOCK_NOTICE, canHideOpinions, opinionInputError, opinionRequest, serialEpisodeLocked, serialNewEpisodeLocked, serialRunBlock, serialRunning, serialSettingsError, serialSettingsInput,
+  BEATS_MAX, BEAT_MAX, PREMISE_MAX, PROPOSAL_BODY_MAX, PROPOSAL_TITLE_MAX, SERIAL_DIRECTION_MAX,
+  SERIAL_LOCK_NOTICE, canHideProposals, proposalInputError, proposalRequest, serialEpisodeLocked, serialNewEpisodeLocked, serialRunBlock, serialRunning, serialSettingsError, serialSettingsInput, sortProposals,
 } from '../entities/aiSerial'
 import { SerialUseCase } from '../usecases/SerialUseCase'
-import { board, fakeSerialRepo, record, settings } from '../../test/serialFixtures'
+import { board, fakeSerialRepo, proposal, record, settings } from '../../test/serialFixtures'
 
 const setup = () => {
   const repo = fakeSerialRepo()
@@ -56,7 +56,7 @@ describe('지금 마감·실행 가능 여부', () => {
     expect(serialRunBlock(on, [record({ status: 'queued' })])).toContain('이미 실행 중')
     expect(serialRunBlock(on, [record({ status: 'running' }), record({ id: 'b0', status: 'published' })])).toContain('이미 실행 중')
     expect(serialRunBlock(on, [])).toContain('1화')
-    expect(serialRunBlock(on, [record({ status: 'published' }), record({ id: 'b0', status: 'failed' })])).toContain('열린 의견 게시판이 없어요')
+    expect(serialRunBlock(on, [record({ status: 'published' }), record({ id: 'b0', status: 'failed' })])).toContain('열린 게시판이 없어요')
   })
 
   it('켜져 있고 열린 게시판이 있으면 막지 않는다', () => {
@@ -92,44 +92,71 @@ describe('AI 자율 집필 중 원고 잠금', () => {
   })
 })
 
-describe('의견 입력 규칙', () => {
-  it('일반 의견은 공백을 뺀 1~1,000자다', () => {
-    expect(opinionInputError({ kind: 'general', body: ' \n' })).toContain('의견')
-    expect(opinionInputError({ kind: 'general', body: ' ' + '가'.repeat(OPINION_BODY_MAX) + ' ' })).toBeNull()
-    expect(opinionInputError({ kind: 'general', body: '가'.repeat(OPINION_BODY_MAX + 1) })).toContain('1,000자')
+describe('제안 글 입력 규칙', () => {
+  const ok = { title: '편지를 읽는 장면', body: '다음엔 주인공이 편지를 열어 보면 좋겠어요.' }
+  it('제목은 공백을 뺀 1~100자, 내용은 공백을 뺀 1~2,000자다 (일반·시뮬레이션 모두)', () => {
+    expect(proposalInputError({ kind: 'general', ...ok })).toBeNull()
+    expect(proposalInputError({ kind: 'general', title: ' \n', body: ok.body })).toContain('제목')
+    expect(proposalInputError({ kind: 'general', title: ' ' + '가'.repeat(PROPOSAL_TITLE_MAX) + ' ', body: ok.body })).toBeNull()
+    expect(proposalInputError({ kind: 'general', title: '가'.repeat(PROPOSAL_TITLE_MAX + 1), body: ok.body })).toContain('100자')
+    expect(proposalInputError({ kind: 'general', title: ok.title, body: '  ' })).toContain('내용')
+    expect(proposalInputError({ kind: 'general', title: ok.title, body: ' ' + '가'.repeat(PROPOSAL_BODY_MAX) + ' ' })).toBeNull()
+    expect(proposalInputError({ kind: 'general', title: ok.title, body: '가'.repeat(PROPOSAL_BODY_MAX + 1) })).toContain('2,000자')
+    // 시뮬레이션도 제목·내용은 같은 규칙이다(전제·비트는 그 위에 더한다).
+    expect(proposalInputError({ kind: 'simulation', title: '', body: ok.body, premise: '전제', beats: [] })).toContain('제목')
+    expect(proposalInputError({ kind: 'simulation', title: ok.title, body: '', premise: '전제', beats: [] })).toContain('내용')
   })
 
   it('시뮬레이션은 전제 1~500자, 비트는 빈 줄을 뺀 5개 이하·각 200자 이하다 (비트는 없어도 된다)', () => {
     const premise = '주인공이 편지를 읽었다면'
-    expect(opinionInputError({ kind: 'simulation', premise: '  ', beats: [] })).toContain('전제')
-    expect(opinionInputError({ kind: 'simulation', premise: '가'.repeat(PREMISE_MAX + 1), beats: [] })).toContain('500자')
-    expect(opinionInputError({ kind: 'simulation', premise, beats: [] })).toBeNull()
-    expect(opinionInputError({ kind: 'simulation', premise, beats: Array.from({ length: BEATS_MAX }, (_, i) => '비트 ' + i) })).toBeNull()
-    expect(opinionInputError({ kind: 'simulation', premise, beats: Array.from({ length: BEATS_MAX + 1 }, (_, i) => '비트 ' + i) })).toContain('5개')
-    expect(opinionInputError({ kind: 'simulation', premise, beats: ['가'.repeat(BEAT_MAX + 1)] })).toContain('200자')
-    expect(opinionInputError({ kind: 'simulation', premise, beats: ['', ' ', '하나', '  '] })).toBeNull()
+    const sim = (extra: { premise?: string; beats?: string[] }) => proposalInputError({ kind: 'simulation', ...ok, premise, beats: [], ...extra })
+    expect(sim({ premise: '  ' })).toContain('전제')
+    expect(sim({ premise: '가'.repeat(PREMISE_MAX + 1) })).toContain('500자')
+    expect(sim({})).toBeNull()
+    expect(sim({ beats: Array.from({ length: BEATS_MAX }, (_, i) => '비트 ' + i) })).toBeNull()
+    expect(sim({ beats: Array.from({ length: BEATS_MAX + 1 }, (_, i) => '비트 ' + i) })).toContain('5개')
+    expect(sim({ beats: ['가'.repeat(BEAT_MAX + 1)] })).toContain('200자')
+    expect(sim({ beats: ['', ' ', '하나', '  '] })).toBeNull()
   })
 
-  it('요청 본문: 일반은 {kind, body}, 시뮬레이션은 body(선택 코멘트)를 비우고 빈 비트를 뺀다', () => {
-    expect(opinionRequest({ kind: 'general', body: '  다음엔 반전이 좋겠어요 \n' })).toEqual({ kind: 'general', body: '다음엔 반전이 좋겠어요' })
-    expect(opinionRequest({ kind: 'simulation', premise: ' 편지를 읽었다면 ', beats: [' 첫 비트 ', '', '  ', '둘째'] }))
-      .toEqual({ kind: 'simulation', body: '', simulation: { premise: '편지를 읽었다면', beats: ['첫 비트', '둘째'] } })
+  it('요청 본문: 제목·내용의 앞뒤 공백을 지우고, 시뮬레이션은 전제·비트(빈 비트 제외)를 simulation에 싣는다', () => {
+    expect(proposalRequest({ kind: 'general', title: ' 반전 제안 ', body: '  다음엔 반전이 좋겠어요 \n' })).toEqual({ kind: 'general', title: '반전 제안', body: '다음엔 반전이 좋겠어요' })
+    expect(proposalRequest({ kind: 'simulation', title: ' 편지 장면 ', body: ' 읽는 장면 ', premise: ' 편지를 읽었다면 ', beats: [' 첫 비트 ', '', '  ', '둘째'] }))
+      .toEqual({ kind: 'simulation', title: '편지 장면', body: '읽는 장면', simulation: { premise: '편지를 읽었다면', beats: ['첫 비트', '둘째'] } })
   })
 })
 
-describe('의견 숨김 권한 표시 (서버가 다시 확인한다)', () => {
+describe('제안 글 정렬', () => {
+  const at = (hour: number) => `2026-11-22T0${hour}:00:00Z`
+  const posts = [proposal({ id: 'a', likes: 1, createdAt: at(1) }), proposal({ id: 'b', likes: 5, createdAt: at(2) }), proposal({ id: 'c', likes: 5, createdAt: at(3) }), proposal({ id: 'd', likes: 0, createdAt: at(4) })]
+  it('최신순은 작성 시각이 늦은 글부터이고, 추천순은 추천이 많은 글부터이며 같으면 먼저 쓴 글이 앞이다 (AI가 읽는 추천 상위 글의 동률 규칙과 같다)', () => {
+    expect(sortProposals(posts, 'new').map((p) => p.id)).toEqual(['d', 'c', 'b', 'a'])
+    expect(sortProposals(posts, 'likes').map((p) => p.id)).toEqual(['b', 'c', 'a', 'd'])
+  })
+
+  it('시각 표기(오프셋)가 달라도 실제 시각으로 견주고, 받은 목록은 바꾸지 않는다', () => {
+    // x는 01:00Z, y는 05:00Z라 실제로는 y가 늦다(글자로만 견주면 '10:00'이 '05:00'보다 커서 x가 앞선다).
+    const mixed = [proposal({ id: 'x', createdAt: '2026-11-22T10:00:00+09:00' }), proposal({ id: 'y', createdAt: '2026-11-22T05:00:00Z' })]
+    expect(sortProposals(mixed, 'new').map((p) => p.id)).toEqual(['y', 'x'])
+    const before = posts.map((p) => p.id)
+    sortProposals(posts, 'likes')
+    expect(posts.map((p) => p.id)).toEqual(before)
+  })
+})
+
+describe('제안 글 숨김 권한 표시 (서버가 다시 확인한다)', () => {
   const works = seedWorks(0)
   const mine = works.find((w) => w.id === 'starlight')!
   const others = works.find((w) => w.id === 'postman')!
   const server = { ...others, canonical: true, owner: 'member-1', mine: false }
 
   it('소유자만 열린다 (운영자도 아니다)', () => {
-    expect(canHideOpinions(mine, null)).toBe(true)
-    expect(canHideOpinions(others, 'member-9')).toBe(false)
-    expect(canHideOpinions(server, 'member-1')).toBe(true)
-    expect(canHideOpinions(server, 'member-2')).toBe(false)
-    expect(canHideOpinions(server, null)).toBe(false)
-    expect(canHideOpinions({ ...server, owner: undefined }, null)).toBe(false)
+    expect(canHideProposals(mine, null)).toBe(true)
+    expect(canHideProposals(others, 'member-9')).toBe(false)
+    expect(canHideProposals(server, 'member-1')).toBe(true)
+    expect(canHideProposals(server, 'member-2')).toBe(false)
+    expect(canHideProposals(server, null)).toBe(false)
+    expect(canHideProposals({ ...server, owner: undefined }, null)).toBe(false)
   })
 })
 
@@ -160,36 +187,40 @@ describe('AI 자율 연재 UseCase', () => {
     await expect(useCase.saveSettings('w1', settings())).rejects.toThrow('서버 거절')
   })
 
-  it('의견 제출은 검증한 요청 본문을 보낸다', async () => {
+  it('제안 글 제출은 검증한 요청 본문을 보낸다', async () => {
     const { repo, useCase } = setup()
     const signal = new AbortController().signal
-    await useCase.submitOpinion('w1', { kind: 'simulation', premise: ' 전제 ', beats: ['비트', ''] }, signal)
-    expect(repo.submitOpinion).toHaveBeenCalledWith('w1', { kind: 'simulation', body: '', simulation: { premise: '전제', beats: ['비트'] } }, signal)
+    await useCase.submitProposal('w1', { kind: 'simulation', title: ' 제목 ', body: ' 내용 ', premise: ' 전제 ', beats: ['비트', ''] }, signal)
+    expect(repo.submitProposal).toHaveBeenCalledWith('w1', { kind: 'simulation', title: '제목', body: '내용', simulation: { premise: '전제', beats: ['비트'] } }, signal)
   })
 
-  it('의견이 규칙을 어기면 저장소를 부르지 않는다', async () => {
+  it('제안 글이 규칙을 어기면 저장소를 부르지 않는다', async () => {
     const { repo, useCase } = setup()
-    await expect(useCase.submitOpinion('w1', { kind: 'general', body: '   ' })).rejects.toThrow('의견')
-    await expect(useCase.submitOpinion('w1', { kind: 'simulation', premise: '', beats: [] })).rejects.toThrow('전제')
+    await expect(useCase.submitProposal('w1', { kind: 'general', title: '  ', body: '내용' })).rejects.toThrow('제목')
+    await expect(useCase.submitProposal('w1', { kind: 'simulation', title: '제목', body: '내용', premise: '', beats: [] })).rejects.toThrow('전제')
     untouched(repo)
   })
 
-  it('읽기·실행·투표·숨김은 저장소에 그대로 넘긴다', async () => {
+  it('읽기·실행·투표·추천·숨김은 저장소에 그대로 넘긴다', async () => {
     const { repo, useCase } = setup()
     const signal = new AbortController().signal
     expect(await useCase.settings('w1', signal)).toEqual(settings())
     expect(await useCase.boards('w1', signal)).toEqual([record()])
     expect(await useCase.board('w1', signal)).toEqual(board())
     await useCase.run('w1', signal)
-    await useCase.vote('w1', 'o1', signal)
+    await useCase.vote('w1', 'c2', signal)
     await useCase.cancelVote('w1', signal)
-    await useCase.hideOpinion('w1', 'o2', signal)
+    await useCase.likeProposal('w1', 'p1', signal)
+    await useCase.unlikeProposal('w1', 'p1', signal)
+    await useCase.hideProposal('w1', 'p2', signal)
     expect(repo.settings).toHaveBeenCalledWith('w1', signal)
     expect(repo.boards).toHaveBeenCalledWith('w1', signal)
     expect(repo.board).toHaveBeenCalledWith('w1', signal)
     expect(repo.run).toHaveBeenCalledWith('w1', signal)
-    expect(repo.vote).toHaveBeenCalledWith('w1', 'o1', signal)
+    expect(repo.vote).toHaveBeenCalledWith('w1', 'c2', signal)
     expect(repo.cancelVote).toHaveBeenCalledWith('w1', signal)
-    expect(repo.hideOpinion).toHaveBeenCalledWith('w1', 'o2', signal)
+    expect(repo.likeProposal).toHaveBeenCalledWith('w1', 'p1', signal)
+    expect(repo.unlikeProposal).toHaveBeenCalledWith('w1', 'p1', signal)
+    expect(repo.hideProposal).toHaveBeenCalledWith('w1', 'p2', signal)
   })
 })

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '../../../../test/fixtureApp'
 
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { asValue } from 'awilix/browser'
 import { afterEach, expect, it, vi } from 'vitest'
 
@@ -15,7 +15,9 @@ import { SessionExpired } from '../../../../domain/repositories/ProfileRepositor
 import type { WorkNoticeRepository } from '../../../../domain/repositories/WorkNoticeRepository'
 import { EpisodeCommentUseCase } from '../../../../domain/usecases/EpisodeCommentUseCase'
 import { WorkNoticeUseCase } from '../../../../domain/usecases/WorkNoticeUseCase'
+import { board as serialBoard, proposal } from '../../../../test/serialFixtures'
 import { renderApp } from '../../../../test/renderApp'
+import { sessionActions } from '../../../shared/session/sessionSlice'
 
 afterEach(() => { cleanup(); document.title = 'STORYFORK'; vi.restoreAllMocks() })
 
@@ -767,30 +769,44 @@ it('추천이 모두 비면 추천 섹션을 만들지 않는다', async () => {
   expect(screen.queryByRole('heading', { name: '비슷한 작품' })).toBeNull()
 })
 
-const openBoard = { board: { id: 'b1', episodeNumber: 4 }, opinions: [], myOpinionId: null, myVoteOpinionId: null, summary: null }
+// ── 다음 회차 탭(UC-18): AI 자율 집필이 켜진 서버 작품만 '회차 | 정보 | 소식' 옆에 '다음 회차' 탭을 둔다(페이지 아래의 의견 영역은 없다) ──
+const serialOn = serialBoard({ board: { id: 'b1', episodeNumber: 4 }, proposals: [proposal()] })
+const mainTabs = () => within(screen.getByRole('tablist', { name: '소설 상세 탭' })).getAllByRole('tab').map((t) => t.textContent)
 
-it('서버 작품 상세는 열린 의견 게시판이 있으면 "다음 회차 의견" 섹션을 전체 댓글 위에 그린다 (UC-18)', async () => {
+it('AI 자율 집필이 켜진 서버 작품은 회차·정보·소식 옆에 "다음 회차" 탭을 두고, 누르면 투표·제안 게시판 하위 탭이 열리며 페이지 아래에는 의견 영역이 없다', async () => {
   const server = serverWorks()
   server.read.mockResolvedValue({ likes: 0, liked: false })
-  const board = vi.spyOn(appContainer.resolve('serialUseCase'), 'board').mockResolvedValue(openBoard)
+  const board = vi.spyOn(appContainer.resolve('serialUseCase'), 'board').mockResolvedValue(serialOn)
   try {
     renderApp('/work/guunmong', createAppStore({ role: 'user', memberId: 'member-9' }))
-    const section = await screen.findByRole('heading', { level: 2, name: '다음 회차 의견' })
+    await screen.findByRole('tablist', { name: '소설 상세 탭' })
+    await waitFor(() => expect(mainTabs()).toEqual(['회차', '정보', '소식', '다음 회차']))
     expect(board).toHaveBeenCalledWith('guunmong', expect.any(AbortSignal))
-    const comments = screen.getByRole('heading', { level: 2, name: /전체 댓글/ })
-    expect(section.compareDocumentPosition(comments) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByRole('tab', { name: '회차' }).getAttribute('aria-selected')).toBe('true') // 처음엔 회차 탭
+    expect(screen.queryByRole('tablist', { name: '다음 회차 하위 탭' })).toBeNull()
+    fireEvent.click(screen.getByRole('tab', { name: '다음 회차' }))
+    expect(screen.getByRole('tab', { name: '다음 회차' }).getAttribute('aria-selected')).toBe('true')
+    const sub = await screen.findByRole('tablist', { name: '다음 회차 하위 탭' })
+    expect(within(sub).getAllByRole('tab').map((t) => t.textContent)).toEqual(['투표', '제안 게시판'])
+    expect(screen.getByText('다음 회차는 어떻게 흘러갈까요?')).toBeTruthy()
+    expect(document.getElementById('eplist')).toBeNull() // 탭 안은 회차 목록이 아니라 게시판이다
+    expect(screen.queryByRole('heading', { name: '다음 회차 의견' })).toBeNull()
+    expect(document.querySelector('.wserial')!.closest('.wgrid')).not.toBeNull() // 게시판은 탭 카드 안에 있지 페이지 아래 구역이 아니다
+    fireEvent.click(screen.getByRole('tab', { name: '회차' }))
+    expect(document.getElementById('eplist')).not.toBeNull()
   } finally { server.restore() }
 })
 
-it('열린 의견 게시판이 없으면 섹션을 그리지 않고, 데모 작품은 게시판을 읽지도 않는다', async () => {
-  const board = vi.spyOn(appContainer.resolve('serialUseCase'), 'board').mockResolvedValue({ ...openBoard, board: null, summary: '지난 종합' })
+it('AI 자율 집필이 꺼져 있으면 다음 회차 탭이 없고, 데모 작품은 게시판을 읽지도 않는다', async () => {
+  const board = vi.spyOn(appContainer.resolve('serialUseCase'), 'board').mockResolvedValue(serialBoard({ enabled: false, board: null, choices: [], proposals: [] }))
   const server = serverWorks()
   server.read.mockResolvedValue({ likes: 0, liked: false })
   try {
     renderApp('/work/guunmong', createAppStore({ role: 'user' }))
     await screen.findByRole('heading', { name: /전체 댓글/ })
     await waitFor(() => expect(board).toHaveBeenCalled())
-    expect(screen.queryByRole('heading', { name: '다음 회차 의견' })).toBeNull()
+    expect(mainTabs()).toEqual(['회차', '정보', '소식'])
+    expect(screen.queryByRole('tab', { name: '다음 회차' })).toBeNull()
   } finally { server.restore() }
   board.mockClear()
   cleanup()
@@ -798,4 +814,48 @@ it('열린 의견 게시판이 없으면 섹션을 그리지 않고, 데모 작�
   await screen.findByRole('heading', { name: '구운몽', level: 1 })
   await screen.findByRole('heading', { name: /전체 댓글/ })
   expect(board).not.toHaveBeenCalled()
+  expect(mainTabs()).toEqual(['회차', '정보', '소식'])
+})
+
+it('다음 회차 탭을 연 채 서버가 AI 자율 집필이 꺼졌다고 다시 알려 주면 탭이 사라지고 회차 탭으로 돌아온다 (없는 탭을 고른 채로 두지 않는다)', async () => {
+  const server = serverWorks()
+  server.read.mockResolvedValue({ likes: 0, liked: false })
+  const board = vi.spyOn(appContainer.resolve('serialUseCase'), 'board').mockResolvedValue(serialOn)
+  try {
+    const store = createAppStore({ role: 'user', memberId: 'member-9' })
+    renderApp('/work/guunmong', store)
+    await waitFor(() => expect(screen.queryByRole('tab', { name: '다음 회차' })).not.toBeNull())
+    fireEvent.click(screen.getByRole('tab', { name: '다음 회차' }))
+    await screen.findByRole('tablist', { name: '다음 회차 하위 탭' })
+    board.mockResolvedValue(serialBoard({ enabled: false, board: null, choices: [], proposals: [] }))
+    act(() => { store.dispatch(sessionActions.dataChanged()) })
+    await waitFor(() => expect(screen.queryByRole('tab', { name: '다음 회차' })).toBeNull())
+    expect(screen.queryByRole('tablist', { name: '다음 회차 하위 탭' })).toBeNull()
+    expect(screen.getByRole('tab', { name: '회차' }).getAttribute('aria-selected')).toBe('true')
+    expect(document.getElementById('eplist')).not.toBeNull()
+  } finally { server.restore() }
+})
+
+it('다음 회차 탭이 있으면 소설 상세 탭의 방향키·Home·End가 네 탭을 돌아가며 옮긴다', async () => {
+  const server = serverWorks()
+  server.read.mockResolvedValue({ likes: 0, liked: false })
+  vi.spyOn(appContainer.resolve('serialUseCase'), 'board').mockResolvedValue(serialOn)
+  try {
+    renderApp('/work/guunmong', createAppStore({ role: 'user' }))
+    await waitFor(() => expect(screen.queryByRole('tab', { name: '다음 회차' })).not.toBeNull())
+    const tab = (name: string) => screen.getByRole('tab', { name })
+    tab('회차').focus()
+    fireEvent.keyDown(tab('회차'), { key: 'ArrowLeft' }) // 처음에서 왼쪽은 마지막 탭으로 돌아간다
+    expect(document.activeElement).toBe(tab('다음 회차'))
+    expect(tab('다음 회차').getAttribute('aria-selected')).toBe('true')
+    expect(['회차', '정보', '소식', '다음 회차'].map((name) => tab(name).tabIndex)).toEqual([-1, -1, -1, 0])
+    fireEvent.keyDown(tab('다음 회차'), { key: 'ArrowRight' }) // 마지막에서 오른쪽은 처음으로
+    expect(document.activeElement).toBe(tab('회차'))
+    fireEvent.keyDown(tab('회차'), { key: 'End' })
+    expect(document.activeElement).toBe(tab('다음 회차'))
+    fireEvent.keyDown(tab('다음 회차'), { key: 'ArrowLeft' })
+    expect(document.activeElement).toBe(tab('소식'))
+    fireEvent.keyDown(tab('소식'), { key: 'Home' })
+    expect(document.activeElement).toBe(tab('회차'))
+  } finally { server.restore() }
 })

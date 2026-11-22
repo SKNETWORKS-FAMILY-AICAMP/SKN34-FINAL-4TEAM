@@ -11,9 +11,18 @@ import { AiSerialPanel } from './AiSerialPanel'
 afterEach(cleanup)
 
 const fakeRepo = (saved?: SerialSettings, rows?: SerialBoardRecord[]) => fakeSerialRepo({ saved, rows })
+/** 연재 설정 탭(처음 열리는 탭)을 연다. */
 const open = async (repo = fakeRepo()) => {
   render(<AiSerialPanel workId='w1' useCase={new SerialUseCase(repo)} />)
   await screen.findByRole('button', { name: '설정 저장' })
+  return repo
+}
+const subTab = (name: string) => screen.getByRole('tab', { name })
+/** 게시판 기록 탭으로 옮긴다. */
+const toHistory = () => fireEvent.click(subTab('게시판 기록'))
+const openHistory = async (repo = fakeRepo()) => {
+  await open(repo)
+  toHistory()
   await screen.findByRole('table')
   return repo
 }
@@ -25,7 +34,6 @@ it('서버 설정으로 입력 칸을 채우고 저장 버튼은 바꾸기 전�
   render(<AiSerialPanel workId='w1' useCase={new SerialUseCase(fakeRepo(settings({ direction: '긴장감 있게' })))} />)
   expect(screen.getByRole('status').textContent).toContain('불러오고 있어요')
   await screen.findByRole('button', { name: '설정 저장' })
-  await screen.findByRole('table')
   // 켜기·끄기는 운영 설정의 집필 방식이 정한다: 이 탭에는 켜기 토글이 없고 체크박스는 요일 일곱뿐이다.
   expect(screen.queryByRole('checkbox', { name: 'AI 집필 켜기' })).toBeNull()
   expect(screen.getAllByRole('checkbox')).toHaveLength(7)
@@ -70,31 +78,77 @@ it('저장이 거절되면 서버 문구를 경고로 알리고 입력은 그대
   expect((save() as HTMLButtonElement).disabled).toBe(false)
 })
 
-it('게시판 기록 표에 대상 회차·상태·발행 회차·실패 사유·마감 시각을 보인다', async () => {
+// 하위 탭: '연재 설정'(요일·시각·방향)과 '게시판 기록'(지금 마감·실행·기록 새로 고침·기록 표)이다(계약 '화면').
+it('하위 탭은 연재 설정·게시판 기록 둘이고 연재 설정이 처음 열리며, 설정 입력과 기록·실행은 각자의 탭에만 있다', async () => {
+  await open()
+  expect(within(screen.getByRole('tablist', { name: 'AI 집필 하위 탭' })).getAllByRole('tab').map((t) => t.textContent)).toEqual(['연재 설정', '게시판 기록'])
+  expect(subTab('연재 설정').getAttribute('aria-selected')).toBe('true')
+  expect(screen.getByRole('tabpanel').getAttribute('aria-labelledby')).toBe(subTab('연재 설정').id)
+  expect(screen.getByLabelText(/연재 시각/)).toBeTruthy()
+  for (const name of ['지금 마감·실행', '기록 새로 고침']) expect(screen.queryByRole('button', { name }), name).toBeNull()
+  expect(screen.queryByRole('table')).toBeNull()
+  toHistory()
+  await screen.findByRole('table')
+  expect(subTab('게시판 기록').getAttribute('aria-selected')).toBe('true')
+  expect(screen.getByRole('tabpanel').getAttribute('aria-labelledby')).toBe(subTab('게시판 기록').id)
+  for (const name of ['지금 마감·실행', '기록 새로 고침']) expect(screen.getByRole('button', { name }), name).toBeTruthy()
+  expect(screen.queryByLabelText(/연재 시각/)).toBeNull()
+  expect(screen.queryByRole('button', { name: '설정 저장' })).toBeNull()
+})
+
+it('하위 탭은 방향키·Home·End로 옮기고 선택한 탭만 Tab 순서에 들어가며, 탭을 바꾸면 이전 알림을 지운다', async () => {
+  const repo = await open()
+  const stops = () => ['연재 설정', '게시판 기록'].map((name) => subTab(name).tabIndex)
+  expect(stops()).toEqual([0, -1])
+  fireEvent.change(screen.getByLabelText(/연재 방향/), { target: { value: '새 방향' } })
+  fireEvent.click(save())
+  await waitFor(() => expect(repo.saveSettings).toHaveBeenCalled())
+  await screen.findByRole('status')
+  subTab('연재 설정').focus()
+  fireEvent.keyDown(subTab('연재 설정'), { key: 'ArrowRight' })
+  expect(document.activeElement).toBe(subTab('게시판 기록'))
+  expect(subTab('게시판 기록').getAttribute('aria-selected')).toBe('true')
+  expect(stops()).toEqual([-1, 0])
+  await screen.findByRole('table')
+  expect(screen.queryByText('설정을 저장했어요.')).toBeNull() // 설정 저장의 알림은 다른 탭에 남지 않는다
+  fireEvent.keyDown(subTab('게시판 기록'), { key: 'ArrowRight' })
+  expect(document.activeElement).toBe(subTab('연재 설정'))
+  fireEvent.keyDown(subTab('연재 설정'), { key: 'End' })
+  expect(document.activeElement).toBe(subTab('게시판 기록'))
+  fireEvent.keyDown(subTab('게시판 기록'), { key: 'Home' })
+  expect(document.activeElement).toBe(subTab('연재 설정'))
+})
+
+it('게시판 기록 표에 대상 회차·상태·발행 회차·실패 사유·마감 시각을 보이고, 실패 사유는 서버 문구 그대로다', async () => {
   const closed = '2026-11-22T12:00:00Z'
-  await open(fakeRepo(settings(), [
-    record({ id: 'b3', episodeNumber: 6, status: 'open' }),
-    record({ id: 'b2', episodeNumber: 5, status: 'failed', failureReason: '검수를 통과하지 못했습니다.', closedAt: closed }),
-    record({ id: 'b1', episodeNumber: 4, status: 'published', publishedEpisodeNumber: 4, closedAt: closed }),
+  await openHistory(fakeRepo(settings(), [
+    record({ id: 'b5', episodeNumber: 7, status: 'open' }),
+    record({ id: 'b4', episodeNumber: 6, status: 'failed', failureReason: '크레딧 상한을 넘었습니다.', closedAt: closed }),
+    record({ id: 'b3', episodeNumber: 5, status: 'failed', failureReason: '크레딧이 부족합니다.', closedAt: closed }),
+    record({ id: 'b2', episodeNumber: 4, status: 'failed', failureReason: '검수를 통과하지 못했습니다.', closedAt: closed }),
+    record({ id: 'b1', episodeNumber: 3, status: 'published', publishedEpisodeNumber: 3, closedAt: closed }),
   ]))
   const table = screen.getByRole('table')
   expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['대상 회차', '상태', '발행 회차', '실패 사유', '마감 시각'])
   const rows = within(table).getAllByRole('row').slice(1).map((row) => within(row).getAllByRole('cell').map((cell) => cell.textContent))
   expect(rows).toEqual([
-    ['6화', '의견 받는 중', '—', '—', '—'],
-    ['5화', '실패', '—', '검수를 통과하지 못했습니다.', kstDateTime(closed)],
-    ['4화', '발행됨', '4화', '—', kstDateTime(closed)],
+    ['7화', '투표·제안 받는 중', '—', '—', '—'],
+    ['6화', '실패', '—', '크레딧 상한을 넘었습니다.', kstDateTime(closed)],
+    ['5화', '실패', '—', '크레딧이 부족합니다.', kstDateTime(closed)],
+    ['4화', '실패', '—', '검수를 통과하지 못했습니다.', kstDateTime(closed)],
+    ['3화', '발행됨', '3화', '—', kstDateTime(closed)],
   ])
 })
 
 it('기록이 없으면 안내를 보인다', async () => {
-  render(<AiSerialPanel workId='w1' useCase={new SerialUseCase(fakeRepo(settings(), []))} />)
+  await open(fakeRepo(settings(), []))
+  toHistory()
   expect(await screen.findByText(/아직 게시판 기록이 없어요/)).toBeTruthy()
   expect(screen.queryByRole('table')).toBeNull()
 })
 
 it('열린 게시판이 있고 켜져 있으면 지금 마감·실행을 요청하고 202 뒤 기록을 다시 읽어 실행 대기를 보인다', async () => {
-  const repo = await open()
+  const repo = await openHistory()
   expect((run() as HTMLButtonElement).disabled).toBe(false)
   repo.boards.mockResolvedValue([record({ status: 'queued' })])
   fireEvent.click(run())
@@ -107,9 +161,9 @@ it('열린 게시판이 있고 켜져 있으면 지금 마감·실행을 요청�
 
 it.each([
   ['꺼져 있으면', settings({ enabled: false }), [record()], '자율 집필을 고르면 실행할 수 있어요'],
-  ['열린 게시판이 없으면', settings(), [record({ status: 'published', publishedEpisodeNumber: 4 })], '열린 의견 게시판이 없어요'],
+  ['열린 게시판이 없으면', settings(), [record({ status: 'published', publishedEpisodeNumber: 4 })], '열린 게시판이 없어요'],
 ])('%s 지금 마감·실행이 잠기고 이유를 알린다', async (_name, saved, rows, why) => {
-  await open(fakeRepo(saved, rows))
+  await openHistory(fakeRepo(saved, rows))
   expect((run() as HTMLButtonElement).disabled).toBe(true)
   expect(screen.getByText(new RegExp(why)).id).toBe(run().getAttribute('aria-describedby'))
 })
@@ -127,7 +181,7 @@ it('꺼져 있으면 운영 설정 > 집필 방식에서 AI 자율 집필을 고
 it('실행 요청이 409로 거절되면 서버 문구를 경고로 알린다', async () => {
   const repo = fakeRepo()
   repo.run.mockRejectedValueOnce(new Error('이미 실행 중이에요.'))
-  await open(repo)
+  await openHistory(repo)
   fireEvent.click(run())
   expect((await screen.findByRole('alert')).textContent).toContain('이미 실행 중이에요.')
 })
@@ -160,6 +214,7 @@ it('기록만 읽지 못하면 설정은 그대로 두고 기록 실패와 새�
   repo.boards.mockRejectedValueOnce(new Error('기록 서버 오류'))
   render(<AiSerialPanel workId='w1' useCase={new SerialUseCase(repo)} />)
   await screen.findByRole('button', { name: '설정 저장' })
+  toHistory()
   expect((await screen.findByRole('alert')).textContent).toContain('기록 서버 오류')
   expect(screen.queryByRole('table')).toBeNull()
   // 읽지 못한 채로 '불러오는 중'이라고 하지 않고 실패라고 알려 준다.

@@ -95,7 +95,7 @@ it('집필 방식에 AI 자율 집필을 더해 설명과 함께 보이고, 저�
   const onSerialSaved = vi.fn()
   const select = await openSettingsTab(useCase, onSerialSaved)
   expect(within(select).getAllByRole('option').map((option) => option.textContent)).toEqual(['집필 방식 선택', '직접 집필', 'AI 협업 집필', 'AI 자율 집필'])
-  expect(screen.getByText('AI 자율 집필을 저장하면 1화 발행 뒤 독자 의견을 모아 AI가 다음 회차를 씁니다. 그동안 1화만 직접 쓸 수 있어요.')).toBeTruthy()
+  expect(screen.getByText('AI 자율 집필을 저장하면 1화 발행 뒤 독자 투표와 제안을 모아 AI가 다음 회차를 씁니다. 그동안 1화만 직접 쓸 수 있어요.')).toBeTruthy()
   fireEvent.change(select, { target: { value: 'autonomous' } })
   fireEvent.click(screen.getByRole('button', { name: '집필 방식 저장' }))
   expect(await screen.findByText('집필 방식을 저장했어요.')).toBeTruthy()
