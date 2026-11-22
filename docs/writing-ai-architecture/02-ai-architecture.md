@@ -326,6 +326,7 @@ Decision Guard가 `manuscript_review`와 `writing_editing`을 함께 판정하�
   - 기능 4개를 판정하면 3개만 실행하고 4번째는 한도로 막힘
 
   로컬 compose의 Content는 원고 Q&A(색인)가 꺼져 있어 Retrieval 경로는 실패로 끝났고, 실패 뒤 남은 호출이 막혔다. 이 경로를 켜는 방법은 #484다. 사용량은 generation 41회·입력 80,217·출력 9,882 토큰이다(Decision Guard 호출 제외).
+- 추론 강도(2026-11-22 사용자 결정, #619): 메인 에이전트 모델의 `reasoning_effort`를 기본값(`medium`)에서 `high`로 올린다. effort별 비교 실험은 하지 않았고 위 확인은 기본값에서 한 것이다. Responses API에서 추론 토큰은 `max_tokens`(4000)에 포함되므로 잘린 응답은 `MainModelMiddleware`가 고정 실패 문구로 끝낸다. Decision Guard(Decisions API, 기본값에서 81/81)는 바꾸지 않는다.
 
 ## 업무 Agent와 공통 Simulation의 경계
 

@@ -1,6 +1,6 @@
 """메인 에이전트(#473): LangChain `create_agent` 하나가 요청 해석·호출 순서·서브 에이전트 호출·답변 종합을 맡는다.
 
-모델은 `ChatOpenAI`(Responses API, store=False, 자동 재시도 없음, 병렬 도구 호출 켬)이며 도구는 판정된 기능의 `ask_*`뿐이다.
+모델은 `ChatOpenAI`(Responses API, store=False, reasoning_effort=high(#619), 자동 재시도 없음, 병렬 도구 호출 켬)이며 도구는 판정된 기능의 `ask_*`뿐이다.
 Retrieval·웹 검색·원고 반영 도구는 없고, 서브 에이전트에 해당하지 않는 간단한 작업용 Content MCP 도구 10개(`mcp_tools.py`, #554: 읽기 6 자동·쓰기 4 작가 승인 뒤 실행)가
 있다. 모델의 판단은 인가·승인·정본 적용이 아니고 아래 미들웨어와 도구가 경계를 지킨다.
 - `DecisionGuardMiddleware.before_agent`: 턴당 1회 Decision Guard(`intent.judge`). 거절이면 모델을 부르지 않고 끝낸다. 허용됐지만 기능이 비면 MCP 도구만으로 진행한다.
@@ -246,7 +246,7 @@ def build(found: list[dict] = ()):
     except tracing.PromptUnavailable:
         raise IntentFailure() from None
     chat = ChatOpenAI(model=os.environ['OPENAI_MODEL'], api_key=os.environ['OPENAI_API_KEY'], use_responses_api=True, store=False,
-                      max_tokens=4000, timeout=120, max_retries=0)
+                      reasoning_effort='high', max_tokens=4000, timeout=120, max_retries=0)
     mcp = mcp_tools.tools(found)
     approval = {t.name: {'allowed_decisions': ['approve', 'reject'], 'when': _unanswered, 'description': mcp_tools.LABELS[t.name]}
                 for t in mcp if t.name in mcp_tools.WRITE}
