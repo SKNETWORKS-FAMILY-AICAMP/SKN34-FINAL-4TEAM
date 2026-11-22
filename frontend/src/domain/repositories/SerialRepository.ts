@@ -1,11 +1,11 @@
-import type { OpinionRequest, SerialBoardRecord, SerialBoardView, SerialSettings } from '../entities/aiSerial'
+import type { OpinionRequest, SerialBoardRecord, SerialBoardView, SerialScheduleInput, SerialSettings } from '../entities/aiSerial'
 
 /** AI 자율 연재 저장소 계약([계약](../../../../docs/design/ai-serial-contract.md)). 서버 구현은 모두 Content 공개 API다. */
 export interface SerialRepository {
   /** 소유자: 설정. */
   settings(workId: string, signal?: AbortSignal): Promise<SerialSettings>
-  /** 소유자: 설정 저장(응답 본문은 쓰지 않는다: 호출 측이 다시 읽는다). */
-  saveSettings(workId: string, settings: SerialSettings, signal?: AbortSignal): Promise<void>
+  /** 소유자: 요일·시각·방향 저장(켜짐은 보내지 않는다. 응답 본문은 쓰지 않는다: 호출 측이 다시 읽는다). */
+  saveSettings(workId: string, settings: SerialScheduleInput, signal?: AbortSignal): Promise<void>
   /** 소유자: 열린 게시판을 지금 마감·실행하도록 요청한다(202, 실행은 서버가 뒤에서 한다). */
   run(workId: string, signal?: AbortSignal): Promise<void>
   /** 소유자: 게시판 기록(최신순, 최대 50). */

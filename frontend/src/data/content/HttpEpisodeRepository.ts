@@ -46,7 +46,7 @@ const instant = z.iso.datetime({offset:true})
 const storageUsage = z.object({
   items: z.array(z.object({ id: z.string().min(1), kind: z.enum(storageKinds), title: z.string(), parentTitle: z.string(), bytes: z.number().int().nonnegative() })),
 })
-const settingsVersion = z.object({ revision: z.number().int().positive(), writingMode: z.enum(['direct', 'assisted']), changedAt: instant })
+const settingsVersion = z.object({ revision: z.number().int().positive(), writingMode: z.enum(['direct', 'assisted', 'autonomous']), changedAt: instant })
 const unsetSettings = z.object({ revision: z.literal(0), writingMode: z.null(), changedAt: z.null() })
 const operatingSettings = z.object({
   current: z.union([settingsVersion, unsetSettings]), history: z.array(settingsVersion),

@@ -48,9 +48,9 @@ it('기존 예약의 버전이 짧아도 예약 취소는 막지 않는다', () 
   expect(screen.getByRole('button', { name: '예약 취소' })).toHaveProperty('disabled', false)
 })
 
-// AI 집필 중에는 서버가 원고 수정(예약 발행 포함)을 막는다: 예약·변경은 잠그고 이유를 알리며, 예약 취소는 서버가 판정한다.
-it('AI 집필 중이면 5,000자 이상 저장 버전도 발행 예약·변경을 잠그고 이유를 알리지만 예약 취소는 막지 않는다', () => {
-  const NOTICE = 'AI 집필 중이라 원고를 수정할 수 없어요. 작품 관리 > AI 집필에서 끄면 수정할 수 있어요.'
+// AI 자율 집필 중에는 서버가 2화부터 예약 등록·변경을 막는다(계약 'AI 자율 집필 = 집필 방식'): 잠그고 이유를 알리며, 예약 취소는 막지 않는다.
+it('잠긴 회차(AI 자율 집필 중 2화부터)는 5,000자 이상 저장 버전도 발행 예약·변경을 잠그고 이유를 알리지만 예약 취소는 막지 않는다', () => {
+  const NOTICE = 'AI 자율 집필 중에는 1화만 직접 쓸 수 있어요. 운영 설정 > 집필 방식을 바꾸면 모든 회차를 쓸 수 있어요.'
   vm.form = { ...vm.form, versionId: 'exact' }
   const view = render(<PublicationSchedulePanel workId="work" episode={episode} />)
   expect(screen.queryByText(NOTICE)).toBeNull()

@@ -1,7 +1,7 @@
 import { isMine, type Work } from './work'
 
 /**
- * AI 자율 연재(UC-18, [계약](../../../../docs/design/ai-serial-contract.md)). 소유자가 AI 집필을 켜면 회차마다 독자 의견 게시판이 열리고,
+ * AI 자율 연재(UC-18, [계약](../../../../docs/design/ai-serial-contract.md)). 소유자가 운영 설정의 집필 방식에서 AI 자율 집필을 고르면(= 켜짐) 1화 발행 뒤 회차마다 독자 의견 게시판이 열리고,
  * 마감 때 득표 상위 의견을 AI가 종합해 다음 회차를 써서 발행한다. 설정 카드 제안은 범위 밖이라 의견은 일반·시뮬레이션뿐이다.
  */
 
@@ -9,11 +9,11 @@ import { isMine, type Work } from './work'
 export const SERIAL_DAYS = [['MON', '월'], ['TUE', '화'], ['WED', '수'], ['THU', '목'], ['FRI', '금'], ['SAT', '토'], ['SUN', '일']] as const
 export type SerialDay = (typeof SERIAL_DAYS)[number][0]
 
-/** 소유자의 AI 집필 설정(GET·PUT /works/{id}/ai-serial). 시각은 한국시간 HH:mm이고 하루 한 번이다. */
+/** 소유자의 AI 집필 설정(GET /works/{id}/ai-serial). enabled는 읽기 전용이다: 운영 설정의 집필 방식(autonomous)을 저장하면 서버가 켜고 끈다. 시각은 한국시간 HH:mm이고 하루 한 번이다. */
 export type SerialSettings = { enabled: boolean; days: SerialDay[]; time: string; direction: string }
 export const SERIAL_DIRECTION_MAX = 2000
 
-/** 설정 입력 안내 문구(통과하면 null). 서버와 같이 켤 때는 요일 1개 이상(끄는 저장은 비어도 된다), 시각 HH:mm, 방향(앞뒤 공백 제외) 2,000자 이하다. */
+/** 설정 입력 안내 문구(통과하면 null). 서버와 같이 켜져 있을 때는 요일 1개 이상(꺼져 있으면 비어도 된다), 시각 HH:mm, 방향(앞뒤 공백 제외) 2,000자 이하다. */
 export function serialSettingsError({ enabled, days, time, direction }: SerialSettings) {
   if (enabled && !days.length) return '연재 요일을 하나 이상 골라 주세요.'
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return '연재 시각을 시:분(예: 21:00) 형식으로 입력해 주세요.'
@@ -21,8 +21,11 @@ export function serialSettingsError({ enabled, days, time, direction }: SerialSe
   return null
 }
 
-/** 저장 요청 본문: 방향의 앞뒤 공백을 지운다(요일은 순서와 상관없이 서버가 월~일로 저장한다). */
-export const serialSettingsInput = (settings: SerialSettings): SerialSettings => ({ ...settings, direction: settings.direction.trim() })
+/** 저장 요청 본문(PUT /works/{id}/ai-serial): 요일·시각·방향만 보낸다. 켜짐은 집필 방식이 정하므로 보내지 않는다(서버도 받지 않는다). */
+export type SerialScheduleInput = Omit<SerialSettings, 'enabled'>
+
+/** 저장 요청 본문을 만든다: 방향의 앞뒤 공백을 지운다(요일은 순서와 상관없이 서버가 월~일로 저장한다). */
+export const serialSettingsInput = ({ days, time, direction }: SerialSettings): SerialScheduleInput => ({ days, time, direction: direction.trim() })
 
 /** 게시판 상태(계약 status)와 화면 이름 */
 export const BOARD_STATUS = { open: '의견 받는 중', queued: '실행 대기', running: '집필 중', published: '발행됨', failed: '실패' } as const
@@ -48,26 +51,25 @@ export const INSUFFICIENT_CREDIT_MESSAGE = '크레딧이 부족해서 시뮬레�
 export const serialRunning = (boards: SerialBoardRecord[] | undefined) => !!boards?.some(({ status }) => status === 'queued' || status === 'running')
 
 /**
- * AI 집필이 켜져 있는 동안 서버는 소유자의 원고 수정(회차 만들기·저장·발행·예약 발행·공개 변경·삭제·버전 복원·가져오기·집필 AI 쓰기 도구)을 409 SERIAL_LOCKED로 막는다.
+ * AI 자율 집필 중 작가는 1화만 쓴다(계약 'AI 자율 집필 = 집필 방식'). 서버는 2화부터의 회차 쓰기와 작품 단위 쓰기(작품 단위 버전 저장·발행, 가져오기, 수정 제안 반영)를 409 SERIAL_LOCKED로 막고 이 문장을 준다.
  * 집필실·작품 관리는 이 문장으로 미리 알리며 입력·버튼을 잠근다. 화면 잠금은 보조이고 판정은 서버가 한다(켜짐 여부를 읽지 못하면 잠그지 않는다).
  */
-export const SERIAL_LOCK_NOTICE = 'AI 집필 중이라 원고를 수정할 수 없어요. 작품 관리 > AI 집필에서 끄면 수정할 수 있어요.'
+export const SERIAL_LOCK_NOTICE = 'AI 자율 집필 중에는 1화만 직접 쓸 수 있어요. 운영 설정 > 집필 방식을 바꾸면 모든 회차를 쓸 수 있어요.'
 
-/**
- * 켜 둔 AI 집필을 끌 수 없는 이유(끌 수 있으면 null). 게시판이 대기·실행 중이면 서버가 끄는 저장을 409 SERIAL_RUNNING으로 거절한다(요일·시각·방향 수정은 된다).
- * 설정이나 기록을 아직 읽지 못했으면 막지 않고 서버에 맡긴다.
- */
-export const serialOffBlock = (saved: SerialSettings | undefined, boards: SerialBoardRecord[] | undefined) =>
-  saved?.enabled && serialRunning(boards) ? 'AI 집필을 실행하는 중이라 지금은 끌 수 없어요. 끝난 뒤에 다시 시도해 주세요.' : null
+/** 이 회차의 원고를 쓸 수 없는가: AI 자율 집필 중에는 1화만 쓸 수 있다. 회차를 아직 못 골랐으면(undefined) 잠그지 않는다. */
+export const serialEpisodeLocked = (autonomous: boolean, number: number | undefined) => autonomous && number !== undefined && number !== 1
+
+/** 새 회차를 만들 수 없는가: AI 자율 집필 중에는 활성 회차가 하나도 없을 때(1화 만들기)만 만든다. 회차 수를 아직 못 읽었으면(undefined) 잠그지 않는다. */
+export const serialNewEpisodeLocked = (autonomous: boolean, count: number | undefined) => autonomous && (count ?? 0) > 0
 
 /**
  * 지금 마감·실행을 못 하는 이유(할 수 있으면 null). 서버가 같은 조건을 409(SERIAL_DISABLED·SERIAL_RUNNING·SERIAL_NO_BOARD)로 다시 검사한다.
- * saved는 서버에 저장된 설정이다: 켠 값을 저장하기 전의 화면 입력으로는 실행되지 않는다. failed는 설정·기록 읽기가 실패했다는 표시다
+ * saved는 서버에 저장된 설정이다: 집필 방식을 저장하기 전에는 실행되지 않는다. failed는 설정·기록 읽기가 실패했다는 표시다
  * (읽지 못했는데 '불러오는 중'이라고 하면 기다려도 풀리지 않는 실패를 숨기게 된다).
  */
 export function serialRunBlock(saved: SerialSettings | undefined, boards: SerialBoardRecord[] | undefined, failed = false) {
   if (!saved || !boards) return failed ? '설정이나 기록을 불러오지 못해 실행할 수 없어요. 새로 고친 뒤 다시 시도해 주세요.' : '설정과 기록을 불러오는 중이에요.'
-  if (!saved.enabled) return 'AI 집필을 켜고 저장하면 실행할 수 있어요.'
+  if (!saved.enabled) return '운영 설정 > 집필 방식에서 AI 자율 집필을 고르면 실행할 수 있어요.'
   if (serialRunning(boards)) return '이미 실행 중이에요. 끝나면 기록에서 결과를 확인해 주세요.'
   if (!boards.some(({ status }) => status === 'open')) return '열린 의견 게시판이 없어요. 1화를 발행하면 게시판이 열려요.'
   return null

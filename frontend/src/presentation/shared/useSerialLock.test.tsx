@@ -63,7 +63,7 @@ it('작품이 아직 없거나 서버가 없는 시연(목업)에서는 읽지 �
   expect(demo.result.current.locked).toBe(false)
 })
 
-it('reread는 서버 값을 다시 읽어 AI 집필 탭의 저장(켜기·끄기)을 따라간다', async () => {
+it('reread는 서버 값을 다시 읽어 집필 방식의 저장(AI 자율 집필 켜기·끄기)을 따라간다', async () => {
   const repo = fakeSerialRepo({ saved: settings({ enabled: false }) })
   const hook = setup('w1', repo)
   await waitFor(() => expect(repo.settings).toHaveBeenCalledTimes(1))

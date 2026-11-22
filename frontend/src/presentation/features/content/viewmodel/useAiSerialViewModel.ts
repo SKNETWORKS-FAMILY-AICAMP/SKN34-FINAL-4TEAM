@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { appContainer } from '../../../../app/appContainer'
-import { serialOffBlock, serialRunBlock, serialRunning, serialSettingsError, type SerialBoardRecord, type SerialDay, type SerialNotice, type SerialSettings } from '../../../../domain/entities/aiSerial'
+import { serialRunBlock, serialRunning, serialSettingsError, type SerialBoardRecord, type SerialDay, type SerialNotice, type SerialScheduleInput, type SerialSettings } from '../../../../domain/entities/aiSerial'
 import type { SerialUseCase } from '../../../../domain/usecases/SerialUseCase'
 
 /** 대기·실행 중인 게시판이 있는 동안 기록을 다시 읽는 간격(ms). ponytail: 고정 5초 주기 읽기(열린 화면마다 한 요청). 화면이 많아지면 알림 SSE 신호로 바꾼다. */
@@ -16,10 +16,9 @@ const same = (a: SerialSettings, b: SerialSettings) =>
  * 저장·실행은 한 번에 하나만 보내고, 거절·실패는 입력을 그대로 두고 알리며 곧바로 다시 시도할 수 있다. 저장(PUT)이 성공하면 곧바로 저장 완료로 알리고,
  * 서버 값 다시 읽기(설정·기록)는 따로 해서 각 실패를 따로 알린다(읽기 실패가 저장 실패로 보이지 않게). 실행은 받아졌든 거절됐든 기록을 다시 읽는다.
  * 기록은 대기·실행 중인 게시판이 있는 동안만 주기적으로 다시 읽는다. 화면을 떠나면 읽기·쓰기 요청을 함께 취소한다. 작품이 바뀌면 호출 측이 key로 새로 만든다.
- * 게시판이 대기·실행 중이면 켜 둔 설정을 끌 수 없다(offBlock, 서버 409 SERIAL_RUNNING). onSaved는 저장(PUT)이 성공했을 때 부른다:
- * 켜짐 여부는 작품 관리의 '회차 작성하기' 잠금과 같이 쓰므로 호출 측이 서버 값을 다시 읽는다.
+ * 켜짐은 운영 설정의 집필 방식(AI 자율 집필)이 정하므로 이 화면은 요일·시각·방향만 저장하고 enabled는 서버 값을 읽기만 한다.
  */
-export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = appContainer.resolve('serialUseCase'), onSaved?: () => void) {
+export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = appContainer.resolve('serialUseCase')) {
   const [saved, setSaved] = useState<SerialSettings>()
   const [form, setForm] = useState<SerialSettings>()
   const [boards, setBoards] = useState<SerialBoardRecord[]>()
@@ -78,7 +77,6 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
   const dirty = !!form && !!saved && !same(form, saved)
   const canSave = dirty && !formError && !saving
   const runBlock = serialRunBlock(saved, boards, !!loadError || !!boardsError)
-  const offBlock = serialOffBlock(saved, boards)
 
   const change = (update: (current: SerialSettings) => SerialSettings) => {
     setForm((current) => current && update(current))
@@ -105,11 +103,11 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
     const signal = leaving.current?.signal
     let ok = false
     try {
-      // 저장(PUT)이 끝났으면 보낸 값을 기준으로 삼고 저장 완료를 알린다. 서버 값 다시 읽기는 아래에서 따로 한다.
+      // 저장(PUT)이 끝났으면 보낸 값(요일·시각·방향)을 기준으로 삼고 저장 완료를 알린다. 서버 값 다시 읽기는 아래에서 따로 한다.
       const sent = await useCase.saveSettings(workId, form, signal)
       if (signal?.aborted) return
-      setSaved(sent)
-      setForm(sent)
+      setSaved({ ...form, ...sent })
+      setForm({ ...form, ...sent })
       setNotice({ ok: true, text: '설정을 저장했어요.' })
       ok = true
     } catch (failure) {
@@ -119,10 +117,7 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
       setSaving(false)
     }
     // 설정과 기록은 각각 읽고 한쪽이 실패해도 저장 완료 알림과 다른 쪽 읽기는 그대로다. 저장하면 게시판이 열릴 수 있어 기록도 서버 값으로 다시 읽는다.
-    if (ok) {
-      onSaved?.()
-      await Promise.all([rereadSettings(signal), refreshBoards()])
-    }
+    if (ok) await Promise.all([rereadSettings(signal), refreshBoards()])
   }
 
   async function run() {
@@ -161,9 +156,7 @@ export function useAiSerialViewModel(workId: string, useCase: SerialUseCase = ap
     loadError, boardsError, notice, saving, running, dirty, formError, canSave,
     /** 지금 마감·실행을 못 하는 이유. null이면 할 수 있다. */
     runBlock,
-    /** 켜 둔 AI 집필을 끌 수 없는 이유(게시판이 대기·실행 중). null이면 끌 수 있다. */
-    offBlock,
-    edit: (patch: Partial<SerialSettings>) => change((current) => ({ ...current, ...patch })),
+    edit: (patch: Partial<SerialScheduleInput>) => change((current) => ({ ...current, ...patch })),
     toggleDay: (day: SerialDay) => change((current) => ({ ...current, days: current.days.includes(day) ? current.days.filter((d) => d !== day) : [...current.days, day] })),
     save, run, refreshBoards, reload,
   }

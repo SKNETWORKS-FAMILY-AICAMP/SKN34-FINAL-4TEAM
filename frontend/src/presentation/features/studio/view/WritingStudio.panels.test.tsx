@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
+import type { WritingMode } from '../../../../domain/entities/operatingSettings'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type { WritingChatUseCase } from '../../../../domain/usecases/WritingChatUseCase'
 import { WritingStudio } from './WritingStudio'
@@ -166,6 +167,23 @@ it('AI 채팅은 머리글에 브랜드 마크와 AI 채팅 제목을 두고 메
   expect(follows(head, log) && follows(log, composer)).toBe(true)
   // 입력 카드가 채팅 패널의 마지막 요소라 세로 flex에서 바닥에 붙는다.
   expect(chat.querySelector('.chat-panel')!.lastElementChild).toBe(composer)
+})
+
+// 집필 방식(운영 설정)에 AI 자율 집필(autonomous)이 들어와도 집필실은 깨지지 않는다: 직접 집필처럼 AI 채팅을 접은 채로 시작하고 열 수 있다. 처음부터 채팅을 여는 것은 AI 협업 집필뿐이다.
+it.each<[WritingMode, boolean]>([['assisted', true], ['direct', false], ['autonomous', false]])('집필 방식이 %s이면 AI 채팅을 처음부터 열까: %s', async (mode, opened) => {
+  const read = vi.spyOn(appContainer.resolve<EpisodeUseCase>('episodeUseCase'), 'workSettings').mockResolvedValue({
+    current: { revision: 1, writingMode: mode, changedAt: '2026-11-22T03:00:00Z' }, history: [],
+    worldUpdateMode: 'manual', proofreadingMode: 'review', autoserialState: 'off',
+  })
+  renderStudio()
+  await waitFor(() => expect(read).toHaveBeenCalled())
+  if (opened) expect(await screen.findByRole('complementary', { name: 'AI 채팅' })).toBeTruthy()
+  else {
+    await act(async () => {})
+    expect(screen.queryByRole('complementary', { name: 'AI 채팅' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'AI 채팅 열기' })).toBeTruthy()
+  }
+  expect(screen.queryByText('집필 방식을 불러오지 못했어요.')).toBeNull()
 })
 
 it('창이 1200px 이하면 준비 중인 AI 채팅을 접은 채로 시작하고, 처음부터 초점을 옮기지 않는다', () => {

@@ -1355,13 +1355,15 @@ it('다른 곳에서 바뀌었다는 배너는 바뀐 것이 있을 때만 보�
   expect(mcp.reload).toHaveBeenCalledTimes(1)
 })
 
-// ── AI 집필 중 원고 잠금(계약 'AI 집필 중 원고 잠금'): 서버가 409 SERIAL_LOCKED로 막는 수정을 화면도 미리 잠그고 안내한다 ──
-const LOCK = 'AI 집필 중이라 원고를 수정할 수 없어요. 작품 관리 > AI 집필에서 끄면 수정할 수 있어요.'
+// ── AI 자율 집필 중 원고 잠금(계약 'AI 자율 집필 = 집필 방식'): 작가는 1화만 쓴다. 서버가 2화부터 409 SERIAL_LOCKED로 막는 수정을 화면도 미리 잠그고 안내한다 ──
+const LOCK = 'AI 자율 집필 중에는 1화만 직접 쓸 수 있어요. 운영 설정 > 집필 방식을 바꾸면 모든 회차를 쓸 수 있어요.'
 const bodyBox = () => screen.getByRole('textbox', { name: '원고 본문' }) as HTMLTextAreaElement
 const titleBox = () => screen.getByRole('textbox', { name: '회차 제목' }) as HTMLInputElement
 const disabledOf = (scope: Pick<typeof screen, 'getByRole'>, name: string) => (scope.getByRole('button', { name }) as HTMLButtonElement).disabled
+const openEpisode2 = (extra: object = {}) => { model.active = { ...originalActive, number: 2, ...extra } }
 
-it('AI 집필이 꺼져 있으면 안내 없이 원고를 고칠 수 있고 버전 저장·새 회차도 열려 있다', () => {
+it('AI 자율 집필이 꺼져 있으면 안내 없이 원고를 고칠 수 있고 버전 저장·새 회차도 열려 있다', () => {
+  twoEpisodes()
   renderStudio()
   expect(screen.queryByText(LOCK)).toBeNull()
   expect(bodyBox().readOnly).toBe(false)
@@ -1370,8 +1372,29 @@ it('AI 집필이 꺼져 있으면 안내 없이 원고를 고칠 수 있고 버�
   expect(disabledOf(screen, '새 회차')).toBe(false)
 })
 
-it('AI 집필 중이면 위쪽 안내를 보이고 제목·본문을 읽기 전용으로 두며 버전 저장·새 회차를 잠근다 (보기 전용 버튼은 그대로다)', () => {
+it('AI 자율 집필 중에도 1화는 안내 없이 고칠 수 있고 저장 버튼이 열려 있지만, 회차가 있으면 새 회차는 잠그고 이유를 title로 알린다', () => {
   serial.locked = true
+  twoEpisodes()
+  renderStudio()
+  expect(screen.queryByText(LOCK)).toBeNull()
+  expect(bodyBox().readOnly).toBe(false)
+  expect(titleBox().readOnly).toBe(false)
+  expect(disabledOf(screen, '버전 저장')).toBe(false)
+  const create = screen.getByRole('button', { name: '새 회차' }) as HTMLButtonElement
+  expect(create.disabled).toBe(true)
+  expect(create.title).toBe(LOCK)
+})
+
+it('AI 자율 집필 중 회차가 하나도 없으면 새 회차(1화 만들기)는 열려 있다', () => {
+  serial.locked = true
+  renderStudio()
+  expect(disabledOf(screen, '새 회차')).toBe(false)
+})
+
+it('AI 자율 집필 중 2화를 열면 위쪽 안내를 보이고 제목·본문을 읽기 전용으로 두며 버전 저장을 잠근다 (보기 전용 버튼은 그대로다)', () => {
+  serial.locked = true
+  twoEpisodes()
+  openEpisode2()
   renderStudio()
   expect(screen.getByText(LOCK).getAttribute('role')).toBe('status')
   expect(bodyBox().readOnly).toBe(true)
@@ -1381,9 +1404,9 @@ it('AI 집필 중이면 위쪽 안내를 보이고 제목·본문을 읽기 전�
   expect(disabledOf(screen, '버전 · 공개')).toBe(false)
 })
 
-it('AI 집필 중이면 회차 설정 시트에서도 이유를 알리고 작가의 말·본문 이미지·공개 중단·초안·회차 삭제를 잠근다 (발행 이력 보기는 그대로다)', () => {
+it('AI 자율 집필 중 2화의 회차 설정 시트는 이유를 알리고 작가의 말·본문 이미지·공개 중단·초안·회차 삭제를 잠근다 (발행 이력 보기는 그대로다)', () => {
   serial.locked = true
-  model.active = { ...originalActive, publishedVersionId: 'v1' }
+  openEpisode2({ publishedVersionId: 'v1' })
   renderStudio()
   openSettings()
   const dialog = within(screen.getByRole('dialog', { name: '회차 설정' }))
@@ -1394,9 +1417,21 @@ it('AI 집필 중이면 회차 설정 시트에서도 이유를 알리고 작가
   expect(disabledOf(dialog, '발행 이력')).toBe(false)
 })
 
-it('AI 집필 중이면 버전·공개 시트에서 복원·공개·체크포인트 되돌리기를 권리를 확인한 뒤에도 잠그고 이유를 알린다', () => {
+it('AI 자율 집필 중 1화의 회차 설정 시트는 작가의 말·본문 이미지·공개 중단·초안·회차 삭제를 그대로 연다', () => {
   serial.locked = true
-  model.active = { ...originalActive, versions: [savedVersion('v1')], checkpoints: [{ versionId: 'v1', publishedAt: '2026-11-04T00:00:00Z', active: false }] }
+  model.active = { ...originalActive, publishedVersionId: 'v1' }
+  renderStudio()
+  openSettings()
+  const dialog = within(screen.getByRole('dialog', { name: '회차 설정' }))
+  expect(dialog.queryByText(LOCK)).toBeNull()
+  expect((dialog.getByLabelText('작가의 말') as HTMLTextAreaElement).readOnly).toBe(false)
+  expect((dialog.getByLabelText('본문 이미지 추가') as HTMLInputElement).disabled).toBe(false)
+  for (const name of ['회차 공개 중단', '초안 삭제', '회차 삭제']) expect(disabledOf(dialog, name), name).toBe(false)
+})
+
+it('AI 자율 집필 중 2화의 버전·공개 시트는 복원·공개·체크포인트 되돌리기를 권리를 확인한 뒤에도 잠그고 이유를 알린다', () => {
+  serial.locked = true
+  openEpisode2({ versions: [savedVersion('v1')], checkpoints: [{ versionId: 'v1', publishedAt: '2026-11-04T00:00:00Z', active: false }] })
   renderStudio()
   fireEvent.click(versionsButton())
   const dialog = within(screen.getByRole('dialog', { name: '원고 저장본 · 공개' }))
@@ -1405,4 +1440,26 @@ it('AI 집필 중이면 버전·공개 시트에서 복원·공개·체크포인
   fireEvent.click(dialog.getByLabelText(/이 저장 원고를 공개할 권리/))
   fireEvent.click(dialog.getByLabelText(/이 체크포인트를 다시 공개할 권리/))
   for (const name of ['선택 버전을 새 버전으로 복원', '선택한 저장 버전 공개', '이 체크포인트로 되돌리기']) expect(disabledOf(dialog, name), name).toBe(true)
+})
+
+it('AI 자율 집필 중 1화의 버전·공개 시트는 권리를 확인하면 복원·공개·체크포인트 되돌리기를 연다', () => {
+  serial.locked = true
+  model.active = { ...originalActive, versions: [savedVersion('v1')], checkpoints: [{ versionId: 'v1', publishedAt: '2026-11-04T00:00:00Z', active: false }] }
+  renderStudio()
+  fireEvent.click(versionsButton())
+  const dialog = within(screen.getByRole('dialog', { name: '원고 저장본 · 공개' }))
+  expect(dialog.queryByText(LOCK)).toBeNull()
+  fireEvent.change(dialog.getByLabelText('검토할 저장 버전'), { target: { value: 'v1' } })
+  fireEvent.click(dialog.getByLabelText(/이 저장 원고를 공개할 권리/))
+  fireEvent.click(dialog.getByLabelText(/이 체크포인트를 다시 공개할 권리/))
+  for (const name of ['선택 버전을 새 버전으로 복원', '선택한 저장 버전 공개', '이 체크포인트로 되돌리기']) expect(disabledOf(dialog, name), name).toBe(false)
+})
+
+it('AI 자율 집필 중 회차 항목의 ⋮ 메뉴는 그 항목의 회차로 판단한다: 1화의 회차 삭제는 열리고 2화는 잠긴다', () => {
+  serial.locked = true
+  twoEpisodes()
+  renderStudio()
+  const deleteItem = (n: number) => within(openRowMenu(n)).getByRole('menuitem', { name: '회차 삭제' }) as HTMLButtonElement
+  expect(deleteItem(1).disabled).toBe(false)
+  expect(deleteItem(2).disabled).toBe(true)
 })

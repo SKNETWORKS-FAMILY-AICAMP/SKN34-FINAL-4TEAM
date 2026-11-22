@@ -8,7 +8,7 @@ import { appContainer } from '../../../../app/appContainer'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { useAsyncData } from '../../../shared/useAsyncData'
 import { useSerialLock } from '../../../shared/useSerialLock'
-import { SERIAL_LOCK_NOTICE } from '../../../../domain/entities/aiSerial'
+import { SERIAL_LOCK_NOTICE, serialEpisodeLocked, serialNewEpisodeLocked } from '../../../../domain/entities/aiSerial'
 import { savedVersionLabel,publicationActionLabel,type WritingEpisode } from '../../../../domain/entities/content'
 import { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
 import './writing.css'
@@ -63,11 +63,13 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   useDocumentTitle('집필실')
   const plans=useStoryPlanViewModel(id,false,undefined,true)
   const vm=useWritingViewModel(id,undefined,undefined,episode,plans.confirmLeave)
-  // AI 집필 중에는 서버가 소유자의 원고 수정을 409 SERIAL_LOCKED로 막는다(계약 'AI 집필 중 원고 잠금'). 화면도 미리 읽기 전용으로 두고 안내하되, 켜짐 여부를 읽지 못하면 잠그지 않고 서버가 판정한다.
-  const serialLocked=useSerialLock(id).locked
-  // 저장·발행·삭제·복원처럼 원고를 바꾸는 버튼은 요청 중이거나 AI 집필 중이면 잠근다.
-  const noWrite=vm.busy||serialLocked
-  const lockNote=serialLocked&&<p className="ep-alert ep-changed" role="status">{SERIAL_LOCK_NOTICE}</p>
+  // AI 자율 집필 중에는 작가가 1화만 쓴다(계약 'AI 자율 집필 = 집필 방식'): 서버가 2화부터의 수정을 409 SERIAL_LOCKED로 막으므로 화면도 미리 읽기 전용으로 두고 안내한다. 켜짐 여부를 읽지 못하면 잠그지 않고 서버가 판정한다.
+  const serialOn=useSerialLock(id).locked
+  const frozen=serialEpisodeLocked(serialOn,vm.active?.number)
+  // 저장·발행·삭제·복원처럼 열린 회차의 원고를 바꾸는 버튼은 요청 중이거나 그 회차가 잠겨 있으면 잠근다. 새 회차는 회차가 하나라도 있으면 잠근다(1화 만들기만 열린다).
+  const noWrite=vm.busy||frozen
+  const newLocked=serialNewEpisodeLocked(serialOn,vm.episodes.length)
+  const lockNote=frozen&&<p className="ep-alert ep-changed" role="status">{SERIAL_LOCK_NOTICE}</p>
   // AI·외부 도구(MCP)가 이 작품을 바꾸면 알림 신호로 알아차려 다시 읽는다. 저장하지 않은 원고가 있으면 덮지 않고 배너로 알린다(#553).
   const mcp=useMcpChangeWatch({targetType:'work',targetId:id,dirty:vm.dirty,reload:vm.refresh})
   useWritingPlanNavigation(vm.mayLeave,vm.dirty||plans.dirty,vm.busy||vm.saving||plans.busy)
@@ -246,7 +248,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         <div className="writing-rail-head">
           <h2>회차</h2>
           {/* 서버가 빈 제목을 거부하므로(UseCase·@NotBlank) 제목 없이 만들 때는 기본 제목을 넘긴다. 제목은 편집기 첫 줄에서 바꾼다. */}
-          <button type="button" className="writing-icon-btn" aria-label="새 회차" title="새 회차" disabled={noWrite} onClick={async()=>{if(await vm.create('새 회차')){setRights(false);setSelection({episode:0,id:''})}}}><ComposeIcon /></button>
+          <button type="button" className="writing-icon-btn" aria-label="새 회차" title={newLocked?SERIAL_LOCK_NOTICE:'새 회차'} disabled={vm.busy||newLocked} onClick={async()=>{if(await vm.create('새 회차')){setRights(false);setSelection({episode:0,id:''})}}}><ComposeIcon /></button>
         </div>
         <div className="writing-rail-split">
           <nav ref={list} id={listId} className="seps writing-episodes" aria-label="회차 목록" style={active?{flexBasis:`${split}%`}:undefined}>
@@ -266,7 +268,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
                   <button type="button" role="menuitem" disabled>설정 수집 <small>준비 중</small></button>
                   <button type="button" role="menuitem" disabled={vm.historyLoading} onClick={()=>openPublication(e.number)}>발행 이력</button>
                   <hr />
-                  <button type="button" role="menuitem" className="danger" disabled={noWrite||!!blocker} aria-describedby={blocker?reason:undefined} onClick={()=>{if(on)void deleteActive();else if(pick(e))setDeleting(e.number)}}>회차 삭제</button>
+                  <button type="button" role="menuitem" className="danger" disabled={vm.busy||serialEpisodeLocked(serialOn,e.number)||!!blocker} aria-describedby={blocker?reason:undefined} onClick={()=>{if(on)void deleteActive();else if(pick(e))setDeleting(e.number)}}>회차 삭제</button>
                   {blocker&&<p id={reason} className="pop-menu-note">{blocker}</p>}
                 </PopMenu>
               </div>
@@ -288,14 +290,14 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
       <div className="editor writing-editor" hidden={stage.open}>
         {active?<>
           {active.hasDraft===false&&<p role="status" className="small muted writing-draftless">작업 초안이 없어요. 입력하면 새 초안으로 저장되며, 상단의 버전 · 공개에서 이전 버전을 복원할 수 있어요.</p>}
-          <input className="et writing-title" aria-label="회차 제목" placeholder="제목" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked||serialLocked} onChange={e=>vm.edit({title:e.target.value})}/>
+          <input className="et writing-title" aria-label="회차 제목" placeholder="제목" value={vm.draft.title} maxLength={120} readOnly={active.inherited||vm.editingLocked||frozen} onChange={e=>vm.edit({title:e.target.value})}/>
           {/* 원작 기준 회차는 편집기 없이 공용 렌더러로 읽기 전용 본문을 그린다(이름은 같고 읽기 전용임을 보조기기에 알린다).
               내 회차는 마크다운 편집기(Toast UI Editor, 늦게 불러온다): 저장 형식은 그대로 문자열(글자 + 서식 기호 + 이미지 표식)이고 이미지는 기존 업로드 경로(vm.addImage)로 올린다.
               사용자가 누른 요청이 끝날 때까지만 잠그고(editingLocked), 자동 저장은 잠그지 않는다. */}
           {active.inherited
             ?<div className="writing-body writing-readonly" role="textbox" aria-multiline="true" aria-readonly="true" aria-label="원고 본문" tabIndex={0}><ManuscriptBody workId={id} number={active.number} body={vm.draft.body}/></div>
             :<Suspense fallback={<div className="writing-body writing-loading" aria-live="polite">편집기를 불러오고 있어요.</div>}>
-              <LazyManuscriptEditor ref={editor} value={vm.draft.body} editable={!vm.editingLocked&&!serialLocked} busy={vm.busy} workId={id} number={active.number} onChange={body=>vm.edit({body})} onImage={(file,start,end)=>vm.addImage(file,start,end)}/>
+              <LazyManuscriptEditor ref={editor} value={vm.draft.body} editable={!vm.editingLocked&&!frozen} busy={vm.busy} workId={id} number={active.number} onChange={body=>vm.edit({body})} onImage={(file,start,end)=>vm.addImage(file,start,end)}/>
             </Suspense>}
           <footer className="writing-foot">
             <p className="small muted">{bodyLength(vm.draft.body).toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자 (공백 포함){!active.inherited&&` · ${publishHint(vm.draft.body)}`} · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
@@ -325,7 +327,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
               {vm.error&&<p className="ep-alert" role="alert">{vm.error}</p>}
               {vm.notice&&<p role="status">{vm.notice}</p>}
               <div className="writing-group">
-                <label className="field"><span className="writing-group-title">작가의 말</span><textarea className="ta" value={vm.draft.authorNote ?? ''} maxLength={2000} readOnly={active.inherited||vm.editingLocked||serialLocked} onChange={e=>vm.edit({authorNote:e.target.value})}/></label>
+                <label className="field"><span className="writing-group-title">작가의 말</span><textarea className="ta" value={vm.draft.authorNote ?? ''} maxLength={2000} readOnly={active.inherited||vm.editingLocked||frozen} onChange={e=>vm.edit({authorNote:e.target.value})}/></label>
                 <p className="small muted">선택 입력 · 최대 2,000자 · 저장 버전을 발행하면 본문 뒤에 공개돼요.</p>
               </div>
               <div className="writing-group">
@@ -383,7 +385,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
                 </li>)}</ol>
               </>}
             </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='schedule'?(active.inherited?<p>원작 기준 회차는 예약 발행할 수 없어요.</p>:
-              <PublicationSchedulePanel key={`${id}:${active.number}`} workId={id} episode={active} locked={serialLocked}/>):historyView==='compare'?<>
+              <PublicationSchedulePanel key={`${id}:${active.number}`} workId={id} episode={active} locked={frozen}/>):historyView==='compare'?<>
               <h2>{historyLabel}</h2>
               <VersionComparison workId={id} number={active.number} versions={active.versions} model={comparison}/>
             </>:<>

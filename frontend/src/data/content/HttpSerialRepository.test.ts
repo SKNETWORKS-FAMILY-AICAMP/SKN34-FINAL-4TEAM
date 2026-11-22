@@ -44,8 +44,8 @@ describe('AI 집필 설정·기록 (소유자, Bearer·CSRF)', () => {
     await expect(new HttpSerialRepository(vi.fn().mockResolvedValue(Response.json(bad))).settings('w1')).rejects.toThrow('서버 응답 형식')
   })
 
-  it('저장은 PUT으로 {enabled,days,time,direction}을 보내고 응답 본문(설정 JSON·204·202)은 쓰지 않는다', async () => {
-    const input = { enabled: true, days: ['MON' as const, 'SUN' as const], time: '20:30', direction: '긴장감 있게' }
+  it('저장은 PUT으로 {days,time,direction}만 보내고(켜짐은 집필 방식이 정한다) 응답 본문(설정 JSON·204·202)은 쓰지 않는다', async () => {
+    const input = { days: ['MON' as const, 'SUN' as const], time: '20:30', direction: '긴장감 있게' }
     for (const response of [() => Response.json(settingsRow()), () => new Response(null, { status: 204 }), () => new Response(null, { status: 202 })]) {
       const fetcher = vi.fn(async () => response())
       await expect(new HttpSerialRepository(fetcher).saveSettings('w1', input)).resolves.toBeUndefined()
@@ -181,15 +181,13 @@ describe('오류 문구', () => {
   it.each([
     ['OPINION_EXISTS', '이 게시판에는 이미 의견을 냈어요.', (repo: HttpSerialRepository) => repo.submitOpinion('w1', { kind: 'general', body: '의견' })],
     ['VOTE_CONFLICT', '투표를 처리하는 중이에요. 잠시 뒤 다시 눌러 주세요.', (repo: HttpSerialRepository) => repo.vote('w1', 'o1')],
-    // 게시판이 대기·실행 중일 때 끄는 저장은 서버가 거절한다.
-    ['SERIAL_RUNNING', 'AI가 집필 중이라 지금은 끌 수 없어요.', (repo: HttpSerialRepository) => repo.saveSettings('w1', { enabled: false, days: ['MON'], time: '21:00', direction: '' })],
   ])('409 %s는 서버가 준 한국어 detail을 그대로 알린다 (SERIAL_* 등 나머지 code도 같은 길이다)', async (code, detail, call) => {
     await expect(call(fail(409, { detail, code }))).rejects.toThrow(new Error(detail))
   })
 
   it('모르는 code나 code 없는 오류는 서버 detail을 그대로 전달하고, detail도 없으면 기본 문구다', async () => {
     await expect(fail(409, { detail: '서버가 준 안내예요.', code: 'SOMETHING_NEW' }).run('w1')).rejects.toThrow('서버가 준 안내예요.')
-    await expect(fail(403, { detail: '작품 소유자만 할 수 있어요.' }).saveSettings('w1', { enabled: false, days: ['MON'], time: '21:00', direction: '' })).rejects.toThrow('작품 소유자만 할 수 있어요.')
+    await expect(fail(403, { detail: '작품 소유자만 할 수 있어요.' }).saveSettings('w1', { days: ['MON'], time: '21:00', direction: '' })).rejects.toThrow('작품 소유자만 할 수 있어요.')
     await expect(new HttpSerialRepository(vi.fn().mockResolvedValue(new Response('<html>bad gateway</html>', { status: 502 }))).run('w1')).rejects.toThrow('요청을 처리하지 못했어요.')
   })
 })

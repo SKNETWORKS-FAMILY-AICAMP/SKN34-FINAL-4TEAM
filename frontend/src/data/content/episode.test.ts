@@ -44,6 +44,24 @@ describe('작품 운영 설정', () => {
       method: 'PUT', body: JSON.stringify({ revision: 0, writingMode: 'assisted' }),
     }))
   })
+
+  // AI 자율 집필(autonomous)을 저장하면 서버가 켠다(계약 'AI 자율 집필 = 집필 방식'). 읽기·이력에도 같은 값이 온다.
+  it('AI 자율 집필(autonomous)을 저장하고 응답의 설정 버전·이력으로 받는다', async () => {
+    const version = { revision: 2, writingMode: 'autonomous', changedAt: '2026-11-22T03:00:00Z' }
+    const defaults = { worldUpdateMode: 'manual', proofreadingMode: 'review', autoserialState: 'off' }
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ ...defaults, current: version, history: [version] }))
+    const saved = await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).updateWorkSettings('w', 1, 'autonomous')
+    expect(saved.current).toEqual(version)
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/works/w/operating-settings', expect.objectContaining({ method: 'PUT', body: JSON.stringify({ revision: 1, writingMode: 'autonomous' }) }))
+  })
+
+  it('실행 중에 AI 자율 집필에서 다른 방식으로 바꾸는 저장의 409 SERIAL_RUNNING은 서버 detail을 그대로 알린다', async () => {
+    const detail = 'AI 집필을 실행하는 중이라 지금은 끌 수 없어요. 끝난 뒤에 다시 시도해 주세요.'
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ detail, code: 'SERIAL_RUNNING' }, { status: 409 }))
+    const error = await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).updateWorkSettings('w', 2, 'direct').catch((e: unknown) => e)
+    expect((error as Error).message).toBe(detail)
+    expect((error as Error).cause).toBe('SERIAL_RUNNING')
+  })
 })
 
 describe('회차 예약 발행', () => {

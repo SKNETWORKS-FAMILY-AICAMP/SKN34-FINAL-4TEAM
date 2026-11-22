@@ -8,7 +8,7 @@ import { usePublicationScheduleViewModel } from '../viewmodel/usePublicationSche
 const statusLabel = { pending: '대기', published: '발행 완료', failed: '실패', canceled: '취소' }
 const formatTime = (instant: string) => new Date(instant).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
 
-/** locked: AI 집필 중이라 서버가 원고 수정(예약 발행 포함)을 막는 동안 예약·변경을 잠근다. 예약 취소는 막지 않고 서버가 판정한다. */
+/** locked: AI 자율 집필 중이라 서버가 이 회차(2화부터)의 원고 수정(예약 등록·변경 포함)을 막는 동안 예약·변경을 잠근다. 예약 취소는 막지 않는다. */
 export function PublicationSchedulePanel({ workId, episode, locked = false }: { workId: string; episode: WritingEpisode; locked?: boolean }) {
   const vm = usePublicationScheduleViewModel(workId, episode.number)
   const versions = episode.versions.filter(version => version.body.trim())

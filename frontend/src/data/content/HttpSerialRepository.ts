@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { INSUFFICIENT_CREDIT_MESSAGE, type OpinionRequest, type SerialSettings } from '../../domain/entities/aiSerial'
+import { INSUFFICIENT_CREDIT_MESSAGE, type OpinionRequest, type SerialScheduleInput } from '../../domain/entities/aiSerial'
 import type { SerialRepository } from '../../domain/repositories/SerialRepository'
 import { getAccessToken } from '../api/auth'
 import { HttpEpisodeRepository } from './HttpEpisodeRepository'
@@ -49,7 +49,7 @@ export class HttpSerialRepository implements SerialRepository {
   }
 
   settings(workId: string, signal?: AbortSignal) { return this.call(serial(workId), settings, 'GET', undefined, signal) }
-  async saveSettings(workId: string, input: SerialSettings, signal?: AbortSignal) { await this.call(serial(workId), z.unknown(), 'PUT', input, signal) }
+  async saveSettings(workId: string, input: SerialScheduleInput, signal?: AbortSignal) { await this.call(serial(workId), z.unknown(), 'PUT', input, signal) }
   async run(workId: string, signal?: AbortSignal) { await this.call(serial(workId) + '/run', z.unknown(), 'POST', undefined, signal) }
   boards(workId: string, signal?: AbortSignal) { return this.call(serial(workId) + '/boards', z.array(record), 'GET', undefined, signal) }
   board(workId: string, signal?: AbortSignal) { return this.call(board(workId), boardView, 'GET', undefined, signal, !getAccessToken()) }

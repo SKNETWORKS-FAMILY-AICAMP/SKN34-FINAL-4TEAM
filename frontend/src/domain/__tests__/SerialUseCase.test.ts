@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { seedWorks } from '../../data/mock/seed'
 import {
   BEATS_MAX, BEAT_MAX, OPINION_BODY_MAX, PREMISE_MAX, SERIAL_DIRECTION_MAX,
-  SERIAL_LOCK_NOTICE, canHideOpinions, opinionInputError, opinionRequest, serialOffBlock, serialRunBlock, serialRunning, serialSettingsError, serialSettingsInput,
+  SERIAL_LOCK_NOTICE, canHideOpinions, opinionInputError, opinionRequest, serialEpisodeLocked, serialNewEpisodeLocked, serialRunBlock, serialRunning, serialSettingsError, serialSettingsInput,
 } from '../entities/aiSerial'
 import { SerialUseCase } from '../usecases/SerialUseCase'
 import { board, fakeSerialRepo, record, settings } from '../../test/serialFixtures'
@@ -28,9 +28,9 @@ describe('AI 집필 설정 규칙', () => {
     expect(serialSettingsError(settings({ direction: '가'.repeat(SERIAL_DIRECTION_MAX + 1) }))).toContain('2,000자')
   })
 
-  it('요청 본문은 방향의 앞뒤 공백을 지운다 (요일 순서는 서버가 월~일로 저장한다)', () => {
+  it('요청 본문은 요일·시각·방향만 보내고 방향의 앞뒤 공백을 지운다 (켜짐은 집필 방식이 정하므로 보내지 않는다, 요일 순서는 서버가 월~일로 저장한다)', () => {
     expect(serialSettingsInput(settings({ days: ['SUN', 'MON'], direction: '  따뜻하게\n ' })))
-      .toEqual({ enabled: true, days: ['SUN', 'MON'], time: '21:00', direction: '따뜻하게' })
+      .toEqual({ days: ['SUN', 'MON'], time: '21:00', direction: '따뜻하게' })
   })
 })
 
@@ -48,8 +48,8 @@ describe('지금 마감·실행 가능 여부', () => {
     expect(serialRunBlock(on, [record()], true)).toBeNull()
   })
 
-  it('꺼져 있으면 켜고 저장하라고 알린다 (켠 값을 저장하기 전의 화면 입력은 보지 않는다)', () => {
-    expect(serialRunBlock(settings({ enabled: false }), [record()])).toContain('켜고 저장')
+  it('꺼져 있으면 운영 설정의 집필 방식에서 AI 자율 집필을 고르라고 알린다', () => {
+    expect(serialRunBlock(settings({ enabled: false }), [record()])).toBe('운영 설정 > 집필 방식에서 AI 자율 집필을 고르면 실행할 수 있어요.')
   })
 
   it('이미 대기·실행 중이면 막고, 열린 게시판이 없으면 게시판이 열리는 조건을 알린다', () => {
@@ -64,10 +64,9 @@ describe('지금 마감·실행 가능 여부', () => {
   })
 })
 
-describe('AI 집필 중 원고 잠금', () => {
-  const on = settings()
-  it('집필실과 작품 관리가 같은 안내 문장을 쓴다', () => {
-    expect(SERIAL_LOCK_NOTICE).toBe('AI 집필 중이라 원고를 수정할 수 없어요. 작품 관리 > AI 집필에서 끄면 수정할 수 있어요.')
+describe('AI 자율 집필 중 원고 잠금', () => {
+  it('집필실과 작품 관리가 서버의 SERIAL_LOCKED와 같은 계약 문장을 쓴다', () => {
+    expect(SERIAL_LOCK_NOTICE).toBe('AI 자율 집필 중에는 1화만 직접 쓸 수 있어요. 운영 설정 > 집필 방식을 바꾸면 모든 회차를 쓸 수 있어요.')
   })
 
   it('대기·실행 중인 게시판이 있을 때만 실행 중이다 (기록을 읽지 못했으면 실행 중으로 보지 않는다)', () => {
@@ -78,15 +77,18 @@ describe('AI 집필 중 원고 잠금', () => {
     expect(serialRunning(undefined)).toBe(false)
   })
 
-  it('켜 둔 설정은 게시판이 대기·실행 중인 동안 끌 수 없다고 알린다 (서버가 끄는 저장을 409 SERIAL_RUNNING으로 거절하는 조건과 같다)', () => {
-    for (const status of ['queued', 'running'] as const) expect(serialOffBlock(on, [record({ status })]), status).toContain('끌 수 없어요')
-    expect(serialOffBlock(on, [record({ status: 'open' }), record({ id: 'b0', status: 'published' })])).toBeNull()
+  it('AI 자율 집필 중에는 1화만 직접 쓸 수 있다 (꺼져 있거나 회차를 아직 못 골랐으면 잠그지 않는다)', () => {
+    expect(serialEpisodeLocked(true, 1)).toBe(false)
+    for (const number of [2, 3, 10]) expect(serialEpisodeLocked(true, number), String(number)).toBe(true)
+    expect(serialEpisodeLocked(true, undefined)).toBe(false)
+    for (const number of [1, 2, undefined]) expect(serialEpisodeLocked(false, number), String(number)).toBe(false)
   })
 
-  it('이미 꺼져 있거나 아직 읽지 못했으면 막지 않는다 (판정은 서버 409가 한다)', () => {
-    expect(serialOffBlock(settings({ enabled: false }), [record({ status: 'running' })])).toBeNull()
-    expect(serialOffBlock(undefined, [record({ status: 'running' })])).toBeNull()
-    expect(serialOffBlock(on, undefined)).toBeNull()
+  it('새 회차는 활성 회차가 하나도 없을 때(1화 만들기)만 만든다 (꺼져 있거나 회차 수를 아직 못 읽었으면 잠그지 않는다)', () => {
+    expect(serialNewEpisodeLocked(true, 0)).toBe(false)
+    for (const count of [1, 5]) expect(serialNewEpisodeLocked(true, count), String(count)).toBe(true)
+    expect(serialNewEpisodeLocked(true, undefined)).toBe(false)
+    expect(serialNewEpisodeLocked(false, 3)).toBe(false)
   })
 })
 
@@ -132,12 +134,12 @@ describe('의견 숨김 권한 표시 (서버가 다시 확인한다)', () => {
 })
 
 describe('AI 자율 연재 UseCase', () => {
-  it('설정 저장은 검증하고 다듬은 값을 보내고 그 값을 돌려준다 (서버 값 다시 읽기는 호출 측이 따로 한다)', async () => {
+  it('설정 저장은 검증하고 요일·시각·방향만 다듬어 보내고 그 값을 돌려준다 (서버 값 다시 읽기는 호출 측이 따로 한다)', async () => {
     const { repo, useCase } = setup()
     const signal = new AbortController().signal
     const saved = await useCase.saveSettings('w1', settings({ days: ['SUN', 'MON'], direction: ' 입력 ' }), signal)
-    expect(repo.saveSettings).toHaveBeenCalledWith('w1', settings({ days: ['SUN', 'MON'], direction: '입력' }), signal)
-    expect(saved).toEqual(settings({ days: ['SUN', 'MON'], direction: '입력' }))
+    expect(repo.saveSettings).toHaveBeenCalledWith('w1', { days: ['SUN', 'MON'], time: '21:00', direction: '입력' }, signal)
+    expect(saved).toEqual({ days: ['SUN', 'MON'], time: '21:00', direction: '입력' })
     // 저장(PUT)이 끝난 뒤 읽기가 실패해도 저장 실패로 보이지 않게 저장은 읽지 않는다.
     expect(repo.settings).not.toHaveBeenCalled()
   })

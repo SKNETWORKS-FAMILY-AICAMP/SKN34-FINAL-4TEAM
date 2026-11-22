@@ -54,12 +54,10 @@ it('기록만 읽지 못해도 설정은 보이고 기록 실패를 따로 알�
 })
 
 it('입력을 바꾸면 저장할 수 있고, 저장하면 저장 완료를 알린 뒤 서버 값을 다시 읽어 기준 설정과 기록을 갱신한다', async () => {
-  const repo = fakeRepo(settings({ enabled: false, days: [] }))
+  // AI 자율 집필이 켜져 있는데 요일이 비어 있으면 요일을 골라야 저장할 수 있다(꺼져 있을 때의 빈 요일은 도메인 테스트가 본다).
+  const repo = fakeRepo(settings({ days: [] }))
   const hook = setup(repo)
   await loaded(hook)
-  // 꺼진 채로 요일이 비어 있는 것은 규칙 위반이 아니다. 켜면 요일을 골라야 저장할 수 있다.
-  expect(hook.result.current.formError).toBeNull()
-  act(() => hook.result.current.edit({ enabled: true }))
   expect(hook.result.current.formError).toContain('요일')
   expect(hook.result.current.canSave).toBe(false)
   act(() => { hook.result.current.toggleDay('SAT'); hook.result.current.toggleDay('MON') })
@@ -68,7 +66,8 @@ it('입력을 바꾸면 저장할 수 있고, 저장하면 저장 완료를 알�
   repo.settings.mockResolvedValue(settings({ days: ['MON', 'SAT'] }))
   repo.boards.mockResolvedValue([record({ id: 'b2' }), record()])
   await act(() => hook.result.current.save())
-  expect(repo.saveSettings).toHaveBeenCalledWith('w1', { enabled: true, days: ['SAT', 'MON'], time: '21:00', direction: '밝은 분위기로' }, expect.any(AbortSignal))
+  // 요일·시각·방향만 보낸다(켜짐은 집필 방식이 정하므로 보내지 않는다).
+  expect(repo.saveSettings).toHaveBeenCalledWith('w1', { days: ['SAT', 'MON'], time: '21:00', direction: '밝은 분위기로' }, expect.any(AbortSignal))
   // 입력 칸은 보낸 값 그대로 두고(그새 고친 입력을 지우지 않게) 기준 설정만 서버가 저장한 값으로 맞춘다.
   expect(hook.result.current.saved).toEqual(settings({ days: ['MON', 'SAT'] }))
   expect(hook.result.current.form).toEqual({ enabled: true, days: ['SAT', 'MON'], time: '21:00', direction: '밝은 분위기로' })
@@ -112,7 +111,7 @@ it('저장이 실패하면 서버 문구를 알리고 입력은 그대로 두며
 it('꺼져 있거나 열린 게시판이 없으면 지금 실행을 막고 요청도 보내지 않는다', async () => {
   const off = setup(fakeRepo(settings({ enabled: false })))
   await loaded(off)
-  expect(off.result.current.runBlock).toContain('켜고 저장')
+  expect(off.result.current.runBlock).toContain('AI 자율 집필을 고르면')
   await act(() => off.result.current.run())
   expect(off.repo.run).not.toHaveBeenCalled()
   const none = setup(fakeRepo(settings(), [record({ status: 'published' })]))
