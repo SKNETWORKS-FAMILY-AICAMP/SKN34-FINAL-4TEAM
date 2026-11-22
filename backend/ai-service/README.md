@@ -63,7 +63,7 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 | `SIMULATION_WORLD_CACHE` | `1` | 대화 모드에서 resume마다 다시 읽는 세계관(`world_studio_read` 둘)을 프로세스 안에서 재사용한다. 목록(`world_studio_list`)은 매번 부르고, 그 `draftRevision`이 같고 `relationshipStatus`가 `current`일 때만 (세계관, 기준 회차) 칸을 쓴다. 고친 세계관은 revision이 올라 다음 요청에 반영된다(#356). Fork 이어받기와 원고 발췌 검색은 캐시하지 않는다(칸은 32개까지) |
 | `SIMULATION_SKIP_NARRATION_CHECK` | `1` | 전지적(omniscient) 나레이션 턴은 검사 모델을 부르지 않고 통과로 붙인다. 서버 규칙 검사(`_problem`)와 인물 시점 나레이션·독백·대사의 검사는 그대로다 |
 | `SIMULATION_ACT_BASE_URL` | OpenAI 호환 제공사 주소(예 `https://hemmingway.io/v1`, 비우면 OpenAI) | **인물 대사(act) 호출만** 그 제공사로 보낸다. 제공사에는 Responses API가 없어 Chat Completions로 보내고 추론 강도는 `reasoning_effort`로 보낸다(`store`는 보내지 않는다). 계획·나레이션·검사는 OpenAI 그대로다. 길이 초과·콘텐츠 필터·깨진 JSON 응답은 502, 제공사 오류는 503이다(고쳐 읽거나 OpenAI로 다시 보내지 않는다) |
-| `SIMULATION_ACT_API_KEY` | 그 제공사의 키 | base URL이 있으면 필수다(없으면 모델을 부르기 전에 503 설정 오류). `OPENAI_API_KEY`를 외부 제공사로 보내지 않는다 |
+| `SIMULATION_ACT_API_KEY` | 그 제공사의 키 | base URL이 있으면 필수다(없으면 모델을 부르기 전에 503 설정 오류). `OPENAI_API_KEY`를 외부 제공사로 보내지 않고, base URL이 없으면 이 키는 쓰지 않는다(제공사 키를 OpenAI로 보내지 않는다) |
 | `SIMULATION_ACT_MODEL` | act 호출의 모델(비우면 `OPENAI_MODEL`) | base URL 없이 모델만 정하면 act만 다른 OpenAI 모델을 쓴다(Responses API) |
 
 성적표 실행기는 [`eval/simulation/`](eval/simulation/README.md)에 있다(`prepare`·`estimate`·`run`·`report`, 해리 포터 원문 기반 세계관은 `build-hp`·`show-hp`·`seed-hp`와 `--world hp`). `run`·`build-hp`는 실제 OpenAI를 부르므로 비용 승인 뒤에만 쓴다(OpenAI 상한에 닿으면 `--via ocx`로 이어 받는 안내가 나온다).

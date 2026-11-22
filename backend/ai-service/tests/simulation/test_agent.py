@@ -326,6 +326,12 @@ def test_an_act_base_url_needs_its_own_key_and_never_borrows_the_openai_key(monk
     assert [request.host for request in sent] == ['api.openai.com']
 
 
+def test_an_act_key_without_a_base_url_is_not_used_and_the_openai_key_stays_on_the_openai_path(monkeypatch):
+    sent = act_provider(monkeypatch, SIMULATION_ACT_BASE_URL=None, SIMULATION_ACT_MODEL=None)  # 제공사 키만 남아 있다
+    agent.act(SECRET_DOC)
+    assert [(r.host, r.path, r.auth) for r in sent] == [('api.openai.com', '/v1/responses', 'Bearer test-key')]  # 제공사 키를 OpenAI로 보내지 않는다
+
+
 def test_the_act_provider_model_falls_back_to_the_openai_model(monkeypatch):
     sent = act_provider(monkeypatch, SIMULATION_ACT_MODEL=None)
     agent.act(SECRET_DOC)
@@ -377,16 +383,16 @@ def test_an_act_provider_call_reports_usage_latency_and_the_resolved_model_like_
     listener = Listener()
     act_provider(monkeypatch)
     RunnableLambda(lambda _: agent.act(SECRET_DOC)).invoke(None, {'callbacks': [listener]})
-    act_provider(monkeypatch, lambda _: httpx.Response(200, json=completion(finish='length')))
+    act_provider(monkeypatch, lambda _: httpx.Response(200, json=completion(finish='length')))  # 잘렸어도 토큰은 쓴 호출이다
     with pytest.raises(SimulationFailure):
         RunnableLambda(lambda _: agent.act(SECRET_DOC)).invoke(None, {'callbacks': [listener]})
     (name, ok_event), (_, failed) = listener.events
     assert name == MODEL_EVENT and (ok_event['name'], ok_event['failed'], ok_event['inputTokens'], ok_event['outputTokens']) == ('act', False, 10, 4)
-    assert (failed['name'], failed['failed'], failed['inputTokens']) == ('act', True, None)
+    assert (failed['name'], failed['failed'], failed['inputTokens'], failed['outputTokens']) == ('act', True, 10, 4)  # 실패한 유료 호출의 사용량도 장부에 간다
     ok_span, failed_span = spans()
     assert ok_span.attributes['langfuse.observation.model.name'] == 'resolved-model'
     assert ok_span.attributes['langfuse.observation.usage_details'] == '{"input": 10, "output": 4}'
-    assert failed_span.attributes['langfuse.observation.level'] == 'ERROR'
+    assert failed_span.attributes['langfuse.observation.level'] == 'ERROR' and failed_span.attributes['langfuse.observation.usage_details'] == '{"input": 10, "output": 4}'
 
 
 @pytest.mark.parametrize('effort', ['LOW', 'xhigh'])

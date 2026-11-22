@@ -7,7 +7,7 @@
 추적에는 모델·사용량·실패만 남긴다. 설정 문서·생성 문단은 팀 결정 범위(질문·원고·답변) 밖이라 남기지 않는다.
 LangChain 실행(장면 에이전트의 도구) 안에서 부르면 호출마다 사용량·지연·실패를 공통 `MODEL_EVENT`로 알려 사용량 장부(app/agent_runtime.UsageLedger)가 모은다.
 act 전용 제공사: `SIMULATION_ACT_BASE_URL`(OpenAI 호환 제공사, 예 Hemmingway·OpenRouter)이 있으면 act 호출만 그 제공사의 Chat Completions로 보낸다(Responses API가 없다).
-키는 `SIMULATION_ACT_API_KEY`가 있어야 하고(없으면 모델을 부르기 전에 503, OPENAI_API_KEY를 외부로 보내지 않는다) 모델은 `SIMULATION_ACT_MODEL`(비면 OPENAI_MODEL)이다. 추론 강도는 `reasoning_effort`로 보내고 store는 보내지 않는다. 다른 호출은 OpenAI 그대로다.
+키는 `SIMULATION_ACT_API_KEY`가 있어야 하고(없으면 모델을 부르기 전에 503, OPENAI_API_KEY를 외부로 보내지 않는다. base URL이 없으면 이 키는 쓰지 않는다) 모델은 `SIMULATION_ACT_MODEL`(비면 OPENAI_MODEL)이다. 추론 강도는 `reasoning_effort`로 보내고 store는 보내지 않는다. 다른 호출은 OpenAI 그대로다.
 속도 스위치(#642): 네 호출 모두 `reasoning.effort`를 보낸다. 값은 환경 변수 `SIMULATION_REASONING_EFFORT`(호출 때 읽음)이고 비어 있으면 시뮬레이션 v2 기본값 `low`다(HP 장면 p50 10.8→7.9초, 시공간 정확도·검사 판정은 v1과 같고 ① 대사 말투만 −0.12(p=0.025), docs/evaluation/simulation-v2.md·simulation-original.md §13).
 """
 
@@ -58,10 +58,15 @@ def check(data: dict) -> Verdict:
 
 def _endpoint(name: str) -> tuple[str | None, str | None, str | None]:
     """호출의 (base URL, 키, 모델). act만 SIMULATION_ACT_BASE_URL·API_KEY·MODEL을 따르고(공백은 빈 값) 나머지 호출과 빈 값은 OPENAI_*다.
-    base URL(OpenAI 호환 제공사)이 있으면 키도 SIMULATION_ACT_API_KEY여야 한다: OPENAI_API_KEY를 외부 제공사로 보내지 않는다."""
+    키는 base URL(OpenAI 호환 제공사)이 있으면 SIMULATION_ACT_API_KEY뿐이고(OPENAI_API_KEY를 외부로 보내지 않는다) 없으면 OPENAI_API_KEY뿐이다(제공사 키를 OpenAI로 보내지 않는다)."""
     own = lambda var: (os.environ.get(f'SIMULATION_ACT_{var}', '').strip() or None) if name == 'act' else None  # noqa: E731
     base_url = own('BASE_URL')
-    return base_url, own('API_KEY') or (None if base_url else os.environ.get('OPENAI_API_KEY')), own('MODEL') or os.environ.get('OPENAI_MODEL')
+    return base_url, own('API_KEY') if base_url else os.environ.get('OPENAI_API_KEY'), own('MODEL') or os.environ.get('OPENAI_MODEL')
+
+
+def _details(usage: dict | None) -> dict | None:
+    """generation에 남기는 사용량(응답의 usage_metadata 모양을 Langfuse usage_details 모양으로)."""
+    return usage and {'input': usage['input_tokens'], 'output': usage['output_tokens']}
 
 
 def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel], max_tokens: int, timeout: int):
@@ -85,16 +90,20 @@ def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel
         with tracing.observe(f'simulation.{name}', as_type='generation', model=model, prompt=managed.client) as generation:
             try:
                 out = structured.invoke([SystemMessage(managed.text), HumanMessage(json.dumps(data, ensure_ascii=False))])
+            # Chat Completions는 길이 초과·콘텐츠 필터 중단을 SDK가 OpenAIError 하위 예외로 올리므로 503보다 먼저 잡는다. 길이 초과로 잘린 호출도 토큰은 썼다.
+            except LengthFinishReasonError as error:
+                used = error.completion.usage
+                usage = used and {'input_tokens': used.prompt_tokens, 'output_tokens': used.completion_tokens}
+                generation.update(usage_details=_details(usage))
+                raise SimulationFailure(502, UNUSABLE) from None
             # 스키마 위반·잘린 JSON(pydantic ValidationError는 ValueError)과 langchain-openai가 응답의 error를 올리는 ValueError는 쓸 수 없는 응답이다.
-            # Chat Completions는 길이 초과·콘텐츠 필터 중단을 SDK가 OpenAIError 하위 예외로 올리므로 503보다 먼저 잡는다.
-            except (ValueError, LengthFinishReasonError, ContentFilterFinishReasonError):
+            except (ValueError, ContentFilterFinishReasonError):
                 raise SimulationFailure(502, UNUSABLE) from None
             except OpenAIError:
                 raise SimulationFailure(503, '시뮬레이션 모델 호출에 실패했습니다.') from None
             raw, parsed = out['raw'], out['parsed']
             usage = raw.usage_metadata
-            generation.update(model=raw.response_metadata.get('model_name', model),
-                              usage_details=usage and {'input': usage['input_tokens'], 'output': usage['output_tokens']})
+            generation.update(model=raw.response_metadata.get('model_name', model), usage_details=_details(usage))
             if raw.response_metadata.get('status', 'completed') != 'completed' or parsed is None:  # Chat Completions 응답에는 status가 없다
                 raise SimulationFailure(502, UNUSABLE)
     except SimulationFailure:
