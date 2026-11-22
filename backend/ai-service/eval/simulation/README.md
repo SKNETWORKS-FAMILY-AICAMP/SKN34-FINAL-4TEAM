@@ -19,10 +19,10 @@
 | `sim_quality.py` | 품질: 질문 → 운영 인물 턴 경로(`character_view` → `act` → 서버 규칙 → `check` → 재생성) → 공개 기준 채점 |
 | `sim_speed.py` | 속도: 고정 장면을 장면 에이전트로 끝까지 돌려 `UsageLedger` 기록을 집계 단위로 만든다 |
 | `sim_stats.py` | 백분위·품질/속도 집계·표 출력(순수 함수) |
-| `orig_cli.py` | **원문 기반 평가 세트**([설계](../../../../docs/evaluation/simulation-original.md)) 명령 `collect`·`label`·`align`·`build-sets`·`review`·`estimate`·`run`·`report`·`compare`·`export`. 공개 세트(고전 5·근대 5·SCP 5)와 해리 포터(`--corpus public|hp`) |
+| `orig_cli.py` | **원문 기반 평가 세트**([설계](../../../../docs/evaluation/simulation-original.md)) 명령 `collect`·`label`·`align`·`build-sets`(`--dev`: 후보 고르기용 dev 문항)·`review`·`review-pair`(두 실행의 글 나란히 보기)·`estimate`·`run`·`report`·`compare`·`summary`(실행 전부를 기준선과 짝 비교해 한 파일로)·`scenes`(해리 포터 고정 장면에서 끝까지)·`export`. 공개 세트(고전 5·근대 5·SCP 5)와 해리 포터(`--corpus public|hp`) |
 | `orig_turns.py`·`orig_align.py` | 원문을 대사·지문 턴으로 자르고(따옴표 규칙) 화자·독백만 두 경로(OpenAI·ocx) 판별이 일치할 때 확정 |
 | `orig_corpus.py`·`orig_collect.py` | 원천(공개 세트 파일·해리 포터 world.json) 읽기와 공개 원천 수집(고전은 `kt_select` 재사용) |
-| `orig_sets.py`·`orig_variants.py` | 문항 생성(자격·정답 유출·편중 없는 뽑기·사실 주입)과 후보 입력 구성 V1~V4 |
+| `orig_sets.py`·`orig_variants.py` | 문항 생성(자격·정답 유출·편중 없는 뽑기·사실 주입)과 평가 때만 끼우는 후보(입력 구성 V1~V5·연출 D·act·나레이션 지시문 P·N·추론 강도 E·모델 M, [결과 문서 §13](../../../../docs/evaluation/simulation-original.md#13-품질-끌어올리기-1단계--v2-기준선과-후보-짝-비교-2026-11-22)) |
 | `orig_run.py`·`orig_export.py` | 서비스 함수 호출·채점·집계·짝 비교와 LLMOps 형식 내보내기(`app/evaluation/datasets/simulation/`) |
 | `test_*.py` | 위 순수 로직과 실행 흐름의 단위 테스트(모델·채점·Content는 대역, 호출 없음) |
 | `results/*.json` | `run`이 쓰는 집계(커밋 대상, 질문·응답 없음). 아직 없다 |
