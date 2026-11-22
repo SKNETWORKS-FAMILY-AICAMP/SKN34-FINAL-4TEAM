@@ -325,7 +325,8 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
 
     revise_plan은 작가가 이미 저장한 플롯·장면 계획의 제목·내용을 고치는 수정안이다(request에 고칠 계획과 방향을 적는다). 원고 문장은 고치지 않는다.
 
-    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때만 task=patch와 fix(그 지적의 fix 번호)를 쓴다. 확정 지적이 하나면 fix를 비워도 된다.
+    선택한 글이나 원고 구간을 고칠 때는 검수가 없어도 fix 없이 task=patch를 쓴다(선택한 글이 없으면 작가가 구간을 고른다).
+    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때는 task=patch에 fix(그 지적의 fix 번호)를 더한다. 확정 지적이 하나면 fix를 비워도 된다.
     """
     if task == 'revise_plan':
         return _revise_plan(runtime, request)
