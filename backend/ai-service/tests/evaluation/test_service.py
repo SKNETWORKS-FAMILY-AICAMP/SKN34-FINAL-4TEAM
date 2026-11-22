@@ -43,6 +43,14 @@ def test_prepare_names_the_run_and_reads_the_requested_prompt_version(monkeypatc
     assert (plan.instructions, plan.tolerance, plan.baseline) == ('지시문', 0.1, None)  # 기본 허용 오차는 0.1이고, production 라벨이 없으면 기준 Run도 없다
 
 
+@pytest.mark.parametrize('blank', ['', '  '])
+def test_a_blank_tolerance_is_the_default_like_the_other_blank_settings(monkeypatch, blank):
+    install(monkeypatch, FakeDataset([item(1, QA)]), {('qa.answer', 3): prompt('지시문', 3)})
+    monkeypatch.setenv('EVAL_TOLERANCE', blank)   # .env에서 비워 둔 값은 설정하지 않은 것과 같다(503이 아니다)
+
+    assert service.prepare(QA_REQUEST).tolerance == 0.1
+
+
 @pytest.mark.parametrize('case, status', [
     ('no_langfuse', 503), ('no_model', 503), ('bad_tolerance', 503), ('negative_tolerance', 503),
     ('no_dataset', 404), ('empty_dataset', 422), ('no_prompt_version', 404), ('chat_prompt', 422),

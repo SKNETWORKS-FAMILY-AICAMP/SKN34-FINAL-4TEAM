@@ -232,7 +232,7 @@ def _client():
 
 def _tolerance() -> float:
     try:
-        tolerance = float(os.environ.get('EVAL_TOLERANCE', '0.1'))
+        tolerance = float(os.environ.get('EVAL_TOLERANCE', '').strip() or '0.1')   # 비워 둔 값은 설정하지 않은 것과 같다
     except ValueError:
         tolerance = -1.0
     if not tolerance >= 0:  # NaN·음수

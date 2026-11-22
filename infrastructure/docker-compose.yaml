@@ -8,7 +8,7 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-}
       # 운영 회귀 평가(ai-jobs-worker)의 채점 모델. 비우면 OPENAI_MODEL이다(계약 operations-llmops-contract).
       EVALUATION_JUDGE_MODEL: ${EVALUATION_JUDGE_MODEL:-}
-      # 회귀 평가 통과 허용 오차(지표별 기준 평균 - 이 값 이상이면 통과, 점수는 모두 0~1). 비우면 0.1이다(빈 값을 그대로 넘기면 평가가 503이라 기본값을 둔다).
+      # 회귀 평가 통과 허용 오차(지표별 기준 평균 - 이 값 이상이면 통과, 점수는 모두 0~1). 비우면 0.1이다.
       EVAL_TOLERANCE: ${EVAL_TOLERANCE:-0.1}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
       # 집필 AI Retrieval 도구가 부르는 Content 내부 검색 API. Content는 32자 이상 INTERNAL_TOKEN만 받는다.
