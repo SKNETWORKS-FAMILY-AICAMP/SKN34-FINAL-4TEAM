@@ -1,6 +1,7 @@
 {
   "base": "P1",
   "corpus": "hp",
+  "grader": "gpt-6-luna",
   "sets": {
     "1": {
       "applied": {

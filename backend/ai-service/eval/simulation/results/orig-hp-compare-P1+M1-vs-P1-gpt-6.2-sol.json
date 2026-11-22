@@ -1,0 +1,74 @@
+{
+  "base": "P1",
+  "corpus": "hp",
+  "grader": "gpt-6.2-sol",
+  "sets": {
+    "1": {
+      "applied": {
+        "metrics": {
+          "clean": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          },
+          "intent": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          },
+          "voice": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          }
+        },
+        "n": 0
+      },
+      "callMs": {
+        "base": 2113.5,
+        "cand": 2775.0
+      },
+      "metrics": {
+        "clean": {
+          "down": 8,
+          "meanDiff": -0.002512562814070352,
+          "n": 398,
+          "p": 1.0,
+          "tie": 383,
+          "up": 7
+        },
+        "intent": {
+          "down": 65,
+          "meanDiff": 0.2964824120603015,
+          "n": 398,
+          "p": 4.784909851595714e-08,
+          "tie": 189,
+          "up": 144
+        },
+        "voice": {
+          "down": 50,
+          "meanDiff": 0.2135678391959799,
+          "n": 398,
+          "p": 8.020158388607808e-08,
+          "tie": 228,
+          "up": 120
+        }
+      },
+      "tokens": {
+        "base": 6821.54,
+        "cand": 6821.54,
+        "ratio": 1.0
+      }
+    }
+  },
+  "variant": "P1+M1"
+}

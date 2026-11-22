@@ -1,6 +1,7 @@
 {
   "base": "N3",
   "corpus": "hp-dev",
+  "grader": "gpt-6-luna",
   "sets": {
     "3n": {
       "applied": {

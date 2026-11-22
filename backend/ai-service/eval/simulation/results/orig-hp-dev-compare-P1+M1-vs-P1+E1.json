@@ -1,6 +1,7 @@
 {
   "base": "P1+E1",
   "corpus": "hp-dev",
+  "grader": "gpt-6-luna",
   "sets": {
     "1": {
       "applied": {
