@@ -454,6 +454,8 @@ async def _target(data: OrchestrationRequest):
         decision = ({'type': 'approve'} if data.resume.approved else {'type': 'respond', 'message': agent.REFRESH} if data.resume.refresh
                     else {'type': 'reject', 'message': CONTENT_ACTION_REJECTED})
         answer = {'decisions': [decision] * len(asked)}
+        if token := data.resume.scope:  # 결정에는 실을 자리가 없어 이 요청의 설정으로 넘긴다. WriteApproval이 저장한다(#678).
+            config = merge_configs(config, {'configurable': {agent.RESUME_SCOPE: token.model_dump()}})
     return CHAT, config, Command(resume=answer), dict(snapshot.values)
 
 
