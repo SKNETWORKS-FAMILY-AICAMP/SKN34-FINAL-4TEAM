@@ -21,9 +21,15 @@ val KST: ZoneId = ZoneId.of("Asia/Seoul")
 /** AI에 보내는 context(JSON 문자열)의 글자 수 한도다. AI 서비스가 이 값을 넘는 요청을 거절한다. */
 const val SERIAL_CONTEXT_LIMIT = 60_000
 
-/** 게시판 실행에 쓰는 추천 상위 제안 글 수와 running이 이만큼 지나면 낡은 것으로 보는 시간(분)이다. */
+/** 게시판 실행에 쓰는 추천 상위 제안 글 수다. */
 const val TOP_PROPOSALS = 3
-const val STALE_RUNNING_MINUTES = 30L
+
+/**
+ * 회차 실행의 AI 읽기 한도(분)와, running이 이만큼 지나면 낡은 것으로 보는 시간(분)이다. 회차 실행은 인물 시뮬레이션을 거쳐 AI 최악이 1,810초(약 30분)라 읽기 한도는 35분이고(계약 '회차 집필은 반드시 인물 시뮬레이션으로'),
+ * 정체 정리 기준은 읽기 한도(와 AI 호출 앞뒤의 짧은 일)보다 길어야 정상 실행을 정리 점검이 먼저 실패로 닫지 않으므로 45분이다. 둘의 관계는 SerialRulesTest가 고정한다.
+ */
+const val EPISODE_READ_TIMEOUT_MINUTES = 35L
+const val STALE_RUNNING_MINUTES = 45L
 
 /** 선택지(AI가 게시판마다 4개, 각 300자 이내)와 선택지 생성이 실패했을 때 다시 시도하기까지의 시간(분), 제안 글의 제목·본문 한도(글자 수)다. */
 const val CHOICE_COUNT = 4

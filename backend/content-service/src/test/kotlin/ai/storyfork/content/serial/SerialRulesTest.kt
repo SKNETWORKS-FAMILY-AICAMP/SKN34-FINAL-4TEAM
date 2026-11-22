@@ -9,6 +9,7 @@ import ai.storyfork.content.serial.entity.SerialVoteEntity
 import ai.storyfork.content.serial.service.dto.SerialProposalRequest
 import ai.storyfork.content.serial.service.dto.SerialSimulationRequest
 import java.time.DayOfWeek
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -156,6 +157,23 @@ class SerialRulesTest {
         assertEquals("연결된 세계관이 없어 시뮬레이션으로 집필할 수 없습니다.", SerialReason.NO_WORLD)
         val all = listOf(SerialReason.CREDIT, SerialReason.REVIEW, SerialReason.AI, SerialReason.PUBLISH, SerialReason.DRAFT, SerialReason.LIMIT, SerialReason.SEARCH, SerialReason.NO_WORLD)
         assertEquals(all.size, all.toSet().size)
+    }
+
+    // ---- 실행 시간 한도
+
+    @Test fun `the run time limits are the thirty-five minute AI wait and the forty-five minute stale cleanup`() {
+        // 회차 실행은 인물 시뮬레이션을 거쳐 AI 최악이 1,810초(약 30분)다(계약 '회차 집필은 반드시 인물 시뮬레이션으로').
+        // AI의 단위 테스트가 그 합 ≤ 2,100−240초를 고정하고, 이쪽은 읽기 한도 35분(2,100초)과 정체 정리 45분을 고정한다.
+        assertEquals(35L, EPISODE_READ_TIMEOUT_MINUTES)
+        assertEquals(45L, STALE_RUNNING_MINUTES)
+    }
+
+    @Test fun `a running board is never called stale while its AI call can still be waiting`() {
+        // 불변식: 정체 정리 기준이 AI 읽기 한도(와 AI 호출 앞뒤의 짧은 일: Core 확인·세계관 읽기·검색·예약, 저장·발행·정산)보다 길어야 정상 실행을 정리 점검이 먼저 실패로 닫지 않는다.
+        val read = Duration.ofMinutes(EPISODE_READ_TIMEOUT_MINUTES)
+        val stale = Duration.ofMinutes(STALE_RUNNING_MINUTES)
+        assertTrue(read < stale, "읽기 한도 $read 는 정체 정리 기준 $stale 보다 짧아야 한다")
+        assertTrue(read + Duration.ofMinutes(5) <= stale, "AI 호출 앞뒤의 일을 위한 여유가 5분보다 적다: 읽기 한도 $read, 정체 정리 기준 $stale")
     }
 
     // ---- 제안 글 순위

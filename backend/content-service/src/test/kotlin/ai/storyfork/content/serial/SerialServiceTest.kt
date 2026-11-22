@@ -1248,9 +1248,11 @@ class SerialServiceTest {
         assertEquals(t0, running.closedAt)
     }
 
-    @Test fun `running boards older than thirty minutes are stale`() {
-        board("fresh", status = "running").closedAt = t0.minusSeconds(29 * 60)
-        board("old", workId = "x", status = "running").closedAt = t0.minusSeconds(31 * 60)
+    @Test fun `running boards older than forty-five minutes are stale but a run that just passed the AI read limit is not`() {
+        board("fresh", status = "running").closedAt = t0.minusSeconds(44 * 60)
+        // 회차 실행의 AI 읽기 한도(35분)를 막 넘긴 정상 실행: 정리 점검이 먼저 실패로 닫으면 안 된다(30분 기준이던 때는 닫혔다).
+        board("longest", workId = "l", status = "running").closedAt = t0.minusSeconds(36 * 60)
+        board("old", workId = "x", status = "running").closedAt = t0.minusSeconds(46 * 60)
         board("open", workId = "y", status = "open")
         board("done", workId = "z", status = "published").closedAt = t0.minusSeconds(3 * 3600)
 

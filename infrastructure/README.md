@@ -64,7 +64,7 @@ docker compose down
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` | Core/Content → AI |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` | Core → AI Health |
 | `AI_GENERATION_READ_TIMEOUT` | `75s` | Content → AI 생성 |
-| `SERIAL_SIMULATION_CREDIT_LIMIT` / `SERIAL_CHOICE_CREDIT_LIMIT` / `SERIAL_SUMMARY_CREDIT_LIMIT` / `SERIAL_EPISODE_CREDIT_LIMIT` | `5` / `5` / `5` / `250` | Content만, AI 자율 연재의 크레딧 예약 상한(시뮬레이션 제안 글은 작성자, 선택지 생성·회차 요약·회차 실행은 작품 소유자 부담). 회차 실행 250은 3,900자 회차 실측 약 60에 5,000자 이상·재작성을 대비한 값이다 |
+| `SERIAL_SIMULATION_CREDIT_LIMIT` / `SERIAL_CHOICE_CREDIT_LIMIT` / `SERIAL_SUMMARY_CREDIT_LIMIT` / `SERIAL_EPISODE_CREDIT_LIMIT` | `5` / `5` / `5` / `1000` | Content만, AI 자율 연재의 크레딧 예약 상한(시뮬레이션 제안 글은 작성자, 선택지 생성·회차 요약·회차 실행은 작품 소유자 부담). 회차 실행 1000은 인물 시뮬레이션 장면(보통 300~500)과 집필·검수·재작성까지 같은 예약으로 세는 추정 상한이며 실측 전이라 첫 실행 뒤 다시 맞춥니다. 소유자의 사용 가능 잔액이 이 값 이상이어야 실행됩니다(시연 계정은 관리자 크레딧 지급으로 미리 채웁니다). 이전 `.env.example`로 만든 기존 `.env`(`cp -n`은 덮어쓰지 않습니다)나 배포 환경 변수에 `SERIAL_EPISODE_CREDIT_LIMIT=150`·`250`이 남아 있으면 그 값이 기본값보다 우선하므로 1000으로 고치거나 지워야 합니다(그대로 두면 사용량이 그 값을 넘는 회차 실행이 `크레딧 상한을 넘었습니다.`로 실패합니다). 회차 실행의 AI 읽기 한도 35분과 `running` 정체 정리 45분은 환경 변수가 아닌 코드 상수입니다 |
 | `CORE_AUTH_BASE_URL` | native `http://127.0.0.1:8080`, Compose 내부 DNS | Content → Core 인증 확인 |
 | `CORE_AUTH_CONNECT_TIMEOUT` / `CORE_AUTH_READ_TIMEOUT` | `1s` / `3s` | Content 인증 확인 |
 | `CONTENT_CORE_AUTH_TOKEN` | 빈 값 | Core/Content만, 활성화 시 필수 |

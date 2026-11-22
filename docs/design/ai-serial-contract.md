@@ -40,7 +40,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 2. AI 요청에 `creditLimit`(상한)을 싣는다. AI의 `CreditMiddleware`(`app/agent_runtime.py`, LangChain `AgentMiddleware`)가 요청 안의 모든 모델 호출 사용량(입력+출력 토큰)을 더해
    **1 크레딧 = 1,000 토큰**(코드 상수, 소수 4자리 올림)으로 금액을 확정하고, 다음 모델 호출 전에 누적 금액이 상한 이상이면 호출하지 않고 402 고정 문구로 끝낸다.
 3. AI 응답의 `credits`(확정 금액)로 Content가 `…/settle`을 부른다. AI 실패·시간 초과면 `…/release`. AI는 Core를 부르지 않는다(과금 확정은 Core, 호출 판단은 Content).
-4. 부담: `simulation` 제안 글은 작성자, 선택지 생성·회차 실행은 작품 소유자. 상한은 `.env`의 `SERIAL_SIMULATION_CREDIT_LIMIT`(기본 5)·`SERIAL_CHOICE_CREDIT_LIMIT`(기본 5)·`SERIAL_EPISODE_CREDIT_LIMIT`(기본 250: 3,900자 회차 실측 약 60, 5,000자 이상·재작성 대비. 인물 시뮬레이션 장면을 같은 예약으로 세면서 1,000으로 올리기로 했다: 아래 '회차 집필은 반드시 인물 시뮬레이션으로'의 시간·크레딧).
+4. 부담: `simulation` 제안 글은 작성자, 선택지 생성·회차 실행은 작품 소유자. 상한은 `.env`의 `SERIAL_SIMULATION_CREDIT_LIMIT`(기본 5)·`SERIAL_CHOICE_CREDIT_LIMIT`(기본 5)·`SERIAL_EPISODE_CREDIT_LIMIT`(기본 1,000: 인물 시뮬레이션 장면까지 같은 예약으로 센 추정치, 미실측. 아래 '회차 집필은 반드시 인물 시뮬레이션으로').
    AI가 상한 초과 402 `CREDIT_LIMIT_EXCEEDED`를 돌려주면 실행 실패 사유는 `크레딧 상한을 넘었습니다.`다(일반 실패 문구와 구분).
    가입 체험 지급이 기본 0이므로 시연 계정에는 관리자 크레딧 지급으로 미리 넣어 둔다.
 5. trace metadata `credit_reservation_id`에 예약 id를 단다(운영 비용 집계).
@@ -95,7 +95,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 - 독자 게시판 응답의 `board`는 `open`일 때만 싣는다(`queued`·`running`은 `null`). 의견 제출 201 `{id}`, 투표·취소·숨김 204.
 - 발행은 예약 발행과 같은 경로라 권리 확인을 소유자 이름으로 자동 기록한다(자율 연재를 켠 것을 사전 승인으로 본다).
 - 실행 문맥은 최근 발행 3개 회차와 연결 세계관 초안의 활성 카드(관계 제외), 시뮬레이션 문맥은 공개 회차와 독자 설정 위키 카드다.
-- AI 읽기 한도: 회차 실행 10분, 시뮬레이션은 기존 생성 한도(`AI_GENERATION_READ_TIMEOUT`). 두 요청에 `creditReservationId`를 싣는다.
+- AI 읽기 한도: 회차 실행 35분(인물 시뮬레이션 포함 최악 1,810초, `running` 정체 정리는 45분), 시뮬레이션은 기존 생성 한도(`AI_GENERATION_READ_TIMEOUT`). 두 요청에 `creditReservationId`를 싣는다.
 - 선택지 문맥은 독자 열람과 같은 공개 회차·독자 설정 위키 카드뿐이고 공개 작품만 만든다(선택지가 회차보다 먼저 독자에게 보이므로). AI 선택지가 4개·300자 규칙에 어긋나면 잘라 쓰지 않고 실패(해제 후 10분 뒤 재시도). 1분 점검은 실행 → 선택지 순서이고 `choices_tried_at`도 실패 이월한다. 추천·취소는 열린 게시판의 숨기지 않은 글만(닫힘 409, 숨김 404), 동시 추천 충돌은 409 `LIKE_CONFLICT`.
 - 지금 실행도 그날의 실행으로 기록해 같은 날 일정 실행은 건너뛴다. AI 속도 제한(`ai-rate-limit/acquire`)은 부르지 않는다.
 

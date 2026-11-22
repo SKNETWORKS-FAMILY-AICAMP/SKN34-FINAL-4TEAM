@@ -56,6 +56,12 @@ class SerialWiringTest {
         assertEquals(listOf("serialScheduler"), AnnotatedElementUtils.findMergedAnnotation(SerialConfig::class.java.getDeclaredMethod("serialScheduler"), Bean::class.java)!!.name.toList())
     }
 
+    @Test fun `the episode AI client waits for the one read limit the stale cleanup is built on`() {
+        val config = Files.readString(main.resolve("serial/config/SerialConfig.kt"))
+        // 회차 실행 클라이언트의 읽기 한도는 정체 정리 기준과 짝인 상수 하나다: 다른 길이를 따로 박으면 불변식 테스트(SerialRulesTest)가 보지 못한다.
+        assertEquals(listOf("Duration.ofMinutes(EPISODE_READ_TIMEOUT_MINUTES)"), Regex("Duration\\.of\\w+\\([^)]*\\)").findAll(config).map { it.value }.toList())
+    }
+
     @Test fun `the reader board GET is anonymous before the authenticated works rule`() {
         val security = Files.readString(main.resolve("auth/config/ContentSecurityConfig.kt"))
         val open = security.indexOf("requestMatchers(HttpMethod.GET, \"/api/v1/works/*/serial-board\").permitAll()")
