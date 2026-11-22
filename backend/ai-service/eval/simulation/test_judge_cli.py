@@ -31,7 +31,7 @@ def home(tmp_path, monkeypatch):
 
 
 def args(**changes):
-    return argparse.Namespace(**{'corpus': 'hp', 'dev': False, 'sets': '1', 'tags': None, 'judge_model': 'gpt-6.2-sol', 'voice_ref': False, 'name': None, 'workers': 2, **changes})
+    return argparse.Namespace(**{'corpus': 'hp', 'dev': False, 'sets': '1', 'tags': None, 'judge_model': 'gpt-6.2-sol', 'voice_ref': False, 'name': None, 'workers': 2, 'source': oj.LUNA, **changes})
 
 
 def test_a_regrade_writes_the_new_graders_folder_with_its_own_cache_and_leaves_the_source_runs_alone(home):
@@ -81,7 +81,7 @@ def test_a_pair_judged_with_a_failed_call_is_asked_again_on_the_next_run(home, m
         return oj.PairChoice(winner='A' if payload['A'] in ('"열쇠를 찾았어."', '"후보 글 둘."') else 'B')   # 후보 글이 있는 쪽을 고른다
 
     llm.answer = answer
-    pair = argparse.Namespace(corpus='hp', dev=False, set='1', pairs=['P1:base2'], judge_model='gpt-6.2-sol', name=None, workers=1)
+    pair = argparse.Namespace(corpus='hp', dev=False, set='1', pairs=['P1:base2'], judge_model='gpt-6.2-sol', name=None, workers=1, source=oj.LUNA)
     jc.cmd_judge_pair(pair)
     done = rn.load_done(root / 'hp' / 'pairs-gpt-6.2-sol' / '1-P1-vs-base2.jsonl')
     assert done['hp-1-0007']['outcome'] is None and done['hp-1-0008']['outcome'] == 1
@@ -92,6 +92,22 @@ def test_a_pair_judged_with_a_failed_call_is_asked_again_on_the_next_run(home, m
     tally = saved['pairs']['P1 vs base2']
     assert tally['wins'] == 2 and saved['refItems'] == 2 and tally['withRef']['wins'] == 2 and tally['noRef']['n'] == 0   # 말투 기준 줄이 있는 문항과 없는 문항을 따로도 센다
 
+
+
+def test_generations_stored_under_another_graders_folder_are_read_through_source(home):
+    root, llm, made = home
+    sol = root / 'hp' / 'runs-gpt-6.2-sol'
+    sol.mkdir()
+    (root / 'hp' / 'runs' / '1-P1.jsonl').rename(sol / '1-P1.jsonl')   # run --judge-model gpt-6.2-sol이 만든 후보는 그 채점 폴더에만 있다
+    jc.cmd_regrade(args(judge_model=oj.LUNA, name='luna-regrade', source='gpt-6.2-sol'))
+    assert rn.load_done(root / 'hp' / 'runs-luna-regrade' / '1-P1.jsonl')['hp-1-0007']['grade'] == {'voice': 5, 'intent': 1, 'leaked': []}
+    with pytest.raises(SystemExit):   # 읽는 폴더에 다시 쓰면 생성 기록을 덮어쓴다
+        jc.cmd_regrade(args(judge_model='gpt-6.2-sol', source='gpt-6.2-sol'))
+    for tag, text in (('P1', '"소스 후보."'), ('base2', '"소스 기준."')):
+        (sol / f'1-{tag}.jsonl').write_text(json.dumps({**dialogue_record(), 'generated': text}, ensure_ascii=False) + '\n')
+    llm.answer = lambda payload: oj.PairChoice(winner='A')
+    jc.cmd_judge_pair(argparse.Namespace(corpus='hp', dev=False, set='1', pairs=['P1:base2'], judge_model='gpt-6.2-sol', name=None, workers=1, source='gpt-6.2-sol'))
+    assert {(p['A'], p['B']) for _, _, p, _ in llm.asked[-2:]} == {('"소스 후보."', '"소스 기준."'), ('"소스 기준."', '"소스 후보."')}
 
 
 def test_agree_compares_each_named_pair_of_graders_on_the_same_runs_and_writes_one_file(home, monkeypatch):

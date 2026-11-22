@@ -51,9 +51,11 @@ def pair_direction(a: dict, b: dict) -> dict:
 
 def report(key: str, runs_a: dict[str, list[dict]], runs_b: dict[str, list[dict]], base: str) -> dict:
     """한 세트의 두 채점(runs_x: 실행 이름 → 그 채점으로 채점한 기록)을 비교한다: 모든 실행을 합친 문항별 일치(items)와 실행별 일치(byRun), 지표별 후보 순위(ranking),
-    후보마다 기준선(base) 대비 짝 비교 방향의 일치(pairs)."""
-    ma, mb = ({tag: rn.metrics_of(key, records) for tag, records in runs.items()} for runs in (runs_a, runs_b))
-    tags = [t for t in ma if t in mb]
+    후보마다 기준선(base) 대비 짝 비교 방향의 일치(pairs). 두 채점이 모두 채점한 문항만 쓴다."""
+    raw_a, raw_b = ({tag: rn.metrics_of(key, records) for tag, records in runs.items()} for runs in (runs_a, runs_b))
+    tags = [t for t in raw_a if t in raw_b]
+    shared = lambda t, m: raw_a[t].get(m, {}).keys() & raw_b[t].get(m, {}).keys()   # noqa: E731  한 채점에서만 채점이 실패한 문항은 양쪽에서 뺀다(표본이 달라 평균·방향이 뒤집혀 보이지 않게)
+    ma, mb = ({t: {m: {i: v for i, v in d.items() if i in shared(t, m)} for m, d in raw[t].items()} for t in tags} for raw in (raw_a, raw_b))
     names = sorted({m for t in tags for m in ma[t]})
     pooled = lambda m, src: {f'{t}/{i}': v for t in tags for i, v in src[t].get(m, {}).items()}   # noqa: E731
     means = lambda m, src: {t: mean(vs) for t in tags if (vs := [v for v in src[t].get(m, {}).values() if v is not None])}   # noqa: E731

@@ -26,6 +26,15 @@ def test_ranking_gives_ranks_spearman_and_the_pairs_whose_order_flips():
     assert same['flips'] == [] and same['spearman'] == pytest.approx(1.0) and ag.ranking({'a': 1}, {'a': 2})['spearman'] is None
 
 
+def test_an_item_graded_by_only_one_grader_is_left_out_of_both_so_the_samples_match():
+    failed = {'id': 'x-2', 'error': None, 'skipped': None, 'generated': 'g', 'grade': None, 'usage': []}   # 한 채점에서만 채점이 실패한 문항
+    base = [rec(1, voice=4), rec(2, voice=4)]
+    got = ag.report('1', {'base': base, 'P1': [rec(1, voice=5), rec(2, voice=1)]}, {'base': base, 'P1': [rec(1, voice=5), failed]}, 'base')
+    voice = got['pairs']['P1']['voice']
+    assert voice['a']['n'] == 1 and voice['b']['n'] == 1 and voice['sameDirection'] is True   # 공통 문항 x-1만으로 견준다(표본이 달라 방향이 뒤집혀 보이지 않는다)
+    assert got['ranking']['voice']['flips'] == [] and got['items']['voice']['n'] == 3
+
+
 def test_the_report_pairs_the_same_items_across_graders_and_compares_each_candidates_direction_against_the_base():
     base_a = [rec(i, voice=3, intent=2) for i in range(1, 9)]
     cand_a = [rec(i, voice=4 if i <= 6 else 3, intent=2) for i in range(1, 9)]      # 후보가 말투 +0.75, 의도는 같다

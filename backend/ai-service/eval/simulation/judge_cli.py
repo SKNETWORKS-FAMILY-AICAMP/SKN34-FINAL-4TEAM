@@ -5,6 +5,7 @@
     uv run --locked --extra dev python eval/simulation/judge_cli.py regrade --corpus hp --sets 1,3n,3m --judge-model gpt-6.2-sol           # → runs-gpt-6.2-sol
     uv run --locked --extra dev python eval/simulation/judge_cli.py regrade --corpus hp --sets 1 --judge-model gpt-6.2-sol --voice-ref    # → runs-gpt-6.2-sol+ref(voiceRef 점수 추가)
     uv run --locked --extra dev python eval/simulation/judge_cli.py regrade --corpus hp --sets 1 --judge-model gpt-6-luna --name luna-retest   # 같은 모델 재채점(일치의 상한 어림)
+    uv run --locked --extra dev python eval/simulation/judge_cli.py regrade --corpus hp --sets 1 --judge-model gpt-6-luna --name luna-regrade --source gpt-6.2-sol   # run --judge-model gpt-6.2-sol로 만든 후보를 다른 채점으로
     uv run --locked --extra dev python eval/simulation/judge_cli.py judge-pair --corpus hp --set 1 --pairs P1:base2 P1+M1:P1 --judge-model gpt-6.2-sol
     uv run --locked --extra dev python eval/simulation/judge_cli.py agree --corpus hp --pairs gpt-6-luna:gpt-6.2-sol gpt-6-luna:luna-retest gpt-6.2-sol:sol-retest
     uv run --locked --extra dev python eval/simulation/orig_cli.py summary --corpus hp --base base2 --grader gpt-6.2-sol          # 재채점 기록의 집계·짝 비교
@@ -38,12 +39,13 @@ def cmd_regrade(args) -> None:
     from cost import CostLog
     no_langfuse()
     name, sets = oj.grader_name(args.judge_model, args.voice_ref, args.name), args.sets.split(',')
-    if name == oj.LUNA:
-        raise SystemExit('기본 채점의 기록 폴더(runs)를 덮어쓴다: --name으로 다른 이름을 준다.')
+    source, target = oj.runs_folder(ORIG / home(args), args.source), oj.runs_folder(ORIG / home(args), name)
+    if source == target:
+        raise SystemExit('채점 기록 폴더가 생성 기록 폴더(--source)와 같아 덮어쓴다: --name으로 다른 이름을 준다.')
     if args.voice_ref and sets != ['1']:
         raise SystemExit('--voice-ref는 ① 대사(--sets 1)만 쓴다.')
     corpus, llm, cost = corpus_of(args.corpus), sim_via.ocx_llm(oj.judge_cache(ORIG, name), COST, args.judge_model), CostLog(COST)
-    source, target, via = oj.runs_folder(ORIG / home(args), oj.LUNA), oj.runs_folder(ORIG / home(args), name), {'judgeModel': args.judge_model, 'voiceRef': args.voice_ref}
+    via = {'judgeModel': args.judge_model, 'voiceRef': args.voice_ref}
     for key in sets:
         items = {item['id']: item for item in load_items(home(args), key)}
         for path in sorted(source.glob(f'{key}-*.jsonl')):
@@ -65,7 +67,7 @@ def cmd_judge_pair(args) -> None:
     name, key = oj.grader_name(args.judge_model, name=args.name), args.set
     corpus, items = corpus_of(args.corpus), load_items(home(args), key)
     llm, cost = sim_via.ocx_llm(oj.judge_cache(ORIG, name), COST, args.judge_model), CostLog(COST)
-    folder, runs = ORIG / home(args) / f'pairs-{name}', oj.runs_folder(ORIG / home(args), oj.LUNA)   # 생성 기록은 채점 방식과 무관하다
+    folder, runs = ORIG / home(args) / f'pairs-{name}', oj.runs_folder(ORIG / home(args), args.source)   # 생성 기록을 읽는 폴더(글은 채점 방식과 무관하다)
     for spec in args.pairs:
         cand, base = spec.split(':')
         texts = oj.shared_generations(rn.load_done(runs / f'{key}-{cand}.jsonl'), rn.load_done(runs / f'{key}-{base}.jsonl'))
@@ -126,12 +128,14 @@ def main(argv=None) -> None:
     regrade.add_argument('--judge-model', default=LUNA, help='ocx 채점 모델(게이트웨이 이름)')
     regrade.add_argument('--voice-ref', action='store_true', help='① 채점 입력에 말투 기준(voiceRef) 줄을 더하고 voiceRef 점수를 받는다')
     regrade.add_argument('--name', default=None, help='채점 방식 이름(기본은 모델 이름[+ref]; 같은 모델의 재채점은 다른 이름)')
+    regrade.add_argument('--source', default=LUNA, help='생성 기록을 읽을 채점 방식 폴더(기본 runs; run --judge-model로 만든 후보는 그 모델 이름의 폴더에만 있다)')
     regrade.add_argument('--workers', type=int, default=8)
     pair = command('judge-pair', cmd_judge_pair, '같은 문항의 두 생성을 A/B로(순서를 바꿔 두 번) 고르게 한다(ocx)')
     pair.add_argument('--set', default='1')
     pair.add_argument('--pairs', nargs='+', required=True, help='후보:기준선(예: P1:base2)')
     pair.add_argument('--judge-model', default=LUNA)
     pair.add_argument('--name', default=None)
+    pair.add_argument('--source', default=LUNA, help='생성 기록을 읽을 채점 방식 폴더(기본 runs)')
     pair.add_argument('--workers', type=int, default=8)
     agree = command('agree', cmd_agree, '두 채점 방식의 문항별 일치·후보 순위·짝 비교 방향(호출 없음)')
     agree.add_argument('--pairs', nargs='+', required=True, help='기준:견줄 채점 방식 이름(예: gpt-6-luna:gpt-6.2-sol, 같은 모델의 재채점은 gpt-6-luna:luna-retest)')
