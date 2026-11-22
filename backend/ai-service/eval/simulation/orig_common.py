@@ -13,6 +13,7 @@ DATA = HERE / '.data'
 ORIG = DATA / 'orig'          # 공개 세트(고전·근대·SCP)와 해리 포터 세트의 원문·정렬·문항·실행 기록
 HP_DIR = DATA / 'hp'          # 해리 포터 번역본·world.json(sim_worlds.HP_DIR와 같다)
 COST = DATA / 'cost-orig.jsonl'   # 이 작업의 OpenAI 장부(이전 .data/cost.jsonl과 따로 센다)
+COST_ACT = DATA / 'cost-hemmingway.jsonl'   # act가 외부 제공사(Hemmingway)로 가는 실행의 장부: OpenAI 장부와 합치지 않고 단가는 orig_variants.RATES다
 RESULTS = HERE / 'results'
 LUNA = 'gpt-6-luna'   # 지금까지의 채점 모델(게이트웨이 이름, sim_via.MODEL과 같다). 이 채점의 기록은 runs, 응답 캐시는 cache-judge-ocx에 있다
 SEED = 651

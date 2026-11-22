@@ -20,7 +20,9 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from orig_common import COST, LUNA, ORIG, RESULTS, SEED
+from urllib.parse import urlparse
+
+from orig_common import COST, COST_ACT, LUNA, ORIG, RESULTS, SEED
 
 SIZES = {'public': {'act': 150, 'direct': 150, 'narrate': 70, 'monologue': 30, 'check_pass': 50, 'check_fail': 50},
          'hp': {'act': 400, 'direct': 300, 'narrate': 160, 'monologue': 40, 'check_pass': 150, 'check_fail': 150}}
@@ -40,6 +42,21 @@ def no_langfuse() -> None:
 def need_openai() -> None:
     if not os.environ.get('OPENAI_API_KEY') or not os.environ.get('OPENAI_MODEL'):
         raise SystemExit('OPENAI_API_KEY·OPENAI_MODEL이(가) 필요하다. 키 파일을 같은 명령 안에서 불러온 뒤 실행한다(값은 출력하지 않는다).')
+
+
+def act_provider() -> dict | None:
+    """act가 외부 OpenAI 호환 제공사로 가는 설정이면 {provider(호스트), model, thinking(off·default)}, 아니면 None. 서비스(agent._endpoint)가 읽는 환경 변수를 그대로 읽는다(키는 읽지 않는다)."""
+    from app.simulation import agent
+    base_url, _, model, thinking = agent._endpoint('act')
+    return {'provider': urlparse(base_url).hostname, 'model': model, 'thinking': thinking or 'default'} if base_url else None
+
+
+def act_rate(act: dict | None) -> tuple[float, float, float] | None:
+    """act 제공사 모델의 단가(입력·캐시 입력·출력, 달러/100만 토큰). act가 기본 경로면 None이고 단가를 모르는 모델이면 호출 전에 멈춘다."""
+    import orig_variants
+    if act and act['model'] not in orig_variants.RATES:
+        raise SystemExit(f"act 제공사 모델 {act['model']}의 단가를 모른다(orig_variants.RATES에 더한다).")
+    return act and orig_variants.RATES[act['model']]
 
 
 def home(args) -> str:
@@ -200,10 +217,12 @@ def sample_of(items: list[dict], n: int) -> list[dict]:
     return [items[i * len(items) // n] for i in range(min(n, len(items)))]
 
 
-def estimate(corpus, keys, judge: str, limit: int | None, sample: int = SAMPLE, folder: str | None = None) -> tuple[dict, float]:
-    """세트별 {문항 수, 평균 입력 글자, 예상 금액, 문항당 최대 금액}과 합계(호출 없음). 표본 문항의 입력을 실제로 조립해 재고 전체로 늘린다."""
+def estimate(corpus, keys, judge: str, limit: int | None, sample: int = SAMPLE, folder: str | None = None, rate=None) -> tuple[dict, float]:
+    """세트별 {문항 수, 평균 입력 글자, 예상 금액, 문항당 최대 금액}과 합계(호출 없음). 표본 문항의 입력을 실제로 조립해 재고 전체로 늘린다.
+    rate(입력·캐시 입력·출력 단가)가 있으면 act 제공사 실행이라 그 단가로 세고 채점(ocx)은 더하지 않는다."""
     import orig_run as rn
     from cost import usd
+    price = usd if rate is None else (lambda tokens_in, tokens_out: (tokens_in * rate[0] + tokens_out * rate[2]) / 1_000_000)
     rows, total = {}, 0.0
     for key in keys:
         items = sample_of(load_items(folder or corpus.name, key), limit) if limit else load_items(folder or corpus.name, key)
@@ -212,18 +231,21 @@ def estimate(corpus, keys, judge: str, limit: int | None, sample: int = SAMPLE, 
         chars = [item_chars(key, item, corpus, rn) for item in sample_of(items, sample)]
         mean = sum(chars) / len(chars)
         out = 100 if key == '2' else 700
-        per = usd(int(mean / rn.CHARS_PER_TOKEN), out) + (usd(rn.JUDGE_IN, rn.JUDGE_OUT) if judge == 'openai' and key != '2' else 0)
-        rows[key] = {'items': len(items), 'meanChars': round(mean), 'usd': per * len(items), 'itemMaxUsd': rn.estimate_item_usd(max(chars) * 1.3) if key != '2' else usd(int(max(chars) * 1.3 / rn.CHARS_PER_TOKEN), 100)}
+        per = price(int(mean / rn.CHARS_PER_TOKEN), out) + (usd(rn.JUDGE_IN, rn.JUDGE_OUT) if judge == 'openai' and key != '2' and rate is None else 0)
+        longest = max(chars) * 1.3
+        item_max = usd(int(longest / rn.CHARS_PER_TOKEN), 100) if key == '2' else rn.estimate_item_usd(longest) if rate is None else price(int(longest / rn.CHARS_PER_TOKEN), rn.GEN_OUT)
+        rows[key] = {'items': len(items), 'meanChars': round(mean), 'usd': per * len(items), 'itemMaxUsd': item_max}
         total += rows[key]['usd']
     return rows, total
 
 
 def cmd_estimate(args) -> None:
-    corpus = corpus_of(args.corpus)
-    rows, total = estimate(corpus, args.sets.split(','), args.judge, args.limit, folder=home(args))
+    corpus, act = corpus_of(args.corpus), act_provider()
+    rows, total = estimate(corpus, args.sets.split(','), args.judge, args.limit, folder=home(args), rate=act_rate(act))
     for key, row in rows.items():
         print(f"{NAMES[key]}: 문항 {row['items']} · 입력 평균 {row['meanChars']:,}자(약 {row['meanChars'] / 2:,.0f}토큰) · 예상 {row['usd']:.2f}달러 · 문항당 최대 {row['itemMaxUsd']:.3f}달러")
-    print(f"합계 약 {total:.2f}달러(출력은 ①③④ 700토큰·②100토큰 어림, 채점 {args.judge}) / 상한 {args.limit_usd:.2f}달러" + (' — 상한을 넘는다' if total > args.limit_usd else ''))
+    print(f"합계 약 {total:.2f}달러(출력은 ①③④ 700토큰·②100토큰 어림, 채점 {args.judge}) / 상한 {args.limit_usd:.2f}달러" + (' — 상한을 넘는다' if total > args.limit_usd else '')
+          + (f" · act는 {act['provider']} {act['model']} 단가" if act else ''))
 
 
 def cmd_run(args) -> None:
@@ -234,15 +256,19 @@ def cmd_run(args) -> None:
     from cost import CostLog
     from llm import usd_llm
     sets = args.sets.split(',')
+    act = act_provider()   # act가 외부 OpenAI 호환 제공사면(SIMULATION_ACT_BASE_URL) 그 호출은 OpenAI 장부와 따로 센다
+    if act and (sets != ['1'] or args.via == 'ocx'):
+        raise SystemExit('act 제공사(SIMULATION_ACT_BASE_URL)는 ① 대사만 돈다(다른 세트의 호출은 OpenAI라 장부가 섞인다). --via ocx(게이트웨이로 고정)와도 함께 쓰지 않는다.')
+    rate = act_rate(act)
     if args.via == 'ocx':
         if '2' in sets:
             raise SystemExit('② 연출은 /v1/decisions가 게이트웨이에 없어 OpenAI API로만 돈다(--via ocx 불가).')
         sim_via.use_ocx()
     corpus = corpus_of(args.corpus)
-    rows, total = estimate(corpus, sets, args.judge, args.limit, folder=home(args))
+    rows, total = estimate(corpus, sets, args.judge, args.limit, folder=home(args), rate=rate)
     print(json.dumps({k: {'items': v['items'], 'meanChars': v['meanChars'], 'usd': round(v['usd'], 2)} for k, v in rows.items()}, ensure_ascii=False))
-    cost = CostLog(COST)
-    if args.via == 'openai' and cost.spent() + total > args.limit_usd:
+    cost = CostLog(COST_ACT if act else COST)
+    if args.via == 'openai' and cost.spent() + total > args.limit_usd:   # act 제공사 실행도 via는 openai다(위 확인)
         raise SystemExit(f'예상 {total:.2f}달러가 남은 상한(장부 {cost.spent():.2f}달러 / {args.limit_usd:.2f}달러)을 넘어 호출 없이 멈춘다.')
     import orig_judge
     import orig_variants
@@ -252,9 +278,10 @@ def cmd_run(args) -> None:
     judge_llm = (sim_via.ocx_llm(orig_judge.judge_cache(ORIG, grader), COST, args.judge_model) if args.judge == 'ocx'
                  else usd_llm(ORIG / 'cache-judge-openai', COST, args.limit_usd))
     variants = orig_variants.spec_of(args.variant)   # None·빈 이름이면 빈 명세(기준선)
-    tag = args.variant or args.tag or 'A'   # 후보 없이 채택한 서비스 구성으로 다시 잴 때는 --tag B
-    via = {'sut': args.via, 'judge': args.judge, 'judgeModel': args.judge_model}
-    import orig_variants
+    tag = args.tag or args.variant or 'A'   # --tag가 있으면 그 이름(같은 후보를 다른 모델로 잴 때 H1처럼), 없으면 후보 이름, 둘 다 없으면 A
+    via = {'sut': args.via, 'judge': args.judge, 'judgeModel': args.judge_model, **({'act': act} if act else {})}
+    if act:
+        orig_variants.MODEL_CALLS['act'] = act['model']   # act 호출은 그 모델 단가(orig_variants.RATES)로 세고 장부 줄에 모델 이름이 남는다
     with orig_variants.patched(args.variant):   # 지시문·질문 구성 후보는 이 실행 안에서만 끼운다
         for key in sets:
             if key not in rows:   # 문항이 없는 세트(dev의 ③독백·④)는 estimate가 뺀다: 건너뛴다
@@ -374,6 +401,9 @@ def cmd_summary(args) -> None:
         runs = {p.stem.split('-', 1)[1]: list(rn.load_done(p).values()) for p in sorted(folder.glob(f'{key}-*.jsonl'))}
         if args.base in runs:
             out[key] = rn.summary_of(key, runs, args.base, getattr(rn, SUMMARIES[key]))
+            for tag, records in runs.items():
+                if act := rn.act_of(records):   # act가 외부 제공사인 실행은 provider·model·thinking을 남긴다
+                    out[key][tag]['act'] = act
     RESULTS.mkdir(exist_ok=True)
     path = RESULTS / f'orig-{home(args)}-summary-{args.base}{grader_suffix(args)}.json'
     path.write_text(json.dumps({'corpus': home(args), 'base': args.base, 'grader': args.grader, 'sets': out}, ensure_ascii=False, separators=(',', ':'), sort_keys=True))
@@ -384,17 +414,19 @@ def cmd_compare(args) -> None:
     """같은 문항에서 후보(--variant)와 기준선(--base, 기본 A)을 짝 비교해 results/orig-<corpus>-compare-<후보>[-vs-<기준선>].json에 집계만 쓴다."""
     import orig_judge
     import orig_run as rn
-    out, shown = {}, []
+    out, shown, acts = {}, [], {}
     for key in KEYS:
         base_path, cand_path = (orig_judge.runs_folder(ORIG / home(args), args.grader) / f'{key}-{tag}.jsonl' for tag in (args.base, args.variant))
         if base_path.exists() and cand_path.exists():
-            out[key] = rn.compare_runs(key, list(rn.load_done(base_path).values()), list(rn.load_done(cand_path).values()))
+            base_records, cand_records = (list(rn.load_done(path).values()) for path in (base_path, cand_path))
+            out[key] = rn.compare_runs(key, base_records, cand_records)
+            acts.update({name: act for name, act in (('base', rn.act_of(base_records)), ('variant', rn.act_of(cand_records))) if act})
             line = lambda metrics: ' · '.join(f"{m} {v['up']}↑{v['down']}↓{v['tie']}= (평균차 {v['meanDiff'] or 0:+.2f}, p={v['p']:.3f}, n={v['n']})" for m, v in metrics.items())   # noqa: E731
             shown.append(f"{NAMES[key]}: " + line(out[key]['metrics']) + f" · 입력 토큰 {out[key]['tokens']['base'] or 0:,.0f}→{out[key]['tokens']['cand'] or 0:,.0f}"
                          + f"\n    입력이 바뀐 {out[key]['applied']['n']}문항만: " + line(out[key]['applied']['metrics']))
     RESULTS.mkdir(exist_ok=True)
     (RESULTS / f'orig-{home(args)}-compare-{args.variant}{"" if args.base == "A" else "-vs-" + args.base}{grader_suffix(args)}.json').write_text(
-        json.dumps({'corpus': home(args), 'variant': args.variant, 'base': args.base, 'grader': args.grader, 'sets': out}, ensure_ascii=False, indent=2, sort_keys=True))
+        json.dumps({'corpus': home(args), 'variant': args.variant, 'base': args.base, 'grader': args.grader, 'sets': out, **({'acts': acts} if acts else {})}, ensure_ascii=False, indent=2, sort_keys=True))
     print('\n'.join(shown) or '비교할 실행 기록이 없다.')
 
 

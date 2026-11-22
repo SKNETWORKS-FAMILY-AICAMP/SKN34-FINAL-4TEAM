@@ -222,7 +222,9 @@ def act_reasoning(effort: str | None):
 
 
 TERRA = 'gpt-6.1-terra'
-RATES = {TERRA: (1.00, 0.05, 5.00)}   # 입력·캐시 입력·출력, 달러/100만 토큰(제3자 출처, 공식 단가를 확인하면 정정한다)
+HEMMINGWAY = (0.72, 0.072, 2.70)   # 입력·캐시 입력·출력(생각 포함), 달러/100만 토큰: 사용자가 알려 준 단가이고 제공사의 /v1/models 단가와 같다
+RATES = {TERRA: (1.00, 0.05, 5.00),   # 입력·캐시 입력·출력, 달러/100만 토큰(제3자 출처, 공식 단가를 확인하면 정정한다)
+         'hemmingway-1': HEMMINGWAY, 'hemmingway-1.5': HEMMINGWAY, 'hemmingway-27b': HEMMINGWAY}   # act 제공사 실행의 모델: 캐시 입력은 토큰 수를 몰라 전부 입력 단가로 센다(상한)
 MODEL_CALLS: dict[str, str] = {}      # patched가 채운다: 모델 호출 이름 → 모델(장부가 그 모델 단가로 센다)
 
 

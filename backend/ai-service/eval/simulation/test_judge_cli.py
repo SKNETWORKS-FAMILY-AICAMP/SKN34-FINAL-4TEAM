@@ -71,7 +71,9 @@ def test_a_pair_judged_with_a_failed_call_is_asked_again_on_the_next_run(home, m
     root, llm, made = home
     other = [{**dialogue_record(), 'generated': '"기준 글."'}, {**dialogue_record(id='hp-1-0008'), 'generated': '"기준 글 둘."'}]
     (root / 'hp' / 'runs' / '1-base2.jsonl').write_text('\n'.join(json.dumps(r, ensure_ascii=False) for r in other) + '\n')
-    (root / 'hp' / 'runs' / '1-P1.jsonl').write_text('\n'.join(json.dumps(r, ensure_ascii=False) for r in [dialogue_record(), {**dialogue_record(id='hp-1-0008'), 'generated': '"후보 글 둘."'}]) + '\n')
+    act = {'provider': 'hemmingway.io', 'model': 'hemmingway-1', 'thinking': 'off'}
+    via = {'sut': 'openai', 'judge': 'ocx', 'act': act}   # 후보(P1)는 act 제공사로 만든 기록이다
+    (root / 'hp' / 'runs' / '1-P1.jsonl').write_text('\n'.join(json.dumps(r, ensure_ascii=False) for r in [dialogue_record(via=via), {**dialogue_record(id='hp-1-0008', via=via), 'generated': '"후보 글 둘."'}]) + '\n')
     calls = []
 
     def answer(payload):
@@ -91,6 +93,7 @@ def test_a_pair_judged_with_a_failed_call_is_asked_again_on_the_next_run(home, m
     saved = json.loads((root / 'results' / 'orig-hp-pairwise-gpt-6.2-sol.json').read_text())
     tally = saved['pairs']['P1 vs base2']
     assert tally['wins'] == 2 and saved['refItems'] == 2 and tally['withRef']['wins'] == 2 and tally['noRef']['n'] == 0   # 말투 기준 줄이 있는 문항과 없는 문항을 따로도 센다
+    assert saved['acts'] == {'P1': act}   # act 제공사로 만든 후보는 provider·model을 결과에 남긴다(OpenAI 기본 경로의 기준은 표기가 없다)
 
 
 

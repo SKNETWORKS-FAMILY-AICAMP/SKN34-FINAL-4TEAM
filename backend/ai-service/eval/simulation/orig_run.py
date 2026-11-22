@@ -176,6 +176,11 @@ def settle(cost, ledger, estimate: int = 0) -> list[dict]:
     return ledger.calls
 
 
+def act_of(records: list[dict]) -> dict | None:
+    """실행 기록들의 act 제공사 표기(via.act: provider·model·thinking). OpenAI 기본 경로의 기록에는 없어 None이다."""
+    return next((r['via']['act'] for r in records if r.get('via', {}).get('act')), None)
+
+
 def blank(item: dict, variant_name: str | None) -> dict:
     return {'id': item['id'], 'set': item['id'].split('-')[1], 'kind': item['kind'], 'work': item['work'], 'workKind': item['source']['kind'], 'variant': variant_name,
             'error': None, 'skipped': None}

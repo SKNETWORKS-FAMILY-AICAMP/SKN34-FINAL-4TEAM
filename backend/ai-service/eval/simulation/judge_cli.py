@@ -82,9 +82,10 @@ def cmd_judge_pair(args) -> None:
         cand, base = run_tag(path).split('-vs-')
         records = list(rn.load_done(path).values())
         out[f'{cand} vs {base}'] = {**oj.tally(records), 'withRef': oj.tally([r for r in records if has_ref.get(r['id'])]), 'noRef': oj.tally([r for r in records if not has_ref.get(r['id'])])}
+    acts = {tag: act for tag in dict.fromkeys(t for spec in args.pairs for t in spec.split(':')) if (act := rn.act_of(list(rn.load_done(runs / f'{key}-{tag}.jsonl').values())))}   # act 제공사 실행의 표기
     RESULTS.mkdir(exist_ok=True)
-    (RESULTS / f'orig-{home(args)}-pairwise-{name}.json').write_text(json.dumps({'corpus': home(args), 'set': key, 'grader': name, 'refItems': sum(has_ref.values()), 'items': len(items), 'pairs': out},
-                                                                               ensure_ascii=False, indent=2, sort_keys=True))
+    (RESULTS / f'orig-{home(args)}-pairwise-{name}.json').write_text(json.dumps({'corpus': home(args), 'set': key, 'grader': name, 'refItems': sum(has_ref.values()), 'items': len(items), 'pairs': out,
+                                                                                 **({'acts': acts} if acts else {})}, ensure_ascii=False, indent=2, sort_keys=True))
 
 
 def cmd_agree(args) -> None:
