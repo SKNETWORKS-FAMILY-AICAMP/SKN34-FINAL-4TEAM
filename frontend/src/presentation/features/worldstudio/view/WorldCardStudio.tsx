@@ -21,7 +21,6 @@ import { KNOWLEDGE_KINDS } from '../viewmodel/relationView'
 import { kinds, labelOf } from '../viewmodel/settingBoard'
 import { kindOf } from '../../../shared/worldBoard'
 import { useCardBoard } from '../viewmodel/useCardBoard'
-import { useCardCategories } from '../../../shared/useCardCategories'
 import { CardRelationMap } from '../../../shared/CardRelationMap'
 import { PageControls } from '../../../shared/PageControls'
 import { pageItems } from '../../../shared/pageItems'
@@ -30,6 +29,7 @@ import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 import { worldVersionRows } from '../viewmodel/worldVersionGraph'
 import { CardActivityBar } from './CardActivityBar'
+import { CardCategoryNotice } from './CardCategoryNotice'
 import { CardDeletionConfirm } from './CardDeletionConfirm'
 import { CardImageControl, CardThumb } from './WorldCardImage'
 import { CharacterDocs } from './CharacterDocs'
@@ -75,8 +75,9 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const { item } = setting
   const board = useCardBoard(vm)
   // 유형 선택지·이름은 운영자가 관리하는 카드 카테고리다. 이미 쓰는 숨긴 카테고리는 그대로 남는다(새로 고를 수는 없다).
-  const { categories } = useCardCategories()
-  const typeChoices = categoryChoices(categories, cardTypeOf(item))
+  // 목록을 읽는 동안·읽지 못했을 때는 기본 8종으로 대신하지 않고 선택을 잠근다(실패는 아래에서 다시 시도로 알린다). 목록은 게시판 훅과 같은 읽기 결과다.
+  const { categories, isLoading, isError, retry } = board.cardCategories
+  const typeChoices = categoryChoices(categories ?? [], cardTypeOf(item))
   const chatPage = useWorldChatPage(vm)
   const pane = vm.pane // 활동 막대에서 고른 본문 화면(개요·문서·관계·버전·공개 순서): 주소의 pane이 정본이다
   const [listOpen, setListOpen] = useState(() => window.matchMedia?.('(min-width: 901px)').matches ?? true) // 설정 카드 목록 패널: 데스크톱은 펼친 채, 좁은 화면은 접힌 채 시작한다
@@ -202,12 +203,13 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                       <CardImageControl vm={vm} cardId={item.id} title={item.title} imageId={setting.imageId} portrait={portrait} />
                       <div className="world-overview-fields">
                         <label className="field world-type">유형
-                          <select className="inp" value={cardTypeOf(item)} onChange={(e) => vm.changeCardType(item.id, e.target.value as CardType)}>
+                          <select className="inp" value={cardTypeOf(item)} disabled={!categories} onChange={(e) => vm.changeCardType(item.id, e.target.value as CardType)}>
                             {typeChoices.map((c) => <option key={c.code} value={c.code}>{categoryIcon(c)}</option>)}
-                            {isCard(item) && !typeChoices.some((c) => c.code === cardTypeOf(item)) && <option value={cardTypeOf(item)}>{categoryName(categories, cardTypeOf(item))}</option>}
+                            {isCard(item) && !typeChoices.some((c) => c.code === cardTypeOf(item)) && <option value={cardTypeOf(item)}>{categoryName(categories ?? [], cardTypeOf(item)) + (isLoading ? ' · 불러오는 중…' : '')}</option>}
                             {['relation', 'review', 'note'].includes(cardTypeOf(item)) && <option value={cardTypeOf(item)}>{kinds[item.kind]} · 기존 의미 유지</option>}
                           </select>
                         </label>
+                        <CardCategoryNotice isError={isError} retry={retry} />
                         {setting.importedFrom && <p className="small muted world-card-source"><span className="chip">가져옴</span>{importedSource(setting.importedFrom)}</p>}
                         {item.kind !== 'relation' && (
                           <section className="world-card-reach" aria-label="공개 범위">

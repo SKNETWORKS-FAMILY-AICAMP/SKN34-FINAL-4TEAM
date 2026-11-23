@@ -17,6 +17,7 @@ import { BOARD_SORTS, useCardBoard } from '../viewmodel/useCardBoard'
 import type { CardImages } from '../viewmodel/useCardImages'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 import { cardPath } from '../../worlds/worldDetail'
+import { CardCategoryNotice } from './CardCategoryNotice'
 import { CardThumb } from './WorldCardImage'
 import { CardWikiPreview } from './WorldCardPreview'
 import { NewCardMenu } from './NewCardMenu'
@@ -201,6 +202,8 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
           <button type="button" className="btn sm" onClick={undo}>되돌리기</button>
         </p>
       )}
+      {/* 행의 분류 이름은 카테고리 목록을 따른다: 읽지 못했으면 기본 8종 이름만 믿을 수 있으므로 실패와 다시 시도를 알린다. */}
+      <CardCategoryNotice isError={board.cardCategories.isError} retry={board.cardCategories.retry} />
       <div className="world-card-library">
         <div className="worlds-board">
           <nav className="worlds-cats" aria-label="설정 분류">

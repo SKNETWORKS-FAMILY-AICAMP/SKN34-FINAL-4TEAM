@@ -2,8 +2,9 @@
 import {cleanup,fireEvent,render,screen} from '@testing-library/react'
 import {Provider} from 'react-redux'
 import {MemoryRouter,Routes,Route} from 'react-router'
-import {afterEach,expect,it,vi} from 'vitest'
+import {afterEach,beforeEach,expect,it,vi} from 'vitest'
 import {createAppStore} from '../../app/store'
+import {stubCardCategories} from '../cardCategories'
 import {WorldStudioPage} from '../../presentation/features/worldstudio/view/WorldStudioPage'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
@@ -16,7 +17,8 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
  const actual=await original<typeof import('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel')>()
  return {useWorldStudioViewModel:()=>{current=actual.useWorldStudioViewModel(useCase);return current}}
 })
-afterEach(cleanup)
+beforeEach(()=>stubCardCategories())
+afterEach(()=>{cleanup();vi.restoreAllMocks()})
 it('does not dirty or rewrite a saved card when unchanged tag and alias fields lose focus',async()=>{
  const card=newSetting('people');card.item.title='가람';card.tags=['금빛 열쇠'];card.aliases=['오래된 이름']
  const world:StudioWorld={id:'labels',name:'태그 검증',description:'',version:1,settings:[card],analysis:null}
