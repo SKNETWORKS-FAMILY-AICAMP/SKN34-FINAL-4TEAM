@@ -136,6 +136,9 @@ class WritingAiServiceTest {
         assertEquals(422, assertThrows(ContentFailure::class.java) {
             service.run("work", "owner", "Bearer user", ask.copy(episode = 4, episodeVersionId = null)) }.status)
         verifyNoInteractions(client)
+        // 판본 없는 턴은 근거 회차가 곧 반영 회차다: 따로 보낸 근거 회차는 확인되지 않은 지식 상한이 된다
+        assertEquals(422, assertThrows(ContentFailure::class.java) {
+            service.run("work", "owner", "Bearer user", ask.copy(episode = 1, episodeVersionId = null, targetEpisode = 3)) }.status)
         jakarta.validation.Validation.buildDefaultValidatorFactory().use { factory ->
             assertTrue(factory.validator.validate(ask.copy(episodeVersionId = null)).isEmpty())
             assertEquals(listOf("episodeVersionId"), factory.validator.validate(ask.copy(episodeVersionId = " ")).map { it.propertyPath.toString() })

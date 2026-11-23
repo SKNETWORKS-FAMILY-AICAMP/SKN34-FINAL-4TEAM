@@ -224,6 +224,8 @@ internal class WritingAiService(
         val reflect = request.targetEpisode ?: request.episode
         if (request.resume == null) {
             checkContent(reflect >= request.episode, message="반영할 회차는 근거 회차보다 앞설 수 없어요.")
+            // 판본이 없는 턴은 근거 회차가 곧 반영 회차다(확인하지 않은 근거 회차가 지식 상한이 되지 않게, #729)
+            checkContent(request.episodeVersionId != null || reflect == request.episode, message="발행 회차 없이 대화할 때는 연 회차만 보낼 수 있어요.")
             // 모델 호출 전에 권한 밖 작품·회차를 막는다. 실제 근거 조회 때 Content가 다시 확정한다.
             // 판본이 없으면(발행 회차 없음, #729) 원고 근거 없이 대화하므로 반영할 초안 회차만 확인한다.
             request.episodeVersionId?.let { scopes.resolve(workId, owner, QaScopeRequest(request.episode, it)) }
