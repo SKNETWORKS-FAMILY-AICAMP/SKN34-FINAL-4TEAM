@@ -54,7 +54,7 @@ manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제�
 
 ## 공개와 출처
 
-`firstAppearanceEpisode`는 첫 등장 출처 정보다. 원고 경로는 `semanticMetadata.manuscriptBuild`에 job/result/key와 함께 보존한다. 기존 `semanticMetadata.preprocessing`는 직접 입력 후보의 analysisId/candidateId/decisionSequence 계약이므로 원고 작업의 시작 동의를 후보 승인 이력으로 위조하여 넣지 않는다. 자동 적재는 `visibility=private`이며 `semanticMetadata.revealFromEpisode`를 지정하지 않는다. 공개 회차는 작가가 직접 지정한다. 기존 작가의 공개 설정은 수정하지 않는다.
+`firstAppearanceEpisode`는 첫 등장 출처 정보다. 원고 경로는 `semanticMetadata.manuscriptBuild`에 job/result/key와 함께 보존한다(적재 요청도 초안 편집과 같은 `semanticMetadata` 허용 키 검사를 거치며 이 키는 허용 키다, [계약](worldstudio-independent-schema.md#초안-semanticmetadata-계약-541)). 기존 `semanticMetadata.preprocessing`는 직접 입력 후보의 analysisId/candidateId/decisionSequence 계약이므로 원고 작업의 시작 동의를 후보 승인 이력으로 위조하여 넣지 않는다. 자동 적재는 `visibility=private`이며 `semanticMetadata.revealFromEpisode`를 지정하지 않는다. 공개 회차는 작가가 직접 지정한다. 기존 작가의 공개 설정은 수정하지 않는다.
 현재 프런트 HTTP 어댑터는 빈 메타데이터 또는 유효한 `studio`를 요구한다. 원고 출처만 있는 부분 객체를 그대로 저장하면 재조회 파싱이 실패한다. 적재 매퍼는 유효한 StudioSetting과 별도 원고 출처를 함께 만들고 왕복 테스트로 보존을 확인해야 한다. ManuscriptBuildMapper가 이 매핑을 제공한다. 정본 별칭과 studio.aliases를 일치시키며 실제 서버 응답 Fixture를 프런트 HTTP 어댑터로 왕복 검증한다. 브라우저 수용 검증은 별도로 표시한다.
 카드·관계의 출처에 jobId, 원고 버전/결과 식별자, 추출 key를 보존해 영속 결과의 근거로 추적한다. 정체 통합 결정을 원문 자체의 사실성 보증으로 해석하지 않는다.
 초안 적재 완료는 확정·공개·발행이 아니다. 확정은 기존 revisions API를 작가가 별도로 호출한다.
