@@ -27,6 +27,13 @@ describe('가입 API', () => {
     await expect(signup({ email: 'a@example.com', nickname: '독자', password: 'password' })).rejects.not.toBeInstanceOf(DuplicateEmail)
     expect(fetch).toHaveBeenCalledTimes(4)
   })
+  it('이메일 확인이 409로 거절되면 이미 가입된 이메일 오류로 알리고, 다른 거절은 일반 실패다', async () => {
+    const fetch = vi.fn().mockResolvedValueOnce(Response.json({ csrfToken: 'csrf' })).mockResolvedValueOnce(new Response(null, { status: 409 })).mockResolvedValueOnce(Response.json({ csrfToken: 'csrf' })).mockResolvedValueOnce(new Response(null, { status: 400 }))
+    vi.stubGlobal('fetch', fetch)
+    await expect(verifyEmail('token', 'password123')).rejects.toBeInstanceOf(DuplicateEmail)
+    await expect(verifyEmail('token', 'password123')).rejects.not.toBeInstanceOf(DuplicateEmail)
+    expect(fetch).toHaveBeenCalledTimes(4)
+  })
   it('서버 거부와 잘못된 CSRF 응답을 실패로 처리한다', async () => {
     const fetch = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ csrfToken: 'csrf' }))).mockResolvedValueOnce(new Response(null, { status: 400 })).mockResolvedValueOnce(new Response('{}'))
     vi.stubGlobal('fetch', fetch)

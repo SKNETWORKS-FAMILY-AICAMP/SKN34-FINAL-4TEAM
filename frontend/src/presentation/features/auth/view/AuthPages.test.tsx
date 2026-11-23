@@ -226,6 +226,20 @@ describe('결과 영역으로 초점 이동', () => {
     submit('이메일 확인')
     await focused(await screen.findByText(/이메일 인증이 완료됐어요/))
   })
+
+  // #565: 이메일 확인의 409는 가입 비밀번호 오류가 아니라 이미 가입된 이메일이라 로그인으로 안내한다.
+  it('이메일 확인이 이미 가입된 이메일(409)로 거절되면 비밀번호 오류가 아니라 로그인을 안내한다', async () => {
+    window.history.replaceState(null, '', '/auth/verify-email#token=secret')
+    vi.stubGlobal('fetch', respond(409))
+    renderApp('/auth/verify-email#token=secret')
+    enter('가입 비밀번호', 'password123')
+    submit('이메일 확인')
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toBe('이미 가입된 이메일이에요. 로그인해 주세요.')
+    expect(screen.queryByText(/가입 비밀번호를 확인해 주세요/)).toBeNull()
+    expect(screen.getByRole('link', { name: '로그인' }).getAttribute('href')).toBe('/login')
+    await focused(alert)
+  })
 })
 
 describe('본문 랜드마크와 문서 제목', () => {
