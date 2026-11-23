@@ -169,11 +169,12 @@ it.each([
   expect(screen.getByText(new RegExp(why)).id).toBe(run().getAttribute('aria-describedby'))
 })
 
-// AI 자율 집필은 운영 설정의 집필 방식에서 고른다(계약 'AI 자율 집필 = 집필 방식'). 꺼져 있으면 이 탭이 그 길을 알려 준다.
-it('꺼져 있으면 운영 설정 > 집필 방식에서 AI 자율 집필을 고르면 켜진다고 안내하고, 켜져 있으면 안내하지 않는다', async () => {
-  const GUIDE = '운영 설정 > 집필 방식에서 AI 자율 집필을 고르면 켜져요.'
+// AI 자율 집필은 운영 설정의 집필 방식에서 고른다(계약 'AI 자율 집필 = 집필 방식'). 꺼져 있으면 이 탭은 꺼짐 상태를 알리고, 켜는 길은 리드 문단이 적는다.
+it('꺼져 있으면 꺼짐 상태를 알리고(켜는 길은 리드 문단), 켜져 있으면 알리지 않는다', async () => {
+  const GUIDE = 'AI 자율 집필이 꺼져 있어요.'
   await open(fakeRepo(settings({ enabled: false })))
   expect(screen.getByText(GUIDE)).toBeTruthy()
+  expect(screen.getAllByText(/운영 설정 > 집필 방식에서 AI 자율 집필을 고르면/)).toHaveLength(1) // 리드 문단에만 있다
   cleanup()
   await open(fakeRepo(settings({ enabled: true })))
   expect(screen.queryByText(GUIDE)).toBeNull()

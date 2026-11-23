@@ -10,7 +10,7 @@ const SUBS = [['settings', '연재 설정'], ['history', '게시판 기록']] as
 
 /**
  * 작품 관리 'AI 집필' 탭([계약](../../../../../../docs/design/ai-serial-contract.md)): 하위 탭 '연재 설정'(요일·시각(한국시간)·연재 방향 저장)과
- * '게시판 기록'(지금 마감·실행, 기록 새로 고침, 기록 표). 켜기·끄기는 이 탭이 아니라 운영 설정의 집필 방식(AI 자율 집필)이 한다: 꺼져 있으면 그 길을 안내하고(운영 설정 열기 버튼, 호출 측이 이동을 잠그면 버튼이 없다) 연재 설정 폼 전체를 fieldset disabled로 잠가 흐리게 한다(입력·저장이 안 된다는 것이 보이게, 저장 동작·API는 그대로).
+ * '게시판 기록'(지금 마감·실행, 기록 새로 고침, 기록 표). 켜기·끄기는 이 탭이 아니라 운영 설정의 집필 방식(AI 자율 집필)이 한다: 꺼져 있으면 꺼짐 상태와 운영 설정 열기 버튼을 보이고(켜는 길은 리드 문단이 적는다. 호출 측이 이동을 잠그면 버튼이 없다) 연재 설정 폼 전체를 fieldset disabled로 잠가 흐리게 한다(입력·저장이 안 된다는 것이 보이게, 저장 동작·API는 그대로).
  * 탭 제목(h2 'AI 집필')은 호출 측(WorkManagement)이 그린다. 서버가 없는 시연(목업)에서는 호출 측이 이 패널을 그리지 않는다.
  * 설정·기록·실행 결과는 모두 서버 응답 그대로이고(기록의 실패 사유도 서버 문구 그대로), 저장·실행의 거절은 서버 문구(또는 코드별 고정 문구)로 알린다.
  */
@@ -58,7 +58,7 @@ export function AiSerialPanel({ workId, useCase, onOpenSettings }: { workId: str
                 <>
                   {!form.enabled && (
                     <p className='ep-alert ep-changed'>
-                      <span>운영 설정 &gt; 집필 방식에서 AI 자율 집필을 고르면 켜져요.</span>
+                      <span>AI 자율 집필이 꺼져 있어요.</span>
                       {onOpenSettings && <button type='button' className='btn sm' onClick={onOpenSettings}>운영 설정 열기</button>}
                     </p>
                   )}

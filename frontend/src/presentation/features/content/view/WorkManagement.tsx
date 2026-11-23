@@ -148,7 +148,6 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               work={w}
               locked={locked}
               busy={vm.busy}
-              draftCount={vm.writing ? drafts?.length : null}
               coverRevision={vm.coverRevision}
               onMediaBusy={setMediaBusy}
               onSaveInfo={vm.updateWork}

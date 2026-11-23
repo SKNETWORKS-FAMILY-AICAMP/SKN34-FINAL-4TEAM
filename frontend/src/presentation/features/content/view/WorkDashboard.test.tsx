@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 
 import type { Episode, Work } from '../../../../domain/entities/content'
+import { kstDateTime } from '../../../shared/format'
 import { WorkDashboard } from './WorkDashboard'
 
 // 조회(독자 지표·발행 이력·피드백)는 useWorkDashboard.test가 본다. 여기서는 훅이 준 상태를 어떻게 그리는지만 본다.
@@ -135,6 +136,9 @@ it('최근 발행 이력은 회차·동작·시각을 한 줄씩 보이고, 시�
   expect(items[0].textContent).toContain('3화 · 발행 ·')
   expect(items[1].textContent).toContain('2화 · 공개 중단 ·')
   expect(items[0].querySelector('time')?.getAttribute('datetime')).toBe('2026-11-09T00:00:00Z')
+  // 시각은 한국시간이고 초는 붙이지 않는다(AI 집필 기록과 같은 공용 kstDateTime).
+  expect(items[0].querySelector('time')?.textContent).toBe(kstDateTime('2026-11-09T00:00:00Z'))
+  expect(items[0].querySelector('time')?.textContent).not.toMatch(/\d:\d\d:\d\d/)
 })
 
 it('발행 이력이 없으면 안내만, 못 읽으면 구획 안에 알림(role 없이)과 다시 불러오기를 둔다', () => {

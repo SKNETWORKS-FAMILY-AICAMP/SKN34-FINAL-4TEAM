@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from 'react'
 import { publicationActionLabel, type Work } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import { kstDateTime } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { useWorkDashboard, type ReaderMetrics } from '../viewmodel/useWorkDashboard'
 
@@ -85,7 +86,7 @@ export function WorkDashboard({ work: w, draftCount, forkCounts, mockup, disable
             <ol role='list' className='ep-settings-history'>
               {publications.data.map((event) => (
                 <li key={`${event.publishedAt}-${event.episode}-${event.action}`}>
-                  {event.episode}화 · {publicationActionLabel[event.action]} · <time dateTime={event.publishedAt}>{new Date(event.publishedAt).toLocaleString('ko-KR')}</time>
+                  {event.episode}화 · {publicationActionLabel[event.action]} · <time dateTime={event.publishedAt}>{kstDateTime(event.publishedAt)}</time>
                 </li>
               ))}
             </ol>

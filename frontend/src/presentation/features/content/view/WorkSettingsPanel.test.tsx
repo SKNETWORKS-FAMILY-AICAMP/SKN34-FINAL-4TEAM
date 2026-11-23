@@ -142,6 +142,13 @@ it('집필 방식 select와 저장 버튼은 집필 방식 카드 안에, 자동
   expect(history.getAllByRole('listitem')).toHaveLength(1)
 })
 
+it('[distill] 집필 방식 카드는 보이는 제목이 하나이고 select의 접근 이름은 그대로다', async () => {
+  await open('direct')
+  const mode = within(screen.getByRole('region', { name: '집필 방식' }))
+  expect(mode.getByRole('combobox', { name: '집필 방식' })).toBeTruthy()
+  expect(mode.getByText('집필 방식', { selector: 'label > span' }).classList.contains('sr-only')).toBe(true)
+})
+
 it('자동 처리의 AI 자율 연재는 저장된 집필 방식으로 켜짐·꺼짐을 보인다 (고르기만 하고 저장하지 않은 값은 보지 않는다)', async () => {
   const auto = () => within(screen.getByRole('region', { name: '자동 처리' }))
   await open('autonomous')

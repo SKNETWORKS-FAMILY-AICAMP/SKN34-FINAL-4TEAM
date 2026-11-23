@@ -81,7 +81,6 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-muted{color:var(--tsub)}
 .episode-app .ep-hero .acts{margin-top:20px}
 .episode-app .ep-hero .hashes{margin:0 0 16px}
-.episode-app .ep-hero .stats{margin:0}
 .episode-app .ep-edit{gap:16px;margin-top:16px;max-width:560px}
 .ep-hero-cover .ep-edit{margin-top:0}
 .ep-edit fieldset{border:0;padding:0;margin:0;min-width:0;display:grid;gap:16px}
@@ -189,9 +188,6 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-content .ep-reading article time{color:var(--sub);font-size:13px}
 /* 해시태그는 누를 수 없는 글자라 강조색 알약이 아니라 .chip과 같은 회색 알약이다(.episode-app 안뿐: 소설 상세의 링크 태그는 그대로). */
 .episode-app .ep-hero .hashes span{background:var(--muted-bg);color:var(--sub);font-weight:600}
-.episode-app .ep-hero .stats b{font-weight:700}
-/* 분기 정책·포크 정보 카드는 작품 삭제 구획(.ep-delete)처럼 위쪽 선 하나의 구획이다. 카드 머리(.ep-sec-head)가 있는 카드로 한정해 세계관 관리의 본문 카드와 '이어받는 원작 세계관' 카드는 그대로 둔다. */
-.episode-app .ep-card.tcard:has(>.ep-sec-head){background:none;border:0;border-top:1px solid var(--line2);border-radius:0;padding:16px 0 0}
 /* 받은 피드백의 두 구획은 .sec 기본 위 간격(56px) 대신 다른 탭의 구획 간격과 맞춘다. 첫 구획은 inline marginTop:0이 우선한다. */
 .ep-feedback .sec{margin-top:32px}
 /* 관리 화면 polish(작품 관리): 탭 내용 묶음은 히어로·분기 정책·작품 삭제 구획처럼 위쪽 선 하나로 시작한다(선이 없으면 탭 내용이 위험 동작인 '작품 삭제'의 하위 내용처럼 읽혔다). */
@@ -228,7 +224,7 @@ body:has(.ep-menu-account) .thm-float{display:none}
 /* 개요 최근 발행 이력 줄은 한 줄 글이다: flex(.ep-settings-history li)에서는 글자 덩어리와 <time> 사이에 gap이 생겨 '발행 ·' 뒤 구분점이 매달려 보였다. 운영 설정·이력 탭의 이력 줄은 그대로다. */
 .ep-dash .ep-settings-history li{display:block}
 
-/* 운영 설정 탭 카드(R11): quieter의 카드 평탄화(:has(>.ep-sec-head))를 이 탭에서만 되돌린다. 넓은 화면은 2열, 삭제(위험 구역)는 맨 아래 전체 폭. 패널 껍데기는 그리드에 끼지 않게 display:contents(이름 없는 section이라 의미 손실 없음). 카드 사이 간격은 grid gap 하나다(.ep-card의 margin-bottom·.ep-tab .ep-delete의 위 간격은 아래 margin:0이 이긴다). 같은 줄 카드는 높이를 맞추고(stretch), 카드 머리는 버튼 유무와 무관하게 44px이고 제목 바깥 여백은 0이라 같은 줄 카드의 제목이 한 선에 놓인다(패널 카드만 .ep-reading의 h3 여백 20px을 물려받아 10px 어긋났다). */
+/* 운영 설정 탭 카드(R11): 카드 면·테두리·모서리·안쪽 여백은 이 규칙 하나가 정한다. 넓은 화면은 2열, 삭제(위험 구역)는 맨 아래 전체 폭. 패널 껍데기는 그리드에 끼지 않게 display:contents(이름 없는 section이라 의미 손실 없음). 카드 사이 간격은 grid gap 하나다(.ep-card의 margin-bottom·.ep-tab .ep-delete의 위 간격은 아래 margin:0이 이긴다). 같은 줄 카드는 높이를 맞추고(stretch), 카드 머리는 버튼 유무와 무관하게 44px이고 제목 바깥 여백은 0이라 같은 줄 카드의 제목이 한 선에 놓인다(패널 카드만 .ep-reading의 h3 여백 20px을 물려받아 10px 어긋났다). */
 .ep-settings-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:stretch}
 .ep-settings-cards>.ep-operating-settings{display:contents}
 .ep-settings-cards>.ep-operating-settings>:not(.ep-card){grid-column:1/-1}

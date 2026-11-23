@@ -327,22 +327,14 @@ describe('episode.css 관리 화면 quieter 계약 (작품 관리)', () => {
     expect(rule('.episode-app .ep-danger:hover')).toMatch(/background:color-mix\(in srgb,var\(--danger\) 10%,transparent\)/)
   })
 
-  it('분기 정책·포크 정보 카드는 작품 삭제 구획처럼 위쪽 선 하나의 구획이다 — 카드 머리(.ep-sec-head)가 있는 카드로 한정해 세계관 관리의 큰 카드와 이어받는 원작 세계관 카드는 그대로 둔다', () => {
-    const flat = rule('.episode-app .ep-card.tcard:has(>.ep-sec-head)')
-    expect(flat).toMatch(/background:none/)
-    expect(flat).toMatch(/border:0;border-top:1px solid var\(--line2\)/)
-    expect(flat).toMatch(/border-radius:0/)
-    expect(flat).toMatch(/padding:16px 0 0/)
-    // 한정 없이 .ep-card.tcard 전체에 걸면 WorldStudioPage의 본문 카드(게시판·관계도·시간선을 담는 큰 카드)와 LinkedWorldPanel의 '이어받는 원작 세계관' 카드까지 펴진다.
-    expect(rules.map((r) => r.selector)).not.toContain('.episode-app .ep-card.tcard')
+  it('카드 머리(.ep-sec-head)가 있는 tcard는 운영 설정 카드뿐이라 따로 평탄화하지 않고, .ep-card.tcard 전체에 거는 규칙도 없다(세계관 관리의 큰 카드·이어받는 원작 세계관 카드는 그대로)', () => {
+    const selectors = rules.map((r) => r.selector)
+    expect(selectors).not.toContain('.episode-app .ep-card.tcard:has(>.ep-sec-head)')
+    expect(selectors).not.toContain('.episode-app .ep-card.tcard')
   })
 
   it('받은 피드백의 두 구획 사이는 다른 탭의 구획 간격(32px)이다 (첫 구획은 inline marginTop:0이 우선해 그대로)', () => {
     expect(rule('.ep-feedback .sec')).toMatch(/margin-top:32px/)
-  })
-
-  it('히어로 통계 숫자는 800이 아니라 700이다', () => {
-    expect(rule('.episode-app .ep-hero .stats b')).toMatch(/font-weight:700/)
   })
 })
 
@@ -366,7 +358,7 @@ describe('episode.css 관리 화면 polish(작품 관리)', () => {
 })
 
 describe('episode.css 작품 관리 화면 polish 계약 (A·B 리뷰 반영)', () => {
-  it('[P0] 쉴 때의 히어로(.ep-hero-compact)는 88px 표지 썸네일 + 제목·칩·두 줄 소개·태그·통계 한 덩어리라 고른 탭의 내용이 첫 화면 안에서 시작한다 — 편집 중에는 이 클래스가 빠져 옛 큰 히어로(240px 표지)가 폼에 넓은 칸을 준다', () => {
+  it('[P0] 쉴 때의 히어로(.ep-hero-compact)는 88px 표지 썸네일 + 제목·칩·두 줄 소개·태그 한 덩어리라 고른 탭의 내용이 첫 화면 안에서 시작한다 — 편집 중에는 이 클래스가 빠져 옛 큰 히어로(240px 표지)가 폼에 넓은 칸을 준다', () => {
     expect(rule('.episode-app .ep-hero.ep-hero-compact')).toMatch(/grid-template-columns:88px minmax\(0,1fr\);gap:0 16px/)
     expect(rule('.ep-hero-compact .ep-hero-cover')).toMatch(/max-width:none/) // 900px 이하의 표지 폭 제한(220px)을 덮는다
     expect(rule('.episode-app .ep-hero.ep-hero-compact h1')).toMatch(/font-size:24px/)
@@ -430,7 +422,7 @@ describe('episode.css 작품 관리 화면 polish 계약 (A·B 리뷰 반영)', 
     expect(locked?.selector).toContain('.ep-serial .ep-form-footer')
   })
 
-  it('[R11] 운영 설정 탭 카드: 넓은 화면은 2열 격자이고, 패널 껍데기(.ep-operating-settings)는 격자에 끼지 않으며(display:contents) 카드가 아닌 것(알림·불러오는 중)은 한 줄을 다 쓴다. 평탄화(:has(>.ep-sec-head))는 이 탭에서만 되돌리고(margin:0이 카드 아래 간격을 grid gap 하나로 모은다) 삭제 구역은 맨 아래 전체 폭이다', () => {
+  it('[R11] 운영 설정 탭 카드: 넓은 화면은 2열 격자이고, 패널 껍데기(.ep-operating-settings)는 격자에 끼지 않으며(display:contents) 카드가 아닌 것(알림·불러오는 중)은 한 줄을 다 쓴다. 카드 틀은 이 탭 규칙 하나이고(margin:0이 카드 아래 간격을 grid gap 하나로 모은다) 삭제 구역은 맨 아래 전체 폭이다', () => {
     expect(rule('.ep-settings-cards')).toMatch(/display:grid;grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,420px\),1fr\)\)/)
     expect(rule('.ep-settings-cards>.ep-operating-settings')).toMatch(/display:contents/)
     expect(rule('.ep-settings-cards>.ep-operating-settings>:not(.ep-card)')).toMatch(/grid-column:1\/-1/)

@@ -14,8 +14,6 @@ type Props = {
   /** 요청·표지 전송 중에는 편집을 시작하거나 저장하지 못한다. */
   locked: boolean
   busy: boolean
-  /** 작성 중인 초안 수. null이면 아직 읽는 중이라 자리만 보이고, undefined이면 읽지 못해 항목을 감춘다(0으로 채우지 않는다). */
-  draftCount?: number | null
   /** 작품 생성 직후 표지 업로드가 끝나면 올라가, 표지 목록을 다시 읽게 한다. */
   coverRevision: number
   onMediaBusy: (busy: boolean) => void
@@ -28,15 +26,16 @@ type Props = {
 }
 
 /**
- * 작품 관리 화면 위쪽의 소설 상세형 히어로(표지·제목·장르·유형·공개 상태·소개·해시태그·통계). 모든 탭 위에 있어 쉴 때는 88px 표지 썸네일 한 덩어리로 줄고(.ep-hero-compact),
+ * 작품 관리 화면 위쪽의 소설 상세형 히어로(표지·제목·장르·유형·공개 상태·소개·해시태그). 모든 탭 위에 있어 쉴 때는 88px 표지 썸네일 한 덩어리로 줄고(.ep-hero-compact),
  * 작품 정보·표지를 편집하는 동안만 옛 큰 히어로로 펴져 폼이 넓은 칸을 쓴다. 분기 정책(포크 정보)·작품 삭제는 운영 설정 탭의 WorkOperations로 옮겼다.
+ * 공개 회차·작성 중인 초안 수는 바로 아래 대시보드 지표 카드가 보인다(같은 수를 두 번 보이지 않는다).
  * 작품 정보(제목·소개·장르·해시태그)와 표지는 영역마다 '편집' 버튼이 하나씩 있고 저장/취소로 바꾼다. 한 번에 한 영역만 편집한다(상태는 호출 측이 갖는다).
  * 저장이 성공해야 읽기 표시로 돌아가며, 실패하면 폼과 입력을 그대로 둔다(오류는 화면 위 알림이 보인다).
  * 작품 유형은 등록 때 정해져 읽기 전용이고, 공개 상태는 회차 공개 흐름이 정하므로 읽기 전용이다.
  * 원고 작성은 이 화면이 아니라 집필실(`/studio/{id}`)에서 하므로 공개 회차 탭 머리의 '집필실 열기'와 회차별 수정하기가 그리로 보낸다.
  * 작품이 바뀌면 호출 측이 key로 새로 만든다.
  */
-export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision, onMediaBusy, onSaveInfo, onSuggestTags, editing, onEditingChange }: Props) {
+export function WorkOverview({ work: w, locked, busy, coverRevision, onMediaBusy, onSaveInfo, onSuggestTags, editing, onEditingChange }: Props) {
   const infoButton = useRef<HTMLButtonElement>(null)
   const coverButton = useRef<HTMLButtonElement>(null)
   const closed = useRef<'info' | 'cover' | null>(null)
@@ -91,14 +90,6 @@ export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision,
           ? <p className='sum'>{w.summary}</p>
           : <p className='sum ep-muted'>당신의 이야기를 한 문장씩 채워 보세요.</p>}
         {!!w.hashtags?.length && <div className='hashes'>{w.hashtags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
-        <div className='stats'>
-          <span>공개 회차 <b>{w.episodes.length}</b>화</span>
-          {draftCount !== undefined && (
-            <span>
-              작성 중인 초안 {draftCount === null ? <b>…<span className='sr-only'>불러오는 중</span></b> : <><b>{draftCount}</b>개</>}
-            </span>
-          )}
-        </div>
       </div>
     </section>
   )

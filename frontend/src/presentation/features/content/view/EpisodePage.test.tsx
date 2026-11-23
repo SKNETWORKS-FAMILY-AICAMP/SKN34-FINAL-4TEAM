@@ -89,7 +89,7 @@ const writingRow = (number: number, extra: object = {}) => ({
   number, draft: { title: `${number}화 초안`, body: '', revision: 0 }, publicationStatus: 'draft', hasDraft: true,
   versions: [], publishedVersionId: null, inherited: false, updatedAt: null, checkpointStatus: 'none', checkpoints: [], ...extra,
 })
-const heroStats = () => document.querySelector('.ep-hero .stats')!.textContent
+const draftMetric = () => screen.queryByText('작성 중인 초안', { selector: 'dt' })?.nextElementSibling?.textContent ?? null
 const myFork = { ...owned, title: '내 포크', summary: '소개', visibility: 'public', revision: 4, draft: { ...owned.draft, revision: 4 }, source: { workId: 'o', title: '원작', episode: 2, version: 7, direction: '다른 결말' } }
 const STOP_CONFIRM = '포크 작품의 공개를 중단할까요? 발행된 회차와 원고는 보존돼요. 대기 중인 예약 발행은 취소되고, 원작이 공개를 허용하지 않으면 다시 공개할 수 없어요.'
 const AREAS = ['작품 정보 편집', '표지 편집', '분기 정책 편집']
@@ -107,7 +107,17 @@ const coverReply = (path: string) => Response.json({ id: '33333333-3333-4333-833
 
 // ── 작품 만들기 (/content) ─────────────────────────────────────────────
 
-it('counts the editable drafts of a public work in the hero and leaves opening them to the studio', async () => {
+it('개요 탭 히어로에는 통계 줄이 없고 공개 회차·작성 중인 초안은 지표 카드에만 보인다', async () => {
+  stubCover()
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public' }]),
+    'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1)]),
+  }))
+  await waitFor(() => expect(draftMetric()).toBe('1개'))
+  expect(document.querySelector('.ep-hero .stats')).toBeNull()
+})
+
+it('counts the editable drafts of a public work in the overview metric card and leaves opening them to the studio', async () => {
   const rows = ['첫 장면', '둘째 장면'].map((title, i) => ({
     number: i + 1, draft: { title, body: '', revision: 0 }, publicationStatus: 'draft',
     hasDraft: true, versions: [], publishedVersionId: null, inherited: false,
@@ -118,7 +128,7 @@ it('counts the editable drafts of a public work in the hero and leaves opening t
     'GET /api/v1/works/w/episodes': () => Response.json(rows),
   }))
   expect(await screen.findByText('공개 회차 없음')).toBeTruthy()
-  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 2개'))
+  await waitFor(() => expect(draftMetric()).toBe('2개'))
   // 초안은 집필실 왼쪽 회차 목록에서 연다: 공개 회차 탭에는 초안 묶음도 초안 링크도 없고, 집필실로 가는 길은 집필실 열기뿐이다.
   toReadTab()
   expect(screen.queryByRole('heading', { name: '작성 중인 초안' })).toBeNull()
@@ -132,9 +142,7 @@ it('does not count a suspended episode as a draft in progress', async () => {
     'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public' }]),
     'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1), writingRow(2, { publicationStatus: 'suspended' })]),
   }))
-  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 1개'))
-  // 개요 대시보드의 지표 카드도 같은 수를 보인다(소유자 회차 조회에서 같은 규칙으로 센다).
-  expect(screen.getByText('작성 중인 초안', { selector: 'dt' }).nextElementSibling?.textContent).toBe('1개')
+  await waitFor(() => expect(draftMetric()).toBe('1개'))
 })
 
 it('keeps a place for the draft count while drafts load and fills it in when they arrive', async () => {
@@ -146,10 +154,10 @@ it('keeps a place for the draft count while drafts load and fills it in when the
     'GET /api/v1/works/w/episodes': () => pending,
   }))
   // 읽는 동안에도 자리를 잡아 두어, 읽고 나서 끼어들며 아래 화면을 밀지 않는다.
-  expect(heroStats()).toContain('작성 중인 초안 …')
+  expect(draftMetric()).toContain('…')
   finish(Response.json([writingRow(1), writingRow(2)]))
-  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 2개'))
-  expect(heroStats()).not.toContain('…')
+  await waitFor(() => expect(draftMetric()).toBe('2개'))
+  expect(draftMetric()).not.toContain('…')
 })
 
 it('tells the drafts could not be read in an alert box and does not pretend to count them', async () => {
@@ -164,7 +172,7 @@ it('tells the drafts could not be read in an alert box and does not pretend to c
   expect(alert.classList.contains('ep-alert')).toBe(true)
   // 못 읽은 것을 읽는 중처럼 '…'로 두지도, 0개로 채우지도 않는다.
   toOverviewTab()
-  expect(heroStats()).not.toContain('작성 중인 초안')
+  expect(draftMetric()).toBeNull()
 })
 
 it('creates a private work through the API and opens its writing studio', async () => {
@@ -1154,7 +1162,7 @@ it.each([
   const read = serialRead(answer)
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]), 'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1)]) }))
   await waitFor(() => expect(read).toHaveBeenCalled())
-  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 1개')) // 회차 수까지 읽은 뒤에도
+  await waitFor(() => expect(draftMetric()).toBe('1개')) // 회차 수까지 읽은 뒤에도
   await act(async () => {})
   toReadTab()
   expect(screen.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w')
