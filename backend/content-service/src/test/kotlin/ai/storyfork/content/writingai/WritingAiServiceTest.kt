@@ -15,6 +15,7 @@ import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.WritingAiService
+import ai.storyfork.content.writingai.service.dto.WritingAiAttachment
 import ai.storyfork.content.writingai.service.dto.WritingAiPage
 import ai.storyfork.content.writingai.service.dto.WritingAiPageContent
 import ai.storyfork.content.writingai.service.dto.WritingAiRequest
@@ -387,6 +388,55 @@ class WritingAiServiceTest {
             service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true)), fromTurn = 1)
         }
         assertEquals(422, failure.status)
+    }
+
+    // 첨부(#617): 새 요청에서만 받아 AI에 그대로 싣는다. 개수·형식·Base64 길이는 DTO가, 디코딩·정확한 크기·UTF-8은 AI가 확인한다.
+    private val note = WritingAiAttachment("메모.md", "text/markdown", "IyDshqTsoJU=")
+    private val map = WritingAiAttachment("지도.png", "image/png", "iVBORw0KGgo=")
+
+    @Test
+    fun `attachments of a new request reach the AI body as they are`() {
+        scopeResolves()
+        val body = service.message("work", "owner", "thread", ask.copy(attachments = listOf(note, map)))
+        assertEquals(listOf(
+            mapOf("name" to "메모.md", "mediaType" to "text/markdown", "data" to note.data),
+            mapOf("name" to "지도.png", "mediaType" to "image/png", "data" to map.data),
+        ), body["attachments"])
+    }
+
+    @Test
+    fun `a request without attachments sends no attachments key as before`() {
+        scopeResolves()
+        assertFalse("attachments" in service.message("work", "owner", "thread", ask))
+        assertFalse("attachments" in service.message("work", "owner", "thread", ask.copy(attachments = emptyList())))
+    }
+
+    @Test
+    fun `attachments with a resume are a 422 before anything is resolved or sent`() {
+        val resumed = ask.copy(request = null, threadId = "thread", resume = WritingAiResume(true), attachments = listOf(note))
+        val failure = assertThrows(ContentFailure::class.java) { service.message("work", "owner", "thread", resumed) }
+        assertEquals(422, failure.status)
+        assertEquals("첨부는 새 요청에만 보낼 수 있어요.", failure.message)
+        verifyNoInteractions(scopes, client)
+        scopeResolves()
+        assertTrue("resume" in service.message("work", "owner", "thread", resumed.copy(attachments = emptyList())))  // 빈 목록은 이어가기를 막지 않는다
+    }
+
+    @Test
+    fun `request validation bounds the attachment count name media type and data length`() {
+        jakarta.validation.Validation.buildDefaultValidatorFactory().use { factory ->
+            val validator = factory.validator
+            fun problems(vararg items: WritingAiAttachment) = validator.validate(ask.copy(attachments = items.toList())).map { it.propertyPath.toString() }
+            assertTrue(problems().isEmpty() && problems(note, map, note).isEmpty())
+            for (type in listOf("image/png", "image/jpeg", "image/webp", "text/plain", "text/markdown")) assertTrue(problems(note.copy(mediaType = type)).isEmpty())
+            assertTrue(problems(note.copy(name = "가".repeat(200)), note.copy(data = "A".repeat(6_990_508))).isEmpty())
+            assertEquals(listOf("attachments"), problems(note, map, note, map))
+            assertEquals(listOf("attachments[0].name"), problems(note.copy(name = "")))
+            assertEquals(listOf("attachments[0].name"), problems(note.copy(name = "가".repeat(201))))
+            for (type in listOf("image/gif", "application/pdf", "text/html", "image/png2")) assertEquals(listOf("attachments[0].mediaType"), problems(note.copy(mediaType = type)))
+            assertEquals(listOf("attachments[0].data"), problems(note.copy(data = "")))
+            assertEquals(listOf("attachments[0].data"), problems(note.copy(data = "A".repeat(6_990_509))))
+        }
     }
 
     // 화면 맥락(#554): 길이는 DTO가, 권한은 사용자 기준으로 Service가 다시 확인하고 통과한 값만 AI에 싣는다.

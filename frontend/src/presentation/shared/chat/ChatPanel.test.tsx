@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { ChatMessage } from '../../../domain/entities/chat'
+import { checkAttachment } from '../../../domain/entities/chatAttachment'
 import { ChatPanel } from './ChatPanel'
 
 afterEach(cleanup)
@@ -14,7 +15,7 @@ const type = (text: string) => fireEvent.change(box(), { target: { value: text }
 describe('공용 채팅 메시지', () => {
   it('역할별로 화자를 구분하고 텍스트와 첨부 칩을 그린다', () => {
     const messages: ChatMessage[] = [
-      { id: 'a', role: 'user', text: '다음 장면을 이어 줘', attachments: [{ id: 'f1', kind: 'image', name: '표지.png' }, { id: 'f2', kind: 'audio', name: '메모.m4a' }] },
+      { id: 'a', role: 'user', text: '다음 장면을 이어 줘', attachments: [{ id: 'f1', kind: 'image', name: '표지.png' }, { id: 'f2', kind: 'text', name: '메모.md' }] },
       { id: 'b', role: 'assistant', text: '제안입니다.' },
       { id: 'c', role: 'system', text: '연결이 끊겼어요.' },
     ]
@@ -24,7 +25,7 @@ describe('공용 채팅 메시지', () => {
     expect(rows.map(li => li.className)).toEqual(['chat-msg user', 'chat-msg assistant', 'chat-msg system'])
     expect(rows.map(li => li.querySelector('.chat-who')?.textContent)).toEqual(['나', 'AI', '안내'])
     expect(within(rows[0]).getByText('다음 장면을 이어 줘')).toBeTruthy()
-    expect(within(rows[0]).getByLabelText('첨부').textContent).toBe('이미지 · 표지.png음성 · 메모.m4a')
+    expect(within(rows[0]).getByLabelText('첨부').textContent).toBe('이미지 · 표지.png텍스트 · 메모.md')
     expect(within(rows[1]).queryByLabelText('첨부')).toBeNull()
   })
 
@@ -70,7 +71,7 @@ describe('공용 채팅 입력', () => {
     type('  이어 써 줘  ')
     fireEvent.keyDown(box(), { key: 'Enter' })
     await waitFor(() => expect(box().value).toBe(''))
-    expect(onSend).toHaveBeenCalledExactlyOnceWith('이어 써 줘')
+    expect(onSend).toHaveBeenCalledExactlyOnceWith('이어 써 줘', [])
   })
 
   it('전송 버튼도 같은 전송을 하고 비어 있거나 공백뿐이면 옅게 잠가 보내지 않는다', async () => {
@@ -85,7 +86,7 @@ describe('공용 채팅 입력', () => {
     type('안녕')
     expect(send().disabled).toBe(false)
     fireEvent.click(send())
-    await waitFor(() => expect(onSend).toHaveBeenCalledExactlyOnceWith('안녕'))
+    await waitFor(() => expect(onSend).toHaveBeenCalledExactlyOnceWith('안녕', []))
   })
 
   it('추천 칩은 입력창에 글만 채우고 보내지 않으며 입력이 잠기면 칩도 잠긴다', () => {
@@ -144,14 +145,14 @@ describe('공용 채팅 입력', () => {
     fireEvent.keyDown(box(), { key: 'Enter' })
     fireEvent.keyDown(box(), { key: 'Enter' })
     fireEvent.click(send())
-    expect(onSend).toHaveBeenCalledExactlyOnceWith('한 번만')
+    expect(onSend).toHaveBeenCalledExactlyOnceWith('한 번만', [])
     expect(box().value).toBe('')
     await act(async () => { finish(true) })
     await waitFor(() => expect(box().value).toBe(''))
     type('다음')
     fireEvent.keyDown(box(), { key: 'Enter' })
     expect(onSend).toHaveBeenCalledTimes(2)
-    expect(onSend).toHaveBeenLastCalledWith('다음')
+    expect(onSend).toHaveBeenLastCalledWith('다음', [])
   })
 
   it('busy를 넘기지 않아도 전송하는 동안은 새 글이 있어도 전송 버튼을 잠가 눌러도 무시되는 일이 없게 한다', async () => {
@@ -199,24 +200,34 @@ describe('공용 채팅 입력', () => {
 describe('공용 채팅 비활성·첨부', () => {
   const plus = () => screen.getByRole('button', { name: '첨부' })
   const attachItem = (name: string) => screen.getByRole('menuitem', { name }) as HTMLButtonElement
+  const png = (name = '지도.png') => new File(['x'], name, { type: 'image/png' })
+  const note = (name = '메모.md') => new File(['북문은 밤에 닫힌다.'], name, { type: '' })
+  const gif = () => new File(['x'], '움짤.gif', { type: 'image/gif' })
+  const card = (container: HTMLElement) => container.querySelector('.chat-card')!
+  const input = (container: HTMLElement, accept: string) => container.querySelector<HTMLInputElement>(`input[type="file"][accept="${accept}"]`)!
+  const IMAGES = 'image/png,image/jpeg,image/webp'
+  const TEXTS = '.txt,.md,text/plain,text/markdown'
+  const chips = () => screen.queryByRole('list', { name: '보낼 첨부' })
+  const drop = (container: HTMLElement, ...files: File[]) => fireEvent.drop(card(container), { dataTransfer: { files } })
 
   it('비활성 사유가 있으면 입력·전송·첨부를 모두 잠그고 사유를 카드 아래에 연결해 알린다', () => {
     const onSend = vi.fn()
-    const onAttach = vi.fn()
-    render(<ChatPanel messages={[]} onSend={onSend} onAttach={onAttach} disabledReason="준비 중이에요." />)
+    const { container } = render(<ChatPanel messages={[]} onSend={onSend} checkFile={checkAttachment} disabledReason="준비 중이에요." />)
     expect(box().disabled).toBe(true)
     expect(send().disabled).toBe(true)
     fireEvent.click(plus())
     expect(attachItem('이미지 첨부').disabled).toBe(true)
-    expect(attachItem('음성 첨부').disabled).toBe(true)
+    expect(attachItem('텍스트 파일 첨부').disabled).toBe(true)
     expect(document.getElementById(box().getAttribute('aria-describedby') ?? '')?.textContent).toBe('준비 중이에요.')
     fireEvent.click(send())
     expect(onSend).not.toHaveBeenCalled()
-    expect(onAttach).not.toHaveBeenCalled()
+    // 잠긴 동안 끌어다 놓아도 첨부하지 않고, 브라우저가 파일을 열어 화면을 떠나지도 않는다
+    expect(drop(container, png())).toBe(false)
+    expect(chips()).toBeNull()
   })
 
   it('잠긴 첨부 메뉴를 열면 초점이 메뉴로 들어가고 잠긴 사유가 메뉴 설명으로 읽힌다 (잠긴 항목은 초점을 받지 못한다)', () => {
-    const { rerender } = render(<ChatPanel messages={[]} onSend={vi.fn()} onAttach={vi.fn()} disabledReason="준비 중이에요." />)
+    const { rerender } = render(<ChatPanel messages={[]} onSend={vi.fn()} checkFile={checkAttachment} disabledReason="준비 중이에요." />)
     fireEvent.click(plus())
     const menu = screen.getByRole('menu', { name: '첨부' })
     expect(document.activeElement).toBe(menu)
@@ -227,7 +238,7 @@ describe('공용 채팅 비활성·첨부', () => {
     fireEvent.click(plus())
     const soon = screen.getByRole('menu', { name: '첨부' })
     expect(document.activeElement).toBe(soon)
-    expect(document.getElementById(soon.getAttribute('aria-describedby') ?? '')?.textContent).toBe('이미지·음성 첨부는 준비 중이에요.')
+    expect(document.getElementById(soon.getAttribute('aria-describedby') ?? '')?.textContent).toBe('이미지·텍스트 파일 첨부는 준비 중이에요.')
   })
 
   it('전송 handler가 없으면 입력과 전송을 잠근다', () => {
@@ -236,20 +247,23 @@ describe('공용 채팅 비활성·첨부', () => {
     expect(send().disabled).toBe(true)
   })
 
-  it('첨부 handler가 없으면 + 버튼 안의 이미지·음성 항목을 준비 중 안내와 함께 잠그고, 안내는 popover 안에만 둔다', () => {
-    render(<ChatPanel messages={[]} onSend={vi.fn()} />)
-    const note = '이미지·음성 첨부는 준비 중이에요.'
+  it('파일 검사 함수가 없으면 + 버튼 안의 첨부 항목을 준비 중 안내와 함께 잠그고, 안내는 popover 안에만 둔다', () => {
+    const { container } = render(<ChatPanel messages={[]} onSend={vi.fn()} />)
+    const note = '이미지·텍스트 파일 첨부는 준비 중이에요.'
     expect(plus().getAttribute('aria-haspopup')).toBe('menu')
     expect(plus().getAttribute('aria-expanded')).toBe('false')
     expect(screen.queryByText(note)).toBeNull()
     fireEvent.click(plus())
     expect(plus().getAttribute('aria-expanded')).toBe('true')
-    for (const name of ['이미지 첨부', '음성 첨부']) {
+    for (const name of ['이미지 첨부', '텍스트 파일 첨부']) {
       const item = attachItem(name)
       expect(item.disabled).toBe(true)
       expect(document.getElementById(item.getAttribute('aria-describedby') ?? '')?.textContent).toBe(note)
     }
     expect(screen.getAllByText(note)).toHaveLength(1)
+    // 첨부가 꺼진 화면은 파일 선택 칸도 없고, 파일을 끌어다 놓아도 아무것도 가로채지 않는다
+    expect(container.querySelector('input[type="file"]')).toBeNull()
+    expect(fireEvent.dragOver(card(container))).toBe(true)
     // 마이크는 항상 준비 중이라 잠겨 있다
     expect((screen.getByRole('button', { name: '음성 입력 (준비 중)' }) as HTMLButtonElement).disabled).toBe(true)
     // Escape로 닫으면 + 버튼으로 초점이 돌아온다
@@ -258,19 +272,117 @@ describe('공용 채팅 비활성·첨부', () => {
     expect(document.activeElement).toBe(plus())
   })
 
-  it('첨부 handler가 있으면 고른 파일을 종류와 함께 넘기고 파일 선택을 비운다', () => {
-    const onAttach = vi.fn()
-    const { container } = render(<ChatPanel messages={[]} onSend={vi.fn()} onAttach={onAttach} />)
+  it('+ 메뉴의 이미지·텍스트 항목은 각자의 형식만 고르는 파일 선택을 열고, 고른 파일을 칩으로 보인다', () => {
+    const { container } = render(<ChatPanel messages={[]} onSend={vi.fn()} checkFile={checkAttachment} />)
+    expect(chips()).toBeNull()
     fireEvent.click(plus())
-    expect(attachItem('음성 첨부').disabled).toBe(false)
-    const input = container.querySelector<HTMLInputElement>('input[type="file"][accept="audio/*"]')!
-    const pick = vi.spyOn(input, 'click')
-    fireEvent.click(attachItem('음성 첨부'))
+    expect(attachItem('이미지 첨부').disabled).toBe(false)
+    const images = input(container, IMAGES)
+    const pick = vi.spyOn(images, 'click')
+    fireEvent.click(attachItem('이미지 첨부'))
     expect(pick).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('menu')).toBeNull()
-    const file = new File(['x'], '메모.m4a', { type: 'audio/mp4' })
-    fireEvent.change(input, { target: { files: [file] } })
-    expect(onAttach).toHaveBeenCalledExactlyOnceWith('audio', file)
-    expect(container.querySelector('input[type="file"][accept="image/*"]')).toBeTruthy()
+    fireEvent.change(images, { target: { files: [png()] } })
+    expect(images.value).toBe('')
+    fireEvent.click(plus())
+    const texts = input(container, TEXTS)
+    const pickText = vi.spyOn(texts, 'click')
+    fireEvent.click(attachItem('텍스트 파일 첨부'))
+    expect(pickText).toHaveBeenCalledTimes(1)
+    fireEvent.change(texts, { target: { files: [note()] } })
+    expect(within(chips()!).getAllByRole('listitem').map(li => li.textContent)).toEqual(['이미지 · 지도.png×', '텍스트 · 메모.md×'])
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('입력 카드에 끌어다 놓은 파일도 같은 검사를 거쳐 칩이 된다', () => {
+    const { container } = render(<ChatPanel messages={[]} onSend={vi.fn()} checkFile={checkAttachment} />)
+    expect(fireEvent.dragOver(card(container))).toBe(false) // preventDefault: 놓을 수 있다
+    drop(container, png(), note())
+    expect(within(chips()!).getAllByRole('listitem').map(li => li.textContent)).toEqual(['이미지 · 지도.png×', '텍스트 · 메모.md×'])
+  })
+
+  it('지원하지 않는 형식·5MB 초과·3개 초과는 입력 카드 아래에 이유를 알리고 그 파일만 받지 않는다', () => {
+    const { container } = render(<ChatPanel messages={[]} onSend={vi.fn()} checkFile={checkAttachment} />)
+    const big = new File([new Uint8Array(5 * 1024 * 1024 + 1)], '큰.png', { type: 'image/png' })
+    drop(container, gif(), big, png('a.png'), png('b.png'), png('c.png'), png('d.png'))
+    expect(within(chips()!).getAllByRole('listitem').map(li => li.textContent)).toEqual(['이미지 · a.png×', '이미지 · b.png×', '이미지 · c.png×'])
+    expect(screen.getAllByRole('alert').map(a => a.textContent)).toEqual([
+      '움짤.gif: 지원하지 않는 형식이에요. PNG·JPEG·WEBP 이미지와 .txt·.md 텍스트 파일만 첨부할 수 있어요.',
+      '큰.png: 5MB 이하 파일만 첨부할 수 있어요.',
+      'd.png: 한 메시지에 3개까지만 첨부할 수 있어요.',
+    ])
+    expect(card(container).nextElementSibling?.getAttribute('role')).toBe('alert') // 입력 카드 바로 아래
+    // 다음에 고른 파일이 받아지면 이전 거절 안내는 지워진다
+    fireEvent.click(within(chips()!).getByRole('button', { name: 'a.png 빼기' }))
+    drop(container, note())
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('칩의 ×로 첨부를 빼고, 다 빼면 칩 줄이 사라진다', () => {
+    const { container } = render(<ChatPanel messages={[]} onSend={vi.fn()} checkFile={checkAttachment} />)
+    drop(container, png(), note())
+    fireEvent.click(screen.getByRole('button', { name: '지도.png 빼기' }))
+    expect(within(chips()!).getAllByRole('listitem').map(li => li.textContent)).toEqual(['텍스트 · 메모.md×'])
+    fireEvent.click(screen.getByRole('button', { name: '메모.md 빼기' }))
+    expect(chips()).toBeNull()
+  })
+
+  it('첨부 없이 보내면 빈 목록과 함께 글만 보낸다', async () => {
+    const onSend = vi.fn().mockResolvedValue(true)
+    render(<ChatPanel messages={[]} onSend={onSend} checkFile={checkAttachment} />)
+    type('첨부 없는 질문')
+    fireEvent.click(send())
+    await waitFor(() => expect(onSend).toHaveBeenCalledExactlyOnceWith('첨부 없는 질문', []))
+  })
+
+  it('글은 첨부와 별개로 필수라 첨부만 있으면 보내지 못한다', () => {
+    const onSend = vi.fn()
+    const { container } = render(<ChatPanel messages={[]} onSend={onSend} checkFile={checkAttachment} />)
+    drop(container, png())
+    expect(send().disabled).toBe(true)
+    fireEvent.submit(box().closest('form')!)
+    expect(onSend).not.toHaveBeenCalled()
+  })
+
+  it('고른 파일을 글과 함께 넘기고, 전송이 시작되면 입력창과 칩을 비운다', async () => {
+    let finish!: (sent: boolean) => void
+    const onSend = vi.fn(() => new Promise<boolean>(resolve => { finish = resolve }))
+    const { container } = render(<ChatPanel messages={[]} onSend={onSend} checkFile={checkAttachment} />)
+    const file = png()
+    drop(container, file)
+    type('이 지도를 봐줘')
+    fireEvent.click(send())
+    expect(onSend).toHaveBeenCalledExactlyOnceWith('이 지도를 봐줘', [file])
+    expect(chips()).toBeNull()
+    expect(box().value).toBe('')
+    await act(async () => finish(true))
+    expect(chips()).toBeNull()
+  })
+
+  it('전송이 실패하면 글과 첨부를 그대로 되돌려 다시 보낼 수 있다', async () => {
+    const onSend = vi.fn().mockResolvedValueOnce(false).mockResolvedValue(true)
+    const { container } = render(<ChatPanel messages={[]} onSend={onSend} checkFile={checkAttachment} />)
+    const file = png()
+    drop(container, file)
+    type('이 지도를 봐줘')
+    fireEvent.click(send())
+    await waitFor(() => expect(box().value).toBe('이 지도를 봐줘'))
+    expect(within(chips()!).getAllByRole('listitem').map(li => li.textContent)).toEqual(['이미지 · 지도.png×'])
+    fireEvent.click(send())
+    await waitFor(() => expect(onSend).toHaveBeenLastCalledWith('이 지도를 봐줘', [file]))
+  })
+
+  it('전송하는 사이 새로 고른 첨부가 있으면 전송이 실패해도 그 첨부를 지키고 이전 첨부로 덮지 않는다', async () => {
+    let finish!: (sent: boolean) => void
+    const onSend = vi.fn(() => new Promise<boolean>(resolve => { finish = resolve }))
+    const { container } = render(<ChatPanel messages={[]} onSend={onSend} checkFile={checkAttachment} />)
+    drop(container, png('a.png'), png('b.png'))
+    type('질문')
+    fireEvent.click(send())
+    drop(container, png('c.png'), png('d.png'), png('e.png'))
+    expect(within(chips()!).getAllByRole('listitem').map(li => li.textContent)).toEqual(['이미지 · c.png×', '이미지 · d.png×', '이미지 · e.png×'])
+    await act(async () => finish(false))
+    // 새로 고른 첨부가 있으면 그것을 지키고 실패한 요청의 첨부는 되돌리지 않는다(새 입력을 덮지 않는다)
+    expect(within(chips()!).getAllByRole('listitem').map(li => li.textContent)).toEqual(['이미지 · c.png×', '이미지 · d.png×', '이미지 · e.png×'])
   })
 })

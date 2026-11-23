@@ -1,4 +1,5 @@
 import { sceneSummary, type CharacterSimulation, type SimulationStart } from './characterSimulation'
+import type { ChatAttachmentPayload, ChatTurnAttachment } from './chatAttachment'
 import type { WritingEpisode } from './content'
 import { FINDING_KINDS, type ReviewFinding as WorldFinding } from './worldReview'
 
@@ -99,17 +100,24 @@ export type ChatReply = {
   /** awaitingApproval이 content_action일 때 실행을 기다리는 도구와 인자 */
   pendingAction?: PendingAction | null
 }
-export type ChatTurn = { request: string; reply: ChatReply | null }
+/** attachments는 그 턴에 보낸 첨부의 이름·종류다(원본은 남지 않는다). 첨부 기능 전의 턴과 첨부 없는 턴은 비었거나 없다. */
+export type ChatTurn = { request: string; reply: ChatReply | null; attachments?: ChatTurnAttachment[] }
 export type ChatSession = { threadId: string; title: string; updatedAt: string }
 export type ChatHistory = { threadId: string; title: string; turns: ChatTurn[] }
-/** 오케스트레이션 SSE 이벤트. plan → (started → step)* → waiting? → done, 실패는 error 하나. */
+/** 오케스트레이션 SSE 이벤트. plan → (started → step)* → waiting? → done, 실패는 error 하나. 답변을 쓰는 동안 사이사이 answer가 온다(#618). */
 export type ChatEvent =
   | { type: 'plan'; steps: ChatStep[] }
   | { type: 'started'; feature: ChatFeature }
   | { type: 'step'; step: ChatStep }
   | { type: 'waiting'; steps: ChatStep[]; missingInputs: ChatFeature[]; awaitingApproval?: ChatFeature | null; awaitingScene?: ChatFeature | null; pendingAction?: PendingAction | null }
   | { type: 'done'; reply: ChatReply }
+  | { type: 'answer'; delta: string | null }
   | { type: 'error'; message: string }
+/** 쓰는 중인 답변 본문(#618). delta가 null이면 비우고, 실패하면 쓰다 만 글을 버린다. 정상 종료에는 저장된 답으로 바뀔 때까지 남긴다. */
+export function streamedAnswer(text: string, event: ChatEvent): string {
+  if (event.type === 'answer') return event.delta === null ? '' : text + event.delta
+  return event.type === 'error' || (event.type === 'done' && event.reply.status === 'failed') ? '' : text
+}
 /**
  * Q&A 근거 기준(지식 상한). Content가 발행 회차만 기준으로 받는다.
  * targetEpisode는 결과를 반영할 회차(작가가 연 회차, 발행 전 초안이어도 된다)이고 없으면 서버가 근거 회차와 같게 본다.
@@ -203,7 +211,8 @@ export type SceneAction =
 /** 멈춘 실행을 이어 가는 답. 장면 조작이면 scene을 싣고, approved는 서버 검증을 위해 함께 보낸다(장면 조작 뒤에는 다시 멈춘다). */
 export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction }
 /** 새 요청(operation이 있으면 의도 분류를 건너뛰고 그 기능을 실행, 시뮬레이션은 시작 양식 값을 싣는다)이거나 멈춘 실행을 잇는 답이다. */
-export type ChatSendBody = { request: string; operation?: ChatFeature; simulation?: SimulationStart; page?: ChatPage } | { resume: ChatResume }
+/** attachments는 새 요청에서만 보내는 이번 턴의 참고 자료(최대 3개, #617)다. 이어가기·메시지 수정에는 싣지 않는다. */
+export type ChatSendBody = { request: string; operation?: ChatFeature; simulation?: SimulationStart; page?: ChatPage; attachments?: ChatAttachmentPayload[] } | { resume: ChatResume }
 export type ChatMessageInput = ChatBasis & ChatSendBody
 
 export const SCENE_NOTE_MAX = 300
@@ -357,6 +366,11 @@ export function replyText(reply: ChatReply): string {
     .map((s) => [`${stepLabel(s)} ${stepText(s)}`, s.status === 'completed' && usedPlan(s), s.status === 'completed' && draftNotice(s), appliedLine(s)].filter(Boolean).join('\n'))
   return steps.join('\n\n') || (reply.message ? '' : '응답 내용이 없어요.')
 }
+
+/** 입력 대기의 취소 안내(#661). 취소해도 이미 끝난 작업(저장한 쓰기 포함)은 되돌아가지 않는다. */
+export const cancelNotice = (reply: ChatReply): string => (reply.steps.some((s) => s.status === 'completed')
+  ? '취소하면 남은 작업은 실행하지 않아요. 이미 끝난 작업은 그대로예요.'
+  : '취소하면 아무 작업도 실행하지 않아요.')
 
 const stepLabel = (s: ChatStep) => `[${featureLabel[s.feature] ?? s.feature}]`
 const appliedLine = (s: ChatStep) => (s.applied

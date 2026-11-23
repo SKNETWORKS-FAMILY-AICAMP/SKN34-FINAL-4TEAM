@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, type ReactNode } from 'react'
 
 import { pendingChanges, worldProposalIsStale, type PendingAction, type WorldDraftRevision } from '../../../domain/entities/writingChat'
 
@@ -9,9 +9,11 @@ export const SAVE_FIRST = '먼저 저장해 주세요'
  * 메인 에이전트가 Content 쓰기 도구를 실행하려고 승인을 기다리는 카드(#554). 모델의 요약이 아니라 실제로 실행할 도구와 인자를 보이고,
  * 설정 카드 수정이면 그 카드의 수정 전·후를 함께 보인다. 승인 전에는 아무것도 저장되지 않고, 거절하면 실행하지 않는다.
  * unsaved면(작성 중인 변경이 있으면) 승인 버튼을 막고 먼저 저장하라고 알린다.
+ * children(같은 턴에 먼저 끝난 작업, #587)은 승인 판단의 자료라 제목 바로 아래에 둔다.
  */
-export function PendingActionCard({ action, cardOf, unsaved = false, pending, worldDraft, onRefresh, onResume }: {
+export function PendingActionCard({ action, children, cardOf, unsaved = false, pending, worldDraft, onRefresh, onResume }: {
   action: PendingAction
+  children?: ReactNode
   cardOf?: (id: string) => { title: string; body: string } | undefined
   unsaved?: boolean
   worldDraft?: WorldDraftRevision
@@ -24,6 +26,7 @@ export function PendingActionCard({ action, cardOf, unsaved = false, pending, wo
   const changes = stale ? [] : pendingChanges(action, cardOf)
   return <section className="chat-hitl" aria-labelledby={`${id}-t`}>
     <h3 id={`${id}-t`}>{stale ? '저장한 초안이 바뀌었어요' : `${action.label}을(를) 실행할까요?`}</h3>
+    {children}
     {!!changes.length && <ul className="chat-hitl-others" tabIndex={0} aria-label="바뀌는 내용">{changes.map((change, i) => <li key={i}>
       <span className="chat-step-name">{change.name}</span>
       {change.before !== null && <p>수정 전: {change.before}</p>}

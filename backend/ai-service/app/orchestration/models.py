@@ -1,5 +1,6 @@
 """집필 AI 오케스트레이션 내부 API 계약. 단계 입력은 Content가 권한·대상·판본을 확인해 기능별로 채운다."""
 
+import base64
 from datetime import datetime
 from typing import Annotated, Literal
 
@@ -109,6 +110,39 @@ class PageContext(BaseModel):
     content: PageContent | None = None
 
 
+IMAGE_TYPES = ('image/png', 'image/jpeg', 'image/webp')  # GIF는 받지 않는다(gpt-6-luna가 움직이는 GIF를 거절한다)
+IMAGE_MAX_BYTES = 5 * 1024 * 1024
+TEXT_MAX_CHARS = 20000
+ATTACHMENT_MAX = 3
+
+
+class Attachment(BaseModel):
+    """채팅 첨부 하나(#617). 이번 새 요청에서만 오고 그 턴의 메인 에이전트만 원본을 본다. 형식·크기·인코딩은 Content가 대충 거른 뒤 여기서 다시 확인한다.
+
+    이미지(PNG·JPEG·WEBP)는 5MB 이하, 텍스트(.txt·.md)는 UTF-8이고 20,000자 이하다. data는 Base64다(5MB의 Base64 길이가 상한, Content `WritingAiAttachment`와 같다).
+    """
+    model_config = ConfigDict(extra='forbid')
+    name: str = Field(min_length=1, max_length=200)
+    mediaType: Literal['image/png', 'image/jpeg', 'image/webp', 'text/plain', 'text/markdown']
+    data: str = Field(min_length=1, max_length=6_990_508)
+
+    @model_validator(mode='after')
+    def decodable(self):
+        raw = base64.b64decode(self.data, validate=True)  # 잘못된 Base64는 ValueError라 검증 실패가 된다
+        if self.mediaType in IMAGE_TYPES:
+            if len(raw) > IMAGE_MAX_BYTES:
+                raise ValueError('이미지는 5MB 이하여야 합니다.')
+        elif len(raw.decode('utf-8')) > TEXT_MAX_CHARS:  # UnicodeDecodeError도 ValueError다
+            raise ValueError('텍스트 파일은 20,000자 이하여야 합니다.')
+        return self
+
+
+class AttachmentRef(BaseModel):
+    """대화 기록에 남는 첨부 표시. 원본은 남기지 않고 이름과 종류만 둔다."""
+    name: str
+    kind: Literal['image', 'text']
+
+
 class Resume(BaseModel):
     """interrupt로 멈춘 실행에 대한 작가·Content의 답. 입력 대기면 빠진 단계 입력을, 반영 승인 대기면 승인 여부만 보낸다.
 
@@ -138,9 +172,12 @@ class OrchestrationRequest(BaseModel):
     # ask_character_simulation이 모델 없이 이 값을 계획으로 쓰고 연결 세계관으로 확인한다.
     simulation: SimulationPlan | None = None
     page: PageContext | None = None  # 새 요청에서만: 작가가 지금 보는 화면(메인 에이전트와 Decision Guard가 그 턴에만 본다)
+    attachments: list[Attachment] = Field(default=[], max_length=ATTACHMENT_MAX)  # 새 요청에서만: 이번 턴의 메인 에이전트만 보는 참고 자료(#617)
 
     @model_validator(mode='after')
     def turn_or_resume(self):
+        if self.attachments and self.resume is not None:
+            raise ValueError('attachments는 새 요청에서만 보낼 수 있습니다.')
         if (self.request is None) == (self.resume is None):
             raise ValueError('request와 resume 중 하나만 보내야 합니다.')
         if (self.resume is not None or self.fromTurn is not None) and self.conversation is None:
@@ -222,6 +259,7 @@ class ChatTurn(BaseModel):
     """한 턴의 요청과 그 턴의 최종 응답. 멈춘 턴은 reply.status가 waiting이다."""
     request: str
     reply: OrchestrationResponse | None = None  # 응답 기록 이전에 저장된 턴은 없다.
+    attachments: list[AttachmentRef] = []  # 그 턴에 보낸 첨부의 이름·종류(원본은 남기지 않는다). 첨부 기능 전의 턴은 비어 있다.
 
 
 class ChatHistory(BaseModel):

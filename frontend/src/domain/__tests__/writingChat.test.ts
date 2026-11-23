@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
+import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -518,5 +518,39 @@ describe('계획 수정안 결과 글(#578)', () => {
     const failed = planRevision({}, { status: 'failed', approval: 'approved', error: '제안한 뒤 계획이 바뀌어 저장하지 않았어요. 다시 요청해 주세요.' })
     expect(stepText(failed)).toBe('실패: 제안한 뒤 계획이 바뀌어 저장하지 않았어요. 다시 요청해 주세요.')
     expect(replyOutcome({ status: 'failed', missingInputs: [], steps: [failed] })).toEqual(['[기획·집필·수정] 실패: 제안한 뒤 계획이 바뀌어 저장하지 않았어요. 다시 요청해 주세요.'])
+  })
+})
+
+describe('흐르는 답변 본문(#618)', () => {
+  const after = (...events: ChatEvent[]) => events.reduce(streamedAnswer, '')
+  const delta = (text: string | null): ChatEvent => ({ type: 'answer', delta: text })
+  const done = (status: ChatStatus): ChatEvent => ({ type: 'done', reply: { status, steps: [], missingInputs: [] } })
+
+  it('조각을 순서대로 잇고 단계 이벤트에는 그대로 둔다', () => {
+    expect(after(delta('길드는 '), { type: 'started', feature: 'rating' }, delta('밤에 닫아요.'))).toBe('길드는 밤에 닫아요.')
+  })
+  it('초기화(null) 뒤에는 새 글만 남는다', () => {
+    expect(after(delta('확인해 볼게요.'), delta(null), delta('닫아요.'))).toBe('닫아요.')
+  })
+  it('실패하면 쓰다 만 글을 버린다', () => {
+    expect(after(delta('쓰다 만'), { type: 'error', message: '끊김' })).toBe('')
+    expect(after(delta('쓰다 만'), done('failed'))).toBe('')
+  })
+  it('정상 종료는 저장된 답으로 바뀔 때까지 글을 남긴다', () => {
+    expect(after(delta('닫아요.'), done('completed'))).toBe('닫아요.')
+  })
+})
+
+// 입력 대기의 취소 안내(#661): 이미 끝난 작업까지 없던 일이 되는 것처럼 말하지 않는다.
+describe('cancelNotice', () => {
+  const waiting = (...steps: ChatStep[]): ChatReply => ({ status: 'waiting', steps, missingInputs: ['research'] })
+  it('끝난 작업이 없으면(대기·실패·건너뜀뿐이면) 아무 작업도 실행하지 않는다고 알린다', () => {
+    const none = '취소하면 아무 작업도 실행하지 않아요.'
+    expect(cancelNotice(waiting())).toBe(none)
+    expect(cancelNotice(waiting({ feature: 'research', status: 'not_started' }, { feature: 'rating', status: 'failed' }, { feature: 'writing_editing', status: 'skipped' }))).toBe(none)
+  })
+  it('끝난 작업이 있으면 남은 작업만 멈추고 끝난 작업은 그대로라고 알린다', () => {
+    expect(cancelNotice(waiting({ feature: 'content_action', status: 'completed' }, { feature: 'research', status: 'not_started' })))
+      .toBe('취소하면 남은 작업은 실행하지 않아요. 이미 끝난 작업은 그대로예요.')
   })
 })

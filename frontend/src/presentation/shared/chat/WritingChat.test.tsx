@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { chatPage, type ChatEvent, type ChatStep } from '../../../domain/entities/writingChat'
 import { useWritingChatViewModel } from './useWritingChatViewModel'
@@ -360,6 +360,28 @@ it('초안을 읽지 못하면 실패를 알리고 구간 고르기와 이어서
   expect(((await within(form).findByLabelText(/수정할 초안/)) as HTMLTextAreaElement).value).toBe(PATCH_BODY)
 })
 
+it('입력 대기 카드는 같은 턴에 이미 끝난 작업과 사실에 맞는 취소 안내를 보인다(#661)', async () => {
+  openThread([{ request: '계획 추가하고 고증해 줘', reply: { status: 'waiting', missingInputs: ['research'], awaitingApproval: null, steps: [
+    { feature: 'content_action', status: 'completed', approval: 'approved', result: { tool: 'story_plan_create', label: '플롯·장면 계획 추가' }, applied: { episode: 2, revision: 1 } },
+    { feature: 'research', status: 'not_started' },
+  ] } }])
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const others = await screen.findByLabelText('같이 끝난 작업')
+  expect(within(others).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['Content 작업플롯·장면 계획 추가 완료'])
+  expect(screen.getByText(/취소하면 남은 작업은 실행하지 않아요. 이미 끝난 작업은 그대로예요./)).toBeTruthy()
+})
+
+it('조건부 수정 입력 대기는 따로 보이는 검수 결과를 끝난 작업 목록에 되풀이하지 않는다(#661)', async () => {
+  const finding = { category: 'spelling', quote: '웃엇다', reason: '맞춤법', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 0, end: 3 }
+  openThread([{ request: '검수하고 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null, steps: [
+    { feature: 'manuscript_review', status: 'completed', manuscriptReview: { check: 'mechanical', episode: 1, revision: 4, findings: [finding], gaps: [] } },
+    { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' },
+  ] } }])
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  expect((await screen.findByLabelText('검수 결과')).textContent).toContain('웃엇다')
+  expect(screen.queryByLabelText('같이 끝난 작업')).toBeNull()
+})
+
 it('고증 조사 입력 대기는 질문을 적어야 이어서 실행하고, 질문을 research 단계 입력으로 보낸다(#545)', async () => {
   openThread([{ request: '고증 확인해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['research'], awaitingApproval: null } }])
   send.mockResolvedValue(undefined)
@@ -566,6 +588,36 @@ it('오래 걸린 스트림의 World 반영 알림은 시작할 때의 핸들러
   expect(first).not.toHaveBeenCalled()
 })
 
+it('생성이 끝나기 전에 답변 본문을 갱신하고, 초기화와 실패에는 비운다(#618)', async () => {
+  const { run } = await worldStream({})
+  await run({ type: 'answer', delta: '확인해 ' })
+  await run({ type: 'answer', delta: '볼게요.' })
+  const writing = screen.getByText('확인해 볼게요.')
+  expect(writing.closest('[aria-live]')?.getAttribute('aria-live')).toBe('off') // 조각마다 읽어 주지 않는다
+  await run({ type: 'answer', delta: null })
+  expect(screen.queryByText('확인해 볼게요.')).toBeNull()
+  await run({ type: 'answer', delta: '**반영**했어요.' })
+  expect(screen.getByText('반영').tagName).toBe('STRONG')
+  await run({ type: 'error', message: '응답이 중간에 끊겼어요.' })
+  expect(screen.queryByText('반영')).toBeNull()
+  expect(screen.getByRole('alert').textContent).toContain('응답이 중간에 끊겼어요.')
+})
+
+it('흐르는 답은 맨 아래에서 읽을 때만 따라 내려간다(#618)', async () => {
+  const { run } = await worldStream({})
+  const log = screen.getByRole('log', { name: '대화 내용' })
+  let height = 900
+  Object.defineProperty(log, 'scrollHeight', { configurable: true, get: () => height })
+  Object.defineProperty(log, 'clientHeight', { configurable: true, value: 300 })
+  await run({ type: 'answer', delta: '첫 줄' })
+  expect(log.scrollTop).toBe(900)
+  log.scrollTop = 100 // 위로 올려 읽는 중
+  fireEvent.scroll(log)
+  height = 1200
+  await run({ type: 'answer', delta: ' 다음 줄' })
+  expect(log.scrollTop).toBe(100)
+})
+
 it('AI가 처리 중일 때 전송한 요청은 말풍선에 있고 입력창은 비어 있다', async () => {
   openThread([])
   send.mockImplementation(() => new Promise(() => {}))
@@ -648,6 +700,29 @@ it('Content 쓰기 승인 카드는 모델의 요약이 아니라 실제 도구�
   const args = screen.getByLabelText('실행할 도구와 인자').textContent!
   expect(args).toContain('world_studio_edit_draft')
   expect(JSON.parse(args.slice('world_studio_edit_draft'.length))).toEqual(pendingAction.args)
+})
+
+it('Content 쓰기 승인 카드는 같은 턴에 먼저 끝난 단계를 실행 버튼 위에 보인다(#587)', async () => {
+  openThread([{ request: '확인하고 고쳐줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'content_action', pendingAction, steps: [
+    { feature: 'story_context', status: 'completed', result: { claims: [{ text: '카엘은 북문을 지킨다.' }] } },
+    { feature: 'writing_editing', status: 'completed', result: { text: '카엘이 문을 닫았다.' } },
+    { feature: 'content_action', status: 'completed', approval: 'approved', result: { tool: 'work_update', label: '작품 정보 수정' }, applied: { episode: 3, revision: 9 } },
+    { feature: 'rating', status: 'not_started' },
+  ] } }])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const others = await screen.findByLabelText('같이 끝난 작업')
+  // 이 승인의 대상은 Content 작업이라 아직 반영을 묻지 않은 원고 제안도 앞 단계로 보인다
+  expect(within(others).getAllByRole('listitem').map((item) => item.textContent)).toEqual(
+    ['작품 질문카엘은 북문을 지킨다.', '기획·집필·수정카엘이 문을 닫았다.', 'Content 작업작품 정보 수정 완료'])
+  expect(screen.getByText('같이 끝난 작업')).toBeTruthy() // 실행할 내용으로 읽히지 않게 이름이 화면에도 보인다
+  expect(others.compareDocumentPosition(screen.getByRole('button', { name: '실행' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+it('앞 단계가 없는 Content 쓰기 승인 카드에는 빈 목록을 그리지 않는다(#587)', async () => {
+  approvalTurn()
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('button', { name: '실행' })
+  expect(screen.queryByLabelText('같이 끝난 작업')).toBeNull()
 })
 
 it('거절하면 실행하지 않는다는 resume을 보낸다', async () => {
@@ -799,4 +874,115 @@ it('승인한 Content 계획 도구(story_plan_create·story_plan_update)도 계
   await run({ type: 'step', step: done('story_plan_update', 3) })
   expect(onPlanApplied).toHaveBeenCalledTimes(2)
   expect(onApplied).not.toHaveBeenCalled()
+})
+
+// 첨부(#617): 고른 파일을 Base64로 읽어 새 요청 본문의 attachments로 보내고, 진행 중 턴과 기록의 내 메시지에는 이름만 칩으로 보인다.
+describe('집필 AI 채팅 첨부(#617)', () => {
+  const png = () => new File([new Uint8Array([137, 80, 78, 71])], '지도.png', { type: 'image/png' })
+  const note = (text = '북문은 밤에 닫힌다.') => new File([text], '메모.md', { type: '' })
+  const attach = (...files: File[]) => fireEvent.drop(document.querySelector('.chat-card')!, { dataTransfer: { files } })
+  const ask = (text: string) => { fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: text } }); fireEvent.click(screen.getByRole('button', { name: '전송' })) }
+  const chipsOf = (name: string) => within(screen.getByRole('list', { name })).getAllByRole('listitem').map((li) => li.textContent)
+
+  it('고른 이미지·텍스트를 Base64로 읽어 새 요청에 싣고, 보낸 첨부는 입력창에서 비운다', async () => {
+    openThread([])
+    send.mockResolvedValue(undefined)
+    renderChat()
+    await screen.findByText('새 대화', { selector: 'h3' })
+    attach(png(), note())
+    ask('이 자료로 장면을 이어 줘')
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(send.mock.calls[0][2]).toMatchObject({
+      episode: 1, episodeVersionId: 'v', request: '이 자료로 장면을 이어 줘',
+      attachments: [
+        { name: '지도.png', mediaType: 'image/png', data: btoa(String.fromCharCode(137, 80, 78, 71)) },
+        { name: '메모.md', mediaType: 'text/markdown', data: btoa(String.fromCharCode(...new TextEncoder().encode('북문은 밤에 닫힌다.'))) },
+      ],
+    })
+    await waitFor(() => expect(screen.queryByRole('list', { name: '보낼 첨부' })).toBeNull())
+  })
+
+  it('첨부 없이 보낸 요청은 attachments 키 없이 예전과 같은 본문이다', async () => {
+    openThread([])
+    send.mockResolvedValue(undefined)
+    renderChat()
+    await screen.findByText('새 대화', { selector: 'h3' })
+    ask('첨부 없는 질문')
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(send.mock.calls[0][2]).toEqual({ episode: 1, episodeVersionId: 'v', request: '첨부 없는 질문' })
+  })
+
+  it('진행 중인 내 메시지에 첨부 칩이 보이고, 끝난 뒤 이력을 다시 읽으면 기록의 칩으로 이어진다', async () => {
+    openThread([])
+    let finish!: () => void
+    send.mockImplementation(() => new Promise<void>((resolve) => { finish = resolve }))
+    renderChat()
+    await screen.findByText('새 대화', { selector: 'h3' })
+    attach(png(), note())
+    ask('이 자료를 봐줘')
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(chipsOf('첨부')).toEqual(['이미지 · 지도.png', '텍스트 · 메모.md'])
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+      request: '이 자료를 봐줘', reply: { status: 'completed', message: '봤어요.', steps: [], missingInputs: [] },
+      attachments: [{ name: '지도.png', kind: 'image' }, { name: '메모.md', kind: 'text' }],
+    }] })
+    await act(async () => finish())
+    expect(await screen.findByText('봤어요.')).toBeTruthy()
+    expect(chipsOf('첨부')).toEqual(['이미지 · 지도.png', '텍스트 · 메모.md'])
+  })
+
+  it('이력의 첨부 없는 턴과 옛 기록(첨부 키 없음)에는 칩이 없다', async () => {
+    openThread([{ request: '옛 질문', reply: null }, { request: '새 질문', reply: null, attachments: [] }])
+    renderChat()
+    await screen.findByText('옛 질문')
+    expect(screen.queryByRole('list', { name: '첨부' })).toBeNull()
+  })
+
+  it('텍스트가 20,000자를 넘으면 보내지 않고 이유를 알리며 글과 첨부를 그대로 둔다', async () => {
+    openThread([])
+    renderChat()
+    await screen.findByText('새 대화', { selector: 'h3' })
+    attach(note('가'.repeat(20001)))
+    ask('이 글을 봐줘')
+    expect(await screen.findByText('메모.md: 텍스트 파일은 20,000자까지 보낼 수 있어요.')).toBeTruthy()
+    expect(send).not.toHaveBeenCalled()
+    expect((screen.getByRole('textbox', { name: '메시지' }) as HTMLTextAreaElement).value).toBe('이 글을 봐줘')
+    expect(chipsOf('보낼 첨부')).toEqual(['텍스트 · 메모.md×'])
+  })
+
+  it('승인·입력 이어가기와 메시지 고치기에는 첨부를 싣지 않는다', async () => {
+    openThread([{ request: '이어 써 줘', reply: { status: 'waiting', steps: [{ feature: 'writing_editing', status: 'completed', result: { text: '선장은 내렸다.' } }], missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 1 },
+      attachments: [{ name: '지도.png', kind: 'image' }] }])
+    send.mockResolvedValue(undefined)
+    renderChat()
+    fireEvent.click(await screen.findByRole('button', { name: '초안에 반영' }))
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(send.mock.calls[0][2]).toEqual({ episode: 1, episodeVersionId: 'v', resume: { approved: true } })
+  })
+
+  it('고친 메시지는 첨부 없이 글만 다시 보내고 고친 턴의 기록에는 칩이 남지 않는다', async () => {
+    openThread([{ request: '첫 질문', reply: { status: 'completed', message: '답', steps: [], missingInputs: [] }, attachments: [{ name: '지도.png', kind: 'image' }] }])
+    send.mockResolvedValue(undefined)
+    renderChat()
+    await screen.findByText('첫 질문')
+    fireEvent.click(screen.getByRole('button', { name: '이 메시지 고치기' }))
+    fireEvent.change(screen.getByLabelText('고칠 메시지'), { target: { value: '고친 질문' } })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '고친 질문', reply: null, attachments: [] }] })
+    fireEvent.click(screen.getByRole('button', { name: '고쳐서 다시 보내기' }))
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(send.mock.calls[0][2]).toEqual({ episode: 1, episodeVersionId: 'v', request: '고친 질문' })
+    expect(send.mock.calls[0][5]).toBe(0)
+    await screen.findByText('고친 질문')
+    expect(screen.queryByRole('list', { name: '첨부' })).toBeNull()
+  })
+
+  it('이어가는 중에도 멈춘 턴의 첨부 칩을 그 턴의 내 메시지에 그대로 보인다', async () => {
+    openThread([{ request: '이 지도로 이어 써 줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 1 },
+      attachments: [{ name: '지도.png', kind: 'image' }] }])
+    send.mockImplementation(() => new Promise<void>(() => {}))
+    renderChat()
+    fireEvent.click(await screen.findByRole('button', { name: '초안에 반영' }))
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(chipsOf('첨부')).toEqual(['이미지 · 지도.png'])
+  })
 })
