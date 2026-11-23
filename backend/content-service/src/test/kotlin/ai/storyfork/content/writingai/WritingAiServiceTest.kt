@@ -191,10 +191,14 @@ class WritingAiServiceTest {
         service.rename("work", "owner", "thread", "새 제목")
         service.delete("work", "owner", "thread")
         service.truncate("work", "owner", "thread", 2)
-        verify(access, times(5)).own("work", "owner")
+        service.feedback("work", "owner", "thread", 1, "up")
+        service.feedback("work", "owner", "thread", 1, null)
+        verify(access, times(7)).own("work", "owner")
         verify(client).rename("thread", scope, "새 제목")
         verify(client).delete("thread", scope)
         verify(client).truncate("thread", scope, 2)
+        verify(client).feedback("thread", scope, 1, "up")
+        verify(client).feedback("thread", scope, 1, null)
     }
 
     @Test

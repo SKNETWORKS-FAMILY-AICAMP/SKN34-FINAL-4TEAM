@@ -29,6 +29,7 @@ interrupt로 작가 승인을 기다린다. 승인 resume이면 그 요청의 �
 (옛 갈래 checkpoint는 남지만 최신 상태가 아니라 보이지 않는다). scope가 다른 대화는 없는 대화로 본다.
 """
 
+import asyncio
 import base64
 import dataclasses
 import operator
@@ -446,7 +447,7 @@ async def _target(data: OrchestrationRequest):
             if fork is None:  # 새 첫 턴이 끝날 때까지 기존 이력을 보존한다.
                 state['replaceHistory'] = True
             else:
-                config = {**config, 'configurable': fork.config['configurable']}
+                config = await _branch(config, snapshot, fork, data.fromTurn)
         return CHAT, config, state, dict(state)
     if not snapshot.interrupts:
         raise NothingToResume()
@@ -530,17 +531,35 @@ async def _owned(thread_id: str, scope: str):
     return config, snapshot
 
 
+def _turns(snapshot) -> list[dict]:
+    """저장된 턴. 첫 턴을 고쳐 다시 실행하다 멈췄으면 옛 이력은 지워질 예정이라 없다."""
+    return [] if snapshot.interrupts and snapshot.values.get('replaceHistory') else snapshot.values.get('turns', [])
+
+
+def _unrated(turns: list[dict]) -> list[dict]:
+    """평가는 턴이 끝난 뒤에 붙어 옛 checkpoint에는 없을 수 있으므로 갈라질 지점을 찾을 때는 뺀다."""
+    return [{k: v for k, v in turn.items() if k != 'feedback'} for turn in turns]
+
+
 async def _fork_point(config: dict, snapshot, index: int):
     """index번 턴 직전의 완료 checkpoint. 첫 턴이면 None이다. 멈춘 턴(마지막)도 고치거나 지울 수 있다."""
-    turns = [] if snapshot.interrupts and snapshot.values.get('replaceHistory') else snapshot.values.get('turns', [])
+    turns = _turns(snapshot)
     if index > len(turns) - (0 if snapshot.next else 1):
         raise ConversationNotFound()
     if index == 0:
         return None
+    kept = _unrated(turns[:index])
     async for past in CHAT.aget_state_history(config):
-        if not past.next and past.values.get('turns') == turns[:index]:
+        if not past.next and _unrated(past.values.get('turns', [])) == kept:
             return past
     raise ConversationNotFound()
+
+
+async def _branch(config: dict, snapshot, fork, index: int) -> dict:
+    """fork에서 갈라지되 남는 index개 턴과 제목은 지금 값을 쓴다(fork 뒤에 남긴 평가·바꾼 제목을 잃지 않게)."""
+    branched = await CHAT.aupdate_state({**config, 'configurable': fork.config['configurable']},
+                                        {'title': _title(snapshot.values), 'turns': Overwrite(_turns(snapshot)[:index])}, as_node='finish')
+    return {**config, 'configurable': branched['configurable']}
 
 
 def _title(values: dict) -> str:
@@ -556,6 +575,8 @@ async def sessions(scope: str) -> list[ChatSession]:
     async for row in CHAT.checkpointer.alist(None, filter={'scope': scope}):
         if row.config['configurable'].get('checkpoint_ns'):  # 장면 에이전트 같은 하위 그래프의 checkpoint는 제목·요청이 없어 진행 중인 대화 제목이 비어 보인다
             continue
+        if row.metadata.get('feedback'):  # 답변 평가는 대화를 이어간 것이 아니라 목록 순서·시각을 바꾸지 않는다(제목은 앞 checkpoint와 같다)
+            continue
         thread = row.config['configurable']['thread_id']
         if thread not in latest or row.checkpoint['id'] > latest[thread].checkpoint['id']:
             latest[thread] = row
@@ -568,8 +589,8 @@ async def history(thread_id: str, scope: str) -> ChatHistory:
     """최신 상태의 턴과 각 응답. 멈춘 실행이 있으면 그 턴을 waiting 응답과 함께 마지막에 붙인다."""
     _, snapshot = await _owned(thread_id, scope)
     values = snapshot.values
-    previous = [] if snapshot.interrupts and values.get('replaceHistory') else values.get('turns', [])
-    turns = [ChatTurn(request=t['request'], reply=t.get('reply'), attachments=t.get('attachments', [])) for t in previous]
+    turns = [ChatTurn(request=t['request'], reply=t.get('reply'), attachments=t.get('attachments', []), feedback=t.get('feedback'))
+             for t in _turns(snapshot)]
     if snapshot.interrupts:
         turns.append(ChatTurn(request=values['request'], reply=_response({**values, '__interrupt__': snapshot.interrupts}),
                               attachments=_refs(values.get('attachments', []))))
@@ -595,8 +616,21 @@ async def truncate(thread_id: str, scope: str, index: int) -> None:
     if fork is None:
         await CHAT.checkpointer.adelete_thread(thread_id)
         return
-    await CHAT.aupdate_state({**config, 'configurable': fork.config['configurable']}, {'title': _title(snapshot.values)},
-                             as_node='finish')
+    await _branch(config, snapshot, fork, index)
+
+
+async def feedback(thread_id: str, scope: str, index: int, value: str | None) -> None:
+    """index번 턴 답변의 좋아요·싫어요(#560, None이면 취소). 그 턴의 trace(runId)가 있으면 Langfuse 점수도 맞춘다. 멈춘 실행이 있으면 409다."""
+    config, snapshot = await _owned(thread_id, scope)
+    if snapshot.next:
+        raise ConversationBusy()
+    turns = snapshot.values.get('turns', [])
+    if not 0 <= index < len(turns):
+        raise ConversationNotFound()
+    turns = [{**turn, 'feedback': value} if i == index else turn for i, turn in enumerate(turns)]
+    await CHAT.aupdate_state(merge_configs(config, {'metadata': {'feedback': True}}), {'turns': Overwrite(turns)}, as_node='finish')
+    if run_id := (turns[index].get('reply') or {}).get('runId'):
+        await asyncio.to_thread(tracing.feedback, run_id, value)  # 점수 삭제는 동기 HTTP다
 
 
 def _traced(data: OrchestrationRequest, authorization: str, state: dict):

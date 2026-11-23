@@ -11,9 +11,9 @@ import { useWritingChatViewModel } from './useWritingChatViewModel'
 import { NO_BEFORE, WORK_CHANGED_NOTE } from './PendingActionCard'
 import { WritingChat } from './WritingChat'
 
-const { sessions, history, send, open, writingEpisode } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), writingEpisode: vi.fn() }))
+const { sessions, history, send, open, writingEpisode, feedback } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), writingEpisode: vi.fn(), feedback: vi.fn() }))
 vi.mock('../../../app/appContainer', () => ({ appContainer: { resolve: () => useCase } }))
-const useCase = { sessions, history, send, open, writingEpisode }
+const useCase = { sessions, history, send, open, writingEpisode, feedback }
 
 // useAsyncData는 effect를 정리한 뒤에도 대기 중이던 읽기를 한 번 부른다(취소된 신호로). 다음 테스트의 호출 기록에 섞이지 않게 먼저 비운다.
 afterEach(async () => { cleanup(); await Promise.resolve(); vi.resetAllMocks() })
@@ -556,21 +556,43 @@ it('동의 체크 없이 바로 보내고 요청에 동의 값을 싣지 않는�
   expect(send.mock.calls[0][2]).not.toHaveProperty('consent')
 })
 
-it('AI 답변 아래에 좋아요·싫어요 아이콘 버튼만 두고, 눌러도 아무 요청을 보내지 않는다(저장은 #560)', async () => {
+const rated = (rating: 'up' | 'down' | null, ...more: object[]) => {
   sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
   history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
-    request: '주인공이 누구야?', reply: { status: 'completed', message: '주인공은 홍길동입니다.', steps: [] },
-  }] })
+    request: '주인공이 누구야?', reply: { status: 'completed', message: '주인공은 홍길동입니다.', steps: [] }, feedback: rating,
+  }, ...more] })
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+}
+const pressed = (name: string) => screen.getByRole('button', { name }).getAttribute('aria-pressed')
+
+it('좋아요·싫어요는 그 턴의 평가로 저장하고 눌린 상태를 보이며, 눌린 버튼을 다시 누르면 취소한다(#560)', async () => {
+  feedback.mockResolvedValue(undefined)
+  rated('up')
   await screen.findByText('주인공은 홍길동입니다.')
-  const like = screen.getByRole('button', { name: '이 답변 좋아요' })
-  const dislike = screen.getByRole('button', { name: '이 답변 싫어요' })
-  expect(like.textContent).toBe('')
-  fireEvent.click(like)
-  fireEvent.click(dislike)
+  expect(screen.getByRole('button', { name: '이 답변 좋아요' }).textContent).toBe('')
+  expect([pressed('이 답변 좋아요'), pressed('이 답변 싫어요')]).toEqual(['true', 'false'])
+  fireEvent.click(screen.getByRole('button', { name: '이 답변 싫어요' }))
+  await waitFor(() => expect([pressed('이 답변 좋아요'), pressed('이 답변 싫어요')]).toEqual(['false', 'true']))
+  fireEvent.click(screen.getByRole('button', { name: '이 답변 싫어요' }))
+  await waitFor(() => expect(pressed('이 답변 싫어요')).toBe('false'))
+  expect(feedback.mock.calls).toEqual([['w', 'a', 0, 'down'], ['w', 'a', 0, null]])
   expect(send).not.toHaveBeenCalled()
   expect(history).toHaveBeenCalledTimes(1)
-  expect(screen.getAllByRole('button', { name: '이 답변 좋아요' })).toHaveLength(1)
+})
+
+it('평가를 저장하지 못하면 눌린 상태를 바꾸지 않고 이유를 알린다(#560)', async () => {
+  feedback.mockRejectedValue(new Error('평가를 저장하지 못했어요.'))
+  rated(null)
+  await screen.findByText('주인공은 홍길동입니다.')
+  fireEvent.click(screen.getByRole('button', { name: '이 답변 좋아요' }))
+  expect(await screen.findByText('평가를 저장하지 못했어요.')).toBeTruthy()
+  expect(pressed('이 답변 좋아요')).toBe('false')
+})
+
+it('승인·입력을 기다리는 대화는 앞 답변도 평가할 수 없다(서버가 멈춘 실행을 지키려 409로 막는다, #560)', async () => {
+  rated(null, { request: '조사해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['research'] } })
+  await screen.findByText('주인공은 홍길동입니다.')
+  expect((screen.getByRole('button', { name: '이 답변 좋아요' }) as HTMLButtonElement).disabled).toBe(true)
 })
 
 // ── World 단계(#546): enrich 제안은 설정집 초안에 반영할지 묻고, 반영되면 세계관 화면(onWorldApplied)이 초안을 다시 읽는다 ──

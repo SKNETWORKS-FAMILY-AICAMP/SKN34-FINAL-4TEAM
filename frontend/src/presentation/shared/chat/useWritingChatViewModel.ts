@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../app/appContainer'
 import type { SimulationStart } from '../../../domain/entities/characterSimulation'
 import { attachmentKind, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
-import { streamedAnswer, type ChatBasis, type ChatEvent, type ChatFeature, type ChatPage, type ChatSendBody, type ChatSession, type ChatStep, type ChatStepInputs, type ChatTurn, type SceneAction } from '../../../domain/entities/writingChat'
+import { streamedAnswer, type ChatBasis, type ChatEvent, type ChatFeature, type ChatFeedback, type ChatPage, type ChatSendBody, type ChatSession, type ChatStep, type ChatStepInputs, type ChatTurn, type SceneAction } from '../../../domain/entities/writingChat'
 import { readAttachments } from './readAttachments'
 
 /** 지금 흐르는 SSE 턴. 끝나면 이력을 다시 읽어 세이버에 저장된 내용으로 바꾼다. decision은 승인·거절 응답(장면 조작이 아닌 이어가기)이다. */
@@ -205,6 +205,11 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
       if (index === 0) { current.current = null; setThreadId(null); setTurns([]); setTitle('') } else await load(threadId!)
       await refreshSessions()
     }, '메시지를 지우지 못했어요.'),
+    /** index번 턴 답변의 좋아요·싫어요(#560). 저장에 성공한 뒤에만 눌린 상태를 바꾼다. null이면 취소다. */
+    rate: (index: number, value: ChatFeedback | null) => change(async () => {
+      await useCase!.feedback(workId!, threadId!, index, value)
+      setTurns((rows) => rows.map((turn, i) => (i === index ? { ...turn, feedback: value } : turn)))
+    }, '평가를 저장하지 못했어요.'),
     rename: (next: string) => change(async () => { await useCase!.rename(workId!, threadId!, next); setTitle(next.trim()); await refreshSessions() }, '제목을 바꾸지 못했어요.'),
     remove: () => change(async () => {
       await useCase!.remove(workId!, threadId!)

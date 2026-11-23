@@ -245,3 +245,52 @@ def test_a_prompt_that_cannot_be_read_or_registered_is_unavailable_and_never_rep
     with pytest.raises(tracing.PromptUnavailable) as error:
         tracing.prompt('review.mechanical', '코드 지시')
     assert len(fake.calls) == calls and error.value.__suppress_context__
+
+
+class FakeScores:
+    def __init__(self, error=None):
+        self.calls, self.error = [], error
+        self.api = SimpleNamespace(legacy=SimpleNamespace(score_v1=SimpleNamespace(delete=self.delete)))
+
+    def create_score(self, **kwargs):
+        self.calls.append(('create', kwargs))
+        if self.error:
+            raise self.error
+
+    def flush(self):
+        self.calls.append(('flush',))
+
+    def delete(self, score_id):
+        self.calls.append(('delete', score_id))
+        if self.error:
+            raise self.error
+
+
+def score(value):
+    return ('create', {'score_id': 'trace-1-user-feedback', 'trace_id': 'trace-1', 'name': 'user_feedback', 'value': value,
+                       'data_type': 'BOOLEAN'})
+
+
+def test_feedback_keeps_one_score_per_turn_trace_and_deletes_it_when_cleared(monkeypatch):
+    langfuse(monkeypatch)
+    scores = FakeScores()
+    monkeypatch.setattr(tracing, 'client', lambda: scores)
+    tracing.feedback('trace-1', 'up')
+    tracing.feedback('trace-1', 'down')
+    tracing.feedback('trace-1', None)
+    assert scores.calls == [score(1.0), score(0.0), ('flush',), ('delete', 'trace-1-user-feedback')]
+
+
+def test_feedback_never_calls_langfuse_without_keys(monkeypatch):
+    monkeypatch.delenv('LANGFUSE_PUBLIC_KEY', raising=False)
+    monkeypatch.delenv('LANGFUSE_SECRET_KEY', raising=False)
+    monkeypatch.setattr(tracing, 'client', lambda: pytest.fail('키가 없으면 Langfuse를 부르지 않는다'))
+    tracing.feedback('trace-1', 'up')
+
+
+@pytest.mark.parametrize('value', ['up', None])
+def test_a_score_langfuse_refuses_is_logged_and_never_fails_the_saved_feedback(monkeypatch, caplog, value):
+    langfuse(monkeypatch)
+    monkeypatch.setattr(tracing, 'client', lambda: FakeScores(NotFoundError(body='없음')))
+    tracing.feedback('trace-1', value)
+    assert 'user_feedback' in caplog.text

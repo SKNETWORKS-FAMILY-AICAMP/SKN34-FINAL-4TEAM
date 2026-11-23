@@ -100,8 +100,10 @@ export type ChatReply = {
   /** awaitingApproval이 content_action일 때 실행을 기다리는 도구와 인자 */
   pendingAction?: PendingAction | null
 }
-/** attachments는 그 턴에 보낸 첨부의 이름·종류다(원본은 남지 않는다). 첨부 기능 전의 턴과 첨부 없는 턴은 비었거나 없다. */
-export type ChatTurn = { request: string; reply: ChatReply | null; attachments?: ChatTurnAttachment[] }
+export type ChatFeedback = 'up' | 'down'
+/** attachments는 그 턴에 보낸 첨부의 이름·종류다(원본은 남지 않는다). 첨부 기능 전의 턴과 첨부 없는 턴은 비었거나 없다.
+ * feedback은 작가가 그 답변에 남긴 좋아요·싫어요다(#560). 정본은 AI 대화 기록이고 고쳐 다시 보낸 턴은 비어 있다. */
+export type ChatTurn = { request: string; reply: ChatReply | null; attachments?: ChatTurnAttachment[]; feedback?: ChatFeedback | null }
 export type ChatSession = { threadId: string; title: string; updatedAt: string }
 export type ChatHistory = { threadId: string; title: string; turns: ChatTurn[] }
 /** 오케스트레이션 SSE 이벤트. plan → (started → step)* → waiting? → done, 실패는 error 하나. 답변을 쓰는 동안 사이사이 answer가 온다(#618). */

@@ -111,6 +111,9 @@
 .chat-msg-actions button { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: none; color: var(--tsub); font-size: 12.5px; font-weight: 600; }
 .chat-msg-actions button:hover:not(:disabled) { background: var(--muted-bg); color: var(--tfg); }
 .chat-msg-actions button:disabled { cursor: not-allowed; opacity: .5; }
+/* 남긴 평가(#560)는 마우스를 올리지 않아도 또렷이 보인다. */
+.chat-msg-actions:has([aria-pressed="true"]) { opacity: 1; }
+.chat-msg-actions button[aria-pressed="true"] { color: var(--tacc); }
 .chat-edit { display: grid; gap: 6px; width: min(100%, 320px); }
 .chat-edit textarea, .chat-field :is(input, textarea) { width: 100%; padding: 8px 12px; border: 1px solid var(--line3); border-radius: 12px; background: var(--chat-card, var(--tcard)); color: var(--tfg); font: inherit; line-height: 1.6; resize: vertical; }
 .chat-edit textarea:focus-visible, .chat-field :is(input, textarea):focus-visible, .chat-rename input:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }

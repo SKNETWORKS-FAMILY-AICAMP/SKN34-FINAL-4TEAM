@@ -62,6 +62,8 @@ internal class WritingAiService(
     fun history(workId: String, owner: String, threadId: String): JsonNode = client.history(threadId, owned(workId, owner))
     fun rename(workId: String, owner: String, threadId: String, title: String) = client.rename(threadId, owned(workId, owner), title)
     fun delete(workId: String, owner: String, threadId: String) = client.delete(threadId, owned(workId, owner))
+    fun feedback(workId: String, owner: String, threadId: String, index: Int, feedback: String?) =
+        client.feedback(threadId, owned(workId, owner), index, feedback)
     fun truncate(workId: String, owner: String, threadId: String, index: Int) =
         client.truncate(threadId, owned(workId, owner), index)
 

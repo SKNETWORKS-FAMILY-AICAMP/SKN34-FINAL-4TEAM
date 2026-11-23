@@ -101,3 +101,6 @@ data class WritingAiResponse(val threadId: String, val result: JsonNode)
 data class ChatSessionCreated(val threadId: String)
 
 data class ChatRename(@field:NotBlank @field:Size(max=100) val title: String)
+
+/** 답변 좋아요·싫어요(#560). 없으면 취소다. */
+data class ChatFeedback(@field:Pattern(regexp = "up|down") val feedback: String? = null)

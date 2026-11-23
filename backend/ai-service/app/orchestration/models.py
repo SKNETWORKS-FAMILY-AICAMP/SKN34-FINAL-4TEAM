@@ -277,12 +277,20 @@ class ChatTurn(BaseModel):
     request: str
     reply: OrchestrationResponse | None = None  # 응답 기록 이전에 저장된 턴은 없다.
     attachments: list[AttachmentRef] = []  # 그 턴에 보낸 첨부의 이름·종류(원본은 남기지 않는다). 첨부 기능 전의 턴은 비어 있다.
+    feedback: Literal['up', 'down'] | None = None  # 작가가 이 답변에 남긴 좋아요·싫어요(#560). 고쳐 다시 보낸 턴은 새 답변이라 비어 있다.
 
 
 class ChatHistory(BaseModel):
     threadId: str
     title: str
     turns: list[ChatTurn]
+
+
+class FeedbackRequest(BaseModel):
+    """턴 답변의 좋아요·싫어요. feedback이 없으면 취소다."""
+    model_config = ConfigDict(extra='forbid')
+    scope: str = Field(min_length=1, max_length=200)
+    feedback: Literal['up', 'down'] | None = None
 
 
 class RenameRequest(BaseModel):

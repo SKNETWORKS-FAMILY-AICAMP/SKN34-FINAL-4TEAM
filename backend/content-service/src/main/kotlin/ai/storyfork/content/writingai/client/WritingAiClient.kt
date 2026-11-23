@@ -36,6 +36,14 @@ internal class WritingAiClient(private val http: RestClient, private val token: 
         }
     }
 
+    /** 턴 답변의 좋아요·싫어요(#560). null이면 취소이며 AI가 정본(대화 체크포인터)에 저장하고 Langfuse 점수를 맞춘다. */
+    fun feedback(thread: String, scope: String, index: Int, feedback: String?) {
+        call {
+            http.put().uri("/internal/v1/conversations/{thread}/turns/{index}/feedback", thread, index).contentType(MediaType.APPLICATION_JSON)
+                .header("X-Internal-Token", token).body(mapOf("scope" to scope, "feedback" to feedback)).retrieve().toBodilessEntity()
+        }
+    }
+
     fun delete(thread: String, scope: String) =
         remove { it.path("/internal/v1/conversations/{thread}").queryParam("scope", scope).build(thread) }
 

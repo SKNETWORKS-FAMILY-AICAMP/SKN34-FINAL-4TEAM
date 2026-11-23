@@ -301,7 +301,12 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
   const stepDetails = (m: ChatMessage) => {
     if (m.role !== 'assistant') return null
     // 참고안 링크는 종합 답변이 없어도 보인다(#640). 접은 단계별 결과·승인 결과 줄은 종합 답변이 있을 때만이다.
-    const reply = shown[Number(m.id.slice(1))]?.reply
+    const index = Number(m.id.slice(1))
+    const reply = shown[index]?.reply
+    const rating = shown[index]?.feedback ?? null
+    // 멈춘 실행이 있으면 서버가 평가를 409로 막는다(대화 기록을 고치면 멈춘 자리가 사라진다).
+    const rateLocked = vm.pending || !!live || !!vm.waiting
+    const rate = (value: 'up' | 'down') => void vm.rate(index, rating === value ? null : value)
     const text = reply && m.format === 'markdown' ? replyText(reply) : ''
     const outcome = text && reply ? replyOutcome(reply) : []
     return <>
@@ -309,10 +314,9 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
       {reply?.steps.map((s, i) => <References key={`${s.feature}-${i}`} step={s} />)}
       <div className="chat-reply-foot">
         {text && <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details>}
-        {/* shortcut: 좋아요·싫어요는 누른 값을 저장하지 않는다. 저장 위치·용도가 정해지면(#560) 연결한다. */}
         <div className="chat-msg-actions">
-          <button type="button" aria-label="이 답변 좋아요" title="이 답변 좋아요"><ThumbUpIcon size={16} /></button>
-          <button type="button" aria-label="이 답변 싫어요" title="이 답변 싫어요"><ThumbDownIcon size={16} /></button>
+          <button type="button" aria-label="이 답변 좋아요" title="이 답변 좋아요" aria-pressed={rating === 'up'} disabled={rateLocked} onClick={() => rate('up')}><ThumbUpIcon size={16} /></button>
+          <button type="button" aria-label="이 답변 싫어요" title="이 답변 싫어요" aria-pressed={rating === 'down'} disabled={rateLocked} onClick={() => rate('down')}><ThumbDownIcon size={16} /></button>
         </div>
       </div>
     </>
