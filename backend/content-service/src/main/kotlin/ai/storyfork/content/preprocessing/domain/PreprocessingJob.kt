@@ -15,6 +15,12 @@ object PreprocessingStatus {
     val ALL = OPEN + setOf(COMPLETED, FAILED)
 }
 
+/** 전처리 작업 종류다. initial은 빈 세계관의 최초 구축이고 update는 발행 회차를 세계관 초안에 더하는 작업이다(2026-11-22). */
+object PreprocessingKind {
+    const val INITIAL = "initial"
+    const val UPDATE = "update"
+}
+
 /** AI가 보고하는 단계(계약의 `preprocessing_progress` stage)와 그 단계에서의 작업 상태다. */
 val PREPROCESSING_STAGES = mapOf(
     "extracting" to PreprocessingStatus.RUNNING, "resolving" to PreprocessingStatus.RUNNING,

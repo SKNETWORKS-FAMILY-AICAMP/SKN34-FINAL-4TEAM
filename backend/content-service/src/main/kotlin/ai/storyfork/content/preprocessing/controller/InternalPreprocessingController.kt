@@ -23,7 +23,10 @@ class InternalPreprocessingController(private val service: PreprocessingService)
     @PostMapping("/{id}/progress")
     fun progress(@PathVariable id: String, @RequestBody request: PreprocessingProgressRequest): PreprocessingJobResponse = service.progress(id, request)
 
-    /** 실패한 작업을 대기로 되돌리고 AI에 다시 접수한다(202). 실패 작업이 아니거나 더 새로운 작업이 있으면 409다. */
+    /**
+     * 실패한 작업을 대기로 되돌리고 AI에 다시 접수한다(202). 실패 작업이 아니거나 더 새로운 작업(같은 종류)이 있으면 409다.
+     * 발행 회차로 세계관을 업데이트하는 작업은 그 회차가 이미 다른 완료 작업으로 반영됐어도 409다.
+     */
     @PostMapping("/{id}/retry") @ResponseStatus(HttpStatus.ACCEPTED)
     fun retry(@PathVariable id: String): PreprocessingJobResponse = service.retry(id)
 }

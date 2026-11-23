@@ -6,12 +6,14 @@ import ai.storyfork.content.episode.repository.EpisodeRepository
 import ai.storyfork.content.preprocessing.client.PreprocessingAiClient
 import ai.storyfork.content.preprocessing.client.PreprocessingAiFailure
 import ai.storyfork.content.preprocessing.client.dto.PreprocessingAiRequest
+import ai.storyfork.content.preprocessing.domain.PreprocessingKind
 import ai.storyfork.content.preprocessing.domain.PreprocessingStatus
 import ai.storyfork.content.preprocessing.entity.PreprocessingJobEntity
 import ai.storyfork.content.preprocessing.repository.PreprocessingJobRepository
 import ai.storyfork.content.preprocessing.service.dto.PreprocessingJobListResponse
 import ai.storyfork.content.preprocessing.service.dto.PreprocessingJobResponse
 import ai.storyfork.content.preprocessing.service.dto.PreprocessingProgressRequest
+import ai.storyfork.content.preprocessing.service.dto.PreprocessingUpdateResponse
 import ai.storyfork.content.work.domain.workPage
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
@@ -25,6 +27,8 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 
 /**
@@ -50,7 +54,7 @@ class PreprocessingService(
         val work = ownedWork(workId, owner)
         if (request != null) checkContent(request.consent && request.key.matches(Regex("[A-Za-z0-9:_-]{1,200}")), 422, "작가 동의와 요청 키가 필요해요.")
         val actor = UUID.fromString(owner)
-        val last = jobs.findFirstByWorkIdOrderByCreatedAtDesc(workId)
+        val last = jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc(workId, PreprocessingKind.INITIAL)
         if (last != null) guardQueuedSnapshot(last)
         if (last != null && request != null && build.matches(last.id, actor, request)) {
             val current = build.status(UUID.fromString(last.id), actor) ?: throw missing()
@@ -67,7 +71,7 @@ class PreprocessingService(
         val world = work.worldStudioId ?: request?.worldId ?: id
         checkContent(request == null || request.worldId == world, 409, "작품에 연결된 세계관이 달라요.")
         val (job, frozen) = claim {
-            val previous = jobs.findFirstByWorkIdOrderByCreatedAtDesc(workId)
+            val previous = jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc(workId, PreprocessingKind.INITIAL)
             checkContent(previous == null || previous.status == PreprocessingStatus.FAILED, 409, OPEN_JOB_EXISTS)
             if (request != null && jobs.requestKeyExists(workId, request.key))
                 throw ContentFailure(409, "이 요청 키는 이미 이전 작업에 사용됐어요.", "PREPROCESSING_REQUEST_KEY_USED")
@@ -81,25 +85,80 @@ class PreprocessingService(
         try {
             build.prepare(id, workId, actor, request ?: ManuscriptBuildRequest(world, id.toString(), true), frozen)
         } catch (error: Exception) {
-            transaction.executeWithoutResult {
-                val row = jobs.lock(job.id) ?: throw missing()
-                // 최초 입력이 만들어지지 않았으면 접수가 성립하지 않은 것이다. 실패 행으로 남기면 적재 확인 대기로 작품이 영구히 막힌다.
-                if (jobs.frozenNumbers(row.id, workId, owner).isEmpty()) jobs.delete(row)
-                else {
-                    row.fail("최초 입력 준비 결과를 확인해 주세요.", Instant.now())
-                    jobs.saveAndFlush(row)
-                }
-            }
+            discard(job, workId, owner)
             throw error
         }
         return handOff(job, frozen.episodes.map { it.number })
     }
 
-    /** 소유자 화면용 최신 작업이다. 소유자가 아니거나 없는 작품은 404, 아직 접수한 적이 없으면 404 PREPROCESSING_NOT_STARTED다. */
+    /**
+     * 첫 발행이 커밋된 뒤 불린다(PublicationService). 발행 회차 중 아직 세계관에 반영되지 않은 회차 전체로 `update` 작업을 접수하고 AI에 넘긴다(계약 '발행 회차로 세계관 업데이트').
+     * 작품에 세계관이 연결돼 있고 그 세계관의 최초 구축이 완료됐으며 세계관에 끝나지 않은 작업이 없을 때만 접수한다. 접수하지 않거나 실패해도 발행은 그대로 성공이라 예외를 던지지 않고
+     * 결과 코드만 돌려준다(`STARTED`, 접수하지 않은 사유 `NO_WORK`·`NO_WORLD`·`INITIAL_NOT_COMPLETED`·`OPEN_JOB`·`NO_NEW_EPISODES`, 실패면 [ContentFailure.code]·`HTTP_<상태>`·예외 종류): 원고가 실릴 수 있어 예외 문구는 쓰지 않는다.
+     * 커밋 직후 콜백 안에서는 발행 트랜잭션의 자원이 아직 묶여 있어 접수의 트랜잭션·AI 호출이 거기에 얹히지 않도록 중단하고 실행한다.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED, transactionManager = "contentTransactionManager")
+    fun startUpdate(workId: String, owner: String, versionId: String): String {
+        return try {
+            val work = works.findById(workId).orElse(null)?.takeIf { it.ownerId == owner && it.deletedAt == null } ?: return "NO_WORK"
+            val world = work.worldStudioId ?: return "NO_WORLD"
+            val initial = jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc(workId, PreprocessingKind.INITIAL)
+            if (initial == null || initial.status != PreprocessingStatus.COMPLETED || initial.worldId != world) return "INITIAL_NOT_COMPLETED"
+            if (jobs.openOn(world)) return "OPEN_JOB"
+            val frozen = build.freezeUpdate(workId, jobs.reflectedNumbers(workId)) ?: return "NO_NEW_EPISODES"
+            val id = UUID.randomUUID()
+            val key = "publish:$versionId"
+            val actor = UUID.fromString(owner)
+            val job = claim {
+                if (jobs.requestKeyExists(workId, key))
+                    throw ContentFailure(409, "이 요청 키는 이미 이전 작업에 사용됐어요.", "PREPROCESSING_REQUEST_KEY_USED")
+                // 같은 작품의 진행 중 update 작업은 하나다(부분 유니크 인덱스가 동시 접수를 막는다).
+                jobs.saveAndFlush(PreprocessingJobEntity(id = id.toString(), workId = workId, worldId = world, memberId = owner,
+                    total = frozen.episodes.size, kind = PreprocessingKind.UPDATE))
+            }
+            try {
+                build.prepareUpdate(id, workId, actor, ManuscriptBuildRequest(world, key, true), frozen)
+            } catch (error: Exception) {
+                discard(job, workId, owner)
+                throw error
+            }
+            try {
+                handOff(job, frozen.episodes.map { it.number })
+            } catch (error: ContentFailure) {
+                // 업데이트에는 접수를 다시 보낼 사람이 없다. AI가 받았는지 알 수 없어도 실행권이 없는 queued 작업이면 실패로 끝내
+                // 다음 발행이 그 회차를 다시 담게 한다(받았다면 claim이 먼저 실행권을 가져가 이 요청이 거절된다).
+                runCatching { build.failQueued(id, actor, "AI_INTAKE_FAILED") }
+                throw error
+            }
+            "STARTED"
+        } catch (e: ContentFailure) {
+            e.code ?: "HTTP_${e.status}"
+        } catch (e: RuntimeException) {
+            e.javaClass.simpleName
+        }
+    }
+
+    /** 접수가 성립하지 않았다. 최초 입력이 만들어지지 않았으면 접수 행을 지우고(실패 행으로 남기면 작품이 적재 확인 대기로 영구히 막힌다) 만들어진 뒤의 실패만 failed 행으로 남긴다. */
+    private fun discard(job: PreprocessingJobEntity, workId: String, owner: String) {
+        transaction.executeWithoutResult {
+            val row = jobs.lock(job.id) ?: throw missing()
+            if (jobs.frozenNumbers(row.id, workId, owner).isEmpty()) jobs.delete(row)
+            else {
+                row.fail("최초 입력 준비 결과를 확인해 주세요.", Instant.now())
+                jobs.saveAndFlush(row)
+            }
+        }
+    }
+
+    /**
+     * 소유자 화면용 최신 작업이다. 소유자가 아니거나 없는 작품은 404, 아직 접수한 적이 없으면 404 PREPROCESSING_NOT_STARTED다.
+     * 기존 필드는 늘 최초 구축 작업이고 `update`에 가장 최근 업데이트 작업을 싣는다(없으면 null).
+     */
     fun latest(workId: String, owner: String): PreprocessingJobResponse {
         ownedWork(workId, owner)
-        val job = jobs.findFirstByWorkIdOrderByCreatedAtDesc(workId) ?: throw ContentFailure(404, "전처리 작업이 없어요.", "PREPROCESSING_NOT_STARTED")
-        return ownerView(job, inspectQueued = true)
+        val job = jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc(workId, PreprocessingKind.INITIAL) ?: throw ContentFailure(404, "전처리 작업이 없어요.", "PREPROCESSING_NOT_STARTED")
+        val update = jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc(workId, PreprocessingKind.UPDATE)?.let(::updateView)
+        return ownerView(job, inspectQueued = true).copy(update = update)
     }
 
     /** AI의 진행 보고를 기록한다. 없는 작업은 404, 이미 끝난 작업은 409, 값 오류는 422다. */
@@ -136,9 +195,12 @@ class PreprocessingService(
             guardQueuedSnapshot(job)
             val expired = job.status == PreprocessingStatus.RUNNING && jobs.hasExpiredLease(job.id)
             checkContent(job.status == PreprocessingStatus.FAILED || expired, 409, "실패하거나 실행권이 만료된 작업만 다시 실행할 수 있어요.")
-            checkContent(jobs.findFirstByWorkIdOrderByCreatedAtDesc(job.workId)?.id == job.id, 409, "더 새로운 전처리 작업이 있어 다시 실행할 수 없어요.")
+            checkContent(jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc(job.workId, job.kind)?.id == job.id, 409, "더 새로운 전처리 작업이 있어 다시 실행할 수 없어요.")
             val frozen = jobs.frozenNumbers(job.id, job.workId, job.memberId)
             if (frozen.isEmpty()) throw missingSnapshot()
+            // 실패한 업데이트의 회차를 다음 발행이 새 작업으로 이미 반영했으면 옛 작업을 다시 돌려 같은 회차를 두 번 더하지 않는다.
+            if (job.kind == PreprocessingKind.UPDATE)
+                checkContent(jobs.reflectedNumbers(job.workId).none { it in frozen }, 409, "이미 다른 작업으로 세계관에 반영된 회차가 있어 다시 실행할 수 없어요.")
             val numbers = job.failedEpisodes.ifEmpty { frozen }
             checkContent(frozen.containsAll(numbers), 409, "최초 입력과 실패 회차가 일치하지 않아요.")
             checkContent(jobs.requeueSnapshot(job.id)==1,409,"스냅샷의 실행 상태를 확인해 주세요.")
@@ -182,6 +244,12 @@ class PreprocessingService(
 
     private fun view(job: PreprocessingJobEntity) = PreprocessingJobResponse(job.id,job.workId,job.status,job.done,job.total,
         job.failedEpisodes,job.failedReason,job.startedAt?.toString(),job.finishedAt?.toString())
+
+    /** 업데이트 작업 요약이다. 상태·사유는 build 응답과 같은 값(만료된 실행은 unknown)이고 V15 작업 행이 없으면 미러 행의 값이다. */
+    private fun updateView(job: PreprocessingJobEntity): PreprocessingUpdateResponse {
+        val detail = runCatching { UUID.fromString(job.id) to UUID.fromString(job.memberId) }.getOrNull()?.let { (id, owner) -> build.status(id, owner) }
+        return PreprocessingUpdateResponse(job.id, detail?.status ?: job.status, jobs.frozenNumbers(job.id, job.workId, job.memberId), detail?.failureCode ?: job.failedReason)
+    }
 
     private fun ownerView(job: PreprocessingJobEntity, inspectQueued: Boolean = false): PreprocessingJobResponse {
         val detail = runCatching { UUID.fromString(job.id) to UUID.fromString(job.memberId) }.getOrNull()

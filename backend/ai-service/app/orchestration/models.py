@@ -80,11 +80,13 @@ class WritingTarget(BaseModel):
 
     baseEpisode는 근거 회차(시뮬레이션이 세계관을 읽는 지식 상한)다. 작가가 발행 전 초안을 열어 둬 반영 회차(episode)가 근거 회차와
     다를 때만 오고, 없으면 episode와 같다. fork는 Fork 작품이면 Content가 true로 보내며 추적 metadata에만 쓴다(DEC-55 누설 표본 검사).
+    episodeVersionId는 Content가 확정한 근거 회차의 판본이다. AI는 해석하지 않고 저장했다가 멈춘 응답의 basis로 돌려준다(#668).
     """
     model_config = ConfigDict(extra='forbid')
     workId: str = Field(min_length=1, max_length=100)
     episode: int = Field(ge=1)
     baseEpisode: int | None = Field(default=None, ge=1)
+    episodeVersionId: str | None = Field(default=None, min_length=1, max_length=100)  # #668 전에 멈춘 턴에는 없다
     fork: bool | None = None
 
 
@@ -148,12 +150,20 @@ class Resume(BaseModel):
 
     scene은 시뮬레이션 무대의 장면 조작(next·edit·redo·stop)이다. scene이 있으면 approved는 적용하지 않고 장면을 처리한 뒤 다시 멈춘다
     (승인·거절은 scene 없는 resume으로만 한다).
+    refresh는 Content 쓰기 승인 대기에서 오래된 제안을 실행하지 않고 멈춘 자리에서 새 제안을 받는 답이다(#662, approved=false).
     """
     model_config = ConfigDict(extra='forbid')
     approved: bool
     inputs: StepInputs = StepInputs()
     scope: RetrievalScope | None = None  # Content가 resume 때 새로 서명한 Q&A 조회 토큰
     scene: SceneAction | None = None
+    refresh: bool = False
+
+    @model_validator(mode='after')
+    def refresh_never_approves(self):
+        if self.refresh and self.approved:
+            raise ValueError('refresh는 approved=false로만 보낼 수 있습니다.')
+        return self
 
 
 class OrchestrationRequest(BaseModel):
@@ -228,6 +238,12 @@ class StepResult(BaseModel):
     applied: AppliedDraft | None = None  # World 보강 제안·계획 수정이면 episode는 채팅 대상 회차를 그대로 싣고 revision은 반영 뒤 세계관 초안·계획 revision이다
 
 
+class Basis(BaseModel):
+    """멈춘 턴이 시작한 근거 회차·판본. Content가 이어가기의 조회 토큰을 이 값으로 다시 서명한다(#668)."""
+    episode: int
+    episodeVersionId: str
+
+
 class OrchestrationResponse(BaseModel):
     """steps는 메인 에이전트가 서브 에이전트를 부른 순서다. message는 메인 에이전트의 종합 답변이거나 실행하지 않은 턴의 고정 문구다.
 
@@ -245,7 +261,8 @@ class OrchestrationResponse(BaseModel):
     awaitingApproval: AwaitingApproval | None = None
     pendingAction: PendingAction | None = None  # awaitingApproval이 content_action일 때 실행을 기다리는 도구와 인자
     awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다
-    approvalEpisode: int | None = None  # 승인 질문과 장면 대기에서 결과를 반영할 회차(target.episode). 화면은 새로 고친 뒤 이 값으로 편집기 회차를 맞춘다
+    basis: Basis | None = None  # waiting에만 있다. 판본을 저장하기 전(#668)에 멈춘 턴에는 없다
+    approvalEpisode: int | None = None  # 승인 질문·장면 대기·입력 대기(#635)에서 결과를 반영할 회차(target.episode). 편집기 회차 맞춤은 입력 대기를 빼고, 구간 카드는 이 회차에 고정한다
 
 
 class ChatSession(BaseModel):

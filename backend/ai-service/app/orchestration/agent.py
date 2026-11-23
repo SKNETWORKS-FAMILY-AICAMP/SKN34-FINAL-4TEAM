@@ -6,6 +6,7 @@ Retrieval·웹 검색·원고 반영 도구는 없고, 서브 에이전트에 �
 - `DecisionGuardMiddleware.before_agent`: 턴당 1회 Decision Guard(`intent.judge`). 거절이면 모델을 부르지 않고 끝낸다. 허용됐지만 기능이 비면 MCP 도구만으로 진행한다.
 - `WriteApproval`(`HumanInTheLoopMiddleware` 상속): 쓰기 MCP 도구 4개는 작가가 승인(approve)한 뒤에만 실행한다(reject면 실행하지 않는다). 다른 미들웨어가 이미 답한 호출은 묻지 않는다.
   멈출 때 그때까지의 단계를 payload에 싣는다(#587).
+- 제안 다시 받기(#662) 직후에는 `DynamicToolMiddleware`가 세계관 다시 읽기 → 재제안을 `tool_choice`로 강제한다.
 - `DynamicToolMiddleware`: 판정 기능의 도구와 MCP 도구만 모델에 보이고 실행 직전 다시 확인한다(MCP 도구는 `mcp_tools.execute`가 실행). 실패·취소·입력 대기·시뮬레이션 계획 뒤와
   모델 호출 상한의 마지막 호출에는 도구를 치운다(FinalAnswerMiddleware 방식). 한 모델 턴의 병렬 묶음은 조회형(PARALLEL)만 함께 실행하고
   단독 도구·입력이 빠진 호출은 실행하지 않고 돌려 다음 모델 턴에 따로 부르게 한다(#474, 2026-11-17 사용자 결정). 함께 실행하는 호출은
@@ -31,7 +32,7 @@ from langchain.agents.middleware.types import ModelResponse
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_openai import ChatOpenAI
-from langgraph.config import get_stream_writer
+from langgraph.config import get_config, get_stream_writer
 from langgraph.errors import GraphInterrupt
 from langgraph.types import Command
 from openai import OpenAIError
@@ -45,7 +46,13 @@ from app.orchestration.prompt import INSTRUCTIONS
 
 MODEL_CALLS = 8  # 메인 모델 호출 상한(턴당). 마지막 호출은 도구 없이 종합한다. MCP 도구 호출(#554)로 5에서 올렸다.
 TOOL_CALLS = 3  # 서브 에이전트 호출 상한(턴당). 기능마다 1회다.
+RESUME_SCOPE = 'resume_scope'  # 쓰기 승인 이어가기 요청이 설정으로 넘기는 새 조회 토큰(#678). dict라 체크포인트 metadata에 남지 않는다
 FAILED = 'main_failed'  # 메인 모델 실패로 끝낸 마지막 메시지 이름
+# 제안 다시 받기(#662) 때 실행하지 않은 세계관 수정의 ToolMessage. 도구 답은 데이터라(프롬프트 규칙 4) 이 글만으로는 모델이 다시 제안하지 않고,
+# DynamicToolMiddleware가 이 메시지를 보고 다시 읽기 → 재제안을 tool_choice로 강제한다(_refresh_next).
+REFRESH = ('이 제안은 실행하지 않았고 저장되지 않았어요. 거절이 아니라 저장된 초안이 바뀌어서, 작가가 같은 수정의 새 제안을 요청했어요. '
+           'world_studio_read로 저장본을 다시 읽고, 그 내용과 draftRevision을 기준으로 이 수정만 다시 제안해요. '
+           '앞에서 받은 저장하지 않은 편집 내용이 아니라 방금 읽은 저장본이 최신이에요. 이미 실행한 다른 작업은 다시 하지 않아요.')
 MAIN_FAILED_MESSAGE = '답변을 정리하지 못했어요. 완료한 작업의 결과는 아래에 있어요.'
 MAIN_FAILED_NOTHING_MESSAGE = '요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'  # 완료한 단계가 없을 때
 BAD_ARGUMENTS = '작업 지시가 형식에 맞지 않아 실행하지 않았어요.'  # 도구 인자 검증 실패(예: request 2,000자 초과)
@@ -60,7 +67,7 @@ class MainState(AgentState):
     steps: NotRequired[Annotated[list[dict], operator.add]]  # 이번 턴 서브 에이전트 결과. 도구마다 자기 단계 하나를 덧붙인다(호출 순서)
     writingBase: NotRequired[dict | None]  # 검수 후보의 기준이 되는 집필 직전 초안
     inputs: NotRequired[dict]  # Content가 확인한 단계 입력. 입력 대기 resume이 채운다
-    retrievalScope: NotRequired[dict | None]  # Content가 서명한 Q&A 조회 토큰. resume이 새 토큰으로 바꾼다
+    retrievalScope: NotRequired[dict | None]  # Content가 서명한 Q&A 조회 토큰. 입력·쓰기 승인 resume이 새 토큰으로 바꾼다
     stopped: NotRequired[dict | None]  # 남은 호출을 막고 끝낸 이유 {status: needs_input|cancelled|clarify, ...}
     simulationPlan: NotRequired[dict | None]  # 시뮬레이션 계획. 장면은 바깥 scene 노드가 쓴다
     mcpCalls: NotRequired[Annotated[int, operator.add]]  # 이번 턴 실행한 MCP 도구 호출 수(서브 에이전트 한도와 따로 센다)
@@ -96,7 +103,7 @@ class DecisionGuardMiddleware(AgentMiddleware):
         turn, asked = runtime.context, runtime.context['decide']
         with tracing.observe('decision_guard', input={'request': asked['request']}) as span:
             decided = intent.judge(asked['request'], asked['operation'], asked['materials'], asked['history'])
-            span.update(metadata=decided.model_dump())
+            span.update(output=decided.model_dump())
         done = {'decision': {**decided.model_dump(), 'operation': asked['operation']}}  # operation은 UI가 기능을 골랐는지(Content 도구 노출 판단)
         if not decided.allowed:  # 기능이 비어도 허용됐다면 메인이 MCP 도구만으로 실행한다(#554)
             done['jump_to'] = 'end'
@@ -142,6 +149,8 @@ class DynamicToolMiddleware(AgentMiddleware):
         last = request.state.get('thread_model_call_count', 0) >= MODEL_CALLS - 1
         allowed = set() if last else _allowed(request.state)
         exposed = [t for t in request.tools if t.name in allowed]
+        if (forced := _refresh_next(request.messages)) and any(t.name == forced for t in exposed):
+            return await handler(request.override(tools=exposed, tool_choice=forced, model_settings={'parallel_tool_calls': False}))
         return await handler(request.override(tools=exposed, model_settings={'parallel_tool_calls': True} if exposed else {}))
 
     async def awrap_tool_call(self, request, handler):
@@ -166,23 +175,41 @@ class DynamicToolMiddleware(AgentMiddleware):
         return result
 
 
+def _refresh_next(messages: list) -> str | None:
+    """제안 다시 받기(#662) 직후 모델이 불러야 할 도구: 저장본 다시 읽기, 읽었으면 같은 수정의 재제안. 읽지 못했으면 강제하지 않는다."""
+    last = messages[-1]
+    if not isinstance(last, ToolMessage) or last.status == 'error':
+        return None
+    if last.content == REFRESH:
+        return 'world_studio_read'
+    # [실행하지 않은 제안, 읽기 호출, 읽은 저장본]
+    if last.name == 'world_studio_read' and len(messages) > 2 and messages[-3].content == REFRESH:
+        return messages[-3].name
+    return None
+
+
+def _refused(call: dict, content: str) -> ToolMessage:
+    """실행하지 않고 모델에게 돌려보내는 도구 호출의 오류 ToolMessage. 이름과 모델이 받은 이유를 `main_agent.blocked` span으로 남긴다(DEC-58)."""
+    with tracing.observe('main_agent.blocked', input={'name': call['name']}, output={'reason': content}):
+        pass
+    return ToolMessage(content=content, tool_call_id=call['id'], name=call['name'], status='error')
+
+
 def _blocked(call: dict) -> ToolMessage:
-    return ToolMessage(content=f"[차단] {call['name']}: 이번 요청에서 부를 수 없는 도구예요. 다시 부르지 마세요.",
-                       tool_call_id=call['id'], name=call['name'], status='error')
+    return _refused(call, f"[차단] {call['name']}: 이번 요청에서 부를 수 없는 도구예요. 다시 부르지 마세요.")
 
 
 def _deferred(call: dict) -> ToolMessage:
-    return ToolMessage(content=f"[순차] {call['name']}: 다른 도구와 함께 실행할 수 없어 실행하지 않았어요. "
-                               '함께 부른 도구의 결과를 본 뒤 이 도구만 따로 다시 부르세요.',
-                       tool_call_id=call['id'], name=call['name'], status='error')
+    return _refused(call, f"[순차] {call['name']}: 다른 도구와 함께 실행할 수 없어 실행하지 않았어요. "
+                          '함께 부른 도구의 결과를 본 뒤 이 도구만 따로 다시 부르세요.')
 
 
 def _foreign(call: dict, reason: str) -> ToolMessage:
-    return ToolMessage(content=f"[차단] {call['name']}: {reason}", tool_call_id=call['id'], name=call['name'], status='error')
+    return _refused(call, f"[차단] {call['name']}: {reason}")
 
 
 def _limited(call: dict) -> ToolMessage:
-    return ToolMessage(content=f"[한도] {call['name']}: {mcp_tools.LIMIT_REACHED} 더 부르지 마세요.", tool_call_id=call['id'], name=call['name'], status='error')
+    return _refused(call, f"[한도] {call['name']}: {mcp_tools.LIMIT_REACHED} 더 부르지 마세요.")
 
 
 def _unanswered(request) -> bool:
@@ -211,16 +238,20 @@ class ToolCallLimit(ToolCallLimitMiddleware):
 
 
 class WriteApproval(HumanInTheLoopMiddleware):
-    """승인 대기 payload에 이번 턴의 끝난 단계를 싣는다(#587). 바깥 그래프는 이 에이전트의 상태를 읽지 못한다."""
+    """승인 대기 payload에 이번 턴의 끝난 단계를 싣고(#587, 바깥 그래프는 이 에이전트의 상태를 읽지 못한다) 작가의 답과 온 새 조회 토큰을 저장한다(#678)."""
     name = HumanInTheLoopMiddleware.__name__  # 이름이 노드 이름이라 바꾸면 이미 멈춘 체크포인트를 이어 가지 못한다
 
     def after_model(self, state, runtime) -> dict | None:
         try:
-            return super().after_model(state, runtime)
+            answered = super().after_model(state, runtime)
         except GraphInterrupt as pause:
             for waiting in pause.args[0]:  # 체크포인트에 저장되기 전의 payload다
                 waiting.value['steps'] = state.get('steps', [])
             raise
+        # 토큰이 없으면(#668 전에 멈춘 턴) 마지막으로 저장한 토큰을 그대로 쓴다
+        if answered and (scope := get_config()['configurable'].get(RESUME_SCOPE)):
+            return {**answered, 'retrievalScope': scope}
+        return answered
 
 
 class AnswerStream(BaseCallbackHandler):
@@ -267,7 +298,9 @@ class MainModelMiddleware(AgentMiddleware):
                 return failed
             message = response.result[-1]
             usage = message.usage_metadata
-            generation.update(model=message.response_metadata.get('model_name'), output=message.text or [c['name'] for c in message.tool_calls],
+            # DEC-58: 도구를 부른 이유는 그 인자(ask_*의 요청문)와 같은 응답의 글이라 둘 다 output에 남긴다.
+            generation.update(model=message.response_metadata.get('model_name'),
+                              output={'text': message.text, 'toolCalls': [{'name': c['name'], 'args': c['args']} for c in message.tool_calls]},
                               usage_details=usage and {'input': usage['input_tokens'], 'output': usage['output_tokens']})
             if message.response_metadata.get('status') != 'completed':  # 토큰 한도로 잘린 응답
                 generation.update(level='ERROR', status_message=MAIN_FAILED_MESSAGE)
@@ -289,7 +322,8 @@ def build(found: list[dict] = ()):
     chat = ChatOpenAI(model=os.environ['OPENAI_MODEL'], api_key=os.environ['OPENAI_API_KEY'], use_responses_api=True, store=False,
                       reasoning_effort='high', max_tokens=8000, timeout=120, max_retries=0, streaming=True, callbacks=[AnswerStream()])
     mcp = mcp_tools.tools(found)
-    approval = {t.name: {'allowed_decisions': ['approve', 'reject'], 'when': _unanswered, 'description': mcp_tools.LABELS[t.name]}
+    # respond는 제안 다시 받기(#662)만 쓴다: 실행하지 않고 서버 문구를 거절 표시 없이 그대로 모델에게 준다.
+    approval = {t.name: {'allowed_decisions': ['approve', 'reject', 'respond'], 'when': _unanswered, 'description': mcp_tools.LABELS[t.name]}
                 for t in mcp if t.name in mcp_tools.WRITE}
     return create_agent(chat, tools=[*TOOLS.values(), *mcp], system_prompt=managed.text, state_schema=MainState, context_schema=dict, middleware=[
         # after_model 훅은 목록의 역순으로 돈다: 모델 호출 수 → 노출·묶음 확인 → 도구 한도 → 쓰기 승인. 순서를 바꾸면 막힌 호출이 한도를 쓰거나 승인을 묻는다.

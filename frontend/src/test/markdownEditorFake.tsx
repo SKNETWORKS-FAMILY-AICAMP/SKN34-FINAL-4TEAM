@@ -13,10 +13,13 @@ type CardLinks = { cards: readonly { id: string; title: string; type?: string; a
  * `LazyMarkdownEditor.cardLinks`는 편집기(`label`)마다 마지막으로 받은 설정 링크 값이다(없으면 undefined). 테스트가 대상 카드를 확인하고 `open`으로 미리보기의 링크를 누른 것처럼 부른다.
  * 사용: `vi.mock('<상대 경로>/presentation/shared/LazyMarkdownEditor', () => import('<상대 경로>/test/markdownEditorFake'))`
  */
-export function LazyMarkdownEditor({ label, initialValue, placeholder, onChange, cardLinks }: { label: string; initialValue: string; placeholder?: string; onChange: (markdown: string) => void; cardLinks?: CardLinks }) {
+export function LazyMarkdownEditor({ label, initialValue, placeholder, onChange, cardLinks, startTab }: { label: string; initialValue: string; placeholder?: string; onChange: (markdown: string) => void; cardLinks?: CardLinks; startTab?: 'preview' }) {
   if (LazyMarkdownEditor.suspend) use(never)
   LazyMarkdownEditor.cardLinks.set(label, cardLinks)
+  LazyMarkdownEditor.startTab.set(label, startTab)
   return <textarea aria-label={label.endsWith('.md') ? label : '설명'} data-label={label} defaultValue={initialValue} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
 }
 LazyMarkdownEditor.suspend = false
 LazyMarkdownEditor.cardLinks = new Map<string, CardLinks | undefined>()
+/** 편집기(`label`)마다 마지막으로 받은 `startTab`(만들 때 미리보기 탭으로 열라는 값, 없으면 undefined). */
+LazyMarkdownEditor.startTab = new Map<string, 'preview' | undefined>()

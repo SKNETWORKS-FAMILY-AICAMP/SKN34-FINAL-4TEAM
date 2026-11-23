@@ -39,10 +39,11 @@ class CostLog:
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
     def record(self, kind: str, tokens_in: int, tokens_out: int, cached: int = 0, batch: bool = False, failed: bool = False,
-               chars: int = 0) -> float:
-        cost = request_usd(tokens_in, tokens_out, cached, batch)
+               chars: int = 0, rate: tuple[float, float, float] | None = None, model: str | None = None) -> float:
+        """rate = (입력, 캐시 입력, 출력) 100만 토큰당 달러: 기본 모델이 아닌 모델의 호출을 그 단가로 센다(272K 할증·Batch 할인은 기본 모델 것이라 붙이지 않고 줄에 model을 남긴다)."""
+        cost = request_usd(tokens_in, tokens_out, cached, batch) if rate is None else ((tokens_in - cached) * rate[0] + cached * rate[1] + tokens_out * rate[2]) / 1_000_000
         line = json.dumps({'ts': round(time.time()), 'kind': kind, 'in': tokens_in, 'cached': cached, 'out': tokens_out,
-                           'batch': batch, 'failed': failed, 'usd': cost, 'chars': chars})
+                           'batch': batch, 'failed': failed, 'usd': cost, 'chars': chars, **({'model': model} if model else {})})
         with self._lock, self.path.open('a') as file:
             fcntl.flock(file, fcntl.LOCK_EX)
             file.write(line + '\n')

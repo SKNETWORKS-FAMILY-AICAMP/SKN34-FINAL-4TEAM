@@ -320,3 +320,13 @@ it('미리보기는 줄 중간·소제목·인용·목록·표·들여쓴 줄·�
     ['줄 중간', LA], ['둘', LB], ['소제목', LA], ['인용글', LA], ['목록글', LB], ['들여쓴 줄', LA], ['이어진 줄', LA], ['굵게', LA], ['표 안', LA],
   ])
 })
+
+it("startTab='preview'로 만들면 미리보기 탭으로 열고(원문 링크가 먼저 보이지 않게), 주지 않으면 쓰기 탭으로 열며, 글은 그대로 들어간다", () => {
+  const state = () => tabs().map((tab) => [tab.textContent?.trim(), tab.getAttribute('aria-selected')])
+  render(draw({ startTab: 'preview' }))
+  expect(state()).toEqual([['편집하기', 'false'], ['미리보기', 'true']])
+  expect(made.editors[0].getMarkdown()).toBe('소개\n\n## 성격\n- **차분함**') // 탭만 다르고 글은 그대로다
+  cleanup()
+  render(draw())
+  expect(state()).toEqual([['편집하기', 'true'], ['미리보기', 'false']])
+})

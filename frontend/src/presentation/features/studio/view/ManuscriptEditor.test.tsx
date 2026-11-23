@@ -111,12 +111,12 @@ const png = () => new File(['png'], '본문.png', { type: 'image/png' })
 
 type HarnessProps = {
   initial: string; editable?: boolean; busy?: boolean; upload?: boolean
-  onImage?: (file: File, start: number, end: number) => void; onBody?: (body: string) => void; handle?: Ref<ManuscriptEditorHandle>
+  onImage?: (file: File, start: number, end: number) => void; onBody?: (body: string) => void; onSelection?: (text: string) => void; handle?: Ref<ManuscriptEditorHandle>
 }
 /** vm.addImage가 하는 일(업로드 성공 뒤 `\n\n표식\n\n`을 [start,end) 자리에 넣는다)을 흉내 내는 부모 */
-function Harness({ initial, editable = true, busy = false, upload = true, onImage, onBody, handle }: HarnessProps) {
+function Harness({ initial, editable = true, busy = false, upload = true, onImage, onBody, onSelection, handle }: HarnessProps) {
   const [body, setBody] = useState(initial)
-  return <ManuscriptEditor value={body} editable={editable} busy={busy} workId="work" number={1} ref={handle}
+  return <ManuscriptEditor value={body} editable={editable} busy={busy} workId="work" number={1} ref={handle} onSelectionChange={onSelection}
     onChange={next => { onBody?.(next); setBody(next) }}
     onImage={async (file, start, end) => {
       onImage?.(file, start, end)
@@ -833,6 +833,19 @@ it('선택한 글을 저장 문자열 기준으로 돌려주고, 선택이 없�
   expect(handle.current!.selectedText()).toBe('그는 웃었다.')
   select([1, 4], [2, 3]) // 줄을 걸친 선택은 줄바꿈으로 잇는다
   expect(handle.current!.selectedText()).toBe('웃었다.\n바람')
+})
+
+it('선택이 바뀌면 알리고, 편집기가 없어지면 빈 글로 알린다(#636 채팅의 선택 표시)', async () => {
+  const picked = vi.fn()
+  const { unmount } = render(draw(<Harness initial={'그는 웃었다.\n바람이 불었다.'} onSelection={picked} />))
+  await screen.findByRole('group', { name: '원고 보기' })
+  select([1, 1], [1, 8])
+  expect(picked).toHaveBeenLastCalledWith('그는 웃었다.')
+  select([2, 1])
+  expect(picked).toHaveBeenLastCalledWith('')
+  select([1, 1], [1, 8])
+  unmount() // 회차 전환·다시 불러오기는 편집기를 없애므로 보낼 선택도 없어진다
+  expect(picked).toHaveBeenLastCalledWith('')
 })
 
 it('선택한 글에 이미지 줄이 걸려도 Toast 내부 표기($$widget)가 아니라 저장 표식으로 돌려준다', async () => {

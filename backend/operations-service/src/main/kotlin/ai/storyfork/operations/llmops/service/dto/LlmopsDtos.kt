@@ -11,10 +11,12 @@ data class TraceItem(
     val inputTokens: Long, val outputTokens: Long, val cost: Double, val userId: String?, val workId: String?,
 )
 
+/** One step of a trace. [parentObservationId] and the bodies (each cut to its first 8,000 characters) make the flow tree of the run. */
 data class TraceObservation(
     val id: String, val name: String, val type: String, val startTime: Instant?, val endTime: Instant?, val latencyMs: Long,
     val model: String?, val inputTokens: Long?, val outputTokens: Long?, val level: String, val statusMessage: String?,
     val promptName: String?, val promptVersion: Int?,
+    val parentObservationId: String?, val input: JsonNode?, val output: JsonNode?, val metadata: JsonNode?,
 )
 
 /** A [TraceItem] plus the request and answer bodies and the steps. */
@@ -25,6 +27,24 @@ data class TraceDetail(
 )
 
 data class TracePage(val items: List<TraceItem>, val page: Int, val size: Int, val total: Long)
+
+// The AI pipeline (docs/design/operations-ai-pipeline-contract.md, DEC-58).
+
+/** [count], [errors] (level ERROR) and [p95LatencyMs] (null when no latency was measured) are those of the node's observations in the window. */
+data class PipelineNode(
+    val id: String, val label: String, val next: List<String>, val standalone: Boolean, val count: Long, val errors: Long, val p95LatencyMs: Long?, val promptNames: List<String>,
+)
+
+data class Pipeline(val nodes: List<PipelineNode>)
+
+/** One observation of a node; input, output and metadata are each cut to their first 8,000 characters. [latencyMs] is null for one that never ended. */
+data class PipelineRecord(
+    val id: String, val traceId: String, val name: String, val type: String, val startTime: Instant?, val latencyMs: Long?, val level: String,
+    val statusMessage: String?, val model: String?, val promptName: String?, val promptVersion: Int?,
+    val input: JsonNode?, val output: JsonNode?, val metadata: JsonNode?,
+)
+
+data class PipelineRecordPage(val items: List<PipelineRecord>, val page: Int, val size: Int, val total: Long)
 
 /** The rates and latencies are null for a row without a finished request (the latencies also without a measured one): no data, not zero. */
 data class MetricRow(

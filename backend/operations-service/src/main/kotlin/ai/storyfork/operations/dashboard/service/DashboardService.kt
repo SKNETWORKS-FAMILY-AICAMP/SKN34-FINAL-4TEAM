@@ -27,7 +27,9 @@ import org.springframework.web.server.ResponseStatusException
 /**
  * The operations dashboard for any operator. Each upstream source (Core, Langfuse, Content) can fail on its own: its card becomes null
  * and its name goes into unavailable, while the other cards still show. The database cards (waiting inquiries, received reports, open
- * alerts) never depend on an upstream. The jobs card adds Content's preprocessing jobs to the operations runs, so it follows Content.
+ * alerts) never depend on an upstream. The jobs card adds Content's preprocessing jobs and Langfuse's evaluation runs to the operations runs, so it follows both:
+ * the evaluation runs are read only after Content answered and not again once Langfuse has failed, and the card is blank rather than a count that leaves them out.
+ * The funnel (Content, whole period) is read last: its own failure leaves the cards Content already answered, and an earlier Content failure skips it.
  * Nothing is cached.
  */
 @Service
@@ -59,10 +61,14 @@ class DashboardService(
         val authorReviews = source("content") {
             content.operationsStats(now.minus(7, ChronoUnit.DAYS), now).let { it.pendingFeedbackReports + it.pendingEditSuggestions }
         }
-        val jobs = source("content") { jobCounts.counts(now.minus(24, ChronoUnit.HOURS)).let { DashboardJobs(it.running, it.failed) } }
+        val dayAgo = now.minus(24, ChronoUnit.HOURS)
+        val jobs = source("content") { jobCounts.counts(dayAgo) }?.let { jobs ->
+            source("langfuse") { jobCounts.evaluationCounts(dayAgo, now) }?.let { DashboardJobs(jobs.running + it.running, jobs.failed + it.failed) }
+        }
+        val funnel = source("content") { content.funnel() }
         // Inquiries and reports are database values and always shown; only the author-review count follows Content's availability.
         val pending = DashboardPending(inquiries.countWaitingMemberInquiries(), reports.countByStatus(ReportStatus.RECEIVED), authorReviews)
-        return Dashboard(members, ai, jobs, pending, alerts.countByStatus(AlertStatus.OPEN), unavailable)
+        return Dashboard(members, ai, jobs, pending, alerts.countByStatus(AlertStatus.OPEN), funnel, unavailable)
     }
 
     /** "Today" is the Korean day; both figures come from one 7-day read of Langfuse. */

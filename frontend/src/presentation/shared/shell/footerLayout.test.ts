@@ -3,7 +3,7 @@ import { expect, it } from 'vitest'
 
 // /status 시작 화면은 App.tsx 안의 컴포넌트라 렌더 없이 소스로 지킨다(그 밖의 화면은 각 화면 테스트가 렌더로 확인한다).
 const app = readFileSync(new URL('../../../App.tsx', import.meta.url), 'utf8')
-const start = app.match(/function StartPage\(\) \{[\s\S]*?\n\}\n/)?.[0] ?? ''
+const start = app.match(/function StartPage\(\) \{[\s\S]*?\n\}\r?\n/)?.[0] ?? ''
 
 it('/status 시작 화면(StartPage)도 다른 화면처럼 공용 Footer를 main의 형제로 둔다', () => {
   expect(start).toMatch(/<\/main>\s*<Footer \/>/)

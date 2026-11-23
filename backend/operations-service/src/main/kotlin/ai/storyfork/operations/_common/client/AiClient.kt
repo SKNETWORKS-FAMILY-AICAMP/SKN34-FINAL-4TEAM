@@ -1,5 +1,6 @@
 package ai.storyfork.operations._common.client
 
+import java.util.UUID
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
@@ -14,6 +15,13 @@ class AiClient(private val http: RestClient) {
     fun startEvaluation(dataset: String, prompt: String, version: Int): EvaluationStarted = upstream {
         http.post().uri("/internal/v1/evaluations").contentType(MediaType.APPLICATION_JSON)
             .body(mapOf("dataset" to dataset, "prompt" to prompt, "version" to version)).retrieve().body<EvaluationStarted>()
+    }
+
+    /** Hands a queued operations job run to the AI service (202): a worker there runs it by calling the operations execute API, so the run is only accepted here. */
+    fun startJob(runId: UUID, kind: String) {
+        upstream {
+            http.post().uri("/internal/v1/jobs").contentType(MediaType.APPLICATION_JSON).body(mapOf("runId" to runId, "kind" to kind)).retrieve().toBodilessEntity()
+        }
     }
 
     /**

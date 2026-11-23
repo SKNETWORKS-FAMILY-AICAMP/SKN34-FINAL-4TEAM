@@ -11,8 +11,11 @@ from app.intent.models import DecisionResult
 from app.orchestration import agent, mcp_tools, service, tools
 from app.orchestration.models import OrchestrationRequest
 from app.orchestration.prompt import UNSUPPORTED_MESSAGE
+from app.simulation.models import SimulationPlan
 
-from .stubs import QA, Planned, Step, fake_agents, fake_main, fake_scene, plan
+from traced import named, shown
+
+from .stubs import QA, WEB, Planned, Step, fake_agents, fake_main, fake_scene, plan
 
 TARGET = {'workId': 'work', 'episode': 3}
 PAGE = {'path': '/worldstudio/w1?card=k', 'kind': 'world', 'worldId': 'w1', 'cardId': 'k', 'view': 'cards',
@@ -121,6 +124,20 @@ def test_reads_run_without_approval_and_a_work_id_other_than_the_target_is_refus
     assert refused.status == 'error' and refused.content.startswith('[차단]')
 
 
+@pytest.mark.parametrize('batch, tool, tag', [
+    ([('episode_list', {'id': 'work'}), ('work_read', {'id': 'someone-elses'})], 'work_read', '[차단]'),  # 대상 작품이 아닌 id
+    ([('episode_list', {'id': 'work'})] * (mcp_tools.MCP_CALLS + 2), 'episode_list', '[한도]'),         # 턴당 Content 호출 한도
+], ids=['other-work', 'over-the-cap'])
+def test_a_content_call_the_main_agent_refused_is_traced_with_its_name_and_reason(monkeypatch, spans, batch, tool, tag):
+    calls = fake_agents(monkeypatch, only_content(batch))
+    content(monkeypatch)
+    turn(str(uuid4()), request='작품과 회차를 알려줘')
+    refused = [m for m in calls.main[-1]['messages'] if getattr(m, 'status', None) == 'error' and m.content.startswith(tag)]
+    blocked = named(spans, 'main_agent.blocked')
+    assert refused and len(blocked) == len(refused)
+    assert [(shown(b, 'input'), shown(b, 'output')) for b in blocked] == [({'name': tool}, {'reason': m.content}) for m in refused]
+
+
 def test_optional_arguments_the_model_left_empty_are_not_sent_to_content(monkeypatch):
     fake_agents(monkeypatch, only_content(('world_studio_read', {'id': 'w1', 'episode': ''})))
     log = content(monkeypatch)
@@ -132,9 +149,33 @@ def test_a_failed_read_returns_the_reason_to_the_model_and_leaves_no_failed_step
     calls = fake_agents(monkeypatch, only_content(('episode_read', {'id': 'work', 'number': 'x'}), ('episode_read', {'id': 'work', 'number': 3})))
     log = content(monkeypatch, fail={'episode_read': ContentMcpFailure(422, '입력 값을 확인하세요.')})
     result = turn(str(uuid4()), request='3화 읽어줘')
-    assert (result.status, result.steps) == ('completed', []) and len(log) == 2  # 실패한 읽기 뒤에도 모델이 다시 부를 수 있다
+    assert (result.status, result.steps) == ('failed', []) and len(log) == 2  # 실패한 읽기 뒤에도 모델이 다시 부를 수 있다. 모두 실패하면 턴은 실패다(#639)
     failed = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'episode_read' and m.status == 'error')
     assert failed.content == '[실패] 회차 읽기: 입력 값을 확인하세요.'
+
+
+def test_a_turn_whose_content_reads_all_failed_or_were_refused_is_failed_keeping_the_answer(monkeypatch):
+    fake_agents(monkeypatch, only_content([('work_read', {'id': 'work'}), ('episode_list', {'id': 'someone-elses'})]))
+    content(monkeypatch, fail={'work_read': ContentMcpFailure(422, '입력 값을 확인하세요.')})
+    result = turn(str(uuid4()), request='작품 정보를 알려줘')
+    assert (result.status, result.steps, result.message) == ('failed', [], '종합 답변')
+
+
+def test_one_successful_read_among_failed_ones_still_completes_the_turn(monkeypatch):
+    fake_agents(monkeypatch, only_content([('work_read', {'id': 'work'}), ('episode_list', {'id': 'work'})]))
+    content(monkeypatch, fail={'work_read': ContentMcpFailure(422, '입력 값을 확인하세요.')})
+    assert turn(str(uuid4()), request='작품과 회차를 알려줘').status == 'completed'
+
+
+def test_when_the_content_tools_cannot_be_listed_the_turn_runs_without_them_and_says_so(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+
+    async def down(names):
+        raise ContentMcpFailure(503, 'Content MCP를 호출할 수 없습니다.')
+    monkeypatch.setattr(mcp_tools.content_mcp, 'tool_specs', down)
+    result = turn(str(uuid4()), inputs={'story_context': {'question': 'q', 'excerpts': [{'id': 'a', 'episode': 1, 'quote': '인용'}]}})
+    assert result.status == 'completed' and not set(mcp_tools.NAMES) & set(calls.main[0]['tools'])  # 서브 에이전트 기능은 그대로 실행한다
+    assert result.message == f'종합 답변\n\n{mcp_tools.UNAVAILABLE}' and 'Content' not in mcp_tools.UNAVAILABLE
 
 
 def test_content_tool_calls_are_capped_per_turn_separately_from_the_sub_agent_limit(monkeypatch):
@@ -146,6 +187,16 @@ def test_content_tool_calls_are_capped_per_turn_separately_from_the_sub_agent_li
     assert len(limited) == 2
 
 
+
+def test_a_turn_stopped_to_ask_back_still_says_the_content_tools_were_unavailable(monkeypatch):
+    fake_agents(monkeypatch, plan('character_simulation'), drafted=SimulationPlan(mode='flow', beats=['성문 대면']))
+
+    async def down(names):
+        raise ContentMcpFailure(503, 'Content MCP를 호출할 수 없습니다.')
+    monkeypatch.setattr(mcp_tools.content_mcp, 'tool_specs', down)
+    result = turn(str(uuid4()), request='성문 장면을 시뮬레이션해줘')
+    assert result.status == 'clarify' and '참여 인물' in result.message and result.message.endswith(f'\n\n{mcp_tools.UNAVAILABLE}')
+
 # 쓰기: 작가 승인(HITL)
 
 def test_a_write_waits_for_approval_showing_the_real_tool_and_arguments_and_runs_nothing_before(monkeypatch):
@@ -155,6 +206,16 @@ def test_a_write_waits_for_approval_showing_the_real_tool_and_arguments_and_runs
     assert (waiting.status, waiting.awaitingApproval, waiting.approvalEpisode) == ('waiting', 'content_action', None)
     assert waiting.pendingAction.model_dump() == {'tool': 'world_studio_edit_draft', 'label': '세계관 설정 카드 수정', 'args': EDIT}
     assert writes(log) == [] and waiting.steps == []
+
+
+def test_a_content_action_wait_hands_back_the_basis_too(monkeypatch):
+    fake_agents(monkeypatch, only_content(('world_studio_edit_draft', EDIT)))
+    content(monkeypatch)
+    thread = str(uuid4())
+    events = stream(thread, request='자세히 써줘', page=PAGE, target={**TARGET, 'baseEpisode': 2, 'episodeVersionId': 'r2'})
+    basis = {'episode': 2, 'episodeVersionId': 'r2'}
+    assert events[-1][1]['basis'] == basis
+    assert asyncio.run(service.history(thread, SCOPE)).turns[-1].reply.model_dump()['basis'] == basis
 
 
 def test_approving_runs_the_write_once_with_the_authors_token_and_only_the_given_card_changes(monkeypatch):
@@ -342,6 +403,94 @@ def test_declining_a_scene_after_an_applied_write_does_not_claim_nothing_ran(mon
     assert resume(thread, True).awaitingScene == 'character_simulation' and len(writes(log)) == 1
     done = resume(thread, False)
     assert (done.status, done.message) == ('cancelled', '장면은 반영하지 않았어요. 앞서 끝난 작업은 그대로예요.')  # 저장은 이미 됐다(#661)
+
+
+@pytest.mark.parametrize('answer', [{'approved': True}, {'approved': False}, {'approved': False, 'refresh': True}],
+                         ids=['approve', 'reject', 'refresh'])
+def test_every_content_action_answer_hands_the_fresh_token_to_the_following_question(monkeypatch, answer):
+    reread = [('world_studio_read', {'id': 'w1'}), ('world_studio_edit_draft', EDIT)] if answer.get('refresh') else []
+    calls = fake_agents(monkeypatch, only_content(('world_studio_edit_draft', EDIT), *reread, ('ask_story_qa', {}), capabilities=['story_context']))
+    content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, page=PAGE, scope={'scopeToken': 'old.token'})
+    stream(thread, resume={**answer, 'scope': {'scopeToken': 'fresh.token'}})
+    if reread:  # 새 제안의 승인에는 새 토큰이 없다: 다시 받기 때 저장한 토큰을 쓴다
+        stream(thread, resume={'approved': True})
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['fresh.token']
+    saved = list(service.CHAT.checkpointer.list({'configurable': {'thread_id': thread}}))
+    assert saved and not any('fresh.token' in str(c.metadata) for c in saved)  # 토큰은 상태에만 저장하고 목록용 metadata에는 남기지 않는다
+
+
+def test_a_content_action_answer_without_a_token_keeps_the_one_the_last_answer_saved(monkeypatch):
+    routed = only_content(('ask_research', {'task': 'web'}), ('world_studio_edit_draft', EDIT), ('ask_story_qa', {}),
+                          capabilities=['research', 'story_context'])
+    calls = fake_agents(monkeypatch, routed)
+    content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, page=PAGE, scope={'scopeToken': 'old.token'})
+    stream(thread, resume={'approved': True, 'inputs': {'research': WEB}, 'scope': {'scopeToken': 'input.token'}})
+    resume(thread, True)
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['input.token']
+
+
+def refresh(thread):
+    data = OrchestrationRequest(conversation={'threadId': thread, 'scope': SCOPE}, resume={'approved': False, 'refresh': True})
+    return asyncio.run(service.run(data, 'Bearer user'))
+
+
+def test_refreshing_a_stale_proposal_asks_again_in_place_without_repeating_the_applied_write(monkeypatch):
+    create = ('story_plan_create', {'workId': 'work', 'data': {'title': '재회'}})
+    again = ('world_studio_edit_draft', {'id': 'w1', 'request': {**EDIT['request'], 'expectedDraftRevision': 5}})
+    calls = fake_agents(monkeypatch, only_content(create, ('world_studio_edit_draft', EDIT), ('world_studio_read', {'id': 'w1'}), again))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, page=PAGE)
+    assert resume(thread, True).pendingAction.tool == 'world_studio_edit_draft'
+    new = refresh(thread)
+    assert (new.status, new.pendingAction.args['request']['expectedDraftRevision']) == ('waiting', 5)
+    assert [s.feature for s in new.steps] == ['content_action'] and [name for name, _ in writes(log)] == ['story_plan_create']  # 앞서 저장한 쓰기는 한 번뿐이다(#662)
+    told = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'world_studio_edit_draft')
+    # reject로 답하면 라이브러리가 "User rejected …"와 오류 상태를 붙여, 두 번째부터 모델이 거절로 읽고 제안을 포기한다
+    assert (told.content, told.status) == (agent.REFRESH, 'success')
+    # 프롬프트 규칙 4·5 때문에 문구만으로는 실모델이 재제안을 포기한다: 다시 읽기와 재제안을 도구 선택으로 강제한다
+    read, propose = calls.main[-2:]
+    assert [c['settings'].get('tool_choice') for c in (read, propose)] == ['world_studio_read', 'world_studio_edit_draft']
+    assert read['settings']['parallel_tool_calls'] is False and not any(c['settings'].get('tool_choice') for c in calls.main[:-2])
+    done = resume(thread, True)
+    assert done.status == 'completed' and [name for name, _ in writes(log)] == ['story_plan_create', 'world_studio_edit_draft']
+
+
+def test_refresh_is_refused_when_no_content_write_is_waiting_and_the_wait_is_kept(monkeypatch):
+    fake_agents(monkeypatch, plan(Step('research', task='web')))
+    thread = str(uuid4())
+    assert turn(thread, request='고증해줘').missingInputs == ['research']
+    with pytest.raises(service.NothingToResume):
+        refresh(thread)  # 그대로 잇는다면 입력 취소가 돼 버린다
+    assert asyncio.run(service.history(thread, SCOPE)).turns[-1].reply.status == 'waiting'
+
+
+def test_a_failed_reread_does_not_force_a_proposal_without_the_saved_draft(monkeypatch):
+    calls = fake_agents(monkeypatch, only_content(('world_studio_edit_draft', EDIT), ('world_studio_read', {'id': 'w1'})))
+    log = content(monkeypatch, fail={'world_studio_read': ContentMcpFailure(502, '세계관을 읽지 못했어요.')})
+    thread = str(uuid4())
+    turn(thread, page=PAGE)
+    assert refresh(thread).status == 'completed' and writes(log) == []
+    assert not calls.main[-1]['settings'].get('tool_choice')  # 저장본을 읽지 못했으면 그 사실을 답한다
+
+
+def test_refresh_only_covers_the_world_card_proposal_that_can_go_stale(monkeypatch):
+    fake_agents(monkeypatch, only_content(('work_update', {'id': 'work', 'request': {'title': '새 제목'}})))
+    content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread)
+    with pytest.raises(service.NothingToResume):
+        refresh(thread)
+    assert asyncio.run(service.history(thread, SCOPE)).turns[-1].reply.status == 'waiting'
+
+
+def test_refresh_never_approves():
+    with pytest.raises(ValueError):
+        OrchestrationRequest(conversation={'threadId': 't', 'scope': SCOPE}, resume={'approved': True, 'refresh': True})
 
 
 # 선택한 글

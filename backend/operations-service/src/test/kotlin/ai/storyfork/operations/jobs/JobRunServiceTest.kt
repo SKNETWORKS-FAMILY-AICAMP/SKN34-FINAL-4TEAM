@@ -6,11 +6,15 @@ import ai.storyfork.operations.jobs.entity.JobRunEntity
 import ai.storyfork.operations.jobs.entity.JobStatus
 import ai.storyfork.operations.jobs.entity.JobTrigger
 import ai.storyfork.operations.jobs.service.CONTENT_JOB_WINDOW
+import ai.storyfork.operations.jobs.service.JobDispatcher
 import ai.storyfork.operations.jobs.service.JobRunService
 import ai.storyfork.operations.jobs.service.ScheduleService
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJob
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJobList
 import ai.storyfork.operations.jobs.service.dto.JobRun
+import ai.storyfork.operations.jobs.service.dto.toRun
+import ai.storyfork.operations.llmops.service.EvaluationService
+import ai.storyfork.operations.llmops.service.dto.Evaluation
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.security.OperationsMember
 import java.time.Instant
@@ -30,12 +34,15 @@ class JobRunServiceTest {
     private val scheduleService = mock(ScheduleService::class.java)
     private val permissions = mock(AdminPermissionRepository::class.java)
     private val activities = mock(AdminActivityService::class.java)
-    private val service = JobRunService(runs.repository, content, scheduleService, permissions, activities)
+    private val evaluations = mock(EvaluationService::class.java)
+    private val dispatcher = mock(JobDispatcher::class.java)
+    private val service = JobRunService(runs.repository, content, scheduleService, permissions, activities, evaluations, dispatcher)
     private val admin = OperationsMember(UUID.randomUUID(), true)
     private val operatorWithoutJobs = OperationsMember(UUID.randomUUID(), true)
     private val staleGrant = OperationsMember(UUID.randomUUID(), false)
     private val t = Instant.parse("2026-03-10T00:00:00Z")
     private val firstPage = PageRequest.of(0, 20)
+    private val now = t.plusSeconds(100_000)
 
     init {
         `when`(permissions.existsByMemberIdAndPermission(admin.memberId, "jobs")).thenReturn(true)
@@ -51,6 +58,13 @@ class JobRunServiceTest {
 
     private fun contentJobs(vararg jobs: ContentPreprocessingJob) {
         `when`(content.preprocessingJobs(CONTENT_JOB_WINDOW)).thenReturn(ContentPreprocessingJobList(jobs.toList()))
+    }
+
+    private fun evaluation(name: String, status: String, seconds: Long) =
+        Evaluation(name, "qa-regression", "qa", 3, status, if (status == "completed") true else null, t.plusSeconds(seconds), emptyList())
+
+    private fun givenEvaluations(vararg items: Evaluation) {
+        `when`(evaluations.recent(now)).thenReturn(items.toList())
     }
 
     private fun ids(runs: List<JobRun>) = runs.map { it.id }
@@ -73,6 +87,68 @@ class JobRunServiceTest {
         // Each source must supply the newest (page + 1) * size rows so the merged slice is exact.
         assertEquals(listOf(3, 6), runs.pageables.map { it.pageSize })
         assertTrue(runs.pageables.all { it.pageNumber == 0 && it.sort == Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")) })
+    }
+
+    @Test
+    fun `the evaluation runs are merged with the others newest first by their creation time and counted in the total`() {
+        val a1 = own(1)
+        contentJobs(job("c2", "running", 2))
+        givenEvaluations(evaluation("qa@v4", "running", 4), evaluation("qa@v3", "completed", 3))
+
+        val page = service.list(admin, null, null, firstPage, now)
+
+        assertEquals(listOf("qa@v4", "qa@v3", "c2", a1.id.toString()), ids(page.items))
+        assertEquals(4L, page.total)
+        assertTrue(page.unavailable.isEmpty())
+        val running = page.items.first()
+        assertEquals(listOf("evaluation", "ai-evaluation", "running", "qa@v4"), listOf(running.kind, running.source, running.status, running.targetId))
+        assertEquals("succeeded", page.items[1].status)
+    }
+
+    @Test
+    fun `an evaluation source that cannot be read leaves the other runs and is named unavailable, after Content when both fail`() {
+        val a1 = own(1)
+        contentJobs(job("c2", "running", 2))
+        `when`(evaluations.recent(now)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+
+        val page = service.list(admin, null, null, firstPage, now)
+
+        assertEquals(listOf("c2", a1.id.toString()), ids(page.items))
+        assertEquals(2L, page.total)
+        assertEquals(listOf("ai-evaluation"), page.unavailable)
+
+        `when`(content.preprocessingJobs(CONTENT_JOB_WINDOW)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+
+        val both = service.list(admin, null, null, firstPage, now)
+
+        assertEquals(listOf(a1.id.toString()), ids(both.items))
+        assertEquals(listOf("content-preprocessing", "ai-evaluation"), both.unavailable)
+    }
+
+    @Test
+    fun `a kind that is not evaluation never reads the evaluations and the evaluation kind reads only them`() {
+        val a1 = own(1)
+        contentJobs(job("c2", "running", 2))
+        givenEvaluations(evaluation("qa@v4", "running", 4))
+
+        assertEquals(listOf(a1.id.toString()), ids(service.list(admin, null, "alpha", firstPage, now).items))
+        assertEquals(listOf("c2"), ids(service.list(admin, null, "preprocessing", firstPage, now).items))
+        verifyNoInteractions(evaluations)
+
+        assertEquals(listOf("qa@v4"), ids(service.list(admin, null, "evaluation", firstPage, now).items))
+        verify(content, times(1)).preprocessingJobs(CONTENT_JOB_WINDOW)
+    }
+
+    @Test
+    fun `the status filter uses the run vocabulary on the evaluation runs too`() {
+        givenEvaluations(evaluation("e-run", "running", 1), evaluation("e-done", "completed", 2), evaluation("e-fail", "failed", 3))
+
+        fun idsWith(status: String) = ids(service.list(admin, status, "evaluation", firstPage, now).items).toSet()
+
+        assertEquals(setOf("e-run"), idsWith("running"))
+        assertEquals(setOf("e-done"), idsWith("succeeded"))
+        assertEquals(setOf("e-fail"), idsWith("failed"))
+        assertEquals(emptySet<String>(), idsWith("queued"))
     }
 
     @Test
@@ -147,18 +223,35 @@ class JobRunServiceTest {
         }
 
         assertTrue(runs.pageables.isEmpty())
-        verifyNoInteractions(content, scheduleService, activities)
+        verifyNoInteractions(content, scheduleService, activities, dispatcher)
     }
 
     @Test
-    fun `retrying an own run asks the schedule service to requeue it`() {
+    fun `retrying an own run queues it and only then hands it to the AI service`() {
         val failed = own(1, JobStatus.FAILED)
-        val queued = JobRun(UUID.randomUUID().toString(), "alpha", "operations-scheduler", "queued", "manual", null, null, null, null, null)
+        val queued = JobRunEntity(scheduleId = failed.scheduleId, kind = "alpha", trigger = JobTrigger.MANUAL, retryOf = failed.id)
         `when`(scheduleService.requeue(admin, failed)).thenReturn(queued)
+        `when`(dispatcher.dispatch(queued)).thenReturn(true)
 
-        assertSame(queued, service.retry(admin, failed.id.toString()))
+        assertEquals(queued.toRun(), service.retry(admin, failed.id.toString()))
 
+        // The requeue transaction commits the queued run before the AI service hears of it, so the worker that takes it finds it.
+        val order = inOrder(scheduleService, dispatcher)
+        order.verify(scheduleService).requeue(admin, failed)
+        order.verify(dispatcher).dispatch(queued)
         verifyNoInteractions(content, activities)
+    }
+
+    @Test
+    fun `a retry the AI service did not take is 502, and its queued run was already recorded as failed by the dispatcher`() {
+        val failed = own(1, JobStatus.FAILED)
+        val queued = JobRunEntity(scheduleId = failed.scheduleId, kind = "alpha", trigger = JobTrigger.MANUAL, retryOf = failed.id)
+        `when`(scheduleService.requeue(admin, failed)).thenReturn(queued)
+        `when`(dispatcher.dispatch(queued)).thenReturn(false)
+
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.retry(admin, failed.id.toString()) }.statusCode)
+
+        verify(dispatcher).dispatch(queued)
     }
 
     @Test

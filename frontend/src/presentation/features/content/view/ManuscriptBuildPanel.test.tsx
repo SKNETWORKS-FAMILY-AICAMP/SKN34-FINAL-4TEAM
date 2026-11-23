@@ -138,3 +138,13 @@ it('자동 조회가 진행 중일 때 누른 버튼은 그 조회를 중단시�
  expect(api.resume).toHaveBeenCalledTimes(1)
  expect(api.read.mock.calls[1][1].aborted).toBe(true)
 },10000)
+// 최초 구축이 끝났어도 발행 회차 업데이트가 진행 중인 동안은 같은 2초 조회를 이어 가고, 업데이트가 끝나면 멈춘다(공개 회차 머리 배지가 이 조회를 쓴다).
+it('발행 회차 업데이트가 진행 중이면 2초마다 다시 읽고, 끝난 응답을 받으면 더는 읽지 않는다',async()=>{
+  const done={...job,status:'completed',completedEpisodes:4,receipts:[{}]},update=(state:string)=>({jobId:crypto.randomUUID(),status:state,episodes:[5],failureCode:null})
+  const api={read:vi.fn().mockResolvedValueOnce({...done,update:update('running')}).mockResolvedValue({...done,update:update('completed')}),start:vi.fn(),resume:vi.fn()}
+  show(api)
+  await screen.findByRole('link',{name:'세계관 초안 열기'})
+  await waitFor(()=>expect(api.read).toHaveBeenCalledTimes(2),{timeout:4000})
+  await new Promise(r=>setTimeout(r,2600))
+  expect(api.read).toHaveBeenCalledTimes(2)
+},12000)

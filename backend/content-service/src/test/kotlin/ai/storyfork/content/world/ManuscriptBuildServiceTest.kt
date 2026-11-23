@@ -18,6 +18,7 @@ import java.util.Optional
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.*
@@ -52,11 +53,14 @@ class ManuscriptBuildServiceTest {
     private val emptyDraft=WorldDraftResponse(worldId,0,null,null,"세계관","",emptyList(),emptyList())
 
     @Suppress("UNCHECKED_CAST") private fun json(value:Any)=mapper.readValue(mapper.writeValueAsBytes(value),Map::class.java) as Map<String,Any?>
-    private fun job(status:String,token:UUID?=null):ManuscriptBuildJob {
-        val manifest=mapOf("basis" to json(emptyDraft),"episodes" to sources.map { mapOf("number" to it.number,"episodeId" to it.episodeId,
-            "versionId" to it.versionId,"title" to it.title,"body" to it.body,"sourceHash" to it.hash) })
+    /** 업데이트 작업의 manifest에는 기준 초안이 없고(claim 때 [basis] 칼럼에 고정한다) 최초 구축 작업은 manifest에 둔다. */
+    private fun job(status:String,token:UUID?=null,kind:String="initial",basis:WorldDraftResponse?=null):ManuscriptBuildJob {
+        val episodes=sources.map { mapOf("number" to it.number,"episodeId" to it.episodeId,
+            "versionId" to it.versionId,"title" to it.title,"body" to it.body,"sourceHash" to it.hash) }
+        val manifest=if(kind=="update") mapOf("episodes" to episodes) else mapOf("basis" to json(emptyDraft),"episodes" to episodes)
         return ManuscriptBuildJob(workId=workId,worldId=worldId,ownerSubject=owner,requestKey="key-1",requestHash="a".repeat(64),
-            manifest=manifest,status=status,executionToken=token,deadline=token?.let { Instant.now().plusSeconds(60) }).also { job ->
+            manifest=manifest,status=status,executionToken=token,deadline=token?.let { Instant.now().plusSeconds(60) },
+            kind=kind,basis=basis?.let { json(it) }).also { job ->
             `when`(jobs.worldId(job.id)).thenReturn(worldId)
             `when`(worlds.lockOwned(worldId,owner)).thenReturn(StudioWorld(id=worldId,ownerSubject=owner))
             `when`(jobs.lock(job.id)).thenReturn(job)
@@ -67,9 +71,10 @@ class ManuscriptBuildServiceTest {
     private fun saved(job:ManuscriptBuildJob,kind:String,episode:Int,content:Map<String,Any?>)=ManuscriptBuildResult(jobId=job.id,kind=kind,episode=episode,content=content,contentHash="b".repeat(64))
 
     /** 추출·정체·구조화 결과가 모두 저장된 실행 중 작업이다. 각 시험은 적재 직전 전제 하나만 바꾼다. */
-    private fun readyToLoad():Pair<ManuscriptBuildJob,UUID> {
+    private fun readyToLoad(kind:String="initial"):Pair<ManuscriptBuildJob,UUID> {
         val token=UUID.randomUUID()
-        val job=job("running",token)
+        val job=job("running",token,kind,if(kind=="update") updateBasis else null)
+        `when`(snapshot.readPublished(anyString(),anyWanted())).thenReturn(ManuscriptBuildInput(sources))
         `when`(resultStore.read(job.id,owner)).thenReturn(extractions.mapIndexed { i,node -> ManuscriptExtractionVerifier.verify(sources[i],node,mapper) })
         `when`(snapshot.read(workId,owner.toString())).thenReturn(ManuscriptBuildInput(sources))
         `when`(works.findById(workId)).thenReturn(Optional.of(WorkEntity(id=workId,ownerId=owner.toString(),title="작품",worldStudioId=worldId)))
@@ -166,5 +171,114 @@ class ManuscriptBuildServiceTest {
     @Test fun `status carries the request key so another browser can resume the same job`() {
         val job=job("queued")
         assertEquals("key-1",service.status(job.id,owner)!!.requestKey)
+    }
+    // ---- 업데이트 작업(발행 회차로 세계관 업데이트): 기준 초안은 claim 때 고정한다 ----
+
+    private val basisCard=CardPayload(UUID.randomUUID(),"길동","원본","character","basic")
+    private val updateBasis=emptyDraft.copy(draftRevision=5,cards=listOf(basisCard))
+    private fun anyUuid():UUID=any(UUID::class.java) ?: UUID(0,0)
+    private fun anyInstant():Instant=any(Instant::class.java) ?: Instant.EPOCH
+    @Suppress("UNCHECKED_CAST") private fun anyWanted():(Int)->Boolean=any(Function1::class.java) as? ((Int)->Boolean) ?: { _:Int -> true }
+    private fun claimedBy(token:UUID) { `when`(execution.claim(anyUuid(),anyUuid(),anyInstant(),anyInstant(),isNull())).thenReturn(token) }
+
+    @Test fun `claiming an update job fixes the current draft as its basis`() {
+        val job=job("queued",kind="update");val token=UUID.randomUUID();claimedBy(token)
+        `when`(snapshot.readPublished(anyString(),anyWanted())).thenReturn(ManuscriptBuildInput(sources))
+        `when`(studio.draft(worldId,owner)).thenReturn(updateBasis)
+
+        val claimed=service.claim(job.id,workId)
+
+        assertEquals(true,claimed["claimed"]);assertEquals(token,claimed["token"])
+        assertEquals(json(updateBasis),job.basis,"접수가 아니라 claim 때의 초안이 기준이다")
+        assertFalse(job.manifest.containsKey("basis"),"manifest는 접수 때 고정한 불변 입력이다")
+    }
+    @Test fun `an update job whose published episodes changed fails as SOURCE_CHANGED before fixing a basis`() {
+        val job=job("queued",kind="update");val token=UUID.randomUUID();claimedBy(token)
+        `when`(snapshot.readPublished(anyString(),anyWanted())).thenReturn(ManuscriptBuildInput(sources.dropLast(1)))
+        assertThrows(WorldConflict::class.java) { service.claim(job.id,workId) }
+        verify(execution).fail(job.id,owner,token,"SOURCE_CHANGED")
+        verifyNoInteractions(studio)
+        assertNull(job.basis)
+    }
+    @Test fun `an update job whose world cannot be read at claim fails as WORLD_CHANGED`() {
+        val job=job("queued",kind="update");val token=UUID.randomUUID();claimedBy(token)
+        `when`(snapshot.readPublished(anyString(),anyWanted())).thenReturn(ManuscriptBuildInput(sources))
+        `when`(studio.draft(worldId,owner)).thenThrow(ai.storyfork.content.world.domain.WorldNotFound())
+        assertThrows(WorldConflict::class.java) { service.claim(job.id,workId) }
+        verify(execution).fail(job.id,owner,token,"WORLD_CHANGED")
+        assertNull(job.basis)
+    }
+    @Test fun `claiming an initial job keeps its manifest basis and never reads the draft`() {
+        val job=job("queued");val token=UUID.randomUUID();claimedBy(token)
+        `when`(snapshot.read(workId,owner.toString())).thenReturn(ManuscriptBuildInput(sources))
+        assertEquals(true,service.claim(job.id,workId)["claimed"])
+        assertNull(job.basis)
+        verifyNoInteractions(studio)
+    }
+    @Test fun `an update job loads against the basis fixed at claim and fails as WORLD_CHANGED when the world moved`() {
+        val (job,token)=readyToLoad("update")
+        val basis=ArgumentCaptor.forClass(WorldDraftResponse::class.java)
+        doThrow(WorldConflict()).`when`(studio).prepareManuscript(eq(worldId) ?: worldId,eq(owner) ?: owner,basis.capture() ?: emptyDraft,
+            any(Function0::class.java) as? (() -> Any) ?: { 0 })
+
+        assertThrows(WorldConflict::class.java) { service.load(job.id,token) }
+
+        assertEquals(updateBasis,basis.value,"적재의 기준 검사는 manifest가 아니라 claim 때 고정한 초안을 쓴다")
+        verify(execution).fail(job.id,owner,token,"WORLD_CHANGED")
+    }
+    @Test fun `an update job whose published episodes changed during extraction fails as SOURCE_CHANGED`() {
+        val (job,token)=readyToLoad("update")
+        `when`(snapshot.readPublished(anyString(),anyWanted())).thenReturn(ManuscriptBuildInput(sources.dropLast(1)))
+        assertThrows(WorldConflict::class.java) { service.load(job.id,token) }
+        verify(execution).fail(job.id,owner,token,"SOURCE_CHANGED")
+        verifyNoInteractions(studio)
+    }
+
+    // ---- 업데이트 접수 ----
+
+    private fun linkedWork() {
+        `when`(access.own(workId,owner.toString())).thenReturn(WorkAccessResult(workId,owner.toString(),"작품","",1,worldId.toString(),"private",false,false,null))
+        `when`(works.findById(workId)).thenReturn(Optional.of(WorkEntity(id=workId,ownerId=owner.toString(),title="작품",worldStudioId=worldId)))
+        `when`(worlds.findById(worldId)).thenReturn(Optional.of(StudioWorld(id=worldId,ownerSubject=owner)))
+        `when`(studio.draft(worldId,owner)).thenReturn(updateBasis)
+    }
+    @Test fun `an update job is accepted on a world that already holds settings and keeps no basis in its manifest`() {
+        linkedWork()
+        doAnswer { (it.arguments[3] as () -> Any).invoke() }.`when`(studio).prepareManuscript(eq(worldId) ?: worldId,eq(owner) ?: owner,
+            any(WorldDraftResponse::class.java) ?: emptyDraft,any(Function0::class.java) as? (() -> Any) ?: { 0 })
+
+        service.prepareUpdate(UUID.randomUUID(),workId,owner,ManuscriptBuildRequest(worldId,"publish:ev-1",true),ManuscriptBuildInput(sources.takeLast(1)))
+
+        val saved=ArgumentCaptor.forClass(ManuscriptBuildJob::class.java)
+        verify(jobs).saveAndFlush(saved.capture() ?: ManuscriptBuildJob(workId=workId,worldId=worldId,ownerSubject=owner,requestKey="placeholder",requestHash="a".repeat(64),manifest=emptyMap()))
+        assertEquals("update",saved.value.kind);assertEquals("publish:ev-1",saved.value.requestKey)
+        assertFalse(saved.value.manifest.containsKey("basis"));assertNull(saved.value.basis)
+        assertEquals(listOf(sources.last().number),(saved.value.manifest["episodes"] as List<*>).map { (it as Map<*,*>)["number"] })
+        verifyNoInteractions(links)
+    }
+    @Test fun `an update job is refused when the work is not linked to the world`() {
+        linkedWork()
+        `when`(works.findById(workId)).thenReturn(Optional.of(WorkEntity(id=workId,ownerId=owner.toString(),title="작품")))
+        assertThrows(WorldConflict::class.java) { service.prepareUpdate(UUID.randomUUID(),workId,owner,ManuscriptBuildRequest(worldId,"publish:ev-1",true),ManuscriptBuildInput(sources)) }
+        verify(jobs,never()).saveAndFlush(any(ManuscriptBuildJob::class.java))
+    }
+    @Test fun `freezing an update skips the episodes the world already has and is refused while the feature is off`() {
+        `when`(snapshot.readPublished(anyString(),anyWanted())).thenReturn(ManuscriptBuildInput(sources.takeLast(1)))
+        assertEquals(ManuscriptBuildInput(sources.takeLast(1)),service.freezeUpdate(workId,setOf(1,2)))
+        val wanted=ArgumentCaptor.forClass(Function1::class.java)
+        verify(snapshot).readPublished(eq(workId) ?: workId,wanted.capture() as? ((Int)->Boolean) ?: { _:Int -> true })
+        @Suppress("UNCHECKED_CAST") val pick=wanted.value as (Int)->Boolean
+        assertEquals(listOf(false,false,true),listOf(1,2,6).map(pick))
+
+        `when`(snapshot.readPublished(anyString(),anyWanted())).thenReturn(null)
+        assertNull(service.freezeUpdate(workId,emptySet()))
+
+        val disabled=ManuscriptBuildService(access,works,links,studio,snapshot,execution,resultStore,jobs,results,steps,worlds,manager,mapper,false)
+        assertEquals(503,assertThrows(ContentFailure::class.java) { disabled.freezeUpdate(workId,emptySet()) }.status)
+    }
+    @Test fun `an update job the AI never received is failed through the execution`() {
+        val id=UUID.randomUUID()
+        service.failQueued(id,owner,"AI_INTAKE_FAILED")
+        verify(execution).failQueued(id,owner,"AI_INTAKE_FAILED")
     }
 }

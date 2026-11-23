@@ -17,7 +17,7 @@ export const Heart = () => (
 )
 
 /** 집필실·채팅이 함께 쓰는 선 아이콘: 24px 격자, 선 굵기 2, 둥근 끝. 크기는 쓰는 쪽이 정한다. */
-const StrokeIcon = ({ size = 20, children }: { size?: number; children: ReactNode }) => (
+export const StrokeIcon = ({ size = 20, children }: { size?: number; children: ReactNode }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>
 )
 

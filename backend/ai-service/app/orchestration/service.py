@@ -59,7 +59,7 @@ from app.orchestration import agent, mcp_tools
 from app.orchestration.models import (CONTENT_ACTION, ChatHistory, ChatSession, ChatTurn, OrchestrationRequest,
                                       OrchestrationResponse, Resume)
 from app.orchestration.prompt import screen
-from app.orchestration.tools import HISTORY_TURNS, history as _history, previous as _previous, task as _task
+from app.orchestration.tools import HISTORY_TURNS, RESUME_FIX, history as _history, previous as _previous, task as _task
 from app.simulation import service as simulation
 from app.simulation.models import Scene, SimulationPlan
 from app.simulation.scene_agent import scene_agent, turn as simulation_turn
@@ -211,22 +211,28 @@ async def _run_main_agent(state: State, config: RunnableConfig) -> State:
     asking = _task(turn) + (f"\n\n{screen(state['page'])}" if state.get('page') else '')
     seed = {'messages': [*_conversation(state), HumanMessage(_content(asking, state.get('attachments', [])))], 'steps': [], 'inputs': state['inputs'],
             'retrievalScope': state.get('retrievalScope'), 'stopped': None, 'simulationPlan': None, 'writingBase': None}
-    out = await agent.build(await mcp_tools.specs()).ainvoke(seed, config, context=turn)
+    found = await mcp_tools.specs()
+    unavailable = '' if found is not None else f'\n\n{mcp_tools.UNAVAILABLE}'
+    out = await agent.build(found or []).ainvoke(seed, config, context=turn)
     decision, steps = out['decision'], out.get('steps', [])
     if not decision['allowed']:
         return {'status': 'rejected', 'message': REJECT_MESSAGES[decision['reason']], 'steps': []}
     done: State = {'steps': steps, 'inputs': out.get('inputs', state['inputs']), 'retrievalScope': out.get('retrievalScope'),
-                   'simulationPlan': out.get('simulationPlan'), 'task': run_as, 'message': out['messages'][-1].text,
+                   'simulationPlan': out.get('simulationPlan'), 'task': run_as,
+                   'message': out['messages'][-1].text + unavailable,
                    'writingBaseRevision': (out.get('writingBase') or {}).get('revision')}
     stopped = out.get('stopped') or {}
     if stopped.get('status') == 'clarify':
-        return {**done, 'status': 'clarify', 'message': stopped['message']}
+        return {**done, 'status': 'clarify', 'message': stopped['message'] + unavailable}
     if out['messages'][-1].name == agent.FAILED:
         return {**done, 'status': 'failed'}
     if stopped:
         return {**done, 'status': stopped['status'], 'missingInputs': stopped.get('missingInputs', [])}
-    if not steps and not any(isinstance(m, ToolMessage) and m.name in mcp_tools.NAMES for m in out['messages']):  # 도구를 하나도 부르지 않았다: 메인 에이전트의 확인 질문(2026-11-17 사용자 결정). Content 읽기만 한 턴은 질문이 아니다.
+    content = [m for m in out['messages'] if isinstance(m, ToolMessage) and m.name in mcp_tools.NAMES]
+    if not steps and not content:  # 도구를 하나도 부르지 않았다: 메인 에이전트의 확인 질문(2026-11-17 사용자 결정). Content 읽기만 한 턴은 질문이 아니다.
         return {**done, 'status': 'clarify'}
+    if not steps and all(m.name in mcp_tools.READ and m.status == 'error' for m in content):  # Content 읽기만 불렀고 모두 실패·차단됐으면 성공처럼 끝내지 않는다(#639). 작가가 거절한 쓰기는 실패가 아니다.
+        return {**done, 'status': 'failed'}
     return {**done, 'status': 'running'}
 
 
@@ -444,10 +450,20 @@ async def _target(data: OrchestrationRequest):
         return CHAT, config, state, dict(state)
     if not snapshot.interrupts:
         raise NothingToResume()
-    _check_scene(data.resume, snapshot.interrupts[0].value)
+    waiting = snapshot.interrupts[0].value
+    _check_scene(data.resume, waiting)
+    if waiting.get('missingInputs') and waiting['steps'][-1].get('when') == 'if_issues_found':
+        config = merge_configs(config, {'configurable': {RESUME_FIX: True}})
+    asked = waiting.get('action_requests')
+    if data.resume.refresh and (not asked or asked[0]['name'] != 'world_studio_edit_draft'):  # 다른 대기에 그대로 넘기면 취소·거절로 처리된다
+        raise NothingToResume()
     answer = data.resume.model_dump(mode='json', exclude_none=True)
-    if asked := snapshot.interrupts[0].value.get('action_requests'):  # Content 쓰기 도구 승인(HITL): {approved}를 HumanInTheLoopMiddleware의 결정으로 바꾼다
-        answer = {'decisions': [{'type': 'approve'} if data.resume.approved else {'type': 'reject', 'message': CONTENT_ACTION_REJECTED}] * len(asked)}
+    if asked:  # Content 쓰기 도구 승인(HITL): {approved, refresh}를 HumanInTheLoopMiddleware의 결정으로 바꾼다
+        decision = ({'type': 'approve'} if data.resume.approved else {'type': 'respond', 'message': agent.REFRESH} if data.resume.refresh
+                    else {'type': 'reject', 'message': CONTENT_ACTION_REJECTED})
+        answer = {'decisions': [decision] * len(asked)}
+        if token := data.resume.scope:  # 결정에는 실을 자리가 없어 이 요청의 설정으로 넘긴다. WriteApproval이 저장한다(#678).
+            config = merge_configs(config, {'configurable': {agent.RESUME_SCOPE: token.model_dump()}})
     return CHAT, config, Command(resume=answer), dict(snapshot.values)
 
 
@@ -490,10 +506,13 @@ def _response(state: dict) -> OrchestrationResponse:
                    else SCENE_MESSAGE if scene else WAITING_MESSAGE)
         if approval and state.get('message'):  # 승인 대기는 메인 에이전트가 답을 종합한 뒤라 그 답과 승인 안내를 함께 보인다
             message = '\n\n'.join((state['message'], message))
+        target = state.get('target') or {}
+        basis = ({'episode': target.get('baseEpisode') or target['episode'], 'episodeVersionId': version}
+                 if (version := target.get('episodeVersionId')) else None)
         # 장면은 에이전트 상태에서 진행 중이라 바깥 상태의 단계에는 아직 결과가 없다. 멈춘 payload의 단계가 현재 모습이다.
-        state = {**state, 'status': 'waiting', 'message': message, 'steps': waiting.get('steps', state.get('steps', [])),
+        state = {**state, 'basis': basis, 'status': 'waiting', 'message': message, 'steps': waiting.get('steps', state.get('steps', [])),
                  'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval, 'awaitingScene': scene, 'pendingAction': waiting.get('pendingAction'),
-                 'approvalEpisode': (state.get('target') or {}).get('episode') if approval in APPROVABLE or scene else None}
+                 'approvalEpisode': target.get('episode') if approval in APPROVABLE or scene or waiting.get('missingInputs') else None}
     return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
 
 

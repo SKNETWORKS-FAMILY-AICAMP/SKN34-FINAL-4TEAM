@@ -162,6 +162,19 @@ export function chatPage({ path, selection, unsaved, ...rest }: ChatPageInput): 
   return page
 }
 
+/** 입력창 위 안내(#636). chatPage가 싣는 선택 글과 같은 규칙이라 초점을 잃은 선택도 보내기 전에 보인다. */
+export function selectionNote(selection: string): string {
+  const [count, max] = [selection.length, PAGE_SELECTION_MAX].map((n) => n.toLocaleString('ko-KR'))
+  if (selection.length > PAGE_SELECTION_MAX) return `선택한 글 ${count}자는 보낼 수 없어요. ${max}자까지 선택해 주세요.`
+  return selection.trim() ? `선택한 글 ${count}자가 함께 보내져요.` : ''
+}
+
+/** 구간 고르기 카드(#497)가 고른 글을 되비추는 한 줄 미리보기: 줄바꿈·연속 공백을 접고 앞 20자만 남기며, 더 있으면 …을 붙인다. */
+export function rangePreview(text: string): string {
+  const flat = text.replace(/\s+/g, ' ').trim()
+  return flat.length > 20 ? `${clip(flat, 20).trimEnd()}…` : flat
+}
+
 export type WorldDraftRevision = { id: string; revision: number }
 
 export function worldProposalIsStale(action: PendingAction, draft?: WorldDraftRevision): boolean {
@@ -175,6 +188,7 @@ export function worldProposalIsStale(action: PendingAction, draft?: WorldDraftRe
 export type PendingChange = { name: string; before: string | null; after: string }
 /**
  * 세계관 설정 카드 수정(world_studio_edit_draft)이 바꿀 이름·설명의 수정 전과 후. 저장된 카드는 cardOf로 찾고 없으면 새 설정이다.
+ * cardOf가 없는 화면(집필실)은 새 카드인지 알 수 없어 '설정 카드'라고만 하고 수정 전은 비운다(#639).
  * 다른 도구나 모양이 어긋난 인자는 칸을 만들지 않는다(화면이 도구 인자를 그대로 보인다).
  */
 export function pendingChanges(action: PendingAction, cardOf?: (id: string) => { title: string; body: string } | undefined): PendingChange[] {
@@ -186,7 +200,7 @@ export function pendingChanges(action: PendingAction, cardOf?: (id: string) => {
     if (!card || typeof card !== 'object') return []
     const { id, title, body } = card as { id?: unknown; title?: unknown; body?: unknown }
     const old = typeof id === 'string' ? cardOf?.(id) : undefined
-    const name = old?.title ?? (typeof title === 'string' && title ? title : '새 설정')
+    const name = old?.title ?? (typeof title === 'string' && title ? title : cardOf ? '새 설정' : '설정 카드')
     return [
       ...(typeof title === 'string' && title !== old?.title ? [{ name: `${name} · 이름`, before: old?.title ?? null, after: title }] : []),
       ...(typeof body === 'string' && body !== old?.body ? [{ name: `${name} · 설명`, before: old?.body ?? null, after: body }] : []),
@@ -208,8 +222,8 @@ export type SceneAction =
   | { action: 'edit'; turn: number; text: string }
   | { action: 'redo'; turn: number; note?: string }
   | { action: 'stop' }
-/** 멈춘 실행을 이어 가는 답. 장면 조작이면 scene을 싣고, approved는 서버 검증을 위해 함께 보낸다(장면 조작 뒤에는 다시 멈춘다). */
-export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction }
+/** 멈춘 실행을 이어 가는 답. 장면 조작이면 scene을 싣고, approved는 서버 검증을 위해 함께 보낸다(장면 조작 뒤에는 다시 멈춘다). refresh는 오래된 Content 쓰기 제안을 멈춘 자리에서 다시 받는 답이다(#662, approved는 false). */
+export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction; refresh?: true }
 /** 새 요청(operation이 있으면 의도 분류를 건너뛰고 그 기능을 실행, 시뮬레이션은 시작 양식 값을 싣는다)이거나 멈춘 실행을 잇는 답이다. */
 /** attachments는 새 요청에서만 보내는 이번 턴의 참고 자료(최대 3개, #617)다. 이어가기·메시지 수정에는 싣지 않는다. */
 export type ChatSendBody = { request: string; operation?: ChatFeature; simulation?: SimulationStart; page?: ChatPage; attachments?: ChatAttachmentPayload[] } | { resume: ChatResume }

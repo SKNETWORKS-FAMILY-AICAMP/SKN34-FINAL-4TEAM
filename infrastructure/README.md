@@ -27,7 +27,7 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 Browser → web nginx
            ├─ /api/v1/works 및 /api/v1/public/works(+하위)·/api/v1/public/genres → Content:8081 → AI:8000
            │                                                   └→ Core 내부 인증 확인
-           ├─ /api/v1/operations/{reports,members,admins,support,works,comments,genres,admin/notices,public/notices,admin/events,public/events,admin/activities}(+하위) → Operations:8082 → Core·Content 내부 API
+           ├─ /api/v1/operations/{reports,members,admins,support,works,comments,genres,credits,admin/notices,public/notices,admin/events,public/events,admin/activities}(+하위) → Operations:8082 → Core·Content 내부 API
            ├─ /api/v1/operations/{dashboard,llmops,alerts,jobs}(+하위) → Operations:8082 → Langfuse Public API·AI·Core·Content 내부 API
            └─ 나머지 /api → Core:8080 → AI Health
 ```
@@ -59,6 +59,8 @@ docker compose down
 |---|---|---|
 | `OPENAI_API_KEY` | 빈 값 | AI runtime만 |
 | `OPENAI_MODEL` | local·prod 빈 값 / dev `gpt-5.6-luna` | AI runtime만, 팀 모델 선정·접근 검증 아님 |
+| `EVALUATION_JUDGE_MODEL` | 빈 값(`OPENAI_MODEL`) | AI의 운영 회귀 평가(`ai-jobs-worker`)·누설 판정의 채점 모델, 예 `gpt-6.2-sol`. 바꾸면 이전 Run과 채점 모델이 달라 첫 기준 비교가 흔들린다 |
+| `EVAL_TOLERANCE` | `0.1` | AI 회귀 평가의 통과 허용 오차(지표별 기준 평균 − 이 값 이상이면 통과). 점수는 모두 0~1이다(시뮬레이션 평가 세트의 1~5점은 (점수 − 1)/4로 기록) |
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` | Core/Content → AI |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` | Core → AI Health |
 | `AI_GENERATION_READ_TIMEOUT` | `75s` | Content → AI 생성 |
@@ -66,7 +68,7 @@ docker compose down
 | `CORE_AUTH_CONNECT_TIMEOUT` / `CORE_AUTH_READ_TIMEOUT` | `1s` / `3s` | Content 인증 확인 |
 | `CONTENT_CORE_AUTH_TOKEN` | 빈 값 | Core/Content만, 활성화 시 필수 |
 | `DATABASE_*` | 빈 계정, `storyfork` DB | Core·Content(Studio 포함)·운영 공용 PostgreSQL(운영은 전용 `operations` schema) |
-| `INTERNAL_TOKEN` | 빈 값 | Content·Operations·AI (Content/AI 생성, Operations → AI 평가 위임) |
+| `INTERNAL_TOKEN` | 빈 값 | Content·Operations·AI (Content/AI 생성, Operations → AI 작업 접수, AI 작업 워커 → Operations 정기 작업 실행) |
 | `AI_CELERY_BROKER_URL` | Compose는 `CORE_RABBITMQ_*`로 `amqp://<user>:<password>@rabbitmq:5672//`를 조립(비밀번호가 URL에 들어가 영문·숫자 권장), 네이티브는 빈 값 | AI(ai-service·ai-worker)만, 전처리 Celery 큐 |
 | `OPERATIONS_SERVICE_TOKEN` | 빈 값(운영 호출 거절) | Operations·Core·Content |
 | `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | 빈 값(네이티브는 추적 끔, Compose는 필수) | AI·Operations, Langfuse 서버의 초기 프로젝트 키(세 곳이 같은 값) |

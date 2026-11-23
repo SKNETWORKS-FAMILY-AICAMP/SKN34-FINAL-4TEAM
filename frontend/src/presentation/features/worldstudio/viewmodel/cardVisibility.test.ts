@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 
 import { putRelation } from '../../../../domain/entities/studioRelations'
 import { newSetting, type StudioSetting } from '../../../../domain/entities/studioWorld'
-import { publicCardCount, publishAllCards, revealLabel, setCardReveal, visibleSelection } from './cardVisibility'
+import { publicCardCount, publishAllCards, revealBadge, revealLabel, setCardReveal, visibleSelection } from './cardVisibility'
 
 /** 카드 하나. `reveal`은 저장된 공개 회차, `visibility`는 옛 공개 값이다(둘 다 없으면 작가 전용). */
 const card = (title: string, reveal?: number, visibility?: StudioSetting['visibility']): StudioSetting => {
@@ -96,4 +96,10 @@ it('공개 설정을 글자로: 작가 전용, 미연결 세계관의 1화는 �
   expect([revealLabel(undefined, true), revealLabel(undefined, false)]).toEqual(['작가 전용', '작가 전용'])
   expect([revealLabel(1, false), revealLabel(1, true)]).toEqual(['공개', '1화부터'])
   expect([revealLabel(3, false), revealLabel(3, true)]).toEqual(['3화부터', '3화부터'])
+})
+
+it('공개 배지는 작가 전용·공개(소설이 연결되지 않은 1화)·N화부터 공개로 읽힌다: 편집 화면과 게시판 미리보기가 같은 글을 쓴다', () => {
+  expect([revealBadge(undefined, true), revealBadge(undefined, false)]).toEqual(['작가 전용', '작가 전용'])
+  expect([revealBadge(1, false), revealBadge(1, true)]).toEqual(['공개', '1화부터 공개'])
+  expect([revealBadge(17, false), revealBadge(17, true)]).toEqual(['17화부터 공개', '17화부터 공개'])
 })

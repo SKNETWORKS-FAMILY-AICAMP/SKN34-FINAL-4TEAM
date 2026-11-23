@@ -36,14 +36,23 @@ class OperationsStatsService(
         val end = to?.let { instant(it, "to") } ?: now
         val start = from?.let { instant(it, "from") } ?: end.minus(7, ChronoUnit.DAYS)
         checkContent(!start.isAfter(end), message = "from은 to보다 늦을 수 없어요.")
-        val approved = suggestions.countByStatusAndDecidedAtBetween(EditSuggestionRules.APPROVED, start, end)
-        val rejected = suggestions.countByStatusAndDecidedAtBetween(EditSuggestionRules.REJECTED, start, end)
         return OperationsStatsResponse(
             pendingFeedbackReports = reports.countUnchecked(),
             pendingEditSuggestions = suggestions.countPending(),
-            proposalDecisions = ProposalDecisionStats(adopted = proposals.countAdoptedByCreatedAtBetween(start, end), total = proposals.countByCreatedAtBetween(start, end)),
-            editSuggestions = EditSuggestionStats(approved = approved, decided = approved + rejected),
+            proposalDecisions = proposalDecisions(start, end),
+            editSuggestions = editSuggestions(start, end),
         )
+    }
+
+    /** [start]~[end](양 끝 포함)에 생성된 AI 제안 수와 그중 채택 수다. 운영 퍼널(DEC-57)이 같은 정의를 전체 기간으로 쓴다. */
+    fun proposalDecisions(start: Instant, end: Instant) =
+        ProposalDecisionStats(adopted = proposals.countAdoptedByCreatedAtBetween(start, end), total = proposals.countByCreatedAtBetween(start, end))
+
+    /** [start]~[end](양 끝 포함)에 판단한 수정 제안의 승인 수와 승인+거절 수다(보류는 결정이 아니다). 운영 퍼널(DEC-57)이 같은 정의를 전체 기간으로 쓴다. */
+    fun editSuggestions(start: Instant, end: Instant): EditSuggestionStats {
+        val approved = suggestions.countByStatusAndDecidedAtBetween(EditSuggestionRules.APPROVED, start, end)
+        val rejected = suggestions.countByStatusAndDecidedAtBetween(EditSuggestionRules.REJECTED, start, end)
+        return EditSuggestionStats(approved = approved, decided = approved + rejected)
     }
 
     private fun instant(text: String, name: String): Instant =

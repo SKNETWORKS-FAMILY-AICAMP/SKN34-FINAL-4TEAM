@@ -44,4 +44,41 @@ class ManuscriptBuildStoragePostgresTest {
             }
         }
     }
+
+    /** 발행 회차 업데이트 작업(V16·V43): 완료된 최초 구축 옆에 접수되고, 기준 초안은 claim 때 쓰며, 불변 입력은 그대로 지킨다. */
+    @Test void updateJobsCoexistWithACompletedInitialJobAndFixTheirBasisAtClaim() throws Exception {
+        try (var db = new WorldStudioPostgresFixture("independent")) {
+            db.studio().migrate();
+            try (var c = db.connect()) {
+                c.setAutoCommit(false);
+                var world=id(); var update=id(); var owner=id(); var hash="a".repeat(64);
+                sql(c,"CREATE TABLE work(id varchar(36) PRIMARY KEY)");
+                for(var script : new String[]{"V41__manuscript_preprocessing_job.sql","V43__preprocessing_job_kind.sql"}) {
+                    try(var stream=getClass().getResourceAsStream("/db/migration/preprocessing/"+script)) {
+                        sql(c,new String(java.util.Objects.requireNonNull(stream).readAllBytes(),java.nio.charset.StandardCharsets.UTF_8));
+                    }
+                }
+                sql(c,"INSERT INTO work VALUES ('work-qa')");
+                sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+world+"','"+owner+"')");
+                var insert="INSERT INTO preprocessing_job(id,work_id,world_id,member_id,status,total,created_at,kind) VALUES ('";
+                sql(c,insert+id()+"','work-qa','"+world+"','"+owner+"','completed',2,now(),'initial')");
+                sql(c,insert+update+"','work-qa','"+world+"','"+owner+"','queued',1,now(),'update')");
+                // 같은 작품에서 진행 중 update와 진행 중·완료 initial은 하나씩이고 실패한 작업은 여럿 남을 수 있다.
+                rejects(c,"23505",insert+id()+"','work-qa','"+world+"','"+owner+"','running',1,now(),'update')");
+                rejects(c,"23505",insert+id()+"','work-qa','"+world+"','"+owner+"','queued',1,now(),'initial')");
+                rejects(c,"23514",insert+id()+"','work-qa','"+world+"','"+owner+"','failed',1,now(),'other')");
+                sql(c,insert+id()+"','work-qa','"+world+"','"+owner+"','failed',1,now(),'update')");
+                sql(c,"INSERT INTO worldstudio.manuscript_build_job(id,work_id,world_id,owner_subject,request_key,request_hash,manifest,status,kind) VALUES ('"+update+"','work-qa','"+world+"','"+owner+"','publish:ev','"+hash+"','{\"episodes\":[{\"number\":3}]}','queued','update')");
+                rejects(c,"23514","INSERT INTO worldstudio.manuscript_build_job(id,work_id,world_id,owner_subject,request_key,request_hash,manifest,status,kind) VALUES ('"+id()+"','work-qa','"+world+"','"+owner+"','other-key','"+hash+"','{\"episodes\":[{\"number\":3}]}','queued','other')");
+                // 불변 입력(manifest)은 update 작업도 바꿀 수 없고 기준 초안(basis)만 실행권을 받은 뒤 정할 수 있다.
+                rejects(c,"23514","UPDATE worldstudio.manuscript_build_job SET manifest='{\"episodes\":[{\"number\":4}]}' WHERE id='"+update+"'");
+                sql(c,"UPDATE worldstudio.manuscript_build_job SET status='running' WHERE id='"+update+"'");
+                sql(c,"UPDATE worldstudio.manuscript_build_job SET basis='{\"draftRevision\":5}' WHERE id='"+update+"'");
+                rejects(c,"23514","UPDATE worldstudio.manuscript_build_job SET basis='[1]' WHERE id='"+update+"'");
+                assertEquals(java.util.List.of("update|running"),rows(c,"SELECT kind||'|'||status FROM preprocessing_job WHERE id='"+update+"'"));
+                assertEquals(java.util.List.of("5"),rows(c,"SELECT basis->>'draftRevision' FROM worldstudio.manuscript_build_job WHERE id='"+update+"'"));
+                c.commit();
+            }
+        }
+    }
 }

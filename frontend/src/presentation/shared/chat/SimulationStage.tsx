@@ -99,6 +99,7 @@ function StartForm({ stage, workId, planEpisode, plotLink, plansVersion, startBl
     <h3>어떤 장면을 시뮬레이션할까요?</h3>
     {stage.basisNote && <p className="chat-note">{stage.basisNote}</p>}
     {stage.sceneError && <p className="stage-reason" role="alert">{stage.sceneError}</p>}
+    {stage.inputError && <p className="stage-reason" role="alert">{stage.inputError}</p>}
     {stage.answer && <p className="stage-answer" role="status">{stage.answer}</p>}
     {stage.starting && <p className="chat-note" role="status">시뮬레이션을 시작하고 있어요…</p>}
     {(setup.loading || setup.refreshing) && <p className="chat-note" role="status">장면 계획과 인물을 불러오고 있어요…</p>}

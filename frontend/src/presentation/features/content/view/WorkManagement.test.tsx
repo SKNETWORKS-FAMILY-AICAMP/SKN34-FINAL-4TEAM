@@ -1,8 +1,11 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render as renderPlain, screen, within } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
+import { createAppStore } from '../../../../app/store'
 import type { Episode, History, Work, WritingEpisode } from '../../../../domain/entities/content'
 import { WorkManagement } from './WorkManagement'
 
@@ -10,7 +13,7 @@ import { WorkManagement } from './WorkManagement'
 vi.mock('./WorkOverview', () => ({ WorkOverview: () => null }))
 vi.mock('../viewmodel/useEpisodeForkCounts', () => ({ useEpisodeForkCounts: () => ({ 12: 2 }) }))
 // 세계관 추출 배지는 세계관 탭 패널과 같은 조회 훅을 쓴다. 상태는 테스트가 정하고, 배지가 (다시) 마운트돼 상태를 새로 읽은 횟수를 센다.
-const build = vi.hoisted(() => ({ current: { job: null, error: '' } as { job: { status: string } | null; error: string }, mounts: 0 }))
+const build = vi.hoisted(() => ({ current: { job: null, error: '' } as { job: { status: string; update?: { status: string } } | null; error: string }, mounts: 0 }))
 vi.mock('../viewmodel/useManuscriptBuild', async () => {
   const { useEffect } = await import('react')
   return { useManuscriptBuild: () => { useEffect(() => { build.mounts += 1 }, []); return build.current } }
@@ -31,8 +34,16 @@ const work = (count: number): Work => ({
   episodes: Array.from({ length: count }, (_, i) => episode(i + 1)), draft: { title: '', body: '', revision: 0 },
 })
 const vm = { busy: false, coverRevision: 0, loadHistory: async () => {}, history: null }
+// 사이드바 맨 아래 줄(알림·테마·계정)이 공용 스토어를 읽어 Provider로 감싼다. 접기 상태는 호출 측(EpisodePage)이 갖는다.
+const render = (ui: ReactElement) => {
+  const store = createAppStore()
+  const wrap = (node: ReactElement) => <Provider store={store}>{node}</Provider>
+  const view = renderPlain(wrap(ui))
+  return { ...view, rerender: (node: ReactElement) => view.rerender(wrap(node)) }
+}
+const shell = { menuOpen: true, onMenuOpenChange: () => {} }
 const open = (count: number) => render(
-  <MemoryRouter><WorkManagement vm={vm as never} work={work(count)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>,
+  <MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(count)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>,
 )
 
 const rows = () => within(screen.getByRole('list')).getAllByRole('listitem')
@@ -46,7 +57,7 @@ it('운영 설정 탭은 저장 성공 응답으로 집필 방식 변경 이력�
     workSettings: vi.fn().mockResolvedValue({ ...defaults, current: { revision: 0, writingMode: null, changedAt: null }, history: [] }),
     updateWorkSettings: vi.fn().mockResolvedValue({ ...defaults, current: version, history: [version] }),
   }
-  render(<MemoryRouter><WorkManagement vm={vm as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
 
   fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
   fireEvent.change(await screen.findByRole('combobox', { name: '집필 방식' }), { target: { value: 'assisted' } })
@@ -119,7 +130,7 @@ it('쪽을 나눠도 이야기 분기의 기준 회차 선택에는 모든 회�
 })
 
 it('요청을 처리하는 동안 다른 탭은 잠그되 지금 보고 있는 탭은 잠그지 않아, 누른 탭에서 키보드 초점이 사라지지 않는다', () => {
-  render(<MemoryRouter><WorkManagement vm={{ ...vm, busy: true } as never} work={work(3)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, busy: true } as never} work={work(3)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
   const tabs = within(screen.getByRole('navigation', { name: '작품 메뉴' })).getAllByRole('button') as HTMLButtonElement[]
   expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['공개 회차 · 3', false], ['세계관·설정집', true], ['이야기 분기', true], ['받은 피드백', true], ['운영 설정', true], ['저장·AI·발행 이력', true]])
 })
@@ -141,7 +152,7 @@ const row = (number: number, extra: Partial<WritingEpisode> = {}): WritingEpisod
 })
 /** vm에 초안 목록 상태(writing: null=읽는 중, {rows}=읽음, {error}=못 읽음)와 이력을 얹어 그린다. */
 const openWith = (extra: object, count = 0, override: Partial<Work> = {}) => render(
-  <MemoryRouter><WorkManagement vm={{ ...vm, ...extra } as never} work={{ ...work(count), ...override }} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>,
+  <MemoryRouter><WorkManagement {...shell} vm={{ ...vm, ...extra } as never} work={{ ...work(count), ...override }} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>,
 )
 const publication = (versionId: string) => ({ episode: 1, versionId, publishedAt: '2026-11-03T00:00:00Z', action: 'publish' as const })
 const openHistory = () => fireEvent.click(screen.getByRole('button', { name: '저장·AI·발행 이력' }))
@@ -218,16 +229,17 @@ it('메뉴를 누르면 탭 내용 머리로 스크롤하고(처음 렌더에서
   expect(target.contains(screen.getByRole('heading', { name: '그 순간, 다른 선택을 했다면' }))).toBe(true) // 대상은 탭 내용을 감싼 요소이고
   expect(target.classList.contains('ep-content')).toBe(false) // 히어로까지 든 내용 열 전체가 아니라
   expect(target.parentElement?.classList.contains('ep-content')).toBe(true) // 그 안의 탭 내용 묶음이다
-  expect(target.style.scrollMarginTop).toBe('80px') // 위의 sticky 상단바(.gnb)가 머리를 가리지 않게(회차 목록 Pager와 같은 값)
+  expect(target.style.scrollMarginTop).toBe('16px') // 상단바(.gnb)가 없어 위 여백만이다(회차 목록 Pager와 같은 값)
   expect(target.classList.contains('ep-tab')).toBe(true) // 위 히어로·분기 정책·작품 삭제 구획과 선으로 나뉘는 클래스(episode.css)
   expect(document.activeElement).toBe(menu) // 초점은 누른 버튼에 남아 이어서 다른 메뉴를 고를 수 있다
 })
 
-it('메뉴를 누르면 900px 이하의 가로 스크롤 줄에서 그 버튼이 보이게 옆으로만 옮긴다', () => {
+it('메뉴 줄은 좁은 화면에서 줄바꿈해 모든 탭이 보이므로, 눌러도 그 버튼을 옆으로 옮기지 않는다(탭 내용 머리로만 스크롤한다)', () => {
   open(3)
   const menu = screen.getByRole('button', { name: '이야기 분기' })
   fireEvent.click(menu)
-  expect(scrolled.find((s) => s.el === menu)?.arg).toEqual({ inline: 'nearest', block: 'nearest' }) // 세로는 건드리지 않는다
+  expect(scrolled.find((s) => s.el === menu)).toBeUndefined()
+  expect(scrolled.filter((s) => (s.arg as ScrollIntoViewOptions | undefined)?.block === 'start')).toHaveLength(1)
 })
 
 it('이력 탭의 저장본·AI 제안 항목 제목은 묶음 제목(h3) 바로 아래 단계(h4)라 헤딩 목록에서 묶음 경계가 보인다', () => {
@@ -240,13 +252,13 @@ it('이력 탭의 저장본·AI 제안 항목 제목은 묶음 제목(h3) 바로
 })
 
 // ── 이력 탭의 불러오는 중·실패: 탭을 누르면 탭 머리로 스크롤돼 화면 맨 위 알림이 화면 밖이므로 이력 구획 안에서 알린다 ──
-const historySection = () => screen.getByRole('heading', { name: '저장·AI·발행 이력', level: 2 }).closest('section')!
+const historySection = () => screen.getByRole('heading', { name: '저장·AI·발행 이력', level: 2 }).parentElement!.querySelector<HTMLElement>('.ep-reading')!
 /** 이력 탭을 연 채로 요청 상태(busy·origin·error·history)만 바꿔 다시 그리는 함수를 돌려준다. 요청 중에는 다른 탭이 잠기므로 탭은 먼저 연다. */
 const historyTab = () => {
   const view = openWith({})
   openHistory()
   return (extra: object) => view.rerender(
-    <MemoryRouter><WorkManagement vm={{ ...vm, ...extra } as never} work={work(0)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>,
+    <MemoryRouter><WorkManagement {...shell} vm={{ ...vm, ...extra } as never} work={work(0)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>,
   )
 }
 
@@ -274,11 +286,12 @@ it('이력 조회가 실패하면 이력 구획 안에 오류 상자(.ep-alert, 
 // ── 세계관 추출 배지(공개 회차 머리)·일괄 업로드 시트를 닫을 때의 재조회 ──────────────────────────────
 beforeEach(() => { build.current = { job: null, error: '' }; build.mounts = 0 })
 afterEach(() => { vi.unstubAllEnvs() })
-const showBuild = (status: string | null, error = '') => {
-  build.current = { job: status ? { status } : null, error }
+const showBuild = (status: string | null, error = '', update?: string) => {
+  build.current = { job: status ? { status, ...(update ? { update: { status: update } } : {}) } : null, error }
   return open(1)
 }
 const BADGE = '세계관 추출 중'
+const UPDATE_BADGE = '세계관 업데이트 중'
 
 it.each([['queued', true], ['running', true], ['loading', true], ['failed', false], ['unknown', false], ['completed', false]])('세계관 추출이 %s이면 배지를 보이는가: %s', (status, shown) => {
   showBuild(status)
@@ -321,4 +334,13 @@ it('저장한 회차 없이 일괄 업로드 시트를 닫으면 아무것도 �
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(reload).not.toHaveBeenCalled()
   expect(build.mounts).toBe(1)
+})
+
+// ── 발행 회차로 세계관 업데이트: 같은 조회의 `update`가 진행 중이면 '세계관 업데이트 중' 배지(initial-build-storage-contract) ──
+it.each([['running', true], ['failed', false]])('최초 구축이 끝나고 업데이트가 %s이면 업데이트 배지를 보이는가: %s', (status, shown) => {
+  showBuild('completed', '', status)
+  expect(screen.queryByText(UPDATE_BADGE) !== null).toBe(shown)
+  expect(screen.queryByText(BADGE)).toBeNull()
+  // 보이면 회차 목록 앞(공개 회차 머리)이다.
+  if (shown) expect(screen.getByText(UPDATE_BADGE).compareDocumentPosition(screen.getByRole('list')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })

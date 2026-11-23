@@ -16,7 +16,8 @@ const message = (error: unknown, fallback: string) => (error instanceof Error &&
  * 집필실·세계관 화면의 집필 AI 채팅(#331). 대화 원본은 AI 세이버이고, 이 Hook은 Content API로 읽고 보낸 뒤
  * 스트림이 끝나거나 실패하면 이력을 다시 읽어 저장된 상태를 그대로 보인다(실패를 성공처럼 남기지 않는다).
  * workId가 없거나(연결 소설 없음) basis가 없으면(발행 회차 없음) 보내지 않는다.
- * getPage(#554)는 새 메시지(보내기·고쳐 다시 보내기)를 보내는 순간의 화면 정보를 읽는다. 편집기의 선택 글은 상태가 아니라 보내는 때 읽어야 해서 값이 아니라 함수다.
+ * getPage(#554)는 새 메시지(보내기·고쳐 다시 보내기)를 보내는 순간, 어떤 기다림(첨부 읽기·새 대화 열기)보다 먼저 읽는다(#635). 반영 회차(basis)와 같은 시점이어야 한다.
+ * 편집기의 선택 글은 상태가 아니라 보내는 때 읽어야 해서 값이 아니라 함수다.
  * 이어가기(승인·입력·장면 조작)에는 싣지 않는다.
  * 승인한 계획 저장(계획 수정 revise_plan, Content 도구 story_plan_create·story_plan_update)은 회차 초안이 아니라 계획을 바꾸므로 onPlanApplied(#637)로만 알린다.
  */
@@ -35,6 +36,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const active = useRef<AbortController | null>(null)
   const current = useRef<string | null>(null)
   const sessionsRequest = useRef<AbortController | null>(null)
+  // 작가가 새 대화를 골랐다. 늦게 온 첫 목록이 최근 대화로 바꾸지 않는다(current의 null은 아직 고르지 않음과 같아 따로 둔다).
+  const choseNew = useRef(false)
   // 작품(또는 UseCase)이 바뀔 때마다 오른다. 이전 작품의 요청이 뒤늦게 이 작품의 목록·장면 신호를 건드리지 못하게 한다.
   const generation = useRef(0)
   current.current = threadId
@@ -53,7 +56,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
       const rows = await useCase.sessions(workId, controller.signal)
       if (controller.signal.aborted) return
       setSessions(rows)
-      if (pick && rows[0] && !current.current) setThreadId(rows[0].threadId)
+      if (pick && rows[0] && !current.current && !choseNew.current) setThreadId(rows[0].threadId)
     } catch (failure) {
       if (!controller.signal.aborted) setError(message(failure, '대화 목록을 불러오지 못했어요.'))
     }
@@ -67,12 +70,14 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
       setTitle(history.title)
       setTurns(history.turns)
     } catch (failure) {
-      if (current.current === id) { setTurns([]); setError(message(failure, '대화를 불러오지 못했어요.')) }
+      // 먼저 난 오류가 원인이다: 새 대화의 첫 요청이 거절되면 이력은 아직 없어 404이고 거절 사유를 덮으면 안 된다(#635).
+      if (current.current === id) { setTurns([]); setError((cause) => cause || message(failure, '대화를 불러오지 못했어요.')) }
     }
   }, [useCase, workId])
 
   // 작품이 바뀌면 처음부터: 목록을 읽고 가장 최근 대화를 연다.
   useEffect(() => {
+    choseNew.current = false
     setSessions(null); setThreadId(null); setTurns([]); setLive(null); setPending(false); setError(''); setInputError('')
     void refreshSessions(true)
     return () => { generation.current += 1; sessionsRequest.current?.abort(); active.current?.abort(); active.current = null }
@@ -94,12 +99,12 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   })
 
   /** 스트림 하나를 끝까지 읽고 이력·목록을 다시 읽는다. 실패도 저장 여부는 이력이 알려 준다. */
-  async function stream(request: string, input: ChatSendBody, editIndex?: number) {
+  async function stream(request: string, input: ChatSendBody, editIndex?: number, readPage = page.current) {
     if (active.current) return false
     if (!useCase || !workId || !basis) { setError(lockedReason ?? '지금은 보낼 수 없어요.'); return false }
     let screen: ChatPage | undefined
     try {
-      screen = 'request' in input ? page.current?.() : undefined
+      screen = 'request' in input ? readPage?.() : undefined
     } catch (failure) {
       setInputError(message(failure, '보낼 화면 정보를 읽지 못했어요.'))
       return false
@@ -131,7 +136,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
           const tool = event.step.result?.tool
           if (event.step.feature === 'world' || tool === 'world_studio_edit_draft') worldApplied.current?.()
           else if (event.step.task === 'revise_plan' || tool === 'story_plan_create' || tool === 'story_plan_update') onPlanApplied?.()
-          else onApplied?.(event.step.applied.episode)
+          else if (event.step.feature !== 'content_action') onApplied?.(event.step.applied.episode) // 작품 정보 수정(work_update)은 원고를 바꾸지 않는다(#639)
         }
         apply(event)
       }, controller.signal, editIndex)
@@ -173,26 +178,32 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     available: !!useCase && !!workId && !!basis, basisEpisode: basis?.episode ?? null,
     // 결과를 반영할 회차(작가가 연 회차). 근거 회차와 다를 수 있다(5화 초안은 4화까지를 근거로 5화에 반영한다).
     targetEpisode: basis?.targetEpisode ?? basis?.episode ?? null,
-    simulation: simulationStep?.simulation ?? null, simulationStep, awaiting, approvalEpisode: waiting?.approvalEpisode ?? null,
+    simulation: simulationStep?.simulation ?? null, simulationStep, awaiting,
+    // 편집기를 맞출 회차는 승인·장면 대기에만 있다. 입력 대기의 반영 회차(#635)는 카드만 쓴다.
+    approvalEpisode: waiting?.missingInputs.length ? null : waiting?.approvalEpisode ?? null,
     streaming: !!live, deciding: !!live?.decision, sceneTicket,
     dismissError: () => setError(''),
     select: (id: string) => { if (active.current || id === threadId) return; current.current = id; setTurns([]); setError(''); setInputError(''); setThreadId(id) },
-    startNew: () => { if (active.current) return; current.current = null; setThreadId(null); setTurns([]); setTitle(''); setError(''); setInputError('') },
+    startNew: () => { if (active.current) return; choseNew.current = true; current.current = null; setThreadId(null); setTurns([]); setTitle(''); setError(''); setInputError('') },
     /** files는 새 요청의 첨부다. 보내기 전에 읽고(텍스트 한도 확인) 읽지 못하면 이유를 입력 아래에 알리고 보내지 않는다(글·첨부는 입력창이 되돌린다). */
     send: async (text: string, extra?: { operation?: ChatFeature; simulation?: SimulationStart; files?: File[] }) => {
       const { files, ...rest } = extra ?? {}
       let attachments: ChatAttachmentPayload[] | undefined
+      let screen: ChatPage | undefined
       try {
+        screen = page.current?.()
         // 잠겼거나 다른 스트림이 도는 중이면 읽지 않는다(stream이 이유와 함께 거절한다).
         attachments = files?.length && !active.current && !lockedReason ? await readAttachments(files) : undefined
       } catch (failure) {
-        setInputError(message(failure, '첨부 파일을 읽지 못했어요.'))
+        setInputError(message(failure, '보낼 화면 정보나 첨부 파일을 읽지 못했어요.'))
         return false
       }
-      return stream(text, { request: text, ...rest, ...(attachments ? { attachments } : {}) })
+      return stream(text, { request: text, ...rest, ...(attachments ? { attachments } : {}) }, undefined, () => screen)
     },
     edit: (index: number, text: string) => stream(text, { request: text }, index),
     resume: (approved: boolean, inputs?: ChatStepInputs) => stream(turns.at(-1)?.request ?? '', { resume: { approved, inputs } }),
+    /** 오래된 Content 쓰기 제안만 다시 받는다(#662). 턴을 다시 실행하면 이미 저장한 쓰기까지 다시 제안된다. */
+    refreshProposal: () => stream(turns.at(-1)?.request ?? '', { resume: { approved: false, refresh: true } }),
     /** 무대의 장면 조작(다음 턴·줄 수정·다시 말하기·끝내기). 멈춘 장면을 이어 가는 요청이라 approved는 서버 검증용으로 함께 보낸다. */
     sceneAction: (action: SceneAction) => stream(turns.at(-1)?.request ?? '', { resume: { approved: true, scene: action } }),
     deleteFrom: (index: number) => change(async () => {

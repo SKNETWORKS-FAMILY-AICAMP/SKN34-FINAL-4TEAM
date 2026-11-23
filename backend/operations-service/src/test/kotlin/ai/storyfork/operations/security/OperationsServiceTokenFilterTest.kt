@@ -100,4 +100,30 @@ class OperationsServiceTokenFilterTest {
         }
         assertNull(SecurityContextHolder.getContext().authentication)
     }
+
+    @Test
+    fun `a filter for another header and authority reads only that header and grants only that authority`() {
+        val filter = OperationsServiceTokenFilter(token, mapper, "X-Internal-Token", "OPERATIONS_INTERNAL")
+
+        // The service token header does not pass, and neither do an empty, wrong or repeated internal token.
+        for (headers in listOf(
+            listOf("X-Operations-Service-Token" to token), listOf("X-Internal-Token" to "wrong"), listOf("X-Internal-Token" to token, "X-Internal-Token" to token), emptyList(),
+        )) {
+            val request = MockHttpServletRequest("POST", "/internal/v1/jobs/runs/r-1/execute")
+            headers.forEach { (name, value) -> request.addHeader(name, value) }
+            val response = MockHttpServletResponse()
+            filter.doFilter(request, response, FilterChain { _, _ -> fail<Unit>("Rejected credentials reached the resource") })
+            assertEquals(401, response.status, headers.toString())
+        }
+
+        val request = MockHttpServletRequest("POST", "/internal/v1/jobs/runs/r-1/execute")
+        request.addHeader("X-Internal-Token", token)
+        var calls = 0
+        filter.doFilter(request, MockHttpServletResponse(), FilterChain { _, _ ->
+            calls++
+            assertEquals(listOf("OPERATIONS_INTERNAL"), checkNotNull(SecurityContextHolder.getContext().authentication).authorities.map { it.authority })
+        })
+        assertEquals(1, calls)
+        assertNull(SecurityContextHolder.getContext().authentication)
+    }
 }

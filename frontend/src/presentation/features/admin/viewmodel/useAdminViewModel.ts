@@ -31,7 +31,7 @@ import { adminViewActions, type AdminChatForm, type AdminFilter, type EventDraft
 const IDS: Record<AdminTab, string> = { data: 'A01+A02', rights: 'A03', llm: 'A05', users: 'A07', works: 'A08', comments: 'A09', characterChats: 'A18', feedback: 'A10', events: 'A11', notices: 'A12', credits: 'A13', audit: 'A14', jobs: 'A16', admins: 'A17', genres: 'A19', profile: 'A15' }
 export type AdminActionState = ActionState
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
-export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'comments', 'rights', 'feedback', 'profile', 'notices', 'events', 'audit', 'data', 'llm', 'jobs', 'genres']
+export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'comments', 'rights', 'feedback', 'profile', 'notices', 'events', 'audit', 'data', 'llm', 'jobs', 'genres', 'credits']
 /** 운영 변경 조치 실행기: 서버 응답 성공만 완료로 표시하고 dataChanged로 화면의 조회를 다시 읽게 합니다(대시보드·LLMOps·작업 감시 화면이 씁니다). */
 export type AdminMutate = (key: string, message: string, action: () => Promise<void>) => Promise<boolean>
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
@@ -181,7 +181,7 @@ export function useAdminViewModel(
     }),
     saveEvent: (id: string | null, input: EventDraft) => run(`event:${id ?? 'new'}`, async () => {
       const key = id ?? 'new', untouched = watchForm('events', key, (s) => s.eventDrafts[key])
-      const row = await eventUseCase.save(id, { title: input.title, body: input.body, startsAt: toUtcFromKoreanInput(input.startsAt), endsAt: toUtcFromKoreanInput(input.endsAt) })
+      const row = await eventUseCase.save(id, { title: input.title, body: input.body, startsAt: toUtcFromKoreanInput(input.startsAt), endsAt: toUtcFromKoreanInput(input.endsAt), linkPath: input.linkPath })
       if (untouched()) { dispatch(adminViewActions.clearEventDraft(key)); selectRecord('events', row.id) }
       return { ok: true, msg: id ? '이벤트를 수정했어요.' : '이벤트를 등록했어요.' }
     }),

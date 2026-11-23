@@ -8,8 +8,8 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
-from langchain.agents.middleware.types import ToolCallRequest
-from langchain_core.messages import ToolMessage
+from langchain.agents.middleware.types import ModelResponse, ToolCallRequest
+from langchain_core.messages import AIMessage, ToolMessage
 from openai import OpenAIError
 from pydantic import ValidationError
 
@@ -25,7 +25,7 @@ from app.research.errors import ResearchFailure
 from app.simulation.models import SimulationPlan
 from app.story_qa.errors import StoryQaFailure
 
-from traced import attrs
+from traced import attrs, named, shown
 
 from .stubs import PATCH, QA, REVIEW, WEB, Step, fake_agents, fake_main, fake_scene, plan
 
@@ -252,6 +252,29 @@ def test_the_model_only_sets_the_request_and_enumerated_arguments():
     assert set(schemas['ask_writing']['properties']['task']['enum']) == {'plan', 'draft', 'patch', 'revise_plan'}
     # World의 작업은 열거형 인자 task로 고르고 반드시 정해야 한다(고르지 않은 호출은 인자 오류로 단계 실패다).
     assert set(schemas['ask_world']['properties']['task']['enum']) == {'check', 'enrich', 'impact'} and 'task' in schemas['ask_world']['required']
+
+
+def test_the_main_agent_is_told_that_editing_chosen_text_needs_no_review_finding():
+    """#669: patch가 검수의 확정 지적 전용으로 읽혀 선택 글 수정을 거절했다."""
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith('2.'))
+    for told in (rule, agent.TOOLS['writing_editing'].description):
+        assert all(words in told for words in ('선택한 글', '구간', 'fix 없이', 'task=patch')), told
+        assert '고칠 때만 task=patch' not in told, told
+
+
+def test_the_main_agent_is_told_how_to_choose_between_the_selection_and_a_finding():
+    """#636: 검수를 함께 요청해도 선택 글은 fix 없이 고치고, 지적을 고칠 때는 선택 글이 남아 있어도 fix를 넣는다."""
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith('2.'))
+    for told in (rule, agent.TOOLS['writing_editing'].description):
+        assert '검수를 함께 요청했어도' in told, told
+        assert '선택한 글이 남아 있어도' in told, told
+
+
+def test_the_review_summary_says_the_whole_episode_was_reviewed(monkeypatch):
+    """#636 E2E: 선택한 글이 실리면 그 문장만 검수했다고 답했다. 검수는 늘 회차 본문 전체를 본다."""
+    calls = fake_agents(monkeypatch, plan(Step('manuscript_review', check='mechanical')))
+    run(target=TARGET)
+    assert json.loads(tool_messages(calls)[0].content).get('range') == '회차 본문 전체'
 
 
 def test_a_tool_returns_a_summary_for_the_main_agent_and_the_raw_result_as_its_artifact(monkeypatch):
@@ -626,6 +649,8 @@ def test_the_patch_summary_names_the_changed_passage_so_the_answer_cannot_claim_
     run(target=TARGET)
     summary = json.loads(tool_messages(calls)[1].content)
     assert (summary['kind'], summary['selection']) == ('patch', '그는 웃었다.')
+    # after를 빼기만 하면 종합 답변이 '수정안 본문이 없다'고 실패처럼 말한다
+    assert '결과 카드' in summary.get('proposal', '') and '그는 차갑게 웃었다.' not in tool_messages(calls)[1].content
 
 
 
@@ -655,6 +680,59 @@ def test_an_unavailable_main_prompt_is_the_judgment_failure_before_any_model_cal
     with pytest.raises(IntentFailure):
         run(inputs={'story_context': QA})
     assert calls == [] and calls.main == []
+
+
+# 파이프라인 관찰(DEC-58): 운영 화면이 노드를 눌러 보는 기록. 판정·메인 모델 출력·돌려보낸 도구 호출이 observation에 남는다
+
+
+@pytest.mark.parametrize('routed, judged', [
+    (plan('story_context', 'research'), {'allowed': True, 'reason': None, 'capabilities': ['story_context', 'research']}),
+    (plan(status='rejected', reason='greeting'), {'allowed': False, 'reason': 'greeting', 'capabilities': []}),
+], ids=['allowed', 'rejected'])
+def test_the_decision_guard_span_output_is_the_judgment_result(monkeypatch, spans, routed, judged):
+    fake_agents(monkeypatch, routed)
+    run(inputs={'story_context': QA, 'research': WEB})
+    [guard] = named(spans, 'decision_guard')
+    assert shown(guard, 'output') == judged
+
+
+def test_a_main_generation_records_its_text_and_each_tool_call_with_its_arguments(monkeypatch, spans):
+    fake_agents(monkeypatch, plan(['research', 'story_context']))
+    run(inputs={'story_context': QA, 'research': WEB})
+    called, answered = named(spans, 'main_agent')
+    assert shown(called, 'output') == {'text': '', 'toolCalls': [
+        {'name': 'ask_research', 'args': {'task': 'web'}}, {'name': 'ask_story_qa', 'args': {'request': '요청'}}]}
+    assert shown(answered, 'output') == {'text': '종합 답변', 'toolCalls': []}
+    assert named(spans, 'main_agent.blocked') == []  # 돌려보낸 호출이 없으면 남기지 않는다
+
+
+def test_a_main_generation_keeps_the_text_written_in_the_same_response_as_its_tool_call(spans):
+    message = AIMessage(content='규칙부터 찾아볼게요.', tool_calls=[{'name': 'ask_story_qa', 'args': {'request': '길드 규칙은?'}, 'id': 'c1'}],
+                        response_metadata={'status': 'completed', 'model_name': 'm'},
+                        usage_metadata={'input_tokens': 3, 'output_tokens': 2, 'total_tokens': 5})
+
+    async def handler(request):
+        return ModelResponse(result=[message])
+
+    asyncio.run(agent.MainModelMiddleware().awrap_model_call(SimpleNamespace(model=SimpleNamespace(model_name='m'), state={}), handler))
+    [generation] = named(spans, 'main_agent')
+    assert shown(generation, 'output') == {'text': '규칙부터 찾아볼게요.',
+                                           'toolCalls': [{'name': 'ask_story_qa', 'args': {'request': '길드 규칙은?'}}]}
+
+
+@pytest.mark.parametrize('routed, tool, tag', [
+    (plan('story_context', 'rating', capabilities=['story_context']), 'ask_rating', '[차단]'),                                 # 노출 밖
+    (plan(['rating', Step('writing_editing', task='plan')], Step('writing_editing', task='plan')), 'ask_writing', '[순차]'),  # 병렬 불가·승인 필요(보강)도 같은 [순차]
+], ids=['not-exposed', 'not-parallel'])
+def test_a_call_the_main_agent_sent_back_is_traced_as_a_blocked_span_with_its_name_and_reason(monkeypatch, spans, routed, tool, tag):
+    calls = fake_agents(monkeypatch, routed)
+    run('요청', target=TARGET, inputs={'story_context': QA})
+    refused = sent(calls, tool)
+    [blocked] = named(spans, 'main_agent.blocked')
+    assert refused.content.startswith(tag)
+    assert (shown(blocked, 'input'), shown(blocked, 'output')) == ({'name': tool}, {'reason': refused.content})  # 모델이 받은 그 문구가 이유다
+    [root] = named(spans, 'orchestration')
+    assert blocked.parent.span_id == root.context.span_id
 
 
 # 고증 조사 도구(#545): ask_research(task=web). 옛 ask_web_research 체크포인트는 계속 이어진다.

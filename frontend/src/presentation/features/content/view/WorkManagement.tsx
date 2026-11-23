@@ -1,11 +1,13 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { publicationActionLabel, savedVersionLabel, type Version, type Work } from '../../../../domain/entities/content'
+import { worldBuildBadge } from '../../../../domain/entities/manuscriptBuild'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { Go } from '../../../shared/Go'
 import { Branch } from '../../../shared/icons'
 import { ManuscriptBody } from '../../../shared/media/MediaPanel'
 import { paginate } from '../../../shared/paginate'
 import { Pager } from '../../../shared/Pager'
+import { ManageMenu } from '../../../shared/shell/ManageMenu'
 import { EditSuggestionInbox } from '../../inbox/view/EditSuggestionInbox'
 import { FeedbackReportInbox } from '../../inbox/view/FeedbackReportInbox'
 import { inheritedRangeLabel } from '../viewmodel/inheritedRange'
@@ -16,7 +18,8 @@ import { ContextPreview } from './ContextPreview'
 import { EpisodeBulkImportSheet } from './EpisodeBulkImportSheet'
 import { LinkedWorldPanel } from './LinkedWorldPanel'
 import { ManuscriptBuildPanel } from './ManuscriptBuildPanel'
-import { WorkOverview } from './WorkOverview'
+import { ForkInfo, WorkDelete, WorkPolicy } from './WorkOperations'
+import { WorkOverview, type WorkEditing } from './WorkOverview'
 import { WorkSettingsPanel } from './WorkSettingsPanel'
 import { WorldPanel } from './WorldPanel'
 
@@ -29,14 +32,32 @@ type Props = {
   initialTab?: 'world'
   onForked: (id: string) => void
   onDeleted: () => void
+  /** 사이드바를 펼쳤는지. 접은 동안 돌아가기 링크와 주 행동을 상단 줄로 옮겨 그리는 호출 측(EpisodePage)이 상태를 갖는다. */
+  menuOpen: boolean
+  onMenuOpenChange: (open: boolean) => void
+  /** 맨 위 알림(오류·상태). 사이드바 위에 끼면 화면 높이를 쓰는 사이드바가 아래로 밀리므로 내용 열 맨 위에 그린다. */
+  notices?: ReactNode
+}
+
+/** 작품 관리의 주 행동: 사이드바의 도구 묶음에 있고, 사이드바를 접으면 상단 줄로 옮겨 그린다(EpisodePage). 원고 작성은 이 화면이 아니라 집필실이 맡는다. */
+export function WorkActions({ workId }: { workId: string }) {
+  return (
+    <>
+      <Go to={`/studio/${workId}`} className='btn sm pri'>회차 작성하기</Go>
+      <Go to='/content?view=reports' className='btn sm'>내 댓글·제보</Go>
+    </>
+  )
 }
 
 /**
- * 고른 내 작품의 관리 영역: 왼쪽 사이드바 메뉴(회차 목록·세계관 연결과 설정집 요약·이야기 분기·받은 피드백·운영 설정·이력)와 오른쪽 내용 열(맨 위 히어로·분기 정책(또는 포크 정보), 그 아래 고른 메뉴의 내용).
- * 작품이 바뀌면 호출 측이 key로 새로 만들어 메뉴 선택·분기 입력이 처음 상태로 돌아간다. 메뉴 틀(.ep-manage·.ep-menu·.ep-content)은 shared/episode.css이고 세계관 관리 화면과 함께 쓴다.
+ * 고른 내 작품의 관리 영역: 왼쪽 사이드바(공용 ManageMenu: 로고·돌아가기 링크·메뉴(회차 목록·세계관 연결과 설정집 요약·이야기 분기·받은 피드백·운영 설정·이력)·주 행동·알림·테마·계정)와 오른쪽 내용 열(맨 위 알림·축소된 히어로, 그 아래 고른 메뉴의 내용).
+ * 분기 정책(분기 작품은 포크 정보)과 작품 삭제는 모든 탭 위가 아니라 운영 설정 탭 안에 있다(분기 정책 아래 맨 끝이 삭제): 고른 탭의 내용이 첫 화면 안에서 시작하게.
+ * 공용 상단바(Gnb)는 없고 사이드바가 그 역할을 한다. 작품이 바뀌면 호출 측이 key로 새로 만들어 메뉴 선택·분기 입력이 처음 상태로 돌아간다. 메뉴 틀(.ep-manage·.ep-menu·.ep-content)은 shared/episode.css이고 세계관 관리 화면과 함께 쓴다.
  */
-export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onDeleted }: Props) {
+export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onDeleted, menuOpen, onMenuOpenChange, notices }: Props) {
   const [tab, setTab] = useState<'read' | 'fork' | 'history' | 'world' | 'feedback' | 'settings'>(initialTab ?? 'read')
+  // 한 번에 한 영역만 편집한다: 히어로의 작품 정보·표지와 운영 설정 탭의 분기 정책이 이 상태를 나눠 쓴다.
+  const [editing, setEditing] = useState<WorkEditing>(null)
   const [mediaBusy, setMediaBusy] = useState(false)
   const [bulkImportOpen, setBulkImportOpen] = useState(false)
   // 일괄 업로드가 회차를 저장하면 서버가 같은 요청에서 세계관 추출을 접수하므로, 시트를 닫을 때 key를 바꿔 배지가 상태를 다시 읽게 한다.
@@ -47,7 +68,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   // 회차 목록은 10개씩 나눠 보인다. page는 목록이 줄어도 paginate가 범위 안으로 보정한다.
   const [page, setPage] = useState(1)
   const episodeList = useRef<HTMLOListElement>(null)
-  // 탭 내용은 위의 히어로·분기 정책 카드 아래(접힌 선 밖)에서 시작해 눌러도 바뀐 것이 안 보였다. 메뉴를 눌러 탭이 바뀐 직후에만(첫 렌더·새로 고침 제외, 단 `?tab=world`로 열면 첫 렌더에 한 번) 렌더가 커밋된 뒤 내용 머리로 스크롤하고, 초점은 누른 버튼에 그대로 둔다(아래 Pager와 같은 이유).
+  // 탭 내용은 위의 히어로 아래에서 시작한다. 메뉴를 눌러 탭이 바뀐 직후에만(첫 렌더·새로 고침 제외, 단 `?tab=world`로 열면 첫 렌더에 한 번) 렌더가 커밋된 뒤 내용 머리로 스크롤하고, 초점은 누른 버튼에 그대로 둔다(아래 Pager와 같은 이유).
   const tabContent = useRef<HTMLDivElement>(null)
   const picked = useRef(initialTab !== undefined)
   useEffect(() => {
@@ -63,32 +84,40 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
     ? '저장 버전 불러오는 중'
     : savedVersionLabel(vm.writing.rows?.find(r => r.number === episode)?.versions ?? [], id)
   const locked = vm.busy || mediaBusy
+  // 편집 중에는 작품을 다시 읽는 동작(공개 중단·삭제)을 잠가 저장하지 않은 입력이 새 revision의 폼 리셋으로 사라지지 않게 한다.
+  const blocked = locked || editing !== null
+  const deleteWork = async () => {
+    const deleted = await vm.deleteWork()
+    if (deleted) onDeleted()
+    return deleted
+  }
   // 서버가 없는 목업 빌드는 서버 수정 제안을 부르지 않는다(InboxPage와 같다). 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.
   const mockup = import.meta.env.MODE === 'mockup'
   // 상속 회차가 있으면 '1~2화'처럼 줄여, 그 회차들은 수정할 수 없다고 따로 알린다.
   const inherited = inheritedRangeLabel(w.episodes)
   // 회차별로 갈라진 공개 포크 수(소설 상세와 같은 목록). 불러오는 중이거나 읽지 못하면 undefined라 수를 감춘다(0편으로 채우지 않는다).
   const forkCounts = useEpisodeForkCounts(w.id)
+  // 메뉴 탭 이름. 본문의 탭 제목(h2)이 같은 글이라 한곳에 둔다.
+  const tabs = [
+    ['read', `공개 회차 · ${w.episodes.length}`],
+    ['world', '세계관·설정집'],
+    ['fork', '이야기 분기'],
+    ['feedback', '받은 피드백'],
+    ['settings', '운영 설정'],
+    ['history', '저장·AI·발행 이력'],
+  ] as const
   return (
-    <div className='ep-manage'>
-      <div className='ep-menu'>
+    <div className='ep-manage' data-menu={menuOpen ? undefined : 'collapsed'}>
+      <ManageMenu name='작품' open={menuOpen} onOpenChange={onMenuOpenChange} back={{ to: '/lib?tab=write', label: '내가 쓰는 소설' }} tools={menuOpen && <WorkActions workId={w.id} />}>
         <nav aria-label='작품 메뉴'>
-          {([
-            ['read', `공개 회차 · ${w.episodes.length}`],
-            ['world', '세계관·설정집'],
-            ['fork', '이야기 분기'],
-            ['feedback', '받은 피드백'],
-            ...(!mockup ? [['settings', '운영 설정']] as const : []),
-            ['history', '저장·AI·발행 이력'],
-          ] as const).map(([value, label]) => (
+          {tabs.map(([value, label]) => (
             <button
               key={value}
-              // 요청 중에는 다른 탭으로 옮기지 못하게 잠그되, 지금 탭은 두어 방금 누른 버튼에서 키보드 초점이 사라지지 않게 한다(이력 탭은 누르면 곧 요청이 시작된다).
-              disabled={locked && tab !== value}
+              // 요청 중이거나 분기 정책 폼이 열려 있는 동안(그 폼은 운영 설정 탭 안에 있어 탭을 떠나면 사라진다)에는 다른 탭으로 옮기지 못하게 잠그되, 지금 탭은 두어 방금 누른 버튼에서 키보드 초점이 사라지지 않게 한다(이력 탭은 누르면 곧 요청이 시작된다).
+              disabled={(locked || editing === 'policy') && tab !== value}
               aria-current={tab === value ? 'page' : undefined}
-              onClick={(e) => {
-                // 900px 이하의 가로 스크롤 줄에서 가장자리에 잘린 메뉴를 눌러도 그 버튼이 줄 안에 다 보이게 옆으로만 옮긴다(세로는 위 effect가 탭 내용 머리로 옮긴다).
-                e.currentTarget.scrollIntoView?.({ inline: 'nearest', block: 'nearest' })
+              onClick={() => {
+                // 좁은 화면의 메뉴 줄은 줄바꿈이라 잘린 탭이 없다. 세로는 위 effect가 탭 내용 머리로 옮긴다.
                 picked.current = true
                 setTab(value)
                 if (value === 'history') void vm.loadHistory()
@@ -98,8 +127,9 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
             </button>
           ))}
         </nav>
-      </div>
-      <div className='ep-content'>
+      </ManageMenu>
+      <div id='ep-content' tabIndex={-1} className='ep-content'>
+        {notices}
         <WorkOverview
           work={w}
           locked={locked}
@@ -109,17 +139,27 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
           onMediaBusy={setMediaBusy}
           onSaveInfo={vm.updateWork}
           onSuggestTags={vm.suggestTags}
-          onSavePolicy={vm.policy}
-          onStopFork={vm.stopFork}
-          onDeleteWork={async () => {
-            const deleted = await vm.deleteWork()
-            if (deleted) onDeleted()
-            return deleted
-          }}
+          editing={editing}
+          onEditingChange={setEditing}
         />
-        {/* 탭 내용 묶음: 메뉴를 누르면 이 머리로 스크롤한다. scroll-margin은 sticky 상단바(.gnb)가 머리를 가리지 않게(회차 목록과 같은 값). */}
-        <div ref={tabContent} className='ep-tab' style={{ scrollMarginTop: 80 }}>
-          {tab === 'settings' && <WorkSettingsPanel workId={w.id} useCase={useCase} />}
+        {/* 탭 내용 묶음: 메뉴를 누르면 이 머리로 스크롤한다. 상단바가 없어 scroll-margin은 위 여백만이다(회차 목록과 같은 값). */}
+        <div ref={tabContent} className='ep-tab' style={{ scrollMarginTop: 16 }}>
+          {/* 탭 제목(h2)은 메뉴 탭 이름과 똑같은 글이다: 어느 탭에 있는지 본문에서도 읽힌다. 탭 안의 묶음 제목은 h3다. */}
+          <h2>{tabs.find(([value]) => value === tab)![1]}</h2>
+          {tab === 'settings' && (
+            <>
+              {/* 운영 설정 API는 서버 없는 시연(목업)에 없다. 분기 정책·포크 정보·작품 삭제는 모두 있으므로 탭은 남긴다. */}
+              {!mockup && <WorkSettingsPanel workId={w.id} useCase={useCase} />}
+              {w.source
+                ? <ForkInfo source={w.source} isPublic={w.visibility === 'public'} blocked={blocked} onStopFork={vm.stopFork} onDeleteWork={deleteWork} />
+                : (
+                  <>
+                    <WorkPolicy work={w} locked={locked} editing={editing} onEditingChange={setEditing} onSave={vm.policy} />
+                    <WorkDelete blocked={blocked} onDelete={deleteWork} />
+                  </>
+                )}
+            </>
+          )}
           {tab === 'world' && (
             <>
               {!mockup && <ManuscriptBuildPanel key={w.id} work={w} />}
@@ -129,7 +169,6 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
           )}
           {tab === 'history' && (
             <section className='ep-reading'>
-              <h2>저장·AI·발행 이력</h2>
               <p>저장본은 보존돼요. 이 화면에서는 이력을 읽기만 하고, 복원과 공개는 집필실에서 해요.</p>
               {/* 이력 요청의 진행·실패는 맨 위 알림(탭 머리로 스크롤하면 화면 밖)이 아니라 여기서 알린다. 다른 요청과 섞이지 않게 origin이 history일 때만 보인다. */}
               {vm.origin === 'history' && vm.error && <p className="ep-alert" role="alert">{vm.error}</p>}
@@ -180,7 +219,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               {vm.writing?.error && <p className="ep-alert" role="alert">{vm.writing.error}</p>}
               {!!drafts?.length && (
                 <section className="ep-drafts">
-                  <h2>작성 중인 초안</h2>
+                  <h3>작성 중인 초안</h3>
                   <ul role="list">
                     {drafts.map(e => (
                       <li key={e.number}>
@@ -204,7 +243,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                 ? (
                   // 소설 상세(/work/:id)의 회차 행(.ep)을 그대로 쓰고, 오른쪽에 자체 회차는 집필실로 가는 '수정하기', 상속 회차는 읽기 전용 칩을 둔다. 본문은 펼치지 않는다.
                   // 10개씩 나눠 보인다. 쪽을 옮기면 이 머리로 스크롤하므로 위의 sticky 상단바(.gnb)가 가리지 않게 scroll-margin을 둔다.
-                  <ol ref={episodeList} className='tcard eps ep-list' style={{ scrollMarginTop: 80 }}>
+                  <ol ref={episodeList} className='tcard eps ep-list' style={{ scrollMarginTop: 16 }}>
                     {view.items.map((e) => {
                       const forks = forkCounts?.[e.number] ?? 0
                       return (
@@ -238,13 +277,14 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                 )}
               {/* 쪽을 옮기면 목록 머리로 스크롤만 한다. 초점은 누른 쪽 버튼에 남아 이어서 옮길 수 있다(scrollIntoView가 없는 jsdom에서는 건너뛴다). */}
               <Pager page={view.page} pages={view.pages} onPage={(next) => { setPage(next); episodeList.current?.scrollIntoView?.({ block: 'start' }) }} />
-              <div className='ep-list-foot'>
-                <Go to={`/studio/${w.id}`} className='btn'>새 회차 집필하기</Go>
-                {/* 메뉴를 누른 것과 같이 세계관 탭 내용 머리(원고로 세계관 만들기 카드)로 스크롤한다(위 effect). */}
-                {!mockup && <button type='button' className='btn' disabled={locked} onClick={() => { picked.current = true; setTab('world') }}>원고로 세계관 만들기</button>}
-                {!mockup && <button type="button" className="btn" disabled={locked}
-                  onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>}
-              </div>
+              {/* 새 회차 집필은 사이드바의 '회차 작성하기' 하나로 간다(같은 곳으로 가는 버튼을 본문에 또 두지 않는다). */}
+              {!mockup && (
+                <div className='ep-list-foot'>
+                  {/* 메뉴를 누른 것과 같이 세계관 탭 내용 머리(원고로 세계관 만들기 카드)로 스크롤한다(위 effect). */}
+                  <button type='button' className='btn' disabled={locked} onClick={() => { picked.current = true; setTab('world') }}>원고로 세계관 만들기</button>
+                  <button type="button" className="btn" disabled={locked} onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>
+                </div>
+              )}
               {bulkImportOpen && <EpisodeBulkImportSheet workId={w.id} onClose={(refresh) => {
                 setBulkImportOpen(false)
                 if (refresh) { void vm.reload(); setBuildCheck((n) => n + 1) }
@@ -253,7 +293,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
           )}
           {tab === 'fork' && (
             <section className='ep-fork'>
-              <h2>그 순간, 다른 선택을 했다면</h2>
+              <h3>그 순간, 다른 선택을 했다면</h3>
               <p className='ep-lead'>
                 선택한 회차까지의 공개 원고를 보존하고, 그 다음 회차부터 새로운 이야기를
                 써 내려가세요. 기준 회차의 공개 설정·상태·지식·관계도 함께 이어져요.
@@ -328,15 +368,15 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
 }
 
 /**
- * 공개 회차 머리의 '세계관 추출 중' 배지다(initial-build-storage-contract). 세계관 탭 패널과 같은 `useManuscriptBuild`의 조회·2초 갱신을 그대로 쓰되 진행 중(queued·running·loading)일 때만 보인다.
+ * 공개 회차 머리의 '세계관 추출 중'·'세계관 업데이트 중' 배지다(initial-build-storage-contract). 세계관 탭 패널과 같은 `useManuscriptBuild`의 조회·2초 갱신을 그대로 쓰되 진행 중(queued·running·loading)일 때만 보인다.
+ * 최초 구축이 먼저이고(둘 다 진행 중이면 '세계관 추출 중'), 발행 회차 업데이트(`job.update`)는 그다음이다(판정은 `worldBuildBadge`).
  * 작업 없음(404)·끝난 작업·조회 실패는 그리지 않는다: 실패를 완료나 진행 중으로 보이지 않고 오류는 패널이 보인다.
  * ponytail: 진행 중 조회가 한 번 실패하면 배지는 사라지고 탭을 옮기거나 새로 고칠 때까지 다시 읽지 않는다. 재시도·알림 연동은 후속.
  */
 function WorldBuildBadge({ work }: { work: Pick<Work, 'id' | 'worldStudioId'> }) {
   const { job, error } = useManuscriptBuild(work.id, work.worldStudioId)
-  return !error && job && ['queued', 'running', 'loading'].includes(job.status)
-    ? <div className='ep-notes'><p><span className='chip wait'>세계관 추출 중</span></p></div>
-    : null
+  const label = error ? null : worldBuildBadge(job)
+  return label ? <div className='ep-notes'><p><span className='chip wait'>{label}</span></p></div> : null
 }
 
 /**

@@ -17,6 +17,15 @@
         ],
         "createdAt": "2026-10-30T07:28:22.286Z",
         "reason": "Existing .quote and q.cq styles identify quoted text rather than card accents."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "frontend/src/presentation/features/worldstudio/view/world-map.css"
+        ],
+        "createdAt": "2026-11-21T05:24:43.874Z",
+        "reason": "worker(Claude) 판단: 컨텍스트 메뉴 하위 목록(.relationship-submenu)의 들여쓰기 안내선이다. 중립 토큰(--line2) 2px 한 줄이라 카드 옆 굵은 색 띠(side-tab)가 아니다. 사용자 확인 아님, 커밋 feddf1be에서 내가 쓴 규칙"
       }
     ]
   }

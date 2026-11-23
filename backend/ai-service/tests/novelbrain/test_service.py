@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from app.story_qa.models import Excerpt
 from app.novelbrain.models import Card, Gap, RecallItem, Relation, WorldSnapshot
 from app.novelbrain.service import bm25_rank, filter_for_character, ppr, recall, rrf, seed_cards, tokenize
+from traced import named, shown
 
 KAEL = Card(id='kael', cardType='character', title='카엘', text='성문 수비대장이다.', soul='말투는 건조하고 짧다.', goal='리라의 오빠다.',
             episodes={1: '1화: 성문에서 리라를 만났다.', 3: '3화: 왕의 비밀을 알게 되었다.'}, revealFromEpisode=1)
@@ -653,6 +654,47 @@ def test_blank_documents_and_relations_to_unknown_cards_are_not_items():
 
     assert set(refs(result.items)) == {'card:a#goal', 'card:b', 'relation:r1'}
     assert {i.ref: i.text for i in result.items}['relation:r1'] == '가이 — 성: 살다'
+
+
+# --- recall 추적(DEC-58) ------------------------------------------------------------------------------------------------
+
+def test_recall_traces_its_question_and_only_the_ids_scores_and_card_titles_of_what_it_found(spans):
+    result = recall(WORLD, 'kael', 2, QUERY, stage=3, manuscript=[M1, M2], k=100)
+
+    [span] = named(spans, 'novelbrain.recall')
+    traced = shown(span, 'output')
+    by_ref = {e['ref']: e for e in traced['recalled']}
+    assert span.attributes['langfuse.observation.type'] == 'retriever'
+    assert shown(span, 'input') == {'actor_id': 'kael', 'episode': 2, 'stage': 3, 'query': QUERY}
+    assert traced['count'] == len(result.items) and [(e['ref'], e['score']) for e in traced['recalled']] == [(i.ref, i.score) for i in result.items]
+    assert {k: v for k, v in by_ref['card:lira#identity'].items() if k != 'score'} == {'ref': 'card:lira#identity', 'card_id': 'lira', 'title': '리라'}
+    assert set(by_ref['relation:r-kl']) == set(by_ref['manuscript:m1']) == {'ref', 'score'}  # 카드가 아닌 항목은 id와 점수뿐이다
+    assert not [i.text for i in result.items if i.text in str(traced)]  # 카드·관계·원고 본문은 남기지 않는다
+
+
+def test_recall_for_the_narrator_traces_no_actor_and_names_a_plain_card_by_its_title(spans):
+    recall(WORLD, None, 2, '카엘이 성문에서 뭘 했나', stage=0, k=100)
+
+    [span] = named(spans, 'novelbrain.recall')
+    gate = next(e for e in shown(span, 'output')['recalled'] if e['ref'] == 'card:gate')
+    assert shown(span, 'input') == {'actor_id': None, 'episode': 2, 'stage': 0, 'query': '카엘이 성문에서 뭘 했나'}
+    assert (gate['card_id'], gate['title']) == ('gate', '성문')
+
+
+def test_recall_traces_only_the_first_500_characters_of_the_query(spans):
+    recall(WORLD, None, 2, '카엘 ' * 300, stage=0)
+
+    [span] = named(spans, 'novelbrain.recall')
+    assert shown(span, 'input')['query'] == ('카엘 ' * 300)[:500]
+
+
+def test_a_failed_recall_marks_its_span_as_an_error_and_still_raises(spans):
+    with pytest.raises(ValueError):
+        recall(WORLD, 'nobody', 2, '카엘')
+
+    [span] = named(spans, 'novelbrain.recall')
+    assert (span.attributes['langfuse.observation.level'], span.attributes['langfuse.observation.status_message']) == ('ERROR', 'ValueError')
+    assert 'langfuse.observation.output' not in span.attributes
 
 
 def test_direct_filter_rejects_a_world_snapshot_later_than_the_character_episode():

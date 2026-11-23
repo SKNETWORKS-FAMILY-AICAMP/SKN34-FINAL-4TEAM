@@ -309,3 +309,37 @@ def test_an_unavailable_director_prompt_is_a_503_before_the_http_call(monkeypatc
     with pytest.raises(SimulationFailure) as error:
         asyncio.run(director.decide(STATE, ('speech',), CAST))
     assert (error.value.status, str(error.value)) == (503, '시뮬레이션 프롬프트를 불러올 수 없습니다.') and sent == []
+
+
+# --- 규칙이 정한 턴은 연출 모델을 묻지 않는 스위치(#642) ---------------------------------------------------------------------
+
+SKIP = 'SIMULATION_SKIP_FORCED_DIRECTOR'
+
+
+@pytest.mark.parametrize('value', [None, '', '0', 'true'])
+def test_the_director_is_asked_as_before_unless_the_switch_is_exactly_one(monkeypatch, value):
+    if value is not None:
+        monkeypatch.setenv(SKIP, value)
+    assert director.forced(['narration'], None) is None and director.forced(['end'], f'limited:{KAEL}') is None
+
+
+def test_with_the_switch_a_single_forced_turn_that_is_not_a_speech_is_decided_without_the_model(monkeypatch):
+    monkeypatch.setenv(SKIP, '1')
+    assert director.forced(['narration'], None) == Decision(turn='narration', pov='omniscient')  # 직전 턴이 없으면 전지적
+    assert director.forced(['end'], f'limited:{KAEL}') == Decision(turn='end', pov=f'limited:{KAEL}')  # 직전 시점을 잇는다
+    assert director.forced(['narration'], f'first:{LINA}') == Decision(turn='narration', pov=f'first:{LINA}')
+    assert director.forced(['narration'], 'omniscient') == Decision(turn='narration', pov='omniscient')
+
+
+def test_with_the_switch_a_speech_still_needs_the_model_to_pick_the_speaker_and_so_does_any_real_choice(monkeypatch):
+    monkeypatch.setenv(SKIP, '1')
+    assert director.forced(['speech'], None) is None
+    assert director.forced(['narration', 'speech'], None) is None and director.forced(['narration', 'monologue', 'speech'], f'limited:{KAEL}') is None
+    assert director.forced([], None) is None
+
+
+def test_with_the_switch_a_forced_monologue_is_skipped_only_when_the_last_pov_is_a_characters(monkeypatch):
+    monkeypatch.setenv(SKIP, '1')
+    assert director.forced(['monologue'], f'first:{KAEL}') == Decision(turn='monologue', pov=f'first:{KAEL}')
+    # 독백은 시점 인물이 있어야 한다: 직전 시점이 전지적이거나 없으면 지금처럼 묻는다.
+    assert director.forced(['monologue'], 'omniscient') is None and director.forced(['monologue'], None) is None

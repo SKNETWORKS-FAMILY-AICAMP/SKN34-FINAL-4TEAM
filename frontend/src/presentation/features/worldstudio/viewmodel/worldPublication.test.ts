@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 
 import type { WorldPublication } from '../../../../domain/entities/studioWorld'
-import { PUBLIC_CONFIRM, listingOf, needsPublicConfirm, publicationNotice } from './worldPublication'
+import { PUBLIC_CONFIRM, UNLISTED_HINT, listingOf, needsPublicConfirm, publicationNotice } from './worldPublication'
 
 const result = (over: Partial<WorldPublication> = {}): WorldPublication => ({ worldId: 'w', visibility: 'public', genre: null, publishedAt: '2026-11-12T00:00:00Z', listed: true, ...over })
 
@@ -39,4 +39,8 @@ it('says a demo change only lives in memory and never promises a public listing'
     expect(text).not.toContain('확정 버전')
   }
   expect(publicationNotice(result({ visibility: 'private', publishedAt: null, listed: false }), true)).toBe('비공개로 바꿨어요. 이제 나만 볼 수 있어요.')
+})
+
+it('UNLISTED_HINT는 모든 탭 머리에 뜨므로 두 문장 이하의 짧은 안내다', () => {
+  expect(UNLISTED_HINT).toBe('확정 버전이 없어 공개 목록에 아직 안 나와요. ‘확정 버전 남기기’로 한 번 남기면 나타나요.')
 })

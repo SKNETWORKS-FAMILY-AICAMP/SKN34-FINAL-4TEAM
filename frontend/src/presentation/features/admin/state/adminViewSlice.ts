@@ -7,7 +7,7 @@ export type AdminFilter = { category: string; sort: string; query: string; searc
 export type AdminChatForm = { kind: string; workId: string; character: string }
 /** inquiries는 실제 고객지원 문의(67)의 선택 id이고, 공지·이벤트는 메모리 데모의 선택입니다. */
 export type OperationsRecordKind = 'notices' | 'events' | 'inquiries'
-export type EventDraft = NoticeInput & { startsAt: string; endsAt: string }
+export type EventDraft = NoticeInput & { startsAt: string; endsAt: string; linkPath: string }
 
 type AdminViewState = {
   sel: string | null; filters: Record<string, AdminFilter>; chatForm: AdminChatForm

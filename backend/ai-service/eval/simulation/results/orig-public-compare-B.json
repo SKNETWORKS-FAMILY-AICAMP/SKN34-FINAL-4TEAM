@@ -1,0 +1,72 @@
+{
+  "corpus": "public",
+  "sets": {
+    "4": {
+      "applied": {
+        "metrics": {
+          "caught": {
+            "down": 1,
+            "meanDiff": -0.5,
+            "n": 2,
+            "p": 1.0,
+            "tie": 1,
+            "up": 0
+          },
+          "correct": {
+            "down": 1,
+            "meanDiff": -0.25,
+            "n": 4,
+            "p": 1.0,
+            "tie": 3,
+            "up": 0
+          },
+          "passOk": {
+            "down": 0,
+            "meanDiff": 0.0,
+            "n": 2,
+            "p": 1.0,
+            "tie": 2,
+            "up": 0
+          }
+        },
+        "n": 4
+      },
+      "callMs": {
+        "base": 7003.0,
+        "cand": 7054.0
+      },
+      "metrics": {
+        "caught": {
+          "down": 5,
+          "meanDiff": -0.06060606060606061,
+          "n": 33,
+          "p": 0.7265625,
+          "tie": 25,
+          "up": 3
+        },
+        "correct": {
+          "down": 7,
+          "meanDiff": 0.0,
+          "n": 82,
+          "p": 1.0,
+          "tie": 68,
+          "up": 7
+        },
+        "passOk": {
+          "down": 2,
+          "meanDiff": 0.04081632653061224,
+          "n": 49,
+          "p": 0.6875,
+          "tie": 43,
+          "up": 4
+        }
+      },
+      "tokens": {
+        "base": 2796.8048780487807,
+        "cand": 2766.4268292682927,
+        "ratio": 0.9891383024182647
+      }
+    }
+  },
+  "variant": "B"
+}

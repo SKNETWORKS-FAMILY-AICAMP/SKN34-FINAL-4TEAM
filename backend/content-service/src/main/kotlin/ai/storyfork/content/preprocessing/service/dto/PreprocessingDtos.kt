@@ -9,7 +9,15 @@ data class PreprocessingJobResponse(
     val failedEpisodes: List<Int>, val error: String?, val startedAt: String?, val finishedAt: String?,
     val recovery: String? = null,
     val build: ai.storyfork.content.world.service.dto.ManuscriptBuildResponse? = null,
+    /** 가장 최근 업데이트 작업(발행 회차를 세계관 초안에 더하는 작업)이다. 소유자 조회에서만 채우고 없으면 null이다. [build] 등 위 필드는 늘 최초 구축 작업이다. */
+    val update: PreprocessingUpdateResponse? = null,
 )
+
+/**
+ * 업데이트 작업 요약이다. [status]는 [build][ai.storyfork.content.world.service.dto.ManuscriptBuildResponse]와 같은 값(queued·running·loading·failed·unknown·completed),
+ * [episodes]는 작업이 고정한 회차 번호, [failureCode]는 실패·만료 사유 코드다.
+ */
+data class PreprocessingUpdateResponse(val jobId: String, val status: String, val episodes: List<Int>, val failureCode: String?)
 
 /** 운영 감시용 목록(최신 접수 순)이다. [total]은 필터에 맞는 전체 건수다. */
 data class PreprocessingJobListResponse(val items: List<PreprocessingJobResponse>, val total: Long)

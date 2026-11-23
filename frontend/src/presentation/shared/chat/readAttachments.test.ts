@@ -22,9 +22,9 @@ describe('readAttachments(#617)', () => {
       .rejects.toThrow('긴.txt: 텍스트 파일은 20,000자까지 보낼 수 있어요.')
   })
 
-  it('UTF-8이 아닌 텍스트는 거절한다', async () => {
+  it('UTF-8이 아닌 텍스트(윈도우 ANSI·CP949 등)는 파일 이름과 함께 거절하고 UTF-8로 다시 저장하는 방법을 알린다', async () => {
     await expect(readAttachments([new File([new Uint8Array([0xff, 0xfe, 0x41])], '옛.txt', { type: 'text/plain' })]))
-      .rejects.toThrow('옛.txt: UTF-8 텍스트 파일만 보낼 수 있어요.')
+      .rejects.toThrow('옛.txt: UTF-8 텍스트 파일만 보낼 수 있어요. 메모장 등에서 다른 이름으로 저장할 때 인코딩을 UTF-8로 골라 다시 올려 주세요.')
   })
 
   it('보낼 수 없는 형식은 읽지 않고 그 이유를 던진다', async () => {

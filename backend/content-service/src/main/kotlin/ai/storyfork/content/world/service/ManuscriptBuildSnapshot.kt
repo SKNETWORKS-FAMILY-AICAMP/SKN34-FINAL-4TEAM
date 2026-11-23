@@ -4,6 +4,7 @@ import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content._common.exception.checkContent
 import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
 import ai.storyfork.content.episode.service.EpisodeService
+import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
@@ -11,7 +12,7 @@ import org.springframework.transaction.support.TransactionTemplate
 /** 기존 소유자 회차 조회와 같은 Content transaction 안에서 최신 저장본 전체를 고정한다. */
 @Service
 class ManuscriptBuildSnapshot(
-    private val episodes:EpisodeService,private val current:EpisodeCurrentRepository,
+    private val episodes:EpisodeService,private val current:EpisodeCurrentRepository,private val versions:EpisodeVersionRepository,
     @Qualifier("contentTransactions") private val transaction:TransactionTemplate,
 ) {
     fun read(workId:String,owner:String):ManuscriptBuildInput = checkNotNull(transaction.execute {
@@ -27,4 +28,17 @@ class ManuscriptBuildSnapshot(
             ManuscriptBuildSource(episode.number,requireNotNull(ids[episode.number]),saved.id,saved.title,saved.body)
         })
     })
+
+    /**
+     * 업데이트 작업(발행 회차로 세계관 초안 업데이트, 2026-11-22)의 입력이다. 발행본이 있는 회차(Fork 상속 제외) 중 [wanted]가 고른 번호의 **발행 버전**이며
+     * 저장만 한 버전·초안은 읽지 않는다. 고를 회차가 없으면 null이다.
+     */
+    fun readPublished(workId:String,wanted:(Int)->Boolean):ManuscriptBuildInput? = transaction.execute {
+        val rows=current.findAllByWorkIdOrderBySequence(workId).filter { !it.inherited && it.publishedVersionId!=null && wanted(it.sequence) }
+        val published=versions.findAllById(rows.map { requireNotNull(it.publishedVersionId) }).associateBy { it.id }
+        rows.takeIf { it.isNotEmpty() }?.let { ManuscriptBuildInput(it.map { row ->
+            val version=published.getValue(requireNotNull(row.publishedVersionId))
+            ManuscriptBuildSource(row.sequence,row.id,version.contentVersionId,version.title,version.content)
+        }) }
+    }
 }

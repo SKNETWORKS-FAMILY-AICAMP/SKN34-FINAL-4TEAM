@@ -12,6 +12,52 @@ const box = () => screen.getByRole('textbox', { name: '메시지' }) as HTMLText
 const send = () => screen.getByRole('button', { name: '전송' }) as HTMLButtonElement
 const type = (text: string) => fireEvent.change(box(), { target: { value: text } })
 
+describe('함께 보낼 것 안내', () => {
+  // 안내 줄(27px)에 따라 대화 영역은 591 ↔ 564다. 줄기 전에 맨 아래에서 80px 안을 읽고 있었는지로 정한다.
+  it.each([
+    ['맨 아래', 591, 564, 409, 1000],
+    ['경계 안(전 60·후 87)', 591, 564, 349, 1000],
+    ['스크롤한 적 없이 맨 위', 591, 564, 0, 0],
+    ['커지기 전 경계 밖(전 100·후 73)', 564, 591, 336, 336],
+  ])('대화 영역 높이가 바뀌면 맨 아래에서 읽던 때만 따라 내려간다(#636, %s)', (_, before, after, scrollTop, expected) => {
+    let height = before
+    let resized = () => {}
+    vi.stubGlobal('ResizeObserver', class { constructor(run: () => void) { resized = run } observe() {} disconnect() {} })
+    const measured = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(() => height)
+    try {
+      render(<ChatPanel messages={[]} onSend={() => true} />)
+      const log = screen.getByRole('log', { name: '대화 내용' })
+      Object.defineProperties(log, { scrollHeight: { value: 1000 }, scrollTop: { value: scrollTop, writable: true } })
+      height = after
+      resized()
+      expect(log.scrollTop).toBe(expected)
+    } finally { measured.mockRestore(); vi.unstubAllGlobals() }
+  })
+
+  it('입력창이 안내를 설명으로 읽고, 잠긴 동안에는 보낼 수 없으므로 보이지 않는다(#636)', () => {
+    const note = '선택한 글 7자가 함께 보내져요.'
+    const { rerender } = render(<ChatPanel messages={[]} onSend={() => true} sendNote={note} />)
+    expect(box().getAttribute('aria-describedby')).toBe(screen.getByText(note).id)
+    rerender(<ChatPanel messages={[]} onSend={() => true} sendNote={note} disabledReason="잠김" />)
+    expect(screen.queryByText(note)).toBeNull()
+  })
+})
+
+describe('접근성(#639)', () => {
+  it('잠김 사유와 입력 오류가 함께 있으면 입력창 설명에 둘 다 잇는다', () => {
+    render(<ChatPanel messages={[]} onSend={() => true} disabledReason="잠김" inputError="선택한 글이 너무 길어요." />)
+    const described = (box().getAttribute('aria-describedby') ?? '').split(' ').map((id) => document.getElementById(id)?.textContent)
+    expect(described).toEqual(['잠김', '선택한 글이 너무 길어요.'])
+  })
+
+  it('실패한 답 말풍선은 스크린리더에도 실패로 읽힌다', () => {
+    render(<ChatPanel messages={[{ id: 'a', role: 'assistant', text: '답을 만들지 못했어요.', failed: true }, { id: 'b', role: 'assistant', text: '답' }]} />)
+    const [failed, ok] = within(screen.getByRole('log', { name: '대화 내용' })).getAllByRole('listitem').filter((li) => li.classList.contains('chat-msg'))
+    expect(within(failed).getByText('실패한 답변')).toBeTruthy()
+    expect(within(ok).queryByText('실패한 답변')).toBeNull()
+  })
+})
+
 describe('공용 채팅 메시지', () => {
   it('역할별로 화자를 구분하고 텍스트와 첨부 칩을 그린다', () => {
     const messages: ChatMessage[] = [
@@ -264,6 +310,7 @@ describe('공용 채팅 비활성·첨부', () => {
     // 첨부가 꺼진 화면은 파일 선택 칸도 없고, 파일을 끌어다 놓아도 아무것도 가로채지 않는다
     expect(container.querySelector('input[type="file"]')).toBeNull()
     expect(fireEvent.dragOver(card(container))).toBe(true)
+    expect(fireEvent.dragOver(screen.getByRole('log', { name: '대화 내용' }))).toBe(true)
     // 마이크는 항상 준비 중이라 잠겨 있다
     expect((screen.getByRole('button', { name: '음성 입력 (준비 중)' }) as HTMLButtonElement).disabled).toBe(true)
     // Escape로 닫으면 + 버튼으로 초점이 돌아온다
@@ -299,6 +346,36 @@ describe('공용 채팅 비활성·첨부', () => {
     expect(fireEvent.dragOver(card(container))).toBe(false) // preventDefault: 놓을 수 있다
     drop(container, png(), note())
     expect(within(chips()!).getAllByRole('listitem').map(li => li.textContent)).toEqual(['이미지 · 지도.png×', '텍스트 · 메모.md×'])
+  })
+
+  it('입력 카드 밖(대화 영역)에 파일을 놓아도 브라우저가 파일을 열어 화면을 떠나지 않지만, 첨부로 받지는 않는다(#688 UI 리뷰 P2)', () => {
+    render(<ChatPanel messages={[{ id: 'a', role: 'assistant', text: '답' }]} onSend={vi.fn()} checkFile={checkAttachment} />)
+    const log = screen.getByRole('log', { name: '대화 내용' })
+    expect(fireEvent.dragOver(log)).toBe(false) // preventDefault: 브라우저의 파일 열기(탐색)를 막는다
+    expect(fireEvent.drop(log, { dataTransfer: { files: [png()] } })).toBe(false)
+    expect(chips()).toBeNull()
+  })
+
+  it('칩을 빼면 그 파일의 읽기 오류 안내(inputError)를 감추고, 다른 파일을 뺀 때와 화면 쪽 안내는 그대로 두며, 다음 전송이 같은 안내를 다시 내면 보인다(#688 UI 리뷰 P3)', async () => {
+    const reason = '메모.txt: UTF-8 텍스트 파일만 보낼 수 있어요.'
+    const onSend = vi.fn().mockResolvedValue(false)
+    const { container, rerender } = render(<ChatPanel messages={[]} onSend={onSend} checkFile={checkAttachment} inputError={reason} />)
+    drop(container, note('메모.txt'), png())
+    expect(screen.getByRole('alert').textContent).toBe(reason)
+    fireEvent.click(screen.getByRole('button', { name: '지도.png 빼기' })) // 안내가 가리키는 파일이 아니다
+    expect(screen.getByRole('alert').textContent).toBe(reason)
+    fireEvent.click(screen.getByRole('button', { name: '메모.txt 빼기' }))
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(box().getAttribute('aria-describedby')).toBeNull()
+    // 다시 골라 보냈는데 같은 이유로 읽지 못하면(부모가 같은 안내를 다시 준다) 안내가 다시 보인다
+    drop(container, note('메모.txt'))
+    type('질문')
+    fireEvent.click(send())
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toBe(reason))
+    // 파일과 무관한 화면 쪽 안내는 칩을 빼도 남는다
+    rerender(<ChatPanel messages={[]} onSend={onSend} checkFile={checkAttachment} inputError="선택한 글이 너무 길어요." />)
+    fireEvent.click(screen.getByRole('button', { name: '메모.txt 빼기' }))
+    expect(screen.getByRole('alert').textContent).toBe('선택한 글이 너무 길어요.')
   })
 
   it('지원하지 않는 형식·5MB 초과·3개 초과는 입력 카드 아래에 이유를 알리고 그 파일만 받지 않는다', () => {
