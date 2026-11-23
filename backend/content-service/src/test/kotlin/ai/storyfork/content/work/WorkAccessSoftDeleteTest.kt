@@ -1,5 +1,6 @@
 package ai.storyfork.content.work
 
+import ai.storyfork.content.serial.repository.AiSerialRepository
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.episode.repository.*
 import ai.storyfork.content.episode_version.repository.*
@@ -23,7 +24,7 @@ class WorkAccessSoftDeleteTest {
     private val visibility = mock(WorkPublicationHistoryRepository::class.java)
     private val access = WorkAccessService(works, worlds, visibility, mock(ForkPolicyHistoryRepository::class.java),
         mock(ForkPolicyEpisodeRepository::class.java), mock(ForkRepository::class.java), mock(CheckpointRepository::class.java),
-        mock(EpisodeRepository::class.java), mock(EpisodeVersionRepository::class.java), mock(EntityManager::class.java))
+        mock(EpisodeRepository::class.java), mock(EpisodeVersionRepository::class.java), mock(AiSerialRepository::class.java), mock(EntityManager::class.java))
 
     private fun work(deleted: Boolean) {
         val row = WorkEntity(id = "w", ownerId = "author", title = "작품")

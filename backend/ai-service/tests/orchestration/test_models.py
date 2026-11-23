@@ -1,7 +1,9 @@
+import base64
+
 import pytest
 from pydantic import ValidationError
 
-from app.orchestration.models import OrchestrationRequest, OrchestrationResponse, Resume, StepResult, WritingInput
+from app.orchestration.models import Attachment, OrchestrationRequest, OrchestrationResponse, Resume, StepResult, WritingInput
 from app.simulation.models import SimulationPlan, SimulationResult
 from app.world_review.models import EnrichResponse, ImpactResponse, WorldReviewResponse
 
@@ -146,3 +148,43 @@ def test_a_step_and_a_waiting_input_recorded_as_web_research_still_load():
     step = StepResult.model_validate({'feature': 'web_research', 'when': 'always', 'status': 'not_started'})
     reply = OrchestrationResponse.model_validate({'status': 'waiting', 'steps': [step.model_dump(mode='json')], 'missingInputs': ['web_research']})
     assert (reply.steps[0].feature, reply.missingInputs) == ('web_research', ['research'])
+
+
+# 첨부(#617): 이번 새 요청에서만 받고, 형식·크기·인코딩은 AI가 다시 확인한다(Content는 개수·형식·Base64 길이만 본다).
+def _b64(data: bytes) -> str:
+    return base64.b64encode(data).decode()
+
+
+PNG = {'name': '지도.png', 'mediaType': 'image/png', 'data': _b64(b'\x89PNG-bytes')}
+NOTE = {'name': '메모.md', 'mediaType': 'text/markdown', 'data': _b64('# 설정\n북문은 밤에 닫힌다.'.encode())}
+
+
+def test_a_new_request_takes_up_to_three_attachments_and_defaults_to_none():
+    assert OrchestrationRequest(request='요청').attachments == []
+    assert [a.name for a in OrchestrationRequest(request='요청', attachments=[PNG, NOTE]).attachments] == ['지도.png', '메모.md']
+    with pytest.raises(ValidationError):
+        OrchestrationRequest(request='요청', attachments=[PNG, NOTE, PNG, NOTE])
+
+
+@pytest.mark.parametrize('attachment', [
+    {**PNG, 'mediaType': 'image/gif'}, {**PNG, 'mediaType': 'application/pdf'},  # 허용 형식 밖(GIF는 받지 않는다)
+    {**PNG, 'name': ''}, {**PNG, 'name': '가' * 201},  # 이름 1~200자
+    {**PNG, 'data': ''}, {**PNG, 'data': '이건 Base64가 아니에요!'},  # 빈 값·디코딩 불가
+    {**PNG, 'data': _b64(b'x' * (5 * 1024 * 1024 + 1))},  # 이미지 5MB 초과
+    {**NOTE, 'data': _b64(b'\xff\xfe\x00bad')},  # UTF-8이 아닌 텍스트
+    {**NOTE, 'data': _b64(('가' * 20001).encode())},  # 텍스트 20,000자 초과
+    {**PNG, 'extra': 1},
+])
+def test_an_attachment_the_policy_does_not_allow_is_refused(attachment):
+    with pytest.raises(ValidationError):
+        Attachment.model_validate(attachment)
+
+
+def test_the_size_limits_are_inclusive():
+    assert Attachment.model_validate({**PNG, 'data': _b64(b'x' * (5 * 1024 * 1024))})
+    assert Attachment.model_validate({**NOTE, 'data': _b64(('가' * 20000).encode())})
+
+
+def test_attachments_belong_to_a_new_request_not_a_resume():
+    with pytest.raises(ValidationError):
+        OrchestrationRequest(resume={'approved': True}, conversation=CONVERSATION, attachments=[PNG])

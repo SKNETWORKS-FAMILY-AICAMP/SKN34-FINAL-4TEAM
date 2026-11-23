@@ -138,12 +138,14 @@ const reply: z.ZodType<ChatReply> = z.object({
 })
 const session: z.ZodType<ChatSession> = z.object({ threadId: z.string(), title: z.string(), updatedAt: z.string() })
 const history: z.ZodType<ChatHistory> = z.object({
-  threadId: z.string(), title: z.string(), turns: z.array(z.object({ request: z.string(), reply: reply.nullable() })),
+  threadId: z.string(), title: z.string(),
+  turns: z.array(z.object({ request: z.string(), reply: reply.nullable(), attachments: z.array(z.object({ name: z.string(), kind: z.enum(['image', 'text']) })).optional() })),
 })
 const events = {
   plan: z.object({ steps: z.array(step) }).transform((d) => ({ type: 'plan' as const, ...d })),
   started: z.object({ feature: featureKey }).transform((d) => ({ type: 'started' as const, ...d })),
   step: step.transform((s) => ({ type: 'step' as const, step: s })),
+  answer: z.object({ delta: z.string().nullable() }).transform((d) => ({ type: 'answer' as const, ...d })),
   waiting: z.object({ steps: z.array(step), missingInputs: z.array(featureKey).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish(), pendingAction: pendingAction.nullish() })
     .transform((d) => ({ type: 'waiting' as const, ...d })),
   done: reply.transform((r) => ({ type: 'done' as const, reply: r })),
@@ -211,7 +213,10 @@ export class HttpWritingChatRepository implements WritingChatRepository {
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
     let buffer = '', finished = false
     for (;;) {
-      const { value, done } = await reader.read()
+      const { value, done } = await reader.read().catch((error: unknown) => {
+        if (signal?.aborted) throw error
+        return { value: undefined, done: true as const } // 네트워크 끊김·시간 초과는 브라우저 오류 원문 대신 아래의 끊김 안내로 끝낸다.
+      })
       if (done) break
       buffer += value
       const blocks = buffer.split(/\r?\n\r?\n/)

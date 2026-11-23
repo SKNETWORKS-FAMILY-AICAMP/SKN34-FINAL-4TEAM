@@ -13,6 +13,15 @@ import { InMemoryPublicWorldRepository } from '../data/mock/InMemoryPublicWorldR
 import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../data/mock/InMemoryRepositories'
 import { InMemoryWorkInterestRepository } from '../data/mock/InMemoryWorkInterestRepository'
 import { mockupFeedbackReportRepository } from '../data/mock/mockupRepositories'
+import type { SerialRepository } from '../domain/repositories/SerialRepository'
+
+// 서버가 없는 격리 컨테이너라 '다음 회차' 게시판은 'AI 자율 집필 꺼짐'(탭 없음)으로 답해, 정본 작품 화면이 네트워크 오류로 깨지지 않게 한다. 게시판을 확인하는 테스트는 serialUseCase를 대역으로 바꾼다.
+const unsupported = async () => { throw new Error('데모에서는 지원하지 않아요.') }
+const noSerialBoard: SerialRepository = {
+  settings: unsupported, saveSettings: unsupported, run: unsupported, boards: unsupported, vote: unsupported, cancelVote: unsupported,
+  submitProposal: unsupported, likeProposal: unsupported, unlikeProposal: unsupported, hideProposal: unsupported,
+  board: async () => ({ enabled: false, board: null, choices: [], myChoiceId: null, proposals: [], summary: null }),
+}
 
 /** 시드 작품과 메모리 Work·독서 기록·관심 작품·공지·고객지원 문의·운영 이벤트·운영 작품·운영 댓글·장르 목록·관리자 활동 기록·운영 대시보드·LLMOps·작업 감시 저장소를 명시 연결한 격리 컨테이너. 테스트 전용이며 production DI는 이를 쓰지 않는다. */
 export function createFixtureContainer() {
@@ -36,6 +45,7 @@ export function createFixtureContainer() {
     publicWorldRepository: asValue(new InMemoryPublicWorldRepository()),
     // 정본 작품이 없는 격리 컨테이너라 제보 목록은 비어 있고, 제보 화면을 확인하는 테스트는 저장소 메서드를 spyOn으로 바꾼다.
     feedbackReportRepository: asValue(mockupFeedbackReportRepository),
+    serialRepository: asValue(noSerialBoard),
   })
   return container
 }

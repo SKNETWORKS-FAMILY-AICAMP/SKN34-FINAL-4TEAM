@@ -17,8 +17,8 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 | 앱 | 다섯 앱 소스 build, web은 nginx 정적 runtime, HMR 아님 | 다섯 앱의 GHCR `:develop`, `linux/amd64` | 다섯 앱의 GHCR `:main`, `linux/amd64`, 게시 여부 미확인 |
 | DB·SMTP | 새 프로젝트 범위 `core-postgres` volume의 PostgreSQL + Mailpit | 로컬과 같은 PostgreSQL·Mailpit 정의 재사용, 별도 프로젝트 DB volume | 별도 승인·준비한 외부 PostgreSQL·SMTP, 내장 DB·Mailpit·volume 없음 |
 | web 포트 | `127.0.0.1:${WEB_PORT:-5173}` | `127.0.0.1:${CD_WEB_PORT}` | `127.0.0.1:${WEB_PORT}` |
-| Langfuse | 같은 프로젝트에 항상 `include`(웹·worker와 자체 저장소 4개, [절차](#로컬에서-켜기)) | 같은 프로젝트에 `include`(웹·worker와 자체 저장소 4개) | 같은 프로젝트에 `include`(자체 저장소·volume 포함, 앱 DB는 외부 PostgreSQL 그대로) |
-| 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025·Langfuse 웹(개발자용) `${LANGFUSE_WEB_PORT:-3000}`, 모두 loopback | Langfuse 웹(개발자용) `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`만 | Langfuse 웹(개발자용) `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`만 |
+| Langfuse | 같은 프로젝트에 항상 `include`(웹·worker·ClickHouse·Redis, PostgreSQL·MinIO는 앱 것 공유, [절차](#로컬에서-켜기)) | 같은 프로젝트에 `include`(로컬과 같음) | 같은 프로젝트에 `include`(ClickHouse·Redis, PostgreSQL·S3는 `LANGFUSE_DATABASE_URL`·`LANGFUSE_S3_ENDPOINT`로 외부 것) |
+| 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025, 모두 loopback | 없음 | 없음 |
 
 루트 진입점은 Compose native `include`로 base+local을 재사용하므로 build context는 `infrastructure/` 기준의 `../frontend`·`../backend/*`입니다.
 루트 `.env`는 기본 명령에서 자동 로드하며 컨테이너에는 서비스별 allowlist만 전달합니다. dev는 local 파일의 PostgreSQL·Mailpit 서비스만 native `extends`로 재사용하고 호스트 포트는 제거합니다. 원격 CD에서는 `--project-directory`와 임시 설정 위치가 다르므로 `CD_LOCAL_COMPOSE_FILE`(extends)과 `CD_LANGFUSE_COMPOSE_FILE`(include)을 임시 파일의 절대 경로로 고정합니다. dev 렌더링에 앱 build는 없으며 DB volume은 `storyfork-develop-cd_core-postgres`로 격리됩니다. Compose v2.24.4 이상을 사용합니다.
@@ -64,6 +64,7 @@ docker compose down
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` | Core/Content → AI |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` | Core → AI Health |
 | `AI_GENERATION_READ_TIMEOUT` | `75s` | Content → AI 생성 |
+| `SERIAL_SIMULATION_CREDIT_LIMIT` / `SERIAL_CHOICE_CREDIT_LIMIT` / `SERIAL_SUMMARY_CREDIT_LIMIT` / `SERIAL_EPISODE_CREDIT_LIMIT` | `5` / `5` / `5` / `1000` | Content만, AI 자율 연재의 크레딧 예약 상한(시뮬레이션 제안 글은 작성자, 선택지 생성·회차 요약·회차 실행은 작품 소유자 부담). 회차 실행 1000은 인물 시뮬레이션 장면(보통 300~500)과 집필·검수·재작성까지 같은 예약으로 세는 추정 상한이며 실측 전이라 첫 실행 뒤 다시 맞춥니다. 소유자의 사용 가능 잔액이 이 값 이상이어야 실행됩니다(시연 계정은 관리자 크레딧 지급으로 미리 채웁니다). 이전 `.env.example`로 만든 기존 `.env`(`cp -n`은 덮어쓰지 않습니다)나 배포 환경 변수에 `SERIAL_EPISODE_CREDIT_LIMIT=150`·`250`이 남아 있으면 그 값이 기본값보다 우선하므로 1000으로 고치거나 지워야 합니다(그대로 두면 사용량이 그 값을 넘는 회차 실행이 `크레딧 상한을 넘었습니다.`로 실패합니다). 회차 실행의 AI 읽기 한도 35분과 `running` 정체 정리 45분은 환경 변수가 아닌 코드 상수입니다 |
 | `CORE_AUTH_BASE_URL` | native `http://127.0.0.1:8080`, Compose 내부 DNS | Content → Core 인증 확인 |
 | `CORE_AUTH_CONNECT_TIMEOUT` / `CORE_AUTH_READ_TIMEOUT` | `1s` / `3s` | Content 인증 확인 |
 | `CONTENT_CORE_AUTH_TOKEN` | 빈 값 | Core/Content만, 활성화 시 필수 |
@@ -135,9 +136,13 @@ env ATTACHMENT_S3_ENDPOINT=http://127.0.0.1:9000 \
 
 API·복구 한계는 호환 위치에 보존한 [첨부 계약](../backend/core-api/README.md#설정-이미지일반-파일-87)을 따릅니다. 설정 검사 `infrastructure/tests/test_attachment_environment.py`는 앱/DB/컨테이너를 시작하지 않지만 전체 클래스의 Compose JSON 렌더링은 CI configuration에서 실행합니다. 로컬 자동 검사는 native 문서 계약 같은 순수 메서드와 `config --quiet`만 선택합니다.
 
-## 로컬 원고 검색용 Elasticsearch (#56)
+## 원고 색인용 Elasticsearch (#56, 항상 켬)
 
-Docker Desktop을 실행한 뒤 저장소 루트에서 Elasticsearch 단일 노드를 시작합니다. 공식 9.5.6 이미지를 사용하며 메모리 상한은 1GiB입니다. 별도 Compose 프로젝트이므로 앱 스택이나 `.env` 설정이 필요하지 않습니다.
+원고 색인(Elasticsearch)은 **끄는 플래그 없이 항상 켜져 있습니다**(2026-11-22 사용자 결정으로 `MANUSCRIPT_INDEX_ENABLED`를 없앴습니다). Content는 시작할 때 인덱스를 확인하므로 Elasticsearch가 없으면 시작하지 않고, 원고 Q&A(Retrieval)와 AI 자율 연재의 관련 장면 검색이 이 색인을 씁니다. 로컬 Compose 스택(`docker compose up`)·개발 서버 배포·CI 시스템 Compose는 `elasticsearch` 서비스를 항상 함께 띄우고 Content가 healthy가 될 때까지 기다립니다. CI 통합 단계도 Content 작업에 같은 이미지를 service로 띄웁니다. 운영(prod) 설정은 내장 서비스·볼륨을 두지 않으므로 외부 Elasticsearch 주소 `MANUSCRIPT_INDEX_URL`이 필수입니다(비우면 `config`가 실패합니다).
+
+### 네이티브 Content용 단독 Elasticsearch
+
+앱 스택 없이 Content만 네이티브로 실행할 때 쓰는 별도 Compose 프로젝트입니다. Docker Desktop을 실행한 뒤 저장소 루트에서 Elasticsearch 단일 노드를 시작합니다. 공식 9.5.6 이미지를 사용하며 메모리 상한은 1GiB입니다. 앱 스택이나 `.env` 설정이 필요하지 않습니다. 로컬 Compose 스택의 `elasticsearch` 서비스와 같은 이미지·설정이고 호스트 포트도 같은 9200이라 **둘을 함께 띄우지 않습니다**.
 
 ```powershell
 docker compose -f infrastructure/docker-compose.elasticsearch.yaml up -d --wait
@@ -146,7 +151,7 @@ curl.exe --fail --silent --show-error 'http://127.0.0.1:9200/_cluster/health?pre
 
 상태가 `green` 또는 `yellow`이면 요청을 받을 수 있습니다. 로컬 개발 전용 HTTP이며 인증을 끄고 `127.0.0.1`에만 포트를 엽니다. 종료하려면 같은 Compose 파일로 `stop`을 실행합니다. 인덱스 데이터는 `manuscript-index` 볼륨에 남습니다.
 
-`MANUSCRIPT_INDEX_ENABLED=true`인 Content는 시작할 때 인덱스가 없으면 [v1 매핑](elasticsearch/manuscript-chunks-v1.json)으로 한 번 만듭니다. Content는 같은 내용의 `src/main/resources/manuscript/manuscript-chunks-v1.json`을 쓰고, 두 파일은 단위 테스트로 일치를 확인합니다. 기존 인덱스는 다시 만들거나 지우지 않고 매핑만 검증합니다. 매핑이 다르거나 샤드를 배정하지 못하면 Content가 시작하지 않습니다.
+Content는 시작할 때 인덱스가 없으면 [v1 매핑](elasticsearch/manuscript-chunks-v1.json)으로 한 번 만듭니다. Content는 같은 내용의 `src/main/resources/manuscript/manuscript-chunks-v1.json`을 쓰고, 두 파일은 단위 테스트로 일치를 확인합니다. 기존 인덱스는 다시 만들거나 지우지 않고 매핑만 검증합니다. 매핑이 다르거나 샤드를 배정하지 못하면 Content가 시작하지 않습니다.
 
 PostgreSQL의 원고·판본이 정본입니다. [원고 검색 계약](../docs/writing-ai-architecture/07-retrieval-contract-and-mocks.md#원고-벡터-인덱스-v1)에서 384차원 모델, 작품·Fork·판본 필터, 검증 결과를 확인할 수 있습니다.
 
@@ -154,25 +159,25 @@ PostgreSQL의 원고·판본이 정본입니다. [원고 검색 계약](../docs/
 
 1. 같은 Content DB에 전용 v1 인덱스 하나를 사용합니다. 여러 개발 DB를 쓴다면 각각 `storyfork-manuscript-v1-<이름>` 인덱스를 만들고 `MANUSCRIPT_INDEX_NAME`에 지정합니다. 대조 작업은 선택한 DB의 공개 판본에 없는 청크를 해당 인덱스에서 제거합니다.
 2. 모델 리비전 `614241f622f53c4eeff9890bdc4f31cfecc418b3`의 `onnx/`에서 `tokenizer.json`과 `model_qint8_avx512_vnni.onnx`를 같은 로컬 디렉터리에 받습니다. 이 경로를 `MANUSCRIPT_EMBEDDING_MODEL_DIR`로 지정하고 AI Service를 `uv run --locked --extra manuscript uvicorn app.main:create_app --factory --reload`로 시작합니다. [고정 리비전 모델 파일](https://huggingface.co/intfloat/multilingual-e5-small/tree/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx)
-3. Content 터미널에 `MANUSCRIPT_INDEX_ENABLED=true`와 해당 DB의 `DATABASE_*`를 설정하고 평소대로 Content를 시작합니다. 두 서비스의 `INTERNAL_TOKEN`은 같아야 하며, 네이티브 실행에서는 필요한 값을 루트 `.env`에서 각 터미널에 설정합니다. Elasticsearch 기본 주소는 `http://127.0.0.1:9200`입니다.
+3. Content 터미널에 해당 DB의 `DATABASE_*`를 설정하고 평소대로 Content를 시작합니다(색인은 늘 켜져 있어 별도 설정이 없습니다). 두 서비스의 `INTERNAL_TOKEN`은 같아야 하며, 네이티브 실행에서는 필요한 값을 루트 `.env`에서 각 터미널에 설정합니다. Elasticsearch 기본 주소는 `http://127.0.0.1:9200`입니다.
 4. Content 로그의 `manuscript index reconciled`와 `curl.exe --fail http://127.0.0.1:9200/storyfork-manuscript-v1/_count`로 첫 적재를 확인합니다. 이후 변경은 기본 60초 주기에서 확인할 수 있습니다.
 
-### 로컬 compose 스택에서 켜기 (#475)
+### 로컬 compose 스택 (#475)
 
-로컬 compose(`storyfork-local`)의 Content는 원고 색인을 기본으로 끕니다. 켜면 원고 Q&A(Retrieval)가 동작합니다. 임베딩 모델은 ai-service 이미지에 이미 들어 있어서 따로 받을 필요가 없습니다.
+로컬 compose(`storyfork-local`)는 원고 색인용 `elasticsearch` 서비스를 항상 함께 띄웁니다(호스트 `127.0.0.1:9200`, 데이터는 `storyfork-local_manuscript-index` 볼륨). Content는 이 서비스가 healthy가 된 뒤 `http://elasticsearch:9200`으로 접속하므로 첫 시작은 이미지를 받고 인덱스를 만드느라 시간이 더 걸립니다. 임베딩 모델은 ai-service 이미지에 이미 들어 있어서 따로 받을 필요가 없습니다.
 
-1. 위 명령으로 Elasticsearch를 먼저 띄웁니다. Content 컨테이너는 `http://host.docker.internal:9200`으로 이 ES에 접속합니다.
-2. 루트 `.env`에 `MANUSCRIPT_INDEX_ENABLED=true`를 넣고 `docker compose up -d --build --wait`로 다시 시작합니다. 네이티브 Content와 다른 DB를 쓴다면 `MANUSCRIPT_INDEX_NAME`을 `storyfork-manuscript-v1-<이름>`처럼 따로 정합니다(대조 작업이 그 DB에 없는 청크를 지웁니다).
-3. Content 로그의 `manuscript index reconciled`로 첫 적재를 확인한 뒤, 집필실 채팅에서 발행 회차에 대한 작품 질문을 보냅니다. `MANUSCRIPT_INDEX_URL`은 네이티브 실행용 값이라 compose에서는 읽지 않습니다.
+1. 루트 `.env`에 따로 넣을 설정은 없습니다. 네이티브 Content와 다른 DB를 쓴다면 `MANUSCRIPT_INDEX_NAME`을 `storyfork-manuscript-v1-<이름>`처럼 따로 정합니다(대조 작업이 그 DB에 없는 청크를 지웁니다). `MANUSCRIPT_INDEX_URL`은 네이티브 실행용 값이라 compose에서는 읽지 않습니다.
+2. Content 로그의 `manuscript index reconciled`로 첫 적재를 확인한 뒤, 집필실 채팅에서 발행 회차에 대한 작품 질문을 보냅니다.
+3. 단독 Elasticsearch(위)를 따로 띄워 두었다면 먼저 `stop`합니다: 호스트 포트 9200이 겹칩니다.
 
-켜기 전에 ES 상태가 `green` 또는 `yellow`인지 확인합니다. Content는 시작할 때 인덱스를 만들거나 매핑을 검증합니다.
+CI의 시스템 Compose(`infrastructure/ci/compose.test.yaml`)는 같은 `elasticsearch` 서비스를 호스트 포트 없이 띄우고 Content가 healthy를 기다립니다. CI 통합 단계(`.github/workflows/ci.yml`)는 Content 작업에 Elasticsearch service(`127.0.0.1:9200`)를 띄우므로 모든 Spring 컨텍스트가 인덱스를 만들 수 있습니다.
 
 ### 개발 서버 자동 배포(CD)
 
 develop CI가 성공하면 CD가 [`docker-compose.dev.yaml`](docker-compose.dev.yaml)로 Elasticsearch를 함께 띄웁니다. 별도 수동 작업은 없습니다.
 
 - **Elasticsearch**: 로컬과 같은 공식 이미지 `docker.elastic.co/elasticsearch/elasticsearch:9.5.6`를 단일 노드로 실행하며 보안 기능은 끕니다. 호스트 포트를 열지 않고 Compose 내부 네트워크에서만 접근합니다. 데이터는 `storyfork-develop-cd_manuscript-index` 볼륨에 저장하고 배포할 때마다 그대로 둡니다. CD는 `down -v`를 실행하지 않습니다.
-- **Content**: `MANUSCRIPT_INDEX_ENABLED=true`와 `MANUSCRIPT_INDEX_URL=http://elasticsearch:9200`로 시작합니다. 인덱스가 없으면 생성하고, 있으면 매핑을 검증합니다. 실패하면 Content가 healthy가 되지 않아 `up --wait`가 실패합니다.
+- **Content**: `MANUSCRIPT_INDEX_URL=http://elasticsearch:9200`로 시작합니다(색인은 끄는 플래그 없이 항상 켭니다). 인덱스가 없으면 생성하고, 있으면 매핑을 검증합니다. 실패하면 Content가 healthy가 되지 않아 `up --wait`가 실패합니다.
 - **AI 이미지**: `--extra manuscript`(numpy·onnxruntime·tokenizers, `uv.lock` 고정)를 설치합니다. 고정 리비전 `614241f6…`의 `onnx/model_qint8_avx512_vnni.onnx`와 `onnx/tokenizer.json`은 빌드할 때 `ADD --checksum`으로 받으며, SHA-256이 다르면 빌드가 실패합니다. 위치는 `MANUSCRIPT_EMBEDDING_MODEL_DIR=/app/models/multilingual-e5-small`입니다. 서버에는 모델 디렉터리나 `.env` 값을 따로 둘 필요가 없습니다.
 - **배포 확인**: 스택이 healthy가 된 뒤 CD가 `ai-service`에서 E5 임베딩을 한 번 실행합니다. 실패하면 이전 이미지를 정리하지 않고 CD를 실패로 끝냅니다.
 
@@ -203,7 +208,7 @@ docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index
 | 로컬 | 루트 [`compose.yaml`](../compose.yaml)이 앱 파일과 **별도 `include` 항목**으로 앱 스택과 같은 프로젝트(`storyfork-local`)에서 항상 함께 켭니다(정의 복제 없음, [로컬에서 켜기](#로컬에서-켜기)) |
 | develop(CD)·prod | `docker-compose.dev.yaml`·`docker-compose.prod.yaml`이 `include`로 앱 스택과 같은 프로젝트에서 함께 켭니다(정의 복제 없음). 앱은 같은 네트워크의 `http://langfuse-web:3000`으로 부르므로 네트워크 연결 작업이 없습니다 |
 
-구성은 웹·worker와 자체 저장소(PostgreSQL·ClickHouse·Redis·MinIO)입니다. 서비스 이름은 앱 스택의 `postgres`·`minio`와 겹치지 않게 모두 `langfuse-` 접두어를 씁니다. 나머지 저장소는 호스트 포트가 없습니다. 웹 화면은 **개발자용**이라 `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`에만 열고 공개 진입점(nginx)에는 두지 않습니다. 개발자는 초기 관리자(`LANGFUSE_INIT_USER_*`)로 로그인하며 가입은 막혀 있습니다. 원격 서버에서는 SSH 포트 포워딩으로 서버의 `LANGFUSE_WEB_PORT`를 같은 번호의 로컬 포트로 연 뒤 `http://localhost:<포트>`에 접속합니다(Langfuse의 기준 주소가 `http://localhost:${LANGFUSE_WEB_PORT:-3000}`로 고정). 메모리를 수 GB 쓰며 ClickHouse는 3GiB로 제한합니다.
+구성은 웹·worker와 Langfuse 필수 저장소 ClickHouse·Redis입니다(2026-11-23 사용자 결정). PostgreSQL·MinIO는 따로 띄우지 않고 앱 스택의 `postgres`(DB `langfuse`, 앱의 `DATABASE_USER`·`DATABASE_PASSWORD`, 첫 시작 때 Langfuse 마이그레이션이 만듭니다)와 `minio`(첨부 버킷 `ATTACHMENT_S3_BUCKET`의 `langfuse/` 접두어, 앱의 `AWS_*` 키)를 씁니다. `langfuse-web`은 AI·운영이 `http://langfuse-web:3000`으로 부르는 API 서버라 남기지만 **웹 화면은 쓰지 않아** 호스트 포트·로그인 사용자가 없고 가입도 막혀 있습니다. 메모리를 수 GB 쓰며 ClickHouse는 3GiB로 제한합니다.
 
 ### develop·prod에서 켜기
 
@@ -211,10 +216,9 @@ docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index
 
 | 변수 | 내용 |
 |---|---|
-| `LANGFUSE_DB_PASSWORD`·`LANGFUSE_CLICKHOUSE_PASSWORD`·`LANGFUSE_REDIS_PASSWORD`·`LANGFUSE_MINIO_PASSWORD`·`LANGFUSE_NEXTAUTH_SECRET`·`LANGFUSE_SALT`·`LANGFUSE_ENCRYPTION_KEY` | Langfuse 서버 전용 비밀값. 각각 `openssl rand -hex 32`(MinIO는 8자 이상) |
+| `LANGFUSE_CLICKHOUSE_PASSWORD`·`LANGFUSE_REDIS_PASSWORD`·`LANGFUSE_NEXTAUTH_SECRET`·`LANGFUSE_SALT`·`LANGFUSE_ENCRYPTION_KEY` | Langfuse 서버 전용 비밀값. 각각 `openssl rand -hex 32` |
 | `LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY` | `pk-lf-<임의값>`·`sk-lf-<임의값>`. Langfuse가 첫 시작 때 같은 키로 조직 `storyfork`·프로젝트 `storyfork-writing-ai`를 만들고, AI·운영 서비스가 같은 값을 씁니다 |
-| `LANGFUSE_INIT_USER_EMAIL`·`LANGFUSE_INIT_USER_PASSWORD` | 헤드리스 초기화용 초기 관리자(조직 OWNER). 개발자가 Langfuse 웹에 로그인할 때만 씁니다 |
-| (선택) `LANGFUSE_WEB_PORT` | 개발자용 loopback 포트, 기본 3000. 점유돼 있으면 바꿉니다 |
+| (prod만) `LANGFUSE_DATABASE_URL`·`LANGFUSE_S3_ENDPOINT` | 외부 PostgreSQL의 `langfuse` DB 주소와 S3 endpoint. 로컬·develop은 비워 두면 앱 `postgres`·`minio`를 씁니다 |
 
 배포 전제는 CD가 확인하지 않습니다. 서버 관리자가 확인합니다(아래 'CI → CD' 전제조건 표에도 있습니다).
 
@@ -224,14 +228,16 @@ docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index
 
 1. 루트 `.env`에 위 표와 같은 `LANGFUSE_*` 값을 채웁니다(이름과 설명은 `.env.example`). 이제 로컬 `docker compose up`의 필수값이라 비어 있으면 `config`가 실패합니다. `LANGFUSE_BASE_URL`은 네이티브 ai-service용(`http://localhost:3000`)이며 Compose 컨테이너는 항상 내부 주소를 씁니다.
 2. 저장소 루트에서 [시작과 설정](#시작과-설정)의 `docker compose up -d --build`로 시작합니다. 첫 시작은 Langfuse 이미지를 받고 마이그레이션하느라 몇 분 걸립니다.
-3. 첫 시작 때 조직 `STORYFORK`, 프로젝트 `writing-ai`, 관리자(`LANGFUSE_INIT_USER_*`)와 `.env`의 같은 API 키가 만들어집니다. 회원가입은 막혀 있습니다. `http://localhost:${LANGFUSE_WEB_PORT:-3000}`에 관리자로 로그인합니다. 집필 AI 요청은 **Tracing → Traces**에 나타납니다. 응답의 `runId`가 trace id입니다. 전송은 몇 초 단위로 묶여 늦게 보일 수 있습니다.
+3. 첫 시작 때 조직 `STORYFORK`, 프로젝트 `writing-ai`와 `.env`의 같은 API 키가 만들어집니다. 추적·지표·프롬프트는 운영 관리자 화면(LLM Ops)에서 봅니다. 응답의 `runId`가 trace id이며 전송은 몇 초 단위로 묶여 늦게 보일 수 있습니다.
+
+**전용 저장소에서 옮기기(한 번):** 예전 `langfuse-postgres`가 있으면 웹·worker를 멈추고 앱 `postgres`에 `CREATE DATABASE langfuse`를 만든 뒤 `pg_dump --no-owner --no-acl`로 옮기고 `docker compose up -d --remove-orphans`로 예전 컨테이너를 지웁니다. 예전 볼륨 `storyfork-local_langfuse-postgres`·`storyfork-local_langfuse-minio`는 남으니 확인 후 직접 지웁니다.
 
 **한 번만 하는 이전:** 예전에 별도 프로젝트로 Langfuse를 켜 뒀다면 새로 시작하기 전에 저장소 루트에서 `docker compose -p storyfork-langfuse down`으로 멈춥니다(웹 포트가 겹칩니다). 예전 볼륨 `storyfork-langfuse_langfuse-*`은 남지만 새 프로젝트는 쓰지 않으므로 이전 로컬 trace는 이어지지 않습니다. AI·운영 컨테이너를 그 네트워크에 연결해 뒀다면 `storyfork-langfuse_default`는 '사용 중'이라 남을 수 있으나 무해합니다.
 
 비밀값을 바꾸면 이미 초기화된 Langfuse 볼륨과 맞지 않습니다. 프로젝트 전체 `down -v`는 앱 DB·Neo4j·첨부 볼륨까지 지우므로 쓰지 말고, Langfuse 컨테이너와 볼륨만 지웁니다(되돌릴 수 없음).
 
 ```bash
-docker compose rm -sf langfuse-web langfuse-worker langfuse-postgres langfuse-clickhouse langfuse-minio langfuse-redis
+docker compose rm -sf langfuse-web langfuse-worker langfuse-clickhouse langfuse-redis
 docker volume rm $(docker volume ls -q -f name=storyfork-local_langfuse-)
 ```
 

@@ -46,7 +46,7 @@ const instant = z.iso.datetime({offset:true})
 const storageUsage = z.object({
   items: z.array(z.object({ id: z.string().min(1), kind: z.enum(storageKinds), title: z.string(), parentTitle: z.string(), bytes: z.number().int().nonnegative() })),
 })
-const settingsVersion = z.object({ revision: z.number().int().positive(), writingMode: z.enum(['direct', 'assisted']), changedAt: instant })
+const settingsVersion = z.object({ revision: z.number().int().positive(), writingMode: z.enum(['direct', 'assisted', 'autonomous']), changedAt: instant })
 const unsetSettings = z.object({ revision: z.literal(0), writingMode: z.null(), changedAt: z.null() })
 const operatingSettings = z.object({
   current: z.union([settingsVersion, unsetSettings]), history: z.array(settingsVersion),
@@ -96,11 +96,11 @@ export type ReadingWorldRecord = z.infer<typeof readingWorld>
 export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepository {
   private readonly fetcher?: typeof fetch
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
-  /** anonymous면 Bearer 없이 보낸다. 기본은 공개 목록·세계관 같은 /public/works 읽기이고, 회차 댓글은 로그인 상태면 Bearer로 읽어 mine·liked를 받는다. */
-  async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal, anonymous = path.startsWith('/public/works') && method === 'GET'): Promise<T> {
+  /** anonymous면 Bearer 없이 보낸다. 기본은 공개 목록·세계관 같은 /public/works 읽기이고, 회차 댓글은 로그인 상태면 Bearer로 읽어 mine·liked를 받는다. timeoutMs는 서버가 AI를 기다리는 요청만 기본 80초보다 늘린다. */
+  async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal, anonymous = path.startsWith('/public/works') && method === 'GET', timeoutMs = 80000): Promise<T> {
     const fetcher = this.fetcher ?? fetch
     const version = authVersion()
-    const requestSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(80000)]) : AbortSignal.timeout(80000)
+    const requestSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(timeoutMs)]) : AbortSignal.timeout(timeoutMs)
     const headers: Record<string, string> = {'Content-Type':'application/json'}
     if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) headers['X-CSRF-TOKEN'] = await csrf(requestSignal)
     const init = {method, headers, credentials: 'same-origin' as const, body:body === undefined ? undefined : JSON.stringify(body), signal:requestSignal}
@@ -116,7 +116,9 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     const value: unknown = await response.json().catch(() => undefined)
     if (!response.ok) {
       const error = z.object({detail:z.string()}).safeParse(value)
-      throw new Error(error.success ? error.data.detail : '요청을 처리하지 못했어요. 입력과 서버 상태를 확인해 주세요.')
+      // 서버 오류 code(예: SERIAL_RUNNING)는 호출 측이 고정 문구를 고를 수 있게 Error.cause에 싣는다. 문구는 그대로다.
+      const code = z.object({code:z.string()}).safeParse(value)
+      throw new Error(error.success ? error.data.detail : '요청을 처리하지 못했어요. 입력과 서버 상태를 확인해 주세요.', code.success ? {cause:code.data.code} : undefined)
     }
     if(method==='DELETE' && response.status!==204) throw new Error('삭제 완료 응답을 확인할 수 없어요. 다시 불러와 상태를 확인해 주세요.')
     const parsed = schema.safeParse(value)
@@ -127,6 +129,7 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/draft?revision=${revision}`,z.undefined(),'DELETE',undefined,signal)}
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}?revision=${revision}`,z.undefined(),'DELETE',undefined,signal)}
   writingList(id:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes`,z.array(writing),'GET',undefined,signal)}
+  writingEpisode(id:string,number:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}`,writing,'GET',undefined,signal)}
   workSettings(id: string, signal?: AbortSignal) {
     return this.request(operatingSettingsPath(id), operatingSettings, 'GET', undefined, signal)
   }

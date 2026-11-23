@@ -44,6 +44,24 @@ describe('작품 운영 설정', () => {
       method: 'PUT', body: JSON.stringify({ revision: 0, writingMode: 'assisted' }),
     }))
   })
+
+  // AI 자율 집필(autonomous)을 저장하면 서버가 켠다(계약 'AI 자율 집필 = 집필 방식'). 읽기·이력에도 같은 값이 온다.
+  it('AI 자율 집필(autonomous)을 저장하고 응답의 설정 버전·이력으로 받는다', async () => {
+    const version = { revision: 2, writingMode: 'autonomous', changedAt: '2026-11-22T03:00:00Z' }
+    const defaults = { worldUpdateMode: 'manual', proofreadingMode: 'review', autoserialState: 'off' }
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ ...defaults, current: version, history: [version] }))
+    const saved = await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).updateWorkSettings('w', 1, 'autonomous')
+    expect(saved.current).toEqual(version)
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/works/w/operating-settings', expect.objectContaining({ method: 'PUT', body: JSON.stringify({ revision: 1, writingMode: 'autonomous' }) }))
+  })
+
+  it('실행 중에 AI 자율 집필에서 다른 방식으로 바꾸는 저장의 409 SERIAL_RUNNING은 서버 detail을 그대로 알린다', async () => {
+    const detail = 'AI 집필을 실행하는 중이라 지금은 끌 수 없어요. 끝난 뒤에 다시 시도해 주세요.'
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ detail, code: 'SERIAL_RUNNING' }, { status: 409 }))
+    const error = await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).updateWorkSettings('w', 2, 'direct').catch((e: unknown) => e)
+    expect((error as Error).message).toBe(detail)
+    expect((error as Error).cause).toBe('SERIAL_RUNNING')
+  })
 })
 
 describe('회차 예약 발행', () => {
@@ -296,6 +314,14 @@ describe('episode checkpoints (DEC-43)', () => {
     const rows = await new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([{ ...episode, checkpoints }]))).writingList('w')
     expect(rows[0].checkpoints).toEqual(checkpoints)
   })
+  it('reads one writing episode from the existing episode endpoint and rejects a malformed draft (#497)', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ ...episode, checkpoints }))
+    const read = await new HttpEpisodeRepository(fetcher).writingEpisode('w', 2)
+    expect(fetcher.mock.calls[0][0]).toBe('/api/v1/works/w/episodes/2')
+    expect(read.draft.revision).toBe(episode.draft.revision)
+    await expect(new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json({ ...episode, draft: { title: 'x' }, checkpoints }))).writingEpisode('w', 2))
+      .rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
   it('rejects a response that omits checkpoints instead of assuming there are none', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json([episode]))
     await expect(new HttpEpisodeRepository(fetcher).writingList('w')).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
@@ -485,5 +511,40 @@ describe('Fork 세계관 독립(#583)', () => {
       const fetcher = vi.fn().mockImplementation(async () => Response.json(body, { status: 201 }))
       await expect(new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).detachInheritedWorld('fork')).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
     }
+  })
+})
+
+describe('오류 응답의 code', () => {
+  const failure = (body: unknown) => new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json(body, { status: 409 })))
+
+  it('code가 있으면 Error.cause에 싣고 문구는 detail 그대로다', async () => {
+    const error = await failure({ detail: '이미 실행 중이에요.', code: 'SERIAL_RUNNING' }).deleteWork('w').catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error).message).toBe('이미 실행 중이에요.')
+    expect((error as Error).cause).toBe('SERIAL_RUNNING')
+  })
+
+  // AI 집필이 켜져 있는 동안 소유자의 원고 수정은 서버가 거절한다(계약 'AI 집필 중 원고 잠금'). 화면은 그 문구를 그대로 보인다.
+  it.each([
+    ['초안 저장(PUT)', (repo: HttpEpisodeRepository) => repo.writeEpisode('w', 1, { title: '제목', body: '원고', revision: 1 }, false)],
+    ['저장 버전 발행(POST)', (repo: HttpEpisodeRepository) => repo.publishEpisode('w', 1, 1, 'v1', true)],
+    ['회차 삭제(DELETE)', (repo: HttpEpisodeRepository) => repo.deleteEpisode('w', 1, 1)],
+  ])('%s의 409 SERIAL_LOCKED는 서버 detail을 그대로 알리고 code를 cause에 싣는다', async (_name, call) => {
+    const detail = 'AI 집필 중에는 원고를 수정할 수 없습니다. AI 집필을 끄면 수정할 수 있어요.'
+    const error = await call(failure({ detail, code: 'SERIAL_LOCKED' })).catch((e: unknown) => e)
+    expect((error as Error).message).toBe(detail)
+    expect((error as Error).cause).toBe('SERIAL_LOCKED')
+  })
+
+  it('detail 없이 code만 와도 code를 싣고 문구는 기본 안내다', async () => {
+    const error = await failure({ code: 'INSUFFICIENT_CREDIT' }).deleteWork('w').catch((e: unknown) => e)
+    expect((error as Error).message).toContain('요청을 처리하지 못했어요')
+    expect((error as Error).cause).toBe('INSUFFICIENT_CREDIT')
+  })
+
+  it('code가 없으면 cause도 없다', async () => {
+    const error = await failure({ detail: '서버 문구' }).deleteWork('w').catch((e: unknown) => e)
+    expect((error as Error).message).toBe('서버 문구')
+    expect((error as Error).cause).toBeUndefined()
   })
 })

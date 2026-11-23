@@ -73,8 +73,11 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
 
   return {
     open, hide: () => setOpen(false), compose: () => setComposing(true),
-    /** [시뮬레이션] 버튼: 보여 줄 장면(진행 중·답을 기다리는·끝난 장면)이 있으면 그 장면을, 없으면 새 시작 양식을 연다. 끝난 장면에서는 '새 시뮬레이션'이 양식을 연다. */
-    show: () => { setOpen(true); setAsked(false) },
+    /**
+     * 무대 열기. form이면(상단 [시뮬레이션] 버튼) 진행 중이거나 답을 기다리는 장면이 없는 한 새 시작 양식부터 연다: 끝난 장면 기록을 먼저 보이지 않는다.
+     * 채팅의 '무대 열기'(form 없음)는 그 장면을 연다. 끝난 장면에서는 '새 시뮬레이션'이 양식을 연다.
+     */
+    show: (form = false) => { setOpen(true); setAsked(false); setComposing(form && !attention) },
     simulation: sim, rows: sim ? sceneRows(sim, roster) : [], names: sim ? characterNames(sim, roster) : {}, showForm: !sim || composing,
     live, playing, canAct, blocked, queued, finishing: stopAfterTurn,
     statusKey: shown, statusText: shown === 'paused' ? '일시정지' : shown === 'error' ? '오류로 멈춤' : shown && statusLabel[shown],
@@ -99,7 +102,9 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
     // 비트 거부로 멈춘 장면이면 거부한 인물 카드 id(모르면 null). 거부는 기획 쪽 문제라 '이대로 진행'은 없고 카드나 흐름을 고쳐 다시 시도한다(#356).
     rejection: sim ? beatRejection(sim) : null,
     sceneError: step && !step.simulation && step.status === 'failed' ? step.error ?? '시뮬레이션을 완료하지 못했어요.' : '',
-    answer: asked && !chat.simulation && !chat.pending ? chat.turns.at(-1)?.reply?.message ?? '' : '',
+    // 보내기 전에 막힌 시작(선택 글 5,000자 초과 등, #639)은 직전 턴의 답 대신 그 이유를 보인다.
+    answer: asked && !chat.inputError && !chat.simulation && !chat.pending ? chat.turns.at(-1)?.reply?.message ?? '' : '',
+    inputError: asked ? chat.inputError : '',
     // 이 무대에서 시작한 요청이 첫 턴을 만드는 중이다(아직 장면이 없다).
     starting: asked && !sim && chat.streaming,
     pending: chat.pending, deciding: chat.deciding,

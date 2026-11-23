@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
+import type { WritingMode } from '../../../../domain/entities/operatingSettings'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type { WritingChatUseCase } from '../../../../domain/usecases/WritingChatUseCase'
 import { WritingStudio } from './WritingStudio'
@@ -117,11 +118,10 @@ it('AI 채팅은 보낼 수 없는 동안(데모·발행 회차 없음) 입력·
   expect(box.getAttribute('placeholder')).toBe('AI에게 무엇이든 물어보세요')
   for (const name of ['전송', '음성 입력 (준비 중)']) expect(within(chat).getByRole('button', { name })).toHaveProperty('disabled', true)
   expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/데모에서는|발행하면/)
-  // 첨부 안내는 + 버튼의 popover 안에만 있고, 항목은 모두 잠겨 있다.
-  expect(within(chat).queryByText('이미지·음성 첨부는 준비 중이에요.')).toBeNull()
+  // 첨부 항목은 모두 잠겨 있고(첨부는 켜져 있으니 '준비 중' 안내는 없다) 메뉴 설명은 잠긴 사유다.
   fireEvent.click(within(chat).getByRole('button', { name: '첨부' }))
-  for (const name of ['이미지 첨부', '음성 첨부']) expect(within(chat).getByRole('menuitem', { name })).toHaveProperty('disabled', true)
-  expect(within(chat).getByText('이미지·음성 첨부는 준비 중이에요.')).toBeTruthy()
+  for (const name of ['이미지 첨부', '텍스트 파일 첨부']) expect(within(chat).getByRole('menuitem', { name })).toHaveProperty('disabled', true)
+  expect(within(chat).queryByText('이미지·텍스트 파일 첨부는 준비 중이에요.')).toBeNull()
   // 빈 상태: 제목·한 줄 설명·추천 칩(칩도 잠겨 있어 입력창을 채우지 않는다)
   const log = within(chat).getByRole('log')
   expect(within(log).getByRole('heading', { name: '무엇을 함께 써볼까요?' })).toBeTruthy()
@@ -129,6 +129,14 @@ it('AI 채팅은 보낼 수 없는 동안(데모·발행 회차 없음) 입력·
   for (const name of ['다음 장면 아이디어', '이 회차 요약', '문장 다듬기']) expect(within(log).getByRole('button', { name })).toHaveProperty('disabled', true)
   expect(log.querySelectorAll('.chat-msg')).toHaveLength(0)
   expect(model.save).not.toHaveBeenCalled()
+})
+
+it('AI 채팅 머리줄에 파일을 놓아도 브라우저가 그 파일을 열어 집필실을 떠나지 않는다(#700)', async () => {
+  renderStudio()
+  const head = (await screen.findByRole('complementary', { name: 'AI 채팅' })).querySelector('.studio-chat-head')!
+  const dataTransfer = { files: [new File(['x'], '지도.png', { type: 'image/png' })] }
+  expect(fireEvent.dragOver(head, { dataTransfer })).toBe(false)
+  expect(fireEvent.drop(head, { dataTransfer })).toBe(false)
 })
 
 it('좁은 화면에서 쓸 수 있게 AI 채팅을 접었다 다시 열 수 있고 접어도 집필 영역은 그대로다', async () => {
@@ -166,6 +174,23 @@ it('AI 채팅은 머리글에 브랜드 마크와 AI 채팅 제목을 두고 메
   expect(follows(head, log) && follows(log, composer)).toBe(true)
   // 입력 카드가 채팅 패널의 마지막 요소라 세로 flex에서 바닥에 붙는다.
   expect(chat.querySelector('.chat-panel')!.lastElementChild).toBe(composer)
+})
+
+// 집필 방식(운영 설정)에 AI 자율 집필(autonomous)이 들어와도 집필실은 깨지지 않는다: 직접 집필처럼 AI 채팅을 접은 채로 시작하고 열 수 있다. 처음부터 채팅을 여는 것은 AI 협업 집필뿐이다.
+it.each<[WritingMode, boolean]>([['assisted', true], ['direct', false], ['autonomous', false]])('집필 방식이 %s이면 AI 채팅을 처음부터 열까: %s', async (mode, opened) => {
+  const read = vi.spyOn(appContainer.resolve<EpisodeUseCase>('episodeUseCase'), 'workSettings').mockResolvedValue({
+    current: { revision: 1, writingMode: mode, changedAt: '2026-11-22T03:00:00Z' }, history: [],
+    worldUpdateMode: 'manual', proofreadingMode: 'review', autoserialState: 'off',
+  })
+  renderStudio()
+  await waitFor(() => expect(read).toHaveBeenCalled())
+  if (opened) expect(await screen.findByRole('complementary', { name: 'AI 채팅' })).toBeTruthy()
+  else {
+    await act(async () => {})
+    expect(screen.queryByRole('complementary', { name: 'AI 채팅' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'AI 채팅 열기' })).toBeTruthy()
+  }
+  expect(screen.queryByText('집필 방식을 불러오지 못했어요.')).toBeNull()
 })
 
 it('창이 1200px 이하면 준비 중인 AI 채팅을 접은 채로 시작하고, 처음부터 초점을 옮기지 않는다', () => {

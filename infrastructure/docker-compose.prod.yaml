@@ -63,6 +63,8 @@ services:
       CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:?Set CONTENT_CORE_AUTH_TOKEN}
       OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
+      # 원고 색인은 항상 켜져 있다: 외부 Elasticsearch가 필요하다(이 파일은 볼륨을 만들지 않는다). 인덱스는 Content가 시작할 때 만들고 매핑을 검증한다.
+      MANUSCRIPT_INDEX_URL: ${MANUSCRIPT_INDEX_URL:?Set MANUSCRIPT_INDEX_URL to the external Elasticsearch URL}
       APP_CORS_ALLOWED_ORIGIN: ${AUTH_PUBLIC_ORIGIN:?Set AUTH_PUBLIC_ORIGIN to the public HTTPS origin}
 
   operations-service:

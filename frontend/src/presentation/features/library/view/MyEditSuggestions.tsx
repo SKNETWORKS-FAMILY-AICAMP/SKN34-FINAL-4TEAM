@@ -5,12 +5,14 @@ import { useMyEditSuggestionsViewModel } from '../viewmodel/useMyEditSuggestions
 /**
  * 내 서재 '내 댓글·신고' 탭의 내 수정 제안(기능 24). 상태만 읽습니다.
  * 승인돼도 독자에게 보이려면 작가가 발행해야 하므로 초안 반영과 발행을 구분해 안내합니다.
+ * embedded는 작품 관리의 '내 댓글·제보' 탭 안이다: 탭 제목(h2) 아래 묶음 제목이라 h3다(그 밖에는 쪽 제목(h1) 아래 구획이라 h2).
  */
-export function MyEditSuggestions() {
+export function MyEditSuggestions({ embedded = false }: { embedded?: boolean }) {
   const vm = useMyEditSuggestionsViewModel()
+  const Heading = embedded ? 'h3' : 'h2'
   return (
     <section className="sec" aria-labelledby="my-edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
-      <div className="sec-h"><h2 id="my-edit-suggestions-h">내 수정 제안</h2></div>
+      <div className="sec-h"><Heading id="my-edit-suggestions-h">내 수정 제안</Heading></div>
       {vm.isError && (
         <div className="panel" role="alert">
           <p>수정 제안을 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.</p>

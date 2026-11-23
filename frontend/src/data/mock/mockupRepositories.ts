@@ -126,6 +126,7 @@ export function createMockupWritingRepository() {
     list: async () => [structuredClone(work)],
     publicList: async () => [],
     writingList: async (_id: string) => structuredClone(episodes),
+    writingEpisode: async (_id: string, number: number) => structuredClone(find(number)),
     createEpisode: async (_id: string, title: string) => {
       const episode: WritingEpisode = { number: episodes.length + 1, draft: { title, body: '', revision: 1 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: now(), checkpointStatus: 'READY', hasDraft: true, checkpoints: [] }
       episodes.push(episode)

@@ -1672,6 +1672,18 @@ it('좁은 화면(900px 이하)에서는 AI 채팅이 기본으로 닫혀 있고
   expect(noChat()).toBeNull()
 })
 
+it('세계관 AI 채팅 머리줄에 파일을 놓아도 브라우저가 그 파일을 열지 않는다: 오른쪽 열도 좁은 화면의 서랍도(#700)', async () => {
+  const dataTransfer = { files: [new File(['x'], '지도.png', { type: 'image/png' })] }
+  const kept = (chat: HTMLElement) => !fireEvent.dragOver(chat.querySelector('.studio-chat-head')!, { dataTransfer }) && !fireEvent.drop(chat.querySelector('.studio-chat-head')!, { dataTransfer })
+  await showWorld()
+  expect(kept(chatPanel())).toBe(true)
+  cleanup()
+  viewport(600)
+  await showWorld()
+  fireEvent.click(screen.getByRole('button', { name: 'AI 채팅 열기' }))
+  expect(kept(chatDrawer()!)).toBe(true)
+})
+
 it('AI 채팅 전송이 잠겨 있는 동안에는 본문을 좁히지 않게 1200px 이하에서도 닫힌 채로 시작하고, 그보다 넓으면 연 채로 시작한다', async () => {
   viewport(1200)
   await showWorld()

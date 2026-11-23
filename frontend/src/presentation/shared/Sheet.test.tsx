@@ -134,3 +134,32 @@ it('시트의 빈 곳을 눌러 초점이 시트 자체에 있을 때 Shift+Tab�
   expect(fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true })).toBe(false)
   expect(document.activeElement).toBe(screen.getByRole('button', { name: '저장' }))
 })
+
+it('역할은 기본이 dialog(aria-modal)이고, role="alertdialog"와 describedBy를 주면 경고 대화 상자로 알리며 메시지를 설명으로 잇는다', () => {
+  const view = renderSheet(<p id="why">이유</p>)
+  const dialog = screen.getByRole('dialog', { name: '키보드 검증' })
+  expect(dialog.getAttribute('aria-modal')).toBe('true')
+  expect(dialog.hasAttribute('aria-describedby')).toBe(false)
+  view.unmount()
+  render(<Provider store={createAppStore()}>
+    <Sheet sid="U25" label="저장 확인" role="alertdialog" describedBy="why" onClose={vi.fn()}><p id="why">저장하면 켜져요</p><button>확인</button></Sheet>
+  </Provider>)
+  const alert = screen.getByRole('alertdialog', { name: '저장 확인' })
+  expect(alert.getAttribute('aria-modal')).toBe('true')
+  expect(alert.getAttribute('aria-describedby')).toBe('why')
+  expect(document.getElementById('why')?.textContent).toBe('저장하면 켜져요')
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+it('경고 대화 상자(alertdialog)가 다른 시트로 바뀌어 닫힐 때도 새 시트의 초점을 지키고 열었던 요소로 돌리지 않는다', () => {
+  render(<button>열기</button>)
+  const opener = screen.getByRole('button', { name: '열기' })
+  opener.focus()
+  const store = createAppStore()
+  const alert = (label: string) => <Provider store={store}><Sheet sid="U25" label={label} role="alertdialog" onClose={vi.fn()}><button>{label} 확인</button></Sheet></Provider>
+  const first = render(alert('첫째'))
+  render(alert('둘째')) // 새 시트가 열리면 이전 시트는 닫기를 요청받는다(목업의 슬롯 하나)
+  first.unmount()
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: '둘째 확인' }))
+  expect(document.activeElement).not.toBe(opener)
+})

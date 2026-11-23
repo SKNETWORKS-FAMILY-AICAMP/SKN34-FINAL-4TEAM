@@ -25,7 +25,7 @@ from pydantic import BaseModel
 from app import tracing
 from app.agent_runtime import MODEL_EVENT
 from app.simulation.errors import PROMPT_UNAVAILABLE, SimulationFailure
-from app.simulation.models import Action, Narration, PlanDraft, Verdict
+from app.simulation.models import Action, Monologue, Narration, PlanDraft, Verdict
 from app.simulation.prompt import ACT_INSTRUCTIONS, CHECK_INSTRUCTIONS, NARRATE_INSTRUCTIONS, PLAN_INSTRUCTIONS
 
 
@@ -53,7 +53,8 @@ def act(data: dict, instructions: str | None = None) -> Action:
 def narrate(data: dict, instructions: str | None = None) -> Narration:
     """나레이터(메인 에이전트)가 지문·독백 한 문단과 그 자리의 모두에게 보일 것을 만든다. 시점·목적·허용된 지식은 입력이 정한다.
     instructions는 회귀 평가가 지정한 프롬프트 버전 본문이다(있으면 production 버전을 읽지 않고 그대로 쓴다)."""
-    return _parse('narrate', NARRATE_INSTRUCTIONS, data, Narration, 1500, 60, instructions)
+    schema = Monologue if data.get('purpose') == 'monologue' else Narration
+    return _parse('narrate', NARRATE_INSTRUCTIONS, data, schema, 1500, 60, instructions)
 
 
 def check(data: dict) -> Verdict:

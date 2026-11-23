@@ -15,6 +15,7 @@ import ai.storyfork.content.manuscript.service.ManuscriptImportService
 import ai.storyfork.content.manuscript.service.dto.*
 import ai.storyfork.content.preprocessing.service.PreprocessingService
 import ai.storyfork.content.preprocessing.service.dto.PreprocessingJobResponse
+import ai.storyfork.content.serial.domain.SERIAL_LOCKED_MESSAGE
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
@@ -120,6 +121,21 @@ class ManuscriptImportServiceTest {
     private fun item(number: Int, episode: Int, title: String = "$number 번째") = ManuscriptImportItem(number, title, 2 * (episode - 1), 2 * episode)
     private fun confirm(file: MultipartFile, vararg items: ManuscriptImportItem, rights: Boolean = true) = service.confirm("work", "owner", file, ManuscriptImportRequest(rights, items.toList()))
     private fun statuses(response: ManuscriptImportResponse) = response.results.map { "${it.number}:${it.status}" }
+    @Test fun `import is refused up front while AI writing is on and saves nothing`() {
+        doThrow(ContentFailure(409, SERIAL_LOCKED_MESSAGE, "SERIAL_LOCKED")).`when`(access).requireManuscriptWritable(str("work"))
+
+        // 회차마다 실패를 모아 돌려주는 가져오기라, 막지 않으면 409 대신 '모두 실패' 결과가 된다.
+        val single = assertThrows(ContentFailure::class.java) { confirm(novel(2), item(1, 1), item(2, 2)) }
+        val bulk = assertThrows(ContentFailure::class.java) {
+            service.importBulk("work", "owner", listOf(novel(1)), BulkImportRequest(true, workRevision, listOf(BulkImportItem(1, "업로드 1"))))
+        }
+
+        assertEquals(listOf<Any?>(409, "SERIAL_LOCKED", 409, "SERIAL_LOCKED"), listOf(single.status, single.code, bulk.status, bulk.code))
+        assertTrue(created.isEmpty() && saved.isEmpty() && uploads.isEmpty())
+        // 미리보기는 아무것도 저장하지 않아 그대로 열려 있다.
+        assertEquals(1, service.preview("work", "owner", novel(1)).episodes.size)
+    }
+
     private fun invalid(file: MultipartFile?, request: ManuscriptImportRequest?) = assertThrows(ContentFailure::class.java) { service.confirm("work", "owner", file, request) }
         .also { assertEquals(422, it.status, it.message) }
     private fun epubFile(vararg chapters: String, extra: Map<String, ByteArray> = emptyMap()) = MockMultipartFile("file", "book.epub", "application/epub+zip",

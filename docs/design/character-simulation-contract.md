@@ -85,7 +85,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 ### SSE·응답
 
-- 기존 이벤트(`plan`·`started`·`step`·`waiting`·`done`·`error`)를 그대로 쓴다. 새 이벤트 종류는 없다. 턴이 끝날 때마다의 `step`은 그때까지의 **누적** 결과를 담으며 화면은 같은 단계 항목을 교체한다.
+- 기존 이벤트(`plan`·`started`·`step`·`waiting`·`done`·`error`)를 그대로 쓴다. 장면용 새 이벤트 종류는 없다(`answer`는 메인 에이전트의 답변 본문용이며 장면 글을 싣지 않는다, #618). 턴이 끝날 때마다의 `step`은 그때까지의 **누적** 결과를 담으며 화면은 같은 단계 항목을 교체한다.
 - `character_simulation` 단계 결과(`StepResult.result`)와 턴마다의 `step` 이벤트는 다음 모양을 쓴다.
 
 ```json
@@ -111,7 +111,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 ```
 
 - `running`은 첫 턴 전, `paused`는 턴 사이 대기, `completed`는 장면 끝, `stopped`·`failed`는 멈춘 부분 결과(`stopReason` 코드: `check_failed`·`beat_rejected`·`turn_limit`·`call_limit`, 호출 실패는 null)다. 사람이 읽는 이유 문장은 `stopReason`이 아니라 단계의 `error`다. 나레이션·독백은 검사 결과(`checks`)를 내보이지 않는다.
-- `notice`는 실패는 아니지만 작가가 알아야 할 진행 조건이다. Content가 원고 검색을 쓸 수 없다고 503으로 답하면(원고 색인이 꺼진 로컬·데모 스택 등) 원고 발췌 없이 세계관 설정(NovelBrain 0·2·3단계)만으로 진행하고 이 필드에 이유를 채우며(한 번 붙으면 장면이 끝날 때까지 남는다), 그 밖의 검색 오류(403·404·409·422·기타 5xx, 우리 쪽 설정·연결 실패)는 그대로 단계 실패다.
+- `notice`는 실패는 아니지만 작가가 알아야 할 진행 조건이다. Content가 원고 검색을 쓸 수 없다고 503으로 답하면(Elasticsearch·임베딩 장애 등, 원고 색인은 끄는 플래그 없이 항상 켜져 있어 '꺼진' 상태는 없다) 원고 발췌 없이 세계관 설정(NovelBrain 0·2·3단계)만으로 진행하고 이 필드에 이유를 채우며(한 번 붙으면 장면이 끝날 때까지 남는다), 그 밖의 검색 오류(403·404·409·422·기타 5xx, 우리 쪽 설정·연결 실패)는 그대로 단계 실패다.
 - 화면은 `turns[].prose`를 종류별로 그리고(나레이션 지문 블록·독백 줄·인물 말풍선) `checks`·`evidence`는 접어서 보인다.
 - 승인 시 반영 본문은 `turns[].prose`(나레이션·독백 포함)를 순서대로 빈 줄로 이은 텍스트이며, 기존 `content_mcp.apply_writing`의 Text 경로(초안 뒤에 잇기)를 쓴다.
 
@@ -139,7 +139,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 ## 연출 결정 (인물이 말하기 전에 매 턴)
 
 - 모델: `langchain_typesafe.TypeSafeClassifier`를 OpenAI Decisions(`POST https://api.openai.com/v1/decisions`, `gpt-6-luna`, 키 `OPENAI_API_KEY`)에 연결한 최소 서브클래스 `OpenAIDecisionClassifier`(`director.py`)다. 패키지 기본 경로(`/v1/systemone`)는 OpenAI에서 404이고 경로만 바꾸면 요청 형식이 달라 400이라 경로·요청 변환·응답 변환만 덮어쓴다. 형식의 정본은 `app/intent/agent.py`다. Decisions는 확률을 주지 않아 고른 값만 1.0으로 채우며, 거부·선택지 밖·질문과 다른 답은 실패다. 원 응답의 `usage`(`input_tokens`·`output_tokens`)는 패키지 응답으로 그대로 옮기고, 호출마다 `simulation.model` 이벤트(`director`)로 알려 `UsageCallback` 장부에 남긴다. 변환한 응답에는 원 응답의 `Content-Encoding`·`Content-Length` 같은 본문 헤더를 옮기지 않는다(이미 풀린 본문을 다시 풀려다 실패한다).
-- 질문(모두 선택지): `turn`(나레이션·독백·대사·마무리 중 규칙이 허용한 것), `speaker`(대사를 할 인물), `pov`(전지적·인물의 3인칭 제한·인물의 1인칭). 입력은 장면 요약(비트·최근 8줄·끼어들기 기록·규칙이 정한 이유)이며 인물은 별칭 `c1…`으로만 주고받는다(id·설정 문서·독백 내용은 보내지 않는다).
+- 질문(모두 선택지): `turn`(나레이션·독백·대사·마무리 중 규칙이 허용한 것), `speaker`(대사를 할 인물. 제공사가 선택지 1개짜리 질문을 거절하므로 참여 인물이 한 명이면 묻지 않고 그 인물로 정한다, #682), `pov`(전지적·인물의 3인칭 제한·인물의 1인칭). 입력은 장면 요약(비트·최근 8줄·끼어들기 기록·규칙이 정한 이유)이며 인물은 별칭 `c1…`으로만 주고받는다(id·설정 문서·독백 내용은 보내지 않는다).
 - 참여 인물(`state.cast`)은 등장을 허용한 범위이지 모두 등장해야 하는 목록이 아니다(사용자 결정 2026-11-14). 모든 인물이 한 번씩 말하거나 순서대로 돌아가며 말해야 한다는 규칙·지침·검사는 없고, 연출 결정이 장면에 필요한 인물만 고른다. 현재 비트가 특정 인물의 말이나 결정을 요구하면 그 인물을 우선하라는 지침만 있다.
 - 지침: 흐름 모드에서 현재 비트가 인물이 말하거나 결정하거나 행동하는 내용이면 나레이션으로 요약하지 않고 `speech`로 그 인물이 직접 말하게 한다. 나레이션은 배경·분위기·시간의 흐름을 보탤 때만 고르고 이미 나온 내용을 되풀이하지 않는다.
 - 규칙(`service.rules`): 장면 시작·작가의 끼어들기 메모·흐름 모드의 비트 전환은 나레이션이 먼저, 이야기가 끝났으면(IF는 장면 완결 판정, 흐름은 모든 비트 완료) 마무리(`end`, 직전 턴이 나레이션이면 마무리 나레이션도 더하지 않고 턴 없이 장면을 `completed`로 끝낸다), 직전 턴이 나레이션이면 나레이션을 연달아 쓰지 않고(독백·대사만, 장면 시작의 첫 나레이션 뒤도 같다. 작가의 메모에 따른 나레이션은 예외) 나레이션·독백이 두 번 이어지면 이번엔 대사, 인물 대사 12턴(또는 전체 40턴)이면 한도로 멈춘다. 규칙이 턴을 하나로 정하면 묻지 않고 알려 주고 화자·시점만 묻는다.
@@ -159,6 +159,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - 계획의 비트는 전지적 서술만 전체를 입력으로 받는다. 독백·3인칭 제한·1인칭 서술은 지금 비트까지만 받는다(아직 오지 않은 뒤의 비트를 인물은 모른다. 인물 입력이 지금 비트만 받는 것과 같은 규칙이고, 모든 비트가 끝났으면 전체를 준다).
 - 나레이션 문체는 설정집의 `나레이터…` 카드(제목이 `나레이터`로 시작, 유형 무관, 인물 카드면 IDENTITY+SOUL)가 정한다. 없으면 기본 지침이다. 이 카드는 문체 지침이라 인물로 고를 수 없고 인물의 입력에도 들어가지 않는다(화면의 시작 양식도 같은 규칙, 곧 NFC 정규화·앞뒤 공백 제거 뒤 `나레이터`로 시작하는 카드를 인물 후보에서 뺀다).
 - 나레이션 `observed`(모두에게 알린 사실)만 인물의 장면 상태로 간다. 나레이션 본문과 독백은 인물에게 가지 않는다.
+- 인물 대사·나레이션의 `prose`·`observed`와 독백의 `prose`는 제공사 strict schema의 pattern(`models.TEXT`, 한글·영숫자 한 글자 이상)으로 비울 수 없다. 모델이 빈칸·공백만 돌려 502가 나던 것을 막는다(공개 세트 나레이션 92회 중 4회 → 수정 뒤 184회 중 0회). 독백의 `observed`는 지시대로 비우므로 제약하지 않는 `Monologue` 형식으로 보낸다. 서비스의 빈 응답 검사(502)는 pattern을 지키지 않는 제공사에 대한 방어로 남는다.
 - 나레이터는 인물이 말하거나 결정하거나 행동하는 내용(현재 비트의 사건)을 지문으로 요약·대신 서술하지 않고(장면 시작은 배경·분위기만, 비트 전환은 바뀐 시간·장소·분위기만), 이미 쓴 문장을 되풀이하지 않는다. 입력 `alreadyWritten`(직전 나레이션 본문 최대 3개)이 그 근거이며 전지적 서술에만 준다(인물 시점은 그 인물이 아는 것만 쓴다).
 
 ## 무대(Stage): 턴마다 멈추는 실행 (2026-11-14 사용자 결정)
@@ -175,7 +176,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 | `redo` | `turn`, `note?` | 그 턴부터 뒤를 지우고 기록된 연출 결정(같은 인물·시점)으로 그 턴만 다시 쓴다. note는 다시 쓰는 줄에 주는 작가의 지시다. 메모 때문에 쓰인 나레이션을 다시 쓰면 그 메모가 되살아난다 | 도구 1턴(+검사) |
 | `stop` | — | 지금까지로 장면을 끝낸다(`completed`, 마무리 나레이션 없음). 이어서 승인 질문이다 | 없음 |
 
-- `approved`: 화면은 장면 조작에 `approved:true`를 함께 보낸다. scene이 있으면 `approved`는 적용하지 않고 조작을 처리한 뒤 다시 멈춘다. 승인·거절은 scene 없는 resume으로만 한다. 장면이 끝나기 전의 승인(scene 없는 `approved:true`)은 422이고, 장면 중의 거절(`approved:false`)은 반영 없이 `cancelled`로 끝낸다.
+- `approved`: 화면은 장면 조작에 `approved:true`를 함께 보낸다. scene이 있으면 `approved`는 적용하지 않고 조작을 처리한 뒤 다시 멈춘다. 승인·거절은 scene 없는 resume으로만 한다. 장면이 끝나기 전의 승인(scene 없는 `approved:true`)은 422이고, 장면 중의 거절(`approved:false`)은 반영 없이 `cancelled`로 끝낸다. 같은 턴에 먼저 끝난 작업이 있으면 `message`는 '아무 작업도 실행하지 않았다'고 하지 않고 장면만 반영하지 않았다고 알린다(#661).
 - 받을 수 없는 조작(장면·승인 대기가 아닐 때의 scene, 없는 `turn`, 장면 전의 승인)은 그래프를 실행하기 전에 422(SSE는 `error` 이벤트)로 막아 상태가 바뀌지 않는다.
 - 승인 질문(`awaitingApproval`)에서도 edit·redo·next(끼어들기 포함)는 가능하다. 단계를 다시 진행 중으로 돌려 장면으로 되돌아가며(끝난 장면은 기존 줄을 마무리 나레이션까지 그대로 두고 마지막 비트를 다시 열어 뒤에 붙이기만 한다. 줄을 지우거나 덮어쓰지 않는다), 다시 끝나면 승인 질문이 이어진다.
 
@@ -198,7 +199,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - 시작 양식(무대 패널): **IF**는 전제 한 줄("만약 ~했다면")과 참여 인물(연결 세계관의 인물 카드, 연결한 세계관이 없는 Fork는 이어받은 원작 세계관의 공개 인물 카드, 1~6명)이다. **흐름**은 이 작품의 장면 계획(`story_plan`, `kind=scene`) 중 열린 회차(`episode_number`)가 같은 것들을 순서대로 비트로 쓰고(`제목: 내용`을 200자로 자름, 최대 8개), 참여 인물은 그 계획들의 `characters` 합집합이다(양식에서 고칠 수 있다). 그 회차의 장면 계획이 없으면 안내하고 비트를 직접 입력하게 한다.
 - 시작은 채팅 메시지다: `operation: 'character_simulation'`, `request`(요약 문장, 예 "흐름 모드 시뮬레이션: 장면 계획 3개"), `simulation: {mode: 'if'|'flow', premise?: ≤500자, beats?: ≤8개 × ≤200자, characterIds: 1~6개 × ≤100자}`.
 - Content `WritingAiRequest.simulation`: `mode`·길이·개수를 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422, 권한 확인 전에 거절). 값은 그대로 AI에 넘긴다.
-- 근거 회차와 반영 회차(#58): 요청의 `episode`·`episodeVersionId`는 **근거 회차**다. 발행된 판본이어야 하고 Q&A 조회 범위와 세계관의 지식 상한(기준 회차)을 정한다. 작가가 발행 전 초안을 열어 두면 화면은 마지막 발행 회차를 근거로 보낸다. 승인 뒤 결과를 쓸 **반영 회차**는 선택 필드 `targetEpisode`(없으면 `episode`와 같다)이며 작가가 연 회차를 보낸다. Content는 새 요청에서만 `targetEpisode >= episode`이고 그 작품의 활성 회차(발행 전 초안도 가능)인지 확인하고 어긋나면 422다(이어가기에서는 무시한다). AI에는 `target {workId, episode: 반영 회차, baseEpisode?: 근거 회차}`로 넘기며 `baseEpisode`는 둘이 다를 때만 온다. AI는 승인 반영과 `approvalEpisode`(승인 질문과 장면 대기(`awaitingScene`) 응답에 같은 값으로 싣는다, #364)에 `target.episode`를, 시뮬레이션이 세계관을 읽는 기준 회차에 `target.baseEpisode ?? target.episode`를 쓴다. 화면은 무대의 승인 문구("N화 초안 끝에")를 반영 회차로 보이고 근거와 다르면 시작 양식에 "근거: M화까지 / 반영: N화 초안"을 보인다. 새로 고친 뒤 승인 대기·장면 대기 장면이 복원되면 집필실은 `approvalEpisode`로 편집기를 그 회차에 맞춘다(주소의 `?ep=n`이 다른 회차를 가리켜도 같다). 입력 대기와 Content 쓰기 도구 승인(`content_action`)에는 싣지 않는다.
+- 근거 회차와 반영 회차(#58): 요청의 `episode`·`episodeVersionId`는 **근거 회차**다. 발행된 판본이어야 하고 Q&A 조회 범위와 세계관의 지식 상한(기준 회차)을 정한다. 작가가 발행 전 초안을 열어 두면 화면은 마지막 발행 회차를 근거로 보낸다. 승인 뒤 결과를 쓸 **반영 회차**는 선택 필드 `targetEpisode`(없으면 `episode`와 같다)이며 작가가 연 회차를 보낸다. Content는 새 요청에서만 `targetEpisode >= episode`이고 그 작품의 활성 회차(발행 전 초안도 가능)인지 확인하고 어긋나면 422다(이어가기에서는 무시한다). 이어가기에서는 요청의 `episode`·`episodeVersionId`도 쓰지 않고 장면 조작·승인 모두 멈춘 턴의 근거 회차·판본을 유지한다([이어가기의 근거](../writing-ai-architecture/02-ai-architecture.md#이어가기의-근거-668), #668). AI에는 `target {workId, episode: 반영 회차, baseEpisode?: 근거 회차, episodeVersionId: 근거 판본}`으로 넘기며 `baseEpisode`는 둘이 다를 때만 온다. AI는 승인 반영과 `approvalEpisode`(승인 질문과 장면 대기(`awaitingScene`) 응답에 같은 값으로 싣는다, #364)에 `target.episode`를, 시뮬레이션이 세계관을 읽는 기준 회차에 `target.baseEpisode ?? target.episode`를 쓴다. 화면은 무대의 승인 문구("N화 초안 끝에")를 반영 회차로 보이고 근거와 다르면 시작 양식에 "근거: M화까지 / 반영: N화 초안"을 보인다. 새로 고친 뒤 승인 대기·장면 대기 장면이 복원되면 집필실은 `approvalEpisode`로 편집기를 그 회차에 맞춘다(주소의 `?ep=n`이 다른 회차를 가리켜도 같다). 입력 대기에도 같은 값을 싣되 입력 카드와 Content의 구간 검증만 쓰고 편집기는 맞추지 않는다(#635). Content 쓰기 도구 승인(`content_action`)에는 싣지 않는다.
 - AI `OrchestrationRequest.simulation`: `SimulationPlan`과 같은 한도(전제 500자, 비트 8개×200자, 인물 6명×100자, 모르는 필드 거절)로 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422).
   있으면 `ask_character_simulation`이 계획 모델을 부르지 않고 이 값을 계획으로 쓰되, 인물 id가 연결 세계관의 활성 인물 카드인지와 모드별 필수값(IF 전제, 흐름 비트 1개 이상)을 확인한다. 어긋나면 되묻지 않고 단계 `failed`와 이유로 끝낸다.
 

@@ -157,8 +157,7 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?Set AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?Set AWS_SECRET_ACCESS_KEY}
       NEO4J_URI: bolt://neo4j:7687
-      # 발행 원고 자동 색인·검색. 임베딩은 ai-service 이미지의 고정 리비전 E5 모델이 만든다.
-      MANUSCRIPT_INDEX_ENABLED: "true"
+      # 발행 원고 자동 색인·검색(끄는 플래그 없음, 항상 켠다). 임베딩은 ai-service 이미지의 고정 리비전 E5 모델이 만든다.
       MANUSCRIPT_INDEX_URL: http://elasticsearch:9200
       # 작품·세계관·설정 카드 검색어 후보를 같은 Elasticsearch가 찾는다(#505). 켜져 있는데 색인 호출이 실패하면 검색은 DB로 대신하지 않고 503이다.
       SEARCH_INDEX_ENABLED: "true"

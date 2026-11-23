@@ -5,7 +5,7 @@ import {
   type CharacterSimulation, type SimulationStart, type SimulationTurn,
 } from '../../../domain/entities/characterSimulation'
 import { SCENE_NOTE_MAX, SCENE_TEXT_MAX } from '../../../domain/entities/writingChat'
-import { PencilIcon } from '../icons'
+import { PencilIcon, PlusIcon, TrashIcon } from '../icons'
 import { ManuscriptBody } from '../media/MediaPanel'
 import { useLinkedWorld, useSimulationSetupViewModel } from './useSimulationSetupViewModel'
 import type { StageViewModel } from './useSimulationStageViewModel'
@@ -22,7 +22,29 @@ function StartFields({ stage, data, planEpisode, plotLink, startBlocker = '' }: 
   const id = useId()
   const [mode, setMode] = useState<'if' | 'flow'>('if')
   const [premise, setPremise] = useState('')
-  const [lines, setLines] = useState('')
+  // 비트는 번호 붙은 칸 하나에 하나다. 장면 계획이 있으면 그 비트로 채우고 여기서 고칠 수 있다(플롯의 계획은 바뀌지 않는다).
+  // key는 지운 칸 뒤의 입력이 자리를 잃지 않게 붙인다.
+  const nextKey = useRef(0)
+  const rows = (texts: string[]) => (texts.length ? texts : ['', '']).map((text) => ({ key: nextKey.current++, text }))
+  const [beats, setBeats] = useState(() => rows(data.beats))
+  const planText = data.beats.join('\n')
+  const edited = beats.map((beat) => beat.text.trim()).filter(Boolean).join('\n') !== planText
+  // 계획이 다시 읽히면(플롯 저장·AI 계획 수정) 고치지 않은 칸만 새 계획으로 바꾼다. 고친 칸은 지킨다.
+  const seenPlan = useRef(planText)
+  useEffect(() => {
+    if (seenPlan.current === planText) return
+    const untouched = beats.map((beat) => beat.text.trim()).filter(Boolean).join('\n') === seenPlan.current
+    seenPlan.current = planText
+    if (untouched) setBeats(rows(data.beats))
+  }, [planText]) // eslint-disable-line react-hooks/exhaustive-deps
+  const beatList = useRef<HTMLOListElement>(null)
+  const focusBeat = (index: number) => requestAnimationFrame(() => beatList.current?.querySelectorAll('textarea')[index]?.focus())
+  const addBeat = (after = beats.length - 1) => {
+    if (beats.length >= SIM_BEATS_MAX) return
+    setBeats((now) => [...now.slice(0, after + 1), { key: nextKey.current++, text: '' }, ...now.slice(after + 1)])
+    focusBeat(after + 1)
+  }
+  const removeBeat = (index: number) => { setBeats((now) => now.filter((_, i) => i !== index)); focusBeat(Math.max(0, index - 1)) }
   // 모드마다 고른 인물을 따로 둔다: 흐름은 장면 계획의 인물을 미리 고르고, IF는 작가가 고른다.
   const [chosen, setChosen] = useState<Record<'if' | 'flow', string[]>>({ if: [], flow: data.characterIds })
   const picked = useRef(false)
@@ -30,10 +52,10 @@ function StartFields({ stage, data, planEpisode, plotLink, startBlocker = '' }: 
   // 필수 인물 문서가 빈 인물은 잠겨 있어 고른 값에 들어가지 않는다(문서를 비우는 쪽으로 양식이 다시 읽혀도 서버가 거절할 값을 보내지 않는다, #357).
   const people = data.characters.filter((character) => chosen[mode].includes(character.id) && !character.missing.length)
   const ids = people.map((character) => character.id)
-  const fromPlan = mode === 'flow' && data.beats.length > 0
+  const fromPlan = mode === 'flow' && data.beats.length > 0 && !edited
   const start: SimulationStart = mode === 'if'
     ? { mode: 'if', premise, characterIds: ids }
-    : { mode: 'flow', beats: fromPlan ? data.beats : lines.split('\n'), characterIds: ids }
+    : { mode: 'flow', beats: beats.map((beat) => beat.text), characterIds: ids }
   const problem = stage.issue(start)
   const toggle = (characterId: string) => { if (mode === 'flow') picked.current = true; setChosen((now) => ({
     ...now, [mode]: now[mode].includes(characterId) ? now[mode].filter((other) => other !== characterId) : [...now[mode], characterId],
@@ -46,25 +68,35 @@ function StartFields({ stage, data, planEpisode, plotLink, startBlocker = '' }: 
   return <form className="stage-form" onSubmit={submit}>
     <fieldset className="stage-fieldset">
       <legend>시뮬레이션 방식</legend>
-      <label className="stage-radio"><input type="radio" name={`${id}-mode`} checked={mode === 'if'} onChange={() => setMode('if')} />IF · 만약 ~했다면?</label>
-      <label className="stage-radio"><input type="radio" name={`${id}-mode`} checked={mode === 'flow'} onChange={() => setMode('flow')} />흐름 · 장면 계획을 따라</label>
+      <div className="stage-modes">
+        <label className="stage-mode"><input type="radio" name={`${id}-mode`} checked={mode === 'if'} onChange={() => setMode('if')} />
+          <span><b>IF · 만약 ~했다면?</b><small>전제 하나를 두고 인물들이 어떻게 움직이는지 봐요.</small></span></label>
+        <label className="stage-mode"><input type="radio" name={`${id}-mode`} checked={mode === 'flow'} onChange={() => setMode('flow')} />
+          <span><b>흐름 · 장면 계획을 따라</b><small>정해 둔 비트(장면 계획)를 순서대로 따라가요.</small></span></label>
+      </div>
     </fieldset>
     {mode === 'if'
       ? <label className="chat-field">전제
         <input value={premise} maxLength={SIM_PREMISE_MAX} placeholder="예: 만약 카엘이 성문을 열었다면?" onChange={(e) => setPremise(e.target.value)} />
       </label>
-      : data.beats.length
-        ? <div className="stage-plan">
-          <p>{planEpisode}화의 저장된 장면 계획 {data.beats.length}개를 순서대로 써요. 최대 8개, 각 200자까지 반영해요.</p>
-          <ol aria-label="흐름 비트">{data.beats.map((beat, i) => <li key={i}>{beat}</li>)}</ol>
-        </div>
-        : <div className="stage-plan">
-          <p>이 회차의 장면 계획이 없어요.</p>
-          <p className="chat-note">{plotLink}에서 장면 계획을 만들거나, 아래에 비트를 직접 적어 주세요.</p>
-          <label className="chat-field">비트 (한 줄에 하나, 최대 {SIM_BEATS_MAX}줄)
-            <textarea rows={4} value={lines} placeholder={'예:\n성문 앞에서 두 사람이 마주친다\n협상이 결렬된다'} onChange={(e) => setLines(e.target.value)} />
-          </label>
-        </div>}
+      : <div className="stage-plan">
+        <fieldset className="stage-fieldset">
+          <legend>비트 (순서대로, 최대 {SIM_BEATS_MAX}개)</legend>
+          {data.beats.length
+            ? <p className="chat-note">{planEpisode}화 장면 계획 {data.beats.length}개를 불러왔어요. 여기서 고쳐도 플롯의 계획은 바뀌지 않아요.
+              {edited && <> <button type="button" className="chat-link" onClick={() => { setBeats(rows(data.beats)); focusBeat(0) }}>장면 계획으로 되돌리기</button></>}</p>
+            : <p className="chat-note">이 회차의 장면 계획이 없어요. 아래에 비트를 직접 적거나 {plotLink}에서 계획을 만들어 주세요.</p>}
+          <ol ref={beatList} className="stage-beat-inputs">{beats.map((beat, i) => <li key={beat.key}>
+            <span className="stage-beat-no" aria-hidden="true">{i + 1}</span>
+            {/* 계획 비트는 200자까지라 한 줄 입력이면 잘린다: 한 줄로 시작해 글 길이만큼 늘어난다(줄바꿈은 넣지 않고 Enter는 아래 새 칸). */}
+            <textarea rows={1} aria-label={`비트 ${i + 1}`} value={beat.text} placeholder={['예: 성문 앞에서 두 사람이 마주친다', '예: 협상이 결렬된다'][i] ?? '다음에 일어날 일'}
+              onChange={(e) => { const text = e.target.value.replace(/\n/g, ' '); setBeats((now) => now.map((other) => other.key === beat.key ? { ...other, text } : other)) }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); addBeat(i) } }} />
+            <button type="button" className="stage-beat-remove" aria-label={`비트 ${i + 1} 지우기`} title="지우기" disabled={beats.length === 1} onClick={() => removeBeat(i)}><TrashIcon size={16} /></button>
+          </li>)}</ol>
+          <button type="button" className="btn sm stage-beat-add" disabled={beats.length >= SIM_BEATS_MAX} onClick={() => addBeat()}><PlusIcon size={14} /> 비트 추가</button>
+        </fieldset>
+      </div>}
     <fieldset className="stage-fieldset">
       <legend>참여 인물 (1~{SIM_CHARACTERS_MAX}명)</legend>
       {data.characters.length
@@ -84,12 +116,16 @@ function StartFields({ stage, data, planEpisode, plotLink, startBlocker = '' }: 
             ? <p className="chat-note">이어받은 원작 세계관에 공개된 인물 카드가 없어요. 작품 관리의 세계관 연결에서 내 세계관을 연결해 인물을 만들어 주세요.</p>
             : <><p>연결된 세계관이 없어요.</p><p className="chat-note">작품 관리의 세계관 연결에서 이 작품에 세계관을 연결해 주세요.</p></>}
       {data.inheritedUpto !== null && data.characters.length > 0 && <p className="chat-note">원작 세계관에서 {data.inheritedUpto}화까지 공개된 인물을 이어받았어요(읽기 전용).</p>}
-      <p className="chat-note">{ids.length}명 선택</p>
     </fieldset>
-    {problem && !problem.missing && <p className="stage-reason" role="status">{problem.text}</p>}
-    {stage.blocked && <p className="chat-note">{stage.blocked}</p>}
-    {startBlocker && <p className="stage-reason" role="status">{startBlocker}</p>}
-    <button type="submit" className="btn pri" disabled={!!problem || !!stage.blocked || stage.pending || !!startBlocker}>시뮬레이션 시작</button>
+    <div className="stage-submit">
+      {/* 늘 그려 두는 알림 줄 하나: 선택 수와 시작이 잠긴 이유를 바뀔 때마다 읽는다(새로 생기는 알림 영역은 스크린리더가 놓치기 쉽다).
+          덜 채운 칸은 차분하게, 한도 초과·대기 사유는 경고색으로 보인다. */}
+      <p className="chat-note" role="status">{ids.length}/{SIM_CHARACTERS_MAX}명 선택
+        {problem?.missing && ` · ${problem.text}`}
+        {(problem && !problem.missing ? problem.text : startBlocker) && <> · <span className="stage-reason">{problem && !problem.missing ? problem.text : startBlocker}</span></>}
+        {stage.blocked && ` · ${stage.blocked}`}</p>
+      <button type="submit" className="btn pri" disabled={!!problem || !!stage.blocked || stage.pending || !!startBlocker}>시뮬레이션 시작</button>
+    </div>
   </form>
 }
 
@@ -99,6 +135,7 @@ function StartForm({ stage, workId, planEpisode, plotLink, plansVersion, startBl
     <h3>어떤 장면을 시뮬레이션할까요?</h3>
     {stage.basisNote && <p className="chat-note">{stage.basisNote}</p>}
     {stage.sceneError && <p className="stage-reason" role="alert">{stage.sceneError}</p>}
+    {stage.inputError && <p className="stage-reason" role="alert">{stage.inputError}</p>}
     {stage.answer && <p className="stage-answer" role="status">{stage.answer}</p>}
     {stage.starting && <p className="chat-note" role="status">시뮬레이션을 시작하고 있어요…</p>}
     {(setup.loading || setup.refreshing) && <p className="chat-note" role="status">장면 계획과 인물을 불러오고 있어요…</p>}
