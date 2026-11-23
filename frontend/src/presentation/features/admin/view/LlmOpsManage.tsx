@@ -298,11 +298,12 @@ export function AlertRules({ vm, l }: Props) {
   )
 }
 
-/** 평가·누설 검사 쪽의 누설 검사 표본 비율(0~1). */
+/** 정보 누설 검사 패널 아래의 표본 비율(0~1) 한 줄. 패널을 따로 두지 않고 검사 기록 바로 아래에 붙인다. */
 export function LeakSampleRate({ vm, l }: Props) {
   const s = l.settings.data, busy = !!vm.actions['setting:leak']?.pending
   return (
-    <section className="panel admin-operations" aria-label="누설 검사 표본 비율">
+    <section className="admin-leak-rate" aria-label="누설 검사 표본 비율">
+      <h3>표본 비율</h3>
       <LiveState vm={vm} label="누설 검사 표본 비율" state={l.settings} forbidden={LLM_FORBIDDEN} />
       {s && (
         <form
@@ -311,14 +312,14 @@ export function LeakSampleRate({ vm, l }: Props) {
             await l.updateSettings(formNumber(e.currentTarget, 'leakSampleRate'))
           }}
         >
-          <h2>누설 검사 표본 비율</h2>
-          <fieldset disabled={busy} className="form-grid">
+          <fieldset disabled={busy} className="admin-filter">
             <label className="field">
               표본 비율(0~1)
-              <input className="inp" name="leakSampleRate" type="number" min="0" max="1" step="any" required defaultValue={s.leakSampleRate} key={s.leakSampleRate} />
+              <input className="inp" name="leakSampleRate" type="number" min="0" max="1" step="any" required defaultValue={s.leakSampleRate} key={s.leakSampleRate} aria-describedby="leak-rate-hint" />
             </label>
-            <div className="rowend wide"><button type="submit" className="btn pri">{busy ? '저장 중…' : '표본 비율 저장'}</button></div>
+            <button type="submit" className="btn pri">{busy ? '저장 중…' : '표본 비율 저장'}</button>
           </fieldset>
+          <p id="leak-rate-hint" className="small muted">0.1이면 Fork 작품 요청 10개 중 1개꼴로 검사해요.</p>
           <ActionLines vm={vm} prefix="setting:" />
         </form>
       )}

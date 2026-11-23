@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
 import { PROMPT_SUBS, type LlmPage, type PromptSub, llmPageHref, promptSub, promptSubHref } from '../../../../domain/entities/admin'
@@ -39,7 +40,7 @@ export function LlmOps({ vm, page }: { vm: VM; page: LlmPage }) {
       {page === 'alerts' && <><LlmAlerts vm={vm} /><AlertRules vm={vm} l={l} /></>}
       {page === 'traces' && (l.traceId ? <TraceDetailPanel vm={vm} l={l} /> : <><Traces vm={vm} l={l} /><Metrics vm={vm} l={l} /></>)}
       {page === 'prompts' && <PromptsView vm={vm} l={l} sub={sub} />}
-      {page === 'quality' && <><Evaluations vm={vm} l={l} />{!l.runId && <><LeakChecks vm={vm} l={l} /><LeakSampleRate vm={vm} l={l} /></>}</>}
+      {page === 'quality' && <><Evaluations vm={vm} l={l} />{!l.runId && <LeakChecks vm={vm} l={l}><LeakSampleRate vm={vm} l={l} /></LeakChecks>}</>}
     </section>
   )
 }
@@ -269,7 +270,7 @@ function Metrics({ vm, l }: { vm: VM; l: LlmVM }) {
   )
 }
 
-function LeakChecks({ vm, l }: { vm: VM; l: LlmVM }) {
+function LeakChecks({ vm, l, children }: { vm: VM; l: LlmVM; children: ReactNode }) {
   const rows = l.leaks.data
   return (
     <section className="panel admin-operations" aria-label="정보 누설 검사">
@@ -307,7 +308,8 @@ function LeakChecks({ vm, l }: { vm: VM; l: LlmVM }) {
           </Table>
         )
         : <p className="admin-empty">아직 검사 결과가 없어요.</p>)}
-      <p className="admin-note">Fork 작품 요청을 표본으로 뽑아 원작의 비공개 카드 제목·미발행 회차 제목이 답변에 그대로 나왔는지 대조한 결과예요. 표본 비율은 아래 ‘누설 검사 표본 비율’에서 정해요.</p>
+      <p className="admin-note">Fork 작품 요청을 표본으로 뽑아 원작의 비공개 카드 제목·미발행 회차 제목이 답변에 그대로 나왔는지 대조한 결과예요.</p>
+      {children}
     </section>
   )
 }

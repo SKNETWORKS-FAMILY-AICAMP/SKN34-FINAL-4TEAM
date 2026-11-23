@@ -124,3 +124,7 @@
 .adm .credit-member h3 { margin-top: 20px; }
 .adm .credit-member .kpi { margin: 12px 0; }
 .adm .credit-member h4 { margin: 24px 0 0; }
+/* 정보 누설 검사 패널 안의 표본 비율 한 줄: 검사 기록과 선으로만 나누고 따로 패널을 두지 않는다. */
+.adm .admin-leak-rate { margin-top: 20px; border-top: 1px solid var(--line); }
+.adm .admin-operations .admin-leak-rate h3 { margin: 16px 0 8px; }
+.adm .admin-leak-rate fieldset.admin-filter { margin: 0 0 6px; }
