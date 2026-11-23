@@ -360,6 +360,28 @@ it('초안을 읽지 못하면 실패를 알리고 구간 고르기와 이어서
   expect(((await within(form).findByLabelText(/수정할 초안/)) as HTMLTextAreaElement).value).toBe(PATCH_BODY)
 })
 
+it('입력 대기 카드는 같은 턴에 이미 끝난 작업과 사실에 맞는 취소 안내를 보인다(#661)', async () => {
+  openThread([{ request: '계획 추가하고 고증해 줘', reply: { status: 'waiting', missingInputs: ['research'], awaitingApproval: null, steps: [
+    { feature: 'content_action', status: 'completed', approval: 'approved', result: { tool: 'story_plan_create', label: '플롯·장면 계획 추가' }, applied: { episode: 2, revision: 1 } },
+    { feature: 'research', status: 'not_started' },
+  ] } }])
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const others = await screen.findByLabelText('같이 끝난 작업')
+  expect(within(others).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['Content 작업플롯·장면 계획 추가 완료'])
+  expect(screen.getByText(/취소하면 남은 작업은 실행하지 않아요. 이미 끝난 작업은 그대로예요./)).toBeTruthy()
+})
+
+it('조건부 수정 입력 대기는 따로 보이는 검수 결과를 끝난 작업 목록에 되풀이하지 않는다(#661)', async () => {
+  const finding = { category: 'spelling', quote: '웃엇다', reason: '맞춤법', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 0, end: 3 }
+  openThread([{ request: '검수하고 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null, steps: [
+    { feature: 'manuscript_review', status: 'completed', manuscriptReview: { check: 'mechanical', episode: 1, revision: 4, findings: [finding], gaps: [] } },
+    { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' },
+  ] } }])
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  expect((await screen.findByLabelText('검수 결과')).textContent).toContain('웃엇다')
+  expect(screen.queryByLabelText('같이 끝난 작업')).toBeNull()
+})
+
 it('고증 조사 입력 대기는 질문을 적어야 이어서 실행하고, 질문을 research 단계 입력으로 보낸다(#545)', async () => {
   openThread([{ request: '고증 확인해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['research'], awaitingApproval: null } }])
   send.mockResolvedValue(undefined)
@@ -678,6 +700,29 @@ it('Content 쓰기 승인 카드는 모델의 요약이 아니라 실제 도구�
   const args = screen.getByLabelText('실행할 도구와 인자').textContent!
   expect(args).toContain('world_studio_edit_draft')
   expect(JSON.parse(args.slice('world_studio_edit_draft'.length))).toEqual(pendingAction.args)
+})
+
+it('Content 쓰기 승인 카드는 같은 턴에 먼저 끝난 단계를 실행 버튼 위에 보인다(#587)', async () => {
+  openThread([{ request: '확인하고 고쳐줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'content_action', pendingAction, steps: [
+    { feature: 'story_context', status: 'completed', result: { claims: [{ text: '카엘은 북문을 지킨다.' }] } },
+    { feature: 'writing_editing', status: 'completed', result: { text: '카엘이 문을 닫았다.' } },
+    { feature: 'content_action', status: 'completed', approval: 'approved', result: { tool: 'work_update', label: '작품 정보 수정' }, applied: { episode: 3, revision: 9 } },
+    { feature: 'rating', status: 'not_started' },
+  ] } }])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const others = await screen.findByLabelText('같이 끝난 작업')
+  // 이 승인의 대상은 Content 작업이라 아직 반영을 묻지 않은 원고 제안도 앞 단계로 보인다
+  expect(within(others).getAllByRole('listitem').map((item) => item.textContent)).toEqual(
+    ['작품 질문카엘은 북문을 지킨다.', '기획·집필·수정카엘이 문을 닫았다.', 'Content 작업작품 정보 수정 완료'])
+  expect(screen.getByText('같이 끝난 작업')).toBeTruthy() // 실행할 내용으로 읽히지 않게 이름이 화면에도 보인다
+  expect(others.compareDocumentPosition(screen.getByRole('button', { name: '실행' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+it('앞 단계가 없는 Content 쓰기 승인 카드에는 빈 목록을 그리지 않는다(#587)', async () => {
+  approvalTurn()
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('button', { name: '실행' })
+  expect(screen.queryByLabelText('같이 끝난 작업')).toBeNull()
 })
 
 it('거절하면 실행하지 않는다는 resume을 보낸다', async () => {
