@@ -312,7 +312,7 @@ const withPlanRevision = async (afterSave: () => void) => {
   fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
   const stage = await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
   fireEvent.click(await within(stage).findByRole('radio', { name: /흐름/ }))
-  await within(stage).findByText('재회: 카엘이 문을 연다')
+  await within(stage).findByDisplayValue('재회: 카엘이 문을 연다')
   const start = () => within(stage).getByRole('button', { name: '시뮬레이션 시작' }) as HTMLButtonElement
   await waitFor(() => expect(start().disabled).toBe(false)) // 비트에 나온 카엘이 미리 골라져 있다
   const save = () => fireEvent.click(within(screen.getByRole('complementary', { name: 'AI 채팅' })).getByRole('button', { name: '계획에 저장' }))
@@ -322,7 +322,7 @@ const withPlanRevision = async (afterSave: () => void) => {
 it('채팅에서 계획 수정을 저장하면 계획 패널과 시작 양식이 최신 계획을 다시 읽고 회차 초안은 다시 읽지 않는다', async () => {
   const { stage, save } = await withPlanRevision(() => list.mockResolvedValue([plotPlan, scenePlan('재회(긴장)', '카엘이 문을 닫는다')]))
   save()
-  await within(stage).findByText('재회(긴장): 카엘이 문을 닫는다')
+  await within(stage).findByDisplayValue('재회(긴장): 카엘이 문을 닫는다')
   fireEvent.click(screen.getByRole('button', { name: '고급' }))
   expect(within(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).getByText('재회(긴장)')).toBeTruthy()
   expect(model.aiApplied).not.toHaveBeenCalled()
@@ -354,7 +354,7 @@ it('계획 패널에 저장하지 않은 입력이 있으면 확인 창 없이 �
   fireEvent.click(within(panel).getByRole('button', { name: '장면 계획 추가' }))
   fireEvent.change(within(panel).getByLabelText('장면 제목'), { target: { value: '내가 쓰던 제목' } })
   save()
-  await within(stage).findByText('재회(긴장): 카엘이 문을 닫는다')
+  await within(stage).findByDisplayValue('재회(긴장): 카엘이 문을 닫는다')
   expect(confirm).not.toHaveBeenCalled()
   expect((within(panel).getByLabelText('장면 제목') as HTMLInputElement).value).toBe('내가 쓰던 제목')
   expect(within(panel).getByRole('alert').textContent).toContain('AI가 계획을 바꿨어요')

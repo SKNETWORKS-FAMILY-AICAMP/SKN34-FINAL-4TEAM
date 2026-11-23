@@ -164,7 +164,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const stageHeading=useRef<HTMLHeadingElement>(null)
   const [stageFocus,setStageFocus]=useState(0)
   useEffect(()=>{if(stageFocus)stageHeading.current?.focus()},[stageFocus])
-  const openStage=()=>{setSetupVersion(n=>n+1);stage.show();setStageFocus(n=>n+1)}
+  const openStage=(form=false)=>{setSetupVersion(n=>n+1);stage.show(form);setStageFocus(n=>n+1)}
   const closeStage=()=>{stage.hide();stageButton.current?.focus()}
   const historyLabel={
     versions:'원고 저장본 · 공개',
@@ -215,8 +215,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
           <button type="button" className={mode==='basic'?'on':''} aria-pressed={mode==='basic'} onClick={()=>setMode('basic')}>기본</button>
           <button type="button" className={mode==='advanced'?'on':''} aria-pressed={mode==='advanced'} onClick={()=>setMode('advanced')}>고급</button>
         </div>
-        {/* 인물 시뮬레이션 무대는 편집기를 대신해 중앙에 열린다. 누르면 요청 입력(시작 양식)이, 진행 중인 장면이 있으면 그 장면이 보인다. */}
-        <button ref={stageButton} type="button" className="tbtn" aria-pressed={stage.open} disabled={!vm.ready||!active} onClick={stage.open?closeStage:openStage}>시뮬레이션</button>
+        {/* 인물 시뮬레이션 무대는 편집기를 대신해 중앙에 열린다. 누르면 요청 입력(시작 양식)이, 진행 중이거나 답을 기다리는 장면이 있으면 그 장면이 보인다(끝난 장면은 채팅의 '무대 열기'로 본다). */}
+        <button ref={stageButton} type="button" className="tbtn" aria-pressed={stage.open} disabled={!vm.ready||!active} onClick={()=>stage.open?closeStage():openStage(true)}>시뮬레이션</button>
         <button className="tbtn" disabled={vm.busy||!active||active.inherited} onClick={()=>void vm.save()}>버전 저장</button>
         <button className="tbtn pri" disabled={vm.busy||!active} onClick={openVersions}>버전 · 공개</button>
         <PopMenu className="writing-more" label="더보기" icon={<MoreIcon />}>
@@ -307,7 +307,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     {/* 집필실 안의 집필 AI 채팅(#331). 인물 시뮬레이션 장면은 채팅에 상태 한 줄만 보이고 무대 열기가 무대를 연다. */}
     {chatOpen?<aside className="studio-chat writing-chat" aria-label="AI 채팅">
       <div className="studio-chat-head"><h2><span className="chat-brand" aria-hidden="true"><SparkIcon size={16} /></span>AI 채팅</h2><button ref={chatToggle} type="button" className="writing-icon-btn" aria-label="접기" title="접기" onClick={()=>setChatOpen(false)}><FoldIcon /></button></div>
-      <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={openStage} sendNote={sendNote} unsaved={vm.dirty}/>
+      <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={()=>openStage()} sendNote={sendNote} unsaved={vm.dirty}/>
     </aside>:<button ref={chatToggle} type="button" className="studio-chat-toggle btn pri" onClick={()=>setChatOpen(true)}>AI 채팅 열기</button>}
   </>}</main>
           {settingsOpen&&active&&<Sheet sid="U13" label="회차 설정" panelClass="sheet writing-settings-sheet" onClose={()=>setSettingsOpen(false)}>
