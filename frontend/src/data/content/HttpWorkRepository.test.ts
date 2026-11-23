@@ -15,6 +15,7 @@ const record = (extra: Partial<ReadingWorkRecord> = {}): ReadingWorkRecord => ({
 const setup = (rows = [record()], owned: ReadingWorkRecord[] = [], loggedIn = false) => {
   const api = { readingList: vi.fn(async (mine: boolean) => mine ? owned : rows),
     readingWorld: vi.fn(async () => ({ workId: 'work-uuid', episode: 1, documents: [] })),
+    readingWorldCards: vi.fn(async () => ({ workId: 'work-uuid', worldId: null, upto: 0, cards: [], relationships: [], relationshipStatus: 'current' })),
     fork: vi.fn(async () => ({ id: 'created-server-uuid' })), writingList: vi.fn(async () => []),
     readingOne: vi.fn(async (id: string) => record({ id, visibility: 'private' })),
   }
@@ -148,6 +149,18 @@ it('uses the server allowlist and reports the actual preview basis when the sele
   expect(form?.forkList).toEqual([3])
   expect(form?.basisEpisode).toBe(3)
   expect(api.readingWorld).toHaveBeenCalledWith('work-uuid', 3)
+})
+
+it('포크 미리보기: 연결된 세계관이면 기준 회차의 독자 설정 위키 카드를 읽고 레거시 공개 설정집은 요청하지 않는다 (#559)', async () => {
+  const card = (id: string, title: string, cardType: string, revealFromEpisode: number) => ({ id, title, text: title, cardType, aliases: [], tags: [], revealFromEpisode, imageId: null })
+  const served = { workId: 'work-uuid', worldId: crypto.randomUUID(), upto: 2, cards: [card('c1', '리안', 'character', 1), card('c2', '봉인', 'rule', 2)], relationships: [], relationshipStatus: 'current' }
+  const fetcher = vi.fn(async (path: RequestInfo | URL) => Response.json(String(path).includes('/world-cards') ? served : [record()]))
+  const form = await new ForkUseCase(new HttpWorkRepository(new HttpEpisodeRepository(fetcher), () => false)).getForm('work-uuid', 2)
+  const urls = fetcher.mock.calls.map(([path]) => String(path))
+  expect(urls).toContain('/api/v1/public/works/work-uuid/world-cards?upto=2')
+  expect(urls.some((url) => url.includes('/world?'))).toBe(false)
+  expect(form?.work.rules).toEqual(['봉인'])
+  expect(form?.work.cast.map((c) => c.n)).toEqual(['리안'])
 })
 
 describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {

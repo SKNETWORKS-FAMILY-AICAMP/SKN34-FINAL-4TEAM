@@ -78,7 +78,6 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   // 목록을 읽는 동안·읽지 못했을 때는 기본 8종으로 대신하지 않고 선택을 잠근다(실패는 아래에서 다시 시도로 알린다). 목록은 게시판 훅과 같은 읽기 결과다.
   const { categories, isLoading, isError, retry } = board.cardCategories
   const typeChoices = categoryChoices(categories ?? [], cardTypeOf(item))
-  const chatPage = useWorldChatPage(vm)
   const pane = vm.pane // 활동 막대에서 고른 본문 화면(개요·문서·관계·버전·공개 순서): 주소의 pane이 정본이다
   const [listOpen, setListOpen] = useState(() => window.matchMedia?.('(min-width: 901px)').matches ?? true) // 설정 카드 목록 패널: 데스크톱은 펼친 채, 좁은 화면은 접힌 채 시작한다
   const [confirm, setConfirm] = useState('') // 삭제를 확인 중인 카드 id
@@ -108,6 +107,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const openLinked = (id: string) => { setConfirm(''); focusName.current = true; vm.editCard(id) }
   const identityBody = identityBodyOf(world.settings, item.id) // 이 카드가 「동일 인물」의 다른 이름 카드면 그 본체 카드(#485)
   const docs = useCharacterDocs(vm, setting) // 편집 중인 글: 인물 카드는 고른 문서, 그 밖은 카드 본문
+  const chatPage = useWorldChatPage(vm, docs.doc) // AI 채팅이 싣는 저장하지 않은 편집 내용도 고른 문서의 글이다(#638)
   // 게시판 미리보기의 `수정하기`로 들어왔으면(previewFirst) 그때 처음 만들어지는 편집기만 미리보기 탭으로 연다: 원문 링크 `[글자](card:<id>)`가 먼저 보이지 않게. 같은 카드의 다른 문서·레일의 다른 카드·새 설정은 쓰는 중이라 쓰기 탭이다. 이 화면을 나가면 잊는다.
   const editorKey = `${docs.editorKey}:${vm.relationKey}`
   const [entryKey, setEntryKey] = useState(() => (previewFirst ? editorKey : ''))

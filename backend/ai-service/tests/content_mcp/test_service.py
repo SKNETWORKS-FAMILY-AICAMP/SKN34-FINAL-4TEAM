@@ -398,6 +398,11 @@ def test_list_plans_keeps_only_what_the_candidate_summary_needs(monkeypatch):
     assert (item.id, item.kind, item.title, item.parentId, item.episodeNumber) == ('scene-1', 'scene', '재회', 'plot-1', 5)
 
 
+def test_read_plan_reads_whether_the_linked_episode_was_deleted(monkeypatch):
+    content(monkeypatch, plan_replies(read={**PLAN, 'episodeMissing': True}))
+    assert service.read_plan('work', 'scene-1').episodeMissing is True
+
+
 @pytest.mark.parametrize('reply', ['{}', '[{"id": "x"}]', '"x"'])
 def test_list_plans_with_an_unreadable_reply_is_502(monkeypatch, reply):
     content(monkeypatch, {'story_plan_list': (False, reply)})

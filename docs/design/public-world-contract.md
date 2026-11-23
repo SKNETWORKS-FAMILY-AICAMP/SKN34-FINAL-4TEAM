@@ -284,7 +284,8 @@ InheritedWorld = { "workId": "<Fork>", "worldId": "<원작 세계관 uuid>" | nu
 - 원작의 현재 확정 버전을 매번 읽으므로 `following` 동안 원작의 변경(기준 회차 이하에 영향을 주는 것)을 따라간다(DEC-37). 독립하면(`independent`, 아래 절) 더는 따라가지 않는다.
 - 집필 AI Q&A도 같은 이어받은 세계관을 AI가 Content MCP `work_inherited_world`로 읽는다(#490). Content `QaScopeService`의 관계 질문 경로는 #525 뒤 지웠다.
 - 화면: 집필실 시뮬레이션 시작 양식이 내 세계관 목록에 이 작품에 연결된 세계관이 없을 때 이 API를 `upto=<여는 회차>`로 읽어 인물 카드(`cardType=character`, 나레이터 카드 제외)를 후보로 쓴다. 후보와 서버 검증이 같은 카드 집합이다([시뮬레이션 계약](character-simulation-contract.md#fork-이어받기-365)).
-- 한계: Fork 생성 미리보기(공개된 세계관 규칙·인물 수)는 아직 레거시 설정 이력 기준이다(후속). `SOUL.md`가 없는 이어받은 인물은 말투 근거가 약하다.
+- **Fork 생성 미리보기(#559)**: 생성 화면의 '가져가는 것'(공개된 세계관 규칙·인물 수와 자료 목록)은 원작에 연결된 세계관이 있으면 독자 설정 위키 `GET /api/v1/public/works/{id}/world-cards?upto=<고른 기준 회차>`의 카드로 센다. Fork가 아직 없어 `inheritedWorld`를 부를 수 없지만 같은 카드 집합(확정 버전의 카드 중 유효 공개 회차 ≤ 기준 회차, DEC-53: 작가 전용·기준 회차 뒤 카드 제외)이라 Fork를 만든 뒤 `inheritedWorld(upto=기준 회차)`가 이어받는 카드와 수가 같다. 연결된 세계관이 없으면(`worldId: null`) 기존 공개 설정집 API(`GET /api/v1/public/works/{id}/world?episode=`)를 그대로 쓴다. 응답의 기준 회차가 고른 회차와 다르거나 카드를 읽지 못하면 설정집으로 대신하지 않고 불러오기 실패로 보인다. 카드 유형은 기존 위키 분류로 옮겨 센다(`domain/entities/wiki.ts`의 `withWorldCards`): 인물 수는 `character`, 규칙 수는 `rule`·`ability`·`other`(→ `world` '세계관 설정')이고 `location`(→ `place`)·`organization`(→ `org`)·`object`(→ `item`)·`event`는 자료 목록에만 든다. 체크포인트(`ForkService.create`의 `basisSettings`)는 `checkpoint_setting`이 레거시 `setting_version`을 FK로 가리켜 WorldStudio 카드를 담을 수 없으므로 바꾸지 않는다.
+- 한계: `SOUL.md`가 없는 이어받은 인물은 말투 근거가 약하다.
 
 ## Fork 세계관 독립 — DEC-37
 
