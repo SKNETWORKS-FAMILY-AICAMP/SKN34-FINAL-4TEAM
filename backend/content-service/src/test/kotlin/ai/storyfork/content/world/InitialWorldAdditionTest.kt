@@ -1,5 +1,7 @@
 package ai.storyfork.content.world
 
+import ai.storyfork.content.world.domain.requireCardMetadata
+import ai.storyfork.content.world.domain.requireRelationshipMetadata
 import ai.storyfork.content.world.service.*
 import ai.storyfork.content.world.service.dto.*
 import java.util.UUID
@@ -36,6 +38,8 @@ class InitialWorldAdditionTest {
         val draft=WorldDraftResponse(input.worldId,input.basis.draftRevision,null,null,"원본","설명",input.entities.map { CardPayload(it.cardId,it.name,"원문",it.entityType,"basic") },emptyList(),input.basis.relationshipVersion)
         val request=InitialWorldAdditionMapper.build(input.analysisId,UUID.randomUUID(),draft,decisions,ids)
         assertFalse(request.replace);assertEquals(6,request.cards.size);assertEquals(1,request.relationships.size)
+        // 초안 편집 요청의 semanticMetadata 검사(#541)를 일곱 종류 모두 통과한다.
+        request.cards.forEach(::requireCardMetadata);request.relationships.forEach(::requireRelationshipMetadata)
         assertTrue(request.cards.none { it.cardType in setOf("character","location","organization") })
         assertEquals(draft.name,request.name);assertEquals(draft.description,request.description)
         request.cards.forEach { card ->
