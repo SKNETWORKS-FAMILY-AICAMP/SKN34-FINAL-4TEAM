@@ -555,7 +555,7 @@
 <tr><td>대상 콘텐츠 제한 해제</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
 <tr><td>운영 조치 이력 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
 <tr><td>작품 등록자에게 권리 증빙 요청</td><td>✅</td><td>—</td></tr>
-<tr><td>회차 신고 접수 <small>(작품의 한 회차가 대상, Content가 그 회차를 알아야 접수, 처리의 제한·해제는 그 회차에 적용)</small></td><td>❌</td><td>—</td></tr>
+<tr><td>회차 신고 접수 <small>(공개 작품의 발행된 미제한 회차가 대상, 처리의 제한·해제는 그 회차에 적용)</small></td><td>❌</td><td>—</td></tr>
 <tr><td>세계관 신고 접수 <small>(공개 세계관이 대상, 처리의 제한·해제는 그 세계관에 적용, 소유자 칸이 없어 소명 흐름은 없음)</small></td><td>❌</td><td>—</td></tr>
 <tr><td rowspan="10">정기 작업 관리</td><td rowspan="10">35 일정·실행 관리</td><td>정기 작업 일정 등록</td><td>✅</td><td rowspan="10"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
 <tr><td>정기 작업 일정 조회</td><td>✅</td></tr>

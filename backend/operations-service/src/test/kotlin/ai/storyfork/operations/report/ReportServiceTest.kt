@@ -17,6 +17,8 @@ import ai.storyfork.operations.report.service.dto.ReportBodyRequest
 import ai.storyfork.operations.report.service.dto.ReportRequest
 import ai.storyfork.operations.report.service.dto.ReportReviewRequest
 import ai.storyfork.operations.security.OperationsMember
+import ai.storyfork.operations.work.service.dto.OperationsWork
+import ai.storyfork.operations.work.service.dto.OperationsWorkList
 import java.time.Instant
 import java.util.Optional
 import java.util.UUID
@@ -78,6 +80,10 @@ class ReportServiceTest {
         reporterId = reporter.memberId, reason = "도용", evidence = "", createdAt = Instant.parse("2026-01-01T00:00:00Z"),
     )
 
+    /** Content's operations list as the report intake reads it: this work (public and free unless said otherwise) is the only row. */
+    private fun listed(visibility: String = "public", restricted: Boolean = false, ownerId: String = owner.memberId.toString(), title: String = "원작 제목") =
+        OperationsWorkList(listOf(OperationsWork(workId, ownerId, title, "작가", "original", "original", true, visibility, restricted)))
+
     private fun givenReport(row: ReportEntity = report()): ReportEntity = row.also {
         `when`(reports.findById(reportId)).thenReturn(Optional.of(it))
         `when`(reports.saveAndFlush(any(ReportEntity::class.java) ?: it)).thenAnswer { call -> call.arguments[0] }
@@ -101,7 +107,7 @@ class ReportServiceTest {
 
     @Test
     fun `create stores Content owner and title with RECEIVED status for the authenticated reporter`() {
-        `when`(content.work(workId)).thenReturn(ContentWork(workId, owner.memberId.toString(), "원작 제목", false))
+        `when`(content.works()).thenReturn(listed())
         `when`(reports.saveAndFlush(any(ReportEntity::class.java) ?: report())).thenAnswer { it.arguments[0] }
 
         val result = service.create(reporter, ReportRequest(ReportKind.HARMFUL, workId, "유해", "링크"))
@@ -128,7 +134,7 @@ class ReportServiceTest {
 
     @Test
     fun `Content failure propagates and nothing is stored`() {
-        `when`(content.work(workId)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+        `when`(content.works()).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
 
         assertStatus(HttpStatus.BAD_GATEWAY) { service.create(reporter, ReportRequest(ReportKind.RIGHTS, workId, "도용", "")) }
 
@@ -137,7 +143,7 @@ class ReportServiceTest {
 
     @Test
     fun `create rejects a work whose owner cannot be a member with 409 before storing anything`() {
-        `when`(content.work(workId)).thenReturn(ContentWork(workId, "ops-work-owner", "작품", false))
+        `when`(content.works()).thenReturn(listed(ownerId = "ops-work-owner", title = "작품"))
 
         val failure = assertThrows(ResponseStatusException::class.java) {
             service.create(reporter, ReportRequest(ReportKind.HARMFUL, workId, "유해", "링크"))
@@ -145,7 +151,7 @@ class ReportServiceTest {
 
         assertEquals(HttpStatus.CONFLICT, failure.statusCode)
         assertEquals("작품 소유자를 확인할 수 없어 신고할 수 없어요.", failure.reason)
-        verify(content).work(workId)
+        verify(content).works()
         verifyNoMoreInteractions(content)
         verifyNoInteractions(reports, histories)
     }
@@ -326,7 +332,7 @@ class ReportServiceTest {
     private fun recordSteps(): MutableList<String> {
         val steps = mutableListOf<String>()
         fun step(name: String) { steps += "$name:${inTransaction()}" }
-        `when`(content.work(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId.toString(), "작품", false) }
+        `when`(content.works()).thenAnswer { step("content"); listed(title = "작품") }
         `when`(content.restrict(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId.toString(), "작품", true) }
         `when`(content.unrestrict(workId)).thenAnswer { step("content"); ContentWork(workId, owner.memberId.toString(), "작품", false) }
         doAnswer { step("report"); it.arguments[0] }.`when`(reports).saveAndFlush(any(ReportEntity::class.java) ?: report())
@@ -429,8 +435,8 @@ class ReportServiceTest {
 
     @Test
     fun `an episode report stores the work snapshot and the episode number once Content lists that episode`() {
-        `when`(content.work(workId)).thenReturn(ContentWork(workId, owner.memberId.toString(), "원작 제목", false))
-        `when`(content.episodes(workId)).thenReturn(mapper.readTree("""[{"number":1,"title":"1화"},{"number":2,"title":"2화"}]"""))
+        `when`(content.works()).thenReturn(listed())
+        `when`(content.episodes(workId)).thenReturn(mapper.readTree("""[{"number":1,"title":"1화","publicationStatus":"published","restricted":false},{"number":2,"title":"2화","publicationStatus":"published","restricted":false}]"""))
         `when`(reports.saveAndFlush(any(ReportEntity::class.java) ?: report())).thenAnswer { it.arguments[0] }
 
         val result = service.create(reporter, ReportRequest(ReportKind.RIGHTS, workId, "도용", targetType = ReportTarget.EPISODE, episodeNumber = 2))
@@ -446,13 +452,70 @@ class ReportServiceTest {
 
     @Test
     fun `an episode Content does not list is not found and nothing is stored`() {
-        `when`(content.work(workId)).thenReturn(ContentWork(workId, owner.memberId.toString(), "원작 제목", false))
-        `when`(content.episodes(workId)).thenReturn(mapper.readTree("""[{"number":1,"title":"1화"}]"""))
+        `when`(content.works()).thenReturn(listed())
+        `when`(content.episodes(workId)).thenReturn(mapper.readTree("""[{"number":1,"title":"1화","publicationStatus":"published","restricted":false}]"""))
 
         assertThrows(NoSuchElementException::class.java) {
             service.create(reporter, ReportRequest(ReportKind.RIGHTS, workId, "도용", targetType = ReportTarget.EPISODE, episodeNumber = 9))
         }
 
+        verifyNoInteractions(reports, histories)
+    }
+
+    @Test
+    fun `a work a reader cannot see is not found like an unknown one, so its title is never handed to the reporter`() {
+        val secret = "비공개 원고 제목"
+        val hidden = listOf(
+            listed(visibility = "private", title = secret),
+            listed(restricted = true, title = secret),
+            // Only the id decides here: the other work is public and free, so a list without this work is refused too.
+            OperationsWorkList(listOf(OperationsWork(UUID.randomUUID(), owner.memberId.toString(), secret, "작가", "original", "original", true, "public", false))),
+        )
+
+        for (works in hidden) {
+            `when`(content.works()).thenReturn(works)
+
+            val failure = assertThrows(NoSuchElementException::class.java) { service.create(reporter, ReportRequest(ReportKind.RIGHTS, workId, "도용")) }
+
+            assertFalse(failure.message.orEmpty().contains(secret))
+        }
+
+        verifyNoInteractions(reports, histories)
+    }
+
+    @Test
+    fun `an episode a reader cannot read is not found, whether it is a draft, suspended, restricted or has no state at all`() {
+        `when`(content.works()).thenReturn(listed())
+        val unreadable = listOf(
+            """{"number":3,"title":"3화","publicationStatus":"draft","restricted":false,"inherited":false}""",
+            """{"number":3,"title":"3화","publicationStatus":"suspended","restricted":false,"inherited":false}""",
+            """{"number":3,"title":"3화","publicationStatus":"published","restricted":true,"inherited":false}""",
+            """{"number":3,"title":"3화","restricted":false}""",
+            """{"number":3,"title":"3화","publicationStatus":"published"}""",
+        )
+
+        for (row in unreadable) {
+            // Episode 2 is published and free, so only the asked number (3) and its own flags decide.
+            `when`(content.episodes(workId)).thenReturn(mapper.readTree("""[$row,{"number":2,"publicationStatus":"published","restricted":false}]"""))
+
+            assertThrows(NoSuchElementException::class.java, {
+                service.create(reporter, ReportRequest(ReportKind.RIGHTS, workId, "도용", targetType = ReportTarget.EPISODE, episodeNumber = 3))
+            }, row)
+        }
+
+        verifyNoInteractions(reports, histories)
+    }
+
+    @Test
+    fun `an episode of a work a reader cannot see is not found without asking Content for its episodes`() {
+        `when`(content.works()).thenReturn(listed(visibility = "private"))
+
+        assertThrows(NoSuchElementException::class.java) {
+            service.create(reporter, ReportRequest(ReportKind.RIGHTS, workId, "도용", targetType = ReportTarget.EPISODE, episodeNumber = 1))
+        }
+
+        verify(content).works()
+        verifyNoMoreInteractions(content)
         verifyNoInteractions(reports, histories)
     }
 
@@ -525,7 +588,7 @@ class ReportServiceTest {
 
     @Test
     fun `a work report keeps no episode number and no world even when the request carries them`() {
-        `when`(content.work(workId)).thenReturn(ContentWork(workId, owner.memberId.toString(), "원작 제목", false))
+        `when`(content.works()).thenReturn(listed())
         `when`(reports.saveAndFlush(any(ReportEntity::class.java) ?: report())).thenAnswer { it.arguments[0] }
 
         val result = service.create(reporter, ReportRequest(ReportKind.RIGHTS, workId, "도용", episodeNumber = 3, worldId = worldId))
@@ -533,7 +596,7 @@ class ReportServiceTest {
         assertEquals(ReportTarget.WORK, result.targetType)
         assertNull(result.episodeNumber)
         assertNull(result.worldId)
-        verify(content).work(workId)
+        verify(content).works()
         verifyNoMoreInteractions(content)
     }
 

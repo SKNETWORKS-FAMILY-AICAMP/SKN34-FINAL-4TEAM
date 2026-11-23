@@ -47,7 +47,7 @@ class ReportService(
         return reports.saveAndFlush(intake(member, request)).response()
     }
 
-    /** What the report is about, read from Content before anything is stored: the ids the type asks for are checked first, and a target Content does not list is a 404. */
+    /** What the report is about, read from Content before anything is stored: the ids the type asks for are checked first, and a target a reader cannot see (or Content does not list) is a 404. */
     private fun intake(member: OperationsMember, request: ReportRequest): ReportEntity {
         if (request.targetType == ReportTarget.WORLD) {
             val worldId = requireNotNull(request.worldId) { "worldId is required." }
@@ -60,13 +60,16 @@ class ReportService(
         }
         val workId = requireNotNull(request.workId) { "workId is required." }
         val episode = if (request.targetType == ReportTarget.EPISODE) requireNotNull(request.episodeNumber) { "episodeNumber is required." } else null
-        val work = content.work(workId)
+        // ponytail: Content's single-work answer has no visibility, so the work is found in its whole operations list (one unpaged call, like the world list);
+        // ask Content for a visibility on GET /internal/v1/works/{id} when that list outgrows one call. The same 404 for private, restricted and unknown works, with no title in it.
+        val work = content.works().items.firstOrNull { it.workId == workId && it.visibility == "public" && !it.restricted }
+            ?: throw NoSuchElementException("Work not found.")
+        if (episode != null && content.episodes(workId).values().none { it.path("number").asInt(-1) == episode && it.isReadableEpisode() }) {
+            throw NoSuchElementException("Episode not found.")
+        }
         // `report.work_owner_id` is a UUID but Content `owner_id` is a varchar: an owner that cannot be a member is refused before any write.
         val owner = try { UUID.fromString(work.ownerId) } catch (_: IllegalArgumentException) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "작품 소유자를 확인할 수 없어 신고할 수 없어요.")
-        }
-        if (episode != null && content.episodes(workId).values().none { it.path("number").asInt(-1) == episode }) {
-            throw NoSuchElementException("Episode not found.")
         }
         return ReportEntity(
             kind = request.kind, targetType = request.targetType, workId = work.workId, episodeNumber = episode, workTitle = work.title, workOwnerId = owner,
@@ -195,3 +198,6 @@ class ReportService(
  */
 private fun JsonNode.isPublicWorld() =
     path("visibility").textOrNull() == "public" && path("published").asBoolean(false) && !path("restricted").asBoolean(true)
+
+/** A reader can open an episode only while it is published and not restricted; a draft, a suspended one or one without a state is not reportable. */
+private fun JsonNode.isReadableEpisode() = path("publicationStatus").textOrNull() == "published" && !path("restricted").asBoolean(true)

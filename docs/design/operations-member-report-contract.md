@@ -51,7 +51,7 @@
 | `GET /internal/v1/works/{workId}` | `{ workId, ownerId, title, restricted }`, 없으면 404 |
 | `PUT /internal/v1/works/{workId}/restriction` | 같은 본문(`restricted=true`) |
 | `DELETE /internal/v1/works/{workId}/restriction` | 같은 본문(`restricted=false`) |
-| `GET /internal/v1/works/{workId}/episodes` | 회차 목록 `[{number,title,publicationStatus,restricted,inherited}]`(회차 신고 접수가 그 번호를 확인) |
+| `GET /internal/v1/works/{workId}/episodes` | 회차 목록 `[{number,title,publicationStatus,restricted,inherited}]`(회차 신고 접수가 그 번호의 발행·제한을 확인) |
 | `PUT`·`DELETE /internal/v1/works/{workId}/episodes/{number}/restriction` | 그 회차 한 원소. 상속 회차는 409 `EPISODE_INHERITED` |
 | `GET /internal/v1/world-studios` | 세계관 목록(세계관 신고 접수가 그 id를 확인) |
 | `PUT`·`DELETE /internal/v1/world-studios/{worldId}/restriction` | 그 세계관 한 원소 |
@@ -66,7 +66,7 @@
 
 | 메서드·경로 | 권한 | 동작 |
 |---|---|---|
-| `POST /reports` | 로그인 회원 | `{ kind: "RIGHTS"\|"HARMFUL", workId, reason(1~2000), evidence(0~5000), targetType?, episodeNumber?, worldId? }` 접수(대상 종류는 [아래](#신고-대상-작품회차세계관)). Content에서 작품 소유자·제목을 조회해 저장. 201 |
+| `POST /reports` | 로그인 회원 | `{ kind: "RIGHTS"\|"HARMFUL", workId, reason(1~2000), evidence(0~5000), targetType?, episodeNumber?, worldId? }` 접수(대상 종류는 [아래](#신고-대상-작품회차세계관)). Content 운영 작품 목록(`GET /internal/v1/works`)에서 공개·미제한 작품을 찾아 소유자·제목을 저장. 201 |
 | `GET /reports/mine` | 로그인 회원 | 내가 신고했거나 내 작품이 대상인 신고 목록(최신순) |
 | `GET /reports?status=` | 관리자 `rights` | 운영 신고 목록(최신순, 선택 상태 필터) |
 | `GET /reports/{id}` | 신고자·작품 소유자·관리자 `rights` | 상세 + `history` |
@@ -86,8 +86,8 @@
 
 2026-11-23 사용자 결정: 신고 대상 종류는 `work`·`episode`·`world`다(접수 본문 `targetType`, 없으면 `work`). 기존 작품 신고는 그대로다.
 
-- `work`: `workId` 필요.
-- `episode`: `workId`와 `episodeNumber` 필요. Content `GET /internal/v1/works/{workId}/episodes`에 그 번호가 없으면 404이고 아무것도 저장하지 않는다. 작품 제목·소유자 스냅샷은 작품 신고와 같다.
+- `work`: `workId` 필요. Content 운영 작품 목록에서 공개(`visibility` public)이고 제한되지 않은 작품만 받는다(단건 `GET /internal/v1/works/{workId}`에는 공개 여부가 없다). 비공개·제한·없는 작품은 모두 같은 404이고 응답·예외에 작품 제목이 실리지 않는다.
+- `episode`: `workId`와 `episodeNumber` 필요. 위 작품 조건에 더해 Content `GET /internal/v1/works/{workId}/episodes`에서 그 번호의 회차가 발행(`publicationStatus` published)됐고 제한되지 않았을 때만 받고, 초안·공개 중단·제한·없는 회차는 404이며 아무것도 저장하지 않는다. 작품 제목·소유자 스냅샷은 작품 신고와 같다.
 - `world`: `worldId` 필요. Content `GET /internal/v1/world-studios`에서 공개(`visibility` public·`published`·미제한)인 세계관만 받고, 비공개·저장 버전 없음·제한·없는 세계관은 모두 같은 404다(비공개 세계관의 존재와 이름을 접수자에게 알리지 않는다). 세계관 이름(`worldName`)을 저장하고 `workId`·`workTitle`·`workOwnerId`는 null이다. 세계관은 작품이 아니고 소유자 칸을 두지 않으므로 소유자 조회·소명 흐름이 없고 신고자와 `rights` 관리자만 본다.
 - 필요한 id가 없으면 400이고 Content를 부르기 전에 거절한다. 종류가 묻지 않는 id는 무시한다.
 - 제한·해제(`POST|DELETE /reports/{id}/restriction`)는 대상에 맞는 Content 내부 API를 부른다: 작품 `/internal/v1/works/{workId}/restriction`, 회차 `/internal/v1/works/{workId}/episodes/{number}/restriction`, 세계관 `/internal/v1/world-studios/{worldId}/restriction`. 이력·활동 기록(`REPORT_RESTRICT`·`REPORT_UNRESTRICT`)은 같다.
