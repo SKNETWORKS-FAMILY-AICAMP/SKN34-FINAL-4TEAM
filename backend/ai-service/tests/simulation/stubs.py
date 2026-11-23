@@ -99,11 +99,12 @@ def fake_novelbrain(monkeypatch, items=None):
 
 
 def action(prose='카엘이 낮게 말했다. "멈춰."', observed='카엘이 북문 앞에서 리나를 막아섰다.', refuses=False, reason=None):
-    return Action(prose=prose, observed=observed, refusesBeat=refuses, refusalReason=reason)
+    # model_construct: 빈 값도 만든다(스키마 pattern을 지키지 않는 응답에 대한 서비스의 방어 확인용)
+    return Action.model_construct(prose=prose, observed=observed, refusesBeat=refuses, refusalReason=reason)
 
 
 def narration(prose='성문 위로 밤비가 내렸다.', observed='밤비가 성문 앞에 내리고 있다.'):
-    return Narration(prose=prose, observed=observed)
+    return Narration.model_construct(prose=prose, observed=observed)
 
 
 def verdict(payload, fail=(), refs=(), detail='판정 설명', beat_done=False, scene_complete=False):

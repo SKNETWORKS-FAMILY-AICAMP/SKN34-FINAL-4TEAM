@@ -17,6 +17,7 @@ export class EpisodeUseCase {
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal) {return this.repository.deleteDraft(id,number,revision,signal)}
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal) {return this.repository.deleteEpisode(id,number,revision,signal)}
   writingList(id:string,signal?:AbortSignal) {return this.repository.writingList(id,signal)}
+  writingEpisode(id:string,number:number,signal?:AbortSignal) {return this.repository.writingEpisode(id,number,signal)}
   createEpisode(id:string,title:string,signal?:AbortSignal) {
     if(!title.trim() || title.length>120) return Promise.reject(new Error('회차 제목을 120자 이내로 입력해 주세요.'))
     return this.repository.createEpisode(id,title.trim(),signal)

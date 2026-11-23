@@ -114,7 +114,7 @@ def forced(allowed: Sequence[str], last_pov: str | None) -> Decision | None:
 
 
 async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last_pov: str | None = None) -> Decision:
-    """다음 턴의 연출 결정. allowed는 지금 쓸 수 있는 턴(하나뿐이면 묻지 않고 알려 준다), cast는 [{id, name}]이다.
+    """다음 턴의 연출 결정. allowed는 지금 쓸 수 있는 턴(하나뿐이면 묻지 않고 알려 준다), cast는 [{id, name}]이다(한 명이면 화자를 묻지 않는다).
 
     state에는 인물 id가 없어야 한다. 모델에는 인물 별칭(c1…)만 보내고 답을 id로 되돌린다. 독백은 시점 인물이 있어야 해서 독백만 허용되면
     전지적 시점을 선택지에서 빼고, 독백에 전지적 시점이 답으로 오면 시점만 한 번 더 묻는다. 그 밖에 어긋난 답은 502, 호출 실패는 503이다.
@@ -129,7 +129,8 @@ async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last
     questions = {}
     if len(allowed) > 1:
         questions['turn'] = Choice(instructions=TURN_QUESTION, criteria={t: TURN_CHOICES[t] for t in allowed})
-    questions['speaker'] = Choice(instructions=SPEAKER_QUESTION, criteria=names)
+    if len(names) > 1:  # 제공사는 선택지 1개짜리 질문을 400으로 거절한다(#682): 한 명이면 묻지 않고 그 인물이다
+        questions['speaker'] = Choice(instructions=SPEAKER_QUESTION, criteria=names)
     questions['pov'] = Choice(instructions=POV_QUESTION, criteria=inner if list(allowed) == ['monologue'] else povs)
     seen = {**state, 'cast': [{'alias': a, 'name': name} for a, name in names.items()],
             'lastPov': _swap(last_pov, alias), **({'turn': allowed[0]} if len(allowed) == 1 else {})}
@@ -139,7 +140,7 @@ async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last
         raise SimulationFailure(502, UNUSABLE)
     if turn == 'monologue' and pov == 'omniscient':  # 어긋난 답은 고치지 않고 독백인 줄 알려 주며 시점만 인물 시점 선택지로 한 번 더 묻는다
         pov = (await _ask({**seen, 'turn': turn}, {'pov': Choice(instructions=POV_QUESTION, criteria=inner)}))['pov'].choice
-    return Decision(turn=turn, speaker=ids[answers['speaker'].choice] if turn == 'speech' else None, pov=_swap(pov, ids))
+    return Decision(turn=turn, speaker=ids[answers['speaker'].choice if 'speaker' in answers else 'c1'] if turn == 'speech' else None, pov=_swap(pov, ids))
 
 
 async def _ask(state: dict, questions: dict[str, Choice]) -> dict:

@@ -117,11 +117,10 @@ it('AI 채팅은 보낼 수 없는 동안(데모·발행 회차 없음) 입력·
   expect(box.getAttribute('placeholder')).toBe('AI에게 무엇이든 물어보세요')
   for (const name of ['전송', '음성 입력 (준비 중)']) expect(within(chat).getByRole('button', { name })).toHaveProperty('disabled', true)
   expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/데모에서는|발행하면/)
-  // 첨부 안내는 + 버튼의 popover 안에만 있고, 항목은 모두 잠겨 있다.
-  expect(within(chat).queryByText('이미지·음성 첨부는 준비 중이에요.')).toBeNull()
+  // 첨부 항목은 모두 잠겨 있고(첨부는 켜져 있으니 '준비 중' 안내는 없다) 메뉴 설명은 잠긴 사유다.
   fireEvent.click(within(chat).getByRole('button', { name: '첨부' }))
-  for (const name of ['이미지 첨부', '음성 첨부']) expect(within(chat).getByRole('menuitem', { name })).toHaveProperty('disabled', true)
-  expect(within(chat).getByText('이미지·음성 첨부는 준비 중이에요.')).toBeTruthy()
+  for (const name of ['이미지 첨부', '텍스트 파일 첨부']) expect(within(chat).getByRole('menuitem', { name })).toHaveProperty('disabled', true)
+  expect(within(chat).queryByText('이미지·텍스트 파일 첨부는 준비 중이에요.')).toBeNull()
   // 빈 상태: 제목·한 줄 설명·추천 칩(칩도 잠겨 있어 입력창을 채우지 않는다)
   const log = within(chat).getByRole('log')
   expect(within(log).getByRole('heading', { name: '무엇을 함께 써볼까요?' })).toBeTruthy()

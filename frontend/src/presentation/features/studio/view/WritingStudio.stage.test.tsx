@@ -92,6 +92,18 @@ it('시뮬레이션 버튼은 편집기 대신 무대를 열고(편집기는 숨
   expect(document.activeElement).toBe(button)
 })
 
+it('편집기에서 글을 고르면 채팅이 함께 보낼 글자 수를 보이고, 선택을 풀면 없앤다(#636)', async () => {
+  renderStudio()
+  const chat = await screen.findByRole('complementary', { name: 'AI 채팅' })
+  const body = screen.getByRole('textbox', { name: '원고 본문' }) as HTMLTextAreaElement
+  body.setSelectionRange(0, 2)
+  fireEvent.select(body)
+  expect(await within(chat).findByText('선택한 글 2자가 함께 보내져요.')).toBeTruthy()
+  body.setSelectionRange(0, 0)
+  fireEvent.select(body)
+  await waitFor(() => expect(within(chat).queryByText(/함께 보내져요/)).toBeNull())
+})
+
 it('무대의 닫기 버튼도 편집기를 되돌리고 초점을 시뮬레이션 버튼으로 돌려준다', async () => {
   renderStudio()
   fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
@@ -141,6 +153,14 @@ it('승인 회차가 이미 열린 회차이거나 목록에 없으면 편집기
   stored({ ...approvalReply(), approvalEpisode: 9 }) // 목록에 없는 회차
   renderStudio()
   await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
+  expect(model.select).not.toHaveBeenCalled()
+})
+
+it('입력 대기의 반영 회차로는 편집기를 옮기지 않는다(#635: 이어지는 승인 때의 맞춤을 소진하지 않는다)', async () => {
+  model.episodes = [...model.episodes, fourth]
+  stored({ status: 'waiting', steps: [], missingInputs: ['research'], approvalEpisode: 4 })
+  renderStudio()
+  await screen.findByLabelText('조사할 질문')
   expect(model.select).not.toHaveBeenCalled()
 })
 
@@ -220,6 +240,17 @@ it('계획 없음 안내는 미저장 원고를 유지하며 집필실 안 플�
   } finally { model.dirty = false }
 })
 
+it('저장하지 않은 원고가 있으면 Content 작업 승인 [실행]을 잠그고 먼저 저장하라고 알린다(#639)', async () => {
+  model.dirty = true
+  try {
+    stored({ status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action',
+      pendingAction: { tool: 'work_update', label: '작품 정보 수정', args: { id: 'work-id', data: { description: '새 소개' } } } })
+    renderStudio()
+    expect((await screen.findByRole('button', { name: '실행' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.getByText(/먼저 저장해 주세요/)).toBeTruthy()
+  } finally { model.dirty = false }
+})
+
 it('작품에 편집할 회차가 없으면 시뮬레이션 버튼을 잠근다', () => {
   model.active = null
   renderStudio()
@@ -282,7 +313,7 @@ const withPlanRevision = async (afterSave: () => void) => {
   fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
   const stage = await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
   fireEvent.click(await within(stage).findByRole('radio', { name: /흐름/ }))
-  await within(stage).findByText('재회: 카엘이 문을 연다')
+  await within(stage).findByDisplayValue('재회: 카엘이 문을 연다')
   const start = () => within(stage).getByRole('button', { name: '시뮬레이션 시작' }) as HTMLButtonElement
   await waitFor(() => expect(start().disabled).toBe(false)) // 비트에 나온 카엘이 미리 골라져 있다
   const save = () => fireEvent.click(within(screen.getByRole('complementary', { name: 'AI 채팅' })).getByRole('button', { name: '계획에 저장' }))
@@ -292,7 +323,7 @@ const withPlanRevision = async (afterSave: () => void) => {
 it('채팅에서 계획 수정을 저장하면 계획 패널과 시작 양식이 최신 계획을 다시 읽고 회차 초안은 다시 읽지 않는다', async () => {
   const { stage, save } = await withPlanRevision(() => list.mockResolvedValue([plotPlan, scenePlan('재회(긴장)', '카엘이 문을 닫는다')]))
   save()
-  await within(stage).findByText('재회(긴장): 카엘이 문을 닫는다')
+  await within(stage).findByDisplayValue('재회(긴장): 카엘이 문을 닫는다')
   fireEvent.click(screen.getByRole('button', { name: '고급' }))
   expect(within(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).getByText('재회(긴장)')).toBeTruthy()
   expect(model.aiApplied).not.toHaveBeenCalled()
@@ -324,7 +355,7 @@ it('계획 패널에 저장하지 않은 입력이 있으면 확인 창 없이 �
   fireEvent.click(within(panel).getByRole('button', { name: '장면 계획 추가' }))
   fireEvent.change(within(panel).getByLabelText('장면 제목'), { target: { value: '내가 쓰던 제목' } })
   save()
-  await within(stage).findByText('재회(긴장): 카엘이 문을 닫는다')
+  await within(stage).findByDisplayValue('재회(긴장): 카엘이 문을 닫는다')
   expect(confirm).not.toHaveBeenCalled()
   expect((within(panel).getByLabelText('장면 제목') as HTMLInputElement).value).toBe('내가 쓰던 제목')
   expect(within(panel).getByRole('alert').textContent).toContain('AI가 계획을 바꿨어요')

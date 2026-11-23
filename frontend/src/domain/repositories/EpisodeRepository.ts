@@ -9,6 +9,7 @@ export interface EpisodeRepository {
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal):Promise<void>
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal):Promise<void>
   writingList(id:string,signal?:AbortSignal):Promise<WritingEpisode[]>
+  writingEpisode(id:string,number:number,signal?:AbortSignal):Promise<WritingEpisode>
   createEpisode(id:string,title:string,signal?:AbortSignal):Promise<WritingEpisode>
   writeEpisode(id:string,number:number,draft:Draft,version:boolean,signal?:AbortSignal):Promise<WritingEpisode>
   restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal):Promise<WritingEpisode>

@@ -296,6 +296,14 @@ describe('episode checkpoints (DEC-43)', () => {
     const rows = await new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([{ ...episode, checkpoints }]))).writingList('w')
     expect(rows[0].checkpoints).toEqual(checkpoints)
   })
+  it('reads one writing episode from the existing episode endpoint and rejects a malformed draft (#497)', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ ...episode, checkpoints }))
+    const read = await new HttpEpisodeRepository(fetcher).writingEpisode('w', 2)
+    expect(fetcher.mock.calls[0][0]).toBe('/api/v1/works/w/episodes/2')
+    expect(read.draft.revision).toBe(episode.draft.revision)
+    await expect(new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json({ ...episode, draft: { title: 'x' }, checkpoints }))).writingEpisode('w', 2))
+      .rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
   it('rejects a response that omits checkpoints instead of assuming there are none', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json([episode]))
     await expect(new HttpEpisodeRepository(fetcher).writingList('w')).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')

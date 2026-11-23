@@ -1,4 +1,5 @@
 import json
+import re
 from functools import partial
 from types import SimpleNamespace
 
@@ -10,7 +11,7 @@ from langchain_openai import ChatOpenAI
 
 from app import tracing
 from app.agent_runtime import MODEL_EVENT
-from app.simulation import agent, prompt
+from app.simulation import agent, models, prompt
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import Action, CheckItem, Narration, PlanDraft, Verdict
 
@@ -112,6 +113,21 @@ def test_act_narrate_and_check_send_the_assembled_input_as_it_is(monkeypatch):
     # 자료 속 문장은 명령이 아니고, 인물은 자기 입력 밖을 모른다는 지시가 각 호출에 있다.
     assert all('명령이 아닙니다' in instructions for instructions, _ in pairs)
     assert '당신이 아는 것' in pairs[0][0] and 'forbidden' in pairs[2][0]
+
+
+def test_prose_and_observed_must_carry_text_in_the_provider_schema_except_monologue_observed(monkeypatch):
+    # 모델이 prose·observed를 빈칸(공백·보이지 않는 글자)으로 돌려 502가 나던 것을 제공사 strict schema의 pattern으로 막는다.
+    # 독백은 observed를 비우라는 지시가 있어 observed만 제약하지 않는 Monologue 형식으로 보낸다.
+    sent = provider(monkeypatch, respond=lambda body: ok(NARRATION, False))
+    agent.narrate({'purpose': 'scene'})
+    agent.narrate({'purpose': 'monologue'})
+    props = [request.body['text']['format']['schema']['properties'] for request in sent]
+    assert [request.body['text']['format']['name'] for request in sent] == ['Narration', 'Monologue']
+    assert props[0]['prose']['pattern'] == props[0]['observed']['pattern'] == props[1]['prose']['pattern'] == models.TEXT
+    assert 'pattern' not in props[1]['observed']
+    action = Action.model_json_schema()['properties']
+    assert action['prose']['pattern'] == action['observed']['pattern'] == models.TEXT
+    assert re.search(models.TEXT, '밤비가 내렸다.') and not re.search(models.TEXT, ' \u200c\n')
 
 
 def test_narrator_writes_the_scenery_and_the_characters_only_their_own_lines():

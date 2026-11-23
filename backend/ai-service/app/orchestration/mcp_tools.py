@@ -1,4 +1,4 @@
-"""메인 에이전트가 직접 쓰는 Content MCP 도구 10개(#554, DEC-57). 서브 에이전트(`ask_*`)에 해당하지 않는 간단한 작업용이다.
+"""메인 에이전트가 직접 쓰는 Content MCP 도구 10개(#554, DEC-59). 서브 에이전트(`ask_*`)에 해당하지 않는 간단한 작업용이다.
 
 읽기 6개는 자동으로 실행하고 쓰기 4개는 `HumanInTheLoopMiddleware`가 작가 승인을 받은 뒤에만 실행한다. 원고(`episode_update_draft`)는 넣지 않는다:
 원고는 기존 `ask_writing` + `apply` 경로로만 고친다. 허용 목록 밖의 도구는 Content가 알려 줘도 감싸지 않는다.
@@ -39,12 +39,16 @@ WORLD_TOOLS = ('world_studio_read', 'world_studio_edit_draft')
 LIMIT_REACHED = '이번 요청에서 부를 수 있는 Content 도구 횟수를 넘었어요.'
 
 
-async def specs() -> list[dict]:
-    """허용 목록의 도구 정의. Content MCP를 읽을 수 없으면 이번 턴은 MCP 도구 없이 진행하고 서브 에이전트만 쓴다(메인 에이전트가 할 수 없는 작업은 안내 문구로 답한다)."""
+# 도구 목록을 못 읽은 턴의 답 끝에 붙이는 안내(#639, 2026-11-23 사용자 결정: 진행하되 작가가 알아듣는 말로 알린다).
+UNAVAILABLE = '지금은 작품 정보·세계관·플롯 계획을 불러올 수 없어서, 이번 답에서는 이것들을 직접 확인하거나 고치지 못했어요. 잠시 후 다시 시도해 주세요.'
+
+
+async def specs() -> list[dict] | None:
+    """허용 목록의 도구 정의. Content MCP를 읽을 수 없으면 None: 이번 턴은 MCP 도구 없이 서브 에이전트만 쓰고 답 끝에 UNAVAILABLE을 붙인다."""
     try:
         return await content_mcp.tool_specs(NAMES)
     except ContentMcpFailure:
-        return []
+        return None
 
 
 def tools(found: list[dict]) -> list[StructuredTool]:
