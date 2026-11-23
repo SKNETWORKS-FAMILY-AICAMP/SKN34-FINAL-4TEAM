@@ -193,14 +193,14 @@ class WorkWorldService(
         return publicWorlds.readerCardImage(worldId ?: throw ContentFailure(404, "이미지를 찾을 수 없습니다."), basis, imageId)
     }
 
-    /** 독자 설정 위키의 기준이다: 연결된 세계관(공개가 아닌 작품·연결 없음은 null)과 기준 회차(요청 회차, 발행된 마지막 회차를 넘지 못한다). */
+    /** 독자 설정 위키의 기준이다: 연결된 세계관(공개가 아닌 작품·연결 없음은 null)과 기준 회차(요청 회차, 발행된 마지막 회차를 넘지 못하며 운영이 제한한 회차는 독자에게 없으므로 세지 않는다). */
     private fun readerBasis(workId: String, upto: String?): Pair<UUID?, Int> {
         val requested = readerUpto(upto)
         val (worldId, published) = checkNotNull(transaction.execute {
             val work = access.get(workId)
             checkContent(!work.deleted, 404, "작품을 찾을 수 없어요.")
             if (!work.publiclyVisible()) null to 0
-            else works.findById(workId).orElseThrow().worldStudioId to (publication.publishedEpisodes(workId).items.maxOfOrNull { it.number } ?: 0)
+            else works.findById(workId).orElseThrow().worldStudioId to (publication.publishedEpisodes(workId).items.filterNot { it.restricted }.maxOfOrNull { it.number } ?: 0)
         })
         return worldId to minOf(requested ?: published, published)
     }

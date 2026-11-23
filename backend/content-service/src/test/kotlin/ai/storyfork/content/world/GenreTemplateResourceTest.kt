@@ -1,5 +1,6 @@
 package ai.storyfork.content.world
 
+import ai.storyfork.content.world.domain.requireCardMetadata
 import ai.storyfork.content.world.service.GenreTemplateSeeder
 import ai.storyfork.content.world.service.GenreTemplateRepair
 import ai.storyfork.content.world.service.ExpandedManifest
@@ -57,6 +58,11 @@ class GenreTemplateResourceTest {
             assertTrue(it.body.isNotBlank() && it.body.length <= 3000, it.title)
             assertTrue(it.cardType in setOf("character", "location", "organization", "ability", "object", "rule", "event", "other"), it.title)
         }
+    }
+
+    @Test fun `every template card payload with its SOUL document passes the draft edit metadata check`() {
+        templates.forEach { GenreTemplateRepair.soulPayloads(it).forEach(::requireCardMetadata) }
+        seeder.loadLegacy().forEach { GenreTemplateRepair.payloads(it).forEach(::requireCardMetadata) }
     }
 
     @Test fun `full text archive cards are not seeded`() {

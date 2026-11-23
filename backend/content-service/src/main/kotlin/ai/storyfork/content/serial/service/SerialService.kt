@@ -5,6 +5,8 @@ import ai.storyfork.content._common.exception.checkContent
 import ai.storyfork.content._common.helper.contentId
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
+import ai.storyfork.content.episode.entity.EpisodeCurrentEntity
+import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
 import ai.storyfork.content.episode.repository.EpisodeRepository
 import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.episode.service.dto.CreateEpisodeRequest
@@ -74,6 +76,15 @@ private val RUNNING = listOf("queued", "running")
 
 private fun conflict(code: String, message: String) = ContentFailure(409, message, code)
 
+/** [number]회가 운영 제한인지다. 제한 판정은 독자 경로와 같은 episode_current의 restricted다(물려받은 원작 회차의 제한 포함). */
+private fun List<EpisodeCurrentEntity>.restricted(number: Int) = any { it.sequence == number && it.restricted }
+
+/**
+ * 게시판이 운영 제한에 걸렸는지다: 대상 회차나 그 앞의 마지막 발행 회차가 제한이다. 걸린 게시판은 독자에게 없는 것과 같고(읽기는 board 없음, 쓰기는 404) 일정 점검은 실행하지 않는다.
+ * 게시판·선택지·제안 글·표는 지우거나 옮기지 않는다(제한이 풀리면 그대로 다시 보인다).
+ */
+private fun List<EpisodeCurrentEntity>.frozen(board: SerialBoardEntity) = restricted(board.episodeNumber) || lastOrNull { it.publishedVersionId != null }?.restricted == true
+
 /**
  * AI 자율 연재(UC-18)의 DB 쪽 규칙이다: 설정, 회차마다 열리는 게시판(AI 선택지 투표·제안 글·추천·숨김), 지금 실행 요청, 그리고 일정 점검([SerialRunner])이 쓰는 선택지 시도 기록·실행 선점·발행·실패 처리.
  * 외부 호출(Core 크레딧·AI)은 여기서 하지 않는다: 이 서비스의 메서드는 모두 짧은 트랜잭션이라 AI를 기다리는 동안 DB 트랜잭션·잠금을 열지 않는다.
@@ -95,6 +106,7 @@ class SerialService(
     private val voteRepo: SerialVoteRepository,
     private val works: WorkRepository,
     private val nicknames: CoreNicknameService,
+    private val current: EpisodeCurrentRepository,
 ) {
     // ---- 설정
 
@@ -158,13 +170,15 @@ class SerialService(
     /**
      * 공개 작품의 열린 게시판과 AI 선택지(번호순·득표 수), 제안 글(최신순 최대 200개, 숨긴 글 제외)이다. [member]가 있으면 그 회원의 투표(myChoiceId)와 글마다 추천·작성 여부를 채운다. 비공개·없는 작품은 404다.
      * 투표·제안을 받는 게시판은 open뿐이라 마감·실행 중(queued·running)에는 board가 null이고 choices·proposals는 비어 있다. summary는 마지막으로 발행된 게시판의 종합 문장이다.
+     * 대상 회차나 그 앞의 마지막 발행 회차가 운영 제한이면 열린 게시판도 없는 것과 같고, summary는 그 게시판이 발행한 회차가 제한이면 감춘다.
      * ponytail: 트랜잭션 안에서 Core 닉네임을 조회한다(다른 응답과 같은 시연 규모 방식).
      */
     fun board(workId: String, member: String?): SerialBoardResponse {
         access.published(workId)
         val enabled = serialRepo.findById(workId).orElse(null)?.enabled == true
-        val summary = boardRepo.findFirstByWorkIdAndStatusOrderByOpenedAtDesc(workId, "published")?.summary
-        val open = boardRepo.findFirstByWorkIdAndStatus(workId, "open") ?: return SerialBoardResponse(enabled, null, emptyList(), null, emptyList(), summary)
+        val episodeRows = current.findAllByWorkIdOrderBySequence(workId)
+        val summary = boardRepo.findFirstByWorkIdAndStatusOrderByOpenedAtDesc(workId, "published")?.takeUnless { episodeRows.restricted(it.publishedEpisodeNumber ?: it.episodeNumber) }?.summary
+        val open = boardRepo.findFirstByWorkIdAndStatus(workId, "open")?.takeUnless { episodeRows.frozen(it) } ?: return SerialBoardResponse(enabled, null, emptyList(), null, emptyList(), summary)
         val votes = voteRepo.findAllByBoardId(open.id)
         val rows = proposalRepo.findTop200ByBoardIdAndHiddenFalseOrderByCreatedAtDescIdDesc(open.id)
         val likes = likesOf(rows)
@@ -312,14 +326,17 @@ class SerialService(
 
     /**
      * 실행 선점이다: [from](open 또는 queued)인 게시판을 조건부로 running으로 바꿔 한 번만 실행하게 하고, 그 작품의 오늘(KST) 실행을 기록한다.
-     * 이미 다른 점검이 가져갔거나 상태가 달라졌으면 false다.
+     * 이미 다른 점검이 가져갔거나 상태가 달라졌으면 false다. 운영 제한에 걸린 게시판도 false다: 아무것도 바꾸지 않아 제한이 풀린 다음 점검이 다시 선점한다.
      */
     fun claim(boardId: String, from: String, today: LocalDate, now: Instant): Boolean {
-        val workId = boardRepo.findById(boardId).orElse(null)?.workId ?: return false
+        val board = boardRepo.findById(boardId).orElse(null) ?: return false
+        val workId = board.workId
         // 지금 실행(open → queued)·끄기 저장(queued → open)은 작품 잠금 아래에서 상태를 쓴다. 선점도 같은 잠금을 쥐어야 그 쓰기가 running을 덮어쓰지 않는다.
         access.lockScope(workId)
         // 일정 점검이 열린 게시판을 읽은 뒤 소유자가 끄기를 저장했을 수 있다: 같은 잠금 안에서 enabled를 다시 보고 꺼졌으면 시작하지 않는다(이미 running인 실행만 끝까지 간다).
         if (serialRepo.findById(workId).orElse(null)?.enabled != true) return false
+        // 운영이 제한한 회차에 걸려 있는 동안은 실행하지 않는다(상태·마감 시각·오늘 실행 기록을 그대로 둔다). 일정 창(1시간)을 넘기면 그날은 건너뛴다.
+        if (current.findAllByWorkIdOrderBySequence(workId).frozen(board)) return false
         if (boardRepo.claim(boardId, from, now) != 1) return false
         serialRepo.findById(workId).ifPresent { it.lastRunDate = today }
         return true
@@ -415,8 +432,12 @@ class SerialService(
 
     // ---- 내부
 
-    private fun open(workId: String): SerialBoardEntity =
-        boardRepo.findFirstByWorkIdAndStatus(workId, "open") ?: throw conflict("SERIAL_NO_BOARD", "지금 열린 게시판이 없어요.")
+    /** 독자 쓰기의 열린 게시판이다: 없으면 409, 있어도 운영 제한에 걸려 있으면 독자에게는 없는 것과 같아 404다. */
+    private fun open(workId: String): SerialBoardEntity {
+        val board = boardRepo.findFirstByWorkIdAndStatus(workId, "open") ?: throw conflict("SERIAL_NO_BOARD", "지금 열린 게시판이 없어요.")
+        if (current.findAllByWorkIdOrderBySequence(workId).frozen(board)) throw ContentFailure(404, "게시판을 찾을 수 없어요.")
+        return board
+    }
 
     /** 열린 게시판의 숨기지 않은 글이다(추천·추천 취소 대상). */
     private fun proposalOnOpenBoard(workId: String, proposalId: String): SerialProposalEntity {

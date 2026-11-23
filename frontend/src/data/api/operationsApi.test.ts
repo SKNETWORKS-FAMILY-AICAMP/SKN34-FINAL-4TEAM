@@ -2,8 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import '../../test/testLocks'
 import { OperationsError, OperationsForbidden, OperationsRejected } from '../../domain/entities/operations'
+import { EPISODE_INHERITED_MESSAGE } from '../../domain/entities/operationsWork'
 import { login } from './auth'
-import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from './operationsApi'
+import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpOperationsWorldRepository, HttpReportRepository, HttpSupportInquiryRepository } from './operationsApi'
 
 const reply = { id: 'p1', body: '답변\n내용', createdAt: '2026-11-08T01:00:00Z', updatedAt: '2026-11-08T02:00:00Z' }
 const inquiry = {
@@ -11,8 +12,14 @@ const inquiry = {
   createdAt: '2026-11-08T00:00:00Z', updatedAt: '2026-11-08T02:00:00Z', replies: [reply],
 }
 const report = {
-  id: 'r1', kind: 'RIGHTS', workId: 'w1', workTitle: '별빛', workOwnerId: 'owner', reporterId: 'u1', reason: '무단 사용', evidence: '',
+  id: 'r1', kind: 'RIGHTS', targetType: 'work', workId: 'w1', workTitle: '별빛', workOwnerId: 'owner', episodeNumber: null, worldId: null, worldName: null,
+  reporterId: 'u1', reason: '무단 사용', evidence: '',
   status: 'RECEIVED', contentRestricted: false, createdAt: '2026-11-08T00:00:00Z', updatedAt: '2026-11-08T00:00:00Z',
+}
+const episode = { number: 3, title: '3화 · 별빛', publicationStatus: 'published', restricted: false, inherited: false }
+const world = {
+  worldId: 'wd1', ownerId: 'owner-1', ownerName: '연화봉러', name: '별빛 세계', visibility: 'public', published: true, restricted: false,
+  genre: 'genre-01', createdAt: '2026-11-10T01:00:00Z', linkedWorkId: 'w1',
 }
 const member = { id: 'm1', email: 'm1@example.test', nickname: '연화', role: 'MEMBER', restricted: false, createdAt: '2026-11-08T00:00:00Z' }
 const work = {
@@ -355,5 +362,108 @@ describe('403 응답', () => {
     expect(failure).toBeInstanceOf(OperationsForbidden)
     expect(failure).toBeInstanceOf(OperationsError)
     expect(failure).toMatchObject({ message: '이 작업을 할 권한이 없어요.' })
+  })
+})
+
+describe('HttpReportRepository 신고 대상 종류(결정 D)', () => {
+  it('회차·세계관 신고와 world 신고의 null 작품 필드를 검증해 돌려준다', async () => {
+    const episodeReport = { ...report, targetType: 'episode', episodeNumber: 3 }
+    const worldReport = { ...report, id: 'r2', targetType: 'world', workId: null, workTitle: null, workOwnerId: null, worldId: 'wd1', worldName: '별빛 세계' }
+    expect(await new HttpReportRepository(ok({ items: [episodeReport, worldReport] })).listAll(null)).toEqual([episodeReport, worldReport])
+  })
+
+  it('대상 종류가 없는 옛 응답은 작품 신고로 읽고 알 수 없는 종류는 거부한다', async () => {
+    const { targetType: _targetType, episodeNumber: _episode, worldId: _world, worldName: _name, ...legacy } = report
+    expect(await new HttpReportRepository(ok({ items: [legacy] })).listAll(null)).toEqual([report])
+    await expect(new HttpReportRepository(ok({ items: [{ ...report, targetType: 'chat' }] })).listAll(null)).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
+
+  it('회차·세계관 신고 접수는 대상 종류와 대상 값을 본문에 싣고 작품 신고는 기존 본문 그대로다', async () => {
+    const fetcher = ok({}, 201)
+    const repo = new HttpReportRepository(fetcher)
+    await repo.submit({ kind: 'RIGHTS', workId: 'w1', reason: '무단', evidence: '' })
+    await repo.submit({ kind: 'RIGHTS', targetType: 'episode', workId: 'w1', episodeNumber: 3, reason: '인용', evidence: '3화' })
+    await repo.submit({ kind: 'HARMFUL', targetType: 'world', worldId: 'wd1', reason: '폭력', evidence: '' })
+    expect(callsOf(fetcher).map(([url, init]) => [init.method, url, init.body])).toEqual([
+      ['POST', '/api/v1/operations/reports', '{"kind":"RIGHTS","workId":"w1","reason":"무단","evidence":""}'],
+      ['POST', '/api/v1/operations/reports', '{"kind":"RIGHTS","targetType":"episode","workId":"w1","episodeNumber":3,"reason":"인용","evidence":"3화"}'],
+      ['POST', '/api/v1/operations/reports', '{"kind":"HARMFUL","targetType":"world","worldId":"wd1","reason":"폭력","evidence":""}'],
+    ])
+  })
+})
+
+describe('HttpOperationsWorkRepository 작품 상세 회차(결정 A·C)', () => {
+  it('회차 목록은 작품 id를 인코딩해 맨 배열로 읽고 형식이 다르면 거부한다', async () => {
+    const fetcher = ok([episode, { ...episode, number: 4, restricted: true, inherited: true, publicationStatus: 'suspended' }])
+    expect(await new HttpOperationsWorkRepository(fetcher).episodes('w 1')).toHaveLength(2)
+    const [[url, init]] = callsOf(fetcher)
+    expect(url).toBe('/api/v1/operations/works/w%201/episodes')
+    expect(init).toMatchObject({ method: 'GET', headers: { Authorization: 'Bearer o-bearer' } })
+    const failed = '서버 응답 형식을 확인할 수 없어요.'
+    await expect(new HttpOperationsWorkRepository(ok({ items: [episode] })).episodes('w1')).rejects.toThrow(failed) // 계약은 맨 배열이다
+    for (const patch of [{ number: 0 }, { restricted: 'no' }, { inherited: null }, { title: undefined }, { publicationStatus: 3 }]) {
+      await expect(new HttpOperationsWorkRepository(ok([{ ...episode, ...patch }])).episodes('w1')).rejects.toThrow(failed)
+    }
+  })
+
+  it('회차 제한은 PUT, 해제는 DELETE로 작품 id와 회차 번호를 경로에 싣는다', async () => {
+    const fetcher = ok(episode)
+    const repo = new HttpOperationsWorkRepository(fetcher)
+    await repo.setEpisodeRestriction('w 1', 3, true)
+    await repo.setEpisodeRestriction('w 1', 3, false)
+    expect(callsOf(fetcher).map(([url, init]) => [init.method, url, init.body])).toEqual([
+      ['PUT', '/api/v1/operations/works/w%201/episodes/3/restriction', undefined],
+      ['DELETE', '/api/v1/operations/works/w%201/episodes/3/restriction', undefined],
+    ])
+  })
+
+  it('상속 회차 409(EPISODE_INHERITED)는 서버 code로 정한 한국어 안내를, 그 밖의 409·404는 일반 안내를 던진다', async () => {
+    const inherited = new HttpOperationsWorkRepository(vi.fn(async () => Response.json({ code: 'EPISODE_INHERITED', message: 'Episode is inherited' }, { status: 409 })))
+    await expect(inherited.setEpisodeRestriction('w1', 2, true)).rejects.toThrow(new OperationsRejected(EPISODE_INHERITED_MESSAGE))
+    const conflict = new HttpOperationsWorkRepository(vi.fn(async () => Response.json({ code: 'CONFLICT', message: 'Conflict' }, { status: 409 })))
+    await expect(conflict.setEpisodeRestriction('w1', 2, true)).rejects.toThrow(new OperationsError('다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'))
+    await expect(new HttpOperationsWorkRepository(empty(404)).setEpisodeRestriction('w1', 9, false)).rejects.toThrow(new OperationsError('대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'))
+    await expect(new HttpOperationsWorkRepository(empty(404)).episodes('w1')).rejects.toThrow(new OperationsError('대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'))
+  })
+})
+
+describe('HttpOperationsWorldRepository 운영 세계관(결정 B)', () => {
+  it('세계관 목록은 맨 배열로 읽고 없는 연결·닉네임은 null로 통일하며 형식이 다르면 거부한다', async () => {
+    const unlinked = { ...world, worldId: 'wd2', ownerName: null, linkedWorkId: null, genre: null, visibility: 'private', published: false, restricted: true }
+    const { linkedWorkId: _link, ...legacy } = { ...world, worldId: 'wd3' }
+    const fetcher = ok([world, unlinked, legacy])
+    expect(await new HttpOperationsWorldRepository(fetcher).list()).toEqual([world, unlinked, { ...legacy, linkedWorkId: null }])
+    const [[url, init]] = callsOf(fetcher)
+    expect(url).toBe('/api/v1/operations/world-studios')
+    expect(init).toMatchObject({ method: 'GET', headers: { Authorization: 'Bearer o-bearer' } })
+    const failed = '서버 응답 형식을 확인할 수 없어요.'
+    await expect(new HttpOperationsWorldRepository(ok({ items: [world] })).list()).rejects.toThrow(failed)
+    for (const patch of [{ visibility: 'hidden' }, { published: 'yes' }, { restricted: null }, { name: undefined }, { createdAt: 'yesterday' }]) {
+      await expect(new HttpOperationsWorldRepository(ok([{ ...world, ...patch }])).list()).rejects.toThrow(failed)
+    }
+  })
+
+  it('제한은 PUT, 해제는 DELETE이고 세계관 id를 인코딩한다', async () => {
+    const fetcher = ok(world)
+    const repo = new HttpOperationsWorldRepository(fetcher)
+    await repo.setRestriction('wd 1', true)
+    await repo.setRestriction('wd 1', false)
+    expect(callsOf(fetcher).map(([url, init]) => [init.method, url])).toEqual([
+      ['PUT', '/api/v1/operations/world-studios/wd%201/restriction'], ['DELETE', '/api/v1/operations/world-studios/wd%201/restriction'],
+    ])
+  })
+
+  it.each([
+    [403, '이 작업을 할 권한이 없어요.'],
+    [404, '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'],
+    [502, '연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.'],
+  ])('%s 응답은 성공으로 숨기지 않고 안내 오류로 바꾼다', async (status, message) => {
+    const repo = new HttpOperationsWorldRepository(vi.fn(async () => Response.json({ code: 'X', message: 'internal' }, { status })))
+    await expect(repo.list()).rejects.toThrow(new OperationsError(message))
+    await expect(repo.setRestriction('wd1', true)).rejects.toThrow(new OperationsError(message))
+  })
+
+  it('403은 OperationsForbidden이다', async () => {
+    await expect(new HttpOperationsWorldRepository(empty(403)).list()).rejects.toBeInstanceOf(OperationsForbidden)
   })
 })

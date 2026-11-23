@@ -28,10 +28,10 @@ import { useAsyncData } from '../../../shared/useAsyncData'
 import { adminViewActions, type AdminChatForm, type AdminFilter, type EventDraft, type OperationsRecordKind } from '../state/adminViewSlice'
 
 /** 목업 adminExtra()·adminLegacy()의 baseId */
-const IDS: Record<AdminTab, string> = { data: 'A01+A02', rights: 'A03', llm: 'A05', users: 'A07', works: 'A08', comments: 'A09', characterChats: 'A18', feedback: 'A10', events: 'A11', notices: 'A12', credits: 'A13', audit: 'A14', jobs: 'A16', admins: 'A17', genres: 'A19', profile: 'A15' }
+const IDS: Record<AdminTab, string> = { data: 'A01+A02', rights: 'A03', llm: 'A05', users: 'A07', works: 'A08', comments: 'A09', characterChats: 'A18', feedback: 'A10', events: 'A11', notices: 'A12', credits: 'A13', audit: 'A14', jobs: 'A16', admins: 'A17', genres: 'A19', worlds: 'A20', cardCategories: 'A21', profile: 'A15' }
 export type AdminActionState = ActionState
 /** 운영 API에 실제로 연결된 탭. 나머지 탭은 기존 메모리 데모입니다. */
-export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'comments', 'rights', 'feedback', 'profile', 'notices', 'events', 'audit', 'data', 'llm', 'jobs', 'genres', 'credits']
+export const LIVE_TABS: AdminTab[] = ['users', 'admins', 'works', 'comments', 'rights', 'feedback', 'profile', 'notices', 'events', 'audit', 'data', 'llm', 'jobs', 'genres', 'credits', 'worlds', 'cardCategories']
 /** 운영 변경 조치 실행기: 서버 응답 성공만 완료로 표시하고 dataChanged로 화면의 조회를 다시 읽게 합니다(대시보드·LLMOps·작업 감시 화면이 씁니다). */
 export type AdminMutate = (key: string, message: string, action: () => Promise<void>) => Promise<boolean>
 const ROLES: MemberQuery['role'][] = ['MEMBER', 'ADMIN']
@@ -152,7 +152,7 @@ export function useAdminViewModel(
       setWorkRestriction: (id: string, restricted: boolean) => runLive(`work:${id}`, restricted ? '작품을 운영 제한했어요.' : '작품 운영 제한을 해제했어요.', () => operationsWorkUseCase.setRestriction(id, restricted)),
       setCommentHidden: (id: string, hidden: boolean) => runLive(`comment:${id}`, hidden ? '댓글을 숨겼어요.' : '댓글을 게시 상태로 되돌렸어요.', () => hidden ? operationsCommentUseCase.hide(id) : operationsCommentUseCase.unhide(id)),
       review: (id: string, decision: ReviewDecision, note: string) => runLive(`report:${id}:review`, '검토 결과를 기록했어요.', () => reportUseCase.review(id, decision, note)),
-      setContentRestriction: (id: string, restricted: boolean) => runLive(`report:${id}:restrict`, restricted ? '대상 작품을 제한했어요.' : '대상 작품 제한을 해제했어요.', () => reportUseCase.setContentRestriction(id, restricted)),
+      setContentRestriction: (id: string, restricted: boolean) => runLive(`report:${id}:restrict`, restricted ? '신고 대상을 제한했어요.' : '신고 대상 제한을 해제했어요.', () => reportUseCase.setContentRestriction(id, restricted)),
       requestEvidence: (id: string, body: string) => runLive(`report:${id}:evidence`, '작품 등록자에게 권리 증빙을 요청했어요.', () => reportUseCase.requestEvidence(id, body)),
       // 답변 수정·삭제는 같은 키를 써서 한 답변에 동시에 두 요청이 나가지 않게 합니다.
       addReply: (id: string, body: string) => runLive(`inquiry:${id}:reply`, '답변을 등록했어요.', () => supportInquiryUseCase.addReply(id, body)),

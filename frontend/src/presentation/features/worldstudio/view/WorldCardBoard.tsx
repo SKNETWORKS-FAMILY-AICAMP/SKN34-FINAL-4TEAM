@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useId, useRef, useState } from 'react'
 
+import { categoryChoices } from '../../../../domain/entities/cardCategory'
 import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
 import { cardRevealEpisode, invalidReveal, REVEAL_EPISODE_ERROR, type StudioSetting } from '../../../../domain/entities/studioWorld'
 import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
@@ -17,6 +18,7 @@ import { BOARD_SORTS, useCardBoard } from '../viewmodel/useCardBoard'
 import type { CardImages } from '../viewmodel/useCardImages'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 import { cardPath } from '../../worlds/worldDetail'
+import { CardCategoryNotice } from './CardCategoryNotice'
 import { CardThumb } from './WorldCardImage'
 import { CardWikiPreview } from './WorldCardPreview'
 import { NewCardMenu } from './NewCardMenu'
@@ -121,8 +123,11 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
   const world = vm.editing!
   const board = useCardBoard(vm, { showEmptyKinds: true })
   const emptyType = cardTypes.find((type) => type.label === board.emptyKind)
+  // 빈 분류의 '첫 설정 추가'는 그 분류의 기본 유형을 쓰지만 새 설정 메뉴와 같은 규칙을 따른다: 운영자가 숨긴 유형이거나 카테고리 목록을 아직 읽지 못했으면(기본 8종으로 대신하지 않는다) 잠근다.
+  const { categories } = board.cardCategories
+  const emptyAddable = !!emptyType && !!categories && categoryChoices(categories).some((category) => category.code === emptyType.id)
   const addFirstCard = () => {
-    if (!emptyType) return
+    if (!emptyType || !emptyAddable) return
     const id = vm.addCard(emptyType.id)
     if (id) {
       vm.setCardQuery('')
@@ -210,6 +215,8 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
           <button type="button" className="btn sm" onClick={undo}>되돌리기</button>
         </p>
       )}
+      {/* 행의 분류 이름은 카테고리 목록을 따른다: 읽지 못했으면 기본 8종 이름만 믿을 수 있으므로 실패와 다시 시도를 알린다. */}
+      <CardCategoryNotice isError={board.cardCategories.isError} retry={board.cardCategories.retry} />
       <div className="world-card-library">
         <div className="worlds-board">
           <nav className="worlds-cats" aria-label="설정 분류">
@@ -224,7 +231,8 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
           <div className="worlds-board-main">
             {emptyType && <div className="world-empty world-board-empty">
               <p role="status">아직 {emptyType.label} 설정이 없어요.</p>
-              <button type="button" className="btn pri sm" onClick={addFirstCard}>+ {emptyType.label} 설정 추가</button>
+              <button type="button" className="btn pri sm" disabled={!emptyAddable} onClick={addFirstCard}>+ {emptyType.label} 설정 추가</button>
+              {categories && !emptyAddable && <p className="small muted">운영에서 숨긴 분류라 새로 추가할 수 없어요.</p>}
             </div>}
             <div className="worlds-board-tools world-compact">
               {!emptyType && <>

@@ -72,6 +72,13 @@ class WorldReadingBoundaryServiceTest {
         verifyNoInteractions(readingDetails)
     }
 
+    @Test fun `a restricted episode does not expose wiki detail either`() {
+        `when`(access.published("w")).thenReturn(work)
+        `when`(currentEpisodes.findByWorkIdAndSequence("w",1)).thenReturn(ai.storyfork.content.episode.entity.EpisodeCurrentEntity(id="e",workId="w",sequence=1,publishedVersionId="v",restricted=true))
+        assertEquals(404,assertThrows(ContentFailure::class.java) {service.publicRead("w",1)}.status)
+        verifyNoInteractions(readingDetails)
+    }
+
     @Test fun `original can draft and confirm a new simple setting without rewriting rich history`() {
         `when`(access.own("w","owner")).thenReturn(work)
         `when`(access.get("w")).thenReturn(work)

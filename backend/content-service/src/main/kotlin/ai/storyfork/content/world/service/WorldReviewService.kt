@@ -10,6 +10,7 @@ import ai.storyfork.content.world.service.dto.WorldReviewResponse
 import ai.storyfork.content.world.studio.entity.WorldReviewResult
 import ai.storyfork.content.world.studio.repository.StudioWorldRepository
 import ai.storyfork.content.world.studio.repository.WorldReviewResultRepository
+import ai.storyfork.content.world.studio.repository.lockAccessible
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -33,7 +34,7 @@ class WorldReviewService(
 ) {
     private val transaction = TransactionTemplate(manager)
     /** 남의·지운 세계관은 비소유자와 같이 없는 것이다(소프트 삭제 포함). */
-    private fun owned(id: UUID, subject: UUID) = worlds.lockOwned(id, subject) ?: throw WorldNotFound()
+    private fun owned(id: UUID, subject: UUID) = worlds.lockAccessible(id, subject) ?: throw WorldNotFound()
 
     fun review(worldId: UUID, owner: UUID, consent: Boolean?): WorldReviewResponse {
         if (consent != true) throw ContentFailure(422, "OpenAI 전송과 API 비용에 동의해 주세요.", "AI_CONSENT_REQUIRED")

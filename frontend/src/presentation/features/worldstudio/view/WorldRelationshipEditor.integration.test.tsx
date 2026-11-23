@@ -15,6 +15,7 @@ import { InMemoryWorldStudioRepository } from '../../../../data/world-studio/InM
 import { putRelation } from '../../../../domain/entities/studioRelations'
 import { cardTypeOf } from '../../../../domain/entities/studioCards'
 import { newSetting } from '../../../../domain/entities/studioWorld'
+import { stubCardCategories } from '../../../../test/cardCategories'
 import { EpisodeWorldRepository } from '../../../../test/episodeWorldRepository'
 const { useWorldStudioViewModel } = studioViewModel
 /** 관계 작성 패널은 시트(Sheet)라 앱 스토어(Provider)가 있어야 한다. 이미 Provider를 두른 테스트는 한 겹 더 쌓일 뿐이다. */
@@ -23,7 +24,7 @@ const render = (ui: ReactElement) => renderBare(<Provider store={createAppStore(
 vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/markdownEditorFake'))
 // 관계도 캔버스(react-force-graph)는 그리지 않고 넘기는 값·메서드만 붙잡는 대역이다(공용: src/test/forceGraphFake). 노드·선은 캔버스가 넘긴 graphData에서 읽고, 누르기·오른쪽 클릭·올리기는 넘긴 핸들러로 흉내 낸다.
 vi.mock('react-force-graph-2d', () => import('../../../../test/forceGraphFake'))
-beforeEach(() => fakeGraph.reset())
+beforeEach(() => { fakeGraph.reset(); stubCardCategories() })
 // 관계도의 기본 보기(인물이 둘 이상이면 인물만·정보 관계 끔)는 관계 편집 동작과 무관한 시험에서는 모든 유형을 보는 필터로 대신한다. 기본 보기·기억을 시험할 때는 prefs.filter를 undefined로 두어 실제 저장소를 읽는다.
 const prefs = vi.hoisted(() => ({ filter: { hiddenTypes: [] as string[], hiddenKinds: [] as string[] } as undefined | { hiddenTypes: string[]; hiddenKinds: string[] } }))
 vi.mock('../viewmodel/relationPrefs', async (original) => { const real = await original<typeof import('../viewmodel/relationPrefs')>(); return { ...real, loadFilter: (id: string) => (prefs.filter === undefined ? real.loadFilter(id) : prefs.filter) } })
@@ -757,7 +758,7 @@ it('+ 설정 추가 패널에서 유형을 고르면 초안에 그 유형의 새
   const { vm } = await openPair()
   const before = vm().editing!.settings.length
   fireEvent.click(screen.getByRole('button', { name: '+ 설정 추가' }))
-  fireEvent.click(within(screen.getByRole('dialog', { name: '설정 추가' })).getByRole('button', { name: '장소' }))
+  fireEvent.click(await within(screen.getByRole('dialog', { name: '설정 추가' })).findByRole('button', { name: '장소' })) // 카테고리 목록을 읽은 뒤에 유형이 나온다
   await waitFor(() => expect(vm().editing!.settings).toHaveLength(before + 1))
   const added = vm().editing!.settings.at(-1)!.item
   expect(cardTypeOf(added)).toBe('location')

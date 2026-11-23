@@ -76,6 +76,7 @@ class EditSuggestionServiceTest {
     // Fork 작품 → 원작이 삭제됐는지, 그리고 분기 전에 상속한 발행 회차
     private val forks = mutableMapOf<String, Boolean>()
     private val inheritedEpisodes = mutableSetOf<Pair<String, Int>>()
+    private val restrictedEpisodes = mutableSetOf<Pair<String, Int>>()
     private val asked = mutableListOf<List<String>>()
     // (작품, 회차) → 현재 발행 버전 ID와 발행 버전 본문
     private val publishedVersion = mutableMapOf<Pair<String, Int>, String>()
@@ -119,7 +120,7 @@ class EditSuggestionServiceTest {
         `when`(current.findByWorkIdAndSequence(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt())).thenAnswer { call ->
             val work = call.arguments[0] as String
             val number = call.arguments[1] as Int
-            if (work to number in publishedVersion) EpisodeCurrentEntity("episode-$number", work, number, publishedVersion[work to number], work to number in inheritedEpisodes) else null
+            if (work to number in publishedVersion) EpisodeCurrentEntity("episode-$number", work, number, publishedVersion[work to number], work to number in inheritedEpisodes, restricted = work to number in restrictedEpisodes) else null
         }
         `when`(versions.findById(ArgumentMatchers.anyString())).thenAnswer { call ->
             val id = call.arguments[0] as String
@@ -274,6 +275,18 @@ class EditSuggestionServiceTest {
         assertEquals(404, found.status)
         assertEquals("공개 회차를 찾을 수 없어요.", found.message)
         assertEquals(found.status, missing.status)
+        assertEquals(found.message, missing.message)
+        verify(versions, never()).findById(ArgumentMatchers.anyString())
+        assertTrue(rows.isEmpty())
+    }
+
+    @Test fun `a restricted episode is 404 whether or not the hidden text holds the sentence`() {
+        restrictedEpisodes += "work" to 1
+
+        val found = failure { service.create("work", 1, "reader", request()) }
+        val missing = failure { service.create("work", 1, "reader", request("본문에 없는 문장", "고친 문장")) }
+
+        assertEquals(404, found.status)
         assertEquals(found.message, missing.message)
         verify(versions, never()).findById(ArgumentMatchers.anyString())
         assertTrue(rows.isEmpty())

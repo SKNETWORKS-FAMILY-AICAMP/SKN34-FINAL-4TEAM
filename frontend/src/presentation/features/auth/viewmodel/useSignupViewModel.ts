@@ -97,8 +97,9 @@ export function useVerifyEmailViewModel(change = false) {
       token.current = null
       setPassword('')
       setResult({ state: 'success', message: '이메일 인증이 완료됐어요. 로그인해 주세요.' })
-    } catch {
-      if (active.current) setResult({ state: 'error', message: '이메일을 인증하지 못했어요. 가입 비밀번호를 확인해 주세요. 링크가 만료됐거나 이미 사용됐을 수도 있어요.' })
+    } catch (e) {
+      // 409는 같은 이메일 회원이 이미 있다는 뜻이라 비밀번호 오류가 아니라 로그인을 안내한다(#565).
+      if (active.current) setResult({ state: 'error', message: e instanceof DuplicateEmail ? '이미 가입된 이메일이에요. 로그인해 주세요.' : '이메일을 인증하지 못했어요. 가입 비밀번호를 확인해 주세요. 링크가 만료됐거나 이미 사용됐을 수도 있어요.' })
     } finally { busy.current = false }
   }
   return { ...result, signedIn, password, setPassword, passwordError, submit, canVerify: !change && !!token.current }

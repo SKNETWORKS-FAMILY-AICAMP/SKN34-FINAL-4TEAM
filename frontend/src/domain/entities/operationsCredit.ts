@@ -5,6 +5,10 @@ export type MemberCredits = { balance: CreditBalance; history: CreditHistoryItem
 /** 수동 지급·회수 요청. 사유는 활동 기록에 남습니다. */
 export type CreditChange = { amount: number; reason: string }
 export type CreditChangeKind = 'grant' | 'revoke'
+/** 회원 목록 행의 잔액(`CreditBalanceResponse.total`과 같은 계산). 서버가 모르는 회원은 결과에서 뺀다. */
+export type MemberBalance = { memberId: string; total: number }
+/** 묶음 잔액 API 한 번에 보낼 수 있는 회원 수의 상한. */
+export const BALANCE_BATCH = 100
 
 export const CREDIT_AMOUNT_MAX = 100_000
 export const CREDIT_REASON_MAX = 200

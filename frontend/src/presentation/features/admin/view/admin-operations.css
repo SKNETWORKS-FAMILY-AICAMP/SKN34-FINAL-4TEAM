@@ -134,3 +134,10 @@
 .adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 110px; }
 .adm .admin-eval-grid .rowend { justify-content: flex-start; }
 @media (max-width: 600px) { .adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* 작품 상세 드로어(운영자 콘텐츠 관리 결정 C): 화면 오른쪽에 붙는 비모달 패널이다. 뒤의 작품 표는 그대로 쓸 수 있고 Esc·닫기로 닫는다. */
+.adm .admin-drawer { position: fixed; z-index: 40; top: 0; right: 0; bottom: 0; width: min(560px, 100%); overflow: auto; overscroll-behavior: contain; padding: 22px 24px 32px; background: var(--surface); border-left: 1px solid var(--line2); box-shadow: -12px 0 32px rgb(0 0 0 / 0.14); }
+.adm .admin-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.adm .admin-drawer h2 { margin: 0; font-size: 20px; }
+.adm .admin-drawer h3 { margin: 22px 0 8px; font-size: 15px; }
+.adm .admin-drawer .adm-scroll table { min-width: 0; }

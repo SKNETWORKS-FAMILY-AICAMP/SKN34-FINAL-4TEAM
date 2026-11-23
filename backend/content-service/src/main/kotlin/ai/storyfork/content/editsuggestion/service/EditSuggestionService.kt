@@ -86,7 +86,7 @@ class EditSuggestionService(
     fun read(id: String, suggestionId: String, viewer: String): SuggestionResponse {
         val work=liveWork(id)
         val row=find(id,suggestionId)
-        checkContent(row.proposerId==viewer || work.ownerId==viewer,404,NOT_FOUND)
+        checkContent(row.proposerId==viewer || work.ownerId==viewer || ai.storyfork.content.auth.config.operatorReading(),404,NOT_FOUND)
         return one(row,viewer)
     }
 
@@ -208,13 +208,13 @@ class EditSuggestionService(
 
     /**
      * 공개 작품의 발행 회차만 대상이다. 현재 발행 버전 ID를 돌려주며 비공개·제한 작품이나 미발행 회차는 404다.
-     * 원작이 삭제된 Fork의 상속 회차는 독자에게 본문이 가려지므로([WorkAccessResult.readerEpisodes]) 공개 회차가 없는 것과 같게 404다.
+     * 원작이 삭제된 Fork의 상속 회차는 독자에게 본문이 가려지고 운영이 제한한 회차는 독자에게 없으므로([WorkAccessResult.readerEpisodes]) 공개 회차가 없는 것과 같게 404다.
      * 본문 검사보다 먼저 판정해, 숨긴 본문에 그 문장이 있는지가 201/422로 드러나지 않게 한다.
      */
     private fun publishedVersion(id: String, number: Int): String {
         val work=access.published(id)
         val episode=current.findByWorkIdAndSequence(id,number)?.takeUnless {it.inherited && work.source?.deleted==true}
-        return episode?.publishedVersionId ?: throw ContentFailure(404,"공개 회차를 찾을 수 없어요.")
+        return episode?.readerVersionId ?: throw ContentFailure(404,"공개 회차를 찾을 수 없어요.")
     }
 
     /** 삭제하지 않은 작품이다. 없거나 삭제됐으면 404이며 삭제된 작품의 제안은 모든 경로에서 없는 것으로 본다. */
@@ -228,7 +228,7 @@ class EditSuggestionService(
      * 제안자인데 소유자가 아니면 403이고, 볼 수 없는 사람이나 없는 작품·제안·삭제된 작품이면 404다(삭제된 작품은 제안자도 404).
      */
     private fun owned(id: String, suggestionId: String, member: String): EditSuggestionEntity {
-        if(liveWork(id).ownerId!=member) {
+        if(liveWork(id).ownerId!=member && !ai.storyfork.content.auth.config.operatorReading()) {
             throw if(suggestions.findByIdAndWorkId(suggestionId,id)?.proposerId==member) ContentFailure(403,OWNER_ONLY) else ContentFailure(404,NOT_FOUND)
         }
         access.own(id,member)
@@ -266,7 +266,7 @@ class EditSuggestionService(
             val scope=EditScopePolicy.check(row.beforeText,row.editedText ?: row.afterText)
             SuggestionResponse(row.id,row.workId,work.title,row.episodeNumber,row.publishedVersionId,row.source,names[row.proposerId] ?: WITHDRAWN_MEMBER_NAME,
                 row.beforeText,row.afterText,row.editedText,row.reason,row.status,row.decisionReason,row.applyResult,row.applyFailure,row.appliedVersionId,
-                scope.scope,scope.reasons,row.proposerId==viewer,work.ownerId==viewer,row.createdAt,row.updatedAt,
+                scope.scope,scope.reasons,row.proposerId==viewer,work.ownerId==viewer || ai.storyfork.content.auth.config.operatorReading(),row.createdAt,row.updatedAt,
                 row.appliedVersionId in lineage, if (row.status==EditSuggestionRules.APPROVED) row.updatedAt else row.decidedAt,
                 if(row.status=="pending") null else names[work.ownerId] ?: WITHDRAWN_MEMBER_NAME)
         }

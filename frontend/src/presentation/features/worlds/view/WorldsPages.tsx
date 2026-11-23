@@ -15,6 +15,7 @@ import { LINEAGE_COLORS, atlasFeatures, type AtlasNode, type WorldAtlas } from '
 import { DETAIL_TABS, bookPath, detailEndpoint, graphHighlight, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
 import { WorldBook } from './WorldBook'
 import { WorldOverview } from './WorldOverview'
+import { WorldReportSheet } from './WorldReportSheet'
 import { DemoNotice, LoadFailed, WorldCard, WorldCover, WorldLoading } from './WorldParts'
 import './worlds.css'
 
@@ -395,7 +396,7 @@ function ConnectedWorlds({ lineage }: { lineage?: PublicWorldLineage }) {
  */
 export function WorldDetailPage() {
   const { id } = useParams()
-  const { detail, isLoading, isError, retry, tab, setTab, openNode } = useWorldDetailViewModel(id)
+  const { detail, isLoading, isError, retry, tab, setTab, openNode, reporting, closeReport, startReport } = useWorldDetailViewModel(id)
   useScreenId('W03')
   useDocumentTitle(detail ? detail.world.name : isLoading || isError ? '세계관' : '찾을 수 없는 세계관')
   const world = detail?.world
@@ -412,7 +413,10 @@ export function WorldDetailPage() {
               <h1>{world.name}</h1>
               {world.hook && <p className="worlds-hook">{world.hook}</p>}
               <p className="muted small">작가 {world.authorNickname} · 읽기 전용</p>
+              {/* 신고(결정 D)는 서버 세계관만 운영 신고 API에 연결돼 있어 데모 세계관에는 두지 않는다. */}
+              {!world.demo && <button type="button" className="btn sm" onClick={startReport}>🚩 세계관 신고</button>}
             </header>
+            {reporting && !world.demo && <WorldReportSheet world={world} onClose={closeReport} />}
             <DetailTabBar tab={tab} onTab={setTab} />
             <div role="tabpanel" id="world-panel" aria-labelledby={`world-tab-${tab}`} key={world.id}>
               {tab === 'book' ? <WorldBook world={world} />

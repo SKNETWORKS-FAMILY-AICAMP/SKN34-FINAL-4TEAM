@@ -20,7 +20,7 @@ LLMOps 정본은 self-host Langfuse이고 운영 화면이 프로젝트 API 키�
 자체 Health는 AI 장애와 무관합니다. AI Health는 내부 `/internal/v1/health`의 상태와 서비스명을
 정확히 검증합니다. OpenAI 인증이나 모델 호출을 검증하지 않습니다. 콘텐츠 API는 별도로 활성화합니다.
 
-`GET /api/v1/auth/csrf`에서 토큰과 쿠키를 받은 뒤 `X-CSRF-TOKEN`을 보내 모든 변경 요청을 호출합니다. 인증 링크는 URL fragment로 토큰을 전달합니다. 가입 후보의 비밀번호와 토큰은 PostgreSQL에 해시로 저장하며 이메일 인증 전 회원을 생성하지 않습니다. 미인증 이메일로 다시 가입하면 비밀번호·닉네임·토큰과 24시간 유효기간을 새 요청으로 교체하고 이전 링크는 무효화합니다. 이미 가입한 회원의 이메일은 409입니다. 가입 인증은 최신 토큰과 가입 시 정한 비밀번호가 모두 일치해야 하며, 잘못된 비밀번호로는 토큰을 소비하지 않습니다. 인증 성공 후 자동 로그인하지 않습니다. 재발송은 일반화된 202를 반환하지만 메일 전송 장애 시 기존 후보 여부에 따라 응답이 달라질 수 있어 열거 방지의 한계가 있습니다.
+`GET /api/v1/auth/csrf`에서 토큰과 쿠키를 받은 뒤 `X-CSRF-TOKEN`을 보내 모든 변경 요청을 호출합니다. 인증 링크는 URL fragment로 토큰을 전달합니다. 가입 후보의 비밀번호와 토큰은 PostgreSQL에 해시로 저장하며 이메일 인증 전 회원을 생성하지 않습니다. 미인증 이메일로 다시 가입하면 비밀번호·닉네임·토큰과 24시간 유효기간을 새 요청으로 교체하고 이전 링크는 무효화합니다. 이미 가입한 회원의 이메일은 409입니다. 가입 인증에서 같은 이메일 회원이 이미 있어 회원을 만들지 못할 때도 409(별도 `code` 없음)이고, 토큰·비밀번호 불일치와 만료·사용 완료는 400입니다. 가입 인증은 최신 토큰과 가입 시 정한 비밀번호가 모두 일치해야 하며, 잘못된 비밀번호로는 토큰을 소비하지 않습니다. 인증 성공 후 자동 로그인하지 않습니다. 재발송은 일반화된 202를 반환하지만 메일 전송 장애 시 기존 후보 여부에 따라 응답이 달라질 수 있어 열거 방지의 한계가 있습니다.
 
 | 메서드·경로 | 요청·성공 동작 |
 |---|---|
@@ -76,6 +76,7 @@ AI 작업용 크레딧 예약·정산은 `CreditReservationService`(내부 서�
 | `POST /internal/v1/members/admins` | 〃 | `{email, nickname, password}`로 관리자 생성, 201 `MemberItem`. 중복 이메일 409 |
 | `GET /internal/v1/credits/members/{memberId}` | 〃 | `{balance, history}`: 회원의 잔액(`GET /api/v1/me/credits` 응답과 같은 모양)과 내역(`GET /api/v1/me/credits/history` 응답과 같은 모양). 인증은 회원 목록과 같다(운영 서비스 토큰 + operator Bearer). 없는 회원 404 |
 | `POST /internal/v1/credits/members/{memberId}/grants`·`/revocations` | 〃 | `{amount, reason}`(`amount` 1~100000 정수, `reason` 앞뒤 공백 제외 1~200자, 위반 422 `INVALID_CREDIT_REQUEST`) → 201 갱신된 잔액 `{total, items}`. 지급은 종류 `operator`(소멸은 보상과 같은 월간 초기화), 회수는 소멸이 가까운 지급분부터 장부 `revoke`(`operator-revoke:<UUID>`)로 남기며 예약 중인 양은 건드리지 않는다. 회수가 쓸 수 있는 잔액을 넘으면 409 `CREDIT_INSUFFICIENT`(아무것도 바꾸지 않음), 없는 회원 404. 사유는 저장하지 않고(활동 기록은 운영 서비스가 남김) 요청 중복 방지 키가 없어 같은 요청을 다시 보내면 다시 반영한다. 마이그레이션은 `V14__credit_ledger_revoke.sql`(장부 `kind` CHECK에 `revoke` 추가)이다. [운영 계약](../../docs/design/operations-funnel-credit-contract.md) |
+| `POST /internal/v1/credits/balances` | 〃 | `{memberIds: [uuid…]}`(최대 100명, 초과 422 `INVALID_CREDIT_REQUEST`) → `[{memberId, total}]`. `total`은 `GET /api/v1/me/credits`의 `total`과 같은 계산(지급분에서 사용·회수·소멸과 예약 중인 양을 뺀 값)이고, 없는 회원은 결과에서 빠지며 순서는 정해져 있지 않다(`memberId`로 맞춘다). 인증은 회원 목록과 같다(운영 서비스 토큰 + operator Bearer). 운영 크레딧 탭이 회원 목록의 잔액 열을 채운다. 회원마다 잔액 계산(쿼리 3개)을 따로 돌리므로 100명이면 쿼리가 약 300개다. [운영 계약](../../docs/design/operations-funnel-credit-contract.md) |
 
 `MemberItem = {id, email, nickname, role: "MEMBER"|"ADMIN", restricted, createdAt}`. 회원 API는 Bearer 회원이 이용 제한 상태면 401, 제한되지 않았지만 `operator=true`가 아니면 403입니다. 이용 제한 회원은 로그인(403, `code: "ACCOUNT_RESTRICTED"`)·refresh(401)·verify(401)가 거절되며, 이미 발급된 access JWT는 만료까지 Core 공개 API에 남습니다. 샘플 관리자는 `admin@example.test / StoryforkDev123!`(V8)입니다. 고전 원작 샘플의 소유 계정(`b1b09f26…`) 닉네임은 운영자처럼 보이지 않게 V10이 `운영팀`일 때만 `고전 아카이브`로 바꿉니다.
 

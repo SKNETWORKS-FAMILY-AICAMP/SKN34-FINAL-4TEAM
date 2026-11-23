@@ -37,6 +37,12 @@ class WorldReviewInputTest {
         assertEquals(listOf(WorldReviewAiCard(alive.id.toString(), "rule", "basic", "살아 있는 카드", "본문")), sent.cards)
     }
 
+    @Test fun `a custom card category is sent to the AI as other while the default types stay`() {
+        val custom = card("단서", type = "category-01")
+        val hero = card("길동", type = "character")
+        assertEquals(listOf("other", "character"), request(custom, hero).cards.map { it.cardType })
+    }
+
     @Test fun `a card whose body and documents total over 4000 characters is not sent`() {
         val exact = card("딱 4000자", "가".repeat(4000))
         val over = card("4001자", "가".repeat(4001))

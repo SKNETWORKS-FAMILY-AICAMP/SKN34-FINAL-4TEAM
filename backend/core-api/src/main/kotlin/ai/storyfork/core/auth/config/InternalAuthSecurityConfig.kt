@@ -51,9 +51,9 @@ class InternalAuthSecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/internal/v1/members", "/internal/v1/members/stats").authenticated()
                     .requestMatchers(HttpMethod.PUT, "/internal/v1/members/*/restriction").authenticated()
                     .requestMatchers(HttpMethod.DELETE, "/internal/v1/members/*/restriction").authenticated()
-                    // 운영 서비스의 회원 크레딧 조회·지급·회수(DEC-57)는 Content 토큰을 받지 않고 운영 토큰과 operator Bearer만 받는다.
+                    // 운영 서비스의 회원 크레딧 조회·지급·회수(DEC-57)와 묶음 잔액 조회는 Content 토큰을 받지 않고 운영 토큰과 operator Bearer만 받는다.
                     .requestMatchers(HttpMethod.GET, "/internal/v1/credits/members/*").authenticated()
-                    .requestMatchers(HttpMethod.POST, "/internal/v1/credits/members/*/grants", "/internal/v1/credits/members/*/revocations").authenticated()
+                    .requestMatchers(HttpMethod.POST, "/internal/v1/credits/members/*/grants", "/internal/v1/credits/members/*/revocations", "/internal/v1/credits/balances").authenticated()
                     .anyRequest().denyAll()
             }
             .oauth2ResourceServer { it.jwt(withDefaults()) }

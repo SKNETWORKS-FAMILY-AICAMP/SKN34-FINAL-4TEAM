@@ -1,7 +1,7 @@
 import {expect,it,vi} from 'vitest'
 import {newSetting,studioLabelCleanup} from '../entities/studioWorld'
 import {editStudioSetting,putRelation} from '../entities/studioRelations'
-import {cardTypes,cardTypePatch,cardTypeOf,settingAreas,areaPatch} from '../entities/studioCards'
+import {cardTypes,cardTypePatch,cardTypeOf,isCard,settingAreas,areaPatch} from '../entities/studioCards'
 import {worldWritingIssues} from '../entities/worldStudioWriting'
 import {WorldStudioUseCase} from '../usecases/WorldStudioUseCase'
 import type {WorldStudioRepository} from '../repositories/WorldStudioRepository'
@@ -104,4 +104,28 @@ it('passes the publication change and its cancellation through the use case',asy
  const result=await useCase.setPublication('fake',{visibility:'public',genre:'sf'},controller.signal)
  expect(set).toHaveBeenCalledWith('fake',{visibility:'public',genre:'sf'},controller.signal)
  expect(result).toMatchObject({worldId:'fake',visibility:'public',genre:'sf'})
+})
+
+// 운영자 콘텐츠 관리 결정 E: 카드 유형은 카테고리 코드라 기본 8종이 아닌 코드(`category-NN`)도 카드다.
+it('운영자가 추가한 카테고리 코드의 카드는 entity 종류로 만들고 읽으며 게시판에 오르는 카드로 센다',()=>{
+ const card=newSetting()
+ Object.assign(card.item,cardTypePatch(card.item,'category-09',[]))
+ expect(card.item).toMatchObject({kind:'entity',entityType:'category-09'})
+ expect(cardTypeOf(card.item)).toBe('category-09')
+ expect(isCard(card.item)).toBe(true)
+ // 기본 8종 가운데 규칙·사건은 entity가 아니라 종류로 저장하고, 그 밖의 코드로 바꾸면 종류가 entity로 돌아온다.
+ Object.assign(card.item,cardTypePatch(card.item,'rule',[]))
+ expect(card.item).toMatchObject({kind:'rule',entityType:null})
+ expect(cardTypeOf(card.item)).toBe('rule')
+ Object.assign(card.item,cardTypePatch(card.item,'category-12',[]))
+ expect(card.item).toMatchObject({kind:'entity',entityType:'category-12'})
+})
+it('카드가 아닌 항목(분류 확인·관계·메모)은 카드로 세지 않는다',()=>{
+ const unclassified=newSetting()
+ expect(cardTypeOf(unclassified.item)).toBe('review')
+ expect(isCard(unclassified.item)).toBe(false)
+ expect(isCard({...unclassified.item,kind:'relation'})).toBe(false)
+ expect(isCard({...unclassified.item,kind:'note'})).toBe(false)
+ expect(isCard({...unclassified.item,kind:'entity',entityType:''})).toBe(false)
+ expect(isCard({...unclassified.item,kind:'entity',entityType:'character'})).toBe(true)
 })

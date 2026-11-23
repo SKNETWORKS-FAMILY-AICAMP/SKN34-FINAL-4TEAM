@@ -77,7 +77,7 @@ class WorkWorldHttpIntegrationTest {
                     driver.publishEpisode(id,owner.toString(),number,PublishRequest(saved.draft.revision,true,versionId=saved.versions.last().id))
                 }
 
-                // 세계관: 공개 회차가 1·2·3화인 카드, 공개 회차가 없는 작가 전용 카드(비공개·값 없음, DEC-53), 값이 정수가 아닌 카드. 확정 버전은 아직 없다.
+                // 세계관: 공개 회차가 1·2·3화인 카드, 공개 회차가 없는 작가 전용 카드(비공개·값 없음, DEC-53). 값이 정수가 아닌 카드는 API가 저장을 거절한다(#541). 확정 버전은 아직 없다.
                 val create=CreateWorldRequest("연결할 세계관","설명");val world=create.id
                 assertEquals(200,send(studios,method="POST",body=create).statusCode())
                 fun card(title:String,visibility:String,reveal:Any?)=CardPayload(UUID.randomUUID(),title,"$title 원문","character","basic",
@@ -90,8 +90,10 @@ class WorkWorldHttpIntegrationTest {
                 val together=RelationshipPayload(UUID.randomUUID(),first.id,second.id,"structural","관계 설명 원문",label="동료")
                 val later=RelationshipPayload(UUID.randomUUID(),first.id,third.id,"structural","나중 관계 설명",label="나중에 만나는 사이")
                 val unseen=RelationshipPayload(UUID.randomUUID(),first.id,never.id,"structural","숨은 관계 설명",label="숨은 사이")
+                assertEquals(422,send("$studios/$world/draft",method="PUT",
+                    body=EditWorldDraftRequest(0,create.name,"설명",listOf(text),emptyList(),"link-refused",true)).statusCode())
                 assertEquals(200,send("$studios/$world/draft",method="PUT",
-                    body=EditWorldDraftRequest(0,create.name,"설명",listOf(first,second,third,never,text),listOf(together,later,unseen),"link-edit",true)).statusCode())
+                    body=EditWorldDraftRequest(0,create.name,"설명",listOf(first,second,third,never),listOf(together,later,unseen),"link-edit",true)).statusCode())
                 val mine=work(owner,"연결할 소설");val another=work(owner,"둘째 소설");val theirs=work(other,"남의 소설")
                 val foreign=CreateWorldRequest("남의 세계관","")
                 assertEquals(200,send(studios,actor=other,method="POST",body=foreign).statusCode())
@@ -153,7 +155,7 @@ class WorkWorldHttpIntegrationTest {
                 assertEquals(together.id.toString(),edge.path("id").asString());assertEquals(first.id.toString(),edge.path("sourceCardId").asString())
                 assertEquals(second.id.toString(),edge.path("targetCardId").asString());assertEquals("동료",edge.path("label").asString())
                 assertEquals("관계 설명 원문",edge.path("body").asString());assertTrue(edge.path("direction").isNull)
-                for(leak in listOf(third.id.toString(),never.id.toString(),text.id.toString(),"나중에 만나는 사이","숨은 사이")) assertFalse(two.body().contains(leak),leak)
+                for(leak in listOf(third.id.toString(),never.id.toString(),"나중에 만나는 사이","숨은 사이")) assertFalse(two.body().contains(leak),leak)
                 // 회차 화면에서 온 요청(1화 기준)에는 2화 카드가 없다.
                 assertEquals(listOf(first.id.toString()),json(anonymous("$wiki?upto=1")).path("cards").values().map { it.path("id").asString() })
                 for(bad in listOf("0","-1","x")) assertEquals(422,anonymous("$wiki?upto=$bad").statusCode())

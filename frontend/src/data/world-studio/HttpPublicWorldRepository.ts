@@ -9,7 +9,8 @@ const count = z.number().int().nonnegative()
 const instant = z.iso.datetime({ offset: true })
 // 장르 코드(`genre-01` …)다. 이름은 UseCase가 공개 장르 목록으로 찾는다(DEC-56).
 const genre = z.string().min(1).nullable()
-const cardType: z.ZodType<CardType> = z.enum(['character', 'location', 'organization', 'ability', 'object', 'rule', 'event', 'other'])
+// 카드 유형 = 카드 카테고리 코드: 기본 8종뿐 아니라 운영자가 추가한 코드(`category-NN`)도 온다.
+const cardType: z.ZodType<CardType> = z.string().min(1)
 // 카드 대표 이미지 id(#401). 이 필드를 주기 전 응답과 이미지 없는 카드는 null이다.
 const imageId = z.string().min(1).nullable().default(null)
 // 관계의 회차 이력(DEC-54 2단계): 기준 회차까지의 변화. 이 필드를 주기 전 응답에는 없다(없는 대로 둔다).

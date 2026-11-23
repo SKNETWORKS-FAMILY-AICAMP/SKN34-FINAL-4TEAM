@@ -79,3 +79,27 @@ describe('HttpOperationsCreditRepository 지급·회수', () => {
     await expect(new HttpOperationsCreditRepository(fail(502, { code: 'UPSTREAM_FAILED', message: 'Upstream service request failed.' })).revoke('m1', { amount: 1, reason: '회수' })).rejects.toThrow(new OperationsError(message))
   })
 })
+
+describe('HttpOperationsCreditRepository 묶음 잔액', () => {
+  it('회원 id 목록을 POST로 보내고 회원별 합계를 맨 배열로 받는다', async () => {
+    const rows = [{ memberId: 'm1', total: 40.5 }, { memberId: 'm2', total: 0 }]
+    const fetcher = ok(rows)
+    expect(await new HttpOperationsCreditRepository(fetcher).balances(['m1', 'm2', 'm3'])).toEqual(rows)
+    const [[url, init]] = callsOf(fetcher)
+    expect(url).toBe('/api/v1/operations/credits/balances')
+    expect(init.method).toBe('POST')
+    expect(init.headers.Authorization).toBe('Bearer c-bearer')
+    expect(JSON.parse(init.body ?? '')).toEqual({ memberIds: ['m1', 'm2', 'm3'] })
+  })
+
+  it('응답 모양이 다르면(items 래퍼·빠진 합계) 거부한다', async () => {
+    for (const bad of [{ items: [{ memberId: 'm1', total: 1 }] }, [{ memberId: 'm1' }], [{ memberId: 'm1', total: '3' }]]) {
+      await expect(new HttpOperationsCreditRepository(ok(bad)).balances(['m1'])).rejects.toThrow(FORMAT)
+    }
+  })
+
+  it('권한이 없으면(403) OperationsForbidden이고 연결 실패(502)는 한국어 안내 오류다', async () => {
+    await expect(new HttpOperationsCreditRepository(fail(403)).balances(['m1'])).rejects.toThrow(OperationsForbidden)
+    await expect(new HttpOperationsCreditRepository(fail(502)).balances(['m1'])).rejects.toThrow(OperationsError)
+  })
+})

@@ -32,7 +32,7 @@ class WorkViewService(
     fun record(id: String, number: Int, member: String) {
         checkContent(member.isNotBlank() && member.length<=200,401,"서버 인증이 필요합니다.")
         access.published(id)
-        checkContent(current.findByWorkIdAndSequence(id,number)?.publishedVersionId!=null,404,"공개 회차를 찾을 수 없어요.")
+        checkContent(current.findByWorkIdAndSequence(id,number)?.readerVersionId!=null,404,"공개 회차를 찾을 수 없어요.")
         val now=Instant.now().truncatedTo(ChronoUnit.MICROS)
         val key=WorkViewEntity.Key(id,number,member,viewDate(now))
         if(views.existsById(key)) return

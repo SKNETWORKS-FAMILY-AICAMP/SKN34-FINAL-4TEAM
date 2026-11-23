@@ -23,7 +23,7 @@ class InitialWorldApplicationService(
 ) {
     private val transaction=TransactionTemplate(manager)
     private fun <T:Any> tx(action:()->T):T=transaction.execute { action() }
-    private fun owned(world:UUID,actor:UUID) { if(worlds.lockOwned(world,actor)==null) throw WorldNotFound() }
+    private fun owned(world:UUID,actor:UUID) { if(worlds.lockAccessible(world,actor)==null) throw WorldNotFound() }
     private fun analysis(world:UUID,id:UUID)=analyses.findById(id).orElseThrow { WorldNotFound() }.also { if(it.worldId!=world) throw WorldNotFound() }
     private fun receipt(row:InitialWorldApplication):InitialWorldApplicationResponse {
         val ids=items.findAllByApplicationId(row.id)

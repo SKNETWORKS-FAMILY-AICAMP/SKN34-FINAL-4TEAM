@@ -28,6 +28,7 @@ export class HttpWorkRepository implements WorkRepository {
     for (const row of owned) records.set(row.id, mapReadingWork(row, true))
     return [...records.values()]
   }
+  async readWork(id: string) { return mapReadingWork(await this.api.readingOne(id)) }
   async listWorlds() { return [] }
   async readWorld(work: Work, episode: number) {
     if (work.private || episode < 1 || epsOf(work)[episode-1]?.hidden) return work

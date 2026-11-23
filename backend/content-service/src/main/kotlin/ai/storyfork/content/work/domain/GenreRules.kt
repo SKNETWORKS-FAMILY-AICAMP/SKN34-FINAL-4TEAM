@@ -7,12 +7,10 @@ const val MAX_FEATURED_GENRES = 6
 const val MAX_GENRE_NAME = 30
 const val MAX_GENRE_EMOJI = 8
 
-private val GENRE_NUMBER = Regex("genre-(\\d+)")
-
-/** 장르 이름이다. 앞뒤 공백을 자르고 1~30자(코드 포인트)여야 하며 어긋나면 422다. */
-fun genreName(raw: String?): String {
+/** 장르·카드 카테고리 이름이다. 앞뒤 공백을 자르고 1~30자(코드 포인트)여야 하며 어긋나면 422다. [label]은 오류 문구에만 쓴다. */
+fun genreName(raw: String?, label: String = "장르"): String {
     val name = raw?.trim().orEmpty()
-    checkContent(name.codePointCount(0, name.length) in 1..MAX_GENRE_NAME, message = "장르 이름은 1~${MAX_GENRE_NAME}자로 입력해 주세요.")
+    checkContent(name.codePointCount(0, name.length) in 1..MAX_GENRE_NAME, message = "$label 이름은 1~${MAX_GENRE_NAME}자로 입력해 주세요.")
     return name
 }
 
@@ -23,8 +21,12 @@ fun genreEmoji(raw: String?): String? {
     return emoji
 }
 
-/** 새 장르의 코드다. 기존 `genre-NN` 번호의 최댓값 다음 번호이며 중간의 빈 번호는 채우지 않는다. */
-fun nextGenreCode(codes: Collection<String>): String {
-    val last = codes.mapNotNull { GENRE_NUMBER.matchEntire(it)?.groupValues?.get(1)?.toIntOrNull() }.maxOrNull() ?: 0
-    return "genre-" + (last + 1).toString().padStart(2, '0')
+/** `<prefix>-NN` 코드의 다음 번호다. 같은 접두의 기존 번호 최댓값 다음이며 중간의 빈 번호는 채우지 않는다. 장르(genre-NN)와 카드 카테고리(category-NN)가 같이 쓴다. */
+fun nextNumberedCode(prefix: String, codes: Collection<String>): String {
+    val number = Regex("${Regex.escape(prefix)}-(\\d+)")
+    val last = codes.mapNotNull { number.matchEntire(it)?.groupValues?.get(1)?.toIntOrNull() }.maxOrNull() ?: 0
+    return "$prefix-" + (last + 1).toString().padStart(2, '0')
 }
+
+/** 새 장르의 코드다. 기존 `genre-NN` 번호의 최댓값 다음 번호이며 중간의 빈 번호는 채우지 않는다. */
+fun nextGenreCode(codes: Collection<String>): String = nextNumberedCode("genre", codes)
