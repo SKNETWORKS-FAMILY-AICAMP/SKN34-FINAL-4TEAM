@@ -73,8 +73,11 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
 
   return {
     open, hide: () => setOpen(false), compose: () => setComposing(true),
-    /** [시뮬레이션] 버튼: 보여 줄 장면(진행 중·답을 기다리는·끝난 장면)이 있으면 그 장면을, 없으면 새 시작 양식을 연다. 끝난 장면에서는 '새 시뮬레이션'이 양식을 연다. */
-    show: () => { setOpen(true); setAsked(false) },
+    /**
+     * 무대 열기. form이면(상단 [시뮬레이션] 버튼) 진행 중이거나 답을 기다리는 장면이 없는 한 새 시작 양식부터 연다: 끝난 장면 기록을 먼저 보이지 않는다.
+     * 채팅의 '무대 열기'(form 없음)는 그 장면을 연다. 끝난 장면에서는 '새 시뮬레이션'이 양식을 연다.
+     */
+    show: (form = false) => { setOpen(true); setAsked(false); setComposing(form && !attention) },
     simulation: sim, rows: sim ? sceneRows(sim, roster) : [], names: sim ? characterNames(sim, roster) : {}, showForm: !sim || composing,
     live, playing, canAct, blocked, queued, finishing: stopAfterTurn,
     statusKey: shown, statusText: shown === 'paused' ? '일시정지' : shown === 'error' ? '오류로 멈춤' : shown && statusLabel[shown],
