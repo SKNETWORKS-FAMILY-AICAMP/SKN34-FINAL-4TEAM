@@ -1,6 +1,8 @@
 .adm .admin-operations { min-width: 0; overflow-wrap: anywhere; }
 .adm .admin-operations fieldset { border: 0; padding: 0; margin: 12px 0 0; min-width: 0; }
 .adm .admin-operations h2 { font-size: 20px; line-height: 1.4; margin: 24px 0 12px; }
+/* 패널 맨 위 제목은 패널 안쪽 여백만으로 띄운다(위 여백 24px이 더해지면 좌우보다 위가 두 배로 비어 보인다). */
+.adm .admin-operations > h2:first-child { margin-top: 0; }
 .adm .admin-operations .table-head h2 { margin: 0; }
 .adm .admin-operations h3 { font-size: 16px; margin: 28px 0 12px; }
 .adm .admin-operations h4 { font-size: 15px; }
@@ -124,3 +126,11 @@
 .adm .credit-member h3 { margin-top: 20px; }
 .adm .credit-member .kpi { margin: 12px 0; }
 .adm .credit-member h4 { margin: 24px 0 0; }
+/* 정보 누설 검사 패널 안의 표본 비율 한 줄: 검사 기록과 선으로만 나누고 따로 패널을 두지 않는다. */
+.adm .admin-leak-rate { margin-top: 20px; border-top: 1px solid var(--line); }
+.adm .admin-operations .admin-leak-rate h3 { margin: 16px 0 8px; }
+.adm .admin-leak-rate fieldset.admin-filter { margin: 0 0 6px; }
+/* 회귀 평가 실행 폼: 데이터셋·프롬프트 이름·버전(좁게)을 한 줄에 두고 실행 버튼은 입력 아래 왼쪽에 붙인다(오른쪽 끝에 떨어져 있으면 입력과 이어 보이지 않는다). */
+.adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 110px; }
+.adm .admin-eval-grid .rowend { justify-content: flex-start; }
+@media (max-width: 600px) { .adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr); } }

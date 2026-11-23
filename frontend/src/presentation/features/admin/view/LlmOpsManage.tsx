@@ -214,6 +214,7 @@ export function Evaluations({ vm, l }: Props) {
   }
   return (
     <section className="panel admin-operations" aria-label="회귀 평가">
+      <h2>회귀 평가</h2>
       <LiveState vm={vm} label="평가 목록" state={l.evaluations} forbidden={LLM_FORBIDDEN} />
       {rows && (rows.length
         ? (
@@ -254,12 +255,15 @@ export function Evaluations({ vm, l }: Props) {
         }}
       >
         <h3>회귀 평가 실행</h3>
-        <fieldset disabled={busy} className="form-grid">
-          <label className="field">데이터셋<input className="inp" name="dataset" required /></label>
-          <label className="field">프롬프트 이름<input className="inp" name="prompt" required /></label>
+        <fieldset disabled={busy} className="form-grid admin-eval-grid">
+          <label className="field">데이터셋<input className="inp" name="dataset" list="eval-datasets" autoComplete="off" required /></label>
+          <label className="field">프롬프트 이름<input className="inp" name="prompt" list="eval-prompts" autoComplete="off" required /></label>
           <label className="field">버전<input className="inp" name="version" type="number" min="1" step="1" required /></label>
           <div className="rowend wide"><button type="submit" className="btn pri">{busy ? '요청 중…' : '평가 실행'}</button></div>
         </fieldset>
+        {/* 이전에 돌린 데이터셋·프롬프트 이름을 고를 수 있게 한다(자유 입력은 그대로). */}
+        <datalist id="eval-datasets">{[...new Set(rows?.map((r) => r.dataset))].map((v) => <option key={v} value={v} />)}</datalist>
+        <datalist id="eval-prompts">{[...new Set(rows?.map((r) => r.prompt))].map((v) => <option key={v} value={v} />)}</datalist>
         <ActionLines vm={vm} prefix="eval:" />
       </form>
       <p className="admin-note">평가는 직접 실행하거나 켜 둔 일정으로만 돌아요. 1회 비용 상한은 아직 정하지 않아 상한 없이 실행돼요.</p>
@@ -297,11 +301,12 @@ export function AlertRules({ vm, l }: Props) {
   )
 }
 
-/** 평가·누설 검사 쪽의 누설 검사 표본 비율(0~1). */
+/** 정보 누설 검사 패널 아래의 표본 비율(0~1) 한 줄. 패널을 따로 두지 않고 검사 기록 바로 아래에 붙인다. */
 export function LeakSampleRate({ vm, l }: Props) {
   const s = l.settings.data, busy = !!vm.actions['setting:leak']?.pending
   return (
-    <section className="panel admin-operations" aria-label="누설 검사 표본 비율">
+    <section className="admin-leak-rate" aria-label="누설 검사 표본 비율">
+      <h3>표본 비율</h3>
       <LiveState vm={vm} label="누설 검사 표본 비율" state={l.settings} forbidden={LLM_FORBIDDEN} />
       {s && (
         <form
@@ -310,14 +315,14 @@ export function LeakSampleRate({ vm, l }: Props) {
             await l.updateSettings(formNumber(e.currentTarget, 'leakSampleRate'))
           }}
         >
-          <h2>누설 검사 표본 비율</h2>
-          <fieldset disabled={busy} className="form-grid">
+          <fieldset disabled={busy} className="admin-filter">
             <label className="field">
               표본 비율(0~1)
-              <input className="inp" name="leakSampleRate" type="number" min="0" max="1" step="any" required defaultValue={s.leakSampleRate} key={s.leakSampleRate} />
+              <input className="inp" name="leakSampleRate" type="number" min="0" max="1" step="any" required defaultValue={s.leakSampleRate} key={s.leakSampleRate} aria-describedby="leak-rate-hint" />
             </label>
-            <div className="rowend wide"><button type="submit" className="btn pri">{busy ? '저장 중…' : '표본 비율 저장'}</button></div>
+            <button type="submit" className="btn">{busy ? '저장 중…' : '표본 비율 저장'}</button>
           </fieldset>
+          <p id="leak-rate-hint" className="small muted">0.1이면 Fork 작품 요청 10개 중 1개꼴로 검사해요.</p>
           <ActionLines vm={vm} prefix="setting:" />
         </form>
       )}
