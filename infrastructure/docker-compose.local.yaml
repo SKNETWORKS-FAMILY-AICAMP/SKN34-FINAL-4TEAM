@@ -106,6 +106,9 @@ services:
         condition: service_healthy
     environment: *ai-environment
 
+  ai-eval-seed:
+    build: *ai-build
+
   core-api:
     build:
       context: ../backend/core-api

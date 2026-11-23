@@ -104,6 +104,11 @@ services:
         condition: service_healthy
     environment: *ai-environment
 
+  ai-eval-seed:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
+    platform: linux/amd64
+    labels: *cd-labels
+
   core-api:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-core-api:develop
     platform: linux/amd64
