@@ -515,6 +515,18 @@ def test_a_work_update_asked_again_hands_the_token_of_its_own_answer_to_the_foll
     assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['second.token']
 
 
+def test_reads_run_together_after_an_approval_with_a_fresh_token_still_finish_the_turn(monkeypatch):
+    # 새 토큰은 쓰기 결과에만 싣는다(#725): 병렬 읽기 둘이 같은 단계에서 retrievalScope를 쓰면 LangGraph가 턴을 실패시킨다
+    reads = [('episode_list', {'id': 'work'}), ('work_read', {'id': 'work'})]
+    fake_agents(monkeypatch, only_content(('work_update', {'id': 'work', 'request': {'title': '새 제목'}}), reads))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, request='제목을 바꾸고 회차를 알려줘')
+    events = dict(stream(thread, resume={'approved': True, 'scope': {'scopeToken': 'fresh.token'}}))
+    assert 'error' not in events and events['done']['status'] == 'completed'
+    assert [t for t, _ in log] == ['work_update', 'episode_list', 'work_read']
+
+
 def refresh(thread):
     data = OrchestrationRequest(conversation={'threadId': thread, 'scope': SCOPE}, resume={'approved': False, 'refresh': True})
     return asyncio.run(service.run(data, 'Bearer user'))
