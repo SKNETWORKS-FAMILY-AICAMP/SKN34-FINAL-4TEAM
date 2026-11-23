@@ -8,6 +8,7 @@ import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIco
 import { PopMenu } from '../PopMenu'
 import { CardMarkdown } from '../CardMarkdown'
 import { ChatPanel } from './ChatPanel'
+import { keepFiles } from './keepFiles'
 import { PendingActionCard } from './PendingActionCard'
 import { useEpisodeDraft } from './useEpisodeDraft'
 import { useWritingChatViewModel, type ChatViewModel, type LiveTurn } from './useWritingChatViewModel'
@@ -180,7 +181,7 @@ function Waiting({ workId, request, reply, pending, onResume, onOpenStage, cardO
   const picked = rangePreview(range.text)
   const wanted = (instruction.trim() || request).slice(0, 2000)
   // 글상자는 줄바꿈을 LF로 바꿔 보여 CRLF 초안의 위치가 서버 본문과 어긋나고, Content는 5,000자까지만 받는다.
-  const crlf = !!source.draft?.body.includes(String.fromCharCode(13))
+  const crlf = !!source.draft?.body.includes('\r')
   const span = episode && source.draft && !crlf && range.end > range.start && range.end - range.start <= 5000 && wanted.trim()
     ? { episode, revision: source.draft.revision, start: range.start, end: range.end, instruction: wanted } : null
   const filled = needs.every((f) => (f === 'research' ? question.trim() : f === 'writing_editing' ? (fixing ? fix !== null : patching ? !!span : episode && plan.trim()) : f === 'manuscript_review' ? check : false))
@@ -338,7 +339,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
   }
   const current = vm.sessions?.find((s) => s.threadId === vm.threadId)
   return <>
-    <div className="chat-sessions">
+    <div className="chat-sessions" {...keepFiles}>
       {renaming !== null ? <form className="chat-rename" onSubmit={async (e) => { e.preventDefault(); if (await vm.rename(renaming)) setRenaming(null) }}>
         <label className="sr-only" htmlFor={`${id}-title`}>대화 제목</label>
         <input id={`${id}-title`} value={renaming} maxLength={100} autoFocus onChange={(e) => setRenaming(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') setRenaming(null) }} />

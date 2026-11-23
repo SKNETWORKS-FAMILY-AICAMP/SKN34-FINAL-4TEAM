@@ -1,20 +1,21 @@
-import { useEffect, useId, useRef, useState, type DragEvent, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import type { ChatAttachment, ChatMessage } from '../../../domain/entities/chat'
 import { attachmentKind, type AttachmentCheck } from '../../../domain/entities/chatAttachment'
 import { CardMarkdown } from '../CardMarkdown'
 import { MicIcon, PlusIcon, SendIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
+import { keepFiles } from './keepFiles'
 import './chat.css'
 
 const who = { user: '나', assistant: 'AI', system: '안내' } as const
 
-const kinds = ['image', 'text'] as const
-const kindLabel = { image: '이미지', text: '텍스트' } as const
-const menuLabel = { image: '이미지 첨부', text: '텍스트 파일 첨부' } as const
-// 파일 선택 창이 거르는 형식(허용 여부는 checkFile이 다시 판정한다). 텍스트는 Windows에서 .md의 type이 비어 있어 확장자도 함께 건다.
-const accept = { image: 'image/png,image/jpeg,image/webp', text: '.txt,.md,text/plain,text/markdown' } as const
+// 첨부 종류별 칩 글자·+ 메뉴 항목·파일 선택 창이 거르는 형식(허용 여부는 checkFile이 다시 판정한다). 텍스트는 Windows에서 .md의 type이 비어 있어 확장자도 함께 건다.
+const kinds = {
+  image: { label: '이미지', menu: '이미지 첨부', accept: 'image/png,image/jpeg,image/webp' },
+  text: { label: '텍스트', menu: '텍스트 파일 첨부', accept: '.txt,.md,text/plain,text/markdown' },
+} as const
 /** 보내려고 고른 파일. kind는 칩 표시용이다. */
-type Picked = { file: File; name: string; kind: ChatAttachment['kind'] }
+type Picked = { file: File; kind: ChatAttachment['kind'] }
 
 /**
  * 집필실 AI 채팅과 이후 캐릭터챗이 함께 쓰는 표시용 채팅이다. 메시지·전송·첨부는 모두 호출하는 화면이 맡고
@@ -71,7 +72,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
     watch.observe(el)
     return () => watch.disconnect()
   }, [])
-  const files = useRef<Record<ChatAttachment['kind'], HTMLInputElement | null>>({ image: null, text: null })
+  const files = useRef<Record<string, HTMLInputElement | null>>({})
   const [picked, setPicked] = useState<Picked[]>([])
   const [rejected, setRejected] = useState<string[]>([])
   const pickEdits = useRef(0)
@@ -98,7 +99,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
     for (const file of list) {
       const checked = checkFile!(file, next.length)
       if (typeof checked === 'string') reasons.push(checked)
-      else next.push({ file, name: checked.name, kind: attachmentKind(checked.mediaType) })
+      else next.push({ file, kind: attachmentKind(checked.mediaType) })
     }
     pickEdits.current += 1
     setPicked(next)
@@ -106,7 +107,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   }
   const remove = (index: number) => {
     pickEdits.current += 1
-    if (inputError?.startsWith(`${picked[index].name}: `)) setDismissed(inputError)
+    if (inputError?.startsWith(`${picked[index].file.name}: `)) setDismissed(inputError)
     setPicked(picked.filter((_, i) => i !== index))
     setRejected([])
   }
@@ -136,10 +137,9 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
       setPending(false)
     }
   }
-  // 파일 끌어다 놓기: 첨부가 켜져 있으면 패널 어디에 놓아도(대화 영역 포함, 잠긴 동안에도) 기본 동작(브라우저가 파일을 열어 화면을 떠남)을 막는다.
+  // 파일 끌어다 놓기: 첨부가 켜져 있으면 패널 어디에 놓아도(대화 영역 포함, 잠긴 동안에도) 기본 동작을 막는다.
   // 첨부로 받는 곳은 입력 카드뿐이고 잠기지 않았을 때만 받는다.
-  const keepFiles = checkFile ? (e: DragEvent) => e.preventDefault() : undefined
-  return <div className="chat-panel" onDragOver={keepFiles} onDrop={keepFiles}>
+  return <div className="chat-panel" {...(checkFile && keepFiles)}>
     <div ref={log} className="chat-log" role="log" aria-label="대화 내용" aria-live="polite"
       onScroll={e => { const el = e.currentTarget; pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80 }}>
       {messages.length || after ? <><ol>{messages.map(m => <li key={m.id} className={`chat-msg ${m.role}`} data-failed={m.failed || undefined}>
@@ -148,7 +148,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
           <span className="chat-who sr-only">{who[m.role]}</span>
           {m.failed && <span className="sr-only">실패한 답변</span>}
           {m.format === 'markdown' ? <div className="chat-text chat-md"><CardMarkdown text={m.text} /></div> : <p className="chat-text">{m.text}</p>}
-          {!!m.attachments?.length && <ul className="chat-chips" aria-label="첨부">{m.attachments.map(a => <li key={a.id} className="chip"><span className="chat-chip-name">{kindLabel[a.kind]} · {a.name}</span></li>)}</ul>}
+          {!!m.attachments?.length && <ul className="chat-chips" aria-label="첨부">{m.attachments.map(a => <li key={a.id} className="chip"><span className="chat-chip-name">{kinds[a.kind].label} · {a.name}</span></li>)}</ul>}
           {renderCard?.(m)}
           {renderActions?.(m)}
         </div>
@@ -164,8 +164,8 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
     <form className="chat-composer" onSubmit={e => { e.preventDefault(); void submit() }}>
       {note && <p id={noteId} className="chat-note">{note}</p>}
       <div className={`chat-card${locked ? ' locked' : ''}`} onDrop={attachOff ? undefined : e => add([...e.dataTransfer.files])}>
-        {!!picked.length && <ul className="chat-chips chat-picked" aria-label="보낼 첨부">{picked.map((p, i) => <li key={`${p.name}-${i}`} className="chip">
-          <span className="chat-chip-name">{kindLabel[p.kind]} · {p.name}</span><button type="button" className="chat-chip-x" aria-label={`${p.name} 빼기`} onClick={() => remove(i)}>×</button>
+        {!!picked.length && <ul className="chat-chips chat-picked" aria-label="보낼 첨부">{picked.map((p, i) => <li key={`${p.file.name}-${i}`} className="chip">
+          <span className="chat-chip-name">{kinds[p.kind].label} · {p.file.name}</span><button type="button" className="chat-chip-x" aria-label={`${p.file.name} 빼기`} onClick={() => remove(i)}>×</button>
         </li>)}</ul>}
         <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={[disabledReason && reasonId, shownError && errorId, note && noteId].filter(Boolean).join(' ') || undefined}
           onChange={e => changeDraft(e.target.value)}
@@ -178,7 +178,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
         <div className="chat-tools">
           <PopMenu className="chat-attach" label="첨부" icon={<PlusIcon />}>
             {/* 잠긴 항목은 초점을 받지 못한다: 여기 건 사유를 PopMenu가 메뉴 설명으로 이어 메뉴에 들어설 때 읽히게 한다. */}
-            {kinds.map(kind => <button key={kind} type="button" role="menuitem" disabled={attachOff} aria-describedby={!checkFile ? attachId : disabledReason ? reasonId : undefined} onClick={() => files.current[kind]?.click()}>{menuLabel[kind]}</button>)}
+            {Object.entries(kinds).map(([kind, k]) => <button key={kind} type="button" role="menuitem" disabled={attachOff} aria-describedby={!checkFile ? attachId : disabledReason ? reasonId : undefined} onClick={() => files.current[kind]?.click()}>{k.menu}</button>)}
             {!checkFile && <p id={attachId} className="chat-note">이미지·텍스트 파일 첨부는 준비 중이에요.</p>}
           </PopMenu>
           <button type="button" className="chat-icon-btn chat-mic" disabled aria-label="음성 입력 (준비 중)" title="음성 입력은 준비 중이에요"><MicIcon /></button>
@@ -190,7 +190,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
       {shownError && <p id={errorId} role="alert" className="chat-note">{shownError}</p>}
       {failed && <p role="alert" className="chat-note">메시지를 보내지 못했어요. 다시 시도해 주세요.</p>}
       {/* 파일 선택은 첨부 메뉴가 닫혀도 남아 있어야 고른 파일을 받을 수 있다. */}
-      {checkFile && kinds.map(kind => <input key={kind} hidden multiple type="file" accept={accept[kind]} ref={el => { files.current[kind] = el }}
+      {checkFile && Object.entries(kinds).map(([kind, k]) => <input key={kind} hidden multiple type="file" accept={k.accept} ref={el => { files.current[kind] = el }}
         onChange={e => { const list = [...(e.target.files ?? [])]; e.target.value = ''; if (list.length) add(list) }} />)}
     </form>
   </div>
