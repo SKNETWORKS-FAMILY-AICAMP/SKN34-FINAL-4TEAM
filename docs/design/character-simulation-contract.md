@@ -85,7 +85,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 ### SSE·응답
 
-- 기존 이벤트(`plan`·`started`·`step`·`waiting`·`done`·`error`)를 그대로 쓴다. 새 이벤트 종류는 없다. 턴이 끝날 때마다의 `step`은 그때까지의 **누적** 결과를 담으며 화면은 같은 단계 항목을 교체한다.
+- 기존 이벤트(`plan`·`started`·`step`·`waiting`·`done`·`error`)를 그대로 쓴다. 장면용 새 이벤트 종류는 없다(`answer`는 메인 에이전트의 답변 본문용이며 장면 글을 싣지 않는다, #618). 턴이 끝날 때마다의 `step`은 그때까지의 **누적** 결과를 담으며 화면은 같은 단계 항목을 교체한다.
 - `character_simulation` 단계 결과(`StepResult.result`)와 턴마다의 `step` 이벤트는 다음 모양을 쓴다.
 
 ```json
@@ -175,7 +175,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 | `redo` | `turn`, `note?` | 그 턴부터 뒤를 지우고 기록된 연출 결정(같은 인물·시점)으로 그 턴만 다시 쓴다. note는 다시 쓰는 줄에 주는 작가의 지시다. 메모 때문에 쓰인 나레이션을 다시 쓰면 그 메모가 되살아난다 | 도구 1턴(+검사) |
 | `stop` | — | 지금까지로 장면을 끝낸다(`completed`, 마무리 나레이션 없음). 이어서 승인 질문이다 | 없음 |
 
-- `approved`: 화면은 장면 조작에 `approved:true`를 함께 보낸다. scene이 있으면 `approved`는 적용하지 않고 조작을 처리한 뒤 다시 멈춘다. 승인·거절은 scene 없는 resume으로만 한다. 장면이 끝나기 전의 승인(scene 없는 `approved:true`)은 422이고, 장면 중의 거절(`approved:false`)은 반영 없이 `cancelled`로 끝낸다.
+- `approved`: 화면은 장면 조작에 `approved:true`를 함께 보낸다. scene이 있으면 `approved`는 적용하지 않고 조작을 처리한 뒤 다시 멈춘다. 승인·거절은 scene 없는 resume으로만 한다. 장면이 끝나기 전의 승인(scene 없는 `approved:true`)은 422이고, 장면 중의 거절(`approved:false`)은 반영 없이 `cancelled`로 끝낸다. 같은 턴에 먼저 끝난 작업이 있으면 `message`는 '아무 작업도 실행하지 않았다'고 하지 않고 장면만 반영하지 않았다고 알린다(#661).
 - 받을 수 없는 조작(장면·승인 대기가 아닐 때의 scene, 없는 `turn`, 장면 전의 승인)은 그래프를 실행하기 전에 422(SSE는 `error` 이벤트)로 막아 상태가 바뀌지 않는다.
 - 승인 질문(`awaitingApproval`)에서도 edit·redo·next(끼어들기 포함)는 가능하다. 단계를 다시 진행 중으로 돌려 장면으로 되돌아가며(끝난 장면은 기존 줄을 마무리 나레이션까지 그대로 두고 마지막 비트를 다시 열어 뒤에 붙이기만 한다. 줄을 지우거나 덮어쓰지 않는다), 다시 끝나면 승인 질문이 이어진다.
 

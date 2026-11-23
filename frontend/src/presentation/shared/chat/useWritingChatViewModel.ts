@@ -3,12 +3,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../app/appContainer'
 import type { SimulationStart } from '../../../domain/entities/characterSimulation'
 import { attachmentKind, type ChatAttachmentPayload, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
-import type { ChatBasis, ChatEvent, ChatFeature, ChatPage, ChatSendBody, ChatSession, ChatStep, ChatStepInputs, ChatTurn, SceneAction } from '../../../domain/entities/writingChat'
+import { streamedAnswer, type ChatBasis, type ChatEvent, type ChatFeature, type ChatPage, type ChatSendBody, type ChatSession, type ChatStep, type ChatStepInputs, type ChatTurn, type SceneAction } from '../../../domain/entities/writingChat'
 import { readAttachments } from './readAttachments'
 
 /** 지금 흐르는 SSE 턴. 끝나면 이력을 다시 읽어 세이버에 저장된 내용으로 바꾼다. decision은 승인·거절 응답(장면 조작이 아닌 이어가기)이다. */
-/** running: 시작(started)했지만 결과(step)가 아직 없는 기능들. 병렬 호출(#474)이면 둘 이상이다. */
-export type LiveTurn = { request: string; steps: ChatStep[]; running: ChatFeature[]; editIndex?: number; resumed?: boolean; decision?: boolean; attachments?: ChatTurnAttachment[] }
+/** answer: 쓰는 중인 답변 본문(#618). running: 시작(started)했지만 결과(step)가 아직 없는 기능들. 병렬 호출(#474)이면 둘 이상이다. */
+export type LiveTurn = { request: string; answer: string; steps: ChatStep[]; running: ChatFeature[]; editIndex?: number; resumed?: boolean; decision?: boolean; attachments?: ChatTurnAttachment[] }
 
 const message = (error: unknown, fallback: string) => (error instanceof Error && error.message !== 'Request cancelled' ? error.message : fallback)
 
@@ -80,8 +80,9 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
 
   useEffect(() => { if (threadId && !active.current) void load(threadId) }, [threadId, load])
 
-  const apply = (event: ChatEvent) => setLive((turn) => {
-    if (!turn) return turn
+  const apply = (event: ChatEvent) => setLive((previous) => {
+    if (!previous) return previous
+    const turn = { ...previous, answer: streamedAnswer(previous.answer, event) }
     if (event.type === 'plan' || event.type === 'waiting') return { ...turn, steps: event.steps, running: [] }
     if (event.type === 'started') return { ...turn, running: [...turn.running, event.feature] }
     // content_action(#554)은 판정이 계획에 올리지 않고 한 턴에 여러 번일 수 있어 단계마다 덧붙인다.
@@ -113,7 +114,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     const decision = 'resume' in input && !input.resume.scene
     // 첨부 칩: 새 요청은 이번에 보낸 파일 이름, 이어가기는 멈춘 턴의 칩을 그대로 둔다(그 턴의 내 메시지가 이 줄로 바뀐다).
     const attachments = resumed ? turns.at(-1)?.attachments : 'attachments' in input ? input.attachments?.map(({ name, mediaType }) => ({ name, kind: attachmentKind(mediaType) })) : undefined
-    setLive({ request, steps: resumed ? turns.at(-1)?.reply?.steps ?? [] : [], running: [], editIndex, resumed, decision, attachments })
+    setLive({ request, answer: '', steps: resumed ? turns.at(-1)?.reply?.steps ?? [] : [], running: [], editIndex, resumed, decision, attachments })
     let ok = true
     let sceneWaits = false
     let id = threadId
