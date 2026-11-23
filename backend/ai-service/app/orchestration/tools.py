@@ -74,6 +74,8 @@ DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다�
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
 PATCH_READY = '수정안을 만들었고 본문은 화면의 결과 카드에 있어요.'
 NO_SAVED_PLANS = '저장된 플롯·장면 계획이 없어 고칠 수 없어요. 고칠 계획을 먼저 저장해 주세요.'
+NO_PLAN_CHANGE = '요청대로 바꿀 내용이 없어요. 고칠 방향을 더 구체적으로 알려 주세요.'
+PLAN_EPISODE_MISSING = '연결한 회차가 삭제됐어요. 계획 패널에서 회차 연결을 해제한 뒤 다시 요청해 주세요.'
 # '지적 고르기'에서 멈춘 턴을 이어 가는 요청이 설정으로 알린다(#636). 작가의 답(번호·취소)은 그 대기만 받는다. __로 시작해 체크포인트 metadata에 남지 않는다
 RESUME_FIX = '__resume_fix'
 PLAN_CANDIDATES = 5  # 되묻기에 보이는 후보 계획 제목 수
@@ -415,8 +417,12 @@ def _revise_plan(runtime: ToolRuntime, request: str) -> Command:
             more = f' 외 {len(briefs) - PLAN_CANDIDATES}개' if len(briefs) > PLAN_CANDIDATES else ''
             raise Clarify(f'어느 계획을 고칠지 정할 수 없어요. 고칠 계획의 제목을 알려 주세요. 저장된 계획: {shown}{more}')
         current = content_mcp.read_plan(work, picked)
+        if current.episodeMissing:  # 그대로 저장하면 Content가 승인 순간 거절하므로 제안 전에 알린다(#641)
+            raise WritingFailure(422, PLAN_EPISODE_MISSING)
         brief = next(b for b in briefs if b.id == picked).model_copy(update={'title': current.title, 'episodeNumber': current.episodeNumber})
-        return writing.revise_plan(PlanReviseRequest(request=request, plan=brief, content=current.content, revision=current.revision))
+        if (revised := writing.revise_plan(PlanReviseRequest(request=request, plan=brief, content=current.content, revision=current.revision))) is None:
+            raise Clarify(NO_PLAN_CHANGE)
+        return revised
 
     return _ask(runtime, 'writing_editing', run, task_kind='revise_plan')
 

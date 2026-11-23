@@ -153,9 +153,9 @@ def test_pick_plan_is_none_when_the_model_cannot_settle_on_one(monkeypatch):
     assert agent.pick_plan(PlanPickRequest(request='그거 고쳐줘', plans=BRIEFS)) is None
 
 
-def revise(monkeypatch, title='재회', content='카엘이 리나를 만나지만 이름을 부르지 못한다.'):
+def revise(monkeypatch, title='재회', content='카엘이 리나를 만나지만 이름을 부르지 못한다.', original='카엘이 리나를 만난다.'):
     seen = fake_openai(monkeypatch, text=json.dumps({'title': title, 'content': content}, ensure_ascii=False))
-    data = PlanReviseRequest(request='더 긴장감 있게', plan=BRIEFS[1], content='카엘이 리나를 만난다.', revision=3)
+    data = PlanReviseRequest(request='더 긴장감 있게', plan=BRIEFS[1], content=original, revision=3)
     return seen, agent.revise_plan(data)
 
 
@@ -170,13 +170,30 @@ def test_revise_plan_returns_the_before_and_after_with_the_revision_it_was_given
 
 
 @pytest.mark.parametrize('title, content', [
-    ('재회', '카엘이 리나를 만난다.'),    # 바뀐 것이 없다
-    ('재회', ' 카엘이 리나를 만난다. '),  # 공백만 다르다
     ('', '새 내용'),                      # 제목이 비었다
     ('가' * 121, '새 내용'),              # 제목 120자 초과
+    ('가' * 119 + '😀', '새 내용'),       # Python 120자지만 Content(UTF-16)로 121단위
     ('재회', '가' * 8001),                # 내용 8,000자 초과
-], ids=['unchanged', 'whitespace-only', 'empty-title', 'long-title', 'long-content'])
-def test_revise_plan_outside_the_limits_or_without_a_change_is_failure_not_a_proposal(monkeypatch, title, content):
+    ('재회', '가' * 7999 + '😀'),         # Python 8,000자지만 UTF-16으로 8,001단위
+], ids=['empty-title', 'long-title', 'utf16-title', 'long-content', 'utf16-content'])
+def test_revise_plan_outside_the_limits_is_failure_not_a_proposal(monkeypatch, title, content):
     with pytest.raises(WritingFailure) as error:
         revise(monkeypatch, title, content)
     assert error.value.status == 502
+
+
+@pytest.mark.parametrize('title, content', [('가' * 120, '새 내용'), ('재회', '가' * 8000)], ids=['title-at-limit', 'content-at-limit'])
+def test_revise_plan_at_the_limits_is_a_proposal(monkeypatch, title, content):
+    _, result = revise(monkeypatch, title, content)
+    assert (result.after.title, result.after.content) == (title, content)
+
+
+@pytest.mark.parametrize('title, content', [('재회', '카엘이 리나를 만난다.'), ('재회', ' 카엘이 리나를 만난다. ')], ids=['unchanged', 'whitespace-only'])
+def test_revise_plan_without_a_change_is_none_not_a_failure(monkeypatch, title, content):
+    assert revise(monkeypatch, title, content)[1] is None
+
+
+def test_revise_plan_keeps_the_original_content_when_only_the_title_changes(monkeypatch):
+    # 모델이 내용 앞뒤 공백을 지워 돌려줘도 저장할 내용은 원문 그대로다.
+    _, result = revise(monkeypatch, '새 제목', '카엘이 리나를 만난다.', original=' 카엘이 리나를 만난다.\n')
+    assert (result.after.title, result.after.content) == ('새 제목', ' 카엘이 리나를 만난다.\n')
