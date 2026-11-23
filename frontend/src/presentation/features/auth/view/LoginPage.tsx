@@ -24,8 +24,6 @@ export function LoginPage() {
       <label className="field">비밀번호<input className="inp" name="password" type="password" autoComplete="current-password" required readOnly={vm.pending} {...invalid} /></label>
       <button className="btn pri" type="submit" disabled={vm.pending}>{vm.pending ? '로그인 중…' : '로그인'}</button>
     </form>
-    <nav className="lg-links" aria-label="로그인 도움"><Link to="/me/signup">회원가입</Link><Link to="/auth/forgot-password">비밀번호 찾기</Link><Link to="/me/inquiry">로그인 문의</Link></nav>
-    <p className="auth-help">이메일 인증을 아직 마치지 않았나요?</p>
-    <div className="lg-links"><Link to="/auth/resend-verification">이메일 인증·확인 메일 재발송</Link></div>
+    <nav className="lg-links" aria-label="로그인 도움"><Link to="/me/signup">회원가입</Link><Link to="/auth/forgot-password">비밀번호 찾기</Link><Link to="/me/inquiry">로그인 문의</Link><Link to="/auth/resend-verification">이메일 인증·확인 메일 재발송</Link></nav>
   </AuthLayout>
 }

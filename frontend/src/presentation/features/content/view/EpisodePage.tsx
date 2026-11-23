@@ -33,7 +33,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
   const [menuOpen, setMenuOpen] = useState(true)
   // 사이드바(WorkManagement)가 그려지는 작품. 펼친 동안은 돌아가기 링크가 사이드바에 있어 상단 줄을 그리지 않고(두 곳 동시 노출 없음), 오류·상태 알림도 사이드바 위가 아니라 내용 열 맨 위에 그린다.
   const managed = shell && !loading ? w : null
-  // AI 자율 집필 중 원고 잠금(1화만 쓴다): 공개 회차 탭의 쓰기 링크(수정하기·작성 중인 초안)가 쓰므로 여기서 한 번 읽는다(판정은 서버가 하고 화면 잠금은 보조다).
+  // AI 자율 집필 중 원고 잠금(1화만 쓴다): 공개 회차 탭의 쓰기 링크(수정하기)가 쓰므로 여기서 한 번 읽는다(판정은 서버가 하고 화면 잠금은 보조다).
   const serial = useSerialLock(managed?.id)
   // 작품 만들기·분기 만들기·세계관 연결의 결과는 그 폼·카드가 직접 보인다(vm.origin). 그 밖의 요청은 여기 맨 위에 알리고,
   // 스크롤해 내려가 있어 알림이 화면 밖에 생겼으면 보이는 데까지만 옮긴다(상단바가 있으면 거기에 가리지 않게 scroll-margin을 둔다).

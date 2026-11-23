@@ -59,6 +59,13 @@ describe('storyfork.css 푸터 위치 계약', () => {
   it('인증 화면의 좌우 두 단 틀 바로 아래 푸터는 위 여백 없이 붙는다', () => {
     expect(value('.lg+.foot', 'margin-top')).toBe('0')
   })
+
+  it('넓은 화면 인증 푸터 내용은 가운데 상자가 아니라 왼쪽 면 안쪽 여백(64px)에 맞춘다', () => {
+    const wide = '(min-width:901px)'
+    expect([value('.lg+.foot .wrap', 'max-width', wide), value('.lg+.foot .wrap', 'padding-inline', wide)]).toEqual(['none', '64px'])
+    expect(value('.lg-l', 'padding')).toBe('56px 64px')
+    expect(value('.lg+.foot .wrap', 'max-width')).toBeUndefined()
+  })
 })
 
 describe('storyfork.css 계정 메뉴 계약', () => {
@@ -78,8 +85,12 @@ describe('storyfork.css 계정 메뉴 계약', () => {
     // 이름은 굵게, 이메일은 보통 굵기로 — 단추의 굵은 글씨(700)를 이메일이 물려받지 않게 한다.
     expect([value(`${row} b`, 'font-weight'), value(`${row} small`, 'font-weight')]).toEqual(['800', '400'])
     expect([value(`${row} em`, 'white-space'), value(`${row} em`, 'flex')]).toEqual(['nowrap', 'none'])
-    // 메뉴를 버튼 아래에 맞추는 AccountMenu가 이 폭(240)을 가정한다.
-    expect(value('.pop.acctm', 'width')).toBe('240px')
+    // 메뉴를 버튼 아래에 맞추는 AccountMenu가 이 폭(240)을 가정한다. 폭이 두 군데 적히면 짝을 잘못 읽으니 선언은 하나다.
+    expect(values('.pop.acctm', 'width')).toEqual(['240px'])
+  })
+
+  it('계정 메뉴는 sticky 상단바 위에 떠 가려지지 않는다', () => {
+    expect(Number(value('.pop.acctm', 'z-index'))).toBeGreaterThan(Number(value('.gnb', 'z-index')))
   })
 
   it('보유 크레딧 줄(.acct-credit)은 상단 크레딧 칩과 같은 색 계열·고정폭 숫자이고 일반 항목 규칙에 덮이지 않는다', () => {
@@ -95,6 +106,67 @@ describe('storyfork.css 계정 메뉴 계약', () => {
     const creditCss = sheet.filter((r) => r.selectors.some((s) => s.startsWith(row))).map((r) => r.body).join(';')
     expect(creditCss).not.toMatch(/#[0-9a-fA-F]{3,8}\b|border-(?:left|right)/)
   })
+
+  it('프로필 줄의 "프로필 ›"은 보조색이라 메뉴 머리의 보라 강조는 아바타와 크레딧 줄만 남는다', () => {
+    expect(value('.pop.acctm .who em', 'color')).toBe('var(--sub)')
+  })
+})
+
+describe('storyfork.css 서재 목록 카드 계약', () => {
+  it('제목 링크의 ::after가 카드 전체를 덮고, 버튼 줄(.acts)은 그 위에 놓여 버튼은 자기 동작만 한다', () => {
+    expect([value('.li.rowlink', 'position'), value('.li-link::after', 'position'), value('.li-link::after', 'inset')]).toEqual(['relative', 'absolute', '0'])
+    expect([value('.li.rowlink>.acts', 'position'), value('.li.rowlink>.acts', 'z-index')]).toEqual(['relative', '1'])
+  })
+
+  it('키보드 초점(제목 링크의 :focus-visible)도 hover와 같은 카드 배경을 쓰고, 안쪽 버튼 위에서는 카드 배경을 켜지 않는다', () => {
+    expect(value('.li.rowlink:has(.li-link:focus-visible)', 'background')).toBe('var(--muted-bg)')
+    expect(value('.li.rowlink:hover:not(:has(.acts:hover))', 'background')).toBe('var(--muted-bg)')
+    // 버튼 위에서도 켜지던 옛 규칙(자손 hover에도 걸린다)은 없다.
+    expect(value('.li.rowlink:hover', 'background')).toBeUndefined()
+  })
+
+  it('카드 제목(h3)은 세 탭이 같은 글꼴 하나이고, 글자 버튼(.btn.weak)은 테두리·배경 없이 높이를 .btn.sm에 맡긴다', () => {
+    expect(['font-size', 'font-weight', 'line-height'].map((prop) => value('.li h3', prop))).toEqual(['15px', '700', '1.5'])
+    expect(['border-color', 'background', 'color'].map((prop) => value('.btn.weak', prop))).toEqual(['transparent', 'transparent', 'var(--sub)'])
+    expect([value('.btn.weak:hover', 'background'), value('.btn.weak:hover', 'color')]).toEqual(['var(--muted-bg)', 'var(--ink)'])
+    // 높이를 따로 두지 않아 데스크톱 36px, 터치(600px 이하·coarse) 44px이 .btn.sm 그대로 지켜진다.
+    expect([values('.btn.weak', 'height'), values('.btn.weak', 'min-height')]).toEqual([[], []])
+  })
+
+  it('좁은 화면에서는 이어 읽기 줄의 글자 버튼을 내용 폭으로 두고 주 버튼(이어 읽기)이 남는 폭을 채운다', () => {
+    const mobile = '(max-width:600px)'
+    expect([value('.li>.acts .btn', 'flex', mobile), value('.li>.acts .btn.weak', 'flex', mobile)]).toEqual(['1', 'none'])
+  })
+
+  it('새로 시작하기 카드 열은 기본 3열·900px 이하 1열 한 규칙씩이고 !important를 쓰지 않는다', () => {
+    expect(values('.newbox', 'grid-template-columns')).toEqual(['repeat(3,minmax(0,1fr))'])
+    expect(values('.newbox', 'grid-template-columns', '(max-width:900px)')).toEqual(['1fr'])
+  })
+
+  it('목록 행의 주 버튼은 채우지 않은 연보라 톤이고 hover만 조금 진해진다', () => {
+    const b = '.li.rowlink>.acts .btn.pri'
+    expect([value(b, 'background'), value(b, 'color')]).toEqual(['var(--pri-soft)', 'var(--pri-ink)'])
+    expect(value(b, 'border-color')).toMatch(/^color-mix\(/)
+    expect(value(`${b}:hover`, 'background')).toMatch(/^color-mix\(/)
+  })
+
+  it('서재 구역 제목(h2)은 페이지 제목(h1)보다 한 단계 작고 가볍다', () => {
+    expect([value('.lib .sec-h h2', 'font-size'), value('.lib .sec-h h2', 'font-weight')]).toEqual(['20px', '700'])
+    expect(value('.sec-h :is(h1,h2)', 'font-size')).toBe('23px')
+  })
+
+  it('밑줄 탭과 작품 구분 필터는 선택되지 않은 탭에 hover하면 글자가 진해진다', () => {
+    expect(value('.libtabs :is(button,a):not(.on):hover', 'color')).toBe('var(--ink)')
+  })
+})
+
+describe('server-writing.css 서재 목록 제목 줄·칩 줄 계약', () => {
+  const writingCss = readFileSync(new URL('../presentation/features/library/view/server-writing.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+
+  it('제목 줄의 새 소설·새 세계관 버튼은 제목 오른쪽 끝에 놓이고, 칩 줄은 칩과 글자를 한 줄에서 가운데 맞춤으로 잇는다', () => {
+    expect(writingCss).toMatch(/\.server-writing \.sec-h > \.btn \{[^}]*margin-left: auto/)
+    expect(writingCss).toMatch(/\.server-tags \{[^}]*display: flex[^}]*flex-wrap: wrap[^}]*align-items: center/)
+  })
 })
 
 describe('storyfork.css GNB 검색 버튼 계약 (#505)', () => {
@@ -105,6 +177,12 @@ describe('storyfork.css GNB 검색 버튼 계약 (#505)', () => {
     expect(value('.search .ls', 'display')).toBe('none')
     expect(narrow('.search .lf')).toEqual(['display:none'])
     expect(narrow('.search .ls')).toEqual(['display:inline'])
+  })
+
+  it('검색 버튼 hover는 테두리색만 바꾸고 후광 그림자를 켜지 않는다', () => {
+    expect(value('.search:hover', 'border-color')).toBe('var(--pri)')
+    expect(value('.search:hover', 'box-shadow')).toBeUndefined()
+    expect(value('.search', 'transition')).toBe('border-color .15s')
   })
 })
 
@@ -135,6 +213,16 @@ describe('storyfork.css 셸·읽기 화면 정리 계약 (impeccable 그룹 1)',
 
   it('홈의 급상승·방금 업데이트 줄(.tri)은 2칸이다', () => {
     expect(value('.tri', 'grid-template-columns')).toBe('repeat(2,minmax(0,1fr))')
+  })
+
+  it('인증 화면의 홈으로 버튼은 떠 있는 그림자 없이 테마 버튼과 같은 높이로 놓인다', () => {
+    expect(value('.auth-header .back', 'box-shadow')).toBe('none')
+    expect(value('.back', 'height')).toBe(value('.auth-header .thm', 'height'))
+  })
+
+  it('로그인 도움 링크는 밑줄로 링크임을 보이고 굵기는 폼 레이블보다 가볍다', () => {
+    expect([value('.lg-links a', 'font-weight'), value('.lg-links a', 'text-decoration')]).toEqual(['500', 'underline'])
+    expect(Number(value('.lg-links a', 'font-weight'))).toBeLessThan(Number(value('.field', 'font-weight')))
   })
 })
 

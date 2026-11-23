@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 
 import type { SerialBoardRecord, SerialSettings } from '../../../../domain/entities/aiSerial'
 import { SerialUseCase } from '../../../../domain/usecases/SerialUseCase'
@@ -11,9 +11,9 @@ import { AiSerialPanel } from './AiSerialPanel'
 afterEach(cleanup)
 
 const fakeRepo = (saved?: SerialSettings, rows?: SerialBoardRecord[]) => fakeSerialRepo({ saved, rows })
-/** 연재 설정 탭(처음 열리는 탭)을 연다. */
-const open = async (repo = fakeRepo()) => {
-  render(<AiSerialPanel workId='w1' useCase={new SerialUseCase(repo)} />)
+/** 연재 설정 탭(처음 열리는 탭)을 연다. onOpenSettings는 호출 측(작품 관리)이 운영 설정 탭으로 옮기는 함수이고, 빼면 호출 측이 이동을 잠근 경우다. */
+const open = async (repo = fakeRepo(), props: { onOpenSettings?: () => void } = {}) => {
+  render(<AiSerialPanel workId='w1' useCase={new SerialUseCase(repo)} {...props} />)
   await screen.findByRole('button', { name: '설정 저장' })
   return repo
 }
@@ -176,14 +176,36 @@ it.each([
   expect(screen.getByText(new RegExp(why)).id).toBe(run().getAttribute('aria-describedby'))
 })
 
-// AI 자율 집필은 운영 설정의 집필 방식에서 고른다(계약 'AI 자율 집필 = 집필 방식'). 꺼져 있으면 이 탭이 그 길을 알려 준다.
-it('꺼져 있으면 운영 설정 > 집필 방식에서 AI 자율 집필을 고르면 켜진다고 안내하고, 켜져 있으면 안내하지 않는다', async () => {
-  const GUIDE = '운영 설정 > 집필 방식에서 AI 자율 집필을 고르면 켜져요.'
+// AI 자율 집필은 운영 설정의 집필 방식에서 고른다(계약 'AI 자율 집필 = 집필 방식'). 꺼져 있으면 이 탭은 꺼짐 상태를 알리고, 켜는 길은 리드 문단이 적는다.
+it('꺼져 있으면 꺼짐 상태를 알리고(켜는 길은 리드 문단), 켜져 있으면 알리지 않는다', async () => {
+  const GUIDE = 'AI 자율 집필이 꺼져 있어요.'
   await open(fakeRepo(settings({ enabled: false })))
   expect(screen.getByText(GUIDE)).toBeTruthy()
+  expect(screen.getAllByText(/운영 설정 > 집필 방식에서 AI 자율 집필을 고르면/)).toHaveLength(1) // 리드 문단에만 있다
   cleanup()
   await open(fakeRepo(settings({ enabled: true })))
   expect(screen.queryByText(GUIDE)).toBeNull()
+})
+
+it('[critique] 꺼져 있을 때 운영 설정 열기를 누르면 호출 측 이동을 부르고, 이동을 주지 않으면 버튼이 없다', async () => {
+  const onOpenSettings = vi.fn()
+  await open(fakeRepo(settings({ enabled: false })), { onOpenSettings })
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정 열기' }))
+  expect(onOpenSettings).toHaveBeenCalledOnce()
+  cleanup()
+  await open(fakeRepo(settings({ enabled: false })))
+  expect(screen.queryByRole('button', { name: '운영 설정 열기' })).toBeNull()
+})
+
+it('[critique] 꺼져 있으면 연재 설정 폼 전체(요일·시각·방향·저장)가 fieldset disabled로 잠기고, 켜져 있으면 입력할 수 있다', async () => {
+  // fieldset disabled는 안의 입력을 :disabled로 만든다(입력 요소의 disabled 속성 값은 자기 속성만 읽는다).
+  const locked = () => [day('월'), screen.getByLabelText(/연재 시각/), screen.getByLabelText(/연재 방향/), save()].map((el) => el.matches(':disabled'))
+  await open(fakeRepo(settings({ enabled: false })))
+  expect(locked()).toEqual([true, true, true, true])
+  expect(screen.getByLabelText(/연재 시각/).closest('fieldset.ep-serial-fields')?.hasAttribute('disabled')).toBe(true)
+  cleanup()
+  await open(fakeRepo(settings({ enabled: true })))
+  expect(locked()).toEqual([false, false, false, true]) // 저장은 바꾸기 전까지 잠겨 있다(위 첫 테스트)
 })
 
 it('실행 요청이 409로 거절되면 서버 문구를 경고로 알린다', async () => {
