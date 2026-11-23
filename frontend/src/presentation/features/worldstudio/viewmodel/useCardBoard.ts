@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { cardStatuses, problemCount, publicationOrderIssues } from '../../../../domain/entities/worldReview'
 import { cardLibraryRows } from '../../../../domain/entities/worldStudioWriting'
 import { boardEmptyKinds, boardKindCounts, boardRows, BOOK_SORTS, type CardKind } from '../../../shared/worldBoard'
+import { useCardCategories } from '../../../shared/useCardCategories'
 import { pageItems } from '../../../shared/pageItems'
 import { settingBoardEntries } from './settingBoard'
 import type { useWorldStudioViewModel } from './useWorldStudioViewModel'
@@ -28,7 +29,9 @@ export function useCardBoard(studio: Studio) {
   const [page, setPage] = useState(0)
   const settings = studio.editing?.settings
   const findings = studio.review.findings
-  const entries = useMemo(() => settingBoardEntries(settings ?? []), [settings])
+  // 행의 분류 칩에 보이는 유형 이름은 운영자가 바꾸거나 추가한 카테고리 이름을 따른다(묶음은 공개 설정집과 같은 6묶음이고 추가한 카테고리는 '기타' 묶음이다).
+  const { categories } = useCardCategories()
+  const entries = useMemo(() => settingBoardEntries(settings ?? [], categories), [settings, categories])
   const counts = useMemo(() => boardKindCounts(entries), [entries])
   const empty = useMemo(() => boardEmptyKinds(entries), [entries])
   const orderIssues = useMemo(() => publicationOrderIssues(settings ?? []), [settings])

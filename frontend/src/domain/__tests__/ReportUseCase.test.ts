@@ -6,7 +6,7 @@ import type { ReportRepository } from '../repositories/ReportRepository'
 import { ReportUseCase } from '../usecases/ReportUseCase'
 
 const report: Report = {
-  id: 'r1', kind: 'RIGHTS', workId: 'w1', workTitle: '별빛', workOwnerId: 'owner', reporterId: 'me', reason: '무단 사용',
+  id: 'r1', kind: 'RIGHTS', targetType: 'work', workId: 'w1', workTitle: '별빛', workOwnerId: 'owner', episodeNumber: null, worldId: null, worldName: null, reporterId: 'me', reason: '무단 사용',
   evidence: '', status: 'RECEIVED', contentRestricted: false, createdAt: '2026-11-08T00:00:00Z', updatedAt: '2026-11-08T00:00:00Z',
 }
 
@@ -32,6 +32,27 @@ describe('ReportUseCase', () => {
     const { uc, calls } = setup()
     await uc.submit({ kind: 'HARMFUL', workId: 'w1', reason: ' 폭력 묘사 ', evidence: ' 3화 ' })
     expect(calls).toEqual([['submit', { kind: 'HARMFUL', workId: 'w1', reason: '폭력 묘사', evidence: '3화' }]])
+  })
+
+  it('회차 신고는 작품 id와 회차 번호를, 세계관 신고는 세계관 id를 대상 종류와 함께 접수한다', async () => {
+    const { uc, calls } = setup()
+    await uc.submit({ kind: 'RIGHTS', targetType: 'episode', workId: 'w1', episodeNumber: 3, reason: ' 무단 인용 ', evidence: '' })
+    await uc.submit({ kind: 'HARMFUL', targetType: 'world', worldId: 'wd1', reason: '폭력', evidence: ' 카드 3장 ' })
+    expect(calls).toEqual([
+      ['submit', { kind: 'RIGHTS', targetType: 'episode', workId: 'w1', episodeNumber: 3, reason: '무단 인용', evidence: '' }],
+      ['submit', { kind: 'HARMFUL', targetType: 'world', worldId: 'wd1', reason: '폭력', evidence: '카드 3장' }],
+    ])
+  })
+
+  it.each([
+    [{ targetType: 'episode', workId: 'w1', episodeNumber: 0 }, '신고할 회차를 확인할 수 없어요.'],
+    [{ targetType: 'episode', workId: 'w1', episodeNumber: 1.5 }, '신고할 회차를 확인할 수 없어요.'],
+    [{ targetType: 'episode', workId: ' ', episodeNumber: 2 }, '신고할 작품을 확인할 수 없어요.'],
+    [{ targetType: 'world', worldId: '  ' }, '신고할 세계관을 확인할 수 없어요.'],
+  ])('대상이 확인되지 않는 신고 %o는 요청 없이 거절한다', async (target, message) => {
+    const { uc, calls } = setup()
+    await expect(uc.submit({ kind: 'RIGHTS', reason: '사유', evidence: '', ...target } as never)).rejects.toThrow(new OperationsError(message))
+    expect(calls).toEqual([])
   })
 
   it.each([

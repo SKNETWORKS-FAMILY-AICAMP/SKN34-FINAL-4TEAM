@@ -1,6 +1,6 @@
 import { stripCardLinks } from './cardLinks'
 import { characterDocName, characterDocText, missingCharacterDocs, withCharacterDoc, type CharacterDocKey } from './characterDocs'
-import { cardTypeOf, cardTypes } from './studioCards'
+import { cardTypeOf, isCard } from './studioCards'
 import { editStudioSetting } from './studioRelations'
 import { cardRevealEpisode, type CharacterDocs, type StudioSetting } from './studioWorld'
 
@@ -63,7 +63,7 @@ export type OrderIssue = { cardId: string; source: 'body' | 'relation'; relation
  * ponytail: 카드 수의 제곱 번 includes를 한다(수백 장은 문제없다). 천 장을 넘어 입력이 밀리면 본문이 바뀐 카드만 다시 센다.
  */
 export function publicationOrderIssues(settings: readonly StudioSetting[]): OrderIssue[] {
-  const cards = settings.filter((s) => cardTypes.some((t) => t.id === cardTypeOf(s.item)))
+  const cards = settings.filter((s) => isCard(s.item))
   const from = new Map(cards.map((s) => [s.item.id, cardRevealEpisode(s)]))
   const names = cards.map((card) => ({ card, list: [card.item.title, ...(card.aliases ?? [])].map((n) => n.trim()).filter(Boolean) }))
   const issues: OrderIssue[] = []

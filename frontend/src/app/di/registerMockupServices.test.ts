@@ -114,3 +114,18 @@ it('장르 저장소는 실제 모드에서 Content·운영 API를, mockup에서
   expect((await mockup.resolve('readingUseCase').homeChips())).not.toContain('✨ 판타지')
   expect((await mockup.resolve('publicWorldUseCase').get(DEMO_WORLDS[0].id))?.genreName).toBeNull()
 })
+
+it('카드 카테고리·운영 세계관 저장소는 실제 모드에서 Content·운영 API를, mockup에서는 카드 카테고리만 같은 목록을 보는 메모리를 쓴다(운영자 콘텐츠 관리)', async () => {
+  const real = createAppContainer()
+  expect(real.resolve('cardCategoryRepository').constructor.name).toBe('HttpCardCategoryRepository')
+  expect(real.resolve('operationsCardCategoryRepository').constructor.name).toBe('HttpOperationsCardCategoryRepository')
+  expect(real.resolve('operationsWorldRepository').constructor.name).toBe('HttpOperationsWorldRepository')
+  vi.stubEnv('MODE', 'mockup')
+  const mockup = createAppContainer()
+  expect(mockup.resolve('cardCategoryRepository').constructor.name).toBe('InMemoryCardCategoryRepository')
+  expect(mockup.resolve('operationsCardCategoryRepository').constructor.name).toBe('InMemoryOperationsCardCategoryRepository')
+  // 운영에서 숨기면 작가 선택지가 읽는 공개 목록에는 active:false로 남는다(이미 쓰는 카드의 이름 표시를 지킨다).
+  await mockup.resolve('operationsCardCategoryUseCase').update('ability', { active: false })
+  expect((await mockup.resolve('cardCategoryUseCase').list()).find((category) => category.code === 'ability')).toMatchObject({ name: '능력', active: false })
+  expect(mockup.resolve('operationsWorldRepository').constructor.name).toBe('HttpOperationsWorldRepository')
+})

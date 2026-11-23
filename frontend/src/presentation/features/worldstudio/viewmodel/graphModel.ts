@@ -1,5 +1,5 @@
 import type { CardType } from '../../../../domain/entities/studioCards'
-import { CARD_COLORS, CARD_KIND } from '../../../shared/worldBoard'
+import { CARD_COLORS, kindOf } from '../../../shared/worldBoard'
 import { mapEndpoint, type MapLink, type MapNode } from './useWorldMapViewModel'
 
 /*
@@ -76,7 +76,7 @@ export function buildGraph(nodes: readonly MapNode[], links: readonly MapLink[],
   const degree = degrees([...ids], rows)
   const graphNodes = nodes.map((n): GNode => {
     const d = degree.get(n.id) ?? 0
-    const fields = { id: n.id, name: n.name, type: n.type, unnamed: !!n.unnamed, degree: d, color: n.type ? CARD_COLORS[CARD_KIND[n.type]] : FALLBACK_COLOR }
+    const fields = { id: n.id, name: n.name, type: n.type, unnamed: !!n.unnamed, degree: d, color: n.type ? CARD_COLORS[kindOf(n.type)] : FALLBACK_COLOR }
     const old = previous.get(n.id)
     if (old) return Object.assign(old, fields)
     const at = spawn.get(n.id)

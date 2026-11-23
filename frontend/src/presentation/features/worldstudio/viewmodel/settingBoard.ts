@@ -1,8 +1,9 @@
 import { cardLinks } from '../../../../domain/entities/cardLinks'
-import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
+import { categoryName, type CardCategory } from '../../../../domain/entities/cardCategory'
+import { cardTypeOf, isCard } from '../../../../domain/entities/studioCards'
 import { relationLabel } from '../../../../domain/entities/studioRelations'
 import type { SettingItem, StudioSetting } from '../../../../domain/entities/studioWorld'
-import { CARD_KIND, type BoardEntry } from '../../../shared/worldBoard'
+import { kindOf, type BoardEntry } from '../../../shared/worldBoard'
 import { plainCardText } from '../../../shared/cardSections'
 
 /*
@@ -12,11 +13,19 @@ import { plainCardText } from '../../../shared/cardSections'
 
 /** 카드가 아닌 기존 항목(관계·메모·분류 확인 …)의 옛 의미 이름 */
 export const kinds: Record<SettingItem['kind'], string> = { entity: '대상', fact: '설정', rule: '규칙', constraint: '제약', claim: '인물의 주장', relation: '관계', undetermined: '미정', event: '과거 사건', note: '메모' }
-/** 카드 유형 이름(인물·장소 …). 카드가 아닌 기존 항목은 옛 의미 이름이다. */
-export const labelOf = (setting: StudioSetting) => cardTypes.find((t) => t.id === cardTypeOf(setting.item))?.label ?? kinds[setting.item.kind]
+/**
+ * 카드 유형 이름(인물·장소 …, 운영자가 바꾼·추가한 이름은 `categories`에서 찾는다). 카드가 아닌 기존 항목은 옛 의미 이름이다.
+ * `categories`를 안 주면 기본 8종 이름이고, 모르는 코드는 '숨긴 분류'다.
+ */
+export const labelOf = (setting: StudioSetting, categories: readonly CardCategory[] = []) =>
+  isCard(setting.item) ? categoryName(categories, cardTypeOf(setting.item)) : kinds[setting.item.kind]
 
 /** 게시판에 오르는 카드의 유형(없으면 카드가 아니다). */
-const boardType = (s: StudioSetting) => cardTypes.find((t) => t.id === cardTypeOf(s.item))
+const boardType = (s: StudioSetting, categories: readonly CardCategory[]) => {
+  if (!isCard(s.item)) return undefined
+  const id = cardTypeOf(s.item)
+  return { id, label: categoryName(categories, id) }
+}
 
 /** `via`는 인물 관계 설정(relation)으로 이어졌는지, 관련 설정·사건 순서(link)로 이어졌는지다. */
 type SettingLink = { id: string; title: string; label: string; via: 'relation' | 'link' }
@@ -26,7 +35,7 @@ type SettingLink = { id: string; title: string; label: string; via: 'relation' |
  * 없는 카드·자기 자신·카드가 아닌 항목은 버린다. 같은 카드가 관계 둘로 이어지면 두 번 나온다(관계마다 이름이 다르다). 본문 링크는 같은 카드를 여러 번 걸어도 한 번이다.
  */
 export function settingLinks(settings: StudioSetting[], id: string): SettingLink[] {
-  const cards = new Map(settings.filter(boardType).map((s) => [s.item.id, s.item]))
+  const cards = new Map(settings.filter((s) => isCard(s.item)).map((s) => [s.item.id, s.item]))
   if (!cards.has(id)) return []
   const links: SettingLink[] = []
   const add = (other: string | null, label: string, via: SettingLink['via']) => {
@@ -65,9 +74,9 @@ export function summaryOf(item: SettingItem) {
  * 이어진 카드는 `settingLinks`와 같은 규칙(관계의 양 끝, 관련 설정·사건 순서·본문 링크의 양쪽)으로 세되, 카드마다 `settingLinks`를 부르지 않고 한 번 훑어 모은다:
  * 입력할 때마다 다시 계산하는 값이라 카드 수의 제곱으로 걸리면(1,000장에 150ms쯤) 타자가 밀린다.
  */
-export function settingBoardEntries(settings: StudioSetting[]): BoardEntry[] {
+export function settingBoardEntries(settings: StudioSetting[], categories: readonly CardCategory[] = []): BoardEntry[] {
   const cards = settings.flatMap((s) => {
-    const type = boardType(s)
+    const type = boardType(s, categories)
     return type ? [{ item: s.item, type }] : []
   })
   const linked = new Map(cards.map(({ item }) => [item.id, new Set<string>()]))
@@ -88,7 +97,7 @@ export function settingBoardEntries(settings: StudioSetting[]): BoardEntry[] {
   }
   return cards.map(({ item, type }) => {
     const connections = linked.get(item.id)?.size ?? 0
-    const kind = CARD_KIND[type.id]
+    const kind = kindOf(type.id)
     return { cardId: item.id, title: item.title || '이름 없는 설정', text: summaryOf(item).plain, type: type.label, kind, connections, badge: kind === '인물' ? related.get(item.id)?.size ?? 0 : connections }
   })
 }

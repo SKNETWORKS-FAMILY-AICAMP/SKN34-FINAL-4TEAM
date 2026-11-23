@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { cardTypes, type CardType } from '../../../../domain/entities/studioCards'
-import { CARD_COLORS, CARD_KIND } from '../../../shared/worldBoard'
+import { CARD_COLORS, kindOf } from '../../../shared/worldBoard'
 
 /**
- * 관계도의 `+ 설정 추가` 패널(캔버스 오른쪽에서 열린다): 유형을 이름으로 찾아(검색) 8유형(인물·장소·조직·능력·사물·규칙·사건·기타) 중 하나를 고르면 그 유형의 새 카드를 더한다.
+ * 관계도의 `+ 설정 추가` 패널(캔버스 오른쪽에서 열린다): 유형을 이름으로 찾아(검색) 고르면 그 유형의 새 카드를 더한다. 유형 목록(`types`)은 부르는 쪽이 운영자가 관리하는 활성 카테고리로 주고, 안 주면 기본 8종이다.
  * 카드를 어디에 놓고 어떻게 보이게 할지는 부르는 캔버스가 정한다. 열리면 검색 칸으로 초점이 가고 Esc·닫기로 닫는다(닫은 뒤 초점은 연 버튼으로 돌려주는 일도 캔버스가 맡는다).
  */
-export function AddCardPanel({ onAdd, onClose, busy = false }: { onAdd: (type: CardType) => void; onClose: () => void; busy?: boolean }) {
+export function AddCardPanel({ onAdd, onClose, busy = false, types = cardTypes }: { onAdd: (type: CardType) => void; onClose: () => void; busy?: boolean; types?: readonly { id: CardType; label: string }[] }) {
   const [query, setQuery] = useState('')
   const search = useRef<HTMLInputElement>(null)
   useEffect(() => { search.current?.focus() }, [])
-  const found = cardTypes.filter((type) => type.label.includes(query.trim()))
+  const found = types.filter((type) => type.label.includes(query.trim()))
   return (
     <aside className="relationship-add-panel" role="dialog" aria-label="설정 추가" onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose() } }}>
       <div className="relationship-add-head">
@@ -22,7 +22,7 @@ export function AddCardPanel({ onAdd, onClose, busy = false }: { onAdd: (type: C
         {found.map((type) => (
           <li key={type.id}>
             <button type="button" className="btn" disabled={busy} onClick={() => onAdd(type.id)}>
-              <i className="relationship-kind" style={{ background: CARD_COLORS[CARD_KIND[type.id]] }} aria-hidden="true" />{type.label}
+              <i className="relationship-kind" style={{ background: CARD_COLORS[kindOf(type.id)] }} aria-hidden="true" />{type.label}
             </button>
           </li>
         ))}

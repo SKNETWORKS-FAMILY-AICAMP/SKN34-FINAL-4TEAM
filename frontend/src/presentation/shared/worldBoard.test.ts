@@ -8,7 +8,7 @@ it('만 장도 마지막 페이지까지 고르고 줄어든 결과의 페이지
 })
 
 import {
-  BOOK_SORTS, CARD_COLORS, CARD_KIND, boardEmptyKinds, boardKindCounts, boardRows, parseBookSort, type BoardEntry, type CardKind,
+  BOOK_SORTS, CARD_COLORS, CARD_KIND, boardEmptyKinds, boardKindCounts, boardRows, kindOf, parseBookSort, type BoardEntry, type CardKind,
 } from './worldBoard'
 
 /** 제목·본문 검색은 title·text에서, 연결 수는 connections에서 본다. 분류 이름(type)은 화면용 글자라 필터에 쓰이지 않는다. */
@@ -21,6 +21,14 @@ describe('CARD_KIND·CARD_COLORS', () => {
   it('능력·사물·기타 카드는 한 묶음(기타)이고 묶음마다 색이 하나씩 있다', () => {
     expect(CARD_KIND).toEqual({ character: '인물', location: '장소', organization: '조직', rule: '규칙', event: '사건', ability: '기타', object: '기타', other: '기타' })
     expect(Object.keys(CARD_COLORS)).toEqual(['인물', '장소', '조직', '규칙', '사건', '기타'])
+  })
+})
+
+describe('kindOf', () => {
+  it('기본 8종은 묶음 이름이고 운영자가 추가한 카테고리 코드(모르는 코드·상속 속성 이름 포함)는 기타다', () => {
+    expect(['character', 'location', 'rule', 'event', 'ability', 'other'].map(kindOf)).toEqual(['인물', '장소', '규칙', '사건', '기타', '기타'])
+    expect(['category-09', 'constructor', '__proto__', ''].map(kindOf)).toEqual(['기타', '기타', '기타', '기타'])
+    expect(CARD_COLORS[kindOf('category-09')]).toBe(CARD_COLORS.기타)
   })
 })
 

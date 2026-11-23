@@ -693,7 +693,7 @@ class ConfigurationTest(unittest.TestCase):
             for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
                 self.assertNotIn(private, text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
-        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits)', text)
+        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits|world-studios|card-categories)', text)
 
     def test_operations_works_public_routes_go_to_operations(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
@@ -756,6 +756,36 @@ class ConfigurationTest(unittest.TestCase):
             with self.subTest(vite=route):
                 self.assertNotRegex(route, content_pattern)
         for route in ['/api/v1/operations/genres-extra', '/api/v1/operations/genre']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, operations_pattern)
+
+    def test_card_category_and_world_studio_routes_go_to_content_and_operations(self):
+        # 운영자 콘텐츠 관리: 공개 카드 카테고리 목록은 Content, 운영 카드 카테고리·세계관 제한·회차 제한·묶음 잔액은 Operations로 간다(일반 /api(Core)보다 구체적).
+        content = ['/api/v1/public/card-categories', '/api/v1/public/card-categories?x=1']
+        operations = ['/api/v1/operations/card-categories', '/api/v1/operations/card-categories/location', '/api/v1/operations/card-categories/order',
+                      '/api/v1/operations/world-studios', '/api/v1/operations/world-studios/7c9e/restriction',
+                      '/api/v1/operations/works/w1/episodes', '/api/v1/operations/works/w1/episodes/3/restriction',
+                      '/api/v1/operations/credits/balances', '/api/v1/operations/reports/r1/restriction']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in content:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://content-service:8081', nginx_upstream(read(path), route))
+            for route in operations:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://operations-service:8082', nginx_upstream(read(path), route))
+        vite = read('frontend/vite.config.ts')
+        content_pattern = re.search(r"'(\^/api/v1/\(\?:[^']*world-studios[^']*)':\s*\{", vite)[1].replace('\\\\', '\\')
+        operations_pattern = re.search(r"'(\^/api/v1/operations/[^']*)':\s*\{", vite)[1].replace('\\\\', '\\')
+        for route in content:
+            with self.subTest(vite=route):
+                self.assertRegex(route, content_pattern)
+        for route in operations:
+            with self.subTest(vite=route):
+                self.assertRegex(route, operations_pattern)
+        for route in ['/api/v1/public/card-categories-extra', '/api/v1/public/card-category']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, content_pattern)
+        for route in ['/api/v1/operations/card-categories-extra', '/api/v1/operations/world-studios-extra', '/api/v1/operations/card-category']:
             with self.subTest(vite=route):
                 self.assertNotRegex(route, operations_pattern)
 

@@ -1,4 +1,4 @@
-import {cardTypes,cardTypeOf} from './studioCards'
+import {cardTypeOf,isCard} from './studioCards'
 import { authorEdit, newSetting, type SettingItem, type StudioSetting } from './studioWorld'
 
 export const relationDefinitions:Record<string,{label:string;group:'fact'|'emotion'|'other'|'identity';symmetric?:boolean}>={
@@ -77,7 +77,7 @@ export function assertIdentityLinks(settings:StudioSetting[]) {
  if(links.some(l=>others.includes(l.targetId)))throw new Error('본체가 다시 다른 카드의 다른 이름일 수는 없어요(사슬·순환).')
 }
 function validateRelation(settings:StudioSetting[],input:RelationInput) {
- const people=settings.filter(s=>cardTypes.some(type=>type.id===cardTypeOf(s.item)))
+ const people=settings.filter(s=>isCard(s.item))
  const source=people.find(s=>s.item.id===input.subjectId),target=people.find(s=>s.item.id===input.targetId)
  if(!source||!target||source===target)throw new Error('서로 다른 설정 카드 두 개를 선택해 주세요.')
  if(!relationDefinitions[input.predicate??''] || relationDefinitions[input.predicate??''].group==='other')throw new Error('구조 관계 또는 감정을 선택해 주세요.')

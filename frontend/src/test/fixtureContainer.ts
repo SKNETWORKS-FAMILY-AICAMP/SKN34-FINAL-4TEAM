@@ -3,6 +3,7 @@ import { asValue } from 'awilix/browser'
 import { createAppContainer } from '../app/di/container'
 import { createFixtureDb } from '../data/mock/fixtureDb'
 import { InMemoryAdminActivityRepository } from '../data/mock/InMemoryAdminActivityRepository'
+import { InMemoryCardCategoryRepository, InMemoryOperationsCardCategoryRepository } from '../data/mock/InMemoryCardCategoryRepositories'
 import { InMemoryEventRepository } from '../data/mock/InMemoryEventRepository'
 import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../data/mock/InMemoryGenreRepositories'
 import { InMemoryJobMonitorRepository, InMemoryLlmOpsRepository, InMemoryOperationsDashboardRepository } from '../data/mock/InMemoryLlmOpsRepositories'
@@ -16,10 +17,12 @@ import { mockupFeedbackReportRepository } from '../data/mock/mockupRepositories'
 
 /** 시드 작품과 메모리 Work·독서 기록·관심 작품·공지·고객지원 문의·운영 이벤트·운영 작품·운영 댓글·장르 목록·관리자 활동 기록·운영 대시보드·LLMOps·작업 감시 저장소를 명시 연결한 격리 컨테이너. 테스트 전용이며 production DI는 이를 쓰지 않는다. */
 export function createFixtureContainer() {
-  const db = createFixtureDb(), container = createAppContainer(), operationsGenres = new InMemoryOperationsGenreRepository()
+  const db = createFixtureDb(), container = createAppContainer(), operationsGenres = new InMemoryOperationsGenreRepository(), operationsCardCategories = new InMemoryOperationsCardCategoryRepository()
   container.register({
     operationsGenreRepository: asValue(operationsGenres),
     genreRepository: asValue(new InMemoryGenreRepository(operationsGenres)),
+    operationsCardCategoryRepository: asValue(operationsCardCategories),
+    cardCategoryRepository: asValue(new InMemoryCardCategoryRepository(operationsCardCategories)),
     mockDb: asValue(db),
     workRepository: asValue(new InMemoryWorkRepository(db)),
     readingRecordRepository: asValue(new InMemoryReadingRecordRepository(db)),

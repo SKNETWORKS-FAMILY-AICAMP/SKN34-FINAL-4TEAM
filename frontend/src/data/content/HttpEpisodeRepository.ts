@@ -10,7 +10,6 @@ import { csrf } from '../api/csrf'
 import { mapReadingWork } from './readingWork'
 import type { EpisodeWorldBasisChoice } from '../../domain/entities/episodeWorldBasis'
 import type { WritingMode } from '../../domain/entities/operatingSettings'
-import { cardTypes } from '../../domain/entities/studioCards'
 
 const draft = z.object({title:z.string(),body:z.string(),authorNote:z.string().optional(),revision:z.number().int().nonnegative()})
 const writing = z.object({publicationStatus:z.enum(['draft','published','suspended']).optional(),hasDraft:z.boolean().optional(),number:z.number().int().positive(),draft,versions:z.array(draft.extend({id:z.string(),episode:z.number().int(),savedAt:z.string()})),publishedVersionId:z.string().nullable(),inherited:z.boolean(),updatedAt:z.string().nullable(),checkpointStatus:z.string(),checkpoints:z.array(z.object({versionId:z.string(),publishedAt:z.string(),active:z.boolean()}))})
@@ -67,7 +66,7 @@ const relationHistory = z.array(z.object({ episode: z.number().int().positive(),
 /** 연결된 세계관의 독자 공개 카드(DEC-46). 관계 상태를 주기 전 응답은 current로 읽는다. */
 const readingWorldCards = z.object({
   workId: z.string(), worldId: z.string().min(1).nullable(), upto: z.number().int().nonnegative(),
-  cards: z.array(z.object({ id: cardId, title: z.string(), text: z.string(), cardType: z.enum(cardTypes.map((type) => type.id)), aliases: z.array(z.string()), tags: z.array(z.string()), revealFromEpisode: z.number().int().positive(), imageId: z.string().min(1).nullable().default(null) })),
+  cards: z.array(z.object({ id: cardId, title: z.string(), text: z.string(), cardType: z.string().min(1), aliases: z.array(z.string()), tags: z.array(z.string()), revealFromEpisode: z.number().int().positive(), imageId: z.string().min(1).nullable().default(null) })),
   relationships: z.array(z.object({ id: cardId, sourceCardId: cardId, targetCardId: cardId, label: z.string(), category: z.enum(['structural', 'emotional', 'identity']).nullable().optional(), direction: z.enum(['directed', 'symmetric']).nullable().optional(), body: z.string().nullable().optional(), polarity: z.enum(['asserted', 'denied']).nullable().optional(), history: relationHistory })),
   relationshipStatus: z.enum(['current', 'unavailable']).default('current'),
 })

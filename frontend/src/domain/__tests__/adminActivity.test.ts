@@ -116,3 +116,24 @@ describe('관리자 활동 기록 내역 표시 (72)', () => {
     expect(ADMIN_PERMISSIONS).toContainEqual(['admins', '관리자 계정 관리'])
   })
 })
+
+describe('운영자 콘텐츠 관리 조치(회차·세계관 제한, 카드 카테고리 관리)', () => {
+  it('조치 7종은 한국어 이름으로 보인다', () => {
+    const labels = [['episode.restrict', '회차 운영 제한'], ['episode.unrestrict', '회차 운영 제한 해제'], ['world.restrict', '세계관 운영 제한'], ['world.unrestrict', '세계관 운영 제한 해제'],
+      ['card_category.create', '카드 카테고리 추가'], ['card_category.update', '카드 카테고리 수정'], ['card_category.reorder', '카드 카테고리 순서 변경']]
+    for (const [code, label] of labels) expect(activityActionLabel(code)).toBe(label)
+  })
+
+  it('대상은 회차(작품 id와 번호)·세계관·카드 카테고리 코드로, 순서 변경은 카테고리 목록으로 보인다', () => {
+    expect(activityTarget({ targetType: 'episode', targetId: '6f2c9a10:3' })).toBe('회차 3화 · 작품 6f2c9a10')
+    expect(activityTarget({ targetType: 'world', targetId: 'wd-1' })).toBe('세계관 wd-1')
+    expect(activityTarget({ targetType: 'card_category', targetId: 'category-09' })).toBe('카드 카테고리 category-09')
+    expect(activityTarget({ targetType: 'card_category', targetId: 'order' })).toBe('카드 카테고리 목록')
+    expect(activityTarget({ targetType: 'episode', targetId: 'no-number' })).toBe('회차 no-number')
+  })
+
+  it('카테고리 순서 변경의 내역은 코드 목록이라 개수로 보이고 나머지 내역은 그대로 보인다', () => {
+    expect(activityDetail({ action: 'card_category.reorder', detail: 'character,location,category-09' })).toBe('3개 카드 카테고리의 순서')
+    expect(activityDetail({ action: 'episode.restrict', detail: '3화 · 별빛' })).toBe('3화 · 별빛')
+  })
+})

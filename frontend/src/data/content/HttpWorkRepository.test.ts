@@ -218,9 +218,14 @@ describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {
     expect((await repositoryOf(unavailable).repository.readWorldCards('work-uuid')).relationshipStatus).toBe('unavailable')
   })
 
-  it('다른 작품의 응답·모르는 카드 유형·없는 작품(404)은 빈 위키로 바꾸지 않고 실패한다', async () => {
+  it('운영자가 추가한 카드 카테고리 코드는 기본 8종이 아니어도 그대로 읽는다(운영자 콘텐츠 관리 결정 E)', async () => {
+    const read = await repositoryOf(served({ cards: [{ ...cards[0], cardType: 'category-09' }] })).repository.readWorldCards('work-uuid')
+    expect(read.cards[0].cardType).toBe('category-09')
+  })
+
+  it('다른 작품의 응답·빈 카드 유형·없는 작품(404)은 빈 위키로 바꾸지 않고 실패한다', async () => {
     await expect(repositoryOf(served({ workId: 'another-work' })).repository.readWorldCards('work-uuid')).rejects.toThrow('작품')
-    await expect(repositoryOf(served({ cards: [{ ...cards[0], cardType: 'weapon' }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
+    await expect(repositoryOf(served({ cards: [{ ...cards[0], cardType: '' }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
     await expect(repositoryOf({ detail: '작품을 찾을 수 없어요.' }, 404).repository.readWorldCards('work-uuid')).rejects.toThrow('작품을 찾을 수 없어요.')
   })
 })

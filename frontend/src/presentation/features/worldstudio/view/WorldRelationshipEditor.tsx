@@ -5,7 +5,9 @@ import { defaultRelationView, hideRelationKinds, localGraph, relationKinds } fro
 import { Sheet } from '../../../shared/Sheet'
 import { useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
 import './world-map.css'
-import { cardTypeOf, cardTypes, type CardType } from '../../../../domain/entities/studioCards'
+import { categoryChoices, categoryIcon, categoryName } from '../../../../domain/entities/cardCategory'
+import { isCard, type CardType } from '../../../../domain/entities/studioCards'
+import { useCardCategories } from '../../../shared/useCardCategories'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CardDeletionConfirm } from './CardDeletionConfirm'
 import { RelationPairEditor } from './RelationPairEditor'
@@ -35,7 +37,8 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const worldId = studio.editing!.id
   // 필터(끈 유형·관계 종류): 이 기기에 세계관별로 기억한 값, 없으면 기본 보기(인물이 둘 이상이면 인물만, 정보 관계는 끔). 사용자가 바꿀 때만 기억한다.
   const [filter, setFilter] = useState(() => { const base = loadFilter(worldId) ?? defaultRelationView(map.graph); return { hidden: new Set<CardType>(base.hiddenTypes) as ReadonlySet<CardType>, hiddenKinds: new Set(base.hiddenKinds) as ReadonlySet<string> } })
-  const types = cardTypeCounts(map.graph.nodes), present = types.map((t) => t.id), presentKey = present.join()
+  const { categories } = useCardCategories()
+  const types = cardTypeCounts(map.graph.nodes, (type) => categoryName(categories, type)), present = types.map((t) => t.id), presentKey = present.join()
   // 기억한 필터가 보이는 유형을 모두 끈 상태면(세계관이 바뀐 경우) 모든 유형을 켠 것으로 본다.
   const hidden = useMemo(() => (present.length && present.every((t) => filter.hidden.has(t)) ? new Set<CardType>() : filter.hidden), [filter.hidden, presentKey]) // eslint-disable-line react-hooks/exhaustive-deps -- present는 presentKey로 본다
   const [center, setCenter] = useState<{ id: string; depth: 1 | 2 } | null>(null)
@@ -58,7 +61,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
       ;(back?.isConnected ? back : section.current?.querySelector<HTMLElement>('.relationship-flow'))?.focus()
     }
   }, [choosing])
-  const people = studio.editing!.settings.filter((s) => cardTypes.some((type) => type.id === cardTypeOf(s.item)))
+  const people = studio.editing!.settings.filter((s) => isCard(s.item))
   const [source, setSource] = useState(''), [target, setTarget] = useState(''), [open, setOpen] = useState(false)
   const [deleting, setDeleting] = useState('') // 삭제를 확인 중인 카드 id
   const [focusRequest, setFocusRequest] = useState<{ id: string; seq: number } | null>(null)
@@ -197,6 +200,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               vm={{ graph: shown, selected: map.selected, visible: map.visible }}
               find={find}
               filters={filters}
+              addTypes={categoryChoices(categories).map((category) => ({ id: category.code, label: categoryIcon(category) }))}
               editing={{
                 busy: studio.busy,
                 selectedRelations: open ? relations.filter((s) => (s.item.subjectId === source && s.item.targetId === target) || (s.item.subjectId === target && s.item.targetId === source)).map((s) => s.item.id) : [],
