@@ -204,9 +204,9 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(opsCss).toMatch(/@media \(max-width: 600px\) \{[^@]*\.adm \.credit-member \.kpi \{ grid-template-columns: minmax\(0, 1fr\); \}/)
   })
 
-  it('안내문(.admin-note)은 폼 격자(800px)보다 넓게 늘어나지 않는다', () => {
-    // 폼과 권한 상자·제출 줄은 800px인데 안내문만 패널 끝까지 늘어나 오른쪽 끝이 어긋나고 한 줄이 너무 길었다.
-    expect(value('.adm .admin-note', 'max-width')).toBe('800px')
+  it('안내문(.admin-note)도 폼·표처럼 카드 안쪽 폭 전체를 쓴다(폭 상한 없음)', () => {
+    // 폼이 카드 폭 전체가 되어(아래 '관리자 폼은 표처럼…' 계약) 안내문만 800px이면 폼 오른쪽 끝과 어긋난다.
+    expect(value('.adm .admin-note', 'max-width')).toBeUndefined()
   })
 
   it('쌓인 패널은 무엇이든(.panel + .panel) 숫자 카드 줄 사이 gap과 같은 12px로 띄우고, 같은 간격을 인라인 14px로 덮지 않는다', () => {
@@ -216,9 +216,9 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     for (const source of [adminPage, jobMonitor]) expect(source).not.toMatch(/className=['"][^'"]*\bpanel\b[^'"]*['"]\s+style=\{\{ marginTop: 14 \}\}/)
   })
 
-  it('크레딧 탭에서 고른 회원의 보유 크레딧 카드(한 장)는 넓은 화면에서도 바로 아래 폼과 같은 800px 안이다', () => {
-    // 카드 한 장이 auto-fit 격자 전체 폭(약 1100px)으로 늘어나 800px 폼과 폭이 어긋났다. 600px 이하 1열 규칙은 위 계약이 지킨다.
-    expect(opsCss).toMatch(/\.adm \.credit-member \.kpi \{[^}]*max-width: 800px/)
+  it('크레딧 탭에서 고른 회원의 보유 크레딧 카드(한 장)는 폭 상한 없이 바로 아래 폼과 같은 카드 안쪽 폭 전체다', () => {
+    // 폼이 카드 폭 전체가 되어(아래 계약) 카드 한 장도 800px로 묶지 않는다: auto-fit 격자의 한 장은 전체 폭이다. 600px 이하 1열 규칙은 위 계약이 지킨다.
+    expect(opsCss).not.toMatch(/\.credit-member \.kpi \{[^}]*max-width/)
   })
 
   it('좁은 화면(600px 이하)에서 표 끝 칸의 오른쪽 고정(sticky)은 열을 가로지르는 한 칸(td[colspan])에는 걸리지 않고, 고정 칸 왼쪽에는 1px 경계선이 있다', () => {
@@ -272,6 +272,17 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(value('.admin-perm-grid label', 'padding')).toBe('8px 0')
   })
 
+  it('권한 체크박스 격자(.admin-perm-grid)는 어떤 폭에서도 열이 4개를 넘지 않아 12개가 외톨이 없이 떨어진다', () => {
+    // 폼이 카드 폭 전체가 되면(1440px에서 격자 폭 1072px) 최소 190px 자동 열이 5열이라 12개가 5+5+2로 갈렸다. 열 최소 폭을 격자 폭의 24%로 올려 열 수를 4 이하(4×3·3×4·2×6·1×12)로 막고, 좁은 화면은 190px이 그대로 열을 줄인다.
+    const track = value('.admin-perm-grid', 'grid-template-columns')?.match(/^repeat\(auto-fit,minmax\((.+),1fr\)\)$/)?.[1] ?? ''
+    const floor = Number(/(\d+)px/.exec(track)?.[1])
+    const share = Number(/(\d+)%/.exec(track)?.[1] ?? 0) / 100
+    const gap = parseFloat(value('.admin-perm-grid', 'gap') ?? '')
+    const columns = (width: number) => Math.floor((width + gap) / (Math.max(floor, width * share) + gap))
+    const orphaned = Array.from({ length: 2400 - 190 + 1 }, (_, i) => 190 + i).filter((width) => 12 % columns(width) !== 0)
+    expect(orphaned, `열 수가 12의 약수가 아닌 격자 폭(px): ${track}`).toEqual([])
+  })
+
   it('빈 상태 문구(.admin-empty)는 표 글자와 같은 13.5px이다', () => {
     // 본문 15px를 물려받아 패널 제목(16px)과 경쟁했고 표 안 빈 행(13.5px)과 크기가 둘로 갈렸다. 색(--sub)·여백은 그대로다.
     expect(opsCss).toMatch(/\.adm \.admin-empty \{[^}]*font-size: 13\.5px/)
@@ -290,9 +301,15 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(opsCss).toMatch(/@media \(max-width: 600px\), \(pointer: coarse\) \{[^@]*\.adm \.inp \{[^}]*min-height:\s*44px/)
   })
 
-  it('관리자 폼의 권한 상자·제출 줄은 입력 격자와 같은 800px 안에 있고, 표 스크롤 영역은 위치 기준이라 열 머리 .sr-only가 문서 가로 스크롤을 만들지 않는다', () => {
-    // 격자(.form-grid)만 800px이면 뒤따르는 권한 상자·제출 줄이 카드 폭(1098px)까지 늘어나 입력 묶음과 어긋났다.
-    expect(opsCss).toMatch(/\.adm \.form-grid, \.adm \.form-grid ~ :is\(\.admin-permissions, \.rowend\) \{ max-width: 800px; \}/)
+  it('관리자 폼은 표처럼 카드(패널) 안쪽 폭 전체를 쓴다: 폼 격자·권한 상자·제출 줄에 폭 상한이 없고 제출 줄만 위 12px을 띄운다', () => {
+    // 폼을 800px로 묶으면 1440px에서 카드(안쪽 약 1102px) 왼쪽에 붙고 오른쪽 300px가 비어 보였다(사용자 피드백). 검색 입력(.field-search 360px)은 필터 줄이라 예외다.
+    expect(opsCss).not.toMatch(/\.(?:form-grid|admin-permissions|rowend)[^{}]*\{[^}]*max-width/)
+    // 폭이 같아져 권한 상자는 fieldset 기본 가로 여백(2px)만 없애면 입력과 양쪽 끝이 맞고, 제출 줄은 격자 안 줄 사이와 같은 12px 아래로 띄운다.
+    expect(opsCss).toMatch(/\.adm \.admin-permissions \{ margin-inline: 0; \}/)
+    expect(opsCss).toMatch(/\.adm \.form-grid ~ \.rowend \{ margin-top: 12px; \}/)
+  })
+
+  it('표 스크롤 영역은 위치 기준이라 열 머리 .sr-only가 문서 가로 스크롤을 만들지 않는다', () => {
     // .sr-only는 absolute에 위치 지정이 없어 표가 영역보다 넓으면 영역 밖(표 오른쪽 끝)에 놓인다. 영역이 위치 기준이 아니면 영역의 overflow가 못 자르고 페이지가 가로로 밀린다(작업 감시 실행 기록 표 848px, 창 약 1120px 이하).
     expect(opsCss).toMatch(/\.adm \.adm-scroll \{ position: relative; \}/)
   })
