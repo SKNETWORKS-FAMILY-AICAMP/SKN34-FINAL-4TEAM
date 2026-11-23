@@ -1,0 +1,204 @@
+{
+  "genre": "chinese_folklore",
+  "purpose": "원문 추출 후보 검토 전용; 앱·DB에 자동 적재하지 않음",
+  "world_id_reference": "d691ae17-7f67-5377-8868-3f5202ecd65f",
+  "id_method": "UUIDv5(namespace=기존 worldId, name=review/full-myth/chinese-folklore/<candidate key>); 세계관 신규 생성·배정 아님",
+  "current_repository_commit": "3ec049e5f00dfc6b07c9b840631b159b5b68bd54",
+  "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+  "manifest_entry": {
+    "segment": "chinese-folklore",
+    "focus": "source/tradition-cards.json의 scope에 명시된 주 저본 전체와 supplementary.md에 명시된 보충 구간만 모두 읽고 장·작품별 coverage를 실제 작성.",
+    "units": [
+      "main-text",
+      "specified-supplements"
+    ],
+    "genre": "chinese_folklore",
+    "scope": "카드는 《천문》의 물음과 별도로 《태평어람》에 인용된 《삼오력기》·《열자》·《풍속통》 및 《회남자》 권6 남명훈의 대표 전승을 수록한다. 서로 다른 출전의 서사를 단일 연표로 합치지 않는다.",
+    "existing_cards": 58,
+    "source_urls": [
+      "https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576",
+      "https://zh.wikisource.org/w/index.php?title=楚辭_(四部叢刊本)/卷第三&oldid=2653331",
+      "https://zh.wikisource.org/zh-hant/太平御覽/0002",
+      "https://www.shidianguji.com/zh/book/SBCK089/chapter/1j713d45nri8b_15",
+      "https://www.shidianguji.com/zh/book/SK1958/chapter/1kfmlpdeu75zv"
+    ],
+    "kind": "myth"
+  },
+  "input_segment_scope": "《천문》 고정 판본 2639576 전체 일곱 문단 및 supplementary.md에 지정된 《태평어람》 권2 《삼오력기》·《열자》 인용, 《회남자》 권6 「남명훈」 여와 보천 구간, 《태평어람》 권78 《풍속통》 인용. 주석의 독법은 확정된 본문으로 합치지 않음. 기존 58장 중 관련 카드와 중복 가능성이 있는 독립 대상 후보를 표시함. 《천문》은 위키문헌에서 공공영역으로 표시되며, 보충 판본의 전사·편집에 관한 권리는 별도 확인 필요.",
+  "input_files": [
+    {
+      "path": "미게시-임시자료:myth/manifest.json",
+      "sha256": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e"
+    },
+    {
+      "path": "미게시-임시자료:myth/chinese-folklore.json",
+      "sha256": "693cc1b93b3dd8d88f268926fb6e5bae955cb6224b62652738fa45971000fb10"
+    },
+    {
+      "path": "infrastructure/sample-data/genre-templates/chinese_folklore/source/tradition-cards.json",
+      "sha256": "071021c35703703e048989f3bcfb2c9c4e116ebec6ad2a9a5e72de759a41696f"
+    },
+    {
+      "path": "infrastructure/sample-data/genre-templates/chinese_folklore/source/template.json",
+      "sha256": "016982fd71bff7d751a4750bebce0050a8b38d30f8690ddc07df37771242f443"
+    },
+    {
+      "path": "infrastructure/sample-data/genre-templates/chinese_folklore/source/sources.md",
+      "sha256": "cd7cf8bad82048845bab31d903c6910ddb79e019bf61b670771b450534a69bc6"
+    },
+    {
+      "path": "infrastructure/sample-data/genre-templates/chinese_folklore/source/supplementary.md",
+      "sha256": "a7f60a3b06b4335305530cff154dc1a7f89682618d1098295fc174b71be1561e"
+    },
+    {
+      "path": "backend/content-service/src/main/resources/genre-templates.json",
+      "sha256": "bc3cbacd8e7806d673793963386a63c6b7d61f0ec280ce56c22fd74d33003340"
+    },
+    {
+      "path": "backend/content-service/src/main/resources/genre-templates-v1.json",
+      "sha256": "96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85"
+    },
+    {
+      "path": "backend/content-service/src/main/resources/genre-templates-v2.json",
+      "sha256": "4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517"
+    }
+  ],
+  "coverage": [
+    {
+      "unit": "《천문》 1단락: 태초·하늘·해와 달",
+      "url": "https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576",
+      "status": "read",
+      "cards": 3,
+      "status_basis": "입력 작성자의 원문 열람 자기보고; 통합자는 재검증하지 않음"
+    },
+    {
+      "unit": "《천문》 2단락: 곤·우·치수와 곤륜",
+      "url": "https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576",
+      "status": "read",
+      "cards": 2,
+      "status_basis": "입력 작성자의 원문 열람 자기보고; 통합자는 재검증하지 않음"
+    },
+    {
+      "unit": "《천문》 3단락: 촉룡·이역·기이한 존재",
+      "url": "https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576",
+      "status": "read",
+      "cards": 4,
+      "reason": "이름만 나와 독립적 설명이 부족한 능어·괴퇴 등은 별도 후보로 만들지 않음.",
+      "status_basis": "입력 작성자의 원문 열람 자기보고; 통합자는 재검증하지 않음"
+    },
+    {
+      "unit": "《천문》 4단락: 우·계·예와 하나라",
+      "url": "https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576",
+      "status": "read",
+      "cards": 6,
+      "status_basis": "입력 작성자의 원문 열람 자기보고; 통합자는 재검증하지 않음"
+    },
+    {
+      "unit": "《천문》 5단락: 순·여와·은나라 초기",
+      "url": "https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576",
+      "status": "read",
+      "cards": 2,
+      "status_basis": "입력 작성자의 원문 열람 자기보고; 통합자는 재검증하지 않음"
+    },
+    {
+      "unit": "《천문》 6단락: 주·제후와 고사",
+      "url": "https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576",
+      "status": "read",
+      "cards": 6,
+      "status_basis": "입력 작성자의 원문 열람 자기보고; 통합자는 재검증하지 않음"
+    },
+    {
+      "unit": "《천문》 7단락: 화자의 근심과 초나라",
+      "url": "https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576",
+      "status": "read",
+      "cards": 0,
+      "reason": "해당 단락의 근심·초나라·충성은 기존 poet_speaker·helv·ziwen 카드에 이미 설명되어 신규 후보 없음.",
+      "status_basis": "입력 작성자의 원문 열람 자기보고; 통합자는 재검증하지 않음"
+    },
+    {
+      "unit": "《태평어람》 권2: 《삼오력기》 인용",
+      "url": "https://zh.wikisource.org/zh-hant/太平御覽/0002",
+      "status": "read",
+      "cards": 2,
+      "status_basis": "입력 작성자의 원문 열람 자기보고; 통합자는 재검증하지 않음"
+    },
+    {
+      "unit": "《태평어람》 권2: 《열자》 여와·공공 인용",
+      "url": "https://zh.wikisource.org/zh-hant/太平御覽/0002",
+      "status": "read",
+      "cards": 1,
+      "status_basis": "입력 작성자의 원문 열람 자기보고; 통합자는 재검증하지 않음"
+    },
+    {
+      "unit": "《회남자》 권6 「남명훈」 여와 보천 구간",
+      "url": "https://www.shidianguji.com/zh/book/SBCK089/chapter/1j713d45nri8b_15",
+      "status": "read",
+      "cards": 3,
+      "status_basis": "입력 작성자의 원문 열람 자기보고; 통합자는 재검증하지 않음"
+    },
+    {
+      "unit": "《태평어람》 권78 여와씨 《풍속통》 인용",
+      "url": "https://www.shidianguji.com/zh/book/SK1958/chapter/1kfmlpdeu75zv",
+      "status": "read",
+      "cards": 0,
+      "reason": "황토 사람과 진흙 줄 사람 및 사회적 구별은 기존 nuwa_yellow_clay·nuwa_social_origin에 이미 설명되어 신규 후보 없음.",
+      "status_basis": "입력 작성자의 원문 열람 자기보고; 통합자는 재검증하지 않음"
+    },
+    {
+      "unit": "해석 참고: 왕일 장구·홍흥조 보주 《초사》 제3권",
+      "url": "https://zh.wikisource.org/w/index.php?title=楚辭_(四部叢刊本)/卷第三&oldid=2653331",
+      "status": "unknown",
+      "reason": "명세의 해석 참고 출전이나 입력 coverage에 열람 기록이 없고 명세에 검토 범위가 지정되지 않아 열람 및 범위를 미정으로 둠.",
+      "cards": 0
+    }
+  ],
+  "coverage_interpretation": "입력의 read 11개는 이전 추출자의 자기보고다. 통합자가 원문을 재열람하지 않았고 전체 판본 접근·원문 완독을 보증하지 않는다. 원래 main-text와 specified-supplements는 입력의 세부 coverage로 기술되나 보충 구간의 정확한 경계는 일부 명세상 미정이다. 《천문》 3단락의 능어·괴퇴 등은 입력이 설명 부족으로 제외해 누락 가능성이 있으며 7단락과 풍속통의 0건은 입력의 판단이지 독립 검토 완료가 아니다.",
+  "counts": {
+    "input_files": 1,
+    "input_candidates": 29,
+    "output_individual_records": 29,
+    "merged_candidates": 0,
+    "unprocessed_input_candidates": 0,
+    "retained_input_accounting": "29 = 29 개별 보존 + 0 완전 병합",
+    "original_myth_worlds": 15,
+    "original_myth_cards": 868,
+    "original_chinese_cards": 58,
+    "candidate_card_types": {
+      "location": 5,
+      "character": 17,
+      "other": 1,
+      "object": 3,
+      "ability": 1,
+      "rule": 1,
+      "event": 1
+    },
+    "missing_evidence_records": 0,
+    "reported_read_units": 11,
+    "reported_unavailable_units": 0,
+    "unspecified_reference_units": 1
+  },
+  "duplicates": {
+    "policy": "후보 전부 개별 보존. 입력에 적힌 기존 source key를 기존 runtime ID에 연결하고, 모든 runtime의 정확한 제목 일치와 후보 간 키·제목 일치 및 동일 발췌를 표시한다. 동일 발췌는 동일 대상의 증거가 아니며 의미상 동일성·동명이인·전승 차이는 수동 검토가 필요하다.",
+    "merged": 0,
+    "possible_existing_marked": 29,
+    "candidate_exact_key_or_title_pairs": 0,
+    "shared_excerpt_pairs": 3
+  },
+  "limits": [
+    "검토용 추출 후보이며 전체 누락이 없다는 보증이 아니다. 원전 excerpt와 본문의 대응·이름·판독·주어·정확한 절 범위를 원문 문맥과 대조해야 한다.",
+    "서로 다른 출전 변형을 단일 정본으로 합치지 않았다. 지역·시기별 전승과 역사·문화 감수는 미확인이다.",
+    "《천문》 고정 저본 이외 보충 자료의 판본은 고정 식별자가 제공되지 않았다. 《초사》 주석의 읽음 여부와 명세 범위는 미정이다.",
+    "한국어 내용은 비공식 요약·번역이다. 원전, 전사·편집·번역 및 기타 제3자 자료의 지적 재산 재사용 조건은 확인되지 않았다.",
+    "기존 58장 및 신화 868장은 유지한다. 후보는 서비스 또는 DB에 적재하지 않으며 최초 적용에는 #425 안전 계약과 권리·중복 검증이 필요하다. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 한도는 실제 적재 시 따로 검증해야 한다.",
+    "구조 검사는 원문 및 역사적 사실의 정확성을 보장하지 않는다."
+  ],
+  "files": {
+    "cards-001.json": "3cf2c8ee3e4346358402b1e27ca68ec2d1f6402a4d367ddfc88b4703633f2889"
+  },
+  "baseline_comparison": {
+    "source_directory": "입력 baseline b3e8cb6383aee140630d86e424e228a4557d20da와 현재 HEAD의 chinese_folklore/source 파일 차이 없음.",
+    "runtime": "입력 baseline의 runtime 전체는 33개 장르이고 현재는 26개이지만 chinese_folklore 세계관 객체와 58개 카드는 동일함. 다른 장르 변동은 이 작업에서 변경하지 않음."
+  },
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

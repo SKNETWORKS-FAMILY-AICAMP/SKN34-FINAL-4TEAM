@@ -1,11 +1,10 @@
-import { creditHistoryLabel, creditKindLabel, type CreditHistoryType } from '../../../../domain/entities/creditLedger'
+import { creditHistoryLabel, creditHistorySign, creditKindLabel } from '../../../../domain/entities/creditLedger'
 import { openPolicy } from '../../../shared/events'
 import { kstDateTime } from '../../../shared/format'
 import type { useAccountViewModel } from '../viewmodel/useAccountViewModel'
 
 type VM = ReturnType<typeof useAccountViewModel>
 const num = (n: number) => n.toLocaleString('ko-KR')
-const SIGN: Record<CreditHistoryType, string> = { grant: '+', spend: '-', expire: '-' }
 
 /** U33 결제 내역: Core 크레딧 원장의 보유 크레딧·소멸 예정·지급/사용/소멸 내역. 결제·충전·구독은 MVP에서 제외라 지급받은 크레딧만 보입니다. */
 export function PayView({ vm }: { vm: VM }) {
@@ -29,7 +28,7 @@ export function PayView({ vm }: { vm: VM }) {
           ? <div className="list">{data.history.map((x, i) => (
             <div className="rp" key={`${x.occurredAt}-${x.type}-${x.kind}-${i}`}>
               <b>{creditHistoryLabel[x.type]} · {creditKindLabel(x.kind)}</b>
-              <span> {SIGN[x.type]}{num(x.amount)}</span>
+              <span> {creditHistorySign[x.type]}{num(x.amount)}</span>
               <small className="muted"> {kstDateTime(x.occurredAt)}</small>
             </div>
           ))}</div>

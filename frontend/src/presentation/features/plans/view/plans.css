@@ -28,3 +28,20 @@
 @media(max-width:600px){.plan-workspace{padding:20px 16px}.plan-layout{grid-template-columns:1fr}.plan-list{border-right:0;border-bottom:1px solid var(--tline);padding:16px 0}.plan-detail{padding:20px 0}.plan-heading{flex-direction:column;gap:10px}.plan-sheet{padding:0}.plan-form{padding:20px 16px}.plan-form-actions>span{width:100%;margin:0}.plan-scenes li{align-items:flex-start}.plan-scenes li>.btn{margin-top:18px}.plan-sheet{max-height:92dvh}}
 /* 손가락으로 누르는 기기(폭과 무관)와 좁은 화면에서는 선택 항목 줄을 44px로 키운다. */
 @media(pointer:coarse),(max-width:600px){.plan-options label{min-height:44px}}
+
+.plan-embedded { padding: 20px; max-width: none; }
+.plan-embedded .plan-layout { grid-template-columns: minmax(0, 1fr); }
+.plan-embedded .plan-list { border-right: 0; padding: 16px 0; }
+.plan-embedded .plan-detail { padding: 16px 0; }
+.plan-embedded .plan-section-head { flex-wrap: wrap; }
+.plan-embedded .plan-heading { align-items: flex-start; flex-wrap: wrap; }
+.plan-embedded .plan-form { padding: 20px 0; color: var(--tfg); }
+.plan-embedded .plan-scenes-head { margin-top: 16px; }
+.plan-inline-editor { border-top: 1px solid var(--tline); }
+.plan-scene-actions { display: flex; flex-direction: column; gap: 6px; padding-block: 12px; }
+.plan-scene-actions .btn { min-height: 36px; }
+.plan-embedded .plan-scenes li { display: block; }
+.plan-embedded .plan-scene-actions { flex-direction: row; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 0 12px 16px; }
+.plan-embedded :is(input, textarea) { caret-color: var(--pri); }
+.plan-embedded :focus-visible { outline: 2px solid var(--pri); outline-offset: 3px; }
+@media (pointer: coarse), (max-width: 600px) { .plan-scene-actions .btn { min-height: 44px; } }

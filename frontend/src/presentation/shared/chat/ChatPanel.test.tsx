@@ -28,6 +28,16 @@ describe('공용 채팅 메시지', () => {
     expect(within(rows[1]).queryByLabelText('첨부')).toBeNull()
   })
 
+  it('markdown 메시지만 마크다운으로 그리고 원시 HTML은 요소로 만들지 않는다(#492)', () => {
+    render(<ChatPanel messages={[
+      { id: 'a', role: 'assistant', text: '**모순**이 있어요. <b>x</b>', format: 'markdown' },
+      { id: 'b', role: 'assistant', text: '**그대로**' },
+    ]} />)
+    expect(screen.getByText('모순').tagName).toBe('STRONG')
+    expect(document.querySelector('.chat-md b')).toBeNull()
+    expect(screen.getByText('**그대로**').tagName).toBe('P')
+  })
+
   it('메시지가 없으면 안내 문구를 보인다', () => {
     render(<ChatPanel messages={[]} emptyText="아직 이야기가 없어요." />)
     expect(within(screen.getByRole('log')).getByText('아직 이야기가 없어요.')).toBeTruthy()
@@ -113,8 +123,8 @@ describe('공용 채팅 입력', () => {
     render(<ChatPanel messages={[]} onSend={onSend} />)
     type('남겨 줘')
     fireEvent.keyDown(box(), { key: 'Enter' })
-    await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1))
-    expect(box().value).toBe('남겨 줘')
+    await waitFor(() => expect(box().value).toBe('남겨 줘'))
+    expect(onSend).toHaveBeenCalledTimes(1)
   })
 
   it('처리 중에는 보내지 못하고 같은 요청을 겹쳐 보내지 않는다', () => {
@@ -135,7 +145,7 @@ describe('공용 채팅 입력', () => {
     fireEvent.keyDown(box(), { key: 'Enter' })
     fireEvent.click(send())
     expect(onSend).toHaveBeenCalledExactlyOnceWith('한 번만')
-    expect(box().value).toBe('한 번만')
+    expect(box().value).toBe('')
     await act(async () => { finish(true) })
     await waitFor(() => expect(box().value).toBe(''))
     type('다음')
@@ -158,12 +168,23 @@ describe('공용 채팅 입력', () => {
     expect(box().value).toBe('기다리며 쓴 글')
   })
 
-  it('onSend가 거부되면 입력을 남기고 실패를 알리며, 다시 쓰면 안내를 지우고 다시 보낼 수 있다', async () => {
+  it('실패한 요청을 기다리며 입력을 바꿨으면 이전 요청을 복구하지 않는다', async () => {
+    let finish!: (ok: boolean) => void
+    render(<ChatPanel messages={[]} onSend={() => new Promise<boolean>(resolve => { finish = resolve })} />)
+    type('이전 요청')
+    fireEvent.click(send())
+    type('새 글')
+    type('')
+    await act(async () => { finish(false) })
+    expect(box().value).toBe('')
+  })
+
+  it('onSend가 거부되면 입력을 복구하고 실패를 알리며, 다시 쓰면 안내를 지우고 다시 보낼 수 있다', async () => {
     const onSend = vi.fn().mockRejectedValueOnce(new Error('연결 끊김')).mockResolvedValue(true)
     render(<ChatPanel messages={[]} onSend={onSend} />)
     type('실패할 글')
     fireEvent.keyDown(box(), { key: 'Enter' })
-    expect((await screen.findByRole('alert')).textContent).toBe('보내지 못했어요. 입력은 그대로 남아 있어요. 다시 시도해 주세요.')
+    expect((await screen.findByRole('alert')).textContent).toBe('메시지를 보내지 못했어요. 다시 시도해 주세요.')
     expect(box().value).toBe('실패할 글')
     expect(send().disabled).toBe(false)
     type('실패할 글 고침')

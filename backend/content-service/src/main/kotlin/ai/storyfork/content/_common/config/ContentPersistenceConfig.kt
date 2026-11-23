@@ -1,5 +1,10 @@
 package ai.storyfork.content._common.config
 
+import ai.storyfork.content.world.studio.entity.ManuscriptBuildJob
+import ai.storyfork.content.world.studio.entity.ManuscriptBuildLoadStep
+import ai.storyfork.content.world.studio.entity.SettingCard
+import ai.storyfork.content.world.studio.entity.StudioWorld
+import ai.storyfork.content.world.studio.entity.WorldRelationshipState
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory
 import javax.sql.DataSource
@@ -15,7 +20,7 @@ import org.springframework.transaction.support.TransactionTemplate
 @Configuration(proxyBeanMethods = false)
 @org.springframework.transaction.annotation.EnableTransactionManagement
 @EnableJpaRepositories(
-    basePackages = ["ai.storyfork.content.work.repository", "ai.storyfork.content.episode.repository", "ai.storyfork.content.episode_version.repository", "ai.storyfork.content.publication.repository", "ai.storyfork.content.world.repository", "ai.storyfork.content.fork.repository", "ai.storyfork.content.proposal.repository", "ai.storyfork.content.plan.repository", "ai.storyfork.content.comment.repository", "ai.storyfork.content.feedbackreport.repository", "ai.storyfork.content.like.repository", "ai.storyfork.content.interest.repository", "ai.storyfork.content.reading.repository", "ai.storyfork.content.editsuggestion.repository", "ai.storyfork.content.notice.repository", "ai.storyfork.content.imagegeneration.repository"],
+    basePackages = ["ai.storyfork.content.work.repository", "ai.storyfork.content.episode.repository", "ai.storyfork.content.episode_version.repository", "ai.storyfork.content.publication.repository", "ai.storyfork.content.world.repository", "ai.storyfork.content.fork.repository", "ai.storyfork.content.proposal.repository", "ai.storyfork.content.plan.repository", "ai.storyfork.content.comment.repository", "ai.storyfork.content.feedbackreport.repository", "ai.storyfork.content.like.repository", "ai.storyfork.content.interest.repository", "ai.storyfork.content.reading.repository", "ai.storyfork.content.editsuggestion.repository", "ai.storyfork.content.notice.repository", "ai.storyfork.content.preprocessing.repository", "ai.storyfork.content.imagegeneration.repository"],
     entityManagerFactoryRef = "contentEntityManagerFactory",
     transactionManagerRef = "contentTransactionManager",
 )
@@ -28,12 +33,15 @@ class ContentPersistenceConfig {
             "classpath:db/migration/publication", "classpath:db/migration/fork",
             "classpath:db/migration/proposal",
             "classpath:db/migration/plan",
+            // 회차 원고 전처리 작업 기록(#343, DEC-50). 같은 전역 버전 순서를 쓴다(V41).
+            "classpath:db/migration/preprocessing",
             // Development sample rows (generated from infrastructure/sample-data CSV), same global version order.
             "classpath:db/migration/sample",
         )
     }
 
     @Bean
+    @DependsOn("worldStudioEntityManagerFactory")
     fun contentEntityManagerFactory(
         @Qualifier("contentDataSource") ds: DataSource,
     ): LocalContainerEntityManagerFactoryBean {
@@ -43,7 +51,12 @@ class ContentPersistenceConfig {
         return LocalContainerEntityManagerFactoryBean().apply {
             dataSource = ds
             persistenceUnitName = "content"
-            setPackagesToScan("ai.storyfork.content.work.entity", "ai.storyfork.content.episode.entity", "ai.storyfork.content.episode_version.entity", "ai.storyfork.content.publication.entity", "ai.storyfork.content.world.entity", "ai.storyfork.content.fork.entity", "ai.storyfork.content.proposal.entity", "ai.storyfork.content.plan.entity", "ai.storyfork.content.comment.entity", "ai.storyfork.content.feedbackreport.entity", "ai.storyfork.content.like.entity", "ai.storyfork.content.interest.entity", "ai.storyfork.content.reading.entity", "ai.storyfork.content.editsuggestion.entity", "ai.storyfork.content.notice.entity", "ai.storyfork.content.imagegeneration.entity")
+            setPackagesToScan("ai.storyfork.content.work.entity", "ai.storyfork.content.episode.entity", "ai.storyfork.content.episode_version.entity", "ai.storyfork.content.publication.entity", "ai.storyfork.content.world.entity", "ai.storyfork.content.fork.entity", "ai.storyfork.content.proposal.entity", "ai.storyfork.content.plan.entity", "ai.storyfork.content.comment.entity", "ai.storyfork.content.feedbackreport.entity", "ai.storyfork.content.like.entity", "ai.storyfork.content.interest.entity", "ai.storyfork.content.reading.entity", "ai.storyfork.content.editsuggestion.entity", "ai.storyfork.content.notice.entity", "ai.storyfork.content.preprocessing.entity", "ai.storyfork.content.imagegeneration.entity")
+            // V41 재접수는 V15 실행권과 한 트랜잭션에서 변경한다. 기존 엔티티 매핑을 공유한다.
+            setPersistenceUnitPostProcessors({ unit ->
+                listOf(ManuscriptBuildJob::class, ManuscriptBuildLoadStep::class, StudioWorld::class,
+                    SettingCard::class, WorldRelationshipState::class).forEach { unit.addManagedClassName(it.java.name) }
+            })
             jpaVendorAdapter = HibernateJpaVendorAdapter()
             setJpaPropertyMap(mapOf("hibernate.hbm2ddl.auto" to "validate", "hibernate.jdbc.time_zone" to "UTC"))
         }

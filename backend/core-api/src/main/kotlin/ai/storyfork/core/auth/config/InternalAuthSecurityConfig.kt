@@ -17,7 +17,10 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 // Content 서비스 토큰을 허용하는 정확한 경로. 나머지 /internal 경로는 운영 서비스 토큰만 받는다.
 private const val SCHEDULED_VERIFICATION = "/internal/v1/auth/verify-scheduled-member"
-private val CONTENT_SERVICE_PATHS = setOf("/internal/v1/auth/verify", "/internal/v1/members/nicknames", SCHEDULED_VERIFICATION)
+// Content가 AI 작업에 쓰는 크레딧 예약·정산·해제와 속도 제한(사용자 Bearer 없이 서비스 토큰만).
+private val CREDIT_PATHS = arrayOf("/internal/v1/credits/reservations", "/internal/v1/credits/reservations/settle",
+    "/internal/v1/credits/reservations/release", "/internal/v1/ai-rate-limit/acquire")
+private val CONTENT_SERVICE_PATHS = setOf("/internal/v1/auth/verify", "/internal/v1/members/nicknames", SCHEDULED_VERIFICATION, *CREDIT_PATHS)
 
 @Configuration(proxyBeanMethods = false)
 class InternalAuthSecurityConfig {
@@ -43,11 +46,14 @@ class InternalAuthSecurityConfig {
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 // 닉네임 조회는 사용자 JWT 없이 위 서비스 자격 필터만 통과하면 된다(필터가 403으로 걸러낸 요청은 여기 오지 않는다).
-                it.requestMatchers(HttpMethod.POST, "/internal/v1/members/nicknames", SCHEDULED_VERIFICATION).permitAll()
+                it.requestMatchers(HttpMethod.POST, "/internal/v1/members/nicknames", SCHEDULED_VERIFICATION, *CREDIT_PATHS).permitAll()
                     .requestMatchers(HttpMethod.POST, "/internal/v1/auth/verify", "/internal/v1/members/admins").authenticated()
-                    .requestMatchers(HttpMethod.GET, "/internal/v1/members").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/internal/v1/members", "/internal/v1/members/stats").authenticated()
                     .requestMatchers(HttpMethod.PUT, "/internal/v1/members/*/restriction").authenticated()
                     .requestMatchers(HttpMethod.DELETE, "/internal/v1/members/*/restriction").authenticated()
+                    // 운영 서비스의 회원 크레딧 조회·지급·회수(DEC-57)는 Content 토큰을 받지 않고 운영 토큰과 operator Bearer만 받는다.
+                    .requestMatchers(HttpMethod.GET, "/internal/v1/credits/members/*").authenticated()
+                    .requestMatchers(HttpMethod.POST, "/internal/v1/credits/members/*/grants", "/internal/v1/credits/members/*/revocations").authenticated()
                     .anyRequest().denyAll()
             }
             .oauth2ResourceServer { it.jwt(withDefaults()) }

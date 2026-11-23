@@ -1,4 +1,4 @@
-"""Intent Router 결과와 OpenAI Decisions 응답 계약."""
+"""Decision Guard 판정과 OpenAI Decisions 응답 계약."""
 
 from typing import Literal
 
@@ -11,28 +11,17 @@ Feature = Literal[tuple(FEATURES)]
 Reason = Literal['greeting', 'out_of_scope', 'inappropriate_edit', 'prompt_injection', 'sensitive_data', 'unsafe']
 
 
-class IntentStep(BaseModel):
+class DecisionResult(BaseModel):
+    """턴당 한 번의 판정(#473). 거절이면 reason만, 통과면 이번 요청에 필요한 기능(고정 순서)만 있다. 순서·조건은 메인 에이전트가 정한다."""
     model_config = ConfigDict(extra='forbid')
-    feature: Feature
-    when: Literal['always', 'if_issues_found']
-
-
-class IntentResult(BaseModel):
-    """route면 steps를 순서대로 실행, clarify·rejected면 아무 기능도 실행하지 않고 message를 그대로 보여 준다."""
-    model_config = ConfigDict(extra='forbid')
-    status: Literal['route', 'clarify', 'rejected']
-    steps: list[IntentStep] = []
+    allowed: bool
     reason: Reason | None = None
-    message: str | None = None
+    capabilities: list[Feature] = []
 
     @model_validator(mode='after')
     def consistent(self):
-        if self.status == 'route':
-            valid = bool(self.steps) and self.reason is None and self.message is None
-        else:
-            valid = not self.steps and bool(self.message) and (self.reason is not None) == (self.status == 'rejected')
-        if not valid:
-            raise ValueError(f'{self.status} 결과 형식이 맞지 않습니다.')
+        if self.allowed == (self.reason is not None) or (not self.allowed and self.capabilities):
+            raise ValueError('판정 결과 형식이 맞지 않습니다.')
         return self
 
 

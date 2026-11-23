@@ -8,7 +8,7 @@ import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
 
-/** 지급분에서 빠져나간 크레딧 장부 행. kind는 `spend`(사용 차감) 또는 `expire`(소멸)이다. */
+/** 지급분에서 빠져나간 크레딧 장부 행. kind는 `spend`(사용 차감)·`expire`(소멸)·`revoke`(운영자 회수)이다. */
 @Entity
 @Table(name = "credit_ledger_entry")
 class CreditLedgerEntryEntity(

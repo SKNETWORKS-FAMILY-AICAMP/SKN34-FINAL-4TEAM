@@ -1,0 +1,24 @@
+// QA-only compile scope. Production build and source sets remain unchanged outside this command.
+gradle.projectsEvaluated {
+    rootProject.sourceSets.test.kotlin.setIncludes([
+        '**/world/ManuscriptBuildInputTest.kt',
+        '**/world/ManuscriptBuildResultsTest.kt',
+        '**/world/ManuscriptBuildResultStoreTest.kt',
+        '**/world/ManuscriptBuildExecutionTest.kt',
+        '**/world/ManuscriptBuildMapperTest.kt',
+        '**/world/ManuscriptExtractionVerifierTest.kt',
+        '**/world/ManuscriptStructureVerifierTest.kt',
+        '**/world/ManuscriptBuildClientIntegrationTest.kt',
+        '**/world/ManuscriptBuildSnapshotTest.kt',
+        '**/world/WorldStudioServiceTest.kt',
+        '**/world/InitialBuildHttpIntegrationTest.kt',
+        '**/world/InitialWorldAnalysisPostgresTest.kt',
+        '**/world/PublicWorldHttpIntegrationTest.kt',
+        '**/fixture/CsrfFixture.kt'
+    ])
+    rootProject.sourceSets.test.java.setIncludes([
+        '**/world/WorldStudioPostgresFixture.java',
+        '**/world/InitialWorldStoragePostgresTest.java',
+        '**/world/ManuscriptBuildStoragePostgresTest.java'
+    ])
+}

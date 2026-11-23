@@ -1,0 +1,3077 @@
+[
+  {
+    "id": "b4de3ca5-32d7-5d8d-aa7b-c2097fa7b3ff",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-counterattack",
+    "title": "바위섬의 재침공과 철수",
+    "cardType": "event",
+    "body": "다른 검은 배의 병력이 섬에 상륙하자 카터와 픽먼은 구울을 나누어 방어한다. 승리했지만 사상자가 많아 증원군을 우려하며 섬을 떠난다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 20 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "93dd702d-0803-5de2-8201-15a222b97ecc",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-wounded",
+    "title": "부상자를 살피는 픽먼",
+    "cardType": "rule",
+    "body": "픽먼은 부상당한 동료를 죽여 먹는 구울의 오래된 관습을 말리고 바위섬 전투 뒤 부상자를 배의 침상에 눕힌다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 27 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "15dac777-2a4c-5542-a259-90a560604171",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-army",
+    "title": "카터의 카다스 원정을 돕는 구울 군대",
+    "cardType": "organization",
+    "body": "구울 지도자들은 구조와 전투를 도운 카터에게 감사하며 일부 수비대를 제외한 구울과 나이트건트 전체를 원정에 보낸다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 4 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-07/chunk-07-army와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e2262adc-51c4-577b-adc1-2590a112e6e2",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-white-domes",
+    "title": "렝 북부의 흰 반구형 건물",
+    "cardType": "location",
+    "body": "산 정상의 나이트건트들은 렝 북부의 흰 반구형 건물 주변에 불길한 힘이 있다고 경고한다. 민간 전승은 이곳을 다른 신들과 나이알라토텝에 연결한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 7 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f10d342c-4703-55d2-82dc-d6f18a1dd344",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-nightgaunt-sight",
+    "title": "나이트건트의 감각",
+    "cardType": "ability",
+    "body": "얼굴과 눈이 없는 나이트건트는 축축한 몸 표면 전체로 보며 어둠 속에서 비행한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 9 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4435cf4b-6338-5fd2-9ae8-9f07d0a82617",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-mountains",
+    "title": "움직이는 쌍두 산의 파수꾼",
+    "cardType": "other",
+    "body": "거상으로 보였던 쌍두 산들은 조용히 일어나 거대한 몸으로 원정대를 따라 걷는다. 카터는 여러 거상이 뒤따르는 것을 본다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 12 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-06/chunk-06-mountains와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b867bc17-bab5-5e81-977d-181f02b3f8ea",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-dimensions",
+    "title": "꿈나라의 거리와 차원",
+    "cardType": "rule",
+    "body": "원정대가 빠르게 날아도 지구가 아래에 이어지자 카터는 꿈나라의 차원이 기이한 성질을 지녔다고 생각한다. 인물의 추론이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 14 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "98c16a0b-04b6-5fbc-a6e4-5b8ff27d2eb2",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-wind",
+    "title": "원정대를 휩쓴 북쪽의 바람",
+    "cardType": "event",
+    "body": "지구 밖의 힘이 나이트건트와 구울을 붙잡아 북쪽으로 몰아가고 일행은 날개를 접은 채 저항하지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 15 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "88641cee-e8c4-5e21-9a66-8e3c0d77f436",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-kadath",
+    "title": "카다스 산과 오닉스 성",
+    "cardType": "location",
+    "body": "영원한 밤의 거대한 산 정상에 돔과 탑이 겹친 성이 있고 높은 탑의 창 하나가 빛난다. 카터는 위대한 신들의 집 카다스에 이르렀다고 알아본다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 17 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a500c1a9-93d2-50cd-b903-cd5d0ab63c1a",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-other-gods",
+    "title": "다른 신들의 원정대 제압",
+    "cardType": "event",
+    "body": "카터는 다른 신들이 구울과 나이트건트의 주인은 아니어도 필요할 때 이들을 지배할 수 있음을 깨닫는다. 일행은 바람에 휩쓸려 성 안에 떨어진다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 20 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-05/chunk-05-other-gods와 관련, 원문 맥락 대조 필요",
+      "기존 source/tradition-cards.json great-old-ones 및 old-ones-usage: 용어는 유사하나 동일 집단 여부 불명"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d7807950-25d3-5b4d-92ec-4947347bfaab",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-trumpet",
+    "title": "카다스 성의 세 번 울린 나팔",
+    "cardType": "event",
+    "body": "탑 방에서 무서운 나팔이 세 번 울린 뒤 구울과 나이트건트는 사라지고 카터만 남는다. 어디로 갔는지는 카터도 모른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 22 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "78482922-4086-548f-8888-e39aefff9b97",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-nyarlathotep",
+    "title": "파라오 모습의 방문자",
+    "cardType": "character",
+    "body": "빛나는 관과 여러 빛깔 옷을 입은 젊은 파라오 모습의 존재가 카터에게 접근한다. 이어 위대한 신들이 카터의 도시를 차지했다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 24 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-09/chunk-09-nyarlathotep와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ac7ea1ee-06b5-561b-a378-ddc68bf9bb80",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-seekers",
+    "title": "이전에 신들을 찾아간 자들의 이야기",
+    "cardType": "event",
+    "body": "방문자는 하테그클라에 오른 현자 바르자이는 돌아오지 못했고 카다스를 찾던 제니그의 두개골은 반지가 되었다고 말한다. 방문자의 주장이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 26 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8cf28700-a67e-50d0-9a33-156d615d0a7d",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-08",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-08-sunset-city",
+    "title": "위대한 신들이 차지한 석양 도시",
+    "cardType": "location",
+    "body": "방문자는 카터의 상상으로 빚은 석양 도시를 위대한 신들이 탐내 카다스를 떠나 살고 있다고 주장한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-08의 문단 28 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-09/chunk-09-sunset-city와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e96773cc-8139-5c66-a2c8-9b4902917e3b",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-sunset-city",
+    "title": "어린 시절로 빚어진 석양 도시",
+    "cardType": "location",
+    "body": "나이알라토텝은 석양 도시가 카터의 어린 시절 뉴잉글랜드 기억에서 만들어졌고 지상의 신들이 그곳에 머문다고 주장한다. 그의 기만적인 설명으로 다룬다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 1 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-08/chunk-08-sunset-city와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "65e2544e-89c0-5ecd-9187-4e0e6dacd66e",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-memory",
+    "title": "뉴잉글랜드 기억과 꿈의 도시",
+    "cardType": "other",
+    "body": "방문자는 보스턴과 세일럼 등 카터가 아끼던 풍경들이 석양 도시를 이루었다고 설명한다. 그 설명은 뒤에 카터가 깨어나는 계기가 된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 4 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "51e1e83f-0daf-5a99-b029-7cb105e497a3",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-arkham",
+    "title": "카터의 기억 속 아컴",
+    "cardType": "location",
+    "body": "방문자가 묘사하는 뉴잉글랜드 기억에는 이끼 낀 지붕과 바위 많은 들판의 아컴이 포함된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 5 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source/tradition-cards.json arkham: 동일 지명 가능성, 작품별 맥락 확인 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1f9a307d-e529-5917-b846-2a3016064088",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-ired-naa",
+    "title": "이레드나의 제단 불꽃",
+    "cardType": "object",
+    "body": "방문자는 신전 지붕의 꺼지지 않는 이레드나 제단 불꽃을 석양 도시의 표지라고 말한다. 카터를 속이는 인물의 안내다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 8 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f281fc40-60ec-57c3-a8ac-5e8567daa2e8",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-vega",
+    "title": "베가로 향하는 거짓 귀환 안내",
+    "cardType": "rule",
+    "body": "방문자는 샨타크를 타고 베가로 향하다 노래가 들리면 돌아서라고 지시한다. 뒤에서 이 안내는 유혹과 기만으로 드러난다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 8 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8ca61899-c865-596e-892a-de8351962bd2",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-nyarlathotep",
+    "title": "기어다니는 혼돈 나이알라토텝",
+    "cardType": "character",
+    "body": "카다스의 방문자는 자신을 나이알라토텝이라 밝히며 수많은 다른 모습으로 만나지 않기를 경고한다. 친절한 안내는 뒤에 카터를 파멸로 유인한 것으로 드러난다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 13 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-08/chunk-08-nyarlathotep와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8ad217b7-a884-5180-9c8f-45c906816f52",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-song",
+    "title": "밤과 천구의 노래",
+    "cardType": "other",
+    "body": "우주에서 들리는 오래된 노래가 카터와 샨타크를 끌어당긴다. 서술자는 이 노래가 우주와 다른 신들보다 오래되었다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 15 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f1558c3e-a7a1-57ec-90cb-5df937750f93",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-azathoth",
+    "title": "아자토스의 궁극적 공허",
+    "cardType": "location",
+    "body": "나이알라토텝의 명령을 받은 샨타크는 카터를 꿈이 닿지 않는 혼돈의 중심으로 데려간다. 그곳에 아자토스가 있으며 북과 피리 소리가 따른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 16 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-05/chunk-05-azathoth와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2a02eedb-e4c9-5baa-85f7-bec5953e39e4",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-larvae",
+    "title": "다른 신들의 유충",
+    "cardType": "other",
+    "body": "카터가 끌려가는 어둠에는 형태 없이 떠돌며 더듬는 존재들이 있다. 서술자는 이들을 눈도 이성도 없는 다른 신들의 유충이라 부른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 17 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0a094595-1353-5348-8159-0642cad838c8",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-awakening",
+    "title": "꿈이라는 자각과 탈출",
+    "cardType": "event",
+    "body": "카터는 고향의 기억으로 자신이 꿈꾸고 있음을 깨닫고 샨타크에서 뛰어내린다. 추락 뒤 깨어 있는 보스턴 방에서 눈을 뜬다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 21 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dbace013-692e-5d61-ba78-f4106f5cf11b",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-sngac",
+    "title": "카터를 인도한 스응악",
+    "cardType": "character",
+    "body": "보랏빛 기체 스응악은 공허에서 카터에게 길을 가리킨다. 쿠라네스에게 경고를 전했던 존재와 같은 이름으로 나온다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 25 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-05/chunk-05-sngac와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a00066af-145b-5112-8147-5b0b6fe62eff",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-nodens",
+    "title": "추락하는 카터를 돕는 노덴스",
+    "cardType": "character",
+    "body": "노덴스는 먼 깊은 곳에서 카터를 인도하고 나이알라토텝의 추격이 빛에 막히자 승리의 함성을 지른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 26 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4c444476-c070-5f1a-8e7e-88adb808fa3b",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-09",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-09-gods-return",
+    "title": "카다스로 돌아온 지상의 신들",
+    "cardType": "event",
+    "body": "카터가 보스턴에서 깨어난 뒤 나이알라토텝은 석양 도시의 신들을 카다스 성으로 데려와 조롱한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 27 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0a91d815-f25b-538e-90a5-35ff6d855e33",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-gilman",
+    "title": "월터 길먼",
+    "cardType": "character",
+    "body": "미스캐토닉 학생 길먼은 비유클리드 수학과 민간 마술을 연결해 연구하며 열과 예민한 청각, 꿈에 시달린다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 3문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "759cc47d-7070-52b8-a6eb-00070baac094",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-keziah",
+    "title": "케지아 메이슨과 탈옥",
+    "cardType": "character",
+    "body": "1692년 마녀 재판 기록에 따르면 케지아는 공간을 넘는 선과 곡선, 검은 남자와 비밀 이름 나하브를 말했고 감방에서 사라졌다. 자백은 압박 아래 이루어졌다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 4문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "aeea1eb4-3acf-58e4-8ae8-9989b84b2d6b",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-house",
+    "title": "마녀의 집 다락방",
+    "cardType": "location",
+    "body": "아컴의 오래된 하숙집 동쪽 다락방은 벽과 천장이 기울어 있고, 벽 뒤와 천장 위에 봉인된 공간이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 7문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-02/chunk-02-loft: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-03/chunk-03-abandoned: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-04/chunk-04-ossuary: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0896f263-cab7-5c18-b24d-550e2b92931e",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-books",
+    "title": "대학의 금서",
+    "cardType": "object",
+    "body": "길먼은 네크로노미콘과 에이본의 책, 융츠의 저서에서 얻은 단서를 공간과 차원 연구에 연결한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 3문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "source/tradition-cards.json necronomicon: 같은 책; 동일 카드 여부 미확정",
+      "cthulhu-dh--section-vi/section-vi-breakin: 도서관과 금서 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "65ce56ba-db57-50cc-9277-faca5a0eb688",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-island",
+    "title": "미스캐토닉강의 입석 섬",
+    "cardType": "location",
+    "body": "길먼은 강의 섬에 두 차례 가서 오래된 입석들이 만드는 각도를 스케치한다. 입석의 기원은 알려지지 않았다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 6문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "59966555-c388-58bd-8f8b-b4accc368b75",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-jenkin",
+    "title": "브라운 젠킨의 전언",
+    "cardType": "character",
+    "body": "증인들과 소문에 따르면 브라운 젠킨은 쥐 크기의 털 달린 몸, 사람 같은 얼굴과 손을 지니고 마녀의 피를 먹으며 여러 언어를 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 11문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-04/chunk-04-skeleton: 브라운 젠킨 전승과 유골 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9dd9951e-5d34-504c-9b03-4f491267c71b",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-abyss",
+    "title": "길먼의 황혼빛 심연",
+    "cardType": "location",
+    "body": "꿈속에서 길먼은 알 수 없는 색과 소리, 각진 물체로 가득 찬 심연을 반쯤 자의적으로 이동한다. 깨어 있는 세계와의 관계는 미확정이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 12문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "eafe6c23-0935-5375-94f9-5647b4333cd7",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-dimension",
+    "title": "길먼의 차원 이동 가설",
+    "cardType": "rule",
+    "body": "길먼은 3차원에서 벗어나 다른 지점으로 재진입하면 먼 천체로 이동할 수 있다고 추론한다. 생존 조건은 목적지에 따라 다르다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 19문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6994ff6d-0b8d-5379-b928-9c6b7962d97e",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-joe",
+    "title": "조 마주레비치",
+    "cardType": "character",
+    "body": "마녀의 집에 사는 방직기 수리공은 케지아와 브라운 젠킨을 두려워하며 신부에게 받은 십자가와 기도에 의지한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 23문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2080e8b6-1d85-54ed-96d4-354c5912f345",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-elwood",
+    "title": "프랭크 엘우드의 목격",
+    "cardType": "character",
+    "body": "같은 집에 사는 학생 엘우드는 밤에 길먼의 방이 비어 있는 것을 두 번 발견한다. 길먼의 이동 경로는 밝혀지지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 22문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1d489e45-5d47-5b82-a080-17cea1108fdc",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-signing",
+    "title": "아자토스의 책에 서명하라는 꿈",
+    "cardType": "event",
+    "body": "꿈의 노파는 길먼에게 검은 남자를 만나 피로 아자토스의 책에 서명하고 비밀 이름을 받으라고 위협한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 26문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "169130d3-5dc4-510b-aeec-bd35b006c14d",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-01",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-projections",
+    "title": "거품과 다면체의 추적",
+    "cardType": "other",
+    "body": "길먼의 깊은 꿈에서 무지갯빛 거품 덩어리와 작고 각도가 바뀌는 다면체가 그를 따라다닌다. 정체는 불명이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 28문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-02/chunk-02-green: 거품·다면체와 녹색 언덕 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "333c5394-ae72-538a-8802-50595d31604a",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-02",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-02-green",
+    "title": "녹색 빛의 언덕",
+    "cardType": "location",
+    "body": "꿈에서 길먼이 도착한 언덕에서 노파와 작은 존재는 각도와 방향을 가리켜 그가 심연으로 돌아가게 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 1문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-01/chunk-01-projections: 거품·다면체와 녹색 언덕 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7d87f27d-0962-525b-88cc-818601f0bfd6",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-02",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-02-star",
+    "title": "하늘의 한 점으로 향하는 이끌림",
+    "cardType": "event",
+    "body": "꿈에서 깬 길먼은 하이드라와 아르고나비스 사이의 한 점을 향해 이동하고 싶은 충동을 느낀다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 6문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a0d2ff59-a61b-55ab-b374-0053eca72cf8",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-02",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-02-light",
+    "title": "보랏빛 마녀의 빛",
+    "cardType": "other",
+    "body": "마주레비치는 길먼의 방 창에서 보랏빛을 봤다고 말하며 케지아의 징조라고 해석한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 7문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0514dfd2-07f0-50ac-b662-b8f1c96e5cbf",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-02",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-02-terrace",
+    "title": "세 개의 불타는 원반 아래 테라스",
+    "cardType": "location",
+    "body": "꿈속 길먼은 세 빛나는 원반 아래 낯선 대도시를 내려다보는 높은 테라스에 선다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 11문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a9fd8575-4dc8-5c71-8ef3-c64f63a1d711",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-02",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-02-beings",
+    "title": "별 모양 팔을 가진 테라스의 존재들",
+    "cardType": "character",
+    "body": "꿈에서 통 모양 몸과 별 모양 팔을 가진 세 생물이 길먼에게 다가온다. 이들은 난간 장식상과 닮았다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 14문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a8689d11-3d39-5113-b772-5239a4a3800f",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-02",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-02-figure",
+    "title": "테라스 난간의 뾰족한 조각상",
+    "cardType": "object",
+    "body": "길먼이 꿈에서 부러뜨린 조각상과 같은 형상이 침대에서 발견된다. 교수의 분석에서 알려지지 않은 듯한 합금 성분이 나온다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 30문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-04/chunk-04-stone: 꿈의 조각상과 다락에서 나온 상 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4ba10191-1767-5f62-9545-45fd8b024ce6",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-02",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-02-loft",
+    "title": "꿈속 봉인 다락",
+    "cardType": "location",
+    "body": "꿈속 길먼이 끌려간 경사진 공간에는 낡은 책과 탁자, 삼각형 구멍이 있다. 그는 이곳이 방 위의 봉인된 다락과 대응한다고 추측한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 21문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-01/chunk-01-house: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-03/chunk-03-abandoned: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-04/chunk-04-ossuary: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "20673a52-53e4-5ebb-b44f-4256d3947d5c",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-02",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-02-book",
+    "title": "검은 남자의 장부와 손목 상처",
+    "cardType": "event",
+    "body": "꿈에서 검은 남자가 큰 책을 가리키고 노파가 깃펜을 쥐여 주자 브라운 젠킨이 길먼의 손목을 문다. 깨어난 뒤에도 상처가 남아 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 22문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-03/chunk-03-messenger: 검은 남자와 냐를라토텝의 관련성 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-n--chunk-01/chunk-01-arrival: 검은 남자와 냐를라토텝의 관련성 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-n--chunk-01/chunk-01-gods: 검은 남자와 냐를라토텝의 관련성 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "198dbfc0-3217-590d-be53-f740c695e318",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-02",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-02-azathoth",
+    "title": "꿈에서 떠올린 아자토스",
+    "cardType": "character",
+    "body": "길먼은 최종 암흑과 피리 소리의 꿈을 네크로노미콘에서 읽은 아자토스의 모습과 연결한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 24문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ec48e955-51b4-52ff-ba09-5a71ef967231",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-02",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-02-cross",
+    "title": "조가 준 십자가",
+    "cardType": "object",
+    "body": "마주레비치는 신부의 축복을 받았다고 말하는 금속 십자가를 길먼에게 준다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 29문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-03/chunk-03-struggle: 십자가와 뒤의 발견 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-04/chunk-04-bowl: 십자가와 뒤의 발견 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f766f2a0-3c9a-505b-a6a9-46c61e93f866",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-03",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-03-timeless",
+    "title": "시간 없는 차원에 관한 추측",
+    "cardType": "rule",
+    "body": "길먼은 특정 공간에서 시간이 흐르지 않는다면 노화를 피하고 먼 시대에 나올 수 있다고 추측한다. 성공 사례는 알 수 없다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 03, 해당 구간 본문 2문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "89fba8d6-3c18-5d25-a01f-96e31855a796",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-03",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-03-messenger",
+    "title": "마녀 전승의 검은 남자",
+    "cardType": "character",
+    "body": "길먼과 엘우드는 전승의 검은 남자와 네크로노미콘의 냐를라토텝을 숨은 힘의 사자라는 설명 아래 연결해 논한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 03, 해당 구간 본문 3문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-02/chunk-02-book: 검은 남자와 냐를라토텝의 관련성 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-n--chunk-01/chunk-01-arrival: 검은 남자와 냐를라토텝의 관련성 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-n--chunk-01/chunk-01-gods: 검은 남자와 냐를라토텝의 관련성 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8eb65bbe-122f-59c5-8a2a-1997fcd084dc",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-03",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-03-kidnapping",
+    "title": "라디슬라스 볼레이코 실종",
+    "cardType": "event",
+    "body": "신문에 따르면 두 살 라디슬라스가 오르네 골목에서 사라졌다. 어머니는 아이가 희생 대상으로 지목됐다고 믿었다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 03, 해당 구간 본문 10문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-04/chunk-04-bones: 아이의 실종과 꿈속 의식 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b947f38e-21ee-5f83-b563-36777c6f9e4b",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-03",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-03-mother",
+    "title": "아나스타샤 볼레이코",
+    "cardType": "character",
+    "body": "실종된 아이의 어머니는 브라운 젠킨을 봤다며 아이를 걱정했고 이웃에게 함께 밤을 지새워 달라고 요청했다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 03, 해당 구간 본문 10문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ea99d899-3285-5302-8b0a-1362745819f2",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-03",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-03-ravine",
+    "title": "메도 힐 너머 흰 돌 계곡",
+    "cardType": "location",
+    "body": "마주레비치는 사람들이 메도 힐 너머 흰 돌 계곡에서 발푸르기스 의식이 열린다고 수군거린다고 전한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 03, 해당 구간 본문 14문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a5ebbd61-f212-56f5-9271-cda6bb7cf5ac",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-03",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-03-sacrifice",
+    "title": "꿈속 다락의 아이와 의식",
+    "cardType": "event",
+    "body": "길먼은 꿈속에서 노파의 칼을 빼앗지만, 브라운 젠킨이 문 아이는 죽어 있다. 꿈과 실제의 관계는 확정되지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 03, 해당 구간 본문 23문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-04/chunk-04-bones: 아이의 실종과 꿈속 의식 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "db2aca9a-d99d-58f6-b9d6-f6bdc45e0872",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-03",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-03-struggle",
+    "title": "십자가와 케지아의 싸움",
+    "cardType": "event",
+    "body": "꿈속 길먼은 십자가를 보고 주춤한 노파의 목에 사슬을 감는다. 깨어난 뒤 목과 발목에 상처가 남고 십자가는 사라진다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 03, 해당 구간 본문 22문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-02/chunk-02-cross: 십자가와 뒤의 발견 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-04/chunk-04-bowl: 십자가와 뒤의 발견 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "55558828-044d-5dc8-b121-c042ec97ed4d",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-03",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-03-pulse",
+    "title": "발푸르기스의 우주적 맥동",
+    "cardType": "other",
+    "body": "길먼은 의식 시기에 우주적 맥동이 높아져 세계를 관통하고 노래가 그 리듬을 따른다고 느낀다. 이는 꿈에 휩싸인 그의 인식이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 03, 해당 구간 본문 25문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "10e0deae-631a-57eb-9e40-2cbfe7281268",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-03",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-03-death",
+    "title": "길먼의 청각 상실과 죽음",
+    "cardType": "event",
+    "body": "의사는 길먼의 고막이 파열됐다고 진단한다. 그날 밤 침구 아래서 쥐 같은 형체가 달아난 뒤 길먼은 죽는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 03, 해당 구간 본문 32문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "109b3137-227c-52d9-9484-635aa91655b1",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-03",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-03-abandoned",
+    "title": "마녀의 집 폐가",
+    "cardType": "event",
+    "body": "길먼의 죽음 뒤 하숙인들이 떠나고 집은 악취와 악평 속에 빈집이 되어 거주 부적합 판정을 받는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 03, 해당 구간 본문 35문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-01/chunk-01-house: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-02/chunk-02-loft: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-04/chunk-04-ossuary: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1cefc8ea-5b21-55f0-805e-92cde40cb2d8",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-04",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-04-bones",
+    "title": "봉인 다락에서 발견된 유골",
+    "cardType": "object",
+    "body": "1931년 철거 때 봉인된 공간에서 비교적 최근의 아이와 굽은 노년 여성의 유골, 쥐 뼈가 발견된다. 신원은 단정되지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 04, 해당 구간 본문 2문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-03/chunk-03-kidnapping: 아이의 실종과 꿈속 의식 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-03/chunk-03-sacrifice: 아이의 실종과 꿈속 의식 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f851a7ed-0fb8-5195-aae1-87cdc0a8550f",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-04",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-04-manuscripts",
+    "title": "다락의 마술 서적과 필적",
+    "cardType": "object",
+    "body": "무너진 다락에서 나온 종이와 책은 상태와 워터마크의 연대가 다르지만 고풍스러운 필적은 놀라울 만큼 균일하다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 04, 해당 구간 본문 3문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "62ddc2d2-39dc-55ee-ba8d-d451b32cb300",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-04",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-04-stone",
+    "title": "푸른 돌의 별 모양 상",
+    "cardType": "object",
+    "body": "폐허에서 길먼의 금속 조각상과 닮았으나 더 크고 푸른 돌로 만든 상이 나온다. 받침에는 해독되지 않은 문자가 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 04, 해당 구간 본문 3문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-vii/section-vii-stone: 관련 대상, 동일 여부 미확정",
+      "cthulhu-dwh--chunk-02/chunk-02-figure: 꿈의 조각상과 다락에서 나온 상 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4a2fc003-b4a3-524e-a4bf-7e595a535234",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-04",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-04-bowl",
+    "title": "다락의 금속 그릇과 십자가",
+    "cardType": "object",
+    "body": "찌그러진 금속 그릇 안에는 갈색 얼룩이 있고, 마주레비치는 끊어진 십자가를 자신이 길먼에게 준 것으로 알아본다. 그 경위에는 의견이 갈린다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 04, 해당 구간 본문 4문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-02/chunk-02-cross: 십자가와 뒤의 발견 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-03/chunk-03-struggle: 십자가와 뒤의 발견 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cc1c1c34-a909-5b48-ba80-55ddee5d6513",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-04",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-04-ossuary",
+    "title": "벽 뒤 아이들의 유골층",
+    "cardType": "location",
+    "body": "비스듬한 벽 뒤 공간에는 서로 다른 시기의 어린아이 유골이 깊이 쌓여 있고 그 위에 오래된 장식 칼이 놓여 있었다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 04, 해당 구간 본문 5문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-01/chunk-01-house: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-02/chunk-02-loft: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-03/chunk-03-abandoned: 공간과 봉인 다락 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3eec0842-341f-5a96-9c22-6e032f87dd60",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dwh--chunk-04",
+    "work_id": "cthulhu-dwh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-04-skeleton",
+    "title": "기형적인 거대 쥐의 골격",
+    "cardType": "object",
+    "body": "잔해에서 갈색 털과 함께 커다란 쥐의 골격이 발견된다. 손뼈의 쥐기 특성과 사람처럼 보이는 두개골은 작업자들의 소문이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+    "source_location": "마녀의 집에서 꾼 꿈, Artificial paragraph chunk 04, 해당 구간 본문 7문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-01/chunk-01-jenkin: 브라운 젠킨 전승과 유골 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f8a9554d-bd3c-5998-a6da-69fbafcf1879",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-n--chunk-01",
+    "work_id": "cthulhu-n",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-arrival",
+    "title": "이집트에서 온 냐를라토텝",
+    "cardType": "character",
+    "body": "화자에 따르면 냐를라토텝은 이집트에서 나타나 과학과 심리학을 말하고 기이한 장치로 관객을 매혹한다. 27세기 전에서 깨어났다는 말은 본인의 주장이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/n.aspx",
+    "source_location": "냐를라토텝, Artificial paragraph chunk 01, 해당 구간 본문 3문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-02/chunk-02-book: 검은 남자와 냐를라토텝의 관련성 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-03/chunk-03-messenger: 검은 남자와 냐를라토텝의 관련성 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bf66ea34-cf6f-5953-9a64-a86e9b511df6",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-n--chunk-01",
+    "work_id": "cthulhu-n",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-show",
+    "title": "냐를라토텝의 환영 시연",
+    "cardType": "event",
+    "body": "화자는 화면 속 폐허와 세계의 파멸을 보고 관객 머리 위의 기묘한 그림자를 겪는다. 화자는 사기와 정전기라는 항의를 내뱉는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/n.aspx",
+    "source_location": "냐를라토텝, Artificial paragraph chunk 01, 해당 구간 본문 5문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c09f02fb-1a40-501f-8df0-ac2a186b9c43",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-n--chunk-01",
+    "work_id": "cthulhu-n",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-nightmares",
+    "title": "냐를라토텝이 지나간 도시의 악몽",
+    "cardType": "event",
+    "body": "화자는 냐를라토텝이 간 곳마다 밤에 악몽의 비명이 공공의 문제가 되었다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/n.aspx",
+    "source_location": "냐를라토텝, Artificial paragraph chunk 01, 해당 구간 본문 3문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d85126f4-2b90-5903-83dc-2f9d0e1306c1",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-n--chunk-01",
+    "work_id": "cthulhu-n",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-rift",
+    "title": "초록 달빛 아래 눈과 검은 틈",
+    "cardType": "location",
+    "body": "시연 뒤 무리는 서로 다른 길로 이끌리고, 화자의 열은 계절에 맞지 않는 눈밭과 검은 틈으로 들어간다. 실제성은 확정되지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/n.aspx",
+    "source_location": "냐를라토텝, Artificial paragraph chunk 01, 해당 구간 본문 6문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0c3a6dc9-aa68-5727-9165-d842d5678b43",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-n--chunk-01",
+    "work_id": "cthulhu-n",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-01-gods",
+    "title": "궁극의 신들과 그 영혼",
+    "cardType": "character",
+    "body": "마지막 환시에서 보이지 않는 방의 북과 피리 소리에 거대한 무감각한 신들이 춤춘다. 화자는 그들의 영혼이 냐를라토텝이라고 표현한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/n.aspx",
+    "source_location": "냐를라토텝, Artificial paragraph chunk 01, 해당 구간 본문 7문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dwh--chunk-02/chunk-02-book: 검은 남자와 냐를라토텝의 관련성 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dwh--chunk-03/chunk-03-messenger: 검은 남자와 냐를라토텝의 관련성 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9f0539a2-1231-5492-9a5c-61a94f616ddc",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iii-farmhouse",
+    "title": "웨이틀리 농가의 봉인된 윗층",
+    "cardType": "location",
+    "body": "늙은 웨이틀리는 창고와 막힌 윗층을 마련하고 언덕 쪽 창을 문으로 바꾸어 경사로를 만든다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section III, 해당 구간 본문 4문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-iv/section-iv-farmhouse: 관련 대상, 동일 여부 미확정",
+      "review/full-myth/cthulhu_mythos/cards-001.json 웨이틀리 농가: 같은 장소; 동일 카드 여부 미확정",
+      "cthulhu-dh--section-iv/section-iv-farmhouse: 농가에 갇힌 존재와 후속 파괴 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dh--section-iv/section-iv-warning: 농가에 갇힌 존재와 후속 파괴 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dh--section-vii/section-vii-escape: 농가에 갇힌 존재와 후속 파괴 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "46f5161a-9535-571d-ad64-517a4c525ec5",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iii-wilbur",
+    "title": "빠르게 자라는 윌버",
+    "cardType": "character",
+    "body": "윌버는 한 살 일곱 달에 네 살 아이만큼 크고 유창하게 말하며 할아버지의 책을 공부한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section III, 해당 구간 본문 4문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-iv/section-iv-wilbur: 관련 대상, 동일 여부 미확정",
+      "다른 단위 cthulhu-dh--section-vi/section-vi-wilbur: 관련 대상, 동일 여부 미확정",
+      "source/tradition-cards.json wilbur-whateley: 같은 인물; 동일 카드 여부 미확정",
+      "cthulhu-dh--section-iv/section-iv-wilbur: 윌버의 급성장과 후속 묘사 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dh--section-vi/section-vi-wilbur: 윌버의 급성장과 후속 묘사 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "25e30e3d-829b-5434-a34c-c7207545ee59",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iii-library",
+    "title": "할아버지가 정리한 책들",
+    "cardType": "object",
+    "body": "늙은 웨이틀리는 낡은 책을 손질해 윌버의 방 서가에 모으고 손자의 배움이 될 것이라고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section III, 해당 구간 본문 2문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b2043532-e0cc-5ace-af69-2b6ed9ed8ec3",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iii-cattle",
+    "title": "사라지는 가축과 농가의 냄새",
+    "cardType": "event",
+    "body": "웨이틀리는 가축을 계속 사지만 무리는 늘지 않는다. 방문객은 창고와 봉인된 윗층에서 비슷한 악취를 맡았다고 전한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section III, 해당 구간 본문 8문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-vii/section-vii-cattle: 관련 대상, 동일 여부 미확정",
+      "review/full-myth/cthulhu_mythos/cards-001.json 웨이틀리 가축 구입과 상처: 가축에 관한 선행 내용; 동일 카드 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8bf0a4bc-4656-56aa-bf20-ad7eb3b121ff",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iii-hill",
+    "title": "언덕의 불과 땅울림",
+    "cardType": "event",
+    "body": "1915년 오월 전야에 진동이 있고 핼러윈에는 센티널 힐의 불길과 지하의 울림이 함께 관찰된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section III, 해당 구간 본문 5문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a2e2edb1-a356-501d-968e-b95780731248",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iii-lavinia",
+    "title": "라비니아의 두려움",
+    "cardType": "character",
+    "body": "라비니아는 집의 잠긴 계단 문을 방문객이 건드리자 두려워하지만 윗층에서 아버지와 아들이 하는 일을 말하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section III, 해당 구간 본문 6문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-iv/section-iv-lavinia: 관련 대상, 동일 여부 미확정",
+      "review/full-myth/cthulhu_mythos/cards-001.json 라비니아 웨이틀리: 같은 인물; 동일 카드 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "620f05c9-88af-583d-92f8-9207a4557fb6",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iv",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iv-farmhouse",
+    "title": "벽을 없앤 웨이틀리 농가",
+    "cardType": "location",
+    "body": "1923년 무렵 윌버와 할아버지는 봉인된 윗층의 벽과 다락 바닥을 없애고 굴뚝을 철거한 것으로 주민들에게 추정된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section IV, 해당 구간 본문 3문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-iii/section-iii-farmhouse: 관련 대상, 동일 여부 미확정",
+      "review/full-myth/cthulhu_mythos/cards-001.json 웨이틀리 농가: 같은 장소; 동일 카드 여부 미확정",
+      "cthulhu-dh--section-iii/section-iii-farmhouse: 농가에 갇힌 존재와 후속 파괴 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dh--section-vii/section-vii-escape: 농가에 갇힌 존재와 후속 파괴 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2b995fef-30c0-5032-9f86-380313e6a083",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iv",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iv-birds",
+    "title": "영혼을 노리는 쏙독새 전승",
+    "cardType": "rule",
+    "body": "늙은 웨이틀리는 쏙독새가 죽어 가는 이의 호흡에 맞춰 울며 영혼을 잡는다고 믿는다. 그의 죽음 뒤 새들이 조용해지자 윌버는 잡히지 않았다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section IV, 해당 구간 본문 5문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-vi/section-vi-birds: 관련 대상, 동일 여부 미확정",
+      "cthulhu-dh--section-vi/section-vi-birds: 영혼을 노린다는 새의 전승과 새 떼 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e16c4699-cbe8-5cc1-8505-980dd8701510",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iv",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iv-warning",
+    "title": "늙은 웨이틀리의 임종 당부",
+    "cardType": "event",
+    "body": "그는 윌버에게 갇힌 것을 먹이고 더 넓은 공간을 마련하며 요그 소토스의 문을 열기 전 탈출하지 않게 하라고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section IV, 해당 구간 본문 10문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-dh--section-iii/section-iii-farmhouse: 농가에 갇힌 존재와 후속 파괴 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dh--section-vii/section-vii-escape: 농가에 갇힌 존재와 후속 파괴 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "50280195-46e1-5108-aa37-8db236c9eedf",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iv",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iv-chant",
+    "title": "요그 소토스에게 문을 여는 긴 주문",
+    "cardType": "ability",
+    "body": "임종하는 할아버지는 완전판 751쪽의 긴 주문으로 요그 소토스에게 문을 열라고 지시한다. 이 구간에서 완전판 제목은 명시되지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section IV, 해당 구간 본문 8문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "source/tradition-cards.json yog-sothoth: 같은 이름의 존재; 동일 카드 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9f39c0b9-dcc4-5256-9014-b9a8e1e0832d",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iv",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iv-lavinia",
+    "title": "라비니아의 실종",
+    "cardType": "event",
+    "body": "윌버를 두려워한다고 털어놓은 라비니아는 1926년 핼러윈 밤 뒤 다시 목격되지 않는다. 실종 경위는 밝혀지지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section IV, 해당 구간 본문 16문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-iii/section-iii-lavinia: 관련 대상, 동일 여부 미확정",
+      "review/full-myth/cthulhu_mythos/cards-001.json 라비니아 웨이틀리: 같은 인물; 동일 카드 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ed0675af-2f8c-5438-aa97-50a3e617f57a",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-iv",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-iv-wilbur",
+    "title": "헛간으로 옮긴 윌버",
+    "cardType": "character",
+    "body": "1927년 윌버는 책과 살림을 헛간으로 옮기고 농가 아래층 문과 창을 막는다. 주민들은 어머니의 실종과 연관이 있을지 의심한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section IV, 해당 구간 본문 17문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-iii/section-iii-wilbur: 관련 대상, 동일 여부 미확정",
+      "다른 단위 cthulhu-dh--section-vi/section-vi-wilbur: 관련 대상, 동일 여부 미확정",
+      "source/tradition-cards.json wilbur-whateley: 같은 인물; 동일 카드 여부 미확정",
+      "cthulhu-dh--section-iii/section-iii-wilbur: 윌버의 급성장과 후속 묘사 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dh--section-vi/section-vi-wilbur: 윌버의 급성장과 후속 묘사 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e6c9a35c-5891-5c18-b7f4-b6b0cc216b15",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vi",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vi-breakin",
+    "title": "도서관 침입과 윌버의 죽음",
+    "cardType": "event",
+    "body": "1928년 8월 3일 윌버가 미스캐토닉 도서관에 침입한 뒤 경비견에게 치명상을 입는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VI, 해당 구간 본문 4문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "source/tradition-cards.json wilbur-whateley: 같은 인물; 동일 카드 여부 미확정",
+      "cthulhu-dwh--chunk-01/chunk-01-books: 도서관과 금서 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c39bbe04-8908-5d3d-8e4e-f80b00369441",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vi",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vi-wilbur",
+    "title": "윌버의 숨겨진 몸",
+    "cardType": "character",
+    "body": "찢어진 옷 아래 드러난 윌버는 사람 같은 얼굴과 손 외에 촉수와 비늘 모양 피부, 퇴화한 눈처럼 보이는 기관을 지녔다. 사후 몸은 빠르게 붕괴한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VI, 해당 구간 본문 7문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-iii/section-iii-wilbur: 관련 대상, 동일 여부 미확정",
+      "다른 단위 cthulhu-dh--section-iv/section-iv-wilbur: 관련 대상, 동일 여부 미확정",
+      "source/tradition-cards.json wilbur-whateley: 같은 인물; 동일 카드 여부 미확정",
+      "cthulhu-dh--section-iii/section-iii-wilbur: 윌버의 급성장과 후속 묘사 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dh--section-iv/section-iv-wilbur: 윌버의 급성장과 후속 묘사 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "59c8d6f2-a06c-51b4-a628-09f64292567c",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vi",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vi-words",
+    "title": "윌버의 마지막 중얼거림",
+    "cardType": "event",
+    "body": "아미티지는 죽어가는 윌버가 영어가 아닌 음절과 네크로노미콘의 일부를 중얼거렸다고 회상한다. 현장에서 기록하지 않았으므로 기억에 의존한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VI, 해당 구간 본문 8문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "source/tradition-cards.json wilbur-whateley: 같은 인물; 동일 카드 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "972207b0-ac82-5f37-aee2-ce77e5d9ea42",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vi",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vi-dog",
+    "title": "미스캐토닉 도서관 경비견",
+    "cardType": "character",
+    "body": "경비견은 침입자를 공격하고 사람들을 깨운다. 윌버가 숨을 거둔 뒤 겁먹고 창문으로 뛰쳐나간다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VI, 해당 구간 본문 10문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4f2b9857-a272-5a96-9990-7a6a45d17300",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vi",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vi-witnesses",
+    "title": "아미티지·라이스·모건",
+    "cardType": "organization",
+    "body": "아미티지는 윌버가 쓰러진 도서관 안에 워런 라이스 교수와 프랜시스 모건 박사를 동행시켜 그 광경을 함께 목격한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VI, 해당 구간 본문 4문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "review/full-myth/cthulhu_mythos/cards-001.json 헨리 아미티지: 같은 인물; 동일 카드 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8be856ab-11b6-598a-98c0-c8e4b5e8ab51",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vi",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vi-birds",
+    "title": "윌버의 죽음과 새들의 도주",
+    "cardType": "event",
+    "body": "윌버가 마지막 숨을 거두자 창밖 쏙독새의 울음이 멈추고 새 떼가 황급히 날아간다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VI, 해당 구간 본문 9문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-iv/section-iv-birds: 관련 대상, 동일 여부 미확정",
+      "source/tradition-cards.json wilbur-whateley: 같은 인물; 동일 카드 여부 미확정",
+      "cthulhu-dh--section-iv/section-iv-birds: 영혼을 노린다는 새의 전승과 새 떼 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "437d61ed-78f8-5e39-a45d-71fccd33bc97",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vii-ledger",
+    "title": "윌버의 낯선 문자 일지",
+    "cardType": "object",
+    "body": "헛간에서 발견된 큰 장부에는 낯선 글자로 긴 기록이 적혀 있다. 당국은 일지로 추정하고 책들과 함께 대학에 보낸다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VII, 해당 구간 본문 3문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "source/tradition-cards.json wilbur-whateley: 같은 인물; 동일 카드 여부 미확정",
+      "cthulhu-dh--section-viii/section-viii-cipher: 일지와 해독 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dh--section-viii/section-viii-decoding: 일지와 해독 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ccc228c7-5d6a-5592-9e8d-08c0917e0d25",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vii-escape",
+    "title": "웨이틀리 농가의 파괴와 탈출",
+    "cardType": "event",
+    "body": "9월 9일 밤 뒤 농가는 안에서 터진 듯 무너지고 넓은 흔적과 끈적한 물질이 남는다. 주민들은 거대한 무언가가 빠져나갔다고 추론한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VII, 해당 구간 본문 7문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "review/full-myth/cthulhu_mythos/cards-001.json 웨이틀리 농가: 같은 장소; 동일 카드 여부 미확정",
+      "source/tradition-cards.json dunwich-horror: 1928년 사건; 동일 카드 여부 미확정",
+      "cthulhu-dh--section-iii/section-iii-farmhouse: 농가에 갇힌 존재와 후속 파괴 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dh--section-iv/section-iv-farmhouse: 농가에 갇힌 존재와 후속 파괴 관련 대상 또는 사건; 동일 여부 미확정",
+      "cthulhu-dh--section-iv/section-iv-warning: 농가에 갇힌 존재와 후속 파괴 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c38e9c93-91bc-5854-9521-cf68bbbffcd7",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vii-glen",
+    "title": "콜드스프링 골짜기",
+    "cardType": "location",
+    "body": "파괴된 농가에서 이어진 거대한 자국은 골짜기로 향한다. 수색대는 절벽의 부러진 나무와 악취를 확인하지만 내려가지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VII, 해당 구간 본문 12문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2ad0911f-8c42-5ceb-91dc-c04f080ee0de",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vii-tracks",
+    "title": "거대한 부채꼴 발자국",
+    "cardType": "other",
+    "body": "루서 브라운은 길에서 여러 개의 둥근 깊은 발자국과 방사형 무늬를 봤다고 말한다. 이후 주민들도 자국들을 확인한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VII, 해당 구간 본문 5문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4fb8b0d7-80ba-5717-a38c-cc64cf4570df",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vii-cattle",
+    "title": "프라이 농장의 가축 습격",
+    "cardType": "event",
+    "body": "밤에 축사에서 나무가 부서지고 가축의 비명이 들린다. 다음 날 축사와 가축은 크게 파괴되어 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VII, 해당 구간 본문 13문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dh--section-iii/section-iii-cattle: 관련 대상, 동일 여부 미확정",
+      "review/full-myth/cthulhu_mythos/cards-001.json 웨이틀리 가축 구입과 상처: 가축에 관한 선행 내용; 동일 카드 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "55486e16-d73a-5206-ba8d-f32d89a6fd4f",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vii-stone",
+    "title": "센티널 힐의 점액 묻은 돌",
+    "cardType": "location",
+    "body": "주민들이 따라간 흔적은 가파른 절벽을 올라 정상의 탁자형 돌에서 되돌아간다. 돌에는 농가에서 본 것과 같은 끈적한 물질이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VII, 해당 구간 본문 17문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dwh--chunk-04/chunk-04-stone: 관련 대상, 동일 여부 미확정",
+      "review/full-myth/cthulhu_mythos/cards-001.json 센티널 힐과 제단형 바위: 같은 장소; 동일 카드 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2bbc871e-0342-53c9-a8c2-0ec3cd7dd761",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vii-frye",
+    "title": "프라이 일가의 집 파괴",
+    "cardType": "event",
+    "body": "공동 전화로 도움을 청하는 외침이 끊긴 뒤 주민들은 프라이 집이 무너지고 가족을 찾을 수 없음을 확인한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VII, 해당 구간 본문 18문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3c006706-6a43-5508-b55e-bfbddc4968f6",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-vii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-vii-sally",
+    "title": "샐리 소여의 보고",
+    "cardType": "character",
+    "body": "가정부 샐리는 아들 챈시가 본 폐허와 가축의 상태를 전화로 전하고 웨이틀리 집에서 무언가가 길러졌다고 추측한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VII, 해당 구간 본문 7문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "475e329c-de28-53a5-99e6-9109edd3b170",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-viii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-viii-cipher",
+    "title": "암호화된 윌버의 일지",
+    "cardType": "object",
+    "body": "전문가들이 장부의 문자를 풀지 못하자 아미티지는 영어 문장을 복잡한 치환 방식으로 기록한 것으로 가정하고 해독한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VIII, 해당 구간 본문 4문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "source/tradition-cards.json wilbur-whateley: 같은 인물; 동일 카드 여부 미확정",
+      "cthulhu-dh--section-vii/section-vii-ledger: 일지와 해독 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "55d5780f-aea4-58f7-bb4b-449c14c87890",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-viii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-viii-decoding",
+    "title": "아미티지의 일지 해독",
+    "cardType": "ability",
+    "body": "아미티지는 고전 암호학 자료를 참고해 9월 2일 연속된 일지 문장을 해독한다. 열쇠를 다시 적용해야 하는 구간도 있었다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VIII, 해당 구간 본문 5문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "review/full-myth/cthulhu_mythos/cards-001.json 헨리 아미티지: 같은 인물; 동일 카드 여부 미확정",
+      "cthulhu-dh--section-vii/section-vii-ledger: 일지와 해독 관련 대상 또는 사건; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3d69e0a0-3f3f-52eb-a87d-4d116cae010e",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-viii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-viii-aklo",
+    "title": "아클로와 언덕의 응답",
+    "cardType": "ability",
+    "body": "윌버의 일지에는 아클로를 배웠으나 공중이 아닌 언덕에서 응답한다는 이유로 마음에 들지 않았다는 기록이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VIII, 해당 구간 본문 6문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2566cb17-6a09-5513-852f-1ba9a623db09",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-viii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-viii-dho",
+    "title": "도·흐나 공식과 극지 도시",
+    "cardType": "ability",
+    "body": "윌버는 도 공식을 반복하던 중 양 자극의 내부 도시를 본 듯했으며 도·흐나 공식을 익히면 그곳으로 뚫고 갈 수 있을지 생각한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VIII, 해당 구간 본문 6문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "90dd1b97-705d-5e3f-8586-a0a83c5892b2",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-viii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-viii-powder",
+    "title": "부리시 표식과 이븐 가지의 가루",
+    "cardType": "ability",
+    "body": "윌버는 부리시 표식을 쓰거나 이븐 가지의 가루를 뿌리면 위층의 존재를 조금 볼 수 있다고 일지에 적는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VIII, 해당 구간 본문 6문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9b640072-fac5-5c7d-9af2-b590074dd764",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-viii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-viii-blood",
+    "title": "외부 존재와 인간의 피에 관한 일지",
+    "cardType": "rule",
+    "body": "윌버는 바깥의 존재들이 인간의 피 없이는 몸을 취할 수 없다고 기록한다. 이는 독립적으로 검증된 규칙이 아니다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VIII, 해당 구간 본문 6문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9628567b-bde7-5fcb-ac62-9fafd1f2208a",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-viii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-viii-clearing",
+    "title": "지구를 비우려는 계획에 대한 우려",
+    "cardType": "event",
+    "body": "일지에서 윌버는 지구를 비우는 일을 말한다. 이를 읽은 아미티지는 인간과 동식물의 절멸 계획을 두려워한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VIII, 해당 구간 본문 9문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7e8a07a1-4e4c-51cb-b5ae-105f2243f918",
+    "batch_id": "batch-07",
+    "unit_id": "cthulhu-dh--section-viii",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "section-viii-armitage",
+    "title": "아미티지의 조제 가루",
+    "cardType": "object",
+    "body": "아미티지는 가루를 만들 방법을 안다고 말하고 동료들과 대책을 준비한다. 이 구간에 구체적인 제조법은 없다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "던위치의 공포, Section VIII, 해당 구간 본문 10문단 (br 기준)",
+    "edition": "H. P. Lovecraft, H. P. Lovecraft Archive 영어 웹 전사; 인쇄 저본 미확인",
+    "possible_duplicates": [
+      "review/full-myth/cthulhu_mythos/cards-001.json 헨리 아미티지: 같은 인물; 동일 카드 여부 미확정"
+    ],
+    "uncertainties": [
+      "화자·등장인물의 꿈과 진술 및 추측은 객관적 사실과 구별한다.",
+      "전사·번역·재배포·상업 이용 조건 미확인."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "90954237-a48e-5210-b788-18f25a0c4001",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-ix",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "armitage-investigation",
+    "title": "아미티지의 던위치 조사",
+    "cardType": "character",
+    "body": "아미티지는 라이스·모건과 피해 현장을 살피고 윌버의 일기와 고서를 바탕으로 괴물에 대응할 주문을 준비한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section IX · 첫 문단 및 군중 앞 설명",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "review/full-myth/cthulhu_mythos henry-armitage: 같은 인물의 앞선 구간"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "66883a04-f09d-5764-a3a2-ad64c29eb726",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-ix",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cold-spring-glen",
+    "title": "콜드 스프링 골짜기",
+    "cardType": "location",
+    "body": "프라이 농가 가까운 깊은 골짜기에서 악취가 불어오고 경찰 다섯 명이 들어간 뒤 행방이 묘연하다. 다음 날 폭풍 속에서 보이지 않는 존재가 빠져나온 것으로 전해진다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section IX · 경찰 수색과 야간 대기 장면",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dd690e30-b1a0-57f4-9e00-cfed9c33aa47",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-ix",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "missing-police",
+    "title": "사라진 주 경찰 일행",
+    "cardType": "event",
+    "body": "프라이 사건을 조사하러 온 주 경찰 다섯 명은 차를 농가에 남긴 채 사라진다. 주민은 그들이 골짜기로 들어갔을 가능성을 우려한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section IX · 도입부 경찰차 발견",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "실종 원인은 이 구간에서 직접 목격되지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a99333e9-33cf-58c4-aa6b-2f729bb5da3d",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-ix",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "seth-bishop-attack",
+    "title": "비숍 농가의 전화 증언",
+    "cardType": "event",
+    "body": "주민들은 전화로 샐리가 보이지 않는 무게에 울타리와 집이 무너진다고 외치는 소리를 듣는다. 현장에는 집과 축사의 폐허 및 끈적한 흔적만 남았다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section IX · 주민의 전화 전달과 폐허 조사",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "습격의 경과는 전화로 전해진 주민들의 증언이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e4c54f03-0bbe-5e56-9ed1-8d06bbbfe5b7",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-ix",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "invisible-horror",
+    "title": "보이지 않는 던위치의 존재",
+    "cardType": "character",
+    "body": "발자국과 휘는 나무, 악취만 남기며 지나가고 집을 부순다. 아미티지는 증식하지 못하며 물질 무기로는 도움이 되지 않는다고 판단한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section IX · 루서의 목격담과 아미티지 설명",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "같은 배치 section-x twin-horror: 같은 추적 대상"
+    ],
+    "uncertainties": [
+      "증식과 무기 효과는 아미티지의 판단이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5d1a5dcf-e2ff-5802-bd70-7da9ba89de54",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-ix",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "revealing-powder",
+    "title": "형체를 드러내는 분말 분무기",
+    "cardType": "object",
+    "body": "라이스가 긴 거리까지 뿌릴 수 있는 금속 분무기를 지닌다. 아미티지는 그 속 분말이 보이지 않는 존재를 잠시 보이게 할 수 있다고 설명한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section IX · 장비 소개 및 출발 전 연설",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "같은 배치 section-x revealing-powder: 사용 장면"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "04beef79-754b-5285-a732-a4fd9fa01084",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-ix",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sentinel-hill",
+    "title": "센티널 힐의 추적 흔적",
+    "cardType": "location",
+    "body": "거대한 흔적이 언덕을 오르내리고 정상에는 제단처럼 보이는 돌이 있다. 망원경으로 식물이 움직이는 것이 보여 추적 대상의 이동을 짐작한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section IX · 첫 문단과 마지막 망원경 관찰",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "review/full-myth sentinel-hill: 동일 장소의 I부 설명"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f481dc40-f3c6-582a-b82a-f886fc6f0292",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-ix",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "luther-corey-witness",
+    "title": "루서의 골짜기 목격",
+    "cardType": "character",
+    "body": "코리 집의 고용인 루서는 비바람 속에 나무가 휘고 다리가 삐걱대며 진흙에 큰 발자국이 남는 것을 보고하지만 어떤 몸체도 보지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section IX · 주민이 전한 코리 부인의 전화",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3ca53bc3-e514-5121-a9dc-6adaa32f3f1a",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-x",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "twin-horror",
+    "title": "윌버의 쌍둥이 형제",
+    "cardType": "character",
+    "body": "분말을 뿌린 순간 커티스는 거대한 젤리 같은 몸과 여러 다리·눈·입, 꼭대기의 반쯤 인간 같은 얼굴을 보았다고 말한다. 아미티지는 그것이 윌버의 쌍둥이이며 아버지를 더 닮았다고 설명한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section X · 커티스의 망원경 증언과 결말",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "같은 배치 section-ix invisible-horror: 같은 존재"
+    ],
+    "uncertainties": [
+      "외형은 커티스의 증언, 혈연은 아미티지의 설명이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5832e90f-9755-5ca0-9092-a4787a6b9027",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-x",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "revealing-powder",
+    "title": "산비탈의 분말 살포",
+    "cardType": "event",
+    "body": "라이스가 분무기로 분말을 퍼뜨리자 관측자가 거대한 형체를 잠시 본다. 효과는 지속되지 않아 곧 다시 보이지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section X · 초반 분무 장면",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "같은 배치 section-ix revealing-powder: 동일 분무기"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c89529ad-0515-5234-bff0-2261692509be",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-x",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sentinel-ritual",
+    "title": "센티널 힐의 추방 의식",
+    "cardType": "event",
+    "body": "세 사람은 능선에서 팔을 움직이며 주문을 외운다. 정상 부근에서 아버지 요그 소토스를 부르는 소리가 들리고 벼락과 보이지 않는 힘이 퍼진 뒤 아미티지는 존재가 해체되었다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section X · 능선 의식부터 아미티지의 설명",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "source tradition-cards dunwich-horror: 더 넓은 사건 범위와 관련"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4c8376ef-c7ce-520b-8f22-62d40e3507a0",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-x",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "yog-sothoth",
+    "title": "요그 소토스라는 호명",
+    "cardType": "character",
+    "body": "정상에서 들린 보이지 않는 목소리는 요그 소토스를 아버지라고 부른다. 아미티지는 존재의 대부분이 물질 우주 밖의 아버지에게 돌아갔다고 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section X · 정상에서의 음성과 아미티지 해석",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "source tradition-cards yog-sothoth: V부 허구 문헌의 문과 열쇠 서술"
+    ],
+    "uncertainties": [
+      "혈연과 차원의 설명은 등장인물의 해석이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "500052bd-aee5-55c9-a363-8f20a4ddb238",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-x",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "hill-aftermath",
+    "title": "센티널 힐의 의식 후유증",
+    "cardType": "event",
+    "body": "정상에서의 천둥과 벼락 뒤 악취와 보이지 않는 힘이 퍼지고 식물이 누렇게 시들며 죽은 쏙독새들이 흩어진다. 서술자는 언덕의 식생이 회복되지 않았다고 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section X · 정상 의식의 절정과 직후",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "review/full-myth sentinel-hill: 같은 장소의 I부 카드"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "65e9c2d6-975b-5c09-9e7d-1324ed897380",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-x",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "curtis-whateley",
+    "title": "커티스 웨이틀리의 증언",
+    "cardType": "character",
+    "body": "망원경으로 분말에 드러난 형체를 본 뒤 실신한다. 깨어난 뒤 그 얼굴이 옛 웨이틀리와 닮았다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section X · 분말 살포 직후와 의식 뒤",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "review/full-myth old-whateley: 얼굴 비교 대상이지 동일 인물은 아님"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2f5e2c1a-c4b2-59ef-be02-fdfcffad355a",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-dh--section-x",
+    "work_id": "cthulhu-dh",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "stone-rings",
+    "title": "제단과 선돌 고리",
+    "cardType": "object",
+    "body": "아미티지는 정상의 제단석을 폭파하고 다른 언덕의 선돌 고리를 무너뜨리라고 권한다. 그의 설명에서 이 돌들은 외부 존재를 불러내는 일과 관련된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "source_location": "Section X · 마지막 아미티지의 권고",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "review/full-myth sentinel-hill: 관련 위치"
+    ],
+    "uncertainties": [
+      "돌의 기능은 아미티지의 주장이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c568b816-617b-56de-97b8-3c5e257eb115",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-soi--section-iv",
+    "work_id": "cthulhu-soi",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "gilman-house",
+    "title": "길먼 하우스 428호",
+    "cardType": "location",
+    "body": "버스가 고장났다는 말을 들은 화자는 호텔 428호에 묵는다. 복도 쪽 문에서 빗장이 제거돼 있었고 양옆 방으로 연결되는 문이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/soi.aspx",
+    "source_location": "Section IV · 초반 버스 고장과 숙박",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "review/full-myth gilman-house: II부 호텔 소개"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d48315c6-b3cd-54cf-8465-4a887e8f9ece",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-soi--section-iv",
+    "work_id": "cthulhu-soi",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "hotel-escape",
+    "title": "길먼 하우스 탈출",
+    "cardType": "event",
+    "body": "누군가 열쇠로 방에 접근하고 전기가 끊기자 화자는 옆방을 뚫고 커튼을 이용해 인접 지붕으로 내려간다. 마당에는 등불을 든 무리가 나타난다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/soi.aspx",
+    "source_location": "Section IV · 객실 침입 시도부터 안뜰 탈출",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "review/full-myth innsmouth-narrator: 화자"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d93abab4-90f0-54e3-b17a-8faea6695494",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-soi--section-iv",
+    "work_id": "cthulhu-soi",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sargent-bus",
+    "title": "서전트와 고장 난 버스",
+    "cardType": "character",
+    "body": "버스 운전사 서전트는 차의 엔진에 문제가 있어 밤에 아컴으로 갈 수 없다고 말한다. 그 설명이 사실인지 화자는 확인하지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/soi.aspx",
+    "source_location": "Section IV · 버스 도착과 숙박 결정",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "고장은 운전사의 주장이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6849555e-04ec-54ee-81dd-73fbe44a235e",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-soi--section-iv",
+    "work_id": "cthulhu-soi",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "devil-reef-signals",
+    "title": "데블 리프와 등화",
+    "cardType": "location",
+    "body": "화자는 암초에서 불빛이 깜박이고 호텔 탑에서도 다른 간격의 빛이 나타나는 것을 본다. 그는 응답 신호라고 판단하지만 의미를 모른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/soi.aspx",
+    "source_location": "Section IV · 사우스가에서 바다를 보는 장면",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "신호의 목적은 화자의 추측이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b1f84482-ba1e-540c-84f3-9683afb1e5c2",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-soi--section-iv",
+    "work_id": "cthulhu-soi",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sea-swimmers",
+    "title": "해안으로 향하는 수영 무리",
+    "cardType": "event",
+    "body": "암초와 해안 사이에 많은 형체가 헤엄쳐 마을로 향하는 것을 화자가 멀리서 잠시 본다. 이후 방수포로 덮은 물건을 실은 노 젓는 배도 발견한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/soi.aspx",
+    "source_location": "Section IV · 사우스가의 첫 해안 관찰과 두 번째 횡단",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "수영자의 정체와 배의 화물은 확정되지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2e982e90-3a13-5c01-97c1-cc9f86dd2490",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-soi--section-iv",
+    "work_id": "cthulhu-soi",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "rowley-railway",
+    "title": "롤리 방면 폐철도",
+    "cardType": "location",
+    "body": "강 협곡의 폐역에서 이어진 선로는 무너진 침목이 있는 지붕 다리를 건너 늪지의 둑과 가시덤불 사이를 지난다. 화자는 도로의 추격을 피해 이 길을 택한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/soi.aspx",
+    "source_location": "Section IV · 폐역 및 다리 횡단 장면",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "source tradition-cards innsmouth: 마을의 다른 구간 설명"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e3c4b2ac-edb1-577e-a49b-825d0715584a",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-soi--section-iv",
+    "work_id": "cthulhu-soi",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "rowley-horde",
+    "title": "롤리 도로의 물고기 형상 무리",
+    "cardType": "character",
+    "body": "화자는 흰 배와 비늘 능선, 아가미와 물갈퀴가 있는 물고기 머리의 무리를 보았다고 말한다. 일부는 관이나 옷을 입었으며 소리는 의사소통처럼 들린다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/soi.aspx",
+    "source_location": "Section IV · IV부 끝 롤리 도로 목격",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "review/full-myth deep-ones: V부 꿈에 나타나는 이름의 존재와 연관 가능하나 이 구간에서 명칭은 확정하지 않음"
+    ],
+    "uncertainties": [
+      "화자는 실제 목격과 환각 사이에서 의심한다. 외모에 대한 멸시적 묘사는 화자의 편견이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3a8a7091-7330-5881-aeef-1ef7368c2d40",
+    "batch_id": "batch-08",
+    "unit_id": "cthulhu-soi--section-iv",
+    "work_id": "cthulhu-soi",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "tiara-pursuers",
+    "title": "관을 쓴 추격 무리",
+    "cardType": "organization",
+    "body": "호텔 안뜰과 도로에서 로브와 관을 쓴 인물이 섞인 무리를 화자가 본다. 길을 막는 조직적 추격이라는 판단은 그의 추론이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/soi.aspx",
+    "source_location": "Section IV · 호텔 안뜰과 입스위치 길 방면 무리",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "source tradition-cards esoteric-order-of-dagon: 관련 가능성이나 이 무리의 소속은 직접 확정되지 않음"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "23ee7dab-8b69-5ee6-9342-cf482132daca",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "bari-princess",
+    "title": "버르떼기 공주의 서역길",
+    "cardType": "character",
+    "body": "옥이 대왕의 일곱째로 태어나 버려졌다고 전하는 공주가 아버지를 살릴 약물을 구하려 서천 서역국으로 향한다. 남복 차림에도 곽사자는 공주임을 알아본다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 처음 사설과 곽사자 만남",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-02 bari-princess 및 record-03 bari-return: 같은 구연의 다른 구간"
+    ],
+    "uncertainties": [
+      "구연은 이 구간 앞에 이미 진행 중인 형태로 시작한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8914cddc-6da4-5aa9-8a11-7dd4fbae623e",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "dongdeok-temple",
+    "title": "수미산 팔봉대 절과 길 안내",
+    "cardType": "location",
+    "body": "스님들은 절이 수미산의 팔봉산 팔봉대라고 말하고 동덕사·동덕천·동수산·동수절을 찾아가라고 길을 전한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 첫 사설에서 스님들의 응답",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6e8d7740-0efe-5ec7-bfe5-edfa79895be4",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "earth-diggers",
+    "title": "밭을 가는 하늘의 흙뒤지기",
+    "cardType": "character",
+    "body": "공주가 갈지 못하는 밭 앞에서 하늘에서 내려온 강아지만 한 흙뒤지기들이 순식간에 밭을 갈아 준다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 첫 밭갈이와 신선의 밭 재등장",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ff1c6b28-5027-5155-9d2c-fa2d39963a28",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "gwak-messenger",
+    "title": "연기 속의 곽사자",
+    "cardType": "character",
+    "body": "곽사자는 연기 속에서 나타나 남복 차림의 공주를 알아보고 조심해 다녀오라고 한 뒤 사라진다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 첫 밭 이후 사자의 출현",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-02 gwak-guide 및 record-03 gwak-memo: 같은 구연의 사자"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4bbc58d3-39ec-5986-a124-e363e1bf434c",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "immortal-mountain",
+    "title": "신선의 산과 물레",
+    "cardType": "location",
+    "body": "향기와 연꽃이 있는 곳에서 장기와 구슬을 두는 노인들을 만난다. 한 노인이 물레를 돌리자 안개 낀 산이 가깝게 느껴지고 노인들은 학을 타고 올라간다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 신선들의 놀이와 안내",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "206ade56-4c5c-5655-82ba-679764cc359c",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "plough-test",
+    "title": "밭갈이 노인의 시험",
+    "cardType": "event",
+    "body": "백발 노인은 밭을 갈아 주면 길을 알려 주겠다고 한다. 하늘에서 온 흙뒤지기들이 일을 마치고, 사라진 노인은 공주의 마음을 시험한 신선으로 설명된다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 신선들이 떠난 뒤 노인의 밭",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e0543492-a5ad-5ec1-8a54-cec79c66fb18",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "turtle-bridge",
+    "title": "거북이 등으로 놓은 다리",
+    "cardType": "event",
+    "body": "강을 건널 배와 다리가 없어 울던 공주에게 거북들이 등을 내밀고 뒤의 거북이 앞으로 옮겨 가며 강을 건너게 돕는다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 밭갈이 시험 뒤 강가",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b5b2e170-be23-5ea0-953a-36e3fed4f794",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "magu-fairy",
+    "title": "천태산 마구 선녀",
+    "cardType": "character",
+    "body": "험상궂은 할머니로 변장해 공주에게 빨래와 이 잡기를 부탁한 뒤, 자신이 마음을 시험하려 온 선녀라고 밝히고 학을 타고 떠난다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 강 건너 빨래와 이 잡기",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "전사에서 마구·마귀 표기가 병기된다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6bd35dc6-ee93-5f5b-bedd-fe0bc1338eee",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "mist-laundry",
+    "title": "안개 속의 빨래",
+    "cardType": "event",
+    "body": "공주가 검은 빨래와 숫구멍을 씻으려 고생하자 안개가 덮이고 빨래와 숫구멍이 흰 눈처럼 깨끗해진다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 마구 할미의 빨래 부탁",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c913606d-3ad5-5a65-8df0-6e374bd43d2f",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "prayer-bead-field",
+    "title": "염주밭과 염불",
+    "cardType": "event",
+    "body": "승려들은 염주밭을 매고 구슬을 꿰어 주면 길을 알려 주겠다고 한다. 공주가 나무아미타불을 염하자 밭이 매어지고 염주가 꿰인다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 마구 선녀가 떠난 뒤 염주밭",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0e83aef8-9389-5552-be77-cee7cc4b6bb4",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "blue-birds",
+    "title": "방아를 찧는 푸른 새들",
+    "cardType": "character",
+    "body": "공주가 무거운 방아를 찧지 못하고 울자 수천 마리 새가 내려와 낟알을 찧고 까불어 흰 쌀을 만든다. 공주는 새들의 말을 알아듣는다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 방아를 찧어 달라는 아주머니 장면",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "874f4f96-0f98-54b5-a747-ad236cbdd8a3",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "heavenly-weavers",
+    "title": "베를 짜는 하늘 선녀들",
+    "cardType": "character",
+    "body": "공주가 베와 명주를 짜라는 부탁을 받고 어려워하자 하늘의 선녀들이 내려와 대신 짜 준다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · 방아 다음 베틀 장면",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "abf3cd58-dc22-5651-ae3c-503f1b2c31c1",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-01",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "two-afterlife-roads",
+    "title": "극락과 지옥의 두 갈래 길",
+    "cardType": "location",
+    "body": "극락으로 가는 이는 적어 좁은 길이 되고 지옥으로 가는 이는 많아 큰길이 되었다고 구연한다. 공주는 바람과 빛을 보고 좁은 길로 향한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 01 · record-01 끝의 갈림길",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-02 afterlife-hells: 같은 구연의 다른 저승 공간"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "93877e79-6d39-5bea-bff7-010b927ef0c2",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-02",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "bari-princess",
+    "title": "남복을 입은 버르떼기",
+    "cardType": "character",
+    "body": "공주는 약물을 찾아가는 길에 남복 차림으로 동수재를 만난다. 목욕 중 옷을 빼앗기자 여정의 목적과 변장한 이유를 밝힌다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 02 · 첫 만남과 목욕 장면",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-01 bari-princess: 같은 구연의 공주"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9bee356b-7f23-5529-b4aa-da717dceff5b",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-02",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "dongsujae",
+    "title": "동수재의 꿈과 혼인",
+    "cardType": "character",
+    "body": "동수재는 배필이 올 것이라는 꿈을 꾸었다고 말하고 효녀와 결혼해야 죄를 면하고 천궁으로 간다고 한다. 공주의 옷을 숨겨 혼인 약속과 아들 셋을 낳겠다는 기약을 요구한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 02 · 첫 만남부터 혼인 기약",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-03 husband-departure: 이후 행적"
+    ],
+    "uncertainties": [
+      "꿈과 죄 사면 조건은 동수재의 말이다. 혼인 약속은 옷을 돌려받기 위한 압박 속에 이뤄진다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dfa84a19-fe24-5ddb-945c-2c4890578860",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-02",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "urination-contest",
+    "title": "담을 넘는 소변 시합",
+    "cardType": "event",
+    "body": "동수재가 남자인지 확인한다며 시합을 제안하자 공주는 천지신명에게 빌고 물이 내려와 홍수처럼 흘러 남자임을 주장한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 02 · 혼인 제안 뒤 시합",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f889e0d4-5918-5f01-967b-2929b03b4493",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-02",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "bathing-mist",
+    "title": "목욕을 가리는 운하 안개",
+    "cardType": "event",
+    "body": "함께 목욕하자는 동수재의 요구에 공주가 곤란해하자 하늘에서 내려온 안개가 몸을 가린다. 동수재는 그 틈에 공주의 옷을 가져간다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 02 · 시합 뒤 목욕 장면",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c5d0d15d-ae6d-5713-9760-4be3e1f0254d",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-02",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "three-sons",
+    "title": "버르떼기와 동수재의 세 아들",
+    "cardType": "character",
+    "body": "부부가 된 뒤 공주는 해마다 아들을 낳아 삼 형제를 둔다. 이후 지옥에 갈 때 남편에게 아이들을 돌보라고 부탁한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 02 · 혼인과 서천 출발",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-03 three-sons-return: 귀환길의 같은 세 아이"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ef74a41d-0e99-5eb5-87ad-fd60394f71e1",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-02",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "western-stone-gate",
+    "title": "후원의 서천 서역국 돌문",
+    "cardType": "location",
+    "body": "동수재는 공주가 약물과 꽃을 구하지 못해 우는 것을 보고 후원에 서천 서역국이 있다고 알려 준다. 열쇠로 돌문을 열고 길 안내를 부탁한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 02 · 공주의 탄식과 후원 돌문",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e1724b60-9668-5ca2-b983-3a60b53313b0",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-02",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "gwak-guide",
+    "title": "열지옥을 안내하는 곽사자",
+    "cardType": "character",
+    "body": "동수재는 곽사자에게 공주를 열지옥과 먼 약수로 안내하라고 한다. 곽사자는 돌아가는 길에 급하면 진언을 외울 수첩을 건넨다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 02 · 돌문 출발과 약물 획득 뒤 작별",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-01 gwak-messenger: 앞에서 만난 사자"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "de1f88a2-a50c-549d-96dc-cd93a0f45441",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-02",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "afterlife-hells",
+    "title": "버르떼기가 지나는 열지옥",
+    "cardType": "location",
+    "body": "노래는 칼·불·얼음·끓는 물·독사·달군 쇠와 어둠 등 여러 지옥을 열거한다. 공주는 길을 막는 짐승과 해골의 모습을 두려워하지 않고 지나간다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 02 · 지옥에 들어가는 창",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "전사에서 일부 지옥 이름의 판독이 불명확해 표준 명칭이나 순서를 확정하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e160c379-2a45-5d1b-8ee3-dcf529bf2c7b",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-02",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "afterlife-river",
+    "title": "탕수강과 용머리 배",
+    "cardType": "location",
+    "body": "저승의 큰 강은 이승에서 쓴 물이 모인 곳이라고 설명된다. 노와 닻이 없는 용머리 배가 염불 공덕으로 강을 건너며, 붙드는 잡신은 진언으로 물리친다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 02 · 지옥 뒤 큰 강과 도강",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e3e99ae4-2dfc-52c7-88c2-e35dfeee235d",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-02",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "resurrection-flowers",
+    "title": "서천의 세 색 꽃",
+    "cardType": "object",
+    "body": "강 건너 연못가에 핀 흰색·붉은색·노란색 꽃을 공주가 꺾어 간직한다. 앞에서 운담발화 꽃을 구하겠다는 목적이 언급된다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 02 · 배로 강을 건넌 뒤 꽃을 꺾는 장면",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-03 resurrection: 세 색 꽃의 사용 장면"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  }
+]

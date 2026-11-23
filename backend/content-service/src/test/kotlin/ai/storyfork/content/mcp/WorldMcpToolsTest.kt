@@ -22,7 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 class WorldMcpToolsTest {
     private val worlds = mock(WorldService::class.java)
     private val checkpoints = mock(WorldCheckpointService::class.java)
-    private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(WorldMcpTools(worlds, checkpoints)))
+    private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(WorldMcpTools(worlds, checkpoints, mock(McpChangeNotice::class.java))))
     private val member = "11111111-1111-1111-1111-111111111111"
 
     @AfterEach fun clear() = SecurityContextHolder.clearContext()

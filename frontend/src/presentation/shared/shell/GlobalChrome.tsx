@@ -9,8 +9,8 @@ import { ThemeButton } from './ThemeButton'
 import { useNotificationStream } from './useNotificationStream'
 import { useApplyTheme } from './useTheme'
 
-/** 같은 경로인데도 값이 바뀌면 화면 내용이 통째로 바뀌는 쿼리: 관리자 탭, 공지·이벤트 글, 작품 관리의 작품, 검색어. 다른 화면으로 넘어간 것으로 본다. */
-const SCREEN_QUERY: Record<string, string> = { '/admin': 'tab', '/me/notice': 'id', '/me/event': 'id', '/content': 'work', '/search': 'q' }
+/** 같은 경로인데도 값이 바뀌면 화면 내용이 통째로 바뀌는 쿼리: 관리자 탭과 LLM Ops 쪽(view), 공지·이벤트 글, 작품 관리의 작품, 검색어. 다른 화면으로 넘어간 것으로 본다. */
+const SCREEN_QUERY: Record<string, string[]> = { '/admin': ['tab', 'view'], '/me/notice': ['id'], '/me/event': ['id'], '/content': ['work'], '/search': ['q'] }
 
 /** 목업 RB: 페이지 이동 바 */
 function RouteBar() {
@@ -38,8 +38,8 @@ function RouteBar() {
   }, [location.pathname, location.search])
   // 맨 위로 올리는 것은 다른 화면으로 넘어갈 때(경로나 SCREEN_QUERY의 값이 바뀌는 PUSH·REPLACE)뿐이다. 같은 화면의 탭·필터(그 밖의 쿼리 변경)는 보던 위치와 화면이 옮긴 초점을 지키고,
   // 뒤로·앞으로(POP)와 처음 들어온 화면(새로 고침 포함)은 브라우저의 위치 복원에 맡긴다.
-  const query = SCREEN_QUERY[location.pathname]
-  const screen = query ? `${location.pathname}?${new URLSearchParams(location.search).get(query) ?? ''}` : location.pathname
+  const keys = SCREEN_QUERY[location.pathname]
+  const screen = keys ? `${location.pathname}?${keys.map((key) => new URLSearchParams(location.search).get(key) ?? '').join('&')}` : location.pathname
   const from = useRef(screen)
   useEffect(() => {
     if (from.current === screen) return
@@ -97,7 +97,7 @@ function TopButton() {
   return <button ref={button} type="button" id="top" className={on ? 'on' : ''} hidden={!on} tabIndex={on ? 0 : -1} aria-label="맨 위로" onClick={() => scrollTo({ top: 0, behavior: typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>↑</button>
 }
 
-/** 목업 applyProx(): 마우스 근처 .prox 카드를 살짝 키웁니다. 터치 기기와 동작 줄이기 설정에서는 끕니다. */
+/** 목업 applyProx(): 마우스가 올라온 .prox 카드만 살짝 띄웁니다(커지지 않음). 터치 기기와 동작 줄이기 설정에서는 끕니다. */
 function useProximity() {
   useEffect(() => {
     // 동작 줄이기에서는 전환이 꺼져 있어 카드가 마우스를 따라 뚝뚝 튄다. 아예 걸지 않는다.
@@ -113,10 +113,8 @@ function useProximity() {
       for (const el of document.querySelectorAll<HTMLElement>('.prox')) {
         const b = el.getBoundingClientRect()
         if (b.bottom < 0 || b.top > innerHeight) continue
-        const d = Math.hypot(mx - (b.left + b.width / 2), my - (b.top + b.height / 2))
-        const t = Math.max(0, 1 - d / (Math.max(b.width, b.height) * 0.9 + 60))
         const inside = mx >= b.left && mx <= b.right && my >= b.top && my <= b.bottom
-        el.style.transform = `translateY(${-(inside ? 6 : t * 2)}px) scale(${(1 + t * 0.035 + (inside ? 0.035 : 0)).toFixed(4)})`
+        el.style.transform = inside ? 'translateY(-3px)' : ''
         el.classList.toggle('near', inside)
       }
     }
@@ -141,7 +139,9 @@ export function GlobalChrome() {
   const showTools = pathname !== '/login' && pathname !== '/me' && !pathname.startsWith('/me/') && !pathname.startsWith('/auth/')
   // 집필실(U13)은 화면 ID·테마 전환을 상단 더보기 메뉴에 두므로 오른쪽 아래에 떠 있는 버튼을 뺀다(화면 ID 표시줄은 그대로).
   // 데모 집필실의 '내 소설만 쓸 수 있어요' 화면도 U13이지만 더보기 메뉴가 없으므로 서버(UUID) 집필실에서만 숨긴다.
-  const writing = screen.base === 'U13' && /^\/studio\/[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(pathname)
+  // 세계관 관리 화면(W01, `/worldstudio/:worldId?`의 id가 있는 경로: 설정집 화면·작성 마법사·설정 편집 화면)도 같은 3단 작업 화면이라 같은 규칙이다. 테마 전환은 설정집 화면의 저장 영역 옆·작성 마법사의 헤더 행동 줄·편집 화면의 상단 바에 있고,
+  // 채팅이 열린 동안 떠 있는 버튼이 전송 버튼을 덮는다. 세계관 작업실은 데모도 같은 화면이라 id 모양(UUID)은 따지지 않고, 세계관이 없는 만들기 화면(`/worldstudio`)은 상단 버튼이 없어 그대로 둔다.
+  const writing = (screen.base === 'U13' && /^\/studio\/[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(pathname)) || (screen.base === 'W01' && /^\/worldstudio\/[^/]+\/?$/.test(pathname))
   const dispatch = useAppDispatch()
   return (
     <>
@@ -151,8 +151,8 @@ export function GlobalChrome() {
       {showTools && <>{import.meta.env.DEV && <div id="sid" hidden={!showSid}>{screenLabel(screen.sheet ?? screen.base)}</div>}
       {!writing && <div className="screen-controls">
         {import.meta.env.DEV && <button type="button" className="btn sm" onClick={() => dispatch(uiActions.toggleSid())}>화면 ID {showSid ? '끄기' : '켜기'}</button>}
-        {/* 관리자 화면은 상단바에 테마 버튼이 있어 떠 있는 버튼이 표를 가리지 않게 뺍니다. */}
-        {pathname !== '/admin' && <ThemeButton className="btn sm" />}
+        {/* 관리자 화면은 상단바에 테마 버튼이 있어 떠 있는 버튼이 표를 가리지 않게 뺍니다. 공용 상단바(Gnb)가 있는 화면은 thm-float를 CSS가 숨긴다. */}
+        {pathname !== '/admin' && <ThemeButton className="btn sm thm-float" />}
       </div>}</>}
     </>
   )

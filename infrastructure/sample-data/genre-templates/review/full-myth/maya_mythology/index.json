@@ -1,0 +1,1109 @@
+{
+  "genre": "maya_mythology",
+  "status": "검토용 후보; 서비스·DB 자동 적재 금지",
+  "inputs": [
+    {
+      "segment": "maya-popol-early",
+      "input_file": "미게시-임시자료:myth/maya-popol-early.json",
+      "sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "manifest": {
+        "segment": "maya-popol-early",
+        "focus": "포폴 부 제1–2부 전체. source 목차·본문에서 실존 각 장을 도출해 coverage 작성. 다른 부분은 담당 아님.",
+        "units": [
+          "popol-book-1",
+          "popol-book-2"
+        ],
+        "genre": "maya_mythology",
+        "scope": "키체의 《포폴 부》 브라쇠르 1861년 프랑스어판의 머리말·45장·세 왕가 계보·맺음말을 범위로 설정을 정리한다. 창세·영웅담뿐 아니라 민족 이동과 왕권의 역사까지 포함하며, 저본 자체의 결락 한 곳은 명시한다.",
+        "existing_cards": 68,
+        "source_urls": [
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-12.html",
+          "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf"
+        ],
+        "kind": "myth"
+      },
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "브라쇠르 1861년 포폴 부 제1부 제1–9장 및 제2부 제1–14장. 프랑스어 번역과 영인 PDF 기준. 지정된 HTML 목차·본문은 HTTP 403으로 접근하지 못해 지정된 같은 판본의 Wikimedia 영인 PDF 프랑스어 본문으로 대조했다. 지정된 HTML 목차·본문은 HTTP 403으로 접근하지 못해 지정된 같은 판본의 Wikimedia 영인 PDF 프랑스어 본문으로 대조했다. 지정된 HTML 목차·본문은 HTTP 403으로 접근하지 못해 지정된 같은 판본의 Wikimedia 영인 PDF 프랑스어 본문으로 대조했다.",
+      "coverage": [
+        {
+          "unit": "포폴 부 제1부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=303",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제1부 제2장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=311",
+          "status": "read",
+          "cards": 0,
+          "note": "기존 동물의 말·점술·진흙과 나무 인간 카드와 겹치는 내용을 확인했다."
+        },
+        {
+          "unit": "포폴 부 제1부 제3장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=323",
+          "status": "read",
+          "cards": 5
+        },
+        {
+          "unit": "포폴 부 제1부 제4장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=329",
+          "status": "read",
+          "cards": 0,
+          "note": "부쿱 카키시의 태양·달 주장과 보석은 기존 카드에 수록되어 있다."
+        },
+        {
+          "unit": "포폴 부 제1부 제5장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=333",
+          "status": "read",
+          "cards": 1,
+          "note": "치카크·후나푸·페쿨·약스카눌·마카모브·훌리스나브는 산 이름의 열거이며 개별 산의 추가 설명은 없다."
+        },
+        {
+          "unit": "포폴 부 제1부 제6장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=335",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "포폴 부 제1부 제7장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=345",
+          "status": "read",
+          "cards": 1,
+          "note": "사백 젊은이가 별무리가 되었다는 말에는 본문 자체가 허구일 수 있다고 단서를 단다."
+        },
+        {
+          "unit": "포폴 부 제1부 제8장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=353",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "포폴 부 제1부 제9장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=359",
+          "status": "read",
+          "cards": 0,
+          "note": "카브라칸과 새를 이용한 패배는 기존 카드에 수록되어 있다."
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=367",
+          "status": "read",
+          "cards": 14
+        },
+        {
+          "unit": "포폴 부 제2부 제2장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=375",
+          "status": "read",
+          "cards": 5
+        },
+        {
+          "unit": "포폴 부 제2부 제3장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=389",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "포폴 부 제2부 제4장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=399",
+          "status": "read",
+          "cards": 0,
+          "note": "슈토·슈카닐·슈카카우는 옥수수 시험의 호명에 등장하나 이 대목에서 각각을 독립적으로 설명하지 않는다."
+        },
+        {
+          "unit": "포폴 부 제2부 제5장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=405",
+          "status": "read",
+          "cards": 0,
+          "note": "훈바츠와 훈초우엔의 변신과 네 번의 호출은 기존 카드에 수록되어 있다."
+        },
+        {
+          "unit": "포폴 부 제2부 제6장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=417",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "포폴 부 제2부 제7장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=429",
+          "status": "read",
+          "cards": 0,
+          "note": "이·두꺼비·뱀·새의 전달은 기존 카드에 수록되어 있다."
+        },
+        {
+          "unit": "포폴 부 제2부 제8장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=439",
+          "status": "read",
+          "cards": 0,
+          "note": "군주 명단은 1장의 명단과 이름이 달라 판본의 서로 다른 나열을 보존해야 한다. 첫 세상징 길은 적·흑·백·황, 여기에는 흑·백·적·녹으로 적혀 있다."
+        },
+        {
+          "unit": "포폴 부 제2부 제9장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=447",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "포폴 부 제2부 제10장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=457",
+          "status": "read",
+          "cards": 0,
+          "note": "시발바 시험의 집과 카마소츠는 기존 카드에 수록되어 있다."
+        },
+        {
+          "unit": "포폴 부 제2부 제11장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=463",
+          "status": "read",
+          "cards": 1,
+          "note": "대체 머리 재료는 브라쇠르 판에서 거북이다. 기존 머리 복원 카드와 중복 가능하다."
+        },
+        {
+          "unit": "포폴 부 제2부 제12장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=469",
+          "status": "read",
+          "cards": 0,
+          "note": "슐루·파캄과 뼈 처리는 기존 카드에 수록되어 있다."
+        },
+        {
+          "unit": "포폴 부 제2부 제13장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=475",
+          "status": "read",
+          "cards": 2,
+          "note": "춤 이름들은 열거되나 각각의 독립적 설명이 부족하여 별도 카드로 만들지 않았다."
+        },
+        {
+          "unit": "포폴 부 제2부 제14장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=485",
+          "status": "read",
+          "cards": 0,
+          "note": "191~193쪽의 프랑스어 번역은 빛 가운데 올라간 두 영웅에 이어 부친들이 하늘로 올라가 해와 달이 되었다고 서술한다. 기존 상승 카드의 주체와 확인이 필요하다."
+        }
+      ],
+      "input_candidates": 35
+    },
+    {
+      "segment": "maya-popol-late",
+      "input_file": "미게시-임시자료:myth/maya-popol-late.json",
+      "sha256": "339b5d2999e2b1e1428ee66214da2f2e9031253ec123e4eddbdabdf5303025d4",
+      "manifest": {
+        "segment": "maya-popol-late",
+        "focus": "포폴 부 제3–4부 전체. source 목차·본문에서 실존 각 장을 도출해 coverage 작성. 다른 부분은 담당 아님.",
+        "units": [
+          "popol-book-3",
+          "popol-book-4"
+        ],
+        "genre": "maya_mythology",
+        "scope": "키체의 《포폴 부》 브라쇠르 1861년 프랑스어판의 머리말·45장·세 왕가 계보·맺음말을 범위로 설정을 정리한다. 창세·영웅담뿐 아니라 민족 이동과 왕권의 역사까지 포함하며, 저본 자체의 결락 한 곳은 명시한다.",
+        "existing_cards": 68,
+        "source_urls": [
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html",
+          "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-12.html",
+          "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf"
+        ],
+        "kind": "myth"
+      },
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "브라쇠르 드 부르부르 1861년 키체 《포폴 부》 제3부 10장, 제4부 12장과 제12장에 이어지는 세 왕가 계보·맺음말. 지정 HTML은 HTTP 403/500이었고 같은 판본의 영인 PDF 및 Internet Archive OCR 전사를 대체 확인했다. 1861년 간행 판본은 공공영역이지만 OCR 오독 가능성이 있어 구절 재대조가 필요하다.",
+      "coverage": [
+        {
+          "unit": "포폴 부 제3부 제1장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제3부 제2장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제3부 제3장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제3부 제4장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제3부 제5장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제3부 제6장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제3부 제7장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제3부 제8장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제3부 제9장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제3부 제10장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "",
+          "cards": 1
+        },
+        {
+          "unit": "포폴 부 제4부 제1장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "",
+          "cards": 1
+        },
+        {
+          "unit": "포폴 부 제4부 제2장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 3
+        },
+        {
+          "unit": "포폴 부 제4부 제3장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "",
+          "cards": 2
+        },
+        {
+          "unit": "포폴 부 제4부 제4장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제5장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "",
+          "cards": 1
+        },
+        {
+          "unit": "포폴 부 제4부 제6장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제7장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제8장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제9장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제10장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제11장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제12장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "제12장의 계보·맺음말은 아래 별도 항목에서 검토 상태를 표시함.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제12장 — 카베크 왕가 계보와 큰 집",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 이 부분 전체 검토를 완료하지 못함.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제12장 — 니하이브 왕가 계보와 큰 집",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 이 부분 전체 검토를 완료하지 못함.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제12장 — 아하우 키체 왕가 계보와 큰 집",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 이 부분 전체 검토를 완료하지 못함.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제12장 — 맺음말",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 이 부분 전체 검토를 완료하지 못함.",
+          "cards": 0
+        }
+      ],
+      "input_candidates": 8
+    },
+    {
+      "segment": "gap-maya-book3-a",
+      "input_file": "미게시-임시자료:myth/gap-maya-book3-a.json",
+      "sha256": "e3966378c24c498929794b2ec935606df5f917007bc361d5d6b14ed9ee925856",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "브라쇠르 드 부르부르 1861년 키체어·프랑스어 병기판 《포폴 부》 제3부 제1–5장. 원전은 시메네스 필사본 계열이며 본 결과는 1861년 브라쇠르 프랑스어 번역 및 키체어 병기 디지털 전사에 근거한다. LeVigilant 재편집 전사본을 검색 서비스가 제공한 페이지로 확인했으며 책 쪽수는 원본 스캔 직접 열람 실패로 주장하지 않는다. 전사에는 OCR 훼손 및 줄 합침이 있으며 인용·카드는 확인 가능한 대목으로 제한한다. 원판은 1861년 간행이나 이 디지털 전사의 이용권은 별도 확인하지 못했다. 기존 카드와 중복될 수 있다.",
+      "coverage": [
+        {
+          "unit": "포폴 부 제3부 제1장",
+          "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "status": "read",
+          "reason": "프랑스어 본문과 키체어 병기 전사 전체 확인. 네 길잡이 개별 행동은 구별되지 않아 개별 카드로 부풀리지 않음.",
+          "cards": 4
+        },
+        {
+          "unit": "포폴 부 제3부 제2장",
+          "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "status": "read",
+          "reason": "프랑스어 본문 및 키체어 병기 전사 전체 확인. 초인적 시야와 시야 제한을 함께 기록.",
+          "cards": 6
+        },
+        {
+          "unit": "포폴 부 제3부 제3장",
+          "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "status": "read",
+          "reason": "프랑스어 본문 및 키체어 병기 전사 전체 확인. 동쪽에서 번성한 민족·부족 중 이름만 열거된 대상은 개별 카드로 만들지 않음. 주석의 추정 지리·동일시는 사실로 취급하지 않음.",
+          "cards": 8
+        },
+        {
+          "unit": "포폴 부 제3부 제4장",
+          "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "status": "read",
+          "reason": "프랑스어 본문 및 키체어 병기 전사 전체 확인. 신을 받는 장면과 언어 분화를 포함함.",
+          "cards": 5
+        },
+        {
+          "unit": "포폴 부 제3부 제5장",
+          "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "status": "read",
+          "reason": "프랑스어 본문 및 키체어 병기 전사 전체 확인. 희생과 결속 표현의 해석은 주석과 다음 장에 속하므로 이 장의 카드에서 단정하지 않음.",
+          "cards": 3
+        }
+      ],
+      "input_candidates": 26
+    },
+    {
+      "segment": "gap-maya-book3-b",
+      "input_file": "미게시-임시자료:myth/gap-maya-book3-b.json",
+      "sha256": "1110d9994f526b914df8ecd41115f96c16cd1567041a1d2776c1b37190a2f742",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "브라쇠르 드 부르부르 1861년 포폴 부 제3부 제6–9장, 같은 판본 영인 PDF의 프랑스어 번역 본문을 직접 읽음(인쇄 225–249쪽의 홀수 쪽, PDF 523–547쪽). 반대쪽 키체어 및 편집자 주석을 별도 전승으로 결합하지 않음. 이용권 미확인; 기존 카드와 중복 가능. 판권지(표제지) PDF 9쪽에서 저자, 대역 구성 및 1861년 간행을 확인했다.",
+      "coverage": [
+        {
+          "unit": "포폴 부 제3부 제6장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=523",
+          "status": "read",
+          "reason": "1861년 영인본 프랑스어 번역 본문 인쇄 225–229쪽 전체를 PDF 내장 OCR로 직접 읽음. 문단 경계와 일부 표기는 스캔 확인; OCR 오인식 가능. 이용권 미확인.",
+          "cards": 5
+        },
+        {
+          "unit": "포폴 부 제3부 제7장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=529",
+          "status": "read",
+          "reason": "1861년 영인본 프랑스어 번역 본문 인쇄 231–233쪽 전체를 PDF 내장 OCR로 직접 읽음. 문단 경계와 일부 표기는 스캔 확인; OCR 오인식 가능. 이용권 미확인.",
+          "cards": 7
+        },
+        {
+          "unit": "포폴 부 제3부 제8장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=533",
+          "status": "read",
+          "reason": "1861년 영인본 프랑스어 번역 본문 인쇄 235–239쪽 전체를 PDF 내장 OCR로 직접 읽음. 문단 경계와 일부 표기는 스캔 확인; OCR 오인식 가능. 이용권 미확인.",
+          "cards": 6
+        },
+        {
+          "unit": "포폴 부 제3부 제9장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=539",
+          "status": "read",
+          "reason": "1861년 영인본 프랑스어 번역 본문 인쇄 241–249쪽 전체를 PDF 내장 OCR로 직접 읽음. 문단 경계와 일부 표기는 스캔 확인; OCR 오인식 가능. 이용권 미확인.",
+          "cards": 10
+        }
+      ],
+      "input_candidates": 28
+    },
+    {
+      "segment": "gap-maya-book4-a",
+      "input_file": "미게시-임시자료:myth/gap-maya-book4-a.json",
+      "sha256": "c32e74c2f557e3425efa043011f2bacbdebb7c1b746efe74e3e4d8b9eea45b7b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "브라쇠르 드 부르부르 1861년 파리 A. Durand 판 《포폴 부》 제4부 제2·6–8장. 인터넷 아카이브 Getty 영인본의 OCR 프랑스어 번역을 확인했으며, 판본 교체는 없다. OCR에는 오독·줄바꿈 오류가 있고 스캔 각 쪽을 시각 대조하지 않았다. 개별 이용권은 미확인이다. 기존 카드와 중복 가능하며 통합 시 검토가 필요하다. 이름만 열거되고 별도 설명이 없는 직함·지명은 독립 카드로 억지 추출하지 않았다. 제8장 사키크 두 제후에게 큰 집 하나라고 하는 본문의 수량 차이는 그대로 보존했다.",
+      "coverage": [
+        {
+          "unit": "포폴 부 제4부 제2장",
+          "url": "https://archive.org/stream/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "1861년 프랑스어 번역 본문 261–273쪽을 장 전체 검토함. OCR 오류와 줄바꿈이 있으며 일부 표기는 불확실함. 이용권 미확인.",
+          "cards": 6
+        },
+        {
+          "unit": "포폴 부 제4부 제6장",
+          "url": "https://archive.org/stream/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "1861년 프랑스어 번역 본문 293–299쪽을 장 전체 검토함. OCR 오류와 줄바꿈이 있으며 일부 표기는 불확실함. 이용권 미확인.",
+          "cards": 7
+        },
+        {
+          "unit": "포폴 부 제4부 제7장",
+          "url": "https://archive.org/stream/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "1861년 프랑스어 번역 본문 299–307쪽을 장 전체 검토함. OCR 오류와 줄바꿈이 있으며 일부 표기는 불확실함. 이용권 미확인.",
+          "cards": 6
+        },
+        {
+          "unit": "포폴 부 제4부 제8장",
+          "url": "https://archive.org/stream/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "1861년 프랑스어 번역 본문 307–311쪽을 장 전체 검토함. OCR 오류와 줄바꿈이 있으며 일부 표기는 불확실함. 이용권 미확인.",
+          "cards": 5
+        }
+      ],
+      "input_candidates": 24
+    },
+    {
+      "segment": "gap-maya-book4-b",
+      "input_file": "미게시-임시자료:myth/gap-maya-book4-b.json",
+      "sha256": "efb1c70407bab6c867e3d9775a5768cdd2380d7b8576a9b96225970accf1a682",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "브라쇠르 드 부르부르 1861년 파리 A. Durand판 포폴 부 제4부 9–12장 전체 및 제12장 세 왕가 계보·큰 집·맺음말. Getty/Internet Archive 동일 영인본의 Wikimedia Commons PDF 프랑스어 번역 본문을 직접 읽음. 해당 파일 설명은 미국 공공영역으로 표시하나 원산국 및 실제 이용권은 별도 확인되지 않음. 원문 OCR은 오류 가능성이 있으며 원본 키체어 독해·각국 이용권 검증은 하지 않음.",
+      "coverage": [
+        {
+          "unit": "포폴 부 제4부 제9장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=611",
+          "status": "read",
+          "reason": "인쇄 313–317쪽. 프랑스어 번역 본문 직접 열람. 12장과 구쿠마츠의 왕대 수가 다름.",
+          "cards": 3
+        },
+        {
+          "unit": "포폴 부 제4부 제10장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=615",
+          "status": "read",
+          "reason": "인쇄 317–327쪽. 프랑스어 번역 본문 직접 열람.",
+          "cards": 9
+        },
+        {
+          "unit": "포폴 부 제4부 제11장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=627",
+          "status": "read",
+          "reason": "인쇄 329–337쪽. 프랑스어 번역 본문 직접 열람.",
+          "cards": 8
+        },
+        {
+          "unit": "포폴 부 제4부 제12장 — 서두",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=635",
+          "status": "read",
+          "reason": "인쇄 337쪽. 프랑스어 번역 본문 직접 열람.",
+          "cards": 0
+        },
+        {
+          "unit": "포폴 부 제4부 제12장 — 카베크 왕가 계보와 큰 집",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=637",
+          "status": "read",
+          "reason": "인쇄 339–343쪽. 왕 이름만 나열된 세대는 별도 인물 카드로 부풀리지 않음.",
+          "cards": 6
+        },
+        {
+          "unit": "포폴 부 제4부 제12장 — 니하이브 왕가 계보와 큰 집",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=641",
+          "status": "read",
+          "reason": "인쇄 343–345쪽. 왕 이름만 나열된 세대는 별도 인물 카드로 부풀리지 않음.",
+          "cards": 2
+        },
+        {
+          "unit": "포폴 부 제4부 제12장 — 아하우 키체 왕가 계보와 큰 집",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=643",
+          "status": "read",
+          "reason": "인쇄 345–347쪽. 왕 이름만 나열된 세대는 별도 인물 카드로 부풀리지 않음.",
+          "cards": 2
+        },
+        {
+          "unit": "포폴 부 제4부 제12장 — 맺음말",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=645",
+          "status": "read",
+          "reason": "인쇄 347쪽. 프랑스어 번역 본문 직접 열람.",
+          "cards": 1
+        }
+      ],
+      "input_candidates": 28
+    }
+  ],
+  "purpose": "기존 세계관에 적용한 데이터가 아니라 원문 추출 후보의 보존·검토 자료",
+  "world_id_reference": "c5bc8992-b7cb-5ddf-9033-74d707ceda41",
+  "uuid_rule": "UUIDv5(namespace=기존 maya_mythology worldId, name=storyfork/review/full-myth/<segment>/<candidate_key>); 새 세계관 생성 아님",
+  "source_commit": {
+    "candidate_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+    "integration_head": "3ec049e5f00dfc6b07c9b840631b159b5b68bd54"
+  },
+  "source_hashes": {
+    "manifest_sha256": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e",
+    "maya_tradition_cards_sha256": "31f51c0202f0223bbcac210147842168818db10fa072ad155d7471ff160be0ec",
+    "maya_template_sha256": "201643d5f656d095dece88dac06db041346548f33bfcd3a169c2a4aabdbde532",
+    "maya_sources_md_sha256": "f3ce52c63ff8a0d491bc0ced216f9053b2f528d59c490217385d837ce26471e3",
+    "runtime_sha256": {
+      "genre-templates-v1.json": "96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85",
+      "genre-templates-v2.json": "4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517",
+      "genre-templates.json": "bc3cbacd8e7806d673793963386a63c6b7d61f0ec280ce56c22fd74d33003340"
+    },
+    "original_editions_sha256": null,
+    "original_editions_hash_status": "원본 파일 미확보; 각 출처 URL과 추출자 제공 인용은 카드 provenance에 보존"
+  },
+  "totals": {
+    "input_files": 6,
+    "input_candidates": 149,
+    "output_individual": 149,
+    "merged_duplicates": 0,
+    "unprocessed_candidates": 0,
+    "preservation_equation": "43 + 26 + 28 + 24 + 28 = 149 = 149 + 0",
+    "candidate_types": {
+      "character": 60,
+      "object": 15,
+      "location": 22,
+      "event": 20,
+      "other": 10,
+      "ability": 4,
+      "organization": 11,
+      "rule": 7
+    },
+    "coverage_entries": 70,
+    "coverage_status_counts": {
+      "read": 50,
+      "unavailable": 20
+    },
+    "existing_maya_cards": 68,
+    "existing_myth_tradition_cards": 868,
+    "runtime_templates_current": 26,
+    "potential_duplicate_cards": 147,
+    "coverage_status_counts_note": "전체 입력 자기보고 원본 합계이며 기존 20건은 후속 보고로 대체됨; 순수 유효 coverage는 coverage_reconciliation 참조",
+    "new_candidates_without_specific_match": 2
+  },
+  "chunks": [
+    {
+      "file": "cards-001.json",
+      "cards": 43,
+      "sha256": "3a4811c968b12a1f1211a17b493a1fe48037e11c86c180079f0168557abcc4ec"
+    },
+    {
+      "file": "cards-002.json",
+      "cards": 106,
+      "sha256": "bc67e7168323d134dd649b5b9a9ff2277a08dfc0fb805a873de7dd81d8c97ca6"
+    }
+  ],
+  "duplicate_policy": "입력 간 key 또는 정규화 제목·유형, 26개 현재 runtime과 v1/v2의 정규화 제목, 기존 마야 카드와 수동 대상·사건 맥락을 비교했다. 관련 사건이나 집단-구성원도 검토 후보로 표시하며 자동 합치지 않았다. 다른 표기·전승의 의미 중복은 추가 검토가 필요하다. 보충분도 전체 후보와 key·정규화 제목·유형 및 확인 가능한 다른 표기를 비교하고 기존 카드의 관련 맥락을 연결했다. 일치하지 않는 후보도 의미상 중복 가능성을 배제하지 않으며 모두 개별 보존한다.",
+  "limitations": [
+    "coverage read는 추출 작업자의 자기보고이며 이 통합 작업에서 원문 전체를 재독하거나 역사적 정확성을 검증하지 않았다. HTML 목차·본문은 early에서 HTTP 403, late에서 403/500으로 미접근; early는 지정 1861년판 영인 PDF, late는 영인 PDF 및 인터넷 아카이브 OCR을 대체 사용했다고 보고했다.",
+    "late의 unavailable은 OCR 접근 자체 실패가 아니라 각 구간 전체 검토 미완료를 뜻한다. 제4부 제2장의 후보 3개는 일부 구절을 확인한 후보이며 장 전체를 읽었다는 뜻이 아니다.",
+    "early coverage에 기재된 장별 카드 수 합계는 39이나 실제 입력 카드는 35개로 4개 차이가 난다. 서로 다른 단위의 자기보고일 가능성을 단정하지 않으며 실제 입력 35개를 모두 보존한다.",
+    "입력은 제1부 1–9장, 제2부 1–14장, 제3부 1–10장, 제4부 1–12장 및 계보와 맺음말을 보고한다. 기존 명세의 머리말과 45장 범위가 두 입력의 coverage에서 완전하게 확인되지 않고 제4부 장 구분도 기존 명세와 차이가 있으므로 빠진 범위 및 저본 결락 위치는 미정이며 목차·판본 대조가 필요하다.",
+    "원문 발췌가 짧아 각 본문의 모든 주장과 완전하게 대응하는지 확인되지 않았다. 특히 슈타·슈푸치의 망토, 나무 허수아비의 세부와 다음 장의 정찰, 사리그 동일시의 번역자 주석은 해당 근거 발췌만으로 전부 입증되지 않아 원문 맥락·주석 재대조가 필요하다.",
+    "입력은 1861년 간행 판본이 공공영역이라고 주장하지만 각 국가·매체의 재사용 조건, OCR·전사·번역 및 제3자 자료의 권리는 확인하지 않았다. 지역·시기별 키체 및 다른 마야 전승의 일치 여부와 문화 맥락도 미검증이다.",
+    "[이전 단계 기록] 기존 신화 15종 868카드와 창작 카드·SOUL은 변경하지 않았다. 원문 전체 또는 고유 대상 전수의 증거가 아니며 누락이 가능하다. 최초 서비스 적용은 별도 #425 안전 계약 및 권리·중복 검증 후에만 가능하다. 검토 청크는 세계관 분할이나 앱·DB 적재가 아니다. 현재 마야 기존 68 + 후보 43은 111개로 1000개 한도 미만이나 확정·적재 가능 수량은 아니다.",
+    "보충 입력에 의해 이전 unavailable 20개 구간은 각각 다른 추출자의 read 자기보고로 대체되었다. 3부 1–5장은 검색 서비스가 제공한 LeVigilant 재편집 전사이며 원본 스캔 직접 열람 실패, 3부 6–9장과 4부 9–12장은 영인본 프랑스어 번역, 4부 2·6–8장은 Internet Archive OCR로 보고되었고 전사·OCR의 오독과 이용권은 미확인이다.",
+    "보충 gap-maya-book4-b 입력은 coverage에 기록한 카드 수 합이 31이지만 실제 후보는 28이다. 장별 후보의 다중 근거 등 원인은 확정하지 않고 원본 수치와 28개 후보를 모두 보존했다.",
+    "현재 마야 기존 68 + 검토 후보 149 = 217개로 이전 1,000개 기준 미만이지만 후보의 고유성·완전성·권리·적재 가능성을 보장하지 않는다. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 자료는 검토 전용이며 최초 적용 전 #425 안전 계약과 권리·중복 검증이 필요하다."
+  ],
+  "coverage_reconciliation": {
+    "description": "과거 입력의 unavailable 및 사유를 그대로 보존하고 후속 추출자 read 자기보고로 범위를 대체한다. 각 출처와 이용권·OCR 한계는 각 보고에 남긴다.",
+    "superseded_prior_unavailable": [
+      {
+        "unit": "포폴 부 제3부 제1장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제3부 제1장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book3-a",
+        "followup_report": {
+          "unit": "포폴 부 제3부 제1장",
+          "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "status": "read",
+          "reason": "프랑스어 본문과 키체어 병기 전사 전체 확인. 네 길잡이 개별 행동은 구별되지 않아 개별 카드로 부풀리지 않음.",
+          "cards": 4
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제3부 제2장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제3부 제2장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book3-a",
+        "followup_report": {
+          "unit": "포폴 부 제3부 제2장",
+          "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "status": "read",
+          "reason": "프랑스어 본문 및 키체어 병기 전사 전체 확인. 초인적 시야와 시야 제한을 함께 기록.",
+          "cards": 6
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제3부 제3장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제3부 제3장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book3-a",
+        "followup_report": {
+          "unit": "포폴 부 제3부 제3장",
+          "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "status": "read",
+          "reason": "프랑스어 본문 및 키체어 병기 전사 전체 확인. 동쪽에서 번성한 민족·부족 중 이름만 열거된 대상은 개별 카드로 만들지 않음. 주석의 추정 지리·동일시는 사실로 취급하지 않음.",
+          "cards": 8
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제3부 제4장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제3부 제4장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book3-a",
+        "followup_report": {
+          "unit": "포폴 부 제3부 제4장",
+          "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "status": "read",
+          "reason": "프랑스어 본문 및 키체어 병기 전사 전체 확인. 신을 받는 장면과 언어 분화를 포함함.",
+          "cards": 5
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제3부 제5장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제3부 제5장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book3-a",
+        "followup_report": {
+          "unit": "포폴 부 제3부 제5장",
+          "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html",
+          "status": "read",
+          "reason": "프랑스어 본문 및 키체어 병기 전사 전체 확인. 희생과 결속 표현의 해석은 주석과 다음 장에 속하므로 이 장의 카드에서 단정하지 않음.",
+          "cards": 3
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제3부 제6장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제3부 제6장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book3-b",
+        "followup_report": {
+          "unit": "포폴 부 제3부 제6장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=523",
+          "status": "read",
+          "reason": "1861년 영인본 프랑스어 번역 본문 인쇄 225–229쪽 전체를 PDF 내장 OCR로 직접 읽음. 문단 경계와 일부 표기는 스캔 확인; OCR 오인식 가능. 이용권 미확인.",
+          "cards": 5
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제3부 제7장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제3부 제7장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book3-b",
+        "followup_report": {
+          "unit": "포폴 부 제3부 제7장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=529",
+          "status": "read",
+          "reason": "1861년 영인본 프랑스어 번역 본문 인쇄 231–233쪽 전체를 PDF 내장 OCR로 직접 읽음. 문단 경계와 일부 표기는 스캔 확인; OCR 오인식 가능. 이용권 미확인.",
+          "cards": 7
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제3부 제8장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제3부 제8장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book3-b",
+        "followup_report": {
+          "unit": "포폴 부 제3부 제8장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=533",
+          "status": "read",
+          "reason": "1861년 영인본 프랑스어 번역 본문 인쇄 235–239쪽 전체를 PDF 내장 OCR로 직접 읽음. 문단 경계와 일부 표기는 스캔 확인; OCR 오인식 가능. 이용권 미확인.",
+          "cards": 6
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제3부 제9장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제3부 제9장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book3-b",
+        "followup_report": {
+          "unit": "포폴 부 제3부 제9장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=539",
+          "status": "read",
+          "reason": "1861년 영인본 프랑스어 번역 본문 인쇄 241–249쪽 전체를 PDF 내장 OCR로 직접 읽음. 문단 경계와 일부 표기는 스캔 확인; OCR 오인식 가능. 이용권 미확인.",
+          "cards": 10
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제4부 제2장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제4부 제2장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 3
+        },
+        "followup_segment": "gap-maya-book4-a",
+        "followup_report": {
+          "unit": "포폴 부 제4부 제2장",
+          "url": "https://archive.org/stream/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "1861년 프랑스어 번역 본문 261–273쪽을 장 전체 검토함. OCR 오류와 줄바꿈이 있으며 일부 표기는 불확실함. 이용권 미확인.",
+          "cards": 6
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제4부 제6장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제4부 제6장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book4-a",
+        "followup_report": {
+          "unit": "포폴 부 제4부 제6장",
+          "url": "https://archive.org/stream/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "1861년 프랑스어 번역 본문 293–299쪽을 장 전체 검토함. OCR 오류와 줄바꿈이 있으며 일부 표기는 불확실함. 이용권 미확인.",
+          "cards": 7
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제4부 제7장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제4부 제7장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book4-a",
+        "followup_report": {
+          "unit": "포폴 부 제4부 제7장",
+          "url": "https://archive.org/stream/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "1861년 프랑스어 번역 본문 299–307쪽을 장 전체 검토함. OCR 오류와 줄바꿈이 있으며 일부 표기는 불확실함. 이용권 미확인.",
+          "cards": 6
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제4부 제8장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제4부 제8장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book4-a",
+        "followup_report": {
+          "unit": "포폴 부 제4부 제8장",
+          "url": "https://archive.org/stream/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "read",
+          "reason": "1861년 프랑스어 번역 본문 307–311쪽을 장 전체 검토함. OCR 오류와 줄바꿈이 있으며 일부 표기는 불확실함. 이용권 미확인.",
+          "cards": 5
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제4부 제9장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제4부 제9장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book4-b",
+        "followup_report": {
+          "unit": "포폴 부 제4부 제9장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=611",
+          "status": "read",
+          "reason": "인쇄 313–317쪽. 프랑스어 번역 본문 직접 열람. 12장과 구쿠마츠의 왕대 수가 다름.",
+          "cards": 3
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제4부 제10장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제4부 제10장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book4-b",
+        "followup_report": {
+          "unit": "포폴 부 제4부 제10장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=615",
+          "status": "read",
+          "reason": "인쇄 317–327쪽. 프랑스어 번역 본문 직접 열람.",
+          "cards": 9
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제4부 제11장",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제4부 제11장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 장 전체 검토를 완료하지 못함; 일부 구절만 확인했을 수 있음.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book4-b",
+        "followup_report": {
+          "unit": "포폴 부 제4부 제11장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=627",
+          "status": "read",
+          "reason": "인쇄 329–337쪽. 프랑스어 번역 본문 직접 열람.",
+          "cards": 8
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제4부 제12장 — 카베크 왕가 계보와 큰 집",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제4부 제12장 — 카베크 왕가 계보와 큰 집",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 이 부분 전체 검토를 완료하지 못함.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book4-b",
+        "followup_report": {
+          "unit": "포폴 부 제4부 제12장 — 카베크 왕가 계보와 큰 집",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=637",
+          "status": "read",
+          "reason": "인쇄 339–343쪽. 왕 이름만 나열된 세대는 별도 인물 카드로 부풀리지 않음.",
+          "cards": 6
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제4부 제12장 — 니하이브 왕가 계보와 큰 집",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제4부 제12장 — 니하이브 왕가 계보와 큰 집",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 이 부분 전체 검토를 완료하지 못함.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book4-b",
+        "followup_report": {
+          "unit": "포폴 부 제4부 제12장 — 니하이브 왕가 계보와 큰 집",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=641",
+          "status": "read",
+          "reason": "인쇄 343–345쪽. 왕 이름만 나열된 세대는 별도 인물 카드로 부풀리지 않음.",
+          "cards": 2
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제4부 제12장 — 아하우 키체 왕가 계보와 큰 집",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제4부 제12장 — 아하우 키체 왕가 계보와 큰 집",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 이 부분 전체 검토를 완료하지 못함.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book4-b",
+        "followup_report": {
+          "unit": "포폴 부 제4부 제12장 — 아하우 키체 왕가 계보와 큰 집",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=643",
+          "status": "read",
+          "reason": "인쇄 345–347쪽. 왕 이름만 나열된 세대는 별도 인물 카드로 부풀리지 않음.",
+          "cards": 2
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      },
+      {
+        "unit": "포폴 부 제4부 제12장 — 맺음말",
+        "prior_segment": "maya-popol-late",
+        "prior_report": {
+          "unit": "포폴 부 제4부 제12장 — 맺음말",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "status": "unavailable",
+          "reason": "1861년판 OCR 원문에 접근했으나 이 부분 전체 검토를 완료하지 못함.",
+          "cards": 0
+        },
+        "followup_segment": "gap-maya-book4-b",
+        "followup_report": {
+          "unit": "포폴 부 제4부 제12장 — 맺음말",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=645",
+          "status": "read",
+          "reason": "인쇄 347쪽. 프랑스어 번역 본문 직접 열람.",
+          "cards": 1
+        },
+        "effective_status": "read 자기보고로 대체",
+        "caveat": "이전 미완료 보고는 당시 상태로 보존; 통합자가 독립 완독·사실 확인한 것은 아님"
+      }
+    ],
+    "prior_coverage_counts": {
+      "read": 29,
+      "unavailable": 20
+    },
+    "effective_previous_coverage_counts": {
+      "read_self_reported": 49,
+      "unavailable": 0
+    },
+    "followup_read_entries": 21,
+    "additional_unit": "포폴 부 제4부 제12장 — 서두 (기존 12장 read의 세부 구간)",
+    "caveat": "이 숫자는 기존 coverage 단위에 대한 보고 상태이며 원문 전수·정확성이나 과거 HTTP 접근 실패를 부정하지 않는다."
+  },
+  "previous_integration": {
+    "index_sha256": "a57bd4b4b4aacf9b2f33577a19cb7f82fa08b455334a918ebe337acb19eb3750",
+    "cards_001_sha256": "d6b980491fadd8539332641f09f89cc3d9d8e17ddb3d5c6fa7aa00d0ec770b0b",
+    "input_candidates": 43,
+    "note": "이전 index의 inputs와 coverage를 그대로 보존하고, 이전 카드 파일도 바이트 단위로 유지한다."
+  },
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

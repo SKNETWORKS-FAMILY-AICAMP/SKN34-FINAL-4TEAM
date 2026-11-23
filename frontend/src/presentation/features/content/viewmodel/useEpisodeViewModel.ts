@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
-import type { History, Work, WorkRegistration, WorkTaxonomy } from '../../../../domain/entities/content'
+import type { WritingEpisode, History, Work, WorkRegistration, WorkTagSuggestion, WorkTaxonomy } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecases/MediaUseCase'
 
-type Origin = '' | 'create' | 'fork' | 'link'
+type Origin = '' | 'create' | 'fork' | 'link' | 'detach' | 'history'
 
 /**
- * `/content` 작품 관리 화면: 작품 생성·작품 정보(제목·소개·장르·해시태그)·표지·분기 정책·분기 정보(공개 중단·삭제)·분기 만들기·세계관 연결·이력 조회.
+ * `/content` 작품 관리 화면: 작품 생성·작품 정보(제목·소개·장르·해시태그)·표지·분기 정책·분기 정보(공개 중단)·작품 삭제(원작·포크)·분기 만들기·세계관 연결·이력 조회.
  * 작품 목록과 선택은 서재(`/lib?tab=write`)가 맡고, 이 화면은 주소의 `?work=<id>`(workId)가 가리키는 내 작품 하나를 관리하거나 쿼리가 없으면 새 작품을 만든다.
  * 열린 작품(active)은 내 작품 목록에서 workId로 도출하므로 `install`이 목록을 갱신하면 함께 바뀌고, 작품 revision도 항상 서버 응답 값이다.
  * 원고 작성·AI 이어쓰기·회차 공개는 집필실(`/studio/{id}`) 몫이다.
@@ -23,7 +23,7 @@ export function useEpisodeViewModel(
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   /**
-   * 마지막 요청을 보낸 자리. 작품 만들기·분기 만들기·세계관 연결은 그 폼·카드가 결과를 직접 보이고(화면 맨 위 알림은 스크롤해 내려간 자리에서 보이지 않는다),
+   * 마지막 요청을 보낸 자리. 작품 만들기·분기 만들기·세계관 연결·이력 조회는 그 폼·카드·구획이 결과를 직접 보이고(화면 맨 위 알림은 스크롤해 내려간 자리에서 보이지 않는다),
    * 자리가 없는 요청('')의 결과는 화면 맨 위 알림이 보인다.
    */
   const [origin, setOrigin] = useState<Origin>('')
@@ -34,7 +34,25 @@ export function useEpisodeViewModel(
   const alive = useRef(true)
   const inFlight = useRef(false)
   const request = useRef<AbortController | null>(null)
+  /** 추천 요청은 작품이 바뀌거나 화면을 떠나면 취소한다(만들기 요청과 수명이 달라 따로 둔다). */
+  const suggestRequest = useRef<AbortController | null>(null)
+  useEffect(() => () => suggestRequest.current?.abort(), [workId])
   const active = works.find((w) => w.id === workId) ?? null
+  /** 소유자 회차 조회(작성 중인 초안·저장 버전 순번의 근거). 읽는 중이면 null이고, 읽지 못하면 rows 없이 error만 있다. */
+  const [writing, setWriting] = useState<{ id: string; rows?: WritingEpisode[]; error?: string } | null>(null)
+  /** 열린 작품이 같아도 다시 읽게 하는 신호. works가 바뀔 때마다 읽으면 작품 정보 저장 같은 일에도 무거운 목록을 다시 받으므로 `refresh`만 올린다. */
+  const [writingRefresh, setWritingRefresh] = useState(0)
+  const selectedId = active?.id
+  useEffect(() => {
+    if (!selectedId) return
+    const controller = new AbortController()
+    useCase.writingList(selectedId, controller.signal).then(rows => {
+      if (!controller.signal.aborted) setWriting({ id: selectedId, rows })
+    }).catch(() => {
+      if (!controller.signal.aborted) setWriting({ id: selectedId, error: '초안 목록을 불러오지 못했어요.' })
+    })
+    return () => controller.abort()
+  }, [selectedId, useCase, writingRefresh])
   /** 이력은 불러온 작품에서만 보인다(다른 작품으로 바뀌면 사라진다). 이 화면의 저장은 이력 내용을 바꾸지 않으므로 저장해도 남고, 탭을 다시 누르면 새로 읽는다. */
   const history = loaded && loaded.id === active?.id ? loaded.history : null
   const install = (w: Work) => setWorks((list) => [w, ...list.filter((x) => x.id !== w.id)])
@@ -42,6 +60,7 @@ export function useEpisodeViewModel(
   const refresh = async () => {
     const list = await useCase.list()
     setWorks(list)
+    setWritingRefresh((n) => n + 1)
     setListed(true)
     const w = list.find((x) => x.id === active?.id)
     if (w) install(w)
@@ -92,6 +111,7 @@ export function useEpisodeViewModel(
     }
   }
   return {
+    writing: writing?.id === selectedId ? writing : null,
     works,
     active,
     history,
@@ -102,10 +122,13 @@ export function useEpisodeViewModel(
     ready,
     listed,
     coverRevision,
-    /** 새 작품의 id를 돌려준다. 표지 저장만 실패해도 작품은 만들어졌으므로 id를 돌려주고(오류는 알림으로 남김), 화면을 떠났거나 생성 자체가 실패하면 null이다. */
+    /**
+     * 새 작품의 id와 표지까지 성공했는지(complete)를 돌려준다. 표지 저장만 실패해도 작품은 만들어졌으므로 id를 돌려주고(complete false, 오류는 알림으로 남김),
+     * 화면을 떠났거나 생성 자체가 실패하면 null이다. 성공하면 화면이 곧바로 집필실로 이동하므로 성공 알림은 두지 않는다.
+     */
     create: async (title: string, summary: string, cover?: File, registration?: WorkRegistration) => {
       let id = null as string | null
-      await run(async () => {
+      const complete = await run(async () => {
         if (cover) validateMediaFile(cover, true)
         const controller = new AbortController()
         request.current = controller
@@ -134,13 +157,8 @@ export function useEpisodeViewModel(
           if (controller.signal.aborted) return
           setCoverRevision((v) => v + 1)
         }
-        setNotice(
-          cover
-            ? '비공개 작품과 표지를 저장했어요.'
-            : '비공개 작품을 만들었어요. 첫 회차를 작성해 보세요.',
-        )
       }, 'create')
-      return alive.current ? id : null
+      return alive.current && id ? { id, complete } : null
     },
     reload: () =>
       run(async () => {
@@ -150,7 +168,7 @@ export function useEpisodeViewModel(
     loadHistory: () =>
       run(async () => {
         if (active) setLoaded({ id: active.id, history: await useCase.history(active.id) })
-      }),
+      }, 'history'),
     /** 작품 제목·소개와 바뀐 장르·해시태그 수정. 서버가 돌려준 작품(새 revision 포함)으로 화면을 바꾼다. */
     updateWork: (title: string, summary: string, taxonomy?: WorkTaxonomy) =>
       run(async () => {
@@ -158,6 +176,23 @@ export function useEpisodeViewModel(
         install(await useCase.updateWork(active.id, title, summary, active.revision, undefined, taxonomy))
         setNotice('작품 정보를 저장했어요.')
       }),
+    /** 저장된 제목·소개와 발행 회차로 장르·해시태그 후보를 받는다(#372). 저장은 하지 않으며, 실패 사유는 화면 위 오류로 알리고 null을 돌려준다. */
+    suggestTags: async () => {
+      let found = null as WorkTagSuggestion | null
+      await run(async () => {
+        if (!active) return
+        const controller = new AbortController()
+        suggestRequest.current = controller
+        try {
+          const result = await useCase.suggestWorkTags(active.id, controller.signal)
+          if (!controller.signal.aborted) found = result
+        } catch (e) {
+          // 취소된 요청은 다른 작품·이탈한 화면의 것이라 오류로 알리지 않는다.
+          if (!controller.signal.aborted) throw e
+        }
+      })
+      return found
+    },
     policy: (allowFork: boolean, allowForkPublication: boolean) =>
       run(async () => {
         if (!active) return
@@ -176,6 +211,21 @@ export function useEpisodeViewModel(
         install({ ...active, worldStudioId: linked.worldId })
         setNotice(linked.worldId ? '세계관을 연결했어요.' : '세계관 연결을 해제했어요.')
       }, 'link')
+    },
+    /**
+     * 이어받는 원작 세계관을 내 세계관으로 독립시킨다(#583, DEC-37). 확인을 받고 보내며, 서버가 복사해 만든 새 세계관을 열린 작품의 연결로 바꾸고 그 id를 돌려준다(취소·실패·화면 이탈이면 null).
+     * 이동은 화면이 한다. 이어받을 것이 없거나 이미 독립했거나(409) 관계 상태를 모르면(503) 서버 사유를 '이어받는 원작 세계관' 카드 안에 알리고(origin `detach`) 연결은 그대로 둔다.
+     * 요청 중에는 확인도 다시 묻지 않는다(`run`의 busy가 화면의 버튼과 탭도 잠근다).
+     */
+    detachWorld: async () => {
+      if (!active || inFlight.current || !window.confirm('독립하면 원작 세계관의 이후 변경은 따라오지 않아요. 원작 세계관의 카드와 관계를 내 세계관으로 복사해 이 소설에 연결할까요? 원작 세계관과 다른 포크는 바뀌지 않아요.')) return null
+      let id = null as string | null
+      await run(async () => {
+        const detached = await useCase.detachInheritedWorld(active.id)
+        install({ ...active, worldStudioId: detached.worldId })
+        id = detached.worldId
+      }, 'detach')
+      return alive.current ? id : null
     },
     /** 새 분기 작품의 id를 돌려준다(실패하거나 화면을 떠났으면 null). */
     fork: async (episode: number, title: string, direction: string) => {
@@ -198,13 +248,14 @@ export function useEpisodeViewModel(
         setNotice('포크 공개를 중단했어요.')
       })
     },
-    /** 분기 작품을 삭제한다. 성공하면 true이며, 열려 있던 작품이 사라지므로 화면이 서재로 이동한다. */
-    deleteFork: () => {
-      if (!active?.source || !window.confirm(`「${active.title}」 포크를 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 같은 원작에서 포크를 다시 만들 수 없어요.`)) return Promise.resolve(false)
-      return run(async () => {
-        await useCase.deleteWork(active.id)
-        setNotice('포크를 삭제했어요.')
-      })
+    /** 원작과 포크를 소프트 삭제한다. 성공하면 true를 반환해 화면이 서재로 이동하므로 성공 안내는 따로 두지 않는다. */
+    deleteWork: () => {
+      if (!active) return Promise.resolve(false)
+      const message = active.source
+        ? `「${active.title}」 포크를 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 같은 원작에서 포크를 다시 만들 수 없어요.`
+        : `「${active.title}」 작품을 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 이 작품에서 만들어진 포크는 유지돼요.`
+      if (!window.confirm(message)) return Promise.resolve(false)
+      return run(() => useCase.deleteWork(active.id))
     },
   }
 }

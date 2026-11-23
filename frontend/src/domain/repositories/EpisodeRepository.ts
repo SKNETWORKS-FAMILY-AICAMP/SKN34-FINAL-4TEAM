@@ -1,10 +1,10 @@
 import type { PublicationSchedule, PublicationScheduleInput, PublicationScheduleRevision } from '../entities/publicationSchedule'
-import type {WorkRegistration,WorkTaxonomy,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary} from '../entities/content'
+import type { StorageUsage } from '../entities/storageUsage'
+import type {WorkRegistration,WorkTaxonomy,WorkTagSuggestion,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary,InheritedWorld} from '../entities/content'
 import type { EpisodeWorldBasis, EpisodeWorldBasisChoice, WorldBasisCard, WorldBasisVersion } from '../entities/episodeWorldBasis'
-import type { ManuscriptQaAnswer, StoryQaInput } from '../entities/content'
+import type { WorkSettings, WritingMode } from '../entities/operatingSettings'
 
 export interface EpisodeRepository {
-  askStoryContext(id: string, input: StoryQaInput, owner: boolean, signal?: AbortSignal): Promise<ManuscriptQaAnswer>
   orderScope(id:string,number:number,signal?:AbortSignal):Promise<import('../entities/content').EpisodeOrderScope>
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal):Promise<void>
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal):Promise<void>
@@ -18,12 +18,21 @@ export interface EpisodeRepository {
   cancelPublicationSchedule(id: string, number: number, target: PublicationScheduleRevision, signal?: AbortSignal): Promise<void>
   publicList(signal?: AbortSignal): Promise<Work[]>
   list(signal?: AbortSignal): Promise<Work[]>
+  storageUsage(signal?: AbortSignal): Promise<StorageUsage>
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration): Promise<Work>
   updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy): Promise<Work>
+  workSettings(id: string, signal?: AbortSignal): Promise<WorkSettings>
+  updateWorkSettings(id: string, revision: number, writingMode: WritingMode, signal?: AbortSignal): Promise<WorkSettings>
+  /** 작가 본인 작품의 저장된 제목·소개와 발행 회차로 장르·해시태그 후보를 받는다. 저장은 하지 않는다. */
+  suggestWorkTags(id: string, signal?: AbortSignal): Promise<WorkTagSuggestion>
   stopForkPublication(id: string, signal?: AbortSignal): Promise<void>
   deleteWork(id: string, signal?: AbortSignal): Promise<void>
   /** 작품과 내 세계관의 1:1 연결(DEC-46). worldId가 null이면 해제한다. */
   linkWorldStudio(workId: string, worldId: string | null, signal?: AbortSignal): Promise<{ workId: string; worldId: string | null }>
+  /** Fork가 자기 세계관 없이 이어받는 원작 세계관(읽기 전용, #365). 상한은 Fork 기준 회차이며 `upto`가 더 작으면 그 회차까지다. 이어받는 것이 없으면 null이다. */
+  inheritedWorld(workId: string, upto?: number, signal?: AbortSignal): Promise<InheritedWorld | null>
+  /** 이어받는 원작 세계관의 카드·관계를 Fork 작가 소유의 새 세계관으로 복사해 연결한다(독립, #583). 새 세계관 id를 돌려주고, 거절(이어받을 것 없음 409·관계 상태 불명 503)은 서버 문구로 던진다. */
+  detachInheritedWorld(workId: string): Promise<{ workId: string; worldId: string }>
   save(id: string, draft: Draft): Promise<Draft>
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication?: boolean, versionId?: string): Promise<Work>
   history(id: string,signal?:AbortSignal): Promise<History>

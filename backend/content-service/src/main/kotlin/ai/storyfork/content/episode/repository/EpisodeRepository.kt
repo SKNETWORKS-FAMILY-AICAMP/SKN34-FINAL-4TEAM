@@ -1,7 +1,9 @@
 package ai.storyfork.content.episode.repository
 
 import ai.storyfork.content.episode.entity.EpisodeEntity
+import ai.storyfork.content.storage.service.dto.StorageItem
 import org.springframework.data.jpa.repository.*
+import org.springframework.data.repository.query.Param
 
 interface EpisodeRepository : JpaRepository<EpisodeEntity, String> {
     @Query("""select count(e) from EpisodeEntity e where e.id=:id and (
@@ -16,6 +18,25 @@ interface EpisodeRepository : JpaRepository<EpisodeEntity, String> {
         e.draftRevisionFloor>=0 or exists(select d.episodeId from EpisodeDraftEntity d where d.episodeId=e.id) or
         exists(select v.id from EpisodeVersionEntity v where v.episodeId=e.id and v.isSaved=true))""")
     fun countWritingAt(@org.springframework.data.repository.query.Param("work") work: String, @org.springframework.data.repository.query.Param("number") number: Int): Long
+    /** 저장 버전(is_saved)이 하나 이상 있는 살아 있는 회차의 번호다(오름차순). 회차 원고 전처리가 읽을 회차 목록이며 초안만 있는 회차는 뺀다. */
+    @Query("""select e.sequence from EpisodeEntity e where e.workId=:work and
+        exists(select v.id from EpisodeVersionEntity v where v.episodeId=e.id and v.isSaved=true) order by e.sequence""")
+    fun savedNumbers(@org.springframework.data.repository.query.Param("work") work: String): List<Int>
     fun findAllByWorkIdOrderBySequence(workId: String): List<EpisodeEntity>
     fun findByWorkIdAndSequence(workId: String, sequence: Int): EpisodeEntity?
+
+    @Query("""
+        select new ai.storyfork.content.storage.service.dto.StorageItem(e.id, 'manuscript',
+            case when coalesce(d.title, v.title)='' then concat(cast(e.sequence as String), '화')
+                else concat(cast(e.sequence as String), '화 · ', coalesce(d.title, v.title)) end, w.title,
+            cast(function('octet_length', coalesce(d.content, v.content)) as Long))
+        from EpisodeCurrentEntity e
+        join WorkEntity w on w.id=e.workId
+        left join EpisodeDraftEntity d on d.episodeId=e.id
+        left join EpisodeVersionEntity v on v.episodeId=e.id and v.isSaved=true and v.revisionNo=(
+            select max(saved.revisionNo) from EpisodeVersionEntity saved where saved.episodeId=e.id and saved.isSaved=true
+        )
+        where w.ownerId=:owner and w.deletedAt is null and e.inherited=false and (d.episodeId is not null or v.id is not null)
+    """)
+    fun storageItems(@Param("owner") owner: String): List<StorageItem>
 }

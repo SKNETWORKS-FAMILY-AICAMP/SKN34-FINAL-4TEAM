@@ -25,7 +25,7 @@ export const parseBookSort = (value: string): BookSort => BOOK_SORTS.find(([key]
 
 /**
  * 게시판 한 줄의 원자료. `type`은 카드 자신의 유형 이름(능력·사물 …), `kind`는 묶음(색·분류 메뉴)이다.
- * `connections`는 이어진 카드 수, `badge`는 제목 옆에 댓글 수처럼 붙는 수(인물은 인물 관계 수, 그 밖은 연결 수)다.
+ * `connections`는 이어진 카드 수, `badge`는 제목 옆에 댓글 수처럼 붙는 수(인물은 관계 수, 그 밖은 연결 수)다.
  */
 export type BoardEntry = { cardId: string; title: string; text: string; type: string; kind: CardKind; connections: number; badge: number }
 /** `no`는 지금 보이는 목록(필터·정렬 뒤)의 순번(1부터)이다. */
@@ -48,3 +48,6 @@ export function boardRows(entries: readonly BoardEntry[], { kind: only, query = 
 
 /** 카드가 있는 묶음과 장수(설정집 순서). 분류 메뉴가 쓴다. */
 export const boardKindCounts = (entries: readonly BoardEntry[]) => KINDS.map((kind) => ({ kind, count: entries.filter((e) => e.kind === kind).length })).filter((k) => k.count > 0)
+
+/** 카드가 하나도 없는 묶음(설정집 순서). 세계관 작업실의 분류 메뉴가 `비어 있음`으로 알린다(공개 설정집은 쓰지 않는다). 설정이 하나도 없으면 모든 묶음이 비지만 알리지 않는다(시작 안내가 대신한다). */
+export const boardEmptyKinds = (entries: readonly BoardEntry[]) => (entries.length ? KINDS.filter((kind) => !entries.some((e) => e.kind === kind)) : [])

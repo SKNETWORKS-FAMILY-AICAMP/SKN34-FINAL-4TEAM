@@ -1,0 +1,1088 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "review-only-candidate-cards",
+  "country": "china",
+  "genre": "china_history",
+  "worldId": "d3c3b3bc-1ee5-5361-82bd-d2679a258a02",
+  "status": "비공식 추출 후보; 역사 감수·법률 검토 미완료; 연구 전용, 서비스/DB 등록 금지 및 자동 적재 없음",
+  "source": {
+    "commit": "912082039edef6ad87161eee86dee284193d65e1",
+    "path": "docs/research/history-textbooks/china/source-en.txt",
+    "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+    "sha256_verified_from_git": true,
+    "url": "https://www.gutenberg.org/ebooks/6708",
+    "author": "Demetrius Charles Boulger; 보충장 표제 저자 Mayo W. Hazeltine",
+    "license_notice": "Demetrius Charles Boulger, China. 보충장 표제 저자 Mayo W. Hazeltine. Project Gutenberg 6708: https://www.gutenberg.org/ebooks/6708 . 원문은 미국 퍼블릭 도메인 취급 자료이며, 세계 전체의 권리·정확한 인쇄본 판권을 별도로 보증하지 않는다. 기존 source-en.txt의 Project Gutenberg 이용 안내와 라이선스를 확인한다."
+  },
+  "limitations": [
+    "후보와 한국어 요약은 비공식·미검증이며 원저의 제국주의·유럽 중심 평가, 고정관념, 전승, 불확실한 연대 및 수치는 사실 확정이 아니다.",
+    "원문 행과 원전 해시의 구조 검증은 각 주장·인명·번역의 역사적 사실 검증이나 전수 추출의 증거가 아니다. 원전 대조·독립 감수 필요.",
+    "Project Gutenberg 미국 퍼블릭 도메인 취급이 세계 전체 권리를 보증하지 않는다. 기존 원문 이용 안내 및 배포 지역 권리와 제3자 자료를 별도로 검토한다.",
+    "이전 1,000개 한도 기준으로 후보 개수가 초과한다. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 분할 파일은 세계관 분할이나 앱 적재가 아니며 기존 카드와 함께 적용할 수 없다. #425 안전 계약과 권리·중복 검토가 선행되어야 한다.",
+    "기존 템플릿과 후보 간 이름·유형 또는 출처 행이 겹치는 경우만 기계적으로 표시하였고, 표기가 다른 동일 대상이나 동명이인은 추가 검토가 필요하다.",
+    "제3자 인용·삽화 설명 등을 제외했다는 각 추출자의 coverage 노트를 유지한다. 원문 전문을 복제하지 않았다."
+  ],
+  "manifest_file": "미게시-임시자료:history/manifest.json",
+  "manifest_sha256": "f3faa02f012e87678aad6cb004920343719ed797389a605ed2385517017547c1",
+  "segments": [
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "china-1",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 169,
+        "line_end": 3673,
+        "chapters": [
+          "china:1:CHAPTER I",
+          "china:2:CHAPTER II",
+          "china:3:CHAPTER III",
+          "china:4:CHAPTER IV",
+          "china:5:CHAPTER V"
+        ],
+        "heads": [
+          [
+            169,
+            "CHAPTER I"
+          ],
+          [
+            628,
+            "CHAPTER II"
+          ],
+          [
+            1161,
+            "CHAPTER III"
+          ],
+          [
+            1904,
+            "CHAPTER IV"
+          ],
+          [
+            2520,
+            "CHAPTER V"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8"
+      },
+      "input_file": "미게시-임시자료:history/china-1.json",
+      "input_sha256": "f191ce0adcea63436e7ea96cefdcf4ac5252fc681167bdc26409d26b3bc3d329",
+      "scope": {
+        "line_start": 169,
+        "line_end": 3673,
+        "chapters": [
+          "china:1:CHAPTER I",
+          "china:2:CHAPTER II",
+          "china:3:CHAPTER III",
+          "china:4:CHAPTER IV",
+          "china:5:CHAPTER V"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:1:CHAPTER I",
+          "line_start": 169,
+          "line_end": 627,
+          "status": "read",
+          "cards": 33,
+          "note": "본문 전체를 읽음. 빈 줄과 장 제목은 근거에서 제외. 고대 군주·연대와 민족 동일시는 저자의 전승 및 견해로 취급."
+        },
+        {
+          "unit": "china:2:CHAPTER II",
+          "line_start": 628,
+          "line_end": 1160,
+          "status": "read",
+          "cards": 63,
+          "note": "본문 전체를 읽음. 저자의 민족 계보·전설 및 과장된 원정 범위는 주장으로 표시."
+        },
+        {
+          "unit": "china:3:CHAPTER III",
+          "line_start": 1161,
+          "line_end": 1903,
+          "status": "read",
+          "cards": 76,
+          "note": "본문 전체를 읽음. 원저의 여성·민족 편견 및 일부 전설은 사실로 받아들이지 않음."
+        },
+        {
+          "unit": "china:4:CHAPTER IV",
+          "line_start": 1904,
+          "line_end": 2519,
+          "status": "read",
+          "cards": 50,
+          "note": "본문 전체를 읽음. 2261–2274행의 제3자 사료 인용 전문은 본문 근거에서 제외."
+        },
+        {
+          "unit": "china:5:CHAPTER V",
+          "line_start": 2520,
+          "line_end": 3673,
+          "status": "read",
+          "cards": 81,
+          "note": "본문 전체를 읽음. 2917–2918행 그림 설명과 3138–3144행 제3자 사료 인용은 근거에서 제외. 전승과 저자의 편견·불확실한 계보를 구분함."
+        }
+      ],
+      "candidate_count": 303
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "china-2",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 3674,
+        "line_end": 6625,
+        "chapters": [
+          "china:6:CHAPTER VI",
+          "china:7:CHAPTER VII",
+          "china:8:CHAPTER VIII",
+          "china:9:CHAPTER IX",
+          "china:10:CHAPTER X",
+          "china:11:CHAPTER XI"
+        ],
+        "heads": [
+          [
+            3674,
+            "CHAPTER VI"
+          ],
+          [
+            4167,
+            "CHAPTER VII"
+          ],
+          [
+            4911,
+            "CHAPTER VIII"
+          ],
+          [
+            5278,
+            "CHAPTER IX"
+          ],
+          [
+            5879,
+            "CHAPTER X"
+          ],
+          [
+            6197,
+            "CHAPTER XI"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8"
+      },
+      "input_file": "미게시-임시자료:history/china-2.json",
+      "input_sha256": "490db2b6b890c34f090b374f854f3163f8c6978a99b8b397ccf9f593fb851d8a",
+      "scope": {
+        "line_start": 3674,
+        "line_end": 6625,
+        "chapters": [
+          "china:6:CHAPTER VI",
+          "china:7:CHAPTER VII",
+          "china:8:CHAPTER VIII",
+          "china:9:CHAPTER IX",
+          "china:10:CHAPTER X",
+          "china:11:CHAPTER XI"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:6:CHAPTER VI",
+          "line_start": 3674,
+          "line_end": 4166,
+          "status": "read",
+          "cards": 43,
+          "note": "본문 전체 확인. 저자의 민족 일반화와 전승은 역사적 사실로 단정하지 않음."
+        },
+        {
+          "unit": "china:7:CHAPTER VII",
+          "line_start": 4167,
+          "line_end": 4910,
+          "status": "read",
+          "cards": 44,
+          "note": "본문 전체 확인. 저자의 중국 사회 불변론과 민족 성격 일반화는 사실로 채택하지 않음."
+        },
+        {
+          "unit": "china:8:CHAPTER VIII",
+          "line_start": 4911,
+          "line_end": 5277,
+          "status": "read",
+          "cards": 24,
+          "note": "본문 전체 확인. 건국 신화와 원저의 민족·인종 서술은 사실과 구분."
+        },
+        {
+          "unit": "china:9:CHAPTER IX",
+          "line_start": 5278,
+          "line_end": 5878,
+          "status": "read",
+          "cards": 32,
+          "note": "본문 전체 확인. 저자의 충성·민족 평가와 불확실한 전승은 사실과 구별."
+        },
+        {
+          "unit": "china:10:CHAPTER X",
+          "line_start": 5879,
+          "line_end": 6196,
+          "status": "read",
+          "cards": 15,
+          "note": "본문 전체 확인. 학살 규모와 제도 기원 등 저자의 불확실한 주장은 원저의 주장으로 표기."
+        },
+        {
+          "unit": "china:11:CHAPTER XI",
+          "line_start": 6197,
+          "line_end": 6625,
+          "status": "read",
+          "cards": 29,
+          "note": "할당된 장 전체 확인: 6622행 이후는 빈 줄. 제3자 사절 서한 전문은 인용하지 않고 본문 서술만 추출; 연대·전승과 종교 분류는 원저 기준."
+        }
+      ],
+      "candidate_count": 187
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "china-3",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 6626,
+        "line_end": 8257,
+        "chapters": [
+          "china:12:CHAPTER XII",
+          "china:13:CHAPTER XIII",
+          "china:14:CHAPTER XIV",
+          "china:15:CHAPTER XV",
+          "china:16:CHAPTER XVI"
+        ],
+        "heads": [
+          [
+            6626,
+            "CHAPTER XII"
+          ],
+          [
+            6964,
+            "CHAPTER XIII"
+          ],
+          [
+            7300,
+            "CHAPTER XIV"
+          ],
+          [
+            7587,
+            "CHAPTER XV"
+          ],
+          [
+            7951,
+            "CHAPTER XVI"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8"
+      },
+      "input_file": "미게시-임시자료:history/china-3.json",
+      "input_sha256": "a1fce3e3177ba173860e75c8ccf98a6c6732b818c79752f9125609a2814125a7",
+      "scope": {
+        "line_start": 6626,
+        "line_end": 8257,
+        "chapters": [
+          "china:12:CHAPTER XII",
+          "china:13:CHAPTER XIII",
+          "china:14:CHAPTER XIV",
+          "china:15:CHAPTER XV",
+          "china:16:CHAPTER XVI"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:12:CHAPTER XII",
+          "line_start": 6626,
+          "line_end": 6963,
+          "status": "read",
+          "cards": 24,
+          "note": "본문 전체를 읽음. 원저의 평가와 사망자 등 수치는 원저의 주장으로 취급."
+        },
+        {
+          "unit": "china:13:CHAPTER XIII",
+          "line_start": 6964,
+          "line_end": 7299,
+          "status": "read",
+          "cards": 31,
+          "note": "본문 전체를 읽음. 티베트인·고르카인 등에 대한 원저의 편향적 평가는 사실로 채택하지 않음."
+        },
+        {
+          "unit": "china:14:CHAPTER XIV",
+          "line_start": 7300,
+          "line_end": 7586,
+          "status": "read",
+          "cards": 21,
+          "note": "본문 전체를 읽음. 장에 수록된 관리 기소문과 선교사 인물 묘사 인용문은 제3자 원문이므로 독립 본문 근거에서 제외."
+        },
+        {
+          "unit": "china:15:CHAPTER XV",
+          "line_start": 7587,
+          "line_end": 7950,
+          "status": "read",
+          "cards": 24,
+          "note": "본문 전체를 읽음. 역사적 결사 명칭·계보와 저자의 제국주의적 평가는 원저 주장으로 분리."
+        },
+        {
+          "unit": "china:16:CHAPTER XVI",
+          "line_start": 7951,
+          "line_end": 8257,
+          "status": "read",
+          "cards": 28,
+          "note": "16장 본문 전체를 읽음. 8258행에서 17장이 시작함을 확인. 원저의 민족·식민주의적 판단을 분리."
+        }
+      ],
+      "candidate_count": 128
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "china-4",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 8258,
+        "line_end": 16581,
+        "chapters": [
+          "china:17:CHAPTER XVII",
+          "china:18:CHAPTER XVIII",
+          "china:19:CHAPTER XIX",
+          "china:20:CHAPTER XX",
+          "china:21:CHAPTER XXI",
+          "china:22:CHAPTER XXII",
+          "china:supplement-war-japan",
+          "china:supplement-future"
+        ],
+        "heads": [
+          [
+            8258,
+            "CHAPTER XVII"
+          ],
+          [
+            9481,
+            "CHAPTER XVIII"
+          ],
+          [
+            10236,
+            "CHAPTER XIX"
+          ],
+          [
+            11962,
+            "CHAPTER XX"
+          ],
+          [
+            13093,
+            "CHAPTER XXI"
+          ],
+          [
+            14361,
+            "CHAPTER XXII"
+          ],
+          [
+            15510,
+            "THE WAR WITH JAPAN AND SUBSEQUENT EVENTS"
+          ],
+          [
+            15940,
+            "THE FUTURE OF CHINA"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8"
+      },
+      "input_file": "미게시-임시자료:history/china-4.json",
+      "input_sha256": "aeccf88ee7363386c933e799281cfb851efb66cf2f8fcfe019ad3f8b6e46c178",
+      "scope": {
+        "line_start": 8258,
+        "line_end": 16581,
+        "chapters": [
+          "china:17:CHAPTER XVII",
+          "china:18:CHAPTER XVIII",
+          "china:19:CHAPTER XIX",
+          "china:20:CHAPTER XX",
+          "china:21:CHAPTER XXI",
+          "china:22:CHAPTER XXII",
+          "china:supplement-war-japan",
+          "china:supplement-future"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:17:CHAPTER XVII",
+          "line_start": 8258,
+          "line_end": 9480,
+          "status": "read",
+          "cards": 53,
+          "note": "본문 전범위 검토. 삽화 설명은 근거에서 제외. 원저의 제국주의적 평가와 역사적 사실을 구분함."
+        },
+        {
+          "unit": "china:18:CHAPTER XVIII",
+          "line_start": 9481,
+          "line_end": 10235,
+          "status": "read",
+          "cards": 50,
+          "note": "본문 전범위 검토. 원저의 민족 비하·정치적 해석과 수치 추정을 구분함."
+        },
+        {
+          "unit": "china:19:CHAPTER XIX",
+          "line_start": 10236,
+          "line_end": 11961,
+          "status": "unread",
+          "cards": 0,
+          "note": "미검토: 추출 작업 진행 중."
+        },
+        {
+          "unit": "china:20:CHAPTER XX",
+          "line_start": 11962,
+          "line_end": 13092,
+          "status": "unread",
+          "cards": 0,
+          "note": "미검토: 추출 작업 진행 중."
+        },
+        {
+          "unit": "china:21:CHAPTER XXI",
+          "line_start": 13093,
+          "line_end": 14360,
+          "status": "unread",
+          "cards": 0,
+          "note": "미검토: 추출 작업 진행 중."
+        },
+        {
+          "unit": "china:22:CHAPTER XXII",
+          "line_start": 14361,
+          "line_end": 15509,
+          "status": "unread",
+          "cards": 0,
+          "note": "미검토: 추출 작업 진행 중."
+        },
+        {
+          "unit": "china:supplement-war-japan",
+          "line_start": 15510,
+          "line_end": 15939,
+          "status": "unread",
+          "cards": 0,
+          "note": "미검토: 추출 작업 진행 중."
+        },
+        {
+          "unit": "china:supplement-future",
+          "line_start": 15940,
+          "line_end": 16581,
+          "status": "unread",
+          "cards": 0,
+          "note": "미검토: 추출 작업 진행 중."
+        }
+      ],
+      "candidate_count": 103
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "refill-china-19-chapter-xix-p1",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 10236,
+        "line_end": 11098,
+        "chapters": [
+          "china:19:CHAPTER XIX"
+        ],
+        "heads": [
+          [
+            10236,
+            "china:19:CHAPTER XIX"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+        "status": "pending",
+        "parent_partial": "china-4"
+      },
+      "input_file": "미게시-임시자료:history/refill-china-19-chapter-xix-p1.json",
+      "input_sha256": "decd61244d83f60ce478dbc25dbaf67eff74ee91aa59acdc8437cc2390837021",
+      "scope": {
+        "line_start": 10236,
+        "line_end": 11098,
+        "chapters": [
+          "china:19:CHAPTER XIX."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:19:CHAPTER XIX.",
+          "line_start": 10236,
+          "line_end": 11098,
+          "status": "read",
+          "cards": 95,
+          "note": "10236–11098행 전체와 앞뒤 문맥을 읽음. 제19장은 11099행 이후에도 이어지며 할당 범위 밖이다. 10722–10743 및 11081–11098행의 제3자 1차 문헌 직접 인용은 카드의 본문 근거로 사용하지 않았다. 원저의 영국 중심 관점과 해석은 사실과 구분한다."
+        }
+      ],
+      "candidate_count": 95
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "refill-china-19-chapter-xix-p2",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 11099,
+        "line_end": 11961,
+        "chapters": [
+          "china:19:CHAPTER XIX"
+        ],
+        "heads": [
+          [
+            11099,
+            "china:19:CHAPTER XIX"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+        "status": "pending",
+        "parent_partial": "china-4"
+      },
+      "input_file": "미게시-임시자료:history/refill-china-19-chapter-xix-p2.json",
+      "input_sha256": "c3f9494ad733263e690772e4a762d673b582f081f28416ac95b5f21acce55284",
+      "scope": {
+        "line_start": 11099,
+        "line_end": 11961,
+        "chapters": [
+          "china:19:CHAPTER XIX."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:19:CHAPTER XIX.",
+          "line_start": 11099,
+          "line_end": 11961,
+          "status": "read",
+          "cards": 86,
+          "note": "11099–11101행은 앞에서 시작된 헨리 포팅어의 제3자 인용 끝으로 카드 근거에서 제외; 11102행과 11958–11961행은 공백. 11103–11957행의 본문 전체를 읽음. 11962행부터 XX장. 앞뒤 문맥 11049–11098 및 11962–12020행도 확인. 원저자의 제국주의적 평가와 추측을 사실과 구분함."
+        }
+      ],
+      "candidate_count": 86
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "refill-china-20-chapter-xx-p1",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 11962,
+        "line_end": 12527,
+        "chapters": [
+          "china:20:CHAPTER XX"
+        ],
+        "heads": [
+          [
+            11962,
+            "china:20:CHAPTER XX"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+        "status": "pending",
+        "parent_partial": "china-4"
+      },
+      "input_file": "미게시-임시자료:history/refill-china-20-chapter-xx-p1.json",
+      "input_sha256": "04c016bdf228929a0eede3b237aed83c93e1514d2686e1f15b0ec21ecee4bba3",
+      "scope": {
+        "line_start": 11962,
+        "line_end": 12527,
+        "chapters": [
+          "china:20:CHAPTER XX"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:20:CHAPTER XX",
+          "line_start": 11962,
+          "line_end": 12527,
+          "status": "read",
+          "cards": 79,
+          "note": "할당된 566행 전체를 읽음. 제20장 시작부터 오공 공격 도중까지이며 12528행 이후는 다음 분할 범위다. 장 앞뒤 문맥을 확인했지만 카드 근거는 할당 행으로 제한했다. 저자의 제국주의적 평가와 추정 수치는 사실 확정과 구별했다."
+        }
+      ],
+      "candidate_count": 79
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "refill-china-20-chapter-xx-p2",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 12528,
+        "line_end": 13092,
+        "chapters": [
+          "china:20:CHAPTER XX"
+        ],
+        "heads": [
+          [
+            12528,
+            "china:20:CHAPTER XX"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+        "status": "pending",
+        "parent_partial": "china-4"
+      },
+      "input_file": "미게시-임시자료:history/refill-china-20-chapter-xx-p2.json",
+      "input_sha256": "fc89d054609b399b89e049ea698885d43462347efeca9ce6e3982c40b3e627f8",
+      "scope": {
+        "line_start": 12528,
+        "line_end": 13092,
+        "chapters": [
+          "china:20:CHAPTER XX"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:20:CHAPTER XX",
+          "line_start": 12528,
+          "line_end": 13092,
+          "status": "read",
+          "cards": 76,
+          "note": "제20장 후반 565행 전체를 검토했다. 12528행은 앞 문장의 중간이고 13089–13092행은 공백이며 다음 장은 13093행에 시작한다. 경계 전후 12501–12527행과 13093–13119행을 문맥으로 확인했으나 카드 근거는 할당 범위로 한정했다. 제국주의적 평가와 확정되지 않은 서술은 저자에게 귀속했다."
+        }
+      ],
+      "candidate_count": 76
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "refill-china-21-chapter-xxi-p1",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 13093,
+        "line_end": 13726,
+        "chapters": [
+          "china:21:CHAPTER XXI"
+        ],
+        "heads": [
+          [
+            13093,
+            "china:21:CHAPTER XXI"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+        "status": "pending",
+        "parent_partial": "china-4"
+      },
+      "input_file": "미게시-임시자료:history/refill-china-21-chapter-xxi-p1.json",
+      "input_sha256": "d74a608745d9f12b08c5f7e2381a2b3d485049312be2614d5cfcff1d299c83bb",
+      "scope": {
+        "line_start": 13093,
+        "line_end": 13726,
+        "chapters": [
+          "china:21:CHAPTER XXI"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:21:CHAPTER XXI",
+          "line_start": 13093,
+          "line_end": 13726,
+          "status": "read",
+          "cards": 72,
+          "note": "634행 전체를 읽음. 21장은 13726행 중간에서 이어지므로 이후 내용은 이 분할 범위 밖이다. 13065–13092행 및 13727–13750행은 경계 문맥으로 확인했으며 카드 근거에 포함하지 않았다. 원저의 민족·종교적 표현과 평가 및 불확실한 동기는 저자의 관점으로 취급한다. 미국 밖 이용자는 현지 저작권을 확인해야 하며 판본의 역사적 정확성이나 이용권을 보증하지 않는다."
+        }
+      ],
+      "candidate_count": 72
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "refill-china-21-chapter-xxi-p2",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 13727,
+        "line_end": 14360,
+        "chapters": [
+          "china:21:CHAPTER XXI"
+        ],
+        "heads": [
+          [
+            13727,
+            "china:21:CHAPTER XXI"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+        "status": "pending",
+        "parent_partial": "china-4"
+      },
+      "input_file": "미게시-임시자료:history/refill-china-21-chapter-xxi-p2.json",
+      "input_sha256": "c4f657bc1636b174ada2fbaa576dd4764d7016ccfe84feec930bdc08c443ba96",
+      "scope": {
+        "line_start": 13727,
+        "line_end": 14360,
+        "chapters": [
+          "china:21:CHAPTER XXI"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:21:CHAPTER XXI",
+          "line_start": 13727,
+          "line_end": 14360,
+          "status": "read",
+          "cards": 82,
+          "note": "13727–14356 본문과 14357–14360 빈 줄을 읽음. 앞 문맥 13695–13726 및 다음 장 시작 14361–14385 확인. 14073–14095 미국 공사의 제3자 공문 인용 전문은 본문 근거에서 제외. 원저의 제국주의적·반무슬림 편견과 확인되지 않은 주장에 유의."
+        }
+      ],
+      "candidate_count": 82
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "refill-china-22-chapter-xxii-p1",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 14361,
+        "line_end": 14935,
+        "chapters": [
+          "china:22:CHAPTER XXII"
+        ],
+        "heads": [
+          [
+            14361,
+            "china:22:CHAPTER XXII"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+        "status": "pending",
+        "parent_partial": "china-4"
+      },
+      "input_file": "미게시-임시자료:history/refill-china-22-chapter-xxii-p1.json",
+      "input_sha256": "b05efdad0ee4de71b9aad15040f27cab81d03c8a25fc53f1aa74058de07c06fa",
+      "scope": {
+        "line_start": 14361,
+        "line_end": 14935,
+        "chapters": [
+          "china:22:CHAPTER XXII"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:22:CHAPTER XXII",
+          "line_start": 14361,
+          "line_end": 14935,
+          "status": "read",
+          "cards": 99,
+          "note": "본문 전 범위 확인. 14786행 그림 설명 제외. 14935행 문장은 다음 구간으로 계속되며 다음 구간은 경계 문맥으로만 읽음. 역사 서술의 시대적 편향과 현지 법률상 이용권은 별도 검토 필요."
+        }
+      ],
+      "candidate_count": 99
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "refill-china-22-chapter-xxii-p2",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 14936,
+        "line_end": 15509,
+        "chapters": [
+          "china:22:CHAPTER XXII"
+        ],
+        "heads": [
+          [
+            14936,
+            "china:22:CHAPTER XXII"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+        "status": "pending",
+        "parent_partial": "china-4"
+      },
+      "input_file": "미게시-임시자료:history/refill-china-22-chapter-xxii-p2.json",
+      "input_sha256": "8c4297623b4f29975a4dca2dce339a447ce3ff33a32fc0527369851563c0d1ec",
+      "scope": {
+        "line_start": 14936,
+        "line_end": 15509,
+        "chapters": [
+          "china:22:CHAPTER XXII"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:22:CHAPTER XXII",
+          "line_start": 14936,
+          "line_end": 15509,
+          "status": "read",
+          "cards": 91,
+          "note": "14936–15509행 전부 읽음. 14936행은 앞 문장의 연속이며 앞쪽 14896–14935행과 다음 제목 15510행을 경계 문맥으로 확인. 인물 인용문 15369–15386행은 제3자 인용이므로 독립 근거에서 제외. 15506–15509행은 빈 줄. 원저의 제국주의적 평가와 추정을 구분함."
+        }
+      ],
+      "candidate_count": 91
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "refill-china-supplement-war-japan",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 15510,
+        "line_end": 15939,
+        "chapters": [
+          "china:supplement-war-japan"
+        ],
+        "heads": [
+          [
+            15510,
+            "china:supplement-war-japan"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+        "status": "pending",
+        "parent_partial": "china-4"
+      },
+      "input_file": "미게시-임시자료:history/refill-china-supplement-war-japan.json",
+      "input_sha256": "1542d63b6267a65cd1e0733629ab3952846fb2c2e975d081c272168ee1c86433",
+      "scope": {
+        "line_start": 15510,
+        "line_end": 15939,
+        "chapters": [
+          "china:supplement-war-japan"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:supplement-war-japan",
+          "line_start": 15510,
+          "line_end": 15939,
+          "status": "read",
+          "cards": 86,
+          "note": "본문 15510–15935행과 끝 공백 15936–15939행을 읽었다. 앞 절 15475–15505행과 다음 절 시작 15940–15970행을 경계 확인용으로 읽었으며 카드 근거에는 포함하지 않았다. 판본의 식민주의적 가치판단·미확인 주장과 독립 역사 사실을 구분했다."
+        }
+      ],
+      "candidate_count": 86
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "china",
+        "segment": "refill-china-supplement-future",
+        "commit": "912082039edef6ad87161eee86dee284193d65e1",
+        "path": "docs/research/history-textbooks/china/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/6708",
+        "line_start": 15940,
+        "line_end": 16581,
+        "chapters": [
+          "china:supplement-future"
+        ],
+        "heads": [
+          [
+            15940,
+            "china:supplement-future"
+          ]
+        ],
+        "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+        "status": "pending",
+        "parent_partial": "china-4"
+      },
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "scope": {
+        "line_start": 15940,
+        "line_end": 16581,
+        "chapters": [
+          "china:supplement-future"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "china:supplement-future",
+          "line_start": 15940,
+          "line_end": 16581,
+          "status": "read",
+          "cards": 57,
+          "note": "절 제목부터 마지막 본문 및 빈 행까지 전체 642행 확인. 앞의 15880–15939행과 뒤의 16582행 이후를 경계 확인용으로 읽음. 제3자 인용 전문과 원저의 인종·식민주의적 일반화는 독립 사실로 채택하지 않고 해당 발언은 평가로만 한정함. 원전의 역사 정확성 및 미국 외 이용권은 미검증."
+        }
+      ],
+      "candidate_count": 57
+    }
+  ],
+  "partial_coverage_reconciliation": [
+    {
+      "unit": "china:19:CHAPTER XIX",
+      "unread_lines": [
+        10236,
+        11961
+      ],
+      "refills": [
+        "refill-china-19-chapter-xix-p1",
+        "refill-china-19-chapter-xix-p2"
+      ],
+      "gaps": [],
+      "overlaps": [],
+      "assessment": "동일 원전의 구간상 연속 대체; read는 추출자 자체 보고"
+    },
+    {
+      "unit": "china:20:CHAPTER XX",
+      "unread_lines": [
+        11962,
+        13092
+      ],
+      "refills": [
+        "refill-china-20-chapter-xx-p1",
+        "refill-china-20-chapter-xx-p2"
+      ],
+      "gaps": [],
+      "overlaps": [],
+      "assessment": "동일 원전의 구간상 연속 대체; read는 추출자 자체 보고"
+    },
+    {
+      "unit": "china:21:CHAPTER XXI",
+      "unread_lines": [
+        13093,
+        14360
+      ],
+      "refills": [
+        "refill-china-21-chapter-xxi-p1",
+        "refill-china-21-chapter-xxi-p2"
+      ],
+      "gaps": [],
+      "overlaps": [],
+      "assessment": "동일 원전의 구간상 연속 대체; read는 추출자 자체 보고"
+    },
+    {
+      "unit": "china:22:CHAPTER XXII",
+      "unread_lines": [
+        14361,
+        15509
+      ],
+      "refills": [
+        "refill-china-22-chapter-xxii-p1",
+        "refill-china-22-chapter-xxii-p2"
+      ],
+      "gaps": [],
+      "overlaps": [],
+      "assessment": "동일 원전의 구간상 연속 대체; read는 추출자 자체 보고"
+    },
+    {
+      "unit": "china:supplement-war-japan",
+      "unread_lines": [
+        15510,
+        15939
+      ],
+      "refills": [
+        "refill-china-supplement-war-japan"
+      ],
+      "gaps": [],
+      "overlaps": [],
+      "assessment": "동일 원전의 구간상 연속 대체; read는 추출자 자체 보고"
+    },
+    {
+      "unit": "china:supplement-future",
+      "unread_lines": [
+        15940,
+        16581
+      ],
+      "refills": [
+        "refill-china-supplement-future"
+      ],
+      "gaps": [],
+      "overlaps": [],
+      "assessment": "동일 원전의 구간상 연속 대체; read는 추출자 자체 보고"
+    }
+  ],
+  "counts": {
+    "input_files": 14,
+    "input_candidates": 1544,
+    "output_individual_cards": 1544,
+    "merged_candidates": 0,
+    "unprocessed_candidates": 0,
+    "evidence_preservation_equation": "1544 = 1544 + 0",
+    "by_type": {
+      "character": 680,
+      "organization": 116,
+      "rule": 74,
+      "object": 56,
+      "location": 316,
+      "event": 302
+    },
+    "files": 6
+  },
+  "deduplication": "제목·본문·유형이 모두 완전히 같은 후보만 병합 가능한 후보로 보았으나 해당 그룹이 없어 아무것도 병합하지 않았다. 같은 key 또는 제목·유형은 각 카드에 참조로 표시하고 모두 보존했다.",
+  "id_policy": {
+    "algorithm": "UUIDv5",
+    "namespace_worldId": "d3c3b3bc-1ee5-5361-82bd-d2679a258a02",
+    "name": "storyfork/review/full-history/china/<segment>/<candidate_key>"
+  },
+  "validation": {
+    "duplicate_candidate_keys_per_segment": 0,
+    "duplicate_ids": 0,
+    "existing_id_collisions": 0,
+    "missing_source_units_lines_or_body_url_author": 0,
+    "invalid_utf16_length": 0,
+    "invalid_line_ranges": 0,
+    "missing_or_invalid_inputs": 0,
+    "quarantined": [],
+    "coverage_gaps_in_refills": 0,
+    "coverage_overlaps_in_refills": 0,
+    "existing_comparison_scope": "26개 source/template.json 설정 항목 및 중국 history world 두 파일의 정확한 제목·유형, 중국 evidence의 행 겹침; 의미상 중복 전체 탐지는 아님",
+    "existing_template_files": 26,
+    "existing_title_type_matches": 2,
+    "existing_line_overlap_matches": 63,
+    "same_key_flagged": 254,
+    "same_title_type_flagged": 99,
+    "historical_claims_independently_verified": false,
+    "roundtrip_input_records_and_evidence_missing": 0,
+    "max_title_utf16_units": 45,
+    "max_body_utf16_units": 330,
+    "metadata_like_titles_detected": 0,
+    "source_line_check": "고정 원전 행 범위와 비공백 존재 확인; 개별 주장·인물 식별 검증은 미실시"
+  },
+  "output_files": [
+    {
+      "file": "cards-001.json",
+      "cards": 300,
+      "bytes": 332144,
+      "sha256": "8baa0da43101747fbd561bbe314632df131c8b1094b3b64942b10576e75171b7"
+    },
+    {
+      "file": "cards-002.json",
+      "cards": 300,
+      "bytes": 350343,
+      "sha256": "c8301a5b702cc764d00448df896d881fb4086b02abc3dd435e30eb486d8ebe95"
+    },
+    {
+      "file": "cards-003.json",
+      "cards": 300,
+      "bytes": 387856,
+      "sha256": "ce174a15f9526479b902c0805e93ab109e0006008805a409160f1ae727d57d0f"
+    },
+    {
+      "file": "cards-004.json",
+      "cards": 300,
+      "bytes": 407155,
+      "sha256": "10b021a55f13740c6209890a174e9edbc704e8f77bccb2df917476d56ffdbe7e"
+    },
+    {
+      "file": "cards-005.json",
+      "cards": 300,
+      "bytes": 406891,
+      "sha256": "21666e0e4ff4b40d6521bd77fffb8c8b33ead903c066bffdaddfdb32a43e1a11"
+    },
+    {
+      "file": "cards-006.json",
+      "cards": 44,
+      "bytes": 61124,
+      "sha256": "e493c4525d7e72eb6f691ca1b532ab4994d8e9887dcf2a74163de9ccb4c6b820"
+    }
+  ],
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

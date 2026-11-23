@@ -1,0 +1,204 @@
+{
+  "world_id": "journey_to_the_west",
+  "world_id_meaning": "기존 worldId 참조용 라벨",
+  "id_namespace": "3866acbf-f549-5d55-95e2-0e4246a5e8d7",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "journey-xuanzang",
+      "world_id": "journey_to_the_west",
+      "title": "大唐大慈恩寺三藏法師傳",
+      "target_scope": "卷01; separate historical biography, integration policy unresolved",
+      "edition_language_attribution": "Classical Chinese; 慧立 and 彥悰; Wikisource transcription, edition unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://zh.wikisource.org/zh-hant/大唐大慈恩寺三藏法師傳/卷01",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Page links site license CC BY-SA 4.0; scope of that notice versus original work, transcription, quotations and images, attribution requirements and jurisdiction not resolved.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Volume 1 text and paragraphs bounded; source is a separate historical biography, not a missing passage of the novel."
+      },
+      "scope_status": "complete_local_volume_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "817185e7c18a31bf403b04c4bdfb1659431765a56241211febdda4f8ea6f1522",
+      "units": [
+        {
+          "unit_id": "journey-xuanzang--chunk-01",
+          "label": "Volume 1 prose group 01",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 42454,
+            "byte_end_exclusive": 45810,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "a15eb972434dc1fc7a29aff98a70b44030f1f765eab328c72ce31f2306ca05a8",
+            "note": "Paragraph groups are artificial. Historical biography; any integration into the Journey to the West setting remains undecided."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "journey-xuanzang--chunk-01",
+              "status": "read",
+              "read_scope": "Volume 1 prose group 01의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "journey-xuanzang--chunk-02",
+          "label": "Volume 1 prose group 02",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 45810,
+            "byte_end_exclusive": 48394,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "04e1c1bef6d9e2a36bd178705a39699af4f2888e279796d32e29ce10caa8d01b",
+            "note": "Paragraph groups are artificial. Historical biography; any integration into the Journey to the West setting remains undecided."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "journey-xuanzang--chunk-02",
+              "status": "read",
+              "read_scope": "Volume 1 prose group 02의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "journey-xuanzang--chunk-03",
+          "label": "Volume 1 prose group 03",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 48394,
+            "byte_end_exclusive": 50330,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "2aa39a0827a357cbfa835baa6ca8ce73f5d4366689b9451f16e8942b5fb6aa9f",
+            "note": "Paragraph groups are artificial. Historical biography; any integration into the Journey to the West setting remains undecided."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "journey-xuanzang--chunk-03",
+              "status": "read",
+              "read_scope": "Volume 1 prose group 03의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 3
+            }
+          ],
+          "actual_candidates": 3
+        },
+        {
+          "unit_id": "journey-xuanzang--chunk-04",
+          "label": "Volume 1 prose group 04",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 50330,
+            "byte_end_exclusive": 55524,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "3f2b0b38dfdadbc21f502e947b571ee8b4a7fd7001d403385c2edb98add3846b",
+            "note": "Paragraph groups are artificial. Historical biography; any integration into the Journey to the West setting remains undecided."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "journey-xuanzang--chunk-04",
+              "status": "read",
+              "read_scope": "Volume 1 prose group 04의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 7
+            }
+          ],
+          "actual_candidates": 7
+        },
+        {
+          "unit_id": "journey-xuanzang--chunk-05",
+          "label": "Volume 1 prose group 05",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 55524,
+            "byte_end_exclusive": 59830,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "ee4d1602b3179135d5edd669690474cab09fed14f1b8527ef896926b47048255",
+            "note": "Paragraph groups are artificial. Historical biography; any integration into the Journey to the West setting remains undecided."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "journey-xuanzang--chunk-05",
+              "status": "read",
+              "read_scope": "Volume 1 prose group 05의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "journey-xuanzang--chunk-06",
+          "label": "Volume 1 prose group 06",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 59830,
+            "byte_end_exclusive": 64490,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "49f46e8e6f24ed53b8ad0d494f9fc692d286cd8798dd90d256bc27572f992375",
+            "note": "Paragraph groups are artificial. Historical biography; any integration into the Journey to the West setting remains undecided."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "journey-xuanzang--chunk-06",
+              "status": "read",
+              "read_scope": "Volume 1 prose group 06의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "journey-xuanzang--chunk-07",
+          "label": "Volume 1 prose group 07",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 64490,
+            "byte_end_exclusive": 67270,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "9d15a5a430433b61028be9dccb4bc16346a37321fb22e00127822e1c82a3abb0",
+            "note": "Paragraph groups are artificial. Historical biography; any integration into the Journey to the West setting remains undecided."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "journey-xuanzang--chunk-07",
+              "status": "read",
+              "read_scope": "Volume 1 prose group 07의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        }
+      ]
+    }
+  ],
+  "special_note": "현장 전기는 서유기 소설과 분리된 역사 문헌 참조 후보이며 사건을 혼합하지 않는다. 기존 세계관 배정과 앱·DB 적재는 미결정이다."
+}

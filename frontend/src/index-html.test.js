@@ -48,6 +48,15 @@ describe('frontend shell source contracts', () => {
     ])
   })
 
+  it('guards the Content and writing studio routes with the existing RequireRole (#605)', () => {
+    const app = readFileSync(new URL('./App.tsx', import.meta.url), 'utf8')
+    const routes = [...app.matchAll(/<Route\s+path="(\/content|\/studio\/[^"]*)"\s+element=\{([^\n]+)\}/g)]
+    expect(routes.map(([, path, element]) => [path, element])).toEqual([
+      ['/content', '<RequireRole><EpisodePage /></RequireRole>'],
+      ['/studio/:id', '<RequireRole><StudioPage /></RequireRole>'],
+    ])
+  })
+
   it('keeps the worlds label free of the demo tag', () => {
     const gnb = readFileSync(new URL('./presentation/shared/shell/Gnb.tsx', import.meta.url), 'utf8')
     expect(gnb).toContain("['worlds', '세계관', '세계관']")
@@ -145,13 +154,30 @@ describe('storyfork.css theme tokens', () => {
     expect(css).not.toMatch(/#C2415C|#D9617D/i)
   })
 
-  it('shows the work hero genre label with --pri-ink in dark so it stays 4.5:1 over the lightest part of the background art', () => {
+  it('keeps the work hero genre label at 4.5:1 over the page background', () => {
     const label = sheet.find((r) => !r.media && r.selector === '.whero .g')
-    // 라이트는 기존 강조색(--tacc) 그대로, 다크만 --pri-ink — 토큰과 같은 --l/--d 스위치라 고른 테마와 OS 테마를 함께 따른다.
-    expect(declOf(label, 'color')).toBe('var(--l,var(--tacc)) var(--d,var(--pri-ink))')
-    // .band 아트가 밝아지는 쪽의 실측 배경(약 #444)에서 --pri는 3.4:1이라 모자라고 --pri-ink는 4.5:1 이상이다.
-    expect(contrast(pair('pri')[1], '#444444')).toBeLessThan(4.5)
-    expect(contrast(pair('pri-ink')[1], '#444444')).toBeGreaterThanOrEqual(4.5)
+    // 장르 표시는 제목 위 눈썹이 아니라 보조 글자(--tsub, 기본값이 --sub)다. 페이지 배경에서 라이트·다크 모두 4.5:1 이상이다.
+    expect(declOf(label, 'color')).toBe('var(--tsub)')
+    for (const mode of [0, 1]) expect(contrast(pair('sub')[mode], pair('bg')[mode]), mode ? 'dark' : 'light').toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('limits the work detail cover-beside-title layout to the work page so .whero.ep-hero management screens keep theirs', () => {
+    // 작품 생성·관리·세계관 화면도 .whero(.ep-hero)를 쓰지만 .calm 밖이다. 상세 전용 배치·그림자는 .calm .whero에만 건다.
+    const narrow = sheet.filter((rule) => rule.media === '(max-width:900px)' || rule.media === '(max-width:600px)')
+    expect(narrow.some((rule) => rule.media === '(max-width:900px)' && rule.selector === '.calm .whero>.whero-body' && declOf(rule, 'display') === 'contents')).toBe(true)
+    expect(narrow.filter((rule) => selectorsOf(rule).some((s) => /^\.whero\b/.test(s)) && /display:contents|grid-column|minmax/.test(rule.body))).toEqual([])
+    expect(sheet.filter((rule) => !rule.media && /^\.whero \.cover$/.test(rule.selector) && /box-shadow/.test(rule.body))).toEqual([])
+    expect(declOf(sheet.find((rule) => rule.media === '(max-width:600px)' && rule.selector === '.whero .cover'), 'max-width')).toBe('130px')
+  })
+
+  it('limits the new h2 step styling to the fork form', () => {
+    const headings = sheet.filter((rule) => selectorsOf(rule).includes('main.fork .fstep h2'))
+    expect(headings.some((rule) => selectorsOf(rule).includes('.fstep h3'))).toBe(true)
+    expect(sheet.some((rule) => selectorsOf(rule).includes('.fstep h2'))).toBe(false)
+  })
+
+  it('aligns the work-detail cover with the top of long work information', () => {
+    expect(declOf(sheet.find((rule) => !rule.media && rule.selector === '.calm .whero'), 'align-items')).toBe('start')
   })
 })
 

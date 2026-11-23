@@ -46,8 +46,9 @@ class ContentExtractionTest(unittest.TestCase):
         files=sorted((p for p in root.glob('*/*.sql') if p.parent.name in {"work","episode","episode_version","publication","world","fork","proposal"}),key=lambda p:int(re.match(r'V(\d+)__',p.name)[1]))
         # plan leaf(V10~V12)는 이 검사 대상 밖이고, work leaf의 V13은 work_restriction(운영 작품 제한), V14는 work_view(작품 검색·랭킹 조회 기록), V15는 샘플 이관의 공개 표시 메타데이터, V17은 회차 댓글(episode_comment), V18은 work_like(작품 좋아요), V19는 work_interest(관심 작품)·content_event_outbox(알림 사건), V20은 reading_record(독서 기록)다.
         # V21 is work soft delete (work leaf); V22 adds episode publication status and V23 episode author notes without changing existing migration bytes.
-        # V25 adds the publication schedule (publication leaf) and V26 the world checkpoint table (world leaf); V27 episode world basis (episode leaf); V28 is feedback reports and V29 edit suggestions (work leaf); V30 episode_comment.hidden (work leaf); V31 episode soft delete (episode leaf); V36 work notices (work leaf; V32~V35 belong to other open PRs); V37 work.world_studio_id (work leaf, DEC-46 1:1 WorldStudio link); V24 stays vacant.
-        self.assertEqual([*range(1,10),13,14,15,17,18,19,20,21,22,23,25,26,27,28,29,30,31,36,37],[int(re.match(r'V(\d+)__',p.name)[1]) for p in files])
+        # V25 adds the publication schedule (publication leaf) and V26 the world checkpoint table (world leaf); V27 episode world basis (episode leaf); V28 is feedback reports and V29 edit suggestions (work leaf); V30 episode_comment.hidden (work leaf); V31 episode soft delete (episode leaf); V36 work notices (work leaf; V32~V35 belong to other open PRs); V37 work.world_studio_id (work leaf, DEC-46 1:1 WorldStudio link); V39 records the latest author handling time (work leaf); V24 stays vacant.
+        # V40 adds immutable work operating settings history to the work leaf.
+        self.assertEqual([*range(1,10),13,14,15,17,18,19,20,21,22,23,25,26,27,28,29,30,31,36,37,39,40,42],[int(re.match(r'V(\d+)__',p.name)[1]) for p in files])
         created=set()
         for path in files:
             for statement in re.split(r'(?=CREATE TABLE )',path.read_text()):
@@ -87,6 +88,7 @@ class ContentExtractionTest(unittest.TestCase):
             source = (ROOT / relative).read_text()
             with self.subTest(proxy=relative):
                 self.assertIn("location = /api/v1/works", source)
+                self.assertIn("location = /api/v1/me/storage-usage", source)
                 self.assertIn("location ^~ /api/v1/works/", source)
                 self.assertIn("location = /api/v1/public/works", source)
                 self.assertIn("location ^~ /api/v1/public/works/", source)
@@ -94,9 +96,9 @@ class ContentExtractionTest(unittest.TestCase):
                 self.assertNotIn("location /internal", source)
         vite = (ROOT / "frontend/vite.config.ts").read_text()
         pattern = re.search(r"'([^']*works[^']*)':\s*\{", vite)[1].replace("\\\\", "\\")
-        for path in ("/api/v1/works", "/api/v1/works?limit=2", "/api/v1/works/id", "/api/v1/public/works", "/api/v1/public/works/id?x=1"):
+        for path in ("/api/v1/works", "/api/v1/works?limit=2", "/api/v1/works/id", "/api/v1/public/works", "/api/v1/public/works/id?x=1", "/api/v1/me/storage-usage"):
             self.assertRegex(path, pattern)
-        for path in ("/api/v1/works-extra", "/api/v1/public/works-extra", "/api/v1/auth/csrf", "/internal/v1/auth/verify"):
+        for path in ("/api/v1/works-extra", "/api/v1/public/works-extra", "/api/v1/auth/csrf", "/api/v1/me/storage-usage-extra", "/internal/v1/auth/verify"):
             self.assertNotRegex(path, pattern)
         self.assertIn("VITE_CONTENT_DEV_PROXY_TARGET || 'http://localhost:8081'", vite)
 

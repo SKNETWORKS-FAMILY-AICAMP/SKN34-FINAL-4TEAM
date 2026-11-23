@@ -1,0 +1,2206 @@
+{
+  "schemaVersion": 1,
+  "status": "research-only review candidates; not integrated into application or database",
+  "genre": "italy_history",
+  "worldId": "936b9d62-a1de-59a2-b8e0-1d52327464de",
+  "world_name": "이탈리아 역사: 제국·도시국가·통일",
+  "existing_world_comparison": {
+    "studio_card_count": 25,
+    "history_card_count": 24,
+    "runtime_templates_compared": 26,
+    "matching_method": "동일 제목과 유형, 또는 같은 SHA 원문 행의 교차만 기계적으로 표시; 의미상 동일 여부는 별도 검토 필요"
+  },
+  "source": {
+    "author": "William Hunt",
+    "title": "History of Italy",
+    "edition": "Macmillan, 1883, second edition",
+    "commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+    "path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+    "sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+    "sha256_verified_from_git": true,
+    "url": "https://archive.org/details/historyitaly00huntgoog",
+    "line_convention": "1-based inclusive, 고정 commit 원문",
+    "text_status": "Oxford/Google OCR, 미교정; 추출 번역·요약은 비공식·비검증"
+  },
+  "rights_and_limits": [
+    "기존 연구 전용·서비스/DB 등록 금지 상태를 유지한다. 자동 적재하지 않는다.",
+    "Google Oxford OCR 고지는 개인적·비상업적 이용을 요청한다. 법적 허용 및 재배포 조건과 Toronto 판본 권리는 미확인이다. 역사 원문 전문을 복제하지 않고 후보 및 고정 행만 보존한다.",
+    "이전 1,000개 한도 기준으로 후보 수는 초과한다. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. chunk는 세계관 분할이나 적재가 아니다. 최초 적용에는 별도 #425 안전 계약과 권리·중복 검증이 필요하다.",
+    "이 결과는 추출 후보이며 원문 전수 추출 및 독립 역사 감수·법률 검증을 보장하지 않는다. OCR 오류, 원저의 편향, 연대 및 추론을 확인해야 한다."
+  ],
+  "inputs": [
+    {
+      "segment": "italy-1",
+      "input_path": "미게시-임시자료:history/italy-1.json",
+      "input_sha256": "21d155c70b5f3ea85daa833f7cfa5256ec2446cff1bd374af95eaa0cba1c75df",
+      "manifest": {
+        "kind": "history",
+        "country": "italy",
+        "segment": "italy-1",
+        "commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+        "path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+        "url": "https://archive.org/details/historyitaly00huntgoog",
+        "line_start": 727,
+        "line_end": 2881,
+        "chapters": [
+          "italy:1:CHAPTER 1",
+          "italy:2:CHAPTER II.",
+          "italy:3:CHAPTER III"
+        ],
+        "heads": [
+          [
+            727,
+            "CHAPTER 1"
+          ],
+          [
+            1355,
+            "CHAPTER II."
+          ],
+          [
+            2197,
+            "CHAPTER III"
+          ]
+        ],
+        "sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73"
+      },
+      "scope_report": {
+        "line_start": 727,
+        "line_end": 2881,
+        "chapters": [
+          "italy:1:CHAPTER 1",
+          "italy:2:CHAPTER II.",
+          "italy:3:CHAPTER III"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "italy:1:CHAPTER 1",
+          "line_start": 727,
+          "line_end": 1354,
+          "status": "read",
+          "cards": 74,
+          "note": "장 머리 요약·쪽머리·공백은 본문 카드에서 제외. 원저의 민족·종교 편향과 전승을 구분함."
+        },
+        {
+          "unit": "italy:2:CHAPTER II.",
+          "line_start": 1355,
+          "line_end": 2196,
+          "status": "read",
+          "cards": 76,
+          "note": "장 머리 개요·쪽머리·공백 제외. OCR 훼손과 원저의 교황·종교 평가 및 전승을 고려함."
+        },
+        {
+          "unit": "italy:3:CHAPTER III",
+          "line_start": 2197,
+          "line_end": 2881,
+          "status": "read",
+          "cards": 78,
+          "note": "장 머리 요약·쪽머리·공백 제외. 2878–2881행은 다음 장 쪽머리 및 공백이며 본문 아님. OCR과 원저의 시대적 편향 고려."
+        }
+      ],
+      "candidate_count": 228
+    },
+    {
+      "segment": "italy-2",
+      "input_path": "미게시-임시자료:history/italy-2.json",
+      "input_sha256": "30d416d7845726ee839ff4880e2b40e23030958845542388527e4a4728c65864",
+      "manifest": {
+        "kind": "history",
+        "country": "italy",
+        "segment": "italy-2",
+        "commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+        "path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+        "url": "https://archive.org/details/historyitaly00huntgoog",
+        "line_start": 2882,
+        "line_end": 6586,
+        "chapters": [
+          "italy:4:CHAPTER IV.",
+          "italy:5:CHAPTER V.",
+          "italy:6:CHAPTER VI.",
+          "italy:7:CHAPTER VII."
+        ],
+        "heads": [
+          [
+            2882,
+            "CHAPTER IV."
+          ],
+          [
+            3580,
+            "CHAPTER V."
+          ],
+          [
+            4415,
+            "CHAPTER VI."
+          ],
+          [
+            5423,
+            "CHAPTER VII."
+          ]
+        ],
+        "sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73"
+      },
+      "scope_report": {
+        "line_start": 2882,
+        "line_end": 6586,
+        "chapters": [
+          "italy:4:CHAPTER IV.",
+          "italy:5:CHAPTER V.",
+          "italy:6:CHAPTER VI.",
+          "italy:7:CHAPTER VII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "italy:4:CHAPTER IV.",
+          "line_start": 2882,
+          "line_end": 3579,
+          "status": "read",
+          "cards": 62,
+          "note": "장 제목·절 목차·본문을 읽었으며 페이지 머리말은 제외. OCR 오류와 저자의 편향·평가에 유의."
+        },
+        {
+          "unit": "italy:5:CHAPTER V.",
+          "line_start": 3580,
+          "line_end": 4414,
+          "status": "read",
+          "cards": 52,
+          "note": "본문을 읽었으며 장 목차와 페이지 머리말은 설정 본문에서 제외. OCR 손상 및 저자의 평가와 추정에 유의."
+        },
+        {
+          "unit": "italy:6:CHAPTER VI.",
+          "line_start": 4415,
+          "line_end": 5422,
+          "status": "read",
+          "cards": 46,
+          "note": "본문을 읽었으며 장 목차와 페이지 머리말은 설정 본문에서 제외. OCR 손상 및 저자의 평가와 추정에 유의."
+        },
+        {
+          "unit": "italy:7:CHAPTER VII.",
+          "line_start": 5423,
+          "line_end": 6586,
+          "status": "read",
+          "cards": 51,
+          "note": "제7장 목차·본문·요약을 읽었다. 6583행은 다음 장의 페이지 머리말이며 장 시작은 범위 밖이다. 페이지 머리말·목차는 설정 본문에서 제외."
+        }
+      ],
+      "candidate_count": 211
+    },
+    {
+      "segment": "italy-3",
+      "input_path": "미게시-임시자료:history/italy-3.json",
+      "input_sha256": "97c588917a80191e359fddab4daf5361967aa0e228174357f6bedc0d4354f2a1",
+      "manifest": {
+        "kind": "history",
+        "country": "italy",
+        "segment": "italy-3",
+        "commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+        "path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+        "url": "https://archive.org/details/historyitaly00huntgoog",
+        "line_start": 6587,
+        "line_end": 11299,
+        "chapters": [
+          "italy:8:CHAPTER VIII.",
+          "italy:9:CHAPTER IX.",
+          "italy:10:CHAPTER X.",
+          "italy:11:CHAPTER XI."
+        ],
+        "heads": [
+          [
+            6587,
+            "CHAPTER VIII."
+          ],
+          [
+            7560,
+            "CHAPTER IX."
+          ],
+          [
+            8689,
+            "CHAPTER X."
+          ],
+          [
+            9796,
+            "CHAPTER XI."
+          ]
+        ],
+        "sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73"
+      },
+      "scope_report": {
+        "line_start": 6587,
+        "line_end": 11299,
+        "chapters": [
+          "italy:8:CHAPTER VIII.",
+          "italy:9:CHAPTER IX.",
+          "italy:10:CHAPTER X.",
+          "italy:11:CHAPTER XI."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "italy:8:CHAPTER VIII.",
+          "line_start": 6587,
+          "line_end": 7559,
+          "status": "read",
+          "cards": 70,
+          "note": "본문 전부 읽었으나 독립 대상 누락 여부의 최종 점검은 미완료; 장 머리 요약은 근거에서 제외함. OCR 손상과 저자의 가치판단이 있음."
+        },
+        {
+          "unit": "italy:9:CHAPTER IX.",
+          "line_start": 7560,
+          "line_end": 8688,
+          "status": "incomplete",
+          "cards": 0,
+          "note": "7560–8119행만 읽음. 나머지 본문 및 카드 추출 미완료."
+        },
+        {
+          "unit": "italy:10:CHAPTER X.",
+          "line_start": 8689,
+          "line_end": 9795,
+          "status": "unread",
+          "cards": 0,
+          "note": "읽기 및 추출 미완료."
+        },
+        {
+          "unit": "italy:11:CHAPTER XI.",
+          "line_start": 9796,
+          "line_end": 11299,
+          "status": "unread",
+          "cards": 0,
+          "note": "읽기 및 추출 미완료."
+        }
+      ],
+      "candidate_count": 70
+    },
+    {
+      "segment": "refill-italy-9-chapter-ix-p1",
+      "input_path": "미게시-임시자료:history/refill-italy-9-chapter-ix-p1.json",
+      "input_sha256": "95627111a7aed1132642ecdf80d92bd1fd6652f106e4ee228ba6db60aa582fc9",
+      "manifest": {
+        "kind": "history",
+        "country": "italy",
+        "segment": "refill-italy-9-chapter-ix-p1",
+        "commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+        "path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+        "url": "https://archive.org/details/historyitaly00huntgoog",
+        "line_start": 7560,
+        "line_end": 8124,
+        "chapters": [
+          "italy:9:CHAPTER IX."
+        ],
+        "heads": [
+          [
+            7560,
+            "italy:9:CHAPTER IX."
+          ]
+        ],
+        "sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+        "status": "pending",
+        "parent_partial": "italy-3"
+      },
+      "scope_report": {
+        "line_start": 7560,
+        "line_end": 8124,
+        "chapters": [
+          "italy:9:CHAPTER IX."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "italy:9:CHAPTER IX.",
+          "line_start": 7560,
+          "line_end": 8124,
+          "status": "read",
+          "cards": 117,
+          "note": "9장 머리 요약 7560–7574행은 본문 근거에서 제외. 본문 1–8절을 읽었고 다음 절은 8125행부터 이어짐. 공백·쪽머리는 대상에서 제외. 원저의 시대적 편향과 OCR 손상, 특히 카포니 폐위 연도는 별도 확인 필요. Google 스캔은 개인·비상업적 이용을 요청하며 별도 Toronto 판본 권리는 확인하지 못함."
+        }
+      ],
+      "candidate_count": 117
+    },
+    {
+      "segment": "refill-italy-9-chapter-ix-p2",
+      "input_path": "미게시-임시자료:history/refill-italy-9-chapter-ix-p2.json",
+      "input_sha256": "a910c6c2605fcadef3bbaca898ff57a9e962fefcc4a6f09f854e7a118c5b5e19",
+      "manifest": {
+        "kind": "history",
+        "country": "italy",
+        "segment": "refill-italy-9-chapter-ix-p2",
+        "commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+        "path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+        "url": "https://archive.org/details/historyitaly00huntgoog",
+        "line_start": 8125,
+        "line_end": 8688,
+        "chapters": [
+          "italy:9:CHAPTER IX."
+        ],
+        "heads": [
+          [
+            8125,
+            "italy:9:CHAPTER IX."
+          ]
+        ],
+        "sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+        "status": "pending",
+        "parent_partial": "italy-3"
+      },
+      "scope_report": {
+        "line_start": 8125,
+        "line_end": 8688,
+        "chapters": [
+          "italy:9:CHAPTER IX."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "italy:9:CHAPTER IX.",
+          "line_start": 8125,
+          "line_end": 8688,
+          "status": "read",
+          "cards": 119,
+          "note": "할당 본문 전체를 읽음. 8125행은 9절 시작, 8685행은 14절 끝이며 8689행에서 제10장 시작. 앞 8100–8124행과 뒤 8689–8709행은 경계 확인용이며 카드 근거에서 제외. 인쇄 페이지 표제·빈 줄은 본문이 아님. OCR 훼손과 저자의 역사 해석 및 이용권 확인 필요."
+        }
+      ],
+      "candidate_count": 119
+    },
+    {
+      "segment": "refill-italy-10-chapter-x-p1",
+      "input_path": "미게시-임시자료:history/refill-italy-10-chapter-x-p1.json",
+      "input_sha256": "89ae5fbe44d6da0d5d9c48b2a21871d9c095f525b30c7bf371b5f8faad8070b0",
+      "manifest": {
+        "kind": "history",
+        "country": "italy",
+        "segment": "refill-italy-10-chapter-x-p1",
+        "commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+        "path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+        "url": "https://archive.org/details/historyitaly00huntgoog",
+        "line_start": 8689,
+        "line_end": 9242,
+        "chapters": [
+          "italy:10:CHAPTER X."
+        ],
+        "heads": [
+          [
+            8689,
+            "italy:10:CHAPTER X."
+          ]
+        ],
+        "sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+        "status": "pending",
+        "parent_partial": "italy-3"
+      },
+      "scope_report": {
+        "line_start": 8689,
+        "line_end": 9242,
+        "chapters": [
+          "italy:10:CHAPTER X"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "italy:10:CHAPTER X",
+          "line_start": 8689,
+          "line_end": 9242,
+          "status": "read",
+          "cards": 157,
+          "note": "제10장 머리말과 제1~7절 및 제8절의 9242행까지 읽음. 8693–8707행은 장 목차이므로 카드 본문 근거에서 제외했다. 9242행에서 문장이 끝나지 않으며 제8절의 나머지와 제9~14절은 할당 밖이다. 9243–9247행과 앞선 8645–8688행은 경계 문맥으로만 읽었다. 일부 OCR이 손상되었고 저자의 편견과 해석을 구분했다. Google OCR은 개인·비상업적 이용을 요청하며 국가별 권리와 Toronto본 이용 조건은 확인되지 않았다."
+        }
+      ],
+      "candidate_count": 157
+    },
+    {
+      "segment": "refill-italy-10-chapter-x-p2",
+      "input_path": "미게시-임시자료:history/refill-italy-10-chapter-x-p2.json",
+      "input_sha256": "a7f5b73d2095efce572de94cfa800ffaa9001080eb3d8393528070763c9ba30a",
+      "manifest": {
+        "kind": "history",
+        "country": "italy",
+        "segment": "refill-italy-10-chapter-x-p2",
+        "commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+        "path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+        "url": "https://archive.org/details/historyitaly00huntgoog",
+        "line_start": 9243,
+        "line_end": 9795,
+        "chapters": [
+          "italy:10:CHAPTER X."
+        ],
+        "heads": [
+          [
+            9243,
+            "italy:10:CHAPTER X."
+          ]
+        ],
+        "sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+        "status": "pending",
+        "parent_partial": "italy-3"
+      },
+      "scope_report": {
+        "line_start": 9243,
+        "line_end": 9795,
+        "chapters": [
+          "italy:10:CHAPTER X"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "italy:10:CHAPTER X",
+          "line_start": 9243,
+          "line_end": 9795,
+          "status": "read",
+          "cards": 125,
+          "note": "9243–9787 본문 전체를 읽음. 9788–9795는 공백 및 다음 장의 페이지 머리말이며 제11장 본문은 9796행부터라 제외. 9243행은 리볼리 이야기 중간이므로 앞 9231–9242행을 문맥으로 확인. OCR 훼손과 저자의 편향적 평가를 유의. Google OCR에는 개인·비상업 이용 요청이 있으며 법적 권리는 미확인."
+        }
+      ],
+      "candidate_count": 125
+    },
+    {
+      "segment": "refill-italy-11-chapter-xi-p1",
+      "input_path": "미게시-임시자료:history/refill-italy-11-chapter-xi-p1.json",
+      "input_sha256": "873800c05ac60a671e8ac19fa7e44a5406eb30cbf131eaae84051cda1367eda0",
+      "manifest": {
+        "kind": "history",
+        "country": "italy",
+        "segment": "refill-italy-11-chapter-xi-p1",
+        "commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+        "path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+        "url": "https://archive.org/details/historyitaly00huntgoog",
+        "line_start": 9796,
+        "line_end": 10547,
+        "chapters": [
+          "italy:11:CHAPTER XI."
+        ],
+        "heads": [
+          [
+            9796,
+            "italy:11:CHAPTER XI."
+          ]
+        ],
+        "sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+        "status": "pending",
+        "parent_partial": "italy-3"
+      },
+      "scope_report": {
+        "line_start": 9796,
+        "line_end": 10547,
+        "chapters": [
+          "italy:11:CHAPTER XI."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "italy:11:CHAPTER XI.",
+          "line_start": 9796,
+          "line_end": 10547,
+          "status": "read",
+          "cards": 124,
+          "note": "제11장 1~8절 전체와 9절 중간까지 읽음. 9796~9818은 장 개요이므로 본문 근거로 쓰지 않음. 10548행부터 9절과 장의 나머지가 이어짐. 앞뒤 문맥 9750~9795, 10548~10600 확인. OCR 손상과 저자의 시대적 편향이 있음. Google 스캔의 개인·비상업적 이용 요청이 있으며 권리 상태 미확인. 반디에라 형제는 본문에 각자의 이름이 없어 단일 묶음으로 기록했으며 개별 신원 확인이 남음."
+        }
+      ],
+      "candidate_count": 124
+    },
+    {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_path": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "manifest": {
+        "kind": "history",
+        "country": "italy",
+        "segment": "refill-italy-11-chapter-xi-p2",
+        "commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+        "path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+        "url": "https://archive.org/details/historyitaly00huntgoog",
+        "line_start": 10548,
+        "line_end": 11299,
+        "chapters": [
+          "italy:11:CHAPTER XI."
+        ],
+        "heads": [
+          [
+            10548,
+            "italy:11:CHAPTER XI."
+          ]
+        ],
+        "sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+        "status": "pending",
+        "parent_partial": "italy-3"
+      },
+      "scope_report": {
+        "line_start": 10548,
+        "line_end": 11299,
+        "chapters": [
+          "italy:11:CHAPTER XI."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "italy:11:CHAPTER XI.",
+          "line_start": 10548,
+          "line_end": 11299,
+          "status": "read",
+          "cards": 112,
+          "note": "본문 10548–11262행 전체를 읽고 인접 10518–10547·11300–11330행으로 경계를 확인했다. 11263–11273행은 공백·OCR 잡음, 11274–11299행은 색인이므로 설정 본문에서 제외했다. 10548행은 문장 중간에서 시작하며 앞 구간은 다른 분할 담당이다. OCR 훼손과 원저의 정치적·지역적 편견을 감안하고 주장과 확인된 서술을 구분했다. Google Oxford OCR은 개인·비상업 이용 요청이 있고 Toronto 판본 조건은 미확인이다."
+        }
+      ],
+      "candidate_count": 112
+    },
+    {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_path": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "scope_report": {
+        "line_start": 6587,
+        "line_end": 7559,
+        "chapters": [
+          "italy:8:CHAPTER VIII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "italy:8:CHAPTER VIII.",
+          "line_start": 6587,
+          "line_end": 7559,
+          "status": "read; targeted supplemental review",
+          "cards": 14,
+          "note": "8장 후보를 추가 대조했으나 OCR·독립 감수와 완전한 전수 여부 확인은 남음"
+        }
+      ],
+      "candidate_count": 14,
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "status": "미게시 scratch 입력; 공개 URL 아님"
+    }
+  ],
+  "coverage": {
+    "parent_partial": "italy-3",
+    "parent_reports": "8장 read이나 독립 대상 누락 최종 점검 미완료; 9장 7560–8119 read이나 카드 추출 미완료, 10–11장 unread",
+    "replacement": "9–11장 7560–11299를 같은 commit/path/SHA의 6개 refill 자기보고 read 범위가 연속적으로 덮는다.",
+    "parent_read_overlap": [
+      7560,
+      8119
+    ],
+    "parent_unread_or_incomplete_remaining": [
+      8120,
+      11299
+    ],
+    "refill_ranges": [
+      {
+        "segment": "refill-italy-9-chapter-ix-p1",
+        "lines": [
+          7560,
+          8124
+        ]
+      },
+      {
+        "segment": "refill-italy-9-chapter-ix-p2",
+        "lines": [
+          8125,
+          8688
+        ]
+      },
+      {
+        "segment": "refill-italy-10-chapter-x-p1",
+        "lines": [
+          8689,
+          9242
+        ]
+      },
+      {
+        "segment": "refill-italy-10-chapter-x-p2",
+        "lines": [
+          9243,
+          9795
+        ]
+      },
+      {
+        "segment": "refill-italy-11-chapter-xi-p1",
+        "lines": [
+          9796,
+          10547
+        ]
+      },
+      {
+        "segment": "refill-italy-11-chapter-xi-p2",
+        "lines": [
+          10548,
+          11299
+        ]
+      }
+    ],
+    "refill_gaps": [],
+    "refill_overlaps": [],
+    "refill_worker_read_claim_not_independently_verified": true,
+    "notes": "색인·공백·목차 등 본문 제외 범위는 각 coverage 자기보고를 참조. 이 구간 대조는 대상 전수 추출을 증명하지 않는다.",
+    "chapter_8_supplement_review": "6587–7559행 재독 후 14개 추가 후보; 원래 70개와 별개이며 완전한 전수 추출을 보장하지 않음, OCR 이미지 대조 및 역사 감수 대기"
+  },
+  "deduplication": {
+    "rule": "제목·본문·유형이 완전 동일할 때에만 결합 가능하나 해당 입력에 없으므로 원본 후보를 모두 개별 보존. 같은 key 또는 제목·유형 및 근거 행 교차는 검토 단서일 뿐 자동 병합하지 않는다. 8장 추가 후보는 기존 및 역사 studio와 중복 단서를 검토하고 병합하지 않았다.",
+    "input_candidates": 1277,
+    "output_records": 1277,
+    "merged_input_candidates": 0,
+    "unprocessed_input_candidates": 0,
+    "preservation_equation": "1277 = 1277 + 0; 미처리 0",
+    "repeated_key_groups": [
+      {
+        "key": "location-ravenna",
+        "ids": [
+          "4be3c476-fb39-5745-a428-69ab0aac9bcd",
+          "9edcb19e-7563-577e-a112-241dbfa8b7ff"
+        ]
+      },
+      {
+        "key": "location-pavia",
+        "ids": [
+          "d163b5a9-8b21-5d6e-8773-52db0170d46a",
+          "7df9efc0-b7d7-575e-9364-7716ada0ec4c"
+        ]
+      },
+      {
+        "key": "location-venice",
+        "ids": [
+          "7ade62ea-e115-5905-bf0d-0a1381b797d4",
+          "599cecdc-daed-510d-9656-8a3c440b9911",
+          "600db4ab-0546-57ec-8849-1c54cac63926",
+          "eba62007-a21e-5bd4-9167-a1fd51ca3c06",
+          "fbedf506-4aaf-50d4-b00b-ff711bd43e64"
+        ]
+      },
+      {
+        "key": "location-genoa",
+        "ids": [
+          "a618a419-deea-5328-81b4-e6de9f98043c",
+          "f689cf6b-1e3d-59f7-9226-201f7ce6c515",
+          "5ed58d6c-d44c-5062-8f71-d4f9902536ca",
+          "e8e611fa-a2ff-5c2f-82f6-418bcc799ef5",
+          "378a6c82-bb71-536f-b668-75c453434193",
+          "19396ac8-5589-59bb-bf1f-c6fd92e8e400",
+          "cad37b5b-f26e-5cbd-93fd-c1635fdc6bea"
+        ]
+      },
+      {
+        "key": "location-florence",
+        "ids": [
+          "c6794af6-6832-5770-9b1e-c716ec5993cf",
+          "5c15f478-16e5-5994-94cc-7ecf32dafd0e",
+          "7b742e87-2314-5907-a9e4-dec2e22420dc"
+        ]
+      },
+      {
+        "key": "location-tortona",
+        "ids": [
+          "1daf15c7-4694-57bc-b8b4-c6ecb8063edc",
+          "eaf0c619-c6dc-59be-bbd7-80c4523c6995"
+        ]
+      },
+      {
+        "key": "location-alessandria",
+        "ids": [
+          "db1db816-2f22-5d32-b231-0cc2d8a20f3d",
+          "1176fe0e-065e-5378-96ee-cd3cf3cef08c",
+          "5d4501ff-39e5-5117-9bea-0a82d89fba7f"
+        ]
+      },
+      {
+        "key": "character-michael-viii-palaiologos",
+        "ids": [
+          "51670e5e-96a1-5f82-aa37-3ced9110e0e3",
+          "11c9ad0f-ac67-5db9-a0d5-aa6c395fd1be"
+        ]
+      },
+      {
+        "key": "location-milan",
+        "ids": [
+          "1965e5bb-de73-5768-b27d-abe1d65937cf",
+          "9b32f23f-5850-54d5-b9ca-3c963e0ce869",
+          "a71e03b5-6fd2-57e0-80f9-b4c64526ac6f"
+        ]
+      },
+      {
+        "key": "location-ancona",
+        "ids": [
+          "03495af4-a4b6-5eb5-a977-fa179c4db4c9",
+          "99710c68-13d3-5511-892f-eb0871383ac1",
+          "52b3eea5-1c4b-5bae-a240-76e82a47fd67"
+        ]
+      },
+      {
+        "key": "organization-venice-great-council",
+        "ids": [
+          "e988ba48-52d7-57f6-880e-0c17f9c6c038",
+          "83df1499-d958-512a-a6c4-ab4dfdff5f48"
+        ]
+      },
+      {
+        "key": "character-filippo-maria-visconti",
+        "ids": [
+          "c1df69ce-c395-51ed-855f-bc55059125ad",
+          "4af01c60-432a-5f63-8120-db9040f01773"
+        ]
+      },
+      {
+        "key": "character-francesco-sforza",
+        "ids": [
+          "8bfa8996-514a-5987-afd2-8b4bbaa6a378",
+          "9e4042df-6631-55fb-906a-1a1a42ac5e9d"
+        ]
+      },
+      {
+        "key": "character-gian-giacomo-trivulzio",
+        "ids": [
+          "bb4f448b-e236-51cb-a74b-756d88844a42",
+          "8e73a371-6775-5d28-8c51-b67dd5e68e3c"
+        ]
+      },
+      {
+        "key": "character-julius-ii",
+        "ids": [
+          "7a55c38a-0678-5068-8c87-04ab251d08fc",
+          "8712952f-8028-55ae-b213-89d5e4ae97b1"
+        ]
+      },
+      {
+        "key": "character-massimiliano-sforza",
+        "ids": [
+          "4e09a1a2-260a-5d1d-8fc7-ce0d52caf3dc",
+          "98f65da9-db81-52ea-8196-b8423bca0df1"
+        ]
+      },
+      {
+        "key": "character-francesco-gonzaga-mantua",
+        "ids": [
+          "a19283dc-2f2e-58f7-9413-61cef6dfa3a0",
+          "793dfb9d-6cdc-5dde-97c9-702d996d221d"
+        ]
+      },
+      {
+        "key": "character-michelangelo-buonarroti",
+        "ids": [
+          "dc37396d-1f6d-5af1-9098-77e980775c88",
+          "f25a5061-95b5-5b94-9e61-060580ba2534"
+        ]
+      },
+      {
+        "key": "character-niccolo-machiavelli",
+        "ids": [
+          "b25988b4-bcfc-5a15-8a9a-6984696e52b8",
+          "07c21eb5-0ac6-533c-befa-80caeddebf99"
+        ]
+      },
+      {
+        "key": "character-francesco-guicciardini",
+        "ids": [
+          "4931e621-851a-51d1-aaeb-f49ea1d76850",
+          "fe9a0cf5-ceea-50e2-abab-3a0a7a12550e"
+        ]
+      },
+      {
+        "key": "character-francis-i-france",
+        "ids": [
+          "448de1aa-c508-53dc-ad69-2732c296f5ea",
+          "d6eda78c-b016-520a-aac0-7afe21109678",
+          "9a80e9c1-486c-57ef-b6c8-673e56127248"
+        ]
+      },
+      {
+        "key": "character-francesco-ii-sforza",
+        "ids": [
+          "721a724d-bd8c-5a61-aba4-91f00b5fce87",
+          "b412e492-fdd4-57d5-a8c3-e61767d89b4b"
+        ]
+      },
+      {
+        "key": "character-pope-clement-vii",
+        "ids": [
+          "8ea4600b-c733-5a5f-9e0b-1b1484a652f3",
+          "c65969c3-dd93-5868-b314-5e79cb187231"
+        ]
+      },
+      {
+        "key": "character-giovanni-de-medici-black-bands",
+        "ids": [
+          "4778704e-6dd0-58bb-b04a-0e8e59a6d226",
+          "d22ae4a3-4df4-5f62-a5ae-f3e97df4ec3e"
+        ]
+      },
+      {
+        "key": "character-andrea-doria",
+        "ids": [
+          "44aa1df2-25ad-5a93-81df-e74cf6317b4a",
+          "3b48bc45-e748-518f-b072-496f17b7cd8f",
+          "0c868a3f-f8a9-505b-8eee-ad29738edcc3",
+          "4726ab76-a753-51ad-a6e0-aa77ce042bb5"
+        ]
+      },
+      {
+        "key": "character-niccolo-capponi",
+        "ids": [
+          "48b8cbc2-784e-5c83-b749-0facb2414ef3",
+          "0e20657b-cd47-5bd8-b84e-ff2c591b2155"
+        ]
+      },
+      {
+        "key": "character-filippo-strozzi",
+        "ids": [
+          "35e82ef3-9ec4-5ccb-b898-b4276f722eee",
+          "6f5baf02-04a5-5629-894a-3cdf3c855355"
+        ]
+      },
+      {
+        "key": "character-charles-v",
+        "ids": [
+          "be0121fa-6a23-523a-bca9-46bbb1167b4c",
+          "56a078e8-53ad-563f-a4e3-6992aa897fd5"
+        ]
+      },
+      {
+        "key": "character-pope-paul-iii",
+        "ids": [
+          "c56a566b-55d0-5208-b533-b2a0ae0c6e97",
+          "130082e0-1dfb-54ee-987d-6f5c8b47b76f"
+        ]
+      },
+      {
+        "key": "character-ottavio-farnese",
+        "ids": [
+          "983c7506-acac-5f1d-bc6a-ba0ab54accc9",
+          "d0488927-91b6-5d02-9f80-579bc61ff8de"
+        ]
+      },
+      {
+        "key": "character-piero-strozzi",
+        "ids": [
+          "54ed420b-7e6f-561f-b4ab-d82bb4f2462b",
+          "ebd3447a-eb10-52c7-8432-d6aea1bbb557"
+        ]
+      },
+      {
+        "key": "character-henry-ii-france",
+        "ids": [
+          "25a14eee-d899-5ace-b04c-1031ade4577b",
+          "d2d161ff-952b-5c28-9845-e9cf1ea07c61"
+        ]
+      },
+      {
+        "key": "character-philip-ii-spain",
+        "ids": [
+          "5056331a-dd0f-50be-b1a1-90797a451a72",
+          "cbe237d6-0855-541d-8098-4007625e3e7d",
+          "cc165da7-cde5-5df3-8b29-0361adf78af7"
+        ]
+      },
+      {
+        "key": "location-parma",
+        "ids": [
+          "c2a468ef-f6e4-513d-8601-a55dcc881552",
+          "c8283ddd-bb89-577f-a0bb-7ff90cafdae8",
+          "6184fc2d-41fc-5704-ad39-c6fcff1ee0e5",
+          "69d357ac-8f22-536e-844b-f792b10f6ba1"
+        ]
+      },
+      {
+        "key": "location-piacenza",
+        "ids": [
+          "634e7cf6-da11-52fa-af31-c06150abbbf5",
+          "d3f91dd3-8c7f-5f26-be0d-d21ba5c34c97"
+        ]
+      },
+      {
+        "key": "location-bologna",
+        "ids": [
+          "61eca876-df39-5a8c-bd19-44fb69525113",
+          "2c15362d-f62f-5d54-b5b8-799a8aea65da"
+        ]
+      },
+      {
+        "key": "location-savoy",
+        "ids": [
+          "593178b3-b9c9-5914-be81-97fb7205e5f5",
+          "00804b67-e683-54e6-afa8-c504b920f634",
+          "59e0e3e2-1c7e-55bd-989e-6836720c3150",
+          "42837a6f-6b20-56d3-b895-35261d688200"
+        ]
+      },
+      {
+        "key": "location-mantua",
+        "ids": [
+          "46968981-d576-542c-b148-610d80cda9d1",
+          "d12737e2-025b-5813-8869-9679865680e3",
+          "db8b48eb-dad6-503a-9750-6437491f3cd1"
+        ]
+      },
+      {
+        "key": "location-montferrat",
+        "ids": [
+          "3d8b2d29-aa97-5b4a-bc9e-884c66c203c0",
+          "f3ba4441-cc57-5b37-b197-bbc7e42ba3ca",
+          "e7d74fb2-8e86-5856-8b10-5d5c6834b31a"
+        ]
+      },
+      {
+        "key": "location-maremma",
+        "ids": [
+          "4482833c-7f77-5d79-b2f1-1b26233bc83a",
+          "dd3d5dd3-06c7-576f-9239-dbc0949954be"
+        ]
+      },
+      {
+        "key": "location-papal-states",
+        "ids": [
+          "74bc078a-8aac-5a26-8857-02e1ae77a003",
+          "e3c8b3ea-13fb-5d4f-b678-4bb7d9dd8707"
+        ]
+      },
+      {
+        "key": "character-pope-pius-v",
+        "ids": [
+          "7d209d8f-dfc0-5514-8d75-f2c0cd60466f",
+          "28b33c6a-3288-5c70-8bbe-f59ed59ac036"
+        ]
+      },
+      {
+        "key": "location-trent",
+        "ids": [
+          "0bb8d114-0c39-550b-b222-9ab467cca192",
+          "8b9dc421-1361-51ef-b99d-5f422824b881"
+        ]
+      },
+      {
+        "key": "organization-society-of-jesus",
+        "ids": [
+          "95a6a504-df84-5445-820f-8a72ea1fa618",
+          "3f023666-5fe8-599b-9807-a8c979ff44d9"
+        ]
+      },
+      {
+        "key": "organization-waldensians",
+        "ids": [
+          "34390f8d-ddd6-5b4b-b451-f33663b8a5f2",
+          "2d4342e8-ce67-516d-b93b-2f789b9bfc7a"
+        ]
+      },
+      {
+        "key": "location-messina",
+        "ids": [
+          "c008f1f9-609e-5ded-9112-546159b16257",
+          "1dc37a22-8b47-5a36-a2d9-b15a8b4e54fb",
+          "69257b46-1e83-5ff2-8617-29701f367e47",
+          "a4755c6b-75d4-55ce-9173-1942c1c4a19c"
+        ]
+      },
+      {
+        "key": "organization-house-of-savoy",
+        "ids": [
+          "01676eb7-2514-57ae-8fe7-aae3bc3d46e6",
+          "936d2575-baaa-5013-be87-de4c3033039a"
+        ]
+      },
+      {
+        "key": "location-piedmont",
+        "ids": [
+          "0cc1070b-a574-5a71-b194-579e1668d7b7",
+          "dfa71ff7-39f5-56ec-80fa-7edc4e7f11f4",
+          "a6a9bd5e-daf9-5a45-ac21-f5d9bb366c9f"
+        ]
+      },
+      {
+        "key": "location-sicily",
+        "ids": [
+          "ac16076c-11b7-59ed-997e-0273b477aa48",
+          "3058f035-538f-5a84-ba39-43d62f6b89a9",
+          "15d9766d-e779-5566-908a-e0048f2731a9",
+          "ff750a90-8015-5dc8-88f6-38b6e4efcdf6"
+        ]
+      },
+      {
+        "key": "location-sardinia",
+        "ids": [
+          "26dbd8be-c865-5da8-beb8-1ec48a0cfa6e",
+          "9f408c57-3c6b-5305-8afb-927b19e0af2a"
+        ]
+      },
+      {
+        "key": "location-corsica",
+        "ids": [
+          "50df3cb1-2cb6-59b0-a4f9-0d93ad32e0b6",
+          "94f1d60e-4158-5edf-a41e-b570043498af"
+        ]
+      },
+      {
+        "key": "location-lucca",
+        "ids": [
+          "7abab22f-8138-59cb-ab9e-3a244d5eafbb",
+          "b1910559-411b-5a7d-a03a-f9845e13a492"
+        ]
+      },
+      {
+        "key": "location-san-marino",
+        "ids": [
+          "a41ab267-d179-53d4-9bbf-39e439404557",
+          "4917d069-a291-59f8-84c0-b5bf29d73ded"
+        ]
+      },
+      {
+        "key": "location-nice",
+        "ids": [
+          "68cb01c1-47f3-5715-8f74-b2fb5dd46195",
+          "8ffde23b-30ab-524c-8fc5-de4fdd8bb35b",
+          "03d861cb-a997-5098-a545-e4a574c5611b"
+        ]
+      },
+      {
+        "key": "location-saluzzo",
+        "ids": [
+          "b9230194-fb69-5817-b5d0-6ac830a61b61",
+          "3fc8b5da-846a-578c-ac4d-b465314277fe"
+        ]
+      },
+      {
+        "key": "location-geneva",
+        "ids": [
+          "ca43220d-6d7b-59a1-bab4-71de37984e13",
+          "3d4bc70b-8329-5bf4-8c16-188a6a526a1e"
+        ]
+      },
+      {
+        "key": "character-margaret-of-france-duchess-savoy",
+        "ids": [
+          "32f04aee-f3ce-5870-ae61-8a6bc3ba965e",
+          "d010b6e6-cd36-5ca7-91d7-be0f5db36700"
+        ]
+      },
+      {
+        "key": "location-turin",
+        "ids": [
+          "37e0d8f3-9c0b-5149-9bdd-f08c303228ed",
+          "c8510906-4528-51ab-b160-af0dd0d1f162",
+          "e8361d7e-c62c-5fbc-bae0-f0e389ffc6c8"
+        ]
+      },
+      {
+        "key": "location-chambery",
+        "ids": [
+          "6c04cf08-5a6e-5226-b2bd-4f8dede8b4ad",
+          "6bf07b84-534e-5215-afe1-85146f162aa9"
+        ]
+      },
+      {
+        "key": "location-novara",
+        "ids": [
+          "73193842-214d-5159-a5a0-468501288ba6",
+          "034b8a8c-1ee7-5257-ad6f-1324a6cf70e1"
+        ]
+      },
+      {
+        "key": "character-victor-amadeus-ii",
+        "ids": [
+          "7022f2ad-b5f5-5615-b863-cdd9629b4528",
+          "efd161e5-8562-5572-8cc0-b5dd8597cbf9"
+        ]
+      },
+      {
+        "key": "character-philip-v-spain",
+        "ids": [
+          "ee575402-8f6e-5f4e-84ad-6d1bbb3a2144",
+          "d087a98e-055a-5437-b29b-dfbf2f1551b0"
+        ]
+      },
+      {
+        "key": "character-gian-gastone-medici",
+        "ids": [
+          "9e590ed9-76a4-5170-89a7-02135ed60f0b",
+          "815b85fb-316d-5ffc-868a-61be2461e55d"
+        ]
+      },
+      {
+        "key": "character-charles-emmanuel-iii",
+        "ids": [
+          "470eeebb-b4aa-55a0-9ac9-09c829c3a50a",
+          "1be203ad-864e-5293-8505-1a91aa4fe63e"
+        ]
+      },
+      {
+        "key": "location-ferrara",
+        "ids": [
+          "4d9e3bd5-82e4-533f-a67d-a2a488a55b49",
+          "1f82d562-8379-5e5c-bafd-5fed5fafdfad"
+        ]
+      },
+      {
+        "key": "location-modena",
+        "ids": [
+          "f31e37a5-0b6a-551c-8c72-6e48ba557b3c",
+          "6db92e72-729f-550c-a6e2-f99457ab3b6a",
+          "a7fb889f-77dd-541a-b05c-9a01c593c04b"
+        ]
+      },
+      {
+        "key": "location-urbino",
+        "ids": [
+          "bdaeacd5-77f4-5ff1-ae38-73fb9d90ca52",
+          "cc51db36-9424-5636-8003-b0fcb3fd1d73"
+        ]
+      },
+      {
+        "key": "location-romagna",
+        "ids": [
+          "16d35bef-8510-56e9-a706-9fcbc17c7b7f",
+          "eedf1055-f76a-5c04-9e82-e8f4c668bd3a",
+          "da7bd22b-7edf-5c63-a2e0-b3d8faaafdc0"
+        ]
+      },
+      {
+        "key": "location-naples",
+        "ids": [
+          "4e12dbb6-e4a7-56d4-9c1d-799a7ad7db1e",
+          "ec4de93f-8ef5-509b-a42a-5ebd9a10ef05"
+        ]
+      },
+      {
+        "key": "location-palermo",
+        "ids": [
+          "695fa6ef-d5ad-5f7c-91cb-0f1f5dce4e1c",
+          "93b172df-a79d-53f8-8fc0-83e23fec8477",
+          "68d26de8-cc76-5a14-bf76-dc0113450151"
+        ]
+      },
+      {
+        "key": "location-tuscany",
+        "ids": [
+          "df0b8856-5021-5580-b2e7-bfa29132311a",
+          "24511bb4-607e-5d62-8a3f-29737662f99b",
+          "d0f6f15d-d238-5aa9-a986-49ef93c02d98"
+        ]
+      },
+      {
+        "key": "organization-papal-states",
+        "ids": [
+          "33e84861-0ada-5d47-8280-ab86184196bf",
+          "2cb2b5d4-77ef-50ce-9e55-d2a6e1c55b16"
+        ]
+      },
+      {
+        "key": "organization-jesuits",
+        "ids": [
+          "7f535b79-22d5-5d72-9650-73a28ae27b44",
+          "ad495358-7589-522b-b0f1-ddefb12eeda8"
+        ]
+      },
+      {
+        "key": "location-lombardy",
+        "ids": [
+          "7fdf9424-aeae-5e0d-9f3b-8e5535eefcbe",
+          "76430230-0b3a-5b89-ab27-d97071f7026f",
+          "a0c956bc-897a-57c9-aba0-24364e124f75"
+        ]
+      },
+      {
+        "key": "location-catania",
+        "ids": [
+          "7765ce77-1a67-511b-9728-173bf7690fe6",
+          "c6532131-1f9a-5edb-85f5-aaad247ccc29"
+        ]
+      },
+      {
+        "key": "character-ferdinand-iii-tuscany",
+        "ids": [
+          "871c7351-291d-53f6-807b-9151e7355cf3",
+          "9157ec87-3c0b-538e-afe6-cbc008a11f9d"
+        ]
+      },
+      {
+        "key": "character-francis-iv-modena",
+        "ids": [
+          "f3bccff2-2896-5ef8-9739-832eabaea7c9",
+          "2caa2123-44b4-5f8c-8460-2c4f8caee90a"
+        ]
+      },
+      {
+        "key": "character-victor-emmanuel-i",
+        "ids": [
+          "c0adc9f1-e1cf-55f2-a820-91063fc30fd0",
+          "1f401012-c2d2-5167-925b-7d2f76a58b71"
+        ]
+      },
+      {
+        "key": "character-giuseppe-mazzini",
+        "ids": [
+          "742071b1-0304-5919-91d8-86135075dae2",
+          "7b1cf5eb-a91a-504f-b05f-e6a586930bbb"
+        ]
+      },
+      {
+        "key": "character-vincenzo-gioberti",
+        "ids": [
+          "5844a095-ec48-5cea-b1c6-e3807556b513",
+          "5ba5093b-3791-5d22-91f9-52ada513306d"
+        ]
+      },
+      {
+        "key": "character-bettino-ricasoli",
+        "ids": [
+          "448f09df-f767-5e39-921c-bfd1de256c9b",
+          "fd7872f7-2693-561d-afa2-f8b5fa417ee5"
+        ]
+      },
+      {
+        "key": "character-giuseppe-garibaldi",
+        "ids": [
+          "8faec2f0-3956-559e-9e69-d7fbc752c2e2",
+          "60831954-41cd-5312-9e98-5f6fe1aae25a"
+        ]
+      },
+      {
+        "key": "character-ferdinand-ii-two-sicilies",
+        "ids": [
+          "a322caf0-3614-5048-8fdf-d0e81ee7e6ab",
+          "70958087-95af-5a22-9f8b-141e7d3d81b6"
+        ]
+      },
+      {
+        "key": "character-victor-emmanuel-ii",
+        "ids": [
+          "c87286d4-1d81-5000-a40d-4155d19d703c",
+          "f79390bd-2f39-5771-836f-5bec8ec6702a"
+        ]
+      },
+      {
+        "key": "character-napoleon-iii",
+        "ids": [
+          "2e5b5dcc-25ad-5fa4-930e-03bc4897a93b",
+          "5ca37cd8-709b-5041-88f8-755c0c3c0316"
+        ]
+      },
+      {
+        "key": "character-enrico-cialdini",
+        "ids": [
+          "6ccb8b27-a844-54d0-b5b7-22760c8b391b",
+          "e9df05a4-e79b-51b0-9701-0bd3276f9404"
+        ]
+      },
+      {
+        "key": "location-rome",
+        "ids": [
+          "de701924-726c-5812-ac7e-aaa9f39cba7f",
+          "e9060d3e-867c-5f62-a969-1c69b03dd6a9"
+        ]
+      },
+      {
+        "key": "location-gaeta",
+        "ids": [
+          "0db87968-e223-5496-9f57-a3ea23cf97f7",
+          "84d66ea2-a957-5351-811f-84ea013508fd"
+        ]
+      },
+      {
+        "key": "location-civitavecchia",
+        "ids": [
+          "7ceb0e29-a44d-5799-b61d-583e5f149bac",
+          "373192de-70d1-5688-bf52-e1b749ebb30a"
+        ]
+      }
+    ],
+    "repeated_title_type_groups": [
+      {
+        "title": "라벤나",
+        "cardType": "location",
+        "ids": [
+          "4be3c476-fb39-5745-a428-69ab0aac9bcd",
+          "9edcb19e-7563-577e-a112-241dbfa8b7ff"
+        ]
+      },
+      {
+        "title": "파비아",
+        "cardType": "location",
+        "ids": [
+          "d163b5a9-8b21-5d6e-8773-52db0170d46a",
+          "7df9efc0-b7d7-575e-9364-7716ada0ec4c"
+        ]
+      },
+      {
+        "title": "베네치아",
+        "cardType": "location",
+        "ids": [
+          "7ade62ea-e115-5905-bf0d-0a1381b797d4",
+          "599cecdc-daed-510d-9656-8a3c440b9911",
+          "600db4ab-0546-57ec-8849-1c54cac63926",
+          "eba62007-a21e-5bd4-9167-a1fd51ca3c06",
+          "fbedf506-4aaf-50d4-b00b-ff711bd43e64"
+        ]
+      },
+      {
+        "title": "제노바",
+        "cardType": "location",
+        "ids": [
+          "a618a419-deea-5328-81b4-e6de9f98043c",
+          "f689cf6b-1e3d-59f7-9226-201f7ce6c515",
+          "5ed58d6c-d44c-5062-8f71-d4f9902536ca",
+          "e8e611fa-a2ff-5c2f-82f6-418bcc799ef5",
+          "378a6c82-bb71-536f-b668-75c453434193",
+          "19396ac8-5589-59bb-bf1f-c6fd92e8e400",
+          "cad37b5b-f26e-5cbd-93fd-c1635fdc6bea"
+        ]
+      },
+      {
+        "title": "피렌체",
+        "cardType": "location",
+        "ids": [
+          "c6794af6-6832-5770-9b1e-c716ec5993cf",
+          "5c15f478-16e5-5994-94cc-7ecf32dafd0e",
+          "7b742e87-2314-5907-a9e4-dec2e22420dc"
+        ]
+      },
+      {
+        "title": "토르토나",
+        "cardType": "location",
+        "ids": [
+          "1daf15c7-4694-57bc-b8b4-c6ecb8063edc",
+          "eaf0c619-c6dc-59be-bbd7-80c4523c6995"
+        ]
+      },
+      {
+        "title": "알레산드리아",
+        "cardType": "location",
+        "ids": [
+          "db1db816-2f22-5d32-b231-0cc2d8a20f3d",
+          "1176fe0e-065e-5378-96ee-cd3cf3cef08c",
+          "5d4501ff-39e5-5117-9bea-0a82d89fba7f"
+        ]
+      },
+      {
+        "title": "에첼리노 다 로마노",
+        "cardType": "character",
+        "ids": [
+          "1ab76d45-d0f9-5d7a-b9d4-56c18e879142",
+          "d161a515-1f98-52a7-bfe7-f01c160a9b22"
+        ]
+      },
+      {
+        "title": "밀라노",
+        "cardType": "location",
+        "ids": [
+          "1965e5bb-de73-5768-b27d-abe1d65937cf",
+          "9b32f23f-5850-54d5-b9ca-3c963e0ce869",
+          "a71e03b5-6fd2-57e0-80f9-b4c64526ac6f"
+        ]
+      },
+      {
+        "title": "안코나",
+        "cardType": "location",
+        "ids": [
+          "03495af4-a4b6-5eb5-a977-fa179c4db4c9",
+          "99710c68-13d3-5511-892f-eb0871383ac1",
+          "52b3eea5-1c4b-5bae-a240-76e82a47fd67"
+        ]
+      },
+      {
+        "title": "프로방스의 베아트리체",
+        "cardType": "character",
+        "ids": [
+          "b0047cc4-19e2-5a54-9ab3-de7e394278e2",
+          "c4deb9c2-01e5-5ef7-9191-20ce390c96e9"
+        ]
+      },
+      {
+        "title": "베네치아 대평의회",
+        "cardType": "organization",
+        "ids": [
+          "e988ba48-52d7-57f6-880e-0c17f9c6c038",
+          "83df1499-d958-512a-a6c4-ab4dfdff5f48"
+        ]
+      },
+      {
+        "title": "군주론",
+        "cardType": "object",
+        "ids": [
+          "cb9776dc-8afe-5ec7-b7c3-26c304ba960c",
+          "0b5436be-6a8c-5b3d-a19b-da2707d9f147"
+        ]
+      },
+      {
+        "title": "필리포 마리아 비스콘티",
+        "cardType": "character",
+        "ids": [
+          "c1df69ce-c395-51ed-855f-bc55059125ad",
+          "4af01c60-432a-5f63-8120-db9040f01773"
+        ]
+      },
+      {
+        "title": "코시모 데 메디치",
+        "cardType": "character",
+        "ids": [
+          "63d422be-41b6-5bb9-9573-dfd52322c049",
+          "983b09d0-77f3-5f02-a1fd-473858242599"
+        ]
+      },
+      {
+        "title": "프란체스코 스포르차",
+        "cardType": "character",
+        "ids": [
+          "8bfa8996-514a-5987-afd2-8b4bbaa6a378",
+          "721a724d-bd8c-5a61-aba4-91f00b5fce87",
+          "b412e492-fdd4-57d5-a8c3-e61767d89b4b",
+          "9e4042df-6631-55fb-906a-1a1a42ac5e9d"
+        ]
+      },
+      {
+        "title": "줄리아노 데 메디치",
+        "cardType": "character",
+        "ids": [
+          "99200254-2eb2-5099-9e1a-bbc010c18825",
+          "06b91c37-20d2-54d7-89f4-b6572c17d656"
+        ]
+      },
+      {
+        "title": "로렌초 데 메디치",
+        "cardType": "character",
+        "ids": [
+          "0f57b91f-0acd-5b0f-90f8-ae66513ae9f8",
+          "0f202367-af1f-5171-8ec0-9623605423a9"
+        ]
+      },
+      {
+        "title": "잔 자코모 트리불치오",
+        "cardType": "character",
+        "ids": [
+          "bb4f448b-e236-51cb-a74b-756d88844a42",
+          "8e73a371-6775-5d28-8c51-b67dd5e68e3c"
+        ]
+      },
+      {
+        "title": "교황 율리오 2세",
+        "cardType": "character",
+        "ids": [
+          "7a55c38a-0678-5068-8c87-04ab251d08fc",
+          "137e7451-864e-5a57-b777-5283dba47910",
+          "8712952f-8028-55ae-b213-89d5e4ae97b1"
+        ]
+      },
+      {
+        "title": "마시밀리아노 스포르차",
+        "cardType": "character",
+        "ids": [
+          "4e09a1a2-260a-5d1d-8fc7-ce0d52caf3dc",
+          "98f65da9-db81-52ea-8196-b8423bca0df1"
+        ]
+      },
+      {
+        "title": "교황 레오 10세",
+        "cardType": "character",
+        "ids": [
+          "f2124184-db13-5adf-9acd-b6bcc5ff772c",
+          "72f59209-02a6-58fb-8bcf-118653b4c3d2"
+        ]
+      },
+      {
+        "title": "황제 지기스문트",
+        "cardType": "character",
+        "ids": [
+          "7ede7528-df42-5f97-a5ca-adcc1203513b",
+          "fbaac628-7623-5f5e-8816-abacbe45c0bf"
+        ]
+      },
+      {
+        "title": "니콜로 마키아벨리",
+        "cardType": "character",
+        "ids": [
+          "b25988b4-bcfc-5a15-8a9a-6984696e52b8",
+          "07c21eb5-0ac6-533c-befa-80caeddebf99"
+        ]
+      },
+      {
+        "title": "프란체스코 구이차르디니",
+        "cardType": "character",
+        "ids": [
+          "4931e621-851a-51d1-aaeb-f49ea1d76850",
+          "fe9a0cf5-ceea-50e2-abab-3a0a7a12550e"
+        ]
+      },
+      {
+        "title": "프랑수아 1세",
+        "cardType": "character",
+        "ids": [
+          "448de1aa-c508-53dc-ad69-2732c296f5ea",
+          "d6eda78c-b016-520a-aac0-7afe21109678"
+        ]
+      },
+      {
+        "title": "카를 5세",
+        "cardType": "character",
+        "ids": [
+          "dd05ba2d-c0d5-5334-840a-c0815d610b3e",
+          "be0121fa-6a23-523a-bca9-46bbb1167b4c",
+          "56a078e8-53ad-563f-a4e3-6992aa897fd5"
+        ]
+      },
+      {
+        "title": "루이즈 드 사부아",
+        "cardType": "character",
+        "ids": [
+          "22c2b9ec-24d2-570e-8ca2-395342fca7a8",
+          "a3f1a941-0fa5-56cc-aadc-12775d4e68a3"
+        ]
+      },
+      {
+        "title": "안드레아 도리아",
+        "cardType": "character",
+        "ids": [
+          "44aa1df2-25ad-5a93-81df-e74cf6317b4a",
+          "3b48bc45-e748-518f-b072-496f17b7cd8f",
+          "0c868a3f-f8a9-505b-8eee-ad29738edcc3",
+          "4726ab76-a753-51ad-a6e0-aa77ce042bb5"
+        ]
+      },
+      {
+        "title": "니콜로 카포니",
+        "cardType": "character",
+        "ids": [
+          "48b8cbc2-784e-5c83-b749-0facb2414ef3",
+          "0e20657b-cd47-5bd8-b84e-ff2c591b2155"
+        ]
+      },
+      {
+        "title": "필리포 스트로치",
+        "cardType": "character",
+        "ids": [
+          "35e82ef3-9ec4-5ccb-b898-b4276f722eee",
+          "6f5baf02-04a5-5629-894a-3cdf3c855355"
+        ]
+      },
+      {
+        "title": "오타비오 파르네세",
+        "cardType": "character",
+        "ids": [
+          "983c7506-acac-5f1d-bc6a-ba0ab54accc9",
+          "d0488927-91b6-5d02-9f80-579bc61ff8de"
+        ]
+      },
+      {
+        "title": "피에로 스트로치",
+        "cardType": "character",
+        "ids": [
+          "54ed420b-7e6f-561f-b4ab-d82bb4f2462b",
+          "ebd3447a-eb10-52c7-8432-d6aea1bbb557"
+        ]
+      },
+      {
+        "title": "파르마",
+        "cardType": "location",
+        "ids": [
+          "c2a468ef-f6e4-513d-8601-a55dcc881552",
+          "c8283ddd-bb89-577f-a0bb-7ff90cafdae8",
+          "69d357ac-8f22-536e-844b-f792b10f6ba1"
+        ]
+      },
+      {
+        "title": "피아첸차",
+        "cardType": "location",
+        "ids": [
+          "634e7cf6-da11-52fa-af31-c06150abbbf5",
+          "d3f91dd3-8c7f-5f26-be0d-d21ba5c34c97"
+        ]
+      },
+      {
+        "title": "니차",
+        "cardType": "location",
+        "ids": [
+          "bbdff982-dbe8-5b80-b412-2500e41e629e",
+          "68cb01c1-47f3-5715-8f74-b2fb5dd46195",
+          "8ffde23b-30ab-524c-8fc5-de4fdd8bb35b",
+          "03d861cb-a997-5098-a545-e4a574c5611b"
+        ]
+      },
+      {
+        "title": "볼로냐",
+        "cardType": "location",
+        "ids": [
+          "61eca876-df39-5a8c-bd19-44fb69525113",
+          "2c15362d-f62f-5d54-b5b8-799a8aea65da"
+        ]
+      },
+      {
+        "title": "사보이",
+        "cardType": "location",
+        "ids": [
+          "593178b3-b9c9-5914-be81-97fb7205e5f5",
+          "00804b67-e683-54e6-afa8-c504b920f634",
+          "59e0e3e2-1c7e-55bd-989e-6836720c3150",
+          "42837a6f-6b20-56d3-b895-35261d688200"
+        ]
+      },
+      {
+        "title": "밀라노 공국",
+        "cardType": "location",
+        "ids": [
+          "6c151982-7f9e-56d8-8bac-8c12002aeb47",
+          "8c25c4d2-acd9-54ee-897e-f3f79794b93a"
+        ]
+      },
+      {
+        "title": "만토바",
+        "cardType": "location",
+        "ids": [
+          "46968981-d576-542c-b148-610d80cda9d1",
+          "d12737e2-025b-5813-8869-9679865680e3",
+          "db8b48eb-dad6-503a-9750-6437491f3cd1"
+        ]
+      },
+      {
+        "title": "몬페라토",
+        "cardType": "location",
+        "ids": [
+          "3d8b2d29-aa97-5b4a-bc9e-884c66c203c0",
+          "f3ba4441-cc57-5b37-b197-bbc7e42ba3ca",
+          "e7d74fb2-8e86-5856-8b10-5d5c6834b31a"
+        ]
+      },
+      {
+        "title": "마렘마",
+        "cardType": "location",
+        "ids": [
+          "4482833c-7f77-5d79-b2f1-1b26233bc83a",
+          "dd3d5dd3-06c7-576f-9239-dbc0949954be"
+        ]
+      },
+      {
+        "title": "나폴리 왕국",
+        "cardType": "location",
+        "ids": [
+          "0b40c63d-b5b8-5967-bad9-4a143c76103c",
+          "ebe82143-eb02-51be-9d49-127826e9ad0f"
+        ]
+      },
+      {
+        "title": "예수회",
+        "cardType": "organization",
+        "ids": [
+          "95a6a504-df84-5445-820f-8a72ea1fa618",
+          "7f535b79-22d5-5d72-9650-73a28ae27b44",
+          "3f023666-5fe8-599b-9807-a8c979ff44d9",
+          "ad495358-7589-522b-b0f1-ddefb12eeda8"
+        ]
+      },
+      {
+        "title": "발도파",
+        "cardType": "organization",
+        "ids": [
+          "34390f8d-ddd6-5b4b-b451-f33663b8a5f2",
+          "2d4342e8-ce67-516d-b93b-2f789b9bfc7a"
+        ]
+      },
+      {
+        "title": "오스트리아의 돈 후안",
+        "cardType": "character",
+        "ids": [
+          "8f618f37-2042-5e49-95ad-4e3409e1bf65",
+          "a199a657-d1d2-566f-84fd-05b606465d46"
+        ]
+      },
+      {
+        "title": "메시나",
+        "cardType": "location",
+        "ids": [
+          "c008f1f9-609e-5ded-9112-546159b16257",
+          "1dc37a22-8b47-5a36-a2d9-b15a8b4e54fb",
+          "69257b46-1e83-5ff2-8617-29701f367e47",
+          "a4755c6b-75d4-55ce-9173-1942c1c4a19c"
+        ]
+      },
+      {
+        "title": "피에몬테",
+        "cardType": "location",
+        "ids": [
+          "0cc1070b-a574-5a71-b194-579e1668d7b7",
+          "dfa71ff7-39f5-56ec-80fa-7edc4e7f11f4",
+          "a6a9bd5e-daf9-5a45-ac21-f5d9bb366c9f"
+        ]
+      },
+      {
+        "title": "시칠리아",
+        "cardType": "location",
+        "ids": [
+          "ac16076c-11b7-59ed-997e-0273b477aa48",
+          "3058f035-538f-5a84-ba39-43d62f6b89a9",
+          "15d9766d-e779-5566-908a-e0048f2731a9",
+          "ff750a90-8015-5dc8-88f6-38b6e4efcdf6"
+        ]
+      },
+      {
+        "title": "사르데냐",
+        "cardType": "location",
+        "ids": [
+          "26dbd8be-c865-5da8-beb8-1ec48a0cfa6e",
+          "9f408c57-3c6b-5305-8afb-927b19e0af2a"
+        ]
+      },
+      {
+        "title": "코르시카",
+        "cardType": "location",
+        "ids": [
+          "50df3cb1-2cb6-59b0-a4f9-0d93ad32e0b6",
+          "94f1d60e-4158-5edf-a41e-b570043498af"
+        ]
+      },
+      {
+        "title": "산마리노",
+        "cardType": "location",
+        "ids": [
+          "a41ab267-d179-53d4-9bbf-39e439404557",
+          "4917d069-a291-59f8-84c0-b5bf29d73ded"
+        ]
+      },
+      {
+        "title": "살루초",
+        "cardType": "location",
+        "ids": [
+          "b9230194-fb69-5817-b5d0-6ac830a61b61",
+          "3fc8b5da-846a-578c-ac4d-b465314277fe"
+        ]
+      },
+      {
+        "title": "제네바",
+        "cardType": "location",
+        "ids": [
+          "ca43220d-6d7b-59a1-bab4-71de37984e13",
+          "3d4bc70b-8329-5bf4-8c16-188a6a526a1e"
+        ]
+      },
+      {
+        "title": "프랑스의 마르그리트 사보이 공작부인",
+        "cardType": "character",
+        "ids": [
+          "32f04aee-f3ce-5870-ae61-8a6bc3ba965e",
+          "d010b6e6-cd36-5ca7-91d7-be0f5db36700"
+        ]
+      },
+      {
+        "title": "토리노",
+        "cardType": "location",
+        "ids": [
+          "37e0d8f3-9c0b-5149-9bdd-f08c303228ed",
+          "c8510906-4528-51ab-b160-af0dd0d1f162",
+          "e8361d7e-c62c-5fbc-bae0-f0e389ffc6c8"
+        ]
+      },
+      {
+        "title": "샹베리",
+        "cardType": "location",
+        "ids": [
+          "6c04cf08-5a6e-5226-b2bd-4f8dede8b4ad",
+          "6bf07b84-534e-5215-afe1-85146f162aa9"
+        ]
+      },
+      {
+        "title": "노바라",
+        "cardType": "location",
+        "ids": [
+          "73193842-214d-5159-a5a0-468501288ba6",
+          "034b8a8c-1ee7-5257-ad6f-1324a6cf70e1"
+        ]
+      },
+      {
+        "title": "만토바 공작 페르디난도 곤차가",
+        "cardType": "character",
+        "ids": [
+          "9ec71027-ad1c-5519-a679-0757ca02a1ff",
+          "8ddaf0fa-2316-564d-bfc2-b4f4dc18268e"
+        ]
+      },
+      {
+        "title": "교황 비오 6세",
+        "cardType": "character",
+        "ids": [
+          "6cc59b3e-596c-5405-92f3-77e673ce8562",
+          "39bd5e4f-5be0-51ad-beb6-67d9c17a2ee7"
+        ]
+      },
+      {
+        "title": "교황 비오 7세",
+        "cardType": "character",
+        "ids": [
+          "58d52bc2-8ae5-57d7-a5ad-54906f25c378",
+          "9b34bc57-8031-567a-b080-6b8b19a5f42e"
+        ]
+      },
+      {
+        "title": "비토리오 아메데오 2세",
+        "cardType": "character",
+        "ids": [
+          "7022f2ad-b5f5-5615-b863-cdd9629b4528",
+          "efd161e5-8562-5572-8cc0-b5dd8597cbf9"
+        ]
+      },
+      {
+        "title": "황제 카를 6세",
+        "cardType": "character",
+        "ids": [
+          "9b76d5b0-7c21-525f-8bab-58d6c30030dc",
+          "fda9a6ce-6a21-54f3-892f-f917993a54b4"
+        ]
+      },
+      {
+        "title": "돈 카를로스",
+        "cardType": "character",
+        "ids": [
+          "294049da-3306-54b5-8847-49db5b2ca4bb",
+          "9df02217-247f-5a91-a934-96d6a20551f9"
+        ]
+      },
+      {
+        "title": "카를로 에마누엘레 3세",
+        "cardType": "character",
+        "ids": [
+          "470eeebb-b4aa-55a0-9ac9-09c829c3a50a",
+          "1be203ad-864e-5293-8505-1a91aa4fe63e"
+        ]
+      },
+      {
+        "title": "페라라",
+        "cardType": "location",
+        "ids": [
+          "4d9e3bd5-82e4-533f-a67d-a2a488a55b49",
+          "1f82d562-8379-5e5c-bafd-5fed5fafdfad"
+        ]
+      },
+      {
+        "title": "모데나",
+        "cardType": "location",
+        "ids": [
+          "f31e37a5-0b6a-551c-8c72-6e48ba557b3c",
+          "a7fb889f-77dd-541a-b05c-9a01c593c04b"
+        ]
+      },
+      {
+        "title": "레조",
+        "cardType": "location",
+        "ids": [
+          "758ffba4-d297-55dd-b113-160c04fb984c",
+          "52c0a1a7-8069-556d-9966-5c6a903e9c6c"
+        ]
+      },
+      {
+        "title": "우르비노",
+        "cardType": "location",
+        "ids": [
+          "bdaeacd5-77f4-5ff1-ae38-73fb9d90ca52",
+          "cc51db36-9424-5636-8003-b0fcb3fd1d73"
+        ]
+      },
+      {
+        "title": "로마냐",
+        "cardType": "location",
+        "ids": [
+          "16d35bef-8510-56e9-a706-9fcbc17c7b7f",
+          "eedf1055-f76a-5c04-9e82-e8f4c668bd3a",
+          "da7bd22b-7edf-5c63-a2e0-b3d8faaafdc0"
+        ]
+      },
+      {
+        "title": "로마 캄파냐",
+        "cardType": "location",
+        "ids": [
+          "97542287-f842-556b-a479-5079647119a5",
+          "1e183ed3-979d-59a6-8589-13cc72312eca"
+        ]
+      },
+      {
+        "title": "나폴리",
+        "cardType": "location",
+        "ids": [
+          "4e12dbb6-e4a7-56d4-9c1d-799a7ad7db1e",
+          "ec4de93f-8ef5-509b-a42a-5ebd9a10ef05"
+        ]
+      },
+      {
+        "title": "팔레르모",
+        "cardType": "location",
+        "ids": [
+          "695fa6ef-d5ad-5f7c-91cb-0f1f5dce4e1c",
+          "93b172df-a79d-53f8-8fc0-83e23fec8477",
+          "68d26de8-cc76-5a14-bf76-dc0113450151"
+        ]
+      },
+      {
+        "title": "토스카나 대공국",
+        "cardType": "location",
+        "ids": [
+          "df0b8856-5021-5580-b2e7-bfa29132311a",
+          "24511bb4-607e-5d62-8a3f-29737662f99b"
+        ]
+      },
+      {
+        "title": "교황령",
+        "cardType": "organization",
+        "ids": [
+          "33e84861-0ada-5d47-8280-ab86184196bf",
+          "2cb2b5d4-77ef-50ce-9e55-d2a6e1c55b16"
+        ]
+      },
+      {
+        "title": "롬바르디아",
+        "cardType": "location",
+        "ids": [
+          "7fdf9424-aeae-5e0d-9f3b-8e5535eefcbe",
+          "76430230-0b3a-5b89-ab27-d97071f7026f",
+          "a0c956bc-897a-57c9-aba0-24364e124f75"
+        ]
+      },
+      {
+        "title": "카타니아",
+        "cardType": "location",
+        "ids": [
+          "7765ce77-1a67-511b-9728-173bf7690fe6",
+          "c6532131-1f9a-5edb-85f5-aaad247ccc29"
+        ]
+      },
+      {
+        "title": "모데나 공국",
+        "cardType": "location",
+        "ids": [
+          "7301454b-d441-58fa-874c-29ddb7f0f302",
+          "6db92e72-729f-550c-a6e2-f99457ab3b6a"
+        ]
+      },
+      {
+        "title": "카를로 루도비코",
+        "cardType": "character",
+        "ids": [
+          "77f65192-87cd-5a4e-9800-27b527981d90",
+          "319ace30-6dac-57e2-8362-be93bfe5c088"
+        ]
+      },
+      {
+        "title": "주세페 마치니",
+        "cardType": "character",
+        "ids": [
+          "742071b1-0304-5919-91d8-86135075dae2",
+          "7b1cf5eb-a91a-504f-b05f-e6a586930bbb"
+        ]
+      },
+      {
+        "title": "주세페 가리발디",
+        "cardType": "character",
+        "ids": [
+          "8faec2f0-3956-559e-9e69-d7fbc752c2e2",
+          "60831954-41cd-5312-9e98-5f6fe1aae25a"
+        ]
+      },
+      {
+        "title": "페르디난도 2세",
+        "cardType": "character",
+        "ids": [
+          "a322caf0-3614-5048-8fdf-d0e81ee7e6ab",
+          "70958087-95af-5a22-9f8b-141e7d3d81b6"
+        ]
+      },
+      {
+        "title": "우르바노 라타치",
+        "cardType": "character",
+        "ids": [
+          "9193663d-9872-51ee-95c1-4ce400a43866",
+          "3777a67c-41c3-5733-9a6e-b2e6f67e8ea6"
+        ]
+      },
+      {
+        "title": "비토리오 에마누엘레 2세",
+        "cardType": "character",
+        "ids": [
+          "c87286d4-1d81-5000-a40d-4155d19d703c",
+          "f79390bd-2f39-5771-836f-5bec8ec6702a"
+        ]
+      },
+      {
+        "title": "로마",
+        "cardType": "location",
+        "ids": [
+          "de701924-726c-5812-ac7e-aaa9f39cba7f",
+          "e9060d3e-867c-5f62-a969-1c69b03dd6a9"
+        ]
+      },
+      {
+        "title": "가에타",
+        "cardType": "location",
+        "ids": [
+          "0db87968-e223-5496-9f57-a3ea23cf97f7",
+          "84d66ea2-a957-5351-811f-84ea013508fd"
+        ]
+      },
+      {
+        "title": "치비타베키아",
+        "cardType": "location",
+        "ids": [
+          "7ceb0e29-a44d-5799-b61d-583e5f149bac",
+          "373192de-70d1-5688-bf52-e1b749ebb30a"
+        ]
+      }
+    ]
+  },
+  "card_types": {
+    "location": 240,
+    "event": 251,
+    "character": 592,
+    "organization": 124,
+    "object": 37,
+    "rule": 33
+  },
+  "chunks": [
+    {
+      "file": "cards-001.json",
+      "count": 300,
+      "sha256": "7128300294d42fd0dd9981903fdc24942bcc8fbb4f2b724867728d9780e7df0f"
+    },
+    {
+      "file": "cards-002.json",
+      "count": 300,
+      "sha256": "b5ad246a56cd2c0a67422e1ab4f41b07674ed2c079761ca52907206ca3d994e5"
+    },
+    {
+      "file": "cards-003.json",
+      "count": 300,
+      "sha256": "cb0ca23dff5cd453186713bff2828db00fc59ee8d83831802f458f1def0ecd0e"
+    },
+    {
+      "file": "cards-004.json",
+      "count": 300,
+      "sha256": "7d16d60a21cc73cf5863c75eafd83c948ff6921d5a7b2831839553701fa0d9a7"
+    },
+    {
+      "file": "cards-005.json",
+      "count": 63,
+      "sha256": "99ff510a6f25cf2449ccf00dceb2a3408340878a666201c92fbf85f1e720434c"
+    },
+    {
+      "file": "cards-006.json",
+      "count": 14,
+      "sha256": "4041f14dfe6b01c267491f6acd7502150eef3b83a45705a1548bd7893a6e8276"
+    }
+  ],
+  "verification": {
+    "input_files": 10,
+    "parse_errors": 0,
+    "missing_files": 0,
+    "missing_source_anchors": 0,
+    "anchors_outside_scope": 0,
+    "blank_anchors": 0,
+    "missing_author_or_url_in_body": 0,
+    "duplicate_input_keys_per_segment": 0,
+    "duplicate_output_uuid": 0,
+    "existing_id_collisions": 0,
+    "utf16_title_max": 23,
+    "utf16_body_max": 320,
+    "uuid_policy": "UUIDv5 namespace=기존 worldId, name=storyfork:review:full-history:italy:<segment>:<candidate key>",
+    "limitations": "형식·구간 검증은 각 주장의 진실성, 원문 정확도, 허위 인물 부재 또는 역사적 고유 대상의 완전성을 보증하지 않는다."
+  },
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "input_corrections": [
+    {
+      "card_id": "742071b1-0304-5919-91d8-86135075dae2",
+      "segment": "refill-italy-11-chapter-xi-p1",
+      "candidate_key": "character-giuseppe-mazzini",
+      "candidate_index": 9,
+      "input_sha256_unchanged": "873800c05ac60a671e8ac19fa7e44a5406eb30cbf131eaae84051cda1367eda0",
+      "changes": [
+        {
+          "field": "body 출처 범위",
+          "before": "10332–10339행",
+          "after": "10319–10339행"
+        },
+        {
+          "field": "provenance.lines",
+          "before": [
+            {
+              "start": 9980,
+              "end": 9986
+            },
+            {
+              "start": 9993,
+              "end": 10005
+            },
+            {
+              "start": 10332,
+              "end": 10339
+            }
+          ],
+          "after": [
+            {
+              "start": 9980,
+              "end": 9986
+            },
+            {
+              "start": 9993,
+              "end": 10005
+            },
+            {
+              "start": 10319,
+              "end": 10339
+            }
+          ]
+        }
+      ],
+      "reason": "1849년은 기존 10332–10339행에 직접 나오지 않으며 고정 원전 10319–10320행의 날짜와 이후 서술을 연결한 문맥이다. 원문의 간접 연대 맥락을 포함하도록 근거 범위를 확장했다.",
+      "source_verification": "고정 commit 원문 SHA 일치, 10319–10320행과 10332–10339행 대조; 연도는 문맥에서 추론되며 취임 연도를 직접 단정하는 별도 문구는 아니다."
+    },
+    {
+      "card_id": "742071b1-0304-5919-91d8-86135075dae2",
+      "segment": "refill-italy-11-chapter-xi-p1",
+      "candidate_key": "character-giuseppe-mazzini",
+      "candidate_index": 9,
+      "input_sha256_unchanged": "873800c05ac60a671e8ac19fa7e44a5406eb30cbf131eaae84051cda1367eda0",
+      "changes": [
+        {
+          "field": "body",
+          "before": "1849년 로마 공화국의 삼두 집정관 가운데 첫째가 되었다",
+          "after": "로마 공화국의 삼두 집정관 가운데 첫째가 되었다"
+        },
+        {
+          "field": "provenance.review_note",
+          "after": "원문 10319–10320행의 1849년은 플로렌스 사건의 연도이며 마치니의 삼두 집정 취임 연도를 직접 입증하지 않는다; 직접 근거 미확인으로 해당 연도를 본문에서 제거했다."
+        }
+      ],
+      "reason": "10319–10320행의 1849년은 플로렌스 사건의 연도이며 마치니의 취임 연도에 대한 직접 근거는 확인되지 않았다. 기존 10319–10339행 범위는 문맥으로 유지한다."
+    }
+  ],
+  "supplement_reviews": [
+    {
+      "segment": "supplement-italy-8-review-20261116",
+      "reason": "8장 read 자기보고의 독립 대상 누락 최종 점검이 미완료여서 원문을 재대조해 실질 후보 추가",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "compared": {
+        "chapter_8_candidates": 70,
+        "prior_review_candidates": 1263,
+        "studio_history_cards": 180,
+        "method": "기존 후보·7개 역사 studio 제목 및 본문 키워드 대조; 동명이인과 의미상 중복은 별도 검토 필요"
+      },
+      "excluded_duplicates": [
+        {
+          "names": [
+            "토마소 소데리니",
+            "발다사레 카르두치",
+            "알폰소 스트로치"
+          ],
+          "lines": [
+            7535,
+            7541
+          ],
+          "existing_card": "피렌체 포폴라니 공화파",
+          "decision": "이름과 지도자 역할이 기존 카드에 있으므로 새 인물 카드를 추가하지 않음"
+        }
+      ],
+      "existing_evidence_expansion_review": [
+        {
+          "subject": "제노바 12인 위원회의 정부 개편",
+          "lines": [
+            7461,
+            7465
+          ],
+          "existing_cards": [
+            "안드레아 도리아 (8장)",
+            "안드레아 도리아 (9장)",
+            "도리아 시대 제노바 과두정 (9장)"
+          ],
+          "decision": "기존 카드가 정부 개편과 과두 권력 일부를 이미 설명하므로 별도 후보 대신 8장 7461–7465행의 시민회의·12인 선출 세부 근거 확장 검토; 기존 본문과 근거는 수정하지 않음"
+        }
+      ],
+      "limit": "1528년 파비아 약탈의 연도는 7419–7423행에 직접 없어 카드에서 생략; OCR 손상 및 저자 평가를 역사 사실로 확정하지 않음"
+    }
+  ],
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

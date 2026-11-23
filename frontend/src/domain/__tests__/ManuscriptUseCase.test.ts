@@ -1,22 +1,25 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import type { BulkImportResponse, BulkUploadRow, ManuscriptPreview } from '../entities/manuscript'
+import type { BulkImportResponse, BulkUploadRow, ImportWorldBuild, ManuscriptPreview } from '../entities/manuscript'
 import type { ManuscriptRepository } from '../repositories/ManuscriptRepository'
 import { adjustableEpisodes, ManuscriptUseCase, mergeWithNext, toImportItems } from '../usecases/ManuscriptUseCase'
 
 const workId = 'b142427a-cd9d-4fdc-a40d-c9e553d87d30'
 const episode = (title: string, from: number, to: number, extra = {}) => ({ title, from, to, charCount: to - from, excerpt: `${title} 발췌`, imageCount: 0, warnings: [] as string[], ...extra })
 const preview: ManuscriptPreview = { format: 'txt', unit: 'line', unitCount: 30, existingEpisodeCount: 2, episodes: [episode('1화', 0, 10), episode('2화', 10, 20), episode('3화', 20, 30)] }
-const summary = { succeeded: 1, failed: 0, results: [{ number: 1, title: '1화', status: 'created' as const, reason: null, missingImages: 0 }] }
+const started: ImportWorldBuild = { status: 'started', jobId: 'job-1', code: null, message: null }
+const summary = { succeeded: 1, failed: 0, worldBuild: null, results: [{ number: 1, title: '1화', status: 'created' as const, reason: null, missingImages: 0 }] }
 
 function setup() {
   const repo = {
     preview: vi.fn(async () => preview),
     confirm: vi.fn(async () => summary),
     bulkBasis: vi.fn(async () => ({ lastNumber: 2, workRevision: 5 })),
-    importBulkBatch: vi.fn(async (_work: string, rows: readonly BulkUploadRow[], revision: number, _signal?: AbortSignal): Promise<BulkImportResponse> => ({
+    importBulkBatch: vi.fn(async (_work: string, rows: readonly BulkUploadRow[], revision: number, startWorldBuild: boolean, _signal?: AbortSignal): Promise<BulkImportResponse> => ({
       workRevision: revision + 1,
       stopReason: null,
+      // 서버는 startWorldBuild가 true인 요청에서만 세계관 추출 접수를 시도한다.
+      worldBuild: startWorldBuild ? started : null,
       results: rows.map(({ number, title }) => ({ number, title, status: 'created', versionId: String(number), reason: null })),
     })),
     exportManuscript: vi.fn(async () => ({ blob: new Blob(['x']), filename: '작품.txt' })),
@@ -137,9 +140,12 @@ describe('회차 일괄 업로드', () => {
     const progress = vi.fn()
     const response = await api.importBulk(workId, rows, true, 5, progress)
     expect(repo.importBulkBatch).toHaveBeenCalledTimes(50)
-    expect(repo.importBulkBatch).toHaveBeenNthCalledWith(2, workId, rows.slice(20, 40), 6, undefined)
+    expect(repo.importBulkBatch).toHaveBeenNthCalledWith(2, workId, rows.slice(20, 40), 6, false, undefined)
     expect(response.results.map(({ number }) => number)).toEqual(rows.map(({ number }) => number))
     expect(progress.mock.calls.at(-1)?.[0]).toHaveLength(1000)
+    // 세계관 추출은 마지막 묶음에서만 접수한다(앞 묶음에서 접수하면 그때 저장된 회차만 작업에 들어간다).
+    expect(repo.importBulkBatch.mock.calls.map((call) => call[3])).toEqual([...Array(49).fill(false), true])
+    expect(response.worldBuild).toEqual(started)
     await expect(api.importBulk(workId, [...rows, rows[0]], true, 5, progress)).rejects.toThrow('1,000')
   })
 
@@ -152,5 +158,20 @@ describe('회차 일괄 업로드', () => {
     expect(response.results).toHaveLength(20)
     expect(response.stopReason).toContain('30화')
     expect(repo.importBulkBatch).toHaveBeenCalledTimes(2)
+    // 멈추면 접수 결과를 알 수 없고(마지막 묶음 응답을 잃음) 앞 묶음은 접수를 시도하지 않았다.
+    expect(repo.importBulkBatch.mock.calls.map((call) => call[3])).toEqual([false, true])
+    expect(response.worldBuild).toBeNull()
+  })
+
+  it('한 묶음이면 그 묶음이 세계관 추출을 접수하고, 여러 묶음이면 마지막 묶음의 접수 결과를 그대로 돌려준다', async () => {
+    const { api, repo } = setup()
+    const rows = (count: number) => Array.from({ length: count }, (_, i) => ({ file: file(), number: i + 10, title: '원고' }))
+    expect((await api.importBulk(workId, rows(3), true, 5, vi.fn())).worldBuild).toEqual(started)
+    expect(repo.importBulkBatch.mock.calls.map((call) => call[3])).toEqual([true])
+
+    const rejected: ImportWorldBuild = { status: 'rejected', jobId: null, code: 'PREPROCESSING_LOAD_REVIEW_REQUIRED', message: '이전 작업의 적재 여부를 먼저 확인해 주세요.' }
+    repo.importBulkBatch.mockImplementationOnce(repo.importBulkBatch.getMockImplementation()!)
+      .mockResolvedValueOnce({ workRevision: 7, stopReason: null, worldBuild: rejected, results: [{ number: 30, title: '원고', status: 'created', versionId: '30', reason: null }] })
+    expect((await api.importBulk(workId, rows(21), true, 5, vi.fn())).worldBuild).toEqual(rejected)
   })
 })

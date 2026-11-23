@@ -45,10 +45,10 @@
   .atlas-foot .map-pan { display: flex; }
 }
 .atlas-foot .map-pan .btn { width: 36px; padding: 0; }
-.atlas-foot .btn { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .2); color: var(--fixed-ink); }
-.atlas-foot .btn:hover { background: rgba(255, 255, 255, .16); }
+.atlas-foot .btn { background: color-mix(in srgb, var(--fixed-ink) 8%, transparent); border-color: color-mix(in srgb, var(--fixed-ink) 20%, transparent); color: var(--fixed-ink); }
+.atlas-foot .btn:hover { background: color-mix(in srgb, var(--fixed-ink) 16%, transparent); }
 .atlas-foot .btn.pri { background: var(--fixed-pri); border-color: var(--fixed-pri); color: var(--on-fixed-pri); }
-.atlas-foot .btn.pri:hover { background: #C7BAFF; }
+.atlas-foot .btn.pri:hover { background: color-mix(in srgb, var(--fixed-pri) 75%, var(--fixed-ink)); }
 .atlas-info { display: grid; gap: 5px; padding: 10px 14px 12px; border-top: 1px solid rgba(255, 255, 255, .06); color: var(--fixed-sub); font-size: 11.5px; }
 .atlas-stats { margin: 0; }
 /* 범례는 장르 색·카드 유형 색·연결 선 세 묶음이 묶음째 줄바꿈한다. */
@@ -93,11 +93,27 @@
 .worlds-graph .atlas-canvas { height: 460px; }
 .worlds-graph .atlas-loading { min-height: 513px; }
 .worlds-people-notice { margin: 0 0 10px; }
+.worlds-graph-status { margin: 12px 0 0; }
+.worlds-graph-status a { color: var(--pri-ink); text-decoration: underline; text-underline-offset: 3px; }
+.worlds-graph-search { position: relative; display: grid; grid-template-columns: minmax(0, 320px) auto; align-items: end; gap: 6px 8px; margin-top: 12px; }
+.worlds-graph-search label { grid-column: 1 / -1; font-size: 13.5px; font-weight: 700; }
+.worlds-graph-search .inp { min-width: 0; }
+.worlds-graph-results { position: absolute; z-index: 2; top: calc(100% + 4px); left: 0; width: min(320px, 100%); max-height: 260px; margin: 0; padding: 4px; overflow-y: auto; border: 1px solid var(--line2); border-radius: 12px; background: var(--surface); box-shadow: var(--sh); list-style: none; }
+.worlds-graph-results li { padding: 9px 10px; border-radius: 8px; cursor: pointer; overflow-wrap: anywhere; }
+.worlds-graph-results li:hover, .worlds-graph-results li[aria-selected='true'] { background: var(--muted-bg); }
+.worlds-graph-highlight { margin-top: 10px; }
+.worlds-graph-highlight p { margin: 0; }
+.worlds-graph-highlight ul { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 6px 0 0; padding: 0; list-style: none; }
+.worlds-graph-highlight a { color: var(--pri-ink); font-size: 13.5px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 
 /* 개요 탭과 설정 카드 페이지: 나무위키 형식 스타일은 reading의 publicWiki.css(nw-*)를 그대로 쓰고 공개 세계관에 맞는 것만 조정한다. */
 .worlds .nw { max-width: none; }
 /* 이 화면은 고정 상단바(Gnb) 아래라 전역 scroll-padding-top이 이미 목차 이동 여백을 준다. 상단바가 따로 없는 독자 위키용 80px을 더하지 않는다. */
 .worlds :is(.nw-doc, .nw-sec > summary, .nw-toc) { scroll-margin-top: 8px; }
+/* 카드 본문 ##·### 문단 제목: 1단계(h2, 24px)보다 한 단계씩 작게, 하위 문단은 안으로 들여 쓴다. */
+.worlds .nw-sec .nw-sec { margin-left: 14px; }
+.worlds .nw-sec > summary h3 { font-size: 20px; font-weight: 800; }
+.worlds .nw-sec > summary h4 { font-size: 17px; font-weight: 800; }
 .nw-info .nw-cover { padding: 12px; }
 .nw-info .worlds-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .nw-cover .cov { width: min(180px, 100%); margin: 0 auto; }
@@ -105,6 +121,20 @@
 .worlds .worlds-overview { padding: 28px 36px; }
 .worlds-overview .nw-doc { padding: 0; }
 .worlds-overview .nw-doc > :last-child { margin-bottom: 0; }
+.worlds-overview-description { white-space: pre-line; }
+.worlds-overview-section, .worlds-overview-tour { margin-top: 26px; }
+.worlds-overview-section h2, .worlds-overview-tour h2 { margin: 0 0 10px; font-size: 19px; }
+.worlds-overview-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.worlds-overview-links a { display: inline-flex; min-height: 36px; align-items: center; padding: 0 12px; border: 1px solid var(--line2); border-radius: 999px; color: var(--pri-ink); font-size: 13.5px; font-weight: 700; text-decoration: none; }
+.worlds-overview-links a:hover { background: var(--muted-bg); }
+.worlds-overview-featured { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+/* 주요 인물·설정은 이미 본문 카드(.nw) 안이라 항목마다 상자를 또 두지 않고 위 구분선만 둔다. */
+.worlds-overview-featured article { display: grid; align-content: start; gap: 6px; min-width: 0; padding: 12px 0; border: 0; border-top: 1px solid var(--tline); border-radius: 0; background: none; }
+.worlds-overview-featured a { color: var(--tfg); font-weight: 800; overflow-wrap: anywhere; }
+.worlds-overview-featured p { display: -webkit-box; margin: 0; overflow: hidden; color: var(--tsub); font-size: 13px; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.worlds-overview-featured small { color: var(--tsub); }
+.worlds-overview-tour p { margin: 0; }
+.worlds-overview-tour a { color: var(--pri-ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .worlds-lineage { display: grid; gap: 4px; }
 .worlds-lineage p { font-weight: 700; }
 .worlds-lineage p.muted { font-weight: 500; }
@@ -136,6 +166,7 @@
   .worlds-crumbs a { display: inline-flex; align-items: center; min-height: 44px; }
   .worlds .worlds-board-table .col-pick { padding-inline: 0; }
   .worlds-pick { min-height: 44px; }
+  .worlds-overview-links a { min-height: 44px; }
   .atlas-foot .map-pan .btn { width: 44px; height: 44px; }
 }
 /* publicWiki.css의 .nw가 카드 안쪽 여백을 줄이는 폭(720px)에서 개요 카드도 같은 값으로 줄인다(위아래는 같게). */
@@ -145,11 +176,13 @@
 /* 홈의 #home 안에만 걸린 모바일 규칙(구역 간격·구역 제목 아래 보조 줄·순위 3위까지)을 같은 값으로 맞춘다.
    두 칸을 세로로 쌓는 규칙(.herow·.t10)은 홈 전역 규칙을 그대로 쓴다. */
 @media (max-width: 600px) {
-  /* 상세 탭 네 개(설정 그래프·인물관계도·설정집·개요)가 320px 폭에서도 한 줄에 들어가게 사이 간격을 없애고 남는 폭을 나눠 갖는다. */
+  /* 상세 탭 네 개(개요·설정집·인물관계도·설정 그래프)가 320px 폭에서도 한 줄에 들어가게 사이 간격을 없애고 남는 폭을 나눠 갖는다. */
   .worlds .libtabs { gap: 0; }
   .worlds .libtabs button { flex: 1 1 auto; justify-content: center; padding: 0 4px; white-space: nowrap; }
   .worlds-cardnav { grid-template-columns: 1fr; }
   .worlds-cardnav .next { grid-column: auto; }
+  .worlds-graph-search { grid-template-columns: minmax(0, 1fr); }
+  .worlds-graph-search .btn { justify-self: start; }
   .worlds .sec { margin-top: 36px; }
   .worlds .sec-h > .small { order: 1; width: 100%; }
   .worlds .t10 li:nth-child(n+4) { display: none; }

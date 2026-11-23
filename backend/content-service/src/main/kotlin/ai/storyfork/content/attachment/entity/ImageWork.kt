@@ -9,4 +9,5 @@ open class ImageWork(
     @Id @Column(length = 36) open var id: String = "",
     @Column(name = "owner_id", length = 200) open var ownerId: String = "",
     @Column(name = "deleted_at") open var deletedAt: java.time.Instant? = null,
+    @Column(name = "title", insertable = false, updatable = false) open var title: String = "",
 )

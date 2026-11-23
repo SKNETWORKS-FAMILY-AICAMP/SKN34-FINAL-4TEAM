@@ -1,50 +1,47 @@
 import { useId, useRef, useState, type ReactNode } from 'react'
 import type { ChatAttachment, ChatMessage } from '../../../domain/entities/chat'
+import { CardMarkdown } from '../CardMarkdown'
 import { MicIcon, PlusIcon, SendIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
 import './chat.css'
 
 const who = { user: '나', assistant: 'AI', system: '안내' } as const
 
-/** OpenAI 전송·비용 동의 한 줄. 집필 AI 채팅 입력창 위와 시뮬레이션 무대가 같은 문구·같은 값을 쓴다. */
-export function ConsentCheck({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
-  return <label className="chat-consent">
-    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-    <span>질문과 발행 회차 일부를 OpenAI로 보내고 API 비용이 드는 데 동의해요.</span>
-  </label>
-}
 const kinds = ['image', 'audio'] as const
 const kindLabel = { image: '이미지', audio: '음성' } as const
 
 /**
  * 집필실 AI 채팅과 이후 캐릭터챗이 함께 쓰는 표시용 채팅이다. 메시지·전송·첨부는 모두 호출하는 화면이 맡고
  * 이 컴포넌트는 API를 부르거나 메시지를 저장하지 않는다.
- * - onSend: true를 돌려줘야 입력창을 비운다(실패하면 false로 돌려주고 사유는 화면이 보여 준다). 던지면 입력을 남기고 일반 실패 안내를 보인다. 없으면 입력과 전송을 잠근다.
+ * - onSend: 전송을 시작하면 입력창을 비운다. false를 돌려주거나 던지면 새로 입력한 글이 없을 때 요청을 복구한다. 없으면 입력과 전송을 잠근다.
  * - onAttach: 없으면 + 버튼 안의 이미지·음성 첨부를 '준비 중'으로 잠근다(가짜 업로드를 만들지 않는다).
  * - disabledReason: 있으면 입력·전송·첨부·추천 칩을 모두 잠그고 이 사유를 입력 카드 아래에 보여 준다.
  * - emptyTitle·emptyText·suggestions: 대화가 없을 때 보이는 제목·안내·추천 칩. 칩을 누르면 입력창에 글만 채운다(보내지 않는다).
  * - after: 메시지 뒤에 이어 그릴 것(진행 표시·승인 카드). 있으면 빈 상태 대신 그린다.
  * - renderCard: 메시지 글 바로 아래에 이어 그릴 카드(인물 시뮬레이션 장면 등). 이 카드가 있는 말풍선은 폭을 채운다.
- * - renderActions: 메시지 말풍선 아래의 행동(수정·삭제 등). composerTop: 입력 카드 위 한 줄(동의 등).
+ * - renderActions: 메시지 말풍선 아래의 행동(수정·삭제 등).
  */
-export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledReason, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, renderCard, renderActions, composerTop }: {
+export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledReason, inputError, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, renderCard, renderActions }: {
   messages: ChatMessage[]
   onSend?: (text: string) => boolean | Promise<boolean>
   busy?: boolean
   onAttach?: (kind: ChatAttachment['kind'], file: File) => void
   disabledReason?: string
+  inputError?: string
   emptyTitle?: string
   emptyText?: string
   suggestions?: string[]
   after?: ReactNode
   renderCard?: (message: ChatMessage) => ReactNode
   renderActions?: (message: ChatMessage) => ReactNode
-  composerTop?: ReactNode
 }) {
   const [draft, setDraft] = useState('')
+  const draftEdits = useRef(0)
+  const changeDraft = (value: string) => { draftEdits.current += 1; setDraft(value); setFailed(false) }
   const box = useRef<HTMLTextAreaElement>(null)
   const files = useRef<Record<ChatAttachment['kind'], HTMLInputElement | null>>({ image: null, audio: null })
   const id = useId()
+  const errorId = `${id}-error`
   const reasonId = `${id}-reason`
   const attachId = `${id}-attach`
   const locked = !!disabledReason || !onSend
@@ -60,21 +57,26 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
     sending.current = true
     setPending(true)
     setFailed(false)
+    const submittedEdits = draftEdits.current
+    setDraft('')
+    let sent = false
     try {
-      // 기다리는 사이 새로 입력한 글은 지우지 않는다.
-      if (await onSend(text)) setDraft(d => d.trim() === text ? '' : d)
+      sent = await onSend(text)
     } catch {
-      // 계약은 실패를 false로 돌려주는 것이다. 그래도 던지면 입력을 남기고 알린다(처리되지 않은 거부로 새지 않게).
       setFailed(true)
-    } finally { sending.current = false; setPending(false) }
+    } finally {
+      if (!sent && draftEdits.current === submittedEdits) setDraft(draft)
+      sending.current = false
+      setPending(false)
+    }
   }
   return <div className="chat-panel">
     <div className="chat-log" role="log" aria-label="대화 내용" aria-live="polite">
-      {messages.length || after ? <><ol>{messages.map(m => <li key={m.id} className={`chat-msg ${m.role}`}>
+      {messages.length || after ? <><ol>{messages.map(m => <li key={m.id} className={`chat-msg ${m.role}`} data-failed={m.failed || undefined}>
         {m.role === 'assistant' && <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>}
         <div className="chat-bubble">
           <span className="chat-who sr-only">{who[m.role]}</span>
-          <p className="chat-text">{m.text}</p>
+          {m.format === 'markdown' ? <div className="chat-text chat-md"><CardMarkdown text={m.text} /></div> : <p className="chat-text">{m.text}</p>}
           {!!m.attachments?.length && <ul className="chat-chips" aria-label="첨부">{m.attachments.map(a => <li key={a.id} className="chip">{kindLabel[a.kind]} · {a.name}</li>)}</ul>}
           {renderCard?.(m)}
           {renderActions?.(m)}
@@ -84,15 +86,14 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
         {emptyTitle && <h3>{emptyTitle}</h3>}
         <p>{emptyText}</p>
         {!!suggestions?.length && <ul className="chat-suggest" aria-label="추천 질문">{suggestions.map(text => <li key={text}>
-          <button type="button" className="chat-suggest-btn" disabled={locked} onClick={() => { setDraft(text); box.current?.focus() }}>{text}</button>
+          <button type="button" className="chat-suggest-btn" disabled={locked} onClick={() => { changeDraft(text); box.current?.focus() }}>{text}</button>
         </li>)}</ul>}
       </div>}
     </div>
     <form className="chat-composer" onSubmit={e => { e.preventDefault(); void submit() }}>
-      {composerTop}
       <div className={`chat-card${locked ? ' locked' : ''}`}>
-        <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={disabledReason ? reasonId : undefined}
-          onChange={e => { setDraft(e.target.value); setFailed(false) }}
+        <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={disabledReason ? reasonId : inputError ? errorId : undefined}
+          onChange={e => changeDraft(e.target.value)}
           onKeyDown={e => {
             // Safari는 조합 확정 Enter를 isComposing=false, keyCode=229로 보낸다
             if (e.key !== 'Enter' || e.shiftKey || e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return
@@ -110,7 +111,8 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
         </div>
       </div>
       {disabledReason && <p id={reasonId} className="chat-note">{disabledReason}</p>}
-      {failed && <p role="alert" className="chat-note">보내지 못했어요. 입력은 그대로 남아 있어요. 다시 시도해 주세요.</p>}
+      {inputError && <p id={errorId} role="alert" className="chat-note">{inputError}</p>}
+      {failed && <p role="alert" className="chat-note">메시지를 보내지 못했어요. 다시 시도해 주세요.</p>}
       {/* 파일 선택은 첨부 메뉴가 닫혀도 남아 있어야 고른 파일을 받을 수 있다. */}
       {onAttach && kinds.map(kind => <input key={kind} hidden type="file" accept={`${kind}/*`} ref={el => { files.current[kind] = el }}
         onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) onAttach(kind, file) }} />)}

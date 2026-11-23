@@ -34,6 +34,10 @@ class OperationsExceptionHandler {
     fun conflict(): ResponseEntity<OperationsErrorResponse> =
         ResponseEntity.status(409).body(OperationsErrorResponse("CONFLICT", "Resource conflicts with its current state."))
 
+    @ExceptionHandler(EvaluationRequiredException::class)
+    fun evaluationRequired(): ResponseEntity<OperationsErrorResponse> =
+        ResponseEntity.status(409).body(OperationsErrorResponse("EVALUATION_REQUIRED", "A passing regression evaluation is required for this prompt version."))
+
     // Every Spring ErrorResponse (ResponseStatusException, validation and missing-parameter errors, framework 404/405) reaches
     // unexpected() and is answered here by its status, so none of them needs a handler of its own.
     fun responseStatus(error: ErrorResponse, request: HttpServletRequest): ResponseEntity<OperationsErrorResponse> = when (error.statusCode.value()) {
@@ -54,11 +58,11 @@ class OperationsExceptionHandler {
         else -> ResponseEntity.status(error.statusCode).body(OperationsErrorResponse("REQUEST_FAILED", "Request could not be completed."))
     }
 
-    /** Keeps the status and code a plain status exception would get, but shows the upstream's own message instead of the generic one. */
+    /** Keeps the status a plain status exception would get, but shows the upstream's own message and, when it sent one, its own code (the generic code otherwise). */
     @ExceptionHandler(UpstreamRejection::class)
     fun upstreamRejected(error: UpstreamRejection, request: HttpServletRequest): ResponseEntity<OperationsErrorResponse> {
         val generic = responseStatus(error, request)
-        return ResponseEntity.status(generic.statusCode).body(OperationsErrorResponse(requireNotNull(generic.body).code, error.userMessage))
+        return ResponseEntity.status(generic.statusCode).body(OperationsErrorResponse(error.code ?: requireNotNull(generic.body).code, error.userMessage))
     }
 
     @ExceptionHandler(Exception::class)

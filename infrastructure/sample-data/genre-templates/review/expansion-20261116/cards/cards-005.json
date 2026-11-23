@@ -1,0 +1,3059 @@
+[
+  {
+    "id": "19ed8b27-d218-5b77-8592-3f55c36a3276",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-02",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "medicine-stone-turtle",
+    "title": "돌거북에 담긴 약물",
+    "cardType": "object",
+    "body": "공주는 꽃을 챙긴 뒤 돌문 안에서 돌거북에 찍어 둔 약물을 찾아 간직한다. 전사는 해당 표기를 명확히 해석하기 어렵다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 02 · 꽃을 꺾은 뒤 돌문 안",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-03 resurrection: 약물의 사용 장면"
+    ],
+    "uncertainties": [
+      "돌거북과 약물의 정확한 관계는 전사 판독이 불명확하다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a1533351-a5f3-5d60-b9a7-b5263f857111",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-03",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "gwak-memo",
+    "title": "곽사자의 진언 수첩",
+    "cardType": "object",
+    "body": "곽사자가 건넨 수첩의 진언을 급할 때 쓰라는 말을 들은 공주는 귀환 도중 군졸의 저지를 받는다. 공주가 진언을 외우자 그들은 움직이지 못한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "채록 전사 본풀이의 줄 경계로 나눈 record-02 끝(곽사자의 수첩 전달)과 record-03 시작(진언 안내) 및 군졸 대치 대목",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-02 gwak-guide: 수첩을 건넨 장면"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d1d2f852-ba63-5aa5-b617-6c89ae7806f0",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-03",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "husband-departure",
+    "title": "동수재의 천궁행",
+    "cardType": "event",
+    "body": "공주가 약물을 구해 돌아오자 동수재는 공주 덕분에 죄를 면하고 도술 천궁으로 올라갔고 집도 사라져 있다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 03 · 구간 첫 사설",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-02 dongsujae: 천궁행에 관한 동수재의 말"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9dc0870f-4754-508c-9ca6-b74aa9cb62f5",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-03",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "three-sons-return",
+    "title": "세 아들과 귀환길",
+    "cardType": "event",
+    "body": "공주는 삼 형제를 데리고 불라국으로 향한다. 아이들이 배고프고 다리가 아파하자 공주는 길이 막막해 울고 산신령이 돕는다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 03 · 구간 시작의 귀환 장면",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-02 three-sons: 같은 아이들"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8ce68d86-fa5b-518b-b6c2-d34ed30877a8",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-03",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "mountain-spirit-tiger",
+    "title": "산신령의 백호와 축지",
+    "cardType": "ability",
+    "body": "공주에게 글과 말을 가르쳤던 산신령이 백호를 불러 공주를 태우고 길을 접어 먼 불라국으로 데려간다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 03 · 아이들과 가던 중 산신령 등장",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "19a32a7e-f6d3-5f17-8cfb-ae8364c99b9e",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-03",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "six-sisters-plot",
+    "title": "여섯 언니의 약물 탈취 시도",
+    "cardType": "event",
+    "body": "여섯 공주는 돌아온 동생이 두려워 군졸들에게 약물을 빼앗고 죽이라고 명한다. 버르떼기는 진언으로 군졸들을 멈춘다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 03 · 장례 소식을 들은 뒤 군졸과 대치",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-03 resurrection: 이어지는 장례와 부활"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d90928a3-b57d-5580-971c-9499cfc72a4f",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-03",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "funeral-bier",
+    "title": "움직이지 않는 옥이 대왕의 상여",
+    "cardType": "event",
+    "body": "언니들이 공주를 밀어내자 상여는 움직이지 않고 뒤로 물러선다. 한 노인은 대왕의 원한 때문이라며 막내가 마지막으로 얼굴을 보게 하자고 말한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 03 · 군졸 대치 후 행상 장면",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "상여가 멈춘 이유는 백발노인의 해석이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e1ecd73c-fe0d-5613-b7e7-64fa79594269",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-03",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "resurrection",
+    "title": "꽃과 약물로 되살아난 옥이 대왕",
+    "cardType": "event",
+    "body": "버르떼기는 외부인과 햇빛을 막은 곳에서 노란 꽃과 붉고 흰 꽃으로 몸을 쓰다듬고 약물을 입에 넣는다. 대왕이 살아나 딸들을 벌하려 하자 공주가 용서를 빈다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 03 · 상여를 멈춘 뒤 궁정에서 부활",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [
+      "같은 배치 record-02 resurrection-flowers 및 medicine-stone-turtle: 같은 물건의 획득 장면"
+    ],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1b57a10e-eb11-59e1-b0ab-7e8e639bf6fc",
+    "batch_id": "batch-08",
+    "unit_id": "korean-bari--record-03",
+    "work_id": "korean-bari",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "oki-king-afterlife",
+    "title": "극락으로 인도하는 옥이 대왕",
+    "cardType": "character",
+    "body": "대왕은 막내의 청을 듣고 언니와 사위들을 풀어준다. 이어 억울하게 죽은 이들을 극락으로 인도하는 옥이 대왕이 되었다고 구연한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+    "source_location": "Transcribed record, artificial line-boundary chunk 03 · 부활 뒤 판결과 서사 종결",
+    "edition": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8c6261ea-2852-53df-bb23-c587fd43fe12",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-02",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "daughter",
+    "title": "자진명왕아기씨",
+    "cardType": "character",
+    "body": "단풍이 든 계절을 보고 이름을 지은 딸이다. 부모가 공사에 가며 깊은 궁에 가둔다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 작명과 공사 출발 대목",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [
+      "동일 구연의 다른 구간에 관련 인물·사건이 반복될 수 있어 비교 필요"
+    ],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cf2417ad-f285-5ffc-8aec-7b0bc8f08fc9",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-02",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "wager",
+    "title": "주적선생과 선비들의 내기",
+    "cardType": "event",
+    "body": "주적선생이 아기씨가 달보다 아름답다고 말하자 선비들은 얼굴을 보고 오면 돈을 모아 주겠다고 한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 달구경 대목",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ff38e111-7e7d-5d8f-b5f8-33db9e98d097",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-03",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "bell",
+    "title": "잠긴 문을 여는 요령",
+    "cardType": "object",
+    "body": "주적선생이 요령을 세 번 흔들자 부모가 잠근 문이 열린다. 떠날 때에도 흔들어 문을 닫는다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 주적선생의 방문 대목",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "617a9fe1-1640-5e80-a1f8-8f23d326448a",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-03",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "encounter",
+    "title": "아기씨와 주적선생의 만남",
+    "cardType": "event",
+    "body": "주적선생은 시주를 받으며 아기씨의 머리를 세 번 쓰다듬고 아기씨에게 꾸지람을 듣는다. 이후 임신이 드러나 부모가 아버지를 찾아가라고 한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 시주를 받는 대목",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [
+      "동일 구연의 다른 구간에 관련 인물·사건이 반복될 수 있어 비교 필요"
+    ],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "670bb479-f2f9-5a4d-b436-b86cefb28b34",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-03",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "crossing",
+    "title": "수류천리 낙수와당의 이설",
+    "cardType": "event",
+    "body": "구연자는 동촌식에서는 용왕의 거북을 타고 서촌식에서는 황금산의 신력으로 다리를 밟아 건넌다고 구별한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 강을 건너는 대목",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c601e4f7-a2d5-5336-8e8c-e95a628b3a24",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-04",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "bird",
+    "title": "낟알을 까 준 새",
+    "cardType": "character",
+    "body": "아기씨가 잠든 사이 새가 낟알을 까 준다. 전사의 새 이름과 병기된 한자의 해석은 확인이 필요하다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "초공본풀이 낟알 시험 시작과 잠든 앞 문맥(배정 record-03), 새가 낟알을 깐 장면(배정 record-04)",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요",
+      "전사의 새 이름 옆 한자 병기 의미는 독립 판독과 음원 대조가 필요하다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ecbdef2d-1fb4-5536-9bb2-bbc17224f54f",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-04",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "birth",
+    "title": "삼명두의 탄생",
+    "cardType": "event",
+    "body": "본명두는 오른쪽 겨드랑이, 신명두는 왼쪽 겨드랑이, 삼명두는 명치에서 솟아난다고 구연한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 적주산 출산 대목",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [
+      "동일 구연의 다른 구간에 관련 인물·사건이 반복될 수 있어 비교 필요"
+    ],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "934ee231-f833-5088-8f85-18199f9d75d2",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-04",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "ash",
+    "title": "재에 글을 쓰는 삼형제",
+    "cardType": "character",
+    "body": "삼형제는 서당의 심부름을 하며 어깨너머로 배우고 손바닥의 재에 글자를 쓰며 익힌다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 서당 배움 대목",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [
+      "동일 구연의 다른 구간에 관련 인물·사건이 반복될 수 있어 비교 필요"
+    ],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "110264b8-7674-5a9f-8e69-48a582d32741",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-04",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "exam",
+    "title": "과거와 활쏘기",
+    "cardType": "event",
+    "body": "형제들은 글재주로 급제하지만 중의 자식이라는 이유로 취소된다. 활 솜씨를 보여 다시 급제한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 상시관 시험 대목",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "779b3397-ceb2-5f8c-bfb3-6c4e31351fd8",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-05",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "nusa",
+    "title": "너사문 너도령",
+    "cardType": "character",
+    "body": "갈 곳이 없다며 우는 너도령을 삼형제가 만나 연을 맺고 나중에 굿에 함께할 소미로 삼는다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 서강베포땅 만남",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [
+      "동일 구연의 다른 구간에 관련 인물·사건이 반복될 수 있어 비교 필요"
+    ],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "61797995-9b30-5909-b678-c715588566cf",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-05",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "shaman",
+    "title": "삼형제의 심방 일",
+    "cardType": "event",
+    "body": "주적선생이 어머니를 찾으려면 심방 일을 하라고 하자 삼형제는 무구와 신전집을 마련한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 황금산 아버지 방문",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4ce85ad9-6586-5159-8dc6-d22316014314",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-05",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "reunion",
+    "title": "신전집에서 어머니를 모심",
+    "cardType": "event",
+    "body": "삼형제는 옥황에게 청하여 어머니와 상봉하고 신전집의 이승 삼하늘에 모신다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 옥황에 청한 뒤 상봉",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [
+      "동일 구연의 다른 구간에 관련 인물·사건이 반복될 수 있어 비교 필요"
+    ],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "36f42505-a1cb-5fd4-97a5-256ce3aaf2f9",
+    "batch_id": "batch-09",
+    "unit_id": "korean-chogong--record-05",
+    "work_id": "korean-chogong",
+    "world_id": "korean_mythology_fables",
+    "candidate_key": "adoption",
+    "title": "신전집의 수양과 첫 굿",
+    "cardType": "event",
+    "body": "유정승의 딸은 신전집에 수양으로 들어가 무구와 연물을 물려받고 너도령을 데리고 굿을 준비한다.",
+    "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+    "source_location": "본풀이 끝 첫 굿 준비",
+    "edition": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "제주어 전사 해석과 음원 대조 미확인; 실제 굿의 맥락 및 공동체 검토 필요"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f0df5747-b669-55a9-8693-53a40f5a50b6",
+    "batch_id": "batch-09",
+    "unit_id": "slavic-vasilisa--tale",
+    "work_id": "slavic-vasilisa",
+    "world_id": "slavic_mythology",
+    "candidate_key": "vasilisa",
+    "title": "바실리사",
+    "cardType": "character",
+    "body": "상인의 딸로 계모의 학대를 받고 바바 야가에게 불을 구하러 간다. 인형의 도움으로 일을 마치고 돌아와 차르와 결혼한다.",
+    "source_url": "https://www.gutenberg.org/files/62509/62509-h/62509-h.htm",
+    "source_location": "동화 109–118쪽 시작과 결말",
+    "edition": "A. N. Afanasyev collection; Leonard A. Magnus English translation, 1915; Gutenberg transcription",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2c82144a-ef40-5439-8d9a-46069ae74c93",
+    "batch_id": "batch-09",
+    "unit_id": "slavic-vasilisa--tale",
+    "work_id": "slavic-vasilisa",
+    "world_id": "slavic_mythology",
+    "candidate_key": "doll",
+    "title": "어머니가 남긴 인형",
+    "cardType": "object",
+    "body": "어머니가 딸에게 비밀로 지키고 먹이를 준 뒤 조언을 구하라며 남긴 인형이다. 바실리사를 위로하고 일을 돕는다.",
+    "source_url": "https://www.gutenberg.org/files/62509/62509-h/62509-h.htm",
+    "source_location": "동화 109–110쪽 어머니의 유언과 도움",
+    "edition": "A. N. Afanasyev collection; Leonard A. Magnus English translation, 1915; Gutenberg transcription",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3184dc01-24ea-5ee8-9592-98badfe91872",
+    "batch_id": "batch-09",
+    "unit_id": "slavic-vasilisa--tale",
+    "work_id": "slavic-vasilisa",
+    "world_id": "slavic_mythology",
+    "candidate_key": "yaga",
+    "title": "바바 야가",
+    "cardType": "character",
+    "body": "숲의 집에 사는 식인 노파다. 일을 마치면 불을 주고 그렇지 못하면 먹겠다며 바실리사에게 과제를 시킨다.",
+    "source_url": "https://www.gutenberg.org/files/62509/62509-h/62509-h.htm",
+    "source_location": "동화 110–116쪽 숲속 집과 노동",
+    "edition": "A. N. Afanasyev collection; Leonard A. Magnus English translation, 1915; Gutenberg transcription",
+    "possible_duplicates": [
+      "slavic_mythology/source/tradition-cards.json#baba-yaga: 다른 이야기의 바바 야가와 비교 필요"
+    ],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "11f21975-7a7a-5cac-9fec-c081100ef252",
+    "batch_id": "batch-09",
+    "unit_id": "slavic-vasilisa--tale",
+    "work_id": "slavic-vasilisa",
+    "world_id": "slavic_mythology",
+    "candidate_key": "hut",
+    "title": "해골 울타리의 집",
+    "cardType": "location",
+    "body": "울타리는 사람 뼈로 되어 있고 해골의 눈은 어둠 속에서 빛난다. 문과 빗장과 자물쇠에도 신체의 형상이 나타난다.",
+    "source_url": "https://www.gutenberg.org/files/62509/62509-h/62509-h.htm",
+    "source_location": "동화 112쪽 숲속 집 도착",
+    "edition": "A. N. Afanasyev collection; Leonard A. Magnus English translation, 1915; Gutenberg transcription",
+    "possible_duplicates": [
+      "slavic_mythology/source/tradition-cards.json#hut: 다른 이야기 속 야가 집과 비교 필요"
+    ],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6a47222e-0c7f-5c0c-a4d4-c97e93e89d90",
+    "batch_id": "batch-09",
+    "unit_id": "slavic-vasilisa--tale",
+    "work_id": "slavic-vasilisa",
+    "world_id": "slavic_mythology",
+    "candidate_key": "riders",
+    "title": "흰색·붉은색·검은색 기수",
+    "cardType": "character",
+    "body": "바바 야가는 세 기수를 충직한 하인이라 부르며 밝은 낮, 붉은 해, 어두운 밤이라고 설명한다.",
+    "source_url": "https://www.gutenberg.org/files/62509/62509-h/62509-h.htm",
+    "source_location": "동화 111–112, 115쪽 기수와 야가의 설명",
+    "edition": "A. N. Afanasyev collection; Leonard A. Magnus English translation, 1915; Gutenberg transcription",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8b5f7242-047b-5ca5-b4b8-4db591797883",
+    "batch_id": "batch-09",
+    "unit_id": "slavic-vasilisa--tale",
+    "work_id": "slavic-vasilisa",
+    "world_id": "slavic_mythology",
+    "candidate_key": "mortar",
+    "title": "야가의 절구와 절굿공이",
+    "cardType": "object",
+    "body": "야가는 절구를 타고 절굿공이를 사용하며 빗자루로 지나간 자취를 지운다.",
+    "source_url": "https://www.gutenberg.org/files/62509/62509-h/62509-h.htm",
+    "source_location": "동화 112–114쪽 야가의 이동",
+    "edition": "A. N. Afanasyev collection; Leonard A. Magnus English translation, 1915; Gutenberg transcription",
+    "possible_duplicates": [
+      "slavic_mythology/source/tradition-cards.json#iron-mortar-pestle: 다른 이야기의 이동 수단과 비교 필요"
+    ],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "806ab991-7ce7-5594-9b25-9a5a6ac01b83",
+    "batch_id": "batch-09",
+    "unit_id": "slavic-vasilisa--tale",
+    "work_id": "slavic-vasilisa",
+    "world_id": "slavic_mythology",
+    "candidate_key": "skull",
+    "title": "불타는 눈의 해골",
+    "cardType": "object",
+    "body": "야가가 해골을 막대에 꽂아 건넨다. 그 눈빛은 계모와 딸들을 태우지만 바실리사는 살아남는다.",
+    "source_url": "https://www.gutenberg.org/files/62509/62509-h/62509-h.htm",
+    "source_location": "동화 116쪽 야가가 준 불과 귀가",
+    "edition": "A. N. Afanasyev collection; Leonard A. Magnus English translation, 1915; Gutenberg transcription",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "87e70e38-4b86-580c-855e-f07264ad2830",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--prose-prologue",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "feast",
+    "title": "에기르의 잔치",
+    "cardType": "event",
+    "body": "에기르는 신들을 위해 잔치를 베푼다. 금이 불빛을 대신하고 술이 스스로 날라지며 로키가 하인 핌아펭을 죽이자 신들이 그를 내쫓는다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "산문 서두 잔치와 핌아펭 살해",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "02a95c80-0d44-5ab5-9d1d-1246ed674d86",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--stanzas-01-10",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "blood",
+    "title": "오딘과 로키의 피 섞기",
+    "cardType": "event",
+    "body": "로키는 오래전 오딘과 피를 섞고 둘 모두 술을 받지 않으면 마시지 않겠다고 한 약속을 상기시킨다. 오딘은 비다르에게 자리를 마련하라고 한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "9–10연 로키의 요청과 오딘의 명령",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "norse_mythology/source/tradition-cards.json#odin 및 #loki: 동일 이름의 신들과 관계 대조 필요"
+    ],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2423192b-00f1-58d0-9f49-900e3c9ff278",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--stanzas-11-20",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "bragi",
+    "title": "브라기와 로키의 말다툼",
+    "cardType": "event",
+    "body": "브라기는 말과 칼을 주겠다고 제안하며 신들의 분노를 사지 말라고 한다. 로키는 그를 겁쟁이라 비난한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "11–15연 선물 제안과 응수",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "63f697c8-05d7-51d0-a35d-a5193f4e15e0",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--stanzas-11-20",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "idunn",
+    "title": "이둔의 중재",
+    "cardType": "character",
+    "body": "이둔은 브라기에게 로키를 모욕하지 말라고 하며 싸우지 않도록 그를 진정시키겠다고 말한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "16–18연 이둔의 발언",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2577d3b0-11a6-58b4-a49d-30944e839e35",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--stanzas-21-30",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "frigg",
+    "title": "프리그의 운명 지식",
+    "cardType": "character",
+    "body": "프리그는 신들의 옛일을 함부로 말하지 말라고 하고 모든 운명을 알지만 말하지 않는다고 한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "25–29연 프리그와 로키의 대화",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "norse_mythology/source/tradition-cards.json#frigg_fensalir: 다른 전승의 프리그"
+    ],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ca94f815-f0e5-53ab-b8ac-be3637114305",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--stanzas-21-30",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "baldr",
+    "title": "발드르에 관한 로키의 주장",
+    "cardType": "event",
+    "body": "프리그는 발드르 같은 아들이 있었다면 로키가 무사하지 못했을 것이라 말한다. 로키는 발드르가 돌아오지 못하는 일에 자신이 관여했다고 주장한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "27–28연 프리그와 로키의 대화",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "norse_mythology/source/tradition-cards.json#baldr-death: 발드르 죽음 관련 다른 전승"
+    ],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f5fe8558-72b7-50fa-b327-32c3ba0bd042",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--stanzas-31-40",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "njord",
+    "title": "인질로 보내진 뇨르드",
+    "cardType": "character",
+    "body": "로키가 뇨르드가 신들에게 인질로 보내졌다고 말하자 뇨르드는 미움받지 않는 아들을 얻은 것이 위안이라 답한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "34–36연 로키와 뇨르드의 응수",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "norse_mythology/source/tradition-cards.json#norse-vanir-hostages: 뇨르드 인질 관련 다른 전승"
+    ],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ced99cec-909d-5278-9fd5-4c192becc17c",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--stanzas-31-40",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "tyr",
+    "title": "티르와 묶인 늑대",
+    "cardType": "event",
+    "body": "로키는 펜리르가 티르의 손을 떼어 냈다고 조롱한다. 티르는 자신에게 손이 없고 늑대는 결박되어 종말을 기다린다고 응수한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "38–39연 로키와 티르의 응수",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "norse_mythology/source/tradition-cards.json#norse-tyr-fenrir: 티르와 펜리르 결박 관련 다른 전승"
+    ],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c4d4a7a3-7f75-59b1-9004-d7dbf00945d3",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--stanzas-41-50",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "sword",
+    "title": "프레이르가 넘긴 검",
+    "cardType": "object",
+    "body": "로키는 프레이르가 귀미르의 딸을 금으로 얻으며 검을 넘겼고 무스펠의 아들들이 올 때 싸울 방법을 묻는다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "42연 로키가 프레이르에게 한 말",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "612c3ce5-ae0a-54c1-99f9-260cb8ae817f",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--stanzas-41-50",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "byggvir",
+    "title": "비그비르",
+    "cardType": "character",
+    "body": "비그비르는 프레이르를 두둔하며 자신을 밝힌다. 로키는 음식을 나누지 못했고 싸움 때 숨었다고 비난한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "43–46연 프레이르를 옹호하는 하인",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "497f8b3d-29a6-5e3e-8446-0a690ef68983",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--stanzas-51-60",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "sif",
+    "title": "시프의 술잔",
+    "cardType": "event",
+    "body": "시프는 로키에게 오래된 꿀술을 따라 주며 자신은 비난하지 말라고 청한다. 로키는 마신 뒤 시프의 불륜을 주장한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "52연 뒤 산문 및 53–54연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "87faf213-31d7-5841-922c-37bb6ad749c4",
+    "batch_id": "batch-09",
+    "unit_id": "norse-lokasenna--stanzas-51-60",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "mjolnir",
+    "title": "묠니르의 위협",
+    "cardType": "object",
+    "body": "토르는 강한 망치 묠니르로 로키의 말을 멈추게 하겠다고 위협하며 동쪽으로 던져 버리겠다고 한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "57–59연 토르의 등장",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "norse_mythology/source/tradition-cards.json#thor: 토르 관련 다른 전승"
+    ],
+    "uncertainties": [
+      "판본의 전사와 번역 해석은 독립 감수하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "92e9f152-16b9-59c8-aa62-cf368b2200f4",
+    "batch_id": "batch-10",
+    "unit_id": "norse-lokasenna--stanzas-61-65",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "hammer",
+    "title": "토르의 묠니르",
+    "cardType": "object",
+    "body": "토르는 묠니르로 상대의 말을 끝내고 뼈를 부수며 죽음의 문 아래로 보내겠다고 위협한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "Lokasenna 61·63연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 norse-mjolnir-forge (묠니르의 제작과 성질)와 대상·전승 비교 필요",
+      "같은 배치 norse-vaf--stanzas-51-55 / survivors와 대상 또는 사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "39bd5e4d-efde-5d98-9d80-1fc7b625df0f",
+    "batch_id": "batch-10",
+    "unit_id": "norse-lokasenna--stanzas-61-65",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "skrymir",
+    "title": "스크뤼미르의 주머니",
+    "cardType": "event",
+    "body": "로키는 토르에게 스크뤼미르의 끈이 단단하여 식량을 꺼내지 못했다고 조롱한다. 이는 로키의 발언이다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "Lokasenna 62연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e51ad49b-0822-537f-b3f0-c4af854e1f48",
+    "batch_id": "batch-10",
+    "unit_id": "norse-lokasenna--stanzas-61-65",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "retreat",
+    "title": "토르 앞에서 떠나는 로키",
+    "cardType": "event",
+    "body": "로키는 토르가 싸울 줄 알기에 그의 앞에서 물러나겠다고 말한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "Lokasenna 64연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c824bc54-0e7d-5032-9639-1e24edc8ae47",
+    "batch_id": "batch-10",
+    "unit_id": "norse-lokasenna--stanzas-61-65",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "aegir",
+    "title": "에기르에게 내린 저주",
+    "cardType": "event",
+    "body": "로키는 에기르가 다시 잔치를 베풀지 못하리라 말하고 그의 재산이 불타기를 빈다. 소원이지 실현된 사건은 아니다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "Lokasenna 65연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "60d72116-dd75-534f-af72-824e4ed49d9b",
+    "batch_id": "batch-10",
+    "unit_id": "norse-lokasenna--prose-epilogue",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "loki-binding",
+    "title": "로키의 결박",
+    "cardType": "event",
+    "body": "로키는 연어 모습으로 폭포에 숨었다가 신들에게 붙잡혀 아들 나리의 창자로 묶인다. 다른 아들 나르피는 늑대가 된다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "Lokasenna 산문 후일담 첫 문장부터 결박까지",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 loki (로키)와 대상·전승 비교 필요",
+      "같은 배치 norse-baldr--stanzas-11-14 / release와 대상 또는 사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "29b6393a-148d-5880-990e-3346f5f431ad",
+    "batch_id": "batch-10",
+    "unit_id": "norse-lokasenna--prose-epilogue",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "skadi-snake",
+    "title": "스카디가 건 독사",
+    "cardType": "object",
+    "body": "스카디가 로키의 얼굴 위에 독사를 매달고 독이 그에게 떨어진다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "Lokasenna 산문 후일담 독사 부분",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5db62bf8-204d-5019-bf78-da5335ef61f7",
+    "batch_id": "batch-10",
+    "unit_id": "norse-lokasenna--prose-epilogue",
+    "work_id": "norse-lokasenna",
+    "world_id": "norse_mythology",
+    "candidate_key": "sigyn",
+    "title": "독을 받는 시귄",
+    "cardType": "character",
+    "body": "로키의 아내 시귄은 그릇으로 독을 받지만 비우러 가는 동안 독이 떨어진다. 로키가 몸을 뒤틀어 온 땅이 흔들리는 것을 지진이라고 한다.",
+    "source_url": "https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+    "source_location": "Lokasenna 산문 후일담 시귄과 지진 부분",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 sigyn (묶인 자 곁의 시귄)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bf896639-3788-558c-9d73-142eb5ddda6b",
+    "batch_id": "batch-10",
+    "unit_id": "norse-baldr--stanzas-01-10",
+    "work_id": "norse-baldr",
+    "world_id": "norse_mythology",
+    "candidate_key": "dreams",
+    "title": "발드르의 불길한 꿈",
+    "cardType": "event",
+    "body": "신들과 여신들은 발드르의 강렬한 꿈을 논의한다. 회의의 상세한 결론은 전하지 않는다.",
+    "source_url": "https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+    "source_location": "Baldrs draumar 1연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 baldr (발드르)와 대상·전승 비교 필요",
+      "같은 배치 norse-baldr--stanzas-01-10 / hodr와 대상 또는 사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2df8822f-8a8d-512a-91a9-24bd5f4bf914",
+    "batch_id": "batch-10",
+    "unit_id": "norse-baldr--stanzas-01-10",
+    "work_id": "norse-baldr",
+    "world_id": "norse_mythology",
+    "candidate_key": "hel-journey",
+    "title": "오딘의 헬 여행",
+    "cardType": "event",
+    "body": "오딘은 슬레이프니르에 안장을 얹고 니플헬로 내려가 피 묻은 가슴의 개를 만난 뒤 헬의 높은 집에 이른다.",
+    "source_url": "https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+    "source_location": "Baldrs draumar 2–3연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 hel-realm (헬의 길과 문)와 대상·전승 비교 필요",
+      "기존 북유럽 source 카드 odin (오딘)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7d9e400c-4823-53af-84b1-47b63a36afc2",
+    "batch_id": "batch-10",
+    "unit_id": "norse-baldr--stanzas-01-10",
+    "work_id": "norse-baldr",
+    "world_id": "norse_mythology",
+    "candidate_key": "seeress",
+    "title": "무덤에서 깨어난 무녀",
+    "cardType": "character",
+    "body": "오딘은 무녀의 무덤에서 죽은 자를 깨우는 주문을 부른다. 그녀는 오래 죽어 있었으며 마지못해 일어났다고 말한다.",
+    "source_url": "https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+    "source_location": "Baldrs draumar 4–5연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 seeress (예언하는 무녀)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "03276fe3-262a-5f93-a61c-182f1c437c77",
+    "batch_id": "batch-10",
+    "unit_id": "norse-baldr--stanzas-01-10",
+    "work_id": "norse-baldr",
+    "world_id": "norse_mythology",
+    "candidate_key": "vegtam",
+    "title": "베그탐이라는 가명",
+    "cardType": "character",
+    "body": "오딘은 발탐의 아들 베그탐이라 소개하며 금으로 장식된 자리의 주인을 묻는다.",
+    "source_url": "https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+    "source_location": "Baldrs draumar 6연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a8231d3c-cd53-5174-b25c-cf6aa0c23cac",
+    "batch_id": "batch-10",
+    "unit_id": "norse-baldr--stanzas-01-10",
+    "work_id": "norse-baldr",
+    "world_id": "norse_mythology",
+    "candidate_key": "baldr-mead",
+    "title": "발드르를 위해 준비된 술",
+    "cardType": "object",
+    "body": "무녀는 발드르를 위한 맑은 벌꿀술이 준비되어 있고 방패가 그 위에 놓였다고 답한다.",
+    "source_url": "https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+    "source_location": "Baldrs draumar 7연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4ad02331-9c2b-5874-8799-e31c8bfacff0",
+    "batch_id": "batch-10",
+    "unit_id": "norse-baldr--stanzas-01-10",
+    "work_id": "norse-baldr",
+    "world_id": "norse_mythology",
+    "candidate_key": "hodr",
+    "title": "회드르에 관한 예언",
+    "cardType": "event",
+    "body": "무녀는 회드르가 유명한 나무를 가져와 발드르를 죽이리라고 예언한다. 편집자는 그 나무를 겨우살이로 해석하지만 시 본문에는 이름이 없다.",
+    "source_url": "https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+    "source_location": "Baldrs draumar 8–9연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 baldr-death (발드르의 죽음과 복수)와 대상·전승 비교 필요",
+      "기존 북유럽 source 카드 norse-baldr-mistletoe (발드르의 맹세와 겨우살이)와 대상·전승 비교 필요",
+      "같은 배치 norse-baldr--stanzas-11-14 / rind-vali와 대상 또는 사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ad6057a7-d9b4-51e7-bba4-9665640047ac",
+    "batch_id": "batch-10",
+    "unit_id": "norse-baldr--stanzas-11-14",
+    "work_id": "norse-baldr",
+    "world_id": "norse_mythology",
+    "candidate_key": "rind-vali",
+    "title": "린드와 어린 복수자",
+    "cardType": "event",
+    "body": "무녀는 린드가 서쪽 전당에서 발리를 낳고 그가 태어난 지 하룻밤 만에 발드르의 적을 죽이리라고 말한다. 씻거나 머리를 빗기 전에 복수한다고 한다.",
+    "source_url": "https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+    "source_location": "Baldrs draumar 11연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 hodr_avenger (회드르와 발드르의 어린 복수자)와 대상·전승 비교 필요",
+      "같은 배치 norse-baldr--stanzas-01-10 / hodr와 대상 또는 사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "af22fee5-e27e-5aee-9f22-a383947679d8",
+    "batch_id": "batch-10",
+    "unit_id": "norse-baldr--stanzas-11-14",
+    "work_id": "norse-baldr",
+    "world_id": "norse_mythology",
+    "candidate_key": "maidens",
+    "title": "하늘로 옷자락을 던지는 처녀들",
+    "cardType": "other",
+    "body": "오딘은 울며 목의 옷자락을 하늘로 던지는 처녀들이 누구인지 묻는다. 편집자는 파도일 수 있다고 해석하나 본문에 직접 답은 없다.",
+    "source_url": "https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+    "source_location": "Baldrs draumar 12연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6fb1f87d-ddb1-57ac-9bc6-9cafd4783977",
+    "batch_id": "batch-10",
+    "unit_id": "norse-baldr--stanzas-11-14",
+    "work_id": "norse-baldr",
+    "world_id": "norse_mythology",
+    "candidate_key": "recognition",
+    "title": "무녀와 오딘의 정체 폭로",
+    "cardType": "event",
+    "body": "무녀는 베그탐이 오딘임을 알아보고, 오딘은 그녀가 무녀가 아니라 세 거인의 어머니라고 응수한다. 두 발언은 서로의 주장으로 남는다.",
+    "source_url": "https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+    "source_location": "Baldrs draumar 13연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9b415ad9-49b8-5b59-a073-f4b87c1f4702",
+    "batch_id": "batch-10",
+    "unit_id": "norse-baldr--stanzas-11-14",
+    "work_id": "norse-baldr",
+    "world_id": "norse_mythology",
+    "candidate_key": "release",
+    "title": "로키의 해방과 신들의 종말 예고",
+    "cardType": "event",
+    "body": "무녀는 로키가 결박에서 풀려나고 신들의 운명이 올 때까지 다시 찾아오지 말라고 한다. 마지막 표현의 문법은 편집자도 불확실하게 본다.",
+    "source_url": "https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+    "source_location": "Baldrs draumar 14연",
+    "edition": "Old Norse text with Danish commentary; Finnur Jónsson, De gamle Eddadigte, G. E. C. Gads Forlag, Copenhagen 1932 as identified on site; digital transcription and rights unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 ragnarok (신들의 운명과 세계의 몰락)와 대상·전승 비교 필요",
+      "기존 북유럽 source 카드 loki (로키)와 대상·전승 비교 필요",
+      "같은 배치 norse-lokasenna--prose-epilogue / loki-binding와 대상 또는 사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d3994554-0570-5e34-865d-3a0393603719",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-01-10",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "visit",
+    "title": "오딘의 거인 방문",
+    "cardType": "event",
+    "body": "오딘은 지식을 알고자 현명한 거인 바프스루드니르를 찾아간다. 프리그는 만류했다가 무사 귀환을 빈다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 1–6연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 odin (오딘)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ae6c2324-2d61-57d9-a2cb-d4119b3e0d12",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-01-10",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "contest",
+    "title": "전당에서의 지혜 대결",
+    "cardType": "rule",
+    "body": "거인은 손님이 자신보다 현명하지 않으면 나가지 못할 것이라 말한다. 오딘은 가그나라드라는 이름을 댄다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 7–10연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e0c6a5af-cefb-5b44-843f-ef2ef77e511d",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-11-20",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "skinfaxi",
+    "title": "낮을 끄는 스킨팍시",
+    "cardType": "character",
+    "body": "가그나라드는 스킨팍시가 낮을 끌며 말의 갈기가 언제나 빛난다고 답한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 11–12연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9199b026-3e69-5aa7-935d-b66e3a579656",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-11-20",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "hrimfaxi",
+    "title": "밤을 끄는 흐림팍시",
+    "cardType": "character",
+    "body": "흐림팍시는 밤을 끄는 말이며 아침마다 재갈에서 떨어지는 방울이 골짜기의 이슬이 된다고 한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 13–14연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a2bb96c7-26aa-558d-9562-b763cf2ea1bd",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-11-20",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "ifing",
+    "title": "얼지 않는 이핑 강",
+    "cardType": "location",
+    "body": "이핑 강은 거인들의 땅과 신들의 땅을 가르고 영원히 흐르며 얼지 않는다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 15–16연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cd3a2888-1546-5f9e-96d1-4343bc959ad3",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-11-20",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "vigrid",
+    "title": "비그리드 전장",
+    "cardType": "location",
+    "body": "수르트와 신들이 싸우는 비그리드 들판은 사방으로 백 라스타에 이른다고 한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 17–18연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 surt (수르트)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "aa07d16a-c1ee-5464-ae29-b22e59ac25ee",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-11-20",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "wager",
+    "title": "목숨을 건 지혜 내기",
+    "cardType": "rule",
+    "body": "바프스루드니르는 지혜를 겨루는 내기에 두 사람의 머리를 걸자고 한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 19연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f392d3b7-b3b8-5ae7-b26a-036633a60a24",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-21-30",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "ymir",
+    "title": "이미르의 몸으로 만든 세계",
+    "cardType": "event",
+    "body": "거인은 이미르의 살에서 땅, 뼈에서 산, 두개골에서 하늘, 피에서 바다가 만들어졌다고 답한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 21연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 norse-ymir-world (이미르의 몸으로 만든 세계)와 대상·전승 비교 필요",
+      "기존 runtime genre-templates.json 및 genre-templates-v2.json의 이미르의 몸으로 만든 세계(d9b6262a-baee-54f7-b6fd-b60c85fdd97d)와 전승 비교"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "331c30d8-8235-5484-8fbf-3e3ffe3d277a",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-21-30",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "mundilfari",
+    "title": "해와 달의 아버지 문딜파리",
+    "cardType": "character",
+    "body": "문딜파리는 달과 해의 아버지이며 두 자식은 인간의 시간 계산을 위해 매일 하늘을 돈다고 한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 22–23연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 celestial_order (해와 달의 자리와 시간의 이름)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "170f7078-d247-5702-9285-fa50df5b675a",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-21-30",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "day-night",
+    "title": "낮과 밤의 계보",
+    "cardType": "character",
+    "body": "델링은 낮의 아버지이고 밤은 뇌르비에게서 태어났다고 한다. 신들은 인간의 시간 계산을 위해 달의 차고 기우는 때를 만들었다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 24–25연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0aab4e22-5c80-531b-847d-bab73d126071",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-21-30",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "seasons",
+    "title": "겨울과 여름의 아버지들",
+    "cardType": "character",
+    "body": "빈드스발은 겨울의 아버지이고 스바수드는 여름의 아버지라고 한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 26–27연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "82963d4e-73ec-5d4f-b15d-a3a8c7c64924",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-21-30",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "bergelmir",
+    "title": "베르겔미르의 혈통",
+    "cardType": "character",
+    "body": "땅이 만들어지기 오래전에 베르겔미르가 태어났으며 아버지는 스루드겔미르, 조부는 아우르겔미르라고 한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 28–29연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 norse-ymir-origins (이미르와 태초의 혈통)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "308a7b0f-a65a-53f5-8b49-a6f2c150752c",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-31-40",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "aurgelmir",
+    "title": "에리바가르에서 자란 거인",
+    "cardType": "event",
+    "body": "바프스루드니르는 에리바가르에서 튄 독방울이 자라 거인이 되었으며 자기들의 혈통이 거기서 비롯됐다고 말한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 31연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b8165a1b-4129-5398-9e56-55549b99b020",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-31-40",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "giant-children",
+    "title": "서리거인의 자손 탄생",
+    "cardType": "event",
+    "body": "여자 거인과 짝짓지 않은 서리거인의 팔 아래에서 딸과 아들이 자라고, 두 발이 여섯 머리의 아들을 낳았다고 한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 32–33연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "21b37d01-f7f3-5ad0-b97e-a09f68edc53c",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-31-40",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "ludr",
+    "title": "루드르 위에 놓인 베르겔미르",
+    "cardType": "event",
+    "body": "거인은 처음 기억하는 일이 베르겔미르가 루드르 위에 놓인 때라고 말한다. 물건을 가리키는 말의 정확한 해석은 확정하지 않는다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 34–35연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e9ff4f20-125d-5923-abf1-dd591c89ae9d",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-31-40",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "hraesvelg",
+    "title": "독수리 모습의 흐레스벨그",
+    "cardType": "character",
+    "body": "하늘 끝에 독수리 모습을 한 거인 흐레스벨그가 앉아 있으며 그의 날개에서 바람이 온다고 한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 36–37연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "052f691f-9e41-5151-9dd4-e5d90c2ffc19",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-31-40",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "njord",
+    "title": "바나헤임에서 온 뇨르드",
+    "cardType": "character",
+    "body": "바나헤임에서 만들어진 뇨르드는 신들에게 인질로 주어졌다. 거인은 세상의 끝에 그가 바니르에게 돌아갈 것이라고 말한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 38–39연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 norse-vanir-hostages (바니르의 인질과 뇨르드)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7d61f635-cfdc-560e-b9d9-65f6bb22f4b0",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-41-50",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "einherjar",
+    "title": "날마다 싸우는 에인헤랴르",
+    "cardType": "organization",
+    "body": "오딘의 뜰에서 에인헤랴르들은 날마다 서로 싸운 뒤 전투를 떠나 다시 화해하여 함께 앉는다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 41연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 norse-valhalla-einherjar (발할라의 전사자들과 양식)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "566a46bd-cf53-5a7c-a79f-aba786351ddc",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-41-50",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "nine-worlds",
+    "title": "아홉 세계와 니플헬",
+    "cardType": "location",
+    "body": "거인은 아홉 세계와 니플헬 아래를 다녀왔으며 거인과 신들의 비밀을 안다고 주장한다. 죽은 이들이 헬에서 그곳으로 간다는 구절이 이어진다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 42–43연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 nine-worlds (아홉 세계)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ed17cd8c-7428-5113-b971-352a65931cbf",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-41-50",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "lif",
+    "title": "숲에 숨는 리브와 리브스라시르",
+    "cardType": "character",
+    "body": "핌불베트르 동안 두 사람은 호드미미르의 숲에 숨고 아침 이슬을 먹으며, 이후 사람들의 조상이 된다고 거인이 말한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 44–45연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 norse-after-ragnarok (라그나로크 뒤의 신들과 망치)와 대상·전승 비교 필요",
+      "기존 북유럽 source 카드 norse-fimbulwinter (핌불베트르와 종말의 싸움)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c841eed0-a9cc-59c7-a282-ce41a928fbc5",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-41-50",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "sun-daughter",
+    "title": "해의 딸",
+    "cardType": "character",
+    "body": "해는 펜리르에게 삼켜지기 전에 딸을 낳으며 신들이 죽을 때 그 딸이 어머니의 길을 달린다고 한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 46–47연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 review/full-myth/norse_mythology/cards-001.json의 해의 딸(4224a909-8de4-5544-b788-d265a3473121)과 태양의 딸이라는 대상 및 전승 차이를 비교"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b1de3fd1-c3c0-5b45-9b35-039c87f6248a",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-41-50",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "maidens",
+    "title": "뫼그스라시르의 세 처녀",
+    "cardType": "character",
+    "body": "거인은 바다를 건너는 세 처녀가 거인들 사이에서 자라지만 세상에 있는 행운의 존재들이라고 답한다. 49연의 문구와 해석은 불확실하다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 48–49연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "513e63d4-307b-5629-9b6a-577481d9e940",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-51-55",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "survivors",
+    "title": "종말 뒤 신들과 묠니르",
+    "cardType": "event",
+    "body": "수르트의 불이 꺼진 뒤 비다르와 발리는 신들의 성소에 살고, 모디와 마그니는 전투가 끝나면 묠니르를 갖는다고 거인은 말한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 51연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 norse-after-ragnarok (라그나로크 뒤의 신들과 망치)와 대상·전승 비교 필요",
+      "같은 배치 norse-lokasenna--stanzas-61-65 / hammer와 대상 또는 사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "12cdce41-b993-5bd2-b390-f56ab6973db1",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-51-55",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "odin-wolf",
+    "title": "늑대에게 삼켜진 오딘의 복수",
+    "cardType": "event",
+    "body": "거인은 늑대가 오딘을 삼키고 비다르가 늑대의 턱을 찢어 복수할 것이라고 예언한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 52–53연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [
+      "기존 북유럽 source 카드 vidar (비다르)와 대상·전승 비교 필요",
+      "기존 북유럽 source 카드 fenrir (펜리르와 풀려나는 늑대)와 대상·전승 비교 필요"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a9923ac0-379b-5710-9e67-01168e57ce37",
+    "batch_id": "batch-10",
+    "unit_id": "norse-vaf--stanzas-51-55",
+    "work_id": "norse-vaf",
+    "world_id": "norse_mythology",
+    "candidate_key": "question",
+    "title": "아들의 귀에 속삭인 비밀",
+    "cardType": "event",
+    "body": "오딘은 장작더미에 오르기 전 아들의 귀에 무엇을 말했는지 묻는다. 거인은 아무도 그 말을 알 수 없다며 상대가 오딘임을 깨닫고 패배를 인정한다.",
+    "source_url": "https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+    "source_location": "Vafþrúðnismál 54–55연",
+    "edition": "Old Norse; site identifies Guðni Jónsson as editor (not Finnur Jónsson); original print edition and date unverified.",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "시의 화자 발언과 예언은 이 작품의 진술이며 다른 전승과 동일시하지 않는다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "75d85eec-0df9-5716-b0c3-1077f988b121",
+    "batch_id": "batch-10",
+    "unit_id": "germanic-aschen--page-119",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "mother",
+    "title": "죽은 어머니의 당부",
+    "cardType": "character",
+    "body": "병든 어머니는 딸에게 경건하고 선하게 살라고 당부하며 하늘에서 지켜보겠다고 말한 뒤 죽는다. 딸은 날마다 무덤에서 운다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "Aschenputtel 119쪽 첫 문단",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified",
+    "possible_duplicates": [
+      "같은 이야기의 배정된 다른 페이지 및 후속 batch-11의 122–126쪽 후보와 인물·사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "097bde6e-9d96-5f67-87d0-d7bbafc3e273",
+    "batch_id": "batch-10",
+    "unit_id": "germanic-aschen--page-119",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "stepsisters",
+    "title": "계모의 두 딸",
+    "cardType": "character",
+    "body": "새로 온 두 딸은 주인공의 좋은 옷을 빼앗고 잿속에 콩을 흩어 골라내게 하며 조롱한다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "Aschenputtel 119쪽 둘째 문단",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified",
+    "possible_duplicates": [
+      "같은 이야기의 배정된 다른 페이지 및 후속 batch-11의 122–126쪽 후보와 인물·사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2a654efb-e5c8-556a-a272-55e6ad0649eb",
+    "batch_id": "batch-10",
+    "unit_id": "germanic-aschen--page-119",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "ashes",
+    "title": "재투성이 아셴푸텔",
+    "cardType": "character",
+    "body": "주인공은 부엌일을 하며 난로 곁의 재에서 자게 되고, 먼지투성이가 되어 아셴푸텔이라는 별명을 얻는다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "Aschenputtel 119쪽 둘째 문단 끝",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified",
+    "possible_duplicates": [
+      "같은 이야기의 배정된 다른 페이지 및 후속 batch-11의 122–126쪽 후보와 인물·사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e96efe16-9444-5ef9-b4ce-3c310f290355",
+    "batch_id": "batch-10",
+    "unit_id": "germanic-aschen--page-120",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "hazel",
+    "title": "어머니 무덤의 개암나무",
+    "cardType": "object",
+    "body": "아셴푸텔은 귀가하는 아버지의 모자에 처음 부딪힌 개암나무 가지를 받아 어머니 무덤에 심는다. 눈물로 물을 주자 나무가 자란다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "Aschenputtel 120쪽 첫 문단",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified",
+    "possible_duplicates": [
+      "같은 이야기의 배정된 다른 페이지 및 후속 batch-11의 122–126쪽 후보와 인물·사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e289b8b8-393f-5121-aa18-84ee8745a6f7",
+    "batch_id": "batch-10",
+    "unit_id": "germanic-aschen--page-120",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "bird",
+    "title": "소원을 들어주는 흰 새",
+    "cardType": "character",
+    "body": "그녀가 하루 세 번 나무 아래서 기도하고 울 때마다 흰 새가 찾아와 바라는 것을 내려준다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "Aschenputtel 120쪽 첫 문단 끝",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified",
+    "possible_duplicates": [
+      "같은 이야기의 배정된 다른 페이지 및 후속 batch-11의 122–126쪽 후보와 인물·사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8ca07485-1c81-5129-92ce-213f2a403845",
+    "batch_id": "batch-10",
+    "unit_id": "germanic-aschen--page-120",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "feast",
+    "title": "왕의 사흘 잔치",
+    "cardType": "event",
+    "body": "왕은 아들의 신붓감을 고르기 위해 나라의 아름다운 처녀들을 사흘간 열리는 잔치에 초대한다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "Aschenputtel 120쪽 둘째 문단",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified",
+    "possible_duplicates": [
+      "같은 이야기의 배정된 다른 페이지 및 후속 batch-11의 122–126쪽 후보와 인물·사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "de82b5d9-91ae-50ea-bb02-08b2a677f056",
+    "batch_id": "batch-10",
+    "unit_id": "germanic-aschen--page-120",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "refusal",
+    "title": "잔치에 가고 싶은 아셴푸텔",
+    "cardType": "event",
+    "body": "계모는 재와 먼지투성이이고 옷과 신발이 없다는 이유로 잔치에 가고 싶다는 아셴푸텔을 꾸짖는다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "Aschenputtel 120쪽 둘째 문단 끝",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified",
+    "possible_duplicates": [
+      "같은 이야기의 배정된 다른 페이지 및 후속 batch-11의 122–126쪽 후보와 인물·사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "84a36ee3-fd14-57fd-9459-11514ed775d4",
+    "batch_id": "batch-10",
+    "unit_id": "germanic-aschen--page-121",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "lentils",
+    "title": "재 속 렌틸콩 고르기",
+    "cardType": "event",
+    "body": "계모는 재에 쏟은 렌틸콩 한 그릇을 두 시간 안에 고르면 잔치에 보내주겠다고 한다. 일이 끝나자 약속을 거부하고 두 그릇을 한 시간 안에 고르라는 새 조건을 건다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "Aschenputtel 121쪽 첫 문단",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified",
+    "possible_duplicates": [
+      "같은 이야기의 배정된 다른 페이지 및 후속 batch-11의 122–126쪽 후보와 인물·사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2b414bad-d19d-5258-a66e-0102f635d99c",
+    "batch_id": "batch-10",
+    "unit_id": "germanic-aschen--page-121",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "birds",
+    "title": "렌틸콩을 고르는 새들",
+    "cardType": "character",
+    "body": "아셴푸텔이 부르자 흰 비둘기 두 마리와 산비둘기, 다른 새들이 창문으로 들어와 좋은 알갱이를 골라 담는다. 첫 그릇은 한 시간이 되기 전에 끝난다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "Aschenputtel 121쪽 새 부르기와 첫 작업",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified",
+    "possible_duplicates": [
+      "같은 이야기의 배정된 다른 페이지 및 후속 batch-11의 122–126쪽 후보와 인물·사건 연결 검토"
+    ],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "aaa8c92e-aab5-5184-bebf-5b4b91304dca",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "two-headed",
+    "title": "좌우에 머리가 달린 출척",
+    "cardType": "character",
+    "body": "적수 서쪽과 유사 동쪽에 좌우로 머리가 달린 짐승 출척이 있다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 첫 문단 남해 밖",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4c377bc8-87a0-5a3e-bedb-0f92b547c9e2",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "shuangshuang",
+    "title": "붙은 세 푸른 짐승 쌍쌍",
+    "cardType": "character",
+    "body": "세 푸른 짐승이 서로 붙은 쌍쌍이 있다. 곽박 주석은 몸이 하나로 합쳐졌다고 해석한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 첫 문단",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c72ba771-1335-5613-b8c4-de9035b16c05",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "cangwu",
+    "title": "순과 숙균이 묻힌 창오의 들",
+    "cardType": "location",
+    "body": "적수 동쪽 창오의 들은 순과 숙균이 묻힌 곳이며 여러 짐승이 열거된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 둘째 문단",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b3b6a7a0-b841-5501-9316-dcf8ec401369",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "snake",
+    "title": "사슴을 먹는 검은 뱀",
+    "cardType": "character",
+    "body": "흑수 남쪽에 큰 사슴을 먹는 검은 뱀이 있다. 이어 무산 서쪽의 황조가 이 뱀을 다스린다고 서술한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 둘째 문단 흑수 남쪽",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4998bd30-8a96-5171-97be-d9c1490d0634",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "yellow-bird",
+    "title": "제의 약과 황조",
+    "cardType": "character",
+    "body": "무산 서쪽의 황조는 제의 약이 있는 곳과 연결되고 검은 뱀을 맡는다. 팔재라는 문구의 정확한 뜻은 불확실하다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 둘째 문단 무산",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f72a9ea4-3202-5964-9e52-3017224d471b",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "three-bodies",
+    "title": "세 몸의 나라",
+    "cardType": "organization",
+    "body": "제준의 아내 아황이 세 몸의 나라를 낳았으며 그 백성은 요 성을 쓰고 기장을 먹고 네 마리 새를 부린다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 셋째 문단 불정산",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a9c37d5d-0e08-582e-96e9-f97455136c1e",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "pools",
+    "title": "소화의 못과 종연",
+    "cardType": "location",
+    "body": "네 귀퉁이가 통하는 못은 북쪽 흑수와 남쪽 대황에 이어진다. 북쪽을 소화의 연, 남쪽을 종연이라 하며 순이 목욕했다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 셋째 문단 못의 양편",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e41a669d-8ead-5065-a39a-5244fad497b0",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "feather-people",
+    "title": "깃털이 나는 우민국",
+    "cardType": "organization",
+    "body": "우민국 사람들은 모두 깃털이 난다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 넷째 문단",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c28d2994-16ee-5e26-897c-4b717ad69a9b",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "immortal",
+    "title": "감목을 먹는 불사의 나라",
+    "cardType": "organization",
+    "body": "불사의 나라 사람들은 아 성을 쓰며 감목을 먹는다. 감목을 먹으면 늙지 않는다는 것은 곽박의 주석이다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 불사의 나라 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3bcb0191-4d4d-5545-a168-ff2f69dbebfd",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "wind-god",
+    "title": "남극에서 바람을 드나들게 하는 신",
+    "cardType": "character",
+    "body": "인인호라 불리는 신은 남쪽에서 여러 이름으로 불리며 남극에 머물러 바람을 드나들게 한다. 이름 구절의 구두와 분절은 불확실하다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 남해 섬의 신들",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "136145fe-211d-58b2-ac63-b2e6bf579603",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "butinghuyu",
+    "title": "푸른 뱀을 귀에 건 불정호여",
+    "cardType": "character",
+    "body": "남해 물가의 신 불정호여는 사람 얼굴이며 두 푸른 뱀을 귀에 걸고 두 붉은 뱀을 밟는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 남해 섬의 신들",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "447f2106-4992-5018-bb22-cc608ce12ae1",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "jili",
+    "title": "짐승을 먹는 계리의 나라",
+    "cardType": "organization",
+    "body": "제준이 계리를 낳았기에 계리의 나라라 부르며 그곳 사람들은 짐승을 먹는다고 한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 양산·중음산 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "62709be7-d205-58f5-bec7-b5dc67666434",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "minyuan",
+    "title": "배벌이 내려온 민연",
+    "cardType": "location",
+    "body": "소호가 낳은 배벌은 민연에 내려와 산다. 사방으로 물이 있는 준단이 이어 언급된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 민연 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "53a9d045-0575-54ae-9c81-2550b0e6e4cd",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "wuzhi",
+    "title": "농사와 길쌈 없이 사는 무질민",
+    "cardType": "organization",
+    "body": "무질민은 순이 낳은 무음이 내려와 살면서 생겨난 무리로 곡식을 먹으며 길쌈이나 농사 없이 옷과 음식을 얻는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 질민의 나라 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2b8e43c4-22bb-5da2-a35a-b80000e8ae3e",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "singing-birds",
+    "title": "노래하는 난조와 춤추는 봉조",
+    "cardType": "character",
+    "body": "그곳에는 난조가 스스로 노래하고 봉조가 스스로 춤추며 여러 짐승이 무리를 이룬다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 무질민 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "78b8301f-6901-5139-b2a9-ef40bdef38b8",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "zaochi",
+    "title": "예가 죽인 착치",
+    "cardType": "event",
+    "body": "바닷물이 남쪽으로 들어오는 융천산에 착치라는 이가 있으며 예가 그를 죽였다고 한다. 곽박은 활로 쏘아 죽였다고 주석한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 융천산 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "170896c0-3ea8-5c21-9018-211d1c3f9449",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "yu-people",
+    "title": "역을 쏘아 먹는 역민",
+    "cardType": "organization",
+    "body": "역민은 상 성을 쓰고 기장을 먹으며 역을 쏘아 먹는다. 활을 당겨 황사를 쏘는 역인도 묘사된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 역산 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9cf6d234-a90f-5b0b-ad82-5c5c714cc6ae",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "maple",
+    "title": "치우의 족쇄에서 생긴 풍목",
+    "cardType": "object",
+    "body": "송산의 풍목은 치우가 버린 족쇄와 관련된 나무로 서술된다. 곽박은 황제에게 죽은 치우의 형구가 나무로 변했다고 설명한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 송산 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "34fb1e7d-2f97-5008-9d66-96cd9b11af07",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "zuzhuang",
+    "title": "호랑이 꼬리를 무는 조상의 시신",
+    "cardType": "character",
+    "body": "조상의 시신이라 불리는 존재가 호랑이 꼬리를 물고 있다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 송산 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "688e6a57-355e-54ee-94ff-1d95758b0445",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "jiaoyao",
+    "title": "작은 사람 초요국",
+    "cardType": "organization",
+    "body": "작은 사람들의 초요국은 기 성을 쓰고 좋은 곡식을 먹는다. 키가 석 자라는 수치는 곽박 주석에 나온다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 송산 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3828e54f-d715-5bcb-9194-1a8baa3853d7",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "luan",
+    "title": "붉은 돌에서 자라는 난목",
+    "cardType": "object",
+    "body": "운우산의 난목은 누런 몸통과 붉은 가지, 푸른 잎을 지니며 여러 제들이 여기서 약을 얻는다. 붉은 돌에서 난목이 난다는 문맥이다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 운우산·난목 대목 및 우 관련 구절에 붙은 곽박 주석",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다.",
+      "본문 해당 구절의 행위 대상과 뜻은 모호하며 곽박 주석은 나무를 베는 뜻으로 풀이한다. 본문과 주석의 관계 및 지명 판독은 독립 검토가 필요하다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4142780d-56fd-5da8-964a-2f60f019e22a",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "zhanghong",
+    "title": "바다에서 물고기를 잡는 장홍",
+    "cardType": "character",
+    "body": "장홍은 바다에서 물고기를 잡고, 바다의 장홍국은 물고기를 먹으며 네 마리 새를 부린다. 이어 새 부리와 날개를 지닌 어부가 언급된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 백수산 뒤 장홍 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "05c7e25b-d0a5-5673-be09-904ef00bda34",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "huantou",
+    "title": "새 부리와 날개를 지닌 환두",
+    "cardType": "character",
+    "body": "환두는 사람 얼굴에 새 부리와 날개가 있고 바닷물고기를 먹으며 날개에 의지해 걷는다. 곤의 아내 사경과 그 아들 염융이 이어지는 계보에 언급된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 환두 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "118e05b1-2ee1-5038-adaf-1eddb6a47cfb",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "xihe",
+    "title": "열 개의 해를 낳은 희화",
+    "cardType": "character",
+    "body": "희화는 제준의 아내로 열 해를 낳았고 감연에서 해를 목욕시킨다. 그녀가 해와 달의 운행을 맡았다는 확장은 곽박 주석의 해석이다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 동남해 밖 희화국",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "19def097-72aa-5c5b-b576-22e56faf653d",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "ganzha",
+    "title": "붉은 가지의 감저 나무",
+    "cardType": "object",
+    "body": "개유산 위의 감저는 줄기와 가지가 붉고 잎은 노랗고 꽃은 희며 열매는 검다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 개유산 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cf136f5b-b84b-5aff-8946-9e1dbbfa6b91",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "sanzhui",
+    "title": "붉은 말 삼추",
+    "cardType": "character",
+    "body": "개유산에는 삼추라는 붉은 말이 있으며 남류산에도 삼추가 언급된다. 두 서술의 관계는 단정하지 않는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 개유산과 남류산 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fc77982d-dd56-5c42-873e-3cbd5706d16e",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "egg-people",
+    "title": "알을 낳는 난민국",
+    "cardType": "organization",
+    "body": "난민국 사람들은 모두 알을 낳는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 넷째 문단",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cb43aaea-72e0-5cd6-82eb-8599b78b94e2",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "jiyu",
+    "title": "계우의 나라",
+    "cardType": "organization",
+    "body": "계우의 나라는 전욱의 자손으로 기장을 먹는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 성산 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "79cdda93-8830-5c4d-a5e7-6c3ef3999ce7",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "yingmin",
+    "title": "영민의 나라",
+    "cardType": "organization",
+    "body": "영민의 나라는 어 성을 쓰며 기장을 먹는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 영민 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "aa312ca7-307b-55e1-af33-838dc0d18e74",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "leaf-eaters",
+    "title": "나뭇잎을 먹는 사람",
+    "cardType": "character",
+    "body": "영민의 나라에 이어 나뭇잎을 먹고 있는 사람이 묘사된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 영민 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6bd587c5-0bbb-5417-882c-044d8ae0ee1a",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "bahu",
+    "title": "전욱의 아들 백복",
+    "cardType": "character",
+    "body": "전욱이 백복을 낳았고 기장을 먹는 나라가 언급된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 전욱 후손 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6381f106-eb28-521e-8acf-8d59d50be3f5",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "zhumu",
+    "title": "붉은 나무 주목",
+    "cardType": "object",
+    "body": "악산에는 가지가 붉고 꽃이 푸르며 열매가 검은 주목이 있다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 악산 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "91b17c73-c99c-5cbe-a097-a1b94debb9b6",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "kuishan",
+    "title": "서쪽에 단과 동쪽에 옥이 있는 외산",
+    "cardType": "location",
+    "body": "외산의 서쪽에는 단이 있고 동쪽에는 옥이 있다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 산과 물 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "419ab475-85be-54ea-8874-ad31221fdb7a",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "baishui",
+    "title": "백수와 백연",
+    "cardType": "location",
+    "body": "백수산에서 백수가 나오고 백연을 이루며 곤오의 군사가 그곳에서 목욕한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 백수산 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "35770cec-5551-5ded-9414-35b7d636e441",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "fusky",
+    "title": "사천의 산과 적수",
+    "cardType": "location",
+    "body": "남해 가운데 사천의 산이 있고 적수는 이곳에서 다한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 둘째 문단 첫머리",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7edfd2b9-47c2-513a-baa2-72cfdb9f4e7d",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "buting",
+    "title": "불정산과 영수",
+    "cardType": "location",
+    "body": "대황 가운데 불정산이 있고 영수는 그곳에서 다한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 셋째 문단 첫머리",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7c148ed8-ecea-5a5e-b6b2-a31645c3f95a",
+    "batch_id": "batch-10",
+    "unit_id": "chinese-shanhai15--volume-15",
+    "work_id": "chinese-shanhai15",
+    "world_id": "chinese_folklore",
+    "candidate_key": "heishui",
+    "title": "불강산과 흑수",
+    "cardType": "location",
+    "body": "대황 가운데 불강산이 있으며 흑수는 이곳에서 다한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/山海經_%28四庫全書本%29/卷15",
+    "source_location": "山海經 大荒南經 권15 산과 물 대목",
+    "edition": "Classical Chinese; 四庫全書本 Wikisource transcription; oldid unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "원문 독해와 고유명 표기는 독립 감수 전이다.",
+      "사고전서본의 곽박 주석은 본문과 별도 해석이며 지명·고유명 판독을 재검토해야 한다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "526a4f8e-72ae-50a2-8a22-b21947afa692",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-122",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "birds-sort",
+    "title": "비둘기들의 곡식 가리기",
+    "cardType": "ability",
+    "body": "비둘기와 다른 새들이 재 속의 좋은 곡식을 그릇에 골라 담고 반 시간도 안 되어 일을 마친다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 앞부분, 곡식 가리기",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2a84a1bc-7794-56b4-90a2-6890a13e2294",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-122",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "stepmother-refusal",
+    "title": "계모의 무도회 거절",
+    "cardType": "event",
+    "body": "계모는 일을 마친 아셴푸텔에게 옷이 없고 춤을 못 춘다며 함께 가지 못하게 한다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 앞부분, 계모의 말",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "031af45f-fe3f-558c-aed8-797600ec65a5",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-122",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "grave-hazel",
+    "title": "어머니 무덤의 개암나무",
+    "cardType": "location",
+    "body": "아셴푸텔이 어머니 무덤의 개암나무를 찾아 흔들어 달라고 부르자 새가 옷과 신발을 떨어뜨린다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 중간, 나무를 부르는 장면",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9b786d77-ead9-539a-9367-9e8fa84d00a5",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-122",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "bird-dress",
+    "title": "새가 주는 금은 옷",
+    "cardType": "ability",
+    "body": "새가 금은 옷과 비단·은으로 수놓은 신발을 떨어뜨려 아셴푸텔이 잔치에 간다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 중간, 나무 아래",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [
+      "germanic-aschen--page-123: bird-dress 관련 장면이나 구간별 별도 보존",
+      "germanic-aschen--page-124: bird-dress 관련 장면이나 구간별 별도 보존"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2e267a2f-196a-581e-a321-f1b0a3b54651",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-122",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "first-dance",
+    "title": "첫날의 춤",
+    "cardType": "event",
+    "body": "계모와 자매들은 차려입은 아셴푸텔을 낯선 공주라 여기고 왕자는 다른 청을 막으며 그와만 춤춘다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 중간, 첫날 잔치",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c49b0711-dd95-5d08-90df-ce974b981f46",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-122",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "dovecote-escape",
+    "title": "비둘기집으로 달아나다",
+    "cardType": "event",
+    "body": "왕자가 집을 알아내려 따라오자 아셴푸텔은 비둘기집으로 도망친다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 끝, 첫날 귀가",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [
+      "germanic-aschen--page-123: dovecote-escape 관련 장면이나 구간별 별도 보존"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "66d080ca-1228-54f0-96f2-5e3a662d2462",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-123",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "dovecote-escape",
+    "title": "부서진 비둘기집",
+    "cardType": "event",
+    "body": "아버지는 딸일지 의심해 비둘기집을 부수지만 아셴푸텔은 뒤로 빠져나가 옷을 돌려주고 재에 앉아 있다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 앞부분, 첫날 귀가 결말",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [
+      "germanic-aschen--page-122: dovecote-escape 관련 장면이나 구간별 별도 보존"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d4749e36-60f8-5659-a48e-b80eb9987807",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-123",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "bird-dress",
+    "title": "둘째 날 새의 옷",
+    "cardType": "ability",
+    "body": "아셴푸텔이 다시 나무에 부르자 새는 전날보다 화려한 옷을 떨어뜨린다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 앞부분, 둘째 날 나무",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [
+      "germanic-aschen--page-122: bird-dress 관련 장면이나 구간별 별도 보존",
+      "germanic-aschen--page-124: bird-dress 관련 장면이나 구간별 별도 보존"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "84b52620-f955-51ed-870e-c3ad4004bbdd",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-123",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "second-dance",
+    "title": "둘째 날 왕자의 춤",
+    "cardType": "event",
+    "body": "왕자는 기다리다 아셴푸텔이 오자 손을 잡고 오직 그와 춤춘다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 중간, 둘째 날 잔치",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2b66f6b3-8505-51b7-b848-21ba64cb4ae3",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-123",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "pear-tree",
+    "title": "배나무와 두 번째 도주",
+    "cardType": "event",
+    "body": "아셴푸텔은 정원의 배나무에 올라 왕자를 따돌린다. 아버지는 의심해 나무를 베지만 아무도 찾지 못한다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 후반, 둘째 날 귀가",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "17825eb7-93bb-5e40-b495-20e6518abf58",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-124",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "bird-dress",
+    "title": "셋째 날 옷과 금 신발",
+    "cardType": "object",
+    "body": "새는 지금까지 가장 빛나는 옷과 순금 구두를 주고 아셴푸텔은 세 번째 잔치에 간다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 앞부분, 세 번째 나무 방문",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [
+      "germanic-aschen--page-122: bird-dress 관련 장면이나 구간별 별도 보존",
+      "germanic-aschen--page-123: bird-dress 관련 장면이나 구간별 별도 보존"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e0f81ba3-3b7c-5f6a-a8aa-9f3349dc46cb",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-124",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "third-dance",
+    "title": "셋째 날의 춤",
+    "cardType": "event",
+    "body": "차림에 모두 놀라고 왕자는 아셴푸텔과만 춤춘다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 중간, 셋째 날 잔치",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7ac545db-d82c-55a6-91aa-41d213f1a469",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-124",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "shoe-trap",
+    "title": "역청 계단과 잃어버린 신발",
+    "cardType": "event",
+    "body": "왕자가 계단에 역청을 바르게 해 달아나는 아셴푸텔의 왼쪽 금 구두가 붙잡힌다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 중간, 셋째 날 도주",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e1ae15ff-d756-5c46-b2b6-1e64893974cb",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-124",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "shoe-test",
+    "title": "금 구두로 찾는 신부",
+    "cardType": "rule",
+    "body": "왕자는 금 구두가 발에 맞는 사람만 아내로 삼겠다고 선언한다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 후반, 다음 날 왕자의 선언",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [
+      "germanic-aschen--page-126: shoe-test 관련 장면이나 구간별 별도 보존"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6c63bb1d-c87e-536f-aea1-4bbbe678560a",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-124",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "elder-toe",
+    "title": "큰언니의 발가락 절단",
+    "cardType": "event",
+    "body": "구두가 작자 계모는 왕비가 되면 걸을 필요가 없다며 칼을 주고 큰딸은 엄지발가락을 자른다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 끝, 큰언니의 시착",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [
+      "germanic-aschen--page-125: elder-toe 관련 장면이나 구간별 별도 보존"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5800fb1e-e735-5e60-9cc7-f999086160e6",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-125",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "elder-toe",
+    "title": "피 묻은 첫 번째 거짓 신부",
+    "cardType": "event",
+    "body": "큰언니는 고통을 참으며 신발을 신고 왕자의 말에 오르지만 무덤가 비둘기의 경고로 피가 드러나 집에 돌려보내진다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 앞부분, 첫 번째 귀환",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [
+      "germanic-aschen--page-124: elder-toe 관련 장면이나 구간별 별도 보존"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "aff993ed-c1f1-55bc-b797-01b49ff1d39a",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-125",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "younger-heel",
+    "title": "작은언니의 뒤꿈치 절단",
+    "cardType": "event",
+    "body": "작은언니는 어머니의 말을 듣고 뒤꿈치를 잘라 구두에 넣지만 비둘기의 경고 뒤 왕자는 피를 보고 돌려보낸다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 중간, 두 번째 시착",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a8f14a6f-69b7-53b2-a787-38e4bca2ef7a",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-125",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "doves-warning",
+    "title": "비둘기들의 피 경고",
+    "cardType": "ability",
+    "body": "무덤가 두 비둘기는 구두 속 피와 집에 남은 진짜 신부를 노래해 두 차례 속임수를 드러낸다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 앞과 중간, 두 차례 경고 노래",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [
+      "germanic-aschen--page-126: doves-warning 관련 장면이나 구간별 별도 보존"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cda3ff02-2bf5-5701-87a8-3a4b19c0cb39",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-125",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "father-denial",
+    "title": "아버지가 깎아내린 딸",
+    "cardType": "event",
+    "body": "왕자가 다른 딸을 묻자 아버지는 죽은 아내의 딸 아셴푸텔이 있으나 신부일 수 없다고 말한다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 끝, 왕자의 질문",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0f9ed400-0eea-5b4d-af7e-a2e12ec66ee5",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-126",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "shoe-test",
+    "title": "금 구두의 주인 확인",
+    "cardType": "event",
+    "body": "손과 얼굴을 씻은 아셴푸텔에게 금 구두가 꼭 맞고 왕자는 함께 춤춘 여인임을 알아본다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 앞부분, 세 번째 시착",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [
+      "germanic-aschen--page-124: shoe-test 관련 장면이나 구간별 별도 보존"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0b691127-5146-5fd4-8951-575de8b64450",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-126",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "doves-warning",
+    "title": "진짜 신부를 알리는 흰 비둘기",
+    "cardType": "ability",
+    "body": "흰 비둘기들은 신발에 피가 없고 올바른 신부를 데려간다고 노래한 뒤 아셴푸텔의 양 어깨에 앉는다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 중간, 무덤가 귀환",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [
+      "germanic-aschen--page-125: doves-warning 관련 장면이나 구간별 별도 보존"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  }
+]

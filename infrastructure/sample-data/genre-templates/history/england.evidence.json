@@ -1,0 +1,632 @@
+{
+  "schemaVersion": 1,
+  "worldId": "c1af4125-5423-5633-a5da-822b4753df94",
+  "genre": "england_history",
+  "status": "research-only; not integrated into application or database",
+  "generatedOn": "2026-11-13",
+  "source": {
+    "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+    "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+    "bytes": 1881002,
+    "title": "A History of England",
+    "author": "Charles Oman",
+    "edition": "11th edition, Edward Arnold, 1904",
+    "coverage": "44 chapters; ancient Britain to 1902",
+    "catalogUrl": "https://www.gutenberg.org/ebooks/47753",
+    "textUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt",
+    "rightsNote": "The stored Gutenberg notice is preserved. Jurisdiction-specific reuse conditions and electronic-edition notices require separate review; no blanket worldwide clearance is claimed."
+  },
+  "idPolicy": {
+    "algorithm": "UUIDv5",
+    "namespace": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+    "worldName": "storyfork:history-research:england:world",
+    "cardNamePattern": "storyfork:history-research:england:card:<stableSlug>",
+    "cardSlugs": [
+      "roman-britain",
+      "alfred-guthrum",
+      "william-london",
+      "domesday-book",
+      "henry-itinerant-justice",
+      "magna-carta",
+      "parliament-1265",
+      "black-death-labour",
+      "towton-york",
+      "supremacy",
+      "armada",
+      "new-model-army",
+      "bill-of-rights",
+      "union-1707",
+      "industrial-north",
+      "reform-1832",
+      "corn-law-repeal",
+      "victoria",
+      "india-government",
+      "source-scope",
+      "review-policy"
+    ]
+  },
+  "scope": {
+    "oneCountrywideSourceWorld": true,
+    "all44ChaptersRepresented": false,
+    "substantiveHistoricalCards": 19,
+    "sourceOrEditorialCards": 2,
+    "modernAcquisition": "deferred",
+    "modernHistoricalVerification": "not performed",
+    "translationReview": "selected existing Korean drafts consulted; not a new full translation audit",
+    "sourceClaimMeaning": "Existence of a claim in this historical textbook, not certification that it is true."
+  },
+  "consultedKoreanDrafts": [
+    {
+      "filename": "docs/research/history-textbooks/england/oman-1904/README.partial-ko.md",
+      "sha256": "866fb526b759fa6a96f2eeaad080e4c3770d166e57914869d987f1f416138519",
+      "consultation": "scoped reading; not full independent review"
+    },
+    {
+      "filename": "docs/research/history-textbooks/england/oman-1904/01-main-prose.ko.draft.md",
+      "sha256": "a22e7a897a167b2b29e68d8f45cad566d27eafdccdcfa94d7d841ea545832b84",
+      "consultation": "scoped reading; not full independent review"
+    },
+    {
+      "filename": "docs/research/history-textbooks/england/oman-1904/06-main-prose.ko.draft.md",
+      "sha256": "e62be5c335fb6fb3421936f4f95d4cf0d593fd95ffbb2c731ac835dac9747f2c",
+      "consultation": "scoped reading; not full independent review"
+    },
+    {
+      "filename": "docs/research/history-textbooks/england/oman-1904/09-main-prose.ko.draft.md",
+      "sha256": "75108a5e4b67c2690c0ce40dba835c498bf572e577207dd9ebceb41c22145ed8",
+      "consultation": "scoped reading; not full independent review"
+    },
+    {
+      "filename": "docs/research/history-textbooks/england/oman-1904/21-main-prose.ko.draft.md",
+      "sha256": "8011440ad2f118fce60138c360765b2a05153fe73743f9728d556409c34e0917",
+      "consultation": "scoped reading; not full independent review"
+    },
+    {
+      "filename": "docs/research/history-textbooks/england/oman-1904/36-main-prose.ko.draft.md",
+      "sha256": "3c943eef653c7e4308c6e4dcd74cfdaff0a4e30d864bec5bed6d8406aa84b078",
+      "consultation": "scoped reading; not full independent review"
+    },
+    {
+      "filename": "docs/research/history-textbooks/england/oman-1904/44-main-prose.ko.draft.md",
+      "sha256": "ffbc7313984fd1e7448e1d9419dd88784bc5e602c4dc0c099ed0cf0de3de73ee",
+      "consultation": "scoped reading; not full independent review"
+    }
+  ],
+  "cards": [
+    {
+      "cardId": "951f87c9-2c30-5765-9283-5b20c4980ea2",
+      "cardTitle": "로마령 브리튼의 도로·광산·장원",
+      "era": "로마 지배기",
+      "sourceClaim": "도로·광업·교역·빌라에 관한 저자의 설명을 묶은 출처 기반 요약.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "정착의 규모, 로마 지배의 지역별 영향과 착취·노동 조건은 고고학 및 현대 연구 대조가 필요하다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "I",
+          "section": "Engineering works",
+          "lineStart": 654,
+          "lineEnd": 672,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "The Romans greatly changed the face of Britain by their great\nengineering works. They drew broad roads from place to place, seldom\nturning aside to avoid forest or river. Their solidly-built causeways\nwere carried across the marshy tracts, and pierced through the midst\nof the densest woods. Where the road went, clearings on each side were\nmade, and population sprang up in what had hitherto been trackless\nwilderness. The Romans explored the remotest corners of Wales and\nCornwall in their search after mineral wealth; they worked many tin,\nlead, and copper mines in the island, and exported the ores to Gaul\nand Italy. They developed the fisheries of Britain, especially the\noyster fishery; not only did they prize British pearls, but the oysters\nthemselves were exported as a special luxury to the distant capital of\nthe world. They improved the farming of the open country so much that\nin years of scarcity the corn of Britain fed northern Gaul. In the\nmore pleasant corners of the land Roman officials or wealthy merchants\nbuilt themselves fine villas, with floors of mosaic, and elaborate\nheating-apparatus to guard them against the cold of the northern\nwinter. Hundreds of such abodes are to be found: they clustered\nespecially thick along the south coast and in the vale of Gloucester.",
+          "excerptSha256": "ca59e9dbb3b234fc9c4ef87420fc2912ac06fe15118d531d29a45fb32570277a"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), I · Engineering works, 원문 654–672행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "2c2e7ea1-5caf-51ba-b940-e1d20685ca0d",
+      "cardTitle": "앨프레드와 구스룸의 전쟁·정착",
+      "era": "9세기 후반",
+      "sourceClaim": "전쟁·세례·이스트앵글리아 정착을 연결하는 원문 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "에단둔의 정확한 위치, 협정 문서와 시기의 구분, 지배·복속 관계의 단정은 독립 대조 전 보류한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "IV",
+          "section": "Defeat of the Danes; Treaty of peace",
+          "lineStart": 1756,
+          "lineEnd": 1778,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =Defeat of the Danes.--Treaty of peace.=]\n\nWhile Alfred was in hiding, the Danes ranged all over Wessex; King\nGuthrum settled down at a fortified camp at Chippenham, in Wiltshire,\nwhile King Hubba ravaged Devon. But when all seemed in their power,\nthey were suddenly disconcerted by a new gathering of the stubborn\nWest Saxons. The men of Devon slew Hubba and took his raven banner,\nand then Alfred, issuing from Athelney, put himself at the head of the\nlevies of Devon, Somerset, and Dorset, and made a desperate assault\non Guthrum and the main body of the Danes. The king was victorious at\nEthandun (Eddington), and drove the army of Guthrum into its stockade\nat Chippenham. There the Vikings were gradually forced by starvation\nto yield themselves up. Alfred granted them easy terms: if they would\npromise to quit Wessex for ever, and would swear homage to him as\nover-lord, and become Christians, he would grant them the lands of the\nEast Angles and East Saxons to dwell in. Guthrum was fain to accept,\nso he was baptized, and received at Alfred's hands the new name of\nAethelstan. Many of his host followed him to the font, and then they\nretired to East Anglia and dwelt therein, save those roving spirits who\ncould not settle down anywhere. These latter went off to harry France,\nbut King Guthrum and the majority abode in their new settlement, and\nwere not such unruly or unfaithful subjects to Alfred as might have\nbeen expected from their antecedents.",
+          "excerptSha256": "39834e716828a1366555e60dcbc0d17e9a0daa09bd944d50981ac0c12e84e45b"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), IV · Defeat of the Danes; Treaty of peace, 원문 1756–1778행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "c37a85cc-2a78-5eb9-973b-5a8f8b08255e",
+      "cardTitle": "윌리엄의 런던 입성과 1066년 대관",
+      "era": "1066년",
+      "sourceClaim": "런던의 수용과 성탄절 대관 및 의례 중 폭력에 대한 원저의 설명.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "대관 의례의 전승과 저자의 정복·선출 해석을 동시대 기록 및 현대 연구와 대조해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "VI",
+          "section": "William elected and crowned in London",
+          "lineStart": 2887,
+          "lineEnd": 2897,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "Hastings, and when William pressed on toward London the followers\nof Eadgar gave up the contest. As he lay at Berkhamstead, the chief\nmen of London and Ealdred, the Archbishop of York, came out to him,\nand offered to take him as lord and master. So he entered the city,\nand there was crowned on Christmas Day 1066, after he had been duly\nelected in the old English fashion. A strange accident attended the\ncoronation: when the Archbishop Ealdred proposed William's name to the\nassembly, and the loud shout of assent was given, the Norman soldiery\nwithout thought that a riot was beginning, and cut down some of the\nspectators and fired some houses before they discovered their mistake.\nSo William's reign began, as it was to continue, in blood and fire.",
+          "excerptSha256": "437f2fd2c5549fe5d6510c4dcb6321c6f79d3e7735adc71afdcbff3194ee0b50"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), VI · William elected and crowned in London, 원문 2887–2897행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "f434ad0a-52ed-5816-97f3-eebf1ef6411f",
+      "cardTitle": "둠즈데이 북과 토지·의무 조사",
+      "era": "1085–1086년 무렵",
+      "sourceClaim": "조사항목과 정복 전후 비교에 관한 원문 설명.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "조사 범위·누락지역·신분 번역·소유변동 추산 및 조사 명령과 완성 시점은 전문 검토 대기다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "VI",
+          "section": "Domesday Book",
+          "lineStart": 3295,
+          "lineEnd": 3330,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =Domesday Book.=]\n\nIt was probably the difficulty that had been found in raising men and\nmoney to resist the expected Danish invasion of 1084, that led William\nto order the compilation of the celebrated _Domesday Book_ in 1085.\nThis great statistical account of the condition of England was drawn up\nby commissioners sent down into every shire to make inquiry into its\nresources, population, and ownership. Therein was set down the name\nof every landholder, with the valuation of his manors, and an account\nof the service and money due from him to the king. It did not give\nmerely a rent-roll of the estates, but a complete enumeration of the\npopulation, divided up by status into tenants-in-chief of the crown,\nsub-tenants who held under these greater landowners, burgesses of\ntowns, free \"_sokmen_,\" villeins, and serfs of lower degrees. Under\neach manor was given not only the name of its present holder and its\nactual value, but also a notice of its proprietor in the time of King\nEdward the Confessor, and of its value at Edward's death. This enables\nus to form an exact estimate of the change in the ownership of the\nlands of England brought about by the Conquest. We see that of the\ngreat English earls and magnates not a single one survived; all their\nlands had been confiscated and given away at one time or another. Of\nthe thegns of lower degree some still retained their land, and had\nbecome the king's tenants-in-chief; many had sunk into sub-tenants of a\nNorman baron, instead of holding their estate directly from the crown;\nbut still more had lost their heritage altogether. In some counties,\nespecially in the south-east, where the whole thegnhood had fallen at\nHastings, hardly a single English proprietor survived. In others, such\nfor example as Wiltshire or Nottingham, a large proportion of the old\nowners remained; but, on the whole, we gather that three-quarters of\nthe acreage of England must have changed masters between 1066 and 1085.\nWe discover also that while some parts of England had suffered little\nin material prosperity from the troublous times of the Conquest, others\nhad been completely ruined. Yorkshire shows the worst record, a result\nof William's cruel harrying of the land in 1070; manor after manor is\nrecorded as \"waste,\" and the whole county shows a population less by\nfar than that of the small shire of Berks.",
+          "excerptSha256": "fa9353cda6ed7d1cb174c30f85c4a4b336b3f6fd4835e47db982925b25932268"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), VI · Domesday Book, 원문 3295–3330행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "06ac2b55-4d21-5163-a013-8f4fb944cf5a",
+      "cardTitle": "헨리 2세의 지방 통제와 순회 재판",
+      "era": "12세기 후반",
+      "sourceClaim": "성곽 통제·왕실 수입 회수·셰리프와 순회 재판관 파견에 관한 원저 설명.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "왕실 재판 제도의 이전 관행과 점진적 발달, 성 철거 숫자를 추가 확인해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "VIII",
+          "section": "Feudal anarchy put down",
+          "lineStart": 4115,
+          "lineEnd": 4131,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =Feudal anarchy put down.--Northumberland and Cumberland\nrecovered.=]\n\nHenry's first measures, on succeeding to the throne, were very drastic.\nHe began by ordering the barons to dismantle all the castles which\nhad been built in the troublous times of Stephen, and enforced his\ncommand by appearing at the head of a large army. It is said that he\nlevelled to the ground as many as 375 of these \"adulterine castles,\"\nas they were called, because they had been erected without the king's\nleave. Very few of the barons ventured to resist; those who did were\ncrushed without difficulty. Henry also resumed all the royal estates\nand revenues which Stephen and Matilda had lavished on their partisans\nduring the civil war, annulling all his mother's unwise grants as\nwell as those of her enemy. He filled up the vacant sheriffdoms, and\ncommenced the despatch of itinerant justices round the country, to\nsit and decide cases in the shire courts; this custom, which became\npermanent, was the origin of our modern Assizes. After he had set",
+          "excerptSha256": "323e987bc40ba887230a33749892955065fdc7f46e784a110b0a41f8c2c53a19"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), VIII · Feudal anarchy put down, 원문 4115–4131행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "ad1407c1-fc56-53a3-b1b2-f3cee58ba56e",
+      "cardTitle": "마그나 카르타: 왕권과 권리의 약속",
+      "era": "1215년",
+      "sourceClaim": "저자가 여섯 범주로 재구성한 대헌장 조항 설명.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "1215년 원문 조항, 봉인과 서명 표현, 재판·과세 용어의 시대적 의미를 대조하기 전 법적 정확성을 인증하지 않는다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "IX",
+          "section": "The Great Charter",
+          "lineStart": 5376,
+          "lineEnd": 5413,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =The Great Charter.=]\n\nThe Great Charter was signed on the 15th of June, 1215, in the presence\nof the archbishop, the whole of the baronage, and a vast assembly of\nall ranks. It is a document of sixty-three clauses, of which many were\nquite trivial and related to purely personal or local grievances. But\nthe important part of its provisions may be summed up under six heads.\n\nFirstly, the king promises that \"the English Church shall be\nfree\"--free, that is, from violent interference in the election of its\nprelates, and from illegal taxation.\n\nSecondly, the feudal rights of the king over his tenants-in-chief are\ndefined. He is only to raise the customary \"aids\" and dues, and their\namount is laid down. His rights of wardship over widows and orphans are\nstated and limited. In a similar way the tenants-in-chief promise to\nexercise only these same rights over their own vassals.\n\nThirdly, there is to be no taxation without the consent of the Great\nCouncil--the first indication of the control of Parliament over the\nnational revenues.\n\nFourthly, the administration of justice is to be strengthened and\npurified. No one is to be tried or punished more than once for the same\noffence. No one is to be imprisoned on the king's private fiat, but if\narrested he must be at once put on trial, and that before a jury of\nhis peers. Fines for every sort of offence are to be fixed and made\nproportionate to the crime, not to the king's idea of the amount he\ncould extract from the criminal.\n\nFifthly, the king is not to put foreigners, ignorant of the laws of\nEngland, in any judicial or administrative post, and he is at once to\ndismiss all his foreign mercenary troops.\n\nSixthly, the city of London, and all other cities which enjoy rights\nand privileges under earlier royal charters, are to be fully confirmed\nin them.\n",
+          "excerptSha256": "d2f7e2957a006822593fc207910e8a94fa7e7de3c3cca20dacf5371751b21a83"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), IX · The Great Charter, 원문 5376–5413행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "a51cca92-9596-5748-863e-0dca079ff64d",
+      "cardTitle": "1265년 의회와 도시·주의 대표",
+      "era": "1265년",
+      "sourceClaim": "의회 구성 및 몽포르의 정치적 동기에 관한 원저 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "선례·대표 선출 범위·불참 귀족 및 저자의 최초성 주장을 독립 연구와 대조해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "X",
+          "section": "The Parliament of 1265; Representation of Shires and Boroughs",
+          "lineStart": 5884,
+          "lineEnd": 5908,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =The Parliament of 1265.--Representation of Shires and\nBoroughs.=]\n\nThe chief event for which Earl Simon's tenure of power is remembered\nis his summons of the celebrated Parliament of 1265. This incident is\nnoteworthy, not so much for anything that the Parliament did, as for\nthe new system on which it was constructed. Hitherto the Great Council\nhad usually been composed only of the barons and bishops, though on\ntwo or three occasions in the thirteenth century the smaller vassals\nof the crown had been represented by the summons of two knights from\neach shire, chosen in the county court by all the freeholders of\nthe district. But de Montfort not only called these \"knights of the\nshire\" to his Parliament of 1265, but also summoned two citizens\nor two burgesses from each of the chief cities and boroughs of the\nrealm. Thus he was the first to give the towns representation, and to\nput together the three elements, lords, borough members, and county\nmembers, which form the Parliament of to-day. It must be confessed that\nSimon's immediate object was probably to strengthen his own side in the\nassembly, rather than to initiate a scheme for the reform of the Great\nCouncil in a democratic direction. Many barons were against him, and\nthem he did not summon at all. Many more were jealous or distrustful\nof him, and it was mainly in order to swamp their opposition that he\ncalled up the great body of knights of the shire and members for the\ntowns,--for London and the rest of the chartered cities were strongly\nin favour of his cause.",
+          "excerptSha256": "6cc731879cc3fbbd0aa3c0f14c2d8651da79aa1b6df047e4d4b1a3e6a700e948"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), X · The Parliament of 1265; Representation of Shires and Boroughs, 원문 5884–5908행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "739b03f8-7f2b-58b5-8f9f-f2d08e157871",
+      "cardTitle": "흑사병과 노동·임금 질서의 변화",
+      "era": "1348–1349년 및 이후",
+      "sourceClaim": "인구 손실과 노동 부족·임금 통제에 관한 저자의 인과 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "인구 통계·병원체·임금 변화의 지역차, 1349년 조치와 후속 법령의 구분은 현대 연구 확인 전 미확정이다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XIII",
+          "section": "The Black Death; Rise in wages",
+          "lineStart": 7636,
+          "lineEnd": 7678,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =The Black Death.=]\n\nEdward came back from Calais to England laden with glory and spoil, but\nall his plunder could not pay for the exhaustion which his heavy taxes\nand levies of men had brought upon his realm. The nation, however, was\nblinded to its loss by the glory of Crécy, and the war would probably\nhave been continued with increased energy but for a fearful disaster\nwhich befell the land in the year after the fall of Calais. A great\nplague which men called \"the Black Death\" came sweeping over Europe\nfrom the East, and in the awful havoc which it caused wars were for a\ntime forgotten. England did not suffer worse than France or Italy, yet\nit is calculated that a full half of her population was stricken down\nby this unexampled pestilence. Manor-rolls and bishops' registers bear\nout by their lists in detail the statements which the contemporary\nchroniclers make at large. We note that in this unhappy year, 1348-9,\nmany parishes had three, and some four successive vicars appointed\nto them in nine months. We see how, in small villages of 300 or 400\ninhabitants, thirty or forty families, from their oldest to their\nyoungest member, were swept away, so that their farms reverted to the\nlord of the land for want of heirs. We find monasteries in which every\nsoul, from the prior to the youngest novice, died, so that the house\nwas left entirely desolate. And thus we realize that the chroniclers\nare but telling us sober, unexaggerated facts, when they speak of\nthis as a pestilence such as none had ever seen before, and none is\never like to see again. It seems to have been an eruptive form of\nthat oriental plague which still lingers in Syria and the valley of\nthe Euphrates. It began with great boils breaking out on the groin or\nunder the armpits, culminated in sharp fever and violent retching, and\ngenerally carried off its victims within two days.\n\n[Sidenote: RISE IN WAGES.--THE STATUTE OF LABOURERS.]\n\nIt is probable that England did not recover the loss of population\nwhich it now sustained for a couple of centuries. But if the nation\nwas dreadfully thinned, the results of the plague were not all in\nthe direction of evil. It certainly raised the position of the lower\nclasses by making labour more scarce, and therefore more valuable.\nThe surviving agricultural labourers were able to demand much higher\nwages than before, and it was in vain that Parliament, by the foolish\n_Statute of Labourers_ (1349), tried to prescribe a maximum rate of\nwages for them, and to prevent employers giving more. Legislation\nis unable to prevent the necessary working of the laws of political\neconomy, and in spite of the statute the peasant got his advantage.",
+          "excerptSha256": "95034cc2d53adb8d9563b7f5938f2ba40335b96e125f792779c7f2cd3ae2e679"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XIII · The Black Death; Rise in wages, 원문 7636–7678행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "6e357584-e1a5-5f27-aefb-3a197faa20d1",
+      "cardTitle": "토턴 전투와 요크 왕권의 확립",
+      "era": "장미전쟁기",
+      "sourceClaim": "토턴의 전투·피신·의회 승인 및 저자의 병력 수치 비판.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "병력·사상자 규모, 전투 세부, 의회의 승인 절차에 대한 현대 전문 검토가 필요하다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XVIII",
+          "section": "Battle of Towton; Rule of Edward",
+          "lineStart": 10172,
+          "lineEnd": 10211,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =Battle of Towton.=]\n\nBut the new king had to fight for his crown before he could wear it. He\nand Warwick pursued the queen's army over the Trent, and caught it up\nat Towton, near Tadcaster, in Yorkshire. Here was fought the greatest\nand fiercest of the battles of the Wars of the Roses. Both parties\nwere present in full force; the South and Midlands had rallied round\nEdward IV. in their wrath at the plundering of the Northumbrians. The\nLancastrians of Wales and the Midlands had joined the queen during her\nretreat. The chroniclers assert that the two armies together mustered\nnearly a hundred thousand men--an impossible figure, but one which\nvouches for the fact that Towton saw the largest hosts set against each\nother that ever met on an English battle-field.\n\n[Sidenote: =Slaughter of Lancastrian leaders.=]\n\nThis desperate and bloody fight was waged on a bleak hillside during\na blinding snow-storm, which half hid the combatants from each other.\nIt lasted for a whole March day from dawn to dusk, and ended in the\ncomplete rout of the queen's army. Thousands of the Lancastrians were\ncrushed to death or drowned at the passing of the little river Cock,\nwhich lay behind their line of battle. There fell on the field the Earl\nof Northumberland, the Lords Clifford, Neville, Dacre, Welles, and\nMauley--all the chiefs of the Lancastrian party in the north. Courtney,\nEarl of Devon, and Butler, Earl of Wilts, were captured, and beheaded\nsome time after the fight. No less than forty-two men of knightly rank\nshared their fate, so savage were King Edward and Warwick in avenging\ntheir fathers and brothers who had died at Wakefield.\n\nHenry VI., with his wife and son, and the young Duke of Somerset,\nescaped from the field and fled into Scotland, where they were kindly\nreceived by the regents who ruled that land for the little King James\nIII.\n\n[Sidenote: =Rule of Edward.--Warwick the King-maker.=]\n\nThe carnage in and after Towton assured the crown to the house of\nYork. Edward IV. was able to return to London and summon a Parliament,\nwhich formally acknowledged him as king, recognizing his hereditary\nright, and not going through any form of election. At his command they",
+          "excerptSha256": "981931c434ee95804d9d8d1dabf061b19ad5e44a22d7240d800e812bd78bde47"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XVIII · Battle of Towton; Rule of Edward, 원문 10172–10211행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "da42a9d5-7187-5328-90c1-54216ecb416d",
+      "cardTitle": "헨리 8세와 교회 수장권",
+      "era": "16세기 전반",
+      "sourceClaim": "수장권과 선서·왕위계승·처벌을 연결한 저자의 설명.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "수장령·계승법·반역법의 구분, 선서 문안, 재판·처형 시기의 정확성은 검토 대기다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XXI",
+          "section": "Act of Supremacy; More and Fisher executed",
+          "lineStart": 11852,
+          "lineEnd": 11878,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =Act of Supremacy.--More and Fisher executed.=]\n\nQueen Anne soon bore the king a daughter, the famous Queen Elizabeth,\nand Henry then ordered all his subjects to take an oath repudiating\nall obedience to papal orders, and acknowledging the child as rightful\nheiress of the realm, to the prejudice of his elder daughter Mary.\nThis oath many persons refused to take, since it openly disavowed\nthe Pope's authority over the English Church. The chief of them were\nSir Thomas More, a learned and virtuous statesman who had succeeded\nWolsey as Chancellor, and Fisher, Bishop of Rochester. Henry cast them\ninto prison, and soon after caused Parliament to pass the \"Act of\nSupremacy,\" which declared him \"Supreme Head of the Church of England,\"\nand pronounced any one who denied him this title guilty of high\ntreason. Under this ferocious edict More and Fisher were beheaded, and\nmany other minor personages suffered with them.\n\n[Sidenote: =Henry excommunicated and deposed.=]\n\nPope Paul III., who had just succeeded to Pope Clement's tiara, now\ncaused a Bull to be drawn up against his enemy (Dec. 15, 1535). He not\nonly pronounced King Henry an excommunicated person, but declared him\nto be deposed from his throne. It was now war to the knife between the\nking and the papacy, and the rest of Henry's reign was to be taken up\nwith the struggle. During the twelve years that he had still to live,\nhe spent all his energies in severing every link that still bound\nEngland to Rome.\n",
+          "excerptSha256": "ac8dd2c2bf120b253ba5bf54a98f6d4b93d85cfbeb9be6335957b86c0319da27"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XXI · Act of Supremacy; More and Fisher executed, 원문 11852–11878행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "2d933ff0-8481-583f-9a9a-02958cabba8d",
+      "cardTitle": "엘리자베스 시대의 아르마다와 해협",
+      "era": "1587–1588년",
+      "sourceClaim": "스페인의 침공 준비와 잉글랜드 함대의 구성에 관한 출처 요약.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "함대 편성 수치·명칭·지휘관 역량 평가와 각 사건의 인과관계는 별도 해군사 검토가 필요하다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XXIV",
+          "section": "The Spanish Armada; Comparison of Spanish and English fleets",
+          "lineStart": 13543,
+          "lineEnd": 13592,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =The Spanish Armada.=]\n\nOnly Philip of Spain, who accepted in sober earnest the legacy of her\nrights which Mary had left him, took up the task of revenge, and he had\nalready so many causes to hate Elizabeth, that he did not need this\nadditional provocation to spur him on to attack her. He had already\nbegun to prepare for a great naval expedition against England. All\nthrough the spring and summer of 1587 the ports of Spain, Portugal,\nNaples, and Sicily, were busy in manning and equipping every war-ship\nthat the king could get together. The Duke of Parma, the Spanish\nviceroy in the Netherlands, was also directed to draw off every man\nthat could be spared from the Dutch War, and to be ready to lead them\nacross the Channel the moment that the king's fleet should have secured\nthe Straits of Dover.\n\nBut the great flotilla, the _Invincible Armada_, as the Spaniards\ncalled it, was long in sailing. Ere it was ready, Drake made a bold\ndescent on Cadiz, and burnt no less than 10,000 tons of shipping which\nlay in its harbour. He called this exploit \"singeing the King of\nSpain's beard.\" This disaster caused so much delay that the expedition\nhad to be put off till the next year.\n\nIn the spring of 1588, however, the Armada was at last ready to start.\nIt comprised 130 vessels, half of which were great \"galleons\" of the\nlargest size that were known to the sixteenth century, and carried\n8000 seamen and nearly 20,000 soldiers. But the crews were raw, the\nships were ill-found and ill-provisioned, and, what was most fatal of\nall, the admiral, the Duke of Medina Sidonia, was a mere fair-weather\nsailor, who hardly knew a mast from an anchor. It may be added that the\nvessels were overcrowded with the 20,000 soldiers whom they bore, and\nfor the most part were armed with fewer and smaller cannons than their\ngreat bulk would have been able to carry.\n\n[Sidenote: =Comparison of Spanish and English fleets.=]\n\nNevertheless, the Armada was an imposing force, and in strong hands\nought to have achieved success. For Elizabeth had a very small\npermanent royal navy, and had to rely for the defence of her realm\nmainly on privateers and merchantmen hastily equipped for war service.\nMoreover, her parsimony had depleted the royal arsenals to such an\nextent, that in provisioning and arming their fleet the English were at\nmuch the same disadvantage as their enemies. But, unlike the Spaniards,\nthey had excellent crews, and were led by old captains who had learnt\ntheir trade in long years of exploring and buccaneering across the\nAtlantic--men like Drake, Hawkins, Frobisher, and others whose names\nwe have no space to mention. The command of the whole was given to\nLord Howard of Effingham, a capable and cautious officer, who showed\nhimself worthy of the queen's confidence--confidence that appeared\nall the more striking because he was suspected by many to be a Roman\nCatholic. In the mere number of ships the English fleet which mustered",
+          "excerptSha256": "c145bfdf8f991baf007747fc9581c1430ea544119030a058decc051604e73202"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XXIV · The Spanish Armada; Comparison of Spanish and English fleets, 원문 13543–13592행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "b9006283-5947-5cd6-9d58-f9d7310b8876",
+      "cardTitle": "뉴모델군과 의회군의 재편",
+      "era": "1645년 무렵",
+      "sourceClaim": "기존 의회군의 문제와 상비 병력 재편, 지휘·훈련·종교 동기에 관한 저자의 설명.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "창설 시점의 지휘 체계, 병력 수치, 장교·병사 구성 및 지역별 복무 의무를 확인해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XXVII",
+          "section": "The New-Model Army",
+          "lineStart": 15803,
+          "lineEnd": 15821,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =The \"New-Model Army.\"=]\n\nAt the same time, the Parliament resolved to remodel its army. Much\ninconvenience had arisen from the miscellaneous nature of the forces\nwhich took the field. County militia, London train-bands, voluntary\nlevies, \"pressed men\" forced to the front, local organizations like\nthe army of the \"Associated Counties,\" had served side by side in some\nconfusion. The conscripts were wont to desert, the militia protested\nagainst crossing their county boundary, the train-bands melted back\nto their shops if they were kept too long under arms. To do away with\nthese troubles, the Parliament now created the \"New-Model Army,\" a\nstanding force of some 20,000 picked men, to be led by Sir Thomas\nFairfax, with Cromwell as his second in command. This proved a very\nformidable host. The troops were mainly veterans, all were zealous\nand willing, and the officers were most carefully selected. The\nhorsemen more especially were vastly superior to the old Parliamentary\ntroopers. Cromwell modelled them on his own East-country regiment,\nfilled the ranks with \"men of religion,\" who looked upon the war as a\ncrusade against Popery and tyranny, and drilled his cuirassiers--the",
+          "excerptSha256": "41ab138f895f24eeba759e14c6680cee3adc25d3db076dc5e8ab73ac9a8dbd45"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XXVII · The New-Model Army, 원문 15803–15821행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "22478770-63f2-5db7-a922-ad3364fa520f",
+      "cardTitle": "권리선언과 윌리엄·메리의 왕위",
+      "era": "1689년",
+      "sourceClaim": "선언의 쟁점과 왕위계승·종교 배제·후속 법률화에 관한 출처 요약.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "선언과 권리장전의 문언·날짜·법적 차이, 적용 대상 및 배제의 실제 범위를 독립 대조해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XXXI",
+          "section": "The Declaration of Rights",
+          "lineStart": 17913,
+          "lineEnd": 17941,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =The Declaration of Rights.=]\n\nBefore the throne was formally offered to William and Mary, the\nConvention proceeded to draw up the famous Declaration of Rights. This\ndocument contained a list of the main principles of the constitution\nwhich had been violated by James II., with a statement that they were\nancient and undoubted rights of the English people. It stigmatised\nthe powers claimed by the late king to dispense with or suspend laws\nas illegal usurpations. It stated that every subject had a right to\npetition the king, and should not be molested for so doing--an allusion\nto the case of the seven bishops. It stipulated for the frequent\nsummoning of Parliaments, and for free speech and debate within the\ntwo Houses. The raising and maintenance of a standing army without the\npermission of Parliament was declared illegal. In a clause recalling\nthe most famous paragraph of Magna Carta, it was stated that all\nlevying of taxes or loans without the consent of the representatives of\nthe nation was illegal. The Declaration then proceeded to provide for\nthe succession: William and Mary, or the survivor of them, were first\nto rule; then any children who might be born to them. If Mary died\nchildless, the Princess Anne and her issue were to inherit her sister's\nrights. Finally, any member of the royal house professing Romanism, or\neven marrying a Romanist, was to forfeit all claim to the crown. The\nDeclaration was afterwards confirmed and made permanent as the \"Bill of\nRights.\"\n\nWilliam and Mary swore to observe the Declaration, and were proclaimed\non February 13, 1689, after an interregnum which had lasted two months\nsince the flight of James II. to France.\n",
+          "excerptSha256": "defec230b953d04f1bfde9924c8e87e8a0b0467897866ae5afa2a9e4c8c252d5"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XXXI · The Declaration of Rights, 원문 17913–17941행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "c2a2d03f-bfe5-5138-8531-17cdfc8d5d95",
+      "cardTitle": "1707년 잉글랜드·스코틀랜드 연합",
+      "era": "1707년",
+      "sourceClaim": "연합을 둘러싼 계승·상업·종교·대표 문제의 출처 기반 정리.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "원문이 왕관과 의회의 결합을 함께 말하는 부분, 대표 수·협상 과정·동의와 강압의 정도를 확인해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XXXII",
+          "section": "The Union with Scotland",
+          "lineStart": 18949,
+          "lineEnd": 18979,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =The Union with Scotland.=]\n\nThe only important event of domestic politics which occurred in\nthis part of Anne's reign was the work of the Godolphin-Sunderland\nministry. This was the celebrated \"Union with Scotland\" in 1707, which\npermanently united the crowns and parliaments of the two halves of\nBritain. The separation of the two kingdoms had many disadvantages,\nboth commercial and political, and William III. had wished to unify\nthem. But old local patriotism had frustrated the scheme hitherto,\nand the unfortunate Darien Scheme[50] had caused much bitter feeling\nin William's later years. Early in Anne's reign this took the ominous\nshape of an attempt to change the law of succession to the throne in\nScotland, so that there appeared a grave danger of the separation\nof the two crowns at the queen's death. Fearing this, Godolphin's\nministry made a resolute attempt to bring about a permanent union of\nthe two crowns. An act to that effect was ultimately carried through\nthe Scottish Parliament, but with the greatest difficulty. National\npride, the fear lest England might endeavour to Anglicize the Kirk, the\ndislike of the citizens of Edinburgh to see their city lose its status\nas a capital, the secret hopes of the Jacobites to win the Scottish\ncrown for James the Pretender, worked on one side. On the other the\narguments used were the political and commercial convenience of the\nchange, and the absolute necessity for making sure of the Protestant\nsuccession. When the English Government gave pledges for the security\nof the Kirk, and for the perpetuation of the Scottish law courts and\nuniversities, the majority yielded, and the bill passed (1707). For\nthe future Scotland was represented in the United Parliament of Great\nBritain by 45 members of the Commons and 16 representative peers. The\narms of England and Scotland were blended in the royal shield, and in\nthe new British flag, the \"Union Jack,\" the white saltire of St. Andrew\nand the red cross of St. George were combined.",
+          "excerptSha256": "629346ff794b55cec8c51776333bac4b0f16c6460754f2c9e6390d6149619563"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XXXII · The Union with Scotland, 원문 18949–18979행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "8001704e-1354-5747-a1e3-acf1f24e3643",
+      "cardTitle": "운하·석탄·직물 공업의 북부 잉글랜드",
+      "era": "18세기 후반",
+      "sourceClaim": "교통·광물·기계·직물 생산과 노동 문제를 연결한 저자의 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "기술의 발명·개량·보급 순서, 지역별 산업구조, 다른 나라와의 비교 및 식민지 연결은 현대 연구 대조가 필요하다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XXXVI",
+          "section": "Development of the North; Mechanical inventions",
+          "lineStart": 22547,
+          "lineEnd": 22593,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "We have already spoken of the symptoms of an approaching development\nin our domestic industries which were beginning to be felt toward the\nend of the reign of George II. This movement came to maturity in the\nearlier years of George III. While the king was wrangling with the\nWhigs, and sowing the seeds of the American war, a revolution was\nquietly transforming the character of English trade. Between 1760 and\n1780 a network of canals had been constructed to connect the centres of\nmanufacturing life. The muddy lanes, which England had hitherto called\nroads, began at last to disappear, and a multitude of turnpike Acts\ncreated new highways along which traffic could readily make its way.\nThe fast-travelling coach superseded the lumbering stage-waggons, which\nhad crept from town to town.\n\n[Sidenote: =Development of the North.=]\n\nAlong the new roads and canals rolled a vastly increased volume of\ntrade. The great discovery of the last reign, that iron might be\nsmelted with coal, made Northern England, where coal and iron lie side\nby side, a great manufacturing district instead of a thinly peopled\nrange of moors, and before the century was out Yorkshire and Lancashire\nhad become the most important industrial centres in the realm.\n\n[Sidenote: =Mechanical inventions.=]\n\nA few years after the expansion of the iron industry came the growth\nof textile manufactures, fostered by the new discoveries made by\nWatt and Arkwright. The former, a Glasgow instrument-maker, began\nthe application of steam to the setting of machinery in motion. The\nlatter, a barber at Bolton, perfected the details of that machinery,\nand showed that it was possible to do quickly and accurately with\niron what had hitherto been done slowly and more clumsily with human\nfingers. Where previously the spinner and weaver co-operated with the\nprecarious motive-power of running water, the new mills, working by\nsteam and able to establish themselves wherever coal was to be found,\nmade their appearance. Thus the price of production was enormously\nlessened, and English woven goods became able to underbid any others\nin the markets of the world. For as yet no other nation had learnt\nthe use of steam and machinery, and England had a monopoly of the new\ninventions. Our linen, woollen, and cotton manufactures were increasing\nwith an astounding rapidity, and wealth and population mounted up by\nleaps and bounds. It is true that the new factory system was to lead\nto many social troubles and miseries. In the haste to grow rich, the\nmill-owners took little thought of the bodily or moral welfare of\ntheir workmen. In the new centres of population the lower classes were\ncrowded together in narrow and unhealthy streets, forced to work too\nmany hours a day, and grievously stinted in their wages as competition\ngrew fierce. But these evils were only beginning to develop, while the",
+          "excerptSha256": "1a31a04c0ecba5ae7759ebdcfd12df41af976542afca542d5e1b6afeff524a44"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XXXVI · Development of the North; Mechanical inventions, 원문 22547–22593행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "0eec3d63-2584-53da-9df5-58b8d99a95f7",
+      "cardTitle": "1832년 선거구 재편과 남은 배제",
+      "era": "1832년",
+      "sourceClaim": "선거구 재배분과 재산 기반 참정권, 잔존 배제를 다루는 출처 요약.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "영국 각 지역 법률의 차이, 세부 자격 및 통과·재가 날짜 구분을 확인해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XXXIX",
+          "section": "The Reform Bill carried; Redistribution; Franchise",
+          "lineStart": 25960,
+          "lineEnd": 26010,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =The Reform Bill carried.=]\n\nIn the end of May the bill was sent up to the Lords for the third time.\nThe king promised Lord Grey that if the bill was again rejected, he\nwould create enough new Whig peers to carry it against any opposition.\nThe House of Lords was made aware of this promise, and, to avoid\nforcing the king to this extremity, Wellington and one hundred Tory\npeers solemnly left their seats, and allowed the Act to pass by a\nconsiderable majority (June 4, 1832).\n\n[Sidenote: =The redistribution of seats.=]\n\nThe details of the measure in its final shape deserve a word of notice.\nIt disfranchised all the absolutely rotten boroughs, _i.e._ all places\nwith less than 2000 inhabitants--which were no less than 56 in number.\nIt took away one member each from 30 boroughs more, which had more than\n2000 but less than 4000 residents. This gave 143 seats for distribution\namong the unrepresented or under-represented districts. Of these 65\nwere given to the counties and 78 to new boroughs. In the former case\nthe county was broken up into two or more divisions, each returning two\nmembers. In the latter, five London boroughs[58] and twenty-two large\nplaces (such as Birmingham and Manchester) received two members each,\nwhile twenty-one considerable towns of the second rank got one member\neach.\n\n[Sidenote: =The new borough and county franchise.=]\n\nAt the same time the franchise was made regular all over England.\nPreviously it had varied in the most arbitrary fashion; some towns had\npractically manhood suffrage; in others the corporation had been the\nonly electors. Now, in the boroughs, the power to vote was given to all\nresident occupiers of premises of £10 yearly value--so that all the\nshopkeeping class and the wealthier artisans got the franchise, but\nnot the poorer inhabitants. In the counties freeholders, copyholders,\nand holders of leases for 60 years to the annual value of £10, with\noccupiers paying a yearly rent of £50, were enfranchised. Thus the\nfarmers and yeomen ruled the poll, and the agricultural labourers had\nno voice in the matter. The franchise in Ireland was assimilated to\nthat in England, thus depriving of their power the £2 householders who\nhad hitherto been allowed to vote in that country. In Scotland, on\nthe other hand, the rule was slightly more liberal than in England, as\noccupiers of £10 farms were given the franchise, instead of £50 being\nleft as the limit.\n\nThus the United Kingdom acquired its first representative Parliament.\nBut the new body was as yet representative of the middle classes alone;\nit was thought, wisely enough, that the agricultural labourers and the\ntown poor were as yet unfit to be electors. For thirty years no serious\nattempt to extend the limits of the franchise was made, and fifty\nwere to elapse before simple household suffrage in town and county\nalike was to be made the rule. Meanwhile, the first Reform Bill amply",
+          "excerptSha256": "5c8e03860665096f9b13e7f7279bbf265991b8b6758b74d2dc2a2a70b9124543"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XXXIX · The Reform Bill carried; Redistribution; Franchise, 원문 25960–26010행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "e77f8815-0689-5226-a095-f9e896e24d21",
+      "cardTitle": "곡물법 폐지와 보수당의 분열",
+      "era": "1840년대",
+      "sourceClaim": "곡물 관세·폐지 운동·기근·당 분열을 연결하는 저자의 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "기근의 정치·경제적 원인과 구호정책, 폐지 법령의 단계·시행 시점, 저자의 정당 평가를 검토해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XL",
+          "section": "Corn Laws; Protectionists; Repeal",
+          "lineStart": 26591,
+          "lineEnd": 26646,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "While that question was at its height, England had been going through\nan unexpected political crisis, caused by Peel's sudden conversion\nto complete Free Trade. His budget of 1842 had shown that all his\ntendencies lay in that direction; but he had not yet touched the one\npoint which was certain to bring him into collision with the majority\nof his own party--the question of Free Trade in corn. Since England had\nbecome a great manufacturing country, with a population that advanced\nby leaps and bounds, it was daily growing more impossible to feed the\nnew mouths with English corn alone. But the heavy duties on imported\ngrain, which survived from the last century, only allowed the foreign\nwheat to come in at an exorbitant price. Hence the poor man's loaf\nwas always dear. Farmers and landlords profited by this protection of\nEnglish agriculture, but, since the landed interest had ceased to be\nthe most important element in the state, the Corn Laws injured many\nmore persons than they benefited. For the last five or six years a\nvigorous agitation in favour of their abolition had been in progress,\nwhose guiding spirit was Richard Cobden, \"the prophet of Free Trade.\"\nIt seemed more likely that the Whigs would be converted by him than\nthe Conservatives, for the backbone of Peel's majority in the House of\nCommons was composed of the county members, who represented the farmers\nand landlords of England.\n\n[Sidenote: =The Protectionists.--Disraeli and Lord G. Bentinck.=]\n\nBut in 1845, a famine in Ireland, caused by the failure of the\npotato-crop, called for a large importation of corn to feed the\nstarving Irish cottiers. Peel proposed to suspend the Corn Laws as a\ntemporary measure, to allow of the introduction of the needed supply\nof food at the cheapest possible rate. His colleagues in the ministry\nresolved to support the proposal, but they proved unable to persuade\nthe whole of their party to follow them. About a hundred members of the\nHouse of Commons--the representatives of the corn-growing shires and\nthe old Tory families--refused to be convinced by Peel's arguments.\nThey were headed by two men of mark, neither of whom had as yet been\ntaken very seriously by the House. The first was Lord George Bentinck,\na younger son of the great ducal house of Portland, who had hitherto\nbeen seen more frequently on the racecourse than at St. Stephen's, but\nwho showed an unexpected ability when he proceeded to attack his chief.\nThe second was Benjamin Disraeli, the son of a Jewish man of letters,\nthen known as a young and volatile member of the House, who combined\nhigh Tory notions on Church and State with extreme Radical views on\ncertain social questions. But he had been hitherto more notorious\nfor his eccentric and gorgeous dress, and his curious high-flown and\nbombastic novels, than for any serious political doings.\n\n[Sidenote: =The Corn Laws repealed.=]\n\nWhen Peel brought forward his bill for abolishing the Corn Laws, he\nfound himself bitterly opposed by Bentinck and Disraeli and their\nprotectionist followers, who scouted him as a turncoat and a traitor\nto the Tory cause. He carried the abolition of the obnoxious duties by\nthe aid of the votes of his enemies, the Whigs (May 15, 1846). A month\nlater the angry Protectionists took their revenge; on the question of\nan Irish coercion bill, Bentinck and Disraeli led some scores of Tory\nmembers into the opposition lobby, and left the prime minister in a\nminority of seventy-three (June 25, 1846).",
+          "excerptSha256": "f7adc52a2e4b2cfe9d57b74620dbb9a10eeaedfabbba03381a39182a9907581c"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XL · Corn Laws; Protectionists; Repeal, 원문 26591–26646행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "e6d1df79-394c-51d6-a438-e9511ef4774d",
+      "cardTitle": "빅토리아의 죽음과 저자의 시대 평가",
+      "era": "1837–1901년",
+      "sourceClaim": "사망·즉위 정보와 동시대 저자의 헌정·도덕적 평가.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "입헌군주로서 실제 권한, 사회집단별 평가와 식민지 경험은 별도 연구가 필요하다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XLIII",
+          "section": "Death of Queen Victoria",
+          "lineStart": 29252,
+          "lineEnd": 29269,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =Death of Queen Victoria.=]\n\nIt was a source of regret to every loyal inhabitant of the British\ndominions that the aged sovereign under whom the war began did not\nsurvive to see its victorious termination, and to close her eyes on\na world at peace. But Queen Victoria, whose powers had been slowly\nfailing for the last year of her life, only just lived to see the new\ncentury, and expired on the 22nd of January, 1901. She was followed\nto the grave by the regrets of a people who realized fully what they\nowed to one who had been the model of constitutional sovereigns, and\nhad set so high the standard of public as well of domestic duty.\nPersonally she had done more to secure the perpetuation of the British\nmonarchy than even the most sanguine observer could have hoped, when\nshe came to the throne, an unexperienced girl of eighteen, in the year\n1837. Surveying her eventful reign of sixty-four years--the longest in\nEnglish history--with all its progress and endeavour, we trust that our\ndescendants may look upon the \"Victorian Age\" as not the least glorious\nperiod in our country's annals.",
+          "excerptSha256": "c4f4337b1ecdafa635bd9f903f1ec5c04b9dbc50c09e4cfbccfb2aceba037b8d"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XLIII · Death of Queen Victoria, 원문 29252–29269행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "ef3f321a-299d-521a-baa4-f7df32128589",
+      "cardTitle": "인도 통치의 왕실 정부 이관",
+      "era": "1858년 및 이후",
+      "sourceClaim": "통치권 이관과 저자의 이후 인도 평가를 분리한 출처 요약.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "회사 존속·해산 시점, 통치 구조 변화, 반란 명칭, 기근 피해 수치 및 식민 지배의 평가를 독립 검토해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XLIV",
+          "section": "Abolition of the East India Company; India under the Crown",
+          "lineStart": 29872,
+          "lineEnd": 29894,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "[Sidenote: =Abolition of the East India Company.=]\n\nThe English nation were convinced that something must be done to\nreform the administration of India, and the East India Company was\nabolished by Act of Parliament in 1858, the whole administration, civil\nand military, of the peninsula being now taken over by the Queen's\ngovernment. To mark that no blame was thrown on the Governor-General,\nLord Canning, whose conduct all through the war had been most cool and\ncourageous, he was made the first viceroy of the new empire.\n\n[Sidenote: =India under the rule of the Crown.=]\n\nSince the Mutiny the annals of India have been comparatively peaceful,\nand hardly a shot has been fired within the bounds of the peninsula.\nThe history of the last thirty years has been a record of growing\nprosperity, of the development of trade and industries, the building of\nrailways and canals, and the marvellous increase of sea-borne trade.\nSince the Suez Canal has brought India so close to Europe, the arable\nland is everywhere encroaching on the jungle, and the main difficulty\nof the future appears likely to be the overgrowth of population in the\nthickly settled districts, where, more than once, a year of dearth has\nslain thousands and brought tens of millions to the edge of starvation.\nThe terrible Madras famine of 1877, the worst of its kind, is said to",
+          "excerptSha256": "adc026d782f091175e13d9085eeb6c1754558ba2644d68571ccc2c7a992cc153"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), XLIV · Abolition of the East India Company; India under the Crown, 원문 29872–29894행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "327ba3e6-a341-5e4e-adc1-5cdfbc04587a",
+      "cardTitle": "출처와 시대 범위: 오먼의 1904년판",
+      "era": "고대–1902년",
+      "sourceClaim": "표제와 서문이 말하는 판본·독자·종점에 관한 확인.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "현대 자료의 확보와 독립 역사 감수는 보류 상태다. 카드 선정이 원서 전체의 균형 잡힌 재현이라는 보장은 없다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "Front matter",
+          "section": "Title page; Preface; Ninth-edition preface",
+          "lineStart": 50,
+          "lineEnd": 143,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "\n\nA HISTORY OF ENGLAND.\n\nby\n\nCHARLES OMAN,\n\nFellow of All Souls' College,\nand Deputy-Professor of Modern History in the University of Oxford;\n\nAuthor of\n\"Warwick the Kingmaker;\" \"England in the Nineteenth Century;\"\n\"A History of Greece;\" \"The Art of War in the Middle Ages;\"\n\"The History of the Peninsular War,\" etc.\n\nEleventh Edition.\n\n\n\n\n\n\n\nLondon:\nEdward Arnold.\n1904.\n\nPrinted by\nWilliam Clowes and Sons, Limited,\nLondon and Beccles.\n\n\n\n\nPREFACE\n\n\nWhen adding one more to the numerous histories of England which have\nappeared of late years, the author feels that he must justify his\nconduct. Ten years of teaching in the Honour School of Modern History\nin the University of Oxford have convinced him that there may still be\nroom for a single-volume history of moderate compass, which neither\ncramps the earlier annals of our island into a few pages, nor expands\nthe last two centuries into unmanageable bulk. He trusts that his\nbook may be useful to the higher forms of schools, and for the pass\nexaminations of the Universities. The kindly reception which his\n_History of Greece_ has met both here and in America, leads him to hope\nthat a volume constructed on the same scale and the same lines may be\nnot less fortunate.\n\nHe has to explain one or two points which may lead to criticism. In\nOld-English names he has followed the correct and original forms,\nsave in some few cases, such as Edward and Alfred, where a close\nadherence to correctness might savour of pedantry. He wishes the maps\nto be taken, not as superseding the use of an atlas, but as giving\nboundaries, local details, and sites in which many atlases will be\nfound wanting.\n\nFinally, he has to give his best thanks to friends who were good\nenough to correct certain sections of the book--especially to Sir\nWilliam Anson, Warden of All Souls' College, Mr. C. H. Turner of\nMagdalen College, and Mr. F. Haverfield of Christ Church. But most of\nall does he owe gratitude to the indefatigable compiler of the Index,\nwhose hands made a burden into a pleasure.\n\n  OXFORD,\n  _January 25, 1895_.\n\n\n\n\nPREFACE TO THE NINTH EDITION.\n\n\nThe fact that this book has passed through nine editions in seven years\nseems to show that it was not altogether written in vain, and has\nanswered the purpose for which it was written.\n\nThe first edition carried the history of Great Britain to the year\n1885. I have now prolonged it to the year 1902. The termination\nof the long reign of Queen Victoria, the end of the century, and\nthe long-delayed pacification of South Africa, appeared to provide\nlandmarks to which the narrative ought to be extended.\n\nI have to thank many kind correspondents for corrections and\nsuggestions made during the last seven years. They will note that their\nhints have not been neglected. A special word of thanks is due to the\nRev. A. Beaven of Leamington, for a very copious and useful list of\n_corrigenda_, of which I have made full use.\n\n  OXFORD,\n  _September 15, 1902_.\n",
+          "excerptSha256": "b29b6e8755dffe73888c521d17151963fdbb3fea5302df32804c3f944edddb57"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), Front matter · Title page; Preface; Ninth-edition preface, 원문 50–143행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    },
+    {
+      "cardId": "b8e65dd0-9f66-55a7-b55b-22ea7a584f4f",
+      "cardTitle": "검토 상태와 원문 편향 취급",
+      "era": "연구 편집 안내",
+      "sourceClaim": "원문에 나타나는 인종 분류와 제국주의적 평가를 인지한 편집 지침이며, 역사적 사건 주장이 아니다.",
+      "cardStatementType": "editorial-policy-with-source-examples",
+      "reviewStatus": "source-aligned; independent-historical-review-pending",
+      "reviewPending": "편집 정책 카드다. 출처 구절은 주의가 필요한 표현의 사례이지 정책을 원저에 귀속하는 근거가 아니다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "I; XLIV",
+          "section": "Ethnic hierarchy; colonial progress narrative",
+          "lineStart": 377,
+          "lineEnd": 410,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "were in the lowest grade of savagery, had not even learnt to till the\nsoil, and lived by fishing and hunting. They dwelt in rude huts, or\neven in the caves from which they had driven out the bear and the wolf.\n\n[Sidenote: =The Celts, Gael, and Britons.=]\n\nLong after these primitive settlers, the first wave of the Celts,\nseven or eight centuries before Christ, came flooding all over Western\nEurope, and drove the earlier races into nooks and corners of the\nearth. They crossed over into Britain after overrunning the lands\non the other side of the Channel, and gradually conquered the whole\nisland, as well as its neighbour, Erin. The Celts came in two waves;\nthe first, composed of the people who were called Gael, seem to have\nappeared many generations before the second, who bore the name of\nBritons.\n\nThe Gael are the ancestors of the people of Ireland and the Scotch\nHighlands, while the Britons occupied the greater part of England and\nWales, and are the progenitors of the Welsh of to-day. The old savage\nrace who held the islands before the Celts appeared, were partly\nexterminated and partly absorbed by the new-comers. The Celts on the\neastern side of the island remained unmixed with their predecessors;\nbut into the mountainous districts of the west they penetrated in less\nnumbers, and there the ancient inhabitants were not slain off, but\nbecame the serfs of their conquerors. Thus the eastern shore of Britain\nbecame a purely Celtic land; but in the districts along the shore of\nthe Irish Sea, where the Gael bore rule, the blood of the earlier\nrace remained, and the population was largely non-Celtic. There are\nto this day regions where the survival of the ancient inhabitants can\nbe traced by the preponderance of short stature and dark hair among\nthe inhabitants. Many such are to be found both in South Wales and in\nthe Highlands of Scotland. The Gael, therefore, were of much less pure\nblood than the later-coming Britons.\n",
+          "excerptSha256": "d66c34567148fca596d6d2332feb32ac7cbebeae765a99314c1cdcbab84606dd"
+        },
+        {
+          "filename": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+          "sourceSha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+          "chapter": "XLIV",
+          "section": "India under the rule of the Crown",
+          "lineStart": 29883,
+          "lineEnd": 29894,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; original bytes preserved",
+          "excerpt": "\nSince the Mutiny the annals of India have been comparatively peaceful,\nand hardly a shot has been fired within the bounds of the peninsula.\nThe history of the last thirty years has been a record of growing\nprosperity, of the development of trade and industries, the building of\nrailways and canals, and the marvellous increase of sea-borne trade.\nSince the Suez Canal has brought India so close to Europe, the arable\nland is everywhere encroaching on the jungle, and the main difficulty\nof the future appears likely to be the overgrowth of population in the\nthickly settled districts, where, more than once, a year of dearth has\nslain thousands and brought tens of millions to the edge of starvation.\nThe terrible Madras famine of 1877, the worst of its kind, is said to",
+          "excerptSha256": "1a477d6b889ac639e8cf1125c10710133360562df1e6ca65daaa71a2e3801a6a"
+        }
+      ],
+      "displayCitation": "출전: Charles Oman, 《A History of England》(1904), I; XLIV · Ethnic hierarchy; colonial progress narrative, 원문 377–410행. [원문](https://www.gutenberg.org/cache/epub/47753/pg47753.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/47753/pg47753.txt"
+    }
+  ],
+  "validation": {
+    "worldSchemaKeys": [
+      "genre",
+      "worldId",
+      "name",
+      "description",
+      "cards"
+    ],
+    "cardSchemaKeys": [
+      "id",
+      "title",
+      "body",
+      "cardType"
+    ],
+    "cardCount": 21,
+    "evidenceCardCount": 21,
+    "allIdsUuidV5": true,
+    "exactExcerptAndHashChecks": "validated at creation against unchanged source file",
+    "fullHistoricalFactCheck": false
+  }
+}

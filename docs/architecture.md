@@ -2,7 +2,7 @@
 
 [메인 README](../README.md) · [문서 목록](README.md)
 
-> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works와 world-studios exact·하위 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. #132의 관계 정본은 Neo4j 하나이며 DEC-51로 회차별 연결로 기록·조회한다(서버·MCP 소스 구현). 관계 이력 복원·과거 snapshot·전체 세계관 복원은 지원하지 않는다. 아래 WorldStudio 절은 현재 계약으로 갱신했다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. Operations는 loopback 8082의 독립 공지·이벤트·문의/답변 CRUD와 전용 서비스 토큰 인증, operations schema/Flyway/JPA 설정을 소스 구현했고, 신고·회원·관리자·고객지원 문의는 회원 Bearer API로 프런트·Core·Content와 연결했다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
+> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works와 world-studios exact·하위 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. #132의 관계 정본은 Neo4j 하나이며 DEC-51로 회차별 연결로 기록·조회한다(서버·MCP 소스 구현). 관계 이력 복원·과거 snapshot·관계를 포함한 전체 세계관 복원은 지원하지 않는다(카드만 초안으로 되돌리기는 2026-11-17 사용자 결정으로 지원). 아래 WorldStudio 절은 현재 계약으로 갱신했다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. Operations는 loopback 8082의 독립 공지·이벤트·문의/답변 CRUD와 전용 서비스 토큰 인증, operations schema/Flyway/JPA 설정을 소스 구현했고, 신고·회원·관리자·고객지원 문의는 회원 Bearer API로 프런트·Core·Content와 연결했다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
 
 ## 운영 서비스의 현재 범위
 
@@ -88,7 +88,7 @@ Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 �
 
 기존 `worldstudio` V1의 12개 테이블·SQL·데이터를 보존하고 V2로 관계 내용 없는 `relationship_state`를 추가한다. PG는 카드 원문/버전·소유권·UUID와 요청 상태만, Neo4j는 현재 관계 내용만 소유한다. 짧은 PG prepare → PG 밖 Neo4j CAS → 짧은 PG finalization 순서이며 분산 원자성을 가정하지 않는다. graph token은 이력 버전이 아니다. pending은 원래 key/입력으로만 재시도하며 탭을 잃은 뒤 자동 복구할 수 없다. 미전환·미완료·불일치는 빈 관계 성공으로 대체하지 않는다.
 
-관계 변경 이력·과거 snapshot·시점 조회·복원은 최신 사용자 결정으로 제외했다(DEC-27·33의 관계만의 MVP 예외). 기존 카드 revision은 `relationships=null` / `not_recorded`이고 전체 세계관 restore는 명시적 미지원이다. 기존 인물·설정·원고 버전과 과거 SQL/데이터는 유지한다.
+관계 변경 이력·과거 snapshot·시점 조회·복원은 최신 사용자 결정으로 제외했다(DEC-27·33의 관계만의 MVP 예외). 기존 카드 revision은 `relationships=null` / `not_recorded`이고 관계를 포함한 전체 세계관 restore는 명시적 미지원이다(확정 버전의 카드만 초안으로 되돌리는 restore는 2026-11-17 사용자 결정으로 지원하며 관계는 그대로 둔다, [계약](design/worldstudio-independent-schema.md#확정-버전으로-카드-되돌리기와-세계관-삭제-2026-11-17)). 기존 인물·설정·원고 버전과 과거 SQL/데이터는 유지한다.
 
 서버는 Content DataSource와 studio-only EntityManager/TransactionManager로 validate만 한다. 명시 migration main은 Content 이미지에 있으며 실제 DB 적용·기존 관계 변환은 별도 승인 대상이다. opt-in Neo4j profile과 격리 CI 서비스는 소스에 연결했지만 실제 이관·hosted CI·배포·브라우저 검증은 대기다. API·설정·실패/재시도 한계는 [현재 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132), 기존 배포 승인은 [배포 실행 계약](deployment/worldstudio-v1-rollout.md)을 따른다.
 
@@ -115,7 +115,7 @@ MinIO는 local·개발 배포 compose에 항상 포함된 소스 빌드 runtime�
 
 원고의 `[[image:<UUID>]]` 참조가 삽입 위치와 불변 bytes를 연결합니다. Core는 동일 작품·회차의 참조만 저장하고 공개 download는 기존 공개 회차 본문에 실제 포함된 marker로 제한합니다. inherited 원고는 기존 고정 본문의 참조만 허용하며 새로운 Fork 공유 정책은 추가하지 않습니다. 표지 변경/삭제의 미참조 object는 모호한 DB commit 때 기존 bytes 손실을 피하도록 비공개 버킷에 남을 수 있고 자동 정리 worker는 없습니다. 상세 [표지·원고 계약](../backend/core-api/README.md#작품-표지원고-이미지-92)을 따릅니다.
 
-Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaRepository`가 실제 UUID 대상으로 인증 multipart/bytes를 전송합니다. View에서 Repository를 호출하지 않으며 이미지 Blob URL은 교체·이탈 때 해제합니다. `/content`의 생성 표지·기존 표지·설정 첨부 및 `/studio/{UUID}`의 커서 이미지·저장 버전 미리보기·회차 이미지 목록/대체 텍스트/본문에서 빼기·서버 TXT·EPUB 내보내기([원고 가져오기·내보내기 계약](design/manuscript-import-export-contract.md))에 연결하고 기존 이름 기반 데모에는 서버 미저장 안내를 둡니다. 실패한 표지/첨부 요청은 기존 데이터와 생성된 작품을 보존하며 성공 fallback을 두지 않습니다.
+Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaRepository`가 실제 UUID 대상으로 인증 multipart/bytes를 전송합니다. View에서 Repository를 호출하지 않으며 이미지 Blob URL은 교체·이탈 때 해제합니다. `/content`의 생성 표지·기존 표지·설정 첨부 및 `/studio/{UUID}`의 커서 이미지·저장 버전 미리보기·회차 이미지 목록/대체 텍스트/다운로드/본문에서 빼기·서버 TXT·EPUB 내보내기([원고 가져오기·내보내기 계약](design/manuscript-import-export-contract.md))에 연결하고 기존 이름 기반 데모에는 서버 미저장 안내를 둡니다. 실패한 표지/첨부 요청은 기존 데이터와 생성된 작품을 보존하며 성공 fallback을 두지 않습니다.
 
 ## AI Service
 
@@ -126,8 +126,8 @@ Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaR
 
 ## 실행·보안 경계
 
-공통 `infrastructure/docker-compose.yaml`은 web·Core·Content·AI 네 앱의 공통 환경·내부 포트를 정의하며 단독 실행하지 않습니다.
-루트 `compose.yaml`은 base + `docker-compose.local.yaml`을 include합니다. 루트 `.env`를 자동으로 읽는 `docker compose up -d --build`는 네 앱을 기존 runtime Dockerfile로 빌드하고 내부 PostgreSQL·Mailpit을 함께 사용합니다.
+공통 `infrastructure/docker-compose.yaml`은 web·Core·Content·AI 네 앱의 공통 환경·내부 포트를 정의하며 단독 실행하지 않습니다. AI와 같은 이미지의 `ai-worker`는 회차 원고 전처리 Celery 큐(RabbitMQ, 동시성 1)를, `ai-jobs-worker`는 작업 큐(`jobs`: 회귀 평가·운영 정기 작업, 동시성 `AI_JOBS_CONCURRENCY` 기본 4)를 실행합니다. 정기 작업의 일정·실행 기록은 운영 서비스가 맡고 실행만 워커가 운영 내부 API를 불러 합니다([계약](design/operations-funnel-credit-contract.md)).
+루트 `compose.yaml`은 base + `docker-compose.local.yaml`을 include합니다. 루트 `.env`를 자동으로 읽는 `docker compose up -d --build`는 네 앱을 기존 runtime Dockerfile로 빌드하고 내부 PostgreSQL·Mailpit을 함께 사용합니다. 같은 `compose.yaml`이 `docker-compose.langfuse.yaml`을 별도 include 항목으로 불러 Langfuse(웹·worker와 자체 저장소)를 같은 프로젝트·네트워크에서 항상 함께 올립니다(끄는 옵션 없음, `LANGFUSE_*` 필수).
 base + `docker-compose.dev.yaml`은 게시된 `:develop` 앱 이미지와 같은 내부 PostgreSQL·Mailpit 구조를 사용하며 앱 소스 build·mount는 없습니다. local/dev의 프로젝트·DB volume은 서로 격리합니다. 기존 외부·공유 DB의 내부 DB 전환과 데이터 이관은 실행하지 않았으며 개발 CD에는 별도 전환 승인이 필요합니다.
 base + `docker-compose.prod.yaml`은 `:main` 앱 이미지와 외부 PostgreSQL·SMTP를 사용하는 운영 설정 준비입니다. 현재 게시 workflow는 develop 전용이므로 main 이미지 가용성·실제 게시·배포는 확인되지 않았습니다.
 선택 첨부 overlay는 base + local 뒤에 추가하는 로컬 MinIO 구성입니다. 소스 빌드 web은 nginx 정적 이미지이지 HMR이 아니며, hot reload는 각 서비스의 기본 네이티브 명령을 사용합니다.

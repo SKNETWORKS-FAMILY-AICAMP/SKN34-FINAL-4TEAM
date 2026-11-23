@@ -1,163 +1,106 @@
 import { type RefObject, useEffect, useRef, useState } from 'react'
-import { parseHashtags, workKindLabel, type Work, type WorkTaxonomy } from '../../../../domain/entities/content'
+import { canAddSuggestedTag, canPickSuggestedGenre, parseHashtags, workKindLabel, type Work, type WorkTagSuggestion, type WorkTaxonomy } from '../../../../domain/entities/content'
 import type { MediaTarget } from '../../../../domain/entities/media'
 import { AiCoverButton } from '../../../shared/AiCoverButton'
-import { Go } from '../../../shared/Go'
 import { StoredImage } from '../../../shared/media/MediaPanel'
 import { useMediaViewModel } from '../../../shared/media/useMediaViewModel'
 import { TaxonomyFields } from './TaxonomyFields'
 
-type Section = 'info' | 'cover' | 'policy'
+/** 지금 편집 중인 영역. 한 번에 한 영역만 편집한다: 히어로의 작품 정보·표지와 운영 설정 탭의 분기 정책이 같은 상태를 나눠 쓴다(호출 측 WorkManagement가 가진다). */
+export type WorkEditing = 'info' | 'cover' | 'policy' | null
 
 type Props = {
   work: Work
   /** 요청·표지 전송 중에는 편집을 시작하거나 저장하지 못한다. */
   locked: boolean
   busy: boolean
-  /** 지금 작성 중인 회차 번호 */
-  nextNo: number
+  /** 작성 중인 초안 수. null이면 아직 읽는 중이라 자리만 보이고, undefined이면 읽지 못해 항목을 감춘다(0으로 채우지 않는다). */
+  draftCount?: number | null
   /** 작품 생성 직후 표지 업로드가 끝나면 올라가, 표지 목록을 다시 읽게 한다. */
   coverRevision: number
   onMediaBusy: (busy: boolean) => void
   /** taxonomy에는 서버 값과 달라진 장르·해시태그만 담긴다(없으면 서버가 유지한다). */
   onSaveInfo: (title: string, summary: string, taxonomy: WorkTaxonomy) => Promise<boolean>
-  onSavePolicy: (allowFork: boolean, allowForkPublication: boolean) => Promise<boolean>
-  onStopFork: () => Promise<boolean>
-  onDeleteFork: () => Promise<boolean>
+  /** 저장된 제목·소개와 발행 회차로 장르·해시태그 후보를 받는다. 실패하면 null이며 사유는 화면 위 알림이 보인다. */
+  onSuggestTags: () => Promise<WorkTagSuggestion | null>
+  editing: WorkEditing
+  onEditingChange: (next: WorkEditing) => void
 }
 
 /**
- * 작품 관리 화면 위쪽의 소설 상세형 히어로(표지·제목·장르·유형·공개 상태·소개·해시태그)와 그 아래 카드
- * (원작은 분기 정책, 분기 작품은 포크 정보).
- * 작품 정보(제목·소개·장르·해시태그), 표지, 분기 정책은 영역마다 '편집' 버튼이 하나씩 있고 저장/취소로 바꾼다. 한 번에 한 영역만 편집한다.
+ * 작품 관리 화면 위쪽의 소설 상세형 히어로(표지·제목·장르·유형·공개 상태·소개·해시태그·통계). 모든 탭 위에 있어 쉴 때는 88px 표지 썸네일 한 덩어리로 줄고(.ep-hero-compact),
+ * 작품 정보·표지를 편집하는 동안만 옛 큰 히어로로 펴져 폼이 넓은 칸을 쓴다. 분기 정책(포크 정보)·작품 삭제는 운영 설정 탭의 WorkOperations로 옮겼다.
+ * 작품 정보(제목·소개·장르·해시태그)와 표지는 영역마다 '편집' 버튼이 하나씩 있고 저장/취소로 바꾼다. 한 번에 한 영역만 편집한다(상태는 호출 측이 갖는다).
  * 저장이 성공해야 읽기 표시로 돌아가며, 실패하면 폼과 입력을 그대로 둔다(오류는 화면 위 알림이 보인다).
  * 작품 유형은 등록 때 정해져 읽기 전용이고, 공개 상태는 회차 공개 흐름이 정하므로 읽기 전용이다.
- * 원고 작성은 이 화면이 아니라 집필실(`/studio/{id}`)에서 하므로 히어로의 '회차 작성하기'가 그리로 보낸다.
+ * 원고 작성은 이 화면이 아니라 집필실(`/studio/{id}`)에서 하므로 사이드바의 '회차 작성하기'(WorkActions)가 그리로 보낸다.
  * 작품이 바뀌면 호출 측이 key로 새로 만든다.
  */
-export function WorkOverview({ work: w, locked, busy, nextNo, coverRevision, onMediaBusy, onSaveInfo, onSavePolicy, onStopFork, onDeleteFork }: Props) {
-  const [editing, setEditing] = useState<Section | null>(null)
+export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision, onMediaBusy, onSaveInfo, onSuggestTags, editing, onEditingChange }: Props) {
   const infoButton = useRef<HTMLButtonElement>(null)
   const coverButton = useRef<HTMLButtonElement>(null)
-  const policyButton = useRef<HTMLButtonElement>(null)
-  const closed = useRef<Section | null>(null)
+  const closed = useRef<'info' | 'cover' | null>(null)
   // 저장·취소로 폼이 사라지면 편집을 연 버튼으로 초점을 돌려 키보드 위치를 잃지 않게 한다.
   useEffect(() => {
     const section = closed.current
     if (editing !== null || !section) return
-    const button = section === 'info' ? infoButton : section === 'cover' ? coverButton : policyButton
+    const button = section === 'info' ? infoButton : coverButton
     button.current?.focus()
     closed.current = null
   }, [editing])
   const close = () => {
-    closed.current = editing
-    setEditing(null)
+    closed.current = editing === 'info' || editing === 'cover' ? editing : null
+    onEditingChange(null)
   }
   const blocked = locked || editing !== null
+  // 히어로 안의 폼(작품 정보·표지)을 편집하는 동안만 펴 준다. 분기 정책 편집은 운영 설정 탭 안에서 열려 히어로를 건드리지 않는다.
+  const expanded = editing === 'info' || editing === 'cover'
   const kind = workKindLabel(w)
   return (
-    <>
-      <section className='whero ep-hero'>
-        <OwnCover
-          key={`${w.id}-${coverRevision}`}
-          workId={w.id}
-          editing={editing === 'cover'}
-          blocked={blocked}
-          disabled={busy}
-          editRef={coverButton}
-          onBusy={onMediaBusy}
-          onEdit={() => setEditing('cover')}
-          onClose={close}
-        />
-        <div className='ep-hero-main'>
-          <div className='ep-title-row'>
-            <h1 className={editing === 'info' ? 'sr-only' : undefined}>{w.title}</h1>
-            {editing !== 'info' && (
-              <button ref={infoButton} type='button' className='btn sm' disabled={blocked} onClick={() => setEditing('info')}>
-                작품 정보 편집
-              </button>
-            )}
-          </div>
-          <div className='ep-chips'>
-            {!!w.genres?.length && <span className='g'>{w.genres.join(' · ')}</span>}
-            {kind && <span className='chip'>{kind}</span>}
-            <span className={'chip ' + (w.visibility === 'public' ? 'ok' : '')}>
-              {w.visibility === 'public' ? '공개 중' : '비공개 작품'}
-            </span>
-          </div>
-          {editing === 'info'
-            ? <InfoForm key={w.revision} work={w} locked={locked} onSave={onSaveInfo} onClose={close} />
-            : w.summary
-            ? <p className='sum'>{w.summary}</p>
-            : <p className='sum ep-muted'>당신의 이야기를 한 문장씩 채워 보세요.</p>}
-          {!!w.hashtags?.length && <div className='hashes'>{w.hashtags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
-          <div className='stats'>
-            <span>공개 회차 <b>{w.episodes.length}</b>화</span>
-            {w.hasWritingEpisode !== false && <span>작성 중 <b>{nextNo}</b>화</span>}
-          </div>
-          <div className='acts'>
-            <Go to={`/studio/${w.id}`} className='btn pri'>회차 작성하기</Go>
-          </div>
+    <section className={'whero ep-hero' + (expanded ? '' : ' ep-hero-compact')}>
+      <OwnCover
+        key={`${w.id}-${coverRevision}`}
+        workId={w.id}
+        editing={editing === 'cover'}
+        blocked={blocked}
+        disabled={busy}
+        editRef={coverButton}
+        onBusy={onMediaBusy}
+        onEdit={() => onEditingChange('cover')}
+        onClose={close}
+      />
+      <div className='ep-hero-main'>
+        <div className='ep-title-row'>
+          <h1 className={editing === 'info' ? 'sr-only' : undefined}>{w.title}</h1>
+          {editing !== 'info' && (
+            <button ref={infoButton} type='button' className='btn sm' disabled={blocked} onClick={() => onEditingChange('info')}>
+              작품 정보 편집
+            </button>
+          )}
         </div>
-      </section>
-      {w.source
-        ? (
-          <section className='tcard ep-card' aria-labelledby='ep-fork-title'>
-            <div className='ep-sec-head'>
-              <h2 id='ep-fork-title'>포크 정보</h2>
-            </div>
-            <dl className='ep-facts'>
-              <div>
-                <dt>원작</dt>
-                <dd>{`「${w.source.title}」 ${w.source.episode}화 · 버전 ${w.source.version}에서 분기`}</dd>
-              </div>
-              {w.source.direction && (
-                <div>
-                  <dt>분기 방향</dt>
-                  <dd>{w.source.direction}</dd>
-                </div>
-              )}
-            </dl>
-            {/* 한 줄 동작 영역: 왼쪽 원작으로 가기(보조), 공개 중일 때만 공개 중단, 오른쪽 끝 위험 외곽선 삭제. */}
-            <div className='ep-card-actions'>
-              {w.source.deleted
-                ? <p className='small muted'>삭제된 원작이라 이동할 수 없어요.</p>
-                : <Go to={`/work/${w.source.workId}`} className='btn sm'>원작으로 가기</Go>}
-              {w.visibility === 'public' && (
-                // 공개 중단은 작품을 다시 읽어 revision이 오르고 편집 폼이 새로 시작하므로, 편집 중에는 잠가 저장하지 않은 입력이 사라지지 않게 한다.
-                <button type='button' className='btn sm' disabled={blocked} onClick={() => void onStopFork()}>포크 공개 중단</button>
-              )}
-              <button type='button' className='btn sm ep-danger' disabled={locked} onClick={() => void onDeleteFork()}>포크 삭제</button>
-            </div>
-          </section>
-        )
-        : (
-          <section className='tcard ep-card' aria-labelledby='ep-policy-title'>
-            <div className='ep-sec-head'>
-              <h2 id='ep-policy-title'>분기 정책</h2>
-              {editing !== 'policy' && (
-                <button ref={policyButton} type='button' className='btn sm' disabled={blocked} onClick={() => setEditing('policy')}>
-                  분기 정책 편집
-                </button>
-              )}
-            </div>
-            {editing === 'policy'
-              ? <PolicyForm key={w.revision} work={w} locked={locked} onSave={onSavePolicy} onClose={close} />
-              : (
-                <dl className='ep-facts'>
-                  <div>
-                    <dt>분기 만들기</dt>
-                    <dd>{w.allowFork ? '허용' : '허용 안 함'}</dd>
-                  </div>
-                  <div>
-                    <dt>분기 작품 최초 공개</dt>
-                    <dd>{w.allowForkPublication ? '허용' : '허용 안 함'}</dd>
-                  </div>
-                </dl>
-              )}
-          </section>
-        )}
-    </>
+        <div className='ep-chips'>
+          {!!w.genres?.length && <span className='g'>{w.genres.join(' · ')}</span>}
+          {kind && <span className='chip'>{kind}</span>}
+          <span className={'chip ' + (w.visibility === 'public' ? 'ok' : '')}>
+            {w.visibility === 'private' ? '비공개 작품' : w.episodes.length ? '공개 중' : '공개 회차 없음'}
+          </span>
+        </div>
+        {editing === 'info'
+          ? <InfoForm key={w.revision} work={w} locked={locked} onSave={onSaveInfo} onSuggest={onSuggestTags} onClose={close} />
+          : w.summary
+          ? <p className='sum'>{w.summary}</p>
+          : <p className='sum ep-muted'>당신의 이야기를 한 문장씩 채워 보세요.</p>}
+        {!!w.hashtags?.length && <div className='hashes'>{w.hashtags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
+        <div className='stats'>
+          <span>공개 회차 <b>{w.episodes.length}</b>화</span>
+          {draftCount !== undefined && (
+            <span>
+              작성 중인 초안 {draftCount === null ? <b>…<span className='sr-only'>불러오는 중</span></b> : <><b>{draftCount}</b>개</>}
+            </span>
+          )}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -165,12 +108,13 @@ export function WorkOverview({ work: w, locked, busy, nextNo, coverRevision, onM
 const sameList = (a: string[], b: string[] = []) => a.length === b.length && a.every((v, i) => v === b[i])
 
 /** 처음 받은 작품 값을 상태로 복사한다. 작품이 다시 읽혀 revision이 바뀌면 호출 측이 key로 새로 만들어 최신 서버 값에서 다시 시작한다. */
-function InfoForm({ work, locked, onSave, onClose }: { work: Work; locked: boolean; onSave: Props['onSaveInfo']; onClose: () => void }) {
+function InfoForm({ work, locked, onSave, onSuggest, onClose }: { work: Work; locked: boolean; onSave: Props['onSaveInfo']; onSuggest: Props['onSuggestTags']; onClose: () => void }) {
   const [title, setTitle] = useState(work.title)
   const [summary, setSummary] = useState(work.summary)
   const [genre1, setGenre1] = useState(work.genres?.[0] ?? '')
   const [genre2, setGenre2] = useState(work.genres?.[1] ?? '')
   const [hashtags, setHashtags] = useState((work.hashtags ?? []).map((t) => `#${t}`).join(', '))
+  const [suggestion, setSuggestion] = useState<WorkTagSuggestion | null>(null)
   const first = useRef<HTMLInputElement>(null)
   useEffect(() => { first.current?.focus() }, [])
   // 장르·해시태그는 서버 값과 달라진 쪽만 보낸다(생략하면 서버가 유지). 장르가 없던 옛 작품도 제목만 고쳐 저장할 수 있다.
@@ -178,6 +122,25 @@ function InfoForm({ work, locked, onSave, onClose }: { work: Work; locked: boole
   const tags = parseHashtags(hashtags)
   const taxonomy: WorkTaxonomy = { ...(sameList(genres, work.genres) ? {} : { genres }), ...(sameList(tags, work.hashtags) ? {} : { hashtags: tags }) }
   const changed = title.trim() !== work.title || summary.trim() !== work.summary || Object.keys(taxonomy).length > 0
+  // 추천 후보는 눌러서 입력에 담기만 한다. 저장은 아래 저장 버튼이 한다. 담을 수 없는 후보(이미 고름·한도 참)는 버튼을 막는다(규칙은 domain).
+  const pickGenre = (g: string) => { if (!genre1) setGenre1(g); else setGenre2(g) }
+  const addTag = (t: string) => setHashtags([...tags, t].map((x) => `#${x}`).join(', '))
+  // 요청 중에는 fieldset이 잠겨 초점이 body로 떨어지므로, 추천을 누른 경우에만 잠금이 풀린 뒤 추천 버튼으로 돌려준다.
+  const [asking, setAsking] = useState(false)
+  const suggestButton = useRef<HTMLButtonElement>(null)
+  const refocus = useRef(false)
+  useEffect(() => {
+    if (asking || locked || !refocus.current) return
+    refocus.current = false
+    if (document.activeElement === document.body) suggestButton.current?.focus()
+  }, [asking, locked])
+  const suggest = async () => {
+    refocus.current = true
+    setAsking(true)
+    const found = await onSuggest()
+    setAsking(false)
+    if (found) setSuggestion(found)
+  }
   return (
     <form
       className='ep-edit'
@@ -196,42 +159,18 @@ function InfoForm({ work, locked, onSave, onClose }: { work: Work; locked: boole
           <textarea value={summary} onChange={(e) => setSummary(e.target.value)} maxLength={2000} rows={4} />
         </label>
         <TaxonomyFields genre1={genre1} genre2={genre2} hashtags={hashtags} onGenre1={setGenre1} onGenre2={setGenre2} onHashtags={setHashtags} />
+        <div className='ep-suggest'>
+          <button ref={suggestButton} type='button' className='btn sm' onClick={() => void suggest()}>{asking ? '추천 받는 중…' : 'AI로 장르·해시태그 추천 받기'}</button>
+          <small className='ep-optional'>저장된 제목·소개와 발행 회차를 바탕으로 추천해요. 고른 값은 저장해야 반영돼요.</small>
+          {suggestion && (
+            <div role='group' aria-label='AI 추천 후보'>
+              <div>장르 {suggestion.genres.map((g) => <button type='button' key={g} className='btn sm' disabled={!canPickSuggestedGenre([genre1, genre2], g)} onClick={() => pickGenre(g)}>{g}</button>)}</div>
+              <div>해시태그 {suggestion.hashtags.map((t) => <button type='button' key={t} className='btn sm' disabled={!canAddSuggestedTag(tags, t)} onClick={() => addTag(t)}>#{t}</button>)}</div>
+            </div>
+          )}
+        </div>
         <div className='ep-edit-actions'>
           <button className='btn pri sm' disabled={!changed || !title.trim()}>저장</button>
-          <button type='button' className='btn sm' onClick={onClose}>취소</button>
-        </div>
-      </fieldset>
-    </form>
-  )
-}
-
-function PolicyForm({ work, locked, onSave, onClose }: { work: Work; locked: boolean; onSave: Props['onSavePolicy']; onClose: () => void }) {
-  const [allowFork, setAllowFork] = useState(work.allowFork)
-  const [allowPublication, setAllowPublication] = useState(work.allowForkPublication)
-  const first = useRef<HTMLInputElement>(null)
-  useEffect(() => { first.current?.focus() }, [])
-  const changed = allowFork !== work.allowFork || allowPublication !== work.allowForkPublication
-  return (
-    <form
-      className='ep-edit'
-      aria-label='분기 정책 편집'
-      onSubmit={async (e) => {
-        e.preventDefault()
-        if (await onSave(allowFork, allowPublication)) onClose()
-      }}
-    >
-      <fieldset disabled={locked}>
-        <label className='ep-check'>
-          <input ref={first} type='checkbox' checked={allowFork} onChange={(e) => setAllowFork(e.target.checked)} /> 분기 만들기 허용
-        </label>
-        <label className='ep-check'>
-          <input type='checkbox' checked={allowPublication} onChange={(e) => setAllowPublication(e.target.checked)} /> 분기 작품 최초 공개 허용
-        </label>
-        <p className='small muted'>
-          생성 허용과 공개 허용은 별개예요. 공개 허용을 철회해도 이미 공개한 분기는 계속 연재할 수 있어요.
-        </p>
-        <div className='ep-edit-actions'>
-          <button className='btn pri sm' disabled={!changed}>저장</button>
           <button type='button' className='btn sm' onClick={onClose}>취소</button>
         </div>
       </fieldset>
@@ -296,7 +235,6 @@ function OwnCover({ workId, editing, blocked, disabled, editRef, onBusy, onEdit,
           : !media.busy && !media.error && <img className='stored-image' src='/default-work-cover.svg' alt='기본 작품 표지' />}
       </div>
       {media.error && <p role='alert' className='ep-alert small'>{media.error}</p>}
-      <p role='status' className='small muted'>{media.busy ? '파일을 처리하고 있어요…' : media.notice}</p>
       {editing
         ? (
           <>
@@ -357,6 +295,8 @@ function OwnCover({ workId, editing, blocked, disabled, editRef, onBusy, onEdit,
             표지 편집
           </button>
         )}
+      {/* 결과 문구(라이브 영역)는 동작 줄 뒤에 둔다: 표지와 '표지 편집' 버튼 사이에 빈 문단이 끼어 버튼이 36px 떨어져 보였다. */}
+      <p role='status' className='small muted'>{media.busy ? '파일을 처리하고 있어요…' : media.notice}</p>
     </div>
   )
 }

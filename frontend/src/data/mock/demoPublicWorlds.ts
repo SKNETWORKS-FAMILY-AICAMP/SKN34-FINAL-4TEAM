@@ -1,14 +1,14 @@
-import type { PublicWorldGenre, PublicWorldWork } from '../../domain/entities/publicWorld'
+import type { PublicWorldWork } from '../../domain/entities/publicWorld'
 import type { CardType } from '../../domain/entities/studioCards'
 
 /*
  * 메모리 데모(`--mode mockup`·테스트)의 공개 세계관 데이터 26개. `InMemoryPublicWorldRepository`가 서버 공개 세계관 API와 같은 모양으로 바꿔 돌려준다.
  * 실제 모드는 이 데이터를 쓰지 않는다(Content `GET /api/v1/public/world-studios`, `HttpPublicWorldRepository`).
  *
- * ponytail: 서버에 파생·조합(`world_lineage`)이 없고(설정 가져오기가 대신한다, DEC-46) 공개 세계관 응답이 연결된 소설을 주지 않아 계보(`derivedFrom`·`combinedFrom`)와 작품(`works`)은 이 데모에만 있다.
+ * ponytail: 서버에 파생·조합(`world_lineage`)이 없고(설정 가져오기가 대신한다, DEC-46) 계보(`derivedFrom`·`combinedFrom`)는 이 데모에만 있고, 작품(`works`)은 실제 작품이 아닌 데모 표시용이다(실제 모드는 서버가 연결된 공개 소설 `linkedWork`를 준다).
  * 한계: 새로고침해도 같은 목록이고 내 세계관·서버 저장과 이어지지 않는다. 읽기 전용이며 이용·복사·작품 연결은 없다. 서버에는 공개 시각만 있어
- * 데모는 배열 뒤쪽일수록 최근에 공개됐다고 본다(목록은 최근 공개 순). 표지는 장르별 테마 아트라 서버 값이 아니다.
- * 서버 계보·작품이 생기면 계약에 필드를 더하고 이 파일의 `derivedFrom`·`combinedFrom`·`works`를 그 응답으로 바꾼다.
+ * 데모는 배열 뒤쪽일수록 최근에 공개됐다고 본다(목록은 최근 공개 순). 표지는 `hasCover`가 없어 기본 표지다.
+ * 서버 계보가 생기면 계약에 필드를 더하고 이 파일의 `derivedFrom`·`combinedFrom`을 그 응답으로 바꾼다.
  * 노드가 수백 개를 넘으면 서버가 장르·최근 공개 순으로 줄여 보낸다.
  */
 
@@ -23,13 +23,16 @@ type DemoWorldCard = { type: CardType; title: string; text: string; links?: read
  * `works`는 이 세계관 자체에 연결된 작품(파생·조합 원본의 작품은 포함하지 않는다)이고 없으면 아직 쓴 작품이 없는 세계관이다.
  */
 export type DemoWorld = {
-  id: string; name: string; hook: string; genre: PublicWorldGenre; author: string; description: string; cards: readonly DemoWorldCard[]
+  id: string; name: string; hook: string; genre: string; author: string; description: string; cards: readonly DemoWorldCard[]
   derivedFrom?: string; combinedFrom?: readonly string[]; works?: readonly PublicWorldWork[]
 }
 
+/** 데모 세계관이 쓰는 장르 코드(시드 장르 7개: 판타지·무협·로맨스·현대·SF·미스터리·고전). 작품(`works`)의 `genre`는 코드가 아니라 이 장르들의 이름이다. */
+export const DEMO_WORLD_GENRES = ['genre-01', 'genre-03', 'genre-06', 'genre-10', 'genre-14', 'genre-18', 'genre-28'] as const
+
 export const DEMO_WORLDS: readonly DemoWorld[] = [
   {
-    id: 'moonhalo-isles', name: '달무리 군도', hook: '달이 지면 섬이 움직인다', genre: 'fantasy', author: '달무리',
+    id: 'moonhalo-isles', name: '달무리 군도', hook: '달이 지면 섬이 움직인다', genre: 'genre-01', author: '달무리',
     description: '달이 질 때마다 섬들이 한 칸씩 흘러가는 바다. 항해사는 해도 대신 기억에 항로를 적고, 잊힌 항로는 지도에서도 사라진다.',
     cards: [
       { type: 'other', title: '우주관 · 물때의 달', text: '하루는 해가 아니라 달이 지는 횟수로 센다. 물때가 바뀌면 섬 하나가 이웃 섬의 자리로 옮겨 앉는다.' },
@@ -46,12 +49,12 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
       { type: 'event', title: '일곱 번째 섬의 실종', text: '백 년 전 하룻밤 사이 섬 하나가 바다와 사람들의 기억에서 함께 사라졌다.' },
     ],
     works: [
-      { title: '일곱 번째 섬을 찾아서', author: '파도결', episodes: 42, genre: 'fantasy' },
-      { title: '기억으로 쓰는 항로', author: '뱃노래', episodes: 18, genre: 'fantasy' },
+      { title: '일곱 번째 섬을 찾아서', author: '파도결', episodes: 42, genre: '판타지' },
+      { title: '기억으로 쓰는 항로', author: '뱃노래', episodes: 18, genre: '판타지' },
     ],
   },
   {
-    id: 'silent-orbit', name: '침묵 궤도', hook: '열두 개의 작은 나라', genre: 'sf', author: '궤도서기',
+    id: 'silent-orbit', name: '침묵 궤도', hook: '열두 개의 작은 나라', genre: 'genre-14', author: '궤도서기',
     description: '통신이 끊긴 지 3년, 지구 궤도의 열두 정거장은 저마다 다른 법과 다른 시간을 가진 작은 나라가 되었다.',
     cards: [
       { type: 'other', title: '우주관 · 닫힌 궤도', text: '연료가 바닥나 정거장은 더 멀리 가지 못한다. 열두 정거장은 같은 궤도를 돌며 서로를 볼 수만 있다.' },
@@ -68,13 +71,13 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
         links: [{ to: '침묵 협약', label: '중재' }] },
     ],
     works: [
-      { title: '열세 번째 정거장', author: '궤도사서', episodes: 56, genre: 'sf' },
-      { title: '응답하라, 침묵 협약', author: '교신잡음', episodes: 23, genre: 'mystery' },
-      { title: '온실의 마지막 생장 기록', author: '푸른잎', episodes: 31, genre: 'sf' },
+      { title: '열세 번째 정거장', author: '궤도사서', episodes: 56, genre: 'SF' },
+      { title: '응답하라, 침묵 협약', author: '교신잡음', episodes: 23, genre: '미스터리' },
+      { title: '온실의 마지막 생장 기록', author: '푸른잎', episodes: 31, genre: 'SF' },
     ],
   },
   {
-    id: 'rain-gate', name: '우중문의 강호', hook: '비 오는 날에만 열린다', genre: 'wuxia', author: '우중객',
+    id: 'rain-gate', name: '우중문의 강호', hook: '비 오는 날에만 열린다', genre: 'genre-03', author: '우중객',
     description: '비 오는 날에만 산문을 여는 문파가 있다. 해가 뜬 동안 칼을 뽑지 않는 것이 첫째 가르침이며, 어기면 문적에서 이름이 지워진다.',
     cards: [
       { type: 'organization', title: '우중문(雨中門)', text: '맑은 날에는 산문 밖 누구도 들이지 않고, 비가 오면 처음 온 손님부터 맞는다.' },
@@ -89,11 +92,11 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
       { type: 'event', title: '백 일의 가뭄', text: '비가 오지 않아 산문이 백 일 동안 닫혔다. 그 사이 강호는 문파의 이름을 잊기 시작했다.' },
     ],
     works: [
-      { title: '비 오는 날의 문주', author: '청우검', episodes: 88, genre: 'wuxia' },
+      { title: '비 오는 날의 문주', author: '청우검', episodes: 88, genre: '무협' },
     ],
   },
   {
-    id: 'midnight-theatre', name: '열두 시의 극장', hook: '밤마다 다른 배역의 만남', genre: 'romance', author: '열두시',
+    id: 'midnight-theatre', name: '열두 시의 극장', hook: '밤마다 다른 배역의 만남', genre: 'genre-06', author: '열두시',
     description: '자정이 되면 낡은 극장 무대 위에서만 서로를 알아보는 두 사람이 있다. 낮의 이름은 모른 채, 밤마다 다른 배역으로 만난다.',
     cards: [
       { type: 'location', title: '열두 시의 극장', text: '문 닫은 지 오래된 소극장. 자정이 되면 무대 조명 한 줄만 켜진다.' },
@@ -108,12 +111,12 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
       { type: 'object', title: '찢어진 대본 한 장', text: '두 사람이 처음 만난 날의 대사만 남은 종이. 뒷면은 그을려서 읽을 수 없다.' },
     ],
     works: [
-      { title: '자정의 배역들', author: '막이내리면', episodes: 36, genre: 'romance' },
-      { title: '낮의 이름은 묻지 않기로', author: '조명지기', episodes: 14, genre: 'romance' },
+      { title: '자정의 배역들', author: '막이내리면', episodes: 36, genre: '로맨스' },
+      { title: '낮의 이름은 묻지 않기로', author: '조명지기', episodes: 14, genre: '로맨스' },
     ],
   },
   {
-    id: 'dawn-store', name: '새벽 세 시의 편의점', hook: '후회로 값을 치르는 곳', genre: 'modern', author: '가온지기',
+    id: 'dawn-store', name: '새벽 세 시의 편의점', hook: '후회로 값을 치르는 곳', genre: 'genre-10', author: '가온지기',
     description: '밤 열한 시부터 새벽 여섯 시까지만 문을 여는 편의점. 계산대 앞에서는 그날 가장 후회한 일 하나를 값으로 낼 수 있다.',
     cards: [
       { type: 'location', title: '24시 가온 편의점', text: '골목마다 위치가 바뀌지만 간판 불빛은 언제나 같은 초록색이다.' },
@@ -128,11 +131,11 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
       { type: 'object', title: '후회 영수증', text: '계산하면 값으로 낸 일이 한 줄로 적힌 영수증이 나온다. 아침이 오면 글자가 사라진다.' },
     ],
     works: [
-      { title: '새벽 세 시, 후회 한 줄', author: '야간근무', episodes: 64, genre: 'modern' },
+      { title: '새벽 세 시, 후회 한 줄', author: '야간근무', episodes: 64, genre: '현대' },
     ],
   },
   {
-    id: 'night-market', name: '인경 뒤의 도깨비 장터', hook: '도깨비와 사람의 야시', genre: 'classic', author: '야시꾼',
+    id: 'night-market', name: '인경 뒤의 도깨비 장터', hook: '도깨비와 사람의 야시', genre: 'genre-28', author: '야시꾼',
     description: '인경이 울려 성문이 닫힌 뒤 한양 종로 뒷골목에 서는 장터. 도깨비와 사람이 같은 저울을 쓰되 값은 서로 다른 것으로 치른다.',
     cards: [
       { type: 'location', title: '종로 뒷골목 야시', text: '인경이 울린 뒤에만 서는 장터. 날이 밝기 전에 장막이 걷히면 흔적도 남지 않는다.' },
@@ -149,12 +152,12 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
         links: [{ to: '종로 뒷골목 야시', label: '번진 곳' }] },
     ],
     works: [
-      { title: '인경이 울리면', author: '종로야시', episodes: 27, genre: 'classic' },
-      { title: '맨손 거래', author: '손뼉소리', episodes: 12, genre: 'classic' },
+      { title: '인경이 울리면', author: '종로야시', episodes: 27, genre: '고전' },
+      { title: '맨손 거래', author: '손뼉소리', episodes: 12, genre: '고전' },
     ],
   },
   {
-    id: 'fog-clinic', name: '묵현리 안개 병원', hook: '밤마다 느는 환자 명부', genre: 'mystery', author: '묵현',
+    id: 'fog-clinic', name: '묵현리 안개 병원', hook: '밤마다 느는 환자 명부', genre: 'genre-18', author: '묵현',
     description: '섬마을 묵현리에는 안개가 끼면 문을 잠그는 병원이 있다. 환자 명부에는 세상을 떠난 이름이 밤마다 한 줄씩 늘어난다.',
     cards: [
       { type: 'location', title: '묵현 요양원', text: '섬에서 하나뿐인 병원. 안개주의보가 내리면 정문과 2층 병동이 안에서 잠긴다.',
@@ -171,11 +174,11 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
       { type: 'event', title: '2층 병동 폐쇄', text: '십 년 전 큰불 이후 문을 닫은 층. 지금도 밤이면 환자 호출벨이 울린다.' },
     ],
     works: [
-      { title: '명부에 없는 이름', author: '안개낀섬', episodes: 49, genre: 'mystery' },
+      { title: '명부에 없는 이름', author: '안개낀섬', episodes: 49, genre: '미스터리' },
     ],
   },
   {
-    id: 'root-library', name: '뿌리 아래의 도서관', hook: '읽힌 책은 잎을 틔운다', genre: 'fantasy', author: '뿌리사서',
+    id: 'root-library', name: '뿌리 아래의 도서관', hook: '읽힌 책은 잎을 틔운다', genre: 'genre-01', author: '뿌리사서',
     description: '거대한 나무의 뿌리 속에서 책이 자라는 도서관. 읽힌 책은 잎을 틔우고 읽히지 않은 책은 말라, 사서들은 책의 계절을 따라 산다.',
     cards: [
       { type: 'other', title: '우주관 · 책의 계절', text: '이 세계의 사계절은 하늘이 아니라 책이 정한다. 첫 책이 싹틀 때 봄이 오고 마지막 장이 마르면 겨울이 온다.' },
@@ -194,14 +197,14 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
         links: [{ to: '뿌리 서고', label: '보관' }] },
     ],
     works: [
-      { title: '잎이 돋는 서가', author: '뿌리밑', episodes: 33, genre: 'fantasy' },
-      { title: '읽다 만 책의 마지막 장', author: '책벌레', episodes: 9, genre: 'fantasy' },
-      { title: '계절 사서의 일기', author: '서고지기', episodes: 21, genre: 'modern' },
+      { title: '잎이 돋는 서가', author: '뿌리밑', episodes: 33, genre: '판타지' },
+      { title: '읽다 만 책의 마지막 장', author: '책벌레', episodes: 9, genre: '판타지' },
+      { title: '계절 사서의 일기', author: '서고지기', episodes: 21, genre: '현대' },
     ],
   },
   // 아래는 위 세계관을 가져다 새로 만든 파생(derivedFrom)과 여럿을 섞은 조합(combinedFrom)이다. 원본이 앞에 오고 파생·조합이 뒤따른다.
   {
-    id: 'tide-compass', name: '조수의 나침반', hook: '물때가 길을 가리킨다', genre: 'fantasy', author: '물때서기', derivedFrom: 'moonhalo-isles',
+    id: 'tide-compass', name: '조수의 나침반', hook: '물때가 길을 가리킨다', genre: 'genre-01', author: '물때서기', derivedFrom: 'moonhalo-isles',
     description: '달무리 군도에서 달 대신 조수가 길을 정하는 쪽으로 가지를 친 세계. 나침반 바늘은 북쪽이 아니라 밀물이 들어오는 방향을 가리킨다.',
     cards: [
       { type: 'object', title: '조수 나침반', text: '바늘이 물때를 따라 돈다. 썰물에는 멈추고 밀물에는 가장 가까운 섬을 가리킨다.' },
@@ -211,7 +214,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'orbit-graveyard', name: '궤도 무덤', hook: '버려진 정거장의 묘지', genre: 'sf', author: '잔해수집가', derivedFrom: 'silent-orbit',
+    id: 'orbit-graveyard', name: '궤도 무덤', hook: '버려진 정거장의 묘지', genre: 'genre-14', author: '잔해수집가', derivedFrom: 'silent-orbit',
     description: '침묵 궤도에서 갈라져 나와, 버려진 정거장이 한 궤도에 모여 쌓이는 이야기. 사람들은 그곳을 무덤이라 부르고 가끔 켜지는 불에는 아무도 다가가지 않는다.',
     cards: [
       { type: 'location', title: '무덤 궤도', text: '폐기된 정거장 마흔 개가 한 고리를 이룬다. 어느 것도 서로 닿지 않는다.' },
@@ -220,7 +223,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'rain-inn', name: '빗속의 객잔', hook: '비가 와야 문을 연다', genre: 'wuxia', author: '객잔주인', derivedFrom: 'rain-gate',
+    id: 'rain-inn', name: '빗속의 객잔', hook: '비가 와야 문을 연다', genre: 'genre-03', author: '객잔주인', derivedFrom: 'rain-gate',
     description: '우중문의 강호에서 산문 밖 갈림길에 선 객잔의 이야기. 비 오는 날 처음 온 손님에게만 방을 내주고, 그 손님이 문파의 소식을 가장 먼저 듣는다.',
     cards: [
       { type: 'location', title: '빗길 객잔', text: '산문 아래 갈림길의 이층 객잔. 처마 끝에 놋쇠 풍경 하나가 걸려 있다.' },
@@ -230,7 +233,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'backstage-letters', name: '막 뒤의 편지', hook: '무대 뒤에서 오는 답장', genre: 'romance', author: '막뒤필경', derivedFrom: 'midnight-theatre',
+    id: 'backstage-letters', name: '막 뒤의 편지', hook: '무대 뒤에서 오는 답장', genre: 'genre-06', author: '막뒤필경', derivedFrom: 'midnight-theatre',
     description: '열두 시의 극장에서 이어진, 무대 뒤 서랍에 편지를 남기는 두 사람의 이야기. 낮의 이름은 몰라도 필체는 서로 알아본다.',
     cards: [
       { type: 'location', title: '분장실 서랍', text: '막이 내린 뒤에만 열리는 서랍. 편지는 언제나 아침 전에 사라진다.' },
@@ -240,7 +243,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'dawn-pharmacy', name: '새벽 약국', hook: '후회에 맞는 약', genre: 'modern', author: '가온약사', derivedFrom: 'dawn-store',
+    id: 'dawn-pharmacy', name: '새벽 약국', hook: '후회에 맞는 약', genre: 'genre-10', author: '가온약사', derivedFrom: 'dawn-store',
     description: '새벽 세 시의 편의점 맞은편에 문을 연 약국. 처방전 대신 가장 가벼워진 후회 한 줄을 적어 내면 그 값만큼 약을 지어 준다.',
     cards: [
       { type: 'location', title: '초록 십자 약국', text: '편의점과 같은 초록 불빛을 쓰지만 문은 새벽 다섯 시에 닫는다.' },
@@ -250,7 +253,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'goblin-bridge', name: '도깨비 다리', hook: '다리 위의 도깨비불', genre: 'classic', author: '다리밑', derivedFrom: 'night-market',
+    id: 'goblin-bridge', name: '도깨비 다리', hook: '다리 위의 도깨비불', genre: 'genre-28', author: '다리밑', derivedFrom: 'night-market',
     description: '인경 뒤의 도깨비 장터에서 청계천 다리 쪽으로 번진 이야기. 다리를 건너는 동안은 사람의 값도 도깨비의 값도 치르지 않는다.',
     cards: [
       { type: 'location', title: '광통교 도깨비불', text: '다리 난간마다 푸른 불이 걸린다. 건너편 사람은 불의 개수로 값을 가늠한다.' },
@@ -260,7 +263,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'fog-ferry', name: '안개 나루', hook: '건너편이 없는 배', genre: 'mystery', author: '나룻배', derivedFrom: 'fog-clinic',
+    id: 'fog-ferry', name: '안개 나루', hook: '건너편이 없는 배', genre: 'genre-18', author: '나룻배', derivedFrom: 'fog-clinic',
     description: '묵현리 안개 병원에서 이어진 이야기. 안개가 낀 날 병원 아래 나루에서만 배가 뜨고, 건너간 사람의 이름은 명부에 한 줄 더 늘어난다.',
     cards: [
       { type: 'location', title: '묵현 나루', text: '병원 아래 선착장. 안개주의보가 내리면 나룻배 한 척만 불이 켜진다.' },
@@ -270,7 +273,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'drowned-lighthouse', name: '가라앉은 등대', hook: '등불이 물속에서 켜진다', genre: 'fantasy', author: '등대지기', derivedFrom: 'tide-compass',
+    id: 'drowned-lighthouse', name: '가라앉은 등대', hook: '등불이 물속에서 켜진다', genre: 'genre-01', author: '등대지기', derivedFrom: 'tide-compass',
     description: '조수의 나침반에서 이어진 이야기. 물에 잠긴 등대가 밀물 때마다 스스로 불을 켜 길을 잃은 배를 바다 밑으로 이끈다.',
     cards: [
       { type: 'location', title: '가라앉은 등대', text: '탑의 윗부분만 수면 위로 남았다. 불빛은 아래에서 위로 올라온다.' },
@@ -279,7 +282,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'green-ring', name: '온실 고리', hook: '정거장의 숨은 온실', genre: 'sf', author: '온실지기', derivedFrom: 'silent-orbit',
+    id: 'green-ring', name: '온실 고리', hook: '정거장의 숨은 온실', genre: 'genre-14', author: '온실지기', derivedFrom: 'silent-orbit',
     description: '침묵 궤도의 7번 정거장 온실이 열두 정거장의 산소를 책임지게 된 뒤의 이야기. 식물을 돌보는 사람이 곧 정거장의 법이 된다.',
     cards: [
       { type: 'location', title: '고리 온실', text: '정거장 바깥 고리를 따라 이어진 식물 구역. 한 바퀴를 돌면 하루가 간다.' },
@@ -289,7 +292,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'dry-blade-hall', name: '마른 칼의 문파', hook: '비 없이 칼을 쓴다', genre: 'wuxia', author: '마른칼', derivedFrom: 'rain-inn',
+    id: 'dry-blade-hall', name: '마른 칼의 문파', hook: '비 없이 칼을 쓴다', genre: 'genre-03', author: '마른칼', derivedFrom: 'rain-inn',
     description: '빗속의 객잔에서 쫓겨난 문도들이 비가 오지 않는 땅에 세운 문파. 우중문과 반대로 해가 뜬 동안에만 칼을 뽑는다.',
     cards: [
       { type: 'organization', title: '마른 칼의 문파', text: '가뭄이 든 땅에서만 문을 여는 문파. 우중문과는 서로의 이름을 부르지 않는다.' },
@@ -298,7 +301,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'dawn-laundromat', name: '새벽 빨래방', hook: '기억을 빨아 말린다', genre: 'modern', author: '건조기', derivedFrom: 'dawn-store',
+    id: 'dawn-laundromat', name: '새벽 빨래방', hook: '기억을 빨아 말린다', genre: 'genre-10', author: '건조기', derivedFrom: 'dawn-store',
     description: '새벽 세 시의 편의점 골목 끝에 문을 연 무인 빨래방. 빨래 대신 하룻밤 치 기억을 돌리면 후회는 가볍게, 좋은 기억은 조금 바래 돌아온다.',
     cards: [
       { type: 'location', title: '24시 코인 빨래방', text: '건조기 일곱 대가 놓인 가게. 맨 끝 한 대만 언제나 따뜻하다.' },
@@ -308,7 +311,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'bell-keepers', name: '인경지기', hook: '종을 지키는 사람들', genre: 'classic', author: '종각지기', derivedFrom: 'goblin-bridge',
+    id: 'bell-keepers', name: '인경지기', hook: '종을 지키는 사람들', genre: 'genre-28', author: '종각지기', derivedFrom: 'goblin-bridge',
     description: '도깨비 다리 이야기에서 갈라져 나온, 인경 치는 일을 대대로 물려받는 가문의 이야기. 종을 치는 순서가 곧 한양의 하루를 정한다.',
     cards: [
       { type: 'organization', title: '인경 가문', text: '종을 치는 일을 대대로 물려받는 집안. 장자는 종소리의 높이를 외워 둔다.' },
@@ -317,7 +320,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'star-tide-station', name: '별물결 정거장', hook: '중력이 달을 끈다', genre: 'sf', author: '별물결', combinedFrom: ['silent-orbit', 'moonhalo-isles'],
+    id: 'star-tide-station', name: '별물결 정거장', hook: '중력이 달을 끈다', genre: 'genre-14', author: '별물결', combinedFrom: ['silent-orbit', 'moonhalo-isles'],
     description: '침묵 궤도의 닫힌 정거장과 달무리 군도의 물때를 섞어, 정거장이 달 대신 중력의 물때에 맞춰 움직이는 세계.',
     cards: [
       { type: 'other', title: '우주관 · 중력 물때', text: '정거장은 하루에 두 번 중력이 약해지는 시각에 서로 자리를 바꾼다.' },
@@ -327,7 +330,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'book-greenhouse', name: '책의 온실', hook: '책이 꽃으로 피는 곳', genre: 'fantasy', author: '온실사서', combinedFrom: ['root-library', 'green-ring'],
+    id: 'book-greenhouse', name: '책의 온실', hook: '책이 꽃으로 피는 곳', genre: 'genre-01', author: '온실사서', combinedFrom: ['root-library', 'green-ring'],
     description: '뿌리 아래의 도서관과 온실 고리를 섞어 만든 세계. 읽힌 책은 잎이 아니라 꽃을 피우고, 꽃가루가 닿은 독자는 그 책의 꿈을 꾼다.',
     cards: [
       { type: 'location', title: '유리 서고', text: '온실 천장 아래 서가가 줄지어 서 있다. 낮에는 책이 볕을, 밤에는 별빛을 먹는다.' },
@@ -337,7 +340,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'mist-sword-sect', name: '안개비 검문', hook: '안개 속의 비 문파', genre: 'wuxia', author: '안개객', combinedFrom: ['rain-gate', 'fog-clinic'],
+    id: 'mist-sword-sect', name: '안개비 검문', hook: '안개 속의 비 문파', genre: 'genre-03', author: '안개객', combinedFrom: ['rain-gate', 'fog-clinic'],
     description: '우중문과 묵현리 안개 병원을 섞은 이야기. 안개비가 내리는 날에만 산문이 열리고 문도의 이름은 안개 속에서 한 줄씩 늘어난다.',
     cards: [
       { type: 'organization', title: '안개비 검문', text: '비와 안개가 함께 오는 날에만 산문을 연다. 평소에는 문 자리조차 보이지 않는다.' },
@@ -347,7 +350,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'lantern-lovers', name: '야시의 연인', hook: '등불 아래의 약속', genre: 'romance', author: '등불연가', combinedFrom: ['night-market', 'midnight-theatre'],
+    id: 'lantern-lovers', name: '야시의 연인', hook: '등불 아래의 약속', genre: 'genre-06', author: '등불연가', combinedFrom: ['night-market', 'midnight-theatre'],
     description: '인경 뒤의 도깨비 장터와 열두 시의 극장을 섞은 이야기. 장터 등불이 켜지는 동안 극장 무대가 야시 한복판에 서고, 두 사람은 배역 대신 흥정으로 마음을 전한다.',
     cards: [
       { type: 'location', title: '등불 무대', text: '야시 한가운데 자정에 서는 가설 무대. 막은 닭이 울기 전에 내린다.' },
@@ -357,7 +360,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'regret-bazaar', name: '후회 장터', hook: '후회를 거래하는 야시', genre: 'modern', author: '값치르기', combinedFrom: ['dawn-store', 'night-market', 'midnight-theatre'],
+    id: 'regret-bazaar', name: '후회 장터', hook: '후회를 거래하는 야시', genre: 'genre-10', author: '값치르기', combinedFrom: ['dawn-store', 'night-market', 'midnight-theatre'],
     description: '새벽 편의점의 후회 값, 도깨비 장터의 손뼉 거래, 극장의 배역을 한데 섞은 도시 괴담. 자정이 지나면 골목이 장터가 되고 손님은 저마다 다른 배역을 맡는다.',
     cards: [
       { type: 'location', title: '후회 골목 야시', text: '자정을 넘기면 편의점 앞 골목에 등불 장막이 선다. 새벽 여섯 시에 걷힌다.' },
@@ -368,7 +371,7 @@ export const DEMO_WORLDS: readonly DemoWorld[] = [
     ],
   },
   {
-    id: 'ghost-signal', name: '유령 교신', hook: '응답이 먼저 온다', genre: 'mystery', author: '교신기록', combinedFrom: ['silent-orbit', 'fog-clinic'],
+    id: 'ghost-signal', name: '유령 교신', hook: '응답이 먼저 온다', genre: 'genre-18', author: '교신기록', combinedFrom: ['silent-orbit', 'fog-clinic'],
     description: '침묵 궤도와 묵현리 안개 병원을 섞은 이야기. 정거장에서 보낸 적 없는 교신이 안개처럼 번지고 그 응답은 늘 한 사람의 이름으로 끝난다.',
     cards: [
       { type: 'event', title: '보낸 적 없는 교신', text: '지상과 끊긴 지 3년이 되던 밤 열두 정거장이 똑같은 문장을 동시에 받았다.' },

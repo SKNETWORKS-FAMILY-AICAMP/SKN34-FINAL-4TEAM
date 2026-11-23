@@ -4,7 +4,7 @@ import { login } from '../api/auth'
 import { stepText, type ChatEvent } from '../../domain/entities/writingChat'
 import { HttpWritingChatRepository } from './HttpWritingChatRepository'
 
-const input = { episode: 2, episodeVersionId: 'v2', consent: true as const, request: '길드 규칙은?' }
+const input = { episode: 2, episodeVersionId: 'v2', request: '길드 규칙은?' }
 /** 이벤트 경계와 상관없이 잘린 조각으로 SSE를 흘린다. */
 const sse = (...chunks: string[]) => new Response(new ReadableStream({
   start(controller) { chunks.forEach((c) => controller.enqueue(new TextEncoder().encode(c))); controller.close() },
@@ -107,13 +107,19 @@ describe('인물 시뮬레이션 단계 결과(#58)', () => {
   })
 
   it('저장된 대화의 승인 대기 응답에서도 같은 장면을 읽고, 흐름 모드의 null 전제·멈춤 사유도 받는다', async () => {
-    const stopped = scene({ mode: 'flow', premise: null, beats: [{ index: 0, text: '성문 대면', status: 'rejected' }], status: 'stopped', stopReason: '카엘이 비트를 거부했어요.' })
+    const stopped = scene({ mode: 'flow', premise: null, beats: [{ index: 0, text: '성문 대면', status: 'rejected', rejectedBy: 'card-1' }], status: 'stopped', stopReason: '카엘이 비트를 거부했어요.' })
     const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '대화', turns: [{ request: '시뮬레이션', reply: {
       status: 'waiting', steps: [simStep(stopped)], missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 3,
     } }] }))
     const reply = (await new HttpWritingChatRepository(fetcher).history('w1', 't1')).turns[0].reply
     expect(reply?.approvalEpisode).toBe(3)
     expect(reply?.steps[0].simulation).toEqual(stopped)
+  })
+
+  it('서버가 거부하지 않은 비트에 보내는 rejectedBy: null도 받는다(비트 모양은 늘 같다)', async () => {
+    const events = await run(stepEvent(simStep(scene({ beats: [{ index: 0, text: '성문 대면', status: 'done', rejectedBy: null }] }))))
+    const beats = events.flatMap((e) => (e.type === 'step' ? [e.step.simulation?.beats] : []))
+    expect(beats).toEqual([[{ index: 0, text: '성문 대면', status: 'done', rejectedBy: null }]])
   })
 
   it.each([
@@ -156,6 +162,18 @@ describe('인물 시뮬레이션 단계 결과(#58)', () => {
   it('다른 단계의 결과 모양은 그대로 읽는다', async () => {
     const events = await run(stepEvent({ feature: 'story_context', status: 'completed', result: { claims: [{ text: '밤에 닫는다' }] } }), 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n')
     expect(events[0]).toEqual({ type: 'step', step: { feature: 'story_context', status: 'completed', result: { claims: [{ text: '밤에 닫는다' }] } } })
+  })
+
+  it('전개 기획 결과(plans·notes)와 바로 쓴 원고의 계획(plan)을 읽고, 계획 모양이 어긋나면 형식 오류로 알린다', async () => {
+    const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+    const planned = { plans: [{ title: '항구의 밤', beats: ['선장이 도착한다.'] }], notes: ['확정 사건'] }
+    expect((await run(stepEvent({ feature: 'writing_editing', status: 'completed', result: planned }), done))[0])
+      .toEqual({ type: 'step', step: { feature: 'writing_editing', status: 'completed', result: planned } })
+    const written = { text: '본문', plan: { title: '항구의 밤', beats: ['선장이 도착한다.'] } }
+    expect((await run(stepEvent({ feature: 'writing_editing', status: 'completed', result: written }), done))[0])
+      .toEqual({ type: 'step', step: { feature: 'writing_editing', status: 'completed', result: written } })
+    expect((await run(stepEvent({ feature: 'writing_editing', status: 'completed', result: { plans: [{ title: 1 }] } }), done))[0])
+      .toEqual({ type: 'error', message: '서버 응답 형식을 확인할 수 없어요.' })
   })
 
   it('저장된 대화에서도 결과가 객체가 아닌 시뮬레이션 단계 하나만 실패로 읽고 같은 응답의 다른 단계와 승인 회차는 살린다', async () => {
@@ -247,7 +265,7 @@ describe('시뮬레이션 무대(#58) 응답·요청', () => {
       return JSON.parse(fetcher.mock.calls[0][1].body)
     }
     expect(await send({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation' }))
-      .toMatchObject({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation', consent: true })
+      .toMatchObject({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation' })
     // 반영 회차(targetEpisode, 작가가 연 회차)는 근거 회차(episode)와 따로 그대로 간다.
     expect(await send({ request: '이어 써 줘', targetEpisode: 3 })).toMatchObject({ episode: 2, episodeVersionId: 'v2', targetEpisode: 3 })
     // 버튼 진입의 시작 양식 값(IF: 전제, 흐름: 비트)과 참여 인물은 simulation으로 그대로 간다.
@@ -255,5 +273,343 @@ describe('시뮬레이션 무대(#58) 응답·요청', () => {
       .toMatchObject({ operation: 'character_simulation', simulation: { mode: 'flow', beats: ['성문 대면: 마주친다', '협상: 흥정한다'], characterIds: ['c1', 'c2'] } })
     expect(await send({ resume: { approved: true, scene: { action: 'edit', turn: 1, text: '"열어라."' } } }))
       .toMatchObject({ resume: { approved: true, scene: { action: 'edit', turn: 1, text: '"열어라."' } } })
+  })
+})
+
+describe('설정집 검토 단계 결과(#479)', () => {
+  const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+  const run = async (step: unknown) => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(`event: step\ndata: ${JSON.stringify(step)}\n\n`, done))).send('w1', 't1', input, (e) => events.push(e))
+    return events
+  }
+
+  it('지적이 있는 결과를 웹 조사 모양으로 읽지 않고 종류·메시지로 읽는다', async () => {
+    const events = await run({ feature: 'world_review', status: 'completed', result: { reviewedCards: 2, model: 'm',
+      findings: [{ cardIds: ['c1', 'c2'], kind: 'contradiction', message: '나이가 어긋나요.', fix: null }] } })
+    const step = events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
+    expect(step.worldReview).toEqual({ reviewedCards: 2, findings: [{ kind: 'contradiction', message: '나이가 어긋나요.' }] })
+    expect(stepText(step)).toBe('설정 충돌 · 나이가 어긋나요.')
+  })
+
+  it('형식이 어긋난 결과는 그 단계만 실패로 보인다', async () => {
+    const events = await run({ feature: 'world_review', status: 'completed', result: { findings: [{ kind: 'unknown' }] } })
+    expect(events.find((e) => e.type === 'step')).toMatchObject({ step: { feature: 'world_review', status: 'failed', error: '설정집 검토 결과 형식을 확인할 수 없어요.' } })
+  })
+})
+
+describe('Research platform 단계 결과(#547)', () => {
+  const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+  const run = async (result: unknown) => {
+    const events: ChatEvent[] = []
+    const step = { feature: 'research', status: 'completed', result }
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(`event: step\ndata: ${JSON.stringify(step)}\n\n`, done))).send('w1', 't1', input, (e) => events.push(e))
+    return events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
+  }
+
+  it('참고안(references)을 출처와 함께 읽고 세계관·카드·작가·참고 이유를 글로 보인다', async () => {
+    const reference = { worldId: 'w9', worldName: '달빛 학원', cardId: 'c9', cardTitle: '교칙', authorNickname: '별빛', note: '교칙 서술을 참고' }
+    const step = await run({ references: [reference], gaps: ['학원 위치는 못 찾았어요.'] })
+    expect(step.result?.references).toEqual([reference])
+    expect(stepText(step)).toBe('달빛 학원 · 교칙 · 별빛 — 교칙 서술을 참고\n확인 못 함: 학원 위치는 못 찾았어요.')
+  })
+
+  it('참고안이 없으면 결과 없음을 그대로 알리고, 웹 조사 결과(findings)도 계속 읽는다', async () => {
+    expect(stepText(await run({ references: [], gaps: [] }))).toBe('참고할 설정을 찾지 못했어요.')
+    expect(stepText(await run({ findings: [{ text: '약 15일', verdict: 'confirmed', sourceUrls: [] }], gaps: [], searchedAt: '2026-11-12T00:00:00Z' }))).toBe('확인됨 · 약 15일')
+  })
+})
+
+describe('World 단계 결과(#546)', () => {
+  const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+  const BAD = '세계관 결과 형식을 확인할 수 없어요.'
+  const enrichResult = {
+    worldId: 'wd1', revision: 8, model: 'm', note: '북문 규칙에 맞췄어요.',
+    fixes: [
+      { cardId: 'c1', cardTitle: '카엘', target: 'soul', episode: null, text: '말수가 적다.' },
+      { cardId: 'c1', cardTitle: '카엘', target: 'episode', episode: 3, text: '3화의 비밀' },
+    ],
+  }
+  const run = async (step: unknown) => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(`event: step\ndata: ${JSON.stringify(step)}\n\n`, done))).send('w1', 't1', input, (e) => events.push(e))
+    return events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
+  }
+
+  it('check는 설정집 검토와 같은 결과를 지적 종류·메시지로 읽는다', async () => {
+    const step = await run({ feature: 'world', task: 'check', status: 'completed', result: { reviewedCards: 2, model: 'm',
+      findings: [{ cardIds: ['c1', 'c2'], kind: 'contradiction', message: '나이가 어긋나요.', fix: null }] } })
+    expect(step).toMatchObject({ feature: 'world', task: 'check', status: 'completed', world: { task: 'check', reviewedCards: 2, findings: [{ kind: 'contradiction', message: '나이가 어긋나요.' }] } })
+    expect(stepText(step)).toBe('설정 충돌 · 나이가 어긋나요.')
+  })
+
+  it('enrich는 수정안(카드·칸·새 글)과 note를 읽고 승인·반영 결과를 그대로 둔다', async () => {
+    const step = await run({ feature: 'world', task: 'enrich', status: 'completed', approval: 'approved', applied: { episode: 0, revision: 9 }, result: enrichResult })
+    expect(step.world).toEqual({ task: 'enrich', note: '북문 규칙에 맞췄어요.', fixes: [
+      { cardId: 'c1', cardTitle: '카엘', target: 'soul', episode: null, text: '말수가 적다.' },
+      { cardId: 'c1', cardTitle: '카엘', target: 'episode', episode: 3, text: '3화의 비밀' },
+    ] })
+    expect(step).toMatchObject({ approval: 'approved', applied: { episode: 0, revision: 9 } })
+  })
+
+  it('episode 키가 없는 수정안은 null로 읽는다', async () => {
+    const step = await run({ feature: 'world', task: 'enrich', status: 'completed',
+      result: { ...enrichResult, fixes: [{ cardId: 'c1', cardTitle: '카엘', target: 'body', text: '새 본문' }] } })
+    expect(step.world).toMatchObject({ task: 'enrich', fixes: [{ target: 'body', episode: null }] })
+  })
+
+  it('impact는 영향 목록·충돌·확인 못 함을 읽는다', async () => {
+    const result = { model: 'm', conflicts: ['두 카드의 나이가 달라요.'], gaps: ['관계 기록이 없어요.'], affected: [
+      { kind: 'card', ref: 'c1', title: '카엘', reason: '나이 설정이 어긋나요.', certainty: 'confirmed' },
+      { kind: 'scene', ref: 'p1', title: '성문 장면', reason: '카엘이 등장해요.', certainty: 'inferred' },
+    ] }
+    const step = await run({ feature: 'world', task: 'impact', status: 'completed', result })
+    expect(step.world).toEqual({ task: 'impact', conflicts: result.conflicts, gaps: result.gaps, affected: [ // 영향 종류·참조 id(kind·ref)는 화면이 쓰지 않아 받지 않는다
+      { title: '카엘', reason: '나이 설정이 어긋나요.', certainty: 'confirmed' },
+      { title: '성문 장면', reason: '카엘이 등장해요.', certainty: 'inferred' },
+    ] })
+    expect(stepText(step)).toBe('[확정] 카엘 · 나이 설정이 어긋나요.\n[추정] 성문 장면 · 카엘이 등장해요.\n충돌: 두 카드의 나이가 달라요.\n확인 못 함: 관계 기록이 없어요.')
+  })
+
+  it.each([
+    ['check: 지적 종류가 계약에 없다', 'check', { reviewedCards: 1, findings: [{ kind: 'unknown', message: 'x' }] }],
+    ['enrich: 칸 종류가 계약에 없다', 'enrich', { ...enrichResult, fixes: [{ cardId: 'c1', cardTitle: '카엘', target: 'memory', episode: null, text: 'x' }] }],
+    ['enrich: 새 글이 없다', 'enrich', { ...enrichResult, fixes: [{ cardId: 'c1', cardTitle: '카엘', target: 'soul', episode: null }] }],
+    ['enrich: 회차가 숫자가 아니다', 'enrich', { ...enrichResult, fixes: [{ cardId: 'c1', cardTitle: '카엘', target: 'episode', episode: '3', text: 'x' }] }],
+    ['impact: 확신도가 계약에 없다', 'impact', { affected: [{ kind: 'card', ref: 'c1', title: '카엘', reason: 'r', certainty: 'maybe' }], conflicts: [], gaps: [] }],
+    ['impact: 충돌 목록이 없다', 'impact', { affected: [], gaps: [] }],
+    ['결과가 객체가 아니다', 'enrich', '제안이에요'],
+    ['task와 다른 작업의 결과다', 'impact', enrichResult],
+  ])('형식이 어긋난 결과(%s)는 그 단계만 실패로 보인다', async (_name, task, result) => {
+    const step = await run({ feature: 'world', task, status: 'completed', result })
+    expect(step).toMatchObject({ feature: 'world', task, status: 'failed', error: BAD })
+    expect(step.world).toBeUndefined()
+  })
+
+  it('task가 없거나 world의 작업이 아닌 완료 단계는 어느 결과인지 알 수 없어 그 단계만 실패로 보인다', async () => {
+    expect(await run({ feature: 'world', status: 'completed', result: enrichResult })).toMatchObject({ status: 'failed', error: BAD })
+    expect(await run({ feature: 'world', task: 'draft', status: 'completed', result: enrichResult })).toMatchObject({ status: 'failed', error: BAD })
+  })
+
+  it('결과가 없는 시작 전 단계는 task만 두고, 서버가 실패로 보낸 단계는 결과가 어긋나도 서버 사유를 지킨다', async () => {
+    expect(await run({ feature: 'world', task: 'enrich', status: 'not_started' })).toEqual({ feature: 'world', task: 'enrich', status: 'not_started' })
+    expect(await run({ feature: 'world', task: 'check', status: 'failed', error: '연결된 세계관이 없어요.' }))
+      .toEqual({ feature: 'world', task: 'check', status: 'failed', error: '연결된 세계관이 없어요.' })
+    expect(await run({ feature: 'world', task: 'enrich', status: 'failed', error: '읽은 초안이 제안 때와 달라요.', result: { fixes: '깨짐' } }))
+      .toMatchObject({ status: 'failed', error: '읽은 초안이 제안 때와 달라요.' })
+  })
+
+  it('저장된 대화의 승인 대기(awaitingApproval: world)와 world 단계, 옛 대화 기록의 world_review 단계를 함께 읽는다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '대화', turns: [
+      { request: '카엘 설정을 자세히 써 줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'world',
+        steps: [{ feature: 'world', task: 'enrich', status: 'completed', result: enrichResult }] } },
+      { request: '설정집 검토해 줘', reply: { status: 'completed', missingInputs: [],
+        steps: [{ feature: 'world_review', status: 'completed', result: { reviewedCards: 1, findings: [] } }] } },
+    ] }))
+    const { turns } = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(turns[0].reply?.awaitingApproval).toBe('world')
+    expect(turns[0].reply?.steps[0]).toMatchObject({ feature: 'world', task: 'enrich', world: { task: 'enrich' } })
+    expect(turns[1].reply?.steps[0].worldReview).toEqual({ reviewedCards: 1, findings: [] })
+  })
+})
+
+describe('원고 검수 단계 결과(#59)', () => {
+  const finding = (extra: Record<string, unknown> = {}) => ({
+    category: 'spelling', quote: '웃엇다', reason: '받침 오류', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 3, end: 6, ...extra,
+  })
+  const review = (extra: Record<string, unknown> = {}) => ({
+    workId: 'w1', episode: 3, revision: 4, check: 'mechanical', findings: [finding()], gaps: [], model: 'm', providerResponseId: 'r', usage: null, ...extra,
+  })
+  const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+  const run = async (step: unknown) => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(`event: step\ndata: ${JSON.stringify(step)}\n\n`, done))).send('w1', 't1', input, (e) => events.push(e))
+    return events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
+  }
+
+  it('지적의 위치·이유·상태와 위치를 정하지 못한 지적(null)을 그대로 읽는다', async () => {
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result: review({ findings: [finding(), finding({ start: null, end: null, status: 'suspected' })] }) })
+    expect(step.manuscriptReview).toEqual({ check: 'mechanical', episode: 3, revision: 4, gaps: [],
+      findings: [finding(), finding({ start: null, end: null, status: 'suspected' })] })
+    expect(step.result).toBeUndefined()
+  })
+
+  it('건너뛴 조건부 수정 단계와 조건(when)을 읽는다(#370)', async () => {
+    const step = await run({ feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.', result: null })
+    expect(step).toMatchObject({ feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.' })
+  })
+
+  it('옛 대화 기록의 web_research 입력 대기는 research로 읽고, 옛 단계 이름은 그대로 둔다(#545)', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({
+      threadId: 't1', title: '고증', turns: [{ request: '조사해 줘', reply: {
+        status: 'waiting', steps: [{ feature: 'web_research', status: 'not_started' }], missingInputs: ['web_research'],
+      } }],
+    }))
+    const history = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(history.turns[0].reply).toMatchObject({ missingInputs: ['research'], steps: [{ feature: 'web_research' }] })
+  })
+
+  it('실시간 이벤트의 web_research 시작·입력 대기도 research로 읽는다(#545)', async () => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(
+      'event: started\ndata: {"feature":"web_research"}\n\n',
+      'event: waiting\ndata: {"steps":[],"missingInputs":["web_research"]}\n\n',
+      'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
+    expect(events[0]).toEqual({ type: 'started', feature: 'research' })
+    expect(events[1]).toMatchObject({ type: 'waiting', missingInputs: ['research'] })
+  })
+
+  it.each(['manuscript_review', 'review'])('이력의 원고 검수 단계 %s를 같은 결과로 읽는다', async (feature) => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({
+      threadId: 't1', title: '원고 검수', turns: [{ request: '검수해 줘', reply: {
+        status: 'completed', steps: [{ feature, status: 'completed', result: review() }], missingInputs: [],
+      } }],
+    }))
+    const history = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(history.turns[0].reply?.steps[0]).toMatchObject({
+      feature: 'manuscript_review', manuscriptReview: { check: 'mechanical', findings: [finding()] },
+    })
+  })
+
+it('승인 전 집필 후보와 원래 선택 구간을 검수 결과에 표시한다', async () => {
+    const candidate = { selection: { start: 9, end: 17 } }
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result: review({ candidate, findings: [finding(), finding({ end: null })] }) })
+    expect(step.manuscriptReview?.candidate).toEqual(candidate)
+    expect(stepText(step)).toContain('승인 전 집필 후보')
+    expect(stepText(step)).toContain('기준 초안 판본 4')
+    // 미리보기·편집기에 위치 표시가 없어 문자 위치 숫자는 작가가 쓸 수 없다. 구절은 인용으로 알린다.
+    expect(stepText(step)).toContain('선택 구간 수정')
+    expect(stepText(step)).not.toMatch(/위치 \d/)
+  })
+
+
+  it('두 검수를 함께 돌린 결과(both)도 읽는다(#369)', async () => {
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result: review({ check: 'both' }) })
+    expect(step.manuscriptReview?.check).toBe('both')
+  })
+
+  it.each([
+    ['상태가 계약에 없다', review({ findings: [finding({ status: 'maybe' })] })],
+    ['구절이 없다', review({ findings: [finding({ quote: undefined })] })],
+    ['검사 종류가 계약에 없다', review({ check: 'style' })],
+    ['결과가 객체가 아니다', '문제 없음'],
+  ])('형식이 어긋난 결과(%s)는 가짜 지적 없이 단계 실패로 알린다', async (_name, result) => {
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result })
+    expect(step).toMatchObject({ status: 'failed', error: '원고 검수 결과 형식을 확인할 수 없어요.' })
+    expect(step.manuscriptReview).toBeUndefined()
+  })
+
+  const assessment = { criterion: 'violence', level: 3, quotes: ['칼로 손가락을 잘랐다.'], rationale: '잔혹한 신체 훼손' }
+  const rating = (extra: Record<string, unknown> = {}) => ({
+    workId: 'w1', verdict: 'adult', prohibited: false, episodes: [{
+      episode: 3, revision: 4, verdict: 'adult', prohibited: false, error: null, signals: { profanityCount: 0 }, assessments: [assessment],
+      model: 'm', providerResponseId: 'r', usage: null,
+    }], ...extra,
+  })
+
+  it('심의 등급 판정과 회차별 항목 평가를 읽는다', async () => {
+    const step = await run({ feature: 'rating', status: 'completed', result: rating() })
+    expect(step.rating).toEqual({ verdict: 'adult', prohibited: false,
+      episodes: [{ episode: 3, verdict: 'adult', prohibited: false, error: null, assessments: [assessment] }] })
+  })
+
+  it('판정 값이 계약에 없으면 가짜 판정 없이 단계 실패로 알린다', async () => {
+    const step = await run({ feature: 'rating', status: 'completed', result: rating({ verdict: 'teen' }) })
+    expect(step).toMatchObject({ status: 'failed', error: '심의 등급 결과 형식을 확인할 수 없어요.' })
+    expect(step.rating).toBeUndefined()
+  })
+
+  it.each([
+    ['항목이 계약에 없다', { criterion: 'unknown' }],
+    ['수준이 3보다 크다', { level: 4 }],
+    ['수준이 0보다 작다', { level: -1 }],
+  ])('항목 평가가 계약 밖이면(%s) 단계 실패로 알린다(#457)', async (_name, bad) => {
+    const result = rating()
+    result.episodes[0].assessments = [{ ...assessment, ...bad }]
+    const step = await run({ feature: 'rating', status: 'completed', result })
+    expect(step).toMatchObject({ status: 'failed', error: '심의 등급 결과 형식을 확인할 수 없어요.' })
+    expect(step.rating).toBeUndefined()
+  })
+
+  it('Content 쓰기 승인 대기는 실제 도구·인자를 그대로 읽고 승인 뒤 단계는 content_action으로 읽는다(#554)', async () => {
+    const pending = { tool: 'world_studio_edit_draft', label: '세계관 설정 카드 수정', args: { id: 'w', request: { cards: [{ id: 'k', body: '새 글' }] } } }
+    const applied = { feature: 'content_action', when: 'always', status: 'completed', approval: 'approved', result: { tool: 'work_update', label: '작품 정보 수정' }, applied: { episode: 3, revision: 9 } }
+    const fetcher = vi.fn().mockResolvedValue(sse(
+      `event: waiting\ndata: ${JSON.stringify({ steps: [], awaitingApproval: 'content_action', pendingAction: pending })}\n\n`,
+      `event: step\ndata: ${JSON.stringify(applied)}\n\n`,
+      `event: done\ndata: ${JSON.stringify({ status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action', pendingAction: pending })}\n\n`))
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(fetcher).send('w1', 't1', input, (e) => events.push(e))
+    expect(events[0]).toMatchObject({ type: 'waiting', awaitingApproval: 'content_action', pendingAction: pending })
+    expect(events[1]).toMatchObject({ type: 'step', step: { feature: 'content_action', result: { tool: 'work_update', label: '작품 정보 수정' }, applied: { revision: 9 } } })
+    expect(events[2]).toMatchObject({ type: 'done', reply: { pendingAction: pending } })
+  })
+
+  it('승인 대기의 인자가 객체가 아니면 형식 오류로 알린다(가짜 카드를 만들지 않는다)', async () => {
+    const fetcher = vi.fn().mockResolvedValue(sse('event: waiting\ndata: {"steps":[],"awaitingApproval":"content_action","pendingAction":{"tool":"x","label":"y","args":3}}\n\n'))
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(fetcher).send('w1', 't1', input, (e) => events.push(e))
+    expect(events[0]).toEqual({ type: 'error', message: '서버 응답 형식을 확인할 수 없어요.' })
+  })
+
+  it('보내는 요청에 화면 정보(page)가 그대로 실린다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(sse('event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))
+    const page = { path: '/studio/w1?ep=2', kind: 'studio' as const, episode: 2, selection: '그는 웃었다.' }
+    await new HttpWritingChatRepository(fetcher).send('w1', 't1', { ...input, page }, () => {})
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ ...input, page })
+  })
+})
+
+describe('계획 수정안 단계 결과(#578)', () => {
+  const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+  const BAD = '계획 수정안 형식을 확인할 수 없어요.'
+  const revision = {
+    planId: 'scene-1', kind: 'scene', revision: 3, model: 'm', providerResponseId: 'r', usage: null,
+    before: { title: '재회', content: '카엘이 리나를 만난다.' }, after: { title: '재회', content: '카엘이 리나를 만나지만 이름을 부르지 못한다.' },
+  }
+  const run = async (step: unknown) => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(`event: step\ndata: ${JSON.stringify(step)}\n\n`, done))).send('w1', 't1', input, (e) => events.push(e))
+    return events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
+  }
+
+  it('revise_plan 결과를 대상 종류와 변경 전·후로 읽고 승인·저장 결과를 그대로 둔다', async () => {
+    const step = await run({ feature: 'writing_editing', task: 'revise_plan', status: 'completed', approval: 'approved', applied: { episode: 3, revision: 6 }, result: revision })
+    expect(step).toMatchObject({ feature: 'writing_editing', task: 'revise_plan', status: 'completed', approval: 'approved', applied: { episode: 3, revision: 6 },
+      planRevision: { kind: 'scene', before: { title: '재회', content: '카엘이 리나를 만난다.' }, after: { title: '재회', content: '카엘이 리나를 만나지만 이름을 부르지 못한다.' } } })
+    expect(step.result).toBeUndefined()
+    expect(stepText(step)).toContain("장면 계획 '재회' 수정안")
+  })
+
+  it.each([
+    ['종류가 계약에 없다', { ...revision, kind: 'chapter' }],
+    ['수정 후 내용이 없다', { ...revision, after: { title: '재회' } }],
+    ['변경 전이 글자다(원고 수정 결과 모양)', { ...revision, before: '그는 웃었다.', after: '그는 차갑게 웃었다.' }],
+    ['결과가 객체가 아니다', '제안이에요'],
+  ])('형식이 어긋난 결과(%s)는 그 단계만 실패로 보인다', async (_name, result) => {
+    const step = await run({ feature: 'writing_editing', task: 'revise_plan', status: 'completed', result })
+    expect(step).toMatchObject({ feature: 'writing_editing', task: 'revise_plan', status: 'failed', error: BAD })
+    expect(step.planRevision).toBeUndefined()
+  })
+
+  it('서버가 실패로 보낸 단계(409 등)는 서버 사유를 지키고 결과가 있으면 제안도 남긴다', async () => {
+    const step = await run({ feature: 'writing_editing', task: 'revise_plan', status: 'failed', approval: 'approved', error: '다른 변경이 저장됐어요.', result: revision })
+    expect(step).toMatchObject({ status: 'failed', error: '다른 변경이 저장됐어요.', approval: 'approved', planRevision: { kind: 'scene' } })
+  })
+
+  it('다른 writing_editing 작업(기획·부분 수정)의 결과는 그대로 읽는다', async () => {
+    expect(await run({ feature: 'writing_editing', task: 'patch', status: 'completed', result: { before: '그는 웃었다.', after: '그는 차갑게 웃었다.' } }))
+      .toMatchObject({ status: 'completed', result: { before: '그는 웃었다.', after: '그는 차갑게 웃었다.' } })
+    expect(await run({ feature: 'writing_editing', task: 'plan', status: 'completed', result: { plans: [{ title: '항구의 밤', beats: ['도착'] }], notes: [] } }))
+      .toMatchObject({ status: 'completed', result: { plans: [{ title: '항구의 밤' }] } })
+  })
+
+  it('저장된 대화의 승인 대기(writing_editing + revise_plan)를 읽는다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '대화', turns: [
+      { request: '재회 장면 고쳐줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing',
+        steps: [{ feature: 'writing_editing', task: 'revise_plan', status: 'completed', result: revision }] } },
+    ] }))
+    const { turns } = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(turns[0].reply?.steps[0]).toMatchObject({ task: 'revise_plan', planRevision: { kind: 'scene' } })
   })
 })

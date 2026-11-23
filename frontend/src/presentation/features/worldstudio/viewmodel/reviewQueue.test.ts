@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 
 import type { Analysis, Candidate, Decision } from '../../../../domain/entities/initialWorld'
-import { reviewGroups } from './reviewQueue'
+import { reviewButtonLabel, reviewGroups } from './reviewQueue'
 
 const candidate = (localRef: string): Candidate => ({ localRef, type: 'fact', title: `후보 ${localRef}`, text: `${localRef} 내용`, subjectId: null, relatedEntityIds: [], provenance: 'ai_extraction', evidence: [], relation: null, condition: '', timeText: '', polarity: 'asserted' })
 const analysis = (candidates: Candidate[], decisions: Decision[]): Analysis => ({
@@ -22,4 +22,11 @@ it('groups candidates by their latest decision and keeps held ones in the review
 it('is empty without an analysis or output', () => {
   expect(reviewGroups(undefined)).toEqual({ pending: [], approved: [], rejected: [] })
   expect(reviewGroups({ ...analysis([], []), output: null })).toEqual({ pending: [], approved: [], rejected: [] })
+})
+
+it('AI 검토 버튼 이름은 의견·후보가 있을 때만 그 수를 짧게 붙인다', () => {
+  expect(reviewButtonLabel(0, 0)).toBe('AI 검토')
+  expect(reviewButtonLabel(5, 0)).toBe('AI 검토 · 의견 5')
+  expect(reviewButtonLabel(0, 2)).toBe('AI 검토 · 후보 2')
+  expect(reviewButtonLabel(5, 2)).toBe('AI 검토 · 의견 5 · 후보 2')
 })

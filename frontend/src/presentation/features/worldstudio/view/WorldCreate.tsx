@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react'
 
-import { Art } from '../../../shared/art'
+import { DEFAULT_COVER } from '../../../shared/cover'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 
 type VM = ReturnType<typeof useWorldStudioViewModel>
@@ -24,8 +24,8 @@ export function WorldCreate({ vm }: { vm: VM }) {
       <form onSubmit={create}>
         <div className="whero ep-hero">
           <div className="ep-hero-cover">
-            <div className="cov"><Art theme="star" w={300} h={400} seed="new-world" /><div className="tg"><span className="tag dk">새 세계관</span></div></div>
-            <p className="small muted">표지는 세계관마다 자동으로 만들어져요.</p>
+            <div className="cov"><img src={DEFAULT_COVER} alt="" /><div className="tg"><span className="tag dk">새 세계관</span></div></div>
+            <p className="small muted">표지는 만든 뒤에 올릴 수 있어요. 올리지 않으면 기본 표지를 써요.</p>
           </div>
           <div className="ep-hero-main ep-create-fields">
             <label className="ep-create-title">세계관 이름<input name="name" required maxLength={100} placeholder="어떤 세계를 만들까요?" /></label>

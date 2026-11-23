@@ -1,0 +1,3156 @@
+[
+  {
+    "id": "869ea864-f552-5d7e-9b55-fd179c5fc820",
+    "title": "칼리오페",
+    "body": "무사 아홉 자매 가운데 가장 앞서는 여신으로, 존경받는 지배자들을 따른다. 무사들을 다룬 기존 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 75-103행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "calliope",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 75-103행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "75-103행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "4265788e-1c29-53ca-bb96-45443da7db5c",
+          "title": "무사 여신들과 헤시오도스의 노래",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "c828a379-a776-5c19-86c3-7f1a6293eabc",
+    "title": "무사들의 월계수 지팡이",
+    "body": "무사들은 양을 치던 헤시오도스에게 월계수 가지 지팡이를 주고 신들의 계보를 노래할 신성한 목소리를 불어넣는다. 기존 무사 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 29-35행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "object",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "muse-laurel-rod",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 29-35행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "29-35행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "4265788e-1c29-53ca-bb96-45443da7db5c",
+          "title": "무사 여신들과 헤시오도스의 노래",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "a182a095-fbd1-5207-9cea-aa951fae736c",
+    "title": "무사들의 언변과 판결의 선물",
+    "body": "무사들이 태어날 때 돌보는 지배자의 혀에 이슬을 부으면 그 입에서 부드러운 말이 흘러나오고 그는 판결과 설득으로 다툼을 끝낸다.\n\n출전: 헤시오도스 《신통기》 75-103행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "ability",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "muses-gift-judgment",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 75-103행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "75-103행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "4265788e-1c29-53ca-bb96-45443da7db5c",
+          "title": "무사 여신들과 헤시오도스의 노래",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "5f997a64-8037-56ac-b376-ad46feb9f014",
+    "title": "헤메라",
+    "body": "낮은 밤 닉스가 에레보스와 결합해 낳은 자식이며, 밤과 청동 문턱에서 교대한다. 기존 밤과 낮 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 116-138행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "hemera",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 116-138행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "116-138행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "신통기 744-757행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "744-757행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "c0277f8e-7e3a-523d-bb9f-c2613f87eff7",
+          "title": "카오스와 신들의 계보",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        },
+        {
+          "genre": "greco_roman_mythology",
+          "id": "2f497702-674f-59dd-b1cc-2489af336ffe",
+          "title": "밤과 낮이 교대하는 청동 문턱",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "f15e0e90-55d9-534b-90d4-ea1d9a7f9c5b",
+    "title": "가이아의 부싯돌 낫",
+    "body": "가이아가 땅속에 갇힌 자식들 때문에 괴로워하며 회색 부싯돌로 큰 낫을 만든다. 크로노스가 그것을 받아 하늘을 공격한다.\n\n출전: 헤시오도스 《신통기》 147-163행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "object",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "flint-sickle",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 147-163행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "147-163행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "53e61ce8-fdca-58ac-8f77-ccc7942bb2e5",
+          "title": "가이아와 우라노스의 생성·갈등",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "da4de9dd-5b58-5c44-ac78-11aed99d3992",
+    "title": "멜리아이",
+    "body": "우라노스의 잘린 몸에서 흐른 피를 받아들인 가이아가 계절이 흐른 뒤 낳은 님프들이다.\n\n출전: 헤시오도스 《신통기》 176-206행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "organization",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "meliae",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 176-206행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "176-206행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "53e61ce8-fdca-58ac-8f77-ccc7942bb2e5",
+          "title": "가이아와 우라노스의 생성·갈등",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "5165a08b-546b-5f1e-8a27-dd028295a427",
+    "title": "맹세의 응징",
+    "body": "불화 에리스가 낳은 맹세는 사람이 고의로 거짓 맹세를 할 때 특히 그를 괴롭힌다. 신들의 스틱스 맹세와는 별도의 이 대목이다.\n\n출전: 헤시오도스 《신통기》 226-232행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "oath-child-of-strife",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 226-232행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "226-232행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "477bb3dd-4329-5ae5-9282-6f4b7e3e7e3a",
+          "title": "밤의 자녀와 운명·고통의 계보",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "64821a4d-fc14-51de-ae2b-e53566434aaf",
+    "title": "파도를 가라앉히는 네레이데스",
+    "body": "키모도케는 키마톨레게 및 암피트리테와 함께 파도와 거센 바람을 쉽게 가라앉힌다. 쉰 딸의 계보를 다룬 기존 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 240-264행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "ability",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "nereid-wave-calming",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 240-264행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "240-264행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "35a43f1f-0d35-5a74-999e-223affa3f897",
+          "title": "네레우스와 도리스의 쉰 딸",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "51c16d1a-b3a7-589c-b1f3-460770df1805",
+    "title": "오르토스",
+    "body": "에키드나가 낳은 게리오네스의 개다. 헤라클레스가 게리오네스의 소를 몰아갈 때 죽인다. 기존 에키드나 괴물 계보와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 306-332행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "orthus",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 306-332행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "306-332행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "46ab54a9-a876-5792-8078-7ba39a633845",
+          "title": "에리테이아의 게리오네스와 소 떼",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        },
+        {
+          "genre": "greco_roman_mythology",
+          "id": "6e2a33ae-d780-5330-8f2f-4d6ed76a2dd5",
+          "title": "에키드나 계보의 괴물들",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "3cc196c5-4377-5a0f-86aa-aed2c87ef851",
+    "title": "소치기 에우리티온",
+    "body": "헤라클레스가 게리오네스의 소를 몰고 떠나며 오케아노스 너머 축사에서 죽인 소치기다.\n\n출전: 헤시오도스 《신통기》 270-294행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "eurytion-herdsman",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 270-294행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "270-294행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "46ab54a9-a876-5792-8078-7ba39a633845",
+          "title": "에리테이아의 게리오네스와 소 떼",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "6f177078-ac0b-559f-b8a9-ad4181df9287",
+    "title": "이올라오스",
+    "body": "헤라클레스와 함께 아테나의 계획에 따라 레르나의 히드라를 죽인다.\n\n출전: 헤시오도스 《신통기》 306-332행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "iolaus",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 306-332행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "306-332행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "6e2a33ae-d780-5330-8f2f-4d6ed76a2dd5",
+          "title": "에키드나 계보의 괴물들",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "id": "88db5440-2024-538f-b736-20e082e82cca",
+          "segment": "greco-supplement",
+          "candidate_key": "iolaus-hydra",
+          "title": "이올라오스",
+          "reasons": [
+            "동일 제목·유형"
+          ]
+        }
+      ],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "bdf0dac0-15df-5733-93f7-b7670a9e4967",
+    "title": "벨레로폰",
+    "body": "페가소스와 함께 불을 뿜는 키마이라를 죽인다. 기존 괴물 계보와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 306-332행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "bellerophon",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 306-332행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "306-332행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "1868a999-3a15-5e7f-9202-eb417c463fd4",
+          "title": "메두사에게서 솟은 페가소스와 크리사오르",
+          "reasons": [
+            "기존 본문에 후보 제목 등장"
+          ]
+        },
+        {
+          "genre": "greco_roman_mythology",
+          "id": "6e2a33ae-d780-5330-8f2f-4d6ed76a2dd5",
+          "title": "에키드나 계보의 괴물들",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "9dcbf624-31ef-5607-9601-822d6b26eaaf",
+    "title": "키마이라",
+    "body": "사자 머리, 뱀의 뒷부분, 염소의 가운데 부분을 가진 불을 뿜는 괴물로, 페가소스와 벨레로폰에게 죽는다. 기존 에키드나 괴물 계보와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 306-332행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "chimaera",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 306-332행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "306-332행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "1868a999-3a15-5e7f-9202-eb417c463fd4",
+          "title": "메두사에게서 솟은 페가소스와 크리사오르",
+          "reasons": [
+            "기존 본문에 후보 제목 등장"
+          ]
+        },
+        {
+          "genre": "greco_roman_mythology",
+          "id": "6e2a33ae-d780-5330-8f2f-4d6ed76a2dd5",
+          "title": "에키드나 계보의 괴물들",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "fd8275db-01a2-5405-a5af-0aaca554c5c7",
+    "title": "네메아의 사자",
+    "body": "헤라가 길러 네메아 산지의 사람들을 괴롭히게 했지만 헤라클레스에게 죽는다. 기존 에키드나 괴물 계보와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 306-332행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "nemean-lion",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 306-332행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "306-332행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "6e2a33ae-d780-5330-8f2f-4d6ed76a2dd5",
+          "title": "에키드나 계보의 괴물들",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        },
+        {
+          "genre": "greco_roman_mythology",
+          "id": "ece1358e-b75b-55ef-83e8-5995b96cc426",
+          "title": "헤라클레스의 열두 과업",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "fafed65d-ac0c-56bb-8910-e6441eff9d0b",
+    "title": "카드모스 사람들의 스핑크스",
+    "body": "에키드나와 오르토스의 결합에서 태어나 카드모스 사람들을 파멸시킨 괴물이다. 기존 에키드나 괴물 계보와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 306-332행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "sphinx-cadmeans",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 306-332행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "306-332행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "6e2a33ae-d780-5330-8f2f-4d6ed76a2dd5",
+          "title": "에키드나 계보의 괴물들",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "dcee6b79-4664-50d0-892c-52e3019ecbda",
+    "title": "에오스포로스",
+    "body": "에오스가 아스트라이오스와 결합한 뒤 낳은 새벽별이다. 기존 새벽과 별의 계보 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 378-382행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "eosphorus",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 378-382행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "378-382행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "98e61095-f7d4-5e1b-9433-cb6c0d258fcc",
+          "title": "새벽의 바람·별과 파괴적인 돌풍",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "0af5c85e-3a2b-57b6-8a89-088156b5e56c",
+    "title": "티탄 전쟁의 권리 보장",
+    "body": "제우스는 티탄에 맞서 싸우는 신에게 기존 권리를 보장하고 크로노스 아래서 권리가 없던 신에게도 직분을 주겠다고 약속한다. 스틱스가 자녀들과 먼저 호응한다.\n\n출전: 헤시오도스 《신통기》 383-403행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "rule",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "stygian-pledge-of-honors",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 383-403행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "383-403행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "970ee052-e944-5880-8480-d74ad49dee3b",
+          "title": "스틱스와 제우스 곁의 네 자녀",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "485d8876-74b9-5de3-8854-31e4cc3f6929",
+    "title": "헤스티아",
+    "body": "레아와 크로노스 사이에서 태어난 자녀 중 하나이며, 아버지 크로노스가 태어난 자녀들을 삼킨다. 기존 올림포스 신들 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 453-491행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "hestia",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 453-491행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "453-491행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "4a46497d-e684-5072-8e85-4fcd4cfd7f9e",
+          "title": "크로노스의 왕권과 몰락",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        },
+        {
+          "genre": "greco_roman_mythology",
+          "id": "9c05fadd-83ef-5c44-be1e-afe5cab13913",
+          "title": "레아의 슬픔과 크레테의 숨겨진 제우스",
+          "reasons": [
+            "기존 본문에 후보 제목 등장"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "98f7a28e-1d11-57ed-839c-b79e612237d0",
+    "title": "릭토스와 아이가이온 산 동굴",
+    "body": "레아가 크레타의 릭토스에서 제우스를 낳자 가이아가 숲이 우거진 아이가이온 산 아래 깊은 동굴에 그를 숨긴다. 기존 제우스 출생 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 453-491행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "location",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "lyctus-aegeum",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 453-491행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "453-491행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "9c05fadd-83ef-5c44-be1e-afe5cab13913",
+          "title": "레아의 슬픔과 크레테의 숨겨진 제우스",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "43ee4345-17e2-5db0-a71c-f488f60ffd7f",
+    "title": "메노이티오스",
+    "body": "이아페토스와 클리메네의 아들이며 제우스가 오만과 지나친 자만 때문에 번개로 쳐서 에레보스로 보낸다. 기존 이아페토스 자녀 계보와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 507-543행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "menoetius",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 507-543행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "507-543행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "457c9c7a-a7eb-5026-9ae8-339bc0b605fd",
+          "title": "이아페토스와 클리메네의 네 아들",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "6e32bd42-a466-5e2c-8b4c-7dc8844243fd",
+    "title": "하늘을 떠받치는 아틀라스",
+    "body": "이아페토스와 클리메네의 아들 아틀라스는 제우스가 정한 몫에 따라 헤스페리데스 앞 땅 끝에서 머리와 팔로 하늘을 떠받친다. 기존 이아페토스 자녀 계보와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 507-543행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "atlas-heaven",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 507-543행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "507-543행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "457c9c7a-a7eb-5026-9ae8-339bc0b605fd",
+          "title": "이아페토스와 클리메네의 네 아들",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "id": "2542be54-16e5-5ace-87df-685bb1dcb1a9",
+          "segment": "greco-supplement",
+          "candidate_key": "atlas-heracles-sky",
+          "title": "아틀라스와 하늘의 짐",
+          "reasons": [
+            "같은 인물·주제 관련 가능; 사건·판본 차이 검토"
+          ]
+        }
+      ],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "07d2f932-81cc-59ac-806c-1381849b87d5",
+    "title": "프로메테우스의 독수리와 간",
+    "body": "제우스는 프로메테우스를 묶고 독수리로 간을 쪼게 한다. 간은 밤마다 다시 자라며, 헤라클레스가 제우스의 뜻에 어긋나지 않게 독수리를 죽여 그를 구한다. 기존 프로메테우스 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 507-543행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "prometheus-eagle",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 507-543행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "507-543행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "411b4494-c81b-5fa8-b39e-001a80ff1d0c",
+          "title": "프로메테우스",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "5dc4455e-ef06-5f36-8d94-41a082ac0487",
+    "title": "헤파이스토스가 만든 황금 관",
+    "body": "불의 대가로 만들어진 여성에게 아테나가 씌운 황금 관이다. 헤파이스토스는 육지와 바다의 여러 생물을 생생하게 새겨 넣는다.\n\n출전: 헤시오도스 《신통기》 561-584행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "object",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "hephaestus-maiden-crown",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 561-584행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "561-584행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "4e6bb85b-ea95-532b-aaf6-995c41072045",
+          "title": "불의 대가로 빚어진 여자와 화자의 논평",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "2967ccf9-7bb9-5a97-9a8e-c18249f89950",
+    "title": "오트리스",
+    "body": "티탄들이 크로노스의 자녀들과 전쟁을 벌일 때 진을 친 높은 산이다. 상대편은 올림포스에서 맞선다.\n\n출전: 헤시오도스 《신통기》 617-643행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "location",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "othrys",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 617-643행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "617-643행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "5e5b9455-00b5-526a-b4c6-863466adaee2",
+          "title": "티타노마키아",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "3bd38c9b-1e58-5dab-9552-ea5c93f48b85",
+    "title": "타르타로스의 거리와 청동 울타리",
+    "body": "작품은 땅에서 떨어진 청동 모루가 열흘째 타르타로스에 닿는다고 묘사한다. 티탄들의 감금 장소를 청동 울타리가 둘러싸고 포세이돈이 청동 문을 고정했다. 기존 타르타로스 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 713-735행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "location",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "tartarus-bronze-anvil",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 713-735행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "713-735행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "92e0c727-960f-54e1-8d91-8b3b8d1ca9c6",
+          "title": "명계와 타르타로스",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "88a49874-8997-5db4-baa6-99b290d918a0",
+    "title": "하데스의 문을 지키는 개",
+    "body": "하데스와 페르세포네의 집 앞 개는 들어가는 자에게 꼬리와 귀로 반기지만 나가려는 자는 붙잡아 먹는다. 기존 케르베로스 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 767-774행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "rule",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "hades-hound-gate",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 767-774행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "767-774행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "bf1fb007-fafb-5264-987e-61ce2bebbeb8",
+          "title": "케르베로스의 머리 수와 명계행",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "1f9f926e-ef70-5dd8-bc2e-a14bbea8cbdf",
+    "title": "키모폴레이아",
+    "body": "포세이돈이 브리아레오스에게 아내로 준 딸이다. 기존 백수거인 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 807-819행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "cymopolea",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 807-819행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "807-819행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "ac9ed31b-55be-55d5-a3ba-cf8b95bce031",
+          "title": "코토스·브리아레오스·기에스",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "a991d753-9359-5a19-9407-0da9d5526d1e",
+    "title": "에일레이튀이아",
+    "body": "헤라가 제우스와 결합하여 낳은 자녀 가운데 하나다. 기존 올림포스 신들 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 921-923행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "eileithyia",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 921-923행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "921-923행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "781e318c-631b-5b1f-9736-45fa36b3a91c",
+          "title": "헤라",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "ca1e4861-9ba3-5de4-aecd-b3f4f1a9b4ec",
+    "title": "헤베",
+    "body": "제우스와 헤라의 딸로, 헤라클레스가 고된 과업을 마친 뒤 올림포스에서 그의 아내가 된다. 기존 헤라클레스 및 신들 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 950-955행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "hebe",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 950-955행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "950-955행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "781e318c-631b-5b1f-9736-45fa36b3a91c",
+          "title": "헤라",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "187716da-6fd4-512f-bf5e-53e64efd7e1c",
+    "title": "마이아",
+    "body": "아틀라스의 딸 마이아는 제우스에게서 불멸의 신들의 전령 헤르메스를 낳는다. 기존 헤르메스 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 938-939행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "maia-atlas-daughter",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 938-939행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "938-939행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "896598b9-effd-54bf-8b3a-46ac600ddad9",
+          "title": "헤르메스",
+          "reasons": [
+            "기존 본문에 후보 제목 등장",
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "64c42752-dc44-5ed5-92ad-bb739d568312",
+    "title": "케팔로스의 아들 파에톤",
+    "body": "에오스가 케팔로스에게 낳은 아들로, 어릴 때 아프로디테에게 붙들려 여신의 신전에서 밤을 지키는 신령이 된다. 기존 에오스의 인간과의 자녀 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 984-991행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "phaethon-cephalus",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 984-991행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "984-991행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "신통기 984-991행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "984-991행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "신통기 984-991행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "984-991행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "5b77f061-7afd-5249-a22d-775f6435f543",
+          "title": "에오스의 인간과의 자녀들",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "5b5bba4d-2901-5588-ae1b-28f2736f1987",
+    "title": "메데이오스를 기른 케이론",
+    "body": "필리라의 아들 케이론은 이아손과 메데이아의 아들 메데이오스를 산에서 기른다. 기존 이아손 계보 카드와 중복 확인이 필요하다.\n\n출전: 헤시오도스 《신통기》 993-1002행, 에벌린화이트 영어 번역 (1914): https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "segment": "greco-theogony",
+      "candidate_key": "cheiron-medeus",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "H. G. Evelyn-White 영어 번역 1914, Project Gutenberg 전사",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "evidence": [
+        {
+          "unit": "신통기 993-1002행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "location": "993-1002행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "08d708d0-ac4d-592e-b511-c85e7ff11503",
+          "title": "이아손의 귀환과 메데이오스",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "id": "c0a60734-9fd3-5811-be6e-1d459c610c89",
+          "segment": "greco-supplement",
+          "candidate_key": "chiron-wound",
+          "title": "케이론의 상처와 죽음",
+          "reasons": [
+            "같은 인물·주제 관련 가능; 사건·판본 차이 검토"
+          ]
+        }
+      ],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "fed218e9-8881-5b0d-9c83-3213e531e7ab",
+    "title": "몰로르코스",
+    "body": "클레오나이의 가난한 농부로, 네메아 사자를 잡으러 가던 헤라클레스를 접대했다. 30일째 돌아온 영웅과 구원자 제우스에게 제사를 드린다. 출전: 아폴로도로스 도서관 2.5.1 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "molochus",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.1",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.1",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "5af9f051-c634-5b17-b673-bd5ad89db4b5",
+    "title": "코프레우스",
+    "body": "에우리스테우스가 헤라클레스에게 과업을 명령할 때 보내는 전령이다. 이피토스를 죽이고 미케네로 도망쳐 에우리스테우스에게 정화받았다. 출전: 아폴로도로스 도서관 2.5.1 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "copreus-herald",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.1",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.1",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "88db5440-2024-538f-b736-20e082e82cca",
+    "title": "이올라오스",
+    "body": "헤라클레스의 레르네 히드라 사냥에 전차를 몰고 동행하여 잘린 머리의 뿌리를 횃불로 지져 재생을 막는다. 출전: 아폴로도로스 도서관 2.5.2 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "iolaus-hydra",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.2",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.2",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "6e2a33ae-d780-5330-8f2f-4d6ed76a2dd5",
+          "title": "에키드나 계보의 괴물들",
+          "reasons": [
+            "기존 본문에 후보 제목 등장"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "id": "6f177078-ac0b-559f-b8a9-ad4181df9287",
+          "segment": "greco-theogony",
+          "candidate_key": "iolaus",
+          "title": "이올라오스",
+          "reasons": [
+            "동일 제목·유형"
+          ]
+        }
+      ],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "b35e7e83-3a6f-53ba-ba8a-9b8219d649f3",
+    "title": "레르네의 히드라",
+    "body": "레르네 늪의 괴물은 아홉 머리 가운데 가운데 머리가 불사이며 하나를 자르면 둘이 돋는다. 헤라클레스는 이올라오스의 도움을 받아 쓰러뜨린다. 기존 괴물 계보 및 열두 과업 카드와 중복 가능. 출전: 아폴로도로스 도서관 2.5.2 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "lernaean-hydra",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.2",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.2",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "ece1358e-b75b-55ef-83e8-5995b96cc426",
+          "title": "헤라클레스의 열두 과업",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "52ce0729-ee06-5b27-b45a-650254866beb",
+    "title": "케뤼네이아의 암사슴",
+    "body": "황금 뿔을 가진 아르테미스의 신성한 암사슴이다. 헤라클레스는 일 년 동안 쫓은 끝에 붙잡아 살아 있는 채 미케네로 데려간다. 출전: 아폴로도로스 도서관 2.5.3 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "ceryneian-hind",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.3",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.3",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "ece1358e-b75b-55ef-83e8-5995b96cc426",
+          "title": "헤라클레스의 열두 과업",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "0f41e5a8-32c7-585f-b8f1-d22f013ae477",
+    "title": "에뤼만토스의 멧돼지",
+    "body": "에뤼만토스 산에서 나와 프소피스를 해치던 짐승이다. 헤라클레스가 눈 속으로 몰아 생포해 미케네로 가져간다. 출전: 아폴로도로스 도서관 2.5.4 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "erymanthian-boar",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.4",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.4",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "ece1358e-b75b-55ef-83e8-5995b96cc426",
+          "title": "헤라클레스의 열두 과업",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "2bf9d076-7fbb-55ed-9db6-7a40487c1223",
+    "title": "켄타우로스 폴로스",
+    "body": "헤라클레스를 접대한 켄타우로스다. 동료 켄타우로스들과의 싸움 뒤 시체에서 화살을 빼어 살피다가 떨어진 화살에 발을 찔려 죽는다. 출전: 아폴로도로스 도서관 2.5.4 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "pholus-centaur",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.4",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.4",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.4",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/8375d5b7f542fd28790d05895c380d9c2620ca9d/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.4",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.4",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/8375d5b7f542fd28790d05895c380d9c2620ca9d/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.4",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.4",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/8375d5b7f542fd28790d05895c380d9c2620ca9d/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.4",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.4",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/8375d5b7f542fd28790d05895c380d9c2620ca9d/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.4",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "c0a60734-9fd3-5811-be6e-1d459c610c89",
+    "title": "케이론의 상처와 죽음",
+    "body": "아폴로도로스 전승에서 켄타우로스 케이론은 헤라클레스가 쏜 화살에 무릎을 맞고 불치의 상처를 입는다. 죽음을 원했으나 불사였고 프로메테우스가 대신 불사가 되자 죽는다. 출전: 아폴로도로스 도서관 2.5.4 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "chiron-wound",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.4",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.4",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [
+        {
+          "id": "5b5bba4d-2901-5588-ae1b-28f2736f1987",
+          "segment": "greco-theogony",
+          "candidate_key": "cheiron-medeus",
+          "title": "메데이오스를 기른 케이론",
+          "reasons": [
+            "같은 인물·주제 관련 가능; 사건·판본 차이 검토"
+          ]
+        }
+      ],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "f2a0a3c8-6c86-59c6-b1b3-651c6223fc00",
+    "title": "엘리스 왕 아우게이아스",
+    "body": "많은 가축을 소유한 엘리스 왕으로 헤라클레스에게 하루 만에 외양간을 치우면 가축의 십분의 일을 주기로 약속하지만 나중에 약속을 부인한다. 그의 아들 퓔레우스가 증언한다. 출전: 아폴로도로스 도서관 2.5.5 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "augeas",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.5",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.5",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.5",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/8375d5b7f542fd28790d05895c380d9c2620ca9d/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.5",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.5",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/8375d5b7f542fd28790d05895c380d9c2620ca9d/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.5",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.5",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/8375d5b7f542fd28790d05895c380d9c2620ca9d/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.5",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "22171629-1624-5203-998c-38ee60281b62",
+    "title": "퓔레우스의 증언",
+    "body": "퓔레우스는 아버지 아우게이아스가 헤라클레스에게 품삯을 약속했다고 증언했고, 분노한 아버지에 의해 헤라클레스와 함께 엘리스에서 쫓겨난다. 출전: 아폴로도로스 도서관 2.5.5 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "phyleus-witness",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.5",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.5",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [
+        {
+          "id": "e32b1039-ffec-5f7c-84aa-6ebeab1afd8c",
+          "segment": "greco-supplement",
+          "candidate_key": "phyleus",
+          "title": "아우게이아스의 아들 퓔레우스",
+          "reasons": [
+            "같은 인물·주제 관련 가능; 사건·판본 차이 검토"
+          ]
+        }
+      ],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "bfc295fa-7571-5999-831b-933e17882c14",
+    "title": "스튐팔로스의 새들",
+    "body": "아르카디아 호수의 숲으로 모여든 새들이다. 헤라클레스는 아테나가 헤파이스토스에게서 받아 준 청동 딸랑이로 새를 놀라 날게 한 뒤 활을 쏜다. 출전: 아폴로도로스 도서관 2.5.6 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "stymphalian-birds",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.6",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.6",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "d8819775-234d-548b-91e5-42f230b79469",
+    "title": "트라키아의 디오메데스",
+    "body": "트라키아 비스토네스의 왕이며 사람을 먹는 말들을 소유했다. 헤라클레스가 말들을 빼앗는 싸움에서 그를 죽인다. 출전: 아폴로도로스 도서관 2.5.8 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "diomedes-thrace",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.8",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.8",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "49045160-c136-5433-bbc9-19ecee540991",
+    "title": "압데로스",
+    "body": "헤르메스의 아들로 헤라클레스에게 디오메데스의 말들을 맡아 지키다가 말들에 의해 죽는다. 헤라클레스는 그의 무덤 곁에 압데라를 세운다. 출전: 아폴로도로스 도서관 2.5.8 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "abderus",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.8",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.8",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "6f059493-c0ba-55b2-9566-0c899c10a524",
+    "title": "아마존의 여왕 히폴리테",
+    "body": "테르모돈 근처 아마존의 여왕으로 아레스의 허리띠를 지녔다. 이 전승에서 처음에는 허리띠를 주겠다고 하나, 변장한 헤라가 부른 싸움에서 헤라클레스에게 죽는다. 기존 허리띠 카드와 중복 가능. 출전: 아폴로도로스 도서관 2.5.9 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "amazon-hippolyta",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.9",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.9",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "17a2473b-7a44-5924-a421-71ef02d77bac",
+          "title": "히폴리테의 허리띠",
+          "reasons": [
+            "기존 본문에 후보 제목 등장"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "5ed04161-b370-51fb-b58b-cb1a802430dd",
+    "title": "헤시오네와 트로이 바다괴물",
+    "body": "라오메돈은 신탁에 따라 딸 헤시오네를 바다괴물의 먹이로 바위에 매단다. 헤라클레스는 보상으로 말을 받기로 하고 괴물을 죽여 그녀를 구하지만 왕은 보상을 주지 않는다. 출전: 아폴로도로스 도서관 2.5.9 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "hesione-rescue",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.9",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.9",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "b95fdd43-b9a9-57d0-ad3b-a3df3043a34d",
+    "title": "헬리오스의 황금 잔",
+    "body": "게리오네스의 소를 찾던 헤라클레스가 헬리오스에게서 받아 오케아노스를 건너는 잔이다. 소를 싣고 돌아온 후 주인에게 돌려준다. 출전: 아폴로도로스 도서관 2.5.10 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "object",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "sun-golden-cup",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.10",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.10",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "ac5a4fb6-4888-5752-bb17-c2444e671b02",
+    "title": "엘뤼모이의 왕 에뤽스",
+    "body": "헤라클레스의 소 한 마리를 자기 소 떼에 섞고 씨름에서 이겨야 돌려주겠다고 한다. 헤라클레스는 세 차례 이긴 뒤 그를 죽이고 소를 되찾는다. 출전: 아폴로도로스 도서관 2.5.10 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "eryx-wrestler",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.10",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.10",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "bdd1b9f8-bcb5-5dd4-b0a9-46dda1b08f2d",
+    "title": "대지에 닿으면 강해지는 안타이오스",
+    "body": "리비아 왕 안타이오스는 나그네에게 씨름을 강요했다. 헤라클레스는 그가 땅에 닿을 때 강해지는 것을 알아 공중으로 들어 죽인다. 출전: 아폴로도로스 도서관 2.5.11 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "antaeus-earth",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.11",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.11",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.11",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/8375d5b7f542fd28790d05895c380d9c2620ca9d/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.11",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.11",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/8375d5b7f542fd28790d05895c380d9c2620ca9d/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.11",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "e08c82fd-2b94-5e2f-872f-726ba035f866",
+    "title": "부시리스와 이방인 제사",
+    "body": "이집트 왕 부시리스는 기근을 끝내기 위해 해마다 이방인을 제물로 바치라는 예언자를 먼저 죽이고 이후 낯선 이들을 희생한다. 헤라클레스는 결박을 끊고 그와 아들을 죽인다. 출전: 아폴로도로스 도서관 2.5.11 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "busiris-sacrifices",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.11",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.11",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "2542be54-16e5-5ace-87df-685bb1dcb1a9",
+    "title": "아틀라스와 하늘의 짐",
+    "body": "프로메테우스의 조언을 따라 헤라클레스는 하늘을 대신 떠받치고 아틀라스에게 사과를 구해 오게 한다. 이 대목은 영웅이 뱀을 죽여 직접 땄다는 다른 전승도 전한다. 기존 황금 사과 카드와 중복 가능. 출전: 아폴로도로스 도서관 2.5.11 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "atlas-heracles-sky",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.11",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.11",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "457c9c7a-a7eb-5026-9ae8-339bc0b605fd",
+          "title": "이아페토스와 클리메네의 네 아들",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        },
+        {
+          "genre": "greco_roman_mythology",
+          "id": "ece1358e-b75b-55ef-83e8-5995b96cc426",
+          "title": "헤라클레스의 열두 과업",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "id": "6e32bd42-a466-5e2c-8b4c-7dc8844243fd",
+          "segment": "greco-theogony",
+          "candidate_key": "atlas-heaven",
+          "title": "하늘을 떠받치는 아틀라스",
+          "reasons": [
+            "같은 인물·주제 관련 가능; 사건·판본 차이 검토"
+          ]
+        }
+      ],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "bae9f1ce-13af-5548-96d1-63795694fb70",
+    "title": "타이나론의 명계 입구",
+    "body": "아폴로도로스에서 라코니아의 타이나론에는 하데스로 내려가는 입구가 있다. 케르베로스를 데려오라는 명령을 받은 헤라클레스가 이 길로 내려간다. 출전: 아폴로도로스 도서관 2.5.12 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "location",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "tainaron-descent",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.12",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.12",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "10cd2127-31c2-5e57-b154-f75fc33c49aa",
+    "title": "테세우스와 페이리토오스의 명계 결박",
+    "body": "명계 문 가까이에서 헤라클레스는 결박된 테세우스와 페이리토오스를 발견한다. 테세우스는 일으켰지만 페이리토오스를 끌어올리려 하자 땅이 흔들려 놓아둔다. 출전: 아폴로도로스 도서관 2.5.12 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "theseus-pirithous-underworld",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.12",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.12",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "459ab319-2841-568b-b4bc-90480b1dfb9d",
+    "title": "기간테스 알퀴오네우스",
+    "body": "아폴로도로스에 따르면 태어난 땅에서 싸우는 한 죽지 않는 기간스다. 헤라클레스가 화살을 쏜 뒤 아테나의 조언으로 팔레네 밖으로 끌어낸다. 기존 기간테스 전쟁 카드와 중복 가능. 출전: 아폴로도로스 도서관 1.6.1 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "asir-giant-alcyoneus",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 1.6.1",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "1.6.1",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "1c8516f0-2959-5088-bbee-8b59439d4580",
+    "title": "아울리스의 징조",
+    "body": "아폴론에게 제사하던 군대 앞에서 뱀이 새끼 참새 여덟과 어미를 삼킨 뒤 돌이 된다. 칼카스는 트로이가 10년째에 함락될 징조라고 풀이한다. 기존 아울리스 징조 카드와 중복 가능. 출전: 아폴로도로스 요약 3.15 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "aulis-serpent-omen",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 요약 3.15",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "location": "3.15",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "90e1f4fb-8928-538b-9e24-712e8ddd3562",
+          "title": "아울리스의 뱀과 전쟁의 길이",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "9ff5025a-2081-5b57-9700-e1e8f96db67a",
+    "title": "시논의 횃불",
+    "body": "아폴로도로스의 목마 이야기에서 그리스군이 떠나는 척하며 남긴 인물이다. 그는 돌아올 군대에 횃불 신호를 보내기로 되어 있다. 출전: 아폴로도로스 요약 5.15 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "sinon-signal",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 요약 5.14–17",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "location": "5.15",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "c4055d99-c035-5334-ac19-ce174f80f2c3",
+          "title": "목마와 트로이의 함락",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "ff87a821-cbd6-57f2-9682-b002218fae18",
+    "title": "목마 속 병력의 이설",
+    "body": "아폴로도로스는 오디세우스가 선발한 50명을 목마에 들였다고 전하고, 《소일리아스》의 저자는 3천 명이라고 했다고 별도로 적는다. 출전: 아폴로도로스 요약 5.14 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+    "cardType": "other",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "troy-wooden-horse-count",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 요약 5.14–17",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "location": "5.14",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "c4055d99-c035-5334-ac19-ce174f80f2c3",
+          "title": "목마와 트로이의 함락",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "id": "3eab6f4c-bdf2-5505-9d91-8e1305335771",
+          "segment": "greco-supplement",
+          "candidate_key": "wooden-horse-epeius",
+          "title": "목마의 제작자 에페이오스",
+          "reasons": [
+            "같은 인물·주제 관련 가능; 사건·판본 차이 검토"
+          ]
+        }
+      ],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "c1ef6cff-368b-5880-ad85-2276603e1e35",
+    "title": "마론의 포도주",
+    "body": "아폴론의 사제 마론이 자신과 가족을 보호해 준 오디세우스에게 준 진한 포도주다. 오디세우스는 이 포도주를 폴리페모스에게 마시게 한다. 출전: 오디세이아 9.197–210, 9.345–361 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+    "cardType": "object",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "ithaca-maron-wine",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "오디세이아 9.187–505",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "location": "9.197–210, 9.345–361",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "21ae7ffc-1d2e-59d7-99db-4c134eb75a4b",
+    "title": "폴리페모스의 동굴",
+    "body": "치즈가 가득한 선반과 새끼 양·염소의 우리를 갖춘 동굴이다. 폴리페모스는 사람이 쉽게 옮길 수 없는 바위로 입구를 막아 오디세우스 일행을 가둔다. 출전: 오디세이아 9.216–243 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+    "cardType": "location",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "polyphemus-cave",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "오디세이아 9.187–505",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "location": "9.216–243",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "fd3577ac-e5e4-5519-b453-00b7d0729570",
+          "title": "오디세우스와 폴리페모스",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "5eda95bf-b175-5931-aa57-d567d69be815",
+    "title": "에우뤼로코스",
+    "body": "키르케의 집 앞에서 속임수를 의심해 혼자 밖에 남았다가, 사라진 동료들의 소식을 오디세우스에게 전한다. 출전: 오디세이아 10.230–245 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "eurylochus-circe",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "오디세이아 10.210–347",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "location": "10.230–245",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "83640983-7b06-5509-b617-6a8ab697df65",
+    "title": "키르케의 변신 약",
+    "body": "키르케는 음식과 술에 약을 섞어 일행에게 먹이고 지팡이로 쳐 돼지 모습으로 바꾸지만, 그들의 마음은 그대로 남는다. 출전: 오디세이아 10.233–240 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+    "cardType": "ability",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "circe-potion-pigs",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "오디세이아 10.210–347",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "location": "10.233–240",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "52c2839f-4a62-5a78-9c62-3d6105a7292d",
+          "title": "헤르메스의 몰뤼와 키르케",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "71ef64ce-93d0-53d4-8d9e-bdff39c4147a",
+    "title": "스카만드로스의 두 샘",
+    "body": "트로이 성벽 아래 도망치는 헥토르와 추격하는 아킬레우스가 지나가는 두 샘이다. 하나는 따뜻하고 다른 하나는 여름에도 차갑다. 출전: 일리아스 22.147–152 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+    "cardType": "location",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "scamander-twin-springs",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "일리아스 22.131–166",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "location": "22.147–152",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "f10fb88d-2c27-53d4-b25f-7794b590df51",
+    "title": "크뤼세이스의 귀환",
+    "body": "오디세우스가 크뤼세이스를 아버지 크뤼세스에게 돌려주고 아폴론에게 제물을 바친다. 크뤼세스는 아카이아군에 내린 재앙을 거두어 달라고 기도한다. 출전: 일리아스 1.439–457 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "iliad-chryseis-return",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "일리아스 1.430–492",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "location": "1.439–457",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "2215247b-6d40-57ef-8c0b-2536fe1634bb",
+          "title": "아킬레우스의 분노와 전쟁",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "4451f611-5dfc-51a8-a9df-eb3191723ab5",
+    "title": "헥토르의 황금 유골함",
+    "body": "트로이 사람들은 헥토르의 화장 뒤 뼈를 거두어 자주색 천으로 감싼 황금 함에 담고 무덤에 놓는다. 기존 장례 카드와 중복 가능. 출전: 일리아스 24.791–798 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+    "cardType": "object",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "hector-funeral-urn",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "일리아스 24.785–804",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "location": "24.791–798",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "806eaf22-6eb0-5475-9645-8a62444f43f4",
+          "title": "프리아모스의 간청과 헥토르의 장례",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "964a7b79-db01-51be-8d1d-cb41fcdbb3aa",
+    "title": "데메테르 찬가의 비밀 의례",
+    "body": "데메테르는 트립톨레모스 등에게 신성한 의례를 가르친다. 찬가는 그 의례를 함부로 넘기거나 묻거나 말할 수 없다고 하며, 본 사람과 입문하지 못한 사람의 사후 몫을 구별한다. 기존 엘레우시스 의례 카드와 중복 가능. 출전: 데메테르 찬가 2.473–482 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml).",
+    "cardType": "rule",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "eleusinian-rite-secrecy",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "데메테르 찬가 2.470–482",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml",
+          "location": "2.473–482",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "fc5d89b7-948e-586b-99ee-8ed0cf3200a0",
+          "title": "데메테르의 상실과 엘레우시스 의례",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "d0b815e8-97d5-5ea5-98ee-b7195e0e7693",
+    "title": "트립톨레모스",
+    "body": "데메테르 찬가에서 여신이 성스러운 의례를 가르쳐 준 엘레우시스의 왕들 가운데 한 사람이다. 출전: 데메테르 찬가 2.473–476 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "triptolemus-hymn",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "데메테르 찬가 2.470–482",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml",
+          "location": "2.473–476",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "0a7f6d54-a418-5d07-8071-ab975ccff0f0",
+    "title": "시카이우스",
+    "body": "《아이네이스》 명계 장면에서 디도가 아이네아스의 말을 외면한 뒤 그늘진 숲으로 돌아가자, 전 남편 시카이우스가 그녀의 슬픔에 응하고 사랑을 나눈다. 출전: 아이네이스 6.472–474 (https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "sychaeus-underworld",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아이네이스 6.450–476",
+          "url": "https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml",
+          "location": "6.472–474",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "9b7be2ce-46b2-52f8-b018-9db26b9e61db",
+    "title": "묻히지 못한 망자의 백 년",
+    "body": "《아이네이스》에서 매장되지 못한 혼령은 뼈가 안치되기 전 카론의 배를 탈 수 없으며, 백 년 동안 강가를 떠돈 뒤 건너도록 허락받는다. 기존 아케론·카론 카드와 중복 가능. 출전: 아이네이스 6.325–330 (https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+    "cardType": "rule",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "unburied-acheron",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아이네이스 6.295–330",
+          "url": "https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml",
+          "location": "6.325–330",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "f99bd52e-fe8a-5974-9e00-ac1b35b82875",
+          "title": "아케론·카론과 죽은 자의 건넘",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "e32b1039-ffec-5f7c-84aa-6ebeab1afd8c",
+    "title": "아우게이아스의 아들 퓔레우스",
+    "body": "엘리스의 아우게이아스가 영웅에게 품삯을 약속했다는 사실을 재판에서 증언하고, 분노한 아버지에게 쫓겨나 둘리키온에 정착한다. 기존 퓔레우스의 증언 카드와 병합 가능. 출전: 아폴로도로스 도서관 2.5.5 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "phyleus",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.5",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.5",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [],
+      "input_candidates": [
+        {
+          "id": "22171629-1624-5203-998c-38ee60281b62",
+          "segment": "greco-supplement",
+          "candidate_key": "phyleus-witness",
+          "title": "퓔레우스의 증언",
+          "reasons": [
+            "같은 인물·주제 관련 가능; 사건·판본 차이 검토"
+          ]
+        }
+      ],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "328a5edd-bdd6-5285-aa48-70b1bd869529",
+    "title": "데이포보스로 변장한 아테나",
+    "body": "아테나는 데이포보스의 모습과 목소리로 헥토르에게 다가가 함께 아킬레우스에 맞서 싸우자고 한다. 헥토르는 창을 빌리려다 곁에 데이포보스가 없음을 알고 속은 것을 깨닫는다. 기존 결투 카드와 중복 가능. 출전: 일리아스 22.226–231, 294–299 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "deiphobus-athena",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "일리아스 22.226–330",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "location": "22.226–231, 294–299",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "57e6b76b-144d-51d8-b9a4-4966b896ea02",
+          "title": "트로이 전쟁과 아킬레우스·헥토르의 결투",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "f616211e-6c96-535b-a89e-fe2173d49d7f",
+    "title": "브리세이스",
+    "body": "아가멤논은 크뤼세이스를 돌려주는 대신 아킬레우스의 몫인 브리세이스를 데려가겠다고 선언한다. 이것이 두 영웅의 갈등을 격화시킨다. 출전: 일리아스 1.182–187 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "briseis",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "일리아스 1.101–305",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "location": "1.182–187",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "2215247b-6d40-57ef-8c0b-2536fe1634bb",
+          "title": "아킬레우스의 분노와 전쟁",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "fd4a0b82-156e-5828-a317-7c1bb9b5c83a",
+    "title": "네스토르의 중재",
+    "body": "퓔로스의 연장자 네스토르는 아가멤논과 아킬레우스의 다툼에서 양쪽에 물러설 것을 권하고 아킬레우스가 아카이아군을 지키는 중요한 방벽이라고 말한다. 출전: 일리아스 1.247–284 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "nestor-mediation",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "일리아스 1.101–305",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "location": "1.247–284",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "2215247b-6d40-57ef-8c0b-2536fe1634bb",
+          "title": "아킬레우스의 분노와 전쟁",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "4c1112e7-ddab-5437-9ded-93026bbd4a9f",
+    "title": "프리아모스와 헬레네의 대화",
+    "body": "프리아모스는 헬레네를 불러 아카이아군의 인물을 물으며 전쟁의 책임을 그녀가 아닌 신들에게 돌린다. 헬레네는 아가멤논을 알아보고 자신의 떠남을 슬퍼한다. 출전: 일리아스 3.161–180 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "priam-helen-wall",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "일리아스 3.161–180",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "location": "3.161–180",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "3c84a250-6d27-56d7-9b71-1c724c019d57",
+          "title": "헬레네의 트로이행과 이집트 이설",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "6e32911e-87c0-550e-87fb-4d9a1d549c16",
+    "title": "세이렌이 약속하는 지식",
+    "body": "《오디세이아》에서 세이렌들은 트로이에서 겪은 고난과 대지의 일들을 안다고 노래하며 듣는 이에게 기쁨과 더 많은 지식을 약속한다. 기존 세이렌 카드와 중복 가능. 출전: 오디세이아 12.184–191 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+    "cardType": "ability",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "sirens-knowledge",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "오디세이아 12.165–200",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "location": "12.184–191",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "73bb95df-3733-5095-b529-7afe30da8c8d",
+          "title": "세이렌의 노래와 돛대",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "9be43282-4a78-5e6e-8c17-0a5cd05eeee2",
+    "title": "데메테르의 흉년",
+    "body": "딸을 찾지 못한 데메테르가 씨앗이 땅에서 나오지 못하도록 해 인간에게 흉년이 닥친다. 그녀는 딸을 보기 전까지 땅의 열매를 내지 않겠다고 한다. 출전: 데메테르 찬가 2.305–309, 331–333 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml).",
+    "cardType": "event",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "demeter-famine",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "데메테르 찬가 2.305–344",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml",
+          "location": "2.305–309, 331–333",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "fc5d89b7-948e-586b-99ee-8ed0cf3200a0",
+          "title": "데메테르의 상실과 엘레우시스 의례",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "98f728b4-96b0-5c9e-914b-1da5ec63ebd4",
+    "title": "페르세포네의 석류 씨",
+    "body": "찬가에서 하데스는 돌아가는 페르세포네에게 몰래 석류 씨를 먹여 어머니 곁에 영원히 머무르지 못하게 한다. 기존 페르세포네 귀환과 의례 카드와 중복 가능. 출전: 데메테르 찬가 2.370–374 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml).",
+    "cardType": "object",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "demeter-pomegranate-seed",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "데메테르 찬가 2.360–374",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml",
+          "location": "2.370–374",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "fc5d89b7-948e-586b-99ee-8ed0cf3200a0",
+          "title": "데메테르의 상실과 엘레우시스 의례",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "056188b0-4083-56df-b2c3-d8a1c6358c56",
+    "title": "구름으로 만든 헬레네의 형상",
+    "body": "아폴로도로스가 소개한 이설에서 파리스는 구름으로 만든 헬레네의 형상을 트로이로 데려간다. 실제 헬레네는 헤르메스에 의해 이집트 왕 프로테우스에게 맡겨진다. 기존 헬레네 이설 카드와 중복 가능. 출전: 아폴로도로스 요약 3.5 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+    "cardType": "object",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "helen-cloud-eidolon",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 요약 3.5",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "location": "3.5",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "3c84a250-6d27-56d7-9b71-1c724c019d57",
+          "title": "헬레네의 트로이행과 이집트 이설",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "3eab6f4c-bdf2-5505-9d91-8e1305335771",
+    "title": "목마의 제작자 에페이오스",
+    "body": "《오디세이아》에서 아테나와 함께 목마를 만든 인물이다. 《요약》 5.14의 건축가 전승과 동일 인물일 가능성이 높아 통합 검토가 필요하다. 출전: 오디세이아 8.492–495 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "wooden-horse-epeius",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "오디세이아 8.492–495",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "location": "8.492–495",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "c4055d99-c035-5334-ac19-ce174f80f2c3",
+          "title": "목마와 트로이의 함락",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "id": "ff87a821-cbd6-57f2-9682-b002218fae18",
+          "segment": "greco-supplement",
+          "candidate_key": "troy-wooden-horse-count",
+          "title": "목마 속 병력의 이설",
+          "reasons": [
+            "같은 인물·주제 관련 가능; 사건·판본 차이 검토"
+          ]
+        }
+      ],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  },
+  {
+    "id": "4f70528a-aac1-5f18-b3ef-4e7b714ddbcb",
+    "title": "엘레우시스의 에우몰포스",
+    "body": "아폴로도로스의 헤라클레스 명계행에서 영웅을 켄타우로스 살해로부터 정화하고 입문시킨 인물이다. 출전: 아폴로도로스 도서관 2.5.12 (https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+    "cardType": "character",
+    "provenance": {
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "segment": "greco-supplement",
+      "candidate_key": "eleusis-eumolpus",
+      "input_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Perseus Digital Library 원어 판본; 세부 판본·재사용 조건 미확인",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "evidence": [
+        {
+          "unit": "아폴로도로스 도서관 2.5.12",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "location": "2.5.12",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력의 한국어 요약이며 비공식 번역·요약; 독립적 원문 대조 미완료",
+      "source_revision_and_hash": "미확인: 제공 URL의 판본·커밋·본문 해시가 고정되어 있지 않음"
+    },
+    "duplicate_review": {
+      "existing_candidates": [
+        {
+          "genre": "greco_roman_mythology",
+          "id": "fc5d89b7-948e-586b-99ee-8ed0cf3200a0",
+          "title": "데메테르의 상실과 엘레우시스 의례",
+          "reasons": [
+            "같은 인물·주제 또는 기존 묶음과 관련 가능"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "decision": "별도 보존; 동일성·전승 차이 검토 필요"
+    }
+  }
+]

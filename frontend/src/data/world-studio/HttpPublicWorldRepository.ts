@@ -1,24 +1,35 @@
 import { z } from 'zod'
 
-import { PUBLIC_WORLD_GENRES, type PublicWorld, type PublicWorldPage, type PublicWorldSummary } from '../../domain/entities/publicWorld'
+import type { PublicWorld, PublicWorldCardHit, PublicWorldCardPage, PublicWorldPage, PublicWorldSummary } from '../../domain/entities/publicWorld'
 import type { CardType } from '../../domain/entities/studioCards'
-import type { PublicWorldQuery, PublicWorldRepository } from '../../domain/repositories/PublicWorldRepository'
+import type { PublicWorldCardQuery, PublicWorldQuery, PublicWorldRepository } from '../../domain/repositories/PublicWorldRepository'
 
 const id = z.string().min(1)
 const count = z.number().int().nonnegative()
 const instant = z.iso.datetime({ offset: true })
-const genre = z.enum(PUBLIC_WORLD_GENRES).nullable()
+// 장르 코드(`genre-01` …)다. 이름은 UseCase가 공개 장르 목록으로 찾는다(DEC-56).
+const genre = z.string().min(1).nullable()
 const cardType: z.ZodType<CardType> = z.enum(['character', 'location', 'organization', 'ability', 'object', 'rule', 'event', 'other'])
+// 카드 대표 이미지 id(#401). 이 필드를 주기 전 응답과 이미지 없는 카드는 null이다.
+const imageId = z.string().min(1).nullable().default(null)
+// 관계의 회차 이력(DEC-54 2단계): 기준 회차까지의 변화. 이 필드를 주기 전 응답에는 없다(없는 대로 둔다).
+const relationHistory = z.array(z.object({ episode: z.number().int().positive(), label: z.string(), body: z.string() })).optional()
+// 연결된 공개 소설(#329). 이 필드를 주기 전 응답과 연결 없음·비공개 소설은 null이다.
+const linkedWork = z.object({ id, title: z.string(), authorNickname: z.string(), hasCover: z.boolean() }).nullable().default(null)
 
 const summary: z.ZodType<PublicWorldSummary> = z.object({
-  id, name: z.string(), description: z.string(), genre, authorNickname: z.string(), cardCount: count, relationshipCount: count, publishedAt: instant, hasCover: z.boolean().default(false),
+  id, name: z.string(), description: z.string(), genre, authorNickname: z.string(), cardCount: count, relationshipCount: count.nullable(), publishedAt: instant, hasCover: z.boolean().default(false),
 })
 const worldPage: z.ZodType<PublicWorldPage> = z.object({ items: z.array(summary), page: count, size: z.number().int().positive(), total: count })
+// 설정 카드 검색 결과(#505): 본문 없이 카드와 속한 세계관만 준다.
+const cardHit: z.ZodType<PublicWorldCardHit> = z.object({ worldId: id, worldName: z.string(), cardId: id, title: z.string(), cardType, aliases: z.array(z.string()), tags: z.array(z.string()), imageId })
+const cardPage: z.ZodType<PublicWorldCardPage> = z.object({ items: z.array(cardHit), page: count, size: z.number().int().positive(), total: count })
 const world: z.ZodType<PublicWorld> = z.object({
   id, name: z.string(), description: z.string(), genre, authorNickname: z.string(), publishedAt: instant, hasCover: z.boolean().default(false), revisionNo: z.number().int().positive(),
-  cards: z.array(z.object({ id, title: z.string(), text: z.string(), cardType, aliases: z.array(z.string()), tags: z.array(z.string()) })),
-  relationships: z.array(z.object({ id, sourceCardId: id, targetCardId: id, label: z.string() })),
+  cards: z.array(z.object({ id, title: z.string(), text: z.string(), cardType, aliases: z.array(z.string()), tags: z.array(z.string()), imageId })),
+  relationships: z.array(z.object({ id, sourceCardId: id, targetCardId: id, label: z.string(), category: z.enum(['structural', 'emotional', 'identity']).nullable().optional(), direction: z.enum(['directed', 'symmetric']).nullable().optional(), body: z.string().nullable().optional(), polarity: z.enum(['asserted', 'denied']).nullable().optional(), history: relationHistory })),
   relationshipStatus: z.enum(['current', 'unavailable']),
+  linkedWork,
 })
 
 const FORMAT = '서버 응답 형식을 확인할 수 없어요.'
@@ -48,12 +59,18 @@ export class HttpPublicWorldRepository implements PublicWorldRepository {
     return parsed.data
   }
 
-  async list({ genre: code, page, size }: PublicWorldQuery, signal?: AbortSignal) {
+  async list({ genre: code, q, page, size }: PublicWorldQuery, signal?: AbortSignal) {
     const params = new URLSearchParams()
+    if (q) params.set('q', q)
     if (code) params.set('genre', code)
     params.set('page', String(page))
     params.set('size', String(size))
     return this.parse(await this.request(`?${params}`, signal), worldPage)
+  }
+
+  async searchCards({ q, page, size }: PublicWorldCardQuery, signal?: AbortSignal) {
+    const params = new URLSearchParams({ q, page: String(page), size: String(size) })
+    return this.parse(await this.request(`/cards?${params}`, signal), cardPage)
   }
 
   async get(worldId: string, signal?: AbortSignal) {

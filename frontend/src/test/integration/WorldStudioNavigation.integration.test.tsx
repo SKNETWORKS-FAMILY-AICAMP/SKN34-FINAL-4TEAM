@@ -1,14 +1,17 @@
 // @vitest-environment jsdom
 import {act,cleanup,fireEvent,render,screen,waitFor,within} from '@testing-library/react'
-import {afterEach,expect,it,vi} from 'vitest'
+import {afterEach,beforeEach,expect,it,vi} from 'vitest'
 import {Link,Route,RouterProvider,Routes,createMemoryRouter,useLocation,useNavigate} from 'react-router'
 import {Provider} from 'react-redux'
 import {appContainer} from '../../app/appContainer'
 import {createAppStore} from '../../app/store'
+import {clickNode,fakeGraph,rightClickNode} from '../forceGraphFake'
 import {WorldStudioPage} from '../../presentation/features/worldstudio/view/WorldStudioPage'
 import {WorldStudioLeaveProvider} from '../../presentation/features/worldstudio/viewmodel/WorldStudioLeaveProvider'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
+/** 게시판 제목은 미리보기를 열고 `수정하기`가 편집 화면을 연다. 이미 미리보기가 열려 있으면(편집 화면에 다녀온 뒤) 제목을 다시 누르지 않는다(접힌다). */
+const openCard=(name:string)=>{const title=screen.getByRole('button',{name});if(title.getAttribute('aria-expanded')!=='true')fireEvent.click(title);fireEvent.click(screen.getByRole('button',{name:'수정하기'}))}
 let useCase:WorldStudioUseCase
 let createWorld=vi.fn(async(_name:string,_description:string):Promise<StudioWorld>=>{throw new Error('test setup')})
 vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewModel',async original=>{
@@ -17,7 +20,9 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
 })
 // 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
 vi.mock('../../presentation/shared/LazyMarkdownEditor',()=>import('../markdownEditorFake'))
-vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=>null}))
+// 관계도 캔버스(react-force-graph)는 그리지 않고 넘기는 값·메서드만 붙잡는 대역이다(공용: src/test/forceGraphFake).
+vi.mock('react-force-graph-2d',()=>import('../forceGraphFake'))
+beforeEach(()=>fakeGraph.reset())
 afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllEnvs()})
 const manageTab=(name:string)=>within(screen.getByRole('navigation',{name:'세계관 메뉴'})).getByRole('button',{name})
 function Destination(){const location=useLocation();return <div>도착 {location.pathname} {JSON.stringify(location.state)}</div>}
@@ -40,9 +45,10 @@ async function show(entries=['/before','/worldstudio/qa','/after'],edit=true,two
 }
 it.each([['test','/content'],['mockup','/new']])('opens the work creation route in %s mode',async(mode,path)=>{
  vi.stubEnv('MODE',mode)
- // 헤더의 소설 버튼은 한 자리다. 데모는 소설 작성하기가 바로 새 소설 폼으로 가고, 실제 모드의 연결되지 않은 세계관은 소설 연결하기 시트의 새 소설 만들기가 작품 만들기로 간다(시트가 읽는 내 소설 목록은 빈 목록으로 답한다).
+ // 소설 버튼은 소설 연결 탭의 한 자리다(헤더에는 없다). 데모는 소설 작성하기가 바로 새 소설 폼으로 가고, 실제 모드의 연결되지 않은 세계관은 소설 연결하기 시트의 새 소설 만들기가 작품 만들기로 간다(시트가 읽는 내 소설 목록은 빈 목록으로 답한다).
  vi.spyOn(appContainer.resolve('episodeUseCase'),'list').mockResolvedValue([])
  const router=await show(undefined,false)
+ fireEvent.click(within(screen.getByRole('navigation',{name:'세계관 메뉴'})).getByRole('button',{name:'소설 연결'})) // 소설 버튼은 헤더가 아니라 소설 연결 탭에 있다
  if(mode==='mockup')fireEvent.click(screen.getByRole('link',{name:'소설 작성하기'}))
  else{
   fireEvent.click(screen.getByRole('button',{name:'소설 연결하기'}))
@@ -73,12 +79,12 @@ it('retains beforeunload protection while dirty',async()=>{
  window.dispatchEvent(event);expect(event.defaultPrevented).toBe(true)
 })
 
-it('protects navigation through the actual Gnb Go button',async()=>{
+it('protects navigation through the actual sidebar Go links',async()=>{
  await show();const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
- fireEvent.click(screen.getByRole('button',{name:'설정집'})) // Gnb는 설정집 화면에 있다(편집 화면은 집필실처럼 자체 상단 바를 쓴다)
- fireEvent.click(screen.getAllByRole('link',{name:/내 서재/})[0])
+ fireEvent.click(screen.getByRole('button',{name:'설정집'})) // 사이드바는 설정집 화면에 있다(편집 화면은 집필실처럼 자체 상단 바를 쓴다). 관리 모드에는 공용 상단바(Gnb)가 없어 로고·서재 링크가 사이드바에 있다
+ fireEvent.click(screen.getByRole('link',{name:'STORYFORK 홈으로'}))
  await waitFor(()=>expect(confirm).toHaveBeenCalledOnce())
- fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ openCard('가람 인물')
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'IDENTITY.md'}).value).toBe('보존할 편집 내용')
 })
 it('confirms once before opening another world and creation',async()=>{
@@ -131,17 +137,16 @@ it('keeps the typed name on the creation screen if creation fails and retries wi
 
 it('protects an unapplied relationship draft without blocking preserved step navigation',async()=>{
  const router=await show(undefined,false,true),confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
- fireEvent.click(manageTab('인물 관계도'))
- const source=screen.getByRole<HTMLSelectElement>('combobox',{name:'관계 주체'}),target=screen.getByRole<HTMLSelectElement>('combobox',{name:'관계 대상'})
- fireEvent.change(source,{target:{value:within(source).getByRole<HTMLOptionElement>('option',{name:'가람'}).value}})
- fireEvent.change(target,{target:{value:within(target).getByRole<HTMLOptionElement>('option',{name:'나래'}).value}})
- fireEvent.click(screen.getByRole('button',{name:'관계 작성'}))
- fireEvent.change(screen.getByRole('combobox',{name:'실제 관계 1'}),{target:{value:'미적용 관계 원문'}})
+ fireEvent.click(manageTab('관계도'))
+ await waitFor(()=>expect(fakeGraph.props).not.toBeNull())
+ rightClickNode('가람');fireEvent.click(screen.getByRole('menuitem',{name:'관계 연결'})) // 캔버스에서 두 노드를 이어 관계 작성 시트를 연다
+ clickNode('나래')
+ fireEvent.change(await screen.findByRole('textbox',{name:'실제 관계 1'}),{target:{value:'미적용 관계 원문'}})
  await screen.findByText('관계 입력 미적용')
  const event=new Event('beforeunload',{cancelable:true});window.dispatchEvent(event);expect(event.defaultPrevented).toBe(true)
- fireEvent.click(manageTab('설정집'));fireEvent.click(manageTab('인물 관계도')) // 탭 이동은 같은 화면이라 미적용 입력을 지키며 이탈 확인을 하지 않는다
+ fireEvent.click(manageTab('설정집'));fireEvent.click(manageTab('관계도')) // 탭 이동은 같은 화면이라 미적용 입력을 지키며 이탈 확인을 하지 않는다
  expect(confirm).not.toHaveBeenCalled()
- expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('미적용 관계 원문')
+ expect(screen.getByRole<HTMLInputElement>('textbox',{name:'실제 관계 1'}).value).toBe('미적용 관계 원문')
  fireEvent.click(screen.getByText('링크 이동'))
  await waitFor(()=>expect(confirm).toHaveBeenCalledTimes(1));expect(router.state.location.pathname).toBe('/worldstudio/qa')
  await act(async()=>{await router.navigate('/worldstudio/other')})
@@ -149,7 +154,7 @@ it('protects an unapplied relationship draft without blocking preserved step nav
  await act(async()=>{await router.navigate('/worldstudio')})
  await waitFor(()=>expect(confirm).toHaveBeenCalledTimes(3));expect(router.state.location.pathname).toBe('/worldstudio/qa')
  expect(createWorld).not.toHaveBeenCalled()
- expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('미적용 관계 원문')
+ expect(screen.getByRole<HTMLInputElement>('textbox',{name:'실제 관계 1'}).value).toBe('미적용 관계 원문')
 })
 
 

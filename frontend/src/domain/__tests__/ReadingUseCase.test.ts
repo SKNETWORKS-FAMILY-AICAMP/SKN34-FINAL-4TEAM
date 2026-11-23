@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../data/mock/InMemoryGenreRepositories'
 import { seedWorks, seedWorlds } from '../../data/mock/seed'
 import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
@@ -33,7 +34,8 @@ function fakes(progress: Partial<ReadingProgress> = {}) {
     markSeen: async (id) => { state.seen[id] = true },
     saveProgress: async (p) => { Object.assign(state, p) },
   }
-  return { works, state, server, useCase: new ReadingUseCase(workRepository, readingRepository, server.repository) }
+  const genres = new InMemoryGenreRepository(new InMemoryOperationsGenreRepository())
+  return { works, state, server, useCase: new ReadingUseCase(workRepository, readingRepository, server.repository, undefined, undefined, genres) }
 }
 
 /** 서버(정본) 작품 좋아요: 저장소 대역은 서버가 확정하는 수·상태를 그대로 돌려준다. canonical이 아닌 시드 작품은 메모리 데모다. */
@@ -196,6 +198,43 @@ describe('ReadingUseCase.getHome (목업 home())', () => {
 })
 
 describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
+  it.each(['guunmong', 'gate'])('기존 소개를 출처 정보와 관계없이 그대로 표시한다: %s', async (id) => {
+    const { works, useCase } = fakes()
+    const w = works.find((w) => w.id === id)!
+    Object.assign(w, { summary: '  작가가 쓴 소개  ', parentTitle: undefined, forkAt: undefined })
+    expect((await useCase.getWork(id, null))!.summary).toBe(w.summary)
+  })
+
+  it.each([undefined, '', ' \n '])('소개 없는 원작은 Fork 허용·파생 작품이 있어도 소개 줄을 숨긴다: %j', async (summary) => {
+    const { works, useCase } = fakes()
+    works.find((w) => w.id === 'guunmong')!.summary = summary
+    const d = (await useCase.getWork('guunmong', null))!
+    expect(d.forkList.length).toBeGreaterThan(0)
+    expect(d.forks.length).toBeGreaterThan(0)
+    expect(d.summary).toBeNull()
+  })
+
+  it('소개 없는 Fork는 원작 제목과 기준 회차로 안내한다', async () => {
+    const { works, useCase } = fakes()
+    Object.assign(works.find((w) => w.id === 'gate')!, { summary: '', forkAt: 3 })
+    expect((await useCase.getWork('gate', null))!.summary).toBe('원작 「구운몽」의 3화 이후, 다른 길로 간 포크 소설.')
+  })
+
+  it.each([false, true])('목록에 없는 원작은 보존된 제목으로 안내한다 (삭제: %s)', async (parentDeleted) => {
+    const { works, useCase } = fakes()
+    Object.assign(works.find((w) => w.id === 'gate')!, { summary: '', parent: 'missing', parentTitle: '보존된 원작', parentDeleted, forkAt: 3 })
+    expect((await useCase.getWork('gate', null))!.summary).toBe('원작 「보존된 원작」의 3화 이후, 다른 길로 간 포크 소설.')
+  })
+
+  it.each<Partial<Work>>([
+    { parentTitle: undefined }, { parentTitle: '' }, { parentTitle: '  ' },
+    { forkAt: undefined }, { forkAt: 0 }, { forkAt: -1 }, { forkAt: 1.5 },
+  ])('출처가 불완전한 Fork는 소개 줄을 숨긴다: %j', async (missing) => {
+    const { works, useCase } = fakes()
+    Object.assign(works.find((w) => w.id === 'gate')!, { summary: '', parent: 'missing', parentTitle: '보존된 원작', forkAt: 3 }, missing)
+    expect((await useCase.getWork('gate', null))!.summary).toBeNull()
+  })
+
   it('볼 수 없는 작품은 null, 상세는 공개 회차·인기 포크·포크 허용 회차를 준다', async () => {
     const { works, useCase } = fakes()
     expect(await useCase.getWork('nope', null)).toBeNull()
@@ -308,6 +347,13 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
     expect(server.repository.record).not.toHaveBeenCalled()
   })
 
+  it('관리자도 자기 소설의 집필실에서는 집필실 빠른 이동을 앞에 두고 남의 소설에서는 두지 않는다 (#605)', async () => {
+    const { useCase } = fakes()
+    const items = await useCase.getQuickItems('admin', { id: 'starlight', ep: null })
+    expect(items.find((x) => x.k === '이동' && x.label === 'AI 채팅')).toMatchObject({ go: '/studio/starlight?panel=chat' })
+    expect((await useCase.getQuickItems('admin', { id: 'postman', ep: null })).some((x) => x.k === '이동')).toBe(false)
+  })
+
   it('관심 소설을 토글한다', async () => {
     const { state, useCase } = fakes()
     expect(await useCase.toggleLike('guunmong')).toBe(true)
@@ -363,6 +409,24 @@ describe('ReadingUseCase 회차별 포크 수 (작품 관리 화면)', () => {
 
   it('작품 목록을 읽지 못하면 0편으로 채우지 않고 오류를 그대로 알린다', async () => {
     await expect(withWorks(new Error('목록을 읽지 못했어요.')).forkCountsByEpisode('src')).rejects.toThrow('목록을 읽지 못했어요.')
+  })
+
+  // 세계관 관리의 '소설 연결' 탭이 연결된 소설의 Fork 목록으로 쓴다(새 API 없이 같은 작품 목록).
+  describe('forksOf (세계관 관리 소설 연결 탭)', () => {
+    it('이 작품에서 갈라진 공개 Fork만 목록 순서대로 돌려준다', async () => {
+      const forks = await withWorks([original, fork('a', 1), fork('b', 3), fork('c', 1, { parent: 'other' })]).forksOf('src')
+      expect(forks.map((f) => f.id)).toEqual(['a', 'b'])
+    })
+
+    it('비공개·숨김·공개 회차가 없는 포크는 뺀다 (소설 상세·회차별 포크 수와 같은 목록이다)', async () => {
+      const works = [original, fork('a', 1, { private: true }), fork('b', 1, { hidden: true }), fork('c', 1, { eps: [] }), fork('d', 2)]
+      expect((await withWorks(works).forksOf('src')).map((f) => f.id)).toEqual(['d'])
+    })
+
+    it('Fork가 없으면 빈 목록이고, 작품 목록을 읽지 못하면 빈 목록으로 채우지 않고 오류를 그대로 알린다', async () => {
+      expect(await withWorks([original]).forksOf('src')).toEqual([])
+      await expect(withWorks(new Error('목록을 읽지 못했어요.')).forksOf('src')).rejects.toThrow('목록을 읽지 못했어요.')
+    })
   })
 })
 

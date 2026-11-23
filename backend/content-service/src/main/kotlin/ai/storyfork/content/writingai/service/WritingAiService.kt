@@ -7,9 +7,13 @@ import ai.storyfork.content.context.service.QaScopeGrants
 import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.context.service.dto.QaScopeRequest
 import ai.storyfork.content.episode.service.EpisodeService
+import ai.storyfork.content.fork.repository.ForkRepository
 import ai.storyfork.content.work.service.WorkAccessService
+import ai.storyfork.content.work.service.WorkWorldService
+import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.dto.ChatSessionCreated
+import ai.storyfork.content.writingai.service.dto.WritingAiPage
 import ai.storyfork.content.writingai.service.dto.WritingAiRequest
 import ai.storyfork.content.writingai.service.dto.WritingAiResponse
 import ai.storyfork.content.writingai.service.dto.WritingAiScene
@@ -34,6 +38,9 @@ internal class WritingAiService(
     private val client: WritingAiClient,
     private val access: WorkAccessService,
     private val episodes: EpisodeService,
+    private val forks: ForkRepository,
+    private val workWorlds: WorkWorldService,
+    private val worlds: WorldStudioService,
 ) {
     fun run(workId: String, owner: String, authorization: String, request: WritingAiRequest): WritingAiResponse {
         checkContent(request.resume == null || request.threadId != null, message="이어갈 대화를 지정해 주세요.")
@@ -77,6 +84,47 @@ internal class WritingAiService(
         catch (error: ContentFailure) { throw if (error.status == 404) ContentFailure(422, "반영할 회차를 찾을 수 없어요.") else error }
     }
 
+    /**
+     * 작가가 보는 화면(#554)을 사용자 권한으로 다시 확인한다. studio의 회차는 이 작품의 활성 회차여야 하고(422), world의 세계관은 이 작품에 연결된
+     * 작가 본인의 세계관이어야 하며(아니면 422·남의 것은 404) 카드는 그 세계관의 삭제되지 않은 카드여야 한다(422). 화면이 준 id는 인가 근거가 아니다.
+     */
+    private fun checkPage(workId: String, owner: String, page: WritingAiPage) {
+        if (page.kind == "studio") {
+            checkContent(page.worldId == null && page.cardId == null, message = "집필실 화면 정보가 올바르지 않아요.")
+            page.episode?.let { requireEpisode(workId, owner, it) }
+            return
+        }
+        checkContent(page.episode == null && (page.worldId != null || page.cardId == null), message = "세계관 화면 정보가 올바르지 않아요.")
+        val world = page.worldId ?: return
+        val subject = runCatching { UUID.fromString(owner) }.getOrNull()
+        val id = runCatching { UUID.fromString(world) }.getOrNull()
+        checkContent(id != null && id == workWorlds.linkedWorldId(workId, owner), message = "이 작품에 연결된 세계관이 아니에요.")
+        page.cardId?.let { card ->
+            val cardId = runCatching { UUID.fromString(card) }.getOrNull()
+            checkContent(cardId != null && worlds.hasCard(id!!, subject ?: throw ContentFailure(404, "세계관을 찾을 수 없어요."), cardId),
+                message = "이 세계관의 설정 카드가 아니에요.")
+        }
+    }
+
+    /** 검증을 통과한 화면 정보. 보낸 항목만 담는다(AI 요청 DTO가 모르는 필드를 거절하므로 null 필드를 싣지 않는다). */
+    private fun body(page: WritingAiPage) = buildMap<String, Any?> {
+        put("path", page.path)
+        put("kind", page.kind)
+        page.episode?.let { put("episode", it) }
+        page.worldId?.let { put("worldId", it) }
+        page.cardId?.let { put("cardId", it) }
+        page.view?.let { put("view", it) }
+        page.selection?.let { put("selection", it) }
+        page.content?.let { content ->
+            put("content", buildMap<String, Any?> {
+                content.title?.let { put("title", it) }
+                put("body", content.body)
+                put("unsaved", true)
+                content.truncated?.let { put("truncated", it) }
+            })
+        }
+    }
+
     private fun body(form: WritingAiSimulation) = buildMap<String, Any?> {
         put("mode", form.mode)
         form.premise?.let { put("premise", it) }
@@ -86,7 +134,6 @@ internal class WritingAiService(
 
     /** AI 요청 본문. 검증·권한 실패는 SSE 응답 헤더를 보내기 전에 여기서 HTTP 오류가 된다. fromTurn은 메시지 수정이다. */
     fun message(workId: String, owner: String, threadId: String, request: WritingAiRequest, fromTurn: Int? = null): Map<String, Any?> {
-        checkContent(request.consent, message="OpenAI 전송과 API 비용에 동의해 주세요.")
         checkContent((request.request == null) != (request.resume == null), message="새 요청과 이어가기 중 하나만 보내 주세요.")
         checkContent(fromTurn == null || request.resume == null, message="메시지 수정은 새 요청으로만 보낼 수 있어요.")
         request.simulation?.let { form ->
@@ -104,12 +151,12 @@ internal class WritingAiService(
         if (request.resume == null) {
             checkContent(reflect >= request.episode, message="반영할 회차는 근거 회차보다 앞설 수 없어요.")
             // 모델 호출 전에 권한 밖 작품·회차를 막는다. 실제 근거 조회 때 Content가 다시 확정한다.
-            scopes.resolve(workId, owner, QaScopeRequest(request.episode, request.episodeVersionId,
-                if (request.target == "relationship") "manuscript" else request.target))
+            scopes.resolve(workId, owner, QaScopeRequest(request.episode, request.episodeVersionId))
             if (reflect != request.episode) requireEpisode(workId, owner, reflect)
+            request.page?.let { checkPage(workId, owner, it) }
         }
         val scope = mapOf("scopeToken" to grants.issue(
-            QaScopeGrant(workId, owner, request.episode, request.episodeVersionId, request.target)))
+            QaScopeGrant(workId, owner, request.episode, request.episodeVersionId)))
         return buildMap {
             put("conversation", mapOf("threadId" to threadId, "scope" to scopeOf(workId, owner)))
             if (request.resume != null) {
@@ -127,9 +174,12 @@ internal class WritingAiService(
                     put("workId", workId)
                     put("episode", reflect)
                     if (reflect != request.episode) put("baseEpisode", request.episode)
+                    // Fork 작품 요청은 AI 추적이 가를 수 있게 알린다(DEC-55). 아니면 키를 싣지 않는다(AI 요청 DTO가 모르는 필드를 거절한다).
+                    if (forks.existsById(workId)) put("fork", true)
                 })
                 request.operation?.let { put("operation", it) }
                 request.simulation?.let { put("simulation", body(it)) }
+                request.page?.let { put("page", body(it)) }
                 fromTurn?.let { put("fromTurn", it) }
             }
         }

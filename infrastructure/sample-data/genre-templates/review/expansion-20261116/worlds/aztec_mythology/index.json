@@ -1,0 +1,62 @@
+{
+  "world_id": "aztec_mythology",
+  "world_id_meaning": "기존 worldId 참조용 라벨",
+  "id_namespace": "b91abcca-af8b-5460-bf33-4bf5bf668e04",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "aztec-florentine",
+      "world_id": "aztec_mythology",
+      "title": "Florentine Codex",
+      "target_scope": "book 1 fol. 3r first; then book 1 and separately book 3",
+      "edition_language_attribution": "Sahagún and Nahua collaborators; Nahuatl and Spanish; Getty transcription and English translation",
+      "prior_investigation_grade": "B",
+      "source_url": "https://florentinecodex.getty.edu/book/1/folio/3r?nhTexts=1&spTexts=1",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "blocked_or_body_unconfirmed",
+        "reason": "Previous investigation reported bibliographic-only, body unread, or blocked; no bypass attempted; URL retained for follow-up"
+      },
+      "scope_status": "incomplete",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": null,
+      "units": [
+        {
+          "unit_id": "aztec-florentine--book1-folio3r",
+          "label": "Book 1 fol. 3r",
+          "status": "blocked",
+          "reason": "Folio interface seen previously, text and image not read.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        },
+        {
+          "unit_id": "aztec-florentine--book1-remainder",
+          "label": "Book 1 remaining folios",
+          "status": "blocked",
+          "reason": "Folio inventory and transcription boundaries not yet identified.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        },
+        {
+          "unit_id": "aztec-florentine--book3",
+          "label": "Book 3",
+          "status": "blocked",
+          "reason": "Folio inventory, scope and text not yet identified.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    }
+  ]
+}

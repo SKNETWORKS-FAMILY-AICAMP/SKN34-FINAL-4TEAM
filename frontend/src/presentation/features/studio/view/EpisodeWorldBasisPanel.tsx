@@ -5,7 +5,7 @@ import { useEpisodeWorldBasisViewModel } from '../viewmodel/useEpisodeWorldBasis
 function EpisodeWorldBasisPanel({ workId, number }: { workId: string; number: number }) {
   const vm = useEpisodeWorldBasisViewModel(workId, number)
   const basis = vm.current?.basis
-  return <section aria-label="기준 세계관" aria-busy={vm.busy}>
+  return <section className="episode-world-basis" aria-label="기준 세계관" aria-busy={vm.busy}>
     <h3>{number}화 기준 세계관</h3>
     <p className="small muted">집필 중 참고할 내 세계관의 확정 버전을 선택하세요.</p>
     {vm.current && <p>{basis ? `현재 기준 · ${basis.name} (${basis.revisionNo}번 버전)` : '선택한 기준 세계관이 없어요.'}</p>}

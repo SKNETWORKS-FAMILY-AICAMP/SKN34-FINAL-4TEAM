@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { openQuick } from '../events'
 import { Go } from '../Go'
 import { AccountMenu } from './AccountMenu'
+import { ThemeButton } from './ThemeButton'
 import { useGnbViewModel } from './useGnbViewModel'
 
 /** 목업 gnb(on) */
@@ -24,10 +25,11 @@ export function Gnb({ on = '' }: { on?: string }) {
             </Go>
           ))}
         </nav>
-        <button type="button" className="search" aria-label="소설·인물·회차 검색" onClick={openQuick}>🔍 소설·인물·회차 검색<kbd>Ctrl K</kbd></button>
+        <button type="button" className="search" aria-label="소설·세계관·설정 카드·캐릭터챗 검색" onClick={openQuick}>🔍 <span className="lf">소설·세계관·설정 카드·캐릭터챗 검색</span><span className="ls">검색</span><kbd>Ctrl K</kbd></button>
         <Go to="/notifications" className="btn sm" aria-label={`알림함${unread ? `, 읽지 않은 알림 ${unread}건` : ''}`}>
           알림{unread > 0 && <> <span className="nb">{unread}</span></>}
         </Go>
+        <ThemeButton />
         <button type="button" className={`avatar ${role ? '' : 'guest'}`} aria-label={role ? '내 계정 메뉴' : '로그인·회원가입 메뉴'} aria-haspopup="menu"
           aria-expanded={!!menuAnchor} onClick={(e) => setMenuAnchor(menuAnchor ? null : e.currentTarget)}>
           <span>{role ? initial : <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="8.5" r="4" fill="currentColor" /><path d="M4 21c.8-4.4 4-7 8-7s7.2 2.6 8 7z" fill="currentColor" /></svg>}</span>

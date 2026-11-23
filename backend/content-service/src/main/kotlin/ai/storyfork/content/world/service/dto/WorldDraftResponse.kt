@@ -8,5 +8,7 @@ data class WorldDraftResponse(
     val relationshipVersion: Long = 0, val relationshipStatus: String = "current",
     val visibility: String = "private", val genre: String? = null, val hasCover: Boolean = false,
     /** 이 세계관에 연결된 소설(1:1, DEC-46). 소유자 HTTP 응답에서만 채우고 연결이 없으면 null이다. */
-    val linkedWorkId: String? = null
+    val linkedWorkId: String? = null,
+    /** 관계 id → 그 시점 관계가 시작된 회차(가장 최근 연결의 'N화부터', DEC-54 2단계). [relationships]와 같은 시점이다. */
+    val relationshipEpisodes: Map<UUID, Int> = emptyMap()
 )

@@ -10,8 +10,12 @@ import '../scrollToSpy'
 import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
+import type { Metrics } from '../../domain/entities/llmOps'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
+
+// 파이프라인 캔버스(react-force-graph, d3·canvas)는 jsdom에서 그리지 않는다. 프롬프트·모델 쪽의 기본 보기(전체)가 불러오기만 해도 대역으로 막는다.
+vi.mock('react-force-graph-2d', () => ({ default: () => null }))
 
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
@@ -21,6 +25,12 @@ const renderAt = (path: string, role: 'user' | 'admin' | null = 'admin', store =
   return { store, ...render(<Provider store={store}><MemoryRouter initialEntries={[path]} useTransitions={false}><App /><Where /></MemoryRouter></Provider>) }
 }
 const nav = () => screen.getByRole('navigation', { name: '관리자 업무' })
+/** 표 행의 ⋮ 버튼('「이름」 조치')을 눌러 메뉴를 열고 그 안을 돌려준다(다른 행의 열린 메뉴는 바깥 누름으로 먼저 닫는다). */
+const openRowMenu = (row: HTMLElement) => {
+  fireEvent.pointerDown(document.body)
+  fireEvent.click(within(row).getByRole('button', { name: /조치$/ }))
+  return within(screen.getByRole('menu'))
+}
 
 describe('관리자 (A01~A18)', () => {
   it('관리자 화면에서 로그아웃하면 홈으로 가고 로그인 안내가 남지 않는다 (목업 logout)', async () => {
@@ -30,7 +40,8 @@ describe('관리자 (A01~A18)', () => {
         : new Response(null, { status: 204 }))
     vi.stubGlobal('fetch', fetch)
     const { store } = renderAt('/admin')
-    fireEvent.click(await screen.findByRole('button', { name: '로그아웃' }))
+    fireEvent.click(await screen.findByRole('button', { name: /계정 메뉴/ }))
+    fireEvent.click(screen.getByRole('menuitem', { name: '로그아웃' }))
     await toastIs('로그아웃했어요')
     await waitFor(() => expect(where()).toBe('/'))
     expect(store.getState().session).toMatchObject({ role: null, next: null, loginMsg: '' })
@@ -50,13 +61,14 @@ describe('관리자 (A01~A18)', () => {
     renderAt('/admin?tab=nope')
     await screen.findByRole('heading', { name: '관리 개요' })
     expect(sid()).toContain('A01')
-    expect(within(document.querySelector<HTMLElement>('.priority-links')!).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(['/admin?tab=feedback', '/admin?tab=rights'])
     expect(within(nav()).getByRole('link', { name: '개요' }).getAttribute('aria-current')).toBe('page')
-    screen.getByText('데모 화면')
+    // 개요·LLM Ops·정기 작업은 운영 API 탭이라 데모 표기가 없다.
+    expect(document.querySelector('.admin-head .chip')).toBeNull()
+    expect(screen.queryByText('데모 화면')).toBeNull()
     expect(document.querySelector('.gnb')).toBeNull()
     cleanup()
     renderAt('/admin?tab=ai')
-    await screen.findByRole('heading', { name: 'LLM Ops' })
+    await screen.findByRole('heading', { name: 'LLM Ops · 경고' })
     expect(sid()).toContain('A05')
     fireEvent.click(within(nav()).getByRole('link', { name: '사용자' }))
     await screen.findByRole('heading', { name: '사용자 관리' })
@@ -73,7 +85,7 @@ describe('관리자 (A01~A18)', () => {
     expect(screen.queryByText(text)).not.toBeNull()
     const toggle = async (done: string) => {
       cleanup(); renderAt('/admin?tab=comments')
-      fireEvent.click(within((await screen.findByText(text)).closest('tr') as HTMLElement).getByRole('button'))
+      fireEvent.click(openRowMenu((await screen.findByText(text)).closest('tr') as HTMLElement).getByRole('menuitem'))
       await toastIs(done)
     }
     await toggle('댓글을 숨겼어요.')
@@ -113,31 +125,176 @@ describe('관리자 (A01~A18)', () => {
     expect(screen.queryByText('기존 회원 문의 데모')).toBeNull()
     expect(screen.queryByRole('button', { name: '문의 기록 추가' })).toBeNull()
     screen.getByText('작가 검토 제보')
-    screen.getByText('운영 API 연결')
+    expect(document.querySelector('.admin-head .chip')).toBeNull()
   })
 
-  it('개요의 답변 대기 문의 수는 서버 목록에서 세고, 조회에 실패하면 숫자 대신 실패를 표시한다', async () => {
-    const support = appContainer.resolve('supportInquiryUseCase')
-    await support.create({ category: '계정', title: '개요 집계 문의', body: '내용' })
-    const waiting = (await support.listAll('WAITING')).length
+  it('개요는 운영 대시보드 카드를 서버 값으로 보이고, 출처를 읽지 못한 칸은 0이 아니라 불러오지 못함으로 보인다', async () => {
+    const dashboard = appContainer.resolve('operationsDashboardUseCase')
+    const card = async (label: string) => (await screen.findByText(label)).closest('div') as HTMLElement
     renderAt('/admin?tab=data')
-    const link = (await screen.findByText('답변 대기 문의')).closest('a') as HTMLElement
-    expect(link.getAttribute('href')).toBe('/admin?tab=feedback')
-    await waitFor(() => within(link).getByText(String(waiting)))
-    expect(within(link).queryByText(/데모/)).toBeNull()
-    expect(screen.queryByText('신고와 문의 수는 운영 서버 기준이에요.')).not.toBeNull()
+    within(await card('전체 회원')).getByText('1,284명')
+    const inquiries = await card('답변 대기 문의')
+    within(inquiries).getByText('3건')
+    expect(within(inquiries).getByRole('link', { name: /바로 가기$/ }).getAttribute('href')).toBe('/admin?tab=feedback')
+    expect(within(await card('접수 신고')).getByRole('link', { name: /바로 가기$/ }).getAttribute('href')).toBe('/admin?tab=rights')
+    within(await card('AI 요청 · 오늘')).getByText('48건')
     cleanup()
-    // 서버 목록 상한(100)에 닿으면 정확한 수를 알 수 없으므로 100+로 표시한다.
-    const [one] = await support.listAll('WAITING')
-    vi.spyOn(support, 'listAll').mockResolvedValueOnce(Array.from({ length: 100 }, () => one))
+    // 회원(Core)·접수 신고 칸만 비어 오고 나머지는 그대로 보인다.
+    const real = await dashboard.dashboard()
+    vi.spyOn(dashboard, 'dashboard').mockResolvedValue({ ...real, members: null, pending: { inquiries: 4, reports: null }, unavailable: ['core', 'content'] })
     renderAt('/admin?tab=data')
-    const capped = (await screen.findByText('답변 대기 문의')).closest('a') as HTMLElement
-    await waitFor(() => within(capped).getByText('100+'))
-    cleanup()
-    vi.spyOn(support, 'listAll').mockRejectedValueOnce(new Error('조회 실패'))
+    await screen.findByText(/일부 출처를 불러오지 못했어요: core, content/)
+    within(await card('전체 회원')).getByText('불러오지 못함')
+    const reports = await card('접수 신고')
+    within(reports).getByText('불러오지 못함')
+    expect(within(reports).queryByText('0건')).toBeNull()
+    within(await card('답변 대기 문의')).getByText('4건')
+  })
+
+  it('개요는 요약 카드가 맨 위이고 그 아래에 서비스 지표(전체 기간)와 최근 7일 AI 사용 순으로 단계 막대 4묶음·회차당 반응·Fork 기준 회차 분포를 보이며 비율·오차·n은 각 막대 위에 있다', async () => {
     renderAt('/admin?tab=data')
-    const failed = (await screen.findByText('답변 대기 문의 · 불러오지 못함')).closest('a') as HTMLElement
-    within(failed).getByText('—')
+    const section = await screen.findByRole('region', { name: '서비스 지표(전체 기간)' })
+    const after = (first: Element, second: Element) => !!(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(after(document.querySelector('.admin-summary')!, section)).toBe(true)
+    expect(after(section, await screen.findByLabelText('최근 7일 AI 사용'))).toBe(true)
+    const figures = within(section).getAllByRole('figure')
+    expect(figures.map((figure) => figure.querySelector('figcaption')?.textContent)).toEqual([
+      '독자 이어 읽기', '독자의 Fork', 'Fork 작가의 저장·발행', 'AI 제안 채택·수정 제안 승인', '회차당 반응', 'Fork 기준 회차 분포',
+    ])
+    // 비율 목록은 캡션 아래·그림(role=img) 위에 있다.
+    for (const figure of figures.slice(0, 5)) expect(after(figure.querySelector('ul.admin-funnel-rates')!, figure.querySelector('[role="img"]')!)).toBe(true)
+    const lines = (name: string) => within(within(section).getByRole('list', { name })).getAllByRole('listitem').map((li) => li.textContent)
+    expect(lines('독자 이어 읽기 비율')).toEqual(['조회 → 1화 이상 읽음60.0% ±5.8%p · n=300', '1화 이상 → 이어 읽기40.0% ±7.5%p · n=180'])
+    expect(lines('Fork 작가의 저장·발행 비율')).toEqual(['Fork → 직접 저장68.0% ±20.0%p · n=25', '저장 → 직접 발행47.1% ±24.3%p · n=17'])
+    expect(lines('회차당 반응 값')).toEqual(['좋아요4.65 · 발행 회차 n=46', '관심2.11 · 발행 회차 n=46', '댓글0.83 · 발행 회차 n=46'])
+    within(section).getByText('첫 발행까지 걸린 시간의 중앙값 31.5시간')
+    within(section).getByText(/시연 데이터를 집계한 값이에요/)
+  })
+
+  it('Content를 읽지 못해 funnel이 비어 오면 서비스 지표는 0으로 채우지 않고 불러오지 못함으로 보인다', async () => {
+    const dashboard = appContainer.resolve('operationsDashboardUseCase')
+    const real = await dashboard.dashboard()
+    vi.spyOn(dashboard, 'dashboard').mockResolvedValue({ ...real, funnel: null, unavailable: ['content'] })
+    renderAt('/admin?tab=data')
+    const section = await screen.findByRole('region', { name: '서비스 지표(전체 기간)' })
+    within(section).getByText('불러오지 못함')
+    expect(within(section).queryAllByRole('figure')).toEqual([])
+    await screen.findByText(/일부 출처를 불러오지 못했어요: content/)
+  })
+
+  it('운영 대시보드를 읽지 못하면 실패를 알리고 다시 불러오기로 복구한다', async () => {
+    const dashboard = appContainer.resolve('operationsDashboardUseCase')
+    vi.spyOn(dashboard, 'dashboard').mockRejectedValue(new Error('조회 실패'))
+    renderAt('/admin?tab=data')
+    await screen.findByText(/운영 현황을 불러오지 못했어요/)
+    expect(screen.queryByText('불러오지 못함')).toBeNull()
+    vi.mocked(dashboard.dashboard).mockRestore()
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+    await screen.findByText('1,284명')
+  })
+
+  it('개요는 카드 아래에 최근 7일 AI 사용 차트 둘을 보이고, 새로고침은 차트도 다시 읽는다', async () => {
+    const weekly = vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'weeklyMetrics')
+    renderAt('/admin?tab=data')
+    const usage = await screen.findByLabelText('최근 7일 AI 사용')
+    // 차트는 값을 말로 옮긴 요약을 role=img로 알린다(크기를 못 재는 jsdom에서는 그림 없이 이 틀만 렌더된다).
+    await within(usage).findByRole('img', { name: /^최근 7일 요청 \d+건, 실패율 / })
+    within(usage).getByRole('img', { name: /^최근 7일 비용 사용자 \$/ })
+    const before = weekly.mock.calls.length
+    fireEvent.click(screen.getByRole('button', { name: '새로고침' }))
+    await waitFor(() => expect(weekly.mock.calls.length).toBeGreaterThan(before))
+  })
+
+  it('최근 7일 차트는 읽는 동안 불러오는 중으로 보이고, 카드는 따로 먼저 보인다', async () => {
+    let finish!: (metrics: Metrics) => void
+    vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'weeklyMetrics').mockReturnValue(new Promise<Metrics>((resolve) => { finish = resolve }))
+    renderAt('/admin?tab=data')
+    const usage = await screen.findByLabelText('최근 7일 AI 사용')
+    within(usage).getByText('AI 사용 현황을 불러오고 있어요.')
+    await screen.findByText('1,284명')
+    expect(within(usage).queryByRole('img')).toBeNull()
+    finish({ rows: [] })
+    await within(usage).findByText('아직 데이터가 없어요.')
+    expect(within(usage).queryByText('AI 사용 현황을 불러오고 있어요.')).toBeNull()
+    expect(within(usage).queryByRole('img')).toBeNull()
+  })
+
+  it('최근 7일 차트는 LLM Ops 조회 권한이 없으면(403) 차트 대신 안내 한 줄만 보이고 다시 불러오기는 두지 않는다', async () => {
+    vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'weeklyMetrics').mockResolvedValue(null)
+    renderAt('/admin?tab=data')
+    const usage = await screen.findByLabelText('최근 7일 AI 사용')
+    await within(usage).findByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
+    expect(within(usage).queryByRole('img')).toBeNull()
+    expect(within(usage).queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+    await screen.findByText('1,284명')
+  })
+
+  it('최근 7일 차트를 읽지 못하면 0으로 채우지 않고 실패를 알리며, 다시 불러오기로 복구한다', async () => {
+    const weekly = vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'weeklyMetrics').mockRejectedValue(new Error('조회 실패'))
+    renderAt('/admin?tab=data')
+    const usage = await screen.findByLabelText('최근 7일 AI 사용')
+    await within(usage).findByText(/AI 사용 현황을 불러오지 못했어요/)
+    expect(within(usage).queryByRole('img')).toBeNull()
+    await screen.findByText('1,284명')
+    weekly.mockRestore()
+    fireEvent.click(within(usage).getByRole('button', { name: '다시 불러오기' }))
+    await within(usage).findByRole('img', { name: /^최근 7일 요청 \d+건, 실패율 / })
+    expect(within(usage).queryByText(/불러오지 못했어요/)).toBeNull()
+  })
+
+  it('경고 조회 권한(llm·jobs)이 없으면 LLM Ops 경고 보기는 실패 화면 대신 필요한 권한을 안내하고, 다른 보기는 그대로 쓸 수 있다', async () => {
+    vi.spyOn(appContainer.resolve('operationsDashboardUseCase'), 'alerts').mockResolvedValue(null)
+    renderAt('/admin?tab=llm')
+    await screen.findByText("경고를 보려면 'LLM Ops 조회' 또는 '정기 작업' 권한이 필요해요.")
+    expect(screen.queryByRole('region', { name: '운영 경고 표' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+    fireEvent.click(within(nav()).getByRole('link', { name: '추적·지표' }))
+    await screen.findByRole('region', { name: 'LLM 추적 표' })
+  })
+
+  it("정기 작업 탭은 '정기 작업' 권한이 없으면(403) 일반 실패 문구와 다시 불러오기 대신 필요한 권한 안내만 보인다", async () => {
+    const jobs = appContainer.resolve('jobMonitorUseCase')
+    vi.spyOn(jobs, 'runs').mockResolvedValue(null)
+    vi.spyOn(jobs, 'schedules').mockResolvedValue(null)
+    renderAt('/admin?tab=jobs')
+    await screen.findByText("실행 기록과 일정을 보려면 '정기 작업' 권한이 필요해요.")
+    expect(screen.queryByText(/불러오지 못했어요/)).toBeNull()
+    expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+    expect(screen.queryByRole('region', { name: '정기 작업 일정 표' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '일정 등록' })).toBeNull()
+  })
+
+  it('LLM Ops의 추적·지표·프롬프트·모델·평가·누설 검사·경고 기준은 조회 권한(llm)이 없으면(403) 다시 불러오기 대신 같은 권한 안내만 보인다', async () => {
+    const llm = appContainer.resolve('llmOpsUseCase')
+    vi.spyOn(llm, 'traces').mockResolvedValue(null)
+    vi.spyOn(llm, 'metrics').mockResolvedValue(null)
+    vi.spyOn(llm, 'prompts').mockResolvedValue(null)
+    vi.spyOn(llm, 'models').mockResolvedValue(null)
+    vi.spyOn(llm, 'pipeline').mockResolvedValue(null)
+    vi.spyOn(llm, 'evaluations').mockResolvedValue(null)
+    vi.spyOn(llm, 'leakChecks').mockResolvedValue(null)
+    vi.spyOn(llm, 'alertRules').mockResolvedValue(null)
+    vi.spyOn(llm, 'settings').mockResolvedValue(null)
+    renderAt('/admin?tab=llm')
+    // 쪽마다 권한이 없는 패널 수만큼 같은 안내가 보이고(경고 1·추적·지표 2·프롬프트·모델 1(기본 보기인 전체=AI 파이프라인)·평가·누설 검사 3), 목록이 403이면 등록·실행·저장 폼도 숨겨 권한 안내만 보인다.
+    const pages: [string, number, RegExp | null][] = [['경고', 1, /기준 저장$/], ['추적·지표', 2, null], ['프롬프트·모델', 1, /^모델 등록$/], ['평가·누설 검사', 3, /^평가 실행$|^표본 비율 저장$/]]
+    for (const [page, notes, hiddenForm] of pages) {
+      fireEvent.click(within(nav()).getByRole('link', { name: page }))
+      await waitFor(() => expect(screen.getAllByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')).toHaveLength(notes))
+      expect(screen.queryByText(/불러오지 못했어요/)).toBeNull()
+      expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+      if (hiddenForm) expect(screen.queryByRole('button', { name: hiddenForm })).toBeNull()
+    }
+  })
+
+  it('프롬프트 상세만 403이어도 다시 불러오기 없이 권한 안내를 보인다', async () => {
+    vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'prompt').mockResolvedValue(null)
+    renderAt('/admin?tab=llm&view=prompts&sub=prompts')
+    fireEvent.click(await screen.findByRole('button', { name: /qa-answer/ }))
+    const detail = await screen.findByLabelText('프롬프트 상세')
+    await within(detail).findByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
+    expect(within(detail).queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+    expect(within(detail).queryByRole('button', { name: '새 버전 등록' })).toBeNull()
   })
 
   it('공지를 게시하면 회원 공지사항에 보인다', async () => {
@@ -170,13 +327,42 @@ describe('관리자 (A01~A18)', () => {
     screen.getByText('상시')
   })
 
-  it('실패한 정기 작업은 수동 재시도 시연만 기록한다', async () => {
+  it('정기 작업 탭은 실행 기록의 출처 실패를 알리되 불러온 기록은 그대로 보이고, 실패한 작업은 확인 뒤 다시 실행을 요청한다', async () => {
+    const jobs = appContainer.resolve('jobMonitorUseCase')
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const real = (await jobs.runs({ status: '', kind: '', page: 0 }))!
+    const runs = vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, unavailable: ['content-preprocessing'] })
     renderAt('/admin?tab=jobs')
-    const row = (await screen.findByText('알림 90일 보관기간 정리')).closest('tr') as HTMLElement
-    // 행 버튼의 이름에는 어느 작업인지가 함께 들어간다(같은 이름의 버튼끼리 구분).
-    fireEvent.click(within(row).getByRole('button', { name: '알림 90일 보관기간 정리 수동 재시도 시연' }))
-    await toastIs('실패 작업의 수동 재시도 흐름을 기록했어요 (실제 작업은 실행하지 않음)')
-    await within(row).findByText('수동 재시도 흐름 시연 · 실제 작업 없음')
+    await screen.findByText(/일부 출처의 실행 기록을 불러오지 못했어요: 원고 전처리/)
+    const row = (await screen.findByRole('button', { name: '「manuscript_preprocessing 실행 job-failed-1」 조치' })).closest('tr') as HTMLElement
+    within(row).getByText('원고 전처리')
+    within(row).getByText('38/100 (38%)')
+    within(row).getByText('39화 전처리 중 AI 요청이 시간 초과됐어요.')
+    runs.mockRestore()
+    fireEvent.click(openRowMenu(row).getByRole('menuitem', { name: '다시 실행' }))
+    expect(confirm).toHaveBeenCalledTimes(1)
+    await toastIs('실패한 작업의 재실행을 요청했어요.')
+    await waitFor(() => expect(screen.queryByRole('button', { name: '「manuscript_preprocessing 실행 job-failed-1」 조치' })).toBeNull())
+    within(screen.getByRole('region', { name: '정기 작업 일정 표' })).getByText('LLM 경고 점검')
+  })
+
+  it('정기 작업 탭은 회귀 평가 실행을 같은 기록에 보이되 실패해도 다시 실행 메뉴는 없고, 평가 출처 실패도 알린다', async () => {
+    const jobs = appContainer.resolve('jobMonitorUseCase')
+    const real = (await jobs.runs({ status: '', kind: '', page: 0 }))!
+    const name = 'qa@v3-20261120T010203Z-a1b2c3'
+    const evaluation = { id: name, kind: 'evaluation', source: 'ai-evaluation', status: 'failed', trigger: 'manual', startedAt: '2026-11-20T01:02:03Z', error: '평가 결과가 기록되지 않은 채 시간이 지나 실패로 봤어요.', targetId: name }
+    // 앞선 테스트가 메모리 저장소의 job-failed-1을 다시 실행해 대기로 바꿔 두므로(저장소는 파일 안에서 공유), 실패한 원고 전처리 행은 여기서 직접 만든다.
+    const failedPreprocessing = { id: 'job-failed-2', kind: 'manuscript_preprocessing', source: 'content-preprocessing', status: 'failed', trigger: 'user', startedAt: '2026-11-20T00:00:00Z', error: '전처리 중 AI 요청이 시간 초과됐어요.', targetId: 'demo-work' }
+    vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, items: [evaluation, failedPreprocessing, ...real.items], unavailable: ['ai-evaluation'] })
+    renderAt('/admin?tab=jobs')
+    await screen.findByText(/일부 출처의 실행 기록을 불러오지 못했어요: AI 평가/)
+    const row = screen.getByText(evaluation.error).closest('tr') as HTMLElement
+    within(row).getByText('회귀 평가')
+    within(row).getByText('AI 평가')
+    within(row).getByText('실패')
+    expect(within(row).queryByRole('button', { name: /조치/ })).toBeNull()
+    // 같은 목록의 실패한 원고 전처리는 그대로 다시 실행 메뉴가 있다.
+    screen.getByRole('button', { name: '「manuscript_preprocessing 실행 job-failed-2」 조치' })
   })
 
   it('분류·캐릭터챗 입력은 다른 화면에 갔다 와도 유지된다 (목업 S.admin.filters·chatForm)', async () => {
@@ -202,5 +388,154 @@ describe('관리자 (A01~A18)', () => {
     screen.getByText(`${email} · 관리자 계정`)
     expect(screen.getByRole('link', { name: '닉네임·이메일 변경' }).getAttribute('href')).toBe('/me/profile')
     expect(screen.queryByRole('button', { name: '프로필 저장' })).toBeNull()
+  })
+
+  it('실행 기록은 서버가 읽게 허용하는 앞쪽 1,000건 밖으로는 쪽 이동을 막고 안내한다', async () => {
+    const jobs = appContainer.resolve('jobMonitorUseCase')
+    const real = (await jobs.runs({ status: '', kind: '', page: 0 }))!
+    vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, page: 49, size: 20, total: 3000 })
+    renderAt('/admin?tab=jobs')
+    await screen.findByText(/전체 3,000건 · 50\/50쪽/)
+    expect((screen.getByRole('button', { name: '다음' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button', { name: '이전' }) as HTMLButtonElement).disabled).toBe(false)
+    screen.getByText(/앞쪽 1,000건까지만 볼 수 있어요/)
+  })
+
+  it('LLM Ops 추적은 요청 ID로 한 요청을 찾고 단계 상세를 우리 화면에 보인다', async () => {
+    renderAt('/admin?tab=llm&view=traces')
+    const list = () => within(screen.getByRole('region', { name: 'LLM 추적 표' }))
+    await waitFor(() => expect(list().getAllByRole('row')).toHaveLength(5))
+    fireEvent.change(screen.getByLabelText('요청 ID'), { target: { value: 'req-trace-2' } })
+    fireEvent.click(within(screen.getByRole('region', { name: 'LLM 추적' })).getByRole('button', { name: '조회' }))
+    await waitFor(() => expect(list().getAllByRole('row')).toHaveLength(2))
+    fireEvent.click(list().getByRole('button', { name: '「writing 추적 trace-2」 조치' }))
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '단계 상세' }))
+    await screen.findByRole('heading', { name: 'writing · 실패' })
+    // 관리자는 Langfuse 웹에 들어가지 않으므로 상세는 우리 화면의 단계 표뿐이고 Langfuse 링크는 없다.
+    expect(screen.queryByRole('link', { name: /Langfuse/ })).toBeNull()
+    within(screen.getByRole('region', { name: '추적 실행 단계 표' })).getByText('retrieve')
+    screen.getByText('모델 응답 실패(예시)')
+    fireEvent.click(screen.getByRole('button', { name: '추적 목록으로' }))
+    await screen.findByRole('region', { name: 'LLM 추적 표' })
+  })
+
+  it('LLM Ops 지표는 묶음별 표를 보이고 데이터가 없는 비율은 0%가 아니라 데이터 없음이다', async () => {
+    renderAt('/admin?tab=llm&view=traces')
+    within(await screen.findByRole('region', { name: 'LLM 지표 표' })).getByRole('columnheader', { name: '날짜' })
+    // 표 위 차트: 날짜별은 요청 수·p95 지연·실패율.
+    screen.getByRole('img', { name: /^최근 7일 요청 \d+건, 실패율 .*, p95 지연 최대 / })
+    const ratio = (label: string) => screen.getByText(label).closest('div') as HTMLElement
+    within(ratio('제안 채택률')).getByText('42%')
+    within(ratio('필터 복원률')).getByText('데이터 없음')
+    fireEvent.change(screen.getByLabelText('묶음'), { target: { value: 'model' } })
+    fireEvent.click(within(screen.getByRole('region', { name: 'LLM 지표' })).getByRole('button', { name: '조회' }))
+    await within(await screen.findByRole('region', { name: 'LLM 지표 표' })).findByRole('columnheader', { name: '모델' })
+    // 기능·모델별은 비용 가로 막대로 바뀐다.
+    screen.getByRole('img', { name: /^최근 7일 모델별 비용 사용자 / })
+    expect(screen.queryByRole('img', { name: /p95 지연/ })).toBeNull()
+  })
+
+  it('프롬프트 승격은 최신 평가가 통과가 아니면 서버 문구로 거절되고, 새 버전은 라벨 없이 등록된다', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    renderAt('/admin?tab=llm&view=prompts&sub=prompts')
+    fireEvent.click(await screen.findByRole('button', { name: /qa-answer/ }))
+    await screen.findByRole('heading', { name: 'qa-answer' })
+    fireEvent.click(screen.getByRole('button', { name: '「qa-answer 3번 버전」 조치' }))
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'production 승격' }))
+    expect(confirm).toHaveBeenCalledTimes(1)
+    await within(screen.getByLabelText('프롬프트 상세')).findByText('회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.')
+    // 현재 production 버전에는 조치 메뉴가 없다.
+    expect(screen.queryByRole('button', { name: '「qa-answer 2번 버전」 조치' })).toBeNull()
+    fireEvent.change(screen.getByLabelText('새 버전 본문'), { target: { value: '새 프롬프트' } })
+    fireEvent.click(screen.getByRole('button', { name: '새 버전 등록' }))
+    await toastIs('새 버전을 등록했어요.')
+    await screen.findByRole('button', { name: '「qa-answer 4번 버전」 조치' })
+  })
+
+  it('LLM Ops 평가는 지표 표를 보이고 모델·누설 검사 기록도 읽는다', async () => {
+    renderAt('/admin?tab=llm&view=quality')
+    fireEvent.click(await screen.findByRole('button', { name: '「qa-regression qa-answer 3번 버전 평가」 조치' }))
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '상세' }))
+    const metrics = await screen.findByRole('region', { name: '평가 지표 표' })
+    screen.getByRole('img', { name: /^평가 지표 2개: faithfulness 점수 0\.780 기준 0\.900/ })
+    within(metrics).getByText('faithfulness')
+    within(metrics).getByText('-0.120')
+    fireEvent.click(within(nav()).getByRole('link', { name: '프롬프트·모델' }))
+    // 프롬프트·모델 쪽의 기본 보기는 전체(AI 파이프라인)라 모델 단가는 '모델' 보기로 옮겨 본다.
+    fireEvent.click(within(await screen.findByRole('navigation', { name: '프롬프트·모델 보기' })).getByRole('link', { name: '모델' }))
+    within(await screen.findByRole('region', { name: '모델 단가 표' })).getByText('$2.50')
+    fireEvent.click(within(nav()).getByRole('link', { name: '평가·누설 검사' }))
+    const leaks = await screen.findByRole('region', { name: '정보 누설 검사 표' })
+    within(leaks).getByText('의심')
+    fireEvent.click(within(leaks).getByRole('button', { name: '「추적 trace-1」 조치' }))
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '추적 보기' }))
+    await screen.findByRole('region', { name: '추적 상세' })
+    // 누설 검사의 추적은 추적·지표 쪽으로 옮겨 상세를 연다.
+    expect(where()).toBe('/admin?tab=llm&view=traces')
+  })
+
+  it('경고 기준은 값을 넣고 켜서 저장하고, 표본 비율은 0~1만 받는다', async () => {
+    renderAt('/admin?tab=llm')
+    fireEvent.change(await screen.findByLabelText('AI 실패율 기준값'), { target: { value: '0.2' } })
+    fireEvent.click(screen.getByLabelText('AI 실패율 켜기'))
+    fireEvent.click(screen.getByRole('button', { name: 'AI 실패율 기준 저장' }))
+    await toastIs('경고 기준을 저장했어요.')
+    // 표본 비율은 평가·누설 검사 쪽에 있다. 범위 밖 값은 서버에 보내지 않고 안내한다(jsdom은 max 검증으로 click 제출을 막으므로 submit 이벤트로 보낸다).
+    fireEvent.click(within(nav()).getByRole('link', { name: '평가·누설 검사' }))
+    fireEvent.change(await screen.findByLabelText('표본 비율(0~1)'), { target: { value: '1.5' } })
+    fireEvent.submit(screen.getByRole('button', { name: '표본 비율 저장' }).closest('form')!)
+    await toastIs('표본 비율은 0 이상 1 이하의 숫자로 입력해 주세요.')
+    fireEvent.change(screen.getByLabelText('표본 비율(0~1)'), { target: { value: '0.5' } })
+    fireEvent.click(screen.getByRole('button', { name: '표본 비율 저장' }))
+    await toastIs('누설 검사 표본 비율을 저장했어요.')
+  })
+
+  it('개요의 미확인 경고 카드는 LLM Ops 경고로 이어지고, 메모와 함께 확인하면 미확인 목록에서 빠지고 카드의 수도 줄어든다', async () => {
+    renderAt('/admin?tab=data')
+    const openCard = async () => (await screen.findByText('미확인 경고')).closest('div') as HTMLElement
+    await within(await openCard()).findByText('2건')
+    fireEvent.click(within(await openCard()).getByRole('link', { name: /바로 가기$/ }))
+    // 운영 경고 알림의 이동 대상(/admin?tab=llm)과 같은 자리: LLM Ops는 경고 보기로 열린다.
+    expect(where()).toBe('/admin?tab=llm')
+    fireEvent.change(await screen.findByLabelText('AI 실패율 경고 메모'), { target: { value: '재시작 확인' } })
+    fireEvent.click(screen.getByRole('button', { name: 'AI 실패율 경고 확인' }))
+    await toastIs('경고를 확인으로 기록했어요.')
+    await waitFor(() => expect(screen.queryByLabelText('AI 실패율 경고 메모')).toBeNull())
+    fireEvent.change(screen.getByLabelText('상태'), { target: { value: 'acknowledged' } })
+    const row = (await screen.findByText('재시작 확인')).closest('tr') as HTMLElement
+    within(row).getByText('확인함')
+    fireEvent.click(within(row).getByRole('button', { name: 'AI 실패율 경고 조치 완료' }))
+    await toastIs('경고를 조치 완료로 기록했어요.')
+    fireEvent.click(within(nav()).getByRole('link', { name: '개요' }))
+    await within(await openCard()).findByText('1건')
+  })
+
+  it('정기 작업 일정을 등록하면 목록에 보이고, 잘못된 매개변수는 보내지 않으며, 취소하면 꺼짐으로 보인다', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    renderAt('/admin?tab=jobs')
+    await screen.findByRole('region', { name: '정기 작업 일정 표' })
+    fireEvent.change(screen.getByLabelText('작업 종류'), { target: { value: 'leak_sample_check' } })
+    fireEvent.change(screen.getByLabelText('cron 식'), { target: { value: '0 0 5 * * *' } })
+    fireEvent.change(screen.getByLabelText('매개변수(JSON 객체)'), { target: { value: '{깨짐' } })
+    fireEvent.click(screen.getByRole('button', { name: '일정 등록' }))
+    await toastIs('매개변수는 JSON 객체로 입력해 주세요.')
+    fireEvent.change(screen.getByLabelText('매개변수(JSON 객체)'), { target: { value: '{}' } })
+    fireEvent.click(screen.getByRole('button', { name: '일정 등록' }))
+    await toastIs('정기 작업 일정을 등록했어요.')
+    const table = screen.getByRole('region', { name: '정기 작업 일정 표' })
+    await within(table).findByText('0 0 5 * * *')
+    // 수정은 기존 종류를 함께 보내는 전체 교체라 cron만 고쳐도 성공하고, 폼은 등록 모드로 돌아간다.
+    fireEvent.click(within(table).getByRole('button', { name: '「정보 누설 표본 검사 일정」 조치' }))
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '수정' }))
+    await screen.findByRole('heading', { name: '일정 수정 · 정보 누설 표본 검사' })
+    fireEvent.change(screen.getByLabelText('cron 식'), { target: { value: '0 0 6 * * *' } })
+    fireEvent.click(screen.getByRole('button', { name: '일정 변경' }))
+    await toastIs('정기 작업 일정을 바꿨어요.')
+    await within(table).findByText('0 0 6 * * *')
+    await screen.findByRole('heading', { name: '일정 등록' })
+    fireEvent.click(within(table).getByRole('button', { name: '「정보 누설 표본 검사 일정」 조치' }))
+    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '일정 취소' }))
+    await toastIs('정기 작업 일정을 취소했어요.')
+    await within(table).findByText('꺼짐·취소됨')
   })
 })

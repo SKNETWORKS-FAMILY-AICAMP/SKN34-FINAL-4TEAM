@@ -236,7 +236,7 @@ describe('공지 탭 (운영 공지 API, 메모리 fixture)', () => {
   it('운영 API 연결 탭이며 서버에 저장되지 않는다는 데모 문구와 구 공지 데모가 없다', async () => {
     renderAt('/admin?tab=notices')
     await screen.findByRole('button', { name: '공지 작성' })
-    screen.getByText('운영 API 연결')
+    expect(document.querySelector('.admin-head .chip')).toBeNull()
     expect(screen.queryByText(/서버에 저장되지 않아요/)).toBeNull()
     expect(screen.queryByText('기존 회원 공지 표')).toBeNull()
     expect(screen.queryByText('기존 회원 화면 공지 데모')).toBeNull()
@@ -291,7 +291,28 @@ describe('이벤트 운영 API 화면', () => {
     }
     within(screen.getByRole('button', { name: /진행 이벤트/ })).getByText(`${kstDateTime('2020-01-01T00:00:00.000Z')} ~ 종료 미정 · 한국시간`)
     expect(region().textContent).not.toContain('데모')
-    screen.getByText('운영 API 연결')
+    expect(document.querySelector('.admin-head .chip')).toBeNull()
+  })
+
+  it('이동 경로(선택)는 사이트 안 경로만 저장하고, 밖의 주소는 요청 없이 안내하며, 저장한 값은 다시 열어도 남는다', async () => {
+    renderAt('/admin?tab=events')
+    fireEvent.click(await screen.findByRole('button', { name: '이벤트 작성' }))
+    fill('이벤트 제목', '경로 이벤트')
+    fill('이벤트 내용', '본문')
+    fill('이동 경로(선택)', 'https://evil.example')
+    fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))
+    await within(region()).findByText(/이동 경로는 \/로 시작하는 사이트 안 경로/)
+    expect(await repository().listAdmin()).toEqual([])
+    fill('이동 경로(선택)', ' /lib?tab=worlds ')
+    fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))
+    await screen.findByRole('heading', { name: '경로 이벤트' })
+    for (const row of await repository().listAdmin()) seeded.push(row.id)
+    expect((screen.getByLabelText('이동 경로(선택)') as HTMLInputElement).value).toBe('/lib?tab=worlds')
+    expect((await repository().listAdmin())[0].linkPath).toBe('/lib?tab=worlds')
+    // 경로를 비워 저장하면(전체 수정) 이벤트의 경로도 비워진다.
+    fill('이동 경로(선택)', '')
+    fireEvent.click(screen.getByRole('button', { name: '이벤트 저장' }))
+    await waitFor(async () => expect((await repository().listAdmin())[0].linkPath).toBeNull())
   })
 
   it('저장이 실패하면 입력을 지키고 안내하며, 응답을 기다리는 동안 다시 보낼 수 없다', async () => {

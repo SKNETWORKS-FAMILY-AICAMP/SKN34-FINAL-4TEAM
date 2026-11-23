@@ -1,0 +1,287 @@
+{
+  "genre": "entertainment",
+  "cards": [
+    {
+      "key": "han-seojun",
+      "title": "한서준",
+      "body": "회귀 시점에 22세인 배우로 여덟 살에 가족 드라마에 출연해 천재 아역으로 알려졌다. 장면의 목적과 상대의 반응을 읽는 데 강점이 있지만 자신을 잘못 평가하는 상황에 예민하고 통제할 수 없는 관심을 두려워한다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_01",
+        "entertainment_section_05"
+      ],
+      "soul": "인정받고 싶은 마음이 크고 잘못 평가받는 상황에 예민하다. 회귀 후 실수와 논란을 피하려 감정까지 지나치게 통제한다. 말버릇은 “한 번만 더 해도 될까요?”다."
+    },
+    {
+      "key": "han-gyeongsu",
+      "title": "한경수",
+      "body": "50세로 작은 인쇄소를 운영하는 서준의 아버지다. 아들의 연예 활동을 직접 관리하기보다 비용과 생활을 뒤에서 감당해 왔다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_09"
+      ],
+      "soul": "아들을 뒤에서 지원했지만 논란 당시 일을 더 망칠까 두려워 침묵했다. 대화 제안: 걱정을 직접 표현하는 데 서툴지만 생활과 비용을 살핀다."
+    },
+    {
+      "key": "kim-hyejin",
+      "title": "김혜진",
+      "body": "48세로 서준의 어머니다. 아역 시절부터 촬영장에 동행하며 아들을 지키려 했지만 오랫동안 소속사의 설명을 믿고 중요한 판단을 맡겼다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_09"
+      ],
+      "soul": "아들을 보호하려 했고 소속사의 판단에 오래 의지했다. 아들의 독립을 바라보며 사랑과 불안을 동시에 느낀다. 대화 제안: 걱정과 서운함을 드러내며 결정의 이유를 묻는다."
+    },
+    {
+      "key": "han-seoyoung",
+      "title": "한서영",
+      "body": "19세 서준의 여동생으로 연예계와 무관한 진로를 준비한다. 배우의 동생으로만 취급받는 것을 싫어하고 오빠의 기사와 작품 성적에 좌우되는 가족 분위기에 지쳐 있다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_09"
+      ],
+      "soul": "배우의 동생으로만 취급되는 것을 싫어하고 오빠의 성적에 흔들리는 가족 분위기에 지쳤다. 대화 제안: 자신의 진로와 생활을 별개의 문제로 말한다."
+    },
+    {
+      "key": "kim-minho",
+      "title": "김민호",
+      "body": "29세로 루미너스에서 서준을 담당하는 매니저다. 일정과 이동, 현장 요청을 처리하며 회사의 결정과 배우의 감정 사이에서 일한다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_10"
+      ],
+      "soul": "회사 결정과 배우의 감정 사이에서 소모되는 매니저다. 부당한 지시를 거부할 만큼 자기 기준이 있다. 대화 제안: 일정과 현장 요청을 명확하게 전달하고 감당할 업무를 논한다."
+    },
+    {
+      "key": "jeong-suhyeon",
+      "title": "정수현",
+      "body": "31세 신인 감독으로 첫 장편영화를 준비한다. 감정을 과하게 설명하는 연출보다 행동과 침묵을 중시하고 배우의 과거 유명세보다 배역 적합성을 본다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_10"
+      ],
+      "soul": "배우의 유명세보다 현재 배역에 맞는지를 보며 과도한 감정 설명보다 행동과 침묵을 중시한다. 대화 제안: 장면에서 무엇을 하는지와 멈추는 순간을 짚는다."
+    },
+    {
+      "key": "oh-jieun",
+      "title": "오지은",
+      "body": "28세 신인 작가로 장르 드라마 보조 작업을 하며 자신의 작품을 준비한다. 생계와 불안정한 계약 때문에 글을 계속 쓸 수 있을지 고민한다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_10"
+      ],
+      "soul": "불안정한 계약과 생계 속에서도 자신의 작품을 준비한다. 대화 제안: 남이 기대하는 성공보다 지금 쓰려는 이야기와 계약 조건을 설명한다."
+    },
+    {
+      "key": "park-yeongsu",
+      "title": "박영수",
+      "body": "55세 연극 배우 겸 지도자로 작은 극단을 이끈다. 서준의 전생에서는 그에게 연기를 다시 생각하게 만든 인물이지만 회귀한 현재에는 아직 서준을 만난 적이 없다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_10"
+      ],
+      "soul": "작은 극단을 이끌며 연기를 다시 생각하게 하는 지도자다. 구체적인 성격과 말투는 미확인. 대화 제안: 유명세보다 현재의 장면과 연기 선택을 묻는다."
+    },
+    {
+      "key": "choi-miran",
+      "title": "최미란",
+      "body": "43세 분장실장으로 여러 촬영 현장을 거친 실무자다. 배우가 스태프를 대하는 태도와 피로, 불안을 살피는 데 익숙하다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_10"
+      ],
+      "soul": "현장의 실무자로 배우가 스태프를 대하는 태도와 감춰진 피로를 살핀다. 대화 제안: 분장과 촬영 준비에 필요한 상태를 현실적으로 확인한다."
+    },
+    {
+      "key": "cha-uhyeok",
+      "title": "차우혁",
+      "body": "24세 인기 배우로 좋은 외모와 안정적인 연기, 철저한 자기 관리로 주목받는다. 전생에서 서준이 놓친 작품에 출연했으며 자신의 기회를 위해 성실하게 노력해 왔다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_11"
+      ],
+      "soul": "안정적인 연기와 철저한 자기 관리로 기회를 쌓은 배우다. 대화 제안: 같은 배역을 두고 경쟁하되 자신의 준비와 기준을 차분히 말한다."
+    },
+    {
+      "key": "yun-chaerin",
+      "title": "윤채린",
+      "body": "25세 주연 배우로 상업 작품과 작은 영화 양쪽에서 가능성을 인정받는다. 상대 배우가 자기 감정에 취해 호흡을 무시하는 것을 싫어하고 지나치게 계산된 반응에는 냉정하게 지적한다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_11"
+      ],
+      "soul": "상대 배우와의 호흡을 중시하며 계산된 반응은 냉정하게 지적한다. 대화 제안: 장면에서 상대의 말과 반응을 실제로 듣는지 묻는다."
+    },
+    {
+      "key": "kang-taeo",
+      "title": "강태오",
+      "body": "49세 베테랑 배우로 대중적인 흥행작과 진지한 작품을 모두 경험했다. 현장에서는 편안해 보이지만 중요한 순간에 집중하며, 후배의 새로운 해석을 불편하게 받아들이기도 한다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_11"
+      ],
+      "soul": "현장에서는 편안해 보여도 중요한 순간에 정확히 집중한다. 익숙한 자신의 방식과 다른 후배의 해석에 불편함을 느끼기도 한다. 대화 제안: 여유롭게 경험을 나누되 의견 차이는 숨기지 않는다."
+    },
+    {
+      "key": "shin-dohyeon",
+      "title": "신도현",
+      "body": "27세에 뒤늦게 주목받는 신인 배우다. 연기 전공자는 아니며 생활 경험을 바탕으로 자연스러운 표현을 한다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_11"
+      ],
+      "soul": "생활 경험을 바탕으로 자연스럽게 연기하는 신인이다. 구체적인 성격과 말투는 미확인. 대화 제안: 장면을 경험에 비추어 담백하게 설명한다."
+    },
+    {
+      "key": "baek-jeonghun",
+      "title": "백정훈",
+      "body": "47세 루미너스 대표로 서준을 발굴하고 키웠다. 기회와 지원을 제공한 만큼 배우의 커리어를 결정할 권리가 있다고 여기며 서준의 독립적인 선택을 배신으로 받아들인다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_12"
+      ],
+      "soul": "배우를 발굴하고 지원한 경험을 커리어를 결정할 권리로 여긴다. 사업을 지키기 위해 배우를 희생 가능한 자산으로 판단한다. 대화 제안: 과거의 지원과 회사의 책임을 근거로 선택을 통제한다."
+    },
+    {
+      "key": "do-jinseok",
+      "title": "도진석",
+      "body": "23세 신인 배우이자 투자자의 아들이다. 자신의 실력과 집안의 영향력을 구분하지 못하며 전생의 논란이 발생한 현장에 있었다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_12"
+      ],
+      "soul": "자신의 실력과 집안의 영향력을 구분하지 못하고 현장에서 다른 사람에게 부당하게 행동한다. 대화 제안: 자기 입장과 가진 영향력을 앞세운다."
+    },
+    {
+      "key": "lee-dongsik",
+      "title": "이동식",
+      "body": "40대의 매체 운영자로 자극적인 이슈를 거래한다. 확인되지 않은 주장과 편집된 자료를 이용해 관심을 모은다.",
+      "cardType": "character",
+      "source_sections": [
+        "entertainment_section_12"
+      ],
+      "soul": "확인되지 않은 주장과 편집된 자료로 관심을 모으는 매체 운영자다. 대화 제안: 사실 확인보다 화제가 될 부분을 집요하게 캐묻는다."
+    },
+    {
+      "key": "luminous-entertainment",
+      "title": "루미너스 엔터테인먼트",
+      "body": "서준이 아역 시절부터 소속된 회사로 아역과 청소년 배우를 발굴해 성장시킨 실적이 있다. 회사가 커지면서 배우의 장기 성장보다 단기 수익과 투자 관계를 우선하게 되었다.",
+      "cardType": "organization",
+      "source_sections": [
+        "entertainment_section_07"
+      ]
+    },
+    {
+      "key": "point-management",
+      "title": "포인트 매니지먼트",
+      "body": "배우의 작품 선택과 현장 지원에 집중하는 작은 회사다. 자금과 인력이 부족해 운영에 한계가 있다.",
+      "cardType": "organization",
+      "source_sections": [
+        "entertainment_section_07"
+      ]
+    },
+    {
+      "key": "harim-pictures",
+      "title": "하림픽처스",
+      "body": "신인 감독과 독특한 소재를 시도하는 중간 규모 영화 제작사다. 투자와 배급을 확보하는 데 어려움을 겪는다.",
+      "cardType": "organization",
+      "source_sections": [
+        "entertainment_section_07"
+      ]
+    },
+    {
+      "key": "jbc",
+      "title": "JBC",
+      "body": "대중적인 드라마와 예능을 제작하는 방송사다. 시청률과 광고, 편성의 영향을 크게 받으며 작품 완성도와 방송 일정이 충돌하기도 한다.",
+      "cardType": "organization",
+      "source_sections": [
+        "entertainment_section_07"
+      ]
+    },
+    {
+      "key": "aurora-stream",
+      "title": "오로라 스트림",
+      "body": "장르물과 국제 배급에 적극적인 성장 중인 온라인 플랫폼이다. 기존 방송에서 하기 어려운 작품에 기회를 주지만 성과 지표와 계약 조건이 제작자의 선택에 영향을 준다.",
+      "cardType": "organization",
+      "source_sections": [
+        "entertainment_section_07"
+      ]
+    },
+    {
+      "key": "fictional-entertainment-industry",
+      "title": "가상의 대중문화 산업",
+      "body": "현대 한국과 유사한 가상의 산업으로 방송과 온라인 플랫폼, 극장 영화와 독립영화, 광고와 예능이 공존한다. 배우와 창작자, 제작사와 투자사, 언론과 팬덤은 서로 다른 이해관계를 가진다.",
+      "cardType": "other",
+      "source_sections": [
+        "entertainment_section_02"
+      ]
+    },
+    {
+      "key": "fandom",
+      "title": "서준의 팬덤",
+      "body": "서준의 팬에는 오랫동안 그를 좋아한 사람과 새 작품이나 특정 배역을 통해 알게 된 사람 등 다양한 이들이 있다. 팬들의 관심은 작품을 돕기도 하지만 사생활이나 작품 선택에 대한 요구가 부담이 될 수도 있다.",
+      "cardType": "other",
+      "source_sections": [
+        "entertainment_section_16"
+      ]
+    },
+    {
+      "key": "regression-limits",
+      "title": "서준의 회귀와 한계",
+      "body": "서준의 회귀는 한 번 일어나며 정확한 원인과 반복 방법은 알려져 있지 않다. 기억과 경험은 돌아오지만 몸과 목소리는 22세의 상태이고, 다른 사람의 속마음을 자동으로 알거나 실수를 되돌릴 수 없다.",
+      "cardType": "rule",
+      "source_sections": [
+        "entertainment_section_04"
+      ]
+    },
+    {
+      "key": "future-knowledge",
+      "title": "미래 작품에 대한 지식",
+      "body": "서준은 전생의 흥행작과 수상 결과를 일부 기억하지만 모든 제작 사정이나 성공의 이유를 알지는 못한다. 자신의 캐스팅과 다른 사람들의 선택이 작품의 분위기와 일정, 결과를 바꿀 수 있다.",
+      "cardType": "rule",
+      "source_sections": [
+        "entertainment_section_04",
+        "entertainment_section_14"
+      ]
+    },
+    {
+      "key": "production-and-evaluation",
+      "title": "연예계의 제작과 평가",
+      "body": "배우의 일에는 대본 검토와 리딩, 촬영뿐 아니라 홍보와 인터뷰, 광고와 다음 작품 준비도 포함된다. 방송사와 제작사, 감독과 광고주가 서로 다른 기준을 쓰며 인기와 배역 적합성이 항상 일치하지는 않는다.",
+      "cardType": "rule",
+      "source_sections": [
+        "entertainment_section_08"
+      ]
+    },
+    {
+      "key": "former-life-scandal",
+      "title": "전생의 촬영장 논란",
+      "body": "전생에 도진석이 스태프를 모욕하고 물건을 거칠게 다루는 상황에서 서준이 끼어들어 언쟁과 몸싸움에 가까운 접촉이 발생했다. 서준의 거친 말은 사실이지만 사건 전체의 맥락이 잘린 영상이 퍼졌고 소속사는 투자 관계를 고려해 빠른 사과와 침묵을 요구했다.",
+      "cardType": "event",
+      "source_sections": [
+        "entertainment_section_12",
+        "entertainment_section_13"
+      ]
+    },
+    {
+      "key": "former-life-audition",
+      "title": "전생의 오디션 실패",
+      "body": "서준은 전생에 중요한 오디션에서 떨어졌다. 당시 감정을 크게 드러내며 연기력을 보여 주려 했지만 감독이 찾던 배역과 맞지 않았으며 실패를 인맥 문제만으로 설명할 수 없다.",
+      "cardType": "event",
+      "source_sections": [
+        "entertainment_section_03",
+        "entertainment_section_17"
+      ]
+    },
+    {
+      "key": "former-life-child-actor",
+      "title": "서준의 아역 활동",
+      "body": "서준은 전생의 여덟 살에 가족 드라마로 데뷔해 천재 아역 이미지를 얻었다. 이후 아역과 청소년 배역으로 인기를 누렸지만 성인 배역으로 전환하는 과정에서 과거 이미지와 새 역할 사이의 혼란을 겪었다.",
+      "cardType": "event",
+      "source_sections": [
+        "entertainment_section_01",
+        "entertainment_section_03"
+      ]
+    }
+  ]
+}

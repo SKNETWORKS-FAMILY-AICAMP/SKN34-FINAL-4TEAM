@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.storyfork.content.world.InitialWorldStoragePostgresTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-17T03:07:31.585Z" hostname="d7bace9fe281" time="9.88">
+  <properties/>
+  <testcase name="upgradePreservesSnapshotsAndEnforcesReviewAndReservationOwnership()" classname="ai.storyfork.content.world.InitialWorldStoragePostgresTest" time="3.208"/>
+  <testcase name="upgradeV4PreservesOldDecisionWithoutInventingRequestMetadata()" classname="ai.storyfork.content.world.InitialWorldStoragePostgresTest" time="1.526"/>
+  <testcase name="sequentialV1ThroughV9PreservesExistingWorldCardAndAnalysis()" classname="ai.storyfork.content.world.InitialWorldStoragePostgresTest" time="5.105"/>
+  <system-out><![CDATA[03:07:33.093 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_c76eba56f1f849b3887777d9024b3de8 (PostgreSQL 17.11)
+03:07:33.296 [Test worker] INFO org.flywaydb.core.internal.database.base.Schema -- Creating schema "worldstudio" ...
+03:07:33.313 [Test worker] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+03:07:33.500 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": null
+03:07:33.587 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "1 - independent worldstudio"
+03:07:33.784 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+03:07:33.818 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 2 migrations to schema "worldstudio", now at version v2 (execution time 00:00.192s)
+03:07:33.901 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_c76eba56f1f849b3887777d9024b3de8 (PostgreSQL 17.11)
+03:07:33.960 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.025s)
+03:07:33.996 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 2
+03:07:34.021 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+03:07:34.134 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+03:07:34.158 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "5 - initial decision request identity"
+03:07:34.184 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "6 - world publication"
+03:07:34.208 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "7 - world cover"
+03:07:34.225 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "8 - setting card image"
+03:07:34.262 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "9 - manuscript initial build"
+03:07:34.335 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 7 migrations to schema "worldstudio", now at version v9 (execution time 00:00.210s)
+03:07:34.387 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_c76eba56f1f849b3887777d9024b3de8 (PostgreSQL 17.11)
+03:07:34.451 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.034s)
+03:07:34.542 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_c76eba56f1f849b3887777d9024b3de8 (PostgreSQL 17.11)
+03:07:34.601 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.025s)
+03:07:34.640 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 9
+03:07:34.642 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "worldstudio" is up to date. No migration necessary.
+03:07:34.966 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_907ac015382b409784efbd7a18fcef9c (PostgreSQL 17.11)
+03:07:35.003 [Test worker] INFO org.flywaydb.core.internal.database.base.Schema -- Creating schema "worldstudio" ...
+03:07:35.011 [Test worker] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+03:07:35.079 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": null
+03:07:35.120 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "1 - independent worldstudio"
+03:07:35.333 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+03:07:35.386 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+03:07:35.548 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+03:07:35.573 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 4 migrations to schema "worldstudio", now at version v4 (execution time 00:00.359s)
+03:07:35.689 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_907ac015382b409784efbd7a18fcef9c (PostgreSQL 17.11)
+03:07:35.761 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.030s)
+03:07:35.806 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 4
+03:07:35.815 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "5 - initial decision request identity"
+03:07:35.868 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "6 - world publication"
+03:07:35.901 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "7 - world cover"
+03:07:35.926 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "8 - setting card image"
+03:07:35.972 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "9 - manuscript initial build"
+03:07:36.102 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 5 migrations to schema "worldstudio", now at version v9 (execution time 00:00.197s)
+03:07:36.172 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_907ac015382b409784efbd7a18fcef9c (PostgreSQL 17.11)
+03:07:36.246 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.035s)
+03:07:36.563 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:36.620 [Test worker] INFO org.flywaydb.core.internal.database.base.Schema -- Creating schema "worldstudio" ...
+03:07:36.632 [Test worker] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "worldstudio"."world_studio_schema_history" ...
+03:07:36.755 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": null
+03:07:36.785 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "1 - independent worldstudio"
+03:07:37.118 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 1 migration to schema "worldstudio", now at version v1 (execution time 00:00.314s)
+03:07:37.171 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:37.240 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.031s)
+03:07:37.310 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:37.390 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.038s)
+03:07:37.447 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 1
+03:07:37.449 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "worldstudio" is up to date. No migration necessary.
+03:07:37.636 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:37.706 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.026s)
+03:07:37.770 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 1
+03:07:37.780 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "2 - neo4j current relationship state"
+03:07:37.853 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 1 migration to schema "worldstudio", now at version v2 (execution time 00:00.043s)
+03:07:37.895 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:37.984 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.047s)
+03:07:38.061 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:38.145 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.042s)
+03:07:38.187 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 2
+03:07:38.189 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "worldstudio" is up to date. No migration necessary.
+03:07:38.332 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:38.395 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.027s)
+03:07:38.445 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 2
+03:07:38.461 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "3 - initial world analysis storage"
+03:07:38.656 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 1 migration to schema "worldstudio", now at version v3 (execution time 00:00.181s)
+03:07:38.690 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:38.749 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.024s)
+03:07:38.797 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:38.842 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.019s)
+03:07:38.888 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 3
+03:07:38.889 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "worldstudio" is up to date. No migration necessary.
+03:07:39.032 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:39.080 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.024s)
+03:07:39.114 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 3
+03:07:39.120 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "4 - initial analysis failure reason"
+03:07:39.149 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 1 migration to schema "worldstudio", now at version v4 (execution time 00:00.016s)
+03:07:39.177 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:39.230 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.022s)
+03:07:39.278 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:39.329 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.021s)
+03:07:39.359 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 4
+03:07:39.361 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "worldstudio" is up to date. No migration necessary.
+03:07:39.451 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:39.495 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.022s)
+03:07:39.524 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 4
+03:07:39.530 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "5 - initial decision request identity"
+03:07:39.561 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 1 migration to schema "worldstudio", now at version v5 (execution time 00:00.021s)
+03:07:39.584 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:39.627 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.021s)
+03:07:39.671 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:39.721 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.022s)
+03:07:39.759 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 5
+03:07:39.761 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "worldstudio" is up to date. No migration necessary.
+03:07:39.851 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:39.898 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.023s)
+03:07:39.938 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 5
+03:07:39.945 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "6 - world publication"
+03:07:39.977 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 1 migration to schema "worldstudio", now at version v6 (execution time 00:00.026s)
+03:07:40.006 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:40.050 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.018s)
+03:07:40.101 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:40.155 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.023s)
+03:07:40.192 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 6
+03:07:40.194 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "worldstudio" is up to date. No migration necessary.
+03:07:40.313 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:40.361 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.019s)
+03:07:40.397 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 6
+03:07:40.402 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "7 - world cover"
+03:07:40.420 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 1 migration to schema "worldstudio", now at version v7 (execution time 00:00.010s)
+03:07:40.439 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:40.471 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.012s)
+03:07:40.504 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:40.534 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.011s)
+03:07:40.558 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 7
+03:07:40.560 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "worldstudio" is up to date. No migration necessary.
+03:07:40.656 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:40.691 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.014s)
+03:07:40.720 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 7
+03:07:40.726 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "8 - setting card image"
+03:07:40.754 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 1 migration to schema "worldstudio", now at version v8 (execution time 00:00.021s)
+03:07:40.771 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:40.803 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.011s)
+03:07:40.840 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:40.869 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.012s)
+03:07:40.892 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 8
+03:07:40.893 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "worldstudio" is up to date. No migration necessary.
+03:07:40.986 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:41.012 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.010s)
+03:07:41.036 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 8
+03:07:41.043 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "worldstudio" to version "9 - manuscript initial build"
+03:07:41.102 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 1 migration to schema "worldstudio", now at version v9 (execution time 00:00.048s)
+03:07:41.127 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:41.157 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.012s)
+03:07:41.193 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:41.222 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.012s)
+03:07:41.251 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 9
+03:07:41.252 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "worldstudio" is up to date. No migration necessary.
+03:07:41.325 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:41.352 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.010s)
+03:07:41.372 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "worldstudio": 9
+03:07:41.373 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Schema "worldstudio" is up to date. No migration necessary.
+03:07:41.398 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://postgres:5432/ws_independent_a368a470808e480bb36ff7483f0b32b7 (PostgreSQL 17.11)
+03:07:41.425 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 10 migrations (execution time 00:00.011s)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

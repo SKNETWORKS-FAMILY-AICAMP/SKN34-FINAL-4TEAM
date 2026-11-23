@@ -11,7 +11,7 @@ export function worldStudioFlow(state:StudioFlow,action:StudioFlowAction):Studio
  }
 }
 
-/** 작성 모드는 탭 줄 없는 4단계 마법사(기본 정보 → 설정 카드 → 관계 연결 → 검토·저장), 관리 모드는 탭 줄·헤더 저장 영역·헤더 편집 패널이다. */
+/** 작성 모드는 사이드바 없는 4단계 마법사(기본 정보 → 설정 카드 → 관계 연결 → 검토·저장), 관리 모드는 왼쪽 사이드바(보기 메뉴·도구·저장 영역)와 보기별 내용 열이다. */
 export type StudioMode='write'|'manage'
 /** 새 세계관 만들기가 성공해 이동한 주소에 붙는 표시(`?new=1`). 새로고침해도 마법사가 유지되고, 첫 저장이 성공하거나 마법사를 나가면 `replace`로 지운다. */
 export const NEW_WORLD_QUERY='new'
@@ -22,16 +22,16 @@ export const NEW_WORLD_QUERY='new'
 export const studioMode=(params:{get(name:string):string|null}):StudioMode=>params.get(NEW_WORLD_QUERY)==='1'?'write':'manage'
 
 /**
- * 관리 모드 설정집 화면(게시판)의 보기(주소 `?view=`으로 유지·복원): 설정집(기본, 주소에 없음)·인물 관계도·시간선. 작성 모드는 보기 없이 4단계다.
- * 설정 카드 편집은 보기가 아니라 따로 여는 화면이고 주소의 `?card=<id>`로 정한다.
+ * 관리 모드 화면의 보기(주소 `?view=`으로 유지·복원): 개요(이름·설명·공개·장르·표지 편집)·설정집(기본, 주소에 없음)·관계도·시간선·소설 연결(연결된 소설과 그 Fork). 작성 모드는 보기 없이 4단계다.
+ * 메뉴 첫 줄은 개요지만 기본 보기는 설정집이다: 주소에 값이 없는 진입·카드 편집에서 돌아오기·옛 링크가 모두 게시판을 전제로 한다. 설정 카드 편집은 보기가 아니라 따로 여는 화면이고 주소의 `?card=<id>`로 정한다.
  */
-export const MANAGE_VIEWS=[['book','설정집'],['people','인물 관계도'],['timeline','시간선']] as const
+export const MANAGE_VIEWS=[['overview','개요'],['book','설정집'],['people','관계도'],['timeline','시간선'],['novel','소설 연결']] as const
 export type ManageView=(typeof MANAGE_VIEWS)[number][0]
-/** `?view=` 값. 없거나 모르는 값이면 첫 보기(설정집)다. */
+/** `?view=` 값. 없거나 모르는 값이면 기본 보기(설정집)다. */
 export const parseManageView=(value:string|null):ManageView=>MANAGE_VIEWS.find(([key])=>key===value)?.[0]??'book'
 
 /**
- * 옛 주소의 `?tab=`(설정집·인물 관계도·세계관 탐색·AI 후보 검토·확정 버전 탭)을 새 화면으로 옮긴다: 인물 관계도는 같은 이름의 보기, AI 후보 검토는 시트(`review`),
+ * 옛 주소의 `?tab=`(설정집·관계도·세계관 탐색·AI 후보 검토·확정 버전 탭)을 새 화면으로 옮긴다: 관계도는 같은 이름의 보기, AI 후보 검토는 시트(`review`),
  * 확정 버전은 편집 화면의 버전 그래프로 갔고 세계관 탐색은 없어졌으므로 나머지는 설정집이다. `tab`이 없으면 null이다(손대지 않는다).
  */
 export const legacyTabTarget=(value:string|null):{view:ManageView;review:boolean}|null=>

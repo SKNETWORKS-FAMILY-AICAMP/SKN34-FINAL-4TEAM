@@ -1,0 +1,80 @@
+{
+  "world_id": "egyptian_mythology",
+  "world_id_meaning": "기존 worldId 참조용 라벨",
+  "id_namespace": "c1817611-1c16-5eb0-b39f-9cffecd0cbfd",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "egypt-horus",
+      "world_id": "egyptian_mythology",
+      "title": "The Contendings of Horus and Seth",
+      "target_scope": "Chester Beatty I recto 1–16",
+      "edition_language_attribution": "hieratic Egyptian; Gardiner edition and Chester Beatty images; exact transcription/translation unverified",
+      "prior_investigation_grade": "C",
+      "source_url": "https://viewer.cbl.ie/viewer/image/Pap_1_2/8/LOG_0000/",
+      "other_recorded_urls": [
+        "https://chesterbeatty.ie/assets/uploads/2018/11/The-Library-of-A.-Chestera-Beatty-Description-of-a-Hieratic-Papyrus-with-a-Mythological-Story-Love-Songs-and-Other-Miscellaneous-Texts.pdf"
+      ],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "blocked_or_body_unconfirmed",
+        "reason": "Previous investigation reported bibliographic-only, body unread, or blocked; no bypass attempted; URL retained for follow-up"
+      },
+      "scope_status": "incomplete",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": null,
+      "units": [
+        {
+          "unit_id": "egypt-horus--recto-1-16",
+          "label": "Chester Beatty I recto 1–16",
+          "status": "blocked",
+          "reason": "Viewer and Gardiner PDF previously failed with 403; no bypass.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    },
+    {
+      "work_id": "egypt-ani125",
+      "world_id": "egyptian_mythology",
+      "title": "Book of the Dead, Ani chapter 125",
+      "target_scope": "chapter 125 and associated vignette; exact folio unresolved",
+      "edition_language_attribution": "E. A. Wallis Budge 1895; Egyptian text and English; Heidelberg bibliographic entry",
+      "prior_investigation_grade": "B",
+      "source_url": "https://digi.ub.uni-heidelberg.de/diglit/budge1895bd2/0346",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "blocked_or_body_unconfirmed",
+        "reason": "Previous investigation reported bibliographic-only, body unread, or blocked; no bypass attempted; URL retained for follow-up"
+      },
+      "scope_status": "incomplete",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": null,
+      "units": [
+        {
+          "unit_id": "egypt-ani125--chapter-125",
+          "label": "Ani chapter 125 and vignette",
+          "status": "blocked",
+          "reason": "Bibliographic record only, exact facsimile pages not identified.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    }
+  ]
+}

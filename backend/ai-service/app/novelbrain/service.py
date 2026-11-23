@@ -1,9 +1,9 @@
 """NovelBrain 조회: 세계관 그래프(PPR) → 원고 발췌 → BM25 → RRF 합산 → 인물 시점 필터를 단계별로 쌓는다.
 
-표준 라이브러리만 쓰는 순수 함수다. 모델·네트워크·DB를 부르지 않고, 원고 발췌는 호출자가 Content Retrieval로 받아 넘긴다.
+표준 라이브러리만 쓰는 순수 함수다(`recall`이 추적 span을 남기는 것만 예외, 결과는 그대로다). 모델·네트워크·DB를 부르지 않고, 원고 발췌는 호출자가 Content Retrieval로 받아 넘긴다.
 항목 ref 형식(필터가 이 형식을 읽는다):
 - `card:<id>`: 인물이 아닌 카드의 본문
-- `card:<id>#identity|soul|memory|ep<NN>`: 인물 카드의 IDENTITY(카드 본문)·SOUL·MEMORY·회차별 기억(NN은 두 자리로 0을 채운 회차)
+- `card:<id>#identity|soul|goal|ep<NN>`: 인물 카드의 IDENTITY(카드 본문)·SOUL·GOAL·회차별 기억(NN은 두 자리로 0을 채운 회차, `#ep00`은 이야기 시작 전부터 아는 것)
 - `relation:<id>`: 관계, `manuscript:<발췌 id>`: 원고 발췌
 """
 
@@ -14,14 +14,14 @@ from collections import Counter
 from collections.abc import Iterable, Sequence
 from typing import Literal
 
-from app.manuscript.models import Excerpt
+from app import tracing
+from app.story_qa.models import Excerpt
 from app.novelbrain.models import Card, Gap, RecallItem, RecallResult, Relation, WorldSnapshot
 
 # 한글 음절 덩어리 | 그 밖의 글자·숫자 덩어리(밑줄·구두점은 경계)
 _RUN = re.compile(r'[가-힣]+|[^\W_가-힣]+')
 _EPISODE_DOC = re.compile(r'ep([0-9]+)')
 _ARROWS = {'directed': '→', 'symmetric': '↔', None: '—'}
-_DENIED_ARROWS = {'directed': '↛', 'symmetric': '↮', None: '—'}
 # 이 종류의 다른 카드는 그 인물과 관계로 연결돼 있어야 인물이 아는 것으로 본다(장소·규칙·조직·능력·기타는 누구나 아는 정보).
 _LINKED_TYPES = ('character', 'event', 'object')
 _UNKNOWN, _NOT_LINKED = '출처를 확인할 수 없음', '연결된 관계가 없어 이 인물이 아는지 확인할 수 없음'
@@ -29,6 +29,25 @@ _NOT_PARTY, _NOT_NAMED = '이 인물이 당사자가 아닌 관계라 아는지 
 _NOT_REVEALED = '상대 설정이 아직 공개되지 않아 이 관계를 아는지 확인할 수 없음'
 # Retrieval이 돌려주는 원고 아닌 발췌(kind)를 인물 시점에 쓰지 않는 이유: 관계는 기준 회차가 아닌 현재 Neo4j 값이고, 설정은 스냅샷 카드로 다룬다.
 _EXCERPT_GAPS = {'relationship': 'relationship_current_not_episode', 'setting': 'setting_via_retrieval'}
+
+
+def episode_settings(world: WorldSnapshot, episode: int) -> list[dict]:
+    """그 회차까지 독자에게 공개된 카드(인물은 그 회차까지의 기억)와 두 끝이 모두 공개된 관계를 `{ref, type, title, text}`로 돌려준다.
+
+    이후 회차 정보는 근거가 아니다. Review·Q&A가 같은 거르기를 쓴다. ref는 `card:<id>`·`relation:<id>`이고 관계의 type은 `relation`이다.
+    """
+    cards = {c.id: c for c in world.cards if c.revealFromEpisode is None or c.revealFromEpisode <= episode}
+    settings = []
+    for c in cards.values():
+        memories = [f'{n}화: {t}' for n, t in sorted(c.episodes.items()) if n <= episode]
+        text = '\n\n'.join(t for t in (c.text, c.soul, c.goal, *memories) if t.strip())
+        settings.append({'ref': f'card:{c.id}', 'type': c.cardType, 'title': c.title, 'text': text})
+    for r in world.relations:
+        if r.source in cards and r.target in cards:
+            label = f'{r.label}(아님)' if r.polarity == 'denied' else r.label
+            settings.append({'ref': f'relation:{r.id}', 'type': 'relation',
+                             'title': f'{cards[r.source].title} → {cards[r.target].title}', 'text': f'{label}\n{r.body}'.strip()})
+    return settings
 
 
 def _fold(text: str) -> str:
@@ -141,15 +160,15 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
                          episode: int) -> tuple[list[RecallItem], list[Gap]]:
     """계약 3단계: 인물이 `episode`화까지 아는 것만 남긴다. `character_id=None`(메인 에이전트)이면 거르지 않는다.
 
-    - 그 인물 자신의 IDENTITY·SOUL·MEMORY와 `episode` 이하 회차 기억은 허용한다.
-    - 다른 인물의 SOUL·MEMORY·회차 기억과 `revealFromEpisode`가 아직 안 온 카드는 아는 것이 아님이 확인되므로 조용히 뺀다.
+    - 그 인물 자신의 IDENTITY·SOUL·GOAL과 `episode` 이하 회차 기억은 허용한다.
+    - 다른 인물의 SOUL·GOAL·회차 기억과 `revealFromEpisode`가 아직 안 온 카드는 아는 것이 아님이 확인되므로 조용히 뺀다.
     - 근거를 확인할 수 없는 것은 빼고 Gap으로 남긴다: 관계로 연결되지 않은 다른 인물·사건·물건 카드(부정 관계는 연결이 아니다),
       그 인물이 끝점이 아닌 관계,
       상대 카드가 아직 공개되지 않았거나 스냅샷에 없는 관계(관계 문장에 상대 제목이 드러난다), 그 인물 이름이 나오지 않는 원고 발췌,
       형식을 알 수 없는 ref(닫힌 쪽으로 실패).
 
     ponytail: 발췌에 이름이 나오면 목격으로 근사한다(라틴 이름은 낱말 경계, 한글 이름은 부분 일치. 별칭·호칭·대명사 미지원).
-    MEMORY.md는 회차 표시가 없어 항상 허용한다.
+    GOAL.md는 회차 표시가 없어 자기 인물이면 항상 허용한다. 없어진 `#memory` ref(옛 MEMORY.md)는 형식을 알 수 없는 ref라 gap이다.
     """
     if character_id is None:
         return list(items), []
@@ -191,7 +210,7 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
                 return False, ''
             return (False, _NOT_LINKED) if card.cardType in _LINKED_TYPES and card_id not in linked else (True, '')
         number = _EPISODE_DOC.fullmatch(part)
-        if part not in ('soul', 'memory') and not number:
+        if part not in ('soul', 'goal') and not number:
             return False, _UNKNOWN
         return (True, '') if card_id == character_id and (not number or int(number.group(1)) <= episode) else (False, '')
 
@@ -210,22 +229,28 @@ def _body_ref(card: Card) -> str:
 
 
 def _documents(cards: list[Card]) -> dict[str, tuple[str, str]]:
-    # ref → (제목, 본문): 카드 본문과 인물 카드의 SOUL·MEMORY·회차별 기억. 빈 문서는 뺀다.
+    # ref → (제목, 본문): 카드 본문과 인물 카드의 SOUL·GOAL·회차별 기억. 빈 문서는 뺀다.
     docs = {}
     for c in cards:
         docs[_body_ref(c)] = (c.title, c.text)
         if c.cardType == 'character':
             docs[f'card:{c.id}#soul'] = (c.title, c.soul)
-            docs[f'card:{c.id}#memory'] = (c.title, c.memory)
+            docs[f'card:{c.id}#goal'] = (c.title, c.goal)
             docs.update({f'card:{c.id}#ep{n:02d}': (c.title, text) for n, text in sorted(c.episodes.items())})
     return {ref: doc for ref, doc in docs.items() if doc[1].strip()}
 
 
-def _relation_text(r: Relation, cards: dict[str, Card]) -> str:
-    denied = r.polarity == 'denied'
-    arrow = (_DENIED_ARROWS if denied else _ARROWS)[r.direction]
-    line = f'{cards[r.source].title} {arrow} {cards[r.target].title}' + (' (아님)' if denied else '')
-    return f'{line}: {r.label}' if r.label else line
+def relation_text(r: Relation, cards: dict[str, Card]) -> str:
+    """관계 한 줄. 관계 'A → B 「관계명」'은 'B는 A의 관계명'으로 읽히게 쓴다(DEC-54, 화면과 같다).
+
+    방향 있는 관계는 'A의 관계명: B'이고, 대칭은 'A ↔ B: 관계명', 방향 미상은 'A — B: 관계명'이다(관계명이 없으면 'A → B'처럼 화살표만).
+    부정(denied)이면 끝에 '아님'을 붙인다. 시뮬레이션의 인물 입력(`known`)도 이 함수를 써서 같은 읽기를 한다.
+    """
+    a, b, denied = cards[r.source].title, cards[r.target].title, ' 아님' if r.polarity == 'denied' else ''
+    if r.direction == 'directed' and r.label:
+        return f'{a}의 {r.label}: {b}{denied}'
+    line = f'{a} {_ARROWS[r.direction]} {b}'
+    return (f'{line}: {r.label}' if r.label else line) + denied
 
 
 def _graph(world: WorldSnapshot, query: str) -> list[tuple[str, str, float]]:
@@ -239,12 +264,12 @@ def _graph(world: WorldSnapshot, query: str) -> list[tuple[str, str, float]]:
     for r in relations:
         score = (scores.get(r.source, 0) + scores.get(r.target, 0)) / 2
         if score > 0:
-            found.append((f'relation:{r.id}', _relation_text(r, cards), score))
+            found.append((f'relation:{r.id}', relation_text(r, cards), score))
     return sorted(found, key=lambda row: -row[2])
 
 
-def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: str, stage: Literal[0, 1, 2, 3] = 3,
-           manuscript: Sequence[Excerpt] = (), k: int = 8) -> RecallResult:
+def _recall(world: WorldSnapshot, character_id: str | None, episode: int, query: str, stage: Literal[0, 1, 2, 3] = 3,
+            manuscript: Sequence[Excerpt] = (), k: int = 8) -> RecallResult:
     """한 번의 조회. 단계는 앞 단계에 하나씩 쌓인다(`stage`는 0~3, `k`는 1 이상).
 
     0 = PPR 그래프(카드·관계), 1 = + `manuscript` 발췌(받은 순서가 순위), 2 = + 카드·인물 문서 BM25, 3 = + 인물 시점 필터.
@@ -284,3 +309,29 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
         gaps = [g for g in gaps if before[g.ref] < last] + skipped
     items = [i.model_copy(update={'rank': n}) for n, i in enumerate(items[:k], 1)]
     return RecallResult(items=items, gaps=gaps, stage=stage)
+
+
+def _recalled(world: WorldSnapshot, items: list[RecallItem]) -> dict:
+    """추적용 회상 결과: 항목의 ref·점수와, 카드 항목(`card:<id>[#문서]`)은 카드 id·제목. 본문(text)은 담지 않는다."""
+    titles = {c.id: c.title for c in world.cards}
+    recalled = []
+    for i in items:
+        kind, _, rest = i.ref.partition(':')
+        card_id = rest.partition('#')[0]
+        recalled.append({'ref': i.ref, **({'card_id': card_id, 'title': titles.get(card_id)} if kind == 'card' else {}), 'score': i.score})
+    return {'recalled': recalled, 'count': len(items)}
+
+
+def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: str, stage: Literal[0, 1, 2, 3] = 3,
+           manuscript: Sequence[Excerpt] = (), k: int = 8) -> RecallResult:
+    """`_recall`(단계·k 규칙은 그쪽 설명)의 한 번의 조회를 `novelbrain.recall` 추적 span(retriever)으로 감싼다(DEC-58). 결과는 그대로다.
+
+    input은 인물(`character_id`, 나레이터는 None)·기준 회차·단계와 질문 앞 500자, output은 찾은 항목의 ref·점수와 카드 제목뿐이다.
+    카드·관계·원고 본문은 설정 본문 참조 규칙에 따라 남기지 않는다. 실패하면 span이 ERROR로 남고 예외는 그대로 올라간다.
+    ponytail: 요청 밖(평가 하네스 `eval/novelbrain`)에서 LANGFUSE 키가 있으면 호출마다 루트 trace가 생긴다. 하네스는 키 없이 돌린다.
+    """
+    with tracing.observe('novelbrain.recall', as_type='retriever',
+                         input={'actor_id': character_id, 'episode': episode, 'stage': stage, 'query': query[:500]}) as span:
+        result = _recall(world, character_id, episode, query, stage, manuscript, k)
+        span.update(output=_recalled(world, result.items))
+    return result

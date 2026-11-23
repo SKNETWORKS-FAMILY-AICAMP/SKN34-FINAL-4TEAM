@@ -91,16 +91,35 @@ services:
         condition: service_healthy
 
   ai-service:
-    build:
+    build: &ai-build
       context: ../backend/ai-service
       dockerfile: Dockerfile
     # 체크포인트 URL을 설정하면 시작 때 테이블을 준비하므로 PostgreSQL이 먼저 떠 있어야 한다.
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
+    environment: &ai-environment
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
       OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY}
+
+  # 회차 원고 전처리 Celery 워커. ai-service와 같은 소스 빌드·환경이고 브로커가 준비된 뒤 시작한다.
+  ai-worker:
+    build: *ai-build
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment: *ai-environment
+
+  # 작업 Celery 워커(회귀 평가·운영 정기 작업). ai-service와 같은 소스 빌드·환경이고 브로커가 준비된 뒤 시작한다.
+  ai-jobs-worker:
+    build: *ai-build
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment: *ai-environment
+
+  ai-eval-seed:
+    build: *ai-build
 
   core-api:
     build:
@@ -153,6 +172,15 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?Set AWS_SECRET_ACCESS_KEY}
       NEO4J_URI: bolt://neo4j:7687
       APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${WEB_PORT:-5173}}
+      # 원고 색인·Q&A(#475). 기본은 끄고, 켜면 따로 띄운 docker-compose.elasticsearch.yaml(호스트 9200)을 쓴다. 임베딩은 ai-service 이미지의 E5 모델이 만든다.
+      MANUSCRIPT_INDEX_ENABLED: ${MANUSCRIPT_INDEX_ENABLED:-false}
+      MANUSCRIPT_INDEX_URL: http://host.docker.internal:9200
+      MANUSCRIPT_INDEX_NAME: ${MANUSCRIPT_INDEX_NAME:-storyfork-manuscript-v1}
+      # 작품·세계관·설정 카드 검색 색인(#505). 기본은 끄고(DB 검색 그대로), 켜면 원고 색인과 같은 Elasticsearch(호스트 9200)가 검색어 후보를 찾는다.
+      SEARCH_INDEX_ENABLED: ${SEARCH_INDEX_ENABLED:-false}
+      SEARCH_INDEX_URL: http://host.docker.internal:9200
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "127.0.0.1:${CONTENT_SERVICE_PORT:-8081}:8081"
 
@@ -162,6 +190,8 @@ services:
       dockerfile: Dockerfile
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     environment:
       OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}

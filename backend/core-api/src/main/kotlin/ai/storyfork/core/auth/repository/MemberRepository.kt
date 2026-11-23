@@ -3,6 +3,7 @@ package ai.storyfork.core.auth.repository
 import ai.storyfork.core.auth.entity.AuthMember
 import jakarta.persistence.LockModeType
 import jakarta.persistence.Tuple
+import java.time.Instant
 import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -11,6 +12,9 @@ import org.springframework.data.jpa.repository.Query
 
 interface MemberRepository : JpaRepository<AuthMember, UUID> {
     fun existsByEmail(email: String): Boolean
+
+    /** [since] 이후(그 시각 포함)에 가입한 회원 수. */
+    fun countByCreatedAtGreaterThanEqual(since: Instant): Long
 
     // Scalar projection: do not populate the persistence context before the member lock.
     @Query("select m.id as id, m.passwordHash as passwordHash from AuthMember m where m.email = :email")

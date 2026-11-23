@@ -1,0 +1,50 @@
+import type { OperationsPage } from './operations'
+
+/** 작업 감시(DEC-55): 회차 원고 전처리·운영 정기 작업·회귀 평가 실행(Langfuse Run)을 같은 실행 기록 모양으로 봅니다. 출처(Airflow 등)가 바뀌어도 모양은 같습니다. */
+export type JobRun = {
+  id: string; kind: string
+  /** operations-scheduler | content-preprocessing | ai-evaluation (| airflow) */
+  source: string
+  /** queued | running | succeeded | failed | cancelled */
+  status: string
+  /** schedule | manual | user */
+  trigger: string
+  progress?: { done: number; total: number } | null
+  startedAt?: string | null; finishedAt?: string | null; error?: string | null; targetId?: string | null
+}
+/** unavailable에 출처 이름(원고 전처리·평가)이 있으면 그 출처를 읽지 못한 것이고, 읽은 출처의 기록은 그대로 보입니다. */
+export type JobRunPage = OperationsPage<JobRun>
+/** 서버가 실행 기록을 앞에서부터 읽게 허용하는 최대 건수. (쪽+1)×크기가 이를 넘는 쪽은 400이라 화면이 막습니다. */
+export const JOB_RUNS_LIMIT = 1000
+/** 비어 있는 값(전체)은 서버에 보내지 않습니다. page는 0부터입니다. */
+export type JobRunQuery = { status: string; kind: string; page: number }
+export type Schedule = {
+  id: string; kind: string; cron: string; enabled: boolean; params: Record<string, unknown>; createdAt: string; updatedAt: string; lastRun?: JobRun | null
+}
+export type ScheduleInput = { kind: string; cron: string; enabled: boolean; params: Record<string, unknown> }
+
+/** 실행 기록·일정 조회는 `jobs` 권한이 필요합니다. 403이면 다시 불러오기 대신 이 안내만 보입니다. */
+export const JOBS_FORBIDDEN = "실행 기록과 일정을 보려면 '정기 작업' 권한이 필요해요."
+
+/** 운영 스케줄러가 실행할 수 있는 작업 종류(handler가 등록된 kind만 일정으로 받습니다). */
+export const JOB_KINDS: [string, string][] = [
+  ['llm_alert_check', 'LLM 경고 점검'], ['leak_sample_check', '정보 누설 표본 검사'], ['regression_eval', '회귀 평가'], ['alert_cleanup', '해결 경고 정리'],
+]
+export const JOB_STATUSES: [string, string][] = [['queued', '대기'], ['running', '실행 중'], ['succeeded', '성공'], ['failed', '실패'], ['cancelled', '취소']]
+const SOURCES = new Map([['operations-scheduler', '운영 스케줄러'], ['content-preprocessing', '원고 전처리'], ['ai-evaluation', 'AI 평가'], ['airflow', 'Airflow']])
+const TRIGGERS = new Map([['schedule', '일정'], ['manual', '수동'], ['user', '사용자 요청']])
+
+// Map이라 'constructor' 같은 객체 기본 속성 이름이 라벨 대신 함수로 새지 않습니다.
+// 평가 실행의 종류(evaluation)는 일정으로 등록하는 종류가 아니라서 JOB_KINDS(일정 폼의 선택지)가 아니라 라벨만 더합니다.
+const KINDS = new Map<string, string>([...JOB_KINDS, ['evaluation', '회귀 평가']]), STATUSES = new Map(JOB_STATUSES)
+export const jobKindLabel = (kind: string) => KINDS.get(kind) ?? kind
+export const jobStatusLabel = (status: string) => STATUSES.get(status) ?? status
+export const jobSourceLabel = (source: string) => SOURCES.get(source) ?? source
+export const jobTriggerLabel = (trigger: string) => TRIGGERS.get(trigger) ?? trigger
+
+/** 다시 실행은 실패한 기록만 요청합니다. 평가 실행은 작업 감시가 아니라 평가 화면에서 새로 실행하므로 실패해도 제외합니다. */
+export const jobRetryable = (run: JobRun) => run.status === 'failed' && run.source !== 'ai-evaluation'
+
+/** 진행률: 전체를 모르면(0) 끝낸 수만 보입니다. */
+export const jobProgress = (progress: JobRun['progress']) =>
+  !progress ? '—' : progress.total > 0 ? `${progress.done}/${progress.total} (${Math.round((progress.done / progress.total) * 100)}%)` : `${progress.done}건`

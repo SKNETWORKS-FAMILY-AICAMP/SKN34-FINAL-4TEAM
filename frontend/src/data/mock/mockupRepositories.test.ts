@@ -24,6 +24,10 @@ describe('발표용 목업 저장소', () => {
     expect(published.publishedVersionId).toBe(v1.id)
   })
 
+  it('Fork 세계관 독립은 성공을 흉내 내지 않고 데모 미지원 오류로 답한다', async () => {
+    await expect(createMockupWritingRepository().detachInheritedWorld()).rejects.toThrow('데모에서는 지원하지 않아요')
+  })
+
   it('세계관 작업실에 홍길동전 예시를 미리 넣는다', async () => {
     const [world] = await createMockupWorldStudioRepository().listStudio()
     expect(world.name).toBe('홍길동전')

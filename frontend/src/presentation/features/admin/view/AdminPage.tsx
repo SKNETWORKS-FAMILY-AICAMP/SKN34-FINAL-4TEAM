@@ -1,7 +1,8 @@
-import { type CSSProperties, type FormEvent, type ReactNode, useEffect, useRef } from 'react'
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
-import { ADMIN_PERMISSIONS, type AdminTab, adminTab } from '../../../../domain/entities/admin'
+import { LINK_PATH_MAX } from '../../../../domain/entities/event'
+import { ADMIN_PERMISSIONS, LLM_PAGES, type AdminTab, type LlmPage, adminTab, llmPage, llmPageHref } from '../../../../domain/entities/admin'
 import { ACTIVITY_FORBIDDEN, activityActionLabel, activityActor, activityDetail, activityTarget } from '../../../../domain/entities/adminActivity'
 import { REPORT_STATUSES, reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
 import { toKoreanDateTimeInput } from '../../../../domain/entities/operations'
@@ -12,34 +13,50 @@ import { ofKind } from '../../../../domain/entities/work'
 import { kstDateTime, kstPeriod } from '../../../shared/format'
 import { EventStatusChip } from '../../../shared/EventStatusChip'
 import { Go } from '../../../shared/Go'
+import { MoreVerticalIcon } from '../../../shared/icons'
+import { PopMenu } from '../../../shared/PopMenu'
 import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
 import { Footer } from '../../../shared/shell/Gnb'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import type { AdminFilter as Filter } from '../state/adminViewSlice'
 import { LIVE_TABS, useAdminViewModel, useForkIntegrity } from '../viewmodel/useAdminViewModel'
-import { AdminActionStatus, OperationsNotices } from './OperationsPanels'
+import { AdminGenres } from './AdminGenres'
+import { CreditsOperations } from './CreditsOperations'
+import { JobMonitor } from './JobMonitor'
+import { LlmOps } from './LlmOps'
+import { OperationsDashboard } from './OperationsDashboard'
+import { AdminActionStatus, LiveState, OperationsNotices, Table } from './OperationsPanels'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
 
 type VM = ReturnType<typeof useAdminViewModel>
 type Data = NonNullable<VM['data']>
 
-/** 운영 업무 대상별 메뉴: 회원 → 콘텐츠 → 소통 → 서비스 → 내 계정 */
-const GROUPS: [string, [AdminTab, string][]][] = [
-  ['현황', [['data', '개요']]],
+/**
+ * 운영 업무 대상별 메뉴: 회원 → 콘텐츠 → 소통 → LLM Ops → 서비스. 개요는 묶음 없이 맨 위 단독 항목이고, 프로필·로그아웃은 상단바 닉네임 메뉴에 있습니다.
+ * LLM Ops의 네 메뉴는 같은 탭(llm)의 쪽이라 세 번째 값에 쪽(view)을 적습니다.
+ */
+const GROUPS: [string, [AdminTab, string, LlmPage?][]][] = [
   ['회원 관리', [['users', '사용자'], ['admins', '관리자 계정·권한']]],
-  ['콘텐츠 관리', [['works', '작품'], ['rights', '신고·권리'], ['comments', '댓글'], ['characterChats', '캐릭터챗']]],
+  ['콘텐츠 관리', [['works', '작품'], ['rights', '신고·권리'], ['comments', '댓글'], ['characterChats', '캐릭터챗'], ['genres', '장르']]],
   ['소통 관리', [['feedback', '제보·문의'], ['notices', '공지'], ['events', '이벤트']]],
-  ['서비스 운영', [['llm', 'LLM Ops'], ['jobs', '정기 작업'], ['credits', '크레딧'], ['audit', '활동 로그']]],
-  ['내 계정', [['profile', '프로필']]],
+  ['LLM Ops', LLM_PAGES.map(([page, label]): [AdminTab, string, LlmPage] => ['llm', label, page])],
+  ['서비스 운영', [['jobs', '정기 작업'], ['credits', '크레딧'], ['audit', '활동 로그']]],
 ]
-const TITLES: Record<AdminTab, [string, string]> = {
-  data: ['관리 개요', '수집 자료와 서비스 상태를 확인합니다.'],
+/** LLM Ops는 쪽마다 제목(문서 제목 포함)이 다릅니다. */
+const LLM_TITLES: Record<LlmPage, [string, string]> = {
+  alerts: ['LLM Ops · 경고', '운영 경고를 확인하고 조치하며, 경고 기준과 켜고 끄기를 정합니다.'],
+  traces: ['LLM Ops · 추적·지표', 'Langfuse 기준 AI 요청 추적과 기간별 품질·비용 지표를 확인합니다.'],
+  prompts: ['LLM Ops · 프롬프트·모델', '프롬프트 버전과 production 승격, 모델 단가를 관리합니다.'],
+  quality: ['LLM Ops · 평가·누설 검사', '회귀 평가를 실행해 결과를 확인하고, 정보 누설 검사 기록과 표본 비율을 관리합니다.'],
+}
+const TITLES: Record<Exclude<AdminTab, 'llm'>, [string, string]> = {
+  data: ['관리 개요', '서비스 지표와 회원·AI 사용·작업·미처리 업무 현황을 확인합니다.'],
   rights: ['신고·권리 관리', '운영 신고를 검토하고 대상 작품 제한·권리 증빙 요청을 기록합니다.'],
-  llm: ['LLM Ops', 'LLM 운영 지표는 시연용 예시이며 실시간 연결은 없습니다.'],
   admins: ['관리자 계정과 권한', '업무별 접근 권한을 나누어 관리자 계정을 추가합니다.'],
   users: ['사용자 관리', '회원 목록을 조회하고 이용 제한·해제를 요청합니다.'],
   works: ['작품 관리', '작품의 공개 상태와 이용 권리를 조회하고 운영 제한·해제를 요청합니다.'],
+  genres: ['장르 관리', '작품·세계관이 함께 쓰는 장르를 추가하고 이름·아이콘·숨김·홈 노출·순서를 관리합니다.'],
   characterChats: [
     '캐릭터챗 관리',
     '공개 작품의 원작·포크와 캐릭터를 선택해 챗을 추가하거나 운영 상태를 바꿉니다.',
@@ -49,22 +66,25 @@ const TITLES: Record<AdminTab, [string, string]> = {
     '제보·문의',
     '회원이 보낸 고객지원 문의를 확인하고 답변합니다. 작가 검토 제보는 시연용 데이터예요.',
   ],
-  jobs: ['정기 작업', '서버가 주기적으로 실행할 작업과 최근 결과를 확인합니다.'],
+  jobs: ['정기 작업', '원고 전처리와 운영 정기 작업의 실행 기록을 보고 실패 작업과 일정을 관리합니다.'],
   events: ['이벤트 관리', '이벤트 내용과 기간을 관리합니다.'],
   notices: ['공지 게시', '공지를 작성하고 수정·삭제합니다.'],
-  credits: ['크레딧 관리', '크레딧 이용 현황과 정책 확정 상태를 확인합니다.'],
+  credits: ['크레딧 관리', '회원의 크레딧 잔액·내역을 조회하고 수동 지급·회수를 요청합니다.'],
   audit: ['관리자 활동 로그', '관리자가 수행한 변경 조치를 최신순으로 보여 줍니다.'],
   profile: ['관리자 프로필', '로그인한 관리자 계정 정보를 확인합니다.'],
 }
 const KINDS: [string, string][] = [['all', '전체'], ['original', '원작'], ['fork', '포크']]
+/** 데모 조회를 쓰지 않는 운영 API 탭: 상단 '목록 새로고침'(데모 조회만 다시 읽음) 대신 자기 패널의 새로고침·조회를 씁니다. */
+const OPS_TABS: AdminTab[] = ['data', 'llm', 'jobs', 'genres', 'credits']
 /** 작품 탭의 권리 표시값. 검색도 화면에 보이는 이 문구로 합니다. */
 const rightsLabel = (w: OperationsWork) =>
   `${w.creationType === 'external_derivative' ? '외부 2차 창작' : '원작'} · ${w.rightsConfirmed ? '권리 확인됨' : '권리 미확인'}`
 const has = (q: string, ...xs: string[]) =>
   !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
 const blocked = (vm: VM, key: string) => vm.mutationsBlocked || !!vm.actions[key]?.pending
-/** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
-const IN_FORM = /^(notice:|event:|inquiry:|report:)/
+/** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리와 대시보드·LLMOps·작업 감시 패널)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
+const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule', 'genre', 'credit']
+const IN_FORM = new RegExp(`^(notice|event|inquiry|report|${OPS_PANEL_KINDS.join('|')}):`)
 /** 행 조치 키(`member:<id>` 등)의 대상을 화면에 보이는 이름으로 바꿉니다. 목록에서 찾지 못하면 이름 없이 안내합니다. */
 function actionTarget(vm: VM, key: string): string | undefined {
   const [kind, id] = key.split(':')
@@ -73,8 +93,6 @@ function actionTarget(vm: VM, key: string): string | undefined {
   if (kind === 'work') { const w = live?.works.find((x) => x.workId === id); return w && `「${w.title}」` }
   if (kind === 'comment') { const c = live?.comments.find((x) => x.commentId === id); return c && `${c.authorName} 님의 댓글` }
   if (kind === 'chat') { const c = vm.data?.chats.find((x) => x.id === id); return c ? `${c.w.title} · ${c.character}` : id === 'new' ? '캐릭터챗 추가' : undefined }
-  if (kind === 'job') return vm.data?.admin.jobs.find((x) => x.id === id)?.name
-  if (kind === 'alert') return vm.data?.alerts.find((x) => x.id === id)?.task
   return kind === 'admin' ? '관리자 계정 생성' : undefined
 }
 /**
@@ -83,6 +101,8 @@ function actionTarget(vm: VM, key: string): string | undefined {
  */
 function shownInForm(vm: VM, tab: AdminTab, key: string) {
   const [kind, id, , replyId] = key.split(':')
+  // 대시보드·LLMOps·작업 감시 패널은 자기 조치 안내(ActionLines)를 패널 안에 그립니다.
+  if (OPS_PANEL_KINDS.includes(kind)) return true
   // 공지·이벤트 폼은 새로 쓰는 중이거나 고른 항목이 목록에 있을 때만 그려집니다.
   const open = (selection: string | null, rows: { id: string }[] = []) => id === selection && (id === 'new' || rows.some((row) => row.id === id))
   if (kind === 'notice') return tab === 'notices' && open(vm.recordSelection.notices, vm.live.data?.notices)
@@ -96,24 +116,11 @@ function shownInForm(vm: VM, tab: AdminTab, key: string) {
 const val = (e: FormEvent<HTMLFormElement>, name: string) =>
   String(new FormData(e.currentTarget).get(name) ?? '')
 
-/** 표마다 용도를 알리는 캡션과, 좁은 화면에서 키보드로 가로 스크롤할 수 있는 영역을 붙입니다. */
-function Table(
-  { label, style, children }: { label: string; style?: CSSProperties; children: ReactNode },
-) {
-  return (
-    <div className='adm-scroll' role='region' tabIndex={0} aria-label={label} style={style}>
-      <table>
-        <caption className='sr-only'>{label}</caption>
-        {children}
-      </table>
-    </div>
-  )
-}
-
 /** 목업 admin(): 자체 상단바·업무 메뉴. 데모 화면 가림일 뿐이며 실제 권한 검사는 Core가 맡아야 합니다. */
 export function AdminPage() {
   const [q] = useSearchParams()
   const tab = adminTab(q.get('tab'))
+  const page = llmPage(q.get('view'))
   const vm = useAdminViewModel(tab)
   const { sel, filters, setSel } = vm
   const f = filters[tab] ??
@@ -125,11 +132,11 @@ export function AdminPage() {
     }
   const setF = (x: Partial<Filter>) => vm.setFilter(tab, { ...f, ...x })
   const d = vm.data
-  const [title, desc] = TITLES[tab]
+  const [title, desc] = tab === 'llm' ? LLM_TITLES[page] : TITLES[tab]
   const live = LIVE_TABS.includes(tab)
   useDocumentTitle(`관리자 · ${title}`)
   const nav = useRef<HTMLElement>(null)
-  // 모바일 가로 메뉴나 높이를 넘겨 스스로 스크롤되는 세로 메뉴에서 현재 탭이 메뉴 밖에 있으면 보이게 합니다.
+  // 모바일 가로 메뉴나 높이를 넘겨 스스로 스크롤되는 세로 메뉴에서 현재 탭이 메뉴의 보이는 영역 밖에 있을 때만 보이게 합니다. 이미 보이면 건드리지 않아 맨 위 브랜드가 밀려나지 않습니다.
   useEffect(() => {
     // scrollIntoView는 키보드 Tab 시작점까지 옮기므로 메뉴의 스크롤 값만 바꿉니다.
     const n = nav.current
@@ -137,11 +144,37 @@ export function AdminPage() {
     if (!n || !a) return
     const at = a.getBoundingClientRect()
     const box = n.getBoundingClientRect()
-    if (n.scrollWidth > n.clientWidth) n.scrollLeft += at.left - box.left - 16
-    if (n.scrollHeight > n.clientHeight) n.scrollTop += at.top - box.top - 16
-  }, [tab])
+    // 보이는 구간 밖으로 벗어난 쪽으로만, 16px 여유를 두고 옮길 양입니다. 이미 보이면 0.
+    const reveal = (start: number, end: number, boxStart: number, boxEnd: number) =>
+      start < boxStart ? start - boxStart - 16 : end > boxEnd ? end - boxEnd + 16 : 0
+    const dx = n.scrollWidth > n.clientWidth ? reveal(at.left, at.right, box.left, box.right) : 0
+    const dy = n.scrollHeight > n.clientHeight ? reveal(at.top, at.bottom, box.top, box.bottom) : 0
+    if (dx) n.scrollLeft += dx
+    if (dy) n.scrollTop += dy
+  }, [tab, page])
   const content = useRef<HTMLElement>(null)
+  // 머리 오른쪽 자리(데모 칩·목록 새로고침). 개요 탭은 자기 새로고침을 이 자리에 포털로 두므로 요소를 상태로 들고 있다가 건넵니다.
+  const [headSide, setHeadSide] = useState<HTMLDivElement | null>(null)
   const successTarget = IN_FORM.test(vm.lastSuccessKey) ? undefined : actionTarget(vm, vm.lastSuccessKey)
+  // 운영 API가 없는 데모 탭만 메뉴에 '데모' 배지를 답니다. 배지는 읽지 않게 두는 대신 링크 설명으로 스크린리더에 알립니다(링크 이름은 그대로).
+  // 현재 표시는 탭과 쪽(view)이 모두 같을 때만 켭니다. LLM Ops 네 메뉴는 같은 탭이라 쪽까지 같아야 합니다.
+  const navLink = (k: AdminTab, l: string, view?: LlmPage) => {
+    const on = tab === k && (!view || view === page)
+    const to = view ? llmPageHref(view) : `/admin?tab=${k}`
+    return (
+      <Go
+        key={to}
+        to={to}
+        className={on ? 'on' : ''}
+        aria-current={on ? 'page' : undefined}
+        aria-describedby={LIVE_TABS.includes(k) ? undefined : 'admin-demo-note'}
+      >
+        {l}
+        {!LIVE_TABS.includes(k) && <span className='nav-demo' aria-hidden='true'>데모</span>}
+      </Go>
+    )
+  }
+  const showRefresh = !!d && !vm.isError && !OPS_TABS.includes(tab)
   return (
     <>
     <div className='adm'>
@@ -155,47 +188,49 @@ export function AdminPage() {
       >
         본문으로 바로가기
       </a>
-      <div className='top'>
-        <div className='wrap in'>
-          <b style={{ fontSize: 16 }}>STORYFORK 관리자</b>
-          <span style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--fixed-sub)' }}>
-            {vm.me.nick} 님으로 로그인
-          </span>
-          <ThemeButton className='btn sm adm-theme' />
-        </div>
+      <div className='admin-side'>
+        <nav ref={nav} className='admin-nav' aria-label='관리자 업무'>
+          <b className='admin-brand'>STORYFORK 관리자</b>
+          {navLink('data', '개요')}
+          {/* 메뉴 묶음 이름은 본문 제목(h1)보다 앞에 오므로 제목으로 읽히지 않게 하고, 묶음 이름은 group의 레이블로 전합니다. */}
+          {GROUPS.map(([g, items]) => (
+            <section key={g} role='group' aria-label={g}>
+              <h2 role='presentation'>{g}</h2>
+              {items.map(([k, l, view]) => navLink(k, l, view))}
+            </section>
+          ))}
+          <span id='admin-demo-note' className='sr-only'>데모 화면이에요</span>
+        </nav>
       </div>
-      <main id='main' tabIndex={-1} className='wrap'>
-        <div className='shell'>
-          <nav ref={nav} className='admin-nav' aria-label='관리자 업무'>
-            {/* 메뉴 묶음 이름은 본문 제목(h1)보다 앞에 오므로 제목으로 읽히지 않게 하고, 묶음 이름은 group의 레이블로 전합니다. */}
-            {GROUPS.map(([g, items]) => (
-              <section key={g} role='group' aria-label={g}>
-                <h2 role='presentation'>{g}</h2>
-                {items.map(([k, l]) => (
-                  <Go
-                    key={k}
-                    to={`/admin?tab=${k}`}
-                    className={tab === k ? 'on' : ''}
-                    aria-current={tab === k ? 'page' : undefined}
-                  >
-                    {l}
-                    {LIVE_TABS.includes(k) && <span className='nav-live' aria-hidden='true'>API</span>}
-                  </Go>
-                ))}
-              </section>
-            ))}
-            <p className='nav-legend'><span className='nav-live'>API</span> 실제 운영 데이터를 다루는 탭</p>
-            <button type='button' onClick={vm.logout}>로그아웃</button>
-          </nav>
+      <div className='admin-col'>
+        <div className='top'>
+          {/* 900px 이하에서만 보이는 브랜드: 가로로 스크롤되는 메뉴 안 브랜드는 잘려서 상단바 왼쪽에 한 번 더 둡니다. */}
+          <b className='admin-brand-top'>STORYFORK 관리자</b>
+          <PopMenu
+            className='admin-who'
+            label={`${vm.me.nick} 님 계정 메뉴`}
+            icon={<><span className='admin-who-name'>{vm.me.nick} 님</span><span aria-hidden='true'>▾</span></>}
+          >
+            <Go to='/admin?tab=profile' role='menuitem' aria-current={tab === 'profile' ? 'page' : undefined}>프로필</Go>
+            <button type='button' role='menuitem' onClick={vm.logout}>로그아웃</button>
+          </PopMenu>
+          <ThemeButton className='btn sm' />
+        </div>
+        <main id='main' tabIndex={-1}>
           <section ref={content} id='admin-content' tabIndex={-1} className='workspace'>
             <header className='admin-head'>
               <div>
                 <h1>{title}</h1>
                 <p>{desc}</p>
               </div>
-              <span className={`chip ${live ? 'ok' : 'wait'}`}>
-                {live ? '운영 API 연결' : '데모 화면'}
-              </span>
+              <div className='admin-head-side' ref={setHeadSide}>
+                {!live && <span className='chip wait'>데모 화면</span>}
+                {showRefresh && (
+                  <button type='button' className='btn sm' onClick={vm.retry} disabled={vm.isRefreshing}>
+                    목록 새로고침
+                  </button>
+                )}
+              </div>
             </header>
             {!live && vm.isLoading && (
               <p className='admin-data-state' role='status'>관리자 데이터를 불러오고 있어요.</p>
@@ -223,28 +258,16 @@ export function AdminPage() {
                 <button type='button' className='btn sm' onClick={vm.retry}>다시 불러오기</button>
               </div>
             )}
-            {d && !vm.isError && (
-              <div className='rowend admin-refresh'>
-                <button
-                  type='button'
-                  className='btn sm'
-                  onClick={vm.retry}
-                  disabled={vm.isRefreshing}
-                >
-                  목록 새로고침
-                </button>
-              </div>
-            )}
             {/* 행 조치의 진행·실패는 버튼에서 떨어진 여기에 보이므로 대상 이름을 붙입니다. 완료는 위의 완료 줄이 맡습니다. */}
             {Object.entries(vm.actions)
               .filter(([key]) => !IN_FORM.test(key))
               .map(([key, state]) => <AdminActionStatus key={key} state={state} target={actionTarget(vm, key)} done={false} />)}
             {(d || live) && (
-              <Body key={tab} tab={tab} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} />
+              <Body key={tab} tab={tab} page={page} d={d} vm={vm} f={f} setF={setF} sel={sel} setSel={setSel} headSide={headSide} />
             )}
           </section>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
     <Footer />
     </>
@@ -253,16 +276,20 @@ export function AdminPage() {
 
 type BodyProps = {
   tab: AdminTab
-  /** 데모 조회 결과. 운영 API 탭(users·admins·works·comments·rights·profile)은 이 값 없이도 그립니다. */
+  /** LLM Ops 탭에서 볼 쪽(주소의 view). 다른 탭에서는 쓰지 않습니다. */
+  page: LlmPage
+  /** 데모 조회 결과. 데모 탭(characterChats·credits)만 이 값이 있어야 그리고, 운영 API 탭은 이 값 없이도 그립니다. */
   d: Data | undefined
   vm: VM
   f: Filter
   setF: (x: Partial<Filter>) => void
   sel: string | null
   setSel: (s: string) => void
+  /** 제목 줄 오른쪽 자리. 개요 탭이 새로고침을 여기에 둔다. */
+  headSide: HTMLElement | null
 }
 
-/** 목업 adminExtra()의 controls(): 분류·정렬과 (작품·댓글·캐릭터챗) 검색 */
+/** 목업 adminExtra()의 controls(): (작품·댓글·캐릭터챗) 검색과 분류·정렬. 왼쪽 정렬 한 줄에 검색 입력 → 분류 → 정렬 → 검색 버튼 순서이고 좁으면 줄을 바꿉니다. */
 function Controls(
   { tab, f, setF, categories, sorts }: Pick<BodyProps, 'tab' | 'f' | 'setF'> & {
     categories: [string, string][]
@@ -271,57 +298,56 @@ function Controls(
 ) {
   const label = tab === 'works' ? '작품 검색' : tab === 'comments' ? '댓글 검색' : '캐릭터챗 검색'
   return (
-    <>
-      <div className='table-head'>
-        <label className='field'>
-          분류<select
-            className='inp'
-            value={f.category}
-            onChange={(e) => setF({ category: e.target.value })}
-          >
-            {categories.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-        </label>
-        <label className='field'>
-          정렬<select
-            className='inp'
-            value={f.sort}
-            onChange={(e) => setF({ sort: e.target.value })}
-          >
-            {sorts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-        </label>
-      </div>
-      {['works', 'comments', 'characterChats'].includes(tab) && (
-        <form
-          className='admin-search'
-          onSubmit={(e) => {
-            e.preventDefault()
-            setF({ query: val(e, 'query').trim() })
-          }}
+    <form
+      className='admin-filter'
+      onSubmit={(e) => {
+        e.preventDefault()
+        setF({ query: val(e, 'query').trim() })
+      }}
+    >
+      <label className='field field-search'>
+        {label}
+        <input
+          className='inp'
+          name='query'
+          defaultValue={f.query}
+          placeholder={tab === 'works'
+            ? '작품명·작성자·권리 유형'
+            : tab === 'comments'
+            ? '댓글 내용·작품명·작성자'
+            : '작품명·캐릭터'}
+        />
+      </label>
+      <label className='field'>
+        분류<select
+          className='inp'
+          value={f.category}
+          onChange={(e) => setF({ category: e.target.value })}
         >
-          <label className='field'>
-            {label}
-            <input
-              className='inp'
-              name='query'
-              defaultValue={f.query}
-              placeholder={tab === 'works'
-                ? '작품명·작성자·권리 유형'
-                : tab === 'comments'
-                ? '댓글 내용·작품명·작성자'
-                : '작품명·캐릭터'}
-            />
-          </label>
-          <button className='btn sm pri' type='submit'>검색</button>
-        </form>
-      )}
-    </>
+          {categories.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+      </label>
+      <label className='field'>
+        정렬<select
+          className='inp'
+          value={f.sort}
+          onChange={(e) => setF({ sort: e.target.value })}
+        >
+          {sorts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+      </label>
+      <button className='btn pri' type='submit'>검색</button>
+    </form>
   )
 }
 
 function Body(p: BodyProps) {
   const { tab, d, vm, f } = p
+  if (tab === 'data') return <OperationsDashboard vm={vm} headSide={p.headSide} />
+  if (tab === 'llm') return <LlmOps vm={vm} page={p.page} />
+  if (tab === 'jobs') return <JobMonitor vm={vm} />
+  if (tab === 'genres') return <AdminGenres vm={vm} />
+  if (tab === 'credits') return <CreditsOperations vm={vm} />
   if (tab === 'rights') return <Rights {...p} />
   if (tab === 'admins') return <Admins vm={vm} />
   if (tab === 'users') return <Users {...p} />
@@ -329,15 +355,24 @@ function Body(p: BodyProps) {
   if (tab === 'works') return <Works {...p} />
   if (tab === 'comments') return <Comments {...p} />
   if (tab === 'audit') return <Audit vm={vm} />
+  // 운영 API 탭이라 데모 조회(d) 없이 그린다(Feedback의 시연용 제보 표만 d가 있을 때 붙는다).
+  if (tab === 'feedback') return <Feedback {...p} />
+  if (tab === 'events') return <Events vm={vm} />
+  if (tab === 'notices') {
+    return (
+      <>
+        <LiveState vm={vm} label='공지 목록' />
+        <OperationsNotices vm={vm} />
+      </>
+    )
+  }
   if (!d) return null
   const titleSort = (
     a: string,
     b: string,
   ) => (f.sort === 'titleDesc' ? b.localeCompare(a, 'ko') : a.localeCompare(b, 'ko'))
   let T: ReactNode
-  if (tab === 'data') T = <Overview d={d} vm={vm} />
-  else if (tab === 'llm') T = <Llm d={d} vm={vm} />
-  else if (tab === 'characterChats') {
+  if (tab === 'characterChats') {
     const list = d.chats.filter((c) =>
       ofKind(f.category, c.w) && has(f.query, c.w.title, c.character)
     ).sort((a, b) =>
@@ -363,7 +398,7 @@ function Body(p: BodyProps) {
                 <th scope='col'>작품</th>
                 <th scope='col'>캐릭터</th>
                 <th scope='col'>상태</th>
-                <th scope='col' className='act'>관리</th>
+                <th scope='col' className='act act-menu'><span className='sr-only'>관리</span></th>
               </tr>
             </thead>
             <tbody>
@@ -384,16 +419,12 @@ function Body(p: BodyProps) {
                         {c.enabled === false ? '중지' : '운영 중'}
                       </span>
                     </td>
-                    <td>
-                      <button
-                        type='button'
-                        className='btn sm'
-                        aria-label={`${c.w.title} ${c.character} ${c.enabled === false ? '운영 재개' : '중지'}`}
-                        disabled={blocked(vm, `chat:${c.id}`)}
-                        onClick={() => vm.toggleChat(c.id)}
-                      >
-                        {c.enabled === false ? '운영 재개' : '중지'}
-                      </button>
+                    <td className='act-menu'>
+                      <PopMenu className='row-menu' label={`「${c.w.title} ${c.character}」 조치`} icon={<MoreVerticalIcon />}>
+                        <button type='button' role='menuitem' disabled={blocked(vm, `chat:${c.id}`)} onClick={() => vm.toggleChat(c.id)}>
+                          {c.enabled === false ? '운영 재개' : '중지'}
+                        </button>
+                      </PopMenu>
                     </td>
                   </tr>
                 ))
@@ -407,233 +438,8 @@ function Body(p: BodyProps) {
         </div>
       </>
     )
-  } else if (tab === 'feedback') T = <Feedback {...p} />
-  else if (tab === 'jobs') {
-    T = (
-      <div className='panel'>
-        <div className='table-head'>
-          <h2 className='panel-title'>운영 정기 작업</h2>
-          <span className='demo'>데모 기록 · 실제 실행 없음</span>
-        </div>
-        <p className='admin-note'>
-          실행 주기는 아직 정하지 않았어요. 사용자가 요청한 AI 작업은 자동으로 다시 실행하지 않아요.
-        </p>
-        <Table label='정기 작업 표'>
-          <thead>
-            <tr>
-              <th scope='col'>작업</th>
-              <th scope='col'>실행 주기</th>
-              <th scope='col'>최근 상태</th>
-              <th scope='col'>최근 결과</th>
-              <th scope='col' className='act'>조치</th>
-            </tr>
-          </thead>
-          <tbody>
-            {d.admin.jobs.map((j) => (
-              <tr key={j.id}>
-                <td>
-                  <b>{j.name}</b>
-                </td>
-                <td>미정</td>
-                <td>
-                  <span className={`chip ${j.status === '실패' ? 'wait' : 'ok'}`}>{j.status}</span>
-                </td>
-                <td>{j.last}</td>
-                <td>
-                  {j.status === '실패'
-                    ? (
-                      <button
-                        type='button'
-                        className='btn sm'
-                        aria-label={`${j.name} 수동 재시도 시연`}
-                        disabled={blocked(vm, `job:${j.id}`)}
-                        onClick={() => vm.runJob(j.id)}
-                      >
-                        수동 재시도 시연
-                      </button>
-                    )
-                    : '—'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-        <p className='admin-note'>
-          실패한 작업만 수동으로 다시 시도할 수 있어요. 이 화면의 버튼은 실제 작업을 실행하지 않아요.
-        </p>
-      </div>
-    )
-  } else if (tab === 'events') {
-    T = <Events vm={vm} />
-  } else if (tab === 'notices') {
-    T = (
-      <>
-        <LiveState vm={vm} label='공지 목록' />
-        <OperationsNotices vm={vm} />
-      </>
-    )
-  } else if (tab === 'credits') {
-    T = (
-      <div className='panel'>
-        <div className='table-head'>
-          <h2 className='panel-title'>크레딧 원장</h2>
-          <span className='chip wait'>정책 미확정</span>
-        </div>
-        <p>현재 실제 잔액·충전·차감 내역은 연결되어 있지 않습니다.</p>
-        <Table label='크레딧 원장 표' style={{ marginTop: 14 }}>
-          <thead>
-            <tr>
-              <th scope='col'>일시</th>
-              <th scope='col'>계정</th>
-              <th scope='col'>유형</th>
-              <th scope='col'>변동</th>
-              <th scope='col'>상태</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan={5} className='muted' style={{ textAlign: 'center', padding: 24 }}>
-                표시할 실제 내역이 없어요.
-              </td>
-            </tr>
-          </tbody>
-        </Table>
-        <p className='admin-note'>
-          충전·회수·수동 조정은 정책, 권한, 복구 기준이 확정된 뒤 연결해야 합니다. 이 화면에서는
-          크레딧을 변경하지 않습니다.
-        </p>
-      </div>
-    )
   }
   return T
-}
-
-/** 목업 adminLegacy() tab=data: A01+A02 */
-function Overview({ d, vm }: { d: Data; vm: VM }) {
-  const reports = vm.live.data?.reports
-  const waiting = vm.live.inquiries
-  // 서버 목록이 최신 100개까지라 100개 이상이면 정확한 수를 알 수 없어 100+로 표기합니다.
-  const waitingCount = waiting.data ? (waiting.data.length >= 100 ? '100+' : waiting.data.length) : '—'
-  return (
-    <>
-      <div className='admin-priorities'>
-        <div>
-          <h2>확인할 작업</h2>
-          <p>신고와 문의 수는 운영 서버 기준이에요.</p>
-        </div>
-        <div className='priority-links'>
-          <Go to='/admin?tab=feedback'>
-            <b>{waitingCount}</b>
-            <span>{waiting.isError ? '답변 대기 문의 · 불러오지 못함' : '답변 대기 문의'}</span>
-          </Go>
-          <Go to='/admin?tab=rights'>
-            <b>{reports ? reports.length : '—'}</b>
-            <span>{vm.live.isError ? '접수된 신고 · 불러오지 못함' : '접수된 신고'}</span>
-          </Go>
-        </div>
-      </div>
-      <h2 className='admin-section-title'>데이터 시연 현황</h2>
-      <div className='kpi'>
-        <div>
-          <small>수집 원작 (만료·등록)</small>
-          <b>{d.expired.length}편</b>
-          <span className='small muted'>{d.expired.map((w) => w.title).join(', ')}</span>
-        </div>
-        <div>
-          <small>가상 독자 댓글</small>
-          <b>300건</b>
-          <span className='small muted'>유형 라벨 포함 · LLM 생성 (데모)</span>
-        </div>
-        <div>
-          <small>전처리 결과 JSON</small>
-          <b>{d.chunhyang ? 2 : 1}개</b>
-          <span className='small muted'>구운몽{d.chunhyang ? ' + 가져온 소설' : ''}</span>
-        </div>
-        <div>
-          <small>처리 대기 제보</small>
-          <b>{d.pending}건</b>
-          <span className='small muted'>수정 제안 + 작가 확인 필요</span>
-        </div>
-      </div>
-      <div className='panel' style={{ marginTop: 14 }}>
-        <h2 className='panel-title'>전처리 6단계 · 구운몽 시연 흐름</h2>
-        <div className='flow' style={{ marginTop: 12 }}>
-          {[
-            ['수집', '원문 txt'],
-            ['정제', '특수·불용 문자 제거'],
-            ['회차 분할', '16장 → 4화'],
-            ['LLM 추출', '인물·관계·세계관·사건'],
-            ['검수', '작가·관리자 확인'],
-            ['결과', 'JSON 목업'],
-          ].map(([a, b], i) => (
-            <div key={a} className={i < 4 || d.chunhyang ? 'done' : ''}>
-              <b>{i + 1}. {a}</b>
-              {b}
-            </div>
-          ))}
-        </div>
-        <p className='small' style={{ marginTop: 10, color: 'var(--pri-ink)' }}>
-          실제 LLM 호출은 연결되지 않았으며, 이 파이프라인은 목표 흐름을 보여 주는 시연용입니다.
-        </p>
-      </div>
-      <div className='panel' style={{ marginTop: 14 }}>
-        <h2 className='panel-title'>수집 데이터 명세</h2>
-        <Table label='수집 데이터 명세 표' style={{ marginTop: 10 }}>
-          <thead>
-            <tr>
-              <th scope='col'>데이터</th>
-              <th scope='col'>출처</th>
-              <th scope='col'>양</th>
-              <th scope='col'>형식</th>
-              <th scope='col'>쓰는 곳</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>구운몽 전문</td>
-              <td>공유마당 만료 저작물</td>
-              <td>1편 · 16장</td>
-              <td>txt · 412KB</td>
-              <td>세계관·인물 추출, 읽기 화면</td>
-            </tr>
-            <tr>
-              <td>가상 독자 댓글</td>
-              <td>LLM 생성 (비상업·학습용)</td>
-              <td>300건</td>
-              <td>csv · 48KB</td>
-              <td>질문·제보 분류, 자동 응답</td>
-            </tr>
-            {!!d.chunhyang && (
-              <tr>
-                <td>춘향전 (가져온 소설)</td>
-                <td>이용자 등록 · {d.chunhyang.kind}</td>
-                <td>1편 · 4화</td>
-                <td>txt · 286KB</td>
-                <td>세계관·인물 추출</td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
-      </div>
-    </>
-  )
-}
-
-/** 실제 운영 API 목록의 로딩·새로고침·실패. 실패를 빈 목록으로 숨기지 않습니다. */
-function LiveState({ vm, label, state }: { vm: VM; label: string; state?: Pick<VM['live'], 'isLoading' | 'isRefreshing' | 'isError' | 'retry'> }) {
-  const l = state ?? vm.live
-  return (
-    <>
-      {l.isLoading && <p className='admin-data-state' role='status'>{label}을 불러오고 있어요.</p>}
-      {l.isRefreshing && <p className='admin-data-state' role='status'>{label}을 새로고침하고 있어요.</p>}
-      {l.isError && (
-        <div className='admin-data-state admin-action-error' role='alert'>
-          <p>{label}을 불러오지 못했어요. 로그인·업무 권한과 서버 연결을 확인한 뒤 다시 시도해 주세요.</p>
-          <button type='button' className='btn sm' onClick={l.retry}>다시 불러오기</button>
-        </div>
-      )}
-    </>
-  )
 }
 
 /** 72 관리자 활동 기록: 운영 서비스가 남긴 관리자 변경 조치 최신 100개. 수행자 닉네임은 서버가 채우며 없으면 ID를 보여 줍니다. */
@@ -665,7 +471,7 @@ function Audit({ vm }: { vm: VM }) {
         </ul>
       )}
       <p className='admin-note'>
-        최신 100건까지 보여 줘요. 회원·관리자 계정·신고·작품·공지·이벤트·문의 답변의 변경 조치가 성공하면 운영 서버에 남고,
+        최신 100건까지 보여 줘요. 회원·관리자 계정·신고·작품·장르·공지·이벤트·문의 답변·크레딧 지급·회수의 변경 조치가 성공하면 운영 서버에 남고,
         조회나 실패한 요청은 기록하지 않아요. 활동 로그는 ‘관리자 계정 관리’ 권한이 있는 관리자만 볼 수 있어요.
       </p>
     </div>
@@ -695,7 +501,7 @@ function Works(p: BodyProps) {
               <th scope='col'>종류</th>
               <th scope='col'>권리</th>
               <th scope='col'>공개 상태</th>
-              <th scope='col' className='act'>조치</th>
+              <th scope='col' className='act act-menu'><span className='sr-only'>조치</span></th>
             </tr>
           </thead>
           <tbody>
@@ -713,12 +519,12 @@ function Works(p: BodyProps) {
                       {w.restricted ? '운영 제한' : w.visibility === 'public' ? '공개' : '비공개'}
                     </span>
                   </td>
-                  <td>
-                    <div className='rowend'>
+                  <td className='act-menu' data-record-id={w.workId}>
+                    <PopMenu className='row-menu' label={`「${w.title}」 조치`} icon={<MoreVerticalIcon />}>
                       <button
                         type='button'
-                        className='btn sm'
-                        aria-label={`「${w.title}」 ${w.restricted ? '제한 해제' : '운영 제한'}`}
+                        role='menuitem'
+                        className={w.restricted ? undefined : 'danger'}
                         disabled={blocked(vm, `work:${w.workId}`)}
                         onClick={() => {
                           if (w.restricted || window.confirm(`「${w.title}」을 제한할까요? 해제 전까지 독자에게 보이지 않아요.`)) {
@@ -729,17 +535,11 @@ function Works(p: BodyProps) {
                         {w.restricted ? '제한 해제' : '운영 제한'}
                       </button>
                       {w.originKind === 'fork' && (
-                        <button
-                          type='button'
-                          className='btn sm'
-                          data-record-id={w.workId}
-                          aria-label={`「${w.title}」 포크 정합성 점검`}
-                          onClick={() => integrity.select({ id: w.workId, title: w.title })}
-                        >
+                        <button type='button' role='menuitem' onClick={() => integrity.select({ id: w.workId, title: w.title })}>
                           포크 정합성 점검
                         </button>
                       )}
-                    </div>
+                    </PopMenu>
                   </td>
                 </tr>
               ))
@@ -806,7 +606,7 @@ function Comments(p: BodyProps) {
               <th scope='col'>공감</th>
               <th scope='col'>상태</th>
               <th scope='col'>작성일</th>
-              <th scope='col' className='act'>조치</th>
+              <th scope='col' className='act act-menu'><span className='sr-only'>조치</span></th>
             </tr>
           </thead>
           <tbody>
@@ -820,21 +620,22 @@ function Comments(p: BodyProps) {
                   <td>
                     <span className={`chip ${c.hidden ? 'wait' : 'ok'}`}>{c.hidden ? '숨김' : '게시'}</span>
                   </td>
-                  <td>{kstDateTime(c.createdAt)}</td>
-                  <td>
-                    <button
-                      type='button'
-                      className='btn sm'
-                      aria-label={`${c.authorName} 댓글 ${c.hidden ? '게시 복구' : '숨김'}`}
-                      disabled={blocked(vm, `comment:${c.commentId}`)}
-                      onClick={() => {
-                        if (c.hidden || window.confirm(`「${c.workTitle}」의 댓글을 숨길까요? 독자에게는 자리표시로만 보여요.`)) {
-                          void vm.live.setCommentHidden(c.commentId, !c.hidden)
-                        }
-                      }}
-                    >
-                      {c.hidden ? '게시 복구' : '숨김'}
-                    </button>
+                  <td className='admin-date'>{kstDateTime(c.createdAt)}</td>
+                  <td className='act-menu'>
+                    <PopMenu className='row-menu' label={`「${c.authorName} 댓글」 조치`} icon={<MoreVerticalIcon />}>
+                      <button
+                        type='button'
+                        role='menuitem'
+                        disabled={blocked(vm, `comment:${c.commentId}`)}
+                        onClick={() => {
+                          if (c.hidden || window.confirm(`「${c.workTitle}」의 댓글을 숨길까요? 독자에게는 자리표시로만 보여요.`)) {
+                            void vm.live.setCommentHidden(c.commentId, !c.hidden)
+                          }
+                        }}
+                      >
+                        {c.hidden ? '게시 복구' : '숨김'}
+                      </button>
+                    </PopMenu>
                   </td>
                 </tr>
               ))
@@ -859,7 +660,16 @@ function Users({ vm, f, setF }: BodyProps) {
   const rows = vm.live.data?.members ?? []
   return (
     <div className='panel'>
-      <div className='table-head'>
+      <form
+        className='admin-filter'
+        onSubmit={(e) => {
+          e.preventDefault()
+          setF({ query: val(e, 'query').trim() })
+        }}
+      >
+        <label className='field field-search'>
+          사용자 검색<input className='inp' name='query' type='search' defaultValue={f.query} placeholder='이름·이메일' />
+        </label>
         <label className='field'>
           역할<select className='inp' value={f.category} onChange={(e) => setF({ category: e.target.value })}>
             <option value='all'>전체</option>
@@ -873,18 +683,7 @@ function Users({ vm, f, setF }: BodyProps) {
             <option value='oldest'>가입 오래된순</option>
           </select>
         </label>
-      </div>
-      <form
-        className='admin-search'
-        onSubmit={(e) => {
-          e.preventDefault()
-          setF({ query: val(e, 'query').trim() })
-        }}
-      >
-        <label className='field'>
-          사용자 검색<input className='inp' name='query' type='search' defaultValue={f.query} placeholder='이름·이메일' />
-        </label>
-        <button className='btn sm pri' type='submit'>검색</button>
+        <button className='btn pri' type='submit'>검색</button>
       </form>
       <LiveState vm={vm} label='회원 목록' />
       {vm.live.data && (rows.length
@@ -896,7 +695,7 @@ function Users({ vm, f, setF }: BodyProps) {
                 <th scope='col'>역할</th>
                 <th scope='col'>가입일</th>
                 <th scope='col'>상태</th>
-                <th scope='col' className='act'>조치</th>
+                <th scope='col' className='act act-menu'><span className='sr-only'>조치</span></th>
               </tr>
             </thead>
             <tbody>
@@ -908,27 +707,29 @@ function Users({ vm, f, setF }: BodyProps) {
                     <span className='small muted'>{u.email}</span>
                   </td>
                   <td>{u.role === 'ADMIN' ? '관리자' : '회원'}</td>
-                  <td>{kstDateTime(u.createdAt)}</td>
+                  <td className='admin-date'>{kstDateTime(u.createdAt)}</td>
                   <td>
                     <span className={`chip ${u.restricted ? 'wait' : 'ok'}`}>{u.restricted ? '이용 제한' : '이용 가능'}</span>
                   </td>
-                  <td>
+                  <td className='act-menu'>
                     {u.id === vm.selfId
                       ? <span className='small muted'>본인 계정</span>
                       : (
-                        <button
-                          type='button'
-                          className='btn sm'
-                          aria-label={`${u.nickname} ${u.restricted ? '제한 해제' : '이용 제한'}`}
-                          disabled={blocked(vm, `member:${u.id}`)}
-                          onClick={() => {
-                            if (u.restricted || window.confirm(`${u.nickname} 님의 로그인을 막을까요? 제한 해제 전까지 로그인할 수 없어요.`)) {
-                              void vm.live.setMemberRestriction(u.id, !u.restricted)
-                            }
-                          }}
-                        >
-                          {u.restricted ? '제한 해제' : '이용 제한'}
-                        </button>
+                        <PopMenu className='row-menu' label={`「${u.nickname}」 조치`} icon={<MoreVerticalIcon />}>
+                          <button
+                            type='button'
+                            role='menuitem'
+                            className={u.restricted ? undefined : 'danger'}
+                            disabled={blocked(vm, `member:${u.id}`)}
+                            onClick={() => {
+                              if (u.restricted || window.confirm(`${u.nickname} 님의 로그인을 막을까요? 제한 해제 전까지 로그인할 수 없어요.`)) {
+                                void vm.live.setMemberRestriction(u.id, !u.restricted)
+                              }
+                            }}
+                          >
+                            {u.restricted ? '제한 해제' : '이용 제한'}
+                          </button>
+                        </PopMenu>
                       )}
                   </td>
                 </tr>
@@ -945,7 +746,7 @@ function Users({ vm, f, setF }: BodyProps) {
 }
 
 /** 34 신고·소명·조치: 운영 신고 목록·상세·이력과 검토·작품 제한·권리 증빙 요청 */
-function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
+function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
   const rows = vm.live.data?.reports ?? []
   const detail = vm.live.report
   const r = detail.data?.id === sel ? detail.data : null
@@ -966,6 +767,8 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
       <div className='panel' style={{ marginTop: 22 }}>
         <div className='table-head'>
           <h2 className='panel-title'>운영 신고</h2>
+        </div>
+        <div className='admin-filter'>
           <label className='field'>
             상태<select className='inp' value={f.category} onChange={(e) => setF({ category: e.target.value })}>
               <option value='all'>전체</option>
@@ -985,7 +788,7 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
                   <th scope='col'>상태</th>
                   <th scope='col'>작품 제한</th>
                   <th scope='col'>접수</th>
-                  <th scope='col' className='act'>처리</th>
+                  <th scope='col' className='act act-menu'><span className='sr-only'>처리</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -1000,20 +803,14 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
                       <span className={`chip ${x.status === 'RECEIVED' ? 'wait' : 'ok'}`}>{reportStatusLabel(x.status)}</span>
                     </td>
                     <td>{x.contentRestricted ? '제한 중' : '공개 유지'}</td>
-                    <td>{kstDateTime(x.createdAt)}</td>
-                    <td>
-                      <button
-                        type='button'
-                        className={`btn sm ${sel === x.id ? 'pri' : ''}`}
-                        aria-pressed={sel === x.id}
-                        aria-label={`${x.workTitle} 신고 검토`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSel(x.id)
-                        }}
-                      >
-                        {sel === x.id ? '검토 중' : '검토'}
-                      </button>
+                    <td className='admin-date'>{kstDateTime(x.createdAt)}</td>
+                    {/* 행을 누르면 신고가 선택되므로, ⋮ 메뉴를 여는 누름은 행까지 올라가지 않게 한다. */}
+                    <td className='act-menu' onClick={(e) => e.stopPropagation()}>
+                      <PopMenu className='row-menu' label={`「${x.workTitle} 신고」 조치`} icon={<MoreVerticalIcon />}>
+                        <button type='button' role='menuitem' aria-current={sel === x.id ? 'true' : undefined} onClick={() => setSel(x.id)}>
+                          {sel === x.id ? '검토 중' : '검토'}
+                        </button>
+                      </PopMenu>
                     </td>
                   </tr>
                 ))}
@@ -1116,118 +913,6 @@ function Rights({ d, vm, f, setF, sel, setSel }: BodyProps) {
           )}
         </div>
       )}
-      {d && (
-        <details className='panel admin-legacy-demo' style={{ marginTop: 14 }}>
-          <summary>원작·포크 데이터 격리 점검 (예시 데이터)</summary>
-          <Table label='원작·포크 격리 점검 표'>
-            <thead>
-              <tr>
-                <th scope='col'>포크</th>
-                <th scope='col'>원작 · 분기</th>
-                <th scope='col'>스냅샷 해시</th>
-                <th scope='col'>원작 현재 해시 (1~분기 회차)</th>
-                <th scope='col'>인물 상태 차이</th>
-                <th scope='col'>판정</th>
-              </tr>
-            </thead>
-            <tbody>
-              {d.isolation.map((x) => (
-                <tr key={x.title}>
-                  <td>{x.title}</td>
-                  <td>{x.parent} · {x.forkAt}화</td>
-                  <td className='mono'>{x.snapNow}</td>
-                  <td className='mono'>{x.now}</td>
-                  <td>{x.diff.length ? x.diff.join(', ') : '없음'}</td>
-                  <td>
-                    <span className={`chip ${x.ok ? 'ok' : 'wait'}`}>
-                      {x.ok ? (x.same ? '격리 · 동일' : '격리 · 원작만 변경됨') : '스냅샷 변경!'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-          <p className='small muted' style={{ marginTop: 10 }}>
-            스냅샷 해시는 포크 생성 순간의 원작 회차를 복사한 값이에요. 원작이 수정되면 오른쪽 해시만 바뀌고 포크 쪽은 그대로여야 정상이에요.
-          </p>
-        </details>
-      )}
-    </>
-  )
-}
-
-/** 목업 adminLegacy() 그 밖의 tab(llm): A05 */
-function Llm({ d, vm }: { d: Data; vm: VM }) {
-  return (
-    <>
-      <div className='panel'>
-        <h2>처리 실패·지연 경고</h2>
-        <p className='small muted'>데모 오류만 표시하며 자동 재처리하지 않아요.</p>
-        {d.alerts.length
-          ? d.alerts.map((a) => (
-            <div className='rp' key={a.id}>
-              <b>{a.task} · {a.status}</b>
-              <p>{a.detail}</p>
-              <dl className='ai'>
-                <dt>실패 단계</dt>
-                <dd>{a.stage || '미정'}</dd>
-                <dt>오류</dt>
-                <dd>{a.error || a.detail}</dd>
-                <dt>다음 조치</dt>
-                <dd>{a.action || '수동 확인'}</dd>
-              </dl>
-              {a.resolved
-                ? <span className='chip'>조치 기록됨</span>
-                : (
-                  <button
-                    type='button'
-                    className='btn sm'
-                    aria-label={`${a.task} 확인 및 조치 기록`}
-                    disabled={blocked(vm, `alert:${a.id}`)}
-                    onClick={() => vm.resolveAlert(a.id)}
-                  >
-                    확인 및 조치 기록
-                  </button>
-                )}
-            </div>
-          ))
-          : <p className='muted'>경고가 없어요.</p>}
-        <p className='small muted'>
-          작업·상태·실패 단계·오류·다음 조치만 표시해요. 개인 원고 내용은 로그에 넣지 않아요.
-        </p>
-      </div>
-      <div className='panel' style={{ marginTop: 22 }}>
-        <h2 className='panel-title'>LLM Ops · 운영 지표</h2> <span className='demo'>시연 데이터 · 실시간 연결 없음</span>
-        <Table label='LLM 운영 지표 표' style={{ marginTop: 10 }}>
-          <thead>
-            <tr>
-              <th scope='col'>지표</th>
-              <th scope='col'>측정 내용</th>
-              <th scope='col'>현재 값</th>
-              <th scope='col'>집계 기준</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              ['실패·시간 초과율', '작업 단계별 요청 결과', '단계별'],
-              ['응답 지연', '처리 단계별 지연 시간', '모델·프롬프트 버전'],
-              ['토큰·비용', '지급 주체별 사용량', '원고 내용 미수집'],
-              ['제안 채택·수정 승인', '제안 반영 여부', '품질 지표'],
-              ['오류 검증·필터 복구', '오류 적용·숨김 복구 비율', '품질 지표'],
-            ].map(([a, b, c]) => (
-              <tr key={a}>
-                <td>{a}</td>
-                <td>{b}</td>
-                <td>미정</td>
-                <td>{c}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-        <p className='small muted' style={{ marginTop: 10 }}>
-          현재는 요청 추적만 제공해요. 요청·작업·단계·모델·프롬프트 버전·토큰·지연·결과를 기록하고 개인 원고 내용은 넣지 않아요.
-        </p>
-      </div>
     </>
   )
 }
@@ -1319,6 +1004,7 @@ function Events({ vm }: { vm: VM }) {
     body: row?.body ?? '',
     startsAt: toKoreanDateTimeInput(row?.startsAt ?? null),
     endsAt: toKoreanDateTimeInput(row?.endsAt ?? null),
+    linkPath: row?.linkPath ?? '',
   }
   const state = vm.actions[`event:${key}`]
   const busy = vm.mutationsBlocked || !!state?.pending
@@ -1430,6 +1116,19 @@ function Events({ vm }: { vm: VM }) {
                         두 기간은 선택 사항이에요. 한국시간(UTC+09:00)으로 입력하면 UTC로 저장해요. 비우면 해당 기간은 미정이며, 종료는
                         시작보다 빠를 수 없어요.
                       </p>
+                      <label className='field wide'>
+                        이동 경로(선택)<input
+                          className='inp'
+                          maxLength={LINK_PATH_MAX}
+                          placeholder='/lib?tab=worlds'
+                          value={form.linkPath}
+                          aria-describedby='event-link-help'
+                          onChange={(e) => vm.setEventDraft(key, { ...form, linkPath: e.target.value })}
+                        />
+                      </label>
+                      <p id='event-link-help' className='small muted wide'>
+                        사이트 안 경로만 쓸 수 있어요(/로 시작, 외부 주소·공백 불가, 200자 이하). 쓰면 회원 이벤트 안내에 ‘바로 가기’ 버튼이 보여요.
+                      </p>
                       <div className='rowend wide'>
                         <button type='submit' className='btn pri'>{state?.pending ? '저장 중…' : '이벤트 저장'}</button>
                         {row && (
@@ -1453,7 +1152,7 @@ function Events({ vm }: { vm: VM }) {
         )}
       <p className='admin-note'>
         진행 상태(상시·예정·진행 중·종료)는 시작·종료 시각으로 정해져요. 이벤트를 끝내려면 종료 시각을 수정해 주세요. 등록하면 바로
-        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요.
+        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요. 이동 경로는 관련 기능으로 가는 버튼만 만들어요.
       </p>
     </section>
   )
@@ -1477,6 +1176,8 @@ function Feedback({ d, vm, f, setF }: BodyProps) {
             <>
               <div className='table-head'>
                 <h2 tabIndex={-1}>회원 문의</h2>
+              </div>
+              <div className='admin-filter'>
                 <label className='field'>
                   상태<select className='inp' value={f.category} onChange={(e) => setF({ category: e.target.value })}>
                     <option value='all'>전체</option>
@@ -1652,7 +1353,7 @@ function ReplyEditor(
             답변 내용<textarea className='ta' name='body' required maxLength={20000} rows={4} defaultValue={reply.body} />
           </label>
           <div className='rowend'>
-            <button type='submit' className='btn sm pri'>{state?.pending ? '처리 중…' : '답변 저장'}</button>
+            <button type='submit' className='btn sm'>{state?.pending ? '처리 중…' : '답변 저장'}</button>
             <button
               type='button'
               className='btn sm'
@@ -1745,7 +1446,7 @@ function Admins({ vm }: { vm: VM }) {
                     <td>
                       {ADMIN_PERMISSIONS.filter(([k]) => a.permissions.includes(k)).map(([, l]) => l).join(', ') || '없음'}
                     </td>
-                    <td>{kstDateTime(a.createdAt)}</td>
+                    <td className='admin-date'>{kstDateTime(a.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>

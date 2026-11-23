@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
+import { isSitePath } from '../../../../domain/entities/event'
 import { supportStatusLabel } from '../../../../domain/entities/supportInquiry'
 import { Cov } from '../../../shared/art'
 import { EventStatusChip } from '../../../shared/EventStatusChip'
@@ -8,11 +9,11 @@ import { kstDateTime, kstPeriod } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { RequireRole } from '../../../shared/session/RequireRole'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
-import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useAccountViewModel } from '../viewmodel/useAccountViewModel'
 import { Devices } from './Devices'
 import { PayView } from './PayView'
+import { StorageUsageView } from './StorageUsageView'
 import { Withdrawal } from './Withdrawal'
 
 type VM = ReturnType<typeof useAccountViewModel>
@@ -57,9 +58,7 @@ function Account({ sub }: { sub: string }) {
   else if (sub === 'liked') T = <><h2>관심 소설 <span className="muted small">{vm.data?.liked.length ?? 0}편</span></h2>{vm.data?.liked.length
     ? <div className="grid6">{vm.data.liked.map((w) => <Go key={w.id} to={`/work/${w.id}`} className="bk prox"><Cov w={w} likes /><span className="hk">{w.title}</span></Go>)}</div>
     : <div className="tcard mecard muted">소설 상세에서 ♡를 누르면 여기에 모여요.</div>}</>
-  else if (sub === 'storage') T = vm.data?.storage && <><h2>저장 공간</h2><div className="tcard mecard" data-storage-summary><b>현재 데모 데이터 약 {vm.data.storage.bytes.toLocaleString()}바이트</b>
-    <p className="small muted">저장 공간 관리는 MVP에서 제외됐어요. 이 화면에는 브라우저 메모리 기준 예시만 표시하며 새로고침하면 사라져요.</p><h3>작성 중인 초안</h3>
-    {vm.data.storage.drafts.length ? vm.data.storage.drafts.map(({ key, title, d }) => <div className="rp" key={key}><b>{title} · {d.editingEpisode ? `${d.editingEpisode}화 수정 초안` : `${d.no}화`}</b></div>) : <p className="muted">작성 중인 초안이 없어요.</p>}</div></>
+  else if (sub === 'storage' && vm.data?.storage) T = <StorageUsageView usage={vm.data.storage} />
   else if (sub === 'pay') T = <PayView vm={vm} />
   else if (sub === 'inquiry') T = <InquiryView vm={vm} />
   return (
@@ -98,18 +97,20 @@ function NoticeBoard({ vm, id }: { vm: VM; id: string | null }) {
 
 const CLAMP: CSSProperties = { display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }
 const PROSE: CSSProperties = { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }
+/** 세로 카드 안에서 '바로 가기' 버튼이 카드 폭으로 늘어나지 않게 합니다. */
+const GO: CSSProperties = { alignSelf: 'flex-start' }
 
-/** U35E 이벤트: 운영 공개 API의 목록과 UUID 상세. 참여·보상·기능 이동은 연결하지 않았습니다. */
+/** U35E 이벤트: 운영 공개 API의 목록과 UUID 상세. 참여·보상은 연결하지 않았고, 관련 기능 이동은 사이트 안 이동 경로(linkPath)가 있을 때만 '바로 가기'로 앱 안에서 이동합니다(DEC-57). */
 function EventBoard({ vm, id }: { vm: VM; id: string | null }) {
   if (vm.loadFailed) return <><h2>이벤트</h2><p role="alert">이벤트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn" onClick={vm.retryLoad}>다시 불러오기</button></>
   if (!vm.data) return <><h2>이벤트</h2><p role="status" className="note2">이벤트를 불러오고 있어요.</p></>
   const { events, event } = vm.data
   if (id !== null) return event
-    ? <><h2>이벤트</h2><article className="tcard mecard" style={{ maxWidth: 740 }}><Go to="/me/event" className="btn sm">← 목록으로</Go><div className="top"><EventStatusChip status={vm.eventStatusNow(event)} /><small className="muted">{kstPeriod(event)}</small></div><h3>{event.title}</h3><p style={PROSE}>{event.body}</p></article></>
+    ? <><h2>이벤트</h2><article className="tcard mecard" style={{ maxWidth: 740 }}><Go to="/me/event" className="btn sm">← 목록으로</Go><div className="top"><EventStatusChip status={vm.eventStatusNow(event)} /><small className="muted">{kstPeriod(event)}</small></div><h3>{event.title}</h3><p style={PROSE}>{event.body}</p>{isSitePath(event.linkPath) && <Go to={event.linkPath} className="btn sm pri" style={GO}>바로 가기</Go>}</article></>
     : <><h2>이벤트</h2><p className="note2">이벤트를 찾을 수 없어요.</p><Go to="/me/event" className="btn sm">목록으로</Go></>
   return <><h2>이벤트</h2>{events.length
     ? <div className="evg">{events.map((e) => (
-      <div className="tcard evc" key={e.id}><Link className="evmain" to={`/me/event?id=${e.id}`}><div className="top"><EventStatusChip status={vm.eventStatusNow(e)} /><small className="muted">{kstPeriod(e)}</small></div><b>{e.title}</b><p style={CLAMP}>{e.body}</p></Link></div>
+      <div className="tcard evc" key={e.id}><Link className="evmain" to={`/me/event?id=${e.id}`}><div className="top"><EventStatusChip status={vm.eventStatusNow(e)} /><small className="muted">{kstPeriod(e)}</small></div><b>{e.title}</b><p style={CLAMP}>{e.body}</p></Link>{isSitePath(e.linkPath) && <Go to={e.linkPath} className="btn sm" style={GO}>바로 가기</Go>}</div>
     ))}</div>
     : <p className="note2">등록된 이벤트가 없어요.</p>}<p className="note2" style={{ marginTop: 12 }}>보상·경품은 정해지지 않았어요. 이벤트는 기능 체험 안내예요.</p></>
 }
@@ -133,7 +134,7 @@ function Profile({ vm }: { vm: VM }) {
         e.preventDefault()
         resume.current = document.activeElement
         void vm.saveProfile(nick, email).then((ok) => { if (ok) { setNick(nick.trim()); setEmail(email.trim()) } })
-      }}><div className="mehead"><span className="meav big">{vm.user.nick.slice(0, 1)}</span><div><b>{vm.user.nick}</b>{vm.user.joined && <small>가입일 {vm.user.joined}</small>}</div><div style={{ marginLeft: 'auto' }}><ThemeButton className="btn" /></div></div>
+      }}><div className="mehead"><span className="meav big">{vm.user.nick.slice(0, 1)}</span><div><b>{vm.user.nick}</b>{vm.user.joined && <small>가입일 {vm.user.joined}</small>}</div></div>
         <p className="small muted">모든 항목은 필수예요.</p>
         <label className="field">닉네임<input className="inp" id="pfn" autoComplete="nickname" required disabled={vm.saving} value={nick} maxLength={12} aria-invalid={!!vm.profileErrors.nick} aria-describedby={vm.profileErrors.nick ? 'pfn-error' : undefined} onChange={(e) => setNick(e.target.value)} /></label>
         {vm.profileErrors.nick && <p id="pfn-error" role="alert">{vm.profileErrors.nick}</p>}

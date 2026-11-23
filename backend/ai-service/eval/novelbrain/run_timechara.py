@@ -17,7 +17,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 from app.novelbrain.service import _documents, bm25_rank, recall
 from batch import Round, cost_report, make_executor, plan_for, run_rounds
 from cost import LIMIT_USD
@@ -46,7 +46,7 @@ def context_message(question: str, texts: list[str]) -> str:
 
 
 def item_episode(ref: str, lookup: dict) -> int | None:
-    """항목이 나온 회차(장 번호). 알 수 없는 항목(IDENTITY·SOUL·MEMORY)은 None."""
+    """항목이 나온 회차(장 번호). 알 수 없는 항목(IDENTITY·SOUL·GOAL)은 None."""
     kind, _, rest = ref.partition(':')
     if kind == 'manuscript':
         return lookup['chunk'].get(rest)
@@ -59,10 +59,10 @@ def item_episode(ref: str, lookup: dict) -> int | None:
 
 
 def foreign_memory(ref: str, character_id: str) -> bool:
-    """다른 인물의 SOUL·MEMORY·회차 기억 문서인가(계약: 인물 입력에 넣지 않는다)."""
+    """다른 인물의 SOUL·GOAL·회차 기억 문서인가(계약: 인물 입력에 넣지 않는다)."""
     kind, _, rest = ref.partition(':')
     card, _, part = rest.partition('#')
-    return kind == 'card' and card != character_id and (part in ('soul', 'memory') or part.startswith('ep'))
+    return kind == 'card' and card != character_id and (part in ('soul', 'goal') or part.startswith('ep'))
 
 
 def _verdict(llm, template: str, name: str, question: str, response: str, fact: str) -> int | None:

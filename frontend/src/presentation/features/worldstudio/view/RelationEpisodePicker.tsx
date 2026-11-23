@@ -6,11 +6,12 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
 const textOf = (episode: number | null) => (episode === null ? '' : String(episode))
 
 /**
- * 관계 기준 회차(DEC-51). 연결된 소설의 회차를 고르면 그 회차 시점의 관계로 다시 읽고, 세계관을 저장하면 그 회차의 관계로 기록한다(비워 두면 최신 회차).
+ * 관계 기준 회차(DEC-51): '이 회차 시점으로 보기'다. 연결된 소설의 회차를 고르면 그 회차 시점의 관계로 다시 읽는다(비워 두면 최신 회차).
+ * 관계를 몇 화부터로 기록할지는 이 칸이 아니라 관계 편집 행의 'N화부터'가 정한다(DEC-54 2단계). 저장할 때 이 칸의 회차를 쓰는 것은 삭제한 관계가 끝나는 회차뿐이다.
  * 회차를 바꾸면 관계 편집기는 새로 열리지만(`relationKey`) 이 칸은 그 바깥이라 그대로다. 요청 중에는 칸이 잠겨 초점이 body로 빠지므로, 이 칸에서 시작한 요청이 끝나면 입력 칸으로 돌려준다.
  * 다른 길(AI 반영·확정 버전 뒤 재조회)로 회차가 바뀌면 입력 칸도 따라간다.
  * 입력은 카드 편집기의 `독자 공개 N화부터`처럼 label이 입력과 단위를 함께 감싸 "관계 기준 N화"가 접근성 이름이 되고 한 줄로 붙어 있다(줄바꿈은 label 단위로만).
- * 잠금 이유와 지금 보는 회차는 잠겨 초점을 못 받는 입력의 설명에만 두지 않고 화면에 읽히는 `role="status"` 문구로 둔다. 잠겨 있을 때는 '저장하면 이 회차로 기록' 도움말이 이유와 모순이라(데모·소설 미연결) 숨긴다.
+ * 잠금 이유와 지금 보는 회차는 잠겨 초점을 못 받는 입력의 설명에만 두지 않고 화면에 읽히는 `role="status"` 문구로 둔다. 관계를 몇 화부터로 기록하는지는 관계 작성 시트가, 삭제한 관계가 끝나는 회차는 저장 영역이 알리므로 여기서 긴 도움말로 되풀이하지 않는다.
  */
 export function RelationEpisodePicker({ studio }: { studio: VM }) {
   const id = useId()
@@ -55,7 +56,6 @@ export function RelationEpisodePicker({ studio }: { studio: VM }) {
       </form>
       {error && <p id={`${id}-error`} role='alert' className='small world-field-error'>{error}</p>}
       <p id={`${id}-help`} role='status' className='small muted'>{lock || (episode === null ? '지금은 최신 회차의 관계예요.' : `지금은 ${episode}화 시점의 관계예요.`)}</p>
-      {!lock && <p className='small muted'>비워 두면 최신 회차예요. 세계관을 저장하면 이 회차의 관계로 기록하고, 설정 카드의 변경은 회차와 상관없이 그대로 저장돼요.</p>}
     </section>
   )
 }

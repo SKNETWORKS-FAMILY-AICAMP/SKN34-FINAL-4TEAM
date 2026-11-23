@@ -92,6 +92,13 @@ describe('canonical WorkRepository', () => {
     expect(await repository.createFork('work-uuid', 2, '분기 제목', '분기 방향')).toEqual({ id: 'created-server-uuid' })
     expect(api.fork).toHaveBeenCalledWith('work-uuid', 2, '분기 제목', '분기 방향')
   })
+  it('포크 생성의 중복 거절은 삭제한 포크 때문인 안내로 바꾸고 다른 거절은 서버 문구 그대로 둔다 (#605)', async () => {
+    const { api, repository } = setup()
+    api.fork.mockRejectedValueOnce(new Error('이미 만든 분기 작품이 있어요.'))
+    await expect(repository.createFork('work-uuid', 2, '분기 제목', '분기 방향')).rejects.toThrow('이 원작에서 만든 포크를 삭제한 적이 있어 다시 만들 수 없어요.')
+    api.fork.mockRejectedValueOnce(new Error('이 회차에서는 분기할 수 없어요.'))
+    await expect(repository.createFork('work-uuid', 2, '분기 제목', '분기 방향')).rejects.toThrow('이 회차에서는 분기할 수 없어요.')
+  })
 })
 
 
@@ -136,10 +143,10 @@ it('uses the server allowlist and reports the actual preview basis when the sele
 })
 
 describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {
-  const [worldId, rian, tower, link] = Array.from({ length: 4 }, () => crypto.randomUUID())
+  const [worldId, rian, tower, link, towerImage] = Array.from({ length: 5 }, () => crypto.randomUUID())
   const cards = [
-    { id: rian, title: '리안', text: '## 성격\n끈질기다', cardType: 'character', aliases: ['견습 서약사'], tags: ['주인공'], revealFromEpisode: 1 },
-    { id: tower, title: '별빛 탑', text: '봉인을 지키는 탑.', cardType: 'location', aliases: [], tags: [], revealFromEpisode: 2 },
+    { id: rian, title: '리안', text: '## 성격\n끈질기다', cardType: 'character', aliases: ['견습 서약사'], tags: ['주인공'], revealFromEpisode: 1, imageId: null },
+    { id: tower, title: '별빛 탑', text: '봉인을 지키는 탑.', cardType: 'location', aliases: [], tags: [], revealFromEpisode: 2, imageId: towerImage },
   ]
   const served = (extra: object = {}) => ({ workId: 'work-uuid', worldId, upto: 2, cards, relationships: [{ id: link, sourceCardId: rian, targetCardId: tower, label: '머무는 곳' }], relationshipStatus: 'current', ...extra })
   /** 호출마다 새 Response를 준다(같은 Response는 한 번만 읽힌다). */
@@ -155,6 +162,39 @@ describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {
     expect(url).toBe('/api/v1/public/works/work-uuid/world-cards?upto=2')
     expect(init.method).toBe('GET')
     expect(init.headers).not.toHaveProperty('Authorization')
+  })
+
+  it('관계 방향·본문·극성을 읽고 이전 응답과 null도 보존하며 잘못된 값은 거절한다', async () => {
+    const relationship = { id: link, sourceCardId: rian, targetCardId: tower, label: '관계', category: 'emotional', direction: 'directed', body: '원문\n근거', polarity: 'denied' }
+    expect((await repositoryOf(served({ relationships: [relationship] })).repository.readWorldCards('work-uuid')).relationships[0]).toEqual(relationship)
+    const nullable = { ...relationship, category: null, direction: null, body: null, polarity: null }
+    expect((await repositoryOf(served({ relationships: [nullable] })).repository.readWorldCards('work-uuid')).relationships[0]).toEqual(nullable)
+    expect((await repositoryOf(served()).repository.readWorldCards('work-uuid')).relationships[0]).not.toHaveProperty('direction')
+    // 「동일 인물」(다른 이름 → 본체)도 분류 그대로 읽는다.
+    expect((await repositoryOf(served({ relationships: [{ ...relationship, category: 'identity' }] })).repository.readWorldCards('work-uuid')).relationships[0].category).toBe('identity')
+    for (const invalid of [{ ...relationship, category: 'other' }, { ...relationship, direction: 'other' }, { ...relationship, body: 3 }, { ...relationship, polarity: 'other' }]) {
+      await expect(repositoryOf(served({ relationships: [invalid] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
+    }
+  })
+
+  it('관계 이력(history)을 읽고 이력이 없던 응답은 그대로 두며 모양이 어긋난 이력은 거절한다', async () => {
+    const history = [{ episode: 1, label: '경계', body: '' }, { episode: 3, label: '보호', body: '지킨다' }]
+    const relationship = { id: link, sourceCardId: rian, targetCardId: tower, label: '보호', history }
+    expect((await repositoryOf(served({ relationships: [relationship] })).repository.readWorldCards('work-uuid')).relationships[0]).toEqual(relationship)
+    expect((await repositoryOf(served({ relationships: [{ ...relationship, history: [] }] })).repository.readWorldCards('work-uuid')).relationships[0].history).toEqual([])
+    expect((await repositoryOf(served()).repository.readWorldCards('work-uuid')).relationships[0]).not.toHaveProperty('history')
+    for (const invalid of [[{ episode: 0, label: '경계', body: '' }], [{ episode: 1.5, label: '경계', body: '' }], [{ episode: 1, label: 3, body: '' }], [{ episode: 1, label: '경계' }], 'x']) {
+      await expect(repositoryOf(served({ relationships: [{ ...relationship, history: invalid }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
+    }
+  })
+
+
+  it('카드의 imageId는 서버가 준 대로(없으면 null) 읽고, 문자열이 아니면 빈 위키로 바꾸지 않고 실패한다', async () => {
+    const [first, second] = cards
+    const { imageId: _kept, ...withoutField } = second // 필드가 없던 옛 응답
+    expect((await repositoryOf(served({ cards: [first, withoutField] })).repository.readWorldCards('work-uuid')).cards.map((card) => card.imageId)).toEqual([null, null])
+    expect((await repositoryOf(served()).repository.readWorldCards('work-uuid')).cards.map((card) => card.imageId)).toEqual([null, towerImage])
+    await expect(repositoryOf(served({ cards: [{ ...first, imageId: 3 }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
   })
 
   it('기준 회차가 없으면 upto 없이 읽고 관계 상태가 없는 응답은 current로 읽는다', async () => {

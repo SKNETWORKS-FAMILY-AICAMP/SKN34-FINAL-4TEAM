@@ -1,0 +1,98 @@
+package ai.storyfork.operations.jobs.service.dto
+
+import ai.storyfork.operations.jobs.entity.JobRunEntity
+import ai.storyfork.operations.jobs.entity.ScheduledJobEntity
+import ai.storyfork.operations.llmops.service.dto.Evaluation
+import com.fasterxml.jackson.annotation.JsonInclude
+import java.time.Instant
+import java.util.UUID
+
+/** [JobRun.kind] and [JobRun.source] of the runs read from Content; [CONTENT_PREPROCESSING] is also the name shown in a list's unavailable sources. */
+const val PREPROCESSING_KIND = "preprocessing"
+const val CONTENT_PREPROCESSING = "content-preprocessing"
+
+/** The same for the regression evaluations read from Langfuse: [AI_EVALUATION] is the name shown in a list's unavailable sources when they cannot be read. */
+const val EVALUATION_KIND = "evaluation"
+const val AI_EVALUATION = "ai-evaluation"
+
+/** The Langfuse run itself carries no reason, so a failed evaluation shows this fixed one. */
+const val EVALUATION_FAILED_MESSAGE = "평가 결과가 기록되지 않은 채 시간이 지나 실패로 봤어요."
+
+data class JobProgress(val done: Int, val total: Int)
+
+/** Run record, the same for every source. Absent optional fields are left out of the JSON (the contract's ?). */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class JobRun(
+    val id: String,
+    val kind: String,
+    val source: String,
+    val status: String,
+    val trigger: String,
+    val progress: JobProgress?,
+    val startedAt: Instant?,
+    val finishedAt: Instant?,
+    val error: String?,
+    val targetId: String?,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class Schedule(
+    val id: UUID,
+    val kind: String,
+    val cron: String,
+    val enabled: Boolean,
+    val params: Map<String, Any?>,
+    val createdAt: Instant,
+    val updatedAt: Instant,
+    val lastRun: JobRun?,
+)
+
+/** A list answer; [unavailable] names the sources whose rows are missing because they could not be read. */
+data class JobPage<T>(val items: List<T>, val page: Int, val size: Int, val total: Long, val unavailable: List<String> = emptyList())
+
+/** Create and full-replace body of a schedule. [kind] cannot change on update. */
+data class ScheduleRequest(val kind: String, val cron: String, val enabled: Boolean = true, val params: Map<String, Any?> = emptyMap())
+
+/** Content's preprocessing job (DEC-50). Content computes every value; only the status is mapped to the run vocabulary. */
+data class ContentPreprocessingJob(
+    val id: String,
+    val workId: String,
+    val status: String,
+    val done: Int = 0,
+    val total: Int = 0,
+    val failedEpisodes: List<Int> = emptyList(),
+    val startedAt: Instant? = null,
+    val finishedAt: Instant? = null,
+    val error: String? = null,
+)
+
+data class ContentPreprocessingJobList(val items: List<ContentPreprocessingJob>)
+
+/** Progress exists only when both counts do. */
+fun JobRunEntity.toRun() = JobRun(
+    id.toString(), kind, source, status.name.lowercase(), trigger.name.lowercase(),
+    done?.let { finished -> total?.let { all -> JobProgress(finished, all) } }, startedAt, finishedAt, error, targetId,
+)
+
+/** The author started it, so the trigger is user; loading (cards being stored) is still running for the admin. */
+fun ContentPreprocessingJob.toRun() = JobRun(
+    id, PREPROCESSING_KIND, CONTENT_PREPROCESSING,
+    when (status) { "running", "loading" -> "running"; "completed" -> "succeeded"; else -> status },
+    "user", JobProgress(done, total), startedAt, finishedAt,
+    // Content's own fixed reason for a failed job; without one, a fixed message with the failed episode count
+    // (the numbers stay with Content, a long work can have hundreds). A retried job may still carry its old reason, so only a failed one shows it.
+    if (status != "failed") null else error ?: if (failedEpisodes.isEmpty()) "전처리에 실패했어요." else "전처리에 실패한 회차가 ${failedEpisodes.size}개 있어요.",
+    workId,
+)
+
+/**
+ * A regression evaluation (a Langfuse Dataset Run) in the run vocabulary: the run name is its id and target, its creation time is its start, and it has no
+ * progress or finish time. It is never retried here (a new run starts on the evaluation screen). The run does not say who asked for it, so the trigger is
+ * manual; a scheduled start also has its own regression_eval record.
+ */
+fun Evaluation.toRun() = JobRun(
+    runId, EVALUATION_KIND, AI_EVALUATION, if (status == "completed") "succeeded" else status, "manual", null, createdAt, null,
+    if (status == "failed") EVALUATION_FAILED_MESSAGE else null, runId,
+)
+
+fun ScheduledJobEntity.toSchedule(lastRun: JobRun?) = Schedule(id, kind, cron, enabled, params, createdAt, updatedAt, lastRun)

@@ -105,7 +105,7 @@ export function CreateWork({ busy, ready, error, onCreate }: Props) {
             </label>
             {error && <div className='ep-alert' role='alert'>{error}</div>}
             <div className='ep-form-footer'>
-              <span>◌ 처음에는 나만 볼 수 있어요</span>
+              <span>처음에는 나만 볼 수 있어요</span>
               <button className='btn pri' disabled={busy || !ready}>작품 만들기</button>
             </div>
           </div>

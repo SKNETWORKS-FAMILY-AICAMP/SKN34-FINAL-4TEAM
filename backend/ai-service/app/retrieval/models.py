@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 
 
 class RetrievalScope(BaseModel):
@@ -30,7 +30,7 @@ class Coverage(BaseModel):
 
 
 class RetrievalStep(BaseModel):
-    """Content 검색 단계 하나(embedding·elasticsearch·postgres_verify·postgres_settings·neo4j)의 시간·결과 수."""
+    """Content 검색 단계 하나(embedding·elasticsearch·postgres_verify)의 시간·결과 수."""
     provider: str
     ms: int
     hits: int

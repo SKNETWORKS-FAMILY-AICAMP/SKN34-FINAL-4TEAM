@@ -1,1 +1,2 @@
 .pager { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 16px; }
+.pager-gap { align-self: center; padding: 0 2px; color: var(--sub); }

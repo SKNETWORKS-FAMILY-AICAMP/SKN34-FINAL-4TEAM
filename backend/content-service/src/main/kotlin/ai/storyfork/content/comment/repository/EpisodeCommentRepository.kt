@@ -17,4 +17,9 @@ interface EpisodeCommentRepository : JpaRepository<EpisodeCommentEntity, String>
     @Query("""select c, w.title from EpisodeCommentEntity c join WorkEntity w on w.id = c.workId
         where c.deletedAt is null and w.deletedAt is null order by c.createdAt desc, c.id""")
     fun listForOperations(): List<Array<Any?>>
+
+    /** 삭제도 운영 숨김도 아닌 회차 댓글 중 삭제되지 않은 작품의 것의 수다(운영 퍼널, DEC-57). */
+    @Query("""select count(c) from EpisodeCommentEntity c join WorkEntity w on w.id = c.workId
+        where c.deletedAt is null and c.hidden = false and w.deletedAt is null""")
+    fun countVisible(): Long
 }

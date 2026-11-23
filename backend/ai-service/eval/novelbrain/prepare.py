@@ -238,7 +238,7 @@ def prepare_timechara() -> None:
 
 def prepare_e5() -> None:
     """운영과 같은 고정 리비전·SHA-256의 E5-small ONNX를 받는다(.env에 MANUSCRIPT_EMBEDDING_MODEL_DIR가 없어서)."""
-    from app.manuscript.service import FILES
+    from app.story_qa.service import FILES
 
     for name, digest in FILES.items():
         path = fetch(E5_BASE + name, DATA / 'e5-small' / name)

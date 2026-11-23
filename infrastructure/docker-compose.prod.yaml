@@ -3,6 +3,10 @@
 # External DB/SMTP, HTTPS ingress and operational approval are prerequisites, not provisioned here.
 name: storyfork-production
 
+# Langfuse(LLMOps, DEC-55)를 앱 스택과 같은 프로젝트로 함께 켠다. 정의는 로컬 별도 실행과 같은 한 파일이며, 저장소는 자체 컨테이너를 쓴다.
+include:
+  - path: docker-compose.langfuse.yaml
+
 services:
   # Variable names match local/dev; the production server's own .env supplies values. Blank required values fail config.
   image-worker:
@@ -12,8 +16,24 @@ services:
   ai-service:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:main
     platform: linux/amd64
-    environment:
+    environment: &ai-environment
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:?Set INTERNAL_TOKEN}
+
+  # 회차 원고 전처리 Celery 워커(ai-service와 같은 이미지·환경). 브로커는 CORE_RABBITMQ_*가 가리키는 RabbitMQ다.
+  ai-worker:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:main
+    platform: linux/amd64
+    environment: *ai-environment
+
+  # 작업 Celery 워커(회귀 평가·운영 정기 작업, ai-service와 같은 이미지·환경). 브로커는 CORE_RABBITMQ_*가 가리키는 RabbitMQ다.
+  ai-jobs-worker:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:main
+    platform: linux/amd64
+    environment: *ai-environment
+
+  ai-eval-seed:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:main
+    platform: linux/amd64
 
   core-api:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-core-api:main

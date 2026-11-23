@@ -1,5 +1,3 @@
-from types import SimpleNamespace
-
 import pytest
 
 from app.research.errors import ResearchFailure
@@ -29,8 +27,7 @@ def test_research_keeps_only_urls_the_search_actually_returned(monkeypatch):
 
 
 def test_host_case_and_open_page_urls_count_as_searched(monkeypatch):
-    page = SimpleNamespace(type='web_search_call', status='completed',
-                           action=SimpleNamespace(type='open_page', url='https://Example.org/page'))
+    page = {'type': 'web_search_call', 'status': 'completed', 'action': {'type': 'open_page', 'url': 'https://Example.org/page'}}
     parsed = ResearchResult(findings=[
         Finding(text='확인', verdict='confirmed', sourceUrls=['https://example.org/page']),
     ], gaps=[])

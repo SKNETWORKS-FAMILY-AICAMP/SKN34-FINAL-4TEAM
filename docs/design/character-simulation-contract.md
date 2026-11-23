@@ -7,14 +7,14 @@
 | 항목 | 결정 |
 |---|---|
 | 목표 | 세계관 정본에서 **인물이 기준 회차까지 아는 것만** 찾는 기억 추론(NovelBrain) 위에서, 인물별로 격리된 에이전트와 나레이터가 턴을 이어 가는 시뮬레이션을 집필실 무대에서 실시간으로 보여 주고, 결과를 웹소설 장면(나레이션 지문 + 독백 + `"대사"`)으로 이어 붙여 작가 승인 시 회차 원고에 저장한다. |
-| 진입 | 집필실 [시뮬레이션] 버튼으로 시작한다(아래 '버튼 진입'). 채팅 자유 입력도 Intent Router의 `character_simulation`으로 같은 실행 단계에 들어온다. 화면은 집필실 중앙의 **무대 패널**이고 채팅에는 상태 한 줄만 남는다(아래 '무대'). Router는 이번 요청만으로 먼저 분류하고 되묻기일 때만 이전 요청을 붙인다(집필 요청이 섞이면 시뮬레이션 요청이 집필로 끌려갔다). |
+| 진입 | 집필실 [시뮬레이션] 버튼으로 시작한다(아래 '버튼 진입'). 채팅 자유 입력은 Decision Guard가 명시적 시뮬레이션 요청(`character_simulation`)으로 판정하면 메인 에이전트의 `ask_character_simulation` 도구가 계획을 세우고 같은 장면 실행(`scene` 노드)에 들어온다(#473). 화면은 집필실 중앙의 **무대 패널**이고 채팅에는 상태 한 줄만 남는다(아래 '무대'). Decision Guard는 이번 요청만으로 먼저 판정하고 고른 기능이 없을 때만 이전 요청을 붙인다(집필 요청이 섞이면 시뮬레이션 요청이 집필로 끌려갔다). |
 | 모드 | **IF 모드**: 메인 에이전트와 정한 "만약 ~했다면?" 전제 하나만 강제, 인물은 자유. **흐름 모드**: 메인 에이전트와 정한 비트(장면·사건 순서)를 따른다. 흐름 모드는 메인 에이전트 단독 집필에서 생기는 오류를 인물 격리로 해결하는 장치다. |
-| 인물 입력 | DEC-47 인물 문서. `IDENTITY.md`(카드 본문)·`SOUL.md`(말투·사고)·`MEMORY.md`·`memory/NN회차.md` 중 **기준 회차 이하**만. 다른 인물의 문서·비공개 생각은 넣지 않는다. |
-| 모델 | 인물 행동·나레이션·독백·검사·요약은 OpenAI `gpt-6-luna`(DEC-28, 기존 `OPENAI_MODEL` 설정), 연출 결정은 OpenAI Decisions(`gpt-6-luna`)다. |
-| 실행 틀 | 장면은 LangChain `create_agent` + 미들웨어·훅·콜백·이벤트 리스너로 쓴다(#362, 사용자 결정 2026-11-14). 시뮬레이션만 이 틀이고 Q&A·집필·고증은 기존 오케스트레이션 그래프다. |
+| 인물 입력 | DEC-47 인물 문서. `IDENTITY.md`(카드 본문)·`SOUL.md`(말투·사고)·`GOAL.md`(목표)·`memory/NN회차.md` 중 **기준 회차 이하**만. 다른 인물의 문서·비공개 생각은 넣지 않는다. 필수는 `IDENTITY.md`·`SOUL.md`이고 `GOAL.md`는 선택이다([필수 인물 문서](#필수-인물-문서와-시작-검증--357624)). |
+| 모델 | 인물 대사(act)는 OpenAI `gpt-6.1-terra`(사용자 결정 2026-11-23, 근거 [원문 평가 §14](../evaluation/simulation-original.md), `agent.ACT_MODEL`, `SIMULATION_ACT_MODEL`로 덮어쓴다), 나레이션·독백·검사·요약은 OpenAI `gpt-6-luna`(DEC-28, 기존 `OPENAI_MODEL` 설정), 연출 결정은 OpenAI Decisions(`gpt-6-luna`)다. |
+| 실행 틀 | 장면은 LangChain `create_agent` + 미들웨어·훅·콜백·이벤트 리스너로 쓴다(#362, 사용자 결정 2026-11-14). Q&A·집필·고증·검수 업무 Agent도 #373(DEC-52)에서 `create_agent` + 공통 미들웨어(`app/agent_runtime.py`)로 바뀌었고, 이들을 묶는 바깥 오케스트레이션은 LangGraph 그래프 그대로다. |
 | 연출·시점 | 인물이 말하기 전에 매 턴 연출 결정(나레이션·독백·인물 대사·마무리, 화자, 시점)을 거친다. 시점은 전지적·인물의 3인칭 제한·인물의 1인칭이며 비트마다 바뀔 수 있다. 독백은 나레이터가 시점 인물의 지식 범위로 쓴다. |
 | 저장 | 시뮬레이션 기록은 대화 체크포인트에만 남는다. 장면이 끝나면 승인 질문(`waiting`, `awaitingApproval`)으로 작가 승인을 받고, 승인 시에만 Content MCP로 열린 회차 초안 끝에 나레이션·독백·대사를 순서대로 이어 붙인다(DEC-36, UC-09 최소 보장). 원고·설정 정본 자동 반영은 없다. |
-| 새 의존성 | `langchain`(v1)·`langchain-typesafe==0.0.1a3`(사용자 승인 2026-11-14, `uv add`로 `pyproject.toml`·lockfile 갱신, 다른 패키지 버전은 바뀌지 않았다). `langchain-openai`는 쓰지 않는다(아래 '실행 틀'의 모델 슬롯). BM25·PPR·RRF는 표준 라이브러리로 계산한다. 평가 스크립트의 일회성 도구는 `uv run --with`로만 쓰고 `pyproject.toml`·lockfile을 바꾸지 않는다. |
+| 새 의존성 | `langchain`(v1)·`langchain-typesafe==0.0.1a3`(사용자 승인 2026-11-14, `uv add`로 `pyproject.toml`·lockfile 갱신, 다른 패키지 버전은 바뀌지 않았다). 시뮬레이션의 모델 호출(`agent.py`)도 업무 Agent와 같은 `langchain-openai`(#373에서 추가, 새 의존성 없음)의 `ChatOpenAI`로 보낸다(사용자 지시 2026-11-22, 이전에는 OpenAI SDK `responses.parse` 직접 호출. 아래 '모델 호출은 `ChatOpenAI`'). BM25·PPR·RRF는 표준 라이브러리로 계산한다. 평가 스크립트의 일회성 도구는 `uv run --with`로만 쓰고 `pyproject.toml`·lockfile을 바꾸지 않는다. |
 
 ## NovelBrain — 차례로 쌓는 4단계
 
@@ -27,7 +27,7 @@
 
 - 실행 순서와 평가 표가 같다. 단계별 누적 점수와 함께 방식별 단독 점수를 평가에 낸다.
 - 위치: `backend/ai-service/app/novelbrain/`. 순수 함수(`ppr`·`bm25_rank`·`rrf`·`filter_for_character`)와 한 번의 조회 함수 `recall(...)`로 둔다. 평가 스크립트도 같은 순수 함수를 import한다.
-- 데이터 출처(AI는 DB에 직접 접속하지 않는다): 카드·관계·인물 문서는 Content MCP `world_studio_read(id, episode)`(작가 토큰, 소유자만), 원고 발췌는 기존 Retrieval 도구(`scopeToken`). 세계관 ID는 Content MCP의 작품·회차 세계관 조회 도구로 찾는다. Content 서버 변경은 필요할 때만 하며, 하면 이 문서에 추가한다.
+- 데이터 출처(AI는 DB에 직접 접속하지 않는다): 카드·관계·인물 문서는 Content MCP `world_studio_read(id, episode)`(작가 토큰, 소유자만), 원고 발췌는 기존 Retrieval 도구(`scopeToken`). 세계관 ID는 Content MCP의 작품·회차 세계관 조회 도구로 찾는다. 작품에 연결한 세계관이 없는 Fork는 원작 세계관을 읽기 전용으로 이어받아 `world_studio_read` 대신 MCP `work_inherited_world`로 읽는다([Fork 이어받기](#fork-이어받기-365)). Content 서버 변경은 필요할 때만 하며, 하면 이 문서에 추가한다.
   회차를 지정한 조회(`world_studio_read(id, episode)`)가 409(회차별 관계로 이전되지 않은 기존 세계관)를 돌려주면 시뮬레이션은 회차를 생략해 최신 관계로 다시 조회하지 않는다. 기준 회차와 다른 관계로 검색을 진행하지 않으려는 것이며, 그 Content 메시지 그대로 단계를 `failed`로 끝낸다(대체 조회·notice 없음).
 
 ### `recall` 인터페이스
@@ -37,16 +37,17 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
            stage: Literal[0, 1, 2, 3] = 3, manuscript: list[Excerpt] = (), k: int = 8) -> RecallResult
 ```
 
-- `WorldSnapshot`: `world_studio_read` 응답에서 만든 카드(id·cardType·title·text·`characterDocs`·`revealFromEpisode`)와 그 회차의 관계 목록.
+- `WorldSnapshot`: `world_studio_read` 응답에서 만든 카드(id·cardType·title·text·`characterDocs`·`revealFromEpisode`)와 그 회차의 관계 목록. 관계에는 `category`를 더하고(`identity`를 읽으려는 것이다, [「동일 인물」](#동일-인물--dec-53)) 카드 `text`와 관계 `body`의 본문 링크는 글자로 벗겨 넣는다(UUID가 입력·BM25에 섞이지 않게, DEC-53).
 - `RecallResult.items[]`: `{ref, source: graph|manuscript|bm25, text, rank, score}`, `RecallResult.gaps[]`: 확인할 수 없어 제외한 항목.
 - 필터 단계에서 지식 출처·시점을 확인할 수 없는 항목은 결과에서 빼고 `gaps`에 남긴다. 사실로 채우지 않는다(설계 §3).
-- 구현 규칙(2026-11-14 확정): ref는 `card:<id>`·`card:<id>#identity|soul|memory|ep<NN>`·`relation:<id>`·`manuscript:<발췌id>`다. 0단계는 PPR 점수, 1단계부터 RRF 합산이다.
-  인물 필터는 다른 인물의 SOUL·MEMORY·회차 기억, 자기 기준 회차 뒤 기억, `revealFromEpisode`가 기준 회차 뒤인 카드를 조용히 뺀다.
+- 구현 규칙(2026-11-14 확정): ref는 `card:<id>`·`card:<id>#identity|soul|goal|ep<NN>`·`relation:<id>`·`manuscript:<발췌id>`다. 0단계는 PPR 점수, 1단계부터 RRF 합산이다.
+- 관계 문서의 문장은 'A → B 「관계명」 = B는 A의 관계명'(DEC-54)으로 읽히게 쓴다: 방향 있는 관계는 `A의 관계명: B`(관계명이 없으면 `A → B`), 대칭은 `A ↔ B: 관계명`, 방향 미상은 `A — B: 관계명`이고 부정이면 끝에 `아님`을 붙인다(`A의 관계명: B 아님`). 모델 입력 `known`의 관계 문서(시뮬레이션 `_relations`, 설명이 있으면 뒤에 ` — 설명`)와 NovelBrain의 현재 관계 근거가 `novelbrain.relation_text` 한 함수를 써서 같은 읽기를 쓴다(예전 `A → B: 관계명`은 'A가 B의 관계명'으로도 읽혀 UI와 반대일 수 있었고, 시뮬레이션은 방향 미상을 `↔`로, NovelBrain은 `—`로 달리 적었다).
+  인물 필터는 다른 인물의 SOUL·GOAL·회차 기억, 자기 기준 회차 뒤 기억, `revealFromEpisode`가 기준 회차 뒤인 카드를 조용히 뺀다.
   확인할 수 없는 것은 `gaps`로 남긴다: 관계로 연결되지 않은 인물·사건·물건 카드, 그 인물이 끝점이 아닌 관계, 상대 카드가 미공개이거나 스냅샷에 없는 관계,
   인물 이름이 나오지 않는 원고 발췌, Retrieval의 원고 아닌 발췌(`relationship_current_not_episode`·`setting_via_retrieval`), 형식을 알 수 없는 ref.
-  부정(`polarity=denied`) 관계는 '연결'로 치지 않고 PPR 간선에서도 빼며, 관계 항목에는 `카엘 ↛ 리라 (아님): 스승`처럼 부정임을 드러낸다.
-  `revealFromEpisode`가 없는 카드는 허용한다(독자 노출 기준이지 인물 지식 기준이 아니며, 막으면 대부분의 세계 설정이 빠진다).
-  `world.episode`가 기준 회차보다 늦으면 ValueError다. `MEMORY.md`는 회차 표시가 없어 항상 허용한다.
+  부정(`polarity=denied`) 관계는 '연결'로 치지 않고 PPR 간선에서도 빼며, 관계 항목에는 `카엘의 스승: 리라 아님`처럼 부정임을 드러낸다.
+  `revealFromEpisode`가 없는 카드('작가 전용')는 허용한다: 독자에게만 숨고 인물 지식에는 시점 제한이 없다(독자 노출 기준이지 인물 지식 기준이 아니며, 막으면 대부분의 세계 설정이 빠진다. DEC-53에서도 그대로다). 인물에게도 숨기려면 카드의 공개 회차를 정한다. 공개 값만 있던 기존 카드는 유효 공개 회차가 1이라 어느 기준 회차에서도 허용이다.
+  `world.episode`가 기준 회차보다 늦으면 ValueError다. `GOAL.md`는 회차 표시가 없어 자기 인물이면 항상 허용한다. 옛 `MEMORY.md`(`characterDocs.memory`)는 `00회차`로 옮겨 읽는다(DEC-47).
 
 ## 시뮬레이션 실행
 
@@ -70,7 +71,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - 인물 대사 한도 12턴(나레이션·독백은 세지 않고 전체 40턴이 안전 한도), 재생성 2회. 위반 반복·비트 거부·한도는 부분 결과(`status: stopped|failed`, `stopReason`)를 남기고 그 상태로는 승인 대상이 아니다(UC-09 E2). 대화 안에서는 멈춘 장면을 작가가 이어 가거나 `stop`으로 끝낼 수 있고, `stop`한 장면은 `completed`가 되어 승인 질문으로 이어진다(아래 '실패·중단').
 - 인물 턴은 "대사"와 짧은 행동 묘사만 쓴다. 배경·장소·분위기 묘사는 나레이터 몫이다(인물 지침에서 금지). **대사만 인물의 말투(SOUL)**를 쓰고 대사 밖의 행동 묘사는 시점 규칙을 따른 서술체(-다)다: 전지적·3인칭 제한·다른 인물의 1인칭 시점이면 3인칭, 1인칭 시점이면 그 시점 인물만 1인칭이다(입력 `actionStyle: {person: third|first, subject}`를 서버가 정해 인물과 검사에 준다). 대사 따옴표는 서버가 직선 큰따옴표(`"`)로 통일한다(원고와 사용자 요구 `지문 + "대사"`에 맞춘 코디네이터 결정 2026-11-14. 「」·『』·둥근 큰따옴표 “ ”를 후처리로 바꾸고 짝 없는 따옴표·작은따옴표는 두며, DEC-48은 대사 따옴표를 정하지 않아 충돌하지 않는다).
 - 같은 인물이 이 장면에서 앞서 한 대사와 거의 같은 대사를 되풀이하면(대사 부분만, 공백·문장부호를 뺀 글자열 유사도 0.8 이상, 10자 이상) 모델 검사 전에 서버가 걸러 다시 쓰게 한다(검사 종류 `repetition`, 라벨 '같은 말 반복'). 계속 되풀이하면 `check_failed`로 멈춘다. 다른 인물의 대사와는 비교하지 않는다.
-- 인물이 자기 성격대로 비트를 거부하면 오류가 아니라 **기획 쪽 문제**로 보고 `stopReason: beat_rejected`로 멈춘다. 작가는 줄을 고치거나 흐름을 바꿔 다시 요청한다.
+- 인물이 자기 성격대로 비트를 거부하면 오류가 아니라 **기획 쪽 문제**로 보고 `stopReason: beat_rejected`로 멈춘다. '이대로 진행'(건너뛰기·강제)은 없다(2026-11-19 사용자 결정, #356): 작가는 거부한 인물의 설정집 카드나 흐름을 고쳐 다시 시도한다. 거부한 인물의 카드 id는 거부한 비트(`status: rejected`)의 `rejectedBy`에 실리고(「동일 인물」의 다른 이름 카드를 골랐으면 그 카드 id다. SOUL·GOAL·회차 기억은 본체 카드에서 고친다), 화면은 멈춘 무대에 그 카드의 편집 화면(`/worldstudio/{세계관 id}?card=<카드 id>`, 새 탭이라 무대와 쓰던 원고가 남는다)으로 가는 `설정집에서 고치기`와 장면 계획으로 가는 `흐름 고치기`를 보인다. 고친 뒤 `next`로 다시 시도하면 AI가 요청마다 세계관을 새로 읽으므로(`load_world`) 쌓은 턴을 지킨 채 그 비트부터 고친 문서로 이어 쓰고 거부 표시는 풀린다. 비트는 장면을 시작할 때 정해져 중간에 바꿀 수 없으므로 흐름(장면 계획)을 고쳤다면 장면을 끝내고 새 시뮬레이션으로 다시 시작한다.
 - 작가가 중간에 넣는 한마디는 끼어들기 메모로 다음 턴에 반영한다(아래 '장면 조작').
 
 ### 흐름 모드가 해결하는 오류
@@ -91,7 +92,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 {
   "mode": "if" | "flow",
   "premise": "IF 전제(흐름 모드는 null)",
-  "beats": [{"index": 0, "text": "성문 대면", "status": "done" | "pending" | "rejected"}],
+  "beats": [{"index": 0, "text": "성문 대면", "status": "done" | "pending" | "rejected", "rejectedBy": "거부한 인물의 카드 id(status가 rejected일 때만, 아니면 null)"}],
   "turns": [{
     "index": 0, "kind": "narration" | "monologue" | "character",
     "characterId": "card-id(나레이션은 null, 독백은 시점 인물)", "characterName": "카엘(나레이션은 '나레이션')",
@@ -118,20 +119,20 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 | 개념 | 구현(`app/simulation/`) | 하는 일 |
 |---|---|---|
-| Middleware | `StageMiddleware`(`scene_agent.py`) | 턴 사이 사람 개입(HITL에 준하는 `interrupt`): next·edit·redo·stop·반려를 받는다 |
+| Middleware | `ProgressMiddleware`(공통, `app/agent_runtime.py`, #373) | 맨 앞 미들웨어. 턴이 끝나며 상태의 `step`에 남은 단계 항목을 다음 반복 앞(`before_model`)이나 실행 끝(`after_agent`)에서 LangGraph custom stream으로 한 번 흘린다 → SSE `step`(누적 결과). 훅마다 별도 노드라 턴 사이 interrupt 재개 때 다시 알리지 않는다 |
+| | `StageMiddleware`(`scene_agent.py`) | 턴 사이 사람 개입(HITL에 준하는 `interrupt`): next·edit·redo·stop·반려를 받는다 |
 | | `DirectorMiddleware` | 연출 결정을 거쳐 도구 호출을 만든다 |
 | | `SceneCheckMiddleware` | 검사·최대 2회 재실행·통과한 턴을 장면에 붙임 |
 | | `ModelCallLimit`·`ToolCallLimit`(라이브러리) | 호출 한도 안전망(`LOOP_LIMIT`=80). 넘으면 에이전트가 예외 없이 끝나고(`exit_behavior='end'`) 바깥 노드가 쌓은 턴을 지킨 채 `stopped`(`stopReason: call_limit`)·단계 `failed`로 기록한다 |
 | Hook | `before_agent` | 승인 대기에서 돌아온 작가의 조작을 새 실행의 시작에서 장면에 반영 |
 | | `before_model` | Stage: 턴 사이 대기 / Director: 연출 결정 |
 | | `wrap_model_call` | Director: 결정대로 도구 호출을 만든다(모델을 부르지 않는다) |
-| | `wrap_tool_call` | SceneCheck: 검사·재실행·장면 갱신·턴 이벤트 |
+| | `wrap_tool_call` | SceneCheck: 검사·재실행·장면 갱신·단계 항목(`step`)을 상태에 남김 |
 | | `after_agent` | 턴 사이 표시 정리 |
-| Callback | `UsageCallback`(`callbacks.py`) | 모델 호출마다 토큰·지연·실패(`agent.py`와 연출 결정 `director.py`가 `simulation.model` 이벤트로 알림)와 도구 실패를 모아 턴이 끝날 때 추적 span `simulation.turn`으로 남긴다. 본문·키는 없다 |
-| Event Listener | `SceneEvents` | 턴이 끝날 때 `adispatch_custom_event('scene', 단계 항목)`으로 낸 이벤트를 받아 LangGraph custom stream으로 중계 → SSE `step`(누적 결과) |
+| Callback | `UsageLedger`(공통, `app/agent_runtime.py`, #373) | 모델 호출마다 토큰·지연·실패(`agent.py`와 연출 결정 `director.py`가 공통 `MODEL_EVENT`로 알림)와 도구 실패를 모아, `ProgressMiddleware`가 단계 항목을 알릴 때(`STEP_EVENT`) 추적 span `simulation.turn`(턴 번호·상태는 `scene_agent.turn`)으로 남긴다. 본문·키는 없다 |
 
 - 도구(`tools.py`)는 `narrate`·`monologue`·`speak`·`end_scene`이며 기존 입력 조립(NovelBrain recall·인물 격리)·`act`·`check`·검증을 그대로 쓴다. 같은 턴을 재생성할 때는 조회한 입력을 다시 만들지 않는다.
-- **모델 슬롯**: 어느 도구를 쓸지는 연출 결정(Decisions)이 정하므로 `create_agent`의 모델은 호출되지 않는 자리 표시(`DirectorModel`)다. 그래서 `langchain-openai`가 필요 없고 장면에는 모델 노드의 호출 비용이 없다.
+- **모델 슬롯**: 어느 도구를 쓸지는 연출 결정(Decisions)이 정하므로 `create_agent`의 모델은 호출되지 않는 자리 표시(`DirectorModel`)다. 그래서 장면에는 모델 노드의 호출 비용이 없다(인물·나레이션·검사·계획 호출은 도구 안에서 `agent.py`가 `ChatOpenAI`로 보낸다).
 - **오케스트레이션 연결**: 바깥 그래프의 `character_simulation` 노드가 에이전트를 실행한다. 에이전트 상태(장면 `Scene` JSON 포함)는 바깥 그래프의 체크포인터(PostgreSQL)에 저장되고, 에이전트의 `interrupt`는 바깥 그래프로 전달돼 `waiting`이 된다. 같은 대화의 `resume`이 노드를 다시 실행하면 에이전트는 멈춘 자리에서 이어 간다. 노드는 요청마다 새로 만든 값(`SceneContext`: 계획·대상·요청·조회 토큰)만 넘기고 세계관·원고 발췌는 한 요청에 한 번 읽는다.
 - 대화가 없으면(체크포인트 없음) 턴 사이에서 멈출 수 없어 `StageMiddleware` 없이 장면이 끝날 때까지 한 번에 돈다.
 
@@ -158,6 +159,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - 계획의 비트는 전지적 서술만 전체를 입력으로 받는다. 독백·3인칭 제한·1인칭 서술은 지금 비트까지만 받는다(아직 오지 않은 뒤의 비트를 인물은 모른다. 인물 입력이 지금 비트만 받는 것과 같은 규칙이고, 모든 비트가 끝났으면 전체를 준다).
 - 나레이션 문체는 설정집의 `나레이터…` 카드(제목이 `나레이터`로 시작, 유형 무관, 인물 카드면 IDENTITY+SOUL)가 정한다. 없으면 기본 지침이다. 이 카드는 문체 지침이라 인물로 고를 수 없고 인물의 입력에도 들어가지 않는다(화면의 시작 양식도 같은 규칙, 곧 NFC 정규화·앞뒤 공백 제거 뒤 `나레이터`로 시작하는 카드를 인물 후보에서 뺀다).
 - 나레이션 `observed`(모두에게 알린 사실)만 인물의 장면 상태로 간다. 나레이션 본문과 독백은 인물에게 가지 않는다.
+- 인물 대사·나레이션의 `prose`·`observed`와 독백의 `prose`는 제공사 strict schema의 pattern(`models.TEXT`, 한글·영숫자 한 글자 이상)으로 비울 수 없다. 모델이 빈칸·공백만 돌려 502가 나던 것을 막는다(공개 세트 나레이션 92회 중 4회 → 수정 뒤 184회 중 0회). 독백의 `observed`는 지시대로 비우므로 제약하지 않는 `Monologue` 형식으로 보낸다. 서비스의 빈 응답 검사(502)는 pattern을 지키지 않는 제공사에 대한 방어로 남는다.
 - 나레이터는 인물이 말하거나 결정하거나 행동하는 내용(현재 비트의 사건)을 지문으로 요약·대신 서술하지 않고(장면 시작은 배경·분위기만, 비트 전환은 바뀐 시간·장소·분위기만), 이미 쓴 문장을 되풀이하지 않는다. 입력 `alreadyWritten`(직전 나레이션 본문 최대 3개)이 그 근거이며 전지적 서술에만 준다(인물 시점은 그 인물이 아는 것만 쓴다).
 
 ## 무대(Stage): 턴마다 멈추는 실행 (2026-11-14 사용자 결정)
@@ -180,7 +182,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 ### 실패·중단
 
-- 검사 반복 위반(`check_failed`)·비트 거부(`beat_rejected`)·한도(`turn_limit`)는 그 턴을 붙이지 않고 쌓은 턴과 메모를 지킨 채 `status: stopped`(호출 실패는 `failed`)와 이유를 남긴다. 턴이 하나 이상 있으면 `waiting`(awaitingScene)으로 계속 멈춰 있고(단계는 `failed`로 이유를 보인다) 작가가 줄을 고치거나 다시 말하게 하거나 `next`로 다시 시도하거나 `stop`으로 지금까지를 끝낼 수 있다. 화면은 이때 자동 재생을 멈춘다.
+- 검사 반복 위반(`check_failed`)·비트 거부(`beat_rejected`)·한도(`turn_limit`)는 그 턴을 붙이지 않고 쌓은 턴과 메모를 지킨 채 `status: stopped`(호출 실패는 `failed`)와 이유를 남긴다. 턴이 하나 이상 있으면 `waiting`(awaitingScene)으로 계속 멈춰 있고(단계는 `failed`로 이유를 보인다) 작가가 줄을 고치거나 다시 말하게 하거나 `next`로 다시 시도하거나 `stop`으로 지금까지를 끝낼 수 있다. 화면은 이때 자동 재생을 멈춘다. 비트 거부는 거부한 비트의 `rejectedBy`로 거부한 인물을 알리고, 다시 시도(`next`·`redo`)하면 거부 표시가 비트의 진행 상태와 함께 다시 계산되어 풀린다.
 - 첫 턴이 실패해 쌓은 턴이 없으면 이어 갈 장면이 없어 단계를 `failed`(부분 결과 `stopped|failed`, 승인 없음)로 끝낸다.
 - 호출 한도 안전망(`call_limit`)이 끊으면 에이전트가 끝나므로 이어 갈 수 없다. 쌓은 턴은 그대로 두고 `status: stopped`·`stopReason: call_limit`·단계 `failed`로 끝낸다(승인 없음, 실패를 숨기지 않되 결과는 남긴다).
 - 작가가 `stop`한 장면은 `completed`라서 승인 질문이 이어진다. 승인 없이 끝나는 것은 `failed`뿐이다.
@@ -194,12 +196,51 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 시연 진입은 집필실의 **[시뮬레이션] 버튼**이다. 채팅 자유 입력의 Router 분류는 건드리지 않는다. 버튼은 Router의 모델 분류를 거치지 않고 `operation`으로 기능을 직접 지정해, 모호한 문장이 되묻기로 끝나 시연이 끊기는 일을 피한다(가드레일은 기존 operation 경로대로 거친다).
 
-- 시작 양식(무대 패널): **IF**는 전제 한 줄("만약 ~했다면")과 참여 인물(연결 세계관의 인물 카드, 1~6명)이다. **흐름**은 이 작품의 장면 계획(`story_plan`, `kind=scene`) 중 열린 회차(`episode_number`)가 같은 것들을 순서대로 비트로 쓰고(`제목: 내용`을 200자로 자름, 최대 8개), 참여 인물은 그 계획들의 `characters` 합집합이다(양식에서 고칠 수 있다). 그 회차의 장면 계획이 없으면 안내하고 비트를 직접 입력하게 한다.
+- 시작 양식(무대 패널): **IF**는 전제 한 줄("만약 ~했다면")과 참여 인물(연결 세계관의 인물 카드, 연결한 세계관이 없는 Fork는 이어받은 원작 세계관의 공개 인물 카드, 1~6명)이다. **흐름**은 이 작품의 장면 계획(`story_plan`, `kind=scene`) 중 열린 회차(`episode_number`)가 같은 것들을 순서대로 비트로 쓰고(`제목: 내용`을 200자로 자름, 최대 8개), 참여 인물은 그 계획들의 `characters` 합집합이다(양식에서 고칠 수 있다). 그 회차의 장면 계획이 없으면 안내하고 비트를 직접 입력하게 한다.
 - 시작은 채팅 메시지다: `operation: 'character_simulation'`, `request`(요약 문장, 예 "흐름 모드 시뮬레이션: 장면 계획 3개"), `simulation: {mode: 'if'|'flow', premise?: ≤500자, beats?: ≤8개 × ≤200자, characterIds: 1~6개 × ≤100자}`.
 - Content `WritingAiRequest.simulation`: `mode`·길이·개수를 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422, 권한 확인 전에 거절). 값은 그대로 AI에 넘긴다.
-- 근거 회차와 반영 회차(#58): 요청의 `episode`·`episodeVersionId`는 **근거 회차**다. 발행된 판본이어야 하고 Q&A 조회 범위와 세계관의 지식 상한(기준 회차)을 정한다. 작가가 발행 전 초안을 열어 두면 화면은 마지막 발행 회차를 근거로 보낸다. 승인 뒤 결과를 쓸 **반영 회차**는 선택 필드 `targetEpisode`(없으면 `episode`와 같다)이며 작가가 연 회차를 보낸다. Content는 새 요청에서만 `targetEpisode >= episode`이고 그 작품의 활성 회차(발행 전 초안도 가능)인지 확인하고 어긋나면 422다(이어가기에서는 무시한다). AI에는 `target {workId, episode: 반영 회차, baseEpisode?: 근거 회차}`로 넘기며 `baseEpisode`는 둘이 다를 때만 온다. AI는 승인 반영과 승인 질문의 `approvalEpisode`에 `target.episode`를, 시뮬레이션이 세계관을 읽는 기준 회차에 `target.baseEpisode ?? target.episode`를 쓴다. 화면은 무대의 승인 문구("N화 초안 끝에")를 반영 회차로 보이고 근거와 다르면 시작 양식에 "근거: M화까지 / 반영: N화 초안"을 보인다. 새로 고친 뒤 승인 대기 장면이 복원되면 집필실은 `approvalEpisode`로 편집기를 그 회차에 맞춘다. 장면 대기(`awaitingScene`) 응답에는 `approvalEpisode`가 없어(승인 질문에만 싣는다) 그 복원에서는 서버가 반영 회차를 알려 주지 않고, 집필실이 열린 회차를 따라 바꿔 둔 주소의 `?ep=n`이 편집기 회차를 정한다.
+- 근거 회차와 반영 회차(#58): 요청의 `episode`·`episodeVersionId`는 **근거 회차**다. 발행된 판본이어야 하고 Q&A 조회 범위와 세계관의 지식 상한(기준 회차)을 정한다. 작가가 발행 전 초안을 열어 두면 화면은 마지막 발행 회차를 근거로 보낸다. 승인 뒤 결과를 쓸 **반영 회차**는 선택 필드 `targetEpisode`(없으면 `episode`와 같다)이며 작가가 연 회차를 보낸다. Content는 새 요청에서만 `targetEpisode >= episode`이고 그 작품의 활성 회차(발행 전 초안도 가능)인지 확인하고 어긋나면 422다(이어가기에서는 무시한다). AI에는 `target {workId, episode: 반영 회차, baseEpisode?: 근거 회차}`로 넘기며 `baseEpisode`는 둘이 다를 때만 온다. AI는 승인 반영과 `approvalEpisode`(승인 질문과 장면 대기(`awaitingScene`) 응답에 같은 값으로 싣는다, #364)에 `target.episode`를, 시뮬레이션이 세계관을 읽는 기준 회차에 `target.baseEpisode ?? target.episode`를 쓴다. 화면은 무대의 승인 문구("N화 초안 끝에")를 반영 회차로 보이고 근거와 다르면 시작 양식에 "근거: M화까지 / 반영: N화 초안"을 보인다. 새로 고친 뒤 승인 대기·장면 대기 장면이 복원되면 집필실은 `approvalEpisode`로 편집기를 그 회차에 맞춘다(주소의 `?ep=n`이 다른 회차를 가리켜도 같다). 입력 대기와 Content 쓰기 도구 승인(`content_action`)에는 싣지 않는다.
 - AI `OrchestrationRequest.simulation`: `SimulationPlan`과 같은 한도(전제 500자, 비트 8개×200자, 인물 6명×100자, 모르는 필드 거절)로 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422).
-  있으면 `simulation_plan`이 계획 모델을 부르지 않고 이 값을 계획으로 쓰되, 인물 id가 연결 세계관의 활성 인물 카드인지와 모드별 필수값(IF 전제, 흐름 비트 1개 이상)을 확인한다. 어긋나면 되묻지 않고 단계 `failed`와 이유로 끝낸다.
+  있으면 `ask_character_simulation`이 계획 모델을 부르지 않고 이 값을 계획으로 쓰되, 인물 id가 연결 세계관의 활성 인물 카드인지와 모드별 필수값(IF 전제, 흐름 비트 1개 이상)을 확인한다. 어긋나면 되묻지 않고 단계 `failed`와 이유로 끝낸다.
+
+## Fork 이어받기 (#365)
+
+연결한 세계관이 없는 Fork의 자기 회차도 시뮬레이션을 시작할 수 있다. Fork는 원작 세계관을 기준 회차까지 **읽기 전용으로 이어받는다**(DEC-32·37의 1단계, 최초 수정 시 독립·원본 변경 알림은 범위 밖). 규칙의 정본은 [공개 세계관 계약](public-world-contract.md#fork가-이어받는-원작-세계관-dec-3237-365)이고 시뮬레이션 쪽 요점은 다음과 같다.
+
+| 항목 | 규칙 |
+|---|---|
+| 읽는 길 | `simulation.service.read_world`가 `world_studio_list`에 이 작품에 연결된 세계관이 없을 때만 MCP `work_inherited_world(id, upto=<근거 회차>)`를 부른다. 연결된 세계관이 있으면 그것이 우선이고 이어받은 세계관은 묻지 않는다. 이어받는 것이 없으면(`worldId: null`) 기존처럼 409 `NO_LINKED_WORLD`다. |
+| 카드 집합 | 독자 설정 위키와 같은 카드 집합이다: 원작 세계관 확정 버전의 카드 중 유효 공개 회차(DEC-53)가 상한 이하인 것만이다. 상한은 Fork 기준 회차(요청 근거 회차가 더 작으면 그 회차). 작가 전용 카드·상한 뒤에 공개되는 카드는 문맥·대본·후보 어디에도 들어가지 않는다. |
+| 관계 | 그 카드끼리의 상한 회차 시점 관계만이다(`identity`도 상한 시점까지의 것만 온다). 읽을 수 없으면(`relationshipStatus: unavailable`) 관계 없이 진행하지 않고 단계를 `failed`로 끝낸다(503). |
+| 인물 문서 | `SOUL.md`·`GOAL.md`·`memory/NN회차.md`는 작가용이라 이어받지 않는다. 이어받은 인물은 `IDENTITY.md`(카드 본문)만으로 시뮬레이션한다. |
+| 한 곳의 집합 | 시작 양식의 `characterIds` 검증(`plan_from_form`)·`load_world`의 장면 입력·원고 검수(`review`의 `_world`)가 모두 같은 `read`를 쓴다. 화면의 후보도 같은 Content 계산(`GET /api/v1/works/{id}/inherited-world`)이다. |
+| 화면 | 시작 양식은 내 세계관 목록에 이 작품 연결이 없을 때 이어받은 세계관을 읽어 인물 후보를 만들고(`연결된 세계관이 없어요`로 잠기지 않음) "원작 세계관에서 N화까지 공개된 인물을 이어받았어요(읽기 전용)."를 알린다. 이어받은 세계관에 공개 인물 카드가 없으면 그 사유로, 읽지 못하면 연결 없음으로 바꾸지 않고 불러오기 실패와 `다시 불러오기`로 알린다. |
+
+## 「동일 인물」 — DEC-53
+
+**상태: 설계 확정(2026-11-18 사용자 결정, [#485](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/485)), 소스 구현(4단계: AI·화면, 로컬 단위 테스트 통과, 병합·hosted CI 통합 확인 전).** 나중에 밝혀지는 이름·가면(예: '검은 옷의 사내' = '아무개')은 카드를 둘로 나누고 `category: identity` 관계(다른 이름 카드 → 본체 카드, [규칙](worldstudio-independent-schema.md#동일-인물-관계--dec-53))로 잇는다. 시뮬레이션은 이 관계로 두 카드를 **한 사람**으로 다룬다. 관계를 기록하지 않은 두 카드는 두 사람이다(이름·내용이 비슷해도 합치지 않는다).
+
+| 항목 | 규칙 |
+|---|---|
+| 읽는 시점 | 관계는 기준 회차 시점으로 읽고(DEC-51), identity만 최신 시점으로 한 번 더 읽어 묶는다(작가 범위의 `world_studio_read`를 회차 지정·생략으로 두 번 부른다). 작가가 연 회차가 정체 공개 회차 앞이어도 작가는 진실을 안 채로 장면을 만든다. 둘째 읽기가 실패하거나 읽은 identity가 저장 규칙(인물끼리·사슬 없음)을 어기면 대체 조회·무시 없이 단계를 `failed`로 끝낸다. Fork 이어받기(원작 세계관, 읽기 전용)는 최신 읽기가 없어 상한 시점까지의 identity만 쓴다. 최신 시점 identity는 `read_world`가 응답의 `identity`로 따로 담아 한 사람으로 묶는 데만 쓰고, 나레이터(`_visible`)·recall·관계 문장·검사가 읽는 스냅샷의 관계는 기준 회차 시점 그대로라 기준 회차 뒤에 밝혀지는 정체가 나레이터 입력에 섞이지 않는다 |
+| 묶음 | identity 관계로 이어진 카드 = 한 사람(본체 하나 + 가면 여럿). 본체는 관계의 대상 카드다 |
+| 참여 후보 | 한 사람은 카드 하나로만 고른다. 가면 카드든 본체 카드든 작가가 고른 카드의 이름으로 연기하며, 같은 묶음의 두 카드를 함께 고를 수 없다(시작 양식이 막고(내 세계관과 Fork가 이어받은 세계관 모두) 서버 `characterIds` 검증도 422로 거절한다: `plan_from_form`·`check_plan`, 모델이 고른 계획 `plan`도 같다) |
+| 연기하는 사람의 입력 | 본체 카드의 `IDENTITY.md`·`SOUL.md`·`GOAL.md`와 기준 회차 이하 회차 기억을 쓴다. 작가가 가면 카드를 골랐으면 본체 `IDENTITY.md` 다음에 가면 카드의 `IDENTITY.md`(그 이름으로 행세할 때의 모습)를 더하고, 본체 카드를 골랐으면 본체 문서만 쓴다(2026-11-18 사용자 결정). 가면 카드의 SOUL·GOAL·회차 기억은 읽지 않는다. 자기 관계는 묶음의 모든 카드가 끝점인 기준 회차 시점 관계를 합친 것이다(묶음 안 두 카드 사이의 identity 관계 자체는 관계 문서로 넣지 않는다) |
+| 이름 | 작가가 고른 카드의 제목을 화자 이름·`present`·검사의 `others`·장면 줄에 쓴다 |
+| 오류 | 같은 묶음의 두 카드를 고르면 422다. 읽은 identity가 저장 규칙(인물끼리·방향 있음·가면 하나에 본체 하나·사슬·순환 없음)을 어기면 무시·대체 없이 409로 단계 `failed`다. 저장 검사가 최신 시점만 보므로([규칙](worldstudio-independent-schema.md#동일-인물-관계--dec-53)) 중간 회차에만 남은 사슬은 그 회차로 읽는 Fork(원작 읽기 전용)에서 409가 되고 원작 소유자가 관계를 고쳐야 풀린다(한계, 숨기거나 대신 읽지 않는다) |
+| 다른 인물 | 묶음을 합쳐 받지 않는다. 다른 인물은 자기 관계·기억·공개 규칙이 허용한 카드(보통 가면 카드)만 알고, 정체를 아는 인물은 자기 회차 기억 문서(`memory/NN회차.md`)에 적어 안다. 본체가 작가 전용(공개 회차 없음)이면 인물 지식에 시점 제한이 없어 다른 인물이 본체를 알 수 있으므로 화면이 경고한다 |
+
+## 필수 인물 문서와 시작 검증 — #357·#624
+
+**상태: 사용자 결정(2026-11-19 빈 문서 인물은 선택을 막는다 #357 · 2026-11-20 목표 문서는 선택 #624), 소스 구현·로컬 단위 테스트 통과, 병합·hosted CI 통합 확인 전.** 인물 문서(DEC-47) 가운데 시뮬레이션에 꼭 필요한 것은 `IDENTITY.md`(카드 본문)·`SOUL.md`다. 빈 문서를 사실로 채우지 않고, 확인 뒤 진행이 아니라 **선택 자체를 막는다**([UC-09 E3](../usecase-spec/UC-09.md)).
+
+| 항목 | 규칙 |
+|---|---|
+| 필수·선택 | `IDENTITY.md`·`SOUL.md`는 필수, `GOAL.md`는 선택이다(공백뿐이면 빈 문서). 회차 기억(`memory/NN회차.md`)은 원래 선택이다. |
+| 판정 | 화면 `domain/entities/characterDocs.ts`의 `missingCharacterDocs`와 AI `simulation/service.py`의 `_filled`가 같은 규칙이다. 「동일 인물」 다른 이름 카드는 본체와 합친 카드(`_characters`)로 판정한다: 본문(IDENTITY)은 그 카드 자신의 것이고 SOUL은 본체의 것이다. 이어받은 원작 세계관(Fork)은 `SOUL.md`·`GOAL.md`를 이어받지 않으므로([Fork 이어받기](#fork-이어받기-365)) `IDENTITY.md`만 본다. |
+| 화면 | 시작 양식의 인물 목록에서 빈 문서가 있는 인물은 체크가 잠기고 이름 옆에 `비어 있는 문서: SOUL.md · 세계관 관리 화면에서 채워 주세요`를 보인다. 흐름 모드가 비트 문장의 이름으로 미리 채우는 참여 인물에도 같은 규칙이라 잠긴 인물은 미리 고르지 않는다. |
+| 서버 | 화면 잠금만으로 대신하지 않고 거절한다: 버튼 진입 `plan_from_form`은 422(`인물 문서가 비어 있어요: 카엘(SOUL.md). 세계관 관리 화면에서 채워 주세요.`), 채팅 계획 경로의 모델이 고른 `plan`과 매 턴 시작 확인 `check_plan`도 같은 422다. `check_plan`은 요청마다 세계관을 새로 읽으므로 장면 중에 작가가 문서를 비우면 다음 시도가 `failed`로 멈춘다(빈 문서로 연기하지 않는다). |
+| 목표(GOAL) | 있으면 지금처럼 인물 문맥(`known`)에 `목표(GOAL)`로 들어간다. 비어 있으면 문맥에 그 항목이 없고(`_docs`가 빈 문서를 뺀다) 인물은 성격·기억·장면 상황으로 연기하며 목표를 지어내지 않는다. 설정집의 '정리 필요'·'보완 필요'에도 이유로 들어가지 않는다. |
 
 ## 평가
 
@@ -228,16 +269,22 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 ## ponytail 한계
 
-- BM25는 카드·인물 문서만 메모리에서 계산한다(카드 최대 1,000개). 원고 BM25는 Elasticsearch 질의 추가가 필요해 후속이다.
+- BM25는 MCP에서 읽은 활성 카드·인물 문서를 메모리에서 계산하며 별도 카드 1,000개 제한은 없다. 세계관 활성 카드 총량은 10,000개지만 이 규모의 MCP 전송·검색 부하는 아직 검증하지 않았다. 원고 BM25는 Elasticsearch 질의 추가가 필요해 후속이다.
 - PPR은 한 세계관의 관계만으로 계산한다(작품 사이 연결 없음).
 - 오류 4~6, 대안 후보 비교, 독자 검증(F-SIM-11), 크레딧·비용 동의, 인물 상태 정본 채택(UC-06)은 범위 밖이다.
-- 비트는 Story Development 에이전트 없이 메인 에이전트가 채팅에서 최소 형태로 만든다(버튼 진입은 장면 계획 또는 작가가 적은 값을 쓴다).
+- 비트는 별도 기획 에이전트 없이 메인 에이전트가 채팅에서 최소 형태로 만든다(버튼 진입은 장면 계획 또는 작가가 적은 값을 쓴다).
 - 연출 결정은 Decisions가 확률을 주지 않아 선택값만 쓴다(신뢰도 기준 없음). 장면은 에이전트 상태(대화 체크포인트)에만 있어 보관 기간 정리가 없다.
 - 원고 발췌 검색은 요청(턴)마다 같은 검색어로 한 번씩 한다. 인물 시점 나레이션·독백의 조회는 그 인물의 대사 입력과 같은 규칙이다.
 - 검사는 `prose`만 본다. 다른 인물에게 가는 `observed`(공개 요약)는 같은 호출에서 `prose`와 함께 만들어지고 쓰는 모델은 금지 목록을 받지 않아 따로 검사하지 않는다. 작가가 `edit`한 글은 작가 글이 정본이라 통째로 공개 기록이 된다(속마음을 섞어 고치면 다음 인물이 보게 된다).
+- **모델 호출은 `ChatOpenAI`(Responses API)다**(2026-11-22 사용자 지시, 요청·응답 계약은 그대로): `agent._parse`가 호출마다 `ChatOpenAI(use_responses_api=True, store=False, max_retries=0, max_tokens, timeout, reasoning={'effort': …})`를 만들고 `with_structured_output(<응답 형식>, method='json_schema', strict=True, include_raw=True)`로 한 번 부른다(업무 Agent의 `app/agent_runtime.py`와 같은 방식이고 공통화는 하지 않았다). 지시문(Langfuse 프롬프트 `character_simulation.<호출>`)은 Responses 입력의 system 메시지, 입력 JSON은 user 메시지다(이전에는 `instructions` 필드·문자열 input이었고 프롬프트는 같다). 스키마 위반·잘린 JSON·`status != completed`·파싱 결과 없음은 502, 제공사 오류는 503(고정 문구, 제공사 메시지는 담지 않는다), 자동 재시도·fallback은 없고, 사용량은 응답의 `usage_metadata`로 generation과 `MODEL_EVENT`에 같은 값을 남긴다.
+- **act만 다른 OpenAI 호환 제공사로 보낼 수 있다**(2026-11-22 사용자 지시, 평가·시험용): 환경 변수 `SIMULATION_ACT_BASE_URL`(예 Hemmingway `https://hemmingway.io/v1`, OpenRouter)이 있으면 act 호출만 그 제공사로 간다. 제공사에는 Responses API가 없어 `use_responses_api=False`(Chat Completions)로 보내고 추론 강도는 `reasoning_effort`로 보내며 `store`는 보내지 않는다. 이 분기 하나뿐이다(제공사별 클래스·registry 없음). 키는 `SIMULATION_ACT_API_KEY`가 있어야 하고 없으면 모델을 부르기 전에 503 설정 오류다(`OPENAI_API_KEY`를 외부 제공사로 보내지 않고, base URL이 없으면 이 키는 쓰지 않아 제공사 키가 OpenAI로 가지 않는다). 모델은 `SIMULATION_ACT_MODEL`이고 비면 base URL이 있을 때 `OPENAI_MODEL`, 없을 때 `gpt-6.1-terra`(아래 항목)다. base URL 없이 모델만 정하면 act만 그 OpenAI 모델(Responses API)을 쓴다. 계획·나레이션·검사는 OpenAI 그대로다. `SIMULATION_ACT_THINKING=off`(base URL이 있을 때만 읽고 그 밖의 값은 모델 호출 전 503)면 제공사의 생각을 끈다(`enable_thinking=false`, `extra_body`): 생각 토큰은 출력 토큰·지연·비용에 섞인다. 응답 계약은 같다: 길이 초과(`finish_reason: length`, SDK가 `LengthFinishReasonError`로 올린다)·콘텐츠 필터·깨진·코드 블록에 싼 JSON·스키마 위반·거절·빈 응답은 502, 제공사 오류는 503, 자동 재시도·OpenAI로의 fallback은 없다(고쳐 읽지 않는다). 길이 초과로 잘린 호출도 토큰은 썼으므로 사용량(응답의 `usage`)은 502여도 `MODEL_EVENT`와 generation에 남는다. **Hemmingway `hemmingway-1`은 ① 20문항 시험에서 luna act(P1)보다 말투·의도가 낮고(sol 채점, A/B 1승 19패) 2배 느리고 약 3.6배 비싸 탈락했고 서비스는 OpenAI를 유지한다**([원문 평가 §15](../evaluation/simulation-original.md#15-hemmingway-act-시험-20문항-맛보기에서-탈락-2026-11-22)). 이 변수들은 기본값이 OpenAI라 그대로 둔다. 값은 호출 때 읽고 compose는 AI 컨테이너에 넘기지 않는다(채택하면 연결). `.env.example`·[AI README](../../backend/ai-service/README.md)에 있다.
+- **인물 대사(act)의 기본 모델은 `gpt-6.1-terra`다**(2026-11-23 사용자 결정, 근거 [원문 평가 §14](../evaluation/simulation-original.md)·[§16](../evaluation/simulation-original.md#16-인물-대사act-기본-모델을-gpt-61-terra로-2026-11-23-사용자-결정)): `agent.ACT_MODEL` 상수 하나이고 `SIMULATION_ACT_MODEL`로 덮어쓴다(luna로 되돌리기: `gpt-6-luna`). 나레이션·검사·계획은 `OPENAI_MODEL`(luna), 연출은 Decisions, 추론 강도는 `low` 그대로다. sol 채점 ① 말투 +0.21·의도 +0.30·A/B 66.2%(p<0.001)이고 호출당 비용은 약 5배다. 해리 포터 장면 2개(9턴) 확인은 완료 2/2·턴 p50 4.9초·p95 7.1초·턴당 0.0076달러(luna base 0.0055달러)다. 지시문 P1·N3는 Langfuse 새 버전이라 이번에는 바꾸지 않았고 운영 화면에서 등록·승격해야 한다([v3 보고서 6장](../evaluation/simulation-v3.md#6-운영-화면에서-p1n3-반영하는-절차)). v1 → v2 → v3 요약은 [v3 보고서](../evaluation/simulation-v3.md)다.
+- **추론 강도 기본값은 `low`다**(시뮬레이션 v2, #642): 계획·인물 턴·나레이션·검사 네 호출 모두 `reasoning.effort`를 보낸다. 값은 `SIMULATION_REASONING_EFFORT`(`none|minimal|low|medium|high`, 그 밖은 모델 호출 전 503)이고 비어 있으면 `low`다. 해리 포터 세계관 평가에서 시공간 정확도 0.45 대 0.45(15:15, p=1.0), 장면 p50 10.8→7.9초였다([v2 보고서](../evaluation/simulation-v2.md)). 강제 연출 생략·나레이션 검사 생략·세계관 캐시 스위치는 품질 미측정이라 기본값이 꺼짐이다.
+- **인물 대사 검사의 금지 목록은 줄여서 준다**(#646, [원문 기반 평가](../evaluation/simulation-original.md#8-후보-입력-구성과-채택-규칙)의 V2): `service.check_payload`가 `forbidden`을 검사할 문단과 직전 장면 6줄과 두 글자 조각이 많이 겹치는 `service.FORBIDDEN_LIMIT`(20)개만 모델에 보낸다(원래 순서 유지, 20개 이하면 그대로). 해리 포터 원문 기반 평가 300문항의 같은 문항 짝 비교에서 검사 입력이 1회당 약 4.8만 → 1.1만 토큰으로 77% 줄고 판정 정확도는 통계적으로 같았다. 줄인 범위 밖의 누설은 이 검사가 놓칠 수 있다(서버 규칙 검사 `_problem`은 인칭·되풀이만 본다). 독백·나레이션 검사의 금지 목록은 평가하지 않아 줄이지 않는다(전지적 나레이션 검사는 미공개 설정 전체가 입력이라 따로 크다).
 - 호출 한도(`LOOP_LIMIT`=80)는 장면 한 건의 모델 노드 실행 합계다. 다시 말하기(`redo`)도 한 번씩 센다. 작가가 쓴 메모(`next`+`note`)와 흐름 모드의 비트 전환은 인물 대사 12턴 한도보다 먼저 나레이션을 쓰게 하지만 전체 40턴 안전 한도는 넘지 못한다(그때는 메모를 반영하거나 비트를 넘기지 못하고 `turn_limit`로 멈추며, 마무리 나레이션만 한도에서도 쓴다).
 - 행동 묘사 문체 검사는 한국어 어미 휴리스틱이라(3인칭 문장 첫머리의 저는·나는·제가·내가, 문장 끝의 합쇼체 -ㅂ니다·하오체 -소) 드문 거짓 양성이 있다. 그 턴은 재생성되고 계속 어기면 말투 섞임으로 멈춘다. 나레이션 반복은 결정적 검사 없이 지침과 `alreadyWritten`에 맡긴다. 호칭 판정은 모델이 `others`·SOUL·관계로 하므로 세계관 데이터에 호칭 근거(SOUL 호칭 절·관계 설명)가 있어야 정확하다.
 - 같은 말 반복 검사도 글자열 유사도(`difflib`)라 말만 바꿔 같은 내용을 되풀이하는 것은 못 잡고, 비슷한 대사를 일부러 되풀이하는 장면(복창 등)은 재생성될 수 있다. 기준(`service.REPEAT_RATIO`·`REPEAT_MIN`)은 한 줄씩이다.
 - 대사 따옴표 통일 목표는 `service.DIALOGUE_QUOTES` 한 줄이다(현재 직선 큰따옴표, 처음엔 “ ”였다가 원고에 맞춰 바꿨다). 문체 검사는 둥근·직선 큰따옴표를 모두 대사로 본다.
 - 관계에는 인물별 지식 출처(`knownBy`)가 없어 카드와 달리 끝점 조건으로만 인물 필터를 건다. 그래서 A가 B를 몰래 좋아한다는 비밀 관계도 끝점인 B의 문맥에 들어갈 수 있고, 시뮬레이션에서 B가 모르는 사실이 드러날 수 있다. 정본에 관계별 `knownBy`가 생기면 필터를 확장한다.
 - 거부 사유(`beat_rejected`)·검사 설명(`detail`)은 모델이 쓴 문장을 200자로 잘라 작가에게 보인다(작가가 흐름을 고치려면 이유를 알아야 한다). 검사 설명은 재생성 안내에는 쓰지 않는다.
+- 「동일 인물」은 identity 관계 기록만 근거로 하고, 묶음 안 카드의 자기 관계는 합치기만 한다(같은 상대와의 관계가 겹쳐도 정리하지 않는다). 작가가 가면 카드를 골라 연기하면 본체 `IDENTITY.md`에 가면 카드의 `IDENTITY.md`(그 이름으로 행세할 때의 모습)를 더해 연기하는 사람의 입력에 넣는다. 본체 카드를 고르면 본체 문서만 쓴다(2026-11-18 사용자 결정). recall은 고른 카드 기준이라 다른 쪽 카드에만 이어진 사건·물건 카드의 본문은 Gap으로 남는다(그 카드와 이어진 관계 문장은 합쳐 넣는다).

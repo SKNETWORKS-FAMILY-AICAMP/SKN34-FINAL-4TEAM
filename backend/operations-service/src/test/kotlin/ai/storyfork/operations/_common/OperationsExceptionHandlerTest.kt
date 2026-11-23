@@ -135,6 +135,16 @@ class OperationsExceptionHandlerTest {
     }
 
     @Test
+    fun `an upstream rejection that carries Content's own code answers with that code`() {
+        val message = "홈에는 장르를 최대 6개까지 보여 줄 수 있어요."
+
+        assertError(handler.upstreamRejected(UpstreamRejection(HttpStatus.CONFLICT, message, IllegalStateException("cause"), "GENRE_FEATURED_LIMIT"), request),
+            409, "GENRE_FEATURED_LIMIT", message)
+        assertError(handler.upstreamRejected(UpstreamRejection(HttpStatus.valueOf(422), message, IllegalStateException("cause"), "GENRE_ORDER_MISMATCH"), request),
+            422, "GENRE_ORDER_MISMATCH", message)
+    }
+
+    @Test
     fun `the real resolver answers an upstream rejection with its message while a plain status exception stays generic`() {
         val resolver = adviceResolver()
         val message = "원작의 고정 기준 기록을 확인할 수 없어요."
@@ -289,5 +299,10 @@ class OperationsExceptionHandlerTest {
         // The 502 handler method takes the servlet request itself, so resolve it through the real argument resolvers too.
         assertAnswered(null, ResponseStatusException(HttpStatus.BAD_GATEWAY, null, ResourceAccessException("I/O error", IOException("down"))),
             502, "UPSTREAM_FAILED")
+    }
+
+    @Test
+    fun `a prompt promotion without a passing evaluation is a 409 with its own code`() {
+        assertError(handler.evaluationRequired(), 409, "EVALUATION_REQUIRED", "A passing regression evaluation is required for this prompt version.")
     }
 }

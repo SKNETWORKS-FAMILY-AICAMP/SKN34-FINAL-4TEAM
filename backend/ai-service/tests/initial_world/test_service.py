@@ -11,6 +11,10 @@ from app.initial_world.models import Input, Output
 from app.initial_world import agent, service
 from app.initial_world.errors import ExtractionFailure
 from app.initial_world.models import ProposedOutput
+from app.initial_world.prompt import INSTRUCTIONS
+from app import tracing
+
+from traced import attrs
 
 ROOT = Path(__file__).parents[1] / 'fixtures/initial_world'
 
@@ -39,7 +43,8 @@ def provider(monkeypatch, output, status='completed', error=None):
             calls.append(kwargs)
             if error:
                 raise error
-            return SimpleNamespace(status=status, output_text=output)
+            return SimpleNamespace(status=status, output_text=output, model='resolved-model',
+                                   usage=SimpleNamespace(input_tokens=300, output_tokens=40))
         def close(self):
             calls.append('closed')
     monkeypatch.setattr(agent, 'OpenAI', Client)
@@ -186,3 +191,44 @@ def test_provider_schema_has_no_optional_or_unrestricted_properties():
         if node.get('type') == 'object':
             assert node['additionalProperties'] is False
             assert set(node['required']) == set(node['properties'])
+
+
+
+def test_the_model_call_is_a_generation_of_the_managed_prompt_without_any_text(monkeypatch, data, spans):
+    calls = provider(monkeypatch, json.dumps(proposed(data), ensure_ascii=False))
+    asked, version = [], SimpleNamespace(name='initial_world.extract', version=4, is_fallback=False)
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt('관리된 지시', version))
+
+    service.extract(Input.model_validate(data['input']))
+
+    assert asked == [('initial_world.extract', INSTRUCTIONS)] and calls[1]['instructions'] == '관리된 지시'
+    [span] = spans()
+    found = attrs(span)
+    assert span.name == 'initial_world.generation' and found['langfuse.observation.type'] == 'generation'
+    assert found['langfuse.observation.model.name'] == 'resolved-model'
+    assert found['langfuse.observation.usage_details'] == '{"input": 300, "output": 40}'
+    assert (found['langfuse.observation.prompt.name'], found['langfuse.observation.prompt.version']) == ('initial_world.extract', 4)
+    assert 'langfuse.observation.input' not in found and 'langfuse.observation.output' not in found  # 설정 본문은 추적 결정 범위 밖이다
+
+
+@pytest.mark.parametrize('timeout', [False, True])
+def test_a_failed_model_call_is_an_error_generation_and_still_the_same_failure(monkeypatch, data, spans, timeout):
+    error = APITimeoutError(request=SimpleNamespace()) if timeout else OpenAIError('private error')
+    provider(monkeypatch, '', error=error)
+    with pytest.raises(ExtractionFailure) as failure:
+        service.extract(Input.model_validate(data['input']))
+    [span] = spans()
+    assert failure.value.status == (504 if timeout else 503)
+    assert span.attributes['langfuse.observation.level'] == 'ERROR' and 'private' not in str(span.attributes.values())
+
+
+def test_an_unavailable_prompt_is_the_model_unavailable_failure_before_the_model_call(monkeypatch, data):
+    calls = provider(monkeypatch, '')
+
+    def unavailable(name, default):
+        raise tracing.PromptUnavailable
+
+    monkeypatch.setattr(tracing, 'prompt', unavailable)
+    with pytest.raises(ExtractionFailure) as failure:
+        service.extract(Input.model_validate(data['input']))
+    assert (str(failure.value), failure.value.status) == ('MODEL_UNAVAILABLE', 503) and calls == []

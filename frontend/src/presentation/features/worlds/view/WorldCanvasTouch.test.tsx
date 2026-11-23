@@ -9,7 +9,7 @@ import WorldAtlasCanvas from './WorldAtlasCanvas'
 import WorldGraphCanvas from './WorldGraphCanvas'
 
 // 실제 react-force-graph(d3·canvas)는 그리지 않고 캔버스가 넘기는 값만 붙잡는다.
-type GraphProps = { enablePanInteraction?: boolean; enableNodeDrag?: boolean; onNodeHover?: unknown; onNodeClick: (node: unknown) => void }
+type GraphProps = { enablePanInteraction?: boolean; enableNodeDrag?: boolean; onNodeHover?: unknown; onNodeClick: (node: unknown) => void; onZoom?: (transform: { k: number; x: number; y: number }) => void }
 const forceGraph = vi.hoisted(() => ({ props: null as null | GraphProps }))
 vi.mock('react-force-graph-2d', () => ({ default: (props: GraphProps) => { forceGraph.props = props; return null } }))
 
@@ -20,10 +20,10 @@ const media = (coarse: boolean) => Object.defineProperty(window, 'matchMedia', {
 beforeEach(() => vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} }))
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); Reflect.deleteProperty(window, 'matchMedia'); forceGraph.props = null })
 
-const summary = (id: string, name: string): PublicWorldSummary => ({ id, name, description: '', genre: 'fantasy', authorNickname: '작가', cardCount: 2, relationshipCount: 0, publishedAt: '2026-11-01T00:00:00Z' })
+const summary = (id: string, name: string): PublicWorldSummary => ({ id, name, description: '', genre: 'genre-01', genreName: '판타지', authorNickname: '작가', cardCount: 2, relationshipCount: 0, publishedAt: '2026-11-01T00:00:00Z' })
 const atlas = () => buildWorldAtlas([summary('w-1', '별빛 세계'), summary('w-2', '안개 항구')])
 const world: PublicWorld = {
-  id: 'w-1', name: '별빛 세계', description: '', genre: 'fantasy', authorNickname: '작가', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 1, relationshipStatus: 'current',
+  id: 'w-1', name: '별빛 세계', description: '', genre: 'genre-01', genreName: '판타지', authorNickname: '작가', publishedAt: '2026-11-01T00:00:00Z', revisionNo: 1, relationshipStatus: 'current',
   cards: [{ id: 'c-1', title: '리안', text: '', cardType: 'character', aliases: [], tags: [] }], relationships: [],
 }
 const click = (node: unknown) => act(() => forceGraph.props!.onNodeClick(node))
@@ -76,4 +76,29 @@ it('터치 기기의 상세 그래프도 지도 이동·노드 끌기를 끄고,
   const card = data.nodes.find((n) => n.kind === '인물')!
   click(card)
   expect(onOpen.mock.calls).toEqual([[card]])
+})
+
+it('터치 대형 그래프는 확대한 뒤 보이는 노드를 한 번 눌러 연다', () => {
+  media(true)
+  const onOpen = vi.fn<(node: DetailNode) => void>()
+  const data = buildSettingGraph({ ...world, cards: Array.from({ length: 301 }, (_, i) => ({ id: `c-${i}`, title: `인물 ${i}`, text: '', cardType: 'character' as const, aliases: [], tags: [] })) })
+  const card = data.nodes.find((node) => node.id === 'card:c-0')!
+  render(<WorldGraphCanvas data={data} mode="setting" summary="그래프" onOpen={onOpen} />)
+  expect(typeof forceGraph.props!.onZoom).toBe('function')
+  act(() => forceGraph.props!.onZoom!({ k: 1.5, x: 0, y: 0 }))
+  click(card)
+  expect(onOpen).toHaveBeenCalledWith(card)
+})
+
+it('터치 대형 그래프는 검색으로 강조된 노드와 세계관 중심을 한 번 눌러 연다', () => {
+  media(true)
+  const onOpen = vi.fn<(node: DetailNode) => void>()
+  const data = buildSettingGraph({ ...world, cards: Array.from({ length: 301 }, (_, i) => ({ id: `c-${i}`, title: `인물 ${i}`, text: '', cardType: 'character' as const, aliases: [], tags: [] })) })
+  const card = data.nodes.find((node) => node.id === 'card:c-0')!
+  const center = data.nodes.find((node) => node.kind === '세계관')!
+  render(<WorldGraphCanvas data={data} mode="setting" summary="그래프" highlightId={card.id} onOpen={onOpen} />)
+  click(card)
+  expect(onOpen).toHaveBeenCalledWith(card)
+  click(center)
+  expect(onOpen).toHaveBeenLastCalledWith(center)
 })

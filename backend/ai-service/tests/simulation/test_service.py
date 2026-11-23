@@ -1,20 +1,22 @@
+import sys
+from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 
 import pytest
 
 from app.content_mcp.errors import ContentMcpFailure
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalResult
 from app.simulation import prompt, service
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import CheckItem, Decision, Note, PlanDraft, SceneAction, SimulationPlan, Trail, Turn, Verdict
 
-from .stubs import (EPISODE, GATE, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, SHADOW, TARGET, WORLD, card, context, fake_content,
-                    fake_novelbrain, recalled, text)
+from .stubs import (EPISODE, GATE, INHERITED, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, REL3, REL6, SHADOW, TARGET, WORLD, card, context, fake_content,
+                    fake_novelbrain, recalled, relation, text)
 
 STYLE, PERSONA, REMOVED = (f'00000000-0000-0000-0000-0000000000{n}' for n in ('a1', 'a2', 'ff'))
-PERSONA_CARD = card(PERSONA, '나레이터 페르소나', 'PERSONA-ID 오래된 이야기꾼', docs={'soul': 'PERSONA-SOUL 느릿한 말투', 'memory': '', 'episodes': {}})
+PERSONA_CARD = card(PERSONA, '나레이터 페르소나', 'PERSONA-ID 오래된 이야기꾼', docs={'soul': 'PERSONA-SOUL 느릿한 말투', 'goal': '', 'episodes': {}})
 STYLE_CARD = card(STYLE, '나레이터 문체', 'STYLE-GUIDE 담담한 3인칭 현재형으로 쓴다', cardType='etc')
 NARRATOR_WORLD = {**READ, 'cards': [*READ['cards'], STYLE_CARD, PERSONA_CARD]}
 COVERAGE = {'expected': [], 'withVerifiedExcerpt': [], 'withoutVerifiedExcerpt': []}
@@ -25,8 +27,9 @@ COVERAGE = {'expected': [], 'withVerifiedExcerpt': [], 'withoutVerifiedExcerpt':
 def test_world_is_the_one_linked_to_the_work_and_is_read_at_the_base_episode(monkeypatch):
     calls = fake_content(monkeypatch, worlds=[{'worldId': 'other', 'linkedWorkId': 'x'},
                                               {'worldId': WORLD, 'linkedWorkId': 'work'}])
-    assert service.read_world('work', EPISODE) == READ
-    assert calls == [('world_studio_list', {}), ('world_studio_read', {'id': WORLD, 'episode': '3'})]
+    assert service.read_world('work', EPISODE) == {**READ, 'identity': []}
+    # 기준 회차 시점으로 읽고, 「동일 인물」만 최신 시점으로 한 번 더 읽는다(회차 없이).
+    assert calls == [('world_studio_list', {}), ('world_studio_read', {'id': WORLD, 'episode': '3'}), ('world_studio_read', {'id': WORLD})]
 
 
 def test_a_409_from_the_episode_scoped_world_read_fails_as_it_is_and_is_never_retried_without_the_episode(monkeypatch):
@@ -45,12 +48,45 @@ def test_a_409_from_the_episode_scoped_world_read_fails_as_it_is_and_is_never_re
     assert [(tool, args.get('episode')) for tool, args in calls] == [('world_studio_list', None), ('world_studio_read', str(EPISODE))]  # 회차를 생략한 재조회가 없다
 
 
-def test_work_without_a_linked_world_fails_explicitly_without_reading_any_world(monkeypatch):
+def test_work_without_a_linked_world_or_an_inherited_one_fails_explicitly_without_reading_any_world(monkeypatch):
     calls = fake_content(monkeypatch, worlds=[{'worldId': WORLD, 'linkedWorkId': None}, {'worldId': 'o', 'linkedWorkId': 'x'}])
     with pytest.raises(SimulationFailure) as error:
         service.read_world('work', EPISODE)
     assert error.value.status == 409
-    assert [tool for tool, _ in calls] == ['world_studio_list']
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'work_inherited_world']  # 소유자 읽기(world_studio_read)로는 읽지 않는다
+
+
+def test_a_fork_without_a_world_of_its_own_reads_the_original_world_it_inherits_up_to_the_base_episode(monkeypatch):
+    calls = fake_content(monkeypatch, worlds=[], inherited=INHERITED)
+    assert service.read_world('work', EPISODE) == {**INHERITED, 'identity': []}
+    assert calls == [('world_studio_list', {}), ('work_inherited_world', {'id': 'work', 'upto': '3'})]
+
+
+def test_a_world_linked_to_the_work_wins_over_the_inherited_one(monkeypatch):
+    calls = fake_content(monkeypatch, inherited=INHERITED)
+    assert service.read_world('work', EPISODE) == {**READ, 'identity': []}
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read']
+
+
+def test_inherited_world_failing_to_vouch_for_its_relations_stops_the_run_instead_of_continuing_without_them(monkeypatch):
+    fake_content(monkeypatch, worlds=[], inherited={**INHERITED, 'relationshipStatus': 'unavailable'})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.load_world(TARGET, '요청', None)
+    assert error.value.status == 503
+
+
+def test_inherited_characters_are_the_candidates_for_the_start_form_and_carry_no_author_only_docs(monkeypatch):
+    fake_content(monkeypatch, worlds=[], inherited=INHERITED)
+    world = service.load_world(TARGET, '요청', None)
+    assert set(world.characters) == {KAEL, LINA}
+    assert all(not c.soul and not c.goal and not c.episodes for c in world.characters.values())
+    assert [r.id for r in world.snapshot.relations] == [REL]
+    # 시작 양식 검증도 같은 집합이다: 이어받지 않은 카드·모르는 id는 거절한다.
+    assert service.plan_from_form(PLAN_IF, TARGET) == PLAN_IF
+    for other in (SHADOW, GATE, '00000000-0000-0000-0000-0000000000ee'):
+        with pytest.raises(SimulationFailure) as error:
+            service.plan_from_form(SimulationPlan(mode='if', premise='만약 ~했다면', characterIds=[KAEL, other]), TARGET)
+        assert error.value.status == 422
 
 
 def test_load_world_reads_the_linked_world_and_retrieves_excerpts_for_the_request_without_filtering_them(monkeypatch):
@@ -60,7 +96,7 @@ def test_load_world_reads_the_linked_world_and_retrieves_excerpts_for_the_reques
     monkeypatch.setattr(service.retrieval, 'retrieve', lambda scope, question: asked.append((scope.scopeToken, question)) or
                         RetrievalResult(status='found', excerpts=excerpts, gaps=[], coverage=COVERAGE, steps=[]))
     world = service.load_world(TARGET, '카엘과 리나가 만나면', {'scopeToken': 'signed.token'})
-    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read'] and asked == [('signed.token', '카엘과 리나가 만나면')]
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read'] and asked == [('signed.token', '카엘과 리나가 만나면')]
     # 받은 발췌를 그대로 둔다. 원고가 아닌 발췌(설정·현재 관계)는 recall의 인물 필터가 gaps로 돌린다.
     assert [e.id for e in world.manuscript] == ['m', 's'] and set(world.characters) == {KAEL, LINA} and world.episode == EPISODE
 
@@ -71,10 +107,11 @@ BASE_TARGET = {'workId': 'work', 'episode': EPISODE + 2, 'baseEpisode': EPISODE}
 def test_the_world_is_read_at_the_base_episode_not_at_the_episode_the_scene_is_reflected_into(monkeypatch):
     calls = fake_content(monkeypatch)
     world = service.load_world(BASE_TARGET, '요청', None)
-    assert [(tool, args.get('episode')) for tool, args in calls if tool == 'world_studio_read'] == [('world_studio_read', str(EPISODE))]
+    # 관계는 기준 회차(3화)로 읽고, 「동일 인물」만 회차 없이(최신) 한 번 더 읽는다. 반영 회차(5화)로는 읽지 않는다.
+    assert [args.get('episode') for tool, args in calls if tool == 'world_studio_read'] == [str(EPISODE), None]
     assert world.episode == EPISODE
     service.plan_from_form(SimulationPlan(mode='if', premise='만약 ~했다면', characterIds=[KAEL]), BASE_TARGET)
-    assert [args.get('episode') for tool, args in calls if tool == 'world_studio_read'] == [str(EPISODE)] * 2
+    assert [args.get('episode') for tool, args in calls if tool == 'world_studio_read'] == [str(EPISODE), None] * 2
 
 
 def raising(error):
@@ -112,7 +149,7 @@ def test_the_context_reads_the_world_once_for_the_whole_request(monkeypatch):
     calls = fake_content(monkeypatch)
     ctx = context()
     assert ctx.world() is ctx.world()
-    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read']
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read']
 
 
 # --- 계획 ------------------------------------------------------------------------------------------------------------
@@ -177,7 +214,7 @@ def test_form_plan_is_used_as_it_is_after_checking_the_linked_world_without_aski
     monkeypatch.setattr(service.agent, 'plan', lambda *args: pytest.fail('양식으로 정한 계획은 모델에게 묻지 않는다'))
     form = SimulationPlan(mode='flow', beats=['성문 대면'], characterIds=[KAEL, LINA])
     assert service.plan_from_form(form, TARGET) == form
-    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read']
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read']
 
 
 @pytest.mark.parametrize('form, said', [
@@ -195,6 +232,71 @@ def test_form_plan_the_world_or_the_mode_does_not_allow_fails_clearly_instead_of
     with pytest.raises(SimulationFailure) as error:
         service.plan_from_form(form, TARGET)
     assert error.value.status == 422 and said in str(error.value)
+
+
+# --- 필수 인물 문서(#357·#624): IDENTITY.md·SOUL.md가 비면 고를 수 없고 GOAL.md는 선택이다 -----------------------------------------------------
+
+def kael(body='KAEL-IDENTITY 북문을 지키는 기사', **docs):
+    """카엘 카드. docs로 SOUL·GOAL을 바꾼다(기본은 둘 다 채움)."""
+    return card(KAEL, '카엘', body, docs={'soul': 'KAEL-SOUL 퉁명스러운 반말', 'goal': 'KAEL-GOAL 왕가를 지킨다', 'episodes': {}, **docs})
+
+
+def read_with(carded):
+    """READ의 카엘 자리에 [carded]를 둔 세계관."""
+    return {**READ, 'cards': [carded, *(c for c in READ['cards'] if c['id'] != carded['id'])]}
+
+
+KAEL_ALONE = SimulationPlan(mode='if', premise='만약 북문이 열려 있었다면?', characterIds=[KAEL])
+FILL_IN = '세계관 관리 화면에서 채워 주세요'
+
+
+@pytest.mark.parametrize('carded, names', [
+    (kael(soul=' \n'), ['SOUL.md']),
+    (kael(body=''), ['IDENTITY.md']),
+    (kael(body=' ', soul=''), ['IDENTITY.md', 'SOUL.md']),
+    (card(KAEL, '카엘', 'KAEL-IDENTITY'), ['SOUL.md']),  # 인물 문서가 아예 없는 카드
+])
+def test_a_character_with_an_empty_required_doc_is_refused_and_the_error_names_the_docs(monkeypatch, carded, names):
+    fake_content(monkeypatch, read=read_with(carded))
+    with pytest.raises(SimulationFailure) as error:
+        service.plan_from_form(KAEL_ALONE, TARGET)
+    message = str(error.value)
+    assert error.value.status == 422 and '카엘' in message and FILL_IN in message
+    assert [name for name in ('IDENTITY.md', 'SOUL.md', 'GOAL.md') if name in message] == names  # 빈 문서 이름만 알린다(GOAL.md는 말하지 않는다)
+
+
+def test_the_goal_doc_is_optional_so_a_character_without_a_goal_can_take_part(monkeypatch):
+    fake_content(monkeypatch, read=read_with(kael(goal='  ')))
+    assert service.plan_from_form(KAEL_ALONE, TARGET) == KAEL_ALONE
+    service.check_plan(KAEL_ALONE, service.load_world(TARGET, '요청', None))  # 매 턴의 시작 확인도 통과한다
+
+
+def test_the_chat_planning_paths_refuse_it_too_the_model_planned_start_and_the_start_check_of_every_turn(monkeypatch):
+    fake_content(monkeypatch, read=read_with(kael(soul='')))
+    monkeypatch.setattr(service.agent, 'plan', lambda *args: PlanDraft(mode='if', premise='전제', beats=[], characterIds=[KAEL]))
+    with pytest.raises(SimulationFailure) as planned:
+        service.plan('카엘로 만약 장면을', [], TARGET)
+    with pytest.raises(SimulationFailure) as checked:
+        service.check_plan(KAEL_ALONE, service.load_world(TARGET, '요청', None))
+    assert (planned.value.status, checked.value.status) == (422, 422)
+    assert str(planned.value) == str(checked.value) and 'SOUL.md' in str(checked.value)
+
+
+def test_inherited_characters_are_judged_by_their_body_alone_because_the_authors_docs_are_never_inherited(monkeypatch):
+    fake_content(monkeypatch, worlds=[], inherited=INHERITED)
+    assert service.plan_from_form(PLAN_IF, TARGET) == PLAN_IF  # 이어받은 인물은 SOUL·GOAL이 없어도 된다(#365)
+    blank = {**INHERITED, 'cards': [{**INHERITED['cards'][0], 'body': ' '}, INHERITED['cards'][1]]}
+    fake_content(monkeypatch, worlds=[], inherited=blank)
+    with pytest.raises(SimulationFailure) as error:
+        service.plan_from_form(PLAN_IF, TARGET)
+    assert error.value.status == 422 and 'IDENTITY.md' in str(error.value) and 'SOUL.md' not in str(error.value)
+
+
+def test_a_missing_goal_is_left_out_of_the_characters_context_instead_of_being_invented(monkeypatch):
+    fake_novelbrain(monkeypatch)  # 작성된 GOAL.md가 문맥에 들어가는 것은 아래 character_input 테스트들이 이미 지킨다
+    _, (asked, _, _) = view(monkeypatch, plan=KAEL_ALONE, read=read_with(kael(goal='')))
+    assert f'card:{KAEL}#goal' not in [doc['ref'] for doc in asked['known']] and '목표(GOAL)' not in text(asked['known'])
+    assert {f'card:{KAEL}#identity', f'card:{KAEL}#soul'} <= {doc['ref'] for doc in asked['known']}  # 나머지 문서는 그대로다
 
 
 # --- 장면 상태(순수 함수) ----------------------------------------------------------------------------------------------
@@ -336,9 +438,11 @@ def test_redo_gives_back_the_beats_the_dropped_turns_had_finished():
 
 def test_a_stopped_scene_keeps_its_turns_and_marks_the_beat_that_was_refused():
     scene = scene_of(PLAN_FLOW, ('narration', {}))
-    stopped = service.stop_scene(scene, '카엘이 비트를 따르지 않아 멈췄어요.', 'stopped', 'beat_rejected', rejected=0)
-    assert [b.status for b in stopped.result.beats] == ['rejected', 'pending'] and len(stopped.result.turns) == 1
-    assert [b.status for b in scene.result.beats] == ['pending', 'pending']
+    stopped = service.stop_scene(scene, '카엘이 비트를 따르지 않아 멈췄어요.', 'stopped', 'beat_rejected', rejected=0, by=KAEL)
+    assert [(b.status, b.rejectedBy) for b in stopped.result.beats] == [('rejected', KAEL), ('pending', None)] and len(stopped.result.turns) == 1
+    assert [(b.status, b.rejectedBy) for b in scene.result.beats] == [('pending', None), ('pending', None)]
+    retried = service.apply_action(stopped, SceneAction(action='next'))  # 다시 시도하면 거부 표시가 비트의 거부와 함께 풀린다
+    assert [(b.status, b.rejectedBy) for b in retried.result.beats] == [('pending', None), ('pending', None)]
 
 
 # --- 턴 입력의 격리 ----------------------------------------------------------------------------------------------------
@@ -350,6 +454,47 @@ def view(monkeypatch, plan=PLAN_IF, actor=KAEL, scene=None, read=READ, manuscrip
     return world, service.character_view(plan, world, scene or service.new_scene(plan), world.characters[actor])
 
 
+def test_character_input_carries_card_links_as_plain_text_including_the_relation_sentences(monkeypatch):
+    # AI 입력 경계(DEC-53): 인물이 보는 카드 본문·관계 문장에 카드 id가 섞이지 않는다. 관계 문장은 스냅샷이 아니라 원본 응답에서도 읽던 곳이라 따로 확인한다.
+    link = '[승상](card:aaaaaaaa-2222-3333-4444-555555555555)'
+    world = {**READ,
+             'cards': [{**c, 'body': f'{c["body"]} {link}'} if c['id'] == KAEL else c for c in READ['cards']],
+             'relationships': [{**r, 'body': f'{r["body"]} {link}'} if r['id'] == REL else r for r in READ['relationships']]}
+    fake_novelbrain(monkeypatch)
+
+    _, (kael, _, _) = view(monkeypatch, read=world)
+
+    shown = text(kael)
+    assert 'KAEL-IDENTITY' in shown and '카엘은 리나를 경계한다 승상' in shown and 'KAEL-IDENTITY 북문을 지키는 기사 승상' in shown
+    assert '](card:' not in shown and 'aaaaaaaa-2222' not in shown  # 근거 ref(card:<id>#identity)는 입력의 내부 표기라 남는다
+
+
+def test_relation_sentences_in_the_character_input_read_as_the_target_is_the_sources_label(monkeypatch):
+    # 관계 'A → B 「관계명」'은 'B는 A의 관계명'으로 읽는다(DEC-54, 화면과 같다). 'A → B: 관계명'은 'A가 B의 관계명'으로도 읽혀 반대일 수 있었다.
+    fake_novelbrain(monkeypatch)
+    _, (kael, _, _) = view(monkeypatch)
+    known = {d['ref']: d['text'] for d in kael['known']}
+    assert known[f'relation:{REL}'] == '카엘의 경계: 리나 — 카엘은 리나를 경계한다'
+    assert known[f'relation:{REL6}'] == '카엘의 수호: 북문 — REL-KAEL-GATE 카엘은 북문을 지킨다'
+    assert known[f'relation:{REL3}'] == '카엘 ↔ 리나: 친구 아님'  # 대칭은 양쪽 화살표이고 부정은 끝에 '아님'이다
+
+
+@pytest.mark.parametrize('source,direction,polarity,label,expected', [
+    (KAEL, 'directed', 'asserted', '스승', '카엘의 스승: 리나'),
+    (LINA, 'directed', 'asserted', '스승', '리나의 스승: 카엘'),  # 읽는 쪽이 아니라 관계의 보내는 쪽(source) 기준이다
+    (KAEL, 'directed', 'denied', '스승', '카엘의 스승: 리나 아님'),
+    (KAEL, 'directed', 'asserted', '', '카엘 → 리나'),  # 관계명이 없으면 읽을 이름도 없어 화살표만 쓴다
+    (KAEL, 'symmetric', 'asserted', '동료', '카엘 ↔ 리나: 동료'),
+    (KAEL, 'symmetric', 'denied', '동료', '카엘 ↔ 리나: 동료 아님'),
+    (KAEL, None, 'asserted', '동료', '카엘 — 리나: 동료')])  # 방향을 모르면 줄표다(NovelBrain의 현재 관계 근거와 같은 문장)
+def test_relation_sentence_forms(monkeypatch, source, direction, polarity, label, expected):
+    target = LINA if source == KAEL else KAEL
+    fake_novelbrain(monkeypatch)
+    read = {**READ, 'relationships': [relation('00000000-0000-0000-0000-0000000000b1', source, target, label, '', direction, polarity)]}
+    _, (kael, _, _) = view(monkeypatch, read=read)
+    assert [d['text'] for d in kael['known'] if d['ref'].startswith('relation:')] == [expected]
+
+
 def test_character_input_holds_only_that_characters_documents_up_to_the_base_episode(monkeypatch):
     fake_novelbrain(monkeypatch)
     scene = scene_of(PLAN_IF, ('narration', {'observed': '밤비가 성문 앞에 내리고 있다.'}), ('character', {'observed': '카엘이 북문 앞에서 막아섰다.'}))
@@ -357,28 +502,28 @@ def test_character_input_holds_only_that_characters_documents_up_to_the_base_epi
     _, (lina, extra, _) = view(monkeypatch, actor=LINA, scene=scene)
     kael, lina = text(kael), text(lina)
     # 카엘: 자기 문서(기준 회차 이하)와 자기가 끝점인 활성 관계(부정 관계는 '아님'으로)만.
-    assert all(mark in kael for mark in ('KAEL-IDENTITY', 'KAEL-SOUL', 'KAEL-MEMORY', 'KAEL-EP2', '경계', '친구 아님', 'REL-KAEL-GATE'))
+    assert all(mark in kael for mark in ('KAEL-IDENTITY', 'KAEL-SOUL', 'KAEL-GOAL', 'KAEL-EP2', '경계', '친구 아님', 'REL-KAEL-GATE'))
     assert not any(mark in kael for mark in ('LINA-', 'KAEL-EP5-FUTURE', 'REMOVED', 'REL-LINA-GATE', 'REL-REMOVED'))
     # 기준 회차에 아직 공개되지 않은 카드와의 관계는 아는지 확인할 수 없어 관계 문장에도 상대 제목이 드러나지 않게 뺀다.
     assert not any(mark in kael for mark in ('REL-SHADOW', '그림자 길드', 'SHADOW'))
     # 리나: 카엘의 문서는 없고 장면에는 카엘이 드러낸 행동과 나레이션이 알린 것만 있다.
-    assert all(mark in lina for mark in ('LINA-IDENTITY', 'LINA-SOUL', 'LINA-MEMORY-SECRET', 'LINA-EP3', 'REL-LINA-GATE'))
-    assert not any(mark in lina for mark in ('KAEL-IDENTITY', 'KAEL-SOUL', 'KAEL-MEMORY', 'KAEL-EP'))
+    assert all(mark in lina for mark in ('LINA-IDENTITY', 'LINA-SOUL', 'LINA-GOAL', 'LINA-EP0-SECRET', 'LINA-EP3', 'REL-LINA-GATE'))  # 00회차는 늘 아는 것
+    assert not any(mark in lina for mark in ('KAEL-IDENTITY', 'KAEL-SOUL', 'KAEL-GOAL', 'KAEL-EP'))
     assert '카엘이 북문 앞에서 막아섰다.' in lina and '밤비가 성문 앞에 내리고 있다.' in lina
     assert set(service.character_view.__annotations__) >= {'plan', 'world', 'scene', 'actor'}  # 이전 인물의 입력·대화 상태를 받는 칸이 없다
 
 
 def test_real_novelbrain_filter_keeps_other_characters_private_documents_out_of_the_input(monkeypatch):
     _, (kael, _, evidence) = view(monkeypatch)  # 실제 recall(3단계 시점·인물 필터)
-    assert not any(mark in text(kael) for mark in ('LINA-SOUL', 'LINA-MEMORY-SECRET', 'LINA-EP3', 'KAEL-EP5-FUTURE'))
-    assert evidence and not any(e.ref.split('#')[-1] in ('soul', 'memory', 'ep03') and f'{LINA}' in e.ref for e in evidence)
+    assert not any(mark in text(kael) for mark in ('LINA-SOUL', 'LINA-GOAL', 'LINA-EP0-SECRET', 'LINA-EP3', 'KAEL-EP5-FUTURE'))
+    assert evidence and not any(e.ref.split('#')[-1] in ('soul', 'goal', 'ep00', 'ep03') and f'{LINA}' in e.ref for e in evidence)
 
 
 def test_input_uses_novelbrain_refs_and_lists_each_ref_once(monkeypatch):
     fake_novelbrain(monkeypatch, items=[recalled(ref=f'card:{KAEL}#soul', source='bm25', text='KAEL-SOUL 말이 짧고 퉁명스러운 반말')])
     _, (asked, _, evidence) = view(monkeypatch)
     refs = [d['ref'] for d in asked['known']]
-    assert {f'card:{KAEL}#identity', f'card:{KAEL}#soul', f'card:{KAEL}#memory', f'card:{KAEL}#ep02', f'relation:{REL}'} <= set(refs)
+    assert {f'card:{KAEL}#identity', f'card:{KAEL}#soul', f'card:{KAEL}#goal', f'card:{KAEL}#ep02', f'relation:{REL}'} <= set(refs)
     assert len(refs) == len(set(refs))  # 조회 결과가 이미 입력에 든 문서면 겹쳐 넣지 않는다
     assert [e.ref for e in evidence] == [f'card:{KAEL}#soul']  # 근거 기록에는 조회한 그대로 남는다
 
@@ -405,10 +550,10 @@ def test_the_checker_gets_other_characters_secrets_and_the_characters_future_as_
     fake_novelbrain(monkeypatch)
     _, (kael, kael_extra, _) = view(monkeypatch)
     _, (lina, lina_extra, _) = view(monkeypatch, actor=LINA)
-    assert all(mark in text(kael_extra['forbidden']) for mark in ('LINA-MEMORY-SECRET', 'LINA-EP3', 'KAEL-EP5-FUTURE'))
+    assert all(mark in text(kael_extra['forbidden']) for mark in ('LINA-GOAL', 'LINA-EP0-SECRET', 'LINA-EP3', 'KAEL-EP5-FUTURE'))
     assert 'KAEL-SOUL' not in text(kael_extra['forbidden'])  # SOUL은 말투 자료라 금지 목록이 아니다
     assert 'LINA-SOUL' in text(kael_extra['voices']) and 'KAEL-SOUL' in text(lina_extra['voices'])
-    assert all(mark in text(lina_extra['forbidden']) for mark in ('KAEL-MEMORY', 'KAEL-EP2', 'KAEL-EP5-FUTURE'))
+    assert all(mark in text(lina_extra['forbidden']) for mark in ('KAEL-GOAL', 'KAEL-EP2', 'KAEL-EP5-FUTURE'))
     assert 'forbidden' not in kael and 'voices' not in kael  # 인물에게는 금지 목록이 가지 않는다
 
 
@@ -542,7 +687,7 @@ def test_the_narrator_gets_the_world_up_to_the_base_episode_with_style_cards_and
     assert {KAEL, LINA, GATE} <= ids and not ({STYLE, PERSONA, SHADOW} & ids)  # 문체 카드·미공개 카드는 스냅샷에 없다
     assert all(5 not in c.episodes for c in recall[0]['world'].cards) and 3 in next(c for c in recall[0]['world'].cards if c.id == LINA).episodes
     assert all(mark in text(extra['forbidden']) for mark in ('KAEL-EP5-FUTURE', 'SHADOW-GUILD'))
-    assert not any(mark in text(extra['forbidden']) for mark in ('LINA-MEMORY-SECRET', 'KAEL-MEMORY')) and extra['voices'] == []
+    assert not any(mark in text(extra['forbidden']) for mark in ('LINA-EP0-SECRET', 'KAEL-GOAL')) and extra['voices'] == []
     assert asked['self'] == {'id': None, 'name': '나레이션'} and asked['present'] == ['카엘', '리나']
     # 문체 지침: 제목이 '나레이터'로 시작하는 카드는 유형과 상관없이 쓰고 인물 카드면 IDENTITY와 SOUL을 함께 쓴다.
     given = service.narration_input(PLAN_IF, world, service.new_scene(PLAN_IF), 'opening', 'omniscient')
@@ -594,3 +739,145 @@ def test_narration_input_names_the_point_of_view_character_and_the_checks_follow
     assert service.check_kinds(PLAN_FLOW, 'character', 'omniscient')[-1] == 'beat'
     assert service.check_kinds(PLAN_IF, 'narration', 'omniscient') == service.check_kinds(PLAN_IF, 'narration', f'limited:{KAEL}') == ['knowledge_leak']
     assert service.check_kinds(PLAN_IF, 'narration', f'first:{KAEL}') == service.check_kinds(PLAN_IF, 'monologue', f'limited:{KAEL}') == ['knowledge_leak', 'voice_mix']
+
+
+# --- 세계관 읽기 캐시 스위치(#642) ------------------------------------------------------------------------------------------
+
+LISTED = {'worldId': WORLD, 'name': '달빛 세계', 'linkedWorkId': 'work', 'draftRevision': 4, 'relationshipStatus': 'current'}
+
+
+def editable_world(monkeypatch, listed=LISTED):
+    """Content MCP 대역: 세계관을 고치면 목록의 draftRevision이 오르고 읽는 이름도 바뀐다. (호출한 도구 목록, 상태)를 돌려준다."""
+    calls, state = [], {'revision': listed.get('draftRevision', 0)}
+
+    def call(tool, arguments):
+        calls.append(tool)
+        if tool == 'world_studio_list':
+            return [{**listed, **({'draftRevision': state['revision']} if 'draftRevision' in listed else {})}]
+        return {**READ, 'name': f'rev{state["revision"]}'}
+
+    monkeypatch.setattr(service.content_mcp, 'call', call)
+    monkeypatch.setattr(service, '_WORLDS', {})  # 테스트마다 빈 캐시
+    return calls, state
+
+
+def test_without_the_cache_switch_every_request_reads_the_world_again(monkeypatch):
+    calls, _ = editable_world(monkeypatch)
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE)
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read'] * 2
+
+
+def test_the_cache_reuses_the_same_revision_but_asks_for_the_list_every_time(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, _ = editable_world(monkeypatch)
+    first = service.read_world('work', EPISODE)
+    second = service.read_world('work', EPISODE)
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read', 'world_studio_list']  # 목록은 매번, 읽기 둘은 처음 한 번
+    assert first == second == {**READ, 'name': 'rev4', 'identity': []}
+
+
+def test_a_world_the_author_edited_is_read_again_on_the_next_request(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, state = editable_world(monkeypatch)
+    assert service.read_world('work', EPISODE)['name'] == 'rev4'
+    state['revision'] = 5  # 작가가 설정집을 고쳐 저장했다(#356)
+    assert service.read_world('work', EPISODE)['name'] == 'rev5'
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read'] * 2
+    assert service.read_world('work', EPISODE)['name'] == 'rev5' and len(calls) == 7  # 새 revision도 다음부터 재사용한다
+
+
+def test_the_cache_is_kept_per_base_episode(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, _ = editable_world(monkeypatch)
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE + 1)
+    service.read_world('work', EPISODE)
+    assert calls.count('world_studio_read') == 4 and calls.count('world_studio_list') == 3  # 회차마다 칸이 따로라 3화로 돌아와도 다시 읽지 않는다
+
+
+@pytest.mark.parametrize('listed', [
+    {k: v for k, v in LISTED.items() if k != 'draftRevision'},        # revision을 알 수 없다
+    {k: v for k, v in LISTED.items() if k != 'relationshipStatus'},   # 관계 저장소 상태를 알 수 없다
+    {**LISTED, 'relationshipStatus': 'incomplete'},                   # 관계 저장이 끝나지 않았다(고치는 중)
+])
+def test_the_cache_is_not_used_when_the_list_cannot_vouch_for_the_revision_or_the_relations(monkeypatch, listed):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, _ = editable_world(monkeypatch, listed)
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE)
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read'] * 2
+
+
+def test_an_inherited_world_is_never_cached(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls = fake_content(monkeypatch, worlds=[], inherited=INHERITED)
+    monkeypatch.setattr(service, '_WORLDS', {})
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE)
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'work_inherited_world'] * 2
+
+
+def test_what_the_cache_returns_is_a_copy_so_a_caller_cannot_change_the_next_answer(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    editable_world(monkeypatch)
+    for _ in range(2):  # 처음 읽어 돌려준 값도, 캐시에서 돌려준 값도 호출자가 바꿔도 다음 답에 닿지 않는다
+        service.read_world('work', EPISODE)['name'] = '바뀐 이름'
+    assert service.read_world('work', EPISODE)['name'] == 'rev4'
+
+
+def test_the_cache_keeps_at_most_the_slot_limit_and_drops_the_oldest_slot_first(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    editable_world(monkeypatch)
+    for episode in range(1, service.WORLD_CACHE_SLOTS + 2):  # 한도보다 하나 많은 회차
+        service.read_world('work', episode)
+    assert len(service._WORLDS) == service.WORLD_CACHE_SLOTS
+    assert (WORLD, 1) not in service._WORLDS and (WORLD, 2) in service._WORLDS and (WORLD, service.WORLD_CACHE_SLOTS + 1) in service._WORLDS
+
+
+def test_threads_filling_a_full_cache_at_once_neither_break_it_nor_overfill_it(monkeypatch):
+    # 대화 모드에서 세계관 읽기는 스레드(asyncio.to_thread)에서 돈다: 칸이 가득 찬 캐시에 동시에 넣어도 오류 없이 한도를 지킨다.
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    editable_world(monkeypatch)
+    interval = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)  # 스레드가 자주 바뀌게 해 경쟁 구간을 넓힌다
+    try:
+        with ThreadPoolExecutor(8) as pool:
+            list(pool.map(lambda episode: service.read_world('work', episode), range(1, 800)))  # 서로 다른 칸 799개
+    finally:
+        sys.setswitchinterval(interval)
+    assert len(service._WORLDS) <= service.WORLD_CACHE_SLOTS
+
+
+
+# --- 검사 입력: 금지 목록은 문단·직전 장면과 관련된 것만(#646, 원문 기반 평가 V2) ---------------------------------------------
+
+def forbidden_docs(n, prefix='먼 곳의 무관한 이야기'):
+    return [{'ref': f'card:x#ep{i:02d}', 'label': f'{i}회차 기억', 'text': f'{prefix} {i}번', 'owner': '리나'} for i in range(n)]
+
+
+def check_input(forbidden):
+    return {'self': {'id': KAEL, 'name': '카엘'}, 'known': [], 'present': ['카엘', '리나'], 'forbidden': forbidden, 'voices': [], 'others': [], 'direction': {},
+            'scene': [{'ref': f'scene:{i}', 'by': '리나', 'text': text} for i, text in enumerate(['아무 상관 없는 줄', '북문 열쇠가 어디 있는지 아무도 몰랐다.'])]}
+
+
+def test_relevant_keeps_the_docs_most_like_the_query_in_their_original_order():
+    docs = [{'text': '숲에서 길을 잃었다'}, {'text': '북문 열쇠를 훔쳤다'}, {'text': '바다 건너 먼 나라'}, {'text': '열쇠는 북문 안에 있다'}]
+    assert service.relevant(docs, '북문 열쇠', 2) == [docs[1], docs[3]]
+    assert service.relevant(docs, '북문 열쇠', 9) is docs   # 상한 이하면 그대로
+
+
+def test_check_payload_limits_the_forbidden_docs_of_a_dialogue_to_the_ones_like_the_paragraph_and_scene():
+    docs = forbidden_docs(40) + [{'ref': 'card:x#goal', 'label': '목표', 'text': '리나는 북문 열쇠를 훔쳐 달아난다', 'owner': '리나'}]
+    body = service.check_payload(check_input(docs), ['knowledge_leak', 'voice_mix'], '"리나가 북문 열쇠를 훔친다는 걸 알아."', 'character')
+    assert len(body['forbidden']) == service.FORBIDDEN_LIMIT and body['forbidden'][-1]['ref'] == 'card:x#goal'   # 문단과 겹치는 문서가 남고 원래 순서가 유지된다
+    assert body['checks'] == ['knowledge_leak', 'voice_mix'] and body['paragraph'].startswith('"리나가') and body['scene'] == check_input(docs)['scene']
+    assert [d['ref'] for d in body['forbidden'][:-1]] == sorted(d['ref'] for d in body['forbidden'][:-1])
+
+
+def test_check_payload_leaves_short_lists_and_non_dialogue_turns_alone():
+    few = forbidden_docs(service.FORBIDDEN_LIMIT)
+    assert service.check_payload(check_input(few), ['knowledge_leak'], '문단', 'character')['forbidden'] == few
+    many = forbidden_docs(service.FORBIDDEN_LIMIT + 10)
+    for kind in ('narration', 'monologue'):   # 평가하지 않은 턴(전지적 나레이션 검사는 따로 큰 입력이다)은 줄이지 않는다
+        assert service.check_payload(check_input(many), ['knowledge_leak'], '문단', kind)['forbidden'] == many

@@ -24,10 +24,11 @@ it('treats only a world just created from the creation screen (?new=1) as write 
   for (const query of ['new=0', 'new=', 'new=true', 'NEW=1']) expect(at(query), query).toBe('manage')
 })
 
-it('lists the manage views (settings book · character relations · timeline) in order and reads ?view= as one of them, falling back to the settings book', () => {
-  expect(MANAGE_VIEWS.map(([id, label]) => [id, label])).toEqual([['book', '설정집'], ['people', '인물 관계도'], ['timeline', '시간선']])
-  expect(['book', 'people', 'timeline'].map(parseManageView)).toEqual(['book', 'people', 'timeline'])
-  expect([null, '', 'steps', 'BOOK', 'write', 'explore', 'analysis'].map(parseManageView)).toEqual(['book', 'book', 'book', 'book', 'book', 'book', 'book'])
+it('lists the manage views (overview · settings book · character relations · timeline · novel link) in order and reads ?view= as one of them, falling back to the settings book', () => {
+  expect(MANAGE_VIEWS.map(([id, label]) => [id, label])).toEqual([['overview', '개요'], ['book', '설정집'], ['people', '관계도'], ['timeline', '시간선'], ['novel', '소설 연결']])
+  expect(['overview', 'book', 'people', 'timeline', 'novel'].map(parseManageView)).toEqual(['overview', 'book', 'people', 'timeline', 'novel'])
+  // 개요가 메뉴 첫 줄이어도 주소에 값이 없으면 기본 보기는 설정집이다(카드 편집에서 돌아오기·옛 링크가 게시판을 전제로 한다).
+  expect([null, '', 'steps', 'BOOK', 'write', 'explore', 'analysis', 'Overview', 'NOVEL', 'info'].map(parseManageView)).toEqual(Array(10).fill('book'))
 })
 
 it('moves an old ?tab= address to the view or sheet that replaced that tab', () => {

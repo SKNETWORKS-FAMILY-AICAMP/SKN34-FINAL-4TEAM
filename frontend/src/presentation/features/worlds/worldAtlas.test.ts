@@ -3,20 +3,25 @@ import { describe, expect, it } from 'vitest'
 import { InMemoryPublicWorldRepository } from '../../../data/mock/InMemoryPublicWorldRepository'
 import type { PublicWorldSummary } from '../../../domain/entities/publicWorld'
 import { CARD_COLORS } from '../../shared/worldBoard'
-import { ALL_CHIP, UNSET_GENRE, WORLD_GENRES, genreCode, type WorldGenre } from '../../shared/worldGenres'
+import { ALL_CHIP, UNSET_COLOR, genreColor } from '../../shared/worldGenres'
 import {
-  GENRE_COLORS, LINEAGE_COLORS, WORLD_USE_WEIGHT, aspectGravity, atlasEndpoint, atlasFeatures, buildWorldAtlas, highlightIds, lineageCounts, liveRank, nodeRadius, rankByLineage, rankByRecent, showsLabel,
+  LINEAGE_COLORS, WORLD_USE_WEIGHT, aspectGravity, atlasEndpoint, atlasFeatures, buildWorldAtlas, highlightIds, lineageCounts, liveRank, nodeRadius, rankByLineage, rankByRecent, showsLabel,
   type AtlasLink, type AtlasNode, type WorldAtlas,
 } from './worldAtlas'
 
+/** 시드 장르의 코드(DEC-56). 서버는 코드만 주고 이름(genreName)은 UseCase가 붙인다. */
+const CODES = { 판타지: 'genre-01', SF: 'genre-14', 무협: 'genre-03', 로맨스: 'genre-06', 현대: 'genre-10', 고전: 'genre-28' } as const
+type WorldGenre = keyof typeof CODES
+const NAMES: Record<string, string> = Object.fromEntries(Object.entries(CODES).map(([name, code]) => [code, name]))
+
 /** 카드 점이 있는 세계관 요약(설정 카드 2장). 카드 id는 위치, 지도 점은 이 카드로 그려진다(목록 응답에는 없고 메모리 데모만 준다). */
 const world = (id: string, genre: WorldGenre, lineage: Pick<PublicWorldSummary, 'derivedFrom' | 'combinedFrom'> = {}): PublicWorldSummary => ({
-  id, name: `${id} 세계`, description: '설명', genre: genreCode(genre) ?? null, authorNickname: '작가', cardCount: 2, relationshipCount: 0, publishedAt: '2026-11-01T00:00:00Z',
+  id, name: `${id} 세계`, description: '설명', genre: CODES[genre], genreName: genre, authorNickname: '작가', cardCount: 2, relationshipCount: 0, publishedAt: '2026-11-01T00:00:00Z',
   cards: [{ id: '0', title: `${id} 카드 1`, cardType: 'other' }, { id: '1', title: `${id} 카드 2`, cardType: 'character' }], ...lineage,
 })
 /** 서버 목록 응답처럼 카드 점·계보가 없는 세계관 요약 */
 const listed = (id: string, genre: PublicWorldSummary['genre'], extra: Partial<PublicWorldSummary> = {}): PublicWorldSummary => ({
-  id, name: `${id} 세계`, description: '설명', genre, authorNickname: '작가', cardCount: 3, relationshipCount: 1, publishedAt: '2026-11-01T00:00:00Z', ...extra,
+  id, name: `${id} 세계`, description: '설명', genre, genreName: genre ? NAMES[genre] ?? null : null, authorNickname: '작가', cardCount: 3, relationshipCount: 1, publishedAt: '2026-11-01T00:00:00Z', ...extra,
 })
 // 메모리 데모의 세계관 요약 26개(파생·조합과 카드 점이 모두 있다)
 const DEMO = (await new InMemoryPublicWorldRepository().list({ page: 0, size: 100 })).items
@@ -108,7 +113,7 @@ describe('buildWorldAtlas', () => {
 
   it('장르·세계관은 장르 색, 설정 카드는 유형 묶음 색이다', () => {
     const atlas = buildWorldAtlas([world('a', 'SF')])
-    expect(atlas.nodes.filter((n) => n.kind !== 'card').map((n) => n.color)).toEqual([GENRE_COLORS.SF, GENRE_COLORS.SF])
+    expect(atlas.nodes.filter((n) => n.kind !== 'card').map((n) => n.color)).toEqual([genreColor('genre-14'), genreColor('genre-14')])
     expect(atlas.nodes.filter((n) => n.kind === 'card').map((n) => n.color)).toEqual([CARD_COLORS.기타, CARD_COLORS.인물])
   })
 
@@ -134,19 +139,20 @@ describe('buildWorldAtlas', () => {
 
 describe('색', () => {
   it('모든 장르·카드 유형 묶음·파생/조합 선에 #RRGGBB 색이 있다', () => {
-    for (const genre of [...WORLD_GENRES, UNSET_GENRE]) expect(GENRE_COLORS[genre], genre).toMatch(/^#[0-9a-f]{6}$/i)
+    for (const color of [...Object.values(CODES).map(genreColor), UNSET_COLOR]) expect(color).toMatch(/^#[0-9a-f]{6}$/i)
     for (const [kind, color] of Object.entries({ ...CARD_COLORS, ...LINEAGE_COLORS })) expect(color, kind).toMatch(/^#[0-9a-f]{6}$/i)
   })
 })
 
 describe('nodeRadius', () => {
-  it('설정 카드 < 세계관 < 장르 순으로 크고 세계관은 쓰인 횟수가 많을수록 커진다', () => {
+  it('설정 카드 < 세계관 < 장르 순으로 크고 세계관은 설정 카드 수·쓰인 횟수와 상관없이 같은 크기다', () => {
     const atlas = buildWorldAtlas(DEMO)
     const radii = (kind: AtlasNode['kind']) => atlas.nodes.filter((n) => n.kind === kind).map(nodeRadius)
     expect(Math.max(...radii('card'))).toBeLessThan(Math.min(...radii('world')))
     expect(Math.max(...radii('world'))).toBeLessThan(Math.min(...radii('genre')))
+    expect(new Set(radii('world')).size).toBe(1)
     const small = buildWorldAtlas(sample)
-    expect(nodeRadius(find(small, 'world', 'a'))).toBeGreaterThan(nodeRadius(find(small, 'world', 'e')))
+    expect(nodeRadius(find(small, 'world', 'a'))).toBe(nodeRadius(find(small, 'world', 'e')))
   })
 })
 
@@ -263,7 +269,7 @@ describe('rankByLineage', () => {
 })
 
 describe('rankByRecent', () => {
-  const at = (id: string, publishedAt: string) => listed(id, 'fantasy', { publishedAt })
+  const at = (id: string, publishedAt: string) => listed(id, 'genre-01', { publishedAt })
   const ids = (worlds: PublicWorldSummary[], limit?: number) => rankByRecent(worlds, limit).map((w) => w.id)
 
   it('공개 시각이 최근인 순이고 같은 시각이면 입력 순서를 지킨다', () => {
@@ -299,13 +305,13 @@ describe('liveRank', () => {
   })
 
   it('계보 필드가 있어도 쓸 수 있는 원본이 하나도 없으면(없는 id·자기 자신) 계보가 없는 데이터로 본다', () => {
-    const { basis } = liveRank([listed('x', 'sf', { derivedFrom: 'ghost' }), listed('y', 'sf', { derivedFrom: 'y' })])
+    const { basis } = liveRank([listed('x', 'genre-14', { derivedFrom: 'ghost' }), listed('y', 'genre-14', { derivedFrom: 'y' })])
     expect(basis).toBe('recent')
   })
 })
 
 describe('서버 목록으로 만든 지도(카드 점·계보 없음)', () => {
-  const real = [listed('a', 'fantasy', { cardCount: 5 }), listed('b', 'fantasy', { cardCount: 0 }), listed('c', null, { cardCount: 2 }), listed('d', 'sf')]
+  const real = [listed('a', 'genre-01', { cardCount: 5 }), listed('b', 'genre-01', { cardCount: 0 }), listed('c', null, { cardCount: 2 }), listed('d', 'genre-14')]
 
   it('장르와 세계관만 노드가 되고 카드 점·파생·조합 링크는 없다', () => {
     const atlas = buildWorldAtlas(real)
@@ -316,10 +322,9 @@ describe('서버 목록으로 만든 지도(카드 점·계보 없음)', () => {
     expect(pairs(atlas, 'genre')).toEqual([['판타지', 'a'], ['판타지', 'b'], ['미지정', 'c'], ['SF', 'd']])
   })
 
-  it('세계관 크기는 서버가 알려 준 설정 카드 수만으로 정해진다(쓰인 횟수 가중이 없다)', () => {
+  it('세계관 크기는 서버가 알려 준 설정 카드 수와 상관없이 같다', () => {
     const atlas = buildWorldAtlas(real)
-    expect([find(atlas, 'world', 'a').val, find(atlas, 'world', 'b').val]).toEqual([5, 0])
-    expect(nodeRadius(find(atlas, 'world', 'a'))).toBeGreaterThan(nodeRadius(find(atlas, 'world', 'b')))
+    expect(nodeRadius(find(atlas, 'world', 'a'))).toBe(nodeRadius(find(atlas, 'world', 'b')))
   })
 
   it('통계는 세계관 수와 카드 수 합계이고 파생·조합은 0이다', () => {
@@ -329,7 +334,7 @@ describe('서버 목록으로 만든 지도(카드 점·계보 없음)', () => {
   it('장르가 없는 세계관은 미지정 장르 노드에 이어지고 그 색을 쓴다', () => {
     const atlas = buildWorldAtlas(real)
     expect(find(atlas, 'world', 'c').genre).toBe('미지정')
-    expect(find(atlas, 'genre', '미지정').color).toBe(GENRE_COLORS.미지정)
+    expect(find(atlas, 'genre', '미지정').color).toBe(UNSET_COLOR)
   })
 })
 
@@ -340,6 +345,6 @@ describe('atlasFeatures', () => {
   })
 
   it('서버 목록 지도는 둘 다 숨긴다', () => {
-    expect(atlasFeatures(buildWorldAtlas([listed('a', 'fantasy')]))).toEqual({ cards: false, lineage: false })
+    expect(atlasFeatures(buildWorldAtlas([listed('a', 'genre-01')]))).toEqual({ cards: false, lineage: false })
   })
 })

@@ -69,6 +69,44 @@ const status = () => screen.getByRole('status')
 const end = () => act(() => { toast().moveCursorToEnd(false) })
 const type = (text: string) => act(() => { toast().insertText(text) })
 const select = (from: [number, number], to = from) => act(() => { toast().setSelection(from, to) })
+
+it('End는 브라우저가 찾은 표시 줄 끝을 즉시 반영하고 선택한 원문을 보존한다', () => {
+  render(draw(<Harness initial="앞줄 끝 뒷줄 보존" />))
+  select([1, 1], [1, 3])
+  const selection = document.getSelection()!
+  const text = document.createTreeWalker(surface(), NodeFilter.SHOW_TEXT).nextNode()!
+  const modify = vi.fn(() => selection.collapse(text, 4))
+  // jsdom에는 줄 배치가 없다. 브라우저의 표시 줄 경계 결과를 전달한다.
+  vi.spyOn(document, 'getSelection').mockReturnValue(Object.assign(selection, { modify }))
+  try {
+    fireEvent.keyDown(surface(), { key: 'End', code: 'End' })
+    type('\n')
+    expect(modify).toHaveBeenCalledWith('move', 'forward', 'lineboundary')
+    expect(toast().getMarkdown()).toBe('앞줄 끝\n 뒷줄 보존')
+  } finally { delete (selection as Partial<Selection>).modify }
+})
+
+it('인용 줄 Enter는 인용 기호 없이 일반 문단으로 이동하고 공백을 보존한다', () => {
+  render(draw(<Harness initial="> 인용  뒤" />))
+  select([1, 5])
+  fireEvent.keyDown(surface(), { key: 'Enter', code: 'Enter' })
+  expect(toast().getMarkdown()).toBe('> 인용\n  뒤')
+})
+
+it('서식 직후 End와 Enter를 연속 입력해도 원래 줄을 지우지 않는다', () => {
+  render(draw(<Harness initial="남아야 하는 문장" />))
+  select([1, 1], [1, '남아야 하는 문장'.length + 1])
+  const selection = document.getSelection()!
+  selection.modify = () => selection.collapse(surface().lastElementChild, surface().lastElementChild!.childNodes.length)
+  try {
+    act(() => {
+      toast().exec('blockQuote')
+      fireEvent.keyDown(surface(), { key: 'End', code: 'End' })
+      fireEvent.keyDown(surface(), { key: 'Enter', code: 'Enter' })
+    })
+    expect(toast().getMarkdown()).toBe('> 남아야 하는 문장\n')
+  } finally { delete (selection as Partial<Selection>).modify }
+})
 const png = () => new File(['png'], '본문.png', { type: 'image/png' })
 
 type HarnessProps = {
@@ -783,4 +821,24 @@ it('이미지 줄을 지우거나 화면에서 사라지면 이미지 위젯에 
   expect(mounted.images).toBe(0)
   expect(made.destroyed).toEqual([made.editors[0]])
   expect(place.children).toHaveLength(0)
+})
+
+it('선택한 글을 저장 문자열 기준으로 돌려주고, 선택이 없으면 빈 글이다(#554 집필 AI 채팅의 선택 구간)', async () => {
+  const handle = createRef<ManuscriptEditorHandle>()
+  render(draw(<Harness initial={'그는 웃었다.\n바람이 불었다.\n세 번째 줄'} handle={handle} />))
+  await screen.findByRole('group', { name: '원고 보기' })
+  select([1, 1])
+  expect(handle.current!.selectedText()).toBe('')
+  select([1, 1], [1, 8]) // 첫 줄의 "그는 웃었다."
+  expect(handle.current!.selectedText()).toBe('그는 웃었다.')
+  select([1, 4], [2, 3]) // 줄을 걸친 선택은 줄바꿈으로 잇는다
+  expect(handle.current!.selectedText()).toBe('웃었다.\n바람')
+})
+
+it('선택한 글에 이미지 줄이 걸려도 Toast 내부 표기($$widget)가 아니라 저장 표식으로 돌려준다', async () => {
+  const handle = createRef<ManuscriptEditorHandle>()
+  render(draw(<Harness initial={`앞\n${MARK}\n뒤`} handle={handle} />))
+  await screen.findByRole('img', { name: '본문 이미지 1' })
+  select([1, 1], [3, 2])
+  expect(handle.current!.selectedText()).toBe(`앞\n${MARK}\n뒤`)
 })

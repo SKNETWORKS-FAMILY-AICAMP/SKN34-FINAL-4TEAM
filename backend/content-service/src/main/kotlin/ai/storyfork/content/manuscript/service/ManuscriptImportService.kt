@@ -11,19 +11,30 @@ import ai.storyfork.content.episode.service.dto.DraftRequest
 import ai.storyfork.content.episode.service.dto.EpisodeResponse
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
 import ai.storyfork.content.episode_version.service.dto.VersionResponse
+import ai.storyfork.content.preprocessing.service.PreprocessingService
 import ai.storyfork.content.work.service.WorkAccessService
+import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.manuscript.domain.*
 import ai.storyfork.content.manuscript.service.dto.*
+import ai.storyfork.content.world.controller.WorldStudioExceptionHandler
+import ai.storyfork.content.world.domain.WorldConflict
+import ai.storyfork.content.world.domain.WorldNotFound
+import ai.storyfork.content.world.domain.WorldStudioFailure
+import ai.storyfork.content.world.service.dto.ManuscriptBuildRequest
 import java.io.IOException
+import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.dao.DataAccessException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.TransactionException
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.multipart.MultipartFile
 
 /**
  * TXT·EPUB 원고 미리보기와 등록 확정. 상태를 저장하지 않으므로 확정은 같은 파일을 다시 읽어 조정한 범위로 회차를 만든다.
  * 회차 생성·저장 버전·이미지는 기존 EpisodeService·EpisodeVersionService·AttachmentService의 공개 메서드를 그대로 쓴다.
+ * 회차를 하나 이상 저장하면 확인 없이 기존 [PreprocessingService.start]로 최초 세계관 구축 접수를 시도하고 결과를 응답의 `worldBuild`에 싣는다.
  */
 @Service
 class ManuscriptImportService(
@@ -32,8 +43,11 @@ class ManuscriptImportService(
     private val attachments: AttachmentService,
     @Qualifier("contentTransactions") private val transactions: TransactionTemplate,
     private val access: WorkAccessService,
+    private val preprocessing: PreprocessingService,
+    private val worlds: WorkWorldService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val studioErrors = WorldStudioExceptionHandler()
 
     /** 저장하지 않고 파일을 읽어 회차 후보를 보여 준다. 소유자가 아니면 파일을 읽기 전에 404다. */
     fun preview(work: String, owner: String, file: MultipartFile?): ManuscriptPreviewResponse {
@@ -56,7 +70,8 @@ class ManuscriptImportService(
         val results = items.map { item ->
             importOne(work, owner, item, manuscript.episode(item.from, item.to), count).also { if (it.status != "failed") count = maxOf(count, item.number) }
         }
-        return ManuscriptImportResponse(results.count { it.status != "failed" }, results.count { it.status == "failed" }, results)
+        return ManuscriptImportResponse(results.count { it.status != "failed" }, results.count { it.status == "failed" }, results,
+            startBuild(work, owner, results.any { it.status != "failed" }))
     }
 
     fun bulkBasis(work: String, owner: String): BulkImportBasis = requireNotNull(transactions.execute {
@@ -65,6 +80,45 @@ class ManuscriptImportService(
     })
 
     fun importBulk(work: String, owner: String, files: List<MultipartFile>, request: BulkImportRequest): BulkImportResponse {
+        val saved = saveBulk(work, owner, files, request)
+        return saved.copy(worldBuild = startBuild(work, owner, request.startWorldBuild && saved.results.any { it.status != "failed" }))
+    }
+
+    /**
+     * 가져오기가 회차를 하나 이상 저장했고 호출자가 막지 않았으면([attempt]) 시작 API와 같은 접수를 확인 없이 시도한다(업로드 자동 시작).
+     * 저장은 이미 커밋됐고 AI 호출도 그 트랜잭션 밖이라 접수가 거절돼도 저장을 되돌리지 않으며, 거절은 시작 API와 같은 code·문구로 `rejected`에 싣는다.
+     * 일괄 가져오기는 요청의 `startWorldBuild`가 false인 묶음에서 접수를 건너뛴다(화면이 여러 묶음 중 마지막만 true로 보내 첫 묶음의 회차만 작업에 들어가는 일을 막는다).
+     */
+    private fun startBuild(work: String, owner: String, attempt: Boolean): ManuscriptImportWorldBuild? {
+        if (!attempt) return null
+        return try {
+            val world = worlds.linkedWorldId(work, owner) ?: UUID.randomUUID()
+            ManuscriptImportWorldBuild("started", preprocessing.start(work, owner, ManuscriptBuildRequest(world, "import:${UUID.randomUUID()}", true)).id, null, null)
+        } catch (e: ContentFailure) {
+            ManuscriptImportWorldBuild("rejected", null, e.code, e.message)
+        } catch (e: RuntimeException) {
+            studioRejection(e) ?: run {
+                // 예외 문구에는 입력 행(원고)이 실릴 수 있어 종류만 남긴다.
+                log.warn("원고 가져오기 뒤 세계관 구축 접수 실패: work={} reason={}", work, e.javaClass.simpleName)
+                ManuscriptImportWorldBuild("rejected", null, null, "세계관 만들기를 시작하지 못했어요. 잠시 후 다시 시도해 주세요.")
+            }
+        }
+    }
+
+    /** 시작 API에서 [WorldStudioExceptionHandler]가 code·문구를 붙이는 예외는 같은 값으로 옮긴다(WorkWorldService.studioCall과 같은 매핑). 그 밖은 null이다. */
+    private fun studioRejection(error: RuntimeException): ManuscriptImportWorldBuild? {
+        val body = checkNotNull(when (error) {
+            is WorldStudioFailure -> studioErrors.failure(error)
+            is WorldNotFound -> studioErrors.missing()
+            is WorldConflict -> studioErrors.conflict()
+            is IllegalArgumentException -> studioErrors.invalid()
+            is DataAccessException, is TransactionException -> studioErrors.persistence()
+            else -> return null
+        }.body)
+        return ManuscriptImportWorldBuild("rejected", null, body.code, body.detail)
+    }
+
+    private fun saveBulk(work: String, owner: String, files: List<MultipartFile>, request: BulkImportRequest): BulkImportResponse {
         var revision = access.own(work, owner).also { access.requireRevision(it, request.expectedWorkRevision) }.revision
         checkContent(request.rightsConfirmed, message = "원고를 등록하려면 권리 확인이 필요해요.")
         checkContent(files.size in 1..BULK_FILES && files.size == request.items.size,

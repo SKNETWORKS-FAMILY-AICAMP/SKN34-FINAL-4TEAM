@@ -1,7 +1,11 @@
 import { ImageGenerationUseCase } from "../../domain/usecases/ImageGenerationUseCase"
 import { HttpImageGenerationRepository } from "../../data/api/HttpImageGenerationRepository"
+import {ManuscriptBuildUseCase} from '../../domain/usecases/ManuscriptBuildUseCase'
+import {HttpManuscriptBuildRepository} from '../../data/content/HttpManuscriptBuildRepository'
 import {InitialWorldUseCase} from '../../domain/usecases/InitialWorldUseCase'
 import {HttpInitialWorldRepository} from '../../data/world-studio/HttpInitialWorldRepository'
+import {WorldReviewUseCase} from '../../domain/usecases/WorldReviewUseCase'
+import {HttpWorldReviewRepository} from '../../data/world-studio/HttpWorldReviewRepository'
 import { OperationsUseCase } from '../../domain/usecases/OperationsUseCase'
 import { MemberUseCase } from '../../domain/usecases/MemberUseCase'
 import { NoticeUseCase } from '../../domain/usecases/NoticeUseCase'
@@ -9,11 +13,21 @@ import { ReportUseCase } from '../../domain/usecases/ReportUseCase'
 import { SupportInquiryUseCase } from '../../domain/usecases/SupportInquiryUseCase'
 import { EventUseCase } from '../../domain/usecases/EventUseCase'
 import { OperationsWorkUseCase } from '../../domain/usecases/OperationsWorkUseCase'
+import { OperationsGenreUseCase } from '../../domain/usecases/OperationsGenreUseCase'
+import { GenreUseCase } from '../../domain/usecases/GenreUseCase'
 import { OperationsCommentUseCase } from '../../domain/usecases/OperationsCommentUseCase'
+import { OperationsCreditUseCase } from '../../domain/usecases/OperationsCreditUseCase'
 import { AdminActivityUseCase } from '../../domain/usecases/AdminActivityUseCase'
+import { JobMonitorUseCase } from '../../domain/usecases/JobMonitorUseCase'
+import { LlmOpsUseCase } from '../../domain/usecases/LlmOpsUseCase'
+import { OperationsDashboardUseCase } from '../../domain/usecases/OperationsDashboardUseCase'
 import { HttpEventRepository } from '../../data/api/HttpEventRepository'
+import { HttpOperationsCreditRepository } from '../../data/api/HttpOperationsCreditRepository'
 import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
 import { HttpNoticeRepository } from '../../data/api/noticeApi'
+import { HttpOperationsGenreRepository } from '../../data/api/genreApi'
+import { HttpGenreRepository } from '../../data/content/HttpGenreRepository'
+import { HttpJobMonitorRepository, HttpLlmOpsRepository, HttpOperationsDashboardRepository } from '../../data/api/llmOpsApi'
 import { InMemoryOperationsRepository } from '../../data/mock/InMemoryOperationsRepository'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import { StoryPlanUseCase } from '../../domain/usecases/StoryPlanUseCase'
@@ -98,14 +112,27 @@ export function registerAppServices(container: AppContainer) {
     eventUseCase: asFunction(({ eventRepository }) => new EventUseCase(eventRepository)).singleton(),
     operationsWorkRepository: asFunction(() => new HttpOperationsWorkRepository()).singleton(),
     operationsWorkUseCase: asFunction(({ operationsWorkRepository }) => new OperationsWorkUseCase(operationsWorkRepository)).singleton(),
+    genreRepository: asFunction(() => new HttpGenreRepository()).singleton(),
+    genreUseCase: asFunction(({ genreRepository }) => new GenreUseCase(genreRepository)).singleton(),
+    operationsGenreRepository: asFunction(() => new HttpOperationsGenreRepository()).singleton(),
+    operationsGenreUseCase: asFunction(({ operationsGenreRepository }) => new OperationsGenreUseCase(operationsGenreRepository)).singleton(),
+    operationsCreditRepository: asFunction(() => new HttpOperationsCreditRepository()).singleton(),
+    operationsCreditUseCase: asFunction(({ operationsCreditRepository }) => new OperationsCreditUseCase(operationsCreditRepository)).singleton(),
     operationsCommentRepository: asFunction(() => new HttpOperationsCommentRepository()).singleton(),
     operationsCommentUseCase: asFunction(({ operationsCommentRepository }) => new OperationsCommentUseCase(operationsCommentRepository)).singleton(),
     adminActivityRepository: asFunction(() => new HttpAdminActivityRepository()).singleton(),
     adminActivityUseCase: asFunction(({ adminActivityRepository }) => new AdminActivityUseCase(adminActivityRepository)).singleton(),
+    operationsDashboardRepository: asFunction(() => new HttpOperationsDashboardRepository()).singleton(),
+    operationsDashboardUseCase: asFunction(({ operationsDashboardRepository }) => new OperationsDashboardUseCase(operationsDashboardRepository)).singleton(),
+    llmOpsRepository: asFunction(() => new HttpLlmOpsRepository()).singleton(),
+    llmOpsUseCase: asFunction(({ llmOpsRepository }) => new LlmOpsUseCase(llmOpsRepository)).singleton(),
+    jobMonitorRepository: asFunction(() => new HttpJobMonitorRepository()).singleton(),
+    jobMonitorUseCase: asFunction(({ jobMonitorRepository }) => new JobMonitorUseCase(jobMonitorRepository)).singleton(),
     initialWorldUseCase: asFunction(() => new InitialWorldUseCase(new HttpInitialWorldRepository())).singleton(),
     worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new HttpWorldStudioRepository())).singleton(),
+    worldReviewUseCase: asFunction(() => new WorldReviewUseCase(new HttpWorldReviewRepository())).singleton(),
     publicWorldRepository: asFunction(() => new HttpPublicWorldRepository()).singleton(),
-    publicWorldUseCase: asFunction(({ publicWorldRepository }) => new PublicWorldUseCase(publicWorldRepository)).singleton(),
+    publicWorldUseCase: asFunction(({ publicWorldRepository, genreRepository }) => new PublicWorldUseCase(publicWorldRepository, genreRepository)).singleton(),
     profileRepository: asValue(profileRepository),
     profileUseCase: asFunction(({ profileRepository }) => new ProfileUseCase(profileRepository)).singleton(),
     authRepository: asValue(authRepository),
@@ -114,6 +141,8 @@ export function registerAppServices(container: AppContainer) {
     signupUseCase: asFunction(({ signupRepository }) => new SignupUseCase(signupRepository)).singleton(),
     mediaRepository: asFunction(() => new HttpMediaRepository()).singleton(),
     mediaUseCase: asFunction(({ mediaRepository }) => new MediaUseCase(mediaRepository)).singleton(),
+    manuscriptBuildRepository: asFunction(() => new HttpManuscriptBuildRepository()).singleton(),
+    manuscriptBuildUseCase: asFunction(({manuscriptBuildRepository}) => new ManuscriptBuildUseCase(manuscriptBuildRepository)).singleton(),
     manuscriptRepository: asFunction(() => new HttpManuscriptRepository()).singleton(),
     manuscriptUseCase: asFunction(({ manuscriptRepository }) => new ManuscriptUseCase(manuscriptRepository)).singleton(),
     episodeRepository: asFunction(() => new HttpEpisodeRepository()).singleton(),
@@ -145,7 +174,7 @@ export function registerAppServices(container: AppContainer) {
     creditRepository: asFunction(({ mockDb }) => new InMemoryCreditRepository(mockDb)).singleton(),
     adminRepository: asFunction(({ mockDb }) => new InMemoryAdminRepository(mockDb)).singleton(),
     adminUseCase: asFunction(({ adminRepository, workRepository, feedbackRepository, creditRepository, chatRepository }) => new AdminUseCase(adminRepository, workRepository, feedbackRepository, creditRepository, chatRepository)).singleton(),
-    accountUseCase: asFunction(({ workRepository, worldRepository, workInterestRepository, adminRepository }) => new AccountUseCase(workRepository, worldRepository, workInterestRepository, adminRepository)).singleton(),
+    accountUseCase: asFunction(({ workRepository, workInterestRepository, adminRepository, episodeRepository }) => new AccountUseCase(workRepository, workInterestRepository, adminRepository, episodeRepository)).singleton(),
     chatRepository: asFunction(({ mockDb }) => new InMemoryChatRepository(mockDb)).singleton(),
     chatUseCase: asFunction(({ workRepository, readingRepository, chatRepository }) => new ChatUseCase(workRepository, readingRepository, chatRepository)).singleton(),
     inboxUseCase: asFunction(({ workRepository, feedbackRepository }) => new InboxUseCase(workRepository, feedbackRepository)).singleton(),
@@ -155,7 +184,7 @@ export function registerAppServices(container: AppContainer) {
     creditLedgerUseCase: asFunction(({ creditLedgerRepository }) => new CreditLedgerUseCase(creditLedgerRepository)).singleton(),
     withdrawalRepository: asFunction(() => new HttpWithdrawalRepository()).singleton(),
     withdrawalUseCase: asFunction(({ withdrawalRepository }) => new WithdrawalUseCase(withdrawalRepository)).singleton(),
-    readingUseCase: asFunction(({ workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository }) => new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository)).singleton(),
+    readingUseCase: asFunction(({ workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository, genreRepository }) => new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, workSearchRepository, workLikeRepository, genreRepository)).singleton(),
     feedbackUseCase: asFunction(({ workRepository, feedbackRepository, adminRepository, feedbackReportUseCase }) => new FeedbackUseCase(workRepository, feedbackRepository, adminRepository, feedbackReportUseCase)).singleton(),
     forkUseCase: asFunction(({ workRepository }) => new ForkUseCase(workRepository)).singleton(),
     studioUseCase: asFunction(({ workRepository, creditRepository, feedbackRepository, worldRepository }) => new StudioUseCase(workRepository, creditRepository, feedbackRepository, worldRepository)).singleton(),

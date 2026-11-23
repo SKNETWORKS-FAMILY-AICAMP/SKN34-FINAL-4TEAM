@@ -14,6 +14,7 @@ const report: z.ZodType<FeedbackReport> = z.object({
   kind: z.enum(FEEDBACK_REPORT_KINDS), body: z.string().nullable(), quote: z.string().nullable(),
   visibility: z.enum(['public', 'private']), status: z.enum(FEEDBACK_REPORT_STATUSES),
   reporterName: z.string().nullable(), mine: z.boolean(), owner: z.boolean(), authorChecked: z.boolean(), withdrawn: z.boolean(),
+  handledAt: instant.nullable().optional(), handlerName: z.string().nullable().optional(), authorCheckedAt: instant.nullable().optional(),
   amendments: z.array(z.object({ action: z.enum(['correct', 'withdraw']), body: z.string().nullable(), createdAt: instant })),
   responses: z.array(z.object({ id: z.string(), authorName: z.string(), body: z.string(), isPublic: z.boolean(), createdAt: instant })),
   createdAt: instant, updatedAt: instant,

@@ -3,6 +3,7 @@ package ai.storyfork.content.world.relationship
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.service.dto.RelationshipPayload
+import ai.storyfork.content.world.service.dto.RelationshipChange
 import ai.storyfork.content.world.service.dto.RelationshipStateResult
 import java.time.Duration
 import java.util.UUID
@@ -17,7 +18,8 @@ import tools.jackson.databind.json.JsonMapper
 
 /**
  * Neo4j 한 트랜잭션에서 관계를 회차별 연결 `(:StudioCard)-[:RELATED {relationId, worldId, fromEpisode, ended, payload}]->(:StudioCard)`로 CAS 기록한다(DEC-51).
- * 시점 조회·저장 회차·변경분 계산은 순수 함수([relationsAsOf]·[saveEpisode]·[episodeEdges])가 하고 여기서는 읽고 쓰기만 한다.
+ * 시점 조회·저장 회차·변경분 계산·회차 이력은 순수 함수([relationsAsOf]·[saveEpisode]·[episodeEdges]·[relationHistory])가 하고 여기서는 읽고 쓰기만 한다.
+ * 관계마다 다른 회차에 기록할 수 있다(요청의 관계별 회차, DEC-54 2단계): [replaceWithEpisodes]·[readAfterWithEpisodes]가 그 쓰기·계산이고 [replace]·[readAfter]는 관계별 회차가 없는 같은 일이다.
  * 세계관 노드(`StudioRelationshipWorld`)의 token·요청 key/hash·잠금은 #132 그대로다. 노드 `count`는 이 세계관의 RELATED 연결 수(종료 연결 포함)이며
  * 읽을 때마다 실제 연결 수와 맞는지 본다. 아직 연결로 옮기지 않은 기존(StudioRelationship) 세계관이 빈 관계 성공으로 보이지 않고 불일치로 드러난다.
  *
@@ -30,16 +32,48 @@ class Neo4jRelationshipRepository(private val driver:Driver,private val mapper:J
     @Volatile private var schemaReady=false
     private val timeout=TransactionConfig.builder().withTimeout(Duration.ofSeconds(5)).build()
 
-    /** [episode]화 시점의 관계다. null이면 최신(관계마다 가장 최근 연결)이다. */
+    /**
+     * [episode]화 시점의 관계다. null이면 최신(관계마다 가장 최근 연결)이다. 그 시점 관계가 시작된 회차([RelationshipStateResult.episodes])와
+     * 관계마다 그 시점까지의 변화([RelationshipStateResult.history], [episode] 뒤의 변화는 담지 않고 처음 읽을 때 계산한다)를 함께 돌려준다.
+     */
     fun read(worldId:UUID,episode:Int?=null):RelationshipStateResult=access {
         driver.session(SessionConfig.forDatabase(database)).use { session -> session.executeRead({ tx -> view(worldId,load(tx,worldId),episode) },timeout) }
+    }
+
+    /**
+     * [rows]를 [episode]화(없으면 마지막 연결 회차)의 관계로 저장한 뒤 생길 **최신 회차 시점**의 관계다. 아무것도 쓰지 않고 저장과 같은 순수 함수([edgesAfterSave])로 계산한다.
+     * 「동일 인물」의 사슬·순환을 저장 결과의 최신 시점으로 검사하는 데 쓴다(#485). 토큰은 읽은 그래프의 것이라 호출자가 저장 기준과 맞는지 확인한다.
+     */
+    fun readAfter(worldId:UUID,rows:List<RelationshipPayload>,episode:Int?=null):RelationshipStateResult=readAfterWithEpisodes(worldId,rows,episode,emptyMap())
+
+    /** [readAfter]인데 [episodes](관계 id → 그 관계의 'N화부터')에 있는 관계는 자기 회차의 연결로 쓴다고 보고 계산한다. */
+    fun readAfterWithEpisodes(worldId:UUID,rows:List<RelationshipPayload>,episode:Int?,episodes:Map<UUID,Int>):RelationshipStateResult=access {
+        driver.session(SessionConfig.forDatabase(database)).use { session -> session.executeRead({ tx ->
+            val stored=load(tx,worldId)
+            val wanted=wanted(rows,saveEpisode(stored.edges,episode),episodes)
+            view(worldId,Stored(stored.version,stored.key,stored.hash,edgesAfterSave(stored.edges,wanted,episode)),null)
+        },timeout) }
+    }
+
+    /** 토큰과 최신 관계를 과거 회차 연결 유무와 같은 그래프 스냅샷에서 읽는다. */
+    fun readWithHistory(worldId:UUID):Pair<RelationshipStateResult,Boolean> = access {
+        driver.session(SessionConfig.forDatabase(database)).use { session -> session.executeRead({ tx ->
+            val stored=load(tx,worldId);view(worldId,stored,null) to stored.edges.isNotEmpty()
+        },timeout) }
     }
 
     /**
      * [rows]는 저장 회차 시점의 관계 전체다. 저장 회차는 [episode], 없으면 이 세계관의 마지막 연결 회차(연결이 없으면 1화)이며 그 시점 값과 비교해
      * 바뀐 관계만 그 회차의 연결로 쓰고 빠진 관계는 종료 연결을 쓴다. 저장 회차보다 뒤 회차의 연결은 건드리지 않는다.
      */
-    fun replace(worldId:UUID,expected:Long,key:String,hash:String,rows:List<RelationshipPayload>,episode:Int?=null):RelationshipStateResult=access {
+    fun replace(worldId:UUID,expected:Long,key:String,hash:String,rows:List<RelationshipPayload>,episode:Int?=null):RelationshipStateResult=
+        replaceWithEpisodes(worldId,expected,key,hash,rows,episode,emptyMap())
+
+    /**
+     * [replace]인데 [episodes](관계 id → 그 관계의 'N화부터')에 있는 관계는 그 관계의 회차와 비교해 바뀐 것을 자기 회차의 연결로 쓴다(DEC-54 2단계).
+     * 회차가 없는 관계와 종료 연결은 저장 회차에 쓴다. 같은 관계·같은 회차의 옛 연결은 덮어쓰고 그 밖의 회차의 연결은 건드리지 않는다.
+     */
+    fun replaceWithEpisodes(worldId:UUID,expected:Long,key:String,hash:String,rows:List<RelationshipPayload>,episode:Int?,episodes:Map<UUID,Int>):RelationshipStateResult=access {
         ensureSchema()
         driver.session(SessionConfig.forDatabase(database)).use { session -> session.executeWrite({ tx ->
             val params=mapOf("world" to worldId.toString())
@@ -49,10 +83,9 @@ class Neo4jRelationshipRepository(private val driver:Driver,private val mapper:J
             val current=load(tx,worldId)
             if(current.version==Math.incrementExact(expected) && current.key==key && current.hash==hash) return@executeWrite view(worldId,current,episode)
             if(current.version!=expected) throw WorldStudioFailure.mismatch()
-            // 끝이 빈 관계는 RelationshipInputHelper가 저장 전에 거절하므로 두 끝점은 항상 있다.
             val at=saveEpisode(current.edges,episode)
-            val wanted=rows.map { RelationEdge(it.id,at,false,requireNotNull(it.sourceCardId),requireNotNull(it.targetCardId),mapper.writeValueAsString(it)) }
-            val changes=episodeEdges(relationsAsOf(current.edges,at),wanted,at)
+            val wanted=wanted(rows,at,episodes)
+            val changes=episodeEdges(current.edges,wanted,at)
             val checks=params+mapOf("ids" to rows.map { it.id.toString() },"cards" to wanted.flatMap { listOf(it.source,it.target) }.distinct().map { it.toString() })
             // 다른 세계관의 연결이 같은 관계 ID를 쓰거나 다른 세계관이 가진 카드면 그래프에 아무것도 쓰지 않았음이 확정되는 거절이다.
             if(tx.run("MATCH ()-[e:RELATED]->() WHERE e.relationId IN \$ids AND e.worldId <> \$world RETURN count(e) AS n",checks).single()["n"].asLong()!=0L) throw WorldNotFound()
@@ -61,13 +94,15 @@ class Neo4jRelationshipRepository(private val driver:Driver,private val mapper:J
                 ON CREATE SET n.worldId=${'$'}world SET n.mutex=coalesce(n.mutex,0)+1
                 WITH n WHERE n.worldId <> ${'$'}world RETURN count(n) AS n""",checks).single()["n"].asLong()!=0L) throw WorldNotFound()
             if(changes.isNotEmpty()) {
-                // 같은 관계·같은 회차의 옛 연결은 지우고 새로 쓴다(덮어쓰기). 끝점이 바뀌어도 그 회차에는 연결이 하나만 남는다.
-                tx.run("MATCH ()-[e:RELATED {worldId: \$world, fromEpisode: \$episode}]->() WHERE e.relationId IN \$ids DELETE e",
-                    params+mapOf("episode" to at,"ids" to changes.map { it.relationId.toString() })).consume()
-                val edges=changes.map { mapOf("id" to it.relationId.toString(),"source" to it.source.toString(),"target" to it.target.toString(),"ended" to it.ended,"payload" to it.payload) }
-                tx.run("""UNWIND ${'$'}rows AS row MATCH (a:StudioCard {id: row.source}),(b:StudioCard {id: row.target})
-                    CREATE (a)-[e:RELATED {relationId: row.id, worldId: ${'$'}world, fromEpisode: ${'$'}episode, ended: row.ended}]->(b) SET e.payload=row.payload""",
-                    params+mapOf("episode" to at,"rows" to edges)).consume()
+                // 같은 관계·같은 회차의 옛 연결은 지우고 새로 쓴다(덮어쓰기). 끝점이 바뀌어도 그 회차에는 연결이 하나만 남는다. 관계마다 회차가 다를 수 있어 회차별로 묶어 쓴다.
+                for((from,group) in changes.groupBy { it.fromEpisode }) {
+                    tx.run("MATCH ()-[e:RELATED {worldId: \$world, fromEpisode: \$episode}]->() WHERE e.relationId IN \$ids DELETE e",
+                        params+mapOf("episode" to from,"ids" to group.map { it.relationId.toString() })).consume()
+                    val edges=group.map { mapOf("id" to it.relationId.toString(),"source" to it.source.toString(),"target" to it.target.toString(),"ended" to it.ended,"payload" to it.payload) }
+                    tx.run("""UNWIND ${'$'}rows AS row MATCH (a:StudioCard {id: row.source}),(b:StudioCard {id: row.target})
+                        CREATE (a)-[e:RELATED {relationId: row.id, worldId: ${'$'}world, fromEpisode: ${'$'}episode, ended: row.ended}]->(b) SET e.payload=row.payload""",
+                        params+mapOf("episode" to from,"rows" to edges)).consume()
+                }
             }
             tx.run("""MATCH (w:StudioRelationshipWorld {id: ${'$'}world}) OPTIONAL MATCH ()-[e:RELATED {worldId: ${'$'}world}]->() WITH w,count(e) AS total
                 SET w.version=${'$'}version,w.requestKey=${'$'}key,w.requestHash=${'$'}hash,w.count=total""",
@@ -95,11 +130,16 @@ class Neo4jRelationshipRepository(private val driver:Driver,private val mapper:J
     }
 
     private fun view(worldId:UUID,stored:Stored,episode:Int?):RelationshipStateResult {
-        val payloads=relationsAsOf(stored.edges,episode).map {
-            try { mapper.readValue(requireNotNull(it.payload),RelationshipPayload::class.java) } catch(_:RuntimeException) { throw WorldStudioFailure.mismatch() }
+        fun payload(edge:RelationEdge)=try { mapper.readValue(requireNotNull(edge.payload),RelationshipPayload::class.java) } catch(_:RuntimeException) { throw WorldStudioFailure.mismatch() }
+        val tips=relationsAsOf(stored.edges,episode)
+        return RelationshipStateResult(worldId,stored.version,stored.key,stored.hash,tips.map(::payload).sortedBy { it.id.toString() },tips.associate { it.relationId to it.fromEpisode }) {
+            relationHistory(stored.edges,episode).mapValues { (_,run) -> run.map { edge -> payload(edge).let { RelationshipChange(edge.fromEpisode,it.label,it.body) } } }
         }
-        return RelationshipStateResult(worldId,stored.version,stored.key,stored.hash,payloads.sortedBy { it.id.toString() })
     }
+
+    /** 저장할 관계 [rows]의 연결이다: 관계마다 [episodes]의 자기 회차, 없으면 저장 회차 [at]에 쓴다. 끝이 빈 관계는 RelationshipInputHelper가 저장 전에 거절하므로 두 끝점은 항상 있다. */
+    private fun wanted(rows:List<RelationshipPayload>,at:Int,episodes:Map<UUID,Int>)=
+        rows.map { RelationEdge(it.id,episodes[it.id] ?: at,false,requireNotNull(it.sourceCardId),requireNotNull(it.targetCardId),mapper.writeValueAsString(it)) }
 
     @Synchronized private fun ensureSchema() {
         if(schemaReady) return

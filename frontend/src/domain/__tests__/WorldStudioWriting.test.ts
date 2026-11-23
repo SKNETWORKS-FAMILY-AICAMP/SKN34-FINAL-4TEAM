@@ -1,6 +1,6 @@
-import { expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { cardLibraryRows, revealEpisodeInput, selectCardForFilter, worldSealIssues, worldWritingIssues, writingIssueLabel } from '../entities/worldStudioWriting'
-import { newSetting, type StudioWorld } from '../entities/studioWorld'
+import { cardRevealEpisode, newSetting, RELATION_FROM_ERROR, type StudioWorld } from '../entities/studioWorld'
 const world = (settings: StudioWorld['settings'] = []): StudioWorld => ({
   id: 'qa',
   name: '초기 세계',
@@ -95,8 +95,8 @@ it('인물 문서가 3,000자를 넘거나 회차 번호가 어긋나면 그 카
   const person = newSetting('people')
   person.item.title = '가람'
   person.item.text = '본문'
-  const docs = (soul: string, episodes: Record<string, string> = {}) => ({ ...person, characterDocs: { soul, memory: '', episodes } })
-  expect(worldWritingIssues(world([person]))).toEqual([]) // SOUL.md·MEMORY.md가 없는 기존 인물 카드
+  const docs = (soul: string, episodes: Record<string, string> = {}) => ({ ...person, characterDocs: { soul, goal: '', episodes } })
+  expect(worldWritingIssues(world([person]))).toEqual([]) // SOUL.md·GOAL.md가 없는 기존 인물 카드
   expect(worldSealIssues(world([person]))).toEqual([])
   expect(worldWritingIssues(world([docs('가'.repeat(3000), { 0: '', 3: '기억' })]))).toEqual([])
   expect(worldWritingIssues(world([docs('가'.repeat(3001), { 3: '가'.repeat(3001) })])).map((issue) => writingIssueLabel(world([person]), issue))).toEqual([
@@ -126,4 +126,55 @@ it('저장 전 확인 사유를 화면에 보일 때는 어느 설정의 문제�
 
 it('독자 공개 회차 입력은 숫자만 남겨 정수로 바꾸고, 숫자가 없으면 값을 비운다', () => {
   expect(['3', ' 12 ', '1.5', '-4', 'abc', '', '0', '007'].map(revealEpisodeInput)).toEqual([3, 12, 15, 4, undefined, undefined, 0, 7])
+})
+
+it('카드의 유효 공개 회차(DEC-53)는 회차 값, 값이 없고 공개면 1화(옛 공개 카드), 그 밖은 작가 전용이다', () => {
+  // 서버 shownCardEpisode와 같은 규칙이다: 회차 값이 있으면 공개 여부와 무관하게 그 값이다.
+  expect(cardRevealEpisode({ revealFromEpisode: 3, visibility: 'private' })).toBe(3)
+  expect(cardRevealEpisode({ revealFromEpisode: 3, visibility: 'public' })).toBe(3)
+  expect(cardRevealEpisode({ visibility: 'public' })).toBe(1)
+  expect(cardRevealEpisode({ visibility: 'private' })).toBeUndefined()
+  expect(cardRevealEpisode({})).toBeUndefined()
+})
+
+describe('관계의 N화부터는 소설이 연결된 세계관에서 새로 쓰거나 바꾼 관계마다 있어야 저장할 수 있다(DEC-54 2단계)', () => {
+  const [a, b] = [newSetting('people'), newSetting('people')]
+  a.item.title = '가람'
+  b.item.title = '나래'
+  const relation = (patch: Partial<StudioWorld['settings'][number]['item']> = {}) => {
+    const row = newSetting()
+    row.item = { ...row.item, kind: 'relation', title: '친구', text: '오랜 친구', subjectId: a.item.id, targetId: b.item.id, predicate: 'custom_relation', ...patch }
+    return row
+  }
+  const linked = (settings: StudioWorld['settings'], linkedWorkId: string | null = 'work-1'): StudioWorld => ({ ...world(settings), linkedWorkId })
+  const issue = (id: string) => ({ step: 'relations', id, message: RELATION_FROM_ERROR })
+
+  it('저장한 초안에 없는 새 관계는 N화부터가 없거나 잘못되면 그 관계로 돌아가 고치게 하고, 올바르면 막지 않는다', () => {
+    const saved = linked([a, b])
+    const added = relation()
+    expect(worldWritingIssues(linked([a, b, added]), saved)).toEqual([issue(added.item.id)])
+    for (const fromEpisode of [0, -1, 1.5]) expect(worldWritingIssues(linked([a, b, relation({ id: added.item.id, fromEpisode })]), saved), String(fromEpisode)).toEqual([issue(added.item.id)])
+    expect(worldWritingIssues(linked([a, b, relation({ id: added.item.id, fromEpisode: 3 })]), saved)).toEqual([])
+  })
+
+  it('저장한 초안에서 바뀐 관계도 같고, 그대로인 관계는 N화부터가 없어도 막지 않는다', () => {
+    const old = relation()
+    const saved = linked([a, b, old])
+    expect(worldWritingIssues(linked([a, b, old]), saved)).toEqual([])
+    const changed = { ...old, item: { ...old.item, text: '다시 만난 친구' } }
+    expect(worldWritingIssues(linked([a, b, changed]), saved)).toEqual([issue(old.item.id)])
+    expect(worldWritingIssues(linked([a, b, { ...changed, item: { ...changed.item, fromEpisode: 4 } }]), saved)).toEqual([])
+  })
+
+  it('소설을 연결하지 않은 세계관이거나 저장한 초안을 모르는 점검(확정 버전)은 막지 않는다', () => {
+    const added = relation()
+    expect(worldWritingIssues(linked([a, b, added], null), linked([a, b], null))).toEqual([])
+    expect(worldWritingIssues(linked([a, b, added]))).toEqual([])
+  })
+
+  it('사유에는 관계 이름이 붙는다', () => {
+    const added = relation({ title: '가람 · 친구 · 나래' })
+    const draft = linked([a, b, added])
+    expect(worldWritingIssues(draft, linked([a, b])).map((i) => writingIssueLabel(draft, i))).toEqual([`‘가람 · 친구 · 나래’: ${RELATION_FROM_ERROR}`])
+  })
 })

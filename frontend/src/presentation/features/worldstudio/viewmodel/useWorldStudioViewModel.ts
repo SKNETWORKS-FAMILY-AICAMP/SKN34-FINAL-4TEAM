@@ -1,8 +1,11 @@
 import { cardLibraryRows, type WritingIssue, worldSealIssues, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
+import { type CardPane, parseCardPane, setPaneQuery } from './cardPanels'
 import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUERY, parseManageView, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
-import { useWorldCoverImage } from './useWorldCoverImage'
+import { useWorldCoverImage } from '../../../shared/useWorldCoverImage'
+import { useCardImages } from './useCardImages'
 import { worldStudioStorage } from './worldStudioStorage'
+import { useWorldReview } from './useWorldReview'
 import {
   applyRelationChanges,
   assertNoNewRelationDuplicates,
@@ -25,13 +28,21 @@ import {
   type StudioWorld,
   type WorldPublicationInput,
 } from '../../../../domain/entities/studioWorld'
+import type { WorldReviewUseCase } from '../../../../domain/usecases/WorldReviewUseCase'
 import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
+
+/** 채팅의 World 반영이 서버 초안을 바꿨는데 저장하지 않은 변경이 있어 다시 읽지 않았을 때의 안내(#546). */
+const AI_DRAFT_CHANGED = '설정집 초안이 AI 반영으로 바뀌었어요. 저장하지 않은 변경을 정리한 뒤 다시 불러오세요.'
 
 /** 편집 화면을 게시판에서 들어와 연 기록인지(그 앞 기록이 게시판이라 '← 설정집'이 한 걸음 뒤로 가면 된다). */
 const cameFromBoard = (state: unknown) => typeof state === 'object' && state !== null && 'fromList' in state && state.fromList === true
 
+/** 편집 중인 카드를 주소에서 지운다: 그 카드의 화면(`pane`)도 함께다. */
+const dropCard = (query: URLSearchParams) => { query.delete('card'); query.delete('pane') }
+
 export function useWorldStudioViewModel(
   useCase: WorldStudioUseCase = appContainer.resolve('worldStudioUseCase'),
+  reviewUseCase: WorldReviewUseCase | null = appContainer.resolve('worldReviewUseCase'),
 ) {
   const { worldId = '' } = useParams()
   const restoring = useContext(RestoreContext)
@@ -43,6 +54,7 @@ export function useWorldStudioViewModel(
   const mode = studioMode(params)
   const view = parseManageView(params.get('view'))
   const cardParam = params.get('card') ?? ''
+  const pane = parseCardPane(params.get('pane')) // 설정 카드 편집 화면에서 고른 본문 화면(개요·문서·관계·버전·공개 순서): 주소가 정본이라 새로고침·공유해도 유지된다
   const legacyTab = params.get('tab')
   // 보기·마법사 표시·편집 중인 카드는 주소의 쿼리라 새로고침해도 유지되고, 바꿀 때는 기본으로 기록을 쌓지 않는다(같은 화면 이동이라 이탈 확인도 하지 않는다).
   // setSearchParams는 같은 틱에 두 번 부르면 뒤 호출이 앞 호출을 덮으므로, 주소를 바꾸는 동작은 한 번의 호출로 묶는다.
@@ -56,13 +68,13 @@ export function useWorldStudioViewModel(
   const setView = (next: ManageView) => {
     if (next === view && !selected) return
     editParams((query) => {
-      query.delete('card')
+      dropCard(query)
       if (next === 'book') query.delete('view')
       else query.set('view', next)
     })
   }
-  const [reviewOpen, setReviewOpen] = useState(false) // AI 후보 검토 시트
-  // 옛 주소의 ?tab=은 그 탭을 대신한 보기·시트로 옮긴다(AI 후보 검토는 시트, 확정 버전·세계관 탐색은 설정집).
+  const [reviewOpen, setReviewOpen] = useState(false) // AI 검토 시트(설정집 검토 + AI 후보 검토)
+  // 옛 주소의 ?tab=은 그 탭을 대신한 보기·시트로 옮긴다(AI 후보 검토는 AI 검토 시트, 확정 버전·세계관 탐색은 설정집).
   useEffect(() => {
     const target = legacyTabTarget(legacyTab)
     if (!target) return
@@ -80,7 +92,7 @@ export function useWorldStudioViewModel(
   const [relationWorld, setRelationWorld] = useState('')
   const [relationRequest, setRelationRequest] = useState<{ id: string; seq: number } | null>(null)
   const [relationKey, setRelationKey] = useState(0)
-  const [episode, setEpisode] = useState<number | null>(null) // 관계 기준 회차(DEC-51). null이면 최신 회차이고, 읽기·저장이 이 회차 시점의 관계를 쓴다.
+  const [episode, setEpisode] = useState<number | null>(null) // 관계 기준 회차(DEC-51, '이 회차 시점으로 보기'). null이면 최신 회차이고, 읽기가 이 회차 시점의 관계를 쓴다. 저장은 바뀐 관계마다의 N화부터(`fromEpisode`)로 기록하고, 삭제한 관계만 이 회차에서 끝난다.
   const returnCard = useRef('')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'failed'>('idle')
   const [worlds, setWorlds] = useState<StudioWorld[]>([])
@@ -101,13 +113,24 @@ export function useWorldStudioViewModel(
   const [relationDirty, setRelationDirty] = useState(false)
   // 편집 중인 카드는 주소의 card이고, 초안에 없는 카드(새로고침으로 사라진 미저장 카드·지운 카드)면 없는 것으로 본다.
   const selected = editing?.settings.some((row) => row.item.id === cardParam) ? cardParam : ''
+  // 불러온 초안에 없는 카드를 가리키는 card는 주소에서 지운다(기록은 쌓지 않는다). 두면 새로고침으로 사라진 미저장 카드의 id가 남아, 카드 삭제의 history back이 그 옛 기록에 착지할 때마다 설정집 화면인데 주소에는 없는 카드가 붙는다(#470).
+  useEffect(() => {
+    if (!editing || !cardParam || selected) return
+    setParams((current) => {
+      const next = new URLSearchParams(current)
+      dropCard(next)
+      return next
+    }, { replace: true })
+  }, [editing, cardParam, selected, setParams])
   const [error, setError] = useState('')
+  const [attempt, setAttempt] = useState(0)
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(restoring)
   const [reviewBusy,setReviewBusy]=useState(false)
   const [publishing, setPublishing] = useState<WorldPublicationInput | null>(null) // 전송 중인 공개 설정. 컨트롤만 이 값을 앞서 보이고 칩·링크는 서버 값을 따른다
   const [coverRevision, setCoverRevision] = useState(0) // 표지를 올리거나 지울 때마다 올라가 이미지를 다시 읽게 한다
   const [coverAction, setCoverAction] = useState<'upload' | 'remove' | null>(null)
+  const [imageUploading, setImageUploading] = useState(false) // 설정 카드 대표 이미지를 올리는 중
   useEffect(() => {
     leaveGuard?.setDirty(dirty)
     return () => leaveGuard?.setDirty(false)
@@ -125,31 +148,38 @@ export function useWorldStudioViewModel(
     setRelationRequest(null)
     returnCard.current = ''
   }, [editingId])
-  // 주소만으로 인물 관계도 보기를 열어도(새로고침·공유) 관계 편집기가 마운트되게 한다. 한 번 열린 편집기는 보기를 옮겨도 남아 적용하지 않은 입력을 지킨다.
+  // 주소만으로 관계도 보기를 열어도(새로고침·공유) 관계 편집기가 마운트되게 한다. 한 번 열린 편집기는 보기를 옮겨도 남아 적용하지 않은 입력을 지킨다.
   useEffect(() => {
     if (mode === 'manage' && view === 'people' && editingId) setRelationWorld(editingId)
   }, [mode, view, editingId])
-  /** 작성 모드는 단계를 옮기고, 관리 모드는 그 단계에 해당하는 보기(설정 카드 → 설정집, 관계 연결 → 인물 관계도)로 옮긴다. 열려 있던 편집 화면은 닫는다. */
+  /** 작성 모드는 단계를 옮기고, 관리 모드는 그 단계에 해당하는 보기(설정 카드 → 설정집, 관계 연결 → 관계도)로 옮긴다. 열려 있던 편집 화면은 닫는다. */
   const goStep = (step: StudioStep) => {
     dispatchFlow({ type: 'step', step })
     if (step === 'relations' && editing) setRelationWorld(editing.id)
     if (mode === 'manage') setView(step === 'relations' ? 'people' : 'book')
-    else if (selected) editParams((query) => query.delete('card'))
+    else if (selected) editParams(dropCard)
   }
-  /** 설정 카드의 편집 화면을 연다. 게시판에서 들어올 때는 기록을 쌓아 뒤로가기·'← 설정집'이 게시판으로 돌아오게 하고, 편집 화면 안에서 다른 카드로 옮길 때는 같은 기록을 바꾼다. */
-  const editCard = (id: string) => {
+  /** 설정 카드의 편집 화면을 연다([pane]이 있으면 그 본문 화면으로, 게시판 상태 칩이 칩에 맞는 화면으로 연다. 없으면 지금 화면 그대로). 게시판에서 들어올 때는 기록을 쌓아 뒤로가기·'← 설정집'이 게시판으로 돌아오게 하고, 편집 화면 안에서 다른 카드로 옮길 때는 같은 기록을 바꾼다. */
+  const editCard = (id: string, pane?: CardPane) => {
     const row = editing?.settings.find((item) => item.item.id === id)
     if (row && cardLibraryRows([row], 'all', '').length && !cardLibraryRows([row], cardFilter, cardQuery).length) {
       setCardFilter('all')
       setCardQuery('')
     }
     dispatchFlow({ type: 'step', step: 'cards' })
-    editParams((query) => query.set('card', id), !!selected, selected ? location.state : { fromList: true })
+    editParams((query) => { query.set('card', id); if (pane) setPaneQuery(query, pane) }, !!selected, selected ? location.state : { fromList: true })
   }
+  /** 편집 화면의 본문 화면을 바꾼다(기록을 쌓지 않는다). 기본인 문서는 주소에 쓰지 않는다. */
+  const setPane = (next: CardPane) => editParams((query) => setPaneQuery(query, next))
   /** 편집 화면을 닫고 설정집 화면으로 돌아온다. 게시판에서 들어왔으면 한 걸음 뒤로(기록이 쌓이지 않는다), 주소로 바로 들어왔으면 주소만 바꾼다. */
   const closeCard = () => {
     if (selected && cameFromBoard(location.state)) navigate(-1)
-    else editParams((query) => query.delete('card'))
+    else editParams(dropCard)
+  }
+  /** 관계도 보기를 열고 그 관계의 편집 패널을 연다(관계 편집기가 이 요청을 받아 두 설정을 고르고 그 행에 초점을 둔다). */
+  const editRelation = (id: string) => {
+    setRelationRequest((previous) => ({ id, seq: (previous?.seq ?? 0) + 1 }))
+    goStep('relations')
   }
   const generation = useRef(0)
   const mutation = useRef<AbortController | null>(null)
@@ -196,7 +226,7 @@ export function useWorldStudioViewModel(
       mutation.current = null
       generation.current = current + 1
     }
-  }, [useCase, worldId, restoring])
+  }, [useCase, worldId, restoring, attempt])
   useEffect(() => {
     if (!dirty && !relationDirty) return
     const warn = (e: BeforeUnloadEvent) => e.preventDefault()
@@ -242,7 +272,7 @@ export function useWorldStudioViewModel(
       setError(e instanceof Error ? e.message : '관계를 변경하지 못했어요.')
     }
   }
-  const writingIssues = editing ? worldWritingIssues(editing) : []
+  const writingIssues = editing ? worldWritingIssues(editing, saved ?? undefined) : []
   // 이름·설명 인라인 저장은 초안 전체를 저장하므로, 저장하지 않은 수정이나 저장 전 확인 항목이 있으면 그 변경이 검사 없이 함께 저장된다 → 먼저 저장하게 막는다.
   const infoLocked = dirty || writingIssues.length > 0
   // 저장할 수 있는지: 바뀐 것이 있거나 한 번도 저장한 적 없는 세계관(첫 저장)이고, 저장 전 확인 항목이 없다.
@@ -254,10 +284,19 @@ export function useWorldStudioViewModel(
     : dirty || relationDirty ? '저장하지 않은 변경이 있어 회차를 바꿀 수 없어요. 먼저 세계관을 저장하세요.' : ''
   // 설정 삭제는 카드 변경이라 회차 시점이 아니라 최신 저장에서만 받는다(서버도 회차를 지정한 저장의 카드 삭제를 422로 거절한다).
   const deleteLock = episode === null ? '' : '설정 삭제는 최신 회차에서 할 수 있어요.'
+  // 관계마다 'N화부터'를 정하는 세계관인지(DEC-54 2단계): 소설을 연결한 서버 세계관이다. 연결하지 않았거나 데모(메모리)면 칸을 숨기고 1화로 저장한다.
+  const relationFrom = useCase.supportsRelationEpisodes && !!saved?.linkedWorkId
+  // 회차를 고른 채 저장할 때 삭제한 관계는 그 회차에서 끝나는 것으로 기록된다(바꾼 관계는 자기 N화부터가 정한다).
+  const endedRelations = (() => {
+    if (episode === null || !saved || !editing) return 0
+    const kept = new Set(editing.settings.map((s) => s.item.id))
+    return saved.settings.filter((s) => s.item.kind === 'relation' && !kept.has(s.item.id)).length
+  })()
   const publication: WorldPublicationInput = { visibility: saved?.visibility ?? 'private', genre: saved?.genre ?? null }
   const demo = import.meta.env.MODE === 'mockup'
   const listing = listingOf(saved, demo)
   const cover = useWorldCoverImage(useCase, saved?.id, !!saved?.hasCover && useCase.supportsCover, coverRevision)
+  const cardImages = useCardImages(useCase, saved?.id)
   // 초안 저장: 이름·설명 인라인 편집과 '세계관 저장'이 같은 흐름을 쓴다.
   const persist = async (target: StudioWorld, signal: AbortSignal) => {
     const current = generation.current
@@ -275,19 +314,55 @@ export function useWorldStudioViewModel(
       throw e
     }
   }
+  // 설정집 AI 검토(#394): 게시판의 상태 칸과 편집 화면의 지적 목록이 같은 결과를 보도록 여기서 하나만 만든다.
+  const review = useWorldReview({ useCase: reviewUseCase, saved, editing, unsaved: dirty || relationDirty, busy: busy || reviewBusy, patch })
+  const reload = async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setEpisode(null);setRelationKey(v=>v+1);return w}
   return {
     reviewWorldId:worldId,
+    /** 처음 읽기를 같은 주소 그대로 다시 한다. */
+    retryLoad: () => setAttempt((count) => count + 1),
     setReviewBusy,
-    reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setEpisode(null);setRelationKey(v=>v+1);return w},
+    /** 설정집 AI 검토: 동의·요청·결과(지적·수정안)와 수정안 반영. 마지막 결과는 서버가 저장해 세계관을 읽으면 불러오고(#555), 세계관이 바뀌면 지운다. */
+    review,
+    reload,
+    /** 채팅의 World 반영이 서버 초안을 바꿨다(#546): 저장하지 않은 변경이 없으면 다시 읽고(true), 있으면 덮어쓰지 않고 안내만 한다(false). */
+    aiDraftChanged: async () => {
+      if (dirty || relationDirty) {
+        setMessage(AI_DRAFT_CHANGED)
+        return false
+      }
+      try {
+        await reload()
+      } catch (e) {
+        setError(e instanceof Error ? e.message : '바뀐 설정집 초안을 다시 읽지 못했어요.')
+        return false
+      }
+      return true
+    },
+    /** 서버 값으로 초안을 바꾼다. 저장하지 않은 변경·관계 입력은 확인 없이 버리므로, 다른 곳(MCP)에서 바뀐 알림(useMcpChangeWatch)은 입력이 없을 때 자동으로, 있으면 배너를 사용자가 누른 뒤에 부른다. 고른 관계 기준 회차는 유지하고, 읽었으면 true다. */
+    refresh: async () => {
+      let done = false
+      await perform(async (signal) => {
+        const current = generation.current
+        const world = await useCase.read(worldId, signal, episode ?? undefined)
+        if (generation.current !== current || signal.aborted) return
+        setRelationKey((key) => key + 1) // 관계 편집기·카드 편집기를 새로 열어 옛 입력이 남지 않게 한다
+        setRelationRequest(null)
+        setRelationDirty(false)
+        apply(world, current)
+        done = true
+      })
+      return done
+    },
     storage: worldStudioStorage(import.meta.env.MODE),
     canUndoCardDeletion: !!cardUndo,
     /** 방금 지운 카드(되돌릴 수 있는 동안). 이름·인물 여부로 되돌리기 안내를 만든다. */
     deletedCard: cardUndo ? { id: cardUndo.id, title: cardUndo.title, person: cardUndo.person } : null,
     flow,
-    /** 설정집 화면(게시판)의 보기(주소 `?view=`): 설정집·인물 관계도·시간선. 작성 모드는 보기가 없다. */
+    /** 설정집 화면(게시판)의 보기(주소 `?view=`): 설정집·관계도·시간선. 작성 모드는 보기가 없다. */
     view,
     setView,
-    /** AI 후보 검토 시트가 열려 있는지(옛 `?tab=analysis` 주소도 이걸 연다). */
+    /** AI 검토 시트(설정집 검토 + AI 후보 검토)가 열려 있는지(옛 `?tab=analysis` 주소도 이걸 연다). */
     reviewOpen,
     setReviewOpen,
     /** 작성 모드(마법사)를 나가 관리 모드로 간다(주소의 `new` 쿼리를 지운다). 입력은 그대로 남는다. */
@@ -303,24 +378,23 @@ export function useWorldStudioViewModel(
     goStep,
     editCard,
     closeCard,
+    pane,
+    setPane,
     saveState,
     resume: () => dispatchFlow({ type: 'resume' }),
     openRelations: (id: string) => {
       returnCard.current = id
       goStep('relations')
     },
-    editRelation: (id: string) => {
-      setRelationRequest((previous) => ({ id, seq: (previous?.seq ?? 0) + 1 }))
-      goStep('relations')
-    },
+    editRelation,
     returnToCard: () => {
       if (returnCard.current) editCard(returnCard.current)
       else goStep('cards')
     },
     cardRows: cardLibraryRows(editing?.settings ?? [], cardFilter, cardQuery),
     writingIssues,
-    /** 저장 전 확인 사유가 가리키는 곳을 연다: 설정의 문제면 그 설정의 편집 화면, 세계관 자체의 문제(이름)면 기본 정보 단계다. */
-    openIssue: (issue: WritingIssue) => (issue.id ? editCard(issue.id) : goStep('info')),
+    /** 저장 전 확인 사유가 가리키는 곳을 연다: 설정의 문제면 그 설정의 편집 화면, 관계의 문제면 그 관계의 편집 패널, 세계관 자체의 문제(이름)면 기본 정보 단계다. */
+    openIssue: (issue: WritingIssue) => (issue.step === 'relations' ? editRelation(issue.id!) : issue.id ? editCard(issue.id) : goStep('info')),
     sealIssues: saved ? worldSealIssues(saved) : [],
     worlds,
     saved,
@@ -375,10 +449,14 @@ export function useWorldStudioViewModel(
     },
     /** 관계 기준 회차(DEC-51, 연결된 소설의 회차 순번). null이면 최신 회차다. */
     episode,
+    /** 「동일 인물」(#485)을 끝낼 회차: 새로 쓰거나 바꾸는 것은 관계 행의 N화부터가 정하고, 끝내는(삭제하는) 것은 정한 관계 기준 회차가 정한다(정하지 않았으면 null, 연결하지 않은 세계관은 1화 하나뿐이라 1). */
+    identityEpisode: episode ?? (saved?.linkedWorkId ? null : 1),
+    /** 관계 편집 행이 'N화부터' 칸을 받는지(소설을 연결한 서버 세계관, DEC-54 2단계). 아니면 칸을 숨기고 1화로 저장한다. */
+    relationFrom,
     /** 회차를 바꿀 수 없는 이유(데모·소설 미연결·AI 후보 검토·확정 버전 요청 중·저장하지 않은 변경), 바꿀 수 있으면 빈 글이다. */
     episodeLock,
-    /** 지난 회차를 연 채 저장하면 관계가 어느 회차로 기록되는지(최신 회차면 빈 글). 저장 영역과 검토·저장 단계가 보인다. */
-    episodeSaveNote: episode === null ? '' : `관계는 ${episode}화 기준으로 저장돼요.`,
+    /** 지난 회차를 연 채 관계를 삭제했을 때, 삭제한 관계가 어느 회차에서 끝나는지(없으면 빈 글). 저장 영역과 검토·저장 단계가 보인다. */
+    episodeSaveNote: endedRelations ? `삭제한 관계 ${endedRelations}개는 ${episode}화에서 끝나는 것으로 저장돼요.` : '',
     /** 설정 삭제를 막는 이유(회차를 고른 동안), 삭제할 수 있으면 빈 글이다. 삭제 진입점들이 잠그고 이 글을 보인다. */
     deleteLock,
     /** 그 회차 시점의 관계로 초안을 다시 읽는다(null이면 최신). 읽지 못하면 이전 회차 그대로 오류를 보이고, 잠겨 있거나 같은 회차면 읽지 않는다. */
@@ -470,7 +548,7 @@ export function useWorldStudioViewModel(
     },
     /**
      * 다른 세계관에서 가져온 카드(와 그 사이 관계)를 초안 끝에 더한다(저장해야 서버에 반영). 더했을 때만 true이고,
-     * 서버 한도(설정 카드 1,000개)를 넘기는 등 더할 수 없으면 초안을 그대로 두고 이유를 던진다(가져오기 시트가 보인다).
+     * 서버 한도(설정 카드 10,000개)를 넘기는 등 더할 수 없으면 초안을 그대로 두고 이유를 던진다(가져오기 시트가 보인다).
      */
     importSettings: (imported: ImportedSettings) => {
       if (!editing || busy) return false
@@ -512,12 +590,63 @@ export function useWorldStudioViewModel(
     /** 서버에 저장된 공개 범위·장르(값이 없으면 비공개·미지정) */
     publication,
     publishing,
-    /** 올린 표지 이미지(소유자 인증 읽기 → 객체 주소). 표지가 없거나 읽는 중·실패면 `url`이 비어 자동 생성 표지를 쓴다. */
+    /** 올린 표지 이미지(소유자 인증 읽기 → 객체 주소). 표지가 없거나 읽는 중·실패면 `url`이 비어 기본 표지를 쓴다. */
     cover,
     /** 표지 저장소가 있는지. 서버 저장소가 없는 데모(메모리)는 표지 올리기를 지원하지 않는다. */
     supportsCover: useCase.supportsCover,
+    /** 세계관 삭제 저장소가 있는지(서버·메모리 데모는 있고 일부 대역은 없다). */
+    supportsDelete: useCase.supportsDelete,
+    /** 세계관을 지운다(서버는 소프트 삭제). 성공하면 내 세계관 목록으로 가고, 거절(연결된 소설 등)은 서버의 이유를 오류로 알리며 이동하지 않는다. */
+    deleteWorld: () =>
+      perform(async (signal) => {
+        if (!saved) return
+        const current = generation.current
+        await useCase.deleteWorld(saved.id, signal)
+        if (generation.current === current) {
+          leaveGuard?.allowNextNavigation()
+          navigate('/lib?tab=worlds')
+        }
+      }),
     /** 표지를 올리거나 지우는 중인 동작(없으면 null). */
     coverAction,
+    /** 설정 카드 대표 이미지(소유자 인증 읽기 → 객체 주소). 게시판·레일·편집 화면이 같은 이미지를 한 번만 읽고, `supported`가 false인 데모(메모리)는 이미지 올리기를 지원하지 않는다. */
+    cardImages,
+    /** 카드 이미지를 올리는 중인지. */
+    imageUploading,
+    /**
+     * 설정 카드의 대표 이미지를 올려 붙인다(바꾸기도 같다): 올린 이미지의 id를 초안 카드의 `imageId`로 바꾼다. 올리는 것은 바로 서버에 적용되지만 카드가 그 이미지를 쓰는 것은 초안 수정이라
+     * `세계관 저장`과 확정 버전을 거쳐야 공개 화면에 나온다. 바꿀 때 이전 이미지의 객체 주소는 해제한다. 됐을 때만 true이고, 실패하면 이유를 오류로 알리고 초안은 그대로다.
+     */
+    uploadCardImage: async (id: string, file: File) => {
+      if (!saved || !editing || busy || reviewBusy || mutation.current) return false
+      let done = false
+      await perform(async (signal) => {
+        const current = generation.current
+        setImageUploading(true)
+        try {
+          const imageId = await useCase.uploadCardImage(saved.id, file, signal)
+          if (current === generation.current) {
+            const previous = editing.settings.find((row) => row.item.id === id)?.imageId
+            patch({ settings: editStudioSetting(editing.settings, id, {}, { imageId }) })
+            if (previous) cardImages.release(previous)
+            setMessage('이미지를 올렸어요. 세계관을 저장한 뒤 ‘확정 버전 남기기’를 해야 공개 화면에 나와요.')
+            done = true
+          }
+        } finally {
+          setImageUploading(false)
+        }
+      })
+      return done
+    },
+    /** 설정 카드에서 대표 이미지를 뺀다: 서버를 부르지 않고 초안에서 연결(`imageId`)만 지운다(올린 이미지는 확정 버전이 쓸 수 있어 남는다). 저장해야 반영된다. */
+    removeCardImage: (id: string) => {
+      if (!editing || busy) return
+      const row = editing.settings.find((s) => s.item.id === id)
+      if (!row?.imageId) return
+      const { imageId, ...rest } = row
+      patch({ settings: editing.settings.map((s) => (s.item.id === id ? rest : s)) })
+      cardImages.release(imageId)
+    },
     /** 표지를 올리거나(교체 포함) 지운다(`null`). 초안 저장과 별개로 바로 적용되고 됐을 때만 true다. 실패하면 이전 표지 그대로 오류 문구를 보인다. */
     setCover: async (file: File | null) => {
       if (!saved || busy || reviewBusy || mutation.current) return false
@@ -531,7 +660,7 @@ export function useWorldStudioViewModel(
           if (current === generation.current) {
             setSaved((w) => (w && w.id === saved.id ? { ...w, hasCover: !!file } : w))
             setCoverRevision((revision) => revision + 1)
-            setMessage(file ? '표지를 올렸어요.' : '표지를 지웠어요. 자동으로 만든 표지를 써요.')
+            setMessage(file ? '표지를 올렸어요.' : '표지를 지웠어요. 기본 표지를 써요.')
             done = true
           }
         } finally {

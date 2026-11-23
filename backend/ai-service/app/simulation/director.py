@@ -7,6 +7,7 @@
 모델이 준 값은 Python이 다시 검증하고 어긋나면 고치지 않고 실패로 올린다. 인물 id는 모델에 보내지 않고 별칭(c1…)으로만 주고받는다.
 """
 
+import os
 import time
 from collections.abc import Sequence
 from functools import lru_cache
@@ -20,12 +21,15 @@ from langchain_typesafe.client import (TypeSafeAPIConnectionError, TypeSafeAPIRe
 from langchain_typesafe.types import ClassifierRequest, ClassifierResponse
 from pydantic import Field, JsonValue, SecretStr
 
+from app import tracing
+from app.agent_runtime import MODEL_EVENT
 from app.intent.models import Decision as DecisionsReply
-from app.simulation.errors import SimulationFailure
+from app.simulation.errors import PROMPT_UNAVAILABLE, SimulationFailure
 from app.simulation.models import Decision
 from app.simulation.prompt import DIRECTOR_INSTRUCTIONS, POV_QUESTION, SPEAKER_QUESTION, TURN_CHOICES, TURN_QUESTION
 
 DECISIONS_MODEL = 'gpt-6-luna'  # Decisions API가 지원하는 유일한 모델(app/intent/prompt.py와 같다)
+SKIP_FORCED = 'SIMULATION_SKIP_FORCED_DIRECTOR'  # 속도 스위치(#642): 1이면 forced()가 규칙이 정한 턴의 연출 호출을 생략한다
 NEEDS_SETTINGS = '시뮬레이션 모델 설정이 필요합니다.'
 FAILED = '연출 결정 모델 호출에 실패했습니다.'
 UNUSABLE = '연출 결정 모델 응답을 확인할 수 없습니다.'
@@ -94,7 +98,19 @@ class OpenAIDecisionClassifier(TypeSafeClassifier):
 @lru_cache(maxsize=1)
 def classifier() -> OpenAIDecisionClassifier:
     """연출 결정용 분류기. 연결(httpx2 클라이언트)을 재사용하려고 한 번만 만든다."""
-    return OpenAIDecisionClassifier(instructions=DIRECTOR_INSTRUCTIONS)
+    return OpenAIDecisionClassifier()
+
+
+def forced(allowed: Sequence[str], last_pov: str | None) -> Decision | None:
+    """속도 스위치(`SIMULATION_SKIP_FORCED_DIRECTOR=1`, #642): 규칙이 고를 턴을 하나로 정했고 그 턴이 대사가 아니면 연출 모델을 묻지 않고 정한다.
+
+    시점은 직전 턴의 시점이고 직전 턴이 없으면 전지적이다. 대사는 화자를 모델이 골라야 하고, 독백은 시점 인물이 있어야 해서 직전 시점이 인물 시점일 때만 생략한다.
+    스위치가 꺼져 있거나 생략할 수 없으면 None이라 호출자가 지금처럼 `decide`로 묻는다. 호출 때 환경을 읽는다.
+    """
+    if os.environ.get(SKIP_FORCED) != '1' or len(allowed) != 1 or allowed[0] == 'speech':
+        return None
+    pov = last_pov or 'omniscient'
+    return None if allowed[0] == 'monologue' and pov == 'omniscient' else Decision(turn=allowed[0], pov=pov)
 
 
 async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last_pov: str | None = None) -> Decision:
@@ -127,15 +143,26 @@ async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last
 
 
 async def _ask(state: dict, questions: dict[str, Choice]) -> dict:
-    """Decisions를 한 번 부른다. 호출 하나의 지연·토큰·실패는 `simulation.model` 이벤트로 알려 콜백(장부)이 남기게 한다(본문·키는 없다)."""
+    """Decisions를 한 번 부른다. 호출 하나의 지연·토큰·실패는 공통 `MODEL_EVENT`로 알려 사용량 장부가 남기게 하고 generation으로도 남긴다(본문·키는 없다).
+
+    지시문은 Langfuse 프롬프트 character_simulation.direct의 production 버전이고 DIRECTOR_INSTRUCTIONS(코드 문자열)는 기본값이다.
+    """
     try:
         chosen = classifier()
     except ValueError:  # 키가 없다
         raise SimulationFailure(503, NEEDS_SETTINGS) from None
+    try:
+        managed = tracing.prompt('character_simulation.direct', DIRECTOR_INSTRUCTIONS)
+    except tracing.PromptUnavailable:
+        raise SimulationFailure(503, PROMPT_UNAVAILABLE) from None
+    chosen = chosen.model_copy(update={'instructions': managed.text})  # 연결(HTTP 클라이언트)은 공유하고 지시문만 이번 호출 것이다
     started, usage = time.monotonic(), None
     try:
-        reply = await chosen.ainvoke({'state': state, 'questions': questions})
-        usage = reply.usage
+        with tracing.observe('simulation.director', as_type='generation', model=DECISIONS_MODEL, prompt=managed.client) as generation:
+            reply = await chosen.ainvoke({'state': state, 'questions': questions})
+            usage = reply.usage
+            if usage.input_tokens is not None:
+                generation.update(usage_details={'input': usage.input_tokens, 'output': usage.output_tokens})
         return reply.choices
     except TypeSafeAPIResponseValidationError:
         raise SimulationFailure(502, UNUSABLE) from None
@@ -143,7 +170,7 @@ async def _ask(state: dict, questions: dict[str, Choice]) -> dict:
         raise SimulationFailure(503, FAILED) from None
     finally:
         try:
-            await adispatch_custom_event('simulation.model', {
+            await adispatch_custom_event(MODEL_EVENT, {
                 'name': 'director', 'ms': round((time.monotonic() - started) * 1000), 'failed': usage is None,
                 'inputTokens': usage and usage.input_tokens, 'outputTokens': usage and usage.output_tokens})
         except RuntimeError:  # LangChain 실행 밖이면 알릴 곳이 없다

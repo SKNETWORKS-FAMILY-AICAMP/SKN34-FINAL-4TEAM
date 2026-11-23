@@ -1,0 +1,1897 @@
+[
+  {
+    "id": "828a2723-0969-5bd4-a624-647921a008f7",
+    "title": "셰코트코바치",
+    "body": "나무 인간의 파멸 때 눈을 뽑는 새로 등장한다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제1부 제3장, 영인 PDF 325쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=325",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "xecotcovach",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제1부 제3장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=325",
+          "location": "제1부 제3장, 영인 PDF 325쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "wooden-revolt",
+          "title": "나무 인간을 벌하는 짐승과 살림도구",
+          "runtime_id": "57af87d7-942e-5bc5-ba25-31725598201c"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "2026b81a-b8c6-5868-9573-e40e9cc75443",
+    "title": "코츠발람",
+    "body": "나무 인간의 파멸 때 그들의 살을 먹는 존재다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제1부 제3장, 영인 PDF 325쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=325",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "cotzbalam",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제1부 제3장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=325",
+          "location": "제1부 제3장, 영인 PDF 325쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "wooden-revolt",
+          "title": "나무 인간을 벌하는 짐승과 살림도구",
+          "runtime_id": "57af87d7-942e-5bc5-ba25-31725598201c"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "4decaa45-083f-5211-91db-ef79c83ea14c",
+    "title": "테쿰발람",
+    "body": "나무 인간의 파멸 때 뼈와 연골을 부수는 존재다. 영인본 OCR에 철자 오류가 있어 인용 구절은 앞부분만 제시한다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제1부 제3장, 영인 PDF 325쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=325",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "tecumbalam",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제1부 제3장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=325",
+          "location": "제1부 제3장, 영인 PDF 325쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "wooden-revolt",
+          "title": "나무 인간을 벌하는 짐승과 살림도구",
+          "runtime_id": "57af87d7-942e-5bc5-ba25-31725598201c"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "2893d3ca-abba-5635-9301-06cfc6af8c62",
+    "title": "치테 나무",
+    "body": "나무 인간의 창조에서 남성 형상의 몸을 이루는 재료로 등장한다. 영인본 OCR은 tziié로 읽힌다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제1부 제3장, 영인 PDF 323쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=323",
+    "cardType": "object",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "tzite-wood",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제1부 제3장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=323",
+          "location": "제1부 제3장, 영인 PDF 323쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "mud-wood",
+          "title": "흙과 나무 인간의 실패",
+          "runtime_id": "31c05ad0-a0ef-5e9e-836b-5e9d339350eb"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "divination-seeds",
+          "title": "옥수수와 치테의 점",
+          "runtime_id": "9119aba2-7840-5399-ae9d-4261d1233907"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "8abed31d-784a-5b76-8da9-50e534600896",
+    "title": "시바크",
+    "body": "창조자가 나무 인간의 여성 형상을 만들 때 그 몸의 재료로 지정된다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제1부 제3장, 영인 PDF 325쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=325",
+    "cardType": "object",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "zibak-material",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제1부 제3장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=325",
+          "location": "제1부 제3장, 영인 PDF 325쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "mud-wood",
+          "title": "흙과 나무 인간의 실패",
+          "runtime_id": "31c05ad0-a0ef-5e9e-836b-5e9d339350eb"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "63fc1f3d-675d-5f60-94ef-9b2e4fe21370",
+    "title": "흰 멧돼지 노인",
+    "body": "후나푸와 슈발란케를 손자라 소개하고 노파와 함께 부쿱 카키시의 치아를 치료하는 척하여 그의 보석 치아를 빼앗는다. 기존 슈피야코크·슈무카네 카드와의 동일시는 이 장에서 단정하지 않는다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제1부 제6장, 영인 PDF 339쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=339",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "white-boar-healer",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제1부 제6장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=339",
+          "location": "제1부 제6장, 영인 PDF 339쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "seven-macaw",
+          "title": "부쿱 카키시",
+          "runtime_id": "dcae5fac-9ac3-575d-ad52-98c9406f1f4e"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "xpiyacoc-xmucane",
+          "title": "슈피야코크와 슈무카네",
+          "runtime_id": "e65d77be-aed6-5117-befe-146736bb485f"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "18e69adb-eb8a-5443-9859-04fb259586ae",
+    "title": "흰 가시 찌르는 노파",
+    "body": "흰 멧돼지 노인과 함께 쌍둥이의 계획에 가담하여 부쿱 카키시에게 치료자로 접근한다. 기존 점쟁이 부부 카드와 동일 인물인지는 이 장만으로 단정하지 않는다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제1부 제6장, 영인 PDF 339쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=339",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "white-spine-healer",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제1부 제6장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=339",
+          "location": "제1부 제6장, 영인 PDF 339쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "seven-macaw",
+          "title": "부쿱 카키시",
+          "runtime_id": "dcae5fac-9ac3-575d-ad52-98c9406f1f4e"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "xpiyacoc-xmucane",
+          "title": "슈피야코크와 슈무카네",
+          "runtime_id": "e65d77be-aed6-5117-befe-146736bb485f"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "f2bb7277-86fc-5435-b298-e1d53955d7d2",
+    "title": "메아반 산",
+    "body": "후나푸와 슈발란케가 산기슭 동굴에 가짜 가재를 놓고 지팍나를 유인한 장소다. 지팍나가 안으로 들어가자 산이 무너져 그를 덮는다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제1부 제8장, 영인 PDF 353쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=353",
+    "cardType": "location",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "meavan-mountain",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제1부 제8장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=353",
+          "location": "제1부 제8장, 영인 PDF 353쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "zipacna",
+          "title": "지팍나",
+          "runtime_id": "23ab5096-7997-53e6-b5ea-eb3801e79023"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "260aaa33-8149-54b9-a9c9-4702817866e0",
+    "title": "슈바키얄로",
+    "body": "훈훈 아푸의 아내이자 훈바츠와 훈초우엔의 어머니다. 두 아버지가 시발바로 내려가기 전에 세상을 떠난다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 367쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=367",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "xbakiyalo",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=367",
+          "location": "제2부 제1장, 영인 PDF 367쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+          "location": "포폴 부 제2부 제1장, 영인 PDF 371쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "father-ballplayers",
+          "title": "훈 후나푸와 부쿱 후나푸",
+          "runtime_id": "cbb27332-f460-567e-86a4-b22868d5448c"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "56720840-5483-5ea4-8392-e57a2101c9f9",
+    "title": "보크",
+    "body": "후라칸과 번개 존재들의 사자로, 공놀이하는 형제들을 보러 오고 순간에 하늘의 후라칸에게 간다. 제2부의 새 이름 표기와 후대 해석을 동일시하지 않는다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 369쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=369",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "voc-messenger",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=369",
+          "location": "제2부 제1장, 영인 PDF 369쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "heart-sky",
+          "title": "하늘의 심장",
+          "runtime_id": "5c4844a8-1f47-5e11-b66e-ab921e47beef"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "642eb08a-9bc6-5d36-b46c-53b5a26fab64",
+    "title": "시키리파트",
+    "body": "시발바의 제후이며 쿠추마키크와 함께 사람의 출혈에 관련된 직무를 맡는다. 기존 시발바 군주들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 371쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "xiqiripat",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+          "location": "제2부 제1장, 영인 PDF 371쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+          "location": "포폴 부 제2부 제1장, 영인 PDF 371쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "5d39746c-3756-5ef8-914e-c7ad6d1bfc28",
+    "title": "쿠추마키크",
+    "body": "시발바 제후이며 슈키크의 아버지다. 제1장에선 시키리파트와 함께 출혈을 담당하고 제3장에서 딸의 임신을 군주들에게 알린다. 기존 시발바 군주들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제3장, 영인 PDF 389쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=389",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "cuchumaquiq",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제3장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=389",
+          "location": "제2부 제3장, 영인 PDF 389쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+          "location": "제2부 제1장, 영인 PDF 371쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "blood-woman",
+          "title": "슈키크",
+          "runtime_id": "86b31e5e-6713-5e3a-bca7-9d4c1480ad0f"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "b73ad7ef-880f-5752-ad47-7c42292554ce",
+    "title": "아할푸",
+    "body": "시발바의 제후로 아할가나와 함께 사람의 부종과 다리의 체액, 얼굴 변색을 일으키는 직무를 담당한다. 기존 시발바 군주들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 371쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "ahalpuh",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+          "location": "제2부 제1장, 영인 PDF 371쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+          "location": "포폴 부 제2부 제1장, 영인 PDF 371쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "f5b17e88-c480-57fe-900b-b74af28a2925",
+    "title": "아할가나",
+    "body": "시발바의 제후로 아할푸와 함께 사람의 부종과 다리의 체액, 얼굴 변색을 일으키는 직무를 담당한다. 기존 시발바 군주들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 371쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "ahalgana",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+          "location": "제2부 제1장, 영인 PDF 371쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+          "location": "포폴 부 제2부 제1장, 영인 PDF 371쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "f0ec9140-689e-531b-85b1-e9115d9af3c3",
+    "title": "차미아바크",
+    "body": "시발바의 뼈 곤봉을 든 관리로 차미아홀롬과 함께 사람을 쇠약하게 해 뼈만 남게 하는 직무를 맡는다. 기존 시발바 군주들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 373쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "chamiabak",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "포폴 부 제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "48349651-8948-5add-8599-042cef63370a",
+    "title": "차미아홀롬",
+    "body": "시발바의 뼈 곤봉을 든 관리로 차미아바크와 함께 사람을 쇠약하게 해 뼈만 남게 하는 직무를 맡는다. 기존 시발바 군주들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 373쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "chamiaholom",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "포폴 부 제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "54ff7f0e-84db-500d-a4b0-d655f740c2ad",
+    "title": "아할메스",
+    "body": "시발바의 제후로 아할토코브와 함께 집 안팎에서 배신과 죽음을 겪게 하는 직무를 맡는다. 본문은 같은 대목에서 짝의 이름을 Ahallogob과 Ahaltocob으로 달리 표기한다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 373쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "ahalmez",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "포폴 부 제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "ef0ae601-bdab-5335-a01d-193b58d1b148",
+    "title": "아할토코브",
+    "body": "시발바의 제후로 아할메스와 함께 집 안팎에서 배신과 죽음을 겪게 하는 직무를 맡는다. 본문은 같은 대목에서 Ahallogob과 Ahaltocob으로 달리 표기한다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 373쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "ahaltocob",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "포폴 부 제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "59093c78-9e54-5782-960a-129617d90bd7",
+    "title": "시크",
+    "body": "시발바의 제후로 파탄과 함께 길에서 사람의 목과 가슴을 죄어 피를 토하고 갑자기 죽게 하는 직무를 맡는다. 8장 명단의 이름 표기는 다르므로 같은 이름이라고 단정하지 않는다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 373쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "xic-death-lord",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "포폴 부 제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "74077d82-1de1-5242-a502-21264840c00b",
+    "title": "파탄",
+    "body": "시발바의 제후로 시크와 함께 길에서 사람의 목과 가슴을 죄어 피를 토하고 갑자기 죽게 하는 직무를 맡는다. 기존 시발바 군주들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 373쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "patan-death-lord",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=373",
+          "location": "포폴 부 제2부 제1장, 영인 PDF 373쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "2d466b82-47a0-527d-bad6-b6c2858b5a21",
+    "title": "화살 올빼미",
+    "body": "시발바의 네 전령 가운데 하나로, 화살처럼 빠르게 움직인다. 기존 올빼미 사자들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제2장, 영인 PDF 375쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=375",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "arrow-owl",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제2장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=375",
+          "location": "제2부 제2장, 영인 PDF 375쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "xibalba-envoys",
+          "title": "올빼미 사자들과 거짓 심장",
+          "runtime_id": "8a3387c9-0b24-5310-97ad-bf4d012a1d94"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "95851de5-092c-5ad8-9c25-1388015ec2ca",
+    "title": "외다리 올빼미",
+    "body": "시발바의 네 전령 가운데 하나로, 다리가 하나다. 기존 올빼미 사자들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제2장, 영인 PDF 375쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=375",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "one-leg-owl",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제2장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=375",
+          "location": "제2부 제2장, 영인 PDF 375쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제2장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=375",
+          "location": "제2부 제2장, 영인 PDF 375쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "xibalba-envoys",
+          "title": "올빼미 사자들과 거짓 심장",
+          "runtime_id": "8a3387c9-0b24-5310-97ad-bf4d012a1d94"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "e55ceb31-be59-5178-a0b9-14d7c2ae97f5",
+    "title": "마코앵무 올빼미",
+    "body": "시발바의 네 전령 가운데 하나이며 몸 주위에 불을 지닌 것으로 묘사된다. 기존 올빼미 사자들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제2장, 영인 PDF 377쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=377",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "macaw-owl",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제2장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=377",
+          "location": "제2부 제2장, 영인 PDF 377쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제2장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=375",
+          "location": "제2부 제2장, 영인 PDF 375쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "xibalba-envoys",
+          "title": "올빼미 사자들과 거짓 심장",
+          "runtime_id": "8a3387c9-0b24-5310-97ad-bf4d012a1d94"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "3b8f8985-65ca-579a-b5a1-0ed00c6e6586",
+    "title": "머리 올빼미",
+    "body": "시발바의 네 전령 가운데 하나로, 다리 없이 머리와 날개만 있다. 기존 올빼미 사자들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제2장, 영인 PDF 377쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=377",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "head-owl",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제2장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=377",
+          "location": "제2부 제2장, 영인 PDF 377쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제2장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=375",
+          "location": "제2부 제2장, 영인 PDF 375쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "xibalba-envoys",
+          "title": "올빼미 사자들과 거짓 심장",
+          "runtime_id": "8a3387c9-0b24-5310-97ad-bf4d012a1d94"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "baec331d-e513-5aae-a75d-5f350fd707c1",
+    "title": "님쇼브 카르차 공놀이장",
+    "body": "올빼미 사자들이 훈훈 아푸와 부쿱 후나푸에게 시발바의 초대를 전한 공놀이장이다. 기존 공놀이장 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제2장, 영인 PDF 377쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=377",
+    "cardType": "location",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "nimxob-carchah",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제2장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=377",
+          "location": "제2부 제2장, 영인 PDF 377쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "ballcourt",
+          "title": "공놀이장",
+          "runtime_id": "74d9e1aa-ba80-5a7e-992c-eee922510a9c"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "55f7b80e-e304-568d-9293-74906b69c118",
+    "title": "붉은 수액 나무",
+    "body": "슈키크는 나무의 붉은 수액을 굳혀 심장처럼 보이게 하여 올빼미 전령들이 시발바 군주에게 가져가게 한다. 브라쇠르는 이를 상 드 드라공이라 부른다. 기존 올빼미 사자들과 거짓 심장 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제3장, 영인 PDF 397쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=397",
+    "cardType": "object",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "dragon-blood-tree",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제3장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=397",
+          "location": "제2부 제3장, 영인 PDF 397쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "blood-woman",
+          "title": "슈키크",
+          "runtime_id": "86b31e5e-6713-5e3a-bca7-9d4c1480ad0f"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "xibalba-envoys",
+          "title": "올빼미 사자들과 거짓 심장",
+          "runtime_id": "8a3387c9-0b24-5310-97ad-bf4d012a1d94"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "06ffd54d-c0ae-5fbb-a22c-46f32bb94472",
+    "title": "슈무쿠르 산비둘기",
+    "body": "쌍둥이가 밭을 정리하는 동안 할머니가 식사를 가져오는 것을 지켜보다가 울음으로 알려 준다. 그 사이 형제는 농기구가 스스로 일하게 두고 사냥한다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제6장, 영인 PDF 419쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=419",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "xmucur-pigeon",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제6장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=419",
+          "location": "제2부 제6장, 영인 PDF 419쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제6장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=419",
+          "location": "포폴 부 제2부 제6장, 영인 PDF 419쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "restored-forest",
+          "title": "다시 자라는 숲과 쥐의 비밀",
+          "runtime_id": "472880ac-eec1-5511-b7da-f480f1c19808"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "7420f1b9-a74b-5999-8203-bd90be846b56",
+    "title": "공놀이 도구를 알려 준 쥐",
+    "body": "쌍둥이에게 지붕 위에 숨겨진 부친들의 공놀이 도구를 알려 주고 줄을 끊어 도구를 내려 준다. 기존 숲과 쥐의 비밀 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제6장, 영인 PDF 425쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=425",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "ballgame-rat",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제6장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=425",
+          "location": "제2부 제6장, 영인 PDF 425쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "restored-forest",
+          "title": "다시 자라는 숲과 쥐의 비밀",
+          "runtime_id": "472880ac-eec1-5511-b7da-f480f1c19808"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "ballgame-equipment",
+          "title": "아버지들의 공놀이 도구",
+          "runtime_id": "e32769af-7829-5924-b194-e935539acc84"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "21f7cbe3-4740-5ae2-a406-c882d517d9f4",
+    "title": "새벽을 늦춘 사리그",
+    "body": "후나푸의 머리를 다시 만드는 동안 노인이 네 차례 다리를 벌릴 때 어둠이 다시 온다. 번역자는 이 장면을 사리그와 연결하지만 노인과 다른 인물의 동일시는 단정하지 않는다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제11장, 영인 PDF 465쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=465",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "dawn-opossum",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제11장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=465",
+          "location": "제2부 제11장, 영인 PDF 465쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "head-restoration",
+          "title": "임시 머리와 토끼의 속임수",
+          "runtime_id": "a0717f45-5c0d-5436-981e-3bd7753e0b5a"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "67a77fee-8f9c-54ad-b8c4-fef09c9ff7b8",
+    "title": "푸르푸에크 정원 파수꾼",
+    "body": "시발바 왕들의 꽃밭을 지키는 두 파수꾼이다. 개미들이 꽃을 가져가는 것을 알아채지 못하고, 왕들은 이들을 벌한다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제9장, 영인 PDF 455쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=455",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "purpuek-garden-guards",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제9장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=455",
+          "location": "제2부 제9장, 영인 PDF 455쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제9장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=457",
+          "location": "포폴 부 제2부 제9장, 영인 PDF 457쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "flowers-and-ants",
+          "title": "어둠의 집과 개미가 모은 꽃",
+          "runtime_id": "ec378788-d494-53f6-bf4a-c68346f8a8b8"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "b5d57632-1075-5e47-984e-3bcffab9f71f",
+    "title": "치말마트",
+    "body": "부쿱 카키시의 아내이자 지팍나와 카브라칸의 어머니다. 부쿱 카키시가 패한 뒤 그녀도 죽는다. 기존 부쿱 카키시 가족 관련 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제1부 제5장, 영인 PDF 333쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=333",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "chimalmat",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제1부 제5장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=333",
+          "location": "제1부 제5장, 영인 PDF 333쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제1부 제6장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=343",
+          "location": "제1부 제6장, 영인 PDF 343쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "seven-macaw",
+          "title": "부쿱 카키시",
+          "runtime_id": "dcae5fac-9ac3-575d-ad52-98c9406f1f4e"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "zipacna",
+          "title": "지팍나",
+          "runtime_id": "23ab5096-7997-53e6-b5ea-eb3801e79023"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "cabrakan",
+          "title": "카브라칸",
+          "runtime_id": "643e4cf4-0530-56e1-9523-4b431a2892d0"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "0a2e4cda-175d-5c84-8c07-460c0df685b6",
+    "title": "훈 카메",
+    "body": "시발바의 최고 재판관이며 부쿱 카메와 함께 공놀이 형제를 불러 시험한다. 쌍둥이의 공연을 본 뒤 자신도 희생해 달라고 청하자 가장 먼저 죽고 되살아나지 못한다. 기존 시발바 군주들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 371쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "hun-came",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+          "location": "제2부 제1장, 영인 PDF 371쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제13장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=483",
+          "location": "제2부 제13장, 영인 PDF 483쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "xibalba",
+          "title": "시발바",
+          "runtime_id": "f07f5953-6c0f-51d7-9b52-54e4b473791a"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "a9baed26-4933-5446-b986-84fc2548ceff",
+    "title": "부쿱 카메",
+    "body": "시발바의 최고 재판관이며 훈 카메와 함께 공놀이 형제를 불러 시험한다. 쌍둥이의 공연 뒤 훈 카메에 이어 죽고 되살아나지 못한다. 기존 시발바 군주들 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제1장, 영인 PDF 371쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "vukub-came",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제1장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=371",
+          "location": "제2부 제1장, 영인 PDF 371쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제2부 제13장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=483",
+          "location": "제2부 제13장, 영인 PDF 483쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "death-lords",
+          "title": "시발바의 군주들",
+          "runtime_id": "c4cde90a-fb13-5a98-ac5d-dda9a09b97ff"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "xibalba",
+          "title": "시발바",
+          "runtime_id": "f07f5953-6c0f-51d7-9b52-54e4b473791a"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "e697530d-771a-58e4-bdb2-d7029ccfa6d7",
+    "title": "시발바 군주들의 꽃밭",
+    "body": "훈 카메와 부쿱 카메의 정원으로 파수꾼들이 밤에 지킨다. 쌍둥이가 부른 개미들이 왕들이 요구한 꽃을 이곳에서 잘라 가져간다. 기존 꽃과 개미 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제2부 제9장, 영인 PDF 453쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=453",
+    "cardType": "location",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "xibalba-flower-garden",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제2부 제9장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=453",
+          "location": "제2부 제9장, 영인 PDF 453쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "flowers-and-ants",
+          "title": "어둠의 집과 개미가 모은 꽃",
+          "runtime_id": "ec378788-d494-53f6-bf4a-c68346f8a8b8"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "e03b7210-b84c-5c0b-9c8e-e31a4ec44f19",
+    "title": "사백 젊은이의 별무리 전승",
+    "body": "지팍나에게 죽은 사백 젊은이가 플레이아데스 무리에 들어갔다는 말에 대해, 이 장의 서술자는 허구일 수 있다고 단서를 단다. 기존 사백 젊은이 카드와 겹칠 수 있다.\n\n출전: 브라쇠르 1861년 프랑스어판 《포폴 부》 제1부 제7장, 영인 PDF 351쪽. https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=351",
+    "cardType": "event",
+    "provenance": {
+      "segment": "maya-popol-early",
+      "candidate_key": "four-hundred-stars",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제1부 제7장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=351",
+          "location": "제1부 제7장, 영인 PDF 351쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "포폴 부 제1부 제7장",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf#page=351",
+          "location": "포폴 부 제1부 제7장, 영인 PDF 351쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "e31235b022f131757555b1822fa214bb1a2772c7464a6c8fbda579a1e30101e5",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "four-hundred-youths",
+          "title": "사백 젊은이와 지팍나의 보복",
+          "runtime_id": "7d86efe5-3f25-541b-9a76-e9c19903f2c2"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "6574a4ad-fcde-535a-9356-d0e68c330d09",
+    "title": "파실리시브 가죽",
+    "body": "툴란에서 가져왔다고 설명되는 파실리시브라는 가죽이다. 토힐·아빌리슈·하카비츠의 피와 관련된 선물로 언급된다. 출전: 브라쇠르 1861년판 포폴 부 제4부 제1장, 인터넷 아카이브 OCR 전사 https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+    "cardType": "object",
+    "provenance": {
+      "segment": "maya-popol-late",
+      "candidate_key": "pazilizib-skin",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제4부 제1장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "location": "제4부 제1장 프랑스어 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "339b5d2999e2b1e1428ee66214da2f2e9031253ec123e4eddbdabdf5303025d4",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "tulan",
+          "title": "툴란 수이바",
+          "runtime_id": "a78c0000-f30a-564c-a2a1-ab51e036bc49"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "patron-deities",
+          "title": "토힐·아빌리슈·하카비츠와 신의 분배",
+          "runtime_id": "425da195-85a6-5bf4-8271-96d8af760f4d"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "22ac55ee-941a-5b2f-b98d-d3318bce0773",
+    "title": "슈타",
+    "body": "여러 부족의 지도자들이 강가에 있는 토힐 일행을 유혹하도록 보낸 두 딸 가운데 한 사람이다. 실패 뒤 동행한 슈푸치와 함께 그림 망토를 전달한다. 출전: 브라쇠르 1861년판 포폴 부 제4부 제2장, 인터넷 아카이브 OCR 전사 https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-late",
+      "candidate_key": "xtah",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제4부 제2장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "location": "제4부 제2장 프랑스어 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "339b5d2999e2b1e1428ee66214da2f2e9031253ec123e4eddbdabdf5303025d4",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "painted-cloaks",
+          "title": "그림 망토 세 벌",
+          "runtime_id": "4874d54f-0d1e-5dd7-bad9-f0a46ab940b3"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "48d9b2ca-e508-59ef-a779-db57debdedef",
+    "title": "슈푸치",
+    "body": "부족 지도자들이 슈타와 함께 강가로 보낸 두 딸 가운데 한 사람이다. 두 사람은 신들의 얼굴을 본 증표로 그림 망토를 가져간다. 출전: 브라쇠르 1861년판 포폴 부 제4부 제2장, 인터넷 아카이브 OCR 전사 https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+    "cardType": "character",
+    "provenance": {
+      "segment": "maya-popol-late",
+      "candidate_key": "xpuch",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제4부 제2장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "location": "제4부 제2장 프랑스어 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "339b5d2999e2b1e1428ee66214da2f2e9031253ec123e4eddbdabdf5303025d4",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "painted-cloaks",
+          "title": "그림 망토 세 벌",
+          "runtime_id": "4874d54f-0d1e-5dd7-bad9-f0a46ab940b3"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "0428fbbb-feed-5106-9d51-186ba6165cb9",
+    "title": "토힐의 목욕터",
+    "body": "토힐·아빌리슈·하카비츠가 젊은이의 모습으로 목욕하는 강가로, 부족들이 두 딸을 보내 이들을 유인하려 한다. 출전: 브라쇠르 1861년판 포폴 부 제4부 제2장, 인터넷 아카이브 OCR 전사 https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+    "cardType": "location",
+    "provenance": {
+      "segment": "maya-popol-late",
+      "candidate_key": "tohil-bathing-place",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제4부 제2장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "location": "제4부 제2장 프랑스어 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "339b5d2999e2b1e1428ee66214da2f2e9031253ec123e4eddbdabdf5303025d4",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "painted-cloaks",
+          "title": "그림 망토 세 벌",
+          "runtime_id": "4874d54f-0d1e-5dd7-bad9-f0a46ab940b3"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "d84bb2bc-5106-5737-9eda-2de75414f5e7",
+    "title": "하카비츠의 나무 허수아비",
+    "body": "네 조상은 방어 시설 위에 활과 방패를 갖춘 사람 모양 나무 인형을 세우고 빼앗은 귀금속 장식을 입힌다. 제4장에서는 정찰한 이들이 살아 있는 전사로 본다. 기존 벌 방어전 카드와 관련되어 중복 검토가 필요하다. 출전: 브라쇠르 1861년판 포폴 부 제4부 제3장, 인터넷 아카이브 OCR 전사 https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+    "cardType": "object",
+    "provenance": {
+      "segment": "maya-popol-late",
+      "candidate_key": "hacavitz-wooden-decoys",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제4부 제3장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "location": "제4부 제3장 프랑스어 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "339b5d2999e2b1e1428ee66214da2f2e9031253ec123e4eddbdabdf5303025d4",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "bee-defense",
+          "title": "하카비츠의 벌 방어전",
+          "runtime_id": "ec6a3b4a-5a7f-59f9-9316-eeb6b58f08fd"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "ancestral-mountain",
+          "title": "하카비츠 산의 거주와 방어",
+          "runtime_id": "ee36f8c6-6046-5c42-883d-8c1c6ce0806d"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "a17f3b7e-c8df-57e2-a71a-9dfbd354cff4",
+    "title": "잠든 적군의 수염과 장식",
+    "body": "공격하러 오던 전사들이 길에서 잠들자 조상들은 이들의 눈썹과 수염을 밀고 무기 손잡이와 장신구의 귀금속을 빼앗아 모욕한다. 출전: 브라쇠르 1861년판 포폴 부 제4부 제3장, 인터넷 아카이브 OCR 전사 https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+    "cardType": "event",
+    "provenance": {
+      "segment": "maya-popol-late",
+      "candidate_key": "hacavitz-sleeping-warriors",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제4부 제3장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "location": "제4부 제3장 프랑스어 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "339b5d2999e2b1e1428ee66214da2f2e9031253ec123e4eddbdabdf5303025d4",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "ancestral-mountain",
+          "title": "하카비츠 산의 거주와 방어",
+          "runtime_id": "ee36f8c6-6046-5c42-883d-8c1c6ce0806d"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "bee-defense",
+          "title": "하카비츠의 벌 방어전",
+          "runtime_id": "ec6a3b4a-5a7f-59f9-9316-eeb6b58f08fd"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "bd45ae89-3a3d-52ca-bc30-d8cc8fae29e4",
+    "title": "신들의 피를 마시는 돌",
+    "body": "사제들이 사슴과 새의 피를 토힐과 아빌리슈의 돌가에 뿌리면 신들이 피를 마신 뒤 돌이 말을 한다. 돌로 변한 신과 제물에 관한 기존 카드와 관련되어 중복 검토가 필요하다. 출전: 브라쇠르 1861년판 포폴 부 제3부 제10장, 인터넷 아카이브 OCR 전사 https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+    "cardType": "other",
+    "provenance": {
+      "segment": "maya-popol-late",
+      "candidate_key": "blood-offering-stones",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제3부 제10장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "location": "제3부 제10장 프랑스어 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "339b5d2999e2b1e1428ee66214da2f2e9031253ec123e4eddbdabdf5303025d4",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "dawn-stones",
+          "title": "새벽과 신들의 돌 변화",
+          "runtime_id": "42ad03c1-fe49-55aa-857b-bae86c24c0b8"
+        },
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "tribal-abductions",
+          "title": "부족 사람들의 납치와 제사",
+          "runtime_id": "dc5e0cc0-d814-5447-8c96-90a9b8eb2dcb"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  },
+  {
+    "id": "6ce1c436-f401-51a8-8eb3-0ae084ebd4d4",
+    "title": "카마쿠의 작별 노래",
+    "body": "네 조상이 하카비츠에서 아들들에게 마지막 말을 남기며 슬픔 속에 부른 노래로, 1861년 프랑스어판에서 Qamacu라고 적는다. 출전: 브라쇠르 1861년판 포폴 부 제4부 제5장, 인터넷 아카이브 OCR 전사 https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+    "cardType": "other",
+    "provenance": {
+      "segment": "maya-popol-late",
+      "candidate_key": "qamacu-farewell-song",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "브라쇠르 드 부르부르 1861년 프랑스어판 《포폴 부》",
+      "translation": "후보 작성자의 한국어 요약·중역; 공식 번역 아님",
+      "evidence": [
+        {
+          "unit": "포폴 부 제4부 제5장",
+          "url": "https://archive.org/download/popolvuhlelivres00bras_0/popolvuhlelivres00bras_0_djvu.txt",
+          "location": "제4부 제5장, 조상들의 작별 직전",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "source_file_sha256": "339b5d2999e2b1e1428ee66214da2f2e9031253ec123e4eddbdabdf5303025d4",
+      "source_original_sha256": null,
+      "source_original_sha256_status": "원문 파일을 이 통합 작업에서 확보하지 않아 해시 미확인"
+    },
+    "duplicate_review": {
+      "status": "검토 필요",
+      "matches": [
+        {
+          "kind": "기존 카드와 대상 또는 사건 맥락 중복 가능성",
+          "genre": "maya_mythology",
+          "source_key": "ancestral-departure",
+          "title": "첫 조상들의 작별과 후손의 여행",
+          "runtime_id": "e73604f7-b9f3-55e1-bacd-d1d380eb5e1c"
+        }
+      ]
+    },
+    "review_notes": [
+      "발췌는 후보 작성자가 기록한 원문 확인 구절이며, 구절만으로 본문의 모든 사실이 입증되지는 않아 판본과 원문 문맥 재대조가 필요하다."
+    ]
+  }
+]

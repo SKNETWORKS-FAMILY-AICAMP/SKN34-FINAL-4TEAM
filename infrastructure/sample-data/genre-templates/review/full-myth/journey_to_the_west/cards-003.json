@@ -1,0 +1,913 @@
+{
+  "genre": "journey_to_the_west",
+  "review_only": true,
+  "cards": [
+    {
+      "id": "08cb2d27-3e11-531c-b618-02403cfcd844",
+      "title": "천축국 진짜 공주 소아",
+      "body": "가짜 공주에게 쫓겨 포금사에 머물던 공주다. 태음성군은 그가 달궁의 소아로 환생했다고 설명하며 부모는 절에서 그를 다시 만난다. 기존 카드와 중복 가능: 천축국의 가짜 공주와 옥토끼. 출전: 《서유기》 제95회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC095%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "princess-sue",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-095",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC095%E5%9B%9E",
+            "location": "제95회 태음성군이 공주의 전생을 설명하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "945c6b4d-4293-5a46-b3cf-06dfde616d4d",
+      "title": "태음성군",
+      "body": "달궁의 옥토끼를 거두러 온다. 소아와 옥토끼의 옛 인연을 설명하고, 천축국 왕에게 옥토끼의 본모습을 보여 준다. 기존 카드와 중복 가능: 천축국의 가짜 공주와 옥토끼. 출전: 《서유기》 제95회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC095%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "taiyin-xingjun",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-095",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC095%E5%9B%9E",
+            "location": "제95회 태음성군이 토끼를 데려가는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "37e25a8d-8534-5721-8829-aa60ffc99a16",
+      "title": "구홍",
+      "body": "동태부 지령현의 시주로 자는 대관이다. 24년 동안 승려를 대접해 왔고 삼장 일행을 맞아 만 명을 대접하겠다는 서원을 채운다. 기존 카드와 중복 가능: 구홍의 소생과 누명 해소. 출전: 《서유기》 제96회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC096%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "kou-hong",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-096",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC096%E5%9B%9E",
+            "location": "제96회 구홍이 자신의 이름과 서원을 설명하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "147115ba-2b30-57c6-9f77-9a3e2985d012",
+      "title": "동태부 지령현",
+      "body": "구홍이 만 명의 승려를 대접하겠다는 서원을 실천한 고을이다. 구홍의 집 문에는 만승불조라는 표지가 걸려 있다. 기존 카드와 중복 가능: 구홍의 소생과 누명 해소. 출전: 《서유기》 제96회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC096%E5%9B%9E.",
+      "cardType": "location",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "tongtai-diling",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-096",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC096%E5%9B%9E",
+            "location": "제96회 삼장이 노인들에게 지명을 묻는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "d945c8ad-66e7-589b-8335-16fe62f664c3",
+      "title": "지장왕보살",
+      "body": "저승 취운궁에서 구홍을 선연부를 맡는 안장으로 받아들였다가, 손오공의 요청으로 그를 돌려보내고 수명을 12년 늘려준다. 기존 카드와 중복 가능: 구홍의 소생과 누명 해소. 출전: 《서유기》 제97회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC097%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "dizang-bodhisattva",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-097",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC097%E5%9B%9E",
+            "location": "제97회 지장왕이 구홍을 돌려보내는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "71090526-d565-5e5b-947b-8e57469098cd",
+      "title": "동태부 자사 강곤삼",
+      "body": "구홍의 가족이 낸 고발과 재물을 근거로 삼장 일행을 체포한 관리다. 뒤에 상황을 다시 살피고 일행을 석방한다. 기존 카드와 중복 가능: 구홍의 소생과 누명 해소. 출전: 《서유기》 제97회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC097%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "jiang-kunsan",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-097",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC097%E5%9B%9E",
+            "location": "제97회 자사가 조상의 신위에 말하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "5baca3d8-7956-5827-9901-b1c87d5f2522",
+      "title": "금정대선",
+      "body": "영산 기슭 옥진관에서 취경 일행을 맞아 목욕과 숙식을 제공하고 영산으로 가는 길을 안내한다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제98회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "jinding-immortal",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-098",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E",
+            "location": "제98회 손오공이 금정대선을 알아보는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "candidate_id": "f840d96d-584c-522a-9919-7c26bb8e6ec3",
+          "segment": "journey-1",
+          "key": "golden-summit-immortal",
+          "title": "금정대선",
+          "cardType": "character",
+          "reason": "제목 또는 별칭 일치; 동일 존재 여부 미확정"
+        },
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "a4511e01-a4ba-5712-9729-648b6365453b",
+      "title": "능운선도",
+      "body": "영산으로 향하는 길에 놓인 폭 넓은 물가다. 외나무다리와 밑 없는 배가 있고, 삼장 일행이 배를 타고 건넌다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제98회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E.",
+      "cardType": "location",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "lingyun-ferry",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-098",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E",
+            "location": "제98회 다리 앞에 이르는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "8e335db2-7451-534b-b9db-1780ecfa2110",
+      "title": "접인불의 밑 없는 배",
+      "body": "접인불이 능운도를 건널 때 모는 배다. 삼장은 배를 타고 강을 건너는 도중 자기의 시신이 떠내려가는 것을 본다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제98회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E.",
+      "cardType": "object",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "bottomless-ferry-boat",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-098",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E",
+            "location": "제98회 배가 강가에 도착하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "8f3a390f-488a-5efc-a7e3-1268dc8bb34d",
+      "title": "접인불조",
+      "body": "보당광왕불이라고도 한다. 능운도에서 밑 없는 배를 몰아 일행을 건네준다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제98회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "jieyin-buddha",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-098",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E",
+            "location": "제98회 손오공이 뱃사공의 정체를 알아보는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "c599e3a7-31c9-5168-a4cf-939639e64476",
+      "title": "무자경",
+      "body": "아나와 가섭이 일행에게 처음 건넨 글자 없는 경전이다. 여래는 무자경도 좋은 진경이라 말하지만 동토 중생을 위해 유자경으로 바꾸어 준다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제98회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E.",
+      "cardType": "object",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "baibi-scriptures",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-098",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E",
+            "location": "제98회 경전이 흩어진 뒤 사승이 살펴보는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "22e071f1-5c29-5ebe-a498-5e8d03863f64",
+      "title": "삼장의 자금 발우",
+      "body": "당왕에게 받은 발우로 삼장이 길에서 탁발에 사용했다. 아나와 가섭이 예물을 요구하자 삼장이 이를 건네고 유자경을 받는다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제98회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E.",
+      "cardType": "object",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "zijin-bowl",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-098",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E",
+            "location": "제98회 삼장이 발우를 바치는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "b7d7f2c1-3ffd-51c7-b74f-3738baa1e14b",
+      "title": "백웅존자",
+      "body": "연등고불의 지시를 받고 경전을 빼앗아 흩어 일행이 무자경을 확인하고 돌아가도록 한다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제98회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "bai-xiong",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-098",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E",
+            "location": "제98회 연등고불이 백웅존자에게 명하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "796ff99a-dd14-5702-870a-d96355dbcdc0",
+      "title": "통천하의 흰 자라",
+      "body": "삼장 일행을 등에 태워 강을 건넌 자라다. 귀환길에 삼장이 자신의 수명을 여래에게 묻지 않았음을 알고 일행을 물에 빠뜨린다. 기존 카드와 중복 가능: 팔십일난의 완성, 경전 수령과 귀환. 출전: 《서유기》 제99회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC099%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "white-river-turtle",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-099",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC099%E5%9B%9E",
+            "location": "제99회 자라가 강에서 수명을 묻는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "candidate_id": "87b380ee-53a8-51d8-a156-4b56adc26a47",
+          "segment": "journey-3",
+          "key": "tongtian-white-turtle",
+          "title": "통천하의 흰 자라",
+          "cardType": "character",
+          "reason": "제목 또는 별칭 일치; 동일 존재 여부 미확정"
+        },
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "77a46044-ca50-5145-8b78-e94099c3a674",
+      "title": "쇄경석",
+      "body": "통천하에서 젖은 경전을 말린 바위다. 《불본행경》 몇 권이 돌에 들러붙어 끝부분이 찢어진다. 기존 카드와 중복 가능: 팔십일난의 완성, 경전 수령과 귀환. 출전: 《서유기》 제99회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC099%E5%9B%9E.",
+      "cardType": "location",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "scripture-drying-stone",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-099",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC099%E5%9B%9E",
+            "location": "제99회 일행이 경전을 말리는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "06d67e96-49bb-5ca6-bae5-824d9d4dae69",
+      "title": "구생사",
+      "body": "진가장 사람들이 아이들을 구해 준 일행을 기리기 위해 세운 절이다. 안에는 네 사람의 상이 놓여 있다. 기존 카드와 중복 가능: 팔십일난의 완성, 경전 수령과 귀환. 출전: 《서유기》 제99회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC099%E5%9B%9E.",
+      "cardType": "location",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "jiusheng-temple",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-099",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC099%E5%9B%9E",
+            "location": "제99회 진가장 사람들이 절을 설명하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "9bf33ed3-8f29-519d-b996-9ea8e6b3e6c8",
+      "title": "화룡지",
+      "body": "영산 뒤쪽 벼랑 아래에 있는 연못이다. 여래에게 과위를 받은 백룡마가 이곳에 들어가 용의 모습으로 돌아온다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제100회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E.",
+      "cardType": "location",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "dragon-transformation-pool",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-100",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E",
+            "location": "제100회 백룡마가 과위를 받고 용으로 변하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "ce44f7bf-d61c-518a-a379-5d7a31b63181",
+      "title": "망경루",
+      "body": "태종이 취경을 기다리려고 서안관 밖에 세운 누각이다. 태종이 이곳에서 장안으로 돌아온 일행을 맞는다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제100회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E.",
+      "cardType": "location",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "scripture-watchtower",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-100",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E",
+            "location": "제100회 태종이 경전을 기다리는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "2549c806-6a25-5c74-8bf4-da1db6253c1c",
+      "title": "등황사",
+      "body": "장안 동쪽에 새로 세운 절이다. 태종이 진경을 보급하기 위해 관원들에게 필사하도록 지시한다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제100회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E.",
+      "cardType": "location",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "transcription-temple",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-100",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E",
+            "location": "제100회 태종이 경전을 필사하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "8acf47fc-42f5-58b6-a0f8-2511a8c99b4a",
+      "title": "아나 존자",
+      "body": "여래의 명을 받아 가섭과 함께 삼장 일행을 보각으로 안내하고 경전을 전한다. 일행에게 예물을 요구하고 자금 발우를 받는다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제98회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "ananda",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-098",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E",
+            "location": "제98회 삼장이 발우를 건네는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "a14613ba-db35-5634-b868-74c98d7d8fae",
+      "title": "가섭 존자",
+      "body": "아나와 함께 삼장 일행에게 예물을 요구하며, 발우를 받은 뒤 유자경을 골라 전한다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제98회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "kasyapa",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-098",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E",
+            "location": "제98회 발우를 받은 뒤 경전을 고르는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "a01e5214-0a29-502f-b8be-839b8ca16824",
+      "title": "연등고불",
+      "body": "아나와 가섭이 글자 없는 경전을 전한 것을 알고 백웅존자에게 이를 빼앗아 일행이 유자경을 다시 구하도록 명한다. 기존 카드와 중복 가능: 경전 수령과 귀환. 출전: 《서유기》 제98회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "randeng-buddha",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-098",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E",
+            "location": "제98회 보각에서 경전 전달을 살피는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "2afc59cf-9a71-5ecd-890a-d6402e9cb714",
+      "title": "요사",
+      "body": "구령원성의 사자 무리 중 하나로 철질려를 들고 싸운다. 기존 사건 카드와 중복 가능. 출전: 《서유기》 제90회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "nao-lion",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-090",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E",
+            "location": "제90회 옥화주 성 밖의 사자들과 전투",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "1f6fe88d-4db9-5be0-879a-57e7f50ea82f",
+      "title": "설사",
+      "body": "구령원성의 사자 무리 중 하나로 삼릉간을 사용하며 요사와 함께 팔계를 붙잡는다. 기존 사건 카드와 중복 가능. 출전: 《서유기》 제90회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "snow-lion",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-090",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E",
+            "location": "제90회 옥화주 성 밖의 사자들과 전투",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "1879e974-1dfc-56f3-a1a8-6eb4cd91dd3e",
+      "title": "산예사",
+      "body": "구령원성의 사자 무리 중 하나로 몽둥이를 들고 싸우다가 오공에게 붙잡힌다. 기존 사건 카드와 중복 가능. 출전: 《서유기》 제90회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "suanni-lion",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-090",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E",
+            "location": "제90회 옥화주 성 밖의 사자들과 전투",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "adbea782-cccf-5b03-8fef-eb4e40dbf026",
+      "title": "백택사",
+      "body": "구령원성의 사자 무리 중 하나로 동망치를 들고 싸우다가 오공에게 붙잡힌다. 기존 사건 카드와 중복 가능. 출전: 《서유기》 제90회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "baize-lion",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-090",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E",
+            "location": "제90회 옥화주 성 밖의 사자들과 전투",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "df297088-4d49-5092-bbe9-52d23870cd07",
+      "title": "단상사",
+      "body": "구령원성의 사자 무리 중 하나로 쇠창을 들고 싸운다. 기존 사건 카드와 중복 가능. 출전: 《서유기》 제90회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "tuanxiang-lion",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-090",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E",
+            "location": "제90회 옥화주 성 밖의 사자들과 전투",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "35c2515f-f159-5630-a4bc-8bcadb0761d5",
+      "title": "복리사",
+      "body": "구령원성의 사자 무리 중 하나로 도끼를 들고 싸운다. 기존 사건 카드와 중복 가능. 출전: 《서유기》 제90회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "fuli-lion",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-090",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E",
+            "location": "제90회 옥화주 성 밖의 사자들과 전투",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "a2aa9701-6d81-5f4e-a018-8228426affdd",
+      "title": "각목교",
+      "body": "사목금성 중 하나다. 손오공과 함께 코뿔소 요괴를 서해까지 추격하고 벽서를 몰아간다. 기존 사건 카드와 중복 가능. 출전: 《서유기》 제92회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC092%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "jiao-mu-jiao",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-092",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC092%E5%9B%9E",
+            "location": "제92회 사목금성이 요괴를 추격하고 일행을 구하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "9b86b88a-ab04-5616-b8dd-bd2643b0b7d3",
+      "title": "정목한",
+      "body": "사목금성 중 하나다. 서해에서 벽한대왕을 붙잡아 물어 죽이고 벽서대왕도 잡는다. 기존 사건 카드와 중복 가능. 출전: 《서유기》 제92회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC092%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "jing-mu-han",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-092",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC092%E5%9B%9E",
+            "location": "제92회 사목금성이 요괴를 추격하고 일행을 구하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "9533656f-4cd9-59e7-8703-989b47723154",
+      "title": "두목해",
+      "body": "사목금성 중 하나다. 규목랑과 함께 현영동의 요괴들을 제압하고 삼장과 두 제자를 풀어준다. 기존 사건 카드와 중복 가능. 출전: 《서유기》 제92회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC092%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "dou-mu-xie",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-092",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC092%E5%9B%9E",
+            "location": "제92회 사목금성이 요괴를 추격하고 일행을 구하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "848bc3d5-90c0-52bc-99e6-575058cb6ac4",
+      "title": "규목랑",
+      "body": "사목금성 중 하나다. 두목해와 현영동에서 삼장 일행을 구하고 서해로 다른 성관들을 따라간다. 기존 보상국의 황포괴와 규목랑 카드와 중복 가능. 출전: 《서유기》 제92회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC092%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "kui-mu-lang-star",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-092",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC092%E5%9B%9E",
+            "location": "제92회 사목금성이 요괴를 추격하고 일행을 구하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    },
+    {
+      "id": "3490535e-6e1f-556c-b2bf-0c7e02895ae0",
+      "title": "천축국 이종 황제",
+      "body": "천축국 국왕으로 산수와 꽃을 좋아하며 연호를 정연으로 바꾸었다. 가짜 공주의 수구에 맞은 삼장을 사위로 삼으려 한다. 기존 사건 카드와 중복 가능. 출전: 《서유기》 제93회 https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC093%E5%9B%9E.",
+      "cardType": "character",
+      "provenance": {
+        "segment": "journey-5",
+        "candidate_key": "tianzhu-yizong",
+        "input_file": "미게시-임시자료:myth/journey-5.json",
+        "input_sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+        "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+        "edition_and_scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+        "evidence": [
+          {
+            "unit": "chapter-093",
+            "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC093%E5%9B%9E",
+            "location": "제93회 역참 관리가 국왕을 설명하는 대목",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        ]
+      },
+      "duplicate_candidates": [
+        {
+          "reason": "입력 본문에 중복 가능성 명시; 대상과 동일성 수동 확인 필요"
+        }
+      ]
+    }
+  ]
+}

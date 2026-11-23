@@ -1,0 +1,1117 @@
+{
+  "genre": "journey_to_the_west",
+  "purpose": "원문 추출 후보 검토 전용; 앱 및 DB에 자동 적재되지 않음",
+  "id_namespace": "2718cd77-a052-52ed-8430-cf94e678eca1",
+  "id_rule": "UUIDv5(namespace, segment + 콜론 + candidate_key); 세계관 ID를 만들거나 배정하지 않음",
+  "source_scope": "현행 위키문헌 100회본 《서유기》 한 작품을 바탕으로 정리한 인물·장소·도구·능력·사건 자료. 청대에 삽입된 진광예 일화를 제9회에 두는 현행 배열을 따르며 1592년 초판 자체의 번역으로 표기하지 않는다. 역사적 현장의 여행 기록 및 중국 종교 전체와 구별한다.",
+  "input_manifest": {
+    "path": "미게시-임시자료:myth/manifest.json",
+    "sha256": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e"
+  },
+  "source_files": [
+    {
+      "path": "infrastructure/sample-data/genre-templates/journey_to_the_west/source/tradition-cards.json",
+      "sha256": "74727517f3eb7176ee693a23c40d1093065a09708197db70ff7dae66ec7e15d2"
+    },
+    {
+      "path": "infrastructure/sample-data/genre-templates/journey_to_the_west/source/template.json",
+      "sha256": "b664f3d83edcc58fc80ec6651499147de29ee8566f204aba8938348d7b72cb63"
+    },
+    {
+      "path": "infrastructure/sample-data/genre-templates/journey_to_the_west/source/sources.md",
+      "sha256": "4c3e2a6ec15c0b4f219fa7b38a8e0c45e86b08abbdca7cc101f606f46806ca10"
+    }
+  ],
+  "supplementary": {
+    "path": "infrastructure/sample-data/genre-templates/journey_to_the_west/source/supplementary.md",
+    "status": "파일 없음; 별도의 보충 범위 미정, 읽음으로 간주하지 않음"
+  },
+  "source_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+  "segments": [
+    {
+      "segment": "journey-1",
+      "input_file": "미게시-임시자료:myth/journey-1.json",
+      "sha256": "7398bb75859c48183b742cbffd8b27db4c481e6319413778b3852c7e690e63f0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "focus": "《서유기》 위키문헌 현행 100회본 제1회–제20회 전체. 현재 sources 목록에 직접 나타나지 않은 회차도 표준 해당 회차를 확인한다. 각 회차를 별도 coverage unit으로 목록화.",
+      "scope": "《서유기》 현행 위키문헌 100회본 제1~20회. 청대 삽입 진광예 일화를 제9회로 두는 배열이며 1592년 초판 번역이나 역사적 현장 여행기·중국 종교 일반이 아니다.",
+      "input_candidates": 115,
+      "reported_unit_card_sum": 116,
+      "coverage": [
+        {
+          "unit": "chapter-001",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC001%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-002",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC002%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-003",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC003%E5%9B%9E",
+          "status": "read",
+          "cards": 8,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 8,
+          "actual_candidates_any_evidence": 8
+        },
+        {
+          "unit": "chapter-004",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC004%E5%9B%9E",
+          "status": "read",
+          "cards": 7,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 7,
+          "actual_candidates_any_evidence": 7
+        },
+        {
+          "unit": "chapter-005",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC005%E5%9B%9E",
+          "status": "read",
+          "cards": 10,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 10,
+          "actual_candidates_any_evidence": 10
+        },
+        {
+          "unit": "chapter-006",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC006%E5%9B%9E",
+          "status": "read",
+          "cards": 6,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 6,
+          "actual_candidates_any_evidence": 6
+        },
+        {
+          "unit": "chapter-007",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC007%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-008",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC008%E5%9B%9E",
+          "status": "read",
+          "cards": 7,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 7,
+          "actual_candidates_any_evidence": 7
+        },
+        {
+          "unit": "chapter-009",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC009%E5%9B%9E",
+          "status": "read",
+          "cards": 11,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 11,
+          "actual_candidates_any_evidence": 11
+        },
+        {
+          "unit": "chapter-010",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC010%E5%9B%9E",
+          "status": "read",
+          "cards": 8,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 8,
+          "actual_candidates_any_evidence": 8
+        },
+        {
+          "unit": "chapter-011",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC011%E5%9B%9E",
+          "status": "read",
+          "cards": 7,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 7,
+          "actual_candidates_any_evidence": 7
+        },
+        {
+          "unit": "chapter-012",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC012%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-013",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC013%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-014",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC014%E5%9B%9E",
+          "status": "read",
+          "cards": 2,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-015",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC015%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-016",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC016%E5%9B%9E",
+          "status": "read",
+          "cards": 6,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 6,
+          "actual_candidates_any_evidence": 6
+        },
+        {
+          "unit": "chapter-017",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC017%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-018",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC018%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-019",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC019%E5%9B%9E",
+          "status": "read",
+          "cards": 2,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-020",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC020%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "note": "실독 후 독립 카드 후보를 추출했으며, 이름만 열거되어 설정이 빈약한 대상은 별도 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        }
+      ]
+    },
+    {
+      "segment": "journey-2",
+      "input_file": "미게시-임시자료:myth/journey-2.json",
+      "sha256": "e60094987e2c139f5a31330958ab07ea7ccbd5e7cc2d5f9fa0d9c2ddede8ecd8",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "focus": "《서유기》 위키문헌 현행 100회본 제21회–제40회 전체. 현재 sources 목록에 직접 나타나지 않은 회차도 표준 해당 회차를 확인한다. 각 회차를 별도 coverage unit으로 목록화.",
+      "scope": "현행 위키문헌 100회본 《서유기》 제21–40회. 청대 삽입 진광예 일화를 제9회에 둔 현행 배열이며 1592년 초판 번역이나 역사적 현장 기록 또는 중국 종교 전체가 아니다.",
+      "input_candidates": 66,
+      "reported_unit_card_sum": 66,
+      "coverage": [
+        {
+          "unit": "chapter-021",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC021%E5%9B%9E",
+          "status": "read",
+          "cards": 8,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 8,
+          "actual_candidates_any_evidence": 8
+        },
+        {
+          "unit": "chapter-022",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC022%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-023",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC023%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "note": "혼인 시험의 사건은 기존 four-saints-test와 중복되며 독립 인물은 후보로 남겼다.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-024",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC024%E5%9B%9E",
+          "status": "read",
+          "cards": 7,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 7,
+          "actual_candidates_any_evidence": 7
+        },
+        {
+          "unit": "chapter-025",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC025%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-026",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC026%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-027",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC027%E5%9B%9E",
+          "status": "read",
+          "cards": 1,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 1,
+          "actual_candidates_any_evidence": 1
+        },
+        {
+          "unit": "chapter-028",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC028%E5%9B%9E",
+          "status": "read",
+          "cards": 2,
+          "note": "마·유 두 원수와 붕·파 두 장군은 이름과 집단 역할이 언급되나 이 회에서 개별 특성 근거가 적어 별도 카드 보류.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-029",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC029%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-030",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC030%E5%9B%9E",
+          "status": "read",
+          "cards": 1,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 1,
+          "actual_candidates_any_evidence": 1
+        },
+        {
+          "unit": "chapter-031",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC031%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-032",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC032%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-033",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC033%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-034",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC034%E5%9B%9E",
+          "status": "read",
+          "cards": 2,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-035",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC035%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-036",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC036%E5%9B%9E",
+          "status": "read",
+          "cards": 1,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 1,
+          "actual_candidates_any_evidence": 1
+        },
+        {
+          "unit": "chapter-037",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC037%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-038",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC038%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-039",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC039%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-040",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC040%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        }
+      ]
+    },
+    {
+      "segment": "journey-3",
+      "input_file": "미게시-임시자료:myth/journey-3.json",
+      "sha256": "643bfe010c7febb7d3a48731b50594ba46919dd15c027579450ac8b9d9ccbf81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "focus": "《서유기》 위키문헌 현행 100회본 제41회–제60회 전체. 현재 sources 목록에 직접 나타나지 않은 회차도 표준 해당 회차를 확인한다. 각 회차를 별도 coverage unit으로 목록화.",
+      "scope": "현행 위키문헌 100회본 《서유기》 제41–60회. 청대 삽입 진광예 일화를 제9회로 둔 배열이며 1592년 초판의 번역이나 역사적 여행 기록, 중국 종교 전체와 구별한다.",
+      "input_candidates": 95,
+      "reported_unit_card_sum": 95,
+      "coverage": [
+        {
+          "unit": "chapter-041",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC041%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 6,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 6,
+          "actual_candidates_any_evidence": 6
+        },
+        {
+          "unit": "chapter-042",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC042%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 6,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 6,
+          "actual_candidates_any_evidence": 6
+        },
+        {
+          "unit": "chapter-043",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC043%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 14,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 14,
+          "actual_candidates_any_evidence": 14
+        },
+        {
+          "unit": "chapter-044",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC044%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 5,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-045",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC045%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-046",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC046%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-047",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC047%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 7,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 7,
+          "actual_candidates_any_evidence": 7
+        },
+        {
+          "unit": "chapter-048",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC048%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 2,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-049",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC049%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 5,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-050",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC050%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-051",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC051%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 2,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-052",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC052%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 5,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-053",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC053%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 5,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-054",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC054%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-055",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC055%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-056",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC056%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-057",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC057%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 2,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-058",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC058%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-059",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC059%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 5,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-060",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC060%E5%9B%9E",
+          "status": "read",
+          "reason": "",
+          "cards": 7,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 7,
+          "actual_candidates_any_evidence": 7
+        }
+      ]
+    },
+    {
+      "segment": "journey-4",
+      "input_file": "미게시-임시자료:myth/journey-4.json",
+      "sha256": "c40a6e295f82c1ee4d9a0143930a7e8bb15410cb49a177fcf8b3bf8acf08b484",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "focus": "《서유기》 위키문헌 현행 100회본 제61회–제80회 전체. 현재 sources 목록에 직접 나타나지 않은 회차도 표준 해당 회차를 확인한다. 각 회차를 별도 coverage unit으로 목록화.",
+      "scope": "현행 위키문헌 100회본 《서유기》 제61회–제80회. 청대 삽입 일화를 제9회에 둔 현행 배열이며 1592년 초판 자체의 번역이나 역사적 현장 여행 기록, 중국 종교 전체와 구별한다.",
+      "input_candidates": 84,
+      "reported_unit_card_sum": 95,
+      "coverage": [
+        {
+          "unit": "chapter-061",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC061%E5%9B%9E",
+          "status": "read",
+          "cards": 6,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 6,
+          "actual_candidates_any_evidence": 6
+        },
+        {
+          "unit": "chapter-062",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC062%E5%9B%9E",
+          "status": "read",
+          "cards": 7,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 6,
+          "actual_candidates_any_evidence": 7
+        },
+        {
+          "unit": "chapter-063",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC063%E5%9B%9E",
+          "status": "read",
+          "cards": 6,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 6
+        },
+        {
+          "unit": "chapter-064",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC064%E5%9B%9E",
+          "status": "read",
+          "cards": 9,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 9,
+          "actual_candidates_any_evidence": 9
+        },
+        {
+          "unit": "chapter-065",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC065%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-066",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC066%E5%9B%9E",
+          "status": "read",
+          "cards": 6,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 6
+        },
+        {
+          "unit": "chapter-067",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC067%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-068",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC068%E5%9B%9E",
+          "status": "read",
+          "cards": 2,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-069",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC069%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-070",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC070%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-071",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC071%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-072",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC072%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "note": "일곱 양자의 개별 호칭과 벌레 종류가 나열되지만 각각의 개별 서술은 제한적이어서 집단 카드로 기록했다.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-073",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC073%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-074",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC074%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-075",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC075%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-076",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC076%E5%9B%9E",
+          "status": "read",
+          "cards": 1,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 1,
+          "actual_candidates_any_evidence": 1
+        },
+        {
+          "unit": "chapter-077",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC077%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 1,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-078",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC078%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-079",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC079%E5%9B%9E",
+          "status": "read",
+          "cards": 6,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 6
+        },
+        {
+          "unit": "chapter-080",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC080%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        }
+      ]
+    },
+    {
+      "segment": "journey-5",
+      "input_file": "미게시-임시자료:myth/journey-5.json",
+      "sha256": "cf72f335032652e3822972cacf9edb117baf3a5f41946fa75d2fc1c9bc997c68",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "focus": "《서유기》 위키문헌 현행 100회본 제81회–제100회 전체. 현재 sources 목록에 직접 나타나지 않은 회차도 표준 해당 회차를 확인한다. 각 회차를 별도 coverage unit으로 목록화.",
+      "scope": "현행 위키문헌 100회본 《서유기》 제81–100회. 청대 삽입 진광예 일화를 제9회로 둔 현행 배열이며 1592년 초판 자체의 번역, 역사적 현장의 기록, 중국 종교 전체와 구별한다.",
+      "input_candidates": 73,
+      "reported_unit_card_sum": 73,
+      "coverage": [
+        {
+          "unit": "chapter-081",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC081%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-082",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC082%E5%9B%9E",
+          "status": "read",
+          "cards": 1,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 1,
+          "actual_candidates_any_evidence": 1
+        },
+        {
+          "unit": "chapter-083",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC083%E5%9B%9E",
+          "status": "read",
+          "cards": 5,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 5,
+          "actual_candidates_any_evidence": 5
+        },
+        {
+          "unit": "chapter-084",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC084%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-085",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC085%E5%9B%9E",
+          "status": "read",
+          "cards": 2,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-086",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC086%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-087",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC087%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-088",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC088%E5%9B%9E",
+          "status": "read",
+          "cards": 2,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-089",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC089%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-090",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E",
+          "status": "read",
+          "cards": 9,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 9,
+          "actual_candidates_any_evidence": 9
+        },
+        {
+          "unit": "chapter-091",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC091%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-092",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC092%E5%9B%9E",
+          "status": "read",
+          "cards": 7,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 7,
+          "actual_candidates_any_evidence": 7
+        },
+        {
+          "unit": "chapter-093",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC093%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-094",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC094%E5%9B%9E",
+          "status": "read",
+          "reason": "공주와 혼례 대기 사건은 기존 가짜 공주 카드와 중복 가능해 독립 후보를 만들지 않음.",
+          "cards": 0,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 0,
+          "actual_candidates_any_evidence": 0
+        },
+        {
+          "unit": "chapter-095",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC095%E5%9B%9E",
+          "status": "read",
+          "cards": 4,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 4,
+          "actual_candidates_any_evidence": 4
+        },
+        {
+          "unit": "chapter-096",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC096%E5%9B%9E",
+          "status": "read",
+          "cards": 2,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-097",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC097%E5%9B%9E",
+          "status": "read",
+          "cards": 2,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 2,
+          "actual_candidates_any_evidence": 2
+        },
+        {
+          "unit": "chapter-098",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E",
+          "status": "read",
+          "cards": 10,
+          "reason": "보각 경전 목록은 상당수가 이름과 권수만 제시되어 개별 설정 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 10,
+          "actual_candidates_any_evidence": 10
+        },
+        {
+          "unit": "chapter-099",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC099%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        },
+        {
+          "unit": "chapter-100",
+          "url": "https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E",
+          "status": "read",
+          "cards": 3,
+          "reason": "결말의 여러 불·보살 이름 목록은 개별 사실이 빈약하여 독립 카드로 만들지 않음.",
+          "read_status_basis": "입력 추출자의 자기보고; 통합 작업에서 원문 완독을 독립 검증하지 않음",
+          "actual_candidates_first_evidence": 3,
+          "actual_candidates_any_evidence": 3
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "input_files": 5,
+    "input_candidates": 433,
+    "output_individual_candidates": 433,
+    "merged_input_candidates": 0,
+    "unprocessed_input_candidates": 0,
+    "types": {
+      "character": 205,
+      "location": 90,
+      "event": 22,
+      "rule": 8,
+      "ability": 19,
+      "organization": 14,
+      "object": 75
+    },
+    "cards_with_duplicate_candidates": 134,
+    "existing_journey_cards": 76
+  },
+  "conservation": "입력 후보 수 = 개별 보존 후보 수 + 병합하여 근거 전체를 보존한 입력 후보 수; 병합 없이 각 후보의 본문과 evidence를 그대로 보존함",
+  "duplicate_policy": "26종 템플릿과 기존 역사 studio의 제목·구분된 별칭, 기존 서유기 key, 후보 간 제목·별칭·key 및 제목/유형/본문 일치로 검토 후보를 표시함; 동일 대상 확정이나 삭제 없이 모두 보존함; 자동 탐지는 의미상 중복 전부를 찾지 못함",
+  "limits": [
+    "100회 read는 입력 작성자의 자기보고이며 통합자가 각 판본·본문을 독립적으로 완독하거나 발췌와 모든 사실을 원전 대조한 검증이 아니다.",
+    "판본은 현행 위키문헌 100회본이며 제9회 청대 삽입 배열을 따름; 1592년 초판이나 다른 지역·시기 전승의 정본으로 단정하지 않음.",
+    "일부 단위는 이름만 열거되거나 중복 가능하다는 이유로 후보가 생략되었고 원문에 다른 누락도 있을 수 있다.",
+    "후보 본문은 원문의 비공식 한국어 요약이며 출전 발췌·전사·번역·이미지의 지적 재산권과 재사용 조건, 지역·시기 전승 및 감수 상태는 미확인이다.",
+    "구조 검사는 역사적 사실, 원전·요약의 정확성 또는 전수성을 보증하지 않는다.",
+    "기존 868개 신화 카드와 SOUL을 변경하지 않음; 후보는 #425 안전 계약과 권리·중복 검토 전 서비스/DB에 적재할 수 없다.",
+    "현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 실제 기존 카드 및 최종 고유 후보 검토 후 적용을 별도 판단; 파일 분할은 세계관 분할이나 앱 적재가 아니다.",
+    "입력 journey-1의 회차별 후보 수 합계는 116이나 실제 후보 배열은 115개, journey-4는 95이나 실제는 84개다; 각 회차의 원 보고 수와 근거의 첫 회차·전체 회차 기준 실측을 함께 보존한다.",
+    "위키문헌 URL은 고정 oldid 또는 원문 SHA가 지정되지 않은 현행 페이지이며 입력 JSON의 SHA만 확인했다. 원문 시점별 동일성과 출전 발췌의 재사용 조건은 확인되지 않았다.",
+    "예를 들어 journey-1의 수보리 조사 후보는 이름 부여와 제자 수용을 서술하지만 제공된 제1회 발췌는 해당 사실 전부를 입증하지 않는다; 모든 후보의 문장별 원문 근거는 별도로 검토해야 한다."
+  ],
+  "chunks": [
+    {
+      "file": "cards-001.json",
+      "sha256": "ef17c227054558e7080a9580bd266db925b05d9073a72ca39eda1ef1bea50771",
+      "cards": 200,
+      "bytes": 297932
+    },
+    {
+      "file": "cards-002.json",
+      "sha256": "f60ac4361af53e34daf5d0f75ab223611addd5dc7f0b87bf0fe91b5e27488bea",
+      "cards": 200,
+      "bytes": 319337
+    },
+    {
+      "file": "cards-003.json",
+      "sha256": "7dcfc03f5810f0cbab476ccd514a8fc45553ac863c5618dbea1dbb26a99abf8a",
+      "cards": 33,
+      "bytes": 53484
+    }
+  ],
+  "validation": {
+    "input_and_output": "입력 5개 후보의 ID·제목·본문·유형과 원래 evidence를 보존; 표본 4건에 직접 확인한 근거 13건을 추가하므로 전체 evidence는 입력과 동일하지 않음",
+    "evidence_count": 490,
+    "evidence_structure": "unit, url, location, excerpt 모두 존재; URL 구문과 해당 회차 coverage URL 일치",
+    "uuid": "UUIDv5 433개 고유, 26종 템플릿 ID와 충돌 없음",
+    "utf16_max": {
+      "title": 18,
+      "body": 362
+    },
+    "existing_myth_cards": 868,
+    "coverage": "100회 read는 작성자 자기보고; unavailable 0건으로 보고됨; supplementary.md는 존재하지 않아 범위 미정",
+    "source_baseline": "지정 baseline commit과 기존 서유기 source 3개 SHA-256 일치",
+    "sample_evidence_review": {
+      "cards": [
+        "3bdef82d-7b3e-5ee4-8d2c-37d635bfe444",
+        "476fd63c-bd99-52ea-8fbb-a1769751a5c1",
+        "a6b6b9c2-2742-5d2f-a457-ee8b457e6305",
+        "fe8c06ce-51f6-5c8f-9742-d229557a15d7"
+      ],
+      "reason": "4개 후보의 짧은 기존 발췌가 전체 주장을 충분히 뒷받침하지 않아 해당 회차 위키문헌 본문과 대조하여 증거 추가",
+      "added_evidence": 13,
+      "method": "2026-11-16 해당 회차 문서 본문에서 200자 이하 발췌 각각의 정확한 문자 포함을 확인",
+      "limits": "4개 표본의 본문 대조이며 다른 후보의 사실 검증·판본 비교·권리 검토는 미완료"
+    }
+  },
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

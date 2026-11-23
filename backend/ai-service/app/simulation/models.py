@@ -12,6 +12,9 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 Mode = Literal['if', 'flow']
 # 서술 시점: 전지적 / 인물의 3인칭 제한 / 인물의 1인칭. 인물은 카드 id다. 비트마다 바뀔 수 있다.
 Pov = Annotated[str, Field(pattern=r'^(omniscient|limited:.+|first:.+)$')]
+# 모델 출력 본문에 글자가 하나는 있어야 한다: 제공사 strict schema가 pattern을 지켜 빈칸·공백·보이지 않는 글자만 돌려주던 502를 막는다(JSON Schema pattern은 부분 일치)
+TEXT = r'[0-9A-Za-z가-힣]'
+Text = Annotated[str, Field(pattern=TEXT)]
 CheckKind = Literal['knowledge_leak', 'voice_mix', 'relation', 'premise', 'beat']
 # 작가에게 되묻는 문구에 쓰는 고정 라벨(모델이 쓴 문장은 쓰지 않는다).
 GAP_LABELS = {'mode': '모드(IF 또는 흐름)', 'premise': 'IF 전제("만약 ~했다면?")', 'beats': '장면 비트', 'characterIds': '참여 인물'}
@@ -43,6 +46,7 @@ class Beat(BaseModel):
     index: int
     text: str
     status: Literal['done', 'pending', 'rejected']
+    rejectedBy: str | None = None  # 이 비트를 따르지 않은 인물의 카드 id(status가 rejected일 때만). 화면이 그 카드의 설정집 편집 화면으로 잇는다(#356)
 
 
 class Check(BaseModel):
@@ -152,15 +156,20 @@ class PlanDraft(BaseModel):
 
 class Action(BaseModel):
     """인물 턴 모델 출력. prose는 이 인물의 "대사"와 짧은 행동뿐(배경은 나레이터 몫), observed는 다른 인물이 보고 들을 수 있는 것만이다."""
-    prose: str
-    observed: str
+    prose: Text
+    observed: Text
     refusesBeat: bool
     refusalReason: str | None
 
 
 class Narration(BaseModel):
-    """나레이터 모델 출력. prose는 지문 문단(대사 없음), observed는 그 자리의 모든 인물이 보고 듣고 알 수 있는 것만이다(독백은 비운다)."""
-    prose: str
+    """나레이터 모델 출력. prose는 지문 문단(대사 없음), observed는 그 자리의 모든 인물이 보고 듣고 알 수 있는 것만이다."""
+    prose: Text
+    observed: Text
+
+
+class Monologue(Narration):
+    """독백(purpose monologue)의 나레이터 출력. 지시가 observed를 비우라고 하므로 observed만 제약하지 않는다(서비스가 버린다)."""
     observed: str
 
 

@@ -21,4 +21,7 @@ class StudioWorld(
     @Column(name="cover_object_key", columnDefinition="text") var coverObjectKey: String? = null,
     /** 표지 이미지 형식(image/png·image/jpeg·image/webp). 업로드 바이트의 시그니처가 정한다. */
     @Column(name="cover_content_type", columnDefinition="text") var coverContentType: String? = null,
+    @Column(name="owner_metadata_version", nullable=false) var ownerMetadataVersion: Long = 0,
+    /** 소유자가 지운 시각(V9). 값이 있으면 소유자 조회·편집과 공개 조회가 모두 이 세계관이 없는 것으로 다룬다. 데이터는 지우지 않는다. */
+    @Column(name="deleted_at") var deletedAt: Instant? = null,
 )

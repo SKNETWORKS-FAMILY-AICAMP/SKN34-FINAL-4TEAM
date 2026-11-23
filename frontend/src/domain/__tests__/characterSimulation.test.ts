@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { beatCharacterIds, characterNames, checkSummary, cleanSimulation, modeLabel, monologueOwner, planBeats, povLabel, sceneLine, sceneProse, sceneRows, sceneSummary, simulationIssue, simulationSummary, statusLabel, stopReasonText, worldCharacters, type CharacterSimulation, type SimulationCharacter, type SimulationStart, type SimulationTurn } from '../entities/characterSimulation'
+import { beatCharacterIds, beatRejection, characterNames, checkSummary, cleanSimulation, modeLabel, monologueOwner, inheritedCharacters, planBeats, povLabel, sceneLine, sceneProse, sceneRows, sceneSummary, simulationIssue, samePersonChosen, simulationSummary, statusLabel, stopReasonText, worldCharacters, type CharacterSimulation, type SimulationCharacter, type SimulationStart, type SimulationTurn } from '../entities/characterSimulation'
 import type { StudioSetting } from '../entities/studioWorld'
 
 const turn = (index: number, prose: string, checks: SimulationTurn['checks'] = []): SimulationTurn =>
@@ -168,6 +168,10 @@ describe('장면 계획 → 흐름 비트(버튼 진입)', () => {
     expect(many[7]).toBe('장면7: 내용')
   })
 
+  it('저장 순서가 다른 플롯에 걸쳐도 비트를 같은 순서로 만들고 끊긴 회차는 쓰지 않는다', () => {
+    expect(planBeats([plan('뒤', '', { position: 2 }), plan('앞', '', { position: 0 }), plan('끊김', '', { position: 1, episodeMissing: true })], 3)).toEqual(['앞', '뒤'])
+  })
+
   it('회차를 모르거나 장면 계획이 없으면 비트가 없다', () => {
     expect(planBeats([plan('가', '1')], null)).toEqual([])
     expect(planBeats([], 3)).toEqual([])
@@ -176,17 +180,75 @@ describe('장면 계획 → 흐름 비트(버튼 진입)', () => {
 
 describe('연결 세계관의 인물 카드(시작 양식 후보)', () => {
   // 서버는 simulation.characterIds를 연결 WorldStudio의 활성 인물 카드 id로 검증한다(레거시 설정집 id가 아니다).
-  const card = (id: string, title: string, entityType: string, aliases?: string[]) =>
-    ({ item: { id, title, kind: 'entity', entityType }, userCategory: '', tags: [], aliases }) as unknown as StudioSetting
+  // 기본은 IDENTITY.md(본문)·SOUL.md가 있고 GOAL.md는 비어 있는 인물이다(GOAL은 선택이라 그래도 완전한 인물이다).
+  const card = (id: string, title: string, entityType: string, aliases?: string[], docs: { text?: string; soul?: string } = {}) =>
+    ({ item: { id, title, kind: 'entity', entityType, text: docs.text ?? `${title} 본문` }, characterDocs: { soul: docs.soul ?? `${title} 말투`, goal: '', episodes: {} }, userCategory: '', tags: [], aliases }) as unknown as StudioSetting
+  const link = (id: string, subjectId: string, targetId: string, polarity = 'asserted') =>
+    ({ item: { id, kind: 'relation', predicate: 'identity_of', subjectId, targetId, polarity, title: '', entityType: null }, userCategory: '', tags: [] }) as unknown as StudioSetting
   const people: SimulationCharacter[] = [
-    { id: 'c1', name: '카엘', aliases: [] }, { id: 'c2', name: '리안', aliases: ['붉은 검사'] }, { id: 'c3', name: '도윤', aliases: ['윤'] }, { id: 'c4', name: '리', aliases: [] },
+    { id: 'c1', name: '카엘', aliases: [], missing: [] }, { id: 'c2', name: '리안', aliases: ['붉은 검사'], missing: [] }, { id: 'c3', name: '도윤', aliases: ['윤'], missing: [] }, { id: 'c4', name: '리', aliases: [], missing: [] },
   ]
 
   it('인물 카드만 카드 id·이름·별칭으로 고르고, 장소·사건·규칙 카드와 이름 없는 카드는 뺀다', () => {
     const rule = { item: { id: 'r1', title: '성문 규칙', kind: 'rule', entityType: null }, userCategory: '', tags: [] } as unknown as StudioSetting
     expect(worldCharacters([
       card('c1', ' 카엘 ', 'character', ['검은 기사']), card('p1', '성문', 'location'), card('c2', '리안', 'character'), rule, card('c3', '   ', 'character'),
-    ])).toEqual([{ id: 'c1', name: '카엘', aliases: ['검은 기사'] }, { id: 'c2', name: '리안', aliases: [] }])
+    ])).toEqual([{ id: 'c1', name: '카엘', aliases: ['검은 기사'], missing: [] }, { id: 'c2', name: '리안', aliases: [], missing: [] }])
+  })
+
+  // Fork 자기 회차는 연결 세계관이 없어도 원작 세계관을 읽기 전용으로 이어받는다(#365). 서버가 공개 카드·기준 회차로 이미 거른 카드를 준다.
+  it('이어받은 카드에서 인물 카드만 id·이름·별칭으로 고르고, 장소·이름 없는 카드와 나레이터 카드는 뺀다(연결 세계관 후보와 같은 규칙)', () => {
+    expect(inheritedCharacters([
+      { id: 'c1', title: ' 카엘 ', cardType: 'character', aliases: ['검은 기사'] }, { id: 'p1', title: '성문', cardType: 'location', aliases: [] },
+      { id: 'c2', title: '   ', cardType: 'character', aliases: [] }, { id: 'n1', title: '나레이터 — 홍길동전', cardType: 'character', aliases: [] },
+      { id: 'c3', title: '리안', cardType: 'character', aliases: [] },
+    ])).toEqual([{ id: 'c1', name: '카엘', aliases: ['검은 기사'], missing: [] }, { id: 'c3', name: '리안', aliases: [], missing: [] }])
+    expect(inheritedCharacters([])).toEqual([])
+  })
+
+  // #357·#624: 필수 인물 문서(IDENTITY.md·SOUL.md)가 빈 인물은 고를 수 없다. GOAL.md는 선택이다. 서버(AI 시작 검증)도 같은 규칙으로 거절한다.
+  it('IDENTITY.md·SOUL.md가 빈 인물 카드는 비어 있는 문서의 파일 이름을 missing에 담고, GOAL.md가 비어도(기본 카드) 담지 않는다', () => {
+    expect(worldCharacters([
+      card('a', '가', 'character', [], { soul: '' }), card('b', '나', 'character', [], { text: ' ' }),
+      card('c', '다', 'character', [], { text: '', soul: '' }), card('d', '라', 'character'),
+    ]).map((c) => c.missing)).toEqual([['SOUL.md'], ['IDENTITY.md'], ['IDENTITY.md', 'SOUL.md'], []])
+  })
+
+  it('다른 이름 카드는 본체와 합친 문서로 판정한다: 자기 SOUL이 없어도 본체의 SOUL이 있으면 되고, 본체의 SOUL이 비면 다른 이름 카드도 막힌다', () => {
+    const mask = card('mask', '승상', 'character', [], { soul: '' })
+    const missing = (body: ReturnType<typeof card>) => worldCharacters([mask, body, link('r1', 'mask', 'body')]).map((c) => [c.id, c.missing])
+    expect(missing(card('body', '홍길동', 'character'))).toEqual([['mask', []], ['body', []]])
+    expect(missing(card('body', '홍길동', 'character', [], { soul: '' }))).toEqual([['mask', ['SOUL.md']], ['body', ['SOUL.md']]])
+    expect(worldCharacters([card('mask', '승상', 'character', [], { text: '' }), card('body', '홍길동', 'character'), link('r1', 'mask', 'body')]).map((c) => c.missing)).toEqual([['IDENTITY.md'], []]) // 본문(IDENTITY)은 그 카드 자신의 것이다
+  })
+
+  it('이어받은 원작 세계관의 인물은 SOUL·GOAL이 작가용이라 이어받지 않으므로 비어 있는 문서로 보지 않는다(서버도 IDENTITY만 본다)', () => {
+    expect(inheritedCharacters([{ id: 'c1', title: '카엘', cardType: 'character', aliases: [] }]).map((c) => c.missing)).toEqual([[]])
+  })
+
+  // 「동일 인물」(#485): 다른 이름 카드는 본체와 한 사람이라 둘을 함께 고를 수 없다. 서버도 거절하지만 양식이 먼저 막는다.
+  it('다른 이름 카드의 후보에 본체 카드 id를 달고, 같은 사람의 다른 카드는 하나를 고른 뒤에는 고를 수 없다', () => {
+    const cards = [card('mask', '승상', 'character'), card('body', '홍길동', 'character'), card('mask2', '재상', 'character'), card('other', '왕', 'character')]
+    const candidates = worldCharacters([...cards, link('r1', 'mask', 'body'), link('r2', 'mask2', 'body')])
+    expect(candidates.map((c) => [c.id, c.person])).toEqual([['mask', 'body'], ['body', undefined], ['mask2', 'body'], ['other', undefined]])
+    expect(samePersonChosen(candidates, ['mask'], candidates[1])).toBe(true)   // 본체
+    expect(samePersonChosen(candidates, ['mask'], candidates[2])).toBe(true)   // 같은 본체의 다른 가면
+    expect(samePersonChosen(candidates, ['mask'], candidates[3])).toBe(false)  // 다른 사람
+    expect(samePersonChosen(candidates, ['mask'], candidates[0])).toBe(false)  // 이미 고른 카드 자신은 풀 수 있다
+    expect(samePersonChosen(candidates, [], candidates[1])).toBe(false)
+    expect(worldCharacters([...cards, link('r3', 'mask', 'body', 'denied')]).every((c) => c.person === undefined)).toBe(true) // 부정은 이은 것이 아니다
+  })
+
+  it('이어받은 세계관의 「동일 인물」 쌍으로도 다른 이름 카드의 후보에 본체 카드 id를 달아 같은 사람을 함께 고르지 못하게 한다', () => {
+    const cards = [
+      { id: 'k1', title: '승상', cardType: 'character', aliases: [] }, { id: 'k2', title: '홍길동', cardType: 'character', aliases: [] },
+      { id: 'k3', title: '리안', cardType: 'character', aliases: [] },
+    ]
+    const candidates = inheritedCharacters(cards, [{ sourceCardId: 'k1', targetCardId: 'k2' }])
+    expect(candidates.map((c) => [c.id, c.person])).toEqual([['k1', 'k2'], ['k2', undefined], ['k3', undefined]])
+    expect(samePersonChosen(candidates, ['k2'], candidates[0])).toBe(true)
+    expect(samePersonChosen(candidates, ['k2'], candidates[2])).toBe(false)
+    expect(inheritedCharacters(cards).every((c) => c.person === undefined)).toBe(true) // 이어받은 관계를 모르면 묶지 않는다
   })
 
   it('인물 카드가 없으면 후보가 없다', () => {
@@ -201,12 +263,17 @@ describe('연결 세계관의 인물 카드(시작 양식 후보)', () => {
     expect(worldCharacters([
       card('n1', '나레이터 — 흑길동전', 'character'), card('n2', '나레이터', 'character'), card('n3', '  나레이터 문체', 'character'),
       card('n4', decomposed, 'character'), card('c1', '카엘', 'character'), card('c2', '이 나레이터', 'character'),
-    ])).toEqual([{ id: 'c1', name: '카엘', aliases: [] }, { id: 'c2', name: '이 나레이터', aliases: [] }])
+    ])).toEqual([{ id: 'c1', name: '카엘', aliases: [], missing: [] }, { id: 'c2', name: '이 나레이터', aliases: [], missing: [] }])
   })
 
   it('비트 문장에 이름이나 별칭이 나오는 인물을 목록 순서대로 고른다(조사가 붙어도 잡는다)', () => {
     expect(beatCharacterIds(['성문 대면: 카엘이 성문 앞에서 마주친다.', '협상: 붉은 검사는 물러서지 않는다.'], people)).toEqual(['c1', 'c2'])
     expect(beatCharacterIds(['도윤은 말없이 서 있다.'], people)).toEqual(['c3'])
+  })
+
+  it('필수 인물 문서가 빈 인물은 비트에 이름이 나와도 미리 고르지 않는다(흐름 모드 사전 선택도 같은 규칙)', () => {
+    const locked: SimulationCharacter[] = [{ ...people[0], missing: ['SOUL.md'] }, people[1]]
+    expect(beatCharacterIds(['카엘과 리안이 마주친다.'], locked)).toEqual(['c2'])
   })
 
   it('이름이 나오지 않으면 비워 두고, 오탐이 많은 한 글자 이름·별칭은 고르지 않는다', () => {
@@ -216,8 +283,26 @@ describe('연결 세계관의 인물 카드(시작 양식 후보)', () => {
   })
 
   it('고르는 인물은 6명까지다(목록 앞쪽부터)', () => {
-    const many = Array.from({ length: 8 }, (_, i): SimulationCharacter => ({ id: `c${i}`, name: `인물${i}`, aliases: [] }))
+    const many = Array.from({ length: 8 }, (_, i): SimulationCharacter => ({ id: `c${i}`, name: `인물${i}`, aliases: [], missing: [] }))
     expect(beatCharacterIds([many.map((c) => c.name).join(' ')], many)).toEqual(['c0', 'c1', 'c2', 'c3', 'c4', 'c5'])
+  })
+})
+
+describe('비트 거부로 멈춘 장면(#356)', () => {
+  const stopped = (over: Partial<CharacterSimulation> = {}): CharacterSimulation => ({
+    mode: 'flow', premise: null, turns: [], notes: [], status: 'stopped', stopReason: 'beat_rejected',
+    beats: [{ index: 0, text: '성문 대면', status: 'rejected', rejectedBy: 'c1' }, { index: 1, text: '협상', status: 'pending' }], ...over,
+  })
+
+  it('멈춘 이유가 beat_rejected이면 거부한 비트가 가리키는 인물 카드 id를 돌려준다', () => {
+    expect(beatRejection(stopped())).toEqual({ characterId: 'c1' })
+  })
+
+  it('거부 표시에 인물 id가 없는 옛 결과는 id 없이 거부로만 알리고, 거부로 멈춘 장면이 아니면 null이다', () => {
+    expect(beatRejection(stopped({ beats: [{ index: 0, text: '성문 대면', status: 'rejected' }] }))).toEqual({ characterId: null })
+    expect(beatRejection(stopped({ beats: [{ index: 0, text: '성문 대면', status: 'rejected', rejectedBy: null }] }))).toEqual({ characterId: null })
+    expect(beatRejection(stopped({ stopReason: 'check_failed' }))).toBeNull()
+    expect(beatRejection(stopped({ status: 'paused', stopReason: null }))).toBeNull() // 설정집을 고쳐 다시 시도해 이어진 장면
   })
 })
 

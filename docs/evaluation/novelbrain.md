@@ -1,5 +1,7 @@
 # NovelBrain 평가 결과 (#58)
 
+> 처음 본다면 그림으로 정리한 [NovelBrain 한눈에 보기](novelbrain-overview.md)부터 읽는다.
+
 > 실행: 2026-11-14, 같은 날 갱신(하나씩 빼기·짝 검정 추가, 작업 A의 시작점 낱말 경계 수정 반영, MuSiQue 답을 수정 뒤 문맥으로 다시 풀기, TimeChara 검증 600건 전체 평가, 한국어 장편 평가 세트 KoTimeChara 53편·3,328문항 추가)과 2026-11-15 재계산(한국어 샘플에 카드 공개 회차 연결, 엄격 근거 규칙으로 영어 그래프를 다시 만들어 검색·MuSiQue 답 갱신). 대상: `backend/ai-service/app/novelbrain`(작업 A 브랜치 `238cead0`). 계약: [인물 시뮬레이션·NovelBrain 계약](../design/character-simulation-contract.md#평가).
 > 스크립트·집계 수치: [`backend/ai-service/eval/novelbrain/`](../../backend/ai-service/eval/novelbrain/README.md)(`results/*.json`). 원문·번역·색인·모델 응답 원본은 저장소에 없다. 수집 소설의 제목·원문·발췌·요약·질문·응답도 저장소와 이 문서에 없다.
 
@@ -68,7 +70,7 @@ NovelBrain의 단계는 **서로 다른 실패를 막는다**. 한국어 장편 
 - **TimeChara**: 검증 600건의 사실 사건(지어낸 사건 제외)을 시리즈마다 세계관으로 만들었다. 인물 카드(본문 없음, 참석한 사건 요약을 회차별 기억 `episodes`에), **사건 카드**(본문 = 사건 요약, `revealFromEpisode` = 사건이 일어난 장, 제목은 '이야기 안의 위치'), 참석자→사건 `participated` 관계(일어난 회차부터 스냅샷에 들어간다)이다. 시리즈별 규모는 해리 포터 인물 142·사건 116·관계 593, 반지의 제왕 65·101·460, 트와일라잇 59·106·326, 헝거 게임 39·99·263이다. 기준 회차는 공개 `rag-cutoff`와 같은 시점 표로 구하고(장 번호를 순서를 지키는 회차 번호로 바꿈), 원고 쪽은 공개 `rag-cutoff` Chroma의 소설 청크 18,568개를 쓴다(해리 포터 8,135·반지의 제왕 3,698·트와일라잇 4,357·헝거 게임 2,378).
 - **KoTimeChara**: 정답표와 따로, 회차 원문만 보고 모델이 뽑은 인물 카드(본문 = 첫 회차의 역할, 회차별 기억, 첫 등장 회차부터 공개)·사건 카드·참여/인물 관계(기록 회차)로 만든다(4.5). 질문이 있는 52편은 작품마다 인물 41~420, 사건 56~141, 관계 15~162개다.
 - **인물 카드 제목**: 원문이 인물을 부르는 이름으로 정했다('Ron', 'Hermione'). 전체 이름('Hermione Granger')은 해리 포터 청크 8,135개 중 48개에만 나오지만 'Hermione'는 3,223개에 나와서, 전체 이름을 제목으로 쓰면 3단계 필터(발췌에 인물 제목이 나와야 목격으로 본다)가 거의 모든 발췌를 뺀다. 작가가 본문과 같은 이름으로 카드를 만든다는 가정이다.
-- **원고 벡터**: 운영과 같은 `multilingual-e5-small` 고정 리비전·해시의 ONNX를 운영 인코더(`app.manuscript.service.E5Encoder`)로 돌렸다(메인 `.env`에는 `MANUSCRIPT_EMBEDDING_MODEL_DIR`가 없어 같은 파일을 `.data/e5-small`에 받았다). `recall`에는 질문당 상위 10개 발췌를 넘기고, 발췌는 `Excerpt.quote` 한도(256자)에 맞춘 질문 중심 창이다.
+- **원고 벡터**: 운영과 같은 `multilingual-e5-small` 고정 리비전·해시의 ONNX를 운영 인코더(`app.story_qa.service.E5Encoder`)로 돌렸다(메인 `.env`에는 `MANUSCRIPT_EMBEDDING_MODEL_DIR`가 없어 같은 파일을 `.data/e5-small`에 받았다). `recall`에는 질문당 상위 10개 발췌를 넘기고, 발췌는 `Excerpt.quote` 한도(256자)에 맞춘 질문 중심 창이다.
 
 ## 3. 실행 조건
 

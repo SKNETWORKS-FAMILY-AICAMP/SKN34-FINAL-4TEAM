@@ -4,6 +4,8 @@
 
 모델은 `gpt-image-2.6-flare`, 품질은 `high`, 출력 PNG다. character_profile 1024×1024, world_cover/work_cover 1152×1536, illustration 1536×1024. 결과는 실제 디코딩과 5MiB 상한으로 검증한다. 잘못된 결과를 자동 재생성하거나 크롭하지 않는다.
 
+이미지 작업 테이블은 Content의 전역 마이그레이션 `proposal/V44__image_generation_job.sql`에서 생성한다. `develop`의 `plan/V38`을 보존하기 위해 작업 브랜치에서 썼던 이미지 V38을 V44로 옮겼다. 예전 이미지 V38이 적용된 개인 검증 DB는 별도로 보존하고 병합된 코드의 검증은 새 DB에서 실행한다.
+
 요청 키와 같은 입력은 기존 작업을 반환하고 다른 입력은 409다. 입력·모델·품질·템플릿 버전은 접수 때 고정한다. 자동 생성 재시도는 없고 명시적 재생성은 새 키를 쓴다. 큐는 ID만 전달하고 Content의 원자적 선점으로 중복 실행을 막는다. accepted → queued → running → succeeded. 실패는 failed, 결과 불명확·실행 시한 초과는 interrupted. S3 업로드와 Content 결과 등록까지 끝나야 succeeded다. 실행 시한을 지난 워커의 콜백은 거부한다.
 
 키·회원 토큰·원문·모델 응답은 로그에 남기지 않는다. 내부 상태 API는 기존 /internal/v1/ai/** 인증 체인을 사용한다. 조회·미리보기는 소유자만 가능하다. 생성 성공은 적용·저장·발행 완료와 구분한다. 일러스트 제안은 UC-11에 따라 소유자 삭제 전까지 보관한다.

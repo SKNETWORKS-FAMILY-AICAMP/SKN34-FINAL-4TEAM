@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
+import { cloneElement, isValidElement, useCallback, useEffect, useId, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
 
 import {
-  beatLabel, checkKindLabel, checkSummary, evidenceLabel, monologueOwner, SIM_BEATS_MAX, SIM_CHARACTERS_MAX, SIM_PREMISE_MAX,
+  beatLabel, checkKindLabel, checkSummary, evidenceLabel, monologueOwner, samePersonChosen, SIM_BEATS_MAX, SIM_CHARACTERS_MAX, SIM_PREMISE_MAX,
   type CharacterSimulation, type SimulationStart, type SimulationTurn,
 } from '../../../domain/entities/characterSimulation'
 import { SCENE_NOTE_MAX, SCENE_TEXT_MAX } from '../../../domain/entities/writingChat'
+import { PencilIcon } from '../icons'
 import { ManuscriptBody } from '../media/MediaPanel'
-import { ConsentCheck } from './ChatPanel'
-import { useSimulationSetupViewModel } from './useSimulationSetupViewModel'
+import { useLinkedWorldId, useSimulationSetupViewModel } from './useSimulationSetupViewModel'
 import type { StageViewModel } from './useSimulationStageViewModel'
 import './chat.css'
 import './stage.css'
@@ -16,8 +16,8 @@ import './stage.css'
  * 시작 양식(버튼 진입): 모드를 고르고 IF는 전제, 흐름은 이 회차의 장면 계획(없으면 직접 입력)을 비트로 정하며 참여 인물을 1~6명 고른다.
  * 값은 서버 한도를 도메인(simulationIssue)이 검사한다. 입력하는 동안은 덜 채운 것을 꾸짖지 않고 한도를 넘긴 것만 알린다.
  */
-function StartFields({ stage, data, planEpisode, plotLink }: {
-  stage: StageViewModel; data: NonNullable<ReturnType<typeof useSimulationSetupViewModel>['ready']>; planEpisode: number | null; plotLink: ReactNode
+function StartFields({ stage, data, planEpisode, plotLink, startBlocker = '' }: {
+  stage: StageViewModel; data: NonNullable<ReturnType<typeof useSimulationSetupViewModel>['ready']>; planEpisode: number | null; plotLink: ReactNode; startBlocker?: string
 }) {
   const id = useId()
   const [mode, setMode] = useState<'if' | 'flow'>('if')
@@ -25,19 +25,22 @@ function StartFields({ stage, data, planEpisode, plotLink }: {
   const [lines, setLines] = useState('')
   // 모드마다 고른 인물을 따로 둔다: 흐름은 장면 계획의 인물을 미리 고르고, IF는 작가가 고른다.
   const [chosen, setChosen] = useState<Record<'if' | 'flow', string[]>>({ if: [], flow: data.characterIds })
-  const people = data.characters.filter((character) => chosen[mode].includes(character.id))
+  const picked = useRef(false)
+  useEffect(() => { if (!picked.current) setChosen(now => ({ ...now, flow: data.characterIds })) }, [data.characterIds])
+  // 필수 인물 문서가 빈 인물은 잠겨 있어 고른 값에 들어가지 않는다(문서를 비우는 쪽으로 양식이 다시 읽혀도 서버가 거절할 값을 보내지 않는다, #357).
+  const people = data.characters.filter((character) => chosen[mode].includes(character.id) && !character.missing.length)
   const ids = people.map((character) => character.id)
   const fromPlan = mode === 'flow' && data.beats.length > 0
   const start: SimulationStart = mode === 'if'
     ? { mode: 'if', premise, characterIds: ids }
     : { mode: 'flow', beats: fromPlan ? data.beats : lines.split('\n'), characterIds: ids }
   const problem = stage.issue(start)
-  const toggle = (characterId: string) => setChosen((now) => ({
+  const toggle = (characterId: string) => { if (mode === 'flow') picked.current = true; setChosen((now) => ({
     ...now, [mode]: now[mode].includes(characterId) ? now[mode].filter((other) => other !== characterId) : [...now[mode], characterId],
-  }))
+  })) }
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    if (problem || stage.blocked || stage.pending) return
+    if (problem || stage.blocked || stage.pending || startBlocker) return
     void stage.start(start, fromPlan ? 'plan' : 'manual', Object.fromEntries(people.map((character) => [character.id, character.name])))
   }
   return <form className="stage-form" onSubmit={submit}>
@@ -52,7 +55,7 @@ function StartFields({ stage, data, planEpisode, plotLink }: {
       </label>
       : data.beats.length
         ? <div className="stage-plan">
-          <p>{planEpisode}화의 장면 계획 {data.beats.length}개를 순서대로 비트로 써요.</p>
+          <p>{planEpisode}화의 저장된 장면 계획 {data.beats.length}개를 순서대로 써요. 최대 8개, 각 200자까지 반영해요.</p>
           <ol aria-label="흐름 비트">{data.beats.map((beat, i) => <li key={i}>{beat}</li>)}</ol>
         </div>
         : <div className="stage-plan">
@@ -65,35 +68,43 @@ function StartFields({ stage, data, planEpisode, plotLink }: {
     <fieldset className="stage-fieldset">
       <legend>참여 인물 (1~{SIM_CHARACTERS_MAX}명)</legend>
       {data.characters.length
-        ? <ul className="stage-people">{data.characters.map((character) => <li key={character.id}>
-          <label><input type="checkbox" checked={ids.includes(character.id)} disabled={!ids.includes(character.id) && ids.length >= SIM_CHARACTERS_MAX}
-            onChange={() => toggle(character.id)} />{character.name}</label>
-        </li>)}</ul>
+        ? <ul className="stage-people">{data.characters.map((character) => {
+          const same = samePersonChosen(data.characters, ids, character)
+          return <li key={character.id}>
+            <label><input type="checkbox" checked={ids.includes(character.id)} disabled={!!character.missing.length || (!ids.includes(character.id) && ids.length >= SIM_CHARACTERS_MAX) || same}
+              onChange={() => toggle(character.id)} />{character.name}
+              {character.missing.length
+                ? <small className="chat-note"> 비어 있는 문서: {character.missing.join(', ')} · 세계관 관리 화면에서 채워 주세요</small>
+                : same && <small className="chat-note"> 같은 인물을 이미 골랐어요</small>}</label>
+          </li>
+        })}</ul>
         : data.linked
           ? <p className="chat-note">이 작품에 연결된 세계관에 인물 카드가 없어요. 세계관에 인물을 먼저 만들어 주세요.</p>
-          : <><p>연결된 세계관이 없어요.</p><p className="chat-note">작품 관리의 세계관 연결에서 이 작품에 세계관을 연결해 주세요.</p></>}
+          : data.inheritedUpto !== null
+            ? <p className="chat-note">이어받은 원작 세계관에 공개된 인물 카드가 없어요. 작품 관리의 세계관 연결에서 내 세계관을 연결해 인물을 만들어 주세요.</p>
+            : <><p>연결된 세계관이 없어요.</p><p className="chat-note">작품 관리의 세계관 연결에서 이 작품에 세계관을 연결해 주세요.</p></>}
+      {data.inheritedUpto !== null && data.characters.length > 0 && <p className="chat-note">원작 세계관에서 {data.inheritedUpto}화까지 공개된 인물을 이어받았어요(읽기 전용).</p>}
       <p className="chat-note">{ids.length}명 선택</p>
     </fieldset>
     {problem && !problem.missing && <p className="stage-reason" role="status">{problem.text}</p>}
-    {stage.available && <ConsentCheck checked={stage.consent} onChange={stage.setConsent} />}
     {stage.blocked && <p className="chat-note">{stage.blocked}</p>}
-    <button type="submit" className="btn pri" disabled={!!problem || !!stage.blocked || stage.pending}>시뮬레이션 시작</button>
+    {startBlocker && <p className="stage-reason" role="status">{startBlocker}</p>}
+    <button type="submit" className="btn pri" disabled={!!problem || !!stage.blocked || stage.pending || !!startBlocker}>시뮬레이션 시작</button>
   </form>
 }
 
-function StartForm({ stage, workId, planEpisode, plotLink }: { stage: StageViewModel; workId: string; planEpisode: number | null; plotLink: ReactNode }) {
-  const setup = useSimulationSetupViewModel(workId, planEpisode)
+function StartForm({ stage, workId, planEpisode, plotLink, plansVersion, startBlocker }: { stage: StageViewModel; workId: string; planEpisode: number | null; plotLink: ReactNode; plansVersion: number; startBlocker: string }) {
+  const setup = useSimulationSetupViewModel(workId, planEpisode, plansVersion)
   return <div className="stage-start">
     <h3>어떤 장면을 시뮬레이션할까요?</h3>
     {stage.basisNote && <p className="chat-note">{stage.basisNote}</p>}
     {stage.sceneError && <p className="stage-reason" role="alert">{stage.sceneError}</p>}
     {stage.answer && <p className="stage-answer" role="status">{stage.answer}</p>}
     {stage.starting && <p className="chat-note" role="status">시뮬레이션을 시작하고 있어요…</p>}
-    {setup.loading
-      ? <p className="chat-note" role="status">장면 계획과 인물을 불러오고 있어요…</p>
-      : setup.failed
-        ? <div className="chat-error" role="alert"><p>장면 계획과 인물을 불러오지 못했어요.</p><button type="button" className="btn sm" onClick={setup.retry}>다시 불러오기</button></div>
-        : setup.ready && <StartFields stage={stage} data={setup.ready} planEpisode={planEpisode} plotLink={plotLink} />}
+    {(setup.loading || setup.refreshing) && <p className="chat-note" role="status">장면 계획과 인물을 불러오고 있어요…</p>}
+    {setup.failed && <div className="chat-error" role="alert"><p>장면 계획과 인물을 불러오지 못했어요.</p><button type="button" className="btn sm" onClick={setup.retry}>다시 불러오기</button></div>}
+    {setup.ready && <StartFields stage={stage} data={setup.ready} planEpisode={planEpisode} plotLink={plotLink}
+      startBlocker={startBlocker || (setup.refreshing || setup.failed ? '최신 장면 계획을 확인한 뒤 시작할 수 있어요.' : '')} />}
   </div>
 }
 
@@ -155,15 +166,35 @@ function Turn({ turn, stage, workId, episode, lockId, track }: { turn: Simulatio
       : <div className="stage-bubble"><ManuscriptBody workId={workId} number={episode} body={turn.prose} /></div>}
     {draft === null && stage.interactive && <div className="stage-actions" aria-live="off">
       <button ref={editButton} type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct}
-        onClick={() => { stage.pause(); setDraft(turn.prose) }}>수정</button>
+        aria-label="이 줄 고치기" title="이 줄 고치기" onClick={() => { stage.pause(); setDraft(turn.prose) }}><PencilIcon size={16} /></button>
       <button type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct} onClick={() => void stage.redo(turn.index)}>다시 말하기</button>
     </div>}
     {!turn.editedByAuthor && (turn.kind === 'character' || !!turn.checks.length || !!turn.evidence.length) && <Checks turn={turn} />}
   </li>
 }
 
+/**
+ * 호스트가 준 플롯 패널 열기 버튼을 이 자리의 이름(`흐름 고치기`)으로 보인다. 호스트가 이동 확인을 맡는 그 버튼을 그대로 쓰되 글자만 바꾼다. 단순한 DOM 요소가 아니면 그대로 둔다.
+ * ponytail: 호스트가 `plotLink` 대신 열기 콜백을 넘기게 되면 이 복제를 없앤다.
+ */
+const asFixFlow = (node: ReactNode) => (isValidElement<{ children?: ReactNode }>(node) && typeof node.type === 'string' ? cloneElement(node, undefined, '흐름 고치기') : node)
+
+/**
+ * 비트 거부로 멈춘 장면(#356)의 고치는 길. 거부는 오류가 아니라 기획 쪽 문제라 '이대로 진행'은 없고, 거부한 인물의 설정집 카드나 흐름을 고쳐 다시 시도한다.
+ * 카드 편집 화면은 새 탭으로 열어 무대와 쓰던 원고가 그대로 남고, 고친 뒤 재생하면 서버가 세계관을 새로 읽어 쌓은 턴을 지킨 채 그 비트부터 이어 쓴다.
+ * 이 작품에 연결한 내 세계관이 없거나(이어받은 원작은 읽기 전용) 거부한 인물을 모르면 카드 링크는 없다.
+ */
+function BeatRejection({ characterId, workId, plotLink }: { characterId: string | null; workId: string; plotLink: ReactNode }) {
+  const worldId = useLinkedWorldId(workId)
+  return <div className="stage-fix" role="group" aria-label="고쳐서 다시 시도">
+    {worldId && characterId && <a className="btn sm" href={`/worldstudio/${encodeURIComponent(worldId)}?card=${encodeURIComponent(characterId)}`} target="_blank" rel="noreferrer">설정집에서 고치기</a>}
+    {asFixFlow(plotLink)}
+    <p className="chat-note">설정집을 고친 뒤 재생하면 거부했던 비트부터 다시 시도해요. 흐름을 고쳤다면 장면을 끝내고 새 시뮬레이션으로 다시 시작해 주세요.</p>
+  </div>
+}
+
 /** 진행 중이거나 끝난 장면: 대본(실시간 추가·자동 스크롤) → 진행 조작·끼어들기 → 원고 반영 또는 결과. */
-function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: CharacterSimulation; workId: string; episode: number }) {
+function Scene({ stage, sim, workId, episode, plotLink }: { stage: StageViewModel; sim: CharacterSimulation; workId: string; episode: number; plotLink: ReactNode }) {
   const id = useId()
   const [note, setNote] = useState('')
   const script = useRef<HTMLDivElement>(null)
@@ -194,6 +225,7 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
       {!stage.rows.length && <p className="chat-note">아직 만들어진 장면이 없어요.</p>}
     </div>
     {stage.stopText && <p className="stage-reason"><b>{sim.status === 'stopped' ? '멈춘 이유' : '실패 이유'}</b> {stage.stopText}</p>}
+    {stage.rejection && <BeatRejection characterId={stage.rejection.characterId} workId={workId} plotLink={plotLink} />}
     {stage.hint && <p className="chat-note" role="status">{stage.hint}</p>}
     {stage.linesLock && <p id={lockId} className="chat-note">{stage.linesLock}</p>}
     {stage.live && <div className="stage-controls" role="group" aria-label="장면 진행">
@@ -221,7 +253,6 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
     </section>}
     {stage.result && <p className="stage-result" role="status">{stage.result}</p>}
     {!stage.live && !stage.approvable && !stage.pending && <button type="button" className="btn sm stage-again" onClick={stage.compose}>새 시뮬레이션</button>}
-    {stage.available && <ConsentCheck checked={stage.consent} onChange={stage.setConsent} />}
   </>
 }
 
@@ -232,18 +263,18 @@ function Scene({ stage, sim, workId, episode }: { stage: StageViewModel; sim: Ch
  * planEpisode는 흐름 비트를 읽는 열린 회차, episode는 본문 서식(이미지 표식) 해석용 회차, plotLink는 장면 계획을 만드는 곳으로 가는 링크(호스트가 이동 확인을 맡는다).
  * headingRef는 호스트가 사용자가 무대를 연 때만 제목으로 초점을 옮기려고 받는다(저절로 열린 무대는 초점을 빼앗지 않는다).
  */
-export function SimulationStage({ stage, workId, episode, planEpisode, plotLink, headingRef, onClose }: {
-  stage: StageViewModel; workId: string; episode: number; planEpisode: number | null; plotLink: ReactNode; headingRef?: Ref<HTMLHeadingElement>; onClose: () => void
+export function SimulationStage({ stage, workId, episode, planEpisode, plotLink, headingRef, onClose, hidden = false, plansVersion = 0, startBlocker = '' }: {
+  stage: StageViewModel; workId: string; episode: number; planEpisode: number | null; plotLink: ReactNode; headingRef?: Ref<HTMLHeadingElement>; onClose: () => void; hidden?: boolean; plansVersion?: number; startBlocker?: string
 }) {
   const id = useId()
   const sim = stage.showForm ? null : stage.simulation
-  return <section className="stage" aria-labelledby={`${id}-h`}>
+  return <section hidden={hidden} className="stage" aria-labelledby={`${id}-h`}>
     <header className="stage-head">
       <h2 id={`${id}-h`} ref={headingRef} tabIndex={-1}>인물 시뮬레이션 무대</h2>
       {sim && <span className="stage-status" data-status={stage.statusKey}>{stage.statusText}</span>}
       <button type="button" className="btn sm" onClick={onClose}>무대 닫기</button>
     </header>
     {stage.error && <div className="chat-error" role="alert"><p>{stage.error}</p><button type="button" className="btn sm" onClick={stage.reload}>다시 불러오기</button></div>}
-    {sim ? <Scene stage={stage} sim={sim} workId={workId} episode={episode} /> : <StartForm stage={stage} workId={workId} planEpisode={planEpisode} plotLink={plotLink} />}
+    {sim ? <Scene stage={stage} sim={sim} workId={workId} episode={episode} plotLink={plotLink} /> : <StartForm stage={stage} workId={workId} planEpisode={planEpisode} plotLink={plotLink} plansVersion={plansVersion} startBlocker={startBlocker} />}
   </section>
 }

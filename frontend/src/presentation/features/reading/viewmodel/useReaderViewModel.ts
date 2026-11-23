@@ -10,6 +10,7 @@ import { toast } from '../../../shared/events'
 import { usePublicImageAlts } from '../../../shared/media/usePublicImageAlts'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
+import { shareLink } from '../../../shared/shareLink'
 import { uiActions } from '../../../shared/ui/uiSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
 import { useLook } from './useLook'
@@ -23,7 +24,6 @@ type ReaderSheet = { kind: 'comment' | 'feedback' | 'suggest'; k: number } | { k
 
 /** 비회원이 회원 전용 동작을 누를 때 로그인 화면에 보여 줄 안내 */
 const MEMBER_ONLY = {
-  question: '원고 Q&A는 로그인한 회원만 사용할 수 있어요.',
   comment: '댓글은 로그인한 회원만 남길 수 있어요.',
   feedback: '피드백은 로그인한 회원만 보낼 수 있어요.',
   suggest: '수정 제안은 로그인한 회원만 보낼 수 있어요.',
@@ -97,7 +97,8 @@ export function useReaderViewModel(id: string, n: number,
     /** 로그인한 회원인가. 실제 작품 문장 팝업이 비로그인에게 댓글·피드백·수정 제안을 ‘로그인하고 …’로 보이는 데 쓴다. */
     loggedIn: !!role,
     closeSheet: () => setSheet(null),
-    share: () => toast('링크 공유는 데모예요 (실제 복사 없음)'),
+    /** 이 회차의 주소(지금 열린 주소)를 공유합니다. */
+    share: () => shareLink(window.location.href),
     shareSentence: () => toast('문장 공유는 데모예요 (실제 복사 없음)'),
     setEnd,
     toggleCommentLike: async (key: string) => {

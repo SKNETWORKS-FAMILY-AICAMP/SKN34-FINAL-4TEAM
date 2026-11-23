@@ -1,0 +1,1261 @@
+[
+  {
+    "id": "75f7f886-1f12-585d-b27b-3f816558e530",
+    "title": "승병의 참전",
+    "body": "휴정이 제자 2천 명과 왕을 만난 뒤 승장으로 임명되어 사찰에 참여를 요청했다. 최영과 유정의 병력은 평양 동쪽에서 정찰과 군량 보급 등을 맡았다고 원문이 설명한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15033–15050행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-monastic-war-mobilization",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15033,
+          "end": 15050
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "e119a0b4-7e89-5312-8e46-0d48aeae1ec5",
+    "title": "평양 주변 조선군 진영과 일본군 출격",
+    "body": "이원익·이빈의 순안 진영, 김응서·박명현의 평양 서쪽 진영과 김옥추의 대동강 수군이 일본군을 공격했으나 평양에서 출격한 일본군에 흩어졌다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15069–15080행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-pyongyang-korean-camps-sortie",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15069,
+          "end": 15080
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "b9f26c57-0f91-5377-9557-0a63256c4ddf",
+    "title": "김응서의 평양 야간 모험담",
+    "body": "평양 성벽 부근에서 퇴로가 끊긴 김응서가 포로 무희의 도움으로 일본 장수를 죽이고, 탈출하면서 그 여성도 죽였다는 이야기다. 목이 베인 장수가 칼을 던졌다는 대목은 원문이 소개하는 기이한 전승이다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15079–15104행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-kim-eung-su-night-story",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15079,
+          "end": 15104
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "e1d92765-1117-5aed-8686-de5465685819",
+    "title": "조헌과 영규의 충주 공격",
+    "body": "조헌과 승려 영규가 일본군 주둔지 충주의 서문을 돌과 화살로 공격했다. 천둥과 폭우로 조헌이 군사를 물린 밤 일본군이 북문으로 빠져나갔다고 한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15106–15116행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-chungju-cho-hon-attack",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15106,
+          "end": 15116
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "b421dd92-f9d7-5cc7-85ed-85c7529264d1",
+    "title": "여산의 조헌 부대 전투",
+    "body": "조헌은 권율과 다른 방향에서 동시 공격하기로 약속했으나 현장에서 권율의 병력을 만나지 못했다. 약 700명의 조헌 부대는 화살이 떨어진 뒤에도 싸웠고 일본군은 큰 손실을 입은 채 남쪽으로 물러났다고 원문이 전한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15119–15140행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-yosan-cho-hon-battle",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15119,
+          "end": 15140
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "2187caae-3cf9-53a2-b160-aaaa53c05408",
+    "title": "강복산 회담과 50일 휴전",
+    "body": "심유경은 평양 북쪽 강복산에서 고니시·구로다·겐쇼를 만나 일본의 뜻을 남경에 전달하기로 했다. 50일 휴전 동안 일본군은 평양 성벽에서 10리 안에 머물고 조선군은 그 선을 넘지 않기로 했으나 심유경은 기한 내 돌아오지 않았다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15143–15180행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-kang-bok-truce",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15143,
+          "end": 15180
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "9d651604-981b-530b-818d-00dbf459d8ef",
+    "title": "심대의 서울 탈환 계획",
+    "body": "상녕에 피신한 경기도 관찰사 심대는 서울 내부 협력자와 함께 일본군에게서 서울을 되찾으려 했다. 계획이 누설되어 일본군이 상녕에서 그를 붙잡아 처형했다고 한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15195–15203행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-sim-tae-seoul-plot",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15195,
+          "end": 15203
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "d44a4b28-7536-5118-8483-7f496bfda5cc",
+    "title": "진주성 방어",
+    "body": "김시민의 약 3천 수비군이 진주성을 포위한 일본군을 맞았다. 성벽의 수비군은 짚과 화약 꾸러미, 돌, 뜨거운 물, 못 박힌 판자를 준비했고 야간 공격을 격퇴했다고 원문이 전한다. 공격군 규모와 피해는 원저의 수치다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15205–15233행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-chinju-siege-defense",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15205,
+          "end": 15233
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "e2bb87c7-7873-570f-8057-9fc88086ca00",
+    "title": "경주성 공격과 비격진천뢰",
+    "body": "박진이 일본군 점령하의 경주성을 공격할 때 성안으로 날린 폭발물이 터져 일본군이 철수했다고 원문이 전한다. 무기의 발명과 세계 최초 여부에 대한 저자의 주장은 독립 검증된 사실이 아니다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15235–15254행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-kyongju-flying-thunderbolt",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15235,
+          "end": 15254
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "46cddf58-2f7e-5457-9350-3d1c9fd20bce",
+    "title": "함경도 의병의 길주 공격",
+    "body": "정문부가 경성에서 지도자들과 만나고 이풍수가 자금을 대어 의병을 일으켰다. 원문은 약 1만 명이 길주의 일본군을 포위해 승리했고 며칠 뒤 다시 교전했다고 전한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15274–15289행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-hamgyong-kilju-uprising",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15274,
+          "end": 15289
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "b3c42901-62b9-558a-8976-96df66e54460",
+    "title": "권율의 북상과 통신로 확보",
+    "body": "전라에서 북상한 권율은 수원까지 진군해 대규모 정면전을 피하고 일본군 낙오병을 공격했다. 원문은 이로써 남부와 왕을 잇는 북쪽 연락로가 열렸다고 설명한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15296–15304행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-kwon-yul-north-road",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15296,
+          "end": 15304
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "d4ed36cf-7d37-52ce-a949-e41699fe4e62",
+    "title": "거북선",
+    "body": "이순신이 일본 함대를 기다리며 사용한 선박이다. 원문은 한산도 부근에서 장갑을 갖춘 배가 적선을 들이받고 적의 무기를 견뎠다고 서술한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 14947–14949, 14960–14966행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "object-turtle-ship",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 14947,
+          "end": 14949
+        },
+        {
+          "start": 14960,
+          "end": 14966
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [
+        {
+          "file": "infrastructure/sample-data/genre-templates/history/studio/korea.world.json",
+          "id": "5fd31748-4ef6-53cc-95d2-0730cf893b86",
+          "title": "거북선"
+        }
+      ],
+      "same_candidate_key_ids": [
+        "0d47bcbb-3b10-5307-83ac-e50afae32138"
+      ],
+      "same_title_type_ids": [
+        "0d47bcbb-3b10-5307-83ac-e50afae32138"
+      ]
+    }
+  },
+  {
+    "id": "1c271ad7-0e14-5466-8884-b7abc8aef61c",
+    "title": "비격진천뢰 (Flying Thunderbolt)",
+    "body": "경주성 공격에서 사용됐다는 폭발성 투사체다. 원문은 청동 포에서 발사되어 성안에서 폭발했다고 전하며 이양손을 발명자로 지목한다. 세계 최초라는 저자의 추정은 확정하지 않는다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15235–15254행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "object-flying-thunderbolt",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15235,
+          "end": 15254
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "c150ef5c-28ba-547b-95b7-f5f5fd66c86a",
+    "title": "비격진천뢰 발사용 포",
+    "body": "원문은 종을 만드는 금속으로 만든 길이 약 8피트, 구경 약 12~14인치의 포를 기술한다. 기록이 기구 자체가 날았다는 듯한 표현을 쓴 대목을 저자는 포탄이 발사된 의미로 해석한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15237–15243행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "object-flying-thunderbolt-mortar",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15237,
+          "end": 15243
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "1251908e-f5b8-5b90-ac2a-7ef1f96fbf29",
+    "title": "화순 의병의 매 깃발",
+    "body": "화순에서 최경회가 이끈 작은 부대의 깃발에는 날아가는 매가 그려져 있었다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15061–15064행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "object-falcon-banner-whasun",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15061,
+          "end": 15064
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "4203090a-c9fd-524a-8d7b-12156eb2c48d",
+    "title": "북방 군사 순찰관 직책",
+    "body": "원문에 따르면 정문부의 직책은 함경도의 상황을 해마다 살피고 회령에서 음력 10월 열리는 변경 장시를 감독하는 일이었다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15274–15277행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "rule-northern-military-inspector",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15274,
+          "end": 15277
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "d6528233-0a29-5506-9c4d-9718c40ec515",
+    "title": "회령 변경 장시",
+    "body": "원문은 회령의 변경 장시가 매년 음력 10월에 열렸으며 북방 군사 순찰관이 이를 감독했다고 설명한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15274–15277행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "event-horyong-border-fair",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15274,
+          "end": 15277
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "3fde3ac5-9701-53b1-8af7-ef791a673015",
+    "title": "남경 (Nanking)",
+    "body": "명에 지원을 요청한 조선 사절들이 도착한 곳으로 군사회의가 열렸다. 정곤수도 이곳 병부 뜰에서 원조를 호소했다고 한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 14867–14881, 14886–14894행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-nanking",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 14867,
+          "end": 14881
+        },
+        {
+          "start": 14886,
+          "end": 14894
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "681cccdc-52aa-5e68-b821-75760ed857ed",
+    "title": "압록강 (Ya-lu)",
+    "body": "조선과 요동을 잇는 경계 수역으로, 낙상지의 명군이 강가에 주둔하고 조승훈의 군대가 이를 건너 조선으로 들어왔다. 왕은 도강 피신 가능성도 요동 측에 알렸다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 14881–14884, 14909–14911, 14994–14995행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-yalu-river",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 14881,
+          "end": 14884
+        },
+        {
+          "start": 14909,
+          "end": 14911
+        },
+        {
+          "start": 14994,
+          "end": 14995
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [
+        "45e64dd4-80df-5258-8132-47d2fb4a8d41"
+      ],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "9f2a1ea7-146d-5aad-9484-db1d8a74cc25",
+    "title": "요동 (Liao-tung)",
+    "body": "압록강 너머의 지역이다. 조선 왕의 피신 가능성을 전해 들은 요동 책임자는 황제에게 보고했으며, 조승훈은 패전 뒤 이곳으로 돌아왔다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 14909–14916, 15021–15030행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-liaotung",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 14909,
+          "end": 14916
+        },
+        {
+          "start": 15021,
+          "end": 15030
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "4765b74b-653c-5b69-a34b-19decf0c5597",
+    "title": "이치 (I-ch‘i)",
+    "body": "전라 지역의 고을로 일본군이 황진의 공격에 물러났고, 이곳으로 향하는 산길에서 권율과 황진이 다시 일본군을 막았다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 14924–14927, 14933–14940행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-ichi",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 14924,
+          "end": 14927
+        },
+        {
+          "start": 14933,
+          "end": 14940
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "86018b64-e20e-536c-b117-ec383fefd20e",
+    "title": "웅치산 (Ung-ch‘i Mountain)",
+    "body": "이치에서 물러난 일본군이 전주 지역으로 들어가기 위해 넘어간 산으로 제시된다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 14924–14928행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-ung-chi-mountain",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 14924,
+          "end": 14928
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "45350cbe-dfcd-5cc8-90a7-36131dd5b9c5",
+    "title": "전주 (Chŭn-ju)",
+    "body": "웅치산을 넘어온 일본군이 진입한 지역이다. 여봉남과 황박의 의병이 매복해 공격했으나 다음 날 반격으로 물러났다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 14927–14932행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-chonju",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 14927,
+          "end": 14932
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "710758bc-6620-5b2a-86c0-d00ccbaff387",
+    "title": "견내량 (Kyön-nă-ryang)",
+    "body": "전라 남쪽 해안의 섬들 사이에 있는 장소로, 이순신과 이옥기가 일본 함대를 만난 곳이다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 14956–14958행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-kyon-na-ryang",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 14956,
+          "end": 14958
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "0f8f6f54-ec2f-523c-91c4-0abab5fbc10e",
+    "title": "한산도 (Han-san Island)",
+    "body": "이순신이 추격하던 일본 함대를 향해 돌아서서 공격한 남해의 섬이다. 안골 항구에서 추가 함대가 접근했다고 원문이 서술한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 14960–14969행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-hansan-island",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 14960,
+          "end": 14969
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [
+        "fb8888a4-5f38-540d-b08c-6de4a6ce15aa",
+        "aca58f88-ce5c-5400-8f55-5365794cd2c7"
+      ],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "d443f298-0bae-5c5a-a071-b84d67a3ea3c",
+    "title": "안골 항구 (An-gol Harbor)",
+    "body": "한산 부근의 항구로, 원문에서 일본 증원 함대가 도착한 출발지로 제시된다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 14966–14969행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-an-gol-harbor",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 14966,
+          "end": 14969
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "29c41979-baf8-5236-942a-3225c2064ec5",
+    "title": "평양 (P‘yŭng-yang)",
+    "body": "일본군이 점령한 도시다. 조승훈의 명군이 성안으로 진입했다가 매복을 당했고, 심유경과 일본 측은 이후 성벽에서 10리 떨어진 선을 기준으로 휴전했다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15008–15021, 15170–15175행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-pyongyang",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15008,
+          "end": 15021
+        },
+        {
+          "start": 15170,
+          "end": 15175
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [
+        "f6107486-f98f-5d97-871d-51cfa79aa950",
+        "f93b8b90-4cd9-5720-a6e7-607724e061ca",
+        "5bde397d-eb88-596a-8904-0b40277656f7"
+      ],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "2f76d32c-b18c-5d3c-be15-177ec44899b9",
+    "title": "안주 (An-ju)",
+    "body": "평양 공격에서 패한 조승훈이 퇴각해 멈춘 곳이며, 심유경이 조사차 남하할 때 거친 곳이다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15020–15023, 15143–15149행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-an-ju",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15020,
+          "end": 15023
+        },
+        {
+          "start": 15143,
+          "end": 15149
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "e5a688dd-17b0-5059-8795-dff5fd2c42fe",
+    "title": "법흥사 (Pŭp-heung Monastery)",
+    "body": "왕에게 승장으로 임명된 휴정이 진을 치고 전국 사찰에 참여를 요청한 곳이다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15039–15044행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-pophung-monastery",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15039,
+          "end": 15044
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "50c1634e-5e64-527c-a263-1386608026a8",
+    "title": "순안 (Sun-an)",
+    "body": "원문에서 평양 서쪽 60리의 장소로 이원익과 이빈이 방어 진영을 설치했다. 심유경도 이곳까지 내려와 평양의 일본군에 연락했다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15069–15071, 15143–15150행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-sunan",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15069,
+          "end": 15071
+        },
+        {
+          "start": 15143,
+          "end": 15150
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "d5972dd6-64f7-5f73-a3b8-8913f94fa84c",
+    "title": "대동강 나루",
+    "body": "김옥추가 수군을 배치해 지킨 도하 지점으로 평양 주변 조선군의 작전에 포함됐다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15071–15075행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-taedong-river-ford",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15071,
+          "end": 15075
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "d5b58d92-6fba-53c2-9b64-658853a66637",
+    "title": "충주 (Ch‘ung-ju)",
+    "body": "일본군 수비대가 주둔해 있던 도시로 조헌과 영규가 서문을 공격했다. 일본군은 밤중에 북문으로 빠져나갔다고 한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15106–15116행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-chungju",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15106,
+          "end": 15116
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "2c6d0a9b-11fe-5f79-9aa4-c1cbfc288984",
+    "title": "여산 (Yö-san)",
+    "body": "원문에서 전라 지역의 일본군이 모여 있던 곳으로, 조헌의 소규모 부대가 일본군과 격전을 벌였다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15119–15125행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-yosan",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15119,
+          "end": 15125
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "9ff5c266-cd60-55e6-98a5-6e97b51e3f1e",
+    "title": "강복산 (Kang-bok Mountain)",
+    "body": "원문에 따르면 평양 북쪽 10리 지점의 산으로 심유경과 일본군 지휘부의 회담 장소였다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15153–15159행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-kang-bok-mountain",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15153,
+          "end": 15159
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "3678bd70-4846-59a1-a6f9-0ed6d05706a5",
+    "title": "상녕 (Sang-nyŭng)",
+    "body": "심대가 피신해 서울 탈환을 계획한 곳이다. 원문은 서울에서 북쪽으로 200리라고 설명하며 일본군이 이곳에서 심대를 붙잡았다고 한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15195–15203행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-sang-nyong",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15195,
+          "end": 15203
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "3f928200-87ad-5d6f-af8e-b4b305635795",
+    "title": "진주성",
+    "body": "경상도에 있는 성곽 도시로 김시민이 수비를 맡았다. 일본군 포위와 야간 공격에 맞서 수비군이 화약을 붙인 짚과 못 박힌 판자 등을 준비했다고 한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15205–15208, 15223–15233행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-chinju-fortress",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15205,
+          "end": 15208
+        },
+        {
+          "start": 15223,
+          "end": 15233
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "489ce844-b9d4-5d2b-94cd-e607d8cae736",
+    "title": "경주 (Kyöng-ju)",
+    "body": "일본군이 점령했던 성곽 도시다. 박진의 공격에서 비격진천뢰가 성안에 떨어져 폭발한 뒤 일본군이 물러났다고 원문이 전한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15235–15249행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-kyongju",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15235,
+          "end": 15249
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "6a99a0dd-03f7-5283-b9b9-2e36d5d382f4",
+    "title": "함경도 경성 (Kyöng-sung)",
+    "body": "탈출한 정문부가 이풍수의 집에서 지도자들을 만난 고을로, 이후 일본군에 맞설 군대가 조직되었다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15280–15285행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-kyongsong-hamgyong",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15280,
+          "end": 15285
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "c05bcfec-a80f-5889-ab50-902bc3bc0665",
+    "title": "길주 (Kil-ju)",
+    "body": "원문에서 일본군이 진을 친 함경도의 고을로, 정문부 등이 모은 군대에 포위당했다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15274–15287행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-kilju",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15274,
+          "end": 15287
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "3cd15294-f7c2-506a-9946-5d299854e567",
+    "title": "수원 (Su-wŭn)",
+    "body": "전라에서 북상한 권율이 도달한 곳이다. 그는 주변 일본군과의 정면전을 피하며 낙오병을 공격하고 북쪽 연락로를 열었다고 한다.\n\n출처: 호머 B. 헐버트, 《한국사》 제1권(1905), Chapter IX, 원문 15296–15304행, https://www.gutenberg.org/ebooks/52127",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "candidate_key": "location-suwon",
+      "source_units": [
+        "korea-v1:35:Chapter IX"
+      ],
+      "lines": [
+        {
+          "start": 15296,
+          "end": 15304
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+      "source_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "source_url": "https://www.gutenberg.org/ebooks/52127",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  }
+]

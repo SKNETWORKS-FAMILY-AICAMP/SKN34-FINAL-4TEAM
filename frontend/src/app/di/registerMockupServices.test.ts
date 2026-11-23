@@ -50,6 +50,10 @@ it('mockup 컨테이너의 운영 댓글은 서버 대신 데모 댓글을 운�
   expect((await comments.list()).find((c) => c.commentId === 'hanji-0')?.hidden).toBe(true)
 })
 
+it('운영 크레딧 저장소는 운영 API를 쓴다(회원 검색과 같이 서버 없는 시연용 대역은 두지 않는다)', () => {
+  expect(createAppContainer().resolve('operationsCreditRepository').constructor.name).toBe('HttpOperationsCreditRepository')
+})
+
 it('실제 모드 컨테이너의 운영 댓글은 운영 API 저장소를 쓴다', () => {
   expect(createAppContainer().resolve('operationsCommentRepository').constructor.name).toBe('HttpOperationsCommentRepository')
 })
@@ -79,4 +83,34 @@ it('mockup 컨테이너의 탈퇴는 요청 없음 상태만 보이고 탈퇴·�
   expect(await withdrawal.status()).toEqual({ status: 'NONE' })
   await expect(withdrawal.request('pw', '')).rejects.toThrow('데모에서는 지원하지 않아요')
   await expect(withdrawal.restore()).rejects.toThrow('데모에서는 지원하지 않아요')
+})
+
+it('운영 대시보드·LLMOps·작업 감시 저장소는 실제 모드에서 운영 API를, mockup에서 예시 메모리를 쓴다', async () => {
+  const real = createAppContainer()
+  expect(real.resolve('operationsDashboardRepository').constructor.name).toBe('HttpOperationsDashboardRepository')
+  expect(real.resolve('llmOpsRepository').constructor.name).toBe('HttpLlmOpsRepository')
+  expect(real.resolve('jobMonitorRepository').constructor.name).toBe('HttpJobMonitorRepository')
+  vi.stubEnv('MODE', 'mockup')
+  const mockup = createAppContainer()
+  expect(mockup.resolve('operationsDashboardRepository').constructor.name).toBe('InMemoryOperationsDashboardRepository')
+  expect(mockup.resolve('llmOpsRepository').constructor.name).toBe('InMemoryLlmOpsRepository')
+  expect(mockup.resolve('jobMonitorRepository').constructor.name).toBe('InMemoryJobMonitorRepository')
+  expect((await mockup.resolve('operationsDashboardUseCase').dashboard()).unavailable).toEqual([])
+})
+
+it('장르 저장소는 실제 모드에서 Content·운영 API를, mockup에서 같은 목록을 보는 메모리를 쓰고 홈 칩·세계관 이름이 그 목록을 따른다', async () => {
+  const real = createAppContainer()
+  expect(real.resolve('genreRepository').constructor.name).toBe('HttpGenreRepository')
+  expect(real.resolve('operationsGenreRepository').constructor.name).toBe('HttpOperationsGenreRepository')
+  vi.stubEnv('MODE', 'mockup')
+  const mockup = createAppContainer()
+  expect(mockup.resolve('genreRepository').constructor.name).toBe('InMemoryGenreRepository')
+  expect(mockup.resolve('operationsGenreRepository').constructor.name).toBe('InMemoryOperationsGenreRepository')
+  expect(await mockup.resolve('readingUseCase').homeChips()).toEqual(['추천', '✨ 판타지', '🛰 SF', '📜 고전', '🆓 무료', '✎ 포크 많은'])
+  expect((await mockup.resolve('publicWorldUseCase').get(DEMO_WORLDS[0].id))?.genreName).toBe('판타지')
+  // 운영에서 숨기면 작가 선택지(공개 목록)·홈 칩에서 빠지고, 세계관 장르는 이름을 알 수 없어 장르 없음처럼 된다.
+  await mockup.resolve('operationsGenreUseCase').update('genre-01', { active: false })
+  expect((await mockup.resolve('genreUseCase').list()).some((genre) => genre.code === 'genre-01')).toBe(false)
+  expect((await mockup.resolve('readingUseCase').homeChips())).not.toContain('✨ 판타지')
+  expect((await mockup.resolve('publicWorldUseCase').get(DEMO_WORLDS[0].id))?.genreName).toBeNull()
 })

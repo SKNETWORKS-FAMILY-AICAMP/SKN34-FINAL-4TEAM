@@ -129,7 +129,7 @@ describe('소설 상세 (U04)', () => {
     const works = appContainer.resolve('mockDb').works
     for (const work of works) work.canonical = true
     try {
-      renderApp('/work/guunmong')
+      renderApp('/work/guunmong', user())
       fireEvent.click(await screen.findByRole('button', { name: '구운몽 소설 신고' }))
       const dialog = screen.getByRole('dialog', { name: '소설 신고' })
       within(dialog).getByLabelText('신고 사유')
@@ -782,7 +782,7 @@ describe('정본 회차 댓글 (기능 22)', () => {
 describe('빠른 이동 (U03)', () => {
   it('Ctrl K와 GNB 검색 버튼으로 열고 고른 항목으로 이동한다', async () => {
     renderApp('/')
-    fireEvent.click(await screen.findByRole('button', { name: '소설·인물·회차 검색' }))
+    fireEvent.click(await screen.findByRole('button', { name: '소설·세계관·설정 카드·캐릭터챗 검색' }))
     screen.getByRole('dialog', { name: '빠른 이동' })
     expect(sid()).toBe('U03 빠른 이동 (Ctrl K)')
     fireEvent.keyDown(document, { key: 'Escape' })

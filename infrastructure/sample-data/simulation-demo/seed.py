@@ -2,7 +2,7 @@
 """시연 세계관(world.json)을 로컬 스택의 공개 진입점으로 적재한다(표준 라이브러리만).
 
 흐름: Core 로그인 → (새 작품이면) 작품 생성·회차 원고 저장·발행, (Fork면) 원작의 기준 회차에서 Fork 생성·자기 원고 발행
-→ 세계관 생성(고정 id, 멱등) → 회차 오름차순으로 초안 저장(카드는 첫 저장, 관계는 회차별 `episode`) → 작품에 연결
+→ 세계관 생성(고정 id, 멱등) → 회차 오름차순으로 초안 저장(카드는 첫 저장, 관계는 회차별 `episode`) → 확정 버전 한 번 → 작품에 연결
 → (`plans.json`이 있으면) 플롯 1개와 장면 계획 생성(시뮬레이션 흐름 모드의 비트).
 같은 id·key·제목으로 다시 실행해도 중복이 생기지 않는다(이미 같은 값이면 건너뛴다).
 이미 다른 세계관이 연결된 작품은 덮어쓰지 않고 이유를 알린 뒤 실패한다.
@@ -17,6 +17,7 @@ import hashlib
 import http.cookiejar
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -46,6 +47,7 @@ RELATION_FIELDS = ("sourceCardId", "targetCardId", "category", "body", "label", 
 # WorldStudio 카드 id는 422라 지금은 보내지 않는다. 등장 인물은 장면 본문에 이름으로 적고, plans.json의 characters·places에는 카드 key를 둔다.
 # ponytail: 서버가 카드 id를 받게 되면 True로 바꾼다(그 밖에 바꿀 곳이 없다).
 SEND_PLAN_REFS = False
+CARD_LINK = re.compile(r"\[([^\]]+)\]\(card:([^)]+)\)")
 
 
 class SeedError(Exception):
@@ -62,6 +64,11 @@ def card_id(key, scope=""):
     return str(uuid.uuid5(NAMESPACE, "card:" + scope + key))
 
 
+def resolve_card_links(body, scope, card_keys):
+    return CARD_LINK.sub(lambda match: f"[{match.group(1)}](card:{card_id(match.group(2), scope)})"
+                         if match.group(2) in card_keys else match.group(0), body)
+
+
 def relation_id(key, scope=""):
     return str(uuid.uuid5(NAMESPACE, "relation:" + scope + key))
 
@@ -75,17 +82,17 @@ def _item(**fields):
     return item
 
 
-def card_payload(card, scope=""):
-    """world.json 카드 → `PUT /draft`의 CardPayload. 인물 문서(DEC-47)·독자 공개 회차는 semanticMetadata 최상위 키다."""
+def card_payload(card, scope="", card_keys=()):
+    """world.json 카드 → `PUT /draft`의 CardPayload. 인물 문서(DEC-47: soul·goal·episodes)·독자 공개 회차는 semanticMetadata 최상위 키다."""
     kind, entity_type = KINDS[card["cardType"]]
-    cid = card_id(card["key"], scope)
-    item = _item(id=cid, kind=kind, entityType=entity_type, title=card["title"], text=card["body"], category=card["areaCode"],
+    cid, body = card_id(card["key"], scope), resolve_card_links(card["body"], scope, card_keys)
+    item = _item(id=cid, kind=kind, entityType=entity_type, title=card["title"], text=body, category=card["areaCode"],
                  timeText=card.get("timeText", ""))
     meta = {"studio": {"userCategory": card["classification"], "tags": card["tags"], "aliases": card["aliases"], "item": item}}
     for key in ("revealFromEpisode", "characterDocs"):
         if key in card:
             meta[key] = card[key]
-    return {"id": cid, "title": card["title"], "body": card["body"], "cardType": card["cardType"], "areaCode": card["areaCode"],
+    return {"id": cid, "title": card["title"], "body": body, "cardType": card["cardType"], "areaCode": card["areaCode"],
             "classification": card["classification"], "aliases": card["aliases"], "tags": card["tags"],
             "semanticMetadata": meta, "visibility": card["visibility"], "lifecycle": "active"}
 
@@ -183,6 +190,31 @@ def _ensure_work(call, spec, base, log, wid):
     return mine["id"]
 
 
+def _confirm(call, wid, cards, log):
+    """모든 회차를 저장한 초안을 확정 버전으로 남긴다. 독자 설정 위키(`revealFromEpisode` 기준)와 공개 세계관은 확정 버전의 카드만 읽으므로(DEC-46) 이 단계가 없으면 연결해도 위키가 빈다.
+    현재 확정 버전이 시연 카드와 같은 값이면 건너뛰어 다시 실행해도 버전이 늘지 않고, 카드가 바뀌었으면 새 버전을 남긴다. 검사로 거절되면 `_ok`가 서버의 이유를 담아 멈춘다."""
+    draft = _ok(call("GET", f"/api/v1/world-studios/{wid}"), "초안 조회")
+    if draft.get("currentRevisionId"):
+        current = _ok(call("GET", f"/api/v1/world-studios/{wid}/revisions/{draft['currentRevisionId']}"), "확정 버전 조회")
+        sealed = {c["card"]["id"]: c["card"] for c in current["cards"]}
+        if not any(_differs(card, sealed.get(card["id"]), CARD_FIELDS) for card in cards):
+            log("확정 버전: 이미 같은 카드로 남아 있어요")
+            return
+    revision = draft["draftRevision"]  # 같은 초안 revision이면 같은 key라, 결과를 못 받고 다시 보내도 서버가 같은 요청으로 알아본다.
+    _ok(call("POST", f"/api/v1/world-studios/{wid}/revisions", {"expectedDraftRevision": revision, "key": f"simulation-demo-confirm-{revision}"}), "확정 버전 남기기")
+    log("확정 버전을 남겼어요")
+
+
+def _ensure_world_genre(call, wid, genre, log):
+    """현재 공개 범위는 그대로 두고, 공개 세계관 목록용 장르만 한 번 설정한다."""
+    draft = _ok(call("GET", f"/api/v1/world-studios/{wid}"), "세계관 공개 설정 조회")
+    if draft.get("genre") == genre:
+        return
+    _ok(call("PUT", f"/api/v1/world-studios/{wid}/publication",
+             {"visibility": draft["visibility"], "genre": genre}), "세계관 장르 설정")
+    log(f"세계관 장르: {genre}")
+
+
 def plan_payload(scene, parent, scope):
     """plans.json 장면 → `POST /story-plans` 본문(새 계획이라 revision 0). 인물·장소는 카드 key를 id로 바꿔 SEND_PLAN_REFS일 때만 보낸다."""
     ids = lambda keys: [card_id(key, scope) for key in keys] if SEND_PLAN_REFS else []  # noqa: E731
@@ -216,7 +248,7 @@ def _seed_plans(call, work, plans, scope, log):
 def seed(call, world, owner=None, log=lambda *_: None, base=HERE):
     """call(method, path, body) → (status, json)로 적재하고 회차별 관계 수 {회차: 수}를 돌려준다. base는 world.json이 있는 디렉터리다."""
     wid, spec = world["world"]["id"], world["work"]
-    name, description = world["world"]["name"], world["world"]["description"]
+    name, description, genre = world["world"]["name"], world["world"]["description"], world["world"]["genre"]
     if "id" in spec:  # 이미 있는 샘플 작품에 연결한다
         work = spec["id"]
         row = _ok(call("GET", f"/api/v1/works/{work}"), "작품 조회")
@@ -228,8 +260,10 @@ def seed(call, world, owner=None, log=lambda *_: None, base=HERE):
     _check_link(row, wid)
     linked = row.get("worldStudioId")
     _ok(call("POST", "/api/v1/world-studios", {"id": wid, "name": name, "description": description}), "세계관 생성")
+    _ensure_world_genre(call, wid, genre, log)
     scope = scope_of(world)
-    cards = [card_payload(card, scope) for card in world["cards"]]
+    card_keys = {card["key"] for card in world["cards"]}
+    cards = [card_payload(card, scope, card_keys) for card in world["cards"]]
     for episode in episodes(world):
         draft = _ok(call("GET", f"/api/v1/world-studios/{wid}?episode={episode}"), f"{episode}화 시점 조회")
         have_cards = {c["id"]: c for c in draft["cards"]}
@@ -245,6 +279,7 @@ def seed(call, world, owner=None, log=lambda *_: None, base=HERE):
         digest = hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
         _ok(call("PUT", f"/api/v1/world-studios/{wid}/draft", {**body, "key": f"simulation-demo-{episode}-{digest}"}), f"{episode}화 저장")
         log(f"{episode}화: 카드 {len(new_cards)}개·관계 {len(new_relations)}개 저장")
+    _confirm(call, wid, cards, log)
     if linked != wid:
         _ok(call("PUT", f"/api/v1/works/{work}/world-studio", {"worldId": wid}), "작품 연결")
         log("작품에 연결했어요")

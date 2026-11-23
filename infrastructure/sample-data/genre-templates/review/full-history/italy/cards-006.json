@@ -1,0 +1,394 @@
+[
+  {
+    "id": "91ae2f3a-2d14-590d-98c5-fc5c6cbb6302",
+    "title": "피렌체 화파",
+    "body": "저자는 미켈란젤로의 작품을 피렌체 화파의 대표적인 사례로 들고, 이 화파를 크고 대담한 윤곽으로 특징짓는다. 이는 저자의 예술 평가다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 6715–6717행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 0,
+      "key": "organization-florentine-school",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 6715,
+          "end": 6717
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "기존 미켈란젤로 카드가 있으나 화파 자체의 별도 카드는 확인되지 않음"
+    }
+  },
+  {
+    "id": "7bd7bf8b-580c-57d1-beef-1f45178244f4",
+    "title": "베네치아 화파",
+    "body": "저자는 베네치아 화파를 조금 뒤 시대의 티치아노, 틴토레토, 파올로 베로네세의 색채로 설명한다. 이는 저자의 예술 평가다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 6717–6720행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 1,
+      "key": "organization-venetian-school",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 6717,
+          "end": 6720
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "기존 로마 화파 카드와 구별; 세 화가 별도 카드 없음"
+    }
+  },
+  {
+    "id": "19d6d92c-7e12-5356-89c2-903f6604799f",
+    "title": "티치아노 베첼리오",
+    "body": "저자는 베네치아 화파의 색채를 설명하며 티치아노 베첼리오를 든다. 이 구간은 이름과 화파 관련 언급만 제공한다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 6717–6720행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 2,
+      "key": "character-tiziano-vecellio",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 6717,
+          "end": 6720
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "기존 8장과 다른 회차·180개 기존 역사 카드에서 동일 제목·이름 확인되지 않음"
+    }
+  },
+  {
+    "id": "0bcc142c-be2b-55b6-87f3-3bdb1e6978a1",
+    "title": "야코포 로부스티 틴토레토",
+    "body": "저자는 야코포 로부스티가 틴토레토로 불렸다고 적고 베네치아 화파의 색채를 설명하며 그를 든다. 이 구간은 이름과 화파 관련 언급만 제공한다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 6717–6720행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 3,
+      "key": "character-jacopo-robusti-tintoretto",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 6717,
+          "end": 6720
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "기존 8장과 다른 회차·180개 기존 역사 카드에서 동일 이름 확인되지 않음"
+    }
+  },
+  {
+    "id": "796c8dec-b35b-5f8e-b247-aa111cdd4fad",
+    "title": "파올로 베로네세",
+    "body": "저자는 베네치아 화파의 색채를 설명하며 파올로 베로네세를 든다. 이 구간은 이름과 화파 관련 언급만 제공한다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 6717–6720행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 4,
+      "key": "character-paolo-veronese",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 6717,
+          "end": 6720
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "베로나 지방 지명 카드와 다른 인물; 동일 이름 카드 확인되지 않음"
+    }
+  },
+  {
+    "id": "545e3414-0848-51b1-80e6-6add73fa4ff0",
+    "title": "보이아르도",
+    "body": "저자는 보이아르도가 교황 레오 10세 재위 이전에 시를 썼다고 적는다. 이 구간은 그의 이름과 시에 대한 짧은 언급만 제공한다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 6723–6725행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 5,
+      "key": "character-boiardo",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 6723,
+          "end": 6725
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "기존 8장과 다른 회차·180개 기존 역사 카드에서 동일 이름 확인되지 않음"
+    }
+  },
+  {
+    "id": "5b224092-547d-5500-8fd2-bc28815b2d79",
+    "title": "아리오스토",
+    "body": "저자는 레오 10세 시대의 이탈리아 문학을 설명하며 아리오스토를 언급한다. 이 구간은 이름과 저자의 짧은 평가만 제공한다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 6723–6727행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 6,
+      "key": "character-ariosto",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 6723,
+          "end": 6727
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "9장 토르콰토 타소 카드에 비교 대상으로 이름이 이미 등장하지만 인물 자체 카드는 확인되지 않음"
+    }
+  },
+  {
+    "id": "40ce978d-45d7-5385-9772-8e382ffe1ba9",
+    "title": "벰보",
+    "body": "저자는 레오 10세 시대의 이탈리아 문학을 설명하며 벰보를 언급한다. 이 구간은 이름과 저자의 짧은 평가만 제공한다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 6723–6727행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 7,
+      "key": "character-bembo",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 6723,
+          "end": 6727
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "기존 8장과 다른 회차·180개 기존 역사 카드에서 동일 이름 확인되지 않음"
+    }
+  },
+  {
+    "id": "69240035-0aa2-519c-b087-0a50d19a568f",
+    "title": "루이지 구이차르디니",
+    "body": "피렌체의 곤팔로니에레로, 원저는 봉기가 일어났을 때 그가 동요했다고 전한다. 역사가 프란체스코 구이차르디니의 형제라고 적는다. OCR 손상과 전언 표현에 주의해야 한다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 7353–7357행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 8,
+      "key": "character-luigi-guicciardini",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 7353,
+          "end": 7357
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "기존 프란체스코 구이차르디니 카드와 다른 인물; 이름 카드 확인되지 않음"
+    }
+  },
+  {
+    "id": "3b2165bc-35cb-5518-8114-449fd9df7e54",
+    "title": "1527년 피렌체 무장 요구와 단기 봉기",
+    "body": "부르봉 군대가 접근하자 피렌체의 젊은 시민들은 도시 방어를 위한 무기를 요구했다. 약속된 무기가 거부된 뒤 소요가 일어났으나 원저는 봉기가 하루에 그쳤고 동맹군이 도착한 뒤 양측이 합의했다고 서술한다. OCR이 손상되어 원문 이미지 대조가 필요하다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 7338–7372행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 9,
+      "key": "event-florence-arming-demand-uprising-1527",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 7338,
+          "end": 7372
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "기존 1527년 5월 메디치 추방 카드보다 앞선 별도 단기 봉기; 시점과 인과를 합치지 않음"
+    }
+  },
+  {
+    "id": "1574b636-c086-591f-b459-849c8f76ffb3",
+    "title": "샤를 드 란누아",
+    "body": "원저는 나폴리 부왕 샤를 드 란누아가 부대를 이끌고 부르봉 군대에 합류했다고 서술한다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 7304–7307행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 10,
+      "key": "character-charles-de-lannoy",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 7304,
+          "end": 7307
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "기존 8장과 다른 회차·180개 기존 역사 카드에서 동일 이름 확인되지 않음"
+    }
+  },
+  {
+    "id": "f6fdb789-528d-5bdc-8d5c-aee339f88466",
+    "title": "파올로 비텔리",
+    "body": "원저에 따르면 교황은 파올로 비텔리를 보내 콜론나 가문의 영지를 황폐하게 했다. 이 구간은 그에 관해 짧게만 서술한다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 7312–7315행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 11,
+      "key": "character-paolo-vitelli",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 7312,
+          "end": 7315
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "기존 알레산드로 비텔리 카드와 이름이 비슷하지만 다른 인물"
+    }
+  },
+  {
+    "id": "aa732916-735d-523c-92f6-ec5acb8f4456",
+    "title": "보데몽 백작 르네",
+    "body": "원저는 교황이 옛 앙주 가문의 보데몽 백작 르네를 초대해 왕국을 정복하게 하려 했으나 계획이 자금 부족으로 실패했다고 서술한다. OCR 손상이 있어 이름과 맥락의 이미지 대조가 필요하다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 7312–7319행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 12,
+      "key": "character-rene-count-of-vaudemont",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 7312,
+          "end": 7319
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "기존 8장과 다른 회차·180개 기존 역사 카드에서 동일 이름 확인되지 않음"
+    }
+  },
+  {
+    "id": "771d4e80-004c-5bfa-97d2-a7856967b7e9",
+    "title": "로트레크의 파비아 약탈",
+    "body": "원저는 프랑스의 로트레크 원수가 파비아를 기습하고 약탈했다고 서술하며, 그 이유를 군주의 패배에 대한 복수로 설명한다. 인용 구간에 사건 연도는 직접 명시되지 않는다.\n\n출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 7419–7423행, https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "supplement-italy-8-review-20261116",
+      "input_file": "미게시-임시자료:history/supplement-italy-8-review-20261116.json",
+      "input_sha256": "52dd675b1c23dfcc64ba08887c80a6d8858d13fc0b51695a5df50a9d5d229ea5",
+      "candidate_index": 13,
+      "key": "event-lautrec-sack-of-pavia",
+      "source_units": [
+        "italy:8:CHAPTER VIII."
+      ],
+      "lines": [
+        {
+          "start": 7419,
+          "end": 7423
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog",
+      "review_note": "OCR·원저의 편향과 비공식 요약의 역사적 정확성은 별도 검토 필요",
+      "duplicate_review": "1525년 파비아 전투 카드와 별도 사건; 1528년 나폴리 포위 카드에 이 약탈은 포함되지 않음"
+    }
+  }
+]

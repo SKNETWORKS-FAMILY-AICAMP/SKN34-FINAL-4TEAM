@@ -18,11 +18,12 @@ import tools.jackson.databind.json.JsonMapper
 
 @Configuration(proxyBeanMethods = false)
 class ContentSecurityConfig {
-    // AI 오케스트레이션 전용 /internal/v1/ai 하위: INTERNAL_TOKEN만 확인한다. 운영 체인보다 먼저 매칭한다.
+    // AI 전용 내부 경로: INTERNAL_TOKEN만 확인한다. 운영 체인보다 먼저 매칭한다. /internal/v1/ai 하위(오케스트레이션 Retrieval) 외에
+    // 전처리 진행 보고 한 경로만 더한다(#343). 같은 접두의 목록·재실행은 운영 체인에 남는다.
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     fun aiInternalSecurityFilterChain(http: HttpSecurity, @Value("\${INTERNAL_TOKEN:}") token: String): SecurityFilterChain {
-        http.securityMatcher("/internal/v1/ai/**").csrf { it.disable() }.cors { it.disable() }
+        http.securityMatcher("/internal/v1/ai/**", "/internal/v1/preprocessing-jobs/*/progress").csrf { it.disable() }.cors { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { it.anyRequest().hasAuthority("AI_SERVICE") }
             .addFilterBefore(OperationsServiceTokenFilter(token, "X-Internal-Token", "AI_SERVICE"), AnonymousAuthenticationFilter::class.java)
@@ -63,10 +64,9 @@ class ContentSecurityConfig {
             .authorizeHttpRequests {
                 it.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/works", "/api/v1/public/works/**",
-                        "/api/v1/public/world-studios", "/api/v1/public/world-studios/**",
-                        "/api/v1/public/cover-references/*").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/v1/public/works/*/context/qa").authenticated()
+                        "/api/v1/public/world-studios", "/api/v1/public/world-studios/**", "/api/v1/public/genres", "/api/v1/public/cover-references/*").permitAll()
                     .requestMatchers("/api/v1/image-generations", "/api/v1/image-generations/**", "/api/v1/works", "/api/v1/works/**", "/api/v1/world-studios", "/api/v1/world-studios/**").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/me/storage-usage").authenticated()
                     .anyRequest().denyAll()
             }
             .exceptionHandling { it.authenticationEntryPoint { _, response, _ ->

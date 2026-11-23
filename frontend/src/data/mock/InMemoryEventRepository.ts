@@ -13,14 +13,15 @@ export class InMemoryEventRepository implements EventRepository {
   async getPublic(id: string) { return structuredClone(this.rows.get(id)) ?? null }
   async create(input: EventInput) {
     const now = new Date().toISOString()
-    const row = { ...input, id: crypto.randomUUID(), createdAt: now, updatedAt: now }
+    const row = { ...input, linkPath: input.linkPath ?? null, id: crypto.randomUUID(), createdAt: now, updatedAt: now }
     this.rows.set(row.id, row)
     return structuredClone(row)
   }
   async update(id: string, input: EventInput) {
     const current = this.rows.get(id)
     if (!current) throw missing()
-    const row = { ...current, ...input, updatedAt: new Date().toISOString() }
+    // 서버처럼 전체 수정이라 생략한 이동 경로는 비웁니다.
+    const row = { ...current, ...input, linkPath: input.linkPath ?? null, updatedAt: new Date().toISOString() }
     this.rows.set(id, row)
     return structuredClone(row)
   }

@@ -15,8 +15,73 @@ SPEC = importlib.util.spec_from_file_location("ci", Path(__file__).with_name("ci
 ci = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(ci)
 
+LANGFUSE_COMPOSE = 'infrastructure/docker-compose.langfuse.yaml'
+
+
+def read(path):
+    return (ci.ROOT / path).read_text()
+
+
+def service_block(text, name):
+    """compose 문자열에서 서비스 하나의 블록(다음 서비스 시작 전까지)을 잘라 낸다."""
+    return re.split(r'\n  [a-z][\w-]*:\n', text.split(f'\n  {name}:\n', 1)[1], maxsplit=1)[0]
+
+
+def nginx_upstream(text, route):
+    """nginx location 선택(정확 일치 > 가장 긴 접두)을 흉내 내 route가 가는 proxy_pass 대상을 돌려준다."""
+    locations = re.findall(r'location (\^~ |= |)(/\S*) \{([^}]*)\}', text)
+    path = route.split('?')[0]
+    exact = [body for modifier, prefix, body in locations if modifier == '= ' and path == prefix]
+    prefixed = [(prefix, body) for modifier, prefix, body in locations if modifier != '= ' and path.startswith(prefix)]
+    body = exact[0] if exact else max(prefixed, key=lambda item: len(item[0]))[1]
+    return re.search(r'proxy_pass (\S+);', body)[1]
+
 
 class SelectionTest(unittest.TestCase):
+    def test_expanded_data_paths_select_configuration_without_unrelated_services(self):
+        paths = [
+            'infrastructure/sample-data/genre-templates/expanded_generate.py',
+            'infrastructure/sample-data/genre-templates/expanded_test.py',
+            'infrastructure/sample-data/genre-templates/build_traditions.py',
+            'infrastructure/sample-data/genre-templates/review/README.md',
+            'infrastructure/sample-data/genre-templates/review/full-history/usa/cards-001.json',
+            'infrastructure/sample-data/genre-templates/expanded-relations/merge.py',
+            'infrastructure/sample-data/genre-templates/expanded-relations/worlds/usa--batch.json',
+        ]
+        for path in paths:
+            with self.subTest(path=path):
+                plan = ci.select([path])
+                self.assertEqual(([], [], [], True), (plan['unit'], plan['integration'], plan['system'], plan['infra']))
+
+    def test_expanded_runtime_data_preserves_content_selection_and_adds_configuration(self):
+        for path in ['backend/content-service/src/main/resources/genre-templates.json',
+                     'backend/content-service/src/main/resources/sample-worlds-expanded/manifest.json',
+                     'backend/content-service/src/main/resources/sample-worlds-expanded/world-001.json']:
+            with self.subTest(path=path):
+                baseline = ci.select(['backend/content-service/src/main/resources/application.yaml'])
+                baseline['infra'] = True
+                self.assertEqual(baseline, ci.select([path]))
+
+    def test_expanded_paths_union_with_other_changes_and_unknown_fallback(self):
+        sample = 'infrastructure/sample-data/genre-templates/review/full-myth/a/cards-001.json'
+        frontend = 'frontend/src/example.test.ts'
+        expected = ci.select([frontend])
+        expected['infra'] = True
+        self.assertEqual(expected, ci.select([sample, frontend]))
+        unknown = 'unregistered-runtime/config.toml'
+        self.assertEqual(ci.select([unknown]), ci.select([sample, unknown]))
+        self.assertEqual(set(ci.SERVICES), {row['service'] for row in ci.select([sample, unknown])['unit']})
+        unknown_sample = 'infrastructure/sample-data/genre-templates/expanded_unregistered.py'
+        self.assertEqual(set(ci.SERVICES), {row['service'] for row in ci.select([unknown_sample])['unit']})
+
+    def test_configuration_runs_expanded_data_and_relation_unit_tests(self):
+        workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
+        block = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
+        self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p expanded_test.py -v', block)
+        self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates/expanded-relations -p test_merge.py -v', block)
+        # 하이픈 디렉터리는 상위 discover가 찾지 못하므로 시연 세계관 검사를 따로 실행한다.
+        self.assertIn("python3 -I -m unittest discover -s infrastructure/sample-data/simulation-demo -p 'test_*.py' -v", block)
+
     def test_docs_only_has_no_runtime_jobs(self):
         plan = ci.select(["README.md", "frontend/AGENTS.md", "docs/design/design.md"])
         self.assertEqual([], plan["unit"])
@@ -187,7 +252,8 @@ class SelectionTest(unittest.TestCase):
         self.assertIn('CONFIGURATION_NEEDED:', workflow)
         configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
         self.assertIn('python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v', configuration)
-        self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data -p test_import.py -v', configuration)
+        self.assertIn("python3 -I -m unittest discover -s infrastructure/sample-data -p 'test_*.py' -v", configuration)
+        self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p test_traditions.py -v', configuration)
 
     def test_unit_and_integration_run_in_parallel_before_system(self):
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
@@ -371,6 +437,81 @@ class ComposeSplitTest(unittest.TestCase):
             block = re.split(r'\n  [a-z][\w-]*:\n', overlay.split('  ' + service + ':\n', 1)[1], maxsplit=1)[0]
             self.assertIn('ports: !reset []', block)
 
+    def test_langfuse_is_one_file_that_dev_and_prod_include(self):
+        langfuse = read(LANGFUSE_COMPOSE)
+        services = re.findall(r'(?m)^  ([a-z][\w-]*):$', langfuse.split('\nservices:\n', 1)[1].split('\nvolumes:\n', 1)[0])
+        # 앱 스택의 postgres·minio와 이름이 겹치면 같은 프로젝트에 include할 수 없다.
+        self.assertEqual({'langfuse-web', 'langfuse-worker', 'langfuse-postgres', 'langfuse-clickhouse',
+                          'langfuse-minio', 'langfuse-redis'}, set(services))
+        dev, prod = read('infrastructure/docker-compose.dev.yaml'), read('infrastructure/docker-compose.prod.yaml')
+        # 원격 CD는 --project-directory 때문에 상대 경로가 어긋나므로 dev만 임시로 둔 절대 경로를 받는다.
+        self.assertIn('\ninclude:\n  - path: ${CD_LANGFUSE_COMPOSE_FILE:-docker-compose.langfuse.yaml}\n', dev)
+        self.assertIn('\ninclude:\n  - path: docker-compose.langfuse.yaml\n', prod)
+        for source in (dev, prod):
+            self.assertNotIn('\n  langfuse-web:\n', source)  # 정의를 복제하지 않는다.
+        # 로컬 기본 진입점(루트 compose.yaml)도 별도 include 항목으로 같은 프로젝트에 항상 켠다. base·local 파일은 Langfuse를 모른다.
+        self.assertIn('\n  - path: ./infrastructure/docker-compose.langfuse.yaml\n', read('compose.yaml'))
+        for path in ('infrastructure/docker-compose.yaml', 'infrastructure/docker-compose.local.yaml'):
+            self.assertNotIn('langfuse.yaml', read(path), path)
+
+    def test_langfuse_web_is_developer_only_and_keeps_the_headless_init_admin(self):
+        # 2026-11-19 사용자 결정: 관리자는 Langfuse 웹에 들어가지 않는다(OIDC 로그인·화면 링크·기본 조직 자동 배정 없음).
+        # 웹은 개발자가 초기 관리자(LANGFUSE_INIT_*)로 loopback 포트에서만 쓰고 가입은 막는다.
+        langfuse = read(LANGFUSE_COMPOSE)
+        web = service_block(langfuse, 'langfuse-web')
+        self.assertIn('- "127.0.0.1:${LANGFUSE_WEB_PORT:-3000}:3000"', web)
+        self.assertIn('NEXTAUTH_URL: http://localhost:${LANGFUSE_WEB_PORT:-3000}\n', langfuse)
+        self.assertEqual({'AUTH_DISABLE_SIGNUP'}, set(re.findall(r'(?m)^      (AUTH_\w+):', web)))
+        self.assertIn('AUTH_DISABLE_SIGNUP: "true"\n', web)
+        self.assertEqual({'LANGFUSE_INIT_ORG_ID', 'LANGFUSE_INIT_ORG_NAME', 'LANGFUSE_INIT_PROJECT_ID', 'LANGFUSE_INIT_PROJECT_NAME',
+                          'LANGFUSE_INIT_PROJECT_PUBLIC_KEY', 'LANGFUSE_INIT_PROJECT_SECRET_KEY', 'LANGFUSE_INIT_USER_EMAIL',
+                          'LANGFUSE_INIT_USER_NAME', 'LANGFUSE_INIT_USER_PASSWORD'}, set(re.findall(r'(?m)^      (LANGFUSE_\w+):', web)))
+        # 공개 진입점(nginx·Vite)은 Langfuse 웹으로 가는 길을 두지 않는다.
+        for path in ('frontend/nginx.conf', 'infrastructure/nginx.dev.conf', 'frontend/vite.config.ts'):
+            self.assertNotIn('langfuse-web', read(path), path)
+
+    def test_langfuse_keys_and_internal_addresses_reach_ai_and_operations(self):
+        base = read('infrastructure/docker-compose.yaml')
+        ai, operations = service_block(base, 'ai-service'), service_block(base, 'operations-service')
+        for line in ('LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}', 'LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}'):
+            self.assertIn(line, ai)
+            self.assertIn(line, operations)
+        # Langfuse 서버의 초기 프로젝트 키도 같은 변수에서 읽어 세 곳의 값이 항상 같다.
+        langfuse = read(LANGFUSE_COMPOSE)
+        self.assertIn('LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?', langfuse)
+        self.assertIn('LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?', langfuse)
+        # 컨테이너에서는 Langfuse를 내부 주소로 부른다(루트 .env의 localhost 값은 네이티브 실행용).
+        self.assertIn('LANGFUSE_BASE_URL: http://langfuse-web:3000', ai)
+        for line in ('OPERATIONS_LANGFUSE_BASE_URL: http://langfuse-web:3000',
+                     'OPERATIONS_AI_BASE_URL: http://ai-service:8000', 'INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}',
+                     'OPERATIONS_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}', 'OPERATIONS_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}',
+                     'OPERATIONS_RABBITMQ_USERNAME: ${CORE_RABBITMQ_USER:-storyfork}',
+                     'OPERATIONS_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}'):
+            self.assertIn(line, operations)
+
+    def test_operations_waits_for_the_broker_it_publishes_alerts_to(self):
+        for name in ('local', 'dev'):
+            with self.subTest(file=name):
+                operations = service_block(read(f'infrastructure/docker-compose.{name}.yaml'), 'operations-service')
+                self.assertIn('rabbitmq:\n        condition: service_healthy', operations)
+
+    def test_configuration_job_supplies_every_required_dev_and_prod_value(self):
+        # .env.example는 비밀값을 비워 두므로 dev·prod·Langfuse가 :? 로 요구하는 값은 job의 합성 값이 채워야 config가 통과한다.
+        job = read('.github/workflows/ci.yml').split('\n  configuration:\n', 1)[1].split('\n    steps:\n', 1)[0]
+        example = dict(line.split('=', 1) for line in read('.env.example').splitlines() if line and not line.startswith('#'))
+        provided = set(re.findall(r'(?m)^ {6}([A-Z][A-Z0-9_]*):', job)) | {key for key, value in example.items() if value}
+        for name in ('docker-compose.dev.yaml', 'docker-compose.prod.yaml', 'docker-compose.langfuse.yaml'):
+            with self.subTest(file=name):
+                required = set(re.findall(r'\$\{([A-Z][A-Z0-9_]*):\?', read('infrastructure/' + name)))
+                self.assertEqual(set(), required - provided)
+
+    def test_example_lists_the_native_operations_settings_blank(self):
+        example = dict(line.split('=', 1) for line in read('.env.example').splitlines() if line and not line.startswith('#'))
+        for key in ('OPERATIONS_LANGFUSE_BASE_URL', 'OPERATIONS_AI_BASE_URL', 'OPERATIONS_RABBITMQ_HOST', 'OPERATIONS_RABBITMQ_PORT',
+                    'OPERATIONS_RABBITMQ_USERNAME', 'OPERATIONS_RABBITMQ_PASSWORD'):
+            with self.subTest(key=key):
+                self.assertEqual('', example[key])
+
     def test_example_does_not_activate_deployment_or_supply_signing_keys(self):
         source = (ci.ROOT / '.env.example').read_text()
         active = dict(line.split('=', 1) for line in source.splitlines() if line and not line.startswith('#'))
@@ -467,7 +608,7 @@ class SystemContractTest(unittest.TestCase):
                             self.assertGreater(index, 0)
                             self.assertEqual(f'refresh_csrf({call.func.value.id})', ast.unparse(function.body[index - 1]))
                         mutations += 1
-        self.assertEqual(29, mutations)  # Anonymous missing-CSRF rejection stays intentionally unrefreshed.
+        self.assertEqual(30, mutations)  # Anonymous missing-CSRF rejection stays intentionally unrefreshed.
 
 
 class ConfigurationTest(unittest.TestCase):
@@ -528,7 +669,7 @@ class ConfigurationTest(unittest.TestCase):
     def test_work_world_link_and_reader_wiki_routes_go_to_content(self):
         # DEC-46: 연결 PUT /api/v1/works/{id}/world-studio와 독자 설정 위키 GET /api/v1/public/works/{id}/world-cards는
         # 새 location 없이 기존 works 접두로 Content에 간다(더 긴 접두나 정규식 location이 가로채지 않는다).
-        routes = ['/api/v1/works/work-id/world-studio', '/api/v1/public/works/work-id/world-cards']
+        routes = ['/api/v1/works/work-id/world-studio', '/api/v1/works/work-id/inherited-world', '/api/v1/public/works/work-id/world-cards']
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
             text = (ci.ROOT / path).read_text()
             self.assertNotRegex(text, r'location\s+~')
@@ -552,7 +693,7 @@ class ConfigurationTest(unittest.TestCase):
             for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
                 self.assertNotIn(private, text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
-        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities)', text)
+        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits)', text)
 
     def test_operations_works_public_routes_go_to_operations(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
@@ -571,6 +712,68 @@ class ConfigurationTest(unittest.TestCase):
             text = (ci.ROOT / path).read_text()
             for location in ['location = /api/v1/operations/admin/activities {', 'location ^~ /api/v1/operations/admin/activities/ {']:
                 self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
+
+    def test_operations_dashboard_llmops_alerts_and_jobs_routes_go_to_operations(self):
+        # DEC-55: 운영 대시보드·LLMOps·경고·작업 감시 API는 네 접두와 하위 경로를 Operations로 보낸다(일반 /api보다 구체적).
+        routes = ['/api/v1/operations/dashboard', '/api/v1/operations/llmops/traces?from=2026-11-19',
+                  '/api/v1/operations/llmops/prompts/p/production', '/api/v1/operations/alerts',
+                  '/api/v1/operations/alerts/rules/ai_failure_rate', '/api/v1/operations/jobs/runs/id/retry',
+                  '/api/v1/operations/jobs/schedules']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in routes:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://operations-service:8082', nginx_upstream(read(path), route))
+        pattern = re.search(r"'(\^/api/v1/operations/[^']*)':\s*\{", read('frontend/vite.config.ts'))[1].replace('\\\\', '\\')
+        for route in routes:
+            with self.subTest(vite=route):
+                self.assertRegex(route, pattern)
+        for route in ['/api/v1/operations/dashboards', '/api/v1/operations/jobs-extra',
+                      '/api/v1/operations/inquiries', '/api/v1/operations/notices']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, pattern)
+
+    def test_genre_routes_go_to_content_and_operations(self):
+        # DEC-56: 공개 장르 목록은 Content, 운영 장르 관리(목록·추가와 {code} 수정·order 순서)는 Operations로 간다(일반 /api(Core)보다 구체적).
+        content = ['/api/v1/public/genres', '/api/v1/public/genres?x=1']
+        operations = ['/api/v1/operations/genres', '/api/v1/operations/genres/genre-31', '/api/v1/operations/genres/order']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in content:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://content-service:8081', nginx_upstream(read(path), route))
+            for route in operations:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://operations-service:8082', nginx_upstream(read(path), route))
+        vite = read('frontend/vite.config.ts')
+        content_pattern = re.search(r"'(\^/api/v1/\(\?:[^']*world-studios[^']*)':\s*\{", vite)[1].replace('\\\\', '\\')
+        operations_pattern = re.search(r"'(\^/api/v1/operations/[^']*)':\s*\{", vite)[1].replace('\\\\', '\\')
+        for route in content:
+            with self.subTest(vite=route):
+                self.assertRegex(route, content_pattern)
+        for route in operations:
+            with self.subTest(vite=route):
+                self.assertRegex(route, operations_pattern)
+        for route in ['/api/v1/public/genres-extra', '/api/v1/public/genre']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, content_pattern)
+        for route in ['/api/v1/operations/genres-extra', '/api/v1/operations/genre']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, operations_pattern)
+
+    def test_operations_credits_routes_go_to_operations(self):
+        # DEC-57: 운영 크레딧(회원별 잔액·내역, 수동 지급·회수)은 접두와 하위 경로를 Operations로 보낸다(일반 /api(Core)보다 구체적).
+        routes = ['/api/v1/operations/credits', '/api/v1/operations/credits/members/7c9e',
+                  '/api/v1/operations/credits/members/7c9e/grants', '/api/v1/operations/credits/members/7c9e/revocations']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in routes:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://operations-service:8082', nginx_upstream(read(path), route))
+        pattern = re.search(r"'(\^/api/v1/operations/[^']*)':\s*\{", read('frontend/vite.config.ts'))[1].replace('\\\\', '\\')
+        for route in routes:
+            with self.subTest(vite=route):
+                self.assertRegex(route, pattern)
+        for route in ['/api/v1/operations/credits-extra', '/api/v1/operations/credit']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, pattern)
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)

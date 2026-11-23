@@ -58,18 +58,33 @@ export type AppCradle = {
   eventUseCase: import('../../domain/usecases/EventUseCase').EventUseCase
   operationsWorkRepository: import('../../domain/repositories/OperationsWorkRepository').OperationsWorkRepository
   operationsWorkUseCase: import('../../domain/usecases/OperationsWorkUseCase').OperationsWorkUseCase
+  operationsCreditRepository: import('../../domain/repositories/OperationsCreditRepository').OperationsCreditRepository
+  operationsCreditUseCase: import('../../domain/usecases/OperationsCreditUseCase').OperationsCreditUseCase
   operationsCommentRepository: import('../../domain/repositories/OperationsCommentRepository').OperationsCommentRepository
   operationsCommentUseCase: import('../../domain/usecases/OperationsCommentUseCase').OperationsCommentUseCase
   adminActivityRepository: import('../../domain/repositories/AdminActivityRepository').AdminActivityRepository
   adminActivityUseCase: import('../../domain/usecases/AdminActivityUseCase').AdminActivityUseCase
+  operationsDashboardRepository: import('../../domain/repositories/OperationsDashboardRepository').OperationsDashboardRepository
+  operationsDashboardUseCase: import('../../domain/usecases/OperationsDashboardUseCase').OperationsDashboardUseCase
+  llmOpsRepository: import('../../domain/repositories/LlmOpsRepository').LlmOpsRepository
+  llmOpsUseCase: import('../../domain/usecases/LlmOpsUseCase').LlmOpsUseCase
+  jobMonitorRepository: import('../../domain/repositories/JobMonitorRepository').JobMonitorRepository
+  jobMonitorUseCase: import('../../domain/usecases/JobMonitorUseCase').JobMonitorUseCase
   storyPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   demoStoryPlanUseCase: import('../../domain/usecases/StoryPlanUseCase').StoryPlanUseCase
   initialWorldUseCase: import('../../domain/usecases/InitialWorldUseCase').InitialWorldUseCase | null
   worldStudioUseCase: import('../../domain/usecases/WorldStudioUseCase').WorldStudioUseCase
+  worldReviewUseCase: import('../../domain/usecases/WorldReviewUseCase').WorldReviewUseCase | null
+  genreRepository: import('../../domain/repositories/GenreRepository').GenreRepository
+  genreUseCase: import('../../domain/usecases/GenreUseCase').GenreUseCase
+  operationsGenreRepository: import('../../domain/repositories/OperationsGenreRepository').OperationsGenreRepository
+  operationsGenreUseCase: import('../../domain/usecases/OperationsGenreUseCase').OperationsGenreUseCase
   publicWorldRepository: import('../../domain/repositories/PublicWorldRepository').PublicWorldRepository
   publicWorldUseCase: import('../../domain/usecases/PublicWorldUseCase').PublicWorldUseCase
   mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase
   mediaRepository: import('../../domain/repositories/MediaRepository').MediaRepository
+  manuscriptBuildRepository: import('../../domain/repositories/ManuscriptBuildRepository').ManuscriptBuildRepository
+  manuscriptBuildUseCase: import('../../domain/usecases/ManuscriptBuildUseCase').ManuscriptBuildUseCase
   manuscriptUseCase: import('../../domain/usecases/ManuscriptUseCase').ManuscriptUseCase
   manuscriptRepository: import('../../domain/repositories/ManuscriptRepository').ManuscriptRepository
   episodeUseCase: EpisodeUseCase

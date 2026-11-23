@@ -33,7 +33,7 @@
 1. 인증된 소유자가 POST /api/v1/world-studios/{worldId}/analyses에 key와 expectedDraftRevision을 보낸다.
 2. 소유자 검증 후 같은 world/key 기록을 먼저 확인한다. 이미 있는 요청은 원본을 다시 읽거나 hash를 바꾸지 않는다.
 3. 신규 요청만 저장된 draft를 읽는다. 미저장 UI 내용은 받지 않는다. 관계 상태가 incomplete/migration_required이면 분석하지 않는다.
-4. 활성 카드 title/body 및 세계관 description을 원문 그대로 sources에 넣는다. sourceId는 world/card 소유 ID와 field에서 만든다.
+4. 활성 카드 title/body 및 세계관 description을 원문 그대로 sources에 넣는다(카드 body만 설정 링크 `[글자](card:<uuid>)`를 글자로 벗기고 남은 `card:<uuid>`도 지운다, DEC-53: 해시·근거 구간은 벗긴 글 기준). sourceId는 world/card 소유 ID와 field에서 만든다.
    필드 빈 값의 포함 규칙은 DTO 구현 시 fixture로 고정한다. 원문 trim/CRLF/Unicode 정규화 금지.
 5. entities에는 기존 활성 엔터티 ID와 유형·이름·별칭을 넣는다. 새 인물·장소·조직 ID를 AI가 만들지 않는다.
    규칙·사건 카드도 sources에는 가능하지만 엔터티 목록을 억지로 늘리지 않는다.

@@ -97,6 +97,22 @@ it('같은 경로라도 화면 내용이 통째로 바뀌는 쿼리(관리자 �
   expect(scrollToSpy).toHaveBeenCalledTimes(8)
 })
 
+it('관리자 LLM Ops는 쪽(view)이 바뀌어도 다른 화면으로 보고 맨 위로 올리되, 같은 쪽의 다른 쿼리는 보던 위치를 지킨다', () => {
+  render(<Provider store={createAppStore()}><MemoryRouter initialEntries={['/admin?tab=llm']} useTransitions={false}>
+    <GlobalChrome />
+    <Link to="/admin?tab=llm&view=traces">추적·지표</Link>
+    <Link to="/admin?tab=llm&view=traces&page=2">같은 쪽의 다른 쿼리</Link>
+    <Link to="/admin?tab=llm&view=prompts">프롬프트·모델</Link>
+  </MemoryRouter></Provider>)
+  const go = (name: string) => fireEvent.click(screen.getByRole('link', { name }))
+  go('추적·지표')
+  expect(scrollToSpy).toHaveBeenCalledExactlyOnceWith({ top: 0 })
+  go('같은 쪽의 다른 쿼리')
+  expect(scrollToSpy).toHaveBeenCalledTimes(1)
+  go('프롬프트·모델')
+  expect(scrollToSpy).toHaveBeenCalledTimes(2)
+})
+
 it('운영 화면에는 화면 ID 표시·토글 없이 테마 전환을 제공한다', () => {
   vi.stubEnv('DEV', false)
   const { store } = renderChrome('/', 'light')
@@ -224,6 +240,34 @@ it.each([
   expect(screen.getByRole('button', { name: '다크 모드로' })).toBeTruthy()
 })
 
+const WORLD = '/worldstudio/6f0c6c4e-8f4a-4d0b-9d52-1c3b5a7e9f10'
+
+it.each([
+  ['서버 세계관(UUID)', WORLD],
+  ['UUID가 아닌 id(데모·목업)', '/worldstudio/w1'],
+  ['작성 마법사(?new=1)', `${WORLD}?new=1`],
+  ['설정 편집 화면(?card=)', `${WORLD}?card=c1`],
+])('세계관 관리 화면(W01) %s에서는 오른쪽 아래 화면 ID·테마 버튼을 숨기고 화면 ID 표시줄은 그대로 둔다', (_name, path) => {
+  vi.stubEnv('DEV', true)
+  renderChrome(path, 'light', { screen: { base: 'W01', sheet: null } })
+  expect(document.querySelector('.screen-controls')).toBeNull()
+  expect(screen.queryByRole('button', { name: /화면 ID/ })).toBeNull()
+  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull()
+  expect(document.getElementById('sid')!.hidden).toBe(false)
+})
+
+it.each([
+  ['세계관이 없는 새 세계관 만들기(상단 버튼이 없다)', '/worldstudio', 'W01'],
+  ['세계관 화면 ID가 남아 있어도 세계관 작업실이 아닌 경로', '/lib?tab=worlds', 'W01'],
+  ['공개 세계관 화면', '/worlds/w1', 'W03'],
+  ['세계관 작업실 경로지만 화면 ID가 아직 W01이 아닌 때(접근 안내·첫 렌더링)', WORLD, 'U01'],
+])('세계관 관리 화면 밖(%s)에서는 떠 있는 버튼을 그대로 둔다', (_name, path, base) => {
+  vi.stubEnv('DEV', true)
+  renderChrome(path, 'light', { screen: { base, sheet: null } })
+  expect(screen.getByRole('button', { name: '화면 ID 끄기' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '다크 모드로' })).toBeTruthy()
+})
+
 const toastNode = () => document.getElementById('toast')!
 
 it('토스트는 role=status 노드 하나를 계속 쓰고 글자만 바꾼다 — 알림마다 노드를 갈아 끼우면 보조기기가 새 알림을 놓칠 수 있다', () => {
@@ -284,7 +328,7 @@ it('토스트는 글자 수에 비례한 시간만큼 머문 뒤 비우고, 그 
   } finally { vi.useRealTimers() }
 })
 
-it.each([[true, ''], [false, 'translateY(-6px) scale(1.0700)']])('동작 줄이기 설정이 %s이면 마우스 근처 카드(.prox)의 변형은 %j이다 — 줄이기 설정에서는 카드를 움직이지 않는다', (reduced, transform) => {
+it.each([[true, 50, ''], [false, 50, 'translateY(-3px)'], [false, 150, '']])('동작 줄이기 설정이 %s이고 마우스가 가로 %i에 있으면 카드(.prox, 가로 0~100)의 변형은 %j이다 — 줄이기 설정에서는 움직이지 않고, 카드 밖 가까이에서는 커지지 않으며, 올라온 카드만 살짝 뜬다', (reduced, x, transform) => {
   vi.stubGlobal('matchMedia', vi.fn((query: string) => Object.assign(new EventTarget(), { matches: reduced && query === '(prefers-reduced-motion: reduce)' })))
   vi.stubGlobal('requestAnimationFrame', (run: FrameRequestCallback) => { run(0); return 1 })
   const card = document.createElement('a')
@@ -293,7 +337,7 @@ it.each([[true, ''], [false, 'translateY(-6px) scale(1.0700)']])('동작 줄이�
   document.body.append(card)
   try {
     renderChrome()
-    fireEvent.mouseMove(document, { clientX: 50, clientY: 50 })
+    fireEvent.mouseMove(document, { clientX: x, clientY: 50 })
     expect(card.style.transform).toBe(transform)
   } finally { card.remove() }
 })

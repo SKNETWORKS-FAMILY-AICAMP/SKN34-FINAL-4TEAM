@@ -1,0 +1,1298 @@
+{
+  "purpose": "원전별 자체 추출 후보의 연구·검토 전용 보관. 앱/DB 자동 적재 대상이 아니며 등록 금지. 기존 카드 및 SOUL 유지. 적용에는 #425 안전 계약, 권리 및 중복 검증과 별도 승인이 필요하다.",
+  "genre": "japanese_mythology",
+  "world_id_reference": "3a1d491a-59d7-5a43-92f8-dfdcd342dd79",
+  "world_id_note": "기존 런타임 worldId는 후보 UUID 이름공간으로만 참조하며 신규 세계관 생성이나 분할·적재가 아니다.",
+  "sources": [
+    {
+      "input_file": "미게시-임시자료:myth/japan-myth-kojiki.json",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "manifest_segment": "japan-myth-kojiki",
+      "input_segment_field": "japan-myth-kojiki",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "manifest_units": [
+        "kojiki-book-1",
+        "kojiki-book-2",
+        "kojiki-book-3"
+      ],
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "input_candidates": 114,
+      "source_worker_coverage": [
+        {
+          "unit": "kojiki-book-1",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)",
+          "status": "read",
+          "cards": 48
+        },
+        {
+          "unit": "kojiki-book-1/section-1",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_1",
+          "status": "read",
+          "cards": 0,
+          "note": "본문 계보의 이름만 언급된 신들은 독립 카드로 억지로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-1/section-2",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_2",
+          "status": "read",
+          "cards": 0,
+          "note": "본문 계보의 이름만 언급된 신들은 독립 카드로 억지로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-1/section-3",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_3",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-1/section-4",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_4",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-1/section-5",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_5",
+          "status": "read",
+          "cards": 0,
+          "note": "본문 계보의 이름만 언급된 신들은 독립 카드로 억지로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-1/section-6",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_6",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-1/section-7",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_7",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-1/section-8",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_8",
+          "status": "read",
+          "cards": 0,
+          "note": "본문 계보의 이름만 언급된 신들은 독립 카드로 억지로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-1/section-9",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_9",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "kojiki-book-1/section-10",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_10",
+          "status": "read",
+          "cards": 0,
+          "note": "이름과 출생 순서만 나오는 신들은 독립 설정 카드로 억지로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-1/section-11",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_11",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-1/section-12",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_12",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-13",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_13",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "kojiki-book-1/section-14",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_14",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-15",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_15",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-16",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+          "status": "read",
+          "cards": 6
+        },
+        {
+          "unit": "kojiki-book-1/section-17",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_17",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-1/section-18",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_18",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-1/section-19",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_19",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-1/section-20",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_20",
+          "status": "read",
+          "cards": 0,
+          "note": "계보에 이름과 혈연만 전하는 인물은 독립 카드로 억지로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-1/section-21",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_21",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-1/section-22",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-1/section-23",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+          "status": "read",
+          "cards": 5
+        },
+        {
+          "unit": "kojiki-book-1/section-24",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_24",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-25",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_25",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-26",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_26",
+          "status": "read",
+          "cards": 0,
+          "note": "계보에 이름과 혈연만 전하는 인물은 독립 카드로 억지로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-1/section-27",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_27",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-1/section-28",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_28",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-1/section-29",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_29",
+          "status": "read",
+          "cards": 2,
+          "note": "이름과 출생 순서만 나오는 신들은 독립 설정 카드로 억지로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-1/section-30",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_30",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-1/section-31",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_31",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "kojiki-book-1/section-32",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_32",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "kojiki-book-1/section-33",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_33",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-34",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_34",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-35",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_35",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-36",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_36",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-1/section-37",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_37",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-38",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_38",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-39",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_39",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-40",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_40",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "kojiki-book-1/section-41",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_41",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-1/section-42",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_42",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-1/section-43",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_43",
+          "status": "read",
+          "cards": 0,
+          "note": "계보에 이름과 혈연만 전하는 인물은 독립 카드로 억지로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)",
+          "status": "read",
+          "cards": 39
+        },
+        {
+          "unit": "kojiki-book-2/section-44",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_44",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-2/section-45",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_45",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-46",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_46",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-2/section-47",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_47",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-48",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_48",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-49",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_49",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-50",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_50",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-51",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_51",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-52",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_52",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-53",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_53",
+          "status": "read",
+          "cards": 0,
+          "note": "통치자의 궁·배우자·자녀·수명과 계보가 중심이며 기존 왕통 카드와 중복되므로 이름만으로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-54",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_54",
+          "status": "read",
+          "cards": 0,
+          "note": "통치자의 궁·배우자·자녀·수명과 계보가 중심이며 기존 왕통 카드와 중복되므로 이름만으로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-55",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_55",
+          "status": "read",
+          "cards": 0,
+          "note": "통치자의 궁·배우자·자녀·수명과 계보가 중심이며 기존 왕통 카드와 중복되므로 이름만으로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-56",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_56",
+          "status": "read",
+          "cards": 0,
+          "note": "통치자의 궁·배우자·자녀·수명과 계보가 중심이며 기존 왕통 카드와 중복되므로 이름만으로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-57",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_57",
+          "status": "read",
+          "cards": 0,
+          "note": "통치자의 궁·배우자·자녀·수명과 계보가 중심이며 기존 왕통 카드와 중복되므로 이름만으로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-58",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_58",
+          "status": "read",
+          "cards": 0,
+          "note": "통치자의 궁·배우자·자녀·수명과 계보가 중심이며 기존 왕통 카드와 중복되므로 이름만으로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-59",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_59",
+          "status": "read",
+          "cards": 0,
+          "note": "통치자의 궁·배우자·자녀·수명과 계보가 중심이며 기존 왕통 카드와 중복되므로 이름만으로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-60",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_60",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-61",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_61",
+          "status": "read",
+          "cards": 0,
+          "note": "통치자의 궁·배우자·자녀·수명과 계보가 중심이며 기존 왕통 카드와 중복되므로 이름만으로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-62",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_62",
+          "status": "read",
+          "cards": 0,
+          "note": "통치자의 궁·배우자·자녀·수명과 계보가 중심이며 기존 왕통 카드와 중복되므로 이름만으로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-63",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_63",
+          "status": "read",
+          "cards": 0,
+          "note": "통치자의 궁·배우자·자녀·수명과 계보가 중심이며 기존 왕통 카드와 중복되므로 이름만으로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-64",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_64",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-65",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_65",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-66",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_66",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-2/section-67",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_67",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-68",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_68",
+          "status": "read",
+          "cards": 0,
+          "note": "수명·무덤 및 가족·씨족 계보에서 이름만 나오는 인물은 억지로 개별 카드화하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-69",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_69",
+          "status": "read",
+          "cards": 0,
+          "note": "수명·무덤 및 가족·씨족 계보에서 이름만 나오는 인물은 억지로 개별 카드화하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-70",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_70",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-71",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_71",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-72",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_72",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "kojiki-book-2/section-73",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_73",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-74",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_74",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-75",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_75",
+          "status": "read",
+          "cards": 0,
+          "note": "수명·무덤 및 가족·씨족 계보에서 이름만 나오는 인물은 억지로 개별 카드화하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-76",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_76",
+          "status": "read",
+          "cards": 0,
+          "note": "수명·무덤 및 가족·씨족 계보에서 이름만 나오는 인물은 억지로 개별 카드화하지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-77",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_77",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-78",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_78",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-79",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_79",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-80",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_80",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-81",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_81",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-82",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_82",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-83",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_83",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-84",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_84",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-85",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_85",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-86",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_86",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-87",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_87",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-88",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_88",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-89",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_89",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-90",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_90",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-91",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_91",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-92",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_92",
+          "status": "read",
+          "cards": 0,
+          "note": "이름과 혈연만 보이는 계보 인물 및 사망·장지 기록은 독립 카드를 억지로 만들지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-93",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_93",
+          "status": "read",
+          "cards": 0,
+          "note": "이름과 혈연만 보이는 계보 인물 및 사망·장지 기록은 독립 카드를 억지로 만들지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-94",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_94",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-95",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_95",
+          "status": "read",
+          "cards": 0,
+          "note": "계보의 이름 및 수명·장지만으로 별도 카드를 만들지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-96",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_96",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-97",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_97",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-98",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_98",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-99",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_99",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-100",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_100",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-101",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_101",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-102",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_102",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-103",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_103",
+          "status": "read",
+          "cards": 0,
+          "note": "계보의 이름 및 수명·장지만으로 별도 카드를 만들지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-104",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_104",
+          "status": "read",
+          "cards": 0,
+          "note": "계보의 이름 및 수명·장지만으로 별도 카드를 만들지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-105",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_105",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-106",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_106",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-107",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_107",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-108",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_108",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-109",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_109",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-110",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_110",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-2/section-111",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_111",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-112",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_112",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-113",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_113",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-2/section-114",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_114",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-115",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_115",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-2/section-116",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_116",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "kojiki-book-2/section-117",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_117",
+          "status": "read",
+          "cards": 0,
+          "note": "계보에 이름만 나오는 인물 및 수명·장지에 대해서는 별도 카드를 만들지 않음."
+        },
+        {
+          "unit": "kojiki-book-2/section-118",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_118",
+          "status": "read",
+          "cards": 0,
+          "note": "계보에 이름만 나오는 인물 및 수명·장지에 대해서는 별도 카드를 만들지 않음."
+        },
+        {
+          "unit": "kojiki-book-3",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)",
+          "status": "read",
+          "cards": 27
+        },
+        {
+          "unit": "kojiki-book-3/section-119",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_119",
+          "status": "read",
+          "cards": 0,
+          "note": "계보에서 이름만 나오는 인물과 수명·장지는 기존 왕통 카드와 겹치므로 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-120",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_120",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-121",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_121",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-122",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_122",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-3/section-123",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_123",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-124",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_124",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-125",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_125",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-126",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_126",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-3/section-127",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_127",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-128",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_128",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-129",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_129",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-130",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_130",
+          "status": "read",
+          "cards": 0,
+          "note": "계보에서 이름만 나오는 인물과 수명·장지는 기존 왕통 카드와 겹치므로 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-131",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_131",
+          "status": "read",
+          "cards": 0,
+          "note": "주로 왕통·계보·수명·장지 및 집단의 명칭 기록으로 이름만 나오는 개체는 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-132",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_132",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-133",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_133",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-134",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_134",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-135",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_135",
+          "status": "read",
+          "cards": 0,
+          "note": "주로 왕통·계보·수명·장지 및 집단의 명칭 기록으로 이름만 나오는 개체는 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-136",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_136",
+          "status": "read",
+          "cards": 0,
+          "note": "주로 왕통·계보·수명·장지 및 집단의 명칭 기록으로 이름만 나오는 개체는 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-137",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_137",
+          "status": "read",
+          "cards": 0,
+          "note": "주로 왕통·계보·수명·장지 및 집단의 명칭 기록으로 이름만 나오는 개체는 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-138",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_138",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-139",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_139",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-140",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_140",
+          "status": "read",
+          "cards": 0,
+          "note": "주로 왕통·계보·수명·장지 및 집단의 명칭 기록으로 이름만 나오는 개체는 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-141",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_141",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-142",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_142",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-143",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_143",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-144",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_144",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-145",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_145",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-146",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_146",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-147",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_147",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-148",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_148",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-149",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_149",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-150",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_150",
+          "status": "read",
+          "cards": 0,
+          "note": "주로 왕통·계보·수명·장지 및 집단의 명칭 기록으로 이름만 나오는 개체는 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-151",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_151",
+          "status": "read",
+          "cards": 0,
+          "note": "주로 왕통·계보·수명·장지 및 집단의 명칭 기록으로 이름만 나오는 개체는 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-152",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_152",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-153",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_153",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-154",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_154",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-155",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_155",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-156",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_156",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-157",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_157",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-158",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_158",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-159",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_159",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-160",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_160",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-161",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_161",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-162",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_162",
+          "status": "read",
+          "cards": 0,
+          "note": "왕통·가족 계보·궁·치세 및 장지의 기록으로 이름만 나온 인물은 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-163",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_163",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-164",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_164",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-165",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_165",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-3/section-166",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_166",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "kojiki-book-3/section-167",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_167",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-168",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_168",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-169",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_169",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "kojiki-book-3/section-170",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_170",
+          "status": "read",
+          "cards": 0,
+          "note": "왕통·가족 계보·궁·치세 및 장지의 기록으로 이름만 나온 인물은 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-171",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_171",
+          "status": "read",
+          "cards": 0,
+          "note": "왕통·가족 계보·궁·치세 및 장지의 기록으로 이름만 나온 인물은 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-172",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_172",
+          "status": "read",
+          "cards": 0,
+          "note": "왕통·가족 계보·궁·치세 및 장지의 기록으로 이름만 나온 인물은 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-173",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_173",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "kojiki-book-3/section-174",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_174",
+          "status": "read",
+          "cards": 0,
+          "note": "왕통·가족 계보·궁·치세 및 장지의 기록으로 이름만 나온 인물은 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-175",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_175",
+          "status": "read",
+          "cards": 0,
+          "note": "왕통·가족 계보·궁·치세 및 장지의 기록으로 이름만 나온 인물은 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-176",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_176",
+          "status": "read",
+          "cards": 0,
+          "note": "왕통·가족 계보·궁·치세 및 장지의 기록으로 이름만 나온 인물은 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-177",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_177",
+          "status": "read",
+          "cards": 0,
+          "note": "왕통·가족 계보·궁·치세 및 장지의 기록으로 이름만 나온 인물은 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-178",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_178",
+          "status": "read",
+          "cards": 0,
+          "note": "왕통·가족 계보·궁·치세 및 장지의 기록으로 이름만 나온 인물은 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-179",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_179",
+          "status": "read",
+          "cards": 0,
+          "note": "왕통·가족 계보·궁·치세 및 장지의 기록으로 이름만 나온 인물은 개별 카드로 추가하지 않음."
+        },
+        {
+          "unit": "kojiki-book-3/section-180",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_180",
+          "status": "read",
+          "cards": 0,
+          "note": "왕통·가족 계보·궁·치세 및 장지의 기록으로 이름만 나온 인물은 개별 카드로 추가하지 않음."
+        }
+      ],
+      "coverage_interpretation": "status=read는 원 추출 워커의 자기보고이며 이 통합 작업자는 판본 전체와 각 절을 재열람하거나 이를 독립 검증하지 않았다. 0건 단위도 원 기록 사유를 보존하며 누락 가능성이 있다."
+    },
+    {
+      "input_file": "미게시-임시자료:myth/japan-myth-nihon.json",
+      "input_sha256": "7bae3719dbbd1203f6e25ee566deca5e62f671ff9a370df9ad8cc481ed322ce6",
+      "manifest_segment": "japan-myth-nihon",
+      "input_segment_field": "nihon-shoki-selected",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "manifest_units": [
+        "nihon-shoki-selected"
+      ],
+      "scope": "《일본서기》 권1 신대상: supplementary.md에 지정된 제4단 일서 제5·제7, 제5단 본문 및 일서 제1·제5·제11의 위키문헌 전사. 기존 고사기 및 일본서기 비교 카드 82장은 변경하지 않음.",
+      "input_candidates": 7,
+      "source_worker_coverage": [
+        {
+          "unit": "일본서기 권1 신대상 제4단 일서 제5",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "status": "read",
+          "reason": "기존 할미새 카드에 이미 이 일서의 핵심이 수록되어 별도 카드를 만들지 않음.",
+          "cards": 0
+        },
+        {
+          "unit": "일본서기 권1 신대상 제4단 일서 제7",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "status": "read",
+          "reason": "기존 섬 순서 카드가 이 일서의 섬 목록을 수록함. 열거된 지명은 여기서 개별 설정 근거가 부족함.",
+          "cards": 0
+        },
+        {
+          "unit": "일본서기 권1 신대상 제5단 본문",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "status": "read",
+          "reason": "기존 태양 탄생 카드 외 본문에서 독립 대상과 다른 전승의 추방을 추가함.",
+          "cards": 5
+        },
+        {
+          "unit": "일본서기 권1 신대상 제5단 일서 제1",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "status": "read",
+          "reason": "기존 거울 탄생 카드에 이미 핵심이 수록됨.",
+          "cards": 0
+        },
+        {
+          "unit": "일본서기 권1 신대상 제5단 일서 제5",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "status": "read",
+          "reason": "기존 구마노 장례 카드에 이미 묘지와 제사 서술이 수록됨.",
+          "cards": 0
+        },
+        {
+          "unit": "일본서기 권1 신대상 제5단 일서 제11",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "status": "read",
+          "reason": "기존 보식신과 곡식 카드 외 사자와 두 논을 추가함.",
+          "cards": 2
+        }
+      ],
+      "coverage_interpretation": "status=read는 원 추출 워커의 자기보고이며 이 통합 작업자는 판본 전체와 각 절을 재열람하거나 이를 독립 검증하지 않았다. 0건 단위도 원 기록 사유를 보존하며 누락 가능성이 있다."
+    }
+  ],
+  "manifest_sha256": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e",
+  "input_file_count": 2,
+  "input_candidate_count": 121,
+  "output_candidate_count": 121,
+  "merged_candidate_count": 0,
+  "unprocessed_input_candidate_count": 0,
+  "preservation_equation": "121 = 121 개별 보존 + 0 완전 근거 보존 병합",
+  "chunks": [
+    {
+      "file": "cards-001.json",
+      "cards": 121,
+      "sha256": "b57f0a6a30d24aceee68f47c479954ed8751f6ce062de533de0ae443a757a2ed",
+      "bytes": 245575
+    }
+  ],
+  "card_types": {
+    "character": 97,
+    "location": 8,
+    "object": 15,
+    "event": 1
+  },
+  "duplicate_policy": "기존 26개 런타임의 제목 및 콜론 앞 이름, 후보 간 key·제목 및 일본 자료의 고사기 같은 절을 기계적으로 대조하고 일부 서기 관련 서사를 수동 표시했다. 같은 절은 동일성 증거가 아니다. 후보를 하나도 병합하거나 삭제하지 않았다. 표기 차이·의미상 유사성은 검색에서 놓칠 수 있으므로 전문가 수동 검토가 필요하다.",
+  "limits": [
+    "입력 추출자의 각 절 read는 자기보고다. 이 통합의 후속 표본 확인에서 지정된 네 후보에 한해 해당 온라인 판본의 절·일서를 직접 대조했으며 다른 후보·절 전체를 독립 검증하지 않았다.",
+    "고사기 입력에는 이름·계보만 나오는 대상을 생략한 unit이 있어 누락 가능성이 있으며, 전체 대상의 빠짐없는 목록이라고 주장하지 않는다.",
+    "일본서기 supplementary.md는 인용·비교 위치를 지정하지만 원문상 경계로서 비교 범위 전체는 명확하지 않다. 입력의 6개 단위는 자기보고로 보존하고 더 넓은 지정 범위 및 접근 여부는 미정이다.",
+    "해당 영어판·중문 전사와 발췌, 한국어 번역·요약의 지적 재산 재사용 조건, 지역·시기별 전승의 타당성, 원전 내용의 정확성은 미확인이다.",
+    "각 출전과 이설을 단일 정본으로 단정하지 않는다. 한국어는 비공식 추출 요약이다.",
+    "외부 원문에는 고정 리비전·원전 SHA가 입력에 제공되지 않아 미확인이다. 원본 입력 파일과 저장소 소스 파일 해시는 별도로 기록했다.",
+    "현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 이 결과는 DB에 적용된 것이 아니며 향후 적용 전 한도 확인이 필요하다.",
+    "일부 짧은 발췌가 후보 본문의 모든 진술을 뒷받침하는지는 미확인이다. 네 표본에는 해당 판본을 직접 읽고 근거를 추가했고, 일본서기 스사노오 추방 등 다른 후보도 사실별 대조가 필요하다."
+  ],
+  "source_file_sha256": {
+    "미게시-임시자료:myth/manifest.json": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e",
+    "미게시-임시자료:myth/japan-myth-kojiki.json": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+    "미게시-임시자료:myth/japan-myth-nihon.json": "7bae3719dbbd1203f6e25ee566deca5e62f671ff9a370df9ad8cc481ed322ce6",
+    "backend/content-service/src/main/resources/genre-templates.json": "bc3cbacd8e7806d673793963386a63c6b7d61f0ec280ce56c22fd74d33003340",
+    "backend/content-service/src/main/resources/genre-templates-v1.json": "96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85",
+    "backend/content-service/src/main/resources/genre-templates-v2.json": "4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517",
+    "infrastructure/sample-data/genre-templates/japanese_mythology/source/tradition-cards.json": "4384c7ea77d36f422fa75ee14b65bf5e81e9042e7b3f3387eeaad8088e3274ff",
+    "infrastructure/sample-data/genre-templates/japanese_mythology/source/template.json": "613a3f429209b6f9ae73b68854b34ba9a29a1fd508a62a353a5fa9c42054ed35",
+    "infrastructure/sample-data/genre-templates/japanese_mythology/source/sources.md": "c1bd68ff369eeb1c501cda67aa223023784c07961e107a57c51d06d161c4abab",
+    "infrastructure/sample-data/genre-templates/japanese_mythology/source/supplementary.md": "41e8ca955765abd8323fc05fbd996c61491c25539c80ab441f85b2a2d4ebbe7b"
+  },
+  "original_source_snapshot_note": "source_file_sha256은 로컬 파일의 작업 전 SHA-256이며 외부 원문 고정 해시가 아니다.",
+  "existing_card_counts": {
+    "runtime_worlds": 26,
+    "runtime_cards": 1254,
+    "myth_tradition_cards": 868,
+    "japanese_runtime": 82
+  },
+  "baseline_repository_head": "3ec049e5f00dfc6b07c9b840631b159b5b68bd54",
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "evidence_revision": {
+    "reason": "독립 표본에서 네 카드의 기존 발췌가 본문 전체 주장에 불충분하다고 확인되어 해당 판본에서 직접 읽은 200자 이하의 발췌를 추가했다. 입력 파일의 근거는 변경하지 않고 후보의 기존 body·ID와 다른 후보를 보존했다.",
+    "checked_candidates": [
+      "c2247f22-dc18-5172-a499-03a360e35f41",
+      "8b9e1a4b-04d6-5b6c-8394-cf42307a9d11",
+      "243d0c67-55ea-567c-be65-414052ea99a0",
+      "af430737-9a77-5bc2-a0ef-a86e9fa9d3f6"
+    ],
+    "edition_scope": "고사기 체임벌린 1882년 영어판 Wikisource 전사 제16·17·22절, 일본서기 권1 신대상 제5단 일서 제11 중문 Wikisource 전사. 외부 전사의 고정 리비전은 확인하지 못함.",
+    "input_difference": "각 카드의 evidence에 원문 발췌를 추가했고 필요한 불확실성을 provenance에 표시했다. 입력 후보 파일 SHA 및 원래 evidence는 그대로 보존한다.",
+    "before_cards_sha256": "a065028e36359beb9e567267facf3c4ae3a274c1a8184cbf38e9e003ddac52c0",
+    "after_cards_sha256": "82838e451ec16fc92a1fe330b77a5f1699ab5197c9ce5108e23033fa3bcce877",
+    "after_cards_bytes": 240705
+  },
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

@@ -8,10 +8,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL", matches=".+")
 class InitialWorldStoragePostgresTest {
-    @Test void sequentialV1ThroughV7PreservesExistingWorldCardAndAnalysis() throws Exception {
+    @Test void sequentialV1ThroughV12ThenV14ToV16PreservesExistingWorldCardAndAnalysis() throws Exception {
         try(var db=new WorldStudioPostgresFixture("independent")) {
-            String world=id(), card=id(), analysis=id();
-            for(int version=1;version<=7;version++) {
+            String world=id(), card=id(), analysis=id(), candidate=id(), decision=id();
+            // V13은 결번이다(원고 기반 최초 구축은 V15로 재번호했다). DEC-56의 V14가 V12 바로 다음에, V15가 그 뒤에, 발행 회차 업데이트 작업 종류(kind·basis)인 V16이 마지막에 적용된다.
+            for(int version : new int[]{1,2,3,4,5,6,7,8,9,10,11,12,14,15,16}) {
                 var flyway=org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration())
                     .target(Integer.toString(version)).load();
                 assertEquals(1,flyway.migrate().migrationsExecuted);
@@ -34,7 +35,9 @@ class InitialWorldStoragePostgresTest {
                         assertEquals(List.of("private||"),rows(c,"SELECT visibility||'|'||coalesce(genre,'')||'|'||coalesce(published_at::text,'') FROM worldstudio.world WHERE id='"+world+"'"));
                         c.setAutoCommit(false);
                         rejects(c,"23514","UPDATE worldstudio.world SET visibility='friends' WHERE id='"+world+"'");
-                        rejects(c,"23514","UPDATE worldstudio.world SET genre='romcom' WHERE id='"+world+"'");
+                        // V14가 장르 CHECK를 지운다(DEC-56). 그 뒤 장르 코드는 서비스가 genre 표로 확인하므로 DB는 값을 막지 않는다.
+                        if(version<14) rejects(c,"23514","UPDATE worldstudio.world SET genre='romcom' WHERE id='"+world+"'");
+                        else sql(c,"UPDATE worldstudio.world SET genre='genre-99' WHERE id='"+world+"'");
                         rejects(c,"23514","UPDATE worldstudio.world SET visibility='public' WHERE id='"+world+"'");
                         rejects(c,"23514","UPDATE worldstudio.world SET published_at=now() WHERE id='"+world+"'");
                         sql(c,"UPDATE worldstudio.world SET visibility='public',genre='sf',published_at=now() WHERE id='"+world+"'");
@@ -49,6 +52,45 @@ class InitialWorldStoragePostgresTest {
                         rejects(c,"23514","UPDATE worldstudio.world SET cover_object_key='world-covers/a',cover_content_type='image/gif' WHERE id='"+world+"'");
                         sql(c,"UPDATE worldstudio.world SET cover_object_key='world-covers/a',cover_content_type='image/webp' WHERE id='"+world+"'");
                         c.rollback();
+                    }
+                    if(version>=8) {
+                        // 카드 이미지 표는 비어 있고, 이 세계관에 매인 행만 받으며 형식은 PNG·JPEG·WebP뿐이고 객체 키는 하나에 한 행이다.
+                        assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM worldstudio.setting_card_image"));
+                        String image=id();
+                        String insert="INSERT INTO worldstudio.setting_card_image(id,world_id,object_key,content_type) VALUES ('";
+                        c.setAutoCommit(false);
+                        rejects(c,"23503",insert+image+"','"+id()+"','world-card-images/"+image+"','image/png')");
+                        rejects(c,"23514",insert+image+"','"+world+"','world-card-images/"+image+"','image/gif')");
+                        sql(c,insert+image+"','"+world+"','world-card-images/"+image+"','image/webp')");
+                        rejects(c,"23505",insert+id()+"','"+world+"','world-card-images/"+image+"','image/png')");
+                        c.rollback();
+                    }
+                    if(version>=9) {
+                        // 기존 세계관은 지운 표시 없이 남고, 표시만 하면 되며 다른 데이터는 그대로다(소프트 삭제).
+                        assertEquals(List.of("1"),rows(c,"SELECT count(*) FROM worldstudio.world WHERE id='"+world+"' AND deleted_at IS NULL"));
+                        c.setAutoCommit(false);
+                        sql(c,"UPDATE worldstudio.world SET deleted_at=now() WHERE id='"+world+"'");
+                        assertEquals(List.of("1"),rows(c,"SELECT count(*) FROM worldstudio.setting_card_draft WHERE world_id='"+world+"'"));
+                        c.rollback();
+                    }
+                    if(version==12) {
+                        // 검토 결과 표는 비어 있고, 이 세계관에 매인 행 하나만 받는다(세계관마다 하나).
+                        assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM worldstudio.world_review_result"));
+                        String insert="INSERT INTO worldstudio.world_review_result(world_id,result,reviewed_at) VALUES ('";
+                        c.setAutoCommit(false);
+                        rejects(c,"23503",insert+id()+"','{}',now())");
+                        sql(c,insert+world+"','{\"findings\":[]}',now())");
+                        rejects(c,"23505",insert+world+"','{}',now())");
+                        c.rollback();
+                        c.setAutoCommit(true);
+                        sql(c,"INSERT INTO worldstudio.world_review_result(world_id,result,reviewed_at) VALUES ('"+world+"','{\"findings\":[]}',now())");
+                        String ai="{\"type\":\"fact\",\"provenance\":\"ai_extraction\",\"evidence\":[{\"sourceId\":\"test\"}]}";
+                        sql(c,"INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) VALUES ('"+candidate+"','"+world+"','"+analysis+"','v12-review','"+ai+"')");
+                        sql(c,"INSERT INTO worldstudio.initial_decision(id,world_id,analysis_id,candidate_id,sequence,action,state,actor_id,content) VALUES ('"+decision+"','"+world+"','"+analysis+"','"+candidate+"',1,'approve','approved','"+id()+"','"+ai+"')");
+                    }
+                    if(version>=15) {
+                        assertEquals(List.of("[]"),rows(c,"SELECT result->>'findings' FROM worldstudio.world_review_result WHERE world_id='"+world+"'"));
+                        assertEquals(List.of("approve|approved|1"),rows(c,"SELECT action||'|'||state||'|'||sequence FROM worldstudio.initial_decision WHERE id='"+decision+"' AND candidate_id='"+candidate+"' AND analysis_id='"+analysis+"' AND world_id='"+world+"'"));
                     }
                 }
             }
@@ -65,7 +107,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+id()+"'),('"+other+"','"+id()+"')");
                 sql(c,"INSERT INTO worldstudio.world_draft(world_id,name,description) VALUES ('"+w+"','홍길동전','원문 보존')");
             }
-            assertEquals(5,db.studio().migrate().migrationsExecuted);
+            assertEquals(13,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             assertEquals(0,db.studio().migrate().migrationsExecuted);
             try(var c=db.connect()) {
@@ -127,13 +169,35 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) VALUES ('"+candidate+"','"+w+"','"+a+"','old','"+content+"')");
                 sql(c,"INSERT INTO worldstudio.initial_decision(id,world_id,analysis_id,candidate_id,sequence,action,state,actor_id,content) VALUES ('"+decision+"','"+w+"','"+a+"','"+candidate+"',1,'approve','approved','"+id()+"','"+content+"')");
             }
-            assertEquals(3,db.studio().migrate().migrationsExecuted);
+            assertEquals(11,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             try(var c=db.connect()) {
                 assertEquals(List.of(decision),rows(c,"SELECT id FROM worldstudio.initial_decision WHERE request_key IS NULL AND request_hash IS NULL AND comment IS NULL AND sequence=1 AND state='approved'"));
                 c.setAutoCommit(false);
                 rejects(c,"23514","UPDATE worldstudio.initial_decision SET comment='invented'");
                 rejects(c,"23514","DELETE FROM worldstudio.initial_decision");
+            }
+        }
+    }
+
+    /** DEC-56: V14가 장르 CHECK를 지우고 옛 영문 코드 일곱 개를 Content 장르 코드로 바꾼다. 그 밖의 값(장르 없음)은 건드리지 않는다. */
+    @Test void upgradeV14ConvertsLegacyGenreCodesAndDropsTheCheck() throws Exception {
+        try(var db=new WorldStudioPostgresFixture("independent")) {
+            org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration()).target("12").load().migrate();
+            String none=id();
+            try(var c=db.connect()) {
+                for(String legacy : new String[]{"fantasy","wuxia","romance","modern","sf","mystery","classic"})
+                    sql(c,"INSERT INTO worldstudio.world(id,owner_subject,genre) VALUES ('"+id()+"','"+id()+"','"+legacy+"')");
+                sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+none+"','"+id()+"')");
+            }
+            assertEquals(3,db.studio().migrate().migrationsExecuted); // V14와 그 뒤의 V15·V16
+            db.studio().validate();
+            assertEquals(0,db.studio().migrate().migrationsExecuted);
+            try(var c=db.connect()) {
+                assertEquals(List.of("genre-01","genre-03","genre-06","genre-10","genre-14","genre-18","genre-28"),
+                    rows(c,"SELECT genre FROM worldstudio.world WHERE genre IS NOT NULL ORDER BY genre"));
+                assertEquals(List.of(""),rows(c,"SELECT coalesce(genre,'') FROM worldstudio.world WHERE id='"+none+"'"));
+                sql(c,"UPDATE worldstudio.world SET genre='genre-31' WHERE id='"+none+"'");
             }
         }
     }

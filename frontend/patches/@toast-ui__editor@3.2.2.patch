@@ -1,0 +1,40 @@
+diff --git a/dist/esm/index.js b/dist/esm/index.js
+index d966ba81c2e5d17b395a3d0d1e0bca88537274ed..cf55c5e9f1ab66c16d9a8ab69744ba0f7b3ee6b0 100644
+--- a/dist/esm/index.js
++++ b/dist/esm/index.js
+@@ -25427,6 +25427,7 @@ var Toolbar = /** @class */ (function (_super) {
+         var _this = this;
+         var eventEmitter = this.props.eventEmitter;
+         this.handleResize = throttle_1(function () {
++            if (_this.isDestroyed) { return; }
+             // reset toolbar items to re-layout toolbar items with each clientWidth
+             _this.setState({ items: _this.initialItems, dropdownItems: [] });
+             _this.setState(_this.classifyToolbarItems());
+@@ -25525,6 +25526,7 @@ var Toolbar = /** @class */ (function (_super) {
+         }
+     };
+     Toolbar.prototype.beforeDestroy = function () {
++        this.isDestroyed = true;
+         window.removeEventListener('resize', this.handleResize);
+         this.resizeObserver.disconnect();
+         removeNode$1(this.tooltipRef.current);
+diff --git a/dist/toastui-editor.js b/dist/toastui-editor.js
+index dd572b1daead0aa3742426b40d631f66629ce064..8d46ae12f80d7ad38ae47a5c9915aa6a5b1f5bdc 100644
+--- a/dist/toastui-editor.js
++++ b/dist/toastui-editor.js
+@@ -27057,6 +27057,7 @@ var Toolbar = /** @class */ (function (_super) {
+         var _this = this;
+         var eventEmitter = this.props.eventEmitter;
+         this.handleResize = throttle_default()(function () {
++            if (_this.isDestroyed) { return; }
+             // reset toolbar items to re-layout toolbar items with each clientWidth
+             _this.setState({ items: _this.initialItems, dropdownItems: [] });
+             _this.setState(_this.classifyToolbarItems());
+@@ -27155,6 +27156,7 @@ var Toolbar = /** @class */ (function (_super) {
+         }
+     };
+     Toolbar.prototype.beforeDestroy = function () {
++        this.isDestroyed = true;
+         window.removeEventListener('resize', this.handleResize);
+         this.resizeObserver.disconnect();
+         removeNode(this.tooltipRef.current);

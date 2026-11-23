@@ -36,11 +36,11 @@ READ = {
     'worldId': WORLD, 'draftRevision': 4, 'name': '달빛 세계', 'description': '', 'relationshipStatus': 'current',
     'cards': [
         card(KAEL, '카엘', 'KAEL-IDENTITY 북문을 지키는 기사', docs={
-            'soul': 'KAEL-SOUL 말이 짧고 퉁명스러운 반말', 'memory': 'KAEL-MEMORY 왕가에 맹세했다',
+            'soul': 'KAEL-SOUL 말이 짧고 퉁명스러운 반말', 'goal': 'KAEL-GOAL 왕가를 지킨다',
             'episodes': {'2': 'KAEL-EP2 리나를 처음 만났다', '5': 'KAEL-EP5-FUTURE 왕이 죽는다'}}),
         card(LINA, '리나', 'LINA-IDENTITY 떠돌이 약초상', docs={
-            'soul': 'LINA-SOUL 존댓말을 쓰는 상냥한 말투', 'memory': 'LINA-MEMORY-SECRET 사실은 왕국의 첩자다',
-            'episodes': {'3': 'LINA-EP3 성문을 살폈다'}}),
+            'soul': 'LINA-SOUL 존댓말을 쓰는 상냥한 말투', 'goal': 'LINA-GOAL 약초를 팔며 먼 길을 간다',
+            'episodes': {'0': 'LINA-EP0-SECRET 사실은 왕국의 첩자다', '3': 'LINA-EP3 성문을 살폈다'}}),  # 이야기 시작 전부터 아는 비밀은 00회차
         card(GATE, '북문', 'GATE-LORE 북쪽 성문', cardType='location', reveal=3),  # 기준 회차(3)에 공개되는 카드
         card(SHADOW, '그림자 길드', 'SHADOW-GUILD 아직 공개되지 않은 조직', cardType='organization', reveal=5),
         card('00000000-0000-0000-0000-0000000000ff', '지워진 인물', 'REMOVED-CARD', lifecycle='removed'),
@@ -59,14 +59,23 @@ PLAN_FLOW = SimulationPlan(mode='flow', characterIds=[KAEL, LINA], beats=[
     'B0-NOW 카엘이 성문에서 리나를 막아선다', 'B1-FUTURE 리나가 정체를 숨기며 통행을 청한다'])
 
 
-def fake_content(monkeypatch, worlds=None, read=READ):
+# Fork가 이어받는 원작 세계관(work_inherited_world 응답)이 없는 기본값과, 이어받은 값. 이어받은 카드는 공개 카드뿐이고
+# 인물 문서(SOUL·GOAL·회차 기억)는 작가용이라 없다.
+NO_INHERITED = {'workId': 'work', 'worldId': None, 'upto': 0, 'cards': [], 'relationships': [], 'relationshipStatus': 'current', 'relationshipVersion': 0}
+INHERITED = {**NO_INHERITED, 'worldId': WORLD, 'upto': EPISODE, 'relationshipVersion': 7, 'cards': [
+    {**card(KAEL, '카엘', 'KAEL-IDENTITY 북문을 지키는 기사', reveal=1), 'visibility': 'public'},
+    {**card(LINA, '리나', 'LINA-IDENTITY 떠돌이 약초상', reveal=2), 'visibility': 'public'}],
+    'relationships': [relation(REL, KAEL, LINA, '경계', '')]}
+
+
+def fake_content(monkeypatch, worlds=None, read=READ, inherited=NO_INHERITED):
     """Content MCP 대역. 호출 기록 [(도구, 인자)]를 돌려준다."""
     calls = []
     linked = [{'worldId': WORLD, 'name': '달빛 세계', 'linkedWorkId': 'work'}] if worlds is None else worlds
 
     def call(tool, arguments):
         calls.append((tool, arguments))
-        return {'world_studio_list': linked, 'world_studio_read': read}[tool]
+        return {'world_studio_list': linked, 'world_studio_read': read, 'work_inherited_world': inherited}[tool]
 
     monkeypatch.setattr(service.content_mcp, 'call', call)
     return calls
@@ -90,11 +99,12 @@ def fake_novelbrain(monkeypatch, items=None):
 
 
 def action(prose='카엘이 낮게 말했다. "멈춰."', observed='카엘이 북문 앞에서 리나를 막아섰다.', refuses=False, reason=None):
-    return Action(prose=prose, observed=observed, refusesBeat=refuses, refusalReason=reason)
+    # model_construct: 빈 값도 만든다(스키마 pattern을 지키지 않는 응답에 대한 서비스의 방어 확인용)
+    return Action.model_construct(prose=prose, observed=observed, refusesBeat=refuses, refusalReason=reason)
 
 
 def narration(prose='성문 위로 밤비가 내렸다.', observed='밤비가 성문 앞에 내리고 있다.'):
-    return Narration(prose=prose, observed=observed)
+    return Narration.model_construct(prose=prose, observed=observed)
 
 
 def verdict(payload, fail=(), refs=(), detail='판정 설명', beat_done=False, scene_complete=False):

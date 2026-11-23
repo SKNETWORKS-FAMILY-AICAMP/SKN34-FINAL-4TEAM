@@ -1,0 +1,482 @@
+[
+  {
+    "id": "b1fc2f99-fe76-56b5-8824-4cc74b5c7921",
+    "title": "마리야 공주",
+    "body": "이반의 첫째 누이로 맑은 눈의 매가 젊은이로 변해 청혼하자 혼인에 동의하고 그의 왕국으로 간다. 아내를 찾아온 이반을 맞아 안부를 나눈다. 기존 세 누이 묶음 카드와 중복 검토가 필요하다. 출전: https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_192 (「마리야 모레브나」).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "slavic-mythology",
+      "candidate_key": "marya-tsarevna",
+      "input_path": "미게시-임시자료:myth/slavic-mythology.json",
+      "input_sha256": "931848c7ed37abf194f62813c078abb83cf8e124d9f43be169accb8914697716",
+      "edition": "A. N. Afanas’ev 수집, Leonard A. Magnus 영어 번역 Russian Folk-Tales, 「Márya Moryévna」",
+      "scope": "pp. 192–203; 작품 단위의 전승이며 범슬라브 단일 정본이 아님",
+      "evidence": [
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_192",
+          "location": "「마리야 모레브나」 p. 192, 첫 번째 청혼과 혼인",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_195",
+          "location": "「마리야 모레브나」 p. 195, 매의 궁전에서 재회",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_retained",
+      "existing_cards": [
+        {
+          "source_key": "sisters",
+          "title": "마리야·올가·안나 공주",
+          "runtime_id": "0754ee3e-e8b4-5cb1-81c0-395960438ae9",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "first-suitor-marriages",
+          "title": "부모의 당부와 세 누이의 혼인",
+          "runtime_id": "3d8428d9-f907-5cff-8879-bb9f3c114c21",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "hawk",
+          "title": "매",
+          "runtime_id": "40dd4747-3131-544e-8432-592b6834680b",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        }
+      ],
+      "candidate_keys": []
+    }
+  },
+  {
+    "id": "5d80bc3b-9ae8-59d1-a652-0919779608bd",
+    "title": "올가 공주",
+    "body": "이반의 둘째 누이다. 독수리가 젊은이로 변하여 청혼하자 혼인에 동의하고 그의 왕국으로 간다. 나중에 아내를 찾는 이반을 궁전에서 맞이한다. 기존 세 누이 묶음 카드와 중복 검토가 필요하다. 출전: https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_193 (「마리야 모레브나」).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "slavic-mythology",
+      "candidate_key": "olga-tsarevna",
+      "input_path": "미게시-임시자료:myth/slavic-mythology.json",
+      "input_sha256": "931848c7ed37abf194f62813c078abb83cf8e124d9f43be169accb8914697716",
+      "edition": "A. N. Afanas’ev 수집, Leonard A. Magnus 영어 번역 Russian Folk-Tales, 「Márya Moryévna」",
+      "scope": "pp. 192–203; 작품 단위의 전승이며 범슬라브 단일 정본이 아님",
+      "evidence": [
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_193",
+          "location": "「마리야 모레브나」 p. 193, 두 번째 청혼과 혼인",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_195",
+          "location": "「마리야 모레브나」 p. 195, 독수리의 궁전에서 재회",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_retained",
+      "existing_cards": [
+        {
+          "source_key": "sisters",
+          "title": "마리야·올가·안나 공주",
+          "runtime_id": "0754ee3e-e8b4-5cb1-81c0-395960438ae9",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "first-suitor-marriages",
+          "title": "부모의 당부와 세 누이의 혼인",
+          "runtime_id": "3d8428d9-f907-5cff-8879-bb9f3c114c21",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "eagle",
+          "title": "독수리",
+          "runtime_id": "b1d71ca6-5110-53e9-abca-51c1902fbf46",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        }
+      ],
+      "candidate_keys": []
+    }
+  },
+  {
+    "id": "ad23479f-4af3-52b4-a292-4c9d0106f178",
+    "title": "안나 공주",
+    "body": "이반의 막내 누이다. 까마귀가 사람으로 변해 청혼하고 이반은 누이의 뜻을 막지 않겠다고 말한다. 안나는 까마귀와 그의 왕국으로 떠나며 나중에 찾아온 이반을 환영한다. 기존 세 누이 묶음 카드와 중복 검토가 필요하다. 출전: https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_193 (「마리야 모레브나」).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "slavic-mythology",
+      "candidate_key": "anna-tsarevna",
+      "input_path": "미게시-임시자료:myth/slavic-mythology.json",
+      "input_sha256": "931848c7ed37abf194f62813c078abb83cf8e124d9f43be169accb8914697716",
+      "edition": "A. N. Afanas’ev 수집, Leonard A. Magnus 영어 번역 Russian Folk-Tales, 「Márya Moryévna」",
+      "scope": "pp. 192–203; 작품 단위의 전승이며 범슬라브 단일 정본이 아님",
+      "evidence": [
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_193",
+          "location": "「마리야 모레브나」 p. 193, 세 번째 청혼",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_196",
+          "location": "「마리야 모레브나」 p. 196, 까마귀의 궁전에서 재회",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_retained",
+      "existing_cards": [
+        {
+          "source_key": "sisters",
+          "title": "마리야·올가·안나 공주",
+          "runtime_id": "0754ee3e-e8b4-5cb1-81c0-395960438ae9",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "first-suitor-marriages",
+          "title": "부모의 당부와 세 누이의 혼인",
+          "runtime_id": "3d8428d9-f907-5cff-8879-bb9f3c114c21",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "crow",
+          "title": "까마귀",
+          "runtime_id": "da6d1ab4-d663-52ac-a670-7c73946ef161",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        }
+      ],
+      "candidate_keys": []
+    }
+  },
+  {
+    "id": "320bf1f2-4b2f-5381-99ca-a1387d699e70",
+    "title": "매의 궁전",
+    "body": "마리야 공주와 매가 이반을 맞는 궁전이다. 앞의 참나무에 매가 앉아 있다가 내려와 사람으로 변하며, 이반은 사흘 머문 뒤 은숟가락을 남긴다. 기존 마리야 공주와 매·은붙이 카드에 관련 내용이 있으므로 중복 검토가 필요하다. 출전: https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_195 (「마리야 모레브나」).",
+    "cardType": "location",
+    "provenance": {
+      "segment": "slavic-mythology",
+      "candidate_key": "hawk-palace",
+      "input_path": "미게시-임시자료:myth/slavic-mythology.json",
+      "input_sha256": "931848c7ed37abf194f62813c078abb83cf8e124d9f43be169accb8914697716",
+      "edition": "A. N. Afanas’ev 수집, Leonard A. Magnus 영어 번역 Russian Folk-Tales, 「Márya Moryévna」",
+      "scope": "pp. 192–203; 작품 단위의 전승이며 범슬라브 단일 정본이 아님",
+      "evidence": [
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_195",
+          "location": "「마리야 모레브나」 p. 195, 이반의 첫 번째 방문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_195",
+          "location": "「마리야 모레브나」 p. 195, 방문 뒤의 기념물",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_retained",
+      "existing_cards": [
+        {
+          "source_key": "hawk",
+          "title": "매",
+          "runtime_id": "40dd4747-3131-544e-8432-592b6834680b",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "sisters",
+          "title": "마리야·올가·안나 공주",
+          "runtime_id": "0754ee3e-e8b4-5cb1-81c0-395960438ae9",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "silver-tokens",
+          "title": "이반이 남긴 세 은붙이",
+          "runtime_id": "ab58e6fb-ffcd-572d-9ac7-808c2bb27842",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        }
+      ],
+      "candidate_keys": []
+    }
+  },
+  {
+    "id": "63c41934-127b-538b-9889-0788c19ba270",
+    "title": "독수리의 궁전",
+    "body": "올가 공주와 독수리가 이반을 맞는 궁전이다. 첫 번째 궁전보다 아름답고 앞 참나무에 독수리가 앉아 있다. 이반은 사흘을 머문 뒤 은포크를 남긴다. 기존 독수리·은붙이 카드와 중복 검토가 필요하다. 출전: https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_195 (「마리야 모레브나」).",
+    "cardType": "location",
+    "provenance": {
+      "segment": "slavic-mythology",
+      "candidate_key": "eagle-palace",
+      "input_path": "미게시-임시자료:myth/slavic-mythology.json",
+      "input_sha256": "931848c7ed37abf194f62813c078abb83cf8e124d9f43be169accb8914697716",
+      "edition": "A. N. Afanas’ev 수집, Leonard A. Magnus 영어 번역 Russian Folk-Tales, 「Márya Moryévna」",
+      "scope": "pp. 192–203; 작품 단위의 전승이며 범슬라브 단일 정본이 아님",
+      "evidence": [
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_195",
+          "location": "「마리야 모레브나」 p. 195, 이반의 두 번째 방문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_195",
+          "location": "「마리야 모레브나」 p. 195, 궁전 앞 참나무",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_196",
+          "location": "「마리야 모레브나」 p. 196, 방문 뒤의 기념물",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_retained",
+      "existing_cards": [
+        {
+          "source_key": "eagle",
+          "title": "독수리",
+          "runtime_id": "b1d71ca6-5110-53e9-abca-51c1902fbf46",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "sisters",
+          "title": "마리야·올가·안나 공주",
+          "runtime_id": "0754ee3e-e8b4-5cb1-81c0-395960438ae9",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "silver-tokens",
+          "title": "이반이 남긴 세 은붙이",
+          "runtime_id": "ab58e6fb-ffcd-572d-9ac7-808c2bb27842",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        }
+      ],
+      "candidate_keys": []
+    }
+  },
+  {
+    "id": "ec4e7ace-037d-55bd-aa8b-c4c6180fa06b",
+    "title": "까마귀의 궁전",
+    "body": "안나 공주와 까마귀가 이반을 맞는 궁전이다. 앞선 두 궁전보다 아름답고 앞 참나무에 까마귀가 앉아 있다. 이반은 사흘을 머문 뒤 은코담뱃갑을 남긴다. 기존 까마귀·은붙이 카드와 중복 검토가 필요하다. 출전: https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_196 (「마리야 모레브나」).",
+    "cardType": "location",
+    "provenance": {
+      "segment": "slavic-mythology",
+      "candidate_key": "crow-palace",
+      "input_path": "미게시-임시자료:myth/slavic-mythology.json",
+      "input_sha256": "931848c7ed37abf194f62813c078abb83cf8e124d9f43be169accb8914697716",
+      "edition": "A. N. Afanas’ev 수집, Leonard A. Magnus 영어 번역 Russian Folk-Tales, 「Márya Moryévna」",
+      "scope": "pp. 192–203; 작품 단위의 전승이며 범슬라브 단일 정본이 아님",
+      "evidence": [
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_196",
+          "location": "「마리야 모레브나」 p. 196, 이반의 세 번째 방문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_196",
+          "location": "「마리야 모레브나」 p. 196, 궁전 앞 참나무",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_196",
+          "location": "「마리야 모레브나」 p. 196, 방문 뒤의 기념물",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_retained",
+      "existing_cards": [
+        {
+          "source_key": "crow",
+          "title": "까마귀",
+          "runtime_id": "da6d1ab4-d663-52ac-a670-7c73946ef161",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "sisters",
+          "title": "마리야·올가·안나 공주",
+          "runtime_id": "0754ee3e-e8b4-5cb1-81c0-395960438ae9",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "silver-tokens",
+          "title": "이반이 남긴 세 은붙이",
+          "runtime_id": "ab58e6fb-ffcd-572d-9ac7-808c2bb27842",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        }
+      ],
+      "candidate_keys": []
+    }
+  },
+  {
+    "id": "083ea588-6b5a-5580-aa14-3ac59ba68294",
+    "title": "무너진 대군의 들판",
+    "body": "누이들을 찾아 나선 이반이 패배한 대군을 발견한 들판이다. 유일하게 응답한 생존자가 마리야 모레브나가 군대를 물리쳤다고 알려 주며, 이반은 더 나아가 그녀의 흰 천막을 만난다. 기존 마리야 모레브나와 흰 천막 카드에 관련 내용이 있으므로 중복 검토가 필요하다. 출전: https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_193 (「마리야 모레브나」).",
+    "cardType": "location",
+    "provenance": {
+      "segment": "slavic-mythology",
+      "candidate_key": "defeated-host-field",
+      "input_path": "미게시-임시자료:myth/slavic-mythology.json",
+      "input_sha256": "931848c7ed37abf194f62813c078abb83cf8e124d9f43be169accb8914697716",
+      "edition": "A. N. Afanas’ev 수집, Leonard A. Magnus 영어 번역 Russian Folk-Tales, 「Márya Moryévna」",
+      "scope": "pp. 192–203; 작품 단위의 전승이며 범슬라브 단일 정본이 아님",
+      "evidence": [
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_193",
+          "location": "「마리야 모레브나」 p. 193, 쓰러진 군대",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_194",
+          "location": "「마리야 모레브나」 p. 194, 생존자의 증언",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_retained",
+      "existing_cards": [
+        {
+          "source_key": "marya-moryevna",
+          "title": "마리야 모레브나",
+          "runtime_id": "b1560bcf-9828-5553-93c2-1b07fbde959a",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "marya-domain",
+          "title": "마리야의 흰 천막과 왕국",
+          "runtime_id": "71638e3b-98d8-5ffd-b2a3-3497f7348bd6",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        }
+      ],
+      "candidate_keys": []
+    }
+  },
+  {
+    "id": "2473db59-d159-5079-bb47-2887a98b33e4",
+    "title": "코셰이의 집",
+    "body": "코셰이가 사냥에서 돌아오며 말을 통해 마리야의 탈출을 알게 되는 거처다. 이반은 이곳에서 코셰이가 집을 비운 사이 마리야와 도망치려 한다. 이름이나 지리적 위치는 본문에서 특정되지 않으며, 기존 탈출 사건 카드와 중복 검토가 필요하다. 출전: https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_197 (「마리야 모레브나」).",
+    "cardType": "location",
+    "provenance": {
+      "segment": "slavic-mythology",
+      "candidate_key": "koshchei-house",
+      "input_path": "미게시-임시자료:myth/slavic-mythology.json",
+      "input_sha256": "931848c7ed37abf194f62813c078abb83cf8e124d9f43be169accb8914697716",
+      "edition": "A. N. Afanas’ev 수집, Leonard A. Magnus 영어 번역 Russian Folk-Tales, 「Márya Moryévna」",
+      "scope": "pp. 192–203; 작품 단위의 전승이며 범슬라브 단일 정본이 아님",
+      "evidence": [
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_197",
+          "location": "「마리야 모레브나」 p. 197, 첫 번째 추격 전",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_197",
+          "location": "「마리야 모레브나」 p. 197, 두 번째 탈출 전",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_retained",
+      "existing_cards": [
+        {
+          "source_key": "koshchei",
+          "title": "불사의 코셰이",
+          "runtime_id": "5b83a81e-33f1-5026-b99d-d60a9efc5e43",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "failed-escapes",
+          "title": "세 번의 탈출과 이반의 죽음",
+          "runtime_id": "172a245e-204f-585c-a6de-f1739ebba5d9",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        }
+      ],
+      "candidate_keys": []
+    }
+  },
+  {
+    "id": "fff43638-1a1f-50b1-b3ac-93bdb1f32cb5",
+    "title": "금지된 창고와 코셰이의 탈출",
+    "body": "전쟁에 나선 마리야가 열지 말라고 한 창고에 이반이 들어가 매달린 코셰이에게 물을 세 차례 준다. 힘을 되찾은 코셰이는 열두 사슬을 끊고 달아나 길 위의 마리야를 붙잡아 간다. 기존 이반·코셰이·창고 카드와 중복 검토가 필요하다. 출전: https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_194 (「마리야 모레브나」).",
+    "cardType": "event",
+    "provenance": {
+      "segment": "slavic-mythology",
+      "candidate_key": "koshchei-release",
+      "input_path": "미게시-임시자료:myth/slavic-mythology.json",
+      "input_sha256": "931848c7ed37abf194f62813c078abb83cf8e124d9f43be169accb8914697716",
+      "edition": "A. N. Afanas’ev 수집, Leonard A. Magnus 영어 번역 Russian Folk-Tales, 「Márya Moryévna」",
+      "scope": "pp. 192–203; 작품 단위의 전승이며 범슬라브 단일 정본이 아님",
+      "evidence": [
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_194",
+          "location": "「마리야 모레브나」 p. 194, 창고의 금기",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_194",
+          "location": "「마리야 모레브나」 p. 194, 물과 사슬",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "main-text",
+          "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_195",
+          "location": "「마리야 모레브나」 p. 195, 마리야 납치",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_retained",
+      "existing_cards": [
+        {
+          "source_key": "ivan",
+          "title": "이반 왕자",
+          "runtime_id": "f522ce1e-81fd-5d8e-b397-b26cbd5206fa",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "koshchei",
+          "title": "불사의 코셰이",
+          "runtime_id": "5b83a81e-33f1-5026-b99d-d60a9efc5e43",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "locked-storeroom",
+          "title": "열어서는 안 되는 창고",
+          "runtime_id": "85efb72e-a7a6-5b57-abfc-cded31b98536",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        },
+        {
+          "source_key": "marya-moryevna",
+          "title": "마리야 모레브나",
+          "runtime_id": "b1560bcf-9828-5553-93c2-1b07fbde959a",
+          "relationship": "내용·대상 일부 겹침; 동일 카드인지 수동 검토"
+        }
+      ],
+      "candidate_keys": []
+    }
+  }
+]

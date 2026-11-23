@@ -2,6 +2,11 @@ package ai.storyfork.content.attachment
 
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
+import ai.storyfork.content.world.studio.entity.ManuscriptBuildJob
+import ai.storyfork.content.world.studio.entity.ManuscriptBuildLoadStep
+import ai.storyfork.content.world.studio.entity.SettingCard
+import ai.storyfork.content.world.studio.entity.StudioWorld
+import ai.storyfork.content.world.studio.entity.WorldRelationshipState
 import ai.storyfork.content.work.entity.MemberEntity
 import ai.storyfork.content.work.repository.MemberRepository
 import ai.storyfork.content.fixture.model.*
@@ -113,8 +118,12 @@ class SettingAttachmentHttpTest {
     @Test fun `content JPA transactions stay separate from attachment transactions`() {
         val authManager = assertInstanceOf(org.springframework.orm.jpa.JpaTransactionManager::class.java, authTransactions.transactionManager)
         assertNotSame(attachmentTransactions.transactionManager, authManager)
-        assertEquals(setOf("ai.storyfork.content.work.entity","ai.storyfork.content.episode.entity","ai.storyfork.content.episode_version.entity","ai.storyfork.content.publication.entity","ai.storyfork.content.world.entity","ai.storyfork.content.fork.entity","ai.storyfork.content.proposal.entity","ai.storyfork.content.plan.entity","ai.storyfork.content.comment.entity","ai.storyfork.content.feedbackreport.entity","ai.storyfork.content.like.entity","ai.storyfork.content.interest.entity","ai.storyfork.content.reading.entity","ai.storyfork.content.editsuggestion.entity","ai.storyfork.content.notice.entity"), requireNotNull(authManager.entityManagerFactory)
-            .metamodel.entities.map { it.javaType.packageName }.toSet())
+        val managed = requireNotNull(authManager.entityManagerFactory).metamodel.entities.map { it.javaType }
+        val (studio, content) = managed.partition { it.packageName == "ai.storyfork.content.world.studio.entity" }
+        // V41 재접수와 V15 실행권을 같은 트랜잭션에서 검증하는 엔티티만 공유한다.
+        assertEquals(setOf(ManuscriptBuildJob::class.java, ManuscriptBuildLoadStep::class.java,
+            StudioWorld::class.java, SettingCard::class.java, WorldRelationshipState::class.java), studio.toSet())
+        assertEquals(setOf("ai.storyfork.content.work.entity","ai.storyfork.content.episode.entity","ai.storyfork.content.episode_version.entity","ai.storyfork.content.publication.entity","ai.storyfork.content.world.entity","ai.storyfork.content.fork.entity","ai.storyfork.content.proposal.entity","ai.storyfork.content.plan.entity","ai.storyfork.content.comment.entity","ai.storyfork.content.feedbackreport.entity","ai.storyfork.content.like.entity","ai.storyfork.content.interest.entity","ai.storyfork.content.reading.entity","ai.storyfork.content.editsuggestion.entity","ai.storyfork.content.notice.entity","ai.storyfork.content.preprocessing.entity"), content.map { it.packageName }.toSet())
         val id = UUID.randomUUID().toString()
         authTransactions.executeWithoutResult { status ->
             members.saveAndFlush(MemberEntity(id))

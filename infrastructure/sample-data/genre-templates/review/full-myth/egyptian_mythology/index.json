@@ -1,0 +1,166 @@
+{
+  "genre": "egyptian_mythology",
+  "segment": "egyptian-mythology",
+  "worldId_reference": "c1817611-1c16-5eb0-b39f-9cffecd0cbfd",
+  "id_policy": "기존 worldId를 UUIDv5 namespace로 사용하고 candidate/egyptian-mythology/<입력 key>를 이름으로 사용; 실제 세계관 분할이나 적재 아님",
+  "purpose": "연구·검토 전용 후보. 앱·DB에 자동 적재되지 않으며 서비스/DB 등록 금지. 최초 적용에는 별도 #425 안전 계약과 권리·중복 검증이 필요하다.",
+  "manifest_entry": {
+    "segment": "egyptian-mythology",
+    "focus": "source/tradition-cards.json의 scope에 명시된 주 저본 전체와 supplementary.md에 명시된 보충 구간만 모두 읽고 장·작품별 coverage를 실제 작성.",
+    "units": [
+      "main-text",
+      "specified-supplements"
+    ],
+    "genre": "egyptian_mythology",
+    "scope": "버지 1912년 「라와 이시스의 전설」에 근거한 카드다. 별도 전승 카드는 우나스 피라미드 문서의 장송 주문 23·213·219·252를 추가하며 이집트 전승 전체를 대표하지 않는다.",
+    "existing_cards": 19,
+    "source_urls": [
+      "https://www.gutenberg.org/cache/epub/9411/pg9411-images.html",
+      "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall",
+      "https://theosislibrary.com/library/verified-pyramid-texts-unas-antechamber-west-gable",
+      "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-north-wall-register-1"
+    ],
+    "kind": "myth"
+  },
+  "input": {
+    "path": "미게시-임시자료:myth/egyptian-mythology.json",
+    "sha256": "a960f73ef93f06d53cb51eac2e417b179eb001b8ce2dc7e7151ecd2d490c3dc6",
+    "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+    "scope": "버지 1912년 라와 이시스 번역 전체 및 저자 해설; 우나스 피라미드 문서 주문 23 W 1–4, 213 W 206–207, 219 W 240–250, 252 W 404–410. TLA 전사와 Mercer 1952 복합 본문 병기; TLA CC BY-SA 4.0, Mercer 영역의 미국 밖 권리 상태 미확인.",
+    "coverage": [
+      {
+        "unit": "버지, 라와 이시스 해설",
+        "url": "https://www.gutenberg.org/cache/epub/9411/pg9411-images.html#id00086",
+        "status": "read",
+        "cards": 1,
+        "reason": "버지의 작품 소개·해설 전체와 주석 16–22를 읽음. 해설의 추정과 번역 본문은 분리."
+      },
+      {
+        "unit": "버지, 라와 이시스 번역 본문",
+        "url": "https://www.gutenberg.org/cache/epub/9411/pg9411-images.html#id00243",
+        "status": "read",
+        "cards": 0,
+        "reason": "번역 본문 id00244 전체와 주석 66–74를 읽음. 라·이시스·뱀·주문·길·배·형상 낭송 등 기존 카드와 겹치며 메흐트우르와 어머니의 황소는 독립 카드에 필요한 묘사가 부족함."
+      },
+      {
+        "unit": "우나스 주문 23 W 1–4",
+        "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-north-wall-register-1#s23",
+        "status": "read",
+        "cards": 1,
+        "reason": "TLA W 1–4와 병기된 Mercer §16을 읽음. 영어는 우나스 단독이 아닌 복합 본문."
+      },
+      {
+        "unit": "우나스 주문 213 W 206–207",
+        "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s213",
+        "status": "read",
+        "cards": 2,
+        "reason": "지정된 TLA W 206–207과 대응 Mercer §§134–135를 읽음. 사이트는 주문 213을 W 206–208로 제시하나 W 208은 보충 지시의 지정 범위 밖."
+      },
+      {
+        "unit": "우나스 주문 219 W 240–250",
+        "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+        "status": "read",
+        "cards": 2,
+        "reason": "지정된 TLA W 240–250과 대응 Mercer §§167–176을 읽음. 슈·테프누트·게브·누트·네프티스는 오시리스와의 호명 관계 외에 독립 설정을 추가할 근거가 부족함. W 251 이후는 지정 범위 밖."
+      },
+      {
+        "unit": "우나스 주문 252 W 404–410",
+        "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-antechamber-west-gable#s252",
+        "status": "read",
+        "cards": 0,
+        "reason": "TLA W 404–410과 Mercer §§272–274를 읽음. 두아트·배와 왕의 도착은 기존 카드 및 본 결과의 우나스 카드와 중복."
+      }
+    ],
+    "coverage_interpretation": "위 read/unavailable 및 이유는 원 추출 작업자의 자기보고이며 통합 작업자가 해당 원문을 독립적으로 읽었다는 뜻이 아니다.",
+    "manifest_units_mapping": [
+      {
+        "unit": "main-text",
+        "reported_coverage": [
+          "버지, 라와 이시스 해설",
+          "버지, 라와 이시스 번역 본문"
+        ]
+      },
+      {
+        "unit": "specified-supplements",
+        "reported_coverage": [
+          "우나스 주문 23 W 1–4",
+          "우나스 주문 213 W 206–207",
+          "우나스 주문 219 W 240–250",
+          "우나스 주문 252 W 404–410"
+        ]
+      }
+    ],
+    "source_hash_limitation": "원전 파일의 고정 SHA는 제공되지 않았고 실제 URL 판본의 내용과 현재 접근 가능 여부를 통합 단계에서 검증하지 않았다."
+  },
+  "counts": {
+    "input_files": 1,
+    "input_candidates": 6,
+    "output_individual_cards": 6,
+    "merged_candidates": 0,
+    "unprocessed_candidates": 0,
+    "preservation_equation": "6 입력 = 6 개별 보존 + 0 근거 전체 보존 병합",
+    "coverage_units_reported_read": 6,
+    "coverage_units_reported_unavailable": 0,
+    "types": {
+      "character": 3,
+      "rule": 3
+    },
+    "evidence_items": 10,
+    "missing_evidence": 0,
+    "existing_myth_genres": 15,
+    "existing_myth_cards_before": 868,
+    "existing_egyptian_cards_before": 19,
+    "potential_overlaps": 6,
+    "existing_myth_cards_after": 868,
+    "existing_egyptian_cards_after": 19
+  },
+  "duplicate_policy": "기존 26종 및 v1/v2의 정확한 제목·유형 일치와 이집트 전승 19장에 대한 수동 내용 비교를 수행했다. 사실·출전 차이를 존중하여 모두 보존하고 중복 가능성만 표시했다. 동의어·번역명 등 기계 비교가 찾지 못한 중복이 남을 수 있다.",
+  "chunks": [
+    {
+      "path": "cards-001.json",
+      "cards": 6
+    }
+  ],
+  "limitations": [
+    "후보는 전수 증거가 아니며, 원 추출자의 원문 접근·실독 및 원문 해석과 모든 사실은 독립 검증되지 않았다. 지정 범위에서도 누락 가능성이 있다.",
+    "이집트 전체 전승을 대표하지 않으며 지역·시기별 전승과 차이는 확인되지 않았다. 판본 차이를 단일 정본으로 단정하지 않는다.",
+    "TLA 전사는 입력과 기존 supplementary.md에 따르면 Doris Topmann 편집 2018년, CC BY-SA 4.0이다. 인용·번역·수정에 대한 정확한 귀속 및 재사용 조건을 배포 전 확인해야 한다.",
+    "Mercer 1952 영어 번역은 복합 본문이며 우나스 단독 전사와 구분한다. 미국 외 저작권 및 버지 판본, 이 웹 전사·번역과 제3자 자료의 실제 재사용 조건은 확인되지 않았다.",
+    "한국어 내용은 원 추출 작업의 비공식 요약·번역이며 역사·법률 감수를 받지 않았다.",
+    "현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 이 한도는 검토 청크에 적용하기 위한 분할이나 적재 허가가 아니다. 기존 19장과 이 후보 6장 합계 25개는 단순 수치이며 이 자체로 적재할 수 없다.",
+    "발췌는 짧은 확인 구절로서 각 본문의 모든 주장과 지정 구간 전체를 단독 입증하지 않는다. 예를 들어 우나스 왕의 왕좌·도착, 토트 관련 전체 호소, 신체 전체 부위 등은 원문 재대조가 필요하다."
+  ],
+  "input_and_reference_sha256": {
+    "미게시-임시자료:myth/egyptian-mythology.json": "a960f73ef93f06d53cb51eac2e417b179eb001b8ce2dc7e7151ecd2d490c3dc6",
+    "미게시-임시자료:myth/manifest.json": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e",
+    "미게시-임시자료:myth/egyptian-mythology.md": "c706bfe84260212782afb84aca582a158040138ee5ef4ed39996042ec7ddc30b",
+    "infrastructure/sample-data/genre-templates/egyptian_mythology/source/tradition-cards.json": "93ce18f4cdc6b89147f2303e66aa2bfb663b47e03a91acdd15236a9df3aa3bb3",
+    "infrastructure/sample-data/genre-templates/egyptian_mythology/source/template.json": "393783b2d23076de1a979e690a56e6d84a79fb10ec3d65400da30d118f19c4f4",
+    "infrastructure/sample-data/genre-templates/egyptian_mythology/source/sources.md": "2de0b9a2dabff3ef88d78ae326add45a4914b41bb18a49e8101da0004caeb745",
+    "infrastructure/sample-data/genre-templates/egyptian_mythology/source/supplementary.md": "5657546785ff41d57cf0cbeb507d31657fbda8c755950706609df8b0801931f4",
+    "backend/content-service/src/main/resources/genre-templates.json": "bc3cbacd8e7806d673793963386a63c6b7d61f0ec280ce56c22fd74d33003340",
+    "backend/content-service/src/main/resources/genre-templates-v1.json": "96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85",
+    "backend/content-service/src/main/resources/genre-templates-v2.json": "4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517"
+  },
+  "verification_status": "기존 통합 시점에 JSON 재파싱, 입력 후보·본문·evidence 원문 보존, UTF-16 길이, UUIDv5 유일·기존 ID 비충돌, URL 구조, evidence 필드, 입력·기존 소스/runtime SHA 사전·사후 일치를 확인했다. 이번 출처 보강에서 TLA 발췌 8건과 Budge 발췌를 보존하고 Mercer 발췌 1건만 공개 사본에서 생략했다. TLA 발췌 8건의 Theosis 페이지 텍스트 일치를 확인했으나 원문 판독·번역의 완전성과 재사용 권리의 법적 승인은 검증하지 않았다.",
+  "output_sha256": {
+    "cards-001.json": "43f43b39eceb9e639842a94b5c31b83096962c9a86a62af5ffb255ea3df37f84"
+  },
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "output_bytes": {
+    "cards-001.json": 27903
+  },
+  "source_provenance_update": {
+    "date": "2026-11-16",
+    "scope": "기존 카드 6장의 ID·본문과 TLA 전사 8건 및 Budge 발췌를 보존하고 TLA에 출처·라이선스·발췌와 한국어 요약을 표시했다. Mercer 발췌 1건은 공개 사본에서 생략하고 URL·위치·판본을 보존했으며 작업 전 원문은 로컬 사본에 남겼다.",
+    "previous_cards_sha256": "bca7bd7bf094bc635bfe056ccc540b4f4b58402350e74c2e633439ea6dcdcb77",
+    "source_urls": [
+      "https://github.com/simondschweitzer/aed-tei",
+      "https://creativecommons.org/licenses/by-sa/4.0/"
+    ],
+    "checks": "AED-TEI README의 전체 파일 CC BY-SA 4.0 고지와 Creative Commons 조건을 확인했다. Theosis Library의 해당 세 페이지에서 TLA 발췌 8건의 텍스트 일치를 확인했으며 원문 판독·번역의 완전성이나 법적 허가를 보장하지 않는다.",
+    "mercer_publication_hold": "Mercer 1952 영어 발췌는 미국 외 재배포 권리가 미확정이므로 공개 사본에서 생략하고 공개 PR 전 권리 판단을 보류한다. 원문은 작업 전 로컬 사본에 보존했다.",
+    "mercer_omitted_excerpts": 1
+  },
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

@@ -1,0 +1,3142 @@
+[
+  {
+    "id": "0faf013f-4e46-5187-a733-68e29297c005",
+    "batch_id": "batch-11",
+    "unit_id": "germanic-aschen--page-126",
+    "work_id": "germanic-aschen",
+    "world_id": "germanic_folklore",
+    "candidate_key": "sisters-blindness",
+    "title": "결혼식에서 벌받은 자매",
+    "cardType": "event",
+    "body": "자매들이 혼례 행렬에 끼어들자 비둘기들이 교회에 들어갈 때 한쪽, 나올 때 다른 쪽 눈을 쪼아 평생 눈이 멀게 한다.",
+    "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+    "source_location": "쪽 끝, 교회 혼례",
+    "edition": "Brothers Grimm; German; Wikisource transcription; oldid unverified (Wikisource revision 1951414)",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "025eefe9-b6a5-58ff-8bd4-9abd34818924",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-i",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "chaos",
+    "title": "혼돈의 뒤섞인 물질",
+    "cardType": "location",
+    "body": "바다·땅·하늘이 분리되기 전의 혼돈은 서로 충돌하는 성질들이 한데 쌓인 무질서한 덩어리로 묘사된다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 I 본문 첫 문단, 6–26행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json creation: 헤시오도스의 카오스 계보와 물질 혼돈 비교"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4698fd5d-f7d2-5859-a159-5c3f23fef2eb",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-i",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "cosmos-order",
+    "title": "신과 자연의 세계 분리",
+    "cardType": "event",
+    "body": "신과 풍요로운 자연이 땅·하늘·물을 나누고 요소를 제자리에 조화롭게 배치해 충돌을 끝낸다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 I 본문 둘째 문단, 26–31행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json creation: 다른 저본의 세계 형성 비교"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "91b7841f-7592-5159-8524-3e8924ec8a7f",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-i",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "element-layers",
+    "title": "원소의 자리와 무게",
+    "cardType": "rule",
+    "body": "불 같은 하늘이 가장 높고 공기가 그 아래 놓이며 무거운 땅은 응축되고 물은 단단한 구체를 둘러싼다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 I 본문 둘째 문단, 26–31행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a4b32972-6d21-5281-8a90-eed0fb912e3e",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-ii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "world-maker",
+    "title": "이름을 밝히지 않은 조물주",
+    "cardType": "character",
+    "body": "화자는 어느 신인지는 모른다고 하면서 조물주가 지구를 둥글게 만들고 바다·강·산과 기후를 정했다고 전한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 II 본문 첫 두 문단, 31–60행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b42d701e-0ca3-5416-94d6-dfbb7df185be",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-ii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "five-zones",
+    "title": "다섯 기후대",
+    "cardType": "rule",
+    "body": "지구에는 너무 더운 중앙 지대와 눈으로 덮인 두 지대, 그 사이의 온화한 두 지대가 있다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 II 본문 둘째 문단, 49–60행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "95b32631-bb16-5d1f-b345-1f431045167c",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-ii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "wind-brothers",
+    "title": "서로 불화하는 네 바람",
+    "cardType": "character",
+    "body": "조물주는 형제 바람들이 저마다 다른 구역을 다스리도록 제한한다. 동풍 에우루스, 서풍 제피루스, 북풍 보레아스, 비를 몰고 오는 남풍이 나뉜다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 II 본문 셋째 문단, 60–76행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json winds_stars: 바람들의 명칭과 계보 비교"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0a3990c8-fca2-5f07-aa76-ab085b5014fa",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-ii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "living-domains",
+    "title": "생명들이 사는 영역",
+    "cardType": "rule",
+    "body": "별과 신들의 형상은 하늘에, 물고기는 물에, 짐승은 땅에, 새는 공기에 배치된다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 II 본문 넷째 문단, 73–88행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5f7e2a46-7ce9-5e41-bf13-b699078a6d91",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-ii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "human-origin",
+    "title": "인간의 두 창조 가능성",
+    "cardType": "event",
+    "body": "화자는 조물주가 신적 요소로 인간을 만들었는지, 이아페토스의 아들이 하늘의 성분을 간직한 흙을 물에 개어 신들의 형상으로 빚었는지 두 가능성을 제시한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 II 본문 마지막 문단, 76–88행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json prometheus, iapetus_sons: 본문은 두 가능성을 병기"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4258e49a-80ae-558e-a7e5-3fbcec5a7ff4",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-ii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "upright-human",
+    "title": "하늘을 보는 인간의 자세",
+    "cardType": "ability",
+    "body": "인간은 다른 동물들과 달리 얼굴을 위로 들고 하늘과 별을 바라보도록 만들어진 존재로 묘사된다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 II 본문 마지막 문단, 76–88행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ad31c824-a828-5781-9f22-2391a1a86729",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-iii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "golden-age",
+    "title": "법 없는 황금시대",
+    "cardType": "rule",
+    "body": "황금시대 사람들은 법과 형벌 없이 스스로 신의와 정의를 지키며 방어 시설이나 군대 없이 안전하게 지낸다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 III 본문 첫 문단, 89–105행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fdfa8695-3ff8-5670-8393-da1f6c30871b",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-iii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "golden-earth",
+    "title": "스스로 풍요로운 땅",
+    "cardType": "rule",
+    "body": "영원한 봄에 땅은 밭갈이 없이 곡식과 열매를 내고 젖과 넥타르의 강이 흐르며 참나무에서 꿀이 떨어진다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 III 본문 둘째 문단, 105–112행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "790bcf88-2ee2-56ea-97ed-bc05c1b90557",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-iv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "silver-age",
+    "title": "은의 시대와 사계절",
+    "cardType": "event",
+    "body": "사투르누스가 타르타로스로 쫓겨나고 유피테르가 다스리면서 봄이 짧아지고 사계절이 생긴다. 사람들은 거처와 경작을 시작한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 IV 본문 첫 문단, 113–124행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json cronos, zeus: 권력 교체 비교"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a91bbef9-57d5-58a5-b3fc-343727df21d6",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-iv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "bronze-age",
+    "title": "청동의 시대",
+    "cardType": "rule",
+    "body": "세 번째 시대의 사람들은 더 사납고 전쟁에 기울지만 아직 불경하지는 않다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 IV 본문 둘째 문단, 125–127행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f2fa0390-a822-5b72-bb25-46d2840f278f",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-iv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "iron-age",
+    "title": "철의 시대와 욕망",
+    "cardType": "rule",
+    "body": "철의 시대에는 기만·폭력·소유욕이 퍼지고 사람들이 바다를 건너며 공유하던 땅에 경계를 긋고 지하의 금속을 캐낸다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 IV 본문 둘째·셋째 문단, 127–150행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b1acfc19-c5ac-5498-903a-ee95854112a1",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-iv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "astraea",
+    "title": "마지막으로 땅을 떠난 아스트라이아",
+    "cardType": "character",
+    "body": "살육으로 물든 땅에서 처녀 아스트라이아는 하늘의 신들 가운데 마지막으로 떠난다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 IV 본문 끝, 149–150행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "81d1cee7-f6e7-5d9b-84d9-137477885ffe",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-v",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "giants-assault",
+    "title": "거인들의 하늘 공격",
+    "cardType": "event",
+    "body": "거인들은 하늘의 권좌를 노리고 산을 쌓는다. 아버지 신은 번개로 올림포스를 부수고 오사를 펠리온에서 떨어뜨린다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 V 본문 첫 부분, 151–158행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json titanomachy: 거인과 티탄의 싸움 구분 필요"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "822dad4e-6780-592e-b967-8b2b2ade4353",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-v",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "blood-born",
+    "title": "거인의 피에서 난 인간",
+    "cardType": "event",
+    "body": "화자는 땅이 쓰러진 아들들의 피에 생명을 주고 인간의 모습으로 빚었다고 전한다. 그 세대는 신을 멸시하고 살육과 폭력을 즐긴다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 V 본문 뒷부분, 159–162행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7bb014f6-fc55-5c67-8706-284c81151227",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-vi",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "jupiter-council",
+    "title": "유피테르의 신들의 회의",
+    "cardType": "event",
+    "body": "사투르누스의 아들 유피테르는 인간의 죄와 리카온의 연회를 떠올리며 신들을 불러 인간 멸절을 선언한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VI 본문 첫 문단과 연설, 163–205행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json zeus, olympians: 신들의 관련 전승 비교"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bc2ef85d-6c86-594e-9742-30c03072baa7",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-vi",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "milky-way",
+    "title": "신들의 궁전으로 가는 은하수",
+    "cardType": "location",
+    "body": "맑은 하늘에 보이는 은하수는 천둥의 신 궁전으로 가는 길이다. 명망 높은 신들의 집이 길 양쪽에 있고 낮은 신들은 여러 곳에 산다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VI 본문 둘째 문단, 168–176행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f8caeff1-883f-55b2-97bd-d81b05e25371",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-vi",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "marble-hall",
+    "title": "하늘의 대리석 회의장",
+    "cardType": "location",
+    "body": "신들이 대리석 회의장에 앉고 유피테르는 높은 자리에서 상아 홀을 짚고 연설한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VI 본문 둘째 문단, 176–179행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3deeb618-0d3b-5514-857d-8a464f06b9b9",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-vi",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "stygian-oath",
+    "title": "유피테르의 지하 강 맹세",
+    "cardType": "rule",
+    "body": "유피테르는 지하 스틱스 숲을 흐르는 명계의 강들에 대고 인간 종족을 없애겠다고 맹세한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VI 유피테르 연설, 186–190행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json styx-oath: 맹세의 대상 비교"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0770b293-4362-58eb-ad09-602956993d67",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-vi",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "rustic-gods",
+    "title": "땅에 사는 반신과 야생의 신들",
+    "cardType": "organization",
+    "body": "유피테르는 님프·파우누스·사티로스·실바누스와 산의 주민들을 하늘의 영예에는 들지 못해도 땅에 살아야 할 자신의 신하로 열거한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VI 유피테르 연설, 192–198행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1367bcf4-8688-5ec0-9af0-e39f222ad30f",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-vi",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "jupiter-disguise",
+    "title": "인간 모습으로 내려온 신",
+    "cardType": "ability",
+    "body": "유피테르는 세상의 악행에 관한 소문을 확인하려 인간 모습으로 땅을 돌아보았다고 회의에서 말한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VI 연설 끝, 211–214행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json zeus, zeus_hospitality: 관련 전승"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bb725fe4-c2ef-5853-936a-fba987fb743a",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-vii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "lycaon",
+    "title": "리카온의 시험과 변신",
+    "cardType": "character",
+    "body": "유피테르의 회고에 따르면 아르카디아의 리카온은 손님이 신인지 시험하려 잠든 틈에 죽이려 하고 인질의 살을 내놓는다. 신의 불에 집이 무너지고 그는 늑대로 변한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VII 유피테르 회고, 218–239행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json zeus_hospitality: 손님 접대 장면 비교"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1af70d03-f039-54aa-8f16-7b9d43950964",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-vii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "molossian-hostage",
+    "title": "몰로시아 인질의 희생",
+    "cardType": "event",
+    "body": "유피테르의 회고에서 리카온은 몰로시아에서 보낸 인질을 죽여 몸 일부는 삶고 일부는 구워 식탁에 올린다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VII 회고 중 인질 살해, 227–231행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5d239a81-1764-5cdd-81ba-078d0a5ce4de",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-vii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "wolf-change",
+    "title": "늑대가 된 리카온",
+    "cardType": "ability",
+    "body": "옷은 털로, 팔은 다리로 바뀌지만 흰 털빛과 사나운 눈빛은 남는다. 그는 말을 하려다 울부짖고 양을 공격한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VII 회고 중 변신, 232–239행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "70b51483-af63-54dd-a25a-768e8b0bea80",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-vii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "arcadia-route",
+    "title": "아르카디아의 접근 경로",
+    "cardType": "location",
+    "body": "유피테르는 맹수 굴이 있는 마이나루스, 소나무가 우거진 차가운 리카이우스와 킬레네를 지나 아르카디아 폭군의 집에 들어갔다고 말한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VII 회고 첫 문장, 216–220행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "31a80442-efae-536a-bc7f-77e510ddb1ff",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-viii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "fate-fire",
+    "title": "불로 끝날 우주의 운명",
+    "cardType": "rule",
+    "body": "유피테르는 바다·땅·하늘의 궁전이 불타고 우주의 구조가 위험해질 때가 운명에 정해져 있음을 떠올려 벼락 사용을 접는다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VIII 본문 둘째 문단, 253–260행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c722e995-48a7-5c4e-b839-4df4cfdd92d2",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-viii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "cyclops-weapons",
+    "title": "키클롭스가 벼린 무기",
+    "cardType": "object",
+    "body": "유피테르는 하늘이 불붙을 위험을 염려하여 키클롭스의 손으로 만든 무기를 내려놓고 홍수를 택한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VIII 본문 둘째 문단, 259–261행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json cyclopes, thunderbolt: 무기 제작 관련"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1d0c8904-b79e-5721-87ec-05f3eef745d8",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-viii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "south-wind",
+    "title": "폭우를 부르는 남풍",
+    "cardType": "character",
+    "body": "유피테르는 구름을 흩는 북풍 등을 아이올로스의 동굴에 가두고 비에 젖은 날개와 수염을 지닌 남풍을 풀어 폭우를 일으킨다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VIII 본문 둘째 문단, 262–270행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "affea399-8de9-5e52-af3d-23f8a9932f99",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-viii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "iris",
+    "title": "구름에 물을 공급하는 이리스",
+    "cardType": "character",
+    "body": "여러 색의 옷을 입은 유노의 전령 이리스는 물을 모아 구름으로 올려 보낸다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VIII 본문 둘째 문단 끝, 270–271행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json iris_harpies: 이리스 관련 가능"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f15b6ce1-12b7-5a53-8cde-299ff45ee69d",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-viii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "neptune-flood",
+    "title": "넵투누스와 강들의 범람",
+    "cardType": "event",
+    "body": "넵투누스는 강들에게 장애물을 치우고 물을 쏟으라 명령하고 삼지창으로 땅을 쳐 물의 근원을 연다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VIII 본문 넷째 문단, 274–283행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source/tradition-cards.json poseidon: 로마식 명칭·행위 비교"
+    ],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9d39f98f-2b85-5c9a-a842-762ebca1eb13",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-viii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "flooded-world",
+    "title": "바다에 잠긴 세계",
+    "cardType": "event",
+    "body": "홍수는 농지·집·신전과 산까지 덮고 바다와 땅의 구분을 없앤다. 살아남은 이들도 먹을 것이 없어 굶어 죽는다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VIII 본문 넷째·다섯째 문단, 284–312행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "99b4ea1b-9cb0-5689-826b-cc5068469cf8",
+    "batch_id": "batch-11",
+    "unit_id": "greco-ovid1--fable-viii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "nereids",
+    "title": "물에 잠긴 숲을 보는 네레이데스",
+    "cardType": "character",
+    "body": "네레이데스는 물속에 잠긴 숲과 도시와 집을 보고 놀라고 돌고래들은 나무 사이로 들어간다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "제1권 우화 VIII 본문 마지막 문단, 301–304행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "공개 전 evidence의 원문 직접 발췌를 모두 제거해야 함",
+      "라틴어 원본과 독립 대조하지 않은 라일리 영어 번역; 인접 머리말·EXPLANATION은 편집자 해설"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "db29c9c7-f172-500a-a08a-817f2bba6a54",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-ix",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "ix-refuge",
+    "title": "파르나소스의 피난",
+    "cardType": "location",
+    "body": "두 봉우리의 파르나소스는 홍수 때 물 위로 솟았고 데우칼리온과 피라는 작은 배로 이곳에 닿아 산의 신들과 테미스에게 경배한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable IX (원시 313–325행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xii/xii-cupid (파르나소스 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--endnotes/endnotes-peaks (파르나소스 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "257513bb-fdb5-5a10-93f2-178a46767606",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-ix",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "ix-triton",
+    "title": "트리톤과 소라나팔",
+    "cardType": "character",
+    "body": "바다의 지배자의 명령을 받은 푸른 트리톤은 소라나팔을 불어 물에 물러가라는 신호를 보낸다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable IX (원시 329–342행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:triton (바다의 황금 집에 사는 트리톤 관련; 출전과 세부 비교 필요)",
+      "batch-12:greco-ovid1--endnotes/endnotes-triton (트리톤 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f9b51ca7-be9d-5212-8627-48205d22bb19",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-ix",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "ix-conch",
+    "title": "트리톤의 소라나팔",
+    "cardType": "object",
+    "body": "나선으로 감긴 나팔은 점점 넓어지며 바다에서 불면 양쪽 해안까지 소리가 닿고 들은 물은 물러간다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable IX (원시 335–342행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:triton (바다의 황금 집에 사는 트리톤 관련; 출전과 세부 비교 필요)",
+      "batch-12:greco-ovid1--endnotes/endnotes-triton (트리톤 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5cce8409-c12d-5225-9bc2-fa6e0effbb3b",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-ix",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "ix-deucalion",
+    "title": "데우칼리온의 탄식",
+    "cardType": "character",
+    "body": "데우칼리온은 피라에게 자신들이 지상에 남은 유일한 사람들이라며 아버지의 기술처럼 흙에 혼을 불어넣어 잃은 사람들을 되살리고 싶다고 말한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable IX (원시 350–366행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--endnotes/endnotes-deucalion (데우칼리온 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "054bf82e-e21c-5565-8370-cdf7aa02cf79",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-x",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "x-oracle",
+    "title": "테미스의 수수께끼 신탁",
+    "cardType": "rule",
+    "body": "테미스는 머리를 가리고 옷을 풀고 위대한 어머니의 뼈를 등 뒤로 던지라고 명한다. 피라는 어머니의 유해를 모욕할까 두려워 거부한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable X (원시 367–393행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:artemis (아르테미스 관련; 출전과 세부 비교 필요)",
+      "source:themis_horai_fates (테미스의 호라이와 모이라이 관련; 출전과 세부 비교 필요)",
+      "source:iphigenia_aulis (이피게네이아와 아르테미스의 제단 관련; 출전과 세부 비교 필요)",
+      "batch-12:greco-ovid1--endnotes/endnotes-themis (테미스 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "40714581-b169-51ec-9b69-bf9538236b39",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-x",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "x-stones",
+    "title": "돌에서 태어난 사람들",
+    "cardType": "event",
+    "body": "데우칼리온은 어머니는 땅, 뼈는 돌이라고 해석한다. 두 사람이 던진 돌은 점차 부드러워지고 신들의 도움으로 남성과 여성이 된다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable X (원시 394–415행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bcba2a8b-b306-5230-ac20-43bea807cf7e",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-x",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "x-cephisus",
+    "title": "케피소스와 테미스 신전",
+    "cardType": "location",
+    "body": "두 생존자는 강물을 머리와 옷에 뿌리고 이끼 낀 지붕과 불 꺼진 제단이 있는 테미스 신전에 엎드려 기도한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable X (원시 367–380행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:artemis (아르테미스 관련; 출전과 세부 비교 필요)",
+      "source:themis_horai_fates (테미스의 호라이와 모이라이 관련; 출전과 세부 비교 필요)",
+      "source:iphigenia_aulis (이피게네이아와 아르테미스의 제단 관련; 출전과 세부 비교 필요)",
+      "batch-12:greco-ovid1--endnotes/endnotes-themis (테미스 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b64edf20-b236-5b8f-92ab-a54be2a09eaf",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-x",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "x-pyrrha",
+    "title": "피라의 판단과 의심",
+    "cardType": "character",
+    "body": "에피메테우스의 딸 피라는 뼈를 던지라는 신탁을 처음 거부한다. 남편의 해석을 들은 뒤에도 의심하지만 함께 돌을 던진다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable X (원시 383–406행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--endnotes/endnotes-deucalion (피라 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "baa58ef9-e559-5652-8c84-faaff754c66a",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xi",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xi-generation",
+    "title": "홍수 뒤 생명의 발생",
+    "cardType": "rule",
+    "body": "서술자는 햇볕에 덥혀진 홍수 뒤 진흙과 습기에서 대지가 옛 형태와 새로운 괴물들을 낳았다고 설명한다. 열과 습기의 결합은 서사 속 생성 조건이다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XI (원시 416–438행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3fa46410-0718-5aa8-a31a-aeb7d0a2ef0e",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xi",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xi-python",
+    "title": "거대한 뱀 피톤",
+    "cardType": "character",
+    "body": "대지는 원치 않으면서도 산의 넓은 부분을 차지할 만큼 거대한 뱀 피톤을 낳는다. 새 인류에게 공포가 된 피톤은 활 쏘는 신의 화살 세례로 죽는다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XI (원시 438–444행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e173e0cb-cf94-50ff-aacb-dc78f7ebf6ec",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xi",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xi-games",
+    "title": "피톤의 죽음과 피티아 경기",
+    "cardType": "event",
+    "body": "활을 든 신은 뱀을 죽인 일을 기억하게 하려고 피티아 경기를 세운다. 권투·달리기·전차 경기 승자에게 당시 너도밤나무 잎 관이 주어진다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XI (원시 445–451행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--endnotes/endnotes-games (피티아 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d109f1bf-3324-5389-88b2-a80d7912929b",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xii-arrows",
+    "title": "큐피드의 두 화살",
+    "cardType": "object",
+    "body": "큐피드는 자신을 깔본 아폴로에게 복수하려 사랑을 일으키는 금 화살로 그를, 사랑을 물리치는 납이 든 무딘 화살로 다프네를 쏜다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XII (원시 452–474행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:eros_himeros (에로스와 히메로스 관련; 출전과 세부 비교 필요)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dde0f804-1f61-53bf-a17a-13ac1a79843d",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xii-daphne",
+    "title": "사냥을 좋아하는 다프네",
+    "cardType": "character",
+    "body": "페네우스의 딸 다프네는 숲과 사냥을 좋아하고 청혼자를 피한다. 아버지에게 평생 처녀로 살게 해달라고 청한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XII (원시 475–489행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "42a84a20-fa8e-597f-977f-8f79b1d2ad60",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xii-apollo",
+    "title": "추격하는 아폴로의 주장",
+    "cardType": "character",
+    "body": "아폴로는 달아나는 다프네에게 자신이 예언과 노래, 약초와 치유를 다룬다고 말하지만 사랑을 치료할 약초는 없다고 한탄한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XII (원시 504–524행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:apollo (아폴론 관련; 출전과 세부 비교 필요)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9bce3986-08b9-5f10-8a4a-4977f274cd81",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xii-laurel",
+    "title": "다프네의 월계수 변신",
+    "cardType": "event",
+    "body": "쫓기다 지친 다프네는 강의 신인 아버지와 대지에 도움을 청한다. 몸은 나무껍질, 머리카락은 잎, 팔은 가지, 발은 뿌리로 변한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XII (원시 540–552행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "12554502-7ed8-5f05-bab4-ccf3199c58d8",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xii-tree",
+    "title": "아폴로와 월계수",
+    "cardType": "object",
+    "body": "변신 뒤에도 나무는 아폴로의 입맞춤을 피한다. 아폴로는 월계수를 자신의 수금과 화살통, 승리 행렬과 아우구스투스의 문에 쓰겠다고 말한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XII (원시 553–567행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:apollo (아폴론 관련; 출전과 세부 비교 필요)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "991379f5-d3d1-544a-97de-bd52b57f8c25",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xii-cupid",
+    "title": "파르나소스의 큐피드",
+    "cardType": "location",
+    "body": "큐피드는 날개로 파르나소스의 그늘진 높은 곳에 올라 서로 다른 두 화살을 꺼낸다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XII (원시 464–472행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-ix/ix-refuge (파르나소스 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--endnotes/endnotes-peaks (파르나소스 관련; 이설·장면 구분)",
+      "source:eros_himeros (에로스와 히메로스 관련; 출전과 세부 비교 필요)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "42cd0234-1b53-593d-bf67-799a9ba0bbe5",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiii-tempe",
+    "title": "페네우스의 템페 골짜기",
+    "cardType": "location",
+    "body": "바위와 숲으로 둘러싸인 템페에 핀도스에서 내려오는 페네우스가 흐른다. 강의 신은 바위 동굴에서 물과 님프들에게 법을 내린다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIII (원시 568–578행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1f367e14-d05b-5647-b4e7-fd39dc7b541a",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiii-inachus",
+    "title": "이오를 잃은 이나코스",
+    "cardType": "character",
+    "body": "강의 신 이나코스는 딸 이오의 생사를 알지 못한 채 동굴에서 울며 자기 물을 불린다. 다른 강들이 페네우스를 찾는 모임에도 오지 않는다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIII (원시 578–587행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xiv/xiv-io (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiv/xiv-writing (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-wander (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-speech (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--endnotes/endnotes-isis (이오 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "abedb932-044c-5a42-8462-ad893b553983",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiii-assault",
+    "title": "유피테르의 이오 추격과 폭력",
+    "cardType": "event",
+    "body": "유피테르는 이오에게 숲으로 들어오라고 권하고 달아나는 그녀를 쫓는다. 어둠으로 땅을 덮어 도주를 막고 성폭력을 저지른다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIII (원시 588–600행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xiv/xiv-io (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiv/xiv-writing (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-wander (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-speech (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--endnotes/endnotes-isis (이오 관련; 이설·장면 구분)",
+      "source:zeus (제우스 관련; 출전과 세부 비교 필요)",
+      "source:delphi (피토와 제우스의 돌 관련; 출전과 세부 비교 필요)",
+      "source:thunderbolt (제우스의 천둥과 벼락 관련; 출전과 세부 비교 필요)",
+      "source:styx_children (스틱스와 제우스 곁의 네 자녀 관련; 출전과 세부 비교 필요)",
+      "source:rhea_hidden_zeus (레아의 슬픔과 크레테의 숨겨진 제우스 관련; 출전과 세부 비교 필요)",
+      "source:zeus_hospitality (제우스와 손님을 맞는 의무 관련; 출전과 세부 비교 필요)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e242112d-05b0-5a7e-b6cb-5f4ccde337b8",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiv-juno",
+    "title": "안개를 알아챈 유노",
+    "cardType": "character",
+    "body": "유노는 밝은 낮에 생긴 밤 같은 구름이 수상하다고 여기고 유피테르가 하늘에 없음을 확인한 뒤 내려와 안개를 거둔다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIV (원시 601–610행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:hera (헤라 관련; 출전과 세부 비교 필요)",
+      "source:heracles (헤라클레스 관련; 출전과 세부 비교 필요)",
+      "source:heracles_labours (헤라클레스의 열두 과업 관련; 출전과 세부 비교 필요)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0134a30b-4226-5006-a327-ac8402270ea5",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiv-io",
+    "title": "암소가 된 이오",
+    "cardType": "character",
+    "body": "유피테르는 유노가 오기 전에 이오를 암소로 바꾼 뒤 땅에서 생겼다고 거짓말한다. 유노는 암소를 선물로 받아 아르고스에게 감시를 맡긴다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIV (원시 610–624행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xiii/xiii-inachus (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiii/xiii-assault (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-wander (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-speech (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--endnotes/endnotes-isis (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiii/xiii-io-variant (이오 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5ca6e9df-43e1-5482-a59a-3ab4aca2509b",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiv-argus",
+    "title": "백 개의 눈을 지닌 아르고스",
+    "cardType": "character",
+    "body": "아리스토르의 아들 아르고스는 백 개의 눈 중 두 눈씩 쉬면서 나머지로 감시한다. 낮에는 이오를 먹이고 밤에는 가둬 목을 묶는다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIV (원시 624–638행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xvi/xvi-death (아르고스 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-hierax (아르고스 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e97ec965-b489-529f-98ab-f62e76609eaf",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiv-writing",
+    "title": "발로 이름을 쓴 이오",
+    "cardType": "event",
+    "body": "암소가 된 이오는 말을 못하고 울음만 낸다. 이나코스는 처음에는 그녀를 알아보지 못하다가 그녀가 흙에 발로 쓴 글자를 보고 변신 사실을 안다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIV (원시 639–652행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xiii/xiii-inachus (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiii/xiii-assault (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-wander (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-speech (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--endnotes/endnotes-isis (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiii/xiii-io-variant (이오 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b46c7fee-36cf-59e6-991a-aa7eaa261bd2",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiv-mercury",
+    "title": "목동으로 변장한 메르쿠리우스",
+    "cardType": "character",
+    "body": "유피테르의 명령을 받은 메르쿠리우스는 날개와 모자를 벗고 지팡이를 든 채 염소를 몰며 목동처럼 피리를 연주해 아르고스에게 다가간다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIV (원시 668–688행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:hermes (헤르메스 관련; 출전과 세부 비교 필요)",
+      "source:moly_hermes (헤르메스의 몰뤼와 키르케 관련; 출전과 세부 비교 필요)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2b78bd82-3f6a-5690-84fa-ce008a2688ec",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiv-wand",
+    "title": "메르쿠리우스의 잠 지팡이",
+    "cardType": "object",
+    "body": "메르쿠리우스는 잠을 부르는 지팡이를 들고 하늘에서 내려온다. 그는 목동으로 위장하면서도 이 지팡이는 지닌다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIV (원시 670–677행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:hermes (헤르메스 관련; 출전과 세부 비교 필요)",
+      "source:moly_hermes (헤르메스의 몰뤼와 키르케 관련; 출전과 세부 비교 필요)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a185ef74-12ea-5c82-810f-a94dca782e30",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiv-sleep",
+    "title": "잠에 저항하는 아르고스",
+    "cardType": "event",
+    "body": "아르고스는 피리 소리에 이끌려 목동을 곁에 앉힌다. 여러 눈이 잠에 빠져도 다른 눈으로 계속 지켜보며 피리의 유래를 묻는다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIV (원시 685–689행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xvi/xvi-death (아르고스 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-hierax (아르고스 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c747909a-03b9-549b-bdb7-2716d9b6f92d",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xv-syrinx",
+    "title": "도망치는 님프 시링크스",
+    "cardType": "character",
+    "body": "아르카디아의 나이아스 시링크스는 사냥과 처녀 생활에서 디아나를 따른다. 판이 접근하자 도망치고 라돈 강에서 물의 자매들에게 변신을 청한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XV (원시 689–705행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5bd406c2-7ada-5d64-b665-34cb6e0e846b",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xv-pan",
+    "title": "시링크스를 쫓는 판",
+    "cardType": "character",
+    "body": "솔잎으로 머리를 장식한 판은 시링크스를 쫓다가 그녀 대신 갈대를 붙잡는다. 바람에 울리는 갈대 소리를 듣고 그와의 대화 방식으로 삼는다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XV (원시 698–711행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "81380135-452f-5965-8d0d-63edaf4b432c",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xv-pipes",
+    "title": "시링크스의 갈대 피리",
+    "cardType": "object",
+    "body": "판이 길이가 다른 갈대들을 밀랍으로 붙인 악기는 님프의 이름을 이어받는다. 이 이야기는 메르쿠리우스가 아르고스를 잠재우며 꺼낸 이야기다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XV (원시 706–712행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b3875fda-ae70-5492-a5eb-7f85c1f7e664",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xv",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xv-ladon",
+    "title": "라돈 강의 변신",
+    "cardType": "location",
+    "body": "모래 낀 라돈의 물이 시링크스의 도주를 막는다. 그녀는 그곳에서 자매인 물의 님프들에게 자신을 바꾸어 달라고 기도한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XV (원시 700–706행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--endnotes/endnotes-ladon (라돈 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5f2c2a4a-c562-5de2-b2b2-9f1a559e2d19",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xvi",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xvi-death",
+    "title": "아르고스의 죽음",
+    "cardType": "event",
+    "body": "메르쿠리우스는 모든 눈이 잠든 것을 보고 지팡이로 잠을 깊게 만든 뒤 굽은 칼로 목을 베고 바위에서 시신을 떨어뜨린다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XVI (원시 713–720행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xiv/xiv-argus (아르고스 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiv/xiv-sleep (아르고스 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-hierax (아르고스 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4e042e6c-f5c5-5b43-a23d-6a8f9fb65b27",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xvi",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xvi-peacock",
+    "title": "공작 꼬리에 옮겨진 눈",
+    "cardType": "event",
+    "body": "유노는 죽은 아르고스의 눈들을 자기 새의 깃에 옮겨 꼬리를 별 같은 무늬로 채운다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XVI (원시 721–723행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b947147c-09e7-5663-a447-3ec7d371191d",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xvii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xvii-wander",
+    "title": "이오의 방랑과 귀환",
+    "cardType": "event",
+    "body": "유노는 이오 앞에 공포의 환영과 보이지 않는 자극을 보내 온 땅을 방황하게 한다. 나일에 이른 이오는 고통의 끝을 빌고, 유피테르가 스틱스의 물을 걸고 맹세한 뒤 유노가 진정하자 본래 모습으로 돌아온다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XVII (원시 724–746행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xiii/xiii-inachus (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiii/xiii-assault (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiv/xiv-io (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiv/xiv-writing (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--endnotes/endnotes-isis (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiii/xiii-io-variant (이오 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6c91545d-872f-5054-84da-cd284befc187",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xvii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xvii-speech",
+    "title": "말을 다시 배우는 이오",
+    "cardType": "character",
+    "body": "인간 모습으로 돌아온 이오는 두 발로 일어서지만 다시 소처럼 울까 두려워 조심스럽게 말을 시도한다. 서술자는 이집트에서 그녀가 여신으로 숭배받는다고 말한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XVII (원시 738–747행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xiii/xiii-inachus (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiii/xiii-assault (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiv/xiv-io (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiv/xiv-writing (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--endnotes/endnotes-isis (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiii/xiii-io-variant (이오 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c0376edf-28c9-586e-b9b1-75f55893714c",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xvii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xvii-epaphus",
+    "title": "에파포스와 파에톤의 논쟁",
+    "cardType": "character",
+    "body": "이오에게서 태어난 것으로 여겨지는 에파포스는 파에톤의 태양신 혈통 주장을 믿지 않고 그의 아버지가 상상 속 인물이라고 비난한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XVII (원시 748–755행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--endnotes/endnotes-epaphus (에파포스 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "621fdd1f-d667-5509-93ed-f88ae7b0fc2c",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xvii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xvii-phaethon",
+    "title": "아버지의 증거를 찾는 파에톤",
+    "cardType": "character",
+    "body": "파에톤은 에파포스의 비난을 어머니 클리메네에게 전하고 신의 자손이라는 증거를 요구한다. 어머니의 맹세를 들은 뒤 해가 떠오르는 아버지의 거처로 떠난다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XVII (원시 750–779행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0574ed7e-17ed-59bb-a555-0789841a56c6",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xvii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xvii-clymene",
+    "title": "클리메네의 태양 맹세",
+    "cardType": "character",
+    "body": "클리메네는 파에톤에게 눈앞의 태양이 그의 아버지라고 맹세하고 해가 솟는 곳의 거처로 가서 직접 물어보라고 한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XVII (원시 756–775행)",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "50d308a5-878d-5284-8755-7339196e1bba",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-cave",
+    "title": "코리키아 동굴의 님프들: 주석",
+    "cardType": "location",
+    "body": "주석 56은 코리키아 님프들이 파르나소스 동굴에 살고 델피 근처 강의 딸로 전해진다고 설명한다. 킬리키아의 동명 동굴은 별개로 소개한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 56",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2c993000-6ae3-5a67-b017-2ecbe9aefc8e",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-themis",
+    "title": "델피의 테미스: 주석",
+    "cardType": "character",
+    "body": "주석 57은 테미스가 아폴로보다 먼저 델피에서 신탁을 내렸다는 전승과 정당한 것을 신들에게 청하도록 가르쳤다는 설명을 덧붙인다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 57",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:artemis (아르테미스 관련; 출전과 세부 비교 필요)",
+      "source:themis_horai_fates (테미스의 호라이와 모이라이 관련; 출전과 세부 비교 필요)",
+      "source:iphigenia_aulis (이피게네이아와 아르테미스의 제단 관련; 출전과 세부 비교 필요)",
+      "batch-12:greco-ovid1--fable-x/x-oracle (테미스 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-x/x-cephisus (테미스 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6d00a6d0-2e2c-5ce6-b4be-7f34e093b70b",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-triton",
+    "title": "트리톤의 모습과 여러 트리톤: 주석",
+    "cardType": "character",
+    "body": "주석 59는 여러 트리톤 가운데 우두머리를 넵투누스와 암피트리테의 아들로 설명하고, 인간 상체와 물고기 꼬리로 묘사되는 관례를 소개한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 59",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:triton (바다의 황금 집에 사는 트리톤 관련; 출전과 세부 비교 필요)",
+      "batch-12:greco-ovid1--fable-ix/ix-triton (트리톤 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-ix/ix-conch (트리톤 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "30dd32d3-b053-5712-b56d-f1d0d9c7fa0b",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-games",
+    "title": "피티아 경기 기원 이설: 주석",
+    "cardType": "event",
+    "body": "주석 71은 경기의 창시자를 디오메데스·에우리로코스·암픽티온·아드라스토스로 보는 다른 전승을 나열한다. 아폴로가 세웠다는 해당 서사와 합치지 않는다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 71",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xi/xi-games (피티아 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "18de9937-8188-51e3-8368-e4a84460fadf",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-phoroneus",
+    "title": "포로네우스와 이나코스의 상반된 계보: 주석",
+    "cardType": "character",
+    "body": "주석 102는 포로네우스가 이나코스의 아버지라는 설명과 이나코스가 포로네우스의 아버지라는 다른 설명을 함께 적는다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 102",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "60a5bf95-127a-519c-bb63-d37c8d400f87",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-caduceus",
+    "title": "카두케우스의 기능: 주석",
+    "cardType": "object",
+    "body": "주석 104는 메르쿠리우스의 지팡이가 죽은 자의 혼을 부르고 잠을 일으키며 올리브 가지에 뱀 두 마리가 감긴 모습으로 표현된다고 설명한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 104",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "71aad367-3f04-5f61-be9c-da3910f9d5ed",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-ladon",
+    "title": "라돈의 흐름에 대한 다른 묘사: 주석",
+    "cardType": "location",
+    "body": "주석 108은 이 작품의 잔잔한 라돈과 오비디우스 《축제력》의 거세고 빠른 라돈 묘사를 비교한다. 주석자는 차이를 운율에 맞춘 표현일 가능성으로 해석한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 108",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xv/xv-ladon (라돈 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "24be6d19-d9bc-5264-a54f-31603f03988e",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-epaphus",
+    "title": "에파포스의 출생 이설: 주석",
+    "cardType": "character",
+    "body": "주석 113은 에파포스를 이오와 유피테르의 아들로 여기는 전승 외에 이오와 텔레고노스의 아들이라는 아폴로도로스 인용 전승을 소개한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 113",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xvii/xvii-epaphus (에파포스 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2e417421-3c0e-50be-8152-ed213859c4dc",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-astrea",
+    "title": "아스트라이아의 계보 이설: 주석",
+    "cardType": "character",
+    "body": "주석 35는 정의의 여신 아스트라이아의 부모를 아스트라이오스와 아우로라 또는 유피테르와 테미스로 제시하며, 그녀가 지상을 떠나 처녀자리가 되었다는 전승을 소개한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 35",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "93b15eea-ed5b-5c56-be2b-9709daa86d20",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-milkyway",
+    "title": "은하수의 유노 젖 이야기: 주석",
+    "cardType": "event",
+    "body": "주석 37은 은하수가 헤라클레스가 젖을 먹을 때 유노의 젖이 흘러 만들어진 자국이라는 전승을 소개한다. 같은 주석은 별빛에 대한 다른 설명도 별도로 소개한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 37",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:hera (헤라 관련; 출전과 세부 비교 필요)",
+      "source:heracles (헤라클레스 관련; 출전과 세부 비교 필요)",
+      "source:heracles_labours (헤라클레스의 열두 과업 관련; 출전과 세부 비교 필요)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a3374d0a-d1aa-5f9b-b941-985678960bf4",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-furies",
+    "title": "에린니에스 세 자매: 주석",
+    "cardType": "organization",
+    "body": "주석 47은 에린니스를 복수의 여신들을 가리키는 그리스식 명칭으로 설명하며 알렉토·티시포네·메가이라 세 이름을 든다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 47",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b6169aa6-fdf8-54a8-90be-695aafdb84c3",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-deucalion",
+    "title": "데우칼리온과 피라의 친족 관계: 주석",
+    "cardType": "character",
+    "body": "주석 63은 프로메테우스와 에피메테우스를 이아페토스의 아들로 보아 데우칼리온과 피라를 사촌이라 설명하고, 남매라는 호칭을 넓은 뜻으로 풀이한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 63",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-ix/ix-deucalion (데우칼리온 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-x/x-pyrrha (피라 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "badeb157-280d-57b7-991f-54d5d80c1b69",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-prometheus",
+    "title": "프로메테우스의 진흙 인간: 주석",
+    "cardType": "event",
+    "body": "주석 64는 데우칼리온이 말한 아버지의 기술을 프로메테우스가 진흙으로 사람을 만들고 하늘에서 훔친 불로 생기를 주었다는 이야기와 연결한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 64",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "source:prometheus (프로메테우스 관련; 출전과 세부 비교 필요)",
+      "review:prometheus-eagle (프로메테우스의 독수리와 간 관련; 출전과 세부 비교 필요)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c2c86564-aa60-5d38-98cb-e81c1f65234a",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-peaks",
+    "title": "파르나소스 두 봉우리의 명칭: 주석",
+    "cardType": "location",
+    "body": "주석 55는 파르나소스 두 봉우리를 티코레움과 히팜페움이라 부르며 각각 바쿠스, 아폴로와 무사들에게 바쳐졌다고 설명한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 55",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-ix/ix-refuge (파르나소스 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xii/xii-cupid (파르나소스 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "32d775da-25cf-5006-a961-b5a7cdaafcff",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--endnotes",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "endnotes-isis",
+    "title": "이오와 이시스의 동일시: 주석",
+    "cardType": "other",
+    "body": "주석 112는 이집트에서 이오와 이시스를 동일시하는 설명을 덧붙이고 숭배자들의 아마포 옷을 언급한다. 두 전승의 동일성은 이 주석의 관점으로 남긴다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 권말 주석 112",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xiii/xiii-inachus (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiii/xiii-assault (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiv/xiv-io (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiv/xiv-writing (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-wander (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-speech (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiii/xiii-io-variant (이오 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "번역자 또는 편집자의 주석·해석이며 오비디우스 본문과 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "73410606-7a24-5dd8-94e5-5c634ac31b9c",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xii-leucippus",
+    "title": "레우키포스와 다프네의 이설",
+    "cardType": "event",
+    "body": "해설은 파우사니아스가 전한 별도의 이야기로 레우키포스가 여장해 다프네에게 접근하고, 함께 목욕하라는 요구에 정체가 드러나 그녀와 동료들에게 살해된다고 소개한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XII EXPLANATION의 파우사니아스 인용 대목",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "인접 해설의 이설이며 본문 서사와 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3f1a1683-fbde-5b62-bce3-f7e9a157f229",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xii-manto",
+    "title": "만토와 다프네 동일시 이설",
+    "cardType": "character",
+    "body": "해설은 디오도로스 시켈로스가 다프네를 델피에서 신탁을 내린 테이레시아스의 딸 만토와 같다고 전한다고 소개한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XII EXPLANATION의 디오도로스 인용 대목",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "인접 해설의 이설이며 본문 서사와 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "532910e1-9c13-58d5-9cd9-7f449593c139",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiii-io-variant",
+    "title": "이오 항해 이야기의 이설",
+    "cardType": "event",
+    "body": "해설은 그리스 저술가들의 전승이라며 유피테르에게 끌려간 이오, 아르고스의 감시와 소 모양 뱃머리를 지닌 배를 타고 떠나는 이야기를 소개한다. 본문의 소 변신과 구분한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIII EXPLANATION의 그리스 저술가 인용 대목",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xiv/xiv-io (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiv/xiv-writing (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-wander (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvii/xvii-speech (이오 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--endnotes/endnotes-isis (이오 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "인접 해설의 이설이며 본문 서사와 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c36d9637-16ca-58d3-8ccf-356aa5082d8b",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xvii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xvii-hierax",
+    "title": "히에락스와 아르고스의 이설",
+    "cardType": "character",
+    "body": "해설은 일부 신화 작가의 이야기로 잠든 아르고스를 히에락스가 깨우자 메르쿠리우스가 아르고스를 돌로 죽이고 히에락스를 새로 바꾸었다고 소개한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XVII EXPLANATION의 마지막 문단",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [
+      "batch-12:greco-ovid1--fable-xiv/xiv-argus (아르고스 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xiv/xiv-sleep (아르고스 관련; 이설·장면 구분)",
+      "batch-12:greco-ovid1--fable-xvi/xvi-death (아르고스 관련; 이설·장면 구분)"
+    ],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음",
+      "인접 해설의 이설이며 본문 서사와 구분"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d1b7034d-2e10-50f4-b7fa-ac9e2026e4b8",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-ix",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "ix-jupiter-neptune",
+    "title": "홍수의 끝을 명하는 신들",
+    "cardType": "event",
+    "body": "유피테르는 죄 없는 남녀가 남은 것을 보고 구름을 흩고 북풍으로 비를 걷는다. 바다의 지배자 넵투누스는 삼지창을 내려놓고 트리톤에게 물러가라는 신호를 명한다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable IX 원시 326–342행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dc9bcaa2-a193-5e62-912b-dc2f19ce4dcb",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xii-cupid-revenge",
+    "title": "복수하는 큐피드",
+    "cardType": "character",
+    "body": "비너스의 아들 큐피드는 활을 비웃은 아폴로에게 자신의 활이 그를 맞히겠다고 응수하고 서로 반대 효과가 있는 화살을 꺼낸다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XII 원시 454–474행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "08f9acf5-8cf2-5ea2-9f7b-f4cf51ea5c9b",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xiii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xiii-peneus",
+    "title": "강의 신 페네우스",
+    "cardType": "character",
+    "body": "페네우스는 바위 동굴에 살며 물과 그곳의 님프들을 다스린다. 지역의 강들이 그의 처지를 축하할지 위로할지 모른 채 찾아온다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XIII 원시 568–581행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "912e8288-abaa-5089-bb79-c2f82809a84e",
+    "batch_id": "batch-12",
+    "unit_id": "greco-ovid1--fable-xvii",
+    "work_id": "greco-ovid1",
+    "world_id": "greco_roman_mythology",
+    "candidate_key": "xvii-styx-oath",
+    "title": "유피테르의 스틱스 맹세",
+    "cardType": "rule",
+    "body": "유피테르는 유노에게 이오가 더 이상 문제를 일으키지 않을 것이라고 약속하며 스틱스의 물을 증인으로 부른다.",
+    "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+    "source_location": "《변신 이야기》 제1권 Fable XVII 원시 730–737행",
+    "edition": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "라틴어 원문과 다른 판본은 대조하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ec725abd-d6d8-5521-aaf1-2d6387526d81",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-01",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "messengers",
+    "title": "아시하라국에 파견된 신들",
+    "cardType": "event",
+    "body": "고황산령은 나라를 평정할 신을 보내지만 천호일은 대기귀에게 붙고, 그의 아들 역시 돌아와 보고하지 않는다. 뒤이어 파견된 천치는 지상에 머물며 지배를 꾀한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 01 (main account) / 전반, 천호일과 천치의 파견",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source amenowakahiko 「아메노와카히코의 사명과 죽음」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9ba8cab0-3b35-5211-a999-e2054916b7a0",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-01",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "wakahi",
+    "title": "천치와 되돌아온 화살",
+    "cardType": "event",
+    "body": "천치는 감시하러 온 꿩을 쏘고 그 화살은 하늘까지 닿는다. 고황산령이 되던진 화살은 잠든 천치를 죽이며, 서술은 이를 되돌아오는 화살을 두려워하는 유래로 설명한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 01 (main account) / 전반, 꿩과 반시",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source amenowakahiko 「아메노와카히코의 사명과 죽음」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7f11ad35-a1bb-58c1-9f95-af0312acfd26",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-01",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "funeral",
+    "title": "천치의 상옥과 상산",
+    "cardType": "event",
+    "body": "천치의 장례에 온 아지시키타카히코네는 죽은 친구와 혼동되자 분노해 상옥을 검으로 베어 넘어뜨린다. 떨어진 상옥은 미노국 상산이 된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 01 (main account) / 전반, 조문과 상옥의 추락",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source amenowakahiko 「아메노와카히코의 사명과 죽음」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8a76fa5a-8cb7-57fe-b274-2285cad647d8",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-01",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "sword",
+    "title": "오하바리 검",
+    "cardType": "object",
+    "body": "아지시키타카히코네가 자신을 죽은 천치로 오인한 데 화가 나 상옥을 베는 칼이다. 본문은 가미토노쓰루기라는 다른 이름도 적는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 01 (main account) / 전반, 상옥을 베는 장면",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d2cf6cc4-3a04-543d-a974-1b80c6e01b8b",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-01",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "envoys",
+    "title": "후쓰누시와 다케미카즈치",
+    "cardType": "character",
+    "body": "두 신은 칼을 거꾸로 꽂고 칼끝에 앉아 대기귀에게 천손을 위한 국토 양도를 묻는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 01 (main account) / 중반, 이즈모 해안에서 국토를 묻는 장면",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source takemikazuchi 「다케미카즈치와 국토 양도」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "892855d9-b27f-5527-9f05-607b3a7e5a3b",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-01",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "kotoshiro",
+    "title": "고토시로누시의 물러남",
+    "cardType": "character",
+    "body": "낚시하던 대기귀의 아들 사대주는 아버지가 하늘 신의 요구에 따라 물러나야 한다고 답하고 바다에 푸른 울타리를 만들어 몸을 숨긴다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 01 (main account) / 중반, 미호 곶에 보낸 사자",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source okuninushi 「오쿠니누시」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1207e6e8-cf3a-5b08-9836-aed2f486360f",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-01",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "spear",
+    "title": "대기귀의 넓은 창",
+    "cardType": "object",
+    "body": "대기귀가 나라를 평정할 때 쓴 넓은 창을 두 신에게 건네며 천손이 이를 쓰면 나라가 평안할 것이라고 말한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 01 (main account) / 중반, 국토 양도 직후",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source takemikazuchi 「다케미카즈치와 국토 양도」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "63500f06-37fe-5466-864a-3e530dac5bf4",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-01",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "star",
+    "title": "별신 가가세오와 다케하즈치",
+    "cardType": "event",
+    "body": "괄호 속 일설에서는 별신 가가세오만 복종하지 않다가 직물의 신 다케하즈치에게 복종한다. 이는 같은 문단의 별도 이설이다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 01 (main account) / 중반, 불순한 신들의 평정에 관한 괄호 속 일설",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f219544e-efd4-561f-b146-9288a40d5d15",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-01",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "descent",
+    "title": "니니기의 강림",
+    "cardType": "event",
+    "body": "고황산령은 천손 니니기를 진상추금으로 덮어 내려보내며, 천손은 하늘 구름을 헤치고 휴가 다카치호 봉우리에 이른다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 01 (main account) / 후반, 진상추금과 다카치호",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source ninigi_descent 「니니기의 천손강림」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f149f3ce-4f86-50e0-972c-bc7cdec18967",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-01",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "konohana",
+    "title": "불타는 산실의 맹세",
+    "cardType": "event",
+    "body": "천손이 하룻밤 만의 임신을 의심하자 가아시쓰히메는 문 없는 방에 들어가 아이가 천손의 자식이면 불에 해를 입지 않으리라 맹세한다. 세 아이가 태어난다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 01 (main account) / 후반, 가아시쓰히메의 출산",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "86657b5c-3e1a-54b3-8eb3-5a97834c0464",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-02",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "arrow",
+    "title": "천치에게 돌아온 저주의 화살",
+    "cardType": "event",
+    "body": "이 일서에서 아마테라스가 천치를 보낸다. 하늘 신은 화살이 악의로 쏘였으면 천치가 해를 입고 선의면 무사하도록 빌며 되던지는데 화살이 천치를 죽인다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 02 (一書) / 일서 앞부분, 꿩을 쏜 뒤",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source amenowakahiko 「아메노와카히코의 사명과 죽음」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a60c6d4f-0f33-5385-8b68-1e4a54e1c1e4",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-02",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "mourning-song",
+    "title": "장례 노래와 아지시키타카히코네",
+    "cardType": "event",
+    "body": "죽은 천치와 닮은 신이 상옥을 베어 산으로 만든 뒤 빛나는 모습에 대한 노래가 나온다. 누이가 신의 정체를 알리려 불렀다는 설명도 병기된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 02 (一書) / 일서 전반, 상옥 파괴와 두 노래",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d85c31c4-8fa1-507c-8bca-98e904081ae3",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-02",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "treasures",
+    "title": "천손에게 준 세 신보",
+    "cardType": "object",
+    "body": "아마테라스는 손자에게 팔판경과 곡옥, 초치검을 주어 내려보낸다. 세 물건은 함께 내려가는 신들과 구분하여 제시된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 02 (一書) / 일서 중반, 아마테라스의 하사",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source divine_treasures 「세 가지 신보」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7c46b8c9-8133-5ed4-bf44-95daa8dc10d2",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-02",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "five-gods",
+    "title": "천손을 모시는 다섯 부의 신",
+    "cardType": "organization",
+    "body": "천아옥명과 태옥명, 천전녀명, 석응로명, 옥옥명이 천손을 모시는 다섯 부의 신으로 나열되며 각각 씨족의 선조로 설명된다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 02 (一書) / 일서 중반, 삼종 보물에 이어",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "51508865-8e8c-5c7d-b6d0-97503bd836ab",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-02",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "crossroads",
+    "title": "길목의 사루타 신",
+    "cardType": "character",
+    "body": "사루타 신은 천손을 맞아 앞길을 열려고 갈림길에서 기다린다. 천전녀가 다가가 이름과 목적지를 묻고, 이후 그를 이세의 이스즈 강가까지 배웅한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 02 (一書) / 일서 후반, 하늘의 여덟 갈래 길",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source sarutahiko 「사루타히코와 길의 인도」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3cab430c-39f4-5000-97b9-bbb3f98d43c3",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-02",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "sarume",
+    "title": "사루메 씨의 이름",
+    "cardType": "event",
+    "body": "천손은 사루타 신을 드러낸 천전녀에게 그 신의 이름을 씨로 삼게 하고 사루메의 칭호를 준다. 글은 사루메 씨의 남녀 호칭 유래로 연결한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 02 (一書) / 일서 끝, 사루타 신의 배웅 뒤",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source sarutahiko 「사루타히코와 길의 인도」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e6459535-7b5e-5976-83bf-26679715c8df",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-03",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "star-first",
+    "title": "하늘의 별신을 먼저 토벌하는 일설",
+    "cardType": "event",
+    "body": "후쓰누시와 다케미카즈치는 지상 평정 전에 하늘의 악신 천진옹성, 곧 천향향배남을 먼저 죽이자고 청한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 03 (一書) / 일서 첫머리",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ad2c5e05-ab46-5d0b-a688-1d97f9eb754a",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-03",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "visible-hidden",
+    "title": "현세와 신사의 분담",
+    "cardType": "rule",
+    "body": "고황산령은 대기귀에게 드러난 일은 천손이 다스리고 신의 일은 대기귀가 맡도록 제안한다. 대기귀는 이를 받아들여 숨은 일을 다스리겠다고 한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 03 (一書) / 일서 전반, 고황산령의 재제안",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source okuninushi 「오쿠니누시」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fec35dd0-1f7a-58a1-b5c0-11568bddd0b8",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-03",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "palace",
+    "title": "대기귀의 천일우궁",
+    "cardType": "location",
+    "body": "천일우궁은 높은 기둥과 넓고 두꺼운 판자로 짓도록 약속된 대기귀의 궁이다. 농지와 바다를 오갈 다리·배도 함께 마련하기로 한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 03 (一書) / 일서 전반, 재제안에 포함된 궁과 시설",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source okuninushi 「오쿠니누시」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요",
+      "japan-nihon2--paragraph-10/palace와 유사한 서술 가능성: 실제 본문 및 이설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d340b169-4af8-5096-92b8-15d605423eab",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-03",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "kunado",
+    "title": "기신의 길 안내",
+    "cardType": "character",
+    "body": "대기귀가 자신을 대신해 두 신을 따르도록 추천한 기신은 후쓰누시의 길잡이가 되어 각지를 돈다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 03 (一書) / 일서 전반, 대기귀의 퇴거 직후",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "901b26b5-df2a-537a-bbeb-354488930b7d",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-03",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "omono",
+    "title": "대물주와 미호쓰히메",
+    "cardType": "character",
+    "body": "대물주는 고황산령의 딸 미호쓰히메와 짝지어지고 많은 신을 이끌어 천손을 지키라는 명을 받는다. 이는 이 일서의 서술이다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 03 (一書) / 일서 중반, 지상 신의 복속 뒤",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "37141bd2-1a7c-528e-b53b-c656fdd509d1",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-03",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "crafts",
+    "title": "신들의 제작과 제사",
+    "cardType": "organization",
+    "body": "삿갓·방패·금속·목면·옥을 만드는 일을 각각의 신에게 맡기고 태옥명과 천아옥명이 제사와 점을 맡는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 03 (一書) / 일서 중반, 대물주 귀환 이후",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0669ebaf-3bf6-5929-9bfe-f195b550acf0",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-03",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "mirror",
+    "title": "같은 궁에 모시는 거울",
+    "cardType": "object",
+    "body": "아마테라스는 아들에게 거울을 자신처럼 여기고 같은 침상과 전각에 모시라고 당부한다. 거울은 뒤에 대신 내려가는 손자에게 이어진다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 03 (一書) / 일서 중반, 아마테라스의 거울 수여",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source divine_treasures 「세 가지 신보」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a463b171-7fef-507a-a7ee-d801319075b6",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-03",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "iwanaga",
+    "title": "이와나가히메의 저주",
+    "cardType": "character",
+    "body": "천손이 외모를 이유로 언니 이와나가히메를 거절하고 동생을 맞자, 언니는 자손이 바위처럼 오래 살 기회를 잃고 꽃처럼 시들 것이라고 말한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 03 (一書) / 일서 후반, 두 자매의 혼인 제안",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "398a57bb-9fd3-502f-b08f-f41389dc6c68",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-03",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "birth",
+    "title": "꽃 공주의 산실 시험",
+    "cardType": "event",
+    "body": "고노하나사쿠야히메는 임신을 의심받자 문 없는 방을 태우며 자식의 출생을 시험한다. 이 일서는 화수세리·화명·화화출견의 출생 순서를 적는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 03 (一書) / 일서 끝, 불에 들어간 산실",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "japan-nihon2--paragraph-11/birth와 유사한 서술 가능성: 실제 본문 및 이설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a9211e22-d425-59a0-a7b5-2da58fd73e89",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-04",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "bamboo",
+    "title": "배꼽을 자른 대나무 칼",
+    "cardType": "object",
+    "body": "세 아이와 어머니가 무사한 뒤 아이들의 배꼽을 대나무 칼로 자른다. 버린 칼이 대나무숲이 되어 그 땅을 다케야라 부르게 되었다고 한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 04 (一書) / 일서 앞부분, 불 속 출산 뒤",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5982a477-1955-54d0-952c-9fbd7b3ae923",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-04",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "rice",
+    "title": "사나다와 아마노타무자케",
+    "cardType": "event",
+    "body": "가아시쓰히메가 점으로 사나다라는 밭을 정하고 그 벼로 단 술을 빚어 맛본다. 다른 논의 벼로 밥도 지어 맛본다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 04 (一書) / 일서 끝, 신찬을 준비하는 대목",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "50bd3175-1b56-53e7-90d9-7740646ced6f",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-05",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "escort",
+    "title": "천손의 무장 선도자",
+    "cardType": "character",
+    "body": "천인일명은 활·화살·화살통 등을 갖추고 대래목을 거느려 천손 앞에서 내려온다. 이 일서는 두 인물을 오토모와 구메 계통의 선조로 적는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 05 (一書) / 일서 앞부분, 강림 수행",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "japan-nihon2--paragraph-13/escort와 유사한 서술 가능성: 실제 본문 및 이설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f4a76280-3fd4-5be3-bbc1-3e0858ddb413",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-05",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "nagasa",
+    "title": "나가사와 시오쓰치 노옹",
+    "cardType": "character",
+    "body": "천손에게 나라를 바친 고토카쓰쿠니카쓰나가사를 이자나기의 아들이자 시오쓰치 노옹이라고도 부른다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 05 (一書) / 일서 끝, 가사사 곶의 문답",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f35b26d2-b842-5b33-8974-afcdef3bae44",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-06",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "four-children",
+    "title": "불 속에서 말하는 네 아이",
+    "cardType": "event",
+    "body": "이 일서에서는 불의 단계마다 네 아이가 나와 스스로 천신의 아들이라고 말한다. 천손은 나중에 의심을 드러낸 것은 모두에게 모자의 신이함을 알리려는 뜻이었다고 해명한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 06 (一書) / 일서 전체, 출산과 천손의 해명",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bfb9114f-a1e9-5b35-beff-097116ecee83",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-07",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "pheasants",
+    "title": "두 꿩의 다른 운명",
+    "cardType": "event",
+    "body": "수꿩은 기장밭과 콩밭을 보고 머물러 돌아오지 않는다. 이어 보낸 암꿩은 천치의 화살을 맞고 하늘로 올라가 보고한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 07 (一書) / 일서 앞부분, 천치에게 보낸 새",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source amenowakahiko 「아메노와카히코의 사명과 죽음」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e13086d2-4285-507f-9367-878b696501ec",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-07",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "loom",
+    "title": "바닷가 전각의 직조하는 자매",
+    "cardType": "event",
+    "body": "천손은 물결 위에 솟은 전각에서 구슬을 울리며 베를 짜는 여인에 관해 묻는다. 나가사는 이와나가히메와 고노하나사쿠야히메 자매라고 답한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 07 (一書) / 일서 중반, 나가사에게 묻는 장면",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2402636a-c603-5e5f-83a7-11f69d0ffa8b",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-07",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "song",
+    "title": "천손과 도요아타쓰히메의 불화",
+    "cardType": "event",
+    "body": "천손의 의심과 출산 뒤 도요아타쓰히메는 남편과 말하지 않는다. 천손은 이를 걱정해 노래를 부른다. 노랫말의 정확한 해석은 별도 검토가 필요하다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 07 (一書) / 일서 끝, 출산 뒤의 노래",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c3218e70-a148-5bb2-a8bf-fa2f3d8278fc",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-08",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "genealogies",
+    "title": "천손의 여러 계보",
+    "cardType": "other",
+    "body": "본문은 니니기와 관련 신들의 부모와 자손에 관해 여러 계보를 병렬로 전한다. 서로 다른 계보를 하나의 가계도로 확정하지 않는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 08 (一書) / 일서 전체, 여러 一雲 계보",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "964c5a15-e323-54f0-81da-357a638f2c80",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-09",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "lineage",
+    "title": "화명과 니니기의 형제 계보",
+    "cardType": "other",
+    "body": "천인수이존과 천만고번천번희의 아들로 화명과 니니기가 차례로 태어난다. 니니기와 고노하나사쿠야히메의 아들로 화수세리와 화화출견을 든다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 09 (一書) / 일서 전체, 두 형제와 니니기의 자녀",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ae8f7a22-366d-527d-a112-3c8b4d905fbc",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-10",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "exchange",
+    "title": "바다와 산의 도구 교환",
+    "cardType": "event",
+    "body": "형은 바다의 행운을, 동생은 산의 행운을 지녔으나 서로 바꾸자 성과를 얻지 못한다. 동생이 형의 바늘을 잃자 형은 대체품을 거절한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 10 (main account) / 본문 앞부분, 낚싯바늘 분실",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source hoori-hoderi 「호오리와 호데리의 낚싯바늘」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "94848b9c-b53a-5946-9bd5-6d528582aab9",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-10",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "basket",
+    "title": "시오쓰치의 바구니",
+    "cardType": "object",
+    "body": "시오쓰치 노옹은 눈이 없는 바구니를 만들어 슬퍼하는 화화출견을 넣고 바다에 가라앉힌다. 작은 물가가 나타나고 동생은 바다 신의 궁에 도착한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 10 (main account) / 본문 앞부분, 해변에서의 만남",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "64f07d5e-42f6-5493-baa2-c261e0650cd3",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-10",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "palace",
+    "title": "바다 신의 궁과 우물",
+    "cardType": "location",
+    "body": "바다 신의 궁에는 정돈된 성가퀴와 누각이 있고 문 앞 우물 위에는 가지가 무성한 나무가 있다. 딸이 물을 뜨러 나왔다가 손님을 발견한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 10 (main account) / 본문 전반, 바다 신 궁의 첫 묘사",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source sea-palace 「바다 신의 궁전」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요",
+      "japan-nihon2--paragraph-03/palace와 유사한 서술 가능성: 실제 본문 및 이설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "64eeb28f-ec64-5349-a62e-7205ee9869b4",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-10",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "hook",
+    "title": "붉은 물고기 입의 낚싯바늘",
+    "cardType": "object",
+    "body": "바다 신이 물고기들을 모아 묻자 입병으로 오지 못한 적녀를 불러내고 그 입에서 잃어버린 낚싯바늘을 찾는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 10 (main account) / 본문 중반, 물고기들을 모아 조사",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source hoori-hoderi 「호오리와 호데리의 낚싯바늘」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "afbcf216-e3d5-5d95-8d8d-ff838e208857",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-10",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "tide-jewels",
+    "title": "조수를 채우고 마르게 하는 구슬",
+    "cardType": "object",
+    "body": "바다 신은 조수를 채우는 구슬과 마르게 하는 구슬을 건넨다. 형이 괴로워하며 빌 때 물을 빼 구하라는 사용법도 알려준다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 10 (main account) / 본문 중반, 귀향 전 바다 신의 조언",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source hoori-hoderi 「호오리와 호데리의 낚싯바늘」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "429bf72f-d6f8-5238-8a6a-d10b992ada51",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-10",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "toyotama",
+    "title": "도요타마히메의 출산 금기",
+    "cardType": "event",
+    "body": "도요타마히메는 출산을 보지 말라고 부탁한다. 천손이 몰래 보자 용으로 변한 모습이 드러나고, 그녀는 부끄러워 아이를 해변에 남기고 바닷길을 닫는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 10 (main account) / 본문 후반, 해변 산실",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source toyotamabime 「도요타마비메의 출산 금기」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "847172d9-dcd2-5ec5-abd3-c6ee6e11f088",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-11",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "comb",
+    "title": "검은 빗에서 난 대숲",
+    "cardType": "object",
+    "body": "노옹이 주머니의 검은 빗을 땅에 던지자 오백 개의 대숲이 된다. 노옹은 그 대나무로 성긴 바구니를 만들어 동생을 바다로 보낸다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 11 (一書) / 일서 앞부분, 시오쓰치 노옹의 도움",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "edcebdad-41ea-5a4a-bbd7-aa523378734a",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-11",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "reflection",
+    "title": "우물에 비친 손님",
+    "cardType": "event",
+    "body": "도요타마히메의 시녀가 우물에서 물을 길어도 병이 차지 않자 물속에 웃는 얼굴이 비친 것을 보고 나무에 있는 신을 발견한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 11 (一書) / 일서 중반의 다른 설명, 바다 궁의 문 앞",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source sea-palace 「바다 신의 궁전」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0055c730-adbe-562a-b7a5-04152c8ba31d",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-11",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "curse",
+    "title": "바늘에 거는 빈곤의 저주",
+    "cardType": "rule",
+    "body": "바다 신은 바늘을 형에게 돌려줄 때 가난과 굶주림과 고통의 근원이라고 저주하라고 가르친다. 바다를 건너는 형에게 폭풍을 일으키겠다고도 한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 11 (一書) / 일서 중반, 귀향 직전",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source hoori-hoderi 「호오리와 호데리의 낚싯바늘」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c7870657-167b-5fe5-9ada-ebbc501b1819",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-11",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "crocodile",
+    "title": "귀향을 돕는 큰 와니",
+    "cardType": "character",
+    "body": "바다 신은 화화출견을 큰 와니에 태워 본래 살던 곳으로 보낸다. 와니의 정확한 동물학적 대응은 이 표기만으로 단정하지 않는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 11 (一書) / 일서 중반, 귀향 장면",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a9221cb6-c388-5691-8d3a-2b581a509297",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-11",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "birth",
+    "title": "와니로 변한 도요타마히메",
+    "cardType": "event",
+    "body": "화화출견이 빗을 태워 비추자 출산 중인 도요타마히메가 여덟 길 큰 곰와니로 변한 모습이 보인다. 그녀는 바다로 돌아가고 동생 다마요리히메가 아이를 기른다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 11 (一書) / 일서 후반, 산실 엿보기",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source toyotamabime 「도요타마비메의 출산 금기」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요",
+      "japan-nihon2--paragraph-03/birth와 유사한 서술 가능성: 실제 본문 및 이설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c915c9e0-b6df-5f96-912b-f242a3fbb540",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-11",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "thatch",
+    "title": "지붕이 덜 덮인 산실",
+    "cardType": "location",
+    "body": "해변 산실을 가마우지 깃으로 덮던 중 지붕 마루가 다 합쳐지기 전에 아이가 태어나 그 상황이 아이의 이름에 반영되었다고 한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 11 (一書) / 일서 끝, 아이의 이름 풀이",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "beaaee14-6835-55ba-908b-8b2f4f3dab56",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-12",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "mouth-fish",
+    "title": "천손의 음식에서 제외된 물고기",
+    "cardType": "rule",
+    "body": "바다 신은 입에서 바늘이 발견된 물고기에게 이후 미끼를 삼키지 말고 천손의 음식에도 오르지 말라고 명한다. 이 일서는 그 물고기를 올리지 않는 유래로 설명한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 12 (一書) / 일서 앞부분, 바늘을 찾은 뒤",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0f2f0caa-c103-5c36-9af7-c9a2c59f8da4",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-12",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "tide",
+    "title": "두 차례 조수에 잠긴 형",
+    "cardType": "event",
+    "body": "동생이 조수 구슬로 형을 위협하고 구한다. 형은 처음 복종을 철회하지만 다시 산과 나무까지 덮이는 물에 쫓겨 후손이 봉사하겠다고 맹세한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 12 (一書) / 일서 후반, 형의 복종",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source hoori-hoderi 「호오리와 호데리의 낚싯바늘」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ddc4177d-3851-533b-94d3-266eac596a3c",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-12",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "hayato",
+    "title": "하야토의 봉사 유래",
+    "cardType": "other",
+    "body": "본문은 화수세리의 후손인 여러 하야토가 궁 가까이에서 개를 대신해 짖으며 봉사한다고 설명한다. 이는 편찬 서술의 유래 주장이다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 12 (一書) / 일서 끝, 형의 복종에 대한 설명",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b1453a8b-58c0-5227-8926-0313b13729b1",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-12",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "lost-hook",
+    "title": "잃어버린 바늘에 대한 관행",
+    "cardType": "rule",
+    "body": "화수세리와 화화출견의 이야기 뒤에 세상에서 잃어버린 바늘을 갚으라고 요구하지 않는 유래라는 설명이 붙는다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 12 (一書) / 일서 마지막 문장",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "기존 source hoori-hoderi 「호오리와 호데리의 낚싯바늘」와 관련 서사가 겹칠 수 있으나 판본·일설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3ba9569a-3eec-57c7-bd9f-7dd93920c8cf",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-13",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "goose",
+    "title": "올가미에 걸린 기러기",
+    "cardType": "event",
+    "body": "낚싯바늘을 잃고 해변에서 슬퍼하던 동생은 올가미에 걸려 괴로워하는 기러기를 불쌍히 여겨 풀어준다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 13 (一書) / 일서 전반, 해변에서",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f1105ce4-f158-5101-b572-fe6a0afcad14",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-13",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "escort",
+    "title": "하루에 바다를 건너는 와니",
+    "cardType": "character",
+    "body": "바다 신이 여러 와니에게 귀향에 걸릴 시간을 묻자 한 길짜리 와니가 하루면 된다고 답하여 천손을 데려간다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 13 (一書) / 일서 중반, 귀향할 동물을 고르는 장면",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [
+      "japan-nihon2--paragraph-05/escort와 유사한 서술 가능성: 실제 본문 및 이설 차이 확인 필요"
+    ],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "67baaf85-7170-5b31-8257-def85cc859f7",
+    "batch_id": "batch-13",
+    "unit_id": "japan-nihon2--paragraph-13",
+    "work_id": "japan-nihon2",
+    "world_id": "japanese_mythology",
+    "candidate_key": "fields",
+    "title": "형제의 다른 논",
+    "cardType": "rule",
+    "body": "바다 신은 형이 높은 밭을 만들면 동생은 낮은 밭을 만들고, 형이 낮은 밭을 만들면 동생은 높은 밭을 만들라고 조언한다.",
+    "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+    "source_location": "《日本書紀》 권2 Page paragraph 13 (一書) / 일서 중반, 바다 신의 추가 조언",
+    "edition": "《日本書紀》 권2, 한문; Wikisource 전사 revision 3792107; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "본문과 별도 표시된 일서는 각각의 전승으로 취급; 저본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  }
+]

@@ -1,22 +1,20 @@
-"""집필 AI Intent Router(#55): 작가 요청을 입력 가드레일로 거른 뒤 등록된 7개 기능의 실행 순서나 확인 질문으로 분류한다.
+"""집필 AI Decision Guard(#473, #55 Intent Router 대체): 작가 요청을 입력 가드레일로 거른 뒤 서비스 범위와 이번 요청에 필요한 기능을 판정한다.
 
-OpenAI Decisions(`gpt-6-luna`)에 고정 선택지 질문만 보내므로 모델은 등록된 값 중 하나만 고를 수 있고,
-작가에게 보이는 거절·확인 문구는 서버 고정 문구다. 권한·작품/Fork/회차 범위는 Content(`QaScopeService` 등)가
-확정한 값만 쓴다. 결과에는 범위·대상·도구 필드가 없어 입력 문장이 그 결과를 바꿀 수 없다.
+OpenAI Decisions(`gpt-6-luna`)에 고정 선택지 질문(guard + 기능별 yes/no)만 보내므로 모델은 등록된 값 중 하나만 고를 수 있고,
+작가에게 보이는 거절·확인 문구는 서버 고정 문구다. 순서·조건·검사 종류·작업 종류는 묻지 않는다(메인 에이전트가 정한다).
+권한·작품/Fork/회차 범위는 Content가 확정한 값만 쓴다. 판정에는 범위·대상·도구 인자가 없어 입력 문장이 범위를 넓힐 수 없다.
 """
 
 import re
 
-from pydantic import ValidationError
-
 from app.intent import agent
 from app.intent.errors import IntentFailure
-from app.intent.models import IntentResult, IntentStep
-from app.intent.prompt import (CAPABILITY_NAMES, CLARIFY_MESSAGE, FEATURES, FINDING_FEATURES, GUARD_QUESTION,
-                               REJECT_MESSAGES, ROUTE_QUESTIONS)
+from app.intent.models import DecisionResult
+from app.intent.prompt import CAPABILITY_ALIASES, CAPABILITY_NAMES, DECISION_QUESTIONS, FEATURES, GUARD_QUESTION
 
 _PLAIN = re.compile(r'[\s·ㆍ・]')  # 보기 이름을 알아볼 때 공백·가운뎃점(· ㆍ ・) 차이는 무시한다
 _BY_NAME = {_PLAIN.sub('', name): feature for feature, name in CAPABILITY_NAMES.items()}
+_BY_NAME.update({_PLAIN.sub('', name): feature for name, feature in CAPABILITY_ALIASES.items()})
 
 
 def clarified(request: str) -> str | None:
@@ -24,35 +22,25 @@ def clarified(request: str) -> str | None:
     return _BY_NAME.get(_PLAIN.sub('', request))
 
 
-def route(request: str, operation: str | None = None, materials: list[str] = (), history: list[str] = ()) -> IntentResult:
-    """UI에서 고른 operation이 있으면 가드레일만 묻고 그 기능으로 확정한다. 모델 실패·규격 밖 응답은 IntentFailure.
+def judge(request: str, operation: str | None = None, materials: list[str] = (), history: list[str] = ()) -> DecisionResult:
+    """UI에서 고른 operation이 있으면 가드레일만 묻고 그 기능 하나로 확정한다. 모델 실패·규격 밖 응답은 IntentFailure.
 
-    자유 입력은 이번 요청만으로 먼저 분류한다. 이전 요청을 같이 보내면 이미 끝난 요청에 분류가 끌려가기 때문이다. 되묻기(clarify)가 나왔을 때만
+    자유 입력은 이번 요청만으로 먼저 판정한다. 이전 요청을 같이 보내면 이미 끝난 요청에 판정이 끌려가기 때문이다. 고른 기능이 없을 때만
     history(같은 대화의 이전 요청)를 붙여 한 번 더 묻는다. "그거 고쳐줘" 같은 지칭은 이전 요청이 있어야 풀린다.
     """
-    if operation is not None:
-        IntentStep(feature=operation, when='always')  # 등록 밖 값은 모델 호출 전에 ValidationError(ValueError)
+    if operation is not None and operation not in FEATURES:
+        raise ValueError('등록되지 않은 기능입니다.')  # 모델 호출 전에 거절한다
     if operation:
         return _decide(request, materials, operation, history)
     first = _decide(request, materials, None, ())
-    return _decide(request, materials, None, history) if first.status == 'clarify' and history else first
+    return _decide(request, materials, None, history) if first.allowed and not first.capabilities and history else first
 
 
-def _decide(request: str, materials: list[str], operation: str | None, history: list[str]) -> IntentResult:
-    answers = agent.decide(request, list(materials), [GUARD_QUESTION] if operation else ROUTE_QUESTIONS, list(history))
+def _decide(request: str, materials: list[str], operation: str | None, history: list[str]) -> DecisionResult:
+    answers = agent.decide(request, list(materials), [GUARD_QUESTION] if operation else DECISION_QUESTIONS, list(history))
+    if answers['guard'] != 'none':
+        return DecisionResult(allowed=False, reason=answers['guard'])
     try:
-        if answers['guard'] != 'none':
-            return IntentResult(status='rejected', reason=answers['guard'], message=REJECT_MESSAGES[answers['guard']])
-        if operation:
-            return IntentResult(status='route', steps=[IntentStep(feature=operation, when='always')])
-        chosen = sorted((answers[f], f) for f in FEATURES if answers[f] != 'none')  # 순서 값은 한 자리(1~3)라 문자열 정렬이 곧 순서다.
-        steps = [IntentStep(feature=f, when='if_issues_found' if p.endswith('_if_issues') else 'always') for p, f in chosen]
-        # 기능별 답이 독립이라 상대 순서만 쓴다. 한 순서에 여러 기능이 오거나, 조건부 작업 앞에 문제를 찾는 작업이 없으면
-        # 모호하다고 보고 확인을 묻는다.
-        if (answers['clarity'] == 'ambiguous' or not steps or len({p[0] for p, _ in chosen}) != len(chosen)
-                or any(s.when == 'if_issues_found' and (i == 0 or steps[i - 1].feature not in FINDING_FEATURES)
-                       for i, s in enumerate(steps))):
-            return IntentResult(status='clarify', message=CLARIFY_MESSAGE)
-        return IntentResult(status='route', steps=steps)
-    except (KeyError, ValidationError):
+        return DecisionResult(allowed=True, capabilities=[operation] if operation else [f for f in FEATURES if answers[f] == 'yes'])
+    except KeyError:
         raise IntentFailure() from None

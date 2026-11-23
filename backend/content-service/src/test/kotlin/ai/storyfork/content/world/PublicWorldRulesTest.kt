@@ -1,15 +1,14 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content._common.exception.ContentFailure
-import ai.storyfork.content.world.domain.WORLD_GENRES
+import ai.storyfork.content.world.domain.cardImageId
+import ai.storyfork.content.world.domain.isGenreCode
 import ai.storyfork.content.world.domain.isListed
-import ai.storyfork.content.world.domain.isPublicCard
 import ai.storyfork.content.world.domain.publicWorldPage
-import ai.storyfork.content.world.domain.readerCardEpisode
 import ai.storyfork.content.world.domain.readerUpto
 import ai.storyfork.content.world.domain.revealFromEpisode
+import ai.storyfork.content.world.domain.shownCardEpisode
 import ai.storyfork.content.world.domain.visibleRelationships
-import ai.storyfork.content.world.domain.worldGenre
 import ai.storyfork.content.world.domain.worldVisibility
 import ai.storyfork.content.world.service.dto.RelationshipPayload
 import java.util.UUID
@@ -24,10 +23,6 @@ class PublicWorldRulesTest {
     private val c = UUID.randomUUID()
     private fun relation(source: UUID?, target: UUID?) = RelationshipPayload(UUID.randomUUID(), source, target, "structural", label = "관계")
 
-    @Test fun `genre codes are exactly the seven public codes`() {
-        assertEquals(listOf("fantasy", "sf", "wuxia", "romance", "modern", "classic", "mystery"), WORLD_GENRES)
-    }
-
     @Test fun `visibility accepts only the exact private and public codes`() {
         assertEquals("public", worldVisibility("public"))
         assertEquals("private", worldVisibility("private"))
@@ -36,12 +31,10 @@ class PublicWorldRulesTest {
         }
     }
 
-    @Test fun `genre is optional but must be an exact known code`() {
-        assertNull(worldGenre(null))
-        WORLD_GENRES.forEach { assertEquals(it, worldGenre(it)) }
-        listOf("", " sf", "Fantasy", "romcom").forEach {
-            assertThrows(IllegalArgumentException::class.java) { worldGenre(it) }
-        }
+    @Test fun `a genre filter is a Content genre code in the genre-NN form and the old English codes are gone`() {
+        // 세계관 장르는 작품과 같은 Content 장르 코드다(DEC-56). 코드가 실제 있는지는 목록이 말해 주므로(없으면 빈 목록) 모양만 본다.
+        listOf("genre-01", "genre-30", "genre-31", "genre-100").forEach { assertTrue(isGenreCode(it), it) }
+        listOf("", "fantasy", "sf", "wuxia", "romcom", "genre-1", "genre-", "Genre-01", " genre-01", "genre-01 ", "genre-0a").forEach { assertFalse(isGenreCode(it), it) }
     }
 
     @Test fun `only a public world that has a saved revision is listed`() {
@@ -49,13 +42,6 @@ class PublicWorldRulesTest {
         assertFalse(isListed("public", null))
         assertFalse(isListed("private", UUID.randomUUID()))
         assertFalse(isListed("private", null))
-    }
-
-    @Test fun `a card is shown on a public world only when it is active and its owner made it public`() {
-        assertTrue(isPublicCard("active", "public"))
-        assertFalse(isPublicCard("active", "private"))
-        assertFalse(isPublicCard("removed", "public"))
-        assertFalse(isPublicCard("removed", "private"))
     }
 
     @Test fun `a relationship is public only when both ends are published cards`() {
@@ -81,15 +67,36 @@ class PublicWorldRulesTest {
         assertNull(revealFromEpisode(mapOf("studio" to mapOf("revealFromEpisode" to 3))))
     }
 
-    @Test fun `readers see an active card from its reveal episode on and nothing before it`() {
-        val fromThree = mapOf<String, Any?>("revealFromEpisode" to 3)
-        assertEquals(3, readerCardEpisode("active", fromThree, 3))
-        assertEquals(3, readerCardEpisode("active", fromThree, 10))
-        assertNull(readerCardEpisode("active", fromThree, 2))
-        assertNull(readerCardEpisode("active", fromThree, 0))
-        assertNull(readerCardEpisode("removed", fromThree, 10))
-        assertNull(readerCardEpisode("active", emptyMap(), 10))
-        assertNull(readerCardEpisode("active", mapOf("revealFromEpisode" to "3"), 10))
+    /** 비공개+회차N / 공개+회차N / 공개+없음 / 비공개+없음 네 조합이 기준 회차 N-1·N에서 어떻게 보이는지(DEC-53)다. */
+    @Test fun `a card is shown from its reveal episode, from episode 1 when public without one, and never when author-only`() {
+        val n = 3
+        val atN = mapOf<String, Any?>("revealFromEpisode" to n)
+        listOf("private", "public").forEach { visibility ->
+            // 회차 값이 있으면 공개 여부와 무관하게 그 값이다. 기준 회차가 N 미만이면 숨는다.
+            assertNull(shownCardEpisode("active", visibility, atN, n - 1), visibility)
+            assertEquals(n, shownCardEpisode("active", visibility, atN, n), visibility)
+            assertEquals(n, shownCardEpisode("active", visibility, atN, Int.MAX_VALUE), visibility)
+            assertNull(shownCardEpisode("active", visibility, atN, 0), visibility)
+        }
+        // 공개이고 회차 값이 없는 기존 카드는 1화부터다(읽을 때 계산한다). 기준 회차가 0이면(공개된 회차가 없으면) 숨는다.
+        assertEquals(1, shownCardEpisode("active", "public", emptyMap(), 1))
+        assertEquals(1, shownCardEpisode("active", "public", emptyMap(), n))
+        assertNull(shownCardEpisode("active", "public", emptyMap(), 0))
+        // 비공개이고 회차 값이 없으면 작가 전용이다.
+        listOf(0, 1, n - 1, n, Int.MAX_VALUE).forEach { assertNull(shownCardEpisode("active", "private", emptyMap(), it), it.toString()) }
+        // 삭제된 카드는 어느 조합이든 보이지 않는다.
+        listOf("private", "public").forEach { assertNull(shownCardEpisode("removed", it, atN, Int.MAX_VALUE)) }
+        assertNull(shownCardEpisode("removed", "public", emptyMap(), Int.MAX_VALUE))
+    }
+
+    @Test fun `a reveal value that is present but unusable keeps the card author-only even when it is public`() {
+        // 값이 있으나 읽을 수 없으면(문자열·소수·0·음수) 공개 1화로 되돌리지 않고 작가 전용으로 닫는다.
+        listOf<Any?>("3", 2.5, 0, -1, true).forEach {
+            assertNull(shownCardEpisode("active", "public", mapOf("revealFromEpisode" to it), 10), it.toString())
+        }
+        // 키가 있으면 JSON null도 읽을 수 없는 값이라 작가 전용이다. 키가 없을 때만 옛 공개 카드의 1화 규칙이다(DEC-53 계약: '키가 없고 visibility=public이면 1').
+        assertNull(shownCardEpisode("active", "public", mapOf("revealFromEpisode" to null), 10))
+        assertNull(shownCardEpisode("active", "private", mapOf("revealFromEpisode" to null), 10))
     }
 
     @Test fun `the reader upto query is optional but must be a whole number of at least one`() {
@@ -113,6 +120,20 @@ class PublicWorldRulesTest {
     @Test fun `bad page and size are 422 rather than a type conversion 400`() {
         listOf("-1" to null, "x" to null, "" to null, "21474837" to null, "2147483647" to "100", null to "0", null to "101", null to "x").forEach { (page, size) ->
             assertEquals(422, assertThrows(ContentFailure::class.java) { publicWorldPage(page, size) }.status)
+        }
+    }
+
+    @Test fun `a card image id is the top level imageId when it is a standard UUID string, otherwise there is no image`() {
+        val id = UUID.randomUUID()
+        assertEquals(id, cardImageId(mapOf("imageId" to id.toString())))
+        assertEquals(id, cardImageId(mapOf("imageId" to id.toString().uppercase())))
+        assertEquals(id, cardImageId(mapOf("studio" to mapOf("item" to "x"), "imageId" to id.toString())))
+        assertNull(cardImageId(emptyMap()))
+        assertNull(cardImageId(mapOf("imageId" to null)))
+        // 중첩된 키·UUID가 아닌 값·UUID.fromString이 받아 주는 축약형은 이미지가 아니다.
+        assertNull(cardImageId(mapOf("studio" to mapOf("imageId" to id.toString()))))
+        listOf("", " ", "x", "1-1-1-1-1", " $id", "$id ", "{$id}", id.toString().replace("-", ""), 42, true, mapOf("id" to id.toString()), listOf(id.toString())).forEach {
+            assertNull(cardImageId(mapOf("imageId" to it)), it.toString())
         }
     }
 }

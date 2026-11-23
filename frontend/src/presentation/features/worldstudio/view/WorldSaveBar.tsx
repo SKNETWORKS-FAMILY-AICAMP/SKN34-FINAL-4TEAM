@@ -6,9 +6,9 @@ import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewMod
 type VM = ReturnType<typeof useWorldStudioViewModel>
 
 /**
- * 관리 모드의 상시 저장 영역(설정집 화면의 탭 줄 오른쪽, 편집 화면의 상단 바). 바뀐 것이 있으면 '저장하지 않은 변경 있음'과 세계관 저장 버튼, 없으면 '저장됨'이다(한 번도 저장한 적 없는 세계관은 첫 저장을 할 수 있다).
+ * 관리 모드의 상시 저장 영역(설정집 화면의 왼쪽 사이드바 아래쪽, 편집 화면의 상단 바). 바뀐 것이 있으면 '저장하지 않은 변경 있음'과 세계관 저장 버튼, 없으면 '저장됨'뿐이다(잠긴 버튼이 같은 말을 되풀이하지 않는다). 한 번도 저장한 적 없는 세계관은 첫 저장 버튼이 있다.
  * 저장 전에 확인할 문제가 있으면 첫 사유와 건수를 버튼 옆에 보이고 저장을 막는다. 사유에는 어느 설정의 문제인지 이름이 붙고(`writingIssueLabel`), 누르면 그 설정의 편집 화면으로 간다:
- * 하나를 고치면 다음 사유가 첫 사유가 되므로 눌러서 차례로 고칠 수 있다. 지난 회차를 연 채라면 관계가 어느 회차로 기록되는지 저장 버튼 곁에 알린다(`vm.episodeSaveNote`). 저장 로직·검증·충돌 처리는 작성 모드와 같은 `vm.save`다. 화면을 옮겨도 입력은 그대로다.
+ * 하나를 고치면 다음 사유가 첫 사유가 되므로 눌러서 차례로 고칠 수 있다(관계의 N화부터가 빠진 사유는 그 관계의 편집 패널로 간다). 지난 회차를 연 채 관계를 삭제했다면 삭제한 관계가 어느 회차에서 끝나는지 저장 버튼 곁에 알린다(`vm.episodeSaveNote`). 저장 로직·검증·충돌 처리는 작성 모드와 같은 `vm.save`다. 화면을 옮겨도 입력은 그대로다.
  */
 export function WorldSaveBar({ vm }: { vm: VM }) {
   const reason = useId()
@@ -28,7 +28,7 @@ export function WorldSaveBar({ vm }: { vm: VM }) {
         </span>
       )}
       {vm.episodeSaveNote && <span className="small muted">{vm.episodeSaveNote}</span>}
-      <button type="button" className="btn pri sm" disabled={!vm.canSave} aria-describedby={first ? reason : undefined} onClick={vm.save}>세계관 저장</button>
+      {(vm.dirty || vm.canSave || first) && <button type="button" className="btn pri sm" disabled={!vm.canSave} aria-describedby={first ? reason : undefined} onClick={vm.save}>세계관 저장</button>}
     </div>
   )
 }

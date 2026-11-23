@@ -1,23 +1,38 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content.world.service.GenreTemplateSeeder
+import ai.storyfork.content.world.service.GenreTemplateRepair
+import ai.storyfork.content.world.service.ExpandedManifest
+import ai.storyfork.content.world.service.dto.EditWorldDraftRequest
 import ai.storyfork.content.world.service.WorldStudioService
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.springframework.core.io.ClassPathResource
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.KotlinModule
 
 /** genre-templates.json이 WorldStudioService의 입력 제한을 이미 만족하는지 확인한다. 어기면 서버 시작 때 장르 적재가 실패한다. */
 class GenreTemplateResourceTest {
-    private val templates = GenreTemplateSeeder(mock(WorldStudioService::class.java),
-        JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()).load()
+    private val seeder = GenreTemplateSeeder(mock(WorldStudioService::class.java),
+        JsonMapper.builder().addModule(KotlinModule.Builder().build()).build())
+    private val templates = seeder.load()
     private val cards = templates.flatMap { it.cards }
 
-    @Test fun `eleven genres with 248 cards in the documented order`() {
+    @Test fun `twenty six templates with 1254 cards and 379 souls in documented order`() {
         assertEquals(listOf("wuxia", "romance_fantasy", "modern_fantasy", "science_fiction", "alternate_history", "game_fantasy",
-            "fusion_fantasy", "territory_management", "apocalypse", "sports_fantasy", "entertainment"), templates.map { it.genre })
-        assertEquals(248, cards.size)
+            "fusion_fantasy", "territory_management", "apocalypse", "sports_fantasy", "entertainment",
+            "sumerian_mythology", "cthulhu_mythos", "norse_mythology", "greco_roman_mythology", "germanic_folklore", "chinese_folklore", "japanese_mythology", "korean_mythology_fables", "egyptian_mythology", "indian_mythology", "celtic_mythology", "slavic_mythology", "maya_mythology", "aztec_mythology", "journey_to_the_west"), templates.map { it.genre })
+        assertEquals(1254, cards.size)
+        assertEquals(379, cards.count { it.cardType == "character" })
+        assertTrue(cards.all { if (it.cardType == "character") !it.soul.isNullOrBlank() && it.soul.length <= 3000 else it.soul == null })
+        assertEquals(seeder.loadV2(), templates.take(26).map { t -> t.copy(cards = t.cards.map { it.copy(soul = null) }) })
+    }
+
+    @Test fun `only the original eleven worlds have a frozen legacy input`() {
+        val seeder = GenreTemplateSeeder(mock(WorldStudioService::class.java), JsonMapper.builder().addModule(KotlinModule.Builder().build()).build())
+        assertEquals(seeder.loadLegacy().map { it.worldId }, templates.take(11).map { it.worldId })
+        assertTrue(templates.drop(11).all { t -> t.cards.any { it.cardType == "event" } })
     }
 
     @Test fun `world and card ids are globally unique`() {
@@ -25,9 +40,19 @@ class GenreTemplateResourceTest {
         assertEquals(ids.size, ids.toSet().size)
     }
 
+    @Test fun `every template resource genre has the decided public world genre`() {
+        val mapper = JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+        val expanded = ClassPathResource("sample-worlds-expanded/manifest.json").inputStream.use {
+            mapper.readValue(it, ExpandedManifest::class.java)
+        }
+        val resourceGenres = (templates + seeder.loadLegacy() + seeder.loadV2()).map { it.genre }.toSet() + expanded.worlds.map { it.genre }
+        assertTrue(resourceGenres.all { GenreTemplateSeeder.mappedWorldGenre(it) != null }, resourceGenres.joinToString())
+        assertNull(GenreTemplateSeeder.mappedWorldGenre("unknown_template"))
+    }
+
     @Test fun `every world and card fits the WorldStudioService limits`() {
-        templates.forEach { assertTrue(it.name.isNotBlank() && it.name.length <= 100 && it.description.length <= 20000, it.genre) }
-        cards.forEach {
+        (templates + seeder.loadLegacy()).forEach { assertTrue(it.name.isNotBlank() && it.name.length <= 100 && it.description.length <= 20000, it.genre) }
+        (cards + seeder.loadLegacy().flatMap { it.cards }).forEach {
             assertTrue(it.title.isNotBlank() && it.title.length <= 200, it.id.toString())
             assertTrue(it.body.isNotBlank() && it.body.length <= 3000, it.title)
             assertTrue(it.cardType in setOf("character", "location", "organization", "ability", "object", "rule", "event", "other"), it.title)
@@ -37,4 +62,28 @@ class GenreTemplateResourceTest {
     @Test fun `full text archive cards are not seeded`() {
         assertTrue(cards.none { it.title.contains("전체 원문") })
     }
+
+    @Test fun `repair payloads fit the service and preserve canonical frontend fields`() {
+        val mapper = JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+        val legacy = seeder.loadLegacy().associateBy { it.worldId }
+        templates.forEach { template ->
+            val payload = GenreTemplateRepair.payloads(template)
+            val request = EditWorldDraftRequest(2, template.name, template.description, payload, key = "genre-template-${template.genre}-repair-v2", replace = true)
+            assertTrue(payload.size <= 1000, template.genre)
+            assertTrue((payload.map { it.id } + legacy[template.worldId]?.cards.orEmpty().map { it.id }).toSet().size <= 1000, template.genre)
+            assertTrue(mapper.writeValueAsBytes(request).size <= 2_000_000)
+            payload.forEachIndexed { index, card ->
+                val row = card.semanticMetadata["studio"] as Map<*, *>
+                val item = row["item"] as Map<*, *>
+                assertEquals(index, row["templateOrder"])
+                assertEquals(card.id.toString(), item["id"])
+                assertEquals(card.title, item["title"])
+                assertEquals(card.body, item["text"])
+                assertEquals(card.areaCode, item["category"])
+                assertEquals(if (card.cardType == "event") "history" else "basic", card.areaCode)
+                assertEquals("approved", item["decision"])
+            }
+        }
+    }
+
 }

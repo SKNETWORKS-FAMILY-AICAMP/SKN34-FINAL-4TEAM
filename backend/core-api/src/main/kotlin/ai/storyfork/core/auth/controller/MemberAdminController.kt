@@ -4,6 +4,7 @@ import ai.storyfork.core.auth.service.MemberAdminService
 import ai.storyfork.core.auth.service.dto.AdminCreateRequest
 import ai.storyfork.core.auth.service.dto.MemberItem
 import ai.storyfork.core.auth.service.dto.MemberListResponse
+import ai.storyfork.core.auth.service.dto.MemberStatsResponse
 import jakarta.validation.Valid
 import java.util.UUID
 import org.springframework.http.HttpStatus
@@ -20,6 +21,10 @@ class MemberAdminController(private val service: MemberAdminService) {
     fun list(@AuthenticationPrincipal jwt: Jwt, @RequestParam(defaultValue = "ALL") role: String,
         @RequestParam(defaultValue = "") q: String, @RequestParam(defaultValue = "newest") sort: String): MemberListResponse =
         service.list(jwt.subject, role, q, sort)
+
+    /** 회원 수 통계(전체·최근 7일 가입·탈퇴 유예)를 반환한다. 운영 대시보드가 읽는다. */
+    @GetMapping("/stats")
+    fun stats(@AuthenticationPrincipal jwt: Jwt): MemberStatsResponse = service.stats(jwt.subject)
 
     /** 회원을 이용 제한한다. 자기 자신은 400, 없는 회원은 404다. */
     @PutMapping("/{id}/restriction")

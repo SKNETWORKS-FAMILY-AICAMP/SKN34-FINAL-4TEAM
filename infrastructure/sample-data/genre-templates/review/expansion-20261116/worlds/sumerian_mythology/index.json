@@ -1,0 +1,78 @@
+{
+  "world_id": "sumerian_mythology",
+  "world_id_meaning": "기존 worldId 참조용 라벨",
+  "id_namespace": "41adfa23-2e60-5b04-885a-994cf2478a18",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "sumer-gilgamesh",
+      "world_id": "sumerian_mythology",
+      "title": "Gilgamesh, Enkidu and the Netherworld",
+      "target_scope": "ETCSL 1.8.1.4 lines 1–26 and netherworld passage; latter exact lines unverified",
+      "edition_language_attribution": "Sumerian modern composite edition; ETCSL English translation and transliteration",
+      "prior_investigation_grade": "A",
+      "source_url": "https://etcsl.orinst.ox.ac.uk/section1/c1814.htm",
+      "other_recorded_urls": [
+        "https://etcsl.orinst.ox.ac.uk/section1/tr1814.htm"
+      ],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_partial",
+        "reason": "Sumerian composite lines 1–26 bounded; intended further passage remains unlocated."
+      },
+      "scope_status": "partial_lines_1_26_bounded",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "2a5131e532099252ec3f50f308f50eeff2026719b4b52de52f873f6f359cbb99",
+      "units": [
+        {
+          "unit_id": "sumer-gilgamesh--version-a-lines-1-26",
+          "label": "Version A lines 1–26",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 1293,
+            "byte_end_exclusive": 3485,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "a8a674723ec7efadd0d9f745c6dbac94bb733683fb41f82ab359a5586e25f813",
+            "note": "Anchor lineA1 inclusive to lineA27 exclusive; composite text, not one physical tablet."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "sumer-gilgamesh--version-a-lines-1-26",
+              "status": "partial",
+              "read_scope": "A판 1–26행 UTF-8 HTML과 로마자 전사 전체 확인; 번역 본문은 이 파일에 없음",
+              "reason": "수메르어 전사를 신뢰성 있게 해석할 수 없어 해당 행의 설정 추출과 완독 판정을 보류했다.",
+              "candidate_count": 0
+            },
+            {
+              "batch_id": "supplement-01",
+              "unit_id": "sumer-gilgamesh--version-a-lines-1-26",
+              "status": "partial",
+              "read_scope": "기존: A판 1–26행 로마자 복합 전사 형식만 확인. 추가: ETCSL 홈페이지·robots.txt·저작권 안내만 확인; 영어 번역 본문 1–26행 미열람.",
+              "reason": "robots.txt 404; 홈페이지는 온라인 열람 안내, credits는 저작권과 인용 양식 명시. 로컬 본문 보존·연구 재사용 허용 조건 미확인으로 영어 본문 요청·저장·해석 안 함. 영어 번역 URL https://etcsl.orinst.ox.ac.uk/section1/tr1814.htm ; 저장 해시 없음.",
+              "candidate_count": 0
+            }
+          ],
+          "actual_candidates": 0
+        },
+        {
+          "unit_id": "sumer-gilgamesh--netherworld-lines",
+          "label": "Netherworld descent passage",
+          "status": "blocked",
+          "reason": "Exact ETCSL line range not identified; English translation and individual tablet witnesses not acquired.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    }
+  ]
+}

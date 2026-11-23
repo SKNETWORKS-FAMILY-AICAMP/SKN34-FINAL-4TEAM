@@ -11,7 +11,7 @@ import { AccountMenu } from './AccountMenu'
 
 afterEach(() => { cleanup(); document.body.replaceChildren(); vi.unstubAllGlobals() })
 
-const Where = () => <p data-testid="where">{useLocation().pathname}</p>
+const Where = () => { const { pathname, search } = useLocation(); return <p data-testid="where">{pathname + search}</p> }
 const balanceOf = (total: number): CreditBalance => ({ total, items: [] })
 /** 메뉴가 읽는 크레딧 UseCase 대역. 기본은 끝나지 않는 요청이라 상태 갱신 없이 '읽는 중'에 머문다. */
 const creditsOf = (balance: (signal?: AbortSignal) => Promise<CreditBalance> = () => new Promise(() => {})) => ({ balance })
@@ -73,6 +73,13 @@ it('프로필 바로 아래에 보유 크레딧 줄을 두고, 읽히면 합계�
   fireEvent.click(row)
   expect(onClose).toHaveBeenCalledOnce()
   expect(screen.getByTestId('where').textContent).toBe('/me/pay')
+})
+
+it('로그인한 회원 메뉴에는 작품이 없는 독자도 닿는 내 댓글·제보 항목이 있고 작품 관리의 내 제보 화면으로 간다', () => {
+  const { onClose } = open()
+  fireEvent.click(screen.getByRole('menuitem', { name: '내 댓글·제보' }))
+  expect(onClose).toHaveBeenCalledOnce()
+  expect(screen.getByTestId('where').textContent).toBe('/content?view=reports')
 })
 
 it('잔액을 읽지 못하면 실패 문구만 보이고 0으로 채우지 않는다', async () => {

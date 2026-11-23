@@ -25,6 +25,9 @@
 .stage-people label { display: flex; align-items: center; gap: 8px; min-height: 32px; font-size: 14px; }
 .stage-answer { padding: 10px 14px; border: 1px solid var(--tline); border-radius: 12px; background: var(--tcard); line-height: 1.6; }
 .stage-reason { color: var(--danger); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+/* 비트 거부로 멈춘 장면: 거부한 인물 카드(설정집)와 흐름을 고쳐 다시 시도하는 버튼 */
+.stage-fix { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.stage-fix .chat-note { flex: 1 1 100%; }
 
 /* 장면: 전제·비트 → 대본 → 조작 */
 /* 서버 안내(원고 발췌를 쓰지 못했다는 등): 대본 위의 옅은 한 줄 */
@@ -53,7 +56,7 @@
 /* 줄 행동: 평소엔 옅게, 줄에 다가가면 또렷하게(키보드 초점 포함) */
 .stage-actions { display: flex; gap: 2px; opacity: .55; transition: opacity .15s; }
 .stage-turn:hover .stage-actions, .stage-actions:focus-within { opacity: 1; }
-.stage-actions button { min-height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: none; color: var(--tsub); font-size: 12.5px; font-weight: 600; }
+.stage-actions button { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: none; color: var(--tsub); font-size: 12.5px; font-weight: 600; }
 .stage-actions button:hover:not(:disabled) { background: var(--muted-bg); color: var(--tfg); }
 .stage-actions button:disabled { cursor: not-allowed; opacity: .5; }
 .stage-edit { display: grid; gap: 6px; }
@@ -88,7 +91,7 @@
 /* 좁은 화면과 손가락이 주 입력인 기기: 누르는 버튼은 44px, 입력 글자는 16px(iOS가 초점에서 화면을 확대하지 않게). */
 @media (max-width: 600px), (pointer: coarse) {
   .stage-actions { opacity: 1; }
-  .stage-actions button { min-height: 44px; }
+  .stage-actions button { min-width: 44px; min-height: 44px; }
   .stage-checks summary { padding-block: 13px; }
   .stage-note-form input { height: 44px; }
   .stage-radio, .stage-people label { min-height: 44px; }

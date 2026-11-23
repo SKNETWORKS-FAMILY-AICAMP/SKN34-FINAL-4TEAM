@@ -102,6 +102,28 @@ class InitialWorldInputTest {
         assertThrows<IllegalArgumentException> { input.validateEvidence(valid.copy(sourceId = "world:${UUID.randomUUID()}:description")) }
     }
 
+    @Test fun `card body links are sent as plain text and the hash and evidence offsets are taken over that text`() {
+        fun hash(value: String) = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(value.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
+        val target = UUID.randomUUID()
+        val raw = "앞 [승상](card:$target) 뒤 <card:$target>"
+        val saved = draft().copy(cards = listOf(CardPayload(card, "길동", raw, "character", "basic")))
+        val input = InitialWorldInput.fromDraft(saved, analysis)
+        val body = input.sources.single { it.field == "body" }
+        // 모델 입력에 카드 id가 섞이지 않는다: 링크는 글자로, 링크가 아닌 모양에 남은 card:<uuid>는 지운다.
+        assertEquals("앞 승상 뒤 <>", body.text)
+        assertEquals(hash("앞 승상 뒤 <>"), body.textHash)
+        assertTrue(input.sources.none { it.text.contains(target.toString()) })
+        // 같은 규칙으로 저장 초안에서 다시 만든 입력과 같고, 근거 구간·해시는 벗긴 글 기준이다.
+        input.validateAgainst(saved)
+        val quote = "승상 뒤"
+        val start = body.text.indexOf(quote).toLong()
+        input.validateEvidence(InitialWorldEvidence(body.sourceId, start, start + quote.length, quote, hash(quote)))
+        assertThrows<IllegalArgumentException> { input.validateEvidence(InitialWorldEvidence(body.sourceId, 0, raw.length.toLong(), raw, hash(raw))) }
+        // 링크가 없는 본문은 그대로다(기존 해시·근거와 같다).
+        assertEquals("  원문\r\n", InitialWorldInput.fromDraft(draft(), analysis).sources.single { it.field == "body" }.text)
+    }
+
     @Test fun `quote limit counts Unicode code points rather than UTF16 units`() {
         fun hash(value: String) = java.security.MessageDigest.getInstance("SHA-256")
             .digest(value.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }

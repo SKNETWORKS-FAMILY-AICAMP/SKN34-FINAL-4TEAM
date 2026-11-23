@@ -4,6 +4,7 @@ import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.relationship.Neo4jRelationshipConfig
+import ai.storyfork.content.world.service.dto.RelationshipChange
 import ai.storyfork.content.world.service.dto.RelationshipPayload
 import ai.storyfork.content.world.service.dto.RelationshipStateResult
 import java.util.UUID
@@ -59,6 +60,36 @@ class Neo4jRelationshipRepositoryTest {
         assertEquals(listOf(mid),repository.read(world,4).relationships)
         assertEquals(listOf(mid),repository.read(world).relationships)
         assertTrue(repository.read(world,0).relationships.isEmpty())
+    }
+    @Test fun `read tells when each relation started and the changes up to the requested episode`() {
+        val early=relation(body="초반").copy(label="경계");val mid=early.copy(label="보호",body="중반");val late=early.copy(label="신뢰",body="후반")
+        val steady=relation(a,c,"그대로")
+        answer(stored(listOf(edge(early,1),edge(mid,3),edge(late,6),edge(steady,2))))
+        val atFour=repository.read(world,4)
+        assertEquals(mapOf(early.id to 3,steady.id to 2),atFour.episodes)
+        assertEquals(mapOf(early.id to listOf(RelationshipChange(1,"경계","초반"),RelationshipChange(3,"보호","중반"))),atFour.history) // 6화의 변화는 없다
+        val latest=repository.read(world)
+        assertEquals(listOf(1,3,6),latest.history.getValue(early.id).map { it.episode })
+        assertFalse(steady.id in latest.history) // 바뀐 적 없는 관계는 이력이 없다
+        assertTrue(repository.read(world,2).history.isEmpty())
+    }
+    @Test fun `the history of a relation moved to other cards starts at the move, never at its earlier cards`() {
+        // 1화에는 a→c(c는 공개되지 않을 카드일 수 있다)의 '연인'이었다가 3화에 a→b로 옮겨졌다. 지금 두 카드의 이력에 옛 카드와의 연결과 그 body가 실리면 안 된다.
+        val id=UUID.randomUUID()
+        val lover=relation(a,c,"옛 카드와의 관계",id).copy(label="연인")
+        val friend=relation(a,b,"3화부터",id).copy(label="친구");val ally=friend.copy(label="동지",body="5화부터")
+        answer(stored(listOf(edge(lover,1),edge(friend,3),edge(ally,5))))
+        val atFive=repository.read(world,5)
+        assertEquals(mapOf(id to 5),atFive.episodes)
+        assertEquals(listOf(RelationshipChange(3,"친구","3화부터"),RelationshipChange(5,"동지","5화부터")),atFive.history.getValue(id))
+        assertFalse(id in repository.read(world,4).history) // 지금 끝점으로는 3화 연결 하나뿐이라 바뀐 적이 없다
+    }
+    @Test fun `reading the relations does not read the history payloads, asking for the history does`() {
+        val before=relation(body="옛 기록");val now=before.copy(body="지금")
+        answer(stored(listOf(edge(before,1).plus("payload" to "{ not json"),edge(now,3))))
+        val state=repository.read(world)
+        assertEquals(listOf(now),state.relationships);assertEquals(mapOf(now.id to 3),state.episodes) // 소유자 읽기·저장·목록은 이력을 풀지 않는다
+        assertEquals("RELATIONSHIP_VERSION_MISMATCH",assertThrows(WorldStudioFailure::class.java) { state.history }.code) // 이력을 읽을 때 손상이 불일치로 드러난다
     }
     @Test fun `missing or corrupt current graph is an explicit failure not an empty success`() {
         answer(stored(emptyList(),count=1))
@@ -140,6 +171,23 @@ class Neo4jRelationshipRepositoryTest {
         val delete=changed.single { "DELETE e" in it.first };val create=changed.single { "CREATE (a)-[e:RELATED" in it.first }
         assertEquals(3,delete.second["episode"]);assertEquals(listOf(early.id.toString()),delete.second["ids"])
         assertEquals(3,create.second["episode"]);assertEquals(listOf(early.id.toString()),create.second.rows().map { it["id"] })
+    }
+    @Test fun `replace writes each changed relation at its own episode and the rest at the saved episode`() {
+        val kept=relation(a,b,"유지");val timedOld=relation(b,c,"이전");val timedNew=timedOld.copy(body="이후");val added=relation(a,c,"새 관계")
+        val log=scripted(listOf(stored(listOf(edge(kept,1),edge(timedOld,1)),key="old",hash="old-hash"),
+            stored(listOf(edge(kept,1),edge(timedOld,1),edge(timedNew,6),edge(added,1)),version=5,key="new",hash="new-hash")))
+        repository.replaceWithEpisodes(world,4,"new","new-hash",listOf(kept,timedNew,added),null,mapOf(timedNew.id to 6))
+        val deletes=log.filter { "DELETE e" in it.first }.associate { it.second["episode"] to it.second["ids"] }
+        val creates=log.filter { "CREATE (a)-[e:RELATED" in it.first }.associate { it.second["episode"] to it.second.rows().map { row -> row["id"] } }
+        // 회차를 생략하면 마지막 연결 회차(1)가 기본이라 자기 회차가 없는 새 관계는 1화에, 6화부터를 정한 관계는 6화에 쓴다. 그대로인 관계는 쓰지 않는다.
+        assertEquals(mapOf<Any?,Any?>(1 to listOf(added.id.toString()),6 to listOf(timedNew.id.toString())),deletes)
+        assertEquals(mapOf<Any?,Any?>(1 to listOf(added.id.toString()),6 to listOf(timedNew.id.toString())),creates)
+    }
+    @Test fun `the latest view after a save honours per-relation episodes`() {
+        val old=relation().copy(body="옛");val later=old.copy(body="뒤");val saved=old.copy(body="새")
+        answer(stored(listOf(edge(old,1),edge(later,5))))
+        assertEquals(listOf(saved),repository.readAfter(world,listOf(saved)).relationships) // 마지막 연결 회차(5화)에 저장하면 새 값이 최신이다
+        assertEquals(listOf(later),repository.readAfterWithEpisodes(world,listOf(saved),null,mapOf(saved.id to 2)).relationships) // 2화부터로 저장하면 5화 연결이 그대로라 최신은 뒤 값이다
     }
     @Test fun `replace without connections yet saves at the first episode`() {
         val first=relation()

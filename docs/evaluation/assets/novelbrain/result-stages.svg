@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="522" viewBox="0 0 820 522" font-family="'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif">
+<rect width="820" height="522" fill="#ffffff"/>
+<defs><marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<text x="30" y="40" font-size="20" fill="#1f2937" text-anchor="start" font-weight="bold">결과 ① 단계를 쌓을수록 인물이 시점에 맞게 답한다</text>
+<text x="30" y="66" font-size="14" fill="#6b7280" text-anchor="start" font-weight="normal">시공간 일관성: 그 시점·그 인물이 알 만한 것만 말했는가 (1에 가까울수록 좋음)</text>
+<text x="30" y="104" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">한국어 장편 KoTimeChara · 3,328문항 (웹소설 48편 + 고전 5편)</text>
+<text x="218" y="135" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">검색 없음</text>
+<rect x="230" y="120" width="343.8" height="22" rx="4" fill="#9ca3af"/>
+<text x="581.75" y="136" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.550</text>
+<text x="218" y="169" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">0 그래프만</text>
+<rect x="230" y="154" width="341.9" height="22" rx="4" fill="#2563eb"/>
+<text x="579.875" y="170" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.547</text>
+<text x="218" y="203" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">0+1 (+원고 벡터)</text>
+<rect x="230" y="188" width="343.1" height="22" rx="4" fill="#16a34a"/>
+<text x="581.125" y="204" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.549</text>
+<text x="218" y="237" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">0+1+2 (+BM25)</text>
+<rect x="230" y="222" width="359.4" height="22" rx="4" fill="#7c3aed"/>
+<text x="597.375" y="238" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.575</text>
+<text x="218" y="271" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">0+1+2+3 전체 (+필터)</text>
+<rect x="230" y="256" width="375.0" height="22" rx="4" fill="#dc2626"/>
+<text x="613.0" y="272" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.600</text>
+<text x="30" y="300" font-size="14" fill="#1f2937" text-anchor="start" font-weight="bold">영어 TimeChara · 600문항 (해리 포터 등 4개 시리즈)</text>
+<text x="218" y="331" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">검색 없음</text>
+<rect x="230" y="316" width="407.5" height="22" rx="4" fill="#9ca3af"/>
+<text x="645.5" y="332" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.652</text>
+<text x="218" y="365" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">0 그래프만</text>
+<rect x="230" y="350" width="410.6" height="22" rx="4" fill="#2563eb"/>
+<text x="648.625" y="366" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.657</text>
+<text x="218" y="399" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">0+1 (+원고 벡터)</text>
+<rect x="230" y="384" width="376.9" height="22" rx="4" fill="#16a34a"/>
+<text x="614.875" y="400" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.603</text>
+<text x="218" y="433" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">0+1+2 (+BM25)</text>
+<rect x="230" y="418" width="431.2" height="22" rx="4" fill="#7c3aed"/>
+<text x="669.25" y="434" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.690</text>
+<text x="218" y="467" font-size="13" fill="#1f2937" text-anchor="end" font-weight="normal">0+1+2+3 전체 (+필터)</text>
+<rect x="230" y="452" width="448.1" height="22" rx="4" fill="#dc2626"/>
+<text x="686.125" y="468" font-size="13" fill="#1f2937" text-anchor="start" font-weight="bold">0.717</text>
+<text x="30" y="508" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal">전체는 검색 없음보다 +5.0%p(한국어)·+6.5%p(영어) 높다(같은 질문 짝 비교 p&lt;0.01). 영어는 0+1에서 한 번 내려간다.</text>
+</svg>

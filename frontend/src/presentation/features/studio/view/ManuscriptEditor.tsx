@@ -1,7 +1,8 @@
 import Editor, { type EditorOptions, type PluginContext } from '@toast-ui/editor'
 import '@toast-ui/editor/dist/i18n/ko-kr'
-import '@toast-ui/editor/dist/theme/toastui-editor-dark.css'
+// 같은 특이도의 다크 규칙이 이기도록 기본 CSS를 먼저 불러온다(shared/MarkdownEditor.tsx와 같은 순서)
 import '@toast-ui/editor/dist/toastui-editor.css'
+import '@toast-ui/editor/dist/theme/toastui-editor-dark.css'
 import { useEffect, useId, useImperativeHandle, useRef, useState, type Ref, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -19,6 +20,8 @@ type Cursor = { line: number; focus: boolean }
 export type ManuscriptEditorHandle = {
   /** 편집기 커서 위치에 이미지를 올려 넣는다. 성공하면 true. focus=false면 편집기로 초점을 옮기지 않는다(시트 안에서 호출할 때). */
   addImage: (file: File, focus?: boolean) => Promise<boolean>
+  /** 지금 선택한 글(저장 문자열 기준, 줄 사이는 줄바꿈). 선택이 없으면 빈 글. 편집기가 초점을 잃어도 마지막 선택을 읽는다(집필 AI 채팅이 보내는 순간 읽는다). */
+  selectedText: () => string
 }
 
 const LIMIT = `${BODY_MAX.toLocaleString('ko-KR')}자를 넘는 입력은 넣을 수 없어요.`
@@ -117,7 +120,7 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
   const host = useRef<HTMLDivElement>(null)
   const file = useRef<HTMLInputElement>(null)
   // 지금 떠 있는 편집기: ProseMirror 화면과, 커서 자리에 이미지를 올리는 함수
-  const pm = useRef<{ view: View; add: (file: File, focus: boolean) => Promise<boolean> } | null>(null)
+  const pm = useRef<{ view: View; add: (file: File, focus: boolean) => Promise<boolean>; selected: () => string } | null>(null)
   // 편집기로 초점을 돌려줄 일이 남았다(이미지 삽입으로 다시 만들어짐·올리기 실패). 잠긴 동안에는 초점을 받지 못하므로 풀릴 때 돌려준다.
   const wantFocus = useRef(false)
   // 편집기는 한 번만 만들므로 최신 값은 ref로 읽는다.
@@ -248,8 +251,32 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
       scrollMargin: { top: 72, right: 0, bottom: 96, left: 0 },
       // 계약에 없는 서식을 넣는 Toast 단축키는 받지 않는다: 취소선(Ctrl+S)·목록(Ctrl+U·O)·코드(Ctrl+Shift+C·P). 저장하려고 누른 Ctrl+S가 원고에 `~~`를 넣지 않게 한다.
       // 화면의 속성이 Toast의 단축키 플러그인보다 먼저 불리고, 받았다고 답하면 브라우저의 기본 동작(페이지 저장 창 등)도 막힌다. 한글 입력 중에는 key가 자모로 오므로 자판 자리(code)로 가린다.
-      handleKeyDown: (_view: View, event: KeyboardEvent) => (event.ctrlKey || event.metaKey) && !event.altKey
-        && (['KeyS', 'KeyU', 'KeyO'].includes(event.code) || (event.shiftKey && ['KeyC', 'KeyP'].includes(event.code))),
+      handleKeyDown: (_view: View, event: KeyboardEvent) => {
+        if (event.isComposing) return false
+        if ((event.ctrlKey || event.metaKey) && !event.altKey
+          && (['KeyS', 'KeyU', 'KeyO'].includes(event.code) || (event.shiftKey && ['KeyC', 'KeyP'].includes(event.code)))) return true
+        if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return false
+        // 네이티브 End의 selectionchange를 기다리지 않는다. 서식 직후 End→Enter가 같은 틱에 와도
+        // Enter가 이전 선택 범위를 삭제하지 않게 ProseMirror 커서를 먼저 확정한다.
+        if (event.key === 'End') {
+          const selection = view.dom.ownerDocument.getSelection()
+          if (!selection?.modify) return false
+          view.focus()
+          // 화면에서 접힌 줄의 끝은 브라우저가 계산한다. 문단 끝으로 건너뛰지 않는다.
+          selection.modify('move', 'forward', 'lineboundary')
+          if (!selection.focusNode || !view.dom.contains(selection.focusNode)) return false
+          const end = view.posAtDOM(selection.focusNode, selection.focusOffset)
+          view.dispatch(view.state.tr.setSelection(pmState.TextSelection.create(view.state.doc, end)))
+          return true
+        }
+        // 한 줄=한 문단 계약: 인용의 Enter도 일반 문단으로 이동한다(#416).
+        // Toast의 extendBlockQuote는 뒤쪽 글을 trim하고 > 를 덧붙이므로 사용하지 않는다.
+        if (event.key === 'Enter' && /^> ?/.test(view.state.selection.$from.parent.textContent)) {
+          editor.insertText('\n')
+          return true
+        }
+        return false
+      },
       dispatchTransaction: (tr: Transaction) => {
         if (!tr.docChanged) return pass.call(view, tr)
         const before = view.state.doc
@@ -268,7 +295,10 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
       editor.setSelection([line, 1], [line, 1])
       wantFocus.current = mount.at.focus
     }
-    pm.current = { view, add: (picked, focus) => upload(picked, view.state.selection, focus) }
+    pm.current = {
+      view, add: (picked, focus) => upload(picked, view.state.selection, focus),
+      selected: () => { const { from, to } = view.state.selection; return from === to ? '' : unwrapAll(view.state.doc.textBetween(from, to, '\n')) },
+    }
     const releaseTab = escapeWithTab(el)
     return () => {
       releaseTab()
@@ -293,7 +323,7 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
     host.current?.querySelector('.toastui-editor-defaultUI')?.classList.toggle('toastui-editor-dark', dark)
   }, [dark])
 
-  useImperativeHandle(ref, () => ({ addImage: (picked, focus = true) => pm.current?.add(picked, focus) ?? Promise.resolve(false) }), [])
+  useImperativeHandle(ref, () => ({ addImage: (picked, focus = true) => pm.current?.add(picked, focus) ?? Promise.resolve(false), selectedText: () => pm.current?.selected() ?? '' }), [])
 
   return (
     <div className="manuscript-editor">

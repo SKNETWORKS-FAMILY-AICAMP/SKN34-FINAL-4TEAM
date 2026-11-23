@@ -18,6 +18,31 @@ interface EpisodeCurrentRepository : JpaRepository<EpisodeCurrentEntity, String>
     """)
     fun lastNumber(@Param("workId") workId: String): Int
 
+    /**
+     * [workId]의 [after]화 뒤 회차의 `[현재 초안 제목, 발행 버전 제목]` 행이다(회차 번호순, 어느 쪽이든 없으면 null). 지운 회차는 뷰가 뺀다.
+     * 본문은 읽지 않고 쿼리 한 번이다. 운영 정보 누설 비교 기준(DEC-55)이 쓴다.
+     */
+    @Query("""select d.title, v.title from EpisodeCurrentEntity c
+        left join EpisodeDraftEntity d on d.episodeId = c.id
+        left join EpisodeVersionEntity v on v.id = c.publishedVersionId
+        where c.workId = :workId and c.sequence > :after order by c.sequence""")
+    fun titlesAfter(@Param("workId") workId: String, @Param("after") after: Int): List<Array<Any?>>
+
+    /**
+     * [workId]의 지금 발행본 본문이다(상속 회차는 Fork가 물려받은 원작 발행본, 초안·공개 중단 회차는 없다).
+     * 독자가 이미 읽을 수 있는 글이라 운영 정보 누설 비교 기준(DEC-55)이 제목 대조에서 뺄 때 쓴다.
+     */
+    @Query("""select v.content from EpisodeCurrentEntity c join EpisodeVersionEntity v on v.id = c.publishedVersionId
+        where c.workId = :workId""")
+    fun publishedBodies(@Param("workId") workId: String): List<String>
+
+    /**
+     * 지금 발행된(발행 버전이 있는) 회차 중 삭제되지 않은 작품이 직접 발행한 회차의 수다. Fork가 물려받은 원작 회차(`inherited`)는 같은 회차가 Fork 수만큼 되풀이해 세어지므로 뺀다.
+     * 지운 회차는 뷰가 뺀다. 발행 기준은 [PublicationService.publishedEpisodes][ai.storyfork.content.publication.service.PublicationService.publishedEpisodes]와 같다(운영 퍼널, DEC-57).
+     */
+    @Query("select count(c) from EpisodeCurrentEntity c join WorkEntity w on w.id = c.workId where c.publishedVersionId is not null and c.inherited = false and w.deletedAt is null")
+    fun countDirectlyPublished(): Long
+
     fun findAllByWorkIdOrderBySequence(workId: String): List<EpisodeCurrentEntity>
     fun findByWorkIdAndSequence(workId: String, sequence: Int): EpisodeCurrentEntity?
 }

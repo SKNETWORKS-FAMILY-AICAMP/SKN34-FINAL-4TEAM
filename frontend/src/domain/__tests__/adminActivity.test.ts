@@ -16,10 +16,35 @@ const ACTIONS: [string, string][] = [
   ['COMMENT_HIDE', '댓글 숨김'], ['COMMENT_UNHIDE', '댓글 게시 복구'],
 ]
 
+/** DEC-55 관리자 변경 조치 12종: LLMOps 8종은 조각 2 서버 코드의 이름, 작업 감시 4종(JOB_*)은 조각 3이 확정한 이름이다. EVALUATION_REQUIRED는 조치가 아니라 승격의 409 오류 code라 여기에 없다 */
+const LLMOPS_ACTIONS: [string, string][] = [
+  ['PROMPT_CREATE', '프롬프트 버전 등록'], ['PROMPT_PROMOTE', '프롬프트 승격·복원'], ['MODEL_CREATE', '모델 등록'], ['EVALUATION_RUN', '회귀 평가 실행'],
+  ['ALERT_ACKNOWLEDGE', '경고 확인'], ['ALERT_RESOLVE', '경고 조치 완료'], ['ALERT_RULE_UPDATE', '경고 기준 변경'], ['LLMOPS_SETTING_UPDATE', 'LLMOps 설정 변경'],
+  ['JOB_SCHEDULE_CREATE', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATE', '정기 작업 일정 변경'], ['JOB_SCHEDULE_CANCEL', '정기 작업 일정 취소'], ['JOB_RETRY', '작업 실패 재실행'],
+]
+
 describe('관리자 활동 기록 표시 규칙 (72)', () => {
   it('계약의 조치 20종은 모두 한국어 이름으로 보인다', () => {
     expect(ACTIONS).toHaveLength(20)
     for (const [code, label] of ACTIONS) expect(activityActionLabel(code)).toBe(label)
+  })
+
+  it('운영 대시보드·LLMOps·작업 감시의 조치 12종도 한국어 이름으로 보인다', () => {
+    expect(LLMOPS_ACTIONS).toHaveLength(12)
+    for (const [code, label] of LLMOPS_ACTIONS) expect(activityActionLabel(code)).toBe(label)
+  })
+
+  it('장르 관리 조치 3종(DEC-56)도 한국어 이름으로 보이고 대상은 장르 코드, 순서 변경은 장르 목록으로 보인다', () => {
+    expect([['GENRE_CREATE', '장르 추가'], ['GENRE_UPDATE', '장르 수정'], ['GENRE_REORDER', '장르 순서 변경']].map(([code]) => activityActionLabel(code))).toEqual(['장르 추가', '장르 수정', '장르 순서 변경'])
+    expect(activityTarget({ targetType: 'GENRE', targetId: 'genre-31' })).toBe('장르 genre-31')
+    expect(activityTarget({ targetType: 'GENRE', targetId: 'order' })).toBe('장르 목록')
+    expect(activityDetail({ action: 'GENRE_CREATE', detail: '사이버펑크' })).toBe('사이버펑크')
+    expect(activityDetail({ action: 'GENRE_REORDER', detail: 'genre-02,genre-01,genre-03' })).toBe('3개 장르의 순서')
+    expect(activityDetail({ action: 'GENRE_REORDER', detail: null })).toBeNull()
+  })
+
+  it('크레딧 운영 조치 2종(DEC-57)도 한국어 이름으로 보인다', () => {
+    expect([activityActionLabel('CREDIT_GRANT'), activityActionLabel('CREDIT_REVOKE')]).toEqual(['크레딧 지급', '크레딧 회수'])
   })
 
   it('모르는 조치는 코드 그대로 보이고 객체 기본 속성 이름도 함수로 새지 않는다', () => {
@@ -36,6 +61,14 @@ describe('관리자 활동 기록 표시 규칙 (72)', () => {
     expect(target('NOTICE', 'n-1')).toBe('공지 n-1')
     expect(target('EVENT', 'e-1')).toBe('이벤트 e-1')
     expect(target('INQUIRY', 'q-1')).toBe('문의 q-1')
+    expect(target('JOB_SCHEDULE', 's-1')).toBe('정기 작업 일정 s-1')
+    expect(target('JOB_RUN', 'j-1')).toBe('작업 실행 j-1')
+    expect(target('PROMPT', 'qa-answer')).toBe('프롬프트 qa-answer')
+    expect(target('MODEL', 'm-1')).toBe('모델 m-1')
+    expect(target('EVALUATION', 'r-1')).toBe('회귀 평가 r-1')
+    expect(target('ALERT', 'a-1')).toBe('경고 a-1')
+    expect(target('ALERT_RULE', 'ai_failure_rate')).toBe('경고 기준 ai_failure_rate')
+    expect(target('LLMOPS_SETTING', 'leak_sample_rate')).toBe('LLMOps 설정 leak_sample_rate')
     expect(target('FUTURE', 'f-1')).toBe('FUTURE f-1')
     expect(target('toString', 'x')).toBe('toString x')
     expect(target('FUTURE', '')).toBe('FUTURE')

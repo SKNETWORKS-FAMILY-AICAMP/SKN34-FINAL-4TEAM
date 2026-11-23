@@ -7,8 +7,10 @@ import { InMemoryPublicWorldRepository } from '../../data/mock/InMemoryPublicWor
 import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
 import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
+import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../data/mock/InMemoryGenreRepositories'
 import { InMemoryOperationsCommentRepository } from '../../data/mock/InMemoryOperationsCommentRepository'
 import { InMemoryAdminActivityRepository } from '../../data/mock/InMemoryAdminActivityRepository'
+import { InMemoryJobMonitorRepository, InMemoryLlmOpsRepository, InMemoryOperationsDashboardRepository } from '../../data/mock/InMemoryLlmOpsRepositories'
 import { InMemoryOperationsWorkRepository } from '../../data/mock/InMemoryOperationsWorkRepository'
 import { seedNotices } from '../../data/mock/seed'
 import { createMockupManuscriptRepository, createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupFeedbackReportRepository, mockupNotificationRepository, mockupUnsupportedMedia, mockupWithdrawalRepository } from '../../data/mock/mockupRepositories'
@@ -41,7 +43,12 @@ export function registerMockupServices(container: AppContainer) {
   const mediaRepository = Object.assign(new HttpMediaRepository(), mockupUnsupportedMedia)
   const manuscriptRepository = createMockupManuscriptRepository(episodeRepository)
   const creditLedgerRepository = new InMemoryCreditLedgerRepository(mockDb)
+  // 운영 장르 관리와 공개 장르 목록(작가 선택지·홈 칩·세계관 장르 이름)이 같은 메모리 목록을 봅니다.
+  const operationsGenreRepository = new InMemoryOperationsGenreRepository()
+  const genreRepository = new InMemoryGenreRepository(operationsGenreRepository)
   container.register({
+    operationsGenreRepository: asValue(operationsGenreRepository),
+    genreRepository: asValue(genreRepository),
     // 운영 이벤트 API 대신 메모리에만 등록·공개합니다.
     eventRepository: asValue(eventRepository),
     eventUseCase: asValue(new EventUseCase(eventRepository)),
@@ -51,8 +58,12 @@ export function registerMockupServices(container: AppContainer) {
     operationsCommentRepository: asValue(new InMemoryOperationsCommentRepository(mockDb)),
     // 운영 활동 기록 API 대신 데모 관리자 화면이 쌓은 데모 조치를 활동 기록 형태로 보여 줍니다.
     adminActivityRepository: asValue(new InMemoryAdminActivityRepository(mockDb)),
+    // 운영 대시보드·LLMOps·작업 감시 API 대신 Langfuse·AI·Content를 읽지 않는 예시 값입니다.
+    operationsDashboardRepository: asValue(new InMemoryOperationsDashboardRepository()),
+    llmOpsRepository: asValue(new InMemoryLlmOpsRepository()),
+    jobMonitorRepository: asValue(new InMemoryJobMonitorRepository()),
     // 검색 저장소를 주지 않아 홈 순위·검색은 서버 호출 없이 메모리 데모를 유지하고, 독서 기록도 mockDb.progress 메모리입니다.
-    readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository, readingRecordRepository)),
+    readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, undefined, undefined, genreRepository)),
     episodeRepository: asValue(episodeRepository),
     episodeUseCase: asValue(new EpisodeUseCase(episodeRepository)),
     // 가져오기·EPUB/발행본 내보내기·첨부 이름 변경·회차 이미지 관리는 데모 미지원 오류로 답하고(성공을 흉내 내지 않음), 집필실 TXT 초안 내보내기만 메모리 원고로 만듭니다.
@@ -73,6 +84,7 @@ export function registerMockupServices(container: AppContainer) {
     notificationRepository: asValue(mockupNotificationRepository),
     shellUseCase: asValue(new ShellUseCase(mockupNotificationRepository, feedbackRepository)),
     initialWorldUseCase: asValue(null),
+    worldReviewUseCase: asValue(null), // 설정집 AI 검토는 서버 기능이라 데모는 지원하지 않는다
     writingChatUseCase: asValue(null),
     worldStudioUseCase: asValue(new WorldStudioUseCase(createMockupWorldStudioRepository())),
     // 공개 세계관 API 대신 데모 세계관 26개를 같은 계약으로 보여 줍니다(파생·조합·작품은 이 데모에만 있습니다).

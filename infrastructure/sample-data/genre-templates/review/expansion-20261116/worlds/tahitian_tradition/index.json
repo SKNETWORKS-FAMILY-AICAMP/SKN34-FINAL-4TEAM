@@ -1,0 +1,47 @@
+{
+  "world_id": "tahitian_tradition",
+  "world_id_meaning": "신규 문화권 연구용 라벨, 실제 world 또는 DB ID 아님",
+  "id_namespace": "7927e8dd-d00c-5b0b-8f60-d7ec4cd92c17",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "tahiti-ancient",
+      "world_id": "tahitian_tradition",
+      "title": "Ancient Tahiti excerpt",
+      "target_scope": "pp.323–335; episode not yet identified",
+      "edition_language_attribution": "Teuira Henry 1928; J. M. Orsmond papers; English; Bishop Museum Bulletin 48",
+      "prior_investigation_grade": "B",
+      "source_url": "https://hawaiki.net/en/transliterations/published_texts/henry1928.pdf",
+      "other_recorded_urls": [
+        "https://natlib.govt.nz/records/21811196",
+        "https://www.hawaii.edu/oceanic/tahiti/Biblio2.htm"
+      ],
+      "rights": {
+        "status": "unverified",
+        "notes": "PDF public domain assertion per previous investigation; jurisdiction and covered material unverified",
+        "evidence_url": "https://hawaiki.net/en/transliterations/published_texts/henry1928.pdf",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "blocked_or_body_unconfirmed",
+        "reason": "Previous investigation reported bibliographic-only, body unread, or blocked; no bypass attempted; URL retained for follow-up"
+      },
+      "scope_status": "incomplete",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": null,
+      "units": [
+        {
+          "unit_id": "tahiti-ancient--scope-pending",
+          "label": "pp.323–335; episode not yet identified",
+          "status": "blocked",
+          "reason": "Body bounds, complete scope and section boundaries not yet validated",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    }
+  ]
+}
