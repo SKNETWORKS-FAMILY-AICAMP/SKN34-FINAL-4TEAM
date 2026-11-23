@@ -94,7 +94,8 @@ async def execute(request) -> Command:
     """허용된 MCP 도구 호출 하나를 실행한다. 승인(쓰기)은 이 호출 전에 끝나 있다.
 
     읽기는 결과 JSON을 모델에 그대로(길면 잘라) 주고 단계를 남기지 않는다(읽기 실패도 오류 메시지만 준다). 쓰기는 성공하면 단계(content_action, applied=새 revision)를 남겨 화면이 다시 읽게 하고,
-    실패(Content의 409 revision 충돌 포함)는 단계 failed로 남겨 남은 호출을 막는다(다시 시도하거나 덮어쓰지 않는다).
+    실패(Content의 409 revision 충돌 포함)는 단계 failed로 남겨 남은 호출을 막는다(다시 시도하거나 덮어쓰지 않는다). 단 work_update의 409는 실패로 끝내지 않고
+    작품을 다시 읽어 최신 revision의 카드로 다시 승인받으며, 쓰는 것은 작가가 승인한 카드의 인자 그대로다(그 사이 또 낡아 409면 다시 묻는다, #687).
     """
     call, turn = request.tool_call, request.runtime.context
     # 모델이 고르지 않은 선택 인자를 빈 글("")·null로 채우면 Content가 값 오류(422)로 거절하므로 뺀다.
@@ -105,27 +106,29 @@ async def execute(request) -> Command:
     write = name in WRITE
     if write:
         request.runtime.stream_writer({'started': CONTENT_ACTION})
-    try:
-        with tracing.observe(f'mcp.{name}', as_type='tool'):
-            done = await asyncio.to_thread(_run, name, args, turn)
-    except ContentMcpFailure as error:
-        if not write:  # 읽기 실패(예: 잘못된 인자 422)는 단계로 남기지 않고 모델이 사유를 보고 다시 부르게 한다(횟수는 MCP 한도가 막는다)
-            return _result(None, call, f'[실패] {label}: {error}', failed=True)
-        if not (name == 'work_update' and error.status == 409):  # work_update의 409는 revision 충돌뿐이다(WorkService.update)
-            return _failed(call, label, error)
-        # 원고(회차 초안) 저장도 작품 revision을 올려 제안이 낡는다(#687). revision만 새로 읽어 같은 수정을 다시 승인받는다.
-        # 모델에 다시 제안시키면 '같은 턴에 같은 도구를 다시 부르지 않는다'(지시 규칙 5)와 부딪쳐 실모델이 포기한다(E2E 확인).
+    while True:
         try:
-            fresh = await asyncio.to_thread(content_mcp.call, 'work_read', {'id': args['id']})
-            args = {**args, 'data': {**args['data'], 'revision': fresh.get('revision')}}
-            # 이어 갈 때 이 함수가 처음부터 다시 돌아 낡은 호출이 한 번 더 409로 끝나고(쓰지 않음), 여기서 작가의 답을 받는다
-            decision = interrupt({'action_requests': [{'name': name, 'args': args, 'description': label}], 'steps': request.state.get('steps', [])})['decisions'][0]
-            if decision['type'] != 'approve':
-                return _result(None, call, decision.get('message', ''), failed=True)
             with tracing.observe(f'mcp.{name}', as_type='tool'):
                 done = await asyncio.to_thread(_run, name, args, turn)
-        except ContentMcpFailure as again:
-            return _failed(call, label, again)
+            break
+        except ContentMcpFailure as error:
+            if not write:  # 읽기 실패(예: 잘못된 인자 422)는 단계로 남기지 않고 모델이 사유를 보고 다시 부르게 한다(횟수는 MCP 한도가 막는다)
+                return _result(None, call, f'[실패] {label}: {error}', failed=True)
+            if not (name == 'work_update' and error.status == 409):  # work_update의 409는 revision 충돌뿐이다(WorkService.update)
+                return _failed(call, label, error)
+            # 원고(회차 초안) 저장도 작품 revision을 올려 제안이 낡는다(#687). revision만 새로 읽어 같은 수정을 다시 승인받는다.
+            # 모델에 다시 제안시키면 '같은 턴에 같은 도구를 다시 부르지 않는다'(지시 규칙 5)와 부딪쳐 실모델이 포기한다(E2E 확인).
+            try:
+                fresh = await asyncio.to_thread(content_mcp.call, 'work_read', {'id': args['id']})
+            except ContentMcpFailure as unread:
+                return _failed(call, label, unread)
+            card = {**args, 'data': {**args['data'], 'revision': fresh.get('revision')}}
+            # 이어 갈 때 이 함수가 처음부터 다시 돌아(낡은 호출은 409로 끝나 쓰지 않는다) 다시 읽은 revision이 그 사이 달라졌을 수 있다. 그래서 쓰는 것은
+            # 다시 읽은 값이 아니라 작가가 답한 카드의 인자(service._target이 결정에 싣는다)다. 그 사이 또 낡아 409면 이 자리로 돌아와 최신 revision으로 다시 묻는다.
+            decision = interrupt({'action_requests': [{'name': name, 'args': card, 'description': label}], 'steps': request.state.get('steps', [])})['decisions'][0]
+            if decision['type'] != 'approve':
+                return _result(None, call, decision.get('message', ''), failed=True)
+            args = decision['args']
     if not write:
         text = json.dumps(done, ensure_ascii=False, separators=(',', ':'))
         return _result(None, call, text if len(text) <= READ_LIMIT else f'{text[:READ_LIMIT]}…(길어서 여기까지만 읽었어요)')

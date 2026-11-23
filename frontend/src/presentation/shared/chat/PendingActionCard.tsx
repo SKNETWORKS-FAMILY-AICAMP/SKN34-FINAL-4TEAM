@@ -6,8 +6,8 @@ import { pendingChanges, worldProposalIsStale, type PendingAction, type WorldDra
 export const SAVE_FIRST = '먼저 저장해 주세요'
 /** 카드를 찾을 수 없는 화면(집필실)의 카드 수정 승인 안내(#639). */
 export const NO_BEFORE = '집필실에서는 수정 전 내용을 볼 수 없어요. 세계관 작업실에서 확인할 수 있어요.'
-/** 작품 정보 수정 승인 안내(#687). 원고를 저장하면 작품 revision이 올라 이 제안이 낡고, 그때 AI는 실행하지 않고 다시 제안한다. */
-export const WORK_CHANGED_NOTE = '제안한 뒤 원고를 저장해 작품이 바뀌었으면, 실행하지 않고 최신 작품 정보로 같은 수정을 다시 제안해요.'
+/** 작품 정보 수정 승인 안내(#687). 원고를 저장하면 작품 revision이 올라 이 제안이 낡고, 그때 AI는 바로 쓰지 않고 최신 revision으로 같은 수정의 승인 카드를 다시 띄운다. */
+export const WORK_CHANGED_NOTE = '그사이 원고를 저장했다면 바로 반영하지 않고, 최신 작품 정보로 한 번 더 확인을 받아요.'
 
 /**
  * 메인 에이전트가 Content 쓰기 도구를 실행하려고 승인을 기다리는 카드(#554). 모델의 요약이 아니라 실제로 실행할 도구와 인자를 보이고,

@@ -290,6 +290,24 @@ def test_a_work_update_made_stale_by_a_saved_draft_asks_again_with_the_fresh_rev
     assert [a['data']['revision'] for _, a in writes(log)] == [12, 12, 16]  # 이어가기 때 낡은 호출이 한 번 더 409로 끝난다(쓰지 않음)
 
 
+def test_a_work_update_asked_again_is_written_as_shown_and_asked_once_more_if_the_work_moved_on_meanwhile(monkeypatch):
+    # 다시 묻는 카드(revision 16)를 보는 사이 작가가 원고를 또 저장해 작품이 17이 됐다. 승인은 16 카드에 대한 것이라 17로 바로 쓰면 작가의 중간 수정을
+    # 승인 없이 덮는다. 카드에 보인 인자 그대로 쓰려다 409가 나면 실패로 끝내지 않고 17로 다시 묻는다(#687)
+    fake_agents(monkeypatch, only_content(STALE))
+    stale_work(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, request='작품 소개를 바꿔 줘')
+    assert resume(thread, True).pendingAction.args['data']['revision'] == 16
+    log = stale_work(monkeypatch, current=17)  # 16 카드를 보는 사이 작품이 17이 됐다
+    again = resume(thread, True)
+    assert (again.status, again.awaitingApproval, again.steps) == ('waiting', 'content_action', [])
+    assert again.pendingAction.args == {'id': 'work', 'data': {'title': '새 제목', 'summary': '소개', 'revision': 17}}
+    assert [a['data']['revision'] for _, a in writes(log)] == [12, 16]  # 이어가기 때 낡은 12가 한 번 더 409, 16 카드의 승인은 16으로 시도해 409(17로 쓰지 않음)
+    done = resume(thread, True)
+    assert done.status == 'completed' and [(s.feature, s.status) for s in done.steps] == [('content_action', 'completed')]
+    assert [a['data']['revision'] for _, a in writes(log)] == [12, 16, 12, 16, 17]  # 새 카드의 승인은 그 카드의 17로만 쓴다
+
+
 def test_declining_the_work_update_asked_again_writes_nothing(monkeypatch):
     fake_agents(monkeypatch, only_content(STALE))
     log = stale_work(monkeypatch)
@@ -484,6 +502,17 @@ def test_a_content_action_answer_without_a_token_keeps_the_one_the_last_answer_s
     stream(thread, resume={'approved': True, 'inputs': {'research': WEB}, 'scope': {'scopeToken': 'input.token'}})
     resume(thread, True)
     assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['input.token']
+
+
+def test_a_work_update_asked_again_hands_the_token_of_its_own_answer_to_the_following_question(monkeypatch):
+    # 다시 묻는 카드의 승인은 WriteApproval(첫 승인)을 지나지 않아도 그 답과 온 새 토큰을 저장한다(#678): 카드를 기다리는 사이 첫 토큰이 만료될 수 있다
+    calls = fake_agents(monkeypatch, only_content(STALE, ('ask_story_qa', {}), capabilities=['story_context']))
+    stale_work(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, request='작품 소개를 바꿔 줘', scope={'scopeToken': 'old.token'})
+    stream(thread, resume={'approved': True, 'scope': {'scopeToken': 'first.token'}})
+    stream(thread, resume={'approved': True, 'scope': {'scopeToken': 'second.token'}})
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['second.token']
 
 
 def refresh(thread):
