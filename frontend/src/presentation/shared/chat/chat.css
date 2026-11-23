@@ -49,7 +49,7 @@
 .chat-reply-foot > .chat-step-details > summary { line-height: 28px; }
 .chat-reply-foot > .chat-msg-actions { margin-left: auto; }
 .chat-msg.system .chat-text { padding: 4px 8px; border: 0; background: none; color: var(--tsub); font-size: 12.5px; text-align: center; }
-.chat-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.chat-chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 100%; margin: 0; padding: 0; list-style: none; }
 /* 첨부 칩(말풍선·입력창 위): 긴 파일 이름은 말줄임으로 한 줄에 두고, 보낼 첨부는 ×로 뺀다. */
 .chat-chips .chip { max-width: 100%; }
 .chat-chip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
@@ -60,8 +60,8 @@
 /* 입력: 하나의 둥근 카드(위 입력창, 아래 + · 마이크 · 전송) */
 .chat-composer { display: grid; flex: none; gap: 8px; padding: 8px 16px 16px; }
 /* 입력 카드는 패널보다 한 단계 밝은 면 + 부드러운 그림자로 떠 보인다. 잠긴 카드(준비 중)도 그대로 두고 사유 문구·비활성 버튼이 알린다.
-   입력 칸의 경계라 테두리는 3:1 이상인 --line3를 쓴다. */
-.chat-card { display: grid; gap: 4px; padding: 12px 12px 8px 16px; border: 1px solid var(--line3); border-radius: 24px; background: var(--chat-card, var(--tcard)); box-shadow: var(--sh); transition: border-color .15s; }
+   입력 칸의 경계라 테두리는 3:1 이상인 --line3를 쓴다. 열은 minmax(0, 1fr): 이름이 긴 첨부 칩(nowrap)의 최소 폭이 카드를 채팅 폭 밖으로 밀지 않게 한다. */
+.chat-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 12px 12px 8px 16px; border: 1px solid var(--line3); border-radius: 24px; background: var(--chat-card, var(--tcard)); box-shadow: var(--sh); transition: border-color .15s; }
 .chat-card:focus-within { border-color: var(--tacc); box-shadow: var(--sh), 0 0 0 1px var(--tacc); }
 .chat-card textarea { width: 100%; min-height: 48px; max-height: 200px; padding: 0; resize: none; field-sizing: content; border: 0; outline: 0; background: none; color: inherit; font: inherit; line-height: 1.6; }
 .chat-card textarea::placeholder { color: var(--tsub); opacity: 1; }
