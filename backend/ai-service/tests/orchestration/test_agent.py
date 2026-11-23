@@ -254,6 +254,14 @@ def test_the_model_only_sets_the_request_and_enumerated_arguments():
     assert set(schemas['ask_world']['properties']['task']['enum']) == {'check', 'enrich', 'impact'} and 'task' in schemas['ask_world']['required']
 
 
+def test_the_main_agent_is_told_that_editing_chosen_text_needs_no_review_finding():
+    """#669: patch가 검수의 확정 지적 전용으로 읽혀 선택 글 수정을 거절했다."""
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith('2.'))
+    for told in (rule, agent.TOOLS['writing_editing'].description):
+        assert all(words in told for words in ('선택한 글', '구간', 'fix 없이', 'task=patch')), told
+        assert '고칠 때만 task=patch' not in told, told
+
+
 def test_a_tool_returns_a_summary_for_the_main_agent_and_the_raw_result_as_its_artifact(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context'))
     result = run(inputs={'story_context': QA})
@@ -626,6 +634,8 @@ def test_the_patch_summary_names_the_changed_passage_so_the_answer_cannot_claim_
     run(target=TARGET)
     summary = json.loads(tool_messages(calls)[1].content)
     assert (summary['kind'], summary['selection']) == ('patch', '그는 웃었다.')
+    # after를 빼기만 하면 종합 답변이 '수정안 본문이 없다'고 실패처럼 말한다
+    assert '결과 카드' in summary.get('proposal', '') and '그는 차갑게 웃었다.' not in tool_messages(calls)[1].content
 
 
 
