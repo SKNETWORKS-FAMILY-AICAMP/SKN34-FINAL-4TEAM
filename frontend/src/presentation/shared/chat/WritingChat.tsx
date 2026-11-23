@@ -8,6 +8,7 @@ import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIco
 import { PopMenu } from '../PopMenu'
 import { CardMarkdown } from '../CardMarkdown'
 import { ChatPanel } from './ChatPanel'
+import { keepFiles } from './keepFiles'
 import { PendingActionCard } from './PendingActionCard'
 import { useEpisodeDraft } from './useEpisodeDraft'
 import { useWritingChatViewModel, type ChatViewModel, type LiveTurn } from './useWritingChatViewModel'
@@ -338,7 +339,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
   }
   const current = vm.sessions?.find((s) => s.threadId === vm.threadId)
   return <>
-    <div className="chat-sessions">
+    <div className="chat-sessions" {...keepFiles}>
       {renaming !== null ? <form className="chat-rename" onSubmit={async (e) => { e.preventDefault(); if (await vm.rename(renaming)) setRenaming(null) }}>
         <label className="sr-only" htmlFor={`${id}-title`}>대화 제목</label>
         <input id={`${id}-title`} value={renaming} maxLength={100} autoFocus onChange={(e) => setRenaming(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') setRenaming(null) }} />

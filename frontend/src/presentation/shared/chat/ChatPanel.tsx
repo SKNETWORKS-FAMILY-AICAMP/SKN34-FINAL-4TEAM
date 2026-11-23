@@ -1,9 +1,10 @@
-import { useEffect, useId, useRef, useState, type DragEvent, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import type { ChatAttachment, ChatMessage } from '../../../domain/entities/chat'
 import { attachmentKind, type AttachmentCheck } from '../../../domain/entities/chatAttachment'
 import { CardMarkdown } from '../CardMarkdown'
 import { MicIcon, PlusIcon, SendIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
+import { keepFiles } from './keepFiles'
 import './chat.css'
 
 const who = { user: '나', assistant: 'AI', system: '안내' } as const
@@ -136,10 +137,9 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
       setPending(false)
     }
   }
-  // 파일 끌어다 놓기: 첨부가 켜져 있으면 패널 어디에 놓아도(대화 영역 포함, 잠긴 동안에도) 기본 동작(브라우저가 파일을 열어 화면을 떠남)을 막는다.
+  // 파일 끌어다 놓기: 첨부가 켜져 있으면 패널 어디에 놓아도(대화 영역 포함, 잠긴 동안에도) 기본 동작을 막는다.
   // 첨부로 받는 곳은 입력 카드뿐이고 잠기지 않았을 때만 받는다.
-  const keepFiles = checkFile ? (e: DragEvent) => e.preventDefault() : undefined
-  return <div className="chat-panel" onDragOver={keepFiles} onDrop={keepFiles}>
+  return <div className="chat-panel" {...(checkFile && keepFiles)}>
     <div ref={log} className="chat-log" role="log" aria-label="대화 내용" aria-live="polite"
       onScroll={e => { const el = e.currentTarget; pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80 }}>
       {messages.length || after ? <><ol>{messages.map(m => <li key={m.id} className={`chat-msg ${m.role}`} data-failed={m.failed || undefined}>

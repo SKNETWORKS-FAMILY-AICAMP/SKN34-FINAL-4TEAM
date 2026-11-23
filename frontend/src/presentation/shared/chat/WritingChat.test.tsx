@@ -1034,6 +1034,15 @@ describe('집필 AI 채팅 첨부(#617)', () => {
   const ask = (text: string) => { fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: text } }); fireEvent.click(screen.getByRole('button', { name: '전송' })) }
   const chipsOf = (name: string) => within(screen.getByRole('list', { name })).getAllByRole('listitem').map((li) => li.textContent)
 
+  it('대화 고르기 줄에 파일을 놓아도 브라우저가 그 파일을 열지 않는다(#700)', async () => {
+    openThread([])
+    renderChat()
+    await screen.findByText('새 대화', { selector: 'h3' })
+    const row = document.querySelector('.chat-sessions')!
+    expect(fireEvent.dragOver(row, { dataTransfer: { files: [png()] } })).toBe(false)
+    expect(fireEvent.drop(row, { dataTransfer: { files: [png()] } })).toBe(false)
+  })
+
   it('고른 이미지·텍스트를 Base64로 읽어 새 요청에 싣고, 보낸 첨부는 입력창에서 비운다', async () => {
     openThread([])
     send.mockResolvedValue(undefined)
