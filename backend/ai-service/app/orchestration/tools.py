@@ -98,10 +98,18 @@ WAITS = {
 }
 
 
+def inputs(state: dict) -> dict:
+    """상태의 단계 입력. 옛 체크포인트 호환: #581 전에는 고증 조사 입력을 web_research 키로 저장했다(둘 다 있으면 research)."""
+    read = dict(state.get('inputs') or {})
+    if 'web_research' in read:
+        read.setdefault('research', read.pop('web_research'))
+    return read
+
+
 def waits(call: dict, state: dict, turn: dict) -> bool:
     """병렬 묶음 검사(#474): 이 호출을 지금 실행하면 작가 입력을 기다리는가."""
     wait = WAITS.get(call['name'])
-    return bool(wait and wait(turn, state.get('inputs') or {}, state.get('retrievalScope'), call['args']))
+    return bool(wait and wait(turn, inputs(state), state.get('retrievalScope'), call['args']))
 
 
 class Skipped(Exception):
@@ -127,10 +135,15 @@ def task(turn: dict) -> str:
     return turn.get('task') or turn['request']
 
 
+def _name(step: dict) -> str:
+    """작가·모델에게 보일 단계 이름. 고증 조사의 platform은 웹 고증이 아니라 다른 작가의 공개 세계관을 참고한다(#640)."""
+    return '공개 세계관 참고' if step.get('task') == 'platform' else CAPABILITY_NAMES[step['feature']]
+
+
 def _summary(step: dict) -> str:
     """메인 에이전트가 읽을 결과 요약. 원고 Text·Patch·BeatPlan 본문은 넣지 않는다(종합 답변에서 다시 쓰지 않게)."""
     if step['status'] == 'failed':
-        return f"[실패] {CAPABILITY_NAMES[step['feature']]}: {step['error']}"
+        return f"[실패] {_name(step)}: {step['error']}"
     brief = {'feature': step['feature'], 'status': step['status'], **({'reason': step['error']} if step.get('error') else {})}
     if step['status'] == 'completed':
         brief.update(SUMMARIES[step['feature']](step['result']))
@@ -190,23 +203,23 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
     """
     turn, steps = runtime.context, list(runtime.state.get('steps', []))
     step = {'feature': feature, 'when': when, 'status': 'not_started', **({'task': task_kind} if task_kind else {})}
-    inputs, scope = dict(runtime.state.get('inputs', {})), runtime.state.get('retrievalScope')
-    name, answered = CAPABILITY_NAMES[feature], {}
+    read, scope = inputs(runtime.state), runtime.state.get('retrievalScope')
+    name, answered = _name(step), {}
     try:
-        while needs(inputs, scope):
+        while needs(read, scope):
             if not turn.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
                 return _reply(runtime, feature, f'[입력 대기] {name}: 작가 입력이 없어 실행하지 않았어요.',
                               {'stopped': {'status': 'needs_input', 'missingInputs': [feature]}}, failed=True)
             answer = interrupt({'steps': [*steps, step], 'missingInputs': [feature]})
             if not answer['approved']:
                 return _reply(runtime, feature, f'[취소] {name}: 작가가 취소해 실행하지 않았어요.', {'stopped': {'status': 'cancelled'}}, failed=True)
-            inputs.update(answer['inputs'])
+            read.update(answer['inputs'])
             # Content가 resume마다 새로 서명한 조회 토큰을 쓴다. 저장된 토큰은 만료·Content 재시작으로 무효일 수 있다.
             scope = answer.get('scope') or scope
-            answered = {'inputs': inputs, 'retrievalScope': scope}
+            answered = {'inputs': read, 'retrievalScope': scope}
         runtime.stream_writer({'started': feature})
         with tracing.observe(f'step.{feature}', as_type='agent'):
-            step.update(status='completed', result=call(inputs, scope).model_dump(mode='json'))
+            step.update(status='completed', result=call(read, scope).model_dump(mode='json'))
     except Skipped as skip:
         step.update(status='skipped', error=str(skip))
     except Clarify as ask:  # 단계를 남기지 않고 한 문장으로 되묻는다(시뮬레이션 계획의 되묻기와 같다)
@@ -320,7 +333,7 @@ def ask_research(task: Literal['web', 'platform'], runtime: ToolRuntime, request
             return research.platform(request.strip() or runtime.context.get('task') or runtime.context['request'])
         return research.research(ResearchRequest.model_validate(inputs['research']))
 
-    return _ask(runtime, 'research', run, needs=lambda inputs, scope: WAITS['ask_research'](runtime.context, inputs, scope, {'task': task}))
+    return _ask(runtime, 'research', run, needs=lambda inputs, scope: WAITS['ask_research'](runtime.context, inputs, scope, {'task': task}), task_kind=task)
 
 
 @tool
