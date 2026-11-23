@@ -83,6 +83,41 @@ def test_sends_detected_text_for_its_own_verdict(monkeypatch, sexual):
     assert request.call_args == call(model="omni-moderation-latest", input="표지 문구 ADULT SERVICES")
 
 
+@pytest.mark.parametrize("text", [
+    "ADULT ESCORT SERVICES PAID SEXUAL SERVICES BOOK AN ADULT ENCOUNTER",
+    "18+ ONLY ADULT ESCORT SERVICES PAID SEXUAL SERVICES BOOK AN ADULT ENCOUNTER",
+    "ＡＤＵＬＴ　ＥＳＣＯＲＴ　ＳＥＲＶＩＣＥＳ\nBOOK—NOW",
+    "성인 에스코트 서비스\n예약 문의",
+])
+def test_blocks_adult_service_ads_even_when_text_verdict_allows(monkeypatch, text):
+    request = provider(monkeypatch)
+    request.side_effect = [verdict(), verdict(False, ("text",))]
+    monkeypatch.setattr(moderation, "run", MagicMock(return_value=SimpleNamespace(
+        stdout=text.encode("utf-8"), stderr=b"",
+    )))
+
+    with pytest.raises(moderation.OutputBlocked):
+        moderation.check_output(b"png")
+
+    assert request.call_args == call(model="omni-moderation-latest", input=" ".join(text.split()))
+
+
+@pytest.mark.parametrize("text", [
+    "18+ ADULT EDUCATION BOOK NOW",
+    "TRAVEL ESCORT SERVICE BOOK NOW",
+    "A BOOK ABOUT PAID SEXUAL SERVICES AND PUBLIC HEALTH",
+    "성매매 예방 상담 예약",
+])
+def test_allows_unrelated_or_nonpromotional_text(monkeypatch, text):
+    request = provider(monkeypatch)
+    request.side_effect = [verdict(), verdict(False, ("text",))]
+    monkeypatch.setattr(moderation, "run", MagicMock(return_value=SimpleNamespace(
+        stdout=text.encode("utf-8"), stderr=b"",
+    )))
+
+    moderation.check_output(b"png")
+
+
 @pytest.mark.parametrize("failure", ["ocr_timeout", "ocr_missing_language", "text_verdict_missing", "text_timeout"])
 def test_cannot_release_image_when_text_safety_is_unknown(monkeypatch, failure):
     request = provider(monkeypatch)
