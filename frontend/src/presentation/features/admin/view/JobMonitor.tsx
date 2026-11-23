@@ -52,7 +52,7 @@ function Runs({ vm, j }: { vm: VM; j: Jobs }) {
         </label>
         <label className="field">종류<input className="inp" name="kind" list="job-kinds" defaultValue={q.kind} placeholder="예: regression_eval" /></label>
         <datalist id="job-kinds">{JOB_KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</datalist>
-        <button type="submit" className="btn sm pri">조회</button>
+        <button type="submit" className="btn sm">조회</button>
       </form>
       <LiveState vm={vm} label="실행 기록" state={j.runs} />
       <ActionLines vm={vm} prefix="run:" />

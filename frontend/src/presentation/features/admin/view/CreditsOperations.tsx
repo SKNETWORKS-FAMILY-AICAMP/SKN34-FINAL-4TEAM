@@ -38,7 +38,7 @@ export function CreditsOperations({ vm }: { vm: VM }) {
           회원 검색
           <input className="inp" name="query" type="search" autoComplete="off" placeholder="이름·이메일 (비우면 전체)" />
         </label>
-        <button className="btn pri" type="submit">검색</button>
+        <button className="btn" type="submit">검색</button>
         <button className="btn" type="button" disabled={d.members.isRefreshing} onClick={() => { d.members.retry(); d.balances.retry() }}>목록 새로고침</button>
       </form>
       <LiveState vm={vm} label="회원 목록" state={d.members} />

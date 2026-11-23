@@ -339,7 +339,7 @@ function Controls(
           {sorts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
       </label>
-      <button className='btn pri' type='submit'>검색</button>
+      <button className='btn' type='submit'>검색</button>
     </form>
   )
 }
@@ -702,7 +702,7 @@ function Users({ vm, f, setF }: BodyProps) {
             <option value='oldest'>가입 오래된순</option>
           </select>
         </label>
-        <button className='btn pri' type='submit'>검색</button>
+        <button className='btn' type='submit'>검색</button>
       </form>
       <LiveState vm={vm} label='회원 목록' />
       {vm.live.data && (rows.length

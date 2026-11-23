@@ -1,11 +1,11 @@
 .adm .admin-operations { min-width: 0; overflow-wrap: anywhere; }
 .adm .admin-operations fieldset { border: 0; padding: 0; margin: 12px 0 0; min-width: 0; }
-.adm .admin-operations h2 { font-size: 20px; line-height: 1.4; margin: 24px 0 12px; }
+.adm .admin-operations h2 { font-size: 16px; line-height: 1.4; margin: 24px 0 12px; }
 /* 패널 맨 위 제목은 패널 안쪽 여백만으로 띄운다(위 여백 24px이 더해지면 좌우보다 위가 두 배로 비어 보인다). */
 .adm .admin-operations > h2:first-child { margin-top: 0; }
 .adm .admin-operations .table-head h2 { margin: 0; }
-.adm .admin-operations h3 { font-size: 16px; margin: 28px 0 12px; }
-.adm .admin-operations h4 { font-size: 15px; }
+.adm .admin-operations h3 { font-size: 15px; margin: 28px 0 12px; }
+.adm .admin-operations h4 { font-size: 14px; }
 .adm .admin-operations .inp,
 .adm .admin-operations .ta { min-width: 0; width: 100%; }
 .adm .admin-operations :is(button, input, textarea):disabled { cursor: not-allowed; opacity: .55; }
@@ -33,8 +33,8 @@
 .adm .admin-operations .report-actions fieldset { display: grid; gap: 10px; margin: 0; }
 .adm .admin-operations .report-actions h3 { margin: 0; }
 .adm .admin-operations h2[tabindex="-1"]:focus { outline: none; }
-/* 패널 제목: 굵은 글씨(<b>) 대신 제목 요소를 쓰되 모양과 흐름은 이전 그대로(본문 크기·굵게·줄 안 배치) 둡니다. */
-.adm .panel-title { display: inline; font-size: inherit; font-weight: 600; }
+/* 패널 제목: 굵은 글씨(<b>) 대신 제목 요소를 쓴다. 크기는 관리자 패널 제목 16px(개요 구역 제목과 같음)이고 굵게·줄 안 배치는 이전 그대로다. */
+.adm .panel-title { display: inline; font-size: 16px; font-weight: 600; }
 .adm .workspace :is(h2, h3, h4) { font-weight: 600; }
 /* 업무 메뉴가 가로 줄로 바뀌는 좁은 화면에서는 누르는 높이를 44px로 올립니다(전역 38px). */
 @media (max-width: 900px) {
@@ -49,7 +49,7 @@
 .adm .admin-filter .field-search { flex: 1 1 260px; max-width: 360px; }
 /* 상단바 닉네임 메뉴(PopMenu): 버튼은 작은 알약 모양이고 이름이 길면 말줄임, 목록은 버튼 오른쪽 끝에 맞춰 아래로 연다. 비레이어 규칙이라 pop-menu.css의 버튼 기본값을 이긴다. */
 .adm .admin-who { min-width: 0; }
-.adm .admin-who .pop-menu-btn { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 12em; height: 36px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 13.5px; font-weight: 700; }
+.adm .admin-who .pop-menu-btn { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 12em; height: 36px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 13.5px; font-weight: 600; }
 .adm .admin-who .pop-menu-btn:hover { background: var(--muted-bg); }
 .adm .admin-who-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adm .admin-who .pop-menu-list { top: calc(100% + 6px); right: 0; }

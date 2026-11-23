@@ -139,7 +139,7 @@ export function Models({ vm, l }: Props) {
                 {rows.map((row) => (
                   <tr key={row.id}>
                     <td><b>{row.modelName}</b></td>
-                    <td>{row.matchPattern}</td>
+                    <td className="muted">{row.matchPattern}</td>
                     <td>{perMillion(row.inputPrice)}</td>
                     <td>{perMillion(row.outputPrice)}</td>
                   </tr>
@@ -352,7 +352,7 @@ function RuleRow({ rule, l, busy }: { rule: AlertRule; l: LlmVM; busy: boolean }
         <div className="admin-inline">
           <button
             type="button"
-            className="btn sm pri"
+            className="btn sm"
             aria-label={`${label} 기준 저장`}
             disabled={busy}
             onClick={() => void l.updateRule(rule.key, next)}
