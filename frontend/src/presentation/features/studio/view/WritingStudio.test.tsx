@@ -60,10 +60,11 @@ afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.activ
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where" data-nav={useNavigationType()}>{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
 const navigation = () => screen.getByTestId('where').dataset.nav
-const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}, episode?: number, path = '/studio/work-id') => {
+/** history: 집필실을 앱 안의 다른 화면에서 열었을 때의 기록(마지막 항목이 지금 화면). 없으면 집필실이 첫 항목이다(주소를 직접 연 경우). */
+const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}, episode?: number, path = '/studio/work-id', history?: string[]) => {
   const store = createAppStore({}, ui)
   const view = render(<WritingStudio id="work-id" episode={episode} />, {
-    wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={[path]}>{children}<Where /></MemoryRouter></Provider>,
+    wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={history ?? [path]}>{children}<Where /></MemoryRouter></Provider>,
   })
   return { ...view, store }
 }
@@ -216,10 +217,11 @@ function expectComparisonSelection(before: string, after: string) {
   expect(screen.getByLabelText('비교 원고 버전')).toHaveProperty('value', after)
 }
 
-it('팀 서재로 돌아가며 공개 시트에서 버전 선택과 권리 확인 후 기존 API 동작을 사용한다', async () => {
+it('상단 뒤로 버튼이 있고(서재 링크가 아니다) 공개 시트에서 버전 선택과 권리 확인 후 기존 API 동작을 사용한다', async () => {
   model.active = { ...originalActive, versions: [savedVersion('v1')] }
   renderStudio()
-  expect(screen.getByRole('link', { name: '내가 쓰는 소설' }).getAttribute('href')).toBe('/lib?tab=write')
+  expect(screen.getByRole('button', { name: '뒤로' })).toBeTruthy()
+  expect(screen.queryByRole('link', { name: '내가 쓰는 소설' })).toBeNull()
   expect(screen.queryByRole('dialog')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '버전 · 공개' }))
   expect(screen.getByRole('dialog', { name: '원고 저장본 · 공개' })).toBeTruthy()
@@ -434,7 +436,7 @@ it('버전이 두 개 미만으로 줄어 비교 화면이 사라져도 제거�
   expect(screen.queryByRole('region', { name: '원고 변경 내용' })).toBeNull()
 })
 
-it('플롯은 집필실 안에서 열리고 서재 링크만 이동한다', () => {
+it('플롯은 집필실 안에서 열리고 뒤로 버튼만 이동한다', () => {
   renderStudio()
   openMore()
   fireEvent.click(screen.getByRole('menuitem', { name: '플롯' }))
@@ -442,16 +444,25 @@ it('플롯은 집필실 안에서 열리고 서재 링크만 이동한다', () =
   expect(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).toBeTruthy()
   expect(screen.queryByRole('menu')).toBeNull()
   expect(model.mayLeave).not.toHaveBeenCalled()
-  fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
-  expect(where()).toBe('/lib?tab=write')
+  // 집필실이 첫 항목이면(주소를 직접 열었다) 이전 화면이 없으니 이 작품의 관리 화면으로 간다.
+  fireEvent.click(screen.getByRole('button', { name: '뒤로' }))
+  expect(where()).toBe('/content?work=work-id')
   expect(model.mayLeave).toHaveBeenCalledTimes(1)
 })
 
 it('미저장 입력 때문에 이탈을 취소하면 현재 집필실에 남는다', () => {
   renderStudio()
   model.mayLeave.mockReturnValueOnce(false)
-  fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
+  fireEvent.click(screen.getByRole('button', { name: '뒤로' }))
   expect(where()).toBe('/studio/work-id')
+})
+
+it('앱 안에 이전 화면이 있으면 뒤로는 그 화면으로 돌아간다(저장 확인은 되돌아가기 보호가 맡아 직접 묻지 않는다: 두 번 묻지 않게)', () => {
+  renderStudio({}, undefined, undefined, ['/content?work=work-id', '/studio/work-id'])
+  fireEvent.click(screen.getByRole('button', { name: '뒤로' }))
+  expect(where()).toBe('/content?work=work-id')
+  expect(navigation()).toBe('POP')
+  expect(model.mayLeave).not.toHaveBeenCalled()
 })
 
 it('목업의 해시 경로 이동도 보호하고 같은 페이지의 본문 링크는 허용한다', () => {
@@ -708,11 +719,11 @@ it('고급 패널은 기본 모드에서 숨겨지고 토글해도 같은 원고
 it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장·버전 공개·더보기)만 보이고 저장 상태는 제목 옆 작은 글씨로 둔다', () => {
   renderStudio()
   const bar = screen.getByRole('banner')
-  expect(within(bar).getByRole('link', { name: '내가 쓰는 소설' })).toBeTruthy()
+  expect(within(bar).getByRole('button', { name: '뒤로' })).toBeTruthy()
   expect(within(bar).getByRole('heading', { level: 1, name: '집필실' })).toBeTruthy()
   expect(within(bar).getByRole('status').textContent).toBe('저장됨 · 버전 1')
   const names = within(bar).getAllByRole('button').map(b => b.textContent || b.getAttribute('aria-label'))
-  expect(names).toEqual(['기본', '고급', '시뮬레이션', '버전 저장', '버전 · 공개', '더보기'])
+  expect(names).toEqual(['뒤로', '기본', '고급', '시뮬레이션', '버전 저장', '버전 · 공개', '더보기'])
   // 자주 안 쓰는 이동·이력은 메뉴가 열리기 전에는 상단에 없다
   for (const name of ['플롯', '다시 불러오기', '설정 버전 이력', '발행 이력']) {
     expect(within(bar).queryByRole('link', { name })).toBeNull()
