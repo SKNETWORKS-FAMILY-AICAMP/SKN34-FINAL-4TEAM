@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../../test/testLocks'
 import { login } from '../api/auth'
+import type { ChatAttachmentPayload } from '../../domain/entities/chatAttachment'
 import { stepText, type ChatEvent } from '../../domain/entities/writingChat'
 import { HttpWritingChatRepository } from './HttpWritingChatRepository'
 
@@ -9,6 +10,18 @@ const input = { episode: 2, episodeVersionId: 'v2', request: '길드 규칙은?'
 const sse = (...chunks: string[]) => new Response(new ReadableStream({
   start(controller) { chunks.forEach((c) => controller.enqueue(new TextEncoder().encode(c))); controller.close() },
 }), { headers: { 'Content-Type': 'text/event-stream' } })
+
+/** chunk를 흘린 뒤 네트워크 오류로 끊긴다. */
+const broken = (chunk: string) => {
+  let sent = false
+  return new Response(new ReadableStream({
+    pull(controller) {
+      if (sent) return controller.error(new TypeError('network error'))
+      sent = true
+      controller.enqueue(new TextEncoder().encode(chunk))
+    },
+  }), { headers: { 'Content-Type': 'text/event-stream' } })
+}
 
 afterEach(() => vi.unstubAllGlobals())
 beforeEach(async () => {
@@ -46,6 +59,35 @@ describe('집필 AI 채팅 SSE', () => {
     await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse('event: plan\ndata: {"steps":[]}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
     expect(events.at(-1)).toEqual({ type: 'error', message: '응답이 중간에 끊겼어요. 대화를 다시 불러와 저장된 내용을 확인해 주세요.' })
   })
+
+  it('답변 조각(answer)은 공백·줄바꿈 그대로, 초기화는 null로 넘긴다', async () => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(
+      'event: answer\ndata: {"delta":null}\n\nevent: answer\ndata: {"delta":" 길드는\\n"}\n\n',
+      'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
+    expect(events.slice(0, 2)).toEqual([{ type: 'answer', delta: null }, { type: 'answer', delta: ' 길드는\n' }])
+  })
+
+  it('읽는 중 연결이 끊기면 브라우저 오류 원문 대신 끊김 error 이벤트로 끝낸다', async () => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(broken('event: answer\ndata: {"delta":"길드는"}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
+    expect(events).toEqual([{ type: 'answer', delta: '길드는' }, { type: 'error', message: '응답이 중간에 끊겼어요. 대화를 다시 불러와 저장된 내용을 확인해 주세요.' }])
+  })
+
+  it('done을 받은 뒤의 끊김은 실패로 바꾸지 않는다', async () => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(broken('event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
+    expect(events.map((e) => e.type)).toEqual(['done'])
+  })
+
+  it('호출한 쪽이 취소한 읽기는 끊김으로 알리지 않고 그대로 올린다', async () => {
+    const caller = new AbortController()
+    const events: ChatEvent[] = []
+    const sending = new HttpWritingChatRepository(vi.fn().mockResolvedValue(broken('event: answer\ndata: {"delta":"길드는"}\n\n')))
+      .send('w1', 't1', input, (e) => { events.push(e); caller.abort() }, caller.signal)
+    await expect(sending).rejects.toThrow()
+    expect(events.map((e) => e.type)).toEqual(['answer'])
+  })
 })
 
 it('JSON이 아닌 data 줄은 그 이벤트만 형식 오류로 알리고 뒤 이벤트를 계속 읽는다', async () => {
@@ -65,6 +107,31 @@ describe('집필 AI 채팅 세션', () => {
     const history = await repo.history('w1', 't1')
     expect(fetcher.mock.calls[1][0]).toBe('/api/v1/works/w1/chat/sessions/t1')
     expect(history.turns[0].reply?.awaitingApproval).toBe('writing_editing')
+  })
+})
+
+describe('집필 AI 채팅 첨부(#617)', () => {
+  const attachments: ChatAttachmentPayload[] = [{ name: '메모.md', mediaType: 'text/markdown', data: 'IyDshqTsoJU=' }, { name: '지도.png', mediaType: 'image/png', data: 'iVBORw0KGgo=' }]
+
+  it('새 요청 본문에 첨부를 그대로 싣는다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(sse('event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))
+    await new HttpWritingChatRepository(fetcher).send('w1', 't1', { ...input, attachments }, () => {})
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ ...input, attachments })
+  })
+
+  it('이력의 턴은 첨부의 이름·종류만 읽고, 첨부가 없거나 빈 턴과 옛 기록도 그대로 읽는다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '길드', turns: [
+      { request: '이 자료를 봐줘', reply: null, attachments: [{ name: '메모.md', kind: 'text' }, { name: '지도.png', kind: 'image' }] },
+      { request: '첨부 없음', reply: null, attachments: [] },
+      { request: '옛 기록', reply: null },
+    ] }))
+    const history = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(history.turns.map((t) => t.attachments)).toEqual([[{ name: '메모.md', kind: 'text' }, { name: '지도.png', kind: 'image' }], [], undefined])
+  })
+
+  it('알 수 없는 첨부 종류가 오면 이력 전체를 형식 오류로 본다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '', turns: [{ request: '요청', reply: null, attachments: [{ name: 'a.wav', kind: 'audio' }] }] }))
+    await expect(new HttpWritingChatRepository(fetcher).history('w1', 't1')).rejects.toThrow()
   })
 })
 

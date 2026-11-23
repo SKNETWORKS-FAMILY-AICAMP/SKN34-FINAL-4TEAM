@@ -8,7 +8,7 @@ import { createAppStore } from '../../../app/store'
 import { sceneLine, type CharacterSimulation, type SimulationTurn } from '../../../domain/entities/characterSimulation'
 import type { StoryPlan } from '../../../domain/entities/storyPlan'
 import type { StudioSetting } from '../../../domain/entities/studioWorld'
-import type { ChatBasis, ChatEvent, ChatMessageInput, ChatReply, ChatStep } from '../../../domain/entities/writingChat'
+import { chatPage, type ChatBasis, type ChatEvent, type ChatMessageInput, type ChatPage, type ChatReply, type ChatStep } from '../../../domain/entities/writingChat'
 import { SimulationStage } from './SimulationStage'
 import { useSimulationStageViewModel } from './useSimulationStageViewModel'
 import { useWritingChatViewModel } from './useWritingChatViewModel'
@@ -85,8 +85,8 @@ const serve = (...next: Handler[]) => { handlers = next }
 // 근거(지식 상한)는 발행된 3화, 작가가 연 반영 회차는 발행 전 4화 초안이다(근거와 반영 회차가 묶여 4화가 아닌 3화에 반영되던 버그 시나리오).
 const BASIS: ChatBasis = { episode: 3, episodeVersionId: 'v3', targetEpisode: 4 }
 const onApplied = vi.fn()
-function Host({ basis = BASIS, plansVersion = 0, startBlocker = '' }: { basis?: ChatBasis | null; plansVersion?: number; startBlocker?: string }) {
-  const chat = useWritingChatViewModel('w', basis, onApplied)
+function Host({ basis = BASIS, plansVersion = 0, startBlocker = '', getPage }: { basis?: ChatBasis | null; plansVersion?: number; startBlocker?: string; getPage?: () => ChatPage | undefined }) {
+  const chat = useWritingChatViewModel('w', basis, onApplied, undefined, getPage)
   const stage = useSimulationStageViewModel(chat)
   return <>
     {/* 집필실처럼 상단 버튼은 시작 양식부터, 채팅의 무대 열기는 그 장면을 연다. */}
@@ -129,6 +129,17 @@ beforeEach(() => {
   })
 })
 afterEach(() => { cleanup(); vi.resetAllMocks(); vi.restoreAllMocks() })
+
+it('편집기 선택 글이 5,000자를 넘으면 무대 시작은 보내지 않고 그 이유를 보이며 직전 답을 답처럼 보이지 않는다(#639)', async () => {
+  reload({ status: 'completed', steps: [], missingInputs: [], message: '직전 턴의 답' })
+  const getPage = () => chatPage({ path: '/studio/w', kind: 'studio', episode: 3, selection: '가'.repeat(5001) })
+  render(<Provider store={createAppStore()}><Host getPage={getPage} /></Provider>)
+  await waitFor(() => expect(history).toHaveBeenCalled())
+  await begin()
+  expect((await box().findByText(/5,000자까지/)).getAttribute('role')).toBe('alert')
+  expect(box().queryByText('직전 턴의 답')).toBeNull()
+  expect(send).not.toHaveBeenCalled()
+})
 
 // ── 시작 양식(버튼 진입) ──
 const openForm = async () => {
@@ -547,6 +558,7 @@ it('턴마다 나레이션은 지문 블록으로, 인물 줄은 이름과 말�
   expect(box().getByRole('list', { name: '장면 대본' }).getAttribute('aria-live')).toBe('polite')
   expect(lines()[0].classList.contains('stage-narration')).toBe(true)
   expect(lines()[0].textContent).toContain('성문은 닫혀 있었다.')
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
   await act(async () => { toSecond() })
   await waitFor(() => expect(lines()).toHaveLength(3))
   expect(within(lines()[1]).getByText('카엘')).toBeTruthy()
@@ -1505,11 +1517,13 @@ it('새 줄이 붙으면 맨 아래에 있던 대본은 따라 내려가고, 위
   Object.defineProperties(log, { scrollHeight: { value: 900, configurable: true }, clientHeight: { value: 300, configurable: true } })
   log.scrollTop = 600 // 맨 아래(900 - 300)
   fireEvent.scroll(log)
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
   await act(async () => { second() })
   await waitFor(() => expect(lines()).toHaveLength(2))
   expect(log.scrollTop).toBe(900)
   log.scrollTop = 100 // 위로 올려 읽는 중
   fireEvent.scroll(log)
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(3))
   await act(async () => { third() })
   await waitFor(() => expect(lines()).toHaveLength(3))
   expect(log.scrollTop).toBe(100)

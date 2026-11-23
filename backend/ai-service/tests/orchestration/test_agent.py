@@ -153,6 +153,12 @@ def test_tools_are_bound_with_parallel_calls_and_the_model_has_no_retries_or_sto
     assert (init['model'], init['use_responses_api'], init['store'], init['max_retries']) == ('test-model', True, False, 0)
 
 
+def test_the_main_model_reasons_at_high_effort_with_room_for_reasoning_tokens(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    run(inputs={'story_context': QA})
+    assert (calls.main.init['reasoning_effort'], calls.main.init['max_tokens']) == ('high', 8000)
+
+
 def test_a_failed_sub_agent_closes_the_tools_and_the_main_agent_only_answers(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context', 'research'), fail={'story_context': StoryQaFailure(502, '답변 실패')})
     result = run(inputs={'story_context': QA, 'research': WEB})
@@ -246,6 +252,29 @@ def test_the_model_only_sets_the_request_and_enumerated_arguments():
     assert set(schemas['ask_writing']['properties']['task']['enum']) == {'plan', 'draft', 'patch', 'revise_plan'}
     # World의 작업은 열거형 인자 task로 고르고 반드시 정해야 한다(고르지 않은 호출은 인자 오류로 단계 실패다).
     assert set(schemas['ask_world']['properties']['task']['enum']) == {'check', 'enrich', 'impact'} and 'task' in schemas['ask_world']['required']
+
+
+def test_the_main_agent_is_told_that_editing_chosen_text_needs_no_review_finding():
+    """#669: patch가 검수의 확정 지적 전용으로 읽혀 선택 글 수정을 거절했다."""
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith('2.'))
+    for told in (rule, agent.TOOLS['writing_editing'].description):
+        assert all(words in told for words in ('선택한 글', '구간', 'fix 없이', 'task=patch')), told
+        assert '고칠 때만 task=patch' not in told, told
+
+
+def test_the_main_agent_is_told_how_to_choose_between_the_selection_and_a_finding():
+    """#636: 검수를 함께 요청해도 선택 글은 fix 없이 고치고, 지적을 고칠 때는 선택 글이 남아 있어도 fix를 넣는다."""
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith('2.'))
+    for told in (rule, agent.TOOLS['writing_editing'].description):
+        assert '검수를 함께 요청했어도' in told, told
+        assert '선택한 글이 남아 있어도' in told, told
+
+
+def test_the_review_summary_says_the_whole_episode_was_reviewed(monkeypatch):
+    """#636 E2E: 선택한 글이 실리면 그 문장만 검수했다고 답했다. 검수는 늘 회차 본문 전체를 본다."""
+    calls = fake_agents(monkeypatch, plan(Step('manuscript_review', check='mechanical')))
+    run(target=TARGET)
+    assert json.loads(tool_messages(calls)[0].content).get('range') == '회차 본문 전체'
 
 
 def test_a_tool_returns_a_summary_for_the_main_agent_and_the_raw_result_as_its_artifact(monkeypatch):
@@ -620,6 +649,8 @@ def test_the_patch_summary_names_the_changed_passage_so_the_answer_cannot_claim_
     run(target=TARGET)
     summary = json.loads(tool_messages(calls)[1].content)
     assert (summary['kind'], summary['selection']) == ('patch', '그는 웃었다.')
+    # after를 빼기만 하면 종합 답변이 '수정안 본문이 없다'고 실패처럼 말한다
+    assert '결과 카드' in summary.get('proposal', '') and '그는 차갑게 웃었다.' not in tool_messages(calls)[1].content
 
 
 
