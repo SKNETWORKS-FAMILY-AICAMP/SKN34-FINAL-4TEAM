@@ -11,7 +11,7 @@ Retrieval·웹 검색·원고 반영 도구는 없고, 서브 에이전트에 �
   모델 호출 상한의 마지막 호출에는 도구를 치운다(FinalAnswerMiddleware 방식). 한 모델 턴의 병렬 묶음은 조회형(PARALLEL)만 함께 실행하고
   단독 도구·입력이 빠진 호출은 실행하지 않고 돌려 다음 모델 턴에 따로 부르게 한다(#474, 2026-11-17 사용자 결정). 함께 실행하는 호출은
   create_agent가 호출마다 Send로 같은 superstep에서 동시에 돌리고, 그래서 steps는 reducer로 모은다(모델이 부른 순서).
-- `ToolCallLimit`(라이브러리 상속): 서브 에이전트 기능당 1회, 턴당 3회(MCP 도구는 세지 않는다). MCP 도구는 따로 턴당 10회(`mcpCalls`).
+- `ToolCallLimit`(라이브러리 상속): 서브 에이전트 기능당 1회(`ask_research`만 2회, #640), 턴당 3회(MCP 도구는 세지 않는다). MCP 도구는 따로 턴당 10회(`mcpCalls`).
   `ModelCallLimitMiddleware`(라이브러리): 메인 모델 호출 8회(2026-11-17 5회 → #554에서 올림).
   재개(resume) 뒤에도 세도록 체크포인트에 남는 thread 한도를 쓴다. 메인 에이전트 상태는 턴마다 새로 시작한다.
 - `MainModelMiddleware`: 메인 모델 호출을 Langfuse `main_agent` generation으로 남기고, 제공사 오류·전송 끊김·잘린 응답은 끝낸 단계를 보존한 채
@@ -47,6 +47,7 @@ from app.orchestration.prompt import INSTRUCTIONS
 MODEL_CALLS = 8  # 메인 모델 호출 상한(턴당). 마지막 호출은 도구 없이 종합한다. MCP 도구 호출(#554)로 5에서 올렸다.
 TOOL_CALLS = 3  # 서브 에이전트 호출 상한(턴당). 기능마다 1회다.
 RESUME_SCOPE = 'resume_scope'  # 쓰기 승인 이어가기 요청이 설정으로 넘기는 새 조회 토큰(#678). dict라 체크포인트 metadata에 남지 않는다
+RESEARCH_CALLS = 2  # ask_research만 턴당 2회: 웹 고증과 공개 세계관 참고를 한 턴에 함께 한다(#640, 같은 task 중복은 막지 않는다)
 FAILED = 'main_failed'  # 메인 모델 실패로 끝낸 마지막 메시지 이름
 # 제안 다시 받기(#662) 때 실행하지 않은 세계관 수정의 ToolMessage. 도구 답은 데이터라(프롬프트 규칙 4) 이 글만으로는 모델이 다시 제안하지 않고,
 # DynamicToolMiddleware가 이 메시지를 보고 다시 읽기 → 재제안을 tool_choice로 강제한다(_refresh_next).
@@ -159,7 +160,7 @@ class DynamicToolMiddleware(AgentMiddleware):
             # 입력 대기 중 저장된 옛 호출을 복원한다. 모델에는 새 도구 이름만 노출한다.
             tool = TOOLS['manuscript_review']
             request = request.override(tool=tool, tool_call={**call, 'name': tool.name})
-        elif call['name'] == 'ask_web_research' and 'web_research' in request.state['decision']['capabilities']:
+        elif call['name'] == 'ask_web_research' and 'web_research' in request.state['decision']['capabilities']:  # 옛 체크포인트 호환(입력 키는 tools.inputs)
             tool = TOOLS['research']
             request = request.override(tool=tool, tool_call={**call, 'name': tool.name, 'args': {'task': 'web'}})
         if request.tool_call['name'] not in _allowed(request.state):
@@ -330,5 +331,5 @@ def build(found: list[dict] = ()):
         DecisionGuardMiddleware(), MainModelMiddleware(managed.client),
         *([WriteApproval(interrupt_on=approval)] if approval else []),
         ToolCallLimit(thread_limit=TOOL_CALLS),
-        *(ToolCallLimit(tool_name=t.name, thread_limit=1) for t in TOOLS.values()),
+        *(ToolCallLimit(tool_name=t.name, thread_limit=RESEARCH_CALLS if t.name == 'ask_research' else 1) for t in TOOLS.values()),
         DynamicToolMiddleware(), ModelCallLimitMiddleware(thread_limit=MODEL_CALLS, exit_behavior='end')])

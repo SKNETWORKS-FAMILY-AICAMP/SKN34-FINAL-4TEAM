@@ -66,7 +66,7 @@ export type ChatStep = {
   /** if_issues_found는 직전 검수에서 확정 지적이 있을 때만 고치는 조건부 수정이다(#370). skipped는 고칠 것이 없어 건너뛴 단계(error가 이유)다. */
   when?: 'always' | 'if_issues_found'
   /** writing_editing 단계에 Router가 정한 작업 종류(#387). patch(선택 구간 수정)는 채팅에서 입력을 채울 수 없고 revise_plan(#578)은 저장된 계획의 수정안이다. world 단계는 check·enrich·impact(#546)다. */
-  task?: 'plan' | 'draft' | 'patch' | 'revise_plan' | 'check' | 'enrich' | 'impact' | null
+  task?: 'plan' | 'draft' | 'patch' | 'revise_plan' | 'check' | 'enrich' | 'impact' | 'web' | 'platform' | null
   status: 'completed' | 'failed' | 'not_started' | 'skipped'
   result?: ChatStepResult | null
   /** character_simulation 단계의 검증된 결과(#58). 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
@@ -386,7 +386,10 @@ export const cancelNotice = (reply: ChatReply): string => (reply.steps.some((s) 
   ? '취소하면 남은 작업은 실행하지 않아요. 이미 끝난 작업은 그대로예요.'
   : '취소하면 아무 작업도 실행하지 않아요.')
 
-const stepLabel = (s: ChatStep) => `[${featureLabel[s.feature] ?? s.feature}]`
+/** 단계 이름. 고증 조사의 platform은 다른 작가의 공개 세계관 참고다(#640). task가 없는 옛 기록은 참고안(references) 모양으로 가른다. */
+export const stepName = (s: ChatStep) =>
+  s.feature === 'research' && (s.task === 'platform' || s.result?.references) ? '공개 세계관 참고' : featureLabel[s.feature] ?? s.feature
+const stepLabel = (s: ChatStep) => `[${stepName(s)}]`
 const appliedLine = (s: ChatStep) => (s.applied
   ? (s.feature === 'world' ? '→ 설정집 초안에 반영했어요.' : s.feature === 'content_action' ? '→ 승인한 작업을 실행했어요.' : s.task === 'revise_plan' ? '→ 계획에 저장했어요.' : `→ ${s.applied.episode}화 초안에 반영했어요.`)
   : s.approval === 'declined' ? (s.task === 'revise_plan' ? '→ 저장하지 않았어요.' : '→ 반영하지 않았어요.') : '')

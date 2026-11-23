@@ -46,8 +46,7 @@ export function boardRows(entries: readonly BoardEntry[], { kind: only, query = 
   return rows.sort(order[sort]).map((row, n) => ({ ...row, no: n + 1 }))
 }
 
-/** 카드가 있는 묶음과 장수(설정집 순서). 분류 메뉴가 쓴다. */
-export const boardKindCounts = (entries: readonly BoardEntry[]) => KINDS.map((kind) => ({ kind, count: entries.filter((e) => e.kind === kind).length })).filter((k) => k.count > 0)
-
-/** 카드가 하나도 없는 묶음(설정집 순서). 세계관 작업실의 분류 메뉴가 `비어 있음`으로 알린다(공개 설정집은 쓰지 않는다). 설정이 하나도 없으면 모든 묶음이 비지만 알리지 않는다(시작 안내가 대신한다). */
-export const boardEmptyKinds = (entries: readonly BoardEntry[]) => (entries.length ? KINDS.filter((kind) => !entries.some((e) => e.kind === kind)) : [])
+/** 묶음과 장수(설정집 순서). 게시판 분류 메뉴는 빈 묶음도 표시한다. */
+export const boardKindCounts = (entries: readonly BoardEntry[], includeEmpty = false) =>
+  KINDS.map((kind) => ({ kind, count: entries.filter((e) => e.kind === kind).length }))
+    .filter(({ count }) => includeEmpty || count > 0)
