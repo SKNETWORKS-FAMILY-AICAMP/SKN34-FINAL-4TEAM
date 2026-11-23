@@ -227,8 +227,9 @@ class PendingAction(BaseModel):
 class StepResult(BaseModel):
     feature: RecordedFeature
     when: Literal['always', 'if_issues_found']
-    # 메인 에이전트가 정한 작업 종류: Writing & Editing은 plan·draft·patch·revise_plan(#387·#473·#578), World는 check·enrich·impact(#546·#291)
-    task: Literal['plan', 'draft', 'patch', 'revise_plan', 'check', 'enrich', 'impact'] | None = None
+    # 메인 에이전트가 정한 작업 종류: Writing & Editing은 plan·draft·patch·revise_plan(#387·#473·#578), World는 check·enrich·impact(#546·#291),
+    # Research는 web·platform(#640, 그 전 단계에는 없다)
+    task: Literal['plan', 'draft', 'patch', 'revise_plan', 'check', 'enrich', 'impact', 'web', 'platform'] | None = None
     # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다. skipped는 조건부 수정이 고칠 확정 지적이 없어 건너뛴 단계다(#370).
     status: Literal['completed', 'failed', 'not_started', 'skipped']
     result: (QaStepResult | PlanResponse | DraftResponse | PatchResponse | PlanRevision | ResearchResponse | PlatformResult | SimulationResult | ReviewResponse | WorldReviewResponse

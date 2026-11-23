@@ -1150,3 +1150,54 @@ describe('집필 AI 채팅 첨부(#617)', () => {
     expect(chipsOf('첨부')).toEqual(['이미지 · 지도.png'])
   })
 })
+
+// ── Research 참고안 링크(#640) ──
+const reference = { worldId: 'w9', worldName: '달빛 학원', cardId: 'c9', cardTitle: '교칙', authorNickname: '별빛', note: '교칙 서술을 참고' }
+const platformStep = (gaps: string[] = []): ChatStep => ({ feature: 'research', task: 'platform', status: 'completed', result: { references: [reference], gaps } })
+
+it('종합 답변 없이 끝난 응답도 참고안 링크를 새 탭 안내와 함께 보인다(#640)', async () => {
+  openThread([{ request: '마법 학원 참고', reply: { status: 'completed', message: '', missingInputs: [], steps: [platformStep()] } }])
+  renderChat()
+  const link = await screen.findByRole('link', { name: /달빛 학원 · 교칙/ })
+  expect(link.textContent).toContain('(새 탭에서 열림)')
+  expect(link.getAttribute('target')).toBe('_blank')
+})
+
+it('승인 카드의 같이 끝난 작업에도 참고안 링크와 공개 세계관 참고 이름이 보인다(#640)', async () => {
+  openThread([{ request: '다음 장면 쓰고 다른 세계관도 참고해 줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 1, steps: [
+    { feature: 'writing_editing', status: 'completed', result: { text: '선장은 항구에 내렸다.' } }, platformStep(),
+  ] } }])
+  renderChat()
+  await screen.findByRole('heading', { name: '1화 초안에 반영할까요?' })
+  const others = screen.getByLabelText('같이 끝난 작업')
+  expect(within(others).getByText('공개 세계관 참고')).toBeTruthy()
+  expect(within(others).getByRole('link', { name: /달빛 학원 · 교칙/ })).toBeTruthy()
+  expect(within(others).queryByText(/교칙 · 별빛 —/)).toBeNull() // 링크 목록과 같은 참고안 글을 되풀이하지 않는다
+})
+
+it('같은 문장의 확인 못 함이 두 번 와도 둘 다 보인다(#640)', async () => {
+  openThread([{ request: '마법 학원 참고', reply: { status: 'completed', message: '', missingInputs: [], steps: [platformStep(['출처 부족', '출처 부족'])] } }])
+  renderChat()
+  await screen.findByRole('link', { name: /달빛 학원 · 교칙/ })
+  expect(within(screen.getByRole('list', { name: '참고한 공개 설정' })).getAllByText('확인 못 함: 출처 부족')).toHaveLength(2)
+})
+
+it('한 턴의 웹 고증과 공개 세계관 참고는 진행 표시에서 각자 이름으로 따로 보인다(#640)', async () => {
+  openThread([])
+  let emit!: (event: ChatEvent) => void
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    emit = onEvent
+    await new Promise<void>(() => {})
+  })
+  renderChat()
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '고증도 확인하고 다른 세계관도 참고해 줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  const run = async (event: ChatEvent) => { await act(async () => { emit(event) }) }
+  await run({ type: 'plan', steps: [{ feature: 'research', status: 'not_started' }] })
+  await run({ type: 'step', step: { feature: 'research', task: 'web', status: 'completed', result: { findings: [], gaps: [] } } })
+  await run({ type: 'step', step: platformStep() })
+  const progress = screen.getByRole('status', { name: 'AI 진행 상황' })
+  expect(within(progress).getAllByText(/./, { selector: '.chat-step-name' }).map((e) => e.textContent)).toEqual(['고증 조사', '공개 세계관 참고'])
+})
