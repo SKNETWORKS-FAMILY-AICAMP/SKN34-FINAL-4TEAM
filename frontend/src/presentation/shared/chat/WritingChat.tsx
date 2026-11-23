@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { checkAttachment, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
-import { cancelNotice, draftNotice, featureLabel, PLAN_LABEL, rangePreview, referenceHref, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
+import { cancelNotice, draftNotice, featureLabel, PLAN_LABEL, rangePreview, referenceHref, replyOutcome, replyText, reviewCheckLabel, stepName, stepText, usedPlan, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
@@ -44,10 +44,10 @@ function References({ step }: { step: ChatStep }) {
   if (step.status !== 'completed' || !refs?.length) return null
   return <ul className="chat-refs" aria-label="참고한 공개 설정">
     {refs.map((r) => <li key={`${r.worldId}-${r.cardId}`}>
-      <a href={referenceHref(r)} target="_blank" rel="noreferrer">{r.worldName} · {r.cardTitle}</a> · {r.authorNickname}
+      <a href={referenceHref(r)} target="_blank" rel="noreferrer">{r.worldName} · {r.cardTitle}<span className="sr-only"> (새 탭에서 열림)</span></a> · {r.authorNickname}
       <p>{r.note}</p>
     </li>)}
-    {step.result?.gaps?.map((g) => <li key={g} className="chat-note">확인 못 함: {g}</li>)}
+    {step.result?.gaps?.map((g, i) => <li key={`${i}-${g}`} className="chat-note">확인 못 함: {g}</li>)}
   </ul>
 }
 
@@ -68,7 +68,7 @@ function Progress({ live, onOpenStage }: { live: LiveTurn; onOpenStage?: () => v
           const text = (step.simulation && step.status !== 'failed') || step.result?.references?.length ? '' : stepText(step)
           return <li key={`${step.feature}-${i}`} data-state={state}>
             <span className="chat-step-dot" aria-hidden="true" />
-            <span className="chat-step-name">{featureLabel[step.feature] ?? step.feature}</span>
+            <span className="chat-step-name">{stepName(step)}</span>
             <span className="chat-step-state">{stateLabel[state]}</span>
             {text && <p className="chat-step-text">{text}</p>}
             <References step={step} />
@@ -103,10 +103,12 @@ function FinishedSteps({ steps }: { steps: ChatStep[] }) {
   return <>
     <p className="chat-note" aria-hidden="true">같이 끝난 작업</p>
     <ul className="chat-hitl-others" tabIndex={0} aria-label="같이 끝난 작업">{steps.map((s, i) => <li key={`${s.feature}-${i}`}>
-      <span className="chat-step-name">{featureLabel[s.feature] ?? s.feature}</span>
+      <span className="chat-step-name">{stepName(s)}</span>
       {/* AI가 정한 계획·확인 못 함 알림은 긴 원고 제안이 160px 창을 채워도 가려지지 않게 본문 앞에 둔다(replyText와 같은 줄). */}
       {s.status === 'completed' && [usedPlan(s), draftNotice(s)].filter(Boolean).map((line) => <p key={line}>{line}</p>)}
-      <p>{stepText(s)}</p>
+      {/* 참고안은 아래 링크 목록이 같은 내용을 보이므로 글로 되풀이하지 않는다(#640). */}
+      {!(s.status === 'completed' && s.result?.references?.length) && <p>{stepText(s)}</p>}
+      <References step={s} />
     </li>)}</ul>
   </>
 }
@@ -298,8 +300,9 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
   // 좋아요·싫어요는 그 줄의 오른쪽(말풍선 오른쪽 아래)에 둔다.
   const stepDetails = (m: ChatMessage) => {
     if (m.role !== 'assistant') return null
-    const reply = m.format === 'markdown' ? shown[Number(m.id.slice(1))]?.reply : undefined
-    const text = reply ? replyText(reply) : ''
+    // 참고안 링크는 종합 답변이 없어도 보인다(#640). 접은 단계별 결과·승인 결과 줄은 종합 답변이 있을 때만이다.
+    const reply = shown[Number(m.id.slice(1))]?.reply
+    const text = reply && m.format === 'markdown' ? replyText(reply) : ''
     const outcome = text && reply ? replyOutcome(reply) : []
     return <>
       {outcome.map((line, i) => <p key={i} className="chat-note">{line}</p>)}

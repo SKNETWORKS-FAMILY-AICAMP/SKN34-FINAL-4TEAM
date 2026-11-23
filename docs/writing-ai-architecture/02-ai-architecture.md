@@ -100,7 +100,7 @@ flowchart TD
 | `manuscript_review` | `ask_manuscript_review` | `manuscript_review.service.review` | `request`, `check?`(`mechanical`·`semantic`·`both`) | `target` 반영 회차, 작가가 보낸 `inputs.manuscript_review`가 있으면 우선 |
 | `world` | `ask_world` | `world_review.review`·`enrich`·`impact`(#546·#291) | `request`, `task`(`check`·`enrich`·`impact`) | `target` 작품의 연결 세계관, `impact`는 `work_context_read`·`story_plan_list` |
 | `writing_editing` | `ask_writing` | `writing.agent.plan`·`plan_and_draft`·`draft`·`patch`·`pick_plan`·`revise_plan`(#578) | `request`, `task`(`plan`·`draft`·`patch`·`revise_plan`), `fix?`(지적 번호) | `target`, Content MCP 허용 문맥, `previousPlans`, `inputs.writing_editing`, `revise_plan`은 `story_plan_list`·`story_plan_read` |
-| `research` | `ask_research` | `research.service.research`(`web`)·`research.service.platform`(`platform`, #547) | `task`(`web`·`platform`), `request?`(`platform`만 쓰는 찾을 설정 주제) | `web`: `inputs.research`(작가가 동의한 질문·500자 이하 맥락·외부 전송 동의). `platform`: 입력 없음(공개 세계관만 Content MCP로 읽는다) |
+| `research` | `ask_research` | `research.service.research`(`web`)·`research.service.platform`(`platform`, #547) | `task`(`web`·`platform`), `request?`(`platform`만 쓰는 찾을 설정 주제) | `web`: `inputs.research`(작가가 동의한 질문·500자 이하 맥락·외부 전송 동의). `platform`: 입력 없음(공개 세계관만 Content MCP로 읽는다). 단계에 `task`(`web`·`platform`)를 실어 화면이 '고증 조사'와 '공개 세계관 참고'로 이름을 가른다(#640, 그 전 기록은 결과 모양으로 가른다). #581 전 체크포인트의 `inputs.web_research`는 읽을 때 `research`로 본다(`tools.inputs`) |
 | `rating` | `ask_rating` | `rating.service.rate` | `request` | `target` 회차 하나 |
 | `character_simulation` | `ask_character_simulation` | `simulation.plan`·`plan_from_form`(계획만. 장면 에이전트는 바깥 `scene` 노드) | `request`(상황) | `target`·연결 세계관, 시작 양식 `simulation` |
 
@@ -146,7 +146,7 @@ flowchart TD
   5. 실패·건너뜀·근거 부족·의심을 성공이나 확정으로 바꾸지 않고, 같은 턴에 같은 기능을 다시 부르지 않는다.
   6. 저장·발행·삭제·등급 적용을 했다고 말하지 않는다. 반영은 화면의 승인 단계가 한다.
   7. 방금 쓴 내용이나 수정안을 검수하라는 요청은 Writing을 먼저 끝내고 Manuscript Review를 부른다. 종합 답변에는 검수 결과가 가리키는 대상(승인 전 집필 후보 또는 저장된 초안)을 밝힌다(#520).
-- **한도:** 서브 에이전트 호출은 턴당 최대 3회, 기능마다 1회(`ToolCallLimitMiddleware`를 상속한 `ToolCallLimit`)이며 병렬 묶음의 호출도 하나씩 센다(MVP의 최대 세 단계·기능당 한 번, #474). 메인 모델 호출은 **턴당 8회**(`ModelCallLimitMiddleware`, 5회였다가 #554의 MCP 도구 호출로 올림)이고, 마지막 호출은 `DynamicToolMiddleware`가 도구를 치워 종합만 하게 한다(참고 프로젝트의 `FinalAnswerMiddleware` 방식). resume 뒤에도 세도록 체크포인트에 남는 thread 한도를 쓰며, 메인 에이전트 상태는 턴마다 새로 시작한다. 노출 밖 도구 호출과 병렬 묶음에서 미룬 호출은 도구 한도가 세기 전에 막아(`DynamicToolMiddleware.after_model`) 3회·기능당 1회 한도를 쓰지 않지만 모델 호출로는 센다.
+- **한도:** 서브 에이전트 호출은 턴당 최대 3회, 기능마다 1회(`ToolCallLimitMiddleware`를 상속한 `ToolCallLimit`. `ask_research`만 2회라 한 턴에 `web`과 `platform`을 함께 부른다, #640 사용자 결정 — 같은 task를 두 번 부르는 것은 막지 않고 지시문이 task마다 한 번만 부르게 한다)이며 병렬 묶음의 호출도 하나씩 센다(MVP의 최대 세 단계·기능당 한 번, #474). 메인 모델 호출은 **턴당 8회**(`ModelCallLimitMiddleware`, 5회였다가 #554의 MCP 도구 호출로 올림)이고, 마지막 호출은 `DynamicToolMiddleware`가 도구를 치워 종합만 하게 한다(참고 프로젝트의 `FinalAnswerMiddleware` 방식). resume 뒤에도 세도록 체크포인트에 남는 thread 한도를 쓰며, 메인 에이전트 상태는 턴마다 새로 시작한다. 노출 밖 도구 호출과 병렬 묶음에서 미룬 호출은 도구 한도가 세기 전에 막아(`DynamicToolMiddleware.after_model`) 3회·기능당 1회 한도를 쓰지 않지만 모델 호출로는 센다.
 - **도구 없이 끝난 턴:** 메인 에이전트가 도구를 하나도 부르지 않고 답을 끝내면 확인 질문으로 보고 `clarify`와 그 문장을 돌려준다(2026-11-17 사용자 결정). 기능 보기 이름 답을 operation으로 확정하는 규칙은 고정 `CLARIFY_MESSAGE`에만 적용한다.
 
 #### 병렬 서브 에이전트 호출 (#474)
@@ -158,7 +158,7 @@ flowchart TD
 | 병렬 허용 조합 | 조회형만 묶는다: `ask_story_qa`·`ask_research`·`ask_rating`·`ask_world`(`check`·`impact`)·`ask_manuscript_review`. `ask_world(task=enrich)`는 작가 승인이 필요해 단독이고, `ask_writing`(모든 `task`)과 `ask_character_simulation`은 항상 단독이며, 두 개 이상의 묶음에 섞이면 그 호출은 실행하지 않고 오류 ToolMessage로 돌려 다음 모델 턴에 단독으로 부르게 한다. 그래서 Manuscript Review → 조건부 수정 같은 의존 호출은 순차로 남는다(Writing → Manuscript Review도 [같은 순차 규칙](#작업-간-입력출력)을 따른다). |
 | 시뮬레이션·입력 대기 | resume 형식(`{approved, inputs, scope?}` 하나)을 유지하려고 한 번에 interrupt 하나만 건다. 묶음 안에서 작가 입력이 빠진 호출(검사 종류가 없는 Manuscript Review, 질문·동의가 없는 웹 조사, scope·발췌가 없는 Q&A)은 실행하지 않고 오류 ToolMessage로 미뤄 다음 모델 턴에 단독으로 부르게 하며, 단독 호출이면 기존처럼 interrupt로 멈춘다. 시뮬레이션은 항상 단독이다. |
 | 실패 | 함께 시작한 다른 호출은 취소하지 않고 끝까지 실행해 결과를 보존한다(각자의 기존 시간 제한). 묶음 뒤에는 기존 [실패 뒤 정지](#코드가-지키는-실행-경계)대로 새 호출을 막고 종합만 하며 응답은 `failed`다. |
-| 한도 | 묶음 안 호출도 하나씩 센다: 서브 에이전트 턴당 3회·기능당 1회(넘는 호출은 거부), 메인 모델 호출 턴당 5회(묶음을 낸 모델 호출은 1회). 노출·묶음 검사에서 거부한 호출은 도구 한도를 쓰지 않는다. 동시 실행 수는 턴 한도와 같은 최대 3이라 따로 두지 않는다. |
+| 한도 | 묶음 안 호출도 하나씩 센다: 서브 에이전트 턴당 3회·기능당 1회(`ask_research`만 2회, #640. 넘는 호출은 거부), 메인 모델 호출 턴당 5회(묶음을 낸 모델 호출은 1회). 노출·묶음 검사에서 거부한 호출은 도구 한도를 쓰지 않는다. 동시 실행 수는 턴 한도와 같은 최대 3이라 따로 두지 않는다. |
 | `steps[]`·SSE | `steps[]`(응답·체크포인트)는 모델이 부른 순서다. SSE `started`·`step`은 실제로 일어난 순서(먼저 끝난 결과가 먼저)로 보낸다. 이벤트 종류는 그대로다. |
 | 비용·rate limit | 별도 제어 없음. 병렬은 토큰 비용을 바꾸지 않고 대기 시간만 줄인다. 429 등 제공사 오류는 기존처럼 그 단계 실패이며 자동 재시도하지 않는다. 사용량은 단계별 Langfuse span에 남고, 동시에 실행한 단계는 겹친 span으로 보인다. |
 
@@ -214,7 +214,7 @@ flowchart TD
 | `SensitiveDataGuard`(PII)·`ModerationGuard` | Decision Guard(`intent.agent.decide`) | 작가 요청을 Decisions보다 먼저 거름(현재와 같음) |
 | `DecisionGuardMiddleware` | 메인 `before_agent` | 턴당 1회 범위·기능 판정, 거절·확인·미지원이면 종료 |
 | `DynamicToolMiddleware` | 메인 `after_model`·`wrap_model_call`·`wrap_tool_call` | 판정 기능의 도구만 노출, 병렬 묶음 검사(단독·입력 대기 호출 미룸, #474), 실행 직전 재확인, 실패 뒤 호출 차단 |
-| `ToolCallLimit`(`ToolCallLimitMiddleware` 상속) | 메인 | 기능당 1회, 턴당 3회. 막거나 미룬 호출은 세지 않음 |
+| `ToolCallLimit`(`ToolCallLimitMiddleware` 상속) | 메인 | 기능당 1회(`ask_research`만 2회, #640), 턴당 3회. 막거나 미룬 호출은 세지 않음 |
 | `ModelCallMiddleware` | 각 서브 에이전트(`agent_runtime`) | 모델 호출 추적, 제공사 오류·잘린 응답을 고정 실패로 변환 |
 | `MainModelMiddleware` | 메인 | 메인 모델 호출을 `main_agent` generation으로 추적. 제공사 오류·잘린 응답은 예외로 올리지 않고 고정 문구 `failed`로 끝내 끝낸 단계 결과를 보존 |
 | `ModelCallLimitMiddleware` | 메인(턴당 8회), 서브(1회) | 호출 수 상한 |
