@@ -11,6 +11,18 @@ const sse = (...chunks: string[]) => new Response(new ReadableStream({
   start(controller) { chunks.forEach((c) => controller.enqueue(new TextEncoder().encode(c))); controller.close() },
 }), { headers: { 'Content-Type': 'text/event-stream' } })
 
+/** chunk를 흘린 뒤 네트워크 오류로 끊긴다. */
+const broken = (chunk: string) => {
+  let sent = false
+  return new Response(new ReadableStream({
+    pull(controller) {
+      if (sent) return controller.error(new TypeError('network error'))
+      sent = true
+      controller.enqueue(new TextEncoder().encode(chunk))
+    },
+  }), { headers: { 'Content-Type': 'text/event-stream' } })
+}
+
 afterEach(() => vi.unstubAllGlobals())
 beforeEach(async () => {
   vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf')
@@ -46,6 +58,35 @@ describe('집필 AI 채팅 SSE', () => {
     const events: ChatEvent[] = []
     await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse('event: plan\ndata: {"steps":[]}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
     expect(events.at(-1)).toEqual({ type: 'error', message: '응답이 중간에 끊겼어요. 대화를 다시 불러와 저장된 내용을 확인해 주세요.' })
+  })
+
+  it('답변 조각(answer)은 공백·줄바꿈 그대로, 초기화는 null로 넘긴다', async () => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(
+      'event: answer\ndata: {"delta":null}\n\nevent: answer\ndata: {"delta":" 길드는\\n"}\n\n',
+      'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
+    expect(events.slice(0, 2)).toEqual([{ type: 'answer', delta: null }, { type: 'answer', delta: ' 길드는\n' }])
+  })
+
+  it('읽는 중 연결이 끊기면 브라우저 오류 원문 대신 끊김 error 이벤트로 끝낸다', async () => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(broken('event: answer\ndata: {"delta":"길드는"}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
+    expect(events).toEqual([{ type: 'answer', delta: '길드는' }, { type: 'error', message: '응답이 중간에 끊겼어요. 대화를 다시 불러와 저장된 내용을 확인해 주세요.' }])
+  })
+
+  it('done을 받은 뒤의 끊김은 실패로 바꾸지 않는다', async () => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(broken('event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'))).send('w1', 't1', input, (e) => events.push(e))
+    expect(events.map((e) => e.type)).toEqual(['done'])
+  })
+
+  it('호출한 쪽이 취소한 읽기는 끊김으로 알리지 않고 그대로 올린다', async () => {
+    const caller = new AbortController()
+    const events: ChatEvent[] = []
+    const sending = new HttpWritingChatRepository(vi.fn().mockResolvedValue(broken('event: answer\ndata: {"delta":"길드는"}\n\n')))
+      .send('w1', 't1', input, (e) => { events.push(e); caller.abort() }, caller.signal)
+    await expect(sending).rejects.toThrow()
+    expect(events.map((e) => e.type)).toEqual(['answer'])
   })
 })
 
