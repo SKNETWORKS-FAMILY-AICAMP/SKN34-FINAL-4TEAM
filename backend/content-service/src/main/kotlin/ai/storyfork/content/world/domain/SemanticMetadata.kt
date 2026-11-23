@@ -36,8 +36,9 @@ private val REASONS = mapOf(
 /**
  * 카드 semanticMetadata가 허용 키만 갖고 키마다 모양이 맞는지 본다. 어기면 [WorldMetadataInvalid]다. 요청을 고치지 않고 초안 편집 요청([ai.storyfork.content.world.service.WorldStudioService.validateEditRequest])에서만 부른다:
  * 확정 저장·되돌리기·이미 저장된 데이터는 이 검사를 받지 않는다(읽기는 프런트가 모르는 키를 버린다).
+ * [stored]는 같은 id로 이미 저장돼 있던 값이다. 거기 있던 키가 같은 값으로 다시 오면 옛 데이터를 그대로 재전송한 것이라 건너뛰고(키 단위 비교), 이번 요청이 새로 넣거나 바꾼 값만 본다.
  */
-fun requireCardMetadata(card: CardPayload) = requireMetadata("카드", card.id, card.semanticMetadata, CARD_METADATA_KEYS) { key, value ->
+fun requireCardMetadata(card: CardPayload, stored: Map<String, Any?> = emptyMap()) = requireMetadata("카드", card.id, card.semanticMetadata, stored, CARD_METADATA_KEYS) { key, value ->
     when (key) {
         "studio" -> studioOf(value, card.id)
         "preprocessing", "manuscriptBuild" -> value is Map<*, *>
@@ -50,12 +51,13 @@ fun requireCardMetadata(card: CardPayload) = requireMetadata("카드", card.id, 
 }
 
 /** 관계 semanticMetadata를 [requireCardMetadata]와 같은 규칙으로 본다. */
-fun requireRelationshipMetadata(relation: RelationshipPayload) = requireMetadata("관계", relation.id, relation.semanticMetadata, RELATION_METADATA_KEYS) { key, value ->
+fun requireRelationshipMetadata(relation: RelationshipPayload, stored: Map<String, Any?> = emptyMap()) = requireMetadata("관계", relation.id, relation.semanticMetadata, stored, RELATION_METADATA_KEYS) { key, value ->
     if (key == "studio") studioOf(value, relation.id) else value is Map<*, *>
 }
 
-private fun requireMetadata(owner: String, id: UUID, metadata: Map<String, Any?>, allowed: List<String>, valid: (String, Any?) -> Boolean) {
+private fun requireMetadata(owner: String, id: UUID, metadata: Map<String, Any?>, stored: Map<String, Any?>, allowed: List<String>, valid: (String, Any?) -> Boolean) {
     for ((key, value) in metadata) {
+        if (key in stored && stored[key] == value) continue
         if (key !in allowed) throw WorldMetadataInvalid("${owner} ${id}: semanticMetadata 키 '${key.take(50).dropLastWhile { it.isHighSurrogate() }}'는 허용되지 않습니다. 허용 키: ${allowed.joinToString(", ")}.")
         if (!valid(key, value)) throw WorldMetadataInvalid("${owner} ${id}: semanticMetadata.${key} 형식이 올바르지 않습니다(${REASONS.getValue(key)}).")
     }

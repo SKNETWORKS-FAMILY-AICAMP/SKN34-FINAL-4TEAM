@@ -303,4 +303,4 @@ private const val EDIT_DRAFT_INPUT =
         "characterDocs(cardType=character만. soul·goal·episodes 세 키뿐이며 soul·goal은 문자열, episodes는 \"0\"(이야기 시작 전)·\"1\"… 회차 번호 문자열 → 그 회차의 기억 글. 문서마다 3,000자 이하. 인물의 IDENTITY는 카드 body이고 옛 memory 키는 episodes의 \"0\"으로 옮겨 보낸다)·" +
         "imageId(이 세계관에 올린 카드 이미지의 UUID, null이면 이미지 없음)·importedFrom(가져온 출처 {worldId, worldName, authorNickname, revisionNo, cardId}). " +
         "카드·관계의 studio·preprocessing·manuscriptBuild와 관계의 evidence는 화면·분석·원고 구축·템플릿이 쓰는 값이다: 새 카드·관계에는 넣지 말고, 기존 것을 고칠 때는 world_studio_read로 읽은 값을 고치지 말고 그대로 돌려보낸다(빼면 화면의 시간 표기·순서·관계 종류와 원고 구축의 출처·확인 필요 표시가 지워진다). 관계의 허용 키는 studio·preprocessing·manuscriptBuild·evidence뿐이다. " +
-        "읽은 semanticMetadata에 허용하지 않는 키나 모양이 틀린 값(예: 임의로 넣은 키, 옛 characterDocs.memory)이 있으면 그 키만 빼고 보낸다(422가 카드/관계 id와 키 이름을 알려 준다)."
+        "읽은 semanticMetadata에 허용하지 않는 키나 모양이 틀린 값(예: 임의로 넣은 키, 옛 characterDocs.memory)이 있어도 읽은 그대로 다시 보내면 저장돼 있던 값이라 통과하지만, 그 키의 값을 바꾸거나 새 키를 더하면 422이니(카드/관계 id와 키 이름을 알려 준다) 고칠 때는 그 키를 빼고 보낸다."

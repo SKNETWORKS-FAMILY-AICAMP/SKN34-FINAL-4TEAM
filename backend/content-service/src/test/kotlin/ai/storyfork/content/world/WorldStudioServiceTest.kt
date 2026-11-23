@@ -156,6 +156,50 @@ class WorldStudioServiceTest {
             assertFalse(error.message!!.contains("비밀값"))
         }
     }
+    // --- 옛 데이터 재전송 보호(#541 후속): 같은 id로 저장돼 있던 같은 값은 검사하지 않고, 이번 요청이 새로 넣거나 바꾼 값만 검사한다 ---
+    private val legacyMeta:Map<String,Any?> = mapOf("color" to "red","characterDocs" to mapOf("soul" to "s","goal" to "g","memory" to "옛 기억","episodes" to emptyMap<String,String>()))
+    @Test fun `edit metadata skips a stored value sent back unchanged and checks a new or changed one`() {
+        val id=UUID.randomUUID();val rid=UUID.randomUUID()
+        val stored=CardPayload(id,"제목","본문","character","basic",semanticMetadata=legacyMeta)
+        val storedRelation=RelationshipPayload(rid,id,UUID.randomUUID(),"structural",semanticMetadata=mapOf("note" to "red"))
+        fun send(card:CardPayload,relation:RelationshipPayload=storedRelation,storedCards:List<CardPayload> = listOf(stored))=
+            service.validateEditRequest(EditWorldDraftRequest(0,"세계","",listOf(card),listOf(relation),key="key"),storedCards,listOf(storedRelation))
+        fun refused(key:String,card:CardPayload=stored,relation:RelationshipPayload=storedRelation,storedCards:List<CardPayload> = listOf(stored)) {
+            val error=assertThrows(IllegalArgumentException::class.java) { send(card,relation,storedCards) }
+            assertTrue(error.message!!.contains(key),error.message)
+        }
+        send(stored.copy(title="고친 제목",body="고친 본문"))      // 옛 키·옛 characterDocs를 그대로 다시 보내면 다른 칸을 고쳐도 통과한다
+        send(stored.copy(semanticMetadata=legacyMeta-"color"))     // 옛 키를 빼 보내는 것도 통과한다
+        refused("color",stored.copy(semanticMetadata=legacyMeta+("color" to "blue")))    // 옛 키의 값을 바꾸면 검사한다
+        refused("extra",stored.copy(semanticMetadata=legacyMeta+("extra" to 1)))          // 새 키는 검사한다
+        val moreDocs=(legacyMeta["characterDocs"] as Map<*,*>)+("episodes" to mapOf("1" to "새 기억"))
+        refused("characterDocs",stored.copy(semanticMetadata=legacyMeta+("characterDocs" to moreDocs)))   // 키 단위 비교라 바뀐 characterDocs는 통째로 본다
+        refused("color",storedCards=emptyList())                   // 저장돼 있지 않은 카드는 같은 값이어도 새 값이다
+        refused("note",relation=storedRelation.copy(semanticMetadata=mapOf("note" to "blue")))
+        refused("extra",relation=storedRelation.copy(semanticMetadata=mapOf("note" to "red","extra" to 1)))
+    }
+    @Test fun `an edit sends a stored card and relation back unchanged and saves, while a changed old value is refused before anything is prepared`() {
+        owned()
+        val cardRow=SettingCardDraft(cardA,world,fieldsOf("가람",meta=legacyMeta))
+        val storedRelation=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","관계 설명",label="동료",semanticMetadata=mapOf("note" to "red"))
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardRow,SettingCardDraft(cardB,world,fieldsOf("나래"))))
+        `when`(cardDrafts.findById(cardA)).thenReturn(Optional.of(cardRow))
+        at(null,storedRelation)
+        fun resend(key:String,card:Map<String,Any?> = legacyMeta,relation:RelationshipPayload=storedRelation)=EditWorldDraftRequest(2,"x","",
+            listOf(CardPayload(cardA,"가람 수정","본문","character","basic",semanticMetadata=card)),listOf(relation),key)
+        for((request,key) in listOf(resend("changed-card",legacyMeta+("color" to "blue")) to "color",
+            resend("changed-relation",relation=storedRelation.copy(semanticMetadata=mapOf("note" to "blue"))) to "note")) {
+            val error=assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,request) }
+            assertTrue(error.message!!.contains(key),error.message)
+        }
+        assertTrue(state.completed);verify(states,never()).flush()
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        assertEquals(2L,draft.draftRevision)
+
+        doAnswer { RelationshipStateResult(world,4,state.requestKey,state.requestHash,listOf(storedRelation)) }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        assertEquals(3L,service.edit(world,actor,resend("resend")).draftRevision)
+        assertEquals(legacyMeta,cardRow.fields.semanticMetadata)
+    }
     @Test fun `template genre backfill changes only a null owned world's genre`() {
         val owner = GenreTemplateSeeder.TEMPLATE_OWNER
         val entity = StudioWorld(world, owner, UUID.randomUUID(), visibility = "public", publishedAt = java.time.Instant.EPOCH)
@@ -752,7 +796,7 @@ class WorldStudioServiceTest {
     // --- 설정 카드 대표 이미지(#401): 카드 semanticMetadata.imageId는 이 세계관이 올린 이미지만 가리킬 수 있다 ---
     private fun withImage(image:Any?)=CardPayload(UUID.randomUUID(),"인물","원문","character","basic",semanticMetadata=mapOf("imageId" to image))
     private fun worldsImage(image:UUID,owner:UUID=world)=SettingCardImage(image,owner,"world-card-images/${image}","image/png")
-    @Test fun `a card image id that is not a UUID is an input error before anything is read or prepared`() {
+    @Test fun `a card image id that is not a UUID is an input error before anything is prepared`() {
         owned()
         for(bad in listOf("","x","1-1-1-1-1",42,true,mapOf("id" to "x"))) {
             assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(withImage(bad)),key="bad-image")) }

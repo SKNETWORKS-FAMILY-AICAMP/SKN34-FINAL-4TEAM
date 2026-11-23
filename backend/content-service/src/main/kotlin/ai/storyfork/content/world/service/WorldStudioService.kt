@@ -456,7 +456,17 @@ class WorldStudioService(
         return tx { owned(worldId,subject);checkNotNull(buildSteps.findById(stepId).orElseThrow { WorldNotFound() }.receipt) }
     }
 
-    internal fun validateEditRequest(request:EditWorldDraftRequest) {
+    /**
+     * 요청의 이름·키·회차·한도·카드 검사와 카드·관계 semanticMetadata의 허용 키·형식 검사(#541)다. [storedCards]·[storedRelations]는 이 요청이 고치는 세계관에 같은 id로 이미 저장된 것이고,
+     * 거기 있던 키가 같은 값으로 오면 옛 데이터를 그대로 다시 보낸 것이라 metadata 검사를 건너뛴다(이번 요청이 새로 넣거나 바꾼 값만 검사한다). 저장된 것을 넘기지 않는 호출은 모두 새 값으로 본다.
+     */
+    internal fun validateEditRequest(request:EditWorldDraftRequest,storedCards:List<CardPayload> = emptyList(),storedRelations:List<RelationshipPayload> = emptyList()) {
+        validateEditShape(request)
+        requireEditMetadata(request,storedCards,storedRelations)
+    }
+
+    /** DB를 읽기 전에 하는 요청 검사다. [edit]가 맨 앞에서 부른다. */
+    private fun validateEditShape(request:EditWorldDraftRequest) {
         validateName(request.name,request.description);validateKey(request.key);validEpisode(request.episode)
         // 관계별 회차(DEC-54 2단계)는 이 요청에서 삭제하지 않는 관계에만, 1 이상의 정수로 정한다.
         val active=request.relationships.filter { it.lifecycle=="active" }.map { it.id }.toSet()
@@ -464,10 +474,15 @@ class WorldStudioService(
         request.relationshipEpisodes.values.forEach { validEpisode(it) }
         require(request.expectedDraftRevision>=0 && request.cards.size<=1000)
         require(request.cards.map { it.id }.distinct().size==request.cards.size) { "중복된 카드입니다." }
-        // semanticMetadata의 허용 키·형식(#541)은 이 요청 검사에서만 본다: 확정 저장·되돌리기·이미 저장된 카드는 받지 않고, 요청을 고치지 않아 재시도 hash와 템플릿 원본 대조가 그대로다.
-        request.cards.forEach { validate(it,false);requireCardMetadata(it) }
-        request.relationships.forEach(::requireRelationshipMetadata)
+        request.cards.forEach { validate(it,false) }
         require(mapper.writeValueAsBytes(request).size<=2_000_000) { "세계관 입력 크기를 확인하세요." }
+    }
+
+    // semanticMetadata의 허용 키·형식(#541)은 초안 편집 요청에서만 본다: 확정 저장·되돌리기·이미 저장된 카드는 받지 않고, 요청을 고치지 않아 재시도 hash와 템플릿 원본 대조가 그대로다.
+    private fun requireEditMetadata(request:EditWorldDraftRequest,storedCards:List<CardPayload>,storedRelations:List<RelationshipPayload>) {
+        val cards=storedCards.associate { it.id to it.semanticMetadata };val relations=storedRelations.associate { it.id to it.semanticMetadata }
+        request.cards.forEach { requireCardMetadata(it,cards[it.id].orEmpty()) }
+        request.relationships.forEach { requireRelationshipMetadata(it,relations[it.id].orEmpty()) }
     }
 
     private fun guardApplication(worldId:UUID,applicationId:UUID?,stepId:UUID?=null) {
@@ -482,7 +497,7 @@ class WorldStudioService(
     }
 
     private fun edit(worldId:UUID,subject:UUID,request:EditWorldDraftRequest,applicationId:UUID?,expanded:ExpandedWrite?=null,stepId:UUID?=null):WorldDraftResponse {
-        validateEditRequest(request)
+        validateEditShape(request)
         val hash=hash("edit",worldId,request)
         val loaded=tx {
             val world=owned(worldId,subject);if(expanded!=null) guardExpanded(world,expanded) else guardNoExpanded(worldId)
@@ -512,6 +527,8 @@ class WorldStudioService(
         val current=graph.read(worldId,request.episode)
         val alreadyApplied=current.version==Math.incrementExact(loaded.graphVersion) && current.key==request.key && current.hash==hash
         if(current.worldId!=worldId || (!alreadyApplied && current.version!=loaded.graphVersion)) throw WorldStudioFailure.mismatch()
+        // 이미 읽은 초안 카드와 이 회차의 관계가 '저장돼 있던 값'이라 조회가 늘지 않는다. 첫 쓰기(아래 tx) 전이라 거절해도 남는 것이 없다.
+        requireEditMetadata(request,loaded.draft.cards,current.relationships)
         // 끝점은 이 세계관의 카드(삭제한 카드 포함)면 되고, 그 회차 시점 관계와 다른(새로 만들거나 바뀐) 관계만 양 끝이 활성 카드여야 한다.
         val worldCards=mergedCards.map { it.id }.toSet()
         val relations=if(alreadyApplied) current.relationships else RelationshipInputHelper.merge(current.relationships,request.relationships,request.replace,worldCards)

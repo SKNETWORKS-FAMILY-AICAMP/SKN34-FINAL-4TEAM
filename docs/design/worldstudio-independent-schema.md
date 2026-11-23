@@ -270,10 +270,11 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 | 관계 | `preprocessing`·`manuscriptBuild`·`evidence` | 각각 객체. `manuscriptBuild`는 카드와 같고 `evidence`는 확장 템플릿 관계의 출처(`{cardId, source}`)다 |
 
 - 카드와 관계의 허용 키는 다르다. 서버·프런트·MCP 도구 설명(`world_studio_edit_draft`의 `request` 설명, `EDIT_DRAFT_INPUT`)이 같은 목록을 쓴다.
+- **저장돼 있던 같은 값은 그대로 통과한다**(옛 데이터 재전송 보호): 같은 id의 저장된 초안 카드·그 회차의 관계에 이미 있던 최상위 키가 같은 값으로 다시 오면 모양을 보지 않는다(키 단위 비교, `edit`가 이미 읽은 초안과 관계로 비교해 조회가 늘지 않는다). 새 카드·새 키·값이 바뀐 키만 위처럼 거절하므로, 옛 키가 남은 카드를 화면 저장·AI 수정·원고 업데이트가 그대로 다시 보내도 막히지 않는다.
 - 읽기는 기존 데이터에 관대하다. 프런트는 키별로 검사해 모르는 키와 모양이 어긋난 값을 버리고 `preprocessing`·`manuscriptBuild`·관계 `evidence`만 서버 메타데이터로 보존해 저장 때 되돌려 보낸다. 기존 데이터 이전은 없고 **고쳐 저장한 카드만 정리된다**(손대지 않은 카드는 DB에 그대로 남는다). 옛 `characterDocs.memory`는 프런트가 읽을 때 00회차로 옮긴다.
 - MCP: 카드·관계는 통째로 덮어쓰므로 기존 것을 고칠 때는 읽은 `semanticMetadata`의 허용 키(`studio`·`preprocessing`·`manuscriptBuild`·`evidence` 포함)를 그대로 두고 바꿀 필드만 고쳐 돌려보낸다. 허용하지 않는 옛 키(임의로 넣은 키·모양이 틀린 값·옛 `characterDocs.memory`)는 빼고 보낸다(422가 카드/관계 id와 키 이름을 알려 준다). 새 카드·관계에는 `studio`·`preprocessing`·`manuscriptBuild`·`evidence`를 만들지 않는다(빼면 화면의 시간 표기·순서·관계 종류와 원고 구축의 출처·확인 필요 표시가 지워진다).
 - 서버가 직접 만드는 요청도 같은 `edit`를 거치므로 이 규칙을 따른다: AI 후보 반영(`InitialWorldAdditionMapper`)·원고 구축·업데이트(`ManuscriptBuildMapper`)·Fork 독립 복사(`forkWorldCopy`)·장르 템플릿 SOUL 보완·확장 샘플 적재는 단위 테스트가 실제 입력·리소스로 확인하고(새 키를 붙이면 허용 키에도 넣는다), 시연 seed도 같다.
-- **한계(미완료 요청)**: 검사는 요청마다 먼저 돌아서, 이 변경 전에 저장이 중간에 멈춘(`completed=false`) 요청이 지금은 허용되지 않는 키를 담고 있으면 같은 key·같은 입력의 이어 가기도 422이고 그 세계관은 미완료(503)에 묶인다. 프런트·시더·AI 반영이 만든 요청에는 해당이 없고 키를 임의로 넣은 수동 MCP·API 요청이 멈춘 경우만 해당한다. 배포 전에 `worldstudio.world_relationship_state.completed=false`인 세계관을 읽기 조회로 확인하고, 있으면 DB 정리(승인 대상)가 필요하다. 원고 업데이트가 맞춘 기존 카드를 다시 보낼 때(`ManuscriptBuildMapper.remember`가 저장된 메타데이터를 그대로 보낸다) 그 카드에 허용하지 않는 옛 키가 남아 있으면 같은 422로 적재가 막힌다(그 카드를 한 번 고쳐 저장하면 풀린다).
+- **한계(미완료 요청)**: 검사는 요청마다 먼저 돌아서, 이 변경 전에 저장이 중간에 멈춘(`completed=false`) 요청이 지금은 허용되지 않는 키를 담고 있으면 같은 key·같은 입력의 이어 가기도 422이고 그 세계관은 미완료(503)에 묶인다. 프런트·시더·AI 반영이 만든 요청에는 해당이 없고 키를 임의로 넣은 수동 MCP·API 요청이 멈춘 경우만 해당한다. 배포 전에 `worldstudio.world_relationship_state.completed=false`인 세계관을 읽기 조회로 확인하고, 있으면 DB 정리(승인 대상)가 필요하다. 키 단위 비교라 값이 바뀌는 키에 옛 모양이 섞여 있으면 막힌다: 원고 업데이트가 인물 기억을 더해 바꾸는(또는 AI 수정이 한 칸을 고치는) `characterDocs`에 옛 `memory`가 남은 카드가 그 경우이고(그 카드를 한 번 고쳐 저장하면 풀린다), 원고 업데이트는 이때 작업을 `CONTENT_REJECTED`로 실패시킨다.
 
 ### 확정 버전으로 카드 되돌리기와 세계관 삭제 (2026-11-17)
 
