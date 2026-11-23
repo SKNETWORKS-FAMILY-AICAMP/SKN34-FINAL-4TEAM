@@ -273,6 +273,7 @@ function LeakChecks({ vm, l }: { vm: VM; l: LlmVM }) {
   const rows = l.leaks.data
   return (
     <section className="panel admin-operations" aria-label="정보 누설 검사">
+      <h2>정보 누설 검사</h2>
       <LiveState vm={vm} label="누설 검사 기록" state={l.leaks} forbidden={LLM_FORBIDDEN} />
       {rows && (rows.length
         ? (

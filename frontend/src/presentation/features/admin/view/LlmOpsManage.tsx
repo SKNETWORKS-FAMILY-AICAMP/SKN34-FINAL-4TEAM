@@ -214,6 +214,7 @@ export function Evaluations({ vm, l }: Props) {
   }
   return (
     <section className="panel admin-operations" aria-label="회귀 평가">
+      <h2>회귀 평가</h2>
       <LiveState vm={vm} label="평가 목록" state={l.evaluations} forbidden={LLM_FORBIDDEN} />
       {rows && (rows.length
         ? (
