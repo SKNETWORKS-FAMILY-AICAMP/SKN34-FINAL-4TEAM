@@ -173,7 +173,14 @@ function InquiryForm({ vm }: { vm: VM }) {
   const [s, setS] = useState('')
   const [b, setB] = useState('')
   const form = useRef<HTMLFormElement>(null)
+  const resume = useRef<Element | null>(null)
   useEffect(() => { if (vm.inquiry?.ok === false) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus() }, [vm.inquiry])
+  // 전송 중 버튼이 잠기며 초점을 잃었으면, 전송이 끝난 뒤 제출하던 자리로 돌려줍니다(프로필 폼과 같음).
+  useEffect(() => {
+    if (vm.asking || !(resume.current instanceof HTMLElement)) return
+    if (document.activeElement === document.body) resume.current.focus()
+    resume.current = null
+  }, [vm.asking])
   const list = vm.mine.data ?? []
   const failed = vm.inquiry?.ok === false
   // 비어 있는 채로 보낸 필드만 오류로 표시하고, 다시 채우면 바로 풀립니다.
@@ -181,11 +188,11 @@ function InquiryForm({ vm }: { vm: VM }) {
   return (
     <>
       <p className="small muted" style={{ marginBottom: 12 }}>보낸 문의와 운영팀 답변은 아래 내 문의에서 확인해요. 답변 알림은 따로 보내지 않아요.</p>
-      <form ref={form} className="tcard mecard" id="iqf" noValidate aria-busy={vm.asking} onSubmit={async (e) => { e.preventDefault(); if (await vm.ask(t, s, b)) { setT('이용 문의'); setS(''); setB('') } }}>
+      <form ref={form} className="tcard mecard" id="iqf" noValidate aria-busy={vm.asking} onSubmit={async (e) => { e.preventDefault(); resume.current = document.activeElement; if (await vm.ask(t, s, b)) { setT('이용 문의'); setS(''); setB('') } }}>
         <p className="small muted">모든 항목은 필수예요.</p>
         <label className="field">문의 유형<select className="inp" id="iqt" value={t} disabled={vm.asking} onChange={(e) => setT(e.target.value)}>{['이용 문의', '오류 신고', '권리·저작권', '계정', '기타'].map((o) => <option key={o}>{o}</option>)}</select></label>
         <label className="field">제목<input className="inp" id="iqs" maxLength={200} required readOnly={vm.asking} value={s} {...missing(s)} onChange={(e) => setS(e.target.value)} /></label>
-        <label className="field">내용<textarea className="ta" id="iqb" maxLength={20000} required readOnly={vm.asking} value={b} {...missing(b)} onChange={(e) => setB(e.target.value)} /></label>
+        <label className="field">내용<textarea className="ta" id="iqb" maxLength={20000} required readOnly={vm.asking} value={b} style={{ minHeight: 160 }} {...missing(b)} onChange={(e) => setB(e.target.value)} /></label>
         {failed && <p id="iq-error" role="alert">{vm.inquiry?.msg}</p>}
         <div className="rowend"><button className="btn pri" type="submit" id="iqBtn" disabled={vm.asking}>{vm.asking ? '보내는 중…' : '문의 보내기'}</button></div>
       </form>

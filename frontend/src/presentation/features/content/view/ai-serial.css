@@ -5,6 +5,8 @@
 .ep-serial fieldset{border:0;padding:0;margin:0;min-width:0;display:flex;flex-wrap:wrap;gap:0 18px}
 .ep-serial legend{width:100%;padding:0;margin-bottom:4px;font-size:13px;font-weight:650}
 .ep-serial .ep-check{margin:0}
+/* 650px 이하에서도 요일 일곱이 한 줄이다(7칸 균등 격자). 라벨의 터치 높이 44px는 공용 .ep-check 규칙 그대로다. */
+@media(max-width:650px){.ep-serial fieldset{display:grid;grid-template-columns:repeat(7,1fr);gap:0}}
 .ep-serial input[type=time]{max-width:180px}
 /* 저장 버튼은 안내문 아래 왼쪽이다(운영 설정 탭과 같다). 650px 이하 공용 규칙의 button{align-self:flex-end}는 이 패널에서만 되돌린다. */
 .ep-serial .ep-form-footer{flex-direction:column;align-items:flex-start}

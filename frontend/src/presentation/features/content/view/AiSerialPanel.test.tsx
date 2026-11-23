@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it } from 'vitest'
 
 import type { SerialBoardRecord, SerialSettings } from '../../../../domain/entities/aiSerial'
@@ -29,6 +29,13 @@ const openHistory = async (repo = fakeRepo()) => {
 const save = () => screen.getByRole('button', { name: '설정 저장' })
 const run = () => screen.getByRole('button', { name: '지금 마감·실행' })
 const day = (name: string) => screen.getByRole('checkbox', { name })
+/** 브라우저가 disabled가 된 버튼에서 초점을 거두는 것을 재현한다(jsdom은 disabled 요소의 blur()를 무시한다). */
+function dropFocus() {
+  const probe = document.body.appendChild(document.createElement('input'))
+  probe.focus()
+  probe.remove()
+  expect(document.activeElement).toBe(document.body)
+}
 
 it('서버 설정으로 입력 칸을 채우고 저장 버튼은 바꾸기 전까지 잠겨 있다', async () => {
   render(<AiSerialPanel workId='w1' useCase={new SerialUseCase(fakeRepo(settings({ direction: '긴장감 있게' })))} />)
@@ -185,6 +192,54 @@ it('실행 요청이 409로 거절되면 서버 문구를 경고로 알린다', 
   await openHistory(repo)
   fireEvent.click(run())
   expect((await screen.findByRole('alert')).textContent).toContain('이미 실행 중이에요.')
+})
+
+// 저장·실행 중 눌렀던 버튼이 잠기면 브라우저가 초점을 거둔다. 끝난 뒤에도 그 버튼이 잠겨 있으면(저장됨·이미 실행 중) 돌아갈 곳이 없어 현재 하위 탭으로 돌려준다.
+it('[D2] 저장이 끝났는데 버튼이 계속 잠겨 초점이 body로 떨어졌으면 현재 하위 탭으로 돌려준다', async () => {
+  let finish!: () => void
+  const repo = fakeRepo()
+  repo.saveSettings.mockImplementation(() => new Promise<void>((resolve) => { finish = resolve }))
+  await open(repo)
+  fireEvent.change(screen.getByLabelText(/연재 방향/), { target: { value: '새 방향' } })
+  repo.settings.mockResolvedValue(settings({ direction: '새 방향' }))
+  const button = save() as HTMLButtonElement
+  button.focus()
+  fireEvent.click(button)
+  await screen.findByRole('button', { name: '저장 중…' })
+  dropFocus()
+  await act(async () => { finish() })
+  await waitFor(() => expect(document.activeElement).toBe(subTab('연재 설정')))
+  expect(button.disabled).toBe(true)
+})
+
+/** 지금 마감·실행을 눌러 요청 중으로 두고, 잠긴 버튼에서 초점이 거둬진(body) 상태까지 만든다. finish()가 요청을 끝내면 대기 중인 기록이 와서 버튼은 계속 잠긴다. */
+async function pendingRun() {
+  let end!: () => void
+  const repo = await openHistory()
+  repo.run.mockImplementation(() => new Promise<void>((resolve) => { end = resolve }))
+  repo.boards.mockResolvedValue([record({ status: 'queued' })])
+  const button = run() as HTMLButtonElement
+  button.focus()
+  fireEvent.click(button)
+  await screen.findByRole('button', { name: '요청 중…' })
+  dropFocus()
+  return { button, finish: () => act(async () => { end() }) }
+}
+
+it('[D2] 지금 마감·실행 요청이 끝났는데 버튼이 계속 잠겨 초점이 body로 떨어졌으면 게시판 기록 탭으로 돌려준다', async () => {
+  const { button, finish } = await pendingRun()
+  await finish()
+  await waitFor(() => expect(document.activeElement).toBe(subTab('게시판 기록')))
+  await waitFor(() => expect(button.disabled).toBe(true)) // 이미 실행 중이라 계속 잠겨 있다
+})
+
+it('[D2] 끝났을 때 초점이 body가 아니면(그새 다른 버튼으로 옮겼으면) 가져가지 않는다', async () => {
+  const { button, finish } = await pendingRun()
+  const refresh = screen.getByRole('button', { name: '기록 새로 고침' })
+  refresh.focus()
+  await finish()
+  await waitFor(() => expect(button.disabled).toBe(true))
+  expect(document.activeElement).toBe(refresh)
 })
 
 it('저장은 성공했는데 설정을 다시 읽다 실패하면 저장 완료와 읽기 실패를 따로 알리고 입력 칸은 그대로 둔다', async () => {

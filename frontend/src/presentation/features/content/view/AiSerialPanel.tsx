@@ -29,6 +29,10 @@ export function AiSerialPanel({ workId, useCase }: { workId: string; useCase?: S
     vm.setSub(next)
     document.getElementById('ai-stab-' + next)?.focus()
   }
+  /** 저장·실행이 끝났는데 누른 버튼이 계속 잠겨(저장됨·이미 실행 중) 브라우저가 초점을 body로 거뒀으면 현재 하위 탭으로 돌려준다. */
+  const keepFocus = (done: Promise<void>) => void done.then(() => {
+    if (document.activeElement === document.body) document.getElementById('ai-stab-' + vm.sub)?.focus()
+  })
   return (
     <section className='ep-reading ep-serial'>
       <p className='ep-lead'>
@@ -57,7 +61,7 @@ export function AiSerialPanel({ workId, useCase }: { workId: string; useCase?: S
               ? (
                 <>
                   {!form.enabled && <p className='ep-alert ep-changed'>운영 설정 &gt; 집필 방식에서 AI 자율 집필을 고르면 켜져요.</p>}
-                  <form onSubmit={(event) => { event.preventDefault(); void vm.save() }}>
+                  <form onSubmit={(event) => { event.preventDefault(); keepFocus(vm.save()) }}>
                     <fieldset disabled={vm.saving}>
                       <legend>연재 요일</legend>
                       {SERIAL_DAYS.map(([day, name]) => (
@@ -87,7 +91,7 @@ export function AiSerialPanel({ workId, useCase }: { workId: string; useCase?: S
               : (
                 <>
                   <div className='ep-form-actions'>
-                    <button type='button' className='btn pri sm' disabled={!!vm.runBlock || vm.running} aria-describedby={vm.runBlock ? runWhy : undefined} onClick={() => void vm.run()}>{vm.running ? '요청 중…' : '지금 마감·실행'}</button>
+                    <button type='button' className='btn pri sm' disabled={!!vm.runBlock || vm.running} aria-describedby={vm.runBlock ? runWhy : undefined} onClick={() => keepFocus(vm.run())}>{vm.running ? '요청 중…' : '지금 마감·실행'}</button>
                     <button type='button' className='btn sm' onClick={() => void vm.refreshBoards()}>기록 새로 고침</button>
                     {vm.runBlock && <span id={runWhy} className='small muted'>{vm.runBlock}</span>}
                   </div>

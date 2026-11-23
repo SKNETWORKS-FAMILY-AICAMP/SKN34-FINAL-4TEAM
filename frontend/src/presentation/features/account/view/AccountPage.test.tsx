@@ -156,6 +156,29 @@ describe('문의하기 폼 (U34)', () => {
     expect(screen.getByRole<HTMLButtonElement>('button', { name: '문의 보내기' }).disabled).toBe(false)
   })
 
+  it('[D1] 전송 중 버튼이 잠겨 초점을 잃어도, 끝나면 제출하던 버튼으로 돌려준다', async () => {
+    let finish!: () => void
+    vi.spyOn(support(), 'create').mockImplementation(() => new Promise<void>((resolve) => { finish = resolve }))
+    setup('/me/inquiry')
+    await screen.findByRole('heading', { name: '문의하기' })
+    fireEvent.change(field('제목'), { target: { value: '포크 질문' } })
+    fireEvent.change(field('내용'), { target: { value: '어떻게 하나요?' } })
+    const button = screen.getByRole<HTMLButtonElement>('button', { name: '문의 보내기' })
+    button.focus()
+    fireEvent.submit(document.getElementById('iqf')!)
+    await waitFor(() => expect(button.disabled).toBe(true))
+    dropFocus()
+    await act(async () => { finish() })
+    await waitFor(() => expect(document.activeElement).toBe(button))
+    expect(button.disabled).toBe(false)
+  })
+
+  it('[D4] 내용 칸은 최소 160px 높이로 시작한다 — 전역 .ta의 90px는 문의 본문을 쓰기엔 낮다', async () => {
+    setup('/me/inquiry')
+    await screen.findByRole('heading', { name: '문의하기' })
+    expect(field('내용').style.minHeight).toBe('160px')
+  })
+
   it('전송이 거절되면 입력을 그대로 두고 서버가 알려 준 이유를 경고로 보여 준다', async () => {
     vi.spyOn(support(), 'create').mockRejectedValueOnce(new OperationsError('이 작업을 할 권한이 없어요.'))
     setup('/me/inquiry')
