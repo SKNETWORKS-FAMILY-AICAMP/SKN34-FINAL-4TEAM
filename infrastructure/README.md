@@ -17,8 +17,8 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 | 앱 | 다섯 앱 소스 build, web은 nginx 정적 runtime, HMR 아님 | 다섯 앱의 GHCR `:develop`, `linux/amd64` | 다섯 앱의 GHCR `:main`, `linux/amd64`, 게시 여부 미확인 |
 | DB·SMTP | 새 프로젝트 범위 `core-postgres` volume의 PostgreSQL + Mailpit | 로컬과 같은 PostgreSQL·Mailpit 정의 재사용, 별도 프로젝트 DB volume | 별도 승인·준비한 외부 PostgreSQL·SMTP, 내장 DB·Mailpit·volume 없음 |
 | web 포트 | `127.0.0.1:${WEB_PORT:-5173}` | `127.0.0.1:${CD_WEB_PORT}` | `127.0.0.1:${WEB_PORT}` |
-| Langfuse | 같은 프로젝트에 항상 `include`(웹·worker와 자체 저장소 4개, [절차](#로컬에서-켜기)) | 같은 프로젝트에 `include`(웹·worker와 자체 저장소 4개) | 같은 프로젝트에 `include`(자체 저장소·volume 포함, 앱 DB는 외부 PostgreSQL 그대로) |
-| 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025·Langfuse 웹(개발자용) `${LANGFUSE_WEB_PORT:-3000}`, 모두 loopback | Langfuse 웹(개발자용) `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`만 | Langfuse 웹(개발자용) `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`만 |
+| Langfuse | 같은 프로젝트에 항상 `include`(웹·worker·ClickHouse·Redis, PostgreSQL·MinIO는 앱 것 공유, [절차](#로컬에서-켜기)) | 같은 프로젝트에 `include`(로컬과 같음) | 같은 프로젝트에 `include`(ClickHouse·Redis, PostgreSQL·S3는 `LANGFUSE_DATABASE_URL`·`LANGFUSE_S3_ENDPOINT`로 외부 것) |
+| 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025, 모두 loopback | 없음 | 없음 |
 
 루트 진입점은 Compose native `include`로 base+local을 재사용하므로 build context는 `infrastructure/` 기준의 `../frontend`·`../backend/*`입니다.
 루트 `.env`는 기본 명령에서 자동 로드하며 컨테이너에는 서비스별 allowlist만 전달합니다. dev는 local 파일의 PostgreSQL·Mailpit 서비스만 native `extends`로 재사용하고 호스트 포트는 제거합니다. 원격 CD에서는 `--project-directory`와 임시 설정 위치가 다르므로 `CD_LOCAL_COMPOSE_FILE`(extends)과 `CD_LANGFUSE_COMPOSE_FILE`(include)을 임시 파일의 절대 경로로 고정합니다. dev 렌더링에 앱 build는 없으며 DB volume은 `storyfork-develop-cd_core-postgres`로 격리됩니다. Compose v2.24.4 이상을 사용합니다.
@@ -208,7 +208,7 @@ docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index
 | 로컬 | 루트 [`compose.yaml`](../compose.yaml)이 앱 파일과 **별도 `include` 항목**으로 앱 스택과 같은 프로젝트(`storyfork-local`)에서 항상 함께 켭니다(정의 복제 없음, [로컬에서 켜기](#로컬에서-켜기)) |
 | develop(CD)·prod | `docker-compose.dev.yaml`·`docker-compose.prod.yaml`이 `include`로 앱 스택과 같은 프로젝트에서 함께 켭니다(정의 복제 없음). 앱은 같은 네트워크의 `http://langfuse-web:3000`으로 부르므로 네트워크 연결 작업이 없습니다 |
 
-구성은 웹·worker와 자체 저장소(PostgreSQL·ClickHouse·Redis·MinIO)입니다. 서비스 이름은 앱 스택의 `postgres`·`minio`와 겹치지 않게 모두 `langfuse-` 접두어를 씁니다. 나머지 저장소는 호스트 포트가 없습니다. 웹 화면은 **개발자용**이라 `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`에만 열고 공개 진입점(nginx)에는 두지 않습니다. 개발자는 초기 관리자(`LANGFUSE_INIT_USER_*`)로 로그인하며 가입은 막혀 있습니다. 원격 서버에서는 SSH 포트 포워딩으로 서버의 `LANGFUSE_WEB_PORT`를 같은 번호의 로컬 포트로 연 뒤 `http://localhost:<포트>`에 접속합니다(Langfuse의 기준 주소가 `http://localhost:${LANGFUSE_WEB_PORT:-3000}`로 고정). 메모리를 수 GB 쓰며 ClickHouse는 3GiB로 제한합니다.
+구성은 웹·worker와 Langfuse 필수 저장소 ClickHouse·Redis입니다(2026-11-23 사용자 결정). PostgreSQL·MinIO는 따로 띄우지 않고 앱 스택의 `postgres`(DB `langfuse`, 앱의 `DATABASE_USER`·`DATABASE_PASSWORD`, 첫 시작 때 Langfuse 마이그레이션이 만듭니다)와 `minio`(첨부 버킷 `ATTACHMENT_S3_BUCKET`의 `langfuse/` 접두어, 앱의 `AWS_*` 키)를 씁니다. `langfuse-web`은 AI·운영이 `http://langfuse-web:3000`으로 부르는 API 서버라 남기지만 **웹 화면은 쓰지 않아** 호스트 포트·로그인 사용자가 없고 가입도 막혀 있습니다. 메모리를 수 GB 쓰며 ClickHouse는 3GiB로 제한합니다.
 
 ### develop·prod에서 켜기
 
@@ -216,10 +216,9 @@ docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index
 
 | 변수 | 내용 |
 |---|---|
-| `LANGFUSE_DB_PASSWORD`·`LANGFUSE_CLICKHOUSE_PASSWORD`·`LANGFUSE_REDIS_PASSWORD`·`LANGFUSE_MINIO_PASSWORD`·`LANGFUSE_NEXTAUTH_SECRET`·`LANGFUSE_SALT`·`LANGFUSE_ENCRYPTION_KEY` | Langfuse 서버 전용 비밀값. 각각 `openssl rand -hex 32`(MinIO는 8자 이상) |
+| `LANGFUSE_CLICKHOUSE_PASSWORD`·`LANGFUSE_REDIS_PASSWORD`·`LANGFUSE_NEXTAUTH_SECRET`·`LANGFUSE_SALT`·`LANGFUSE_ENCRYPTION_KEY` | Langfuse 서버 전용 비밀값. 각각 `openssl rand -hex 32` |
 | `LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY` | `pk-lf-<임의값>`·`sk-lf-<임의값>`. Langfuse가 첫 시작 때 같은 키로 조직 `storyfork`·프로젝트 `storyfork-writing-ai`를 만들고, AI·운영 서비스가 같은 값을 씁니다 |
-| `LANGFUSE_INIT_USER_EMAIL`·`LANGFUSE_INIT_USER_PASSWORD` | 헤드리스 초기화용 초기 관리자(조직 OWNER). 개발자가 Langfuse 웹에 로그인할 때만 씁니다 |
-| (선택) `LANGFUSE_WEB_PORT` | 개발자용 loopback 포트, 기본 3000. 점유돼 있으면 바꿉니다 |
+| (prod만) `LANGFUSE_DATABASE_URL`·`LANGFUSE_S3_ENDPOINT` | 외부 PostgreSQL의 `langfuse` DB 주소와 S3 endpoint. 로컬·develop은 비워 두면 앱 `postgres`·`minio`를 씁니다 |
 
 배포 전제는 CD가 확인하지 않습니다. 서버 관리자가 확인합니다(아래 'CI → CD' 전제조건 표에도 있습니다).
 
@@ -229,14 +228,16 @@ docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index
 
 1. 루트 `.env`에 위 표와 같은 `LANGFUSE_*` 값을 채웁니다(이름과 설명은 `.env.example`). 이제 로컬 `docker compose up`의 필수값이라 비어 있으면 `config`가 실패합니다. `LANGFUSE_BASE_URL`은 네이티브 ai-service용(`http://localhost:3000`)이며 Compose 컨테이너는 항상 내부 주소를 씁니다.
 2. 저장소 루트에서 [시작과 설정](#시작과-설정)의 `docker compose up -d --build`로 시작합니다. 첫 시작은 Langfuse 이미지를 받고 마이그레이션하느라 몇 분 걸립니다.
-3. 첫 시작 때 조직 `STORYFORK`, 프로젝트 `writing-ai`, 관리자(`LANGFUSE_INIT_USER_*`)와 `.env`의 같은 API 키가 만들어집니다. 회원가입은 막혀 있습니다. `http://localhost:${LANGFUSE_WEB_PORT:-3000}`에 관리자로 로그인합니다. 집필 AI 요청은 **Tracing → Traces**에 나타납니다. 응답의 `runId`가 trace id입니다. 전송은 몇 초 단위로 묶여 늦게 보일 수 있습니다.
+3. 첫 시작 때 조직 `STORYFORK`, 프로젝트 `writing-ai`와 `.env`의 같은 API 키가 만들어집니다. 추적·지표·프롬프트는 운영 관리자 화면(LLM Ops)에서 봅니다. 응답의 `runId`가 trace id이며 전송은 몇 초 단위로 묶여 늦게 보일 수 있습니다.
+
+**전용 저장소에서 옮기기(한 번):** 예전 `langfuse-postgres`가 있으면 웹·worker를 멈추고 앱 `postgres`에 `CREATE DATABASE langfuse`를 만든 뒤 `pg_dump --no-owner --no-acl`로 옮기고 `docker compose up -d --remove-orphans`로 예전 컨테이너를 지웁니다. 예전 볼륨 `storyfork-local_langfuse-postgres`·`storyfork-local_langfuse-minio`는 남으니 확인 후 직접 지웁니다.
 
 **한 번만 하는 이전:** 예전에 별도 프로젝트로 Langfuse를 켜 뒀다면 새로 시작하기 전에 저장소 루트에서 `docker compose -p storyfork-langfuse down`으로 멈춥니다(웹 포트가 겹칩니다). 예전 볼륨 `storyfork-langfuse_langfuse-*`은 남지만 새 프로젝트는 쓰지 않으므로 이전 로컬 trace는 이어지지 않습니다. AI·운영 컨테이너를 그 네트워크에 연결해 뒀다면 `storyfork-langfuse_default`는 '사용 중'이라 남을 수 있으나 무해합니다.
 
 비밀값을 바꾸면 이미 초기화된 Langfuse 볼륨과 맞지 않습니다. 프로젝트 전체 `down -v`는 앱 DB·Neo4j·첨부 볼륨까지 지우므로 쓰지 말고, Langfuse 컨테이너와 볼륨만 지웁니다(되돌릴 수 없음).
 
 ```bash
-docker compose rm -sf langfuse-web langfuse-worker langfuse-postgres langfuse-clickhouse langfuse-minio langfuse-redis
+docker compose rm -sf langfuse-web langfuse-worker langfuse-clickhouse langfuse-redis
 docker volume rm $(docker volume ls -q -f name=storyfork-local_langfuse-)
 ```
 
