@@ -886,6 +886,58 @@ def test_overlapping_quote_is_not_one_place_and_fails_the_edit(monkeypatch):
     assert 'patch' not in names(calls)
 
 
+SELECTED_PAGE = {'path': '/studio/work?ep=3', 'kind': 'studio', 'episode': 3, 'selection': '비가 왔다.'}
+
+
+@pytest.mark.parametrize('findings', [
+    (),
+    (found('비가', status='suspected'),),
+    (found('서윤은 웃엇다.'),),
+    (found('서윤은 웃엇다.'), found('바람이 차가왔다.')),
+])
+def test_a_selected_text_patch_after_a_same_turn_review_patches_the_selection(monkeypatch, findings):
+    """같은 턴에 검수했어도 fix 없는 수정은 작가가 고른 글을 고친다. 검수 결과가 어떻든 건너뛰거나 지적 문장으로 바꾸지 않는다(#636)."""
+    calls = conditional(monkeypatch, *findings)
+    applied = writer(monkeypatch)
+    result = write_turn(str(uuid4()), request='검수하고 고른 문장도 다듬어줘', target=TARGET, inputs={'manuscript_review': REVIEW}, page=SELECTED_PAGE)
+    assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
+    assert (result.steps[1].status, result.steps[1].when, result.steps[1].task) == ('completed', 'always', 'patch')
+    assert [patch.selection for name, (patch, *_), _ in calls if name == 'patch'] == ['비가 왔다.']
+    assert applied == []
+
+
+@pytest.mark.parametrize('fix, given', [(1, {}), (None, {'writing_editing': {'fix': 1}})], ids=['main-agent', 'author'])
+def test_an_explicit_fix_patches_the_finding_even_with_a_selected_text(monkeypatch, fix, given):
+    calls = fake_agents(monkeypatch, plan('manuscript_review', Step('writing_editing', task='patch', fix=fix)))
+    monkeypatch.setattr(tools.manuscript_review, 'review', lambda data: ReviewResponse(
+        workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
+        findings=[found('서윤은 웃엇다.'), found('바람이 차가왔다.')]))
+    monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': BODY, 'revision': 4}})
+    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW, **given}, page=SELECTED_PAGE)
+    assert (result.status, result.steps[1].when) == ('waiting', 'if_issues_found')
+    assert [patch.selection for name, (patch, *_), _ in calls if name == 'patch'] == ['바람이 차가왔다.']
+
+
+@pytest.mark.parametrize('streamed', [False, True], ids=['run', 'stream'])
+@pytest.mark.parametrize('approved, status, patched', [(True, 'waiting', ['바람이 차가왔다.']), (False, 'cancelled', [])], ids=['picked', 'cancelled'])
+def test_a_turn_stopped_to_pick_a_finding_keeps_the_answer_with_a_selected_text(monkeypatch, approved, status, patched, streamed):
+    """#636 전에 선택 글이 실린 채 지적 고르기에서 멈춘 턴: 작가가 고른 번호와 취소를 선택 글 수정으로 바꾸지 않는다."""
+    thread = str(uuid4())
+    calls = conditional(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'))
+    assert write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW}).missingInputs == ['writing_editing']
+    # 지금 코드는 선택 글이 있으면 이 대기를 만들지 않으므로, 멈춘 턴의 저장된 화면에 선택 글이 있던 상태를 만든다.
+    main = service._run_main_agent
+    monkeypatch.setattr(service, '_run_main_agent', lambda state, config: main({**state, 'page': SELECTED_PAGE}, config))
+    inputs = {'writing_editing': {'fix': 1}} if approved else {}
+    answer = {'approved': approved, 'inputs': inputs}
+    if streamed:  # 화면은 stream으로 이어 간다
+        done = stream(request=None, conversation={'threadId': thread, 'scope': 'user:1/work:1'}, resume=answer)[-1][1]['status']
+    else:
+        done = write_turn(thread, resume=answer).status
+    assert done == status
+    assert [patch.selection for name, (patch, *_), _ in calls if name == 'patch'] == patched
+
+
 def test_writing_result_waits_for_author_approval_before_any_write(monkeypatch):
     fake_agents(monkeypatch, plan('writing_editing'))
     applied = writer(monkeypatch)
@@ -1728,6 +1780,36 @@ def test_approval_response_names_the_original_target_episode(monkeypatch):
     result = write_turn(str(uuid4()), request='고쳐줘', target=TARGET, inputs={'writing_editing': PATCH})
 
     assert result.approvalEpisode == TARGET['episode']
+
+@pytest.mark.parametrize(('target', 'basis'), [
+    ({**TARGET, 'baseEpisode': 2, 'episodeVersionId': 'r2'}, {'episode': 2, 'episodeVersionId': 'r2'}),
+    ({**TARGET, 'episodeVersionId': 'r3'}, {'episode': 3, 'episodeVersionId': 'r3'}),
+    (TARGET, None),  # 판본을 저장하기 전에 멈춘 턴(#668)
+])
+@pytest.mark.parametrize('waits_for', ['input', 'approval', 'scene'])
+def test_every_wait_hands_back_the_basis_of_the_stopped_turn(monkeypatch, waits_for, target, basis):
+    fake_agents(monkeypatch, plan({'input': 'research', 'approval': 'writing_editing', 'scene': 'character_simulation'}[waits_for]))
+    fake_scene(monkeypatch)
+    writer(monkeypatch)
+    thread = str(uuid4())
+    waiting = write_turn(thread, request=REQUEST, scope=SCOPE, target=target,
+                         inputs={'writing_editing': PATCH} if waits_for == 'approval' else {})
+
+    assert waiting.status == 'waiting'
+    saved = conversation('history', thread, 'user:1/work:1').turns[-1].reply
+    assert waiting.model_dump()['basis'] == saved.model_dump()['basis'] == basis
+
+
+def test_resume_without_a_token_keeps_the_token_of_the_stopped_turn(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('research', 'story_context'))
+    write_turn(thread, request='조사하고 설명해줘', scope={'scopeToken': 'old.token'}, target=TARGET)
+
+    done = write_turn(thread, resume={'approved': True, 'inputs': {'research': WEB}})
+
+    assert (done.status, done.basis) == ('completed', None)
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['old.token']
+
 
 def test_reediting_a_waiting_first_turn_still_replaces_old_history(monkeypatch):
     thread = str(uuid4())

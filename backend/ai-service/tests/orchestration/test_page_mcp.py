@@ -12,7 +12,7 @@ from app.orchestration import agent, mcp_tools, service, tools
 from app.orchestration.models import OrchestrationRequest
 from app.orchestration.prompt import UNSUPPORTED_MESSAGE
 
-from .stubs import QA, Planned, Step, fake_agents, fake_main, fake_scene, plan
+from .stubs import QA, WEB, Planned, Step, fake_agents, fake_main, fake_scene, plan
 
 TARGET = {'workId': 'work', 'episode': 3}
 PAGE = {'path': '/worldstudio/w1?card=k', 'kind': 'world', 'worldId': 'w1', 'cardId': 'k', 'view': 'cards',
@@ -155,6 +155,16 @@ def test_a_write_waits_for_approval_showing_the_real_tool_and_arguments_and_runs
     assert (waiting.status, waiting.awaitingApproval, waiting.approvalEpisode) == ('waiting', 'content_action', None)
     assert waiting.pendingAction.model_dump() == {'tool': 'world_studio_edit_draft', 'label': '세계관 설정 카드 수정', 'args': EDIT}
     assert writes(log) == [] and waiting.steps == []
+
+
+def test_a_content_action_wait_hands_back_the_basis_too(monkeypatch):
+    fake_agents(monkeypatch, only_content(('world_studio_edit_draft', EDIT)))
+    content(monkeypatch)
+    thread = str(uuid4())
+    events = stream(thread, request='자세히 써줘', page=PAGE, target={**TARGET, 'baseEpisode': 2, 'episodeVersionId': 'r2'})
+    basis = {'episode': 2, 'episodeVersionId': 'r2'}
+    assert events[-1][1]['basis'] == basis
+    assert asyncio.run(service.history(thread, SCOPE)).turns[-1].reply.model_dump()['basis'] == basis
 
 
 def test_approving_runs_the_write_once_with_the_authors_token_and_only_the_given_card_changes(monkeypatch):
@@ -342,6 +352,34 @@ def test_declining_a_scene_after_an_applied_write_does_not_claim_nothing_ran(mon
     assert resume(thread, True).awaitingScene == 'character_simulation' and len(writes(log)) == 1
     done = resume(thread, False)
     assert (done.status, done.message) == ('cancelled', '장면은 반영하지 않았어요. 앞서 끝난 작업은 그대로예요.')  # 저장은 이미 됐다(#661)
+
+
+@pytest.mark.parametrize('answer', [{'approved': True}, {'approved': False}, {'approved': False, 'refresh': True}],
+                         ids=['approve', 'reject', 'refresh'])
+def test_every_content_action_answer_hands_the_fresh_token_to_the_following_question(monkeypatch, answer):
+    reread = [('world_studio_read', {'id': 'w1'}), ('world_studio_edit_draft', EDIT)] if answer.get('refresh') else []
+    calls = fake_agents(monkeypatch, only_content(('world_studio_edit_draft', EDIT), *reread, ('ask_story_qa', {}), capabilities=['story_context']))
+    content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, page=PAGE, scope={'scopeToken': 'old.token'})
+    stream(thread, resume={**answer, 'scope': {'scopeToken': 'fresh.token'}})
+    if reread:  # 새 제안의 승인에는 새 토큰이 없다: 다시 받기 때 저장한 토큰을 쓴다
+        stream(thread, resume={'approved': True})
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['fresh.token']
+    saved = list(service.CHAT.checkpointer.list({'configurable': {'thread_id': thread}}))
+    assert saved and not any('fresh.token' in str(c.metadata) for c in saved)  # 토큰은 상태에만 저장하고 목록용 metadata에는 남기지 않는다
+
+
+def test_a_content_action_answer_without_a_token_keeps_the_one_the_last_answer_saved(monkeypatch):
+    routed = only_content(('ask_research', {'task': 'web'}), ('world_studio_edit_draft', EDIT), ('ask_story_qa', {}),
+                          capabilities=['research', 'story_context'])
+    calls = fake_agents(monkeypatch, routed)
+    content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, page=PAGE, scope={'scopeToken': 'old.token'})
+    stream(thread, resume={'approved': True, 'inputs': {'research': WEB}, 'scope': {'scopeToken': 'input.token'}})
+    resume(thread, True)
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['input.token']
 
 
 def refresh(thread):

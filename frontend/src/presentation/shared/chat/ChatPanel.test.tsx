@@ -12,6 +12,37 @@ const box = () => screen.getByRole('textbox', { name: '메시지' }) as HTMLText
 const send = () => screen.getByRole('button', { name: '전송' }) as HTMLButtonElement
 const type = (text: string) => fireEvent.change(box(), { target: { value: text } })
 
+describe('함께 보낼 것 안내', () => {
+  // 안내 줄(27px)에 따라 대화 영역은 591 ↔ 564다. 줄기 전에 맨 아래에서 80px 안을 읽고 있었는지로 정한다.
+  it.each([
+    ['맨 아래', 591, 564, 409, 1000],
+    ['경계 안(전 60·후 87)', 591, 564, 349, 1000],
+    ['스크롤한 적 없이 맨 위', 591, 564, 0, 0],
+    ['커지기 전 경계 밖(전 100·후 73)', 564, 591, 336, 336],
+  ])('대화 영역 높이가 바뀌면 맨 아래에서 읽던 때만 따라 내려간다(#636, %s)', (_, before, after, scrollTop, expected) => {
+    let height = before
+    let resized = () => {}
+    vi.stubGlobal('ResizeObserver', class { constructor(run: () => void) { resized = run } observe() {} disconnect() {} })
+    const measured = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(() => height)
+    try {
+      render(<ChatPanel messages={[]} onSend={() => true} />)
+      const log = screen.getByRole('log', { name: '대화 내용' })
+      Object.defineProperties(log, { scrollHeight: { value: 1000 }, scrollTop: { value: scrollTop, writable: true } })
+      height = after
+      resized()
+      expect(log.scrollTop).toBe(expected)
+    } finally { measured.mockRestore(); vi.unstubAllGlobals() }
+  })
+
+  it('입력창이 안내를 설명으로 읽고, 잠긴 동안에는 보낼 수 없으므로 보이지 않는다(#636)', () => {
+    const note = '선택한 글 7자가 함께 보내져요.'
+    const { rerender } = render(<ChatPanel messages={[]} onSend={() => true} sendNote={note} />)
+    expect(box().getAttribute('aria-describedby')).toBe(screen.getByText(note).id)
+    rerender(<ChatPanel messages={[]} onSend={() => true} sendNote={note} disabledReason="잠김" />)
+    expect(screen.queryByText(note)).toBeNull()
+  })
+})
+
 describe('공용 채팅 메시지', () => {
   it('역할별로 화자를 구분하고 텍스트와 첨부 칩을 그린다', () => {
     const messages: ChatMessage[] = [
