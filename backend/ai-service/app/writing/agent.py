@@ -64,7 +64,8 @@ def revise_plan(data: PlanReviseRequest) -> PlanRevision | None:
     # 공백만 다른 칸은 원문을 그대로 둔다. 제목만 고쳐도 내용 앞뒤 공백이 지워져 저장되지 않게 한다.
     keep = lambda new, old: old if new.strip() == old.strip() else new  # noqa: E731  바뀐 칸은 모델 원문 그대로(#717)
     before = PlanText(title=data.plan.title, content=data.content)
-    after = PlanText(title=keep(result.title, before.title), content=keep(result.content, before.content))
+    # 제목만은 Content가 trim해 저장하므로 승인 카드도 저장될 제목을 보인다(#727)
+    after = PlanText(title=keep(result.title.strip(), before.title), content=keep(result.content, before.content))
     if after == before:
         return None
     if not after.title.strip() or _utf16(after.title) > PLAN_TITLE_MAX or _utf16(after.content) > PLAN_CONTENT_MAX:
