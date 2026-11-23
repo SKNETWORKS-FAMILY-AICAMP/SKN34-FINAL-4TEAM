@@ -224,6 +224,8 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 
 작품의 현실성과 개연성을 확인할 외부 사실 질문을 만든 뒤 웹 검색으로 출처·발행/확인 시점·서로 다른 근거를 수집한다. 주장별로 확인/상충/미확인 결과와 작품의 해당 장면을 연결한다. 웹 문서를 작품 정본이나 인물 기억으로 승격하지 않는다. 검색 페이지의 프롬프트 인젝션을 지시로 실행하지 않고, 비공개 원고 전문은 검색어로 보내지 않는다. 검색 실패와 근거 부재를 명시하며 원고 수정은 Editing 후보와 승인 경로로 분리한다.
 
+현재 구현(`backend/ai-service/app/research/`, `POST /internal/v1/research/web`): 입력은 `question`(1~500자)과 `context`(≤500자, 작가가 고른 맥락, 기본 빈 값)다. 응답은 `searchedAt`(검색 시작 UTC), 주장별 `findings[{text, verdict: confirmed|conflicting|unverified, sourceUrls}]`, `gaps`다. 모델이 쓴 URL 중 실제 `web_search_call` 출처에 없는 것은 지우고, 근거 URL이 남지 않은 주장은 `unverified`로 내린다. 완료된 검색이 한 번도 없거나 모델 호출 실패·모델 설정(`OPENAI_MODEL`) 없음·프롬프트를 읽지 못하면 503, 모델 응답 형식 오류나 확인할 수 없는 출처 URL은 502다. 모델은 루트 `.env`의 `OPENAI_MODEL`을 쓴다. 2026-11-11 `gpt-6-luna`로 실제 호출 2회를 검증했다(조선 후기 한양–동래 이동: 실록·백과 출처 URL로 confirmed와 미확인 gaps, 18.9~34.2초 / 가공 인물 질문: 해당 주장 unverified·빈 출처와 gaps). Content 공개 API와 별도 화면은 없다. 집필 채팅의 메인 에이전트가 `ask_research(task=web)`로 부르며, 작가가 외부 전송에 동의하고 입력한 질문·맥락(`inputs.research`)만 보낸다(입력 전에는 대기한다).
+
 ### MCP 도입 검토 — 미채택
 
 | 목적 | 후보 | 확인할 사항 |
