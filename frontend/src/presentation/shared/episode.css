@@ -96,7 +96,7 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-facts{display:flex;gap:12px 40px;flex-wrap:wrap;margin:14px 0 0}
 .ep-facts>div{display:grid;gap:2px;min-width:0}
 .ep-facts dt{font-size:12px;color:var(--tsub)}
-.ep-facts dd{margin:0;font-size:15px;font-weight:700;overflow-wrap:anywhere}
+.ep-facts dd{margin:0;font-size:15px;font-weight:600;overflow-wrap:anywhere}
 .episode-app .ep-create{max-width:1040px}
 .ep-create .ep-hero{padding:0}
 .ep-create-fields{display:grid;gap:22px}
@@ -123,6 +123,9 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-list .ep:not(:has(.ep-row-link)):hover{background:none}
 .ep-list .ep:has(.ep-row-link:focus-visible){background:color-mix(in srgb,var(--tfg) 4%,transparent)}
 .ep-list .ep .d [title]{position:relative;z-index:1}
+/* 관리 화면의 회차 목록은 운영 설정 카드와 같은 16px 모서리이고, 번호는 보조색이다(강조색은 이 탭의 주 버튼 '집필실 열기' 하나에 둔다. 명조 글꼴은 그대로). 소설 상세(.ep-list 없음)는 그대로다. */
+.episode-app .ep-list.tcard{border-radius:16px}
+.ep-list .ep .no{color:var(--tsub)}
 .ep-list-foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start;margin:20px 0 8px}
 @media(max-width:650px){.ep-list .ep{grid-template-columns:56px minmax(0,1fr)}.ep-list .ep :is(.btn,.chip){grid-column:2;justify-self:start}}
 .ep-feedback{max-width:760px;margin:0 auto}
@@ -210,8 +213,11 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .episode-app .ep-brief h1{font-family:var(--tfont);font-size:24px;line-height:1.2;letter-spacing:-.03em;font-weight:700;margin:0;min-width:0}
 .episode-app .ep-brief .ep-chips{margin-top:8px}
 .episode-app .ep-brief .stats{margin-top:6px}
+/* 요약 썸네일은 개요 히어로 썸네일(.ep-hero-compact)과 같은 10px 모서리·옅은 그림자다(전역 .cover의 24px 60px 그림자·18px 모서리는 큰 표지용). 통계 숫자는 제목(700)보다 굵지 않게 600이다(전역 .stats b 800). */
+.episode-app .ep-brief .ep-cover{border-radius:10px;box-shadow:var(--sh)}
+.episode-app .ep-brief .stats b{font-weight:600}
 
-/* 작품 관리 개요 대시보드(R6): 지표 카드·최근 발행·바로가기. 구획 사이는 구획 제목 위가 아래보다 넓게 32px(다른 탭의 구획 간격과 같다). 글자 상태(공개 전·집계 없음·불러오지 못했어요)는 숫자 칸보다 작은 보조 글이다. 지표 카드는 줄바꿈 flex라 줄 끝에 남은 카드가 그 줄을 채운다(카드 수가 5~7로 바뀌어 고정 열 격자는 어느 폭에서든 홀로 남는 카드가 생겼다). 1072px에서 7장이 한 줄이다. */
+/* 작품 관리 개요 대시보드(R6): 지표 카드·최근 발행·바로가기. 구획 사이는 구획 제목 위가 아래보다 넓게 32px(다른 탭의 구획 간격과 같다). 글자 상태(공개 전·집계 없음·불러오지 못했어요)는 숫자 칸보다 작은 보조 글이다. 지표 카드는 줄바꿈 flex라 줄 끝에 남은 카드가 그 줄을 채운다(카드 수가 5~7로 바뀌어 고정 열 격자는 어느 폭에서든 홀로 남는 카드가 생겼다). 1072px에서 7장이 한 줄이다. 바로가기 알약은 지표보다 무겁지 않게 옅은 테두리·600이다(세계관 관리 도구 버튼 .ep-menu-tools와 같다). */
 .ep-dash{display:grid;gap:32px;margin-top:8px}
 .ep-dash section>h3+p{margin-top:12px}
 .ep-metrics{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 0}
@@ -220,15 +226,16 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-metrics dd{margin:0;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .ep-metrics dd.ep-muted{font-size:14px;font-weight:600}
 .ep-shortcuts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:8px;margin-top:12px}
-.episode-app .ep-shortcut{justify-content:flex-start}
-/* 개요 최근 발행 이력 줄은 한 줄 글이다: flex(.ep-settings-history li)에서는 글자 덩어리와 <time> 사이에 gap이 생겨 '발행 ·' 뒤 구분점이 매달려 보였다. 운영 설정·이력 탭의 이력 줄은 그대로다. */
+.episode-app .ep-shortcut{justify-content:flex-start;border-color:var(--line);font-weight:600}
+/* 개요 최근 발행 이력 줄은 한 줄 글이다: flex(.ep-settings-history li)에서는 글자 덩어리와 <time> 사이에 gap이 생겨 '발행 ·' 뒤 구분점이 매달려 보였다. 운영 설정·이력 탭의 이력 줄은 그대로다. 마지막 줄 아래 선은 구획 구분선처럼 보여 없앤다. */
 .ep-dash .ep-settings-history li{display:block}
+.ep-dash .ep-settings-history li:last-child{border-bottom:0}
 
-/* 운영 설정 탭 카드(R11): 카드 면·테두리·모서리·안쪽 여백은 이 규칙 하나가 정한다. 넓은 화면은 2열, 삭제(위험 구역)는 맨 아래 전체 폭. 패널 껍데기는 그리드에 끼지 않게 display:contents(이름 없는 section이라 의미 손실 없음). 카드 사이 간격은 grid gap 하나다(.ep-card의 margin-bottom·.ep-tab .ep-delete의 위 간격은 아래 margin:0이 이긴다). 같은 줄 카드는 높이를 맞추고(stretch), 카드 머리는 버튼 유무와 무관하게 44px이고 제목 바깥 여백은 0이라 같은 줄 카드의 제목이 한 선에 놓인다(패널 카드만 .ep-reading의 h3 여백 20px을 물려받아 10px 어긋났다). */
+/* 운영 설정 탭 카드(R11): 카드 면·테두리·모서리·안쪽 여백은 이 규칙 하나가 정한다. 넓은 화면은 2열, 삭제(위험 구역)는 맨 아래 전체 폭(위험 신호는 빨간 테두리와 빨간 버튼 글자 둘이고 면은 다른 카드와 같다). 패널 껍데기는 그리드에 끼지 않게 display:contents(이름 없는 section이라 의미 손실 없음). 카드 사이 간격은 grid gap 하나다(.ep-card의 margin-bottom·.ep-tab .ep-delete의 위 간격은 아래 margin:0이 이긴다). 같은 줄 카드는 높이를 맞추고(stretch), 카드 머리는 버튼 유무와 무관하게 44px이고 제목 바깥 여백은 0이라 같은 줄 카드의 제목이 한 선에 놓인다(패널 카드만 .ep-reading의 h3 여백 20px을 물려받아 10px 어긋났다). */
 .ep-settings-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:stretch}
 .ep-settings-cards>.ep-operating-settings{display:contents}
 .ep-settings-cards>.ep-operating-settings>:not(.ep-card){grid-column:1/-1}
 .episode-app .ep-settings-cards .ep-card.tcard{background:var(--surface);border:1px solid var(--line2);border-radius:16px;padding:20px 24px;margin:0;box-shadow:none}
-.episode-app .ep-settings-cards .ep-delete{grid-column:1/-1;margin:0;padding:20px 24px;border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line2));border-radius:16px;background:color-mix(in srgb,var(--danger) 4%,var(--surface))}
+.episode-app .ep-settings-cards .ep-delete{grid-column:1/-1;margin:0;padding:20px 24px;border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line2));border-radius:16px;background:var(--surface)}
 .ep-settings-cards .ep-card .ep-facts{margin-top:8px}
 .ep-settings-cards .ep-sec-head{min-height:44px}.ep-settings-cards .ep-sec-head>h3{margin:0}

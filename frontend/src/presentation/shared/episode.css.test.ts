@@ -477,3 +477,36 @@ describe('episode.css 작품 관리 화면 polish 계약 (A·B 리뷰 반영)', 
     expect(rule('.ep-dash .ep-settings-history li')).toMatch(/display:block/)
   })
 })
+
+describe('episode.css 작품 관리 quieter (G2 4단계)', () => {
+  it('[quieter] 개요 밖 탭 요약 썸네일은 개요 히어로 썸네일과 같은 10px·--sh이고, 통계 숫자는 600이다', () => {
+    expect(rule('.episode-app .ep-brief .ep-cover')).toMatch(/border-radius:10px;box-shadow:var\(--sh\)/)
+    expect(rule('.episode-app .ep-brief .stats b')).toMatch(/font-weight:600/)
+  })
+
+  it('[quieter] 개요 바로가기 알약은 지표보다 무겁지 않게 옅은 테두리(--line)·600이다', () => {
+    expect(rule('.episode-app .ep-shortcut')).toMatch(/border-color:var\(--line\);font-weight:600/)
+  })
+
+  it('[quieter] 카드 값(.ep-facts dd)은 카드 제목(h3 700)보다 한 단계 가벼운 600이다', () => {
+    expect(rule('.ep-facts dd')).toMatch(/font-weight:600/)
+    expect(rule('.ep-tab :is(.ep-sec-head,.ep-card,.ep-fork,.ep-feedback .sec-h,.ep-dash section)>h3')).toMatch(/font-weight:700/)
+  })
+
+  it('[quieter] 작품 삭제 카드는 다른 카드와 같은 면이고 위험 신호는 빨간 테두리·버튼 글자가 맡는다', () => {
+    const del = rule('.episode-app .ep-settings-cards .ep-delete')
+    expect(del).toMatch(/background:var\(--surface\)/)
+    expect(del).toMatch(/border:1px solid color-mix\(in srgb,var\(--danger\) 35%,var\(--line2\)\)/)
+  })
+
+  it('[quieter] 작품 관리 회차 목록은 16px 모서리이고 번호는 보조색이다(소설 상세의 .ep .no는 건드리지 않는다)', () => {
+    expect(rule('.episode-app .ep-list.tcard')).toMatch(/border-radius:16px/)
+    expect(rule('.ep-list .ep .no')).toMatch(/color:var\(--tsub\)/)
+    expect(rule('.ep .no')).toBe('')
+  })
+
+  it('[quieter] 개요 발행 이력은 줄 사이 선만 있고 마지막 줄 아래 선은 없다(운영 설정 이력은 그대로)', () => {
+    expect(rule('.ep-dash .ep-settings-history li:last-child')).toMatch(/border-bottom:0/)
+    expect(rule('.ep-settings-history li')).toMatch(/border-bottom:\s*1px solid var\(--line2\)/)
+  })
+})
