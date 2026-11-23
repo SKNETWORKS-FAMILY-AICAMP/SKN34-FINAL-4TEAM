@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { appContainer } from '../../../app/appContainer'
 import type { SimulationStart } from '../../../domain/entities/characterSimulation'
-import { attachmentKind, type ChatAttachmentPayload, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
+import { attachmentKind, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
 import { streamedAnswer, type ChatBasis, type ChatEvent, type ChatFeature, type ChatPage, type ChatSendBody, type ChatSession, type ChatStep, type ChatStepInputs, type ChatTurn, type SceneAction } from '../../../domain/entities/writingChat'
 import { readAttachments } from './readAttachments'
 
@@ -98,17 +98,19 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     return turn
   })
 
-  /** 스트림 하나를 끝까지 읽고 이력·목록을 다시 읽는다. 실패도 저장 여부는 이력이 알려 준다. */
-  async function stream(request: string, input: ChatSendBody, editIndex?: number, readPage = page.current) {
+  /** 스트림 하나를 끝까지 읽고 이력·목록을 다시 읽는다. 실패도 저장 여부는 이력이 알려 준다. files는 새 요청의 첨부이며 화면 정보를 읽은 다음에 읽는다. */
+  async function stream(request: string, input: ChatSendBody, editIndex?: number, files?: File[]) {
     if (active.current) return false
     if (!useCase || !workId || !basis) { setError(lockedReason ?? '지금은 보낼 수 없어요.'); return false }
     let screen: ChatPage | undefined
     try {
-      screen = 'request' in input ? readPage?.() : undefined
+      screen = 'request' in input ? page.current?.() : undefined
+      if (files?.length) input = { ...input, attachments: await readAttachments(files) }
     } catch (failure) {
-      setInputError(message(failure, '보낼 화면 정보를 읽지 못했어요.'))
+      setInputError(message(failure, '보낼 화면 정보나 첨부 파일을 읽지 못했어요.'))
       return false
     }
+    if (active.current) return false // 첨부를 읽는 사이 다른 스트림이 시작됐다
     setInputError('')
     const controller = new AbortController()
     active.current = controller
@@ -186,19 +188,9 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     select: (id: string) => { if (active.current || id === threadId) return; current.current = id; setTurns([]); setError(''); setInputError(''); setThreadId(id) },
     startNew: () => { if (active.current) return; choseNew.current = true; current.current = null; setThreadId(null); setTurns([]); setTitle(''); setError(''); setInputError('') },
     /** files는 새 요청의 첨부다. 보내기 전에 읽고(텍스트 한도 확인) 읽지 못하면 이유를 입력 아래에 알리고 보내지 않는다(글·첨부는 입력창이 되돌린다). */
-    send: async (text: string, extra?: { operation?: ChatFeature; simulation?: SimulationStart; files?: File[] }) => {
+    send: (text: string, extra?: { operation?: ChatFeature; simulation?: SimulationStart; files?: File[] }) => {
       const { files, ...rest } = extra ?? {}
-      let attachments: ChatAttachmentPayload[] | undefined
-      let screen: ChatPage | undefined
-      try {
-        screen = page.current?.()
-        // 잠겼거나 다른 스트림이 도는 중이면 읽지 않는다(stream이 이유와 함께 거절한다).
-        attachments = files?.length && !active.current && !lockedReason ? await readAttachments(files) : undefined
-      } catch (failure) {
-        setInputError(message(failure, '보낼 화면 정보나 첨부 파일을 읽지 못했어요.'))
-        return false
-      }
-      return stream(text, { request: text, ...rest, ...(attachments ? { attachments } : {}) }, undefined, () => screen)
+      return stream(text, { request: text, ...rest }, undefined, files)
     },
     edit: (index: number, text: string) => stream(text, { request: text }, index),
     resume: (approved: boolean, inputs?: ChatStepInputs) => stream(turns.at(-1)?.request ?? '', { resume: { approved, inputs } }),

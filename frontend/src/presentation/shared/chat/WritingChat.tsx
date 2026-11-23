@@ -181,7 +181,7 @@ function Waiting({ workId, request, reply, pending, onResume, onOpenStage, cardO
   const picked = rangePreview(range.text)
   const wanted = (instruction.trim() || request).slice(0, 2000)
   // 글상자는 줄바꿈을 LF로 바꿔 보여 CRLF 초안의 위치가 서버 본문과 어긋나고, Content는 5,000자까지만 받는다.
-  const crlf = !!source.draft?.body.includes(String.fromCharCode(13))
+  const crlf = !!source.draft?.body.includes('\r')
   const span = episode && source.draft && !crlf && range.end > range.start && range.end - range.start <= 5000 && wanted.trim()
     ? { episode, revision: source.draft.revision, start: range.start, end: range.end, instruction: wanted } : null
   const filled = needs.every((f) => (f === 'research' ? question.trim() : f === 'writing_editing' ? (fixing ? fix !== null : patching ? !!span : episode && plan.trim()) : f === 'manuscript_review' ? check : false))
