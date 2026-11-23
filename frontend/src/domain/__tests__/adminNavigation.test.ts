@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 
-import { LLM_PAGES, adminReturnPath, llmPage, llmPageHref } from '../entities/admin'
+import { LLM_PAGES, PROMPT_SUBS, adminReturnPath, llmPage, llmPageHref, promptSub, promptSubHref } from '../entities/admin'
 
 it('관리자 로그인 복귀는 허용 탭만 보존하고 외부 경로·임의 쿼리를 버린다', () => {
   expect(adminReturnPath('?tab=notices')).toBe('/admin?tab=notices')
@@ -26,4 +26,19 @@ it('LLM Ops 쪽(view)은 로그인 복귀에도 알려진 값만 보존하고, �
   expect(adminReturnPath('?tab=llm&view=alerts')).toBe('/admin?tab=llm')
   expect(adminReturnPath('?tab=llm&view=https://example.invalid')).toBe('/admin?tab=llm')
   expect(adminReturnPath('?tab=users&view=traces')).toBe('/admin?tab=users')
+})
+
+it('프롬프트·모델 쪽의 보기(DEC-58)는 sub로 정하고 없거나 모르는 값은 전체이며, 전체만 sub 없는 주소다', () => {
+  expect(PROMPT_SUBS.map(([sub, label]) => [sub, label])).toEqual([['all', '전체'], ['prompts', '프롬프트'], ['models', '모델']])
+  expect(['prompts', 'models'].map(promptSub)).toEqual(['prompts', 'models'])
+  expect([null, '', 'all', 'nope', 'PROMPTS'].map(promptSub)).toEqual(['all', 'all', 'all', 'all', 'all'])
+  expect(PROMPT_SUBS.map(([sub]) => promptSubHref(sub))).toEqual(['/admin?tab=llm&view=prompts', '/admin?tab=llm&view=prompts&sub=prompts', '/admin?tab=llm&view=prompts&sub=models'])
+})
+
+it('로그인 복귀는 프롬프트·모델 쪽의 sub도 알려진 값만 보존하고, 다른 쪽이나 모르는 값의 sub는 버린다', () => {
+  expect(adminReturnPath('?tab=llm&view=prompts&sub=models')).toBe('/admin?tab=llm&view=prompts&sub=models')
+  expect(adminReturnPath('?tab=llm&view=prompts&sub=prompts')).toBe('/admin?tab=llm&view=prompts&sub=prompts')
+  expect(adminReturnPath('?tab=llm&view=prompts&sub=all')).toBe('/admin?tab=llm&view=prompts')
+  expect(adminReturnPath('?tab=llm&view=prompts&sub=https://example.invalid')).toBe('/admin?tab=llm&view=prompts')
+  expect(adminReturnPath('?tab=llm&view=traces&sub=models')).toBe('/admin?tab=llm&view=traces')
 })

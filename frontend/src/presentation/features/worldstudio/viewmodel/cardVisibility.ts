@@ -13,6 +13,8 @@ export const visibleSelection = (rows: readonly { cardId: string }[], selected: 
 
 /** 공개 설정을 보이는 글: 작가 전용 / 소설이 연결되지 않은 세계관의 1화는 `공개` / 그 밖은 `N화부터`. */
 export const revealLabel = (episode: number | undefined, linked: boolean) => (episode === undefined ? '작가 전용' : !linked && episode === 1 ? '공개' : `${episode}화부터`)
+/** 같은 공개 설정을 한 칸 밖에서 풀어 쓴 배지 글(편집 화면의 공개 범위·관계도 중심, 게시판 미리보기 정보 상자): `작가 전용` / `공개` / `N화부터 공개`. */
+export const revealBadge = (episode: number | undefined, linked: boolean) => (episode === undefined ? '작가 전용' : !linked && episode === 1 ? '공개' : `${episode}화부터 공개`)
 
 /**
  * 고른 카드 모두의 공개 회차를 [episode]로 바꾼 설정 목록이다(undefined면 작가 전용). 회차가 있으면 `visibility`를 공개로, 없으면 회차와 `visibility`를 모두 지운다.

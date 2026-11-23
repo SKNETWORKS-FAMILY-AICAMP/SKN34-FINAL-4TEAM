@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { appContainer } from '../../../../app/appContainer'
 import type { Work } from '../../../../domain/entities/content'
+import type { Work as ReadingWork } from '../../../../domain/entities/work'
 import { useAsyncData } from '../../../shared/useAsyncData'
 
 /*
@@ -9,12 +10,22 @@ import { useAsyncData } from '../../../shared/useAsyncData'
  */
 
 /**
- * 헤더 상태 줄이 보일 연결된 소설의 제목. 내 소설 목록에서 찾고 연결돼 있을 때만 읽는다(`title`이 없고 읽는 중도 아니면 읽지 못한 것이다).
+ * 연결된 소설의 제목과 공개 여부(`/ifs` 모아 보기 링크가 공개 원작에만 열린다). 내 소설 목록에서 찾고 연결돼 있을 때만 읽는다(`title`이 없고 읽는 중도 아니면 읽지 못한 것이다).
+ * 마법사 헤더의 상태 줄과 '소설 연결' 탭이 쓰고, 탭은 열 때만 읽는다(헤더 줄은 작성 모드에만 있다).
  * ponytail: 연결 직후에도 제목을 보이려고 내 소설 목록을 한 번 더 읽는다(연결 시트가 읽은 목록을 나눠 쓰지 않는다). 느려지면 작품 단건 조회로 바꾼다.
  */
-export function useLinkedWorkTitle(linkedWorkId: string | null) {
+export function useLinkedWork(linkedWorkId: string | null) {
   const works = useAsyncData<Work[] | null>((signal) => (linkedWorkId ? appContainer.resolve('episodeUseCase').list(signal) : Promise.resolve(null)), [linkedWorkId])
-  return { title: works.data?.find((work) => work.id === linkedWorkId)?.title, isLoading: works.isLoading }
+  const work = works.data?.find((item) => item.id === linkedWorkId)
+  return { title: work?.title, isPublic: work?.visibility === 'public', isLoading: works.isLoading }
+}
+
+/**
+ * 연결된 소설에서 갈라진 공개 Fork 목록(`ReadingUseCase.forksOf`, 새 API 없음). 연결된 소설이 없으면 읽지 않고 null이다.
+ * 목록을 읽지 못하면 `isError`이고 `retry`로 다시 읽는다(빈 목록으로 채우지 않는다).
+ */
+export function useLinkedForks(linkedWorkId: string | null) {
+  return useAsyncData<ReadingWork[] | null>(() => (linkedWorkId ? appContainer.resolve('readingUseCase').forksOf(linkedWorkId) : Promise.resolve(null)), [linkedWorkId])
 }
 
 /**

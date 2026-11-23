@@ -6,7 +6,10 @@ import org.hibernate.type.SqlTypes
 import java.time.Instant
 import java.util.UUID
 
-/** 최초 구축 입력은 불변. 완료 후 신규 회차를 이 작업에 추가하지 않는다. */
+/**
+ * 작업 입력(manifest)은 불변이다. 완료 후 신규 회차를 이 작업에 추가하지 않는다.
+ * [kind]가 update인 작업은 발행 회차를 세계관 초안에 더하고(2026-11-22) 기준 초안을 접수 때가 아니라 claim 때 [basis]에 고정한다.
+ */
 @Entity @Table(name="manuscript_build_job",schema="worldstudio")
 class ManuscriptBuildJob(
     @Id val id:UUID=UUID.randomUUID(),
@@ -22,6 +25,10 @@ class ManuscriptBuildJob(
     @Column(name="failure_code") var failureCode:String?=null,
     @Column(name="created_at",nullable=false) val createdAt:Instant=Instant.now(),
     @Version @Column(name="lock_version",nullable=false) var lockVersion:Long=0,
+    /** initial: 빈 세계관의 최초 구축, update: 발행 회차를 세계관 초안에 더하는 작업. */
+    @Column(name="kind",nullable=false) val kind:String="initial",
+    /** update 작업의 기준 초안(claim 때 고정). initial은 null이고 manifest.basis를 쓴다. */
+    @JdbcTypeCode(SqlTypes.JSON) @Column(name="basis",columnDefinition="jsonb") var basis:Map<String,Any?>?=null,
 )
 
 /** 성공 결과를 덮어쓰지 않고 같은 슬롯/hash 응답만 재사용한다. */

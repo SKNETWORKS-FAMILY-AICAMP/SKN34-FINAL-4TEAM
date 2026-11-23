@@ -16,6 +16,16 @@ def attrs(span) -> dict:
     return {key: list(value) if isinstance(value, tuple) else value for key, value in span.attributes.items()}
 
 
+def named(spans, name: str) -> list:
+    """이름이 name인 끝난 span을 시작 순서대로."""
+    return sorted((s for s in spans() if s.name == name), key=lambda s: s.start_time)
+
+
+def shown(span, field: str):
+    """span의 input·output(Langfuse가 JSON 문자열로 남긴 값)."""
+    return json.loads(attrs(span)[f'langfuse.observation.{field}'])
+
+
 def status_of(span):
     """루트 관측의 metadata status(DEC-55 v4: 상태는 끝나야 알 수 있어 루트에만, metadata로 남긴다)."""
     return span.attributes.get('langfuse.observation.metadata.status')

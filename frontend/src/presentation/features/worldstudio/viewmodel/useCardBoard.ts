@@ -1,13 +1,18 @@
 import { useMemo, useState } from 'react'
 
-import { cardStatuses, publicationOrderIssues } from '../../../../domain/entities/worldReview'
+import { cardStatuses, problemCount, publicationOrderIssues } from '../../../../domain/entities/worldReview'
 import { cardLibraryRows } from '../../../../domain/entities/worldStudioWriting'
-import { boardEmptyKinds, boardKindCounts, boardRows, parseBookSort, type BookSort, type CardKind } from '../../../shared/worldBoard'
+import { boardEmptyKinds, boardKindCounts, boardRows, BOOK_SORTS, type CardKind } from '../../../shared/worldBoard'
 import { pageItems } from '../../../shared/pageItems'
 import { settingBoardEntries } from './settingBoard'
 import type { useWorldStudioViewModel } from './useWorldStudioViewModel'
 
 type Studio = Pick<ReturnType<typeof useWorldStudioViewModel>, 'editing' | 'cardQuery' | 'setCardQuery' | 'review'>
+
+/** 설정집 게시판의 정렬: 공개 설정집과 같은 세 가지에 이 화면만의 `보완 필요 많은 순`(정리 필요·연결 필요·공개 순서·AI 의견을 센 수가 많은 카드부터, 같은 수는 설정집 순서)이 더해진다. */
+export const BOARD_SORTS = [...BOOK_SORTS, ['status', '보완 필요 많은 순']] as const
+export type BoardSort = (typeof BOARD_SORTS)[number][0]
+const parseBoardSort = (value: string): BoardSort => BOARD_SORTS.find(([key]) => key === value)?.[0] ?? 'book'
 
 /** 분류 메뉴의 `보완 필요`: 정리 필요·연결 필요·공개 순서 확인·AI 의견 가운데 하나라도 있는 카드만 본다. 분류 하나를 고르면 풀린다. */
 const TODO = 'todo'
@@ -19,7 +24,7 @@ const TODO = 'todo'
  */
 export function useCardBoard(studio: Studio) {
   const [picked, setPicked] = useState<CardKind | typeof TODO>()
-  const [sort, setSort] = useState<BookSort>('book')
+  const [sort, setSort] = useState<BoardSort>('book')
   const [page, setPage] = useState(0)
   const settings = studio.editing?.settings
   const findings = studio.review.findings
@@ -38,13 +43,16 @@ export function useCardBoard(studio: Studio) {
   const rows = useMemo(() => {
     const found = query.trim() ? new Set(cardLibraryRows(settings ?? [], 'all', query).map((s) => s.item.id)) : null
     const shown = entries.filter((e) => (!found || found.has(e.cardId)) && (!todo || statuses.has(e.cardId)))
-    return boardRows(shown, { kind, sort })
+    const listed = boardRows(shown, { kind, sort: sort === 'status' ? 'book' : sort })
+    // 보완 필요 많은 순: 설정집 순서로 늘어놓은 뒤 안정 정렬로 수가 많은 카드를 앞에 두므로 같은 수는 설정집 순서를 지키고, 순번은 다시 매긴다.
+    const problems = (id: string) => { const status = statuses.get(id); return status ? problemCount(status) : 0 }
+    return sort === 'status' ? [...listed].sort((a, b) => problems(b.cardId) - problems(a.cardId)).map((row, n) => ({ ...row, no: n + 1 })) : listed
   }, [entries, settings, query, kind, sort, todo, statuses])
   return {
     counts, total: entries.length, kind, sort,
     rows, paged: pageItems(rows, page, 50), setPage,
     statuses, orderIssues, todoCount, todo, empty,
-    selectSort: (value: string) => { setSort(parseBookSort(value)); setPage(0) },
+    selectSort: (value: string) => { setSort(parseBoardSort(value)); setPage(0) },
     pickKind: (next?: CardKind) => { setPicked(next); setPage(0) },
     pickTodo: () => { setPicked(TODO); setPage(0) },
     /** 새 설정을 더하기 전에 전체·빈 검색으로 돌려 새 카드가 목록에 보이게 한다. */

@@ -7,6 +7,7 @@
 모델이 준 값은 Python이 다시 검증하고 어긋나면 고치지 않고 실패로 올린다. 인물 id는 모델에 보내지 않고 별칭(c1…)으로만 주고받는다.
 """
 
+import os
 import time
 from collections.abc import Sequence
 from functools import lru_cache
@@ -28,6 +29,7 @@ from app.simulation.models import Decision
 from app.simulation.prompt import DIRECTOR_INSTRUCTIONS, POV_QUESTION, SPEAKER_QUESTION, TURN_CHOICES, TURN_QUESTION
 
 DECISIONS_MODEL = 'gpt-6-luna'  # Decisions API가 지원하는 유일한 모델(app/intent/prompt.py와 같다)
+SKIP_FORCED = 'SIMULATION_SKIP_FORCED_DIRECTOR'  # 속도 스위치(#642): 1이면 forced()가 규칙이 정한 턴의 연출 호출을 생략한다
 NEEDS_SETTINGS = '시뮬레이션 모델 설정이 필요합니다.'
 FAILED = '연출 결정 모델 호출에 실패했습니다.'
 UNUSABLE = '연출 결정 모델 응답을 확인할 수 없습니다.'
@@ -97,6 +99,18 @@ class OpenAIDecisionClassifier(TypeSafeClassifier):
 def classifier() -> OpenAIDecisionClassifier:
     """연출 결정용 분류기. 연결(httpx2 클라이언트)을 재사용하려고 한 번만 만든다."""
     return OpenAIDecisionClassifier()
+
+
+def forced(allowed: Sequence[str], last_pov: str | None) -> Decision | None:
+    """속도 스위치(`SIMULATION_SKIP_FORCED_DIRECTOR=1`, #642): 규칙이 고를 턴을 하나로 정했고 그 턴이 대사가 아니면 연출 모델을 묻지 않고 정한다.
+
+    시점은 직전 턴의 시점이고 직전 턴이 없으면 전지적이다. 대사는 화자를 모델이 골라야 하고, 독백은 시점 인물이 있어야 해서 직전 시점이 인물 시점일 때만 생략한다.
+    스위치가 꺼져 있거나 생략할 수 없으면 None이라 호출자가 지금처럼 `decide`로 묻는다. 호출 때 환경을 읽는다.
+    """
+    if os.environ.get(SKIP_FORCED) != '1' or len(allowed) != 1 or allowed[0] == 'speech':
+        return None
+    pov = last_pov or 'omniscient'
+    return None if allowed[0] == 'monologue' and pov == 'omniscient' else Decision(turn=allowed[0], pov=pov)
 
 
 async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last_pov: str | None = None) -> Decision:

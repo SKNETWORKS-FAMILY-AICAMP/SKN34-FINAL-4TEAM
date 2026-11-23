@@ -1,6 +1,7 @@
 /** 운영 공지·이벤트 CRUD의 독립 메모리 데모. 필드는 운영 DTO와 맞추지만 HTTP·인증·버전 충돌은 연결하지 않습니다. */
 export type NoticeInput = { title: string; body: string }
-export type EventInput = NoticeInput & { startsAt: string | null; endsAt: string | null }
+/** linkPath는 이벤트에서 이동할 사이트 안 경로(선택)이며 서버에서는 null이 '없음'입니다(DEC-57). */
+export type EventInput = NoticeInput & { startsAt: string | null; endsAt: string | null; linkPath?: string | null }
 type RecordIdentity = { id: string; createdAt: string; updatedAt: string }
 export type OperationsNotice = NoticeInput & RecordIdentity
 export type OperationsEvent = EventInput & RecordIdentity

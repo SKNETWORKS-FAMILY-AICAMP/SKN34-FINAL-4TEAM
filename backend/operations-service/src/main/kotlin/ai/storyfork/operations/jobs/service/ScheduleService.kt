@@ -31,7 +31,7 @@ private const val CRON_MAX = 100
 /**
  * Schedule CRUD and the queueing of a manual retry. Everything here changes only the operations database, so each change and its
  * admin activity record commit in one transaction. The `jobs` permission is checked before any repository call;
- * [requeue] is called by [JobRunService.retry], which has already checked it.
+ * [requeue] is called by [JobRunService.retry], which has already checked it and then hands the queued run to the AI service.
  */
 @Service
 class ScheduleService(
@@ -83,20 +83,20 @@ class ScheduleService(
     }
 
     /**
-     * Queues a manual run for the schedule of a failed run; the scheduler tick executes it. A run that did not fail, whose schedule has
-     * a queued or running run, or that was already re-run is 409. The queued run keeps the link in [JobRunEntity.retryOf], so a run
+     * Queues a manual run for the schedule of a failed run and returns it, committed, for the caller to hand to the AI service whose worker executes it.
+     * A run that did not fail, whose schedule has a queued or running run, or that was already re-run is 409. The queued run keeps the link in [JobRunEntity.retryOf], so a run
      * stays re-run whatever its re-run does, while a re-run that failed can itself be re-run.
      * ponytail: the checks and the insert are not atomic, so two clicks at once could queue two runs.
      */
     @Transactional
-    fun requeue(member: OperationsMember, run: JobRunEntity): JobRun {
+    fun requeue(member: OperationsMember, run: JobRunEntity): JobRunEntity {
         if (run.status != JobStatus.FAILED || runs.existsByRetryOf(run.id) || runs.existsByScheduleIdAndStatusIn(run.scheduleId, ACTIVE_JOB_STATUSES)) {
             throw ResponseStatusException(HttpStatus.CONFLICT)
         }
         val queued = JobRunEntity(scheduleId = run.scheduleId, kind = run.kind, trigger = JobTrigger.MANUAL, retryOf = run.id)
         runs.save(queued)
         activities.record(member, "JOB_RETRY", "JOB_RUN", run.id, run.kind)
-        return queued.toRun()
+        return queued
     }
 
     /** Saves the changed schedule with a new update time and records the admin activity in the same transaction. */

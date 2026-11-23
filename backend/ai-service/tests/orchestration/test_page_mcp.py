@@ -13,6 +13,8 @@ from app.orchestration.models import OrchestrationRequest
 from app.orchestration.prompt import UNSUPPORTED_MESSAGE
 from app.simulation.models import SimulationPlan
 
+from traced import named, shown
+
 from .stubs import QA, WEB, Planned, Step, fake_agents, fake_main, fake_scene, plan
 
 TARGET = {'workId': 'work', 'episode': 3}
@@ -120,6 +122,20 @@ def test_reads_run_without_approval_and_a_work_id_other_than_the_target_is_refus
     assert result.status == 'completed' and log == [('episode_list', {'id': 'work'})]
     refused = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'work_read')
     assert refused.status == 'error' and refused.content.startswith('[차단]')
+
+
+@pytest.mark.parametrize('batch, tool, tag', [
+    ([('episode_list', {'id': 'work'}), ('work_read', {'id': 'someone-elses'})], 'work_read', '[차단]'),  # 대상 작품이 아닌 id
+    ([('episode_list', {'id': 'work'})] * (mcp_tools.MCP_CALLS + 2), 'episode_list', '[한도]'),         # 턴당 Content 호출 한도
+], ids=['other-work', 'over-the-cap'])
+def test_a_content_call_the_main_agent_refused_is_traced_with_its_name_and_reason(monkeypatch, spans, batch, tool, tag):
+    calls = fake_agents(monkeypatch, only_content(batch))
+    content(monkeypatch)
+    turn(str(uuid4()), request='작품과 회차를 알려줘')
+    refused = [m for m in calls.main[-1]['messages'] if getattr(m, 'status', None) == 'error' and m.content.startswith(tag)]
+    blocked = named(spans, 'main_agent.blocked')
+    assert refused and len(blocked) == len(refused)
+    assert [(shown(b, 'input'), shown(b, 'output')) for b in blocked] == [({'name': tool}, {'reason': m.content}) for m in refused]
 
 
 def test_optional_arguments_the_model_left_empty_are_not_sent_to_content(monkeypatch):

@@ -23,6 +23,8 @@ class EventEntity(
     var startsAt: Instant? = null,
     @field:Column(name = "ends_at")
     var endsAt: Instant? = null,
+    @field:Column(name = "link_path", length = 200)
+    var linkPath: String? = null,
     @field:Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now().truncatedTo(ChronoUnit.MICROS),
     @field:Column(name = "updated_at", nullable = false)

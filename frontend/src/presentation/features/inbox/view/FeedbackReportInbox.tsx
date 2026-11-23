@@ -66,6 +66,8 @@ function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
 export function FeedbackReportInbox({ workId }: { workId?: string }) {
   const vm = useFeedbackReportInboxViewModel(workId)
   const { reports } = vm
+  // 작품 관리의 '받은 피드백' 탭(workId가 있다)에서는 탭 제목(h2) 아래 묶음 제목이라 h3다. 피드백함 화면에서는 쪽 제목(h1) 아래 구획이라 h2다.
+  const Heading = workId ? 'h3' : 'h2'
   const [kind, setKind] = useState('')
   const [status, setStatus] = useState('')
   // 방금 처리한 제보는 처리 결과로 상태가 바뀌어 필터와 어긋나도 보인다. 숨기면 카드 안의 결과 안내와 초점 대상이 함께 사라진다.
@@ -75,7 +77,7 @@ export function FeedbackReportInbox({ workId }: { workId?: string }) {
     // .panel 대신 .list 카드를 쓴다(데모 피드백 패널과 구분되고, 데모 패널의 aria-busy를 첫 .panel로 읽는 기존 테스트도 그대로 맞는다).
     // 다른 섹션과 같은 .sec/.sec-h 제목이다. 이 섹션은 화면의 첫 섹션이라 위쪽 간격(.sec의 margin-top)만 없앤다.
     <section className="sec" aria-label="독자 제보" aria-busy={!reports && !vm.isError} style={{ marginTop: 0, marginBottom: 18 }}>
-      <div className="sec-h"><h2>{reports ? `독자 제보 ${reports.length}` : '독자 제보'}</h2></div>
+      <div className="sec-h"><Heading>{reports ? `독자 제보 ${reports.length}` : '독자 제보'}</Heading></div>
       {/* 처리 방법 안내는 제보가 있을 때만 쓸모가 있다. 0건·불러오는 중에는 빈 상태 문구보다 먼저 읽히지 않게 그리지 않는다. */}
       {!!reports?.length && <p className="small muted">내 작품 회차에 독자가 남긴 제보예요. 확인하거나 답변하면 독자의 내 서재에 상태가 바로 표시돼요. 비공개 제보는 작가만 볼 수 있고, 공개 답변을 달면 답변만 다른 독자에게 보여요.</p>}
       {vm.isError && (

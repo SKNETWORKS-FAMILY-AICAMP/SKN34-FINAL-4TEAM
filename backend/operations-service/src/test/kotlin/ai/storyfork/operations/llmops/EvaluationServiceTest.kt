@@ -97,6 +97,13 @@ class EvaluationServiceTest {
     }
 
     @Test
+    fun `recent is the listed runs without an admin, so the job monitor reads them under its own permission`() {
+        givenAllRuns()
+
+        assertEquals(service.list(operators.llm, now).items, service.recent(now))
+    }
+
+    @Test
     fun `the passed score decides completed and passed and a run without one is running until it is two hours old`() {
         givenAllRuns()
 

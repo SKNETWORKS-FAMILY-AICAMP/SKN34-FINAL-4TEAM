@@ -18,7 +18,10 @@ class PreprocessingController(private val service: PreprocessingService) {
     @PostMapping("/works/{id}/world-preprocessing") @ResponseStatus(HttpStatus.ACCEPTED)
     fun start(@PathVariable id: String, principal: Principal, @RequestBody(required=false) request: ManuscriptBuildRequest? = null): PreprocessingJobResponse = service.start(id, principal.name, request)
 
-    /** 작품의 가장 최근 전처리 작업 상태다. 소유자가 아니거나 없는 작품은 404, 접수한 적이 없으면 404(code PREPROCESSING_NOT_STARTED)다. */
+    /**
+     * 작품의 최초 구축 작업 상태다. 소유자가 아니거나 없는 작품은 404, 접수한 적이 없으면 404(code PREPROCESSING_NOT_STARTED)다.
+     * 발행 회차로 세계관 초안을 업데이트하는 작업이 있으면 가장 최근 것이 `update`에 실린다(없으면 null).
+     */
     @GetMapping("/works/{id}/world-preprocessing")
     fun latest(@PathVariable id: String, principal: Principal): PreprocessingJobResponse = service.latest(id, principal.name)
 }

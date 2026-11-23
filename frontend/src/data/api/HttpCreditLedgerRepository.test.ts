@@ -30,6 +30,11 @@ describe('HttpCreditLedgerRepository', () => {
     expect(callsOf(fetcher)[0][0]).toBe('/api/v1/me/credits/history')
   })
 
+  it('운영자 지급(kind operator)과 운영자 회수(type revoke) 내역도 받는다', async () => {
+    const items = [{ type: 'revoke', kind: 'reward', amount: 7, occurredAt: '2026-11-11T01:00:00Z' }, { type: 'grant', kind: 'operator', amount: 50, occurredAt: '2026-11-11T00:00:00Z' }]
+    expect(await new HttpCreditLedgerRepository(vi.fn(async () => Response.json({ items }))).history()).toEqual(items)
+  })
+
   it('형식이 다른 응답은 거부한다', async () => {
     await expect(new HttpCreditLedgerRepository(vi.fn().mockResolvedValue(Response.json({ items: [] }))).balance()).rejects.toThrow()
     await expect(new HttpCreditLedgerRepository(vi.fn().mockResolvedValue(Response.json({ total: 1, items: [{ kind: 'reward', remaining: 1, expiresAt: 'tomorrow' }] }))).balance()).rejects.toThrow()

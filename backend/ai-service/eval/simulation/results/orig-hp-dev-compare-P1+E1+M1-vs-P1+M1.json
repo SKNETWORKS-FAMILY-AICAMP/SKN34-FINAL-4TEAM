@@ -1,0 +1,73 @@
+{
+  "base": "P1+M1",
+  "corpus": "hp-dev",
+  "sets": {
+    "1": {
+      "applied": {
+        "metrics": {
+          "clean": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          },
+          "intent": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          },
+          "voice": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          }
+        },
+        "n": 0
+      },
+      "callMs": {
+        "base": 2817.5,
+        "cand": 3698.0
+      },
+      "metrics": {
+        "clean": {
+          "down": 3,
+          "meanDiff": -0.02,
+          "n": 100,
+          "p": 0.625,
+          "tie": 96,
+          "up": 1
+        },
+        "intent": {
+          "down": 23,
+          "meanDiff": 0.04,
+          "n": 100,
+          "p": 0.4101027163746913,
+          "tie": 47,
+          "up": 30
+        },
+        "voice": {
+          "down": 20,
+          "meanDiff": -0.01,
+          "n": 100,
+          "p": 0.8714146793645341,
+          "tie": 62,
+          "up": 18
+        }
+      },
+      "tokens": {
+        "base": 7221.23,
+        "cand": 7221.23,
+        "ratio": 1.0
+      }
+    }
+  },
+  "variant": "P1+E1+M1"
+}

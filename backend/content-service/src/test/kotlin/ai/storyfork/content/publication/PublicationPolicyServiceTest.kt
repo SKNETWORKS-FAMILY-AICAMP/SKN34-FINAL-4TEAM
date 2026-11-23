@@ -44,6 +44,7 @@ class PublicationPolicyServiceTest {
     @Mock lateinit var selectedPolicyEpisodes: ForkPolicyEpisodeRepository
     @Mock lateinit var em: EntityManager
     @Mock lateinit var interests: WorkInterestService
+    @Mock lateinit var preprocessing: ai.storyfork.content.preprocessing.service.PreprocessingService
     @InjectMocks lateinit var service: PublicationService
 
     @Test

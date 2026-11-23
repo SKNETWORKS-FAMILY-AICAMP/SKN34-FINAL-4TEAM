@@ -1,0 +1,107 @@
+{
+  "act": {
+    "model": "gpt-6.1-terra",
+    "provider": "openai",
+    "thinking": "default"
+  },
+  "byCall": {
+    "act": {
+      "calls": 21,
+      "inputTokens": 287058,
+      "msP50": 2767,
+      "msP95": 3209,
+      "outputTokens": 1992,
+      "usd": 0.29702
+    },
+    "check": {
+      "calls": 27,
+      "inputTokens": 663534,
+      "msP50": 2425,
+      "msP95": 3779,
+      "outputTokens": 5088,
+      "usd": 0.13881
+    },
+    "director": {
+      "calls": 41,
+      "inputTokens": 45791,
+      "msP50": 295,
+      "msP95": 454,
+      "outputTokens": 0,
+      "usd": 0.00916
+    },
+    "narrate": {
+      "calls": 22,
+      "inputTokens": 115741,
+      "msP50": 1869,
+      "msP95": 2474,
+      "outputTokens": 2012,
+      "usd": 0.02556
+    }
+  },
+  "drift": {
+    "completedRate": 1.0,
+    "drift": -0.01715686274509804,
+    "regenFirstHalf": 0.058823529411764705,
+    "regenSecondHalf": 0.041666666666666664,
+    "scenes": 8,
+    "stopped": 0,
+    "turns": 41
+  },
+  "ledgerUsd": 0.4706,
+  "outcomes": {
+    "hp-1-flow": "completed",
+    "hp-1-if": "completed",
+    "hp-2-if": "completed",
+    "hp-3-flow": "completed",
+    "hp-3-if": "completed",
+    "hp-4-flow": "completed",
+    "hp-5-flow": "completed",
+    "hp-5-if": "completed"
+  },
+  "run": "v3",
+  "scenes": [
+    "hp-1-if",
+    "hp-1-flow",
+    "hp-2-if",
+    "hp-3-flow",
+    "hp-3-if",
+    "hp-4-flow",
+    "hp-5-if",
+    "hp-5-flow"
+  ],
+  "skipNarrationCheck": true,
+  "speed": {
+    "callsByName": {
+      "act": 0.5121951219512195,
+      "check": 0.6585365853658537,
+      "director": 1.0,
+      "narrate": 0.5365853658536586
+    },
+    "callsPerTurn": 2.707317073170732,
+    "firstPassRate": 0.9512195121951219,
+    "meanRegenerations": 0.04878048780487805,
+    "outcomes": {
+      "completed": 1.0
+    },
+    "scenes": 8,
+    "steps": 41,
+    "tokensPerTurn": {
+      "in": 27124.975609756097,
+      "out": 221.7560975609756
+    },
+    "turnMs": {
+      "mean": 4486.170731707317,
+      "p50": 5147.0,
+      "p95": 7425.0
+    },
+    "turnWallMs": {
+      "mean": 4814.8536585365855,
+      "p50": 5594.0,
+      "p95": 7831.0
+    },
+    "turns": 41,
+    "unpricedCalls": 0,
+    "usdPerScene": 0.05881889999999999
+  },
+  "variant": "P1+N3"
+}

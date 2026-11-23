@@ -2,6 +2,7 @@ package ai.storyfork.operations.jobs.service.dto
 
 import ai.storyfork.operations.jobs.entity.JobRunEntity
 import ai.storyfork.operations.jobs.entity.ScheduledJobEntity
+import ai.storyfork.operations.llmops.service.dto.Evaluation
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.Instant
 import java.util.UUID
@@ -9,6 +10,13 @@ import java.util.UUID
 /** [JobRun.kind] and [JobRun.source] of the runs read from Content; [CONTENT_PREPROCESSING] is also the name shown in a list's unavailable sources. */
 const val PREPROCESSING_KIND = "preprocessing"
 const val CONTENT_PREPROCESSING = "content-preprocessing"
+
+/** The same for the regression evaluations read from Langfuse: [AI_EVALUATION] is the name shown in a list's unavailable sources when they cannot be read. */
+const val EVALUATION_KIND = "evaluation"
+const val AI_EVALUATION = "ai-evaluation"
+
+/** The Langfuse run itself carries no reason, so a failed evaluation shows this fixed one. */
+const val EVALUATION_FAILED_MESSAGE = "평가 결과가 기록되지 않은 채 시간이 지나 실패로 봤어요."
 
 data class JobProgress(val done: Int, val total: Int)
 
@@ -75,6 +83,16 @@ fun ContentPreprocessingJob.toRun() = JobRun(
     // (the numbers stay with Content, a long work can have hundreds). A retried job may still carry its old reason, so only a failed one shows it.
     if (status != "failed") null else error ?: if (failedEpisodes.isEmpty()) "전처리에 실패했어요." else "전처리에 실패한 회차가 ${failedEpisodes.size}개 있어요.",
     workId,
+)
+
+/**
+ * A regression evaluation (a Langfuse Dataset Run) in the run vocabulary: the run name is its id and target, its creation time is its start, and it has no
+ * progress or finish time. It is never retried here (a new run starts on the evaluation screen). The run does not say who asked for it, so the trigger is
+ * manual; a scheduled start also has its own regression_eval record.
+ */
+fun Evaluation.toRun() = JobRun(
+    runId, EVALUATION_KIND, AI_EVALUATION, if (status == "completed") "succeeded" else status, "manual", null, createdAt, null,
+    if (status == "failed") EVALUATION_FAILED_MESSAGE else null, runId,
 )
 
 fun ScheduledJobEntity.toSchedule(lastRun: JobRun?) = Schedule(id, kind, cron, enabled, params, createdAt, updatedAt, lastRun)

@@ -20,6 +20,7 @@ const report = (extra: Partial<FeedbackReport> = {}): FeedbackReport => ({
 const reports = () => appContainer.resolve('feedbackReportUseCase')
 const card = (id: string) => within(document.querySelector<HTMLElement>(`[data-report="${id}"]`)!)
 const open = () => render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><FeedbackReportInbox /></MemoryRouter></Provider>)
+const openFor = (workId?: string) => render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><FeedbackReportInbox workId={workId} /></MemoryRouter></Provider>)
 
 it('처리에 실패하면 서버 문구를 토스트뿐 아니라 그 제보 카드 안의 경고로 남긴다', async () => {
   vi.spyOn(reports(), 'listInbox').mockResolvedValue([report(), report({ id: 'r2', reporterName: '독자B' })])
@@ -115,4 +116,13 @@ it('처리 방법 안내는 제보가 있을 때만 그리고, 0건이면 빈 �
   open()
   await screen.findByRole('heading', { name: '독자 제보 1' })
   screen.getByText(/확인하거나 답변하면 독자의 내 서재에/)
+})
+
+it('제목 단계는 쓰는 자리를 따른다: 작품 관리의 받은 피드백 탭(workId 있음)은 탭 제목(h2) 아래라 h3이고, 피드백함 화면은 h2다', async () => {
+  vi.spyOn(reports(), 'listInbox').mockResolvedValue([])
+  openFor('guunmong')
+  expect((await screen.findByRole('heading', { name: '독자 제보 0' })).tagName).toBe('H3')
+  cleanup()
+  openFor()
+  expect((await screen.findByRole('heading', { name: '독자 제보 0' })).tagName).toBe('H2')
 })

@@ -2,9 +2,11 @@ import {z} from 'zod'
 import type {ManuscriptBuildRepository} from '../../domain/repositories/ManuscriptBuildRepository'
 import {authenticatedUserId,authVersion,assertAuthVersion,protectedRequest} from '../api/auth'
 import {csrf,withLock} from '../api/csrf'
-const uuid=z.string().uuid(),count=z.number().int().nonnegative()
+const uuid=z.string().uuid(),count=z.number().int().nonnegative(),status=z.enum(['queued','running','failed','loading','unknown','completed'])
 const receipt=z.object({jobId:uuid,stepId:uuid,worldId:uuid,draftRevision:count,relationshipVersion:count,cardIds:z.array(uuid),relationshipIds:z.array(uuid)})
-const result=z.object({jobId:uuid,worldId:uuid,status:z.enum(['queued','running','failed','loading','unknown','completed']),completedEpisodes:count,totalEpisodes:count.positive(),executionToken:uuid.nullable(),failureCode:z.string().nullable(),skippedItems:count,requestKey:z.string().min(1),receipts:z.array(receipt)}).refine(r=>r.completedEpisodes<=r.totalEpisodes&&r.receipts.every(x=>x.jobId===r.jobId&&x.worldId===r.worldId)&&new Set(r.receipts.map(x=>x.stepId)).size===r.receipts.length&&(r.status!=='completed'||r.completedEpisodes===r.totalEpisodes&&r.receipts.length>0))
+const result=z.object({jobId:uuid,worldId:uuid,status,completedEpisodes:count,totalEpisodes:count.positive(),executionToken:uuid.nullable(),failureCode:z.string().nullable(),skippedItems:count,requestKey:z.string().min(1),receipts:z.array(receipt)}).refine(r=>r.completedEpisodes<=r.totalEpisodes&&r.receipts.every(x=>x.jobId===r.jobId&&x.worldId===r.worldId)&&new Set(r.receipts.map(x=>x.stepId)).size===r.receipts.length&&(r.status!=='completed'||r.completedEpisodes===r.totalEpisodes&&r.receipts.length>0))
+// 가장 최근 업데이트 작업이다. 응답 최상위에 build와 나란히 오고, 없거나 서버가 아직 보내지 않으면 null이다.
+const update=z.object({jobId:uuid,status,episodes:z.array(z.number().int().positive()),failureCode:z.string().nullable()}).nullish()
 const request=z.object({worldId:uuid,key:uuid,consent:z.literal(true)})
 const path=(work:string)=>`/api/v1/works/${uuid.parse(work)}/world-preprocessing`
 /** 계정·작품별 최초 key를 전송 전에 보존한다. 실패나 재로그인 때문에 새 key를 만들지 않는다. 기록을 바꾸는 것은 작업 없음 조회와 사용자가 연 '새로 시작'뿐이다. */
@@ -39,10 +41,10 @@ export class HttpManuscriptBuildRepository implements ManuscriptBuildRepository 
    }
    throw new Error('이전 작업의 적재 결과가 불확실해요. 중복 생성을 막기 위해 별도 검토가 필요해요.')
   }
-  const data=result.safeParse(envelope.build)
+  const data=result.safeParse(envelope.build),latest=update.safeParse(envelope.update)
   if(data.success && (envelope.id!==data.data.jobId || envelope.workId!==work))throw new Error('요청한 작품의 작업을 확인하지 못했어요.')
-  if(!data.success)throw new Error('저장 완료를 확인할 수 없어요. 요청 기록을 유지했어요.')
-  return data.data
+  if(!data.success||!latest.success)throw new Error('저장 완료를 확인할 수 없어요. 요청 기록을 유지했어요.')
+  return {...data.data,update:latest.data??null}
  }
  async read(work:string,signal?:AbortSignal){
   const slot=this.slot(work),before=localStorage.getItem(slot),data=await this.send(work,undefined,signal)

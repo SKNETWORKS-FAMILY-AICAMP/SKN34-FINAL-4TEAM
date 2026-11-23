@@ -175,3 +175,23 @@ it.each([['없음',undefined],['빈 문자열','']])('requestKey가 %s이면 응
  const body=done({requestKey:bad})
  await expect(new HttpManuscriptBuildRepository(vi.fn(async()=>Response.json(body))).read(work)).rejects.toThrow('저장 완료를 확인할 수 없어요')
 })
+// ── 발행 회차 업데이트(update): GET 응답 최상위에 build와 나란히(initial-build-storage-contract) ──
+const updateJob=(state='running',episodes:unknown=[5,6],failureCode:string|null=null)=>({jobId:crypto.randomUUID(),status:state,episodes,failureCode})
+it('응답 최상위의 update(가장 최근 업데이트 작업)를 그대로 읽고 최초 구축 필드는 바꾸지 않는다',async()=>{
+  const update=updateJob('running',[5,6])
+  const read=await new HttpManuscriptBuildRepository(vi.fn(async()=>Response.json({...done(),update}))).read(work)
+  expect(read?.update).toEqual(update)
+  expect(read).toMatchObject({status:'completed',completedEpisodes:4,totalEpisodes:4})
+})
+it('실패한 업데이트의 failureCode도 그대로 읽는다',async()=>{
+  const update=updateJob('failed',[7],'AI_TIMEOUT')
+  expect((await new HttpManuscriptBuildRepository(vi.fn(async()=>Response.json({...done(),update}))).read(work))?.update).toEqual(update)
+})
+it.each([['없음',undefined],['null',null]])('update가 %s이면 업데이트 없음(null)으로 읽는다: 서버가 아직 보내지 않아도 깨지지 않는다',async(_label,value)=>{
+  const body={...done(),update:value}
+  expect((await new HttpManuscriptBuildRepository(vi.fn(async()=>Response.json(body))).read(work))?.update).toBeNull()
+})
+it.each([['작업 id가 uuid가 아님',{jobId:'x'}],['상태를 모름',{status:'paused'}],['회차가 문자열',{episodes:['5']}],['회차가 소수',{episodes:[1.5]}],['회차가 0',{episodes:[0]}],['회차 목록이 없음',{episodes:undefined}],['failureCode가 없음',{failureCode:undefined}]])('update가 있는데 %s이면 응답을 거절한다',async(_label,bad)=>{
+  const body={...done(),update:{...updateJob(),...bad}}
+  await expect(new HttpManuscriptBuildRepository(vi.fn(async()=>Response.json(body))).read(work)).rejects.toThrow('저장 완료를 확인할 수 없어요')
+})

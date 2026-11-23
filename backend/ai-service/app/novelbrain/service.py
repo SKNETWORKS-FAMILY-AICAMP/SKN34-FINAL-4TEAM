@@ -1,6 +1,6 @@
 """NovelBrain 조회: 세계관 그래프(PPR) → 원고 발췌 → BM25 → RRF 합산 → 인물 시점 필터를 단계별로 쌓는다.
 
-표준 라이브러리만 쓰는 순수 함수다. 모델·네트워크·DB를 부르지 않고, 원고 발췌는 호출자가 Content Retrieval로 받아 넘긴다.
+표준 라이브러리만 쓰는 순수 함수다(`recall`이 추적 span을 남기는 것만 예외, 결과는 그대로다). 모델·네트워크·DB를 부르지 않고, 원고 발췌는 호출자가 Content Retrieval로 받아 넘긴다.
 항목 ref 형식(필터가 이 형식을 읽는다):
 - `card:<id>`: 인물이 아닌 카드의 본문
 - `card:<id>#identity|soul|goal|ep<NN>`: 인물 카드의 IDENTITY(카드 본문)·SOUL·GOAL·회차별 기억(NN은 두 자리로 0을 채운 회차, `#ep00`은 이야기 시작 전부터 아는 것)
@@ -14,6 +14,7 @@ from collections import Counter
 from collections.abc import Iterable, Sequence
 from typing import Literal
 
+from app import tracing
 from app.story_qa.models import Excerpt
 from app.novelbrain.models import Card, Gap, RecallItem, RecallResult, Relation, WorldSnapshot
 
@@ -267,8 +268,8 @@ def _graph(world: WorldSnapshot, query: str) -> list[tuple[str, str, float]]:
     return sorted(found, key=lambda row: -row[2])
 
 
-def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: str, stage: Literal[0, 1, 2, 3] = 3,
-           manuscript: Sequence[Excerpt] = (), k: int = 8) -> RecallResult:
+def _recall(world: WorldSnapshot, character_id: str | None, episode: int, query: str, stage: Literal[0, 1, 2, 3] = 3,
+            manuscript: Sequence[Excerpt] = (), k: int = 8) -> RecallResult:
     """한 번의 조회. 단계는 앞 단계에 하나씩 쌓인다(`stage`는 0~3, `k`는 1 이상).
 
     0 = PPR 그래프(카드·관계), 1 = + `manuscript` 발췌(받은 순서가 순위), 2 = + 카드·인물 문서 BM25, 3 = + 인물 시점 필터.
@@ -308,3 +309,29 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
         gaps = [g for g in gaps if before[g.ref] < last] + skipped
     items = [i.model_copy(update={'rank': n}) for n, i in enumerate(items[:k], 1)]
     return RecallResult(items=items, gaps=gaps, stage=stage)
+
+
+def _recalled(world: WorldSnapshot, items: list[RecallItem]) -> dict:
+    """추적용 회상 결과: 항목의 ref·점수와, 카드 항목(`card:<id>[#문서]`)은 카드 id·제목. 본문(text)은 담지 않는다."""
+    titles = {c.id: c.title for c in world.cards}
+    recalled = []
+    for i in items:
+        kind, _, rest = i.ref.partition(':')
+        card_id = rest.partition('#')[0]
+        recalled.append({'ref': i.ref, **({'card_id': card_id, 'title': titles.get(card_id)} if kind == 'card' else {}), 'score': i.score})
+    return {'recalled': recalled, 'count': len(items)}
+
+
+def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: str, stage: Literal[0, 1, 2, 3] = 3,
+           manuscript: Sequence[Excerpt] = (), k: int = 8) -> RecallResult:
+    """`_recall`(단계·k 규칙은 그쪽 설명)의 한 번의 조회를 `novelbrain.recall` 추적 span(retriever)으로 감싼다(DEC-58). 결과는 그대로다.
+
+    input은 인물(`character_id`, 나레이터는 None)·기준 회차·단계와 질문 앞 500자, output은 찾은 항목의 ref·점수와 카드 제목뿐이다.
+    카드·관계·원고 본문은 설정 본문 참조 규칙에 따라 남기지 않는다. 실패하면 span이 ERROR로 남고 예외는 그대로 올라간다.
+    ponytail: 요청 밖(평가 하네스 `eval/novelbrain`)에서 LANGFUSE 키가 있으면 호출마다 루트 trace가 생긴다. 하네스는 키 없이 돌린다.
+    """
+    with tracing.observe('novelbrain.recall', as_type='retriever',
+                         input={'actor_id': character_id, 'episode': episode, 'stage': stage, 'query': query[:500]}) as span:
+        result = _recall(world, character_id, episode, query, stage, manuscript, k)
+        span.update(output=_recalled(world, result.items))
+    return result

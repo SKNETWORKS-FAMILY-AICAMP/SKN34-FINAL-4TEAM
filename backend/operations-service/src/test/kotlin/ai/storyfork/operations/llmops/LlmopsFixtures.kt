@@ -55,11 +55,11 @@ internal fun root(
 internal fun generation(
     traceId: String, id: String, startTime: String = "2026-11-19T01:00:01Z", latency: Double? = 1.0, model: String = "gpt-6-luna", inputTokens: Long = 100,
     outputTokens: Long = 20, cost: Double? = 0.01, parent: String? = "root-$traceId", name: String = "main_agent", input: String? = null, output: String? = null,
-    promptName: String = "", promptVersion: Int? = null, level: String = "DEFAULT", statusMessage: String = "",
+    promptName: String = "", promptVersion: Int? = null, level: String = "DEFAULT", statusMessage: String = "", metadata: Map<String, Any?> = emptyMap(),
 ): JsonNode = observation(
     traceId, id, type = "GENERATION", name = name, parent = parent, startTime = startTime, latency = latency, model = model, cost = cost, input = input, output = output,
     usage = mapOf("input" to inputTokens, "output" to outputTokens, "total" to inputTokens + outputTokens), promptName = promptName, promptVersion = promptVersion,
-    level = level, statusMessage = statusMessage,
+    level = level, statusMessage = statusMessage, metadata = metadata,
 )
 
 /** Operators and what they hold, as the admin_permission table would answer the services. */

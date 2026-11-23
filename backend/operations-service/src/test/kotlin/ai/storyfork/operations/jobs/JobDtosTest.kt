@@ -8,15 +8,18 @@ import ai.storyfork.operations.jobs.repository.JobRunRepository
 import ai.storyfork.operations.jobs.repository.ScheduledJobRepository
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJob
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJobList
+import ai.storyfork.operations.jobs.service.dto.EVALUATION_FAILED_MESSAGE
 import ai.storyfork.operations.jobs.service.dto.JobPage
 import ai.storyfork.operations.jobs.service.dto.JobProgress
 import ai.storyfork.operations.jobs.service.dto.JobRun
 import ai.storyfork.operations.jobs.service.dto.ScheduleRequest
 import ai.storyfork.operations.jobs.service.dto.toRun
+import ai.storyfork.operations.llmops.service.dto.Evaluation
 import java.time.Instant
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.parser.PartTree
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.module.kotlin.jacksonMapperBuilder
@@ -45,6 +48,20 @@ class JobDtosTest {
         assertNull(run.finishedAt)
         assertNull(run.error)
         assertEquals("work-1", run.targetId)
+    }
+
+    @Test
+    fun `an evaluation run becomes a manual evaluation run that started at its creation, with the run name as id and target`() {
+        fun evaluation(status: String) = Evaluation("qa@v3-20260310T010203Z-a1b2c3", "qa-regression", "qa", 3, status, null, t, emptyList())
+
+        val run = evaluation("running").toRun()
+
+        assertEquals(JobRun("qa@v3-20260310T010203Z-a1b2c3", "evaluation", "ai-evaluation", "running", "manual", null, t, null, null, "qa@v3-20260310T010203Z-a1b2c3"), run)
+        assertEquals(listOf("running", "succeeded", "failed"), listOf("running", "completed", "failed").map { evaluation(it).toRun().status })
+        // The run itself carries no reason, so a failed one shows the fixed message and no other status shows any.
+        assertEquals(EVALUATION_FAILED_MESSAGE, evaluation("failed").toRun().error)
+        assertNull(evaluation("completed").toRun().error)
+        assertNull(evaluation("running").toRun().error)
     }
 
     @Test
@@ -125,7 +142,8 @@ class JobDtosTest {
     @Test
     fun `the repository query names resolve against their entities`() {
         // Static check without a database: a typo in a derived query name would otherwise break every CI integration test.
-        for (method in JobRunRepository::class.java.declaredMethods) PartTree(method.name, JobRunEntity::class.java)
+        // A method with its own @Query (the claim) is not a derived name; Spring Data parses its JPQL when the context starts.
+        for (method in JobRunRepository::class.java.declaredMethods.filter { !it.isAnnotationPresent(Query::class.java) }) PartTree(method.name, JobRunEntity::class.java)
         for (method in ScheduledJobRepository::class.java.declaredMethods) PartTree(method.name, ScheduledJobEntity::class.java)
     }
 }

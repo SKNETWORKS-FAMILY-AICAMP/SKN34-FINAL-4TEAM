@@ -6,9 +6,15 @@ services:
     environment: &ai-environment
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
+      # 운영 회귀 평가(ai-jobs-worker)의 채점 모델. 비우면 OPENAI_MODEL이다(계약 operations-llmops-contract).
+      EVALUATION_JUDGE_MODEL: ${EVALUATION_JUDGE_MODEL:-}
+      # 회귀 평가 통과 허용 오차(지표별 기준 평균 - 이 값 이상이면 통과, 점수는 모두 0~1). 비우면 0.1이다.
+      EVAL_TOLERANCE: ${EVAL_TOLERANCE:-0.1}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
       # 집필 AI Retrieval 도구가 부르는 Content 내부 검색 API. Content는 32자 이상 INTERNAL_TOKEN만 받는다.
       CONTENT_SERVICE_BASE_URL: http://content-service:8081
+      # 작업 워커(ai-jobs-worker)가 운영 정기 작업의 실행을 맡길 운영 내부 API. 내부 토큰은 위 INTERNAL_TOKEN이다(운영이 AI를 부를 때와 같은 값).
+      OPERATIONS_SERVICE_BASE_URL: http://operations-service:8082
       # 집필 AI 대화·HITL 체크포인트(LangGraph AsyncPostgresSaver). 비우면 대화 요청은 503이다.
       AI_CHECKPOINT_DATABASE_URL: ${AI_CHECKPOINT_DATABASE_URL:-}
       # Langfuse 추적(질문·원고 인용·답변 포함). 키가 비면 추적하지 않는다.
@@ -29,6 +35,24 @@ services:
     init: true
     command: [celery, -A, app.preprocessing.worker, worker, -Q, preprocessing, --concurrency=1, --loglevel=INFO]
     environment: *ai-environment
+
+  # 작업 Celery 워커(회귀 평가·운영 정기 작업, 계약 operations-funnel-credit-contract §4). ai-service와 같은 이미지·환경으로 jobs 큐의 작업을
+  # AI_JOBS_CONCURRENCY(기본 4)개까지 동시에 실행한다. 원고 전처리 워커(ai-worker)와 큐·동시성이 따로다.
+  ai-jobs-worker:
+    init: true
+    command: [celery, -A, app.jobs.worker, worker, -Q, jobs, "--concurrency=${AI_JOBS_CONCURRENCY:-4}", --loglevel=INFO]
+    environment: *ai-environment
+
+  # 평가 세트(app/evaluation/datasets/*.jsonl)를 Langfuse Dataset으로 등록하는 1회성 작업. 같은 AI 이미지로 `up`마다 한 번 돌고 끝난다(멱등 upsert).
+  # Langfuse가 막 뜨는 중이면 실패하므로 10초 간격으로 30번까지 다시 시도하고, 그래도 안 되면 실패로 끝나 로그에 남는다.
+  ai-eval-seed:
+    init: true
+    restart: "no"
+    command: [sh, -c, "for i in $$(seq 30); do python -m app.evaluation.seed && exit 0; sleep 10; done; exit 1"]
+    environment:
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_BASE_URL: http://langfuse-web:3000
 
   core-api:
     init: true

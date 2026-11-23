@@ -196,7 +196,7 @@ flowchart TD
 
 #### 화면 맥락과 메인 Content MCP 도구 (#554)
 
-2026-11-19 사용자 결정([DEC-57](../design/decisions.md)). 집필실·세계관 작업실의 채팅은 새 요청마다 작가가 보고 있는 화면 `page`를 함께 보내고, 메인 에이전트는 Content MCP 도구 10개로 서브 에이전트에 해당하지 않는 간단한 작업을 직접 처리한다.
+2026-11-19 사용자 결정([DEC-59](../design/decisions.md)). 집필실·세계관 작업실의 채팅은 새 요청마다 작가가 보고 있는 화면 `page`를 함께 보내고, 메인 에이전트는 Content MCP 도구 10개로 서브 에이전트에 해당하지 않는 간단한 작업을 직접 처리한다.
 
 - **`page`(프론트 → Content → AI, 같은 모양):** `{path(표시용·300자 이하), kind: studio|world, episode?, worldId?, cardId?, view?, selection?(5,000자 이하, `PatchRequest.selection`과 같은 상한), content?{title?, body, unsaved: true, truncated?}}`. 새 요청마다 보내고 resume에서는 보내지 않으며 Content도 무시한다(`targetEpisode`와 같은 규칙). 화면은 첨부 읽기·새 대화 열기보다 먼저 읽어 `targetEpisode`와 같은 시점의 값을 보낸다(#635). 선택한 글이 5,000자를 넘으면 화면은 요청 문장을 보존하고, 선택 범위를 줄이거나 해제하라고 안내한다(#589). `content`는 저장하지 않은 편집이 있을 때만 싣는다: 카드 본문은 3,000자 이하라 통째로, 회차 원고는 화면이 dirty일 때만 10,000자까지(넘으면 잘라 `truncated: true`).
 - **Content 검증:** DTO `@Size`로 길이를 확인하고 권한을 사용자 기준으로 다시 확인한다. studio `episode`는 작품의 활성 회차(`requireEpisode`)이면서 반영 회차(`targetEpisode ?? episode`)와 같아야 하고, `selection`은 `episode` 없이 받지 않는다(어긋나면 422, #635). world `worldId`는 이 작가 소유이면서 이 작품에 연결된 세계관이고 `cardId`는 그 세계관의 카드여야 한다. 어긋나면 404·422로 거절하고, 통과한 `page`만 AI 요청 본문에 그대로 싣는다.

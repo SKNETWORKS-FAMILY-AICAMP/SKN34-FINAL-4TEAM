@@ -1,0 +1,58 @@
+/* AI 파이프라인(DEC-58, LLM Ops 프롬프트·모델 > 전체). 위계는 선과 글자로만 만들고 색은 오류(위험)와 선택(주 색)에만 쓴다.
+   전역 storyfork.css는 @layer(base)라 이 비레이어 규칙이 늘 이기며, 선택자는 admin-operations.css의 같은 요소 규칙(.adm .admin-operations h3 등)보다 특이도를 한 칸 높였다. */
+
+/* 프롬프트·모델 쪽의 보기 전환(전체·프롬프트·모델): 현재 보기만 글자 색과 밑줄로 알린다. */
+.adm .pipe-views { display: flex; gap: 4px; margin: 0 0 12px; border-bottom: 1px solid var(--line2); }
+.adm .pipe-views a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--sub); font-size: 14px; font-weight: 600; text-decoration: none; }
+.adm .pipe-views a:hover { color: var(--ink); }
+.adm .pipe-views a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--pri); }
+
+/* 캔버스 위·노드 기록 아래로 쌓는다(오른쪽 반쪽 폭에 두면 표 칸이 잘리고 페이지가 가로로 늘어났다). 한 칸(minmax(0, 1fr))에 min-width 0이라 넓은 표도 칸을 넘기지 못하고 자기 영역 안에서만 스크롤된다. */
+.adm .admin-pipeline .pipe-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.adm .admin-pipeline .pipe-diagram,
+.adm .admin-pipeline .pipe-records { min-width: 0; }
+/* content-box라 캔버스가 재는 폭·높이(내용 크기)가 그대로 캔버스 크기다. */
+.adm .admin-pipeline .pipe-canvas { box-sizing: content-box; min-height: 240px; border: 1px solid var(--line2); border-radius: 10px; overflow: hidden; }
+.adm .admin-pipeline .pipe-canvas canvas { display: block; }
+
+/* 캔버스 아래 노드 버튼 목록: 키보드로 노드를 고르는 같은 목록. */
+.adm .admin-pipeline .pipe-nodes h3 { margin: 16px 0 8px; font-size: 13px; font-weight: 700; color: var(--sub); }
+.adm .admin-pipeline .pipe-nodes ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.adm .admin-pipeline .pipe-node { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 148px; padding: 8px 12px; border: 1px solid var(--line2); border-radius: 8px; background: var(--surface); color: var(--ink); text-align: left; }
+.adm .admin-pipeline .pipe-node:hover { border-color: var(--ink); }
+.adm .admin-pipeline .pipe-node[aria-current="true"] { border-color: var(--pri); box-shadow: inset 0 0 0 1px var(--pri); }
+.adm .admin-pipeline .pipe-node.bad .small { color: var(--danger); }
+@media (max-width: 600px), (pointer: coarse) { .adm .admin-pipeline .pipe-node { min-height: 44px; } }
+
+/* 노드 기록 패널: 캔버스·노드 버튼 아래에서 전체 폭을 쓰고 위쪽 선 하나로 나눈다. */
+.adm .admin-pipeline .pipe-records { padding-top: 4px; border-top: 1px solid var(--line2); }
+.adm .admin-pipeline .pipe-records .table-head { margin-top: 12px; }
+.adm .admin-pipeline .pipe-records .admin-filter { margin-top: 8px; }
+.adm .admin-pipeline .pipe-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 4px 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; white-space: nowrap; cursor: pointer; }
+.adm .admin-pipeline .pipe-toggle::before { content: '▸'; width: 1em; color: var(--sub); }
+.adm .admin-pipeline .pipe-toggle[aria-expanded="true"]::before { content: '▾'; }
+@media (pointer: coarse) { .adm .admin-pipeline .pipe-toggle { min-height: 44px; } }
+.adm .admin-pipeline .pipe-verdict { display: block; margin-top: 2px; }
+
+/* 기록 한 줄의 펼침(입력·출력·메타데이터·도구 호출)과 실행 흐름 단계의 입력·출력. */
+.adm .admin-pipeline .pipe-detail > td { padding: 0 12px 16px; }
+.adm .admin-pipeline .pipe-fields { margin: 0; }
+.adm .admin-pipeline .pipe-fields dt { margin: 12px 0 4px; font-size: 12.5px; font-weight: 700; color: var(--sub); }
+.adm .admin-pipeline .pipe-fields dd { margin: 0; }
+.adm .admin-pipeline .pipe-fields pre.admin-prose { margin: 0 0 4px; max-height: 240px; }
+.adm .admin-pipeline .pipe-calls { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.adm .admin-pipeline .pipe-calls li > b { font-family: var(--mono); font-size: 13px; }
+.adm .admin-pipeline .pipe-recalled { margin: 0; padding-left: 18px; }
+
+/* 실행 흐름: observation 트리를 깊이만큼 들여 쓴 목록. 눌러 온 그 기록은 옅은 바탕으로 알린다. */
+.adm .admin-pipeline .pipe-flow { margin-top: 20px; padding-top: 4px; border-top: 1px solid var(--line2); }
+.adm .admin-pipeline .pipe-flow .table-head { margin-top: 12px; }
+.adm .admin-pipeline .pipe-flow h3 { margin: 0; font-size: 16px; }
+.adm .admin-pipeline .pipe-flow h3[tabindex="-1"]:focus { outline: none; }
+.adm .admin-pipeline .pipe-tree { margin: 12px 0 0; padding: 0; list-style: none; }
+.adm .admin-pipeline .pipe-step { padding: 8px 8px 8px calc(var(--depth, 0) * 20px + 8px); border-top: 1px solid var(--line); }
+.adm .admin-pipeline .pipe-step[aria-current="true"] { background: var(--pri-soft); }
+.adm .admin-pipeline .pipe-step-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.adm .admin-pipeline .pipe-step p { margin: 4px 0 0; }
+.adm .admin-pipeline .pipe-step details { margin-top: 4px; }
+.adm .admin-pipeline .pipe-step summary { color: var(--sub); font-size: 13px; cursor: pointer; }

@@ -9,6 +9,8 @@ import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
 import {putRelation} from '../../domain/entities/studioRelations'
 import type {WorldStudioRepository} from '../../domain/repositories/WorldStudioRepository'
+/** 게시판 제목은 미리보기를 열고 `수정하기`가 편집 화면을 연다. 이미 미리보기가 열려 있으면(편집 화면에 다녀온 뒤) 제목을 다시 누르지 않는다(접힌다). */
+const openCard=(name:string)=>{const title=screen.getByRole('button',{name});if(title.getAttribute('aria-expanded')!=='true')fireEvent.click(title);fireEvent.click(screen.getByRole('button',{name:'수정하기'}))}
 let useCase:WorldStudioUseCase
 let world:StudioWorld
 let repository:WorldStudioRepository
@@ -18,7 +20,7 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
 })
 // 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
 vi.mock('../../presentation/shared/LazyMarkdownEditor',()=>import('../markdownEditorFake'))
-vi.mock('../../presentation/features/worldstudio/view/CharacterCards',()=>({default:()=> <div>인물 카드 대역</div>}))
+vi.mock('../../presentation/features/worldstudio/view/RelationGraph',()=>({default:()=> <div>인물 카드 대역</div>}))
 beforeEach(()=>{
  const a=newSetting('people');a.item.title='가람';a.item.text='기존 원문';a.tags=['주인공']
  world={id:'qa-writing',name:'작성 검증',description:'세계의 배경',version:1,settings:[a],analysis:null}
@@ -39,7 +41,7 @@ it('uses one step navigation, preserves typed input, and returns from review to 
  await show(WIZARD)
  expect(screen.getByRole('navigation',{name:'세계관 작성 단계'})).toBeTruthy()
  expect(screen.queryByRole('navigation',{name:'세계관 도구'})).toBeNull()
- fireEvent.click(screen.getByRole('button',{name:'설정 카드'}));fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ fireEvent.click(screen.getByRole('button',{name:'설정 카드'}));openCard('가람 인물')
  fireEvent.change(screen.getByRole('textbox',{name:'설정 이름'}),{target:{value:'가람 수정'}})
  fireEvent.change(screen.getByRole('textbox',{name:'IDENTITY.md'}),{target:{value:'보존할 미저장 원문'}})
  backToBoard() // 마법사의 단계 이동 줄은 설정집 화면에 있다
@@ -58,8 +60,8 @@ it('makes add visible and keeps management entries out of the compact type filte
  const menu=within(screen.getByRole('navigation',{name:'설정 분류'}))
  expect(menu.getAllByRole('button').map(button=>button.textContent)).toEqual(['전체 1','인물 1','보완 필요 1']) // 가람은 SOUL이 비어 정리 필요다
  expect(screen.queryByText('상세 설정 · 선택')).toBeNull() // 행을 고르기 전에는 편집 패널이 없다
- fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
- expect(screen.getByText('상세 설정 · 선택').closest('details')?.open).toBe(false)
+ openCard('가람 인물')
+ expect(screen.queryByText('상세 설정 · 선택')).toBeNull() // 인물 같은 일반 카드에는 상세 설정이 없다(분류·별칭·태그는 개요 탭, 사건 시점은 사건 카드의 상세 설정)
  backToBoard()
  fireEvent.click(menu.getByRole('button',{name:'인물 1'}))
  expect(menu.getByRole('button',{name:'인물 1'}).getAttribute('aria-current')).toBe('true')
@@ -68,7 +70,7 @@ it('makes add visible and keeps management entries out of the compact type filte
  fireEvent.change(screen.getByRole('textbox',{name:'설정 이름'}),{target:{value:'나래'}})
  backToBoard()
  expect(menu.getByRole('button',{name:/^전체/}).getAttribute('aria-current')).toBe('true')
- fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
+ openCard('가람 인물')
  expect(screen.getByRole<HTMLInputElement>('textbox',{name:'설정 이름'}).value).toBe('가람')
 })
 it('keeps failed edits and AI candidates out of the saved confirmed view',async()=>{
@@ -77,7 +79,7 @@ it('keeps failed edits and AI candidates out of the saved confirmed view',async(
  // 저장한 설정만 그리는 화면은 시간선이다: 사건 카드의 설명을 고쳐 저장이 실패해도 시간선은 저장한 원문 그대로여야 한다.
  const event=newSetting();event.item.kind='event';event.item.category='history';event.item.title='건국';event.item.text='기존 사건 원문';event.item.timeText='1년'
  world.settings=[...world.settings,event]
- await show();fireEvent.click(screen.getByRole('button',{name:'건국 사건'}))
+ await show();openCard('건국 사건')
  fireEvent.change(screen.getByRole('textbox',{name:'설명'}),{target:{value:'실패해도 남길 내용'}})
  vi.mocked(repository.saveStudio).mockRejectedValueOnce(new Error('저장 충돌'))
  fireEvent.click(screen.getByRole('button',{name:'세계관 저장'}))
@@ -86,7 +88,7 @@ it('keeps failed edits and AI candidates out of the saved confirmed view',async(
  backToBoard()
  expect(manageTab('시간선')).toBeTruthy()
  expect(screen.getByRole('button',{name:/^AI 검토/})).toBeTruthy()
- expect(screen.getByRole('button',{name:'집필 메모 추가'})).toBeTruthy()
+ expect(screen.getByRole('button',{name:'확정 버전 남기기'})).toBeTruthy()
  fireEvent.click(manageTab('시간선'))
  const confirmed=screen.getByRole('region',{name:'시간선'})
  expect(confirmed.textContent).toContain('기존 사건 원문')
@@ -112,8 +114,7 @@ it('keeps the saved graph and invalid relationship draft until a valid target is
  expect(repository.saveStudio).not.toHaveBeenCalled()
  expect(world).toEqual(before)
  backToBoard()
- fireEvent.click(manageTab('관계도'))
- expect(within(await screen.findByRole('table',{name:'저장할 관계 목록'})).getAllByRole('row')).toHaveLength(2) // 관계 한 줄은 그대로다(저장하지 않은 잘못된 초안이 저장한 상태를 바꾸지 않는다)
+ fireEvent.click(manageTab('관계도'));expect(await screen.findByText('인물 카드 대역')).toBeTruthy() // 관계도에 다녀와도 잘못된 초안은 그대로다
  fireEvent.click(manageTab('설정집'))
  fireEvent.click(legacy())
  expect(screen.getByRole<HTMLSelectElement>('combobox',{name:'관계 대상'}).value).toBe('')

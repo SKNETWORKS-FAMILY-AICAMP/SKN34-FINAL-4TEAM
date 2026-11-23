@@ -16,6 +16,8 @@ uv sync --locked --extra dev
 uv run --locked uvicorn app.main:create_app --factory --reload --port 8000
 # 회차 원고 전처리(Celery 큐 preprocessing)는 AI_CELERY_BROKER_URL·CONTENT_SERVICE_BASE_URL을 설정하고 워커를 따로 띄운다
 uv run --locked celery -A app.preprocessing.worker worker -Q preprocessing --concurrency=1 --loglevel=INFO
+# 작업 실행(회귀 평가·운영 정기 작업, Celery 큐 jobs)은 AI_CELERY_BROKER_URL·OPERATIONS_SERVICE_BASE_URL·INTERNAL_TOKEN을 설정하고 워커를 따로 띄운다(Compose는 AI_JOBS_CONCURRENCY, 기본 4)
+uv run --locked celery -A app.jobs.worker worker -Q jobs --concurrency=4 --loglevel=INFO
 ```
 
 로컬 개발 검증은 변경·직접 영향 범위의 **단위 테스트만** 선택합니다. TestClient·HTTP는 통합 계층이며 로컬에서 통합/시스템·전체 suite·컨테이너를 실행하지 않습니다.
@@ -53,19 +55,51 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 
 `POST /internal/v1/initial-world/extractions`는 기존 내부 토큰·OpenAI 설정으로 #219 Input을 받아 검증된 후보 Output만 반환합니다. 실제 모델 호출 경로는 구현했지만 유료 호출·추출 품질은 미검증입니다. 저장·승인·Content 실행 연결은 제외하며 [호출/실패 계약과 검증 한계](../../docs/design/initial-world-ai-extraction.md)를 따릅니다. 기존 이어쓰기 API는 유지합니다.
 
+## 인물 시뮬레이션 턴 속도 스위치와 성적표 (#642)
+
+턴 하나는 연출 결정(Decisions) → 대사·나레이션 생성 → 검사(위반 시 최대 2회 재생성)의 모델 호출을 차례로 기다린다. 모델은 `gpt-6-luna`로 두되 인물 대사(act)만 `gpt-6.1-terra`다(사용자 결정 2026-11-23, 근거 [원문 평가 §14](../../docs/evaluation/simulation-original.md#14-채점-모델-교체gpt-62-sol말투-기준ab-선택p1b-확인-2026-11-22), `SIMULATION_ACT_MODEL`로 덮어쓴다)(생성·검사·계획 호출은 `langchain-openai`의 `ChatOpenAI`, Responses API·`store=False`·자동 재시도 없음·strict JSON schema 구조화 출력), 아래 스위치가 대기 시간을 얼마나 줄이고 품질을 얼마나 잃는지
+[성적표](../../docs/evaluation/simulation.md)로 잰다. 스위치는 **호출 때 읽고, 기본값(빈 값)은 지금 동작 그대로**다. `.env.example`에는 빈 기본값 주석으로 있고 compose는 이 값을 AI 컨테이너에 넘기지 않는다(성적표는 프로세스 환경에서 직접 읽는다. 채택하면 base compose·인프라 문서에 연결한다).
+
+| 환경 변수 | 값 | 효과 |
+|---|---|---|
+| `SIMULATION_REASONING_EFFORT` | `none`·`minimal`·`low`·`medium`·`high`(비우면 `low`, 시뮬레이션 v2 기본값) | 계획·인물 턴·나레이션·검사 호출(`agent._parse`의 `ChatOpenAI`, Responses API)에 `reasoning={'effort': 값}`을 보낸다. 그 밖의 값은 모델을 부르기 전에 503 설정 오류다 |
+| `SIMULATION_SKIP_FORCED_DIRECTOR` | `1` | `service.rules`가 고를 턴을 하나로 정했고 그 턴이 대사가 아니면(시작·메모·비트 전환·마무리) 연출 모델을 부르지 않는다. 시점은 직전 턴 시점이고 없으면 전지적이다. 독백은 직전 시점이 인물 시점일 때만 생략한다(`director.forced`) |
+| `SIMULATION_WORLD_CACHE` | `1` | 대화 모드에서 resume마다 다시 읽는 세계관(`world_studio_read` 둘)을 프로세스 안에서 재사용한다. 목록(`world_studio_list`)은 매번 부르고, 그 `draftRevision`이 같고 `relationshipStatus`가 `current`일 때만 (세계관, 기준 회차) 칸을 쓴다. 고친 세계관은 revision이 올라 다음 요청에 반영된다(#356). Fork 이어받기와 원고 발췌 검색은 캐시하지 않는다(칸은 32개까지) |
+| `SIMULATION_SKIP_NARRATION_CHECK` | `1` | 전지적(omniscient) 나레이션 턴은 검사 모델을 부르지 않고 통과로 붙인다. 서버 규칙 검사(`_problem`)와 인물 시점 나레이션·독백·대사의 검사는 그대로다 |
+| `SIMULATION_ACT_BASE_URL` | OpenAI 호환 제공사 주소(예 `https://hemmingway.io/v1`, 비우면 OpenAI) | **인물 대사(act) 호출만** 그 제공사로 보낸다. 제공사에는 Responses API가 없어 Chat Completions로 보내고 추론 강도는 `reasoning_effort`로 보낸다(`store`는 보내지 않는다). 계획·나레이션·검사는 OpenAI 그대로다. 길이 초과·콘텐츠 필터·깨진 JSON 응답은 502, 제공사 오류는 503이다(고쳐 읽거나 OpenAI로 다시 보내지 않는다) |
+| `SIMULATION_ACT_API_KEY` | 그 제공사의 키 | base URL이 있으면 필수다(없으면 모델을 부르기 전에 503 설정 오류). `OPENAI_API_KEY`를 외부 제공사로 보내지 않고, base URL이 없으면 이 키는 쓰지 않는다(제공사 키를 OpenAI로 보내지 않는다) |
+| `SIMULATION_ACT_MODEL` | act 호출의 모델(비우면 base URL이 없을 때 `gpt-6.1-terra`, 있을 때 `OPENAI_MODEL`) | **act의 기본 모델은 terra다**(`agent.ACT_MODEL`, 사용자 결정 2026-11-23). luna로 되돌리려면 `SIMULATION_ACT_MODEL=gpt-6-luna`. base URL 없이 모델만 정하면 act만 그 OpenAI 모델을 쓴다(Responses API). 평가 도구는 act를 그 모델의 단가로 센다 |
+| `SIMULATION_ACT_THINKING` | `off`(비우면 제공사 기본) | base URL이 있을 때만 읽는다. `off`면 제공사의 생각을 끈다(`enable_thinking=false`를 `extra_body`로 보낸다): Hemmingway는 생각 토큰이 출력 토큰에 섞여 비용·지연이 3~5배라 끈 조건이 luna와 길이·지연이 맞는다. 그 밖의 값은 모델을 부르기 전에 503 설정 오류다 |
+
+성적표 실행기는 [`eval/simulation/`](eval/simulation/README.md)에 있다(`prepare`·`estimate`·`run`·`report`, 해리 포터 원문 기반 세계관은 `build-hp`·`show-hp`·`seed-hp`와 `--world hp`). `run`·`build-hp`는 실제 OpenAI를 부르므로 비용 승인 뒤에만 쓴다(OpenAI 상한에 닿으면 `--via ocx`로 이어 받는 안내가 나온다).
+스위치마다 켰을 때·껐을 때의 호출 수를 단위 테스트가 단언한다: `uv run --locked --extra dev python -m pytest -m 'not integration' tests/simulation eval/simulation`.
+소설 원문을 정답으로 하는 평가 세트(①대사 ②연출 ③나레이션·독백 ④검사)는 `eval/simulation/orig_cli.py`이고 설계·결과·후보 비교는 [원문 기반 평가](../../docs/evaluation/simulation-original.md)다. 거기서 채택한 변경은 인물 대사 검사 입력의 금지 목록 상한(`service.FORBIDDEN_LIMIT`=20, `service.check_payload`, #646)과 인물 대사(act)의 기본 모델 `gpt-6.1-terra`(`agent.ACT_MODEL`, 사용자 결정 2026-11-23, [§16](../../docs/evaluation/simulation-original.md#16-인물-대사act-기본-모델을-gpt-61-terra로-2026-11-23-사용자-결정)) 둘이다. v1 → v2 → v3 요약과 그림은 [v3 보고서](../../docs/evaluation/simulation-v3.md)다. act·나레이션 지시문 제안(P1·N3)은 Langfuse 새 버전이라 운영 화면에서 등록·승격해야 쓰이고(절차는 [v3 보고서 6장](../../docs/evaluation/simulation-v3.md#6-운영-화면에서-p1n3-반영하는-절차)) V4(초안 → 병렬 수정) 시험은 평가 전용이라 서비스는 그대로이며, 결과는 [원문 기반 평가 §13](../../docs/evaluation/simulation-original.md)·[V4 보고서](../../docs/evaluation/simulation-v4-draft-parallel.md)에 있고, 채점 모델을 `gpt-6.2-sol`로 바꿔 다시 쟀을 때 달라진 판단은 [원문 기반 평가 §14](../../docs/evaluation/simulation-original.md#14-채점-모델-교체gpt-62-sol말투-기준ab-선택p1b-확인-2026-11-22)다.
+
 ## 회귀 평가·누설 판정 (DEC-55)
 
 운영 서비스가 부르는 내부 API입니다([계약](../../docs/design/operations-llmops-contract.md)). Langfuse 4.x(`events_only`) 기준이며 `ragas`·`deepeval`은 `--extra eval`입니다(AI 이미지에는 설치하고, 단위 테스트는 설치 없이 통과합니다).
 
 | 경로 | 내용 |
 |---|---|
-| `POST /internal/v1/evaluations` `{dataset, prompt, version}` | 평가 세트·프롬프트 버전·설정을 확인한 뒤 `202 {runName}`을 먼저 돌려주고 백그라운드로 평가합니다 |
+| `POST /internal/v1/evaluations` `{dataset, prompt, version}` | 평가 세트·프롬프트 버전·설정을 확인한 뒤 Celery 큐(`jobs`)에 올리고 `202 {runName}`을 먼저 돌려줍니다(올리지 못하면 503). `ai-jobs-worker`가 평가하며 서버를 재시작해도 큐에 남아 이어 실행됩니다 |
 | `POST /internal/v1/evaluations/leak-check` `{response, references[], question?}` | 응답이 비공개 참조를 드러내는지 GEval 한 번으로 판정해 `{suspected, reason}`을 돌려줍니다. 사용자 질문 원문 `question`(선택)을 주면 질문에 이미 나온 이름을 되풀이하거나 근거가 없다고 답한 응답은 의심하지 않고 비공개 참조의 내용을 새로 알려 줄 때만 의심합니다 |
 
 결과는 Langfuse Experiments API(`GET /api/public/experiments?fromStartTime=…&name=<runName>&fields=core,metadata,scores`)로 읽습니다.
 
 - 실험 이름은 `runName`(`<프롬프트>@v<버전>-<UTC yyyymmddTHHMMSSZ>-<hex6>`)이고 `fields=metadata`로 읽는 `metadata`에는 `prompt`·`version`·`dataset`·`tolerance`·`baselineRun`·`baselineVersion`(모두 문자열)을 실어 보냅니다(서버가 돌려주는 모양은 실서버 확인 전).
-- Run 수준 점수는 `scores`에 있고 실험 id(`Experiment.id`)를 `datasetRunId`로 단 것입니다(Scores v3는 `experimentId`). `passed`(BOOLEAN, metadata `failedItems`·`totalItems`·`tolerance`·`baselineRun`·`baselineVersion`)와 지표 평균(NUMERIC, metadata `baseline`·`delta`·`tolerance`)이며, `qa.` 평가 세트는 `faithfulness`·`context_precision`, 그 밖은 `geval`입니다. `passed`가 없으면 실행 중입니다.
+- Run 수준 점수는 `scores`에 있고 실험 id(`Experiment.id`)를 `datasetRunId`로 단 것입니다(Scores v3는 `experimentId`). `passed`(BOOLEAN, metadata `failedItems`·`totalItems`·`tolerance`·`baselineRun`·`baselineVersion`)와 지표 평균(NUMERIC, metadata `baseline`·`delta`·`tolerance`)이며, `qa.` 평가 세트는 `faithfulness`·`context_precision`, `simulation.act`는 `voice`·`intent`·`pov_ok`, `simulation.narrate`는 `style`·`info`·`pov_ok`, 그 밖은 `geval`입니다. `passed`가 없으면 실행 중입니다.
 - 항목 점수는 항목 trace에 같은 이름으로 남습니다.
 
-평가 세트는 `app/evaluation/datasets/*.jsonl`(저작권 만료 작품만)이고 `python -m app.evaluation.seed`로 Langfuse에 멱등 등록합니다. 설정은 `OPENAI_API_KEY`·`OPENAI_MODEL`(채점 모델 겸용)·`LANGFUSE_*`·`INTERNAL_TOKEN`이고 선택 `EVAL_TOLERANCE`(기본 0.05)가 있습니다.
+평가 세트는 `app/evaluation/datasets/*.jsonl`(저작권 만료 작품이고, 시뮬레이션 두 세트는 CC BY-SA 3.0 SCP 이야기도 섞여 있어 항목마다 `metadata.license`·`metadata.source`가 있습니다)이고 `python -m app.evaluation.seed`로 Langfuse에 멱등 등록합니다(compose의 1회성 작업 `ai-eval-seed`가 `docker compose up`마다 자동으로 실행합니다). 설정은 `OPENAI_API_KEY`·`OPENAI_MODEL`·`EVALUATION_JUDGE_MODEL`(채점 모델, 비면 `OPENAI_MODEL`)·`LANGFUSE_*`·`INTERNAL_TOKEN`이고 선택 `EVAL_TOLERANCE`(기본 0.1)가 있습니다.
+
+**시뮬레이션 평가 세트**(`simulation.act`·`simulation.narrate`, 짝이 되는 지시문 `character_simulation.act`·`narrate`의 버전만 받고 아니면 422)는 업무 Agent 틀이 아니라 실제 서비스 호출(`app/simulation/agent`의 `act`·`narrate`에 그 버전 본문을 그대로 주고, act는 terra·구조화 출력)로 응답을 만들고 원문 평가 루브릭(`app/evaluation/rubric.py`)으로 한 번에 채점합니다. 지표는 모두 높을수록 좋고(act `voice`·`intent`, narrate `style`·`info`, 둘 다 `pov_ok`) 점수는 Ragas·GEval처럼 0~1로 기록합니다(1~5점은 (점수−1)/4, `pov_ok`는 그대로). 채점 입력은 항목 `metadata.judge`(인물·직전 장면·시점 위반 정답표)입니다. 세트·승격 절차는 [계약](../../docs/design/operations-llmops-contract.md)과 [v3 보고서 6장](../../docs/evaluation/simulation-v3.md)입니다.
+
+## 작업 실행 큐 (운영 정기 작업·회귀 평가, 계약 §4)
+
+`ai-jobs-worker`(ai-service와 같은 이미지, Celery 큐 `jobs`, 동시 실행 수 `AI_JOBS_CONCURRENCY` 기본 4)가 회귀 평가(`evaluation.run`)와 운영 정기 작업(`operations.run_job`)을 실행합니다. 원고 전처리 워커 `ai-worker`(`-Q preprocessing`, 동시성 1)와 큐·태스크는 따로이며 그대로입니다([계약](../../docs/design/operations-funnel-credit-contract.md)).
+
+| 경로 | 내용 |
+|---|---|
+| `POST /internal/v1/jobs` `{runId, kind}` | 운영 스케줄러가 접수시킨 정기 작업 실행을 큐(`jobs`)에 올리고 `202`를 돌려줍니다(올리지 못하면 503). 워커가 운영 내부 `POST /internal/v1/jobs/runs/{runId}/execute`를 불러 운영이 기존 handler를 실행하고 상태를 기록합니다. 운영이 거절·장애로 답하면 태스크가 실패로 남고 자동으로 다시 하지 않습니다 |
+
+설정은 `INTERNAL_TOKEN`(운영이 AI를 부를 때와 워커가 운영을 부를 때 모두 `X-Internal-Token`)·`OPERATIONS_SERVICE_BASE_URL`(워커가 운영을 부르는 주소)·`AI_CELERY_BROKER_URL`이고 선택 `AI_JOBS_CONCURRENCY`가 있습니다.

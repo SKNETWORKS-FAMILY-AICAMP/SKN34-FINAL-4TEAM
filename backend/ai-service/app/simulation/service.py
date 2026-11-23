@@ -8,7 +8,9 @@
 (`card:<id>#soul`·`relation:<id>`·`manuscript:<발췌 id>`)을 그대로 쓴다.
 """
 
+import os
 import re
+import threading
 import unicodedata
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
@@ -30,6 +32,8 @@ from app.simulation.models import (GAP_LABELS, Action, Beat, Evidence, Narration
 TURN_LIMIT = 12   # 인물 대사 턴 수 한도. 나레이션·독백은 세지 않는다.
 MAX_TURNS = 40    # 나레이션·독백까지 합친 턴 수 안전 한도(연출이 서술만 되풀이하지 않게)
 REGENERATIONS = 2
+FORBIDDEN_LIMIT = 20  # 인물 대사 검사 입력의 금지 목록 상한(#646): 문단·직전 장면과 겹침이 큰 항목만 남긴다. 원문 기반 평가(해리 포터 ④ 300문항)에서 검사 입력 토큰이 77% 줄고 판정 정확도는 통계적으로 같았다
+SCENE_LINES = 6       # 금지 목록을 고를 때 문단과 함께 보는 직전 장면 줄 수
 CUT = 200  # 모델이 쓴 이유·설명을 작가에게 보일 때 자르는 길이(Structured Outputs 스키마에는 길이 제약을 못 둔다)
 KINDS = {'if': ['knowledge_leak', 'voice_mix', 'relation', 'premise'],
          'flow': ['knowledge_leak', 'voice_mix', 'relation', 'beat']}
@@ -49,11 +53,22 @@ NO_EXCERPTS = '원고 발췌 검색을 쓸 수 없어 세계관 설정만으로 
 SAME_PERSON = '같은 인물로 이어진 두 카드는 함께 고를 수 없어요. 다른 이름 카드와 본체 카드 중 하나만 골라 주세요.'
 BAD_IDENTITY = '「동일 인물」 관계를 확인할 수 없어 시뮬레이션을 실행할 수 없어요. 인물 카드끼리, 다른 이름 카드 하나에 본체 하나로 한 방향으로만 이어 주세요.'
 
+WORLD_CACHE = 'SIMULATION_WORLD_CACHE'  # 속도 스위치(#642): 1이면 같은 revision의 세계관 읽기를 프로세스 안에서 재사용한다
+WORLD_CACHE_SLOTS = 32
+# (세계관 id, 기준 회차) → (그때 목록의 draftRevision, read_world 결과).
+# ponytail: 프로세스 안 dict이고 칸이 32개를 넘으면 가장 오래된 칸부터 버린다. 프로세스가 여럿이어도 목록(draftRevision)이 매번 맞춰 보니 낡은 값은 쓰지 않는다. LRU·TTL이 필요해지면 그때 바꾼다.
+# read_world는 스레드(asyncio.to_thread)에서 돌아 칸을 비우고 채우는 구간만 락 하나로 지킨다(읽기는 dict.get 하나라 잠그지 않는다).
+_WORLDS: dict[tuple[str, int], tuple[int, dict]] = {}
+_WORLDS_LOCK = threading.Lock()
+
 
 class WorldLink(BaseModel):
-    """`world_studio_list` 한 줄. linkedWorkId가 이 세계관에 연결된 작품이다(1:1, DEC-46)."""
+    """`world_studio_list` 한 줄. linkedWorkId가 이 세계관에 연결된 작품이다(1:1, DEC-46). draftRevision은 저장·편집·복원마다 오르고
+    relationshipStatus는 관계 저장이 끝나 있으면 'current'다. 세계관 읽기 캐시(#642)의 열쇠이고 목록이 주지 않으면 None이다."""
     worldId: str
     linkedWorkId: str | None = None
+    draftRevision: int | None = None
+    relationshipStatus: str | None = None
 
 
 def read_world(work_id: str, episode: int) -> dict:
@@ -63,15 +78,27 @@ def read_world(work_id: str, episode: int) -> dict:
     「동일 인물」(identity) 관계만 최신 시점으로 한 번 더 읽어 `identity`로 덧붙인다(#485): 공개 회차 전에도 작가가 이어 둔 두 카드는 한 사람이라 기준 회차 시점으로는
     묶지 못한다. `relationships`는 기준 회차 시점 그대로라 나레이터·recall이 읽는 스냅샷에는 기준 회차 뒤의 정체가 섞이지 않고, `identity`는 한 사람으로 묶는 데(`_bodies`)만 쓴다.
     이어받은 세계관은 Content가 이미 Fork 기준 회차까지만 주므로 다시 읽지 않고 그 응답의 identity를 쓴다.
+    연결된 세계관의 읽기 둘은 `SIMULATION_WORLD_CACHE=1`이면 목록의 draftRevision이 같을 때 재사용한다(이어받은 세계관은 캐시하지 않는다).
     """
     try:
         worlds = TypeAdapter(list[WorldLink]).validate_python(content_mcp.call('world_studio_list', {}))
     except ValidationError:
         raise SimulationFailure(502, BAD_WORLD) from None
-    linked = next((w.worldId for w in worlds if w.linkedWorkId == work_id), None)
+    linked = next((w for w in worlds if w.linkedWorkId == work_id), None)
     if linked is not None:
-        read = content_mcp.call('world_studio_read', {'id': linked, 'episode': str(episode)})
-        return {**read, 'identity': _identity_of(content_mcp.call('world_studio_read', {'id': linked}))}
+        # 스위치가 켜져 있고 목록이 revision과 관계 저장 완료를 보증하면 같은 (세계관, 기준 회차)의 두 읽기를 재사용한다. 목록은 매번 읽어 고친 세계관은 다음 요청에 반영된다.
+        slot = (linked.worldId, episode) if (os.environ.get(WORLD_CACHE) == '1' and linked.draftRevision is not None
+                                             and linked.relationshipStatus == 'current') else None
+        if slot and (hit := _WORLDS.get(slot)) and hit[0] == linked.draftRevision:
+            return {**hit[1]}
+        read = content_mcp.call('world_studio_read', {'id': linked.worldId, 'episode': str(episode)})
+        found = {**read, 'identity': _identity_of(content_mcp.call('world_studio_read', {'id': linked.worldId}))}
+        if slot:
+            with _WORLDS_LOCK:
+                if slot not in _WORLDS and len(_WORLDS) >= WORLD_CACHE_SLOTS:
+                    del _WORLDS[next(iter(_WORLDS))]
+                _WORLDS[slot] = (linked.draftRevision, found)
+        return {**found}
     if (inherited := content_mcp.inherited_world(work_id, episode)) is None:
         raise SimulationFailure(409, NO_LINKED_WORLD)
     return {**inherited, 'identity': _identity_of(inherited)}
@@ -627,6 +654,34 @@ def narrated(narration: Narration, monologue: bool) -> Narration:
     if not narration.prose.strip() or (not monologue and not narration.observed.strip()):
         raise SimulationFailure(502, BAD_NARRATION)
     return narration
+
+
+def _grams(text: str) -> set[str]:
+    folded = re.sub(r'[\W_]+', '', text)
+    return {folded[i:i + 2] for i in range(len(folded) - 1)}
+
+
+def relevant(docs: list[dict], query: str, cap: int) -> list[dict]:
+    """docs({text, …}) 중 query와 두 글자 조각이 많이 겹치는 cap개를 원래 순서대로. cap 이하면 그대로 돌려준다.
+
+    ponytail: 두 글자 조각의 겹침 개수라 낱말을 바꿔 말한 누설은 점수가 낮다. 벡터·BM25가 필요해지면 recall 쪽 순위를 쓴다.
+    """
+    if len(docs) <= cap:
+        return docs
+    marks = _grams(query)
+    keep = sorted(sorted(range(len(docs)), key=lambda i: -len(_grams(docs[i]['text']) & marks))[:cap])
+    return [docs[i] for i in keep]
+
+
+def check_payload(payload: dict, kinds: list[str], paragraph: str, kind: str) -> dict:
+    """검사 모델 입력: 턴 입력(payload)에 검사 종류와 검사할 문단을 더한다. 인물 대사(kind가 character)는 금지 목록을 문단·직전 장면 줄과 겹침이 큰 FORBIDDEN_LIMIT개로 줄인다(#646).
+    줄인 범위 밖의 누설은 이 검사가 놓칠 수 있다(서버 규칙 검사 _problem은 인칭·되풀이만 본다). 평가의 같은 문항 짝 비교에서 정답 판정은 통계적으로 같았다(주입 거절 7↑12↓, p=0.36).
+    독백·나레이션 검사는 평가하지 않아 그대로 둔다."""
+    body = {**payload, 'checks': kinds, 'paragraph': paragraph}
+    if kind == 'character':
+        scene = ' '.join(line['text'] for line in payload.get('scene', [])[-SCENE_LINES:])
+        body['forbidden'] = relevant(payload.get('forbidden', []), f'{paragraph} {scene}', FORBIDDEN_LIMIT)
+    return body
 
 
 def verify(verdict: Verdict, kinds: list[str], payload: dict) -> None:

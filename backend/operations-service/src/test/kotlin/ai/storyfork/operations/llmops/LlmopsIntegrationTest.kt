@@ -296,7 +296,7 @@ class LlmopsIntegrationTest {
         assertTrue(noContent.path("pending").path("inquiries").isNumber)
         assertTrue(noContent.path("pending").path("reports").isNumber)
         assertTrue(noContent.path("pending").path("authorReviews").isNull)
-        // The jobs card adds Content's preprocessing jobs to the operations runs, so it follows Content.
+        // The jobs card adds Content's preprocessing jobs and Langfuse's evaluation runs to the operations runs, so it follows both.
         assertTrue(noContent.path("jobs").isNull)
         assertEquals(listOf("core", "content"), noContent.path("unavailable").values().map { it.asString() })
     }

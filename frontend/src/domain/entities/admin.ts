@@ -33,11 +33,20 @@ export const llmPage = (v: string | null): LlmPage => LLM_PAGES.find(([page]) =>
 /** 경고만 view가 없는 주소입니다(운영 경고 알림·개요 카드가 쓰는 `/admin?tab=llm`이 그대로 경고로 갑니다). */
 export const llmPageHref = (page: LlmPage) => page === 'alerts' ? '/admin?tab=llm' : `/admin?tab=llm&view=${page}`
 
+/** 프롬프트·모델 쪽의 보기(DEC-58, 주소 `&sub=`): 전체(AI 파이프라인)·프롬프트·모델. 없거나 모르는 값은 전체입니다. */
+export const PROMPT_SUBS = [['all', '전체'], ['prompts', '프롬프트'], ['models', '모델']] as const
+export type PromptSub = (typeof PROMPT_SUBS)[number][0]
+export const promptSub = (v: string | null): PromptSub => PROMPT_SUBS.find(([sub]) => sub === v)?.[0] ?? 'all'
+/** 전체만 sub 없는 주소입니다. */
+export const promptSubHref = (sub: PromptSub) => sub === 'all' ? llmPageHref('prompts') : `${llmPageHref('prompts')}&sub=${sub}`
+
 /** 로그인 복귀에는 알려진 내부 관리자 탭 하나만 남깁니다. 임의 next/외부 URL은 전달하지 않습니다. */
 export function adminReturnPath(search: string): string {
   const query = new URLSearchParams(search)
   if (!query.has('tab')) return '/admin'
   const tab = adminTab(query.get('tab'))
-  // LLM Ops는 알려진 쪽(view)도 남깁니다(없거나 모르는 값은 경고).
-  return tab === 'llm' ? llmPageHref(llmPage(query.get('view'))) : `/admin?tab=${tab}`
+  // LLM Ops는 알려진 쪽(view)도 남기고, 프롬프트·모델 쪽은 알려진 보기(sub)도 남깁니다(없거나 모르는 값은 경고·전체).
+  if (tab !== 'llm') return `/admin?tab=${tab}`
+  const page = llmPage(query.get('view'))
+  return page === 'prompts' ? promptSubHref(promptSub(query.get('sub'))) : llmPageHref(page)
 }

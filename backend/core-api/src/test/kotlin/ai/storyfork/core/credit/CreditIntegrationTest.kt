@@ -109,6 +109,23 @@ class CreditIntegrationTest {
     }
 
     @Test
+    fun `operator grants and revokes are recorded in the ledger and a revoke cannot exceed what is available`() {
+        val m = member()
+        credits.grantSignupTrial(m, now) // 100, 12월 10일 소멸
+        credits.grant(m, CreditKind.OPERATOR, BigDecimal("10"), now) // 10, 12월 1일 00:00 KST 소멸 -> 먼저 회수한다
+        credits.revoke(m, BigDecimal("15"), now)
+        assertEquals(0, BigDecimal("95").compareTo(credits.balance(m, now).total))
+        val revoked = credits.history(m).items.filter { it.type == "revoke" }
+        assertEquals(setOf("operator" to 10, "signup-trial" to 5), revoked.map { it.kind to it.amount.toInt() }.toSet())
+        val keys = jdbc.queryForList("select distinct operation_key from credit_ledger_entry where kind = 'revoke' and grant_id in (select id from credit_grant where member_id = ?)",
+            String::class.java, m).filterNotNull()
+        assertEquals(1, keys.size)
+        assertTrue(keys.single().startsWith("operator-revoke:"))
+        assertThrows(InsufficientCreditException::class.java) { credits.revoke(m, BigDecimal("96"), now) }
+        assertEquals(0, BigDecimal("95").compareTo(credits.balance(m, now).total))
+    }
+
+    @Test
     fun `credit endpoints require login`() {
         mvc.perform(get("/api/v1/me/credits")).andExpect(status().isUnauthorized())
         mvc.perform(get("/api/v1/me/credits/history")).andExpect(status().isUnauthorized())
