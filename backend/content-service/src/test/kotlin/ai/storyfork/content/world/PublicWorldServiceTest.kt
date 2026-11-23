@@ -526,13 +526,13 @@ class PublicWorldServiceTest {
     /** [seed]의 세계관에 연결된 소설 하나(`work.world_studio_id`)와 그 접근 결과다. 공개 판정은 [WorkAccessResult.publiclyVisible]이 하므로 공개 범위·제한·삭제 값으로 만든다. */
     private fun linkWork(
         seed: Seed, owner: String = UUID.randomUUID().toString(), visibility: String = "public", restricted: Boolean = false, deleted: Boolean = false, cover: Boolean = false,
-        published: List<Int> = listOf(1, 2, 3),
+        published: List<Int> = listOf(1, 2, 3), restrictedEpisodes: Set<Int> = emptySet(),
     ): String {
         val workId = UUID.randomUUID().toString()
         `when`(works.findAllByWorldStudioIdIn(listOf(seed.id))).thenReturn(listOf(WorkEntity(id = workId, ownerId = owner, title = "연결된 소설", worldStudioId = seed.id)))
         `when`(access.get(workId)).thenReturn(WorkAccessResult(workId, owner, "연결된 소설", "", 1, "legacy-world", visibility, false, false, null, restricted, deleted))
         `when`(workImages.countByWorkIdAndEpisodeNo(workId, 0)).thenReturn(if (cover) 1L else 0L)
-        `when`(publication.publishedEpisodes(workId)).thenReturn(PublishedEpisodeListResponse(published.map { PublishedEpisodeResponse(it, 1, "v${it}", "${it}화", "본문") }))
+        `when`(publication.publishedEpisodes(workId)).thenReturn(PublishedEpisodeListResponse(published.map { PublishedEpisodeResponse(it, 1, "v${it}", "${it}화", "본문", restricted = it in restrictedEpisodes) }))
         return workId
     }
 
@@ -577,6 +577,19 @@ class PublicWorldServiceTest {
         }
         verifyNoMoreInteractions(nicknames)
         verifyNoInteractions(workImages)
+    }
+
+    @Test fun `a restricted last episode does not count as published so the basis episode stays at the last readable one`() {
+        // 2화가 운영 제한이면 독자에게 마지막 회차는 1화라, 공개 회차가 2화인 비공개 인물은 아직 보이지 않는다(제한이 없으면 2화 기준이라 보인다).
+        val open = Seed()
+        val shut = Seed()
+        linkWork(open, open.owner.toString(), published = listOf(1, 2))
+        linkWork(shut, shut.owner.toString(), published = listOf(1, 2), restrictedEpisodes = setOf(2))
+        stubNames(mapOf(open.owner to "작가", shut.owner to "작가"))
+
+        assertEquals(setOf(open.first.cardId, open.second.cardId, open.hidden.cardId), service.detail(open.id).cards.map { it.id }.toSet())
+        assertEquals(setOf(shut.first.cardId, shut.second.cardId), service.detail(shut.id).cards.map { it.id }.toSet())
+        verify(graph).read(shut.id, 1)
     }
 
     @Test fun `a world with no linked work has none and Core is asked only for the world's author`() {

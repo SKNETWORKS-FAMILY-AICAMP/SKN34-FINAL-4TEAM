@@ -25,6 +25,7 @@
 | 댓글 | 목록·작성·수정·삭제·좋아요 404, 작품 전체 댓글 목록에서도 그 회차의 댓글을 뺀다 |
 | 수정 제안 등록·회차 제보(등록·회차별 목록·조회) | 404 |
 | 독자 회차 지정 설정 읽기(`WorldController.publicRead`, `?episode=`, MCP `work_world_public_read`) | 404 |
+| 공개 세계관·독자 설정 위키의 기준 회차 | 발행된 마지막 회차를 셀 때 제한 회차를 뺀다(`PublicWorldService`의 상세·이미지 기준과 목록 쿼리 `WorkRepository.lastPublishedOfPublicWorks`, `WorkWorldService.readerBasis`가 같은 값). 마지막 회차가 제한이면 기준이 내려가 그 회차 뒤에 공개되는 카드는 다시 숨는다 |
 
 단건 확인은 `EpisodeCurrentEntity.readerVersionId`(발행본이 있고 제한이 아닐 때만 값이 있음) 한 곳을 쓴다. 작가 쪽은 `publishedVersionId`를 그대로 쓴다.
 작가용 작품 응답의 `PublishedEpisodeResponse`에는 `restricted`가 실리고(독자용 응답에는 제한 회차가 목록에서 빠져 있다) 작가용 회차 응답에는 제한 표시가 없다.
@@ -75,7 +76,7 @@ V18이 두 표의 `card_type` CHECK(기본 8종 고정)를 지우고, 코드가 
 - 분석 반영·원고 구축·시더(AI·시스템이 정한 기본 8종을 그대로 저장하는 쓰기)는 존재만 본다. 운영이 기본 카테고리를 숨겨도 이 파이프라인은 멈추지 않는다.
 
 ### AI로 보낼 때
-AI가 아는 카드 유형은 기본 8종뿐이라 Content가 보낼 때 그 밖의 코드는 `other`로 바꾼다(`aiCardType`): 설정집 AI 검토 요청(`WorldReviewInput`)과 MCP `world_studio_read`·`world_studio_create`·`world_studio_edit_draft`의 초안 응답.
+AI가 아는 카드 유형은 기본 8종뿐이라 Content가 보낼 때 그 밖의 코드는 `other`로 바꾼다(`aiCardType`): 설정집 AI 검토 요청(`WorldReviewInput`)과 카드를 싣는 **모든 MCP 도구 응답**(`mcp/McpAiCards.kt`의 `forAi`): 초안(`world_studio_read`·`world_studio_create`·`world_studio_edit_draft`), 확정 버전(`world_studio_revision_read`·`world_studio_save_revision`), 공개 세계관(`world_studio_public_read`), 독자 설정 위키(`work_public_world_cards`), 이어받은 세계관(`work_inherited_world`). `world_studio_public_list`는 카드를 싣지 않는다. 같은 응답을 쓰는 REST는 바꾸지 않는다(화면은 카테고리 코드를 그대로 쓴다).
 초기 분석 입력은 `character·location·organization·ability·object` 카드만 개체로 보내므로(기존 규칙) 추가 카테고리 카드는 이미 빠진다. AI 결과는 기본 8종 그대로 저장한다.
 
 ### API
@@ -93,6 +94,6 @@ AI가 아는 카드 유형은 기본 8종뿐이라 Content가 보낼 때 그 밖
 
 - 작가에게 회차·세계관 제한 알림(`content_event_outbox`)은 보내지 않는다(계약에 없음. 작품 제한·댓글 숨김의 `content.operator.*` 알림과 다르다).
 - MCP에서 `other`로 받은 카드를 AI가 다시 저장하면 그 카드의 유형이 `other`로 저장된다(AI 결과는 기본 8종 그대로 저장한다는 결정). 작가가 고른 추가 카테고리를 지키려면 AI가 고친 카드만 보내게 하는 기존 규칙(`replace=false`)이 필요하다.
-- 독자 설정 위키·공개 세계관의 기준 회차(발행된 마지막 회차)는 제한 회차도 발행된 것으로 센다. 제한 회차에서 처음 밝혀지는 카드도 그 기준에 닿으면 보인다.
+- 기준 회차는 제한이 아닌 발행 회차 중 가장 큰 번호다. 가운데 회차만 제한이면 기준은 그대로라 그 회차에서 처음 공개되는 카드도 기준 안에 있으면 보인다.
 - 두 운영 목록(회차·세계관)과 카테고리 목록은 페이지네이션이 없다(운영 규모, 장르와 같음).
 - 카테고리 번호를 두 운영자가 동시에 부여하면 PK 충돌로 한쪽이 500이다(장르와 같은 한계, 운영자 한 명이 쓰는 화면).

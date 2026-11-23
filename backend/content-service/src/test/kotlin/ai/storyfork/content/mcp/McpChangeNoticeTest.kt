@@ -102,7 +102,8 @@ private class Rig(private val answer: Answer<Any?>? = null) {
     private val forks = service(ForkService::class.java, "create" to workOf(FORK_WORK))
     private val versions = service(EpisodeVersionService::class.java,
         "saveCurrent" to SavedEpisodeVersionResult(DraftResponse("제목", "본문", 4, "작가의 말"), VersionResponse("v-9", "제목", "본문", 4, 2, "2030-01-01T00:00:00Z", "작가의 말")))
-    private val studio = service(WorldStudioService::class.java, "create" to draftOf(NEW_WORLD), "edit" to draftOf(WORLD))
+    private val studio = service(WorldStudioService::class.java, "create" to draftOf(NEW_WORLD), "edit" to draftOf(WORLD),
+        "save" to WorldRevisionResponse(WORLD, REVISION, 1, "달빛 세계", "설명", null, null, emptyList(), null))
     private val analyses = service(InitialWorldAnalysisService::class.java,
         "analyze" to InitialWorldAnalysisRead(InitialWorldAnalysisResponse(ANALYSIS, InitialWorldBasis(1, 0, null, "hash"), "completed", "current", null, emptyMap()), null))
     private val applications = service(InitialWorldApplicationService::class.java,

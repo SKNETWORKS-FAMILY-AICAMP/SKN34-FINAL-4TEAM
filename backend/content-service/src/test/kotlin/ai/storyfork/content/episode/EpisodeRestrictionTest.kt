@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
+import org.springframework.data.jpa.repository.Query
 import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -127,6 +128,11 @@ class EpisodeRestrictionTest {
 
         assertEquals(404, failure { service.restrict("work", 9, true) }.status)
         verify(episodes, never()).findByWorkIdAndSequence(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt())
+    }
+
+    @Test fun `the public list basis query counts only published episodes that are not restricted`() {
+        val query = WorkRepository::class.java.methods.single { it.name == "lastPublishedOfPublicWorks" }.getAnnotation(Query::class.java).value
+        assertTrue(query.contains("c.publishedVersionId is not null and c.restricted = false"), query)
     }
 
     private fun route(type: Class<*>, name: String): Pair<String, List<RequestMethod>> {

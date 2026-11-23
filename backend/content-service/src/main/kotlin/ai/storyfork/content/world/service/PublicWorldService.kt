@@ -357,7 +357,7 @@ class PublicWorldService(
         works.findAllByWorldStudioIdIn(listOf(worldId)).firstOrNull()?.let { workAccess.get(it.id) }
 
     /**
-     * [worldIds] 각각의 기준 회차를 목록 한 페이지 전체에 쿼리 둘로 센다([basisEpisode]와 같은 값): 연결된 작품 조회 하나와 그 가운데 공개 작품의 발행된 마지막 회차 조회 하나다.
+     * [worldIds] 각각의 기준 회차를 목록 한 페이지 전체에 쿼리 둘로 센다([basisEpisode]와 같은 값): 연결된 작품 조회 하나와 그 가운데 공개 작품의 발행된 마지막 회차(운영 제한 회차 제외) 조회 하나다.
      * 연결된 소설이 공개 작품이면 발행된 마지막 회차(없으면 0), 공개 작품이 아니면 0, 연결이 없으면 1이다. 작품은 Content 트랜잭션이라 WorldStudio 읽기 트랜잭션 밖에서 부른다.
      */
     private fun basisEpisodes(worldIds: List<UUID>): Map<UUID, Int> {
@@ -368,13 +368,13 @@ class PublicWorldService(
     }
 
     /**
-     * 공개 세계관 하나의 기준 회차(DEC-53)다: 연결된 소설 [linked]가 공개 작품([WorkAccessResult.publiclyVisible])이면 발행된 마지막 회차(없으면 0), 공개 작품이 아니면(비공개·제한·삭제) 0,
+     * 공개 세계관 하나의 기준 회차(DEC-53)다: 연결된 소설 [linked]가 공개 작품([WorkAccessResult.publiclyVisible])이면 발행된 마지막 회차(운영이 제한한 회차는 독자에게 없으므로 뺀다, 없으면 0), 공개 작품이 아니면(비공개·제한·삭제) 0,
      * 연결이 없으면 1이다. 독자 위키의 기준([ai.storyfork.content.work.service.WorkWorldService])과 같은 값이다. 발행을 중단하면 마지막 발행 회차가 내려가 보이던 카드가 다시 숨는다.
      */
     private fun basisEpisode(linked: WorkAccessResult?): Int = when {
         linked == null -> 1
         !linked.publiclyVisible() -> 0
-        else -> publication.publishedEpisodes(linked.id).items.maxOfOrNull { it.number } ?: 0
+        else -> publication.publishedEpisodes(linked.id).items.filterNot { it.restricted }.maxOfOrNull { it.number } ?: 0
     }
 
     /** 작가 표시명은 저장하지 않고 Core에서 한 번에 조회한다. Core에 없으면 탈퇴한 회원이고, 호출 실패는 대체 이름 없이 그대로 전파한다. */

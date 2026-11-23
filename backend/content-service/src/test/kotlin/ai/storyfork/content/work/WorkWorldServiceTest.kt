@@ -162,6 +162,24 @@ class WorkWorldServiceTest {
         assertSame(latest, service.readerCards("work", null))
     }
 
+    @Test fun `restricted episodes do not count as published so the reader wiki basis stops at the last readable episode`() {
+        row.worldStudioId = world
+        `when`(access.get("work")).thenReturn(work())
+        `when`(works.findById("work")).thenReturn(Optional.of(row))
+        // 3화가 운영 제한이다: 독자에게 마지막 회차는 2화라 요청이 9화여도 생략해도 2화 기준이다. 전부 제한이면 발행된 회차가 없는 것과 같다.
+        `when`(publication.publishedEpisodes("work")).thenReturn(PublishedEpisodeListResponse(listOf(1, 2, 3).map { PublishedEpisodeResponse(it, 1, "v$it", "${it}화", "본문", restricted = it == 3) }))
+        val second = ReaderWorldCardsResponse("work", world, 2)
+        `when`(publicWorlds.readerCards("work", world, 2)).thenReturn(second)
+
+        assertSame(second, service.readerCards("work", "9"))
+        assertSame(second, service.readerCards("work", null))
+
+        `when`(publication.publishedEpisodes("work")).thenReturn(PublishedEpisodeListResponse(listOf(1, 2).map { PublishedEpisodeResponse(it, 1, "v$it", "${it}화", "본문", restricted = true) }))
+        val nothing = ReaderWorldCardsResponse("work", world, 0)
+        `when`(publicWorlds.readerCards("work", world, 0)).thenReturn(nothing)
+        assertSame(nothing, service.readerCards("work", "9"))
+    }
+
     @Test fun `a linked public work with no published episode asks for episode zero so nothing is revealed`() {
         row.worldStudioId = world
         `when`(access.get("work")).thenReturn(work())
