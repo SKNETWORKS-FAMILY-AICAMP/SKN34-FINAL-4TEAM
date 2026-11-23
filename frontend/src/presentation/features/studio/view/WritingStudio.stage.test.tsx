@@ -143,6 +143,14 @@ it('승인 회차가 이미 열린 회차이거나 목록에 없으면 편집기
   expect(model.select).not.toHaveBeenCalled()
 })
 
+it('입력 대기의 반영 회차로는 편집기를 옮기지 않는다(#635: 이어지는 승인 때의 맞춤을 소진하지 않는다)', async () => {
+  model.episodes = [...model.episodes, fourth]
+  stored({ status: 'waiting', steps: [], missingInputs: ['research'], approvalEpisode: 4 })
+  renderStudio()
+  await screen.findByLabelText('조사할 질문')
+  expect(model.select).not.toHaveBeenCalled()
+})
+
 it('복원 때 한 번만 맞추고, 그 뒤 작가가 고른 회차를 다시 되돌리지 않는다', async () => {
   model.episodes = [...model.episodes, fourth]
   stored({ ...approvalReply(), approvalEpisode: 4 })

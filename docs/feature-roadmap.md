@@ -464,7 +464,7 @@
 <tr><td>발행 원고·설정·현재 관계 Q&A와 출처·근거 부족 표시</td><td>❌ <small>(#525: 집필실·독서 화면의 작품 Q&A 패널과 전용 API(<code>/context/qa</code>) 제거, 작품 질문은 AI 대화 요청의 작품 질문(#490: 원고 Retrieval + WorldStudio 기준 회차 설정·관계)으로만 한다. 독자용 작품 Q&A 없음. <a href="writing-ai-architecture/07-retrieval-contract-and-mocks.md#작품-qa-api-제거-525">제거 기록</a>)</small></td></tr>
 <tr><td>허용 문맥 미리보기</td><td>❌</td></tr>
 <tr><td>이어쓰기 요청</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/441">PR #441</a></td></tr>
-<tr><td>부분 수정 요청</td><td>❌ <small>(Content·AI API와 승인 반영 구현 · 채팅 입력 대기 카드에서 구간 선택 화면 연결(#497) · 브라우저 확인·통합 테스트 CI 대기)</small></td></tr>
+<tr><td>부분 수정 요청</td><td>❌ <small>(Content·AI API와 승인 반영 구현 · 채팅 입력 대기 카드에서 구간 선택 화면 연결(#497) · 선택 글·구간은 그 글이 나온 회차에만 반영(#635) · 통합 테스트 CI 대기)</small></td></tr>
 <tr><td>세계관 카드 수정 제안 다시 받기 <small>(#588·#662, 초안을 저장한 뒤 멈춘 자리에서 제안만 다시 받아 승인·이미 저장한 작업은 재실행 없음)</small></td><td>✅</td></tr>
 <tr><td>집필 AI 선택 구간 길이 안내 <small>(#589, 5,000자를 넘으면 전송 전 안내와 요청 문장 보존)</small></td><td>✅</td></tr>
 <tr><td>집필 AI 분류 실패 표시 <small>(#590, 제공사 분류 실패와 차단 응답을 오류 로그 서식으로 표시)</small></td><td>✅</td></tr>

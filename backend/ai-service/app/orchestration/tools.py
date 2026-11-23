@@ -72,6 +72,7 @@ PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않�
 BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 확정 지적을 골라 주세요.'
 DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
+PATCH_READY = '수정안을 만들었고 본문은 화면의 결과 카드에 있어요.'
 NO_SAVED_PLANS = '저장된 플롯·장면 계획이 없어 고칠 수 없어요. 고칠 계획을 먼저 저장해 주세요.'
 PLAN_CANDIDATES = 5  # 되묻기에 보이는 후보 계획 제목 수
 # 판정 기능 → 메인에 노출할 도구 이름. 판정 기능마다 도구가 있어 미구현으로 끝내는 기능이 없다.
@@ -140,8 +141,8 @@ def _writing_summary(r: dict) -> dict:
         return {'kind': 'plan', 'plans': [p['title'] for p in r['plans']], 'notes': r['notes'], 'gaps': r['gaps']}
     if 'planId' in r:  # 계획 수정안: 어느 계획인지만 알리고 변경 전·후 본문은 넣지 않는다(화면의 승인 카드가 보여 준다)
         return {'kind': 'revise_plan', 'plan': r['before']['title']}
-    # 수정안은 고친 구절(before)만 알려 어느 지적을 고쳤는지 말하게 한다. 고친 문장(after)과 새 원고 본문은 넣지 않는다.
-    return {'kind': 'patch', 'selection': r['before']} if 'after' in r else {'kind': 'draft', 'characters': len(r['text']), 'gaps': r['gaps']}
+    # 수정안은 고친 구절(before)과 만들어졌다는 사실만 알린다(사실이 없으면 본문 없음을 실패로 읽는다). 고친 문장(after)과 새 원고 본문은 넣지 않는다.
+    return {'kind': 'patch', 'selection': r['before'], 'proposal': PATCH_READY} if 'after' in r else {'kind': 'draft', 'characters': len(r['text']), 'gaps': r['gaps']}
 
 
 def _world_summary(r: dict) -> dict:
@@ -325,7 +326,8 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
 
     revise_plan은 작가가 이미 저장한 플롯·장면 계획의 제목·내용을 고치는 수정안이다(request에 고칠 계획과 방향을 적는다). 원고 문장은 고치지 않는다.
 
-    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때만 task=patch와 fix(그 지적의 fix 번호)를 쓴다. 확정 지적이 하나면 fix를 비워도 된다.
+    선택한 글이나 원고 구간을 고칠 때는 검수가 없어도 fix 없이 task=patch를 쓴다(선택한 글이 없으면 작가가 구간을 고른다).
+    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때는 task=patch에 fix(그 지적의 fix 번호)를 더한다. 확정 지적이 하나면 fix를 비워도 된다.
     """
     if task == 'revise_plan':
         return _revise_plan(runtime, request)
