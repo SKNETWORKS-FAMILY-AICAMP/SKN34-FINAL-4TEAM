@@ -240,6 +240,15 @@ jobs:
           NEO4J_AUTH: neo4j/worldstudio-ci-graph-password
         ports: ["127.0.0.1:7687:7687"]
         options: --health-cmd "cypher-shell -u neo4j -p worldstudio-ci-graph-password 'RETURN 1'" --health-interval 5s --health-timeout 5s --health-start-period 30s --health-retries 30
+      elasticsearch:
+        # Content integration only: 원고 색인은 항상 켜져 있어 Spring 컨텍스트가 시작할 때 색인을 만들고 매핑을 검증한다. 격리 runner 전용(보안 끔, loopback만).
+        image: ${{ matrix.service == 'content' && 'docker.elastic.co/elasticsearch/elasticsearch:9.5.6' || '' }}
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: "false"
+          ES_JAVA_OPTS: -Xms512m -Xmx512m
+        ports: ["127.0.0.1:9200:9200"]
+        options: --health-cmd "curl -fsS 'http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow&timeout=3s'" --health-interval 5s --health-timeout 5s --health-start-period 60s --health-retries 24
       mailpit:
         image: ${{ matrix.service == 'core' && 'axllent/mailpit:v1.27' || '' }}
         ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
@@ -379,14 +388,16 @@ jobs:
           PASSWORD_POSTGRES_ID: ${{ job.services.postgres-password.id }}
           MAILPIT_ID: ${{ job.services.mailpit.id }}
           NEO4J_ID: ${{ job.services.neo4j.id }}
+          ELASTICSEARCH_ID: ${{ job.services.elasticsearch.id }}
         run: |
           docker logs "$POSTGRES_ID" > "$RUNNER_TEMP/postgres.log" 2>&1 || true
           if [[ -n "$PASSWORD_POSTGRES_ID" ]]; then docker logs "$PASSWORD_POSTGRES_ID" >> "$RUNNER_TEMP/postgres.log" 2>&1 || true; fi
           if [[ -n "$MAILPIT_ID" ]]; then docker logs "$MAILPIT_ID" > "$RUNNER_TEMP/mailpit.log" 2>&1 || true; fi
           if [[ -n "$NEO4J_ID" ]]; then docker logs "$NEO4J_ID" > "$RUNNER_TEMP/neo4j.log" 2>&1 || true; fi
+          if [[ -n "$ELASTICSEARCH_ID" ]]; then docker logs "$ELASTICSEARCH_ID" > "$RUNNER_TEMP/elasticsearch.log" 2>&1 || true; fi
       - name: Sanitize failure reports
         if: ${{ failure() }}
-        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/operations-service/build/test-results backend/ai-service/reports "$RUNNER_TEMP/postgres.log" "$RUNNER_TEMP/mailpit.log" "$RUNNER_TEMP/neo4j.log"
+        run: python3 infrastructure/ci/ci.py reports sanitized frontend/reports backend/core-api/build/test-results backend/content-service/build/test-results backend/operations-service/build/test-results backend/ai-service/reports "$RUNNER_TEMP/postgres.log" "$RUNNER_TEMP/mailpit.log" "$RUNNER_TEMP/neo4j.log" "$RUNNER_TEMP/elasticsearch.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ failure() }}
         with:

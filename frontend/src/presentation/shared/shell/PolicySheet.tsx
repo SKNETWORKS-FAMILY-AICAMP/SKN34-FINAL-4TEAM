@@ -17,7 +17,7 @@ export function PolicySheet() {
         <tr><td>소설 열람</td><td>이용허락에 따라 무료/유료</td><td>전부 무료로 표시</td></tr>
         <tr><td>수익 배분·인기작 크레딧 보상</td><td>추후 확정</td><td>비활성 (설명만)</td></tr>
         <tr><td>저장 공간 유료 확장</td><td>추후 확정</td><td>비활성 (설명만)</td></tr>
-        <tr><td>AI 자율 연재</td><td>기획 (IV-5) · 독자 반응 반영은 검토</td><td>집필실에서 켜고 끄기 · 데모 생성만 (실제 예약 없음)</td></tr>
+        <tr><td>AI 자율 연재</td><td>기획 (IV-5) · 독자 반응 반영은 검토</td><td>운영 설정 집필 방식에서 AI 자율 집필 선택 · 1화만 직접 집필 · 회차별 다음 전개 투표(AI 4지선다)·제안 게시판 · 검수 후 자동 발행</td></tr>
       </tbody></table>
       <label className="field"><span><input type="checkbox" id="demoFail" checked={s.failNext} onChange={(e) => vm.setFailNext(e.target.checked)} /> 다음 AI 요청 실패 시연</span></label>
       <div className="note">데모 잔액 {s.credits} · 사용 기록 {s.usage.length}건. 실제 결제나 차감은 없습니다.</div>

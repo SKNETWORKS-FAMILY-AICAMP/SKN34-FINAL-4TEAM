@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
@@ -12,12 +13,12 @@ import { ManageMenu } from './ManageMenu'
 beforeEach(() => { vi.spyOn(appContainer.resolve('shellUseCase'), 'getBadges').mockResolvedValue({ unread: 0, pending: 0 }) })
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
-function open(isOpen = true) {
+function open(isOpen = true, tools: ReactNode = <button type="button">도구 하나</button>) {
   const onOpenChange = vi.fn()
   render(
     <Provider store={createAppStore({ role: 'user' })}>
       <MemoryRouter>
-        <ManageMenu name="작품" open={isOpen} onOpenChange={onOpenChange} back={{ to: '/lib?tab=write', label: '내가 쓰는 소설' }} tools={<button type="button">도구 하나</button>}>
+        <ManageMenu name="작품" open={isOpen} onOpenChange={onOpenChange} back={{ to: '/lib?tab=write', label: '내가 쓰는 소설' }} tools={tools}>
           <nav aria-label="작품 메뉴"><button type="button">탭 하나</button></nav>
         </ManageMenu>
         <div id="ep-content" tabIndex={-1} />
@@ -50,6 +51,13 @@ it('위에서 아래로 로고·접기 토글·돌아가기 링크·내용(메�
   expect(order[5].closest('.ep-menu-account')?.contains(order[7])).toBe(true)
   expect(order[5].closest('.ep-menu-body')).toBeNull() // 계정 줄은 본문 밖의 맨 아래 줄이다
   expect(screen.queryByRole('button', { name: '소설·세계관·설정 카드·캐릭터챗 검색' })).toBeNull() // 검색 버튼은 두지 않는다: Ctrl K(전역 QuickJump)가 남는다
+})
+
+it('도구를 주지 않으면 도구 묶음 칸(.ep-menu-tools)을 그리지 않는다 — 도구가 없는 화면(작품 관리)에 빈 구분선만 남지 않는다', () => {
+  open(true, null)
+  expect(document.querySelector('.ep-menu-tools')).toBeNull()
+  expect(document.querySelector('.ep-menu-body')?.lastElementChild?.tagName).toBe('NAV') // 본문의 마지막은 메뉴다
+  expect(document.querySelector('.ep-menu-account')).toBeTruthy() // 알림·테마·계정 줄은 그대로다
 })
 
 it('첫 요소는 본문으로 바로가기 링크라 키보드 첫 Tab이 사이드바를 건너뛰어 내용 열(#ep-content)로 간다 — 공용 상단바가 없는 화면에서 상단바의 같은 링크를 대신한다', () => {

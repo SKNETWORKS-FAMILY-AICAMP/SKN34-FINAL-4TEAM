@@ -112,7 +112,6 @@ class PageContext(BaseModel):
     content: PageContent | None = None
 
 
-IMAGE_TYPES = ('image/png', 'image/jpeg', 'image/webp')  # GIF는 받지 않는다(gpt-6-luna가 움직이는 GIF를 거절한다)
 IMAGE_MAX_BYTES = 5 * 1024 * 1024
 TEXT_MAX_CHARS = 20000
 ATTACHMENT_MAX = 3
@@ -125,13 +124,13 @@ class Attachment(BaseModel):
     """
     model_config = ConfigDict(extra='forbid')
     name: str = Field(min_length=1, max_length=200)
-    mediaType: Literal['image/png', 'image/jpeg', 'image/webp', 'text/plain', 'text/markdown']
+    mediaType: Literal['image/png', 'image/jpeg', 'image/webp', 'text/plain', 'text/markdown']  # GIF는 받지 않는다(gpt-6-luna가 움직이는 GIF를 거절한다)
     data: str = Field(min_length=1, max_length=6_990_508)
 
     @model_validator(mode='after')
     def decodable(self):
         raw = base64.b64decode(self.data, validate=True)  # 잘못된 Base64는 ValueError라 검증 실패가 된다
-        if self.mediaType in IMAGE_TYPES:
+        if self.mediaType.startswith('image/'):
             if len(raw) > IMAGE_MAX_BYTES:
                 raise ValueError('이미지는 5MB 이하여야 합니다.')
         elif len(raw.decode('utf-8')) > TEXT_MAX_CHARS:  # UnicodeDecodeError도 ValueError다

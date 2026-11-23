@@ -62,6 +62,8 @@ class ManuscriptImportService(
      */
     fun confirm(work: String, owner: String, file: MultipartFile?, request: ManuscriptImportRequest?): ManuscriptImportResponse {
         var count = existingEpisodeCount(work, owner)
+        // 가져오기는 회차마다 실패를 모아 돌려주므로, 잠금은 저장 전에 한 번 확인해 409로 거절한다(안쪽 서비스의 거절이 '모두 실패' 결과로 묻히지 않게).
+        access.requireManuscriptWritable(work)
         checkContent(request?.rightsConfirmed == true, message = "원고를 등록하려면 권리 확인이 필요해요.")
         val manuscript = parse(file)
         val items = requireNotNull(request).items
@@ -119,7 +121,9 @@ class ManuscriptImportService(
     }
 
     private fun saveBulk(work: String, owner: String, files: List<MultipartFile>, request: BulkImportRequest): BulkImportResponse {
-        var revision = access.own(work, owner).also { access.requireRevision(it, request.expectedWorkRevision) }.revision
+        val owned = access.own(work, owner)
+        access.requireManuscriptWritable(work)
+        var revision = owned.also { access.requireRevision(it, request.expectedWorkRevision) }.revision
         checkContent(request.rightsConfirmed, message = "원고를 등록하려면 권리 확인이 필요해요.")
         checkContent(files.size in 1..BULK_FILES && files.size == request.items.size,
             message = "요청당 파일 1~20개와 파일별 회차 정보가 필요해요.")

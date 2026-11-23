@@ -55,6 +55,26 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         self.assertIn("CREDIT_SIGNUP_TRIAL_AMOUNT: ${CREDIT_SIGNUP_TRIAL_AMOUNT:-0}", core)
         self.assertNotIn("CREDIT_SIGNUP_TRIAL_AMOUNT", compose.replace(core, ""))
 
+    def test_ai_serial_credit_limits_reach_only_content_with_the_same_defaults_everywhere(self):
+        # AI 자율 연재(#659)의 크레딧 예약 상한이다(시뮬레이션 5·선택지 5·회차 요약 5·회차 1000). 코드 기본값·.env.example·base compose가 같은 값이고 Content에만 넘긴다.
+        example = (ROOT / ".env.example").read_text(encoding="utf-8")
+        self.assertRegex(example, r"(?m)^SERIAL_SIMULATION_CREDIT_LIMIT=5$")
+        self.assertRegex(example, r"(?m)^SERIAL_CHOICE_CREDIT_LIMIT=5$")
+        self.assertRegex(example, r"(?m)^SERIAL_SUMMARY_CREDIT_LIMIT=5$")
+        self.assertRegex(example, r"(?m)^SERIAL_EPISODE_CREDIT_LIMIT=1000$")
+        runner = (ROOT / "backend/content-service/src/main/kotlin/ai/storyfork/content/serial/service/SerialRunner.kt").read_text(encoding="utf-8")
+        self.assertIn(r"\${SERIAL_SIMULATION_CREDIT_LIMIT:5}", runner)
+        self.assertIn(r"\${SERIAL_CHOICE_CREDIT_LIMIT:5}", runner)
+        self.assertIn(r"\${SERIAL_SUMMARY_CREDIT_LIMIT:5}", runner)
+        self.assertIn(r"\${SERIAL_EPISODE_CREDIT_LIMIT:1000}", runner)
+        compose = (ROOT / "infrastructure/docker-compose.yaml").read_text(encoding="utf-8")
+        content = compose.split("\n  content-service:\n", 1)[1].split("\n  operations-service:\n", 1)[0]
+        self.assertIn("SERIAL_SIMULATION_CREDIT_LIMIT: ${SERIAL_SIMULATION_CREDIT_LIMIT:-5}", content)
+        self.assertIn("SERIAL_CHOICE_CREDIT_LIMIT: ${SERIAL_CHOICE_CREDIT_LIMIT:-5}", content)
+        self.assertIn("SERIAL_SUMMARY_CREDIT_LIMIT: ${SERIAL_SUMMARY_CREDIT_LIMIT:-5}", content)
+        self.assertIn("SERIAL_EPISODE_CREDIT_LIMIT: ${SERIAL_EPISODE_CREDIT_LIMIT:-1000}", content)
+        self.assertNotIn("SERIAL_", compose.replace(content, ""))
+
     def test_content_service_is_always_enabled_without_feature_flag(self):
         sources = (ROOT / "backend/content-service/src").rglob("*.kt")
         self.assertEqual([], [str(p) for p in sources if "app.content.enabled" in p.read_text(encoding="utf-8")])
@@ -79,6 +99,44 @@ class SpringServiceConfigurationTest(unittest.TestCase):
             self.assertIn(f"\n  {service}:\n", dev)
         local = (ROOT / "infrastructure/docker-compose.local.yaml").read_text(encoding="utf-8")
         self.assertIn('"127.0.0.1:${OPERATIONS_SERVICE_PORT:-8082}:8082"', local)
+
+    def test_manuscript_index_is_always_on_in_every_environment(self):
+        # 2026-11-22 사용자 결정: 원고 색인(Elasticsearch)은 끄는 플래그 없이 항상 켠다. local·개발은 elasticsearch 서비스를 항상 띄우고 Content가 healthy를 기다리며,
+        # CI 통합 job은 content일 때 같은 이미지를 service로 띄우고 시스템 overlay는 호스트 포트를 열지 않는다. 운영 overlay는 외부 Elasticsearch 주소를 요구한다.
+        sources = list((ROOT / "backend/content-service/src/main").rglob("*.kt")) + list((ROOT / "backend/content-service/src/main/resources").glob("*.properties"))
+        self.assertEqual([], [str(p) for p in sources if "MANUSCRIPT_INDEX_ENABLED" in p.read_text(encoding="utf-8") or "app.manuscript-index.enabled" in p.read_text(encoding="utf-8")])
+        files = (".env.example", "infrastructure/docker-compose.yaml", "infrastructure/docker-compose.local.yaml", "infrastructure/docker-compose.dev.yaml",
+                 "infrastructure/docker-compose.prod.yaml", "infrastructure/ci/compose.test.yaml", ".github/workflows/ci.yml", ".github/workflows/publish-images.yml")
+        for path in files:
+            self.assertNotIn("MANUSCRIPT_INDEX_ENABLED", (ROOT / path).read_text(encoding="utf-8"), path)
+
+        def service(text, name):
+            return text.split("\n  " + name + ":\n", 1)[1].split("\n\n", 1)[0]
+
+        standalone = (ROOT / "infrastructure/docker-compose.elasticsearch.yaml").read_text(encoding="utf-8")
+        local = (ROOT / "infrastructure/docker-compose.local.yaml").read_text(encoding="utf-8")
+        dev = (ROOT / "infrastructure/docker-compose.dev.yaml").read_text(encoding="utf-8")
+        for name, compose in (("local", local), ("dev", dev)):
+            content = service(compose, "content-service")
+            self.assertIn("elasticsearch:\n        condition: service_healthy", content, name)
+            self.assertIn("MANUSCRIPT_INDEX_URL: http://elasticsearch:9200", content, name)
+            self.assertNotIn("host.docker.internal", content, name)
+        # local의 서비스 정의는 네이티브 Content용 단독 실행 파일과 같은 공식 이미지·설정이다.
+        for setting in ("image: docker.elastic.co/elasticsearch/elasticsearch:9.5.6", "discovery.type: single-node", 'xpack.security.enabled: "false"',
+                        "manuscript-index:/usr/share/elasticsearch/data", "mem_limit: 1g"):
+            self.assertIn(setting, standalone, setting)
+            self.assertIn(setting, service(local, "elasticsearch"), setting)
+        self.assertIn("healthcheck:", service(local, "elasticsearch"))
+        self.assertIn("\n  manuscript-index:\n", local)
+        self.assertIn("SEARCH_INDEX_URL: http://elasticsearch:9200", service(local, "content-service"))
+        overlay = (ROOT / "infrastructure/ci/compose.test.yaml").read_text(encoding="utf-8")
+        self.assertIn("ports: !reset []", service(overlay, "elasticsearch"))
+        integration = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8").split("\n  integration:\n", 1)[1].split("\n  system:\n", 1)[0]
+        self.assertIn("matrix.service == 'content' && 'docker.elastic.co/elasticsearch/elasticsearch:9.5.6'", integration)
+        self.assertIn('ports: ["127.0.0.1:9200:9200"]', integration)
+        self.assertIn('"$RUNNER_TEMP/elasticsearch.log"', integration)
+        prod = (ROOT / "infrastructure/docker-compose.prod.yaml").read_text(encoding="utf-8")
+        self.assertIn("MANUSCRIPT_INDEX_URL: ${MANUSCRIPT_INDEX_URL:?", service(prod, "content-service"))
 
     def test_attachments_and_deploy_have_no_on_off_switches(self):
         # 첨부(MinIO)도 항상 켠다. 배포는 승인 변수 없이 develop 머지마다 실행한다.

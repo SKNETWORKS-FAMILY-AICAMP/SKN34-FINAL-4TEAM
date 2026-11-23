@@ -65,6 +65,8 @@ class ContentSecurityConfig {
                 it.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/works", "/api/v1/public/works/**",
                         "/api/v1/public/world-studios", "/api/v1/public/world-studios/**", "/api/v1/public/genres", "/api/v1/public/cover-references/*").permitAll()
+                    // AI 자율 연재의 독자 게시판 읽기(UC-18)는 공개 작품이면 익명도 된다. Bearer가 있으면 필터가 회원을 확인해 내 의견·투표를 채운다. 아래 /works/** 규칙보다 먼저 와야 한다.
+                    .requestMatchers(HttpMethod.GET, "/api/v1/works/*/serial-board").permitAll()
                     .requestMatchers("/api/v1/image-generations", "/api/v1/image-generations/**", "/api/v1/works", "/api/v1/works/**", "/api/v1/world-studios", "/api/v1/world-studios/**").authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/v1/me/storage-usage").authenticated()
                     .anyRequest().denyAll()

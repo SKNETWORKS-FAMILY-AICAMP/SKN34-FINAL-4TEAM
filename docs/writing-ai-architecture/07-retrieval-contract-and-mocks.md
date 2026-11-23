@@ -65,7 +65,7 @@ Content는 `episode_current`의 활성 발행 판본과 `work_current`의 공개
 
 `episode_id`, `source_hash`(UTF-8 판본 본문 SHA-256), `[start_utf16, end_utf16)`를 반환하면 Content가 판본 본문에서 인용을 확인한다. 인덱스에는 원고 본문을 저장하지 않는다. 현재 로컬 색인 세대는 `1`이다.
 
-대조 작업은 기본 60초 간격이다. 청크는 문단 기준이며 긴 문단은 UTF-16 256단위 이내로 자른다. 작품·회차·판본·본문 해시·범위로 문서 ID를 고정해 다음 주기에 이미 반영된 청크를 건너뛴다. 구판·삭제된 청크를 먼저 제거하고 누락분은 로컬 AI Service에서 임베딩해 배치로 적재한다. 실패한 실행은 다음 주기에 다시 대조한다. 같은 Content DB의 동시 작업은 PostgreSQL advisory lock으로 막는다. 대조 전에는 PostgreSQL이 확정한 최신 Scope와 원문 검증이 여전히 필요하다. Content는 시작할 때 인덱스가 없을 때만 v1 매핑으로 만들고 기존 인덱스는 매핑만 검증한다. 불일치하면 시작하지 않는다. 개발 서버 CD는 Elasticsearch와 고정 리비전 모델을 포함한 AI 이미지를 함께 배포한다. [로컬 실행·배포 안내](../../infrastructure/README.md#로컬-원고-검색용-elasticsearch-56)
+대조 작업은 기본 60초 간격이다. 청크는 문단 기준이며 긴 문단은 UTF-16 256단위 이내로 자른다. 작품·회차·판본·본문 해시·범위로 문서 ID를 고정해 다음 주기에 이미 반영된 청크를 건너뛴다. 구판·삭제된 청크를 먼저 제거하고 누락분은 로컬 AI Service에서 임베딩해 배치로 적재한다. 실패한 실행은 다음 주기에 다시 대조한다. 같은 Content DB의 동시 작업은 PostgreSQL advisory lock으로 막는다. 대조 전에는 PostgreSQL이 확정한 최신 Scope와 원문 검증이 여전히 필요하다. Content는 시작할 때 인덱스가 없을 때만 v1 매핑으로 만들고 기존 인덱스는 매핑만 검증한다. 불일치하면 시작하지 않는다. 개발 서버 CD는 Elasticsearch와 고정 리비전 모델을 포함한 AI 이미지를 함께 배포한다. [로컬 실행·배포 안내](../../infrastructure/README.md#원고-색인용-elasticsearch-56-항상-켬)
 
 `POST /storyfork-manuscript-v1/_search`에서 `knn.field`는 `embedding`, `knn.query_vector`는 같은 모델의 질문 벡터다. 아래는 원작의 허용 회차가 2개일 때 `knn.filter` 예시다. Fork 조회는 `must_not exists`를 `source_work_id`의 `term`으로 바꾼다. 회차 번호와 판본을 한 쌍으로 비교하고 허용 목록이 비어 있으면 `match_none`을 사용한다. [Elastic kNN 사전 필터](https://www.elastic.co/docs/solutions/search/vector/knn)
 
@@ -109,7 +109,7 @@ Elasticsearch 9.5.6의 `storyfork-manuscript-v1-dev-sample`에 원고 표본 26�
 
 남은 것은 아래 공통 Retrieval 도구가 쓰는 Content 검색(`ManuscriptQaService.retrieveForAi`: 범위 확정 → 임베딩 → Elasticsearch → PostgreSQL 원문 재대조)이다. 검색 설정:
 
-- `MANUSCRIPT_INDEX_ENABLED=true`와 Content DB에 맞는 `MANUSCRIPT_INDEX_NAME`을 사용한다. 위에서 준비한 로컬 DB의 인덱스는 `storyfork-manuscript-v1-local`이다. AI Service에는 로컬 E5와 `OPENAI_API_KEY`, Structured Outputs를 지원하는 `OPENAI_MODEL`을 설정한다. [실행 안내](../../infrastructure/README.md#네이티브-자동-적재) · [로컬 compose 스택에서 켜기](../../infrastructure/README.md#로컬-compose-스택에서-켜기-475)(compose용 `MANUSCRIPT_INDEX_NAME`을 네이티브와 나눈다) · [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses)
+- 원고 색인은 끄는 플래그 없이 항상 켜져 있다(2026-11-22 사용자 결정, `MANUSCRIPT_INDEX_ENABLED` 폐지). Content DB에 맞는 `MANUSCRIPT_INDEX_NAME`을 사용한다. 위에서 준비한 로컬 DB의 인덱스는 `storyfork-manuscript-v1-local`이다. AI Service에는 로컬 E5와 `OPENAI_API_KEY`, Structured Outputs를 지원하는 `OPENAI_MODEL`을 설정한다. [실행 안내](../../infrastructure/README.md#네이티브-자동-적재) · [로컬 compose 스택](../../infrastructure/README.md#로컬-compose-스택-475)(항상 함께 뜬다, compose용 `MANUSCRIPT_INDEX_NAME`을 네이티브와 나눈다) · [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses)
 
 ### 공통 Retrieval 도구 (오케스트레이션, 2026-11-12 사용자 결정)
 

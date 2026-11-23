@@ -193,6 +193,16 @@ def load_world(target: dict | None, request: str, scope: dict | None) -> World:
     return World(episode, read, snapshot, style, characters, manuscript, notice, bodies)
 
 
+def world_from(read: dict, episode: int) -> World:
+    """이미 읽은 세계관 응답(read_world와 같은 모양: world_studio_read + identity)으로 World를 만든다. Content를 읽거나 원고 발췌를 찾지 않는다.
+
+    Content가 응답을 요청에 실어 보내는 호출자(AI 자율 연재: 일정 실행이라 사용자 토큰이 없다)가 쓴다. load_world의 변환과 같다.
+    """
+    snapshot, style, identity = _world(read, episode)
+    characters, bodies = _characters(snapshot, identity)
+    return World(episode, read, snapshot, style, characters, [], None, bodies)
+
+
 @dataclass
 class SceneContext:
     """장면 에이전트 한 번의 실행(요청 하나)이 쓰는 값. 체크포인트에 넣지 않고 요청마다 바깥 그래프가 새로 만든다."""

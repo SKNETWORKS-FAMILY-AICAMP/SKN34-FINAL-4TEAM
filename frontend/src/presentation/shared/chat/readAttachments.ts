@@ -20,7 +20,7 @@ export async function readAttachments(files: File[]): Promise<ChatAttachmentPayl
     if (attachmentKind(checked.mediaType) === 'text') {
       let text: string
       try {
-        text = new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(atob(data), (c) => c.charCodeAt(0)))
+        text = new TextDecoder('utf-8', { fatal: true }).decode(await file.arrayBuffer())
       } catch {
         throw new Error(`${file.name}: UTF-8 텍스트 파일만 보낼 수 있어요. 메모장 등에서 다른 이름으로 저장할 때 인코딩을 UTF-8로 골라 다시 올려 주세요.`)
       }

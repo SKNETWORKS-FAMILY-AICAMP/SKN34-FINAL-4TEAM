@@ -1,5 +1,6 @@
 package ai.storyfork.content.work
 
+import ai.storyfork.content.serial.repository.AiSerialRepository
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.episode.entity.EpisodeCurrentEntity
 import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
@@ -90,7 +91,7 @@ class WorkViewServiceTest {
         `when`(worlds.findFirstByWorkIdOrderByRevisionNoDesc("work")).thenReturn(WorkWorldHistoryEntity(workId = "work", worldId = "world"))
         `when`(visibility.findFirstByWorkIdOrderByRevisionNoDesc("work")).thenReturn(WorkPublicationHistoryEntity(workId = "work", visibility = "public"))
         val restricted = WorkAccessService(works, worlds, visibility, mock(ForkPolicyHistoryRepository::class.java), mock(ForkPolicyEpisodeRepository::class.java),
-            mock(ForkRepository::class.java), mock(CheckpointRepository::class.java), mock(EpisodeRepository::class.java), mock(EpisodeVersionRepository::class.java), mock(EntityManager::class.java))
+            mock(ForkRepository::class.java), mock(CheckpointRepository::class.java), mock(EpisodeRepository::class.java), mock(EpisodeVersionRepository::class.java), mock(AiSerialRepository::class.java), mock(EntityManager::class.java))
 
         assertEquals(404, failure { WorkViewService(restricted, current, views).record("work", 1, "reader") }.status)
 

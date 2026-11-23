@@ -24,12 +24,12 @@ def draft(data: DraftRequest) -> DraftResponse:
     return DraftResponse(text=text, **meta)
 
 
-def plan(data: PlanRequest) -> PlanResponse:
-    """요청과 허용 문맥으로 전개 계획을 만든다. 원고 문장은 만들지 않는다."""
+def plan(data: PlanRequest, credit: agent_runtime.CreditMiddleware | None = None) -> PlanResponse:
+    """요청과 허용 문맥으로 전개 계획을 만든다. 원고 문장은 만들지 않는다. credit은 AI 자율 연재(요청의 모든 모델 호출을 같은 크레딧에 센다)만 준다."""
     # 바로 집필은 기획(50초)+원고(120초)를 한 단계에서 잇는다. Content 중계 읽기 한도 3분 안에 끝나야 한다.
     message, result = agent_runtime.run('writing.plan', '기획', WritingFailure, PLAN_INSTRUCTIONS, data.model_dump(),
                                         prompt_name='writing_editing.plan', max_tokens=4000, timeout=50,
-                                        trace=data.model_dump(exclude={'context'}), schema=PlanOutput)
+                                        trace=data.model_dump(exclude={'context'}), schema=PlanOutput, credit=credit)
     if not 1 <= len(result.plans) <= (1 if data.single else 3) or any(not p.beats or len(p.beats) > 12 for p in result.plans):
         raise WritingFailure(502, BAD_PLAN)
     return PlanResponse(**result.model_dump(), **agent_runtime.meta(message))

@@ -1,0 +1,17 @@
+/* 작품 관리 'AI 집필' 탭: 설정 폼과 게시판 기록 표. 틀(.ep-reading·.ep-form-*·.ep-check·.ep-alert)은 shared/episode.css를 그대로 쓴다. */
+.ep-serial form{max-width:520px;margin-top:16px;gap:14px}
+.ep-serial fieldset{border:0;padding:0;margin:0;min-width:0;display:flex;flex-wrap:wrap;gap:0 18px}
+.ep-serial legend{width:100%;padding:0;margin-bottom:4px;font-size:13px;font-weight:650}
+.ep-serial .ep-check{margin:0}
+.ep-serial input[type=time]{max-width:180px}
+/* 저장 버튼은 안내문 아래 왼쪽이다(운영 설정 탭과 같다). 650px 이하 공용 규칙의 button{align-self:flex-end}는 이 패널에서만 되돌린다. */
+.ep-serial .ep-form-footer{flex-direction:column;align-items:flex-start}
+.ep-serial .ep-form-footer button{align-self:auto}
+.ep-serial .ep-form-actions{margin:12px 0}
+/* 기록 표는 좁은 화면에서 가로로 민다(열을 쌓으면 표 구조를 잃는다). */
+.ep-serial-scroll{overflow-x:auto}
+.ep-serial-scroll:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+.ep-serial-table{width:100%;min-width:560px;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.ep-serial-table th,.ep-serial-table td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:top;overflow-wrap:anywhere}
+.ep-serial-table th{font-size:12px;font-weight:650;color:var(--sub)}
+.ep-serial-table td[data-status=failed]{color:color-mix(in srgb,var(--danger) 70%,var(--ink));font-weight:650}
