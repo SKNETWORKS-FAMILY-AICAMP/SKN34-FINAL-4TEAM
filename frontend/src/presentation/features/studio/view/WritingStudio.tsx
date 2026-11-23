@@ -36,7 +36,7 @@ import { CheckpointPanel } from './CheckpointPanel'
 import { PublicationSchedulePanel } from './PublicationSchedulePanel'
 import { versionGraphRows } from '../../../../domain/entities/versionGraph'
 import { SimulationStage } from '../../../shared/chat/SimulationStage'
-import { useLinkedWorldId } from '../../../shared/chat/useSimulationSetupViewModel'
+import { useLinkedWorld } from '../../../shared/chat/useSimulationSetupViewModel'
 import { useSimulationStageViewModel } from '../../../shared/chat/useSimulationStageViewModel'
 import { useWritingChatViewModel } from '../../../shared/chat/useWritingChatViewModel'
 import { WritingChat } from '../../../shared/chat/WritingChat'
@@ -62,7 +62,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   useDocumentTitle('집필실')
   const plans=useStoryPlanViewModel(id,false,undefined,true)
   const vm=useWritingViewModel(id,undefined,undefined,episode,plans.confirmLeave)
-  const linkedWorldId=useLinkedWorldId(id)
+  const worldLink=useLinkedWorld(id)
   // AI·외부 도구(MCP)가 이 작품을 바꾸면 알림 신호로 알아차려 다시 읽는다. 저장하지 않은 원고가 있으면 덮지 않고 배너로 알린다(#553).
   const mcp=useMcpChangeWatch({targetType:'work',targetId:id,dirty:vm.dirty,reload:vm.refresh})
   useWritingPlanNavigation(vm.mayLeave,vm.dirty||plans.dirty,vm.busy||vm.saving||plans.busy)
@@ -221,7 +221,10 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         <button className="tbtn pri" disabled={vm.busy||!active} onClick={openVersions}>버전 · 공개</button>
         <PopMenu className="writing-more" label="더보기" icon={<MoreIcon />}>
           <button type="button" role="menuitem" onClick={openPlans}>플롯</button>
-          {linkedWorldId&&<Go to={`/worldstudio/${encodeURIComponent(linkedWorldId)}`} role="menuitem">연결된 세계관 보기</Go>}
+          {worldLink.isError
+            ? <button type="button" role="menuitem" onClick={worldLink.retry}>세계관 조회 실패 · 다시 시도</button>
+            : worldLink.data&&<Go to={`/worldstudio/${encodeURIComponent(worldLink.data)}`} role="menuitem">연결된 세계관 보기</Go>}
+          {worldLink.isLoading&&<p role="status" className="pop-menu-note">연결된 세계관을 확인하고 있어요…</p>}
           <button type="button" role="menuitem" disabled={vm.busy} onClick={()=>void vm.reload()}>다시 불러오기</button>
           <button type="button" role="menuitem" disabled={vm.busy||!vm.ready} onClick={openSettingHistory}>설정 버전 이력</button>
           <button type="button" role="menuitem" disabled={vm.historyLoading} onClick={()=>openPublication()}>발행 이력</button>

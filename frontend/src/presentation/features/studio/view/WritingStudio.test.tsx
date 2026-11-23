@@ -446,6 +446,25 @@ it('미저장 입력 때문에 이탈을 취소하면 현재 집필실에 남는
   expect(where()).toBe('/studio/work-id')
 })
 
+it('목업의 해시 경로 이동도 보호하고 같은 페이지의 본문 링크는 허용한다', () => {
+  renderStudio()
+  const link = document.createElement('a')
+  document.body.append(link)
+  try {
+    link.href = '#main'
+    link.addEventListener('click', (event) => event.preventDefault())
+    fireEvent.click(link)
+    expect(model.mayLeave).not.toHaveBeenCalled()
+
+    link.href = '#/worldstudio/world-id'
+    model.mayLeave.mockReturnValueOnce(false)
+    fireEvent.click(link)
+    expect(model.mayLeave).toHaveBeenCalledTimes(1)
+  } finally {
+    link.remove()
+  }
+})
+
 it.each([true, false])('연결된 내 세계관이 있을 때만 설정집 이동을 제공한다 (%s)', async (linked) => {
   const worlds = appContainer.resolve('worldStudioUseCase')
   const list = vi.spyOn(worlds, 'list').mockResolvedValue([{
@@ -471,6 +490,25 @@ it.each([true, false])('연결된 내 세계관이 있을 때만 설정집 이�
     expect(screen.getByLabelText('원고 본문')).toHaveProperty('value', model.draft.body)
     fireEvent.click(link)
     expect(where()).toBe('/worldstudio/world-id')
+  } finally {
+    list.mockRestore()
+  }
+})
+
+it('연결된 세계관을 읽지 못하면 더보기에서 다시 시도할 수 있다', async () => {
+  const list = vi.spyOn(appContainer.resolve('worldStudioUseCase'), 'list')
+    .mockRejectedValueOnce(new Error('offline'))
+    .mockResolvedValue([{
+      id: 'world-id', name: '세계관', description: '', version: 1, settings: [], analysis: null, linkedWorkId: 'work-id',
+    }])
+  try {
+    renderStudio()
+    openMore()
+    const retry = await screen.findByRole('menuitem', { name: '세계관 조회 실패 · 다시 시도' })
+    expect(screen.queryByRole('menuitem', { name: '연결된 세계관 보기' })).toBeNull()
+    await act(async () => { fireEvent.click(retry) })
+    openMore()
+    expect((await screen.findByRole('menuitem', { name: '연결된 세계관 보기' })).getAttribute('href')).toBe('/worldstudio/world-id')
   } finally {
     list.mockRestore()
   }

@@ -7,7 +7,7 @@ import {
 import { SCENE_NOTE_MAX, SCENE_TEXT_MAX } from '../../../domain/entities/writingChat'
 import { PencilIcon } from '../icons'
 import { ManuscriptBody } from '../media/MediaPanel'
-import { useLinkedWorldId, useSimulationSetupViewModel } from './useSimulationSetupViewModel'
+import { useLinkedWorld, useSimulationSetupViewModel } from './useSimulationSetupViewModel'
 import type { StageViewModel } from './useSimulationStageViewModel'
 import './chat.css'
 import './stage.css'
@@ -185,9 +185,9 @@ const asFixFlow = (node: ReactNode) => (isValidElement<{ children?: ReactNode }>
  * 이 작품에 연결한 내 세계관이 없거나(이어받은 원작은 읽기 전용) 거부한 인물을 모르면 카드 링크는 없다.
  */
 function BeatRejection({ characterId, workId, plotLink }: { characterId: string | null; workId: string; plotLink: ReactNode }) {
-  const worldId = useLinkedWorldId(workId)
+  const { data: worldId, isError } = useLinkedWorld(workId)
   return <div className="stage-fix" role="group" aria-label="고쳐서 다시 시도">
-    {worldId && characterId && <a className="btn sm" href={`/worldstudio/${encodeURIComponent(worldId)}?card=${encodeURIComponent(characterId)}`} target="_blank" rel="noreferrer">설정집에서 고치기</a>}
+    {!isError && worldId && characterId && <a className="btn sm" href={`/worldstudio/${encodeURIComponent(worldId)}?card=${encodeURIComponent(characterId)}`} target="_blank" rel="noreferrer">설정집에서 고치기</a>}
     {asFixFlow(plotLink)}
     <p className="chat-note">설정집을 고친 뒤 재생하면 거부했던 비트부터 다시 시도해요. 흐름을 고쳤다면 장면을 끝내고 새 시뮬레이션으로 다시 시작해 주세요.</p>
   </div>
