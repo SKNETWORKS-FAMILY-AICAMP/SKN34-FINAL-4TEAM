@@ -2,7 +2,9 @@ package ai.storyfork.content.serial
 
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.auth.service.CoreNicknameService
+import ai.storyfork.content.episode.entity.EpisodeCurrentEntity
 import ai.storyfork.content.episode.entity.EpisodeEntity
+import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
 import ai.storyfork.content.episode.repository.EpisodeRepository
 import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.episode.service.dto.CreateEpisodeRequest
@@ -74,7 +76,8 @@ class SerialServiceTest {
     private val voteRepo = mock(SerialVoteRepository::class.java)
     private val works = mock(WorkRepository::class.java)
     private val nicknames = mock(CoreNicknameService::class.java)
-    private val service = SerialService(access, publication, episodes, episodeRepo, versions, settingRepo, boardRepo, choiceRepo, proposalRepo, likeRepo, voteRepo, works, nicknames)
+    private val current = mock(EpisodeCurrentRepository::class.java)
+    private val service = SerialService(access, publication, episodes, episodeRepo, versions, settingRepo, boardRepo, choiceRepo, proposalRepo, likeRepo, voteRepo, works, nicknames, current)
 
     private val workRows = mutableMapOf<String, WorkEntity>()
     private val publicWorks = mutableSetOf<String>()
@@ -84,6 +87,7 @@ class SerialServiceTest {
     private val proposalRows = mutableListOf<SerialProposalEntity>()
     private val likeRows = mutableListOf<SerialProposalLikeEntity>()
     private val voteRows = mutableListOf<SerialVoteEntity>()
+    private val currentRows = mutableListOf<EpisodeCurrentEntity>()
     private val names = mutableMapOf<String, String>()
     private var nextEpisode = 4
     private val active = setOf("open", "queued", "running")
@@ -110,6 +114,7 @@ class SerialServiceTest {
         `when`(access.get(ArgumentMatchers.anyString())).thenAnswer { call -> workRows[call.arguments[0]]?.let { accessOf(it) } ?: throw ContentFailure(404, "작품을 찾을 수 없어요.") }
         `when`(publication.nextEpisodeNumber(ArgumentMatchers.anyString())).thenAnswer { nextEpisode }
         `when`(works.findById(ArgumentMatchers.anyString())).thenAnswer { Optional.ofNullable(workRows[it.arguments[0]]) }
+        `when`(current.findAllByWorkIdOrderBySequence(ArgumentMatchers.anyString())).thenAnswer { call -> currentRows.filter { it.workId == call.arguments[0] }.sortedBy { it.sequence } }
         `when`(nicknames.nicknames(ArgumentMatchers.anyCollection<String>())).thenAnswer { call ->
             (call.arguments[0] as Collection<*>).mapNotNull { id -> names[id]?.let { id as String to it } }.toMap()
         }
@@ -196,6 +201,11 @@ class SerialServiceTest {
     /** 게시판의 선택지 4개(c1~c4, 번호 1~4)다. 다른 게시판에는 [prefix]로 id를 구분한다. */
     private fun choices(boardId: String = "b1", prefix: String = "c") = (1..4).map { SerialChoiceEntity(id = prefix + it, boardId = boardId, position = it, text = "선택지 " + prefix + it).also { c -> choiceRows.add(c) } }
     private fun vote(member: String, choiceId: String, boardId: String = "b1") = SerialVoteEntity(boardId, member, choiceId).also { voteRows.add(it) }
+    /** 작품의 발행 회차 1~[last]를 episode_current 행으로 둔다. [restricted] 번호는 운영 제한이다(뷰가 계산한 값이라 물려받은 제한도 같은 값이다). */
+    private fun published(last: Int, restricted: Set<Int> = emptySet()) =
+        (1..last).forEach { n -> currentRows.add(EpisodeCurrentEntity("e" + n, "w", n, "v" + n, restricted = n in restricted)) }
+    /** 운영이 제한한, 아직 발행하지 않은 회차의 자리(작성 중인 초안)다. */
+    private fun restrictedDraft(number: Int) = currentRows.add(EpisodeCurrentEntity("e" + number, "w", number, null, restricted = true))
     private fun request(enabled: Boolean = true, days: List<String> = listOf("MON", "WED"), time: String = "21:00", direction: String = "") =
         SerialSettingsRequest(enabled, days, time, direction)
 
@@ -782,6 +792,78 @@ class SerialServiceTest {
         assertFalse(service.board("w", alice).enabled)
     }
 
+    // ---- 운영 제한 회차(2026-11-23): 게시판의 대상 회차나 그 앞의 마지막 발행 회차가 제한이면 독자에게 게시판이 없는 것과 같다
+
+    /** 마지막 종합 문장(3화)이 붙은 게시판 old와, 선택지 4개·제안 글 p1·bob의 표가 있는 열린 게시판 b1(대상 4화)이 있는 작품이다. */
+    private fun boardWithActivity() {
+        work(); serial()
+        board(id = "old", number = 3, status = "published", at = t0.minusSeconds(9000)).also { it.publishedEpisodeNumber = 3; it.summary = "3화 종합" }
+        board(); choices(); proposal("p1", author = bob); vote(bob, "c1")
+    }
+
+    @Test fun `a restricted last published episode takes the board away from readers and every write is a 404`() {
+        boardWithActivity(); published(3, restricted = setOf(3))
+
+        val view = service.board("w", bob)
+
+        assertEquals(listOf(true, null, null), listOf(view.enabled, view.board, view.myChoiceId))
+        assertEquals(emptyList<Any>(), view.choices + view.proposals)
+        assertNull(view.summary) // 그 종합 문장은 제한된 3화를 요약한 것이다.
+        val writes = listOf(
+            status { service.vote("w", alice, "c1") }, status { service.cancelVote("w", bob) }, status { service.add("w", alice, general()) },
+            status { service.openBoardFor("w") }, status { service.like("w", alice, "p1") }, status { service.unlike("w", alice, "p1") },
+        )
+        assertEquals(listOf(404, 404, 404, 404, 404, 404), writes.map { it.status })
+        // 게시판의 데이터는 지우지도 옮기지도 않는다.
+        assertEquals(listOf(1, 4, 1, "open"), listOf(proposalRows.size, choiceRows.size, voteRows.size, boardRows.first { it.id == "b1" }.status))
+    }
+
+    @Test fun `a restricted target episode takes the board away the same way`() {
+        boardWithActivity(); published(3); restrictedDraft(4)
+
+        val view = service.board("w", bob)
+
+        assertEquals(listOf(null, null), listOf(view.board, view.myChoiceId))
+        assertEquals(emptyList<Any>(), view.choices + view.proposals)
+        assertEquals("3화 종합", view.summary) // 3화는 제한이 아니라 종합 문장은 그대로다.
+        assertEquals(404, status { service.vote("w", alice, "c1") }.status)
+        assertEquals(404, status { service.add("w", alice, general()) }.status)
+        assertEquals(404, status { service.like("w", alice, "p1") }.status)
+    }
+
+    @Test fun `a restricted episode that is neither the target nor the last published leaves the board and its writes alone`() {
+        boardWithActivity(); published(3, restricted = setOf(2))
+
+        val view = service.board("w", bob)
+
+        assertEquals(listOf("b1", "c1", 1, 4, "3화 종합"), listOf(view.board?.id, view.myChoiceId, view.proposals.size, view.choices.size, view.summary))
+        service.vote("w", alice, "c2")
+        service.add("w", alice, general())
+        service.like("w", alice, "p1")
+        assertEquals(listOf(2, 2, 1), listOf(voteRows.size, proposalRows.size, likeRows.size))
+    }
+
+    @Test fun `the summary of a restricted episode is hidden while a board that is not restricted stays`() {
+        boardWithActivity(); published(4, restricted = setOf(3))
+        boardRows.first { it.id == "b1" }.episodeNumber = 5
+
+        val view = service.board("w", null)
+
+        assertNotNull(view.board)
+        assertNull(view.summary)
+    }
+
+    @Test fun `owner actions and the run request do not look at restrictions`() {
+        boardWithActivity(); published(3, restricted = setOf(3))
+
+        service.run("w", owner)
+        service.hide("w", owner, "p1")
+
+        assertEquals("queued", boardRows.first { it.id == "b1" }.status)
+        assertTrue(proposalRows.single().hidden)
+        assertEquals(listOf("b1", "old"), service.boards("w", owner).map { it.id })
+    }
+
     // ---- 소유자 기록
 
     @Test fun `owner records are newest first with the contract fields`() {
@@ -865,6 +947,42 @@ class SerialServiceTest {
 
         assertEquals("queued", queued.status)
         assertNull(row.lastRunDate)
+    }
+
+    @Test fun `claiming is refused while the last published episode is restricted and leaves the board and the run date alone`() {
+        work(); val row = serial(); val open = board()
+        published(3, restricted = setOf(3))
+
+        assertFalse(service.claim("b1", "open", LocalDate.parse("2026-11-23"), t0))
+
+        assertEquals(listOf("open", null, null), listOf(open.status, open.closedAt, row.lastRunDate))
+        verify(boardRepo, never()).claim(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), anyInstant())
+        // 제한은 작품 잠금 안에서 읽는다(지금 실행·끄기와 같은 직렬화).
+        val order = inOrder(access, current)
+        order.verify(access).lockScope("w")
+        order.verify(current).findAllByWorkIdOrderBySequence("w")
+    }
+
+    @Test fun `a queued board waits while restricted and is claimed once the restriction is lifted`() {
+        work(); val row = serial(); val queued = board(status = "queued")
+        published(3, restricted = setOf(3))
+
+        assertFalse(service.claim("b1", "queued", LocalDate.parse("2026-11-23"), t0))
+        assertEquals("queued", queued.status)
+
+        currentRows.clear(); published(3)
+        assertTrue(service.claim("b1", "queued", LocalDate.parse("2026-11-23"), t0))
+        assertEquals(listOf("running", LocalDate.parse("2026-11-23")), listOf(queued.status, row.lastRunDate))
+    }
+
+    @Test fun `claiming is refused while the target episode itself is restricted but not for an older restricted episode`() {
+        work(); serial(); val open = board()
+        published(3); restrictedDraft(4)
+        assertFalse(service.claim("b1", "open", LocalDate.parse("2026-11-23"), t0))
+
+        currentRows.clear(); published(3, restricted = setOf(1))
+        assertTrue(service.claim("b1", "open", LocalDate.parse("2026-11-23"), t0))
+        assertEquals("running", open.status)
     }
 
     @Test fun `due boards are the open boards of enabled serials whose time has come`() {

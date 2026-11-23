@@ -4,13 +4,16 @@ import type { AdminActivity } from '../../domain/entities/adminActivity'
 import type { AdminAccount, AdminInput, MemberItem, MemberQuery } from '../../domain/entities/member'
 import { OperationsError, OperationsForbidden, OperationsRejected } from '../../domain/entities/operations'
 import type { OperationsComment } from '../../domain/entities/operationsComment'
-import type { OperationsWork } from '../../domain/entities/operationsWork'
+import type { OperationsEpisode, OperationsWork } from '../../domain/entities/operationsWork'
+import { EPISODE_INHERITED_MESSAGE } from '../../domain/entities/operationsWork'
+import type { OperationsWorld } from '../../domain/entities/operationsWorld'
 import type { Report, ReportInput, ReportStatus, ReviewDecision } from '../../domain/entities/report'
 import type { SupportInquiry, SupportInquiryInput, SupportInquiryStatus } from '../../domain/entities/supportInquiry'
 import type { AdminActivityRepository } from '../../domain/repositories/AdminActivityRepository'
 import type { MemberRepository } from '../../domain/repositories/MemberRepository'
 import type { OperationsCommentRepository } from '../../domain/repositories/OperationsCommentRepository'
 import type { OperationsWorkRepository } from '../../domain/repositories/OperationsWorkRepository'
+import type { OperationsWorldRepository } from '../../domain/repositories/OperationsWorldRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import type { ReportRepository } from '../../domain/repositories/ReportRepository'
 import type { SupportInquiryRepository } from '../../domain/repositories/SupportInquiryRepository'
@@ -18,13 +21,26 @@ import { authVersion, protectedRequest } from './auth'
 
 const instant = z.string().datetime({ offset: true })
 const history = z.object({ id: z.string(), type: z.string(), actorId: z.string(), body: z.string().nullable(), createdAt: instant })
+// 신고 대상 종류(결정 D): 종류가 없는 옛 응답은 작품 신고이고, 세계관 신고는 작품 필드가 비어 올 수 있어 null로 통일한다.
+const nullable = <T extends z.ZodType>(schema: T) => schema.nullish().transform((value) => value ?? null)
 const report = z.object({
-  id: z.string(), kind: z.enum(['RIGHTS', 'HARMFUL']), workId: z.string(), workTitle: z.string(), workOwnerId: z.string(),
+  id: z.string(), kind: z.enum(['RIGHTS', 'HARMFUL']), targetType: z.enum(['work', 'episode', 'world']).default('work'),
+  workId: nullable(z.string()), workTitle: nullable(z.string()), workOwnerId: nullable(z.string()),
+  episodeNumber: nullable(z.number().int().positive()), worldId: nullable(z.string()), worldName: nullable(z.string()),
   reporterId: z.string(), reason: z.string(), evidence: z.string(), status: z.enum(['RECEIVED', 'ACCEPTED', 'REJECTED']),
   contentRestricted: z.boolean(), createdAt: instant, updatedAt: instant, history: z.array(history).optional(),
 })
 const member = z.object({ id: z.string(), email: z.string(), nickname: z.string(), role: z.enum(['MEMBER', 'ADMIN']), restricted: z.boolean(), createdAt: instant })
 const admin = member.extend({ permissions: z.array(z.string()) })
+// 운영 세계관(결정 B): 응답은 맨 배열이고 닉네임·장르·연결 작품이 없으면 null이다(연결 작품은 계약 보완 1).
+const operationsWorld: z.ZodType<OperationsWorld> = z.object({
+  worldId: z.string(), ownerId: z.string(), ownerName: nullable(z.string()), name: z.string(),
+  visibility: z.enum(['public', 'private']), published: z.boolean(), restricted: z.boolean(),
+  genre: nullable(z.string()), createdAt: instant, linkedWorkId: nullable(z.string()),
+})
+const operationsEpisode: z.ZodType<OperationsEpisode> = z.object({
+  number: z.number().int().positive(), title: z.string(), publicationStatus: z.string(), restricted: z.boolean(), inherited: z.boolean(),
+})
 const forkIntegrity = z.object({
   basisEpisode: z.number().int().positive(),
   forkHash: z.string().regex(/^[0-9a-f]{64}$/),
@@ -136,6 +152,22 @@ export class HttpOperationsWorkRepository implements OperationsWorkRepository {
   /** 점검 대상 포크가 없거나 원작의 고정 기준 기록이 없으면(404·409) Content의 안내 문구가 OperationsRejected로 옵니다. */
   forkIntegrity(workId: string) { return read(this.fetcher, `/works/${id(workId)}/fork-integrity`, forkIntegrity, [404, 409]) }
   async setRestriction(workId: string, restricted: boolean) { await send(this.fetcher, `/works/${id(workId)}/restriction`, restricted ? 'PUT' : 'DELETE') }
+  /** 작품 상세 드로어의 회차 목록(본문 없음, 번호순 맨 배열). */
+  episodes(workId: string): Promise<OperationsEpisode[]> { return read(this.fetcher, `/works/${id(workId)}/episodes`, z.array(operationsEpisode)) }
+  /** 상속 회차 409(EPISODE_INHERITED)는 서버 code로 정한 한국어 안내를 OperationsRejected로 던진다(서버 문구는 영문 고정). */
+  async setEpisodeRestriction(workId: string, number: number, restricted: boolean) {
+    const inherited: ServerReason = (status, error) => status === 409 && error.code === 'EPISODE_INHERITED' ? EPISODE_INHERITED_MESSAGE : undefined
+    await send(this.fetcher, `/works/${id(workId)}/episodes/${number}/restriction`, restricted ? 'PUT' : 'DELETE', undefined, MESSAGES, inherited)
+  }
+}
+
+/** 운영 세계관(결정 B): 지우지 않은 전체 세계관(최신순)과 공개 경로 제한·해제. 제한·해제 응답(세계관 한 건)은 쓰지 않고 화면이 목록을 다시 조회합니다. */
+export class HttpOperationsWorldRepository implements OperationsWorldRepository {
+  private readonly fetcher?: typeof fetch
+  constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
+
+  list(): Promise<OperationsWorld[]> { return read(this.fetcher, '/world-studios', z.array(operationsWorld)) }
+  async setRestriction(worldId: string, restricted: boolean) { await send(this.fetcher, `/world-studios/${id(worldId)}/restriction`, restricted ? 'PUT' : 'DELETE') }
 }
 
 /** 운영 댓글(75): 목록은 Content의 삭제되지 않은 전체 댓글(숨김 포함)이고, 숨김·복구 응답(OperationsComment)은 쓰지 않고 화면이 목록을 다시 조회합니다. */

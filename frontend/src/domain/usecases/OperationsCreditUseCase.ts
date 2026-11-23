@@ -1,5 +1,5 @@
 import { OperationsError, orNullIfForbidden } from '../entities/operations'
-import { CREDIT_AMOUNT_MAX, CREDIT_REASON_MAX, type CreditChange, type MemberCredits } from '../entities/operationsCredit'
+import { BALANCE_BATCH, CREDIT_AMOUNT_MAX, CREDIT_REASON_MAX, type CreditChange, type MemberCredits } from '../entities/operationsCredit'
 import type { OperationsCreditRepository } from '../repositories/OperationsCreditRepository'
 
 /** 서버 검증(금액 정수 1~100,000, 사유 앞뒤 공백 제거 후 1~200자)을 보내기 전에 안내하려고 확인합니다. 최종 검증은 서버가 합니다. */
@@ -17,6 +17,15 @@ export class OperationsCreditUseCase {
 
   /** 크레딧 운영 권한이 없으면(403) 실패가 아니라 null이라, 화면이 다시 불러오기 대신 필요한 권한을 안내합니다. */
   member(memberId: string): Promise<MemberCredits | null> { return orNullIfForbidden(this.repository.member(memberId)) }
+  /**
+   * 회원 목록 행의 잔액: id를 100명씩(`BALANCE_BATCH`) 나눠 한꺼번에 조회해 회원 id별 합계 하나로 합친다(없는 회원은 키가 없다).
+   * ponytail: 회원이 수천 명이면 동시 요청이 그만큼 늘어난다 — 그때는 화면에 보이는 쪽만 조회하게 쪽을 나눈다.
+   */
+  async balances(memberIds: string[]): Promise<Record<string, number> | null> {
+    const chunks = Array.from({ length: Math.ceil(memberIds.length / BALANCE_BATCH) }, (_, i) => memberIds.slice(i * BALANCE_BATCH, (i + 1) * BALANCE_BATCH))
+    const rows = await orNullIfForbidden(Promise.all(chunks.map((chunk) => this.repository.balances(chunk))))
+    return rows && Object.fromEntries(rows.flat().map((row) => [row.memberId, row.total]))
+  }
   async grant(memberId: string, amount: number, reason: string) { await this.repository.grant(memberId, checked(amount, reason)) }
   async revoke(memberId: string, amount: number, reason: string) { await this.repository.revoke(memberId, checked(amount, reason)) }
 }

@@ -16,10 +16,22 @@ export class ReportUseCase {
   constructor(repository: ReportRepository) { this.repository = repository }
 
   async submit(input: ReportInput) {
-    if (!input.workId.trim()) throw new OperationsError('신고할 작품을 확인할 수 없어요.')
+    // 대상은 종류별로 확인합니다(작품 신고는 targetType 없이 보내 서버 기본값을 씁니다).
+    const target = (() => {
+      if (input.targetType === 'world') {
+        if (!input.worldId.trim()) throw new OperationsError('신고할 세계관을 확인할 수 없어요.')
+        return { targetType: 'world' as const, worldId: input.worldId }
+      }
+      if (!input.workId.trim()) throw new OperationsError('신고할 작품을 확인할 수 없어요.')
+      if (input.targetType === 'episode') {
+        if (!Number.isInteger(input.episodeNumber) || input.episodeNumber < 1) throw new OperationsError('신고할 회차를 확인할 수 없어요.')
+        return { targetType: 'episode' as const, workId: input.workId, episodeNumber: input.episodeNumber }
+      }
+      return { workId: input.workId }
+    })()
     const reason = text(input.reason, 2000, '신고 사유는 1~2000자로 입력해 주세요.')
     const evidence = text(input.evidence, 5000, '증거는 5000자 이하로 입력해 주세요.', false)
-    return this.repository.submit({ kind: input.kind, workId: input.workId, reason, evidence })
+    return this.repository.submit({ kind: input.kind, ...target, reason, evidence })
   }
   listMine() { return this.repository.listMine() }
   listAll(status: ReportStatus | null) { return this.repository.listAll(status) }

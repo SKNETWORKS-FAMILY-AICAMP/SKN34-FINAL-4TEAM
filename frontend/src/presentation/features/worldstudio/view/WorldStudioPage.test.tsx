@@ -12,12 +12,14 @@ import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../.
 import type { Work } from '../../../../domain/entities/content'
 import type { Work as ReadingWork } from '../../../../domain/entities/work'
 import type { PublicWorld, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
+import { cardTypes } from '../../../../domain/entities/studioCards'
 import { putRelation, relationLabel } from '../../../../domain/entities/studioRelations'
 import type { ReviewBasis, ReviewFinding, WorldReview } from '../../../../domain/entities/worldReview'
 import { type CharacterDocs, newSetting, type StudioSetting, type StudioWorld, type WorldPublication, type WorldPublicationInput, type WorldRevision, type WorldRevisionSummary } from '../../../../domain/entities/studioWorld'
 import type { WorldStudioRepository } from '../../../../domain/repositories/WorldStudioRepository'
 import { WorldReviewUseCase } from '../../../../domain/usecases/WorldReviewUseCase'
 import { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
+import { stubCardCategories } from '../../../../test/cardCategories'
 import { LazyMarkdownEditor as fakeEditor } from '../../../../test/markdownEditorFake'
 import * as cardImports from '../../../shared/importCards'
 import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
@@ -71,6 +73,8 @@ beforeEach(() => {
   // 장르 선택지·헤더 칩은 서버의 공개 장르 목록이라 운영과 같은 메모리 목록으로 대신한다(afterEach의 restoreAllMocks가 되돌린다).
   const genres = new InMemoryGenreRepository(new InMemoryOperationsGenreRepository())
   vi.spyOn(appContainer.resolve('genreUseCase'), 'list').mockImplementation(() => genres.list())
+  // 새 설정 메뉴·유형 선택지는 서버의 공개 카드 카테고리 목록이라 메모리 기본 8종으로 대신한다(읽지 못하면 기본 8종 대신 실패 안내가 보인다).
+  stubCardCategories()
   // '소설 연결' 탭의 Fork 목록은 운영과 같은 작품 목록 조회라 서버를 부르지 않게 비워 둔다(탭을 보는 테스트가 따로 정한다).
   vi.spyOn(appContainer.resolve('readingUseCase'), 'forksOf').mockResolvedValue([])
   revisions = noRevisions()
@@ -229,10 +233,10 @@ const relations = () => { openPane('관계'); return within(screen.getByRole('re
 const orderPanel = () => { openPane('공개 순서'); return within(screen.getByRole('region', { name: '공개 순서 확인' })) }
 const backToBoard = () => fireEvent.click(screen.getByRole('button', { name: '설정집' }))
 /** '+ 새 설정' 메뉴에서 유형을 골라 그 유형의 새 카드의 편집 화면을 연다. */
-const addSetting = (type: string) => {
+const addSetting = async (type: string) => {
   if (screen.queryByRole('tablist', { name: '카드 화면' })) rail() // 편집 화면에서는 '+ 새 설정'이 설정 카드 목록 패널에 있다
   fireEvent.click(screen.getByRole('button', { name: '새 설정' }))
-  fireEvent.click(within(screen.getByRole('menu', { name: '새 설정' })).getByRole('menuitem', { name: type }))
+  fireEvent.click(await within(screen.getByRole('menu', { name: '새 설정' })).findByRole('menuitem', { name: type })) // 카테고리 목록을 읽는 동안은 항목이 없다
 }
 const eventCard = (title: string, timeText = '1년'): StudioSetting => {
   const row = newSetting()
@@ -452,6 +456,7 @@ it('새 설정은 유형을 고르면 초안에 그 유형의 카드를 더하�
   await showWorld()
   fireEvent.click(screen.getByRole('button', { name: '새 설정' }))
   const menu = within(screen.getByRole('menu', { name: '새 설정' }))
+  await menu.findByRole('menuitem', { name: '인물' }) // 카테고리 목록을 읽은 뒤에 항목이 나온다
   expect(menu.getAllByRole('menuitem').map((b) => b.textContent)).toEqual(['인물', '장소', '조직', '능력', '사물', '규칙', '사건', '기타'])
   fireEvent.click(menu.getByRole('menuitem', { name: '장소' }))
   expect(where()).toMatch(/^\/worldstudio\/qa\?card=[0-9a-f-]{36}$/)
@@ -536,9 +541,9 @@ it('새로고침 뒤 카드를 여러 개 더하고 편집 화면에서 지워�
   await screen.findByRole('heading', { name: '검증 세계', level: 1 })
   const steps = () => within(screen.getByRole('navigation', { name: '세계관 작성 단계' }))
   fireEvent.click(steps().getByRole('button', { name: '설정 카드' }))
-  addSetting('인물')
-  addSetting('장소')
-  addSetting('사건')
+  await addSetting('인물')
+  await addSetting('장소')
+  await addSetting('사건')
   expect(where()).toMatch(/^\/worldstudio\/qa\?new=1&card=[0-9a-f-]{36}$/)
   fireEvent.click(editor().getByRole('button', { name: '카드 삭제' }))
   fireEvent.click(within(screen.getByRole('region', { name: '설정 삭제 확인' })).getByRole('button', { name: '설정과 연결 삭제' }))
@@ -636,7 +641,7 @@ it('작성 모드 헤더의 행동 줄에도 집필 메모 추가는 없다: 설
 it('작성 모드의 설정 카드 단계도 같은 게시판과 편집 화면이고 마법사 표시(?new=1)를 주소에 지킨다', async () => {
   await wizard()
   fireEvent.click(within(screen.getByRole('navigation', { name: '세계관 작성 단계' })).getByRole('button', { name: '설정 카드' }))
-  addSetting('인물')
+  await addSetting('인물')
   expect(screen.queryByRole('table', { name: '설정 카드 목록' })).toBeNull()
   expect(where()).toMatch(/^\/worldstudio\/qa\?new=1&card=[0-9a-f-]{36}$/)
   backToBoard()
@@ -1188,7 +1193,7 @@ it('설정집은 설정이 하나도 없으면 표 안의 빈 행 하나로만 �
   expect(document.querySelector('.world-empty')).toBeNull()
   expect(screen.queryByText('어떤 설정부터 시작할까요?')).toBeNull()
   expect(within(screen.getByRole('table', { name: '설정 카드 목록' })).getByText('설정을 추가해 시작해 보세요.')).toBeTruthy()
-  addSetting('인물')
+  await addSetting('인물')
   expect(screen.queryByRole('table', { name: '설정 카드 목록' })).toBeNull() // 새 설정을 더하면 게시판 대신 그 카드의 편집 화면이 열린다
   expect(screen.getByRole('textbox', { name: '설정 이름' })).toBeTruthy()
 })
@@ -2463,6 +2468,7 @@ it('같이 가져온 카드 사이 관계 포함을 켜면 양 끝을 모두 가
   expect(relations.map((item) => [relationLabel(item), saved.find((s) => s.item.id === item.subjectId)?.item.title, saved.find((s) => s.item.id === item.targetId)?.item.title])).toEqual([['스승과 제자', '설화', '등불지기']])
   cleanup()
   vi.restoreAllMocks()
+  stubCardCategories() // 위 복원이 beforeEach의 대역까지 되돌렸으니 카드 카테고리 목록은 다시 대신한다(못 읽으면 게시판 위에 실패 알림이 뜬다)
   stubPublicWorlds(sourceWorld({ relationships: [], relationshipStatus: 'unavailable' }))
   await showWorld()
   const unavailable = await pickSource(await openImport())
@@ -2969,7 +2975,8 @@ it('설정집 게시판은 IDENTITY.md·SOUL.md 중 빈 문서가 있는 인물 
 it('인물이 아닌 유형으로 바꾸면 문서 목록 대신 설명 편집기가 나오고 문서를 저장하지 않는다고 알리며, 인물로 되돌리면 문서가 그대로다', async () => {
   await show([withDocs(person('가람', '기존 내용'), { soul: '말수가 적다' }), place('항구')])
   openCard('가람 인물')
-  const type = () => overview().getByRole('combobox', { name: '유형' })
+  const type = () => overview().getByRole<HTMLSelectElement>('combobox', { name: '유형' })
+  await waitFor(() => expect(type().disabled).toBe(false)) // 카테고리 목록을 읽은 뒤에 유형을 고를 수 있다
   const dropped = /인물이 아닌 설정에는 SOUL\.md·GOAL\.md·회차별 기억을 저장하지 않아요/
   expect(editor().queryByText(dropped)).toBeNull()
   fireEvent.change(type(), { target: { value: 'location' } })
@@ -3337,6 +3344,28 @@ it('카드가 하나도 없을 때도 전체의 시작 안내와 분류별 추�
   expect(overview().getByRole('combobox', { name: '유형' })).toHaveProperty('value', 'other')
 })
 
+// 빈 분류의 첫 설정 추가는 그 분류의 기본 유형을 쓰지만 새 설정 메뉴와 같은 규칙이다: 운영자가 숨긴 유형이거나 카테고리 목록을 못 읽었으면 기본 8종으로 되살리지 않는다.
+const defaultCategories = (hide?: string) => cardTypes.map((type, i) => ({ code: type.id, name: type.label, icon: null, position: i + 1, active: type.id !== hide }))
+
+it('운영자가 숨긴 분류의 빈 분류 추가는 잠그고 이유를 알린다', async () => {
+  vi.spyOn(appContainer.resolve('cardCategoryUseCase'), 'list').mockResolvedValue(defaultCategories('organization'))
+  await show([person('가람', '본문'), place('항구')])
+  fireEvent.click(cats().getByRole('button', { name: '조직 비어 있음' }))
+  expect(await screen.findByText('운영에서 숨긴 분류라 새로 추가할 수 없어요.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '+ 조직 설정 추가' })).toHaveProperty('disabled', true)
+})
+
+it('카테고리 목록을 읽지 못하면 빈 분류 추가를 잠그고 실패를 알리며 다시 시도하면 열린다', async () => {
+  const list = vi.spyOn(appContainer.resolve('cardCategoryUseCase'), 'list').mockRejectedValue(new Error('network'))
+  await show([person('가람', '본문'), place('항구')])
+  fireEvent.click(cats().getByRole('button', { name: '조직 비어 있음' }))
+  expect(await screen.findByText('카드 분류를 불러오지 못했어요.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '+ 조직 설정 추가' })).toHaveProperty('disabled', true)
+  list.mockResolvedValue(defaultCategories())
+  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+  await waitFor(() => expect(screen.getByRole('button', { name: '+ 조직 설정 추가' })).toHaveProperty('disabled', false))
+})
+
 it('AI 의견 N은 카드 줄에 붙고 누르면 그 카드의 편집 화면이 열리며, 보완 필요 분류는 상태가 있는 카드만 보인다', async () => {
   const filled = { soul: '성격', goal: '목표' }
   const [garam, harbor, tower] = [withDocs(person('가람', '본문'), filled), place('항구'), place('탑')]
@@ -3677,6 +3706,7 @@ it('이미지가 없는 카드는 제목 아래 줄에 이미지 추가만 두�
 it('편집 화면 fieldset의 직접 자식은 legend와 내용 래퍼 하나뿐이고 카드를 옮기거나 유형을 바꿔도 그대로다(머리 컨테이너 보호, #466)', async () => {
   await show([person('가람', '본문'), place('항구')])
   openCard('가람 인물')
+  await waitFor(() => expect(overview().getByRole<HTMLSelectElement>('combobox', { name: '유형' }).disabled).toBe(false)) // 카테고리 목록을 읽은 뒤에 유형을 바꿀 수 있다
   const fields = screen.getByRole('group', { name: '설정 카드 작성' })
   const children = () => Array.from(fields.children)
   const [legend, body] = children()
@@ -4476,7 +4506,7 @@ it("게시판 미리보기의 수정하기로 들어오면 처음 만들어지�
   fireEvent.click(rail().getByRole('button', { name: '나래 인물' }))
   expect(fakeEditor.startTab.get('IDENTITY.md')).toBeUndefined() // 레일에서 연 다른 카드
   backToBoard()
-  addSetting('인물')
+  await addSetting('인물')
   expect(fakeEditor.startTab.get('IDENTITY.md')).toBeUndefined() // 새 설정
   backToBoard()
   fireEvent.click(screen.getByRole('button', { name: '가람 인물' })) // 이미 열려 있던 미리보기를 접는다

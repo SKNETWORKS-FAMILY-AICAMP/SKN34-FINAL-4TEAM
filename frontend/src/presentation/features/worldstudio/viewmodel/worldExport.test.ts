@@ -84,3 +84,25 @@ describe('서버에서 읽은 자유 관계', () => {
     expect(worldToMarkdown(w)).toContain('- 길현 — 이복형 (2화부터)')
   })
 })
+
+describe('운영자가 추가한 카테고리의 카드(운영자 콘텐츠 관리 결정 E)', () => {
+  /** 기본 8종 다음에 쓰이는 추가 유형 카드 한 장짜리 세계관. */
+  const custom = (): StudioWorld => {
+    const hero = newSetting('people'), tribe = newSetting()
+    hero.item.title = '길동'; hero.item.text = '주인공.'
+    Object.assign(tribe.item, { kind: 'entity', entityType: 'category-09', title: '해월족', text: '바다에 사는 종족.' })
+    return { id: 'w2', name: '바다 세계', description: '', version: 1, settings: [tribe, hero] } as StudioWorld
+  }
+
+  it('JSON은 추가 유형 코드를 그대로 낸다', () => {
+    const out = JSON.parse(worldToJson(custom()))
+    expect(out.cards.map((c: { type: string }) => c.type).sort()).toEqual(['category-09', 'character'])
+  })
+
+  it('Markdown은 기본 8종 묶음 다음에 추가 유형 카드를 쓴다(이름은 서버 목록에만 있어 기타 제목으로 묶는다)', () => {
+    const md = worldToMarkdown(custom())
+    expect(md.indexOf('## 인물')).toBeGreaterThan(-1)
+    expect(md.indexOf('## 기타')).toBeGreaterThan(md.indexOf('## 인물'))
+    expect(md).toContain('### 해월족')
+  })
+})

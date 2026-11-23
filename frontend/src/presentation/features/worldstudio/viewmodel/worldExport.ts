@@ -1,5 +1,5 @@
 import { stripCardLinks } from '../../../../domain/entities/cardLinks'
-import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
+import { cardTypeOf, cardTypes, isCard } from '../../../../domain/entities/studioCards'
 import { relationShortName } from '../../../../domain/entities/studioRelations'
 import { cardRevealEpisode, type StudioWorld } from '../../../../domain/entities/studioWorld'
 
@@ -15,7 +15,7 @@ const NO_TITLE = '이름 없는 설정'
 
 /** 내보낼 카드(관계 행이 아닌 설정 카드)와 양 끝 카드가 있는 승인된 관계. */
 function parts(world: StudioWorld) {
-  const cards = world.settings.filter((s) => cardTypes.some((t) => t.id === cardTypeOf(s.item)))
+  const cards = world.settings.filter((s) => isCard(s.item))
   const ids = new Set(cards.map((s) => s.item.id)), titles = new Map(cards.map((s) => [s.item.id, s.item.title]))
   const relations = world.settings.filter((s) => s.item.kind === 'relation' && s.item.decision === 'approved' && ids.has(s.item.subjectId ?? '') && ids.has(s.item.targetId ?? ''))
   // 관계 이름: 서버에서 읽은 자유 관계는 항목 이름(label)이고 본문(text)은 설명이다(relationShortName).
@@ -42,7 +42,9 @@ export function worldToMarkdown(world: StudioWorld) {
   const title = new Map(cards.map((s) => [s.item.id, s.item.title || NO_TITLE]))
   const line = (arrow: string, other: string | null, item: (typeof relations)[number]['item']) => '- ' + arrow + title.get(other ?? '') + ' — ' + nameOf(item) + (item.fromEpisode ? ' (' + item.fromEpisode + '화부터)' : '')
   const out = ['# ' + (world.name || '이름 없는 세계관'), '', ...(world.description ? [world.description, ''] : [''])]
-  for (const type of cardTypes) {
+  // 기본 8종 순서 다음에 운영자가 추가한 유형(카드에 나온 순서)도 같은 모양으로 쓴다. 추가한 유형의 이름은 서버 목록에만 있어 '기타'로 묶어 쓴다.
+  const extra = [...new Set(cards.map((s) => cardTypeOf(s.item)))].filter((id) => !cardTypes.some((t) => t.id === id))
+  for (const type of [...cardTypes.map((t) => ({ id: t.id as string, label: t.label as string })), ...extra.map((id) => ({ id, label: '기타' }))]) {
     const group = cards.filter((s) => cardTypeOf(s.item) === type.id)
     if (!group.length) continue
     out.push('## ' + type.label, '')

@@ -4,7 +4,7 @@
 
 모델은 `gpt-image-2.6-flare`, 품질은 `high`, 출력 PNG다. character_profile 1024×1024, world_cover/work_cover 1152×1536, illustration 1536×1024. 결과는 실제 디코딩과 5MiB 상한으로 검증한다. 잘못된 결과를 자동 재생성하거나 크롭하지 않는다.
 
-이미지 작업 테이블은 Content의 전역 마이그레이션 `proposal/V46__image_generation_job.sql`에서 생성한다. `develop`의 V38과 자율 연재 V44·V45를 보존하며, 이미지 마이그레이션은 개인 브랜치에서 사용했던 V38·V44를 거쳐 V46으로 옮겼다. 이미지 V38 또는 V44를 이미 적용한 개인 검증 DB의 이력은 보존하고 새 DB에서 병합된 스키마를 검증한다.
+이미지 작업 테이블은 Content의 전역 마이그레이션 `proposal/V47__image_generation_job.sql`에서 생성한다. `develop`의 `episode/V46__episode_restriction.sql`과 이전 SQL은 그대로 유지한다. 이미지 마이그레이션을 V38·V44·V46으로 적용한 개인 검증 DB의 이력은 보존하고, 병합된 스키마는 새 DB에서 검증한다.
 
 요청 키와 같은 입력은 기존 작업을 반환하고 다른 입력은 409다. 입력·모델·품질·템플릿 버전은 접수 때 고정한다. 자동 생성 재시도는 없고 명시적 재생성은 새 키를 쓴다. 큐는 ID만 전달하고 Content의 원자적 선점으로 중복 실행을 막는다. 선점 요청이 일시적 연결 오류나 HTTP 502·503·504로 실패하면 워커가 5초 뒤 같은 메시지를 큐로 돌려보낸다. 재전달된 작업도 기존 선점·만료 규칙을 따른다. accepted → queued → running → succeeded. 실패는 failed, 결과 불명확·실행 시한 초과는 interrupted. S3 업로드와 Content 결과 등록까지 끝나야 succeeded다. 실행 시한을 지난 완료 콜백은 거부하며, 더 이상 실행될 수 없는 작업의 결과 객체는 트랜잭션 종료 후 정리한다. 이미 성공한 작업의 PNG는 중복 완료 요청에서도 보존한다.
 

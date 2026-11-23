@@ -24,4 +24,6 @@ class StudioWorld(
     @Column(name="owner_metadata_version", nullable=false) var ownerMetadataVersion: Long = 0,
     /** 소유자가 지운 시각(V9). 값이 있으면 소유자 조회·편집과 공개 조회가 모두 이 세계관이 없는 것으로 다룬다. 데이터는 지우지 않는다. */
     @Column(name="deleted_at") var deletedAt: Instant? = null,
+    /** 운영자가 공개 세계관 경로에서 숨긴 세계관이다(V17). 소유자 조회·연결된 소설 위키·Fork 이어받기에는 영향이 없다. */
+    @Column(nullable=false) var restricted: Boolean = false,
 )

@@ -33,7 +33,7 @@ class ReadingService(
     fun record(id: String, number: Int, member: String) {
         authenticated(member)
         access.published(id)
-        checkContent(current.findByWorkIdAndSequence(id,number)?.publishedVersionId!=null,404,"공개 회차를 찾을 수 없어요.")
+        checkContent(current.findByWorkIdAndSequence(id,number)?.readerVersionId!=null,404,"공개 회차를 찾을 수 없어요.")
         val now=Instant.now().truncatedTo(ChronoUnit.MICROS)
         val position=ReadingRecordEntity(member,id,number,now)
         try {

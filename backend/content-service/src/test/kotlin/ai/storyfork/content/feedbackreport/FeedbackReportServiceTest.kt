@@ -200,6 +200,13 @@ class FeedbackReportServiceTest {
         assertTrue(rows.isEmpty())
     }
 
+    @Test fun `create is 404 for a restricted episode even though it keeps its published version`() {
+        work(); `when`(current.findByWorkIdAndSequence("work", 2)).thenReturn(EpisodeCurrentEntity("episode-2", "work", 2, "version-2", restricted = true))
+
+        assertEquals(404, failure { service.create("work", 2, "reader", CreateReportRequest("typo", "본문")) }.status)
+        assertTrue(rows.isEmpty())
+    }
+
     @Test fun `an episode list shows each viewer exactly what they may read newest first`() {
         work(); published()
         report("p1", reporter = "r1", visibility = "public", at = t0.plusSeconds(1), body = "공개 제보")

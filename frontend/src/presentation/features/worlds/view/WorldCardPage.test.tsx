@@ -414,6 +414,7 @@ it('긴 관계 문단(관계·이 설정을 가리키는 관계)은 관계 자�
   const anchor = document.querySelector<HTMLElement>('summary[id^="rel-"]')!.id
   cleanup()
   await renderAt(cardPath(WORLD, 2) + '#' + anchor) // 다른 페이지가 이 관계 문단의 앵커로 보낸 주소
+  // 앵커 이동(jumpTo: 묶음을 펼친 뒤 초점)은 카드가 그려진 다음 effect라 그려진 직후에는 아직일 수 있다(느린 CI에서 간헐 실패). 옮겨진 초점을 기다린 뒤 본다.
+  await waitFor(() => expect(document.activeElement).toBe(document.getElementById(anchor)))
   expect(document.querySelector<HTMLDetailsElement>('details.nw-rels')!.open).toBe(true)
-  expect(document.activeElement).toBe(document.getElementById(anchor))
 })

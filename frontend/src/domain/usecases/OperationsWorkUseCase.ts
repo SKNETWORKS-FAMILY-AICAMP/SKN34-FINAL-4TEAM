@@ -18,4 +18,6 @@ export class OperationsWorkUseCase {
     }
   }
   setRestriction(id: string, restricted: boolean) { return this.repository.setRestriction(id, restricted) }
+  episodes(workId: string) { return this.repository.episodes(workId) }
+  setEpisodeRestriction(workId: string, number: number, restricted: boolean) { return this.repository.setEpisodeRestriction(workId, number, restricted) }
 }

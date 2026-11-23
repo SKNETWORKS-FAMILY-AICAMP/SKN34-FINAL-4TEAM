@@ -4,7 +4,8 @@ import { cardTypePatch, type CardType } from '../../../../domain/entities/studio
 import { putRelation } from '../../../../domain/entities/studioRelations'
 import { newSetting, type StudioSetting } from '../../../../domain/entities/studioWorld'
 import { boardKindCounts, boardRows } from '../../../shared/worldBoard'
-import { settingBoardEntries, settingLinks } from './settingBoard'
+import { labelOf, settingBoardEntries, settingLinks } from './settingBoard'
+import type { CardCategory } from '../../../../domain/entities/cardCategory'
 
 const card = (title: string, type: CardType, text = ''): StudioSetting => {
   const s = newSetting()
@@ -130,5 +131,28 @@ describe('settingLinks', () => {
     garam.item.relatedIds = [garam.item.id, note.item.id, 'missing']
     expect(settingLinks([garam, narae, note], garam.item.id)).toEqual([])
     expect(settingLinks([garam, narae, note], 'missing')).toEqual([])
+  })
+})
+
+// 운영자 콘텐츠 관리 결정 E: 유형 이름은 서버 카드 카테고리 목록을 따르고, 추가한 카테고리의 카드도 게시판에 오른다('기타' 묶음).
+describe('카드 카테고리 목록과 유형 이름', () => {
+  const list: CardCategory[] = [
+    { code: 'character', name: '등장인물', icon: '🧑', position: 1, active: true },
+    { code: 'category-09', name: '종족', icon: null, position: 9, active: true },
+    { code: 'location', name: '지역', icon: null, position: 2, active: false },
+  ]
+
+  it('목록의 이름(바뀐 이름·숨긴 카테고리 포함)이 행의 유형 이름이고 목록이 없으면 기본 8종 이름이다', () => {
+    const [hero, tribe, town] = [card('오르', 'character'), card('해월족', 'category-09'), card('새벽항', 'location')]
+    expect(settingBoardEntries([hero, tribe, town], list).map((e) => [e.title, e.type, e.kind])).toEqual([['오르', '등장인물', '인물'], ['해월족', '종족', '기타'], ['새벽항', '지역', '장소']])
+    expect(settingBoardEntries([hero, town]).map((e) => e.type)).toEqual(['인물', '장소'])
+    expect(boardKindCounts(settingBoardEntries([hero, tribe, town], list))).toEqual([{ kind: '인물', count: 1 }, { kind: '장소', count: 1 }, { kind: '기타', count: 1 }])
+  })
+
+  it('labelOf는 카드면 목록의 이름을, 카드가 아닌 항목이면 옛 의미 이름을 쓴다', () => {
+    expect(labelOf(card('해월족', 'category-09'), list)).toBe('종족')
+    expect(labelOf(card('해월족', 'category-09'))).toBe('숨긴 분류')
+    expect(labelOf(card('오르', 'character'))).toBe('인물')
+    expect(labelOf(newSetting('notes'), list)).toBe('메모')
   })
 })

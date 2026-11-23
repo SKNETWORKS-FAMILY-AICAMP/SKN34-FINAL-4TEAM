@@ -380,6 +380,38 @@ describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
   })
 })
 
+describe('ReadingUseCase 운영자 열람 (2026-11-23 사용자 결정)', () => {
+  const OTHERS = '11111111-2222-3333-4444-555555555555'
+  /** 목록에는 없고 ID로만 읽히는 남의 비공개 서버 작품과, 그것을 읽는 저장소 대역이다. */
+  function unlisted() {
+    const { works, useCase } = fakes()
+    const readWork = vi.fn(async (id: string): Promise<Work> => ({ ...works.find((w) => w.id === 'guunmong')!, id, canonical: true, private: true, owner: 'author-member' }))
+    useCase['workRepository'].readWork = readWork
+    return { useCase, readWork }
+  }
+
+  it('운영자는 목록에 없는 남의 비공개 작품을 ID로 읽어 열고, 그 밖의 사용자는 볼 수 없다', async () => {
+    const { useCase, readWork } = unlisted()
+    expect((await useCase.getWork(OTHERS, 'admin'))?.work.id).toBe(OTHERS)
+    expect(readWork).toHaveBeenCalledWith(OTHERS)
+    readWork.mockClear()
+    expect(await useCase.getWork(OTHERS, 'user')).toBeNull()
+    expect(await useCase.getWork(OTHERS, null)).toBeNull()
+    expect(readWork).not.toHaveBeenCalled()
+  })
+
+  it('서버 작품 ID가 아닌 주소는 운영자여도 더 읽지 않는다', async () => {
+    const { useCase, readWork } = unlisted()
+    expect(await useCase.getWork('not-a-uuid', 'admin')).toBeNull()
+    expect(readWork).not.toHaveBeenCalled()
+  })
+
+  it('ownerOf는 ID로 읽은 작품의 소유자 회원 ID를 주고, ID로 읽는 저장소가 아니면 null이다', async () => {
+    expect(await unlisted().useCase.ownerOf(OTHERS)).toBe('author-member')
+    expect(await fakes().useCase.ownerOf(OTHERS)).toBeNull()
+  })
+})
+
 describe('ReadingUseCase 회차별 포크 수 (작품 관리 화면)', () => {
   const base = seedWorks(0)[0]
   const fork = (id: string, forkAt: number | undefined, over: Partial<Work> = {}): Work => ({ ...base, id, parent: 'src', forkAt, private: false, hidden: false, eps: [{ t: '1화', p: ['본문'] }], ...over })

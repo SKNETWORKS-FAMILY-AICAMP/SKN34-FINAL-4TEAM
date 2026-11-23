@@ -57,8 +57,12 @@ class PlanItem(BaseModel):
 
 
 class StoryPlan(PlanItem):
-    """계획 상세(story_plan_read). 수정 저장에 되돌려 보낼 칸을 모두 담는다(position·episodeMissing은 보내지 않는다)."""
+    """계획 상세(story_plan_read). 수정 저장에 되돌려 보낼 칸을 모두 담는다(position·episodeMissing은 보내지 않는다).
+
+    episodeMissing은 연결 회차가 삭제됐다는 뜻이다. 그대로 저장하면 Content가 거절하므로 수정 제안 전에 확인한다.
+    """
     content: str
+    episodeMissing: bool
     characterIds: list[str]
     placeIds: list[str]
     revision: int

@@ -514,4 +514,17 @@ class EpisodeCommentServiceTest {
 
         verifyNoInteractions(comments, likes, nicknames)
     }
+
+    @Test fun `a restricted episode is 404 for its readers and its comments leave the work-wide list`() {
+        published(1); published(2)
+        comment("c1", number = 1); comment("c2", number = 2)
+        val shut = EpisodeCurrentEntity("episode-2", "work", 2, "version-2", restricted = true)
+        `when`(current.findByWorkIdAndSequence("work", 2)).thenReturn(shut)
+        episodes.removeAll { it.sequence == 2 }; episodes.add(shut)
+
+        assertEquals(404, failure { service.list("work", 2, null, null) }.status)
+        assertEquals(404, failure { service.create("work", 2, "reader", CreateCommentRequest("본문")) }.status)
+        assertEquals(404, failure { service.like("work", 2, "c2", "reader") }.status)
+        assertEquals(listOf("c1"), service.listByWork("work", null, null).items.map { it.id })
+    }
 }

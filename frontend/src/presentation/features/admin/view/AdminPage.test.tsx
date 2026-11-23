@@ -46,7 +46,7 @@ it('신고·권리 탭은 운영 API 실패를 데모 행이나 빈 목록으로
 })
 
 // users·admins·rights 표는 운영 API 응답이 있어야 그려지므로(rights는 이 환경에서 유일하던 예시 격리 점검 표를 지웠다), notices·events는 표 없이 목록 패널만 그리므로, data(관리 개요)는 표 없이 숫자 카드와 차트만 그리므로(아래 별도 테스트) 렌더 통합 대상에서 뺍니다.
-it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'genres'])(
+it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'genres', 'cardCategories'])(
   '%s 탭의 모든 표에 캡션·열 머리 범위·키보드 스크롤 영역이 있다',
   async (tab) => {
     renderAdmin(tab)
@@ -820,12 +820,13 @@ const openGenreMenu = (name: string) => fireEvent.click(genreMenu(name))
 const pickGenreItem = (name: string) => fireEvent.click(screen.getByRole('menuitem', { name }))
 const genreNames = () => within(screen.getByRole('table', { name: '장르 관리 표' })).getAllByRole('row').slice(1).map((row) => within(row).getAllByRole('cell')[2].textContent)
 
-it('장르 탭은 콘텐츠 관리 묶음의 맨 뒤 메뉴로 열리고 장르 표(순서·아이콘·이름·상태·홈 노출·사용 수·조치)와 추가 폼을 보이며 데모 표시는 없다', async () => {
+it('장르 탭은 콘텐츠 관리 묶음에서 카드 카테고리 바로 앞 메뉴로 열리고 장르 표(순서·아이콘·이름·상태·홈 노출·사용 수·조치)와 추가 폼을 보이며 데모 표시는 없다', async () => {
   openGenres()
   renderAdmin('genres')
   await screen.findByText('판타지', { selector: 'b' })
   const links = within(screen.getByRole('group', { name: '콘텐츠 관리' })).getAllByRole('link')
-  expect([links.at(-1)?.textContent, links.at(-1)?.getAttribute('href'), links.at(-1)?.getAttribute('aria-current')]).toEqual(['장르', '/admin?tab=genres', 'page'])
+  expect([links.at(-2)?.textContent, links.at(-2)?.getAttribute('href'), links.at(-2)?.getAttribute('aria-current')]).toEqual(['장르', '/admin?tab=genres', 'page'])
+  expect([links.at(-1)?.textContent, links.at(-1)?.getAttribute('href')]).toEqual(['카드 카테고리', '/admin?tab=cardCategories'])
   expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('장르 관리')
   expect(demoChip()).toBeNull()
   const table = screen.getByRole('table', { name: '장르 관리 표' })
@@ -988,9 +989,12 @@ it('작품 표의 행 조치는 글자 버튼 대신 ⋮ 버튼 하나가 여는
   const menu = screen.getByRole('menu', { name: '「달빛 도서관 외전」 조치' })
   expect(trigger.getAttribute('aria-expanded')).toBe('true')
   const items = within(menu).getAllByRole('menuitem')
-  expect(items.map((item) => item.textContent)).toEqual(['운영 제한', '포크 정합성 점검'])
+  expect(items.map((item) => item.textContent)).toEqual(['상세', '운영 제한', '포크 정합성 점검', '소설 보기', '집필실 보기'])
+  // 운영자는 소유권 없이 모든 작품의 상세·집필실을 연다(2026-11-23 사용자 결정).
+  const workId = row.querySelector('[data-record-id]')?.getAttribute('data-record-id')
+  expect(items.slice(3).map((item) => item.getAttribute('href'))).toEqual([`/work/${workId}`, `/studio/${workId}`])
   // 위험 조치(제한)만 danger 글자이고, 열리면 첫 항목에 초점이 간다.
-  expect(items.map((item) => item.classList.contains('danger'))).toEqual([true, false])
+  expect(items.map((item) => item.classList.contains('danger'))).toEqual([false, true, false, false, false])
   expect(document.activeElement).toBe(items[0])
   fireEvent.keyDown(items[0], { key: 'Escape' })
   expect(screen.queryByRole('menu')).toBeNull()
@@ -1002,7 +1006,7 @@ it('작품 표의 행 조치는 글자 버튼 대신 ⋮ 버튼 하나가 여는
 
 it('신고 표의 ⋮ 메뉴를 여는 누름은 행 선택까지 올라가지 않고, 검토 항목을 고르면 그 신고가 선택된다', async () => {
   const report = (id: string, workTitle: string) => ({
-    id, kind: 'RIGHTS' as const, workId: `w-${id}`, workTitle, workOwnerId: 'o1', reporterId: 'r1', reason: '권리 침해', evidence: '근거',
+    id, kind: 'RIGHTS' as const, targetType: 'work' as const, workId: `w-${id}`, workTitle, workOwnerId: 'o1', episodeNumber: null, worldId: null, worldName: null, reporterId: 'r1', reason: '권리 침해', evidence: '근거',
     status: 'RECEIVED' as const, contentRestricted: false, createdAt: '2026-11-09T01:00:00Z', updatedAt: '2026-11-09T01:00:00Z',
   })
   // jsdom에는 scrollIntoView가 없어(신고 상세가 열리면 제목으로 스크롤한다) 빈 대역을 둔다.
@@ -1074,34 +1078,57 @@ it.each(OPS_BODIES)('%s 탭은 데모 조회가 아직 오지 않았어도 본�
   expect(screen.queryByText('관리자 데이터를 불러오고 있어요.')).toBeNull()
 })
 
-// 크레딧 탭(DEC-57): 회원 검색(MemberUseCase)과 운영 크레딧 UseCase를 대역으로 잇고, 검색 → ⋮ 선택 → 잔액·내역 → 지급·회수를 화면에서 따라간다.
+// 크레딧 탭(DEC-57): 회원 목록(MemberUseCase)과 운영 크레딧 UseCase를 대역으로 잇고, 열자마자 목록·행별 잔액 → ⋮ 선택 → 잔액·내역 → 지급·회수를 화면에서 따라간다.
 const yeonhwa = { id: 'm1', email: 'yeonhwa@example.invalid', nickname: '연화봉러', role: 'MEMBER' as const, restricted: false, createdAt: '2026-11-01T00:00:00Z' }
 const credit: MemberCredits = {
   balance: { total: 130, items: [{ kind: 'operator', remaining: 100, expiresAt: '2027-01-01T00:00:00Z' }, { kind: 'reward', remaining: 30, expiresAt: '2027-02-01T00:00:00Z' }] },
   history: [{ type: 'revoke', kind: 'reward', amount: 5, occurredAt: '2026-11-10T02:00:00Z' }, { type: 'grant', kind: 'operator', amount: 100, occurredAt: '2026-11-10T01:00:00Z' }],
 }
 async function openMemberCredits(overview: MemberCredits | null = credit) {
-  vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([yeonhwa])
+  const members = vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([yeonhwa])
   const useCase = appContainer.resolve('operationsCreditUseCase')
   const member = vi.spyOn(useCase, 'member').mockResolvedValue(overview)
+  const balances = vi.spyOn(useCase, 'balances').mockResolvedValue({ m1: 130 })
   renderAdmin('credits')
-  fireEvent.change(await screen.findByLabelText('회원 검색'), { target: { value: '연화' } })
-  fireEvent.click(screen.getByRole('button', { name: '검색' }))
   const row = (await screen.findByText('연화봉러', { selector: 'b' })).closest('tr') as HTMLElement
   fireEvent.click(openRowMenu(row).getByRole('menuitem', { name: '크레딧 보기·조정' }))
   await screen.findByRole('heading', { name: '연화봉러 님의 크레딧' })
-  return { useCase, member }
+  return { useCase, member, members, balances }
 }
 const fillChange = (amount: string, reason: string) => {
   fireEvent.change(screen.getByLabelText('금액'), { target: { value: amount } })
   fireEvent.change(screen.getByLabelText('사유'), { target: { value: reason } })
 }
 
-it('크레딧 탭은 데모가 아니라 회원 검색 → ⋮ 선택 → 지급분별 잔액·내역 표를 실제 API 값으로 보인다', async () => {
+it('크레딧 탭은 열자마자 전체 회원을 최신 가입순으로 읽고 행마다 보유 크레딧을 묶음 잔액으로 보인다', async () => {
+  const other = { ...yeonhwa, id: 'm2', email: 'other@example.invalid', nickname: '하늘' }
+  const members = vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([yeonhwa, other])
+  const balances = vi.spyOn(appContainer.resolve('operationsCreditUseCase'), 'balances').mockResolvedValue({ m1: 130 })
+  renderAdmin('credits')
+  const first = (await screen.findByText('연화봉러', { selector: 'b' })).closest('tr') as HTMLElement
+  const second = screen.getByText('하늘', { selector: 'b' }).closest('tr') as HTMLElement
+  expect(members).toHaveBeenCalledWith({ role: 'ALL', q: '', sort: 'newest' })
+  await waitFor(() => expect(cells(first)[2]).toBe('130'))
+  // 서버가 모르는 회원은 잔액 결과에서 빠져 '—'로 보인다(0으로 채우지 않는다).
+  expect(cells(second)[2]).toBe('—')
+  expect(balances).toHaveBeenCalledWith(['m1', 'm2'])
+  expect(screen.queryByRole('heading', { name: /님의 크레딧/ })).toBeNull()
+})
+
+it('잔액 조회 권한(크레딧 운영)이 없으면(403) 회원 표는 그대로 두고 잔액 칸은 비운 채 권한 안내만 보인다', async () => {
+  vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([yeonhwa])
+  vi.spyOn(appContainer.resolve('operationsCreditUseCase'), 'balances').mockResolvedValue(null)
+  renderAdmin('credits')
+  const row = (await screen.findByText('연화봉러', { selector: 'b' })).closest('tr') as HTMLElement
+  expect((await screen.findByRole('alert')).textContent).toBe(CREDITS_FORBIDDEN)
+  expect(cells(row)[2]).toBe('—')
+})
+
+it('크레딧 탭은 데모가 아니라 열자마자 보이는 회원 목록 → ⋮ 선택 → 지급분별 잔액·내역 표를 실제 API 값으로 보인다', async () => {
   const { member } = await openMemberCredits()
   expect(demoChip()).toBeNull()
   expect(member).toHaveBeenCalledWith('m1')
-  within(screen.getByText('보유 크레딧').closest('div') as HTMLElement).getByText('130')
+  within(screen.getByText('보유 크레딧', { selector: 'small' }).closest('div') as HTMLElement).getByText('130')
   const body = (name: string) => within(screen.getByRole('region', { name })).getAllByRole('row').slice(1).map((row) => cells(row))
   expect(body('지급분별 잔액 표').map((row) => row.slice(0, 2))).toEqual([['운영자 지급 크레딧', '100'], ['보상 크레딧', '30']])
   expect(body('크레딧 내역 표').map((row) => row.slice(1))).toEqual([['회수', '보상 크레딧', '-5'], ['지급', '운영자 지급 크레딧', '+100']])
@@ -1109,7 +1136,7 @@ it('크레딧 탭은 데모가 아니라 회원 검색 → ⋮ 선택 → 지급
 })
 
 it('크레딧 지급은 확인 대화 뒤 금액·사유를 보내고, 성공하면 입력을 비우며 잔액·내역을 다시 읽는다', async () => {
-  const { useCase, member } = await openMemberCredits()
+  const { useCase, member, balances } = await openMemberCredits()
   const grant = vi.spyOn(useCase, 'grant').mockResolvedValue(undefined)
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
   fillChange('500', '이벤트 보상')
@@ -1120,6 +1147,8 @@ it('크레딧 지급은 확인 대화 뒤 금액·사유를 보내고, 성공하
   await waitFor(() => expect((screen.getByLabelText('금액') as HTMLInputElement).value).toBe(''))
   expect((screen.getByLabelText('사유') as HTMLTextAreaElement).value).toBe('')
   await waitFor(() => expect(member.mock.calls.length).toBeGreaterThan(1))
+  // 목록의 행별 잔액도 지급 뒤 다시 읽는다.
+  await waitFor(() => expect(balances.mock.calls.length).toBeGreaterThan(1))
 })
 
 it('금액이나 사유가 비어 있으면 대화도 요청도 없고, 확인을 취소하면 회수를 요청하지 않는다', async () => {
@@ -1168,13 +1197,23 @@ it('크레딧 운영 권한이 없으면(403) 잔액 대신 권한 안내만 보
   expect(screen.queryByRole('form', { name: '크레딧 지급·회수' })).toBeNull()
 })
 
-it('회원 검색 권한(사용자 관리)이 없으면 다시 불러오기 없이 권한 안내만 보인다', async () => {
+it('회원 목록 권한(사용자 관리)이 없으면 다시 불러오기 없이 권한 안내만 보이고 잔액은 요청하지 않는다', async () => {
   vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockRejectedValue(new OperationsForbidden('권한 없음'))
+  const balances = vi.spyOn(appContainer.resolve('operationsCreditUseCase'), 'balances').mockResolvedValue({})
   renderAdmin('credits')
-  fireEvent.change(await screen.findByLabelText('회원 검색'), { target: { value: '연화' } })
-  fireEvent.click(screen.getByRole('button', { name: '검색' }))
   expect((await screen.findByRole('alert')).textContent).toBe(MEMBER_SEARCH_FORBIDDEN)
   expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+  expect(balances.mock.calls.every(([ids]) => ids.length === 0)).toBe(true)
+})
+
+it('회원 검색은 목록을 좁히고 검색어를 서버에 보낸다', async () => {
+  const members = vi.spyOn(appContainer.resolve('memberUseCase'), 'listMembers').mockResolvedValue([yeonhwa])
+  vi.spyOn(appContainer.resolve('operationsCreditUseCase'), 'balances').mockResolvedValue({ m1: 130 })
+  renderAdmin('credits')
+  await screen.findByText('연화봉러', { selector: 'b' })
+  fireEvent.change(screen.getByLabelText('회원 검색'), { target: { value: '연화' } })
+  fireEvent.click(screen.getByRole('button', { name: '검색' }))
+  await waitFor(() => expect(members).toHaveBeenLastCalledWith({ role: 'ALL', q: '연화', sort: 'newest' }))
 })
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).

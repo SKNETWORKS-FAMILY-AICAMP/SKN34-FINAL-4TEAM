@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
+import { useAppDispatch, useAppSelector } from '../../../../app/store'
 import type { PublicWorld } from '../../../../domain/entities/publicWorld'
 import type { GenreUseCase } from '../../../../domain/usecases/GenreUseCase'
 import type { PublicWorldUseCase } from '../../../../domain/usecases/PublicWorldUseCase'
+import { sessionActions } from '../../../shared/session/sessionSlice'
 import { useAsyncData } from '../../../shared/useAsyncData'
 import { useGenres } from '../../../shared/useGenres'
 import { parseBookSort, type BookSort } from '../../../shared/worldBoard'
@@ -74,7 +76,14 @@ export function useWorldsViewModel(useCase: PublicWorldUseCase = appContainer.re
  */
 export function useWorldDetailViewModel(id: string | undefined, useCase: PublicWorldUseCase = appContainer.resolve('publicWorldUseCase')) {
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
+  const role = useAppSelector((s) => s.session.role)
+  const { pathname, search } = useLocation()
   const [params, setParams] = useSearchParams()
+  // 세계관 신고 시트(결정 D): 다른 세계관으로 옮기면 열린 시트는 닫는다(이전 세계관 이름으로 신고가 가지 않게).
+  const [reporting, setReporting] = useState(false)
+  const [shown, setShown] = useState(id)
+  if (shown !== id) { setShown(id); setReporting(false) }
   const tab = parseDetailTab(params.get('tab'))
   const { data: world, isLoading, isError, retry } = useAsyncData((signal) => (id ? useCase.get(id, signal) : Promise.resolve(undefined)), [useCase, id])
   const detail = useMemo(() => (world ? { world, kinds: kindCounts(world), setting: buildSettingGraph(world), people: buildCharacterGraph(world) } : undefined), [world])
@@ -82,6 +91,14 @@ export function useWorldDetailViewModel(id: string | undefined, useCase: PublicW
     detail, isLoading, isError: isError && !world, retry, tab,
     setTab: (next: DetailTab) => setParams({ tab: next }, { replace: true }),
     openNode: (node: DetailNode) => navigate(node.to),
+    reporting,
+    closeReport: () => setReporting(false),
+    /** 신고는 회원만 한다. 비회원이면 이 세계관으로 돌아오도록 안내와 함께 로그인 화면으로 보낸다. */
+    startReport: () => {
+      if (role) return setReporting(true)
+      dispatch(sessionActions.requireLogin({ next: pathname + search, msg: '세계관 신고는 로그인한 회원만 할 수 있어요.', role: 'user' }))
+      navigate('/login')
+    },
   }
 }
 

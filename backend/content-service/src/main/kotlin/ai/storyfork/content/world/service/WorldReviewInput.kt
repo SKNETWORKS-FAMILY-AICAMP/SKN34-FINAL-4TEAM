@@ -4,6 +4,7 @@ import ai.storyfork.content.world.client.dto.WorldReviewAiCard
 import ai.storyfork.content.world.client.dto.WorldReviewAiCharacterDocs
 import ai.storyfork.content.world.client.dto.WorldReviewAiRelationship
 import ai.storyfork.content.world.client.dto.WorldReviewAiRequest
+import ai.storyfork.content.world.domain.aiCardType
 import ai.storyfork.content.world.domain.stripCardLinks
 import ai.storyfork.content.world.service.dto.CardPayload
 import ai.storyfork.content.world.service.dto.WorldDraftResponse
@@ -43,7 +44,8 @@ object WorldReviewInput {
         }
     }
 
-    private fun aiCard(card: CardPayload) = WorldReviewAiCard(card.id.toString(), card.cardType, card.areaCode, card.title, stripCardLinks(card.body),
+    /** AI가 아는 카드 유형은 기본 8종뿐이라 운영이 더한 카테고리는 `other`로 보낸다([aiCardType]). */
+    private fun aiCard(card: CardPayload) = WorldReviewAiCard(card.id.toString(), aiCardType(card.cardType), card.areaCode, card.title, stripCardLinks(card.body),
         if (card.cardType == "character") characterDocs(card.semanticMetadata, ::stripCardLinks) else null)
 
     /**

@@ -4,6 +4,7 @@ import {Provider} from 'react-redux'
 import {MemoryRouter,Routes,Route} from 'react-router'
 import {afterEach,beforeEach,expect,it,vi} from 'vitest'
 import {createAppStore} from '../../app/store'
+import {stubCardCategories} from '../cardCategories'
 import {WorldStudioPage} from '../../presentation/features/worldstudio/view/WorldStudioPage'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
@@ -22,6 +23,7 @@ vi.mock('../../presentation/features/worldstudio/viewmodel/useWorldStudioViewMod
 vi.mock('../../presentation/shared/LazyMarkdownEditor',()=>import('../markdownEditorFake'))
 vi.mock('../../presentation/features/worldstudio/view/RelationGraph',()=>({default:()=> <div>인물 카드 대역</div>}))
 beforeEach(()=>{
+ stubCardCategories()
  const a=newSetting('people');a.item.title='가람';a.item.text='기존 원문';a.tags=['주인공']
  world={id:'qa-writing',name:'작성 검증',description:'세계의 배경',version:1,settings:[a],analysis:null}
  repository={listStudio:async()=>[world],read:async()=>structuredClone(world),create:async()=>world,saveStudio:vi.fn(async next=>{world={...next,version:next.version+1};return structuredClone(world)}),setPublication:vi.fn()}
@@ -66,7 +68,7 @@ it('makes add visible and keeps management entries out of the compact type filte
  fireEvent.click(menu.getByRole('button',{name:'인물 1'}))
  expect(menu.getByRole('button',{name:'인물 1'}).getAttribute('aria-current')).toBe('true')
  fireEvent.click(screen.getByRole('button',{name:'새 설정'}))
- fireEvent.click(within(screen.getByRole('menu',{name:'새 설정'})).getByRole('menuitem',{name:'인물'}))
+ fireEvent.click(await within(screen.getByRole('menu',{name:'새 설정'})).findByRole('menuitem',{name:'인물'})) // 카테고리 목록을 읽은 뒤에 항목이 나온다
  fireEvent.change(screen.getByRole('textbox',{name:'설정 이름'}),{target:{value:'나래'}})
  backToBoard()
  expect(menu.getByRole('button',{name:/^전체/}).getAttribute('aria-current')).toBe('true')

@@ -2,6 +2,7 @@ package ai.storyfork.content.preprocessing.service
 
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content._common.exception.checkContent
+import ai.storyfork.content.auth.config.operatorReading
 import ai.storyfork.content.episode.repository.EpisodeRepository
 import ai.storyfork.content.preprocessing.client.PreprocessingAiClient
 import ai.storyfork.content.preprocessing.client.PreprocessingAiFailure
@@ -231,7 +232,7 @@ class PreprocessingService(
     }
 
     private fun ownedWork(workId: String, owner: String): WorkEntity =
-        works.findById(workId).orElse(null)?.takeIf { it.ownerId == owner && it.deletedAt == null } ?: throw ContentFailure(404, "작품을 찾을 수 없어요.")
+        works.findById(workId).orElse(null)?.takeIf { (it.ownerId == owner || operatorReading()) && it.deletedAt == null } ?: throw ContentFailure(404, "작품을 찾을 수 없어요.")
 
     private fun missingSnapshot() = ContentFailure(409, "최초 입력을 확인할 수 없어 작업 상태를 확인해야 해요.", "PREPROCESSING_SNAPSHOT_MISSING")
 

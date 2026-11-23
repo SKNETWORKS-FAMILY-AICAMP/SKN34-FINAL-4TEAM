@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useRef } from 'react'
 
-import { reportKindLabel, reportStatusLabel } from '../../../../domain/entities/report'
+import { reportKindLabel, reportStatusLabel, reportTargetTitle, reportTargetTypeLabel } from '../../../../domain/entities/report'
 import { kstDateTime } from '../../../shared/format'
 import { ReportHistoryList } from '../../../shared/reports/ReportHistoryList'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
@@ -56,15 +56,15 @@ export function ReportsPage() {
                       aria-pressed={vm.sel === x.id}
                       onClick={() => vm.select(x.id)}
                     >
-                      <b>{x.workTitle}</b> <span className='chip'>{reportStatusLabel(x.status)}</span>
+                      <b>{reportTargetTitle(x)}</b> <span className='chip'>{reportStatusLabel(x.status)}</span>
                       <br />
-                      <span className='small muted'>{[x.workOwnerId === vm.memberId ? '내 작품 대상' : '내가 신고함', reportKindLabel(x.kind), kstDateTime(x.createdAt)].join(' · ')}</span>
+                      <span className='small muted'>{[x.targetType !== 'work' && `${reportTargetTypeLabel(x.targetType)} 신고`, x.workOwnerId === vm.memberId ? '내 작품 대상' : '내가 신고함', reportKindLabel(x.kind), kstDateTime(x.createdAt)].filter(Boolean).join(' · ')}</span>
                     </button>
                   </li>
                 ))}
               </ul>
             )
-            : <p className='mt-3'>신고 내역이 없어요. 검색 결과 카드의 더보기 메뉴나 작품 상세의 ‘소설 신고’ 버튼으로 다른 작가의 공개 작품을 신고할 수 있어요.</p>)}
+            : <p className='mt-3'>신고 내역이 없어요. 검색 결과 카드의 더보기 메뉴나 작품 상세의 ‘소설 신고’, 회차 화면의 ‘신고’, 공개 세계관의 ‘세계관 신고’ 버튼으로 다른 작가의 공개 콘텐츠를 신고할 수 있어요.</p>)}
         </section>
         {vm.sel && (
           <section className='panel' style={{ marginTop: 14 }} aria-label='신고 상세'>
@@ -77,9 +77,9 @@ export function ReportsPage() {
             {!r && !detail.isError && <p role='status'>신고 상세를 불러오고 있어요.</p>}
             {r && (
               <>
-                <h2 ref={heading} tabIndex={-1} style={{ fontSize: 18 }}>{r.workTitle}</h2>
+                <h2 ref={heading} tabIndex={-1} style={{ fontSize: 18 }}>{reportTargetTitle(r)}</h2>
                 <p className='small muted'>
-                  {[vm.isReporter && '내가 신고함', vm.isOwner && '내 작품 대상', reportKindLabel(r.kind), reportStatusLabel(r.status), `작품 ${r.contentRestricted ? '제한 중' : '공개 유지'}`].filter(Boolean).join(' · ')}
+                  {[vm.isReporter && '내가 신고함', vm.isOwner && '내 작품 대상', reportKindLabel(r.kind), reportStatusLabel(r.status), `${reportTargetTypeLabel(r.targetType)} ${r.contentRestricted ? '제한 중' : '공개 유지'}`].filter(Boolean).join(' · ')}
                 </p>
                 <h3 className='mt-4 font-bold'>신고 사유</h3>
                 <p className='whitespace-pre-wrap break-words'>{r.reason}</p>

@@ -50,7 +50,7 @@ class PublicationService(
         rows.forEach(em::refresh)
         val byId=versions.findAllById(rows.mapNotNull {it.publishedVersionId}).associateBy {it.id}
         return PublishedEpisodeListResponse(rows.mapNotNull { row -> byId[row.publishedVersionId]?.let {v ->
-            PublishedEpisodeResponse(row.sequence,v.revisionNo,v.contentVersionId,v.title,v.content,row.inherited,v.authorNote)
+            PublishedEpisodeResponse(row.sequence,v.revisionNo,v.contentVersionId,v.title,v.content,row.inherited,v.authorNote,row.restricted)
         }})
     }
     /** 작품별 마지막 발행 시각이다(방금 업데이트 랭킹). 발행 기록이 없는 작품은 맵에 담지 않는다. */

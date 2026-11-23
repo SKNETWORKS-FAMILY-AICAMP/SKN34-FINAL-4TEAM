@@ -16,8 +16,8 @@ type Credits = ReturnType<typeof useCreditsViewModel>
 const num = (n: number) => n.toLocaleString('ko-KR')
 
 /**
- * 크레딧 탭(DEC-57): 회원 검색 → ⋮ 메뉴로 회원 고르기 → 잔액·내역 표 → 지급·회수 폼(확인 대화 뒤 요청, 처리 중 잠금).
- * 정본은 Core이고 운영 서비스가 중계하며, 지급·회수는 사유와 함께 활동 로그에 남는다. 회원 찾기는 사용자 탭과 같은 검색 API(`users` 권한)다.
+ * 크레딧 탭(DEC-57): 탭을 열면 전체 회원(최신 가입순)과 행별 잔액 → ⋮ 메뉴로 회원 고르기 → 잔액·내역 표 → 지급·회수 폼(확인 대화 뒤 요청, 처리 중 잠금).
+ * 정본은 Core이고 운영 서비스가 중계하며, 지급·회수는 사유와 함께 활동 로그에 남는다. 회원 목록은 사용자 탭과 같은 API(`users` 권한)이고 검색은 목록을 좁힌다.
  */
 export function CreditsOperations({ vm }: { vm: VM }) {
   const d = useCreditsViewModel(vm.live.mutate)
@@ -34,19 +34,15 @@ export function CreditsOperations({ vm }: { vm: VM }) {
       >
         <label className="field field-search">
           회원 검색
-          <input className="inp" name="query" type="search" autoComplete="off" placeholder="이름·이메일" />
+          <input className="inp" name="query" type="search" autoComplete="off" placeholder="이름·이메일 (비우면 전체)" />
         </label>
         <button className="btn pri" type="submit">검색</button>
+        <button className="btn" type="button" disabled={d.members.isRefreshing} onClick={() => { d.members.retry(); d.balances.retry() }}>목록 새로고침</button>
       </form>
-      {d.query === null
-        ? <p className="admin-empty">이름이나 이메일로 회원을 찾은 뒤, 회원 줄의 ⋮ 메뉴에서 ‘크레딧 보기·조정’을 눌러 주세요.</p>
-        : (
-          <>
-            <LiveState vm={vm} label="회원 목록" state={d.members} />
-            {rows === null && <p className="admin-action-error" role="alert">{MEMBER_SEARCH_FORBIDDEN}</p>}
-            {rows && (rows.length ? <MemberTable rows={rows} d={d} /> : <p className="admin-empty">조건에 맞는 회원이 없어요.</p>)}
-          </>
-        )}
+      <LiveState vm={vm} label="회원 목록" state={d.members} />
+      {rows === null && <p className="admin-action-error" role="alert">{MEMBER_SEARCH_FORBIDDEN}</p>}
+      {rows && <LiveState vm={vm} label="회원별 잔액" state={d.balances} forbidden={CREDITS_FORBIDDEN} />}
+      {rows && (rows.length ? <MemberTable rows={rows} d={d} /> : <p className="admin-empty">조건에 맞는 회원이 없어요.</p>)}
       {d.member && <MemberCredits key={d.member.id} vm={vm} d={d} member={d.member} />}
       <p className="admin-note">
         지급은 ‘운영자 지급’ 크레딧으로 남고 만료는 보상 크레딧과 같아요. 회수는 쓸 수 있는 잔액 안에서만 되고 만료가 가까운 지급분부터 차감돼요.
@@ -63,6 +59,7 @@ function MemberTable({ rows, d }: { rows: MemberItem[]; d: Credits }) {
         <tr>
           <th scope="col">회원</th>
           <th scope="col">역할</th>
+          <th scope="col">보유 크레딧</th>
           <th scope="col" className="act act-menu"><span className="sr-only">조치</span></th>
         </tr>
       </thead>
@@ -75,6 +72,8 @@ function MemberTable({ rows, d }: { rows: MemberItem[]; d: Credits }) {
               <span className="small muted">{u.email}</span>
             </td>
             <td>{u.role === 'ADMIN' ? '관리자' : '회원'}</td>
+            {/* 서버가 모르는 회원은 잔액 결과에서 빠지고, 읽는 중이거나 권한이 없으면 값이 없다. */}
+            <td>{d.balances.data?.[u.id] === undefined ? '—' : num(d.balances.data[u.id])}</td>
             <td className="act-menu">
               <PopMenu className="row-menu" label={`「${u.nickname}」 조치`} icon={<MoreVerticalIcon />}>
                 <button type="button" role="menuitem" onClick={() => d.pick(u)}>크레딧 보기·조정</button>

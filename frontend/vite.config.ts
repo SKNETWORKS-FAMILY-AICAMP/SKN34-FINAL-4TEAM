@@ -27,12 +27,12 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       watch: usePolling ? { usePolling: true, interval: 300 } : undefined,
       proxy: {
-        '^/api/v1/(?:(?:(?:public/)?works|(?:public/)?world-studios|public/genres|image-generations|public/cover-references)(?:/|\\?|$)|me/storage-usage(?:\\?|$))': {
+        '^/api/v1/(?:(?:(?:public/)?works|(?:public/)?world-studios|public/genres|public/card-categories|image-generations|public/cover-references)(?:/|\\?|$)|me/storage-usage(?:\\?|$))': {
           target: env.VITE_CONTENT_DEV_PROXY_TARGET || 'http://localhost:8081',
           changeOrigin: true,
         },
-        // 운영 공개 API는 신고·회원·관리자·작품(works)·댓글(comments)·장르(genres)·크레딧(credits)·고객지원(support)·관리자 활동(admin/activities)·공지·이벤트 admin/public 경로와 대시보드·LLMOps·경고·작업 감시(dashboard·llmops·alerts·jobs)만 Operations로 보낸다(서비스 토큰용 공지·이벤트·문의 경로는 비노출).
-        '^/api/v1/operations/(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits)(?:/|\\?|$)': {
+        // 운영 공개 API는 신고·회원·관리자·작품(works)·댓글(comments)·장르(genres)·크레딧(credits)·세계관(world-studios)·카드 카테고리(card-categories)·고객지원(support)·관리자 활동(admin/activities)·공지·이벤트 admin/public 경로와 대시보드·LLMOps·경고·작업 감시(dashboard·llmops·alerts·jobs)만 Operations로 보낸다(서비스 토큰용 공지·이벤트·문의 경로는 비노출).
+        '^/api/v1/operations/(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits|world-studios|card-categories)(?:/|\\?|$)': {
           target: env.VITE_OPERATIONS_DEV_PROXY_TARGET || 'http://localhost:8082',
           changeOrigin: true,
         },

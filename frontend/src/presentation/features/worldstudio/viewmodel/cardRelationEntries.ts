@@ -1,8 +1,8 @@
-import { cardTypeOf, cardTypes, type CardType } from '../../../../domain/entities/studioCards'
+import { cardTypeOf, isCard } from '../../../../domain/entities/studioCards'
 import { relationShortName } from '../../../../domain/entities/studioRelations'
 import type { StudioSetting } from '../../../../domain/entities/studioWorld'
 import type { RelationEntry } from '../../../shared/cardRelations'
-import { CARD_KIND } from '../../../shared/worldBoard'
+import { kindOf as groupOf } from '../../../shared/worldBoard'
 import { settingLinks } from './settingBoard'
 
 /**
@@ -11,8 +11,8 @@ import { settingLinks } from './settingBoard'
  * 관련 설정·앞뒤 사건·본문 링크로 이어진 카드(관계가 아니라 이름이 그 연결 이름이고 회차 모름, `link:` id)다. 없는 카드·카드가 아닌 항목은 뺀다.
  */
 export function cardRelationEntries(settings: readonly StudioSetting[], cardId: string): RelationEntry[] {
-  const cards = new Map(settings.filter((s) => cardTypes.some((t) => t.id === cardTypeOf(s.item))).map((s) => [s.item.id, s.item]))
-  const kindOf = (id: string) => CARD_KIND[cardTypeOf(cards.get(id)!) as CardType]
+  const cards = new Map(settings.filter((s) => isCard(s.item)).map((s) => [s.item.id, s.item]))
+  const kindOf = (id: string) => groupOf(cardTypeOf(cards.get(id)!))
   const titleOf = (id: string | null) => (id ? cards.get(id)?.title : undefined)
   const rows: RelationEntry[] = []
   for (const { item } of settings) {

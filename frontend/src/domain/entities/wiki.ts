@@ -45,6 +45,22 @@ export type ReaderWorldCards = {
   relationshipStatus: 'current' | 'unavailable'
 }
 
+/** 카드 유형 → 기존 작품 위키 분류(WCATS). 포크 미리보기의 '세계관 규칙'(world)·'인물'(char) 수가 이 분류를 센다. */
+const CARD_CAT: Record<CardType, string> = { character: 'char', location: 'place', organization: 'org', object: 'item', event: 'event', rule: 'world', ability: 'world', other: 'world' }
+
+/**
+ * Fork 생성 미리보기(#559): 원작에 연결된 세계관이 있으면 서버가 기준 회차까지 독자에게 공개한 카드를 작품의 인물·규칙·위키 문서로 바꾼다.
+ * 서버가 이미 거른 집합(Fork가 이어받는 카드와 같다, DEC-53)이라 여기서 다시 거르지 않는다. 인물은 인물 카드, 규칙은 규칙·능력·기타 카드(기존 '세계관 설정' 분류)이고
+ * 나머지 유형은 목록에만 든다. 카드에는 사건 참여자가 없어 events를 비운다(인물 수가 사건 첫 등장 회차에 걸려 줄지 않게 한다).
+ */
+export function withWorldCards(work: Work, { cards }: Pick<ReaderWorldCards, 'cards'>): Work {
+  const docs: Doc[] = cards.map((card) => ({ id: card.id, cat: CARD_CAT[card.cardType], t: card.title, alias: card.aliases, tags: card.tags, props: {}, at: {}, body: card.text, markdown: true }))
+  const color = WCATS.find((cat) => cat.id === 'char')!.c
+  return { ...work, rules: docs.filter((d) => d.cat === 'world').map((d) => d.t),
+    cast: docs.filter((d) => d.cat === 'char').map((d) => ({ n: d.t, c: color, d: d.body, st: '—' })),
+    events: [], wiki: { docs, cats: structuredClone(WCATS) } }
+}
+
 /**
  * 목업 wikiOf(w): 처음 열 때 작품 설정(포크는 스냅샷)에서 사전을 한 번 만들어 w.wiki에 두고, 이후에는 저장본을 씁니다.
  * 사건은 보드(events·ownEvents)에 새로 생긴 것만 문서로 덧붙여요.

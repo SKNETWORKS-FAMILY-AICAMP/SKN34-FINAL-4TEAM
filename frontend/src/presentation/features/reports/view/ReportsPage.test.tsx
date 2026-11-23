@@ -25,7 +25,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); Reflect.deleteProperty(Elemen
 
 const at = '2026-11-10T01:00:00Z'
 const report = (patch: Partial<Report> = {}): Report => ({
-  id: 'r1', kind: 'RIGHTS', workId: 'w1', workTitle: '달빛 도서관', workOwnerId: 'owner', reporterId: 'me', reason: '무단 사용이 의심돼요', evidence: '',
+  id: 'r1', kind: 'RIGHTS', targetType: 'work', workId: 'w1', workTitle: '달빛 도서관', workOwnerId: 'owner', episodeNumber: null, worldId: null, worldName: null, reporterId: 'me', reason: '무단 사용이 의심돼요', evidence: '',
   status: 'RECEIVED', contentRestricted: false, createdAt: at, updatedAt: at, history: [], ...patch,
 })
 /** 내가 신고한 두 건을 서버 대신 답하고, 로그인한 회원(me)으로 내 신고 화면을 연다. */

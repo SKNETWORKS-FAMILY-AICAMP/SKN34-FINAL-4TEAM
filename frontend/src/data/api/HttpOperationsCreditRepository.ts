@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
-import type { CreditChange, MemberCredits } from '../../domain/entities/operationsCredit'
+import { OperationsError } from '../../domain/entities/operations'
+import type { CreditChange, MemberBalance, MemberCredits } from '../../domain/entities/operationsCredit'
 import { CREDIT_INSUFFICIENT_MESSAGE } from '../../domain/entities/operationsCredit'
 import type { OperationsCreditRepository } from '../../domain/repositories/OperationsCreditRepository'
 import { balanceSchema, historySchema } from './HttpCreditLedgerRepository'
@@ -22,6 +23,7 @@ const reason: ServerReason = (status, { code, message }) => {
   if (code === 'CREDIT_INSUFFICIENT') return CREDIT_INSUFFICIENT_MESSAGE
   return message && [404, 409, 422].includes(status) && (code?.startsWith('UPSTREAM') || /[가-힣]/.test(message)) ? message : undefined
 }
+const memberBalances = z.array(z.object({ memberId: z.string(), total: z.number() }))
 const id = encodeURIComponent
 
 /** 운영 크레딧 API(/api/v1/operations/credits). 지급·회수 응답(갱신된 잔액)은 쓰지 않고 화면이 회원 크레딧을 다시 읽습니다. */
@@ -30,6 +32,13 @@ export class HttpOperationsCreditRepository implements OperationsCreditRepositor
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
 
   member(memberId: string): Promise<MemberCredits> { return read(this.fetcher, `/credits/members/${id(memberId)}`, memberCredits, [], MESSAGES_CREDIT) }
+  /** 회원 목록 행의 잔액: 한 번에 최대 100명, 응답은 맨 배열이고 없는 회원은 빠진다. */
+  async balances(memberIds: string[]): Promise<MemberBalance[]> {
+    const response = await send(this.fetcher, '/credits/balances', 'POST', { memberIds }, MESSAGES_CREDIT)
+    const parsed = memberBalances.safeParse(await response.json().catch(() => undefined))
+    if (!parsed.success) throw new OperationsError('서버 응답 형식을 확인할 수 없어요.')
+    return parsed.data
+  }
   async grant(memberId: string, input: CreditChange) { await send(this.fetcher, `/credits/members/${id(memberId)}/grants`, 'POST', input, MESSAGES_CREDIT, reason) }
   async revoke(memberId: string, input: CreditChange) { await send(this.fetcher, `/credits/members/${id(memberId)}/revocations`, 'POST', input, MESSAGES_CREDIT, reason) }
 }

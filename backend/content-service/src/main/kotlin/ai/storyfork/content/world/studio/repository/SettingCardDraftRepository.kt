@@ -11,6 +11,9 @@ import org.springframework.data.repository.query.Param
 interface SettingCardDraftRepository : JpaRepository<SettingCardDraft, UUID> {
     fun findAllByWorldId(worldId: UUID): List<SettingCardDraft>
     fun countByWorldIdAndFieldsLifecycle(worldId: UUID, lifecycle: String): Long
+    /** 카드 유형(카테고리 코드)별로 센 지우지 않은 세계관의 활성 카드 초안 수 `[cardType, 수]`다. 운영 카테고리 표의 사용 수이며 쿼리 한 번이다. */
+    @Query("select d.fields.cardType, count(d) from SettingCardDraft d join StudioWorld w on w.id = d.worldId where w.deletedAt is null and d.fields.lifecycle = 'active' group by d.fields.cardType")
+    fun cardCounts(): List<Array<Any>>
     @Modifying(clearAutomatically=true,flushAutomatically=true)
     @Query("delete from SettingCardDraft d where d.worldId=:world")
     fun deleteWorldDrafts(@Param("world") world: UUID)

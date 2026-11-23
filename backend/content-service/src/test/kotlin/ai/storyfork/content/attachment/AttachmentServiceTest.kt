@@ -87,6 +87,22 @@ class AttachmentServiceTest {
         verifyNoInteractions(storage)
     }
 
+    @Test fun `an operator cannot upload to another author's work`() {
+        `when`(works.findById("work")).thenReturn(java.util.Optional.of(ImageWork(id = "work", ownerId = "owner")))
+        org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+            org.springframework.web.context.request.ServletRequestAttributes(org.springframework.mock.web.MockHttpServletRequest("POST", "/")))
+        org.springframework.security.core.context.SecurityContextHolder.getContext().authentication =
+            org.springframework.security.authentication.UsernamePasswordAuthenticationToken.authenticated("admin", null,
+                listOf(org.springframework.security.core.authority.SimpleGrantedAuthority(ai.storyfork.content.auth.config.OPERATOR_AUTHORITY)))
+        try {
+            assertEquals("ATTACHMENT_NOT_FOUND", assertThrows(AttachmentFailure::class.java) { service.requireSettingUploadAccess("work", "setting", "admin") }.code)
+            assertEquals("IMAGE_NOT_FOUND", assertThrows(AttachmentFailure::class.java) { service.requireWorkUploadAccess("work", "admin") }.code)
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext()
+            org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes()
+        }
+    }
+
     @Test fun `upload rechecks deleted episode under the work lock before writing a file`() {
         `when`(imageEpisodes.findByWorkIdAndSequence("work", 1)).thenReturn(ImageEpisode(id = "original"), null)
         assertThrows(AttachmentFailure::class.java) {service.createEpisodeImage("work",1,"owner",request())}

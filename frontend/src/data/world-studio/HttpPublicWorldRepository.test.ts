@@ -199,7 +199,7 @@ describe('공개 세계관 상세 읽기', () => {
 
   it('응답 형식이 계약과 다르거나 다른 세계관이 오면 던진다', async () => {
     const bad = [
-      world({ cards: [{ id: 'c-1', title: '카드', text: '', cardType: 'wizard', aliases: [], tags: [] }] }), // 모르는 카드 유형
+      world({ cards: [{ id: 'c-1', title: '카드', text: '', cardType: '', aliases: [], tags: [] }] }), // 빈 카드 유형(운영자가 추가한 카테고리 코드는 유효하다)
       world({ relationshipStatus: 'partial' }),
       world({ relationships: [{ id: 'r', sourceCardId: 'c-1', label: '관계' }] }), // 끝점 하나 없음
       world({ revisionNo: 0 }),
@@ -274,7 +274,7 @@ describe('공개 설정 카드 검색 (공개 API, 인증 없음) (#505)', () =>
 
   it('응답 형식이 계약과 다르면 빈 결과로 숨기지 않고 던진다', async () => {
     const bad = [
-      cardPage({ items: [cardHit({ cardType: 'wizard' })] }), // 모르는 카드 유형
+      cardPage({ items: [cardHit({ cardType: '' })] }), // 빈 카드 유형
       cardPage({ items: [cardHit({ worldName: undefined })] }),
       cardPage({ items: [cardHit({ cardId: '' })] }),
       cardPage({ items: [cardHit({ aliases: '하엘' })] }),
@@ -292,5 +292,14 @@ describe('공개 설정 카드 검색 (공개 API, 인증 없음) (#505)', () =>
     await expect(new HttpPublicWorldRepository(respond({ detail: '잠시 후 다시 시도해 주세요.' }, 503)).searchCards({ q: '하엘', page: 0, size: 24 })).rejects.toThrow('잠시 후 다시 시도해 주세요.')
     await expect(new HttpPublicWorldRepository(vi.fn(async () => new Response('<html>', { status: 502 }))).searchCards({ q: '하엘', page: 0, size: 24 })).rejects.toThrow('요청을 처리하지 못했어요')
     await expect(new HttpPublicWorldRepository(vi.fn(async () => { throw new TypeError('network') })).searchCards({ q: '하엘', page: 0, size: 24 })).rejects.toThrow('network')
+  })
+})
+
+describe('운영자가 추가한 카드 카테고리 코드(운영자 콘텐츠 관리 결정 E)', () => {
+  it('공개 세계관 상세와 카드 검색은 기본 8종이 아닌 카드 유형 코드도 그대로 읽는다', async () => {
+    const detail = await new HttpPublicWorldRepository(respond(world({ cards: [{ id: 'c-9', title: '해월족', text: '', cardType: 'category-09', aliases: [], tags: [] }] }))).get('w-1')
+    expect(detail?.cards[0].cardType).toBe('category-09')
+    const hits = await new HttpPublicWorldRepository(respond(cardPage({ items: [cardHit({ cardType: 'category-09' })] }))).searchCards({ q: '하엘', page: 0, size: 24 })
+    expect(hits.items[0].cardType).toBe('category-09')
   })
 })

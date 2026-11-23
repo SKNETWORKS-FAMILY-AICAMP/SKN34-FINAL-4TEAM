@@ -16,12 +16,12 @@ interface WorkRepository : JpaRepository<WorkEntity, String> {
     /**
      * [ids] 가운데 **공개 작품**(최신 공개 범위가 public이고 제한·삭제되지 않음, [ai.storyfork.content.work.service.dto.WorkAccessResult.publiclyVisible]과 같은 판정)의
      * `[작품 id, 발행된 마지막 회차 번호]` 행이다(발행한 회차가 없으면 0, 공개 작품이 아니면 행이 없다). 공개 세계관 목록의 기준 회차(DEC-53)를 페이지 전체에 쿼리 한 번으로 센다.
-     * 발행 회차는 `episode_current`에서 발행 버전이 있는 행([ai.storyfork.content.publication.service.PublicationService.publishedEpisodes]와 같은 기준)의 가장 큰 번호이며 본문은 읽지 않는다. 빈 목록으로 부르지 않는다.
+     * 발행 회차는 `episode_current`에서 발행 버전이 있는 행([ai.storyfork.content.publication.service.PublicationService.publishedEpisodes]와 같은 기준)의 가장 큰 번호이며(운영이 제한한 회차는 독자에게 없으므로 뺀다) 본문은 읽지 않는다. 빈 목록으로 부르지 않는다.
      */
     @Query("""select w.id, coalesce(max(c.sequence), 0)
         from WorkEntity w
         join WorkPublicationHistoryEntity p on p.workId = w.id
-        left join EpisodeCurrentEntity c on c.workId = w.id and c.publishedVersionId is not null
+        left join EpisodeCurrentEntity c on c.workId = w.id and c.publishedVersionId is not null and c.restricted = false
         where w.id in :ids and w.deletedAt is null and w.restricted = false and p.visibility = 'public'
             and p.revisionNo = (select max(q.revisionNo) from WorkPublicationHistoryEntity q where q.workId = w.id)
         group by w.id""")
