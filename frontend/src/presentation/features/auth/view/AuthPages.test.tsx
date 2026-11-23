@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '../../../../test/testLocks'
 
-import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
@@ -132,6 +132,14 @@ describe('로그인 실패와 요청 중 (L01)', () => {
     vi.stubGlobal('fetch', respond(401))
     renderApp('/login')
     expect(screen.queryByText('개발용 서비스 안내')).toBeNull()
+  })
+
+  it('이메일 인증 재발송은 로그인 도움 링크 묶음 안에 있고 따로 묻는 문단이 없다', () => {
+    vi.stubGlobal('fetch', respond(401))
+    renderApp('/login')
+    const nav = screen.getByRole('navigation', { name: '로그인 도움' })
+    expect(within(nav).getByRole('link', { name: '이메일 인증·확인 메일 재발송' }).getAttribute('href')).toBe('/auth/resend-verification')
+    expect(screen.queryByText('이메일 인증을 아직 마치지 않았나요?')).toBeNull()
   })
 })
 

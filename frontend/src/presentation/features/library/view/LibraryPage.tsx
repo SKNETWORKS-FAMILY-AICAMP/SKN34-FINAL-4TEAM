@@ -30,7 +30,7 @@ export function LibraryPage() {
   }, [deletedWorkTitle, librarySettled, navigate, pathname, search])
   useDocumentTitle('내 서재')
   if (!d) return <><Gnb on="lib"/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
-  // 서버가 없는 목업 빌드는 읽기 기록도 메모리라 안내가 다르다. 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.
+  // 서버가 없는 목업 빌드는 읽기 기록도 메모리라 그 한계를 안내한다. 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.
   const mockup = import.meta.env.MODE === 'mockup'
   // 제목 줄 '+ 새 소설' 버튼(ServerWritingList)과 아래 '새 소설 쓰기' 카드는 같은 곳으로 간다.
   const newWorkTo = mockup ? '/new' : '/content'
@@ -38,13 +38,11 @@ export function LibraryPage() {
     <>
       <Gnb on="lib" />
       <main id="main" tabIndex={-1} className="wrap">
-        <div className="sec-h" style={{ marginBottom: 0 }}><h1>내 서재</h1><span className="muted small">읽기와 쓰기를 한 계정에서 해요</span></div>
+        <div className="sec-h" style={{ marginBottom: 0 }}><h1>내 서재</h1></div>
         <nav className="libtabs" aria-label="서재 메뉴">{TABS.map(([k, l]) => <Go key={k} to={`/lib?tab=${k}`} className={d.tab === k ? 'on' : ''} aria-current={d.tab === k ? 'page' : undefined}>{l}{k === 'write' && d.pending > 0 && <span className="nb">{d.pending}</span>}</Go>)}</nav>
         {d.read && (
           <>
-            <p className="note2">{mockup
-              ? '읽기 기록과 관심 소설은 이 창에서만 유지돼요. 계정에 저장하거나 다른 기기와 동기화하지 않아요.'
-              : '이어 읽기 기록과 관심 소설은 계정에 저장돼요.'}</p>
+            {mockup && <p className="note2">읽기 기록과 관심 소설은 이 창에서만 유지돼요. 계정에 저장하거나 다른 기기와 동기화하지 않아요.</p>}
             <div className="sec-h"><h2>이어 읽기</h2></div>
             <ReadingList recent={d.read.recent} removing={d.removing} onRemove={d.removeReading} />
             <div className="sec"><div className="sec-h"><h2>관심 소설</h2></div>{d.read.liked.length

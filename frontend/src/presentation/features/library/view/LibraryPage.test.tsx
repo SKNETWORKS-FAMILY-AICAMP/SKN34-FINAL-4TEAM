@@ -116,10 +116,10 @@ it('탭 제목에 내 서재를 쓴다', async () => {
   expect(document.title).toBe('내 서재 · STORYFORK')
 })
 
-it('서버 연결 빌드는 이어 읽기 기록과 관심 소설이 계정에 저장된다고 안내한다', async () => {
+it('서버 연결 빌드는 읽기 기록 저장 안내를 따로 두지 않는다', async () => {
   renderLibrary()
-  const note = await screen.findByText(/이어 읽기 기록과 관심 소설은 계정에 저장돼요/)
-  expect(note.textContent).not.toContain('이 창에서만')
+  await screen.findByRole('heading', { level: 2, name: '이어 읽기' })
+  expect(screen.queryByText(/계정에 저장돼요/)).toBeNull()
 })
 
 it('서버가 없는 목업 빌드는 읽기 기록도 이 창에서만 유지된다고 안내한다', async () => {

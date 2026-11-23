@@ -78,8 +78,8 @@ describe('storyfork.css 계정 메뉴 계약', () => {
     // 이름은 굵게, 이메일은 보통 굵기로 — 단추의 굵은 글씨(700)를 이메일이 물려받지 않게 한다.
     expect([value(`${row} b`, 'font-weight'), value(`${row} small`, 'font-weight')]).toEqual(['800', '400'])
     expect([value(`${row} em`, 'white-space'), value(`${row} em`, 'flex')]).toEqual(['nowrap', 'none'])
-    // 메뉴를 버튼 아래에 맞추는 AccountMenu가 이 폭(240)을 가정한다.
-    expect(value('.pop.acctm', 'width')).toBe('240px')
+    // 메뉴를 버튼 아래에 맞추는 AccountMenu가 이 폭(240)을 가정한다. 폭이 두 군데 적히면 짝을 잘못 읽으니 선언은 하나다.
+    expect(values('.pop.acctm', 'width')).toEqual(['240px'])
   })
 
   it('계정 메뉴는 sticky 상단바 위에 떠 가려지지 않는다', () => {
@@ -125,6 +125,11 @@ describe('storyfork.css 서재 목록 카드 계약', () => {
   it('좁은 화면에서는 이어 읽기 줄의 글자 버튼을 내용 폭으로 두고 주 버튼(이어 읽기)이 남는 폭을 채운다', () => {
     const mobile = '(max-width:600px)'
     expect([value('.li>.acts .btn', 'flex', mobile), value('.li>.acts .btn.weak', 'flex', mobile)]).toEqual(['1', 'none'])
+  })
+
+  it('새로 시작하기 카드 열은 기본 3열·900px 이하 1열 한 규칙씩이고 !important를 쓰지 않는다', () => {
+    expect(values('.newbox', 'grid-template-columns')).toEqual(['repeat(3,minmax(0,1fr))'])
+    expect(values('.newbox', 'grid-template-columns', '(max-width:900px)')).toEqual(['1fr'])
   })
 })
 
