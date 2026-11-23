@@ -8,7 +8,7 @@ it('만 장도 마지막 페이지까지 고르고 줄어든 결과의 페이지
 })
 
 import {
-  BOOK_SORTS, CARD_COLORS, CARD_KIND, boardEmptyKinds, boardKindCounts, boardRows, parseBookSort, type BoardEntry, type CardKind,
+  BOOK_SORTS, CARD_COLORS, CARD_KIND, boardKindCounts, boardRows, parseBookSort, type BoardEntry, type CardKind,
 } from './worldBoard'
 
 /** 제목·본문 검색은 title·text에서, 연결 수는 connections에서 본다. 분류 이름(type)은 화면용 글자라 필터에 쓰이지 않는다. */
@@ -59,6 +59,13 @@ describe('boardKindCounts', () => {
     expect(boardKindCounts(mixed)).toEqual([{ kind: '인물', count: 2 }, { kind: '장소', count: 1 }, { kind: '사건', count: 1 }, { kind: '기타', count: 1 }])
     expect(boardKindCounts([])).toEqual([])
   })
+
+  it('빈 분류를 함께 표시하면 카드가 추가되기 전후에도 분류의 순서를 유지한다', () => {
+    expect(boardKindCounts(mixed, true).map(({ kind, count }) => [kind, count])).toEqual([
+      ['인물', 2], ['장소', 1], ['조직', 0], ['규칙', 0], ['사건', 1], ['기타', 1],
+    ])
+    expect(boardKindCounts([], true).map(({ count }) => count)).toEqual([0, 0, 0, 0, 0, 0])
+  })
 })
 
 describe('parseBookSort', () => {
@@ -66,13 +73,5 @@ describe('parseBookSort', () => {
     expect(BOOK_SORTS.map(([key, label]) => [key, label])).toEqual([['book', '설정집 순'], ['links', '연결 많은 순'], ['name', '가나다순']])
     expect(['book', 'links', 'name'].map(parseBookSort)).toEqual(['book', 'links', 'name'])
     expect(['', 'LINKS', 'popular'].map(parseBookSort)).toEqual(['book', 'book', 'book'])
-  })
-})
-
-describe('boardEmptyKinds', () => {
-  it('카드가 하나도 없는 묶음을 설정집 순서로 낸다(분류 메뉴가 비어 있음으로 알린다)', () => {
-    expect(boardEmptyKinds(mixed)).toEqual(['조직', '규칙']) // 인물·장소·사건·기타에는 카드가 있다
-    expect(boardEmptyKinds([])).toEqual([]) // 설정이 하나도 없으면 모든 분류가 비지만 알리지 않는다(표 안의 시작 안내가 대신한다)
-    expect(boardEmptyKinds(mixed.filter((e) => e.kind === '인물'))).toEqual(['장소', '조직', '규칙', '사건', '기타'])
   })
 })

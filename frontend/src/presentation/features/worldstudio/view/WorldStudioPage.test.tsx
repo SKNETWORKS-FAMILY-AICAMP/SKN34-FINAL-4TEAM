@@ -3295,19 +3295,24 @@ it('설정집 게시판은 사건·사물 카드가 인물과 승인된 관계�
 it('빈 분류를 선택하면 목록만 바뀌고 추가를 누르면 해당 유형으로 새 편집기를 연다', async () => {
   const filled = { soul: '성격', goal: '목표' }
   await show([withDocs(person('가람', '본문'), filled), place('항구')])
+  fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '가람' } })
   const category = cats().getByRole('button', { name: '조직 비어 있음' })
   category.focus()
   expect(document.activeElement).toBe(category)
   fireEvent.click(category)
   expect(category.getAttribute('aria-current')).toBe('true')
   expect(cats().getByRole('button', { name: '전체 2' })).toBeTruthy()
-  expect(boardTable().getByText('아직 조직 설정이 없어요.')).toBeTruthy()
+  expect(screen.getByText('아직 조직 설정이 없어요.')).toBeTruthy()
+  expect(screen.queryByRole('table', { name: '설정 카드 목록' })).toBeNull()
   expect(screen.queryByRole('region', { name: '선택한 설정 편집' })).toBeNull()
-  fireEvent.click(boardTable().getByRole('button', { name: '+ 조직 설정 추가' }))
+  fireEvent.click(screen.getByRole('button', { name: '+ 조직 설정 추가' }))
   expect(overview().getByRole('combobox', { name: '유형' })).toHaveProperty('value', 'organization')
   expect(where()).toMatch(/card=/)
+  fireEvent.change(editor().getByRole('textbox', { name: '설정 이름' }), { target: { value: '활빈당' } })
   backToBoard()
   expect(cats().getByRole('button', { name: '전체 3' })).toBeTruthy()
+  expect(cats().getByRole('button', { name: '조직 1' }).getAttribute('aria-current')).toBe('true')
+  expect(boardTable().getByRole('button', { name: '활빈당 조직' })).toBeTruthy()
 })
 
 it('카드가 하나도 없을 때도 전체의 시작 안내와 분류별 추가를 제공한다', async () => {
@@ -3315,7 +3320,7 @@ it('카드가 하나도 없을 때도 전체의 시작 안내와 분류별 추�
   expect(cats().getAllByRole('button', { name: /비어 있음/ })).toHaveLength(6)
   expect(boardTable().getByText('설정을 추가해 시작해 보세요.').closest('td')!.colSpan).toBe(8) // 빈 안내 줄도 표의 열 수와 같다
   fireEvent.click(cats().getByRole('button', { name: '기타 비어 있음' }))
-  fireEvent.click(boardTable().getByRole('button', { name: '+ 기타 설정 추가' }))
+  fireEvent.click(screen.getByRole('button', { name: '+ 기타 설정 추가' }))
   expect(overview().getByRole('combobox', { name: '유형' })).toHaveProperty('value', 'other')
 })
 
