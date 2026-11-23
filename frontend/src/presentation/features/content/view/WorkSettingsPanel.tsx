@@ -30,6 +30,7 @@ function AutonomousWarning({ onOpenWorld, onProceed, onCancel }: { onOpenWorld?:
 /**
  * 운영 설정 탭의 집필 방식·자동 처리·설정 변경 이력 카드(분기 정책·포크 정보 카드와 같은 틀). 탭 제목(h2 '운영 설정')은 호출 측(WorkManagement)이 그린다: 서버 없는 시연에서는 이 패널 없이 제목만 남는다.
  * 바깥 껍데기(.ep-operating-settings)는 카드가 아니라 알림·불러오는 중을 담는 틀이다: 호출 측의 카드 격자(.ep-settings-cards)에서는 display:contents로 격자에 끼지 않는다.
+ * 자동 처리의 AI 자율 연재는 저장된 집필 방식이 AI 자율 집필이면 켜짐, 아니면 꺼짐이다(고르기만 하고 저장하지 않은 select 값은 보지 않는다).
  * onOpenWorld는 AI 자율 집필 경고의 '세계관·설정집으로'가 부른다(작품 관리의 세계관·설정집 탭으로 옮긴다). 주지 않으면 그 버튼은 잠긴다.
  */
 export function WorkSettingsPanel({ workId, useCase, onSaved, onOpenWorld }: { workId: string; useCase?: EpisodeUseCase; onSaved?: () => void; onOpenWorld?: () => void }) {
@@ -83,7 +84,7 @@ export function WorkSettingsPanel({ workId, useCase, onSaved, onOpenWorld }: { w
             <dl className='ep-facts'>
               <div><dt>설정 추출</dt><dd>수동</dd></div>
               <div><dt>표기 교정</dt><dd>작가 검토</dd></div>
-              <div><dt>AI 자율 연재</dt><dd>집필 방식에서 고르고 AI 집필 탭에서 설정</dd></div>
+              <div><dt>AI 자율 연재</dt><dd>{settings.current.writingMode === 'autonomous' ? '켜짐' : '꺼짐'}</dd></div>
             </dl>
           </section>
           <section className='tcard ep-card' aria-labelledby={historyTitle}>

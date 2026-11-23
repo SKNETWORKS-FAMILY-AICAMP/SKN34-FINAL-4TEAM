@@ -119,9 +119,10 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-list{list-style:none;margin:0}
 .ep-list .ep{grid-template-columns:56px minmax(0,1fr) auto;position:relative}
 .ep-list .ep>div{min-width:0;overflow-wrap:anywhere}
-/* 회차 행 전체 클릭(R9): 행 안의 유일한 링크(수정하기)의 ::after가 행을 덮는다. 잠긴·상속 회차는 링크가 없어 hover 면도 없앤다. 링크에 transform을 걸면 ::after의 기준이 버튼으로 바뀌니 걸지 않는다. 포크 수 툴팁(title)은 덮개 위에 둔다. */
+/* 회차 행 전체 클릭(R9): 행 안의 유일한 링크(수정하기)의 ::after가 행을 덮는다. 잠긴·상속 회차는 링크가 없어 hover 면도 없앤다. 링크에 transform을 걸면 ::after의 기준이 버튼으로 바뀌니 걸지 않는다. 포크 수 툴팁(title)은 덮개 위에 둔다. 키보드 초점(수정하기 링크 :focus-visible)도 hover와 같은 행 면을 쓴다. */
 .ep-list .ep-row-link::after{content:'';position:absolute;inset:0}
 .ep-list .ep:not(:has(.ep-row-link)):hover{background:none}
+.ep-list .ep:has(.ep-row-link:focus-visible){background:color-mix(in srgb,var(--tfg) 4%,transparent)}
 .ep-list .ep .d [title]{position:relative;z-index:1}
 .ep-list-foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start;margin:20px 0 8px}
 @media(max-width:650px){.ep-list .ep{grid-template-columns:56px minmax(0,1fr)}.ep-list .ep :is(.btn,.chip){grid-column:2;justify-self:start}}
@@ -214,21 +215,24 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .episode-app .ep-brief .ep-chips{margin-top:8px}
 .episode-app .ep-brief .stats{margin-top:6px}
 
-/* 작품 관리 개요 대시보드(R6): 지표 카드·최근 발행·바로가기. 구획 사이는 구획 제목 위가 아래보다 넓게 32px(다른 탭의 구획 간격과 같다). 글자 상태(공개 전·집계 없음·불러오지 못했어요)는 숫자 칸보다 작은 보조 글이다. */
+/* 작품 관리 개요 대시보드(R6): 지표 카드·최근 발행·바로가기. 구획 사이는 구획 제목 위가 아래보다 넓게 32px(다른 탭의 구획 간격과 같다). 글자 상태(공개 전·집계 없음·불러오지 못했어요)는 숫자 칸보다 작은 보조 글이다. 지표 카드는 줄바꿈 flex라 줄 끝에 남은 카드가 그 줄을 채운다(카드 수가 5~7로 바뀌어 고정 열 격자는 어느 폭에서든 홀로 남는 카드가 생겼다). 1072px에서 7장이 한 줄이다. */
 .ep-dash{display:grid;gap:32px;margin-top:8px}
 .ep-dash section>h3+p{margin-top:12px}
-.ep-metrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:12px;margin:12px 0 0}
-.ep-metrics>div{display:grid;gap:4px;min-width:0;padding:14px 16px;background:var(--surface);border:1px solid var(--line2);border-radius:12px}
+.ep-metrics{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 0}
+.ep-metrics>div{flex:1 1 128px;display:grid;gap:4px;min-width:0;padding:14px 16px;background:var(--surface);border:1px solid var(--line2);border-radius:12px}
 .ep-metrics dt{font-size:12px;color:var(--sub)}
 .ep-metrics dd{margin:0;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .ep-metrics dd.ep-muted{font-size:14px;font-weight:600}
 .ep-shortcuts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:8px;margin-top:12px}
 .episode-app .ep-shortcut{justify-content:flex-start}
+/* 개요 최근 발행 이력 줄은 한 줄 글이다: flex(.ep-settings-history li)에서는 글자 덩어리와 <time> 사이에 gap이 생겨 '발행 ·' 뒤 구분점이 매달려 보였다. 운영 설정·이력 탭의 이력 줄은 그대로다. */
+.ep-dash .ep-settings-history li{display:block}
 
-/* 운영 설정 탭 카드(R11): quieter의 카드 평탄화(:has(>.ep-sec-head))를 이 탭에서만 되돌린다. 넓은 화면은 2열, 삭제(위험 구역)는 맨 아래 전체 폭. 패널 껍데기는 그리드에 끼지 않게 display:contents(이름 없는 section이라 의미 손실 없음). 카드 사이 간격은 grid gap 하나다(.ep-card의 margin-bottom·.ep-tab .ep-delete의 위 간격은 아래 margin:0이 이긴다). */
-.ep-settings-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:start}
+/* 운영 설정 탭 카드(R11): quieter의 카드 평탄화(:has(>.ep-sec-head))를 이 탭에서만 되돌린다. 넓은 화면은 2열, 삭제(위험 구역)는 맨 아래 전체 폭. 패널 껍데기는 그리드에 끼지 않게 display:contents(이름 없는 section이라 의미 손실 없음). 카드 사이 간격은 grid gap 하나다(.ep-card의 margin-bottom·.ep-tab .ep-delete의 위 간격은 아래 margin:0이 이긴다). 같은 줄 카드는 높이를 맞추고(stretch), 카드 머리는 버튼 유무와 무관하게 44px이고 제목 바깥 여백은 0이라 같은 줄 카드의 제목이 한 선에 놓인다(패널 카드만 .ep-reading의 h3 여백 20px을 물려받아 10px 어긋났다). */
+.ep-settings-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:stretch}
 .ep-settings-cards>.ep-operating-settings{display:contents}
 .ep-settings-cards>.ep-operating-settings>:not(.ep-card){grid-column:1/-1}
 .episode-app .ep-settings-cards .ep-card.tcard{background:var(--surface);border:1px solid var(--line2);border-radius:16px;padding:20px 24px;margin:0;box-shadow:none}
 .episode-app .ep-settings-cards .ep-delete{grid-column:1/-1;margin:0;padding:20px 24px;border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line2));border-radius:16px;background:color-mix(in srgb,var(--danger) 4%,var(--surface))}
 .ep-settings-cards .ep-card .ep-facts{margin-top:8px}
+.ep-settings-cards .ep-sec-head{min-height:44px}.ep-settings-cards .ep-sec-head>h3{margin:0}

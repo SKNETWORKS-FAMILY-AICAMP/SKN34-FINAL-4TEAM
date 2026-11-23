@@ -21,8 +21,8 @@ vi.mock('./WorkDashboard', () => ({
     return <button disabled={props.disabled} onClick={() => props.onOpenTab('settings')}>대시보드 운영 설정</button>
   },
 }))
-// AI 집필 탭의 내용은 AiSerialPanel.test가 본다. 여기서는 탭이 이 패널을 그리는지만 본다.
-vi.mock('./AiSerialPanel', () => ({ AiSerialPanel: ({ workId }: { workId: string }) => <p>AI 집필 패널 {workId}</p> }))
+// AI 집필 탭의 내용은 AiSerialPanel.test가 본다. 여기서는 탭이 이 패널을 그리는지와, 호출 측이 주는 운영 설정 이동(onOpenSettings)이 이어지는지만 본다.
+vi.mock('./AiSerialPanel', () => ({ AiSerialPanel: ({ workId, onOpenSettings }: { workId: string; onOpenSettings?: () => void }) => <p>AI 집필 패널 {workId}{onOpenSettings && <button type='button' onClick={onOpenSettings}>패널의 운영 설정 열기</button>}</p> }))
 // 내 댓글·제보 탭의 내용은 MyCommentsReports.test가 본다. 여기서는 탭이 이 화면을 (탭 안 모양으로) 그리는지만 본다.
 vi.mock('../../library/view/MyCommentsReports', () => ({ MyCommentsReports: ({ embedded }: { embedded?: boolean }) => <p>내 댓글·제보 내용 {embedded ? '탭 안' : '쪽'}</p> }))
 // 세계관·설정집 탭의 내용은 각 패널의 테스트가 본다. 여기서는 탭이 열리는지만 본다.
@@ -83,9 +83,9 @@ it('운영 설정 탭은 저장 성공 응답으로 집필 방식 변경 이력�
 
   fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
   fireEvent.change(await screen.findByRole('combobox', { name: '집필 방식' }), { target: { value: 'assisted' } })
-  // 자동 처리의 AI 자율 연재 줄은 '꺼짐'으로 단정하지 않고(집필 방식에서 고르면 어긋난다) 고르는 곳과 설정하는 탭으로 안내한다.
-  expect(screen.getByText('집필 방식에서 고르고 AI 집필 탭에서 설정')).toBeTruthy()
-  expect(screen.queryByText('꺼짐')).toBeNull()
+  // 자동 처리의 AI 자율 연재 줄은 저장된 집필 방식을 따른다: 고르기만 한 협업 집필은 저장 전이라 아직 꺼짐이다.
+  expect(within(screen.getByRole('region', { name: '자동 처리' })).getByText('꺼짐')).toBeTruthy()
+  expect(screen.queryByText('집필 방식에서 고르고 AI 집필 탭에서 설정')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '집필 방식 저장' }))
 
   expect(await screen.findByText('집필 방식을 저장했어요.')).toBeTruthy()
@@ -244,6 +244,23 @@ it('AI 집필 탭은 이야기 분기 다음에 있고, 누르면 탭 제목(h2)
   expect(screen.getByText('AI 집필 패널 w')).toBeTruthy()
 })
 
+it('[critique] AI 집필 탭의 운영 설정 열기는 메뉴를 누른 것처럼 운영 설정 탭으로 옮기고, 요청 중이라 메뉴가 잠긴 동안에는 주지 않는다', async () => {
+  const useCase = { workSettings: vi.fn().mockResolvedValue(settingsOf(null)), updateWorkSettings: vi.fn() }
+  const again = (extra: object) => <MemoryRouter><WorkManagement {...shell} vm={{ ...vm, ...extra } as never} work={work(3)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>
+  const view = render(again({}))
+  fireEvent.click(screen.getByRole('button', { name: 'AI 집필' }))
+  const toSettings = () => screen.queryByRole('button', { name: '패널의 운영 설정 열기' })
+  expect(toSettings()).not.toBeNull()
+  view.rerender(again({ busy: true }))
+  expect(toSettings()).toBeNull() // 메뉴가 막는 이동을 우회하지 않는다
+  view.rerender(again({}))
+  scrolled.length = 0
+  fireEvent.click(toSettings()!)
+  expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('운영 설정')
+  expect(scrolled.filter((s) => (s.arg as ScrollIntoViewOptions | undefined)?.block === 'start')).toHaveLength(1) // 메뉴를 누른 것과 같이 탭 내용 머리로 스크롤
+  expect(await screen.findByRole('combobox', { name: '집필 방식' })).toBeTruthy()
+})
+
 it('내 댓글·제보 탭은 받은 피드백 다음에 있고, 누르면 탭 제목(h2)과 내 댓글·제보 내용을 탭 안(embedded) 모양으로 그린다', () => {
   open(3)
   const names = within(screen.getByRole('navigation', { name: '작품 메뉴' })).getAllByRole('button').map((tab) => tab.textContent)
@@ -396,6 +413,17 @@ it('공개 회차 탭 머리에 집필실로 바로 가는 집필실 열기 링�
     render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, writing: { id: 'w', rows: [] } } as never} work={work(0)} serialLocked={locked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
     toRead()
     expect(screen.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w')
+  }
+})
+
+it('[critique] 공개 회차 탭의 주 행동은 채운 버튼 집필실 열기 하나이고, 가져오기 계열(원고로 세계관 만들기·회차 파일 일괄 업로드)은 작은 보조 버튼이다', () => {
+  open(1)
+  const classes = (el: HTMLElement) => [...el.classList]
+  expect(classes(screen.getByRole('link', { name: '집필실 열기' }))).toEqual(expect.arrayContaining(['btn', 'pri']))
+  for (const name of ['원고로 세계관 만들기', '회차 파일 일괄 업로드']) {
+    const button = screen.getByRole('button', { name })
+    expect(classes(button), name).toEqual(expect.arrayContaining(['btn', 'sm']))
+    expect(classes(button), name).not.toContain('pri')
   }
 })
 

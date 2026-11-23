@@ -240,8 +240,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
           {tab === 'read' && (
             <>
               {!mockup && <WorldBuildBadge key={buildCheck} work={w} />}
-              {/* 원고 편집은 모두 집필실에서 한다: 회차 목록 머리에 집필실로 바로 가는 창구를 둔다(회차가 0개여도 집필실의 새 회차 버튼으로 1화를 만든다). 사이드바에는 같은 버튼을 두지 않는다. */}
-              <p><Go to={`/studio/${w.id}`} className='btn sm'>집필실 열기</Go></p>
+              {/* 원고 편집은 모두 집필실에서 한다: 회차 목록 머리에 집필실로 바로 가는 창구를 둔다(회차가 0개여도 집필실의 새 회차 버튼으로 1화를 만든다). 사이드바에는 같은 버튼을 두지 않는다. 이 탭의 주 행동이라 채운 버튼이다(아래 가져오기 계열은 작은 보조 버튼). */}
+              <p><Go to={`/studio/${w.id}`} className='btn pri'>집필실 열기</Go></p>
               {vm.writing?.error && <p className="ep-alert" role="alert">{vm.writing.error}</p>}
               {/* AI 자율 집필 중에는 1화만 쓴다: 2화부터의 집필실 링크(수정하기)를 잠그고 이유는 여기서 한 번 알린다. */}
               {serialLocked && <div className='ep-notes'><p id={lockNote} role='status'>{SERIAL_LOCK_NOTICE}</p></div>}
@@ -297,8 +297,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               {!mockup && (
                 <div className='ep-list-foot'>
                   {/* 메뉴를 누른 것과 같이 세계관 탭 내용 머리(원고로 세계관 만들기 카드)로 스크롤한다(위 effect). */}
-                  <button type='button' className='btn' disabled={locked} onClick={openWorld}>원고로 세계관 만들기</button>
-                  <button type="button" className="btn" disabled={locked} onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>
+                  <button type='button' className='btn sm' disabled={locked} onClick={openWorld}>원고로 세계관 만들기</button>
+                  <button type="button" className="btn sm" disabled={locked} onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>
                 </div>
               )}
               {bulkImportOpen && <EpisodeBulkImportSheet workId={w.id} onClose={(refresh) => {
@@ -371,7 +371,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
             </section>
           )}
           {/* AI 집필(UC-18)은 서버 기능이라 서버 없는 시연(목업)에서는 지원하지 않는다고만 알린다. */}
-          {tab === 'serial' && (mockup ? <p className='ep-empty'>데모에서는 지원하지 않아요.</p> : <AiSerialPanel workId={w.id} />)}
+          {tab === 'serial' && (mockup ? <p className='ep-empty'>데모에서는 지원하지 않아요.</p> : <AiSerialPanel workId={w.id} onOpenSettings={blocked ? undefined : () => openTab('settings')} />)}
           {tab === 'reports' && (
             // 내가 남긴 제보·수정 제안과 데모 피드백(계정 메뉴의 /content?view=reports 화면과 같은 내용). 탭 제목(h2)이 이미 있어 쪽 제목(h1)은 빼고(embedded), 틀은 받은 피드백 탭(.ep-feedback)과 같다.
             <div className='ep-feedback'><MyCommentsReports embedded /></div>

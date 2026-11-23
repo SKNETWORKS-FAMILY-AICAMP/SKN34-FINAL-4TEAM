@@ -1,7 +1,11 @@
 /* 작품 관리 'AI 집필' 탭: 설정 폼과 게시판 기록 표. 틀(.ep-reading·.ep-form-*·.ep-check·.ep-alert)은 shared/episode.css를 그대로 쓴다. */
-.ep-serial form{margin-top:16px;gap:14px}
+.ep-serial form{gap:14px}
 .ep-serial fieldset{border:0;padding:0;margin:0;min-width:0;display:flex;flex-wrap:wrap;gap:0 18px}
 .ep-serial legend{width:100%;padding:0;margin-bottom:4px;font-size:13px;font-weight:650}
+/* AI 자율 집필이 꺼져 있으면(운영 설정의 집필 방식) 연재 설정 폼 전체를 fieldset disabled로 잠그고 흐리게 한다: 입력·저장이 안 된다는 것이 눈에 보이게. 위 fieldset 규칙은 요일 묶음용이라 이 바깥 껍데기는 블록으로 되돌린다.
+   fieldset은 새 블록 서식 맥락이라 폼의 위 간격(16px)은 폼이 아니라 껍데기가 가진다(앞 형제의 아래 간격과 겹쳐지는 방식이 예전과 같다). */
+.ep-serial .ep-serial-fields{display:block;margin-top:16px}
+.ep-serial .ep-serial-fields:disabled{opacity:.6}
 .ep-serial .ep-check{margin:0}
 .ep-serial input[type=time]{max-width:180px}
 /* 저장 버튼은 안내문 아래 왼쪽이다(운영 설정 탭과 같다). 650px 이하 공용 규칙의 button{align-self:flex-end}는 이 패널에서만 되돌린다. */

@@ -142,6 +142,18 @@ it('집필 방식 select와 저장 버튼은 집필 방식 카드 안에, 자동
   expect(history.getAllByRole('listitem')).toHaveLength(1)
 })
 
+it('자동 처리의 AI 자율 연재는 저장된 집필 방식으로 켜짐·꺼짐을 보인다 (고르기만 하고 저장하지 않은 값은 보지 않는다)', async () => {
+  const auto = () => within(screen.getByRole('region', { name: '자동 처리' }))
+  await open('autonomous')
+  expect(auto().getByText('켜짐')).toBeTruthy()
+  cleanup()
+  const { select } = await open('direct')
+  expect(auto().getByText('꺼짐')).toBeTruthy()
+  choose(select, 'autonomous')
+  expect(auto().getByText('꺼짐')).toBeTruthy()
+  expect(auto().queryByText('켜짐')).toBeNull()
+})
+
 it('저장한 방식이 없으면 설정 변경 이력 카드 안에 안내를 보이고, 저장 결과 안내는 집필 방식 카드 안에서 알린다', async () => {
   const { select, save } = await open(null)
   expect(within(screen.getByRole('region', { name: '설정 변경 이력' })).getByText('저장한 집필 방식이 아직 없어요.')).toBeTruthy()

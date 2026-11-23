@@ -460,4 +460,28 @@ describe('episode.css 작품 관리 화면 polish 계약 (A·B 리뷰 반영)', 
   it('스킵 링크가 초점을 주는 내용 열(.ep-content[tabindex="-1"])은 main처럼 초점 링을 그리지 않는다(내용 열 전체를 두르는 큰 링이 뜨지 않게)', () => {
     expect(rule('.ep-content[tabindex="-1"]:focus')).toMatch(/outline:none/)
   })
+
+  // ── 2단계 critique(#754 G2): 시각 평가(A)와 소스 감사(B)를 반영한 규칙 ──
+  it('[critique] 개요 지표 카드는 줄바꿈 flex이고 카드는 128px부터 늘어나 줄 끝에 홀로 남는 칸이 없다', () => {
+    expect(rule('.ep-metrics')).toMatch(/display:flex;flex-wrap:wrap/)
+    expect(rule('.ep-metrics>div')).toMatch(/flex:1 1 128px/)
+    expect(rule('.ep-metrics')).not.toMatch(/grid-template-columns/)
+  })
+
+  it('[critique] 운영 설정 카드 머리는 44px이고 제목 바깥 여백은 0이다', () => {
+    expect(rule('.ep-settings-cards .ep-sec-head')).toMatch(/min-height:44px/)
+    expect(rule('.ep-settings-cards .ep-sec-head>h3')).toMatch(/margin:0/)
+  })
+
+  it('[critique] 운영 설정 카드 격자는 같은 줄 카드의 높이를 맞춘다(start가 아니라 stretch)', () => {
+    expect(rule('.ep-settings-cards')).toMatch(/align-items:stretch/)
+  })
+
+  it('[critique] 회차 행은 수정하기 링크에 키보드 초점이 있으면 hover와 같은 행 면을 쓴다', () => {
+    expect(rule('.ep-list .ep:has(.ep-row-link:focus-visible)')).toMatch(/background:color-mix\(in srgb,var\(--tfg\) 4%,transparent\)/)
+  })
+
+  it('[critique] 개요 최근 발행 이력 줄은 한 줄 글(block)이라 구분점 뒤에 flex 틈이 생기지 않는다', () => {
+    expect(rule('.ep-dash .ep-settings-history li')).toMatch(/display:block/)
+  })
 })
