@@ -43,6 +43,7 @@ class PublicationScheduleService(
     @Transactional("contentTransactionManager")
     fun create(work: String, owner: String, number: Int, request: PublicationScheduleRequest): PublicationScheduleResponse {
         val episode = ownedEpisode(work, owner, number)
+        access.requireEpisodeWritable(work, number)
         validate(work, owner, number, request)
         checkContent(!schedules.existsByEpisodeIdAndStatus(episode, "pending"), 409, "이미 대기 중인 예약이 있어요.")
         return try {
@@ -58,7 +59,9 @@ class PublicationScheduleService(
 
     @Transactional("contentTransactionManager")
     fun update(work: String, owner: String, number: Int, id: String, request: PublicationScheduleRequest): PublicationScheduleResponse {
-        val row = ownedSchedule(ownedEpisode(work, owner, number), id)
+        val episode = ownedEpisode(work, owner, number)
+        access.requireEpisodeWritable(work, number)
+        val row = ownedSchedule(episode, id)
         val revision = request.revision ?: throw ContentFailure(400, "예약 수정 번호가 필요해요.")
         row.requireEditable(revision)
         validate(work, owner, number, request)

@@ -40,11 +40,19 @@ class EpisodeVersionService(
     }
     fun saveWithVersion(id: String, owner: String, number: Int, data: DraftRequest): VersionResponse {
         access.own(id, owner)
+        access.requireEpisodeWritable(id, number)
         val changed = episodeService.update(id, owner, number, data)
+        return saveVersion(id, owner, number, changed.draft)
+    }
+    /** 자율 연재 실행 자신의 저장이다(AI 집필 잠금을 건너뛴다). SerialService만 부르고 공개 API는 [saveWithVersion]만 쓴다. */
+    fun saveWithVersionForSerial(id: String, owner: String, number: Int, data: DraftRequest): VersionResponse {
+        access.own(id, owner)
+        val changed = episodeService.updateForSerial(id, owner, number, data)
         return saveVersion(id, owner, number, changed.draft)
     }
     fun restore(id: String,owner: String,number: Int,data: RevertRequest): EpisodeResponse {
         access.own(id,owner)
+        access.requireEpisodeWritable(id,number)
         val e=episodeService.read(id,owner,number)
         checkContent(!e.inherited,403,"원작 기준 회차는 수정할 수 없어요.")
         checkContent(e.draft.revision==data.revision,409,"다른 편집이 저장됐어요. 최신 원고를 불러와 주세요.")
@@ -55,8 +63,11 @@ class EpisodeVersionService(
     }
     /** 기존 작품 단위 작성 API: revision은 작품 기준이며 회차 API와 혼동하지 않는다. */
     fun saveCurrent(id: String,owner: String,data: DraftRequest): SavedEpisodeVersionResult {
-        val w=access.own(id,owner);access.requireRevision(w,data.revision)
+        val w=access.own(id,owner)
         val number=publication.nextEpisodeNumber(id)
+        // 작품 단위 저장은 대상 회차(마지막 발행+1)로 잠금을 묻는다: 발행된 회차가 없어 1화가 대상이면 AI 자율 집필 중에도 된다.
+        access.requireEpisodeWritable(id,number)
+        access.requireRevision(w,data.revision)
         val e=episodeService.read(id,owner,number)
         episodeService.update(id,owner,number,DraftRequest(data.title,data.body,e.draft.revision,data.authorNote))
         val row=episodes.findByWorkIdAndSequence(id,number)!!

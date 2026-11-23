@@ -1,0 +1,47 @@
+/* 소설 상세 '다음 회차' 탭(UC-18): 하위 탭 '투표 | 제안 게시판'. 틀(.tcard·.wtabs·.sortt·.btn)과 읽기 토큰(--tfg·--tline·--tsub)은 전역 CSS를 그대로 쓴다. */
+/* 하위 탭은 소설 상세 탭 줄(.wtabs)을 다시 쓴다: 바깥 탭 패널(#panel-work)이 이미 좌우 14px 여백을 가져 가로 여백은 뺀다. */
+.wserial .wtabs.ws-sub{padding:0;margin:0 0 14px}
+.wserial .ws-q{margin:0 0 4px;font-size:15px;font-weight:700}
+.wserial .ws-help{margin:0 0 14px}
+.wserial .ws-note{margin:0 0 12px;font-size:13.5px;color:var(--pri-ink)}
+.wserial .ws-note.err{color:color-mix(in srgb,var(--danger) 70%,var(--tfg))}
+.ws-retry{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.ws-retry.ws-top{margin:0;padding:12px 20px 0}
+.ws-sum{margin:0 0 14px;padding:12px 14px;border-radius:12px;background:var(--muted-bg)}
+.ws-sum b{font-size:12.5px;color:var(--tsub)}
+.ws-sum p{margin:4px 0 0;font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.ws-list{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:8px}
+.ws-badge{display:inline-flex;align-items:center;height:20px;padding:0 6px;border:1px solid var(--tline);border-radius:5px;font-size:11px;font-weight:800;white-space:nowrap}
+.ws-badge.mine{border-color:var(--pri);color:var(--pri-ink)}
+.ws-act{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:2px}
+.ws-act .btn[aria-pressed=true]{border-color:var(--pri);color:var(--pri-ink)}
+/* 투표 선택지: 번호·글·득표(·내 선택)가 한 줄이다. 로그인 회원은 줄 전체가 라디오 라벨이라 어디를 눌러도 고른다. */
+.ws-choice>:is(label,.ws-choice-read){display:flex;align-items:center;gap:10px;min-height:44px;padding:10px 14px;border-radius:12px;background:var(--muted-bg)}
+.ws-choice>label{cursor:pointer}
+.ws-choice>label:has(:focus-visible){outline:2px solid var(--pri);outline-offset:2px}
+.ws-choice[data-mine]>:is(label,.ws-choice-read){box-shadow:inset 0 0 0 1.5px var(--pri)}
+.ws-no{flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--tline);border-radius:50%;font-size:12.5px;font-weight:800;color:var(--tsub)}
+.ws-ctext{flex:1;min-width:0;font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+.ws-votes{flex:none;font-size:13px;font-weight:700;color:var(--tsub);font-variant-numeric:tabular-nums}
+/* 제안 게시판: 정렬 토글(왼쪽)과 글쓰기(오른쪽)가 한 줄이고, 글은 접힌 줄(제목 버튼·유형·작성자·추천·시각)과 펼친 칸(본문·미리보기·추천·숨기기)이다. */
+.ws-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px}
+.ws-op{display:flex;flex-direction:column;padding:2px 16px;border-radius:12px;background:var(--muted-bg)}
+.ws-op[data-mine]{box-shadow:inset 0 0 0 1.5px var(--pri)}
+.ws-head{display:flex;flex-wrap:wrap;align-items:center;gap:0 8px}
+.ws-title{flex:1 1 200px;min-height:44px;padding:0;border:0;background:none;font:inherit;font-size:14.5px;font-weight:700;color:var(--tfg);text-align:left;cursor:pointer;overflow-wrap:anywhere}
+.ws-title:hover{text-decoration:underline}
+.ws-title:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+.ws-meta{margin-left:auto;font-size:12px;color:var(--tsub);font-variant-numeric:tabular-nums}
+.ws-detail{display:flex;flex-direction:column;gap:8px;padding:12px 0 14px;border-top:1px solid var(--tline)}
+.ws-body{margin:0;font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.ws-beats{margin:0;padding-left:20px;font-size:13.5px;line-height:1.7;color:var(--tsub)}
+.ws-scene{margin:4px 0 0;padding:10px 14px;border-radius:8px;background:color-mix(in srgb,var(--pri) 6%,transparent)}
+.ws-scene b{font-size:12px;color:var(--tsub)}
+.ws-scene p{margin:4px 0 0;font-size:14px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.ws-form{display:flex;flex-direction:column;gap:10px;margin:0 0 16px;padding:14px;border:1px solid var(--tline);border-radius:14px}
+.ws-form fieldset{display:flex;flex-wrap:wrap;gap:4px 16px;min-width:0;margin:0;padding:0;border:0}
+.ws-form legend{padding:0;margin-bottom:4px;font-size:12.5px;font-weight:700;color:var(--tsub)}
+.ws-form label{display:flex;align-items:center;gap:6px;font-size:13px}
+.ws-form .ws-hint{margin:0;font-size:12.5px;color:var(--tsub)}
+.ws-form .ws-hint.err{color:color-mix(in srgb,var(--danger) 70%,var(--tfg))}
+.ws-form-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px}

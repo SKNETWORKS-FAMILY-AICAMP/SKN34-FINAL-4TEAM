@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 /** #84: ownership boundaries must hold even when no PostgreSQL server is available. */
 class ContentBoundaryTest {
     private val root = Path.of("src/main/kotlin/ai/storyfork/content")
-    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "like", "reading", "feedbackreport", "editsuggestion", "notice", "preprocessing")
+    private val features = listOf("episode", "episode_version", "work", "world", "fork", "publication", "proposal", "context", "like", "reading", "feedbackreport", "editsuggestion", "notice", "preprocessing", "serial")
 
     @Test fun `content HTTP resources have distinct controllers without raw servlet arguments`() {
         val controllers = mapOf(
@@ -181,8 +181,10 @@ class ContentBoundaryTest {
         // V38 adds scene positions, V39 records author handling time, V40 adds work operating settings history,
         // V41 adds the manuscript preprocessing job table in its own preprocessing leaf (#343, DEC-50),
         // V42 adds genre management columns to the V1 genre table (active·position·featured·emoji, UNIQUE name; DEC-56),
-        // and V43 adds the preprocessing job kind (initial|update) so a completed initial build and its update jobs can coexist (preprocessing leaf).
-        assertEquals((1..23) + (25..31) + (36..43), versions.sorted())
+        // V43 adds the preprocessing job kind (initial|update) so a completed initial build and its update jobs can coexist (preprocessing leaf),
+        // V44 adds the AI serial tables (settings, boards, choices, proposals, votes, summaries; work leaf, #659),
+        // and V45 adds the autonomous writing mode to the V40 work_automation_version CHECK (work leaf, #659).
+        assertEquals((1..23) + (25..31) + (36..45), versions.sorted())
         assertTrue(leaves.contains("classpath:db/migration/sample"))
         assertFalse(Files.readString(Path.of("src/main/kotlin/ai/storyfork/content/_common/config/ContentPersistenceConfig.kt")).contains("outOfOrder"))
         Files.list(migration).use { paths ->

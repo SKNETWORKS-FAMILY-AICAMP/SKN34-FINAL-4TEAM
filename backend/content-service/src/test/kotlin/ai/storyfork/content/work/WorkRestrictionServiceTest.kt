@@ -1,5 +1,6 @@
 package ai.storyfork.content.work
 
+import ai.storyfork.content.serial.repository.AiSerialRepository
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.episode.repository.*
@@ -84,7 +85,7 @@ class WorkRestrictionServiceTest {
         val visibility = mock(WorkPublicationHistoryRepository::class.java)
         val access = WorkAccessService(works, worlds, visibility, mock(ForkPolicyHistoryRepository::class.java),
             mock(ForkPolicyEpisodeRepository::class.java), mock(ForkRepository::class.java), mock(CheckpointRepository::class.java), mock(EpisodeRepository::class.java),
-            mock(EpisodeVersionRepository::class.java), mock(EntityManager::class.java))
+            mock(EpisodeVersionRepository::class.java), mock(AiSerialRepository::class.java), mock(EntityManager::class.java))
         `when`(works.findById("work")).thenReturn(Optional.of(row))
         `when`(worlds.findFirstByWorkIdOrderByRevisionNoDesc("work")).thenReturn(WorkWorldHistoryEntity(workId = "work", worldId = "world"))
         `when`(visibility.findFirstByWorkIdOrderByRevisionNoDesc("work")).thenReturn(WorkPublicationHistoryEntity(workId = "work", visibility = "public"))
