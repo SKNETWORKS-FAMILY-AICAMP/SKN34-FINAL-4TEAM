@@ -373,7 +373,7 @@ it('작성 검토는 열 때만 렌더하고 카드와 관계를 각각 페이�
 it('설정 카드 단계는 공개 설정집과 같은 분류 메뉴·검색·정렬·게시판 표로 카드를 보이고 행을 누르면 미리보기가 열리고 수정하기가 목록 대신 그 카드의 편집 화면을 연다', async () => {
   await show([person('나래'), person('가람', '북부 기록관'), place('항구')])
   const menu = within(screen.getByRole('navigation', { name: '설정 분류' }))
-  expect(menu.getAllByRole('button').map((b) => b.textContent)).toEqual(['전체 3', '인물 2', '장소 1', '보완 필요 2']) // 두 인물은 SOUL이 비어 정리 필요라 보완 필요 분류가 마지막에 선다
+  expect(menu.getAllByRole('button').map((b) => b.textContent)).toEqual(['전체 3', '인물 2', '장소 1', '조직 비어 있음', '규칙 비어 있음', '사건 비어 있음', '기타 비어 있음', '보완 필요 2']) // 보완 필요 분류는 마지막에 선다
   const table = within(screen.getByRole('table', { name: '설정 카드 목록' }))
   expect(table.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['보이는 설정 모두 선택', '번호', '분류', '제목', '상태', '요약', '공개', '연결']) // 맨 앞은 공개 범위를 바꿀 카드를 고르는 선택 칸이다
   const rows = () => dataRows(table).slice(1).map((row) => [...row.querySelectorAll('td')].slice(1).map((td) => (td.classList.contains('col-title') ? td.querySelector('button')?.textContent : td.textContent))) // 선택 칸은 빼고, 제목 칸은 제목 버튼만 본다
@@ -3292,15 +3292,31 @@ it('설정집 게시판은 사건·사물 카드가 인물과 승인된 관계�
   expect(['가람', '항구', '전쟁', '성검'].map(todos)).toEqual([[], [], ['연결 필요'], []]) // 사건 전쟁만 인물과 이어지지 않았다. 장소는 대상이 아니다
 })
 
-it('설정이 있는 세계관에서 카드가 없는 분류는 분류 메뉴에 비어 있음으로 남고, 설정이 하나도 없으면 시작 안내만 있다', async () => {
+it('빈 분류를 선택하면 목록만 바뀌고 추가를 누르면 해당 유형으로 새 편집기를 연다', async () => {
   const filled = { soul: '성격', goal: '목표' }
   await show([withDocs(person('가람', '본문'), filled), place('항구')])
-  expect(cats().getAllByRole('listitem').map((item) => item.textContent)).toEqual(['전체 2', '인물 1', '장소 1', '조직 비어 있음', '규칙 비어 있음', '사건 비어 있음', '기타 비어 있음'])
-  expect(cats().queryByRole('button', { name: /비어 있음/ })).toBeNull() // 비어 있는 분류는 누를 대상이 아니다
-  cleanup()
+  const category = cats().getByRole('button', { name: '조직 비어 있음' })
+  category.focus()
+  expect(document.activeElement).toBe(category)
+  fireEvent.click(category)
+  expect(category.getAttribute('aria-current')).toBe('true')
+  expect(cats().getByRole('button', { name: '전체 2' })).toBeTruthy()
+  expect(boardTable().getByText('아직 조직 설정이 없어요.')).toBeTruthy()
+  expect(screen.queryByRole('region', { name: '선택한 설정 편집' })).toBeNull()
+  fireEvent.click(boardTable().getByRole('button', { name: '+ 조직 설정 추가' }))
+  expect(overview().getByRole('combobox', { name: '유형' })).toHaveProperty('value', 'organization')
+  expect(where()).toMatch(/card=/)
+  backToBoard()
+  expect(cats().getByRole('button', { name: '전체 3' })).toBeTruthy()
+})
+
+it('카드가 하나도 없을 때도 전체의 시작 안내와 분류별 추가를 제공한다', async () => {
   await show([])
-  expect(cats().getAllByRole('listitem').map((item) => item.textContent)).toEqual(['전체 0'])
+  expect(cats().getAllByRole('button', { name: /비어 있음/ })).toHaveLength(6)
   expect(boardTable().getByText('설정을 추가해 시작해 보세요.').closest('td')!.colSpan).toBe(8) // 빈 안내 줄도 표의 열 수와 같다
+  fireEvent.click(cats().getByRole('button', { name: '기타 비어 있음' }))
+  fireEvent.click(boardTable().getByRole('button', { name: '+ 기타 설정 추가' }))
+  expect(overview().getByRole('combobox', { name: '유형' })).toHaveProperty('value', 'other')
 })
 
 it('AI 의견 N은 카드 줄에 붙고 누르면 그 카드의 편집 화면이 열리며, 보완 필요 분류는 상태가 있는 카드만 보인다', async () => {

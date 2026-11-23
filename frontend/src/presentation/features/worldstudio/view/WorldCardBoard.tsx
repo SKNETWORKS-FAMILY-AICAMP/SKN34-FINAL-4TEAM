@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useId, useRef, useState } from 'react'
 
-import { cardTypeOf } from '../../../../domain/entities/studioCards'
+import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
 import { cardRevealEpisode, invalidReveal, REVEAL_EPISODE_ERROR, type StudioSetting } from '../../../../domain/entities/studioWorld'
 import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
 import type { CardStatus } from '../../../../domain/entities/worldReview'
@@ -119,7 +119,16 @@ function RowPreview({ id, row, setting, settings, linked, publicPath, images, on
  */
 export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: (id: string) => void }) {
   const world = vm.editing!
-  const board = useCardBoard(vm)
+  const board = useCardBoard(vm, { showEmptyKinds: true })
+  const categories = [...board.counts, ...board.empty.map((kind) => ({ kind, count: 0 }))]
+  const emptyKind = board.empty.find((kind) => kind === board.kind)
+  const emptyType = cardTypes.find((type) => type.label === emptyKind)
+  const addFirstCard = () => {
+    if (!emptyType) return
+    board.reset()
+    const id = vm.addCard(emptyType.id)
+    if (id) vm.editCard(id)
+  }
   const search = useRef<HTMLInputElement>(null)
   const table = useRef<HTMLTableSectionElement>(null)
   const byId = new Map(world.settings.map((s) => [s.item.id, s]))
@@ -206,11 +215,9 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
           <nav className="worlds-cats" aria-label="설정 분류">
             <ul>
               <li><button type="button" aria-current={board.kind || board.todo ? undefined : 'true'} onClick={() => board.pickKind()}>전체 <span>{board.total}</span></button></li>
-              {board.counts.map(({ kind, count }) => (
-                <li key={kind}><button type="button" aria-current={board.kind === kind ? 'true' : undefined} onClick={() => board.pickKind(kind)}>{kind} <span>{count}</span></button></li>
+              {categories.map(({ kind, count }) => (
+                <li key={kind}><button type="button" aria-current={board.kind === kind ? 'true' : undefined} onClick={() => board.pickKind(kind)}>{kind} <span>{count || '비어 있음'}</span></button></li>
               ))}
-              {/* 카드가 없는 분류는 누를 대상이 아니라 비어 있다고만 알린다. */}
-              {board.empty.map((kind) => <li key={kind} className="worlds-cats-empty"><span>{kind}</span> <span>비어 있음</span></li>)}
               {board.todoCount > 0 && <li><button type="button" aria-current={board.todo ? 'true' : undefined} onClick={board.pickTodo}>보완 필요 <span>{board.todoCount}</span></button></li>}
             </ul>
           </nav>
@@ -272,7 +279,14 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
                       </Fragment>
                     )
                   })}
-                  {!board.rows.length && <tr><td colSpan={8} className="muted">{board.total ? '조건에 맞는 설정이 없어요.' : '설정을 추가해 시작해 보세요.'}</td></tr>}
+                  {!board.rows.length && (
+                    <tr><td colSpan={8} className="muted">
+                      {emptyType ? <>
+                        <p>아직 {emptyType.label} 설정이 없어요.</p>
+                        <button type="button" className="btn sm" onClick={addFirstCard}>+ {emptyType.label} 설정 추가</button>
+                      </> : board.total ? '조건에 맞는 설정이 없어요.' : '설정을 추가해 시작해 보세요.'}
+                    </td></tr>
+                  )}
                 </tbody>
               </table>
               <PageControls page={board.paged.page} pages={board.paged.pages} onPage={board.setPage} />

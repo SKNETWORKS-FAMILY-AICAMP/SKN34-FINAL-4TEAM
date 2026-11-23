@@ -346,11 +346,6 @@ a.world-card-link{text-decoration:none}
 .world-review-ask p{margin:0;line-height:1.7;overflow-wrap:anywhere}
 .world-review-ask .world-consent{align-items:center;min-height:44px;margin-block:0}
 .world-review-ask .world-consent input{flex:none;width:18px;height:18px;accent-color:var(--pri)}
-/* 분류 메뉴: 카드가 없는 분류는 누를 대상이 아니라 비어 있다고만 알린다. 좁은 배치(칩 줄)에서도 줄어들지 않게 flex:none이다. */
-.worlds-cats .worlds-cats-empty{display:flex;flex:none;align-items:center;justify-content:space-between;gap:8px;min-height:40px;padding:0 12px;color:var(--tsub);font-weight:600;white-space:nowrap}
-.worlds-cats .worlds-cats-empty span:last-child{font-size:12px}
-/* 분류 칩 줄(게시판 폭 1000px 이하: 공용 게시판의 760px을 이 화면에서만 올렸다, 아래 규칙)에서는 칩이 44px·좌우 16px이라 빈 분류도 맞춘다(테두리는 두지 않는다). 세로 메뉴(넓은 본문)의 항목은 40px·12px라 위 기본값이 맞다. 위 기본 규칙과 특이도가 같아 뒤에 둔다. */
-@container worlds-board (max-width:1000px){.worlds-cats .worlds-cats-empty{min-height:44px;padding:0 16px}}
 /* 같은 칩 줄에서 고르지 않은 분류 칩은 옅은 테두리·600이라 바로 아래 버튼 줄과 무게가 겹치지 않는다. 고른 칩(aria-current: 보라 테두리·옅은 면)은 공용 규칙 그대로다. */
 @container worlds-board (max-width:1000px){.world-card-library .worlds-cats :is(a,button):not([aria-current]){border-color:var(--line);font-weight:600}}
 /* 상태 칩(정리 필요·연결 필요·공개 순서 N·AI 의견 N): 주의색 글자·테두리의 작은 알약 버튼이다. 제목 칸의 버튼 규칙(굵은 제목 글자·옅은 면 없음·넓힌 누름 영역)은 좁은 배치의 제목 아래 줄에서도 칩에 닿으므로 이 규칙이 특이도로 이긴다. 누름 영역은 가장자리를 넓혀 키운다. */

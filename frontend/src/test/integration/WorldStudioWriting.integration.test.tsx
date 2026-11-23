@@ -58,7 +58,7 @@ it('makes add visible and keeps management entries out of the compact type filte
  expect(screen.getByRole('button',{name:'새 설정'})).toBeTruthy()
  expect(screen.queryByRole('button',{name:'인물 0개'})).toBeNull()
  const menu=within(screen.getByRole('navigation',{name:'설정 분류'}))
- expect(menu.getAllByRole('button').map(button=>button.textContent)).toEqual(['전체 1','인물 1','보완 필요 1']) // 가람은 SOUL이 비어 정리 필요다
+ expect(menu.getAllByRole('button').map(button=>button.textContent)).toEqual(['전체 1','인물 1','장소 비어 있음','조직 비어 있음','규칙 비어 있음','사건 비어 있음','기타 비어 있음','보완 필요 1']) // 가람은 SOUL이 비어 정리 필요다
  expect(screen.queryByText('상세 설정 · 선택')).toBeNull() // 행을 고르기 전에는 편집 패널이 없다
  openCard('가람 인물')
  expect(screen.queryByText('상세 설정 · 선택')).toBeNull() // 인물 같은 일반 카드에는 상세 설정이 없다(분류·별칭·태그는 개요 탭, 사건 시점은 사건 카드의 상세 설정)
