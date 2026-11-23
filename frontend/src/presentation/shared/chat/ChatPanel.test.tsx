@@ -310,6 +310,7 @@ describe('공용 채팅 비활성·첨부', () => {
     // 첨부가 꺼진 화면은 파일 선택 칸도 없고, 파일을 끌어다 놓아도 아무것도 가로채지 않는다
     expect(container.querySelector('input[type="file"]')).toBeNull()
     expect(fireEvent.dragOver(card(container))).toBe(true)
+    expect(fireEvent.dragOver(screen.getByRole('log', { name: '대화 내용' }))).toBe(true)
     // 마이크는 항상 준비 중이라 잠겨 있다
     expect((screen.getByRole('button', { name: '음성 입력 (준비 중)' }) as HTMLButtonElement).disabled).toBe(true)
     // Escape로 닫으면 + 버튼으로 초점이 돌아온다
@@ -345,6 +346,14 @@ describe('공용 채팅 비활성·첨부', () => {
     expect(fireEvent.dragOver(card(container))).toBe(false) // preventDefault: 놓을 수 있다
     drop(container, png(), note())
     expect(within(chips()!).getAllByRole('listitem').map(li => li.textContent)).toEqual(['이미지 · 지도.png×', '텍스트 · 메모.md×'])
+  })
+
+  it('입력 카드 밖(대화 영역)에 파일을 놓아도 브라우저가 파일을 열어 화면을 떠나지 않지만, 첨부로 받지는 않는다(#688 UI 리뷰 P2)', () => {
+    render(<ChatPanel messages={[{ id: 'a', role: 'assistant', text: '답' }]} onSend={vi.fn()} checkFile={checkAttachment} />)
+    const log = screen.getByRole('log', { name: '대화 내용' })
+    expect(fireEvent.dragOver(log)).toBe(false) // preventDefault: 브라우저의 파일 열기(탐색)를 막는다
+    expect(fireEvent.drop(log, { dataTransfer: { files: [png()] } })).toBe(false)
+    expect(chips()).toBeNull()
   })
 
   it('지원하지 않는 형식·5MB 초과·3개 초과는 입력 카드 아래에 이유를 알리고 그 파일만 받지 않는다', () => {
