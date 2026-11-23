@@ -50,6 +50,13 @@ it('hides the page controls for ten or fewer reading records', () => {
   expect(screen.queryByRole('navigation', { name: '페이지' })).toBeNull()
 })
 
+it('이어 읽기 기록이 없으면 빈 테두리 상자 대신 안내 한 줄을 보이고 쪽 버튼은 두지 않는다', () => {
+  const { container } = show(0)
+  expect(screen.getByText('소설을 읽기 시작하면 여기서 이어 읽을 수 있어요.')).toBeTruthy()
+  expect(container.querySelector('.li')).toBeNull()
+  expect(screen.queryByRole('navigation', { name: '페이지' })).toBeNull()
+})
+
 it('puts each title in an h3 that holds the title link, so the rows can be skipped by heading like the other two library tabs', () => {
   show(2)
   const heading = screen.getByRole('heading', { level: 3, name: '작품 1' })

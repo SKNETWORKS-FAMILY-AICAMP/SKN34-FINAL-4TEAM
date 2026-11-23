@@ -59,6 +59,13 @@ describe('storyfork.css 푸터 위치 계약', () => {
   it('인증 화면의 좌우 두 단 틀 바로 아래 푸터는 위 여백 없이 붙는다', () => {
     expect(value('.lg+.foot', 'margin-top')).toBe('0')
   })
+
+  it('넓은 화면 인증 푸터 내용은 가운데 상자가 아니라 왼쪽 면 안쪽 여백(64px)에 맞춘다', () => {
+    const wide = '(min-width:901px)'
+    expect([value('.lg+.foot .wrap', 'max-width', wide), value('.lg+.foot .wrap', 'padding-inline', wide)]).toEqual(['none', '64px'])
+    expect(value('.lg-l', 'padding')).toBe('56px 64px')
+    expect(value('.lg+.foot .wrap', 'max-width')).toBeUndefined()
+  })
 })
 
 describe('storyfork.css 계정 메뉴 계약', () => {
@@ -147,6 +154,10 @@ describe('storyfork.css 서재 목록 카드 계약', () => {
     expect([value('.lib .sec-h h2', 'font-size'), value('.lib .sec-h h2', 'font-weight')]).toEqual(['20px', '700'])
     expect(value('.sec-h :is(h1,h2)', 'font-size')).toBe('23px')
   })
+
+  it('밑줄 탭과 작품 구분 필터는 선택되지 않은 탭에 hover하면 글자가 진해진다', () => {
+    expect(value('.libtabs :is(button,a):not(.on):hover', 'color')).toBe('var(--ink)')
+  })
 })
 
 describe('server-writing.css 서재 목록 제목 줄·칩 줄 계약', () => {
@@ -171,6 +182,7 @@ describe('storyfork.css GNB 검색 버튼 계약 (#505)', () => {
   it('검색 버튼 hover는 테두리색만 바꾸고 후광 그림자를 켜지 않는다', () => {
     expect(value('.search:hover', 'border-color')).toBe('var(--pri)')
     expect(value('.search:hover', 'box-shadow')).toBeUndefined()
+    expect(value('.search', 'transition')).toBe('border-color .15s')
   })
 })
 
