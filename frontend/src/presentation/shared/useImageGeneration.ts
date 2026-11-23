@@ -74,7 +74,9 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'|'visualSett
      if(abort.signal.aborted) return
      file.current=new File([blob],'generated.png',{type:'image/png'})
      url=URL.createObjectURL(blob);setPreview(url)
-    } else if(['failed','interrupted'].includes(next.status)) setError('이미지 생성을 완료하지 못했어요. 결과 확인 후 다시 생성해 주세요.')
+    } else if(next.status==='failed' && next.stage==='output_blocked') setError('생성 이미지가 콘텐츠 기준에 맞지 않아 표시할 수 없어요. 장면 설명을 수정해 주세요.')
+    else if(next.status==='failed' && next.stage==='moderation_unavailable') setError('생성 이미지의 안전성을 확인하지 못했어요. 잠시 후 새로 생성해 주세요.')
+    else if(['failed','interrupted'].includes(next.status)) setError('이미지 생성을 완료하지 못했어요. 결과 확인 후 다시 생성해 주세요.')
     else timer=setTimeout(poll,3000)
    } catch { if(!abort.signal.aborted) setError('상태를 확인하지 못했어요. 화면을 다시 열면 조회를 재개해요.') }
   }

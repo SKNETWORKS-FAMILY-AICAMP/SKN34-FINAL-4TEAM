@@ -4,9 +4,9 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 from celery import Celery
 from openai import APITimeoutError, APIConnectionError
-from app.images import agent, service
+from app.images import agent, moderation, service
 from pydantic import BaseModel
-from app.images.models import ClaimResponse, JobResponse, ProgressRequest, CompletionRequest
+from app.images.models import ClaimResponse, JobResponse, ProgressRequest, CompletionRequest, ModerationFailureRequest
 
 broker = "amqp://{}:{}@{}:{}/".format(quote(os.getenv("CORE_RABBITMQ_USER", "storyfork"), safe=""),
     quote(os.getenv("CORE_RABBITMQ_PASSWORD", ""), safe=""), os.getenv("CORE_RABBITMQ_HOST", "rabbitmq"), os.getenv("CORE_RABBITMQ_PORT", "5672"))
@@ -49,9 +49,16 @@ def execute(job_id: str):
         try:
             raw = agent.generate(data, read_reference(job_id)) if data.referenceRole else agent.generate(data)
             service.validate_image(raw, data)
+            moderation.check_output(raw)
             stage = "uploading"
             report(job_id, "progress", ProgressRequest(stage=stage))
             key = service.upload(job_id, raw)
+        except moderation.OutputBlocked:
+            report(job_id, "failed", ModerationFailureRequest(stage="output_blocked"))
+            return
+        except moderation.OutputModerationUnavailable:
+            report(job_id, "failed", ModerationFailureRequest(stage="moderation_unavailable"))
+            return
         except (APITimeoutError, APIConnectionError):
             report(job_id, "interrupted", ProgressRequest(stage=stage))
             return

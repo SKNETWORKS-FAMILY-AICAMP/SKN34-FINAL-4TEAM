@@ -133,7 +133,15 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
   val (result,discard)=transaction {
    val job=locked(id)
    val wasRunning=job.running()
-   if(wasRunning) { job.status=if(interrupted) "interrupted" else "failed"; job.stage=if(stage=="uploading") stage else "generating"; job.updatedAt=Instant.now() }
+   if(wasRunning) {
+    job.status=if(interrupted) "interrupted" else "failed"
+    job.stage=when {
+     stage=="uploading" -> stage
+     !interrupted && stage in setOf("output_blocked","moderation_unavailable") -> stage
+     else -> "generating"
+    }
+    job.updatedAt=Instant.now()
+   }
    response(job) to (wasRunning && hasTemporaryReference(job))
   }
   if(discard) discardReference(id)

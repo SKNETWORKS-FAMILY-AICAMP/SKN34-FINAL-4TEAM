@@ -1,6 +1,7 @@
 from unittest.mock import Mock
+import pytest
 from app.images.models import ClaimResponse
-from app.images import worker
+from app.images import moderation, worker
 
 def test_duplicate_delivery_skips_paid_call(monkeypatch):
     monkeypatch.setattr(worker, "report", lambda *a: ClaimResponse(claimed=False))
@@ -20,6 +21,7 @@ def test_lost_completion_does_not_regenerate(monkeypatch):
     generated=[]
     monkeypatch.setattr(worker.agent,"generate",lambda _: generated.append(1) or b"image")
     monkeypatch.setattr(worker.service,"validate_image",lambda *a:None)
+    monkeypatch.setattr(moderation, "check_output", lambda _: None)
     monkeypatch.setattr(worker.service,"upload",lambda *a:"image-generations/job.png")
     assert worker.execute.run("job")=={"status":"interrupted"}
     assert len(generated)==1
@@ -33,6 +35,7 @@ def test_upload_failure_is_explicit(monkeypatch):
     monkeypatch.setattr(worker,"report",report)
     monkeypatch.setattr(worker.agent,"generate",lambda _:b"image")
     monkeypatch.setattr(worker.service,"validate_image",lambda *a:None)
+    monkeypatch.setattr(moderation, "check_output", lambda _: None)
     monkeypatch.setattr(worker.service,"upload",lambda *a:(_ for _ in ()).throw(OSError()))
     worker.execute.run("job")
     assert calls==["claim","progress","failed"]
@@ -58,3 +61,48 @@ def test_unavailable_reference_does_not_fall_back_to_paid_text_generation(monkey
 
     generate.assert_not_called()
     assert calls == ["claim", "failed"]
+
+
+@pytest.mark.parametrize(("error", "stage"), [
+    (moderation.OutputBlocked, "output_blocked"),
+    (moderation.OutputModerationUnavailable, "moderation_unavailable"),
+])
+def test_unapproved_output_never_uploads_or_completes(monkeypatch, error, stage):
+    calls = Mock()
+    calls.report.side_effect = [ClaimResponse.model_validate({"claimed": True, "input": {
+        "purpose": "work_cover", "prompt": "scene",
+    }}), None]
+    calls.generate.return_value = b"generated png"
+    calls.check_output.side_effect = error
+    monkeypatch.setattr(worker, "report", calls.report)
+    monkeypatch.setattr(worker.agent, "generate", calls.generate)
+    monkeypatch.setattr(worker.service, "validate_image", calls.validate_image)
+    monkeypatch.setattr(moderation, "check_output", calls.check_output)
+    monkeypatch.setattr(worker.service, "upload", calls.upload)
+
+    worker.execute.run("job")
+
+    assert [event[0] for event in calls.mock_calls] == ["report", "generate", "validate_image", "check_output", "report"]
+    calls.check_output.assert_called_once_with(b"generated png")
+    assert calls.report.call_args.args[1] == "failed"
+    assert calls.report.call_args.args[2].stage == stage
+
+
+def test_approved_output_uploads_only_after_check(monkeypatch):
+    calls = Mock()
+    calls.report.side_effect = [ClaimResponse.model_validate({"claimed": True, "input": {
+        "purpose": "work_cover", "prompt": "scene",
+    }}), None, None]
+    calls.generate.return_value = b"generated png"
+    calls.upload.return_value = "image-generations/job.png"
+    monkeypatch.setattr(worker, "report", calls.report)
+    monkeypatch.setattr(worker.agent, "generate", calls.generate)
+    monkeypatch.setattr(worker.service, "validate_image", calls.validate_image)
+    monkeypatch.setattr(moderation, "check_output", calls.check_output)
+    monkeypatch.setattr(worker.service, "upload", calls.upload)
+
+    worker.execute.run("job")
+
+    assert [event[0] for event in calls.mock_calls] == ["report", "generate", "validate_image", "check_output", "report", "upload", "report"]
+    calls.check_output.assert_called_once_with(b"generated png")
+    calls.upload.assert_called_once_with("job", b"generated png")

@@ -28,6 +28,17 @@ it('조회 통신 실패는 작업 기록을 지우거나 재생성하지 않는
  expect(useCase.submit).not.toHaveBeenCalled()
 })
 
+it.each([
+ ['output_blocked','콘텐츠 기준'],
+ ['moderation_unavailable','안전성을 확인하지 못했어요'],
+])('저장 전 검사 실패 %s에 안내를 표시하고 미리보기를 읽지 않는다',async(stage,message)=>{
+ useCase.read.mockResolvedValue({jobId:'old-job',status:'failed',stage,previewUrl:null})
+ const {result}=renderHook(()=>useImageGeneration({purpose:'work_cover'}))
+ await waitFor(()=>expect(result.current.error).toContain(message))
+ expect(useCase.image).not.toHaveBeenCalled()
+ expect(useCase.submit).not.toHaveBeenCalled()
+})
+
 it('같은 입력 재접수는 키를 유지하고 고정 설정이 바뀌면 새 키를 쓴다',async()=>{
  sessionStorage.clear()
  useCase.submit.mockRejectedValue(new Error('offline'))

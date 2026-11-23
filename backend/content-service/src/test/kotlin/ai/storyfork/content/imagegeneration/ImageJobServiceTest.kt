@@ -51,6 +51,19 @@ class ImageJobServiceTest {
   `when`(jobs.lock(id)).thenReturn(ImageJob(id=id,status="succeeded"))
   assertEquals("succeeded",service.failed(id,"uploading").status)
  }
+ @Test fun `moderation failure stages survive polling without a preview`() {
+  for (stage in listOf("output_blocked", "moderation_unavailable")) {
+   val job=ImageJob(owner="alice",status="running",stage="generating")
+   `when`(jobs.lock(job.id)).thenReturn(job)
+   service.failed(job.id,stage)
+   val result=service.read(job.id,"alice")
+   assertEquals("failed",result.status)
+   assertEquals(stage,result.stage)
+   assertNull(result.previewUrl)
+   assertEquals(409,assertThrows(ContentFailure::class.java){service.content(job.id,"alice")}.status)
+  }
+  verifyNoInteractions(storage)
+ }
  @Test fun `cover inputs and version are frozen and changed settings conflict`() {
   val owner=UUID.randomUUID().toString();val requestKey=UUID.randomUUID()
   val request=mapper.readValue("""{"purpose":"work_cover","prompt":"새벽 항구","visualSettings":"황동 탑"}""",ImageRequest::class.java)

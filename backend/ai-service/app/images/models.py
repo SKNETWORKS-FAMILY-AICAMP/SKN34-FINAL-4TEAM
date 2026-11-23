@@ -50,5 +50,8 @@ class ClaimResponse(BaseModel):
 class ProgressRequest(BaseModel):
     stage: Literal["generating", "uploading"]
 
+class ModerationFailureRequest(BaseModel):
+    stage: Literal["output_blocked", "moderation_unavailable"]
+
 class CompletionRequest(BaseModel):
     key: str
