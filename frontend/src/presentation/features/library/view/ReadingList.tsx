@@ -14,7 +14,7 @@ export function ReadingList({ recent, removing, onRemove }: { recent: Recent; re
   if (!recent.length) return <div className="list"><div className="rp muted">소설을 읽기 시작하면 여기서 이어 읽을 수 있어요.</div></div>
   return <>
     <div className="list">{view.items.map(({ work: w, n, tot }) => (
-      <div className="li rowlink" key={w.id}><div className="th"><CoverOf w={w} /></div><div><h3><Go to={`/work/${w.id}`} className="li-link">{w.title}</Go></h3><div className="m">{n}화까지 읽음{w.genre && ` · ${w.genre}`}</div><div className="bar"><i style={{ width: `${n / tot * 100}%` }} /></div></div><div className="acts"><button type="button" className="btn sm weak" aria-label={`${w.title} 이어 읽기 기록 삭제`} disabled={!!removing} onClick={() => onRemove(w.id)}>기록 삭제</button><Go to={`/read/${w.id}/${n}`} className="btn sm pri">▶ {n}화 이어 읽기</Go></div></div>
+      <div className="li rowlink" key={w.id}><div className="th"><CoverOf w={w} /></div><div><h3><Go to={`/work/${w.id}`} className="li-link">{w.title}</Go></h3><div className="m">{tot ? `${n} / ${tot}화 읽음` : `${n}화까지 읽음`}{w.genre && ` · ${w.genre}`}</div><div className="bar"><i style={{ width: `${n / tot * 100}%` }} /></div></div><div className="acts"><button type="button" className="btn sm weak" aria-label={`${w.title} 이어 읽기 기록 삭제`} disabled={!!removing} onClick={() => onRemove(w.id)}>기록 삭제</button><Go to={`/read/${w.id}/${n}`} className="btn sm pri">▶ {n}화 이어 읽기</Go></div></div>
     ))}</div>
     <Pager page={view.page} pages={view.pages} onPage={setPage} />
   </>

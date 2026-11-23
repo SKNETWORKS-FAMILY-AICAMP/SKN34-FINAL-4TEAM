@@ -99,18 +99,15 @@ it('is titled 집필 중인 작품 and has no refresh button, Fork toggle, or Fo
   expect(screen.queryByRole('button', { name: /새로고침|내 포크만 보기|포크 삭제|포크 공개 중단|기본 정보 저장/ })).toBeNull()
 })
 
-it('opens the work management page and the writing studio from separate links on every card', async () => {
+it('opens the writing studio from the one primary button of every card and the work management page only from the title link that covers the card', async () => {
   await show([original, fork])
-  expect(screen.getByRole('link', { name: '내 포크 관리하기' }).getAttribute('href')).toBe('/content?work=fork')
   expect(screen.getByRole('link', { name: '내 포크 회차 작성하기' }).getAttribute('href')).toBe('/studio/fork')
-  expect(screen.getByRole('link', { name: '원작 관리하기' }).getAttribute('href')).toBe('/content?work=original')
-  expect(screen.getByRole('link', { name: '원작 관리하기' }).className).toBe('btn sm') // 세계관 카드의 관리하기와 같은 보조 버튼
   expect(screen.getByRole('link', { name: '원작 회차 작성하기' }).getAttribute('href')).toBe('/studio/original')
-  // 버튼 순서는 세 탭이 같다: 보조 → 주, 주 버튼은 줄의 오른쪽 끝
+  // 카드 전체(제목 링크)와 같은 주소로 가는 '관리하기' 버튼은 없다: 버튼은 주 버튼 하나뿐이고 줄의 오른쪽 끝이다
   const acts = screen.getByRole('link', { name: '원작 회차 작성하기' }).parentElement
-  expect(Array.from(acts?.children ?? [], button => button.textContent)).toEqual(['관리하기', '회차 작성하기'])
+  expect(Array.from(acts?.children ?? [], button => button.textContent)).toEqual(['회차 작성하기'])
   expect(acts?.lastElementChild?.className).toBe('btn sm pri')
-  // 제목도 같은 작품 관리 링크이고 ::after가 카드 전체를 덮는다(storyfork.css)
+  // 제목이 작품 관리 링크이고 ::after가 카드 전체를 덮는다(storyfork.css)
   expect(screen.getByRole('link', { name: '원작' }).getAttribute('href')).toBe('/content?work=original')
   expect(screen.getByRole('link', { name: '내 포크' }).getAttribute('href')).toBe('/content?work=fork')
   expect(screen.getByRole('link', { name: '원작' }).closest('article')?.className).toBe('li rowlink')

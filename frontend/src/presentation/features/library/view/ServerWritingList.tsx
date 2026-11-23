@@ -56,7 +56,6 @@ export function ServerWritingList({ newTo }: { newTo: string }) {
               {work.summary && <p className="m server-summary">{work.summary}</p>}
             </div>
             <div className="acts">
-              <Go className="btn sm" to={`/content?work=${work.id}`} aria-label={`${work.title} 관리하기`}>관리하기</Go>
               <Go className="btn sm pri" to={`/studio/${work.id}`} aria-label={`${work.title} 회차 작성하기`}>회차 작성하기</Go>
             </div>
           </article>)}</div>

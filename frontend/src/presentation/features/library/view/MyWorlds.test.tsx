@@ -22,7 +22,7 @@ const coverOf = (name: string) => screen.getByRole('heading', { level: 3, name }
 it('shows the server card count of a summary, which carries no settings', async () => {
   api.list.mockResolvedValueOnce([{ ...world(1, 0), cardCount: 7 }])
   show()
-  expect(await screen.findByText('설정 7개 · 버전 3')).toBeTruthy()
+  expect(await screen.findByText('설정 7개')).toBeTruthy()
 })
 
 it('lists my worlds as cards that open the world studio, with a new-world link on top', async () => {
@@ -31,13 +31,11 @@ it('lists my worlds as cards that open the world studio, with a new-world link o
   await screen.findByRole('heading', { level: 3, name: '세계 1' })
   expect(screen.getByRole('heading', { level: 2, name: '내가 만드는 세계관' })).toBeTruthy()
   expect(screen.getByRole('link', { name: /＋ 새 세계관 만들기/ }).getAttribute('href')).toBe('/worldstudio')
-  expect(screen.getByRole('link', { name: '세계 1 관리하기' }).getAttribute('href')).toBe('/worldstudio/w1')
-  expect(screen.getByRole('link', { name: '세계 2 관리하기' }).getAttribute('href')).toBe('/worldstudio/w2')
-  expect(screen.getByRole('link', { name: '세계 1 관리하기' }).className).toBe('btn sm') // 작품 카드의 관리하기와 같은 보조 버튼
+  expect(screen.queryByRole('link', { name: /관리하기/ })).toBeNull() // 같은 작업실로 가는 버튼은 없다: 이름 링크가 카드 전체를 덮는다
   // 이름도 같은 작업실 링크이고 ::after가 카드 전체를 덮는다(storyfork.css)
   expect(screen.getByRole('link', { name: '세계 1' }).getAttribute('href')).toBe('/worldstudio/w1')
   expect(screen.getByRole('link', { name: '세계 1' }).closest('article')?.className).toBe('li rowlink')
-  expect(screen.getByText('설정 5개 · 버전 3')).toBeTruthy()
+  expect(screen.getByText('설정 5개')).toBeTruthy() // 버전 N은 서재에서 고를 때 쓰지 않는 내부 값이라 카드에 없다
   expect(Array.from(container.querySelectorAll('img.cimg'), image => image.getAttribute('src'))).toEqual(['/default-work-cover.svg', '/default-work-cover.svg'])
   expect(screen.queryByRole('navigation', { name: '페이지' })).toBeNull()
 })
@@ -84,17 +82,15 @@ it('shows loading first, then a retry next to the error that loads the list agai
   expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull()
 })
 
-it('ends with the same 새로 시작하기 section as the writing tab: three dashed cards', async () => {
+it('ends with a 새로 시작하기 section of two dashed cards: a new world and the public worlds', async () => {
   api.list.mockResolvedValueOnce([world(1)])
   const { container } = show()
   await screen.findByRole('heading', { level: 3, name: '세계 1' })
   expect(screen.getByRole('heading', { level: 2, name: '새로 시작하기' })).toBeTruthy()
   expect(Array.from(container.querySelectorAll('.newbox a.newc'), link => [link.querySelector('b')?.textContent, link.getAttribute('href')])).toEqual([
     ['＋ 새 세계관 만들기', '/worldstudio'],
-    ['＋ 원고로 세계관 정리하기', '/worldstudio'],
     ['✎ 공개 세계관 둘러보기', '/worlds'],
   ])
-  expect(screen.getByText('세계관을 만든 뒤 저장한 초안에서 AI 설정 후보를 받아요')).toBeTruthy()
 })
 
 it('puts a small primary + 새 세계관 button on the right of the heading row, going where the 새 세계관 만들기 card goes, and keeps it when the list failed', async () => {
@@ -115,7 +111,7 @@ it('marks each world card public or private with the same chip as the work cards
   const card = (name: string) => within(screen.getByRole('heading', { level: 3, name }).closest('article') as HTMLElement)
   expect(card('세계 1').getByText('비공개').className).toBe('chip') // 값이 없으면 비공개(옛 응답·데모)
   expect(card('세계 2').getByText('공개').className).toBe('chip ok')
-  expect(card('세계 2').getByText('설정 2개 · 버전 3')).toBeTruthy()
+  expect(card('세계 2').getByText('설정 2개')).toBeTruthy()
 })
 
 it('pages ten worlds at a time with the shared pager', async () => {

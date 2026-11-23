@@ -19,7 +19,7 @@ it('treats only a world just created from the creation screen (?new=1) as write 
   const at = (query: string) => studioMode(new URLSearchParams(query))
   expect(at('new=1')).toBe('write') // 새 세계관 만들기 직후
   expect(at('new=1&tab=book')).toBe('write')
-  expect(at('')).toBe('manage') // 서재 '관리하기'·직접 주소(저장 버전 0인 세계관 포함)
+  expect(at('')).toBe('manage') // 서재 카드·직접 주소(저장 버전 0인 세계관 포함)
   expect(at('tab=people')).toBe('manage')
   for (const query of ['new=0', 'new=', 'new=true', 'NEW=1']) expect(at(query), query).toBe('manage')
 })

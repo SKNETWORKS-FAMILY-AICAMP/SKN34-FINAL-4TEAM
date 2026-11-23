@@ -34,14 +34,20 @@ it('links the title to the work page, keeps the continue link and the delete but
   expect(title.contains(remove)).toBe(false) // 링크 안에 버튼을 넣지 않는다
   fireEvent.click(remove)
   expect(onRemove).toHaveBeenCalledWith('w1')
-  expect(screen.getByText('1화까지 읽음 · 판타지')).toBeTruthy()
+  expect(screen.getByText('1 / 3화 읽음 · 판타지')).toBeTruthy() // 막대의 분모(전체 화수)를 글로도 보인다
 })
 
 it('leaves out the separator when the work has no genre', () => {
   const noGenre = [{ work: { id: 'w1', title: '작품 1', genre: '' }, n: 1, tot: 3 }] as unknown as Recent
   render(<MemoryRouter><ReadingList recent={noGenre} removing={null} onRemove={vi.fn()} /></MemoryRouter>)
-  expect(screen.getByText('1화까지 읽음')).toBeTruthy()
+  expect(screen.getByText('1 / 3화 읽음')).toBeTruthy()
   expect(screen.queryByText(/·/)).toBeNull()
+})
+
+it('전체 화수를 알 수 없으면(tot 0) 분모 없이 읽은 화까지만 보인다', () => {
+  const unknown = [{ work: { id: 'w1', title: '작품 1', genre: '판타지' }, n: 2, tot: 0 }] as unknown as Recent
+  render(<MemoryRouter><ReadingList recent={unknown} removing={null} onRemove={vi.fn()} /></MemoryRouter>)
+  expect(screen.getByText('2화까지 읽음 · 판타지')).toBeTruthy()
 })
 
 it('hides the page controls for ten or fewer reading records', () => {

@@ -26,10 +26,7 @@ export function MyWorlds() {
           <div className="list">{view.items.map(world => <article className="li rowlink" key={world.id}>
             <Cover id={world.id} hasCover={!!world.hasCover} />
             <div className="server-writing-content"><h3><Go to={`/worldstudio/${world.id}`} className="li-link">{world.name}</Go></h3>
-              <div className="m server-tags"><span className={world.visibility === 'public' ? 'chip ok' : 'chip'}>{world.visibility === 'public' ? '공개' : '비공개'}</span>설정 {world.cardCount ?? world.settings.length}개 · 버전 {world.version}</div>
-            </div>
-            <div className="acts">
-              <Go className="btn sm" to={`/worldstudio/${world.id}`} aria-label={`${world.name} 관리하기`}>관리하기</Go>
+              <div className="m server-tags"><span className={world.visibility === 'public' ? 'chip ok' : 'chip'}>{world.visibility === 'public' ? '공개' : '비공개'}</span>설정 {world.cardCount ?? world.settings.length}개</div>
             </div>
           </article>)}</div>
           <Pager page={view.page} pages={view.pages} onPage={setPage} />
@@ -38,8 +35,6 @@ export function MyWorlds() {
     {/* 작품 탭의 '새로 시작하기'와 같은 마크업이다. 목록을 못 불러와도 시작할 수 있게 목록 상태와 따로 둔다. */}
     <div className="sec"><div className="sec-h"><h2>새로 시작하기</h2></div><div className="newbox">
       <Go to="/worldstudio" className="newc"><b>＋ 새 세계관 만들기</b><span>비공개 세계관을 만들고 설정부터 채워요</span></Go>
-      {/* ponytail: AI 후보 검토(InitialWorldReview)는 작업실 안의 도구라 직접 진입 주소가 없고 입력도 원고가 아닌 저장한 세계관 초안이다. 주소가 생기면 여기로 연결. */}
-      <Go to="/worldstudio" className="newc"><b>＋ 원고로 세계관 정리하기</b><span>세계관을 만든 뒤 저장한 초안에서 AI 설정 후보를 받아요</span></Go>
       <Go to="/worlds" className="newc"><b>✎ 공개 세계관 둘러보기</b><span>다른 작가의 공개 세계관을 살펴봐요 (파생은 준비 중)</span></Go>
     </div></div>
   </>
