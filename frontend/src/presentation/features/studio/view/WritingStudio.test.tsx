@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { afterEach, expect, it, vi } from 'vitest'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation, useNavigationType } from 'react-router'
+import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import { LazyManuscriptEditor as fakeEditor } from '../../../../test/manuscriptEditorFake'
 import { WritingStudio } from './WritingStudio'
@@ -443,6 +444,36 @@ it('미저장 입력 때문에 이탈을 취소하면 현재 집필실에 남는
   model.mayLeave.mockReturnValueOnce(false)
   fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
   expect(where()).toBe('/studio/work-id')
+})
+
+it.each([true, false])('연결된 내 세계관이 있을 때만 설정집 이동을 제공한다 (%s)', async (linked) => {
+  const worlds = appContainer.resolve('worldStudioUseCase')
+  const list = vi.spyOn(worlds, 'list').mockResolvedValue([{
+    id: 'world-id', name: '세계관', description: '', version: 1, settings: [], analysis: null,
+    linkedWorkId: linked ? 'work-id' : 'other-work',
+  }])
+  try {
+    model.dirty = true
+    await act(async () => { renderStudio() })
+    openMore()
+    const name = { name: '연결된 세계관 보기' }
+    expect(list).toHaveBeenCalled()
+    if (!linked) {
+      expect(screen.queryByRole('menuitem', name)).toBeNull()
+      return
+    }
+    const link = await screen.findByRole('menuitem', name)
+    expect(link.getAttribute('href')).toBe('/worldstudio/world-id')
+    model.mayLeave.mockReturnValueOnce(false)
+    fireEvent.click(link)
+    expect(model.mayLeave).toHaveBeenCalledTimes(1)
+    expect(where()).toBe('/studio/work-id')
+    expect(screen.getByLabelText('원고 본문')).toHaveProperty('value', model.draft.body)
+    fireEvent.click(link)
+    expect(where()).toBe('/worldstudio/world-id')
+  } finally {
+    list.mockRestore()
+  }
 })
 
 it('회차 편집 영역은 건너뛰기 링크가 닿는 하나의 main 안에 있고 h1은 하나다', () => {

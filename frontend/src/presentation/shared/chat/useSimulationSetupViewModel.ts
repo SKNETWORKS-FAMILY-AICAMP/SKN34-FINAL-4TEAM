@@ -4,7 +4,7 @@ import { useAsyncData } from '../useAsyncData'
 
 /**
  * 이 작품에 연결된 내 세계관의 id. 없으면(연결 없음·아직 읽는 중·읽지 못함) null이다. 이어받은 원작 세계관은 읽기 전용이라 편집 화면이 없으므로 null이다.
- * 비트 거부로 멈춘 장면이 거부한 인물 카드의 설정집 편집 화면(`/worldstudio/{id}?card=`)으로 잇는 데 쓴다(#356).
+ * 집필실에서 설정집으로 이동하거나(#601), 비트 거부로 멈춘 장면에서 해당 인물 카드 편집 화면으로 이동할 때 쓴다(#356).
  */
 export function useLinkedWorldId(workId: string) {
   const worlds = appContainer.resolve('worldStudioUseCase')
