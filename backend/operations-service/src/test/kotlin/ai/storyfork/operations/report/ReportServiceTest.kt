@@ -459,7 +459,7 @@ class ReportServiceTest {
     @Test
     fun `a world report takes the world's name from the Content list and stores no work and no owner`() {
         `when`(content.worldStudios()).thenReturn(mapper.readTree(
-            """[{"worldId":"${UUID.randomUUID()}","ownerId":"${UUID.randomUUID()}","name":"다른 세계"},{"worldId":"${worldId}","ownerId":"${owner.memberId}","name":"별빛 세계"}]""",
+            """[{"worldId":"${UUID.randomUUID()}","ownerId":"${UUID.randomUUID()}","name":"다른 세계","visibility":"public","published":true,"restricted":false},{"worldId":"${worldId}","ownerId":"${owner.memberId}","name":"별빛 세계","visibility":"public","published":true,"restricted":false}]""",
         ))
         `when`(reports.saveAndFlush(any(ReportEntity::class.java) ?: report())).thenAnswer { it.arguments[0] }
 
@@ -479,10 +479,33 @@ class ReportServiceTest {
 
     @Test
     fun `a world Content does not list is not found and nothing is stored`() {
-        `when`(content.worldStudios()).thenReturn(mapper.readTree("""[{"worldId":"${UUID.randomUUID()}","ownerId":"${UUID.randomUUID()}","name":"다른 세계"}]"""))
+        `when`(content.worldStudios()).thenReturn(mapper.readTree("""[{"worldId":"${UUID.randomUUID()}","ownerId":"${UUID.randomUUID()}","name":"다른 세계","visibility":"public","published":true,"restricted":false}]"""))
 
         assertThrows(NoSuchElementException::class.java) {
             service.create(reporter, ReportRequest(ReportKind.HARMFUL, null, "유해", targetType = ReportTarget.WORLD, worldId = worldId))
+        }
+
+        verifyNoInteractions(reports, histories)
+    }
+
+    @Test
+    fun `a world a reader cannot see is not found like an unknown one, so a private world's id and name are not given away`() {
+        val hidden = listOf(
+            """{"worldId":"$worldId","ownerId":"${owner.memberId}","name":"비공개 세계","visibility":"private","published":true,"restricted":false}""",
+            """{"worldId":"$worldId","ownerId":"${owner.memberId}","name":"저장 버전 없는 세계","visibility":"public","published":false,"restricted":false}""",
+            """{"worldId":"$worldId","ownerId":"${owner.memberId}","name":"제한된 세계","visibility":"public","published":true,"restricted":true}""",
+            // A missing flag counts as not visible, so a row that lacks one is refused too.
+            """{"worldId":"$worldId","ownerId":"${owner.memberId}","name":"공개 범위가 없는 행","published":true,"restricted":false}""",
+            """{"worldId":"$worldId","ownerId":"${owner.memberId}","name":"저장 표시가 없는 행","visibility":"public","restricted":false}""",
+            """{"worldId":"$worldId","ownerId":"${owner.memberId}","name":"제한 표시가 없는 행","visibility":"public","published":true}""",
+        )
+
+        for (row in hidden) {
+            `when`(content.worldStudios()).thenReturn(mapper.readTree("[$row]"))
+
+            assertThrows(NoSuchElementException::class.java, {
+                service.create(reporter, ReportRequest(ReportKind.HARMFUL, null, "유해", targetType = ReportTarget.WORLD, worldId = worldId))
+            }, row)
         }
 
         verifyNoInteractions(reports, histories)

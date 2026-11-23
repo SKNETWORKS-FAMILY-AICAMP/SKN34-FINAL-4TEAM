@@ -56,7 +56,7 @@ OperationsWorkList = { items: OperationsWork[] }
 |---|---|
 | `GET /works/{id}/episodes` | Content 내부 `GET /internal/v1/works/{workId}/episodes`의 **맨 배열**: `[{number,title,publicationStatus,restricted,inherited}]`(본문 없음, 번호순). 없는·삭제 작품 404 |
 | `PUT`·`DELETE /works/{id}/episodes/{number}/restriction` | 그 회차 한 원소를 그대로. 상속 회차(Fork가 물려받은 회차)는 409 `EPISODE_INHERITED`(원작 회차를 제한해야 함), 없는 회차 404 |
-| `GET /world-studios` | Content 내부 `GET /internal/v1/world-studios`의 맨 배열(`worldId·ownerId·name·visibility·published·restricted·genre·linkedWorkId·createdAt`)에 `ownerName`(Core 최신 닉네임, 목록에 없으면 null)만 더함 |
+| `GET /world-studios` | Content 내부 `GET /internal/v1/world-studios`의 맨 배열(`worldId·ownerId·name·visibility·published·restricted·genre·linkedWorkId·createdAt`)에 `ownerName`(Core 닉네임 일괄 조회 `POST /internal/v1/members/nicknames`의 최신 닉네임, 목록에 없으면 null)만 더함 |
 | `PUT`·`DELETE /world-studios/{id}/restriction` | 그 세계관 한 원소를 그대로(`ownerName` 없음). 없는·지운 세계관 404 |
 | `GET`·`POST /card-categories`, `PATCH /card-categories/{code}`, `PUT /card-categories/order` | Content 내부 카드 카테고리 API 그대로(맨 배열, 숨김 포함·`position` 순, 삭제 없음). 추가 `{name, icon?}`는 201, 이름 중복 409 `CARD_CATEGORY_NAME_TAKEN`, 변경 `{name?, icon?, active?}`(`icon: ""`은 아이콘을 지움), 순서 `{codes}`는 전체 코드를 한 번씩(아니면 422) |
 

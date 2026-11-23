@@ -5,11 +5,8 @@ import ai.storyfork.operations._common.client.CoreClient
 import ai.storyfork.operations._common.client.UpstreamRejection
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
-import ai.storyfork.operations.member.service.dto.MemberItem
-import ai.storyfork.operations.member.service.dto.MemberListResponse
 import ai.storyfork.operations.security.OperationsMember
 import ai.storyfork.operations.worldstudio.service.WorldStudioService
-import java.time.Instant
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -29,7 +26,6 @@ class WorldStudioServiceTest {
     private val admin = OperationsMember(UUID.randomUUID(), true)
     private val operatorWithoutWorks = OperationsMember(UUID.randomUUID(), true)
     private val staleGrant = OperationsMember(UUID.randomUUID(), false)
-    private val bearer = "Bearer admin-access"
     private val worldId = UUID.randomUUID()
     private val ownerId = UUID.randomUUID()
     private val strangerId = UUID.randomUUID()
@@ -53,10 +49,9 @@ class WorldStudioServiceTest {
 
     private fun status(call: () -> Unit) = assertThrows(ResponseStatusException::class.java) { call() }.statusCode
 
+    /** Core knows the first owner only; the lookup asks for every owner of the list rows, in their order. */
     private fun givenNicknames() {
-        `when`(core.members(bearer, null, null, null)).thenReturn(MemberListResponse(listOf(
-            MemberItem(ownerId, "writer@example.test", "작가", "MEMBER", false, Instant.parse("2026-01-01T00:00:00Z")),
-        )))
+        `when`(core.nicknames(listOf(ownerId.toString(), strangerId.toString()))).thenReturn(mapOf(ownerId.toString() to "작가"))
     }
 
     @Test
@@ -65,7 +60,9 @@ class WorldStudioServiceTest {
         `when`(content.worldStudios()).thenReturn(contentRows())
         givenNicknames()
 
-        assertEquals(rowsWithOwnerNames, service.list(admin, bearer))
+        assertEquals(rowsWithOwnerNames, service.list(admin))
+        verify(core).nicknames(listOf(ownerId.toString(), strangerId.toString()))
+        verifyNoMoreInteractions(core)
         verifyNoInteractions(activities)
     }
 
@@ -90,7 +87,7 @@ class WorldStudioServiceTest {
     fun `an operator without works permission or a stale grant without operator is denied before Content and Core`() {
         grantWorks(staleGrant)
         for (member in listOf(operatorWithoutWorks, staleGrant)) {
-            assertEquals(HttpStatus.FORBIDDEN, status { service.list(member, bearer) })
+            assertEquals(HttpStatus.FORBIDDEN, status { service.list(member) })
             assertEquals(HttpStatus.FORBIDDEN, status { service.restrict(member, worldId) })
             assertEquals(HttpStatus.FORBIDDEN, status { service.unrestrict(member, worldId) })
         }
@@ -105,7 +102,7 @@ class WorldStudioServiceTest {
         `when`(content.restrictWorld(worldId)).thenThrow(rejection)
         `when`(content.unrestrictWorld(worldId)).thenThrow(ResponseStatusException(HttpStatus.NOT_FOUND))
 
-        assertEquals(HttpStatus.BAD_GATEWAY, status { service.list(admin, bearer) })
+        assertEquals(HttpStatus.BAD_GATEWAY, status { service.list(admin) })
         assertSame(rejection, assertThrows(UpstreamRejection::class.java) { service.restrict(admin, worldId) })
         assertEquals(HttpStatus.NOT_FOUND, status { service.unrestrict(admin, worldId) })
         verifyNoInteractions(core, activities)
@@ -115,8 +112,8 @@ class WorldStudioServiceTest {
     fun `a Core failure while reading nicknames fails the list instead of dropping the owner names`() {
         grantWorks(admin)
         `when`(content.worldStudios()).thenReturn(contentRows())
-        `when`(core.members(bearer, null, null, null)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+        `when`(core.nicknames(listOf(ownerId.toString(), strangerId.toString()))).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
 
-        assertEquals(HttpStatus.BAD_GATEWAY, status { service.list(admin, bearer) })
+        assertEquals(HttpStatus.BAD_GATEWAY, status { service.list(admin) })
     }
 }

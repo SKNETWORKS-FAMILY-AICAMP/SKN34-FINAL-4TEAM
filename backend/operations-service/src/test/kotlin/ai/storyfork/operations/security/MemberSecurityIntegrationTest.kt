@@ -379,7 +379,7 @@ class MemberSecurityIntegrationTest {
         val episode = mapper.readTree("""{"number":2,"title":"2화","publicationStatus":"published","restricted":true,"inherited":false}""")
         val balances = mapper.readTree("""[{"memberId":"$id","total":1200}]""")
         `when`(core.verify(bearer)).thenReturn(member)
-        `when`(worldStudios.list(member, bearer)).thenReturn(worlds)
+        `when`(worldStudios.list(member)).thenReturn(worlds)
         `when`(worldStudios.restrict(member, id)).thenReturn(world)
         `when`(worldStudios.unrestrict(member, id)).thenReturn(world)
         `when`(cardCategories.list(member)).thenReturn(categories)

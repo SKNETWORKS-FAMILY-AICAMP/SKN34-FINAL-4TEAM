@@ -88,7 +88,7 @@
 
 - `work`: `workId` 필요.
 - `episode`: `workId`와 `episodeNumber` 필요. Content `GET /internal/v1/works/{workId}/episodes`에 그 번호가 없으면 404이고 아무것도 저장하지 않는다. 작품 제목·소유자 스냅샷은 작품 신고와 같다.
-- `world`: `worldId` 필요. Content `GET /internal/v1/world-studios`에 없으면 404. 세계관 이름(`worldName`)을 저장하고 `workId`·`workTitle`·`workOwnerId`는 null이다. 세계관은 작품이 아니고 소유자 칸을 두지 않으므로 소유자 조회·소명 흐름이 없고 신고자와 `rights` 관리자만 본다.
+- `world`: `worldId` 필요. Content `GET /internal/v1/world-studios`에서 공개(`visibility` public·`published`·미제한)인 세계관만 받고, 비공개·저장 버전 없음·제한·없는 세계관은 모두 같은 404다(비공개 세계관의 존재와 이름을 접수자에게 알리지 않는다). 세계관 이름(`worldName`)을 저장하고 `workId`·`workTitle`·`workOwnerId`는 null이다. 세계관은 작품이 아니고 소유자 칸을 두지 않으므로 소유자 조회·소명 흐름이 없고 신고자와 `rights` 관리자만 본다.
 - 필요한 id가 없으면 400이고 Content를 부르기 전에 거절한다. 종류가 묻지 않는 id는 무시한다.
 - 제한·해제(`POST|DELETE /reports/{id}/restriction`)는 대상에 맞는 Content 내부 API를 부른다: 작품 `/internal/v1/works/{workId}/restriction`, 회차 `/internal/v1/works/{workId}/episodes/{number}/restriction`, 세계관 `/internal/v1/world-studios/{worldId}/restriction`. 이력·활동 기록(`REPORT_RESTRICT`·`REPORT_UNRESTRICT`)은 같다.
 - 저장(operations Flyway V11): `report.target_type`(`WORK`·`EPISODE`·`WORLD`, 기존 행은 `WORK`)·`episode_number`·`world_id`·`world_name`을 더하고 `work_id`·`work_title`·`work_owner_id`를 NULL 허용으로 바꾼다. CHECK가 종류별 id 구성(작품=작품, 회차=작품+번호, 세계관=세계관만)을 지킨다. JSON의 `targetType`은 소문자 낱말이고 DB는 다른 enum처럼 대문자 상수 이름이다.

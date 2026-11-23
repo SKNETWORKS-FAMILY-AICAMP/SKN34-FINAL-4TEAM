@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionOperations
 import org.springframework.web.server.ResponseStatusException
+import tools.jackson.databind.JsonNode
 
 private const val RIGHTS = "rights"
 
@@ -50,7 +51,7 @@ class ReportService(
     private fun intake(member: OperationsMember, request: ReportRequest): ReportEntity {
         if (request.targetType == ReportTarget.WORLD) {
             val worldId = requireNotNull(request.worldId) { "worldId is required." }
-            val world = content.worldStudios().values().firstOrNull { it.path("worldId").textOrNull() == worldId.toString() }
+            val world = content.worldStudios().values().firstOrNull { it.path("worldId").textOrNull() == worldId.toString() && it.isPublicWorld() }
                 ?: throw NoSuchElementException("World not found.")
             return ReportEntity(
                 kind = request.kind, targetType = ReportTarget.WORLD, worldId = worldId, worldName = world.path("name").textOrNull().orEmpty(),
@@ -187,3 +188,10 @@ class ReportService(
 
     private fun ReportHistoryEntity.response() = ReportHistoryResponse(id, type, actorId, body, createdAt)
 }
+
+/**
+ * The operations world list also holds private, unsaved and restricted worlds. Only a world a reader can see (public, with a saved version, not restricted)
+ * can be reported, so a private world's id and name are never confirmed to a reporter; a missing flag counts as not visible.
+ */
+private fun JsonNode.isPublicWorld() =
+    path("visibility").textOrNull() == "public" && path("published").asBoolean(false) && !path("restricted").asBoolean(true)
