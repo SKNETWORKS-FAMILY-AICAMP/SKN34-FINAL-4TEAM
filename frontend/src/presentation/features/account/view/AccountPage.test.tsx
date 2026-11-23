@@ -156,6 +156,29 @@ describe('문의하기 폼 (U34)', () => {
     expect(screen.getByRole<HTMLButtonElement>('button', { name: '문의 보내기' }).disabled).toBe(false)
   })
 
+  it('[D1] 전송 중 버튼이 잠겨 초점을 잃어도, 끝나면 제출하던 버튼으로 돌려준다', async () => {
+    let finish!: () => void
+    vi.spyOn(support(), 'create').mockImplementation(() => new Promise<void>((resolve) => { finish = resolve }))
+    setup('/me/inquiry')
+    await screen.findByRole('heading', { name: '문의하기' })
+    fireEvent.change(field('제목'), { target: { value: '포크 질문' } })
+    fireEvent.change(field('내용'), { target: { value: '어떻게 하나요?' } })
+    const button = screen.getByRole<HTMLButtonElement>('button', { name: '문의 보내기' })
+    button.focus()
+    fireEvent.submit(document.getElementById('iqf')!)
+    await waitFor(() => expect(button.disabled).toBe(true))
+    dropFocus()
+    await act(async () => { finish() })
+    await waitFor(() => expect(document.activeElement).toBe(button))
+    expect(button.disabled).toBe(false)
+  })
+
+  it('[D4] 내용 칸은 최소 160px 높이로 시작한다 — 전역 .ta의 90px는 문의 본문을 쓰기엔 낮다', async () => {
+    setup('/me/inquiry')
+    await screen.findByRole('heading', { name: '문의하기' })
+    expect(field('내용').style.minHeight).toBe('160px')
+  })
+
   it('전송이 거절되면 입력을 그대로 두고 서버가 알려 준 이유를 경고로 보여 준다', async () => {
     vi.spyOn(support(), 'create').mockRejectedValueOnce(new OperationsError('이 작업을 할 권한이 없어요.'))
     setup('/me/inquiry')
@@ -220,11 +243,21 @@ describe('내 문의 목록 (U34)', () => {
     const answered = (await screen.findByText('[계정] 답변된 문의')).closest('.rp') as HTMLElement
     within(answered).getByText('답변 완료')
     expect([...answered.querySelectorAll('.inquiry-reply')].map((p) => p.textContent)).toEqual(['운영팀 답변 1첫 답변\n줄2', '운영팀 답변 2둘째 답변'])
+    // [P1] 전역 p가 margin:0라 답변 상자가 본문·서로 맞닿던 것 — 상자 위에 8px(.rp .a와 같은 값)
+    expect([...answered.querySelectorAll<HTMLElement>('.inquiry-reply')].map((p) => p.style.marginTop)).toEqual(['8px', '8px'])
     expect(within(answered).getByText('첫 줄 둘째 줄').textContent).toBe('첫 줄\n둘째 줄')
     const waiting = screen.getByText('[계정] 기다리는 문의').closest('.rp') as HTMLElement
     within(waiting).getByText('답변 대기')
     expect(waiting.querySelector('.inquiry-reply')).toBeNull()
     screen.getByRole('heading', { name: '내 문의 2' })
+  })
+
+  it('[F1·F2] 안내문 아래와 목록 제목 위·아래에 간격을 직접 둔다 — 전역 h1~h4·p가 margin:0이라 폼 카드·목록 카드에 붙는다', async () => {
+    vi.spyOn(support(), 'listMine').mockResolvedValue([])
+    setup('/me/inquiry')
+    const title = await screen.findByRole('heading', { name: '내 문의 0' })
+    expect(screen.getByText(/^운영팀 답변은 아래 내 문의에서/).style.marginBottom).toBe('12px')
+    expect([title.style.marginTop, title.style.marginBottom]).toEqual(['22px', '10px'])
   })
 })
 

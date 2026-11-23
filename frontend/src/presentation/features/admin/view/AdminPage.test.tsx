@@ -12,6 +12,7 @@ import { createAppStore } from '../../../../app/store'
 import { login } from '../../../../data/api/auth'
 import { HttpAdminActivityRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository } from '../../../../data/api/operationsApi'
 import { InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
+import { ADMIN_PERMISSIONS } from '../../../../domain/entities/admin'
 import type { AdminActivity } from '../../../../domain/entities/adminActivity'
 import { OperationsForbidden, OperationsRejected } from '../../../../domain/entities/operations'
 import { CREDIT_INSUFFICIENT_MESSAGE, CREDITS_FORBIDDEN, MEMBER_SEARCH_FORBIDDEN, type MemberCredits } from '../../../../domain/entities/operationsCredit'
@@ -572,6 +573,21 @@ it('표의 행 버튼은 이름이 같은 버튼끼리 구분되도록 대상 �
   expect(chat.getAttribute('aria-label')).toBe(`「${cells[1]} ${cells[2]}」 조치`)
 })
 
+// 오류 없이 대상만 있는 실행(예: 성공한 회귀 평가)은 빈 칸 표시(—)를 대상 위에 또 붙이지 않는다: 줄마다 소음이 생긴다. 오류도 대상도 없을 때만 —를 보인다.
+it('실행 기록의 오류·대상 칸은 오류 없이 대상만 있으면 대상 한 줄만, 둘 다 없을 때만 —를 보인다', async () => {
+  const jobs = appContainer.resolve('jobMonitorUseCase')
+  const real = (await jobs.runs({ status: '', kind: '', page: 0 }))!
+  const targetOnly = { id: 'run-target-only', kind: 'evaluation', source: 'ai-evaluation', status: 'succeeded', trigger: 'schedule', startedAt: '2026-11-20T01:02:03Z', finishedAt: '2026-11-20T01:05:03Z', targetId: 'character_simulation' }
+  const neither = { id: 'run-neither', kind: 'alert_cleanup', source: 'operations-scheduler', status: 'succeeded', trigger: 'schedule', startedAt: '2026-11-20T00:00:00Z', finishedAt: '2026-11-20T00:01:00Z' }
+  vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, items: [targetOnly, neither] })
+  renderAdmin('jobs')
+  const table = await screen.findByRole('region', { name: '작업 실행 기록 표' })
+  const column = [...table.querySelectorAll('th')].findIndex((th) => th.textContent === '오류·대상')
+  expect(column).toBeGreaterThanOrEqual(0)
+  const [first, second] = [...table.querySelectorAll('tbody tr')].map((row) => row.querySelectorAll('td')[column].textContent)
+  expect([first, second]).toEqual(['대상 character_simulation', '—'])
+})
+
 it('관리자 계정 생성 폼은 필수 항목과 비밀번호 규칙을 글로 알린다', async () => {
   renderAdmin('admins')
   const password = await screen.findByLabelText<HTMLInputElement>('초기 비밀번호')
@@ -678,6 +694,32 @@ it('머리 영역: 목록 새로고침은 제목 줄 오른쪽(데모 칩 바로
   const top = document.querySelector('.adm .top .admin-brand-top')
   expect([top?.textContent, top?.closest('nav')]).toEqual(['STORYFORK 관리자', null])
   expect(document.querySelector('.adm .admin-nav .admin-brand')?.textContent).toBe('STORYFORK 관리자')
+})
+
+it('관리자 브랜드는 메인 페이지(/)로 가는 링크다: 사이드바 맨 위와 900px 이하 상단바 두 곳이고, 이름은 보이는 글자로 시작한다', async () => {
+  renderAdmin('characterChats')
+  await screen.findByRole('heading', { name: '캐릭터챗 관리' })
+  // 보이는 글자는 그대로이고 목적지는 메인(/)이다(둘 중 어느 쪽이 보이는지는 CSS 계약 테스트가 지킨다).
+  const brands = ['.adm .admin-nav .admin-brand', '.adm .top .admin-brand-top'].map((selector) => document.querySelector(selector))
+  expect(brands.map((el) => [el?.tagName, el?.getAttribute('href'), el?.textContent])).toEqual([
+    ['A', '/', 'STORYFORK 관리자'],
+    ['A', '/', 'STORYFORK 관리자'],
+  ])
+  // 접근 가능한 이름은 보이는 글자로 시작해(WCAG 2.5.3) 메인 페이지로 간다고 알린다. 현재 쪽을 가리키는 메뉴 항목이 아니라서 aria-current는 달지 않는다.
+  const links = screen.getAllByRole('link', { name: /메인 페이지/ })
+  expect(links).toHaveLength(2)
+  for (const link of links) expect([link.getAttribute('aria-label'), link.getAttribute('title'), link.getAttribute('aria-current')]).toEqual(['STORYFORK 관리자 · 메인 페이지로', '메인 페이지로', null])
+})
+
+// 데모 작품은 모두 공개 인물이 있어, 첫 선택지(첫 포크 작품)의 인물만 비워 '고를 캐릭터가 없는' 경우를 만든다.
+it('캐릭터챗 추가 폼은 고를 캐릭터가 없으면 빈 선택 대신 이유를 보이고 추가 버튼을 잠근다', async () => {
+  const admin = appContainer.resolve('adminUseCase')
+  const choices = admin.chatChoices.bind(admin)
+  vi.spyOn(admin, 'chatChoices').mockImplementation((works, kind) => choices(works, kind).map((choice, i) => (i ? choice : { ...choice, cast: [] })))
+  renderAdmin('characterChats')
+  const select = await screen.findByLabelText<HTMLSelectElement>('캐릭터')
+  expect([select.disabled, select.selectedOptions[0]?.textContent]).toEqual([true, '선택할 수 있는 캐릭터가 없어요'])
+  expect((screen.getByRole('button', { name: '캐릭터챗 추가' }) as HTMLButtonElement).disabled).toBe(true)
 })
 
 it('필터는 왼쪽 정렬 한 줄: 검색 입력 → 분류(역할) → 정렬 → 검색 버튼을 한 form(.admin-filter)에 두고, 상태 선택은 제목 아래에 둔다', async () => {
@@ -1214,6 +1256,78 @@ it('회원 검색은 목록을 좁히고 검색어를 서버에 보낸다', asyn
   fireEvent.change(screen.getByLabelText('회원 검색'), { target: { value: '연화' } })
   fireEvent.click(screen.getByRole('button', { name: '검색' }))
   await waitFor(() => expect(members).toHaveBeenLastCalledWith({ role: 'ALL', q: '연화', sort: 'newest' }))
+})
+
+// 관리자 계정 생성 결과(오류·완료)는 공지·이벤트 폼처럼 폼 안 제출 줄 아래에 보이고 화면 맨 위에는 또 그리지 않는다(권한 12개 아래 제출 버튼에서 맨 위 상태 줄은 멀다).
+async function submitAdminForm(permissions: string[] = []) {
+  vi.spyOn(appContainer.resolve('memberUseCase'), 'listAdmins').mockResolvedValue([])
+  renderAdmin('admins')
+  fireEvent.change(await screen.findByLabelText('이메일'), { target: { value: 'new-admin@example.invalid' } })
+  fireEvent.change(screen.getByLabelText('닉네임'), { target: { value: '새 관리자' } })
+  fireEvent.change(screen.getByLabelText('초기 비밀번호'), { target: { value: 'StoryforkDev123!' } })
+  for (const name of permissions) fireEvent.click(screen.getByLabelText(name))
+  const form = screen.getByRole('button', { name: '관리자 계정 추가' }).closest('form') as HTMLFormElement
+  fireEvent.submit(form)
+  return form
+}
+const afterSubmitRow = (form: HTMLFormElement, node: Element) => !!(form.querySelector('.rowend')!.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)
+
+it('관리자 계정 생성 오류는 화면 맨 위가 아니라 폼 안 제출 줄 아래에 한 번만 보인다', async () => {
+  const form = await submitAdminForm()
+  const alert = await within(form).findByRole('alert')
+  expect(alert.textContent).toBe('한 가지 이상 권한을 선택해 주세요.')
+  expect(screen.getAllByRole('alert')).toEqual([alert])
+  expect(afterSubmitRow(form, alert)).toBe(true)
+})
+
+it('관리자 계정 생성 완료도 폼 안 제출 줄 아래에 한 번만 보이고 화면 맨 위 완료 줄은 없다', async () => {
+  const created = vi.spyOn(appContainer.resolve('memberUseCase'), 'createAdmin').mockResolvedValue(undefined)
+  const form = await submitAdminForm([ADMIN_PERMISSIONS[0][1]])
+  const done = await within(form).findByText('관리자 계정을 만들고 권한을 저장했어요.')
+  expect(created).toHaveBeenCalledTimes(1)
+  expect(done.getAttribute('role')).toBe('status')
+  expect(screen.getAllByText('관리자 계정을 만들고 권한을 저장했어요.')).toEqual([done])
+  expect(afterSubmitRow(form, done)).toBe(true)
+})
+
+it('경고 기준 행은 값이 저장값과 다르면 저장 버튼 곁에 "저장 안 됨"을 보이고, 저장돼 기준이 바뀌거나 값을 되돌리면 지운다', async () => {
+  // 공유 메모리 저장소를 바꾸지 않도록 이 테스트 안에서만 기준 목록을 들고 있는다.
+  const llm = appContainer.resolve('llmOpsUseCase')
+  let saved = (await llm.alertRules())!
+  vi.spyOn(llm, 'alertRules').mockImplementation(async () => structuredClone(saved))
+  vi.spyOn(llm, 'updateAlertRule').mockImplementation(async (key, input) => { saved = saved.map((rule) => rule.key === key ? { ...rule, ...input } : rule) })
+  renderAdmin('llm')
+  await screen.findByLabelText('AI 실패율 켜기')
+  const row = () => screen.getByLabelText('AI 실패율 켜기').closest('tr') as HTMLElement
+  const unsaved = () => within(row()).queryByText('저장 안 됨')
+  expect(unsaved()).toBeNull()
+  fireEvent.click(within(row()).getByLabelText('AI 실패율 켜기'))
+  // 저장 버튼과 같은 칸(곁)에 보인다.
+  expect(unsaved()!.closest('td')).toBe(within(row()).getByRole('button', { name: 'AI 실패율 기준 저장' }).closest('td'))
+  fireEvent.click(within(row()).getByLabelText('AI 실패율 켜기'))
+  expect(unsaved()).toBeNull()
+  fireEvent.change(within(row()).getByLabelText('AI 실패율 기준값'), { target: { value: '0.2' } })
+  expect(unsaved()).not.toBeNull()
+  fireEvent.click(within(row()).getByRole('button', { name: 'AI 실패율 기준 저장' }))
+  await waitFor(() => expect(unsaved()).toBeNull())
+  expect((within(row()).getByLabelText('AI 실패율 기준값') as HTMLInputElement).value).toBe('0.2')
+})
+
+it('회귀 평가 실행의 세 입력은 화면 표에 나오는 값 형식을 placeholder로 보여 준다', async () => {
+  renderAdmin('llm', 'quality')
+  const run = await screen.findByRole('region', { name: '회귀 평가' })
+  expect(['데이터셋', '프롬프트 이름', '버전'].map((name) => within(run).getByLabelText(name).getAttribute('placeholder')))
+    .toEqual(['예: simulation.narrate', '예: character_simulation.narrate', '예: 2'])
+})
+
+it('크레딧 탭은 회원을 고르면 상세 제목으로 초점을 옮기고, 같은 회원을 목록에서 다시 골라도 제목으로 되돌린다', async () => {
+  await openMemberCredits()
+  const heading = () => screen.getByRole('heading', { name: '연화봉러 님의 크레딧' })
+  await waitFor(() => expect(document.activeElement).toBe(heading()))
+  // 스크롤해 목록으로 올라와 같은 회원을 다시 고르면, 메뉴가 닫히며 초점이 ⋮로 돌아간 채 남지 않고 제목으로 간다.
+  const row = screen.getByText('연화봉러', { selector: 'b' }).closest('tr') as HTMLElement
+  fireEvent.click(openRowMenu(row).getByRole('menuitem', { name: '크레딧 보기·조정' }))
+  expect(document.activeElement).toBe(heading())
 })
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
