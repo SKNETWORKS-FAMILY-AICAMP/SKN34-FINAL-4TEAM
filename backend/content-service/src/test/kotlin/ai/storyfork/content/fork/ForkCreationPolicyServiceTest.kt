@@ -103,6 +103,31 @@ class ForkCreationPolicyServiceTest {
         noWrites()
     }
 
+    @Test fun `a restricted basis episode is 409 before any member or checkpoint write`() {
+        original()
+        `when`(publication.publishedEpisodes("original")).thenReturn(PublishedEpisodeListResponse(listOf(
+            PublishedEpisodeResponse(1,1,"v1","1화","원문",false),PublishedEpisodeResponse(2,1,"v2","2화","원문",false,restricted=true))))
+        val failure=assertThrows(ContentFailure::class.java) {service.create("original","reader",ForkRequest(2,"포크"))}
+        assertEquals(409 to "EPISODE_RESTRICTED",failure.status to failure.code)
+        noWrites()
+        verifyNoInteractions(forks)
+    }
+
+    @Test fun `a restricted episode before the basis is still pinned so the numbers stay whole and the view hides it`() {
+        original()
+        val rows=listOf(PublishedEpisodeResponse(1,1,"v1","1화","원문",false,restricted=true),PublishedEpisodeResponse(2,1,"v2","2화","원문",false))
+        `when`(publication.publishedEpisodes("original")).thenReturn(PublishedEpisodeListResponse(rows))
+        `when`(access.forkable("original",listOf(1,2))).thenReturn(listOf(1,2))
+        `when`(world.historyForContext("original")).thenReturn(ai.storyfork.content.world.service.dto.SettingListResponse(emptyList()))
+        `when`(workWorlds.saveAndFlush(org.mockito.ArgumentMatchers.any())).thenAnswer {it.arguments[0]}
+        `when`(episodes.saveAndFlush(org.mockito.ArgumentMatchers.any())).thenAnswer {it.arguments[0]}
+        `when`(workService.read(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString())).thenReturn(
+            ai.storyfork.content.work.service.dto.WorkResponse("fork","포크","","private",false,false,null,emptyList(),null))
+        service.create("original","reader",ForkRequest(2,"포크"))
+        val capture=mockingDetails(checkpoints).invocations.single {it.method.name=="capture"}.getArgument<ai.storyfork.content.episode_version.service.dto.CheckpointRequest>(0)
+        assertEquals(listOf(1,2),capture.episodes.map {it.number})
+    }
+
     @Test fun `fork copies the original published author note into its pinned version`() {
         `when`(access.get("original")).thenReturn(WorkAccessResult("original","author","제목","",0,"world","public",true,true,null))
         `when`(publication.publishedEpisodes("original")).thenReturn(PublishedEpisodeListResponse(listOf(PublishedEpisodeResponse(1,1,"v1","제목","본문",false,"원작 후기"))))

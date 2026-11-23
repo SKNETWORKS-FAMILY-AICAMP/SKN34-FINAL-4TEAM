@@ -2,7 +2,10 @@ package ai.storyfork.content.mcp
 
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.work.service.WorkWorldService
+import ai.storyfork.content.world.domain.CARD_METADATA_KEYS
+import ai.storyfork.content.world.domain.RELATION_METADATA_KEYS
 import ai.storyfork.content.world.domain.WorldConflict
+import ai.storyfork.content.world.domain.WorldMetadataInvalid
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.WorldStudioFailure.Reason
@@ -153,6 +156,19 @@ class WorldStudioMcpToolsTest {
         verify(studio).draft(worldId, member)
     }
 
+    @Test fun `world_studio_read gives the AI other for a custom card category and keeps the default types`() {
+        val custom = CardPayload(UUID.randomUUID(), "단서", "본문", "category-01", "basic")
+        val hero = CardPayload(UUID.randomUUID(), "길동", "본문", "character", "basic")
+        `when`(studio.draft(worldId, member)).thenReturn(draft().copy(cards = listOf(custom, hero)))
+        `when`(links.linkedWorkIds(listOf(worldId))).thenReturn(emptyMap())
+
+        val text = call("world_studio_read", mapOf("id" to "$worldId"), signedIn()).text()
+
+        assertTrue(text.contains("\"cardType\":\"other\""), text)
+        assertTrue(text.contains("\"cardType\":\"character\""), text)
+        assertFalse(text.contains("category-01"), text)
+    }
+
     @Test fun `world_studio_read reads the relations as of the optional episode and rejects a malformed one before any service`() {
         `when`(studio.draft(worldId, member, 3)).thenReturn(draft())
         `when`(links.linkedWorkIds(listOf(worldId))).thenReturn(mapOf(worldId to "w1"))
@@ -176,6 +192,15 @@ class WorldStudioMcpToolsTest {
 
         assertTrue("episode" in schema("world_studio_read"), schema("world_studio_read"))
         assertTrue("episode" in schema("world_studio_edit_draft"), schema("world_studio_edit_draft"))
+    }
+
+    @Test fun `the edit tool says it overwrites whole cards and lists every allowed semanticMetadata key`() {
+        val tool = specs.single { it.tool().name() == "world_studio_edit_draft" }.tool()
+        val schema = tool.inputSchema().toString()
+
+        // 허용 키가 바뀌면 도구 설명도 같이 바뀌어야 한다(검증은 world/domain/SemanticMetadata.kt).
+        for (key in (CARD_METADATA_KEYS + RELATION_METADATA_KEYS).distinct()) assertTrue(key in schema, key)
+        assertTrue("semanticMetadata" in tool.description() && "통째로 덮어쓴다" in tool.description(), tool.description())
     }
 
     @Test fun `world_studio_edit_draft binds nested cards and relationships and forwards the same request DTO`() {
@@ -283,6 +308,26 @@ class WorldStudioMcpToolsTest {
         verify(publicWorlds).list(null, null, null, null)
         verify(publicWorlds).list("genre-01", null, "1", "10")
         verify(publicWorlds).detail(worldId)
+    }
+
+    @Test fun `public read and revision reads give the AI other for a custom card category and keep the default types`() {
+        val custom = PublicWorldCardResponse(UUID.randomUUID(), "단서", "본문", "category-01", emptyList(), emptyList())
+        val hero = PublicWorldCardResponse(UUID.randomUUID(), "길동", "본문", "character", emptyList(), emptyList())
+        `when`(publicWorlds.detail(worldId)).thenReturn(PublicWorldResponse(worldId, "달빛 세계", "설명", "genre-01", "작가", "2026-11-13T00:00:00Z", 1, listOf(custom, hero), emptyList(), "current"))
+        val saved = SavedCardResponse(UUID.randomUUID(), 1, null, CardPayload(UUID.randomUUID(), "단서", "본문", "category-01", "basic"))
+        val revision = WorldRevisionResponse(worldId, revisionId, 1, "달빛 세계", "설명", null, null, listOf(saved), null)
+        `when`(studio.revision(worldId, member, revisionId)).thenReturn(revision)
+        `when`(studio.save(worldId, member, SaveWorldRequest(1, "save-1"))).thenReturn(revision)
+
+        val texts = listOf(call("world_studio_public_read", mapOf("id" to "$worldId")).text(),
+            call("world_studio_revision_read", userTools.getValue("world_studio_revision_read"), signedIn()).text(),
+            call("world_studio_save_revision", userTools.getValue("world_studio_save_revision"), signedIn()).text())
+
+        for (text in texts) {
+            assertTrue(text.contains("\"cardType\":\"other\""), text)
+            assertFalse(text.contains("category-01"), text)
+        }
+        assertTrue(texts.first().contains("\"cardType\":\"character\""), texts.first())
     }
 
     @Test fun `public world tools turn ContentFailure into the HTTP status and detail`() {
@@ -441,6 +486,8 @@ class WorldStudioMcpToolsTest {
         WorldConflict() to listOf("HTTP 409 WORLD_CONFLICT", "다른 편집본 또는 저장 요청과 충돌했습니다. 입력을 보존하고 상태를 확인하세요."),
         // 입력 원문이 섞일 수 있는 예외 메시지는 되돌려 주지 않는다.
         IllegalArgumentException("원고 본문 일부") to listOf("HTTP 422 WORLD_INPUT_INVALID", "이름·내용 길이, 카드·관계 ID와 입력 값을 확인하세요."),
+        // semanticMetadata 입력 오류(#541)는 카드/관계 id·키 이름·고정 이유만 담았으므로 그대로 알린다.
+        WorldMetadataInvalid("카드 $worldId: semanticMetadata 키 'color'는 허용되지 않습니다.") to listOf("HTTP 422 WORLD_INPUT_INVALID", "카드 $worldId: semanticMetadata 키 'color'는 허용되지 않습니다."),
         DataAccessResourceFailureException("jdbc 원고 본문 일부") to listOf("HTTP 503 WORLD_WRITE_UNCONFIRMED", "저장 완료를 확인하지 못했습니다. 입력을 보존하고 동일 요청으로 다시 시도하세요."),
         TransactionSystemException("tx 원고 본문 일부") to listOf("HTTP 503 WORLD_WRITE_UNCONFIRMED", "저장 완료를 확인하지 못했습니다. 입력을 보존하고 동일 요청으로 다시 시도하세요."),
         IllegalStateException("원고 본문 일부") to listOf("HTTP 500", "요청을 처리하지 못했어요."),

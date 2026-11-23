@@ -13,6 +13,7 @@ import ai.storyfork.core.credit.service.dto.CreditBalanceItem
 import ai.storyfork.core.credit.service.dto.CreditBalanceResponse
 import ai.storyfork.core.credit.service.dto.CreditHistoryItem
 import ai.storyfork.core.credit.service.dto.CreditHistoryResponse
+import ai.storyfork.core.credit.service.dto.MemberCreditBalance
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.Optional
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
@@ -62,6 +64,7 @@ class CreditAdminServiceTest {
         assertEquals(AuthException.Reason.FORBIDDEN, reason { service.view(readerSubject, target) })
         assertEquals(AuthException.Reason.FORBIDDEN, reason { service.grant(readerSubject, target, request()) })
         assertEquals(AuthException.Reason.FORBIDDEN, reason { service.revoke(readerSubject, target, request()) })
+        assertEquals(AuthException.Reason.FORBIDDEN, reason { service.balances(readerSubject, listOf(target)) })
         assertEquals(AuthException.Reason.UNAUTHENTICATED, reason { service.view(UUID.randomUUID().toString(), target) })
         assertEquals(AuthException.Reason.UNAUTHENTICATED, reason { service.view("not-a-uuid", target) })
         operator.restricted = true
@@ -112,5 +115,24 @@ class CreditAdminServiceTest {
         val view = service.view(actor, target)
         assertSame(balance, view.balance)
         assertSame(history, view.history)
+    }
+
+    @Test
+    fun `balances pairs each member the repository finds with that member's own total`() {
+        val other = UUID.randomUUID()
+        val ids = listOf(target, other)
+        `when`(members.findAllById(ids)).thenReturn(listOf(AuthMember(target, "t@example.test", "hash", "Target"), AuthMember(other, "o@example.test", "hash", "Other")))
+        `when`(credits.balance(eq(other), anyTime())).thenReturn(CreditBalanceResponse(BigDecimal("7"), emptyList()))
+
+        assertEquals(listOf(MemberCreditBalance(target, balance.total), MemberCreditBalance(other, BigDecimal("7"))), service.balances(actor, ids))
+    }
+
+    @Test
+    fun `balances takes at most 100 members and rejects more before reading anything`() {
+        val ids = List(101) { UUID.randomUUID() }
+
+        assertThrows(InvalidCreditAdjustmentException::class.java) { service.balances(actor, ids) }
+        verify(members, never()).findAllById(ids)
+        assertEquals(emptyList<MemberCreditBalance>(), service.balances(actor, ids.take(100)))
     }
 }

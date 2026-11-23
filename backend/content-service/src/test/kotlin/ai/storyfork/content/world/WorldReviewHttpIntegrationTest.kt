@@ -62,11 +62,11 @@ class WorldReviewHttpIntegrationTest {
                 fun aiFails(failure:InitialWorldCallFailure)=doThrow(failure).`when`(ai).review(any(WorldReviewAiRequest::class.java) ?: placeholder)
                 fun aiCalls()=mockingDetails(ai).invocations.count { it.method.name=="review" }
 
-                // 인물 둘(하나는 옛 memory가 섞인 문서)·규칙 하나·문서가 커서 4,000자를 넘는 인물 하나, 관계 하나.
+                // 인물 둘(하나는 soul·goal·00회차 기억이 있는 문서)·규칙 하나·문서가 커서 4,000자를 넘는 인물 하나, 관계 하나. 옛 memory 키는 API가 거절해 저장할 수 없다(#541, 읽기 규칙은 WorldReviewInputTest).
                 val create=CreateWorldRequest("검토할 세계관","세계관 설명")
                 assertEquals(200,send(method="POST",body=create).statusCode())
                 val hero=CardPayload(UUID.randomUUID(),"영웅","영웅 본문","character","basic",semanticMetadata=mapOf(
-                    "characterDocs" to mapOf("soul" to "느긋한 말투","goal" to "복수","memory" to "옛 기억","episodes" to mapOf("0" to "비밀"))))
+                    "characterDocs" to mapOf("soul" to "느긋한 말투","goal" to "복수","episodes" to mapOf("0" to "비밀"))))
                 val rival=CardPayload(UUID.randomUUID(),"라이벌","라이벌 본문","character","basic")
                 val rule=CardPayload(UUID.randomUUID(),"규칙","규칙 본문","rule","basic")
                 val bloated=CardPayload(UUID.randomUUID(),"문서가 큰 인물","가".repeat(3000),"character","basic",semanticMetadata=mapOf(
@@ -109,7 +109,7 @@ class WorldReviewHttpIntegrationTest {
                 assertTrue(stored.headers().firstValue("Cache-Control").orElse("").contains("no-store"))
                 assertEquals(body,mapper.readTree(stored.body()))
 
-                // AI로 간 요청: 활성 카드 중 한도 안의 셋뿐, 인물 문서는 soul·goal·episodes만(옛 memory 없음), 관계는 양 끝을 보낸 것만.
+                // AI로 간 요청: 활성 카드 중 한도 안의 셋뿐, 인물 문서는 soul·goal·episodes만, 관계는 양 끝을 보낸 것만.
                 val sent=mockingDetails(ai).invocations.last().arguments[0] as WorldReviewAiRequest
                 assertEquals("검토할 세계관",sent.worldName)
                 assertEquals(setOf("영웅","라이벌","규칙"),sent.cards.map { it.title }.toSet())

@@ -777,7 +777,10 @@ it('서버 세계관 상세는 데모 안내·한 줄 소개 없이 보이고 �
   vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ linkedWork: null }))
   await renderAt('/worlds/sw')
   expect(screen.queryByText(/데모/)).toBeNull()
-  expect(document.querySelector('.worlds-head')?.textContent).toBe('서버 세계작가 서버 작가 · 읽기 전용')
+  // 헤더에는 이름·작가 줄(한 줄 소개 없음)과 서버 세계관만 가진 세계관 신고 버튼뿐이다.
+  const head = document.querySelector<HTMLElement>('.worlds-head')!
+  const report = within(head).getByRole('button', { name: /세계관 신고/ })
+  expect(head.textContent).toBe(`서버 세계작가 서버 작가 · 읽기 전용${report.textContent}`)
   expect(screen.getByRole('tab', { name: '개요' }).getAttribute('aria-selected')).toBe('true')
   // 연결이 없거나 연결된 소설이 공개가 아니면 서버가 linkedWork를 null로 알린다(DEC-46, #329). 준비 중이라고 하지 않는다.
   const works = within(sectionOf('이 세계관을 쓴 작품'))

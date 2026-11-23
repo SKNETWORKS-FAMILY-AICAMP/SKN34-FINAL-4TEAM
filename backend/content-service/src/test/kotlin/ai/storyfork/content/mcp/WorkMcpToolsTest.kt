@@ -53,7 +53,14 @@ private val WORLD: UUID = UUID.fromString("0f8c9a52-5b1e-4d0a-9d55-7a2d3c4b5e6f"
 class WorkMcpToolsTest {
     // work_create·work_fork_create는 응답의 새 작품 id를 알림 대상으로 읽는다. 따로 스텁하지 않은 생성 호출에는 새 작품을 돌려준다.
     private val service = mock(WorkService::class.java) { call -> if (call.method.name == "create") work("w-new") else RETURNS_DEFAULTS.answer(call) }
-    private val worldLinks = mock(WorkWorldService::class.java)
+    // 독자 위키·이어받은 세계관 응답은 카드 유형을 AI용으로 바꾸려고 읽는다. 따로 스텁하지 않은 호출에는 빈 응답을 돌려준다.
+    private val worldLinks = mock(WorkWorldService::class.java) { call ->
+        when (call.method.name) {
+            "readerCards" -> ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse(WORK, WORLD, 1)
+            "inheritedWorld" -> ai.storyfork.content.world.service.dto.InheritedWorldResponse(WORK, WORLD, 1)
+            else -> RETURNS_DEFAULTS.answer(call)
+        }
+    }
     private val notices = mock(WorkNoticeService::class.java)
     private val forks = mock(ForkService::class.java) { call -> if (call.method.name == "create") work("w-fork") else RETURNS_DEFAULTS.answer(call) }
     private val contexts = mock(ContextService::class.java)
@@ -80,6 +87,21 @@ class WorkMcpToolsTest {
     }
 
     private fun work(id: String) = WorkResponse(id, "제목 $id", "소개", "public", true, true, null, emptyList(), null)
+
+    @Test fun `reader wiki and inherited world cards reach the AI with other for a custom card category`() {
+        `when`(worldLinks.readerCards(WORK, null)).thenReturn(ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse(WORK, WORLD, 3, listOf(
+            ai.storyfork.content.world.service.dto.ReaderWorldCardResponse(UUID.randomUUID(), "단서", "본문", "category-01", emptyList(), emptyList(), 1),
+            ai.storyfork.content.world.service.dto.ReaderWorldCardResponse(UUID.randomUUID(), "길동", "본문", "character", emptyList(), emptyList(), 1))))
+        `when`(worldLinks.inheritedWorld(WORK, ME, null)).thenReturn(ai.storyfork.content.world.service.dto.InheritedWorldResponse(WORK, WORLD, 2,
+            listOf(ai.storyfork.content.world.service.dto.CardPayload(UUID.randomUUID(), "단서", "본문", "category-01", "basic"))))
+
+        val reader = call("work_public_world_cards", mapOf("id" to WORK)).text()
+        val inherited = call("work_inherited_world", mapOf("id" to WORK), signedIn()).text()
+
+        assertTrue(reader.contains("\"cardType\":\"other\"") && reader.contains("\"cardType\":\"character\""), reader)
+        assertTrue(inherited.contains("\"cardType\":\"other\""), inherited)
+        assertFalse(reader.contains("category-01") || inherited.contains("category-01"), reader + inherited)
+    }
 
     // ---- work_public_list (공통 기반의 기준 도구) ----
 

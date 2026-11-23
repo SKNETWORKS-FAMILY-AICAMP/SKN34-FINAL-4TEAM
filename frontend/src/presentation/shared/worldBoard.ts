@@ -15,6 +15,8 @@ export type CardKind = keyof typeof CARD_COLORS
 export const CARD_KIND: Record<CardType, CardKind> = {
   character: '인물', location: '장소', organization: '조직', rule: '규칙', event: '사건', ability: '기타', object: '기타', other: '기타',
 }
+/** 카드 유형의 묶음. 운영자가 추가한 카테고리(기본 8종이 아닌 코드)는 묶음이 따로 없어 '기타'다(운영자 콘텐츠 관리 결정 E). */
+export const kindOf = (type: CardType): CardKind => (Object.hasOwn(CARD_KIND, type) ? CARD_KIND[type] : '기타')
 /** 묶음 순서(인물·장소·조직·규칙·사건·기타). 설정집 순서이자 분류 메뉴 순서다. */
 export const KINDS = Object.keys(CARD_COLORS) as CardKind[]
 

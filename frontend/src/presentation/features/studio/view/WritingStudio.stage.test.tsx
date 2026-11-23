@@ -37,8 +37,9 @@ vi.mock('../../../../app/appContainer', async () => {
   const plans = { list, references: async () => ({ episodes: [], characters: [], places: [] }) }
   const worlds = { list: owned, read: readWorld }
   const episodes = { inheritedWorld: inherited }  // 시작 양식은 연결한 세계관이 없을 때만 Fork가 이어받는 세계관을 묻는다. 의존 배열에 들어가므로 늘 같은 객체다.
+  const reading = { ownerOf: async () => null }  // 운영자 열람 모드 판정(useOperatorViewOnly)
   // UseCase는 모두 의존 배열에 들어가므로 키마다 늘 같은 객체를 준다(실제 앱의 싱글턴처럼). 모르는 키(AI 자율 집필 잠금의 serialUseCase 등)마다 새 {}를 주면 useAsyncData가 끝없이 다시 읽어 워커가 멈춘다.
-  const known: Record<string, unknown> = { writingChatUseCase: chat, storyPlanUseCase: plans, worldStudioUseCase: worlds, episodeUseCase: episodes }
+  const known: Record<string, unknown> = { writingChatUseCase: chat, storyPlanUseCase: plans, worldStudioUseCase: worlds, episodeUseCase: episodes, readingUseCase: reading }
   return { appContainer: { resolve: (key: string) => (known[key] ??= {}) } }
 })
 

@@ -68,6 +68,16 @@ class QaScopeServiceTest {
         assertEquals(listOf(QaEpisodeRef(2, "f2")), service.resolve("fork", null, request(version = "f2")).episodes)
     }
 
+    @Test fun `readers do not get restricted episodes but the author's scope keeps them`() {
+        `when`(access.published("work")).thenReturn(work("work"))
+        published("work", PublishedEpisodeResponse(1, 1, "w1", "1화", "본문1"), PublishedEpisodeResponse(2, 1, "w2", "2화", "본문2", restricted = true),
+            PublishedEpisodeResponse(3, 1, "w3", "3화", "본문3"))
+        assertEquals(listOf(QaEpisodeRef(1, "w1"), QaEpisodeRef(3, "w3")), service.resolve("work", null, request(episode = 3, version = "w3")).episodes)
+        assertEquals(422, failure { service.resolve("work", null, request(episode = 2, version = "w2")) }.status)
+        `when`(access.own("work", owner.toString())).thenReturn(work("work"))
+        assertEquals(listOf(QaEpisodeRef(1, "w1"), QaEpisodeRef(2, "w2")), service.resolve("work", owner.toString(), request(episode = 2, version = "w2")).episodes)
+    }
+
     @Test fun `an unpublished or missing basis episode is out of range`() {
         ownWork()
         assertEquals(422, failure { service.resolve("work", owner.toString(), request(episode = 4, version = "w4")) }.status)

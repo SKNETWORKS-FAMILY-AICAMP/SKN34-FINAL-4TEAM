@@ -6,6 +6,7 @@ import ai.storyfork.operations._common.client.CoreClient
 import ai.storyfork.operations._common.client.UpstreamRejection
 import ai.storyfork.operations._common.client.operationsRestClient
 import ai.storyfork.operations.credit.service.dto.CreditAdjustRequest
+import ai.storyfork.operations.credit.service.dto.CreditBalancesRequest
 import java.net.ConnectException
 import java.math.BigDecimal
 import java.util.UUID
@@ -26,11 +27,12 @@ class CoreCreditClientTest {
 
     private fun status(call: () -> Unit) = assertThrows(ResponseStatusException::class.java) { call() }.statusCode.value()
 
-    /** 세 호출을 한 번씩. */
+    /** 네 호출을 한 번씩. */
     private fun allCalls(client: CoreClient): List<() -> Unit> = listOf(
         { client.credits(bearer, memberId) },
         { client.grantCredits(bearer, memberId, CreditAdjustRequest(BigDecimal(500), "이벤트 보상")) },
         { client.revokeCredits(bearer, memberId, CreditAdjustRequest(BigDecimal(200), "오지급 회수")) },
+        { client.creditBalances(bearer, CreditBalancesRequest(listOf(memberId))) },
     )
 
     @Test
@@ -105,5 +107,23 @@ class CoreCreditClientTest {
         assertEquals("INVALID_CREDIT_REQUEST", rule.code)
         assertEquals(404, notFound.statusCode.value())
         assertFalse(notFound is UpstreamRejection)
+    }
+
+    @Test
+    fun `the balances of many members are posted in one call with the service token and the admin Bearer and returned as Core sent them`() {
+        val other = UUID.fromString("9a7b6c5d-1e2f-4a3b-8c4d-5e6f7a8b9c0d")
+        val answer = """[{"memberId":"${memberId}","total":1200},{"memberId":"${other}","total":0,"future":"kept"}]"""
+        val factory = RecordingRequestFactory { Reply(200, answer) }
+
+        val balances = client(factory).creditBalances(bearer, CreditBalancesRequest(listOf(memberId, other)))
+
+        val call = factory.calls.single()
+        assertEquals(HttpMethod.POST, call.method)
+        assertEquals("/internal/v1/credits/balances", call.uri.path)
+        assertEquals("ops-token-1", call.headers.getFirst("X-Operations-Service-Token"))
+        assertEquals(bearer, call.headers.getFirst("Authorization"))
+        assertEquals("application/json", call.headers.contentType.toString())
+        assertEquals(mapper.readTree("""{"memberIds":["${memberId}","${other}"]}"""), mapper.readTree(call.body))
+        assertEquals(mapper.readTree(answer), balances)
     }
 }

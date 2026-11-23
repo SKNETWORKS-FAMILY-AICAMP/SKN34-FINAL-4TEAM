@@ -1,5 +1,6 @@
 package ai.storyfork.operations.report.entity
 
+import com.fasterxml.jackson.annotation.JsonValue
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -15,7 +16,13 @@ enum class ReportKind { RIGHTS, HARMFUL }
 enum class ReportStatus { RECEIVED, ACCEPTED, REJECTED }
 enum class ReportHistoryType { EVIDENCE, EXPLANATION, REVIEW, RESTRICT, UNRESTRICT, EVIDENCE_REQUEST }
 
-/** Operations-owned report case; work title/owner are a snapshot taken from Content at intake. */
+/** What a report is about. JSON uses the lowercase [json] word; the database keeps the constant name like the other report enums. */
+enum class ReportTarget(@get:JsonValue val json: String) { WORK("work"), EPISODE("episode"), WORLD("world") }
+
+/**
+ * Operations-owned report case; work title/owner are a snapshot taken from Content at intake. An episode report also keeps the episode number.
+ * A world report has no work, title or owner: it keeps the world id and the world name instead (so nobody but the reporter and the admins sees it).
+ */
 @Entity
 @Table(name = "report", schema = "operations")
 class ReportEntity(
@@ -25,12 +32,21 @@ class ReportEntity(
     @field:Enumerated(EnumType.STRING)
     @field:Column(nullable = false, updatable = false, length = 20)
     val kind: ReportKind,
-    @field:Column(name = "work_id", nullable = false, updatable = false)
-    val workId: UUID,
-    @field:Column(name = "work_title", nullable = false, updatable = false, columnDefinition = "text")
-    val workTitle: String,
-    @field:Column(name = "work_owner_id", nullable = false, updatable = false)
-    val workOwnerId: UUID,
+    @field:Enumerated(EnumType.STRING)
+    @field:Column(name = "target_type", nullable = false, updatable = false, length = 20)
+    val targetType: ReportTarget = ReportTarget.WORK,
+    @field:Column(name = "work_id", updatable = false)
+    val workId: UUID? = null,
+    @field:Column(name = "episode_number", updatable = false)
+    val episodeNumber: Int? = null,
+    @field:Column(name = "work_title", updatable = false, columnDefinition = "text")
+    val workTitle: String? = null,
+    @field:Column(name = "work_owner_id", updatable = false)
+    val workOwnerId: UUID? = null,
+    @field:Column(name = "world_id", updatable = false)
+    val worldId: UUID? = null,
+    @field:Column(name = "world_name", updatable = false, columnDefinition = "text")
+    val worldName: String? = null,
     @field:Column(name = "reporter_id", nullable = false, updatable = false)
     val reporterId: UUID,
     @field:Column(nullable = false, updatable = false, columnDefinition = "text")

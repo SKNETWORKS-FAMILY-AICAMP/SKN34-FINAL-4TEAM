@@ -18,6 +18,9 @@ data class CreditReleaseRequest(val memberId: UUID, val operationKey: String)
  */
 data class CreditAdjustRequest(val amount: BigDecimal?, val reason: String?)
 
+/** 운영 서비스가 회원 최대 100명의 사용 가능한 크레딧 합계를 한 번에 묻는다. 100명을 넘으면 422다. */
+data class CreditBalancesRequest(val memberIds: List<UUID>)
+
 /** 요청 한 건과 [tokens]만큼 AI를 쓰려는 회원의 요청을 받을지 묻는다. */
 data class AiRateLimitRequest(val memberId: UUID, val tokens: Int)
 

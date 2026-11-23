@@ -8,6 +8,7 @@ import { InMemoryReadingRecordRepository, InMemorySupportInquiryRepository, InMe
 import { InMemoryWorkInterestRepository } from '../../data/mock/InMemoryWorkInterestRepository'
 import { InMemoryEventRepository } from '../../data/mock/InMemoryEventRepository'
 import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../../data/mock/InMemoryGenreRepositories'
+import { InMemoryCardCategoryRepository, InMemoryOperationsCardCategoryRepository } from '../../data/mock/InMemoryCardCategoryRepositories'
 import { InMemoryOperationsCommentRepository } from '../../data/mock/InMemoryOperationsCommentRepository'
 import { InMemoryAdminActivityRepository } from '../../data/mock/InMemoryAdminActivityRepository'
 import { InMemoryJobMonitorRepository, InMemoryLlmOpsRepository, InMemoryOperationsDashboardRepository } from '../../data/mock/InMemoryLlmOpsRepositories'
@@ -46,9 +47,13 @@ export function registerMockupServices(container: AppContainer) {
   // 운영 장르 관리와 공개 장르 목록(작가 선택지·홈 칩·세계관 장르 이름)이 같은 메모리 목록을 봅니다.
   const operationsGenreRepository = new InMemoryOperationsGenreRepository()
   const genreRepository = new InMemoryGenreRepository(operationsGenreRepository)
+  // 운영 카드 카테고리 관리와 공개 카드 카테고리 목록(작가 선택지·분류 메뉴)도 같은 메모리 목록을 봅니다.
+  const operationsCardCategoryRepository = new InMemoryOperationsCardCategoryRepository()
   container.register({
     operationsGenreRepository: asValue(operationsGenreRepository),
     genreRepository: asValue(genreRepository),
+    operationsCardCategoryRepository: asValue(operationsCardCategoryRepository),
+    cardCategoryRepository: asValue(new InMemoryCardCategoryRepository(operationsCardCategoryRepository)),
     // 운영 이벤트 API 대신 메모리에만 등록·공개합니다.
     eventRepository: asValue(eventRepository),
     eventUseCase: asValue(new EventUseCase(eventRepository)),

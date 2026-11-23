@@ -10,7 +10,7 @@ const overview: MemberCredits = {
   history: [{ type: 'grant', kind: 'reward', amount: 120, occurredAt: '2026-11-10T00:00:00Z' }],
 }
 const make = (over: Partial<OperationsCreditRepository> = {}) =>
-  new OperationsCreditUseCase({ member: async () => overview, grant: async () => {}, revoke: async () => {}, ...over })
+  new OperationsCreditUseCase({ member: async () => overview, balances: async () => [], grant: async () => {}, revoke: async () => {}, ...over })
 
 describe('OperationsCreditUseCase 회원 크레딧 조회', () => {
   it('회원의 잔액과 내역을 그대로 돌려준다', async () => {
@@ -22,6 +22,28 @@ describe('OperationsCreditUseCase 회원 크레딧 조회', () => {
   it('크레딧 운영 권한이 없으면(403) 실패가 아니라 null이고, 그 밖의 실패는 그대로 던진다', async () => {
     expect(await make({ member: async () => { throw new OperationsForbidden('권한 없음') } }).member('m1')).toBeNull()
     await expect(make({ member: async () => { throw new OperationsError('연결 실패') } }).member('m1')).rejects.toThrow('연결 실패')
+  })
+})
+
+describe('OperationsCreditUseCase 잔액 묶음 조회', () => {
+  it('회원 id를 100명씩 나눠 조회하고 회원 id별 잔액 하나로 합친다', async () => {
+    const ids = Array.from({ length: 250 }, (_, i) => `m${i}`)
+    const balances = vi.fn(async (chunk: string[]) => chunk.map((memberId, i) => ({ memberId, total: i })))
+    const result = await make({ balances }).balances(ids)
+    expect(balances.mock.calls.map(([chunk]) => chunk.length)).toEqual([100, 100, 50])
+    expect(Object.keys(result ?? {})).toHaveLength(250)
+    expect(result?.m101).toBe(1)
+  })
+
+  it('회원이 없으면 요청하지 않고 빈 결과다', async () => {
+    const balances = vi.fn(async () => [])
+    expect(await make({ balances }).balances([])).toEqual({})
+    expect(balances).not.toHaveBeenCalled()
+  })
+
+  it('크레딧 운영 권한이 없으면(403) 실패가 아니라 null이고, 그 밖의 실패는 그대로 던진다', async () => {
+    expect(await make({ balances: async () => { throw new OperationsForbidden('권한 없음') } }).balances(['m1'])).toBeNull()
+    await expect(make({ balances: async () => { throw new OperationsError('연결 실패') } }).balances(['m1'])).rejects.toThrow('연결 실패')
   })
 })
 

@@ -32,14 +32,16 @@ describe('작품 규칙 (목업 1절)', () => {
     expect(canView({ ...byId('postman'), private: true }, 'user')).toBe(false)
   })
 
-  it('관리자도 자기 비공개 작품과 숨긴 회차는 볼 수 있지만 남의 것은 볼 수 없다 (#605)', () => {
+  it('운영자는 소유권 없이 남의 비공개 작품과 숨긴 회차도 볼 수 있다 (#605, 2026-11-23 정책 변경)', () => {
     const hide = (w: Work): Work => ({ ...w, private: true, eps: w.eps.map((e) => ({ ...e, hidden: true })) })
     const mine = hide(byId('starlight')), others = hide(byId('postman'))
     expect(canView(mine, 'admin')).toBe(true)
     expect(canView(mine, null)).toBe(false)
-    expect(canView(others, 'admin')).toBe(false)
+    expect(canView(others, 'admin')).toBe(true)
+    expect(canView(others, 'user')).toBe(false)
     expect(visibleEpisode(mine, mine.eps[0], 'admin')).toBe(true)
-    expect(visibleEpisode(others, others.eps[0], 'admin')).toBe(false)
+    expect(visibleEpisode(others, others.eps[0], 'admin')).toBe(true)
+    expect(visibleEpisode(others, others.eps[0], 'user')).toBe(false)
   })
 
   it('신고는 남의 공개 작품에만 열린다 — 비공개·숨김·본인 작품은 불가 (#196)', () => {

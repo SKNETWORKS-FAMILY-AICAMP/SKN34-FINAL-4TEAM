@@ -5,7 +5,7 @@ import { plainCardText } from '../../../shared/cardSections'
 import { BackChev } from '../../../shared/icons'
 import { KindChip } from '../../../shared/KindChip'
 import { Sheet } from '../../../shared/Sheet'
-import { CARD_KIND } from '../../../shared/worldBoard'
+import { kindOf } from '../../../shared/worldBoard'
 import { importCards } from '../../../shared/importCards'
 import { useImportableWorlds, useImportSource } from '../viewmodel/useWorldImport'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
@@ -95,7 +95,7 @@ function ImportCards({ vm, sourceId, back, done }: { vm: VM; sourceId: string; b
                       <li key={card.id}>
                         <label className="world-import-check">
                           <input type="checkbox" aria-label={`${type} ${card.title}`} aria-describedby={`${summaryId}-${card.id}`} checked={checked.has(card.id)} onChange={(e) => toggle(card.id, e.target.checked)} />
-                          <span><KindChip kind={CARD_KIND[card.cardType]} label={type} /> <strong>{card.title}</strong><small id={`${summaryId}-${card.id}`}>{plainCardText(card.text)}</small></span>
+                          <span><KindChip kind={kindOf(card.cardType)} label={type} /> <strong>{card.title}</strong><small id={`${summaryId}-${card.id}`}>{plainCardText(card.text)}</small></span>
                         </label>
                       </li>
                     )

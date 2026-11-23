@@ -51,6 +51,10 @@
 | `GET /internal/v1/works/{workId}` | `{ workId, ownerId, title, restricted }`, 없으면 404 |
 | `PUT /internal/v1/works/{workId}/restriction` | 같은 본문(`restricted=true`) |
 | `DELETE /internal/v1/works/{workId}/restriction` | 같은 본문(`restricted=false`) |
+| `GET /internal/v1/works/{workId}/episodes` | 회차 목록 `[{number,title,publicationStatus,restricted,inherited}]`(회차 신고 접수가 그 번호의 발행·제한을 확인) |
+| `PUT`·`DELETE /internal/v1/works/{workId}/episodes/{number}/restriction` | 그 회차 한 원소. 상속 회차는 409 `EPISODE_INHERITED` |
+| `GET /internal/v1/world-studios` | 세계관 목록(세계관 신고 접수가 그 id를 확인) |
+| `PUT`·`DELETE /internal/v1/world-studios/{worldId}/restriction` | 그 세계관 한 원소 |
 
 `ownerId`는 Content `work.owner_id`(varchar) 문자열이라 UUID가 아닐 수 있고, 운영은 신고 접수에서만 UUID로 변환하며 비 UUID 소유자 작품 신고는 저장 없이 409다(제한·해제는 `ownerId`를 쓰지 않아 영향 없음).
 
@@ -62,7 +66,7 @@
 
 | 메서드·경로 | 권한 | 동작 |
 |---|---|---|
-| `POST /reports` | 로그인 회원 | `{ kind: "RIGHTS"\|"HARMFUL", workId, reason(1~2000), evidence(0~5000) }` 접수. Content에서 작품 소유자·제목을 조회해 저장. 201 |
+| `POST /reports` | 로그인 회원 | `{ kind: "RIGHTS"\|"HARMFUL", workId, reason(1~2000), evidence(0~5000), targetType?, episodeNumber?, worldId? }` 접수(대상 종류는 [아래](#신고-대상-작품회차세계관)). Content 운영 작품 목록(`GET /internal/v1/works`)에서 공개·미제한 작품을 찾아 소유자·제목을 저장. 201 |
 | `GET /reports/mine` | 로그인 회원 | 내가 신고했거나 내 작품이 대상인 신고 목록(최신순) |
 | `GET /reports?status=` | 관리자 `rights` | 운영 신고 목록(최신순, 선택 상태 필터) |
 | `GET /reports/{id}` | 신고자·작품 소유자·관리자 `rights` | 상세 + `history` |
@@ -70,13 +74,24 @@
 | `POST /reports/{id}/explanations` | 작품 소유자 | `{ body }` 소명 → 이력 `EXPLANATION` |
 | `GET /reports/{id}/explanations` | 신고 상세와 같음 | 소명 이력만 |
 | `POST /reports/{id}/review` | 관리자 `rights` | `{ decision: "ACCEPTED"\|"REJECTED", note(1~2000) }` 상태 변경 → 이력 `REVIEW` |
-| `POST /reports/{id}/restriction` | 관리자 `rights` | Content 작품 제한 → `contentRestricted=true`, 이력 `RESTRICT` |
-| `DELETE /reports/{id}/restriction` | 관리자 `rights` | Content 제한 해제 → `contentRestricted=false`, 이력 `UNRESTRICT` |
+| `POST /reports/{id}/restriction` | 관리자 `rights` | Content 대상(작품·회차·세계관) 제한 → `contentRestricted=true`, 이력 `RESTRICT` |
+| `DELETE /reports/{id}/restriction` | 관리자 `rights` | Content 대상 제한 해제 → `contentRestricted=false`, 이력 `UNRESTRICT` |
 | `POST /reports/{id}/evidence-requests` | 관리자 `rights` | `{ body }` 작품 등록자에게 권리 증빙 요청 → 이력 `EVIDENCE_REQUEST`(소유자 상세에 표시) |
 
-`Report = { id, kind, workId, workTitle, workOwnerId, reporterId, reason, evidence, status: "RECEIVED"|"ACCEPTED"|"REJECTED", contentRestricted, createdAt, updatedAt, history? }`
+`Report = { id, kind, targetType: "work"|"episode"|"world", workId, workTitle, workOwnerId, episodeNumber, worldId, worldName, reporterId, reason, evidence, status: "RECEIVED"|"ACCEPTED"|"REJECTED", contentRestricted, createdAt, updatedAt, history? }`
 `History = { id, type, actorId, body, createdAt }`, 이력은 오래된순. 목록은 `{ items: Report[] }`(history 제외, 최대 200개).
 본문 문자열은 공백만·U+0000이면 400이다. 운영 조치 이력 조회는 상세 `history`로 제공한다.
+
+### 신고 대상 (작품·회차·세계관)
+
+2026-11-23 사용자 결정: 신고 대상 종류는 `work`·`episode`·`world`다(접수 본문 `targetType`, 없으면 `work`). 기존 작품 신고는 그대로다.
+
+- `work`: `workId` 필요. Content 운영 작품 목록에서 공개(`visibility` public)이고 제한되지 않은 작품만 받는다(단건 `GET /internal/v1/works/{workId}`에는 공개 여부가 없다). 비공개·제한·없는 작품은 모두 같은 404이고 응답·예외에 작품 제목이 실리지 않는다.
+- `episode`: `workId`와 `episodeNumber` 필요. 위 작품 조건에 더해 Content `GET /internal/v1/works/{workId}/episodes`에서 그 번호의 회차가 발행(`publicationStatus` published)됐고 제한되지 않았을 때만 받고, 초안·공개 중단·제한·없는 회차는 404이며 아무것도 저장하지 않는다. 작품 제목·소유자 스냅샷은 작품 신고와 같다.
+- `world`: `worldId` 필요. Content `GET /internal/v1/world-studios`에서 공개(`visibility` public·`published`·미제한)인 세계관만 받고, 비공개·저장 버전 없음·제한·없는 세계관은 모두 같은 404다(비공개 세계관의 존재와 이름을 접수자에게 알리지 않는다). 세계관 이름(`worldName`)을 저장하고 `workId`·`workTitle`·`workOwnerId`는 null이다. 세계관은 작품이 아니고 소유자 칸을 두지 않으므로 소유자 조회·소명 흐름이 없고 신고자와 `rights` 관리자만 본다.
+- 필요한 id가 없으면 400이고 Content를 부르기 전에 거절한다. 종류가 묻지 않는 id는 무시한다.
+- 제한·해제(`POST|DELETE /reports/{id}/restriction`)는 대상에 맞는 Content 내부 API를 부른다: 작품 `/internal/v1/works/{workId}/restriction`, 회차 `/internal/v1/works/{workId}/episodes/{number}/restriction`, 세계관 `/internal/v1/world-studios/{worldId}/restriction`. 이력·활동 기록(`REPORT_RESTRICT`·`REPORT_UNRESTRICT`)은 같다.
+- 저장(operations Flyway V11): `report.target_type`(`WORK`·`EPISODE`·`WORLD`, 기존 행은 `WORK`)·`episode_number`·`world_id`·`world_name`을 더하고 `work_id`·`work_title`·`work_owner_id`를 NULL 허용으로 바꾼다. CHECK가 종류별 id 구성(작품=작품, 회차=작품+번호, 세계관=세계관만)을 지킨다. JSON의 `targetType`은 소문자 낱말이고 DB는 다른 enum처럼 대문자 상수 이름이다.
 
 ### 회원·관리자
 
