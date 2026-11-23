@@ -1,12 +1,14 @@
 # Langfuse self-host(#302, 로컬·dev·prod 편입 DEC-55). 루트 compose.yaml과 dev·prod Compose 파일이 각자의 include로 앱 스택과 같은 프로젝트에서 켠다(정의 복제 없음).
-# 공식 docker-compose.yml(langfuse/langfuse)에서 웹·worker와 의존 저장소만 남겼다(AI gateway 제외). 앱의 postgres·minio와 겹치지 않게 서비스 이름은 langfuse- 접두어다.
-# 웹 화면은 개발자용이라 127.0.0.1에만 열고(공개 진입점 nginx에는 없다. 관리자는 들어가지 않고 서비스는 프로젝트 API 키로만 접근한다) 나머지는 내부 네트워크에만 둔다.
+# 공식 docker-compose.yml(langfuse/langfuse)에서 웹·worker와 앱 스택에 없는 저장소(ClickHouse·Redis)만 남겼다(AI gateway 제외).
+# PostgreSQL·MinIO는 앱 스택의 postgres(langfuse DB, 첫 시작 때 Langfuse 마이그레이션이 만든다)와 minio(첨부 버킷의 langfuse/ 접두어)를 쓴다(2026-11-23 사용자 결정).
+# 외부 PostgreSQL·S3를 쓰는 prod는 LANGFUSE_DATABASE_URL·LANGFUSE_S3_ENDPOINT를 서버 .env에 둔다.
+# 웹 화면은 쓰지 않는다(2026-11-23 사용자 결정). langfuse-web은 AI·운영이 내부 주소로 부르는 API 서버라 남기되 호스트 포트·로그인 사용자가 없다.
 name: storyfork-langfuse
 
 x-langfuse-env: &langfuse-env
-  # 개발자가 브라우저로 여는 주소. 원격 서버는 SSH 포트 포워딩으로 같은 포트를 연다.
-  NEXTAUTH_URL: http://localhost:${LANGFUSE_WEB_PORT:-3000}
-  DATABASE_URL: postgresql://langfuse:${LANGFUSE_DB_PASSWORD:?Set LANGFUSE_DB_PASSWORD}@langfuse-postgres:5432/langfuse
+  # 웹 화면을 열지 않지만 Langfuse 웹 서버가 시작할 때 필요한 값이다.
+  NEXTAUTH_URL: http://localhost:3000
+  DATABASE_URL: ${LANGFUSE_DATABASE_URL:-postgresql://${DATABASE_USER:?Set DATABASE_USER}:${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}@postgres:5432/langfuse}
   SALT: ${LANGFUSE_SALT:?Set LANGFUSE_SALT}
   ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:?Set LANGFUSE_ENCRYPTION_KEY (openssl rand -hex 32)}
   TELEMETRY_ENABLED: "false"
@@ -15,30 +17,28 @@ x-langfuse-env: &langfuse-env
   CLICKHOUSE_USER: langfuse
   CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD:?Set LANGFUSE_CLICKHOUSE_PASSWORD}
   CLICKHOUSE_CLUSTER_ENABLED: "false"
-  LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
-  LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
-  LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: langfuse
-  LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${LANGFUSE_MINIO_PASSWORD:?Set LANGFUSE_MINIO_PASSWORD}
-  LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+  # 앱 첨부 버킷을 같이 쓰고 접두어로 나눈다(첨부 키는 langfuse/로 시작하지 않는다).
+  LANGFUSE_S3_EVENT_UPLOAD_BUCKET: ${ATTACHMENT_S3_BUCKET:-storyfork-setting-attachments}
+  LANGFUSE_S3_EVENT_UPLOAD_REGION: ${ATTACHMENT_S3_REGION:-us-east-1}
+  LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?Set AWS_ACCESS_KEY_ID}
+  LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?Set AWS_SECRET_ACCESS_KEY}
+  LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: ${LANGFUSE_S3_ENDPOINT:-http://minio:9000}
   LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
-  LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
-  # 집필 AI는 미디어를 올리지 않는다. 주소는 내부 MinIO로만 둔다.
-  LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
-  LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
-  LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: langfuse
-  LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${LANGFUSE_MINIO_PASSWORD}
-  LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+  LANGFUSE_S3_EVENT_UPLOAD_PREFIX: langfuse/events/
+  # 집필 AI는 미디어를 올리지 않는다.
+  LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: ${ATTACHMENT_S3_BUCKET:-storyfork-setting-attachments}
+  LANGFUSE_S3_MEDIA_UPLOAD_REGION: ${ATTACHMENT_S3_REGION:-us-east-1}
+  LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+  LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+  LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ${LANGFUSE_S3_ENDPOINT:-http://minio:9000}
   LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
-  LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+  LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: langfuse/media/
   REDIS_HOST: langfuse-redis
   REDIS_PORT: "6379"
   REDIS_AUTH: ${LANGFUSE_REDIS_PASSWORD:?Set LANGFUSE_REDIS_PASSWORD}
 
+# 앱 postgres·minio는 다른 파일의 서비스라 여기서 기다리지 않는다(prod에는 없다). 아직 안 떴으면 재시작으로 다시 붙는다.
 x-langfuse-depends-on: &langfuse-depends-on
-  langfuse-postgres:
-    condition: service_healthy
-  langfuse-minio:
-    condition: service_healthy
   langfuse-redis:
     condition: service_healthy
   langfuse-clickhouse:
@@ -49,22 +49,17 @@ services:
     image: docker.langfuse.com/langfuse/langfuse:4.78.0
     restart: unless-stopped
     depends_on: *langfuse-depends-on
-    ports:
-      - "127.0.0.1:${LANGFUSE_WEB_PORT:-3000}:3000"
     environment:
       <<: *langfuse-env
       NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:?Set LANGFUSE_NEXTAUTH_SECRET}
-      # 첫 시작 때 조직·프로젝트·관리자와 AI·운영 서비스가 쓸 API 키를 만든다. 이미 있으면 건너뛴다. 키는 두 서비스의 LANGFUSE_PUBLIC_KEY·LANGFUSE_SECRET_KEY와 같은 변수다.
+      # 첫 시작 때 조직·프로젝트와 AI·운영 서비스가 쓸 API 키를 만든다. 이미 있으면 건너뛴다. 키는 두 서비스의 LANGFUSE_PUBLIC_KEY·LANGFUSE_SECRET_KEY와 같은 변수다.
       LANGFUSE_INIT_ORG_ID: storyfork
       LANGFUSE_INIT_ORG_NAME: STORYFORK
       LANGFUSE_INIT_PROJECT_ID: storyfork-writing-ai
       LANGFUSE_INIT_PROJECT_NAME: writing-ai
       LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?Set LANGFUSE_PUBLIC_KEY (pk-lf-...)}
       LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?Set LANGFUSE_SECRET_KEY (sk-lf-...)}
-      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:?Set LANGFUSE_INIT_USER_EMAIL}
-      LANGFUSE_INIT_USER_NAME: storyfork-admin
-      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:?Set LANGFUSE_INIT_USER_PASSWORD}
-      # 초기 관리자는 개발자가 Langfuse 웹에 로그인할 때만 쓴다. 다른 사용자는 만들지 않는다.
+      # 로그인 사용자는 만들지 않는다.
       AUTH_DISABLE_SIGNUP: "true"
 
   langfuse-worker:
@@ -72,23 +67,6 @@ services:
     restart: unless-stopped
     depends_on: *langfuse-depends-on
     environment: *langfuse-env
-
-  langfuse-postgres:
-    image: postgres:17-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: langfuse
-      POSTGRES_USER: langfuse
-      POSTGRES_PASSWORD: ${LANGFUSE_DB_PASSWORD}
-      TZ: UTC
-      PGTZ: UTC
-    volumes:
-      - langfuse-postgres:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U langfuse -d langfuse"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
 
   langfuse-clickhouse:
     image: clickhouse/clickhouse-server:26.3.62.3
@@ -109,25 +87,6 @@ services:
       retries: 20
       start_period: 5s
 
-  # 앱 스택과 같은 소스 빌드 MinIO 이미지다. 시작 전에 langfuse 버킷 디렉터리를 만든다.
-  langfuse-minio:
-    image: ghcr.io/sknetworks-family-aicamp/storyfork-minio:RELEASE.2025-10-15T17-29-55Z
-    build:
-      context: ./minio
-    restart: unless-stopped
-    entrypoint: sh
-    command: -c 'mkdir -p /data/langfuse && exec minio server /data'
-    environment:
-      MINIO_ROOT_USER: langfuse
-      MINIO_ROOT_PASSWORD: ${LANGFUSE_MINIO_PASSWORD}
-    volumes:
-      - langfuse-minio:/data
-    healthcheck:
-      test: [CMD, curl, --fail, --silent, http://localhost:9000/minio/health/live]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
   langfuse-redis:
     image: redis:7.4-alpine
     restart: unless-stopped
@@ -143,8 +102,6 @@ services:
       REDIS_PASSWORD: ${LANGFUSE_REDIS_PASSWORD}
 
 volumes:
-  langfuse-postgres:
   langfuse-clickhouse:
   langfuse-clickhouse-logs:
-  langfuse-minio:
   langfuse-redis:
