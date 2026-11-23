@@ -28,15 +28,17 @@ type Picked = { file: File; name: string; kind: ChatAttachment['kind'] }
  * - after: 메시지 뒤에 이어 그릴 것(진행 표시·승인 카드). 있으면 빈 상태 대신 그린다.
  * - renderCard: 메시지 글 바로 아래에 이어 그릴 카드(인물 시뮬레이션 장면 등). 이 카드가 있는 말풍선은 폭을 채운다.
  * - renderActions: 메시지 말풍선 아래의 행동(수정·삭제 등).
+ * - sendNote: 다음 메시지에 함께 보내지는 것(선택한 글 등)을 입력 카드 위에 알린다. 잠긴 동안에는 보내지 않으므로 보이지 않는다.
  * - streaming: 흐르는 중인 글(없으면 undefined). 바뀌거나 끝날 때(완성된 답·실패 안내) 맨 아래에서 읽던 대화만 따라 내려간다(#618).
  */
-export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledReason, inputError, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, streaming, renderCard, renderActions }: {
+export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledReason, inputError, sendNote, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, streaming, renderCard, renderActions }: {
   messages: ChatMessage[]
   onSend?: (text: string, files: File[]) => boolean | Promise<boolean>
   busy?: boolean
   checkFile?: (file: File, count: number) => AttachmentCheck
   disabledReason?: string
   inputError?: string
+  sendNote?: string
   emptyTitle?: string
   emptyText?: string
   suggestions?: string[]
@@ -54,6 +56,20 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   useEffect(() => {
     if (pinned.current && log.current) log.current.scrollTop = log.current.scrollHeight
   }, [streaming])
+  // 선택 안내 같은 줄이 생기면 대화 영역이 줄어든다. 줄기 전에 맨 아래를 읽던 중이면 따라 내려가 승인 버튼을 가리지 않는다.
+  // pinned로는 알 수 없다: 이력을 막 불러온 대화는 맨 위를 보이는데 스크롤한 적이 없어 true로 남는다.
+  useEffect(() => {
+    const el = log.current
+    if (!el || typeof ResizeObserver !== 'function') return
+    let height = el.clientHeight
+    const watch = new ResizeObserver(() => {
+      if (el.clientHeight === height) return
+      if (el.scrollHeight - el.scrollTop - height < 80) el.scrollTop = el.scrollHeight
+      height = el.clientHeight
+    })
+    watch.observe(el)
+    return () => watch.disconnect()
+  }, [])
   const files = useRef<Record<ChatAttachment['kind'], HTMLInputElement | null>>({ image: null, text: null })
   const [picked, setPicked] = useState<Picked[]>([])
   const [rejected, setRejected] = useState<string[]>([])
@@ -61,9 +77,11 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   const id = useId()
   const errorId = `${id}-error`
   const reasonId = `${id}-reason`
+  const noteId = `${id}-note`
   const attachId = `${id}-attach`
   const locked = !!disabledReason || !onSend
   const attachOff = locked || !checkFile
+  const note = locked ? '' : sendNote
   // busy를 넘기지 않는 화면에서도 응답을 기다리는 동안 같은 입력을 다시 보내지 않는다.
   // ref는 같은 틱의 중복 호출을 막고, pending은 그 사이 전송 버튼을 잠가 보이게 한다.
   const sending = useRef(false)
@@ -130,13 +148,14 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
       </div>}
     </div>
     <form className="chat-composer" onSubmit={e => { e.preventDefault(); void submit() }}>
+      {note && <p id={noteId} className="chat-note">{note}</p>}
       {/* 파일을 놓을 수 있는 곳: 첨부가 켜져 있으면 잠긴 동안에도 기본 동작(브라우저가 파일을 열어 화면을 떠남)을 막고, 첨부는 잠기지 않았을 때만 받는다. */}
       <div className={`chat-card${locked ? ' locked' : ''}`} onDragOver={checkFile ? e => e.preventDefault() : undefined}
         onDrop={checkFile ? e => { e.preventDefault(); if (!attachOff) add([...e.dataTransfer.files]) } : undefined}>
         {!!picked.length && <ul className="chat-chips chat-picked" aria-label="보낼 첨부">{picked.map((p, i) => <li key={`${p.name}-${i}`} className="chip">
           <span className="chat-chip-name">{kindLabel[p.kind]} · {p.name}</span><button type="button" className="chat-chip-x" aria-label={`${p.name} 빼기`} onClick={() => remove(i)}>×</button>
         </li>)}</ul>}
-        <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={disabledReason ? reasonId : inputError ? errorId : undefined}
+        <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={disabledReason ? reasonId : inputError ? errorId : note ? noteId : undefined}
           onChange={e => changeDraft(e.target.value)}
           onKeyDown={e => {
             // Safari는 조합 확정 Enter를 isComposing=false, keyCode=229로 보낸다

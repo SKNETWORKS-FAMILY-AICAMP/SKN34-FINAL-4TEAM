@@ -91,6 +91,18 @@ it('시뮬레이션 버튼은 편집기 대신 무대를 열고(편집기는 숨
   expect(document.activeElement).toBe(button)
 })
 
+it('편집기에서 글을 고르면 채팅이 함께 보낼 글자 수를 보이고, 선택을 풀면 없앤다(#636)', async () => {
+  renderStudio()
+  const chat = await screen.findByRole('complementary', { name: 'AI 채팅' })
+  const body = screen.getByRole('textbox', { name: '원고 본문' }) as HTMLTextAreaElement
+  body.setSelectionRange(0, 2)
+  fireEvent.select(body)
+  expect(await within(chat).findByText('선택한 글 2자가 함께 보내져요.')).toBeTruthy()
+  body.setSelectionRange(0, 0)
+  fireEvent.select(body)
+  await waitFor(() => expect(within(chat).queryByText(/함께 보내져요/)).toBeNull())
+})
+
 it('무대의 닫기 버튼도 편집기를 되돌리고 초점을 시뮬레이션 버튼으로 돌려준다', async () => {
   renderStudio()
   fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
