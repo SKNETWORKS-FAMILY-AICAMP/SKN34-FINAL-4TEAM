@@ -52,7 +52,7 @@ function Runs({ vm, j }: { vm: VM; j: Jobs }) {
         </label>
         <label className="field">종류<input className="inp" name="kind" list="job-kinds" defaultValue={q.kind} placeholder="예: regression_eval" /></label>
         <datalist id="job-kinds">{JOB_KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</datalist>
-        <button type="submit" className="btn sm pri">조회</button>
+        <button type="submit" className="btn sm">조회</button>
       </form>
       <LiveState vm={vm} label="실행 기록" state={j.runs} />
       <ActionLines vm={vm} prefix="run:" />
@@ -94,18 +94,18 @@ function RunRow({ run, j, busy }: { run: JobRun; j: Jobs; busy: boolean }) {
   const kind = jobKindLabel(run.kind), progress = run.progress
   return (
     <tr>
-      <td>{kind}</td>
-      <td>{jobSourceLabel(run.source)}</td>
+      <td className="admin-nowrap">{kind}</td>
+      <td className="admin-nowrap">{jobSourceLabel(run.source)}</td>
       <td>{statusChip(run.status)}</td>
-      <td>{jobTriggerLabel(run.trigger)}</td>
+      <td className="admin-nowrap">{jobTriggerLabel(run.trigger)}</td>
       <td>
         {progress && progress.total > 0 && <progress value={progress.done} max={progress.total} aria-label={`${kind} 진행률`} />}
-        <div className="small">{jobProgress(progress)}</div>
+        <div className="small admin-nowrap">{jobProgress(progress)}</div>
       </td>
       <td className="admin-date">{run.startedAt ? kstDateTime(run.startedAt) : '—'}</td>
       <td className="admin-date">{run.finishedAt ? kstDateTime(run.finishedAt) : '—'}</td>
       <td>
-        {run.error ?? '—'}
+        {run.error ?? (run.targetId ? null : '—')}
         {run.targetId && <div className="small muted">대상 {run.targetId}</div>}
       </td>
       <td className="act-menu">
@@ -132,7 +132,7 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
   const [editing, setEditing] = useState<Schedule | null>(null)
   const rows = j.schedules.data
   return (
-    <section className="panel admin-operations" style={{ marginTop: 14 }} aria-label="정기 작업 일정">
+    <section className="panel admin-operations" aria-label="정기 작업 일정">
       <h2 className="panel-title">정기 작업 일정</h2>
       <LiveState vm={vm} label="일정 목록" state={j.schedules} forbidden={JOBS_FORBIDDEN} />
       <ActionLines vm={vm} prefix="schedule:" />
@@ -154,9 +154,9 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
                 const kind = jobKindLabel(row.kind), busy = !!vm.actions[`schedule:${row.id}`]?.pending
                 return (
                   <tr key={row.id}>
-                    <td>{kind}</td>
-                    <td>{row.cron}</td>
-                    <td><span className={`chip ${row.enabled ? 'ok' : 'wait'}`}>{row.enabled ? '켜짐' : '꺼짐·취소됨'}</span></td>
+                    <td className="admin-nowrap">{kind}</td>
+                    <td><code>{row.cron}</code></td>
+                    <td><span className={`chip ${row.enabled ? 'ok' : 'wait'}`}>{row.enabled ? '켜짐' : '꺼짐'}</span></td>
                     <td>{Object.keys(row.params).length ? JSON.stringify(row.params) : '—'}</td>
                     <td>{row.lastRun ? <>{statusChip(row.lastRun.status)} <span className="small muted admin-date">{row.lastRun.startedAt ? kstDateTime(row.lastRun.startedAt) : ''}</span></> : '—'}</td>
                     <td className="act-menu">
@@ -181,7 +181,7 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
         )
         : <p className="admin-empty">등록된 일정이 없어요.</p>)}
       <ScheduleForm key={editing?.id ?? 'new'} editing={editing} vm={vm} j={j} onDone={() => setEditing(null)} />
-      <p className="admin-note">운영 서버가 1분마다 켜진 일정 중 도래한 것을 실행하고 실행 기록에 남겨요(같은 일정이 아직 실행 중이면 건너뛰어요). 서버가 해석하는 cron 식을 입력하면 잘못된 식은 서버가 알려 줘요.</p>
+      <p className="admin-note">운영 서버가 1분마다 켜진 일정 중 도래한 것을 실행하고 실행 기록에 남겨요(같은 일정이 아직 실행 중이면 건너뛰어요).</p>
     </section>
   )
 }
@@ -214,7 +214,7 @@ function ScheduleForm({ editing, vm, j, onDone }: { editing: Schedule | null; vm
         </label>
         <label className="field">cron 식<input className="inp" name="cron" required defaultValue={editing?.cron ?? ''} placeholder="예: 0 0 3 * * *" /></label>
         <label className="field wide">매개변수(JSON 객체)<textarea className="ta" name="params" rows={3} defaultValue={editing ? JSON.stringify(editing.params) : '{}'} /></label>
-        <label><input type="checkbox" name="enabled" defaultChecked={editing?.enabled ?? true} /> 사용</label>
+        <label className="admin-inline small"><input type="checkbox" name="enabled" defaultChecked={editing?.enabled ?? true} /> 사용</label>
         <div className="rowend wide">
           {editing && <button type="button" className="btn" onClick={onDone}>수정 취소</button>}
           <button type="submit" className="btn pri">{busy ? '저장 중…' : editing ? '일정 변경' : '일정 등록'}</button>

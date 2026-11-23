@@ -60,7 +60,7 @@ export function AdminWorlds({ vm }: { vm: VM }) {
                 {STATUSES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
             </label>
-            <button type="submit" className="btn pri">검색</button>
+            <button type="submit" className="btn">검색</button>
           </form>
           {worldActions.filter(([, state]) => state.pending || state.error).map(([key, state]) => <AdminActionStatus key={key} state={{ ...state, message: '' }} target={nameOf(key)} />)}
           {vm.lastSuccessKey.startsWith('world:') && vm.lastSuccess && <p className="admin-note" role="status">{vm.lastSuccess}</p>}

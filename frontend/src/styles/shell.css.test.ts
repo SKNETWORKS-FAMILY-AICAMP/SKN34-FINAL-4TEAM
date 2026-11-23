@@ -231,6 +231,7 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
   /** 900px 이하(사이드바가 상단바 아래 가로 메뉴 줄이 되는 구간)에서 마지막으로 정한 값. */
   const narrow = (selector: string, prop: string) => value(selector, prop, '(max-width:900px)')
   const opsCss = readFileSync(new URL('../presentation/features/admin/view/admin-operations.css', import.meta.url), 'utf8')
+  const jobMonitor = readFileSync(new URL('../presentation/features/admin/view/JobMonitor.tsx', import.meta.url), 'utf8')
 
   it('관리자 틀은 최대 폭 제한(.wrap) 없이 사이드바를 왼쪽 끝 전체 높이로 둔다', () => {
     // 틀 마크업: 상단바·본문 어디에도 최대 폭 1120px(.wrap)을 쓰지 않는다(푸터의 .wrap은 AdminPage 밖이다).
@@ -274,14 +275,63 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect([value('.adm .admin-nav .admin-brand', 'display'), narrow('.adm .admin-nav .admin-brand', 'display')]).toEqual([undefined, 'none'])
   })
 
-  it('LLM Ops 한 쪽에 쌓은 패널(경고+경고 기준 등)은 숫자 카드 줄 사이 gap과 같은 12px로 띄운다', () => {
-    // .panel은 바깥 여백이 없어 두 패널이 맞붙어 한 덩어리로 보였다.
-    expect(opsCss).toMatch(/\.panel\.admin-operations \+ \.panel\.admin-operations\s*\{[^}]*margin-top:\s*12px/)
+  it('브랜드는 메인(/)으로 가는 링크(a)라, 메뉴 항목 규칙(.adm .admin-nav :is(button,a): 38px·500·--fixed-sub)보다 높은 명시도로 브랜드 모양을 지키고 상단바 브랜드는 터치 목표 44px이다', () => {
+    // 같은 레이어에서 명시도 (0,2,1)인 메뉴 항목 규칙이 (0,2,0) 브랜드 규칙을 이겨 브랜드가 메뉴 항목처럼 작아졌다: 클래스 셋(0,3,0)으로 올린다. display는 정하지 않는다(메뉴 안 링크 규칙이 flex로 두고, 위 계약이 기본 구간 display 없음을 지킨다).
+    expect(['height', 'font-weight', 'color'].map((prop) => value('.adm .admin-nav .admin-brand', prop))).toEqual(['60px', '800', 'var(--fixed-ink)'])
+    // 900px 이하 가로 메뉴 구간의 상단바 브랜드는 누르는 영역이 글자 높이만큼이던 것을 44px로 올린다.
+    expect(narrow('.adm .admin-brand-top', 'min-height')).toBe('44px')
+  })
+
+  it('cron 식(td code)은 공백에서 꺾이지 않는 한 줄이다', () => {
+    // '0 30 4 1 1 *'은 필드 경계가 공백이라 좁은 칸에서 꺾이면 필드 수를 셀 수 없다(390px 일정 표). 표 스크롤 영역 안에서 가로로 스크롤한다.
+    expect(opsCss).toMatch(/\.adm td code \{[^}]*white-space: nowrap/)
+  })
+
+  it('크레딧 탭에서 고른 회원의 보유 크레딧 카드(한 장)는 600px 이하에서도 전체 폭이다', () => {
+    // 공용 .kpi는 좁은 화면에서 2열이라 카드가 한 장이면 반 폭에 갇히고 설명이 세 줄로 꺾였다. 카드가 여럿인 개요·LLM Ops .kpi는 그대로 2열이다.
+    expect(opsCss).toMatch(/@media \(max-width: 600px\) \{[^@]*\.adm \.credit-member \.kpi \{ grid-template-columns: minmax\(0, 1fr\); \}/)
+  })
+
+  it('안내문(.admin-note)도 폼·표처럼 카드 안쪽 폭 전체를 쓴다(폭 상한 없음)', () => {
+    // 폼이 카드 폭 전체가 되어(아래 '관리자 폼은 표처럼…' 계약) 안내문만 800px이면 폼 오른쪽 끝과 어긋난다.
+    expect(value('.adm .admin-note', 'max-width')).toBeUndefined()
+  })
+
+  it('쌓인 패널은 무엇이든(.panel + .panel) 숫자 카드 줄 사이 gap과 같은 12px로 띄우고, 같은 간격을 인라인 14px로 덮지 않는다', () => {
+    // .panel은 바깥 여백이 없어 두 패널이 맞붙어 한 덩어리로 보였다. .admin-operations 패널끼리만 12px이고 캐릭터챗·관리자 계정·작업 일정·신고·문의 쪽은 인라인 14px이라 화면마다 간격이 달랐다.
+    expect(opsCss).toMatch(/\.adm \.panel \+ \.panel\s*\{[^}]*margin-top:\s*12px/)
+    expect(opsCss).not.toMatch(/\.panel\.admin-operations \+ \.panel\.admin-operations/)
+    for (const source of [adminPage, jobMonitor]) expect(source).not.toMatch(/className=['"][^'"]*\bpanel\b[^'"]*['"]\s+style=\{\{ marginTop: 14 \}\}/)
+  })
+
+  it('크레딧 탭에서 고른 회원의 보유 크레딧 카드(한 장)는 폭 상한 없이 바로 아래 폼과 같은 카드 안쪽 폭 전체다', () => {
+    // 폼이 카드 폭 전체가 되어(아래 계약) 카드 한 장도 800px로 묶지 않는다: auto-fit 격자의 한 장은 전체 폭이다. 600px 이하 1열 규칙은 위 계약이 지킨다.
+    expect(opsCss).not.toMatch(/\.credit-member \.kpi \{[^}]*max-width/)
+  })
+
+  it('좁은 화면(600px 이하)에서 표 끝 칸의 오른쪽 고정(sticky)은 열을 가로지르는 한 칸(td[colspan])에는 걸리지 않고, 고정 칸 왼쪽에는 1px 경계선이 있다', () => {
+    // 빈 결과 행의 유일한 칸(td colspan)도 :last-child라 같이 고정되면 폭 600px인 칸이 스크롤 영역(301px) 오른쪽 끝에 맞춰 밀려 문구가 영역 밖에 남았다(캐릭터챗·작품·댓글 390px). 같은 모양의 상세·수정 행도 같다.
+    const sticky = sheet.filter((r) => r.media === '(max-width:600px)' && r.selectors.some((s) => s.includes(':last-child')) && /position\s*:\s*sticky/.test(r.body))
+    expect(sticky.map((r) => r.selectors)).toEqual([['.adm-scroll table:has(th.act) :is(th,td):not([colspan]):last-child']])
+    // 번지는 그림자만으로는 옅어서 잘린 열이 반쯤 걸친 글자로만 보였다: 왼쪽 끝에 1px 선을 더해 가로 스크롤하는 표로 읽히게 한다.
+    expect(sticky[0].body).toMatch(/box-shadow\s*:\s*inset 1px 0 0 var\(--line2\),/)
+  })
+
+  it('실패한 실행의 진행 막대는 정상 색(기본 파랑)으로 가득 차 보이지 않고 실패 색이다', () => {
+    // 작업 감시 실행 기록의 실패 행이 '● 실패' 옆에서 3/3 (100%) 막대를 정상처럼 채우고 있었다. 상태 칩의 .bad를 신호로 쓴다.
+    expect(opsCss).toMatch(/\.adm tr:has\(\.chip\.bad\) progress \{ accent-color: var\(--danger\); \}/)
+  })
+
+  it('관리자의 위험 버튼(.btn.danger: 크레딧 회수)은 주 행동 옆에서 같은 무게의 채운 버튼이 아니라 윤곽선 버튼이다', () => {
+    // 전역 .btn.danger는 --danger 채움이라 '지급'(보라 채움)과 같은 무게로 붙어 잘못 누르기 쉬웠다. 집필실(.writing-danger)·계획(.plan-sheet)과 같은 윤곽선 모양이다.
+    expect(['background', 'color'].map((prop) => value('.adm .btn.danger', prop))).toEqual(['var(--surface)', 'var(--danger)'])
+    expect(value('.adm .btn.danger', 'border-color')).toMatch(/^color-mix\(in srgb,var\(--danger\) 45%/)
+    expect(value('.adm .btn.danger:hover:not(:disabled)', 'background')).toMatch(/^color-mix\(/)
   })
 
   it('표 행 조치(⋮ 메뉴)는 조치 칸을 ⋮ 버튼 하나 폭으로 줄이고, 36px(터치 44px) 단추와 버튼 자리 기준 fixed 메뉴를 쓴다', () => {
     // 조치 칸은 56px·오른쪽 맞춤이다. 글자 버튼 위험 색(.adm td .btn.danger)은 메뉴 항목(.pop-menu-list .danger)이 맡아 규칙을 지웠고, 남은 글자 버튼(경고 메모 줄·기준 저장·결과 보기)은 그대로다.
-    expect(opsCss).toMatch(/\.adm th\.act-menu, \.adm td\.act-menu \{[^}]*width: 56px[^}]*text-align: right/)
+    expect(opsCss).toMatch(/\.adm th\.act-menu, \.adm td\.act-menu \{[^}]*width: 56px[^}]*text-align: right[^}]*white-space: nowrap/)
     expect([value('.adm td .btn.danger', 'color'), value('.adm td .btn', 'color')]).toEqual([undefined, 'var(--pri-ink)'])
     // 단추 크기는 변수 하나(36px)이고 터치(600px 이하·coarse)는 44px이다. 명시도가 같아 터치 규칙이 기본 규칙 뒤에 있어야 이긴다.
     const base = opsCss.indexOf('.adm .row-menu { --more-size: 36px; }')
@@ -299,6 +349,33 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect([value('.adm .admin-date', 'white-space'), value('.adm .admin-date', 'font-variant-numeric')]).toEqual(['nowrap', 'tabular-nums'])
   })
 
+  it('표 머리(.adm th)와 짧은 라벨 칸(.admin-nowrap)은 두세 줄로 꺾이지 않는 한 줄이다', () => {
+    // body{word-break:keep-all;overflow-wrap:anywhere} 아래 표 자동 레이아웃에서 글자가 아주 긴 칸(매칭 패턴·권한·대상 ID)이 남는 폭을 가져가고, 짧은 칸은 공백·하이픈 단위 최소 폭까지 눌려 '입력/단가'·'S14 QA1123/관리자'처럼 꺾였다(.admin-date와 같은 이유). 머리 글자는 모두 짧아 전체에 걸고, 본문 칸은 짧은 라벨 칸에만 클래스로 건다.
+    expect(value('.adm th', 'white-space')).toBe('nowrap')
+    expect(opsCss).toMatch(/\.adm \.admin-nowrap \{ white-space: nowrap; \}/)
+  })
+
+  it('권한 체크박스 줄(.admin-perm-grid label)은 좌우 안쪽 여백이 없어 체크박스가 legend 글자와 왼쪽이 맞는다', () => {
+    // 타일 배경을 지운 뒤 padding:8px만 남아 체크박스가 legend보다 6px 들어가 보였다. 위아래 8px는 그대로이고 label이 격자 칸 전체 폭이라 누르는 영역도 그대로다.
+    expect(value('.admin-perm-grid label', 'padding')).toBe('8px 0')
+  })
+
+  it('권한 체크박스 격자(.admin-perm-grid)는 어떤 폭에서도 열이 4개를 넘지 않아 12개가 외톨이 없이 떨어진다', () => {
+    // 폼이 카드 폭 전체가 되면(1440px에서 격자 폭 1072px) 최소 190px 자동 열이 5열이라 12개가 5+5+2로 갈렸다. 열 최소 폭을 격자 폭의 24%로 올려 열 수를 4 이하(4×3·3×4·2×6·1×12)로 막고, 좁은 화면은 190px이 그대로 열을 줄인다.
+    const track = value('.admin-perm-grid', 'grid-template-columns')?.match(/^repeat\(auto-fit,minmax\((.+),1fr\)\)$/)?.[1] ?? ''
+    const floor = Number(/(\d+)px/.exec(track)?.[1])
+    const share = Number(/(\d+)%/.exec(track)?.[1] ?? 0) / 100
+    const gap = parseFloat(value('.admin-perm-grid', 'gap') ?? '')
+    const columns = (width: number) => Math.floor((width + gap) / (Math.max(floor, width * share) + gap))
+    const orphaned = Array.from({ length: 2400 - 190 + 1 }, (_, i) => 190 + i).filter((width) => 12 % columns(width) !== 0)
+    expect(orphaned, `열 수가 12의 약수가 아닌 격자 폭(px): ${track}`).toEqual([])
+  })
+
+  it('빈 상태 문구(.admin-empty)는 표 글자와 같은 13.5px이다', () => {
+    // 본문 15px를 물려받아 패널 제목(16px)과 경쟁했고 표 안 빈 행(13.5px)과 크기가 둘로 갈렸다. 색(--sub)·여백은 그대로다.
+    expect(opsCss).toMatch(/\.adm \.admin-empty \{[^}]*font-size: 13\.5px/)
+  })
+
   it('패널 주 행동·필터 버튼은 btn sm 규칙(36px·0 14px·13.5px) 하나로 같은 크기이고, 터치 환경(600px 이하·coarse)에서만 44px이다', () => {
     // 공지 작성·이벤트 작성 같은 .btn.pri는 전역 기본(44px·20px·15px) 큰 알약이라 필터 '조회'(.btn.sm)와 크기가 달랐다: .adm 안의 버튼은 모두 .btn.sm과 같다.
     const small = ['height', 'padding', 'font-size'].map((prop) => value('.btn.sm', prop))
@@ -306,10 +383,23 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(['height', 'padding', 'font-size'].map((prop) => value('.adm .btn', prop))).toEqual(small)
     // 터치 보정(파일 맨 끝 모바일 블록)은 .btn.sm처럼 .adm 버튼도 44px 이상으로 올린다.
     expect(sheet.some((r) => r.media === '(max-width:600px),(pointer:coarse)' && r.selectors.includes('.adm .btn') && /(?:^|;)\s*min-height\s*:\s*44px/.test(r.body))).toBe(true)
-    // 필터 줄: 버튼에 따로 높이를 두지 않고 입력·선택을 같은 36px로 맞춰 줄이 가지런하다(터치 환경은 입력도 44px).
+    // 관리자 입력·선택(.inp)은 필터 줄·폼·표 칸 어디서나 버튼과 같은 36px이라 한 화면의 줄이 가지런하다(터치 환경은 입력도 44px). 전역 .inp(46px)는 @layer(base)라 이 규칙이 이긴다.
     expect(opsCss).not.toMatch(/\.admin-filter \.btn\s*\{/)
-    expect(opsCss).toMatch(/\.admin-filter \.inp\s*\{[^}]*height:\s*36px/)
-    expect(opsCss).toMatch(/@media \(max-width: 600px\), \(pointer: coarse\) \{[^@]*\.admin-filter \.inp \{[^}]*min-height:\s*44px/)
+    expect(opsCss).toMatch(/\.adm \.inp\s*\{[^}]*height:\s*36px/)
+    expect(opsCss).toMatch(/@media \(max-width: 600px\), \(pointer: coarse\) \{[^@]*\.adm \.inp \{[^}]*min-height:\s*44px/)
+  })
+
+  it('관리자 폼은 표처럼 카드(패널) 안쪽 폭 전체를 쓴다: 폼 격자·권한 상자·제출 줄에 폭 상한이 없고 제출 줄만 위 12px을 띄운다', () => {
+    // 폼을 800px로 묶으면 1440px에서 카드(안쪽 약 1102px) 왼쪽에 붙고 오른쪽 300px가 비어 보였다(사용자 피드백). 검색 입력(.field-search 360px)은 필터 줄이라 예외다.
+    expect(opsCss).not.toMatch(/\.(?:form-grid|admin-permissions|rowend)[^{}]*\{[^}]*max-width/)
+    // 폭이 같아져 권한 상자는 fieldset 기본 가로 여백(2px)만 없애면 입력과 양쪽 끝이 맞고, 제출 줄은 격자 안 줄 사이와 같은 12px 아래로 띄운다.
+    expect(opsCss).toMatch(/\.adm \.admin-permissions \{ margin-inline: 0; \}/)
+    expect(opsCss).toMatch(/\.adm \.form-grid ~ \.rowend \{ margin-top: 12px; \}/)
+  })
+
+  it('표 스크롤 영역은 위치 기준이라 열 머리 .sr-only가 문서 가로 스크롤을 만들지 않는다', () => {
+    // .sr-only는 absolute에 위치 지정이 없어 표가 영역보다 넓으면 영역 밖(표 오른쪽 끝)에 놓인다. 영역이 위치 기준이 아니면 영역의 overflow가 못 자르고 페이지가 가로로 밀린다(작업 감시 실행 기록 표 848px, 창 약 1120px 이하).
+    expect(opsCss).toMatch(/\.adm \.adm-scroll \{ position: relative; \}/)
   })
 })
 
