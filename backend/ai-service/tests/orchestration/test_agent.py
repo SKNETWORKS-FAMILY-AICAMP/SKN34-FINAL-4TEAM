@@ -745,6 +745,36 @@ def test_ask_research_waits_for_the_consented_input_only_for_the_web_task():
     assert wait({}, 'web') and not wait({'research': WEB}, 'web') and not wait({}, 'platform')
 
 
+def test_old_web_research_inputs_from_a_checkpoint_are_not_asked_again():
+    call = {'name': 'ask_research', 'args': {'task': 'web'}}
+    assert not tools.waits(call, {'inputs': {'web_research': WEB}}, {})
+    assert tools.inputs({'inputs': {'web_research': WEB}}) == {'research': WEB}
+
+
+def test_research_inputs_win_over_old_web_research_inputs():
+    assert tools.inputs({'inputs': {'web_research': {'question': '옛 질문'}, 'research': WEB}}) == {'research': WEB}
+
+
+def test_web_and_platform_research_both_run_in_one_turn_and_record_their_task(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(Step('research', task='web'), Step('research', task='platform')))
+    result = run('고증도 확인하고 다른 세계관 설정도 찾아 줘', inputs={'research': WEB})
+    assert names(calls) == ['judge', 'research', 'platform']
+    assert [(s.feature, s.task, s.status) for s in result.steps] == [('research', 'web', 'completed'), ('research', 'platform', 'completed')]
+
+
+def test_research_runs_at_most_twice_per_turn(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(*[Step('research', task='platform')] * 3))
+    result = run('마법 학원 참고')
+    assert names(calls).count('platform') == 2 and len(result.steps) == 2
+    assert tool_messages(calls)[-1].status == 'error'
+
+
+def test_a_failed_platform_step_is_named_for_the_model_as_a_public_world_reference(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(Step('research', task='platform')), fail={'platform': ResearchFailure(502, '실패')})
+    run('마법 학원 참고')
+    assert tool_messages(calls)[0].content == '[실패] 공개 세계관 참고: 실패'
+
+
 def test_a_decision_recorded_as_web_research_still_exposes_ask_research():
     assert {n for n in agent._allowed({'decision': {'capabilities': ['web_research']}}) if n.startswith('ask_')} == {'ask_research'}  # MCP 도구(#554)는 기능과 무관하게 함께 노출된다
 

@@ -9,7 +9,9 @@ export function useWritingPlanNavigation(mayLeave: () => boolean, dirty: boolean
     const click = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
       const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null
-      if (!(anchor instanceof HTMLAnchorElement) || anchor.target === '_blank' || anchor.hasAttribute('download') || anchor.hash && anchor.pathname === location.pathname && anchor.search === location.search) return
+      if (!(anchor instanceof HTMLAnchorElement) || anchor.target === '_blank' || anchor.hasAttribute('download')) return
+      // The mockup uses hash routing. A hash starting with / changes the screen.
+      if (anchor.hash && !anchor.hash.startsWith('#/') && anchor.pathname === location.pathname && anchor.search === location.search) return
       if (!confirm()) { event.preventDefault(); event.stopImmediatePropagation() }
     }
     const index = window.history.state?.idx

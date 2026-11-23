@@ -91,9 +91,11 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     if (event.type === 'plan' || event.type === 'waiting') return { ...turn, steps: event.steps, running: [] }
     if (event.type === 'started') return { ...turn, running: [...turn.running, event.feature] }
     // content_action(#554)은 판정이 계획에 올리지 않고 한 턴에 여러 번일 수 있어 단계마다 덧붙인다.
+    // 고증 조사는 한 턴에 web·platform 둘일 수 있어(#640) task가 다른 단계는 덧붙인다. 계획(plan)의 자리 단계에는 task가 없다.
     if (event.type === 'step') {
-      const own = event.step.feature !== 'content_action' && turn.steps.some((s) => s.feature === event.step.feature)
-      return { ...turn, running: turn.running.filter((f) => f !== event.step.feature), steps: own ? turn.steps.map((s) => (s.feature === event.step.feature ? event.step : s)) : [...turn.steps, event.step] }
+      const { feature, task } = event.step
+      const own = feature === 'content_action' ? -1 : turn.steps.findIndex((s) => s.feature === feature && (!s.task || !task || s.task === task))
+      return { ...turn, running: turn.running.filter((f) => f !== feature), steps: own < 0 ? [...turn.steps, event.step] : turn.steps.map((s, i) => (i === own ? event.step : s)) }
     }
     return turn
   })

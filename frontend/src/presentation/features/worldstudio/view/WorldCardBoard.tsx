@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useId, useRef, useState } from 'react'
 
-import { cardTypeOf } from '../../../../domain/entities/studioCards'
+import { categoryChoices } from '../../../../domain/entities/cardCategory'
+import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
 import { cardRevealEpisode, invalidReveal, REVEAL_EPISODE_ERROR, type StudioSetting } from '../../../../domain/entities/studioWorld'
 import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
 import type { CardStatus } from '../../../../domain/entities/worldReview'
@@ -120,7 +121,19 @@ function RowPreview({ id, row, setting, settings, linked, publicPath, images, on
  */
 export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: (id: string) => void }) {
   const world = vm.editing!
-  const board = useCardBoard(vm)
+  const board = useCardBoard(vm, { showEmptyKinds: true })
+  const emptyType = cardTypes.find((type) => type.label === board.emptyKind)
+  // 빈 분류의 '첫 설정 추가'는 그 분류의 기본 유형을 쓰지만 새 설정 메뉴와 같은 규칙을 따른다: 운영자가 숨긴 유형이거나 카테고리 목록을 아직 읽지 못했으면(기본 8종으로 대신하지 않는다) 잠근다.
+  const { categories } = board.cardCategories
+  const emptyAddable = !!emptyType && !!categories && categoryChoices(categories).some((category) => category.code === emptyType.id)
+  const addFirstCard = () => {
+    if (!emptyType || !emptyAddable) return
+    const id = vm.addCard(emptyType.id)
+    if (id) {
+      vm.setCardQuery('')
+      vm.editCard(id)
+    }
+  }
   const search = useRef<HTMLInputElement>(null)
   const table = useRef<HTMLTableSectionElement>(null)
   const byId = new Map(world.settings.map((s) => [s.item.id, s]))
@@ -210,31 +223,36 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
             <ul>
               <li><button type="button" aria-current={board.kind || board.todo ? undefined : 'true'} onClick={() => board.pickKind()}>전체 <span>{board.total}</span></button></li>
               {board.counts.map(({ kind, count }) => (
-                <li key={kind}><button type="button" aria-current={board.kind === kind ? 'true' : undefined} onClick={() => board.pickKind(kind)}>{kind} <span>{count}</span></button></li>
+                <li key={kind}><button type="button" aria-current={board.kind === kind ? 'true' : undefined} onClick={() => board.pickKind(kind)}>{kind} <span>{count || '비어 있음'}</span></button></li>
               ))}
-              {/* 카드가 없는 분류는 누를 대상이 아니라 비어 있다고만 알린다. */}
-              {board.empty.map((kind) => <li key={kind} className="worlds-cats-empty"><span>{kind}</span> <span>비어 있음</span></li>)}
               {board.todoCount > 0 && <li><button type="button" aria-current={board.todo ? 'true' : undefined} onClick={board.pickTodo}>보완 필요 <span>{board.todoCount}</span></button></li>}
             </ul>
           </nav>
           <div className="worlds-board-main">
+            {emptyType && <div className="world-empty world-board-empty">
+              <p role="status">아직 {emptyType.label} 설정이 없어요.</p>
+              <button type="button" className="btn pri sm" disabled={!emptyAddable} onClick={addFirstCard}>+ {emptyType.label} 설정 추가</button>
+              {categories && !emptyAddable && <p className="small muted">운영에서 숨긴 분류라 새로 추가할 수 없어요.</p>}
+            </div>}
             <div className="worlds-board-tools world-compact">
-              <label className="worlds-search">
-                <span className="sr-only">설정 검색</span>
-                <input ref={search} type="search" className="inp" placeholder="제목·본문·태그 검색" value={vm.cardQuery} onChange={(e) => { vm.setCardQuery(e.target.value); board.setPage(0) }} />
-              </label>
-              <label className="worlds-sort">
-                <span>정렬</span>
-                <select className="inp" value={board.sort} onChange={(e) => board.selectSort(e.target.value)}>
-                  {BOARD_SORTS.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-                </select>
-              </label>
-              {/* 알림 영역은 늘 두어(스크린리더가 바뀐 글을 읽는다) 검색·분류·보완 필터가 걸린 동안에만 수를 채운다. 전체 수는 분류 메뉴의 전체가 이미 보인다. */}
-              <p className="muted small" role="status">{vm.cardQuery || board.kind || board.todo ? `설정 ${board.rows.length}개` : ''}</p>
+              {!emptyType && <>
+                <label className="worlds-search">
+                  <span className="sr-only">설정 검색</span>
+                  <input ref={search} type="search" className="inp" placeholder="제목·본문·태그 검색" value={vm.cardQuery} onChange={(e) => { vm.setCardQuery(e.target.value); board.setPage(0) }} />
+                </label>
+                <label className="worlds-sort">
+                  <span>정렬</span>
+                  <select className="inp" value={board.sort} onChange={(e) => board.selectSort(e.target.value)}>
+                    {BOARD_SORTS.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+                  </select>
+                </label>
+                {/* 검색·분류·보완 필터가 걸린 동안에만 결과 수를 알린다. */}
+                <p className="muted small" role="status">{vm.cardQuery || board.kind || board.todo ? `설정 ${board.rows.length}개` : ''}</p>
+              </>}
               <button type="button" className="btn sm" aria-haspopup="dialog" onClick={() => setImporting(true)}>다른 세계관에서 가져오기</button>
-              <NewCardMenu vm={vm} className="world-new-menu" trigger={<><span aria-hidden="true">+</span> 새 설정</>} before={board.reset} />
+              {!emptyType && <NewCardMenu vm={vm} className="world-new-menu" trigger={<><span aria-hidden="true">+</span> 새 설정</>} before={board.reset} />}
             </div>
-            <details className="world-bulk" open={bulkOpen} onToggle={(e) => setBulkOpen(e.currentTarget.open)}>
+            {!emptyType && <details className="world-bulk" open={bulkOpen} onToggle={(e) => setBulkOpen(e.currentTarget.open)}>
               <summary>공개 범위 한 번에 바꾸기</summary>
               <div className="world-bulk-body">
                 <p className="small muted">작가 전용 설정은 독자에게 보이지 않아요. 저장 후 확정 버전을 남겨야 반영돼요.</p>
@@ -254,8 +272,8 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
                 <button type="button" className="btn sm" disabled={!picked.length} onClick={() => change(false)}>선택 비공개</button>
                 <button type="button" className="btn sm" disabled={allPublic === world.settings} onClick={publishAll}>전체 공개</button>
               </div>
-            </details>
-            <div className="world-board-scroll">
+            </details>}
+            {!emptyType && <div className="world-board-scroll">
               <table className="worlds-board-table">
                 <caption className="sr-only">설정 카드 목록</caption>
                 <thead>
@@ -279,7 +297,7 @@ export function WorldCardBoard({ vm, onPreviewEdit }: { vm: VM; onPreviewEdit?: 
                 </tbody>
               </table>
               <PageControls page={board.paged.page} pages={board.paged.pages} onPage={board.setPage} />
-            </div>
+            </div>}
           </div>
         </div>
         {!!legacy.length && (

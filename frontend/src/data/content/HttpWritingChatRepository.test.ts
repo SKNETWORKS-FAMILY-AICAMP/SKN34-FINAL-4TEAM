@@ -381,6 +381,16 @@ describe('Research platform 단계 결과(#547)', () => {
     expect(stepText(step)).toBe('달빛 학원 · 교칙 · 별빛 — 교칙 서술을 참고\n확인 못 함: 학원 위치는 못 찾았어요.')
   })
 
+  it('조사 단계의 task(web·platform)를 읽는다(#640)', async () => {
+    const events: ChatEvent[] = []
+    const step = { feature: 'research', task: 'platform', status: 'completed', result: { references: [], gaps: [] } }
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(`event: step
+data: ${JSON.stringify(step)}
+
+`, done))).send('w1', 't1', input, (e) => events.push(e))
+    expect(events.find((e) => e.type === 'step')).toMatchObject({ step: { task: 'platform', status: 'completed' } })
+  })
+
   it('참고안이 없으면 결과 없음을 그대로 알리고, 웹 조사 결과(findings)도 계속 읽는다', async () => {
     expect(stepText(await run({ references: [], gaps: [] }))).toBe('참고할 설정을 찾지 못했어요.')
     expect(stepText(await run({ findings: [{ text: '약 15일', verdict: 'confirmed', sourceUrls: [] }], gaps: [], searchedAt: '2026-11-12T00:00:00Z' }))).toBe('확인됨 · 약 15일')
