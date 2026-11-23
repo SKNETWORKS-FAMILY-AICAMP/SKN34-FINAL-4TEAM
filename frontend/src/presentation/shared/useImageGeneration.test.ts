@@ -28,6 +28,29 @@ it('조회 통신 실패는 작업 기록을 지우거나 재생성하지 않는
  expect(useCase.submit).not.toHaveBeenCalled()
 })
 
+it('새 생성 요청의 접수를 확인하지 못해도 이전 미리보기를 다시 표시하지 않는다',async()=>{
+ const create=URL.createObjectURL
+ const revoke=URL.revokeObjectURL
+ URL.createObjectURL=vi.fn(()=> 'blob:old')
+ URL.revokeObjectURL=vi.fn()
+ try {
+  useCase.read.mockResolvedValue({jobId:'old-job',status:'succeeded',stage:'completed',previewUrl:'/content'})
+  useCase.image.mockResolvedValue(new Blob(['old']))
+  useCase.submit.mockRejectedValue(new Error('offline'))
+  const {result}=renderHook(()=>useImageGeneration({purpose:'work_cover'}))
+  await waitFor(()=>expect(result.current.preview).toBe('blob:old'))
+  act(()=>result.current.setPrompt('새벽 항구'))
+  await act(async()=>{await result.current.generate()})
+  expect(result.current.error).toContain('접수하지 못했어요')
+  expect(result.current.preview).toBe('')
+  expect(useCase.image).toHaveBeenCalledOnce()
+ } finally {
+  cleanup()
+  URL.createObjectURL=create
+  URL.revokeObjectURL=revoke
+ }
+})
+
 it.each([
  ['output_blocked','콘텐츠 기준'],
  ['moderation_unavailable','안전성을 확인하지 못했어요'],

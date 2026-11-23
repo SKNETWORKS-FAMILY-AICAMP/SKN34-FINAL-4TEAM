@@ -19,7 +19,6 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'|'visualSett
  const pollController=useRef<AbortController | undefined>(undefined)
  const pending=useRef<{key:string;signature:string;file?:File} | undefined>(undefined)
  const [refresh,setRefresh]=useState(0)
- const [pollRefresh,setPollRefresh]=useState(0)
  const [restoring,setRestoring]=useState(false)
  const [unresolved,setUnresolved]=useState(false)
  const storageKey=`image-generation:${authenticatedUserId()}:${input.purpose}:${input.workId ?? input.worldId ?? 'new'}`
@@ -82,7 +81,7 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'|'visualSett
   }
   void poll()
   return ()=>{abort.abort();if(timer)clearTimeout(timer);if(url)URL.revokeObjectURL(url)}
- },[job?.jobId,useCase,refresh,pollRefresh])
+ },[job?.jobId,useCase,refresh])
  async function generate() {
   if(busy || restoring || unresolved) return
   const cover=input.purpose==='work_cover' || input.purpose==='world_cover'
@@ -104,10 +103,10 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'|'visualSett
    const next=await useCase.submit(request,pending.current.key,abort.signal)
    if(abort.signal.aborted)return
    sessionStorage.setItem(storageKey,next.jobId);sessionStorage.removeItem(storageKey+':request');setJob(next);pending.current=undefined
-  } catch { if(!abort.signal.aborted) { setError('접수하지 못했어요. 다시 누르면 같은 요청 키로 결과를 확인해요.');setPollRefresh(x=>x+1) } }
+  } catch { if(!abort.signal.aborted) setError('접수하지 못했어요. 다시 누르면 같은 요청 키로 결과를 확인해요.') }
   finally { if(!abort.signal.aborted)setBusy(false) }
  }
  return {prompt,setPrompt,visualSettings,setVisualSettings,referenceMode,setReferenceMode,referenceRole,setReferenceRole,
-  referenceFile,setReferenceFile,referencePreview,referenceIssue,job,error,busy:busy||restoring||unresolved,preview,
+  referenceFile,setReferenceFile,referencePreview,referenceIssue,job,error,busy:busy||restoring||unresolved,unresolved,preview,
   generate,retry:()=>{setError('');setRefresh(x=>x+1)},file:()=>file.current}
 }
