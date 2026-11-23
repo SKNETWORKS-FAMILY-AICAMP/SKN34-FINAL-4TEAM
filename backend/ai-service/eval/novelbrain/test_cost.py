@@ -58,3 +58,13 @@ def test_calibrate_measures_chars_per_token_and_output_per_call_from_the_ledger(
     ratio, out = calibrate(log.summary())
     assert ratio == pytest.approx(6000 / 4000) and out == {'label': 500, 'judge': 300}
     assert calibrate({})[0] == 1.5
+
+
+
+def test_record_with_a_model_rate_prices_the_call_by_that_rate_and_names_the_model(tmp_path):
+    log = CostLog(tmp_path / 'cost.jsonl')
+    usd = log.record('act', 10_000, 1_000, cached=2_000, rate=(1.00, 0.05, 5.00), model='gpt-6.1-terra')
+    assert usd == pytest.approx((8_000 * 1.00 + 2_000 * 0.05 + 1_000 * 5.00) / 1_000_000)   # 입력(캐시 제외)·캐시 입력·출력 단가(100만 토큰당 달러), 272K 할증은 기본 모델 것이라 붙이지 않는다
+    row = log.rows()[0]
+    assert row['model'] == 'gpt-6.1-terra' and row['usd'] == usd and log.spent() == pytest.approx(usd)
+    assert 'model' not in (log.record('check', 10_000, 1_000), log.rows()[1])[1]   # 단가를 주지 않으면 기본 모델 단가이고 모델 칸은 없다

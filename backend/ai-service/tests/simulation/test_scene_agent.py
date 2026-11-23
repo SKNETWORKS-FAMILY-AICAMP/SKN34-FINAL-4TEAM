@@ -623,3 +623,91 @@ def test_a_note_after_the_story_ended_gets_no_second_narration_as_the_closing(mo
     run.next()  # 이야기는 끝났지만 직전이 나레이션이라 마무리 나레이션을 더하지 않고 턴 없이 끝낸다
     assert run.waiting is None and run.scene.result.status == 'completed'
     assert [t.kind for t in run.scene.result.turns] == ['narration', 'character', 'narration'] and not any(e.closing for e in run.scene.trail)
+
+
+# --- 속도 스위치(#642): 규칙이 정한 턴의 연출 생략, 전지적 나레이션의 모델 검사 생략 -----------------------------------------------------
+
+SKIP_DIRECTOR, SKIP_NARRATION_CHECK = 'SIMULATION_SKIP_FORCED_DIRECTOR', 'SIMULATION_SKIP_NARRATION_CHECK'
+
+
+def test_with_the_director_switch_the_forced_opening_and_closing_are_not_asked_and_the_pov_follows_the_last_turn(monkeypatch):
+    monkeypatch.setenv(SKIP_DIRECTOR, '1')
+    h = setup(monkeypatch, speech(KAEL, f'limited:{KAEL}'), speech(LINA, f'limited:{LINA}'),
+              verdicts=lambda payload: verdict(payload, scene_complete=len(h.calls.act) == 2))
+    scene = run_auto()
+    # 시작·마무리는 규칙이 하나로 정한 턴(대사 아님)이라 연출 모델을 묻지 않는다. 고를 것이 있는 두 턴만 묻는다.
+    assert [c['allowed'] for c in h.director] == [NOT_NARRATION, ANY]
+    # 마무리는 직전 시점(리나의 3인칭 제한)이라 전지적 나레이션 검사('review')가 아니라 인물 시점 검사('check')로 간다.
+    assert h.order == ['narrate', 'review', 'director', 'act', 'check', 'director', 'act', 'check', 'narrate', 'check']
+    assert [(e.decision.turn, e.decision.speaker, e.decision.pov) for e in scene.trail] == [
+        ('narration', None, 'omniscient'), ('speech', KAEL, f'limited:{KAEL}'), ('speech', LINA, f'limited:{LINA}'), ('end', None, f'limited:{LINA}')]
+    assert [t.kind for t in scene.result.turns] == ['narration', 'character', 'character', 'narration'] and scene.result.status == 'completed'
+    assert [c['pov'] for c in h.calls.narrate] == [{'kind': 'omniscient', 'character': None}, {'kind': 'limited', 'character': '리나'}]
+
+
+def test_with_the_director_switch_a_flow_scene_asks_only_for_the_speeches_and_keeps_the_pov_through_the_transition(monkeypatch):
+    monkeypatch.setenv(SKIP_DIRECTOR, '1')
+    h = setup(monkeypatch, speech(KAEL, f'limited:{KAEL}'), speech(LINA, f'limited:{LINA}'),
+              acts=[action(), action(prose='리나가 고개를 숙였다.', observed='리나가 고개를 숙였다.')], verdicts=lambda payload: verdict(payload, beat_done=True))
+    scene = run_auto(PLAN_FLOW)
+    assert [c['allowed'] for c in h.director] == [NOT_NARRATION, NOT_NARRATION]  # 시작·비트 전환·마무리는 묻지 않는다
+    assert [(e.decision.turn, e.decision.pov) for e in scene.trail] == [
+        ('narration', 'omniscient'), ('speech', f'limited:{KAEL}'), ('narration', f'limited:{KAEL}'), ('speech', f'limited:{LINA}'), ('end', f'limited:{LINA}')]
+    assert [c['purpose'] for c in h.calls.narrate] == ['opening', 'transition', 'closing'] and scene.result.status == 'completed'
+
+
+def test_with_the_director_switch_a_forced_turn_is_still_checked_against_the_world_and_the_cast(monkeypatch):
+    monkeypatch.setenv(SKIP_DIRECTOR, '1')
+    setup(monkeypatch, speech(KAEL))
+    scene = run_auto(SimulationPlan(mode='if', premise='만약 북문이 열려 있었다면?', characterIds=[KAEL, 'card-that-is-not-in-the-world']))
+    assert (scene.result.status, scene.result.turns) == ('failed', [])  # 규칙이 정한 첫 턴이어도 참여 인물이 세계관에 없으면 시작하지 않는다
+
+
+REAL_PROBLEM = scene_agent._problem
+
+
+def counted(monkeypatch, *script, **models):
+    """스크립트대로 한 장면을 돌려 (전지적 나레이션 검사 수, 인물 시점 검사 수, 서버 규칙 검사에 간 턴 종류, 장면)을 돌려준다."""
+    seen = []
+    monkeypatch.setattr(scene_agent, '_problem', lambda made, scene: seen.append(made['kind']) or REAL_PROBLEM(made, scene))
+    h = setup(monkeypatch, *script, verdicts=lambda payload: verdict(payload, scene_complete=len(h.calls.act) >= 1), **models)
+    scene = run_auto()
+    return len(h.calls.review), len(h.calls.check), seen, scene
+
+
+def test_with_the_narration_switch_omniscient_narrations_are_passed_without_the_check_model_and_nothing_else_is_skipped(monkeypatch):
+    script = (narrating(f'limited:{KAEL}'), monologue(f'limited:{KAEL}'), speech(LINA))
+    reviews, checks, seen, scene = counted(monkeypatch, *script)
+    assert (reviews, checks) == (1, 3)  # 처음에는 마무리(전지적)만 따로 검사한다. 인물 시점 나레이션·독백·대사는 인물 검사로 간다
+    monkeypatch.setenv(SKIP_NARRATION_CHECK, '1')
+    reviews, checks, seen, scene = counted(monkeypatch, *script)
+    assert (reviews, checks) == (0, 3)  # 전지적 마무리만 검사 없이 붙고 인물 시점 나레이션·독백·대사는 지금처럼 검사한다
+    assert seen == ['narration', 'monologue', 'character', 'narration']  # 서버 규칙 검사는 모든 턴에 그대로 돈다
+    assert [t.kind for t in scene.result.turns] == ['narration', 'monologue', 'character', 'narration'] and scene.result.status == 'completed'
+    assert all(t.regenerated == 0 for t in scene.result.turns)
+
+
+def test_with_the_narration_switch_both_omniscient_narrations_of_a_scene_skip_the_model_check(monkeypatch):
+    monkeypatch.setenv(SKIP_NARRATION_CHECK, '1')
+    reviews, checks, seen, scene = counted(monkeypatch, speech(KAEL))
+    assert (reviews, checks) == (0, 1) and [t.kind for t in scene.result.turns] == ['narration', 'character', 'narration']
+
+
+def test_the_server_rules_still_hold_back_an_omniscient_narration_when_the_narration_check_is_skipped(monkeypatch):
+    monkeypatch.setenv(SKIP_NARRATION_CHECK, '1')
+    monkeypatch.setattr(scene_agent, '_problem', lambda made, scene: scene_agent.Problem('voice_mix', '서버 규칙 위반') if made['kind'] == 'narration' else None)
+    h = setup(monkeypatch, speech(KAEL))
+    scene = run_auto()
+    assert len(h.calls.narrate) == 3 and h.calls.review == []  # 서버 규칙에 걸리면 모델 검사 없이도 다시 쓰고 끝내 안 되면 멈춘다
+    assert (scene.result.status, scene.result.stopReason) == ('stopped', 'check_failed')
+
+
+
+def test_a_dialogue_check_gets_only_the_forbidden_docs_most_like_the_paragraph_and_other_turns_are_not_limited(monkeypatch):
+    # #646: 인물 대사 검사 입력의 금지 목록은 문단·직전 장면과 겹침이 큰 FORBIDDEN_LIMIT개만이다(전지적 나레이션 검사·독백은 줄이지 않는다).
+    monkeypatch.setattr(service, 'FORBIDDEN_LIMIT', 1)
+    h = setup(monkeypatch, monologue(f'limited:{KAEL}'), speech(LINA), verdicts=lambda payload: verdict(payload, scene_complete=len(h.calls.act) == 1))
+    run_auto()
+    mono, dialogue = h.calls.check[0], h.calls.check[1]
+    assert mono['checks'] == ['knowledge_leak', 'voice_mix'] and 'LINA-EP0-SECRET' in text(mono['forbidden'])   # 독백은 그대로
+    assert dialogue['checks'] == IF_KINDS and len(dialogue['forbidden']) == 1 and h.calls.review[0]['forbidden']      # 대사는 한 개, 전지적 나레이션 검사는 그대로

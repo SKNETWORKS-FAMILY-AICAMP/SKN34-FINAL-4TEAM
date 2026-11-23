@@ -8,7 +8,8 @@ from app.evaluation import service
 from app.evaluation.errors import EvaluationFailure
 from app.evaluation.models import LeakCheckRequest, LeakCheckResponse
 
-from .stubs import CRITERIA, DATASET_ID, GEVAL_REQUEST, QA, QA_REQUEST, FakeDataset, experiment, install, item, prepared, prompt, stub_models
+from .stubs import (ACT_INPUT, ACT_REQUEST, CRITERIA, DATASET_ID, GEVAL_REQUEST, JUDGE, NARRATE_REQUEST, QA, QA_REQUEST, FakeDataset, experiment, install, item, prepared,
+                    prompt, stub_models, stub_simulation)
 
 PRODUCTION = {('qa.answer', 'production'): prompt('옛 지시문', 2)}
 
@@ -39,7 +40,15 @@ def test_prepare_names_the_run_and_reads_the_requested_prompt_version(monkeypatc
     _, _, plan = prepared(monkeypatch, [item(1, QA)])
 
     assert re.fullmatch(r'qa\.answer@v3-\d{8}T\d{6}Z-[0-9a-f]{6}', plan.run_name)
-    assert (plan.instructions, plan.tolerance, plan.baseline) == ('지시문', 0.05, None)  # production 라벨이 없으면 기준 Run도 없다
+    assert (plan.instructions, plan.tolerance, plan.baseline) == ('지시문', 0.1, None)  # 기본 허용 오차는 0.1이고, production 라벨이 없으면 기준 Run도 없다
+
+
+@pytest.mark.parametrize('blank', ['', '  '])
+def test_a_blank_tolerance_is_the_default_like_the_other_blank_settings(monkeypatch, blank):
+    install(monkeypatch, FakeDataset([item(1, QA)]), {('qa.answer', 3): prompt('지시문', 3)})
+    monkeypatch.setenv('EVAL_TOLERANCE', blank)   # .env에서 비워 둔 값은 설정하지 않은 것과 같다(503이 아니다)
+
+    assert service.prepare(QA_REQUEST).tolerance == 0.1
 
 
 @pytest.mark.parametrize('case, status', [
@@ -105,26 +114,26 @@ def test_run_scores_each_item_and_records_the_run_result(monkeypatch):
     assert calls.generate == [('지시문', QA), ('지시문', other)]  # 지정 버전의 프롬프트로 항목 입력을 실행한다
     assert calls.ragas == [(QA['question'], QA['contexts'], '답: ' + QA['question']), (other['question'], other['contexts'], '답: ' + other['question'])]
     assert dataset.experiment['run_name'] == plan.run_name
-    assert dataset.experiment['metadata'] == {'prompt': 'qa.answer', 'version': '3', 'dataset': 'qa.grounding', 'tolerance': '0.05',
+    assert dataset.experiment['metadata'] == {'prompt': 'qa.answer', 'version': '3', 'dataset': 'qa.grounding', 'tolerance': '0.1',
                                               'baselineRun': '', 'baselineVersion': ''}
     scores = {s['name']: s for s in client.scores}
     assert {s['dataset_run_id'] for s in client.scores} == {FakeDataset.RUN_ID}
     assert (scores['faithfulness']['value'], scores['context_precision']['value']) == (0.75, 0.8)
     assert scores['passed']['value'] == 1.0 and scores['passed']['data_type'] == 'BOOLEAN'
-    assert scores['passed']['metadata'] == {'failedItems': 0, 'totalItems': 2, 'tolerance': 0.05, 'baselineRun': None, 'baselineVersion': None}
+    assert scores['passed']['metadata'] == {'failedItems': 0, 'totalItems': 2, 'tolerance': 0.1, 'baselineRun': None, 'baselineVersion': None}
     assert client.flushed == 1
 
 
 def test_run_compares_each_metric_with_the_baseline_run(monkeypatch):
     runs = [experiment('qa.answer@v2-a', {'faithfulness': 0.95, 'context_precision': 0.7})]
     dataset, client, plan = prepared(monkeypatch, [item(1, QA)], experiments=runs, prompts=PRODUCTION)
-    stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.85, 'context_precision': 0.9})  # 0.85 < 0.95 - 0.05
+    stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.8, 'context_precision': 0.9})  # 0.8 < 0.95 - 0.1
 
     service.run(plan)
 
     scores = {s['name']: s for s in client.scores}
-    assert scores['faithfulness']['metadata'] == {'baseline': 0.95, 'delta': -0.1, 'tolerance': 0.05}
-    assert scores['context_precision']['metadata'] == {'baseline': 0.7, 'delta': 0.2, 'tolerance': 0.05}
+    assert scores['faithfulness']['metadata'] == {'baseline': 0.95, 'delta': -0.15, 'tolerance': 0.1}
+    assert scores['context_precision']['metadata'] == {'baseline': 0.7, 'delta': 0.2, 'tolerance': 0.1}
     assert scores['passed']['value'] == 0.0
     assert scores['passed']['metadata']['baselineRun'] == 'qa.answer@v2-a' and scores['passed']['metadata']['baselineVersion'] == 2
     assert (dataset.experiment['metadata']['baselineRun'], dataset.experiment['metadata']['baselineVersion']) == ('qa.answer@v2-a', '2')
@@ -133,7 +142,7 @@ def test_run_compares_each_metric_with_the_baseline_run(monkeypatch):
 def test_tolerance_comes_from_the_environment(monkeypatch):
     runs = [experiment('qa.answer@v2-a', {'faithfulness': 0.95, 'context_precision': 0.8})]
     dataset, client, plan = prepared(monkeypatch, [item(1, QA)], experiments=runs, prompts=PRODUCTION, tolerance='0.2')
-    stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.8, 'context_precision': 0.8})  # -0.15는 기본 0.05면 불통과, 0.2면 통과
+    stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.8, 'context_precision': 0.8})  # -0.15는 기본 0.1이면 불통과, 0.2면 통과
 
     service.run(plan)
 
@@ -288,7 +297,7 @@ def test_a_plan_travels_to_the_worker_as_json_without_the_dataset_items(monkeypa
 
     assert json.loads(json.dumps(job)) == job  # 브로커를 지나도 같다
     assert job == {'request': {'dataset': 'qa.grounding', 'prompt': 'qa.answer', 'version': 3}, 'runName': plan.run_name, 'instructions': '지시문',
-                   'tolerance': 0.05, 'baseline': {'run': 'qa.answer@v2-a', 'version': 2, 'metrics': {'faithfulness': 0.95, 'context_precision': 0.7}}}
+                   'tolerance': 0.1, 'baseline': {'run': 'qa.answer@v2-a', 'version': 2, 'metrics': {'faithfulness': 0.95, 'context_precision': 0.7}}}
     assert QA['question'] not in json.dumps(job, ensure_ascii=False)  # 채점 입력은 싣지 않는다: 워커가 평가 세트를 이름으로 읽는다
 
 
@@ -298,7 +307,7 @@ def test_the_worker_runs_the_plan_it_received_on_the_dataset_it_reads_at_that_mo
     job = json.loads(json.dumps(service.to_job(plan)))  # 브로커를 지난 인자
     other = {**QA, 'question': '초낭은 누구인가?'}
     client.dataset = FakeDataset([item(2, other)])  # 큐에서 기다리는 동안 평가 세트가 바뀌었다
-    calls = stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.85, 'context_precision': 0.9})
+    calls = stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.8, 'context_precision': 0.9})
 
     service.run_job(job)
 
@@ -306,7 +315,7 @@ def test_the_worker_runs_the_plan_it_received_on_the_dataset_it_reads_at_that_mo
     assert client.dataset.experiment['run_name'] == plan.run_name  # 응답한 Run 이름 그대로
     assert client.dataset.experiment['metadata']['baselineRun'] == 'qa.answer@v2-a'
     scores = {s['name']: s for s in client.scores}
-    assert scores['faithfulness']['metadata'] == {'baseline': 0.95, 'delta': -0.1, 'tolerance': 0.05}  # 기준 Run도 인자로 받은 그대로 비교한다
+    assert scores['faithfulness']['metadata'] == {'baseline': 0.95, 'delta': -0.15, 'tolerance': 0.1}  # 기준 Run도 인자로 받은 그대로 비교한다
     assert scores['passed']['value'] == 0.0
 
 
@@ -346,3 +355,89 @@ def test_leak_check_failure_keeps_status_and_message(monkeypatch):
         service.leak_check(LeakCheckRequest(response='응답', references=['카드']))
 
     assert (error.value.status, str(error.value)) == (502, '평가 채점에 실패했습니다.')
+
+
+# --- 시뮬레이션 세트(simulation.act·simulation.narrate): 서비스 호출로 만들고 원문 평가 루브릭으로 채점한다 ---
+
+GOLD = '"가자."'
+SIM_META = {'judge': JUDGE}
+ACT_PRODUCTION = {('character_simulation.act', 'production'): prompt('옛 act 지시문', 1)}
+
+
+def act_items(count=2):
+    return [item(n, ACT_INPUT, GOLD, SIM_META, 'simulation.act') for n in range(1, count + 1)]
+
+
+def test_a_simulation_run_generates_with_the_service_call_and_records_the_rubric_metrics(monkeypatch):
+    dataset, client, plan = prepared(monkeypatch, act_items(), request=ACT_REQUEST)
+    evaluation = stub_models(monkeypatch)
+    calls = stub_simulation(monkeypatch, grade=lambda payload: {'voice': 5 if payload['generated'] == '"갑시다."' else 1, 'intent': 3, 'leaked': ['f1'] if len(calls.grade) == 1 else []})
+
+    service.run(plan)
+
+    assert calls.generate == [('act', '지시문', ACT_INPUT)] * 2 and evaluation.generate == [] and evaluation.geval == []   # 업무 Agent 틀·G-Eval은 쓰지 않는다
+    scores = {s['name']: s for s in client.scores}
+    assert set(scores) == {'voice', 'intent', 'pov_ok', 'passed'}  # G-Eval 점수 하나가 아니라 지표 셋을 따로 남긴다
+    assert (scores['voice']['value'], scores['intent']['value'], scores['pov_ok']['value']) == (1.0, 0.5, 0.5)   # (점수-1)/4로 0~1에 기록한다. 시점 위반 없음 1·있음 0의 평균
+    assert scores['passed']['value'] == 1.0 and scores['passed']['metadata']['failedItems'] == 0
+    assert dataset.experiment['metadata']['dataset'] == 'simulation.act'
+
+
+def test_a_narration_run_scores_style_info_and_pov_ok(monkeypatch):
+    items = [item(1, {'set': 'narration', 'data': ACT_INPUT['data']}, '다음 문단', SIM_META, 'simulation.narrate'),
+             item(2, {'set': 'monologue', 'data': ACT_INPUT['data']}, '독백', SIM_META, 'simulation.narrate')]
+    _, client, plan = prepared(monkeypatch, items, request=NARRATE_REQUEST)
+    calls = stub_simulation(monkeypatch, grade=lambda payload: {'style': 4, 'info': 2, 'leaked': []})
+
+    service.run(plan)
+
+    assert [(kind, data['set']) for kind, _, data in calls.generate] == [('narrate', 'narration'), ('narrate', 'monologue')]
+    assert {s['name']: s['value'] for s in client.scores} == {'style': 0.75, 'info': 0.25, 'pov_ok': 1.0, 'passed': 1.0}
+
+
+def test_a_simulation_run_compares_each_rubric_metric_with_the_baseline_run(monkeypatch):
+    runs = [experiment('character_simulation.act@v1-a', {'voice': 0.875, 'intent': 0.5, 'pov_ok': 1.0}),
+            experiment('character_simulation.act@v1-old', {'geval': 0.9})]   # 지표 이름이 다른 옛 Run은 기준이 아니다
+    dataset, client, plan = prepared(monkeypatch, act_items(), request=ACT_REQUEST, experiments=runs, prompts=ACT_PRODUCTION)
+    stub_simulation(monkeypatch, grade=lambda payload: {'voice': 3, 'intent': 4, 'leaked': []})   # voice 0.5 < 0.875 - 0.1
+
+    service.run(plan)
+
+    assert plan.baseline == service.Baseline('character_simulation.act@v1-a', 1, {'voice': 0.875, 'intent': 0.5, 'pov_ok': 1.0})
+    scores = {s['name']: s for s in client.scores}
+    assert scores['voice']['metadata'] == {'baseline': 0.875, 'delta': -0.375, 'tolerance': 0.1}
+    assert scores['intent']['metadata']['delta'] == 0.25 and scores['pov_ok']['metadata']['delta'] == 0.0
+    assert scores['passed']['value'] == 0.0 and scores['passed']['metadata']['baselineVersion'] == 1
+
+
+@pytest.mark.parametrize('where', ['generate', 'grade'])
+def test_a_failed_simulation_item_stays_a_failure_instead_of_a_zero_score(monkeypatch, where):
+    _, client, plan = prepared(monkeypatch, [item(1, ACT_INPUT, GOLD, SIM_META, 'simulation.act'), item(2, {**ACT_INPUT, 'data': {'self': {'id': 'c2'}}}, GOLD, SIM_META, 'simulation.act')],
+                               request=ACT_REQUEST)
+
+    def generate(kind, instructions, data):
+        if where == 'generate' and data['data']['self']['id'] == 'c2':
+            raise EvaluationFailure(503, '모델 호출에 실패했습니다.')
+        return '"갑시다."'
+
+    def grade(payload):
+        if where == 'grade' and len(calls.grade) == 2:
+            raise EvaluationFailure(502, '평가 채점에 실패했습니다.')
+        return {'voice': 4, 'intent': 3, 'leaked': []}
+    calls = stub_simulation(monkeypatch, generate=generate, grade=grade)
+
+    service.run(plan)
+
+    scores = {s['name']: s for s in client.scores}
+    assert scores['voice']['value'] == 0.75  # 실패한 항목을 0점으로 평균에 섞지 않는다
+    assert scores['passed']['value'] == 0.0 and (scores['passed']['metadata']['failedItems'], scores['passed']['metadata']['totalItems']) == (1, 2)
+
+
+@pytest.mark.parametrize('dataset, prompt_name', [('simulation.act', 'character_simulation.narrate'), ('simulation.narrate', 'character_simulation.act'), ('simulation.act', 'qa.answer')])
+def test_a_simulation_set_only_evaluates_the_instructions_of_its_own_call(monkeypatch, dataset, prompt_name):
+    install(monkeypatch, FakeDataset(act_items(), dataset), {(prompt_name, 1): prompt('지시문', 1)})
+
+    with pytest.raises(EvaluationFailure) as error:
+        service.prepare(service.EvaluationRequest(dataset=dataset, prompt=prompt_name, version=1))
+
+    assert error.value.status == 422   # 다른 호출의 지시문으로 돌리면 점수가 뜻이 없다

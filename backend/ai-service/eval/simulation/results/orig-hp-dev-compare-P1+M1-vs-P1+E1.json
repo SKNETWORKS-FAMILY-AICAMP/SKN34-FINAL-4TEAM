@@ -1,0 +1,74 @@
+{
+  "base": "P1+E1",
+  "corpus": "hp-dev",
+  "grader": "gpt-6-luna",
+  "sets": {
+    "1": {
+      "applied": {
+        "metrics": {
+          "clean": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          },
+          "intent": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          },
+          "voice": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          }
+        },
+        "n": 0
+      },
+      "callMs": {
+        "base": 5161.0,
+        "cand": 2817.5
+      },
+      "metrics": {
+        "clean": {
+          "down": 1,
+          "meanDiff": 0.0,
+          "n": 100,
+          "p": 1.0,
+          "tie": 98,
+          "up": 1
+        },
+        "intent": {
+          "down": 31,
+          "meanDiff": -0.01,
+          "n": 100,
+          "p": 1.0,
+          "tie": 39,
+          "up": 30
+        },
+        "voice": {
+          "down": 26,
+          "meanDiff": 0.01,
+          "n": 100,
+          "p": 0.8919231511047494,
+          "tie": 46,
+          "up": 28
+        }
+      },
+      "tokens": {
+        "base": 7221.23,
+        "cand": 7221.23,
+        "ratio": 1.0
+      }
+    }
+  },
+  "variant": "P1+M1"
+}

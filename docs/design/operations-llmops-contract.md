@@ -16,7 +16,7 @@
 | Langfuse 화면 | 관리자는 Langfuse 웹에 들어가지 않는다. 데이터는 운영·AI 서비스가 프로젝트 API 키로만 읽고 쓴다. Langfuse 웹은 개발자가 초기 관리자 계정(`LANGFUSE_INIT_*`)으로만 쓴다(2026-11-19 사용자 결정, OIDC 로그인 안 함) |
 | 회원 식별 | trace의 `user_id`에 **회원 UUID**를 남긴다. 이메일·닉네임·키는 계속 남기지 않는다(2026-11-13 팀 결정의 보완) |
 | 경고 기준 | 기준값은 문서로 고정하지 않고 **운영 화면에서 관리자가 정한다**. 초기 행은 꺼진 상태로 시드하고 값을 넣어 켠다 |
-| 평가 | 회귀 평가는 AI 서비스의 **Ragas**(Q&A RAG)·**DeepEval**(생성·검토·누설 판정)로 채점하고 결과를 Langfuse Dataset Run 점수로 남긴다. 1회 비용 상한은 **추후 결정**(그 전까지 상한 없음, 평가는 관리자가 직접 실행할 때만 돈다) |
+| 평가 | 회귀 평가는 AI 서비스의 **Ragas**(Q&A RAG)·**DeepEval**(생성·검토·누설 판정)로 채점하고, **시뮬레이션 평가 세트**(`simulation.act`·`simulation.narrate`)는 서비스 호출로 만든 응답을 원문 평가 루브릭으로 채점하며(점수는 0~1로 기록), 결과를 Langfuse Dataset Run 점수로 남긴다. 채점 모델은 `EVALUATION_JUDGE_MODEL`(비면 `OPENAI_MODEL`)이다. 1회 비용 상한은 **추후 결정**(그 전까지 상한 없음, 평가는 관리자가 직접 실행할 때만 돈다) |
 | 작업 감시 | 회차 원고 전처리(DEC-50, 100화 이상 작품의 회차를 하나씩 전처리해 세계관 카드를 만드는 Celery 작업)·운영 정기 작업·회귀 평가 실행을 한 화면에서 본다. 실제 실행은 업무 소유 서비스(운영 정기 작업은 AI 작업 워커가 운영의 execute API를 불러 실행, [작업 실행 이관](operations-funnel-credit-contract.md#4-작업-실행을-celery로-이관-리팩터링-2026-11-20-사용자-결정)), 감시·재실행 요청은 운영(F-JOB-01). 평가 실행은 작업 감시에서 재실행하지 않는다 |
 | Airflow | 지금은 쓰지 않는다. 운영 스케줄러가 맡는 '정해진 시각에 소유 서비스의 실행 API 호출'과 '실행 기록 조회'를 나중에 Airflow DAG·REST API로 바꿀 수 있게 실행 API와 기록 모양을 출처 독립으로 둔다 |
 
@@ -49,6 +49,12 @@
 - 시간 초과는 `status:timeout`, 그 밖의 실패는 `status:failed`와 observation `level=ERROR`다. 대기(`waiting`) 턴·취소·연결 끊김은 상태 태그를 달지 않는다.
 - 회원 UUID는 Content가 넘기는 작가 Bearer(`X-User-Authorization`)의 `sub`에서 읽고(추적 전용, 인가에 쓰지 않음), `request_id`는 AI가 HTTP 요청마다 발급한다. `fork`는 Content가 오케스트레이션 `target.fork`로 알린다. 요청 루트 trace에는 본문을 남기지 않고 generation observation이 입출력을 갖는다.
 - 회귀 평가 결과는 Run 수준 점수다: 지표 평균(NUMERIC, metadata `baseline`·`delta`·`tolerance`)과 `passed`(BOOLEAN). `passed`가 없으면 실행 중이고, 시작 후 2시간이 지나도 없으면 운영 화면은 실패로 본다.
+- **시뮬레이션 평가 세트**(2026-11-23 사용자 승인, 인물 시뮬레이션 지시문 `character_simulation.act`·`narrate`의 새 버전을 승격할 수 있게 한다): 틀(세트 등록·Run·기준 Run 비교·승격 게이트 409)은 그대로이고 이 두 세트일 때만 생성·채점이 다르다.
+  - **세트**: `app/evaluation/datasets/simulation.act.jsonl`(대사 24)·`simulation.narrate.jsonl`(나레이션 24·독백 22)는 원문 평가 공개 세트(저작권 만료 고전·근대 소설과 CC BY-SA 3.0 SCP 이야기, 해리 포터 없음)에서 `orig_cli.py export`로 만든다. 항목은 `input`(서비스가 그 호출에 보내는 값 그대로 `{set, data}`)·`expectedOutput`(원작의 다음 글)·`metadata`(`source`·`license`·**`judge`**: 채점 입력 `character`·`scene`(직전 장면 전체, 모델 입력의 장면은 줄어 있다)·`facts`(시점 위반 정답표: 그 인물이 아직 모르는 사실 `{id, text}`))다. 한 세트는 한 지시문만 평가한다(다른 지시문이면 422).
+  - **생성**: 업무 Agent 틀이 아니라 실제 서비스 호출이다. `app/simulation/agent`의 `act`·`narrate`에 평가 대상 버전의 본문을 그대로 주고(production 버전을 읽지 않는다) 응답 확인·따옴표 통일도 서비스와 같으며 act는 서비스 기본 모델(terra)·구조화 출력 그대로다.
+  - **채점**: G-Eval 대신 원문 평가 루브릭(`app/evaluation/rubric.py`, 원문 평가가 같은 문구를 쓴다)을 정답을 보여 준 채점 모델에 구조화 출력 한 번으로 묻는다. 지표는 모두 높을수록 좋다: act `voice`(말투)·`intent`(의도)·`pov_ok`, narrate `style`(문체)·`info`(정보)·`pov_ok`(시점 위반 정답표 중 말했거나 아는 듯 쓴 것이 없으면 1, 있으면 0). 루브릭은 1~5점으로 매기지만 **Run·항목 점수는 Ragas·GEval처럼 0~1로 기록한다**: `voice`·`intent`·`style`·`info`는 (점수 − 1)/4이고 `pov_ok`는 그대로다(원문 평가의 1~5 기록·보고서 수치는 바꾸지 않는다. 0~1로 바꾸기 전에 1~5점으로 기록한 Run은 눈금이 달라 비교할 수 없으니 기준 Run을 새로 만든다. 기준은 production 버전의 가장 최근에 끝난 Run이라 새 Run이 옛 Run을 대신한다). Run 점수는 지표별 평균이고 기준 Run 비교·`passed` 판정은 다른 세트와 같다(지표마다 기준 평균 − `EVAL_TOLERANCE`, 기본 0.1). 응답·채점 응답이 틀에 맞지 않으면 항목 실패다.
+  - **채점 모델**: `EVALUATION_JUDGE_MODEL`(비면 `OPENAI_MODEL`)이고 Ragas·GEval·누설 판정도 같은 설정을 읽는다. 채점 모델이 다른 Run끼리는 비교가 안 되어 바꾼 뒤 첫 비교는 흔들린다. 루브릭 문구는 Langfuse 프롬프트가 아니라 코드에 고정한다(바꿀 수 있게 하면 기준 Run과 채점 기준이 어긋난다).
+  - **순서**: 새 버전을 평가하기 전에 현재 production 버전(기준)의 평가가 끝나 있어야 한다(Run 점수 `passed`가 보일 때). 접수 때 끝난 기준 Run이 없으면 지표를 비교하지 않아 새 버전은 실패 항목만 없으면 통과한다.
 
 ## 운영 공개 API (회원 Bearer, Core `operator=true`)
 
@@ -166,6 +172,7 @@ Content 내부 `GET /internal/v1/works/{id}/leak-references`는 Fork 작품의 �
 - 사용자 부담 비용은 AI 요청이 Core 크레딧 예약을 쓰기 시작해야 0이 아니게 된다.
 - 필터 복원률은 콘텐츠 필터 기능이 생기기 전까지 비어 있다.
 - 평가 비용 상한이 없다(추후 결정). 평가는 관리자 실행·켠 일정으로만 돈다.
+- 시뮬레이션 세트는 항목이 24·46개라 같은 항목을 두 지시문으로 돌린 차이에 잡음이 있다. 로컬 확인(12·23항목)의 표준오차는 0~1 눈금에서 act 의도 0.077·말투 0.042·시점 0.083, narrate 문체 0.035·정보 0.027이다(전체 세트면 1/√2쯤). 기본 `EVAL_TOLERANCE` 0.1(Compose가 `.env`의 값을 AI 컨테이너로 넘기고 비면 0.1)은 낫지도 나쁘지도 않은 변경이 잡음만으로 불통과가 되는 일을 줄이지만 없애지는 못한다: act 의도는 표준오차의 1.3배라 12항목 기준 어림으로 10% 안팎이 불통과일 수 있다(24항목이면 4% 안팎). 로컬 확인(채점 `gpt-6.2-sol`)의 항목별 기록을 새 기준으로 **다시 판정만** 하면(추가 호출 없음) P1은 `voice` +0.042·`intent` −0.083·`pov_ok` +0.083, N3는 `style` +0.022·`info` −0.022·`pov_ok` 0이라 둘 다 통과가 예상된다(처음 1~5점 기록과 허용 오차 0.05로는 둘 다 불통과였다). 세부는 [v3 보고서 6장](../evaluation/simulation-v3.md#6-운영-화면에서-p1n3-반영하는-절차)이다.
 - 운영 스케줄러는 단일 인스턴스를 가정한다(DB 잠금 없음). 여러 대로 늘리거나 Airflow로 옮길 때 실행 주체를 하나로 바꾼다. (handler 실행은 AI 작업 워커 여러 개가 병렬로 부르지만 `queued`→`running` 선점이 조건부 UPDATE라 한 기록은 한 번만 돈다.)
 - 멈춘 기록 정리의 한도(queued 10분·running 30분)는 고정 상수다. 30분을 넘겨 도는 handler는 실패로 기록된 뒤 끝나면 자기 결과로 덮어쓰고, 그동안 같은 일정이 다음 기록을 만들 수 있다. 한도가 모자라는 작업이 생기면 설정으로 바꾼다.
 - 작업 워커 큐 `jobs`는 평가와 정기 작업이 같이 쓰므로 긴 평가가 워커를 모두 차지하면 정기 작업 기록이 `queued`로 기다리고, 10분을 넘기면 위 정리가 실패로 닫는다(워커 수는 `AI_JOBS_CONCURRENCY`).

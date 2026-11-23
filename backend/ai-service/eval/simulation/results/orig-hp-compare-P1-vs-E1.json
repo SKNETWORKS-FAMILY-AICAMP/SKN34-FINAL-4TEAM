@@ -1,0 +1,73 @@
+{
+  "base": "E1",
+  "corpus": "hp",
+  "sets": {
+    "1": {
+      "applied": {
+        "metrics": {
+          "clean": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          },
+          "intent": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          },
+          "voice": {
+            "down": 0,
+            "meanDiff": null,
+            "n": 0,
+            "p": 1.0,
+            "tie": 0,
+            "up": 0
+          }
+        },
+        "n": 0
+      },
+      "callMs": {
+        "base": 4388.5,
+        "cand": 2113.5
+      },
+      "metrics": {
+        "clean": {
+          "down": 5,
+          "meanDiff": 0.0125,
+          "n": 400,
+          "p": 0.3017578125,
+          "tie": 385,
+          "up": 10
+        },
+        "intent": {
+          "down": 92,
+          "meanDiff": 0.045,
+          "n": 400,
+          "p": 0.2888204971747661,
+          "tie": 200,
+          "up": 108
+        },
+        "voice": {
+          "down": 90,
+          "meanDiff": 0.03,
+          "n": 400,
+          "p": 0.31607312611901234,
+          "tie": 205,
+          "up": 105
+        }
+      },
+      "tokens": {
+        "base": 6653.54,
+        "cand": 6821.54,
+        "ratio": 1.0252497166921668
+      }
+    }
+  },
+  "variant": "P1"
+}

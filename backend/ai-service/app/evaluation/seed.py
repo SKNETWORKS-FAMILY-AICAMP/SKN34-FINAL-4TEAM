@@ -1,7 +1,8 @@
 """평가 세트(app/evaluation/datasets/*.jsonl)를 Langfuse Dataset으로 멱등 등록한다: python -m app.evaluation.seed
 
 파일 이름이 Dataset 이름이고 한 줄이 항목 하나(id·input·expectedOutput·metadata)다. Dataset은 이름으로, 항목은 파일의 고정 id로 upsert하므로
-몇 번 실행해도 같은 상태가 된다. 내용은 저작권이 만료된 작품(저장소 infrastructure/sample-data의 홍길동전·구운몽)만 쓰고 출처는 항목 metadata.source에 있다.
+몇 번 실행해도 같은 상태가 된다. 내용은 저작권이 만료된 작품(저장소 infrastructure/sample-data의 홍길동전·구운몽)과 시뮬레이션 세트(simulation.act·simulation.narrate: 원문 평가 공개 세트의 저작권 만료 고전·근대 소설과
+CC BY-SA 3.0 SCP 이야기)만 쓰고 출처·라이선스는 항목 metadata.source에 있다.
 """
 
 import json

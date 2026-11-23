@@ -1,0 +1,54 @@
+{
+  "corpus": "hp",
+  "items": 300,
+  "name": "② 연출",
+  "ran": 300,
+  "set": "2",
+  "summary": {
+    "callMs": {
+      "p50": 392.5,
+      "p95": 709.1
+    },
+    "confusion": {
+      "dialogue>dialogue": 102,
+      "dialogue>monologue": 5,
+      "dialogue>narration": 43,
+      "monologue>dialogue": 23,
+      "monologue>monologue": 5,
+      "monologue>narration": 22,
+      "narration>dialogue": 63,
+      "narration>monologue": 3,
+      "narration>narration": 33
+    },
+    "errors": 1,
+    "exact": {
+      "ci": [
+        0.29926370272765546,
+        0.4068532904463339
+      ],
+      "n": 299,
+      "rate": 0.3511705685618729
+    },
+    "inputTokens": 1441.3966666666668,
+    "kind": {
+      "ci": [
+        0.4124285828013643,
+        0.5248323483256673
+      ],
+      "n": 299,
+      "rate": 0.4682274247491639
+    },
+    "n": 300,
+    "outputTokens": 0.0,
+    "speaker": {
+      "ci": [
+        0.5793579178987817,
+        0.7544517708823256
+      ],
+      "n": 107,
+      "rate": 0.6728971962616822
+    }
+  },
+  "variant": "A",
+  "via": null
+}

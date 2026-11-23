@@ -1,3 +1,5 @@
+import sys
+from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 
 import pytest
@@ -737,3 +739,145 @@ def test_narration_input_names_the_point_of_view_character_and_the_checks_follow
     assert service.check_kinds(PLAN_FLOW, 'character', 'omniscient')[-1] == 'beat'
     assert service.check_kinds(PLAN_IF, 'narration', 'omniscient') == service.check_kinds(PLAN_IF, 'narration', f'limited:{KAEL}') == ['knowledge_leak']
     assert service.check_kinds(PLAN_IF, 'narration', f'first:{KAEL}') == service.check_kinds(PLAN_IF, 'monologue', f'limited:{KAEL}') == ['knowledge_leak', 'voice_mix']
+
+
+# --- 세계관 읽기 캐시 스위치(#642) ------------------------------------------------------------------------------------------
+
+LISTED = {'worldId': WORLD, 'name': '달빛 세계', 'linkedWorkId': 'work', 'draftRevision': 4, 'relationshipStatus': 'current'}
+
+
+def editable_world(monkeypatch, listed=LISTED):
+    """Content MCP 대역: 세계관을 고치면 목록의 draftRevision이 오르고 읽는 이름도 바뀐다. (호출한 도구 목록, 상태)를 돌려준다."""
+    calls, state = [], {'revision': listed.get('draftRevision', 0)}
+
+    def call(tool, arguments):
+        calls.append(tool)
+        if tool == 'world_studio_list':
+            return [{**listed, **({'draftRevision': state['revision']} if 'draftRevision' in listed else {})}]
+        return {**READ, 'name': f'rev{state["revision"]}'}
+
+    monkeypatch.setattr(service.content_mcp, 'call', call)
+    monkeypatch.setattr(service, '_WORLDS', {})  # 테스트마다 빈 캐시
+    return calls, state
+
+
+def test_without_the_cache_switch_every_request_reads_the_world_again(monkeypatch):
+    calls, _ = editable_world(monkeypatch)
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE)
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read'] * 2
+
+
+def test_the_cache_reuses_the_same_revision_but_asks_for_the_list_every_time(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, _ = editable_world(monkeypatch)
+    first = service.read_world('work', EPISODE)
+    second = service.read_world('work', EPISODE)
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read', 'world_studio_list']  # 목록은 매번, 읽기 둘은 처음 한 번
+    assert first == second == {**READ, 'name': 'rev4', 'identity': []}
+
+
+def test_a_world_the_author_edited_is_read_again_on_the_next_request(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, state = editable_world(monkeypatch)
+    assert service.read_world('work', EPISODE)['name'] == 'rev4'
+    state['revision'] = 5  # 작가가 설정집을 고쳐 저장했다(#356)
+    assert service.read_world('work', EPISODE)['name'] == 'rev5'
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read'] * 2
+    assert service.read_world('work', EPISODE)['name'] == 'rev5' and len(calls) == 7  # 새 revision도 다음부터 재사용한다
+
+
+def test_the_cache_is_kept_per_base_episode(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, _ = editable_world(monkeypatch)
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE + 1)
+    service.read_world('work', EPISODE)
+    assert calls.count('world_studio_read') == 4 and calls.count('world_studio_list') == 3  # 회차마다 칸이 따로라 3화로 돌아와도 다시 읽지 않는다
+
+
+@pytest.mark.parametrize('listed', [
+    {k: v for k, v in LISTED.items() if k != 'draftRevision'},        # revision을 알 수 없다
+    {k: v for k, v in LISTED.items() if k != 'relationshipStatus'},   # 관계 저장소 상태를 알 수 없다
+    {**LISTED, 'relationshipStatus': 'incomplete'},                   # 관계 저장이 끝나지 않았다(고치는 중)
+])
+def test_the_cache_is_not_used_when_the_list_cannot_vouch_for_the_revision_or_the_relations(monkeypatch, listed):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls, _ = editable_world(monkeypatch, listed)
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE)
+    assert calls == ['world_studio_list', 'world_studio_read', 'world_studio_read'] * 2
+
+
+def test_an_inherited_world_is_never_cached(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    calls = fake_content(monkeypatch, worlds=[], inherited=INHERITED)
+    monkeypatch.setattr(service, '_WORLDS', {})
+    service.read_world('work', EPISODE)
+    service.read_world('work', EPISODE)
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'work_inherited_world'] * 2
+
+
+def test_what_the_cache_returns_is_a_copy_so_a_caller_cannot_change_the_next_answer(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    editable_world(monkeypatch)
+    for _ in range(2):  # 처음 읽어 돌려준 값도, 캐시에서 돌려준 값도 호출자가 바꿔도 다음 답에 닿지 않는다
+        service.read_world('work', EPISODE)['name'] = '바뀐 이름'
+    assert service.read_world('work', EPISODE)['name'] == 'rev4'
+
+
+def test_the_cache_keeps_at_most_the_slot_limit_and_drops_the_oldest_slot_first(monkeypatch):
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    editable_world(monkeypatch)
+    for episode in range(1, service.WORLD_CACHE_SLOTS + 2):  # 한도보다 하나 많은 회차
+        service.read_world('work', episode)
+    assert len(service._WORLDS) == service.WORLD_CACHE_SLOTS
+    assert (WORLD, 1) not in service._WORLDS and (WORLD, 2) in service._WORLDS and (WORLD, service.WORLD_CACHE_SLOTS + 1) in service._WORLDS
+
+
+def test_threads_filling_a_full_cache_at_once_neither_break_it_nor_overfill_it(monkeypatch):
+    # 대화 모드에서 세계관 읽기는 스레드(asyncio.to_thread)에서 돈다: 칸이 가득 찬 캐시에 동시에 넣어도 오류 없이 한도를 지킨다.
+    monkeypatch.setenv('SIMULATION_WORLD_CACHE', '1')
+    editable_world(monkeypatch)
+    interval = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)  # 스레드가 자주 바뀌게 해 경쟁 구간을 넓힌다
+    try:
+        with ThreadPoolExecutor(8) as pool:
+            list(pool.map(lambda episode: service.read_world('work', episode), range(1, 800)))  # 서로 다른 칸 799개
+    finally:
+        sys.setswitchinterval(interval)
+    assert len(service._WORLDS) <= service.WORLD_CACHE_SLOTS
+
+
+
+# --- 검사 입력: 금지 목록은 문단·직전 장면과 관련된 것만(#646, 원문 기반 평가 V2) ---------------------------------------------
+
+def forbidden_docs(n, prefix='먼 곳의 무관한 이야기'):
+    return [{'ref': f'card:x#ep{i:02d}', 'label': f'{i}회차 기억', 'text': f'{prefix} {i}번', 'owner': '리나'} for i in range(n)]
+
+
+def check_input(forbidden):
+    return {'self': {'id': KAEL, 'name': '카엘'}, 'known': [], 'present': ['카엘', '리나'], 'forbidden': forbidden, 'voices': [], 'others': [], 'direction': {},
+            'scene': [{'ref': f'scene:{i}', 'by': '리나', 'text': text} for i, text in enumerate(['아무 상관 없는 줄', '북문 열쇠가 어디 있는지 아무도 몰랐다.'])]}
+
+
+def test_relevant_keeps_the_docs_most_like_the_query_in_their_original_order():
+    docs = [{'text': '숲에서 길을 잃었다'}, {'text': '북문 열쇠를 훔쳤다'}, {'text': '바다 건너 먼 나라'}, {'text': '열쇠는 북문 안에 있다'}]
+    assert service.relevant(docs, '북문 열쇠', 2) == [docs[1], docs[3]]
+    assert service.relevant(docs, '북문 열쇠', 9) is docs   # 상한 이하면 그대로
+
+
+def test_check_payload_limits_the_forbidden_docs_of_a_dialogue_to_the_ones_like_the_paragraph_and_scene():
+    docs = forbidden_docs(40) + [{'ref': 'card:x#goal', 'label': '목표', 'text': '리나는 북문 열쇠를 훔쳐 달아난다', 'owner': '리나'}]
+    body = service.check_payload(check_input(docs), ['knowledge_leak', 'voice_mix'], '"리나가 북문 열쇠를 훔친다는 걸 알아."', 'character')
+    assert len(body['forbidden']) == service.FORBIDDEN_LIMIT and body['forbidden'][-1]['ref'] == 'card:x#goal'   # 문단과 겹치는 문서가 남고 원래 순서가 유지된다
+    assert body['checks'] == ['knowledge_leak', 'voice_mix'] and body['paragraph'].startswith('"리나가') and body['scene'] == check_input(docs)['scene']
+    assert [d['ref'] for d in body['forbidden'][:-1]] == sorted(d['ref'] for d in body['forbidden'][:-1])
+
+
+def test_check_payload_leaves_short_lists_and_non_dialogue_turns_alone():
+    few = forbidden_docs(service.FORBIDDEN_LIMIT)
+    assert service.check_payload(check_input(few), ['knowledge_leak'], '문단', 'character')['forbidden'] == few
+    many = forbidden_docs(service.FORBIDDEN_LIMIT + 10)
+    for kind in ('narration', 'monologue'):   # 평가하지 않은 턴(전지적 나레이션 검사는 따로 큰 입력이다)은 줄이지 않는다
+        assert service.check_payload(check_input(many), ['knowledge_leak'], '문단', kind)['forbidden'] == many
