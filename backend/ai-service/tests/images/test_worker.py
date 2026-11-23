@@ -1,7 +1,31 @@
 from unittest.mock import Mock
+from urllib.error import HTTPError, URLError
+from celery.exceptions import Reject
 import pytest
 from app.images.models import ClaimResponse
 from app.images import moderation, worker
+
+
+@pytest.mark.parametrize('error', [URLError('internal peer'), HTTPError('', 503, 'unavailable', {}, None)])
+def test_unavailable_claim_requeues_before_any_model_call(monkeypatch, error):
+    pause = Mock()
+    generate = Mock()
+    monkeypatch.setattr(worker, 'sleep', pause, raising=False)
+    monkeypatch.setattr(worker, 'report', Mock(side_effect=error))
+    monkeypatch.setattr(worker.agent, 'generate', generate)
+
+    with pytest.raises(Reject) as rejected:
+        worker.execute.run('job')
+
+    assert rejected.value.requeue and worker.app.conf.task_acks_late
+    assert 'internal peer' not in str(rejected.value)
+    pause.assert_called_once()
+    generate.assert_not_called()
+
+
+def test_nonretryable_claim_response_does_not_requeue(monkeypatch):
+    monkeypatch.setattr(worker, 'report', Mock(side_effect=HTTPError('', 404, 'missing', {}, None)))
+    assert worker.execute.run('job') == {'status': 'interrupted'}
 
 def test_duplicate_delivery_skips_paid_call(monkeypatch):
     monkeypatch.setattr(worker, "report", lambda *a: ClaimResponse(claimed=False))

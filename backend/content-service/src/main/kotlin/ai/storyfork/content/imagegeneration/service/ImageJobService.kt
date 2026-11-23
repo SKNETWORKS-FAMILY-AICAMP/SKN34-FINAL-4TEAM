@@ -149,19 +149,30 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
  }
  fun complete(id:UUID,suppliedKey:String):ImageResult {
   if(suppliedKey!=key(id)) throw ContentFailure(422,"결과 키가 작업과 다릅니다.")
-  val request=transaction { val job=locked(id)
-   if(job.status !in setOf("running","succeeded")) throw ContentFailure(409,"종료된 이미지 작업입니다.")
-   input(job) }
+  val request=tx.execute {
+   val job=locked(id)
+   if(job.running() || job.status=="succeeded") input(job) else null
+  } ?: rejectCompletion(id)
   val bytes=storage.read(key(id)).bytes
   validate(bytes,request.purpose)
-  val (result,discard)=transaction { val job=locked(id)
-   if(job.status !in setOf("running","succeeded")) throw ContentFailure(409,"종료된 이미지 작업입니다.")
+  val (result,discard)=tx.execute {
+   val job=locked(id)
+   if(!job.running() && job.status!="succeeded") return@execute null
    val wasRunning=job.running()
    job.status="succeeded";job.stage="completed";job.updatedAt=Instant.now()
    response(job) to (wasRunning && hasTemporaryReference(job))
-  }
+  } ?: rejectCompletion(id)
   if(discard) discardReference(id)
   return result
+ }
+ private fun rejectCompletion(id:UUID):Nothing {
+  // 종료 상태는 다시 실행되지 않는다. 성공이 커밋된 결과나 아직 실행 가능한 결과는 보존한다.
+  val abandoned=transaction { locked(id).status in setOf("failed","interrupted","deleted") }
+  if(abandoned) {
+   try { storage.delete(key(id)) }
+   catch(_:Exception) { log.warn("종료된 이미지 작업의 결과 파일을 정리하지 못했어요. jobId={}",id) }
+  }
+  throw ContentFailure(409,"종료된 이미지 작업입니다.")
  }
  fun content(id:UUID,owner:String):ByteArray {
   val request=transaction { val j=owned(id,owner)

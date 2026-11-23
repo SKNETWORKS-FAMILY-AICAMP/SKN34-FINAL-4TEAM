@@ -8,7 +8,7 @@ import type { AuthUser } from '../../../domain/repositories/AuthRepository'
 export type SessionState = {
   role: Role
   user: { nick: string; email: string; joined: string }
-  /** Core 회원 ID. 신고자·작품 소유자 표시 판단에만 쓰며 권한 검사는 서버가 합니다. */
+  /** Core 회원 ID. 소유자 표시와 계정별 화면 상태 구분에 쓰며 권한 검사는 서버가 합니다. */
   memberId: string | null
   /** 로그인 후 돌아갈 경로와 로그인 화면 안내 (목업 S.next·S.loginMsg) */
   next: string | null

@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { Provider } from 'react-redux'
 import { afterEach, expect, it, vi } from 'vitest'
+import { createAppStore } from '../../app/store'
 import { AiCoverButton } from './AiCoverButton'
 
 const useCase=vi.hoisted(()=>({read:vi.fn(),readByKey:vi.fn(),submit:vi.fn(),image:vi.fn()}))
 vi.mock('../../app/appContainer',()=>({appContainer:{resolve:()=>useCase}}))
-vi.mock('../../data/api/auth',()=>({authenticatedUserId:()=> 'owner'}))
+const renderButton = () => render(<Provider store={createAppStore({memberId:'owner'})}><AiCoverButton onPick={vi.fn()} /></Provider>)
 afterEach(()=>{
  cleanup()
  sessionStorage.clear()
@@ -18,7 +20,7 @@ it('콘텐츠 차단은 장면 수정으로 안내하고 조회 오류는 상태
  useCase.submit.mockResolvedValueOnce({jobId:'retry',status:'queued',stage:'waiting',previewUrl:null})
  useCase.read.mockResolvedValueOnce({jobId:'blocked',status:'failed',stage:'output_blocked',previewUrl:null})
  useCase.read.mockRejectedValueOnce(new Error('조회 실패'))
- render(<AiCoverButton onPick={vi.fn()} />)
+ renderButton()
  fireEvent.click(screen.getByRole('button',{name:'AI로 생성'}))
  fireEvent.change(screen.getByRole('textbox',{name:'이번 장면'}),{target:{value:'새벽 항구'}})
  fireEvent.click(screen.getByRole('button',{name:'생성 요청'}))
@@ -38,7 +40,7 @@ it('새 작품은 기본 참조로 시작하고 내 이미지 모드는 파일�
  try {
   useCase.submit.mockResolvedValue({jobId:'new-job',status:'queued',previewUrl:null})
   useCase.read.mockResolvedValue({jobId:'new-job',status:'queued',previewUrl:null})
-  render(<AiCoverButton onPick={vi.fn()} />)
+  renderButton()
   fireEvent.click(screen.getByRole('button',{name:'AI로 생성'}))
   const source=screen.getByRole<HTMLSelectElement>('combobox',{name:'참고 이미지'})
   expect(source.value).toBe('preset')

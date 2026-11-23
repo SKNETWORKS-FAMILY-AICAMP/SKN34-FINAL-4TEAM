@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../app/appContainer'
-import { authenticatedUserId } from '../../data/api/auth'
+import { useAppSelector } from '../../app/store'
 import { DEFAULT_COVER_REFERENCE, type CoverReference, type CoverReferenceRole, type ImageJob, type ImageRequest } from '../../domain/repositories/ImageGenerationRepository'
 import { referenceFileError } from '../../domain/usecases/ImageGenerationUseCase'
 
 /** 상태 조회만 재개한다. 화면을 닫아도 서버 생성 작업은 계속된다. */
 export function useImageGeneration(input: Omit<ImageRequest,'prompt'|'visualSettings'|'reference'|'referenceFile'>) {
  const useCase=appContainer.resolve('imageGenerationUseCase')
+ const memberId=useAppSelector(state=>state.session.memberId)
  const [prompt,setPrompt]=useState(''), [job,setJob]=useState<ImageJob>(), [error,setError]=useState(''), [busy,setBusy]=useState(false), [preview,setPreview]=useState('')
  const [visualSettings,setVisualSettings]=useState('')
  const [referenceMode,setReferenceMode]=useState<CoverReference['mode']>('preset')
@@ -21,7 +22,7 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'|'visualSett
  const [refresh,setRefresh]=useState(0)
  const [restoring,setRestoring]=useState(false)
  const [unresolved,setUnresolved]=useState(false)
- const storageKey=`image-generation:${authenticatedUserId()}:${input.purpose}:${input.workId ?? input.worldId ?? 'new'}`
+ const storageKey=`image-generation:${memberId}:${input.purpose}:${input.workId ?? input.worldId ?? 'new'}`
  useEffect(()=>{
   setPrompt('');setVisualSettings('');setError('')
   setReferenceMode('preset');setReferenceRole('style');setReferenceFile(undefined)
@@ -54,7 +55,7 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'|'visualSett
   return ()=>{abort.abort();controller.current?.abort()}
  },[storageKey,useCase,refresh])
  useEffect(()=> {
-  if(!job) return
+  if(!job || sessionStorage.getItem(storageKey)!==job.jobId) return
   const abort=new AbortController();pollController.current=abort
   let timer:ReturnType<typeof setTimeout> | undefined
   let url=''

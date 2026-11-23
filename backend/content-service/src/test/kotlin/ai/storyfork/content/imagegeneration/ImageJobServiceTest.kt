@@ -5,6 +5,7 @@ import ai.storyfork.content.imagegeneration.service.ImageJobService
 import ai.storyfork.content.imagegeneration.service.ImageReferences
 import ai.storyfork.content.imagegeneration.client.ImageJobClient
 import ai.storyfork.content.attachment.client.AttachmentStorageClient
+import ai.storyfork.content.attachment.client.dto.AttachmentObjectResult
 import ai.storyfork.content.attachment.service.AttachmentService
 import ai.storyfork.content.world.service.WorldCoverService
 import ai.storyfork.content.work.service.WorkAccessService
@@ -40,8 +41,30 @@ class ImageJobServiceTest {
   val id=UUID.randomUUID()
   `when`(jobs.lock(id)).thenReturn(ImageJob(id=id,status="interrupted"))
   assertEquals(409,assertThrows(ContentFailure::class.java){service.complete(id,"image-generations/$id.png")}.status)
-  verifyNoInteractions(storage)
+  verify(storage).delete("image-generations/$id.png")
  }
+ @Test fun `expiration during result validation removes the abandoned PNG`() {
+  val job=ImageJob(status="running",input="""{"purpose":"work_cover","prompt":"scene"}""")
+  val key="image-generations/${job.id}.png"
+  `when`(jobs.lock(job.id)).thenReturn(job)
+  `when`(storage.read(key)).thenAnswer {
+   job.status="interrupted"
+   validCover()
+  }
+  assertEquals(409,assertThrows(ContentFailure::class.java){service.complete(job.id,key)}.status)
+  verify(storage).delete(key)
+ }
+ @Test fun `a duplicate completion preserves the already committed PNG`() {
+  val job=ImageJob(status="succeeded",input="""{"purpose":"work_cover","prompt":"scene"}""")
+  val key="image-generations/${job.id}.png"
+  `when`(jobs.lock(job.id)).thenReturn(job)
+  `when`(storage.read(key)).thenReturn(validCover())
+  assertEquals("succeeded",service.complete(job.id,key).status)
+  verify(storage,never()).delete(key)
+ }
+ private fun validCover()=AttachmentObjectResult(java.io.ByteArrayOutputStream().also {
+  javax.imageio.ImageIO.write(java.awt.image.BufferedImage(1152,1536,java.awt.image.BufferedImage.TYPE_INT_RGB),"png",it)
+ }.toByteArray())
  @Test fun `result key must be tied to job`() {
   assertEquals(422,assertThrows(ContentFailure::class.java){service.complete(UUID.randomUUID(),"someone-else.png")}.status)
   verifyNoInteractions(storage)
