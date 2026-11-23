@@ -193,7 +193,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   // 편집이 잠긴 회차의 그래프 노드는 기존 버전 시트를 열고 그 버전을 선택해 둔다(비교·복원·공개는 시트의 기존 기능).
   const openVersion=(versionId:string)=>{if(!active)return;setSelection({episode:active.number,id:versionId});setRights(false);setHistoryView('versions');setVersionsOpen(true)}
   // 그래프의 저장 버전 노드(#730): 편집할 수 있는 회차면 시트 없이 그 버전을 작업 초안에 불러온다(새 버전은 만들지 않고 자동 저장이 초안으로 저장한다, 남기려면 버전 저장).
-  // 시트의 '복원' 버튼과 같은 잠금(원작 기준·요청 중·AI 자율 연재·운영자 열람)에서는 본문을 바꾸지 않고 위 시트로 미리보기만 보인다.
+  // 시트의 '복원' 버튼과 같은 잠금(원작 기준·AI 자율 연재·운영자 열람)에서는 본문을 바꾸지 않고 위 시트로 미리보기만 보인다. 요청 중에는 그래프 노드 자체가 잠겨(disabled) 이 함수가 불리지 않는다.
   const pickVersion=(versionId:string)=>{if(active?.inherited||noWrite||viewOnly)openVersion(versionId);else vm.loadVersion(versionId)}
   // 항목의 ⋮ 메뉴가 고른 회차를 먼저 선택한다(저장하지 않은 입력을 버리지 않으면 false). 이미 선택된 회차는 다시 고르지 않는다.
   const pick=(e:WritingEpisode)=>{if(active?.number===e.number)return true;if(!vm.select(e))return false;setSelection({episode:0,id:''});setRights(false);return true}
