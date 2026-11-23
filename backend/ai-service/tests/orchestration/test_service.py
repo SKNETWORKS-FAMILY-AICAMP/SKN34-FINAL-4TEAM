@@ -2367,8 +2367,8 @@ REVISE_REQUEST = '재회 장면을 더 긴장감 있게 고쳐줘'
 PLAN_TOOLS = ('story_plan_list', 'story_plan_read', 'story_plan_update')
 
 
-def plan_tools(monkeypatch, listed=None, fail=None):
-    """fake_agents가 둔 Content MCP 대역을 감싸 story_plan_* 호출만 (도구, 인자, 그때의 사용자 토큰)으로 남긴다. listed는 목록 응답, fail은 {도구: 예외}."""
+def plan_tools(monkeypatch, listed=None, fail=None, read=None):
+    """fake_agents가 둔 Content MCP 대역을 감싸 story_plan_* 호출만 (도구, 인자, 그때의 사용자 토큰)으로 남긴다. listed는 목록 응답, read는 상세 응답, fail은 {도구: 예외}."""
     seen, real = [], tools.content_mcp.call
 
     def call(tool, arguments):
@@ -2378,6 +2378,8 @@ def plan_tools(monkeypatch, listed=None, fail=None):
                 raise fail[tool]
             if tool == 'story_plan_list' and listed is not None:
                 return listed
+            if tool == 'story_plan_read' and read is not None:
+                return read
         return real(tool, arguments)
 
     monkeypatch.setattr(tools.content_mcp, 'call', call)
@@ -2458,6 +2460,23 @@ def test_revise_plan_content_failures_fail_the_step_with_contents_detail_and_no_
     result = revise_turn()
     assert result.status == 'failed' and [(s.status, s.error, s.result) for s in result.steps] == [('failed', '계획을 찾을 수 없어요.', None)]
     assert 'revise_plan' not in names(calls)
+
+
+def test_revise_plan_of_a_scene_whose_episode_was_deleted_fails_before_the_model_with_guidance(monkeypatch):
+    # 승인 때 Content가 422/409로 거절할 계획이라 제안을 만들지 않고 미리 알린다(#641).
+    calls = fake_agents(monkeypatch, REVISE)
+    plan_tools(monkeypatch, read={**PLAN_READ, 'episodeMissing': True})
+    result = revise_turn()
+    assert result.status == 'failed' and [(s.status, s.error, s.result) for s in result.steps] == [('failed', tools.PLAN_EPISODE_MISSING, None)]
+    assert 'revise_plan' not in names(calls)
+
+
+def test_revise_plan_with_nothing_to_change_asks_for_a_clearer_direction_instead_of_failing(monkeypatch):
+    fake_agents(monkeypatch, REVISE)
+    monkeypatch.setattr(tools.writing, 'revise_plan', lambda data: None)
+    plan_tools(monkeypatch)
+    result = revise_turn()
+    assert (result.status, result.steps, result.awaitingApproval) == ('clarify', [], None) and tools.NO_PLAN_CHANGE in result.message
 
 
 def test_revise_plan_model_failure_fails_the_step(monkeypatch):

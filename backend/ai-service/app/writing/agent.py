@@ -56,16 +56,25 @@ def pick_plan(data: PlanPickRequest) -> str | None:
     return result.planId
 
 
-def revise_plan(data: PlanReviseRequest) -> PlanRevision:
-    """계획 수정 모델 호출 2: 고를 계획의 제목·내용만 지시대로 고친 변경 전·후 제안. 한도를 넘거나 바뀐 것이 없으면 502이며 저장하지 않는다."""
+def revise_plan(data: PlanReviseRequest) -> PlanRevision | None:
+    """계획 수정 모델 호출 2: 고를 계획의 제목·내용만 지시대로 고친 변경 전·후 제안. 바뀐 것이 없으면(공백 차이만 포함) None이고, 한도를 넘으면 502이며 저장하지 않는다."""
     message, result = agent_runtime.run('writing.plan_revise', '계획 수정', WritingFailure, REVISE_PLAN_INSTRUCTIONS,
                                         data.model_dump(exclude={'revision'}), prompt_name='writing_editing.plan_revise', max_tokens=8000,
                                         timeout=90, trace=data.model_dump(exclude={'revision'}), schema=PlanText)
-    before, after = PlanText(title=data.plan.title, content=data.content), PlanText(title=result.title.strip(), content=result.content.strip())
-    changed = (before.title.strip(), before.content.strip()) != (after.title, after.content)
-    if not after.title or len(after.title) > PLAN_TITLE_MAX or len(after.content) > PLAN_CONTENT_MAX or not changed:
+    # 공백만 다른 칸은 원문을 그대로 둔다. 제목만 고쳐도 내용 앞뒤 공백이 지워져 저장되지 않게 한다.
+    keep = lambda new, old: old if new.strip() == old.strip() else new.strip()  # noqa: E731
+    before = PlanText(title=data.plan.title, content=data.content)
+    after = PlanText(title=keep(result.title, before.title), content=keep(result.content, before.content))
+    if after == before:
+        return None
+    if not after.title or _utf16(after.title) > PLAN_TITLE_MAX or _utf16(after.content) > PLAN_CONTENT_MAX:
         raise WritingFailure(502, BAD_REVISION)
     return PlanRevision(planId=data.plan.id, kind=data.plan.kind, revision=data.revision, before=before, after=after, **agent_runtime.meta(message))
+
+
+def _utf16(text: str) -> int:
+    """Content(Kotlin String.length)와 같은 UTF-16 코드 단위 길이. 이모지 같은 보충 문자는 2단위다."""
+    return len(text.encode('utf-16-le')) // 2
 
 
 def _write(kind: str, max_tokens: int, instructions: str, data: DraftRequest | PatchRequest) -> tuple[str, dict]:
