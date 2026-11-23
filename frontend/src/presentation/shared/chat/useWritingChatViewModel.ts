@@ -15,7 +15,7 @@ const message = (error: unknown, fallback: string) => (error instanceof Error &&
 /**
  * 집필실·세계관 화면의 집필 AI 채팅(#331). 대화 원본은 AI 세이버이고, 이 Hook은 Content API로 읽고 보낸 뒤
  * 스트림이 끝나거나 실패하면 이력을 다시 읽어 저장된 상태를 그대로 보인다(실패를 성공처럼 남기지 않는다).
- * workId가 없거나(연결 소설 없음) basis가 없으면(발행 회차 없음) 보내지 않는다.
+ * workId가 없거나(연결 소설 없음) basis가 없으면(회차가 하나도 없음) 보내지 않는다. 발행 회차가 없으면 basis는 판본 없는 초안 회차다(#729).
  * getPage(#554)는 새 메시지(보내기·고쳐 다시 보내기)를 보내는 순간, 어떤 기다림(첨부 읽기·새 대화 열기)보다 먼저 읽는다(#635). 반영 회차(basis)와 같은 시점이어야 한다.
  * 편집기의 선택 글은 상태가 아니라 보내는 때 읽어야 해서 값이 아니라 함수다.
  * 이어가기(승인·입력·장면 조작)에는 싣지 않는다.
@@ -171,7 +171,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
 
   const lockedReason = !useCase ? '데모에서는 집필 AI 채팅을 지원하지 않아요.'
     : !workId ? '세계관에 소설을 연결하면 그 소설을 근거로 AI와 대화할 수 있어요.'
-      : !basis ? '회차를 하나 이상 발행하면 AI와 대화할 수 있어요. AI는 발행한 회차를 근거로 답해요.' : undefined
+      : !basis ? '회차를 하나 이상 만들면 AI와 대화할 수 있어요.' : undefined
   const waiting = !live && turns.at(-1)?.reply?.status === 'waiting' ? turns.at(-1)!.reply! : null
   // 인물 시뮬레이션 장면(#58 무대): 흐르는 중이면 SSE로 받은 단계, 아니면 저장된 마지막 응답의 단계. 장면을 못 읽은 단계는 simulation 없이 실패로 온다.
   const simulationStep = (live ? live.steps : turns.at(-1)?.reply?.steps)?.find((step) => step.feature === 'character_simulation') ?? null

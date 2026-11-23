@@ -60,6 +60,7 @@ FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, S
             WorldReviewFailure, RatingFailure)
 NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
 NO_QA_TARGET = '질문할 작품과 회차를 확인할 수 없어요.'
+NO_PUBLISHED = '발행한 회차가 없어 원고는 근거로 쓰지 않았어요. 세계관 설정만 봤어요.'
 NO_RATING_TARGET = '심의 등급을 판별할 작품과 회차를 확인할 수 없어요.'
 NO_WORLD_TARGET = '세계관을 다룰 작품을 확인할 수 없어요.'
 NO_WRITING_TARGET = '기획하거나 쓸 작품과 회차를 확인할 수 없어요.'
@@ -91,7 +92,8 @@ def _check(inputs: dict, check: str | None) -> str | None:
 # ask_writing·ask_character_simulation은 항상 단독이라 묶음 검사에 필요 없다. ask_world는 작가 승인이 필요한 enrich만 ask_writing처럼
 # 단독으로 부르게 같은 검사에 넣는다(check·impact는 조회형이라 묶음에서 함께 실행한다).
 WAITS = {
-    'ask_story_qa': lambda turn, inputs, scope, args: 'story_context' not in inputs and not scope,
+    # 토큰이 없어도 반영 대상(target)이 있으면 세계관 근거로 답한다(발행 회차 없음, #729)
+    'ask_story_qa': lambda turn, inputs, scope, args: 'story_context' not in inputs and not scope and not turn.get('target'),
     'ask_manuscript_review': lambda turn, inputs, scope, args: bool(turn.get('target')) and not _check(inputs, args.get('check')),
     'ask_research': lambda turn, inputs, scope, args: args.get('task') == 'web' and 'research' not in inputs,
     'ask_world': lambda turn, inputs, scope, args: args.get('task') == 'enrich',
@@ -247,12 +249,15 @@ def ask_story_qa(request: Request, runtime: ToolRuntime) -> Command:
             # 발췌가 없으면 원고는 공통 Retrieval(Content 내부 검색), 설정·관계는 Content MCP로 기준 회차 시점의 세계관을 읽는다(#490).
             # 둘 다 근거가 없으면 모델을 부르지 않는다.
             target = _target(turn, StoryQaFailure, NO_QA_TARGET)
-            try:
-                found = retrieval.retrieve(RetrievalScope.model_validate(scope), request)
-                # 설정·관계 정본은 WorldStudio 하나라(#490 결정 1) Retrieval에서는 원고 발췌만 쓴다(옛 설정 문서·현재 관계 제외).
-                manuscript, gaps, coverage = [e for e in found.excerpts if e.kind == 'manuscript'], [g.detail for g in found.gaps], found.coverage
-            except RetrievalUnavailable as error:  # Content가 원고 검색을 쓸 수 없다고 답하면 세계관 근거로만 답하고 이유를 gap으로 알린다
-                manuscript, gaps = [], [str(error)]
+            if not scope:  # 발행 회차가 없어 Content가 조회 토큰을 주지 않았다(#729): 세계관 근거로만 답한다
+                manuscript, gaps = [], [NO_PUBLISHED]
+            else:
+                try:
+                    found = retrieval.retrieve(RetrievalScope.model_validate(scope), request)
+                    # 설정·관계 정본은 WorldStudio 하나라(#490 결정 1) Retrieval에서는 원고 발췌만 쓴다(옛 설정 문서·현재 관계 제외).
+                    manuscript, gaps, coverage = [e for e in found.excerpts if e.kind == 'manuscript'], [g.detail for g in found.gaps], found.coverage
+                except RetrievalUnavailable as error:  # Content가 원고 검색을 쓸 수 없다고 답하면 세계관 근거로만 답하고 이유를 gap으로 알린다
+                    manuscript, gaps = [], [str(error)]
             world, world_gaps = story_qa.world_excerpts(target['workId'], target.get('baseEpisode') or target['episode'], request[:500])
             gaps += world_gaps
             if not (excerpts := [e.model_dump() for e in [*manuscript, *world]]):

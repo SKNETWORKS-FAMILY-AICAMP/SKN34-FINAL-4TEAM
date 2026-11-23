@@ -121,10 +121,10 @@ export function streamedAnswer(text: string, event: ChatEvent): string {
   return event.type === 'error' || (event.type === 'done' && event.reply.status === 'failed') ? '' : text
 }
 /**
- * Q&A 근거 기준(지식 상한). Content가 발행 회차만 기준으로 받는다.
+ * Q&A 근거 기준(지식 상한). episodeVersionId는 발행 회차의 판본이며, 발행 회차가 없으면 빠지고 episode는 초안 회차다(원고 근거 없이 대화한다, #729).
  * targetEpisode는 결과를 반영할 회차(작가가 연 회차, 발행 전 초안이어도 된다)이고 없으면 서버가 근거 회차와 같게 본다.
  */
-export type ChatBasis = { episode: number; episodeVersionId: string; targetEpisode?: number }
+export type ChatBasis = { episode: number; episodeVersionId?: string; targetEpisode?: number }
 /**
  * 작가가 지금 보고 있는 화면(#554). 메시지마다 싣는다(이어가기에는 싣지 않는다). Content가 권한을 다시 확인하고 AI가 그 턴에만 본다.
  * path는 표시용이고 인가에 쓰이지 않는다. content는 저장하지 않은 편집이 있을 때만 싣는다.
@@ -325,14 +325,17 @@ function ratingText({ verdict, prohibited, episodes }: ChatRating): string {
  * 근거 회차(지식 상한, 발행된 판본 필요)와 반영 회차(targetEpisode, 작가가 연 회차)를 나눠 고른다.
  * 열린 회차가 발행돼 있으면 그 회차가 둘 다이고, 발행 전 초안이면 그 앞의 가장 뒤 발행 회차를 근거로 열린 회차에 반영한다
  * (서버는 targetEpisode ≥ episode만 받으므로 근거는 열린 회차보다 뒤가 되지 않게 고른다).
- * 열린 회차를 모르거나 목록에 없으면 가장 뒤의 발행 회차만 근거로 쓰고 반영 회차는 보내지 않는다. 근거가 없으면 null(채팅을 잠근다).
+ * 열린 회차를 모르거나 목록에 없으면 가장 뒤의 발행 회차만 근거로 쓰고 반영 회차는 보내지 않는다.
+ * 근거로 쓸 발행 회차가 없으면 판본 없이 열린 회차(모르면 가장 뒤 회차) 초안을 근거·반영 회차로 삼는다(#729). 회차가 하나도 없으면 null(채팅을 잠근다).
  */
 export function chatBasis(episodes: WritingEpisode[], open?: number): ChatBasis | null {
   const known = open !== undefined && episodes.some((e) => e.number === open)
   const pick = episodes
     .filter((e) => e.publishedVersionId && (!known || e.number <= open))
     .reduce<WritingEpisode | undefined>((last, e) => (!last || e.number > last.number ? e : last), undefined)
-  return pick?.publishedVersionId ? { episode: pick.number, episodeVersionId: pick.publishedVersionId, ...(known ? { targetEpisode: open } : {}) } : null
+  if (pick?.publishedVersionId) return { episode: pick.number, episodeVersionId: pick.publishedVersionId, ...(known ? { targetEpisode: open } : {}) }
+  const draft = known ? open : Math.max(0, ...episodes.map((e) => e.number))
+  return draft ? { episode: draft } : null
 }
 
 /** 대화에 남은 가장 최근 인물 시뮬레이션 장면 단계(끝난 장면 다시 보기, #420). 장면을 읽지 못한(simulation 없는) 단계는 기록이 아니라 건너뛴다. */

@@ -119,6 +119,30 @@ class WritingAiServiceTest {
     }
 
     @Test
+    fun `a new turn without a published version talks over the draft episode it reflects into and issues no scope token`() {
+        // 발행 회차가 없는 작품(#729): 근거 판본이 없으면 원고 근거 없이 연 회차 초안을 반영 회차로 대화한다
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        service.run("work", "owner", "Bearer user", ask.copy(episode = 1, episodeVersionId = null))
+        val body = sent()
+        assertEquals(null, body["scope"])
+        assertEquals(mapOf("workId" to "work", "episode" to 1), body["target"])
+        verify(episodes).read("work", "owner", 1)  // 작가 본인 작품의 활성 회차인지는 확인한다
+        verifyNoInteractions(scopes)
+    }
+
+    @Test
+    fun `a draft turn on an episode the work does not have is a 422 and a blank version is not a draft turn`() {
+        `when`(episodes.read("work", "owner", 4)).thenThrow(ContentFailure(404, "회차를 찾을 수 없어요."))
+        assertEquals(422, assertThrows(ContentFailure::class.java) {
+            service.run("work", "owner", "Bearer user", ask.copy(episode = 4, episodeVersionId = null)) }.status)
+        verifyNoInteractions(client)
+        jakarta.validation.Validation.buildDefaultValidatorFactory().use { factory ->
+            assertTrue(factory.validator.validate(ask.copy(episodeVersionId = null)).isEmpty())
+            assertEquals(listOf("episodeVersionId"), factory.validator.validate(ask.copy(episodeVersionId = " ")).map { it.propertyPath.toString() })
+        }
+    }
+
+    @Test
     fun `resume ignores the target episode because the conversation already has its target`() {
         `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
         service.run("work", "owner", "Bearer user", ask.copy(request = null, resume = WritingAiResume(true), threadId = "thread", targetEpisode = 1))

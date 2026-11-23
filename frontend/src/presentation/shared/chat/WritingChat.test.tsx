@@ -556,6 +556,18 @@ it('동의 체크 없이 바로 보내고 요청에 동의 값을 싣지 않는�
   expect(send.mock.calls[0][2]).not.toHaveProperty('consent')
 })
 
+it('발행 회차가 없어 판본 없는 초안 근거여도 잠그지 않고 그 회차로 보낸다(#729)', async () => {
+  openThread([])
+  send.mockResolvedValue(undefined)
+  render(<WritingChat workId="w" basis={{ episode: 1 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '1화 첫 장면을 써 줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ episode: 1, request: '1화 첫 장면을 써 줘' })
+  expect(send.mock.calls[0][2]).not.toHaveProperty('episodeVersionId')
+})
+
 const rated = (rating: 'up' | 'down' | null, ...more: object[]) => {
   sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
   history.mockResolvedValue({ threadId: 'a', title: '', turns: [{

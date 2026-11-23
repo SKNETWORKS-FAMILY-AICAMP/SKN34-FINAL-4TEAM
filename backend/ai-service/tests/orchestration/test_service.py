@@ -390,6 +390,17 @@ def test_world_read_failure_fails_the_qa_step(monkeypatch):
     assert 'story_context' not in names(calls)
 
 
+def test_qa_without_a_scope_answers_from_the_world_settings_instead_of_waiting(monkeypatch):
+    # 발행 회차가 없으면 Content가 조회 토큰을 주지 않는다(#729): 원고 검색 없이 설정·관계로 답하고 그 사실을 gap으로 알린다
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    linked_world(monkeypatch, calls)
+    result = run('길드 규칙은?', target=TARGET)
+    assert (result.status, result.missingInputs) == ('completed', []) and names(calls) == ['judge', 'mcp', 'mcp', 'story_context']
+    asked = calls[3][1][0]
+    assert [(e.id, e.kind) for e in asked.excerpts] == [('card:k', 'setting')]
+    assert result.steps[0].result.gaps[0] == tools.NO_PUBLISHED
+
+
 def test_qa_without_target_fails_instead_of_skipping_the_world(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context'))
     result = run(scope=SCOPE)
