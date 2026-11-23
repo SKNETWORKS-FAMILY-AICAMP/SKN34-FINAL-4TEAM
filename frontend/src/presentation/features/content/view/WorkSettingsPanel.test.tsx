@@ -5,6 +5,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
 import type { WorkSettings, WritingMode } from '../../../../domain/entities/operatingSettings'
+import { kstDateTime } from '../../../shared/format'
 import { WorkSettingsPanel } from './WorkSettingsPanel'
 
 afterEach(cleanup)
@@ -140,6 +141,8 @@ it('집필 방식 select와 저장 버튼은 집필 방식 카드 안에, 자동
   expect(mode.getByRole('button', { name: '집필 방식 저장' })).toBe(save)
   expect(auto.getByText('설정 추출')).toBeTruthy()
   expect(history.getAllByRole('listitem')).toHaveLength(1)
+  // [polish] 변경 이력의 시각은 개요·이력 탭과 같은 공용 한국시간 형식이다(연도 네 자리 medium 형식을 따로 두지 않는다).
+  expect(history.getByRole('listitem').querySelector('time')?.textContent).toBe(kstDateTime('2026-11-22T03:00:00Z'))
 })
 
 it('[distill] 집필 방식 카드는 보이는 제목이 하나이고 select의 접근 이름은 그대로다', async () => {

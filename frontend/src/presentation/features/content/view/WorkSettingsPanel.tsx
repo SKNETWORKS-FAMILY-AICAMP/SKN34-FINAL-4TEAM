@@ -1,10 +1,9 @@
 import { useId } from 'react'
 import { writingModeLabels, type WritingMode } from '../../../../domain/entities/operatingSettings'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import { kstDateTime } from '../../../shared/format'
 import { Sheet } from '../../../shared/Sheet'
 import { useWorkSettingsViewModel } from '../viewmodel/useWorkSettingsViewModel'
-
-const dateTime = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Seoul' })
 
 const AUTONOMOUS_TITLE = 'AI 자율 집필로 저장할까요?'
 
@@ -93,7 +92,7 @@ export function WorkSettingsPanel({ workId, useCase, onSaved, onOpenWorld }: { w
             {settings.history.length ? (
               <ul className='ep-settings-history'>
                 {settings.history.map(({ revision, writingMode, changedAt }) => (
-                  <li key={revision}><strong>{writingModeLabels[writingMode]}</strong><time dateTime={changedAt}>{dateTime.format(new Date(changedAt))}</time></li>
+                  <li key={revision}><strong>{writingModeLabels[writingMode]}</strong><time dateTime={changedAt}>{kstDateTime(changedAt)}</time></li>
                 ))}
               </ul>
             ) : <p>저장한 집필 방식이 아직 없어요.</p>}

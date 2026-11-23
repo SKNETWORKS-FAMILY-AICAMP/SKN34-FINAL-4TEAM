@@ -339,10 +339,11 @@ describe('episode.css 관리 화면 quieter 계약 (작품 관리)', () => {
 })
 
 describe('episode.css 관리 화면 polish(작품 관리)', () => {
-  it('탭 내용 묶음(.ep-tab)은 분기 정책·작품 삭제 구획처럼 위쪽 선 하나와 16px 안쪽 여백으로 시작한다', () => {
-    const tab = rule('.ep-tab')
+  it('탭 내용 묶음은 요약(.ep-brief) 다음일 때만 위쪽 선 하나와 16px 안쪽 여백으로 시작한다(요약이 없는 개요에는 선을 긋지 않는다)', () => {
+    const tab = rule('.ep-brief+.ep-tab')
     expect(tab).toMatch(/border-top:1px solid var\(--line2\)/)
     expect(tab).toMatch(/padding-top:16px/)
+    expect(rule('.ep-tab')).toBe('')
   })
 
   it('운영 설정의 저장 버튼은 모든 폭에서 안내문 아래 왼쪽에 놓인다 — 좁은 폭의 align-self:flex-end도 이 패널에서만 되돌린다', () => {
@@ -508,5 +509,26 @@ describe('episode.css 작품 관리 quieter (G2 4단계)', () => {
   it('[quieter] 개요 발행 이력은 줄 사이 선만 있고 마지막 줄 아래 선은 없다(운영 설정 이력은 그대로)', () => {
     expect(rule('.ep-dash .ep-settings-history li:last-child')).toMatch(/border-bottom:0/)
     expect(rule('.ep-settings-history li')).toMatch(/border-bottom:\s*1px solid var\(--line2\)/)
+  })
+})
+
+describe('episode.css 작품 관리 polish (G2 5단계)', () => {
+  it('[polish] 650px 이하 알림 상자의 직계 버튼은 글 뒤에 붙지 않고 아래 줄에 선다', () => {
+    expect(mediaBody('(max-width:650px)', '.ep-alert>button')).toMatch(/display:flex;width:fit-content/)
+    expect(mediaBody('(max-width:650px)', '.ep-alert button')).toMatch(/margin-top:10px/)
+  })
+
+  it('[polish] 집필 방식 카드는 머리 아래 8px에서 select가 시작한다(숨긴 라벨 몫의 위 여백 없음)', () => {
+    expect(rule('.ep-operating-settings form')).toMatch(/margin-top:\s*8px/)
+    expect(rule('.ep-operating-settings select')).toMatch(/margin-top:\s*0/)
+  })
+
+  it('[polish] 공개 회차 목록 머리 버튼 문단은 아래 안내문과 16px 떨어진다', () => {
+    expect(rule('.ep-list-head')).toMatch(/margin:0 0 16px/)
+  })
+
+  it('[polish] 이력 탭 발행 이력 줄도 개요처럼 한 줄 글(block)이라 <time> 앞뒤 구분점이 매달리지 않고, 운영 설정의 이력 줄(flex)은 그대로다', () => {
+    expect(rule('.ep-reading>.ep-settings-history li')).toMatch(/display:block/)
+    expect(rule('.ep-settings-history li')).toMatch(/display:\s*flex/)
   })
 })

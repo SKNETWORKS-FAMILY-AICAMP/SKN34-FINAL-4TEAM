@@ -11,3 +11,13 @@ it('[critique] 꺼져서 잠긴 연재 설정 폼(fieldset disabled)은 흐리�
   expect(rule('.ep-serial .ep-serial-fields')).toMatch(/display:block;margin-top:16px/)
   expect(rule('.ep-serial form')).not.toMatch(/margin-top/)
 })
+
+it('[polish] 꺼져 잠긴 연재 설정 폼의 저장 버튼은 fieldset 흐림(.6) 하나만 받는다', () => {
+  expect(rule('.ep-serial .ep-serial-fields:disabled .btn:disabled')).toMatch(/opacity:1/)
+  expect(rule('.ep-serial .ep-serial-fields:disabled')).toMatch(/opacity:\.6/)
+})
+
+it('[polish] 650px 이하 연재 요일은 7칸 한 줄 격자다(넓은 화면은 줄바꿈 flex 그대로)', () => {
+  expect(css).toMatch(/@media\(max-width:650px\)\{\.ep-serial fieldset\{display:grid;grid-template-columns:repeat\(7,minmax\(0,1fr\)\);column-gap:0\}\}/)
+  expect(rule('.ep-serial fieldset')).toMatch(/display:flex;flex-wrap:wrap;gap:0 18px/)
+})

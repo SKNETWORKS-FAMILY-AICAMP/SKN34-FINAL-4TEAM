@@ -3,6 +3,7 @@ import { SERIAL_LOCK_NOTICE, serialEpisodeLocked } from '../../../../domain/enti
 import { publicationActionLabel, savedVersionLabel, type Version, type Work } from '../../../../domain/entities/content'
 import { worldBuildBadge } from '../../../../domain/entities/manuscriptBuild'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import { kstDateTime } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { Branch } from '../../../shared/icons'
 import { ManuscriptBody } from '../../../shared/media/MediaPanel'
@@ -200,7 +201,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                 <>
                   <h3>발행 이력</h3>
                   {!vm.history.publicationHistory?<p className="ep-alert" role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol role='list' className='ep-settings-history'>{vm.history.publicationHistory.map((event,i)=><li key={i}>
-                    {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')} · {savedVersion(event.episode, event.versionId)}
+                    {event.episode}화 · {publicationActionLabel[event.action]} · <time dateTime={event.publishedAt}>{kstDateTime(event.publishedAt)}</time> · {savedVersion(event.episode, event.versionId)}
                   </li>)}</ol>:<p>발행 이력이 없어요.</p>}
                   <h3>원고 저장본</h3>
                   {vm.history.versions.length === 0 && (
@@ -240,7 +241,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
             <>
               {!mockup && <WorldBuildBadge key={buildCheck} work={w} />}
               {/* 원고 편집은 모두 집필실에서 한다: 회차 목록 머리에 집필실로 바로 가는 창구를 둔다(회차가 0개여도 집필실의 새 회차 버튼으로 1화를 만든다). 사이드바에는 같은 버튼을 두지 않는다. 이 탭의 주 행동이라 채운 버튼이다(아래 가져오기 계열은 작은 보조 버튼). */}
-              <p><Go to={`/studio/${w.id}`} className='btn pri'>집필실 열기</Go></p>
+              <p className='ep-list-head'><Go to={`/studio/${w.id}`} className='btn pri'>집필실 열기</Go></p>
               {vm.writing?.error && <p className="ep-alert" role="alert">{vm.writing.error}</p>}
               {/* AI 자율 집필 중에는 1화만 쓴다: 2화부터의 집필실 링크(수정하기)를 잠그고 이유는 여기서 한 번 알린다. */}
               {serialLocked && <div className='ep-notes'><p id={lockNote} role='status'>{SERIAL_LOCK_NOTICE}</p></div>}
@@ -410,7 +411,7 @@ function SavedVersion({ workId, version: v, label }: { workId: string; version: 
   return (
     <article>
       <h4 id={title}>{v.episode}화 · {label} · {v.title}</h4>
-      <p><time>{new Date(v.savedAt).toLocaleString('ko-KR')}</time></p>
+      <p><time dateTime={v.savedAt}>{kstDateTime(v.savedAt)}</time></p>
       <p>
         <button type='button' className='btn sm' aria-expanded={open} aria-describedby={title} onClick={() => setOpen((shown) => !shown)}>
           {open ? '원고 접기' : '원고 보기'}

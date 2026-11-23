@@ -7,6 +7,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { createAppStore } from '../../../../app/store'
 import type { Episode, History, Work, WritingEpisode } from '../../../../domain/entities/content'
+import { kstDateTime } from '../../../shared/format'
 import { WorkManagement } from './WorkManagement'
 
 // 히어로(WorkOverview)는 개요 탭의 내용이다. 그 안(작품 정보·표지 편집)은 EpisodePage.test가 보고, 여기서는 개요 탭이 히어로를 그리는지만 본다. 포크 수는 12화에만 2편이 갈라졌다고 본다(회차 번호로 조회).
@@ -319,6 +320,13 @@ it('같은 저장 버전은 공개 회차·원고 저장본·발행 이력에서
   expect(screen.getByRole('heading', { name: '1화 · 저장 버전 2 · 첫 화' })).toBeTruthy()
   expect(screen.getByText(/1화 · 발행 ·/).textContent).toContain('저장 버전 2')
   expect(document.body.textContent).not.toContain('리비전')
+  // [polish] 이력 탭의 발행 이력·저장본 시각은 개요와 같은 공용 한국시간 형식이고 <time dateTime>을 가진다.
+  const publishedTime = screen.getByText(/1화 · 발행 ·/).querySelector('time')
+  expect(publishedTime?.textContent).toBe(kstDateTime('2026-11-03T00:00:00Z'))
+  expect(publishedTime?.getAttribute('datetime')).toBe('2026-11-03T00:00:00Z')
+  const savedTime = document.querySelector('.ep-reading article time')
+  expect(savedTime?.textContent).toBe(kstDateTime('2026-11-02T00:00:00Z'))
+  expect(savedTime?.getAttribute('datetime')).toBe('2026-11-02T00:00:00Z')
 })
 
 it('상속 회차는 저장 버전이 없으므로 공개 회차 줄에 저장 버전을 붙이지 않는다', () => {
@@ -413,6 +421,8 @@ it('공개 회차 탭 머리에 집필실로 바로 가는 집필실 열기 링�
     render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, writing: { id: 'w', rows: [] } } as never} work={work(0)} serialLocked={locked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
     toRead()
     expect(screen.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w')
+    // [polish] 버튼 문단은 아래 안내문과 16px 띄우는 전용 클래스(episode.css)를 가진다.
+    expect(screen.getByRole('link', { name: '집필실 열기' }).parentElement?.className).toBe('ep-list-head')
   }
 })
 
