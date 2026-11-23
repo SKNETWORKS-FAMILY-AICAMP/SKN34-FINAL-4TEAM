@@ -48,7 +48,7 @@ export function CreditsOperations({ vm }: { vm: VM }) {
       {d.member && <MemberCredits key={d.member.id} vm={vm} d={d} member={d.member} picks={picks} />}
       <p className="admin-note">
         지급은 ‘운영자 지급’ 크레딧으로 남고 만료는 보상 크레딧과 같아요. 회수는 쓸 수 있는 잔액 안에서만 되고 만료가 가까운 지급분부터 차감돼요.
-        요청 중복 방지 키가 없어 처리 중에는 버튼이 잠겨요. 네트워크 오류로 결과를 모르면 잔액·내역을 확인한 뒤 다시 시도해 주세요.
+        네트워크 오류로 결과를 모르면 잔액·내역을 확인한 뒤 다시 시도해 주세요.
       </p>
     </section>
   )

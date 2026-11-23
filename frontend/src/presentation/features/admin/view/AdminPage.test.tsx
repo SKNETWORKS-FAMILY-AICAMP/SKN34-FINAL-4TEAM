@@ -573,6 +573,21 @@ it('표의 행 버튼은 이름이 같은 버튼끼리 구분되도록 대상 �
   expect(chat.getAttribute('aria-label')).toBe(`「${cells[1]} ${cells[2]}」 조치`)
 })
 
+// 오류 없이 대상만 있는 실행(예: 성공한 회귀 평가)은 빈 칸 표시(—)를 대상 위에 또 붙이지 않는다: 줄마다 소음이 생긴다. 오류도 대상도 없을 때만 —를 보인다.
+it('실행 기록의 오류·대상 칸은 오류 없이 대상만 있으면 대상 한 줄만, 둘 다 없을 때만 —를 보인다', async () => {
+  const jobs = appContainer.resolve('jobMonitorUseCase')
+  const real = (await jobs.runs({ status: '', kind: '', page: 0 }))!
+  const targetOnly = { id: 'run-target-only', kind: 'evaluation', source: 'ai-evaluation', status: 'succeeded', trigger: 'schedule', startedAt: '2026-11-20T01:02:03Z', finishedAt: '2026-11-20T01:05:03Z', targetId: 'character_simulation' }
+  const neither = { id: 'run-neither', kind: 'alert_cleanup', source: 'operations-scheduler', status: 'succeeded', trigger: 'schedule', startedAt: '2026-11-20T00:00:00Z', finishedAt: '2026-11-20T00:01:00Z' }
+  vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, items: [targetOnly, neither] })
+  renderAdmin('jobs')
+  const table = await screen.findByRole('region', { name: '작업 실행 기록 표' })
+  const column = [...table.querySelectorAll('th')].findIndex((th) => th.textContent === '오류·대상')
+  expect(column).toBeGreaterThanOrEqual(0)
+  const [first, second] = [...table.querySelectorAll('tbody tr')].map((row) => row.querySelectorAll('td')[column].textContent)
+  expect([first, second]).toEqual(['대상 character_simulation', '—'])
+})
+
 it('관리자 계정 생성 폼은 필수 항목과 비밀번호 규칙을 글로 알린다', async () => {
   renderAdmin('admins')
   const password = await screen.findByLabelText<HTMLInputElement>('초기 비밀번호')

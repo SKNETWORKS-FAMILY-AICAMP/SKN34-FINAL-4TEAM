@@ -176,7 +176,8 @@ export function AdminPage() {
       </Go>
     )
   }
-  const showRefresh = !!d && !vm.isError && !OPS_TABS.includes(tab)
+  // 새 공지·이벤트 폼은 목록이 보이지 않아 새로고침해도 화면이 안 바뀌므로 숨깁니다(목록·기존 글 상세에서는 다시 읽는 수단).
+  const showRefresh = !!d && !vm.isError && !OPS_TABS.includes(tab) && !((tab === 'events' || tab === 'notices') && vm.recordSelection[tab] === 'new')
   return (
     <>
     <div className='adm'>
@@ -981,7 +982,7 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
             onChange={(e) => setForm({ ...form, workId: e.target.value, character: '' })}
           >
             {available.map(({ w }) => (
-              <option key={w.id} value={w.id}>{w.title}{w.parent ? ' · 포크' : ' · 원작'}</option>
+              <option key={w.id} value={w.id}>{w.title}{form.kind === 'all' ? (w.parent ? ' · 포크' : ' · 원작') : ''}</option>
             ))}
           </select>
         </label>
@@ -1174,7 +1175,7 @@ function Events({ vm }: { vm: VM }) {
         )}
       <p className='admin-note'>
         진행 상태(상시·예정·진행 중·종료)는 시작·종료 시각으로 정해져요. 이벤트를 끝내려면 종료 시각을 수정해 주세요. 등록하면 바로
-        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요. 이동 경로는 관련 기능으로 가는 버튼만 만들어요.
+        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요.
       </p>
     </section>
   )

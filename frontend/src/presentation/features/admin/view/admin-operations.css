@@ -76,7 +76,7 @@
 /* 표 행 조치 메뉴(⋮, 공용 PopMenu): 조치 칸은 ⋮ 버튼 하나 폭이고 오른쪽에 붙인다. 표 스크롤 영역(.adm-scroll)은 absolute 메뉴를 잘라서 메뉴는 fixed로 띄우고,
    위치는 PopMenu가 열 때 알려 주는 버튼의 자리(--pop-bottom·--pop-right)로 맞춘다(버튼 바로 아래, 오른쪽 끝 맞춤). 정적 위치에 기대면 문서를 스크롤한 만큼 어긋난다.
    스크롤하면 PopMenu가 fixed 메뉴를 닫는다. */
-/* 조치 칸에 ⋮ 말고 글자('현재 production')가 들어가는 표는 칸이 그 글자 폭만큼 넓어지고 두 줄로 꺾이지 않는다(⋮만 있는 표는 그대로 56px). */
+/* 조치 칸에 ⋮ 말고 글자('본인 계정')가 들어가는 표는 칸이 그 글자 폭만큼 넓어지고 두 줄로 꺾이지 않는다(⋮만 있는 표는 그대로 56px). */
 .adm th.act-menu, .adm td.act-menu { width: 56px; text-align: right; white-space: nowrap; }
 .adm .row-menu { --more-size: 36px; }
 @media (max-width: 600px), (pointer: coarse) { .adm .row-menu { --more-size: 44px; } }

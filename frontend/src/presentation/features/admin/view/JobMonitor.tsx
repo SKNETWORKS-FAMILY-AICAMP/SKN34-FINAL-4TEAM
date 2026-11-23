@@ -105,7 +105,7 @@ function RunRow({ run, j, busy }: { run: JobRun; j: Jobs; busy: boolean }) {
       <td className="admin-date">{run.startedAt ? kstDateTime(run.startedAt) : '—'}</td>
       <td className="admin-date">{run.finishedAt ? kstDateTime(run.finishedAt) : '—'}</td>
       <td>
-        {run.error ?? '—'}
+        {run.error ?? (run.targetId ? null : '—')}
         {run.targetId && <div className="small muted">대상 {run.targetId}</div>}
       </td>
       <td className="act-menu">
@@ -156,7 +156,7 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
                   <tr key={row.id}>
                     <td>{kind}</td>
                     <td><code>{row.cron}</code></td>
-                    <td><span className={`chip ${row.enabled ? 'ok' : 'wait'}`}>{row.enabled ? '켜짐' : '꺼짐·취소됨'}</span></td>
+                    <td><span className={`chip ${row.enabled ? 'ok' : 'wait'}`}>{row.enabled ? '켜짐' : '꺼짐'}</span></td>
                     <td>{Object.keys(row.params).length ? JSON.stringify(row.params) : '—'}</td>
                     <td>{row.lastRun ? <>{statusChip(row.lastRun.status)} <span className="small muted admin-date">{row.lastRun.startedAt ? kstDateTime(row.lastRun.startedAt) : ''}</span></> : '—'}</td>
                     <td className="act-menu">
@@ -181,7 +181,7 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
         )
         : <p className="admin-empty">등록된 일정이 없어요.</p>)}
       <ScheduleForm key={editing?.id ?? 'new'} editing={editing} vm={vm} j={j} onDone={() => setEditing(null)} />
-      <p className="admin-note">운영 서버가 1분마다 켜진 일정 중 도래한 것을 실행하고 실행 기록에 남겨요(같은 일정이 아직 실행 중이면 건너뛰어요). 서버가 해석하는 cron 식을 입력하면 잘못된 식은 서버가 알려 줘요.</p>
+      <p className="admin-note">운영 서버가 1분마다 켜진 일정 중 도래한 것을 실행하고 실행 기록에 남겨요(같은 일정이 아직 실행 중이면 건너뛰어요).</p>
     </section>
   )
 }

@@ -232,6 +232,39 @@ describe('독립 운영 CRUD 화면 (오프라인 데모)', () => {
   })
 })
 
+// 머리의 '목록 새로고침'은 목록과 기존 글 상세에서만 보인다(다른 관리자가 고친 내용을 다시 읽는 수단). 새 글 폼에서는 목록이 보이지 않아 눌러도 화면이 바뀌지 않으므로 숨긴다.
+describe('공지·이벤트 머리 목록 새로고침', () => {
+  const refresh = () => screen.queryByRole('button', { name: '목록 새로고침' })
+  const removers: (() => Promise<unknown>)[] = []
+  afterEach(async () => { for (const remove of removers.splice(0)) await remove().catch(() => {}) })
+  const seed = async (tab: string, title: string) => {
+    if (tab === 'notices') {
+      const row = await appContainer.resolve('noticeUseCase').save(null, { title, body: `${title} 본문` })
+      removers.push(() => appContainer.resolve('noticeUseCase').delete(row.id))
+    } else {
+      const row = await appContainer.resolve('eventRepository').create({ title, body: `${title} 본문`, startsAt: null, endsAt: null })
+      removers.push(() => appContainer.resolve('eventRepository').remove(row.id))
+    }
+  }
+
+  it.each([
+    { tab: 'notices', write: '공지 작성', back: '공지 목록으로', title: '머리 버튼 공지' },
+    { tab: 'events', write: '이벤트 작성', back: '이벤트 목록으로', title: '머리 버튼 이벤트' },
+  ])('$tab: 목록과 기존 글 상세에서는 보이고 새 글 폼에서만 숨는다', async ({ tab, write, back, title }) => {
+    await seed(tab, title)
+    renderAt(`/admin?tab=${tab}`)
+    await screen.findByRole('button', { name: '목록 새로고침' })
+    fireEvent.click(screen.getByRole('button', { name: write }))
+    await screen.findByRole('button', { name: back })
+    expect(refresh()).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: back }))
+    await screen.findByRole('button', { name: '목록 새로고침' })
+    fireEvent.click(await screen.findByRole('button', { name: new RegExp(title) }))
+    await screen.findByRole('button', { name: back })
+    expect(refresh()).not.toBeNull()
+  })
+})
+
 describe('공지 탭 (운영 공지 API, 메모리 fixture)', () => {
   it('운영 API 연결 탭이며 서버에 저장되지 않는다는 데모 문구와 구 공지 데모가 없다', async () => {
     renderAt('/admin?tab=notices')

@@ -90,7 +90,7 @@ export function Prompts({ vm, l }: Props) {
                             </button>
                           </PopMenu>
                         )
-                        : '현재 production'}
+                        : '—'}
                     </td>
                   </tr>
                 )
@@ -124,26 +124,29 @@ export function Models({ vm, l }: Props) {
       <LiveState vm={vm} label="모델 목록" state={l.models} forbidden={LLM_FORBIDDEN} />
       {rows && (rows.length
         ? (
-          <Table label="모델 단가 표">
-            <thead>
-              <tr>
-                <th scope="col">모델</th>
-                <th scope="col">매칭 패턴</th>
-                <th scope="col">입력 단가(100만 토큰당)</th>
-                <th scope="col">출력 단가(100만 토큰당)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id}>
-                  <td><b>{row.modelName}</b></td>
-                  <td>{row.matchPattern}</td>
-                  <td>{perMillion(row.inputPrice)}</td>
-                  <td>{perMillion(row.outputPrice)}</td>
+          <>
+            <p className="small muted">단가는 100만 토큰당 USD예요.</p>
+            <Table label="모델 단가 표">
+              <thead>
+                <tr>
+                  <th scope="col">모델</th>
+                  <th scope="col">매칭 패턴</th>
+                  <th scope="col">입력 단가</th>
+                  <th scope="col">출력 단가</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id}>
+                    <td><b>{row.modelName}</b></td>
+                    <td>{row.matchPattern}</td>
+                    <td>{perMillion(row.inputPrice)}</td>
+                    <td>{perMillion(row.outputPrice)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </>
         )
         : <p className="admin-empty">등록된 모델이 없어요.</p>)}
       <form
@@ -289,14 +292,14 @@ export function AlertRules({ vm, l }: Props) {
                 <th scope="col">기준 시간(분)</th>
                 <th scope="col">켜기</th>
                 <th scope="col">마지막 변경</th>
-                <th scope="col" className="act">저장</th>
+                <th scope="col" className="act"><span className="sr-only">저장</span></th>
               </tr>
             </thead>
             <tbody>{rules.map((rule) => <RuleRow key={rule.key} rule={rule} l={l} busy={!!vm.actions[`rule:${rule.key}`]?.pending} />)}</tbody>
           </Table>
         </>
       )}
-      <p className="admin-note">기준값은 문서로 고정하지 않고 여기서 정해요. 처음엔 모두 꺼져 있고, 값을 넣고 켜야 경고가 만들어져요. 비율 기준은 0~1(0.1 = 10%)이에요.</p>
+      <p className="admin-note">처음엔 모두 꺼져 있고, 값을 넣고 켜야 경고가 만들어져요. 비율 기준은 0~1(0.1 = 10%)이에요.</p>
     </section>
   )
 }
