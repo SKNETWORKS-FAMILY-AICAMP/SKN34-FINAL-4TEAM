@@ -1,6 +1,8 @@
 .adm .admin-operations { min-width: 0; overflow-wrap: anywhere; }
 .adm .admin-operations fieldset { border: 0; padding: 0; margin: 12px 0 0; min-width: 0; }
 .adm .admin-operations h2 { font-size: 20px; line-height: 1.4; margin: 24px 0 12px; }
+/* 패널 맨 위 제목은 패널 안쪽 여백만으로 띄운다(위 여백 24px이 더해지면 좌우보다 위가 두 배로 비어 보인다). */
+.adm .admin-operations > h2:first-child { margin-top: 0; }
 .adm .admin-operations .table-head h2 { margin: 0; }
 .adm .admin-operations h3 { font-size: 16px; margin: 28px 0 12px; }
 .adm .admin-operations h4 { font-size: 15px; }
