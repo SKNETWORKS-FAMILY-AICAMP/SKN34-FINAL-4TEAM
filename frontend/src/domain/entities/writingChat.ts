@@ -169,6 +169,12 @@ export function selectionNote(selection: string): string {
   return selection.trim() ? `선택한 글 ${count}자가 함께 보내져요.` : ''
 }
 
+/** 구간 고르기 카드(#497)가 고른 글을 되비추는 한 줄 미리보기: 줄바꿈·연속 공백을 접고 앞 20자만 남기며, 더 있으면 …을 붙인다. */
+export function rangePreview(text: string): string {
+  const flat = text.replace(/\s+/g, ' ').trim()
+  return flat.length > 20 ? `${clip(flat, 20).trimEnd()}…` : flat
+}
+
 export type WorldDraftRevision = { id: string; revision: number }
 
 export function worldProposalIsStale(action: PendingAction, draft?: WorldDraftRevision): boolean {

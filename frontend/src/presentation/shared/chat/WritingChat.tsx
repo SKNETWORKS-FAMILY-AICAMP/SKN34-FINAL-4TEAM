@@ -1,8 +1,8 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { checkAttachment, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
-import { cancelNotice, draftNotice, featureLabel, PLAN_LABEL, referenceHref, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
+import { cancelNotice, draftNotice, featureLabel, PLAN_LABEL, rangePreview, referenceHref, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
@@ -102,7 +102,10 @@ function FinishedSteps({ steps }: { steps: ChatStep[] }) {
   return <>
     <p className="chat-note" aria-hidden="true">같이 끝난 작업</p>
     <ul className="chat-hitl-others" tabIndex={0} aria-label="같이 끝난 작업">{steps.map((s, i) => <li key={`${s.feature}-${i}`}>
-      <span className="chat-step-name">{featureLabel[s.feature] ?? s.feature}</span><p>{stepText(s)}</p>
+      <span className="chat-step-name">{featureLabel[s.feature] ?? s.feature}</span>
+      {/* AI가 정한 계획·확인 못 함 알림은 긴 원고 제안이 160px 창을 채워도 가려지지 않게 본문 앞에 둔다(replyText와 같은 줄). */}
+      {s.status === 'completed' && [usedPlan(s), draftNotice(s)].filter(Boolean).map((line) => <p key={line}>{line}</p>)}
+      <p>{stepText(s)}</p>
     </li>)}</ul>
   </>
 }
@@ -117,7 +120,7 @@ function Waiting({ workId, request, reply, pending, onResume, onOpenStage, cardO
   const [plan, setPlan] = useState('')
   const [check, setCheck] = useState<ReviewCheck | null>(null)
   const [fix, setFix] = useState<number | null>(null)
-  const [range, setRange] = useState({ start: 0, end: 0 })
+  const [range, setRange] = useState({ start: 0, end: 0, text: '' })
   const [instruction, setInstruction] = useState('')
   const needs = reply.missingInputs
   // 입력은 열린 회차가 아니라 멈춘 턴의 반영 회차에 대한 것이다(#635). 모르면 열린 회차로 대신하지 않는다.
@@ -127,6 +130,10 @@ function Waiting({ workId, request, reply, pending, onResume, onOpenStage, cardO
   // 선택 구간 없는 부분 수정(#387 task=patch)은 반영 회차 초안에서 고칠 구간을 고른다(#497).
   const patching = !fixing && reply.steps.some((s) => s.feature === 'writing_editing' && s.task === 'patch')
   const source = useEpisodeDraft(workId, !reply.awaitingApproval && needs.includes('writing_editing') && patching ? episode : null)
+  // 초안은 카드가 뜬 뒤에 도착해 카드가 길어진다. 이어서 실행이 첫 화면 아래에 접혀 숨지 않게 버튼 줄이 보이도록 한 번 맞춘다(scrollIntoView가 없는 jsdom에서는 건너뛴다).
+  const actions = useRef<HTMLDivElement>(null)
+  const drafted = !!source.draft
+  useEffect(() => { if (drafted) actions.current?.scrollIntoView?.({ block: 'nearest' }) }, [drafted])
   // World 제안(enrich)은 회차 원고가 아니라 설정집 초안에 반영한다(#546): 승인 대상 단계와 문구를 대기 기능으로 가른다. 읽지 못한(형식 오류) 제안은 보이지 않으므로 반영 버튼을 잠근다.
   const world = reply.awaitingApproval === 'world'
   // 계획 수정안(#578, task=revise_plan)도 회차 원고가 아니라 저장된 계획에 저장한다. 읽지 못한 제안은 world와 같이 저장 버튼을 잠근다.
@@ -170,6 +177,7 @@ function Waiting({ workId, request, reply, pending, onResume, onOpenStage, cardO
   const preview = needs.includes('writing_editing') && fixing ? reviewed : undefined
   const confirmed = (reviewed?.manuscriptReview?.findings ?? [])
     .flatMap((f, i) => (f.status === 'confirmed' ? [{ ...f, index: i }] : []))
+  const picked = rangePreview(range.text)
   const wanted = (instruction.trim() || request).slice(0, 2000)
   // 글상자는 줄바꿈을 LF로 바꿔 보여 CRLF 초안의 위치가 서버 본문과 어긋나고, Content는 5,000자까지만 받는다.
   const crlf = !!source.draft?.body.includes(String.fromCharCode(13))
@@ -207,10 +215,10 @@ function Waiting({ workId, request, reply, pending, onResume, onOpenStage, cardO
       {!episode ? null
         : source.status === 'failed' ? <div className="chat-error" role="alert"><p>{episode}화 초안을 읽지 못했어요.</p><button type="button" className="btn sm" onClick={source.retry}>다시 불러오기</button></div>
         : source.draft ? <label className="chat-field">수정할 초안 · {episode}화 (고칠 구간을 드래그해 고르세요)
-          <textarea readOnly rows={8} value={source.draft.body} onSelect={(e) => setRange({ start: e.currentTarget.selectionStart, end: e.currentTarget.selectionEnd })} />
+          <textarea readOnly rows={8} value={source.draft.body} onSelect={(e) => { const { selectionStart: start, selectionEnd: end, value } = e.currentTarget; setRange({ start, end, text: value.slice(start, end) }) }} />
         </label> : <p className="chat-note" role="status">{episode}화 초안을 불러오고 있어요.</p>}
       {crlf && <p className="chat-note" role="alert">이 초안은 줄바꿈 형식(CRLF)이라 여기서 구간을 고를 수 없어요. 집필실에서 선택해 다시 요청해 주세요.</p>}
-      {source.draft && <p className="chat-note">{range.end - range.start > 5000 ? '5,000자 이하로 골라 주세요.' : range.end > range.start ? `선택한 글 ${range.end - range.start}자` : '초안에서 고칠 구간을 골라 주세요.'}</p>}
+      {source.draft && <p className="chat-note">{range.end - range.start > 5000 ? '5,000자 이하로 골라 주세요.' : range.end > range.start ? `선택한 글 ${range.end - range.start}자${picked ? ` · “${picked}”` : ''}` : '초안에서 고칠 구간을 골라 주세요.'}</p>}
       <label className="chat-field">수정 지시 (비우면 이번 요청 문장을 써요)
         <textarea rows={2} value={instruction} maxLength={2000} onChange={(e) => setInstruction(e.target.value)} placeholder="예: 말투를 더 차갑게 바꿔 주세요." />
       </label>
@@ -223,7 +231,7 @@ function Waiting({ workId, request, reply, pending, onResume, onOpenStage, cardO
       </label>)}
     </fieldset>}
     {(needs.some((f) => f !== 'research' && f !== 'writing_editing' && f !== 'manuscript_review')) && <p className="chat-note">이 단계의 입력은 아직 화면에서 채울 수 없어요. 취소한 뒤 다른 요청으로 보내 주세요.</p>}
-    <div className="chat-hitl-actions">
+    <div ref={actions} className="chat-hitl-actions">
       <button type="submit" className="btn sm pri" disabled={pending || !filled}>이어서 실행</button>
       <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>취소</button>
     </div>

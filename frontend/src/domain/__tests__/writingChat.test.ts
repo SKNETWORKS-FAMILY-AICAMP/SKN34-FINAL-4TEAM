@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, selectionNote, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
+import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, rangePreview, selectionNote, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -14,6 +14,21 @@ describe('selectionNote', () => {
     for (const none of ['', '  \n ']) expect(selectionNote(none)).toBe('')
     expect(selectionNote(' '.repeat(5001))).toContain('보낼 수 없어요') // chatPage도 길이를 먼저 본다
     expect(selectionNote('가'.repeat(5001))).toBe('선택한 글 5,001자는 보낼 수 없어요. 5,000자까지 선택해 주세요.')
+  })
+})
+
+describe('rangePreview', () => {
+  it('고른 구간 글의 줄바꿈·연속 공백을 접어 한 줄로 보이고, 앞 20자만 남기며 더 있으면 …을 붙인다(#497)', () => {
+    expect(rangePreview('그는 웃었다.')).toBe('그는 웃었다.')
+    expect(rangePreview('그는\n  웃었다.\n')).toBe('그는 웃었다.')
+    expect(rangePreview('가'.repeat(20))).toBe('가'.repeat(20))
+    expect(rangePreview('가'.repeat(21))).toBe(`${'가'.repeat(20)}…`)
+    expect(rangePreview('안개가 내려앉은 항구 마을에서 견습 마법사')).toBe('안개가 내려앉은 항구 마을에서 견습…') // 20자째가 공백이어도 …은 글자에 붙는다
+  })
+
+  it('공백뿐인 구간은 빈 글이고, 서로게이트 쌍의 가운데에서 자르지 않는다', () => {
+    expect(rangePreview(' \n ')).toBe('')
+    expect(rangePreview(`${'가'.repeat(19)}😀😀`)).toBe(`${'가'.repeat(19)}…`)
   })
 })
 

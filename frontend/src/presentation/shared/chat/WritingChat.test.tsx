@@ -335,9 +335,9 @@ it('반영 회차를 모르면 장면 계획을 빈 입력으로 보내지 않�
 const PATCH_BODY = '그는 웃었다. 바람이 찼다.'
 const waitingPatch = () => openThread([{ request: '3문단 말투만 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null, approvalEpisode: 2,
   steps: [{ feature: 'writing_editing', status: 'not_started', task: 'patch' }] } }])
-const patchForm = async () => {
+const patchForm = async (body = PATCH_BODY) => {
   waitingPatch()
-  writingEpisode.mockResolvedValue({ number: 2, draft: { title: '2화', body: PATCH_BODY, revision: 4 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: null, checkpointStatus: 'content_only', checkpoints: [] })
+  writingEpisode.mockResolvedValue({ number: 2, draft: { title: '2화', body, revision: 4 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: null, checkpointStatus: 'content_only', checkpoints: [] })
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
   const draft = await within(form).findByLabelText(/수정할 초안/) as HTMLTextAreaElement
@@ -357,10 +357,32 @@ it('부분 수정(task=patch) 입력 대기는 반영 회차의 초안을 읽기
   expect(within(form).queryByText(/화면에서 채울 수 없어요/)).toBeNull()
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
   choose(draft, 0, 7)
-  expect(within(form).getByText('선택한 글 7자')).toBeTruthy()
+  expect(within(form).getByText('선택한 글 7자 · “그는 웃었다.”')).toBeTruthy()
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', false)
   choose(draft, 3, 3)  // 선택을 풀면 다시 잠근다
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+})
+
+it('고른 구간 글의 앞부분을 안내 줄에 남겨, 수정 지시 칸으로 초점을 옮겨 강조가 사라져도 어디를 골랐는지 보인다(#497)', async () => {
+  const { form, draft } = await patchForm('안개가 내려앉은 항구 마을에서 견습 마법사 하린은 낡은 등대지기에게서 봉인된 편지를 받았다.')
+  choose(draft, 0, 42)
+  act(() => { within(form).getByLabelText(/수정 지시/).focus() }) // 실제로 초점을 옮긴다(합성 focus 이벤트는 React의 선택 추적만 어긋나게 한다)
+  expect(within(form).getByText('선택한 글 42자 · “안개가 내려앉은 항구 마을에서 견습…”')).toBeTruthy()
+  choose(draft, 0, 3) // 짧은 구간은 말줄임 없이 그대로 보인다
+  expect(within(form).getByText('선택한 글 3자 · “안개가”')).toBeTruthy()
+})
+
+it('초안이 뒤늦게 도착해 카드가 길어지면 이어서 실행이 접힌 아래에 숨지 않게 그 버튼 줄이 보이도록 한 번 맞춘다(#497)', async () => {
+  const scrolled = vi.fn()
+  Element.prototype.scrollIntoView = scrolled // jsdom에는 scrollIntoView가 없다
+  try {
+    const { form, draft } = await patchForm()
+    await waitFor(() => expect(scrolled).toHaveBeenCalledTimes(1))
+    expect(scrolled).toHaveBeenCalledWith({ block: 'nearest' })
+    expect(scrolled.mock.contexts[0]).toBe(within(form).getByRole('button', { name: '이어서 실행' }).parentElement)
+    choose(draft, 0, 7) // 구간을 고르는 동안에는 다시 맞추지 않는다
+    expect(scrolled).toHaveBeenCalledTimes(1)
+  } finally { Reflect.deleteProperty(Element.prototype, 'scrollIntoView') }
 })
 
 it('고른 구간과 수정 지시를 writing_editing.span으로 보낸다', async () => {
@@ -697,7 +719,8 @@ it('구간 카드는 다른 회차를 열어도 멈춘 턴의 반영 회차에 �
   choose(draft, 0, 7)
   fireEvent.click(screen.getByRole('button', { name: '이어서 실행' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
-  expect(writingEpisode.mock.calls.map(([, number]) => number)).toEqual([2])
+  // 이어가기가 끝나 카드가 다시 뜨면 같은 회차를 한 번 더 읽을 수 있다(타이밍). 열린 회차(3)를 읽지 않는 것이 핵심이다.
+  expect(new Set(writingEpisode.mock.calls.map(([, number]) => number))).toEqual(new Set([2]))
   expect(send.mock.calls[0][2]).toMatchObject({ resume: { inputs: { writing_editing: { span: { episode: 2 } } } } })
 })
 
@@ -827,6 +850,20 @@ it('Content 쓰기 승인 카드는 같은 턴에 먼저 끝난 단계를 실행
     ['작품 질문카엘은 북문을 지킨다.', '기획·집필·수정카엘이 문을 닫았다.', 'Content 작업작품 정보 수정 완료'])
   expect(screen.getByText('같이 끝난 작업')).toBeTruthy() // 실행할 내용으로 읽히지 않게 이름이 화면에도 보인다
   expect(others.compareDocumentPosition(screen.getByRole('button', { name: '실행' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+it.each([
+  ['Content 쓰기 승인 카드', { missingInputs: [], awaitingApproval: 'content_action', pendingAction }],
+  ['입력 대기 카드', { missingInputs: ['research'], awaitingApproval: null }],
+])('%s의 같이 끝난 작업은 원고 제안에 더해 AI가 정한 계획과 확인 못 함 알림도 본문 앞에 보인다', async (_, waiting) => {
+  openThread([{ request: '쓰고 이어서 처리해 줘', reply: { status: 'waiting', ...waiting, steps: [
+    { feature: 'writing_editing', status: 'completed', result: { text: '카엘이 문을 닫았다.', plan: { title: '문 닫기', beats: ['도착', '결심'] }, gaps: ['연결된 세계관이 없어 설정 없이 작성했어요.'] } },
+  ] } }])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const others = await screen.findByLabelText('같이 끝난 작업')
+  // 긴 원고 제안이 160px 창을 채워도 계획·알림이 가려지지 않게 본문 앞에 둔다
+  expect(within(others).getAllByRole('listitem').map((item) => item.textContent)).toEqual(
+    ['기획·집필·수정사용한 계획: 문 닫기 — 도착 / 결심확인 못 함: 연결된 세계관이 없어 설정 없이 작성했어요.카엘이 문을 닫았다.'])
 })
 
 it('앞 단계가 없는 Content 쓰기 승인 카드에는 빈 목록을 그리지 않는다(#587)', async () => {
