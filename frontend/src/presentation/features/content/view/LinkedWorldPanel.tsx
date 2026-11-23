@@ -4,10 +4,13 @@ import { useNavigate } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
 import { inheritedCardGroups, type Work } from '../../../../domain/entities/content'
 import { filterByName } from '../../../../domain/entities/nameSearch'
+import type { StudioWorld } from '../../../../domain/entities/studioWorld'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
+import { coverSrc } from '../../../shared/cover'
 import { Go } from '../../../shared/Go'
 import { useAsyncData } from '../../../shared/useAsyncData'
+import { useWorldCoverImage } from '../../../shared/useWorldCoverImage'
 import { useInheritedWorld } from '../viewmodel/useInheritedWorld'
 
 type Props = {
@@ -25,18 +28,18 @@ type Props = {
   detachError?: string
   /** 테스트가 넣는 이어받는 세계관 조회 대역 */
   useCase?: Pick<EpisodeUseCase, 'inheritedWorld'>
-  /** 테스트가 넣는 내 세계관 조회 대역 */
-  worlds?: Pick<WorldStudioUseCase, 'list'>
+  /** 테스트가 넣는 내 세계관 조회·표지 읽기 대역 */
+  worlds?: Pick<WorldStudioUseCase, 'list' | 'cover' | 'supportsCover'>
 }
 
 /**
  * 세계관·설정집 탭의 세계관 연결(DEC-46): 소설과 내 세계관(WorldStudio)은 1:1로 연결한다.
  * 연결돼 있으면 그 세계관 관리 화면으로 가는 이름과 `연결 해제`를, 아니면 다른 소설에 연결되지 않은 내 세계관을 골라 `세계관 연결`을 보인다. 1:1·독자 위키 공개 범위 설명은 고를 때 필요한 정보라 연결 전에만 보인다.
- * 세계관은 `세계관 검색` 입력이 이름(대소문자·앞뒤 공백 무시, 비면 전체)으로 거른 라디오 목록에서 고르고, 결과가 없으면 `검색 결과가 없어요`를 알린다. 아무것도 고르지 않은 채 시작해 고르기 전에는 버튼이 잠기고 이유를 알린다(UC-24 E1: 세계관을 고르지 않으면 연결하지 않는다).
+ * 세계관은 검색 화면(`/search`)과 같은 둥근 `세계관 검색` 입력이 이름(대소문자·앞뒤 공백 무시, 비면 전체)으로 거른 표지 카드 목록에서 고르고(카드 한 장이 라디오 하나), 결과가 없으면 `검색 결과가 없어요`를 알린다. 검색창은 연결 양식 밖이라 Enter로 연결하지 않는다. 아무것도 고르지 않은 채 시작해 고르기 전에는 버튼이 잠기고 이유를 알린다(UC-24 E1: 세계관을 고르지 않으면 연결하지 않는다).
  * 고른 세계관이 검색으로 목록에서 빠지면 선택을 비운다(보이지 않는 세계관으로 연결하지 않는다). 해제하면 고른 값과 검색어도 비워, 다시 나타난 양식이 직전에 연결했던 세계관·검색어로 시작하지 않는다.
  * 내 세계관 목록은 탭을 열 때 공용 `useAsyncData`로 읽고 불러오는 중·실패(다시 불러오기)·고를 세계관 없음을 따로 알린다. 다시 읽기가 실패해도 앞서 읽은 목록은 남기고 실패를 함께 알린다.
  * 자기 세계관이 없는 Fork는 이 카드 위에 `이어받는 원작 세계관` 카드를 따로 둔다(#583, DEC-37): 원작 세계관을 읽기 전용으로 보이고 `내 세계관으로 만들어 수정하기`로 독립한다. 성공하면 새 세계관 관리 화면으로 간다.
- * ponytail: 후보를 모두 라디오로 그리고 CSS 최대 높이로 스크롤한다. 수백 개가 되면 서버 검색이나 가상 스크롤이 필요하다.
+ * ponytail: 후보를 모두 카드로 그리고 올린 표지를 카드마다 한 번씩 읽으며 CSS 최대 높이로 스크롤한다. 수백 개가 되면 서버 검색·쪽 나누기가 필요하다.
  * ponytail: 연결·해제 뒤 목록을 다시 읽지 않는다. 그 사이 다른 곳에서 연결이 바뀌었으면 서버가 409로 거절하고 그 사유가 이 카드 안에 보인다.
  */
 export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, detachError, useCase, worlds = appContainer.resolve('worldStudioUseCase') }: Props) {
@@ -77,32 +80,30 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
           )
           : mine && (options.length
             ? (
-              <form className='ep-edit' onSubmit={(e) => { e.preventDefault(); if (target) void onLink(target) }}>
-                <fieldset disabled={busy}>
-                  <label>
-                    세계관 검색
-                    <input type='search' value={query} onChange={(e) => search(e.target.value)} />
-                  </label>
-                  <fieldset>
-                    <legend className='sr-only'>연결할 세계관</legend>
-                    {shown.length
-                      ? (
-                        <div className='ep-pick'>
-                          {shown.map((w) => (
-                            <label key={w.id} className='ep-check'>
-                              <input type='radio' name={group} checked={target === w.id} onChange={() => setPicked(w.id)} /> {w.name}
-                            </label>
-                          ))}
-                        </div>
-                      )
-                      : <p role='status' className='ep-muted'>검색 결과가 없어요</p>}
+              <>
+                <div className='lq ep-pick-search'>
+                  <span aria-hidden='true'>🔍</span>
+                  <input type='search' value={query} onChange={(e) => search(e.target.value)} placeholder='세계관 이름으로 검색' aria-label='세계관 검색' disabled={busy} />
+                </div>
+                <form className='ep-edit' onSubmit={(e) => { e.preventDefault(); if (target) void onLink(target) }}>
+                  <fieldset disabled={busy}>
+                    <fieldset>
+                      <legend className='sr-only'>연결할 세계관</legend>
+                      {shown.length
+                        ? (
+                          <div className='ep-pick'>
+                            {shown.map((w) => <WorldChoice key={w.id} world={w} group={group} checked={target === w.id} onPick={() => setPicked(w.id)} api={worlds} />)}
+                          </div>
+                        )
+                        : <p role='status' className='ep-muted'>검색 결과가 없어요</p>}
+                    </fieldset>
+                    <div className='ep-card-actions'>
+                      <button className='btn pri sm' disabled={!target} aria-describedby={target ? undefined : hint}>세계관 연결</button>
+                      {!target && <span id={hint} className='small ep-muted'>연결할 세계관을 먼저 골라 주세요.</span>}
+                    </div>
                   </fieldset>
-                  <div className='ep-card-actions'>
-                    <button className='btn pri sm' disabled={!target} aria-describedby={target ? undefined : hint}>세계관 연결</button>
-                    {!target && <span id={hint} className='small ep-muted'>연결할 세계관을 먼저 골라 주세요.</span>}
-                  </div>
-                </fieldset>
-              </form>
+                </form>
+              </>
             )
             : (
               <>
@@ -124,6 +125,30 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
           : isLoading && <p role='status'>내 세계관을 불러오고 있어요…</p>}
       </section>
     </>
+  )
+}
+
+type ChoiceProps = { world: StudioWorld; group: string; checked: boolean; onPick: () => void; api: Pick<WorldStudioUseCase, 'cover' | 'supportsCover'> }
+
+/**
+ * 고를 세계관 한 장: 검색 화면(`/search`)의 세계관 카드와 같은 3:4 표지·이름·`설정 카드 N개`이고, 카드 전체가 라디오 하나다.
+ * 입력만 화면에서 숨겨(`sr-only`) 키보드·스크린리더는 네이티브 라디오 그룹 그대로이고, 이름은 세계관 이름·설명은 카드 수로 읽힌다. 고른 카드는 `선택됨` 알약과 윤곽선으로 보인다.
+ * 올린 표지는 서재 `MyWorlds`처럼 소유자 인증으로 읽고, 없거나 읽지 못하면 기본 표지다. 읽는 동안은 빈 칸이라 기본 표지에서 바뀌며 깜빡이지 않는다.
+ */
+function WorldChoice({ world: w, group, checked, onPick, api }: ChoiceProps) {
+  const id = useId()
+  const reads = !!w.hasCover && api.supportsCover
+  const { url, error } = useWorldCoverImage(api, w.id, reads, 0)
+  return (
+    <label className='bk ep-pick-card'>
+      <input type='radio' className='sr-only' name={group} checked={checked} onChange={onPick} aria-labelledby={`${id}n`} aria-describedby={`${id}m`} />
+      <div className='cov'>
+        {(!reads || url || error) && <img src={coverSrc(url)} alt='' />}
+        {checked && <span className='lk' aria-hidden='true'>선택됨</span>}
+      </div>
+      <span id={`${id}n`} className='hk'>{w.name}</span>
+      <small id={`${id}m`}>설정 카드 {w.cardCount ?? w.settings.length}개</small>
+    </label>
   )
 }
 

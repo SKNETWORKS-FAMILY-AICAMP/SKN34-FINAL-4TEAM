@@ -9,14 +9,19 @@ import type { InheritedWorld, Work } from '../../../../domain/entities/content'
 import type { StudioWorld } from '../../../../domain/entities/studioWorld'
 import { LinkedWorldPanel } from './LinkedWorldPanel'
 
-afterEach(cleanup)
+/** 올린 표지를 소유자 인증으로 읽는 공용 훅의 대역. 기본값은 읽는 중이다(서재 MyWorlds 테스트와 같은 방식). */
+const cover = vi.hoisted(() => vi.fn<(useCase: unknown, worldId: string | undefined, enabled: boolean, revision: number) => { url: string; error: string }>(() => ({ url: '', error: '' })))
+vi.mock('../../../shared/useWorldCoverImage', () => ({ useWorldCoverImage: cover }))
 
-const world = (id: string, name: string, linkedWorkId: string | null = null): StudioWorld => ({ id, name, description: '', version: 1, settings: [], analysis: null, linkedWorkId })
+afterEach(() => { cleanup(); cover.mockReset() })
+
+const world = (id: string, name: string, linkedWorkId: string | null = null, extra: Partial<StudioWorld> = {}): StudioWorld => ({ id, name, description: '', version: 1, settings: [], analysis: null, linkedWorkId, ...extra })
 const MINE = [world('free', '빈 세계'), world('other', '다른 소설의 세계', 'w2'), world('mine', '이 소설의 세계', 'w1')]
+const stubWorlds = (list: () => Promise<StudioWorld[]>, supportsCover = false) => ({ list: vi.fn(list), cover: vi.fn(), supportsCover })
 /** 내 세계관 목록 대역과 연결 요청 기록. 목록은 호출마다 list()가 정한 값을 준다. 목록 조회(useAsyncData)가 store를 읽어 Provider로 감싼다. */
-function show(worldStudioId: string | null | undefined, list: () => Promise<StudioWorld[]> = async () => MINE, busy = false) {
+function show(worldStudioId: string | null | undefined, list: () => Promise<StudioWorld[]> = async () => MINE, busy = false, supportsCover = false) {
   const onLink = vi.fn(async () => true)
-  const worlds = { list: vi.fn(list) }
+  const worlds = stubWorlds(list, supportsCover)
   const store = createAppStore()
   const tree = (id: string | null | undefined) => <Provider store={store}><MemoryRouter><LinkedWorldPanel work={{ id: 'w1', worldStudioId: id, source: null }} busy={busy} onLink={onLink} onDetach={vi.fn(async () => null)} worlds={worlds} /></MemoryRouter></Provider>
   const view = render(tree(worldStudioId))
@@ -24,8 +29,10 @@ function show(worldStudioId: string | null | undefined, list: () => Promise<Stud
   const relink = (id: string | null) => view.rerender(tree(id))
   return { onLink, worlds, view, relink, card: () => within(screen.getByRole('region', { name: '세계관 연결' })) }
 }
-/** 목록에 보이는 세계관 이름(라디오 이름표)을 위에서 아래로 */
-const listed = (card: ReturnType<typeof show>['card']) => card().queryAllByRole('radio').map((radio) => (radio as HTMLInputElement).labels?.[0]?.textContent?.trim())
+/** 목록에 보이는 세계관 이름(카드 라디오의 이름)을 위에서 아래로 */
+const listed = (card: ReturnType<typeof show>['card']) => card().queryAllByRole('radio').map((radio) => document.getElementById(radio.getAttribute('aria-labelledby') ?? '')?.textContent)
+/** 카드 한 장의 표지 이미지 주소. 이미지가 없으면(표지를 읽는 중) undefined */
+const coverOf = (card: ReturnType<typeof show>['card'], name: string) => card().getByRole('radio', { name }).closest('label')?.querySelector('img')?.getAttribute('src')
 
 it('연결된 세계관은 이름을 그 세계관 관리 화면 링크로 보이고 연결 해제를 요청한다', async () => {
   const { card, onLink } = show('mine')
@@ -43,7 +50,7 @@ it('연결된 세계관은 이름을 그 세계관 관리 화면 링크로 보�
 it('미연결이면 검색창 아래 목록에서 고르기 전에는 연결할 수 없고, 고른 세계관으로만 연결을 요청한다', async () => {
   const { card, onLink } = show(null, async () => [...MINE, world('free-2', '둘째 빈 세계')])
   const search = await card().findByRole('searchbox', { name: '세계관 검색' }) as HTMLInputElement
-  // 드롭다운이 아니라 검색창과 라디오 목록이다. 연결 전에는 세계관을 고르는 데 필요한 규칙 설명이 그대로 보인다.
+  // 드롭다운이 아니라 검색창과 표지 카드 목록이다. 연결 전에는 세계관을 고르는 데 필요한 규칙 설명이 그대로 보인다.
   expect(card().queryByRole('combobox')).toBeNull()
   expect(card().getByText(/세계관 하나는 소설 하나에만 연결돼요/)).toBeTruthy()
   // 검색어가 비면 연결할 수 있는 세계관 전체다: 다른 소설에 연결된 세계관은 빠지고, 목록을 읽은 뒤 이 소설에서 연결을 푼 세계관은 다시 고를 수 있다. 처음에는 아무것도 고르지 않았다.
@@ -69,6 +76,48 @@ it('미연결이면 검색창 아래 목록에서 고르기 전에는 연결할 
   fireEvent.click(connect)
   expect(onLink).toHaveBeenLastCalledWith('free-2')
   expect(card().queryByRole('button', { name: '연결 해제' })).toBeNull()
+})
+
+it('세계관은 검색 화면의 카드처럼 표지·이름·설정 카드 수로 보이고, 검색창은 연결 양식 밖에 있어 Enter가 연결을 제출하지 않는다', async () => {
+  const { card } = show(null, async () => [world('free', '빈 세계', null, { cardCount: 12 }), world('free-2', '둘째 빈 세계')])
+  const search = await card().findByRole('searchbox', { name: '세계관 검색' }) as HTMLInputElement
+  // 검색창이 연결 양식 안에 있으면 Enter가 양식을 제출해 고른 세계관을 바로 연결한다.
+  expect(search.form).toBeNull()
+  expect(card().getByRole('button', { name: '세계관 연결' }).closest('form')).toBeTruthy()
+  const description = (name: string) => document.getElementById(card().getByRole('radio', { name }).getAttribute('aria-describedby') ?? '')?.textContent
+  // 서버 요약의 카드 수(cardCount)를 쓰고, 없으면 설정 수다.
+  expect(description('빈 세계')).toBe('설정 카드 12개')
+  expect(description('둘째 빈 세계')).toBe('설정 카드 0개')
+  expect(coverOf(card, '빈 세계')).toBe('/default-work-cover.svg')
+})
+
+it('고른 세계관 카드에만 선택됨이 보이고, 검색으로 빠져 선택이 비워지면 사라진다', async () => {
+  const { card } = show(null)
+  const search = await card().findByRole('searchbox', { name: '세계관 검색' })
+  expect(card().queryByText('선택됨')).toBeNull()
+  fireEvent.click(card().getByRole('radio', { name: '빈 세계' }))
+  expect(card().getAllByText('선택됨')).toHaveLength(1)
+  expect(card().getByText('선택됨').closest('label')).toBe(card().getByRole('radio', { name: '빈 세계' }).closest('label'))
+  fireEvent.change(search, { target: { value: '이 소설' } })
+  expect(card().queryByText('선택됨')).toBeNull()
+})
+
+it('올린 표지가 있는 세계관은 소유자 인증으로 읽은 표지를, 없거나 읽지 못하면 기본 표지를, 읽는 동안은 빈 칸을 보인다', async () => {
+  const read: Record<string, { url: string; error: string }> = { w2: { url: 'blob:world-cover', error: '' }, w3: { url: '', error: '표지를 불러오지 못했어요.' } }
+  cover.mockImplementation((_useCase, id) => read[id ?? ''] ?? { url: '', error: '' })
+  const { card, worlds } = show(null, async () => [world('w1', '세계 1'), world('w2', '세계 2', null, { hasCover: true }), world('w3', '세계 3', null, { hasCover: true }), world('w4', '세계 4', null, { hasCover: true })], false, true)
+  await card().findByRole('searchbox', { name: '세계관 검색' })
+  // 읽는 동안(w4)은 기본 표지가 아니라 빈 칸이라, 올린 표지가 기본 표지에서 바뀌며 깜빡이지 않는다.
+  expect(['세계 1', '세계 2', '세계 3', '세계 4'].map((name) => coverOf(card, name))).toEqual(['/default-work-cover.svg', 'blob:world-cover', '/default-work-cover.svg', undefined])
+  expect(cover).toHaveBeenCalledWith(worlds, 'w1', false, 0) // 올린 표지가 없는 세계관은 읽지 않는다
+  expect(cover).toHaveBeenCalledWith(worlds, 'w2', true, 0)
+})
+
+it('표지 저장소가 없는 데모는 올린 표지가 있다고 해도 읽지 않고 기본 표지를 보인다', async () => {
+  const { card, worlds } = show(null, async () => [world('w1', '세계 1', null, { hasCover: true })])
+  await card().findByRole('searchbox', { name: '세계관 검색' })
+  expect(coverOf(card, '세계 1')).toBe('/default-work-cover.svg')
+  expect(cover).toHaveBeenCalledWith(worlds, 'w1', false, 0)
 })
 
 it('검색어로 이름을 걸러 목록을 좁히고, 비우면 전체로 돌아오며, 결과가 없으면 알린다', async () => {
@@ -162,7 +211,7 @@ const DETACH = '내 세계관으로 만들어 수정하기'
 function showFork({ inherited = async () => INHERITED as InheritedWorld | null, work = FORK as Pick<Work, 'id' | 'worldStudioId' | 'source'>, busy = false, detach = async () => 'new-world' as string | null, detachError = '' } = {}) {
   const onDetach = vi.fn(detach)
   const useCase = { inheritedWorld: vi.fn(inherited) }
-  const worlds = { list: vi.fn(async () => MINE) }
+  const worlds = stubWorlds(async () => MINE)
   const view = render(
     <Provider store={createAppStore()}>
       <MemoryRouter initialEntries={['/content']}>
