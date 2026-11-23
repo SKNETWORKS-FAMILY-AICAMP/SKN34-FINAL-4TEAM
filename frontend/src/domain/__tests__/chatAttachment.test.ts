@@ -38,6 +38,13 @@ describe('checkAttachment', () => {
     expect(checkAttachment(file('큰.txt', 'text/plain', IMAGE_MAX_BYTES + 1), 0)).toBe('큰.txt: 5MB 이하 파일만 첨부할 수 있어요.')
   })
 
+  it('빈 파일(0바이트)은 Content가 422로 거절하므로 고를 때 이름과 이유를 알리며 막는다(#688 정확성 리뷰 P3)', () => {
+    expect(checkAttachment(file('빈.txt', 'text/plain', 0), 0)).toBe('빈.txt: 빈 파일은 첨부할 수 없어요.')
+    expect(checkAttachment(file('빈.png', 'image/png', 0), 0)).toBe('빈.png: 빈 파일은 첨부할 수 없어요.')
+    expect(checkAttachment(file('한 글자.txt', 'text/plain', 1), 0)).toEqual({ name: '한 글자.txt', mediaType: 'text/plain' })
+    expect(checkAttachment(file('빈.gif', 'image/gif', 0), 0)).toContain('지원하지 않는 형식') // 형식 문제를 먼저 알린다
+  })
+
   it('이미 3개를 골랐으면 더 받지 않는다', () => {
     expect(ATTACHMENT_MAX).toBe(3)
     expect(checkAttachment(file('넷째.png', 'image/png'), 3)).toBe('넷째.png: 한 메시지에 3개까지만 첨부할 수 있어요.')
