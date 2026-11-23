@@ -317,7 +317,7 @@ export function LeakSampleRate({ vm, l }: Props) {
               표본 비율(0~1)
               <input className="inp" name="leakSampleRate" type="number" min="0" max="1" step="any" required defaultValue={s.leakSampleRate} key={s.leakSampleRate} aria-describedby="leak-rate-hint" />
             </label>
-            <button type="submit" className="btn pri">{busy ? '저장 중…' : '표본 비율 저장'}</button>
+            <button type="submit" className="btn">{busy ? '저장 중…' : '표본 비율 저장'}</button>
           </fieldset>
           <p id="leak-rate-hint" className="small muted">0.1이면 Fork 작품 요청 10개 중 1개꼴로 검사해요.</p>
           <ActionLines vm={vm} prefix="setting:" />
