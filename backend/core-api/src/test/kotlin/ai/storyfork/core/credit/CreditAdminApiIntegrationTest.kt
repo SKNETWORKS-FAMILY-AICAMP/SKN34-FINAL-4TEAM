@@ -68,6 +68,7 @@ class CreditAdminApiIntegrationTest {
     private val reader = UUID.fromString("12345678-1234-4234-8234-123456789abc")
     private val target = UUID.fromString("0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d")
     private val base = "/internal/v1/credits/members/$target"
+    private val balances = "/internal/v1/credits/balances"
     private val adjust = """{"amount":40,"reason":"이벤트 보상"}"""
     private val balance = CreditBalanceResponse(BigDecimal("40"), listOf(CreditBalanceItem("operator", BigDecimal("40"), Instant.parse("2026-11-30T15:00:00Z"))))
 
@@ -111,6 +112,12 @@ class CreditAdminApiIntegrationTest {
         }
         mvc.perform(delete(base).headers(headers())).andExpect(status().isForbidden())
         mvc.perform(get("$base/grants").headers(headers())).andExpect(status().isForbidden())
+        // 묶음 잔액도 같다: Content 토큰·Bearer 없음·일반 회원은 열리지 않는다.
+        val ids = """{"memberIds":["$target"]}"""
+        mvc.perform(post(balances).headers(headers(token = contentToken, header = "X-Content-Service-Token")).contentType("application/json").content(ids))
+            .andExpect(status().isForbidden())
+        mvc.perform(post(balances).headers(headers(subject = null)).contentType("application/json").content(ids)).andExpect(status().isUnauthorized())
+        mvc.perform(post(balances).headers(headers(subject = reader)).contentType("application/json").content(ids)).andExpect(status().isForbidden())
         verifyNoInteractions(credits)
     }
 
@@ -134,6 +141,21 @@ class CreditAdminApiIntegrationTest {
         mvc.perform(post("$base/revocations").headers(headers()).contentType("application/json").content("""{"amount":15,"reason":"오지급 회수"}"""))
             .andExpect(status().isCreated()).andExpect(jsonPath("$.total").value(40))
         verify(credits).revoke(eq(target), eq(BigDecimal("15")), anyTime())
+    }
+
+    @Test
+    fun `묶음 잔액은 찾은 회원의 합계만 돌려주고 100명을 넘으면 422다`() {
+        val ghost = UUID.randomUUID()
+        `when`(members.findAllById(listOf(target, ghost))).thenReturn(listOf(AuthMember(target, "target@example.test", "hash", "Target")))
+        mvc.perform(post(balances).headers(headers()).contentType("application/json").content("""{"memberIds":["$target","$ghost"]}"""))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].memberId").value(target.toString())).andExpect(jsonPath("$[0].total").value(40))
+
+        val tooMany = List(101) { "\"${UUID.randomUUID()}\"" }.joinToString(",")
+        mvc.perform(post(balances).headers(headers()).contentType("application/json").content("""{"memberIds":[$tooMany]}"""))
+            .andExpect(status().`is`(422)).andExpect(jsonPath("$.code").value("INVALID_CREDIT_REQUEST"))
+        // 잘못된 UUID는 본문을 읽지 못해 규칙 위반(422)이 아니라 400이다.
+        mvc.perform(post(balances).headers(headers()).contentType("application/json").content("""{"memberIds":["abc"]}""")).andExpect(status().isBadRequest())
     }
 
     @Test
