@@ -54,7 +54,6 @@ FAILED = 'main_failed'  # 메인 모델 실패로 끝낸 마지막 메시지 이
 REFRESH = ('이 제안은 실행하지 않았고 저장되지 않았어요. 거절이 아니라 저장된 초안이 바뀌어서, 작가가 같은 수정의 새 제안을 요청했어요. '
            'world_studio_read로 저장본을 다시 읽고, 그 내용과 draftRevision을 기준으로 이 수정만 다시 제안해요. '
            '앞에서 받은 저장하지 않은 편집 내용이 아니라 방금 읽은 저장본이 최신이에요. 이미 실행한 다른 작업은 다시 하지 않아요.')
-REREAD = {REFRESH: 'world_studio_read', mcp_tools.WORK_CHANGED: 'work_read'}  # 실행하지 않은 제안의 ToolMessage → 재제안 전에 읽을 저장본
 MAIN_FAILED_MESSAGE = '답변을 정리하지 못했어요. 완료한 작업의 결과는 아래에 있어요.'
 MAIN_FAILED_NOTHING_MESSAGE = '요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'  # 완료한 단계가 없을 때
 BAD_ARGUMENTS = '작업 지시가 형식에 맞지 않아 실행하지 않았어요.'  # 도구 인자 검증 실패(예: request 2,000자 초과)
@@ -178,15 +177,14 @@ class DynamicToolMiddleware(AgentMiddleware):
 
 
 def _refresh_next(messages: list) -> str | None:
-    """제안 다시 받기(#662)·낡은 작품 정보 수정(#687) 직후 모델이 불러야 할 도구: 저장본 다시 읽기, 읽었으면 같은 수정의 재제안. 읽지 못했으면 강제하지 않는다."""
-    reread = lambda m: REREAD.get(m.content) if isinstance(m.content, str) else None  # noqa: E731
+    """제안 다시 받기(#662) 직후 모델이 불러야 할 도구: 저장본 다시 읽기, 읽었으면 같은 수정의 재제안. 읽지 못했으면 강제하지 않는다."""
     last = messages[-1]
     if not isinstance(last, ToolMessage) or last.status == 'error':
         return None
-    if read := reread(last):
-        return read
+    if last.content == REFRESH:
+        return 'world_studio_read'
     # [실행하지 않은 제안, 읽기 호출, 읽은 저장본]
-    if len(messages) > 2 and (read := reread(messages[-3])) and last.name == read:
+    if last.name == 'world_studio_read' and len(messages) > 2 and messages[-3].content == REFRESH:
         return messages[-3].name
     return None
 

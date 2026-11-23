@@ -13,7 +13,7 @@ import json
 
 from langchain_core.messages import ToolMessage
 from langchain_core.tools import StructuredTool
-from langgraph.types import Command
+from langgraph.types import Command, interrupt
 
 from app import tracing
 from app.content_mcp import service as content_mcp
@@ -37,10 +37,6 @@ NOT_THIS_WORK = '지금 보는 작품이 아닌 작품은 다룰 수 없어요.'
 NOT_THIS_WORLD = '지금 보는 작품에 연결된 세계관이 아닌 세계관은 다룰 수 없어요.'
 WORLD_TOOLS = ('world_studio_read', 'world_studio_edit_draft')
 LIMIT_REACHED = '이번 요청에서 부를 수 있는 Content 도구 횟수를 넘었어요.'
-# 승인한 작품 정보 수정이 revision 충돌(409)일 때의 ToolMessage(#687). 원고(회차 초안) 저장도 작품 revision을 올려 제안이 낡는다.
-# 덮어쓰지 않고 agent._refresh_next가 다시 읽기 → 재제안을 강제해 작가에게 새 승인을 묻는다(#662와 같은 장치).
-WORK_CHANGED = ('이 제안은 실행하지 않았고 저장되지 않았어요. 거절이 아니라 제안한 뒤 원고 저장 등으로 작품 revision이 바뀌었어요. '
-                'work_read로 작품을 다시 읽고, 그 revision을 기준으로 이 수정만 다시 제안해요. 이미 실행한 다른 작업은 다시 하지 않아요.')
 
 
 # 도구 목록을 못 읽은 턴의 답 끝에 붙이는 안내(#639, 2026-11-23 사용자 결정: 진행하되 작가가 알아듣는 말로 알린다).
@@ -65,6 +61,12 @@ def tools(found: list[dict]) -> list[StructuredTool]:
 def _result(step: dict | None, call: dict, content: str, failed: bool = False, **update) -> Command:
     message = ToolMessage(content=content, tool_call_id=call['id'], name=call['name'], status='error' if failed else 'success')
     return Command(update={'mcpCalls': 1, 'messages': [message], **({'steps': [step]} if step else {}), **update})
+
+
+def _failed(call: dict, label: str, error: ContentMcpFailure) -> Command:
+    """쓰기 실패: 단계 failed로 남겨 남은 호출을 막는다(다시 시도하거나 덮어쓰지 않는다)."""
+    step = {'feature': CONTENT_ACTION, 'when': 'always', 'status': 'failed', 'error': str(error)}
+    return _result(step, call, f'[실패] {label}: {error}', failed=True)
 
 
 def mismatch(call: dict, turn: dict) -> str | None:
@@ -109,10 +111,21 @@ async def execute(request) -> Command:
     except ContentMcpFailure as error:
         if not write:  # 읽기 실패(예: 잘못된 인자 422)는 단계로 남기지 않고 모델이 사유를 보고 다시 부르게 한다(횟수는 MCP 한도가 막는다)
             return _result(None, call, f'[실패] {label}: {error}', failed=True)
-        if name == 'work_update' and error.status == 409:  # work_update의 409는 revision 충돌뿐이다(WorkService.update)
-            return _result(None, call, WORK_CHANGED)
-        step = {'feature': CONTENT_ACTION, 'when': 'always', 'status': 'failed', 'error': str(error)}
-        return _result(step, call, f'[실패] {label}: {error}', failed=True)
+        if not (name == 'work_update' and error.status == 409):  # work_update의 409는 revision 충돌뿐이다(WorkService.update)
+            return _failed(call, label, error)
+        # 원고(회차 초안) 저장도 작품 revision을 올려 제안이 낡는다(#687). revision만 새로 읽어 같은 수정을 다시 승인받는다.
+        # 모델에 다시 제안시키면 '같은 턴에 같은 도구를 다시 부르지 않는다'(지시 규칙 5)와 부딪쳐 실모델이 포기한다(E2E 확인).
+        try:
+            fresh = await asyncio.to_thread(content_mcp.call, 'work_read', {'id': args['id']})
+            args = {**args, 'data': {**args['data'], 'revision': fresh.get('revision')}}
+            # 이어 갈 때 이 함수가 처음부터 다시 돌아 낡은 호출이 한 번 더 409로 끝나고(쓰지 않음), 여기서 작가의 답을 받는다
+            decision = interrupt({'action_requests': [{'name': name, 'args': args, 'description': label}], 'steps': request.state.get('steps', [])})['decisions'][0]
+            if decision['type'] != 'approve':
+                return _result(None, call, decision.get('message', ''), failed=True)
+            with tracing.observe(f'mcp.{name}', as_type='tool'):
+                done = await asyncio.to_thread(_run, name, args, turn)
+        except ContentMcpFailure as again:
+            return _failed(call, label, again)
     if not write:
         text = json.dumps(done, ensure_ascii=False, separators=(',', ':'))
         return _result(None, call, text if len(text) <= READ_LIMIT else f'{text[:READ_LIMIT]}…(길어서 여기까지만 읽었어요)')

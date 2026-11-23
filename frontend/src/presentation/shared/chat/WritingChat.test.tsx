@@ -758,6 +758,7 @@ it('작품 정보 수정 승인은 원고 저장으로 작품이 바뀌면 실�
     pendingAction: { tool: 'work_update', label: '작품 정보 수정', args: { id: 'w', data: { title: '제목', summary: '소개', revision: 12 } } } } }])
   render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   expect(await screen.findByText(WORK_CHANGED_NOTE)).toBeTruthy()
+  expect(screen.getByText(/이 내용이 작품 정보에 반영돼요/)).toBeTruthy()
   expect((screen.getByRole('button', { name: '실행' }) as HTMLButtonElement).disabled).toBe(false)
 })
 
