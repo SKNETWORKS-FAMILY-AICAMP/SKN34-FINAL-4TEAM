@@ -106,6 +106,10 @@ it('opens the work management page and the writing studio from separate links on
   expect(screen.getByRole('link', { name: '원작 관리하기' }).getAttribute('href')).toBe('/content?work=original')
   expect(screen.getByRole('link', { name: '원작 관리하기' }).className).toBe('btn sm') // 세계관 카드의 관리하기와 같은 보조 버튼
   expect(screen.getByRole('link', { name: '원작 회차 작성하기' }).getAttribute('href')).toBe('/studio/original')
+  // 제목도 같은 작품 관리 링크이고 ::after가 카드 전체를 덮는다(storyfork.css)
+  expect(screen.getByRole('link', { name: '원작' }).getAttribute('href')).toBe('/content?work=original')
+  expect(screen.getByRole('link', { name: '내 포크' }).getAttribute('href')).toBe('/content?work=fork')
+  expect(screen.getByRole('link', { name: '원작' }).closest('article')?.className).toBe('li rowlink')
 })
 
 it('shows the stored cover when there is one and the default cover otherwise, with a one-line status', async () => {

@@ -127,6 +127,12 @@ describe('로그인 실패와 요청 중 (L01)', () => {
     renderApp('/login', createAppStore({ loginMsg: '내 서재는 로그인 후 볼 수 있어요.' }))
     expect(screen.getByText('내 서재는 로그인 후 볼 수 있어요.').getAttribute('role')).toBe('status')
   })
+
+  it('로그인 화면에 개발용 서비스 안내가 없다', () => {
+    vi.stubGlobal('fetch', respond(401))
+    renderApp('/login')
+    expect(screen.queryByText('개발용 서비스 안내')).toBeNull()
+  })
 })
 
 describe('복구·재발송 요청 중', () => {

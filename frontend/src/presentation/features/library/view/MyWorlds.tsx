@@ -23,9 +23,9 @@ export function MyWorlds() {
         : vm.loading ? <p role="status">세계관을 불러오고 있어요…</p>
         : !vm.worlds.length ? <p className="note2">아직 만든 세계관이 없어요.</p>
         : <>
-          <div className="list">{view.items.map(world => <article className="li" key={world.id}>
+          <div className="list">{view.items.map(world => <article className="li rowlink" key={world.id}>
             <Cover id={world.id} hasCover={!!world.hasCover} />
-            <div className="server-writing-content"><h3>{world.name}</h3>
+            <div className="server-writing-content"><h3><Go to={`/worldstudio/${world.id}`} className="li-link">{world.name}</Go></h3>
               <div className="m">설정 {world.cardCount ?? world.settings.length}개 · 버전 {world.version}</div>
             </div>
             <div className="acts">

@@ -68,11 +68,24 @@ it('프로필 바로 아래에 보유 크레딧 줄을 두고, 읽히면 합계�
   const { items, onClose } = open('user', creditsOf(async () => balanceOf(1234)))
   expect(items[0].className).toBe('who')
   expect(items[1].textContent).toBe('보유 크레딧 …')
-  const row = await screen.findByRole('menuitem', { name: '보유 크레딧 1,234' })
+  const row = await screen.findByRole('menuitem', { name: '보유 크레딧 1,234.0' })
   expect(row).toBe(items[1])
   fireEvent.click(row)
   expect(onClose).toHaveBeenCalledOnce()
   expect(screen.getByTestId('where').textContent).toBe('/me/pay')
+})
+
+it.each([
+  [99921.009, '보유 크레딧 99,921.0'],
+  [5.96, '보유 크레딧 5.9'],
+])('보유 크레딧은 소수 첫째 자리까지 버림으로 보인다: %s', async (total, name) => {
+  open('user', creditsOf(async () => balanceOf(total)))
+  expect((await screen.findByRole('menuitem', { name })).textContent).toBe(name)
+})
+
+it('계정 메뉴에는 내 서재 안에도 있는 관심 소설 항목을 두지 않는다', () => {
+  open('user')
+  expect(screen.queryByRole('menuitem', { name: '관심 소설' })).toBeNull()
 })
 
 it('로그인한 회원 메뉴에는 작품이 없는 독자도 닿는 내 댓글·제보 항목이 있고 작품 관리의 내 제보 화면으로 간다', () => {
@@ -113,7 +126,7 @@ it('잔액이 늦게 도착해도 메뉴 항목을 다시 만들지 않아 열�
   const { items } = open('user', creditsOf(() => pending))
   items[3].focus()
   await act(async () => { finish(balanceOf(7)) })
-  expect(screen.getByRole('menuitem', { name: '보유 크레딧 7' })).toBe(items[1])
+  expect(screen.getByRole('menuitem', { name: '보유 크레딧 7.0' })).toBe(items[1])
   screen.getAllByRole('menuitem').forEach((item, index) => expect(item).toBe(items[index]))
   expect(document.activeElement).toBe(items[3])
 })

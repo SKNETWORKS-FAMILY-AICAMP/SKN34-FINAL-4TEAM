@@ -82,6 +82,10 @@ describe('storyfork.css 계정 메뉴 계약', () => {
     expect(value('.pop.acctm', 'width')).toBe('240px')
   })
 
+  it('계정 메뉴는 sticky 상단바 위에 떠 가려지지 않는다', () => {
+    expect(Number(value('.pop.acctm', 'z-index'))).toBeGreaterThan(Number(value('.gnb', 'z-index')))
+  })
+
   it('보유 크레딧 줄(.acct-credit)은 상단 크레딧 칩과 같은 색 계열·고정폭 숫자이고 일반 항목 규칙에 덮이지 않는다', () => {
     const row = '.pop.acctm .acct-credit'
     expect([value(row, 'display'), value(row, 'justify-content')]).toEqual(['flex', 'space-between'])
@@ -94,6 +98,13 @@ describe('storyfork.css 계정 메뉴 계약', () => {
     // 색은 토큰만(라이트·다크 자동), 한쪽 테두리 장식은 쓰지 않는다.
     const creditCss = sheet.filter((r) => r.selectors.some((s) => s.startsWith(row))).map((r) => r.body).join(';')
     expect(creditCss).not.toMatch(/#[0-9a-fA-F]{3,8}\b|border-(?:left|right)/)
+  })
+})
+
+describe('storyfork.css 서재 목록 카드 계약', () => {
+  it('제목 링크의 ::after가 카드 전체를 덮고, 버튼 줄(.acts)은 그 위에 놓여 버튼은 자기 동작만 한다', () => {
+    expect([value('.li.rowlink', 'position'), value('.li-link::after', 'position'), value('.li-link::after', 'inset')]).toEqual(['relative', 'absolute', '0'])
+    expect([value('.li.rowlink>.acts', 'position'), value('.li.rowlink>.acts', 'z-index')]).toEqual(['relative', '1'])
   })
 })
 

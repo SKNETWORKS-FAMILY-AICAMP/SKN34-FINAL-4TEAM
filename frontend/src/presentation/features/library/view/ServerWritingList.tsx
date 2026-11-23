@@ -46,9 +46,9 @@ export function ServerWritingList() {
           <button key={key} type="button" role="tab" id={`server-writing-tab-${key}`} className={kind === key ? 'on' : ''} aria-selected={kind === key} aria-controls="server-writing-panel" tabIndex={kind === key ? 0 : -1} onClick={() => pick(key)}>{label} {vm.works.filter(KEEP[key]).length}</button>)}
         </div>
         <div role="tabpanel" id="server-writing-panel" aria-labelledby={`server-writing-tab-${kind}`}>
-          {view.items.length ? <div className="list">{view.items.map(work => <article className="li" key={work.id}>
+          {view.items.length ? <div className="list">{view.items.map(work => <article className="li rowlink" key={work.id}>
             <Cover id={work.id} />
-            <div className="server-writing-content"><h3>{work.title}</h3>
+            <div className="server-writing-content"><h3><Go to={`/content?work=${work.id}`} className="li-link">{work.title}</Go></h3>
               <div className="m">{work.visibility === 'public' ? '공개 중' : '비공개'}{work.source && ` · Fork · 「${work.source.title}」 ${work.source.episode}화에서`}</div>
               {work.summary && <p className="m server-summary">{work.summary}</p>}
             </div>

@@ -17,7 +17,7 @@ function CreditRow({ creditLedger, onSelect }: { creditLedger?: Pick<CreditLedge
     <button type="button" role="menuitem" className="acct-credit" onClick={onSelect}>
       {credit.status === 'failed'
         ? <span>크레딧을 불러오지 못했어요</span>
-        : <><span>보유 크레딧</span>{' '}<b>{credit.status === 'ready' ? credit.total.toLocaleString('ko-KR') : '…'}</b></>}
+        : <><span>보유 크레딧</span>{' '}<b>{credit.status === 'ready' ? credit.total.toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1, roundingMode: 'trunc' }) : '…'}</b></>}
     </button>
   )
 }
@@ -88,7 +88,7 @@ export function AccountMenu({ anchor, onClose, creditLedger }: { anchor: HTMLEle
           </Item>
           <CreditRow creditLedger={creditLedger} onSelect={go('/me/pay')} /><hr />
           {role === 'admin' && <Item onSelect={go('/admin')}>운영자 대시보드</Item>}
-          <Item onSelect={go('/lib')}>내 서재</Item><Item onSelect={go('/me/liked')}>관심 소설</Item><Item onSelect={go('/content?view=reports')}>내 댓글·제보</Item><Item onSelect={go('/me/pay')}>결제 내역</Item><hr />
+          <Item onSelect={go('/lib')}>내 서재</Item><Item onSelect={go('/content?view=reports')}>내 댓글·제보</Item><Item onSelect={go('/me/pay')}>결제 내역</Item><hr />
           <Item onSelect={go('/me/inquiry')}>문의하기</Item><Item onSelect={go('/reports')}>내 신고</Item><Item onSelect={go('/me/notice')}>공지사항</Item><Item onSelect={go('/me/event')}>이벤트</Item><hr />
           <button type="button" role="menuitem" onClick={() => { void logout().then((ok) => { if (ok) onClose() }) }}>로그아웃</button>
         </>

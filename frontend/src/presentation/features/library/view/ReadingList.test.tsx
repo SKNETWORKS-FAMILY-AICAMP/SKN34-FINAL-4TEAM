@@ -23,6 +23,27 @@ it('shows ten reading records per page and moves with the page buttons', () => {
   expect(titles()).toHaveLength(10)
 })
 
+it('links the title to the work page, keeps the continue link and the delete button as separate controls, and the delete button only removes the record', () => {
+  const onRemove = vi.fn()
+  render(<MemoryRouter><ReadingList recent={recent(1)} removing={null} onRemove={onRemove} /></MemoryRouter>)
+  const title = screen.getByRole('link', { name: '작품 1' })
+  expect(title.getAttribute('href')).toBe('/work/w1')
+  expect(title.closest('.li')?.className).toBe('li rowlink') // 제목 링크의 ::after가 행 전체를 덮는다(storyfork.css)
+  expect(screen.getByRole('link', { name: '▶ 1화 이어 읽기' }).getAttribute('href')).toBe('/read/w1/1')
+  const remove = screen.getByRole('button', { name: '작품 1 이어 읽기 기록 삭제' })
+  expect(title.contains(remove)).toBe(false) // 링크 안에 버튼을 넣지 않는다
+  fireEvent.click(remove)
+  expect(onRemove).toHaveBeenCalledWith('w1')
+  expect(screen.getByText('1화까지 읽음 · 판타지')).toBeTruthy()
+})
+
+it('leaves out the separator when the work has no genre', () => {
+  const noGenre = [{ work: { id: 'w1', title: '작품 1', genre: '' }, n: 1, tot: 3 }] as unknown as Recent
+  render(<MemoryRouter><ReadingList recent={noGenre} removing={null} onRemove={vi.fn()} /></MemoryRouter>)
+  expect(screen.getByText('1화까지 읽음')).toBeTruthy()
+  expect(screen.queryByText(/·/)).toBeNull()
+})
+
 it('hides the page controls for ten or fewer reading records', () => {
   show(10)
   expect(titles()).toHaveLength(10)

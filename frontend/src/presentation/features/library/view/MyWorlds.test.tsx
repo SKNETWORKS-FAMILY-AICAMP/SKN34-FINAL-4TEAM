@@ -34,6 +34,9 @@ it('lists my worlds as cards that open the world studio, with a new-world link o
   expect(screen.getByRole('link', { name: '세계 1 관리하기' }).getAttribute('href')).toBe('/worldstudio/w1')
   expect(screen.getByRole('link', { name: '세계 2 관리하기' }).getAttribute('href')).toBe('/worldstudio/w2')
   expect(screen.getByRole('link', { name: '세계 1 관리하기' }).className).toBe('btn sm') // 작품 카드의 관리하기와 같은 보조 버튼
+  // 이름도 같은 작업실 링크이고 ::after가 카드 전체를 덮는다(storyfork.css)
+  expect(screen.getByRole('link', { name: '세계 1' }).getAttribute('href')).toBe('/worldstudio/w1')
+  expect(screen.getByRole('link', { name: '세계 1' }).closest('article')?.className).toBe('li rowlink')
   expect(screen.getByText('설정 5개 · 버전 3')).toBeTruthy()
   expect(Array.from(container.querySelectorAll('img.cimg'), image => image.getAttribute('src'))).toEqual(['/default-work-cover.svg', '/default-work-cover.svg'])
   expect(screen.queryByRole('navigation', { name: '페이지' })).toBeNull()
