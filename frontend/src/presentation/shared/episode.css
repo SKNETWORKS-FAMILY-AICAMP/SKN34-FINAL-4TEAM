@@ -133,6 +133,9 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-notes p{margin:0;max-width:62ch;color:var(--sub);font-size:14px;line-height:1.8}
 .ep-card-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px}
 .ep-card-actions p{margin:0}
+/* 세계관 연결의 검색 결과(.ep-pick): 세계관이 많으면 다섯 줄 높이에서 스크롤한다. 한 줄 높이는 터치 최소 44px(.ep-check)라 줄 사이 여백은 뺀다. */
+.episode-app .ep-pick{max-height:220px;overflow-y:auto;border:1px solid var(--line3);border-radius:9px;padding:0 16px}
+.episode-app .ep-pick .ep-check{margin:0;font-size:14px}
 /* 삭제 버튼(.ep-danger): 위험 신호는 빨간 글자와 hover의 옅은 빨간 면이 맡고, 테두리는 다른 외곽선 버튼과 같은 회색이다(모든 탭에 늘 보이는 빨간 외곽선이 시선을 끌었다). */
 .episode-app .ep-danger{margin-left:auto;background:transparent;border-color:var(--line2);color:var(--danger)}
 .episode-app .ep-danger:hover{background:color-mix(in srgb,var(--danger) 10%,transparent)}

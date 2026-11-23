@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
 import { inheritedCardGroups, type Work } from '../../../../domain/entities/content'
+import { filterByName } from '../../../../domain/entities/nameSearch'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
 import { Go } from '../../../shared/Go'
@@ -31,20 +32,30 @@ type Props = {
 /**
  * 세계관·설정집 탭의 세계관 연결(DEC-46): 소설과 내 세계관(WorldStudio)은 1:1로 연결한다.
  * 연결돼 있으면 그 세계관 관리 화면으로 가는 이름과 `연결 해제`를, 아니면 다른 소설에 연결되지 않은 내 세계관을 골라 `세계관 연결`을 보인다. 1:1·독자 위키 공개 범위 설명은 고를 때 필요한 정보라 연결 전에만 보인다.
- * 드롭다운 기본값은 `선택 안 함`이라 고르기 전에는 버튼이 잠기고 이유를 알린다(UC-24 E1: 세계관을 고르지 않으면 연결하지 않는다). 해제하면 고른 값도 비워, 다시 나타난 양식이 직전에 연결했던 세계관을 고른 채 시작하지 않는다.
+ * 세계관은 `세계관 검색` 입력이 이름(대소문자·앞뒤 공백 무시, 비면 전체)으로 거른 라디오 목록에서 고르고, 결과가 없으면 `검색 결과가 없어요`를 알린다. 아무것도 고르지 않은 채 시작해 고르기 전에는 버튼이 잠기고 이유를 알린다(UC-24 E1: 세계관을 고르지 않으면 연결하지 않는다).
+ * 고른 세계관이 검색으로 목록에서 빠지면 선택을 비운다(보이지 않는 세계관으로 연결하지 않는다). 해제하면 고른 값과 검색어도 비워, 다시 나타난 양식이 직전에 연결했던 세계관·검색어로 시작하지 않는다.
  * 내 세계관 목록은 탭을 열 때 공용 `useAsyncData`로 읽고 불러오는 중·실패(다시 불러오기)·고를 세계관 없음을 따로 알린다. 다시 읽기가 실패해도 앞서 읽은 목록은 남기고 실패를 함께 알린다.
  * 자기 세계관이 없는 Fork는 이 카드 위에 `이어받는 원작 세계관` 카드를 따로 둔다(#583, DEC-37): 원작 세계관을 읽기 전용으로 보이고 `내 세계관으로 만들어 수정하기`로 독립한다. 성공하면 새 세계관 관리 화면으로 간다.
+ * ponytail: 후보를 모두 라디오로 그리고 CSS 최대 높이로 스크롤한다. 수백 개가 되면 서버 검색이나 가상 스크롤이 필요하다.
  * ponytail: 연결·해제 뒤 목록을 다시 읽지 않는다. 그 사이 다른 곳에서 연결이 바뀌었으면 서버가 409로 거절하고 그 사유가 이 카드 안에 보인다.
  */
 export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, detachError, useCase, worlds = appContainer.resolve('worldStudioUseCase') }: Props) {
   const navigate = useNavigate()
   const { data: mine, isLoading, isError, retry } = useAsyncData((signal) => worlds.list(signal), [worlds])
   const [picked, setPicked] = useState('')
+  const [query, setQuery] = useState('')
   const hint = useId()
+  const group = useId()
   const linked = work.worldStudioId
   // 목록을 읽은 뒤 이 소설에서 연결을 푼 세계관은 목록에 아직 이 소설로 적혀 있으므로 함께 고를 수 있게 둔다.
   const options = mine?.filter((w) => !w.linkedWorkId || w.linkedWorkId === work.id) ?? []
   const target = options.some((w) => w.id === picked) ? picked : ''
+  const shown = filterByName(options, query)
+  // 고른 세계관이 검색으로 목록에서 빠지면 선택을 비운다(보이지 않는 세계관으로 연결하지 않고, 검색어를 지워도 되살아나지 않는다).
+  const search = (value: string) => {
+    setQuery(value)
+    if (!filterByName(options, value).some((w) => w.id === picked)) setPicked('')
+  }
   const detach = async () => {
     const id = await onDetach()
     if (id) navigate('/worldstudio/' + id)
@@ -60,7 +71,7 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
             <>
               <p>연결된 세계관: <Go to={`/worldstudio/${linked}`}>{mine?.find((w) => w.id === linked)?.name ?? '세계관 열기'}</Go></p>
               <div className='ep-card-actions'>
-                <button type='button' className='btn sm' disabled={busy} onClick={() => { setPicked(''); void onLink(null) }}>연결 해제</button>
+                <button type='button' className='btn sm' disabled={busy} onClick={() => { setPicked(''); setQuery(''); void onLink(null) }}>연결 해제</button>
               </div>
             </>
           )
@@ -69,12 +80,23 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
               <form className='ep-edit' onSubmit={(e) => { e.preventDefault(); if (target) void onLink(target) }}>
                 <fieldset disabled={busy}>
                   <label>
-                    연결할 세계관
-                    <select value={target} onChange={(e) => setPicked(e.target.value)}>
-                      <option value=''>선택 안 함</option>
-                      {options.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
-                    </select>
+                    세계관 검색
+                    <input type='search' value={query} onChange={(e) => search(e.target.value)} />
                   </label>
+                  <fieldset>
+                    <legend className='sr-only'>연결할 세계관</legend>
+                    {shown.length
+                      ? (
+                        <div className='ep-pick'>
+                          {shown.map((w) => (
+                            <label key={w.id} className='ep-check'>
+                              <input type='radio' name={group} checked={target === w.id} onChange={() => setPicked(w.id)} /> {w.name}
+                            </label>
+                          ))}
+                        </div>
+                      )
+                      : <p role='status' className='ep-muted'>검색 결과가 없어요</p>}
+                  </fieldset>
                   <div className='ep-card-actions'>
                     <button className='btn pri sm' disabled={!target} aria-describedby={target ? undefined : hint}>세계관 연결</button>
                     {!target && <span id={hint} className='small ep-muted'>연결할 세계관을 먼저 골라 주세요.</span>}

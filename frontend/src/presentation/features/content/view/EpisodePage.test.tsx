@@ -1044,10 +1044,11 @@ it('links and unlinks my world from the world tab and shows the server reason wh
   await openWork(fetcher)
   fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
   const panel = () => within(screen.getByRole('region', { name: '세계관 연결' }))
-  const select = async () => await panel().findByRole('combobox', { name: '연결할 세계관' }) as HTMLSelectElement
+  const world = async () => await panel().findByRole('radio', { name: '별빛 세계' }) as HTMLInputElement
   const connect = () => panel().getByRole('button', { name: '세계관 연결' })
-  // 세계관을 먼저 골라야 연결할 수 있다(기본값 '선택 안 함'과 잠긴 버튼은 LinkedWorldPanel.test가 맡는다).
-  fireEvent.change(await select(), { target: { value: WORLD_ID } })
+  // 세계관을 검색해 목록에서 먼저 골라야 연결할 수 있다(아무것도 고르지 않은 시작과 잠긴 버튼은 LinkedWorldPanel.test가 맡는다).
+  fireEvent.change(await panel().findByRole('searchbox', { name: '세계관 검색' }), { target: { value: '별빛' } })
+  fireEvent.click(await world())
   fireEvent.click(connect())
   await panel().findByRole('link', { name: '별빛 세계' })
   // 결과는 연결한 카드 안에서 알린다(화면 맨 위 알림 줄은 스크롤해 내려온 이 자리에서 보이지 않는다).
@@ -1059,10 +1060,10 @@ it('links and unlinks my world from the world tab and shows the server reason wh
   await panel().findByRole('button', { name: '세계관 연결' })
   expect(confirm).toHaveBeenCalledTimes(1)
   expect(panel().getByRole('status').textContent).toBe('세계관 연결을 해제했어요.')
-  // 해제한 뒤 다시 나타난 양식은 직전에 연결했던 세계관을 고른 채가 아니라 선택 안 함으로 시작한다.
-  expect((await select()).value).toBe('')
+  // 해제한 뒤 다시 나타난 양식은 직전에 연결했던 세계관을 고른 채가 아니라 아무것도 고르지 않고 시작한다.
+  expect((await world()).checked).toBe(false)
   // 그 사이 다른 소설에 연결된 세계관이면 서버 사유를 그대로 알리고 연결하지 않는다.
-  fireEvent.change(await select(), { target: { value: WORLD_ID } })
+  fireEvent.click(await world())
   fireEvent.click(connect())
   expect((await screen.findByText(/이미 다른 소설에 연결된 세계관이에요\./)).closest('[role=alert]')).not.toBeNull()
   expect(panel().getByRole('alert').textContent).toContain('이미 다른 소설에 연결된 세계관이에요.')
