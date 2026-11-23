@@ -1,5 +1,8 @@
 package ai.storyfork.content.world.controller
 
+import ai.storyfork.content.imagegeneration.controller.CoverReferenceController
+import ai.storyfork.content.imagegeneration.controller.ImageJobController
+import ai.storyfork.content.imagegeneration.controller.ImageJobInternalController
 import ai.storyfork.content.preprocessing.controller.PreprocessingController
 import ai.storyfork.content.world.domain.*
 import ai.storyfork.content.world.domain.WorldStudioFailure.Reason
@@ -15,7 +18,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 /** 비공개 입력·SQL·Cypher·드라이버 오류를 응답이나 로그에 노출하지 않는다. */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice(basePackages=["ai.storyfork.content.imagegeneration.controller"],assignableTypes=[WorldStudioController::class,InitialWorldAnalysisController::class,InitialWorldApplicationController::class,WorldReviewController::class,ManuscriptBuildController::class,PreprocessingController::class])
+@RestControllerAdvice(assignableTypes = [
+    WorldStudioController::class, InitialWorldAnalysisController::class, InitialWorldApplicationController::class,
+    WorldReviewController::class, ManuscriptBuildController::class, PreprocessingController::class,
+    CoverReferenceController::class, ImageJobController::class, ImageJobInternalController::class,
+])
 class WorldStudioExceptionHandler {
     @ExceptionHandler(ai.storyfork.content.world.service.InitialWorldReviewConflict::class)
     fun reviewConflict(error:ai.storyfork.content.world.service.InitialWorldReviewConflict)=ResponseEntity.status(409).body(WorldStudioErrorResponse(error.code,
