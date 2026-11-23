@@ -166,7 +166,11 @@ class DynamicToolMiddleware(AgentMiddleware):
         if request.tool_call['name'] not in _allowed(request.state):
             return _blocked(call)
         if call['name'] in mcp_tools.NAMES:  # 쓰기는 HumanInTheLoopMiddleware가 승인을 받은 뒤 여기까지 온다
-            return await mcp_tools.execute(request)
+            result = await mcp_tools.execute(request)
+            # 다시 묻는 승인(work_update 409, #687)은 WriteApproval을 지나지 않으므로 이어 가는 요청의 새 조회 토큰(#678)을 여기서 저장한다
+            if scope := get_config()['configurable'].get(RESUME_SCOPE):
+                result.update['retrievalScope'] = scope
+            return result
         result = await handler(request)
         # 도구는 항상 Command로 답한다. 오류 ToolMessage만 왔다면 ToolNode가 인자 검증 실패를 돌려준 것이라 그 기능 단계를 실패로 남긴다.
         if isinstance(result, ToolMessage) and result.status == 'error':

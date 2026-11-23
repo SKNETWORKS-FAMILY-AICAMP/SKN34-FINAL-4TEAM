@@ -504,6 +504,17 @@ def test_a_content_action_answer_without_a_token_keeps_the_one_the_last_answer_s
     assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['input.token']
 
 
+def test_a_work_update_asked_again_hands_the_token_of_its_own_answer_to_the_following_question(monkeypatch):
+    # 다시 묻는 카드의 승인은 WriteApproval(첫 승인)을 지나지 않아도 그 답과 온 새 토큰을 저장한다(#678): 카드를 기다리는 사이 첫 토큰이 만료될 수 있다
+    calls = fake_agents(monkeypatch, only_content(STALE, ('ask_story_qa', {}), capabilities=['story_context']))
+    stale_work(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, request='작품 소개를 바꿔 줘', scope={'scopeToken': 'old.token'})
+    stream(thread, resume={'approved': True, 'scope': {'scopeToken': 'first.token'}})
+    stream(thread, resume={'approved': True, 'scope': {'scopeToken': 'second.token'}})
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['second.token']
+
+
 def refresh(thread):
     data = OrchestrationRequest(conversation={'threadId': thread, 'scope': SCOPE}, resume={'approved': False, 'refresh': True})
     return asyncio.run(service.run(data, 'Bearer user'))
