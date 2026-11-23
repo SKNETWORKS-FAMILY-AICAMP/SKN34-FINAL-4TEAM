@@ -12,7 +12,7 @@ from app.orchestration import agent, mcp_tools, service, tools
 from app.orchestration.models import OrchestrationRequest
 from app.orchestration.prompt import UNSUPPORTED_MESSAGE
 
-from .stubs import QA, Planned, Step, fake_agents, fake_main, plan
+from .stubs import QA, Planned, Step, fake_agents, fake_main, fake_scene, plan
 
 TARGET = {'workId': 'work', 'episode': 3}
 PAGE = {'path': '/worldstudio/w1?card=k', 'kind': 'world', 'worldId': 'w1', 'cardId': 'k', 'view': 'cards',
@@ -330,6 +330,18 @@ def test_an_approval_saved_before_steps_were_in_the_payload_is_still_read_and_re
     assert (old.awaitingApproval, old.steps) == ('content_action', [])
     # 미들웨어의 노드 이름이 바뀌면 멈춘 자리를 찾지 못한다
     assert [s.feature for s in resume(thread, True).steps] == ['story_context', 'content_action'] and len(writes(log)) == 1
+
+
+def test_declining_a_scene_after_an_applied_write_does_not_claim_nothing_ran(monkeypatch):
+    create = ('story_plan_create', {'workId': 'work', 'data': {'title': '재회'}})
+    fake_agents(monkeypatch, only_content(create, ('ask_character_simulation', {}), capabilities=['character_simulation']))
+    fake_scene(monkeypatch)
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, page=PAGE)
+    assert resume(thread, True).awaitingScene == 'character_simulation' and len(writes(log)) == 1
+    done = resume(thread, False)
+    assert (done.status, done.message) == ('cancelled', '장면은 반영하지 않았어요. 앞서 끝난 작업은 그대로예요.')  # 저장은 이미 됐다(#661)
 
 
 # 선택한 글

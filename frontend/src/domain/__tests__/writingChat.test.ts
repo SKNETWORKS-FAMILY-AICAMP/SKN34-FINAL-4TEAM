@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
+import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -538,5 +538,19 @@ describe('흐르는 답변 본문(#618)', () => {
   })
   it('정상 종료는 저장된 답으로 바뀔 때까지 글을 남긴다', () => {
     expect(after(delta('닫아요.'), done('completed'))).toBe('닫아요.')
+  })
+})
+
+// 입력 대기의 취소 안내(#661): 이미 끝난 작업까지 없던 일이 되는 것처럼 말하지 않는다.
+describe('cancelNotice', () => {
+  const waiting = (...steps: ChatStep[]): ChatReply => ({ status: 'waiting', steps, missingInputs: ['research'] })
+  it('끝난 작업이 없으면(대기·실패·건너뜀뿐이면) 아무 작업도 실행하지 않는다고 알린다', () => {
+    const none = '취소하면 아무 작업도 실행하지 않아요.'
+    expect(cancelNotice(waiting())).toBe(none)
+    expect(cancelNotice(waiting({ feature: 'research', status: 'not_started' }, { feature: 'rating', status: 'failed' }, { feature: 'writing_editing', status: 'skipped' }))).toBe(none)
+  })
+  it('끝난 작업이 있으면 남은 작업만 멈추고 끝난 작업은 그대로라고 알린다', () => {
+    expect(cancelNotice(waiting({ feature: 'content_action', status: 'completed' }, { feature: 'research', status: 'not_started' })))
+      .toBe('취소하면 남은 작업은 실행하지 않아요. 이미 끝난 작업은 그대로예요.')
   })
 })

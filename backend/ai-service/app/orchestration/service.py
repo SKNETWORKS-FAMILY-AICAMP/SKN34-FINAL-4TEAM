@@ -77,6 +77,7 @@ CONTENT_ACTION_REJECTED = '작가가 거절해 실행하지 않았어요. 같은
 # 같은 기능(writing_editing) 안에서 작업(task)이 승인 문구를 가르는 경우. 계획 수정은 원고 초안이 아니라 저장된 계획을 고친다.
 TASK_APPROVAL_MESSAGES = {'revise_plan': '계획 수정안을 저장할지 승인해 주세요. 거절하면 저장하지 않아요.'}
 CANCELLED_MESSAGE = '요청을 취소해 아무 작업도 실행하지 않았어요.'
+DECLINED_AFTER_WORK_MESSAGE = '장면은 반영하지 않았어요. 앞서 끝난 작업은 그대로예요.'
 SCENE_MESSAGE = '시뮬레이션 장면을 진행하고 있어요. 다음 턴을 이어 가거나 줄을 고치고 다시 말하게 하거나 끝낼 수 있어요.'
 SCENE_NOT_WAITING = '지금은 장면을 조작할 수 없어요.'
 SCENE_NO_TURN = '장면에 그 번호의 턴이 없어요.'
@@ -261,7 +262,8 @@ async def scene(state: State, config: RunnableConfig) -> State:
     steps[index] = context.step(final)
     done: State = {'steps': steps, 'sceneAction': None, 'scene': final.model_dump(mode='json')}
     if final.declined:  # 작가가 장면을 반영하지 않기로 했다
-        done.update(status='cancelled', message=CANCELLED_MESSAGE)
+        kept = any(i != index and s['status'] == 'completed' for i, s in enumerate(steps))
+        done.update(status='cancelled', message=DECLINED_AFTER_WORK_MESSAGE if kept else CANCELLED_MESSAGE)
     return done
 
 
