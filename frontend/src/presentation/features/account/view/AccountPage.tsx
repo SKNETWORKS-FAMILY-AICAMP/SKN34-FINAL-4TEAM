@@ -160,7 +160,7 @@ function InquiryView({ vm }: { vm: VM }) {
       {vm.role ? <InquiryForm vm={vm} /> : vm.restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : (
         <section className="tcard mecard" aria-labelledby="iq-login-title">
           <h3 id="iq-login-title">로그인한 뒤 문의할 수 있어요</h3>
-          <p className="small muted">문의와 운영팀 답변은 회원 계정에 연결돼요. 로그인하면 문의를 보내고 내 문의에서 답변을 확인할 수 있어요.</p>
+          <p className="small muted">문의와 운영팀 답변은 회원 계정에 연결돼요.</p>
           <Link to="/login" className="btn pri" onClick={vm.requireLogin}>로그인하고 문의하기</Link>
         </section>
       )}
@@ -187,7 +187,7 @@ function InquiryForm({ vm }: { vm: VM }) {
   const missing = (value: string) => ({ 'aria-invalid': failed && !value.trim(), 'aria-describedby': failed && !value.trim() ? 'iq-error' : undefined })
   return (
     <>
-      <p className="small muted" style={{ marginBottom: 12 }}>보낸 문의와 운영팀 답변은 아래 내 문의에서 확인해요. 답변 알림은 따로 보내지 않아요.</p>
+      <p className="small muted" style={{ marginBottom: 12 }}>운영팀 답변은 아래 내 문의에서 확인해요. 답변 알림은 따로 보내지 않아요.</p>
       <form ref={form} className="tcard mecard" id="iqf" noValidate aria-busy={vm.asking} onSubmit={async (e) => { e.preventDefault(); resume.current = document.activeElement; if (await vm.ask(t, s, b)) { setT('이용 문의'); setS(''); setB('') } }}>
         <p className="small muted">모든 항목은 필수예요.</p>
         <label className="field">문의 유형<select className="inp" id="iqt" value={t} disabled={vm.asking} onChange={(e) => setT(e.target.value)}>{['이용 문의', '오류 신고', '권리·저작권', '계정', '기타'].map((o) => <option key={o}>{o}</option>)}</select></label>

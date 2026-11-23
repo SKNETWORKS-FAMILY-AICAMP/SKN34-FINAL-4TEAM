@@ -254,7 +254,7 @@ describe('내 문의 목록 (U34)', () => {
     vi.spyOn(support(), 'listMine').mockResolvedValue([])
     setup('/me/inquiry')
     const title = await screen.findByRole('heading', { name: '내 문의 0' })
-    expect(screen.getByText(/보낸 문의와 운영팀 답변은 아래 내 문의에서/).style.marginBottom).toBe('12px')
+    expect(screen.getByText(/^운영팀 답변은 아래 내 문의에서/).style.marginBottom).toBe('12px')
     expect([title.style.marginTop, title.style.marginBottom]).toEqual(['22px', '10px'])
   })
 })
