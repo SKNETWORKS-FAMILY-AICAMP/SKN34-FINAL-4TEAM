@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*
 
 /**
  * AI 자율 연재(UC-18)의 공개 API다. 설정·지금 실행·기록·제안 글 숨기기는 작품 소유자만 쓰고(남의 작품은 404), 독자 게시판 읽기는 익명도 되며(공개 작품만),
- * 투표·제안 글·추천은 로그인 회원이 한다. 오류는 detail·code JSON이다. 계약: docs/design/ai-serial-contract.md.
+ * 투표·제안 글·추천은 로그인 회원이 한다. 운영이 제한한 회차에 걸린 게시판은 독자에게 없는 것과 같다(읽기는 board 없음, 쓰기는 404). 오류는 detail·code JSON이다. 계약: docs/design/ai-serial-contract.md.
  */
 @RestController
 @RequestMapping("/api/v1/works/{id}")

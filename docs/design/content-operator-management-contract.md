@@ -26,6 +26,7 @@
 | 수정 제안 등록·회차 제보(등록·회차별 목록·조회) | 404 |
 | 독자 회차 지정 설정 읽기(`WorldController.publicRead`, `?episode=`, MCP `work_world_public_read`) | 404 |
 | 공개 세계관·독자 설정 위키의 기준 회차 | 발행된 마지막 회차를 셀 때 제한 회차를 뺀다(`PublicWorldService`의 상세·이미지 기준과 목록 쿼리 `WorkRepository.lastPublishedOfPublicWorks`, `WorkWorldService.readerBasis`가 같은 값). 마지막 회차가 제한이면 기준이 내려가 그 회차 뒤에 공개되는 카드는 다시 숨는다 |
+| AI 자율 연재 독자 게시판([계약](ai-serial-contract.md)) | 게시판의 대상 회차나 그 앞의 마지막 발행 회차가 제한이면 `serial-board`는 board 없음·빈 선택지/제안 글(종합 문장은 그 게시판이 발행한 회차가 제한일 때만 숨김), 투표·제안·추천 쓰기는 404다. 일정 점검은 그 게시판의 실행을 건너뛴다(제한이 풀리면 재개, 게시판 데이터는 그대로) |
 
 단건 확인은 `EpisodeCurrentEntity.readerVersionId`(발행본이 있고 제한이 아닐 때만 값이 있음) 한 곳을 쓴다. 작가 쪽은 `publishedVersionId`를 그대로 쓴다.
 작가용 작품 응답의 `PublishedEpisodeResponse`에는 `restricted`가 실리고(독자용 응답에는 제한 회차가 목록에서 빠져 있다) 작가용 회차 응답에는 제한 표시가 없다.
