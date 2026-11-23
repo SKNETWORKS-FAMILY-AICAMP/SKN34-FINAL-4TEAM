@@ -1045,7 +1045,7 @@ it('승인한 Content 계획 도구(story_plan_create·story_plan_update)도 계
 describe('집필 AI 채팅 첨부(#617)', () => {
   const png = () => new File([new Uint8Array([137, 80, 78, 71])], '지도.png', { type: 'image/png' })
   const note = (text = '북문은 밤에 닫힌다.') => new File([text], '메모.md', { type: '' })
-  const attach = (...files: File[]) => fireEvent.drop(document.querySelector('.chat-card')!, { dataTransfer: { files } })
+  const attach = (...files: File[]) => fireEvent.drop(document.querySelector('.chat-card')!, { dataTransfer: { files, types: ['Files'] } })
   const ask = (text: string) => { fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: text } }); fireEvent.click(screen.getByRole('button', { name: '전송' })) }
   const chipsOf = (name: string) => within(screen.getByRole('list', { name })).getAllByRole('listitem').map((li) => li.textContent)
 
@@ -1054,8 +1054,8 @@ describe('집필 AI 채팅 첨부(#617)', () => {
     renderChat()
     await screen.findByText('새 대화', { selector: 'h3' })
     const row = document.querySelector('.chat-sessions')!
-    expect(fireEvent.dragOver(row, { dataTransfer: { files: [png()] } })).toBe(false)
-    expect(fireEvent.drop(row, { dataTransfer: { files: [png()] } })).toBe(false)
+    expect(fireEvent.dragOver(row, { dataTransfer: { files: [png()], types: ['Files'] } })).toBe(false)
+    expect(fireEvent.drop(row, { dataTransfer: { files: [png()], types: ['Files'] } })).toBe(false)
   })
 
   it('고른 이미지·텍스트를 Base64로 읽어 새 요청에 싣고, 보낸 첨부는 입력창에서 비운다', async () => {
