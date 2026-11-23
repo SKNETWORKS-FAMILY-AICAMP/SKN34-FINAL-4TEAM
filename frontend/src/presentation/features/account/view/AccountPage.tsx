@@ -193,7 +193,7 @@ function InquiryForm({ vm }: { vm: VM }) {
       <h3 className="st" style={{ marginTop: 22 }}>내 문의{vm.mine.data ? ` ${list.length}` : ''}</h3>
       {vm.mine.isLoading && <p role="status">내 문의를 불러오고 있어요.</p>}
       {vm.mine.isError && <div role="alert"><p>내 문의를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={vm.mine.retry}>다시 불러오기</button></div>}
-      {vm.mine.data && <div className="list">{list.length ? list.map((x) => (
+      {vm.mine.data && <div className="list inquiry-list">{list.length ? list.map((x) => (
         <div className="rp" key={x.id} style={{ overflowWrap: 'anywhere' }}><div className="top"><b>[{x.category}] {x.title}</b><span className={`chip ${x.status === 'ANSWERED' ? 'ok' : 'wait'}`}>{supportStatusLabel(x.status)}</span></div>
           <div className="small muted" style={{ marginTop: 4 }}>{kstDateTime(x.createdAt)}</div>
           <p className="small" style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap' }}>{x.body}</p>
