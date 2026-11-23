@@ -84,8 +84,8 @@ const OPS_TABS: AdminTab[] = ['data', 'llm', 'jobs', 'genres', 'credits', 'world
 const has = (q: string, ...xs: string[]) =>
   !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
 const blocked = (vm: VM, key: string) => vm.mutationsBlocked || !!vm.actions[key]?.pending
-/** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리와 대시보드·LLMOps·작업 감시 패널)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
-const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule', 'genre', 'credit', 'world', 'cardCategory', 'episode']
+/** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리·관리자 계정 생성과 대시보드·LLMOps·작업 감시 패널)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
+const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule', 'genre', 'credit', 'world', 'cardCategory', 'episode', 'admin']
 const IN_FORM = new RegExp(`^(notice|event|inquiry|report|${OPS_PANEL_KINDS.join('|')}):`)
 /** 행 조치 키(`member:<id>` 등)의 대상을 화면에 보이는 이름으로 바꿉니다. 목록에서 찾지 못하면 이름 없이 안내합니다. */
 function actionTarget(vm: VM, key: string): string | undefined {
@@ -95,7 +95,7 @@ function actionTarget(vm: VM, key: string): string | undefined {
   if (kind === 'work') { const w = live?.works.find((x) => x.workId === id); return w && `「${w.title}」` }
   if (kind === 'comment') { const c = live?.comments.find((x) => x.commentId === id); return c && `${c.authorName} 님의 댓글` }
   if (kind === 'chat') { const c = vm.data?.chats.find((x) => x.id === id); return c ? `${c.w.title} · ${c.character}` : id === 'new' ? '캐릭터챗 추가' : undefined }
-  return kind === 'admin' ? '관리자 계정 생성' : undefined
+  return undefined
 }
 /**
  * 이 키의 조치 상태가 지금 화면의 폼 안에 그려지는지. 그려지면 완료 문구가 폼 안에 보이므로 화면 위 완료 줄에 같은 문구를 또 두지 않습니다.
@@ -103,7 +103,7 @@ function actionTarget(vm: VM, key: string): string | undefined {
  */
 function shownInForm(vm: VM, tab: AdminTab, key: string) {
   const [kind, id, , replyId] = key.split(':')
-  // 대시보드·LLMOps·작업 감시 패널은 자기 조치 안내(ActionLines)를 패널 안에 그립니다.
+  // 대시보드·LLMOps·작업 감시 패널(ActionLines)과 관리자 계정 폼(AdminActionStatus)은 자기 조치 안내를 패널·폼 안에 그립니다.
   if (OPS_PANEL_KINDS.includes(kind)) return true
   // 공지·이벤트 폼은 새로 쓰는 중이거나 고른 항목이 목록에 있을 때만 그려집니다.
   const open = (selection: string | null, rows: { id: string }[] = []) => id === selection && (id === 'new' || rows.some((row) => row.id === id))
@@ -176,7 +176,8 @@ export function AdminPage() {
       </Go>
     )
   }
-  const showRefresh = !!d && !vm.isError && !OPS_TABS.includes(tab)
+  // 새 공지·이벤트 폼은 목록이 보이지 않아 새로고침해도 화면이 안 바뀌므로 숨깁니다(목록·기존 글 상세에서는 다시 읽는 수단).
+  const showRefresh = !!d && !vm.isError && !OPS_TABS.includes(tab) && !((tab === 'events' || tab === 'notices') && vm.recordSelection[tab] === 'new')
   return (
     <>
     <div className='adm'>
@@ -192,7 +193,7 @@ export function AdminPage() {
       </a>
       <div className='admin-side'>
         <nav ref={nav} className='admin-nav' aria-label='관리자 업무'>
-          <b className='admin-brand'>STORYFORK 관리자</b>
+          <Go to='/' className='admin-brand' aria-label='STORYFORK 관리자 · 메인 페이지로' title='메인 페이지로'>STORYFORK 관리자</Go>
           {navLink('data', '개요')}
           {/* 메뉴 묶음 이름은 본문 제목(h1)보다 앞에 오므로 제목으로 읽히지 않게 하고, 묶음 이름은 group의 레이블로 전합니다. */}
           {GROUPS.map(([g, items]) => (
@@ -206,8 +207,8 @@ export function AdminPage() {
       </div>
       <div className='admin-col'>
         <div className='top'>
-          {/* 900px 이하에서만 보이는 브랜드: 가로로 스크롤되는 메뉴 안 브랜드는 잘려서 상단바 왼쪽에 한 번 더 둡니다. */}
-          <b className='admin-brand-top'>STORYFORK 관리자</b>
+          {/* 900px 이하에서만 보이는 브랜드: 가로로 스크롤되는 메뉴 안 브랜드는 잘려서 상단바 왼쪽에 한 번 더 둡니다. 두 브랜드 모두 메인(/)으로 나가는 링크입니다. */}
+          <Go to='/' className='admin-brand-top' aria-label='STORYFORK 관리자 · 메인 페이지로' title='메인 페이지로'>STORYFORK 관리자</Go>
           <PopMenu
             className='admin-who'
             label={`${vm.me.nick} 님 계정 메뉴`}
@@ -338,7 +339,7 @@ function Controls(
           {sorts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
       </label>
-      <button className='btn pri' type='submit'>검색</button>
+      <button className='btn' type='submit'>검색</button>
     </form>
   )
 }
@@ -385,7 +386,7 @@ function Body(p: BodyProps) {
     T = (
       <>
         <ChatForm d={d} vm={vm} />
-        <div className='panel' style={{ marginTop: 14 }}>
+        <div className='panel'>
           <div className='table-head'>
             <h2 className='panel-title'>캐릭터챗 목록</h2>
             <span className='demo'>작품·캐릭터 연결</span>
@@ -701,7 +702,7 @@ function Users({ vm, f, setF }: BodyProps) {
             <option value='oldest'>가입 오래된순</option>
           </select>
         </label>
-        <button className='btn pri' type='submit'>검색</button>
+        <button className='btn' type='submit'>검색</button>
       </form>
       <LiveState vm={vm} label='회원 목록' />
       {vm.live.data && (rows.length
@@ -840,7 +841,7 @@ function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
           : <p className='admin-empty'>조건에 맞는 신고가 없어요.</p>)}
       </div>
       {sel && (
-        <div className='panel admin-operations' style={{ marginTop: 14 }} id='a04'>
+        <div className='panel admin-operations' id='a04'>
           {detail.isError && (
             <div className='admin-action-error' role='alert'>
               <p>신고 상세를 불러오지 못했어요. 목록을 새로고침한 뒤 다시 선택해 주세요.</p>
@@ -981,7 +982,7 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
             onChange={(e) => setForm({ ...form, workId: e.target.value, character: '' })}
           >
             {available.map(({ w }) => (
-              <option key={w.id} value={w.id}>{w.title}{w.parent ? ' · 포크' : ' · 원작'}</option>
+              <option key={w.id} value={w.id}>{w.title}{form.kind === 'all' ? (w.parent ? ' · 포크' : ' · 원작') : ''}</option>
             ))}
           </select>
         </label>
@@ -993,7 +994,7 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
             onChange={(e) =>
               setForm({ ...form, workId: sw?.w.id ?? '', character: e.target.value })}
           >
-            {cast.map((c) => <option key={c.n} value={c.n}>{c.n} · {c.d}</option>)}
+            {cast.length ? cast.map((c) => <option key={c.n} value={c.n}>{c.n} · {c.d}</option>) : <option value=''>선택할 수 있는 캐릭터가 없어요</option>}
           </select>
         </label>
       </div>
@@ -1174,7 +1175,7 @@ function Events({ vm }: { vm: VM }) {
         )}
       <p className='admin-note'>
         진행 상태(상시·예정·진행 중·종료)는 시작·종료 시각으로 정해져요. 이벤트를 끝내려면 종료 시각을 수정해 주세요. 등록하면 바로
-        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요. 이동 경로는 관련 기능으로 가는 버튼만 만들어요.
+        공개되고 알림은 보내지 않아요. 참여·보상은 지원하지 않아요.
       </p>
     </section>
   )
@@ -1299,7 +1300,7 @@ function Feedback({ d, vm, f, setF }: BodyProps) {
           )}
       </section>
       {d && (
-        <div className='panel' style={{ marginTop: 14 }}>
+        <div className='panel'>
           <h2 className='panel-title'>작가 검토 제보</h2>
           <p className='small muted'>
             원고 반영은 작가가 검토합니다. 위 회원 문의와는 별도의 시연용 제보예요.
@@ -1410,7 +1411,7 @@ function Admins({ vm }: { vm: VM }) {
         <h2 className='panel-title'>관리자 계정 생성</h2>
         <p className='admin-note'>모든 항목은 필수예요. 권한은 한 가지 이상 골라 주세요.</p>
         <div className='form-grid' style={{ marginTop: 12 }}>
-          <label className='field'>
+          <label className='field wide'>
             이메일<input className='inp' name='email' type='email' maxLength={254} autoComplete='off' required />
           </label>
           <label className='field'>
@@ -1437,11 +1438,12 @@ function Admins({ vm }: { vm: VM }) {
             {vm.actions['admin:new']?.pending ? '추가 중…' : '관리자 계정 추가'}
           </button>
         </div>
+        <AdminActionStatus state={vm.actions['admin:new']} />
         <p className='admin-note'>
           계정 생성 후 권한 저장이 실패하면 권한 없는 관리자 계정이 남을 수 있어요. 결과는 아래 목록에서 확인해 주세요.
         </p>
       </form>
-      <div className='panel' style={{ marginTop: 14 }}>
+      <div className='panel'>
         <div className='table-head'>
           <h2 className='panel-title'>관리자 계정</h2>
         </div>
@@ -1460,11 +1462,11 @@ function Admins({ vm }: { vm: VM }) {
               <tbody>
                 {rows.map((a) => (
                   <tr key={a.id}>
-                    <td>
+                    <td className='admin-nowrap'>
                       <b>{a.nickname}</b>
                       {a.restricted && <span className='chip wait'>이용 제한</span>}
                     </td>
-                    <td>{a.email}</td>
+                    <td className='admin-nowrap'>{a.email}</td>
                     <td>
                       {ADMIN_PERMISSIONS.filter(([k]) => a.permissions.includes(k)).map(([, l]) => l).join(', ') || '없음'}
                     </td>

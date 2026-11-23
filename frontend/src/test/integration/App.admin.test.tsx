@@ -536,6 +536,6 @@ describe('관리자 (A01~A18)', () => {
     fireEvent.click(within(table).getByRole('button', { name: '「정보 누설 표본 검사 일정」 조치' }))
     fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '일정 취소' }))
     await toastIs('정기 작업 일정을 취소했어요.')
-    await within(table).findByText('꺼짐·취소됨')
+    await within(table).findByText('꺼짐')
   })
 })

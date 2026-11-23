@@ -90,7 +90,7 @@ export function Prompts({ vm, l }: Props) {
                             </button>
                           </PopMenu>
                         )
-                        : '현재 production'}
+                        : '—'}
                     </td>
                   </tr>
                 )
@@ -124,26 +124,29 @@ export function Models({ vm, l }: Props) {
       <LiveState vm={vm} label="모델 목록" state={l.models} forbidden={LLM_FORBIDDEN} />
       {rows && (rows.length
         ? (
-          <Table label="모델 단가 표">
-            <thead>
-              <tr>
-                <th scope="col">모델</th>
-                <th scope="col">매칭 패턴</th>
-                <th scope="col">입력 단가(100만 토큰당)</th>
-                <th scope="col">출력 단가(100만 토큰당)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id}>
-                  <td><b>{row.modelName}</b></td>
-                  <td>{row.matchPattern}</td>
-                  <td>{perMillion(row.inputPrice)}</td>
-                  <td>{perMillion(row.outputPrice)}</td>
+          <>
+            <p className="small muted">단가는 100만 토큰당 USD예요.</p>
+            <Table label="모델 단가 표">
+              <thead>
+                <tr>
+                  <th scope="col">모델</th>
+                  <th scope="col">매칭 패턴</th>
+                  <th scope="col">입력 단가</th>
+                  <th scope="col">출력 단가</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id}>
+                    <td className="admin-nowrap"><b>{row.modelName}</b></td>
+                    <td className="muted">{row.matchPattern}</td>
+                    <td>{perMillion(row.inputPrice)}</td>
+                    <td>{perMillion(row.outputPrice)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </>
         )
         : <p className="admin-empty">등록된 모델이 없어요.</p>)}
       <form
@@ -256,9 +259,9 @@ export function Evaluations({ vm, l }: Props) {
       >
         <h3>회귀 평가 실행</h3>
         <fieldset disabled={busy} className="form-grid admin-eval-grid">
-          <label className="field">데이터셋<input className="inp" name="dataset" list="eval-datasets" autoComplete="off" required /></label>
-          <label className="field">프롬프트 이름<input className="inp" name="prompt" list="eval-prompts" autoComplete="off" required /></label>
-          <label className="field">버전<input className="inp" name="version" type="number" min="1" step="1" required /></label>
+          <label className="field">데이터셋<input className="inp" name="dataset" list="eval-datasets" autoComplete="off" placeholder="예: simulation.narrate" required /></label>
+          <label className="field">프롬프트 이름<input className="inp" name="prompt" list="eval-prompts" autoComplete="off" placeholder="예: character_simulation.narrate" required /></label>
+          <label className="field">버전<input className="inp" name="version" type="number" min="1" step="1" placeholder="예: 2" required /></label>
           <div className="rowend wide"><button type="submit" className="btn pri">{busy ? '요청 중…' : '평가 실행'}</button></div>
         </fieldset>
         {/* 이전에 돌린 데이터셋·프롬프트 이름을 고를 수 있게 한다(자유 입력은 그대로). */}
@@ -289,14 +292,14 @@ export function AlertRules({ vm, l }: Props) {
                 <th scope="col">기준 시간(분)</th>
                 <th scope="col">켜기</th>
                 <th scope="col">마지막 변경</th>
-                <th scope="col" className="act">저장</th>
+                <th scope="col" className="act"><span className="sr-only">저장</span></th>
               </tr>
             </thead>
             <tbody>{rules.map((rule) => <RuleRow key={rule.key} rule={rule} l={l} busy={!!vm.actions[`rule:${rule.key}`]?.pending} />)}</tbody>
           </Table>
         </>
       )}
-      <p className="admin-note">기준값은 문서로 고정하지 않고 여기서 정해요. 처음엔 모두 꺼져 있고, 값을 넣고 켜야 경고가 만들어져요. 비율 기준은 0~1(0.1 = 10%)이에요.</p>
+      <p className="admin-note">처음엔 모두 꺼져 있고, 값을 넣고 켜야 경고가 만들어져요. 비율 기준은 0~1(0.1 = 10%)이에요.</p>
     </section>
   )
 }
@@ -335,6 +338,9 @@ function RuleRow({ rule, l, busy }: { rule: AlertRule; l: LlmVM; busy: boolean }
   const [windowMinutes, setWindowMinutes] = useState(String(rule.windowMinutes))
   const [enabled, setEnabled] = useState(rule.enabled)
   const label = alertRuleLabel(rule.key)
+  // 저장 버튼이 보낼 값. 저장된 값과 다르면 아직 저장하지 않은 변경이라 '저장 안 됨'을 보인다(저장 없이 쪽을 떠나면 변경이 사라지고 경고는 켜지지 않는다).
+  const next = { threshold: threshold.trim() === '' ? null : Number(threshold), windowMinutes: windowMinutes.trim() === '' ? Number.NaN : Number(windowMinutes), enabled }
+  const unsaved = next.threshold !== (rule.threshold ?? null) || next.windowMinutes !== rule.windowMinutes || next.enabled !== rule.enabled
   return (
     <tr>
       <td>{label}<div className="small muted">{rule.metric}</div></td>
@@ -343,15 +349,18 @@ function RuleRow({ rule, l, busy }: { rule: AlertRule; l: LlmVM; busy: boolean }
       <td><input type="checkbox" aria-label={`${label} 켜기`} checked={enabled} onChange={(e) => setEnabled(e.target.checked)} /></td>
       <td className="admin-date">{kstDateTime(rule.updatedAt)}</td>
       <td>
-        <button
-          type="button"
-          className="btn sm pri"
-          aria-label={`${label} 기준 저장`}
-          disabled={busy}
-          onClick={() => void l.updateRule(rule.key, { threshold: threshold.trim() === '' ? null : Number(threshold), windowMinutes: windowMinutes.trim() === '' ? Number.NaN : Number(windowMinutes), enabled })}
-        >
-          저장
-        </button>
+        <div className="admin-inline">
+          <button
+            type="button"
+            className="btn sm"
+            aria-label={`${label} 기준 저장`}
+            disabled={busy}
+            onClick={() => void l.updateRule(rule.key, next)}
+          >
+            저장
+          </button>
+          {unsaved && <span className="small muted">저장 안 됨</span>}
+        </div>
       </td>
     </tr>
   )
