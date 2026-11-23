@@ -256,9 +256,9 @@ export function Evaluations({ vm, l }: Props) {
       >
         <h3>회귀 평가 실행</h3>
         <fieldset disabled={busy} className="form-grid admin-eval-grid">
-          <label className="field">데이터셋<input className="inp" name="dataset" list="eval-datasets" autoComplete="off" required /></label>
-          <label className="field">프롬프트 이름<input className="inp" name="prompt" list="eval-prompts" autoComplete="off" required /></label>
-          <label className="field">버전<input className="inp" name="version" type="number" min="1" step="1" required /></label>
+          <label className="field">데이터셋<input className="inp" name="dataset" list="eval-datasets" autoComplete="off" placeholder="예: simulation.narrate" required /></label>
+          <label className="field">프롬프트 이름<input className="inp" name="prompt" list="eval-prompts" autoComplete="off" placeholder="예: character_simulation.narrate" required /></label>
+          <label className="field">버전<input className="inp" name="version" type="number" min="1" step="1" placeholder="예: 2" required /></label>
           <div className="rowend wide"><button type="submit" className="btn pri">{busy ? '요청 중…' : '평가 실행'}</button></div>
         </fieldset>
         {/* 이전에 돌린 데이터셋·프롬프트 이름을 고를 수 있게 한다(자유 입력은 그대로). */}
@@ -335,6 +335,9 @@ function RuleRow({ rule, l, busy }: { rule: AlertRule; l: LlmVM; busy: boolean }
   const [windowMinutes, setWindowMinutes] = useState(String(rule.windowMinutes))
   const [enabled, setEnabled] = useState(rule.enabled)
   const label = alertRuleLabel(rule.key)
+  // 저장 버튼이 보낼 값. 저장된 값과 다르면 아직 저장하지 않은 변경이라 '저장 안 됨'을 보인다(저장 없이 쪽을 떠나면 변경이 사라지고 경고는 켜지지 않는다).
+  const next = { threshold: threshold.trim() === '' ? null : Number(threshold), windowMinutes: windowMinutes.trim() === '' ? Number.NaN : Number(windowMinutes), enabled }
+  const unsaved = next.threshold !== (rule.threshold ?? null) || next.windowMinutes !== rule.windowMinutes || next.enabled !== rule.enabled
   return (
     <tr>
       <td>{label}<div className="small muted">{rule.metric}</div></td>
@@ -343,15 +346,18 @@ function RuleRow({ rule, l, busy }: { rule: AlertRule; l: LlmVM; busy: boolean }
       <td><input type="checkbox" aria-label={`${label} 켜기`} checked={enabled} onChange={(e) => setEnabled(e.target.checked)} /></td>
       <td className="admin-date">{kstDateTime(rule.updatedAt)}</td>
       <td>
-        <button
-          type="button"
-          className="btn sm pri"
-          aria-label={`${label} 기준 저장`}
-          disabled={busy}
-          onClick={() => void l.updateRule(rule.key, { threshold: threshold.trim() === '' ? null : Number(threshold), windowMinutes: windowMinutes.trim() === '' ? Number.NaN : Number(windowMinutes), enabled })}
-        >
-          저장
-        </button>
+        <div className="admin-inline">
+          <button
+            type="button"
+            className="btn sm pri"
+            aria-label={`${label} 기준 저장`}
+            disabled={busy}
+            onClick={() => void l.updateRule(rule.key, next)}
+          >
+            저장
+          </button>
+          {unsaved && <span className="small muted">저장 안 됨</span>}
+        </div>
       </td>
     </tr>
   )

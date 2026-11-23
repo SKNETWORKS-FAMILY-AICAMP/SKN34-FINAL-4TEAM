@@ -132,7 +132,7 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
   const [editing, setEditing] = useState<Schedule | null>(null)
   const rows = j.schedules.data
   return (
-    <section className="panel admin-operations" style={{ marginTop: 14 }} aria-label="정기 작업 일정">
+    <section className="panel admin-operations" aria-label="정기 작업 일정">
       <h2 className="panel-title">정기 작업 일정</h2>
       <LiveState vm={vm} label="일정 목록" state={j.schedules} forbidden={JOBS_FORBIDDEN} />
       <ActionLines vm={vm} prefix="schedule:" />

@@ -67,8 +67,8 @@
   .adm .genre-menu .pop-menu-btn { width: 44px; height: 44px; }
   .adm .genre-menu .pop-menu-list { margin: 48px 0 0 -156px; }
 }
-/* LLM Ops 한 쪽에 쌓은 패널(경고+경고 기준, 추적+지표 등): .panel은 바깥 여백이 없어 맞붙으므로 위 숫자 카드 줄 사이 gap(12px)과 같은 값으로 띄웁니다. */
-.adm .panel.admin-operations + .panel.admin-operations { margin-top: 12px; }
+/* 쌓인 패널: .panel은 바깥 여백이 없어 맞붙으므로 위 숫자 카드 줄 사이 gap(12px)과 같은 값으로 띄웁니다. 화면마다 인라인 style로 따로 정하지 않습니다. */
+.adm .panel + .panel { margin-top: 12px; }
 /* 표 스크롤 영역(.adm-scroll, 전역)을 위치 기준으로 둔다. 열 머리의 화면 밖 글자(.sr-only)는 absolute에 위치 지정이 없어 표 안 제자리(조치 열이면 표의 오른쪽 끝)에 놓이는데, 영역이 위치 기준이 아니면 영역의 overflow가 이를 자르지 못하고 문서의 가로 스크롤 범위를 넓힌다: 작업 감시 실행 기록 표는 848px라 창이 약 1120px 이하이면 페이지가 가로로 밀렸다. */
 .adm .adm-scroll { position: relative; }
 /* cron 식('0 30 4 1 1 *')은 필드 경계가 공백이라 좁은 칸에서 꺾이면 필드 수를 셀 수 없다: 한 줄로 두고 모자라면 표 스크롤 영역 안에서 가로로 스크롤한다. */
@@ -106,6 +106,8 @@
 }
 .adm .admin-operations pre.admin-prose { margin: 8px 0 18px; padding: 12px; max-height: 360px; overflow: auto; background: var(--muted-bg); border-radius: 10px; font-size: 13px; line-height: 1.6; }
 .adm progress { width: 100%; max-width: 160px; }
+/* 실패한 실행(상태 칩 .bad가 있는 행)의 진행 막대는 정상 색(기본 파랑)으로 가득 차 보이지 않게 실패 색으로 그린다. */
+.adm tr:has(.chip.bad) progress { accent-color: var(--danger); }
 /* 개요(data 탭)는 위에서부터 요약 띠 → 서비스 지표 → 최근 7일 AI 사용이고 사이는 모두 12px이다(요약 띠 아래 margin, 두 패널 사이는 위 .panel 규칙).
    요약 띠: 카드 여덟 장을 따로 상자로 두지 않고 한 띠로 묶어 칸 사이를 가는 선으로만 나눈다. 칸마다 왼쪽·위·모서리에 선을 긋고 띠의 가장자리는 overflow가 잘라서 칸 수가 바뀌어도 맞는다.
    열은 2열(넓은 화면 4열)로 고정해 여덟 장이 마지막 줄 없이 나뉜다(auto-fit은 1440px에서 5열이 되어 5+3으로 갈린다). 크레딧·LLM Ops 탭이 쓰는 공용 .kpi는 건드리지 않는다. */
@@ -134,7 +136,8 @@
 /* 크레딧 탭(DEC-57): 고른 회원의 잔액·내역과 지급·회수 폼은 검색 결과 표 아래에 한 덩어리로 붙인다. */
 .adm .credit-member { margin-top: 20px; border-top: 1px solid var(--line2); }
 .adm .credit-member h3 { margin-top: 20px; }
-.adm .credit-member .kpi { margin: 12px 0; }
+/* 고른 회원의 보유 크레딧은 카드 한 장이라 auto-fit 격자 전체 폭으로 늘어나므로 바로 아래 폼(.form-grid)과 같은 800px 안에 둔다(600px 이하 1열 규칙은 위 미디어 블록). */
+.adm .credit-member .kpi { margin: 12px 0; max-width: 800px; }
 .adm .credit-member h4 { margin: 24px 0 0; }
 /* 정보 누설 검사 패널 안의 표본 비율 한 줄: 검사 기록과 선으로만 나누고 따로 패널을 두지 않는다. */
 .adm .admin-leak-rate { margin-top: 20px; border-top: 1px solid var(--line); }

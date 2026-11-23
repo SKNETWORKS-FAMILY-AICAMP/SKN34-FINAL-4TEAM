@@ -84,8 +84,8 @@ const OPS_TABS: AdminTab[] = ['data', 'llm', 'jobs', 'genres', 'credits', 'world
 const has = (q: string, ...xs: string[]) =>
   !q || xs.join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase())
 const blocked = (vm: VM, key: string) => vm.mutationsBlocked || !!vm.actions[key]?.pending
-/** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리와 대시보드·LLMOps·작업 감시 패널)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
-const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule', 'genre', 'credit', 'world', 'cardCategory', 'episode']
+/** 폼 안에 상태를 그리는 조치(공지·이벤트·문의 답변·신고 처리·관리자 계정 생성과 대시보드·LLMOps·작업 감시 패널)의 키. 그 밖의 키는 표의 행 조치라 화면 위에서 안내합니다. */
+const OPS_PANEL_KINDS = ['alert', 'prompt', 'model', 'eval', 'rule', 'setting', 'run', 'schedule', 'genre', 'credit', 'world', 'cardCategory', 'episode', 'admin']
 const IN_FORM = new RegExp(`^(notice|event|inquiry|report|${OPS_PANEL_KINDS.join('|')}):`)
 /** 행 조치 키(`member:<id>` 등)의 대상을 화면에 보이는 이름으로 바꿉니다. 목록에서 찾지 못하면 이름 없이 안내합니다. */
 function actionTarget(vm: VM, key: string): string | undefined {
@@ -95,7 +95,7 @@ function actionTarget(vm: VM, key: string): string | undefined {
   if (kind === 'work') { const w = live?.works.find((x) => x.workId === id); return w && `「${w.title}」` }
   if (kind === 'comment') { const c = live?.comments.find((x) => x.commentId === id); return c && `${c.authorName} 님의 댓글` }
   if (kind === 'chat') { const c = vm.data?.chats.find((x) => x.id === id); return c ? `${c.w.title} · ${c.character}` : id === 'new' ? '캐릭터챗 추가' : undefined }
-  return kind === 'admin' ? '관리자 계정 생성' : undefined
+  return undefined
 }
 /**
  * 이 키의 조치 상태가 지금 화면의 폼 안에 그려지는지. 그려지면 완료 문구가 폼 안에 보이므로 화면 위 완료 줄에 같은 문구를 또 두지 않습니다.
@@ -103,7 +103,7 @@ function actionTarget(vm: VM, key: string): string | undefined {
  */
 function shownInForm(vm: VM, tab: AdminTab, key: string) {
   const [kind, id, , replyId] = key.split(':')
-  // 대시보드·LLMOps·작업 감시 패널은 자기 조치 안내(ActionLines)를 패널 안에 그립니다.
+  // 대시보드·LLMOps·작업 감시 패널(ActionLines)과 관리자 계정 폼(AdminActionStatus)은 자기 조치 안내를 패널·폼 안에 그립니다.
   if (OPS_PANEL_KINDS.includes(kind)) return true
   // 공지·이벤트 폼은 새로 쓰는 중이거나 고른 항목이 목록에 있을 때만 그려집니다.
   const open = (selection: string | null, rows: { id: string }[] = []) => id === selection && (id === 'new' || rows.some((row) => row.id === id))
@@ -385,7 +385,7 @@ function Body(p: BodyProps) {
     T = (
       <>
         <ChatForm d={d} vm={vm} />
-        <div className='panel' style={{ marginTop: 14 }}>
+        <div className='panel'>
           <div className='table-head'>
             <h2 className='panel-title'>캐릭터챗 목록</h2>
             <span className='demo'>작품·캐릭터 연결</span>
@@ -840,7 +840,7 @@ function Rights({ vm, f, setF, sel, setSel }: BodyProps) {
           : <p className='admin-empty'>조건에 맞는 신고가 없어요.</p>)}
       </div>
       {sel && (
-        <div className='panel admin-operations' style={{ marginTop: 14 }} id='a04'>
+        <div className='panel admin-operations' id='a04'>
           {detail.isError && (
             <div className='admin-action-error' role='alert'>
               <p>신고 상세를 불러오지 못했어요. 목록을 새로고침한 뒤 다시 선택해 주세요.</p>
@@ -1299,7 +1299,7 @@ function Feedback({ d, vm, f, setF }: BodyProps) {
           )}
       </section>
       {d && (
-        <div className='panel' style={{ marginTop: 14 }}>
+        <div className='panel'>
           <h2 className='panel-title'>작가 검토 제보</h2>
           <p className='small muted'>
             원고 반영은 작가가 검토합니다. 위 회원 문의와는 별도의 시연용 제보예요.
@@ -1437,11 +1437,12 @@ function Admins({ vm }: { vm: VM }) {
             {vm.actions['admin:new']?.pending ? '추가 중…' : '관리자 계정 추가'}
           </button>
         </div>
+        <AdminActionStatus state={vm.actions['admin:new']} />
         <p className='admin-note'>
           계정 생성 후 권한 저장이 실패하면 권한 없는 관리자 계정이 남을 수 있어요. 결과는 아래 목록에서 확인해 주세요.
         </p>
       </form>
-      <div className='panel' style={{ marginTop: 14 }}>
+      <div className='panel'>
         <div className='table-head'>
           <h2 className='panel-title'>관리자 계정</h2>
         </div>

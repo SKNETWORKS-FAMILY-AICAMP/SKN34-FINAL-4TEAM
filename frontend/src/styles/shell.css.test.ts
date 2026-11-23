@@ -143,6 +143,7 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
   /** 900px 이하(사이드바가 상단바 아래 가로 메뉴 줄이 되는 구간)에서 마지막으로 정한 값. */
   const narrow = (selector: string, prop: string) => value(selector, prop, '(max-width:900px)')
   const opsCss = readFileSync(new URL('../presentation/features/admin/view/admin-operations.css', import.meta.url), 'utf8')
+  const jobMonitor = readFileSync(new URL('../presentation/features/admin/view/JobMonitor.tsx', import.meta.url), 'utf8')
 
   it('관리자 틀은 최대 폭 제한(.wrap) 없이 사이드바를 왼쪽 끝 전체 높이로 둔다', () => {
     // 틀 마크업: 상단바·본문 어디에도 최대 폭 1120px(.wrap)을 쓰지 않는다(푸터의 .wrap은 AdminPage 밖이다).
@@ -208,9 +209,36 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(value('.adm .admin-note', 'max-width')).toBe('800px')
   })
 
-  it('LLM Ops 한 쪽에 쌓은 패널(경고+경고 기준 등)은 숫자 카드 줄 사이 gap과 같은 12px로 띄운다', () => {
-    // .panel은 바깥 여백이 없어 두 패널이 맞붙어 한 덩어리로 보였다.
-    expect(opsCss).toMatch(/\.panel\.admin-operations \+ \.panel\.admin-operations\s*\{[^}]*margin-top:\s*12px/)
+  it('쌓인 패널은 무엇이든(.panel + .panel) 숫자 카드 줄 사이 gap과 같은 12px로 띄우고, 같은 간격을 인라인 14px로 덮지 않는다', () => {
+    // .panel은 바깥 여백이 없어 두 패널이 맞붙어 한 덩어리로 보였다. .admin-operations 패널끼리만 12px이고 캐릭터챗·관리자 계정·작업 일정·신고·문의 쪽은 인라인 14px이라 화면마다 간격이 달랐다.
+    expect(opsCss).toMatch(/\.adm \.panel \+ \.panel\s*\{[^}]*margin-top:\s*12px/)
+    expect(opsCss).not.toMatch(/\.panel\.admin-operations \+ \.panel\.admin-operations/)
+    for (const source of [adminPage, jobMonitor]) expect(source).not.toMatch(/className=['"][^'"]*\bpanel\b[^'"]*['"]\s+style=\{\{ marginTop: 14 \}\}/)
+  })
+
+  it('크레딧 탭에서 고른 회원의 보유 크레딧 카드(한 장)는 넓은 화면에서도 바로 아래 폼과 같은 800px 안이다', () => {
+    // 카드 한 장이 auto-fit 격자 전체 폭(약 1100px)으로 늘어나 800px 폼과 폭이 어긋났다. 600px 이하 1열 규칙은 위 계약이 지킨다.
+    expect(opsCss).toMatch(/\.adm \.credit-member \.kpi \{[^}]*max-width: 800px/)
+  })
+
+  it('좁은 화면(600px 이하)에서 표 끝 칸의 오른쪽 고정(sticky)은 열을 가로지르는 한 칸(td[colspan])에는 걸리지 않고, 고정 칸 왼쪽에는 1px 경계선이 있다', () => {
+    // 빈 결과 행의 유일한 칸(td colspan)도 :last-child라 같이 고정되면 폭 600px인 칸이 스크롤 영역(301px) 오른쪽 끝에 맞춰 밀려 문구가 영역 밖에 남았다(캐릭터챗·작품·댓글 390px). 같은 모양의 상세·수정 행도 같다.
+    const sticky = sheet.filter((r) => r.media === '(max-width:600px)' && r.selectors.some((s) => s.includes(':last-child')) && /position\s*:\s*sticky/.test(r.body))
+    expect(sticky.map((r) => r.selectors)).toEqual([['.adm-scroll table:has(th.act) :is(th,td):not([colspan]):last-child']])
+    // 번지는 그림자만으로는 옅어서 잘린 열이 반쯤 걸친 글자로만 보였다: 왼쪽 끝에 1px 선을 더해 가로 스크롤하는 표로 읽히게 한다.
+    expect(sticky[0].body).toMatch(/box-shadow\s*:\s*inset 1px 0 0 var\(--line2\),/)
+  })
+
+  it('실패한 실행의 진행 막대는 정상 색(기본 파랑)으로 가득 차 보이지 않고 실패 색이다', () => {
+    // 작업 감시 실행 기록의 실패 행이 '● 실패' 옆에서 3/3 (100%) 막대를 정상처럼 채우고 있었다. 상태 칩의 .bad를 신호로 쓴다.
+    expect(opsCss).toMatch(/\.adm tr:has\(\.chip\.bad\) progress \{ accent-color: var\(--danger\); \}/)
+  })
+
+  it('관리자의 위험 버튼(.btn.danger: 크레딧 회수)은 주 행동 옆에서 같은 무게의 채운 버튼이 아니라 윤곽선 버튼이다', () => {
+    // 전역 .btn.danger는 --danger 채움이라 '지급'(보라 채움)과 같은 무게로 붙어 잘못 누르기 쉬웠다. 집필실(.writing-danger)·계획(.plan-sheet)과 같은 윤곽선 모양이다.
+    expect(['background', 'color'].map((prop) => value('.adm .btn.danger', prop))).toEqual(['var(--surface)', 'var(--danger)'])
+    expect(value('.adm .btn.danger', 'border-color')).toMatch(/^color-mix\(in srgb,var\(--danger\) 45%/)
+    expect(value('.adm .btn.danger:hover:not(:disabled)', 'background')).toMatch(/^color-mix\(/)
   })
 
   it('표 행 조치(⋮ 메뉴)는 조치 칸을 ⋮ 버튼 하나 폭으로 줄이고, 36px(터치 44px) 단추와 버튼 자리 기준 fixed 메뉴를 쓴다', () => {

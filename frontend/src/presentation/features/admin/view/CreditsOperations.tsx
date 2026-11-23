@@ -21,6 +21,8 @@ const num = (n: number) => n.toLocaleString('ko-KR')
  */
 export function CreditsOperations({ vm }: { vm: VM }) {
   const d = useCreditsViewModel(vm.live.mutate)
+  // 회원을 고른 횟수. 같은 회원을 다시 골라도 고른 회원(d.member)은 그대로라, 상세 제목으로 초점을 다시 옮기는 때를 이 값으로 안다.
+  const [picks, setPicks] = useState(0)
   const rows = d.members.data
   return (
     <section className="panel admin-operations" aria-label="크레딧 운영">
@@ -42,8 +44,8 @@ export function CreditsOperations({ vm }: { vm: VM }) {
       <LiveState vm={vm} label="회원 목록" state={d.members} />
       {rows === null && <p className="admin-action-error" role="alert">{MEMBER_SEARCH_FORBIDDEN}</p>}
       {rows && <LiveState vm={vm} label="회원별 잔액" state={d.balances} forbidden={CREDITS_FORBIDDEN} />}
-      {rows && (rows.length ? <MemberTable rows={rows} d={d} /> : <p className="admin-empty">조건에 맞는 회원이 없어요.</p>)}
-      {d.member && <MemberCredits key={d.member.id} vm={vm} d={d} member={d.member} />}
+      {rows && (rows.length ? <MemberTable rows={rows} d={d} onPick={(row) => { d.pick(row); setPicks((n) => n + 1) }} /> : <p className="admin-empty">조건에 맞는 회원이 없어요.</p>)}
+      {d.member && <MemberCredits key={d.member.id} vm={vm} d={d} member={d.member} picks={picks} />}
       <p className="admin-note">
         지급은 ‘운영자 지급’ 크레딧으로 남고 만료는 보상 크레딧과 같아요. 회수는 쓸 수 있는 잔액 안에서만 되고 만료가 가까운 지급분부터 차감돼요.
         요청 중복 방지 키가 없어 처리 중에는 버튼이 잠겨요. 네트워크 오류로 결과를 모르면 잔액·내역을 확인한 뒤 다시 시도해 주세요.
@@ -52,7 +54,7 @@ export function CreditsOperations({ vm }: { vm: VM }) {
   )
 }
 
-function MemberTable({ rows, d }: { rows: MemberItem[]; d: Credits }) {
+function MemberTable({ rows, d, onPick }: { rows: MemberItem[]; d: Credits; onPick: (row: MemberItem) => void }) {
   return (
     <Table label="회원 검색 결과 표" style={{ marginTop: 10 }}>
       <thead>
@@ -76,7 +78,7 @@ function MemberTable({ rows, d }: { rows: MemberItem[]; d: Credits }) {
             <td>{d.balances.data?.[u.id] === undefined ? '—' : num(d.balances.data[u.id])}</td>
             <td className="act-menu">
               <PopMenu className="row-menu" label={`「${u.nickname}」 조치`} icon={<MoreVerticalIcon />}>
-                <button type="button" role="menuitem" onClick={() => d.pick(u)}>크레딧 보기·조정</button>
+                <button type="button" role="menuitem" onClick={() => onPick(u)}>크레딧 보기·조정</button>
               </PopMenu>
             </td>
           </tr>
@@ -87,10 +89,10 @@ function MemberTable({ rows, d }: { rows: MemberItem[]; d: Credits }) {
 }
 
 /** 고른 회원의 잔액(지급 종류별)·내역과 지급·회수 폼. 회원이 바뀌면 key로 새로 그려 입력·초점이 이어지지 않는다. */
-function MemberCredits({ vm, d, member }: { vm: VM; d: Credits; member: MemberItem }) {
+function MemberCredits({ vm, d, member, picks }: { vm: VM; d: Credits; member: MemberItem; picks: number }) {
   const heading = useRef<HTMLHeadingElement>(null)
-  // 회원을 고르면 아래 내용이 화면 밖일 수 있어 제목으로 초점을 옮긴다(PopMenu가 ⋮로 돌린 초점은 이 효과가 마지막에 덮는다).
-  useEffect(() => { heading.current?.focus() }, [])
+  // 회원을 고를 때마다(같은 회원을 다시 골라도) 아래 내용이 화면 밖일 수 있어 제목으로 초점을 옮기고, 초점을 받은 제목은 브라우저가 화면 안으로 스크롤한다(PopMenu가 ⋮로 돌린 초점은 이 효과가 마지막에 덮는다).
+  useEffect(() => { heading.current?.focus() }, [picks])
   const data = d.credits.data
   return (
     <div className="credit-member">

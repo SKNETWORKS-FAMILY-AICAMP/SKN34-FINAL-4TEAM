@@ -12,6 +12,7 @@ import { createAppStore } from '../../../../app/store'
 import { login } from '../../../../data/api/auth'
 import { HttpAdminActivityRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository } from '../../../../data/api/operationsApi'
 import { InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
+import { ADMIN_PERMISSIONS } from '../../../../domain/entities/admin'
 import type { AdminActivity } from '../../../../domain/entities/adminActivity'
 import { OperationsForbidden, OperationsRejected } from '../../../../domain/entities/operations'
 import { CREDIT_INSUFFICIENT_MESSAGE, CREDITS_FORBIDDEN, MEMBER_SEARCH_FORBIDDEN, type MemberCredits } from '../../../../domain/entities/operationsCredit'
@@ -1240,6 +1241,78 @@ it('회원 검색은 목록을 좁히고 검색어를 서버에 보낸다', asyn
   fireEvent.change(screen.getByLabelText('회원 검색'), { target: { value: '연화' } })
   fireEvent.click(screen.getByRole('button', { name: '검색' }))
   await waitFor(() => expect(members).toHaveBeenLastCalledWith({ role: 'ALL', q: '연화', sort: 'newest' }))
+})
+
+// 관리자 계정 생성 결과(오류·완료)는 공지·이벤트 폼처럼 폼 안 제출 줄 아래에 보이고 화면 맨 위에는 또 그리지 않는다(권한 12개 아래 제출 버튼에서 맨 위 상태 줄은 멀다).
+async function submitAdminForm(permissions: string[] = []) {
+  vi.spyOn(appContainer.resolve('memberUseCase'), 'listAdmins').mockResolvedValue([])
+  renderAdmin('admins')
+  fireEvent.change(await screen.findByLabelText('이메일'), { target: { value: 'new-admin@example.invalid' } })
+  fireEvent.change(screen.getByLabelText('닉네임'), { target: { value: '새 관리자' } })
+  fireEvent.change(screen.getByLabelText('초기 비밀번호'), { target: { value: 'StoryforkDev123!' } })
+  for (const name of permissions) fireEvent.click(screen.getByLabelText(name))
+  const form = screen.getByRole('button', { name: '관리자 계정 추가' }).closest('form') as HTMLFormElement
+  fireEvent.submit(form)
+  return form
+}
+const afterSubmitRow = (form: HTMLFormElement, node: Element) => !!(form.querySelector('.rowend')!.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)
+
+it('관리자 계정 생성 오류는 화면 맨 위가 아니라 폼 안 제출 줄 아래에 한 번만 보인다', async () => {
+  const form = await submitAdminForm()
+  const alert = await within(form).findByRole('alert')
+  expect(alert.textContent).toBe('한 가지 이상 권한을 선택해 주세요.')
+  expect(screen.getAllByRole('alert')).toEqual([alert])
+  expect(afterSubmitRow(form, alert)).toBe(true)
+})
+
+it('관리자 계정 생성 완료도 폼 안 제출 줄 아래에 한 번만 보이고 화면 맨 위 완료 줄은 없다', async () => {
+  const created = vi.spyOn(appContainer.resolve('memberUseCase'), 'createAdmin').mockResolvedValue(undefined)
+  const form = await submitAdminForm([ADMIN_PERMISSIONS[0][1]])
+  const done = await within(form).findByText('관리자 계정을 만들고 권한을 저장했어요.')
+  expect(created).toHaveBeenCalledTimes(1)
+  expect(done.getAttribute('role')).toBe('status')
+  expect(screen.getAllByText('관리자 계정을 만들고 권한을 저장했어요.')).toEqual([done])
+  expect(afterSubmitRow(form, done)).toBe(true)
+})
+
+it('경고 기준 행은 값이 저장값과 다르면 저장 버튼 곁에 "저장 안 됨"을 보이고, 저장돼 기준이 바뀌거나 값을 되돌리면 지운다', async () => {
+  // 공유 메모리 저장소를 바꾸지 않도록 이 테스트 안에서만 기준 목록을 들고 있는다.
+  const llm = appContainer.resolve('llmOpsUseCase')
+  let saved = (await llm.alertRules())!
+  vi.spyOn(llm, 'alertRules').mockImplementation(async () => structuredClone(saved))
+  vi.spyOn(llm, 'updateAlertRule').mockImplementation(async (key, input) => { saved = saved.map((rule) => rule.key === key ? { ...rule, ...input } : rule) })
+  renderAdmin('llm')
+  await screen.findByLabelText('AI 실패율 켜기')
+  const row = () => screen.getByLabelText('AI 실패율 켜기').closest('tr') as HTMLElement
+  const unsaved = () => within(row()).queryByText('저장 안 됨')
+  expect(unsaved()).toBeNull()
+  fireEvent.click(within(row()).getByLabelText('AI 실패율 켜기'))
+  // 저장 버튼과 같은 칸(곁)에 보인다.
+  expect(unsaved()!.closest('td')).toBe(within(row()).getByRole('button', { name: 'AI 실패율 기준 저장' }).closest('td'))
+  fireEvent.click(within(row()).getByLabelText('AI 실패율 켜기'))
+  expect(unsaved()).toBeNull()
+  fireEvent.change(within(row()).getByLabelText('AI 실패율 기준값'), { target: { value: '0.2' } })
+  expect(unsaved()).not.toBeNull()
+  fireEvent.click(within(row()).getByRole('button', { name: 'AI 실패율 기준 저장' }))
+  await waitFor(() => expect(unsaved()).toBeNull())
+  expect((within(row()).getByLabelText('AI 실패율 기준값') as HTMLInputElement).value).toBe('0.2')
+})
+
+it('회귀 평가 실행의 세 입력은 화면 표에 나오는 값 형식을 placeholder로 보여 준다', async () => {
+  renderAdmin('llm', 'quality')
+  const run = await screen.findByRole('region', { name: '회귀 평가' })
+  expect(['데이터셋', '프롬프트 이름', '버전'].map((name) => within(run).getByLabelText(name).getAttribute('placeholder')))
+    .toEqual(['예: simulation.narrate', '예: character_simulation.narrate', '예: 2'])
+})
+
+it('크레딧 탭은 회원을 고르면 상세 제목으로 초점을 옮기고, 같은 회원을 목록에서 다시 골라도 제목으로 되돌린다', async () => {
+  await openMemberCredits()
+  const heading = () => screen.getByRole('heading', { name: '연화봉러 님의 크레딧' })
+  await waitFor(() => expect(document.activeElement).toBe(heading()))
+  // 스크롤해 목록으로 올라와 같은 회원을 다시 고르면, 메뉴가 닫히며 초점이 ⋮로 돌아간 채 남지 않고 제목으로 간다.
+  const row = screen.getByText('연화봉러', { selector: 'b' }).closest('tr') as HTMLElement
+  fireEvent.click(openRowMenu(row).getByRole('menuitem', { name: '크레딧 보기·조정' }))
+  expect(document.activeElement).toBe(heading())
 })
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
