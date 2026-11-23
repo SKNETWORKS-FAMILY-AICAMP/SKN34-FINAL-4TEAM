@@ -12,7 +12,7 @@
   한 번 불러 최신 닉네임을 채운다. 목록에 없으면(관리자 해제·탈퇴) `actorNickname: null`이고 화면은 ID를 보여 준다. Core 실패는 502다.
 - **조회 범위**: 최신 100개 고정, `created_at DESC, id DESC`.
 - **기록 시점**: 조치가 성공한 뒤 같은 요청 안에서 저장한다. 운영 DB만 바꾸는 조치(신고 검토·자료 요청, 공지·이벤트, 문의 답변)는
-  같은 트랜잭션에서 저장한다(공지·이벤트는 `AdminNoticeService`·`AdminEventService`의 변경 메서드가 트랜잭션을 열어, 기록이 실패하면 저장도 롤백된다). Core·Content를 호출하는 조치(회원·작품 제한/해제, 관리자 생성, 크레딧 지급·회수, 신고 제한/해제)는 상위 호출이
+  같은 트랜잭션에서 저장한다(공지·이벤트는 `AdminNoticeService`·`AdminEventService`의 변경 메서드가 트랜잭션을 열어, 기록이 실패하면 저장도 롤백된다). Core·Content를 호출하는 조치(회원·작품·회차·세계관 제한/해제, 관리자 생성, 크레딧 지급·회수, 카드 카테고리 변경, 신고 제한/해제)는 상위 호출이
   성공한 뒤 저장한다. 신고 제한/해제는 Content 호출이 성공한 뒤 신고 갱신·이력과 같은 로컬 트랜잭션에 저장한다.
 
 ## 저장 (operations Flyway V7)
@@ -48,9 +48,13 @@ CREATE INDEX admin_activity_created_idx ON operations.admin_activity (created_at
 | `COMMENT_HIDE` · `COMMENT_UNHIDE` | `COMMENT` · 댓글 ID | 작품 제목(Content 응답, 댓글 본문은 저장하지 않음) |
 | `GENRE_CREATE` · `GENRE_UPDATE` | `GENRE` · 장르 코드 | 장르 이름(Content 응답, [장르 관리](genre-management-contract.md)) |
 | `GENRE_REORDER` | `GENRE` · `order` | 새 순서의 코드 목록(쉼표) |
+| `episode.restrict` · `episode.unrestrict` | `episode` · `<작품 ID>:<회차 번호>` | 회차 제목(Content 응답, [콘텐츠 운영 관리 확장](operations-work-contract.md#콘텐츠-운영-관리-확장-회차세계관카드-카테고리-2026-11-23)) |
+| `world.restrict` · `world.unrestrict` | `world` · 세계관 ID | 세계관 이름(Content 응답) |
+| `card_category.create` · `card_category.update` | `card_category` · 카테고리 코드 | 카테고리 이름(Content 응답) |
+| `card_category.reorder` | `card_category` · `order` | 새 순서의 코드 목록(쉼표) |
 | `CREDIT_GRANT` · `CREDIT_REVOKE` | `MEMBER` · 회원 ID | `<금액> · <사유>`(앞뒤 공백을 뗀 사유, [크레딧 운영](operations-funnel-credit-contract.md#2-크레딧-운영-core-정본--운영-중계)) |
 
-`detail`은 500자를 넘으면 잘라 저장한다.
+`detail`은 500자를 넘으면 잘라 저장한다. 회차·세계관·카드 카테고리 조치(`episode.*`·`world.*`·`card_category.*`)의 `action`·`target_type`은 대문자 스네이크인 위 값들과 달리 소문자·점 표기다(2026-11-23 코디네이터 확정 계약, `target_type` 20자·`action` 40자 안에 든다).
 
 ## 운영 공개 API (브라우저)
 

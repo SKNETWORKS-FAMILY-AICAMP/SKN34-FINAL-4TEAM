@@ -42,7 +42,7 @@
 |---|---|
 | 공개 설정 | 카드마다 하나다: `N화부터 공개`(1 이상의 정수) 또는 `작가 전용`(기본). 소설이 연결되지 않은 세계관은 `공개`(= 1화부터)와 `작가 전용` 두 값으로 고른다 |
 | 유효 공개 회차 | 카드 `semanticMetadata.revealFromEpisode`가 1 이상의 정수 JSON 숫자면 그 값, 키가 없고 카드 `visibility=public`이면 1, 그 밖은 없음(작가 전용). 키가 있는데 값이 잘못됐으면(JSON `null` 포함) 작가 전용이다(`visibility`로 열지 않는다) |
-| 기준 회차 | 연결된 소설의 **발행된 마지막 회차**. 소설이 공개 작품이 아니거나 발행된 회차가 없으면 0, 소설이 연결되지 않은 세계관은 1. Fork 이어받기는 Fork 기준 회차와 요청 `upto` 중 작은 값 |
+| 기준 회차 | 연결된 소설의 **발행된 마지막 회차**(운영이 제한한 회차는 독자에게 없으므로 세지 않는다, [운영 콘텐츠 관리 계약](content-operator-management-contract.md)). 소설이 공개 작품이 아니거나 발행된 회차가 없으면 0, 소설이 연결되지 않은 세계관은 1. Fork 이어받기는 Fork 기준 회차와 요청 `upto` 중 작은 값 |
 | 보이는 카드 | 삭제되지 않았고(`lifecycle=active`) 유효 공개 회차가 기준 회차 이하인 카드 |
 | 보이는 관계 | 양 끝이 모두 보이는 카드인 관계를 기준 회차 시점으로 본 것(DEC-51). 「동일 인물」도 같다 |
 
@@ -186,16 +186,17 @@ PublicWorld        = { "id", "name", "description", "genre", "authorNickname", "
 
 | 메서드·경로 | 동작 |
 |---|---|
-| `GET /api/v1/public/world-studios?genre=<code>&page=0&size=24` | 공개이고 저장 버전이 있는 세계관만 `published_at` 최신순(같은 시각은 `id`순)으로 반환한다. `genre`를 생략하면 전체다 |
-| `GET /api/v1/public/world-studios/{id}` | 비공개·없음·저장 버전 없음은 404. 그 밖에는 마지막 저장 버전에서 기준 회차 이하로 공개된 카드(DEC-53)와 그 카드끼리의 기준 회차 시점 관계를 반환한다 |
+| `GET /api/v1/public/world-studios?genre=<code>&page=0&size=24` | 공개이고 저장 버전이 있고 운영이 제한하지 않은 세계관만 `published_at` 최신순(같은 시각은 `id`순)으로 반환한다. `genre`를 생략하면 전체다 |
+| `GET /api/v1/public/world-studios/{id}` | 비공개·없음·저장 버전 없음·운영 제한은 404. 그 밖에는 마지막 저장 버전에서 기준 회차 이하로 공개된 카드(DEC-53)와 그 카드끼리의 기준 회차 시점 관계를 반환한다 |
 | `GET /api/v1/public/world-studios/{id}/cover` | 상세와 같은 기준(공개이고 확정 버전이 있는 세계관)일 때만 표지 이미지 바이트를 반환한다. 비공개·확정 버전 없음·표지 없음·없는 세계관은 404 |
 
-- `cards`는 마지막 `world_revision`의 카드 버전 중 보이는 카드(`lifecycle=active`이고 유효 공개 회차가 기준 회차 이하, DEC-53)의 내용이다. `text`의 본문 링크는 대상이 `cards`에 없으면 서버가 글자만 남기고 id를 지운다([치환 규칙](#본문-링크의-공개-응답)). `id`는 카드 논리 ID로 관계의 양 끝이 가리키고, `cardType`은 기존 WorldStudio 카드 유형 코드(`character`·`location`·`organization`·`ability`·`object`·`rule`·`event`·`other`) 그대로다(프론트의 기존 라벨 매핑을 쓴다).
+- `cards`는 마지막 `world_revision`의 카드 버전 중 보이는 카드(`lifecycle=active`이고 유효 공개 회차가 기준 회차 이하, DEC-53)의 내용이다. `text`의 본문 링크는 대상이 `cards`에 없으면 서버가 글자만 남기고 id를 지운다([치환 규칙](#본문-링크의-공개-응답)). `id`는 카드 논리 ID로 관계의 양 끝이 가리키고, `cardType`은 카드 카테고리 코드다(기본 8종 `character`·`location`·`organization`·`ability`·`object`·`rule`·`event`·`other`와 운영이 더한 `category-NN`, 이름·아이콘은 `GET /api/v1/public/card-categories`, [계약](content-operator-management-contract.md#세계관-카드-카테고리)).
 - `relationships`는 Neo4j 관계를 **기준 회차 시점**(DEC-51·53, 소설이 연결되지 않은 세계관은 1화)으로 본 것 중 **양 끝 카드가 위 `cards`에 있는 것**만이다. 저장하지 않은 새 카드나 삭제된 카드·작가 전용·기준 회차 뒤 카드를 가리키는 관계는 나오지 않는다. `label`·`body`와 `category`·`direction`·`polarity`를 함께 반환하며, 없는 방향과 극성은 null 그대로다. 관계마다 `history`(기준 회차까지의 변화 `[{episode, label, body}]`, 바뀐 적 없으면 빈 목록, 기준 회차 뒤의 변화와 끝점이 달랐던 옛 연결은 담지 않는다, `body`의 본문 링크는 관계 `body`와 같이 치환한다, [관계별 회차](worldstudio-independent-schema.md#관계별-회차--dec-54-2단계))도 준다.
 - 관계 저장소가 현재 상태를 보증하지 못하면(미전환·미완료·조회 실패·토큰 불일치·확장 적재 중) 카드는 그대로 두고 `relationships: []`, `relationshipStatus: "unavailable"`로 200을 돌려준다(500이 아니다). 정상이면 `"current"`다. 목록의 관계 수는 이때 0이 아닌 `null`이다. 회차 이력의 payload만 손상됐을 때는 이력을 싣는 상세·독자 위키만 `unavailable`이고, 이력을 읽지 않는 목록의 관계 수와 Fork 이어받기는 기준 회차의 관계를 확인할 수 있으면 그대로다.
 - 작가 닉네임은 저장하지 않고 응답마다 `CoreNicknameService`로 회원 ID 묶음을 한 번 조회해 채운다. Core에 없으면 `탈퇴한 회원`이고, Core 호출 실패는 대체 이름 없이 503/504/502로 그대로 전한다.
 - `linkedWork`는 이 세계관에 연결된 소설(`work.world_studio_id`, 1:1, DEC-46)의 최소 정보(작품 id·제목·작가 닉네임·표지 유무)이며 **연결된 소설이 공개 작품일 때만** 채운다(#329). 공개 판정은 Content의 기존 공개 술어(`WorkAccessResult.publiclyVisible()`: 공개 범위가 `public`이고 제한·삭제가 아닌 작품)를 그대로 쓰고, 비공개·제한·삭제 작품이거나 연결이 없으면 `null`이라 소설의 존재 자체를 드러내지 않는다. 목록(`PublicWorldSummary`)에는 싣지 않는다. 소설 작가 닉네임은 위 세계관 작가와 **같은 `CoreNicknameService` 조회 한 번**에 묶어 채우고(Core에 없으면 `탈퇴한 회원`, 실패는 위와 같이 그대로), 연결된 소설이 없거나 공개가 아니면 그 작가는 조회하지 않는다. 404인 세계관은 연결을 읽지 않는다.
 - `linkedWork.hasCover`는 작품 표지(회차 0 이미지)가 있는지다. `true`이면 화면이 기존 공개 작품 표지 `GET /api/v1/public/works/{id}/cover/content`를 `<img>`로 직접 읽고, `false`이면 기본 작품 표지(`/default-work-cover.svg`)를 쓴다. 화면은 '이 세계관을 쓴 작품' 선반에 그 소설을 책 카드 하나로 보이고 누르면 작품 상세(`/work/{id}`)로 이동하며, `null`이면 '이 세계관으로 공개된 소설이 아직 없어요'를 보인다(`--mode mockup` 데모는 서버 값이 아니라 데모 작품을 링크 없이 보인다).
+- 운영이 제한한 세계관(`world.restricted`, [운영 콘텐츠 관리 계약](content-operator-management-contract.md#공개-세계관-제한))은 이 공개 경로(목록·`q` 검색·카드 검색·상세·표지·카드 이미지, 가져오기)에서 모두 404이며 소유자 조회·연결된 소설의 독자 설정 위키·Fork 이어받기는 그대로다.
 - 상세의 `id`가 UUID 형식이 아니면 400, 형식이 맞는데 없으면 404다.
 - 표지 응답의 `Content-Type`은 저장한 형식(`image/png`·`image/jpeg`·`image/webp`)이고 `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`이다(기존 작품 공개 표지와 같은 관례). 화면은 `hasCover`가 `true`일 때만 `<img src="/api/v1/public/world-studios/{id}/cover">`로 직접 읽고, `false`이면 기본 표지(`/default-work-cover.svg`)를 쓴다. `id`가 UUID 형식이 아니면 400이다.
 

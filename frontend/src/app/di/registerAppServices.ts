@@ -13,6 +13,9 @@ import { EventUseCase } from '../../domain/usecases/EventUseCase'
 import { OperationsWorkUseCase } from '../../domain/usecases/OperationsWorkUseCase'
 import { OperationsGenreUseCase } from '../../domain/usecases/OperationsGenreUseCase'
 import { GenreUseCase } from '../../domain/usecases/GenreUseCase'
+import { CardCategoryUseCase } from '../../domain/usecases/CardCategoryUseCase'
+import { OperationsCardCategoryUseCase } from '../../domain/usecases/OperationsCardCategoryUseCase'
+import { OperationsWorldUseCase } from '../../domain/usecases/OperationsWorldUseCase'
 import { OperationsCommentUseCase } from '../../domain/usecases/OperationsCommentUseCase'
 import { OperationsCreditUseCase } from '../../domain/usecases/OperationsCreditUseCase'
 import { AdminActivityUseCase } from '../../domain/usecases/AdminActivityUseCase'
@@ -21,10 +24,12 @@ import { LlmOpsUseCase } from '../../domain/usecases/LlmOpsUseCase'
 import { OperationsDashboardUseCase } from '../../domain/usecases/OperationsDashboardUseCase'
 import { HttpEventRepository } from '../../data/api/HttpEventRepository'
 import { HttpOperationsCreditRepository } from '../../data/api/HttpOperationsCreditRepository'
-import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
+import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpOperationsWorldRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
 import { HttpNoticeRepository } from '../../data/api/noticeApi'
 import { HttpOperationsGenreRepository } from '../../data/api/genreApi'
 import { HttpGenreRepository } from '../../data/content/HttpGenreRepository'
+import { HttpCardCategoryRepository } from '../../data/content/HttpCardCategoryRepository'
+import { HttpOperationsCardCategoryRepository } from '../../data/api/cardCategoryApi'
 import { HttpJobMonitorRepository, HttpLlmOpsRepository, HttpOperationsDashboardRepository } from '../../data/api/llmOpsApi'
 import { InMemoryOperationsRepository } from '../../data/mock/InMemoryOperationsRepository'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
@@ -114,6 +119,12 @@ export function registerAppServices(container: AppContainer) {
     genreUseCase: asFunction(({ genreRepository }) => new GenreUseCase(genreRepository)).singleton(),
     operationsGenreRepository: asFunction(() => new HttpOperationsGenreRepository()).singleton(),
     operationsGenreUseCase: asFunction(({ operationsGenreRepository }) => new OperationsGenreUseCase(operationsGenreRepository)).singleton(),
+    cardCategoryRepository: asFunction(() => new HttpCardCategoryRepository()).singleton(),
+    cardCategoryUseCase: asFunction(({ cardCategoryRepository }) => new CardCategoryUseCase(cardCategoryRepository)).singleton(),
+    operationsCardCategoryRepository: asFunction(() => new HttpOperationsCardCategoryRepository()).singleton(),
+    operationsCardCategoryUseCase: asFunction(({ operationsCardCategoryRepository }) => new OperationsCardCategoryUseCase(operationsCardCategoryRepository)).singleton(),
+    operationsWorldRepository: asFunction(() => new HttpOperationsWorldRepository()).singleton(),
+    operationsWorldUseCase: asFunction(({ operationsWorldRepository }) => new OperationsWorldUseCase(operationsWorldRepository)).singleton(),
     operationsCreditRepository: asFunction(() => new HttpOperationsCreditRepository()).singleton(),
     operationsCreditUseCase: asFunction(({ operationsCreditRepository }) => new OperationsCreditUseCase(operationsCreditRepository)).singleton(),
     operationsCommentRepository: asFunction(() => new HttpOperationsCommentRepository()).singleton(),

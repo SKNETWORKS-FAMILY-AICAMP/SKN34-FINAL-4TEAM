@@ -11,6 +11,7 @@ import ai.storyfork.content.world.service.dto.WorldCoverImage
 import ai.storyfork.content.world.studio.entity.SettingCardImage
 import ai.storyfork.content.world.studio.repository.SettingCardImageRepository
 import ai.storyfork.content.world.studio.repository.StudioWorldRepository
+import ai.storyfork.content.world.studio.repository.lockAccessible
 import java.util.UUID
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -35,7 +36,7 @@ class WorldCardImageService(
      * ponytail: DB 기록이 실패하면 객체가 객체 저장소에 남는다(어떤 행도 가리키지 않는다). 정리는 운영자 몫이고 보상 트랜잭션은 두지 않는다.
      */
     fun put(worldId: UUID, subject: UUID, image: WorldCoverFile): WorldCardImageResponse {
-        tx { worlds.lockOwned(worldId, subject) ?: throw WorldNotFound() }
+        tx { worlds.lockAccessible(worldId, subject) ?: throw WorldNotFound() }
         val id = UUID.randomUUID()
         val key = "world-card-images/$id"
         coverStorage { storage.upload(key, AttachmentObjectPayload(image.bytes, image.contentType)) }
@@ -46,7 +47,7 @@ class WorldCardImageService(
     /** 소유자에게 저장된 이미지를 돌려준다. 남의·지운 세계관은 404(WorldNotFound), 없는 ID·다른 세계관의 ID는 404(ContentFailure)다. */
     fun read(worldId: UUID, subject: UUID, imageId: UUID): WorldCoverImage {
         val row = tx {
-            worlds.findById(worldId).orElse(null)?.takeIf { it.ownerSubject == subject && it.deletedAt == null } ?: throw WorldNotFound()
+            worlds.findById(worldId).orElse(null)?.takeIf { (it.ownerSubject == subject || ai.storyfork.content.auth.config.operatorReading()) && it.deletedAt == null } ?: throw WorldNotFound()
             images.findById(imageId).orElse(null)?.takeIf { it.worldId == worldId } ?: throw ContentFailure(404, "카드 이미지를 찾을 수 없습니다.")
         }
         return WorldCoverImage(coverStorage { storage.read(row.objectKey).bytes }, row.contentType)

@@ -68,6 +68,7 @@ Content `GET /internal/v1/operations/funnel`(운영 서비스 토큰 체인, 파
 | `GET /members/{memberId}` | 잔액(종류별 포함)과 내역(Core `history`와 같은 모양) |
 | `POST /members/{memberId}/grants` `{amount, reason}` | 수동 지급 → 201, 갱신된 잔액 |
 | `POST /members/{memberId}/revocations` `{amount, reason}` | 수동 회수 → 201, 갱신된 잔액 |
+| `POST /balances` `{memberIds}` | 회원 목록의 잔액 열: Core 묶음 잔액을 **맨 배열** `[{memberId,total}]`로 그대로 중계(없는 회원은 빠짐, 최대 100명은 Core가 판단). `credits` 권한 확인이 먼저이고 조회라 활동 기록은 없다 |
 
 - `amount`: 정수 1~100,000. `reason`: 앞뒤 공백 제거 후 1~200자. 위반은 422.
 - 지급은 새 지급 종류 `operator`(Core `CreditKind.OPERATOR`)로 남기고 만료는 `reward`와 같다.
@@ -77,6 +78,7 @@ Content `GET /internal/v1/operations/funnel`(운영 서비스 토큰 체인, 파
 - Core 내부 API(운영 서비스만, 인증은 `/internal/v1/members/**`와 같은 `X-Operations-Service-Token` + 운영자 Bearer 전달, Core가 `operator` 재확인):
   `GET /internal/v1/credits/members/{memberId}` → `{"balance":{"total","items":[{"kind","remaining","expiresAt"}]},"history":{"items":[{"type":"grant|spend|expire|revoke","kind","amount","occurredAt"}]}}`,
   `POST …/{memberId}/grants`·`…/revocations` `{"amount","reason"}` → 201 갱신 잔액 `{"total","items"}`. 오류는 problem+json `code` `CREDIT_INSUFFICIENT`(409)·`INVALID_CREDIT_REQUEST`(422), 404는 본문 없음. 운영은 응답을 그대로 중계한다.
+  `POST /internal/v1/credits/balances` `{"memberIds":[uuid,…]}`(최대 100명) → `[{"memberId","total"}]`: `total`은 `/me/credits`의 `total`과 같은 계산이고, 없는 회원은 빠지며 순서는 정해져 있지 않다(`memberId`로 맞춘다). 100명을 넘으면 422 `INVALID_CREDIT_REQUEST`. 운영 크레딧 탭이 회원 목록의 잔액 열을 채우는 데 쓴다.
 - 회원 본인 내역(`/me/credits/history`)에도 `revoke`(회수, −)와 지급 종류 `operator`(운영자 지급 크레딧)가 나온다.
 - 활동 기록: `CREDIT_GRANT`·`CREDIT_REVOKE`(대상 회원 ID, 금액, 사유). 지급·회수가 성공한 뒤에만 남긴다.
 - 화면: 크레딧 탭 데모를 지우고 회원 검색 → 잔액·내역 표 → 지급·회수 폼(금액·사유, 확인 대화). 처리 중 버튼을 잠근다.

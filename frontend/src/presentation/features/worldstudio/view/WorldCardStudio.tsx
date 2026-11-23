@@ -1,7 +1,8 @@
 import { Suspense, useEffect, useId, useRef, useState } from 'react'
 
 import { presentationPortrait } from '../../../../app/presentationPortraits'
-import { cardTypeOf, cardTypes, settingAreas, type CardType } from '../../../../domain/entities/studioCards'
+import { categoryChoices, categoryIcon, categoryName } from '../../../../domain/entities/cardCategory'
+import { cardTypeOf, isCard, settingAreas, type CardType } from '../../../../domain/entities/studioCards'
 import { identityBodyOf, relationDefinitions } from '../../../../domain/entities/studioRelations'
 import { cardRevealEpisode, invalidReveal, REVEAL_EPISODE_ERROR, studioLabelCleanup, type SettingItem } from '../../../../domain/entities/studioWorld'
 import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
@@ -18,7 +19,7 @@ import { cardRelationEntries } from '../viewmodel/cardRelationEntries'
 import { paneBadges } from '../viewmodel/cardPanels'
 import { KNOWLEDGE_KINDS } from '../viewmodel/relationView'
 import { kinds, labelOf } from '../viewmodel/settingBoard'
-import { CARD_KIND } from '../../../shared/worldBoard'
+import { kindOf } from '../../../shared/worldBoard'
 import { useCardBoard } from '../viewmodel/useCardBoard'
 import { CardRelationMap } from '../../../shared/CardRelationMap'
 import { PageControls } from '../../../shared/PageControls'
@@ -28,6 +29,7 @@ import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 import { worldVersionRows } from '../viewmodel/worldVersionGraph'
 import { CardActivityBar } from './CardActivityBar'
+import { CardCategoryNotice } from './CardCategoryNotice'
 import { CardDeletionConfirm } from './CardDeletionConfirm'
 import { CardImageControl, CardThumb } from './WorldCardImage'
 import { CharacterDocs } from './CharacterDocs'
@@ -72,6 +74,10 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const setting = world.settings.find((s) => s.item.id === vm.selected)!
   const { item } = setting
   const board = useCardBoard(vm)
+  // 유형 선택지·이름은 운영자가 관리하는 카드 카테고리다. 이미 쓰는 숨긴 카테고리는 그대로 남는다(새로 고를 수는 없다).
+  // 목록을 읽는 동안·읽지 못했을 때는 기본 8종으로 대신하지 않고 선택을 잠근다(실패는 아래에서 다시 시도로 알린다). 목록은 게시판 훅과 같은 읽기 결과다.
+  const { categories, isLoading, isError, retry } = board.cardCategories
+  const typeChoices = categoryChoices(categories ?? [], cardTypeOf(item))
   const pane = vm.pane // 활동 막대에서 고른 본문 화면(개요·문서·관계·버전·공개 순서): 주소의 pane이 정본이다
   const [listOpen, setListOpen] = useState(() => window.matchMedia?.('(min-width: 901px)').matches ?? true) // 설정 카드 목록 패널: 데스크톱은 펼친 채, 좁은 화면은 접힌 채 시작한다
   const [confirm, setConfirm] = useState('') // 삭제를 확인 중인 카드 id
@@ -95,7 +101,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
   const entries = cardRelationEntries(world.settings, item.id)
   const relationCount = entries.filter((e) => !e.id.startsWith('link:')).length
   // 설정 링크(DEC-53)로 고를 수 있는 같은 세계관의 카드(편집 중인 카드와 카드가 아닌 기존 항목은 뺀다)와 이 카드에서 나온 공개 순서 경고
-  const linkChoices = world.settings.flatMap((s) => (s.item.id !== item.id && cardTypes.some((t) => t.id === cardTypeOf(s.item)) ? [{ id: s.item.id, title: s.item.title || '이름 없는 설정', type: labelOf(s), aliases: s.aliases }] : []))
+  const linkChoices = world.settings.flatMap((s) => (s.item.id !== item.id && isCard(s.item) ? [{ id: s.item.id, title: s.item.title || '이름 없는 설정', type: labelOf(s, categories), aliases: s.aliases }] : []))
   const orderIssues = board.orderIssues.filter((issue) => issue.cardId === item.id)
   const badges = paneBadges({ relations: relationCount, versions: revisions.rows.length, dirty: vm.dirty, issues: orderIssues.length })
   const openLinked = (id: string) => { setConfirm(''); focusName.current = true; vm.editCard(id) }
@@ -172,7 +178,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                 <div className="writing-rail-split">
                   <nav id={listId} className="seps writing-episodes" aria-label="설정 카드 목록">
                     {board.paged.items.map((row) => rail(row.cardId, row.title, row.type))}
-                    {legacyItems.items.map((s) => rail(s.item.id, s.item.title || '이름 없는 설정', labelOf(s)))}
+                    {legacyItems.items.map((s) => rail(s.item.id, s.item.title || '이름 없는 설정', labelOf(s, categories)))}
                     {!board.rows.length && !legacy.length && <p className="small muted world-rail-empty">조건에 맞는 설정이 없어요.</p>}
                   </nav>
                   <PageControls label="설정 카드" page={board.paged.page} pages={board.paged.pages} onPage={board.setPage} />
@@ -197,11 +203,13 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                       <CardImageControl vm={vm} cardId={item.id} title={item.title} imageId={setting.imageId} portrait={portrait} />
                       <div className="world-overview-fields">
                         <label className="field world-type">유형
-                          <select className="inp" value={cardTypeOf(item)} onChange={(e) => vm.changeCardType(item.id, e.target.value as CardType)}>
-                            {cardTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+                          <select className="inp" value={cardTypeOf(item)} disabled={!categories} onChange={(e) => vm.changeCardType(item.id, e.target.value as CardType)}>
+                            {typeChoices.map((c) => <option key={c.code} value={c.code}>{categoryIcon(c)}</option>)}
+                            {isCard(item) && !typeChoices.some((c) => c.code === cardTypeOf(item)) && <option value={cardTypeOf(item)}>{categoryName(categories ?? [], cardTypeOf(item)) + (isLoading ? ' · 불러오는 중…' : '')}</option>}
                             {['relation', 'review', 'note'].includes(cardTypeOf(item)) && <option value={cardTypeOf(item)}>{kinds[item.kind]} · 기존 의미 유지</option>}
                           </select>
                         </label>
+                        <CardCategoryNotice isError={isError} retry={retry} />
                         {setting.importedFrom && <p className="small muted world-card-source"><span className="chip">가져옴</span>{importedSource(setting.importedFrom)}</p>}
                         {item.kind !== 'relation' && (
                           <section className="world-card-reach" aria-label="공개 범위">
@@ -279,7 +287,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                         <button className="btn sm world-relation-link" type="button" onClick={() => vm.openRelations(item.id)}>관계 편집</button>
                       </div>
                       <section className="world-card-links" aria-label="연관 설정">
-                        <CardRelationMap center={{ id: item.id, title: item.title || '이름 없는 설정', kind: CARD_KIND[cardTypeOf(item) as CardType] ?? '기타' }} badge={reachBadge} entries={entries} revealEpisode={reveal ?? null} onOpen={openLinked} emptyAction={<button type="button" className="btn sm" onClick={() => vm.openRelations(item.id)}>관계 추가</button>} quietKinds={KNOWLEDGE_KINDS} />
+                        <CardRelationMap center={{ id: item.id, title: item.title || '이름 없는 설정', kind: kindOf(cardTypeOf(item)) }} badge={reachBadge} entries={entries} revealEpisode={reveal ?? null} onOpen={openLinked} emptyAction={<button type="button" className="btn sm" onClick={() => vm.openRelations(item.id)}>관계 추가</button>} quietKinds={KNOWLEDGE_KINDS} />
                       </section>
                     </>
                   )}

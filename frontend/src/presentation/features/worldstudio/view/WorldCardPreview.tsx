@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { cardTypeOf, cardTypes, settingAreas, type CardType } from '../../../../domain/entities/studioCards'
+import { cardTypeOf, isCard, settingAreas } from '../../../../domain/entities/studioCards'
 import { cardRevealEpisode, type StudioSetting } from '../../../../domain/entities/studioWorld'
 import { CardMarkdown, type CardLinkRender } from '../../../shared/CardMarkdown'
 import { CardRelationMap } from '../../../shared/CardRelationMap'
@@ -8,11 +8,10 @@ import { CardWikiBody, InfoRow, WikiInfoBox } from '../../../shared/cardWiki'
 import { wikiSections, type WikiRelation } from '../../../shared/cardWikiSections'
 import { KindChip } from '../../../shared/KindChip'
 import { relationAnchor } from '../../../shared/relationParagraph'
-import { CARD_KIND, type BoardRow } from '../../../shared/worldBoard'
+import { kindOf, type BoardRow } from '../../../shared/worldBoard'
 import { cardRelationEntries } from '../viewmodel/cardRelationEntries'
 import { revealBadge } from '../viewmodel/cardVisibility'
 import { KNOWLEDGE_KINDS } from '../viewmodel/relationView'
-import { labelOf } from '../viewmodel/settingBoard'
 import { useCardImageUrl, type CardImages } from '../viewmodel/useCardImages'
 import '../../reading/view/publicWiki.css'
 
@@ -34,10 +33,10 @@ export function CardWikiPreview({ settings, setting, row, linked, images, onOpen
 }) {
   const { item } = setting
   const title = item.title || '이름 없는 설정'
-  const kind = CARD_KIND[cardTypeOf(item) as CardType] ?? '기타'
+  const kind = kindOf(cardTypeOf(item))
   const reach = cardRevealEpisode(setting)
   const entries = cardRelationEntries(settings, item.id)
-  const cards = new Set(settings.filter((s) => cardTypes.some((t) => t.id === cardTypeOf(s.item))).map((s) => s.item.id))
+  const cards = new Set(settings.filter((s) => isCard(s.item)).map((s) => s.item.id))
   const open = (id: string, label: ReactNode) => <button type="button" className="card-relmap-link" onClick={() => onOpen(id)}>{label}</button>
   const cardLink: CardLinkRender = (id, label) => (cards.has(id) ? open(id, label) : undefined)
   const relations = entries.filter((e) => !e.id.startsWith('link:')).map((e): WikiRelation => {
@@ -48,7 +47,7 @@ export function CardWikiPreview({ settings, setting, row, linked, images, onOpen
   return (
     <div className="nw world-preview-doc" role="group" aria-label={`${title} 문서`} tabIndex={0}>
       <WikiInfoBox kind={kind} title={title} image={setting.imageId ? <PreviewImage images={images} imageId={setting.imageId} title={title} /> : undefined}>
-        <InfoRow k="유형"><KindChip kind={kind} label={labelOf(setting)} /></InfoRow>
+        <InfoRow k="유형"><KindChip kind={kind} label={row.type} /></InfoRow>
         <InfoRow k="설정 영역">{settingAreas.find((area) => area.id === item.category)?.label ?? item.category}</InfoRow>
         {setting.userCategory && <InfoRow k="내 분류">{setting.userCategory}</InfoRow>}
         {!!setting.aliases?.length && <InfoRow k="별칭">{setting.aliases.join(', ')}</InfoRow>}

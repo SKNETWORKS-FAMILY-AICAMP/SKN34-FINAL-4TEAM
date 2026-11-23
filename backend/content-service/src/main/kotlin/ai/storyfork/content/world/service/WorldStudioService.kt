@@ -36,11 +36,12 @@ class WorldStudioService(
     @Qualifier("worldStudioTransactionManager") manager:PlatformTransactionManager,private val mapper:JsonMapper,
     private val genres:GenreRepository,
     private val buildJobs:ManuscriptBuildJobRepository,private val buildSteps:ManuscriptBuildLoadStepRepository,
+    private val cardCategories:CardCategoryRepository,
 ) {
     private val log=org.slf4j.LoggerFactory.getLogger(javaClass)
     private val transaction=TransactionTemplate(manager)
     private fun <T:Any> tx(action:()->T):T=transaction.execute { action() }
-    private fun owned(id:UUID,subject:UUID)=worlds.lockOwned(id,subject) ?: throw WorldNotFound()
+    private fun owned(id:UUID,subject:UUID)=worlds.lockAccessible(id,subject) ?: throw WorldNotFound()
     private fun draft(id:UUID)=drafts.findById(id).orElseThrow { WorldNotFound() }
     private fun state(id:UUID)=states.findById(id).orElseThrow { WorldStudioFailure.migration() }
     private fun expected(draft:WorldDraft,revision:Long,unprepared:Boolean=false) { if(draft.draftRevision!=revision) throw if(unprepared) WorldStudioFailure.rejected() else WorldConflict() }
@@ -521,6 +522,8 @@ class WorldStudioService(
             EditPlan(readDraft(world,state),state.completed && same,state.graphVersion)
         }
         if(loaded.duplicate) return draft(worldId,subject,request.episode)
+        // 분석 반영·원고 구축·시더는 AI·시스템이 정한 기본 8종을 그대로 저장하므로 존재만 보고, 작가·MCP의 직접 저장은 새로 정하는 값이 활성이어야 한다.
+        requireCardCategories(request.cards,loaded.draft.cards,activeOnly=applicationId==null && stepId==null && expanded==null)
         val mergedCards=mergeCards(loaded.draft.cards,request)
         val known=mergedCards.filter { it.lifecycle=="active" }.map { it.id }.toSet()
         require(known.size<=10000) { "설정 카드는 10,000개까지 저장할 수 있습니다." }
@@ -773,8 +776,19 @@ class WorldStudioService(
         require(name.isNotBlank() && name.length<=100 && description.length<=20000) { "세계관 이름과 설명의 길이를 확인하세요." }
     }
     private fun validateKey(key:String) { require(key.isNotBlank() && key.toByteArray(Charsets.UTF_8).size<=200) { "저장 요청 키는 1~200 바이트여야 합니다." } }
+    /**
+     * 카드 유형(카테고리, 장르 DEC-56와 같은 방식)은 DB CHECK가 아니라 여기서 card_category 표로 확인한다: 존재하는 코드여야 하고, [activeOnly]이면 새로 정하는 값은 활성이어야 한다.
+     * 그 카드가 이미 쓰던 값([current])은 숨긴 카테고리여도 유지할 수 있다. 어긋나면 입력 오류(422)다.
+     */
+    internal fun requireCardCategories(requested:List<CardPayload>,current:List<CardPayload>,activeOnly:Boolean) {
+        val known=cardCategories.findAll().associateBy { it.code }
+        val before=current.associate { it.id to it.cardType }
+        requested.forEach { card ->
+            val category=known[card.cardType]
+            require(category!=null && (!activeOnly || category.active || before[card.id]==card.cardType)) { "지원하지 않는 카드 유형입니다." }
+        }
+    }
     private fun validate(card:CardPayload,confirmed:Boolean) {
-        require(card.cardType in setOf("character","location","organization","ability","object","rule","event","other")) { "지원하지 않는 카드 유형입니다." }
         require(card.areaCode in setOf("basic","space","history","society","culture","special","conflict")) { "지원하지 않는 영역입니다." }
         require(card.visibility in setOf("private","public") && card.lifecycle in setOf("active","removed"))
         require(card.title.length<=200 && card.body.length<=3000 && card.classification.length<=50 && card.aliases.size<=100 && card.tags.size<=100)

@@ -15,13 +15,13 @@ class WorldStudioFlywayPostgresTest {
                 assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM pg_tables WHERE schemaname='public'"));
             }
             var flyway=db.studio();
-            assertEquals(15,flyway.migrate().migrationsExecuted);
+            assertEquals(17,flyway.migrate().migrationsExecuted);
             flyway.validate();
             assertEquals(0,flyway.migrate().migrationsExecuted);
             String w=id(), owner=id(), rev=id(), card=id(), other=id(), v1=id(), v2=id(), v3=id();
             String r=id(), rv=id();
             try(var c=db.connect()) {
-                assertEquals(List.of("25"),rows(c,"SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename<>'world_studio_schema_history'"));
+                assertEquals(List.of("26"),rows(c,"SELECT count(*) FROM pg_tables WHERE schemaname='worldstudio' AND tablename<>'world_studio_schema_history'"));
                 assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM pg_tables WHERE schemaname='public'"));
                 c.setAutoCommit(false);
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+owner+"')");
@@ -83,7 +83,8 @@ class WorldStudioFlywayPostgresTest {
                 rejects(c,"23514","UPDATE worldstudio.world_save_request SET request_hash='different' WHERE world_id='"+w+"'");
                 rejects(c,"23505","INSERT INTO worldstudio.world_save_request(world_id,request_key,request_hash,revision_id) VALUES ('"+w+"','retry-1','different','"+rev+"')");
                 assertEquals(List.of("hash-1:"+rev),rows(c,"SELECT request_hash||':'||revision_id FROM worldstudio.world_save_request WHERE world_id='"+w+"' AND request_key='retry-1'"));
-                rejects(c,"23514","UPDATE worldstudio.setting_card_draft SET card_type='claim' WHERE card_id='"+card+"'");
+                // V18부터 카드 유형은 DB CHECK가 아니라 서비스가 card_category 표로 확인하므로 DB는 값을 막지 않는다. 그 표에는 기본 8종이 시드로 있다.
+                assertEquals(List.of("character,location,organization,ability,object,rule,event,other"),rows(c,"SELECT string_agg(code,',' ORDER BY position) FROM worldstudio.card_category"));
                 rejects(c,"23514","UPDATE worldstudio.setting_card_draft SET area_code='unknown' WHERE card_id='"+card+"'");
                 rejects(c,"23514","UPDATE worldstudio.setting_card_draft SET visibility='published' WHERE card_id='"+card+"'");
                 String foreignWorld=id(), foreignCard=id();

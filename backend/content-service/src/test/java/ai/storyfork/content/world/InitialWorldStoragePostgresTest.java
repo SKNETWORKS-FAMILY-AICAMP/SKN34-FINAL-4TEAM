@@ -8,11 +8,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL", matches=".+")
 class InitialWorldStoragePostgresTest {
-    @Test void sequentialV1ThroughV12ThenV14ToV16PreservesExistingWorldCardAndAnalysis() throws Exception {
+    @Test void sequentialV1ThroughV12ThenV14ToV18PreservesExistingWorldCardAndAnalysis() throws Exception {
         try(var db=new WorldStudioPostgresFixture("independent")) {
             String world=id(), card=id(), analysis=id(), candidate=id(), decision=id();
-            // V13은 결번이다(원고 기반 최초 구축은 V15로 재번호했다). DEC-56의 V14가 V12 바로 다음에, V15가 그 뒤에, 발행 회차 업데이트 작업 종류(kind·basis)인 V16이 마지막에 적용된다.
-            for(int version : new int[]{1,2,3,4,5,6,7,8,9,10,11,12,14,15,16}) {
+            // V13은 결번이다(원고 기반 최초 구축은 V15로 재번호했다). DEC-56의 V14가 V12 바로 다음에, V15가 그 뒤에, 발행 회차 업데이트 작업 종류(kind·basis)인 V16, 운영 제한 V17, 카드 카테고리 V18이 마지막에 적용된다.
+            for(int version : new int[]{1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18}) {
                 var flyway=org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration())
                     .target(Integer.toString(version)).load();
                 assertEquals(1,flyway.migrate().migrationsExecuted);
@@ -73,6 +73,19 @@ class InitialWorldStoragePostgresTest {
                         assertEquals(List.of("1"),rows(c,"SELECT count(*) FROM worldstudio.setting_card_draft WHERE world_id='"+world+"'"));
                         c.rollback();
                     }
+                    if(version>=17) {
+                        // 운영 제한(V17): 기존 세계관은 제한 없이 남는다.
+                        assertEquals(List.of("false"),rows(c,"SELECT restricted::text FROM worldstudio.world WHERE id='"+world+"'"));
+                    }
+                    c.setAutoCommit(false);
+                    if(version>=18) {
+                        // 카드 카테고리(V18): 기본 8종이 시드로 들어가고, 카드 유형 CHECK가 없어져 서비스가 코드를 확인한다. 기존 카드는 그대로다.
+                        assertEquals(List.of("character,location,organization,ability,object,rule,event,other"),rows(c,"SELECT string_agg(code,',' ORDER BY position) FROM worldstudio.card_category"));
+                        sql(c,"UPDATE worldstudio.setting_card_draft SET card_type='category-01' WHERE card_id='"+card+"'");
+                    } else {
+                        rejects(c,"23514","UPDATE worldstudio.setting_card_draft SET card_type='category-01' WHERE card_id='"+card+"'");
+                    }
+                    c.rollback();
                     if(version==12) {
                         // 검토 결과 표는 비어 있고, 이 세계관에 매인 행 하나만 받는다(세계관마다 하나).
                         assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM worldstudio.world_review_result"));
@@ -107,7 +120,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+id()+"'),('"+other+"','"+id()+"')");
                 sql(c,"INSERT INTO worldstudio.world_draft(world_id,name,description) VALUES ('"+w+"','홍길동전','원문 보존')");
             }
-            assertEquals(13,db.studio().migrate().migrationsExecuted);
+            assertEquals(15,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             assertEquals(0,db.studio().migrate().migrationsExecuted);
             try(var c=db.connect()) {
@@ -169,7 +182,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) VALUES ('"+candidate+"','"+w+"','"+a+"','old','"+content+"')");
                 sql(c,"INSERT INTO worldstudio.initial_decision(id,world_id,analysis_id,candidate_id,sequence,action,state,actor_id,content) VALUES ('"+decision+"','"+w+"','"+a+"','"+candidate+"',1,'approve','approved','"+id()+"','"+content+"')");
             }
-            assertEquals(11,db.studio().migrate().migrationsExecuted);
+            assertEquals(13,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             try(var c=db.connect()) {
                 assertEquals(List.of(decision),rows(c,"SELECT id FROM worldstudio.initial_decision WHERE request_key IS NULL AND request_hash IS NULL AND comment IS NULL AND sequence=1 AND state='approved'"));
@@ -190,7 +203,7 @@ class InitialWorldStoragePostgresTest {
                     sql(c,"INSERT INTO worldstudio.world(id,owner_subject,genre) VALUES ('"+id()+"','"+id()+"','"+legacy+"')");
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+none+"','"+id()+"')");
             }
-            assertEquals(3,db.studio().migrate().migrationsExecuted); // V14와 그 뒤의 V15·V16
+            assertEquals(5,db.studio().migrate().migrationsExecuted); // V14와 그 뒤의 V15~V18
             db.studio().validate();
             assertEquals(0,db.studio().migrate().migrationsExecuted);
             try(var c=db.connect()) {

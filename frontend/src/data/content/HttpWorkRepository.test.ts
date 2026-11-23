@@ -17,6 +17,7 @@ const setup = (rows = [record()], owned: ReadingWorkRecord[] = [], loggedIn = fa
     readingWorld: vi.fn(async () => ({ workId: 'work-uuid', episode: 1, documents: [] })),
     readingWorldCards: vi.fn(async () => ({ workId: 'work-uuid', worldId: null, upto: 0, cards: [], relationships: [], relationshipStatus: 'current' })),
     fork: vi.fn(async () => ({ id: 'created-server-uuid' })), writingList: vi.fn(async () => []),
+    readingOne: vi.fn(async (id: string) => record({ id, visibility: 'private' })),
   }
   return { api, repository: new HttpWorkRepository(api as unknown as HttpEpisodeRepository, () => loggedIn) }
 }
@@ -40,6 +41,13 @@ describe('canonical WorkRepository', () => {
     expect((await repository.listWorks()).filter(isMine)).toHaveLength(1)
     api.readingList.mockRejectedValueOnce(new Error('offline'))
     await expect(repository.listWorks()).rejects.toThrow('offline')
+  })
+  it('reads one work by id (운영자가 남의 비공개 작품을 열 때) without marking it mine', async () => {
+    const { api, repository } = setup([], [], true)
+    const work = await repository.readWork('private-uuid')
+    expect(api.readingOne).toHaveBeenCalledWith('private-uuid')
+    expect(work?.id).toBe('private-uuid')
+    expect(isMine(work!)).toBe(false)
   })
   it('splits inherited prefix exactly once and preserves version IDs', async () => {
     const { repository } = setup([record({ source: { workId: 'parent-uuid', title: '부모', episode: 1, version: 1, direction: '분기' },
@@ -223,9 +231,14 @@ describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {
     expect((await repositoryOf(unavailable).repository.readWorldCards('work-uuid')).relationshipStatus).toBe('unavailable')
   })
 
-  it('다른 작품의 응답·모르는 카드 유형·없는 작품(404)은 빈 위키로 바꾸지 않고 실패한다', async () => {
+  it('운영자가 추가한 카드 카테고리 코드는 기본 8종이 아니어도 그대로 읽는다(운영자 콘텐츠 관리 결정 E)', async () => {
+    const read = await repositoryOf(served({ cards: [{ ...cards[0], cardType: 'category-09' }] })).repository.readWorldCards('work-uuid')
+    expect(read.cards[0].cardType).toBe('category-09')
+  })
+
+  it('다른 작품의 응답·빈 카드 유형·없는 작품(404)은 빈 위키로 바꾸지 않고 실패한다', async () => {
     await expect(repositoryOf(served({ workId: 'another-work' })).repository.readWorldCards('work-uuid')).rejects.toThrow('작품')
-    await expect(repositoryOf(served({ cards: [{ ...cards[0], cardType: 'weapon' }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
+    await expect(repositoryOf(served({ cards: [{ ...cards[0], cardType: '' }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
     await expect(repositoryOf({ detail: '작품을 찾을 수 없어요.' }, 404).repository.readWorldCards('work-uuid')).rejects.toThrow('작품을 찾을 수 없어요.')
   })
 })

@@ -25,9 +25,9 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 
 ```text
 Browser → web nginx
-           ├─ /api/v1/works 및 /api/v1/public/works(+하위)·/api/v1/public/genres → Content:8081 → AI:8000
+           ├─ /api/v1/works 및 /api/v1/public/works(+하위)·/api/v1/public/genres·/api/v1/public/card-categories → Content:8081 → AI:8000
            │                                                   └→ Core 내부 인증 확인
-           ├─ /api/v1/operations/{reports,members,admins,support,works,comments,genres,credits,admin/notices,public/notices,admin/events,public/events,admin/activities}(+하위) → Operations:8082 → Core·Content 내부 API
+           ├─ /api/v1/operations/{reports,members,admins,support,works,comments,genres,credits,world-studios,card-categories,admin/notices,public/notices,admin/events,public/events,admin/activities}(+하위) → Operations:8082 → Core·Content 내부 API
            ├─ /api/v1/operations/{dashboard,llmops,alerts,jobs}(+하위) → Operations:8082 → Langfuse Public API·AI·Core·Content 내부 API
            └─ 나머지 /api → Core:8080 → AI Health
 ```

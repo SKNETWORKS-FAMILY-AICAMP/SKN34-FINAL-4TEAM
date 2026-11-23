@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { cardStatuses, problemCount, publicationOrderIssues } from '../../../../domain/entities/worldReview'
 import { cardLibraryRows } from '../../../../domain/entities/worldStudioWriting'
 import { boardKindCounts, boardRows, BOOK_SORTS, type CardKind } from '../../../shared/worldBoard'
+import { useCardCategories } from '../../../shared/useCardCategories'
 import { pageItems } from '../../../shared/pageItems'
 import { settingBoardEntries } from './settingBoard'
 import type { useWorldStudioViewModel } from './useWorldStudioViewModel'
@@ -28,7 +29,10 @@ export function useCardBoard(studio: Studio, { showEmptyKinds = false } = {}) {
   const [page, setPage] = useState(0)
   const settings = studio.editing?.settings
   const findings = studio.review.findings
-  const entries = useMemo(() => settingBoardEntries(settings ?? []), [settings])
+  // 행의 분류 칩에 보이는 유형 이름은 운영자가 바꾸거나 추가한 카테고리 이름을 따른다(묶음은 공개 설정집과 같은 6묶음이고 추가한 카테고리는 '기타' 묶음이다).
+  const cardCategories = useCardCategories()
+  const { categories } = cardCategories
+  const entries = useMemo(() => settingBoardEntries(settings ?? [], categories), [settings, categories])
   const counts = useMemo(() => boardKindCounts(entries, showEmptyKinds), [entries, showEmptyKinds])
   const orderIssues = useMemo(() => publicationOrderIssues(settings ?? []), [settings])
   const statuses = useMemo(() => cardStatuses(settings ?? [], findings, orderIssues), [settings, findings, orderIssues])
@@ -49,6 +53,8 @@ export function useCardBoard(studio: Studio, { showEmptyKinds = false } = {}) {
     return sort === 'status' ? [...listed].sort((a, b) => problems(b.cardId) - problems(a.cardId)).map((row, n) => ({ ...row, no: n + 1 })) : listed
   }, [entries, settings, query, kind, sort, todo, statuses])
   return {
+    /** 카드 카테고리 읽기 결과: 이름이 이 목록을 따르고, 못 읽었을 때 화면이 실패와 다시 시도를 알리는 데 쓴다. */
+    cardCategories,
     counts, total: entries.length, kind, sort,
     rows, paged: pageItems(rows, page, 50), setPage,
     statuses, orderIssues, todoCount, todo, emptyKind: category?.count === 0 ? category.kind : undefined,

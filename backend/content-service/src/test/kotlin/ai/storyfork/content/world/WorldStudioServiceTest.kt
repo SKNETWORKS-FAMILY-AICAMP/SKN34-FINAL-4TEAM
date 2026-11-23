@@ -44,11 +44,12 @@ class WorldStudioServiceTest {
     private val genres=mock(GenreRepository::class.java)
     private val buildJobs=mock(ManuscriptBuildJobRepository::class.java)
     private val buildSteps=mock(ManuscriptBuildLoadStepRepository::class.java)
+    private val cardCategories=mock(CardCategoryRepository::class.java).also { `when`(it.findAll()).thenReturn(defaultCardCategories()) }
     private val manager=mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
-    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,genres,buildJobs,buildSteps)
+    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,genres,buildJobs,buildSteps,cardCategories)
     private val world=UUID.randomUUID()
     private val actor=UUID.randomUUID()
     private val draft=WorldDraft(worldId=world,name="편집본",draftRevision=2)

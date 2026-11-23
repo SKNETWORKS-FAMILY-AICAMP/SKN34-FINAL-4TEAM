@@ -86,7 +86,7 @@ class WorldStudioMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "세계관 ID(UUID)") id: String,
         @McpToolParam(description = "확정 입력: expectedDraftRevision(world_studio_read의 draftRevision)·key(1~200바이트, 재시도 식별용)") request: SaveWorldRequest,
-    ): WorldRevisionResponse = studioTool { studio.save(uuidArg(id), context.callerUuid(), request).also { changeNotice.world(context, id) } }
+    ): WorldRevisionResponse = studioTool { studio.save(uuidArg(id), context.callerUuid(), request).also { changeNotice.world(context, id) }.forAi() }
 
     @McpTool(
         name = "world_studio_update_publication",
@@ -115,7 +115,7 @@ class WorldStudioMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "세계관 ID(UUID)") id: String,
         @McpToolParam(description = "확정 버전 ID(UUID)") revisionId: String,
-    ): WorldRevisionResponse = studioTool { studio.revision(uuidArg(id), context.callerUuid(), uuidArg(revisionId)) }
+    ): WorldRevisionResponse = studioTool { studio.revision(uuidArg(id), context.callerUuid(), uuidArg(revisionId)).forAi() }
 
     @McpTool(
         name = "world_studio_public_list",
@@ -133,7 +133,7 @@ class WorldStudioMcpTools(
         description = "공개 세계관 하나를 조회한다(GET /api/v1/public/world-studios/{id}). 인증이 필요 없고 마지막 확정 버전에서 기준 회차(연결된 공개 소설의 발행된 마지막 회차, 연결이 없으면 1화) 이하로 공개된 카드와 그 카드끼리의 그 시점 관계(관계마다 기준 회차까지의 변화 history 포함)만 돌려주며 비공개·확정 버전 없음·없는 세계관은 404다.",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
-    fun publicRead(@McpToolParam(description = "세계관 ID(UUID)") id: String): PublicWorldResponse = mcpTool { publicWorlds.detail(uuidArg(id)) }
+    fun publicRead(@McpToolParam(description = "세계관 ID(UUID)") id: String): PublicWorldResponse = mcpTool { publicWorlds.detail(uuidArg(id)).forAi() }
 
     @McpTool(
         name = "world_analysis_create",
@@ -227,8 +227,11 @@ class WorldStudioMcpTools(
         @McpToolParam(description = "반영 ID(UUID)") applicationId: String,
     ): InitialWorldApplicationResponse = studioTool { applications.get(uuidArg(worldId), context.callerUuid(), uuidArg(analysisId), uuidArg(applicationId)) }
 
-    /** 컨트롤러와 같은 응답이다: 연결된 소설(1:1)은 Content 쪽 정본이라 저장 뒤 따로 읽어 붙인다. */
-    private fun linked(draft: WorldDraftResponse) = draft.copy(linkedWorkId = links.linkedWorkIds(listOf(draft.worldId))[draft.worldId])
+    /**
+     * 컨트롤러와 같은 응답이다: 연결된 소설(1:1)은 Content 쪽 정본이라 저장 뒤 따로 읽어 붙인다.
+     * 카드 유형은 AI가 아는 기본 8종으로 준다([forAi]). AI가 그 카드를 다시 저장하면 `other`로 저장된다(한계).
+     */
+    private fun linked(draft: WorldDraftResponse) = draft.forAi().copy(linkedWorkId = links.linkedWorkIds(listOf(draft.worldId))[draft.worldId])
 }
 
 // 컨트롤러는 Principal 이름(회원 UUID)을 UUID로 바꿔 쓴다.

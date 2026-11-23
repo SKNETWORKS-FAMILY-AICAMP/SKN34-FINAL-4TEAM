@@ -117,7 +117,7 @@ describe('useActionRunner', () => {
 
 describe('useReportWorkViewModel', () => {
   const FALLBACK = '접수 여부를 확인하지 못했어요. 내 신고 목록에서 확인한 뒤 다시 시도해 주세요.'
-  const mount = (useCase: ReportUseCase) => () => hooks.render(() => useReportWorkViewModel('w1', useCase))
+  const mount = (useCase: ReportUseCase) => () => hooks.render(() => useReportWorkViewModel({ workId: 'w1' }, useCase))
 
   it('접수에 성공하면 정리한 입력을 서버에 보내고 done으로만 표시한다', async () => {
     const { repository, useCase } = setup()
@@ -127,6 +127,16 @@ describe('useReportWorkViewModel', () => {
     expect(repository.submit).toHaveBeenCalledWith({ kind: 'HARMFUL', workId: 'w1', reason: '사유', evidence: '3화' })
     expect(view()).toMatchObject({ pending: false, error: '', done: true })
     expect(dispatch).not.toHaveBeenCalled()
+  })
+
+  it('회차·세계관 신고는 대상 종류와 대상 값을 함께 서버에 보낸다(운영자 콘텐츠 관리 결정 D)', async () => {
+    const { repository, useCase } = setup()
+    const episode = () => hooks.render(() => useReportWorkViewModel({ targetType: 'episode', workId: 'w1', episodeNumber: 3 }, useCase))
+    expect(await episode().submit('RIGHTS', '인용', '')).toBe(true)
+    expect(repository.submit).toHaveBeenLastCalledWith({ kind: 'RIGHTS', targetType: 'episode', workId: 'w1', episodeNumber: 3, reason: '인용', evidence: '' })
+    const world = () => hooks.render(() => useReportWorkViewModel({ targetType: 'world', worldId: 'wd1' }, useCase))
+    expect(await world().submit('HARMFUL', '폭력', '카드 3장')).toBe(true)
+    expect(repository.submit).toHaveBeenLastCalledWith({ kind: 'HARMFUL', targetType: 'world', worldId: 'wd1', reason: '폭력', evidence: '카드 3장' })
   })
 
   it('접수 중에는 pending이고 같은 신고를 다시 보내지 않으며, 끝나면 다시 보낼 수 있다', async () => {

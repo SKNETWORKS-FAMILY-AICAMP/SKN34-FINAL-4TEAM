@@ -156,6 +156,19 @@ class WorldStudioMcpToolsTest {
         verify(studio).draft(worldId, member)
     }
 
+    @Test fun `world_studio_read gives the AI other for a custom card category and keeps the default types`() {
+        val custom = CardPayload(UUID.randomUUID(), "단서", "본문", "category-01", "basic")
+        val hero = CardPayload(UUID.randomUUID(), "길동", "본문", "character", "basic")
+        `when`(studio.draft(worldId, member)).thenReturn(draft().copy(cards = listOf(custom, hero)))
+        `when`(links.linkedWorkIds(listOf(worldId))).thenReturn(emptyMap())
+
+        val text = call("world_studio_read", mapOf("id" to "$worldId"), signedIn()).text()
+
+        assertTrue(text.contains("\"cardType\":\"other\""), text)
+        assertTrue(text.contains("\"cardType\":\"character\""), text)
+        assertFalse(text.contains("category-01"), text)
+    }
+
     @Test fun `world_studio_read reads the relations as of the optional episode and rejects a malformed one before any service`() {
         `when`(studio.draft(worldId, member, 3)).thenReturn(draft())
         `when`(links.linkedWorkIds(listOf(worldId))).thenReturn(mapOf(worldId to "w1"))
@@ -295,6 +308,26 @@ class WorldStudioMcpToolsTest {
         verify(publicWorlds).list(null, null, null, null)
         verify(publicWorlds).list("genre-01", null, "1", "10")
         verify(publicWorlds).detail(worldId)
+    }
+
+    @Test fun `public read and revision reads give the AI other for a custom card category and keep the default types`() {
+        val custom = PublicWorldCardResponse(UUID.randomUUID(), "단서", "본문", "category-01", emptyList(), emptyList())
+        val hero = PublicWorldCardResponse(UUID.randomUUID(), "길동", "본문", "character", emptyList(), emptyList())
+        `when`(publicWorlds.detail(worldId)).thenReturn(PublicWorldResponse(worldId, "달빛 세계", "설명", "genre-01", "작가", "2026-11-13T00:00:00Z", 1, listOf(custom, hero), emptyList(), "current"))
+        val saved = SavedCardResponse(UUID.randomUUID(), 1, null, CardPayload(UUID.randomUUID(), "단서", "본문", "category-01", "basic"))
+        val revision = WorldRevisionResponse(worldId, revisionId, 1, "달빛 세계", "설명", null, null, listOf(saved), null)
+        `when`(studio.revision(worldId, member, revisionId)).thenReturn(revision)
+        `when`(studio.save(worldId, member, SaveWorldRequest(1, "save-1"))).thenReturn(revision)
+
+        val texts = listOf(call("world_studio_public_read", mapOf("id" to "$worldId")).text(),
+            call("world_studio_revision_read", userTools.getValue("world_studio_revision_read"), signedIn()).text(),
+            call("world_studio_save_revision", userTools.getValue("world_studio_save_revision"), signedIn()).text())
+
+        for (text in texts) {
+            assertTrue(text.contains("\"cardType\":\"other\""), text)
+            assertFalse(text.contains("category-01"), text)
+        }
+        assertTrue(texts.first().contains("\"cardType\":\"character\""), texts.first())
     }
 
     @Test fun `public world tools turn ContentFailure into the HTTP status and detail`() {
