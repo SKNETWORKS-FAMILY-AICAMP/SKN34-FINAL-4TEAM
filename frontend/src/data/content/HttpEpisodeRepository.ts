@@ -154,6 +154,8 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     return rows.map(w=>({...w,readOnly:true,draft:{title:'',body:'',revision:0}}))
   }
   readingList(owned = false, signal?: AbortSignal) { return this.request(owned ? '/works' : '/public/works',z.array(readingWork),'GET',undefined,signal) }
+  /** 소유자 API의 작품 하나(운영자는 남의 작품도 열람). */
+  readingOne(id:string,signal?:AbortSignal) { return this.request(`/works/${encodeURIComponent(id)}`,readingWork,'GET',undefined,signal) }
   readingWorld(id:string,episode:number,signal?:AbortSignal) { return this.request(`/public/works/${encodeURIComponent(id)}/world?episode=${episode}`,readingWorld,'GET',undefined,signal) }
   /** 작품에 연결된 세계관의 독자 공개 카드. 누구나 읽는 공개 GET이라 Bearer 없이 보내고, `upto`를 생략하면 서버가 발행된 최대 회차를 기준으로 삼는다. */
   readingWorldCards(id: string, upto?: number, signal?: AbortSignal) {

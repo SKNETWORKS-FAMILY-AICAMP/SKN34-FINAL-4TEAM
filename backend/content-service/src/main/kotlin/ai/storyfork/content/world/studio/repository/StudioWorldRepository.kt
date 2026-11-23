@@ -17,6 +17,10 @@ interface StudioWorldRepository : JpaRepository<StudioWorld, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select w from StudioWorld w where w.id=:world and w.ownerSubject=:subject and w.deletedAt is null")
     fun lockOwned(@Param("world") world: UUID, @Param("subject") subject: UUID): StudioWorld?
+    /** [lockOwned]에서 소유자 조건만 뺀 잠금 조회다. 운영자의 열람(GET·HEAD) 전용이다. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select w from StudioWorld w where w.id=:world and w.deletedAt is null")
+    fun lockLive(@Param("world") world: UUID): StudioWorld?
 
     /** 공개이고 저장 버전이 있는 세계관을 최근 공개순으로 돌려준다. 초안만 있는 세계관은 공개로 설정돼도 나오지 않고 지운 세계관도 나오지 않는다. */
     @Query("select w from StudioWorld w where w.visibility='public' and w.currentRevisionId is not null and w.deletedAt is null order by w.publishedAt desc, w.id")
@@ -30,3 +34,7 @@ interface StudioWorldRepository : JpaRepository<StudioWorld, UUID> {
     @Query("select w.genre, count(w) from StudioWorld w where w.genre is not null and w.deletedAt is null group by w.genre")
     fun worldCounts(): List<Array<Any>>
 }
+
+/** 소유자 API의 세계관 잠금 조회다. 운영자의 조회(GET·HEAD)만 소유자 조건 없이 잠그고 쓰기는 소유자만이다(사용자 결정 2026-11-23). */
+fun StudioWorldRepository.lockAccessible(world: UUID, subject: UUID): StudioWorld? =
+    if (ai.storyfork.content.auth.config.operatorReading()) lockLive(world) else lockOwned(world, subject)

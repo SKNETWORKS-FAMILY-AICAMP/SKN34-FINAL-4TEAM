@@ -174,7 +174,7 @@ class FeedbackReportService(
         checkContent(!work.deleted,404,"작품을 찾을 수 없어요.")
         val row=reports.lockByIdAndWorkId(reportId,id) ?: throw ContentFailure(404,NOT_FOUND)
         val mine=row.reporterId==member
-        val owner=work.ownerId==member
+        val owner=work.ownerId==member || ai.storyfork.content.auth.config.operatorReading()
         if(!(if(reporter) mine else owner)) {
             val seen=reportView(row.visibility,mine,owner,responses.findAllByReportIdIn(listOf(row.id)).any {it.isPublic})
             checkContent(seen!=ReportView.HIDDEN,404,NOT_FOUND)
@@ -208,7 +208,7 @@ class FeedbackReportService(
         val shown=rows.mapNotNull {row ->
             val work=works.getValue(row.workId)
             val mine=row.reporterId==viewer
-            val owner=work.ownerId==viewer
+            val owner=work.ownerId==viewer || ai.storyfork.content.auth.config.operatorReading()
             val all=replies[row.id].orEmpty().sortedBy {it.createdAt}
             val view=reportView(row.visibility,mine,owner,all.any {it.isPublic})
             if(view==ReportView.HIDDEN) null else Shown(row,work,mine,owner,view,if(mine || owner) all else all.filter {it.isPublic})

@@ -539,6 +539,9 @@ function Works(p: BodyProps) {
                           포크 정합성 점검
                         </button>
                       )}
+                      {/* 운영자는 소유권 없이 모든 작품을 연다(2026-11-23 사용자 결정). */}
+                      <Link role='menuitem' to={`/work/${w.workId}`}>소설 보기</Link>
+                      <Link role='menuitem' to={`/studio/${w.workId}`}>집필실 보기</Link>
                     </PopMenu>
                   </td>
                 </tr>

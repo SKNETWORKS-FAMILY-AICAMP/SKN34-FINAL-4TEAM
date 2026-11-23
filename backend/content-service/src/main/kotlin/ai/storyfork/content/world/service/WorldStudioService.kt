@@ -38,7 +38,7 @@ class WorldStudioService(
     private val log=org.slf4j.LoggerFactory.getLogger(javaClass)
     private val transaction=TransactionTemplate(manager)
     private fun <T:Any> tx(action:()->T):T=transaction.execute { action() }
-    private fun owned(id:UUID,subject:UUID)=worlds.lockOwned(id,subject) ?: throw WorldNotFound()
+    private fun owned(id:UUID,subject:UUID)=worlds.lockAccessible(id,subject) ?: throw WorldNotFound()
     private fun draft(id:UUID)=drafts.findById(id).orElseThrow { WorldNotFound() }
     private fun state(id:UUID)=states.findById(id).orElseThrow { WorldStudioFailure.migration() }
     private fun expected(draft:WorldDraft,revision:Long,unprepared:Boolean=false) { if(draft.draftRevision!=revision) throw if(unprepared) WorldStudioFailure.rejected() else WorldConflict() }

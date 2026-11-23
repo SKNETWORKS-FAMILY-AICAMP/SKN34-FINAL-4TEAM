@@ -32,6 +32,10 @@ vi.mock('../../../shared/plans/useStoryPlanViewModel', () => ({ useStoryPlanView
 const mcp = vi.hoisted(() => ({ stale: false, reload: vi.fn(), watch: vi.fn() }))
 vi.mock('../../../shared/useMcpChangeWatch', () => ({ useMcpChangeWatch: (...args: unknown[]) => { mcp.watch(...args); return { stale: mcp.stale, reload: mcp.reload } } }))
 afterEach(() => { mcp.stale = false })
+// 운영자 열람 모드(2026-11-23)의 판정은 useOperatorViewOnly.test가 확인하고, 여기서는 집필실이 그 값으로 쓰기를 막는지만 본다.
+const operator = vi.hoisted(() => ({ viewOnly: false, notice: null as 'others' | 'failed' | null, retry: vi.fn() }))
+vi.mock('../viewmodel/useOperatorViewOnly', () => ({ useOperatorViewOnly: () => ({ viewOnly: operator.viewOnly, notice: operator.notice, retry: operator.retry }) }))
+afterEach(() => { operator.viewOnly = false; operator.notice = null })
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p>, StoredImage: () => null }))
 vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="설정 버전 이력"><h2>설정 버전 이력</h2><p>{workId}</p></section> }))
@@ -1349,4 +1353,74 @@ it('다른 곳에서 바뀌었다는 배너는 바뀐 것이 있을 때만 보�
   const banner = screen.getByText('다른 곳에서 바뀌었어요').closest('[role="status"]') as HTMLElement
   fireEvent.click(within(banner).getByRole('button', { name: '다시 불러오기' }))
   expect(mcp.reload).toHaveBeenCalledTimes(1)
+})
+
+// 운영자가 남의 작품을 열면 열람 전용이다(2026-11-23). 서버도 운영자의 쓰기는 거절하므로 화면은 쓰기 버튼을 처음부터 막는다.
+it('운영자 열람 모드는 안내를 보이고 쓰기 버튼을 막으며 본문을 읽기 전용으로 보이고 AI 채팅을 숨긴다', () => {
+  model.active = { ...originalActive, hasDraft: false }
+  model.episodes = [episodeRow(1, '첫 회차')]
+  const { rerender } = renderStudio()
+  expect(screen.queryByText(/운영자 열람 모드/)).toBeNull()
+  expect(screen.getByText(/작업 초안이 없어요/)).toBeTruthy()
+  expect(screen.getByRole('textbox', { name: '원고 본문' }).tagName).toBe('TEXTAREA')
+  expect(screen.queryByRole('complementary', { name: 'AI 채팅' }) ?? screen.queryByRole('button', { name: 'AI 채팅 열기' })).toBeTruthy()
+  operator.viewOnly = true
+  operator.notice = 'others'
+  rerender(<WritingStudio id="work-id" />)
+  expect(screen.getByText('운영자 열람 모드 · 다른 작가의 작품이라 수정할 수 없어요.')).toBeTruthy()
+  for (const name of ['버전 저장', '새 회차', '시뮬레이션']) expect(screen.getByRole('button', { name })).toHaveProperty('disabled', true)
+  expect(versionsButton()).toHaveProperty('disabled', false)
+  const body = screen.getByRole('textbox', { name: '원고 본문' })
+  expect(body.tagName).toBe('DIV')
+  expect(body.getAttribute('aria-readonly')).toBe('true')
+  expect(screen.getByRole('textbox', { name: '회차 제목' })).toHaveProperty('readOnly', true)
+  expect(screen.queryByRole('complementary', { name: 'AI 채팅' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'AI 채팅 열기' })).toBeNull()
+  // 입력해도 저장되지 않으니 '입력하면 새 초안으로 저장' 안내도 숨긴다.
+  expect(screen.queryByText(/작업 초안이 없어요/)).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '1화 더보기' }))
+  expect(screen.getByRole('menuitem', { name: '회차 삭제' })).toHaveProperty('disabled', true)
+})
+
+it('운영자 열람 모드의 회차 설정·버전 시트는 쓰기 도구를 숨기거나 막고 발행 이력·내보내기는 그대로 둔다', () => {
+  model.active = { ...originalActive, versions: [savedVersion('v1'), savedVersion('v2')], checkpoints: checkpointRows, publishedVersionId: 'v2' }
+  const { rerender } = renderStudio()
+  openVersions()
+  expect(screen.getByRole('button', { name: '예약 발행' })).toBeTruthy()
+  operator.viewOnly = true
+  rerender(<WritingStudio id="work-id" />)
+  expect(screen.queryByRole('button', { name: '예약 발행' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: /^체크포인트 1/ }))
+  fireEvent.click(screen.getByLabelText(revertRights))
+  expect(screen.getByRole('button', { name: '이 체크포인트로 되돌리기' })).toHaveProperty('disabled', true)
+  fireEvent.change(screen.getByLabelText('검토할 저장 버전'), { target: { value: 'v1' } })
+  fireEvent.click(screen.getByLabelText('이 저장 원고를 공개할 권리가 있음을 확인합니다.'))
+  expect(screen.getByRole('button', { name: '선택 버전을 새 버전으로 복원' })).toHaveProperty('disabled', true)
+  expect(screen.getByRole('button', { name: '선택한 저장 버전 공개' })).toHaveProperty('disabled', true)
+  cleanup()
+  renderStudio()
+  openSettings()
+  const sheet = screen.getByRole('dialog', { name: '회차 설정' })
+  expect(within(sheet).getByRole('textbox', { name: '작가의 말' })).toHaveProperty('readOnly', true)
+  expect(within(sheet).getByRole('region', { name: '회차 관리' })).toBeTruthy()
+  expect(within(sheet).queryByRole('region', { name: '위험 영역' })).toBeNull()
+  expect(within(sheet).queryByText('본문 이미지 추가')).toBeNull()
+  expect(within(sheet).queryByRole('button', { name: '회차 공개 중단' })).toBeNull()
+  expect(within(sheet).getByRole('button', { name: '발행 이력' })).toHaveProperty('disabled', false)
+})
+
+// 소유자 확인의 실제 결과와 배너를 맞춘다: 확인 중에는 '다른 작가의 작품'이라고 단정하지 않고, 확인하지 못하면 그대로 알린 뒤 다시 시도로 재확인한다.
+it('운영자 열람 모드는 소유자 확인 중에는 안내하지 않고, 확인하지 못하면 그대로 알리며 다시 시도를 누르면 재확인한다', () => {
+  operator.viewOnly = true
+  const { rerender } = renderStudio()
+  expect(screen.getByRole('button', { name: '버전 저장' })).toHaveProperty('disabled', true)
+  expect(screen.queryByText(/다른 작가의 작품/)).toBeNull()
+  expect(screen.queryByText(/확인하지 못해/)).toBeNull()
+  operator.notice = 'failed'
+  rerender(<WritingStudio id="work-id" />)
+  expect(screen.getByText('작품 소유자를 확인하지 못해 열람 모드로 열었어요.')).toBeTruthy()
+  expect(screen.queryByText(/다른 작가의 작품/)).toBeNull()
+  expect(screen.getByRole('button', { name: '버전 저장' })).toHaveProperty('disabled', true)
+  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+  expect(operator.retry).toHaveBeenCalledTimes(1)
 })

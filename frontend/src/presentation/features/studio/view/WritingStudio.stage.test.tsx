@@ -37,7 +37,8 @@ vi.mock('../../../../app/appContainer', async () => {
   const plans = { list, references: async () => ({ episodes: [], characters: [], places: [] }) }
   const worlds = { list: owned, read: readWorld }
   const episodes = { inheritedWorld: inherited }  // 시작 양식은 연결한 세계관이 없을 때만 Fork가 이어받는 세계관을 묻는다. 의존 배열에 들어가므로 늘 같은 객체다.
-  return { appContainer: { resolve: (key: string) => (key === 'writingChatUseCase' ? chat : key === 'storyPlanUseCase' ? plans : key === 'worldStudioUseCase' ? worlds : key === 'episodeUseCase' ? episodes : {}) } }
+  const reading = { ownerOf: async () => null }  // 운영자 열람 모드 판정(useOperatorViewOnly)도 의존 배열에 넣으므로 늘 같은 객체다. 모르는 키마다 새 {}를 주면 끝없이 다시 읽어 워커가 멈춘다.
+  return { appContainer: { resolve: (key: string) => (key === 'writingChatUseCase' ? chat : key === 'storyPlanUseCase' ? plans : key === 'worldStudioUseCase' ? worlds : key === 'episodeUseCase' ? episodes : key === 'readingUseCase' ? reading : {}) } }
 })
 
 const store: { reply: ChatReply | null } = { reply: null }

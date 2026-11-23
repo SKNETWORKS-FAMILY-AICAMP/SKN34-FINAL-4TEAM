@@ -148,9 +148,15 @@ export class ReadingUseCase {
     return work.canonical && isPub(work) ? this.workSearchRepository?.episodeViews(work.id, signal) : undefined
   }
 
-  private async load(id: string) {
+  /** 운영자 열람 모드 판정용: ID로 읽은 작품의 소유자 회원 ID. ID로 읽는 저장소가 아니면(데모) null이다. */
+  async ownerOf(id: string) { return (await this.workRepository.readWork?.(id))?.owner ?? null }
+
+  private async load(id: string, role: Role = null) {
     const [works, worlds, progress] = await Promise.all([this.workRepository.listWorks(), this.workRepository.listWorlds(), this.readingRepository.getProgress()])
-    return { works, worlds, progress, w: works.find((x) => x.id === id || x.slug === id) }
+    // 운영자는 목록에 없는 남의 비공개 작품도 연다. 서버 작품 ID(UUID)일 때만 한 건을 더 읽는다.
+    const listed = works.find((x) => x.id === id || x.slug === id)
+    const w = listed ?? (role === 'admin' && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? await this.workRepository.readWork?.(id) : undefined)
+    return { works, worlds, progress, w }
   }
 
   /**
@@ -172,7 +178,7 @@ export class ReadingUseCase {
    * 없으면 최신 회차 기준이다. 맞춘 기준 회차는 upto로 돌려준다.
    */
   async getWork(id: string, role: Role, upto?: number) {
-    const { works, worlds, progress, w: loaded } = await this.load(id)
+    const { works, worlds, progress, w: loaded } = await this.load(id, role)
     if (!canView(loaded, role)) return null
     const last = epsOf(loaded).length
     const n = upto && upto >= 1 ? Math.min(Math.floor(upto), last) : last
@@ -240,7 +246,7 @@ export class ReadingUseCase {
    * (실패하면 reject하므로 호출자가 알려야 합니다. 기록하지 않는 경우는 바로 끝납니다).
    */
   async openEpisode(id: string, at: number, role: Role) {
-    const { works, worlds, w: loaded } = await this.load(id)
+    const { works, worlds, w: loaded } = await this.load(id, role)
     if (!canView(loaded, role)) return null
     const eps = epsOf(loaded)
     const n = loaded.canonical ? at : Math.max(1, Math.min(+at || 1, eps.length))

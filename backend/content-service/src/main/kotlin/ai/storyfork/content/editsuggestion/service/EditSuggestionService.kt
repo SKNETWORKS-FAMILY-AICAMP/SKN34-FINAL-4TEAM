@@ -86,7 +86,7 @@ class EditSuggestionService(
     fun read(id: String, suggestionId: String, viewer: String): SuggestionResponse {
         val work=liveWork(id)
         val row=find(id,suggestionId)
-        checkContent(row.proposerId==viewer || work.ownerId==viewer,404,NOT_FOUND)
+        checkContent(row.proposerId==viewer || work.ownerId==viewer || ai.storyfork.content.auth.config.operatorReading(),404,NOT_FOUND)
         return one(row,viewer)
     }
 
@@ -226,7 +226,7 @@ class EditSuggestionService(
      * 제안자인데 소유자가 아니면 403이고, 볼 수 없는 사람이나 없는 작품·제안·삭제된 작품이면 404다(삭제된 작품은 제안자도 404).
      */
     private fun owned(id: String, suggestionId: String, member: String): EditSuggestionEntity {
-        if(liveWork(id).ownerId!=member) {
+        if(liveWork(id).ownerId!=member && !ai.storyfork.content.auth.config.operatorReading()) {
             throw if(suggestions.findByIdAndWorkId(suggestionId,id)?.proposerId==member) ContentFailure(403,OWNER_ONLY) else ContentFailure(404,NOT_FOUND)
         }
         access.own(id,member)
@@ -264,7 +264,7 @@ class EditSuggestionService(
             val scope=EditScopePolicy.check(row.beforeText,row.editedText ?: row.afterText)
             SuggestionResponse(row.id,row.workId,work.title,row.episodeNumber,row.publishedVersionId,row.source,names[row.proposerId] ?: WITHDRAWN_MEMBER_NAME,
                 row.beforeText,row.afterText,row.editedText,row.reason,row.status,row.decisionReason,row.applyResult,row.applyFailure,row.appliedVersionId,
-                scope.scope,scope.reasons,row.proposerId==viewer,work.ownerId==viewer,row.createdAt,row.updatedAt,
+                scope.scope,scope.reasons,row.proposerId==viewer,work.ownerId==viewer || ai.storyfork.content.auth.config.operatorReading(),row.createdAt,row.updatedAt,
                 row.appliedVersionId in lineage, if (row.status==EditSuggestionRules.APPROVED) row.updatedAt else row.decidedAt,
                 if(row.status=="pending") null else names[work.ownerId] ?: WITHDRAWN_MEMBER_NAME)
         }

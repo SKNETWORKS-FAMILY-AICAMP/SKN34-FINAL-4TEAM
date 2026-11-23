@@ -988,9 +988,12 @@ it('작품 표의 행 조치는 글자 버튼 대신 ⋮ 버튼 하나가 여는
   const menu = screen.getByRole('menu', { name: '「달빛 도서관 외전」 조치' })
   expect(trigger.getAttribute('aria-expanded')).toBe('true')
   const items = within(menu).getAllByRole('menuitem')
-  expect(items.map((item) => item.textContent)).toEqual(['운영 제한', '포크 정합성 점검'])
+  expect(items.map((item) => item.textContent)).toEqual(['운영 제한', '포크 정합성 점검', '소설 보기', '집필실 보기'])
+  // 운영자는 소유권 없이 모든 작품의 상세·집필실을 연다(2026-11-23 사용자 결정).
+  const workId = row.querySelector('[data-record-id]')?.getAttribute('data-record-id')
+  expect(items.slice(2).map((item) => item.getAttribute('href'))).toEqual([`/work/${workId}`, `/studio/${workId}`])
   // 위험 조치(제한)만 danger 글자이고, 열리면 첫 항목에 초점이 간다.
-  expect(items.map((item) => item.classList.contains('danger'))).toEqual([true, false])
+  expect(items.map((item) => item.classList.contains('danger'))).toEqual([true, false, false, false])
   expect(document.activeElement).toBe(items[0])
   fireEvent.keyDown(items[0], { key: 'Escape' })
   expect(screen.queryByRole('menu')).toBeNull()

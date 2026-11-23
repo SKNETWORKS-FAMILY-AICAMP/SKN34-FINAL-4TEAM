@@ -57,10 +57,10 @@ class WorkAccessService(
     fun own(id: String, owner: String): WorkAccessResult {
         checkContent(owner.isNotBlank() && owner.length<=200,401,"서버 인증이 필요합니다.")
         lockScope(id)
-        return get(id).also { checkContent(it.ownerId==owner && !it.deleted,404,"작품을 찾을 수 없어요.") }
+        return get(id).also { checkContent((it.ownerId==owner || ai.storyfork.content.auth.config.operatorReading()) && !it.deleted,404,"작품을 찾을 수 없어요.") }
     }
     fun published(id: String): WorkAccessResult {
-        return get(id).also { checkContent(it.publiclyVisible(),404,"공개 작품을 찾을 수 없어요.") }
+        return get(id).also { checkContent(it.publiclyVisible() || (ai.storyfork.content.auth.config.operatorReading() && !it.deleted),404,"공개 작품을 찾을 수 없어요.") }
     }
     fun lockScope(id: String) = lockScopes(listOf(id))
     fun lockScopes(ids: Collection<String>) {
