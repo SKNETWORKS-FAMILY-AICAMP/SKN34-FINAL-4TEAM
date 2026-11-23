@@ -1,7 +1,7 @@
 import type { DragEvent } from 'react'
 
 /** 파일을 끄는 중인지. 글자 끌기는 막지 않아야 입력창·제목 칸에 놓을 수 있다(#706). */
-export const isFileDrag = (e: DragEvent) => e.dataTransfer.types.includes('Files')
+export const isFileDrag = (e: DragEvent) => e.dataTransfer?.types.includes('Files') ?? false
 
 const keep = (e: DragEvent) => { if (isFileDrag(e)) e.preventDefault() }
 

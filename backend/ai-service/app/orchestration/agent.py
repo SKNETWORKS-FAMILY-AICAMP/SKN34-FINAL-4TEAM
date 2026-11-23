@@ -177,16 +177,19 @@ class DynamicToolMiddleware(AgentMiddleware):
         return result
 
 
+def _reread(message) -> str | None:
+    return REREAD.get(message.content) if isinstance(message.content, str) else None
+
+
 def _refresh_next(messages: list) -> str | None:
     """제안 다시 받기(#662)·낡은 작품 정보 수정(#687) 직후 모델이 불러야 할 도구: 저장본 다시 읽기, 읽었으면 같은 수정의 재제안. 읽지 못했으면 강제하지 않는다."""
-    reread = lambda m: REREAD.get(m.content) if isinstance(m.content, str) else None  # noqa: E731
     last = messages[-1]
     if not isinstance(last, ToolMessage) or last.status == 'error':
         return None
-    if read := reread(last):
+    if read := _reread(last):
         return read
     # [실행하지 않은 제안, 읽기 호출, 읽은 저장본]
-    if len(messages) > 2 and (read := reread(messages[-3])) and last.name == read:
+    if len(messages) > 2 and (read := _reread(messages[-3])) and last.name == read:
         return messages[-3].name
     return None
 

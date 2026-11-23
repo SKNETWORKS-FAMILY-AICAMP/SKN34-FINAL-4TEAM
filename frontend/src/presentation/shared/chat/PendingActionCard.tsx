@@ -41,7 +41,7 @@ export function PendingActionCard({ action, children, cardOf, unsaved = false, p
       ? <p className="chat-note" role="status">현재 초안에 맞는 제안을 다시 받아 보세요. 이미 끝난 작업은 다시 실행하지 않아요.</p>
       : <>
         <div className="chat-hitl-preview chat-hitl-args" tabIndex={0} aria-label="실행할 도구와 인자"><code>{action.tool}</code>{'\n'}{JSON.stringify(action.args, null, 2)}</div>
-        <p className="chat-note">실행을 누르면 이 내용이 초안에 반영돼요. 실행하지 않기를 누르면 아무것도 바뀌지 않아요.</p>
+        <p className="chat-note">실행을 누르면 이 내용이 {action.tool === 'work_update' ? '작품 정보' : '초안'}에 반영돼요. 실행하지 않기를 누르면 아무것도 바뀌지 않아요.</p>
         {action.tool === 'work_update' && <p className="chat-note">{WORK_CHANGED_NOTE}</p>}
       </>}
     {unsaved && <p className="chat-note" role="alert">{SAVE_FIRST}. 작성 중인 변경을 저장한 뒤 제안을 확인해 주세요.</p>}

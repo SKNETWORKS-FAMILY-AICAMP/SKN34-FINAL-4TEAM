@@ -215,6 +215,8 @@ async def _run_main_agent(state: State, config: RunnableConfig) -> State:
     unavailable = '' if found is not None else f'\n\n{mcp_tools.UNAVAILABLE}'
     out = await agent.build(found or []).ainvoke(seed, config, context=turn)
     decision, steps = out['decision'], out.get('steps', [])
+    if stale := mcp_tools.unresolved_work_change(out['messages']):  # #687: 409로 다시 제안하려다 못 했다
+        steps = [*steps, stale]
     if not decision['allowed']:
         return {'status': 'rejected', 'message': REJECT_MESSAGES[decision['reason']], 'steps': []}
     done: State = {'steps': steps, 'inputs': out.get('inputs', state['inputs']), 'retrievalScope': out.get('retrievalScope'),

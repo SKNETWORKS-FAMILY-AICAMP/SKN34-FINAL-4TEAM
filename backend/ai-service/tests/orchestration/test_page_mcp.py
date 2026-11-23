@@ -283,6 +283,18 @@ def test_a_work_update_made_stale_by_a_saved_draft_is_proposed_again_instead_of_
     assert [a['data']['revision'] for _, a in writes(log)] == [12, 16]
 
 
+def test_a_stale_work_update_that_is_not_proposed_again_ends_as_a_failed_step(monkeypatch):
+    # 다시 읽기가 실패하면 재제안을 강제하지 않는다. 실행한 승인이 반영되지 않았으니 '완료'로 끝내지 않는다(#687 리뷰)
+    stale = ('work_update', {'id': 'work', 'data': {'title': '새 제목', 'revision': 12}})
+    fake_agents(monkeypatch, only_content(stale, ('work_read', {'id': 'work'})))
+    log = content(monkeypatch, fail={'work_update': ContentMcpFailure(409, '원고가 변경됐어요.'), 'work_read': ContentMcpFailure(502, '작품을 읽지 못했어요.')})
+    thread = str(uuid4())
+    turn(thread, request='작품 소개를 바꿔 줘')
+    done = resume(thread, True)
+    assert done.status == 'failed' and [(s.feature, s.status, s.error) for s in done.steps] == [('content_action', 'failed', mcp_tools.WORK_STALE)]
+    assert len(writes(log)) == 1
+
+
 @pytest.mark.parametrize('name, args, label', [
     ('work_update', {'id': 'work', 'data': {'title': '새 제목', 'revision': 1}}, '작품 정보 수정'),
     ('story_plan_create', {'workId': 'work', 'data': {'kind': 'plot', 'title': '1막'}}, '플롯·장면 계획 추가'),
