@@ -1,6 +1,8 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content.world.domain.forkWorldCopy
+import ai.storyfork.content.world.domain.requireCardMetadata
+import ai.storyfork.content.world.domain.requireRelationshipMetadata
 import ai.storyfork.content.world.service.dto.CardPayload
 import ai.storyfork.content.world.service.dto.InheritedSource
 import ai.storyfork.content.world.service.dto.InheritedWorldResponse
@@ -42,6 +44,8 @@ class ForkWorldCopyTest {
                 copied.semanticMetadata)
         }
         assertEquals(listOf(2, 4), request.cards.map { it.semanticMetadata["revealFromEpisode"] })
+        // 새 세계관은 사용자 편집과 같은 저장 경로(validateEditRequest)로 쓰므로 복사한 메타데이터가 허용 키·형식 검사(#541)를 통과해야 한다.
+        request.cards.forEach(::requireCardMetadata)
     }
 
     @Test fun `body links between copied cards are re-pointed at the new ids and any other card reference becomes plain text`() {
@@ -77,6 +81,7 @@ class ForkWorldCopyTest {
         }
         assertTrue(request.relationships.map { it.id }.none { it == friend.id || it == enemy.id })
         assertEquals(mapOf(f.id to 1, e.id to 3), request.relationshipEpisodes)
+        request.relationships.forEach(::requireRelationshipMetadata)
     }
 
     @Test fun `a relationship whose start episode is unknown starts at the basis episode`() {

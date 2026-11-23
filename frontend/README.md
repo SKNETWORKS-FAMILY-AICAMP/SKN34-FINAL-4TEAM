@@ -121,7 +121,7 @@ loopback 검증용이며 인터넷 운영 준비를 뜻하지 않습니다.
 
 세계관을 읽지 못하면 오류 곁에 `다시 시도`(같은 주소를 다시 읽습니다)와 `내가 만드는 세계관으로 돌아가기`가 보입니다. 편집 중 저장 실패에는 다시 시도를 두지 않습니다(다시 읽으면 입력이 사라집니다).
 
-세계관 초안을 읽을 때는 카드·관계의 정본 필드(제목·본문·영역·분류·태그·별칭, 관계의 양 끝·극성·관계명·설명)가 항상 이기고 `semanticMetadata.studio`는 시간 표기·순서·관계 종류 같은 보조값만 보탭니다. 모양이 틀린 studio와 모르는 키는 읽을 때 버리고(`preprocessing`·관계 `evidence`만 저장 때 되돌려 보냅니다) 고쳐 저장한 카드만 정리됩니다. 정본의 enum·id·관계 끝점이 어긋난 응답만 세계관 전체를 읽지 않습니다([계약](../docs/design/worldstudio-independent-schema.md#초안-semanticmetadata-계약-541)).
+세계관 초안을 읽을 때는 카드·관계의 정본 필드(제목·본문·영역·분류·태그·별칭, 관계의 양 끝·극성·관계명·설명)가 항상 이기고 `semanticMetadata.studio`는 시간 표기·순서·관계 종류 같은 보조값만 보탭니다. 모양이 틀린 studio와 모르는 키는 읽을 때 버리고(`preprocessing`·`manuscriptBuild`·관계 `evidence`만 저장 때 되돌려 보냅니다) 고쳐 저장한 카드만 정리됩니다. 정본의 enum·id·관계 끝점이 어긋난 응답만 세계관 전체를 읽지 않습니다([계약](../docs/design/worldstudio-independent-schema.md#초안-semanticmetadata-계약-541)).
 
 ## 원고 가져오기·내보내기 (기능 17·18)
 
