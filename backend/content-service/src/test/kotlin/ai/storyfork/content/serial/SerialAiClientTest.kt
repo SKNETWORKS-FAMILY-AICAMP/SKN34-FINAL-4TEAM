@@ -1,6 +1,8 @@
 package ai.storyfork.content.serial
 
 import ai.storyfork.content.serial.client.SerialAiFailure
+import ai.storyfork.content.serial.client.aiFailure
+import ai.storyfork.content.serial.client.failureDetail
 import ai.storyfork.content.serial.client.isLimitExceeded
 import ai.storyfork.content.serial.client.isReviewFailure
 import ai.storyfork.content.serial.client.parseChoices
@@ -10,6 +12,11 @@ import ai.storyfork.content.serial.client.parseSummary
 import java.math.BigDecimal
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.RestClientResponseException
 import tools.jackson.databind.json.JsonMapper
 
 /** AI 응답 해석(오류 분류·성공 본문 검증)을 HTTP 없이 고정한다. 실제 호출은 CI의 SerialAiClientIntegrationTest가 확인한다. */
@@ -54,6 +61,88 @@ class SerialAiClientTest {
         assertEquals(listOf(true, false), SerialAiFailure(reviewFailed = true).let { listOf(it.reviewFailed, it.limitExceeded) })
         assertEquals(listOf(false, true), SerialAiFailure(limitExceeded = true).let { listOf(it.reviewFailed, it.limitExceeded) })
         assertEquals(listOf(false, false), SerialAiFailure().let { listOf(it.reviewFailed, it.limitExceeded) })
+    }
+
+    // ---- 인물 시뮬레이션이 막은 실패: AI의 문구
+
+    private val noCharacters = "연결된 세계관에 인물 카드가 없어 시뮬레이션을 실행할 수 없어요."
+    private val emptyDocs = "인물 문서가 비어 있어요: 카엘(IDENTITY.md, SOUL.md), 리나(SOUL.md). 세계관 관리 화면에서 채워 주세요."
+
+    /** FastAPI의 JSONResponse가 돌려주는 오류 응답이다: charset 없는 application/json에 UTF-8 본문(한국어 문구가 그대로 온다). */
+    private fun answer(status: Int, body: String): RestClientResponseException {
+        val headers = HttpHeaders().apply { set(HttpHeaders.CONTENT_TYPE, "application/json") }
+        val code = HttpStatusCode.valueOf(status)
+        val bytes = body.toByteArray(Charsets.UTF_8)
+        return if (code.is4xxClientError) HttpClientErrorException.create(code, "error", headers, bytes, null) else HttpServerErrorException.create(code, "error", headers, bytes, null)
+    }
+
+    @Test fun `a 409 or 422 with a sentence and no code is an explanation the board can show as it is`() {
+        assertEquals(noCharacters, failureDetail(409, """{"detail":"$noCharacters"}"""))
+        assertEquals(emptyDocs, failureDetail(422, """{"detail":"$emptyDocs"}"""))
+    }
+
+    @Test fun `only the statuses 409 and 422 explain themselves`() {
+        // 계약의 '장면이 끝나지 않음'(AI 502)·장면 시간 초과(504)도 AI 문구지만 이번 범위 밖이다: 이 줄이 바뀌면 의도한 변경이어야 한다.
+        for (status in listOf(200, 400, 401, 402, 403, 404, 429, 500, 502, 503, 504)) {
+            assertNull(failureDetail(status, """{"detail":"$noCharacters"}"""), status.toString())
+        }
+    }
+
+    @Test fun `a validation error array or any detail that is not a sentence is not shown`() {
+        for (body in listOf(
+            """{"detail":[{"type":"missing","loc":["body","world"],"msg":"Field required"}]}""", """{"detail":{"msg":"객체"}}""", """{"detail":42}""",
+            """{"detail":true}""", """{"detail":null}""", """{"code":"OTHER"}""", """{}""",
+        )) {
+            assertNull(failureDetail(422, body), body)
+            assertNull(failureDetail(409, body), body)
+        }
+    }
+
+    @Test fun `the review failure and the credit limit overrun are told apart by their codes and never explained`() {
+        assertNull(failureDetail(422, """{"detail":"검수를 통과하지 못했습니다.","code":"SERIAL_REVIEW_FAILED"}"""))
+        assertNull(failureDetail(409, """{"detail":"x","code":"SERIAL_REVIEW_FAILED"}"""))
+        assertNull(failureDetail(422, """{"detail":"크레딧 상한을 넘었습니다.","code":"CREDIT_LIMIT_EXCEEDED"}"""))
+        assertNull(failureDetail(409, """{"detail":"x","code":"CREDIT_LIMIT_EXCEEDED"}"""))
+        // 다른 code와 문자열이 아닌 code는 그대로 설명한다.
+        assertEquals("문구", failureDetail(422, """{"detail":"문구","code":"OTHER"}"""))
+        assertEquals("문구", failureDetail(422, """{"detail":"문구","code":42}"""))
+        assertEquals("문구", failureDetail(422, """{"detail":"문구","code":null}"""))
+    }
+
+    @Test fun `an unreadable body or a blank sentence explains nothing`() {
+        for (body in listOf(null, "", "   ", "not json", "[1,2]", "\"text\"", """{"detail":""}""", """{"detail":"   "}""", """{"detail":"\n\t"}""")) {
+            assertNull(failureDetail(422, body), body.toString())
+        }
+    }
+
+    @Test fun `the sentence is tidied and capped before it is kept`() {
+        assertEquals("인물 문서가 비어 있어요.", failureDetail(422, """{"detail":"  인물 문서가\n비어   있어요.\t "}"""))
+        assertEquals(300, failureDetail(409, """{"detail":"${"가".repeat(500)}"}""")!!.length)
+    }
+
+    @Test fun `an error answer becomes a failure with the right flags and the sentence only for the explained ones`() {
+        val explained = aiFailure(answer(422, """{"detail":"$emptyDocs"}"""))
+        assertEquals(listOf<Any?>(false, false, emptyDocs), listOf(explained.reviewFailed, explained.limitExceeded, explained.detail))
+
+        val review = aiFailure(answer(422, """{"detail":"검수를 통과하지 못했습니다.","code":"SERIAL_REVIEW_FAILED"}"""))
+        assertEquals(listOf<Any?>(true, false, null), listOf(review.reviewFailed, review.limitExceeded, review.detail))
+
+        val limit = aiFailure(answer(402, """{"detail":"크레딧 상한을 넘었습니다.","code":"CREDIT_LIMIT_EXCEEDED"}"""))
+        assertEquals(listOf<Any?>(false, true, null), listOf(limit.reviewFailed, limit.limitExceeded, limit.detail))
+
+        val plain = aiFailure(answer(502, """{"detail":"$emptyDocs"}"""))
+        assertEquals(listOf<Any?>(false, false, null), listOf(plain.reviewFailed, plain.limitExceeded, plain.detail))
+    }
+
+    @Test fun `the failure keeps the error answer as its cause but never prints the sentence or the body in its message`() {
+        val error = answer(409, """{"detail":"$noCharacters"}""")
+        val failure = aiFailure(error)
+
+        assertSame(error, failure.cause)
+        assertEquals("SERIAL_AI_FAILED", failure.message)
+        assertFalse(failure.toString().contains(noCharacters))
+        assertEquals(noCharacters, failure.detail)
+        assertNull(SerialAiFailure().detail)
     }
 
     // ---- 선택지 응답

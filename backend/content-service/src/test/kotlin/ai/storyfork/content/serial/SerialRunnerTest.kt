@@ -278,6 +278,37 @@ class SerialRunnerTest {
         verify(serial, never()).publish(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(GeneratedEpisode::class.java) ?: generated, ArgumentMatchers.any(Instant::class.java) ?: at)
     }
 
+    @Test fun `a simulation failure the AI explains keeps its sentence as the reason and releases the hold`() {
+        queue()
+        val sentence = "인물 문서가 비어 있어요: 카엘(SOUL.md). 세계관 관리 화면에서 채워 주세요."
+        `when`(ai.episode(anyMap())).thenThrow(SerialAiFailure(detail = sentence))
+
+        runner.tick(now)
+
+        // 계약: 인물 카드 없음·필수 문서 비어 있음 같은 시뮬레이션 실패는 AI 문구 그대로가 게시판 사유다. 예약은 해제하고 차감·발행은 없다.
+        verify(credits).release(owner, key)
+        verify(serial).fail("b1", sentence, at)
+        verify(credits, never()).settle(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(BigDecimal::class.java) ?: BigDecimal.ZERO)
+        verify(serial, never()).publish(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(GeneratedEpisode::class.java) ?: generated, ArgumentMatchers.any(Instant::class.java) ?: at)
+    }
+
+    @Test fun `a review failure or a credit limit overrun keeps its own reason even when an AI sentence came along`() {
+        val cases = listOf(
+            SerialAiFailure(reviewFailed = true, detail = "AI 문구") to "검수를 통과하지 못했습니다.",
+            SerialAiFailure(limitExceeded = true, detail = "AI 문구") to "크레딧 상한을 넘었습니다.",
+        )
+        for ((failure, reason) in cases) {
+            reset(serial, credits, ai)
+            queue()
+            `when`(ai.episode(anyMap())).thenThrow(failure)
+
+            runner.tick(now)
+
+            verify(credits).release(owner, key)
+            verify(serial).fail("b1", reason, at)
+        }
+    }
+
     @Test fun `an AI failure releases and says generation failed`() {
         for (failure in listOf(SerialAiFailure(), IllegalStateException("boom"))) {
             reset(serial, credits, ai)

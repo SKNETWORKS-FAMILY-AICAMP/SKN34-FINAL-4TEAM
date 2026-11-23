@@ -43,7 +43,7 @@ import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.node.ObjectNode
 
-/** 회차 실행 중 어느 단계에서 어떤 고정 사유로 실패했는지 나른다. 사유는 [SerialReason]뿐이다. */
+/** 회차 실행 중 어느 단계에서 어떤 사유로 실패했는지 나른다. 사유는 [SerialReason]의 고정 문구이거나, 인물 시뮬레이션이 막은 실패를 AI가 설명한 문구([SerialAiFailure.detail])다. */
 private class SerialRunFailure(val reason: String, cause: Throwable? = null) : RuntimeException(reason, cause)
 
 /** 회차 실행이 읽은 세계관이다: AI 요청의 [world]와, 같은 읽기에서 나온 문맥용 활성 카드([cards], 연결된 세계관일 때만)다. */
@@ -54,7 +54,7 @@ private class OwnerWorld(val world: ObjectNode, val cards: List<SerialCard>)
  * - 시뮬레이션 제안 글([submit]): 작성자의 상한 예약 → 공개 문맥으로 장면 생성 → 글 저장 → 실제 사용량 정산. 실패면 해제하고 저장하지 않는다.
  * - 점검([tick], 1분마다): 낡은 실행·게시판 맞춤·지금 실행 요청(queued)·일정 도래의 회차 실행을 처리한 뒤, 선택지가 없는 열린 게시판의 선택지를 만들고, 마지막으로 요약이 없는 공개 회차의 요약을 만든다.
  *   회차 실행은 선점 → 세계관 읽기(인물 시뮬레이션의 필수 입력, 없으면 이 실행 실패) → 관련 장면 검색(독자 범위, 실패하면 이 실행 실패) → 소유자 상한 예약 → 1위 선택지·추천 상위 제안 글·문맥(최근 회차 원문·이전 회차 요약·관련 장면 인용)·세계관으로 AI 생성 → 저장·발행 → 정산이다.
- *   실패면 해제하고 게시판을 고정 사유로 닫는다. 정산은 저장·발행이 끝난 뒤에 해서 발행에 실패한 실행은 차감하지 않는다.
+ *   실패면 해제하고 게시판을 사유(고정 문구, 인물 시뮬레이션이 막은 실패는 AI가 설명한 문구 그대로)로 닫는다. 정산은 저장·발행이 끝난 뒤에 해서 발행에 실패한 실행은 차감하지 않는다.
  *   선택지 생성은 시도 기록 → 공개 문맥 → 소유자 상한 예약 → AI → 4개 저장 → 정산이고, 실패하면 해제하고 10분 뒤에 다시 시도한다. 회차 요약은 점검마다 최대 3개를 같은 순서(예약 → AI → 저장 → 정산)로 만들고 실패하면 다음 점검에 다시 한다.
  * 단일 서버를 전제한다(다중 서버 분산 잠금은 하지 않는다).
  */
@@ -253,8 +253,8 @@ class SerialRunner internal constructor( // 원고 검색(ManuscriptQaService)�
             ai.episode(body)
         } catch (error: Exception) {
             val failure = error as? SerialAiFailure
-            // 검수 실패와 크레딧 상한 초과는 일반 실패 문구와 구분해 남긴다.
-            throw SerialRunFailure(if (failure?.reviewFailed == true) SerialReason.REVIEW else if (failure?.limitExceeded == true) SerialReason.LIMIT else SerialReason.AI, error)
+            // 검수 실패와 크레딧 상한 초과는 일반 실패 문구와 구분해 남기고, 인물 시뮬레이션이 막은 실패(인물 카드 없음·필수 인물 문서 비어 있음 등)는 AI가 설명한 문구를 그대로 남긴다.
+            throw SerialRunFailure(if (failure?.reviewFailed == true) SerialReason.REVIEW else if (failure?.limitExceeded == true) SerialReason.LIMIT else failure?.detail ?: SerialReason.AI, error)
         }
         // 검수를 통과하지 못한 원고는 발행하지 않는다(AI는 두 번 실패하면 422를 돌려주므로 보통 오지 않는다).
         if (!episode.reviewPassed) throw SerialRunFailure(SerialReason.REVIEW)

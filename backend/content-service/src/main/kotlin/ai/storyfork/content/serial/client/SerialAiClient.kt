@@ -1,6 +1,7 @@
 package ai.storyfork.content.serial.client
 
 import ai.storyfork.content.serial.domain.cleanChoices
+import ai.storyfork.content.serial.domain.cleanReason
 import ai.storyfork.content.serial.domain.cleanSummary
 import java.math.BigDecimal
 import org.springframework.http.MediaType
@@ -23,19 +24,21 @@ data class GeneratedSummary(val summary: String, val credits: BigDecimal)
 data class GeneratedEpisode(val summary: String, val title: String, val text: String, val credits: BigDecimal, val reviewPassed: Boolean = true)
 
 /**
- * AI 호출 실패다. [reviewFailed]는 검수 2회 실패(422), [limitExceeded]는 크레딧 상한 초과(402)이고 그 밖의 모든 실패(연결·시간 초과·응답 오류)는 둘 다 false다.
- * 둘은 실행 실패 사유를 일반 실패 문구와 구분하는 데만 쓴다. 원문·응답 본문을 싣지 않는다.
+ * AI 호출 실패다. [reviewFailed]는 검수 2회 실패(422), [limitExceeded]는 크레딧 상한 초과(402), [detail]은 인물 시뮬레이션이 막은 실패를 AI가 설명한 문구(409·422)이고 그 밖의 모든 실패(연결·시간 초과·응답 오류)는 셋 다 false·null이다.
+ * 셋은 실행 실패 사유를 일반 실패 문구와 구분하는 데만 쓴다. 원문·응답 본문은 메시지에 싣지 않는다(원인으로만 남는다).
  */
-class SerialAiFailure(val reviewFailed: Boolean = false, cause: Throwable? = null, val limitExceeded: Boolean = false) :
+class SerialAiFailure(val reviewFailed: Boolean = false, cause: Throwable? = null, val limitExceeded: Boolean = false, val detail: String? = null) :
     RuntimeException(if (reviewFailed) "SERIAL_REVIEW_FAILED" else if (limitExceeded) "CREDIT_LIMIT_EXCEEDED" else "SERIAL_AI_FAILED", cause)
 
 private val json = JsonMapper.builder().build()
 
-private fun errorCode(body: String?): String? = try {
-    if (body.isNullOrBlank()) null else json.readTree(body).path("code").let { if (it.isString) it.asString() else null }
+private fun stringField(body: String?, name: String): String? = try {
+    if (body.isNullOrBlank()) null else json.readTree(body).path(name).let { if (it.isString) it.asString() else null }
 } catch (_: RuntimeException) {
     null
 }
+
+private fun errorCode(body: String?): String? = stringField(body, "code")
 
 /**
  * AI 오류 응답이 검수 실패인가. 오류 본문은 {detail}이고 402·422에만 code가 있다. FastAPI의 요청 검증 실패도 422지만 code가 없고 detail이 배열이라,
@@ -45,6 +48,23 @@ internal fun isReviewFailure(status: Int, body: String?): Boolean = status == 42
 
 /** AI 오류 응답이 크레딧 상한 초과인가: 402와 code CREDIT_LIMIT_EXCEEDED일 때만이다(AI의 CreditMiddleware가 상한 이상이면 다음 모델 호출 전에 끝낸다). */
 internal fun isLimitExceeded(status: Int, body: String?): Boolean = status == 402 && errorCode(body) == "CREDIT_LIMIT_EXCEEDED"
+
+private val SEPARATE_CODES = setOf("SERIAL_REVIEW_FAILED", "CREDIT_LIMIT_EXCEEDED")
+
+/**
+ * AI 오류 응답이 인물 시뮬레이션이 막은 실패의 설명 문구([SerialAiFailure.detail])를 갖는가. 인물 카드 없음(409)·필수 인물 문서 비어 있음(422)처럼 엔진이 막은 실패는 {detail: 고정 문장}이고 code가 없다
+ * (409·422의 문장은 고정이며 필수 인물 문서 안내에만 작가 자신의 카드 제목이 들어간다. 모델이 쓴 이유가 섞이는 장면 미완료는 502라서 이 규칙에서 뺀다). 409·422이고 detail이 문자열일 때만이다: FastAPI의 요청 검증 실패도 422지만 detail이 배열이다.
+ * code가 검수 실패·크레딧 상한 초과이면 따로 구분되므로 제외한다. 문구는 [cleanReason]이 다듬고, 읽을 수 없거나 비면 null이다(일반 실패 문구로 남는다).
+ */
+internal fun failureDetail(status: Int, body: String?): String? =
+    if ((status != 409 && status != 422) || errorCode(body) in SEPARATE_CODES) null else stringField(body, "detail")?.let(::cleanReason)
+
+/** AI 오류 응답([error])을 호출 실패로 바꾼다: 검수 실패·상한 초과·설명 문구 여부는 응답의 상태와 본문으로 정한다. 본문은 실패의 메시지에 싣지 않고 원인으로만 남긴다. */
+internal fun aiFailure(error: RestClientResponseException): SerialAiFailure {
+    val status = error.statusCode.value()
+    val body = error.responseBodyAsString
+    return SerialAiFailure(isReviewFailure(status, body), error, isLimitExceeded(status, body), failureDetail(status, body))
+}
 
 private fun invalid(): Nothing = throw SerialAiFailure()
 
@@ -111,9 +131,7 @@ class SerialAiClient(private val simulationClient: RestClient, private val episo
         try {
             return client.post().uri(uri).contentType(MediaType.APPLICATION_JSON).header("X-Internal-Token", token).body(body).retrieve().body(JsonNode::class.java)
         } catch (error: RestClientResponseException) {
-            val status = error.statusCode.value()
-            val body = error.responseBodyAsString
-            throw SerialAiFailure(isReviewFailure(status, body), error, isLimitExceeded(status, body))
+            throw aiFailure(error)
         } catch (error: RestClientException) {
             throw SerialAiFailure(cause = error)
         }

@@ -44,7 +44,13 @@ const val SUMMARIES_PER_TICK = 3
 const val RELATED_MAX = 6
 const val RELATED_QUERY_MAX = 500
 
-/** 실행이 실패한 게시판에 남기는 고정 사유다. 원문·예외 메시지를 싣지 않는다. */
+/** 회차 실행 실패 사유 한 줄의 글자 수 한도다(AI가 설명한 시뮬레이션 실패 문구를 사유로 남길 때 자른다). */
+const val REASON_MAX = 300
+
+/**
+ * 실행이 실패한 게시판에 남기는 사유의 고정 문구다. 원문·예외 메시지를 싣지 않는다.
+ * 인물 시뮬레이션이 막은 실패(AI 409·422)만 예외로, AI가 설명한 고정 문구를 [cleanReason]으로 다듬어 그대로 남긴다.
+ */
 object SerialReason {
     const val CREDIT = "크레딧이 부족합니다."
     const val LIMIT = "크레딧 상한을 넘었습니다."
@@ -126,6 +132,14 @@ fun cleanChoices(texts: List<String>): List<String>? {
 
 /** AI가 만든 회차 요약을 검증한다: 앞뒤 공백을 뗀 뒤 1~[SUMMARY_MAX]자에 NUL이 없어야 한다. 어긋나면 null이다(줄여 쓰지 않는다). */
 fun cleanSummary(text: String): String? = text.trim().takeIf { it.isNotEmpty() && it.length <= SUMMARY_MAX && clean(it) }
+
+private val REASON_SPACES = Regex("[\\p{Z}\\s\\p{Cc}]+")
+
+/**
+ * AI가 설명한 시뮬레이션 실패 문구를 게시판 실패 사유로 다듬는다: 공백·줄바꿈·제어 문자(NUL 포함)를 빈칸 한 칸으로 줄여 앞뒤를 떼고 [REASON_MAX]자까지만 남긴다(서로게이트 쌍을 가르지 않는다).
+ * 남는 글이 없으면 null이다.
+ */
+fun cleanReason(text: String): String? = truncated(text.replace(REASON_SPACES, " ").trim(), REASON_MAX).trimEnd().ifEmpty { null }
 
 // ---- 제안 글
 

@@ -159,6 +159,28 @@ class SerialRulesTest {
         assertEquals(all.size, all.toSet().size)
     }
 
+    // ---- 실패 사유
+
+    @Test fun `an AI sentence becomes a failure reason with its spaces tidied`() {
+        val sentence = "인물 문서가 비어 있어요: 카엘(SOUL.md). 세계관 관리 화면에서 채워 주세요."
+        assertEquals(sentence, cleanReason(sentence))
+        assertEquals("한 줄로 정리돼요.", cleanReason("  한\n줄로\t\t정리돼요.\r\n "))
+        assertEquals("가 나 다", cleanReason("가\u00A0나\u3000다"))
+        // 제어 문자(NUL은 PostgreSQL 글 칸에 들어가지 못한다)도 빈칸 한 칸으로 줄인다.
+        assertEquals("가 나 다", cleanReason("가" + Char(0) + "나" + Char(7) + "다"))
+    }
+
+    @Test fun `a failure reason is cut at three hundred characters without splitting a surrogate pair or leaving a trailing space`() {
+        assertEquals("가".repeat(300), cleanReason("가".repeat(300)))
+        assertEquals("가".repeat(300), cleanReason("가".repeat(301)))
+        assertEquals("가".repeat(299), cleanReason("가".repeat(299) + "😀" + "나"))
+        assertEquals("가".repeat(299), cleanReason("가".repeat(299) + " " + "나".repeat(10)))
+    }
+
+    @Test fun `nothing left after tidying is no reason at all`() {
+        for (blank in listOf("", "   ", "\n\t\r", "\u00A0\u3000", Char(0).toString())) assertNull(cleanReason(blank), blank.length.toString())
+    }
+
     // ---- 실행 시간 한도
 
     @Test fun `the run time limits are the thirty-five minute AI wait and the forty-five minute stale cleanup`() {
