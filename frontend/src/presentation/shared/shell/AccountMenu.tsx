@@ -84,7 +84,7 @@ export function AccountMenu({ anchor, onClose, creditLedger }: { anchor: HTMLEle
       {role ? (
         <>
           <Item onSelect={go('/me/profile')} className="who">
-            <span className="meav">{user.nick.slice(0, 1)}</span><span className="who-text"><b title={user.nick}>{user.nick}</b><small title={user.email}>{user.email}</small></span><em>프로필 ›</em>
+            <span className="meav" aria-hidden="true">{user.nick.slice(0, 1)}</span><span className="who-text"><b title={user.nick}>{user.nick}</b><small title={user.email}>{user.email}</small></span><em>프로필 ›</em>
           </Item>
           <CreditRow creditLedger={creditLedger} onSelect={go('/me/pay')} /><hr />
           {role === 'admin' && <Item onSelect={go('/admin')}>운영자 대시보드</Item>}

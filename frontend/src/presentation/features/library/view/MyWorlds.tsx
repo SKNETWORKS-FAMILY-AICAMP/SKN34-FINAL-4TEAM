@@ -11,14 +11,14 @@ function Cover({ id, hasCover }: { id: string; hasCover: boolean }) {
   return <div className="th">{src && <img className="cimg" src={src} alt="" />}</div>
 }
 
-/** 서재의 '내가 만드는 세계관' 탭. 집필 중인 작품과 같은 가로 카드이고 `.server-writing` 스타일을 함께 쓴다. */
+/** 서재의 '내가 만드는 세계관' 탭. 집필 중인 작품과 같은 가로 카드이고 `.server-writing` 스타일을 함께 쓴다. 공개 범위 칩은 세계관 작업실 머리의 칩과 같은 말('공개'·'비공개')이고, 값이 없으면 비공개다. */
 export function MyWorlds() {
   const vm = useMyWorlds()
   const [page, setPage] = useState(1)
   const view = paginate(vm.worlds, page)
   return <>
     <section className="server-writing" aria-label="내가 만드는 세계관" aria-busy={vm.loading}>
-      <div className="sec-h"><h2>내가 만드는 세계관</h2></div>
+      <div className="sec-h"><h2>내가 만드는 세계관</h2><Go to="/worldstudio" className="btn sm pri">+ 새 세계관</Go></div>
       {vm.error ? <div className="server-writing-error"><p role="alert">세계관을 불러오지 못했어요.</p><button type="button" className="btn sm" onClick={vm.reload}>다시 시도</button></div>
         : vm.loading ? <p role="status">세계관을 불러오고 있어요…</p>
         : !vm.worlds.length ? <p className="note2">아직 만든 세계관이 없어요.</p>
@@ -26,7 +26,7 @@ export function MyWorlds() {
           <div className="list">{view.items.map(world => <article className="li rowlink" key={world.id}>
             <Cover id={world.id} hasCover={!!world.hasCover} />
             <div className="server-writing-content"><h3><Go to={`/worldstudio/${world.id}`} className="li-link">{world.name}</Go></h3>
-              <div className="m">설정 {world.cardCount ?? world.settings.length}개 · 버전 {world.version}</div>
+              <div className="m server-tags"><span className={world.visibility === 'public' ? 'chip ok' : 'chip'}>{world.visibility === 'public' ? '공개' : '비공개'}</span>설정 {world.cardCount ?? world.settings.length}개 · 버전 {world.version}</div>
             </div>
             <div className="acts">
               <Go className="btn sm" to={`/worldstudio/${world.id}`} aria-label={`${world.name} 관리하기`}>관리하기</Go>

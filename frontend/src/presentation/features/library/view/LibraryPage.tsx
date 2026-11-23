@@ -32,6 +32,8 @@ export function LibraryPage() {
   if (!d) return <><Gnb on="lib"/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
   // 서버가 없는 목업 빌드는 읽기 기록도 메모리라 안내가 다르다. 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.
   const mockup = import.meta.env.MODE === 'mockup'
+  // 제목 줄 '+ 새 소설' 버튼(ServerWritingList)과 아래 '새 소설 쓰기' 카드는 같은 곳으로 간다.
+  const newWorkTo = mockup ? '/new' : '/content'
   return (
     <>
       <Gnb on="lib" />
@@ -52,7 +54,7 @@ export function LibraryPage() {
         )}
         {d.write && (
           <>
-            <ServerWritingList />
+            <ServerWritingList newTo={newWorkTo} />
             {d.write.mine.length > 0 && <section className="sec" aria-label="데모 작품"><h2>데모 작품 · 서버에 저장되지 않아요</h2>
             {d.write.appeals.map((q) => (
               <form className="panel" key={q.id} aria-label={`${q.title} · 권리 신고 소명`} onSubmit={(e) => { e.preventDefault(); d.appeal(q.id, new FormData(e.currentTarget).get('appeal')?.toString() ?? '') }}>
@@ -71,7 +73,7 @@ export function LibraryPage() {
             ))}
             </section>}
             <div className="sec"><div className="sec-h"><h2>새로 시작하기</h2></div>{mockup && <p className="note2">새 소설 등록·가져오기 양식의 일괄 저장은 아직 지원하지 않아요. 허용된 회차의 포크 생성은 서버에 저장돼요.</p>}<div className="newbox">
-              <Go to={mockup ? '/new' : '/content'} className="newc" id="newWork"><b>＋ 새 소설 쓰기</b><span>{mockup ? '세계관·인물을 정하고 1화부터 직접 써요 (오리지널)' : '비공개 작품을 만들고 1화부터 써요'}</span></Go>
+              <Go to={newWorkTo} className="newc" id="newWork"><b>＋ 새 소설 쓰기</b><span>{mockup ? '세계관·인물을 정하고 1화부터 직접 써요 (오리지널)' : '비공개 작품을 만들고 1화부터 써요'}</span></Go>
               <Go to="/writing-policy?method=import" className="newc"><b>＋ 내 소설 가져오기</b><span>{mockup ? '예시 원고로 세계관·인물·사건 정리 흐름을 살펴봐요 (가상 추출)' : 'TXT·EPUB 원고를 내 작품의 회차로 등록해요'}</span></Go>
               <Go to="/writing-policy?method=fork" className="newc"><b>✎ 다른 소설 포크</b><span>원작을 고르고 마음에 드는 회차에서 시작해요</span></Go>
             </div></div>

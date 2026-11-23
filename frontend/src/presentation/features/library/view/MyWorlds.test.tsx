@@ -84,7 +84,7 @@ it('shows loading first, then a retry next to the error that loads the list agai
   expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull()
 })
 
-it('ends with the same 새로 시작하기 section as the writing tab: three dashed cards and no header button', async () => {
+it('ends with the same 새로 시작하기 section as the writing tab: three dashed cards', async () => {
   api.list.mockResolvedValueOnce([world(1)])
   const { container } = show()
   await screen.findByRole('heading', { level: 3, name: '세계 1' })
@@ -95,7 +95,27 @@ it('ends with the same 새로 시작하기 section as the writing tab: three das
     ['✎ 공개 세계관 둘러보기', '/worlds'],
   ])
   expect(screen.getByText('세계관을 만든 뒤 저장한 초안에서 AI 설정 후보를 받아요')).toBeTruthy()
-  expect(screen.getAllByRole('link', { name: /새 세계관/ })).toHaveLength(1) // 헤더 오른쪽 '+ 새 세계관' 버튼은 이 섹션과 겹쳐 없앴다
+})
+
+it('puts a small primary + 새 세계관 button on the right of the heading row, going where the 새 세계관 만들기 card goes, and keeps it when the list failed', async () => {
+  api.list.mockRejectedValueOnce(new Error('연결 실패'))
+  show()
+  await screen.findByRole('alert')
+  const create = screen.getByRole('link', { name: '+ 새 세계관' })
+  expect([create.getAttribute('href'), create.className]).toEqual(['/worldstudio', 'btn sm pri'])
+  expect(create.getAttribute('href')).toBe(screen.getByRole('link', { name: /＋ 새 세계관 만들기/ }).getAttribute('href'))
+  expect(create.previousElementSibling?.textContent).toBe('내가 만드는 세계관')
+  expect(create.parentElement?.className).toBe('sec-h')
+})
+
+it('marks each world card public or private with the same chip as the work cards', async () => {
+  api.list.mockResolvedValueOnce([world(1), { ...world(2), visibility: 'public' }])
+  show()
+  await screen.findByRole('heading', { level: 3, name: '세계 1' })
+  const card = (name: string) => within(screen.getByRole('heading', { level: 3, name }).closest('article') as HTMLElement)
+  expect(card('세계 1').getByText('비공개').className).toBe('chip') // 값이 없으면 비공개(옛 응답·데모)
+  expect(card('세계 2').getByText('공개').className).toBe('chip ok')
+  expect(card('세계 2').getByText('설정 2개 · 버전 3')).toBeTruthy()
 })
 
 it('pages ten worlds at a time with the shared pager', async () => {

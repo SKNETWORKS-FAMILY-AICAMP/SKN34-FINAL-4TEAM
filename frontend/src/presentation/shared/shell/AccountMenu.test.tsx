@@ -171,6 +171,13 @@ it.each(['user', null] as const)('역할이 %s인 메뉴에는 운영자 대시�
   expect(screen.queryByRole('menuitem', { name: '운영자 대시보드' })).toBeNull()
 })
 
+it('프로필 줄의 아바타 머리글자는 장식이라 메뉴 항목 이름에 섞이지 않는다', () => {
+  const { items } = open()
+  expect(items[0].querySelector('.meav')?.getAttribute('aria-hidden')).toBe('true')
+  // 머리글자 '읽'이 이름 앞에 붙어 '읽읽는사람…'으로 읽히지 않는다.
+  expect(screen.getByRole('menuitem', { name: /^읽는사람reader@storyfork\.demo프로필 ›$/ })).toBe(items[0])
+})
+
 it('프로필 줄은 아바타·이름과 이메일 묶음·프로필 › 가 한 줄에 놓이고 길어지는 값은 title로 전체를 남긴다', () => {
   const { items } = open()
   expect([...items[0].children].map((el) => el.className || el.tagName.toLowerCase())).toEqual(['meav', 'who-text', 'em'])

@@ -11,7 +11,9 @@ import { createAppStore } from '../../../../app/store'
 import { LibraryPage } from './LibraryPage'
 import * as events from '../../../shared/events'
 
-vi.mock('./ServerWritingList', () => ({ ServerWritingList: () => null }))
+// 제목 줄 '+ 새 소설' 버튼은 LibraryPage가 넘기는 newTo로 간다(아래 시험이 이 대역으로 받은 값을 본다).
+const writing = vi.hoisted(() => vi.fn((_props: { newTo: string }) => null))
+vi.mock('./ServerWritingList', () => ({ ServerWritingList: writing }))
 vi.mock('./MyWorlds', () => ({ MyWorlds: () => null }))
 
 afterEach(() => { cleanup(); document.title = 'STORYFORK' })
@@ -32,6 +34,16 @@ it('서재 탭은 현재 탭을 aria-current로 알리고 탭을 옮기면 따�
   await screen.findByRole('heading', { name: '새로 시작하기' })
   expect(tab('내가 쓰는 소설').getAttribute('aria-current')).toBe('page')
   expect(tab('읽는 중').hasAttribute('aria-current')).toBe(false)
+})
+
+it.each([['test', '/content'], ['mockup', '/new']])('집필 중인 작품의 제목 줄 새 소설 버튼에 넘기는 주소는 아래 새 소설 쓰기 카드와 같다: MODE=%s', async (mode, to) => {
+  vi.stubEnv('MODE', mode)
+  try {
+    renderLibrary('/lib?tab=write')
+    const card = await screen.findByRole('link', { name: /＋ 새 소설 쓰기/ })
+    expect(card.getAttribute('href')).toBe(to)
+    expect(writing.mock.calls.at(-1)?.[0].newTo).toBe(to)
+  } finally { vi.unstubAllEnvs() }
 })
 
 it('삭제 완료는 내가 쓰는 소설 탭이 열린 뒤 한 번 안내한다', async () => {

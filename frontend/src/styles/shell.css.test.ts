@@ -106,6 +106,35 @@ describe('storyfork.css 서재 목록 카드 계약', () => {
     expect([value('.li.rowlink', 'position'), value('.li-link::after', 'position'), value('.li-link::after', 'inset')]).toEqual(['relative', 'absolute', '0'])
     expect([value('.li.rowlink>.acts', 'position'), value('.li.rowlink>.acts', 'z-index')]).toEqual(['relative', '1'])
   })
+
+  it('키보드 초점(제목 링크의 :focus-visible)도 hover와 같은 카드 배경을 쓰고, 안쪽 버튼 위에서는 카드 배경을 켜지 않는다', () => {
+    expect(value('.li.rowlink:has(.li-link:focus-visible)', 'background')).toBe('var(--muted-bg)')
+    expect(value('.li.rowlink:hover:not(:has(.acts:hover))', 'background')).toBe('var(--muted-bg)')
+    // 버튼 위에서도 켜지던 옛 규칙(자손 hover에도 걸린다)은 없다.
+    expect(value('.li.rowlink:hover', 'background')).toBeUndefined()
+  })
+
+  it('카드 제목(h3)은 세 탭이 같은 글꼴 하나이고, 글자 버튼(.btn.weak)은 테두리·배경 없이 높이를 .btn.sm에 맡긴다', () => {
+    expect(['font-size', 'font-weight', 'line-height'].map((prop) => value('.li h3', prop))).toEqual(['15px', '700', '1.5'])
+    expect(['border-color', 'background', 'color'].map((prop) => value('.btn.weak', prop))).toEqual(['transparent', 'transparent', 'var(--sub)'])
+    expect([value('.btn.weak:hover', 'background'), value('.btn.weak:hover', 'color')]).toEqual(['var(--muted-bg)', 'var(--ink)'])
+    // 높이를 따로 두지 않아 데스크톱 36px, 터치(600px 이하·coarse) 44px이 .btn.sm 그대로 지켜진다.
+    expect([values('.btn.weak', 'height'), values('.btn.weak', 'min-height')]).toEqual([[], []])
+  })
+
+  it('좁은 화면에서는 이어 읽기 줄의 글자 버튼을 내용 폭으로 두고 주 버튼(이어 읽기)이 남는 폭을 채운다', () => {
+    const mobile = '(max-width:600px)'
+    expect([value('.li>.acts .btn', 'flex', mobile), value('.li>.acts .btn.weak', 'flex', mobile)]).toEqual(['1', 'none'])
+  })
+})
+
+describe('server-writing.css 서재 목록 제목 줄·칩 줄 계약', () => {
+  const writingCss = readFileSync(new URL('../presentation/features/library/view/server-writing.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+
+  it('제목 줄의 새 소설·새 세계관 버튼은 제목 오른쪽 끝에 놓이고, 칩 줄은 칩과 글자를 한 줄에서 가운데 맞춤으로 잇는다', () => {
+    expect(writingCss).toMatch(/\.server-writing \.sec-h > \.btn \{[^}]*margin-left: auto/)
+    expect(writingCss).toMatch(/\.server-tags \{[^}]*display: flex[^}]*flex-wrap: wrap[^}]*align-items: center/)
+  })
 })
 
 describe('storyfork.css GNB 검색 버튼 계약 (#505)', () => {

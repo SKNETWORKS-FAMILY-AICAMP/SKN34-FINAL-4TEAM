@@ -49,3 +49,22 @@ it('hides the page controls for ten or fewer reading records', () => {
   expect(titles()).toHaveLength(10)
   expect(screen.queryByRole('navigation', { name: '페이지' })).toBeNull()
 })
+
+it('puts each title in an h3 that holds the title link, so the rows can be skipped by heading like the other two library tabs', () => {
+  show(2)
+  const heading = screen.getByRole('heading', { level: 3, name: '작품 1' })
+  expect(heading.querySelector('a')?.getAttribute('href')).toBe('/work/w1')
+  expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(2)
+})
+
+it('lowers 기록 삭제 to a quiet text button before the continue link, so the primary action ends the row like the other two library tabs', () => {
+  const ui = (removing: string | null) => <MemoryRouter><ReadingList recent={recent(1)} removing={removing} onRemove={vi.fn()} /></MemoryRouter>
+  const view = render(ui(null))
+  const remove = screen.getByRole('button', { name: '작품 1 이어 읽기 기록 삭제' })
+  const next = screen.getByRole('link', { name: '▶ 1화 이어 읽기' })
+  expect(Array.from(remove.parentElement?.children ?? [])).toEqual([remove, next])
+  expect([remove.className, next.className]).toEqual(['btn sm weak', 'btn sm pri'])
+  expect(remove.hasAttribute('disabled')).toBe(false)
+  view.rerender(ui('w1')) // 지우는 중에는 다른 삭제를 막는다(기존 규칙 그대로)
+  expect(remove.hasAttribute('disabled')).toBe(true)
+})

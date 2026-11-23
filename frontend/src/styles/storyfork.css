@@ -50,6 +50,8 @@ html:has(.gnb){scroll-padding-top:72px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:44px;padding:0 20px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);font-weight:700;white-space:nowrap;transition:background .15s,transform .1s}
 .btn:hover{background:var(--muted-bg)}.btn.pri{background:var(--pri);border-color:var(--pri);color:var(--on-pri)}.btn.pri:hover{background:var(--pri-d)}
 .btn.sm{height:36px;padding:0 14px;font-size:13.5px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+/* 글자 버튼(.weak): 테두리·배경 없이 약한 글자색만 둔다(읽기 화면의 .tbtn.weak와 같은 방식). 주 버튼 옆에서 눈에 덜 띄어야 하는 보조 동작(이어 읽기 기록 삭제)에 쓴다. 높이는 따로 두지 않아 .btn.sm의 36px(터치 44px)를 그대로 쓴다. */
+.btn.weak{border-color:transparent;background:transparent;color:var(--sub)}.btn.weak:hover{background:var(--muted-bg);color:var(--ink)}
 .chip{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 9px;border-radius:999px;font-size:12px;font-weight:700;background:var(--muted-bg);color:var(--sub);white-space:nowrap}
 .chip.ok{background:var(--pri-soft);color:var(--pri-ink)}.chip.wait{background:var(--acc-soft);color:var(--acc-ink)}
 .tag{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:5px;font-size:11px;font-weight:800;color:var(--on-pri);background:var(--pri)}
@@ -295,11 +297,11 @@ input[type=checkbox]:disabled,input[type=radio]:disabled{opacity:.5;cursor:not-a
 /* 서재·쓰기 */
 .list{background:var(--surface);border:1px solid var(--line);border-radius:22px;overflow:hidden}
 .li{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}.li:last-child{border:0}.li .th{aspect-ratio:3/4;border-radius:10px;overflow:hidden}.li .th svg{width:100%;height:100%;display:block}
-.li b{font-size:15px}.li .m{font-size:12.5px;color:var(--sub);margin-top:2px}.li .bar{height:4px;background:var(--muted-bg);border-radius:2px;margin-top:8px;width:min(200px,100%)}.li .bar i{display:block;height:100%;background:var(--pri);border-radius:2px}
-/* 카드 전체 누르기(.rowlink): 제목의 실제 링크(.li-link)의 ::after가 카드 전체를 덮고, 안의 버튼·링크 줄(.acts)은 그 위(z-index:1)에 놓여 자기 동작만 한다. .li를 쓰는 다른 화면에 새지 않게 .rowlink로 한정한다(.list가 overflow:hidden이라 hover 배경도 둥근 모서리에 잘린다). */
-.li.rowlink{position:relative}.li.rowlink:hover{background:var(--muted-bg)}.li-link{color:inherit;text-decoration:none}.li-link::after{content:"";position:absolute;inset:0}.li.rowlink>.acts{position:relative;z-index:1}
-/* 좁은 화면의 목록 줄: 표지·제목 2열로 두고 버튼 줄은 아래 전체 폭에 둔다(버튼이 auto 칸을 차지해 제목 칸이 0~57px로 눌리던 문제). 서재 집필 목록(.server-writing .li)과 같은 배치다. */
-@media (max-width:600px){.li{grid-template-columns:56px minmax(0,1fr)}.li>.acts{grid-column:1/-1}.li>.acts .btn{flex:1}}
+.li h3{font-size:15px;font-weight:700;line-height:1.5}.li .m{font-size:12.5px;color:var(--sub);margin-top:2px}.li .bar{height:4px;background:var(--muted-bg);border-radius:2px;margin-top:8px;width:min(200px,100%)}.li .bar i{display:block;height:100%;background:var(--pri);border-radius:2px}
+/* 카드 전체 누르기(.rowlink): 제목의 실제 링크(.li-link)의 ::after가 카드 전체를 덮고, 안의 버튼·링크 줄(.acts)은 그 위(z-index:1)에 놓여 자기 동작만 한다. .li를 쓰는 다른 화면에 새지 않게 .rowlink로 한정한다(.list가 overflow:hidden이라 hover 배경도 둥근 모서리에 잘린다). 키보드 초점(제목 링크 :focus-visible)도 hover와 같은 배경을 쓰고, 안쪽 버튼 위에서는 카드 배경을 끈다(버튼 자신의 hover만 보인다). */
+.li.rowlink{position:relative}.li.rowlink:hover:not(:has(.acts:hover)),.li.rowlink:has(.li-link:focus-visible){background:var(--muted-bg)}.li-link{color:inherit;text-decoration:none}.li-link::after{content:"";position:absolute;inset:0}.li.rowlink>.acts{position:relative;z-index:1}
+/* 좁은 화면의 목록 줄: 표지·제목 2열로 두고 버튼 줄은 아래 전체 폭에 둔다(버튼이 auto 칸을 차지해 제목 칸이 0~57px로 눌리던 문제). 서재 집필 목록(.server-writing .li)과 같은 배치다. 글자 버튼(.weak)은 내용 폭이고 주 버튼이 남는 폭을 채운다. */
+@media (max-width:600px){.li{grid-template-columns:56px minmax(0,1fr)}.li>.acts{grid-column:1/-1}.li>.acts .btn{flex:1}.li>.acts .btn.weak{flex:none}}
 .rp{padding:14px 18px;border-bottom:1px solid var(--line)}.rp:last-child{border:0}.rp .top{display:flex;gap:8px;align-items:center;justify-content:space-between}.rp .a{margin-top:8px;font-size:13px;background:var(--muted-bg);border-radius:12px;padding:9px 12px;color:var(--ink2)}.rp:focus-visible{outline-offset:-2px}
 .mywork{display:grid;grid-template-columns:120px minmax(0,1fr);gap:20px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:24px;margin-bottom:14px}.mywork .th{aspect-ratio:3/4;border-radius:12px;overflow:hidden}.mywork .th svg{width:100%;height:100%;display:block}
 .mywork h3{font-size:20px;font-weight:800}.mywork .tags{display:flex;gap:6px;margin:6px 0 10px;flex-wrap:wrap}.mywork .acts{margin-top:12px}
