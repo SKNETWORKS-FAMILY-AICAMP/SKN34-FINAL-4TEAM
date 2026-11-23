@@ -243,6 +243,8 @@ describe('내 문의 목록 (U34)', () => {
     const answered = (await screen.findByText('[계정] 답변된 문의')).closest('.rp') as HTMLElement
     within(answered).getByText('답변 완료')
     expect([...answered.querySelectorAll('.inquiry-reply')].map((p) => p.textContent)).toEqual(['운영팀 답변 1첫 답변\n줄2', '운영팀 답변 2둘째 답변'])
+    // [P1] 전역 p가 margin:0라 답변 상자가 본문·서로 맞닿던 것 — 상자 위에 8px(.rp .a와 같은 값)
+    expect([...answered.querySelectorAll<HTMLElement>('.inquiry-reply')].map((p) => p.style.marginTop)).toEqual(['8px', '8px'])
     expect(within(answered).getByText('첫 줄 둘째 줄').textContent).toBe('첫 줄\n둘째 줄')
     const waiting = screen.getByText('[계정] 기다리는 문의').closest('.rp') as HTMLElement
     within(waiting).getByText('답변 대기')

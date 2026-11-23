@@ -187,7 +187,7 @@ function InquiryForm({ vm }: { vm: VM }) {
   const missing = (value: string) => ({ 'aria-invalid': failed && !value.trim(), 'aria-describedby': failed && !value.trim() ? 'iq-error' : undefined })
   return (
     <>
-      <p className="small muted" style={{ marginBottom: 12 }}>운영팀 답변은 아래 내 문의에서 확인해요. 답변 알림은 따로 보내지 않아요.</p>
+      <p className="small muted" style={{ marginBottom: 12, textWrap: 'balance' }}>운영팀 답변은 아래 내 문의에서 확인해요. 답변 알림은 따로 보내지 않아요.</p>
       <form ref={form} className="tcard mecard" id="iqf" noValidate aria-busy={vm.asking} onSubmit={async (e) => { e.preventDefault(); resume.current = document.activeElement; if (await vm.ask(t, s, b)) { setT('이용 문의'); setS(''); setB('') } }}>
         <p className="small muted">모든 항목은 필수예요.</p>
         <label className="field">문의 유형<select className="inp" id="iqt" value={t} disabled={vm.asking} onChange={(e) => setT(e.target.value)}>{['이용 문의', '오류 신고', '권리·저작권', '계정', '기타'].map((o) => <option key={o}>{o}</option>)}</select></label>
@@ -204,7 +204,7 @@ function InquiryForm({ vm }: { vm: VM }) {
         <div className="rp" key={x.id} style={{ overflowWrap: 'anywhere' }}><div className="top"><b>[{x.category}] {x.title}</b><span className={`chip ${x.status === 'ANSWERED' ? 'ok' : 'wait'}`}>{supportStatusLabel(x.status)}</span></div>
           <div className="small muted" style={{ marginTop: 4 }}>{kstDateTime(x.createdAt)}</div>
           <p className="small" style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap' }}>{x.body}</p>
-          {x.replies.map((r, i) => <p className="inquiry-reply" key={r.id}><b>운영팀 답변{x.replies.length > 1 ? ` ${i + 1}` : ''}</b><br />{r.body}</p>)}</div>
+          {x.replies.map((r, i) => <p className="inquiry-reply" key={r.id} style={{ marginTop: 8 }}><b>운영팀 답변{x.replies.length > 1 ? ` ${i + 1}` : ''}</b><br />{r.body}</p>)}</div>
       )) : <div className="rp muted">아직 보낸 문의가 없어요.</div>}</div>}
     </>
   )

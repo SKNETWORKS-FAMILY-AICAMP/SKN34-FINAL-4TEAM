@@ -97,7 +97,7 @@ export function AiSerialPanel({ workId, useCase }: { workId: string; useCase?: S
                   </div>
                   {vm.boardsError && <div className='ep-alert' role='alert'>{vm.boardsError}</div>}
                   {!boards && !vm.boardsError && <p role='status'>기록을 불러오고 있어요…</p>}
-                  {boards?.length === 0 && <p>아직 게시판 기록이 없어요. AI 자율 집필을 켠 뒤 1화를 발행하면 2화 게시판이 열려요.</p>}
+                  {boards?.length === 0 && <p className='muted'>아직 게시판 기록이 없어요. AI 자율 집필을 켠 뒤 1화를 발행하면 2화 게시판이 열려요.</p>}
                   {!!boards?.length && (
                     <div className='ep-serial-scroll' role='region' aria-labelledby='ai-stab-history' tabIndex={0}>
                       <table className='ep-serial-table'>

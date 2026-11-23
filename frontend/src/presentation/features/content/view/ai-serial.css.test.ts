@@ -19,6 +19,15 @@ it('[F4] 잠긴 .pri 버튼은 채운 보라가 아니라 윤곽선이라 눌러
   expect(css).toMatch(/\.episode-app \.ep-serial \.btn\.pri:disabled\{background:none;border-color:var\(--line2\);color:var\(--ink\)\}/)
 })
 
+it('[P2] 설정 탭의 안내문→버튼은 12px다 — .ep-form-footer(세로, gap 12) 안 .ep-form-actions에는 여백을 더하지 않는다. 기록 탭 맨 위 버튼 줄(footer 밖)의 margin:12px 0은 그대로다', () => {
+  expect(css).toMatch(/\.ep-serial \.ep-form-footer \.ep-form-actions\{margin:0\}/)
+  expect(css).toMatch(/\.ep-serial \.ep-form-actions\{[^}]*margin:12px 0\}/)
+})
+
+it('[P3] 첫 요일 체크박스가 legend·라벨과 같은 왼쪽 선에 놓인다 — 공용 .ep-check input은 위 여백만 덮어 UA 왼쪽 4px가 남던 것', () => {
+  expect(css).toMatch(/\.ep-serial \.ep-check input\{margin:0\}/)
+})
+
 it('[Q2] 하위 탭은 14px·600이다 — 페이지 탭용 전역 15px·700이 탭 제목 h2(17px·700)와 겨루던 것. 선택 색·밑줄·높이 44px는 전역 .libtabs 규칙 그대로다', () => {
   expect(css).toMatch(/\.ep-serial \.libtabs :is\(button,a\)\{font-size:14px;font-weight:600\}/)
 })

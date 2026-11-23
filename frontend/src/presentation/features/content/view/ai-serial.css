@@ -7,6 +7,8 @@
 .ep-serial fieldset{border:0;padding:0;margin:0;min-width:0;display:flex;flex-wrap:wrap;gap:0 18px}
 .ep-serial legend{width:100%;padding:0;margin-bottom:4px;font-size:13px;font-weight:650}
 .ep-serial .ep-check{margin:0}
+/* 공용 .ep-check input은 위 여백만 덮어 UA 왼쪽 4px·아래 3px가 남는다 → 첫 체크박스가 legend·라벨보다 안쪽에 놓이고 글자보다 낮다. 여백을 모두 없앤다(간격은 gap 9·18만 남는다). */
+.ep-serial .ep-check input{margin:0}
 /* 650px 이하에서도 요일 일곱이 한 줄이다(7칸 균등 격자). 라벨의 터치 높이 44px는 공용 .ep-check 규칙 그대로다. */
 @media(max-width:650px){.ep-serial fieldset{display:grid;grid-template-columns:repeat(7,1fr);gap:0}}
 .ep-serial input[type=time]{max-width:180px}
@@ -15,6 +17,8 @@
 .ep-serial .ep-form-footer button{align-self:auto}
 /* 버튼과 잠긴 이유 문구는 한 줄에 간격을 두고 나란히 놓는다(운영 설정의 .ep-form-actions와 같은 값). */
 .ep-serial .ep-form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0}
+/* 설정 탭은 안내문→버튼이 footer의 gap 12 하나다(운영 설정과 같다). margin:12px 0은 footer 밖 기록 탭 맨 위 버튼 줄용이라 footer 안에서는 뺀다. */
+.ep-serial .ep-form-footer .ep-form-actions{margin:0}
 /* 잠긴 .pri 버튼은 운영 설정의 잠긴 저장 버튼과 같은 윤곽선이다(채운 보라는 눌러도 되는 버튼처럼 보인다). */
 .episode-app .ep-serial .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--ink)}
 /* 기록 표는 좁은 화면에서 가로로 민다(열을 쌓으면 표 구조를 잃는다). */
