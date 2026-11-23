@@ -255,12 +255,15 @@ export function Evaluations({ vm, l }: Props) {
         }}
       >
         <h3>회귀 평가 실행</h3>
-        <fieldset disabled={busy} className="form-grid">
-          <label className="field">데이터셋<input className="inp" name="dataset" required /></label>
-          <label className="field">프롬프트 이름<input className="inp" name="prompt" required /></label>
+        <fieldset disabled={busy} className="form-grid admin-eval-grid">
+          <label className="field">데이터셋<input className="inp" name="dataset" list="eval-datasets" autoComplete="off" required /></label>
+          <label className="field">프롬프트 이름<input className="inp" name="prompt" list="eval-prompts" autoComplete="off" required /></label>
           <label className="field">버전<input className="inp" name="version" type="number" min="1" step="1" required /></label>
           <div className="rowend wide"><button type="submit" className="btn pri">{busy ? '요청 중…' : '평가 실행'}</button></div>
         </fieldset>
+        {/* 이전에 돌린 데이터셋·프롬프트 이름을 고를 수 있게 한다(자유 입력은 그대로). */}
+        <datalist id="eval-datasets">{[...new Set(rows?.map((r) => r.dataset))].map((v) => <option key={v} value={v} />)}</datalist>
+        <datalist id="eval-prompts">{[...new Set(rows?.map((r) => r.prompt))].map((v) => <option key={v} value={v} />)}</datalist>
         <ActionLines vm={vm} prefix="eval:" />
       </form>
       <p className="admin-note">평가는 직접 실행하거나 켜 둔 일정으로만 돌아요. 1회 비용 상한은 아직 정하지 않아 상한 없이 실행돼요.</p>

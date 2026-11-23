@@ -128,3 +128,7 @@
 .adm .admin-leak-rate { margin-top: 20px; border-top: 1px solid var(--line); }
 .adm .admin-operations .admin-leak-rate h3 { margin: 16px 0 8px; }
 .adm .admin-leak-rate fieldset.admin-filter { margin: 0 0 6px; }
+/* 회귀 평가 실행 폼: 데이터셋·프롬프트 이름·버전(좁게)을 한 줄에 두고 실행 버튼은 입력 아래 왼쪽에 붙인다(오른쪽 끝에 떨어져 있으면 입력과 이어 보이지 않는다). */
+.adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 110px; }
+.adm .admin-eval-grid .rowend { justify-content: flex-start; }
+@media (max-width: 600px) { .adm .admin-eval-grid { grid-template-columns: minmax(0, 1fr); } }
