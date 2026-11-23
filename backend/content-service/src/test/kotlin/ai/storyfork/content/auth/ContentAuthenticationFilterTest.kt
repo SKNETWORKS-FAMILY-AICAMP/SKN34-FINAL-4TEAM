@@ -1,6 +1,9 @@
 package ai.storyfork.content.auth
 
 import ai.storyfork.content.auth.client.CoreAuthClient
+import ai.storyfork.content.auth.client.dto.CreditReleasePayload
+import ai.storyfork.content.auth.client.dto.CreditReservePayload
+import ai.storyfork.content.auth.client.dto.CreditSettlePayload
 import ai.storyfork.content.auth.client.ScheduledMemberPayload
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
 import ai.storyfork.content.auth.client.dto.NicknamesPayload
@@ -37,6 +40,9 @@ class ContentAuthenticationFilterTest {
                 override fun verify(authorization: String) = VerifiedMemberResponse(id, operator)
                 override fun nicknames(request: NicknamesPayload): NicknamesResponse = throw UnsupportedOperationException("verify only")
                 override fun verifyScheduledMember(request: ScheduledMemberPayload) = error("scheduled verification is unused")
+                override fun reserveCredit(request: CreditReservePayload) = error("credit is unused")
+                override fun settleCredit(request: CreditSettlePayload) = error("credit is unused")
+                override fun releaseCredit(request: CreditReleasePayload) = error("credit is unused")
             }
             try {
                 ContentAuthenticationFilter(CoreAuthVerificationService(client), JsonMapper.builder().build()).doFilter(request, response, chain)
@@ -68,6 +74,9 @@ class ContentAuthenticationFilterTest {
                 }
                 override fun nicknames(request: NicknamesPayload): NicknamesResponse = throw UnsupportedOperationException("verify only")
                 override fun verifyScheduledMember(request: ai.storyfork.content.auth.client.ScheduledMemberPayload) = error("scheduled verification is unused")
+                override fun reserveCredit(request: CreditReservePayload) = error("credit is unused")
+                override fun settleCredit(request: CreditSettlePayload) = error("credit is unused")
+                override fun releaseCredit(request: CreditReleasePayload) = error("credit is unused")
             }
             try {
                 ContentAuthenticationFilter(CoreAuthVerificationService(client), JsonMapper.builder().build())

@@ -54,6 +54,8 @@ import { HttpEpisodeCommentRepository } from '../../data/content/HttpEpisodeComm
 import { HttpWorkNoticeRepository } from '../../data/content/HttpWorkNoticeRepository'
 import { InMemoryWorkNoticeRepository } from '../../data/mock/InMemoryWorkNoticeRepository'
 import { WorkNoticeUseCase } from '../../domain/usecases/WorkNoticeUseCase'
+import { HttpSerialRepository } from '../../data/content/HttpSerialRepository'
+import { SerialUseCase } from '../../domain/usecases/SerialUseCase'
 import { HttpEditSuggestionRepository } from '../../data/content/HttpEditSuggestionRepository'
 import { HttpFeedbackReportRepository } from '../../data/content/HttpFeedbackReportRepository'
 import { HttpWritingChatRepository } from '../../data/content/HttpWritingChatRepository'
@@ -161,6 +163,9 @@ export function registerAppServices(container: AppContainer) {
     workNoticeUseCase: asFunction(({ workNoticeRepository }) => new WorkNoticeUseCase(workNoticeRepository)).singleton(),
     // 메모리 데모 작품(`--mode mockup`·테스트)의 소식. 실제 작품은 위 HTTP 저장소를 쓰고, 이 저장소는 서버에 저장하지 않는다.
     demoWorkNoticeUseCase: asFunction(() => new WorkNoticeUseCase(new InMemoryWorkNoticeRepository())).singleton(),
+    // AI 자율 연재(UC-18): 실제 작품 전용이라 데모(메모리) 대역은 없고, 화면은 데모 작품에서 이 UseCase를 부르지 않는다.
+    serialRepository: asFunction(() => new HttpSerialRepository()).singleton(),
+    serialUseCase: asFunction(({ serialRepository }) => new SerialUseCase(serialRepository)).singleton(),
     editSuggestionRepository: asFunction(() => new HttpEditSuggestionRepository()).singleton(),
     editSuggestionUseCase: asFunction(({ editSuggestionRepository }) => new EditSuggestionUseCase(editSuggestionRepository)).singleton(),
     feedbackReportRepository: asFunction(() => new HttpFeedbackReportRepository()).singleton(),

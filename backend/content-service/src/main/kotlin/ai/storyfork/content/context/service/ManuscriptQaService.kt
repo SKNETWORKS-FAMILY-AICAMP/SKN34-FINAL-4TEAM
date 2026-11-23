@@ -26,18 +26,32 @@ internal class ManuscriptQaService(
      */
     fun retrieveForAi(request: QaRetrievalRequest): QaRetrievalResponse {
         val grant = grants.read(request.scopeToken) ?: throw ContentFailure(403, "조회 범위를 확인할 수 없어요.")
-        val found = retrieve(grant.workId, grant.owner, request.question.trim(), grant.episode, grant.episodeVersionId)
+        val input = QaScopeRequest(grant.episode, grant.episodeVersionId)
+        val found = retrieve(grant.workId, grant.owner, request.question.trim(), input, scopes.resolve(grant.workId, grant.owner, input))
         return QaRetrievalResponse(if (found.sources.isEmpty()) "insufficient" else "found", found.sources,
             found.sources.map { QaExcerpt(it.id, it.episode, it.quote) }, found.gaps, found.coverage, found.steps)
+    }
+
+    /**
+     * 자율 연재 회차 실행의 관련 장면 검색이다(이름이 …ForSerial로 끝나지 않는 이유: 그 이름은 원고 잠금을 건너뛰는 전용 진입점 전용이고 SerialManuscriptLockTest가 사용처를 고정한다): [question]으로 독자 범위(공개 작품의 발행 회차 가운데 [basis]화까지)에서 벡터 검색과 발행 원문 재대조를 한 번 하고 인용을 최대 [limit]개 돌려준다.
+     * 독자 범위를 만들 수 없을 때만(비공개·제한 작품은 404, 원작이 삭제된 Fork의 상속 회차처럼 독자에게 가려진 기준 회차는 422) 색인된 것이 없어 검색할 것이 없으므로 빈 목록이다.
+     * 범위를 만든 뒤 검색 단계가 실패하면(임베딩의 422 '질문이 너무 김' 포함) 예외다: 호출한 실행이 임의로 빼지 않고 실패로 끝낸다.
+     */
+    fun searchRelated(workId: String, question: String, basis: QaEpisodeRef, limit: Int): List<QaSource> {
+        val input = QaScopeRequest(basis.number, basis.versionId)
+        val scope = try {
+            scopes.resolve(workId, null, input)
+        } catch (error: ContentFailure) {
+            if (error.status == 404 || error.status == 422) return emptyList()
+            throw error
+        }
+        return retrieve(workId, null, question, input, scope).sources.take(limit)
     }
 
     private class Retrieved(val sources: List<QaSource>, val gaps: List<QaGap>, val coverage: QaCoverage,
                             val steps: List<QaRetrievalStep>)
 
-    private fun retrieve(workId: String, owner: String?, question: String, episode: Int,
-                         episodeVersionId: String): Retrieved {
-        val input = QaScopeRequest(episode, episodeVersionId)
-        val scope = scopes.resolve(workId, owner, input)
+    private fun retrieve(workId: String, owner: String?, question: String, input: QaScopeRequest, scope: QaScope): Retrieved {
         val steps = mutableListOf<QaRetrievalStep>()
         fun <T> step(provider: String, hits: (T) -> Int, block: () -> T): T {
             val (value, took) = measureTimedValue(block)

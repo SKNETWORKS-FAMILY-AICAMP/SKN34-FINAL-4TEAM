@@ -6,12 +6,12 @@
 
 - 운영자는 모든 작품을 **열람만** 하고 내용은 고치지 못한다(`operatorReading()`). 아래 제한·카테고리는 그 규칙과 별개인 운영 조치다.
 - 내부 API는 `/internal/v1/**`의 운영 서비스 토큰 체인만 지나고 공개 proxy에 등록하지 않는다. 목록 응답은 `{items}` 래퍼 없는 맨 배열이다.
-- 마이그레이션: Content `episode/V44`, WorldStudio `V17`(세계관 제한)·`V18`(카드 카테고리).
+- 마이그레이션: Content `episode/V46`, WorldStudio `V17`(세계관 제한)·`V18`(카드 카테고리).
 
 ## 회차 제한
 
 ### 저장
-`episode.restricted boolean NOT NULL DEFAULT false`(V44)이고 `episode_current` 뷰가 끝에 `restricted`를 더한다: **자기 회차의 값 OR 물려받은 원작 회차의 값**
+`episode.restricted boolean NOT NULL DEFAULT false`(V46)이고 `episode_current` 뷰가 끝에 `restricted`를 더한다: **자기 회차의 값 OR 물려받은 원작 회차의 값**
 (체크포인트가 가리키는 원작 회차). 상속 회차의 제한을 따로 저장하지 않으므로 원작 회차를 풀면 그 회차를 물려받은 Fork 회차도 같이 풀린다.
 `published_version_id`·`publication_status`는 그대로라 작가 쪽(집필·저장·발행·회차 목록)은 영향이 없다.
 

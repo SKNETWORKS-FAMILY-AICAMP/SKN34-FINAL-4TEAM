@@ -8,6 +8,9 @@ generation으로 감싸 모델·사용량·출력을 남기고, 제공사 오류
 여러 단계를 도는 Agent(인물 시뮬레이션)의 공통 진행 이벤트·사용량 장부도 여기 둔다. 미들웨어가 상태의 `step`에 단계 결과를 남기면
 `ProgressMiddleware`가 LangGraph custom stream으로 흘리고(바깥 오케스트레이션이 SSE `step`으로 중계), `UsageLedger`(콜백)가 그 단계까지
 `MODEL_EVENT`로 알려진 모델 호출의 토큰·지연·실패를 추적 span 하나로 묶는다. 본문·키는 어느 쪽에도 담지 않는다.
+
+요청 하나가 모델을 여러 번 부르는 기능(AI 자율 연재, #659)의 크레딧은 `CreditMiddleware`가 맡는다: 요청 안 모든 `run`에 같은 인스턴스를 넘겨
+입력+출력 토큰을 누적하고, 상한에 닿으면 다음 모델 호출을 막는다.
 """
 
 import json
@@ -113,8 +116,66 @@ class ModelCallMiddleware(AgentMiddleware):
         return response
 
 
+TOKENS_PER_CREDIT = 1000  # 1 크레딧 = 1,000 토큰(입력+출력, 코드 상수). 금액은 소수 4자리로 올려 확정한다.
+
+
+class CreditMiddleware(AgentMiddleware):
+    """요청 하나의 모든 모델 호출 사용량(입력+출력 토큰)을 모아 크레딧 금액을 확정하고, 상한에 닿으면 다음 모델 호출을 막는다(#659).
+
+    한 요청에서 `run`을 여러 번 부르면 같은 인스턴스를 넘겨 누적한다. 누적 금액이 limit 이상이면 다음 모델 호출 전에 모델을 부르지 않고
+    failure(402)로 끝낸다. 호출 하나의 사용량은 부르기 전에 알 수 없어 상한 아래에서 시작한 호출은 상한을 넘겨도 끝까지 간다.
+    확정 금액(credits)은 그래도 limit을 넘지 않는다: Core 정산은 예약 상한 이하의 금액만 받는다(credit-internal-api). 넘긴 몫은 플랫폼이 부담하고
+    실제 토큰은 input_tokens·output_tokens에 그대로 남는다.
+    ponytail: 호출 전 토큰 예측은 하지 않아 상한을 넘기는 마지막 호출 하나까지 허용한다. 문제 되면 입력 토큰을 미리 세어 막는다.
+    """
+
+    def __init__(self, limit: float, failure: type[Exception]):
+        super().__init__()
+        self.limit, self.failure = limit, failure
+        self.input_tokens = self.output_tokens = 0
+
+    @property
+    def credits(self) -> float:
+        tokens = self.input_tokens + self.output_tokens
+        return min(-(-tokens * 10_000 // TOKENS_PER_CREDIT) / 10_000, self.limit)  # 정수 올림나눗셈(부동소수 오차 없이 소수 4자리 올림)
+
+    def gate(self) -> None:
+        """누적 금액이 상한 이상이면 failure(402)로 끝낸다. 다음 모델 호출 전에 부른다."""
+        if self.credits >= self.limit:
+            raise self.failure(402, '크레딧 상한을 넘었습니다.')
+
+    def record(self, input_tokens: int, output_tokens: int) -> None:
+        self.input_tokens += input_tokens
+        self.output_tokens += output_tokens
+
+    def wrap_model_call(self, request, handler):
+        self.gate()
+        response = handler(request)
+        usage = response.result[-1].usage_metadata
+        if usage:
+            self.record(usage['input_tokens'], usage['output_tokens'])
+        return response
+
+
+class CreditLedger(BaseCallbackHandler):
+    """create_agent 밖에서 모델을 부르는 실행(인물 시뮬레이션의 장면 에이전트)이 호출마다 알리는 MODEL_EVENT를 같은 CreditMiddleware에 더한다(#659).
+
+    호출 하나가 끝나 사용량을 알리면 더하고, 상한 이상이면 raise_error로 그 실행을 바로 끝낸다(다음 모델 호출은 없다). 사용량 없는 실패 호출은 0으로 센다.
+    """
+    raise_error = True
+
+    def __init__(self, credit: CreditMiddleware):
+        self.credit = credit
+
+    def on_custom_event(self, name: str, data: dict, **kwargs) -> None:
+        if name == MODEL_EVENT:
+            self.credit.record(data['inputTokens'] or 0, data['outputTokens'] or 0)
+            self.credit.gate()
+
+
 def run(name: str, label: str, failure: type[Exception], instructions: str, data: dict, *, prompt_name: str | None = None, max_tokens: int,
-        timeout: int, trace: dict, schema: type[BaseModel] | None = None, web_search: bool = False) -> tuple[AIMessage, Any]:
+        timeout: int, trace: dict, schema: type[BaseModel] | None = None, web_search: bool = False,
+        credit: CreditMiddleware | None = None) -> tuple[AIMessage, Any]:
     """data(JSON 자료)를 지시문으로 한 번 처리해 마지막 모델 메시지와 구조화 결과(schema가 없으면 None)를 돌려준다.
 
     지시문은 Langfuse 프롬프트 prompt_name의 production 버전이고 instructions(코드 문자열)는 최초 등록용 기본값이다(tracing.prompt).
@@ -122,6 +183,7 @@ def run(name: str, label: str, failure: type[Exception], instructions: str, data
     prompt_name이 없으면 Langfuse 프롬프트를 읽지 않고 instructions를 그대로 지시문으로 쓰며 generation에도 연결하지 않는다(회귀 평가처럼
     평가할 프롬프트 버전의 본문을 직접 넘기는 호출. production 버전을 읽으면 안 된다).
     web_search면 OpenAI 내장 `web_search`를 반드시 쓰게 하고 검색 출처를 응답에 포함시킨다. trace는 추적에 남길 입력이다.
+    credit을 주면 가장 바깥 미들웨어로 끼워 이 호출의 사용량을 그 인스턴스에 더하고, 상한에 닿았으면 모델을 부르지 않는다.
     """
     key, model = os.environ.get('OPENAI_API_KEY'), os.environ.get('OPENAI_MODEL')
     if not key or not model:
@@ -136,7 +198,8 @@ def run(name: str, label: str, failure: type[Exception], instructions: str, data
         # checkpointer=False: 오케스트레이션 노드 안에서 돌아도 바깥 대화 체크포인터를 이어받아 입력(원고·허용 문맥)을 남기지 않는다.
         chat, tools=[WEB_SEARCH] if web_search else [], system_prompt=managed.text, checkpointer=False,
         response_format=ProviderStrategy(schema, strict=True) if schema else None,
-        middleware=[ModelCallMiddleware(name, label, failure, trace, {'tool_choice': 'required'} if web_search else {}, managed.client),
+        middleware=[*([credit] if credit is not None else []),
+                    ModelCallMiddleware(name, label, failure, trace, {'tool_choice': 'required'} if web_search else {}, managed.client),
                     ModelCallLimitMiddleware(run_limit=1, exit_behavior='error')])
     state = agent.invoke({'messages': [HumanMessage(json.dumps(data, ensure_ascii=False))]})
     return state['messages'][-1], state.get('structured_response')

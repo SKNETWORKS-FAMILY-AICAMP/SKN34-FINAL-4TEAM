@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render as renderIn, screen, waitFor, within } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { Provider } from 'react-redux'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createAppStore } from '../../../app/store'
 import type { CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { chatPage, type ChatEvent, type ChatStep } from '../../../domain/entities/writingChat'
 import { useWritingChatViewModel } from './useWritingChatViewModel'
@@ -12,7 +15,10 @@ const { sessions, history, send, open, writingEpisode } = vi.hoisted(() => ({ se
 vi.mock('../../../app/appContainer', () => ({ appContainer: { resolve: () => useCase } }))
 const useCase = { sessions, history, send, open, writingEpisode }
 
-afterEach(() => { cleanup(); vi.resetAllMocks() })
+// useAsyncData는 effect를 정리한 뒤에도 대기 중이던 읽기를 한 번 부른다(취소된 신호로). 다음 테스트의 호출 기록에 섞이지 않게 먼저 비운다.
+afterEach(async () => { cleanup(); await Promise.resolve(); vi.resetAllMocks() })
+// 입력 대기 카드의 초안 읽기(useEpisodeDraft)가 쓰는 useAsyncData는 세션 스토어를 읽는다.
+const render = (ui: ReactElement) => { const store = createAppStore(); return renderIn(ui, { wrapper: ({ children }) => <Provider store={store}>{children}</Provider> }) }
 
 it('discards a message edit when switching to another conversation', async () => {
   sessions.mockResolvedValue([
@@ -1034,6 +1040,15 @@ describe('집필 AI 채팅 첨부(#617)', () => {
   const ask = (text: string) => { fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: text } }); fireEvent.click(screen.getByRole('button', { name: '전송' })) }
   const chipsOf = (name: string) => within(screen.getByRole('list', { name })).getAllByRole('listitem').map((li) => li.textContent)
 
+  it('대화 고르기 줄에 파일을 놓아도 브라우저가 그 파일을 열지 않는다(#700)', async () => {
+    openThread([])
+    renderChat()
+    await screen.findByText('새 대화', { selector: 'h3' })
+    const row = document.querySelector('.chat-sessions')!
+    expect(fireEvent.dragOver(row, { dataTransfer: { files: [png()] } })).toBe(false)
+    expect(fireEvent.drop(row, { dataTransfer: { files: [png()] } })).toBe(false)
+  })
+
   it('고른 이미지·텍스트를 Base64로 읽어 새 요청에 싣고, 보낸 첨부는 입력창에서 비운다', async () => {
     openThread([])
     send.mockResolvedValue(undefined)
@@ -1064,6 +1079,22 @@ describe('집필 AI 채팅 첨부(#617)', () => {
     view.rerender(studio(3, '3화에서 고른 글'))
     await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
     expect(send.mock.calls[0][2]).toMatchObject({ targetEpisode: 2, page: { episode: 2, selection: '2화에서 고른 글' } })
+  })
+
+  it('첨부를 읽는 사이 다른 스트림(메시지 고치기)이 시작되면 그 전송은 보내지 않고 글과 첨부를 입력창에 되돌린다', async () => {
+    openThread([{ request: '첫 질문', reply: null }])
+    send.mockImplementation(() => new Promise<void>(() => {})) // 고쳐 보낸 스트림은 끝나지 않는다
+    renderChat()
+    await screen.findByText('첫 질문')
+    fireEvent.click(screen.getByRole('button', { name: '이 메시지 고치기' }))
+    fireEvent.change(screen.getByLabelText('고칠 메시지'), { target: { value: '고친 질문' } })
+    attach(note())
+    ask('새 질문')
+    fireEvent.click(screen.getByRole('button', { name: '고쳐서 다시 보내기' })) // 첨부를 읽는 동안 시작한다
+    await waitFor(() => expect((screen.getByRole('textbox', { name: '메시지' }) as HTMLTextAreaElement).value).toBe('새 질문'))
+    expect(chipsOf('보낼 첨부')).toEqual(['텍스트 · 메모.md×'])
+    expect(send).toHaveBeenCalledTimes(1)
+    expect(send.mock.calls[0][2]).toEqual({ episode: 1, episodeVersionId: 'v', request: '고친 질문' })
   })
 
   it('첨부 없이 보낸 요청은 attachments 키 없이 예전과 같은 본문이다', async () => {

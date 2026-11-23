@@ -43,13 +43,15 @@ function MyReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
 /**
  * 내 서재 ‘내 댓글·제보’ 탭의 내 제보(기능 23). 실제 작품에 남긴 제보를 최신순으로 보이고 공개 범위 변경·정정·철회를 서버로 보냅니다.
  * 데모 작품의 피드백 기록은 같은 탭의 기존 메모리 목록이 그대로 보입니다.
+ * embedded는 작품 관리의 '내 댓글·제보' 탭 안이다: 탭 제목(h2) 아래 묶음 제목이라 h3다(그 밖에는 쪽 제목(h1) 아래 구획이라 h2).
  */
-export function MyFeedbackReports() {
+export function MyFeedbackReports({ embedded = false }: { embedded?: boolean }) {
   const vm = useMyFeedbackReportsViewModel()
   const { reports } = vm
+  const Heading = embedded ? 'h3' : 'h2'
   return (
     <section className="sec" aria-label="내 제보" aria-busy={!reports && !vm.isError}>
-      <div className="sec-h"><h2>{reports ? `내 제보 ${reports.length}` : '내 제보'}</h2></div>
+      <div className="sec-h"><Heading>{reports ? `내 제보 ${reports.length}` : '내 제보'}</Heading></div>
       <p className="small muted">실제 작품에 남긴 피드백이에요. 작가가 확인하거나 답변하면 상태가 바뀌어요. 공개 범위는 철회한 뒤에도 바꿀 수 있어요.</p>
       {vm.isError && (
         <div role="alert">

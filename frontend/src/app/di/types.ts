@@ -100,6 +100,8 @@ export type AppCradle = {
   workNoticeUseCase: import('../../domain/usecases/WorkNoticeUseCase').WorkNoticeUseCase
   workNoticeRepository: import('../../domain/repositories/WorkNoticeRepository').WorkNoticeRepository
   demoWorkNoticeUseCase: import('../../domain/usecases/WorkNoticeUseCase').WorkNoticeUseCase
+  serialUseCase: import('../../domain/usecases/SerialUseCase').SerialUseCase
+  serialRepository: import('../../domain/repositories/SerialRepository').SerialRepository
   editSuggestionUseCase: import('../../domain/usecases/EditSuggestionUseCase').EditSuggestionUseCase
   editSuggestionRepository: import('../../domain/repositories/EditSuggestionRepository').EditSuggestionRepository
   feedbackReportUseCase: import('../../domain/usecases/FeedbackReportUseCase').FeedbackReportUseCase

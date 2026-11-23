@@ -37,8 +37,10 @@ vi.mock('../../../../app/appContainer', async () => {
   const plans = { list, references: async () => ({ episodes: [], characters: [], places: [] }) }
   const worlds = { list: owned, read: readWorld }
   const episodes = { inheritedWorld: inherited }  // 시작 양식은 연결한 세계관이 없을 때만 Fork가 이어받는 세계관을 묻는다. 의존 배열에 들어가므로 늘 같은 객체다.
-  const reading = { ownerOf: async () => null }  // 운영자 열람 모드 판정(useOperatorViewOnly)도 의존 배열에 넣으므로 늘 같은 객체다. 모르는 키마다 새 {}를 주면 끝없이 다시 읽어 워커가 멈춘다.
-  return { appContainer: { resolve: (key: string) => (key === 'writingChatUseCase' ? chat : key === 'storyPlanUseCase' ? plans : key === 'worldStudioUseCase' ? worlds : key === 'episodeUseCase' ? episodes : key === 'readingUseCase' ? reading : {}) } }
+  const reading = { ownerOf: async () => null }  // 운영자 열람 모드 판정(useOperatorViewOnly)
+  // UseCase는 모두 의존 배열에 들어가므로 키마다 늘 같은 객체를 준다(실제 앱의 싱글턴처럼). 모르는 키(AI 자율 집필 잠금의 serialUseCase 등)마다 새 {}를 주면 useAsyncData가 끝없이 다시 읽어 워커가 멈춘다.
+  const known: Record<string, unknown> = { writingChatUseCase: chat, storyPlanUseCase: plans, worldStudioUseCase: worlds, episodeUseCase: episodes, readingUseCase: reading }
+  return { appContainer: { resolve: (key: string) => (known[key] ??= {}) } }
 })
 
 const store: { reply: ChatReply | null } = { reply: null }
@@ -240,14 +242,16 @@ it('계획 없음 안내는 미저장 원고를 유지하며 집필실 안 플�
   } finally { model.dirty = false }
 })
 
-it('저장하지 않은 원고가 있으면 Content 작업 승인 [실행]을 잠그고 먼저 저장하라고 알린다(#639)', async () => {
+// 집필실의 Content 쓰기 4종은 원고를 바꾸지 않고, 원고를 저장하면 작품 revision이 올라 이미 뜬 work_update 제안은 반드시 409가 된다(#687).
+// 그래서 원고가 저장되지 않았다고 [실행]을 잠그면 '먼저 저장'이 오히려 실패를 확정한다.
+it('저장하지 않은 원고가 있어도 Content 작업 승인 [실행]을 잠그지 않는다(#687)', async () => {
   model.dirty = true
   try {
     stored({ status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action',
       pendingAction: { tool: 'work_update', label: '작품 정보 수정', args: { id: 'work-id', data: { description: '새 소개' } } } })
     renderStudio()
-    expect((await screen.findByRole('button', { name: '실행' }) as HTMLButtonElement).disabled).toBe(true)
-    expect(screen.getByText(/먼저 저장해 주세요/)).toBeTruthy()
+    expect((await screen.findByRole('button', { name: '실행' }) as HTMLButtonElement).disabled).toBe(false)
+    expect(screen.queryByText(/먼저 저장해 주세요/)).toBeNull()
   } finally { model.dirty = false }
 })
 

@@ -13,6 +13,9 @@ import ai.storyfork.content.episode_version.repository.*
 import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.fork.repository.*
 import ai.storyfork.content.fork.service.dto.*
+import ai.storyfork.content.serial.domain.SERIAL_LOCKED
+import ai.storyfork.content.serial.domain.SERIAL_LOCKED_MESSAGE
+import ai.storyfork.content.serial.repository.AiSerialRepository
 
 @Service
 @Transactional(transactionManager="contentTransactionManager")
@@ -26,6 +29,7 @@ class WorkAccessService(
     private val checkpoints: CheckpointRepository,
     private val episodes: EpisodeRepository,
     private val versions: EpisodeVersionRepository,
+    private val serials: AiSerialRepository,
     @Qualifier("contentEntityManager") private val em: EntityManager,
 ) {
 
@@ -70,6 +74,18 @@ class WorkAccessService(
         val scope=(ids+sources.map {it.sourceWorkId}).distinct().sorted()
         works.lockAll(scope).forEach(em::refresh)
         sources.forEach(em::refresh)
+    }
+    /**
+     * AI 자율 집필이 켜져 있는 동안(집필 방식 autonomous = ai_serial.enabled)은 소유자가 1화만 직접 쓸 수 있다(409 SERIAL_LOCKED, 계약 'AI 자율 집필 = 집필 방식').
+     * 이 함수는 회차를 가리지 않는 쓰기(원고 가져오기, 이미 회차가 있을 때의 새 회차)가 소유 확인([own]) 뒤에 부르고, 켜져 있으면 막는다. 회차 단위 쓰기는 [requireEpisodeWritable]을 쓴다.
+     * 자율 연재 실행 자신의 저장은 이 함수를 부르지 않는 전용 진입점(...ForSerial)을 쓴다. 작품 정보·표지·분기 정책·세계관·댓글은 원고가 아니라서 막지 않는다.
+     */
+    fun requireManuscriptWritable(id: String) {
+        if (serials.findById(id).orElse(null)?.enabled == true) throw ContentFailure(409, SERIAL_LOCKED_MESSAGE, SERIAL_LOCKED)
+    }
+    /** 회차 단위 쓰기가 자기 대상 회차 번호로 부른다: AI 자율 집필 중에도 1화는 직접 쓸 수 있고 2화부터는 [requireManuscriptWritable]이다. */
+    fun requireEpisodeWritable(id: String, number: Int) {
+        if (number != 1) requireManuscriptWritable(id)
     }
     fun requireRevision(work: WorkAccessResult, expected: Int) = checkContent(work.revision==expected,409,"원고가 변경됐어요. 최신 데이터를 불러와 주세요.")
 

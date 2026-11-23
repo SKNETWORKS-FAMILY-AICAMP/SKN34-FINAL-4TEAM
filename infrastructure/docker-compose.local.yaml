@@ -35,6 +35,25 @@ services:
       retries: 30
       start_period: 30s
 
+  # 원고 색인·검색(Elasticsearch 단일 노드). Content가 항상 쓰므로 local·개발 배포 모두 항상 띄운다(끄는 플래그 없음).
+  # 네이티브 Content용 단독 실행 파일(docker-compose.elasticsearch.yaml)과 같은 공식 이미지·설정이다: 둘을 함께 띄우면 호스트 포트 9200이 겹친다.
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.6
+    mem_limit: 1g
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - manuscript-index:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow&timeout=3s"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 60s
+
   mailpit:
     image: axllent/mailpit:v1.27
     ports:
@@ -146,6 +165,8 @@ services:
         condition: service_healthy
       neo4j:
         condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     environment:
       CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:?Set CONTENT_CORE_AUTH_TOKEN}
       OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
@@ -160,15 +181,12 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?Set AWS_SECRET_ACCESS_KEY}
       NEO4J_URI: bolt://neo4j:7687
       APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${WEB_PORT:-5173}}
-      # 원고 색인·Q&A(#475). 기본은 끄고, 켜면 따로 띄운 docker-compose.elasticsearch.yaml(호스트 9200)을 쓴다. 임베딩은 ai-service 이미지의 E5 모델이 만든다.
-      MANUSCRIPT_INDEX_ENABLED: ${MANUSCRIPT_INDEX_ENABLED:-false}
-      MANUSCRIPT_INDEX_URL: http://host.docker.internal:9200
+      # 원고 색인·Q&A(#475, 항상 켬)와 자율 연재의 관련 장면 검색. 위 elasticsearch 서비스를 쓰고, 임베딩은 ai-service 이미지의 E5 모델이 만든다.
+      MANUSCRIPT_INDEX_URL: http://elasticsearch:9200
       MANUSCRIPT_INDEX_NAME: ${MANUSCRIPT_INDEX_NAME:-storyfork-manuscript-v1}
-      # 작품·세계관·설정 카드 검색 색인(#505). 기본은 끄고(DB 검색 그대로), 켜면 원고 색인과 같은 Elasticsearch(호스트 9200)가 검색어 후보를 찾는다.
+      # 작품·세계관·설정 카드 검색 색인(#505). 기본은 끄고(DB 검색 그대로), 켜면 같은 Elasticsearch가 검색어 후보를 찾는다.
       SEARCH_INDEX_ENABLED: ${SEARCH_INDEX_ENABLED:-false}
-      SEARCH_INDEX_URL: http://host.docker.internal:9200
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      SEARCH_INDEX_URL: http://elasticsearch:9200
     ports:
       - "127.0.0.1:${CONTENT_SERVICE_PORT:-8081}:8081"
 
@@ -201,3 +219,4 @@ volumes:
   worldstudio-neo4j:
   core-rabbitmq:
   setting-attachments:
+  manuscript-index:

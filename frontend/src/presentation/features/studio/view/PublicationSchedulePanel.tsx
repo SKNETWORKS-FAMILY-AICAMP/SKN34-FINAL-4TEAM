@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { SERIAL_LOCK_NOTICE } from '../../../../domain/entities/aiSerial'
 import type { WritingEpisode } from '../../../../domain/entities/content'
 import { publishBlocker } from '../../../../domain/entities/manuscriptLength'
 import { toKstDateTimeInput } from '../../../../domain/entities/publicationSchedule'
@@ -7,7 +8,8 @@ import { usePublicationScheduleViewModel } from '../viewmodel/usePublicationSche
 const statusLabel = { pending: '대기', published: '발행 완료', failed: '실패', canceled: '취소' }
 const formatTime = (instant: string) => new Date(instant).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
 
-export function PublicationSchedulePanel({ workId, episode }: { workId: string; episode: WritingEpisode }) {
+/** locked: AI 자율 집필 중이라 서버가 이 회차(2화부터)의 원고 수정(예약 등록·변경 포함)을 막는 동안 예약·변경을 잠근다. 예약 취소는 막지 않는다. */
+export function PublicationSchedulePanel({ workId, episode, locked = false }: { workId: string; episode: WritingEpisode; locked?: boolean }) {
   const vm = usePublicationScheduleViewModel(workId, episode.number)
   const versions = episode.versions.filter(version => version.body.trim())
   const reasonId = useId()
@@ -17,6 +19,7 @@ export function PublicationSchedulePanel({ workId, episode }: { workId: string; 
   return <section className="publication-schedule" aria-label={`${episode.number}화 예약 발행`}>
     <h2>{episode.number}화 예약 발행</h2>
     <p className="small muted">예약 시각은 한국 표준시(KST)입니다. 예약 결과와 실제 발행 결과를 각각 확인할 수 있어요.</p>
+    {locked && <p className="ep-alert ep-changed">{SERIAL_LOCK_NOTICE}</p>}
     <button type="button" className="btn sm" disabled={vm.busy} onClick={() => void vm.reload()}>예약 결과 새로고침</button>
     {vm.busy && <p role="status">{vm.rows === null ? '예약 내역을 불러오고 있어요…' : '예약 발행 요청을 처리하고 있어요…'}</p>}
     {vm.error && <p className="ep-alert" role="alert">{vm.error}</p>}
@@ -44,7 +47,7 @@ export function PublicationSchedulePanel({ workId, episode }: { workId: string; 
           <input type="checkbox" checked={vm.form.rights} disabled={vm.busy} onChange={event => vm.edit({ rights: event.target.checked })} />
           이 저장 원고를 공개할 권리가 있음을 확인합니다.
         </label>
-        <button type="submit" className="btn pri" disabled={vm.busy || !vm.form.rights || !vm.form.versionId || !vm.form.time || !!tooShort} aria-describedby={tooShort ? reasonId : undefined}>
+        <button type="submit" className="btn pri" disabled={vm.busy || locked || !vm.form.rights || !vm.form.versionId || !vm.form.time || !!tooShort} aria-describedby={tooShort ? reasonId : undefined}>
           {vm.pending ? '예약 변경' : '발행 예약'}
         </button>
         {tooShort && <small id={reasonId} className="muted writing-publish-reason">{tooShort}</small>}

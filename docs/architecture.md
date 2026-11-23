@@ -41,7 +41,7 @@ Browser → React Web → /api
 | 관계 그래프 DB | 인물·엔티티 관계 저장·조회; 문서·원고 전문은 제외 | MVP 방향(DEC-26), 제품·연동 미정 |
 | `pg_git` (`seanwevans/pg_git`) | MVP 이후 PostgreSQL 확장 도입을 신중히 추진 | MVP 미적용. 포크·설치·개발은 아직 안 함(DEC-27·30) |
 | S3 호환 object storage | 설정 이미지·TXT/MD/CSV/PDF 첨부, RDB에는 비공개 object key와 인증 API 참조 | #87 선택적 Core API 구현; 로컬 MinIO 소스 빌드, 배포 대상 AWS S3(실제 AWS 미검증) |
-| Elasticsearch·Langfuse·SMTP | 검색 확장·AI 관측·이메일 | 로컬 SMTP를 가입 인증·비밀번호 복구·이메일 변경에 사용, 운영 제공사는 미정 |
+| Elasticsearch·Langfuse·SMTP | 검색 확장·AI 관측·이메일 | Elasticsearch는 Content의 원고 색인·검색에 항상 쓴다(끄는 설정 없음, 운영은 외부 `MANUSCRIPT_INDEX_URL` 필요). 로컬 SMTP를 가입 인증·비밀번호 복구·이메일 변경에 사용, 운영 제공사는 미정 |
 | 모델 API·프레임워크 | 선택적 AI 집필·시뮬레이션 | 팀 선정 미정. 콘텐츠의 명시적 생성은 설정한 OpenAI 모델 호출 |
 
 저장 경계: 설정·원고 전문 및 콘텐츠의 확정 버전·되돌리기·체크포인트·Fork는 PostgreSQL, 관계 정보는 그래프 DB에서 다룹니다. 콘텐츠 변경을 기존 버전 덮어쓰기로 처리하지 않습니다. 두 DB의 연결 키·정본 여부·동기화·복구, Fork의 기준 관계 고정과 AI 조회 경로는 아직 설계하지 않았습니다. Gitea는 사용하지 않습니다. 세계관 설정은 항목별 공개·비공개와 회차별 공개 범위를 두고 사용자 권한·미발행 원고·인물별 인지 범위를 구분합니다(DEC-36).
@@ -127,7 +127,7 @@ Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaR
 ## 실행·보안 경계
 
 공통 `infrastructure/docker-compose.yaml`은 web·Core·Content·AI 네 앱의 공통 환경·내부 포트를 정의하며 단독 실행하지 않습니다. AI와 같은 이미지의 `ai-worker`는 회차 원고 전처리 Celery 큐(RabbitMQ, 동시성 1)를, `ai-jobs-worker`는 작업 큐(`jobs`: 회귀 평가·운영 정기 작업, 동시성 `AI_JOBS_CONCURRENCY` 기본 4)를 실행합니다. 정기 작업의 일정·실행 기록은 운영 서비스가 맡고 실행만 워커가 운영 내부 API를 불러 합니다([계약](design/operations-funnel-credit-contract.md)).
-루트 `compose.yaml`은 base + `docker-compose.local.yaml`을 include합니다. 루트 `.env`를 자동으로 읽는 `docker compose up -d --build`는 네 앱을 기존 runtime Dockerfile로 빌드하고 내부 PostgreSQL·Mailpit을 함께 사용합니다. 같은 `compose.yaml`이 `docker-compose.langfuse.yaml`을 별도 include 항목으로 불러 Langfuse(웹·worker와 자체 저장소)를 같은 프로젝트·네트워크에서 항상 함께 올립니다(끄는 옵션 없음, `LANGFUSE_*` 필수).
+루트 `compose.yaml`은 base + `docker-compose.local.yaml`을 include합니다. 루트 `.env`를 자동으로 읽는 `docker compose up -d --build`는 네 앱을 기존 runtime Dockerfile로 빌드하고 내부 PostgreSQL·Mailpit을 함께 사용합니다. 같은 `compose.yaml`이 `docker-compose.langfuse.yaml`을 별도 include 항목으로 불러 Langfuse(웹·worker와 ClickHouse·Redis, PostgreSQL·MinIO는 앱 스택 것을 공유하고 웹 화면 포트 없음)를 같은 프로젝트·네트워크에서 항상 함께 올립니다(끄는 옵션 없음, `LANGFUSE_*` 필수).
 base + `docker-compose.dev.yaml`은 게시된 `:develop` 앱 이미지와 같은 내부 PostgreSQL·Mailpit 구조를 사용하며 앱 소스 build·mount는 없습니다. local/dev의 프로젝트·DB volume은 서로 격리합니다. 기존 외부·공유 DB의 내부 DB 전환과 데이터 이관은 실행하지 않았으며 개발 CD에는 별도 전환 승인이 필요합니다.
 base + `docker-compose.prod.yaml`은 `:main` 앱 이미지와 외부 PostgreSQL·SMTP를 사용하는 운영 설정 준비입니다. 현재 게시 workflow는 develop 전용이므로 main 이미지 가용성·실제 게시·배포는 확인되지 않았습니다.
 선택 첨부 overlay는 base + local 뒤에 추가하는 로컬 MinIO 구성입니다. 소스 빌드 web은 nginx 정적 이미지이지 HMR이 아니며, hot reload는 각 서비스의 기본 네이티브 명령을 사용합니다.

@@ -1,6 +1,9 @@
 package ai.storyfork.content.auth
 
 import ai.storyfork.content.auth.client.CoreAuthClient
+import ai.storyfork.content.auth.client.dto.CreditReleasePayload
+import ai.storyfork.content.auth.client.dto.CreditReservePayload
+import ai.storyfork.content.auth.client.dto.CreditSettlePayload
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
 import ai.storyfork.content.auth.client.dto.NicknamesPayload
 import ai.storyfork.content.auth.client.dto.NicknamesResponse
@@ -21,6 +24,9 @@ class CoreNicknameServiceTest {
         val calls = mutableListOf<List<String>>()
         override fun verify(authorization: String): VerifiedMemberResponse = throw UnsupportedOperationException("nicknames only")
         override fun verifyScheduledMember(request: ai.storyfork.content.auth.client.ScheduledMemberPayload) = error("scheduled verification is unused")
+        override fun reserveCredit(request: CreditReservePayload) = error("credit is unused")
+        override fun settleCredit(request: CreditSettlePayload) = error("credit is unused")
+        override fun releaseCredit(request: CreditReleasePayload) = error("credit is unused")
         override fun nicknames(request: NicknamesPayload): NicknamesResponse {
             calls += request.ids
             fail?.let { throw it }

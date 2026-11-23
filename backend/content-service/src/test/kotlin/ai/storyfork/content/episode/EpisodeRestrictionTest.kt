@@ -149,12 +149,12 @@ class EpisodeRestrictionTest {
         assertEquals("/internal/v1/works/{workId}/episodes/{number}/restriction" to listOf(RequestMethod.DELETE), route(internal, "unrestrict"))
     }
 
-    // --- 스키마(V44) ---
-    private val v44 = Files.readString(Path.of("src/main/resources/db/migration/episode/V44__episode_restriction.sql"))
+    // --- 스키마(V46) ---
+    private val v46 = Files.readString(Path.of("src/main/resources/db/migration/episode/V46__episode_restriction.sql"))
 
-    @Test fun `V44 adds the flag and appends it to the view after the V31 columns`() {
-        assertTrue(v44.contains("ALTER TABLE episode ADD COLUMN restricted boolean NOT NULL DEFAULT false;"))
-        val view = v44.substringAfter("CREATE OR REPLACE VIEW episode_current")
+    @Test fun `V46 adds the flag and appends it to the view after the V31 columns`() {
+        assertTrue(v46.contains("ALTER TABLE episode ADD COLUMN restricted boolean NOT NULL DEFAULT false;"))
+        val view = v46.substringAfter("CREATE OR REPLACE VIEW episode_current")
         // CREATE OR REPLACE VIEW는 기존 열의 이름·순서를 바꾸지 못하고 새 열은 끝에만 더한다.
         val order = listOf("e.draft_revision_floor", "published_version_id", "inherited", "publication_status", "restricted").map { view.indexOf(it) }
         assertTrue(order.all { it > 0 } && order == order.sorted(), "열 순서: $order")

@@ -2,6 +2,7 @@ import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 
 import type { ChatPage, WorldDraftRevision } from '../../../../domain/entities/writingChat'
+import { keepFiles } from '../../../shared/chat/keepFiles'
 import { WritingChat } from '../../../shared/chat/WritingChat'
 import { useLinkedWorkBasis } from '../viewmodel/useLinkedWorkBasis'
 import { FoldIcon, SparkIcon } from '../../../shared/icons'
@@ -51,7 +52,7 @@ export function WorldChat({ open, onOpenChange, slot = null, variant = 'world', 
   const close = () => onOpenChange(false)
   const body = (
     <>
-      <div className="studio-chat-head">
+      <div className="studio-chat-head" {...keepFiles}>
         <h2><span className="chat-brand" aria-hidden="true"><SparkIcon size={16} /></span>AI 채팅</h2>
         <button ref={toggle} type="button" className="chat-icon-btn" aria-label="접기" title="접기" onClick={close}><FoldIcon /></button>
       </div>

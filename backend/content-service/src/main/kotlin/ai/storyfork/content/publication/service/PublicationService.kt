@@ -82,6 +82,8 @@ class PublicationService(
 
     private fun publishVersion(id: String, owner: String, number: Int, versionId: String?, rightsConfirmed: Boolean, revision: Int?, trigger: String) {
         val w=access.own(id,owner)
+        // 예약 실행(scheduled)은 켜기 전에 소유자가 등록한 발행을 이행하는 경로(자율 연재의 자기 발행 포함)라 잠그지 않는다. 사람이 누르는 발행만 막는다.
+        if(trigger=="manual") access.requireEpisodeWritable(id,number)
         val e=episodeService.read(id,owner,number)
         checkContent(!e.inherited,403,"원작 기준 회차는 수정할 수 없어요.")
         checkContent(revision==null || e.draft.revision==revision,409,"다른 편집이 저장됐어요. 최신 원고를 불러와 주세요.")
@@ -92,8 +94,11 @@ class PublicationService(
         apply(id,owner,number,v.id,if(e.publishedVersionId!=null) "replace" else if(e.publicationStatus=="suspended") "republish" else "publish",trigger)
     }
     fun publishCurrent(id: String, owner: String, data: PublishRequest) {
-        val w=access.own(id,owner);access.requireRevision(w,data.revision)
+        val w=access.own(id,owner)
         val number=nextEpisodeNumber(id)
+        // 작품 단위 발행은 대상 회차(마지막 발행+1)로 잠금을 묻는다: 발행된 회차가 없어 1화가 대상이면 AI 자율 집필 중에도 된다.
+        access.requireEpisodeWritable(id,number)
+        access.requireRevision(w,data.revision)
         val episode=episodes.findByWorkIdAndSequence(id,number) ?: throw ContentFailure(409,"현재 작성 회차가 없어요.")
         val v=data.versionId?.let { versions.findByEpisodeIdAndContentVersionId(episode.id,it) }
         checkContent(v!=null && v.isSaved,409,"현재 작성 회차의 저장 버전을 명시적으로 선택해 주세요.")
@@ -118,6 +123,7 @@ class PublicationService(
     /** 기존 발행본만 중단·재공개한다. 새 저장 버전으로 바꾸려면 발행 API를 사용한다. */
     fun visibility(id: String, owner: String, number: Int, data: PublicationVisibilityRequest): EpisodeResponse {
         val w=access.own(id,owner)
+        access.requireEpisodeWritable(id,number)
         val e=episodeService.read(id,owner,number)
         checkContent(!e.inherited,403,"원작 기준 회차는 변경할 수 없어요.")
         checkContent(e.draft.revision==data.revision,409,"회차가 변경됐어요. 다시 불러와 주세요.")

@@ -440,9 +440,17 @@ class ComposeSplitTest(unittest.TestCase):
     def test_langfuse_is_one_file_that_dev_and_prod_include(self):
         langfuse = read(LANGFUSE_COMPOSE)
         services = re.findall(r'(?m)^  ([a-z][\w-]*):$', langfuse.split('\nservices:\n', 1)[1].split('\nvolumes:\n', 1)[0])
-        # 앱 스택의 postgres·minio와 이름이 겹치면 같은 프로젝트에 include할 수 없다.
-        self.assertEqual({'langfuse-web', 'langfuse-worker', 'langfuse-postgres', 'langfuse-clickhouse',
-                          'langfuse-minio', 'langfuse-redis'}, set(services))
+        # 2026-11-23 사용자 결정: PostgreSQL·MinIO는 앱 스택의 것을 쓰고 Langfuse 전용 컨테이너를 띄우지 않는다.
+        # ClickHouse·Redis는 앱 스택에 같은 저장소가 없고 Langfuse 필수라 남긴다.
+        self.assertEqual({'langfuse-web', 'langfuse-worker', 'langfuse-clickhouse', 'langfuse-redis'}, set(services))
+        self.assertIn('DATABASE_URL: ${LANGFUSE_DATABASE_URL:-postgresql://${DATABASE_USER:?Set DATABASE_USER}:'
+                      '${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}@postgres:5432/langfuse}\n', langfuse)
+        for kind in ('EVENT', 'MEDIA'):
+            self.assertIn(f'LANGFUSE_S3_{kind}_UPLOAD_ENDPOINT: ${{LANGFUSE_S3_ENDPOINT:-http://minio:9000}}\n', langfuse)
+            self.assertIn(f'LANGFUSE_S3_{kind}_UPLOAD_BUCKET: ${{ATTACHMENT_S3_BUCKET:-storyfork-setting-attachments}}\n', langfuse)
+            self.assertIn(f'LANGFUSE_S3_{kind}_UPLOAD_ACCESS_KEY_ID: ${{AWS_ACCESS_KEY_ID', langfuse)
+        self.assertNotIn('LANGFUSE_DB_PASSWORD', langfuse)
+        self.assertNotIn('LANGFUSE_MINIO_PASSWORD', langfuse)
         dev, prod = read('infrastructure/docker-compose.dev.yaml'), read('infrastructure/docker-compose.prod.yaml')
         # 원격 CD는 --project-directory 때문에 상대 경로가 어긋나므로 dev만 임시로 둔 절대 경로를 받는다.
         self.assertIn('\ninclude:\n  - path: ${CD_LANGFUSE_COMPOSE_FILE:-docker-compose.langfuse.yaml}\n', dev)
@@ -454,18 +462,18 @@ class ComposeSplitTest(unittest.TestCase):
         for path in ('infrastructure/docker-compose.yaml', 'infrastructure/docker-compose.local.yaml'):
             self.assertNotIn('langfuse.yaml', read(path), path)
 
-    def test_langfuse_web_is_developer_only_and_keeps_the_headless_init_admin(self):
-        # 2026-11-19 사용자 결정: 관리자는 Langfuse 웹에 들어가지 않는다(OIDC 로그인·화면 링크·기본 조직 자동 배정 없음).
-        # 웹은 개발자가 초기 관리자(LANGFUSE_INIT_*)로 loopback 포트에서만 쓰고 가입은 막는다.
+    def test_langfuse_web_has_no_host_port_or_login_user(self):
+        # 2026-11-23 사용자 결정: Langfuse 웹 화면을 쓰지 않는다. 컨테이너는 AI·운영이 부르는 API 서버라 남기되
+        # 호스트 포트와 로그인용 초기 관리자를 두지 않고 가입도 막는다. 프로젝트·API 키만 헤드리스로 만든다.
         langfuse = read(LANGFUSE_COMPOSE)
         web = service_block(langfuse, 'langfuse-web')
-        self.assertIn('- "127.0.0.1:${LANGFUSE_WEB_PORT:-3000}:3000"', web)
-        self.assertIn('NEXTAUTH_URL: http://localhost:${LANGFUSE_WEB_PORT:-3000}\n', langfuse)
+        self.assertNotIn('ports:', web)
+        self.assertNotIn('LANGFUSE_WEB_PORT', langfuse)
         self.assertEqual({'AUTH_DISABLE_SIGNUP'}, set(re.findall(r'(?m)^      (AUTH_\w+):', web)))
         self.assertIn('AUTH_DISABLE_SIGNUP: "true"\n', web)
         self.assertEqual({'LANGFUSE_INIT_ORG_ID', 'LANGFUSE_INIT_ORG_NAME', 'LANGFUSE_INIT_PROJECT_ID', 'LANGFUSE_INIT_PROJECT_NAME',
-                          'LANGFUSE_INIT_PROJECT_PUBLIC_KEY', 'LANGFUSE_INIT_PROJECT_SECRET_KEY', 'LANGFUSE_INIT_USER_EMAIL',
-                          'LANGFUSE_INIT_USER_NAME', 'LANGFUSE_INIT_USER_PASSWORD'}, set(re.findall(r'(?m)^      (LANGFUSE_\w+):', web)))
+                          'LANGFUSE_INIT_PROJECT_PUBLIC_KEY', 'LANGFUSE_INIT_PROJECT_SECRET_KEY'},
+                         set(re.findall(r'(?m)^      (LANGFUSE_\w+):', web)))
         # 공개 진입점(nginx·Vite)은 Langfuse 웹으로 가는 길을 두지 않는다.
         for path in ('frontend/nginx.conf', 'infrastructure/nginx.dev.conf', 'frontend/vite.config.ts'):
             self.assertNotIn('langfuse-web', read(path), path)

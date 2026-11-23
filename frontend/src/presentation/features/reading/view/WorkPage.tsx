@@ -9,15 +9,19 @@ import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { Branch, Bubble, Eye, Flag, Heart, Like, Share } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
+import { useSerialBoardRead } from '../viewmodel/useSerialBoardViewModel'
 import { useWorkViewModel } from '../viewmodel/useWorkViewModel'
 import { ReportSheet } from './Sheets'
+import { SerialBoard } from './SerialBoard'
 import { WorkComments } from './WorkComments'
 import { WorkInfo, serialView } from './WorkInfo'
 import { WorkNotices } from './WorkNotices'
 import { WorkRecommendations } from './WorkRecommendations'
 
-const TABS = [['eps', '회차'], ['info', '정보'], ['notice', '소식']] as const
-type Tab = (typeof TABS)[number][0]
+type Tab = 'eps' | 'info' | 'notice' | 'serial'
+const TABS: readonly (readonly [Tab, string])[] = [['eps', '회차'], ['info', '정보'], ['notice', '소식']]
+/** AI 자율 집필이 켜진 서버 작품에만 있는 탭(UC-18): 안은 하위 탭 '투표 | 제안 게시판'이다. */
+const SERIAL_TAB = ['serial', '다음 회차'] as const
 
 /** 목업 unavailableWork() */
 export function UnavailableWork() {
@@ -39,19 +43,24 @@ export function WorkPage() {
   const [tab, setTab] = useState<Tab>('eps')
   const d = vm.detail
   useDocumentTitle(d?.work.title ?? '소설 상세')
+  // '다음 회차' 탭을 보일지(enabled)와 탭 안 게시판이 같은 읽기를 쓰도록 여기서 한 번만 읽는다. 서버 공개 작품만 읽는다.
+  const serial = useSerialBoardRead(d ? d.work : undefined)
   if (d === undefined) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
   if (d === null) return <UnavailableWork />
   const { work: w, parent: p, visible, last, read, liked, likes, forks, forkList } = d
   const first = visible.find(([e, i]) => !hiddenSourceEpisode(w, i + 1, e.p)) ?? visible[0]
   const start = last && visible.some(([e, i]) => i + 1 === last && !hiddenSourceEpisode(w, last, e.p)) ? last : (first?.[1] ?? 0) + 1
   const sv = serialView(w)
+  const tabs = serial.data?.enabled ? [...TABS, SERIAL_TAB] : TABS
+  // 이웃 작품으로 옮기면 탭 상태가 남으므로, 켜지지 않은 작품에서는 '다음 회차'를 고른 채로 두지 않고 회차 탭으로 돌아온다.
+  const current: Tab = tab === 'serial' && !serial.data?.enabled ? 'eps' : tab
   /** 탭 목록의 방향키·Home·End로 탭을 옮깁니다(끝에서는 돌아서 이어짐). 선택한 탭만 Tab 순서에 들어갑니다. */
   const moveTab = (e: KeyboardEvent) => {
-    const i = TABS.findIndex(([k]) => k === tab)
-    const to = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1 : null
+    const i = tabs.findIndex(([k]) => k === current)
+    const to = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : null
     if (to === null) return
     e.preventDefault()
-    const next = TABS[(to + TABS.length) % TABS.length][0]
+    const next = tabs[(to + tabs.length) % tabs.length][0]
     setTab(next)
     document.getElementById(`tab-${next}`)?.focus()
   }
@@ -91,11 +100,18 @@ export function WorkPage() {
         </section>
         <div className="wgrid">
           <section className="tcard eps">
+            {/* 첫 조회가 실패했으면 정상 비활성(탭 없음)과 구별해 알리고 다시 읽게 한다. 다시 읽다 실패한 경우는 탭 안 배너가 맡는다. */}
+            {serial.isError && !serial.data && (
+              <div role="alert" className="ws-retry ws-top">
+                <span className="muted">다음 회차 게시판을 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.</span>
+                <button type="button" className="btn sm" onClick={serial.retry}>다시 불러오기</button>
+              </div>
+            )}
             <div className="wtabs" role="tablist" aria-label="소설 상세 탭" onKeyDown={moveTab}>
-              {TABS.map(([k, label]) => <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={tab === k} aria-controls="panel-work" tabIndex={tab === k ? 0 : -1} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{label}</button>)}
+              {tabs.map(([k, label]) => <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={current === k} aria-controls="panel-work" tabIndex={current === k ? 0 : -1} className={current === k ? 'on' : ''} onClick={() => setTab(k)}>{label}</button>)}
             </div>
-            <div id="panel-work" role="tabpanel" aria-labelledby={`tab-${tab}`}>
-            {tab === 'info' ? <WorkInfo work={w} parent={p} episodeCount={visible.length} /> : tab === 'notice' ? <WorkNotices key={w.id} work={w} /> : <>
+            <div id="panel-work" role="tabpanel" aria-labelledby={`tab-${current}`}>
+            {current === 'info' ? <WorkInfo work={w} parent={p} episodeCount={visible.length} /> : current === 'notice' ? <WorkNotices key={w.id} work={w} /> : current === 'serial' ? <SerialBoard key={w.id} work={w} read={serial} /> : <>
             <div className="eptool">
               <b>전체 {visible.length}화</b>
               <div className="sortt" role="group" aria-label="회차 정렬">

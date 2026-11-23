@@ -17,7 +17,6 @@ import java.time.Duration
 import javax.sql.DataSource
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
@@ -27,8 +26,8 @@ import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.client.RestClient
 import tools.jackson.databind.json.JsonMapper
 
+/** 원고 색인(Elasticsearch)·대조 작업·검색 서비스는 어느 환경에서나 항상 켠다(2026-11-22 사용자 결정, 끄는 플래그 없음). 색인이 없으면 시작할 때 만들고 매핑이 다르면 Content가 시작하지 않는다. */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(name = ["app.manuscript-index.enabled"], havingValue = "true")
 internal class ManuscriptIndexConfig {
     @Bean("manuscriptIndexScheduler", defaultCandidate = false)
     fun scheduler() = ThreadPoolTaskScheduler().apply { setThreadNamePrefix("manuscript-index-") }
