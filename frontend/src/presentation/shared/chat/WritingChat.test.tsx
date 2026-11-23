@@ -31,6 +31,17 @@ it('discards a message edit when switching to another conversation', async () =>
   expect(screen.queryByLabelText('고칠 메시지')).toBeNull()
 })
 
+it('목록이 오기 전에 새 대화를 고르면 늦게 온 목록이 최근 대화로 바꾸지 않는다(#636 E2E)', async () => {
+  let arrive!: (rows: unknown[]) => void
+  sessions.mockReturnValue(new Promise((resolve) => { arrive = resolve }))
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '지난 질문', reply: null }] })
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  fireEvent.click(screen.getByRole('button', { name: '새 대화' }))
+  await act(async () => { arrive([{ threadId: 'a', title: '지난 대화', updatedAt: '' }]) })
+  expect((screen.getByLabelText('대화 고르기') as HTMLSelectElement).value).toBe('')
+  expect(history).not.toHaveBeenCalled()
+})
+
 it('shows the saved approval episode even when a different episode is open', async () => {
   sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
   history.mockResolvedValue({ threadId: 'a', title: '', turns: [{

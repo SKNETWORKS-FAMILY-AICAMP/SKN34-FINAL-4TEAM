@@ -41,7 +41,8 @@ describe('데모 집필실 보완 (#36)', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     appContainer.resolve('mockDb').works.find((w) => w.id === 'starlight')!.worldIds = ['shared-world']
     renderStudio('/studio/starlight?view=wiki&cat=place&ct=table')
-    expect(((await screen.findByLabelText('시점')) as HTMLSelectElement).disabled).toBe(true)
+    const point = await screen.findByLabelText('시점') as HTMLSelectElement
+    await waitFor(() => expect(point.disabled).toBe(true)) // 잠금은 그린 뒤 효과에서 건다
     fireEvent.click(screen.getByRole('button', { name: '안개 항구 복사 후 수정' }))
     await waitFor(() => expect((screen.getByLabelText('시점') as HTMLSelectElement).disabled).toBe(false))
   })

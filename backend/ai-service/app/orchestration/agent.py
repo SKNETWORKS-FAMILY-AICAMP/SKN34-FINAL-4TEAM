@@ -32,7 +32,7 @@ from langchain.agents.middleware.types import ModelResponse
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_openai import ChatOpenAI
-from langgraph.config import get_stream_writer
+from langgraph.config import get_config, get_stream_writer
 from langgraph.errors import GraphInterrupt
 from langgraph.types import Command
 from openai import OpenAIError
@@ -46,6 +46,7 @@ from app.orchestration.prompt import INSTRUCTIONS
 
 MODEL_CALLS = 8  # 메인 모델 호출 상한(턴당). 마지막 호출은 도구 없이 종합한다. MCP 도구 호출(#554)로 5에서 올렸다.
 TOOL_CALLS = 3  # 서브 에이전트 호출 상한(턴당). 기능마다 1회다.
+RESUME_SCOPE = 'resume_scope'  # 쓰기 승인 이어가기 요청이 설정으로 넘기는 새 조회 토큰(#678). dict라 체크포인트 metadata에 남지 않는다
 FAILED = 'main_failed'  # 메인 모델 실패로 끝낸 마지막 메시지 이름
 # 제안 다시 받기(#662) 때 실행하지 않은 세계관 수정의 ToolMessage. 도구 답은 데이터라(프롬프트 규칙 4) 이 글만으로는 모델이 다시 제안하지 않고,
 # DynamicToolMiddleware가 이 메시지를 보고 다시 읽기 → 재제안을 tool_choice로 강제한다(_refresh_next).
@@ -66,7 +67,7 @@ class MainState(AgentState):
     steps: NotRequired[Annotated[list[dict], operator.add]]  # 이번 턴 서브 에이전트 결과. 도구마다 자기 단계 하나를 덧붙인다(호출 순서)
     writingBase: NotRequired[dict | None]  # 검수 후보의 기준이 되는 집필 직전 초안
     inputs: NotRequired[dict]  # Content가 확인한 단계 입력. 입력 대기 resume이 채운다
-    retrievalScope: NotRequired[dict | None]  # Content가 서명한 Q&A 조회 토큰. resume이 새 토큰으로 바꾼다
+    retrievalScope: NotRequired[dict | None]  # Content가 서명한 Q&A 조회 토큰. 입력·쓰기 승인 resume이 새 토큰으로 바꾼다
     stopped: NotRequired[dict | None]  # 남은 호출을 막고 끝낸 이유 {status: needs_input|cancelled|clarify, ...}
     simulationPlan: NotRequired[dict | None]  # 시뮬레이션 계획. 장면은 바깥 scene 노드가 쓴다
     mcpCalls: NotRequired[Annotated[int, operator.add]]  # 이번 턴 실행한 MCP 도구 호출 수(서브 에이전트 한도와 따로 센다)
@@ -232,16 +233,20 @@ class ToolCallLimit(ToolCallLimitMiddleware):
 
 
 class WriteApproval(HumanInTheLoopMiddleware):
-    """승인 대기 payload에 이번 턴의 끝난 단계를 싣는다(#587). 바깥 그래프는 이 에이전트의 상태를 읽지 못한다."""
+    """승인 대기 payload에 이번 턴의 끝난 단계를 싣고(#587, 바깥 그래프는 이 에이전트의 상태를 읽지 못한다) 작가의 답과 온 새 조회 토큰을 저장한다(#678)."""
     name = HumanInTheLoopMiddleware.__name__  # 이름이 노드 이름이라 바꾸면 이미 멈춘 체크포인트를 이어 가지 못한다
 
     def after_model(self, state, runtime) -> dict | None:
         try:
-            return super().after_model(state, runtime)
+            answered = super().after_model(state, runtime)
         except GraphInterrupt as pause:
             for waiting in pause.args[0]:  # 체크포인트에 저장되기 전의 payload다
                 waiting.value['steps'] = state.get('steps', [])
             raise
+        # 토큰이 없으면(#668 전에 멈춘 턴) 마지막으로 저장한 토큰을 그대로 쓴다
+        if answered and (scope := get_config()['configurable'].get(RESUME_SCOPE)):
+            return {**answered, 'retrievalScope': scope}
+        return answered
 
 
 class AnswerStream(BaseCallbackHandler):
