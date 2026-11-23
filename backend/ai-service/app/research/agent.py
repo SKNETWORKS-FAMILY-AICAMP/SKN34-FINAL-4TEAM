@@ -26,12 +26,15 @@ def _urls(action: dict) -> list[str]:
 def pick(request: str, worlds: list[dict]) -> PlatformPick:
     """1회차: 공개 세계관 요약 목록에서 요청에 맞는 세계관 id를 고른다. 웹 검색은 쓰지 않는다."""
     data = {'request': request, 'worlds': worlds}
+    # 추적에는 공개 세계관 설명·카드 본문을 남기지 않고 id만 남긴다(Writing이 문맥을 빼는 것과 같다, #640)
+    trace = {'request': request, 'worldIds': [w['id'] for w in worlds]}
     return agent_runtime.run('research.platform_pick', '플랫폼 조사', ResearchFailure, PICK_INSTRUCTIONS, data, prompt_name='research.pick',
-                             max_tokens=500, timeout=60, trace=data, schema=PlatformPick)[1]
+                             max_tokens=500, timeout=60, trace=trace, schema=PlatformPick)[1]
 
 
 def refer(request: str, worlds: list[dict]) -> PlatformDraft:
     """2회차: 읽은 카드에서 참고할 카드와 이유(references), 채우지 못한 부분(gaps)을 만든다."""
     data = {'request': request, 'worlds': worlds}
+    trace = {'request': request, 'worldIds': [w['worldId'] for w in worlds], 'cardIds': [c['cardId'] for w in worlds for c in w['cards']]}
     return agent_runtime.run('research.platform_refer', '플랫폼 조사', ResearchFailure, REFER_INSTRUCTIONS, data, prompt_name='research.refer',
-                             max_tokens=2000, timeout=90, trace=data, schema=PlatformDraft)[1]
+                             max_tokens=2000, timeout=90, trace=trace, schema=PlatformDraft)[1]
