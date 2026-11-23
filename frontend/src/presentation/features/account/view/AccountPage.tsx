@@ -180,7 +180,7 @@ function InquiryForm({ vm }: { vm: VM }) {
   const missing = (value: string) => ({ 'aria-invalid': failed && !value.trim(), 'aria-describedby': failed && !value.trim() ? 'iq-error' : undefined })
   return (
     <>
-      <p className="small muted">보낸 문의와 운영팀 답변은 아래 내 문의에서 확인해요. 답변 알림은 따로 보내지 않아요.</p>
+      <p className="small muted" style={{ marginBottom: 12 }}>보낸 문의와 운영팀 답변은 아래 내 문의에서 확인해요. 답변 알림은 따로 보내지 않아요.</p>
       <form ref={form} className="tcard mecard" id="iqf" noValidate aria-busy={vm.asking} onSubmit={async (e) => { e.preventDefault(); if (await vm.ask(t, s, b)) { setT('이용 문의'); setS(''); setB('') } }}>
         <p className="small muted">모든 항목은 필수예요.</p>
         <label className="field">문의 유형<select className="inp" id="iqt" value={t} disabled={vm.asking} onChange={(e) => setT(e.target.value)}>{['이용 문의', '오류 신고', '권리·저작권', '계정', '기타'].map((o) => <option key={o}>{o}</option>)}</select></label>
@@ -190,7 +190,7 @@ function InquiryForm({ vm }: { vm: VM }) {
         <div className="rowend"><button className="btn pri" type="submit" id="iqBtn" disabled={vm.asking}>{vm.asking ? '보내는 중…' : '문의 보내기'}</button></div>
       </form>
       {vm.inquiry?.ok && <p role="status">{vm.inquiry.msg}</p>}
-      <h3 className="st" style={{ marginTop: 22 }}>내 문의{vm.mine.data ? ` ${list.length}` : ''}</h3>
+      <h3 style={{ margin: '22px 0 10px' }}>내 문의{vm.mine.data ? ` ${list.length}` : ''}</h3>
       {vm.mine.isLoading && <p role="status">내 문의를 불러오고 있어요.</p>}
       {vm.mine.isError && <div role="alert"><p>내 문의를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={vm.mine.retry}>다시 불러오기</button></div>}
       {vm.mine.data && <div className="list inquiry-list">{list.length ? list.map((x) => (

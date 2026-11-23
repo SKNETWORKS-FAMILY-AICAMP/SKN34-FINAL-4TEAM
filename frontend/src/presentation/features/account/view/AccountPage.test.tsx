@@ -226,6 +226,14 @@ describe('내 문의 목록 (U34)', () => {
     expect(waiting.querySelector('.inquiry-reply')).toBeNull()
     screen.getByRole('heading', { name: '내 문의 2' })
   })
+
+  it('[F1·F2] 안내문 아래와 목록 제목 위·아래에 간격을 직접 둔다 — 전역 h1~h4·p가 margin:0이라 폼 카드·목록 카드에 붙는다', async () => {
+    vi.spyOn(support(), 'listMine').mockResolvedValue([])
+    setup('/me/inquiry')
+    const title = await screen.findByRole('heading', { name: '내 문의 0' })
+    expect(screen.getByText(/보낸 문의와 운영팀 답변은 아래 내 문의에서/).style.marginBottom).toBe('12px')
+    expect([title.style.marginTop, title.style.marginBottom]).toEqual(['22px', '10px'])
+  })
 })
 
 describe('관심 소설·저장 공간 조회 상태 (U32)', () => {

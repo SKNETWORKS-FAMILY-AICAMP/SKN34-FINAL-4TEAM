@@ -9,7 +9,10 @@
 /* 저장 버튼은 안내문 아래 왼쪽이다(운영 설정 탭과 같다). 650px 이하 공용 규칙의 button{align-self:flex-end}는 이 패널에서만 되돌린다. */
 .ep-serial .ep-form-footer{flex-direction:column;align-items:flex-start}
 .ep-serial .ep-form-footer button{align-self:auto}
-.ep-serial .ep-form-actions{margin:12px 0}
+/* 버튼과 잠긴 이유 문구는 한 줄에 간격을 두고 나란히 놓는다(운영 설정의 .ep-form-actions와 같은 값). */
+.ep-serial .ep-form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0}
+/* 잠긴 .pri 버튼은 운영 설정의 잠긴 저장 버튼과 같은 윤곽선이다(채운 보라는 눌러도 되는 버튼처럼 보인다). */
+.episode-app .ep-serial .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--ink)}
 /* 기록 표는 좁은 화면에서 가로로 민다(열을 쌓으면 표 구조를 잃는다). */
 .ep-serial-scroll{overflow-x:auto}
 .ep-serial-scroll:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
