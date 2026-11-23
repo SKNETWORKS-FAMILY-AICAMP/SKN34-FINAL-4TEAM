@@ -57,8 +57,13 @@ data class Metrics(val rows: List<MetricRow>, val adoptionRate: Double?, val app
 
 data class PromptEvaluation(val runId: String, val passed: Boolean?, val createdAt: Instant)
 
-/** [createdAt] is null when Langfuse's prompt payload carries none. */
-data class PromptVersion(val version: Int, val labels: List<String>, val createdAt: Instant?, val evaluation: PromptEvaluation?)
+/**
+ * [createdAt] is null when Langfuse's prompt payload carries none. [model] is the model chosen for the version (its config.model, #705; null runs on the
+ * AI service's environment default). [prompt] is the body, only in a prompt's detail (the list would carry every body of every version).
+ */
+data class PromptVersion(
+    val version: Int, val labels: List<String>, val createdAt: Instant?, val evaluation: PromptEvaluation?, val model: String? = null, val prompt: JsonNode? = null,
+)
 
 data class Prompt(val name: String, val versions: List<PromptVersion>)
 

@@ -30,10 +30,17 @@ export type MetricsGroup = 'day' | 'feature' | 'model'
 export type MetricsQuery = { from: string; to: string; groupBy: MetricsGroup }
 export const METRICS_GROUPS: [MetricsGroup, string][] = [['day', '날짜'], ['feature', '기능'], ['model', '모델']]
 
-export type PromptVersion = { version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null }
+/**
+ * model은 그 버전에 고른 모델(#705, Langfuse 버전 config.model)이고 비면 AI 서비스의 환경 변수 기본 모델입니다.
+ * prompt는 텍스트 본문으로 상세에서만 옵니다(목록·채팅 프롬프트는 비어 있습니다).
+ */
+export type PromptVersion = {
+  version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null
+  model?: string | null; prompt?: string | null
+}
 export type Prompt = { name: string; versions: PromptVersion[] }
-/** 새 버전은 라벨 없이 등록되며, production 라벨 이동은 승격으로 따로 합니다. */
-export type PromptVersionInput = { prompt: string; commitMessage: string }
+/** 새 버전은 라벨 없이 등록되며, production 라벨 이동은 승격으로 따로 합니다. model이 비면 기본 모델 버전입니다. */
+export type PromptVersionInput = { prompt: string; commitMessage: string; model: string }
 
 /** 가격은 토큰당 USD입니다. */
 export type Model = { id: string; modelName: string; matchPattern: string; inputPrice?: number | null; outputPrice?: number | null }
@@ -79,6 +86,17 @@ export const perMillion = (price: number | null | undefined) => price == null ? 
 
 /** 추적 입력·출력 본문: 문자열은 그대로, 그 밖은 들여쓴 JSON입니다. */
 export const bodyText = (value: unknown) => value == null ? '' : typeof value === 'string' ? value : JSON.stringify(value, null, 2)
+
+export const productionOf = (p: Prompt) => p.versions.find((v) => v.labels.includes('production')) ?? null
+/** 코드 시드(AI 서비스가 seed 라벨로 등록한 버전, #705)가 production과 다르면 그 버전. 회귀 평가를 통과하면 승격할 수 있습니다. */
+export function pendingSeed(p: Prompt) {
+  const seed = p.versions.find((v) => v.labels.includes('seed'))
+  return seed && !seed.labels.includes('production') ? seed : null
+}
+export const modelLabel = (model: string | null | undefined) => model ?? '기본 모델'
+/** Decisions API(gpt-6-luna만 지원)로 부르는 프롬프트: 버전에 모델을 골라도 AI 서비스가 쓰지 않습니다. */
+const FIXED_MODEL_PROMPTS = new Set(['decision_guard.judge', 'character_simulation.direct'])
+export const fixedModel = (name: string) => FIXED_MODEL_PROMPTS.has(name)
 
 /** 승격 버튼 이름: production보다 새 버전은 승격, 오래된 버전은 이전 버전 복원, production 자신은 null입니다. */
 export function promoteLabel(versions: PromptVersion[], version: PromptVersion): '승격' | '복원' | null {

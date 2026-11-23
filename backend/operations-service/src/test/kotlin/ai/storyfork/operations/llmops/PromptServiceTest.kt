@@ -130,6 +130,37 @@ class PromptServiceTest {
     }
 
     @Test
+    fun `each version shows the model chosen in its config and only the detail carries the prompt body`() {
+        givenRuns()
+        val chosen = json("""{"name":"qa","version":2,"labels":["production","seed"],"prompt":"지시","config":{"model":"gpt-chosen"}}""")
+        `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa","versions":[1,2]}""")))
+        `when`(langfuse.prompts("qa")).thenReturn(listOf(json("""{"name":"qa","versions":[1,2]}""")))
+        `when`(langfuse.prompt("qa", 2)).thenReturn(chosen)
+        `when`(langfuse.prompt("qa", 1)).thenReturn(json("""{"name":"qa","version":1,"labels":[],"prompt":"옛 지시","config":{}}"""))
+
+        val listed = service.list(operators.llm).items.single().versions
+        val detail = service.detail(operators.llm, "qa").versions
+
+        assertEquals(listOf("gpt-chosen", null), listed.map { it.model })
+        assertEquals(listOf(null, null), listed.map { it.prompt })
+        assertEquals(listOf(json("\"지시\""), json("\"옛 지시\"")), detail.map { it.prompt })
+    }
+
+    @Test
+    fun `a version may only choose a model Langfuse has a definition for`() {
+        `when`(langfuse.models()).thenReturn(listOf(json("""{"id":"m1","modelName":"gpt-chosen","matchPattern":"x"}""")))
+        val known = json("""{"model":"gpt-chosen"}""")
+        `when`(langfuse.createPrompt(mapOf("name" to "qa", "type" to "text", "prompt" to json("\"지시\""), "labels" to emptyList<String>(), "config" to known)))
+            .thenReturn(json("""{"name":"qa","version":5,"labels":["latest"],"config":{"model":"gpt-chosen"}}"""))
+
+        assertEquals("gpt-chosen", service.create(operators.llm, "qa", PromptCreateRequest(json("\"지시\""), null, known)).model)
+        for (bad in listOf("""{"model":"gpt-unknown"}""", """{"model":" "}""", """{"model":3}""")) {
+            assertThrows(IllegalArgumentException::class.java) { service.create(operators.llm, "qa", PromptCreateRequest(json("\"지시\""), null, json(bad))) }
+        }
+        verify(langfuse, times(1)).createPrompt(anyMap())
+    }
+
+    @Test
     fun `an invalid prompt is 400 before Langfuse is written`() {
         val bad = listOf(
             "" to PromptCreateRequest(json("\"x\"")), "n".repeat(101) to PromptCreateRequest(json("\"x\"")),

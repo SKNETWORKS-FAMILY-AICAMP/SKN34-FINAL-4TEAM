@@ -232,3 +232,10 @@ def test_an_unavailable_prompt_is_the_model_unavailable_failure_before_the_model
     with pytest.raises(ExtractionFailure) as failure:
         service.extract(Input.model_validate(data['input']))
     assert (str(failure.value), failure.value.status) == ('MODEL_UNAVAILABLE', 503) and calls == []
+
+
+def test_the_model_chosen_in_the_prompt_version_is_called(monkeypatch, data):
+    calls = provider(monkeypatch, json.dumps(proposed(data), ensure_ascii=False))
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: tracing.Prompt('관리된 지시', model='gpt-chosen'))
+    service.extract(Input.model_validate(data['input']))
+    assert calls[1]['model'] == 'gpt-chosen'

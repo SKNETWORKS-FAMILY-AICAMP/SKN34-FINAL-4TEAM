@@ -71,6 +71,7 @@ const prompt = z.object({
   versions: z.array(z.object({
     version: z.number(), labels: z.array(z.string()), createdAt: instant.nullish(),
     evaluation: z.object({ runId: z.string(), passed: z.boolean().nullish(), createdAt: instant }).nullish(),
+    model: text, prompt: z.unknown().optional().transform((value) => (typeof value === 'string' ? value : undefined)),
   })).default([]),
 })
 const model = z.object({ id: z.string(), modelName: z.string(), matchPattern: z.string(), inputPrice: num, outputPrice: num })
@@ -138,7 +139,10 @@ export class HttpLlmOpsRepository extends LlmOpsApi implements LlmOpsRepository 
   metrics({ from, to, groupBy }: MetricsQuery): Promise<Metrics> { return this.get(withQuery('/llmops/metrics', { from, to, groupBy }), metrics) }
   prompts(): Promise<Prompt[]> { return this.get('/llmops/prompts', items(prompt)) }
   prompt(name: string): Promise<Prompt> { return this.get(`/llmops/prompts/${id(name)}`, prompt) }
-  createPromptVersion(name: string, input: PromptVersionInput) { return this.change(`/llmops/prompts/${id(name)}`, 'POST', input) }
+  createPromptVersion(name: string, { prompt, commitMessage, model }: PromptVersionInput) {
+    // 모델을 고르지 않은 버전은 config 없이 등록돼 AI 서비스의 환경 변수 기본 모델로 돈다(#705).
+    return this.change(`/llmops/prompts/${id(name)}`, 'POST', { prompt, commitMessage, ...(model ? { config: { model } } : {}) })
+  }
   promote(name: string, version: number) { return this.change(`/llmops/prompts/${id(name)}/production`, 'PUT', { version }) }
   models(): Promise<Model[]> { return this.get('/llmops/models', items(model)) }
   createModel(input: ModelInput) { return this.change('/llmops/models', 'POST', input) }

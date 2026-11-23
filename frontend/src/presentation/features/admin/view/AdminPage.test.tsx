@@ -1341,3 +1341,62 @@ it('픽스처(데모) 컨테이너에서는 데모 관리자 조치가 활동 �
   within(activityRows()[0]).getByText('수행자 관리자 · 대상 데모')
   within(activityRows()[0]).getByText(`${chat.w.title} · ${chat.character}`)
 })
+
+it('프롬프트 목록은 에이전트별 production 버전·모델과 코드 시드 대기를, 상세는 버전별 모델과 production 본문·모델로 채운 새 버전 폼을 보인다(#705)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([
+    { name: 'orchestration.main', versions: [{ version: 3, labels: ['seed', 'latest'] }, { version: 2, labels: ['production'], model: 'gpt-x' }] },
+    { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'] }] },
+  ])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'orchestration.main', versions: [
+    { version: 3, labels: ['seed'], prompt: '새 시드' }, { version: 2, labels: ['production'], model: 'gpt-x', prompt: '운영 지시' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([{ id: 'm1', modelName: 'gpt-x', matchPattern: 'x' }, { id: 'm2', modelName: 'gpt-y', matchPattern: 'y' }])
+  const create = vi.spyOn(llm, 'createPromptVersion').mockResolvedValue(undefined)
+  renderAdmin('llm', 'prompts&sub=prompts')
+
+  const main = await screen.findByRole('button', { name: /orchestration\.main/ })
+  within(main).getByText('production 2번 버전 · gpt-x')
+  within(main).getByText('코드 시드 3번 버전 대기')
+  within(screen.getByRole('button', { name: /decision_guard\.judge/ })).getByText('production 1번 버전 · 기본 모델')
+  fireEvent.click(main)
+
+  const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
+  await within(detail).findByText(/코드 시드\(3번 버전\)가 production과 달라요/)
+  const versions = within(detail).getByRole('region', { name: '프롬프트 버전 표' })
+  expect([within(versions).getAllByRole('columnheader')[2].textContent, within(versions).getByRole('cell', { name: 'gpt-x' }).tagName]).toEqual(['모델', 'TD'])
+  within(versions).getByRole('cell', { name: '기본 모델' })
+  expect((within(detail).getByLabelText('새 버전 본문') as HTMLTextAreaElement).value).toBe('운영 지시')
+  const model = within(detail).getByLabelText('모델') as HTMLSelectElement
+  await waitFor(() => expect([...model.options].map((o) => o.value)).toEqual(['', 'gpt-x', 'gpt-y']))
+  expect(model.value).toBe('gpt-x')
+  fireEvent.change(model, { target: { value: 'gpt-y' } })
+  fireEvent.click(within(detail).getByRole('button', { name: '새 버전 등록' }))
+  await waitFor(() => expect(create).toHaveBeenCalledWith('orchestration.main', '운영 지시', '', 'gpt-y'))
+})
+
+it('Decisions API로 부르는 프롬프트는 새 버전에서 모델을 고를 수 없다', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'], prompt: '판정' }] })
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'] }] }])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: /decision_guard\.judge/ }))
+  const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
+  expect((await within(detail).findByLabelText('모델') as HTMLSelectElement).disabled).toBe(true)
+  within(detail).getByText('Decisions API의 고정 모델로 불러 모델을 고를 수 없어요.')
+  expect(within(detail).queryByText(/코드 시드\(/)).toBeNull()
+})
+
+it('모델 목록이 늦게 와도 먼저 고른 모델이 바뀌지 않는다', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  let answer: (rows: { id: string; modelName: string; matchPattern: string }[]) => void = () => {}
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', versions: [{ version: 1, labels: ['production'], model: 'gpt-x' }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', versions: [{ version: 1, labels: ['production'], model: 'gpt-x', prompt: '지시' }] })
+  vi.spyOn(llm, 'models').mockReturnValue(new Promise((resolve) => { answer = resolve }))
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: /qa/ }))
+  const model = await screen.findByLabelText('모델') as HTMLSelectElement
+  fireEvent.change(model, { target: { value: '' } })
+  await act(async () => answer([{ id: 'm1', modelName: 'gpt-x', matchPattern: 'x' }, { id: 'm2', modelName: 'gpt-y', matchPattern: 'y' }]))
+  await waitFor(() => expect((screen.getByLabelText('모델') as HTMLSelectElement).options).toHaveLength(3))
+  expect((screen.getByLabelText('모델') as HTMLSelectElement).value).toBe('')
+})

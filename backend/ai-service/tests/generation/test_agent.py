@@ -64,9 +64,9 @@ def provider(monkeypatch, calls, status='completed'):
     monkeypatch.setattr(agent, 'OpenAI', Client)
 
 
-def managed(monkeypatch, text='관리된 지시'):
+def managed(monkeypatch, text='관리된 지시', model=None):
     asked, version = [], SimpleNamespace(name='proposals.continue', version=2, is_fallback=False)
-    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt(text, version))
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt(text, version, model))
     return asked
 
 
@@ -106,3 +106,11 @@ def test_an_unavailable_prompt_is_a_provider_failure_before_the_model_call(monke
     with pytest.raises(ProviderFailure):
         agent.generate({}, '이어쓰기')
     assert calls == []
+
+
+def test_the_model_chosen_in_the_prompt_version_is_called(monkeypatch, spans):
+    calls = []
+    provider(monkeypatch, calls)
+    managed(monkeypatch, model='gpt-chosen')
+    agent.generate({}, '이어쓰기')
+    assert calls[0]['model'] == 'gpt-chosen'

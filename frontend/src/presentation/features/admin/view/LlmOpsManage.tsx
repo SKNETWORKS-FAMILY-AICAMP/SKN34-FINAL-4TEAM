@@ -1,6 +1,8 @@
 import { useState } from 'react'
 
-import { LLM_FORBIDDEN, evaluationStatusLabel, passedLabel, perMillion, promoteLabel, type Evaluation } from '../../../../domain/entities/llmOps'
+import {
+  LLM_FORBIDDEN, evaluationStatusLabel, fixedModel, modelLabel, passedLabel, pendingSeed, perMillion, productionOf, promoteLabel, type Evaluation,
+} from '../../../../domain/entities/llmOps'
 import { alertRuleLabel, type AlertRule } from '../../../../domain/entities/operationsAlert'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
@@ -17,7 +19,9 @@ const passTone = (passed: boolean | null | undefined) => (passed === false ? 'ba
 
 /** 프롬프트·모델·평가·경고 기준·표본 비율 패널. 변경 조치(새 버전·승격·모델 등록·평가 실행·기준 저장)는 모두 활동 로그에 남습니다. */
 export function Prompts({ vm, l }: Props) {
-  const rows = l.prompts.data, p = l.prompt.data
+  const rows = l.prompts.data, p = l.prompt.data, live = p && productionOf(p), seed = p && pendingSeed(p)
+  // 고를 수 있는 모델은 Langfuse 모델 정의(단가가 있어 비용이 계산된다)이고, production 모델은 목록에 없어도 그대로 남긴다.
+  const modelNames = [...new Set([...(live?.model ? [live.model] : []), ...(l.models.data ?? []).map((m) => m.modelName)])]
   if (!l.promptName) {
     return (
       <section className="panel admin-operations" aria-label="프롬프트">
@@ -25,18 +29,25 @@ export function Prompts({ vm, l }: Props) {
         {rows && (rows.length
           ? (
             <ul className="admin-record-list">
-              {rows.map((row) => (
-                <li key={row.name}>
-                  <button type="button" className="admin-record-link" data-record-id={row.name} onClick={() => l.openPrompt(row.name)}>
-                    <b>{row.name}</b>
-                    <span className="small muted">버전·평가 결과·production 라벨 보기</span>
-                  </button>
-                </li>
-              ))}
+              {rows.map((row) => {
+                const live = productionOf(row), seed = pendingSeed(row)
+                return (
+                  <li key={row.name}>
+                    <button type="button" className="admin-record-link" data-record-id={row.name} onClick={() => l.openPrompt(row.name)}>
+                      <b>{row.name}</b>
+                      <span className="small muted">{live ? `production ${live.version}번 버전 · ${modelLabel(live.model)}` : 'production 버전 없음'}</span>
+                      {seed && <span className="chip">코드 시드 {seed.version}번 버전 대기</span>}
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           )
           : <p className="admin-empty">등록된 프롬프트가 없어요. AI 서비스가 시작될 때 코드의 프롬프트가 버전 1로 등록돼요.</p>)}
-        <p className="admin-note">프롬프트의 정본은 Langfuse예요. 새 버전은 라벨 없이 등록되고, production으로 올리려면 그 버전의 최신 회귀 평가가 통과여야 해요.</p>
+        <p className="admin-note">
+          프롬프트의 정본은 Langfuse예요. 버전마다 본문과 모델을 함께 정하고, 새 버전은 라벨 없이 등록돼요. production으로 올리려면 그 버전의 최신 회귀 평가가 통과여야 하고,
+          올리면 AI 서비스가 재배포 없이 1분 안에 그 본문과 모델을 써요. 코드의 프롬프트(시드)가 바뀌면 AI 서비스가 seed 라벨의 새 버전으로 올려 둬요.
+        </p>
       </section>
     )
   }
@@ -48,11 +59,13 @@ export function Prompts({ vm, l }: Props) {
       {p && (
         <>
           <h2 tabIndex={-1}>{p.name}</h2>
+          {seed && <p className="admin-note">코드 시드({seed.version}번 버전)가 production과 달라요. 회귀 평가를 통과하면 production으로 올릴 수 있어요.</p>}
           <Table label="프롬프트 버전 표">
             <thead>
               <tr>
                 <th scope="col">버전</th>
                 <th scope="col">라벨</th>
+                <th scope="col">모델</th>
                 <th scope="col">등록</th>
                 <th scope="col">최신 회귀 평가</th>
                 <th scope="col" className="act act-menu"><span className="sr-only">production</span></th>
@@ -65,6 +78,7 @@ export function Prompts({ vm, l }: Props) {
                   <tr key={v.version}>
                     <td>{v.version}</td>
                     <td>{v.labels.length ? v.labels.map((label) => <span key={label} className="chip ok">{label}</span>) : '—'}</td>
+                    <td>{modelLabel(v.model)}</td>
                     <td className="admin-date">{v.createdAt ? kstDateTime(v.createdAt) : '—'}</td>
                     <td>
                       {evaluation
@@ -101,12 +115,24 @@ export function Prompts({ vm, l }: Props) {
             onSubmit={async (e) => {
               e.preventDefault()
               const form = e.currentTarget
-              if (await l.createPromptVersion(p.name, formText(form, 'prompt', false), formText(form, 'note'))) form.reset()
+              if (await l.createPromptVersion(p.name, formText(form, 'prompt', false), formText(form, 'note'), formText(form, 'model'))) form.reset()
             }}
           >
             <h3>새 버전 등록</h3>
             <fieldset disabled={!!vm.actions[`prompt:${p.name}:new`]?.pending} className="form-grid">
-              <label className="field wide">새 버전 본문<textarea className="ta" name="prompt" rows={8} required /></label>
+              {/* production 본문·모델로 채워 둬 모델만 바꾼 버전도 바로 등록한다. production 모델은 목록이 오기 전에도 선택지에 있어 기본값이 잡힌다. */}
+              <label className="field wide">새 버전 본문<textarea className="ta" name="prompt" rows={8} required defaultValue={live?.prompt ?? ''} key={`${p.name}:${live?.version}`} /></label>
+              <label className="field">
+                모델
+                <select
+                  className="inp" name="model" key={`${p.name}:${live?.version}`} defaultValue={live?.model ?? ''} disabled={fixedModel(p.name)}
+                  aria-describedby={fixedModel(p.name) ? 'prompt-model-fixed' : undefined}
+                >
+                  <option value="">{modelLabel(null)}(환경 변수)</option>
+                  {modelNames.map((name) => <option key={name} value={name}>{name}</option>)}
+                </select>
+              </label>
+              {fixedModel(p.name) && <p id="prompt-model-fixed" className="small muted wide">Decisions API의 고정 모델로 불러 모델을 고를 수 없어요.</p>}
               <label className="field wide">변경 메모(선택)<input className="inp" name="note" /></label>
               <div className="rowend wide"><button type="submit" className="btn pri">{vm.actions[`prompt:${p.name}:new`]?.pending ? '등록 중…' : '새 버전 등록'}</button></div>
             </fieldset>

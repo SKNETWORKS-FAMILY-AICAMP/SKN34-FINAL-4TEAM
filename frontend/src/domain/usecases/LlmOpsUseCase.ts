@@ -33,9 +33,9 @@ export class LlmOpsUseCase {
   promote(name: string, version: number) { return this.repository.promote(name, version) }
 
   /** 본문은 그대로 보냅니다(앞뒤 공백·줄바꿈도 프롬프트의 일부). 비어 있을 때만 막습니다. */
-  async createPromptVersion(name: string, prompt: string, commitMessage: string) {
+  async createPromptVersion(name: string, prompt: string, commitMessage: string, model: string) {
     if (!prompt.trim()) invalid('프롬프트 본문을 입력해 주세요.')
-    return this.repository.createPromptVersion(name, { prompt, commitMessage: commitMessage.trim() })
+    return this.repository.createPromptVersion(name, { prompt, commitMessage: commitMessage.trim(), model: model.trim() })
   }
 
   async createModel(input: { modelName: string; matchPattern: string; inputPerMillion: number; outputPerMillion: number }) {

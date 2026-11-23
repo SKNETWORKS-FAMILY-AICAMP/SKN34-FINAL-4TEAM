@@ -10,9 +10,9 @@ const rejects = (promise: Promise<unknown>, message: string) => expect(promise).
 describe('프롬프트 새 버전', () => {
   it('본문은 그대로, 변경 메모는 다듬어 보내고 본문이 비면 보내지 않는다', async () => {
     const createPromptVersion = vi.fn(async () => {})
-    await make({ createPromptVersion }).createPromptVersion('qa-answer', '  첫 줄\n둘째 줄 ', '  말투 조정 ')
-    expect(createPromptVersion).toHaveBeenCalledWith('qa-answer', { prompt: '  첫 줄\n둘째 줄 ', commitMessage: '말투 조정' })
-    await rejects(make({ createPromptVersion }).createPromptVersion('qa-answer', '  \n ', ''), '프롬프트 본문을 입력해 주세요.')
+    await make({ createPromptVersion }).createPromptVersion('qa-answer', '  첫 줄\n둘째 줄 ', '  말투 조정 ', ' gpt-x ')
+    expect(createPromptVersion).toHaveBeenCalledWith('qa-answer', { prompt: '  첫 줄\n둘째 줄 ', commitMessage: '말투 조정', model: 'gpt-x' })
+    await rejects(make({ createPromptVersion }).createPromptVersion('qa-answer', '  \n ', '', ''), '프롬프트 본문을 입력해 주세요.')
     expect(createPromptVersion).toHaveBeenCalledTimes(1)
   })
 })

@@ -117,13 +117,13 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
   ]
   private readonly prompts_: Prompt[] = [
     { name: 'qa-answer', versions: [
-      { version: 3, labels: [], createdAt: ago(300), evaluation: { runId: 'run-2', passed: false, createdAt: ago(240) } },
-      { version: 2, labels: ['production'], createdAt: ago(4000), evaluation: { runId: 'run-1', passed: true, createdAt: ago(3900) } },
-      { version: 1, labels: [], createdAt: ago(9000) },
+      { version: 3, labels: ['seed'], createdAt: ago(300), evaluation: { runId: 'run-2', passed: false, createdAt: ago(240) }, model: 'gpt-demo', prompt: '근거가 있는 내용만 답하고 근거를 함께 보여 주세요.' },
+      { version: 2, labels: ['production'], createdAt: ago(4000), evaluation: { runId: 'run-1', passed: true, createdAt: ago(3900) }, model: 'gpt-demo', prompt: '근거가 있는 내용만 답하세요.' },
+      { version: 1, labels: [], createdAt: ago(9000), prompt: '질문에 답하세요.' },
     ] },
-    { name: 'writing-assist', versions: [{ version: 1, labels: ['production'], createdAt: ago(9000) }] },
-    { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production'], createdAt: ago(9000) }] },
-    { name: 'main-agent', versions: [{ version: 1, labels: ['production'], createdAt: ago(9000) }] },
+    { name: 'writing-assist', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '작가의 요청대로 원고를 고치세요.' }] },
+    { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '요청이 범위 안인지 판정하세요.' }] },
+    { name: 'main-agent', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '작가를 돕는 집필 AI입니다.' }] },
   ]
   private readonly modelRows: Model[] = [
     { id: 'model-1', modelName: 'gpt-demo', matchPattern: '(?i)^gpt-demo$', inputPrice: 0.0000025, outputPrice: 0.00001 },
@@ -170,16 +170,17 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
       adoptionRate: 0.42, approvalRate: 0.67, filterRestoreRate: null,
     }
   }
-  async prompts() { return structuredClone(this.prompts_.map(({ name }) => ({ name, versions: [] }))) }
+  // 서버처럼 목록은 버전의 라벨·모델만, 상세는 본문까지 준다.
+  async prompts() { return structuredClone(this.prompts_.map(({ name, versions }) => ({ name, versions: versions.map(({ prompt: _body, ...v }) => v) }))) }
   async prompt(name: string) { return structuredClone(found(this.prompts_.find((p) => p.name === name))) }
-  async createPromptVersion(name: string, _input: PromptVersionInput) {
+  async createPromptVersion(name: string, input: PromptVersionInput) {
     const p = found(this.prompts_.find((item) => item.name === name))
-    p.versions.unshift({ version: Math.max(...p.versions.map((v) => v.version)) + 1, labels: [], createdAt: new Date().toISOString() })
+    p.versions.unshift({ version: Math.max(...p.versions.map((v) => v.version)) + 1, labels: [], createdAt: new Date().toISOString(), model: input.model || null, prompt: input.prompt })
   }
   async promote(name: string, version: number) {
     const p = found(this.prompts_.find((item) => item.name === name)), target = found(p.versions.find((v) => v.version === version))
     if (target.evaluation?.passed !== true) throw new OperationsRejected(EVALUATION_REQUIRED_MESSAGE)
-    for (const v of p.versions) v.labels = v === target ? ['production'] : v.labels.filter((label) => label !== 'production')
+    for (const v of p.versions) v.labels = [...v.labels.filter((label) => label !== 'production'), ...(v === target ? ['production'] : [])]
   }
   async models() { return structuredClone(this.modelRows) }
   async createModel(input: ModelInput) { this.modelRows.push({ id: `model-${this.modelRows.length + 1}`, ...input }) }

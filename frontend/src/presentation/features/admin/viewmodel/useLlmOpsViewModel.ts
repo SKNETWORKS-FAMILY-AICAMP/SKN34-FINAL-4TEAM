@@ -53,7 +53,8 @@ export function useLlmOpsViewModel(
   const metrics = useAsyncData(async () => page === 'traces' ? useCase.metrics({ ...periodRange(metricsQuery.hours), groupBy: metricsQuery.groupBy }) : null, [useCase, page, metricsQuery])
   const prompts = useAsyncData(async () => here === 'prompts:prompts' && !promptName ? useCase.prompts() : null, [useCase, here, promptName])
   const prompt = useAsyncData(async () => promptName ? useCase.prompt(promptName) : null, [useCase, promptName])
-  const models = useAsyncData(async () => here === 'prompts:models' ? useCase.models() : null, [useCase, here])
+  // 프롬프트 상세의 새 버전 폼도 모델 목록(Langfuse 모델 정의)에서 고른다(#705).
+  const models = useAsyncData(async () => here === 'prompts:models' || promptName ? useCase.models() : null, [useCase, here, promptName])
   const evaluations = useAsyncData(async () => page === 'quality' && !runId ? useCase.evaluations() : null, [useCase, page, runId])
   const evaluation = useAsyncData(async () => runId ? useCase.evaluation(runId) : null, [useCase, runId])
   const leaks = useAsyncData(async () => page === 'quality' ? useCase.leakChecks() : null, [useCase, page])
@@ -82,8 +83,8 @@ export function useLlmOpsViewModel(
     trace, traceId, openTrace: (id: string) => openOn('traces', id), closeTrace: () => setOpen(null),
     metrics, metricsQuery, setMetricsQuery,
     prompts, prompt, promptName, openPrompt: (name: string) => openOn('prompts', name, 'prompts'), closePrompt: () => setOpen(null),
-    createPromptVersion: (name: string, text: string, note: string) =>
-      mutate(`prompt:${name}:new`, '새 버전을 등록했어요. production으로 올리려면 먼저 회귀 평가를 통과해야 해요.', () => useCase.createPromptVersion(name, text, note)),
+    createPromptVersion: (name: string, text: string, note: string, model: string) =>
+      mutate(`prompt:${name}:new`, '새 버전을 등록했어요. production으로 올리려면 먼저 회귀 평가를 통과해야 해요.', () => useCase.createPromptVersion(name, text, note, model)),
     promote: (name: string, version: number) =>
       mutate(`prompt:${name}:${version}`, `프롬프트 ${name}의 production이 ${version}번 버전으로 바뀌었어요.`, () => useCase.promote(name, version)),
     models,

@@ -153,11 +153,20 @@ describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
     expect(await repo.prompts()).toEqual([{ name: 'qa answer', versions: [] }])
     const detail = new HttpLlmOpsRepository(ok({ name: 'qa answer', versions: [version] }))
     expect(await detail.prompt('qa answer')).toEqual({ name: 'qa answer', versions: [version] })
-    await repo.createPromptVersion('qa answer', { prompt: '본문', commitMessage: '메모' })
+    await repo.createPromptVersion('qa answer', { prompt: '본문', commitMessage: '메모', model: '' })
+    await repo.createPromptVersion('qa answer', { prompt: '본문', commitMessage: '', model: 'gpt-x' })
     expect(callsOf(fetcher).map(([url, init]) => [url, init.method, init.body])).toEqual([
       ['/api/v1/operations/llmops/prompts', 'GET', undefined],
+      // 모델을 고르지 않으면 config를 보내지 않아 그 버전은 AI 서비스의 환경 변수 기본 모델로 돈다(#705).
       ['/api/v1/operations/llmops/prompts/qa%20answer', 'POST', JSON.stringify({ prompt: '본문', commitMessage: '메모' })],
+      ['/api/v1/operations/llmops/prompts/qa%20answer', 'POST', JSON.stringify({ prompt: '본문', commitMessage: '', config: { model: 'gpt-x' } })],
     ])
+  })
+
+  it('버전의 모델과 상세의 본문을 읽고, 텍스트가 아닌 본문(채팅 프롬프트)은 비운다', async () => {
+    const versions = [{ version: 2, labels: ['production'], model: 'gpt-x', prompt: '지시' }, { version: 1, labels: [], prompt: [{ role: 'system', content: '규칙' }] }]
+    const detail = await new HttpLlmOpsRepository(ok({ name: 'qa', versions })).prompt('qa')
+    expect(detail.versions.map((v) => [v.model ?? null, v.prompt ?? null])).toEqual([['gpt-x', '지시'], [null, null]])
   })
 
   it('프롬프트 버전의 등록 시각이 비어 와도(Langfuse에 값이 없을 때) 상세를 거절하지 않는다', async () => {

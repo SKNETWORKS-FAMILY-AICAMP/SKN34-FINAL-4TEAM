@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { LLM_FORBIDDEN, bodyText, percent, periodRange, promoteLabel, usd, type PromptVersion } from '../entities/llmOps'
+import { LLM_FORBIDDEN, bodyText, fixedModel, modelLabel, pendingSeed, percent, periodRange, productionOf, promoteLabel, usd, type PromptVersion } from '../entities/llmOps'
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
 import { lastPage } from '../entities/operations'
 
@@ -97,5 +97,20 @@ describe('권한 안내 문구', () => {
   it('조회가 403이면 다시 불러오기 대신 필요한 권한을 안내한다', () => {
     expect(LLM_FORBIDDEN).toBe('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
     expect(JOBS_FORBIDDEN).toBe("실행 기록과 일정을 보려면 '정기 작업' 권한이 필요해요.")
+  })
+
+  it('production 버전과, production과 다른 코드 시드(seed 라벨) 버전을 찾는다(#705)', () => {
+    const v = (version: number, labels: string[] = []): PromptVersion => ({ version, labels })
+    expect(productionOf({ name: 'p', versions: [v(3, ['seed']), v(2, ['production'])] })?.version).toBe(2)
+    expect(pendingSeed({ name: 'p', versions: [v(3, ['seed', 'latest']), v(2, ['production'])] })?.version).toBe(3)
+    // 시드가 production과 같은 버전이거나 아직 seed 라벨이 없으면 대기 중인 시드가 없다.
+    expect(pendingSeed({ name: 'p', versions: [v(2, ['production', 'seed'])] })).toBeNull()
+    expect(pendingSeed({ name: 'p', versions: [v(2, ['production'])] })).toBeNull()
+    expect(productionOf({ name: 'p', versions: [v(1)] })).toBeNull()
+  })
+
+  it('버전에 고른 모델이 없으면 환경 변수 기본 모델이고, Decisions API 프롬프트는 모델을 고를 수 없다', () => {
+    expect([modelLabel('gpt-x'), modelLabel(null), modelLabel(undefined)]).toEqual(['gpt-x', '기본 모델', '기본 모델'])
+    expect([fixedModel('decision_guard.judge'), fixedModel('character_simulation.direct'), fixedModel('orchestration.main')]).toEqual([true, true, false])
   })
 })

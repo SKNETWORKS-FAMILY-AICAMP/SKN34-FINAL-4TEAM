@@ -40,7 +40,7 @@ class PromptService(
     fun detail(member: OperationsMember, name: String): Prompt {
         permissions.requirePermission(member, LLM)
         val meta = langfuse.prompts(name).firstOrNull { it.path("name").asString() == name } ?: throw NoSuchElementException("Prompt not found.")
-        return prompt(meta, evaluations.latestByVersion())
+        return prompt(meta, evaluations.latestByVersion(), withBody = true)
     }
 
     /** A new version without any label: it only reaches production through [promote]. */
@@ -52,7 +52,13 @@ class PromptService(
         require(type == "text" || type == "chat") { "Unknown prompt type." }
         require(content != null && if (type == "text") content.isString && content.stringValue().isNotBlank() else content.isArray && content.size() > 0) { "Invalid prompt." }
         val body = mutableMapOf<String, Any?>("name" to name, "type" to type, "prompt" to content, "labels" to emptyList<String>())
-        request.config?.takeUnless { it.isNull }?.let { body["config"] = it }
+        request.config?.takeUnless { it.isNull }?.let { config ->
+            // The AI service calls the model named here (#705): only a model with a Langfuse definition, so every call has a price.
+            config.get("model")?.let { model ->
+                require(model.isString && model.stringValue() in langfuse.models().map { it.path("modelName").asString() }) { "Unknown model." }
+            }
+            body["config"] = config
+        }
         request.commitMessage?.trim()?.takeIf { it.isNotEmpty() }?.let { body["commitMessage"] = it }
         val created = langfuse.createPrompt(body)
         val version = version(created, null)
@@ -72,16 +78,21 @@ class PromptService(
         // Langfuse manages "latest" itself and keeps labels unique across versions, so the version's other labels stay and production moves here.
         langfuse.setPromptLabels(name, request.version, (labels - "latest") + PRODUCTION)
         activities.record(member, "PROMPT_PROMOTE", "PROMPT", name, "v${request.version}")
-        return PromptVersion(request.version, labels + PRODUCTION, createdAt(current), evaluation.summary())
+        return PromptVersion(request.version, labels + PRODUCTION, createdAt(current), evaluation.summary(), model(current))
     }
 
-    private fun prompt(meta: JsonNode, latest: Map<Pair<String, Int>, Evaluation>): Prompt {
+    private fun prompt(meta: JsonNode, latest: Map<Pair<String, Int>, Evaluation>, withBody: Boolean = false): Prompt {
         val name = meta.path("name").asString()
-        val versions = meta.path("versions").values().map { it.asInt() }.sortedDescending().map { version(langfuse.prompt(name, it), latest[name to it]) }
+        val versions = meta.path("versions").values().map { it.asInt() }.sortedDescending()
+            .map { version(langfuse.prompt(name, it), latest[name to it], withBody) }
         return Prompt(name, versions)
     }
 
-    private fun version(node: JsonNode, evaluation: Evaluation?) = PromptVersion(node.path("version").asInt(), labels(node), createdAt(node), evaluation?.summary())
+    private fun version(node: JsonNode, evaluation: Evaluation?, withBody: Boolean = false) = PromptVersion(
+        node.path("version").asInt(), labels(node), createdAt(node), evaluation?.summary(), model(node), node.get("prompt")?.takeIf { withBody },
+    )
+
+    private fun model(node: JsonNode) = node.path("config").path("model").textOrNull()
 
     private fun labels(node: JsonNode) = node.path("labels").values().mapNotNull { it.textOrNull() }
 
