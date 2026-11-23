@@ -54,7 +54,7 @@ class WorldService(
     fun read(id: String, owner: String): WorldResponse = view(load(access.own(id,owner)))
     fun publicRead(id: String, episode: Int): ReadingWorldResponse {
         val l=load(access.published(id))
-        checkContent(episode>0 && currentEpisodes.findByWorkIdAndSequence(id,episode)?.publishedVersionId!=null,404,"공개된 회차를 찾을 수 없어요.")
+        checkContent(episode>0 && currentEpisodes.findByWorkIdAndSequence(id,episode)?.readerVersionId!=null,404,"공개된 회차를 찾을 수 없어요.")
         return ReadingWorldResponse(id, episode, readingDocuments(l, episode, public = true))
     }
     private fun readingDocuments(l: Loaded, episode: Int, public: Boolean): List<ReadingDocumentResponse> {

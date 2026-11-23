@@ -23,7 +23,7 @@ class QaScopeService(
 
         val work = if (owner == null) access.published(workId) else access.own(workId, owner)
         val readable = publication.publishedEpisodes(workId).items
-            .filterNot { owner == null && it.inherited && work.source?.deleted == true }
+            .filterNot { owner == null && (it.restricted || (it.inherited && work.source?.deleted == true)) }
         val chosen = readable.find { it.number == basis } ?: throw ContentFailure(422, "공개된 회차를 기준으로 선택해 주세요.")
         checkContent(chosen.versionId == request.episodeVersionId, 409, "기준 회차 판본이 변경됐어요. 최신 회차를 다시 불러와 주세요.")
         return QaScope(work.id, work.source?.workId, basis, chosen.versionId,

@@ -42,7 +42,17 @@ export function ReportSheet({ work, onClose }: { work: Work; onClose: () => void
   return (
     <Sheet sid="U06" label="소설 신고" onClose={onClose}>
       <Head title={`🚩 소설 신고 · ${work.title}`} onClose={onClose} />
-      <ReportWorkForm key={work.id} workId={work.id} workTitle={work.title} alwaysOpen />
+      <ReportWorkForm key={work.id} target={{ workId: work.id }} title={work.title} alwaysOpen />
+    </Sheet>
+  )
+}
+
+/** 회차 신고 시트(결정 D). 서버(Content API) 작품의 한 회차를 운영 신고 API(34)로 접수하고, 처리의 제한·해제는 그 회차에 적용된다. */
+export function EpisodeReportSheet({ work, n, onClose }: { work: Work; n: number; onClose: () => void }) {
+  return (
+    <Sheet sid="U06" label="회차 신고" onClose={onClose}>
+      <Head title={`🚩 회차 신고 · ${work.title} ${n}화`} onClose={onClose} />
+      <ReportWorkForm key={`${work.id}/${n}`} target={{ targetType: 'episode', workId: work.id, episodeNumber: n }} title={`${work.title} ${n}화`} alwaysOpen />
     </Sheet>
   )
 }

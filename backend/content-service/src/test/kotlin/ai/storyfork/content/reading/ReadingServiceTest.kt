@@ -87,6 +87,14 @@ class ReadingServiceTest {
         verifyNoInteractions(records, episodes)
     }
 
+    @Test fun `a restricted episode is 404 for the reader even though it keeps its published version`() {
+        `when`(current.findByWorkIdAndSequence("work", 2)).thenReturn(EpisodeCurrentEntity("episode-2", "work", 2, "version-2", restricted = true))
+
+        assertEquals(404, failure { service.record("work", 2, "reader") }.status)
+
+        verifyNoInteractions(records, episodes)
+    }
+
     @Test fun `blank or oversized member is unauthenticated before any lookup`() {
         for (member in listOf(" ", "m".repeat(201))) {
             assertEquals(401, failure { service.record("work", 1, member) }.status)

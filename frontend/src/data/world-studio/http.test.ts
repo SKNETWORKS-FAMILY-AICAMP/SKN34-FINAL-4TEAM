@@ -3,6 +3,7 @@ import '../../test/testLocks'
 import {login} from '../api/auth'
 import {HttpWorldStudioRepository} from './HttpWorldStudioRepository'
 import {authorEdit,cardRevealEpisode,newSetting,RELATION_FROM_ERROR,type StudioWorld} from '../../domain/entities/studioWorld'
+import {cardTypeOf} from '../../domain/entities/studioCards'
 import {readFileSync} from 'node:fs'
 
 const id=crypto.randomUUID()
@@ -120,6 +121,15 @@ it('응답 유실 후 새 revision을 읽어도 원래 차분과 key로 재시�
  await expect(repo.saveStudio({...changed,name:'다른 입력'})).rejects.toThrow('같은 입력')
  await repo.saveStudio(changed)
  expect(fetcher.mock.calls[3][1].body).toBe(fetcher.mock.calls[1][1].body)
+})
+it('운영자가 추가한 카드 카테고리 코드의 카드는 entity 종류와 같은 코드로 읽고 저장 본문에도 그 코드를 싣는다',async()=>{
+ const response=wire();response.cards[0].cardType='category-09';response.cards[0].semanticMetadata={} as typeof response.cards[0]['semanticMetadata']
+ const fetcher=vi.fn().mockImplementation(async(_path:string,init:RequestInit)=>Response.json({...response,draftRevision:init.method==='GET'?2:3}))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ expect(loaded.settings[0].item).toMatchObject({kind:'entity',entityType:'category-09'})
+ expect(cardTypeOf(loaded.settings[0].item)).toBe('category-09')
+ await repo.saveStudio({...loaded,settings:loaded.settings.map((s,i)=>i===0?{...s,item:{...s.item,title:'수정'}}:s)})
+ expect(JSON.parse(fetcher.mock.calls[1][1].body).cards.find((c:{id:string})=>c.id===loaded.settings[0].item.id).cardType).toBe('category-09')
 })
 it('reads legacy canonical cards without studio metadata and keeps their text',async()=>{
  const response=wire();response.cards[0].semanticMetadata={} as typeof response.cards[0]['semanticMetadata']

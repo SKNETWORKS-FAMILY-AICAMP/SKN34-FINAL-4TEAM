@@ -160,9 +160,9 @@ class FeedbackReportService(
         return render(listOf(row),mapOf(id to work),member).single()
     }
 
-    /** 공개 작품의 발행 회차만 대상이다. 현재 발행 버전 ID를 돌려주며 미발행 회차는 404다. */
+    /** 공개 작품의 발행 회차만 대상이다. 현재 발행 버전 ID를 돌려주며 미발행·운영 제한 회차는 404다. */
     private fun publishedVersion(id: String, number: Int): String =
-        current.findByWorkIdAndSequence(id,number)?.publishedVersionId ?: throw ContentFailure(404,"공개 회차를 찾을 수 없어요.")
+        current.findByWorkIdAndSequence(id,number)?.readerVersionId ?: throw ContentFailure(404,"공개 회차를 찾을 수 없어요.")
 
     /**
      * 쓰기 대상 제보를 잠그고 읽는다. 작품이 없거나 삭제됐거나 경로의 작품과 제보가 맞지 않으면 404다.
@@ -174,7 +174,7 @@ class FeedbackReportService(
         checkContent(!work.deleted,404,"작품을 찾을 수 없어요.")
         val row=reports.lockByIdAndWorkId(reportId,id) ?: throw ContentFailure(404,NOT_FOUND)
         val mine=row.reporterId==member
-        val owner=work.ownerId==member
+        val owner=work.ownerId==member || ai.storyfork.content.auth.config.operatorReading()
         if(!(if(reporter) mine else owner)) {
             val seen=reportView(row.visibility,mine,owner,responses.findAllByReportIdIn(listOf(row.id)).any {it.isPublic})
             checkContent(seen!=ReportView.HIDDEN,404,NOT_FOUND)
@@ -208,7 +208,7 @@ class FeedbackReportService(
         val shown=rows.mapNotNull {row ->
             val work=works.getValue(row.workId)
             val mine=row.reporterId==viewer
-            val owner=work.ownerId==viewer
+            val owner=work.ownerId==viewer || ai.storyfork.content.auth.config.operatorReading()
             val all=replies[row.id].orEmpty().sortedBy {it.createdAt}
             val view=reportView(row.visibility,mine,owner,all.any {it.isPublic})
             if(view==ReportView.HIDDEN) null else Shown(row,work,mine,owner,view,if(mine || owner) all else all.filter {it.isPublic})

@@ -3,6 +3,7 @@ package ai.storyfork.operations.credit.service
 import ai.storyfork.operations._common.client.CoreClient
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.credit.service.dto.CreditAdjustRequest
+import ai.storyfork.operations.credit.service.dto.CreditBalancesRequest
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.member.repository.requirePermission
 import ai.storyfork.operations.security.OperationsMember
@@ -27,6 +28,12 @@ class CreditService(
     fun read(member: OperationsMember, authorization: String, memberId: UUID): JsonNode {
         permissions.requirePermission(member, CREDITS)
         return core.credits(authorization, memberId)
+    }
+
+    /** One Core call for the balance totals of the listed members (the member rows of the credit tab); nothing is recorded, it only reads. */
+    fun balances(member: OperationsMember, authorization: String, request: CreditBalancesRequest): JsonNode {
+        permissions.requirePermission(member, CREDITS)
+        return core.creditBalances(authorization, request)
     }
 
     fun grant(member: OperationsMember, authorization: String, memberId: UUID, request: CreditAdjustRequest): JsonNode {

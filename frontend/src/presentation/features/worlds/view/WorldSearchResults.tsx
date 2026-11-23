@@ -2,7 +2,7 @@ import type { PublicWorldCardHit, PublicWorldSummary } from '../../../../domain/
 import { Go } from '../../../shared/Go'
 import { KindChip } from '../../../shared/KindChip'
 import { PublicCardImage } from '../../../shared/PublicCardImage'
-import { CARD_KIND } from '../../../shared/worldBoard'
+import { kindOf } from '../../../shared/worldBoard'
 import { cardImageSrc, cardPath, typeLabel } from '../worldDetail'
 import { WorldCard } from './WorldParts'
 
@@ -26,7 +26,7 @@ export function CardHits({ hits }: { hits: readonly PublicWorldCardHit[] }) {
         <tbody>
           {hits.map((hit) => (
             <tr key={`${hit.worldId}/${hit.cardId}`}>
-              <td className="col-kind"><KindChip kind={CARD_KIND[hit.cardType]} label={typeLabel(hit.cardType)} /></td>
+              <td className="col-kind"><KindChip kind={kindOf(hit.cardType)} label={typeLabel(hit.cardType)} /></td>
               <td className="col-title">
                 {hit.imageId && <PublicCardImage className="board-thumb" src={cardImageSrc(hit.worldId, hit.imageId)} title={hit.title} />}
                 <Go to={cardPath(hit.worldId, hit.cardId)}>{hit.title}</Go>

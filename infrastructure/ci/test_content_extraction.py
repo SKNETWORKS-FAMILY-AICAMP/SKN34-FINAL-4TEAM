@@ -49,7 +49,8 @@ class ContentExtractionTest(unittest.TestCase):
         # V25 adds the publication schedule (publication leaf) and V26 the world checkpoint table (world leaf); V27 episode world basis (episode leaf); V28 is feedback reports and V29 edit suggestions (work leaf); V30 episode_comment.hidden (work leaf); V31 episode soft delete (episode leaf); V36 work notices (work leaf; V32~V35 belong to other open PRs); V37 work.world_studio_id (work leaf, DEC-46 1:1 WorldStudio link); V39 records the latest author handling time (work leaf); V24 stays vacant.
         # V40 adds immutable work operating settings history to the work leaf.
         # V44 adds the AI serial tables (settings, boards, choices, proposals, votes, summaries) to the work leaf (#659); V45 adds autonomous to the writing mode CHECK (work leaf, #659).
-        self.assertEqual([*range(1,10),13,14,15,17,18,19,20,21,22,23,25,26,27,28,29,30,31,36,37,39,40,42,44,45],[int(re.match(r'V(\d+)__',p.name)[1]) for p in files])
+        # V46 adds the episode operator restriction (episode leaf, 운영자 콘텐츠 관리 결정 A).
+        self.assertEqual([*range(1,10),13,14,15,17,18,19,20,21,22,23,25,26,27,28,29,30,31,36,37,39,40,42,44,45,46],[int(re.match(r'V(\d+)__',p.name)[1]) for p in files])
         created=set()
         for path in files:
             for statement in re.split(r'(?=CREATE TABLE )',path.read_text()):

@@ -36,8 +36,9 @@ class AttachmentService(
     private fun ownedSetting(workId: String, settingId: String, owner: String): String {
         if (owner.isBlank() || owner.length > 200) throw AttachmentFailure(401, "ATTACHMENT_UNAUTHENTICATED", "인증이 필요해요.")
         // 소프트 삭제한 작품의 설정 첨부는 새 행위에서 제외한다(DEC-42).
-        works.lockOwned(workId, owner)?.takeIf { it.deletedAt == null } ?: missingSettingAttachment()
-        return settings.lockOwnedLocal(workId, settingId, owner)?.id ?: missingSettingAttachment()
+        val acting = actingOwner(workId, owner)
+        works.lockOwned(workId, acting)?.takeIf { it.deletedAt == null } ?: missingSettingAttachment()
+        return settings.lockOwnedLocal(workId, settingId, acting)?.id ?: missingSettingAttachment()
     }
     private fun find(id: String, documentId: String) = attachments.findByIdAndSettingDocumentId(id, documentId) ?: missingSettingAttachment()
     private fun response(a: SettingAttachment, work: String, setting: String) = AttachmentResponse(a.id, a.filename, a.mediaType, a.kind, a.byteSize, a.createdAt,
@@ -143,8 +144,11 @@ class AttachmentService(
     catch (_: TransactionException) { throw AttachmentFailure(503, "IMAGE_DATABASE_FAILURE", "이미지 정보를 저장하거나 조회하지 못했어요.") }
     private fun ownedWork(work: String, owner: String) {
         if (owner.isBlank()) throw AttachmentFailure(401, "IMAGE_UNAUTHENTICATED", "인증이 필요해요.")
-        works.lockOwned(work, owner)?.takeIf { it.deletedAt == null } ?: missingImage()
+        works.lockOwned(work, actingOwner(work, owner))?.takeIf { it.deletedAt == null } ?: missingImage()
     }
+    /** 운영자의 조회는 소유 쿼리를 작품 소유자 ID로 확인한다(사용자 결정 2026-11-23). */
+    private fun actingOwner(work: String, caller: String) =
+        if (ai.storyfork.content.auth.config.operatorReading()) works.findById(work).map { it.ownerId }.orElse(caller) else caller
     /** 파일을 읽기 전에 소유 작품인지 확인한다. 잠금은 이 조회 트랜잭션 동안만 잡고 파일 처리 전에 풀린다. 저장 전 재확인은 각 업로드 메서드가 유지한다. */
     fun requireWorkUploadAccess(work: String, owner: String) { imageTransaction { ownedWork(work, owner); true } }
     private fun cover(work: String) = images.findByWorkIdAndEpisodeNo(work, 0).singleOrNull() ?: missingImage()

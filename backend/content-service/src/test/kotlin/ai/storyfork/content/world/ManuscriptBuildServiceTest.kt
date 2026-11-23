@@ -7,9 +7,11 @@ import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.world.domain.WorldConflict
+import ai.storyfork.content.world.domain.WorldMetadataInvalid
 import ai.storyfork.content.world.service.*
 import ai.storyfork.content.world.service.dto.*
 import ai.storyfork.content.world.studio.entity.ManuscriptBuildJob
+import ai.storyfork.content.world.studio.entity.ManuscriptBuildLoadStep
 import ai.storyfork.content.world.studio.entity.ManuscriptBuildResult
 import ai.storyfork.content.world.studio.entity.StudioWorld
 import ai.storyfork.content.world.studio.repository.*
@@ -225,6 +227,21 @@ class ManuscriptBuildServiceTest {
 
         assertEquals(updateBasis,basis.value,"적재의 기준 검사는 manifest가 아니라 claim 때 고정한 초안을 쓴다")
         verify(execution).fail(job.id,owner,token,"WORLD_CHANGED")
+    }
+    @Test fun `a load request the draft edit check refuses fails the job as CONTENT_REJECTED instead of leaving it running`() {
+        val (job,token)=readyToLoad("update")
+        doAnswer { (it.arguments[3] as () -> Any).invoke() }.`when`(studio).prepareManuscript(eq(worldId) ?: worldId,eq(owner) ?: owner,
+            any(WorldDraftResponse::class.java) ?: emptyDraft,any(Function0::class.java) as? (() -> Any) ?: { 0 })
+        doThrow(WorldMetadataInvalid("카드 ${basisCard.id}: semanticMetadata 키 'color'는 허용되지 않습니다.")).`when`(studio).validateEditRequest(
+            any(EditWorldDraftRequest::class.java) ?: EditWorldDraftRequest(0,"x","",key="k"),anyList(),anyList())
+
+        assertThrows(WorldConflict::class.java) { service.load(job.id,token) }
+
+        verify(execution).fail(job.id,owner,token,"CONTENT_REJECTED")
+        verify(steps,never()).saveAndFlush(any(ManuscriptBuildLoadStep::class.java))
+        // 적재 전 검사는 이 작업이 고정한 기준 초안의 카드·관계를 '저장돼 있던 값'으로 본다(맞춘 기존 카드를 그대로 다시 보내는 업데이트가 옛 키 때문에 막히지 않게).
+        val sent=mockingDetails(studio).invocations.first { it.method.name.startsWith("validateEditRequest") }.arguments
+        assertEquals(updateBasis.cards,sent[1]);assertEquals(updateBasis.relationships,sent[2])
     }
     @Test fun `an update job whose published episodes changed during extraction fails as SOURCE_CHANGED`() {
         val (job,token)=readyToLoad("update")

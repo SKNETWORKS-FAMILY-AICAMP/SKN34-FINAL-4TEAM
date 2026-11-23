@@ -77,6 +77,12 @@ export type AppCradle = {
   genreUseCase: import('../../domain/usecases/GenreUseCase').GenreUseCase
   operationsGenreRepository: import('../../domain/repositories/OperationsGenreRepository').OperationsGenreRepository
   operationsGenreUseCase: import('../../domain/usecases/OperationsGenreUseCase').OperationsGenreUseCase
+  cardCategoryRepository: import('../../domain/repositories/CardCategoryRepository').CardCategoryRepository
+  cardCategoryUseCase: import('../../domain/usecases/CardCategoryUseCase').CardCategoryUseCase
+  operationsCardCategoryRepository: import('../../domain/repositories/OperationsCardCategoryRepository').OperationsCardCategoryRepository
+  operationsCardCategoryUseCase: import('../../domain/usecases/OperationsCardCategoryUseCase').OperationsCardCategoryUseCase
+  operationsWorldRepository: import('../../domain/repositories/OperationsWorldRepository').OperationsWorldRepository
+  operationsWorldUseCase: import('../../domain/usecases/OperationsWorldUseCase').OperationsWorldUseCase
   publicWorldRepository: import('../../domain/repositories/PublicWorldRepository').PublicWorldRepository
   publicWorldUseCase: import('../../domain/usecases/PublicWorldUseCase').PublicWorldUseCase
   mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase

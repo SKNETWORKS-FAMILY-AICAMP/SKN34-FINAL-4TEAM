@@ -128,3 +128,10 @@ it('서버에서 읽은 자유 관계는 label(항목 이름)이 관계 이름�
  expect(link.label).toBe('알고 있음')
  expect(link.description).toBe('길동은 초부석을 들어 올려 이복형 길현에게 보였다.')
 })
+
+it('관계도 유형 필터는 기본 8종 순서 다음에 운영자가 추가한 유형을 보이고 이름은 주어진 이름 규칙을 따른다',()=>{
+ const node=(id:string,type:CardType|undefined)=>({id,type}) as MapNode
+ const nodes=[node('a','category-09'),node('b','character'),node('c','category-09'),node('d','category-12'),node('e',undefined)]
+ expect(cardTypeCounts(nodes)).toEqual([{id:'character',label:'인물',count:1},{id:'category-09',label:'기타',count:2},{id:'category-12',label:'기타',count:1}])
+ expect(cardTypeCounts(nodes,type=>type==='category-09'?'종족':type)).toEqual([{id:'character',label:'character',count:1},{id:'category-09',label:'종족',count:2},{id:'category-12',label:'category-12',count:1}])
+})

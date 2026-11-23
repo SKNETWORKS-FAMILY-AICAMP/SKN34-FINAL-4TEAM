@@ -6,12 +6,16 @@ import ai.storyfork.core.auth.service.AuthVerificationService
 import ai.storyfork.core.credit.domain.CreditKind
 import ai.storyfork.core.credit.service.dto.CreditAdjustRequest
 import ai.storyfork.core.credit.service.dto.CreditBalanceResponse
+import ai.storyfork.core.credit.service.dto.MemberCreditBalance
 import ai.storyfork.core.credit.service.dto.MemberCreditsResponse
 import java.math.BigDecimal
 import java.util.UUID
 import org.springframework.stereotype.Service
 
-/** 지급·회수 요청의 금액·사유 규칙 위반. 컨트롤러가 422 `INVALID_CREDIT_REQUEST`로 바꾼다. */
+/** 한 번에 잔액을 물을 수 있는 회원 수. */
+private const val MAX_BALANCE_MEMBERS = 100
+
+/** 지급·회수·묶음 잔액 조회 요청의 규칙 위반(금액·사유·회원 수). 컨트롤러가 422 `INVALID_CREDIT_REQUEST`로 바꾼다. */
 class InvalidCreditAdjustmentException(message: String) : IllegalArgumentException(message)
 
 /**
@@ -47,6 +51,17 @@ class CreditAdminService(
         requireMember(memberId)
         credits.revoke(memberId, amount)
         return credits.balance(memberId)
+    }
+
+    /**
+     * 회원 여러 명의 사용 가능한 크레딧 합계(`balance().total`과 같은 계산)를 돌려준다. 없는 회원은 결과에서 빠지고 순서는 정해져 있지 않다.
+     * 100명을 넘으면 아무것도 읽지 않고 [InvalidCreditAdjustmentException]이다.
+     */
+    fun balances(subject: String?, memberIds: List<UUID>): List<MemberCreditBalance> {
+        requireOperator(subject)
+        if (memberIds.size > MAX_BALANCE_MEMBERS) throw InvalidCreditAdjustmentException("한 번에 조회할 수 있는 회원은 ${MAX_BALANCE_MEMBERS}명 이하입니다.")
+        // ponytail: 회원마다 balance()가 쿼리 3개라 100명이면 약 300개다. 느려지면 지급분·사용량 조회를 회원 목록 일괄 쿼리로 바꾼다.
+        return members.findAllById(memberIds).map { MemberCreditBalance(it.id, credits.balance(it.id).total) }
     }
 
     private fun requireOperator(subject: String?) {

@@ -54,7 +54,7 @@ manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제�
 
 ## 공개와 출처
 
-`firstAppearanceEpisode`는 첫 등장 출처 정보다. 원고 경로는 `semanticMetadata.manuscriptBuild`에 job/result/key와 함께 보존한다. 기존 `semanticMetadata.preprocessing`는 직접 입력 후보의 analysisId/candidateId/decisionSequence 계약이므로 원고 작업의 시작 동의를 후보 승인 이력으로 위조하여 넣지 않는다. 자동 적재는 `visibility=private`이며 `semanticMetadata.revealFromEpisode`를 지정하지 않는다. 공개 회차는 작가가 직접 지정한다. 기존 작가의 공개 설정은 수정하지 않는다.
+`firstAppearanceEpisode`는 첫 등장 출처 정보다. 원고 경로는 `semanticMetadata.manuscriptBuild`에 job/result/key와 함께 보존한다(적재 요청도 초안 편집과 같은 `semanticMetadata` 허용 키 검사를 거치며 이 키는 허용 키다, [계약](worldstudio-independent-schema.md#초안-semanticmetadata-계약-541)). 기존 `semanticMetadata.preprocessing`는 직접 입력 후보의 analysisId/candidateId/decisionSequence 계약이므로 원고 작업의 시작 동의를 후보 승인 이력으로 위조하여 넣지 않는다. 자동 적재는 `visibility=private`이며 `semanticMetadata.revealFromEpisode`를 지정하지 않는다. 공개 회차는 작가가 직접 지정한다. 기존 작가의 공개 설정은 수정하지 않는다.
 현재 프런트 HTTP 어댑터는 빈 메타데이터 또는 유효한 `studio`를 요구한다. 원고 출처만 있는 부분 객체를 그대로 저장하면 재조회 파싱이 실패한다. 적재 매퍼는 유효한 StudioSetting과 별도 원고 출처를 함께 만들고 왕복 테스트로 보존을 확인해야 한다. ManuscriptBuildMapper가 이 매핑을 제공한다. 정본 별칭과 studio.aliases를 일치시키며 실제 서버 응답 Fixture를 프런트 HTTP 어댑터로 왕복 검증한다. 브라우저 수용 검증은 별도로 표시한다.
 카드·관계의 출처에 jobId, 원고 버전/결과 식별자, 추출 key를 보존해 영속 결과의 근거로 추적한다. 정체 통합 결정을 원문 자체의 사실성 보증으로 해석하지 않는다.
 초안 적재 완료는 확정·공개·발행이 아니다. 확정은 기존 revisions API를 작가가 별도로 호출한다.
@@ -67,7 +67,7 @@ manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제�
 
 - 공개 API POST 본문: `{worldId, key, consent: true, resumeToken?}`. worldId와 key는 요청 전에 정하고 재전송할 때 유지한다.
 - 진행 중은 202 + Location, 완료·실패·unknown 조회는 상태/실제 완료 receipt를 반환한다. 응답의 `build`에는 `skippedItems`(모든 회차 추출 결과의 `skipped` 합, 결과가 없으면 0)가 있고 완료 화면이 '근거를 확인하지 못한 항목 N개는 초안에 넣지 않았어요'로 알린다. GET은 모델을 실행하지 않는다.
-- 실패/실행 기한 만료 후 재개는 조회한 executionToken을 resumeToken으로 명시한다. worker가 Content에 남기는 실패 사유 코드(`failureCode`)의 정본은 `AI_TIMEOUT`(모델 timeout), `AI_RESPONSE_UNCONFIRMED`(응답 미확인), `AI_REQUEST_REJECTED`(모델 미설정·입력 과대 등 요청 거절), `AI_OUTPUT_INVALID`(그 밖의 검증·모델 출력 오류), `CONTENT_REJECTED`(Content가 result/structure/load 콜백을 4xx로 거절), `NO_SETTINGS_FOUND`(정리 결과 카드가 0장)이다. 세부 오류 코드는 로그에 코드 문자열로만 남기고 원고는 남기지 않는다. Content가 적재 전제 위반으로 직접 기록하는 코드는 `SOURCE_CHANGED`·`WORLD_CHANGED`·`WORLD_LINK_CHANGED`이고, 이 경우 뒤따르는 worker의 실패 보고는 409로 거절될 수 있다.
+- 실패/실행 기한 만료 후 재개는 조회한 executionToken을 resumeToken으로 명시한다. worker가 Content에 남기는 실패 사유 코드(`failureCode`)의 정본은 `AI_TIMEOUT`(모델 timeout), `AI_RESPONSE_UNCONFIRMED`(응답 미확인), `AI_REQUEST_REJECTED`(모델 미설정·입력 과대 등 요청 거절), `AI_OUTPUT_INVALID`(그 밖의 검증·모델 출력 오류), `CONTENT_REJECTED`(Content가 result/structure/load 콜백을 4xx로 거절), `NO_SETTINGS_FOUND`(정리 결과 카드가 0장)이다. 세부 오류 코드는 로그에 코드 문자열로만 남기고 원고는 남기지 않는다. Content가 적재 전제 위반으로 직접 기록하는 코드는 `SOURCE_CHANGED`·`WORLD_CHANGED`·`WORLD_LINK_CHANGED`이고(만든 적재 요청이 초안 편집 검사를 통과하지 못해도 `CONTENT_REJECTED`를 직접 기록해 작업을 running으로 남기지 않는다), 이 경우 뒤따르는 worker의 실패 보고는 409로 거절될 수 있다.
 - loading/unknown의 동일 POST는 기존 load_step만 복구한다. 성공 회차나 구조화를 재호출하지 않는다.
 - JSONB의 객체 key 순서는 보장되지 않는다. 원고 부분 추가 요청 해시는 예약과 복구 양쪽에서 같은 재귀 정렬을 사용한다. 기존 일반 저장 해시 계약은 변경하지 않는다.
 - 기존 카드가 있는 세계관은 자동 정체 병합하지 않고 409('이미 설정이 있는 세계관에는…')로 거절하며 접수 행을 남기지 않는다. 이 작업은 빈 세계관의 최초 구축 전용이다. 시작 시 사유가 있는 거절은 404(작품·세계관 없음)·409(설정이 있는 세계관, 연결 불일치, 진행 중·완료)·422(저장 회차 없음, 중간 미저장, Fork 상속, 입력 형식)이고 한국어 문구와 함께 내려가며 500으로 내보내지 않는다.

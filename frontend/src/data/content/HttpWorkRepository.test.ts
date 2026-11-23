@@ -15,7 +15,9 @@ const record = (extra: Partial<ReadingWorkRecord> = {}): ReadingWorkRecord => ({
 const setup = (rows = [record()], owned: ReadingWorkRecord[] = [], loggedIn = false) => {
   const api = { readingList: vi.fn(async (mine: boolean) => mine ? owned : rows),
     readingWorld: vi.fn(async () => ({ workId: 'work-uuid', episode: 1, documents: [] })),
+    readingWorldCards: vi.fn(async () => ({ workId: 'work-uuid', worldId: null, upto: 0, cards: [], relationships: [], relationshipStatus: 'current' })),
     fork: vi.fn(async () => ({ id: 'created-server-uuid' })), writingList: vi.fn(async () => []),
+    readingOne: vi.fn(async (id: string) => record({ id, visibility: 'private' })),
   }
   return { api, repository: new HttpWorkRepository(api as unknown as HttpEpisodeRepository, () => loggedIn) }
 }
@@ -39,6 +41,13 @@ describe('canonical WorkRepository', () => {
     expect((await repository.listWorks()).filter(isMine)).toHaveLength(1)
     api.readingList.mockRejectedValueOnce(new Error('offline'))
     await expect(repository.listWorks()).rejects.toThrow('offline')
+  })
+  it('reads one work by id (운영자가 남의 비공개 작품을 열 때) without marking it mine', async () => {
+    const { api, repository } = setup([], [], true)
+    const work = await repository.readWork('private-uuid')
+    expect(api.readingOne).toHaveBeenCalledWith('private-uuid')
+    expect(work?.id).toBe('private-uuid')
+    expect(isMine(work!)).toBe(false)
   })
   it('splits inherited prefix exactly once and preserves version IDs', async () => {
     const { repository } = setup([record({ source: { workId: 'parent-uuid', title: '부모', episode: 1, version: 1, direction: '분기' },
@@ -142,6 +151,18 @@ it('uses the server allowlist and reports the actual preview basis when the sele
   expect(api.readingWorld).toHaveBeenCalledWith('work-uuid', 3)
 })
 
+it('포크 미리보기: 연결된 세계관이면 기준 회차의 독자 설정 위키 카드를 읽고 레거시 공개 설정집은 요청하지 않는다 (#559)', async () => {
+  const card = (id: string, title: string, cardType: string, revealFromEpisode: number) => ({ id, title, text: title, cardType, aliases: [], tags: [], revealFromEpisode, imageId: null })
+  const served = { workId: 'work-uuid', worldId: crypto.randomUUID(), upto: 2, cards: [card('c1', '리안', 'character', 1), card('c2', '봉인', 'rule', 2)], relationships: [], relationshipStatus: 'current' }
+  const fetcher = vi.fn(async (path: RequestInfo | URL) => Response.json(String(path).includes('/world-cards') ? served : [record()]))
+  const form = await new ForkUseCase(new HttpWorkRepository(new HttpEpisodeRepository(fetcher), () => false)).getForm('work-uuid', 2)
+  const urls = fetcher.mock.calls.map(([path]) => String(path))
+  expect(urls).toContain('/api/v1/public/works/work-uuid/world-cards?upto=2')
+  expect(urls.some((url) => url.includes('/world?'))).toBe(false)
+  expect(form?.work.rules).toEqual(['봉인'])
+  expect(form?.work.cast.map((c) => c.n)).toEqual(['리안'])
+})
+
 describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {
   const [worldId, rian, tower, link, towerImage] = Array.from({ length: 5 }, () => crypto.randomUUID())
   const cards = [
@@ -210,9 +231,14 @@ describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {
     expect((await repositoryOf(unavailable).repository.readWorldCards('work-uuid')).relationshipStatus).toBe('unavailable')
   })
 
-  it('다른 작품의 응답·모르는 카드 유형·없는 작품(404)은 빈 위키로 바꾸지 않고 실패한다', async () => {
+  it('운영자가 추가한 카드 카테고리 코드는 기본 8종이 아니어도 그대로 읽는다(운영자 콘텐츠 관리 결정 E)', async () => {
+    const read = await repositoryOf(served({ cards: [{ ...cards[0], cardType: 'category-09' }] })).repository.readWorldCards('work-uuid')
+    expect(read.cards[0].cardType).toBe('category-09')
+  })
+
+  it('다른 작품의 응답·빈 카드 유형·없는 작품(404)은 빈 위키로 바꾸지 않고 실패한다', async () => {
     await expect(repositoryOf(served({ workId: 'another-work' })).repository.readWorldCards('work-uuid')).rejects.toThrow('작품')
-    await expect(repositoryOf(served({ cards: [{ ...cards[0], cardType: 'weapon' }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
+    await expect(repositoryOf(served({ cards: [{ ...cards[0], cardType: '' }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
     await expect(repositoryOf({ detail: '작품을 찾을 수 없어요.' }, 404).repository.readWorldCards('work-uuid')).rejects.toThrow('작품을 찾을 수 없어요.')
   })
 })

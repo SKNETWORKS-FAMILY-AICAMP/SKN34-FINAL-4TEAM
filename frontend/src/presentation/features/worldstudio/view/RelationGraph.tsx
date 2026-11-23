@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import ForceGraph2D, { type ForceGraphMethods } from 'react-force-graph-2d'
 import { cardTypes, type CardType } from '../../../../domain/entities/studioCards'
 import { useElementSize } from '../../../shared/useElementSize'
@@ -41,7 +41,11 @@ const BIG_GRAPH = 150, BIG_COOLDOWN = 2000, BIG_DECAY = 0.06, COOLDOWN = 15000, 
 
 const GearIcon = () => <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
 
-type Props = { vm: Pick<ReturnType<typeof useWorldMapViewModel>, 'graph' | 'selected' | 'visible'>; editing: Actions; find?: { id: string; seq: number } | null; filters: Filters }
+/**
+ * `addTypes`는 새 설정의 유형 선택지(우클릭 메뉴·추가 패널)다. 부르는 쪽이 운영자가 관리하는 활성 카드 카테고리로 주고, 안 주면 기본 8종이다.
+ * `addNotice`는 그 목록을 쓸 수 없을 때(불러오는 중·실패 + 다시 시도) 패널에 선택지 대신 보일 안내다: 있으면 우클릭 메뉴의 추가는 잠긴다.
+ */
+type Props = { vm: Pick<ReturnType<typeof useWorldMapViewModel>, 'graph' | 'selected' | 'visible'>; editing: Actions; find?: { id: string; seq: number } | null; filters: Filters; addTypes?: readonly { id: CardType; label: string }[]; addNotice?: ReactNode }
 
 /**
  * 관계도 그래프(react-force-graph-2d 캔버스, 옵시디언 그래프 뷰처럼): 모든 배율에서 점과 이름뿐이다. 점은 이어진 관계 수(+접힌 위성 수)의 제곱근에 비례하는 채운 원(유형 색, 화면 반지름은 3px~24px로 묶여 멀리서 사라지지도 확대해서 거대해지지도 않는다), 선은 화면 기준 1px의 가는 회색 직선(같은 두 설정 사이의 관계는 선 하나, 굵기는 늘지 않는다), 배경은 평평하다. 노드는 선 위에 그려진다.
@@ -54,7 +58,7 @@ type Props = { vm: Pick<ReturnType<typeof useWorldMapViewModel>, 'graph' | 'sele
  * 상자가 숨겨져(크기 0) 있으면 그리지 않고(관계 편집기는 다른 화면에서도 숨은 채 마운트돼 있다) 보이면 처음처럼 전체를 맞춘다: 첫 틱에 곧바로, 배치가 처음 멈출 때 한 번 더(그 사이 사용자가 움직였으면 그대로 둔다). 맞춤의 확대 배율은 1.5를 넘지 않는다(`fitView`: 노드가 적은 세계관이 화면 가득 확대되지 않는다).
  * 캔버스 높이는 CSS가 정하고, 이 컴포넌트는 캔버스 위쪽의 문서 위치만 `--rf-top`으로 알린다(관리 모드 관계도 보기가 '화면 높이 − 위쪽'을 채운다).
  */
-export default function RelationGraph({ vm, editing, find, filters }: Props) {
+export default function RelationGraph({ vm, editing, find, filters, addTypes = cardTypes, addNotice }: Props) {
   const host = useRef<HTMLDivElement>(null), surface = useRef<HTMLDivElement>(null), gear = useRef<HTMLButtonElement>(null), addOpener = useRef<HTMLElement | null>(null)
   const graph = useRef<ForceGraphMethods<GNode, GLink>>(undefined)
   const [reduced] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false)
@@ -294,7 +298,9 @@ export default function RelationGraph({ vm, editing, find, filters }: Props) {
   }
   const menuEntries = (m: MenuState): MenuEntry[] => {
     if (m.kind === 'pane') return [
-      { label: '여기에 설정 추가', items: cardTypes.map((t) => ({ label: t.label, disabled: editing.busy, onSelect: () => addAt(t.id, m.at) })) },
+      addNotice
+        ? { label: '여기에 설정 추가', disabled: true, reason: '카드 분류를 불러온 뒤 추가할 수 있어요.', onSelect: () => undefined }
+        : { label: '여기에 설정 추가', items: addTypes.map((t) => ({ label: t.label, disabled: editing.busy, onSelect: () => addAt(t.id, m.at) })) },
       { label: '배치 정돈', onSelect: relayout },
       { label: '화면 맞춤', onSelect: () => fit(ms(400)) },
     ]
@@ -344,7 +350,7 @@ export default function RelationGraph({ vm, editing, find, filters }: Props) {
         </div>
       )}
       {panel && <GraphSettingsPanel id={panelId} settings={settings} onChange={changeSetting} filters={filters} showOrphans={showOrphans} noLinks={noLinks} foldable={large} onFit={() => fit(ms(400))} onRelayout={relayout} onExpandAll={unfoldAll} onClose={closePanel} />}
-      {adding && <AddCardPanel busy={editing.busy} onAdd={(type) => addAt(type)} onClose={closeAdd} />}
+      {adding && <AddCardPanel busy={editing.busy} types={addTypes} notice={addNotice} onAdd={(type) => addAt(type)} onClose={closeAdd} />}
       <div
         ref={surface} className="relationship-surface" role="img" aria-label={'관계도: 설정 ' + nodes.length + '개 · 관계 ' + relationCount + '개' + (foldedTotal ? ' · 접힌 위성 ' + foldedTotal + '개' : '')}
         onPointerDownCapture={() => { flags.current.touched = true }} onWheelCapture={() => { flags.current.touched = true }}

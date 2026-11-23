@@ -42,7 +42,7 @@
 |---|---|
 | 공개 설정 | 카드마다 하나다: `N화부터 공개`(1 이상의 정수) 또는 `작가 전용`(기본). 소설이 연결되지 않은 세계관은 `공개`(= 1화부터)와 `작가 전용` 두 값으로 고른다 |
 | 유효 공개 회차 | 카드 `semanticMetadata.revealFromEpisode`가 1 이상의 정수 JSON 숫자면 그 값, 키가 없고 카드 `visibility=public`이면 1, 그 밖은 없음(작가 전용). 키가 있는데 값이 잘못됐으면(JSON `null` 포함) 작가 전용이다(`visibility`로 열지 않는다) |
-| 기준 회차 | 연결된 소설의 **발행된 마지막 회차**. 소설이 공개 작품이 아니거나 발행된 회차가 없으면 0, 소설이 연결되지 않은 세계관은 1. Fork 이어받기는 Fork 기준 회차와 요청 `upto` 중 작은 값 |
+| 기준 회차 | 연결된 소설의 **발행된 마지막 회차**(운영이 제한한 회차는 독자에게 없으므로 세지 않는다, [운영 콘텐츠 관리 계약](content-operator-management-contract.md)). 소설이 공개 작품이 아니거나 발행된 회차가 없으면 0, 소설이 연결되지 않은 세계관은 1. Fork 이어받기는 Fork 기준 회차와 요청 `upto` 중 작은 값 |
 | 보이는 카드 | 삭제되지 않았고(`lifecycle=active`) 유효 공개 회차가 기준 회차 이하인 카드 |
 | 보이는 관계 | 양 끝이 모두 보이는 카드인 관계를 기준 회차 시점으로 본 것(DEC-51). 「동일 인물」도 같다 |
 
@@ -186,16 +186,17 @@ PublicWorld        = { "id", "name", "description", "genre", "authorNickname", "
 
 | 메서드·경로 | 동작 |
 |---|---|
-| `GET /api/v1/public/world-studios?genre=<code>&page=0&size=24` | 공개이고 저장 버전이 있는 세계관만 `published_at` 최신순(같은 시각은 `id`순)으로 반환한다. `genre`를 생략하면 전체다 |
-| `GET /api/v1/public/world-studios/{id}` | 비공개·없음·저장 버전 없음은 404. 그 밖에는 마지막 저장 버전에서 기준 회차 이하로 공개된 카드(DEC-53)와 그 카드끼리의 기준 회차 시점 관계를 반환한다 |
+| `GET /api/v1/public/world-studios?genre=<code>&page=0&size=24` | 공개이고 저장 버전이 있고 운영이 제한하지 않은 세계관만 `published_at` 최신순(같은 시각은 `id`순)으로 반환한다. `genre`를 생략하면 전체다 |
+| `GET /api/v1/public/world-studios/{id}` | 비공개·없음·저장 버전 없음·운영 제한은 404. 그 밖에는 마지막 저장 버전에서 기준 회차 이하로 공개된 카드(DEC-53)와 그 카드끼리의 기준 회차 시점 관계를 반환한다 |
 | `GET /api/v1/public/world-studios/{id}/cover` | 상세와 같은 기준(공개이고 확정 버전이 있는 세계관)일 때만 표지 이미지 바이트를 반환한다. 비공개·확정 버전 없음·표지 없음·없는 세계관은 404 |
 
-- `cards`는 마지막 `world_revision`의 카드 버전 중 보이는 카드(`lifecycle=active`이고 유효 공개 회차가 기준 회차 이하, DEC-53)의 내용이다. `text`의 본문 링크는 대상이 `cards`에 없으면 서버가 글자만 남기고 id를 지운다([치환 규칙](#본문-링크의-공개-응답)). `id`는 카드 논리 ID로 관계의 양 끝이 가리키고, `cardType`은 기존 WorldStudio 카드 유형 코드(`character`·`location`·`organization`·`ability`·`object`·`rule`·`event`·`other`) 그대로다(프론트의 기존 라벨 매핑을 쓴다).
+- `cards`는 마지막 `world_revision`의 카드 버전 중 보이는 카드(`lifecycle=active`이고 유효 공개 회차가 기준 회차 이하, DEC-53)의 내용이다. `text`의 본문 링크는 대상이 `cards`에 없으면 서버가 글자만 남기고 id를 지운다([치환 규칙](#본문-링크의-공개-응답)). `id`는 카드 논리 ID로 관계의 양 끝이 가리키고, `cardType`은 카드 카테고리 코드다(기본 8종 `character`·`location`·`organization`·`ability`·`object`·`rule`·`event`·`other`와 운영이 더한 `category-NN`, 이름·아이콘은 `GET /api/v1/public/card-categories`, [계약](content-operator-management-contract.md#세계관-카드-카테고리)).
 - `relationships`는 Neo4j 관계를 **기준 회차 시점**(DEC-51·53, 소설이 연결되지 않은 세계관은 1화)으로 본 것 중 **양 끝 카드가 위 `cards`에 있는 것**만이다. 저장하지 않은 새 카드나 삭제된 카드·작가 전용·기준 회차 뒤 카드를 가리키는 관계는 나오지 않는다. `label`·`body`와 `category`·`direction`·`polarity`를 함께 반환하며, 없는 방향과 극성은 null 그대로다. 관계마다 `history`(기준 회차까지의 변화 `[{episode, label, body}]`, 바뀐 적 없으면 빈 목록, 기준 회차 뒤의 변화와 끝점이 달랐던 옛 연결은 담지 않는다, `body`의 본문 링크는 관계 `body`와 같이 치환한다, [관계별 회차](worldstudio-independent-schema.md#관계별-회차--dec-54-2단계))도 준다.
 - 관계 저장소가 현재 상태를 보증하지 못하면(미전환·미완료·조회 실패·토큰 불일치·확장 적재 중) 카드는 그대로 두고 `relationships: []`, `relationshipStatus: "unavailable"`로 200을 돌려준다(500이 아니다). 정상이면 `"current"`다. 목록의 관계 수는 이때 0이 아닌 `null`이다. 회차 이력의 payload만 손상됐을 때는 이력을 싣는 상세·독자 위키만 `unavailable`이고, 이력을 읽지 않는 목록의 관계 수와 Fork 이어받기는 기준 회차의 관계를 확인할 수 있으면 그대로다.
 - 작가 닉네임은 저장하지 않고 응답마다 `CoreNicknameService`로 회원 ID 묶음을 한 번 조회해 채운다. Core에 없으면 `탈퇴한 회원`이고, Core 호출 실패는 대체 이름 없이 503/504/502로 그대로 전한다.
 - `linkedWork`는 이 세계관에 연결된 소설(`work.world_studio_id`, 1:1, DEC-46)의 최소 정보(작품 id·제목·작가 닉네임·표지 유무)이며 **연결된 소설이 공개 작품일 때만** 채운다(#329). 공개 판정은 Content의 기존 공개 술어(`WorkAccessResult.publiclyVisible()`: 공개 범위가 `public`이고 제한·삭제가 아닌 작품)를 그대로 쓰고, 비공개·제한·삭제 작품이거나 연결이 없으면 `null`이라 소설의 존재 자체를 드러내지 않는다. 목록(`PublicWorldSummary`)에는 싣지 않는다. 소설 작가 닉네임은 위 세계관 작가와 **같은 `CoreNicknameService` 조회 한 번**에 묶어 채우고(Core에 없으면 `탈퇴한 회원`, 실패는 위와 같이 그대로), 연결된 소설이 없거나 공개가 아니면 그 작가는 조회하지 않는다. 404인 세계관은 연결을 읽지 않는다.
 - `linkedWork.hasCover`는 작품 표지(회차 0 이미지)가 있는지다. `true`이면 화면이 기존 공개 작품 표지 `GET /api/v1/public/works/{id}/cover/content`를 `<img>`로 직접 읽고, `false`이면 기본 작품 표지(`/default-work-cover.svg`)를 쓴다. 화면은 '이 세계관을 쓴 작품' 선반에 그 소설을 책 카드 하나로 보이고 누르면 작품 상세(`/work/{id}`)로 이동하며, `null`이면 '이 세계관으로 공개된 소설이 아직 없어요'를 보인다(`--mode mockup` 데모는 서버 값이 아니라 데모 작품을 링크 없이 보인다).
+- 운영이 제한한 세계관(`world.restricted`, [운영 콘텐츠 관리 계약](content-operator-management-contract.md#공개-세계관-제한))은 이 공개 경로(목록·`q` 검색·카드 검색·상세·표지·카드 이미지, 가져오기)에서 모두 404이며 소유자 조회·연결된 소설의 독자 설정 위키·Fork 이어받기는 그대로다.
 - 상세의 `id`가 UUID 형식이 아니면 400, 형식이 맞는데 없으면 404다.
 - 표지 응답의 `Content-Type`은 저장한 형식(`image/png`·`image/jpeg`·`image/webp`)이고 `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`이다(기존 작품 공개 표지와 같은 관례). 화면은 `hasCover`가 `true`일 때만 `<img src="/api/v1/public/world-studios/{id}/cover">`로 직접 읽고, `false`이면 기본 표지(`/default-work-cover.svg`)를 쓴다. `id`가 UUID 형식이 아니면 400이다.
 
@@ -283,7 +284,8 @@ InheritedWorld = { "workId": "<Fork>", "worldId": "<원작 세계관 uuid>" | nu
 - 원작의 현재 확정 버전을 매번 읽으므로 `following` 동안 원작의 변경(기준 회차 이하에 영향을 주는 것)을 따라간다(DEC-37). 독립하면(`independent`, 아래 절) 더는 따라가지 않는다.
 - 집필 AI Q&A도 같은 이어받은 세계관을 AI가 Content MCP `work_inherited_world`로 읽는다(#490). Content `QaScopeService`의 관계 질문 경로는 #525 뒤 지웠다.
 - 화면: 집필실 시뮬레이션 시작 양식이 내 세계관 목록에 이 작품에 연결된 세계관이 없을 때 이 API를 `upto=<여는 회차>`로 읽어 인물 카드(`cardType=character`, 나레이터 카드 제외)를 후보로 쓴다. 후보와 서버 검증이 같은 카드 집합이다([시뮬레이션 계약](character-simulation-contract.md#fork-이어받기-365)).
-- 한계: Fork 생성 미리보기(공개된 세계관 규칙·인물 수)는 아직 레거시 설정 이력 기준이다(후속). `SOUL.md`가 없는 이어받은 인물은 말투 근거가 약하다.
+- **Fork 생성 미리보기(#559)**: 생성 화면의 '가져가는 것'(공개된 세계관 규칙·인물 수와 자료 목록)은 원작에 연결된 세계관이 있으면 독자 설정 위키 `GET /api/v1/public/works/{id}/world-cards?upto=<고른 기준 회차>`의 카드로 센다. Fork가 아직 없어 `inheritedWorld`를 부를 수 없지만 같은 카드 집합(확정 버전의 카드 중 유효 공개 회차 ≤ 기준 회차, DEC-53: 작가 전용·기준 회차 뒤 카드 제외)이라 Fork를 만든 뒤 `inheritedWorld(upto=기준 회차)`가 이어받는 카드와 수가 같다. 연결된 세계관이 없으면(`worldId: null`) 기존 공개 설정집 API(`GET /api/v1/public/works/{id}/world?episode=`)를 그대로 쓴다. 응답의 기준 회차가 고른 회차와 다르거나 카드를 읽지 못하면 설정집으로 대신하지 않고 불러오기 실패로 보인다. 카드 유형은 기존 위키 분류로 옮겨 센다(`domain/entities/wiki.ts`의 `withWorldCards`): 인물 수는 `character`, 규칙 수는 `rule`·`ability`·`other`(→ `world` '세계관 설정')이고 `location`(→ `place`)·`organization`(→ `org`)·`object`(→ `item`)·`event`는 자료 목록에만 든다. 체크포인트(`ForkService.create`의 `basisSettings`)는 `checkpoint_setting`이 레거시 `setting_version`을 FK로 가리켜 WorldStudio 카드를 담을 수 없으므로 바꾸지 않는다.
+- 한계: `SOUL.md`가 없는 이어받은 인물은 말투 근거가 약하다.
 
 ## Fork 세계관 독립 — DEC-37
 
@@ -305,6 +307,7 @@ InheritedWorld = { "workId": "<Fork>", "worldId": "<원작 세계관 uuid>" | nu
 
 - **설정 가져오기에는 서버 전용 API가 없다.** 화면이 공개 상세(`GET /api/v1/public/world-studios/{id}`)로 읽은 공개 카드를 새 카드 id로 복사해 내 세계관 초안에 더하고 기존 초안 저장(`PUT /api/v1/world-studios/{id}/draft`)으로 반영한다. 그래서 가져올 수 있는 것은 공개 세계관의 확정 버전에서 기준 회차 이하로 공개된 카드(DEC-53)뿐이고(로그인한 누구나, 소유자의 별도 허용 절차 없음), 원본의 이후 변경·비공개 전환·삭제는 가져간 카드에 반영되지 않는다.
 - 출처와 독자 공개 회차는 DB 칼럼을 더하지 않고 카드 `semanticMetadata`(jsonb)의 **최상위 키**에 둔다(`semanticMetadata.studio` 안이 아니다).
+- 초안 편집은 허용 키와 형식을 검사한다([계약](worldstudio-independent-schema.md#초안-semanticmetadata-계약-541)). 기존 데이터는 이전하지 않고 프런트가 모르는 키를 읽을 때 버리므로 고쳐 저장한 카드만 정리된다. 기존의 잘못된 공개 회차는 읽을 때 계속 작가 전용으로 닫는다.
 
 ```text
 "importedFrom": { "worldId", "worldName", "authorNickname", "revisionNo", "cardId" }   가져온 카드의 출처(가져온 시점의 값)
@@ -312,7 +315,7 @@ InheritedWorld = { "workId": "<Fork>", "worldId": "<원작 세계관 uuid>" | nu
 "characterDocs": { "soul", "goal", "episodes": { "<회차 번호>": "글" } }          인물 카드의 작가용 문서(SOUL.md·GOAL.md·회차별 기억, 옛 "memory"는 읽을 때 episodes["0"]으로 옮김, DEC-47)
 ```
 
-- 서버는 세 키를 **저장할 때 검사하지 않고 그대로 저장·반환**한다. `revealFromEpisode`는 읽을 때 닫힌 쪽으로 판정한다: 1 이상의 정수인 JSON 숫자(`3.0` 포함)일 때만 공개 회차로 읽는다. 키가 없으면 카드 `visibility=public`은 1, 그 밖은 작가 전용이고, **키가 있는데** 문자열·소수·0·음수·int 범위 밖·JSON `null`이면 작가 전용이다(`visibility`로 열지 않는다, DEC-53). `importedFrom`은 서버가 읽지 않는 표시용 값이고 **클라이언트가 적는 값이라 서버가 출처를 보증하지 않는다**. `characterDocs`는 인물 카드에만 화면이 적는 값이다(IDENTITY.md는 카드 본문 `body`): 공개 API의 카드 응답은 제목·본문·유형·별칭·태그뿐이라 이 문서는 공개 세계관·독자 설정 위키에 나가지 않는다. `episodes`의 키는 0 이상의 정수, 문서마다 3,000자 이하(화면 검증)이고 전부 비어 있으면 키를 넣지 않으며, 읽을 때 모양이 어긋난 값은 통째로 버리고 세계관 로드는 계속한다. 가져온 카드에는 따라오지 않는다(본문만 복사).
+- 서버는 이 키들을 초안 편집 요청에서만 [계약](worldstudio-independent-schema.md#초안-semanticmetadata-계약-541)의 형식으로 검사하고(어기면 422) 저장한 값은 그대로 반환한다. 이미 저장된 값은 검사하지 않으므로 `revealFromEpisode`는 읽을 때 닫힌 쪽으로 판정한다: 1 이상의 정수인 JSON 숫자(`3.0` 포함)일 때만 공개 회차로 읽는다. 키가 없으면 카드 `visibility=public`은 1, 그 밖은 작가 전용이고, **키가 있는데** 문자열·소수·0·음수·int 범위 밖·JSON `null`이면 작가 전용이다(`visibility`로 열지 않는다, DEC-53). `importedFrom`은 서버가 읽지 않는 표시용 값이고 **클라이언트가 적는 값이라 서버가 출처를 보증하지 않는다**. `characterDocs`는 인물 카드에만 화면이 적는 값이다(IDENTITY.md는 카드 본문 `body`): 공개 API의 카드 응답은 제목·본문·유형·별칭·태그뿐이라 이 문서는 공개 세계관·독자 설정 위키에 나가지 않는다. `episodes`의 키는 0 이상의 정수, 문서마다 3,000자 이하(화면·서버 쓰기 검증)이고 전부 비어 있으면 키를 넣지 않으며, 읽을 때 모양이 어긋난 값은 통째로 버리고 세계관 로드는 계속한다. 가져온 카드에는 따라오지 않는다(본문만 복사).
 - 카드의 `visibility`는 기존 카드 필드(`private`|`public`) 그대로이며 초안 저장이 값을 검사한다(그 밖의 값은 422 `WORLD_INPUT_INVALID`). 소유자 API는 카드마다 저장한 `visibility`를 그대로 돌려준다. DEC-53 이후 새 화면은 `revealFromEpisode`만 정하고 `visibility`는 회차 값이 있으면 `public`, 없으면 `private`로 맞춰 저장하며 판정에는 쓰지 않는다([DEC-53 절](#카드-공개-기준-일원화--dec-53)).
 - 화면 흐름(로그인한 회원에게만 보이는 진입점 셋): 공개 세계관 화면의 ① 설정집 게시판의 줄 선택(`보이는 설정 모두 선택` 포함) 뒤 `선택한 설정 가져오기 (N)`과 ② 설정 카드 페이지의 `이 설정 가져오기`는 이동 없이 고른 설정만 고른 내 세계관의 **초안에 바로 추가·저장**한다: 대상의 최신 초안을 읽어(`GET /api/v1/world-studios/{id}`) 새 카드를 끝에 붙이고 초안 저장을 보내며, 관계는 함께 오지 않고 진행·결과·실패 사유와 `다시 시도`를 그 자리에 보인다. ③ 내 세계관 관리 화면 게시판의 `다른 세계관에서 가져오기`는 가져오기 시트를 열며 공개 세계관 목록(대상 세계관 자신은 제외, 공개 설정이 0개인 세계관은 고를 수 없음) → 그 세계관의 공개 설정 체크 → `같이 가져온 카드 사이 관계 포함`(기본 꺼짐) 순서다. 공개 세계관 상세 헤더에서 이 시트로 이동하던 `내 세계관으로 가져오기`와 그 주소(`/worldstudio/<대상>?import=<원본>`)는 2026-11-12에 없앴다(사용자 결정).
 - 가져온 카드는 초안 끝에 **새 카드 id·작가 전용(비공개·공개 회차 없음)**으로 더해지고 제목·본문·유형·별칭·태그만 옮긴다. 본문 링크는 같이 가져온 카드끼리만 새 id로 잇고 나머지는 글자로 둔다(DEC-53). 관계는 양 끝을 모두 가져온 것만 옮긴다. 기존 가져오기 화면은 양 끝 순서와 `label`을 쓰며, 새로 공개한 방향·본문·극성의 가져오기 반영은 화면 작업에서 별도로 확인한다. 관계를 불러오지 못한 응답(`relationshipStatus: unavailable`)이면 관계 포함을 고를 수 없고, 활성 카드 1,000개 한도를 넘기면 아무것도 더하지 않고 이유를 보인다. 화면은 가져온 카드에 `가져옴`과 `참고: {worldName} 세계관 · {authorNickname}`를 보인다.
@@ -339,7 +342,7 @@ CREATE INDEX setting_card_image_world_idx ON worldstudio.setting_card_image(worl
 ```
 
 - 바이트는 세계관 표지와 같은 객체 저장소(`AttachmentStorageClient`)의 `world-card-images/<id>` 키에 둔다. **올린 이미지는 바뀌지 않는다**(교체 = 새 이미지를 올리고 카드가 새 id를 가리킴). 그래서 확정 버전이 옛 id를 가리켜도 그 이미지가 그대로 보인다.
-- 카드가 어떤 이미지를 쓰는지는 DB 칼럼을 더하지 않고 카드 `semanticMetadata`의 **최상위 키 `imageId`**(UUID 문자열, 없으면 키 없음)에 둔다. 출처·독자 공개 회차와 같은 자리다. 초안 저장이 그대로 보존하고, 확정 버전은 카드 `semanticMetadata`를 복사하므로 따로 처리하지 않는다.
+- 카드가 어떤 이미지를 쓰는지는 DB 칼럼을 더하지 않고 카드 `semanticMetadata`의 **최상위 키 `imageId`**(UUID 문자열, 없으면 키 없음. `null`도 이미지 없음으로 받는다)에 둔다. 출처·독자 공개 회차와 같은 자리다. 초안 저장이 그대로 보존하고, 확정 버전은 카드 `semanticMetadata`를 복사하므로 따로 처리하지 않는다.
 - 초안 저장(`PUT /{id}/draft`)은 카드의 `imageId`가 **같은 세계관의 `setting_card_image` 행**일 때만 받는다. 형식 오류·없는 id·다른 세계관 id는 422 `WORLD_INPUT_INVALID`이고 저장하지 않는다(이전 초안 유지).
 - ponytail: 참조를 지워도(이미지 빼기) 바이트와 행은 지우지 않는다. 확정 버전이 아직 가리킬 수 있기 때문이다. 어떤 버전도 가리키지 않는 이미지 정리(GC)는 없다(한계).
 
@@ -396,7 +399,7 @@ nginx `location ^~ /api/v1/world-studios/`의 `client_max_body_size 6m`이 이�
 - 연결(DEC-46)은 작품당 세계관 하나·세계관당 작품 하나뿐이고 연결 이력은 남기지 않는다. 연결·해제는 소유자만 하고 운영자용 경로는 없다.
 - 독자 설정 위키는 **확정 버전의 카드**와 **현재** 관계를 합쳐 보인다(위 공개 상세와 같은 한계). 초안에서 바꾼 카드 내용·공개 범위·독자 공개 회차는 확정 버전을 남겨야 공개 세계관과 독자 설정 위키에 반영된다. 독자 공개에는 시작 회차만 있고 끝 회차·회차별 내용 차이는 없다.
 - 독자 설정 위키는 비로그인 공개 API 하나뿐이라 공개가 아닌 작품은 소유자 본인이 읽어도 빈 응답이다(소유자용 미리보기 API 없음).
-- `revealFromEpisode`·`importedFrom`은 저장할 때 형식을 검사하지 않는다. 가져오기 출처는 클라이언트가 적으므로 서버가 위조를 막지 않는다. 화면은 독자 공개 회차가 1 이상의 정수인지만 검사하고 발행된 회차를 넘는지는 검사하지 않는다(서버가 발행된 회차 안에서만 보인다).
+- `revealFromEpisode`·`importedFrom`은 저장할 때 형식만 검사한다(#541). 가져오기 출처는 클라이언트가 적으므로 서버가 값의 사실 여부(위조)는 막지 않는다. 화면은 독자 공개 회차가 1 이상의 정수인지만 검사하고 발행된 회차를 넘는지는 검사하지 않는다(서버가 발행된 회차 안에서만 보인다).
 - 설정 가져오기: 가져온 관계의 방향·종류·부정 여부는 알 수 없다(공개 응답이 `label`만 준다). 설정 영역·자유 분류도 공개 응답에 없어 기본값으로 들어온다. 같은 카드를 다시 가져오면 중복 카드가 생기고 이미 가져왔다는 표시는 없다. 가져올 세계관 목록은 화면이 읽는 최근 공개분까지이고 검색은 없다. 공개 화면의 바로 추가는 대상 세계관의 최신 초안에 덧붙여 저장하므로, 그 세계관을 다른 탭에서 편집 중이면 그쪽의 다음 저장이 충돌한다. 원본 쪽에서 '가져간 세계관 수'를 세지 않는다.
 - 본문 링크의 글자는 대상이 숨어 있어도 그대로 남는다(서버는 id만 지운다). 이른 카드의 글에 늦은 카드의 이름이 나오는 것은 공개 순서 규칙이 경고할 뿐 막지 않고, 카드 본문·관계 `label`·`body` 같은 자유 글에 직접 쓴 비밀 이름은 서버가 알 수 없다(DEC-53).
 - 링크로 알아보는 모양은 정규식 하나뿐이다. 다른 모양(`<card:<uuid>>`·`[글자](<card:<uuid>>)`·제목이 붙은 링크·글자에 대괄호나 줄바꿈이 든 링크)은 파서가 링크로 읽어도 링크가 아니라 글자이고 화면도 링크로 그리지 않는다. 다만 그 안에 남은 `card:<uuid>`(대소문자 무시)는 대상이 응답에 실리는 보이는 카드가 아니면 서버가 지워 숨은 카드의 id가 응답 어디에도 남지 않게 한다. 링크 하나는 약 45자를 쓰며 카드 본문 3,000자 한도에 포함된다.

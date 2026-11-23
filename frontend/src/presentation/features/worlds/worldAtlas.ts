@@ -1,5 +1,5 @@
 import { lineageOrigins, type PublicWorldSummary } from '../../../domain/entities/publicWorld'
-import { CARD_COLORS, CARD_KIND } from '../../shared/worldBoard'
+import { CARD_COLORS, kindOf } from '../../shared/worldBoard'
 import { ALL_CHIP, genreColor, genreKey, genreLabel } from '../../shared/worldGenres'
 
 /*
@@ -81,7 +81,7 @@ export function buildWorldAtlas(worlds: readonly PublicWorldSummary[]): WorldAtl
     worldNodes.push({ kind: 'world', id: worldNodeId(w.id), name: w.name, genre, worldId: w.id, color: genreColor(genreKey(w)), val: w.cardCount + WORLD_USE_WEIGHT * (used.get(w.id) ?? 0) })
     links.push({ source: genreNodeId(genre), target: worldNodeId(w.id), kind: 'genre' })
     for (const c of w.cards ?? []) {
-      cardNodes.push({ kind: 'card', id: cardNodeId(w.id, c.id), name: c.title, genre, worldId: w.id, cardId: c.id, color: CARD_COLORS[CARD_KIND[c.cardType]], val: 1 })
+      cardNodes.push({ kind: 'card', id: cardNodeId(w.id, c.id), name: c.title, genre, worldId: w.id, cardId: c.id, color: CARD_COLORS[kindOf(c.cardType)], val: 1 })
       links.push({ source: worldNodeId(w.id), target: cardNodeId(w.id, c.id), kind: 'card' })
     }
     const origins = lineageOrigins(w, known)

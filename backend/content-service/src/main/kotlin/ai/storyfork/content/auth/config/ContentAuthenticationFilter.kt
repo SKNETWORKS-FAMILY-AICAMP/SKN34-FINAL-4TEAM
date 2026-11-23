@@ -9,11 +9,23 @@ import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.filter.OncePerRequestFilter
 import tools.jackson.databind.json.JsonMapper
 
 /** Core가 운영자(`operator=true`)로 확인한 회원의 인증 객체에만 담기는 authority다. */
 const val OPERATOR_AUTHORITY = "ROLE_OPERATOR"
+
+/**
+ * 처리 중 요청이 운영자의 조회(GET·HEAD)면 true다. 운영자는 소유권 없이 모든 작품을 열람만 하고,
+ * 저장·발행·삭제·AI 요청 같은 쓰기는 소유자만 한다(사용자 결정 2026-11-23). 운영 조치는 소유자 확인과 별도 경로다.
+ */
+fun operatorReading(): Boolean {
+    val method = (RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes)?.request?.method
+    return (method == "GET" || method == "HEAD") &&
+        SecurityContextHolder.getContext().authentication?.authorities?.any { it.authority == OPERATOR_AUTHORITY } == true
+}
 
 /** 사용자 ID 헤더/쿠키는 신뢰하지 않고 Core가 확인한 UUID만 Principal로 만든다. */
 class ContentAuthenticationFilter(private val service: CoreAuthVerificationService, private val mapper: JsonMapper) : OncePerRequestFilter() {

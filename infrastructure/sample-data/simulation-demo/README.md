@@ -52,6 +52,7 @@
 | 규칙 | 나레이터 — 별빛 서약의 탑 | `narrator` | `a59ba526-27f1-5484-bd22-acffaa56547c` | 비공개 | 없음 |
 
 - 인물 카드: 본문이 `IDENTITY.md`, `semanticMetadata.characterDocs`가 `soul`·`goal`·`episodes`다(DEC-47, 문서마다 3,000자 이하). 옛 `MEMORY.md`는 없어져 `episodes["0"]`(00회차, 이야기 시작 전부터 아는 것)이 되었고, `goal`(`GOAL.md`)은 그 인물의 기존 본문·SOUL·00회차에 이미 있는 내용만으로 쓴 1~3줄 목표다(새 사실·비밀 문구 없음, 모델 호출·독립 검수를 거치지 않은 직접 작성). 말투는 리안 해요체, 카엘 하오체, 세라핀 반말, 오르벤 낮은 반말로 갈린다.
+- 시드의 카드·관계 메타데이터는 [초안 허용 키 계약](../../../docs/design/worldstudio-independent-schema.md#초안-semanticmetadata-계약-541)을 따른다.
 - 누구나 아는 세계 설정(장소·규칙·별빛 수정)만 `visibility`가 공개다(나레이터 카드는 문체 지침이라 규칙이어도 비공개다). 인물·사건·서한은 비공개이고, 지식은 **관계로만** 퍼진다. 독자·공개 세계관에 보이는 회차는 `visibility`가 아니라 `revealFromEpisode`가 정한다(DEC-53, `visibility`는 호환 값).
 - 설계 규칙 여섯(데이터를 고칠 때도 지킨다):
   1. 사건·서한 카드 본문은 연결된 모든 인물이 아는 공통분모만 쓴다. 인물마다 다른 앎은 그 인물의 관계 본문과 `memory/NN회차.md`에 둔다.

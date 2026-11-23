@@ -47,6 +47,27 @@ OperationsWorkList = { items: OperationsWork[] }
 | `PUT /api/v1/operations/works/{id}/restriction` | 운영 제한. 기존 `ContentWork = { workId, ownerId, title, restricted }` 반환, 없는 작품 404 |
 | `DELETE /api/v1/operations/works/{id}/restriction` | 제한 해제. 응답 동일 |
 
+## 콘텐츠 운영 관리 확장 (회차·세계관·카드 카테고리, 2026-11-23)
+
+운영자가 작품 아래 회차, 공개 세계관(DEC-45), 세계관 카드 카테고리도 운영 화면에서 다룬다(사용자 결정). 운영 권한 키는 새로 만들지 않고 모두 `works`다.
+운영자는 모든 작품을 **열람만** 하고 내용은 고치지 못한다(Content `operatorReading()`). 운영 조치는 운영 서비스 → Content 내부 API(서비스 토큰) 구조 그대로다.
+
+| 운영 공개 API (`/api/v1/operations`, 회원 Bearer, `works`) | 동작 |
+|---|---|
+| `GET /works/{id}/episodes` | Content 내부 `GET /internal/v1/works/{workId}/episodes`의 **맨 배열**: `[{number,title,publicationStatus,restricted,inherited}]`(본문 없음, 번호순). 없는·삭제 작품 404 |
+| `PUT`·`DELETE /works/{id}/episodes/{number}/restriction` | 그 회차 한 원소를 그대로. 상속 회차(Fork가 물려받은 회차)는 409 `EPISODE_INHERITED`(원작 회차를 제한해야 함), 없는 회차 404 |
+| `GET /world-studios` | Content 내부 `GET /internal/v1/world-studios`의 맨 배열(`worldId·ownerId·name·visibility·published·restricted·genre·linkedWorkId·createdAt`)에 `ownerName`(Core 닉네임 일괄 조회 `POST /internal/v1/members/nicknames`의 최신 닉네임, 목록에 없으면 null)만 더함 |
+| `PUT`·`DELETE /world-studios/{id}/restriction` | 그 세계관 한 원소를 그대로(`ownerName` 없음). 없는·지운 세계관 404 |
+| `GET`·`POST /card-categories`, `PATCH /card-categories/{code}`, `PUT /card-categories/order` | Content 내부 카드 카테고리 API 그대로(맨 배열, 숨김 포함·`position` 순, 삭제 없음). 추가 `{name, icon?}`는 201, 이름 중복 409 `CARD_CATEGORY_NAME_TAKEN`, 변경 `{name?, icon?, active?}`(`icon: ""`은 아이콘을 지움), 순서 `{codes}`는 전체 코드를 한 번씩(아니면 422) |
+
+- 오류: Content의 400/404/409/422는 상태와 안내 문구·`code`를 그대로 전하고 그 밖의 실패는 502 `UPSTREAM_FAILED`다(장르와 같은 `keepMessage`). 권한 확인이 Content·Core 호출보다 먼저이고 서비스 트랜잭션은 없다. `ownerName`을 위한 Core 닉네임 조회가 실패하면 이름을 비운 채 내보내지 않고 502다.
+- 회차 제한(Content 규칙): 독자 열람·조회수 기록·댓글은 404, 작가 집필은 유지, 그 회차를 상속한 Fork의 상속 회차도 숨기고 제한된 회차를 기준으로 새 Fork를 만들면 409다.
+- 세계관 제한(Content 규칙): 공개 세계관 경로(목록·상세·카드 검색·이미지·가져오기)만 404이고 연결된 소설 위키·Fork 이어받기는 건드리지 않는다(작품은 작품 제한으로).
+- 카드 카테고리: 기본 8종(`character`·`location`·`organization`·`ability`·`object`·`rule`·`event`·`other`)을 시드하고 운영자는 추가·이름·아이콘·순서·숨김만 한다(삭제 없음).
+- 활동 기록(조치가 성공한 뒤): `episode.restrict`·`episode.unrestrict`(`episode` · `<작품 ID>:<회차 번호>` · 회차 제목), `world.restrict`·`world.unrestrict`(`world` · 세계관 ID · 세계관 이름), `card_category.create`·`card_category.update`(`card_category` · 코드 · 이름), `card_category.reorder`(`card_category` · `order` · 새 순서의 코드 목록). [활동 기록 계약](operations-admin-activity-contract.md)의 기존 대문자 값과 달리 소문자·점 표기다.
+- 신고 대상도 작품·회차·세계관으로 넓혔다([신고 계약](operations-member-report-contract.md#신고-대상-작품회차세계관)).
+- 실행 연결: 운영 `MemberSecurityConfig` 경로 목록에 `world-studios`·`card-categories`를 더한다(`works` 하위는 이미 있음). nginx·Vite에서도 두 경로(정확 일치·하위)를 운영 서비스로 열어야 한다.
+
 ## 실행 연결
 
 - 운영 `MemberSecurityConfig` 경로 목록에 `works`를 추가한다.

@@ -11,6 +11,7 @@ import ai.storyfork.content.world.service.dto.WorldCoverImage
 import ai.storyfork.content.world.service.dto.WorldCoverResponse
 import ai.storyfork.content.world.studio.repository.StudioWorldRepository
 import ai.storyfork.content.world.studio.repository.ExpandedSeedProgressRepository
+import ai.storyfork.content.world.studio.repository.lockAccessible
 import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -30,7 +31,7 @@ class WorldCoverService(
     private val log = LoggerFactory.getLogger(javaClass)
     private val transaction = TransactionTemplate(manager)
     private fun <T : Any> tx(action: () -> T): T = transaction.execute { action() }
-    private fun owned(id: UUID, subject: UUID) = worlds.lockOwned(id, subject) ?: throw WorldNotFound()
+    private fun owned(id: UUID, subject: UUID) = worlds.lockAccessible(id, subject) ?: throw WorldNotFound()
     private fun guardExpansion(id:UUID) { if(expandedSeeds.findById(id).orElse(null)?.completed==false) throw WorldConflict() }
 
     /**
@@ -67,7 +68,7 @@ class WorldCoverService(
 
     /** 소유자에게 저장된 표지를 돌려준다. 남의·지운 세계관은 404(WorldNotFound), 표지가 없으면 404(ContentFailure)다. */
     fun read(worldId: UUID, subject: UUID): WorldCoverImage {
-        val world = tx { worlds.findById(worldId).orElse(null)?.takeIf { it.ownerSubject == subject && it.deletedAt == null } ?: throw WorldNotFound() }
+        val world = tx { worlds.findById(worldId).orElse(null)?.takeIf { (it.ownerSubject == subject || ai.storyfork.content.auth.config.operatorReading()) && it.deletedAt == null } ?: throw WorldNotFound() }
         val key = world.coverObjectKey
         val type = world.coverContentType
         if (key == null || type == null) throw ContentFailure(404, "세계관 표지를 찾을 수 없습니다.")

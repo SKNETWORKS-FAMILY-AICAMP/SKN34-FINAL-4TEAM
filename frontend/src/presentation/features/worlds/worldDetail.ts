@@ -3,7 +3,7 @@ import type { PublicWorld, PublicWorldRelationship } from '../../../domain/entit
 import { cardTypes, type CardType } from '../../../domain/entities/studioCards'
 import { plainCardText } from '../../shared/cardSections'
 import { relationName, showsParagraph } from '../../shared/relationParagraph'
-import { CARD_COLORS, CARD_KIND, KINDS, boardRows, type BoardEntry, type BoardRow, type CardKind } from '../../shared/worldBoard'
+import { CARD_COLORS, kindOf, KINDS, boardRows, type BoardEntry, type BoardRow, type CardKind } from '../../shared/worldBoard'
 import { genreColor, genreKey } from '../../shared/worldGenres'
 
 /*
@@ -101,7 +101,7 @@ export function graphHighlight(graph: DetailGraph, nodeId?: string) {
 
 const cardNode = (world: PublicWorld, i: number): DetailNode => {
   const { id, title, cardType } = world.cards[i]
-  const kind = CARD_KIND[cardType]
+  const kind = kindOf(cardType)
   return { id: `card:${id}`, name: title, kind, color: CARD_COLORS[kind], to: cardPath(world.id, id) }
 }
 const pairLink = (world: PublicWorld, { id, a, b, label, category, direction, polarity }: CardPair): DetailLink => ({ id, source: `card:${world.cards[a].id}`, target: `card:${world.cards[b].id}`, kind: 'link', label, ...(category !== undefined && { category }), ...(direction !== undefined && { direction }), ...(polarity !== undefined && { polarity }) })
@@ -135,7 +135,8 @@ export const LARGE_GRAPH = 300
 /** 300개를 넘는 그래프는 확대할 때만 일반 라벨을 그려 캔버스 그리기 비용을 낮춘다. */
 export const showsDetailLabel = (node: DetailNode, total: number, hover?: string, scale = 1) => node.kind === '세계관' || node.id === hover || (total > LARGE_GRAPH ? scale >= 1.4 : total <= LABEL_ALL_MAX)
 
-export const typeLabel = (type: CardType) => cardTypes.find((t) => t.id === type)?.label ?? type
+/** 카드 유형 이름: 기본 8종은 이름이고, 운영자가 추가한 카테고리는 이 화면에 이름이 없어 '기타'로 보인다. */
+export const typeLabel = (type: CardType) => cardTypes.find((t) => t.id === type)?.label ?? '기타'
 
 /**
  * 다른 카드를 가리키는 값. `type`은 카드 자신의 유형 이름(능력·사물 …), `kind`는 묶음(색·범례·설정집 섹션)이고 `label`은 이어 준 관계의 관계명이다(「동일 인물」은 늘 '동일 인물').
@@ -144,11 +145,11 @@ export const typeLabel = (type: CardType) => cardTypes.find((t) => t.id === type
 export type CardRef = { cardId: string; title: string; type: string; kind: CardKind; label?: string; relationId?: string } & RelationData
 const cardRef = (world: PublicWorld, i: number, label?: string): CardRef => {
   const { id, title, cardType } = world.cards[i]
-  return { cardId: id, title, type: typeLabel(cardType), kind: CARD_KIND[cardType], ...(label ? { label } : {}) }
+  return { cardId: id, title, type: typeLabel(cardType), kind: kindOf(cardType), ...(label ? { label } : {}) }
 }
 
 /** 설정집 순서: 유형 묶음(인물·장소·조직·규칙·사건·기타) 순, 같은 묶음 안에서는 카드 순서. 값은 `world.cards`의 위치다. */
-const bookOrder = (world: PublicWorld) => KINDS.flatMap((kind) => world.cards.flatMap((c, i) => (CARD_KIND[c.cardType] === kind ? [i] : [])))
+const bookOrder = (world: PublicWorld) => KINDS.flatMap((kind) => world.cards.flatMap((c, i) => (kindOf(c.cardType) === kind ? [i] : [])))
 
 export type CardPage = {
   /** `text`는 마크다운 원문 그대로다(화면이 `#`·`##`·`###` 제목 문단으로 나눠 그린다). `imageId`는 대표 이미지가 있을 때만 있다. */
@@ -172,7 +173,7 @@ export type CardPage = {
  */
 function pageAt(world: PublicWorld, me: number): CardPage {
   const order = bookOrder(world)
-  const kind = CARD_KIND[world.cards[me].cardType]
+  const kind = kindOf(world.cards[me].cardType)
   const rank = new Map(order.map((index, k) => [index, k]))
   const positions = new Map(world.cards.map((card, index) => [card.id, index]))
   const touching = world.relationships.flatMap((relation) => {
@@ -195,7 +196,7 @@ function pageAt(world: PublicWorld, me: number): CardPage {
     affiliations: affiliated.map(ref),
     relations: touching.filter(({ relation, sends }) => showsParagraph(relation.direction, sends)).map(ref),
     backlinks: [...touching.filter(({ relation, sends }) => !showsParagraph(relation.direction, sends)).map(ref), ...linkedBy.map((i) => cardRef(world, i, '본문 링크'))],
-    sameType: order.filter((i) => i !== me && CARD_KIND[world.cards[i].cardType] === kind).map((i) => cardRef(world, i)),
+    sameType: order.filter((i) => i !== me && kindOf(world.cards[i].cardType) === kind).map((i) => cardRef(world, i)),
     prev: at > 0 ? cardRef(world, order[at - 1]) : undefined,
     next: at < order.length - 1 ? cardRef(world, order[at + 1]) : undefined,
   }
@@ -225,7 +226,7 @@ function bookEntries(world: PublicWorld): BoardEntry[] {
   for (const [, to] of linkPairs(world, pairs)) connections[to]++ // 본문 링크: 가리킨 카드의 '이 설정을 가리키는 관계'라 그 카드에만 센다
   return bookOrder(world).map((i) => {
     const { id, title, text, cardType } = world.cards[i]
-    const kind = CARD_KIND[cardType]
+    const kind = kindOf(cardType)
     return { cardId: id, title, text: plainCardText(text), type: typeLabel(cardType), kind, connections: connections[i], badge: kind === '인물' ? relations[i] : connections[i] }
   })
 }
@@ -249,6 +250,6 @@ export function overviewCards(world: PublicWorld, limit = 6): OverviewCard[] {
 }
 
 /** 카드가 있는 유형 묶음과 장수(인물·장소·조직·규칙·사건·기타 순). 설정집의 분류 메뉴와 그래프 범례가 함께 쓴다. */
-export const kindCounts = (world: PublicWorld) => KINDS.map((kind) => ({ kind, count: world.cards.filter((card) => CARD_KIND[card.cardType] === kind).length })).filter(({ count }) => count > 0)
+export const kindCounts = (world: PublicWorld) => KINDS.map((kind) => ({ kind, count: world.cards.filter((card) => kindOf(card.cardType) === kind).length })).filter(({ count }) => count > 0)
 /** `?type=` 값. 그 세계관에 카드가 있는 유형 이름이면 그 유형이고, 없거나 모르는 값이면 undefined(전체)다. */
 export const parseBookKind = (value: string | null, kinds: readonly CardKind[]) => kinds.find((k) => k === value)
