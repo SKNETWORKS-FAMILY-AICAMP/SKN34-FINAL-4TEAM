@@ -12,12 +12,38 @@
 .stage p { margin: 0; }
 
 /* 시작 양식 */
-.stage-start { display: grid; gap: 14px; align-content: start; max-width: 640px; }
-.stage-start h3 { margin: 0; font-size: 16px; font-weight: 800; }
-.stage-form { display: grid; gap: 14px; }
-.stage-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
-.stage-fieldset legend { margin-bottom: 6px; padding: 0; font-size: 13px; font-weight: 700; }
-.stage-radio { display: flex; align-items: center; gap: 8px; min-height: 36px; font-size: 14px; }
+.stage-start { display: grid; gap: 16px; align-content: start; max-width: 640px; }
+.stage-start h3 { margin: 0; font-size: 16px; font-weight: 800; line-height: 1.4; }
+/* 양식은 묶음(방식 → 전제·비트 → 인물 → 시작) 사이를 넓게, 묶음 안은 좁게 둔다. */
+.stage-form { display: grid; gap: 24px; }
+.stage-fieldset { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.stage-fieldset legend { margin-bottom: 8px; padding: 0; font-size: 13px; font-weight: 700; }
+/* 방식: 고르는 두 칸. 고른 칸은 강조색 테두리와 옅은 면으로 구분한다(라디오는 그대로 둬 키보드·스크린리더 동작이 같다). */
+.stage-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.stage-mode { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid var(--tline); border-radius: 12px; background: var(--tcard); cursor: pointer; transition: border-color .15s, background-color .15s; }
+.stage-mode:hover { border-color: color-mix(in srgb, var(--tacc) 40%, var(--tline)); }
+.stage-mode:has(input:checked) { border-color: var(--tacc); background: color-mix(in srgb, var(--tacc) 7%, var(--tcard)); }
+.stage-mode:has(input:focus-visible) { outline: 2px solid var(--tacc); outline-offset: 2px; }
+.stage-mode input { flex: none; margin: 3px 0 0; accent-color: var(--tacc); }
+.stage-mode input:focus-visible { outline: none; }
+.stage-mode span { display: grid; gap: 2px; }
+.stage-mode b { font-size: 14px; font-weight: 700; }
+.stage-mode small { color: var(--tsub); font-size: 12.5px; line-height: 1.5; }
+/* 직접 적는 비트: 번호 + 한 칸 + 지우기. Enter는 아래에 새 칸을 연다. */
+.stage-beat-inputs { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.stage-beat-inputs li { display: flex; align-items: flex-start; gap: 8px; }
+.stage-beat-no { flex: none; width: 24px; height: 24px; margin-top: 7px; border-radius: 999px; background: color-mix(in srgb, var(--tacc) 12%, var(--tbg)); color: var(--pri-ink, var(--tacc)); font-size: 12px; font-weight: 800; line-height: 24px; text-align: center; font-variant-numeric: tabular-nums; }
+.stage-beat-inputs textarea { flex: 1 1 auto; min-width: 0; min-height: 38px; padding: 8px 12px; border: 1px solid var(--line3); border-radius: 10px; background: var(--tcard); color: var(--tfg); font: inherit; font-size: 14px; line-height: 1.5; resize: none; field-sizing: content; overflow-wrap: anywhere; }
+/* ponytail: field-sizing을 모르는 브라우저(Safari·Firefox 일부)는 한 줄 높이에서 안쪽 스크롤로 긴 비트를 보인다. 모두 늘리려면 입력마다 scrollHeight로 높이를 맞춘다. */
+.stage-beat-inputs textarea:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }
+.stage-beat-remove { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 32px; height: 32px; margin-top: 3px; border: 0; border-radius: 999px; background: none; color: var(--tsub); }
+.stage-beat-remove:hover:not(:disabled) { background: var(--muted-bg); color: var(--danger); }
+.stage-beat-remove:disabled { cursor: not-allowed; opacity: .35; }
+.stage-beat-remove:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }
+.stage-beat-add { display: inline-flex; align-items: center; gap: 4px; justify-self: start; margin-left: 32px; }
+/* 시작: 선택 수와 주 버튼을 한 줄에 */
+.stage-submit .stage-reason { font-size: inherit; }
+.stage-submit { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding-top: 16px; border-top: 1px solid var(--tline); }
 .stage-plan { display: grid; gap: 6px; }
 .stage-plan p { font-size: 13.5px; }
 .stage-plan ol { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.6; overflow-wrap: anywhere; }
@@ -94,6 +120,11 @@
   .stage-actions button { min-width: 44px; min-height: 44px; }
   .stage-checks summary { padding-block: 13px; }
   .stage-note-form input { height: 44px; }
-  .stage-radio, .stage-people label { min-height: 44px; }
+  .stage-people label { min-height: 44px; }
+  .stage-mode { min-height: 44px; }
+  .stage-beat-inputs textarea { min-height: 44px; padding-block: 11px; }
+  .stage-beat-no { margin-top: 10px; }
+  .stage-beat-remove { width: 44px; height: 44px; margin-top: 0; }
 }
-@media (pointer: coarse) { .stage-edit textarea, .stage-note-form input { font-size: 16px; } }
+@media (max-width: 600px) { .stage-people { max-height: none; overflow: visible; } }
+@media (pointer: coarse) { .stage-edit textarea, .stage-note-form input, .stage-beat-inputs textarea { font-size: 16px; } }

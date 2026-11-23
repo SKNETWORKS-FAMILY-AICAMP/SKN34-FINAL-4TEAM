@@ -160,6 +160,15 @@ def test_questions_use_aliases_and_the_allowed_turns_only_so_no_character_id_lea
     assert KAEL not in json.dumps(body) and LINA not in json.dumps(body)
 
 
+def test_a_single_character_is_not_asked_as_speaker_because_choices_need_two(monkeypatch):
+    # 제공사는 선택지가 1개인 질문을 400으로 거절한다(#682): 후보가 한 명이면 묻지 않고 그 인물로 정한다.
+    sent = wired(monkeypatch, reply(turn='speech', pov='limited:c1'))
+    result = asyncio.run(director.decide(STATE, ('narration', 'speech'), CAST[:1], None))
+    body = sent[0][2]
+    assert [q['name'] for q in body['questions']] == ['turn', 'pov']
+    assert result == Decision(turn='speech', speaker=KAEL, pov=f'limited:{KAEL}')
+
+
 def test_a_turn_that_is_already_fixed_is_not_asked_but_told(monkeypatch):
     result, body = decide(monkeypatch, {'speaker': 'c1', 'pov': 'omniscient'}, allowed=('end',))
     assert result.turn == 'end' and [q['name'] for q in body['questions']] == ['speaker', 'pov']
