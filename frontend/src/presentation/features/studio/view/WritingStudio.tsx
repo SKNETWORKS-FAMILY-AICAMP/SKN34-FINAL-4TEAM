@@ -39,7 +39,7 @@ import { SimulationStage } from '../../../shared/chat/SimulationStage'
 import { useSimulationStageViewModel } from '../../../shared/chat/useSimulationStageViewModel'
 import { useWritingChatViewModel } from '../../../shared/chat/useWritingChatViewModel'
 import { WritingChat } from '../../../shared/chat/WritingChat'
-import { chatBasis, chatPage } from '../../../../domain/entities/writingChat'
+import { chatBasis, chatPage, selectionNote } from '../../../../domain/entities/writingChat'
 import { VersionGraph } from './VersionGraph'
 import { LazyManuscriptEditor } from './LazyManuscriptEditor'
 import type { ManuscriptEditorHandle } from './ManuscriptEditor'
@@ -147,6 +147,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   // 새 메시지마다 작가가 지금 보는 화면을 싣는다(#554): 열린 회차, 편집기에서 고른 글, 저장하지 않은 원고(dirty일 때만, 10,000자까지).
   const getPage=()=>chatPage({path:pathname+search,kind:'studio',episode:active?.number,selection:editor.current?.selectedText(),unsaved:vm.dirty?{title:vm.draft.title,body:vm.draft.body}:undefined})
   // 승인한 계획 저장(계획 수정·Content 계획 도구)은 계획 패널과 시작 양식이 다시 읽고, 회차 초안은 다시 읽지 않는다(#637).
+  // 편집기 선택은 초점을 잃어도 실리므로 보내기 전에 채팅에 보인다(#636). 문구만 두어 글자 수가 바뀔 때만 다시 그린다.
+  const [sendNote,setSendNote]=useState('')
   const chat=useWritingChatViewModel(id,chatBasis(vm.episodes,active?.number),vm.aiApplied,undefined,getPage,plans.reloadAfterAi)
   const stage=useSimulationStageViewModel(chat)
   const [setupVersion,setSetupVersion]=useState(0)
@@ -287,7 +289,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
           {active.inherited
             ?<div className="writing-body writing-readonly" role="textbox" aria-multiline="true" aria-readonly="true" aria-label="원고 본문" tabIndex={0}><ManuscriptBody workId={id} number={active.number} body={vm.draft.body}/></div>
             :<Suspense fallback={<div className="writing-body writing-loading" aria-live="polite">편집기를 불러오고 있어요.</div>}>
-              <LazyManuscriptEditor ref={editor} value={vm.draft.body} editable={!vm.editingLocked} busy={vm.busy} workId={id} number={active.number} onChange={body=>vm.edit({body})} onImage={(file,start,end)=>vm.addImage(file,start,end)}/>
+              <LazyManuscriptEditor ref={editor} value={vm.draft.body} editable={!vm.editingLocked} busy={vm.busy} workId={id} number={active.number} onChange={body=>vm.edit({body})} onImage={(file,start,end)=>vm.addImage(file,start,end)} onSelectionChange={text=>setSendNote(selectionNote(text))}/>
             </Suspense>}
           <footer className="writing-foot">
             <p className="small muted">{bodyLength(vm.draft.body).toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자 (공백 포함){!active.inherited&&` · ${publishHint(vm.draft.body)}`} · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
@@ -305,7 +307,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     {/* 집필실 안의 집필 AI 채팅(#331). 인물 시뮬레이션 장면은 채팅에 상태 한 줄만 보이고 무대 열기가 무대를 연다. */}
     {chatOpen?<aside className="studio-chat writing-chat" aria-label="AI 채팅">
       <div className="studio-chat-head"><h2><span className="chat-brand" aria-hidden="true"><SparkIcon size={16} /></span>AI 채팅</h2><button ref={chatToggle} type="button" className="writing-icon-btn" aria-label="접기" title="접기" onClick={()=>setChatOpen(false)}><FoldIcon /></button></div>
-      <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={()=>openStage()}/>
+      <WritingChat workId={id} chat={chat} emptyTitle="무엇을 함께 써볼까요?" emptyText="AI의 제안은 승인하기 전까지 원고에 반영되지 않아요." suggestions={chatSuggestions} onOpenStage={()=>openStage()} sendNote={sendNote} unsaved={vm.dirty}/>
     </aside>:<button ref={chatToggle} type="button" className="studio-chat-toggle btn pri" onClick={()=>setChatOpen(true)}>AI 채팅 열기</button>}
   </>}</main>
           {settingsOpen&&active&&<Sheet sid="U13" label="회차 설정" panelClass="sheet writing-settings-sheet" onClose={()=>setSettingsOpen(false)}>

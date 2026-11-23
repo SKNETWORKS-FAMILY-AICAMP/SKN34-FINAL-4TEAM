@@ -49,7 +49,7 @@ internal class WritingAiController(private val service: WritingAiService) {
     fun delete(@PathVariable id: String, @PathVariable threadId: String, principal: Principal) =
         service.delete(id, principal.name, threadId)
 
-    /** 새 턴 또는 resume을 AI 오케스트레이션 SSE(plan·started·step·waiting·done·error)로 그대로 중계한다. */
+    /** 새 턴 또는 resume을 AI 오케스트레이션 SSE(plan·started·answer·step·waiting·done·error)로 그대로 중계한다. */
     @PostMapping("/api/v1/works/{id}/chat/sessions/{threadId}/messages")
     fun send(@PathVariable id: String, @PathVariable threadId: String, principal: Principal,
              @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String, @Valid @RequestBody request: WritingAiRequest,

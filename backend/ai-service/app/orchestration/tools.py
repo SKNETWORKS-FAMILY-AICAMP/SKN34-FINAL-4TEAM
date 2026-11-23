@@ -72,7 +72,10 @@ PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않�
 BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 확정 지적을 골라 주세요.'
 DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
+PATCH_READY = '수정안을 만들었고 본문은 화면의 결과 카드에 있어요.'
 NO_SAVED_PLANS = '저장된 플롯·장면 계획이 없어 고칠 수 없어요. 고칠 계획을 먼저 저장해 주세요.'
+# '지적 고르기'에서 멈춘 턴을 이어 가는 요청이 설정으로 알린다(#636). 작가의 답(번호·취소)은 그 대기만 받는다. __로 시작해 체크포인트 metadata에 남지 않는다
+RESUME_FIX = '__resume_fix'
 PLAN_CANDIDATES = 5  # 되묻기에 보이는 후보 계획 제목 수
 # 판정 기능 → 메인에 노출할 도구 이름. 판정 기능마다 도구가 있어 미구현으로 끝내는 기능이 없다.
 TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world': 'ask_world', 'writing_editing': 'ask_writing',
@@ -140,8 +143,8 @@ def _writing_summary(r: dict) -> dict:
         return {'kind': 'plan', 'plans': [p['title'] for p in r['plans']], 'notes': r['notes'], 'gaps': r['gaps']}
     if 'planId' in r:  # 계획 수정안: 어느 계획인지만 알리고 변경 전·후 본문은 넣지 않는다(화면의 승인 카드가 보여 준다)
         return {'kind': 'revise_plan', 'plan': r['before']['title']}
-    # 수정안은 고친 구절(before)만 알려 어느 지적을 고쳤는지 말하게 한다. 고친 문장(after)과 새 원고 본문은 넣지 않는다.
-    return {'kind': 'patch', 'selection': r['before']} if 'after' in r else {'kind': 'draft', 'characters': len(r['text']), 'gaps': r['gaps']}
+    # 수정안은 고친 구절(before)과 만들어졌다는 사실만 알린다(사실이 없으면 본문 없음을 실패로 읽는다). 고친 문장(after)과 새 원고 본문은 넣지 않는다.
+    return {'kind': 'patch', 'selection': r['before'], 'proposal': PATCH_READY} if 'after' in r else {'kind': 'draft', 'characters': len(r['text']), 'gaps': r['gaps']}
 
 
 def _world_summary(r: dict) -> dict:
@@ -156,7 +159,8 @@ def _world_summary(r: dict) -> dict:
 
 SUMMARIES: dict[str, Callable[[dict], dict]] = {
     'story_context': lambda r: {'claims': [{k: c[k] for k in ('text', 'kind', 'sourceIds')} for c in r['claims']], 'gaps': r['gaps']},
-    'manuscript_review': lambda r: {'revision': r['revision'], 'basis': 'writing_candidate' if r.get('candidate') else 'saved_draft',
+    # range: 선택한 글이 실린 턴에도 그 문장만 검수했다고 답하지 않게 범위를 알린다(#636).
+    'manuscript_review': lambda r: {'revision': r['revision'], 'basis': 'writing_candidate' if r.get('candidate') else 'saved_draft', 'range': '회차 본문 전체',
                                     'gaps': r['gaps'], 'findings': [
         {'fix': i, 'status': f['status'], 'category': f['category'], 'quote': f['quote'], 'reason': f['reason']}
         for i, f in enumerate(r['findings'])]},
@@ -325,7 +329,9 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
 
     revise_plan은 작가가 이미 저장한 플롯·장면 계획의 제목·내용을 고치는 수정안이다(request에 고칠 계획과 방향을 적는다). 원고 문장은 고치지 않는다.
 
-    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때만 task=patch와 fix(그 지적의 fix 번호)를 쓴다. 확정 지적이 하나면 fix를 비워도 된다.
+    선택한 글이나 원고 구간을 고칠 때는 검수가 없어도 fix 없이 task=patch를 쓴다(선택한 글은 검수를 함께 요청했어도, 확정 지적이 없어도 그렇다. 선택한 글이 없으면 작가가 구간을 고른다).
+    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때는 task=patch에 fix(그 지적의 fix 번호)를 더한다. 선택한 글이 없고 확정 지적이 하나면 fix를 비워도 된다.
+    선택한 글이 남아 있어도 요청이 검수에서 나온 문제를 고치라는 것이면 확정 지적이 있을 때만 부르고 fix를 꼭 넣는다(fix를 비우면 선택한 글을 고친다).
     """
     if task == 'revise_plan':
         return _revise_plan(runtime, request)
@@ -333,7 +339,8 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
     selected = (turn.get('page') or {}).get('selection')  # 작가가 편집기에서 고른 글(#554, Content가 확인한 화면 정보)
     reviewed = next((s for s in reversed(steps) if s['feature'] in ('manuscript_review', 'review') and s['status'] == 'completed'), None)
     given = (runtime.state.get('inputs') or {}).get('writing_editing') or {}
-    fixing = 'fix' in given or fix is not None or (task == 'patch' and 'patch' not in given and reviewed is not None)
+    fixing = ('fix' in given or fix is not None or runtime.config['configurable'].get(RESUME_FIX)
+              or (task == 'patch' and 'patch' not in given and reviewed is not None and not selected))
     if fixing:
         return _fix(runtime, reviewed, fix)
 
@@ -348,7 +355,10 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
             draft = content_mcp.read_draft(target['workId'], target['episode'])
             base = {'body': draft.body, 'revision': draft.revision}
         if 'patch' in data:
-            return writing.patch(PatchRequest.model_validate(data['patch']))
+            patch = PatchRequest.model_validate(data['patch'])
+            if target and not patch.context:  # 채팅 구간 입력(#497): Content는 구간만 검증하므로 허용 문맥은 여기서 채운다. gaps는 PatchResponse에 없어 버린다
+                patch.context, _ = _allowed_context(target, patch.instruction)
+            return writing.patch(patch)
         if task == 'patch' and selected and 'draft' not in data:  # 선택한 글이 있으면 입력 대기 없이 그 글을 수정한다. 반영 때 초안에 한 번만 있어야 한다
             return writing.patch(PatchRequest(selection=selected, instruction=request or '선택한 문장을 다듬어 주세요.'))
         if 'draft' in data:

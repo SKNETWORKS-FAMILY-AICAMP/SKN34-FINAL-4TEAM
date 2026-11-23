@@ -23,7 +23,8 @@ from app.writing.models import BeatPlan, DraftResponse, PatchResponse, PlanRespo
 
 QA = {'question': '길드 규칙은?', 'excerpts': [{'id': 'a', 'episode': 4, 'quote': '길드는 밤에 문을 닫는다.'}]}
 DRAFT = {'draft': {'episodeNumber': 11, 'plan': '선장이 항구에 도착한다.'}}
-PATCH = {'patch': {'selection': '그는 웃었다.', 'instruction': '더 차갑게'}}
+RANGE_PATCH = {'patch': {'selection': '그는 웃었다.', 'instruction': '더 차갑게'}}  # 채팅 구간 입력(#497)처럼 허용 문맥이 없는 수정 입력
+PATCH = {'patch': {**RANGE_PATCH['patch'], 'context': '허용 문맥'}}
 WEB = {'question': '조선 후기 한양에서 동래까지 며칠?'}
 PLATFORM = PlatformResult(references=[PlatformReference(worldId='w9', worldName='달빛 학원', cardId='c9', cardTitle='교칙', authorNickname='별빛', note='교칙 서술을 참고')],
                           gaps=['학원 위치는 못 찾았어요.'])
