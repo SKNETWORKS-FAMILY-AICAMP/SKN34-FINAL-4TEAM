@@ -134,7 +134,7 @@ it('AI 채팅은 보낼 수 없는 동안(데모·발행 회차 없음) 입력·
 it('AI 채팅 머리줄에 파일을 놓아도 브라우저가 그 파일을 열어 집필실을 떠나지 않는다(#700)', async () => {
   renderStudio()
   const head = (await screen.findByRole('complementary', { name: 'AI 채팅' })).querySelector('.studio-chat-head')!
-  const dataTransfer = { files: [new File(['x'], '지도.png', { type: 'image/png' })] }
+  const dataTransfer = { files: [new File(['x'], '지도.png', { type: 'image/png' })], types: ['Files'] }
   expect(fireEvent.dragOver(head, { dataTransfer })).toBe(false)
   expect(fireEvent.drop(head, { dataTransfer })).toBe(false)
 })
