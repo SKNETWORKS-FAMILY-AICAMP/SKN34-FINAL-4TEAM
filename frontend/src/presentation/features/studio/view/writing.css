@@ -196,6 +196,8 @@
   .writing-chat .chat-log { max-height: 50vh; }
   /* 문서 끝에서 하단 바가 접힌 채팅 '열기' 버튼(오른쪽 아래 16px 고정, 높이 44px) 밑에 깔리지 않게 그만큼 아래를 비운다. */
   .writing-studio .studio-workspace:has(> .studio-chat-toggle) { padding-bottom: 76px; }
+  /* 채팅을 열면 문서 끝의 전송 버튼이 맨 위로 버튼(#top, 아래 24px부터 높이 50px) 위에서 멈추게 비운다(세계관 편집 화면과 같은 값). */
+  .writing-studio .studio-workspace:has(> .writing-chat) { padding-bottom: 84px; }
 }
 @media (max-width: 600px) {
   /* 모바일: 왼쪽 묶음은 한 줄(넘치면 줄바꿈), 오른쪽 컨트롤은 다음 줄에 넓게 */

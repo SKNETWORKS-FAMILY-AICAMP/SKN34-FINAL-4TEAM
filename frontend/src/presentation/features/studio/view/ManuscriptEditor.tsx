@@ -98,6 +98,8 @@ type Props = {
   number: number
   /** 올린 이미지를 본문 [start, end)에 넣는 기존 업로드 경로(vm.addImage). 성공하면 true를 돌려주고 value가 바뀐다. */
   onImage: (file: File, start: number, end: number) => Promise<boolean>
+  /** 선택한 글(selectedText와 같은 값)이 바뀔 때. 편집기가 없어지면 빈 글이다. */
+  onSelectionChange?: (text: string) => void
   ref?: Ref<ManuscriptEditorHandle>
 }
 
@@ -116,7 +118,7 @@ export function ManuscriptEditor({ value, onChange, ...rest }: Props) {
   return <Prose key={`${rest.workId}:${rest.number}:${seen.epoch}`} {...rest} value={value} cursor={cursor} onChange={body => { setSeen(s => ({ ...s, value: body })); onChange(body) }} />
 }
 
-function Prose({ value, onChange, editable, busy = false, workId, number, onImage, cursor, ref }: Props & { cursor: RefObject<Cursor | null> }) {
+function Prose({ value, onChange, editable, busy = false, workId, number, onImage, onSelectionChange, cursor, ref }: Props & { cursor: RefObject<Cursor | null> }) {
   const host = useRef<HTMLDivElement>(null)
   const file = useRef<HTMLInputElement>(null)
   // 지금 떠 있는 편집기: ProseMirror 화면과, 커서 자리에 이미지를 올리는 함수
@@ -124,7 +126,7 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
   // 편집기로 초점을 돌려줄 일이 남았다(이미지 삽입으로 다시 만들어짐·올리기 실패). 잠긴 동안에는 초점을 받지 못하므로 풀릴 때 돌려준다.
   const wantFocus = useRef(false)
   // 편집기는 한 번만 만들므로 최신 값은 ref로 읽는다.
-  const live = useRef({ editable, onChange, onImage })
+  const live = useRef({ editable, onChange, onImage, onSelectionChange })
   // 만들 때의 글만 쓴다. 이미지 삽입으로 다시 만들어진 편집기라면 커서를 둘 줄도 이때 한 번만 넘겨받는다.
   const [mount] = useState(() => { const at = cursor.current; cursor.current = null; return { value, at } })
   // Toast 툴바 안에서 이미지 버튼을 그릴 자리
@@ -137,7 +139,7 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
   const { dark } = useTheme()
   const hint = useId()
 
-  useEffect(() => { live.current = { editable, onChange, onImage } })
+  useEffect(() => { live.current = { editable, onChange, onImage, onSelectionChange } })
 
   useEffect(() => {
     const el = host.current!
@@ -155,6 +157,7 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
       }
       return ok
     }
+    const selected = () => { const { from, to } = view.state.selection; return from === to ? '' : unwrapAll(view.state.doc.textBetween(from, to, '\n')) }
     // 화면에 붙은 이미지 위젯 자리를 원고 순서대로 다시 찾는다. 편집 상태가 바뀔 때마다 부른다(글을 고치지 않아도 ProseMirror가 줄을 다시 그리면 자리가 새로 만들어진다).
     let found: HTMLElement[] = []
     const findSlots = () => {
@@ -182,7 +185,7 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
         pmState = context.pmState
         return {
           markdownPlugins: [() => new pmState.Plugin({
-            view: (editorView) => { view = editorView; return { update: findSlots } },
+            view: (editorView) => { view = editorView; return { update: () => { findSlots(); live.current.onSelectionChange?.(selected()) } } },
             props: {
               // 직접 붙여넣기(메뉴·모바일): 글자는 서식 없이 줄·빈 줄 그대로 넣고(기본 처리는 연속 줄바꿈을 합치고 HTML을 해석한다), 글자 없이 이미지뿐이면 업로드 경로로 올린다.
               // 문서 프로그램에서 복사한 글은 글자와 함께 그 모습의 이미지도 실려 오므로 글자가 있으면 글자가 먼저다.
@@ -297,13 +300,14 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
     }
     pm.current = {
       view, add: (picked, focus) => upload(picked, view.state.selection, focus),
-      selected: () => { const { from, to } = view.state.selection; return from === to ? '' : unwrapAll(view.state.doc.textBetween(from, to, '\n')) },
+      selected,
     }
     const releaseTab = escapeWithTab(el)
     return () => {
       releaseTab()
       pm.current = null
       editor.destroy()
+      live.current.onSelectionChange?.('')
     }
   }, [mount, tool, hint, cursor])
 

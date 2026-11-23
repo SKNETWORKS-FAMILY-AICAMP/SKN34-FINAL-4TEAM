@@ -8,6 +8,7 @@ import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.context.service.dto.QaScopeRequest
 import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.fork.repository.ForkRepository
+import ai.storyfork.content.proposal.domain.WritingSelection
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.service.WorldStudioService
@@ -21,10 +22,12 @@ import ai.storyfork.content.writingai.service.dto.WritingAiSimulation
 import java.io.OutputStream
 import java.util.UUID
 import tools.jackson.databind.JsonNode
+import tools.jackson.databind.node.ObjectNode
 
 /**
  * 집필 AI 오케스트레이션의 Content 진입점. 로그인한 작가 본인으로 Q&A 조회 범위를 서명해 발급하고,
- * 대화는 작가·작품 scope에 묶는다. 새 턴과 resume 모두 토큰을 새로 발급해 저장된 토큰 만료와 무관하게 한다.
+ * 대화는 작가·작품 scope에 묶는다. 새 턴은 요청의 근거로, resume은 AI가 저장한 멈춘 턴의 근거 회차·판본(basis)으로 토큰을 새로 발급한다(#668).
+ * basis가 없는 턴(판본을 저장하기 전에 멈춤)은 토큰을 보내지 않아 AI가 그 턴의 토큰을 그대로 쓴다.
  * Writing 문맥·웹 조사 질문 같은 단계 입력은 AI가 입력 대기(waiting)로 멈춘 뒤 작가가 resume.inputs로 채운다.
  * 새 턴은 Writing 반영 대상(작품·회차)을, 모든 요청은 작가의 Bearer를 함께 보낸다. Writing 결과를 작가가 resume으로
  * 승인하면 AI가 그 Bearer로 Content MCP `episode_update_draft`를 호출하고, 인가·revision 확인은 기존 Service가 한다.
@@ -85,13 +88,18 @@ internal class WritingAiService(
     }
 
     /**
-     * 작가가 보는 화면(#554)을 사용자 권한으로 다시 확인한다. studio의 회차는 이 작품의 활성 회차여야 하고(422), world의 세계관은 이 작품에 연결된
-     * 작가 본인의 세계관이어야 하며(아니면 422·남의 것은 404) 카드는 그 세계관의 삭제되지 않은 카드여야 한다(422). 화면이 준 id는 인가 근거가 아니다.
+     * 작가가 보는 화면(#554)을 사용자 권한으로 다시 확인한다. studio의 회차는 이 작품의 활성 회차이면서 반영 회차(reflect)와 같아야 하고(422),
+     * 선택 글은 회차 없이 받지 않는다(#635). world의 세계관은 이 작품에 연결된 작가 본인의 세계관이어야 하며(아니면 422·남의 것은 404)
+     * 카드는 그 세계관의 삭제되지 않은 카드여야 한다(422). 화면이 준 id는 인가 근거가 아니다.
      */
-    private fun checkPage(workId: String, owner: String, page: WritingAiPage) {
+    private fun checkPage(workId: String, owner: String, page: WritingAiPage, reflect: Int) {
+        checkContent(page.selection == null || page.episode != null, message = "선택한 글의 회차를 알 수 없어요. 집필실에서 회차를 열고 다시 보내 주세요.")
         if (page.kind == "studio") {
             checkContent(page.worldId == null && page.cardId == null, message = "집필실 화면 정보가 올바르지 않아요.")
-            page.episode?.let { requireEpisode(workId, owner, it) }
+            page.episode?.let {
+                requireEpisode(workId, owner, it)
+                checkContent(it == reflect, message = "화면의 회차와 반영할 회차가 달라요. 회차를 다시 열고 보내 주세요.")
+            }
             return
         }
         checkContent(page.episode == null && (page.worldId != null || page.cardId == null), message = "세계관 화면 정보가 올바르지 않아요.")
@@ -125,6 +133,68 @@ internal class WritingAiService(
         }
     }
 
+    /**
+     * 이어가기 입력은 멈춘 단계([waiting]의 missingInputs)가 물은 것만 받고 아니면 422다(#677). AI는 받은 입력을 턴 전체에 합쳐 쓰기 때문이다.
+     * story_context 발췌는 서명 토큰의 근거 회차를 거치지 않으므로 물었어도 받지 않는다.
+     */
+    private fun checkAsked(waiting: JsonNode, inputs: JsonNode) {
+        val asked = waiting.path("missingInputs").values().map { it.asString() }.toSet() - "story_context"
+        checkContent(inputs.propertyNames().all { it in asked },
+            message = "이 대화가 기다리는 입력이 아니에요. 대화를 다시 불러온 뒤 보내 주세요.")
+    }
+
+    /**
+     * 채팅 구간 입력(#497): 작가가 입력 대기 카드에서 고른 `inputs.writing_editing.span`(episode·revision·start·end·instruction)을 확인해
+     * AI의 `patch`(선택 문장·앞뒤 2,000자·지시)로 바꾼다. 작품 소유는 회차 조회가 확인하고(남의 작품·없는 회차는 그 오류),
+     * 초안 revision이 다르면 409, 구간 규칙(공백 아님·5,000자 이하·서로게이트 분할 금지)은 부분 수정과 같은 [WritingSelection]이 422로 막는다.
+     * 허용 문맥은 싣지 않는다(AI가 Content MCP로 채운다). span.episode는 멈춘 턴([waiting])의 반영 회차(approvalEpisode)와 같아야 하며
+     * 다르거나 알 수 없으면 422다(#635). span 없이 보낸 patch는 422, draft는 episodeNumber가 그 반영 회차이고 context가 없을 때만 받는다(#668).
+     */
+    private fun patchInputs(workId: String, owner: String, waiting: JsonNode, inputs: JsonNode): JsonNode {
+        val writing = inputs.path("writing_editing")
+        val span = writing.path("span")
+        fun whole(node: JsonNode) = node.takeIf { it.isIntegralNumber && it.canConvertToInt() }?.asInt()
+        val reflect = whole(waiting.path("approvalEpisode"))
+        if (span.isMissingNode) {
+            checkContent(!writing.hasNonNull("patch"), message = "수정할 구간은 초안에서 골라 보내 주세요.")
+            if (writing.hasNonNull("draft")) {
+                val draft = writing.path("draft")
+                checkContent(reflect != null && whole(draft.path("episodeNumber")) == reflect && !draft.has("context"),
+                    message = "이 대화에서 쓸 회차의 장면 계획이 아니에요. 대화를 다시 불러온 뒤 보내 주세요.")
+            }
+            return inputs
+        }
+        val episode = whole(span.path("episode"))
+        val revision = whole(span.path("revision"))
+        val start = whole(span.path("start"))
+        val end = whole(span.path("end"))
+        val instruction = span.path("instruction").takeIf { it.isString }?.asString()
+        checkContent(episode != null && revision != null && start != null && end != null &&
+            instruction != null && instruction.isNotBlank() && instruction.length <= 2000, message = "수정 구간과 지시를 다시 확인해 주세요.")
+        val draft = episodes.read(workId, owner, episode!!).draft
+        checkContent(reflect == episode,
+            message = "이 대화에서 고칠 회차의 구간이 아니에요. 대화를 다시 불러온 뒤 구간을 골라 주세요.")
+        checkContent(draft.revision == revision, 409, "초안이 바뀌었어요. 수정할 구간을 다시 선택해 주세요.")
+        val selection = WritingSelection.of(draft.body, start!!, end!!)
+        val replaced = (inputs as ObjectNode).deepCopy()
+        replaced.putObject("writing_editing").putObject("patch").apply {
+            put("selection", selection.before)
+            put("instruction", instruction)
+            put("precedingText", selection.preceding)
+            put("followingText", selection.following)
+        }
+        return replaced
+    }
+
+    /**
+     * AI가 저장한 멈춘 턴(이력의 마지막)의 응답.
+     * shortcut: 값 두 개를 위해 대화 이력 전체를 읽는다. 긴 대화에서 느리면 AI에 대기 상태만 읽는 경로를 둔다.
+     */
+    private fun waitingReply(workId: String, owner: String, threadId: String): JsonNode {
+        val turns = client.history(threadId, scopeOf(workId, owner)).path("turns")
+        return turns.path(turns.size() - 1).path("reply")
+    }
+
     private fun body(form: WritingAiSimulation) = buildMap<String, Any?> {
         put("mode", form.mode)
         form.premise?.let { put("premise", it) }
@@ -143,6 +213,8 @@ internal class WritingAiService(
                 message="시뮬레이션 비트는 200자, 인물 id는 100자 이하의 글이어야 해요.")
             checkContent(form.premise == null || form.premise.isNotBlank(), message="시뮬레이션 전제는 비워 둘 수 없어요.")  // 값이 있으면 AI가 1자 이상을 요구한다
         }
+        checkContent(request.attachments.isNullOrEmpty() || request.resume == null, message = "첨부는 새 요청에만 보낼 수 있어요.")
+        checkContent(request.resume?.refresh != true || !request.resume.approved, message = "제안 다시 받기는 승인과 함께 보낼 수 없어요.")
         request.resume?.scene?.let { scene ->
             checkContent(scene.text == null || scene.text.isNotBlank(), message="고친 줄의 글은 비워 둘 수 없어요.")  // AI가 edit의 빈 글을 거절하면 502가 된다
         }
@@ -153,18 +225,27 @@ internal class WritingAiService(
             // 모델 호출 전에 권한 밖 작품·회차를 막는다. 실제 근거 조회 때 Content가 다시 확정한다.
             scopes.resolve(workId, owner, QaScopeRequest(request.episode, request.episodeVersionId))
             if (reflect != request.episode) requireEpisode(workId, owner, reflect)
-            request.page?.let { checkPage(workId, owner, it) }
+            request.page?.let { checkPage(workId, owner, it, reflect) }
         }
-        val scope = mapOf("scopeToken" to grants.issue(
-            QaScopeGrant(workId, owner, request.episode, request.episodeVersionId)))
+        // 이어가기의 episode·episodeVersionId는 작가가 지금 연 회차라 쓰지 않는다(#668).
+        val waiting = request.resume?.let { waitingReply(workId, owner, threadId) }
+        val grant = if (waiting == null) QaScopeGrant(workId, owner, request.episode, request.episodeVersionId)
+            else waiting.path("basis").takeIf { it.isObject }?.let {
+                QaScopeGrant(workId, owner, it.path("episode").asInt(), it.path("episodeVersionId").asString())
+            }
+        val scope = grant?.let { mapOf("scopeToken" to grants.issue(it)) }
         return buildMap {
             put("conversation", mapOf("threadId" to threadId, "scope" to scopeOf(workId, owner)))
             if (request.resume != null) {
                 put("resume", buildMap {
                     put("approved", request.resume.approved)
-                    put("scope", scope)
-                    request.resume.inputs?.let { put("inputs", it) }
+                    scope?.let { put("scope", it) }
+                    request.resume.inputs?.let {
+                        checkAsked(waiting!!, it)
+                        put("inputs", patchInputs(workId, owner, waiting, it))
+                    }
                     request.resume.scene?.let { put("scene", body(it)) }
+                    if (request.resume.refresh == true) put("refresh", true)
                 })
             } else {
                 put("request", request.request)
@@ -174,12 +255,14 @@ internal class WritingAiService(
                     put("workId", workId)
                     put("episode", reflect)
                     if (reflect != request.episode) put("baseEpisode", request.episode)
+                    put("episodeVersionId", request.episodeVersionId)
                     // Fork 작품 요청은 AI 추적이 가를 수 있게 알린다(DEC-55). 아니면 키를 싣지 않는다(AI 요청 DTO가 모르는 필드를 거절한다).
                     if (forks.existsById(workId)) put("fork", true)
                 })
                 request.operation?.let { put("operation", it) }
                 request.simulation?.let { put("simulation", body(it)) }
                 request.page?.let { put("page", body(it)) }
+                if (!request.attachments.isNullOrEmpty()) put("attachments", request.attachments.map { mapOf("name" to it.name, "mediaType" to it.mediaType, "data" to it.data) })
                 fromTurn?.let { put("fromTurn", it) }
             }
         }

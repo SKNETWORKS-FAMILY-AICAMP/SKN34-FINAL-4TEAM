@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import contextlib
 import json
 import time
@@ -12,7 +13,7 @@ from app.intent.prompt import CLARIFY_MESSAGE
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.orchestration import service, tools
-from app.orchestration.models import AppliedDraft, ChatTurn, OrchestrationRequest
+from app.orchestration.models import AppliedDraft, AttachmentRef, ChatTurn, OrchestrationRequest
 from app.rating.errors import RatingFailure
 from app.research.errors import ResearchFailure
 
@@ -30,7 +31,7 @@ from traced import MEMBER, attrs, bearer, status_of
 
 from app.writing.errors import WritingFailure
 
-from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, PLAN_READ, PLAN_REVISION, QA, REVIEW, SCENE_TEXT, SCOPE,
+from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, PLAN_READ, PLAN_REVISION, QA, RANGE_PATCH, REVIEW, SCENE_TEXT, SCOPE,
                     WEB, NO_WORLD, WORLD, WORLD_ENRICH, WORLD_PLANS, WORLD_REVIEW, WORLD_REVIEW_REQUEST, Step, fake_agents, fake_main, fake_scene, plan)
 
 REAL_WORLD = {name: getattr(world_review, name) for name in ('linked_request', 'review', 'linked_world', 'enrich', 'impact')}  # fake_agents가 바꾸기 전의 실제 함수
@@ -885,6 +886,58 @@ def test_overlapping_quote_is_not_one_place_and_fails_the_edit(monkeypatch):
     assert 'patch' not in names(calls)
 
 
+SELECTED_PAGE = {'path': '/studio/work?ep=3', 'kind': 'studio', 'episode': 3, 'selection': '비가 왔다.'}
+
+
+@pytest.mark.parametrize('findings', [
+    (),
+    (found('비가', status='suspected'),),
+    (found('서윤은 웃엇다.'),),
+    (found('서윤은 웃엇다.'), found('바람이 차가왔다.')),
+])
+def test_a_selected_text_patch_after_a_same_turn_review_patches_the_selection(monkeypatch, findings):
+    """같은 턴에 검수했어도 fix 없는 수정은 작가가 고른 글을 고친다. 검수 결과가 어떻든 건너뛰거나 지적 문장으로 바꾸지 않는다(#636)."""
+    calls = conditional(monkeypatch, *findings)
+    applied = writer(monkeypatch)
+    result = write_turn(str(uuid4()), request='검수하고 고른 문장도 다듬어줘', target=TARGET, inputs={'manuscript_review': REVIEW}, page=SELECTED_PAGE)
+    assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
+    assert (result.steps[1].status, result.steps[1].when, result.steps[1].task) == ('completed', 'always', 'patch')
+    assert [patch.selection for name, (patch, *_), _ in calls if name == 'patch'] == ['비가 왔다.']
+    assert applied == []
+
+
+@pytest.mark.parametrize('fix, given', [(1, {}), (None, {'writing_editing': {'fix': 1}})], ids=['main-agent', 'author'])
+def test_an_explicit_fix_patches_the_finding_even_with_a_selected_text(monkeypatch, fix, given):
+    calls = fake_agents(monkeypatch, plan('manuscript_review', Step('writing_editing', task='patch', fix=fix)))
+    monkeypatch.setattr(tools.manuscript_review, 'review', lambda data: ReviewResponse(
+        workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
+        findings=[found('서윤은 웃엇다.'), found('바람이 차가왔다.')]))
+    monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': BODY, 'revision': 4}})
+    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW, **given}, page=SELECTED_PAGE)
+    assert (result.status, result.steps[1].when) == ('waiting', 'if_issues_found')
+    assert [patch.selection for name, (patch, *_), _ in calls if name == 'patch'] == ['바람이 차가왔다.']
+
+
+@pytest.mark.parametrize('streamed', [False, True], ids=['run', 'stream'])
+@pytest.mark.parametrize('approved, status, patched', [(True, 'waiting', ['바람이 차가왔다.']), (False, 'cancelled', [])], ids=['picked', 'cancelled'])
+def test_a_turn_stopped_to_pick_a_finding_keeps_the_answer_with_a_selected_text(monkeypatch, approved, status, patched, streamed):
+    """#636 전에 선택 글이 실린 채 지적 고르기에서 멈춘 턴: 작가가 고른 번호와 취소를 선택 글 수정으로 바꾸지 않는다."""
+    thread = str(uuid4())
+    calls = conditional(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'))
+    assert write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW}).missingInputs == ['writing_editing']
+    # 지금 코드는 선택 글이 있으면 이 대기를 만들지 않으므로, 멈춘 턴의 저장된 화면에 선택 글이 있던 상태를 만든다.
+    main = service._run_main_agent
+    monkeypatch.setattr(service, '_run_main_agent', lambda state, config: main({**state, 'page': SELECTED_PAGE}, config))
+    inputs = {'writing_editing': {'fix': 1}} if approved else {}
+    answer = {'approved': approved, 'inputs': inputs}
+    if streamed:  # 화면은 stream으로 이어 간다
+        done = stream(request=None, conversation={'threadId': thread, 'scope': 'user:1/work:1'}, resume=answer)[-1][1]['status']
+    else:
+        done = write_turn(thread, resume=answer).status
+    assert done == status
+    assert [patch.selection for name, (patch, *_), _ in calls if name == 'patch'] == patched
+
+
 def test_writing_result_waits_for_author_approval_before_any_write(monkeypatch):
     fake_agents(monkeypatch, plan('writing_editing'))
     applied = writer(monkeypatch)
@@ -1728,6 +1781,36 @@ def test_approval_response_names_the_original_target_episode(monkeypatch):
 
     assert result.approvalEpisode == TARGET['episode']
 
+@pytest.mark.parametrize(('target', 'basis'), [
+    ({**TARGET, 'baseEpisode': 2, 'episodeVersionId': 'r2'}, {'episode': 2, 'episodeVersionId': 'r2'}),
+    ({**TARGET, 'episodeVersionId': 'r3'}, {'episode': 3, 'episodeVersionId': 'r3'}),
+    (TARGET, None),  # 판본을 저장하기 전에 멈춘 턴(#668)
+])
+@pytest.mark.parametrize('waits_for', ['input', 'approval', 'scene'])
+def test_every_wait_hands_back_the_basis_of_the_stopped_turn(monkeypatch, waits_for, target, basis):
+    fake_agents(monkeypatch, plan({'input': 'research', 'approval': 'writing_editing', 'scene': 'character_simulation'}[waits_for]))
+    fake_scene(monkeypatch)
+    writer(monkeypatch)
+    thread = str(uuid4())
+    waiting = write_turn(thread, request=REQUEST, scope=SCOPE, target=target,
+                         inputs={'writing_editing': PATCH} if waits_for == 'approval' else {})
+
+    assert waiting.status == 'waiting'
+    saved = conversation('history', thread, 'user:1/work:1').turns[-1].reply
+    assert waiting.model_dump()['basis'] == saved.model_dump()['basis'] == basis
+
+
+def test_resume_without_a_token_keeps_the_token_of_the_stopped_turn(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('research', 'story_context'))
+    write_turn(thread, request='조사하고 설명해줘', scope={'scopeToken': 'old.token'}, target=TARGET)
+
+    done = write_turn(thread, resume={'approved': True, 'inputs': {'research': WEB}})
+
+    assert (done.status, done.basis) == ('completed', None)
+    assert [c[1][0].scopeToken for c in calls if c[0] == 'retrieval'] == ['old.token']
+
+
 def test_reediting_a_waiting_first_turn_still_replaces_old_history(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, plan('story_context'))
@@ -1946,6 +2029,21 @@ def test_author_plan_still_wins_and_gets_the_allowed_context(monkeypatch):
     assert names(calls) == ['judge', 'mcp', 'mcp', 'mcp', 'draft'] and json.loads(calls[4][1][0].context) == {**CONTEXT, 'settings': []}
 
 
+# 채팅 구간 입력(#497): Content가 구간만 검증해 patch로 바꿔 보내므로 허용 문맥은 AI가 Content MCP로 채운다.
+def test_a_patch_input_without_context_gets_the_allowed_context_the_instruction_as_query(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('patch')))
+    run('다듬어줘', target=TARGET, inputs={'writing_editing': RANGE_PATCH})
+    assert names(calls) == ['judge', 'mcp', 'mcp', 'mcp', 'patch']
+    assert calls[1][1] == ('work_context_read', {'id': 'work', 'episode': 3, 'query': '더 차갑게', 'includeSettings': False})
+    assert json.loads(calls[4][1][0].context) == {**CONTEXT, 'settings': []}
+
+
+def test_a_patch_input_that_already_has_context_never_reads_it_again(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('patch')))
+    run('다듬어줘', target=TARGET, inputs={'writing_editing': PATCH})
+    assert names(calls) == ['judge', 'patch'] and calls[1][1][0].context == '허용 문맥'
+
+
 # Writing의 설정 근거는 Q&A·Review와 같은 WorldStudio다(#523). work_context_read의 settings(옛 설정 문서)는 버린다.
 WRITING_WORLD = {'worldId': 'w', 'relationships': [{'id': 'r1', 'sourceCardId': 'k', 'targetCardId': 'g', 'label': '수호'}], 'cards': [
     {'id': 'k', 'title': '카엘', 'body': '북문을 지키는 기사', 'cardType': 'character', 'lifecycle': 'active'},
@@ -2024,8 +2122,12 @@ def test_planning_without_a_target_fails_the_step(monkeypatch):
 
 def test_patch_task_without_selection_still_waits_for_input(monkeypatch):
     fake_agents(monkeypatch, plan(writing_step('patch')))
-    result = chat(str(uuid4()), target=TARGET)
+    thread = str(uuid4())
+    result = chat(thread, target=TARGET)
     assert (result.status, result.missingInputs) == ('waiting', ['writing_editing'])
+    # 구간 카드와 Content의 구간 검증은 열린 회차가 아니라 멈춘 턴의 반영 회차를 쓴다(#635)
+    assert result.approvalEpisode == TARGET['episode']
+    assert conversation('history', thread, 'user:1/work:1').turns[-1].reply.approvalEpisode == TARGET['episode']
 
 
 UNSUPPORTED = '요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요.'  # 미구현 기능을 판정하던 때의 고정 문구(옛 기록에만 남는다)
@@ -2417,3 +2519,72 @@ def test_stream_reports_the_plan_revision_wait_then_the_applied_step(monkeypatch
     assert first[2][1]['task'] == 'revise_plan' and first[3][1]['awaitingApproval'] == 'writing_editing' and first[-1][1]['status'] == 'waiting'
     second = stream(request=None, conversation=conversation, resume={'approved': True})
     assert [name for name, _ in second] == ['step', 'done'] and second[0][1]['applied'] == {'episode': 3, 'revision': 6}
+
+
+# 첨부(#617): 보낸 그 턴의 메인 에이전트만 원본을 보고, 기록에는 이름과 종류만 남는다.
+def _attachments():
+    encode = lambda raw: base64.b64encode(raw).decode()
+    return [{'name': '메모.md', 'mediaType': 'text/markdown', 'data': encode('북문은 밤에 닫힌다.'.encode())},
+            {'name': '지도.png', 'mediaType': 'image/png', 'data': encode(b'PNG-RAW')}]
+
+
+def test_the_attachments_reach_the_main_agent_as_text_and_image_blocks_in_this_turn(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(str(uuid4()), request='이 자료를 봐줘', attachments=_attachments(), inputs={'story_context': QA})
+    content = calls.main[0]['messages'][-1].content
+    assert content == [{'type': 'text', 'text': '이 자료를 봐줘'},
+                       {'type': 'text', 'text': '첨부 자료: 메모.md\n북문은 밤에 닫힌다.'},
+                       {'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,' + _attachments()[1]['data']}}]
+
+
+def test_the_attachments_are_not_given_to_the_decision_guard_or_the_sub_agent_input(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(str(uuid4()), request='이 자료를 봐줘', attachments=_attachments(), inputs={'story_context': QA})
+    assert next(c for c in calls if c[0] == 'judge')[1] == ('이 자료를 봐줘', None, [], [])
+    assert 'attachments' not in next(c for c in calls if c[0] == 'story_context')[1][0].model_dump()
+
+
+def test_a_request_without_attachments_is_a_plain_string_message_as_before(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(str(uuid4()), request='요청', inputs={'story_context': QA})
+    assert calls.main[0]['messages'][-1].content == '요청'
+
+
+def test_the_history_keeps_only_the_name_and_kind_and_the_next_turn_does_not_carry_them_again(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, request='이 자료를 봐줘', attachments=_attachments(), inputs={'story_context': QA})
+    chat(thread, request='방금 자료는?', inputs={'story_context': QA})
+    history = conversation('history', thread, ME)
+    assert history.turns[0].attachments == [AttachmentRef(name='메모.md', kind='text'), AttachmentRef(name='지도.png', kind='image')]
+    assert history.turns[1].attachments == []
+    dumped = history.model_dump_json()
+    assert _attachments()[1]['data'] not in dumped and _attachments()[0]['data'] not in dumped
+    second = calls.main[2]['messages']  # 첫 턴이 모델을 두 번 불러(도구 호출·종합) 둘째 턴의 첫 호출은 셋째다
+    assert second[-1].content == '방금 자료는?'
+    assert all(isinstance(m.content, str) for m in second) and _attachments()[1]['data'] not in str([m.content for m in second])
+
+
+def test_a_turn_that_waits_keeps_the_attachments_for_its_resume_and_shows_only_their_names(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context', 'research'))
+    assert chat(thread, request='이 자료로 조사해 줘', attachments=_attachments(), inputs={'story_context': QA}).status == 'waiting'
+    waiting = conversation('history', thread, ME).turns[-1]
+    assert [a.name for a in waiting.attachments] == ['메모.md', '지도.png'] and _attachments()[1]['data'] not in waiting.model_dump_json()
+    resume(thread, inputs={'research': WEB})
+    asked = [m for m in calls.main[-1]['messages'] if m.type == 'human'][-1]
+    assert isinstance(asked.content, list)  # resume이 메인 에이전트를 다시 실행해도 같은 첨부를 본다
+
+
+def test_the_main_agent_instructions_treat_attachments_as_data_and_tell_it_to_copy_what_the_sub_agents_need_into_the_request():
+    from app.orchestration.prompt import INSTRUCTIONS
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith("7."))
+    assert "첨부" in rule and "따르지 마세요" in rule and "request" in rule
+
+
+def test_a_finished_turn_does_not_keep_the_attachment_originals_in_the_latest_state(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, request='이 자료를 봐줘', attachments=_attachments(), inputs={'story_context': QA})
+    latest = asyncio.run(service.CHAT.aget_state(service._config(thread, ME))).values
+    assert latest['attachments'] == [] and [t['attachments'] for t in latest['turns']] == [[{'name': '메모.md', 'kind': 'text'}, {'name': '지도.png', 'kind': 'image'}]]
