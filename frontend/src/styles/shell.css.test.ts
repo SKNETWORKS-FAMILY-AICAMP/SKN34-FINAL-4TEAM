@@ -218,10 +218,17 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(['height', 'padding', 'font-size'].map((prop) => value('.adm .btn', prop))).toEqual(small)
     // 터치 보정(파일 맨 끝 모바일 블록)은 .btn.sm처럼 .adm 버튼도 44px 이상으로 올린다.
     expect(sheet.some((r) => r.media === '(max-width:600px),(pointer:coarse)' && r.selectors.includes('.adm .btn') && /(?:^|;)\s*min-height\s*:\s*44px/.test(r.body))).toBe(true)
-    // 필터 줄: 버튼에 따로 높이를 두지 않고 입력·선택을 같은 36px로 맞춰 줄이 가지런하다(터치 환경은 입력도 44px).
+    // 관리자 입력·선택(.inp)은 필터 줄·폼·표 칸 어디서나 버튼과 같은 36px이라 한 화면의 줄이 가지런하다(터치 환경은 입력도 44px). 전역 .inp(46px)는 @layer(base)라 이 규칙이 이긴다.
     expect(opsCss).not.toMatch(/\.admin-filter \.btn\s*\{/)
-    expect(opsCss).toMatch(/\.admin-filter \.inp\s*\{[^}]*height:\s*36px/)
-    expect(opsCss).toMatch(/@media \(max-width: 600px\), \(pointer: coarse\) \{[^@]*\.admin-filter \.inp \{[^}]*min-height:\s*44px/)
+    expect(opsCss).toMatch(/\.adm \.inp\s*\{[^}]*height:\s*36px/)
+    expect(opsCss).toMatch(/@media \(max-width: 600px\), \(pointer: coarse\) \{[^@]*\.adm \.inp \{[^}]*min-height:\s*44px/)
+  })
+
+  it('관리자 폼의 권한 상자·제출 줄은 입력 격자와 같은 800px 안에 있고, 표 스크롤 영역은 위치 기준이라 열 머리 .sr-only가 문서 가로 스크롤을 만들지 않는다', () => {
+    // 격자(.form-grid)만 800px이면 뒤따르는 권한 상자·제출 줄이 카드 폭(1098px)까지 늘어나 입력 묶음과 어긋났다.
+    expect(opsCss).toMatch(/\.adm \.form-grid, \.adm \.form-grid ~ :is\(\.admin-permissions, \.rowend\) \{ max-width: 800px; \}/)
+    // .sr-only는 absolute에 위치 지정이 없어 표가 영역보다 넓으면 영역 밖(표 오른쪽 끝)에 놓인다. 영역이 위치 기준이 아니면 영역의 overflow가 못 자르고 페이지가 가로로 밀린다(작업 감시 실행 기록 표 848px, 창 약 1120px 이하).
+    expect(opsCss).toMatch(/\.adm \.adm-scroll \{ position: relative; \}/)
   })
 })
 

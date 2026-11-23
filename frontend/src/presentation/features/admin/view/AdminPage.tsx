@@ -1410,7 +1410,7 @@ function Admins({ vm }: { vm: VM }) {
         <h2 className='panel-title'>관리자 계정 생성</h2>
         <p className='admin-note'>모든 항목은 필수예요. 권한은 한 가지 이상 골라 주세요.</p>
         <div className='form-grid' style={{ marginTop: 12 }}>
-          <label className='field'>
+          <label className='field wide'>
             이메일<input className='inp' name='email' type='email' maxLength={254} autoComplete='off' required />
           </label>
           <label className='field'>
