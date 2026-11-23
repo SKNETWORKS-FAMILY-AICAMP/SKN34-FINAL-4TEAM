@@ -256,6 +256,33 @@ def test_a_content_conflict_stays_a_failed_step_without_retry_or_overwrite(monke
     assert len(writes(log)) == 1
 
 
+def test_a_work_update_made_stale_by_a_saved_draft_is_proposed_again_instead_of_failing(monkeypatch):
+    # 원고를 저장하면 작품 revision이 올라 이미 뜬 작품 정보 수정이 409가 된다(#687): 실행하지 않고 최신 작품으로 다시 제안받아 다시 승인을 묻는다
+    stale = ('work_update', {'id': 'work', 'data': {'title': '새 제목', 'summary': '소개', 'revision': 12}})
+    again = ('work_update', {'id': 'work', 'data': {'title': '새 제목', 'summary': '소개', 'revision': 16}})
+    calls = fake_agents(monkeypatch, only_content(stale, ('work_read', {'id': 'work'}), again))
+    log = content(monkeypatch, work_read={'id': 'work', 'revision': 16})
+    saved, conflicts = tools.content_mcp.call, [ContentMcpFailure(409, '원고가 변경됐어요. 최신 데이터를 불러와 주세요.')]
+
+    def first_conflicts(tool, arguments):
+        if tool == 'work_update' and conflicts:
+            log.append((tool, arguments))
+            raise conflicts.pop()
+        return saved(tool, arguments)
+
+    monkeypatch.setattr(tools.content_mcp, 'call', first_conflicts)
+    thread = str(uuid4())
+    turn(thread, request='작품 소개를 바꿔 줘')
+    new = resume(thread, True)
+    assert (new.status, new.pendingAction.args['data']['revision'], new.steps) == ('waiting', 16, [])
+    told = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'work_update')
+    assert (told.content, told.status) == (mcp_tools.WORK_CHANGED, 'success')
+    assert [c['settings'].get('tool_choice') for c in calls.main[-2:]] == ['work_read', 'work_update']
+    done = resume(thread, True)
+    assert done.status == 'completed' and [(s.feature, s.status) for s in done.steps] == [('content_action', 'completed')]
+    assert [a['data']['revision'] for _, a in writes(log)] == [12, 16]
+
+
 @pytest.mark.parametrize('name, args, label', [
     ('work_update', {'id': 'work', 'data': {'title': '새 제목', 'revision': 1}}, '작품 정보 수정'),
     ('story_plan_create', {'workId': 'work', 'data': {'kind': 'plot', 'title': '1막'}}, '플롯·장면 계획 추가'),

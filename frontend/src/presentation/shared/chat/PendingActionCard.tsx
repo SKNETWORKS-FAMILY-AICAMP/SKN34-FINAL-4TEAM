@@ -6,6 +6,8 @@ import { pendingChanges, worldProposalIsStale, type PendingAction, type WorldDra
 export const SAVE_FIRST = '먼저 저장해 주세요'
 /** 카드를 찾을 수 없는 화면(집필실)의 카드 수정 승인 안내(#639). */
 export const NO_BEFORE = '집필실에서는 수정 전 내용을 볼 수 없어요. 세계관 작업실에서 확인할 수 있어요.'
+/** 작품 정보 수정 승인 안내(#687). 원고를 저장하면 작품 revision이 올라 이 제안이 낡고, 그때 AI는 실행하지 않고 다시 제안한다. */
+export const WORK_CHANGED_NOTE = '제안한 뒤 원고를 저장해 작품이 바뀌었으면, 실행하지 않고 최신 작품 정보로 같은 수정을 다시 제안해요.'
 
 /**
  * 메인 에이전트가 Content 쓰기 도구를 실행하려고 승인을 기다리는 카드(#554). 모델의 요약이 아니라 실제로 실행할 도구와 인자를 보이고,
@@ -40,6 +42,7 @@ export function PendingActionCard({ action, children, cardOf, unsaved = false, p
       : <>
         <div className="chat-hitl-preview chat-hitl-args" tabIndex={0} aria-label="실행할 도구와 인자"><code>{action.tool}</code>{'\n'}{JSON.stringify(action.args, null, 2)}</div>
         <p className="chat-note">실행을 누르면 이 내용이 초안에 반영돼요. 실행하지 않기를 누르면 아무것도 바뀌지 않아요.</p>
+        {action.tool === 'work_update' && <p className="chat-note">{WORK_CHANGED_NOTE}</p>}
       </>}
     {unsaved && <p className="chat-note" role="alert">{SAVE_FIRST}. 작성 중인 변경을 저장한 뒤 제안을 확인해 주세요.</p>}
     <div className="chat-hitl-actions">

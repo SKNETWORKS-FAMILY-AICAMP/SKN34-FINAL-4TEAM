@@ -37,6 +37,10 @@ NOT_THIS_WORK = '지금 보는 작품이 아닌 작품은 다룰 수 없어요.'
 NOT_THIS_WORLD = '지금 보는 작품에 연결된 세계관이 아닌 세계관은 다룰 수 없어요.'
 WORLD_TOOLS = ('world_studio_read', 'world_studio_edit_draft')
 LIMIT_REACHED = '이번 요청에서 부를 수 있는 Content 도구 횟수를 넘었어요.'
+# 승인한 작품 정보 수정이 revision 충돌(409)일 때의 ToolMessage(#687). 원고(회차 초안) 저장도 작품 revision을 올려 제안이 낡는다.
+# 덮어쓰지 않고 agent._refresh_next가 다시 읽기 → 재제안을 강제해 작가에게 새 승인을 묻는다(#662와 같은 장치).
+WORK_CHANGED = ('이 제안은 실행하지 않았고 저장되지 않았어요. 거절이 아니라 제안한 뒤 원고 저장 등으로 작품 revision이 바뀌었어요. '
+                'work_read로 작품을 다시 읽고, 그 revision을 기준으로 이 수정만 다시 제안해요. 이미 실행한 다른 작업은 다시 하지 않아요.')
 
 
 # 도구 목록을 못 읽은 턴의 답 끝에 붙이는 안내(#639, 2026-11-23 사용자 결정: 진행하되 작가가 알아듣는 말로 알린다).
@@ -105,6 +109,8 @@ async def execute(request) -> Command:
     except ContentMcpFailure as error:
         if not write:  # 읽기 실패(예: 잘못된 인자 422)는 단계로 남기지 않고 모델이 사유를 보고 다시 부르게 한다(횟수는 MCP 한도가 막는다)
             return _result(None, call, f'[실패] {label}: {error}', failed=True)
+        if name == 'work_update' and error.status == 409:  # work_update의 409는 revision 충돌뿐이다(WorkService.update)
+            return _result(None, call, WORK_CHANGED)
         step = {'feature': CONTENT_ACTION, 'when': 'always', 'status': 'failed', 'error': str(error)}
         return _result(step, call, f'[실패] {label}: {error}', failed=True)
     if not write:
