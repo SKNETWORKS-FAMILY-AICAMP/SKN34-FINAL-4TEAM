@@ -1,4 +1,6 @@
 /* 작품 관리 'AI 집필' 탭: 설정 폼과 게시판 기록 표. 틀(.ep-reading·.ep-form-*·.ep-check·.ep-alert)은 shared/episode.css를 그대로 쓴다. */
+/* 작품 관리 안 하위 탭은 왼쪽 메뉴 → h2 다음의 세 번째 단계라 페이지 탭(전역 .libtabs 15px·700)보다 가볍다. 선택 색·밑줄·높이 44px는 전역 규칙 그대로다. */
+.ep-serial .libtabs :is(button,a){font-size:14px;font-weight:600}
 .ep-serial form{max-width:520px;margin-top:16px;gap:14px}
 /* 꺼짐 안내 상자(.ep-changed)는 바로 아래 설정 폼과 같은 폭이다(안내문의 읽기 폭 제한). 저장 실패 같은 알림(.ep-alert)은 다른 탭처럼 내용 열 폭 그대로다. */
 .ep-serial .ep-changed{max-width:520px}

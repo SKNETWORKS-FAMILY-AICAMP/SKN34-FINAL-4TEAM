@@ -71,7 +71,7 @@ export function AiSerialPanel({ workId, useCase }: { workId: string; useCase?: S
                       ))}
                     </fieldset>
                     <label>
-                      연재 시각 (한국시간, 하루 한 번)
+                      연재 시각 <span className='ep-optional'>(한국시간, 하루 한 번)</span>
                       <input type='time' value={form.time} disabled={vm.saving} onChange={(event) => vm.edit({ time: event.target.value })} />
                     </label>
                     <label>

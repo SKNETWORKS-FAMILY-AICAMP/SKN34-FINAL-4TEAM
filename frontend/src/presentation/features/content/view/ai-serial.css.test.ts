@@ -18,3 +18,7 @@ it('[D3] 650px 이하에서 요일 일곱이 한 줄이다(7칸 균등 격자) �
 it('[F4] 잠긴 .pri 버튼은 채운 보라가 아니라 윤곽선이라 눌러도 되는 버튼처럼 보이지 않는다 — 운영 설정의 잠긴 저장 버튼과 같은 모양', () => {
   expect(css).toMatch(/\.episode-app \.ep-serial \.btn\.pri:disabled\{background:none;border-color:var\(--line2\);color:var\(--ink\)\}/)
 })
+
+it('[Q2] 하위 탭은 14px·600이다 — 페이지 탭용 전역 15px·700이 탭 제목 h2(17px·700)와 겨루던 것. 선택 색·밑줄·높이 44px는 전역 .libtabs 규칙 그대로다', () => {
+  expect(css).toMatch(/\.ep-serial \.libtabs :is\(button,a\)\{font-size:14px;font-weight:600\}/)
+})
