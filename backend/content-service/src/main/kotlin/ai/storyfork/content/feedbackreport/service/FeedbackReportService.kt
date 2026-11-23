@@ -160,9 +160,9 @@ class FeedbackReportService(
         return render(listOf(row),mapOf(id to work),member).single()
     }
 
-    /** 공개 작품의 발행 회차만 대상이다. 현재 발행 버전 ID를 돌려주며 미발행 회차는 404다. */
+    /** 공개 작품의 발행 회차만 대상이다. 현재 발행 버전 ID를 돌려주며 미발행·운영 제한 회차는 404다. */
     private fun publishedVersion(id: String, number: Int): String =
-        current.findByWorkIdAndSequence(id,number)?.publishedVersionId ?: throw ContentFailure(404,"공개 회차를 찾을 수 없어요.")
+        current.findByWorkIdAndSequence(id,number)?.readerVersionId ?: throw ContentFailure(404,"공개 회차를 찾을 수 없어요.")
 
     /**
      * 쓰기 대상 제보를 잠그고 읽는다. 작품이 없거나 삭제됐거나 경로의 작품과 제보가 맞지 않으면 404다.

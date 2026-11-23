@@ -5,6 +5,7 @@ import ai.storyfork.content.world.controller.WorldStudioExceptionHandler
 import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
+import ai.storyfork.content.world.domain.aiCardType
 import ai.storyfork.content.world.domain.episodeFromText
 import ai.storyfork.content.world.service.AnalysisStorageUnconfirmed
 import ai.storyfork.content.world.service.InitialWorldAnalysisService
@@ -226,8 +227,12 @@ class WorldStudioMcpTools(
         @McpToolParam(description = "반영 ID(UUID)") applicationId: String,
     ): InitialWorldApplicationResponse = studioTool { applications.get(uuidArg(worldId), context.callerUuid(), uuidArg(analysisId), uuidArg(applicationId)) }
 
-    /** 컨트롤러와 같은 응답이다: 연결된 소설(1:1)은 Content 쪽 정본이라 저장 뒤 따로 읽어 붙인다. */
-    private fun linked(draft: WorldDraftResponse) = draft.copy(linkedWorkId = links.linkedWorkIds(listOf(draft.worldId))[draft.worldId])
+    /**
+     * 컨트롤러와 같은 응답이다: 연결된 소설(1:1)은 Content 쪽 정본이라 저장 뒤 따로 읽어 붙인다.
+     * AI가 아는 카드 유형은 기본 8종뿐이라 운영이 더한 카테고리는 `other`로 준다([aiCardType]). AI가 그 카드를 다시 저장하면 `other`로 저장된다(한계).
+     */
+    private fun linked(draft: WorldDraftResponse) =
+        draft.copy(cards = draft.cards.map { it.copy(cardType = aiCardType(it.cardType)) }, linkedWorkId = links.linkedWorkIds(listOf(draft.worldId))[draft.worldId])
 }
 
 // 컨트롤러는 Principal 이름(회원 UUID)을 UUID로 바꿔 쓴다.

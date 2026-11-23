@@ -29,6 +29,19 @@ interface EpisodeCurrentRepository : JpaRepository<EpisodeCurrentEntity, String>
     fun titlesAfter(@Param("workId") workId: String, @Param("after") after: Int): List<Array<Any?>>
 
     /**
+     * 운영 회차 목록(번호순)의 행 `[번호, 발행 버전 제목, 초안 제목, 발행 상태, 제한 여부, 상속 여부]`다. 본문은 읽지 않고 쿼리 한 번이다. 지운 회차는 뷰가 뺀다.
+     * 집필 흔적이 없는 빈 자리 행(초안·발행본·저장 버전이 없고 초안 삭제 표시도 없음)은 뺀다([lastNumber]와 같은 조건).
+     */
+    @Query("""select c.sequence, v.title, d.title, c.publicationStatus, c.restricted, c.inherited
+        from EpisodeCurrentEntity c
+        left join EpisodeDraftEntity d on d.episodeId = c.id
+        left join EpisodeVersionEntity v on v.id = c.publishedVersionId
+        where c.workId = :workId and (c.draftRevisionFloor >= 0 or d.episodeId is not null or v.id is not null
+            or exists (select s.id from EpisodeVersionEntity s where s.episodeId = c.id and s.isSaved = true))
+        order by c.sequence""")
+    fun operationsRows(@Param("workId") workId: String): List<Array<Any?>>
+
+    /**
      * [workId]의 지금 발행본 본문이다(상속 회차는 Fork가 물려받은 원작 발행본, 초안·공개 중단 회차는 없다).
      * 독자가 이미 읽을 수 있는 글이라 운영 정보 누설 비교 기준(DEC-55)이 제목 대조에서 뺄 때 쓴다.
      */

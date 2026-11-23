@@ -105,6 +105,14 @@ class WorkViewServiceTest {
         verifyNoInteractions(views)
     }
 
+    @Test fun `a restricted episode is 404 and stores no view even though it keeps its published version`() {
+        `when`(current.findByWorkIdAndSequence("work", 2)).thenReturn(EpisodeCurrentEntity("episode-2", "work", 2, "version-2", restricted = true))
+
+        assertEquals(404, failure { service.record("work", 2, "reader") }.status)
+
+        verifyNoInteractions(views)
+    }
+
     @Test fun `blank member is rejected as unauthenticated before any lookup`() {
         assertEquals(401, failure { service.record("work", 1, " ") }.status)
 

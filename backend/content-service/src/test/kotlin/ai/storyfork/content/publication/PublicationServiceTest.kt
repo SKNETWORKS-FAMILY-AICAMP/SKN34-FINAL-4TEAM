@@ -113,6 +113,17 @@ class PublicationServiceTest {
             EpisodeCurrentEntity(id="3",sequence=3,publicationStatus="draft")))
         assertEquals(3,service.nextEpisodeNumber("w"))
     }
+    @Test fun `published episodes keep the restricted rows and mark them so readers can drop them`() {
+        `when`(current.findAllByWorkIdOrderBySequence("w")).thenReturn(listOf(
+            EpisodeCurrentEntity(id="e1",sequence=1,publishedVersionId="ev1"),
+            EpisodeCurrentEntity(id="e2",sequence=2,publishedVersionId="ev2",restricted=true)))
+        `when`(versions.findAllById(listOf("ev1","ev2"))).thenReturn(listOf(
+            EpisodeVersionEntity(id="ev1",episodeId="e1",contentVersionId="v1",title="1화",content="본문1"),
+            EpisodeVersionEntity(id="ev2",episodeId="e2",contentVersionId="v2",title="2화",content="본문2")))
+        val items=service.publishedEpisodes("w").items
+        assertEquals(listOf(1,2),items.map {it.number})
+        assertEquals(listOf(false,true),items.map {it.restricted})
+    }
     @Test fun `restricted work cannot be republished`() {
         prepare("suspended")
         `when`(access.own("w","owner")).thenReturn(work.copy(restricted=true))

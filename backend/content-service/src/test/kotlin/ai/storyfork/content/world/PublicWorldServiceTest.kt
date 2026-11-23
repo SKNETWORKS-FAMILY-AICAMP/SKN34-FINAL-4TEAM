@@ -149,6 +149,29 @@ class PublicWorldServiceTest {
         verifyNoInteractions(graph, storage)
     }
 
+    @Test fun `a restricted world is not found for detail cover and card image even though it is public and saved`() {
+        val s = Seed(cover = true, pictures = true)
+        s.world.restricted = true
+        listOf({ service.detail(s.id) }, { service.cover(s.id) }, { service.cardImage(s.id, s.firstImage) }).forEach { read ->
+            assertEquals(404, assertThrows(ContentFailure::class.java) { read() }.status)
+        }
+        verifyNoInteractions(graph, storage)
+    }
+
+    @Test fun `with an index, a restricted candidate drops out of the world and card searches like a private one`() {
+        val open = Seed(name = "달빛 열린 세계")
+        val shut = Seed(name = "달빛 제한 세계").also { it.world.restricted = true }
+        val candidates = listOf(open, shut).map { it.id }.toSet()
+        `when`(search.worlds("달빛")).thenReturn(candidates)
+        `when`(search.cardWorlds("인물")).thenReturn(candidates)
+        `when`(worlds.findAllById(candidates)).thenReturn(listOf(open, shut).map { it.world })
+        stubLookups(listOf(open, shut))
+        stubNames(listOf(open, shut).associate { it.owner to "작가" })
+
+        assertEquals(listOf(open.id), service.list(null, "달빛", null, null).items.map { it.id })
+        assertEquals(setOf(open.id), service.cards("인물", null, null).items.map { it.worldId }.toSet())
+    }
+
     @Test fun `detail returns the last saved revision, active cards only, and current relations between those cards`() {
         val s = Seed()
         `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenReturn(mapOf(s.owner.toString() to "작가"))

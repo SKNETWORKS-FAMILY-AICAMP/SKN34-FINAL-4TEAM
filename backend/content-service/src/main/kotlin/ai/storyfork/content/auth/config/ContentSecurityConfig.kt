@@ -64,7 +64,7 @@ class ContentSecurityConfig {
             .authorizeHttpRequests {
                 it.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/works", "/api/v1/public/works/**",
-                        "/api/v1/public/world-studios", "/api/v1/public/world-studios/**", "/api/v1/public/genres").permitAll()
+                        "/api/v1/public/world-studios", "/api/v1/public/world-studios/**", "/api/v1/public/genres", "/api/v1/public/card-categories").permitAll()
                     .requestMatchers("/api/v1/works", "/api/v1/works/**", "/api/v1/world-studios", "/api/v1/world-studios/**").authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/v1/me/storage-usage").authenticated()
                     .anyRequest().denyAll()

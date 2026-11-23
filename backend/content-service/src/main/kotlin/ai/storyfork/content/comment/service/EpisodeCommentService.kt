@@ -54,7 +54,7 @@ class EpisodeCommentService(
     fun listByWork(id: String, sort: String?, viewer: String?): CommentListResponse {
         val order=queryOption(sort,CommentSort.LATEST,"sort")
         access.published(id)
-        val numbers=current.findAllByWorkIdOrderBySequence(id).filter {it.publishedVersionId!=null}.map {it.sequence}
+        val numbers=current.findAllByWorkIdOrderBySequence(id).filter {it.readerVersionId!=null}.map {it.sequence}
         // 발행 회차가 없으면 빈 IN 목록으로 쿼리하지 않는다.
         return listed(if(numbers.isEmpty()) emptyList() else comments.findTop200ByWorkIdAndEpisodeNumberInAndDeletedAtIsNullOrderByCreatedAtDesc(id,numbers),viewer,order)
     }
@@ -114,10 +114,10 @@ class EpisodeCommentService(
         likes.deleteById(EpisodeCommentLikeEntity.Key(commentId,member))
     }
 
-    /** 공개 작품의 발행 회차만 대상이다. 현재 발행 버전 ID를 돌려주며 비공개·제한 작품이나 미발행 회차는 404다. */
+    /** 공개 작품의 발행 회차만 대상이다. 현재 발행 버전 ID를 돌려주며 비공개·제한 작품이나 미발행·운영 제한 회차는 404다. */
     private fun publishedVersion(id: String, number: Int): String {
         access.published(id)
-        return current.findByWorkIdAndSequence(id,number)?.publishedVersionId ?: throw ContentFailure(404,"공개 회차를 찾을 수 없어요.")
+        return current.findByWorkIdAndSequence(id,number)?.readerVersionId ?: throw ContentFailure(404,"공개 회차를 찾을 수 없어요.")
     }
 
     /** 공개 작품의 발행 회차에서 삭제되지 않은 댓글 하나다. 비공개·미발행이거나 다른 작품·회차의 댓글이면 404다. */

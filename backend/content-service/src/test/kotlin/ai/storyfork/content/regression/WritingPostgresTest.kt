@@ -94,6 +94,20 @@ class WritingPostgresTest {
         assertEquals(403,assertThrows(ContentFailure::class.java) { service.writeEpisode(fork.id,"reader",1,DraftRequest("침범","원작 수정",inherited.draft.revision),true) }.status)
         assertEquals(saved.versions.single().id,inherited.publishedVersionId)
     }
+    @Test fun `an operator restriction hides the episode and the fork's inherited copy from readers only`() {
+        val w=service.create("writer",CreateWorkRequest("회차 제한 검증"))
+        val saved=service.writeEpisode(w.id,"writer",1,DraftRequest("원고","보존",0),true)
+        service.publishEpisode(w.id,"writer",1,PublishRequest(saved.draft.revision,true,versionId=saved.versions.single().id))
+        service.policy(w.id,"writer",PolicyRequest(service.read(w.id,"writer").draft!!.revision,true,true))
+        val fork=service.fork(w.id,"reader",ForkRequest(1,"분기"))
+        fun restricted(work:String)=jdbc.queryForObject("SELECT restricted FROM episode_current WHERE work_id=? AND sequence=1",Boolean::class.java,work)
+        assertEquals(listOf(false,false),listOf(restricted(w.id),restricted(fork.id)))
+        // 원작 회차만 제한해도 그 회차를 물려받은 Fork 회차를 뷰가 함께 제한으로 계산한다. 작가가 보는 발행본은 그대로고 독자 목록에서만 빠진다.
+        jdbc.update("UPDATE episode SET restricted=true WHERE work_id=? AND sequence=1",w.id)
+        assertEquals(listOf(true,true),listOf(restricted(w.id),restricted(fork.id)))
+        assertEquals(saved.versions.single().id,service.writing(w.id,"writer",1).publishedVersionId)
+        assertTrue(service.publicRead(w.id).episodes.isEmpty())
+    }
     @Test fun `author note survives reload publication restore and fork while blank publication removes it`() {
         val w=service.create("writer",CreateWorkRequest("작가의 말 검증"))
         val saved=service.writeEpisode(w.id,"writer",1,DraftRequest("제목","본문",0,"첫 후기"),true)

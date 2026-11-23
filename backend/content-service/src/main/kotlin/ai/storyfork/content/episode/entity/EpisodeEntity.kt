@@ -25,4 +25,7 @@ class EpisodeEntity(
     var basisWorldRevisionId: UUID? = null,
     @field:Column(name = "basis_revision")
     var basisRevision: Int = 0,
+    /** 운영자가 독자에게 숨긴 회차다(V44). 작가의 집필은 막지 않는다. 상속 회차는 직접 바꾸지 못한다(원작 회차를 제한해야 한다). */
+    @field:Column(name = "restricted")
+    var restricted: Boolean = false,
 )

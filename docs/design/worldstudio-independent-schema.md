@@ -331,7 +331,7 @@ Flyway location은 `classpath:db/migration/worldstudio`로 유지하되 독립 V
 | world | 안정적인 world ID, 소유자 식별자, 생성 시각, 현재 확정 revision 참조, 세계관 단위 공개 설정(V6 `visibility` 기본 `private`·`genre`·`published_at`, DEC-45), 소유자 표지(V7 `cover_object_key`·`cover_content_type`, 바이트는 객체 저장소). 작품/회차 FK 없음(소설과의 1:1 연결은 Content `work.world_studio_id`가 정본이고 FK 없이 값만 가리킨다, DEC-46) |
 | world_draft | world당 이름·설명, draft_revision, base_world_revision_id, 수정 시각. 자동저장 대상 |
 | setting_card | card ID, world ID, 생성 시각. 제목이나 유형 변경에도 ID 유지 |
-| setting_card_draft | card별 제목·원문·card_type·area_code·별칭·태그·자유 분류·semantic metadata·lifecycle·visibility. 초안 |
+| setting_card_draft | card별 제목·원문·card_type(카테고리 코드, V18부터 CHECK 없이 서비스가 `card_category`로 확인)·area_code·별칭·태그·자유 분류·semantic metadata·lifecycle·visibility. 초안 |
 | setting_card_version | 안정적인 version ID와 card ID, 버전 순번, 동일한 카드 필드 및 visibility snapshot, 생성 시각·복원 기준. 불변 |
 | relationship | relation ID, world ID. 실제 관계·감정의 안정적인 논리 식별자 |
 | relationship_draft | source/target card, structural/emotional, 자유 본문·선택 label, direction/polarity/lifecycle. 미완성 입력은 nullable 허용 |
@@ -347,7 +347,7 @@ Graph DB·outbox·projection worker·AI job·이미지 저장소는 이 초기 �
 
 ## 유형·영역·기존 의미
 
-card_type은 character/location/organization/ability/object/rule/event/other 8종이다. area_code는 basic/space/history/society/culture/special/conflict 7종이다. 자유 분류·태그와 별도이며 같은 축으로 합치지 않는다.
+card_type은 카드 카테고리 코드다. 기본은 character/location/organization/ability/object/rule/event/other 8종이고(AI가 아는 유형도 이 8종뿐이다), V18부터 운영이 `card_category` 표(`category-NN` 추가·이름·아이콘·순서·숨김, 삭제 없음)로 더할 수 있으며 DB CHECK 대신 서비스가 코드를 확인한다([운영 콘텐츠 관리 계약](content-operator-management-contract.md#세계관-카드-카테고리)). area_code는 basic/space/history/society/culture/special/conflict 7종이다. 자유 분류·태그와 별도이며 같은 축으로 합치지 않는다.
 
 기존 JSON의 kind/predicate/polarity/대상 ID/조건/topics/원문 근거는 명시적 import 계약이 생기면 semantic metadata와 적절한 관계 구조에 보존한다. claim/undetermined/note를 other로 일괄 변환하지 않는다. 이번 독립 초기 설계는 기존 H2/Content 데이터를 자동 이관하거나 새 ID로 교체하지 않는다.
 

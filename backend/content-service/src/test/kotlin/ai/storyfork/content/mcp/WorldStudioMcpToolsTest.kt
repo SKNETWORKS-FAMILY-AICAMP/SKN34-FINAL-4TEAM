@@ -153,6 +153,19 @@ class WorldStudioMcpToolsTest {
         verify(studio).draft(worldId, member)
     }
 
+    @Test fun `world_studio_read gives the AI other for a custom card category and keeps the default types`() {
+        val custom = CardPayload(UUID.randomUUID(), "단서", "본문", "category-01", "basic")
+        val hero = CardPayload(UUID.randomUUID(), "길동", "본문", "character", "basic")
+        `when`(studio.draft(worldId, member)).thenReturn(draft().copy(cards = listOf(custom, hero)))
+        `when`(links.linkedWorkIds(listOf(worldId))).thenReturn(emptyMap())
+
+        val text = call("world_studio_read", mapOf("id" to "$worldId"), signedIn()).text()
+
+        assertTrue(text.contains("\"cardType\":\"other\""), text)
+        assertTrue(text.contains("\"cardType\":\"character\""), text)
+        assertFalse(text.contains("category-01"), text)
+    }
+
     @Test fun `world_studio_read reads the relations as of the optional episode and rejects a malformed one before any service`() {
         `when`(studio.draft(worldId, member, 3)).thenReturn(draft())
         `when`(links.linkedWorkIds(listOf(worldId))).thenReturn(mapOf(worldId to "w1"))

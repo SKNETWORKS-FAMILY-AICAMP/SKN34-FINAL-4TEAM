@@ -22,13 +22,17 @@ interface StudioWorldRepository : JpaRepository<StudioWorld, UUID> {
     @Query("select w from StudioWorld w where w.id=:world and w.deletedAt is null")
     fun lockLive(@Param("world") world: UUID): StudioWorld?
 
-    /** 공개이고 저장 버전이 있는 세계관을 최근 공개순으로 돌려준다. 초안만 있는 세계관은 공개로 설정돼도 나오지 않고 지운 세계관도 나오지 않는다. */
-    @Query("select w from StudioWorld w where w.visibility='public' and w.currentRevisionId is not null and w.deletedAt is null order by w.publishedAt desc, w.id")
+    /** 공개이고 저장 버전이 있는 세계관을 최근 공개순으로 돌려준다. 초안만 있는 세계관은 공개로 설정돼도 나오지 않고 지운 세계관과 운영이 제한한 세계관도 나오지 않는다. */
+    @Query("select w from StudioWorld w where w.visibility='public' and w.currentRevisionId is not null and w.deletedAt is null and w.restricted = false order by w.publishedAt desc, w.id")
     fun listed(pageable: Pageable): Page<StudioWorld>
 
     /** [listed]에서 장르 하나만 돌려준다. */
-    @Query("select w from StudioWorld w where w.visibility='public' and w.currentRevisionId is not null and w.deletedAt is null and w.genre=:genre order by w.publishedAt desc, w.id")
+    @Query("select w from StudioWorld w where w.visibility='public' and w.currentRevisionId is not null and w.deletedAt is null and w.restricted = false and w.genre=:genre order by w.publishedAt desc, w.id")
     fun listedByGenre(@Param("genre") genre: String, pageable: Pageable): Page<StudioWorld>
+
+    /** 운영 세계관 목록용으로 지우지 않은 전체 세계관(비공개·제한 포함)을 최신순으로 돌려준다. */
+    @Query("select w from StudioWorld w where w.deletedAt is null order by w.createdAt desc, w.id")
+    fun listForOperations(): List<StudioWorld>
 
     /** 장르 코드별로 센 지우지 않은 세계관 수 `[genre, 세계관 수]`다(장르 없는 세계관은 세지 않음). 운영 장르 표의 사용 수이며 쿼리 한 번이다. */
     @Query("select w.genre, count(w) from StudioWorld w where w.genre is not null and w.deletedAt is null group by w.genre")
