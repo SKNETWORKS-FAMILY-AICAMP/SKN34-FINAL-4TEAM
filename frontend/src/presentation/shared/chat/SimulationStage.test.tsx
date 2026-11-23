@@ -1458,11 +1458,13 @@ it('새 줄이 붙으면 맨 아래에 있던 대본은 따라 내려가고, 위
   Object.defineProperties(log, { scrollHeight: { value: 900, configurable: true }, clientHeight: { value: 300, configurable: true } })
   log.scrollTop = 600 // 맨 아래(900 - 300)
   fireEvent.scroll(log)
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
   await act(async () => { second() })
   await waitFor(() => expect(lines()).toHaveLength(2))
   expect(log.scrollTop).toBe(900)
   log.scrollTop = 100 // 위로 올려 읽는 중
   fireEvent.scroll(log)
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(3))
   await act(async () => { third() })
   await waitFor(() => expect(lines()).toHaveLength(3))
   expect(log.scrollTop).toBe(100)
