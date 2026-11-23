@@ -79,7 +79,8 @@ describe('목업 새 소설 만들기 (U28)', () => {
     }
     fireEvent.change(screen.getByLabelText('인물 1 이름'), { target: { value: '등대지기' } })
     fireEvent.click(screen.getByRole('button', { name: '소설 만들고 1화 쓰기 →' }))
-    await screen.findByRole('heading', { name: '남는 제목' })
+    // 집필실은 lazy 경로라 첫 진입에 모듈 변환이 1초를 넘길 수 있다(그동안 Suspense가 이전 화면을 숨긴다). App.studio-redesign과 같은 5초를 기다린다.
+    await screen.findByRole('heading', { name: '남는 제목' }, { timeout: 5000 })
     expect(where()).toMatch(/^\/studio\//)
     expect(screen.getByRole('combobox', { name: '원고 본문' }).getAttribute('contenteditable')).toBe('true')
     expect(screen.getByText(/^1화 · @를 입력하면/)).toBeTruthy()
