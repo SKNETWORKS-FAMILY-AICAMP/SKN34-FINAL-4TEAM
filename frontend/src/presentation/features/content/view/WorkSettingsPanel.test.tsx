@@ -119,3 +119,34 @@ it('폼을 Enter로 제출해도 같은 확인을 거친다', async () => {
   expect(dialog()).toBeTruthy()
   expect(useCase.updateWorkSettings).not.toHaveBeenCalled()
 })
+
+// ── 운영 설정 탭 카드(R11): 집필 방식·자동 처리·설정 변경 이력이 각각 묶음 제목(h3)이 붙은 카드다 ──
+it('집필 방식·자동 처리·설정 변경 이력은 각각 묶음 제목(h3)이 붙은 카드(region)이고 분기 정책 카드와 같은 틀(tcard ep-card)이다', async () => {
+  await open('direct')
+  const names = ['집필 방식', '자동 처리', '설정 변경 이력']
+  const cards = names.map((name) => screen.getByRole('region', { name }))
+  names.forEach((name, i) => {
+    expect(within(cards[i]).getByRole('heading', { level: 3, name })).toBeTruthy()
+    expect([...cards[i].classList]).toEqual(expect.arrayContaining(['tcard', 'ep-card']))
+  })
+  // 카드 순서 = DOM 순서
+  cards.slice(1).forEach((card, i) => expect(cards[i].compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy())
+})
+
+it('집필 방식 select와 저장 버튼은 집필 방식 카드 안에, 자동 처리 항목과 변경 이력은 각 카드 안에 있다', async () => {
+  const { select, save } = await open('direct')
+  const [mode, auto, history] = ['집필 방식', '자동 처리', '설정 변경 이력'].map((name) => within(screen.getByRole('region', { name })))
+  expect(mode.getByRole('combobox', { name: '집필 방식' })).toBe(select) // 라벨 '집필 방식'의 select는 카드 제목(heading)과 구별된다
+  expect(mode.getByRole('button', { name: '집필 방식 저장' })).toBe(save)
+  expect(auto.getByText('설정 추출')).toBeTruthy()
+  expect(history.getAllByRole('listitem')).toHaveLength(1)
+})
+
+it('저장한 방식이 없으면 설정 변경 이력 카드 안에 안내를 보이고, 저장 결과 안내는 집필 방식 카드 안에서 알린다', async () => {
+  const { select, save } = await open(null)
+  expect(within(screen.getByRole('region', { name: '설정 변경 이력' })).getByText('저장한 집필 방식이 아직 없어요.')).toBeTruthy()
+  choose(select, 'assisted')
+  fireEvent.click(save)
+  const notice = await screen.findByText('집필 방식을 저장했어요.')
+  expect(screen.getByRole('region', { name: '집필 방식' }).contains(notice)).toBe(true)
+})

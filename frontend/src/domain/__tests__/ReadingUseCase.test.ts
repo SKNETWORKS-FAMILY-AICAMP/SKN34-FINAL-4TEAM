@@ -5,6 +5,7 @@ import { seedWorks, seedWorlds } from '../../data/mock/seed'
 import type { ReadingRecord, ReadingRecordRepository } from '../repositories/ReadingRecordRepository'
 import { SessionExpired } from '../repositories/ProfileRepository'
 import type { WorkLikeRepository, WorkLikeState } from '../repositories/WorkLikeRepository'
+import type { WorkSearchRepository } from '../repositories/WorkSearchRepository'
 import type { ReadingProgress, ReadingRepository, WorkRepository } from '../repositories/WorkRepository'
 import type { ReaderWorldCards } from '../entities/wiki'
 import type { Work } from '../entities/work'
@@ -45,7 +46,10 @@ function likeFakes(server: WorkLikeState | null = { likes: 7, liked: false }, ca
   const workRepository: WorkRepository = { listWorks: async () => works, listWorlds: async () => seedWorlds(), readWorld: async (w) => w, createFork: async () => { throw new Error('not used') }, saveWork: async () => {}, getDraft: async () => undefined, listDrafts: async () => ({}), saveDraft: async () => {}, deleteDraft: async () => {} }
   const readingRepository: ReadingRepository = { getProgress: async () => state, markSeen: async () => {}, saveProgress: async (p) => { Object.assign(state, p) } }
   const likes = { read: vi.fn(async () => server), like: vi.fn(async () => ({ likes: 8, liked: true })), unlike: vi.fn(async () => ({ likes: 6, liked: false })) } satisfies WorkLikeRepository
-  return { state, likes, useCase: new ReadingUseCase(workRepository, readingRepository, recordFake([]).repository, undefined, likes) }
+  // 공개 상세의 회차별 누적 회원 조회 수 대역. 그 밖의 검색 계약은 이 시험이 쓰지 않으므로 던진다.
+  const unused = async () => { throw new Error('not used') }
+  const search = { search: unused, rankings: unused, recordView: unused, episodeViews: vi.fn<WorkSearchRepository['episodeViews']>(async () => ({ 1: 3, 2: 4 })) } satisfies WorkSearchRepository
+  return { state, likes, search, useCase: new ReadingUseCase(workRepository, readingRepository, recordFake([]).repository, search, likes) }
 }
 
 describe('ReadingUseCase 좋아요 (서버 작품)', () => {
@@ -119,6 +123,41 @@ describe('ReadingUseCase 좋아요 (서버 작품)', () => {
     expect(await useCase.toggleLike('postman', { canonical: false, liked: false })).toBe(true)
     expect(state.liked).toEqual({ guunmong: true, postman: true })
     expect(likes.like).not.toHaveBeenCalled()
+  })
+})
+
+describe('ReadingUseCase.readerStats (작품 관리 개요의 독자 지표)', () => {
+  it('공개 상세의 좋아요 수와 회차별 누적 회원 조회 수의 합계를 돌려준다', async () => {
+    const { likes, search, useCase } = likeFakes({ likes: 9, liked: false })
+    const controller = new AbortController()
+    expect(await useCase.readerStats('guunmong', controller.signal)).toEqual({ likes: 9, views: 7 })
+    expect(likes.read).toHaveBeenCalledWith('guunmong')
+    expect(search.episodeViews).toHaveBeenCalledWith('guunmong', controller.signal)
+  })
+
+  it('공개 작품이 아니라고 서버가 답하면(null) 집계가 없어 null이고 조회 수는 읽지 않는다', async () => {
+    const { search, useCase } = likeFakes(null)
+    expect(await useCase.readerStats('guunmong')).toBeNull()
+    expect(search.episodeViews).not.toHaveBeenCalled()
+  })
+
+  it('좋아요나 조회 수를 못 읽으면 0으로 채우지 않고 그대로 던진다', async () => {
+    const first = likeFakes()
+    first.likes.read.mockRejectedValueOnce(new Error('offline'))
+    await expect(first.useCase.readerStats('guunmong')).rejects.toThrow('offline')
+    const second = likeFakes()
+    second.search.episodeViews.mockRejectedValueOnce(new Error('views down'))
+    await expect(second.useCase.readerStats('guunmong')).rejects.toThrow('views down')
+  })
+
+  it('조회 수가 한 건도 없으면 합계는 0이다(기록 없는 회차는 키가 없다)', async () => {
+    const { search, useCase } = likeFakes({ likes: 0, liked: false })
+    search.episodeViews.mockResolvedValueOnce({})
+    expect(await useCase.readerStats('guunmong')).toEqual({ likes: 0, views: 0 })
+  })
+
+  it('저장소가 없는 데모는 요청 없이 null이다', async () => {
+    expect(await fakes().useCase.readerStats('guunmong')).toBeNull()
   })
 })
 

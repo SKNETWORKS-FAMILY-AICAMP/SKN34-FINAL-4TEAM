@@ -11,7 +11,16 @@ import { WorkManagement } from './WorkManagement'
 
 // 히어로(WorkOverview)는 개요 탭의 내용이다. 그 안(작품 정보·표지 편집)은 EpisodePage.test가 보고, 여기서는 개요 탭이 히어로를 그리는지만 본다. 포크 수는 12화에만 2편이 갈라졌다고 본다(회차 번호로 조회).
 vi.mock('./WorkOverview', () => ({ WorkOverview: () => <p>작품 개요 히어로</p> }))
-vi.mock('./WorkBrief', () => ({ WorkBrief: () => <p>작품 요약 머리</p> }))
+// 요약 머리는 넘겨받은 초안 수만 data-drafts로 드러낸다(수를 세는 규칙은 이 화면의 몫이다).
+vi.mock('./WorkBrief', () => ({ WorkBrief: ({ draftCount }: { draftCount?: number | null }) => <p data-drafts={String(draftCount)}>작품 요약 머리</p> }))
+// 개요 대시보드의 조회·표시는 WorkDashboard.test가 본다. 여기서는 개요 탭이 그것을 그리고, 그 바로가기·잠금이 탭 전환에 이어지는지만 본다.
+const dashboard = vi.hoisted(() => ({ props: [] as { disabled: boolean; mockup: boolean; useCase?: unknown; draftCount?: number | null }[] }))
+vi.mock('./WorkDashboard', () => ({
+  WorkDashboard: (props: { disabled: boolean; mockup: boolean; useCase?: unknown; draftCount?: number | null; onOpenTab: (tab: string) => void }) => {
+    dashboard.props.push(props)
+    return <button disabled={props.disabled} onClick={() => props.onOpenTab('settings')}>대시보드 운영 설정</button>
+  },
+}))
 // AI 집필 탭의 내용은 AiSerialPanel.test가 본다. 여기서는 탭이 이 패널을 그리는지만 본다.
 vi.mock('./AiSerialPanel', () => ({ AiSerialPanel: ({ workId }: { workId: string }) => <p>AI 집필 패널 {workId}</p> }))
 // 내 댓글·제보 탭의 내용은 MyCommentsReports.test가 본다. 여기서는 탭이 이 화면을 (탭 안 모양으로) 그리는지만 본다.
@@ -312,7 +321,7 @@ it.each([
   if (writing === null) expect(document.body.textContent).not.toContain('미확인')
 })
 
-it('작성 중인 초안에는 발행 전 초안만 올리고 공개 중단·발행·상속·초안이 없는 회차는 뺀다', () => {
+it('작성 중인 초안 수에는 발행 전 초안만 세고 공개 중단·발행·상속·초안이 없는 회차는 뺀다 (공개 회차 탭에는 초안 묶음이 없다)', () => {
   openWith({ writing: { id: 'w', rows: [
     row(1),
     row(2, { publicationStatus: 'suspended' }),
@@ -320,8 +329,10 @@ it('작성 중인 초안에는 발행 전 초안만 올리고 공개 중단·발
     row(4, { inherited: true }),
     row(5, { hasDraft: false }),
   ] } })
-  const section = screen.getByRole('heading', { name: '작성 중인 초안' }).closest('section')!
-  expect(within(section).getAllByRole('link').map((a) => a.textContent)).toEqual(['1화 · 1화 초안'])
+  expect(screen.getByText('작품 요약 머리').getAttribute('data-drafts')).toBe('1')
+  // 초안은 집필실 왼쪽 회차 목록에서 연다: 공개 회차 탭에는 초안 묶음도 초안 링크도 없다.
+  expect(screen.queryByRole('heading', { name: '작성 중인 초안' })).toBeNull()
+  expect(screen.queryByRole('link', { name: '1화 · 1화 초안' })).toBeNull()
 })
 
 it('초안 목록을 불러오지 못하면 오류 상자(.ep-alert)로 알린다', () => {
@@ -400,11 +411,11 @@ it('AI 자율 집필 중이면 공개 회차 목록은 1화만 집필실로 보�
   }
 })
 
-it('AI 자율 집필 중이면 작성 중인 초안도 1화만 집필실 링크로 두고 나머지는 글자로 둔다', () => {
+it('AI 자율 집필 중에도 공개 회차 탭에는 작성 중인 초안 묶음이 없고, 집필실로 가는 링크는 집필실 열기뿐이다(회차가 없으면 수정하기도 없다)', () => {
   openAutonomous([row(1), row(2)], 0)
-  const drafts = screen.getByRole('heading', { name: '작성 중인 초안' }).closest('section')!
-  expect(within(drafts).getAllByRole('link').map((a) => [a.textContent, a.getAttribute('href')])).toEqual([['1화 · 1화 초안', '/studio/w?ep=1']])
-  expect(drafts.textContent).toContain('2화 · 2화 초안')
+  expect(screen.queryByRole('heading', { name: '작성 중인 초안' })).toBeNull()
+  expect(screen.queryByText(/1화 초안/)).toBeNull()
+  expect(screen.getAllByRole('link').map((a) => a.getAttribute('href')).filter((href) => href?.startsWith('/studio/'))).toEqual(['/studio/w'])
 })
 
 // ── 메뉴를 누르면 고른 탭의 내용으로 화면을 옮긴다: 탭 내용이 히어로·분기 정책 카드 아래(접힌 선 밖)에서 시작해, 눌러도 바뀐 것이 안 보였다 ──
@@ -535,4 +546,77 @@ it.each([['running', true], ['failed', false]])('최초 구축이 끝나고 업�
   expect(screen.queryByText(BADGE)).toBeNull()
   // 보이면 회차 목록 앞(공개 회차 머리)이다.
   if (shown) expect(screen.getByText(UPDATE_BADGE).compareDocumentPosition(screen.getByRole('list')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+// ── 개요 대시보드(R6): 바로가기는 메뉴를 누른 것과 같은 탭 전환이다 ──
+it('개요 탭은 히어로 아래에 대시보드를 그리고, 다른 탭에는 그리지 않는다', () => {
+  openFresh(2)
+  expect(screen.getByText('작품 개요 히어로').compareDocumentPosition(screen.getByRole('button', { name: '대시보드 운영 설정' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: /^공개 회차/ }))
+  expect(screen.queryByRole('button', { name: '대시보드 운영 설정' })).toBeNull()
+})
+
+it('대시보드 바로가기를 누르면 메뉴를 누른 것처럼 그 탭이 열리고 탭 내용 머리로 스크롤한다', async () => {
+  const useCase = { workSettings: vi.fn().mockResolvedValue(settingsOf(null)), updateWorkSettings: vi.fn() }
+  render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  expect(scrolled).toEqual([]) // 처음 렌더에서는 스크롤하지 않는다
+  fireEvent.click(screen.getByRole('button', { name: '대시보드 운영 설정' }))
+  expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('운영 설정')
+  expect(screen.getByRole('button', { name: '운영 설정' }).getAttribute('aria-current')).toBe('page')
+  const head = scrolled.filter((s) => (s.arg as ScrollIntoViewOptions | undefined)?.block === 'start')
+  expect(head).toHaveLength(1)
+  expect((head[0].el as HTMLElement).classList.contains('ep-tab')).toBe(true)
+  expect(await screen.findByRole('combobox', { name: '집필 방식' })).toBeTruthy()
+})
+
+it('대시보드에는 목업 여부·테스트 UseCase를 넘기고, 요청 중이거나 편집 중이면 바로가기를 잠근다(메뉴와 같은 규칙)', () => {
+  dashboard.props.length = 0
+  const useCase = { history: vi.fn() }
+  const view = render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  expect(dashboard.props.at(-1)).toMatchObject({ mockup: false, disabled: false, useCase })
+  view.rerender(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, busy: true } as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  expect((screen.getByRole('button', { name: '대시보드 운영 설정' }) as HTMLButtonElement).disabled).toBe(true)
+})
+
+it('대시보드의 작성 중인 초안 수는 소유자 회차 조회가 읽히기 전에는 null(읽는 중)이다', () => {
+  dashboard.props.length = 0
+  openFresh(1)
+  expect(dashboard.props.at(-1)?.draftCount).toBeNull()
+  cleanup()
+  render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, writing: { id: 'w', rows: [row(1), row(2, { hasDraft: false })] } } as never} work={work(1)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+  expect(dashboard.props.at(-1)?.draftCount).toBe(1)
+})
+
+// ── 회차 행 전체 클릭(R9): 행 안의 유일한 링크(수정하기)의 ::after가 행을 덮는다. 덮개(CSS)는 jsdom이 레이아웃을 계산하지 않아 여기서 볼 수 없고, 이동할 링크·잠긴 행에는 링크가 없다는 것만 본다. ──
+it('자체 공개 회차의 수정하기 링크는 행 전체를 덮는 클래스(ep-row-link)를 달고 그 회차의 집필실로 간다', () => {
+  open(3)
+  const links = rows().map((r) => r.querySelector('.ep-row-link'))
+  expect(links.map((a) => a?.getAttribute('href'))).toEqual(['/studio/w?ep=1', '/studio/w?ep=2', '/studio/w?ep=3'])
+  expect(links.every((a) => a?.tagName === 'A')).toBe(true)
+  expect(rows().every((r) => r.querySelectorAll('a').length === 1)).toBe(true) // 같은 주소로 가는 탭 정지가 둘이 되지 않는다
+})
+
+it('잠긴 회차(AI 자율 집필 2화부터)와 원작에서 이어받은 회차 행에는 행을 덮는 링크가 없다', () => {
+  openAutonomous([], 3)
+  const links = rows().map((r) => r.querySelector('.ep-row-link'))
+  expect(links[0]?.getAttribute('href')).toBe('/studio/w?ep=1')
+  expect(links[1]).toBeNull()
+  expect(links[2]).toBeNull()
+  cleanup()
+  openWith({}, 0, { episodes: [{ ...episode(1), inherited: true }, episode(2)] })
+  expect(rows().map((r) => r.querySelector('.ep-row-link') !== null)).toEqual([false, true])
+})
+
+// ── 운영 설정 탭 카드(R11): 설정 카드·분기 정책·작품 삭제가 한 카드 틀 안에 있고 삭제(위험 구역)가 맨 끝이다 ──
+it('운영 설정 탭은 집필 방식·자동 처리·설정 변경 이력·분기 정책 카드와 작품 삭제 구획을 한 틀(.ep-settings-cards)에 순서대로 담고 삭제가 맨 끝이다', async () => {
+  const useCase = { workSettings: vi.fn().mockResolvedValue(settingsOf('direct')), updateWorkSettings: vi.fn() }
+  await openSettingsTab(useCase)
+  const frame = document.querySelector<HTMLElement>('.ep-settings-cards')!
+  expect(frame.parentElement?.classList.contains('ep-tab')).toBe(true)
+  const names = ['집필 방식', '자동 처리', '설정 변경 이력', '분기 정책', '작품 삭제']
+  const regions = names.map((name) => within(frame).getByRole('region', { name }))
+  regions.slice(1).forEach((region, i) => expect(regions[i].compareDocumentPosition(region) & Node.DOCUMENT_POSITION_FOLLOWING, names[i + 1]).toBeTruthy())
+  expect(frame.lastElementChild).toBe(regions[4])
+  // 설정을 읽는 동안 쓰는 이름 없는 껍데기(.ep-operating-settings)는 이 틀의 직계다(CSS가 격자에 끼지 않게 한다)
+  expect(frame.querySelector(':scope > .ep-operating-settings')).not.toBeNull()
 })

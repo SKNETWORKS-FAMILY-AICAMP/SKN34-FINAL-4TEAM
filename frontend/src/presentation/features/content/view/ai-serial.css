@@ -1,5 +1,5 @@
 /* 작품 관리 'AI 집필' 탭: 설정 폼과 게시판 기록 표. 틀(.ep-reading·.ep-form-*·.ep-check·.ep-alert)은 shared/episode.css를 그대로 쓴다. */
-.ep-serial form{max-width:520px;margin-top:16px;gap:14px}
+.ep-serial form{margin-top:16px;gap:14px}
 .ep-serial fieldset{border:0;padding:0;margin:0;min-width:0;display:flex;flex-wrap:wrap;gap:0 18px}
 .ep-serial legend{width:100%;padding:0;margin-bottom:4px;font-size:13px;font-weight:650}
 .ep-serial .ep-check{margin:0}

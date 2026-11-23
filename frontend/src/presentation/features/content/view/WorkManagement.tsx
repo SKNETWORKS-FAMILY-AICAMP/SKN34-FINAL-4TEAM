@@ -22,6 +22,7 @@ import { EpisodeBulkImportSheet } from './EpisodeBulkImportSheet'
 import { LinkedWorldPanel } from './LinkedWorldPanel'
 import { ManuscriptBuildPanel } from './ManuscriptBuildPanel'
 import { ForkInfo, WorkDelete, WorkPolicy } from './WorkOperations'
+import { WorkDashboard } from './WorkDashboard'
 import { WorkOverview, type WorkEditing } from './WorkOverview'
 import { WorkBrief } from './WorkBrief'
 import { WorkSettingsPanel } from './WorkSettingsPanel'
@@ -41,7 +42,7 @@ type Props = {
   onMenuOpenChange: (open: boolean) => void
   /** 맨 위 알림(오류·상태). 사이드바 위에 끼면 화면 높이를 쓰는 사이드바가 아래로 밀리므로 내용 열 맨 위에 그린다. */
   notices?: ReactNode
-  /** AI 자율 집필이 켜져 있는지(EpisodePage가 읽는다). 켜져 있으면 서버가 1화 외의 원고 쓰기를 막으므로, 공개 회차 탭의 2화부터의 집필실 링크(수정하기·작성 중인 초안)를 잠그고 이유를 알린다. */
+  /** AI 자율 집필이 켜져 있는지(EpisodePage가 읽는다). 켜져 있으면 서버가 1화 외의 원고 쓰기를 막으므로, 공개 회차 탭의 2화부터의 집필실 링크(수정하기)를 잠그고 이유를 알린다. */
   serialLocked?: boolean
   /** 운영 설정의 집필 방식을 저장했을 때(AI 자율 집필을 켜고 껐을 수 있어 호출 측이 서버 값을 다시 읽는다) */
   onSerialSaved?: () => void
@@ -110,6 +111,12 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
     ['settings', '운영 설정'],
     ['history', '저장·AI·발행 이력'],
   ] as const
+  // 탭을 옮긴다: 메뉴와 개요 대시보드의 바로가기가 함께 쓴다(탭 내용 머리로 스크롤하고 이력 탭은 이력을 읽기 시작한다).
+  const openTab = (value: typeof tabs[number][0]) => {
+    picked.current = true
+    setTab(value)
+    if (value === 'history') void vm.loadHistory()
+  }
   return (
     <div className='ep-manage' data-menu={menuOpen ? undefined : 'collapsed'}>
       <ManageMenu name='작품' open={menuOpen} onOpenChange={onMenuOpenChange} back={{ to: '/lib?tab=write', label: '내가 쓰는 소설' }}>
@@ -120,12 +127,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               // 요청 중이거나 편집 폼이 열려 있는 동안(작품 정보·표지는 개요 탭, 분기 정책은 운영 설정 탭 안에 있어 탭을 떠나면 입력이 사라진다)에는 다른 탭으로 옮기지 못하게 잠그되, 지금 탭은 두어 방금 누른 버튼에서 키보드 초점이 사라지지 않게 한다(이력 탭은 누르면 곧 요청이 시작된다).
               disabled={(locked || editing !== null) && tab !== value}
               aria-current={tab === value ? 'page' : undefined}
-              onClick={() => {
-                // 좁은 화면의 메뉴 줄은 줄바꿈이라 잘린 탭이 없다. 세로는 위 effect가 탭 내용 머리로 옮긴다.
-                picked.current = true
-                setTab(value)
-                if (value === 'history') void vm.loadHistory()
-              }}
+              // 좁은 화면의 메뉴 줄은 줄바꿈이라 잘린 탭이 없다. 세로는 위 effect가 탭 내용 머리로 옮긴다.
+              onClick={() => openTab(value)}
             >
               {label}
             </button>
@@ -154,8 +157,21 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               onEditingChange={setEditing}
             />
           )}
+          {/* 히어로 아래 현황: 지표 카드·최근 발행 이력·탭 바로가기. 탭 이동 잠금은 메뉴와 같은 규칙이다. */}
+          {tab === 'overview' && (
+            <WorkDashboard
+              work={w}
+              draftCount={vm.writing ? drafts?.length : null}
+              forkCounts={forkCounts}
+              mockup={mockup}
+              disabled={locked || editing !== null}
+              onOpenTab={openTab}
+              useCase={useCase}
+            />
+          )}
           {tab === 'settings' && (
-            <>
+            // 설정 카드·분기 정책(포크 정보)·작품 삭제가 한 카드 틀이다: 넓은 화면은 2열이고 삭제(위험 구역)는 맨 끝 전체 폭이다(episode.css .ep-settings-cards).
+            <div className='ep-settings-cards'>
               {/* 운영 설정 API는 서버 없는 시연(목업)에 없다. 분기 정책·포크 정보·작품 삭제는 모두 있으므로 탭은 남긴다. */}
               {!mockup && <WorkSettingsPanel workId={w.id} useCase={useCase} onSaved={onSerialSaved} onOpenWorld={blocked ? undefined : openWorld} />}
               {w.source
@@ -166,7 +182,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                     <WorkDelete blocked={blocked} onDelete={deleteWork} />
                   </>
                 )}
-            </>
+            </div>
           )}
           {tab === 'world' && (
             <>
@@ -227,26 +243,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               {/* 원고 편집은 모두 집필실에서 한다: 회차 목록 머리에 집필실로 바로 가는 창구를 둔다(회차가 0개여도 집필실의 새 회차 버튼으로 1화를 만든다). 사이드바에는 같은 버튼을 두지 않는다. */}
               <p><Go to={`/studio/${w.id}`} className='btn sm'>집필실 열기</Go></p>
               {vm.writing?.error && <p className="ep-alert" role="alert">{vm.writing.error}</p>}
-              {/* AI 자율 집필 중에는 1화만 쓴다: 2화부터의 집필실 링크(작성 중인 초안·수정하기)를 잠그고 이유는 여기서 한 번 알린다. */}
+              {/* AI 자율 집필 중에는 1화만 쓴다: 2화부터의 집필실 링크(수정하기)를 잠그고 이유는 여기서 한 번 알린다. */}
               {serialLocked && <div className='ep-notes'><p id={lockNote} role='status'>{SERIAL_LOCK_NOTICE}</p></div>}
-              {!!drafts?.length && (
-                <section className="ep-drafts">
-                  <h3>작성 중인 초안</h3>
-                  <ul role="list">
-                    {drafts.map(e => (
-                      <li key={e.number}>
-                        {serialEpisodeLocked(serialLocked, e.number)
-                          ? <>{e.number}화 · {e.draft.title}</>
-                          : (
-                            <Go to={`/studio/${w.id}?ep=${e.number}`}>
-                              {e.number}화 · {e.draft.title}
-                            </Go>
-                          )}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
               <div className='ep-notes'>
                 <p>
                   {w.visibility === 'public'
@@ -279,7 +277,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                             : serialEpisodeLocked(serialLocked, e.number)
                             ? <button type='button' className='btn sm' disabled aria-describedby={lockNote} aria-label={`${e.number}화 ${e.title} 수정하기`}>수정하기</button>
                             : (
-                              <Go to={`/studio/${w.id}?ep=${e.number}`} className='btn sm' aria-label={`${e.number}화 ${e.title} 수정하기`}>
+                              <Go to={`/studio/${w.id}?ep=${e.number}`} className='btn sm ep-row-link' aria-label={`${e.number}화 ${e.title} 수정하기`}>
                                 수정하기
                               </Go>
                             )}

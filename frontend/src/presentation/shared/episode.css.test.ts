@@ -405,9 +405,17 @@ describe('episode.css 작품 관리 화면 polish 계약 (A·B 리뷰 반영)', 
     expect(rule('.ep-content .ep-lead')).toMatch(/max-width:62ch/)
   })
 
-  it('[P2-5] 초안 링크는 안쪽 가로 여백이 없어 글자가 제목과 같은 x에서 시작하고, 제목은 탭 제목(h2)의 한 단계 아래(h3)다', () => {
-    expect(rule('.ep-drafts a')).toMatch(/padding:\s*12px 0(;|\s|$)/)
-    expect(rule('.ep-drafts h3')).toMatch(/font-size:\s*16px/)
+  it('공개 회차 탭의 작성 중인 초안 묶음(.ep-drafts)은 없어졌다: 초안은 집필실 회차 목록에서 열어, 그 규칙을 남기지 않는다', () => {
+    expect(css).not.toMatch(/\.ep-drafts\b/)
+  })
+
+  it('[R9] 회차 행 전체 클릭: 행 안의 유일한 링크(수정하기, .ep-row-link)의 ::after가 행(.ep, 기준 위치)을 덮고, 링크가 없는 잠긴·상속 행은 hover 면도 없다', () => {
+    expect(rule('.ep-list .ep')).toMatch(/position:relative/)
+    expect(rule('.ep-list .ep-row-link::after')).toMatch(/content:'';position:absolute;inset:0/)
+    expect(rule('.ep-list .ep:not(:has(.ep-row-link)):hover')).toMatch(/background:none/)
+    // 포크 수 툴팁(title)은 덮개 위에 둬 살아 있다. 링크에 transform을 걸면 ::after의 기준이 버튼으로 바뀌므로 걸지 않는다.
+    expect(rule('.ep-list .ep .d [title]')).toMatch(/position:relative;z-index:1/)
+    expect(rule('.ep-list .ep-row-link')).not.toMatch(/transform/)
   })
 
   it('[P2-7] 탭 내용 묶음의 직계 탭 제목(h2)은 아래 간격을 둔다', () => {
@@ -418,6 +426,16 @@ describe('episode.css 작품 관리 화면 polish 계약 (A·B 리뷰 반영)', 
     const locked = rules.find((r) => /\.btn\.pri:disabled$/.test(r.selector) && r.selector.includes('.ep-edit-actions'))
     expect(locked?.body).toMatch(/background:none;border-color:var\(--line2\);color:var\(--ink\)/)
     expect(locked?.selector).toContain('.ep-operating-settings .ep-form-footer')
+    // AI 집필 탭의 설정 저장도 같은 잠긴 모양이다(채운 연보라 + 흰 글자라 읽기 어렵고 운영 설정과 달랐다).
+    expect(locked?.selector).toContain('.ep-serial .ep-form-footer')
+  })
+
+  it('[R11] 운영 설정 탭 카드: 넓은 화면은 2열 격자이고, 패널 껍데기(.ep-operating-settings)는 격자에 끼지 않으며(display:contents) 카드가 아닌 것(알림·불러오는 중)은 한 줄을 다 쓴다. 평탄화(:has(>.ep-sec-head))는 이 탭에서만 되돌리고(margin:0이 카드 아래 간격을 grid gap 하나로 모은다) 삭제 구역은 맨 아래 전체 폭이다', () => {
+    expect(rule('.ep-settings-cards')).toMatch(/display:grid;grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,420px\),1fr\)\)/)
+    expect(rule('.ep-settings-cards>.ep-operating-settings')).toMatch(/display:contents/)
+    expect(rule('.ep-settings-cards>.ep-operating-settings>:not(.ep-card)')).toMatch(/grid-column:1\/-1/)
+    expect(rule('.episode-app .ep-settings-cards .ep-card.tcard')).toMatch(/margin:0/)
+    expect(rule('.episode-app .ep-settings-cards .ep-delete')).toMatch(/grid-column:1\/-1/)
   })
 
   it('[P2-8] 운영 설정의 저장 버튼과 잠긴 이유는 한 줄(.ep-form-actions)에 나란히 놓인다', () => {
@@ -429,8 +447,8 @@ describe('episode.css 작품 관리 화면 polish 계약 (A·B 리뷰 반영)', 
     expect(rule('.ep-content .ep-reading>h3')).toMatch(/font-size:16px/)
   })
 
-  it('탭 제목(h2) 아래 묶음 제목(h3) — 분기 정책·포크 정보·작품 삭제의 카드 머리, 세계관 패널, 이야기 분기 머리글, 받은 피드백의 구획 — 은 모두 같은 16px이다', () => {
-    const group = rule('.ep-tab :is(.ep-sec-head,.ep-card,.ep-fork,.ep-feedback .sec-h)>h3')
+  it('탭 제목(h2) 아래 묶음 제목(h3) — 분기 정책·포크 정보·작품 삭제의 카드 머리, 세계관 패널, 이야기 분기 머리글, 받은 피드백의 구획, 개요 대시보드의 구획 — 은 모두 같은 16px이다', () => {
+    const group = rule('.ep-tab :is(.ep-sec-head,.ep-card,.ep-fork,.ep-feedback .sec-h,.ep-dash section)>h3')
     expect(group).toMatch(/font-size:16px/)
     expect(group).toMatch(/font-weight:700/)
   })

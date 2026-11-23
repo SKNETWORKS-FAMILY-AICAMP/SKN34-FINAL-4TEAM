@@ -117,8 +117,12 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .episode-app .ep-hero.ep-hero-compact .sum{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:8px 0}
 .episode-app .ep-hero.ep-hero-compact .hashes{margin:0 0 8px}
 .ep-list{list-style:none;margin:0}
-.ep-list .ep{grid-template-columns:56px minmax(0,1fr) auto}
+.ep-list .ep{grid-template-columns:56px minmax(0,1fr) auto;position:relative}
 .ep-list .ep>div{min-width:0;overflow-wrap:anywhere}
+/* 회차 행 전체 클릭(R9): 행 안의 유일한 링크(수정하기)의 ::after가 행을 덮는다. 잠긴·상속 회차는 링크가 없어 hover 면도 없앤다. 링크에 transform을 걸면 ::after의 기준이 버튼으로 바뀌니 걸지 않는다. 포크 수 툴팁(title)은 덮개 위에 둔다. */
+.ep-list .ep-row-link::after{content:'';position:absolute;inset:0}
+.ep-list .ep:not(:has(.ep-row-link)):hover{background:none}
+.ep-list .ep .d [title]{position:relative;z-index:1}
 .ep-list-foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start;margin:20px 0 8px}
 @media(max-width:650px){.ep-list .ep{grid-template-columns:56px minmax(0,1fr)}.ep-list .ep :is(.btn,.chip){grid-column:2;justify-self:start}}
 .ep-feedback{max-width:760px;margin:0 auto}
@@ -155,18 +159,6 @@ body:has(.ep-menu-account) .thm-float{display:none}
 /* iOS는 16px보다 작은 입력에 초점이 가면 화면을 확대한다. 손가락이 주 입력인 기기에서만 입력 글자를 16px로 올린다(큰 제목 입력과 데스크톱 밀도는 그대로). */
 @media(pointer:coarse){.ep-main input:not([type=checkbox]):not([type=radio]),.ep-main textarea,.ep-main select,.ep-feedback select.inp.sm{font-size:16px}}
 
-.ep-drafts { margin-bottom: 24px; }
-.ep-drafts h3 { margin: 0 0 8px; font-size: 16px; }
-.ep-drafts ul { list-style: none; margin: 0; padding: 0; }
-.ep-drafts li { border-bottom: 1px solid var(--line2); }
-.ep-drafts a {
-  display: block;
-  min-height: 44px;
-  padding: 12px 0;
-  color: var(--pri-ink);
-  overflow-wrap: anywhere;
-}
-.ep-drafts a:is(:hover, :focus-visible) { text-decoration: underline; text-underline-offset: 3px; }
 /* 다른 곳(AI·외부 도구)에서 바뀌었다는 안내(McpChangeBanner)는 오류가 아니라서 공용 알림 상자(.ep-alert)의 위험색 대신 강조색 면·테두리를 쓴다. */
 .ep-alert.ep-changed{background:color-mix(in srgb,var(--pri) 8%,var(--surface));color:var(--ink);border-color:color-mix(in srgb,var(--pri) 40%,var(--line2))}
 .ep-operating-settings form { max-width: 520px; margin-top: 16px; gap: 14px; }
@@ -206,13 +198,13 @@ body:has(.ep-menu-account) .thm-float{display:none}
 /* 작품 관리 polish(A·B 리뷰): 분기 정책·포크 정보·작품 삭제가 운영 설정 탭으로 옮겨 갔다. 탭 제목(h2)은 탭 내용 묶음의 직계라 아래 간격을 두고, 세 구획의 제목은 탭 제목 아래 묶음 제목(h3, 16px)이다.
    분기 정책·포크 정보·작품 삭제·세계관 패널·이야기 분기 머리글·받은 피드백의 구획 제목도 모두 이 묶음 제목(h3)이다(탭 제목은 메뉴 탭 이름과 똑같은 h2 하나). 작품 삭제는 탭 맨 아래 위험 구역이라 위 구획과 넉넉히 떨어진다. 스킵 링크가 초점을 주는 내용 열은 main처럼 초점 링을 그리지 않는다(storyfork.css의 main[tabindex="-1"]:focus와 같다). */
 .ep-tab>h2{margin:0 0 16px}
-.ep-tab :is(.ep-sec-head,.ep-card,.ep-fork,.ep-feedback .sec-h)>h3{font-size:16px;font-weight:700;line-height:1.5}
+.ep-tab :is(.ep-sec-head,.ep-card,.ep-fork,.ep-feedback .sec-h,.ep-dash section)>h3{font-size:16px;font-weight:700;line-height:1.5}
 .ep-tab .ep-delete{margin-top:48px}
 .ep-content[tabindex="-1"]:focus{outline:none}
 /* 비어 있는 상태 줄(.ep-notice)은 자리를 차지하지 않는다. 요소는 보조기기가 알림을 안정적으로 읽도록 늘 남기고 비었을 때 높이·간격만 0이다(내용 열 안에서만: 새 작품 만들기는 그대로). */
 .ep-content>.ep-notice:empty{min-height:0;margin:0}
 /* 잠긴 저장 버튼(.pri)은 채운 보라가 아니라 옅은 윤곽선이다: 채운 보라에 흐림(.55)만 줘서는 눌러도 되는 버튼처럼 보였다(세계관의 잠긴 저장 버튼과 같은 모양, 글자색을 아예 빼면 라이트에서 흰 글자가 남는다). */
-.episode-app :is(.ep-edit-actions,.ep-operating-settings .ep-form-footer) .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--ink)}
+.episode-app :is(.ep-edit-actions,.ep-operating-settings .ep-form-footer,.ep-serial .ep-form-footer) .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--ink)}
 /* 운영 설정의 저장 버튼과 잠긴 이유는 한 줄에 나란히 놓는다. */
 .ep-operating-settings .ep-form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
 
@@ -221,3 +213,22 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .episode-app .ep-brief h1{font-family:var(--tfont);font-size:24px;line-height:1.2;letter-spacing:-.03em;font-weight:700;margin:0;min-width:0}
 .episode-app .ep-brief .ep-chips{margin-top:8px}
 .episode-app .ep-brief .stats{margin-top:6px}
+
+/* 작품 관리 개요 대시보드(R6): 지표 카드·최근 발행·바로가기. 구획 사이는 구획 제목 위가 아래보다 넓게 32px(다른 탭의 구획 간격과 같다). 글자 상태(공개 전·집계 없음·불러오지 못했어요)는 숫자 칸보다 작은 보조 글이다. */
+.ep-dash{display:grid;gap:32px;margin-top:8px}
+.ep-dash section>h3+p{margin-top:12px}
+.ep-metrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:12px;margin:12px 0 0}
+.ep-metrics>div{display:grid;gap:4px;min-width:0;padding:14px 16px;background:var(--surface);border:1px solid var(--line2);border-radius:12px}
+.ep-metrics dt{font-size:12px;color:var(--sub)}
+.ep-metrics dd{margin:0;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ep-metrics dd.ep-muted{font-size:14px;font-weight:600}
+.ep-shortcuts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:8px;margin-top:12px}
+.episode-app .ep-shortcut{justify-content:flex-start}
+
+/* 운영 설정 탭 카드(R11): quieter의 카드 평탄화(:has(>.ep-sec-head))를 이 탭에서만 되돌린다. 넓은 화면은 2열, 삭제(위험 구역)는 맨 아래 전체 폭. 패널 껍데기는 그리드에 끼지 않게 display:contents(이름 없는 section이라 의미 손실 없음). 카드 사이 간격은 grid gap 하나다(.ep-card의 margin-bottom·.ep-tab .ep-delete의 위 간격은 아래 margin:0이 이긴다). */
+.ep-settings-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:start}
+.ep-settings-cards>.ep-operating-settings{display:contents}
+.ep-settings-cards>.ep-operating-settings>:not(.ep-card){grid-column:1/-1}
+.episode-app .ep-settings-cards .ep-card.tcard{background:var(--surface);border:1px solid var(--line2);border-radius:16px;padding:20px 24px;margin:0;box-shadow:none}
+.episode-app .ep-settings-cards .ep-delete{grid-column:1/-1;margin:0;padding:20px 24px;border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line2));border-radius:16px;background:color-mix(in srgb,var(--danger) 4%,var(--surface))}
+.ep-settings-cards .ep-card .ep-facts{margin-top:8px}

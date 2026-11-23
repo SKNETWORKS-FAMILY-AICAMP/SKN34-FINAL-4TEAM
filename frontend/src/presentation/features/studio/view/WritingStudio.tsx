@@ -2,7 +2,7 @@ import { StoryPlanPanel } from '../../plans/view/StoryPlanWorkspace'
 import { useStoryPlanViewModel } from '../../../shared/plans/useStoryPlanViewModel'
 import { useWritingPlanNavigation } from '../viewmodel/useWritingPlanNavigation'
 import { Suspense,useEffect,useEffectEvent,useId,useRef,useState,type ReactNode } from 'react'
-import { useLocation,useSearchParams } from 'react-router'
+import { useLocation,useNavigate,useSearchParams } from 'react-router'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
 import { appContainer } from '../../../../app/appContainer'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
@@ -20,6 +20,7 @@ import { McpChangeBanner } from '../../../shared/McpChangeBanner'
 import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { useScreenId } from '../../../shared/screenIds'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
+import { requestLeave } from '../../../shared/events'
 import {ManuscriptBody} from '../../../shared/media/MediaPanel'
 import { ManuscriptExportPanel } from './ManuscriptExportPanel'
 import { EpisodeImagePanel } from './EpisodeImagePanel'
@@ -130,8 +131,15 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const {dark,toggle:toggleTheme}=useTheme()
   const dispatch=useAppDispatch()
   // 로그인이 풀린 오류의 '로그인' 링크: 로그인 뒤 홈이 아니라 쓰던 회차(?ep=n 포함)로 돌아오게 현재 주소를 넘긴다(댓글·작품 화면과 같은 방식).
-  const {pathname,search}=useLocation()
+  const {pathname,search,key:locationKey}=useLocation()
+  const navigate=useNavigate()
   const requireLogin=()=>{dispatch(sessionActions.requireLogin({next:pathname+search,msg:'로그인하면 쓰던 회차로 돌아와요. 저장하지 않은 입력은 먼저 복사해 두세요.',role:'user'}))}
+  // 상단 '뒤로': 앱 안에 이전 화면이 있으면 그리로(서재든 작품 관리든 온 곳), 없으면(주소를 직접 연 첫 항목) 이 작품의 관리 화면으로 간다.
+  // 이전 화면으로 갈 때의 저장 확인은 되돌아가기 보호(useWritingPlanNavigation의 popstate)가 맡으므로 여기서 묻지 않는다(묻으면 두 번 뜬다). 첫 항목으로의 이동은 링크 클릭이 아니라 그 보호가 못 잡아 직접 확인한다.
+  const goBack=()=>{
+    if(locationKey!=='default'){navigate(-1);return}
+    if(requestLeave())navigate(`/content?work=${encodeURIComponent(id)}`)
+  }
   const showSid=useAppSelector(s=>s.ui.showSid)
   const dev=import.meta.env.DEV
   // 고급 패널은 숨겨도 마운트를 유지해 계획 입력과 원고를 함께 보존한다.
@@ -220,7 +228,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     {/* 상단 바: 왼쪽은 어디서 무엇을 하는지(돌아가기·제목·저장 상태), 오른쪽은 자주 쓰는 네 가지(모드·버전 저장·버전 공개·더보기)만 둔다. */}
     <header ref={bar} className="sbar">
       <div className="writing-bar">
-        <Go className="back rback" to="/lib?tab=write"><BackChev />내가 쓰는 소설</Go>
+        <button type="button" className="back rback" onClick={goBack}><BackChev />뒤로</button>
         <h1 className="t">집필실</h1>
         {/* 완료 안내는 늘 있는 이 줄에 이어 적는다: 알림 문단이 생기고 사라지며 아래 3단을 밀지 않고, 스크린리더도 저장 상태와 함께 한 번만 읽는다. */}
         <span ref={statusLine} tabIndex={-1} className="st" role="status" aria-live="polite">{status}{vm.notice&&<span className="writing-notice"> · {vm.notice}</span>}</span>
