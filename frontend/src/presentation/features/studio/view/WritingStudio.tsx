@@ -295,7 +295,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
             <ResizeSeparator label="회차 목록과 버전 그래프 크기 조절" controls={listId} value={split} min={20} max={80} onChange={setSplit} />
             <section className="writing-graph" aria-label="버전 그래프">
               <h2>버전 그래프 · {active.number}화</h2>
-              <VersionGraph rows={versionGraphRows(active,vm.dirty)} selectedId={selected?.id??''} disabled={vm.busy} onPick={pickVersion}/>
+              <VersionGraph rows={versionGraphRows(active,vm.dirty,vm.draft)} selectedId={selected?.id??''} disabled={vm.busy} onPick={pickVersion}/>
             </section>
           </>}
         </div>

@@ -665,6 +665,22 @@ it('저장하지 않은 변경이나 발행본이 없으면 해당 배지를 그
   expect(graph().textContent).not.toContain('발행본')
 })
 
+// 편집기 내용이 저장 버전과 같으면 현재 위치가 그 버전으로 옮겨 가고, 한 글자라도 고치면 작업 초안으로 돌아온다(#730 후속).
+it('편집기 내용이 저장 버전과 같으면 그 버전 노드가 현재이고 고치면 작업 초안이 현재다', () => {
+  model.active = { ...originalActive, versions: [savedVersion('v1', '저장 원고'), { ...savedVersion('v2', '다른 원고'), title: '다른 저장본' }] }
+  model.draft = { ...originalDraft, title: '저장본', body: '저장 원고' }
+  const { rerender } = renderStudio()
+  const rows = () => within(graph()).getAllByRole('listitem')
+  expect(rows().map(r => r.className)).toEqual(['graph-row draft', 'graph-row version', 'graph-row version head'])
+  expect(rows()[2].textContent).toContain('현재')
+  expect(rows()[0].textContent).not.toContain('현재')
+  model.draft = { ...originalDraft, title: '저장본', body: '고친 원고' }
+  rerender(<WritingStudio id="work-id" />)
+  expect(rows().map(r => r.className)).toEqual(['graph-row draft head', 'graph-row version', 'graph-row version'])
+  expect(rows()[0].textContent).toContain('현재')
+  expect(rows()[2].textContent).not.toContain('현재')
+})
+
 // #730 그래프의 저장 버전 노드는 편집할 수 있는 회차에서 시트를 열지 않고 그 버전을 작업 초안에 불러온다(복원·공개·버전 저장은 하지 않는다).
 // 불러온 제목·본문, 저장하지 않은 입력의 확인, 안내는 ViewModel이 하므로 useWritingViewModel.test가 확인한다(여기서는 ViewModel을 대역으로 쓴다).
 it('그래프의 저장 버전 노드를 누르면 시트를 열지 않고 그 버전을 작업 초안에 불러온다', () => {
