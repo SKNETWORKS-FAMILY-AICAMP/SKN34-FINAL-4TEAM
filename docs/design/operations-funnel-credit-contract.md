@@ -68,6 +68,7 @@ Content `GET /internal/v1/operations/funnel`(운영 서비스 토큰 체인, 파
 | `GET /members/{memberId}` | 잔액(종류별 포함)과 내역(Core `history`와 같은 모양) |
 | `POST /members/{memberId}/grants` `{amount, reason}` | 수동 지급 → 201, 갱신된 잔액 |
 | `POST /members/{memberId}/revocations` `{amount, reason}` | 수동 회수 → 201, 갱신된 잔액 |
+| `POST /balances` `{memberIds}` | 회원 목록의 잔액 열: Core 묶음 잔액을 **맨 배열** `[{memberId,total}]`로 그대로 중계(없는 회원은 빠짐, 최대 100명은 Core가 판단). `credits` 권한 확인이 먼저이고 조회라 활동 기록은 없다 |
 
 - `amount`: 정수 1~100,000. `reason`: 앞뒤 공백 제거 후 1~200자. 위반은 422.
 - 지급은 새 지급 종류 `operator`(Core `CreditKind.OPERATOR`)로 남기고 만료는 `reward`와 같다.

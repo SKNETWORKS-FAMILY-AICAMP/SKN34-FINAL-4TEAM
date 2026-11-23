@@ -9,6 +9,7 @@ import ai.storyfork.operations.report.entity.ReportHistoryEntity
 import ai.storyfork.operations.report.entity.ReportHistoryType
 import ai.storyfork.operations.report.entity.ReportKind
 import ai.storyfork.operations.report.entity.ReportStatus
+import ai.storyfork.operations.report.entity.ReportTarget
 import ai.storyfork.operations.report.repository.ReportHistoryRepository
 import ai.storyfork.operations.report.repository.ReportRepository
 import ai.storyfork.operations.report.service.ReportService
@@ -33,6 +34,7 @@ import org.springframework.transaction.support.DefaultTransactionStatus
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.server.ResponseStatusException
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 
 /** Counts transaction boundaries without any resource, so the service runs under the real `@Transactional` advice. */
 private class RecordingTransactionManager : AbstractPlatformTransactionManager() {
@@ -67,14 +69,16 @@ class ReportServiceTest {
     private val admin = OperationsMember(UUID.randomUUID(), true)
     private val operatorWithoutRights = OperationsMember(UUID.randomUUID(), true)
     private val workId = UUID.randomUUID()
+    private val worldId = UUID.randomUUID()
     private val reportId = UUID.randomUUID()
+    private val mapper = jacksonMapperBuilder().build()
 
     private fun report() = ReportEntity(
         id = reportId, kind = ReportKind.RIGHTS, workId = workId, workTitle = "작품", workOwnerId = owner.memberId,
         reporterId = reporter.memberId, reason = "도용", evidence = "", createdAt = Instant.parse("2026-01-01T00:00:00Z"),
     )
 
-    private fun givenReport(): ReportEntity = report().also {
+    private fun givenReport(row: ReportEntity = report()): ReportEntity = row.also {
         `when`(reports.findById(reportId)).thenReturn(Optional.of(it))
         `when`(reports.saveAndFlush(any(ReportEntity::class.java) ?: it)).thenAnswer { call -> call.arguments[0] }
     }
@@ -411,5 +415,132 @@ class ReportServiceTest {
         service.requestEvidence(admin, reportId, ReportBodyRequest("증빙 제출"))
 
         assertEquals(ReportHistoryType.EVIDENCE_REQUEST, savedHistory().type)
+    }
+
+    private fun episodeReport() = ReportEntity(
+        id = reportId, kind = ReportKind.RIGHTS, targetType = ReportTarget.EPISODE, workId = workId, episodeNumber = 2, workTitle = "작품",
+        workOwnerId = owner.memberId, reporterId = reporter.memberId, reason = "도용", evidence = "", createdAt = Instant.parse("2026-01-01T00:00:00Z"),
+    )
+
+    private fun worldReport() = ReportEntity(
+        id = reportId, kind = ReportKind.HARMFUL, targetType = ReportTarget.WORLD, worldId = worldId, worldName = "별빛 세계",
+        reporterId = reporter.memberId, reason = "유해", evidence = "", createdAt = Instant.parse("2026-01-01T00:00:00Z"),
+    )
+
+    @Test
+    fun `an episode report stores the work snapshot and the episode number once Content lists that episode`() {
+        `when`(content.work(workId)).thenReturn(ContentWork(workId, owner.memberId.toString(), "원작 제목", false))
+        `when`(content.episodes(workId)).thenReturn(mapper.readTree("""[{"number":1,"title":"1화"},{"number":2,"title":"2화"}]"""))
+        `when`(reports.saveAndFlush(any(ReportEntity::class.java) ?: report())).thenAnswer { it.arguments[0] }
+
+        val result = service.create(reporter, ReportRequest(ReportKind.RIGHTS, workId, "도용", targetType = ReportTarget.EPISODE, episodeNumber = 2))
+
+        assertEquals(ReportTarget.EPISODE, result.targetType)
+        assertEquals(workId, result.workId)
+        assertEquals(2, result.episodeNumber)
+        assertEquals("원작 제목", result.workTitle)
+        assertEquals(owner.memberId, result.workOwnerId)
+        assertNull(result.worldId)
+        assertNull(result.worldName)
+    }
+
+    @Test
+    fun `an episode Content does not list is not found and nothing is stored`() {
+        `when`(content.work(workId)).thenReturn(ContentWork(workId, owner.memberId.toString(), "원작 제목", false))
+        `when`(content.episodes(workId)).thenReturn(mapper.readTree("""[{"number":1,"title":"1화"}]"""))
+
+        assertThrows(NoSuchElementException::class.java) {
+            service.create(reporter, ReportRequest(ReportKind.RIGHTS, workId, "도용", targetType = ReportTarget.EPISODE, episodeNumber = 9))
+        }
+
+        verifyNoInteractions(reports, histories)
+    }
+
+    @Test
+    fun `a world report takes the world's name from the Content list and stores no work and no owner`() {
+        `when`(content.worldStudios()).thenReturn(mapper.readTree(
+            """[{"worldId":"${UUID.randomUUID()}","ownerId":"${UUID.randomUUID()}","name":"다른 세계"},{"worldId":"${worldId}","ownerId":"${owner.memberId}","name":"별빛 세계"}]""",
+        ))
+        `when`(reports.saveAndFlush(any(ReportEntity::class.java) ?: report())).thenAnswer { it.arguments[0] }
+
+        val result = service.create(reporter, ReportRequest(ReportKind.HARMFUL, null, "유해", targetType = ReportTarget.WORLD, worldId = worldId))
+
+        assertEquals(ReportTarget.WORLD, result.targetType)
+        assertEquals(worldId, result.worldId)
+        assertEquals("별빛 세계", result.worldName)
+        assertEquals(reporter.memberId, result.reporterId)
+        assertNull(result.workId)
+        assertNull(result.workTitle)
+        assertNull(result.workOwnerId)
+        assertNull(result.episodeNumber)
+        verify(content).worldStudios()
+        verifyNoMoreInteractions(content)
+    }
+
+    @Test
+    fun `a world Content does not list is not found and nothing is stored`() {
+        `when`(content.worldStudios()).thenReturn(mapper.readTree("""[{"worldId":"${UUID.randomUUID()}","ownerId":"${UUID.randomUUID()}","name":"다른 세계"}]"""))
+
+        assertThrows(NoSuchElementException::class.java) {
+            service.create(reporter, ReportRequest(ReportKind.HARMFUL, null, "유해", targetType = ReportTarget.WORLD, worldId = worldId))
+        }
+
+        verifyNoInteractions(reports, histories)
+    }
+
+    @Test
+    fun `a report needs the ids its target type asks for, checked before Content`() {
+        for (request in listOf(
+            ReportRequest(ReportKind.RIGHTS, null, "도용"),
+            ReportRequest(ReportKind.RIGHTS, workId, "도용", targetType = ReportTarget.EPISODE),
+            ReportRequest(ReportKind.RIGHTS, null, "도용", targetType = ReportTarget.EPISODE, episodeNumber = 1),
+            ReportRequest(ReportKind.HARMFUL, workId, "유해", targetType = ReportTarget.WORLD),
+        )) assertThrows(IllegalArgumentException::class.java) { service.create(reporter, request) }
+
+        verifyNoInteractions(content, reports, histories)
+    }
+
+    @Test
+    fun `a work report keeps no episode number and no world even when the request carries them`() {
+        `when`(content.work(workId)).thenReturn(ContentWork(workId, owner.memberId.toString(), "원작 제목", false))
+        `when`(reports.saveAndFlush(any(ReportEntity::class.java) ?: report())).thenAnswer { it.arguments[0] }
+
+        val result = service.create(reporter, ReportRequest(ReportKind.RIGHTS, workId, "도용", episodeNumber = 3, worldId = worldId))
+
+        assertEquals(ReportTarget.WORK, result.targetType)
+        assertNull(result.episodeNumber)
+        assertNull(result.worldId)
+        verify(content).work(workId)
+        verifyNoMoreInteractions(content)
+    }
+
+    @Test
+    fun `an episode report restricts and releases that episode, not the whole work`() {
+        givenReport(episodeReport())
+        givenRights()
+        `when`(content.restrictEpisode(workId, 2)).thenReturn(mapper.readTree("""{"number":2,"restricted":true}"""))
+        `when`(content.unrestrictEpisode(workId, 2)).thenReturn(mapper.readTree("""{"number":2,"restricted":false}"""))
+
+        assertTrue(service.restrict(admin, reportId).contentRestricted)
+        assertFalse(service.unrestrict(admin, reportId).contentRestricted)
+
+        verify(content).restrictEpisode(workId, 2)
+        verify(content).unrestrictEpisode(workId, 2)
+        verifyNoMoreInteractions(content)
+    }
+
+    @Test
+    fun `a world report restricts and releases that world`() {
+        givenReport(worldReport())
+        givenRights()
+        `when`(content.restrictWorld(worldId)).thenReturn(mapper.readTree("""{"worldId":"${worldId}","restricted":true}"""))
+        `when`(content.unrestrictWorld(worldId)).thenReturn(mapper.readTree("""{"worldId":"${worldId}","restricted":false}"""))
+
+        assertTrue(service.restrict(admin, reportId).contentRestricted)
+        assertFalse(service.unrestrict(admin, reportId).contentRestricted)
+
+        verify(content).restrictWorld(worldId)
+        verify(content).unrestrictWorld(worldId)
+        verifyNoMoreInteractions(content)
     }
 }
