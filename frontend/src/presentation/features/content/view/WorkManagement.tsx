@@ -112,7 +112,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
     ['settings', '운영 설정'],
     ['history', '저장·AI·발행 이력'],
   ] as const
-  // 탭을 옮긴다: 메뉴와 개요 대시보드의 바로가기가 함께 쓴다(탭 내용 머리로 스크롤하고 이력 탭은 이력을 읽기 시작한다).
+  // 탭을 옮긴다(탭 내용 머리로 스크롤하고 이력 탭은 이력을 읽기 시작한다).
   const openTab = (value: typeof tabs[number][0]) => {
     picked.current = true
     setTab(value)
@@ -157,7 +157,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               onEditingChange={setEditing}
             />
           )}
-          {/* 히어로 아래 현황: 지표 카드·최근 발행 이력·탭 바로가기. 탭 이동 잠금은 메뉴와 같은 규칙이다. */}
+          {/* 히어로 아래 현황: 지표 카드·최근 발행 이력·바로가기(집필실·소설 상세). 이동 잠금은 메뉴와 같은 규칙이다. */}
           {tab === 'overview' && (
             <WorkDashboard
               work={w}
@@ -165,12 +165,11 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               forkCounts={forkCounts}
               mockup={mockup}
               disabled={locked || editing !== null}
-              onOpenTab={openTab}
               useCase={useCase}
             />
           )}
           {tab === 'settings' && (
-            // 설정 카드·분기 정책(포크 정보)·작품 삭제가 한 카드 틀이다: 넓은 화면은 2열이고 삭제(위험 구역)는 맨 끝 전체 폭이다(episode.css .ep-settings-cards).
+            // 설정 카드·분기 정책(포크 정보)·작품 삭제가 한 카드 틀이다: 넓은 화면은 왼쪽에 집필 방식(두 줄)·오른쪽에 자동 처리·설정 변경 이력이고, 그 아래 분기 정책(포크 정보)과 맨 끝 삭제(위험 구역)는 전체 폭이다(episode.css .ep-settings-cards).
             <div className='ep-settings-cards'>
               {/* 운영 설정 API는 서버 없는 시연(목업)에 없다. 분기 정책·포크 정보·작품 삭제는 모두 있으므로 탭은 남긴다. */}
               {!mockup && <WorkSettingsPanel workId={w.id} useCase={useCase} onSaved={onSerialSaved} onOpenWorld={blocked ? undefined : openWorld} />}

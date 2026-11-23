@@ -431,6 +431,11 @@ describe('episode.css 작품 관리 화면 polish 계약 (A·B 리뷰 반영)', 
     expect(rule('.episode-app .ep-settings-cards .ep-delete')).toMatch(/grid-column:1\/-1/)
   })
 
+  it('[approve] 운영 설정 카드 배치: 집필 방식 카드는 왼쪽 두 줄을 차지해 오른쪽에 자동 처리·설정 변경 이력이 쌓이고, 틀의 직계 카드(분기 정책·포크 정보)는 전체 폭이다', () => {
+    expect(rule('.ep-settings-cards>.ep-operating-settings>.ep-card:first-of-type')).toMatch(/grid-row:span 2/)
+    expect(rule('.ep-settings-cards>.ep-card')).toMatch(/grid-column:1\/-1/)
+  })
+
   it('[P2-8] 운영 설정의 저장 버튼과 잠긴 이유는 한 줄(.ep-form-actions)에 나란히 놓인다', () => {
     expect(rule('.ep-operating-settings .ep-form-actions')).toMatch(/display:flex;flex-wrap:wrap;align-items:center/)
   })

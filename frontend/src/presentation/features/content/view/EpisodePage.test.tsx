@@ -1304,7 +1304,7 @@ it('lines up the fork actions in one row: original, stop publication, and an out
   expect(remove.classList.contains('danger')).toBe(false)
 })
 
-it('locks the other tabs while the work info is edited, so the fork actions cannot be reached and the re-read cannot reset the unsaved input, and unlocks them after cancel', async () => {
+it('locks the other tabs and the overview shortcut links while the work info is edited, so the fork actions cannot be reached and the re-read cannot reset the unsaved input, and unlocks them after cancel', async () => {
   stubCover()
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([myFork]) }), '내 포크')
   const tab = (name: string) => screen.getByRole('button', { name }) as HTMLButtonElement
@@ -1314,8 +1314,12 @@ it('locks the other tabs while the work info is edited, so the fork actions cann
   expect(tab('운영 설정').disabled).toBe(true)
   expect(tab('공개 회차 · 0').disabled).toBe(true)
   expect(tab('개요').disabled).toBe(false)
+  // 개요 바로가기의 이동 링크도 잠긴 버튼이 된다(집필실·소설 상세로 떠나도 저장하지 않은 입력이 사라진다. 잠긴 모양은 WorkDashboard.test가 본다).
+  const shortcuts = () => within(screen.getByRole('region', { name: '바로가기' }))
+  expect(shortcuts().queryAllByRole('link')).toEqual([])
   fireEvent.click(screen.getByRole('button', { name: '취소' }))
   expect(tab('운영 설정').disabled).toBe(false)
+  expect(shortcuts().getAllByRole('link')).toHaveLength(2)
   await openSettings()
   expect((within(screen.getByRole('region', { name: '포크 정보' })).getByRole('button', { name: '포크 공개 중단' }) as HTMLButtonElement).disabled).toBe(false)
 })
@@ -1520,11 +1524,7 @@ it('개요 탭 히어로 아래에 대시보드가 있고, 공개 작품의 독�
   const recent = within(await screen.findByRole('region', { name: '최근 발행 이력' }))
   expect((await recent.findByRole('listitem')).textContent).toContain('1화 · 발행 ·')
   expect(screen.getByRole('link', { name: '소설 상세 보기' }).getAttribute('href')).toBe('/work/w')
-  // 바로가기는 메뉴를 누른 것과 같은 탭 전환이다.
-  fireEvent.click(within(dash).getByRole('button', { name: '운영 설정 열기' }))
-  await screen.findByRole('button', { name: '집필 방식 저장' })
-  expect(screen.getByRole('button', { name: '운영 설정' }).getAttribute('aria-current')).toBe('page')
-  expect(document.querySelector('.ep-dash')).toBeNull() // 대시보드는 개요 탭에만 있다
+  expect(screen.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w') // 사이드바 메뉴에 없는 목적지로 가는 바로가기(탭 전환 버튼이 없음은 WorkDashboard.test가 본다)
 })
 
 it('대시보드의 한 구획이 실패해도 그 구획 안에서만 알리고(화면 알림 role=alert는 가로채지 않는다) 다른 지표는 그대로 보인다', async () => {

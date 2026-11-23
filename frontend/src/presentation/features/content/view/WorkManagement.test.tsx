@@ -14,12 +14,12 @@ import { WorkManagement } from './WorkManagement'
 vi.mock('./WorkOverview', () => ({ WorkOverview: () => <p>작품 개요 히어로</p> }))
 // 요약 머리는 넘겨받은 초안 수만 data-drafts로 드러낸다(수를 세는 규칙은 이 화면의 몫이다).
 vi.mock('./WorkBrief', () => ({ WorkBrief: ({ draftCount }: { draftCount?: number | null }) => <p data-drafts={String(draftCount)}>작품 요약 머리</p> }))
-// 개요 대시보드의 조회·표시는 WorkDashboard.test가 본다. 여기서는 개요 탭이 그것을 그리고, 그 바로가기·잠금이 탭 전환에 이어지는지만 본다.
+// 개요 대시보드의 조회·표시(바로가기 링크 포함)는 WorkDashboard.test가 본다. 여기서는 개요 탭이 그것을 그리고 넘겨 주는 값(잠금 포함)만 본다.
 const dashboard = vi.hoisted(() => ({ props: [] as { disabled: boolean; mockup: boolean; useCase?: unknown; draftCount?: number | null }[] }))
 vi.mock('./WorkDashboard', () => ({
-  WorkDashboard: (props: { disabled: boolean; mockup: boolean; useCase?: unknown; draftCount?: number | null; onOpenTab: (tab: string) => void }) => {
+  WorkDashboard: (props: { disabled: boolean; mockup: boolean; useCase?: unknown; draftCount?: number | null }) => {
     dashboard.props.push(props)
-    return <button disabled={props.disabled} onClick={() => props.onOpenTab('settings')}>대시보드 운영 설정</button>
+    return <button disabled={props.disabled}>대시보드</button>
   },
 }))
 // AI 집필 탭의 내용은 AiSerialPanel.test가 본다. 여기서는 탭이 이 패널을 그리는지와, 호출 측이 주는 운영 설정 이동(onOpenSettings)이 이어지는지만 본다.
@@ -402,7 +402,7 @@ const openAutonomous = (rows: WritingEpisode[] | undefined, count = 3) => {
   return view
 }
 
-it('사이드바에는 도구 묶음이 없다: 회차 작성하기·집필실 열기·내 댓글·제보 링크가 없고, AI 자율 집필 중에도 같다 (집필실로 가는 길은 공개 회차 탭 머리의 집필실 열기뿐)', () => {
+it('사이드바에는 도구 묶음이 없다: 회차 작성하기·집필실 열기·내 댓글·제보 링크가 없고, AI 자율 집필 중에도 같다 (집필실로 가는 길은 사이드바가 아니라 본문의 집필실 열기다)', () => {
   for (const serialLocked of [false, true]) {
     cleanup()
     render(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, writing: { id: 'w', rows: [row(1)] } } as never} work={work(0)} serialLocked={serialLocked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
@@ -586,25 +586,12 @@ it.each([['running', true], ['failed', false]])('최초 구축이 끝나고 업�
   if (shown) expect(screen.getByText(UPDATE_BADGE).compareDocumentPosition(screen.getByRole('list')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })
 
-// ── 개요 대시보드(R6): 바로가기는 메뉴를 누른 것과 같은 탭 전환이다 ──
+// ── 개요 대시보드(R6): 바로가기는 집필실·소설 상세로 가는 링크뿐이라 탭 전환 콜백은 없고, 잠금만 메뉴와 같은 규칙으로 받는다 ──
 it('개요 탭은 히어로 아래에 대시보드를 그리고, 다른 탭에는 그리지 않는다', () => {
   openFresh(2)
-  expect(screen.getByText('작품 개요 히어로').compareDocumentPosition(screen.getByRole('button', { name: '대시보드 운영 설정' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(screen.getByText('작품 개요 히어로').compareDocumentPosition(screen.getByRole('button', { name: '대시보드' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: /^공개 회차/ }))
-  expect(screen.queryByRole('button', { name: '대시보드 운영 설정' })).toBeNull()
-})
-
-it('대시보드 바로가기를 누르면 메뉴를 누른 것처럼 그 탭이 열리고 탭 내용 머리로 스크롤한다', async () => {
-  const useCase = { workSettings: vi.fn().mockResolvedValue(settingsOf(null)), updateWorkSettings: vi.fn() }
-  render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
-  expect(scrolled).toEqual([]) // 처음 렌더에서는 스크롤하지 않는다
-  fireEvent.click(screen.getByRole('button', { name: '대시보드 운영 설정' }))
-  expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('운영 설정')
-  expect(screen.getByRole('button', { name: '운영 설정' }).getAttribute('aria-current')).toBe('page')
-  const head = scrolled.filter((s) => (s.arg as ScrollIntoViewOptions | undefined)?.block === 'start')
-  expect(head).toHaveLength(1)
-  expect((head[0].el as HTMLElement).classList.contains('ep-tab')).toBe(true)
-  expect(await screen.findByRole('combobox', { name: '집필 방식' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '대시보드' })).toBeNull()
 })
 
 it('대시보드에는 목업 여부·테스트 UseCase를 넘기고, 요청 중이거나 편집 중이면 바로가기를 잠근다(메뉴와 같은 규칙)', () => {
@@ -613,7 +600,7 @@ it('대시보드에는 목업 여부·테스트 UseCase를 넘기고, 요청 중
   const view = render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
   expect(dashboard.props.at(-1)).toMatchObject({ mockup: false, disabled: false, useCase })
   view.rerender(<MemoryRouter><WorkManagement {...shell} vm={{ ...vm, busy: true } as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
-  expect((screen.getByRole('button', { name: '대시보드 운영 설정' }) as HTMLButtonElement).disabled).toBe(true)
+  expect((screen.getByRole('button', { name: '대시보드' }) as HTMLButtonElement).disabled).toBe(true)
 })
 
 it('대시보드의 작성 중인 초안 수는 소유자 회차 조회가 읽히기 전에는 null(읽는 중)이다', () => {

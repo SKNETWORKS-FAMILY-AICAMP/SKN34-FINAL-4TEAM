@@ -27,9 +27,7 @@ const loaded = (over: object = {}) => {
 }
 type Props = Partial<Parameters<typeof WorkDashboard>[0]>
 const open = (props: Props = {}) => {
-  const onOpenTab = vi.fn()
-  render(<MemoryRouter><WorkDashboard work={work()} draftCount={2} forkCounts={{ 1: 1, 2: 2 }} mockup={false} disabled={false} onOpenTab={onOpenTab} {...props} /></MemoryRouter>)
-  return { onOpenTab }
+  render(<MemoryRouter><WorkDashboard work={work()} draftCount={2} forkCounts={{ 1: 1, 2: 2 }} mockup={false} disabled={false} {...props} /></MemoryRouter>)
 }
 /** 지표 카드의 값: 이름(dt)이 같은 줄(div)의 dd 글 */
 const metric = (name: string | RegExp) => {
@@ -77,12 +75,11 @@ it('큰 수는 천 단위로 끊어 보인다', () => {
   expect(metric('좋아요')).toBe('1,200')
 })
 
-it('비공개 작품의 독자 지표(누적 조회·좋아요)는 0이 아니라 공개 전이고, 소설 상세 링크도 없다', () => {
+it('비공개 작품의 독자 지표(누적 조회·좋아요)는 0이 아니라 공개 전이다', () => {
   loaded({ reader: done('before') })
   open({ work: work({ visibility: 'private' }) })
   expect(metric('누적 조회(회원)')).toBe('공개 전')
   expect(metric('좋아요')).toBe('공개 전')
-  expect(screen.queryByRole('link', { name: '소설 상세 보기' })).toBeNull()
 })
 
 it('집계가 없으면(null) 집계 없음이라고 하고 0으로 채우지 않는다', () => {
@@ -157,34 +154,25 @@ it('발행 이력이 없으면 안내만, 못 읽으면 구획 안에 알림(rol
   expect(publications.retry).toHaveBeenCalledTimes(1)
 })
 
-it('바로가기는 탭 전환 버튼이라 눌러 그 탭을 연다(메뉴 탭 이름과 같은 이름이 한 화면에 둘이 되지 않게 동작을 이름에 담는다)', () => {
-  loaded()
-  const { onOpenTab } = open()
-  const shortcuts = within(screen.getByRole('region', { name: '바로가기' }))
-  const opened: [string, string][] = [['회차 목록 보기', 'read'], ['세계관·설정집 열기', 'world'], ['AI 집필 설정', 'serial'], ['받은 피드백 확인', 'feedback'], ['운영 설정 열기', 'settings']]
-  for (const [name, tab] of opened) {
-    fireEvent.click(shortcuts.getByRole('button', { name }))
-    expect(onOpenTab).toHaveBeenLastCalledWith(tab)
-  }
-  expect(onOpenTab).toHaveBeenCalledTimes(5)
-})
-
-it('요청 중이거나 편집 중이면(disabled) 바로가기 버튼이 잠겨 열린 폼을 잃지 않는다', () => {
-  loaded()
-  const { onOpenTab } = open({ disabled: true })
-  const buttons = within(screen.getByRole('region', { name: '바로가기' })).getAllByRole('button') as HTMLButtonElement[]
-  expect(buttons).toHaveLength(5)
-  for (const button of buttons) {
-    expect(button.disabled).toBe(true)
-    fireEvent.click(button)
-  }
-  expect(onOpenTab).not.toHaveBeenCalled()
-})
-
-it('공개 작품에는 소설 상세 보기 링크가 있고 작품 상세로 간다', () => {
+it('바로가기는 사이드바 메뉴에 없는 목적지인 집필실 열기와 (공개 작품이면) 소설 상세 보기뿐이고, 메뉴와 같은 탭 전환 버튼은 두지 않는다', () => {
   loaded()
   open()
-  expect(screen.getByRole('link', { name: '소설 상세 보기' }).getAttribute('href')).toBe('/work/w')
+  const shortcuts = () => within(screen.getByRole('region', { name: '바로가기' }))
+  expect(shortcuts().getAllByRole('link').map((a) => [a.textContent, a.getAttribute('href')])).toEqual([['집필실 열기', '/studio/w'], ['소설 상세 보기', '/work/w']])
+  expect(shortcuts().queryAllByRole('button')).toEqual([])
+  cleanup()
+  open({ work: work({ visibility: 'private' }) })
+  expect(shortcuts().getAllByRole('link').map((a) => a.textContent)).toEqual(['집필실 열기']) // 비공개 작품은 소설 상세 보기가 없다
+})
+
+it('요청 중이거나 편집 중이면(disabled) 두 바로가기가 같은 모양의 잠긴 버튼이 되어, 저장하지 않은 입력을 잃는 이동이 없다', () => {
+  loaded()
+  open({ disabled: true })
+  const shortcuts = within(screen.getByRole('region', { name: '바로가기' }))
+  expect(shortcuts.queryAllByRole('link')).toEqual([])
+  const buttons = shortcuts.getAllByRole('button') as HTMLButtonElement[]
+  expect(buttons.map((button) => button.textContent)).toEqual(['집필실 열기', '소설 상세 보기'])
+  expect(buttons.every((button) => button.disabled && button.classList.contains('ep-shortcut'))).toBe(true)
 })
 
 it('독자 지표 조회에는 이 작품·목업 여부를 넘기고, 테스트가 넣은 UseCase는 발행 이력에 쓴다', () => {
