@@ -71,10 +71,13 @@
 .adm .panel.admin-operations + .panel.admin-operations { margin-top: 12px; }
 /* 표 스크롤 영역(.adm-scroll, 전역)을 위치 기준으로 둔다. 열 머리의 화면 밖 글자(.sr-only)는 absolute에 위치 지정이 없어 표 안 제자리(조치 열이면 표의 오른쪽 끝)에 놓이는데, 영역이 위치 기준이 아니면 영역의 overflow가 이를 자르지 못하고 문서의 가로 스크롤 범위를 넓힌다: 작업 감시 실행 기록 표는 848px라 창이 약 1120px 이하이면 페이지가 가로로 밀렸다. */
 .adm .adm-scroll { position: relative; }
+/* cron 식('0 30 4 1 1 *')은 필드 경계가 공백이라 좁은 칸에서 꺾이면 필드 수를 셀 수 없다: 한 줄로 두고 모자라면 표 스크롤 영역 안에서 가로로 스크롤한다. */
+.adm td code { white-space: nowrap; }
 /* 표 행 조치 메뉴(⋮, 공용 PopMenu): 조치 칸은 ⋮ 버튼 하나 폭이고 오른쪽에 붙인다. 표 스크롤 영역(.adm-scroll)은 absolute 메뉴를 잘라서 메뉴는 fixed로 띄우고,
    위치는 PopMenu가 열 때 알려 주는 버튼의 자리(--pop-bottom·--pop-right)로 맞춘다(버튼 바로 아래, 오른쪽 끝 맞춤). 정적 위치에 기대면 문서를 스크롤한 만큼 어긋난다.
    스크롤하면 PopMenu가 fixed 메뉴를 닫는다. */
-.adm th.act-menu, .adm td.act-menu { width: 56px; text-align: right; }
+/* 조치 칸에 ⋮ 말고 글자('현재 production')가 들어가는 표는 칸이 그 글자 폭만큼 넓어지고 두 줄로 꺾이지 않는다(⋮만 있는 표는 그대로 56px). */
+.adm th.act-menu, .adm td.act-menu { width: 56px; text-align: right; white-space: nowrap; }
 .adm .row-menu { --more-size: 36px; }
 @media (max-width: 600px), (pointer: coarse) { .adm .row-menu { --more-size: 44px; } }
 .adm .row-menu .pop-menu-btn { width: var(--more-size); height: var(--more-size); border-radius: 999px; color: var(--sub); }
@@ -98,6 +101,8 @@
 .adm .form-grid ~ .rowend { margin-top: 12px; }
 @media (max-width: 600px) {
   .adm .kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* 크레딧 탭에서 고른 회원의 '보유 크레딧'은 카드가 한 장이라 2열이면 반 폭에 갇힌다. */
+  .adm .credit-member .kpi { grid-template-columns: minmax(0, 1fr); }
 }
 .adm .admin-operations pre.admin-prose { margin: 8px 0 18px; padding: 12px; max-height: 360px; overflow: auto; background: var(--muted-bg); border-radius: 10px; font-size: 13px; line-height: 1.6; }
 .adm progress { width: 100%; max-width: 160px; }

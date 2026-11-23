@@ -186,6 +186,28 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect([value('.adm .admin-nav .admin-brand', 'display'), narrow('.adm .admin-nav .admin-brand', 'display')]).toEqual([undefined, 'none'])
   })
 
+  it('브랜드는 메인(/)으로 가는 링크(a)라, 메뉴 항목 규칙(.adm .admin-nav :is(button,a): 38px·500·--fixed-sub)보다 높은 명시도로 브랜드 모양을 지키고 상단바 브랜드는 터치 목표 44px이다', () => {
+    // 같은 레이어에서 명시도 (0,2,1)인 메뉴 항목 규칙이 (0,2,0) 브랜드 규칙을 이겨 브랜드가 메뉴 항목처럼 작아졌다: 클래스 셋(0,3,0)으로 올린다. display는 정하지 않는다(메뉴 안 링크 규칙이 flex로 두고, 위 계약이 기본 구간 display 없음을 지킨다).
+    expect(['height', 'font-weight', 'color'].map((prop) => value('.adm .admin-nav .admin-brand', prop))).toEqual(['60px', '800', 'var(--fixed-ink)'])
+    // 900px 이하 가로 메뉴 구간의 상단바 브랜드는 누르는 영역이 글자 높이만큼이던 것을 44px로 올린다.
+    expect(narrow('.adm .admin-brand-top', 'min-height')).toBe('44px')
+  })
+
+  it('cron 식(td code)은 공백에서 꺾이지 않는 한 줄이다', () => {
+    // '0 30 4 1 1 *'은 필드 경계가 공백이라 좁은 칸에서 꺾이면 필드 수를 셀 수 없다(390px 일정 표). 표 스크롤 영역 안에서 가로로 스크롤한다.
+    expect(opsCss).toMatch(/\.adm td code \{[^}]*white-space: nowrap/)
+  })
+
+  it('크레딧 탭에서 고른 회원의 보유 크레딧 카드(한 장)는 600px 이하에서도 전체 폭이다', () => {
+    // 공용 .kpi는 좁은 화면에서 2열이라 카드가 한 장이면 반 폭에 갇히고 설명이 세 줄로 꺾였다. 카드가 여럿인 개요·LLM Ops .kpi는 그대로 2열이다.
+    expect(opsCss).toMatch(/@media \(max-width: 600px\) \{[^@]*\.adm \.credit-member \.kpi \{ grid-template-columns: minmax\(0, 1fr\); \}/)
+  })
+
+  it('안내문(.admin-note)은 폼 격자(800px)보다 넓게 늘어나지 않는다', () => {
+    // 폼과 권한 상자·제출 줄은 800px인데 안내문만 패널 끝까지 늘어나 오른쪽 끝이 어긋나고 한 줄이 너무 길었다.
+    expect(value('.adm .admin-note', 'max-width')).toBe('800px')
+  })
+
   it('LLM Ops 한 쪽에 쌓은 패널(경고+경고 기준 등)은 숫자 카드 줄 사이 gap과 같은 12px로 띄운다', () => {
     // .panel은 바깥 여백이 없어 두 패널이 맞붙어 한 덩어리로 보였다.
     expect(opsCss).toMatch(/\.panel\.admin-operations \+ \.panel\.admin-operations\s*\{[^}]*margin-top:\s*12px/)
@@ -193,7 +215,7 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
 
   it('표 행 조치(⋮ 메뉴)는 조치 칸을 ⋮ 버튼 하나 폭으로 줄이고, 36px(터치 44px) 단추와 버튼 자리 기준 fixed 메뉴를 쓴다', () => {
     // 조치 칸은 56px·오른쪽 맞춤이다. 글자 버튼 위험 색(.adm td .btn.danger)은 메뉴 항목(.pop-menu-list .danger)이 맡아 규칙을 지웠고, 남은 글자 버튼(경고 메모 줄·기준 저장·결과 보기)은 그대로다.
-    expect(opsCss).toMatch(/\.adm th\.act-menu, \.adm td\.act-menu \{[^}]*width: 56px[^}]*text-align: right/)
+    expect(opsCss).toMatch(/\.adm th\.act-menu, \.adm td\.act-menu \{[^}]*width: 56px[^}]*text-align: right[^}]*white-space: nowrap/)
     expect([value('.adm td .btn.danger', 'color'), value('.adm td .btn', 'color')]).toEqual([undefined, 'var(--pri-ink)'])
     // 단추 크기는 변수 하나(36px)이고 터치(600px 이하·coarse)는 44px이다. 명시도가 같아 터치 규칙이 기본 규칙 뒤에 있어야 이긴다.
     const base = opsCss.indexOf('.adm .row-menu { --more-size: 36px; }')

@@ -192,7 +192,7 @@ export function AdminPage() {
       </a>
       <div className='admin-side'>
         <nav ref={nav} className='admin-nav' aria-label='관리자 업무'>
-          <b className='admin-brand'>STORYFORK 관리자</b>
+          <Go to='/' className='admin-brand' aria-label='STORYFORK 관리자 · 메인 페이지로' title='메인 페이지로'>STORYFORK 관리자</Go>
           {navLink('data', '개요')}
           {/* 메뉴 묶음 이름은 본문 제목(h1)보다 앞에 오므로 제목으로 읽히지 않게 하고, 묶음 이름은 group의 레이블로 전합니다. */}
           {GROUPS.map(([g, items]) => (
@@ -206,8 +206,8 @@ export function AdminPage() {
       </div>
       <div className='admin-col'>
         <div className='top'>
-          {/* 900px 이하에서만 보이는 브랜드: 가로로 스크롤되는 메뉴 안 브랜드는 잘려서 상단바 왼쪽에 한 번 더 둡니다. */}
-          <b className='admin-brand-top'>STORYFORK 관리자</b>
+          {/* 900px 이하에서만 보이는 브랜드: 가로로 스크롤되는 메뉴 안 브랜드는 잘려서 상단바 왼쪽에 한 번 더 둡니다. 두 브랜드 모두 메인(/)으로 나가는 링크입니다. */}
+          <Go to='/' className='admin-brand-top' aria-label='STORYFORK 관리자 · 메인 페이지로' title='메인 페이지로'>STORYFORK 관리자</Go>
           <PopMenu
             className='admin-who'
             label={`${vm.me.nick} 님 계정 메뉴`}
@@ -993,7 +993,7 @@ function ChatForm({ d, vm }: { d: Data; vm: VM }) {
             onChange={(e) =>
               setForm({ ...form, workId: sw?.w.id ?? '', character: e.target.value })}
           >
-            {cast.map((c) => <option key={c.n} value={c.n}>{c.n} · {c.d}</option>)}
+            {cast.length ? cast.map((c) => <option key={c.n} value={c.n}>{c.n} · {c.d}</option>) : <option value=''>선택할 수 있는 캐릭터가 없어요</option>}
           </select>
         </label>
       </div>

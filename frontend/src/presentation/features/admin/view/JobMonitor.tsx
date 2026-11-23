@@ -155,7 +155,7 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
                 return (
                   <tr key={row.id}>
                     <td>{kind}</td>
-                    <td>{row.cron}</td>
+                    <td><code>{row.cron}</code></td>
                     <td><span className={`chip ${row.enabled ? 'ok' : 'wait'}`}>{row.enabled ? '켜짐' : '꺼짐·취소됨'}</span></td>
                     <td>{Object.keys(row.params).length ? JSON.stringify(row.params) : '—'}</td>
                     <td>{row.lastRun ? <>{statusChip(row.lastRun.status)} <span className="small muted admin-date">{row.lastRun.startedAt ? kstDateTime(row.lastRun.startedAt) : ''}</span></> : '—'}</td>

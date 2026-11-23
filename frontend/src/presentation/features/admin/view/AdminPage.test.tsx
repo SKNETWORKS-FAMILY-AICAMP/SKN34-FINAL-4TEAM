@@ -680,6 +680,32 @@ it('머리 영역: 목록 새로고침은 제목 줄 오른쪽(데모 칩 바로
   expect(document.querySelector('.adm .admin-nav .admin-brand')?.textContent).toBe('STORYFORK 관리자')
 })
 
+it('관리자 브랜드는 메인 페이지(/)로 가는 링크다: 사이드바 맨 위와 900px 이하 상단바 두 곳이고, 이름은 보이는 글자로 시작한다', async () => {
+  renderAdmin('characterChats')
+  await screen.findByRole('heading', { name: '캐릭터챗 관리' })
+  // 보이는 글자는 그대로이고 목적지는 메인(/)이다(둘 중 어느 쪽이 보이는지는 CSS 계약 테스트가 지킨다).
+  const brands = ['.adm .admin-nav .admin-brand', '.adm .top .admin-brand-top'].map((selector) => document.querySelector(selector))
+  expect(brands.map((el) => [el?.tagName, el?.getAttribute('href'), el?.textContent])).toEqual([
+    ['A', '/', 'STORYFORK 관리자'],
+    ['A', '/', 'STORYFORK 관리자'],
+  ])
+  // 접근 가능한 이름은 보이는 글자로 시작해(WCAG 2.5.3) 메인 페이지로 간다고 알린다. 현재 쪽을 가리키는 메뉴 항목이 아니라서 aria-current는 달지 않는다.
+  const links = screen.getAllByRole('link', { name: /메인 페이지/ })
+  expect(links).toHaveLength(2)
+  for (const link of links) expect([link.getAttribute('aria-label'), link.getAttribute('title'), link.getAttribute('aria-current')]).toEqual(['STORYFORK 관리자 · 메인 페이지로', '메인 페이지로', null])
+})
+
+// 데모 작품은 모두 공개 인물이 있어, 첫 선택지(첫 포크 작품)의 인물만 비워 '고를 캐릭터가 없는' 경우를 만든다.
+it('캐릭터챗 추가 폼은 고를 캐릭터가 없으면 빈 선택 대신 이유를 보이고 추가 버튼을 잠근다', async () => {
+  const admin = appContainer.resolve('adminUseCase')
+  const choices = admin.chatChoices.bind(admin)
+  vi.spyOn(admin, 'chatChoices').mockImplementation((works, kind) => choices(works, kind).map((choice, i) => (i ? choice : { ...choice, cast: [] })))
+  renderAdmin('characterChats')
+  const select = await screen.findByLabelText<HTMLSelectElement>('캐릭터')
+  expect([select.disabled, select.selectedOptions[0]?.textContent]).toEqual([true, '선택할 수 있는 캐릭터가 없어요'])
+  expect((screen.getByRole('button', { name: '캐릭터챗 추가' }) as HTMLButtonElement).disabled).toBe(true)
+})
+
 it('필터는 왼쪽 정렬 한 줄: 검색 입력 → 분류(역할) → 정렬 → 검색 버튼을 한 form(.admin-filter)에 두고, 상태 선택은 제목 아래에 둔다', async () => {
   const controls = (form: HTMLFormElement) => [...form.elements].map((el) => el.tagName)
   renderAdmin('works')
