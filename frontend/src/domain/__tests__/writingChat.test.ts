@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, rangePreview, selectionNote, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
+import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, stepName, lastScene, pendingChanges, rangePreview, selectionNote, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -582,4 +582,13 @@ describe('cancelNotice', () => {
     expect(cancelNotice(waiting({ feature: 'content_action', status: 'completed' }, { feature: 'research', status: 'not_started' })))
       .toBe('취소하면 남은 작업은 실행하지 않아요. 이미 끝난 작업은 그대로예요.')
   })
+})
+
+it('고증 조사의 platform 단계는 공개 세계관 참고로 보이고, task가 없는 옛 기록도 참고안 모양으로 가른다(#640)', () => {
+  const platform: ChatStep = { feature: 'research', task: 'platform', status: 'failed', error: '실패' }
+  expect(stepName(platform)).toBe('공개 세계관 참고')
+  expect(stepName({ feature: 'research', status: 'completed', result: { references: [], gaps: [] } })).toBe('공개 세계관 참고')
+  expect(stepName({ feature: 'research', task: 'web', status: 'failed', error: '실패' })).toBe('고증 조사')
+  expect(stepName({ feature: 'web_research', status: 'failed', error: '실패' })).toBe('고증 조사')
+  expect(replyText({ status: 'failed', missingInputs: [], steps: [platform] })).toBe('[공개 세계관 참고] 실패: 실패')
 })

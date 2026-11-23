@@ -8,6 +8,7 @@ const writingCss = readFileSync(new URL('../../studio/view/writing.css', import.
 const episodeCss = readFileSync(new URL('../../../shared/episode.css', import.meta.url), 'utf8')
 /** 시간선 보드(스크롤 상자)의 규칙이 있는 파일 */
 const timelineCss = readFileSync(new URL('./world-timeline.css', import.meta.url), 'utf8')
+const boardCss = readFileSync(new URL('../../../shared/worldBoard.css', import.meta.url), 'utf8')
 
 it('편집 화면의 파일 선택은 기본 입력을 시각적으로만 숨기고(초점·스크린리더는 유지) 라벨 버튼에 초점 링을 그린다', () => {
   const input = css.match(/\.world-card-studio \.ep-file-pick input\[type=file\]\{([^}]*)\}/)?.[1] ?? ''
@@ -203,12 +204,11 @@ it('채팅이 닫혀 떠 있는 열기 버튼(.studio-chat-toggle)이 설정집 
 })
 
 it('분류 칩 줄(게시판 폭 1000px 이하)에서는 비어 있는 분류도 옆 칩과 같은 44px 높이·16px 안쪽 여백이고, 세로 메뉴(넓은 본문)에서는 다른 분류 항목과 같은 40px·12px 그대로다', () => {
-  // 칩은 min-height:44px;padding:0 16px(shared/worldBoard.css)인데 빈 분류만 40px·12px라 줄 안에서 중심선이 어긋났다. 세로 메뉴의 항목은 40px·12px이라 기본값을 바꾸면 거기서 어긋난다.
-  expect(rule((s) => s === '.worlds-cats .worlds-cats-empty')?.body).toMatch(/min-height:\s*40px;\s*padding:\s*0 12px/)
-  const chip = css.match(/@container worlds-board \(max-width:1000px\)\{\.worlds-cats \.worlds-cats-empty\{([^}]*)\}\}/)
-  expect(chip?.[1]).toMatch(/min-height:\s*44px/)
-  expect(chip?.[1]).toMatch(/padding:\s*0 16px/)
-  expect(chip!.index).toBeGreaterThan(css.indexOf('.worlds-cats .worlds-cats-empty{')) // 같은 특이도는 뒤에 온 규칙이 이긴다
+  // 빈 분류도 일반 분류 버튼과 공용 크기 규칙을 쓴다.
+  const menu = boardCss.match(/\.worlds-cats :is\(a, button\)\s*\{([^}]*)\}/)?.[1]
+  expect(menu).toMatch(/min-height:\s*40px;\s*padding:\s*0 12px/)
+  const chip = css.match(/@container worlds-board \(max-width:1000px\)\{[^\n]*?\.world-card-library \.worlds-cats :is\(a,button\)\{([^}]*)\}/)?.[1]
+  expect(chip).toMatch(/min-height:\s*44px;\s*padding:\s*0 16px/)
 })
 
 it('관계 기준 회차 상자는 카드 안의 카드가 아니라 테두리·면·안쪽 여백 없이 카드 바탕 위에 놓인다 (한 줄 배치·입력 규칙은 그대로)', () => {
@@ -373,7 +373,7 @@ it('상태 칸은 156px 열이고 칩은 줄바꿈하며 쌓이는 12px 알약 �
 })
 
 it('760px 이하에서는 상태 칸이 폭 0의 보이지 않는 칸으로 숨고(열 수는 늘 8개) 같은 칩이 제목 아래 줄(.world-row-status, hidden 속성을 display가 이긴다)로 보인다', () => {
-  const narrow = css.match(/@container worlds-board \(max-width:760px\)\{([^@]*?)\}\n/)?.[1] ?? ''
+  const narrow = css.match(/@container worlds-board \(max-width:760px\)\{([^@]*?)\}\r?\n/)?.[1] ?? ''
   expect(narrow).toContain('.world-card-library .worlds-board-table :is(.col-no,.col-status){display:table-cell;visibility:hidden;width:0;padding:0;border:0}')
   expect(narrow).toContain('.world-row-status{display:block;margin-top:4px}')
   expect(css).toContain('.world-row-sub,.world-row-status{display:none}') // 넓은 표에서는 두 줄 모두 숨긴다(분류·요약 칸과 상태 칸이 보인다)

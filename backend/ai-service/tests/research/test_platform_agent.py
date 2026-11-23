@@ -33,6 +33,17 @@ def test_refer_returns_the_draft_from_the_read_cards(monkeypatch):
     assert '수정안은 쓰지 않는다' in seen['messages'][0].content
 
 
+def test_traces_keep_only_the_request_and_ids_not_descriptions_or_card_text(monkeypatch):
+    traced = []
+    monkeypatch.setattr(agent.agent_runtime, 'run', lambda *args, trace, schema, **kw: traced.append(trace) or (None, schema.model_construct()))
+    read = [{'worldId': 'w1', 'name': '달빛 세계', 'description': '설명', 'cards': [{'cardId': 'c1', 'title': '교칙', 'text': '본문'}]}]
+
+    agent.pick('요청', WORLDS)
+    agent.refer('요청', read)
+
+    assert traced == [{'request': '요청', 'worldIds': ['w1']}, {'request': '요청', 'worldIds': ['w1'], 'cardIds': ['c1']}]
+
+
 @pytest.mark.parametrize('call', [lambda: agent.pick('요청', WORLDS), lambda: agent.refer('요청', [])])
 def test_model_calls_fail_closed_on_an_incomplete_response(monkeypatch, call):
     fake_chat(monkeypatch, text='', status='incomplete')
