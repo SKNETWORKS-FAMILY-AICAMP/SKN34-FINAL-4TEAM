@@ -75,7 +75,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 - 회차 기획은 기존 `app/writing/`의 기획 지시(`writing_editing.plan`)를 재사용한다. 집필은 시뮬레이션 장면(최대 수천 자)을 입력으로 받아야 해서 Writing 집필 요청(계획 ≤4,000자)에 담지 못해 새 프롬프트 `serial.episode_draft`를 쓰고, 검수·종합·장면 미리보기도 `serial.*`(`tracing.prompt` 규칙)다.
 - 사용자 토큰·Content MCP를 쓰지 않는다. 시뮬레이션만 추적 회원용 선택 헤더 `X-User-Authorization`(제출자 Bearer)을 받는다(인가에는 쓰지 않음). 일정 실행에는 사용자 토큰이 없어서 Content가 허용 문맥을 만들어 넘긴다(새 원고 생성과 같은 방식).
 
-## 저장 (Content `db/migration/work/V43__ai_serial.sql`)
+## 저장 (Content `db/migration/work/V44__ai_serial.sql`)
 
 - `ai_serial(work_id PK, enabled, days text, run_time time, direction text, last_run_date date, updated_at)`
 - `serial_board(id, work_id, episode_number, status, summary, published_episode_number, failure_reason, opened_at, closed_at)`, 작품당 `open|queued|running` 하나(부분 유니크).
@@ -84,7 +84,7 @@ AI가 다음 회차를 쓰고 검수해 자동 발행한다(투표·제안 개�
 - `serial_proposal(id, board_id, author_id, kind, title, body, simulation jsonb, hidden, created_at)`(작성자당 개수 제한 없음).
 - `serial_proposal_like(proposal_id, member_id)` PK 둘.
 - `serial_vote(board_id, member_id, choice_id)`, PK `(board_id, member_id)`.
-- V43은 아직 develop에 없어 같은 파일을 고친다(병합 전 변경).
+- V44는 아직 develop에 없어 같은 파일을 고친다(병합 전 변경). develop의 `preprocessing/V43`과 겹쳐 리베이스 때 V43→V44, 집필 방식 CHECK는 V44→V45로 옮겼다.
 - 작성자 표시명은 저장하지 않고 `CoreNicknameService`로 채운다.
 
 ## 구현에서 정한 세부 (2026-11-22, #659)

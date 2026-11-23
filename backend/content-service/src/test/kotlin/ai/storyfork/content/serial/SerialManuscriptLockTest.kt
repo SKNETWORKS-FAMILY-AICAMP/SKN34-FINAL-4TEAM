@@ -101,7 +101,8 @@ class SerialManuscriptLockTest {
     private val episodeVersions = EpisodeVersionService(access, episodeMock, versionPublication, world, versionEpisodes, drafts, versions,
         mock(CheckpointRepository::class.java), mock(CheckpointEpisodeRepository::class.java), mock(CheckpointSettingRepository::class.java), mock(EntityManager::class.java))
     private val publication = PublicationService(access, episodeMock, episodes, current, versions, events, visibilityRepo, rights, drafts, works,
-        mock(ForkPolicyHistoryRepository::class.java), mock(ForkPolicyEpisodeRepository::class.java), mock(WorkInterestService::class.java), mock(EntityManager::class.java))
+        mock(ForkPolicyHistoryRepository::class.java), mock(ForkPolicyEpisodeRepository::class.java), mock(WorkInterestService::class.java),
+        mock(ai.storyfork.content.preprocessing.service.PreprocessingService::class.java), mock(EntityManager::class.java))
     private val schedules = PublicationScheduleService(access, scheduleEpisodes, episodeMock, scheduleRepo, publication, mock(CoreAuthVerificationService::class.java),
         TransactionTemplate(mock(PlatformTransactionManager::class.java)))
 

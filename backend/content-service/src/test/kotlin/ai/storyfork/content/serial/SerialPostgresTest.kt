@@ -54,7 +54,7 @@ import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
 /**
- * AI 자율 연재의 HTTP 계약(경로·Security·CSRF·상태 코드·코드값)과 V43 저장(AI 4지선다·제안 게시판)·선택지 생성·실행을 실제 PostgreSQL로 검증한다. Core(회원 확인·닉네임·크레딧)와 AI는 대역이고
+ * AI 자율 연재의 HTTP 계약(경로·Security·CSRF·상태 코드·코드값)과 V44 저장(AI 4지선다·제안 게시판)·선택지 생성·실행을 실제 PostgreSQL로 검증한다. Core(회원 확인·닉네임·크레딧)와 AI는 대역이고
  * 일정 점검은 [runner]를 직접 불러 한 번 돌린다(앱의 1분 스케줄러가 먼저 가져가도 같은 결과라 상태가 바뀔 때까지 기다린다).
  * TEST_CONTENT_DATABASE_URL이 있을 때만 실행하며, DB는 다른 테스트와 공유하므로 각 테스트는 자신이 만든 작품의 행만 비교한다.
  */

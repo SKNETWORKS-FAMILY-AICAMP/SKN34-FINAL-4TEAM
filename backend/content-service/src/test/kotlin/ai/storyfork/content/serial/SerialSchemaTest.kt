@@ -23,19 +23,19 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.parser.PartTree
 
-/** DB 없이 V43 SQL을 계약과 엔티티·저장소에 대조한다. 어긋나면 ddl-auto=validate와 Spring Data 기동 검증 때문에 CI 통합 테스트 전체가 깨진다. */
+/** DB 없이 V44 SQL을 계약과 엔티티·저장소에 대조한다. 어긋나면 ddl-auto=validate와 Spring Data 기동 검증 때문에 CI 통합 테스트 전체가 깨진다. */
 class SerialSchemaTest {
-    private val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V43__ai_serial.sql"))
+    private val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V44__ai_serial.sql"))
     private val tables = sql.split("CREATE TABLE ").drop(1).associate { it.substringBefore(" (") to it.substringBefore("\n);") }
     private val keywords = setOf("PRIMARY", "UNIQUE", "FOREIGN", "CONSTRAINT", "CHECK")
 
     private fun columns(table: String) = Regex("^ {4}(\\w+) ", RegexOption.MULTILINE).findAll(tables.getValue(table)).map { it.groupValues[1] }.filter { it !in keywords }.toSet()
     private fun mapped(entity: Class<*>) = entity.declaredFields.mapNotNull { it.getAnnotation(Column::class.java)?.name }.toSet()
 
-    @Test fun `V43 has the contract tables and nothing for setting proposals`() {
+    @Test fun `V44 has the contract tables and nothing for setting proposals`() {
         assertEquals(setOf("ai_serial", "serial_board", "serial_choice", "serial_proposal", "serial_proposal_like", "serial_vote", "serial_episode_summary"), tables.keys)
         assertFalse(sql.contains("setting"), "설정 제안은 이 기능에서 제외됐다")
-        // 투표·제안 개편은 V43을 직접 고친 것이다: 의견 표는 남지 않는다.
+        // 투표·제안 개편은 V44를 직접 고친 것이다: 의견 표는 남지 않는다.
         assertFalse(sql.contains("serial_opinion") || sql.contains("opinion_id"))
     }
 
