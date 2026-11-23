@@ -89,7 +89,7 @@ const writingRow = (number: number, extra: object = {}) => ({
   number, draft: { title: `${number}화 초안`, body: '', revision: 0 }, publicationStatus: 'draft', hasDraft: true,
   versions: [], publishedVersionId: null, inherited: false, updatedAt: null, checkpointStatus: 'none', checkpoints: [], ...extra,
 })
-const heroStats = () => document.querySelector('.ep-hero .stats')!.textContent
+const draftMetric = () => screen.queryByText('작성 중인 초안', { selector: 'dt' })?.nextElementSibling?.textContent ?? null
 const myFork = { ...owned, title: '내 포크', summary: '소개', visibility: 'public', revision: 4, draft: { ...owned.draft, revision: 4 }, source: { workId: 'o', title: '원작', episode: 2, version: 7, direction: '다른 결말' } }
 const STOP_CONFIRM = '포크 작품의 공개를 중단할까요? 발행된 회차와 원고는 보존돼요. 대기 중인 예약 발행은 취소되고, 원작이 공개를 허용하지 않으면 다시 공개할 수 없어요.'
 const AREAS = ['작품 정보 편집', '표지 편집', '분기 정책 편집']
@@ -107,7 +107,17 @@ const coverReply = (path: string) => Response.json({ id: '33333333-3333-4333-833
 
 // ── 작품 만들기 (/content) ─────────────────────────────────────────────
 
-it('shows both editable drafts and the empty publication status of a public work', async () => {
+it('개요 탭 히어로에는 통계 줄이 없고 공개 회차·작성 중인 초안은 지표 카드에만 보인다', async () => {
+  stubCover()
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public' }]),
+    'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1)]),
+  }))
+  await waitFor(() => expect(draftMetric()).toBe('1개'))
+  expect(document.querySelector('.ep-hero .stats')).toBeNull()
+})
+
+it('counts the editable drafts of a public work in the overview metric card and leaves opening them to the studio', async () => {
   const rows = ['첫 장면', '둘째 장면'].map((title, i) => ({
     number: i + 1, draft: { title, body: '', revision: 0 }, publicationStatus: 'draft',
     hasDraft: true, versions: [], publishedVersionId: null, inherited: false,
@@ -118,13 +128,12 @@ it('shows both editable drafts and the empty publication status of a public work
     'GET /api/v1/works/w/episodes': () => Response.json(rows),
   }))
   expect(await screen.findByText('공개 회차 없음')).toBeTruthy()
-  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 2개'))
-  toReadTab() // 초안 목록은 공개 회차 탭에 있다(기본 탭은 개요).
-  for (const ep of rows) {
-    expect((await screen.findByRole('link', { name: `${ep.number}화 · ${ep.draft.title}` })).getAttribute('href')).toBe(`/studio/w?ep=${ep.number}`)
-  }
-  // 목록 제목도 히어로와 같은 말('초안')이다.
-  expect(screen.getByRole('heading', { name: '작성 중인 초안' })).toBeTruthy()
+  await waitFor(() => expect(draftMetric()).toBe('2개'))
+  // 초안은 집필실 왼쪽 회차 목록에서 연다: 공개 회차 탭에는 초안 묶음도 초안 링크도 없고, 집필실로 가는 길은 집필실 열기뿐이다.
+  toReadTab()
+  expect(screen.queryByRole('heading', { name: '작성 중인 초안' })).toBeNull()
+  for (const ep of rows) expect(screen.queryByRole('link', { name: `${ep.number}화 · ${ep.draft.title}` })).toBeNull()
+  expect(screen.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w')
 })
 
 it('does not count a suspended episode as a draft in progress', async () => {
@@ -133,10 +142,7 @@ it('does not count a suspended episode as a draft in progress', async () => {
     'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public' }]),
     'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1), writingRow(2, { publicationStatus: 'suspended' })]),
   }))
-  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 1개'))
-  toReadTab()
-  expect(screen.getByRole('link', { name: '1화 · 1화 초안' })).toBeTruthy()
-  expect(screen.queryByRole('link', { name: '2화 · 2화 초안' })).toBeNull()
+  await waitFor(() => expect(draftMetric()).toBe('1개'))
 })
 
 it('keeps a place for the draft count while drafts load and fills it in when they arrive', async () => {
@@ -148,10 +154,10 @@ it('keeps a place for the draft count while drafts load and fills it in when the
     'GET /api/v1/works/w/episodes': () => pending,
   }))
   // 읽는 동안에도 자리를 잡아 두어, 읽고 나서 끼어들며 아래 화면을 밀지 않는다.
-  expect(heroStats()).toContain('작성 중인 초안 …')
+  expect(draftMetric()).toContain('…')
   finish(Response.json([writingRow(1), writingRow(2)]))
-  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 2개'))
-  expect(heroStats()).not.toContain('…')
+  await waitFor(() => expect(draftMetric()).toBe('2개'))
+  expect(draftMetric()).not.toContain('…')
 })
 
 it('tells the drafts could not be read in an alert box and does not pretend to count them', async () => {
@@ -166,7 +172,7 @@ it('tells the drafts could not be read in an alert box and does not pretend to c
   expect(alert.classList.contains('ep-alert')).toBe(true)
   // 못 읽은 것을 읽는 중처럼 '…'로 두지도, 0개로 채우지도 않는다.
   toOverviewTab()
-  expect(heroStats()).not.toContain('작성 중인 초안')
+  expect(draftMetric()).toBeNull()
 })
 
 it('creates a private work through the API and opens its writing studio', async () => {
@@ -516,7 +522,8 @@ it('keeps the fork policy and the work deletion out of the shared top: the conte
     screen.getByRole('region', { name: '작품 삭제' }),
   ]
   order.slice(1).forEach((el, i) => expect(order[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING, el.textContent || '').toBeTruthy())
-  expect(document.querySelector('.ep-tab')?.lastElementChild).toBe(order[3]) // 삭제는 탭 맨 아래 위험 구역이다
+  expect(document.querySelector('.ep-settings-cards')?.lastElementChild).toBe(order[3]) // 삭제는 설정 카드 틀 맨 끝의 위험 구역이다(분기 정책·설정 카드와 같은 틀)
+  expect(document.querySelector('.ep-tab')?.lastElementChild).toBe(document.querySelector('.ep-settings-cards'))
   expect(structure()).toEqual(['ep-notice', 'whero', 'ep-tab']) // 개요 밖 탭은 상태 줄과 탭 사이에 짧은 작품 요약(.ep-brief)만 더한다
   // 두 구획의 제목은 운영 설정 탭 제목(h2) 아래 묶음 제목(h3)이다. 삭제 버튼의 이름·확인 흐름은 그대로다.
   expect(within(order[2]).getByRole('heading', { level: 3, name: '분기 정책' })).toBeTruthy()
@@ -1090,7 +1097,7 @@ it('titles every tab body (one h2, first in the tab) with exactly the words of i
   }))
   const ready: Record<string, () => Promise<unknown>> = {
     '개요': () => screen.findByRole('heading', { level: 1, name: '옛 제목' }), // 히어로의 제목(h1)은 개요 탭 제목(h2) 아래에 있다
-    '공개 회차 · 0': () => screen.findByRole('heading', { level: 3, name: '작성 중인 초안' }), // 초안 묶음 제목은 탭 제목 아래 h3다
+    '공개 회차 · 0': () => screen.findByText(/아직 공개한 회차가 없어요/), // 공개 회차가 없는 안내(초안 묶음은 없다)
     '세계관·설정집': () => screen.findByRole('region', { name: '세계관 설정집' }),
     '이야기 분기': async () => screen.getByRole('heading', { level: 3, name: '그 순간, 다른 선택을 했다면' }),
     'AI 집필': () => screen.findByRole('button', { name: '설정 저장' }),
@@ -1117,7 +1124,7 @@ it('offers one 집필실 열기 link at the head of the episode list and none in
     'GET /api/v1/works': () => Response.json([{ ...owned, episodes: [episode(1)] }]),
     'GET /api/v1/works/w/episodes': () => Response.json([writingRow(2)]),
   }))
-  await screen.findByRole('heading', { name: '작성 중인 초안' })
+  await waitFor(() => expect(document.querySelector('.ep-brief .stats')?.textContent).toContain('작성 중인 초안 1개')) // 소유자 회차 조회가 읽힌 뒤에도
   const entry = () => [...document.querySelectorAll('a')].filter((a) => a.getAttribute('href') === '/studio/w')
   expect(entry().map((a) => a.textContent)).toEqual(['집필실 열기'])
   expect(entry()[0].closest('.ep-menu')).toBeNull() // 사이드바 도구 묶음은 없어졌고 본문 머리에 집필실로 가는 창구 하나뿐이다
@@ -1155,7 +1162,7 @@ it.each([
   const read = serialRead(answer)
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]), 'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1)]) }))
   await waitFor(() => expect(read).toHaveBeenCalled())
-  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 1개')) // 회차 수까지 읽은 뒤에도
+  await waitFor(() => expect(draftMetric()).toBe('1개')) // 회차 수까지 읽은 뒤에도
   await act(async () => {})
   toReadTab()
   expect(screen.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w')
@@ -1297,7 +1304,7 @@ it('lines up the fork actions in one row: original, stop publication, and an out
   expect(remove.classList.contains('danger')).toBe(false)
 })
 
-it('locks the other tabs while the work info is edited, so the fork actions cannot be reached and the re-read cannot reset the unsaved input, and unlocks them after cancel', async () => {
+it('locks the other tabs and the overview shortcut links while the work info is edited, so the fork actions cannot be reached and the re-read cannot reset the unsaved input, and unlocks them after cancel', async () => {
   stubCover()
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([myFork]) }), '내 포크')
   const tab = (name: string) => screen.getByRole('button', { name }) as HTMLButtonElement
@@ -1307,8 +1314,12 @@ it('locks the other tabs while the work info is edited, so the fork actions cann
   expect(tab('운영 설정').disabled).toBe(true)
   expect(tab('공개 회차 · 0').disabled).toBe(true)
   expect(tab('개요').disabled).toBe(false)
+  // 개요 바로가기의 이동 링크도 잠긴 버튼이 된다(집필실·소설 상세로 떠나도 저장하지 않은 입력이 사라진다. 잠긴 모양은 WorkDashboard.test가 본다).
+  const shortcuts = () => within(screen.getByRole('region', { name: '바로가기' }))
+  expect(shortcuts().queryAllByRole('link')).toEqual([])
   fireEvent.click(screen.getByRole('button', { name: '취소' }))
   expect(tab('운영 설정').disabled).toBe(false)
+  expect(shortcuts().getAllByRole('link')).toHaveLength(2)
   await openSettings()
   expect((within(screen.getByRole('region', { name: '포크 정보' })).getByRole('button', { name: '포크 공개 중단' }) as HTMLButtonElement).disabled).toBe(false)
 })
@@ -1488,4 +1499,46 @@ it('keeps saved manuscript bodies out of the history tab until each version is o
   expect(within(title.closest('article')!).getByRole('button', { name: '원고 접기' }).getAttribute('aria-expanded')).toBe('true')
   fireEvent.click(within(title.closest('article')!).getByRole('button', { name: '원고 접기' }))
   expect(screen.queryByText('저장된 원고')).toBeNull()
+})
+
+// ── 개요 대시보드(R6): 히어로 아래의 작품 지표·최근 발행 이력·바로가기 ──
+const dashMetric = (name: string) => screen.getByText(name, { selector: '.ep-dash dt' }).nextElementSibling?.textContent
+
+it('개요 탭 히어로 아래에 대시보드가 있고, 공개 작품의 독자 지표는 공개 상세의 값이며 최근 발행 이력과 바로가기가 같은 작품 데이터로 보인다', async () => {
+  stubCover()
+  const readerStats = vi.spyOn(appContainer.resolve('readingUseCase'), 'readerStats').mockResolvedValue({ likes: 3, views: 12 })
+  vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listInbox').mockResolvedValue([])
+  vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'inbox').mockResolvedValue([])
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public', episodes: [episode(1)] }]),
+    'GET /api/v1/works/w/history': () => Response.json({ versions: [], proposals: [], publicationHistory: [{ episode: 1, versionId: 'v1', publishedAt: '2026-11-03T00:00:00Z', action: 'publish' }] }),
+  }))
+  const dash = document.querySelector<HTMLElement>('.ep-dash')!
+  expect(document.querySelector('.ep-hero')!.compareDocumentPosition(dash) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  await waitFor(() => expect(dashMetric('누적 조회(회원)')).toBe('12회'))
+  expect(readerStats).toHaveBeenCalledWith('w', expect.any(AbortSignal))
+  expect(dashMetric('좋아요')).toBe('3')
+  expect(dashMetric('공개 회차')).toBe('1화')
+  expect(dashMetric('총 글자 수 · 공백 포함')).toBe('5자') // 내가 쓴 공개 회차의 글자만('1화 본문')
+  await waitFor(() => expect(dashMetric('받은 피드백')).toBe('0건'))
+  const recent = within(await screen.findByRole('region', { name: '최근 발행 이력' }))
+  expect((await recent.findByRole('listitem')).textContent).toContain('1화 · 발행 ·')
+  expect(screen.getByRole('link', { name: '소설 상세 보기' }).getAttribute('href')).toBe('/work/w')
+  expect(screen.getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w') // 사이드바 메뉴에 없는 목적지로 가는 바로가기(탭 전환 버튼이 없음은 WorkDashboard.test가 본다)
+})
+
+it('대시보드의 한 구획이 실패해도 그 구획 안에서만 알리고(화면 알림 role=alert는 가로채지 않는다) 다른 지표는 그대로 보인다', async () => {
+  stubCover()
+  vi.spyOn(appContainer.resolve('readingUseCase'), 'readerStats').mockRejectedValue(new Error('offline'))
+  vi.spyOn(appContainer.resolve('feedbackReportUseCase'), 'listInbox').mockResolvedValue([])
+  vi.spyOn(appContainer.resolve('editSuggestionUseCase'), 'inbox').mockResolvedValue([])
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public', episodes: [episode(1)] }]),
+    'GET /api/v1/works/w/history': () => Response.json({ detail: '서버 오류' }, { status: 500 }),
+  }))
+  await waitFor(() => expect(dashMetric('누적 조회(회원)')).toBe('불러오지 못했어요'))
+  expect(dashMetric('좋아요')).toBe('불러오지 못했어요')
+  expect(dashMetric('공개 회차')).toBe('1화')
+  expect(within(await screen.findByRole('region', { name: '최근 발행 이력' })).getByText(/발행 이력을 불러오지 못했어요/)).toBeTruthy()
+  expect(within(document.querySelector<HTMLElement>('.ep-dash')!).queryByRole('alert')).toBeNull() // 표지 알림 같은 다른 구획의 알림과 섞이지 않는다: 이 대시보드 안에는 role=alert가 없다
 })

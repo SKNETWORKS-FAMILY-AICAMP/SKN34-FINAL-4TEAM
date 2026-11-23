@@ -148,6 +148,19 @@ export class ReadingUseCase {
     return work.canonical && isPub(work) ? this.workSearchRepository?.episodeViews(work.id, signal) : undefined
   }
 
+  /**
+   * 작품 관리 개요의 독자 지표: 공개 상세의 좋아요 수와 회차별 누적 회원 조회 수의 합계. 공개 작품이 아니면(null) 집계가 없고, 저장소가 없는 데모도 null이다.
+   * 읽지 못하면 0으로 채우지 않고 던진다(화면이 구획 안에서 실패를 알린다).
+   * ponytail: 같은 GET /public/works/{id}를 좋아요·조회로 두 번 읽는다. 느려지면 공개 상세 한 번에 둘을 받는 저장소 메서드로 합친다.
+   */
+  async readerStats(workId: string, signal?: AbortSignal): Promise<{ likes: number; views: number } | null> {
+    if (!this.workLikeRepository || !this.workSearchRepository) return null
+    const like = await this.workLikeRepository.read(workId)
+    if (!like) return null
+    const views = await this.workSearchRepository.episodeViews(workId, signal)
+    return { likes: like.likes, views: Object.values(views).reduce((sum, n) => sum + n, 0) }
+  }
+
   /** 운영자 열람 모드 판정용: ID로 읽은 작품의 소유자 회원 ID. ID로 읽는 저장소가 아니면(데모) null이다. */
   async ownerOf(id: string) { return (await this.workRepository.readWork?.(id))?.owner ?? null }
 

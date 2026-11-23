@@ -19,8 +19,11 @@ const TABS = [['all', '전체'], ['original', '원작'], ['fork', '포크 작품
 type Kind = (typeof TABS)[number][0]
 const KEEP: Record<Kind, (work: Work) => boolean> = { all: () => true, original: work => !work.source, fork: work => !!work.source }
 
-/** 팀 서재의 카드와 진입 경로를 사용하되 데모 데이터와 합치지 않는다. Fork 관리는 작품 관리 페이지(/content)가 맡는다. */
-export function ServerWritingList() {
+/**
+ * 팀 서재의 카드와 진입 경로를 사용하되 데모 데이터와 합치지 않는다. Fork 관리는 작품 관리 페이지(/content)가 맡는다.
+ * newTo는 제목 줄 오른쪽 '+ 새 소설' 버튼의 주소로, 아래 '새로 시작하기'의 새 소설 카드와 같은 곳이다(LibraryPage가 정한다).
+ */
+export function ServerWritingList({ newTo }: { newTo: string }) {
   const vm = useServerWorks()
   const [kind, setKind] = useState<Kind>('all')
   const [page, setPage] = useState(1)
@@ -37,7 +40,7 @@ export function ServerWritingList() {
     event.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')[next]?.focus()
   }
   return <section className="server-writing" aria-label="집필 중인 작품" aria-busy={vm.loading}>
-    <div className="sec-h"><h2>집필 중인 작품</h2></div>
+    <div className="sec-h"><h2>집필 중인 작품</h2><Go to={newTo} className="btn sm pri">+ 새 소설</Go></div>
     {vm.error ? <div className="server-writing-error"><p role="alert">{vm.error}</p><button type="button" className="btn sm" onClick={vm.reload}>다시 시도</button></div>
       : vm.loading && !vm.works.length ? <p role="status">작품을 불러오고 있어요…</p>
       : !vm.works.length ? <p className="note2">아직 서버에 저장된 작품이 없어요. {import.meta.env.MODE === 'mockup' ? '아래 새 소설 등록은 현재 데모이며 서버 등록 연결은 준비 중이에요.' : '아래에서 새 소설을 시작해 보세요.'}</p>
@@ -46,14 +49,13 @@ export function ServerWritingList() {
           <button key={key} type="button" role="tab" id={`server-writing-tab-${key}`} className={kind === key ? 'on' : ''} aria-selected={kind === key} aria-controls="server-writing-panel" tabIndex={kind === key ? 0 : -1} onClick={() => pick(key)}>{label} {vm.works.filter(KEEP[key]).length}</button>)}
         </div>
         <div role="tabpanel" id="server-writing-panel" aria-labelledby={`server-writing-tab-${kind}`}>
-          {view.items.length ? <div className="list">{view.items.map(work => <article className="li" key={work.id}>
+          {view.items.length ? <div className="list">{view.items.map(work => <article className="li rowlink" key={work.id}>
             <Cover id={work.id} />
-            <div className="server-writing-content"><h3>{work.title}</h3>
-              <div className="m">{work.visibility === 'public' ? '공개 중' : '비공개'}{work.source && ` · Fork · 「${work.source.title}」 ${work.source.episode}화에서`}</div>
+            <div className="server-writing-content"><h3><Go to={`/content?work=${work.id}`} className="li-link">{work.title}</Go></h3>
+              <div className="m server-tags"><span className={work.visibility === 'public' ? 'chip ok' : 'chip'}>{work.visibility === 'public' ? '공개 중' : '비공개'}</span>{work.source && <><span className="chip">Fork</span>「{work.source.title}」 {work.source.episode}화에서</>}</div>
               {work.summary && <p className="m server-summary">{work.summary}</p>}
             </div>
             <div className="acts">
-              <Go className="btn sm" to={`/content?work=${work.id}`} aria-label={`${work.title} 관리하기`}>관리하기</Go>
               <Go className="btn sm pri" to={`/studio/${work.id}`} aria-label={`${work.title} 회차 작성하기`}>회차 작성하기</Go>
             </div>
           </article>)}</div>
