@@ -134,6 +134,16 @@ internal class WritingAiService(
     }
 
     /**
+     * 이어가기 입력은 멈춘 단계([waiting]의 missingInputs)가 물은 것만 받고 아니면 422다(#677). AI는 받은 입력을 턴 전체에 합쳐 쓰기 때문이다.
+     * story_context 발췌는 서명 토큰의 근거 회차를 거치지 않으므로 물었어도 받지 않는다.
+     */
+    private fun checkAsked(waiting: JsonNode, inputs: JsonNode) {
+        val asked = waiting.path("missingInputs").values().map { it.asString() }.toSet() - "story_context"
+        checkContent(inputs.propertyNames().all { it in asked },
+            message = "이 대화가 기다리는 입력이 아니에요. 대화를 다시 불러온 뒤 보내 주세요.")
+    }
+
+    /**
      * 채팅 구간 입력(#497): 작가가 입력 대기 카드에서 고른 `inputs.writing_editing.span`(episode·revision·start·end·instruction)을 확인해
      * AI의 `patch`(선택 문장·앞뒤 2,000자·지시)로 바꾼다. 작품 소유는 회차 조회가 확인하고(남의 작품·없는 회차는 그 오류),
      * 초안 revision이 다르면 409, 구간 규칙(공백 아님·5,000자 이하·서로게이트 분할 금지)은 부분 수정과 같은 [WritingSelection]이 422로 막는다.
@@ -230,7 +240,10 @@ internal class WritingAiService(
                 put("resume", buildMap {
                     put("approved", request.resume.approved)
                     scope?.let { put("scope", it) }
-                    request.resume.inputs?.let { put("inputs", patchInputs(workId, owner, waiting!!, it)) }
+                    request.resume.inputs?.let {
+                        checkAsked(waiting!!, it)
+                        put("inputs", patchInputs(workId, owner, waiting, it))
+                    }
                     request.resume.scene?.let { put("scene", body(it)) }
                     if (request.resume.refresh == true) put("refresh", true)
                 })

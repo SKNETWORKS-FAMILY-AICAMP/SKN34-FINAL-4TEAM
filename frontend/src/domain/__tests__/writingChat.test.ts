@@ -1,11 +1,21 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
+import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, lastScene, pendingChanges, selectionNote, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
 const episode = (number: number, publishedVersionId: string | null) => ({ number, publishedVersionId }) as WritingEpisode
+
+describe('selectionNote', () => {
+  it('chatPage가 싣는 선택 글만 글자 수로 알리고, 한도를 넘으면 보낼 수 없다고 알린다(#636)', () => {
+    expect(selectionNote('그는 웃었다.')).toBe('선택한 글 7자가 함께 보내져요.')
+    expect(selectionNote('가'.repeat(5000))).toBe('선택한 글 5,000자가 함께 보내져요.')
+    for (const none of ['', '  \n ']) expect(selectionNote(none)).toBe('')
+    expect(selectionNote(' '.repeat(5001))).toContain('보낼 수 없어요') // chatPage도 길이를 먼저 본다
+    expect(selectionNote('가'.repeat(5001))).toBe('선택한 글 5,001자는 보낼 수 없어요. 5,000자까지 선택해 주세요.')
+  })
+})
 
 // 근거 회차(지식 상한, 발행된 판본 필요)와 반영 회차(targetEpisode, 작가가 연 회차: 초안이어도 된다)를 분리한다.
 // 서버는 targetEpisode ≥ episode(근거)만 받으므로 근거는 열린 회차보다 뒤가 되지 않게 고른다.

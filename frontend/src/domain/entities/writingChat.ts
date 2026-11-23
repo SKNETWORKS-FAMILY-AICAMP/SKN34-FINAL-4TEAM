@@ -162,6 +162,13 @@ export function chatPage({ path, selection, unsaved, ...rest }: ChatPageInput): 
   return page
 }
 
+/** 입력창 위 안내(#636). chatPage가 싣는 선택 글과 같은 규칙이라 초점을 잃은 선택도 보내기 전에 보인다. */
+export function selectionNote(selection: string): string {
+  const [count, max] = [selection.length, PAGE_SELECTION_MAX].map((n) => n.toLocaleString('ko-KR'))
+  if (selection.length > PAGE_SELECTION_MAX) return `선택한 글 ${count}자는 보낼 수 없어요. ${max}자까지 선택해 주세요.`
+  return selection.trim() ? `선택한 글 ${count}자가 함께 보내져요.` : ''
+}
+
 export type WorldDraftRevision = { id: string; revision: number }
 
 export function worldProposalIsStale(action: PendingAction, draft?: WorldDraftRevision): boolean {

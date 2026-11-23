@@ -12,13 +12,14 @@ const never = new Promise<never>(() => {})
  * `LazyManuscriptEditor.suspend = true`로 두면 편집기를 불러오는 중인 모습(끝나지 않는 Suspense)을 만든다. 테스트가 끝나면 꺼야 한다.
  * 사용: `vi.mock('./LazyManuscriptEditor', () => import('<상대 경로>/test/manuscriptEditorFake'))`
  */
-export function LazyManuscriptEditor({ value, onChange, editable, busy, onImage, ref }: Parameters<typeof ManuscriptEditor>[0]) {
+export function LazyManuscriptEditor({ value, onChange, editable, busy, onImage, onSelectionChange, ref }: Parameters<typeof ManuscriptEditor>[0]) {
   if (LazyManuscriptEditor.suspend) use(never)
   const area = useRef<HTMLTextAreaElement>(null)
   useImperativeHandle(ref, () => ({
     addImage: (file) => onImage(file, area.current!.selectionStart, area.current!.selectionEnd),
     selectedText: () => area.current!.value.slice(area.current!.selectionStart, area.current!.selectionEnd), // 선택 범위의 글(집필 AI 채팅이 보내는 순간 읽는다)
   }), [onImage])
-  return <textarea ref={area} aria-label="원고 본문" value={value} readOnly={!editable} data-busy={busy ? 'true' : undefined} onChange={(e) => onChange(e.target.value)} />
+  return <textarea ref={area} aria-label="원고 본문" value={value} readOnly={!editable} data-busy={busy ? 'true' : undefined} onChange={(e) => onChange(e.target.value)}
+    onSelect={(e) => onSelectionChange?.(e.currentTarget.value.slice(e.currentTarget.selectionStart, e.currentTarget.selectionEnd))} />
 }
 LazyManuscriptEditor.suspend = false

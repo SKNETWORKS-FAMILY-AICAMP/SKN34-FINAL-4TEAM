@@ -74,6 +74,8 @@ DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다�
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
 PATCH_READY = '수정안을 만들었고 본문은 화면의 결과 카드에 있어요.'
 NO_SAVED_PLANS = '저장된 플롯·장면 계획이 없어 고칠 수 없어요. 고칠 계획을 먼저 저장해 주세요.'
+# '지적 고르기'에서 멈춘 턴을 이어 가는 요청이 설정으로 알린다(#636). 작가의 답(번호·취소)은 그 대기만 받는다. __로 시작해 체크포인트 metadata에 남지 않는다
+RESUME_FIX = '__resume_fix'
 PLAN_CANDIDATES = 5  # 되묻기에 보이는 후보 계획 제목 수
 # 판정 기능 → 메인에 노출할 도구 이름. 판정 기능마다 도구가 있어 미구현으로 끝내는 기능이 없다.
 TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world': 'ask_world', 'writing_editing': 'ask_writing',
@@ -157,7 +159,8 @@ def _world_summary(r: dict) -> dict:
 
 SUMMARIES: dict[str, Callable[[dict], dict]] = {
     'story_context': lambda r: {'claims': [{k: c[k] for k in ('text', 'kind', 'sourceIds')} for c in r['claims']], 'gaps': r['gaps']},
-    'manuscript_review': lambda r: {'revision': r['revision'], 'basis': 'writing_candidate' if r.get('candidate') else 'saved_draft',
+    # range: 선택한 글이 실린 턴에도 그 문장만 검수했다고 답하지 않게 범위를 알린다(#636).
+    'manuscript_review': lambda r: {'revision': r['revision'], 'basis': 'writing_candidate' if r.get('candidate') else 'saved_draft', 'range': '회차 본문 전체',
                                     'gaps': r['gaps'], 'findings': [
         {'fix': i, 'status': f['status'], 'category': f['category'], 'quote': f['quote'], 'reason': f['reason']}
         for i, f in enumerate(r['findings'])]},
@@ -326,8 +329,9 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
 
     revise_plan은 작가가 이미 저장한 플롯·장면 계획의 제목·내용을 고치는 수정안이다(request에 고칠 계획과 방향을 적는다). 원고 문장은 고치지 않는다.
 
-    선택한 글이나 원고 구간을 고칠 때는 검수가 없어도 fix 없이 task=patch를 쓴다(선택한 글이 없으면 작가가 구간을 고른다).
-    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때는 task=patch에 fix(그 지적의 fix 번호)를 더한다. 확정 지적이 하나면 fix를 비워도 된다.
+    선택한 글이나 원고 구간을 고칠 때는 검수가 없어도 fix 없이 task=patch를 쓴다(선택한 글은 검수를 함께 요청했어도, 확정 지적이 없어도 그렇다. 선택한 글이 없으면 작가가 구간을 고른다).
+    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때는 task=patch에 fix(그 지적의 fix 번호)를 더한다. 선택한 글이 없고 확정 지적이 하나면 fix를 비워도 된다.
+    선택한 글이 남아 있어도 요청이 검수에서 나온 문제를 고치라는 것이면 확정 지적이 있을 때만 부르고 fix를 꼭 넣는다(fix를 비우면 선택한 글을 고친다).
     """
     if task == 'revise_plan':
         return _revise_plan(runtime, request)
@@ -335,7 +339,8 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
     selected = (turn.get('page') or {}).get('selection')  # 작가가 편집기에서 고른 글(#554, Content가 확인한 화면 정보)
     reviewed = next((s for s in reversed(steps) if s['feature'] in ('manuscript_review', 'review') and s['status'] == 'completed'), None)
     given = (runtime.state.get('inputs') or {}).get('writing_editing') or {}
-    fixing = 'fix' in given or fix is not None or (task == 'patch' and 'patch' not in given and reviewed is not None)
+    fixing = ('fix' in given or fix is not None or runtime.config['configurable'].get(RESUME_FIX)
+              or (task == 'patch' and 'patch' not in given and reviewed is not None and not selected))
     if fixing:
         return _fix(runtime, reviewed, fix)
 
