@@ -37,7 +37,7 @@ export function LibraryPage() {
   return (
     <>
       <Gnb on="lib" />
-      <main id="main" tabIndex={-1} className="wrap">
+      <main id="main" tabIndex={-1} className="wrap lib">
         <div className="sec-h" style={{ marginBottom: 0 }}><h1>내 서재</h1></div>
         <nav className="libtabs" aria-label="서재 메뉴">{TABS.map(([k, l]) => <Go key={k} to={`/lib?tab=${k}`} className={d.tab === k ? 'on' : ''} aria-current={d.tab === k ? 'page' : undefined}>{l}{k === 'write' && d.pending > 0 && <span className="nb">{d.pending}</span>}</Go>)}</nav>
         {d.read && (

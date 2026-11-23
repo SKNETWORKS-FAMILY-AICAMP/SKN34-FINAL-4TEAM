@@ -99,6 +99,10 @@ describe('storyfork.css 계정 메뉴 계약', () => {
     const creditCss = sheet.filter((r) => r.selectors.some((s) => s.startsWith(row))).map((r) => r.body).join(';')
     expect(creditCss).not.toMatch(/#[0-9a-fA-F]{3,8}\b|border-(?:left|right)/)
   })
+
+  it('프로필 줄의 "프로필 ›"은 보조색이라 메뉴 머리의 보라 강조는 아바타와 크레딧 줄만 남는다', () => {
+    expect(value('.pop.acctm .who em', 'color')).toBe('var(--sub)')
+  })
 })
 
 describe('storyfork.css 서재 목록 카드 계약', () => {
@@ -131,6 +135,18 @@ describe('storyfork.css 서재 목록 카드 계약', () => {
     expect(values('.newbox', 'grid-template-columns')).toEqual(['repeat(3,minmax(0,1fr))'])
     expect(values('.newbox', 'grid-template-columns', '(max-width:900px)')).toEqual(['1fr'])
   })
+
+  it('목록 행의 주 버튼은 채우지 않은 연보라 톤이고 hover만 조금 진해진다', () => {
+    const b = '.li.rowlink>.acts .btn.pri'
+    expect([value(b, 'background'), value(b, 'color')]).toEqual(['var(--pri-soft)', 'var(--pri-ink)'])
+    expect(value(b, 'border-color')).toMatch(/^color-mix\(/)
+    expect(value(`${b}:hover`, 'background')).toMatch(/^color-mix\(/)
+  })
+
+  it('서재 구역 제목(h2)은 페이지 제목(h1)보다 한 단계 작고 가볍다', () => {
+    expect([value('.lib .sec-h h2', 'font-size'), value('.lib .sec-h h2', 'font-weight')]).toEqual(['20px', '700'])
+    expect(value('.sec-h :is(h1,h2)', 'font-size')).toBe('23px')
+  })
 })
 
 describe('server-writing.css 서재 목록 제목 줄·칩 줄 계약', () => {
@@ -150,6 +166,11 @@ describe('storyfork.css GNB 검색 버튼 계약 (#505)', () => {
     expect(value('.search .ls', 'display')).toBe('none')
     expect(narrow('.search .lf')).toEqual(['display:none'])
     expect(narrow('.search .ls')).toEqual(['display:inline'])
+  })
+
+  it('검색 버튼 hover는 테두리색만 바꾸고 후광 그림자를 켜지 않는다', () => {
+    expect(value('.search:hover', 'border-color')).toBe('var(--pri)')
+    expect(value('.search:hover', 'box-shadow')).toBeUndefined()
   })
 })
 
@@ -180,6 +201,16 @@ describe('storyfork.css 셸·읽기 화면 정리 계약 (impeccable 그룹 1)',
 
   it('홈의 급상승·방금 업데이트 줄(.tri)은 2칸이다', () => {
     expect(value('.tri', 'grid-template-columns')).toBe('repeat(2,minmax(0,1fr))')
+  })
+
+  it('인증 화면의 홈으로 버튼은 떠 있는 그림자 없이 테마 버튼과 같은 높이로 놓인다', () => {
+    expect(value('.auth-header .back', 'box-shadow')).toBe('none')
+    expect(value('.back', 'height')).toBe(value('.auth-header .thm', 'height'))
+  })
+
+  it('로그인 도움 링크는 밑줄로 링크임을 보이고 굵기는 폼 레이블보다 가볍다', () => {
+    expect([value('.lg-links a', 'font-weight'), value('.lg-links a', 'text-decoration')]).toEqual(['500', 'underline'])
+    expect(Number(value('.lg-links a', 'font-weight'))).toBeLessThan(Number(value('.field', 'font-weight')))
   })
 })
 

@@ -108,6 +108,8 @@ it('내 서재는 h1 하나와 건너뛰기 링크가 닿는 main을 가진다',
   expect(screen.getAllByRole('main')).toHaveLength(1)
   expect(screen.getByRole('main').id).toBe('main')
   expect(screen.getByRole('main').getAttribute('tabindex')).toBe('-1')
+  // 구역 제목(h2) 크기를 정하는 CSS(.lib .sec-h h2)가 걸릴 자리
+  expect(document.querySelector('main.lib')).not.toBeNull()
 })
 
 it('탭 제목에 내 서재를 쓴다', async () => {
