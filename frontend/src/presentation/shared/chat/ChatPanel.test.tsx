@@ -356,6 +356,28 @@ describe('공용 채팅 비활성·첨부', () => {
     expect(chips()).toBeNull()
   })
 
+  it('칩을 빼면 그 파일의 읽기 오류 안내(inputError)를 감추고, 다른 파일을 뺀 때와 화면 쪽 안내는 그대로 두며, 다음 전송이 같은 안내를 다시 내면 보인다(#688 UI 리뷰 P3)', async () => {
+    const reason = '메모.txt: UTF-8 텍스트 파일만 보낼 수 있어요.'
+    const onSend = vi.fn().mockResolvedValue(false)
+    const { container, rerender } = render(<ChatPanel messages={[]} onSend={onSend} checkFile={checkAttachment} inputError={reason} />)
+    drop(container, note('메모.txt'), png())
+    expect(screen.getByRole('alert').textContent).toBe(reason)
+    fireEvent.click(screen.getByRole('button', { name: '지도.png 빼기' })) // 안내가 가리키는 파일이 아니다
+    expect(screen.getByRole('alert').textContent).toBe(reason)
+    fireEvent.click(screen.getByRole('button', { name: '메모.txt 빼기' }))
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(box().getAttribute('aria-describedby')).toBeNull()
+    // 다시 골라 보냈는데 같은 이유로 읽지 못하면(부모가 같은 안내를 다시 준다) 안내가 다시 보인다
+    drop(container, note('메모.txt'))
+    type('질문')
+    fireEvent.click(send())
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toBe(reason))
+    // 파일과 무관한 화면 쪽 안내는 칩을 빼도 남는다
+    rerender(<ChatPanel messages={[]} onSend={onSend} checkFile={checkAttachment} inputError="선택한 글이 너무 길어요." />)
+    fireEvent.click(screen.getByRole('button', { name: '메모.txt 빼기' }))
+    expect(screen.getByRole('alert').textContent).toBe('선택한 글이 너무 길어요.')
+  })
+
   it('지원하지 않는 형식·5MB 초과·3개 초과는 입력 카드 아래에 이유를 알리고 그 파일만 받지 않는다', () => {
     const { container } = render(<ChatPanel messages={[]} onSend={vi.fn()} checkFile={checkAttachment} />)
     const big = new File([new Uint8Array(5 * 1024 * 1024 + 1)], '큰.png', { type: 'image/png' })

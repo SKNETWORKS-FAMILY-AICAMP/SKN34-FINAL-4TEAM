@@ -24,6 +24,7 @@ type Picked = { file: File; name: string; kind: ChatAttachment['kind'] }
  * - checkFile(file, count): 있으면 첨부를 켠다(+ 메뉴의 이미지·텍스트 항목, 입력 카드에 끌어다 놓기). count는 지금 고른 개수이고 허용이면 { name, mediaType },
  *   거절이면 입력 카드 아래에 role="alert"로 보일 이유 문구를 돌려준다. 없으면 + 버튼 안의 첨부를 '준비 중'으로 잠근다(가짜 업로드를 만들지 않는다).
  * - disabledReason: 있으면 입력·전송·첨부·추천 칩을 모두 잠그고 이 사유를 입력 카드 아래에 보여 준다.
+ * - inputError: 보내기 전에 막힌 이유를 입력 카드 아래에 role="alert"로 보인다. '파일 이름: 이유' 모양(첨부 읽기 오류)이면 그 칩을 뺄 때 감추고 다음 전송이 같은 안내를 다시 내면 보인다.
  * - emptyTitle·emptyText·suggestions: 대화가 없을 때 보이는 제목·안내·추천 칩. 칩을 누르면 입력창에 글만 채운다(보내지 않는다).
  * - after: 메시지 뒤에 이어 그릴 것(진행 표시·승인 카드). 있으면 빈 상태 대신 그린다.
  * - renderCard: 메시지 글 바로 아래에 이어 그릴 카드(인물 시뮬레이션 장면 등). 이 카드가 있는 말풍선은 폭을 채운다.
@@ -79,6 +80,9 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
   const reasonId = `${id}-reason`
   const noteId = `${id}-note`
   const attachId = `${id}-attach`
+  // 보낼 때 읽지 못한 첨부의 안내(inputError)는 '파일 이름: 이유'다. 그 칩을 빼면 안내할 대상이 없으니 감추고, 다음 전송이 같은 안내를 다시 내면 새로 보인다.
+  const [dismissed, setDismissed] = useState('')
+  const shownError = inputError && inputError !== dismissed ? inputError : undefined
   const locked = !!disabledReason || !onSend
   const attachOff = locked || !checkFile
   const note = locked ? '' : sendNote
@@ -100,7 +104,12 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
     setPicked(next)
     setRejected(reasons)
   }
-  const remove = (index: number) => { pickEdits.current += 1; setPicked(picked.filter((_, i) => i !== index)); setRejected([]) }
+  const remove = (index: number) => {
+    pickEdits.current += 1
+    if (inputError?.startsWith(`${picked[index].name}: `)) setDismissed(inputError)
+    setPicked(picked.filter((_, i) => i !== index))
+    setRejected([])
+  }
   const submit = async () => {
     const text = draft.trim()
     if (!text || busy || locked || sending.current) return
@@ -108,6 +117,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
     pinned.current = true // 보낸 사람은 새 답을 보려는 것이다
     setPending(true)
     setFailed(false)
+    setDismissed('')
     const submittedEdits = draftEdits.current
     const submittedPicks = pickEdits.current
     const sentPicked = picked
@@ -157,7 +167,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
         {!!picked.length && <ul className="chat-chips chat-picked" aria-label="보낼 첨부">{picked.map((p, i) => <li key={`${p.name}-${i}`} className="chip">
           <span className="chat-chip-name">{kindLabel[p.kind]} · {p.name}</span><button type="button" className="chat-chip-x" aria-label={`${p.name} 빼기`} onClick={() => remove(i)}>×</button>
         </li>)}</ul>}
-        <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={[disabledReason && reasonId, inputError && errorId, note && noteId].filter(Boolean).join(' ') || undefined}
+        <textarea ref={box} aria-label="메시지" rows={2} value={draft} placeholder="AI에게 무엇이든 물어보세요" disabled={locked} aria-describedby={[disabledReason && reasonId, shownError && errorId, note && noteId].filter(Boolean).join(' ') || undefined}
           onChange={e => changeDraft(e.target.value)}
           onKeyDown={e => {
             // Safari는 조합 확정 Enter를 isComposing=false, keyCode=229로 보낸다
@@ -177,7 +187,7 @@ export function ChatPanel({ messages, onSend, busy = false, checkFile, disabledR
       </div>
       {rejected.map((reason, i) => <p key={`${i}-${reason}`} role="alert" className="chat-note">{reason}</p>)}
       {disabledReason && <p id={reasonId} className="chat-note">{disabledReason}</p>}
-      {inputError && <p id={errorId} role="alert" className="chat-note">{inputError}</p>}
+      {shownError && <p id={errorId} role="alert" className="chat-note">{shownError}</p>}
       {failed && <p role="alert" className="chat-note">메시지를 보내지 못했어요. 다시 시도해 주세요.</p>}
       {/* 파일 선택은 첨부 메뉴가 닫혀도 남아 있어야 고른 파일을 받을 수 있다. */}
       {checkFile && kinds.map(kind => <input key={kind} hidden multiple type="file" accept={accept[kind]} ref={el => { files.current[kind] = el }}
