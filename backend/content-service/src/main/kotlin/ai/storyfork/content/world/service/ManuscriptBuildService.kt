@@ -231,7 +231,7 @@ class ManuscriptBuildService(
                     if(current.status!="running" || current.executionToken!=token || current.deadline?.isAfter(Instant.now())!=true) throw WorldConflict()
                     require(steps.findAllByJobIdOrderBySequence(id).isEmpty())
                     requests.forEachIndexed { index,request ->
-                        studio.validateEditRequest(request)
+                        studio.validateEditRequest(request,basis.cards,basis.relationships)
                         steps.saveAndFlush(ManuscriptBuildLoadStep(jobId=id,sequence=index+1,requestPayload=json(request),requestHash=studio.manuscriptRequestHash(job.worldId,request)))
                     }
                     current.status="loading";jobs.flush();true
@@ -239,6 +239,9 @@ class ManuscriptBuildService(
             } catch(_:WorldConflict) {
                 // 추출하는 동안 세계관이 고정한 입력의 기준에서 바뀌었다(실행권이 이미 없으면 stale의 실패 기록은 거절되고 409만 남는다).
                 stale(id,owner,token,"WORLD_CHANGED")
+            } catch(_:IllegalArgumentException) {
+                // 만든 적재 요청이 초안 편집 검사(허용 키·형식·한도)를 통과하지 못했다. 재개해도 같은 입력이라 같은 거절이니 사유를 남겨 실패로 끝낸다(running으로 남기지 않는다).
+                stale(id,owner,token,"CONTENT_REJECTED")
             }
         }
         if(job.status!="running" && job.status !in listOf("loading","unknown")) throw WorldConflict()
