@@ -94,13 +94,13 @@ function RunRow({ run, j, busy }: { run: JobRun; j: Jobs; busy: boolean }) {
   const kind = jobKindLabel(run.kind), progress = run.progress
   return (
     <tr>
-      <td>{kind}</td>
-      <td>{jobSourceLabel(run.source)}</td>
+      <td className="admin-nowrap">{kind}</td>
+      <td className="admin-nowrap">{jobSourceLabel(run.source)}</td>
       <td>{statusChip(run.status)}</td>
-      <td>{jobTriggerLabel(run.trigger)}</td>
+      <td className="admin-nowrap">{jobTriggerLabel(run.trigger)}</td>
       <td>
         {progress && progress.total > 0 && <progress value={progress.done} max={progress.total} aria-label={`${kind} 진행률`} />}
-        <div className="small">{jobProgress(progress)}</div>
+        <div className="small admin-nowrap">{jobProgress(progress)}</div>
       </td>
       <td className="admin-date">{run.startedAt ? kstDateTime(run.startedAt) : '—'}</td>
       <td className="admin-date">{run.finishedAt ? kstDateTime(run.finishedAt) : '—'}</td>
@@ -154,7 +154,7 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
                 const kind = jobKindLabel(row.kind), busy = !!vm.actions[`schedule:${row.id}`]?.pending
                 return (
                   <tr key={row.id}>
-                    <td>{kind}</td>
+                    <td className="admin-nowrap">{kind}</td>
                     <td><code>{row.cron}</code></td>
                     <td><span className={`chip ${row.enabled ? 'ok' : 'wait'}`}>{row.enabled ? '켜짐' : '꺼짐'}</span></td>
                     <td>{Object.keys(row.params).length ? JSON.stringify(row.params) : '—'}</td>
@@ -214,7 +214,7 @@ function ScheduleForm({ editing, vm, j, onDone }: { editing: Schedule | null; vm
         </label>
         <label className="field">cron 식<input className="inp" name="cron" required defaultValue={editing?.cron ?? ''} placeholder="예: 0 0 3 * * *" /></label>
         <label className="field wide">매개변수(JSON 객체)<textarea className="ta" name="params" rows={3} defaultValue={editing ? JSON.stringify(editing.params) : '{}'} /></label>
-        <label><input type="checkbox" name="enabled" defaultChecked={editing?.enabled ?? true} /> 사용</label>
+        <label className="admin-inline small"><input type="checkbox" name="enabled" defaultChecked={editing?.enabled ?? true} /> 사용</label>
         <div className="rowend wide">
           {editing && <button type="button" className="btn" onClick={onDone}>수정 취소</button>}
           <button type="submit" className="btn pri">{busy ? '저장 중…' : editing ? '일정 변경' : '일정 등록'}</button>

@@ -261,6 +261,22 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect([value('.adm .admin-date', 'white-space'), value('.adm .admin-date', 'font-variant-numeric')]).toEqual(['nowrap', 'tabular-nums'])
   })
 
+  it('표 머리(.adm th)와 짧은 라벨 칸(.admin-nowrap)은 두세 줄로 꺾이지 않는 한 줄이다', () => {
+    // body{word-break:keep-all;overflow-wrap:anywhere} 아래 표 자동 레이아웃에서 글자가 아주 긴 칸(매칭 패턴·권한·대상 ID)이 남는 폭을 가져가고, 짧은 칸은 공백·하이픈 단위 최소 폭까지 눌려 '입력/단가'·'S14 QA1123/관리자'처럼 꺾였다(.admin-date와 같은 이유). 머리 글자는 모두 짧아 전체에 걸고, 본문 칸은 짧은 라벨 칸에만 클래스로 건다.
+    expect(value('.adm th', 'white-space')).toBe('nowrap')
+    expect(opsCss).toMatch(/\.adm \.admin-nowrap \{ white-space: nowrap; \}/)
+  })
+
+  it('권한 체크박스 줄(.admin-perm-grid label)은 좌우 안쪽 여백이 없어 체크박스가 legend 글자와 왼쪽이 맞는다', () => {
+    // 타일 배경을 지운 뒤 padding:8px만 남아 체크박스가 legend보다 6px 들어가 보였다. 위아래 8px는 그대로이고 label이 격자 칸 전체 폭이라 누르는 영역도 그대로다.
+    expect(value('.admin-perm-grid label', 'padding')).toBe('8px 0')
+  })
+
+  it('빈 상태 문구(.admin-empty)는 표 글자와 같은 13.5px이다', () => {
+    // 본문 15px를 물려받아 패널 제목(16px)과 경쟁했고 표 안 빈 행(13.5px)과 크기가 둘로 갈렸다. 색(--sub)·여백은 그대로다.
+    expect(opsCss).toMatch(/\.adm \.admin-empty \{[^}]*font-size: 13\.5px/)
+  })
+
   it('패널 주 행동·필터 버튼은 btn sm 규칙(36px·0 14px·13.5px) 하나로 같은 크기이고, 터치 환경(600px 이하·coarse)에서만 44px이다', () => {
     // 공지 작성·이벤트 작성 같은 .btn.pri는 전역 기본(44px·20px·15px) 큰 알약이라 필터 '조회'(.btn.sm)와 크기가 달랐다: .adm 안의 버튼은 모두 .btn.sm과 같다.
     const small = ['height', 'padding', 'font-size'].map((prop) => value('.btn.sm', prop))

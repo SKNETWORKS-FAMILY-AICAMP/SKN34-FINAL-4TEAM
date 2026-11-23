@@ -16,7 +16,7 @@
 .adm .admin-record-link:focus-visible { outline-offset: -2px; }
 .adm .admin-prose { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
 .adm .admin-operations p.admin-prose { margin: 18px 0; max-width: 75ch; }
-.adm .admin-empty { margin: 24px 0; color: var(--sub); }
+.adm .admin-empty { margin: 24px 0; color: var(--sub); font-size: 13.5px; }
 .adm .admin-action-error { padding: 12px; margin: 12px 0; background: var(--acc-soft); color: var(--acc-ink); border: 1px solid var(--line2); border-radius: 10px; overflow-wrap: anywhere; }
 .adm .admin-data-state { margin: 12px 0; font-size: 14px; }
 .adm .admin-data-state .btn { margin-top: 12px; }
@@ -73,6 +73,8 @@
 .adm .adm-scroll { position: relative; }
 /* cron 식('0 30 4 1 1 *')은 필드 경계가 공백이라 좁은 칸에서 꺾이면 필드 수를 셀 수 없다: 한 줄로 두고 모자라면 표 스크롤 영역 안에서 가로로 스크롤한다. */
 .adm td code { white-space: nowrap; }
+/* 긴 칸(패턴·권한·대상 ID)이 폭을 다 가져가 짧은 라벨 칸이 꺾이지 않게(.admin-date와 같은 이유). */
+.adm .admin-nowrap { white-space: nowrap; }
 /* 표 행 조치 메뉴(⋮, 공용 PopMenu): 조치 칸은 ⋮ 버튼 하나 폭이고 오른쪽에 붙인다. 표 스크롤 영역(.adm-scroll)은 absolute 메뉴를 잘라서 메뉴는 fixed로 띄우고,
    위치는 PopMenu가 열 때 알려 주는 버튼의 자리(--pop-bottom·--pop-right)로 맞춘다(버튼 바로 아래, 오른쪽 끝 맞춤). 정적 위치에 기대면 문서를 스크롤한 만큼 어긋난다.
    스크롤하면 PopMenu가 fixed 메뉴를 닫는다. */

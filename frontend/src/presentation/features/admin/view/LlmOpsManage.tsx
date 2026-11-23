@@ -138,7 +138,7 @@ export function Models({ vm, l }: Props) {
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id}>
-                    <td><b>{row.modelName}</b></td>
+                    <td className="admin-nowrap"><b>{row.modelName}</b></td>
                     <td className="muted">{row.matchPattern}</td>
                     <td>{perMillion(row.inputPrice)}</td>
                     <td>{perMillion(row.outputPrice)}</td>

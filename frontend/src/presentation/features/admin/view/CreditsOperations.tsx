@@ -129,7 +129,7 @@ function MemberCredits({ vm, d, member, picks }: { vm: VM; d: Credits; member: M
                 : <tr><td colSpan={3} className="muted">남은 크레딧이 없어요.</td></tr>}
             </tbody>
           </Table>
-          <Table label="크레딧 내역 표" style={{ marginTop: 10 }}>
+          <Table label="크레딧 내역 표" style={{ marginTop: 24 }}>
             <thead>
               <tr>
                 <th scope="col">일시</th>

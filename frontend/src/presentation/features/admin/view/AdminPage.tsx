@@ -1462,11 +1462,11 @@ function Admins({ vm }: { vm: VM }) {
               <tbody>
                 {rows.map((a) => (
                   <tr key={a.id}>
-                    <td>
+                    <td className='admin-nowrap'>
                       <b>{a.nickname}</b>
                       {a.restricted && <span className='chip wait'>이용 제한</span>}
                     </td>
-                    <td>{a.email}</td>
+                    <td className='admin-nowrap'>{a.email}</td>
                     <td>
                       {ADMIN_PERMISSIONS.filter(([k]) => a.permissions.includes(k)).map(([, l]) => l).join(', ') || '없음'}
                     </td>
