@@ -167,6 +167,10 @@ describe('server-writing.css 서재 목록 제목 줄·칩 줄 계약', () => {
     expect(writingCss).toMatch(/\.server-writing \.sec-h > \.btn \{[^}]*margin-left: auto/)
     expect(writingCss).toMatch(/\.server-tags \{[^}]*display: flex[^}]*flex-wrap: wrap[^}]*align-items: center/)
   })
+
+  it('[quieter] 칩 줄의 칩은 600이다 — 700 제목(.hk) 바로 아래 칩이 같은 굵기로 겨루지 않고 작품 관리 히어로 칩 줄·관리자 칩(600)과 맞춘다. 색·칩 종류는 그대로다', () => {
+    expect(writingCss).toMatch(/\.server-tags \.chip \{[^}]*font-weight: 600/)
+  })
 })
 
 describe('storyfork.css GNB 검색 버튼 계약 (#505)', () => {
@@ -277,7 +281,9 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
 
   it('브랜드는 메인(/)으로 가는 링크(a)라, 메뉴 항목 규칙(.adm .admin-nav :is(button,a): 38px·500·--fixed-sub)보다 높은 명시도로 브랜드 모양을 지키고 상단바 브랜드는 터치 목표 44px이다', () => {
     // 같은 레이어에서 명시도 (0,2,1)인 메뉴 항목 규칙이 (0,2,0) 브랜드 규칙을 이겨 브랜드가 메뉴 항목처럼 작아졌다: 클래스 셋(0,3,0)으로 올린다. display는 정하지 않는다(메뉴 안 링크 규칙이 flex로 두고, 위 계약이 기본 구간 display 없음을 지킨다).
-    expect(['height', 'font-weight', 'color'].map((prop) => value('.adm .admin-nav .admin-brand', prop))).toEqual(['60px', '800', 'var(--fixed-ink)'])
+    expect(['height', 'font-weight', 'color', 'justify-content'].map((prop) => value('.adm .admin-nav .admin-brand', prop))).toEqual(['60px', '800', 'var(--fixed-ink)', 'center'])
+    // 메뉴 항목 규칙(:is(button,a){text-align:left})이 브랜드도 왼쪽에 붙였다. 링크는 flex라 text-align이 아니라 justify-content로 사이드바 가운데에 둔다(메뉴 항목 규칙은 왼쪽 정렬 그대로).
+    expect(values('.adm .admin-nav :is(button,a)', 'justify-content')).toEqual([])
     // 900px 이하 가로 메뉴 구간의 상단바 브랜드는 누르는 영역이 글자 높이만큼이던 것을 44px로 올린다.
     expect(narrow('.adm .admin-brand-top', 'min-height')).toBe('44px')
   })
@@ -434,4 +440,33 @@ describe('storyfork.css 디자인 점검 P1 계약 (#623)', () => {
 
 it('소설 상세 히어로의 장르 뒤 칩(자율 연재·연재 상태·원작 링크)은 인라인 style 대신 이 규칙으로 8px 띄운다', () => {
   expect(value('.whero-body .chip', 'margin-left')).toBe('8px')
+})
+
+describe('storyfork.css 실시간 인기(.t10) 순위 목록 계약 (홈 / 과 공개 세계관 /worlds가 같은 .t10을 쓴다)', () => {
+  it('순위 목록(.t10 ol)은 위에서부터 쌓고 남는 높이를 줄 사이에 벌리지 않는다 — 패널 아래가 비어도 된다(space-between은 항목이 적을 때 줄 간격이 들쭉날쭉 벌어졌다)', () => {
+    expect(value('.t10 ol', 'justify-content')).toBe('flex-start')
+  })
+
+  it('[quieter] "24시간 조회" 칩(.t10h .live)은 대기·주의 칩이 쓰는 주황(--acc-*)이 아니라 .chip과 같은 회색(--muted-bg·--sub)이다 — 금·은·동 메달(.md1~3)은 순위 정보라 색을 그대로 둔다', () => {
+    expect(value('.t10h .live', 'background')).toBe('var(--muted-bg)')
+    expect(value('.t10h .live', 'color')).toBe('var(--sub)')
+  })
+
+  it('[polish] "24시간 조회" 칩(.t10h .live)은 같은 줄 제목(.t10h h2, 800)보다 가벼운 600이다 — 회색 보조 칩이 제목과 같은 800이면 머리 줄이 두 덩어리로 겨뤘다(다른 보조 칩·관리 화면 칩 줄과 같은 600)', () => {
+    expect(value('.t10h .live', 'font-weight')).toBe('600')
+  })
+})
+
+describe('storyfork.css 상단바(.gnb) 계정 아바타 계약', () => {
+  it('아바타는 상단바가 좁아져도 줄어들지 않는다 — 601~900px에서 메뉴·검색과 한 줄에 놓이면 flex 축소로 38×20 타원이 됐다', () => {
+    expect(sheet.some((r) => r.media === '' && r.selectors.includes('.gnb .avatar') && /flex:\s*none/.test(r.body))).toBe(true)
+  })
+  it('901~1023px에서는 검색 칸이 줄어 한 줄에 맞춘다 — 검색 최소 폭 260px 때문에 테마·아바타가 찌그러지고 가로로 58px 넘쳤다. 넓은 화면에서는 글자 폭(약 300px) 그대로라 안내 문구가 두 줄로 꺾이지 않는다(260px로 묶으면 꺾였다). 테마 버튼도 줄지 않는다', () => {
+    // 줄어드는 규칙은 짧은 안내('검색')만 보이는 901~1100px에만 둔다. 1101px 이상은 긴 안내가 보이므로 원래 규칙(최소 260px, 글자 폭) 그대로다.
+    const search = sheet.find((r) => r.media === '(min-width:901px) and (max-width:1100px)' && r.selectors.includes('.gnb .search'))
+    expect(search?.body).toMatch(/min-width:\s*0/)
+    expect(search?.body).toMatch(/flex:\s*0 1 260px/)
+    expect(sheet.some((r) => r.media === '(min-width:901px)' && r.selectors.includes('.gnb .search'))).toBe(false)
+    expect(sheet.some((r) => r.media === '' && r.selectors.includes('.gnb .thm') && /flex:\s*none/.test(r.body))).toBe(true)
+  })
 })

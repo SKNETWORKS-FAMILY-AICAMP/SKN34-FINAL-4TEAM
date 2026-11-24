@@ -46,3 +46,10 @@ it('동작 줄이기 설정이면 전환 없이 바로 옮긴다', () => {
   press('아래로 이동')
   expect(centerAt).toHaveBeenLastCalledWith(10, 57.5, 0)
 })
+
+it('지도 컨트롤 다섯(다시 펼치기·움직임·전체 보기·확대·축소)은 모두 같은 윤곽선 버튼(btn sm)이다 — 가끔 쓰는 다시 배치가 채운 보라(pri)로 어두운 지도에서 가장 진한 면이 되지 않는다', () => {
+  setup()
+  for (const name of ['다시 펼치기', '움직임 멈추기', '전체 보기', '지도 확대', '지도 축소']) {
+    expect(screen.getByRole('button', { name }).className, name).toBe('btn sm')
+  }
+})

@@ -3,13 +3,13 @@ import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import type { PublicWorld, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
-import { buildWorldAtlas, type AtlasNode } from '../worldAtlas'
+import { buildWorldAtlas, nodeRadius, type AtlasNode } from '../worldAtlas'
 import { buildSettingGraph, type DetailNode } from '../worldDetail'
 import WorldAtlasCanvas from './WorldAtlasCanvas'
 import WorldGraphCanvas from './WorldGraphCanvas'
 
 // 실제 react-force-graph(d3·canvas)는 그리지 않고 캔버스가 넘기는 값만 붙잡는다.
-type GraphProps = { enablePanInteraction?: boolean; enableNodeDrag?: boolean; onNodeHover?: unknown; onNodeClick: (node: unknown) => void; onZoom?: (transform: { k: number; x: number; y: number }) => void }
+type GraphProps = { nodeVal?: (node: AtlasNode) => number; enablePanInteraction?: boolean; enableNodeDrag?: boolean; onNodeHover?: unknown; onNodeClick: (node: unknown) => void; onZoom?: (transform: { k: number; x: number; y: number }) => void; onEngineTick?: () => void; onEngineStop?: () => void }
 const forceGraph = vi.hoisted(() => ({ props: null as null | GraphProps }))
 vi.mock('react-force-graph-2d', () => ({ default: (props: GraphProps) => { forceGraph.props = props; return null } }))
 
@@ -76,6 +76,26 @@ it('터치 기기의 상세 그래프도 지도 이동·노드 끌기를 끄고,
   const card = data.nodes.find((n) => n.kind === '인물')!
   click(card)
   expect(onOpen.mock.calls).toEqual([[card]])
+})
+
+it('지도와 상세 그래프는 배치가 펼쳐지는 동안 화면이 따라가도록 틱·멈춤 알림을 그래프에 연결한다', () => {
+  media(false)
+  render(<WorldAtlasCanvas atlas={atlas()} onOpen={() => {}} />)
+  expect([typeof forceGraph.props!.onEngineTick, typeof forceGraph.props!.onEngineStop]).toEqual(['function', 'function'])
+  cleanup()
+  forceGraph.props = null
+  render(<WorldGraphCanvas data={buildSettingGraph(world)} mode="setting" summary="그래프" onOpen={() => {}} />)
+  expect([typeof forceGraph.props!.onEngineTick, typeof forceGraph.props!.onEngineStop]).toEqual(['function', 'function'])
+})
+
+it('지도의 맞춤 상자·화살표 끝은 그리는 반지름(nodeRadius)으로 잰다 — 기본 nodeVal(val, 세계관은 설정 카드 수라 수천)을 읽으면 맞춤 상자가 부풀어 지도가 캔버스의 절반만 쓰고 위로 몰린다', () => {
+  media(false)
+  const data = buildWorldAtlas([{ ...summary('w-big', '거대 세계'), cardCount: 5000, cards: [{ id: 'c-1', title: '리안', cardType: 'character' }] }])
+  render(<WorldAtlasCanvas atlas={data} onOpen={() => {}} />)
+  const nodeVal = forceGraph.props!.nodeVal!
+  expect(data.nodes.find((n) => n.kind === 'world')!.val).toBe(5000) // val은 그대로 카드 수다(노드 크기와 무관)
+  // force-graph는 반지름을 sqrt(nodeVal) · nodeRelSize(기본 4)로 읽는다. 세계관·장르·카드 모두 그린 반지름과 같아야 한다.
+  for (const n of data.nodes) expect(Math.sqrt(nodeVal(n)) * 4).toBeCloseTo(nodeRadius(n))
 })
 
 it('터치 대형 그래프는 확대한 뒤 보이는 노드를 한 번 눌러 연다', () => {

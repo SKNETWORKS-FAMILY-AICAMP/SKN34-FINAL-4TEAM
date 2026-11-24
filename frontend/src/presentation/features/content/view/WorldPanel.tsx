@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useNavigate } from 'react-router'
 import type { World } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
@@ -29,11 +29,12 @@ type Props = {
  */
 export function WorldPanel({ workId, useCase, locked = false, onMediaBusy, linkedWorldId, onDetach, detachError }: Props) {
   const vm = useWorldViewModel(workId, useCase)
+  const title = useId()
   const navigate = useNavigate()
   const w = vm.world
   if (!w) {
     return (
-      <section className='ep-card'>
+      <section className='tcard ep-card'>
         <p role={vm.error ? 'alert' : 'status'} className={vm.error ? 'ep-alert' : undefined}>{vm.error || '설정집을 불러오고 있어요…'}</p>
         {vm.error && (
           <div className='ep-card-actions'>
@@ -50,8 +51,8 @@ export function WorldPanel({ workId, useCase, locked = false, onMediaBusy, linke
   }
   return (
     <>
-      <section className='ep-card' aria-label='세계관 설정집'>
-        <h3>{w.name}</h3>
+      <section className='tcard ep-card' aria-labelledby={title}>
+        <h3 id={title}>{w.name}</h3>
         <p>
           {w.mode === 'following'
             ? '원작 추종 중 · 내 세계관으로 만들어 수정하면 공개 설정 전체가 내 세계관의 카드로 복사되어 독립해요.'
@@ -83,9 +84,10 @@ function SettingFiles({ workId, world: w, locked, onBusy }: { workId: string; wo
   const rows = [...w.settings, ...w.drafts.filter((draft) => !w.settings.some((setting) => setting.id === draft.id))]
   const [picked, setPicked] = useState('')
   const row = rows.find((setting) => setting.id === picked) ?? rows[0]
+  const title = useId()
   return (
-    <section className='ep-card' aria-label='설정 첨부'>
-      <h3>설정 첨부 파일</h3>
+    <section className='tcard ep-card' aria-labelledby={title}>
+      <h3 id={title}>설정 첨부</h3>
       {w.mode === 'following'
         ? <p className='ep-muted'>원작을 따라가는 설정에는 파일을 붙일 수 없어요.</p>
         : !row

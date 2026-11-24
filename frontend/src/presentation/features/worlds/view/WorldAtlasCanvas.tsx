@@ -13,6 +13,8 @@ const DISTANCE = { genre: 60, card: 18, derive: 70, combine: 70 }
 const STRENGTH = { genre: 0.4, card: 0.9, derive: 0.05, combine: 0.05 }
 
 const isLineage = (l: AtlasLink) => l.kind === 'derive' || l.kind === 'combine'
+// 맞춤(zoomToFit)과 화살표 끝은 force-graph가 반지름을 sqrt(nodeVal)·nodeRelSize(기본 4)로 읽는다. 기본 `val`은 세계관의 설정 카드 수(수천)라 그린 반지름(`nodeRadius`)과 달라 맞춤이 헐겁고 지도가 위로 몰렸다.
+const radiusVal = (n: AtlasNode) => (nodeRadius(n) / 4) ** 2
 
 /**
  * 공개 세계관 지도의 캔버스. 노드 이름은 HTML 툴팁(`nodeLabel`) 대신 캔버스에 직접 그린다(툴팁은 문자열을 HTML로 넣는다).
@@ -29,7 +31,7 @@ export default function WorldAtlasCanvas({ atlas, lit, onOpen }: { atlas: WorldA
   const [height, setHeight] = useState(380)
   const { worlds, derived, combined } = atlas.stats
   const summary = atlasFeatures(atlas).lineage ? `공개 세계관 ${worlds}개가 파생 ${derived}개, 조합 ${combined}개로 이어진 지도` : `공개 세계관 ${worlds}개를 장르별로 모은 지도`
-  const { replay, onEngineStop } = useRelayout(canvas, atlas.nodes, 40)
+  const { replay, onEngineTick, onEngineStop } = useRelayout(canvas, atlas.nodes, 40)
 
   // 높이는 CSS(데스크톱 380px·모바일 340px)가 정하고 캔버스가 같은 값을 읽는다. 그리기 전에 맞춰 크기가 튀지 않는다.
   useLayoutEffect(() => setHeight(host.current?.clientHeight || 380), [host, width])
@@ -56,7 +58,8 @@ export default function WorldAtlasCanvas({ atlas, lit, onOpen }: { atlas: WorldA
     ctx.globalAlpha = alpha
     if (node.kind !== 'card' && alpha === 1) {
       ctx.shadowColor = node.color
-      ctx.shadowBlur = node.kind === 'genre' ? 24 : 10
+      // 번짐은 별자리 느낌만 남기고 줄였다(quieter). 허브·세계관의 위계는 크기와 흰 테두리가 맡는다.
+      ctx.shadowBlur = node.kind === 'genre' ? 12 : 6
     }
     ctx.beginPath()
     ctx.arc(x, y, r, 0, 2 * Math.PI)
@@ -113,7 +116,7 @@ export default function WorldAtlasCanvas({ atlas, lit, onOpen }: { atlas: WorldA
           <ForceGraph2D<AtlasNode, AtlasLink>
             ref={graph} graphData={atlas} width={width} height={height} backgroundColor="rgba(0,0,0,0)"
             cooldownTicks={paused ? 0 : 240} warmupTicks={reduced ? 270 : 30} minZoom={0.25} maxZoom={8}
-            nodeLabel={() => ''} nodeCanvasObject={paintNode} onRenderFramePost={paintLabels}
+            nodeLabel={() => ''} nodeVal={radiusVal} nodeCanvasObject={paintNode} onRenderFramePost={paintLabels}
             nodePointerAreaPaint={(n, color, ctx, scale) => {
               ctx.fillStyle = color
               ctx.beginPath()
@@ -125,7 +128,7 @@ export default function WorldAtlasCanvas({ atlas, lit, onOpen }: { atlas: WorldA
             linkDirectionalArrowLength={(l) => (isLineage(l) ? 6 : 0)} linkDirectionalArrowRelPos={0.82}
             enableZoomInteraction={(e) => e.ctrlKey || e.metaKey} {...pointer.graphProps}
             onNodeDragEnd={(n) => { n.fx = n.x; n.fy = n.y }}
-            onEngineStop={onEngineStop}
+            onEngineTick={onEngineTick} onEngineStop={onEngineStop}
           />
         </div>
         {/* role="img"의 자식은 보조기기에서 그림의 일부가 되므로 상태 안내는 캔버스 바깥 형제로, 레이아웃에 영향이 없게 겹쳐 둔다. 터치에서 첫 탭으로 이름을 보인 노드는 여기서도 알린다(이름이 길어 잘려도 안내는 남게 안내를 앞에 둔다). */}

@@ -66,7 +66,7 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
   return (
     <>
       {work.source && !linked && <InheritedWorldCard workId={work.id} sourceTitle={work.source.title} busy={busy} error={detachError} onDetach={detach} useCase={useCase} />}
-      <section className='ep-card' aria-label='세계관 연결'>
+      <section className='tcard ep-card' aria-label='세계관 연결'>
         <h3>세계관 연결</h3>
         {!linked && <p className='ep-muted'>세계관 하나는 소설 하나에만 연결돼요. 독자 설정 위키는 연결한 세계관의 확정 버전에서 발행된 마지막 회차까지 공개된 설정 카드를 보여 줘요.</p>}
         {linked
@@ -85,7 +85,7 @@ export function LinkedWorldPanel({ work, busy, onLink, onDetach, error, notice, 
                   <span aria-hidden='true'>🔍</span>
                   <input type='search' value={query} onChange={(e) => search(e.target.value)} placeholder='세계관 이름으로 검색' aria-label='세계관 검색' disabled={busy} />
                 </div>
-                <form className='ep-edit' onSubmit={(e) => { e.preventDefault(); if (target) void onLink(target) }}>
+                <form className='ep-edit ep-pick-form' onSubmit={(e) => { e.preventDefault(); if (target) void onLink(target) }}>
                   <fieldset disabled={busy}>
                     <fieldset>
                       <legend className='sr-only'>연결할 세계관</legend>
