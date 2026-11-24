@@ -97,8 +97,8 @@ main.wrap{padding-top:32px}
 @media (min-width:901px){.lg+.foot .wrap{max-width:none;padding-inline:64px}}
 /* 홈: 단색 배경의 보조 정보만 기존 --sub 대비로 맞추고 작품 팔레트는 유지합니다. */
 #home{--faint:var(--sub)}
-/* 홈 본문은 버튼(50px)과 화면 끝 offset(24px) 바깥으로 8px을 띄운다. 넓은 화면은 .wrap 바깥 여백도 계산에 넣는다. */
-main.wrap:has(> #home){padding-inline-end:clamp(24px,calc(82px - (100% - 1120px)/2),82px)}
+/* 홈 본문은 버튼(50px)과 화면 끝 offset(24px) 바깥으로 8px을 띄운다. 넓은 화면은 .wrap 바깥 여백도 계산에 넣는다. 모바일(900px 이하)은 버튼 아래에 푸터가 오므로 적용하지 않는다. */
+@media (min-width:901px){main.wrap:has(> #home){padding-inline-end:clamp(24px,calc(82px - (100% - 1120px)/2),82px)}}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px}.chips::-webkit-scrollbar{display:none}
 .chips button{flex:none;height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);font-weight:700;font-size:14px;color:var(--ink2)}
 .chips button:hover{border-color:var(--ink)}.chips button.on{background:var(--pri);border-color:var(--pri);color:var(--on-pri)}
