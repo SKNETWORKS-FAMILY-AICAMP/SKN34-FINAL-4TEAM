@@ -73,6 +73,7 @@ ONLY_SUSPECTED = '확정된 문제가 없어 자동으로 고치지 않았어요
 PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않았어요. 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
 BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 확정 지적을 골라 주세요.'
 FIX_TOO_FAR = '고른 지적이 서로 멀어 한 번에 고칠 수 없어요. 가까운 지적끼리 나눠 골라 주세요.'
+FIX_DETAILS_TOO_LONG = '고른 지적의 설명이 너무 길어요. 한 번에 고칠 지적을 나눠 골라 주세요.'
 DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
 PATCH_READY = '수정안을 만들었고 본문은 화면의 결과 카드에 있어요.'
@@ -529,6 +530,8 @@ def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None) -> Comman
             raise ContentMcpFailure(409, DRAFT_CHANGED)
         lines = [f"{f['reason']} 제안: {f['suggestion']}" for _, f in chosen]
         instruction = lines[0] if len(lines) == 1 else '\n'.join(f'{n}. "{f["quote"]}": {line}' for n, ((_, f), line) in enumerate(zip(chosen, lines), 1))
+        if len(lines) > 1 and len(instruction) > 2000:
+            raise WritingFailure(422, FIX_DETAILS_TOO_LONG)
         # shortcut: 허용 문맥(context) 없이 지적의 이유·제안만 지시로 보낸다. 설정을 고쳐 써야 하는 수정이 약하면 Semantic 근거 설정을 context로 넘긴다.
         return _recorded(recipe, 'patch', PatchRequest(selection=body[start:end], instruction=instruction[:2000],
                                                         precedingText=body[:start][-2000:], followingText=body[end:][:2000]))

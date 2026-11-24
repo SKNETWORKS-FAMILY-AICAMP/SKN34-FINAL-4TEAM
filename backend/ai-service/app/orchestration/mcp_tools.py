@@ -98,7 +98,8 @@ def edit_refused(name: str, asked: dict, edited) -> str | None:
     """작가가 고친 인자(edited)가 승인 카드의 인자(asked)와 글 필드(TEXT_FIELDS)의 값만 다르면 None, 아니면 이유 글.
 
     글 필드는 원래 있던 것만 고칠 수 있고 새 값도 글이어야 한다. 그 밖의 값(작품·세계관·카드·계획 id, revision, 종류)과 모양은 그대로여야 해서
-    대상 작품·스키마는 승인 카드 때 확인한 그대로다(실행 직전 execute가 대상 작품을 다시 확인한다). 화면 밖에서 보낸 이어가기도 이 검사를 지난다.
+    잠긴 JSON 값의 타입도 보존한다. 실행 직전 대상 작품을 다시 확인하고 Content가 기존 도구 입력 제약을 검증한다.
+    화면 밖에서 보낸 이어가기도 이 검사를 지난다.
     """
     def masked(args):
         copy = json.loads(json.dumps(args))
@@ -106,7 +107,7 @@ def edit_refused(name: str, asked: dict, edited) -> str | None:
             for field in TEXT_FIELDS[name]:
                 if field in part:
                     part[field] = None
-        return copy
+        return json.dumps(copy, sort_keys=True)
     if name not in TEXT_FIELDS or not isinstance(edited, dict) or masked(asked) != masked(edited):
         return EDIT_LOCKED
     for before, after in zip(_texts(name, asked), _texts(name, edited)):

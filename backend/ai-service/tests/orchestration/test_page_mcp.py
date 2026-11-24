@@ -711,10 +711,19 @@ def test_a_work_update_edit_cannot_touch_the_target_work_or_the_revision(monkeyp
     log = content(monkeypatch)
     thread = str(uuid4())
     turn(thread)
-    for edited in ({'id': 'someone-elses', 'data': {'title': '제목', 'revision': 1}}, {'id': 'work', 'data': {'title': '제목', 'revision': 7}}):
+    for edited in ({'id': 'someone-elses', 'data': {'title': '제목', 'revision': 1}},
+                   *({'id': 'work', 'data': {'title': '제목', 'revision': revision}} for revision in (7, True, 1.0))):
         with pytest.raises(service.ResumeRejected):
             edit(thread, edited)
     assert writes(log) == []
+
+
+def test_locked_values_are_compared_as_json_regardless_of_key_order():
+    original = {'id': 'w1', 'request': {'expectedDraftRevision': 4, 'cards': [{'id': 'k', 'body': '원래 글'}]}}
+    edited = {'request': {'cards': [{'body': '고친 글', 'id': 'k'}], 'expectedDraftRevision': 4}, 'id': 'w1'}
+    assert mcp_tools.edit_refused('world_studio_edit_draft', original, edited) is None
+    edited['request']['expectedDraftRevision'] = 4.0
+    assert mcp_tools.edit_refused('world_studio_edit_draft', original, edited) == mcp_tools.EDIT_LOCKED
 
 
 def test_an_edit_is_refused_when_no_content_write_is_waiting(monkeypatch):

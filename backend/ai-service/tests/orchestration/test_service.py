@@ -2917,6 +2917,18 @@ def test_picks_too_far_apart_for_one_patch_fail_without_a_model_call(monkeypatch
     assert done.status == 'failed' and done.steps[1].error == tools.FIX_TOO_FAR and 'patch' not in names(calls)
 
 
+def test_an_overlong_batch_does_not_silently_cut_a_selected_finding(monkeypatch):
+    first = found('서윤은 웃엇다.').model_copy(update={'reason': '가' * 1100})
+    second = found('바람이 차가왔다.').model_copy(update={'reason': '나' * 1100})
+    calls = conditional(monkeypatch, first, second)
+    thread = str(uuid4())
+    write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
+    done = write_turn(thread, resume={'approved': True, 'inputs': {'writing_editing': {'fix': [0, 1]}}})
+    assert done.status == 'failed'
+    assert done.steps[1].error == tools.FIX_DETAILS_TOO_LONG
+    assert 'patch' not in names(calls)
+
+
 def test_a_pick_list_with_a_finding_that_is_not_confirmed_fails_the_edit(monkeypatch):
     calls = conditional(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'), found('비가', status='suspected'))
     thread = str(uuid4())
