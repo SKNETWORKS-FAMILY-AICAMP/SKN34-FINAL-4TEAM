@@ -22,6 +22,7 @@ import tools.jackson.databind.JsonNode
 private const val LLM = "llm"
 private const val PRODUCTION = "production"
 private const val SEED = "seed"
+private val CANDIDATE = Regex("""candidate-\d+""")
 private const val NAME_MAX = 100
 
 /**
@@ -49,7 +50,7 @@ class PromptService(
      */
     fun list(member: OperationsMember): PromptListResponse {
         permissions.requirePermission(member, LLM)
-        val latest = evaluations.latestByVersion()
+        val latest = evaluations.latestByVersion(sets = EVALUATION_SETS)
         return PromptListResponse(langfuse.prompts().parallelStream().map { meta ->
             val name = meta.path("name").asString()
             val listed = labels(meta)
@@ -63,7 +64,7 @@ class PromptService(
         permissions.requirePermission(member, LLM)
         val meta = langfuse.prompts(name).firstOrNull { it.path("name").asString() == name } ?: throw NoSuchElementException("Prompt not found.")
         val versions = meta.path("versions").values().map { it.asInt() }.sortedDescending().map { langfuse.prompt(name, it) }
-        return prompt(meta, versions, evaluations.latestByVersion(), withBody = true)
+        return prompt(meta, versions, evaluations.latestByVersion(sets = EVALUATION_SETS), withBody = true)
     }
 
     /** A new version without any label: it only reaches production through [promote]. */
@@ -128,7 +129,7 @@ class PromptService(
         val name = meta.path("name").asString()
         val read = versions.map { version(it, latest[name to it.path("version").asInt()], withBody) }
         val live = read.firstOrNull { PRODUCTION in it.labels }?.version
-        return Prompt(name, read, labels(meta).count { it.startsWith("candidate-") && it != live?.let(::candidateLabel) }, EVALUATION_SETS[name])
+        return Prompt(name, read, labels(meta).count { CANDIDATE.matches(it) && it != live?.let(::candidateLabel) }, EVALUATION_SETS[name])
     }
 
     private fun version(node: JsonNode, evaluation: Evaluation?, withBody: Boolean = false) = PromptVersion(

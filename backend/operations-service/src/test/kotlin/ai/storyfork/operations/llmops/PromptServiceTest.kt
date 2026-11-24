@@ -237,6 +237,30 @@ class PromptServiceTest {
     }
 
     @Test
+    fun `a prompt with an evaluation set shows each version's newest run on that set so the row matches the candidate gate`() {
+        val name = "story_context.answer"
+        givenRuns(run("r-other", "2026-11-19T03:00:00Z", name, 2, "leak.spoiler") to true, run("r-set", "2026-11-19T01:00:00Z", name, 2, "qa.grounding") to false,
+            run("r-free", "2026-11-19T03:00:00Z", "qa/answer", 1, "leak.spoiler") to true)
+        `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"$name","versions":[2],"labels":["production"]}"""),
+            json("""{"name":"qa/answer","versions":[1],"labels":["production"]}""")))
+        `when`(langfuse.prompt(name, "production")).thenReturn(version(name, 2, """["production"]"""))
+        `when`(langfuse.prompt("qa/answer", "production")).thenReturn(version("qa/answer", 1, """["production"]"""))
+
+        val items = service.list(operators.llm).items.associateBy { it.name }
+
+        assertEquals(listOf("r-set", false), items.getValue(name).versions.single().evaluation?.let { listOf(it.runId, it.passed) })
+        assertEquals("r-free", items.getValue("qa/answer").versions.single().evaluation?.runId)   // a prompt without a set shows any run
+    }
+
+    @Test
+    fun `only labels shaped like candidate-number are counted as candidates`() {
+        givenRuns()
+        `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa","versions":[1],"labels":["candidate-x","candidate-","candidate-2","candidates"]}""")))
+
+        assertEquals(1, service.list(operators.llm).items.single().candidates)
+    }
+
+    @Test
     fun `only the answer prompt and the two simulation prompts name an evaluation set`() {
         givenRuns()
         val names = listOf("story_context.answer", "character_simulation.act", "character_simulation.narrate", "world_review.check")

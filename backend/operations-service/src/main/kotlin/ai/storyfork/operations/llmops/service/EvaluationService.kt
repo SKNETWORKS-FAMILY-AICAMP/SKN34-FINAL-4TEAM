@@ -90,9 +90,13 @@ class EvaluationService(
         return EvaluationStartedResponse(started.runName, request.dataset, request.prompt, request.version, "running")
     }
 
-    /** The newest run of each prompt version, for the prompt screens; only those runs are scored (in one read). */
-    internal fun latestByVersion(now: Instant = Instant.now()): Map<Pair<String, Int>, Evaluation> =
-        evaluations(runs(now, null).distinctBy { it.prompt to it.version }, now).associateBy { it.prompt to it.version }
+    /**
+     * The newest run of each prompt version, for the prompt screens; only those runs are scored (in one read). A prompt named in [sets] counts only its
+     * runs on that set, so the screen shows the run the candidate gate reads (#787).
+     */
+    internal fun latestByVersion(now: Instant = Instant.now(), sets: Map<String, String> = emptyMap()): Map<Pair<String, Int>, Evaluation> =
+        evaluations(runs(now, null).filter { run -> sets[run.prompt].let { it == null || it == run.dataset } }.distinctBy { it.prompt to it.version }, now)
+            .associateBy { it.prompt to it.version }
 
     /** The newest run of one prompt version (scored alone), on [dataset] when given: the candidate gate reads its verdict. */
     internal fun latest(prompt: String, version: Int, dataset: String? = null, now: Instant = Instant.now()): Evaluation? =
