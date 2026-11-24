@@ -252,4 +252,4 @@ uv run --locked --extra dev python eval/extraction/ex_cli.py score eval/extracti
 - `recall` 0.46은 정답표를 만든 상위 모델 두 실행이 서로를 맞추는 정도(8.3절 게이트 A → B 0.65·B → A 0.81)보다 낮다.
 - `quote_ok` 0.80은 정답표를 만든 `gpt-6.2-sol`의 0.97(8.1절)보다 낮다. 게이트 항목 6개를 같은 지시문·모델로 다시 돌려 보니 뺀 항목 23건 중 22건이 `INVALID_OR_AMBIGUOUS_QUOTE`(근거 인용이 원문에 정확히 한 번 나오지 않음), 1건이 `KNOWLEDGE_NOT_EXPLICIT`이었고 한 회차에서 9건까지 빠졌다. 또 6회차 중 4회차는 검증을 통과한 관계가 하나도 없었다. 같은 검증의 인용 대조 실패는 고전 원문 전처리에서도 따로 조사 중이다(#846).
 - 시간·금액: 3분 38초(항목 5개 동시, 항목당 23~50초·중앙값 31초), 생성 30호출(입력 172,856·출력 143,148 토큰) 약 $0.089(Langfuse의 luna 단가 입력 $0.10·출력 $0.50 /1M 토큰). 채점 모델 호출은 없고 항목 실패·ERROR level은 0이다.
-- 문항별 결과: Langfuse Experiments items API가 30행·30개 `experimentItemId`(항목당 1행)를 주고 행마다 지표 둘(`recall`·`quote_ok`)이 있다.
+- 문항별 결과: Langfuse Experiments items API가 30행·30개 `experimentItemId`(항목당 1행)를 주고 행마다 지표 둘(`recall`·`quote_ok`)이 있다. 운영 `GET /llmops/evaluations/{runId}`도 200·`items` 30개(고유 30, 항목 오류 0, 지표 하나라도 0.5 미만인 문항 17)였다(관리자 로그인으로 호출해 확인).
