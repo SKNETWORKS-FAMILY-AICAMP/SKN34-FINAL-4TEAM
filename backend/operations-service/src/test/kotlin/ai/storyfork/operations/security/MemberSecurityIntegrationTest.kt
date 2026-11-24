@@ -489,7 +489,7 @@ class MemberSecurityIntegrationTest {
         for (builder in listOf(
             get("/api/v1/operations/dashboard"), get("/api/v1/operations/llmops/traces"), get("/api/v1/operations/llmops/traces/t-1"),
             get("/api/v1/operations/llmops/metrics"), get("/api/v1/operations/llmops/prompts"), put("/api/v1/operations/llmops/prompts/qa-answer/production"),
-            get("/api/v1/operations/llmops/models"), post("/api/v1/operations/llmops/evaluations"), get("/api/v1/operations/llmops/leak-checks"),
+            post("/api/v1/operations/llmops/prompts/qa-answer/optimizations"), get("/api/v1/operations/llmops/models"), post("/api/v1/operations/llmops/evaluations"), get("/api/v1/operations/llmops/leak-checks"),
             get("/api/v1/operations/llmops/settings"), get("/api/v1/operations/alerts"), put("/api/v1/operations/alerts/$id"),
             get("/api/v1/operations/alerts/rules"), put("/api/v1/operations/alerts/rules/ai_failure_rate"),
         )) {

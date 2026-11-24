@@ -7,6 +7,7 @@ import ai.storyfork.operations._common.client.instant
 import ai.storyfork.operations._common.client.textOrNull
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.llmops.service.dto.Evaluation
+import ai.storyfork.operations.llmops.service.dto.EvaluationItem
 import ai.storyfork.operations.llmops.service.dto.EvaluationListResponse
 import ai.storyfork.operations.llmops.service.dto.EvaluationMetric
 import ai.storyfork.operations.llmops.service.dto.EvaluationRequest
@@ -31,6 +32,13 @@ private val STALE_AFTER = Duration.ofHours(2)
 
 /** Langfuse needs a lower time bound to list experiments. ponytail: a prompt version whose last evaluation is older than this needs a new one to be promoted. */
 private val EXPERIMENT_LOOKBACK = Duration.ofDays(365)
+
+/** An item's experiment events start just after the run's start time; a minute of slack keeps the first one inside the window Langfuse requires. */
+private val ITEM_LOOKBACK = Duration.ofMinutes(1)
+
+/** A metric below this fails the item (contract: an item fails on a pov_ok of 0, a metric under 0.5 or an item error; pov_ok is 0 or 1). */
+private const val ITEM_PASS_SCORE = 0.5
+private const val ITEM_ERROR = "생성 또는 채점에 실패했어요."
 
 /** The AI service names a run "<prompt>@v<version>-<UTC time yyyymmddTHHMMSSZ>-<6 hex digits>"; the prompt may contain "@v" itself. */
 private val RUN_NAME = Regex("""^(.+)@v(\d+)-\d{8}T\d{6}Z-[0-9a-f]{6}$""")
@@ -70,7 +78,8 @@ class EvaluationService(
     /** [runId] is the run name, which Langfuse filters by itself. */
     internal fun detail(member: OperationsMember, runId: String, now: Instant): Evaluation {
         permissions.requirePermission(member, LLM)
-        return runs(now, runId).firstOrNull { it.name == runId }?.let { evaluations(listOf(it), now).single() } ?: throw NoSuchElementException("Evaluation not found.")
+        val run = runs(now, runId).firstOrNull { it.name == runId } ?: throw NoSuchElementException("Evaluation not found.")
+        return evaluations(listOf(run), now).single().copy(items = items(run))
     }
 
     /** The AI service answers 202 and keeps running; the result shows up in the run list. */
@@ -112,6 +121,18 @@ class EvaluationService(
         val dataset = metadata.path("dataset").textOrNull() ?: node.path("datasetId").textOrNull().orEmpty()
         Run(node.path("id").asString(), node.path("name").asString(), dataset, prompt, version, node.path("startTime").instant())
     }.sortedByDescending { it.createdAt }
+
+    /**
+     * The run's items from the Experiments items API (item scores, no text), failed ones first and then by item id. An item that errored while generating has level ERROR,
+     * one that generated but was never scored (a scoring failure) has no scores; both are failed with the fixed reason.
+     */
+    private fun items(run: Run): List<EvaluationItem> = langfuse.experimentItems(run.id, run.createdAt.minus(ITEM_LOOKBACK)).map { node ->
+        val scores = node.path("scores").values().filter { it.path("dataType").asString() == "NUMERIC" }
+            .mapNotNull { score -> score.path("value").doubleOrNull()?.let { score.path("name").asString() to it } }.toMap()
+        val errored = node.path("level").asString() == "ERROR" || scores.isEmpty()
+        // A pov_ok of 0 (a violated fact) is below the pass score too, so one comparison covers "a violation or a low metric".
+        EvaluationItem(node.path("experimentItemId").asString(), scores, errored || scores.values.any { it < ITEM_PASS_SCORE }, if (errored) ITEM_ERROR else null)
+    }.sortedWith(compareByDescending<EvaluationItem> { it.failed }.thenBy { it.itemId })
 
     /** The runs with their evaluation, all scored by one Scores API read: a score belongs to the experiment its subject names. */
     private fun evaluations(runs: List<Run>, now: Instant): List<Evaluation> {

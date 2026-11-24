@@ -92,15 +92,26 @@ data class ModelCreateRequest(val modelName: String, val matchPattern: String, v
 
 data class EvaluationMetric(val name: String, val score: Double, val baseline: Double?, val delta: Double?)
 
-/** [runId] is the name of the Langfuse experiment (Dataset Run); [status] is running, completed or failed. */
+/**
+ * One item of a run (#823): [itemId] is the evaluation set item id, [scores] its metric scores (0..1). It is failed when it errored (no scores), its pov_ok is 0 or
+ * a metric is below 0.5; [error] is a fixed reason only for an item that errored. No item text.
+ */
+data class EvaluationItem(val itemId: String, val scores: Map<String, Double>, val failed: Boolean, val error: String? = null)
+
+/** [runId] is the name of the Langfuse experiment (Dataset Run); [status] is running, completed or failed. [items] are only in a run's detail. */
 data class Evaluation(
     val runId: String, val dataset: String, val prompt: String, val version: Int, val status: String, val passed: Boolean?,
-    val createdAt: Instant, val metrics: List<EvaluationMetric>,
+    val createdAt: Instant, val metrics: List<EvaluationMetric>, val items: List<EvaluationItem>? = null,
 )
 
 data class EvaluationListResponse(val items: List<Evaluation>)
 
 data class EvaluationRequest(val dataset: String, val prompt: String, val version: Int)
+
+/** [maxMetricCalls] is the GEPA budget (1..500, default 150 when absent). */
+data class OptimizationRequest(val version: Int, val maxMetricCalls: Int? = null)
+
+data class OptimizationStartedResponse(val accepted: Boolean, val prompt: String, val version: Int, val maxMetricCalls: Int)
 
 data class EvaluationStartedResponse(val runId: String, val dataset: String, val prompt: String, val version: Int, val status: String)
 

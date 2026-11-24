@@ -25,6 +25,17 @@ class AiClient(private val http: RestClient) {
     }
 
     /**
+     * Asks the AI service to improve a prompt version automatically (202, #823): its worker runs GEPA, saves a new unlabelled version and evaluates it on the gate set.
+     * Only its 409 (an improvement of that prompt is already running) keeps its status; every other failure is a 502.
+     */
+    fun startOptimization(prompt: String, version: Int, maxMetricCalls: Int) {
+        upstream(preserved = setOf(409)) {
+            http.post().uri("/internal/v1/optimizations").contentType(MediaType.APPLICATION_JSON)
+                .body(mapOf("prompt" to prompt, "version" to version, "maxMetricCalls" to maxMetricCalls)).retrieve().toBodilessEntity()
+        }
+    }
+
+    /**
      * [references] are the private titles that appeared in [response]; the judge decides whether the response really gave them away. [question] is what
      * the user asked (null when the trace has none), always sent, so the judge can tell a title the answer gave away from a word it only repeated.
      */
