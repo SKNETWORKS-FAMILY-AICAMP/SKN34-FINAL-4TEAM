@@ -155,4 +155,62 @@ class WorldReadingBoundaryServiceTest {
         verify(drafts,never()).save(org.mockito.ArgumentMatchers.any(SettingDraftEntity::class.java))
         verify(worlds,never()).saveAndFlush(org.mockito.ArgumentMatchers.any(WorldEntity::class.java))
     }
+
+    private fun followingFork(basis: Int = 1) {
+        val forkWork=work.copy(id="f",source=SourceResponse("w","작품",basis,1,"분기"))
+        `when`(access.own("f","owner")).thenReturn(forkWork)
+        `when`(access.get("w")).thenReturn(work)
+        `when`(forks.findById("f")).thenReturn(Optional.of(ForkEntity(workId="f",sourceWorkId="w",sourceCheckpointId="cp")))
+        `when`(references.findById("f")).thenReturn(Optional.of(ForkWorldReferenceEntity(forkWorkId="f",sourceWorldId="w",referenceStatus="following")))
+    }
+
+    @Test fun `a following Fork's copy source is the settings its original made public with the wiki details readers see at the basis episode`() {
+        followingFork()
+        history()
+        val detail=SettingReadingDetailEntity(settingVersionId=version.id,aliases=mutableListOf("별칭"),participants=mutableListOf("하린"),
+            properties=mutableListOf(ReadingProperty(0,"나이","20",1),ReadingProperty(0,"성별","남",null),ReadingProperty(2,"상태","화남",2)))
+        `when`(readingDetails.findAllById(listOf(version.id))).thenReturn(listOf(detail))
+
+        val (setting,wiki)=service.followingSettings("f","owner").single()
+
+        assertEquals(listOf<Any>("s","인물","원문","인물","public",1),listOf(setting.id,setting.name,setting.content,setting.category,setting.visibility,setting.fromEpisode))
+        // 독자가 기준 회차(1화)에 보는 규칙 그대로다: 공개 회차가 없는 속성(성별)과 기준 회차 뒤의 속성(상태)은 싣지 않는다.
+        assertEquals(listOf("별칭"),wiki.aliases)
+        assertEquals(listOf(ReadingPropertyResponse("나이","20")),wiki.properties)
+        assertEquals(listOf("하린"),wiki.participants)
+    }
+
+    @Test fun `settings the original made private are not copy sources`() {
+        followingFork()
+        history()
+        `when`(visibility.findAllById(listOf("visibility"))).thenReturn(listOf(SettingVisibilityHistoryEntity(id="visibility",settingDocumentId=doc.id,defaultVisibility="private")))
+
+        assertEquals(emptyList<Any>(),service.followingSettings("f","owner"))
+    }
+
+    @Test fun `a work that follows no original has no copy source and reads no wiki detail`() {
+        `when`(access.own("w","owner")).thenReturn(work)
+        history()
+
+        assertEquals(emptyList<Any>(),service.followingSettings("w","owner"))
+        verifyNoInteractions(readingDetails)
+    }
+
+    @Test fun `only the latest version of a setting can be a copy source, so one the original later made private is not copied even if an older version was public`() {
+        followingFork(4)
+        // v1은 1~2화에 공개했고 v2는 3화부터 비공개다: 따라가는 이력에는 v1과 '공개 범위에서 제외'로 바뀐 v2가 남고, 설정집은 이 설정을 보이지 않는다.
+        val v1=SettingVersionEntity(id=settingVersionId("w","s","v1"),settingDocumentId=doc.id,contentVersionId="v1",revisionNo=0,name="인물",categoryId="인물",content="공개했던 내용",visibilityHistoryId="open")
+        val v2=SettingVersionEntity(id=settingVersionId("w","s","v2"),settingDocumentId=doc.id,contentVersionId="v2",revisionNo=1,name="인물",categoryId="인물",content="비공개로 바꾼 내용",visibilityHistoryId="closed")
+        `when`(documents.findAllByWorldId("w")).thenReturn(listOf(doc))
+        `when`(versions.findAllBySettingDocumentIdInOrderByRevisionNo(listOf(doc.id))).thenReturn(listOf(v1,v2))
+        `when`(documents.findAllById(anyList())).thenReturn(listOf(doc))
+        `when`(visibility.findAllById(anyList())).thenReturn(listOf(
+            SettingVisibilityHistoryEntity(id="open",settingDocumentId=doc.id,defaultVisibility="public"),SettingVisibilityHistoryEntity(id="closed",settingDocumentId=doc.id,defaultVisibility="private")))
+        `when`(ranges.findAllByVisibilityHistoryIdIn(anyCollection())).thenReturn(listOf(
+            SettingVisibilityRangeEntity(id="r1",visibilityHistoryId="open",startEpisodeId="e1",endEpisodeId="e2",visibility="public"),
+            SettingVisibilityRangeEntity(id="r2",visibilityHistoryId="closed",startEpisodeId="e3",endEpisodeId=null,visibility="private")))
+        `when`(episodes.findAllById(anyList())).thenReturn(listOf(1,2,3).map {ai.storyfork.content.episode.entity.EpisodeEntity(id="e$it",workId="w",sequence=it)})
+
+        assertEquals(emptyList<Any>(),service.followingSettings("f","owner"))
+    }
 }

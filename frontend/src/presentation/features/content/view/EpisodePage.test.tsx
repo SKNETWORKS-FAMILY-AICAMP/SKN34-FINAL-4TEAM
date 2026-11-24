@@ -1215,6 +1215,32 @@ it('독립이 거절되면 서버 문구를 이어받는 세계관 카드 안에
   expect((card.getByRole('button', { name: '내 세계관으로 만들어 수정하기' }) as HTMLButtonElement).disabled).toBe(false)
 })
 
+it('원작에 세계관이 없는 옛 설정집 방식 Fork는 설정집 카드의 독립 버튼으로 독립하고(거절은 그 카드 안에 보이고 다시 누를 수 있다) 새 세계관 관리 화면으로 간다', async () => {
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+  stubCover()
+  myWorlds([])
+  const followed = { id: 's', versionId: 'v', name: '지도', content: '설정', category: '장소', tags: [], visibility: 'public', fromEpisode: 1, toEpisode: null, knownBy: [], evidence: '' }
+  const detach = vi.fn()
+    .mockResolvedValueOnce(Response.json({ detail: '이어받는 원작 세계관이 없어서 독립할 수 없어요.', code: 'FORK_WORLD_NOT_INHERITED' }, { status: 409 }))
+    .mockResolvedValueOnce(Response.json({ workId: 'w', worldId: WORLD_ID }, { status: 201 }))
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([myFork]), 'GET /api/v1/works/w/world': () => Response.json({ ...settingsBook, settings: [followed] }),
+    'GET /api/v1/works/w/inherited-world': () => Response.json({ workId: 'w', worldId: null, upto: 0, cards: [], relationships: [] }),
+    'POST /api/v1/works/w/inherited-world/detach': detach,
+  }), '내 포크')
+  fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
+  const card = within(await screen.findByRole('region', { name: '세계관 설정집' }))
+  // 원작에 세계관이 없으면 이어받는 세계관 카드는 사라지고, 설정집 카드가 같은 버튼을 가진다.
+  await waitFor(() => expect(screen.queryByRole('region', { name: '이어받는 원작 세계관' })).toBeNull())
+  fireEvent.click(await card.findByRole('button', { name: '내 세계관으로 만들어 수정하기' }))
+  expect((await card.findByRole('alert')).textContent).toBe('이어받는 원작 세계관이 없어서 독립할 수 없어요.')
+  expect(screen.queryByText(/^위치 \/worldstudio/)).toBeNull()
+  fireEvent.click(card.getByRole('button', { name: '내 세계관으로 만들어 수정하기' }))
+  expect(await screen.findByText('위치 /worldstudio/' + WORLD_ID)).toBeTruthy()
+  expect(confirm).toHaveBeenCalledWith(DETACH_CONFIRM)
+  expect(detach).toHaveBeenCalledTimes(2)
+})
+
 it('lists saved versions, AI requests and publications read-only while restore and publish-target actions stay in the studio', async () => {
   stubCover()
   // revision(편집 번호)과 저장 순번이 다르게 두어, 화면이 순번('저장 버전 1')을 쓰는지 가른다.
