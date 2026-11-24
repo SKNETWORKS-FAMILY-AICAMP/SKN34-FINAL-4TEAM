@@ -53,6 +53,7 @@ LLMOps 화면에 Run이 남지 않고 로컬 CLI로 돌리는 평가다.
 | 평가 | 모드 | 실행 | 지표 | 세트(항목 수) | 문서 |
 |---|---|---|---|---|---|
 | 인물 시뮬레이션 대사·연출·나레이션·검사 | 새 답변 생성 | 로컬 CLI `eval/simulation/orig_cli.py`(해리 포터는 저장소 밖) | act `voice`·`intent`·시점 위반율, direct 종류·화자 완전 일치, narrate `style`·`info`·시점 위반율, check 정확도·오경보율·놓침률 | 원문 평가 ①~④: 공개 150·150·100·100, 로컬 해리 포터 400·300·200·300 | [원문 평가](simulation-original.md) |
+| 원문 → 세계관 → 인물 시뮬레이션 통합(전처리 `extract`·`resolve`·`organize` → `world_from` → `act`·`narrate`) | 새 답변 생성 | 로컬 CLI `eval/simulation/pipe_cli.py`(`--via ocx`는 금액 0) | 세계관 인용 통과율·평가 인물 포함률, 페르소나 인물 문서 줄의 원문 근거 비율, act `voice`·`intent`·narrate `style`·`info`·시점 위반율(손라벨 세계관 기준선과 같은 문항 짝 비교) | 공개 세트 14편: ① 대사 150·③ 나레이션 70·③ 독백 30 | [통합 평가](pipeline-eval.md) |
 | NovelBrain 단계 효과(검색 문맥을 준 응답의 시점 일관성) | 새 답변 생성 | 로컬 CLI `run_timechara.py`·`ko_timechara/kt_run.py`(유료 호출) | 시공간 일관성 | KoTimeChara 3,328·TimeChara 600 | [NovelBrain 평가](novelbrain.md) |
 | NovelBrain 근거 검색(영어 공개) | 원문 검색 | 로컬 CLI `run.py retrieval`(호출 없음) | Recall@5·P@5 | NarrativeQA 100·MuSiQue 100 | [NovelBrain 평가 §4.1](novelbrain.md#41-근거-검색-narrativeqamusique) |
 | 전처리 설정 추출(로컬 세트) | 새 답변 생성 | 로컬 CLI `eval/extraction/ex_cli.py score`(유료 호출, 해리 포터·웹소설 원문은 저장소 밖) | `recall`(설정다운 정답)·`quote_ok` | 해리 포터 14·웹소설 87회차(로컬 전용) | [추출 평가 세트](extraction-set.md) |
