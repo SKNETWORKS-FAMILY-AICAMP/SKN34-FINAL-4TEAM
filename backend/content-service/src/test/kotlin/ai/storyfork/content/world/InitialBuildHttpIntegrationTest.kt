@@ -375,14 +375,20 @@ class InitialBuildHttpIntegrationTest {
                     assertEquals(1,send("/api/v1/world-studios/$manuscriptWorld?episode=9").path("relationships").size())
                 }
                 assertEquals(1,send("/api/v1/world-studios/$manuscriptWorld?episode=1").path("relationships").size())
-                val firstRevision=send("/api/v1/world-studios/$manuscriptWorld/revisions","POST",SaveWorldRequest(built.draftRevision,"qa-manuscript-confirm"))
-                val afterConfirm=send("/api/v1/world-studios/$manuscriptWorld")
-                val revisedCards=built.cards.mapIndexed { index,c -> if(index==0) {
+                // 정체 진술이 없는 인물은 본문(IDENTITY)이 빈 문자열로 적재된다(#839). 초안은 받지만 확정 버전은 모든 카드에 본문을 요구하므로, 작가가 채우기 전에는 확정이 거절된다.
+                val blank=built.cards.filter { it.body.isBlank() }
+                assertTrue(blank.isNotEmpty() && blank.all { it.cardType=="character" },blank.toString())
+                assertEquals("WORLD_INPUT_INVALID",send("/api/v1/world-studios/$manuscriptWorld/revisions","POST",SaveWorldRequest(built.draftRevision,"qa-manuscript-blank-identity"),422).path("code").asString())
+                fun authored(c:CardPayload,text:String):CardPayload {
                     val studioMeta=c.semanticMetadata["studio"] as Map<*,*>
                     val item=studioMeta["item"] as Map<*,*>
-                    val text=c.body+"\n작가 수정"
-                    c.copy(body=text,semanticMetadata=c.semanticMetadata+("studio" to (studioMeta+("item" to (item+mapOf("text" to text,"authorText" to text,"origin" to "author_addition","evidence" to emptyList<Any>(),"orderEvidence" to emptyList<Any>()))))))
-                } else c }
+                    return c.copy(body=text,semanticMetadata=c.semanticMetadata+("studio" to (studioMeta+("item" to (item+mapOf("text" to text,"authorText" to text,"origin" to "author_addition","evidence" to emptyList<Any>(),"orderEvidence" to emptyList<Any>()))))))
+                }
+                val filled=mapper.convertValue(send("/api/v1/world-studios/$manuscriptWorld/draft","PUT",
+                    EditWorldDraftRequest(built.draftRevision,built.name,built.description,blank.map { authored(it,"${it.title}의 정체는 작가가 채웠다.") },emptyList(),"qa-author-fill-identity")),WorldDraftResponse::class.java)
+                val firstRevision=send("/api/v1/world-studios/$manuscriptWorld/revisions","POST",SaveWorldRequest(filled.draftRevision,"qa-manuscript-confirm"))
+                val afterConfirm=send("/api/v1/world-studios/$manuscriptWorld")
+                val revisedCards=filled.cards.mapIndexed { index,c -> if(index==0) authored(c,c.body+"\n작가 수정") else c }
                 val editedBuild=mapper.convertValue(send("/api/v1/world-studios/$manuscriptWorld/draft","PUT",
                     EditWorldDraftRequest(afterConfirm.path("draftRevision").asLong(),built.name,built.description,revisedCards,built.relationships,"qa-author-edit",true)),WorldDraftResponse::class.java)
                 assertEquals(revisedCards,editedBuild.cards)
