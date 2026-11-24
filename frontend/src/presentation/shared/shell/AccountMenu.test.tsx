@@ -88,9 +88,9 @@ it('계정 메뉴에는 내 서재 안에도 있는 관심 소설 항목을 두�
   expect(screen.queryByRole('menuitem', { name: '관심 소설' })).toBeNull()
 })
 
-it('로그인한 회원 메뉴에는 작품이 없는 독자도 닿는 내 댓글·제보 항목이 있고 작품 관리의 내 제보 화면으로 간다', () => {
+it('로그인한 회원 메뉴에는 작품이 없는 독자도 닿는 내 제보·수정 제안 항목이 있고 작품 관리의 내 제보 화면으로 간다', () => {
   const { onClose } = open()
-  fireEvent.click(screen.getByRole('menuitem', { name: '내 댓글·제보' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: '내 제보·수정 제안' }))
   expect(onClose).toHaveBeenCalledOnce()
   expect(screen.getByTestId('where').textContent).toBe('/content?view=reports')
 })

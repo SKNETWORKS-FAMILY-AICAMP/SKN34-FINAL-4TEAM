@@ -13,8 +13,9 @@ export function useEditSuggestionViewModel(workId: string, n: number, useCase: E
   const sending = useRef(false)
   const failure = useInlineFailure()
   const [busy, setBusy] = useState(false)
+  const [done, setDone] = useState(false)
   return {
-    busy,
+    busy, done,
     /** 마지막 전송이 거절·실패한 이유. 시트 안에 알리고 다음 전송을 시작하면 지웁니다. */
     error: failure.error,
     /** 성공하면 true. 이미 보내는 중이면 무시합니다. */
@@ -25,7 +26,8 @@ export function useEditSuggestionViewModel(workId: string, n: number, useCase: E
       failure.clear()
       try {
         await useCase.propose(workId, n, { beforeText, afterText, reason })
-        toast('수정 제안을 보냈어요. 작가가 승인해야 원고에 반영되고, 상태는 내 서재에서 볼 수 있어요.')
+        if (failure.isOpen()) setDone(true)
+        else toast('수정 제안을 보냈어요. 상태는 계정 메뉴의 ‘내 제보·수정 제안’에서 볼 수 있어요.')
         return true
       } catch (cause) {
         failure.fail(cause instanceof Error ? cause.message : '수정 제안을 보내지 못했어요.')
