@@ -225,12 +225,12 @@ it('세계관 추출이 시작되면 등록 결과에 진행을 볼 곳과 작�
   expect(screen.getByText(/3개 중 2개를 저장했고 1개는 저장하지 못했어요/)).toBeTruthy()
 })
 
-it('세계관 추출이 거절되면 서버가 준 사유를 그대로 알리고 등록 결과는 그대로 둔다', async () => {
+it('세계관 추출이 거절되면 등록 결과와 함께 추출을 시작하지 못한 사유를 알린다', async () => {
   await toPreview()
   fakes.manuscriptUseCase.confirm.mockResolvedValue({ ...mixed, worldBuild: rejected })
   fireEvent.click(screen.getByRole('button', { name: '3개 회차 등록' }))
   await screen.findByRole('heading', { name: '등록 결과' })
-  expect(screen.getByText(rejected.message).getAttribute('role')).toBe('alert')
+  expect(screen.getByText(`세계관 추출을 시작하지 못했어요. ${rejected.message}`).getAttribute('role')).toBe('alert')
   expect(screen.queryByText(/세계관 추출을 시작했어요/)).toBeNull()
   expect(screen.queryByRole('link', { name: '작품 관리 세계관 탭 열기' })).toBeNull()
   expect(screen.getByRole('region', { name: '저장한 회차' })).toBeTruthy()
