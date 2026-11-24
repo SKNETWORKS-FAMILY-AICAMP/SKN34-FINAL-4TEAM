@@ -8,12 +8,15 @@
 .worlds .sec-h { flex-wrap: wrap; row-gap: 4px; }
 
 /*
- * 세계관 지도 카드: 홈 상단 히어로 자리(.herow 왼쪽, 폭 744px 안팎·높이 약 510px)에 놓고 오른쪽에는 '실시간 인기'(.t10)가 선다.
+ * 세계관 지도 카드: 홈 상단 히어로 자리(.herow 왼쪽, 높이 약 510px)에 놓고 오른쪽에는 '실시간 인기'(.t10)가 선다. 카드는 그 칸 폭을 채운다(1440px에서 약 744px, 390px에서 화면 안).
  * 라이트·다크 테마와 상관없이 늘 어두운 캔버스이고 모서리는 홈 히어로와 같은 16px이다. 캔버스 높이는 CSS가 정하고 WorldAtlasCanvas가 그 값을 읽는다.
  * 스택: 캔버스(제목·상태는 겹침) → 컨트롤 → 통계 줄·범례. 컨트롤(.world-map-controls)은 이 기능의 MapControls(view/useMapCanvas.tsx)이고
  * 그 CSS 파일 없이 이 화면에서 배치와 어두운 면 색만 정한다. .herow가 두 칸 높이를 맞추므로 카드는 남는 높이를 아래쪽 어두운 면으로 채운다.
+ * 폭: 홈 .hero는 align-items: center라 세로 flex에서 그대로 두면 .atlas-stage가 내용 폭(캔버스의 처음 폭 500px)으로 줄고, 캔버스 폭을 칸에서 읽는 ResizeObserver(useMapCanvas)가
+ * 그 줄어든 폭을 다시 읽어 500px에 갇혔다(1440px에서는 양옆이 비고 390px에서는 카드가 화면을 126px 넘었다). stretch로 stage 폭이 칸을 따르게 하면 캔버스 폭도 칸을 따른다.
+ * .hero의 flex-wrap: wrap도 끊는다. 여러 줄 flex는 줄 폭을 가장 넓은 항목(캔버스 500px)으로 잡아 stretch가 칸이 아니라 그 폭까지만 늘린다.
  */
-.worlds-atlas { display: flex; flex-direction: column; }
+.worlds-atlas { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
 .atlas-stage { position: relative; flex: 1; overflow: hidden; border-radius: 16px; color: var(--fixed-ink); background: radial-gradient(ellipse at 50% 46%, #182742 0%, #0b1324 56%, #080e1b 100%); box-shadow: var(--sh); }
 .atlas-stage :focus-visible { outline-color: var(--fixed-pri); }
 .atlas-title { position: absolute; left: 16px; top: 14px; z-index: 1; margin: 0; font-size: 14px; font-weight: 800; letter-spacing: .02em; text-shadow: 0 1px 6px rgba(8, 14, 27, .9); pointer-events: none; }

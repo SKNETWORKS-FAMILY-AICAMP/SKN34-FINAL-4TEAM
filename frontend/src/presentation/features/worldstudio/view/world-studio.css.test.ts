@@ -567,3 +567,49 @@ it('헤더 버튼 줄(.acts)은 한 줄로 흐른다: 독자 시점 안내문이
   expect(css).not.toContain('acts-note')
   expect(css).not.toMatch(/\.world-manage-hero[^{]*\{[^}]*flex-basis:100%/)
 })
+
+// ── 개요 탭: 작품 관리 개요(WorkDashboard)처럼 위에 지표 띠, 아래에 구획 카드(impeccable audit R2) ─────────────────────────
+const overviewTab = '.ep-content[data-view=overview]'
+const asCard = (tail: string) => rule((s) => s === `${overviewTab} ${tail}`)?.body ?? ''
+
+it('개요 탭은 바깥 내용 카드(.tcard.ep-card)의 면을 지워 구획 카드가 카드 안의 카드가 되지 않는다(관계도 보기와 같은 방식, 카드 요소·scroll-margin은 그대로)', () => {
+  const box = rule((s) => s === `${overviewTab}>.ep-card`)?.body ?? ''
+  expect(box).toMatch(/padding:0;border:0;background:none;box-shadow:none/)
+  expect(box).toMatch(/margin-bottom:0/) // 면이 없는 껍데기 아래에 32px 빈 띠를 남기지 않는다
+})
+
+it('개요 폼은 560px 폭 제한을 풀고 구획 카드를 내용 열을 채우는 auto-fit 격자에 놓는다: 기본 정보·공개 설정은 2열(360px 미만이면 1열)이고 표지·저장 줄·삭제는 전체 폭이다', () => {
+  expect(asCard('.world-info-edit')).toMatch(/max-width:none/) // 공용 .episode-app .ep-edit의 560px보다 특이도가 높다
+  expect(asCard('.world-info-edit')).toMatch(/margin-top:0/) // 지표 구획과의 간격은 .ep-dash의 gap 하나가 정한다
+  expect(asCard('.world-info-edit>fieldset')).toMatch(/grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,360px\),1fr\)\)/)
+  expect(asCard('.world-info-edit>fieldset>:is(.world-cover-edit,.ep-edit-actions,.ep-delete,p)')).toMatch(/grid-column:1\/-1/)
+  expect(asCard('.world-info-edit .ep-edit-actions,' + overviewTab + ' .world-info-edit>fieldset>p')).toMatch(/margin:0/) // 격자 gap 위에 .ep-card의 위 여백이 겹치지 않게
+})
+
+it('구획 카드 면은 운영 설정 카드(.ep-settings-cards)와 같은 값이고(--surface·1px --line2·16px·20px 24px) 삭제 카드만 빨간 테두리다', () => {
+  expect(asCard('.world-info-card')).toMatch(/box-sizing:border-box;min-width:0;margin:0;padding:20px 24px;border:1px solid var\(--line2\);border-radius:16px;background:var\(--surface\)/)
+  expect(asCard('.world-info-card.ep-delete')).toMatch(/border-color:color-mix\(in srgb,var\(--danger\) 35%,var\(--line2\)\)/)
+  expect(asCard('.world-info-basic')).toMatch(/display:grid;align-content:start;gap:16px/)
+  expect(asCard('.world-info-card .world-publish')).toMatch(/margin:0/) // 공개 설정 묶음의 위 16px·아래 12px 여백(.episode-app .world-publish)은 카드 안에서 쓰지 않는다
+})
+
+it('카드·구획 제목(지표 h3·기본 정보 h3·공개 설정 legend·표지 이름)은 같은 16px/700이고, .ep-tab 안에서만 걸리는 공용 h3 규칙에 기대지 않는다', () => {
+  const title = rule((s) => s.includes(`${overviewTab} .ep-dash section>h3`) && s.includes(`${overviewTab} .world-info-card>h3`) && s.includes(`${overviewTab} .world-info-card legend`) && s.includes(`${overviewTab} .world-info-card .world-cover-label`))
+  expect(title?.body).toMatch(/margin:0;padding:0;font-size:16px;font-weight:700;line-height:1.5/)
+  expect(asCard('.world-info-card legend')).toMatch(/margin-bottom:16px/) // 제목 아래 간격은 기본 정보 카드(gap 16px)와 같다
+})
+
+it('지표 띠는 작품 관리 개요의 .ep-dash·.ep-metrics를 다시 정의하지 않고 개요 안에서 칸의 최소 폭만 120px로 줄인다(채팅을 연 1440px의 내용 열 약 800px에서 6칸이 5+1로 갈라지지 않게)', () => {
+  const selectors = rules.map((r) => r.selector)
+  for (const shared of ['.ep-dash', '.ep-metrics', '.ep-metrics>div', '.ep-metrics dd']) expect(selectors, shared).not.toContain(shared)
+  expect(asCard('.ep-metrics>div')).toMatch(/flex-basis:120px/)
+  expect(asCard('.ep-metrics dd.world-metric-title')).toMatch(/font-size:14px;font-weight:600/) // 연결된 소설 제목은 숫자 칸(22px)이 아니라 보조 글 크기다
+})
+
+it('표지 카드는 601px부터 지금 표지(160px)를 왼쪽에 띄우고 버튼·안내를 그 오른쪽에 흘려 오른쪽이 비지 않고, 600px 이하는 기존처럼 세로로 쌓인다', () => {
+  const from601 = (selector: string) => mediaRule('(min-width:601px)', selector)
+  expect(from601(`${overviewTab} .world-cover-edit`)).toMatch(/display:flow-root/) // 띄운 표지를 카드 높이에 포함한다
+  expect(from601(`${overviewTab} .world-cover-edit>.world-cover-now`)).toMatch(/float:left/)
+  expect(from601(`${overviewTab} .world-cover-edit>.world-cover-label`)).toMatch(/display:block;margin-bottom:16px/)
+  expect(rule((s) => s === '.world-cover-edit')?.body).toMatch(/display:grid/) // 기본(좁은 화면)은 세로 한 열 그대로
+})

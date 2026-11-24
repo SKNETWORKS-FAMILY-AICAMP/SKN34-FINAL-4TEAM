@@ -4916,3 +4916,99 @@ it('확인 필요 카드를 고쳐도 확인 필요 칩은 그대로 남는다',
   backToBoard()
   expect(todos('큰 항구')).toEqual(['확인 필요'])
 })
+
+// ── 개요 탭: 작품 관리 개요(WorkDashboard)처럼 위에 세계관 지표 띠, 아래에 구획 카드(impeccable audit R2) ─────────────────────
+/** 지표 구획(`세계관 지표`)의 한 칸 값. 칸이 없으면 null이다. */
+const metricValue = (label: string) => within(screen.getByRole('region', { name: '세계관 지표' })).queryByText(label)?.closest('div')?.querySelector('dd')?.textContent ?? null
+const openOverview = (fixture: Fixture = {}, settings?: StudioSetting[]) => show(settings, '/worldstudio/qa?view=overview', fixture)
+
+it('개요 탭 맨 위에 세계관 지표 띠가 있고 설정 카드·관계·저장 버전·확정 버전·연결 소설·공개 상태를 화면이 이미 가진 값으로 채운다', async () => {
+  const garam = person('가람', '기록관')
+  const narae = person('나래', '항해사')
+  revisions = { ...noRevisions(), rows: [revision(1, '첫 확정'), revision(2, '둘째 확정')] }
+  vi.spyOn(episodeApi(), 'list').mockResolvedValue([myWork('work-1', '달빛 기록')])
+  await openOverview({ visibility: 'public', currentRevisionId: 'r2', linkedWorkId: 'work-1' }, friends([garam, narae], garam, narae))
+  expect(metricValue('설정 카드')).toBe('2개')
+  expect(metricValue('관계')).toBe('1개')
+  expect(metricValue('저장 버전')).toBe('1')
+  expect(metricValue('확정 버전')).toBe('2개')
+  expect(metricValue('공개 상태')).toBe('공개 중')
+  await waitFor(() => expect(metricValue('연결 소설')).toBe('달빛 기록'))
+  const band = screen.getByRole('region', { name: '세계관 지표' })
+  const form = screen.getByRole('form', { name: '세계관 정보 편집' })
+  expect(band.parentElement).toBe(form.parentElement) // 작품 관리 개요(.ep-dash)처럼 지표 구획과 폼이 한 묶음이다
+  expect(band.parentElement!.classList.contains('ep-dash')).toBe(true)
+  expect(band.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy() // 지표가 폼보다 위다
+  fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
+  expect(screen.queryByRole('region', { name: '세계관 지표' })).toBeNull() // 다른 보기에서는 폼과 같이 숨는다
+})
+
+it('지표 띠는 모르는 값을 0으로 채우지 않는다: 확정 버전은 읽는 동안 …, 읽지 못하면 불러오지 못했어요, 확정 버전이 없으면 0개이고 서버가 목록을 주지 않는 데모에는 칸이 없다', async () => {
+  revisions = { ...noRevisions(), busy: true }
+  await openOverview({ currentRevisionId: 'r1' })
+  expect(metricValue('확정 버전')).toContain('불러오는 중')
+  expect(metricValue('확정 버전')).not.toMatch(/\d개/)
+  cleanup()
+  revisions = { ...noRevisions(), error: '확정 버전을 조회하지 못했어요.' }
+  await openOverview({ currentRevisionId: 'r1' })
+  expect(metricValue('확정 버전')).toBe('불러오지 못했어요')
+  cleanup()
+  revisions = noRevisions()
+  await openOverview()
+  expect(metricValue('확정 버전')).toBe('0개') // 현재 확정 버전이 없으니 읽을 것 없이 0개다
+  cleanup()
+  revisions = { ...noRevisions(), supported: false }
+  await openOverview()
+  expect(metricValue('확정 버전')).toBeNull()
+})
+
+it('지표 띠의 연결 소설 칸은 없으면 없음, 읽는 동안 …, 읽지 못하면 제목을 불러오지 못했어요이고 연결이 없는 데모에는 칸이 없다', async () => {
+  await openOverview()
+  expect(metricValue('연결 소설')).toBe('없음')
+  cleanup()
+  vi.spyOn(episodeApi(), 'list').mockReturnValue(new Promise<Work[]>(() => undefined))
+  await openOverview({ linkedWorkId: 'work-1' })
+  expect(metricValue('연결 소설')).toContain('불러오는 중')
+  cleanup()
+  vi.spyOn(episodeApi(), 'list').mockRejectedValue(new Error('서버 인증이 필요합니다.'))
+  await openOverview({ linkedWorkId: 'work-1' })
+  await waitFor(() => expect(metricValue('연결 소설')).toBe('제목을 불러오지 못했어요'))
+  cleanup()
+  vi.stubEnv('MODE', 'mockup')
+  await openOverview({ linkedWorkId: 'work-1' })
+  expect(metricValue('연결 소설')).toBeNull() // 서버가 없는 데모는 소설 연결이 없어 칸도 소설 목록 조회도 없다
+})
+
+it('지표 띠의 공개 상태 칸은 비공개·공개 중(공개 목록에 나옴)·공개 · 목록 미노출(확정 버전이 없음)을 가른다', async () => {
+  await openOverview()
+  expect(metricValue('공개 상태')).toBe('비공개')
+  cleanup()
+  await openOverview({ visibility: 'public', currentRevisionId: 'r1' })
+  expect(metricValue('공개 상태')).toBe('공개 중')
+  cleanup()
+  await openOverview({ visibility: 'public' })
+  expect(metricValue('공개 상태')).toBe('공개 · 목록 미노출')
+})
+
+it('개요 폼은 기본 정보·공개 설정·표지·세계관 삭제 구획 카드 네 개로 나뉘고, 폼·바깥 fieldset·저장 버튼은 하나라 저장 계약은 그대로다', async () => {
+  await openOverview()
+  const form = screen.getByRole('form', { name: '세계관 정보 편집' })
+  const basic = within(form).getByRole('group', { name: '기본 정보' })
+  expect(within(basic).getByRole('heading', { name: '기본 정보', level: 3 })).toBeTruthy()
+  expect(within(basic).getByRole('textbox', { name: '세계관 이름' })).toBeTruthy()
+  expect(within(basic).getByRole('textbox', { name: '세계관 설명' })).toBeTruthy()
+  const publish = within(form).getByRole('group', { name: '공개 설정' })
+  expect(publish.querySelector('legend')!.classList.contains('sr-only')).toBe(false) // 카드의 보이는 제목이다(접근 이름은 그대로)
+  const cover = within(form).getByRole('group', { name: '표지' })
+  const zone = within(form).getByRole('group', { name: '세계관 삭제' })
+  const outer = form.querySelector('fieldset')!
+  const cards = Array.from(outer.children).filter((child) => child.classList.contains('world-info-card'))
+  expect(cards).toHaveLength(4)
+  expect(cards[0]).toBe(basic)
+  expect(cards[1].contains(publish)).toBe(true)
+  expect(cards[2]).toBe(cover)
+  expect(cards[3]).toBe(zone)
+  expect(form.querySelectorAll('fieldset.world-publish')).toHaveLength(1)
+  expect(within(form).getAllByRole('button', { name: '저장' })).toHaveLength(1) // 저장 버튼은 카드마다가 아니라 하나다
+  expect(outer.lastElementChild).toBe(zone) // 삭제 구획은 여전히 폼의 맨 끝이다
+})
