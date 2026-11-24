@@ -18,7 +18,7 @@ export type AgentCard = {
   inputTokens: number; outputTokens: number; costUser: number; costPlatform: number
   /** 전체 요청 중 이 기능의 비중(0~1). 요청이 하나도 없으면 0입니다. */
   share: number
-  /** 처리 결과 건수: 요청 수에 실패율·시간 초과율을 곱해 반올림하고 나머지가 성공입니다. 비율을 하나라도 모르면 null(막대를 그리지 않음). */
+  /** 처리 결과 건수: 요청 수에 실패율·시간 초과율을 곱해 반올림하고 나머지가 성공입니다(합은 요청 수). 비율을 하나라도 모르면 null(막대를 그리지 않음). */
   outcome: { success: number; failed: number; timeout: number } | null
   /** 지연 막대 위치(0~1): 카드들 중 가장 느린 p95를 1로 본 p50·p95입니다. 하나라도 모르면 null. */
   latency: { p50: number; p95: number } | null
@@ -31,12 +31,14 @@ export function agentCards(rows: MetricRow[]): AgentCard[] {
   const at = (ms: number) => (slowest > 0 ? ms / slowest : 0)
   return [...rows].sort((a, b) => b.requests - a.requests || a.key.localeCompare(b.key)).map((row) => {
     const failureRate = row.failureRate ?? null, timeoutRate = row.timeoutRate ?? null, p50 = row.p50LatencyMs ?? null, p95 = row.p95LatencyMs ?? null
-    const failed = failureRate === null ? null : Math.round(row.requests * failureRate), timeout = timeoutRate === null ? null : Math.round(row.requests * timeoutRate)
+    // 반올림으로 실패+시간 초과가 요청 수를 넘지 않게 시간 초과를 남은 요청 수로 자른다.
+    const failed = failureRate === null ? null : Math.min(row.requests, Math.round(row.requests * failureRate))
+    const timeout = timeoutRate === null || failed === null ? null : Math.min(row.requests - failed, Math.round(row.requests * timeoutRate))
     return {
       key: row.key, label: agentLabel(row.key), requests: row.requests, failureRate, timeoutRate, p50LatencyMs: p50, p95LatencyMs: p95,
       inputTokens: row.inputTokens, outputTokens: row.outputTokens, costUser: row.costUser, costPlatform: row.costPlatform,
       share: total > 0 ? row.requests / total : 0,
-      outcome: failed === null || timeout === null ? null : { success: Math.max(0, row.requests - failed - timeout), failed, timeout },
+      outcome: failed === null || timeout === null ? null : { success: row.requests - failed - timeout, failed, timeout },
       latency: p50 === null || p95 === null ? null : { p50: at(p50), p95: at(p95) },
     }
   })

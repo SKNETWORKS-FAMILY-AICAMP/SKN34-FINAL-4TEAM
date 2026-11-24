@@ -46,33 +46,38 @@ export function PromptDetail({ vm, l }: Props) {
               ))}
             </ol>
           </nav>
-          <div role="group" aria-label={`${at + 1}단계 ${LOOP_STAGES[at][1]}`}>
-            {l.stage === 'prompt' && <PromptStage vm={vm} l={l} p={p} />}
-            {l.stage === 'set' && <SetStage p={p} />}
-            {l.stage === 'eval' && <Evaluations vm={vm} l={l} p={p} />}
-            {l.stage === 'optimize' && (isOptimizable(p.name)
-              ? <OptimizeForm vm={vm} l={l} name={p.name} versions={p.versions.map((v) => v.version).sort((a, b) => b - a)} base={live?.version} />
-              : <p className="admin-empty">{OPTIMIZATION_UNSUPPORTED_MESSAGE} 자동 개선은 인물 시뮬레이션 대사·나레이션 프롬프트(character_simulation.act·narrate)만 지원해요.</p>)}
-            {l.stage === 'gate' && (
-              <>
-                <p className="admin-note">
-                  {p.evaluationDataset
-                    ? `후보 등록 조건: 평가 세트 ${p.evaluationDataset}의 회귀 평가를 통과해야 해요(그 버전의 가장 최근 평가 기준).`
-                    : '이 프롬프트는 짝 평가 세트가 없어 평가 없이 후보로 등록할 수 있어요.'}
-                </p>
-                <VersionsTable vm={vm} l={l} p={p} stage="gate" />
-              </>
-            )}
-            {l.stage === 'serve' && (
-              <>
-                <p className="admin-note">
-                  서비스에는 후보로 등록한 버전만 반영할 수 있어요. 이전 버전으로 되돌릴 때도 후보로 등록한 뒤 같은 버튼을 써요.
-                  반영하면 AI 서비스가 재배포 없이 그 조합을 써요(캐시가 1분이라 잠시 뒤부터). 코드의 프롬프트(시드)가 바뀌면 AI 서비스가 코드 시드 버전으로 올려 둬요.
-                </p>
-                <VersionsTable vm={vm} l={l} p={p} stage="serve" />
-              </>
-            )}
+          {/* ① 프롬프트는 다른 단계를 보는 동안 닫아 둘 뿐 지우지 않는다: 새 조합 만들기에 쓰던 본문·모델·메모가 단계를 오가도 남는다. */}
+          <div role="group" aria-label="1단계 프롬프트" hidden={l.stage !== 'prompt'}>
+            <PromptStage vm={vm} l={l} p={p} />
           </div>
+          {l.stage !== 'prompt' && (
+            <div role="group" aria-label={`${at + 1}단계 ${LOOP_STAGES[at][1]}`}>
+              {l.stage === 'set' && <SetStage p={p} />}
+              {l.stage === 'eval' && <Evaluations vm={vm} l={l} p={p} />}
+              {l.stage === 'optimize' && (isOptimizable(p.name)
+                ? <OptimizeForm vm={vm} l={l} name={p.name} versions={p.versions.map((v) => v.version).sort((a, b) => b - a)} base={live?.version} />
+                : <p className="admin-empty">{OPTIMIZATION_UNSUPPORTED_MESSAGE} 자동 개선은 인물 시뮬레이션 대사·나레이션 프롬프트(character_simulation.act·narrate)만 지원해요.</p>)}
+              {l.stage === 'gate' && (
+                <>
+                  <p className="admin-note">
+                    {p.evaluationDataset
+                      ? `후보 등록 조건: 평가 세트 ${p.evaluationDataset}의 회귀 평가를 통과해야 해요(그 버전의 가장 최근 평가 기준).`
+                      : '이 프롬프트는 짝 평가 세트가 없어 평가 없이 후보로 등록할 수 있어요.'}
+                  </p>
+                  <VersionsTable vm={vm} l={l} p={p} stage="gate" />
+                </>
+              )}
+              {l.stage === 'serve' && (
+                <>
+                  <p className="admin-note">
+                    서비스에는 후보로 등록한 버전만 반영할 수 있어요. 이전 버전으로 되돌릴 때도 후보로 등록한 뒤 같은 버튼을 써요.
+                    반영하면 AI 서비스가 재배포 없이 그 조합을 써요(캐시가 1분이라 잠시 뒤부터). 코드의 프롬프트(시드)가 바뀌면 AI 서비스가 코드 시드 버전으로 올려 둬요.
+                  </p>
+                  <VersionsTable vm={vm} l={l} p={p} stage="serve" />
+                </>
+              )}
+            </div>
+          )}
         </>
       )}
     </section>

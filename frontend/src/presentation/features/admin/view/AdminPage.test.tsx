@@ -1482,6 +1482,15 @@ it('프롬프트 상세는 단계 표시(① 프롬프트 ─ ② 평가 세트 
   expect(screen.queryByRole('region', { name: '프롬프트 버전 표' })).toBeNull()
 })
 
+it('프롬프트 상세에서 단계를 오가도 ① 새 조합 만들기에 쓰던 입력이 남는다(#857)', async () => {
+  renderAdmin('llm', 'prompts')
+  const detail = await openLoop()
+  fireEvent.change(within(detail).getByLabelText<HTMLTextAreaElement>('프롬프트 본문'), { target: { value: '쓰던 본문' } })
+  fireEvent.click(stepOf(detail, '평가 세트'))
+  fireEvent.click(stepOf(detail, '프롬프트'))
+  expect(within(detail).getByLabelText<HTMLTextAreaElement>('프롬프트 본문').value).toBe('쓰던 본문')
+})
+
 it('프롬프트 상세 ⑤ 게이트는 버전마다 짝 세트의 가장 최근 평가 통과 여부와 후보 등록(통과한 버전만)을, ⑥ 서비스 반영은 후보 버전의 반영 버튼(확인 뒤)을 보이고, 결과 보기는 ③ 평가에서 Run 상세를 연다(#857)', async () => {
   const llm = appContainer.resolve('llmOpsUseCase')
   const candidate = vi.spyOn(llm, 'candidate').mockResolvedValue(undefined)

@@ -31,10 +31,10 @@ describe('에이전트 지표 카드(#857)', () => {
     expect([card.outcome, card.latency]).toEqual([null, null])
   })
 
-  it('처리 결과 막대는 요청 수에 실패율·시간 초과율을 곱한 건수와 나머지 성공으로 나뉘고, 합이 요청 수를 넘지 않는다', () => {
+  it('처리 결과 막대는 요청 수에 실패율·시간 초과율을 곱한 건수와 나머지 성공으로 나뉘고, 합은 늘 요청 수와 같다', () => {
     expect(agentCards([row('a')])[0].outcome).toEqual({ success: 88, failed: 10, timeout: 2 })
-    // 반올림으로 합이 넘어도 성공은 0 밑으로 내려가지 않는다.
-    expect(agentCards([row('a', { requests: 3, failureRate: 0.5, timeoutRate: 0.5 })])[0].outcome).toEqual({ success: 0, failed: 2, timeout: 2 })
+    // 반올림으로 실패+시간 초과가 요청 수를 넘으면 시간 초과를 줄여 합이 요청 수를 넘지 않는다(성공은 0 밑으로 내려가지 않는다).
+    expect(agentCards([row('a', { requests: 3, failureRate: 0.5, timeoutRate: 0.5 })])[0].outcome).toEqual({ success: 0, failed: 2, timeout: 1 })
     // 실패율 하나라도 비면 나눌 수 없어 막대를 그리지 않는다.
     expect(agentCards([row('a', { timeoutRate: null })])[0].outcome).toBeNull()
   })
