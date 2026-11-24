@@ -32,7 +32,7 @@ export function PendingActionCard({ action, children, cardOf, unsaved = false, p
   const stale = worldProposalIsStale(action, worldDraft)
   const changes = stale ? [] : pendingChanges(action, cardOf)
   const texts = stale ? [] : editableTexts(action, cardOf)
-  if (edits) {
+  if (edits && !stale) { // 고치는 사이 저장한 초안이 바뀌면 옛 revision으로 실행하지 않고 제안 다시 받기로 돌아간다
     const blank = texts.some((t) => t.title && !(edits[t.key] ?? t.value).trim())
     return <form className="chat-hitl" aria-labelledby={`${id}-t`} onSubmit={(e) => { e.preventDefault(); if (!blank) onEdit(editedArgs(action, edits)) }}>
       <h3 id={`${id}-t`}>{action.label} 내용을 고쳐서 실행할까요?</h3>

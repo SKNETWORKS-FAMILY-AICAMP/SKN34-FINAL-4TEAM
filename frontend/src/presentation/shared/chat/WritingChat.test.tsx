@@ -1498,6 +1498,17 @@ it('Content 쓰기 승인은 글 필드만 고쳐서 승인할 수 있고, 고�
   expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, edited: { id: 'w1', request: { expectedDraftRevision: 4, cards: [{ id: 'k', title: '카엘', body: '작가가 고친 설명.' }] } } } })
 })
 
+it('고치는 중에 저장한 초안이 바뀌면 고치기 폼 대신 제안 다시 받기로 돌아간다(#795)', async () => {
+  approvalTurn()
+  const props = { workId: 'w', basis, emptyTitle: '새 대화', emptyText: '', suggestions: [] }
+  const view = render(<WritingChat {...props} worldDraft={{ id: 'w1', revision: 4 }} />)
+  fireEvent.click(await screen.findByRole('button', { name: '고쳐서 승인' }))
+  expect(screen.getByRole('button', { name: '고친 내용으로 실행' })).toBeTruthy()
+  view.rerender(<WritingChat {...props} worldDraft={{ id: 'w1', revision: 5 }} />)
+  expect(screen.queryByRole('button', { name: '고친 내용으로 실행' })).toBeNull()
+  expect(screen.getByRole('button', { name: '저장한 초안으로 제안 다시 받기' })).toBeTruthy()
+})
+
 it('작품 정보 수정은 제목·소개를 고칠 수 있고, 빈 제목으로는 실행할 수 없으며 고치기를 닫으면 원래 카드로 돌아간다(#795)', async () => {
   openThread([{ request: '소개를 바꿔 줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action',
     pendingAction: { tool: 'work_update', label: '작품 정보 수정', args: { id: 'w', data: { title: '제목', summary: '소개', revision: 3 } } } } }])
