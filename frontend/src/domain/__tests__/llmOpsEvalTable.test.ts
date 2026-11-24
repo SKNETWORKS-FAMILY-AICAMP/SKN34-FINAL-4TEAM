@@ -19,7 +19,7 @@ describe('에이전트별 평가 표', () => {
     for (const name of ['메인 에이전트', 'Decision Guard', 'Q&A', 'Manuscript Review', 'World', 'Writing', 'Research', 'Rating', '인물 시뮬레이션', '전처리 설정 추출']) expect(agents, name).toContain(name)
     expect(AGENT_EVALUATIONS.map((row) => row.feature)).toEqual(expect.arrayContaining(['character_simulation.act', 'character_simulation.narrate']))
     const empty = AGENT_EVALUATIONS.filter((row) => row.set === NO_SET)
-    expect(empty.map((row) => row.agent)).toEqual(expect.arrayContaining(['메인 에이전트', 'Decision Guard', 'Manuscript Review', 'Research', 'Rating', '전처리 설정 추출']))
+    expect(empty.map((row) => row.agent)).toEqual(expect.arrayContaining(['메인 에이전트', 'Decision Guard', 'Manuscript Review', 'Research', 'Rating']))
     for (const row of empty) expect([row.dataset, row.metrics, row.result], row.feature).toEqual([undefined, '—', '—'])
   })
 
