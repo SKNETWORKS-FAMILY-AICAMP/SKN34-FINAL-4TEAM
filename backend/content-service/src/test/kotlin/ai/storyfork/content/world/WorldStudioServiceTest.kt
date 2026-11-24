@@ -50,7 +50,8 @@ class WorldStudioServiceTest {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
-    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,genres,buildJobs,buildSteps,cardCategories)
+    private val events=mock(org.springframework.context.ApplicationEventPublisher::class.java)
+    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,templatePublications,expandedSeeds,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper,genres,buildJobs,buildSteps,cardCategories,events)
     private val world=UUID.randomUUID()
     private val actor=UUID.randomUUID()
     private val draft=WorldDraft(worldId=world,name="편집본",draftRevision=2)
@@ -1156,6 +1157,8 @@ class WorldStudioServiceTest {
         assertEquals(memory("1" to "산채","11" to "새 기억"),existing.fields.semanticMetadata)
         assertEquals("public",existing.fields.visibility)
         assertEquals("applied",step.status);assertEquals("completed",job.status)
+        assertEquals(receipt,service.editManuscriptAddition(world,actor,step.id))
+        verify(events).publishEvent(ai.storyfork.content.world.service.ManuscriptBuildFinished(job.id,job.lockVersion,"work",world,actor))
         assertEquals(listOf(id.toString()),receipt["cardIds"],"영수증의 카드 ID에 맞춘 기존 카드도 든다")
         verify(cards,never()).saveAndFlush(any())
     }
