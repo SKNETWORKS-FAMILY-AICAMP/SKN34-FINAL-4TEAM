@@ -81,6 +81,7 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 
 | 경로 | 내용 |
 |---|---|
+| `POST /internal/v1/optimizations` `{prompt, version, maxMetricCalls}` | 프롬프트 자동 개선(GEPA, #823, [계약](../../docs/design/operations-llmops-contract.md#프롬프트-자동-개선-823-2026-11-24-사용자-결정))을 접수합니다. `character_simulation.act`·`narrate`만 되고(아니면 422) 같은 프롬프트가 실행 중이면 409 `{"detail": …}`, 아니면 Celery 큐(`jobs`) 태스크 `optimization.run`(`acks_late=False`)을 올리고 `202 {accepted: true}`입니다(올리지 못하면 503). `ai-jobs-worker`가 최적화 풀(`app/evaluation/datasets/optimize/*.jsonl`)로 GEPA를 돌려 새 버전(라벨 없음)을 저장하고 게이트 세트 회귀 평가 Run 1회까지 하며 결과는 trace `prompt_optimization`에 남습니다 |
 | `POST /internal/v1/evaluations` `{dataset, prompt, version}` | 평가 세트·프롬프트 버전·설정을 확인한 뒤 Celery 큐(`jobs`)에 올리고 `202 {runName}`을 먼저 돌려줍니다(올리지 못하면 503). `ai-jobs-worker`가 평가하며 서버를 재시작해도 큐에 남아 이어 실행됩니다 |
 | `POST /internal/v1/evaluations/leak-check` `{response, references[], question?}` | 응답이 비공개 참조를 드러내는지 GEval 한 번으로 판정해 `{suspected, reason}`을 돌려줍니다. 사용자 질문 원문 `question`(선택)을 주면 질문에 이미 나온 이름을 되풀이하거나 근거가 없다고 답한 응답은 의심하지 않고 비공개 참조의 내용을 새로 알려 줄 때만 의심합니다 |
 
@@ -96,7 +97,7 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 
 ## 작업 실행 큐 (운영 정기 작업·회귀 평가, 계약 §4)
 
-`ai-jobs-worker`(ai-service와 같은 이미지, Celery 큐 `jobs`, 동시 실행 수 `AI_JOBS_CONCURRENCY` 기본 4)가 회귀 평가(`evaluation.run`)와 운영 정기 작업(`operations.run_job`)을 실행합니다. 원고 전처리 워커 `ai-worker`(`-Q preprocessing`, 동시성 1)와 큐·태스크는 따로이며 그대로입니다([계약](../../docs/design/operations-funnel-credit-contract.md)).
+`ai-jobs-worker`(ai-service와 같은 이미지, Celery 큐 `jobs`, 동시 실행 수 `AI_JOBS_CONCURRENCY` 기본 4)가 회귀 평가(`evaluation.run`)·프롬프트 자동 개선(`optimization.run`, 수십 분 걸려 `acks_late=False`)과 운영 정기 작업(`operations.run_job`)을 실행합니다. 원고 전처리 워커 `ai-worker`(`-Q preprocessing`, 동시성 1)와 큐·태스크는 따로이며 그대로입니다([계약](../../docs/design/operations-funnel-credit-contract.md)).
 
 | 경로 | 내용 |
 |---|---|
