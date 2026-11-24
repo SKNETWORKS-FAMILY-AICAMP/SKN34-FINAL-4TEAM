@@ -100,6 +100,9 @@ async def execute(request) -> Command:
     call, turn = request.tool_call, request.runtime.context
     # 모델이 고르지 않은 선택 인자를 빈 글("")·null로 채우면 Content가 값 오류(422)로 거절하므로 뺀다.
     name, args = call['name'], {k: v for k, v in (call['args'] if isinstance(call['args'], dict) else {}).items() if v not in ('', None)}
+    # Content는 장면에만 position(순서)을 받는다. 모델이 story_plan_read 결과를 옮겨 플롯에도 실으면 422라 뺀다(#774).
+    if name in ('story_plan_create', 'story_plan_update') and isinstance(data := args.get('data'), dict) and data.get('kind') == 'plot':
+        args = {**args, 'data': {k: v for k, v in data.items() if k != 'position'}}
     label = LABELS[name]
     if reason := mismatch(call, turn):
         return _result(None, call, f'[차단] {label}: {reason}', failed=True)
