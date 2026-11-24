@@ -22,7 +22,7 @@ export function EditSuggestionSheet({ workId, n, sentence, onClose }: { workId: 
       <div className="quote">{sentence.t}</div>
       <label className="field">고친 문장<textarea className="ta" data-autofocus maxLength={SUGGESTION_MAX} value={after} onChange={(e) => setAfter(e.target.value)} /></label>
       <label className="field">사유 (선택)<textarea className="ta" maxLength={SUGGESTION_MAX} placeholder="왜 고치면 좋은지 적어 주세요" value={reason} onChange={(e) => setReason(e.target.value)} /></label>
-      <div className="note">작가가 승인해야 원고에 반영돼요. 승인해도 발행은 작가가 따로 하며, 자동 반영은 없어요.</div>
+      <div className="note">작가가 승인하면 초안에서 원문을 찾아 반영해요. 원문이 없거나 여러 곳에 있으면 작가가 직접 확인해요. 발행은 작가가 따로 해요.</div>
       {vm.error && <p role="alert">{vm.error}</p>}
       {unchanged && <p id={hint} className="small muted">원래 문장과 달라야 보낼 수 있어요.</p>}
       <div className="rowend">
