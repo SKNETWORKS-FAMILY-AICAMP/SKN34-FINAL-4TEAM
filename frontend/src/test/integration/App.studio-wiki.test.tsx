@@ -10,6 +10,7 @@ import '../scrollToSpy'
 import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
+import '../../presentation/features/studio/view/StudioPage'
 
 afterEach(cleanup)
 
@@ -26,7 +27,7 @@ const starlight = async () => (await appContainer.resolve('workRepository').list
 describe('집필실 사전 편집 (U38)', () => {
   it('새 인물 문서를 만들면 그 문서로 이동하고 등장인물에 반영된다', async () => {
     renderAt('/studio/starlight?view=wiki')
-    fireEvent.click(await screen.findByRole('button', { name: '＋ 새 문서' }))
+    fireEvent.click(await screen.findByRole('button', { name: '＋ 새 문서' }, { timeout: 4000 }))
     expect(within(sheet()).getByRole('heading', { name: '새 문서 · 캐릭터' })).toBeTruthy()
     submit()
     await toastIs('필수 항목을 입력해 주세요')
