@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { LLM_FORBIDDEN, bodyText, defaultModel, fixedModel, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, usd, versionAction, type PromptVersion } from '../entities/llmOps'
+import { LLM_FORBIDDEN, bodyText, fixedModel, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, usd, versionAction, type PromptVersion } from '../entities/llmOps'
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
 import { lastPage } from '../entities/operations'
 
@@ -111,10 +111,9 @@ describe('권한 안내 문구', () => {
     expect(productionOf({ name: 'p', candidates: 0, versions: [v(1)] })).toBeNull()
   })
 
-  it('버전에 고른 모델이 없으면 기본 모델(gpt-6-luna, 인물 대사만 gpt-6.1-terra)이고, Decisions API 프롬프트는 모델을 고를 수 없다', () => {
-    expect([defaultModel('orchestration.main'), defaultModel('character_simulation.act')]).toEqual(['gpt-6-luna', 'gpt-6.1-terra'])
-    expect([modelLabel('gpt-x', 'qa'), modelLabel(null, 'qa'), modelLabel(undefined, 'character_simulation.act')])
-      .toEqual(['gpt-x', 'gpt-6-luna (기본)', 'gpt-6.1-terra (기본)'])
+  it('버전에 고른 모델이 없으면 기본 모델(환경 설정)로 보이고, Decisions API 프롬프트는 모델을 고를 수 없다', () => {
+    // 고르지 않은 버전의 실제 모델은 AI 서비스 환경 변수라 이름을 단정하지 않는다(#808).
+    expect([modelLabel('gpt-x'), modelLabel(null), modelLabel(undefined)]).toEqual(['gpt-x', '기본 모델(환경 설정)', '기본 모델(환경 설정)'])
     expect([fixedModel('decision_guard.judge'), fixedModel('character_simulation.direct'), fixedModel('orchestration.main')]).toEqual([true, true, false])
   })
 })

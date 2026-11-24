@@ -82,10 +82,12 @@ class LlmopsJsonTest {
         val prompt = tree.path("items").path(0)
         // candidates counts the versions waiting as candidates: the list carries only the production and seed versions (#786).
         // evaluationDataset is the set a version must pass to become a candidate (#787), null for a prompt without one.
-        assertEquals(listOf("name", "versions", "candidates", "evaluationDataset"), prompt.names())
+        // models is the list a new version may choose from (#806), null except in the detail.
+        assertEquals(listOf("name", "versions", "candidates", "evaluationDataset", "models"), prompt.names())
         assertEquals(listOf(2, "qa.grounding"), listOf(prompt.path("candidates").asInt(), prompt.path("evaluationDataset").asString()))
         // model is the version's config.model and prompt the body (detail only); both are null when absent (#705).
-        assertEquals(listOf("version", "labels", "createdAt", "evaluation", "model", "prompt"), prompt.path("versions").path(0).names())
+        // commitMessage is the version's note, detail only like prompt (#807).
+        assertEquals(listOf("version", "labels", "createdAt", "evaluation", "model", "prompt", "commitMessage"), prompt.path("versions").path(0).names())
         assertEquals(listOf("gpt-x", "지시"), listOf(prompt.path("versions").path(0).path("model").asString(), prompt.path("versions").path(0).path("prompt").asString()))
         assertTrue(prompt.path("versions").path(1).path("model").isNull && prompt.path("versions").path(1).path("prompt").isNull)
         assertEquals(listOf("runId", "passed", "createdAt"), prompt.path("versions").path(0).path("evaluation").names())

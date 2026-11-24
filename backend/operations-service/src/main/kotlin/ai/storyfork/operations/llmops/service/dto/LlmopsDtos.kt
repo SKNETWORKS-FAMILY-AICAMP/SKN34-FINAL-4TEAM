@@ -63,6 +63,7 @@ data class PromptEvaluation(val runId: String, val passed: Boolean?, val created
  */
 data class PromptVersion(
     val version: Int, val labels: List<String>, val createdAt: Instant?, val evaluation: PromptEvaluation?, val model: String? = null, val prompt: JsonNode? = null,
+    val commitMessage: String? = null,
 )
 
 /**
@@ -70,7 +71,8 @@ data class PromptVersion(
  * [candidates] counts the versions with their own candidate label other than the production version, from the labels Langfuse lists for the prompt.
  * [evaluationDataset] is the evaluation set a version must pass to become a candidate (#787); null means no evaluation is needed.
  */
-data class Prompt(val name: String, val versions: List<PromptVersion>, val candidates: Int = 0, val evaluationDataset: String? = null)
+/** models: the models a new version may choose (detail only, #806). */
+data class Prompt(val name: String, val versions: List<PromptVersion>, val candidates: Int = 0, val evaluationDataset: String? = null, val models: List<String>? = null)
 
 data class PromptListResponse(val items: List<Prompt>)
 

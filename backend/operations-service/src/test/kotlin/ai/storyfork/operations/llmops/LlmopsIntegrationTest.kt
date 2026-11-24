@@ -343,7 +343,7 @@ class LlmopsIntegrationTest {
 
         assertEquals(200, promoted.statusCode(), promoted.body())
         assertEquals(listOf("latest", "candidate-3", "production"), tree(promoted).path("labels").values().map { it.asString() })
-        verify(langfuse).setPromptLabels("it-prompt", 3, listOf("candidate-3", "production"))
+        verify(langfuse).setPromptLabels("it-prompt", 3, listOf("production"))  // Langfuse adds it and keeps candidate-3
         assertEquals(1L, count("SELECT count(*) FROM operations.admin_activity WHERE action = 'PROMPT_CANDIDATE' AND target_id = 'it-prompt' AND created_at >= ?", Timestamp.from(startedAt)))
         assertEquals(1L, count("SELECT count(*) FROM operations.admin_activity WHERE action = 'PROMPT_PROMOTE' AND target_id = 'it-prompt' AND created_at >= ?", Timestamp.from(startedAt)))
     }

@@ -71,9 +71,9 @@ const prompt = z.object({
   versions: z.array(z.object({
     version: z.number(), labels: z.array(z.string()), createdAt: instant.nullish(),
     evaluation: z.object({ runId: z.string(), passed: z.boolean().nullish(), createdAt: instant }).nullish(),
-    model: text, prompt: z.unknown().optional().transform((value) => (typeof value === 'string' ? value : undefined)),
+    model: text, prompt: z.unknown().optional().transform((value) => (typeof value === 'string' ? value : undefined)), commitMessage: text,
   })).default([]),
-  candidates: z.number().default(0), evaluationDataset: text,
+  candidates: z.number().default(0), evaluationDataset: text, models: z.array(z.string()).nullish(),
 })
 const model = z.object({ id: z.string(), modelName: z.string(), matchPattern: z.string(), inputPrice: num, outputPrice: num })
 const evaluation = z.object({

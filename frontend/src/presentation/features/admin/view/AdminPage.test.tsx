@@ -1358,17 +1358,18 @@ it('프롬프트 표는 에이전트별 서비스 반영 버전·모델·후보 
     { name: 'orchestration.main', versions: [{ version: 3, labels: ['seed', 'latest'] }, { version: 2, labels: ['production'], model: 'gpt-x' }], candidates: 1 },
     { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'] }], candidates: 0 },
   ])
-  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'orchestration.main', candidates: 1, versions: [
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'orchestration.main', candidates: 1, models: ['gpt-y', 'gpt-x'], versions: [
     { version: 4, labels: ['candidate-4'], model: 'gpt-y', prompt: '운영 지시' }, { version: 3, labels: ['seed', 'latest'], prompt: '새 시드' },
     { version: 2, labels: ['production'], model: 'gpt-x', prompt: '운영 지시' }] })
-  vi.spyOn(llm, 'models').mockResolvedValue([{ id: 'm1', modelName: 'gpt-x', matchPattern: 'x' }, { id: 'm2', modelName: 'gpt-y', matchPattern: 'y' }])
+  // Langfuse 모델 정의(단가표)에는 AI가 부를 수 없는 모델도 있어 선택지가 아니다(#806).
+  vi.spyOn(llm, 'models').mockResolvedValue([{ id: 'm9', modelName: 'claude-sonnet-5-5', matchPattern: 'c' }])
   const create = vi.spyOn(llm, 'createPromptVersion').mockResolvedValue(undefined)
   renderAdmin('llm', 'prompts&sub=prompts')
 
   const table = await screen.findByRole('region', { name: '프롬프트 표' })
   const cells = (name: string) => [...(within(table).getByRole('button', { name }).closest('tr') as HTMLElement).querySelectorAll('td')].map((td) => td.textContent)
   expect(cells('orchestration.main')).toEqual(['orchestration.main', '2번 버전', 'gpt-x', '1개', '코드 시드 3번 버전 대기'])
-  expect(cells('decision_guard.judge')).toEqual(['decision_guard.judge', '1번 버전', 'gpt-6-luna (기본)', '—', '—'])
+  expect(cells('decision_guard.judge')).toEqual(['decision_guard.judge', '1번 버전', '기본 모델(환경 설정)', '—', '—'])   // 실제 기본 모델은 AI 서비스 환경 변수라 이름을 단정하지 않는다(#808)
   fireEvent.click(within(table).getByRole('button', { name: 'orchestration.main' }))
 
   const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
@@ -1381,14 +1382,14 @@ it('프롬프트 표는 에이전트별 서비스 반영 버전·모델·후보 
   const row = (version: number) => within(versions).getByRole('cell', { name: String(version) }).closest('tr') as HTMLElement
   expect([within(row(4)).getByText('후보'), within(row(3)).getByText('코드 시드'), within(row(2)).getByText('서비스 반영 중')]).toHaveLength(3)
   expect(within(row(3)).queryByText('latest')).toBeNull()   // Langfuse가 관리하는 라벨은 숨긴다
-  within(row(3)).getByRole('cell', { name: 'gpt-6-luna (기본)' })
+  within(row(3)).getByRole('cell', { name: '기본 모델(환경 설정)' })
   within(row(4)).getByRole('button', { name: 'orchestration.main 4번 버전 서비스에 반영' })
   within(row(3)).getByRole('button', { name: 'orchestration.main 3번 버전 후보 등록' })
   expect(within(row(2)).queryByRole('button', { name: /후보 등록|서비스에 반영/ })).toBeNull()
 
   expect((within(detail).getByLabelText('프롬프트 본문') as HTMLTextAreaElement).value).toBe('운영 지시')
   const model = within(detail).getByLabelText('모델') as HTMLSelectElement
-  await waitFor(() => expect([...model.options].map((o) => [o.value, o.text])).toEqual([['', 'gpt-6-luna (기본)'], ['gpt-x', 'gpt-x'], ['gpt-y', 'gpt-y']]))
+  expect([...model.options].map((o) => [o.value, o.text])).toEqual([['', '기본 모델(환경 설정)'], ['gpt-x', 'gpt-x'], ['gpt-y', 'gpt-y']])
   expect(model.value).toBe('gpt-x')
   fireEvent.change(model, { target: { value: 'gpt-y' } })
   fireEvent.click(within(detail).getByRole('button', { name: '조합 저장' }))
@@ -1477,17 +1478,29 @@ it('Decisions API로 부르는 프롬프트는 새 버전에서 모델을 고를
   expect(within(detail).queryByText(/후보 등록 조건/)).toBeNull()   // 평가 세트가 없는 프롬프트
 })
 
-it('모델 목록이 늦게 와도 먼저 고른 모델이 바뀌지 않는다', async () => {
+it('반영 중인 모델은 고를 수 있는 목록에 없어도 선택지에 남는다(#806)', async () => {
   const llm = appContainer.resolve('llmOpsUseCase')
-  let answer: (rows: { id: string; modelName: string; matchPattern: string }[]) => void = () => {}
-  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', candidates: 0, versions: [{ version: 1, labels: ['production'], model: 'gpt-x' }] }])
-  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', candidates: 0, versions: [{ version: 1, labels: ['production'], model: 'gpt-x', prompt: '지시' }] })
-  vi.spyOn(llm, 'models').mockReturnValue(new Promise((resolve) => { answer = resolve }))
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', candidates: 0, versions: [{ version: 1, labels: ['production'], model: 'gpt-old' }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', candidates: 0, models: ['gpt-6-luna'], versions: [{ version: 1, labels: ['production'], model: 'gpt-old', prompt: '지시' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([])
   renderAdmin('llm', 'prompts&sub=prompts')
   fireEvent.click(await screen.findByRole('button', { name: 'qa' }))
   const model = await screen.findByLabelText('모델') as HTMLSelectElement
-  fireEvent.change(model, { target: { value: '' } })
-  await act(async () => answer([{ id: 'm1', modelName: 'gpt-x', matchPattern: 'x' }, { id: 'm2', modelName: 'gpt-y', matchPattern: 'y' }]))
-  await waitFor(() => expect((screen.getByLabelText('모델') as HTMLSelectElement).options).toHaveLength(3))
-  expect((screen.getByLabelText('모델') as HTMLSelectElement).value).toBe('')
+  expect([...model.options].map((o) => o.value)).toEqual(['', 'gpt-old', 'gpt-6-luna'])
+  expect(model.value).toBe('gpt-old')
+})
+
+it('버전 표의 각 행에서 그 버전의 본문과 변경 메모를 펼쳐 본다(#807)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'qa', candidates: 0, versions: [{ version: 1, labels: ['production'] }] }])
+  vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'qa', candidates: 0, versions: [
+    { version: 2, labels: [], prompt: '새 지시', commitMessage: '말투 고침' }, { version: 1, labels: ['production'], prompt: '옛 지시' }] })
+  vi.spyOn(llm, 'models').mockResolvedValue([])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  fireEvent.click(await screen.findByRole('button', { name: 'qa' }))
+  const versions = await screen.findByRole('region', { name: '프롬프트 버전 표' })
+  const body = within(versions).getByText('2번 버전 본문 · 말투 고침').closest('details') as HTMLDetailsElement
+  expect(body.open).toBe(false)
+  expect(body.querySelector('pre')?.textContent).toBe('새 지시')
+  expect(within(versions).getByText('1번 버전 본문').closest('details')?.querySelector('pre')?.textContent).toBe('옛 지시')
 })

@@ -32,7 +32,7 @@ class PromptServiceTest {
     private val activities = mock(AdminActivityService::class.java)
     private val operators = Operators()
     private val evaluations = EvaluationService(operators.permissions, langfuse, mock(AiClient::class.java), mock(AdminActivityService::class.java))
-    private val service = PromptService(operators.permissions, langfuse, evaluations, activities)
+    private val service = PromptService(operators.permissions, langfuse, evaluations, activities, listOf("gpt-chosen", "gpt-other"))
 
     /** An experiment as Langfuse lists it for a prompt evaluation: the metadata values are strings and name the prompt version (the name is free here). */
     private fun run(name: String, createdAt: String, prompt: String, version: Int, dataset: String = "qa-regression") = json(
@@ -150,17 +150,23 @@ class PromptServiceTest {
     }
 
     @Test
-    fun `each version shows the model chosen in its config and only the detail carries the prompt body`() {
+    fun `each version shows the model chosen in its config and only the detail carries the prompt body, its note and the models to choose from`() {
         givenRuns()
         val chosen = json("""{"name":"qa","version":2,"labels":["production","seed"],"prompt":"지시","config":{"model":"gpt-chosen"}}""")
         `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa","versions":[1,2],"labels":["production","seed"]}""")))
         `when`(langfuse.prompt("qa", "production")).thenReturn(chosen)
         `when`(langfuse.prompts("qa")).thenReturn(listOf(json("""{"name":"qa","versions":[1,2]}""")))
         `when`(langfuse.prompt("qa", 2)).thenReturn(chosen)
-        `when`(langfuse.prompt("qa", 1)).thenReturn(json("""{"name":"qa","version":1,"labels":[],"prompt":"옛 지시","config":{}}"""))
+        `when`(langfuse.prompt("qa", 1)).thenReturn(json("""{"name":"qa","version":1,"labels":[],"prompt":"옛 지시","config":{},"commitMessage":"처음"}"""))
 
-        val listed = service.list(operators.llm).items.single().versions
-        val detail = service.detail(operators.llm, "qa").versions
+        val list = service.list(operators.llm).items.single()
+        val listed = list.versions
+        val full = service.detail(operators.llm, "qa")
+        val detail = full.versions
+
+        assertEquals(listOf(null, listOf("gpt-chosen", "gpt-other")), listOf(list.models, full.models))
+        assertEquals(listOf(null, "처음"), detail.map { it.commitMessage })
+        assertEquals(listOf(null), listed.map { it.commitMessage })
 
         assertEquals(listOf("gpt-chosen"), listed.map { it.model })
         assertEquals(listOf(null), listed.map { it.prompt })
@@ -168,14 +174,15 @@ class PromptServiceTest {
     }
 
     @Test
-    fun `a version may only choose a model Langfuse has a definition for`() {
-        `when`(langfuse.models()).thenReturn(listOf(json("""{"id":"m1","modelName":"gpt-chosen","matchPattern":"x"}""")))
+    fun `a version may only choose one of the configured models the AI service can call`() {
+        // Langfuse ships definitions for models the AI service cannot call (claude, gemini, ...), so its list is not the gate (#806).
+        `when`(langfuse.models()).thenReturn(listOf(json("""{"id":"m9","modelName":"claude-sonnet-5-5","matchPattern":"x"}""")))
         val known = json("""{"model":"gpt-chosen"}""")
         `when`(langfuse.createPrompt(mapOf("name" to "qa", "type" to "text", "prompt" to json("\"지시\""), "labels" to emptyList<String>(), "config" to known)))
             .thenReturn(json("""{"name":"qa","version":5,"labels":["latest"],"config":{"model":"gpt-chosen"}}"""))
 
         assertEquals("gpt-chosen", service.create(operators.llm, "qa", PromptCreateRequest(json("\"지시\""), null, known)).model)
-        for (bad in listOf("""{"model":"gpt-unknown"}""", """{"model":" "}""", """{"model":3}""")) {
+        for (bad in listOf("""{"model":"claude-sonnet-5-5"}""", """{"model":"gpt-unknown"}""", """{"model":" "}""", """{"model":3}""")) {
             assertThrows(IllegalArgumentException::class.java) { service.create(operators.llm, "qa", PromptCreateRequest(json("\"지시\""), null, json(bad))) }
         }
         verify(langfuse, times(1)).createPrompt(anyMap())

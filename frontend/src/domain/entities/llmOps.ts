@@ -36,13 +36,14 @@ export const METRICS_GROUPS: [MetricsGroup, string][] = [['day', '날짜'], ['fe
  */
 export type PromptVersion = {
   version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null
-  model?: string | null; prompt?: string | null
+  model?: string | null; prompt?: string | null; commitMessage?: string | null
 }
 /**
  * 목록의 versions는 production·seed 버전뿐이고(#786) 상세는 모든 버전입니다. candidates는 production이 아닌 후보 버전 수입니다.
  * evaluationDataset은 후보로 등록하려면 통과해야 하는 평가 세트이고(#787) 비면 평가 없이 후보로 등록합니다.
+ * models는 새 조합에 고를 수 있는 모델(AI 서비스가 부르는 OpenAI 모델, 운영 설정 LLMOPS_MODELS, #806)이고 상세에만 옵니다.
  */
-export type Prompt = { name: string; versions: PromptVersion[]; candidates: number; evaluationDataset?: string | null }
+export type Prompt = { name: string; versions: PromptVersion[]; candidates: number; evaluationDataset?: string | null; models?: string[] | null }
 /** 새 버전은 라벨 없이 등록되며, production 라벨 이동은 승격으로 따로 합니다. model이 비면 기본 모델 버전입니다. */
 export type PromptVersionInput = { prompt: string; commitMessage: string; model: string }
 
@@ -99,12 +100,8 @@ export function pendingSeed(p: Prompt) {
   const seed = p.versions.find((v) => v.labels.includes('seed'))
   return seed && !seed.labels.includes('production') ? seed : null
 }
-/**
- * 버전에 모델을 고르지 않았을 때 AI 서비스가 쓰는 기본 모델(#705 결정: gpt-6-luna, 인물 대사만 2026-11-23 결정대로 gpt-6.1-terra).
- * shortcut: AI 서비스의 환경 변수 기본값(OPENAI_MODEL·ACT_MODEL)을 화면에 옮겨 적었다. 환경마다 기본 모델이 달라지면 운영 API가 기본값을 주게 한다.
- */
-export const defaultModel = (name: string) => (name === 'character_simulation.act' ? 'gpt-6.1-terra' : 'gpt-6-luna')
-export const modelLabel = (model: string | null | undefined, name: string) => model ?? `${defaultModel(name)} (기본)`
+/** 버전에 모델을 고르지 않으면 AI 서비스의 환경 변수 기본 모델(OPENAI_MODEL, 인물 대사는 SIMULATION_ACT_MODEL)로 돌아 이름을 단정하지 않습니다(#808). */
+export const modelLabel = (model: string | null | undefined) => model ?? '기본 모델(환경 설정)'
 /** Decisions API(gpt-6-luna만 지원)로 부르는 프롬프트: 버전에 모델을 골라도 AI 서비스가 쓰지 않습니다. */
 const FIXED_MODEL_PROMPTS = new Set(['decision_guard.judge', 'character_simulation.direct'])
 export const fixedModel = (name: string) => FIXED_MODEL_PROMPTS.has(name)

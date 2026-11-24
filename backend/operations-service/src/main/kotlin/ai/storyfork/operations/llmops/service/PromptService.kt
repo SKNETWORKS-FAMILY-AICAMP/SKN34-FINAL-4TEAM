@@ -16,6 +16,7 @@ import ai.storyfork.operations.llmops.service.dto.PromptVersion
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.member.repository.requirePermission
 import ai.storyfork.operations.security.OperationsMember
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import tools.jackson.databind.JsonNode
 
@@ -42,6 +43,8 @@ class PromptService(
     private val langfuse: LangfuseClient,
     private val evaluations: EvaluationService,
     private val activities: AdminActivityService,
+    /** Models a version may choose (#806): the OpenAI models the AI service calls, `LLMOPS_MODELS` (comma separated) adds or removes one. */
+    @Value("\${app.operations.llmops-models}") private val models: List<String>,
 ) {
     /**
      * Only the production and seed versions of each prompt (read by label, once when one version has both), so the reads do not grow with the version
@@ -64,7 +67,7 @@ class PromptService(
         permissions.requirePermission(member, LLM)
         val meta = langfuse.prompts(name).firstOrNull { it.path("name").asString() == name } ?: throw NoSuchElementException("Prompt not found.")
         val versions = meta.path("versions").values().map { it.asInt() }.sortedDescending().map { langfuse.prompt(name, it) }
-        return prompt(meta, versions, evaluations.latestByVersion(sets = EVALUATION_SETS), withBody = true)
+        return prompt(meta, versions, evaluations.latestByVersion(sets = EVALUATION_SETS), withBody = true).copy(models = models)
     }
 
     /** A new version without any label: it only reaches production through [promote]. */
@@ -77,9 +80,9 @@ class PromptService(
         require(content != null && if (type == "text") content.isString && content.stringValue().isNotBlank() else content.isArray && content.size() > 0) { "Invalid prompt." }
         val body = mutableMapOf<String, Any?>("name" to name, "type" to type, "prompt" to content, "labels" to emptyList<String>())
         request.config?.takeUnless { it.isNull }?.let { config ->
-            // The AI service calls the model named here (#705): only a model with a Langfuse definition, so every call has a price.
+            // The AI service calls the model named here (#705) through OpenAI: only a configured model (#806), not every Langfuse price definition.
             config.get("model")?.let { model ->
-                require(model.isString && model.stringValue() in langfuse.models().map { it.path("modelName").asString() }) { "Unknown model." }
+                require(model.isString && model.stringValue() in models) { "Unknown model." }
             }
             body["config"] = config
         }
@@ -135,6 +138,7 @@ class PromptService(
 
     private fun version(node: JsonNode, evaluation: Evaluation?, withBody: Boolean = false) = PromptVersion(
         node.path("version").asInt(), labels(node), createdAt(node), evaluation?.summary(), model(node), node.get("prompt")?.takeIf { withBody },
+        node.path("commitMessage").textOrNull()?.takeIf { withBody },
     )
 
     private fun candidateLabel(version: Int) = "candidate-$version"

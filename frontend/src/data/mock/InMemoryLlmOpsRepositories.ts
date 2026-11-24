@@ -180,11 +180,11 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
   }
   async prompt(name: string) {
     const p = found(this.prompts_.find((item) => item.name === name))
-    return structuredClone({ ...p, candidates: candidatesOf(p.versions) })
+    return structuredClone({ ...p, candidates: candidatesOf(p.versions), models: ['gpt-demo', 'gpt-demo-mini'] })
   }
   async createPromptVersion(name: string, input: PromptVersionInput) {
     const p = found(this.prompts_.find((item) => item.name === name))
-    p.versions.unshift({ version: Math.max(...p.versions.map((v) => v.version)) + 1, labels: [], createdAt: new Date().toISOString(), model: input.model || null, prompt: input.prompt })
+    p.versions.unshift({ version: Math.max(...p.versions.map((v) => v.version)) + 1, labels: [], createdAt: new Date().toISOString(), model: input.model || null, prompt: input.prompt, commitMessage: input.commitMessage || null })
   }
   async candidate(name: string, version: number) {
     const target = found(found(this.prompts_.find((item) => item.name === name)).versions.find((v) => v.version === version))

@@ -169,6 +169,11 @@ describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
     expect(detail.versions.map((v) => [v.model ?? null, v.prompt ?? null])).toEqual([['gpt-x', '지시'], [null, null]])
   })
 
+  it('상세는 고를 수 있는 모델(#806)과 버전의 변경 메모(#807)를 읽는다', async () => {
+    const detail = await new HttpLlmOpsRepository(ok({ name: 'qa', models: ['gpt-6-luna'], versions: [{ version: 1, labels: [], commitMessage: '처음' }] })).prompt('qa')
+    expect([detail.models, detail.versions[0].commitMessage]).toEqual([['gpt-6-luna'], '처음'])
+  })
+
   it('프롬프트 버전의 등록 시각이 비어 와도(Langfuse에 값이 없을 때) 상세를 거절하지 않는다', async () => {
     const versions = [{ version: 1, labels: [], createdAt: null }, { version: 2, labels: ['production'] }]
     const detail = await new HttpLlmOpsRepository(ok({ name: 'qa', versions })).prompt('qa')
