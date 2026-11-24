@@ -728,7 +728,7 @@
 <tr><td>공유 Go를 주소·라우터 state·클릭 콜백을 유지하는 네이티브 링크로 탐색</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>비활성 Go 회차의 주소·탭 진입·클릭 탐색 차단</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>홈 화면·섹션·작품의 h1·h2·h3 제목 계층 제공</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
-<tr><td>홈 발견 선반에서 소개·분기 방향이 없으면 작품 제목을 h3에 한 번 표시</td><td>❌ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/733">#733</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/776">PR #776</a> <small>(병합 대기)</small></td></tr>
+<tr><td>홈 발견 선반에서 소개·분기 방향이 없으면 작품 제목을 h3에 한 번 표시</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/776">PR #776</a></td></tr>
 <tr><td>홈 더보기·전체 보기의 최소 44px 터치 영역 제공</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>모바일 홈·공유 셸 검색·계정·필터·알림·테마의 최소 44×44px 터치 영역 제공</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>터치 기기(<code>pointer:coarse</code>, 태블릿 포함)에서도 전역 버튼·탭·칩·아이콘 버튼 최소 44px, 입력 글자 16px</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/316">PR #316</a></td></tr>
