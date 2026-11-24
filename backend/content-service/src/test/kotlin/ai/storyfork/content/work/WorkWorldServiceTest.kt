@@ -14,6 +14,7 @@ import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
 import ai.storyfork.content.world.service.PublicWorldService
+import ai.storyfork.content.world.service.WorldService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.InheritedWorldResponse
 import ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse
@@ -48,7 +49,7 @@ class WorkWorldServiceTest {
     private val manager = mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
-    private val service = WorkWorldService(access, works, publication, studios, publicWorlds, references, mock(WorldStudioService::class.java), TransactionTemplate(manager))
+    private val service = WorkWorldService(access, works, publication, studios, publicWorlds, references, mock(WorldStudioService::class.java), mock(WorldService::class.java), TransactionTemplate(manager))
     private val row = WorkEntity(id = "work", ownerId = owner, title = "작품", revision = 4)
 
     /** 요청자가 가진 세계관과 작품 행이다. */

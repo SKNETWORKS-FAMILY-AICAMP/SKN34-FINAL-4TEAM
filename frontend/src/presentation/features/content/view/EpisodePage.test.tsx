@@ -229,14 +229,15 @@ it('shows the default cover in the cover slot of the creation screen', async () 
   expect(document.querySelector('.ep-cover img[src="/default-work-cover.svg"]')).toBeTruthy()
 })
 
-it('puts the same disabled AI 생성 button with a visible 준비 중 note beside the cover input of the creation screen', async () => {
+it('opens image generation beside the cover input of the creation screen', async () => {
   stubCover()
   openContent(contentApi({ 'GET /api/v1/works': () => Response.json([]) }))
   await screen.findByRole('heading', { level: 1, name: '새 작품 만들기' })
   const ai = screen.getByRole('button', { name: 'AI로 생성' }) as HTMLButtonElement
-  expect(ai.disabled).toBe(true)
+  expect(ai.disabled).toBe(false)
   expect(ai.classList.contains('sm')).toBe(true)
-  expect(document.getElementById(ai.getAttribute('aria-describedby') ?? '')?.textContent).toBe('준비 중')
+  fireEvent.click(ai)
+  expect(screen.getByRole('group', { name: 'AI 이미지 생성' })).toBeTruthy()
   // 작품 관리의 표지 편집과 같이 '표지 이미지 선택' 보조 버튼과 한 줄(.ep-cover-pick)에 놓인다.
   const picker = screen.getByLabelText('표지 이미지 선택')
   expect(picker.closest('label')?.classList.contains('btn')).toBe(true)
@@ -874,7 +875,7 @@ it('shows a styled 이미지 선택 button instead of the browser file input and
   expect(Array.from(form.querySelectorAll('.ep-edit-actions button'), (b) => b.textContent)).toEqual(['저장', '취소'])
 })
 
-it('puts a disabled AI 생성 button with a visible 준비 중 note beside 이미지 선택 in the cover edit', async () => {
+it('opens image generation beside 이미지 선택 in the cover edit', async () => {
   const id = '11111111-1111-4111-8111-111111111111'
   stubCover()
   stubPreviewUrl()
@@ -884,16 +885,17 @@ it('puts a disabled AI 생성 button with a visible 준비 중 note beside 이�
   fireEvent.click(screen.getByRole('button', { name: '표지 편집' }))
   const form = screen.getByRole('form', { name: '표지 편집' })
   const ai = within(form).getByRole('button', { name: 'AI로 생성' }) as HTMLButtonElement
-  // 아직 연결 전이라 비활성이고, '준비 중'은 툴팁이 아니라 보이는 글자이며 버튼 설명으로 이어진다.
-  expect(ai.disabled).toBe(true)
+  // 생성 입력을 열어도 기존 표지는 저장 전까지 유지된다.
+  expect(ai.disabled).toBe(false)
   expect(ai.title).toBe('')
-  expect(document.getElementById(ai.getAttribute('aria-describedby') ?? '')?.textContent).toBe('준비 중')
+  fireEvent.click(ai)
+  expect(screen.getByRole('group', { name: 'AI 이미지 생성' })).toBeTruthy()
   // '이미지 선택'과 같은 보조 버튼 크기이고 한 줄(.ep-cover-pick)에 놓인다.
   const picker = within(form).getByLabelText('이미지 선택')
   expect(ai.classList.contains('sm')).toBe(true)
   expect(picker.closest('label')?.classList.contains('sm')).toBe(true)
   expect(ai.closest('.ep-cover-pick')).toBe(picker.closest('.ep-cover-pick'))
-  // 눌러도 아무 일도 없다: 저장은 여전히 파일을 골라야 켜진다.
+  // 생성 입력을 닫아도 기존 저장은 파일 선택 전까지 잠긴다.
   fireEvent.click(ai)
   expect((within(form).getByRole('button', { name: '저장' }) as HTMLButtonElement).disabled).toBe(true)
 })
@@ -1213,6 +1215,32 @@ it('독립이 거절되면 서버 문구를 이어받는 세계관 카드 안에
   expect(screen.queryByText(/^위치 \/worldstudio/)).toBeNull()
   // 실패 뒤에는 다시 누를 수 있다.
   expect((card.getByRole('button', { name: '내 세계관으로 만들어 수정하기' }) as HTMLButtonElement).disabled).toBe(false)
+})
+
+it('원작에 세계관이 없는 옛 설정집 방식 Fork는 설정집 카드의 독립 버튼으로 독립하고(거절은 그 카드 안에 보이고 다시 누를 수 있다) 새 세계관 관리 화면으로 간다', async () => {
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+  stubCover()
+  myWorlds([])
+  const followed = { id: 's', versionId: 'v', name: '지도', content: '설정', category: '장소', tags: [], visibility: 'public', fromEpisode: 1, toEpisode: null, knownBy: [], evidence: '' }
+  const detach = vi.fn()
+    .mockResolvedValueOnce(Response.json({ detail: '이어받는 원작 세계관이 없어서 독립할 수 없어요.', code: 'FORK_WORLD_NOT_INHERITED' }, { status: 409 }))
+    .mockResolvedValueOnce(Response.json({ workId: 'w', worldId: WORLD_ID }, { status: 201 }))
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([myFork]), 'GET /api/v1/works/w/world': () => Response.json({ ...settingsBook, settings: [followed] }),
+    'GET /api/v1/works/w/inherited-world': () => Response.json({ workId: 'w', worldId: null, upto: 0, cards: [], relationships: [] }),
+    'POST /api/v1/works/w/inherited-world/detach': detach,
+  }), '내 포크')
+  fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
+  const card = within(await screen.findByRole('region', { name: '세계관 설정집' }))
+  // 원작에 세계관이 없으면 이어받는 세계관 카드는 사라지고, 설정집 카드가 같은 버튼을 가진다.
+  await waitFor(() => expect(screen.queryByRole('region', { name: '이어받는 원작 세계관' })).toBeNull())
+  fireEvent.click(await card.findByRole('button', { name: '내 세계관으로 만들어 수정하기' }))
+  expect((await card.findByRole('alert')).textContent).toBe('이어받는 원작 세계관이 없어서 독립할 수 없어요.')
+  expect(screen.queryByText(/^위치 \/worldstudio/)).toBeNull()
+  fireEvent.click(card.getByRole('button', { name: '내 세계관으로 만들어 수정하기' }))
+  expect(await screen.findByText('위치 /worldstudio/' + WORLD_ID)).toBeTruthy()
+  expect(confirm).toHaveBeenCalledWith(DETACH_CONFIRM)
+  expect(detach).toHaveBeenCalledTimes(2)
 })
 
 it('lists saved versions, AI requests and publications read-only while restore and publish-target actions stay in the studio', async () => {

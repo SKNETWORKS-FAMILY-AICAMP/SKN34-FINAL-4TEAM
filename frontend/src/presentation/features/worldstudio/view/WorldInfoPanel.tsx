@@ -14,7 +14,7 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
  * 표지 묶음 맨 앞에 지금 표지(올린 표지 또는 기본 표지)와 고른 파일이 보이고, 세계관 삭제는 폼 맨 아래 삭제 구획(`.ep-delete`)에 있다.
  * 저장은 바뀐 것만 이 순서로 보낸다: 이름·설명은 기존 초안 저장, 공개 범위·장르는 기존 공개 설정(`vm.setPublication`, 공개로 바꿀 때만 한 번 확인), 표지는 고른 이미지 올리기(교체 포함)다.
  * 하나라도 실패하면 오류를 알리며 입력을 그대로 둬 남은 것만 다시 저장할 수 있다. `되돌리기`는 바뀐 입력과 고른 표지를 저장값으로 되돌리고(한글 조합을 끝내려고 누른 Esc 같은 닫기는 없다) 바뀐 것이 없으면 잠겨 있다.
- * 표지 삭제만은 확인한 뒤 바로 지운다. 표지 'AI로 생성'은 연결 전이라 비활성이다.
+ * 표지 삭제만은 확인한 뒤 바로 지운다. AI 표지는 생성 결과를 선택한 뒤 기존 표지 저장 흐름으로 보낸다.
  * 저장하지 않은 수정이 있으면(`vm.infoLocked`) 그 수정이 이름·설명 저장에 딸려 가지 않도록, 이름·설명을 바꾼 동안에는 저장을 잠그고 먼저 저장하라고 알린다.
  * 공개 범위·장르·표지는 초안 저장과 별개라 잠그지 않는다: 공개로 고른 뒤 경고의 `전체 공개`(초안 변경)를 눌러도 공개 설정은 그대로 저장할 수 있다.
  * 서버에서 다시 읽으면(`vm.relationKey`) 호출 쪽이 이 폼을 새로 만들어 낡은 입력이 남지 않게 한다.
@@ -91,7 +91,7 @@ export function WorldInfoPanel({ vm, world }: { vm: VM; world: StudioWorld }) {
                 이미지 선택
                 <input key={coverInput} type="file" accept="image/png,image/jpeg,image/webp" disabled={!vm.supportsCover} onChange={(e) => pickCover(e.target.files?.[0])} />
               </label>
-              <AiCoverButton />
+              <AiCoverButton disabled={!vm.supportsCover} purpose="world_cover" worldId={world.id} hasCurrentCover={world.hasCover} onPick={pickCover} />
               {vm.supportsCover && world.hasCover && (
                 <button type="button" className="btn sm" onClick={() => { if (window.confirm('표지를 삭제할까요? 기본 표지로 돌아가요.')) void vm.setCover(null) }}>표지 삭제</button>
               )}

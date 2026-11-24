@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from app.images.router import router as images_router
 
 from app import tracing
 from app.evaluation.router import router as evaluation_router
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
     application.include_router(health_router)
+    application.include_router(images_router)
     application.include_router(evaluation_router)
     application.include_router(generation_router)
     application.include_router(initial_world_router)
