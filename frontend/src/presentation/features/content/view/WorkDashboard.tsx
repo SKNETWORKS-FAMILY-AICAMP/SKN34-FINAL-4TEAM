@@ -45,7 +45,8 @@ type Props = {
 
 /**
  * 작품 관리 개요 탭 히어로 아래의 현황: 작품 지표 카드·최근 발행 이력 5건·바로가기. 구획마다 따로 읽어(useWorkDashboard) 한 구획이 실패해도 그 안에서만 알린다.
- * 바로가기는 사이드바 메뉴에 없는 목적지(집필실, 공개 작품이면 소설 상세)만 두고, 메뉴와 같은 탭 전환 버튼은 두지 않는다.
+ * 최근 발행 이력과 바로가기는 이력·세계관 탭과 같은 카드(`tcard ep-card`)다(작품 지표는 칸 하나하나가 카드라 구획을 다시 감싸지 않는다). 발행 이력 줄은 회차·동작이 왼쪽, 시각이 오른쪽 끝이다.
+ * 바로가기는 사이드바 메뉴에 없는 목적지(집필실, 공개 작품이면 소설 상세)만 두고, 메뉴와 같은 탭 전환 버튼은 두지 않는다. 버튼 수만큼 같은 폭으로 줄을 채운다.
  * 독자 지표(누적 조회·좋아요)는 새 API 없이 공개 상세의 값이라, 비공개 작품은 '공개 전', 집계가 없으면 '집계 없음'이다. 어느 값도 모르면서 0으로 채우지 않는다.
  * 총 글자 수는 내가 쓴 공개 회차만 센다(이어받은 원작 회차의 글자를 내 것으로 세지 않는다).
  */
@@ -72,7 +73,7 @@ export function WorkDashboard({ work: w, draftCount, forkCounts, mockup, disable
           <ReaderMetric label='좋아요' state={reader} pick={(stats) => number(stats.likes)} />
         </dl>
       </section>
-      <section aria-labelledby={recentTitle}>
+      <section className='tcard ep-card' aria-labelledby={recentTitle}>
         <h3 id={recentTitle}>최근 발행 이력</h3>
         {publications.isError
           ? <p className='ep-alert'>발행 이력을 불러오지 못했어요. <button type='button' className='btn sm' onClick={publications.retry}>다시 불러오기</button></p>
@@ -83,14 +84,15 @@ export function WorkDashboard({ work: w, draftCount, forkCounts, mockup, disable
             <ol role='list' className='ep-settings-history'>
               {publications.data.map((event) => (
                 <li key={`${event.publishedAt}-${event.episode}-${event.action}`}>
-                  {event.episode}화 · {publicationActionLabel[event.action]} · <time dateTime={event.publishedAt}>{kstDateTime(event.publishedAt)}</time>
+                  {event.episode}화 · {publicationActionLabel[event.action]}{' '}
+                  <time dateTime={event.publishedAt}>{kstDateTime(event.publishedAt)}</time>
                 </li>
               ))}
             </ol>
           )
           : <p className='ep-muted'>발행 이력이 없어요.</p>}
       </section>
-      <section aria-labelledby={shortcutsTitle}>
+      <section className='tcard ep-card' aria-labelledby={shortcutsTitle}>
         <h3 id={shortcutsTitle}>바로가기</h3>
         <div className='ep-shortcuts'>
           <Shortcut to={`/studio/${w.id}`} disabled={disabled}>집필실 열기</Shortcut>

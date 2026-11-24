@@ -96,7 +96,8 @@ body:has(.ep-menu-account) .thm-float{display:none}
 /* 작품 삭제: 카드 껍데기 없이 얇은 선 아래 한 줄로 둔다(위험 동작 하나에 카드 하나는 과하다). */
 .ep-delete{padding:16px 0 0;margin:0 0 32px;border-top:1px solid var(--line2)}
 .ep-delete p{margin-top:10px}
-.ep-facts{display:flex;gap:12px 40px;flex-wrap:wrap;margin:14px 0 0}
+/* 카드 안 사실 칸은 카드 폭을 나눠 쓴다(내용 폭 flex일 때는 이어받는 원작·분기 정책의 두 칸이 카드 왼쪽에 몰렸다). 좁은 카드는 한 칸씩 쌓인다. */
+.ep-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px 40px;margin:14px 0 0}
 .ep-facts>div{display:grid;gap:2px;min-width:0}
 .ep-facts dt{font-size:12px;color:var(--tsub)}
 .ep-facts dd{margin:0;font-size:15px;font-weight:600;overflow-wrap:anywhere}
@@ -231,7 +232,7 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .episode-app .ep-brief .ep-cover{border-radius:10px;box-shadow:var(--sh)}
 .episode-app .ep-brief .stats b{font-weight:600}
 
-/* 작품 관리 개요 대시보드(R6): 지표 카드·최근 발행·바로가기. 구획 사이는 구획 제목 위가 아래보다 넓게 32px(다른 탭의 구획 간격과 같다). 글자 상태(공개 전·집계 없음·불러오지 못했어요)는 숫자 칸보다 작은 보조 글이다. 지표 카드는 줄바꿈 flex라 줄 끝에 남은 카드가 그 줄을 채운다(카드 수가 5~7로 바뀌어 고정 열 격자는 어느 폭에서든 홀로 남는 카드가 생겼다). 1072px에서 7장이 한 줄이다. 바로가기 알약은 지표보다 무겁지 않게 옅은 테두리·600이다(세계관 관리 도구 버튼 .ep-menu-tools와 같다). */
+/* 작품 관리 개요 대시보드(R6): 지표 카드·최근 발행·바로가기. 구획 사이는 구획 제목 위가 아래보다 넓게 32px(다른 탭의 구획 간격과 같다). 글자 상태(공개 전·집계 없음·불러오지 못했어요)는 숫자 칸보다 작은 보조 글이다. 지표 카드는 줄바꿈 flex라 줄 끝에 남은 카드가 그 줄을 채운다(카드 수가 5~7로 바뀌어 고정 열 격자는 어느 폭에서든 홀로 남는 카드가 생겼다). 1072px에서 7장이 한 줄이다. 650px 이하는 2열 격자라 홀수 개수의 마지막 칸도 반폭이다(flex면 마지막 칸이 한 줄을 다 차지했다). 바로가기 알약은 지표보다 무겁지 않게 옅은 테두리·600이고, 바로가기 격자는 auto-fit이라 버튼 수만큼 같은 폭으로 줄을 채운다(auto-fill이면 버튼 둘이 줄의 40%만 차지하고 나머지가 비었다). 최근 발행 이력과 바로가기는 이력·세계관 탭과 같은 카드(tcard ep-card)다(카드 면·테두리는 아래 '작품 관리 탭 카드' 규칙). */
 .ep-dash{display:grid;gap:32px;margin-top:8px}
 .ep-dash section>h3+p{margin-top:12px}
 .ep-metrics{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 0}
@@ -239,17 +240,25 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-metrics dt{font-size:12px;color:var(--sub)}
 .ep-metrics dd{margin:0;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .ep-metrics dd.ep-muted{font-size:14px;font-weight:600}
-.ep-shortcuts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:8px;margin-top:12px}
+@media(max-width:650px){.ep-tab .ep-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ep-shortcuts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px;margin-top:12px}
 .episode-app .ep-shortcut{justify-content:flex-start;border-color:var(--line);font-weight:600}
-/* 개요 최근 발행 이력 줄은 한 줄 글이다: flex(.ep-settings-history li)에서는 글자 덩어리와 <time> 사이에 gap이 생겨 '발행 ·' 뒤 구분점이 매달려 보였다. 이력 탭의 발행 이력 줄(.ep-history 카드 안 목록)도 같은 한 줄 글이라 같이 block이다. 운영 설정의 이력 줄(<strong>+<time> 두 칸)은 그대로 flex다. 마지막 줄 아래 선은 구획 구분선처럼 보여 없앤다(개요와, 카드 테두리와 겹치는 이력 탭). */
-.ep-dash .ep-settings-history li{display:block}
-.ep-history .ep-settings-history li{display:block}
+/* 개요 최근 발행 이력과 이력 탭 발행 이력의 줄은 두 칸이다: 회차·동작(·저장 버전) 글 덩어리가 왼쪽, 시각(<time>)이 오른쪽 끝이다(한 줄 글(block)이면 카드 오른쪽 절반이 비었다). 글 덩어리는 flex의 이름 없는 칸이고 구분점(·)은 글 안에만 있어 시각 앞에 매달리지 않는다(시각 앞에 구분점을 두면 gap 때문에 매달려 보였다). 한 줄에 못 들어가면 시각이 다음 줄로 내려간다(flex-wrap). 운영 설정의 이력 줄(<strong>+<time>)은 그대로 왼쪽부터 쌓인다. 마지막 줄 아래 선은 구획 구분선처럼 보여 없앤다(개요와, 카드 테두리와 겹치는 이력 탭). */
+.ep-dash .ep-settings-history li,.ep-history .ep-settings-history li{justify-content:space-between}
 .ep-dash .ep-settings-history li:last-child{border-bottom:0}
-/* 이력 탭(.ep-history)의 세 묶음(발행 이력·원고 저장본·AI 요청·제안)은 카드(tcard ep-card)다. 카드 안 제목(h3)은 카드 안쪽 여백이 위 간격을 맡아 위 여백이 없고(.ep-reading의 h3 여백 20px은 직계 제목 몫이 아니게 됐다), 안내·빈 상태 문단은 .ep-reading 직계가 아니게 돼 보조색을 다시 준다(알림 역할이 붙은 문단은 그대로). 마지막 줄·항목의 아래 선·여백은 카드 테두리와 겹쳐 없앤다. */
-.ep-history .ep-card>h3{margin:0 0 12px}
+/* 이력 탭(.ep-history)의 세 묶음(발행 이력·원고 저장본·AI 요청·제안)은 카드(tcard ep-card)다. 카드 안 제목(h3)은 카드 안쪽 여백이 위 간격을 맡아 위 여백이 없고(.ep-reading의 h3 여백 20px은 직계 제목 몫이 아니게 됐다), 안내·빈 상태 문단은 .ep-reading 직계가 아니게 돼 보조색을 다시 준다(알림 역할이 붙은 문단은 그대로). 마지막 줄·항목의 아래 선·여백은 카드 테두리와 겹쳐 없앤다. 개요 대시보드의 카드(.ep-dash)도 같은 제목 간격이다. */
+.ep-history .ep-card>h3,.ep-dash .ep-card>h3{margin:0 0 12px}
 .ep-history .ep-card>p:not([role]){color:var(--sub)}
 .ep-history .ep-settings-history li:last-child{border-bottom:0}
 .ep-history .ep-card>article:last-child{border-bottom:0;padding-bottom:0}
+/* 이력 탭 원고 저장본 한 건(.ep-version): 제목·시각은 왼쪽 두 줄, '원고 보기' 버튼은 오른쪽 끝 가운데(두 줄에 걸친 칸)이고 펼친 원고는 전체 폭 새 줄이다(카드가 1070px여도 왼쪽에 세 줄로 쌓여 오른쪽이 비었다). 버튼 칸의 margin:0은 항목 문단의 6px 여백 규칙(.ep-content .ep-reading article>:is(h4,p))과 특이도가 같아 뒤에 둔다. AI 요청·제안 항목(article)은 그대로다. */
+.ep-history .ep-version{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:16px;align-items:center}
+.ep-history .ep-version>p:has(>button){grid-column:2;grid-row:1/span 2;margin:0}
+.ep-history .ep-version>:not(h4,p){grid-column:1/-1}
+/* 작품 관리 탭 카드(개요 최근 발행 이력·바로가기, 세계관·설정집, 이력, 운영 설정)의 면·테두리·모서리는 이 규칙 하나다: 전역 .tcard의 --line·22px 모서리라 탭마다 다르게 보였다(운영 설정 카드의 --line2·16px에 맞춘다). .ep-tab은 작품 관리만 쓰는 클래스라 세계관 관리의 큰 카드(.ep-tab 없음)는 그대로다. 운영 설정 규칙(아래)보다 앞에 둬 같은 특이도에서 그쪽이 이긴다. 카드 사이 32px(.ep-card의 margin-bottom)은 구획 간격 규칙이라 두되 마지막 카드의 아래 여백은 없앤다(내용 열 아래 안쪽 여백 24px와 겹쳐 R7로 없앤 56px 띠가 다시 생긴다). 개요 격자(.ep-dash)는 gap이 간격을 맡는다. margin 단축 속성은 쓰지 않는다(P1-1). */
+.episode-app .ep-tab .ep-card.tcard{background:var(--surface);border-color:var(--line2);border-radius:16px}
+.episode-app .ep-tab .ep-card.tcard:last-child{margin-bottom:0}
+.episode-app .ep-tab .ep-dash>.ep-card.tcard{margin-bottom:0}
 
 /* 운영 설정 탭 카드(R11): 카드 면·테두리·모서리·안쪽 여백은 이 규칙 하나가 정한다. 넓은 화면은 2열이고 집필 방식 카드가 왼쪽 두 줄을 차지해 오른쪽에 자동 처리·설정 변경 이력이 쌓인다(두 쪽 높이가 거의 맞아 빈 면이 없다. 이력이 길어져 오른쪽이 길어지면 집필 방식 카드 아래가 비는 것은 감수한다). 틀의 직계 카드(분기 정책·포크 정보)와 삭제(위험 구역)는 아래 전체 폭이다(위험 신호는 빨간 테두리와 빨간 버튼 글자 둘이고 면은 다른 카드와 같다). 패널 껍데기는 그리드에 끼지 않게 display:contents(이름 없는 section이라 의미 손실 없음). 카드 사이 간격은 grid gap 하나다(.ep-card의 margin-bottom·.ep-tab .ep-delete의 위 간격은 아래 margin:0이 이긴다). 같은 줄 카드는 높이를 맞추고(stretch), 카드 머리는 버튼 유무와 무관하게 44px이고 제목 바깥 여백은 0이라 같은 줄 카드의 제목이 한 선에 놓인다(패널 카드만 .ep-reading의 h3 여백 20px을 물려받아 10px 어긋났다). */
 .ep-settings-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:stretch}

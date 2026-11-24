@@ -118,6 +118,9 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
     setTab(value)
     if (value === 'history') void vm.loadHistory()
   }
+  // 탭 제목(h2)은 메뉴 탭 이름과 똑같은 글이다: 어느 탭에 있는지 본문에서도 읽힌다. 탭 안의 묶음 제목은 h3다.
+  // 헤딩 순서는 어느 탭이든 작품 제목(h1) → 탭 제목(h2) → 묶음 제목(h3)이다: 다른 탭은 위의 요약 머리가 h1이라 탭 내용 맨 앞에 그리고, 작품 제목(h1)이 탭 내용 안(히어로)에 있는 개요는 히어로 다음에 그린다.
+  const heading = <h2>{tabs.find(([value]) => value === tab)![1]}</h2>
   return (
     <div className='ep-manage' data-menu={menuOpen ? undefined : 'collapsed'}>
       <ManageMenu name='작품' open={menuOpen} onOpenChange={onMenuOpenChange} back={{ to: '/lib?tab=write', label: '내가 쓰는 소설' }}>
@@ -139,11 +142,10 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
       <div id='ep-content' tabIndex={-1} className='ep-content'>
         {notices}
         {/* 개요 밖 탭 위에는 짧은 작품 요약만 둔다(세계관 관리와 같은 모양). 작품 정보·표지 편집은 개요 탭에서만 한다. */}
-        {tab !== 'overview' && <WorkBrief key={`${w.id}-${vm.coverRevision}`} work={w} draftCount={vm.writing ? drafts?.length : null} />}
+        {tab !== 'overview' && <WorkBrief key={`${w.id}-${vm.coverRevision}`} work={w} draftCount={vm.writing ? drafts?.length : null} serialOn={serialLocked} />}
         {/* 탭 내용 묶음: 메뉴를 누르면 이 머리로 스크롤한다. 상단바가 없어 scroll-margin은 위 여백만이다(회차 목록과 같은 값). */}
         <div ref={tabContent} className='ep-tab' style={{ scrollMarginTop: 16 }}>
-          {/* 탭 제목(h2)은 메뉴 탭 이름과 똑같은 글이다: 어느 탭에 있는지 본문에서도 읽힌다. 탭 안의 묶음 제목은 h3다. */}
-          <h2>{tabs.find(([value]) => value === tab)![1]}</h2>
+          {tab !== 'overview' && heading}
           {tab === 'overview' && (
             <WorkOverview
               work={w}
@@ -158,16 +160,19 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               serialOn={serialLocked}
             />
           )}
-          {/* 히어로 아래 현황: 지표 카드·최근 발행 이력·바로가기(집필실·소설 상세). 이동 잠금은 메뉴와 같은 규칙이다. */}
+          {/* 히어로 아래 현황: 지표 카드·최근 발행 이력·바로가기(집필실·소설 상세). 이동 잠금은 메뉴와 같은 규칙이다. 탭 제목(h2)은 작품 제목(h1)을 그리는 히어로 다음, 이 현황(h3 구획) 앞이다. */}
           {tab === 'overview' && (
-            <WorkDashboard
-              work={w}
-              draftCount={vm.writing ? drafts?.length : null}
-              forkCounts={forkCounts}
-              mockup={mockup}
-              disabled={locked || editing !== null}
-              useCase={useCase}
-            />
+            <>
+              {heading}
+              <WorkDashboard
+                work={w}
+                draftCount={vm.writing ? drafts?.length : null}
+                forkCounts={forkCounts}
+                mockup={mockup}
+                disabled={locked || editing !== null}
+                useCase={useCase}
+              />
+            </>
           )}
           {tab === 'settings' && (
             // 설정 카드·분기 정책(포크 정보)·작품 삭제가 한 카드 틀이다: 넓은 화면은 왼쪽에 집필 방식(두 줄)·오른쪽에 자동 처리·설정 변경 이력이고, 그 아래 분기 정책(포크 정보)과 맨 끝 삭제(위험 구역)는 전체 폭이다(episode.css .ep-settings-cards).
@@ -201,7 +206,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
                 <>
                   <HistoryCard title='발행 이력'>
                     {!vm.history.publicationHistory?<p className="ep-alert" role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol role='list' className='ep-settings-history'>{vm.history.publicationHistory.map((event,i)=><li key={i}>
-                      {event.episode}화 · {publicationActionLabel[event.action]} · <time dateTime={event.publishedAt}>{kstDateTime(event.publishedAt)}</time> · {savedVersion(event.episode, event.versionId)}
+                      {event.episode}화 · {publicationActionLabel[event.action]} · {savedVersion(event.episode, event.versionId)}{' '}
+                      <time dateTime={event.publishedAt}>{kstDateTime(event.publishedAt)}</time>
                     </li>)}</ol>:<p>발행 이력이 없어요.</p>}
                   </HistoryCard>
                   <HistoryCard title='원고 저장본'>
@@ -418,12 +424,13 @@ function HistoryCard({ title, children }: { title: string; children: ReactNode }
 /**
  * 이력 탭의 저장 버전 한 건. 제목과 저장 시각만 먼저 보이고 본문은 '원고 보기'로 펼칠 때 그린다.
  * 저장본이 쌓여도 모든 본문과 그 안의 이미지를 한꺼번에 그리거나 내려받지 않는다.
+ * 제목·시각은 왼쪽, '원고 보기' 버튼은 오른쪽 끝이고 펼친 원고는 전체 폭 새 줄이다(`.ep-version` 격자, episode.css).
  */
 function SavedVersion({ workId, version: v, label }: { workId: string; version: Version; label: string }) {
   const [open, setOpen] = useState(false)
   const title = useId()
   return (
-    <article>
+    <article className='ep-version'>
       <h4 id={title}>{v.episode}화 · {label} · {v.title}</h4>
       <p><time dateTime={v.savedAt}>{kstDateTime(v.savedAt)}</time></p>
       <p>

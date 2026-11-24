@@ -12,8 +12,8 @@ import { WorkManagement } from './WorkManagement'
 
 // 히어로(WorkOverview)는 개요 탭의 내용이다. 그 안(작품 정보·표지 편집)은 EpisodePage.test가 보고, 여기서는 개요 탭이 히어로를 그리는지만 본다. 포크 수는 12화에만 2편이 갈라졌다고 본다(회차 번호로 조회).
 vi.mock('./WorkOverview', () => ({ WorkOverview: ({ serialOn }: { serialOn?: boolean }) => <p data-serial={String(serialOn)}>작품 개요 히어로</p> }))
-// 요약 머리는 넘겨받은 초안 수만 data-drafts로 드러낸다(수를 세는 규칙은 이 화면의 몫이다).
-vi.mock('./WorkBrief', () => ({ WorkBrief: ({ draftCount }: { draftCount?: number | null }) => <p data-drafts={String(draftCount)}>작품 요약 머리</p> }))
+// 요약 머리는 넘겨받은 초안 수(data-drafts)와 AI 자율 집필 켜짐(data-serial)만 드러낸다(수를 세는 규칙·켜짐 값은 이 화면의 몫이고, AI 자율 연재 칩은 요약 머리가 그린다).
+vi.mock('./WorkBrief', () => ({ WorkBrief: ({ draftCount, serialOn }: { draftCount?: number | null; serialOn?: boolean }) => <p data-drafts={String(draftCount)} data-serial={String(serialOn)}>작품 요약 머리</p> }))
 // 개요 대시보드의 조회·표시(바로가기 링크 포함)는 WorkDashboard.test가 본다. 여기서는 개요 탭이 그것을 그리고 넘겨 주는 값(잠금 포함)만 본다.
 const dashboard = vi.hoisted(() => ({ props: [] as { disabled: boolean; mockup: boolean; useCase?: unknown; draftCount?: number | null }[] }))
 vi.mock('./WorkDashboard', () => ({
@@ -323,6 +323,8 @@ it('같은 저장 버전은 공개 회차·원고 저장본·발행 이력에서
   // [polish] 이력 탭의 발행 이력·저장본 시각은 개요와 같은 공용 한국시간 형식이고 <time dateTime>을 가진다.
   const publishedTime = screen.getByText(/1화 · 발행 ·/).querySelector('time')
   expect(publishedTime?.textContent).toBe(kstDateTime('2026-11-03T00:00:00Z'))
+  // 시각은 줄의 마지막 칸이고 저장 버전은 그 앞이다(CSS가 시각을 줄 오른쪽 끝에 놓는다).
+  expect(screen.getByText(/1화 · 발행 ·/).lastChild).toBe(publishedTime)
   expect(publishedTime?.getAttribute('datetime')).toBe('2026-11-03T00:00:00Z')
   const savedTime = document.querySelector('.ep-reading article time')
   expect(savedTime?.textContent).toBe(kstDateTime('2026-11-02T00:00:00Z'))
@@ -462,6 +464,26 @@ it('개요 히어로에 AI 자율 집필이 켜져 있는지(serialLocked)를 �
     render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} serialLocked={serialLocked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
     expect(screen.getByText('작품 개요 히어로').getAttribute('data-serial'), String(serialLocked)).toBe(expected)
   }
+})
+
+it('개요 밖 탭의 요약 머리에도 AI 자율 집필이 켜져 있는지(serialLocked)를 그대로 넘긴다(칩은 요약 머리가 그린다. 개요 히어로와 같은 읽기 값이라 새 요청은 없다)', () => {
+  for (const [serialLocked, expected] of [[true, 'true'], [false, 'false'], [undefined, 'false']] as const) {
+    cleanup()
+    render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} serialLocked={serialLocked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: /^공개 회차/ }))
+    expect(screen.getByText('작품 요약 머리').getAttribute('data-serial'), String(serialLocked)).toBe(expected)
+  }
+})
+
+// ── 헤딩 순서: 어느 탭이든 작품 제목(h1) → 탭 제목(h2) → 구획 제목(h3)이다. 개요는 히어로(h1)가 탭 내용 안에 있어 탭 제목을 히어로 다음에 그린다 ──
+it('개요 탭의 탭 제목(h2)은 작품 제목(h1)을 그리는 히어로 다음, 현황(h3 구획) 앞이고, 다른 탭은 요약 머리(h1) 다음이다', () => {
+  const after = (earlier: Node, later: Node) => Boolean(earlier.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING)
+  openFresh(2)
+  const title = screen.getByRole('heading', { level: 2, name: '개요' })
+  expect(after(screen.getByText('작품 개요 히어로'), title)).toBe(true) // 히어로(h1) → 탭 제목(h2)
+  expect(after(title, screen.getByRole('button', { name: '대시보드' }))).toBe(true) // 탭 제목(h2) → 현황(h3 구획)
+  fireEvent.click(screen.getByRole('button', { name: /^공개 회차/ }))
+  expect(after(screen.getByText('작품 요약 머리'), screen.getByRole('heading', { level: 2 }))).toBe(true)
 })
 
 // ── 메뉴를 누르면 고른 탭의 내용으로 화면을 옮긴다: 탭 내용이 히어로·분기 정책 카드 아래(접힌 선 밖)에서 시작해, 눌러도 바뀐 것이 안 보였다 ──

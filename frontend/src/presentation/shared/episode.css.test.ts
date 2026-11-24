@@ -314,8 +314,8 @@ describe('episode.css 관리 화면 distill 계약 (작품 관리 탭 내용)', 
     expect(panel).toMatch(/border-block-start:0(?![\d.])/)
   })
 
-  it('이력 탭(.ep-history)의 세 묶음은 카드라, 카드 안 제목은 위 여백 없이 아래 12px, 안내·빈 상태 문단은 보조색이고 마지막 줄·항목은 카드 테두리와 겹치는 아래 선·여백이 없다', () => {
-    expect(rule('.ep-history .ep-card>h3')).toMatch(/margin:0 0 12px/)
+  it('이력 탭(.ep-history)의 세 묶음은 카드라, 카드 안 제목은 위 여백 없이 아래 12px(개요 대시보드 카드의 제목도 같다), 안내·빈 상태 문단은 보조색이고 마지막 줄·항목은 카드 테두리와 겹치는 아래 선·여백이 없다', () => {
+    expect(rule('.ep-history .ep-card>h3,.ep-dash .ep-card>h3')).toMatch(/margin:0 0 12px/)
     expect(rule('.ep-history .ep-card>p:not([role])')).toMatch(/color:var\(--sub\)/)
     expect(rule('.ep-history .ep-settings-history li:last-child')).toMatch(/border-bottom:0/)
     expect(rule('.ep-history .ep-card>article:last-child')).toMatch(/border-bottom:0;padding-bottom:0/)
@@ -355,7 +355,7 @@ describe('episode.css 관리 화면 quieter 계약 (작품 관리)', () => {
     expect(rule('.episode-app .ep-danger:hover')).toMatch(/background:color-mix\(in srgb,var\(--danger\) 10%,transparent\)/)
   })
 
-  it('카드 머리(.ep-sec-head)가 있는 tcard는 운영 설정 카드뿐이라 따로 평탄화하지 않고, .ep-card.tcard 전체에 거는 규칙도 없다(세계관 관리의 큰 카드·이어받는 원작 세계관 카드는 그대로)', () => {
+  it('카드 머리(.ep-sec-head)가 있는 tcard는 운영 설정 카드뿐이라 따로 평탄화하지 않고, .ep-card.tcard 전체에 거는 규칙도 없다(작품 관리 탭 카드의 면·테두리·모서리는 .ep-tab 안의 한 규칙이고, 세계관 관리의 큰 카드는 .ep-tab 밖이라 그대로다)', () => {
     const selectors = rules.map((r) => r.selector)
     expect(selectors).not.toContain('.episode-app .ep-card.tcard:has(>.ep-sec-head)')
     expect(selectors).not.toContain('.episode-app .ep-card.tcard')
@@ -507,8 +507,9 @@ describe('episode.css 작품 관리 화면 polish 계약 (A·B 리뷰 반영)', 
     expect(rule('.ep-list .ep:has(.ep-row-link:focus-visible)')).toMatch(/background:color-mix\(in srgb,var\(--tfg\) 4%,transparent\)/)
   })
 
-  it('[critique] 개요 최근 발행 이력 줄은 한 줄 글(block)이라 구분점 뒤에 flex 틈이 생기지 않는다', () => {
-    expect(rule('.ep-dash .ep-settings-history li')).toMatch(/display:block/)
+  it('[critique] 개요 최근 발행 이력 줄은 글 덩어리와 시각(<time>) 두 칸이라 flex 틈 위에 구분점이 매달리지 않고, 시각이 오른쪽 끝이다(한 줄 글(block)이던 때의 해법을 대신한다)', () => {
+    expect(rule('.ep-dash .ep-settings-history li,.ep-history .ep-settings-history li')).toMatch(/justify-content:space-between/)
+    expect(rules.map((r) => r.selector)).not.toContain('.ep-dash .ep-settings-history li')
   })
 })
 
@@ -560,8 +561,59 @@ describe('episode.css 작품 관리 polish (G2 5단계)', () => {
     expect(rule('.ep-list-head')).toMatch(/margin:0 0 16px/)
   })
 
-  it('[polish] 이력 탭 발행 이력 줄도 개요처럼 한 줄 글(block)이라 <time> 앞뒤 구분점이 매달리지 않고, 운영 설정의 이력 줄(flex)은 그대로다', () => {
-    expect(rule('.ep-history .ep-settings-history li')).toMatch(/display:block/)
+  it('[polish] 이력 탭 발행 이력 줄도 개요처럼 글 덩어리와 시각 두 칸이고(block이 아니라 flex 그대로) 시각이 오른쪽 끝이며, 운영 설정의 이력 줄(<strong>+<time>)은 왼쪽부터 쌓이는 그대로다', () => {
+    expect(rules.map((r) => r.selector)).not.toContain('.ep-history .ep-settings-history li')
     expect(rule('.ep-settings-history li')).toMatch(/display:\s*flex/)
+    expect(rule('.ep-settings-history li')).not.toMatch(/justify-content/)
+  })
+})
+
+describe('episode.css 작품 관리 critique (G1 2단계)', () => {
+  it('[critique-1] 작품 관리 탭 카드(개요 이력·바로가기, 세계관·설정집, 이력, 운영 설정)의 면·테두리·모서리는 .ep-tab 안의 한 규칙이다(--surface·--line2·16px). 운영 설정 규칙보다 앞에 있어 같은 특이도에서 그쪽이 이기고, 세계관 관리의 큰 카드는 .ep-tab이 없어 닿지 않는다', () => {
+    const card = rule('.episode-app .ep-tab .ep-card.tcard')
+    expect(card).toMatch(/background:var\(--surface\)/)
+    expect(card).toMatch(/border-color:var\(--line2\)/)
+    expect(card).toMatch(/border-radius:16px/)
+    expect(css.indexOf('.episode-app .ep-tab .ep-card.tcard{')).toBeLessThan(css.indexOf('.episode-app .ep-settings-cards .ep-card.tcard{'))
+  })
+
+  it('[critique-1] 마지막 카드와 개요 격자(.ep-dash)의 카드는 아래 여백이 없다 — 긴 탭 끝이 .ep-card의 32px와 내용 열 안쪽 24px로 다시 56px 띠가 되지 않고, 개요 카드 사이는 격자 gap 하나다(margin 단축 속성 금지)', () => {
+    expect(rule('.episode-app .ep-tab .ep-card.tcard:last-child')).toMatch(/margin-bottom:0(?![\d.])/)
+    expect(rule('.episode-app .ep-tab .ep-dash>.ep-card.tcard')).toMatch(/margin-bottom:0(?![\d.])/)
+    for (const selector of ['.episode-app .ep-tab .ep-card.tcard', '.episode-app .ep-tab .ep-card.tcard:last-child', '.episode-app .ep-tab .ep-dash>.ep-card.tcard']) {
+      expect(rule(selector), selector).not.toMatch(/(^|;)\s*margin\s*:/)
+    }
+    expect(rule('.episode-app .ep-card')).toMatch(/margin-bottom:32px/) // 구획 간격 규칙은 그대로다
+  })
+
+  it('[critique-2] 이력 탭 원고 저장본 한 건(.ep-version)은 제목·시각이 왼쪽 두 줄, 원고 보기 버튼이 오른쪽 끝 가운데이고, 펼친 원고는 전체 폭 새 줄이다', () => {
+    const item = rule('.ep-history .ep-version')
+    expect(item).toMatch(/display:grid;grid-template-columns:minmax\(0,1fr\) auto/)
+    expect(item).toMatch(/align-items:center/)
+    const button = rule('.ep-history .ep-version>p:has(>button)')
+    expect(button).toMatch(/grid-column:2;grid-row:1\/span 2/)
+    expect(button).toMatch(/margin:0/)
+    expect(rule('.ep-history .ep-version>:not(h4,p)')).toMatch(/grid-column:1\/-1/)
+    // 항목 문단의 6px 여백 규칙(.ep-content .ep-reading article>:is(h4,p))과 특이도가 같아 뒤에 있어야 버튼 칸의 margin:0이 이긴다.
+    expect(css.indexOf('.ep-history .ep-version>p:has(>button){')).toBeGreaterThan(css.indexOf('.ep-content .ep-reading article>:is(h4,p){'))
+  })
+
+  it('[critique-3] 개요 바로가기 격자는 버튼 수만큼 같은 폭으로 줄을 채운다(auto-fit: 둘이면 반반, 하나면 꽉 찬 한 칸. auto-fill이면 빈 칸이 줄의 60%를 차지했다)', () => {
+    const shortcuts = rule('.ep-shortcuts')
+    expect(shortcuts).toMatch(/display:grid;grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,200px\),1fr\)\)/)
+    expect(shortcuts).not.toMatch(/auto-fill/)
+  })
+
+  it('[critique-4] 650px 이하에서 개요 지표 칸은 2열 격자라 홀수 개수의 마지막 칸이 한 줄을 다 차지하지 않고 반폭이다 — 넓은 화면의 줄바꿈 flex(128px부터 늘어남)는 그대로다', () => {
+    expect(mediaBody('(max-width:650px)', '.ep-tab .ep-metrics')).toMatch(/display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/)
+    expect(rule('.ep-metrics')).toMatch(/display:flex;flex-wrap:wrap/)
+    expect(rule('.ep-metrics>div')).toMatch(/flex:1 1 128px/)
+  })
+
+  it('[critique-8] 카드 안 사실 칸(.ep-facts)은 카드 폭을 나눠 쓰는 auto-fit 격자다(내용 폭 flex라 이어받는 원작의 두 칸이 카드 왼쪽 45%에 몰렸다)', () => {
+    const facts = rule('.ep-facts')
+    expect(facts).toMatch(/display:grid;grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,180px\),1fr\)\)/)
+    expect(facts).not.toMatch(/display:flex|flex-wrap/)
+    expect(rule('.ep-facts>div')).toMatch(/min-width:0/) // 긴 값이 칸을 밀어내지 않는다
   })
 })
