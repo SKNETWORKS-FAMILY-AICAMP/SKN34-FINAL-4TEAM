@@ -1,7 +1,7 @@
 # 검색 품질 평가 (#825)
 
-> 상태: **구현·측정 완료**(2026-11-24). 고정 원문·고정 스냅샷으로 **검색만** 평가한다. 화면(LLMOps)이 아니라 pytest·CLI와 이 문서의 표로 둔다(사용자 결정 2026-11-24).
-> 생성 품질(프롬프트 버전 평가)은 [운영 LLMOps 계약](../design/operations-llmops-contract.md)의 회귀 평가가 맡고, §1 표는 그 둘을 한곳에 모은 평가 목록이다.
+> 상태: **구현·측정 완료**(2026-11-24). 고정 원문·고정 스냅샷으로 **검색만** 평가한다. 화면(LLMOps)에서 실행하지 않고(버튼 없음) pytest·CLI와 이 문서의 표로 두며, 화면의 '에이전트별 평가' 표(#837)에는 'CI에서 확인'으로 표시한다(사용자 결정 2026-11-24).
+> 생성 품질(프롬프트 버전 평가)은 [운영 LLMOps 계약](../design/operations-llmops-contract.md)의 회귀 평가가 맡고, §1은 그 둘을 에이전트별로 한곳에 모은 평가 목록이다(§1.1 표는 LLMOps 화면 표와 같다).
 
 ## 요약
 
@@ -12,32 +12,49 @@
 
 ## 1. 평가 목록: 에이전트 × 모드 × 지표 × 세트
 
-**모드**는 무엇을 채점하느냐다. **생성**은 프롬프트 버전·모델이 만든 글을 채점하고, **검색**은 모델 없이 검색 결과의 순위만 채점한다.
-생성 평가는 프롬프트·버전이 필수라 LLMOps 회귀 평가(화면에서 실행, 일부는 후보 등록 게이트)로 돌고, 검색은 프롬프트·모델과 무관한 결정적 코드라 같은 입력이면 배포 전까지 값이 같으므로 화면 모드로 넣지 않고 pytest·CLI로 둔다.
+**모드**는 무엇을 채점하느냐다.
 
-| 에이전트(기능) | 모드 | 실행 | 지표 | 세트(항목 수) | 문서 |
+- **새 답변 생성**(고정 근거로 새 답변 생성): 항목의 고정 근거로 프롬프트 버전·모델이 새 답변을 만들게 해 채점한다. 프롬프트·모델을 바꿨을 때 나빠지지 않았는지 보는 LLMOps 회귀 평가이고 화면에서 실행한다.
+- **원문 검색**(고정 원문 검색): 모델 없이 고정 원문·고정 스냅샷에서 검색 결과의 순위만 채점한다. 프롬프트·모델과 무관한 결정적 코드라 같은 입력이면 배포 전까지 값이 같으므로 화면에 실행 버튼을 두지 않고 pytest·CLI로 두며 CI에서 확인한다.
+- 저장한 답변을 다시 채점하는 모드는 만들지 않는다(사용자 결정 2026-11-24). 평가는 항상 프롬프트 버전으로 새로 생성한다.
+
+### 1.1 LLMOps 화면의 에이전트별 평가 표
+
+LLMOps 화면 '평가·누설 검사'의 맨 위 '에이전트별 평가' 표와 같은 목록이다(프런트 `frontend/src/domain/entities/llmOpsEvalTable.ts`. 이 표를 고치면 그 상수도 고치고, 둘이 같은지 `llmOpsEvalTable.test.ts`가 본다).
+에이전트마다 쓰는 평가 세트·지표가 다르다. 세트가 없는 에이전트도 숨기지 않고 '평가 세트 없음(후속)'으로 보인다. '최근 Run'은 화면이 평가 목록(최근 50건)에서 그 세트의 가장 최근 Run을 찾아 통과·미통과와 Run 상세로 보이는 칸이다.
+
+| 에이전트 · 기능 | 모드 | 평가 세트(항목 수) | 지표 | 최근 결과 |
+|---|---|---|---|---|
+| 메인 에이전트 · `orchestration.main` | — | 평가 세트 없음(후속) | — | — |
+| Decision Guard · `decision_guard.judge` | — | 평가 세트 없음(후속) | — | — |
+| Q&A · `story_context.answer` | 새 답변 생성 | `qa.grounding`(6) | `faithfulness`(근거 충실도) · `context_precision`(문맥 정밀도) | 최근 Run |
+| Q&A · 비공개 설정 누설(Fork 응답) | 새 답변 생성 | `leak.spoiler`(5) | GEval 누설 점수 | 최근 Run |
+| Q&A · 설정·관계 발췌(`world_excerpts`) | 원문 검색 | 한국어 62문항(설정 14·누설 62) | Recall@8 · MRR@8 · 비공개 설정 누설 | 버튼 없음 · CI에서 확인 — setting Recall@8 1.00 · MRR@8 0.92, 누설 0건 |
+| Q&A · 원고 벡터 검색(Content) | 원문 검색 | 평가 세트 없음(후속) | — | — |
+| Manuscript Review · `manuscript_review.*` | — | 평가 세트 없음(후속) | — | — |
+| World · 설정 충돌 지적 | 새 답변 생성 | `world.conflict`(5) | GEval(항목별 기준문) | 최근 Run |
+| Writing · 집필 교정 | 새 답변 생성 | `writing.fix`(5) | GEval(항목별 기준문) | 최근 Run |
+| Research · `web_research.search` | — | 평가 세트 없음(후속) | — | — |
+| Research · 웹 검색 결과 | 원문 검색 | 제외(결과가 시점마다 달라 재현 불가) | — | — |
+| Rating · `rating.assess` | — | 평가 세트 없음(후속) | — | — |
+| 인물 시뮬레이션 · `character_simulation.act` | 새 답변 생성 | `simulation.act`(24) | `voice`(말투) · `intent`(의도) · `pov_ok`(시점) | 최근 Run |
+| 인물 시뮬레이션 · `character_simulation.narrate` | 새 답변 생성 | `simulation.narrate`(46) | `style`(문체) · `info`(정보) · `pov_ok`(시점) | 최근 Run |
+| 인물 시뮬레이션 · 기억 회상(NovelBrain `recall`) | 원문 검색 | 한국어 62문항(고정 스냅샷) | Recall@5 · P@5 · MRR@5 · 미래·비목격 누설 | 버튼 없음 · CI에서 확인 — 3단계 known Recall@5 0.96 · MRR@5 0.51, setting 0.86 · 0.65, 미래 누설 0.08 |
+| 전처리 설정 추출 · `manuscript_extraction.extract` | — | 평가 세트 없음(후속) | — | — |
+
+- 후보 등록 평가 게이트(#787)는 Q&A 답변(`qa.grounding`)·인물 대사(`simulation.act`)·나레이션(`simulation.narrate`)에만 있다. 나머지 세트(`leak.spoiler`·`world.conflict`·`writing.fix`)는 범용이라 게이트가 아니다. `leak.spoiler`는 운영 정기 작업 `leak_sample_check`가 실제 Fork 응답을 표본으로 판정하는 것과 같은 방식(DeepEval)이다. 방식은 [운영 LLMOps 계약](../design/operations-llmops-contract.md), 시뮬레이션 세트는 [원문 평가 §10](simulation-original.md#10-운영-llmops-등록-형식내보내기)에 있다.
+- 세트가 생기면 '평가 세트 없음(후속)' 행을 그 세트·지표로 바꾼다. 전처리 설정 추출의 정답표 세트·코드 채점(`recall`·`quote_ok`)은 같은 이슈 묶음의 다른 브랜치(`docs/evaluation/extraction-set.md`, #824)가 만들고, 그 브랜치가 병합되면 이 행을 `extraction.extract`로 바꾼다.
+- 웹 검색은 제외한다(결과가 시점마다 달라 고정 입력이 성립하지 않는다, 재현 불가). Content 원고 벡터 검색(`app/retrieval`)은 후속이다: 색인·검색 범위는 Content가 소유하고 호출에 Content 내부 API와 Content가 서명한 토큰이 필요하다. NovelBrain 평가의 '벡터'는 운영과 같은 고정 리비전의 E5-small로 AI가 문단을 직접 임베딩해 코사인 kNN으로 찾는 근사다.
+
+### 1.2 화면 표에 없는 평가(로컬 CLI)
+
+LLMOps 화면에 Run이 남지 않고 로컬 CLI로 돌리는 평가다.
+
+| 평가 | 모드 | 실행 | 지표 | 세트(항목 수) | 문서 |
 |---|---|---|---|---|---|
-| Q&A 답변(`story_context.answer`) | 생성 | LLMOps 회귀 평가, 후보 등록 게이트 | Ragas `faithfulness`·`context_precision` | `qa.grounding`(6) | [계약](../design/operations-llmops-contract.md) |
-| 인물 시뮬레이션 대사(`character_simulation.act`) | 생성 | LLMOps 회귀 평가, 후보 등록 게이트 | `voice`·`intent`·`pov_ok`(0~1) | `simulation.act`(24) | [원문 평가](simulation-original.md#10-운영-llmops-등록-형식내보내기) |
-| 인물 시뮬레이션 나레이션·독백(`character_simulation.narrate`) | 생성 | LLMOps 회귀 평가, 후보 등록 게이트 | `style`·`info`·`pov_ok`(0~1) | `simulation.narrate`(46) | 위와 같음 |
-| 설정 충돌 지적 | 생성 | LLMOps 회귀 평가(범용 세트, 게이트 아님) | DeepEval GEval(항목 `criteria`) | `world.conflict`(5) | [계약](../design/operations-llmops-contract.md) |
-| 집필 교정 | 생성 | LLMOps 회귀 평가(범용 세트) | GEval | `writing.fix`(5) | 위와 같음 |
-| 비공개 설정 누설 판정(Q&A·Fork 응답) | 생성(판정) | 범용 세트와 운영 정기 작업 `leak_sample_check` | GEval 누설 점수 | `leak.spoiler`(5) | 위와 같음 |
-| 인물 시뮬레이션 대사·연출·나레이션·검사 | 생성 | 로컬 CLI `eval/simulation/orig_cli.py`(해리 포터는 저장소 밖) | act `voice`·`intent`·시점 위반율, direct 종류·화자 완전 일치, narrate `style`·`info`·시점 위반율, check 정확도·오경보율·놓침률 | 원문 평가 ①~④: 공개 150·150·100·100, 로컬 해리 포터 400·300·200·300 | [원문 평가](simulation-original.md) |
-| NovelBrain 단계 효과(검색 문맥을 준 응답의 시점 일관성) | 생성 | 로컬 CLI `run_timechara.py`·`ko_timechara/kt_run.py`(유료 호출) | 시공간 일관성 | KoTimeChara 3,328·TimeChara 600 | [NovelBrain 평가](novelbrain.md) |
-| **시뮬레이션 기억 회상**(NovelBrain `recall`, 단계 0~3) | **검색** | CLI `ko.py run`(결과 `results/ko-retrieval.json`)와 CI `tests/retrieval_eval/test_novelbrain_recall.py` | Recall@5·P@5·**MRR@5**, 미래·비목격 누설 | 한국어 62문항(고정 스냅샷) | 이 문서 §2~§4, §6 |
-| **Q&A 설정·관계 발췌**(`world_excerpts`: 공개 회차 거르기 + BM25 8건) | **검색** | CI `tests/retrieval_eval/test_story_qa_excerpts.py` | Recall@8·MRR@8, 비공개 설정 누설 | 한국어 62문항 중 설정 14(순위)·전체 62(누설) | 이 문서 §5, §6 |
-| NovelBrain 근거 검색(영어 공개) | 검색 | 로컬 CLI `run.py retrieval`(호출 없음) | Recall@5·P@5 | NarrativeQA 100·MuSiQue 100 | [NovelBrain 평가 §4.1](novelbrain.md#41-근거-검색-narrativeqamusique) |
-
-표에 없는 것:
-
-| 대상 | 상태 | 이유 |
-|---|---|---|
-| 웹 검색(`web_research.search`, OpenAI `web_search`) | 제외 | 결과가 시점마다 달라 고정 입력이 성립하지 않는다(재현 불가). |
-| 원고 벡터 검색(Content Retrieval, `app/retrieval`) | 후속 | 색인·검색 범위는 Content가 소유하고, 호출에 Content 내부 API와 Content가 서명한 토큰이 필요하다. NovelBrain 평가의 '벡터'는 운영과 같은 고정 리비전의 E5-small로 AI가 문단을 직접 임베딩해 코사인 kNN으로 찾는 근사다. |
-| Decision Guard(`decision_guard.judge`)·메인 에이전트 도구 선택(`orchestration.main`) | 후속 | 평가 세트가 없다. 세트가 생기면 이 표에 행을 더한다. |
-| 저장한 답변 재평가 모드 | 만들지 않음 | 사용자 결정(2026-11-24). 평가는 항상 프롬프트 버전으로 새로 생성한다. |
-| 원고 → 설정집 추출(`manuscript_extraction.extract`) | 별도 작업 | 정답표 세트·채점은 같은 이슈 묶음의 다른 브랜치(`docs/evaluation/extraction-set.md`)가 만든다. 그 문서가 병합되면 이 표에 행을 더한다. |
+| 인물 시뮬레이션 대사·연출·나레이션·검사 | 새 답변 생성 | 로컬 CLI `eval/simulation/orig_cli.py`(해리 포터는 저장소 밖) | act `voice`·`intent`·시점 위반율, direct 종류·화자 완전 일치, narrate `style`·`info`·시점 위반율, check 정확도·오경보율·놓침률 | 원문 평가 ①~④: 공개 150·150·100·100, 로컬 해리 포터 400·300·200·300 | [원문 평가](simulation-original.md) |
+| NovelBrain 단계 효과(검색 문맥을 준 응답의 시점 일관성) | 새 답변 생성 | 로컬 CLI `run_timechara.py`·`ko_timechara/kt_run.py`(유료 호출) | 시공간 일관성 | KoTimeChara 3,328·TimeChara 600 | [NovelBrain 평가](novelbrain.md) |
+| NovelBrain 근거 검색(영어 공개) | 원문 검색 | 로컬 CLI `run.py retrieval`(호출 없음) | Recall@5·P@5 | NarrativeQA 100·MuSiQue 100 | [NovelBrain 평가 §4.1](novelbrain.md#41-근거-검색-narrativeqamusique) |
 
 ## 2. 검색 평가 방식
 
