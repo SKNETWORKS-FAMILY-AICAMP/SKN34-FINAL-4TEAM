@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
-import { METRICS_SUBS, PROMPT_SUBS, type LlmPage, type MetricsSub, type PromptSub, llmPageHref, metricsSub, metricsSubHref, promptSub, promptSubHref } from '../../../../domain/entities/admin'
+import { METRICS_SUBS, PROMPT_SUBS, type LlmPage, type MetricsSub, type PipelineFlowKey, type PromptSub, llmPageHref, metricsSub, metricsSubHref, pipelineFlowHref, pipelineFlowKey, promptSub, promptSubHref } from '../../../../domain/entities/admin'
 import { LLM_FORBIDDEN, PERIODS, TRACE_STATUS_OPTIONS, bodyText, count, millis, traceStatusLabel, usd, type TraceItem } from '../../../../domain/entities/llmOps'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
@@ -35,15 +35,18 @@ const placeHref = (page: LlmPage, sub?: string) =>
  */
 export function LlmOps({ vm, page }: { vm: VM; page: LlmPage }) {
   const navigate = useNavigate()
-  const rawSub = useSearchParams()[0].get('sub')
-  const metrics = metricsSub(rawSub), prompts = promptSub(rawSub)
+  const params = useSearchParams()[0]
+  const rawSub = params.get('sub')
+  const metrics = metricsSub(rawSub), prompts = promptSub(rawSub), workflow = pipelineFlowKey(params.get('flow'))
   const l = useLlmOpsViewModel(vm.live.mutate, page, (next, nextSub) => navigate(placeHref(next, nextSub)), page === 'metrics' ? metrics : prompts)
+  // 워크플로우(주소 flow, AI 파이프라인 보기)를 바꾸면 고른 노드·열어 둔 기록은 닫습니다(다른 그림의 노드라 이어 볼 수 없습니다).
+  const onWorkflow = (next: PipelineFlowKey) => { l.closeNode(); navigate(pipelineFlowHref(next)) }
   // 목록에서 상세를 열면 상세 제목으로, 닫으면 눌렀던 목록 버튼으로 초점을 옮깁니다(프롬프트 상세 안의 평가 Run은 평가 단계가 따로 맡습니다).
   const root = useAdminDetailFocus(l.traceId ?? l.promptName, !!(l.trace.data || l.prompt.data))
   return (
     <section ref={root}>
       {page === 'metrics' && <MetricsView vm={vm} l={l} sub={metrics} />}
-      {page === 'prompts' && <PromptsView vm={vm} l={l} sub={prompts} />}
+      {page === 'prompts' && <PromptsView vm={vm} l={l} sub={prompts} workflow={workflow} onWorkflow={onWorkflow} />}
       {page === 'alerts' && <><LlmAlerts vm={vm} /><AlertRules vm={vm} l={l} /><LeakChecks vm={vm} l={l}><LeakSampleRate vm={vm} l={l} /></LeakChecks></>}
     </section>
   )
@@ -65,7 +68,7 @@ function MetricsView({ vm, l, sub }: { vm: VM; l: LlmVM; sub: MetricsSub }) {
 }
 
 /** 프롬프트·평가 쪽: 보기 전환(에이전트별 평가·프롬프트·모델·AI 파이프라인)과 고른 보기 하나. 프롬프트 상세(개선 루프)를 열어 둔 동안은 상세만 보입니다. */
-function PromptsView({ vm, l, sub }: { vm: VM; l: LlmVM; sub: PromptSub }) {
+function PromptsView({ vm, l, sub, workflow, onWorkflow }: { vm: VM; l: LlmVM; sub: PromptSub; workflow: PipelineFlowKey; onWorkflow: (workflow: PipelineFlowKey) => void }) {
   return (
     <>
       {!l.promptName && (
@@ -74,7 +77,7 @@ function PromptsView({ vm, l, sub }: { vm: VM; l: LlmVM; sub: PromptSub }) {
         </nav>
       )}
       {sub === 'evals' && <AgentEvaluations vm={vm} l={l} />}
-      {sub === 'all' && <AdminPipeline vm={vm} l={l} />}
+      {sub === 'all' && <AdminPipeline vm={vm} l={l} workflow={workflow} onWorkflow={onWorkflow} />}
       {sub === 'prompts' && (l.promptName ? <PromptDetail vm={vm} l={l} /> : <Prompts vm={vm} l={l} />)}
       {sub === 'models' && <Models vm={vm} l={l} />}
     </>

@@ -67,6 +67,8 @@ const trace = (id: string, feature: string, status: string, minutes: number, lat
 
 const flowNode = (id: string, label: string, next: string[], count: number, errors = 0, p95LatencyMs: number | null = null, promptNames: string[] = []): PipelineNode => ({ id, label, next, standalone: false, count, errors, p95LatencyMs, promptNames })
 /** 서버 고정 목록(DEC-58, PipelineNodes.kt)과 같은 노드 id·순서·연결. 업무 Agent는 결과를 메인에 돌려주고(되돌아가는 선) 반영은 작성 Agent 셋에서만 이어집니다. 건수·오류 수는 예시입니다. */
+/** 단독 기능 노드의 건수·오류·p95 지연 예시(없으면 5·0·없음). 원고 설정 추출은 회차별 추출과 정체 정리의 LLM 호출을 한 노드로 함께 센 값이라 워크플로우 화면의 서버 집계로 보인다. */
+const STANDALONE_FIGURES: Record<string, [number, number, number | null]> = { manuscript_extraction: [42, 1, 38000] }
 const PIPELINE: PipelineNode[] = [
   flowNode('request', '집필 AI 요청', ['guard'], 52, 0, 6200),
   flowNode('guard', 'Decision Guard', ['main'], 104, 1, 820, ['decision_guard.judge']),
@@ -89,7 +91,7 @@ const PIPELINE: PipelineNode[] = [
     ['work_tags', '장르·키워드 추천', ['work_tags.suggest']], ['world_review', '설정집 검토', ['world_review.check']], ['rating_direct', '심의 등급(단독)', ['rating.assess']],
     ['writing_editing', '새 원고·부분 수정', ['writing_editing.draft', 'writing_editing.patch']],
   ] as const)
-    .map(([id, label, promptNames]): PipelineNode => ({ ...flowNode(id, label, [], 5, 0, null, [...promptNames]), standalone: true })),
+    .map(([id, label, promptNames]): PipelineNode => ({ ...flowNode(id, label, [], ...(STANDALONE_FIGURES[id] ?? [5, 0, null]), [...promptNames]), standalone: true })),
 ]
 const entry = (id: string, traceId: string, name: string, minutes: number, extra: Partial<PipelineRecord> = {}): PipelineRecord => ({ id, traceId, name, type: 'SPAN', startTime: ago(minutes), latencyMs: 600, level: 'DEFAULT', ...extra })
 /** 노드별 기록 예시(최신순). 추적 id는 데모 추적(trace-1~4)이라 실행 흐름 보기도 열립니다. Guard의 거절은 수준이 아니라 출력의 allowed=false입니다. */
@@ -117,6 +119,48 @@ const PIPELINE_RECORDS: Record<string, PipelineRecord[]> = {
     }),
     entry('character_simulation-2', 'trace-1', 'simulation.narrate', 13, {
       type: 'GENERATION', model: 'gpt-demo', promptName: 'character_simulation.narrate', promptVersion: 1, latencyMs: 3100, input: [{ role: 'user', content: '장면의 나레이션을 이어 써 줘' }], output: { text: '숲 위로 바람이 지나갔다.' },
+    }),
+    entry('character_simulation-3', 'trace-1', 'simulation.check', 14, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'character_simulation.check', promptVersion: 1, latencyMs: 2600, input: [{ role: 'user', content: '생성 문단 검사' }], output: { checks: [{ kind: 'knowledge_leak', passed: true }] },
+    }),
+    entry('character_simulation-4', 'trace-1', 'simulation.director', 15, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'character_simulation.direct', promptVersion: 1, latencyMs: 900, input: { state: '다음 턴 연출 결정' }, output: { turn: 'speech', pov: 'omniscient' },
+    }),
+    entry('character_simulation-5', 'trace-1', 'simulation.plan', 17, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'character_simulation.plan', promptVersion: 1, latencyMs: 2300, input: [{ role: 'user', content: '카엘과 리안이 마주친다면' }], output: { mode: 'if', characters: 2 },
+    }),
+  ],
+  // 원고 설정 추출: 회차별 추출과 정체 정리가 같은 관측 이름(manuscript_extraction.generation)이라 한 노드에 함께 오고 프롬프트(promptName)로만 갈린다.
+  manuscript_extraction: [
+    entry('manuscript_extraction-1', 'trace-1', 'manuscript_extraction.generation', 20, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'manuscript_extraction.extract', promptVersion: 1, latencyMs: 38000, input: [{ role: 'user', content: '3화 원문(예시)' }], output: { mentions: 6, statements: 9, relationships: 4 },
+    }),
+    entry('manuscript_extraction-2', 'trace-1', 'manuscript_extraction.generation', 22, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'manuscript_extraction.extract', promptVersion: 1, latencyMs: 34000, input: [{ role: 'user', content: '2화 원문(예시)' }], output: { mentions: 5, statements: 7, relationships: 3 },
+    }),
+    entry('manuscript_extraction-3', 'trace-1', 'manuscript_extraction.generation', 30, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'manuscript_extraction.resolve', promptVersion: 1, latencyMs: 21000, input: [{ role: 'user', content: '회차별 대상 목록(예시)' }], output: { links: 2 },
+    }),
+    entry('manuscript_extraction-4', 'trace-2', 'manuscript_extraction.generation', 75, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'manuscript_extraction.extract', promptVersion: 1, level: 'ERROR', statusMessage: '모델 응답 시간 초과(예시)', latencyMs: 120000,
+    }),
+  ],
+  // 원고 검수: 두 검수가 같은 관측 이름이고 프롬프트(mechanical·semantic)로 갈린다.
+  manuscript_review: [
+    entry('manuscript_review-1', 'trace-3', 'manuscript_review.generation', 95, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'manuscript_review.mechanical', promptVersion: 1, latencyMs: 6800, input: [{ role: 'user', content: '3화 초안(예시)' }], output: { findings: 2 },
+    }),
+    entry('manuscript_review-2', 'trace-3', 'manuscript_review.generation', 95, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'manuscript_review.semantic', promptVersion: 1, latencyMs: 7700, input: [{ role: 'user', content: '3화 초안과 공개 설정(예시)' }], output: { findings: 1 },
+    }),
+  ],
+  // 집필: 기획·원고·계획 고르기·계획 수정은 관측 이름이 서로 다르고(writing.plan·plan_pick·plan_revise·generation) 원고·부분 수정은 같은 이름이다.
+  writing: [
+    entry('writing-1', 'trace-2', 'writing.plan', 40, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'writing_editing.plan', promptVersion: 1, latencyMs: 9800, input: [{ role: 'user', content: '4화 전개를 짜 줘' }], output: { plans: 1 },
+    }),
+    entry('writing-2', 'trace-2', 'writing.generation', 38, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'writing_editing.draft', promptVersion: 1, latencyMs: 41000, input: [{ role: 'user', content: '위 계획으로 4화를 써 줘' }], output: { text: '새 회차 원고(예시)' },
     }),
   ],
   // NovelBrain 기억 회상(novelbrain.recall): 출력의 recalled가 인물이 그 시점에 떠올린 근거다. 카드 항목은 제목이 있고 관계·원고 항목은 ref와 점수뿐이다(본문은 남기지 않는다).

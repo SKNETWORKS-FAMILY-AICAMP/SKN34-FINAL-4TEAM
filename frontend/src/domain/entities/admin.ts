@@ -49,6 +49,18 @@ export const promptSub = (v: string | null): PromptSub => PROMPT_SUBS.find(([sub
 /** 전체(AI 파이프라인)만 sub 없는 주소입니다. */
 export const promptSubHref = (sub: PromptSub) => sub === 'all' ? llmPageHref('prompts') : `${llmPageHref('prompts')}&sub=${sub}`
 
+/**
+ * AI 파이프라인(전체) 보기의 워크플로우 선택(주소 `&flow=`, #857 3차): 전체(서버 노드 흐름, 기본)와, 내부에 순서 있는 여러 LLM 단계가 있는 에이전트의 내부 흐름 하나씩입니다.
+ * 키가 주소에 남는 값이고 각 흐름의 단계·연결은 llmOpsFlows.ts에 있습니다. 없거나 모르는 값은 전체입니다.
+ */
+export const PIPELINE_FLOWS = [
+  ['all', '전체'], ['simulation', '인물 시뮬레이션'], ['preprocessing', '원고 전처리'], ['review', '원고 검수'], ['research', '고증 조사'], ['writing', '기획·집필·수정'],
+] as const
+export type PipelineFlowKey = (typeof PIPELINE_FLOWS)[number][0]
+export const pipelineFlowKey = (v: string | null): PipelineFlowKey => PIPELINE_FLOWS.find(([key]) => key === v)?.[0] ?? 'all'
+/** 전체만 flow 없는 주소입니다(전체는 프롬프트·평가 쪽의 기본 보기라 sub도 없습니다). */
+export const pipelineFlowHref = (flow: PipelineFlowKey) => flow === 'all' ? promptSubHref('all') : `${promptSubHref('all')}&flow=${flow}`
+
 /** 로그인 복귀에는 알려진 내부 관리자 탭 하나만 남깁니다. 임의 next/외부 URL은 전달하지 않습니다. */
 export function adminReturnPath(search: string): string {
   const query = new URLSearchParams(search)
@@ -57,5 +69,9 @@ export function adminReturnPath(search: string): string {
   // LLM Ops는 알려진 쪽(view, 옮기거나 없앤 옛 주소는 새 위치)도 남기고, 프롬프트·평가·에이전트 지표 쪽은 알려진 보기(sub)도 남깁니다(없거나 모르는 값은 에이전트 지표·전체(AI 파이프라인)·지표).
   if (tab !== 'llm') return `/admin?tab=${tab}`
   const page = llmPage(query.get('view'))
-  return page === 'prompts' ? promptSubHref(promptSub(query.get('sub'))) : page === 'metrics' ? metricsSubHref(metricsSub(query.get('sub'))) : llmPageHref(page)
+  if (page === 'prompts') {
+    const sub = promptSub(query.get('sub'))
+    return sub === 'all' ? pipelineFlowHref(pipelineFlowKey(query.get('flow'))) : promptSubHref(sub)   // 워크플로우는 전체(AI 파이프라인) 보기에서만 남긴다
+  }
+  return page === 'metrics' ? metricsSubHref(metricsSub(query.get('sub'))) : llmPageHref(page)
 }

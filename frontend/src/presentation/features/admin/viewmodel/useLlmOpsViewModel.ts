@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
 import type { LlmPage } from '../../../../domain/entities/admin'
 import { PERIODS, periodRange, type LoopStage, type MetricsGroup } from '../../../../domain/entities/llmOps'
+import { isFlowStepId } from '../../../../domain/entities/llmOpsFlows'
 import { serverLevel } from '../../../../domain/entities/llmOpsPipeline'
 import { promptLabel } from '../../../../domain/entities/promptNames'
 import type { AlertRuleInput } from '../../../../domain/entities/operationsAlert'
@@ -85,7 +86,7 @@ export function useLlmOpsViewModel(
   const level = nodeId ? serverLevel(nodeId, recordFilter.result) : ''
   const pipeline = useAsyncData(async () => onPipeline ? useCase.pipeline(periodRange(pipelineHours)) : null, [useCase, onPipeline, pipelineHours])
   const records = useAsyncData(
-    async () => onPipeline && nodeId ? useCase.pipelineRecords({ nodeId, ...periodRange(pipelineHours), level, page: recordFilter.page }) : null,
+    async () => onPipeline && nodeId && !isFlowStepId(nodeId) ? useCase.pipelineRecords({ nodeId, ...periodRange(pipelineHours), level, page: recordFilter.page }) : null,
     [useCase, onPipeline, nodeId, pipelineHours, level, recordFilter.page],
   )
   const flowTrace = useAsyncData(async () => onPipeline && flow ? useCase.trace(flow.traceId) : null, [useCase, onPipeline, flow?.traceId])

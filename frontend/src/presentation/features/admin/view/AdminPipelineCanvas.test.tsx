@@ -2,7 +2,7 @@
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 
-import { NODE_HEIGHT, NODE_WIDTH, layoutPipeline, pipelineSummary, type PipelineNode } from '../../../../domain/entities/llmOpsPipeline'
+import { layoutPipeline, linkCurve, pipelineSummary, type PipelineNode } from '../../../../domain/entities/llmOpsPipeline'
 import AdminPipelineCanvas from './AdminPipelineCanvas'
 
 // 실제 react-force-graph(d3·canvas)는 그리지 않고 캔버스가 넘기는 값만 붙잡는다.
@@ -13,6 +13,7 @@ type GraphProps = {
   enableNodeDrag: boolean; enablePanInteraction: boolean; enableZoomInteraction: boolean; cooldownTicks: number; onNodeClick: (node: GraphNode) => void
   onRenderFramePre: (ctx: CanvasRenderingContext2D, scale: number) => void
   linkCanvasObject: (link: GraphLink, ctx: CanvasRenderingContext2D, scale: number) => void
+  nodeCanvasObject: (node: GraphNode, ctx: CanvasRenderingContext2D, scale: number) => void
 }
 const forceGraph = vi.hoisted(() => ({ props: null as null | GraphProps }))
 vi.mock('react-force-graph-2d', () => ({ default: (props: GraphProps) => { forceGraph.props = props; return null } }))
@@ -54,8 +55,23 @@ it('잰 폭으로 그리고, 노드는 고정 좌표(fx·fy)이며 끌기·이�
   expect(props.graphData.nodes.map((n) => n.id)).toEqual(['request', 'guard', 'main', 'rating_direct'])
   expect(props.graphData.nodes.every((n) => n.fx === n.x && n.fy === n.y)).toBe(true)
   expect(props.graphData.links).toHaveLength(2)
-  expect(props.height).toBeGreaterThanOrEqual(240)
+  expect(props.height).toBeGreaterThanOrEqual(160)
   expect(props.height).toBeLessThanOrEqual(760)
+})
+
+it('작은 흐름은 확대 비율에 상한(1.25)을 두어 화면 폭만큼 커지지 않고, 높이는 그 비율로 정한다(최소 160). 좁으면 폭에 맞춰 줄어든다(#857 3차)', () => {
+  const branch = [node('a', ['b', 'c', 'd']), node('b'), node('c'), node('d')]   // 두 칸·세 줄
+  const layout = layoutPipeline(branch)
+  const heightAt = (width: number, list = branch) => { measure(width); const view = render(draw(list)); const height = forceGraph.props!.height; view.unmount(); return height }
+  const capped = Math.round(layout.height * 1.25 + 48)   // 높이 = 레이아웃 높이 × 확대 비율 + 위아래 여백(24씩)
+  expect(layout.width * 1.25).toBeLessThan(1400 - 48)    // 전제: 이 폭이면 상한이 걸린다
+  expect(capped).toBeGreaterThan(160)
+  expect(heightAt(1400)).toBe(capped)
+  expect(heightAt(2400)).toBe(capped)                    // 폭이 더 넓어도 그대로다(상한이 없으면 폭에 비례해 커진다)
+  const narrow = heightAt(300)
+  expect(narrow).toBe(Math.max(Math.round((layout.height * (300 - 48)) / layout.width + 48), 160))   // 좁으면 폭에 맞춰 줄어든다
+  expect(narrow).toBeLessThan(capped)
+  expect(heightAt(1400, [node('a', ['b']), node('b', ['c']), node('c')])).toBe(160)                 // 한 줄짜리는 최소 높이
 })
 
 it('노드를 누르면 그 id로 onSelect를 부른다', () => {
@@ -98,48 +114,45 @@ it('업무 Agent 묶음 라벨(읽기·검토, 작성)은 프레임을 그리기
   expect(calls.filter(([name]) => name === 'fillText').map(([, text]) => text)).toEqual(['읽기·검토', '작성'])
 })
 
-it('nodeLink가 있으면 부품이 있는 노드 위(상자 위 오른쪽 가장자리, 오른쪽·아래 끝 기준)에만 HTML로 얹고, 캔버스(role=img) 바깥 형제 자리에 두어 보조 기술에 읽히게 한다(#857)', () => {
+it('캔버스는 노드 위에 눌러 쓰는 부품을 얹지 않는다: 그림이 지저분해지고 노드 이름을 가려서다(#857 3차, 프롬프트 보기는 노드 버튼 목록과 기록 패널에만 있다)', () => {
   measure(900)
-  const list = [node('request', ['guard']), node('guard', ['main'], { promptNames: ['decision_guard.judge'] }), node('main', [], { promptNames: ['orchestration.main'] })]
-  const link = vi.fn((n: PipelineNode) => (n.promptNames.length ? <button type="button">프롬프트 보기 · {n.id}</button> : null))
-  const { container } = render(<AdminPipelineCanvas nodes={list} selected={null} onSelect={vi.fn()} nodeLink={link} />)
-  const canvas = screen.getByRole('img', { name: pipelineSummary(list) })
-  // 버튼은 role=img 안이 아니라 그 곁에 있다(role=img의 자식은 보조 기술에 안 읽힌다).
-  expect(canvas.querySelector('button')).toBeNull()
-  const wraps = [...container.querySelectorAll<HTMLElement>('.pipe-node-link')]
-  expect(wraps.map((wrap) => wrap.textContent)).toEqual(['프롬프트 보기 · guard', '프롬프트 보기 · main'])   // 부품이 없는 노드(request)는 자리도 없다
-  // 위치는 배치 좌표와 확대 비율로 정한다: 원점이 캔버스 가운데이고 노드 상자의 위 오른쪽 모서리에 둔다.
-  const layout = layoutPipeline(list)
-  const width = 900, height = Math.round(Math.min(Math.max((width * layout.height) / layout.width, 240), 760))
-  const scale = Math.min((width - 48) / layout.width, (height - 48) / layout.height)
-  const guard = layout.nodes.find((n) => n.id === 'guard')!
-  // 오른쪽·아래 끝 기준으로 앉힌다(transform을 쓰면 안쪽 메뉴의 fixed 기준 칸이 바뀌어 어긋난다).
-  expect([wraps[0].style.right, wraps[0].style.bottom]).toEqual([`${width / 2 - (guard.x + NODE_WIDTH / 2) * scale + 6}px`, `${height / 2 - (guard.y - NODE_HEIGHT / 2) * scale - 5}px`])
-  expect([wraps[0].style.left, wraps[0].style.top, wraps[0].style.transform]).toEqual(['', '', ''])
-  const overlay = container.querySelector<HTMLElement>('.pipe-node-links')!
-  expect([overlay.style.width, overlay.style.height]).toEqual(['900px', `${height}px`])
-  expect(link).toHaveBeenCalledTimes(3)
+  const { container } = render(draw([node('request', ['guard']), node('guard', ['main'], { promptNames: ['decision_guard.judge'] }), node('main', [], { promptNames: ['orchestration.main'] })]))
+  expect(container.querySelector('button, a, [role="menu"], .pipe-node-links, .pipe-canvas-wrap')).toBeNull()
+  expect(forceGraph.props).not.toBeNull()
 })
 
-it('nodeLink가 없으면(또는 크기를 못 재 틀만 그릴 때) 부품 자리를 만들지 않는다', () => {
+it('서버 노드가 없는 단계(구조용 노드)는 점선 테두리에 건수 대신 LLM 호출 여부를 그리고, 서버 노드는 실선에 건수·오류를 그린다(#857 3차)', () => {
   measure(900)
-  const { container, unmount } = render(draw())
-  expect(container.querySelector('.pipe-node-links')).toBeNull()
-  unmount()
-  vi.unstubAllGlobals()
-  const { container: bare } = render(<AdminPipelineCanvas nodes={nodes} selected={null} onSelect={vi.fn()} nodeLink={() => <button type="button">보기</button>} />)
-  expect(bare.querySelector('.pipe-node-links')).toBeNull()
+  render(draw([node('server', ['plan'], { count: 5, errors: 1 }), node('plan', ['code'], { step: { llm: true } }), node('code', [], { step: { llm: false } })]))
+  const paint = (id: string) => {
+    const { ctx, calls } = recorder()
+    forceGraph.props!.nodeCanvasObject(forceGraph.props!.graphData.nodes.find((n) => n.id === id)!, ctx, 1)
+    return { dashes: calls.filter(([name]) => name === 'setLineDash').map(([, dash]) => dash), texts: calls.filter(([name]) => name === 'fillText').map(([, text]) => text) }
+  }
+  expect(paint('server')).toEqual({ dashes: [[], []], texts: ['server', '5건 · 오류 1건'] })
+  expect(paint('plan')).toEqual({ dashes: [[4, 3], []], texts: ['plan', 'LLM 호출'] })
+  expect(paint('code')).toEqual({ dashes: [[4, 3], []], texts: ['code', 'LLM 아님'] })
 })
 
-it('캔버스가 너무 작게 줄어든(좁은 화면) 비율에서는 노드 위 부품이 서로 겹치므로 얹지 않는다(노드 버튼 목록에 같은 부품이 있다)', () => {
-  const list = [node('request', ['guard']), node('guard', ['main'], { promptNames: ['decision_guard.judge'] }), node('main', [], { promptNames: ['orchestration.main'] })]
-  const link = () => <button type="button">프롬프트 보기</button>
-  measure(300)
-  const narrow = render(<AdminPipelineCanvas nodes={list} selected={null} onSelect={vi.fn()} nodeLink={link} />)
-  expect(forceGraph.props).not.toBeNull()   // 그림은 그리되
-  expect(narrow.container.querySelector('.pipe-node-links')).toBeNull()   // 부품은 얹지 않는다
-  narrow.unmount()
+it('두 칸 넘게 거슬러 가는 선(다음 턴)은 노드 아래로 도는 호이고 화살촉이 위를 향하며, 그 밖의 선은 옆으로 닿는 화살촉이다(#857 3차)', () => {
   measure(900)
-  const wide = render(<AdminPipelineCanvas nodes={list} selected={null} onSelect={vi.fn()} nodeLink={link} />)
-  expect(wide.container.querySelectorAll('.pipe-node-link')).toHaveLength(3)
+  const chain = [node('a', ['b']), node('b', ['c']), node('c', ['d']), node('d', ['a'])]
+  render(draw(chain))
+  const layout = layoutPipeline(chain), at = new Map(layout.nodes.map((n) => [n.id, n]))
+  const heads = (index: number) => {
+    const { ctx, calls } = recorder()
+    forceGraph.props!.linkCanvasObject(forceGraph.props!.graphData.links[index], ctx, 1)
+    return calls.filter(([name]) => name === 'lineTo').map(([, x, y]) => [x, y])
+  }
+  const long = linkCurve(at.get('d')!, at.get('a')!, true).points[3], side = linkCurve(at.get('a')!, at.get('b')!, false).points[3]
+  expect(forceGraph.props!.graphData.links.map((l) => l.back)).toEqual([false, false, false, true])
+  expect(heads(3)).toEqual([[long.x - 4, long.y + 7], [long.x + 4, long.y + 7]])
+  expect(heads(0)).toEqual([[side.x - 7, side.y - 4], [side.x - 7, side.y + 4]])
+})
+
+it('title을 주면 캔버스 요약 이름이 그 흐름 이름이다(워크플로우 선택, #857 3차)', () => {
+  measure(900)
+  const list = [node('a', ['b'], { step: { llm: true } }), node('b', [], { count: 4 })]
+  render(<AdminPipelineCanvas nodes={list} selected={null} onSelect={vi.fn()} title="인물 시뮬레이션 내부 흐름" />)
+  screen.getByRole('img', { name: '인물 시뮬레이션 내부 흐름: 단계 2개, 건수·오류가 있는 단계 1개(나머지는 서버 노드가 없어 이름만)' })
 })

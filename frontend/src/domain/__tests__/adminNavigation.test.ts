@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 
-import { LLM_PAGES, METRICS_SUBS, PROMPT_SUBS, adminReturnPath, llmPage, llmPageHref, metricsSub, metricsSubHref, promptSub, promptSubHref } from '../entities/admin'
+import { LLM_PAGES, METRICS_SUBS, PIPELINE_FLOWS, PROMPT_SUBS, adminReturnPath, llmPage, llmPageHref, metricsSub, metricsSubHref, pipelineFlowHref, pipelineFlowKey, promptSub, promptSubHref } from '../entities/admin'
 
 it('관리자 로그인 복귀는 허용 탭만 보존하고 외부 경로·임의 쿼리를 버린다', () => {
   expect(adminReturnPath('?tab=notices')).toBe('/admin?tab=notices')
@@ -61,4 +61,23 @@ it('로그인 복귀는 sub도 알려진 값만 보존하고(프롬프트·평�
   expect(adminReturnPath('?tab=llm&sub=traces')).toBe('/admin?tab=llm&sub=traces')
   expect(adminReturnPath('?tab=llm&view=metrics&sub=cards')).toBe('/admin?tab=llm')
   expect(adminReturnPath('?tab=llm&view=alerts&sub=models')).toBe('/admin?tab=llm&view=alerts')
+})
+
+it('AI 파이프라인(전체) 보기의 워크플로우는 flow로 정하고 없거나 모르는 값은 전체이며, 전체만 flow 없는 주소다(#857 3차)', () => {
+  expect(['all', 'simulation', 'preprocessing', 'review', 'research', 'writing'].map(pipelineFlowKey)).toEqual(['all', 'simulation', 'preprocessing', 'review', 'research', 'writing'])
+  expect([null, '', 'nope', 'SIMULATION', 'constructor', '__proto__'].map(pipelineFlowKey)).toEqual(['all', 'all', 'all', 'all', 'all', 'all'])
+  expect(PIPELINE_FLOWS.map(([key]) => pipelineFlowHref(key))).toEqual([
+    '/admin?tab=llm&view=prompts', '/admin?tab=llm&view=prompts&flow=simulation', '/admin?tab=llm&view=prompts&flow=preprocessing', '/admin?tab=llm&view=prompts&flow=review',
+    '/admin?tab=llm&view=prompts&flow=research', '/admin?tab=llm&view=prompts&flow=writing',
+  ])
+})
+
+it('로그인 복귀는 전체(AI 파이프라인) 보기의 알려진 flow만 보존하고, 다른 보기나 모르는 flow는 버린다(#857 3차)', () => {
+  expect(adminReturnPath('?tab=llm&view=prompts&flow=simulation')).toBe('/admin?tab=llm&view=prompts&flow=simulation')
+  expect(adminReturnPath('?tab=llm&view=prompts&sub=all&flow=review')).toBe('/admin?tab=llm&view=prompts&flow=review')
+  expect(adminReturnPath('?tab=llm&view=prompts&flow=nope')).toBe('/admin?tab=llm&view=prompts')
+  expect(adminReturnPath('?tab=llm&view=prompts&flow=all')).toBe('/admin?tab=llm&view=prompts')
+  expect(adminReturnPath('?tab=llm&view=prompts&sub=evals&flow=simulation')).toBe('/admin?tab=llm&view=prompts&sub=evals')
+  expect(adminReturnPath('?tab=llm&view=alerts&flow=simulation')).toBe('/admin?tab=llm&view=alerts')
+  expect(adminReturnPath('?tab=llm&flow=simulation')).toBe('/admin?tab=llm')
 })
