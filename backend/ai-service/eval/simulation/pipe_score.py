@@ -39,10 +39,18 @@ def coverage(names: set[str], cards: list[Card]) -> dict:
     return {'names': len(names), 'found': found, 'rate': ratio(found, len(names))}
 
 
+def soul_future(card: Card, sources: dict[int, str], base: int) -> tuple[int, int]:
+    """(SOUL 줄 수, 그중 기준 회차(base)까지의 원문에 없는 줄 수). #839의 SOUL은 회차 차원 없이 뒤 회차의 soul 진술까지 쌓아, 기준 회차 뒤에 드러난 성격·말투가 기준 회차 시점의 인물에 섞인다."""
+    lines = [LABEL.sub('', line) for line in card.characterDocs.soul.split(chr(10)) if LABEL.match(line)]
+    return len(lines), sum(not any(quote in text for n, text in sources.items() if n <= base) for quote in lines)
+
+
 def persona_stats(pairs: list[tuple[Card, dict[int, str]]]) -> dict:
     """(인물 카드, 그 작품의 회차별 원문) 쌍마다 문서 줄이 원문 근거 인용인지 센다(작품이 다른 쌍을 한꺼번에 센다). 줄은 '<표지> <인용>'이고 인용이 그 문서가 실린 회차의 원문에 글자 그대로 있으면 grounded다.
-    IDENTITY(카드 본문)·SOUL·GOAL은 첫 등장 회차의 글이고 회차 기억 'NN'은 그 회차(00은 첫 등장 회차)의 글이다. named는 줄이 인물의 이름·별칭을 담은 것이다.
-    줄이 하나도 없는 문서는 empty(IDENTITY를 이름으로 채운 것 포함)이고, ready는 IDENTITY·SOUL이 모두 줄로 있는 인물이라 운영의 필수 인물 문서 규칙을 실질적으로 채운 수다."""
+    IDENTITY(카드 본문)·GOAL은 첫 등장 회차의 글이고 SOUL은 첫 등장 회차부터 뒤 회차의 soul 진술까지 쌓인 글이다(#839, 줄마다 회차를 남기지 않아 첫 등장 회차 이후 어느 회차에 있어도 근거다).
+    회차 기억 'NN'은 그 회차(00은 첫 등장 회차)의 글이다. named는 줄이 인물의 이름·별칭을 담은 것이다.
+    줄이 하나도 없는 문서는 empty(인물의 IDENTITY는 정체 진술이 없으면 빈 문자열이다: #839 전에는 이름으로 채워 줄 없는 문서가 채워진 것처럼 보였다)이고,
+    ready는 IDENTITY·SOUL이 모두 줄로 있는 인물이라 운영의 필수 인물 문서 규칙(시뮬레이션 `_filled`)을 채운 수다."""
     docs = {name: {'lines': 0, 'grounded': 0, 'named': 0, 'empty': 0} for name in ('identity', 'soul', 'goal', 'memory')}
     ready = 0
     for card, sources in pairs:
@@ -55,7 +63,7 @@ def persona_stats(pairs: list[tuple[Card, dict[int, str]]]) -> dict:
             have[name] = bool(lines)
             docs[name]['empty'] += not lines
             docs[name]['lines'] += len(lines)
-            docs[name]['grounded'] += sum(quote in sources.get(episode, '') for quote, episode in lines)
+            docs[name]['grounded'] += sum(any(quote in text for n, text in sources.items() if n == episode or (name == 'soul' and n > episode)) for quote, episode in lines)
             docs[name]['named'] += sum(any(who in quote for who in (card.title, *card.aliases)) for quote, _ in lines)
         ready += have['identity'] and have['soul']
     return {'characters': len(pairs), 'ready': ready, 'docs': docs}

@@ -72,7 +72,7 @@ def entry(wid, title, quote_ok, lonely=False):
     """작품 하나의 세계관 단 입력(작품, Built 대역, 평가 인물 이름). lonely면 SOUL도 IDENTITY 줄도 없는 인물 카드 하나를 더한다."""
     work = {'id': wid, 'episodes': [{'number': 1, 'text': f'{title}은 사람이다. 그는 웃었다.'}]}
     cards = [card('k', title, f'[사실] {title}은 사람이다.', 1, soul='[묘사] 그는 웃었다.'), card('e', '1화 · 일', '[사건] x', 1, typ='event')]
-    payload = LoadPayload(cards=cards + ([card('z', '병', '병', 1)] if lonely else []), relations=[Relation(fromKey='k', toKey='k', label='자기', fromEpisode=1, ended=False)])
+    payload = LoadPayload(cards=cards + ([card('z', '병', '', 1)] if lonely else []), relations=[Relation(fromKey='k', toKey='k', label='자기', fromEpisode=1, ended=False)])
     rows = {1: NS(mentions=[0], statements=[0, 0], relationships=[], skipped={'INVALID_OR_AMBIGUOUS_QUOTE': 0 if quote_ok else 1})}
     return work, NS(payload=payload, extractions=rows, failures=[] if quote_ok else [(2, 'MODEL_TIMEOUT')], calls=2), {title, '없는이'}
 
@@ -83,7 +83,7 @@ def test_world_section_reports_each_work_and_pools_the_total():
     assert (a['cards'], a['characters'], a['relations']) == (2, 1, 1) and a['coverage'] == {'names': 2, 'found': 1, 'rate': 0.5} and a['failures'] == []
     assert a['extraction']['quotePass'] == 1.0 and got['perWork']['b']['extraction']['quotePass'] == 1 - 1 / 4 and got['perWork']['b']['failures'] == [[2, 'MODEL_TIMEOUT']]
     assert a['persona']['docs']['identity'] == {'lines': 1, 'grounded': 1, 'named': 1, 'empty': 0} and a['persona']['ready'] == 1
-    # 평가 문항에 나오지 않은 인물까지 모든 인물 카드로 센 문서 공백(SOUL 없음·IDENTITY를 이름으로 채움)
+    # 평가 문항에 나오지 않은 인물까지 모든 인물 카드로 센 문서 공백(SOUL 없음·IDENTITY 빔: #839 뒤 정체 진술이 없는 인물의 IDENTITY는 빈 문자열이다)
     b = got['perWork']['b']
     assert (a['soulEmpty'], a['identityEmpty'], b['characters'], b['soulEmpty'], b['identityEmpty']) == (0, 0, 2, 1, 1)
     total = got['total']
@@ -102,11 +102,31 @@ def test_render_shows_the_stages_the_baseline_availability_and_pairs():
     pipeline, hand = [graded(0, 4, 3), graded(1, 3, 2)], [graded(0, 3, 3), graded(1, 3, 2)]
     other = {'pipeline': [graded(0, 3, 3), graded(1, 3, 2)], 'hand': [graded(0, 3, 3), graded(1, 3, 2)]}
     result = {'tag': 't', 'vsTag': 'u', 'world': pc.world_section([entry('a', '갑', True), entry('b', '을', True, lonely=True)]), 'items': {'1': {'ok': 1, 'docs_missing': 3}},
-              'simulation': {'1': pc.assemble('1', pipeline, hand, other)}}
+              'docGaps': {'1': {'IDENTITY': 2, 'SOUL': 1}}, 'soulFuture': {'items': 4, 'withFuture': 3, 'lines': 10, 'futureLines': 6}, 'simulation': {'1': pc.assemble('1', pipeline, hand, other)}}
     text = pc.render(result)
-    assert '인물 카드 3장 중 SOUL 없음 1장(33.3%) · IDENTITY를 이름으로 채움 1장(33.3%)' in text   # 수정 전 기준선: 인물 카드 단위 문서 공백
-    assert '문항 ① 대사: ok 1(25.0%) · SOUL 없음(운영이 시작 거절) 3(75.0%)' in text   # 문항 단위 가용률(상태별 개수와 비율, ok가 먼저)
+    assert '인물 카드 3장 중 SOUL 없음 1장(33.3%) · IDENTITY 빔 1장(33.3%)' in text   # 인물 카드 단위 문서 공백
+    assert '문항 ① 대사: ok 1(25.0%) · IDENTITY·SOUL 없음(운영이 시작 거절) 3(75.0%)' in text   # 문항 단위 가용률(상태별 개수와 비율, ok가 먼저)
+    assert '  SOUL 뒤 회차 노출: 돌 수 있는 인물 문항 4개 중 3개(75.0%)의 SOUL에 기준 회차보다 뒤에서만 나온 줄이 있다(SOUL 줄 10개 중 6개, 60.0%)' in text
+    assert '  없는 문서(① 대사): IDENTITY만 2 · SOUL만 1' in text   # 어느 문서가 시작을 막는지(#839 뒤 IDENTITY는 이름으로 채우지 않아 따로 막는다)
     assert '짝 비교(파이프라인 − 손라벨): voice 1↑0↓1=' in text and '짝 비교(t − u): voice 1↑0↓1=' in text and '짝 비교(손라벨끼리 t − u): voice 0↑0↓2=' in text
+
+
+def test_gap_counts_split_the_missing_documents_per_set_for_docs_missing_items_only():
+    gaps = {'a': 'IDENTITY', 'b': 'SOUL', 'c': 'SOUL', 'd': 'IDENTITY+SOUL', 'e': ''}
+    status = lambda it: 'ok' if it['id'] == 'e' else 'docs_missing'  # noqa: E731
+    corpus = NS(status=status, gaps=lambda it: gaps[it['id']])
+    rows = {'1': [item(i) for i in 'abce'], '3m': [item('d')], '3n': []}
+    assert pc.gap_counts(corpus, rows) == {'1': {'IDENTITY': 1, 'SOUL': 2}, '3m': {'IDENTITY+SOUL': 1}, '3n': {}}   # 돌 수 있는 문항(e)은 세지 않는다
+
+
+def test_soul_exposure_counts_runnable_person_items_whose_speaker_soul_has_later_episode_lines():
+    work = {'id': 'a', 'episodes': [{'number': 1, 'text': '그는 성미가 급하다.'}, {'number': 2, 'text': '그는 말이 없다. 그는 눈이 매섭다.'}]}
+    who = card('k', '갑', '[사실] 갑은 사람이다.', 1, soul='[묘사] 그는 성미가 급하다.' + chr(10) + '[묘사] 그는 말이 없다.' + chr(10) + '[묘사] 그는 눈이 매섭다.')
+    corpus = NS(status=lambda it: 'docs_missing' if it['id'] == 'x' else 'ok', worlds={'a': NS(payload=NS(cards=[who]))})
+    rows = {'1': [{**item('p', 'a', 1), 'speaker': '갑'}, {**item('q', 'a', 2), 'speaker': '갑'}, {**item('x', 'a', 1), 'speaker': '갑'}], '3n': [item('n', 'a', 1, 'narration')]}
+    got = pc.soul_exposure(corpus, {'a': work}, rows)
+    assert got == {'items': 2, 'withFuture': 1, 'lines': 6, 'futureLines': 2}   # 1화 기준 문항만 뒤 줄(2개)이 있다. 못 도는 문항(x)과 나레이션은 세지 않는다
+    assert pc.soul_exposure(corpus, {'a': work}, {'3n': rows['3n']}) == {}
 
 
 def test_parser_defaults_follow_the_cheap_safe_choices():

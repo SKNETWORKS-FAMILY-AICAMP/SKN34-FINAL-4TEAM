@@ -28,13 +28,33 @@ SOURCES = {1: '김 첨지는 인력거꾼이다. 그는 성미가 급하다. 아
 
 def test_persona_stats_checks_each_document_line_against_the_source():
     cards = [card('a', '김 첨지', '[사실] 김 첨지는 인력거꾼이다.' + chr(10) + '[묘사] 원문에 없는 문장이다.', 1, soul='[묘사] 그는 성미가 급하다.', episodes={'00': '[사실] 김 첨지는 인력거꾼이다.'}),
-             card('b', '치삼', '치삼', 2, episodes={'02': '[사건] 치삼은 오래된 친구였다.'}), card('c', '아내', '[사실] 아내는 병들었다.', 1)]
+             card('b', '치삼', '', 2, episodes={'02': '[사건] 치삼은 오래된 친구였다.'}), card('c', '아내', '[사실] 아내는 병들었다.', 1)]
     got = ps.persona_stats([(c, SOURCES) for c in cards])
-    assert got['characters'] == 3 and got['ready'] == 1   # IDENTITY·SOUL이 모두 줄로 있는 인물만(치삼은 IDENTITY가 이름으로 채운 것·SOUL 없음, 아내는 SOUL 없음)
+    assert got['characters'] == 3 and got['ready'] == 1   # IDENTITY·SOUL이 모두 줄로 있는 인물만(치삼은 IDENTITY가 빈 문자열·SOUL 없음, 아내는 SOUL 없음)
     assert got['docs']['identity'] == {'lines': 3, 'grounded': 2, 'named': 2, 'empty': 1}   # 한 줄은 원문에 없고, 치삼은 줄이 없다
     assert got['docs']['soul'] == {'lines': 1, 'grounded': 1, 'named': 0, 'empty': 2}   # 이름 없이 '그는'으로 쓴 줄은 근거는 있어도 named가 아니다
     assert got['docs']['goal'] == {'lines': 0, 'grounded': 0, 'named': 0, 'empty': 3}
     assert got['docs']['memory'] == {'lines': 2, 'grounded': 2, 'named': 2, 'empty': 1}   # 00은 첫 등장 회차 원문, 02는 2화 원문에서 찾는다
+
+
+def test_persona_stats_finds_soul_quotes_in_the_first_and_later_episodes_only():
+    # #839: SOUL은 첫 등장 회차뿐 아니라 뒤 회차의 soul 진술까지 쌓는다. IDENTITY·GOAL은 첫 등장 회차의 글만이다.
+    soul = '[묘사] 그는 성미가 급하다.' + chr(10) + '[묘사] 치삼은 오래된 친구였다.' + chr(10) + '[묘사] 원문에 없는 문장이다.'
+    first_one = card('a', '김 첨지', '[사실] 치삼은 오래된 친구였다.', 1, soul=soul, goal='[목표] 치삼은 오래된 친구였다.')
+    got = ps.persona_stats([(first_one, SOURCES)])['docs']
+    assert got['soul'] == {'lines': 3, 'grounded': 2, 'named': 0, 'empty': 0}   # 첫 등장 회차(1화)와 뒤 회차(2화)의 글은 근거이고 원문에 없는 줄은 아니다
+    assert got['identity']['grounded'] == 0 and got['goal']['grounded'] == 0   # 같은 줄이라도 IDENTITY·GOAL은 첫 등장 회차(1화)에서만 찾는다
+    later = card('b', '치삼', '[사실] 치삼은 오래된 친구였다.', 2, soul='[묘사] 그는 성미가 급하다.')
+    assert ps.persona_stats([(later, SOURCES)])['docs']['soul']['grounded'] == 0   # 첫 등장(2화)보다 앞 회차(1화)의 글은 SOUL의 근거가 될 수 없다
+
+
+def test_soul_future_counts_lines_found_only_in_episodes_after_the_base_episode():
+    # #839: SOUL은 회차 차원 없이 뒤 회차의 soul 진술까지 쌓는다. 기준 회차(base)까지의 원문에 없는 줄은 기준 회차 뒤에 드러난 성격·말투다.
+    sources = {1: '그는 성미가 급하다.', 2: '치삼은 오래된 친구였다.', 3: '그는 말이 없다.'}
+    soul = '[묘사] 그는 성미가 급하다.' + chr(10) + '[묘사] 치삼은 오래된 친구였다.' + chr(10) + '[묘사] 그는 말이 없다.' + chr(10) + '줄 표지가 없는 글'
+    who = card('a', '김 첨지', '[사실] x.', 1, soul=soul)
+    assert [ps.soul_future(who, sources, base) for base in (1, 2, 3)] == [(3, 2), (3, 1), (3, 0)]   # 표지 없는 글은 줄이 아니다
+    assert ps.soul_future(card('b', '치삼', '[사실] x.', 1, soul=''), sources, 1) == (0, 0)
 
 
 def test_persona_stats_accepts_aliases_as_naming_and_missing_source_is_ungrounded():
