@@ -302,7 +302,7 @@ class OperationsExceptionHandlerTest {
     }
 
     @Test
-    fun `a prompt promotion without a passing evaluation is a 409 with its own code`() {
-        assertError(handler.evaluationRequired(), 409, "EVALUATION_REQUIRED", "A passing regression evaluation is required for this prompt version.")
+    fun `promoting a prompt version that is not a candidate is a 409 with its own code`() {
+        assertError(handler.candidateRequired(), 409, "CANDIDATE_REQUIRED", "Only a candidate prompt version can be promoted.")
     }
 }

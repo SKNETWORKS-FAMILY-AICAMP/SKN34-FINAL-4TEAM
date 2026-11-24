@@ -2,7 +2,7 @@ package ai.storyfork.operations.llmops
 
 import ai.storyfork.operations._common.client.AiClient
 import ai.storyfork.operations._common.client.LangfuseClient
-import ai.storyfork.operations._common.exception.EvaluationRequiredException
+import ai.storyfork.operations._common.exception.CandidateRequiredException
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.llmops.service.EvaluationService
 import ai.storyfork.operations.llmops.service.PromptService
@@ -62,6 +62,7 @@ class PromptServiceTest {
             assertForbidden { service.detail(denied, "qa/answer") }
             assertForbidden { service.create(denied, "qa/answer", PromptCreateRequest(json("\"x\""))) }
             assertForbidden { service.promote(denied, "qa/answer", PromptPromoteRequest(1)) }
+            assertForbidden { service.candidate(denied, "qa/answer", PromptPromoteRequest(1)) }
         }
 
         verifyNoInteractions(langfuse, activities)
@@ -175,40 +176,42 @@ class PromptServiceTest {
     }
 
     @Test
-    fun `promoting needs a passing evaluation of that very version and moves the production label`() {
-        givenRuns(run("run-1", "2026-11-19T01:00:00Z", "qa/answer", 3) to true)
-        `when`(langfuse.prompt("qa/answer", 3)).thenReturn(version("qa/answer", 3, """["latest","staging"]""", "2026-11-12T00:00:00Z"))
+    fun `a version becomes a candidate by its own candidate label and the change is recorded`() {
+        givenRuns()
+        `when`(langfuse.prompt("qa/answer", 3)).thenReturn(version("qa/answer", 3, """["latest","seed"]""", "2026-11-12T00:00:00Z"))
+
+        val candidate = service.candidate(operators.llm, "qa/answer", PromptPromoteRequest(3))
+
+        // Langfuse keeps a label on one version only, so each candidate carries its own version in the label and several candidates can coexist.
+        assertEquals(listOf("latest", "seed", "candidate-3"), candidate.labels)
+        val order = inOrder(langfuse, activities)
+        order.verify(langfuse).setPromptLabels("qa/answer", 3, listOf("seed", "candidate-3"))
+        order.verify(activities).record(operators.llm, "PROMPT_CANDIDATE", "PROMPT", "qa/answer", "v3")
+    }
+
+    @Test
+    fun `promoting needs that version to be a candidate and no evaluation and moves the production label`() {
+        givenRuns()
+        `when`(langfuse.prompt("qa/answer", 3)).thenReturn(version("qa/answer", 3, """["latest","candidate-3"]""", "2026-11-12T00:00:00Z"))
 
         val promoted = service.promote(operators.llm, "qa/answer", PromptPromoteRequest(3))
 
-        assertEquals(listOf(3, listOf("latest", "staging", "production")), listOf(promoted.version, promoted.labels))
-        assertEquals("run-1", promoted.evaluation?.runId)
+        assertEquals(listOf(3, listOf("latest", "candidate-3", "production")), listOf(promoted.version, promoted.labels))
         val order = inOrder(langfuse, activities)
         // Langfuse manages "latest" itself; every other label the version already had is kept.
-        order.verify(langfuse).setPromptLabels("qa/answer", 3, listOf("staging", "production"))
+        order.verify(langfuse).setPromptLabels("qa/answer", 3, listOf("candidate-3", "production"))
         order.verify(activities).record(operators.llm, "PROMPT_PROMOTE", "PROMPT", "qa/answer", "v3")
     }
 
     @Test
-    fun `without a passing latest evaluation promoting is a conflict with nothing changed`() {
-        val labels = version("qa/answer", 3, """["latest"]""")
-        `when`(langfuse.prompt("qa/answer", 3)).thenReturn(labels)
-        val none = emptyList<Pair<tools.jackson.databind.JsonNode, Boolean?>>()
-        val cases = mapOf(
-            "no run at all" to none,
-            "a failed latest run" to listOf(run("run-1", "2026-11-19T01:00:00Z", "qa/answer", 3) to true, run("run-2", "2026-11-19T02:00:00Z", "qa/answer", 3) to false),
-            "a run of another version" to listOf(run("run-3", "2026-11-19T01:00:00Z", "qa/answer", 2) to true),
-            "a run of another prompt" to listOf(run("run-4", "2026-11-19T01:00:00Z", "world/review", 3) to true),
-            "a run that has no verdict yet" to listOf(run("run-5", Instant.now().toString(), "qa/answer", 3) to null),
-            "a run that never got a verdict and is long past two hours" to listOf(run("run-6", "2026-11-19T01:00:00Z", "qa/answer", 3) to null),
-        )
-
-        for ((case, runs) in cases) {
-            givenRuns(*runs.toTypedArray())
-            assertThrows(EvaluationRequiredException::class.java, { service.promote(operators.llm, "qa/answer", PromptPromoteRequest(3)) }, case)
+    fun `a version that is not a candidate is not promoted even with a passing evaluation`() {
+        givenRuns(run("run-1", "2026-11-19T01:00:00Z", "qa/answer", 3) to true)
+        for (labels in listOf("""["latest"]""", """["candidate-2"]""", """["candidate"]""")) {
+            `when`(langfuse.prompt("qa/answer", 3)).thenReturn(version("qa/answer", 3, labels))
+            assertThrows(CandidateRequiredException::class.java, { service.promote(operators.llm, "qa/answer", PromptPromoteRequest(3)) }, labels)
         }
 
-        verify(langfuse, never()).setPromptLabels("qa/answer", 3, listOf("production"))
+        verify(langfuse, never()).setPromptLabels(anyString(), anyInt(), anyList())
         assertEquals(0, mockingDetails(activities).invocations.size)
     }
 
@@ -232,6 +235,7 @@ class PromptServiceTest {
         assertEquals(HttpStatus.NOT_FOUND, assertThrows(ResponseStatusException::class.java) { service.promote(operators.llm, "qa/answer", PromptPromoteRequest(9)) }.statusCode)
         assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.promote(operators.llm, "qa/answer", PromptPromoteRequest(8)) }.statusCode)
         assertThrows(IllegalArgumentException::class.java) { service.promote(operators.llm, "qa/answer", PromptPromoteRequest(0)) }
+        assertThrows(IllegalArgumentException::class.java) { service.candidate(operators.llm, "qa/answer", PromptPromoteRequest(0)) }
         verifyNoInteractions(activities)
     }
 }

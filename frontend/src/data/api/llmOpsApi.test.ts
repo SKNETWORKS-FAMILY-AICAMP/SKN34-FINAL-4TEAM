@@ -175,12 +175,16 @@ describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
     expect(detail.versions.map((v) => v.createdAt ?? null)).toEqual([null, null])
   })
 
-  it('production 승격은 PUT으로 버전을 보내고, 평가 미통과 409(EVALUATION_REQUIRED)는 서버의 영문 문구 대신 정해진 한국어 문구로 알린다', async () => {
+  it('후보 등록·서비스 반영은 PUT으로 버전을 보내고, 후보가 아닌 반영 409(CANDIDATE_REQUIRED)는 서버의 영문 문구 대신 정해진 한국어 문구로 알린다', async () => {
     const fetcher = ok({})
+    await new HttpLlmOpsRepository(fetcher).candidate('qa', 3)
     await new HttpLlmOpsRepository(fetcher).promote('qa', 3)
-    expect(callsOf(fetcher)[0].slice(0, 2).map((v) => typeof v === 'string' ? v : [v.method, v.body])).toEqual(['/api/v1/operations/llmops/prompts/qa/production', ['PUT', JSON.stringify({ version: 3 })]])
-    const rejected = new HttpLlmOpsRepository(fail(409, { code: 'EVALUATION_REQUIRED', message: 'A passing regression evaluation is required for this prompt version.' })).promote('qa', 3)
-    await expect(rejected).rejects.toThrow(new OperationsRejected('회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.'))
+    expect(callsOf(fetcher).map((call) => call.slice(0, 2).map((v) => typeof v === 'string' ? v : [v.method, v.body]))).toEqual([
+      ['/api/v1/operations/llmops/prompts/qa/candidate', ['PUT', JSON.stringify({ version: 3 })]],
+      ['/api/v1/operations/llmops/prompts/qa/production', ['PUT', JSON.stringify({ version: 3 })]],
+    ])
+    const rejected = new HttpLlmOpsRepository(fail(409, { code: 'CANDIDATE_REQUIRED', message: 'Only a candidate prompt version can be promoted.' })).promote('qa', 3)
+    await expect(rejected).rejects.toThrow(new OperationsRejected('후보로 등록한 조합만 서비스에 반영할 수 있어요.'))
     // 다른 409(영문 고정 문구)나 본문이 없는 409는 일반 충돌 안내다.
     await expect(new HttpLlmOpsRepository(fail(409, { code: 'CONFLICT', message: 'Resource conflicts with its current state.' })).promote('qa', 3)).rejects.toThrow(new OperationsError('다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'))
     await expect(new HttpLlmOpsRepository(fail(409, {})).promote('qa', 3)).rejects.toThrow(new OperationsError('다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'))

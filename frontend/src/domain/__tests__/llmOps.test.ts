@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { LLM_FORBIDDEN, bodyText, fixedModel, modelLabel, pendingSeed, percent, periodRange, productionOf, promoteLabel, usd, type PromptVersion } from '../entities/llmOps'
+import { LLM_FORBIDDEN, bodyText, defaultModel, fixedModel, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, usd, versionAction, type PromptVersion } from '../entities/llmOps'
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
 import { lastPage } from '../entities/operations'
 
@@ -32,14 +32,16 @@ describe('LLMOps 표시 값', () => {
     expect(bodyText(null)).toBe('')
   })
 
-  it('production보다 새 버전은 승격, 오래된 버전은 복원, production 자신은 버튼이 없다', () => {
-    const v = (version: number, labels: string[] = []): PromptVersion => ({ version, labels, createdAt: '2026-11-19T00:00:00Z' })
-    const versions = [v(3), v(2, ['production']), v(1)]
-    expect(promoteLabel(versions, versions[0])).toBe('승격')
-    expect(promoteLabel(versions, versions[2])).toBe('복원')
-    expect(promoteLabel(versions, versions[1])).toBeNull()
-    // production 라벨이 아직 없으면 어느 버전이든 승격이다.
-    expect(promoteLabel([v(1)], v(1))).toBe('승격')
+  it('버전의 조치: 서비스에 반영 중이면 없음, 자기 후보 라벨이 있으면 반영, 아니면 후보 등록이다(#705)', () => {
+    const v = (version: number, labels: string[] = []): PromptVersion => ({ version, labels })
+    expect(versionAction(v(3, ['production', 'candidate-3']))).toBe('live')
+    expect(versionAction(v(3, ['candidate-3', 'latest']))).toBe('promote')
+    // 다른 버전의 후보 라벨이나 번호 없는 라벨은 이 버전의 후보가 아니다.
+    expect([versionAction(v(3, ['candidate-2'])), versionAction(v(3, ['candidate'])), versionAction(v(3))]).toEqual(['candidate', 'candidate', 'candidate'])
+  })
+
+  it('라벨은 화면 이름으로 보이고 Langfuse가 관리하는 latest는 숨긴다', () => {
+    expect(['production', 'candidate-3', 'seed', 'latest', 'staging'].map(labelText)).toEqual(['서비스 반영 중', '후보', '코드 시드', null, 'staging'])
   })
 })
 
@@ -109,8 +111,10 @@ describe('권한 안내 문구', () => {
     expect(productionOf({ name: 'p', versions: [v(1)] })).toBeNull()
   })
 
-  it('버전에 고른 모델이 없으면 환경 변수 기본 모델이고, Decisions API 프롬프트는 모델을 고를 수 없다', () => {
-    expect([modelLabel('gpt-x'), modelLabel(null), modelLabel(undefined)]).toEqual(['gpt-x', '기본 모델', '기본 모델'])
+  it('버전에 고른 모델이 없으면 기본 모델(gpt-6-luna, 인물 대사만 gpt-6.1-terra)이고, Decisions API 프롬프트는 모델을 고를 수 없다', () => {
+    expect([defaultModel('orchestration.main'), defaultModel('character_simulation.act')]).toEqual(['gpt-6-luna', 'gpt-6.1-terra'])
+    expect([modelLabel('gpt-x', 'qa'), modelLabel(null, 'qa'), modelLabel(undefined, 'character_simulation.act')])
+      .toEqual(['gpt-x', 'gpt-6-luna (기본)', 'gpt-6.1-terra (기본)'])
     expect([fixedModel('decision_guard.judge'), fixedModel('character_simulation.direct'), fixedModel('orchestration.main')]).toEqual([true, true, false])
   })
 })

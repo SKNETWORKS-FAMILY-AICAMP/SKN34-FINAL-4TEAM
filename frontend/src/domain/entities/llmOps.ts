@@ -61,8 +61,8 @@ export type LlmOpsSettings = { leakSampleRate: number }
 /** LLM Ops 조회 API는 `llm` 권한이 필요합니다. 403이면 다시 불러오기 대신 이 안내만 보입니다. */
 export const LLM_FORBIDDEN = 'LLM Ops 조회 권한이 있어야 볼 수 있어요.'
 
-/** 승격이 그 버전의 최신 회귀 평가 미통과로 막힐 때(409 EVALUATION_REQUIRED) 보이는 문구. 서버의 영문 문구 대신 이 문구를 씁니다. */
-export const EVALUATION_REQUIRED_MESSAGE = '회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.'
+/** 후보가 아닌 버전을 서비스에 반영하려다 막힐 때(409 CANDIDATE_REQUIRED, #705) 보이는 문구. 서버의 영문 문구 대신 이 문구를 씁니다. */
+export const CANDIDATE_REQUIRED_MESSAGE = '후보로 등록한 조합만 서비스에 반영할 수 있어요.'
 
 const TRACE_STATUSES = new Map([['success', '성공'], ['failed', '실패'], ['timeout', '시간 초과']])
 export const TRACE_STATUS_OPTIONS = [...TRACE_STATUSES]
@@ -93,14 +93,23 @@ export function pendingSeed(p: Prompt) {
   const seed = p.versions.find((v) => v.labels.includes('seed'))
   return seed && !seed.labels.includes('production') ? seed : null
 }
-export const modelLabel = (model: string | null | undefined) => model ?? '기본 모델'
+/**
+ * 버전에 모델을 고르지 않았을 때 AI 서비스가 쓰는 기본 모델(#705 결정: gpt-6-luna, 인물 대사만 2026-11-23 결정대로 gpt-6.1-terra).
+ * shortcut: AI 서비스의 환경 변수 기본값(OPENAI_MODEL·ACT_MODEL)을 화면에 옮겨 적었다. 환경마다 기본 모델이 달라지면 운영 API가 기본값을 주게 한다.
+ */
+export const defaultModel = (name: string) => (name === 'character_simulation.act' ? 'gpt-6.1-terra' : 'gpt-6-luna')
+export const modelLabel = (model: string | null | undefined, name: string) => model ?? `${defaultModel(name)} (기본)`
 /** Decisions API(gpt-6-luna만 지원)로 부르는 프롬프트: 버전에 모델을 골라도 AI 서비스가 쓰지 않습니다. */
 const FIXED_MODEL_PROMPTS = new Set(['decision_guard.judge', 'character_simulation.direct'])
 export const fixedModel = (name: string) => FIXED_MODEL_PROMPTS.has(name)
 
-/** 승격 버튼 이름: production보다 새 버전은 승격, 오래된 버전은 이전 버전 복원, production 자신은 null입니다. */
-export function promoteLabel(versions: PromptVersion[], version: PromptVersion): '승격' | '복원' | null {
-  if (version.labels.includes('production')) return null
-  const live = versions.find((v) => v.labels.includes('production'))
-  return live && version.version < live.version ? '복원' : '승격'
+/** 버전에 붙는 후보 라벨. Langfuse는 라벨을 한 버전에만 두므로 버전 번호를 넣어 후보 여럿이 함께 있을 수 있다(#705). */
+const candidateOf = (version: number) => `candidate-${version}`
+/** 버전 표의 조치: 서비스에 반영 중(live), 후보라 반영할 수 있음(promote), 아직 후보가 아님(candidate). */
+export function versionAction(version: PromptVersion): 'live' | 'promote' | 'candidate' {
+  if (version.labels.includes('production')) return 'live'
+  return version.labels.includes(candidateOf(version.version)) ? 'promote' : 'candidate'
 }
+const LABELS = new Map([['production', '서비스 반영 중'], ['seed', '코드 시드'], ['latest', null]])
+/** 라벨의 화면 이름. Langfuse가 스스로 관리하는 latest는 숨기고(null) 후보 라벨은 번호 없이 '후보'로 보인다. */
+export const labelText = (label: string) => (/^candidate-\d+$/.test(label) ? '후보' : LABELS.has(label) ? LABELS.get(label)! : label)

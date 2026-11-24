@@ -294,7 +294,7 @@ describe('관리자 (A01~A18)', () => {
     const detail = await screen.findByLabelText('프롬프트 상세')
     await within(detail).findByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
     expect(within(detail).queryByRole('button', { name: '다시 불러오기' })).toBeNull()
-    expect(within(detail).queryByRole('button', { name: '새 버전 등록' })).toBeNull()
+    expect(within(detail).queryByRole('button', { name: '조합 저장' })).toBeNull()
   })
 
   it('공지를 게시하면 회원 공지사항에 보인다', async () => {
@@ -435,21 +435,23 @@ describe('관리자 (A01~A18)', () => {
     expect(screen.queryByRole('img', { name: /p95 지연/ })).toBeNull()
   })
 
-  it('프롬프트 승격은 최신 평가가 통과가 아니면 서버 문구로 거절되고, 새 버전은 라벨 없이 등록된다', async () => {
+  it('조합은 후보로 등록해야 서비스에 반영되고, 새 조합은 라벨 없이 저장된다(#705)', async () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
     renderAt('/admin?tab=llm&view=prompts&sub=prompts')
-    fireEvent.click(await screen.findByRole('button', { name: /qa-answer/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'qa-answer' }))
     await screen.findByRole('heading', { name: 'qa-answer' })
-    fireEvent.click(screen.getByRole('button', { name: '「qa-answer 3번 버전」 조치' }))
-    fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'production 승격' }))
+    // 후보가 아닌 버전에는 반영 버튼이 없고, 서비스에 반영 중인 버전에는 조치 버튼이 없다.
+    expect(screen.queryByRole('button', { name: 'qa-answer 3번 버전 서비스에 반영' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /qa-answer 2번 버전/ })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'qa-answer 3번 버전 후보 등록' }))
+    await toastIs('qa-answer 3번 버전을 후보로 등록했어요.')
+    fireEvent.click(await screen.findByRole('button', { name: 'qa-answer 3번 버전 서비스에 반영' }))
     expect(confirm).toHaveBeenCalledTimes(1)
-    await within(screen.getByLabelText('프롬프트 상세')).findByText('회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.')
-    // 현재 production 버전에는 조치 메뉴가 없다.
-    expect(screen.queryByRole('button', { name: '「qa-answer 2번 버전」 조치' })).toBeNull()
-    fireEvent.change(screen.getByLabelText('새 버전 본문'), { target: { value: '새 프롬프트' } })
-    fireEvent.click(screen.getByRole('button', { name: '새 버전 등록' }))
-    await toastIs('새 버전을 등록했어요.')
-    await screen.findByRole('button', { name: '「qa-answer 4번 버전」 조치' })
+    await toastIs('qa-answer의 서비스 반영이 3번 버전으로 바뀌었어요.')
+    fireEvent.change(screen.getByLabelText('프롬프트 본문'), { target: { value: '새 프롬프트' } })
+    fireEvent.click(screen.getByRole('button', { name: '조합 저장' }))
+    await toastIs('조합을 저장했어요.')
+    await screen.findByRole('button', { name: 'qa-answer 4번 버전 후보 등록' })
   })
 
   it('LLM Ops 평가는 지표 표를 보이고 모델·누설 검사 기록도 읽는다', async () => {

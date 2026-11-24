@@ -3,7 +3,7 @@ package ai.storyfork.operations.llmops.service
 import ai.storyfork.operations._common.client.LangfuseClient
 import ai.storyfork.operations._common.client.instantOrNull
 import ai.storyfork.operations._common.client.textOrNull
-import ai.storyfork.operations._common.exception.EvaluationRequiredException
+import ai.storyfork.operations._common.exception.CandidateRequiredException
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.llmops.service.dto.Evaluation
 import ai.storyfork.operations.llmops.service.dto.Prompt
@@ -66,7 +66,24 @@ class PromptService(
         return version
     }
 
-    /** Moves the production label to the version. It needs that version's latest evaluation to have passed; restoring an older version is no exception. */
+    /**
+     * Registers the version (a prompt body with its chosen model) as a production candidate (#705). Langfuse keeps a label on one version only, so the
+     * label names the version (candidate-<version>) and several candidates can coexist. Evaluation is optional for now (2026-11-24 user decision).
+     */
+    fun candidate(member: OperationsMember, name: String, request: PromptPromoteRequest): PromptVersion {
+        permissions.requirePermission(member, LLM)
+        require(request.version >= 1) { "Invalid version." }
+        val current = langfuse.prompt(name, request.version)
+        val labels = labels(current)
+        val candidate = candidateLabel(request.version)
+        if (candidate !in labels) {
+            langfuse.setPromptLabels(name, request.version, (labels - "latest") + candidate)
+            activities.record(member, "PROMPT_CANDIDATE", "PROMPT", name, "v${request.version}")
+        }
+        return PromptVersion(request.version, (labels - candidate) + candidate, createdAt(current), evaluations.latest(name, request.version)?.summary(), model(current))
+    }
+
+    /** Moves the production label to the version. Only a candidate goes there; restoring an older version is no exception (register it as a candidate first). */
     fun promote(member: OperationsMember, name: String, request: PromptPromoteRequest): PromptVersion {
         permissions.requirePermission(member, LLM)
         require(request.version >= 1) { "Invalid version." }
@@ -74,11 +91,11 @@ class PromptService(
         val labels = labels(current)
         val evaluation = evaluations.latest(name, request.version)
         if (PRODUCTION in labels) return version(current, evaluation)
-        if (evaluation?.passed != true) throw EvaluationRequiredException()
+        if (candidateLabel(request.version) !in labels) throw CandidateRequiredException()
         // Langfuse manages "latest" itself and keeps labels unique across versions, so the version's other labels stay and production moves here.
         langfuse.setPromptLabels(name, request.version, (labels - "latest") + PRODUCTION)
         activities.record(member, "PROMPT_PROMOTE", "PROMPT", name, "v${request.version}")
-        return PromptVersion(request.version, labels + PRODUCTION, createdAt(current), evaluation.summary(), model(current))
+        return PromptVersion(request.version, labels + PRODUCTION, createdAt(current), evaluation?.summary(), model(current))
     }
 
     private fun prompt(meta: JsonNode, latest: Map<Pair<String, Int>, Evaluation>, withBody: Boolean = false): Prompt {
@@ -91,6 +108,8 @@ class PromptService(
     private fun version(node: JsonNode, evaluation: Evaluation?, withBody: Boolean = false) = PromptVersion(
         node.path("version").asInt(), labels(node), createdAt(node), evaluation?.summary(), model(node), node.get("prompt")?.takeIf { withBody },
     )
+
+    private fun candidateLabel(version: Int) = "candidate-$version"
 
     private fun model(node: JsonNode) = node.path("config").path("model").textOrNull()
 

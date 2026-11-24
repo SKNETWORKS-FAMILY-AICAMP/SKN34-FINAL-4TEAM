@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import {
-  LLM_FORBIDDEN, evaluationStatusLabel, fixedModel, modelLabel, passedLabel, pendingSeed, perMillion, productionOf, promoteLabel, type Evaluation,
+  LLM_FORBIDDEN, evaluationStatusLabel, fixedModel, labelText, modelLabel, passedLabel, pendingSeed, perMillion, productionOf, versionAction, type Evaluation,
 } from '../../../../domain/entities/llmOps'
 import { alertRuleLabel, type AlertRule } from '../../../../domain/entities/operationsAlert'
 import { kstDateTime } from '../../../shared/format'
@@ -17,10 +17,13 @@ type Props = { vm: VM; l: LlmVM }
 /** 평가 통과 여부의 칩 색: 미통과만 실패 색(bad)이고, 통과는 중립, 결과 없음(null)은 칠하지 않는다. */
 const passTone = (passed: boolean | null | undefined) => (passed === false ? 'bad' : passed ? 'ok' : '')
 
-/** 프롬프트·모델·평가·경고 기준·표본 비율 패널. 변경 조치(새 버전·승격·모델 등록·평가 실행·기준 저장)는 모두 활동 로그에 남습니다. */
+/**
+ * 프롬프트 패널(#705): 모든 LLM 호출의 프롬프트를 표로 보이고, 상세에서 모델+본문 조합을 저장하고 후보로 등록한 뒤 서비스에 반영합니다.
+ * 회귀 평가·지표는 선택입니다(평가 쪽에서 실행하고 버전 행에서 결과를 엽니다). 변경 조치는 모두 활동 로그에 남습니다.
+ */
 export function Prompts({ vm, l }: Props) {
   const rows = l.prompts.data, p = l.prompt.data, live = p && productionOf(p), seed = p && pendingSeed(p)
-  // 고를 수 있는 모델은 Langfuse 모델 정의(단가가 있어 비용이 계산된다)이고, production 모델은 목록에 없어도 그대로 남긴다.
+  // 고를 수 있는 모델은 Langfuse 모델 정의(단가가 있어 비용이 계산된다)이고, 반영 중인 모델은 목록에 없어도 그대로 남긴다.
   const modelNames = [...new Set([...(live?.model ? [live.model] : []), ...(l.models.data ?? []).map((m) => m.modelName)])]
   if (!l.promptName) {
     return (
@@ -28,25 +31,37 @@ export function Prompts({ vm, l }: Props) {
         <LiveState vm={vm} label="프롬프트 목록" state={l.prompts} forbidden={LLM_FORBIDDEN} />
         {rows && (rows.length
           ? (
-            <ul className="admin-record-list">
-              {rows.map((row) => {
-                const live = productionOf(row), seed = pendingSeed(row)
-                return (
-                  <li key={row.name}>
-                    <button type="button" className="admin-record-link" data-record-id={row.name} onClick={() => l.openPrompt(row.name)}>
-                      <b>{row.name}</b>
-                      <span className="small muted">{live ? `production ${live.version}번 버전 · ${modelLabel(live.model)}` : 'production 버전 없음'}</span>
-                      {seed && <span className="chip">코드 시드 {seed.version}번 버전 대기</span>}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
+            <Table label="프롬프트 표">
+              <thead>
+                <tr>
+                  <th scope="col">프롬프트</th>
+                  <th scope="col">서비스 반영</th>
+                  <th scope="col">모델</th>
+                  <th scope="col">후보</th>
+                  <th scope="col">코드 시드</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...rows].sort((a, b) => a.name.localeCompare(b.name)).map((row) => {
+                  const current = productionOf(row), pending = pendingSeed(row)
+                  const candidates = row.versions.filter((v) => versionAction(v) === 'promote').length
+                  return (
+                    <tr key={row.name}>
+                      <td><button type="button" className="admin-prompt-name" data-record-id={row.name} onClick={() => l.openPrompt(row.name)}>{row.name}</button></td>
+                      <td className="admin-num">{current ? `${current.version}번 버전` : '없음'}</td>
+                      <td>{current ? modelLabel(current.model, row.name) : '—'}</td>
+                      <td className="admin-num">{candidates ? `${candidates}개` : '—'}</td>
+                      <td>{pending ? <span className="chip wait">코드 시드 {pending.version}번 버전 대기</span> : '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </Table>
           )
-          : <p className="admin-empty">등록된 프롬프트가 없어요. AI 서비스가 시작될 때 코드의 프롬프트가 버전 1로 등록돼요.</p>)}
+          : <p className="admin-empty">등록된 프롬프트가 없어요. AI 서비스가 시작될 때 모든 LLM 호출의 프롬프트를 버전 1로 등록해요.</p>)}
         <p className="admin-note">
-          프롬프트의 정본은 Langfuse예요. 버전마다 본문과 모델을 함께 정하고, 새 버전은 라벨 없이 등록돼요. production으로 올리려면 그 버전의 최신 회귀 평가가 통과여야 하고,
-          올리면 AI 서비스가 재배포 없이 그 본문과 모델을 써요(캐시가 1분이라 잠시 뒤부터). 코드의 프롬프트(시드)가 바뀌면 AI 서비스가 seed 라벨의 새 버전으로 올려 둬요.
+          프롬프트의 정본은 Langfuse예요. 모델과 본문을 묶은 조합을 저장하고, 필요하면 회귀 평가로 지표를 본 뒤 후보로 등록하면 서비스에 반영할 수 있어요.
+          반영하면 AI 서비스가 재배포 없이 그 조합을 써요(캐시가 1분이라 잠시 뒤부터). 코드의 프롬프트(시드)가 바뀌면 AI 서비스가 코드 시드 버전으로 올려 둬요.
         </p>
       </section>
     )
@@ -59,26 +74,31 @@ export function Prompts({ vm, l }: Props) {
       {p && (
         <>
           <h2 tabIndex={-1}>{p.name}</h2>
-          {seed && <p className="admin-note">코드 시드({seed.version}번 버전)가 production과 달라요. 회귀 평가를 통과하면 production으로 올릴 수 있어요.</p>}
+          <div className="admin-summary admin-prompt-live" role="group" aria-label="서비스 반영 중인 조합">
+            <div><small>서비스 반영</small><b>{live ? `${live.version}번 버전` : '없음'}</b></div>
+            <div><small>모델</small><b>{live ? modelLabel(live.model, p.name) : '—'}</b></div>
+          </div>
+          {seed && <p className="admin-note">코드 시드({seed.version}번 버전)가 서비스 반영 중인 본문과 달라요. 후보로 등록하면 반영할 수 있어요.</p>}
           <Table label="프롬프트 버전 표">
             <thead>
               <tr>
                 <th scope="col">버전</th>
-                <th scope="col">라벨</th>
+                <th scope="col">상태</th>
                 <th scope="col">모델</th>
                 <th scope="col">등록</th>
-                <th scope="col">최신 회귀 평가</th>
-                <th scope="col" className="act act-menu"><span className="sr-only">production</span></th>
+                <th scope="col">회귀 평가</th>
+                <th scope="col" className="act">조치</th>
               </tr>
             </thead>
             <tbody>
               {[...p.versions].sort((a, b) => b.version - a.version).map((v) => {
-                const action = promoteLabel(p.versions, v), busy = !!vm.actions[`prompt:${p.name}:${v.version}`]?.pending, evaluation = v.evaluation
+                const action = versionAction(v), busy = !!vm.actions[`prompt:${p.name}:${v.version}`]?.pending, evaluation = v.evaluation
+                const states = v.labels.map(labelText).filter((label): label is string => label !== null)
                 return (
                   <tr key={v.version}>
-                    <td>{v.version}</td>
-                    <td>{v.labels.length ? v.labels.map((label) => <span key={label} className="chip ok">{label}</span>) : '—'}</td>
-                    <td>{modelLabel(v.model)}</td>
+                    <td className="admin-num">{v.version}</td>
+                    <td>{states.length ? states.map((label) => <span key={label} className={`chip ${label === '서비스 반영 중' ? 'ok' : ''}`}>{label}</span>) : '—'}</td>
+                    <td>{modelLabel(v.model, p.name)}</td>
                     <td className="admin-date">{v.createdAt ? kstDateTime(v.createdAt) : '—'}</td>
                     <td>
                       {evaluation
@@ -90,21 +110,23 @@ export function Prompts({ vm, l }: Props) {
                         )
                         : '평가 없음'}
                     </td>
-                    <td className="act-menu">
-                      {action
-                        ? (
-                          <PopMenu className="row-menu" label={`「${p.name} ${v.version}번 버전」 조치`} icon={<MoreVerticalIcon />}>
+                    <td className="act">
+                      {action === 'live'
+                        ? '—'
+                        : action === 'promote'
+                          ? (
                             <button
-                              type="button"
-                              role="menuitem"
-                              disabled={busy}
-                              onClick={() => { if (window.confirm(`${p.name} ${v.version}번 버전을 production으로 ${action === '복원' ? '되돌릴까요' : '올릴까요'}? 서비스가 바로 이 버전의 프롬프트를 쓰게 돼요.`)) void l.promote(p.name, v.version) }}
+                              type="button" className="btn sm pri" disabled={busy} aria-label={`${p.name} ${v.version}번 버전 서비스에 반영`}
+                              onClick={() => { if (window.confirm(`${p.name} ${v.version}번 버전을 서비스에 반영할까요? AI 서비스가 곧 이 조합(${modelLabel(v.model, p.name)})을 쓰게 돼요.`)) void l.promote(p.name, v.version) }}
                             >
-                              production {action}
+                              서비스에 반영
                             </button>
-                          </PopMenu>
-                        )
-                        : '—'}
+                          )
+                          : (
+                            <button type="button" className="btn sm" disabled={busy} aria-label={`${p.name} ${v.version}번 버전 후보 등록`} onClick={() => void l.registerCandidate(p.name, v.version)}>
+                              후보 등록
+                            </button>
+                          )}
                     </td>
                   </tr>
                 )
@@ -118,23 +140,24 @@ export function Prompts({ vm, l }: Props) {
               if (await l.createPromptVersion(p.name, formText(form, 'prompt', false), formText(form, 'note'), formText(form, 'model'))) form.reset()
             }}
           >
-            <h3>새 버전 등록</h3>
+            <h3>새 조합 만들기</h3>
+            <p className="small muted">서비스에 반영 중인 모델과 본문으로 채워 뒀어요. 모델만 바꿔도 새 조합이 돼요.</p>
             <fieldset disabled={!!vm.actions[`prompt:${p.name}:new`]?.pending} className="form-grid">
-              {/* production 본문·모델로 채워 둬 모델만 바꾼 버전도 바로 등록한다. production 모델은 목록이 오기 전에도 선택지에 있어 기본값이 잡힌다. */}
-              <label className="field wide">새 버전 본문<textarea className="ta" name="prompt" rows={8} required defaultValue={live?.prompt ?? ''} key={`${p.name}:${live?.version}`} /></label>
               <label className="field">
                 모델
+                {/* 반영 중인 모델은 목록이 오기 전에도 선택지에 있어 기본값이 잡힌다. key는 프롬프트·반영 버전만이라 목록이 늦게 와도 고른 값이 남는다. */}
                 <select
                   className="inp" name="model" key={`${p.name}:${live?.version}`} defaultValue={live?.model ?? ''} disabled={fixedModel(p.name)}
                   aria-describedby={fixedModel(p.name) ? 'prompt-model-fixed' : undefined}
                 >
-                  <option value="">{modelLabel(null)}(환경 변수)</option>
+                  <option value="">{modelLabel(null, p.name)}</option>
                   {modelNames.map((name) => <option key={name} value={name}>{name}</option>)}
                 </select>
               </label>
-              {fixedModel(p.name) && <p id="prompt-model-fixed" className="small muted wide">Decisions API의 고정 모델로 불러 모델을 고를 수 없어요.</p>}
+              {fixedModel(p.name) && <p id="prompt-model-fixed" className="small muted wide">Decisions API가 gpt-6-luna만 지원해 모델은 고정이에요. 프롬프트만 바꿀 수 있어요.</p>}
+              <label className="field wide">프롬프트 본문<textarea className="ta" name="prompt" rows={10} required defaultValue={live?.prompt ?? ''} key={`${p.name}:${live?.version}`} /></label>
               <label className="field wide">변경 메모(선택)<input className="inp" name="note" /></label>
-              <div className="rowend wide"><button type="submit" className="btn pri">{vm.actions[`prompt:${p.name}:new`]?.pending ? '등록 중…' : '새 버전 등록'}</button></div>
+              <div className="rowend wide"><button type="submit" className="btn pri">{vm.actions[`prompt:${p.name}:new`]?.pending ? '저장 중…' : '조합 저장'}</button></div>
             </fieldset>
           </form>
         </>

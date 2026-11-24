@@ -155,3 +155,9 @@
 .adm .admin-drawer h2 { margin: 0; font-size: 20px; }
 .adm .admin-drawer h3 { margin: 22px 0 8px; font-size: 15px; }
 .adm .admin-drawer .adm-scroll table { min-width: 0; }
+/* 프롬프트 표(#705): 이름은 행을 여는 버튼이라 링크처럼 보이고, 버전·개수는 자리 맞춤 숫자다. 상세의 반영 중인 조합 요약은 요약 띠를 두 칸으로 줄여 쓴다. */
+.adm .admin-prompt-name { padding: 0; border: 0; background: none; color: var(--pri-ink); font: inherit; font-weight: 600; text-align: left; overflow-wrap: anywhere; }
+.adm .admin-prompt-name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.adm .admin-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.adm .admin-prompt-live { max-width: 640px; margin-top: 4px; }
+@media (min-width: 1100px) { .adm .admin-prompt-live { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

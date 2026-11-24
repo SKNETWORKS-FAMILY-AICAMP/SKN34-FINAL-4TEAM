@@ -93,7 +93,7 @@ describe('LLM Ops 조회 권한', () => {
     const forbidden = async () => { throw new OperationsForbidden('권한 없음') }
     const uc = make({
       traces: forbidden, trace: forbidden, metrics: forbidden, prompts: forbidden, prompt: forbidden, models: forbidden, evaluations: forbidden,
-      evaluation: forbidden, leakChecks: forbidden, alertRules: forbidden, settings: forbidden, promote: forbidden,
+      evaluation: forbidden, leakChecks: forbidden, alertRules: forbidden, settings: forbidden, promote: forbidden, candidate: forbidden,
     })
     const traceQuery = { from: '', to: '', feature: '', status: '', userId: '', requestId: '', page: 0 }
     const reads = await Promise.all([
@@ -102,6 +102,7 @@ describe('LLM Ops 조회 권한', () => {
     ])
     expect(reads).toEqual(Array(11).fill(null))
     await expect(uc.promote('qa-answer', 1)).rejects.toThrow(OperationsForbidden)
+    await expect(uc.candidate('qa-answer', 1)).rejects.toThrow(OperationsForbidden)
   })
 })
 

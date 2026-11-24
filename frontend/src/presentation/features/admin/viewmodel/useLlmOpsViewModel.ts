@@ -84,9 +84,11 @@ export function useLlmOpsViewModel(
     metrics, metricsQuery, setMetricsQuery,
     prompts, prompt, promptName, openPrompt: (name: string) => openOn('prompts', name, 'prompts'), closePrompt: () => setOpen(null),
     createPromptVersion: (name: string, text: string, note: string, model: string) =>
-      mutate(`prompt:${name}:new`, '새 버전을 등록했어요. production으로 올리려면 먼저 회귀 평가를 통과해야 해요.', () => useCase.createPromptVersion(name, text, note, model)),
+      mutate(`prompt:${name}:new`, '조합을 저장했어요. 후보로 등록하면 서비스에 반영할 수 있어요.', () => useCase.createPromptVersion(name, text, note, model)),
+    registerCandidate: (name: string, version: number) =>
+      mutate(`prompt:${name}:${version}`, `${name} ${version}번 버전을 후보로 등록했어요. 이제 서비스에 반영할 수 있어요.`, () => useCase.candidate(name, version)),
     promote: (name: string, version: number) =>
-      mutate(`prompt:${name}:${version}`, `프롬프트 ${name}의 production이 ${version}번 버전으로 바뀌었어요.`, () => useCase.promote(name, version)),
+      mutate(`prompt:${name}:${version}`, `${name}의 서비스 반영이 ${version}번 버전으로 바뀌었어요.`, () => useCase.promote(name, version)),
     models,
     createModel: (input: { modelName: string; matchPattern: string; inputPerMillion: number; outputPerMillion: number }) =>
       mutate('model:new', '모델 단가를 등록했어요.', () => useCase.createModel(input)),

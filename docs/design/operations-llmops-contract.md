@@ -18,7 +18,7 @@
 | 경고 기준 | 기준값은 문서로 고정하지 않고 **운영 화면에서 관리자가 정한다**. 초기 행은 꺼진 상태로 시드하고 값을 넣어 켠다 |
 | 평가 | 회귀 평가는 AI 서비스의 **Ragas**(Q&A RAG)·**DeepEval**(생성·검토·누설 판정)로 채점하고, **시뮬레이션 평가 세트**(`simulation.act`·`simulation.narrate`)는 서비스 호출로 만든 응답을 원문 평가 루브릭으로 채점하며(점수는 0~1로 기록), 결과를 Langfuse Dataset Run 점수로 남긴다. 채점 모델은 `EVALUATION_JUDGE_MODEL`(비면 `OPENAI_MODEL`)이다. 1회 비용 상한은 **추후 결정**(그 전까지 상한 없음, 평가는 관리자가 직접 실행할 때만 돈다) |
 | 작업 감시 | 회차 원고 전처리(DEC-50, 100화 이상 작품의 회차를 하나씩 전처리해 세계관 카드를 만드는 Celery 작업)·운영 정기 작업·회귀 평가 실행을 한 화면에서 본다. 실제 실행은 업무 소유 서비스(운영 정기 작업은 AI 작업 워커가 운영의 execute API를 불러 실행, [작업 실행 이관](operations-funnel-credit-contract.md#4-작업-실행을-celery로-이관-리팩터링-2026-11-20-사용자-결정)), 감시·재실행 요청은 운영(F-JOB-01). 평가 실행은 작업 감시에서 재실행하지 않는다 |
-| 에이전트별 모델·프롬프트 선택(#705, 2026-11-24 사용자 결정) | 모델은 **Langfuse 프롬프트 버전의 `config.model`**에 둔다(프롬프트와 모델이 한 버전으로 묶이고 새 저장소가 없다). 모델만 바꿔도 같은 본문의 새 버전 → 회귀 평가 → production 승격으로, **기존 평가 게이트를 그대로 거친다**. 고를 수 있는 모델은 **Langfuse 모델 정의**(모델 단가 탭에 등록된 이름, 단가가 있어 비용이 항상 계산된다)이고 운영 서비스가 등록 때 검사한다. `config.model`이 없는 버전은 지금처럼 **환경 변수 모델**(`OPENAI_MODEL`·act의 `SIMULATION_ACT_MODEL` 등)이 기본값이다. 코드 시드가 바뀌면 **AI가 `seed` 라벨의 새 버전으로 자동 등록**하고(production은 옮기지 않음) 화면이 '코드 시드 대기'로 보인다. Decisions API로 부르는 `decision_guard.judge`·`character_simulation.direct`는 모델이 고정(gpt-6-luna)이라 고르지 않는다 |
+| 에이전트별 모델·프롬프트 선택(#705, 2026-11-24 사용자 결정) | 모델은 **Langfuse 프롬프트 버전의 `config.model`**에 둔다(본문과 모델이 한 버전 = 한 **조합**, 새 저장소 없음). 고를 수 있는 모델은 **Langfuse 모델 정의**(모델 단가 탭의 이름, 단가가 있어 비용이 항상 계산된다)이고 운영 서비스가 등록 때 검사한다. **모든 LLM 호출**(서비스 호출 33개, `app/prompts.py`)의 프롬프트를 AI 서비스가 **기동 때 모두 등록**해 화면에 처음부터 보인다. 기본값은 모델 **gpt-6-luna**(인물 대사 `character_simulation.act`만 2026-11-23 결정대로 gpt-6.1-terra), 프롬프트는 지금 코드 본문이다: `config.model`이 없는 버전은 환경 변수 모델(`OPENAI_MODEL`=gpt-6-luna·act의 `SIMULATION_ACT_MODEL`/terra)을 쓴다. 반영 흐름은 **조합 저장 → (선택) 회귀 평가·지표 → 후보 등록 → 서비스 반영**이고 서비스 반영(production)은 **후보만** 된다(409 `CANDIDATE_REQUIRED`). 평가가 아직 프롬프트 대부분에 없어 **평가 통과 게이트는 끄고** 후보 등록을 바로 허용한다(평가 세트가 갖춰지면 '평가 통과 → 후보'로 조건만 바꾼다). 코드 시드가 바뀌면 AI가 `seed` 라벨의 새 버전으로 자동 등록하고 화면이 '코드 시드 대기'로 보인다. Decisions API로 부르는 `decision_guard.judge`·`character_simulation.direct`는 프롬프트만 바꾸고 모델은 gpt-6-luna 고정이며, 평가 채점기(루브릭)는 서비스 호출이 아니라 대상이 아니다 |
 | Airflow | 지금은 쓰지 않는다. 운영 스케줄러가 맡는 '정해진 시각에 소유 서비스의 실행 API 호출'과 '실행 기록 조회'를 나중에 Airflow DAG·REST API로 바꿀 수 있게 실행 API와 기록 모양을 출처 독립으로 둔다 |
 
 ## 데이터 출처
@@ -47,7 +47,7 @@
 - 프롬프트는 Langfuse Prompt Management에서 `production` 라벨 버전을 읽고 generation에 그 prompt를 연결한다(사용 버전 조회의 근거).
   코드의 프롬프트는 시드다: 처음 읽을 때 Langfuse에 없으면(404) 버전 1(`production`·`seed`)로 등록한다. 프롬프트를 읽을 때마다 시드를 `seed` 라벨 버전으로 맞춘다(#705, 맞춰진 상태는 SDK 캐시 읽기뿐이고 쓰기 직전에만 캐시 없이 다시 읽는다):
   production 본문이 시드와 같으면 그 버전에 `seed` 라벨만 달고(시드 본문으로 모델만 바꾼 버전을 승격해도 seed가 따라온다), 다르면 `seed` 버전이 이미 시드 본문이면 그대로, 아니면 시드를 라벨 `seed`의 새 버전(production의 `config` 이어받음)으로 등록한다.
-  production은 옮기지 않고(승격은 평가 게이트), 맞추기 실패는 경고 로그만 남기고 다음 호출이 다시 맞춘다. 모델은 production 버전의 `config.model`이고 없으면 환경 변수 기본 모델이다
+  production은 옮기지 않고(반영은 후보 등록 뒤 운영 화면에서), 맞추기 실패는 경고 로그만 남기고 다음 호출이 다시 맞춘다. 모델은 production 버전의 `config.model`이고 없으면 환경 변수 기본 모델이다
   (Decisions API 호출은 제외). SDK 캐시가 60초라 승격·모델 변경은 재배포 없이 반영된다: 캐시가 지난 뒤 첫 호출은 옛 값을 쓰며 새로 읽고 그다음 호출부터 새 버전이다(SDK의 stale-while-revalidate). 회귀 평가도 평가하는 버전의 `config.model`로 생성한다. 이름은 `<기능>.<용도>`(예 `story_context.answer`, `orchestration.main`).
   Langfuse 키가 없으면(로컬·CI) 추적과 같이 꺼지고 코드 프롬프트를 그대로 쓴다. 키가 있는데 읽기에 실패하면 SDK 캐시(마지막 성공 값)를 쓰고, 캐시도 없으면 503으로 실패한다.
 - 시간 초과는 `status:timeout`, 그 밖의 실패는 `status:failed`와 observation `level=ERROR`다. 대기(`waiting`) 턴·취소·연결 끊김은 상태 태그를 달지 않는다.
@@ -72,7 +72,8 @@
 | `GET /llmops/metrics?from&to&groupBy=day|feature|model` | `llm` | 요청·실패율·시간 초과율·p50/p95 지연·토큰·비용(사용자/플랫폼)·채택률·승인률·필터 복원률 |
 | `GET /llmops/prompts`, `GET /llmops/prompts/{name}` | `llm` | 프롬프트별 버전·라벨·모델(`config.model`)·최신 평가 결과. 상세만 버전 본문(`prompt`)을 싣는다 |
 | `POST /llmops/prompts/{name}` | `llm` | 새 버전 등록(라벨 없음). `config.model`은 Langfuse 모델 정의에 있는 이름(문자열)이어야 하며 아니면 400 |
-| `PUT /llmops/prompts/{name}/production` `{version}` | `llm` | `production` 라벨 이동(승격·이전 버전 복원). 그 버전의 최신 회귀 평가가 통과가 아니면 409 `EVALUATION_REQUIRED`(화면은 code로 한국어 안내) |
+| `PUT /llmops/prompts/{name}/candidate` `{version}` | `llm` | 그 버전(조합)을 서비스 반영 후보로 등록: 라벨 `candidate-<version>`을 단다(Langfuse 라벨은 한 버전에만 있어 버전 번호를 넣는다, 여럿 공존). 평가는 요구하지 않는다(#705) |
+| `PUT /llmops/prompts/{name}/production` `{version}` | `llm` | `production` 라벨 이동(서비스 반영·이전 버전 복원). 그 버전에 자기 후보 라벨이 없으면 409 `CANDIDATE_REQUIRED`(화면은 code로 한국어 안내). 복원도 후보로 등록한 뒤 한다 |
 | `GET /llmops/models`, `POST /llmops/models` | `llm` | Langfuse 모델 정의(이름·매칭 패턴·입력/출력 단가) 조회·등록 |
 | `GET /llmops/evaluations`, `GET /llmops/evaluations/{runId}` | `llm` | Dataset Run 목록·상세(지표별 점수, 기준 버전 대비 차이, 통과 여부) |
 | `POST /llmops/evaluations` `{dataset, prompt, version}` | `llm` | 회귀 평가 실행 요청(AI에 위임, 202 + 실행 기록 ID) |
@@ -116,7 +117,7 @@ Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRu
 
 목록 경로는 끝 슬래시 없이 부른다(Spring 6 기본). 오류는 기존 운영 공통 `{code,message}`이며 Langfuse·AI·Core·Content 실패는 502 `UPSTREAM_FAILED`(대시보드만 칸별 `unavailable`).
 
-관리자 변경 조치(프롬프트 등록·승격, 모델 등록, 평가 실행, 경고 처리·기준 변경, 표본 비율 변경, 일정 CRUD, 재실행)는 성공 뒤
+관리자 변경 조치(프롬프트 등록·후보 등록·서비스 반영, 모델 등록, 평가 실행, 경고 처리·기준 변경, 표본 비율 변경, 일정 CRUD, 재실행)는 성공 뒤
 `AdminActivityService.record`로 기록하고 [활동 기록 계약](operations-admin-activity-contract.md) action 표와 프런트 라벨에 더한다.
 
 ## 저장 (operations Flyway V8)

@@ -1,5 +1,5 @@
 import type { JobRun, JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
-import { EVALUATION_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
+import { CANDIDATE_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
 import type {
   Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
@@ -177,9 +177,13 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     const p = found(this.prompts_.find((item) => item.name === name))
     p.versions.unshift({ version: Math.max(...p.versions.map((v) => v.version)) + 1, labels: [], createdAt: new Date().toISOString(), model: input.model || null, prompt: input.prompt })
   }
+  async candidate(name: string, version: number) {
+    const target = found(found(this.prompts_.find((item) => item.name === name)).versions.find((v) => v.version === version))
+    if (!target.labels.includes(`candidate-${version}`)) target.labels = [...target.labels, `candidate-${version}`]
+  }
   async promote(name: string, version: number) {
     const p = found(this.prompts_.find((item) => item.name === name)), target = found(p.versions.find((v) => v.version === version))
-    if (target.evaluation?.passed !== true) throw new OperationsRejected(EVALUATION_REQUIRED_MESSAGE)
+    if (!target.labels.includes(`candidate-${version}`)) throw new OperationsRejected(CANDIDATE_REQUIRED_MESSAGE)
     for (const v of p.versions) v.labels = [...v.labels.filter((label) => label !== 'production'), ...(v === target ? ['production'] : [])]
   }
   async models() { return structuredClone(this.modelRows) }

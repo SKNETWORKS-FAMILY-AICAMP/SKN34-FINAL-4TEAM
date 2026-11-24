@@ -2,7 +2,7 @@ package ai.storyfork.operations.security
 
 import ai.storyfork.operations._common.client.ContentWork
 import ai.storyfork.operations._common.client.CoreClient
-import ai.storyfork.operations._common.exception.EvaluationRequiredException
+import ai.storyfork.operations._common.exception.CandidateRequiredException
 import ai.storyfork.operations._common.exception.OperationsExceptionHandler
 import ai.storyfork.operations._common.service.dto.PageResponse
 import ai.storyfork.operations.comment.controller.CommentController
@@ -494,15 +494,15 @@ class MemberSecurityIntegrationTest {
     }
 
     @Test
-    fun `a prompt promotion without a passing evaluation is a 409 with its own code`() {
+    fun `promoting a prompt version that is not a candidate is a 409 with its own code`() {
         val member = OperationsMember(UUID.randomUUID(), true)
         `when`(core.verify(bearer)).thenReturn(member)
-        `when`(prompts.promote(member, "qa-answer", PromptPromoteRequest(3))).thenThrow(EvaluationRequiredException())
+        `when`(prompts.promote(member, "qa-answer", PromptPromoteRequest(3))).thenThrow(CandidateRequiredException())
 
         val response = mvc.perform(put("/api/v1/operations/llmops/prompts/qa-answer/production").header("Authorization", bearer)
             .contentType("application/json").content("""{"version":3}""")).andExpect(status().isConflict()).andReturn().response
 
-        assertEquals("EVALUATION_REQUIRED", code(response.contentAsString))
+        assertEquals("CANDIDATE_REQUIRED", code(response.contentAsString))
     }
 
     @Test
