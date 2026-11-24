@@ -135,3 +135,54 @@ def test_cannot_release_image_when_text_safety_is_unknown(monkeypatch, failure):
     with pytest.raises(moderation.OutputModerationUnavailable) as raised:
         moderation.check_output(b"png")
     assert "private OCR text" not in str(raised.value)
+
+
+def cover_bytes(fmt="PNG", *, animated=False):
+    from io import BytesIO
+    from PIL import Image
+    image = Image.new("RGB", (16, 16), "red")
+    buf = BytesIO()
+    if animated:
+        image.save(buf, fmt, save_all=True, append_images=[Image.new("RGB", (16, 16), "blue")], duration=100)
+    else:
+        image.save(buf, fmt)
+    return buf.getvalue()
+
+
+@pytest.mark.parametrize("graphic,applied,error", [
+    (False, ("image",), None),
+    (True, ("image",), moderation.OutputBlocked),
+    (False, ("text",), moderation.OutputModerationUnavailable),
+])
+def test_direct_cover_checks_graphic_violence(monkeypatch, graphic, applied, error):
+    request = provider(monkeypatch)
+    reply = verdict()
+    reply.results[0].categories.violence_graphic = graphic
+    reply.results[0].category_applied_input_types.violence_graphic = applied
+    request.return_value = reply
+    ocr = MagicMock(return_value="")
+    monkeypatch.setattr(moderation, "read_image_text", ocr)
+    raw = cover_bytes("JPEG")
+
+    if error is None:
+        moderation.check_cover(raw, "image/jpeg")
+        ocr.assert_called_once_with(raw)
+    else:
+        with pytest.raises(error):
+            moderation.check_cover(raw, "image/jpeg")
+        ocr.assert_not_called()
+
+    request.assert_called_once()
+    assert request.call_args.kwargs["input"][0]["image_url"]["url"].startswith("data:image/jpeg;base64,")
+
+
+@pytest.mark.parametrize("media_type,raw", [
+    ("image/png", cover_bytes(animated=True)),
+    ("image/webp", cover_bytes("WEBP", animated=True)),
+    ("image/webp", b"broken"),
+])
+def test_rejects_covers_whose_display_cannot_be_checked(monkeypatch, media_type, raw):
+    request = provider(monkeypatch)
+    with pytest.raises(moderation.InvalidCover):
+        moderation.check_cover(raw, media_type)
+    request.assert_not_called()

@@ -1,5 +1,6 @@
 package ai.storyfork.content.attachment
 
+import ai.storyfork.content.imagegeneration.client.CoverModerationClient
 import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
 import ai.storyfork.content.world.studio.entity.ManuscriptBuildJob
@@ -53,6 +54,7 @@ class SettingAttachmentHttpTest {
     @LocalServerPort var port = 0
     @Autowired lateinit var members: MemberRepository
     @org.springframework.test.context.bean.override.mockito.MockitoBean lateinit var core: CoreAuthClient
+    @org.springframework.test.context.bean.override.mockito.MockitoBean lateinit var coverModeration: CoverModerationClient
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("contentTransactions") lateinit var authTransactions: org.springframework.transaction.support.TransactionTemplate
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("attachmentTransactions")
     lateinit var attachmentTransactions: org.springframework.transaction.support.TransactionTemplate
@@ -148,11 +150,18 @@ class SettingAttachmentHttpTest {
         assertEquals(404, upload(path, other, method="PUT").statusCode())
         // Ownership is checked before the file, so a stranger cannot probe work IDs with an invalid file.
         assertEquals(404, upload(path, other, "text".toByteArray(), "note.txt", "text/plain", "PUT").statusCode())
+        val usagePath = "/api/v1/me/storage-usage"
+        val usageBefore = get(usagePath, owner)
+        assertEquals(200, usageBefore.statusCode())
         val created = upload(path, owner, method="PUT")
         assertEquals(200, created.statusCode(), String(created.body()))
         val url = node(created).path("url").asText()
         assertEquals("$path/content", url)
         assertArrayEquals(png, get(url, owner).body())
+        // 표지는 저장 용량 집계에 포함되지 않는다(#613).
+        val usageAfter = get(usagePath, owner)
+        assertEquals(200, usageAfter.statusCode())
+        assertEquals(node(usageBefore), node(usageAfter))
         assertEquals(404, get("/api/v1/public/works/${work.id}/cover/content", null).statusCode())
         assertEquals(422, upload(path, owner, "text".toByteArray(), "note.txt", "text/plain", "PUT").statusCode())
         assertArrayEquals(png, get(url, owner).body())

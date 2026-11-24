@@ -1,5 +1,6 @@
 package ai.storyfork.content.attachment
 
+import ai.storyfork.content.imagegeneration.client.CoverModerationClient
 import ai.storyfork.content.attachment.controller.AttachmentExceptionHandler
 import ai.storyfork.content.attachment.service.AttachmentService
 import ai.storyfork.content.attachment.service.dto.AttachmentRenameRequest
@@ -53,7 +54,8 @@ class AttachmentServiceTest {
     private val storage = mock(AttachmentStorageClient::class.java)
     private val manager = mock(PlatformTransactionManager::class.java)
     private val imageEpisodes=mock(ai.storyfork.content.attachment.repository.ImageEpisodeRepository::class.java)
-    private val service = AttachmentService(settings, attachments, images, works, content, episodeService, storage, TransactionTemplate(manager), imageEpisodes)
+    private val moderation = mock(CoverModerationClient::class.java)
+    private val service = AttachmentService(settings, attachments, images, works, content, episodeService, storage, TransactionTemplate(manager), imageEpisodes, moderation)
     private val png = ByteArrayOutputStream().also {
         ImageIO.write(BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB), "png", it)
     }.toByteArray()
@@ -68,6 +70,15 @@ class AttachmentServiceTest {
         `when`(images.saveAndFlush(any(ContentImage::class.java) ?: ContentImage())).thenAnswer { it.arguments[0] }
         `when`(episodeService.read("work", "owner", 1)).thenReturn(WritingEpisode(1, Draft(), emptyList(), null, false, null))
         `when`(imageEpisodes.findByWorkIdAndSequence("work", 1)).thenReturn(ImageEpisode(id = "original"))
+    }
+
+    @Test fun `cover moderation must succeed before storing or writing a new cover`() {
+        for ((status, code) in listOf(422 to "COVER_CONTENT_BLOCKED", 503 to "COVER_MODERATION_UNAVAILABLE")) {
+            doThrow(AttachmentFailure(status, code, "blocked")).`when`(moderation).check(eq(png) ?: png, eq("image/png") ?: "")
+            val error = assertThrows(AttachmentFailure::class.java) { service.putCover("work", "owner") { request() } }
+            assertEquals(code, error.code)
+            verifyNoInteractions(storage, images)
+        }
     }
 
     @Test fun `setting attachments of a soft deleted work are not found`() {
@@ -135,7 +146,7 @@ class AttachmentServiceTest {
     @Test fun `one attachment service stores setting files work covers and episode images through shared storage`() {
         val file = "설정 문서".toByteArray()
         val setting = service.createSettingAttachment("work", "setting", "owner", request("note.txt", "text/plain", file))
-        val cover = service.putCover("work", "owner", request())
+        val cover = service.putCover("work", "owner") { request() }
         val episode = service.createEpisodeImage("work", 1, "owner", request())
 
         assertEquals("FILE", setting.kind)
@@ -152,8 +163,8 @@ class AttachmentServiceTest {
         assertArrayEquals(png, payloads.allValues[1].bytes)
         assertArrayEquals(png, payloads.allValues[2].bytes)
         verify(settings).lockOwnedLocal("work", "setting", "owner")
-        // 설정 첨부도 삭제 여부를 보려고 작품 행을 잠근다(설정·표지·회차 이미지 각 1회).
-        verify(works, times(3)).lockOwned("work", "owner")
+        // 표지는 검사 전후 각각, 설정 첨부와 회차 이미지는 각 한 번 작품 소유권을 확인한다.
+        verify(works, times(4)).lockOwned("work", "owner")
         verify(episodeService).read("work", "owner", 1)
         verify(storage, never()).delete(anyString())
     }
@@ -192,7 +203,7 @@ class AttachmentServiceTest {
         }.code)
         assertEquals("FILE", service.createSettingAttachment("work", "setting", "owner", request("note.txt", "text/plain", "본문".toByteArray())).kind)
         assertEquals("IMAGE_INVALID", assertThrows(AttachmentFailure::class.java) {
-            service.putCover("work", "owner", request("note.txt", "text/plain", "본문".toByteArray()))
+            service.putCover("work", "owner") { request("note.txt", "text/plain", "본문".toByteArray()) }
         }.code)
         assertEquals("IMAGE_INVALID", assertThrows(AttachmentFailure::class.java) {
             service.createEpisodeImage("work", 1, "owner", request("note.txt", "text/plain", "본문".toByteArray()))
@@ -273,7 +284,7 @@ class AttachmentServiceTest {
     @Test fun `cover replacement and deletion retain superseded objects and episode bytes remain immutable`() {
         val cover = ContentImage(workId = "work", objectKey = "work-covers/old")
         `when`(images.findByWorkIdAndEpisodeNo("work", 0)).thenReturn(listOf(cover))
-        assertEquals(cover.id, service.putCover("work", "owner", request()).id)
+        assertEquals(cover.id, service.putCover("work", "owner") { request() }.id)
         assertNotEquals("work-covers/old", cover.objectKey)
         service.deleteCover("work", "owner")
         verify(images).delete(cover)
