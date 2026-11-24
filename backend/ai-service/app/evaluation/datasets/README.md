@@ -14,3 +14,18 @@
 - **라이선스는 항목마다 다르다.** `metadata.license`가 `CC BY-SA 3.0`인 항목은 SCP 재단 한국어(scpko.wikidot.com) 이야기로 같은 조건으로 공유하며, 작품·저자·URL은 `metadata.source`에 있다. 나머지는 저작권이 만료된 고전·근대 소설(위키문헌)이다.
 - **라벨은 사람 검수 전이다**(원문 평가와 같은 문항·정답표를 쓴다). 고전소설은 따옴표가 없어 턴 경계가 거칠다: 일부 나레이션 정답에 인물의 말이 섞이고, 일부 독백 정답은 원문 조각이며, 화자·알고 있는 사실 라벨이 어긋난 항목이 있을 수 있다(예: `simulation.act-11`의 직전 장면 끝은 경홍이 말하는 대목). 항목 몇 개의 잡음이라 세트를 고치지 않았고, 고치려면 원문 평가의 공개 세트부터 바로잡고 다시 내보낸다.
 - 해리 포터 문항·원문은 저작권이 있어 저장소에 없다(집계만 `eval/simulation/results/`).
+
+
+# 추출 평가 세트 (`extraction.extract`)
+
+운영 회귀 평가(LLM Ops)에서 회차 설정 추출 지시문 `manuscript_extraction.extract`의 새 버전을 평가·승격하는 세트다(짝, [계약](../../../../../docs/design/operations-llmops-contract.md)). 저작권이 만료된 근대 한국 소설(현진건·김동인·김유정·채만식, 위키문헌)의 회차 한 편이 항목 하나이고
+`eval/extraction/ex_cli.py export`가 만들며 `python -m app.evaluation.seed`가 Langfuse Dataset으로 등록한다(파일 이름 = 세트 이름). 설계·재현·한계는 [추출 평가 세트](../../../../../docs/evaluation/extraction-set.md)에 있다.
+
+| 파일 | 평가하는 지시문 | 항목 |
+|---|---|---|
+| `extraction.extract.jsonl` | `manuscript_extraction.extract` | 회차 한 편 단위(작품·회차 수는 문서 `8`) |
+
+- `input`은 운영이 모델에 보내는 `{number, title, body}` 그대로이고 `expectedOutput`은 정답표(`mentions`·`statements`·`relationships`, 항목마다 `core` = 상위 모델이 서로 다른 지시문으로 두 번 모두 뽑음)다. 채점 모델은 없고 코드가 정답표와 대조한다.
+- `metadata.source`가 작품·저자·출처·라이선스·회차이고 `metadata.gold`가 정답표를 만든 모델·실행·일치도다.
+- **정답표는 모델 두 번의 결과라 사람 검수 전이다.** 진술은 두 번의 선택이 갈려 `core`가 작다.
+- 해리 포터 원문·정답표는 저작권이 있어 이 세트에 없다(로컬 오프라인 평가 전용, `eval/extraction/.data`).

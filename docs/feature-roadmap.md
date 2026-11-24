@@ -674,7 +674,7 @@
 <tr><td>프롬프트 이전 버전 복원</td><td>✅</td></tr>
 <tr><td>생성 결과의 사용 모델·프롬프트 버전 조회</td><td>✅</td></tr>
 <tr><td>모든 LLM 호출의 모델·프롬프트 조합 선택·후보 등록·서비스 반영과 코드 시드 자동 등록</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/705">#705</a></td></tr>
-<tr><td>평가 세트가 있는 프롬프트(Q&A 답변·인물 대사·나레이션)의 후보 등록에 회귀 평가 통과 조건</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/787">#787</a></td></tr>
+<tr><td>평가 세트가 있는 프롬프트(Q&A 답변·인물 대사·나레이션·회차 설정 추출)의 후보 등록에 회귀 평가 통과 조건</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/787">#787</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/824">#824</a></td></tr>
 <tr><td rowspan="5">40-C 회귀 평가</td><td>고정 평가 세트 관리 범위 확정</td><td>✅</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>회귀 평가 실행</td><td>✅</td></tr>
 <tr><td>회귀 평가 결과 조회</td><td>✅</td></tr>

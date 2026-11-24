@@ -132,3 +132,30 @@ def test_the_model_chosen_in_the_prompt_version_is_called(provider, monkeypatch)
     monkeypatch.setattr(tracing, 'prompt', lambda name, text: tracing.Prompt('관리된 지시', model='gpt-chosen'))
     agent.extract(EpisodeText(number=1, title='x', body='본문'))
     assert provider.settings['model'] == 'gpt-chosen'
+
+
+def test_instructions_and_model_given_by_a_regression_evaluation_are_used_as_they_are(provider, monkeypatch):
+    """회귀 평가(#824)는 평가하는 버전의 본문·모델을 그대로 준다: production 버전을 읽지 않고, 그 본문이 system 메시지이고 그 모델이 호출 모델이다."""
+    def read(name, text):
+        raise AssertionError('production 버전을 읽으면 안 된다')
+    monkeypatch.setattr(tracing, 'prompt', read)
+
+    agent.extract(EpisodeText(number=1, title='x', body='본문'), '평가할 버전 본문', 'gpt-evaluated')
+
+    assert provider.messages[0].content == '평가할 버전 본문' and provider.settings['model'] == 'gpt-evaluated'
+    assert provider.messages[1].type == 'human' and '본문' in provider.messages[1].content
+
+
+def test_an_evaluated_version_without_a_model_runs_on_the_env_default_model(provider):
+    agent.extract(EpisodeText(number=1, title='x', body='본문'), '평가할 버전 본문')
+
+    assert provider.settings['model'] == 'test-model'
+
+
+def test_a_regression_evaluation_call_is_a_generation_without_a_prompt_link(provider, spans):
+    agent.extract(EpisodeText(number=1, title='x', body='본문'), '평가할 버전 본문')
+
+    [span] = spans()
+    found = attrs(span)
+    assert span.name == 'manuscript_extraction.generation' and found['langfuse.observation.type'] == 'generation'
+    assert 'langfuse.observation.prompt.name' not in found  # 평가 호출이 production 프롬프트 버전의 사용 기록에 섞이지 않는다

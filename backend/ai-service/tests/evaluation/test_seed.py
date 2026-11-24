@@ -3,11 +3,12 @@ from collections import Counter
 
 import pytest
 
-from app.evaluation import seed
+from app.evaluation import extraction, seed
 
 PUBLIC = {'qa.grounding', 'world.conflict', 'writing.fix', 'leak.spoiler'}
 SIMULATION = {'simulation.act', 'simulation.narrate'}
-NAMES = PUBLIC | SIMULATION
+EXTRACTION = {'extraction.extract'}
+NAMES = PUBLIC | SIMULATION | EXTRACTION
 
 
 class Langfuse:
@@ -58,6 +59,26 @@ def test_the_simulation_sets_are_the_public_original_eval_items_one_set_per_inst
             assert all(isinstance(f['text'], str) and f['text'] for f in judge['facts'])
         contents = [(json.dumps(it['input'], ensure_ascii=False, sort_keys=True), it['expectedOutput']) for it in data[name]]
         assert len(set(contents)) == len(contents)   # 같은 문항을 두 번 싣지 않는다(평균에 두 배 가중치가 붙는다)
+
+
+def test_the_extraction_set_is_expired_copyright_episodes_with_the_answer_table_the_code_scoring_reads():
+    items = seed.load()['extraction.extract']
+
+    assert len(items) >= 8 and len({it['input']['body'] for it in items}) == len(items)   # 같은 회차를 두 번 싣지 않는다(평균에 두 배 가중치가 붙는다)
+    for it in items:
+        source, gold, body = it['metadata']['source'], it['metadata']['gold'], it['input']['body']
+        assert it['id'].startswith('extraction.extract-') and set(it['input']) == {'number', 'title', 'body'} and body.strip()   # 운영이 모델에 보내는 값 그대로
+        assert {'work', 'author', 'origin', 'license', 'episode'} <= set(source) and source['license'].startswith('저작권 만료') and it['metadata']['license'] == source['license']
+        assert gold['model'] == 'gpt-6.2-sol' and gold['runs'] == ['A', 'B'] and set(gold['agreement']) == {'mentions', 'statements', 'relationships'}
+        table = extraction.Gold.model_validate(it['expectedOutput'])
+        assert any(m.core for m in table.mentions) and all(body.count(s.quote) == 1 for s in table.statements)   # 정답 인용은 원문에 정확히 한 번 있다
+        assert [m.name for m in table.mentions] and all(m.name.strip() for m in table.mentions)
+
+
+def test_the_extraction_set_has_nothing_of_the_local_only_harry_potter_text():
+    text = (seed.DATASETS / 'extraction.extract.jsonl').read_text(encoding='utf-8')
+
+    assert not any(word in text for word in ('해리 포터', '호그와트', '덤블도어', '헤르미온느', '볼드모트'))   # 번역본은 저작권이 있어 로컬 오프라인 평가 전용이다
 
 
 def test_register_is_idempotent():
