@@ -139,8 +139,9 @@ it.each(['succeeded','failed','interrupted'])('화면을 다시 열면 끝난 �
 it('화면을 다시 열었을 때 아직 진행 중인 작업은 이어서 보여 준다',async()=>{
  useCase.read.mockResolvedValue({jobId:'old-job',status:'running',stage:'generating',previewUrl:null})
  const {result}=renderHook(()=>useImageGeneration({purpose:'work_cover'}),{wrapper})
- await waitFor(()=>expect(useCase.read).toHaveBeenCalledOnce())
- expect(result.current.job).toMatchObject({jobId:'old-job',status:'running'})
+ // 복원 직후의 job은 queued 자리표시자라, 첫 조회 응답이 반영될 때까지 상태로 기다린다.
+ await waitFor(()=>expect(result.current.job).toMatchObject({jobId:'old-job',status:'running'}))
+ expect(useCase.read).toHaveBeenCalledOnce()
  expect(sessionStorage.getItem(storageKey)).toBe('old-job')
 })
 

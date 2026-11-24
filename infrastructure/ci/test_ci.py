@@ -274,6 +274,22 @@ class SelectionTest(unittest.TestCase):
         self.assertIn('pnpm exec vitest run src/domain src/data src/index-html.test.js', unit)
         self.assertIn("--exclude 'src/domain/**' --exclude 'src/data/**' --exclude src/index-html.test.js", integration)
 
+    def test_gradle_cache_is_keyed_per_service(self):
+        # setup-java 기본 키는 전 서비스의 *.gradle*을 한데 해시해 core·content·operations가 한 캐시를 나눠 쓴다.
+        # 먼저 저장한 서비스 것만 남아 나머지는 복원에 성공하고도 Maven Central에서 다시 받다 429로 실패한다.
+        steps = [step for step in read('.github/workflows/ci.yml').split('\n      - ')
+                 if 'uses: actions/setup-java@' in step and 'cache: gradle' in step]
+        self.assertTrue(steps, 'Gradle 캐시를 쓰는 setup-java 단계를 찾지 못했다')
+        directories = {'core': 'core-api', 'content': 'content-service', 'operations': 'operations-service'}
+        for step in steps:
+            block = re.search(r'cache-dependency-path: \|\n((?: {12}.*\n?)+)', step)
+            patterns = [line.strip() for line in block[1].splitlines()] if block else []
+            for service, directory in directories.items():
+                with self.subTest(service=service):
+                    owners = {file.relative_to(ci.ROOT).parts[:2] for pattern in patterns
+                              for file in ci.ROOT.glob(pattern.replace('${{ matrix.service }}', service))}
+                    self.assertEqual({('backend', directory)}, owners)
+
     def test_required_rejects_cancelled_and_unexpected_skips(self):
         ci.check_results({"unit": "skipped", "integration": "skipped", "system": "skipped"}, set())
         for job in ["changes", "configuration", "unit", "integration", "system"]:
