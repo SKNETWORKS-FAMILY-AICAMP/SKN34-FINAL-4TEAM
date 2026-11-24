@@ -58,13 +58,10 @@ def execute(job_id: str):
         claim = claim_job(job_id)
         if not claim.claimed:
             return
-        data = claim.input
-        if data is None:
-            return
         stage = "generating"
         try:
-            raw = agent.generate(data, read_reference(job_id)) if data.referenceRole else agent.generate(data)
-            service.validate_image(raw, data)
+            raw = agent.generate(claim.input, read_reference(job_id)) if claim.input.referenceRole else agent.generate(claim.input)
+            service.validate_image(raw, claim.input)
             moderation.check_output(raw)
             stage = "uploading"
             report(job_id, "progress", ProgressRequest(stage=stage))

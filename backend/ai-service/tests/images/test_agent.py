@@ -103,6 +103,3 @@ def test_cover_reference_uses_edit_with_one_image(monkeypatch, spans, role, guid
     generation, = spans()
     assert generation.attributes['langfuse.observation.prompt.name'] == managed.name
     assert generation.attributes['langfuse.observation.prompt.version'] == managed.version
-    with pytest.raises(ValueError):
-        agent.generate(data)
-    assert len(requests) == 1

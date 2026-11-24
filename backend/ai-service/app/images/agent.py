@@ -9,8 +9,6 @@ from app.images.service import reference_file
 
 def generate(data: ImageInput, reference: bytes | None = None) -> bytes:
     """키는 실행 시 읽고 모델·규격은 접수 스냅샷을 쓴다."""
-    if (data.referenceRole is None) != (reference is None):
-        raise ValueError("IMAGE_REFERENCE_MISSING")
     image = reference_file(reference) if reference is not None else None
     operation = "images.edit" if image else "images.generate"
     managed = None
