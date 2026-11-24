@@ -264,11 +264,12 @@ describe('episode.css 관리 화면 사이드바 틀 계약 (작품 관리·세�
     expect(narrow('.ep-menu nav button')).toMatch(/flex:none;white-space:nowrap/)
   })
 
-  it('돌아가기 링크는 메뉴 항목과 같은 글자 크기·안쪽 여백이고(공용 .ep-back의 음수 왼쪽 여백 없음), 사이드바의 링크·버튼 초점 링은 스크롤 상자에 잘리지 않게 안쪽에 그린다', () => {
+  it('돌아가기 링크는 메뉴 항목과 같은 글자 크기·굵기(기본 500)·안쪽 여백이고(공용 .ep-back의 음수 왼쪽 여백 없음), 사이드바의 링크·버튼 초점 링은 스크롤 상자에 잘리지 않게 안쪽에 그린다', () => {
     const back = rule('.ep-menu .ep-menu-back')
     expect(back).toMatch(/margin:0/)
     expect(back).toMatch(/padding:6px 10px/)
     expect(back).toMatch(/font-size:13\.5px/)
+    expect(back).toMatch(/font-weight:500/)
     expect(rule('.ep-menu .ep-menu-back:hover')).toMatch(/background:var\(--muted-bg\);color:var\(--ink\)/)
     expect(rule('.ep-menu button:focus-visible,.ep-menu a:focus-visible')).toMatch(/outline-offset:-2px/)
   })
@@ -648,5 +649,23 @@ describe('episode.css 관리 화면 quieter 계약 (manage-cards G1 4단계)', (
 
   it('[quieter-Q2 점검] 동의 체크 문장(.ep-check)은 이미 12px·400이다 — .episode-app .ep-check(0,2,0)가 .ep-main label(650·13px, 0,1,1)보다 특이도가 높아서라 접두사(.episode-app)를 지우면 650으로 진다', () => {
     expect(rule('.episode-app .ep-check')).toMatch(/font-weight:400/)
+  })
+})
+
+describe('episode.css 관리 화면 polish 계약 (manage-cards G1 5단계)', () => {
+  it('[polish-P3] 개요 바로가기 알약의 라벨은 알약 가운데다(.btn 기본) — justify-content를 덮어 왼쪽으로 붙이면 알약이 하나일 때 1000px 넘는 알약의 오른쪽이 비었다', () => {
+    expect(rule('.episode-app .ep-shortcut')).not.toMatch(/justify-content/)
+  })
+
+  it('[polish-P4] 한 카드에 동작 줄이 이어지면(원고로 세계관 만들기) 둘째 줄은 같은 줄 안 버튼 간격과 같은 8px만 띄운다 — 문단과 동작 사이 16px로는 한 카드의 동작 둘이 따로 노는 묶음으로 보였다(작품 관리 .ep-tab만)', () => {
+    expect(rule('.episode-app .ep-tab .ep-card-actions+.ep-card-actions')).toMatch(/margin-top:8px/)
+  })
+
+  it('[polish-P5] 동의·선택 문장(.ep-check)은 첫 줄에 맞춘다 — 가운데 맞춤(align-items:center)이면 두 줄로 접힌 문장의 체크 상자가 두 줄 사이에 선다. 한 줄일 때 44px 가운데는 위·아래 안쪽 여백이 맡는다', () => {
+    // 같은 선택자 규칙이 둘이라 rule()(첫 규칙만)이 아니라 모두 모은다(첫 규칙: 첫 줄 맞춤 flex-start, 둘째: 44px 높이·안쪽 여백).
+    const check = rules.filter((r) => r.selector === '.episode-app .ep-check').map((r) => r.body).join(';')
+    expect(check).not.toMatch(/align-items:center/)
+    expect(check).toMatch(/min-height:44px/)
+    expect(check).toMatch(/padding-block:11px/)
   })
 })

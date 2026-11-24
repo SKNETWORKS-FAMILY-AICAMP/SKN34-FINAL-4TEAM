@@ -451,6 +451,10 @@ describe('storyfork.css 실시간 인기(.t10) 순위 목록 계약 (홈 / 과 �
     expect(value('.t10h .live', 'background')).toBe('var(--muted-bg)')
     expect(value('.t10h .live', 'color')).toBe('var(--sub)')
   })
+
+  it('[polish] "24시간 조회" 칩(.t10h .live)은 같은 줄 제목(.t10h h2, 800)보다 가벼운 600이다 — 회색 보조 칩이 제목과 같은 800이면 머리 줄이 두 덩어리로 겨뤘다(다른 보조 칩·관리 화면 칩 줄과 같은 600)', () => {
+    expect(value('.t10h .live', 'font-weight')).toBe('600')
+  })
 })
 
 describe('storyfork.css 상단바(.gnb) 계정 아바타 계약', () => {

@@ -2,7 +2,8 @@
 /* 좁은 화면 알림 상자: 직계 버튼은 글 아래 줄에 둔다(inline-flex 그대로면 짧은 글 뒤에 간격 없이 붙었다). */
 @media(max-width:1100px){.ep-main{padding:8px 25px 56px}}@media(max-width:650px){.ep-main{padding:8px 18px 40px}.ep-main h1{font-size:25px}.ep-create{margin:18px 0 35px}.ep-steps{gap:15px;margin-top:38px}.ep-alert{display:block}.ep-alert button{margin-top:10px}.ep-alert>button{display:flex;width:fit-content}.ep-form-footer{align-items:flex-start;flex-direction:column}.ep-form-footer button{align-self:flex-end}.ep-reading article>div{font-size:16px}}
 
-.episode-app .ep-check{min-height:44px;align-items:center}.episode-app .btn.sm{min-height:44px}.ep-reading details>div{white-space:pre-wrap;overflow-wrap:anywhere}/* 이력 탭 제목: 항목(h4)은 묶음(h3)보다 한 단계 낮게 둔다(글자 크기·굵기는 맨 아래 '관리 화면 quieter' 규칙). Tailwind preflight를 쓰지 않아 제목 기본 크기가 브라우저 값(h3 1.17em, h4 1em)이라 크기를 직접 정한다. */.ep-reading :is(h3,h4){margin:20px 0 12px}.ep-reading p{margin:16px 0;line-height:1.8}.episode-app ::selection{background:var(--pri-soft);color:var(--pri-ink)}
+/* 동의·선택 문장(.ep-check)은 첫 줄에 맞춘다(첫 규칙의 align-items:flex-start·입력 위 여백 4px): 가운데 맞춤이면 두 줄로 접힌 문장의 체크 상자가 두 줄 사이에 섰다. 한 줄일 때 44px 가운데는 위·아래 안쪽 여백 11px가 맡고(입력 칸 높이 4+15+3=22px라 한 줄은 44px 그대로) 접힌 문장은 그만큼 커진다. 입력 여백이 0인 AI 집필 요일 칸은 ai-serial.css가 가운데 맞춤을 유지한다. */
+.episode-app .ep-check{min-height:44px;padding-block:11px}.episode-app .btn.sm{min-height:44px}.ep-reading details>div{white-space:pre-wrap;overflow-wrap:anywhere}/* 이력 탭 제목: 항목(h4)은 묶음(h3)보다 한 단계 낮게 둔다(글자 크기·굵기는 맨 아래 '관리 화면 quieter' 규칙). Tailwind preflight를 쓰지 않아 제목 기본 크기가 브라우저 값(h3 1.17em, h4 1em)이라 크기를 직접 정한다. */.ep-reading :is(h3,h4){margin:20px 0 12px}.ep-reading p{margin:16px 0;line-height:1.8}.episode-app ::selection{background:var(--pri-soft);color:var(--pri-ink)}
 /* 관리 화면 틀(작품 관리·세계관 관리 공용): 공용 상단바(Gnb)·푸터 없이 왼쪽 사이드바(.ep-menu)가 상단바 역할을 하고 오른쪽이 내용(.ep-content)이다. 사이드바는 ManageMenu(shared/shell)가 그린다.
    사이드바는 위에서 아래로 맨 위 줄(.ep-menu-top: STORYFORK 로고 + 접기 토글) / 본문(.ep-menu-body: 돌아가기 링크·메뉴(nav)·도구 묶음(.ep-menu-tools, 세계관 관리만 쓴다)) / 맨 아래 줄(.ep-menu-account: 알림·테마·계정)이다.
    901px부터 사이드바는 화면 맨 위(top:0)에 붙어 화면 높이를 다 쓰는 세로 열이고, 위·아래 줄은 늘 보이고 본문만 키가 모자라면 안에서 스크롤한다. 도구 묶음은 margin-top:auto로 본문 아래쪽에 붙는다.
@@ -28,8 +29,8 @@
 .ep-menu-toggle:hover{background:var(--muted-bg);color:var(--ink)}
 .ep-menu-toggle[aria-expanded=true] svg{transform:scaleX(-1)}
 .ep-menu-body{display:grid;gap:12px}
-/* 돌아가기 링크: 메뉴 항목과 같은 글자 크기·안쪽 여백이다(공용 .ep-back의 음수 왼쪽 여백·아래 여백은 없다). */
-.ep-menu .ep-menu-back{margin:0;padding:6px 10px;border-radius:9px;font-size:13.5px;font-weight:650}
+/* 돌아가기 링크: 메뉴 항목과 같은 글자 크기·안쪽 여백·기본 굵기(500)다(공용 .ep-back의 음수 왼쪽 여백·아래 여백은 없다). 650은 고른 항목 하나라 나가는 링크가 지금 있는 탭보다 앞에 서지 않는다. */
+.ep-menu .ep-menu-back{margin:0;padding:6px 10px;border-radius:9px;font-size:13.5px;font-weight:500}
 .ep-menu .ep-menu-back:hover{background:var(--muted-bg);color:var(--ink)}
 /* 도구 묶음(세계관 관리: AI 검토·확정 버전·저장 영역. 작품 관리에는 없다): 기본은 줄바꿈하는 가로 줄이다. 도구 버튼은 보기 메뉴(테두리 없음)보다 무겁지 않게 모든 폭에서 옅은 테두리·600이다(주 버튼 .pri는 그대로). */
 .ep-menu-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
@@ -145,6 +146,8 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-notes p{margin:0;max-width:62ch;color:var(--sub);font-size:14px;line-height:1.8}
 .ep-card-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px}
 .ep-card-actions p{margin:0}
+/* 한 카드에 동작 줄이 이어지면(원고로 세계관 만들기의 '세계관 만들기' 줄 다음 '작업 상태 다시 확인' 줄) 둘째 줄은 같은 줄 안 버튼 간격과 같은 8px만 띄운다(위 16px는 문단과 동작 사이 간격이라 둘이 따로 노는 묶음으로 보였다). 작품 관리(.ep-tab)만이다. */
+.episode-app .ep-tab .ep-card-actions+.ep-card-actions{margin-top:8px}
 /* 세계관 연결의 검색창(.ep-pick-search)과 결과(.ep-pick)는 검색 화면(/search)의 둥근 검색창(.lq)과 세계관 카드(.bk > .cov)를 전역 규칙 그대로 쓴다. 검색창 안 입력은 .ep-main의 일반 입력 규칙(테두리·안쪽 여백)을 걷어 낸다. */
 .episode-app .ep-pick-search{margin-top:16px}
 .episode-app .ep-main .ep-pick-search input[type=search]{margin:0;padding:0;border:0;border-radius:0;background:none;outline:none}
@@ -235,7 +238,7 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .episode-app .ep-brief .ep-cover{border-radius:10px;box-shadow:var(--sh)}
 .episode-app .ep-brief .stats b{font-weight:600}
 
-/* 작품 관리 개요 대시보드(R6): 지표 카드·최근 발행·바로가기. 구획 사이는 구획 제목 위가 아래보다 넓게 32px(다른 탭의 구획 간격과 같다). 글자 상태(공개 전·집계 없음·불러오지 못했어요)는 숫자 칸보다 작은 보조 글이고, 값 아래 보조 줄(.ep-metric-hint: 총 글자 수의 기준)은 이름(dt)과 같은 12px이다. 칸 안 줄은 위에서부터 쌓여(align-content:start) 보조 줄이 있는 칸 때문에 높이를 맞춘 다른 칸의 값이 아래로 밀리지 않는다(세계관 관리 개요의 지표 칸도 같은 규칙을 쓴다). 지표 카드는 줄바꿈 flex라 줄 끝에 남은 카드가 그 줄을 채운다(카드 수가 5~7로 바뀌어 고정 열 격자는 어느 폭에서든 홀로 남는 카드가 생겼다). 1072px에서 7장이 한 줄이다. 650px 이하는 2열 격자라 홀수 개수의 마지막 칸도 반폭이다(flex면 마지막 칸이 한 줄을 다 차지했다). 바로가기 알약은 지표보다 무겁지 않게 옅은 테두리·600이고, 바로가기 격자는 auto-fit이라 버튼 수만큼 같은 폭으로 줄을 채운다(auto-fill이면 버튼 둘이 줄의 40%만 차지하고 나머지가 비었다). 최근 발행 이력과 바로가기는 이력·세계관 탭과 같은 카드(tcard ep-card)다(카드 면·테두리는 아래 '작품 관리 탭 카드' 규칙). */
+/* 작품 관리 개요 대시보드(R6): 지표 카드·최근 발행·바로가기. 구획 사이는 구획 제목 위가 아래보다 넓게 32px(다른 탭의 구획 간격과 같다). 글자 상태(공개 전·집계 없음·불러오지 못했어요)는 숫자 칸보다 작은 보조 글이고, 값 아래 보조 줄(.ep-metric-hint: 총 글자 수의 기준)은 이름(dt)과 같은 12px이다. 칸 안 줄은 위에서부터 쌓여(align-content:start) 보조 줄이 있는 칸 때문에 높이를 맞춘 다른 칸의 값이 아래로 밀리지 않는다(세계관 관리 개요의 지표 칸도 같은 규칙을 쓴다). 지표 카드는 줄바꿈 flex라 줄 끝에 남은 카드가 그 줄을 채운다(카드 수가 5~7로 바뀌어 고정 열 격자는 어느 폭에서든 홀로 남는 카드가 생겼다). 1072px에서 7장이 한 줄이다. 650px 이하는 2열 격자라 홀수 개수의 마지막 칸도 반폭이다(flex면 마지막 칸이 한 줄을 다 차지했다). 바로가기 알약은 지표보다 무겁지 않게 옅은 테두리·600이고 라벨은 알약 가운데다(.btn 기본). 바로가기 격자는 auto-fit이라 버튼 수만큼 같은 폭으로 줄을 채운다(auto-fill이면 버튼 둘이 줄의 40%만 차지하고 나머지가 비었다). 최근 발행 이력과 바로가기는 이력·세계관 탭과 같은 카드(tcard ep-card)다(카드 면·테두리는 아래 '작품 관리 탭 카드' 규칙). */
 .ep-dash{display:grid;gap:32px;margin-top:8px}
 .ep-dash section>h3+p{margin-top:12px}
 .ep-metrics{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 0}
@@ -246,7 +249,7 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-metrics dd.ep-metric-hint{font-size:12px;font-weight:400;color:var(--sub)}
 @media(max-width:650px){.ep-tab .ep-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
 .ep-shortcuts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px;margin-top:12px}
-.episode-app .ep-shortcut{justify-content:flex-start;border-color:var(--line);font-weight:600}
+.episode-app .ep-shortcut{border-color:var(--line);font-weight:600}
 /* 개요 최근 발행 이력과 이력 탭 발행 이력의 줄은 두 칸이다: 회차·동작(·저장 버전) 글 덩어리가 왼쪽, 시각(<time>)이 오른쪽 끝이다(한 줄 글(block)이면 카드 오른쪽 절반이 비었다). 글 덩어리는 flex의 이름 없는 칸이고 구분점(·)은 글 안에만 있어 시각 앞에 매달리지 않는다(시각 앞에 구분점을 두면 gap 때문에 매달려 보였다). 한 줄에 못 들어가면 시각이 다음 줄로 내려간다(flex-wrap). 운영 설정의 이력 줄(<strong>+<time>)은 그대로 왼쪽부터 쌓인다. 마지막 줄 아래 선은 구획 구분선처럼 보여 없앤다(개요와, 카드 테두리와 겹치는 이력 탭). */
 .ep-dash .ep-settings-history li,.ep-history .ep-settings-history li{justify-content:space-between}
 .ep-dash .ep-settings-history li:last-child{border-bottom:0}
