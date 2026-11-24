@@ -16,7 +16,7 @@ const model = vi.hoisted(() => ({
   deleteBlocker: '', deleteBlockerOf: vi.fn((e: { inherited: boolean; publishedVersionId: string | null }) => e.inherited ? '원작 기준 회차는 삭제할 수 없어요.' : e.publishedVersionId ? '발행본이 있는 회차는 삭제할 수 없어요.' : ''),
   addImage: vi.fn().mockResolvedValue(true), orderLookup: null as null | { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: { number: number; candidateNumbers: number[]; reasons: string[]; executable: false } },
   checkOrder: vi.fn(), deleteDraft: vi.fn(),
-  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), refresh: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
+  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), refresh: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), loadVersion: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
   retrySave: vi.fn(), expired: false,
   create: vi.fn().mockResolvedValue(true), select: vi.fn<(e: { number: number }) => boolean>(() => true),
   cancel: vi.fn(), loadPublicationHistory: vi.fn(), historyLoading: false, historyError: '', publicationHistory: null as null | unknown[],
@@ -676,11 +676,46 @@ it('저장하지 않은 변경이나 발행본이 없으면 해당 배지를 그
   expect(graph().textContent).not.toContain('발행본')
 })
 
-it('그래프의 저장 버전 노드를 누르면 기존 버전 시트가 열리고 그 버전이 선택돼 있다', () => {
+// 편집기 내용이 저장 버전과 같으면 현재 위치가 그 버전으로 옮겨 가고, 한 글자라도 고치면 작업 초안으로 돌아온다(#730 후속).
+it('편집기 내용이 저장 버전과 같으면 그 버전 노드가 현재이고 고치면 작업 초안이 현재다', () => {
+  model.active = { ...originalActive, versions: [savedVersion('v1', '저장 원고'), { ...savedVersion('v2', '다른 원고'), title: '다른 저장본' }] }
+  model.draft = { ...originalDraft, title: '저장본', body: '저장 원고' }
+  const { rerender } = renderStudio()
+  const rows = () => within(graph()).getAllByRole('listitem')
+  expect(rows().map(r => r.className)).toEqual(['graph-row draft', 'graph-row version', 'graph-row version head'])
+  expect(rows()[2].textContent).toContain('현재')
+  expect(rows()[0].textContent).not.toContain('현재')
+  model.draft = { ...originalDraft, title: '저장본', body: '고친 원고' }
+  rerender(<WritingStudio id="work-id" />)
+  expect(rows().map(r => r.className)).toEqual(['graph-row draft head', 'graph-row version', 'graph-row version'])
+  expect(rows()[0].textContent).toContain('현재')
+  expect(rows()[2].textContent).not.toContain('현재')
+})
+
+// #730 그래프의 저장 버전 노드는 편집할 수 있는 회차에서 시트를 열지 않고 그 버전을 작업 초안에 불러온다(복원·공개·버전 저장은 하지 않는다).
+// 불러온 제목·본문, 저장하지 않은 입력의 확인, 안내는 ViewModel이 하므로 useWritingViewModel.test가 확인한다(여기서는 ViewModel을 대역으로 쓴다).
+it('그래프의 저장 버전 노드를 누르면 시트를 열지 않고 그 버전을 작업 초안에 불러온다', () => {
+  renderStudio()
+  fireEvent.click(within(graph()).getByRole('button', { name: /^버전 1 · 저장본/ }))
+  expect(model.loadVersion).toHaveBeenCalledExactlyOnceWith('v1')
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(model.restore).not.toHaveBeenCalled()
+  expect(model.publish).not.toHaveBeenCalled()
+  expect(model.save).not.toHaveBeenCalled()
+})
+
+// 편집이 잠긴 회차는 본문을 바꾸지 않고 지금까지처럼 기존 버전 시트로 그 버전을 미리보기만 보인다(비교·복원·공개는 시트의 기존 기능).
+it.each([
+  ['원작 기준 회차', () => { model.active = { ...originalActive, inherited: true } }],
+  ['AI 자율 연재로 잠긴 회차', () => { serial.locked = true; model.active = { ...originalActive, number: 2 } }],
+  ['운영자 열람 모드', () => { operator.viewOnly = true }],
+])('%s에서는 그래프의 저장 버전 노드가 본문을 바꾸지 않고 기존 버전 시트를 그 버전으로 연다', (_lock, lock) => {
+  lock()
   renderStudio()
   const node = within(graph()).getByRole('button', { name: /^버전 1 · 저장본/ })
   expect(node.getAttribute('aria-current')).toBeNull()
   fireEvent.click(node)
+  expect(model.loadVersion).not.toHaveBeenCalled()
   expect(screen.getByRole('dialog', { name: '원고 저장본 · 공개' })).toBeTruthy()
   expect(screen.getByLabelText('검토할 저장 버전')).toHaveProperty('value', 'v1')
   expect(screen.getByRole('heading', { level: 3, name: '저장본' })).toBeTruthy()
@@ -1379,7 +1414,8 @@ it('회차 설정 시트에서 보낸 요청의 실패와 완료는 시트 안�
 
 it('저장 버전 미리보기는 키보드로 내려 읽을 수 있는 이름 있는 영역이다', () => {
   renderStudio()
-  fireEvent.click(within(graph()).getByRole('button', { name: /^버전 1 · 저장본/ }))
+  openVersions()
+  fireEvent.change(screen.getByLabelText('검토할 저장 버전'), { target: { value: 'v1' } })
   const preview = screen.getByRole('region', { name: '선택한 저장 버전 원고' })
   expect(preview.tabIndex).toBe(0)
   expect(preview.className).toContain('writing-preview')
