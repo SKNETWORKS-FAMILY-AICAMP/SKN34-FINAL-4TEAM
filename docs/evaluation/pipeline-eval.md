@@ -56,7 +56,7 @@
 | 항목 통과율 | 남은 항목(대상·진술·관계) ÷ 제안(남은 + 빠진). 빠진 항목은 추출 결과의 `skipped`(코드별 건수) |
 | **인용 통과율** | 1 − (인용·이름이 원문과 맞지 않아 빠진 항목 `INVALID_OR_AMBIGUOUS_QUOTE`·`INVALID_MENTION_NAME`) ÷ 제안. 한 대상이 떨어져 그것을 가리키던 진술이 연쇄로 빠진 것(`UNKNOWN_ENTITY` 등)은 항목 통과율에만 든다. 인지 대상 하나만 뺀 `KNOWLEDGE_NOT_EXPLICIT`·`INVALID_KNOWER`는 항목이 빠진 것이 아니라 분모에서 뺀다 |
 | **평가 인물 포함률** | 평가 문항(① 대사·③ 나레이션·③ 독백)에 나오는 인물 이름 중 파이프라인 인물 카드에 이은 비율. 제목·별칭과 공백을 무시한 완전 일치로 잇고, 카드가 없거나 같은 이름 카드가 둘(동명이인)이면 '인물 없음'으로 센다(표기가 다른 같은 인물도 없음으로 센다) |
-| 재현율 | **아직 없다**: #824(`app/evaluation/extraction.py`)가 develop에 병합되면 정답표 대비 재현율을 더한다(남은 일) |
+| 재현율 | **아직 없다**: #824의 `app/evaluation/extraction.py`(`score`·`recall`)로 정답표 대비 재현율을 낼 수 있지만 정답표가 이 작품들의 회차에 없다(`eval/extraction`의 ocx 빌더로 만든다, 남은 일) |
 
 ### 3.2 페르소나(코드 채점 가능한 범위만)
 
@@ -316,6 +316,6 @@ $RUN report --reveal first --tag paid-first --vs-tag paid-none
 ## 9. 남은 일
 
 - **#839 수정 뒤 같은 명령을 새 태그로 다시 돌려 기준선(§6.1)과 견준다**: `build`(추출 프롬프트·코드가 바뀌면 캐시 열쇠가 달라져 ①이 다시 돌아 약 0.7달러·20분) → `run --reveal none --tag fix1-none --limit-usd 5`(② 약 0.3~1.6달러: 돌 수 있는 문항이 늘수록 어림에 가깝다) → `report --reveal none --tag fix1-none --vs-tag paid-none`. 먼저 볼 지표는 인물 카드의 SOUL 없음·IDENTITY가 이름뿐인 비율, `docs_missing` 가용률, 평가 인물 중 ready 수, 그리고 `vsOther`(두 실행이 모두 돈 공통 문항의 점수 변화)다. 세계관은 한 번 추출한 결과라 재추출 분산(§7)을 감안한다.
-- **#824 재현율**: `app/evaluation/extraction.py`가 develop에 병합되면 §3.1에 정답표 대비 재현율을 더한다(공개 세트의 `extraction.extract` 정답표를 이 작품들의 회차에 맞춰 재사용).
+- **#824 재현율**: #824가 병합돼 `app/evaluation/extraction.py`(`score`·`recall`·`quote_ok`)와 정답표 빌더 `eval/extraction`(ocx, 금액 0)이 있다. 이 평가의 14편 92회차에 정답표(회차당 두 번 호출, 약 184호출)를 만들어 파이프라인 추출 결과를 `score`로 채점하면 §3.1에 재현율을 더할 수 있다.
 - **추출 실패·인용 통과율 편차 조사**: c02·c04의 인용 통과율과 `NO_VERIFIED_MENTION` 5회차의 원인은 추출 개선 쪽 후속 후보다.
 - Content 실제 업로드 결과와 이 평가 변환의 자동 비교는 §8을 사람이 한 번 한 뒤 필요하면 만든다.
