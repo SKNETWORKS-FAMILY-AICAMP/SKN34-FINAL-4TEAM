@@ -712,6 +712,9 @@ def _main_events(update: dict) -> list[ServerSentEvent]:
 async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIterator[ServerSentEvent]:
     """같은 그래프를 흘려 plan → (started → step)* → done 이벤트를 보낸다.
 
+    판정·도구·업무 Agent의 바깥 작업(Content MCP 호출·Retrieval·웹 검색)마다 activity {id, label, target, status, feature}가 온다(#784).
+    같은 id로 running → done|failed이며 표시용이고 저장하지 않는다. 쓰기 도구는 승인 뒤 실제 호출할 때만 알린다.
+
     메인 모델이 글을 쓰는 동안에는 사이사이 answer {delta}가 온다(#618). delta가 null이면 받은 글을 비운다. 표시용이고 저장하지 않으며
     완성된 답은 done의 message다.
 
@@ -736,6 +739,8 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
                 if mode == 'custom':
                     if 'started' in update:  # 도구가 입력을 다 받고 실제로 실행하기 직전에 알린 기능
                         yield ServerSentEvent(event='started', data={'feature': update['started']})
+                    elif 'activity' in update:  # 진행 목록 한 줄(#784): 판정·도구·업무 Agent의 바깥 작업. 같은 id로 running → done|failed
+                        yield ServerSentEvent(event='activity', data=update['activity'])
                     elif 'answer' in update:  # 메인 모델이 쓰는 중인 답변 조각(agent.AnswerStream)
                         yield ServerSentEvent(event='answer', data={'delta': update['answer']})
                     else:  # 장면 에이전트가 턴이 끝날 때 낸 그때까지의 결과

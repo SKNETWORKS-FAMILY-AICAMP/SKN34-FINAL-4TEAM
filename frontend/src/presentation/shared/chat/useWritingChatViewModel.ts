@@ -3,13 +3,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../app/appContainer'
 import type { SimulationStart } from '../../../domain/entities/characterSimulation'
 import { attachmentKind, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
-import { streamedAnswer, type ChatBasis, type ChatEvent, type ChatFeature, type ChatFeedback, type ChatPage, type ChatSendBody, type ChatSession, type ChatStep, type ChatStepInputs, type ChatTurn, type SceneAction } from '../../../domain/entities/writingChat'
+import { streamedAnswer, trackActivity, type ChatActivity, type ChatBasis, type ChatEvent, type ChatFeature, type ChatFeedback, type ChatPage, type ChatSendBody, type ChatSession, type ChatStep, type ChatStepInputs, type ChatTurn, type SceneAction } from '../../../domain/entities/writingChat'
 import { readAttachments } from './readAttachments'
 
 /** 지금 흐르는 SSE 턴. 끝나면 이력을 다시 읽어 세이버에 저장된 내용으로 바꾼다. decision은 승인·거절 응답(장면 조작이 아닌 이어가기)이다. */
-/** answer: 쓰는 중인 답변 본문(#618). running: 시작(started)했지만 결과(step)가 아직 없는 기능들. 병렬 호출(#474)이면 둘 이상이다. */
-export type LiveTurn = { request: string; answer: string; steps: ChatStep[]; running: ChatFeature[]; editIndex?: number; resumed?: boolean; decision?: boolean; attachments?: ChatTurnAttachment[] }
+/** answer: 쓰는 중인 답변 본문(#618). running: 시작(started)했지만 결과(step)가 아직 없는 기능들. 병렬 호출(#474)이면 둘 이상이다. activities: 진행 목록(#784). */
+export type LiveTurn = { request: string; answer: string; steps: ChatStep[]; running: ChatFeature[]; activities: ChatActivity[]; editIndex?: number; resumed?: boolean; decision?: boolean; attachments?: ChatTurnAttachment[] }
 
+/** 진행 목록 기록에서 index번 턴부터 뒤를 버린다(고쳐 보내기·지우기). */
+const before = (log: Record<number, ChatActivity[]>, index: number) => Object.fromEntries(Object.entries(log).filter(([turn]) => Number(turn) < index))
 const message = (error: unknown, fallback: string) => (error instanceof Error && error.message !== 'Request cancelled' ? error.message : fallback)
 
 /**
@@ -28,6 +30,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const [title, setTitle] = useState('')
   const [turns, setTurns] = useState<ChatTurn[]>([])
   const [live, setLive] = useState<LiveTurn | null>(null)
+  // 끝난 턴의 진행 목록(#784, 턴 번호별). 지금 대화에서만 보이고 저장하지 않아 대화를 바꾸거나 새로 고치면 사라진다.
+  const [activityLog, setActivityLog] = useState<Record<number, ChatActivity[]>>({})
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [inputError, setInputError] = useState('')
@@ -84,10 +88,11 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   }, [refreshSessions])
 
   useEffect(() => { if (threadId && !active.current) void load(threadId) }, [threadId, load])
+  useEffect(() => setActivityLog({}), [threadId, workId])
 
-  const apply = (event: ChatEvent) => setLive((previous) => {
+  const apply = (event: ChatEvent, activities: ChatActivity[]) => setLive((previous) => {
     if (!previous) return previous
-    const turn = { ...previous, answer: streamedAnswer(previous.answer, event) }
+    const turn = { ...previous, answer: streamedAnswer(previous.answer, event), activities }
     if (event.type === 'plan' || event.type === 'waiting') return { ...turn, steps: event.steps, running: [] }
     if (event.type === 'started') return { ...turn, running: [...turn.running, event.feature] }
     // content_action(#554)은 판정이 계획에 올리지 않고 한 턴에 여러 번일 수 있어 단계마다 덧붙인다.
@@ -123,7 +128,10 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     const decision = 'resume' in input && !input.resume.scene
     // 첨부 칩: 새 요청은 이번에 보낸 파일 이름, 이어가기는 멈춘 턴의 칩을 그대로 둔다(그 턴의 내 메시지가 이 줄로 바뀐다).
     const attachments = resumed ? turns.at(-1)?.attachments : 'attachments' in input ? input.attachments?.map(({ name, mediaType }) => ({ name, kind: attachmentKind(mediaType) })) : undefined
-    setLive({ request, answer: '', steps: resumed ? turns.at(-1)?.reply?.steps ?? [] : [], running: [], editIndex, resumed, decision, attachments })
+    // 이 턴의 번호. 이어가기는 멈춘 턴의 진행 목록에 이어 붙인다.
+    const at = editIndex ?? (resumed ? turns.length - 1 : turns.length)
+    let activities = resumed ? activityLog[at] ?? [] : []
+    setLive({ request, answer: '', steps: resumed ? turns.at(-1)?.reply?.steps ?? [] : [], running: [], activities, editIndex, resumed, decision, attachments })
     let ok = true
     let sceneWaits = false
     let id = threadId
@@ -142,7 +150,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
           else if (event.step.task === 'revise_plan' || tool === 'story_plan_create' || tool === 'story_plan_update') onPlanApplied?.()
           else if (event.step.feature !== 'content_action') onApplied?.(event.step.applied.episode) // 작품 정보 수정(work_update)은 원고를 바꾸지 않는다(#639)
         }
-        apply(event)
+        activities = trackActivity(activities, event)
+        apply(event, activities)
       }, controller.signal, editIndex)
     } catch (failure) {
       ok = false
@@ -153,6 +162,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
         if (id) await load(id)
         // 이력을 읽는 사이 작품이 바뀌었으면 뒷정리는 새 작품의 상태를 건드리지 않는다(옛 요청이 sceneTicket을 올려 새 작품의 멈춘 장면이 저절로 재생되던 문제).
         if (generation.current === owner) {
+          setActivityLog((log) => ({ ...before(log, at), [at]: activities }))
           setLive(null); setPending(false)
           void refreshSessions()
           // 실패한 턴은 알리지 않는다: 무대가 저절로 다음 턴을 보내지 않고 작가가 다시 시도한다.
@@ -178,7 +188,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const awaiting = waiting?.awaitingScene === 'character_simulation' ? 'scene' as const : waiting?.awaitingApproval === 'character_simulation' ? 'approval' as const : null
 
   return {
-    sessions, threadId, title, turns, live, waiting, pending, error, inputError, lockedReason,
+    sessions, threadId, title, turns, live, activityLog, waiting, pending, error, inputError, lockedReason,
     available: !!useCase && !!workId && !!basis, basisEpisode: basis?.episode ?? null,
     // 결과를 반영할 회차(작가가 연 회차). 근거 회차와 다를 수 있다(5화 초안은 4화까지를 근거로 5화에 반영한다).
     targetEpisode: basis?.targetEpisode ?? basis?.episode ?? null,
@@ -202,6 +212,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     sceneAction: (action: SceneAction) => stream(turns.at(-1)?.request ?? '', { resume: { approved: true, scene: action } }),
     deleteFrom: (index: number) => change(async () => {
       await useCase!.truncate(workId!, threadId!, index)
+      setActivityLog((log) => before(log, index))
       if (index === 0) { current.current = null; setThreadId(null); setTurns([]); setTitle('') } else await load(threadId!)
       await refreshSessions()
     }, '메시지를 지우지 못했어요.'),

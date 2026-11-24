@@ -1309,3 +1309,35 @@ it('한 턴의 웹 고증과 공개 세계관 참고는 진행 표시에서 각�
   const progress = screen.getByRole('status', { name: 'AI 진행 상황' })
   expect(within(progress).getAllByText(/./, { selector: '.chat-step-name' }).map((e) => e.textContent)).toEqual(['고증 조사', '공개 세계관 참고'])
 })
+
+
+it('진행 목록(activity)은 같은 id 줄을 갱신하고 실패를 숨기지 않으며, 턴이 끝나면 이 대화에서 "작업 n개"로 접어 남긴다(#784)', async () => {
+  openThread([])
+  let emit!: (event: ChatEvent) => void
+  let finish!: () => void
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    emit = onEvent
+    await new Promise<void>((resolve) => { finish = resolve })
+  })
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '3화 확인해 줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  const run = async (event: ChatEvent) => { await act(async () => { emit(event) }) }
+  const state = (label: string) => screen.getByText(label).closest('li')?.getAttribute('data-state')
+  await run({ type: 'activity', activity: { id: 'a', label: '회차 읽기', target: '3화', status: 'running' } })
+  expect(state('회차 읽기')).toBe('run')
+  expect(screen.getByText('3화')).toBeTruthy()
+  await run({ type: 'activity', activity: { id: 'a', label: '회차 읽기', target: '3화', status: 'done' } })
+  await run({ type: 'activity', activity: { id: 'b', label: '웹 검색', status: 'failed' } })
+  expect([state('회차 읽기'), state('웹 검색')]).toEqual(['done', 'fail'])
+  expect(screen.getAllByText('회차 읽기')).toHaveLength(1)
+  const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '3화를 확인했어요.' }
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '3화 확인해 줘', reply }] })
+  await act(async () => { emit({ type: 'done', reply }); finish() })
+  expect(await screen.findByText('3화를 확인했어요.')).toBeTruthy()
+  const log = screen.getByText('작업 2개').closest('details')!
+  expect(log.open).toBe(false)
+  expect(within(log).getByText('웹 검색').closest('li')?.getAttribute('data-state')).toBe('fail')
+})

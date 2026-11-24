@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, stepName, lastScene, pendingChanges, rangePreview, selectionNote, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, type ChatEvent, type ChatStatus } from '../entities/writingChat'
+import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, stepName, lastScene, pendingChanges, rangePreview, selectionNote, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, trackActivity, type ChatEvent, type ChatStatus } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -598,4 +598,14 @@ it('고증 조사의 platform 단계는 공개 세계관 참고로 보이고, ta
   expect(stepName({ feature: 'research', task: 'web', status: 'failed', error: '실패' })).toBe('고증 조사')
   expect(stepName({ feature: 'web_research', status: 'failed', error: '실패' })).toBe('고증 조사')
   expect(replyText({ status: 'failed', missingInputs: [], steps: [platform] })).toBe('[공개 세계관 참고] 실패: 실패')
+})
+
+
+describe('trackActivity(#784)', () => {
+  const row = (id: string, status: 'running' | 'done' | 'failed', label = '세계관 읽기'): ChatEvent => ({ type: 'activity', activity: { id, label, status } })
+  it('같은 id는 그 줄의 상태만 바꾸고 새 id는 끝에 덧붙인다. 다른 이벤트는 목록을 바꾸지 않는다', () => {
+    const list = [row('a', 'running'), row('b', 'running', '웹 검색'), row('a', 'done'), { type: 'answer', delta: '글' } as ChatEvent, row('b', 'failed', '웹 검색')]
+      .reduce(trackActivity, [])
+    expect(list).toEqual([{ id: 'a', label: '세계관 읽기', status: 'done' }, { id: 'b', label: '웹 검색', status: 'failed' }])
+  })
 })

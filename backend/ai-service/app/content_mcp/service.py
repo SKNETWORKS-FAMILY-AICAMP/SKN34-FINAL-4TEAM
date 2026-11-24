@@ -17,6 +17,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
 
+from app import agent_runtime
 from app.content_mcp.errors import ContentMcpFailure
 
 AUTHORIZATION: ContextVar[str] = ContextVar('content_mcp_authorization', default='')
@@ -292,8 +293,33 @@ async def _list(url: str, authorization: str):
         return await server.list_tools()
 
 
+# 진행 목록(#784)에 보일 도구 이름. 메인 에이전트 도구 10개의 문구(승인 카드 제목)는 orchestration.mcp_tools가 여기서 가져간다.
+LABELS = {'world_studio_read': '세계관 읽기', 'episode_read': '회차 읽기', 'episode_list': '회차 목록 읽기', 'work_read': '작품 읽기',
+          'story_plan_list': '계획 목록 읽기', 'story_plan_read': '계획 읽기', 'world_studio_edit_draft': '세계관 설정 카드 수정',
+          'work_update': '작품 정보 수정', 'story_plan_create': '플롯·장면 계획 추가', 'story_plan_update': '플롯·장면 계획 수정',
+          'episode_update_draft': '원고 반영', 'work_context_read': '작품 문맥 읽기', 'work_inherited_world': '이어받은 세계관 읽기',
+          'world_studio_list': '세계관 목록 읽기', 'world_studio_public_list': '공개 세계관 목록 읽기', 'world_studio_public_read': '공개 세계관 읽기'}
+
+
+def _target(arguments: dict) -> str | None:
+    """진행 목록의 짧은 대상: 회차 번호나 수정하는 카드 이름. id·본문 같은 인자 원문은 보이지 않는다."""
+    number = arguments.get('number', arguments.get('episode'))
+    if str(number).isdigit():
+        return f'{number}화'
+    request = arguments.get('request')
+    cards = request.get('cards') if isinstance(request, dict) else None
+    if not isinstance(cards, list):
+        return None
+    return ', '.join(c['title'] for c in cards if isinstance(c, dict) and isinstance(c.get('title'), str)) or None
+
+
 def call(tool: str, arguments: dict) -> dict:
-    """도구 하나를 호출하고 JSON 결과를 돌려준다. 도구 오류는 Content의 상태·detail을 유지한다."""
+    """도구 하나를 호출하고 JSON 결과를 돌려준다. 도구 오류는 Content의 상태·detail을 유지한다. 호출마다 진행 목록 한 줄을 알린다(#784)."""
+    with agent_runtime.activity(LABELS.get(tool, '작품 자료 읽기'), _target(arguments)):
+        return _call(tool, arguments)
+
+
+def _call(tool: str, arguments: dict) -> dict:
     base, authorization = os.environ.get('CONTENT_SERVICE_BASE_URL'), AUTHORIZATION.get()
     if not base:
         raise ContentMcpFailure(503, 'Content MCP 설정이 필요합니다.')

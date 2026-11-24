@@ -146,6 +146,8 @@ const events = {
   started: z.object({ feature: featureKey }).transform((d) => ({ type: 'started' as const, ...d })),
   step: step.transform((s) => ({ type: 'step' as const, step: s })),
   answer: z.object({ delta: z.string().nullable() }).transform((d) => ({ type: 'answer' as const, ...d })),
+  activity: z.object({ id: z.string(), label: z.string(), target: z.string().nullish(), status: z.enum(['running', 'done', 'failed']) })
+    .transform((activity) => ({ type: 'activity' as const, activity })),
   waiting: z.object({ steps: z.array(step), missingInputs: z.array(featureKey).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish(), pendingAction: pendingAction.nullish() })
     .transform((d) => ({ type: 'waiting' as const, ...d })),
   done: reply.transform((r) => ({ type: 'done' as const, reply: r })),
@@ -171,7 +173,9 @@ function parse(block: string): ChatEvent | null {
   let value: unknown
   try { value = JSON.parse(data.join('\n')) } catch { value = undefined }
   const parsed = schema.safeParse(value)
-  return parsed.success ? parsed.data : { type: 'error', message: '서버 응답 형식을 확인할 수 없어요.' }
+  if (parsed.success) return parsed.data
+  // 진행 목록(#784)은 표시용이라 형식이 어긋난 줄만 버린다. 턴 결과(plan·step·done 등)의 형식 오류는 숨기지 않는다.
+  return name === 'activity' ? null : { type: 'error', message: '서버 응답 형식을 확인할 수 없어요.' }
 }
 
 /** 집필 AI 채팅 세션 API. 일반 요청은 HttpEpisodeRepository.request(Bearer·CSRF·오류 문구)를, 전송은 fetch 스트림을 쓴다. */

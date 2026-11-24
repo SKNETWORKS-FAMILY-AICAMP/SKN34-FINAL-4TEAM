@@ -133,6 +133,13 @@
 .chat-steps [data-state="fail"] .chat-step-dot { border-color: var(--danger); background: var(--danger); }
 .chat-step-name { font-weight: 600; }
 .chat-step-state { color: var(--tsub); font-size: 12px; font-variant-numeric: tabular-nums; }
+/* 진행 목록(#784): 단계 목록과 같은 점·상태 글자를 쓰고, 단계 아래에서 한 단 작게 둔다. */
+.chat-steps + div > .chat-activities { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line2); }
+.chat-activities li { font-size: 12.5px; }
+.chat-activities .chat-step-name { min-width: 0; overflow-wrap: anywhere; }
+.chat-activity-target { margin-left: 6px; color: var(--tsub); }
+.chat-activity-log { margin-bottom: 4px; }
+.chat-activity-log > .chat-activities { margin-top: 8px; }
 .chat-steps [data-state="run"] .chat-step-state { color: var(--pri-ink, var(--tacc)); font-weight: 700; }
 .chat-steps [data-state="fail"] .chat-step-state { color: var(--danger); font-weight: 700; }
 .chat-step-text { grid-column: 2 / -1; margin: 2px 0 4px; color: var(--tfg); line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }

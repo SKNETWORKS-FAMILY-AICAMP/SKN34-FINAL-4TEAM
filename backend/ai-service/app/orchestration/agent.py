@@ -37,7 +37,7 @@ from langgraph.errors import GraphInterrupt
 from langgraph.types import Command
 from openai import OpenAIError
 
-from app import tracing
+from app import agent_runtime, tracing
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
 from app.orchestration import mcp_tools, tools
@@ -102,7 +102,7 @@ class DecisionGuardMiddleware(AgentMiddleware):
     @hook_config(can_jump_to=['end'])
     def before_agent(self, state, runtime) -> dict[str, Any]:
         turn, asked = runtime.context, runtime.context['decide']
-        with tracing.observe('decision_guard', input={'request': asked['request']}) as span:
+        with agent_runtime.activity('요청 확인'), tracing.observe('decision_guard', input={'request': asked['request']}) as span:
             decided = intent.judge(asked['request'], asked['operation'], asked['materials'], asked['history'])
             span.update(output=decided.model_dump())
         done = {'decision': {**decided.model_dump(), 'operation': asked['operation']}}  # operation은 UI가 기능을 골랐는지(Content 도구 노출 판단)

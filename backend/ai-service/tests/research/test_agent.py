@@ -46,3 +46,17 @@ def test_incomplete_response_is_502(monkeypatch):
     with pytest.raises(ResearchFailure) as error:
         agent.search(ResearchRequest(question='증기기관차는 1890년에 있었나?'))
     assert error.value.status == 502
+
+
+def test_search_reports_a_web_search_activity_and_its_failure(monkeypatch):
+    from app import agent_runtime
+    seen = []
+    monkeypatch.setattr(agent_runtime, 'get_stream_writer', lambda: seen.append)
+    fake_openai(monkeypatch, [search_call()], EMPTY)
+    agent.search(ResearchRequest(question='조선 후기 화폐'))
+    fake_openai(monkeypatch, [], EMPTY)
+    with pytest.raises(ResearchFailure):
+        agent.search(ResearchRequest(question='조선 후기 화폐'))
+    assert [(s['activity']['label'], s['activity']['target'], s['activity']['status']) for s in seen] == [
+        ('웹 검색', '조선 후기 화폐', 'running'), ('웹 검색', '조선 후기 화폐', 'done'),
+        ('웹 검색', '조선 후기 화폐', 'running'), ('웹 검색', '조선 후기 화폐', 'failed')]

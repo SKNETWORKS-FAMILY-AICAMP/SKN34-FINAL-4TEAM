@@ -6,6 +6,9 @@ from uuid import uuid4
 import pytest
 from langchain.agents.middleware import HumanInTheLoopMiddleware
 
+import json
+
+from app.content_mcp import service as content_mcp
 from app.content_mcp.errors import ContentMcpFailure
 from app.intent.models import DecisionResult
 from app.orchestration import agent, mcp_tools, service, tools
@@ -18,6 +21,7 @@ from traced import named, shown
 from .stubs import QA, WEB, Planned, Step, fake_agents, fake_main, fake_scene, plan
 
 TARGET = {'workId': 'work', 'episode': 3}
+REAL_CALL = content_mcp.call  # fake_agents가 바꾸기 전의 실제 MCP 호출
 PAGE = {'path': '/worldstudio/w1?card=k', 'kind': 'world', 'worldId': 'w1', 'cardId': 'k', 'view': 'cards',
         'content': {'title': '카엘', 'body': '북문을 지키는 기사. 말이 짧다.', 'unsaved': True}}
 CARD = {'id': 'k', 'title': '카엘', 'body': '북문을 지키는 기사', 'cardType': 'character', 'areaCode': 'society', 'lifecycle': 'active', 'visibility': 'public',
@@ -57,9 +61,11 @@ def resume(thread, approved):
     return asyncio.run(service.run(data, 'Bearer user'))
 
 
-def stream(thread, **body):
+def stream(thread, activities=False, **body):
+    """SSE 이벤트 (이름, data). 진행 목록(activity, #784)은 activities=True일 때만 남긴다."""
     async def collect():
-        return [(e.event, e.data) async for e in service.stream(OrchestrationRequest(conversation={'threadId': thread, 'scope': SCOPE}, **body), 'Bearer user')]
+        return [(e.event, e.data) async for e in service.stream(OrchestrationRequest(conversation={'threadId': thread, 'scope': SCOPE}, **body), 'Bearer user')
+                if activities or e.event != 'activity']
     return asyncio.run(collect())
 
 
@@ -624,3 +630,21 @@ def test_the_write_approval_coexists_with_an_input_wait_and_the_outer_apply_appr
     assert [(s.feature, s.status) for s in approval.steps] == [('content_action', 'completed'), ('research', 'completed'), ('writing_editing', 'completed')]
     done = resume(thread, True)
     assert done.status == 'completed' and applied == [3] and len(writes(log)) == 1
+
+
+def test_the_stream_lists_content_reads_and_shows_a_write_only_after_approval(monkeypatch):
+    fake_agents(monkeypatch, only_content([('world_studio_read', {'id': 'w1'})], ('world_studio_edit_draft', EDIT)))
+    monkeypatch.setattr(content_mcp, 'call', REAL_CALL)  # 실제 호출이 진행 목록을 알린다. 전송만 대역이다
+    monkeypatch.setenv('CONTENT_SERVICE_BASE_URL', 'http://content.test')
+
+    async def request(url, auth, tool, arguments):
+        return False, json.dumps({'world_studio_read': WORLD_READ, 'world_studio_edit_draft': {'draftRevision': 5}}[tool])
+
+    monkeypatch.setattr(content_mcp, '_request', request)
+    thread = str(uuid4())
+    label = lambda events: [(d['label'], d['status']) if n == 'activity' else n for n, d in events]  # noqa: E731
+    first = stream(thread, activities=True, request='설명을 늘려줘', target=TARGET, page=PAGE)
+    assert label(first) == [('요청 확인', 'running'), ('요청 확인', 'done'), ('세계관 읽기', 'running'), ('세계관 읽기', 'done'), 'waiting', 'done']
+    second = stream(thread, activities=True, request=None, resume={'approved': True})
+    assert label(second) == ['started', ('세계관 읽기', 'running'), ('세계관 읽기', 'done'),
+                             ('세계관 설정 카드 수정', 'running'), ('세계관 설정 카드 수정', 'done'), 'step', 'done']

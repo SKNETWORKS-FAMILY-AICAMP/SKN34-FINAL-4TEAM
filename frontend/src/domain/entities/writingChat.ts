@@ -106,8 +106,11 @@ export type ChatFeedback = 'up' | 'down'
 export type ChatTurn = { request: string; reply: ChatReply | null; attachments?: ChatTurnAttachment[]; feedback?: ChatFeedback | null }
 export type ChatSession = { threadId: string; title: string; updatedAt: string }
 export type ChatHistory = { threadId: string; title: string; turns: ChatTurn[] }
-/** 오케스트레이션 SSE 이벤트. plan → (started → step)* → waiting? → done, 실패는 error 하나. 답변을 쓰는 동안 사이사이 answer가 온다(#618). */
+/** 진행 목록 한 줄(#784): 판정·Content 도구·업무 Agent의 검색 같은 작업. 같은 id가 running → done|failed로 갱신된다. target은 회차·카드 이름·검색어 앞부분이다. */
+export type ChatActivity = { id: string; label: string; target?: string | null; status: 'running' | 'done' | 'failed' }
+/** 오케스트레이션 SSE 이벤트. plan → (started → step)* → waiting? → done, 실패는 error 하나. 답변을 쓰는 동안 사이사이 answer가, 작업마다 activity가 온다(#618·#784). */
 export type ChatEvent =
+  | { type: 'activity'; activity: ChatActivity }
   | { type: 'plan'; steps: ChatStep[] }
   | { type: 'started'; feature: ChatFeature }
   | { type: 'step'; step: ChatStep }
@@ -115,6 +118,12 @@ export type ChatEvent =
   | { type: 'done'; reply: ChatReply }
   | { type: 'answer'; delta: string | null }
   | { type: 'error'; message: string }
+/** 진행 목록(#784): 같은 id는 그 줄을 바꾸고 새 id는 끝에 덧붙인다. 표시용이며 대화 기록에 저장하지 않는다. */
+export function trackActivity(list: ChatActivity[], event: ChatEvent): ChatActivity[] {
+  if (event.type !== 'activity') return list
+  const { activity } = event
+  return list.some((a) => a.id === activity.id) ? list.map((a) => (a.id === activity.id ? activity : a)) : [...list, activity]
+}
 /** 쓰는 중인 답변 본문(#618). delta가 null이면 비우고, 실패하면 쓰다 만 글을 버린다. 정상 종료에는 저장된 답으로 바뀔 때까지 남긴다. */
 export function streamedAnswer(text: string, event: ChatEvent): string {
   if (event.type === 'answer') return event.delta === null ? '' : text + event.delta

@@ -22,7 +22,7 @@ from langchain_core.tools import tool
 from langgraph.types import Command, interrupt
 from pydantic import Field
 
-from app import tracing
+from app import agent_runtime, tracing
 from app.content_mcp import service as content_mcp
 from app.content_mcp.errors import ContentMcpFailure
 from app.intent.prompt import CAPABILITY_NAMES, FEATURES
@@ -217,7 +217,7 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
     turn, steps = runtime.context, list(runtime.state.get('steps', []))
     step = {'feature': feature, 'when': when, 'status': 'not_started', **({'task': task_kind} if task_kind else {})}
     read, scope = inputs(runtime.state), runtime.state.get('retrievalScope')
-    name, answered = _name(step), {}
+    name, answered, ran = _name(step), {}, False
     try:
         while needs(read, scope):
             if not turn.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
@@ -231,14 +231,19 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
             scope = answer.get('scope') or scope
             answered = {'inputs': read, 'retrievalScope': scope}
         runtime.stream_writer({'started': feature})
+        agent_runtime.report(runtime.tool_call_id, name, 'running', feature=feature)  # 진행 목록(#784). started는 호환을 위해 둔다
+        ran = True
         with tracing.observe(f'step.{feature}', as_type='agent'):
             step.update(status='completed', result=call(read, scope).model_dump(mode='json'))
     except Skipped as skip:
         step.update(status='skipped', error=str(skip))
     except Clarify as ask:  # 단계를 남기지 않고 한 문장으로 되묻는다(시뮬레이션 계획의 되묻기와 같다)
+        agent_runtime.report(runtime.tool_call_id, name, 'done', feature=feature)
         return _reply(runtime, feature, f'[확인 필요] {name}: {ask}', {'stopped': {'status': 'clarify', 'message': str(ask)}}, failed=True)
     except FAILURES as error:
         step.update(status='failed', error=str(error))
+    if ran:  # 실패는 failed로 보이고, 조건이 거짓이라 건너뛴 단계(skipped)는 끝난 작업이다
+        agent_runtime.report(runtime.tool_call_id, name, 'failed' if step['status'] == 'failed' else 'done', feature=feature)
     return _reply(runtime, feature, _summary(step), {'steps': [step], **answered}, failed=step['status'] == 'failed',
                   artifact=step.get('result'))
 

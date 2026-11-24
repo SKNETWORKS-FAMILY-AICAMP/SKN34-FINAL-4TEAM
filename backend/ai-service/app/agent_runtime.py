@@ -11,11 +11,16 @@ generation으로 감싸 모델·사용량·출력을 남기고, 제공사 오류
 
 요청 하나가 모델을 여러 번 부르는 기능(AI 자율 연재, #659)의 크레딧은 `CreditMiddleware`가 맡는다: 요청 안 모든 `run`에 같은 인스턴스를 넘겨
 입력+출력 토큰을 누적하고, 상한에 닿으면 다음 모델 호출을 막는다.
+
+집필 채팅 진행 목록(#784)의 한 줄은 `activity`가 LangGraph custom stream으로 알리고 오케스트레이션이 SSE `activity`로 중계한다.
+업무 Agent가 실제로 부르는 바깥 작업(Content MCP 호출·Retrieval·웹 검색)과 판정·`ask_*`가 쓴다. 그래프 실행 밖(REST 업무 API·워커)에서는 알리지 않는다.
 """
 
 import json
 import os
+from contextlib import contextmanager
 from typing import Any, NotRequired
+from uuid import uuid4
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware, AgentState, ModelCallLimitMiddleware
@@ -23,6 +28,7 @@ from langchain.agents.structured_output import ProviderStrategy, StructuredOutpu
 from langchain_core.callbacks import BaseCallbackHandler, adispatch_custom_event
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
+from langgraph.config import get_stream_writer
 from openai import OpenAIError
 from pydantic import BaseModel
 
@@ -31,6 +37,31 @@ from app import tracing
 WEB_SEARCH = {'type': 'web_search'}
 MODEL_EVENT = 'agent.model'  # 모델 호출 하나의 {name, ms, failed, inputTokens, outputTokens}
 STEP_EVENT = 'agent.step'  # 단계 결과 하나(SSE step 항목). 사용량 장부가 이 단계까지의 호출을 묶는다
+
+
+TARGET_CHARS = 40  # 진행 목록 대상(회차·카드 이름·검색어)은 앞 40자만 보인다. 도구 인자 원문은 싣지 않는다
+
+
+def report(id: str, label: str, status: str, target: str | None = None, feature: str | None = None) -> None:
+    """진행 목록 한 줄 {id, label, target, status(running|done|failed), feature}을 알린다. 같은 id가 화면의 한 줄을 갱신한다."""
+    try:
+        write = get_stream_writer()
+    except (RuntimeError, KeyError):  # 그래프 실행 밖(REST 업무 API·워커)에는 SSE가 없다
+        return
+    write({'activity': {'id': id, 'label': label, 'target': target[:TARGET_CHARS] if target else None, 'status': status, 'feature': feature}})
+
+
+@contextmanager
+def activity(label: str, target: str | None = None):
+    """감싼 작업을 running으로 알리고 끝나면 done, 예외면 failed로 알린 뒤 예외를 그대로 올린다."""
+    id = uuid4().hex
+    report(id, label, 'running', target)
+    try:
+        yield
+    except Exception:
+        report(id, label, 'failed', target)
+        raise
+    report(id, label, 'done', target)
 
 
 class StepState(AgentState):

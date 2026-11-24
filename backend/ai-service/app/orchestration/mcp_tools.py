@@ -23,10 +23,9 @@ from app.orchestration.models import CONTENT_ACTION
 MCP_CALLS = 10  # 턴당 MCP 도구 호출 상한. 서브 에이전트 한도(TOOL_CALLS)와 따로 센다.
 READ_LIMIT = 20000  # 읽기 결과를 모델에 주는 최대 글자 수(Content 응답이 길면 잘라서 알린다)
 # 읽기(자동 실행) 6개와 쓰기(승인 뒤 실행) 4개의 한국어 고정 문구. 쓰기 문구는 승인 카드의 제목이다.
-READ = {'world_studio_read': '세계관 읽기', 'episode_read': '회차 읽기', 'episode_list': '회차 목록 읽기', 'work_read': '작품 읽기',
-        'story_plan_list': '계획 목록 읽기', 'story_plan_read': '계획 읽기'}
-WRITE = {'world_studio_edit_draft': '세계관 설정 카드 수정', 'work_update': '작품 정보 수정', 'story_plan_create': '플롯·장면 계획 추가',
-         'story_plan_update': '플롯·장면 계획 수정'}
+# 실행 진행 목록(#784)은 content_mcp.call이 호출마다 알리므로 같은 문구를 거기서 가져온다.
+READ = {n: content_mcp.LABELS[n] for n in ('world_studio_read', 'episode_read', 'episode_list', 'work_read', 'story_plan_list', 'story_plan_read')}
+WRITE = {n: content_mcp.LABELS[n] for n in ('world_studio_edit_draft', 'work_update', 'story_plan_create', 'story_plan_update')}
 LABELS = {**READ, **WRITE}
 # Content의 도구 설명만으로는 모델이 request를 풀어 평평하게 보내는 일이 있어 모양을 덧붙인다.
 HINTS = {'world_studio_edit_draft': ' 인자는 {id, request: {expectedDraftRevision(world_studio_read의 draftRevision), name, description, key, replace: false, cards: [바꿀 카드]}} 모양이다. 바꿀 카드만 cards에 넣는다.'}

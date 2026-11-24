@@ -101,10 +101,33 @@ def test_router_failure_propagates(monkeypatch):
         run(inputs={'story_context': QA})
 
 
-def stream(request='요청', **body):
+def stream(request='요청', activities=False, **body):
+    """SSE 이벤트 (이름, data). 진행 목록(activity, #784)은 activities=True일 때만 남긴다."""
     async def collect():
-        return [(e.event, e.data) async for e in service.stream(OrchestrationRequest(request=request, **body))]
+        return [(e.event, e.data) async for e in service.stream(OrchestrationRequest(request=request, **body))
+                if activities or e.event != 'activity']
     return asyncio.run(collect())
+
+
+def rows(events):
+    """activity는 (activity, 라벨, 상태), 나머지는 (이벤트, 기능)."""
+    return [(name, data['label'], data['status']) if name == 'activity' else (name, data.get('feature')) for name, data in events]
+
+
+def test_stream_reports_activities_for_the_guard_and_each_sub_agent_in_order(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context', 'research'), fail={'research': ResearchFailure(503, '웹 검색에 실패했습니다.')})
+    events = stream(inputs={'story_context': QA, 'research': WEB}, activities=True)
+    assert rows(events) == [
+        ('activity', '요청 확인', 'running'), ('activity', '요청 확인', 'done'), ('plan', None),
+        ('started', 'story_context'), ('activity', '작품 질문', 'running'), ('activity', '작품 질문', 'done'), ('step', 'story_context'),
+        ('started', 'research'), ('activity', '고증 조사', 'running'), ('activity', '고증 조사', 'failed'), ('step', 'research'), ('done', None)]
+    qa = [d for n, d in events if n == 'activity' and d['label'] == '작품 질문']
+    assert qa[0]['id'] == qa[1]['id'] and qa[0]['feature'] == 'story_context' and set(qa[0]) == {'id', 'label', 'target', 'status', 'feature'}
+
+
+def test_stream_shows_the_failed_guard_activity_before_the_error(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context'), fail={'judge': IntentFailure()})
+    assert rows(stream(activities=True)) == [('activity', '요청 확인', 'running'), ('activity', '요청 확인', 'failed'), ('error', None)]
 
 
 def test_stream_reports_plan_each_step_start_and_result_then_done(monkeypatch):
@@ -2289,7 +2312,7 @@ def member_resume(thread, inputs=None):
 
 def member_stream(request='요청', **body):
     async def collect():
-        return [(e.event, e.data) async for e in service.stream(OrchestrationRequest(request=request, **body), bearer())]
+        return [(e.event, e.data) async for e in service.stream(OrchestrationRequest(request=request, **body), bearer()) if e.event != 'activity']
     return asyncio.run(collect())
 
 

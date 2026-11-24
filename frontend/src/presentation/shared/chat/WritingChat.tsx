@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { checkAttachment, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
-import { cancelNotice, draftNotice, featureLabel, PLAN_LABEL, rangePreview, referenceHref, replyOutcome, replyText, reviewCheckLabel, stepName, stepText, usedPlan, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
+import { cancelNotice, draftNotice, featureLabel, PLAN_LABEL, rangePreview, referenceHref, replyOutcome, replyText, reviewCheckLabel, stepName, stepText, usedPlan, type ChatActivity, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
@@ -51,10 +51,27 @@ function References({ step }: { step: ChatStep }) {
   </ul>
 }
 
+const activityState = { running: 'run', done: 'done', failed: 'fail' } as const
+/**
+ * 진행 목록(#784): 판정·Content 도구·검색처럼 지금 하고 있는 작업 한 줄씩. 대상(회차·카드 이름·검색어)은 이름 뒤에 흐리게 붙인다.
+ * 끝난 턴(finished)에 남은 running 줄은 결과를 모르고 끊긴 것이라 진행 중이 아니라 멈춤으로 보인다.
+ */
+function Activities({ list, finished }: { list: ChatActivity[]; finished?: boolean }) {
+  return <ol className="chat-steps chat-activities" aria-label="AI 작업 목록">{list.map((a) => {
+    const state = finished && a.status === 'running' ? 'stop' : activityState[a.status]
+    return <li key={a.id} data-state={state}>
+      <span className="chat-step-dot" aria-hidden="true" />
+      <span className="chat-step-name">{a.label}{a.target && <span className="chat-activity-target">{a.target}</span>}</span>
+      <span className="chat-step-state">{stateLabel[state]}</span>
+    </li>
+  })}</ol>
+}
+
 /**
  * 진행 중인 턴의 단계 목록. 단계가 끝나는 대로 결과를 바로 아래에 보인다(SSE 순서 그대로).
  * 장면 한 줄은 상태 알림(role="status") 밖에 둔다: 알림 영역은 바뀔 때마다 통째로 읽혀 턴마다 다시 읽히기 때문이다.
  * 쓰는 중인 답(#618)도 밖에 두고 aria-live를 끈다: 조각마다 읽지 않고 완성된 답이 대화에 들어올 때 한 번 읽힌다.
+ * 진행 목록(#784)은 줄마다 자주 바뀌어 알림 영역 안에서도 읽지 않는다(aria-live=off). 제목 줄이 진행을 알린다.
  */
 function Progress({ live, onOpenStage }: { live: LiveTurn; onOpenStage?: () => void }) {
   return <>
@@ -74,6 +91,7 @@ function Progress({ live, onOpenStage }: { live: LiveTurn; onOpenStage?: () => v
             <References step={step} />
           </li>
         })}</ol>}
+        {!!live.activities.length && <div aria-live="off"><Activities list={live.activities} /></div>}
       </div>
     </div>
     {live.steps.map((step) => step.simulation && <div key={step.feature} className="chat-scene"><SceneLine simulation={step.simulation} onOpenStage={onOpenStage} /></div>)}
@@ -311,8 +329,10 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
     const rate = (value: 'up' | 'down') => { if (!vm.pending) void vm.rate(index, rating === value ? null : value) }
     const text = reply && m.format === 'markdown' ? replyText(reply) : ''
     const outcome = text && reply ? replyOutcome(reply) : []
+    const activities = vm.activityLog[index]
     return <>
       {outcome.map((line, i) => <p key={i} className="chat-note">{line}</p>)}
+      {!!activities?.length && <details className="chat-step-details chat-activity-log"><summary>작업 {activities.length}개</summary><Activities list={activities} finished /></details>}
       {reply?.steps.map((s, i) => <References key={`${s.feature}-${i}`} step={s} />)}
       <div className="chat-reply-foot">
         {text && <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details>}
