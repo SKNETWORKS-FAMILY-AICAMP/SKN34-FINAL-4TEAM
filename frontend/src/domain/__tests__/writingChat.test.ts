@@ -72,10 +72,14 @@ describe('chatBasis', () => {
     expect(chatBasis(list, 2)).toEqual({ episode: 1, episodeVersionId: 'v1', targetEpisode: 2 })
   })
 
-  it('열린 회차 앞에 발행 회차가 없으면 근거가 없다(채팅을 잠근다)', () => {
-    expect(chatBasis([episode(1, null), episode(2, 'v2')], 1)).toBeNull()
-    expect(chatBasis([episode(1, null)], 1)).toBeNull()
+  it('열린 회차 앞에 발행 회차가 없으면 근거 판본 없이 열린 회차 초안을 대상으로 대화한다(#729)', () => {
+    expect(chatBasis([episode(1, null), episode(2, 'v2')], 1)).toEqual({ episode: 1 })
+    expect(chatBasis([episode(1, null)], 1)).toEqual({ episode: 1 })
+  })
+
+  it('회차가 하나도 없으면 반영할 곳이 없어 근거가 없다(채팅을 잠근다)', () => {
     expect(chatBasis([], 1)).toBeNull()
+    expect(chatBasis([])).toBeNull()
   })
 
   it('열린 회차를 모르거나 목록에 없으면 가장 뒤의 발행 회차를 근거로 하고 반영 회차는 보내지 않는다(서버가 근거 회차와 같게 본다)', () => {
@@ -84,7 +88,10 @@ describe('chatBasis', () => {
     expect(chatBasis(list)).not.toHaveProperty('targetEpisode')
     expect(chatBasis(list, 99)).toEqual({ episode: 2, episodeVersionId: 'v2' })
     expect(chatBasis(list, 99)).not.toHaveProperty('targetEpisode')
-    expect(chatBasis([episode(1, null)])).toBeNull()
+  })
+
+  it('열린 회차를 모르고 발행 회차도 없으면(세계관 채팅) 가장 뒤 회차 초안을 대상으로 한다(#729)', () => {
+    expect(chatBasis([episode(1, null), episode(3, null), episode(2, null)])).toEqual({ episode: 3 })
   })
 })
 

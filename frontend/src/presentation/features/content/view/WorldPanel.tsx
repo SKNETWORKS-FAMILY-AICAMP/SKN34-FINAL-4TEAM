@@ -32,7 +32,7 @@ export function WorldPanel({ workId, useCase, locked = false, onMediaBusy }: { w
           {w.mode === 'following'
             ? '원작 추종 중 · 첫 설정 수정 시 전체 공개 설정이 독립해요.'
             : w.mode === 'independent'
-            ? '독립 세계관 · 원작 변경은 선택해서 반영해요.'
+            ? '독립 세계관 · 원작이 바뀌어도 따라오지 않아요.'
             : '내 작품의 세계관 · 확정 설정만 문맥에 사용해요.'}
         </p>
         {w.basis && <p>{`최초 분기 기준: ${w.basis.episode}화 · 원고 버전 ${w.basis.version} · 설정 ${w.basis.settings.length}개`}</p>}

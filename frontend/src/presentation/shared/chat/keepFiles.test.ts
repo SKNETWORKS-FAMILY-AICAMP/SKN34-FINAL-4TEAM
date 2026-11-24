@@ -41,7 +41,9 @@ describe('keepFiles(#706)', () => {
 
   it('입력칸 밖에서는 글자·링크 끌기도 막아 브라우저가 그 링크로 이동하지 않게 한다', () => {
     for (const handle of handlers) {
-      for (const target of [make('<div></div>'), make('<div contenteditable="false"></div>')]) {
+      // 글자를 놓을 수 없는 칸(구간 고르기 readOnly textarea, radio·checkbox)도 입력칸이 아니다(#726)
+      const blocked = ['<div></div>', '<div contenteditable="false"></div>', '<textarea readonly></textarea>', '<input type="radio">', '<input type="checkbox">']
+      for (const target of blocked.map(make)) {
         for (const types of [['text/plain', 'text/html'], ['text/uri-list', 'text/plain']]) {
           const text = drag(target, ...types)
           handle(text)

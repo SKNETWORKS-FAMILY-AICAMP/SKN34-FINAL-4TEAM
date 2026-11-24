@@ -108,6 +108,17 @@ describe('집필 AI 채팅 세션', () => {
     expect(fetcher.mock.calls[1][0]).toBe('/api/v1/works/w1/chat/sessions/t1')
     expect(history.turns[0].reply?.awaitingApproval).toBe('writing_editing')
   })
+
+  it('답변 평가는 그 메시지의 feedback으로 PUT하고 이력에서 평가를 읽는다(#560)', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(Response.json({ threadId: 't1', title: '', turns: [{ request: '질문', reply: null, feedback: 'down' }, { request: '옛 턴', reply: null }] }))
+    const repo = new HttpWritingChatRepository(fetcher)
+    await repo.feedback('w1', 't1', 2, null)
+    const [path, init] = fetcher.mock.calls[0]
+    expect([path, init.method, init.body]).toEqual(['/api/v1/works/w1/chat/sessions/t1/messages/2/feedback', 'PUT', JSON.stringify({ feedback: null })])
+    expect((await repo.history('w1', 't1')).turns.map((t) => t.feedback ?? null)).toEqual(['down', null])
+  })
 })
 
 describe('집필 AI 채팅 첨부(#617)', () => {

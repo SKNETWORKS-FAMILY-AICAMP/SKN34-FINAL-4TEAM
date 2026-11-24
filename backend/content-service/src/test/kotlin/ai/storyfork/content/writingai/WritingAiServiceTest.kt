@@ -119,6 +119,33 @@ class WritingAiServiceTest {
     }
 
     @Test
+    fun `a new turn without a published version talks over the draft episode it reflects into and issues no scope token`() {
+        // 발행 회차가 없는 작품(#729): 근거 판본이 없으면 원고 근거 없이 연 회차 초안을 반영 회차로 대화한다
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        service.run("work", "owner", "Bearer user", ask.copy(episode = 1, episodeVersionId = null))
+        val body = sent()
+        assertEquals(null, body["scope"])
+        assertEquals(mapOf("workId" to "work", "episode" to 1), body["target"])
+        verify(episodes).read("work", "owner", 1)  // 작가 본인 작품의 활성 회차인지는 확인한다
+        verifyNoInteractions(scopes)
+    }
+
+    @Test
+    fun `a draft turn on an episode the work does not have is a 422 and a blank version is not a draft turn`() {
+        `when`(episodes.read("work", "owner", 4)).thenThrow(ContentFailure(404, "회차를 찾을 수 없어요."))
+        assertEquals(422, assertThrows(ContentFailure::class.java) {
+            service.run("work", "owner", "Bearer user", ask.copy(episode = 4, episodeVersionId = null)) }.status)
+        verifyNoInteractions(client)
+        // 판본 없는 턴은 근거 회차가 곧 반영 회차다: 따로 보낸 근거 회차는 확인되지 않은 지식 상한이 된다
+        assertEquals(422, assertThrows(ContentFailure::class.java) {
+            service.run("work", "owner", "Bearer user", ask.copy(episode = 1, episodeVersionId = null, targetEpisode = 3)) }.status)
+        jakarta.validation.Validation.buildDefaultValidatorFactory().use { factory ->
+            assertTrue(factory.validator.validate(ask.copy(episodeVersionId = null)).isEmpty())
+            assertEquals(listOf("episodeVersionId"), factory.validator.validate(ask.copy(episodeVersionId = " ")).map { it.propertyPath.toString() })
+        }
+    }
+
+    @Test
     fun `resume ignores the target episode because the conversation already has its target`() {
         `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
         service.run("work", "owner", "Bearer user", ask.copy(request = null, resume = WritingAiResume(true), threadId = "thread", targetEpisode = 1))
@@ -191,10 +218,14 @@ class WritingAiServiceTest {
         service.rename("work", "owner", "thread", "새 제목")
         service.delete("work", "owner", "thread")
         service.truncate("work", "owner", "thread", 2)
-        verify(access, times(5)).own("work", "owner")
+        service.feedback("work", "owner", "thread", 1, "up")
+        service.feedback("work", "owner", "thread", 1, null)
+        verify(access, times(7)).own("work", "owner")
         verify(client).rename("thread", scope, "새 제목")
         verify(client).delete("thread", scope)
         verify(client).truncate("thread", scope, 2)
+        verify(client).feedback("thread", scope, 1, "up")
+        verify(client).feedback("thread", scope, 1, null)
     }
 
     @Test

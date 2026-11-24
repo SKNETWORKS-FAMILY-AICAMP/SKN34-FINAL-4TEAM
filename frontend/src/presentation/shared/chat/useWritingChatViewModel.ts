@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../app/appContainer'
 import type { SimulationStart } from '../../../domain/entities/characterSimulation'
 import { attachmentKind, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
-import { streamedAnswer, type ChatBasis, type ChatEvent, type ChatFeature, type ChatPage, type ChatSendBody, type ChatSession, type ChatStep, type ChatStepInputs, type ChatTurn, type SceneAction } from '../../../domain/entities/writingChat'
+import { streamedAnswer, type ChatBasis, type ChatEvent, type ChatFeature, type ChatFeedback, type ChatPage, type ChatSendBody, type ChatSession, type ChatStep, type ChatStepInputs, type ChatTurn, type SceneAction } from '../../../domain/entities/writingChat'
 import { readAttachments } from './readAttachments'
 
 /** 지금 흐르는 SSE 턴. 끝나면 이력을 다시 읽어 세이버에 저장된 내용으로 바꾼다. decision은 승인·거절 응답(장면 조작이 아닌 이어가기)이다. */
@@ -15,7 +15,7 @@ const message = (error: unknown, fallback: string) => (error instanceof Error &&
 /**
  * 집필실·세계관 화면의 집필 AI 채팅(#331). 대화 원본은 AI 세이버이고, 이 Hook은 Content API로 읽고 보낸 뒤
  * 스트림이 끝나거나 실패하면 이력을 다시 읽어 저장된 상태를 그대로 보인다(실패를 성공처럼 남기지 않는다).
- * workId가 없거나(연결 소설 없음) basis가 없으면(발행 회차 없음) 보내지 않는다.
+ * workId가 없거나(연결 소설 없음) basis가 없으면(회차가 하나도 없음) 보내지 않는다. 발행 회차가 없으면 basis는 판본 없는 초안 회차다(#729).
  * getPage(#554)는 새 메시지(보내기·고쳐 다시 보내기)를 보내는 순간, 어떤 기다림(첨부 읽기·새 대화 열기)보다 먼저 읽는다(#635). 반영 회차(basis)와 같은 시점이어야 한다.
  * 편집기의 선택 글은 상태가 아니라 보내는 때 읽어야 해서 값이 아니라 함수다.
  * 이어가기(승인·입력·장면 조작)에는 싣지 않는다.
@@ -171,7 +171,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
 
   const lockedReason = !useCase ? '데모에서는 집필 AI 채팅을 지원하지 않아요.'
     : !workId ? '세계관에 소설을 연결하면 그 소설을 근거로 AI와 대화할 수 있어요.'
-      : !basis ? '회차를 하나 이상 발행하면 AI와 대화할 수 있어요. AI는 발행한 회차를 근거로 답해요.' : undefined
+      : !basis ? '회차를 하나 이상 만들면 AI와 대화할 수 있어요.' : undefined
   const waiting = !live && turns.at(-1)?.reply?.status === 'waiting' ? turns.at(-1)!.reply! : null
   // 인물 시뮬레이션 장면(#58 무대): 흐르는 중이면 SSE로 받은 단계, 아니면 저장된 마지막 응답의 단계. 장면을 못 읽은 단계는 simulation 없이 실패로 온다.
   const simulationStep = (live ? live.steps : turns.at(-1)?.reply?.steps)?.find((step) => step.feature === 'character_simulation') ?? null
@@ -205,6 +205,13 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
       if (index === 0) { current.current = null; setThreadId(null); setTurns([]); setTitle('') } else await load(threadId!)
       await refreshSessions()
     }, '메시지를 지우지 못했어요.'),
+    /** index번 턴 답변의 좋아요·싫어요(#560). 저장에 성공한 뒤에만 눌린 상태를 바꾼다. null이면 취소다. */
+    rate: (index: number, value: ChatFeedback | null) => change(async () => {
+      const owner = generation.current
+      await useCase!.feedback(workId!, threadId!, index, value)
+      // 저장하는 사이 다른 대화(작품)로 옮겼으면 그 화면의 같은 번호 턴을 바꾸지 않는다.
+      if (current.current === threadId && generation.current === owner) setTurns((rows) => rows.map((turn, i) => (i === index ? { ...turn, feedback: value } : turn)))
+    }, '평가를 저장하지 못했어요.'),
     rename: (next: string) => change(async () => { await useCase!.rename(workId!, threadId!, next); setTitle(next.trim()); await refreshSessions() }, '제목을 바꾸지 못했어요.'),
     remove: () => change(async () => {
       await useCase!.remove(workId!, threadId!)
