@@ -381,9 +381,10 @@ def _summarized(summary: dict | None, turns: list[dict]) -> State:
 def summarize(text: str, turns: list[dict]) -> str:
     """기존 요약 text에 turns의 요청·답변을 합친 새 요약. 모델·지시문은 Langfuse 프롬프트 orchestration.summary(#705)이고 추론 강도는 낮게 둔다."""
     data = {'summary': text, 'turns': [{'request': t['request'], 'reply': (t.get('reply') or {}).get('message') or ''} for t in turns]}
-    with tracing.observe('orchestration.summary', input={'turns': len(turns)}):
+    trace = {'turns': len(turns)}
+    with tracing.observe('orchestration.summary', input=trace):
         message, _ = agent_runtime.run('orchestration.summary.generation', '대화 요약', SummaryFailure, SUMMARY_INSTRUCTIONS, data,
-                                       prompt_name='orchestration.summary', max_tokens=2000, timeout=40, trace=data, effort='low')
+                                       prompt_name='orchestration.summary', max_tokens=2000, timeout=40, trace=trace, effort='low')
         summary = message.text.strip()
         if not summary or len(summary) > SUMMARY_MAX:
             raise SummaryFailure(502, '대화 요약 모델 응답을 확인할 수 없습니다.')

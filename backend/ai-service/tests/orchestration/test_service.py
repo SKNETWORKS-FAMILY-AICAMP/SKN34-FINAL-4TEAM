@@ -2795,13 +2795,15 @@ def test_an_edited_later_turn_keeps_the_summary_of_its_point_and_a_restart_clear
     assert not any(prompt.SUMMARY_HEADER in str(m.content) for m in calls.main[0]['messages'])  # 다시 시작하는 턴은 옛 요약을 받지 않는다
 
 
-def test_summarize_sends_the_old_summary_and_the_turns_with_low_effort(monkeypatch):
+def test_summarize_sends_the_old_summary_and_the_turns_with_low_effort(monkeypatch, spans):
     seen = fake_chat(monkeypatch, text='  카이는 북문을 지키기로 했다.  ')
     turns = [{'request': '카이를 어떻게 할까', 'reply': {'message': '북문을 지키게 하죠'}, 'qa': None}, {'request': '좋아'}]
     assert service.summarize('이전 요약', turns) == '카이는 북문을 지키기로 했다.'
     assert seen['init']['reasoning_effort'] == 'low'
     assert json.loads(seen['messages'][-1].text) == {'summary': '이전 요약', 'turns': [
         {'request': '카이를 어떻게 할까', 'reply': '북문을 지키게 하죠'}, {'request': '좋아', 'reply': ''}]}
+    [generation] = [s for s in spans() if s.name == 'orchestration.summary.generation']
+    assert json.loads(generation.attributes['langfuse.observation.input']) == {'turns': 2}
 
 
 def test_a_summary_failure_is_an_error_span(monkeypatch, spans):
