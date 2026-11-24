@@ -57,10 +57,22 @@ data class Metrics(val rows: List<MetricRow>, val adoptionRate: Double?, val app
 
 data class PromptEvaluation(val runId: String, val passed: Boolean?, val createdAt: Instant)
 
-/** [createdAt] is null when Langfuse's prompt payload carries none. */
-data class PromptVersion(val version: Int, val labels: List<String>, val createdAt: Instant?, val evaluation: PromptEvaluation?)
+/**
+ * [createdAt] is null when Langfuse's prompt payload carries none. [model] is the model chosen for the version (its config.model, #705; null runs on the
+ * AI service's environment default). [prompt] is the body, only in a prompt's detail (the list would carry every body of every version).
+ */
+data class PromptVersion(
+    val version: Int, val labels: List<String>, val createdAt: Instant?, val evaluation: PromptEvaluation?, val model: String? = null, val prompt: JsonNode? = null,
+    val commitMessage: String? = null,
+)
 
-data class Prompt(val name: String, val versions: List<PromptVersion>)
+/**
+ * In the list [versions] are only the production and seed versions (#786: two Langfuse reads per prompt however many versions); the detail has them all.
+ * [candidates] counts the versions with their own candidate label other than the production version, from the labels Langfuse lists for the prompt.
+ * [evaluationDataset] is the evaluation set a version must pass to become a candidate (#787); null means no evaluation is needed.
+ */
+/** models: the models a new version may choose (detail only, #806). */
+data class Prompt(val name: String, val versions: List<PromptVersion>, val candidates: Int = 0, val evaluationDataset: String? = null, val models: List<String>? = null)
 
 data class PromptListResponse(val items: List<Prompt>)
 

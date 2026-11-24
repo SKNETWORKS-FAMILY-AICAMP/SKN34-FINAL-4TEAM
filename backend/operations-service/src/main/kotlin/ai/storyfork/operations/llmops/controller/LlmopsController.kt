@@ -58,6 +58,10 @@ class LlmopsController(
     fun createPrompt(@AuthenticationPrincipal member: OperationsMember, @PathVariable name: String, @RequestBody request: PromptCreateRequest) =
         prompts.create(member, name, request)
 
+    @PutMapping("/prompts/{name}/candidate")
+    fun candidate(@AuthenticationPrincipal member: OperationsMember, @PathVariable name: String, @RequestBody request: PromptPromoteRequest) =
+        prompts.candidate(member, name, request)
+
     @PutMapping("/prompts/{name}/production")
     fun promote(@AuthenticationPrincipal member: OperationsMember, @PathVariable name: String, @RequestBody request: PromptPromoteRequest) =
         prompts.promote(member, name, request)

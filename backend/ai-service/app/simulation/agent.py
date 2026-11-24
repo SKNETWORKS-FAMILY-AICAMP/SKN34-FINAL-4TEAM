@@ -44,17 +44,17 @@ def plan(request: str, history: list[str], characters: list[dict]) -> PlanDraft:
     return _parse('plan', PLAN_INSTRUCTIONS, data, PlanDraft, 1200, 40)
 
 
-def act(data: dict, instructions: str | None = None) -> Action:
+def act(data: dict, instructions: str | None = None, model: str | None = None) -> Action:
     """한 인물의 입력(그 인물이 아는 것만)으로 소설 문단 하나와 다른 인물에게 보일 행동을 만든다.
-    instructions는 회귀 평가가 지정한 프롬프트 버전 본문이다(있으면 production 버전을 읽지 않고 그대로 쓴다)."""
-    return _parse('act', ACT_INSTRUCTIONS, data, Action, 1500, 60, instructions)
+    instructions·model은 회귀 평가가 지정한 프롬프트 버전의 본문·모델이다(있으면 production 버전을 읽지 않고 그대로 쓴다)."""
+    return _parse('act', ACT_INSTRUCTIONS, data, Action, 1500, 60, instructions, model)
 
 
-def narrate(data: dict, instructions: str | None = None) -> Narration:
+def narrate(data: dict, instructions: str | None = None, model: str | None = None) -> Narration:
     """나레이터(메인 에이전트)가 지문·독백 한 문단과 그 자리의 모두에게 보일 것을 만든다. 시점·목적·허용된 지식은 입력이 정한다.
-    instructions는 회귀 평가가 지정한 프롬프트 버전 본문이다(있으면 production 버전을 읽지 않고 그대로 쓴다)."""
+    instructions·model은 회귀 평가가 지정한 프롬프트 버전의 본문·모델이다(있으면 production 버전을 읽지 않고 그대로 쓴다)."""
     schema = Monologue if data.get('purpose') == 'monologue' else Narration
-    return _parse('narrate', NARRATE_INSTRUCTIONS, data, schema, 1500, 60, instructions)
+    return _parse('narrate', NARRATE_INSTRUCTIONS, data, schema, 1500, 60, instructions, model)
 
 
 def check(data: dict) -> Verdict:
@@ -78,9 +78,10 @@ def _details(usage: dict | None) -> dict | None:
     return usage and {'input': usage['input_tokens'], 'output': usage['output_tokens']}
 
 
-def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel], max_tokens: int, timeout: int, fixed: str | None = None):
+def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel], max_tokens: int, timeout: int, fixed: str | None = None,
+           fixed_model: str | None = None):
     base_url, key, model, thinking = _endpoint(name)
-    if not key or not model:
+    if not key:
         raise SimulationFailure(503, '시뮬레이션 모델 설정이 필요합니다.')
     if thinking not in (None, 'off'):  # 끄는 값만 있다: 오타를 짐작해 쓰지 않는다
         raise SimulationFailure(503, BAD_THINKING)
@@ -88,9 +89,12 @@ def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel
     if effort and effort not in EFFORTS:  # 모델을 부르기 전에 막는다(고친 값을 짐작해 쓰지 않는다)
         raise SimulationFailure(503, BAD_EFFORT)
     try:  # 지시문은 Langfuse 프롬프트 character_simulation.<호출>의 production 버전이고 instructions(코드 문자열)는 기본값이다. fixed(회귀 평가의 버전 본문)가 있으면 그것을 그대로 쓴다
-        managed = tracing.prompt(f'character_simulation.{name}', instructions) if fixed is None else tracing.Prompt(fixed)
+        managed = tracing.prompt(f'character_simulation.{name}', instructions) if fixed is None else tracing.Prompt(fixed, model=fixed_model)
     except tracing.PromptUnavailable:
         raise SimulationFailure(503, PROMPT_UNAVAILABLE) from None
+    model = managed.model or model  # 운영 화면에서 그 버전에 고른 모델(#705)이 먼저다. act에 외부 제공사(BASE_URL)가 있으면 그 제공사의 모델 이름이어야 한다
+    if not model:
+        raise SimulationFailure(503, '시뮬레이션 모델 설정이 필요합니다.')
     started, usage = time.monotonic(), None
     # OpenAI 호환 제공사(Hemmingway·OpenRouter)에는 Responses API가 없다: Chat Completions로 보내고 추론 강도는 reasoning_effort로 보낸다(store는 보내지 않는다).
     api = ({'base_url': base_url, 'use_responses_api': False, 'reasoning_effort': effort, **({'extra_body': {'enable_thinking': False}} if thinking else {})} if base_url

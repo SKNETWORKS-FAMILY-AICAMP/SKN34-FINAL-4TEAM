@@ -162,6 +162,8 @@ services:
       OPERATIONS_LANGFUSE_BASE_URL: http://langfuse-web:3000
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      # 프롬프트 버전에 고를 수 있는 모델(#806, 쉼표 구분, AI 서비스가 OpenAI로 부르는 모델만). 빈 값은 Spring이 기본값 대신 빈 목록으로 읽어 기본 목록을 여기 둔다.
+      LLMOPS_MODELS: ${LLMOPS_MODELS:-gpt-6-luna,gpt-6.1-terra,gpt-6-sol,gpt-6.1-sol,gpt-6-astra}
       # 평가 위임·누설 판정은 AI 내부 API로 부르며 Content와 같은 INTERNAL_TOKEN을 쓴다.
       OPERATIONS_AI_BASE_URL: http://ai-service:8000
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}

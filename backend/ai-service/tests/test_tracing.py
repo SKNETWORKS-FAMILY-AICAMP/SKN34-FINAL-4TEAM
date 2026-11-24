@@ -190,24 +190,35 @@ def test_request_runs_with_tracing_off(monkeypatch):
 # --- 프롬프트 관리(Langfuse Prompt Management) -------------------------------------------------------------------------
 
 class FakePrompts:
-    """Langfuse 프롬프트 API 대역. stored가 None이면 없는 프롬프트(404)다."""
+    """Langfuse 프롬프트 API 대역. stored가 None이면 없는 프롬프트(404)다. production은 버전 2(labels·config), seed는 `seed` 라벨 버전의 본문(None이면 404)."""
 
-    def __init__(self, stored=None, read_error=None, create_error=None):
+    def __init__(self, stored=None, read_error=None, create_error=None, labels=('production', 'latest'), config=None, seed=None, seed_error=None):
         self.stored, self.read_error, self.create_error, self.calls = stored, read_error, create_error, []
+        self.labels, self.config, self.seed, self.seed_error = list(labels), config or {}, seed, seed_error
 
     def get_prompt(self, name, **kwargs):
         self.calls.append(('get', name, kwargs))
+        if kwargs['label'] == 'seed':
+            if self.seed_error:
+                raise self.seed_error
+            if self.seed is None:
+                raise NotFoundError(body='없음')
+            return SimpleNamespace(name=name, version=3, prompt=self.seed, labels=['seed'], config={})
         if self.read_error:
             raise self.read_error
         if self.stored is None:
             raise NotFoundError(body='없음')
-        return SimpleNamespace(name=name, version=2, prompt=self.stored, is_fallback=False)
+        return SimpleNamespace(name=name, version=2, prompt=self.stored, labels=self.labels, config=self.config, is_fallback=False)
 
     def create_prompt(self, **kwargs):
         self.calls.append(('create', kwargs))
         if self.create_error:
             raise self.create_error
-        return SimpleNamespace(name=kwargs['name'], version=1, prompt=kwargs['prompt'], is_fallback=False)
+        return SimpleNamespace(name=kwargs['name'], version=1, prompt=kwargs['prompt'], labels=kwargs['labels'], config=kwargs.get('config') or {},
+                               is_fallback=False)
+
+    def update_prompt(self, **kwargs):
+        self.calls.append(('update', kwargs))
 
 
 def langfuse(monkeypatch, **kwargs) -> FakePrompts:
@@ -226,17 +237,75 @@ def test_prompt_is_the_code_text_and_never_calls_langfuse_without_keys(monkeypat
 
 
 def test_prompt_reads_the_production_label_with_a_one_minute_cache(monkeypatch):
-    fake = langfuse(monkeypatch, stored='운영 지시')
-    managed = tracing.prompt('review.mechanical', '코드 지시')
+    fake = langfuse(monkeypatch, stored='운영 지시', seed='운영 지시')
+    managed = tracing.prompt('review.mechanical', '운영 지시')
     assert managed.text == '운영 지시' and (managed.client.name, managed.client.version) == ('review.mechanical', 2)
-    assert fake.calls == [('get', 'review.mechanical', {'label': 'production', 'cache_ttl_seconds': 60})]
+    assert fake.calls[0] == ('get', 'review.mechanical', {'label': 'production', 'cache_ttl_seconds': 60})
 
 
 def test_a_missing_prompt_is_registered_from_the_code_text_as_version_one_and_used(monkeypatch):
     fake = langfuse(monkeypatch)
     managed = tracing.prompt('review.mechanical', '코드 지시')
     assert managed.text == '코드 지시' and managed.client.version == 1
-    assert fake.calls[1] == ('create', {'name': 'review.mechanical', 'prompt': '코드 지시', 'labels': ['production'], 'type': 'text'})
+    assert fake.calls[1:] == [('create', {'name': 'review.mechanical', 'prompt': '코드 지시', 'labels': ['production', 'seed'], 'type': 'text'})]
+
+
+@pytest.mark.parametrize('config, model', [({'model': 'gpt-x'}, 'gpt-x'), ({}, None), ({'model': '  '}, None), ({'model': None}, None), ({'model': 3}, None)])
+def test_the_model_is_the_one_chosen_in_the_production_version_config(monkeypatch, config, model):
+    langfuse(monkeypatch, stored='코드 지시', labels=['production', 'seed'], config=config)
+    assert tracing.prompt('review.mechanical', '코드 지시').model == model
+
+
+def test_the_code_seed_equal_to_production_only_gets_the_seed_label_on_that_version_read_fresh(monkeypatch):
+    fake = langfuse(monkeypatch, stored='코드 지시', labels=['production', 'latest'])
+    tracing.prompt('review.mechanical', '코드 지시')
+    # 캐시된 production(지난 라벨)로 라벨을 쓰면 그 사이 승격된 production을 되돌릴 수 있어 캐시 없이 다시 읽고, Langfuse가 보낸 라벨만 더하므로 seed만 보낸다
+    assert fake.calls[1:] == [('get', 'review.mechanical', {'label': 'production', 'cache_ttl_seconds': 0}),
+                              ('update', {'name': 'review.mechanical', 'version': 2, 'new_labels': ['seed']})]
+
+
+def test_a_changed_code_seed_becomes_a_new_seed_version_with_the_production_model_and_production_stays(monkeypatch):
+    fake = langfuse(monkeypatch, stored='운영 지시', config={'model': 'gpt-x'}, seed='옛 코드 지시')
+    managed = tracing.prompt('review.mechanical', '새 코드 지시')
+    assert managed.text == '운영 지시'
+    # 캐시로 먼저 보고, 버전을 만들기 직전에만 캐시 없이 다시 확인한다(같은 시드가 두 번 등록되지 않게)
+    assert fake.calls[1:] == [('get', 'review.mechanical', {'label': 'seed', 'cache_ttl_seconds': 60}),
+                              ('get', 'review.mechanical', {'label': 'production', 'cache_ttl_seconds': 0}),
+                              ('get', 'review.mechanical', {'label': 'seed', 'cache_ttl_seconds': 0}),
+                              ('create', {'name': 'review.mechanical', 'prompt': '새 코드 지시', 'labels': ['seed'], 'type': 'text',
+                                          'config': {'model': 'gpt-x'}})]
+
+
+@pytest.mark.parametrize('seed, created', [('코드 지시', False), (None, True)])
+def test_the_seed_version_is_registered_only_when_none_holds_the_code_text(monkeypatch, seed, created):
+    fake = langfuse(monkeypatch, stored='운영 지시', seed=seed)
+    tracing.prompt('review.mechanical', '코드 지시')
+    assert any(call[0] == 'create' for call in fake.calls) is created
+
+
+def test_a_synced_prompt_only_reads_the_cache_and_a_failed_sync_never_fails_the_call(monkeypatch, caplog):
+    fake = langfuse(monkeypatch, stored='운영 지시', seed_error=RuntimeError('down'))
+    assert tracing.prompt('review.mechanical', '코드 지시').text == '운영 지시'
+    assert 'review.mechanical' in caplog.text and 'down' not in caplog.text
+    fake.seed_error, fake.seed = None, '코드 지시'
+    calls = len(fake.calls)
+    tracing.prompt('review.mechanical', '코드 지시')   # 시드 대기 상태: 캐시된 읽기 둘뿐, 쓰기 없음
+    assert fake.calls[calls:] == [('get', 'review.mechanical', {'label': 'production', 'cache_ttl_seconds': 60}),
+                                  ('get', 'review.mechanical', {'label': 'seed', 'cache_ttl_seconds': 60})]
+    fake.labels = ['production', 'seed']
+    fake.stored = '코드 지시'
+    calls = len(fake.calls)
+    tracing.prompt('review.mechanical', '코드 지시')   # 맞춰진 상태: production 캐시 읽기 하나뿐
+    assert fake.calls[calls:] == [('get', 'review.mechanical', {'label': 'production', 'cache_ttl_seconds': 60})]
+
+
+def test_promoting_a_version_with_the_seed_text_moves_the_seed_label_on_the_next_call(monkeypatch):
+    """#705 E2E: 시드와 본문이 같고 모델만 다른 버전을 승격하면 seed가 옛 버전에 남아 화면이 '코드 시드 대기'로 잘못 보였다."""
+    fake = langfuse(monkeypatch, stored='운영 지시', seed='코드 지시')
+    tracing.prompt('review.mechanical', '코드 지시')
+    fake.stored, fake.labels = '코드 지시', ['production', 'latest']   # 관리자가 시드 본문 + 새 모델 버전을 승격했다
+    tracing.prompt('review.mechanical', '코드 지시')
+    assert fake.calls[-1] == ('update', {'name': 'review.mechanical', 'version': 2, 'new_labels': ['seed']})
 
 
 @pytest.mark.parametrize('options, calls', [({'read_error': RuntimeError('down')}, 1), ({'create_error': RuntimeError('down')}, 2)])

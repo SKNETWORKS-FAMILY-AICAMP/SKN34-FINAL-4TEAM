@@ -17,8 +17,8 @@ def _call(name, instructions, data, schema):
 
     추적에는 모델·사용량·프롬프트 버전·실패만 남기고 원고·설정 본문은 남기지 않는다.
     """
-    key, model = os.environ.get('OPENAI_API_KEY'), os.environ.get('OPENAI_MODEL')
-    if not key or not model:
+    key = os.environ.get('OPENAI_API_KEY')
+    if not key:
         raise PreprocessingFailure('MODEL_NOT_CONFIGURED', 503)
     serialized = json.dumps(data, ensure_ascii=False, sort_keys=True)
     # 묵시적 잘라내기는 정체·근거 누락을 만든다. 대규모 배치는 별도 계약 뒤 지원한다.
@@ -28,6 +28,9 @@ def _call(name, instructions, data, schema):
         managed = tracing.prompt(name, instructions)
     except tracing.PromptUnavailable:
         raise PreprocessingFailure('MODEL_UNAVAILABLE', 503) from None
+    model = managed.model or os.environ.get('OPENAI_MODEL')  # 운영 화면에서 고른 모델(#705), 없으면 환경 변수 기본값
+    if not model:
+        raise PreprocessingFailure('MODEL_NOT_CONFIGURED', 503)
     try:
         llm = ChatOpenAI(api_key=key, model=model, max_retries=0, timeout=Timeout(60, read=70),
                          use_responses_api=True, store=False, max_tokens=16000)

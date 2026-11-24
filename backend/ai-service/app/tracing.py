@@ -144,18 +144,23 @@ class PromptUnavailable(Exception):
 
 @dataclass(frozen=True)
 class Prompt:
-    """text는 모델에 보낼 지시, client는 generation에 연결할 Langfuse 프롬프트(키가 없으면 None)."""
+    """text는 모델에 보낼 지시, client는 generation에 연결할 Langfuse 프롬프트(키가 없으면 None),
+    model은 운영 화면이 그 버전에 고른 모델(버전 config.model, #705). None이면 호출이 환경 변수 기본 모델을 쓴다."""
     text: str
     client: Any = None
+    model: str | None = None
+
+
+SEED = 'seed'  # 지금 코드 시드와 본문이 같은 버전의 라벨(#705). production과 다르면 운영 화면이 '코드 시드 대기'로 보인다
 
 
 def prompt(name: str, default: str) -> Prompt:
-    """Langfuse Prompt Management의 production 버전 지시. 키가 없으면 코드 문자열(default)을 그대로 쓴다.
+    """Langfuse Prompt Management의 production 버전 지시와 모델. 키가 없으면 코드 문자열(default)을 그대로 쓴다.
 
-    없는 프롬프트(404)는 default를 버전 1(production)로 등록해 쓴다. 읽기에 실패하면 SDK가 캐시(마지막 성공 값)를 주고,
-    캐시도 없으면 default로 바꾸지 않고 PromptUnavailable이다.
-    ponytail: 서버가 막 뜬 직후 같은 프롬프트를 동시에 처음 쓰면 같은 내용의 버전이 둘 생길 수 있고, 프롬프트마다 첫 읽기는 동기 HTTP다
-    (이후는 SDK 캐시). 문제 되면 시작 때 한 번 등록·예열한다.
+    없는 프롬프트(404)는 default를 버전 1(production·seed)로 등록해 쓴다. 읽기에 실패하면 SDK가 캐시(마지막 성공 값)를 주고,
+    캐시도 없으면 default로 바꾸지 않고 PromptUnavailable이다. 읽을 때마다 코드 시드를 `seed` 라벨 버전으로 맞춘다(_sync_seed).
+    shortcut: 서버가 막 뜬 직후 기동 등록(app/prompts.py)과 첫 요청이 같은 프롬프트를 동시에 처음 쓰면 같은 내용의 버전이 둘 생길 수 있다.
+    문제 되면 등록이 끝날 때까지 요청을 받지 않는다.
     """
     if not enabled():
         return Prompt(default)
@@ -163,7 +168,43 @@ def prompt(name: str, default: str) -> Prompt:
         try:
             managed = client().get_prompt(name, label='production', cache_ttl_seconds=60)
         except NotFoundError:
-            managed = client().create_prompt(name=name, prompt=default, labels=['production'], type='text')
+            managed = client().create_prompt(name=name, prompt=default, labels=['production', SEED], type='text')
     except Exception:
         raise PromptUnavailable from None
-    return Prompt(managed.prompt, managed)
+    _sync_seed(name, default, managed)
+    return Prompt(managed.prompt, managed, model_of(managed.config))
+
+
+def model_of(config: dict | None) -> str | None:
+    """프롬프트 버전 config의 model(운영 화면에서 고른 모델, #705). 이름(문자열)이 아니면 없는 것으로 보고 호출이 환경 변수 기본 모델을 쓴다."""
+    model = (config or {}).get('model')
+    return model.strip() or None if isinstance(model, str) else None
+
+
+def _seed_text(name: str, cache_ttl_seconds: int) -> str | None:
+    try:
+        return client().get_prompt(name, label=SEED, cache_ttl_seconds=cache_ttl_seconds).prompt
+    except NotFoundError:
+        return None
+
+
+def _sync_seed(name: str, default: str, cached) -> None:
+    """코드 시드(default)를 `seed` 라벨 버전으로 맞춘다(#705, 시드를 바꿀 때마다 손으로 새 버전을 올리던 일을 없앤다).
+
+    production 본문이 시드와 같으면 그 버전에 seed 라벨만 단다(시드 본문으로 모델만 바꾼 버전을 승격해도 seed가 따라온다). 다르면 seed 버전이
+    이미 시드면 그대로 두고, 아니면 시드를 라벨 seed의 새 버전(production의 모델 config를 이어받는다)으로 등록한다. production은 옮기지 않는다:
+    운영 화면에서 후보로 등록해야 서비스에 반영된다. 호출마다 돌지만 맞춰진 상태는 SDK 캐시 읽기뿐이고, 쓰기 직전에만 캐시 없이 다시 읽는다
+    (캐시의 지난 라벨로 쓰면 그 사이 승격된 production을 되돌리거나 같은 시드를 두 번 등록할 수 있다).
+    실패는 기록만 한다: 화면에 시드가 늦게 보일 뿐 기능은 production 버전으로 돌고 다음 호출이 다시 맞춘다.
+    """
+    try:
+        if SEED in cached.labels if cached.prompt == default else _seed_text(name, 60) == default:
+            return
+        production = client().get_prompt(name, label='production', cache_ttl_seconds=0)
+        if production.prompt == default:
+            if SEED not in production.labels:  # Langfuse가 보낸 라벨을 더하고 버전 사이에서 하나로 유지하므로 다른 버전의 seed는 여기로 옮겨진다
+                client().update_prompt(name=name, version=production.version, new_labels=[SEED])  # 읽은 라벨을 다시 보내면 그 사이 승격된 production을 되돌린다
+        elif _seed_text(name, 0) != default:
+            client().create_prompt(name=name, prompt=default, labels=[SEED], type='text', config=production.config)
+    except Exception as error:
+        logger.warning('%s 코드 시드를 Langfuse에 맞추지 못했습니다: %s', name, type(error).__name__)

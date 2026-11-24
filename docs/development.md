@@ -105,7 +105,7 @@ uv run --locked --extra dev python -m pytest -m 'not integration' tests/generati
 [AI 지침](../backend/ai-service/AGENTS.md#변경-범위와-검증)을 따릅니다. 단위 통과가 CI 통합·시스템 검증을 대신하지 않습니다.
 Aside는 별도 요청·승인 시에만 사용하며 HTTP 시스템 테스트를 브라우저 E2E로 보고하지 않습니다.
 
-### CI: 선택 → 단위·통합 병렬 → 선택 HTTP 시스템 → Required CI
+### CI: 선택 → 서비스별 빌드·단위·통합 → 선택 HTTP 시스템 → Required CI
 
 [`ci.yml`](../.github/workflows/ci.yml)이 Vitest·Gradle·pytest를 직접 호출하고 환경 기동·readiness·항상 정리를 소유합니다.
 [`infrastructure/ci/ci.py`](../infrastructure/ci/ci.py)는 보수적인 변경 선택·결과 집계·로그 정제만 담당하며 공통 runner나 shell wrapper는 없습니다.
@@ -114,15 +114,15 @@ JUnit/Vitest/pytest 단위·통합 테스트는 서비스 디렉터리에, pytes
 
 | 계층 | 현재 실행 범위 |
 |---|---|
-| 선택·정적 검사·단위 | 변경 diff 공백·선택기 회귀, 선택 web lint/build, AI lock. web Domain/Data/HTML, Core/Content/Operations `unitTest`(Spring·HTTP·DB 제외), AI `-m 'not integration'` |
-| 통합 | 나머지 web React/Hook/App, Core/Content/Operations `integrationTest`(Spring·HTTP·PostgreSQL/Flyway), AI `-m integration`(FastAPI TestClient) |
+| 선택·정적 검사 | 변경 diff 공백·선택기 회귀(`changes`), Compose 설정·샘플 데이터 계약(`configuration`) |
+| 서비스 | 선택된 서비스마다 job 하나(`Service / <서비스>`)가 한 러너에서 **빌드 → 단위 → 통합**을 순서대로 실행합니다. 빌드: web lint·build, Core/Content/Operations `bootJar`(이미지 빌드와 같은 작업), AI lock. 단위: web Domain/Data/HTML, Core/Content/Operations `unitTest`(Spring·HTTP·DB 제외), AI `-m 'not integration'`. 통합: 나머지 web React/Hook/App, Core/Content/Operations `integrationTest`(Spring·HTTP·PostgreSQL/Flyway), AI `-m integration`(FastAPI TestClient) |
 | 시스템 | CI 전용 Compose 앱·임시 PostgreSQL·Mailpit을 기동한 뒤 `pytest infrastructure/system -k ...`로 선택된 실제 HTTP 시나리오 실행 |
-| 집계 | `Required CI`: 실패·취소·필요한 tier의 예상 밖 skip은 실패, 영향 없는 작업의 의도적 skip만 허용 |
+| 집계 | `Required CI`: 실패·취소·필요한 job의 예상 밖 skip은 실패, 영향 없는 작업의 의도적 skip만 허용 |
 
-변경 선택 후 단위·통합 서비스 행렬과 설정 검사는 서로 독립적으로 병렬 실행합니다. 시스템은 필요한 단위·통합·설정 검사가 성공한 뒤 실행하며, 실패·취소 시 생략합니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
+변경 선택 후 서비스 job 행렬과 설정 검사는 서로 독립적으로 병렬 실행하고, 서비스끼리도 병렬입니다. 한 서비스 안에서는 단계가 순서대로이며 앞 단계가 실패하면 뒤 단계(특히 통합)를 실행하지 않습니다. 시스템은 필요한 서비스 job·설정 검사가 성공한 뒤 실행하며, 실패·취소 시 생략합니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
 Core/Content/Operations의 혼합 경계 클래스는 통합에 두며 Kotlin/Java의 Spring/HTTP/DB 분류 누락을 회귀로 검사합니다.
 Core/Content/Operations의 Gradle 캐시(`setup-java`)는 `cache-dependency-path`로 서비스별 키를 씁니다. 한 키를 함께 쓰면 먼저 저장한 서비스의 의존성만 남아 나머지는 Maven Central에서 다시 받다 429로 실패할 수 있습니다.
-Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. #132는 Content 통합 job에만 격리 Neo4j를 추가해 현재 관계 CRUD·재시도·부분 실패·권한·재조회와 카드 history의 not_recorded를 검증하도록 구성했습니다. 원고 색인이 늘 켜져 있어 모든 Content Spring 컨텍스트가 시작할 때 Elasticsearch에 접속하므로 Content 통합 job에는 격리 Elasticsearch service(`127.0.0.1:9200`)도 있습니다(로컬에서 Content 통합 테스트를 돌릴 때도 필요하며 `INTERNAL_TOKEN`도 비어 있으면 안 됩니다). Studio HTTP 통합의 Core 인증은 대역이며 실제 Core 로그인/nginx Studio 시스템 시나리오·hosted 실행 결과는 별도 대기입니다. Operations 통합은 job별 임시 PostgreSQL의 `TEST_OPERATIONS_DATABASE_URL/USER/PASSWORD`와 서비스 토큰/독립 CRUD·Flyway·JPA를 확인하도록 구성합니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
+Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. #132는 Content 서비스 job에만 격리 Neo4j를 추가해 현재 관계 CRUD·재시도·부분 실패·권한·재조회와 카드 history의 not_recorded를 검증하도록 구성했습니다. 원고 색인이 늘 켜져 있어 모든 Content Spring 컨텍스트가 시작할 때 Elasticsearch에 접속하므로 Content 서비스 job에는 격리 Elasticsearch service(`127.0.0.1:9200`)도 있습니다(로컬에서 Content 통합 테스트를 돌릴 때도 필요하며 `INTERNAL_TOKEN`도 비어 있으면 안 됩니다). Studio HTTP 통합의 Core 인증은 대역이며 실제 Core 로그인/nginx Studio 시스템 시나리오·hosted 실행 결과는 별도 대기입니다. Operations 통합은 job별 임시 PostgreSQL의 `TEST_OPERATIONS_DATABASE_URL/USER/PASSWORD`와 서비스 토큰/독립 CRUD·Flyway·JPA를 확인하도록 구성합니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
 
 #### 변경·영향 선택
 
@@ -149,7 +149,7 @@ DB를 tmpfs로 바꾸며 AI 키·모델은 빈 값으로 고정합니다. 서비
 실패 시 테스트 결과·컨테이너 로그를 토큰·이메일 등으로부터 정제하여 7일 보관합니다.
 
 로컬 선택 단위 결과와 hosted runtime 결과를 구분합니다. **최신 커밋의 GitHub `Required CI` 실제 성공을 확인하기 전에는 검증 대기**입니다.
-CI 이후 단일 CD의 게시 → 배포 흐름은 [인프라 안내](../infrastructure/README.md#ci--cd-publish--deploy)를 참고하세요.
+CI 성공 뒤 별도 CD 워크플로(`workflow_run`)의 게시 → 배포 흐름은 [인프라 안내](../infrastructure/README.md#ci--cd-publish--deploy)를 참고하세요.
 
 ## 에이전트 훅·스킬
 

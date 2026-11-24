@@ -175,23 +175,27 @@ class CreditLedger(BaseCallbackHandler):
 
 def run(name: str, label: str, failure: type[Exception], instructions: str, data: dict, *, prompt_name: str | None = None, max_tokens: int,
         timeout: int, trace: dict, schema: type[BaseModel] | None = None, web_search: bool = False,
-        credit: CreditMiddleware | None = None) -> tuple[AIMessage, Any]:
+        credit: CreditMiddleware | None = None, model: str | None = None) -> tuple[AIMessage, Any]:
     """data(JSON 자료)를 지시문으로 한 번 처리해 마지막 모델 메시지와 구조화 결과(schema가 없으면 None)를 돌려준다.
 
     지시문은 Langfuse 프롬프트 prompt_name의 production 버전이고 instructions(코드 문자열)는 최초 등록용 기본값이다(tracing.prompt).
     generation이 그 프롬프트 버전을 연결한다. 프롬프트를 읽을 수 없으면 모델을 부르지 않고 503이다.
     prompt_name이 없으면 Langfuse 프롬프트를 읽지 않고 instructions를 그대로 지시문으로 쓰며 generation에도 연결하지 않는다(회귀 평가처럼
-    평가할 프롬프트 버전의 본문을 직접 넘기는 호출. production 버전을 읽으면 안 된다).
+    평가할 프롬프트 버전의 본문을 직접 넘기는 호출. production 버전을 읽으면 안 된다). 모델은 프롬프트 버전이 고른 모델(prompt_name이 없으면
+    model 인자: 평가하는 버전의 모델)이고 없으면 OPENAI_MODEL이다(#705).
     web_search면 OpenAI 내장 `web_search`를 반드시 쓰게 하고 검색 출처를 응답에 포함시킨다. trace는 추적에 남길 입력이다.
     credit을 주면 가장 바깥 미들웨어로 끼워 이 호출의 사용량을 그 인스턴스에 더하고, 상한에 닿았으면 모델을 부르지 않는다.
     """
-    key, model = os.environ.get('OPENAI_API_KEY'), os.environ.get('OPENAI_MODEL')
-    if not key or not model:
+    key = os.environ.get('OPENAI_API_KEY')
+    if not key:
         raise failure(503, f'{label} 모델 설정이 필요합니다.')
     try:
-        managed = tracing.Prompt(instructions) if prompt_name is None else tracing.prompt(prompt_name, instructions)
+        managed = tracing.Prompt(instructions, model=model) if prompt_name is None else tracing.prompt(prompt_name, instructions)
     except tracing.PromptUnavailable:
         raise failure(503, f'{label} 프롬프트를 불러올 수 없습니다.') from None
+    model = managed.model or os.environ.get('OPENAI_MODEL')  # 운영 화면에서 고른 모델(#705), 없으면 환경 변수 기본값
+    if not model:
+        raise failure(503, f'{label} 모델 설정이 필요합니다.')
     chat = ChatOpenAI(model=model, api_key=key, use_responses_api=True, store=False, max_tokens=max_tokens, timeout=timeout,
                       max_retries=0, include=['web_search_call.action.sources'] if web_search else None)
     agent = create_agent(

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { LLM_FORBIDDEN, bodyText, percent, periodRange, promoteLabel, usd, type PromptVersion } from '../entities/llmOps'
+import { LLM_FORBIDDEN, bodyText, fixedModel, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, usd, versionAction, type PromptVersion } from '../entities/llmOps'
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
 import { lastPage } from '../entities/operations'
 
@@ -32,14 +32,16 @@ describe('LLMOps 표시 값', () => {
     expect(bodyText(null)).toBe('')
   })
 
-  it('production보다 새 버전은 승격, 오래된 버전은 복원, production 자신은 버튼이 없다', () => {
-    const v = (version: number, labels: string[] = []): PromptVersion => ({ version, labels, createdAt: '2026-11-19T00:00:00Z' })
-    const versions = [v(3), v(2, ['production']), v(1)]
-    expect(promoteLabel(versions, versions[0])).toBe('승격')
-    expect(promoteLabel(versions, versions[2])).toBe('복원')
-    expect(promoteLabel(versions, versions[1])).toBeNull()
-    // production 라벨이 아직 없으면 어느 버전이든 승격이다.
-    expect(promoteLabel([v(1)], v(1))).toBe('승격')
+  it('버전의 조치: 서비스에 반영 중이면 없음, 자기 후보 라벨이 있으면 반영, 아니면 후보 등록이다(#705)', () => {
+    const v = (version: number, labels: string[] = []): PromptVersion => ({ version, labels })
+    expect(versionAction(v(3, ['production', 'candidate-3']))).toBe('live')
+    expect(versionAction(v(3, ['candidate-3', 'latest']))).toBe('promote')
+    // 다른 버전의 후보 라벨이나 번호 없는 라벨은 이 버전의 후보가 아니다.
+    expect([versionAction(v(3, ['candidate-2'])), versionAction(v(3, ['candidate'])), versionAction(v(3))]).toEqual(['candidate', 'candidate', 'candidate'])
+  })
+
+  it('라벨은 화면 이름으로 보이고 Langfuse가 관리하는 latest는 숨긴다', () => {
+    expect(['production', 'candidate-3', 'seed', 'latest', 'staging'].map(labelText)).toEqual(['서비스 반영 중', '후보', '코드 시드', null, 'staging'])
   })
 })
 
@@ -97,5 +99,21 @@ describe('권한 안내 문구', () => {
   it('조회가 403이면 다시 불러오기 대신 필요한 권한을 안내한다', () => {
     expect(LLM_FORBIDDEN).toBe('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
     expect(JOBS_FORBIDDEN).toBe("실행 기록과 일정을 보려면 '정기 작업' 권한이 필요해요.")
+  })
+
+  it('production 버전과, production과 다른 코드 시드(seed 라벨) 버전을 찾는다(#705)', () => {
+    const v = (version: number, labels: string[] = []): PromptVersion => ({ version, labels })
+    expect(productionOf({ name: 'p', candidates: 0, versions: [v(3, ['seed']), v(2, ['production'])] })?.version).toBe(2)
+    expect(pendingSeed({ name: 'p', candidates: 0, versions: [v(3, ['seed', 'latest']), v(2, ['production'])] })?.version).toBe(3)
+    // 시드가 production과 같은 버전이거나 아직 seed 라벨이 없으면 대기 중인 시드가 없다.
+    expect(pendingSeed({ name: 'p', candidates: 0, versions: [v(2, ['production', 'seed'])] })).toBeNull()
+    expect(pendingSeed({ name: 'p', candidates: 0, versions: [v(2, ['production'])] })).toBeNull()
+    expect(productionOf({ name: 'p', candidates: 0, versions: [v(1)] })).toBeNull()
+  })
+
+  it('버전에 고른 모델이 없으면 기본 모델(환경 설정)로 보이고, Decisions API 프롬프트는 모델을 고를 수 없다', () => {
+    // 고르지 않은 버전의 실제 모델은 AI 서비스 환경 변수라 이름을 단정하지 않는다(#808).
+    expect([modelLabel('gpt-x'), modelLabel(null), modelLabel(undefined)]).toEqual(['gpt-x', '기본 모델(환경 설정)', '기본 모델(환경 설정)'])
+    expect([fixedModel('decision_guard.judge'), fixedModel('character_simulation.direct'), fixedModel('orchestration.main')]).toEqual([true, true, false])
   })
 })
