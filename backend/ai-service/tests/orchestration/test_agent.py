@@ -72,9 +72,9 @@ def test_the_decision_guard_runs_once_per_turn_and_the_main_agent_synthesizes_th
 
 
 def test_a_rejected_decision_never_calls_the_main_model(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(status='rejected', reason='greeting'))
+    calls = fake_agents(monkeypatch, plan(status='rejected', reason='prompt_injection'))
     result = run(inputs={'story_context': QA})
-    assert (result.status, result.message) == ('rejected', REJECT_MESSAGES['greeting'])
+    assert (result.status, result.message) == ('rejected', REJECT_MESSAGES['prompt_injection'])
     assert names(calls) == ['judge'] and calls.main == []
 
 
@@ -84,6 +84,11 @@ def test_an_allowed_decision_without_features_runs_the_main_agent_with_only_the_
     result = run(inputs={'story_context': QA})
     assert (result.status, result.message, result.steps) == ('clarify', '종합 답변', [])
     assert exposed(calls) == [list(mcp_tools.NAMES)]
+
+
+def test_the_main_agent_answers_small_talk_itself():
+    # #782: 가드가 인사·잡담을 거절하지 않으므로 메인이 짧게 답하고, 창작과 무관한 작업은 안내만 한다.
+    assert '인사·감사·잡담' in INSTRUCTIONS and '창작과 무관한 작업' in INSTRUCTIONS
 
 
 def test_world_plot_is_gone_so_no_decision_can_end_as_unsupported():
@@ -687,7 +692,7 @@ def test_an_unavailable_main_prompt_is_the_judgment_failure_before_any_model_cal
 
 @pytest.mark.parametrize('routed, judged', [
     (plan('story_context', 'research'), {'allowed': True, 'reason': None, 'capabilities': ['story_context', 'research']}),
-    (plan(status='rejected', reason='greeting'), {'allowed': False, 'reason': 'greeting', 'capabilities': []}),
+    (plan(status='rejected', reason='prompt_injection'), {'allowed': False, 'reason': 'prompt_injection', 'capabilities': []}),
 ], ids=['allowed', 'rejected'])
 def test_the_decision_guard_span_output_is_the_judgment_result(monkeypatch, spans, routed, judged):
     fake_agents(monkeypatch, routed)

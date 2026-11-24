@@ -220,12 +220,27 @@ def test_anything_else_is_not_an_answer_to_the_clarify_question(text):
     assert service.clarified(text) is None
 
 
-@pytest.mark.parametrize('reason', ['greeting', 'out_of_scope', 'inappropriate_edit', 'prompt_injection', 'sensitive_data'])
+@pytest.mark.parametrize('reason', ['prompt_injection', 'sensitive_data'])
 def test_guardrail_rejects_with_its_reason_and_no_feature(monkeypatch, reason):
     fake_decisions(monkeypatch, ok(guard=reason, writing_editing='yes'))
     result = service.judge('아무 문장')
     assert (result.allowed, result.reason, result.capabilities) == (False, reason, [])
     assert reason in prompt.REJECT_MESSAGES
+
+
+def test_the_guard_rejects_only_security_risks_and_lets_small_talk_through():
+    # #782: 인사·잡담·창작 고민·저장 요청은 거절하지 않고 메인이 답한다(저장·발행은 HITL 승인과 Content 인가가 막는다).
+    assert [c['value'] for c in prompt.GUARD_QUESTION['choices']] == ['none', 'prompt_injection', 'sensitive_data']
+    assert set(prompt.REJECT_MESSAGES) == {'prompt_injection', 'sensitive_data', 'unsafe'}
+    assert '도구' not in prompt.GUARDS['prompt_injection']  # 도구 노출·실행은 DynamicToolMiddleware·Content 인가가 막는다
+    for reason in ('greeting', 'out_of_scope', 'inappropriate_edit'):
+        with pytest.raises(ValueError):
+            DecisionResult(allowed=False, reason=reason)
+
+
+def test_small_talk_is_allowed_without_features(monkeypatch):
+    fake_decisions(monkeypatch, ok())
+    assert service.judge('고마워, 오늘 좀 막히네') == DecisionResult(allowed=True, capabilities=[])
 
 
 def test_guardrail_rejection_tolerates_model_refusing_other_questions(monkeypatch):
@@ -351,9 +366,9 @@ def test_moderation_error_fails_closed(monkeypatch):
 
 def test_a_rejection_cannot_carry_features_and_an_allowed_decision_has_no_reason():
     with pytest.raises(ValueError):
-        DecisionResult(allowed=False, reason='greeting', capabilities=['manuscript_review'])
+        DecisionResult(allowed=False, reason='prompt_injection', capabilities=['manuscript_review'])
     with pytest.raises(ValueError):
-        DecisionResult(allowed=True, reason='greeting')
+        DecisionResult(allowed=True, reason='prompt_injection')
 
 
 
