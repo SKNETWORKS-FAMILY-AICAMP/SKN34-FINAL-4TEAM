@@ -11,7 +11,7 @@
 기본 Auth Flyway는 `classpath:db/migration/auth`, Content는 `ContentConfig`에서 별도 migrate를 실행한다.
 WorldStudio는 독립 EntityManager의 Hibernate `validate`만 수행했으므로 #97 병합과 일반 Core 시작만으로 V1이 실행되지 않았다.
 
-이번 연동은 `.github/workflows/publish-images.yml`의 기존 develop CD에 실행 단계를 추가한다(그 CD는 2026-11-24부터 `ci.yml`의 `publish`·`deploy` job이다).
+이번 연동은 `.github/workflows/publish-images.yml`의 기존 develop CD에 실행 단계를 추가한다.
 CI 성공 → 세 이미지 게시 → 개발 서버 pull·이미지 revision 일치 확인(지금은 서비스별 build-tree 확인) → **일회성 WorldStudio migrate·validate·pending=0·12개 테이블 확인** → 새 Core `up --wait` 순서다.
 마이그레이션은 기존 Core 이미지의 `WorldStudioMigration` main을 Boot `PropertiesLauncher`로 실행한다.
 Compose의 `worldstudio-migration` profile은 `run --rm --no-deps worldstudio-migrate`에서만 실행되며 상시 서버·DB를 추가하지 않는다.

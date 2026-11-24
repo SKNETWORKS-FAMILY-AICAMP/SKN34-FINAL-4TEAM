@@ -310,40 +310,32 @@ class SelectionTest(unittest.TestCase):
             self.assertIn(f"needs.{prerequisite}.result == 'success'", system)
         required = jobs['required']
         self.assertIn('if: ${{ always() }}', required)
-        # 게시·배포를 뺀 모든 job을 집계한다(새 job을 더하고 빠뜨리면 이 시험이 실패한다).
-        self.assertEqual(set(jobs) - {'required', 'publish', 'deploy'}, set(re.search(r'needs: \[(.*)\]', required)[1].split(', ')))
+        # 모든 job을 집계한다(새 job을 더하고 빠뜨리면 이 시험이 실패한다).
+        self.assertEqual(set(jobs) - {'required'}, set(re.search(r'needs: \[(.*)\]', required)[1].split(', ')))
         for tier, output in (('SERVICE', 'service_needed'), ('SYSTEM', 'system_needed'), ('CONFIGURATION', 'infra')):
             self.assertIn(f'{tier}_NEEDED: ${{{{ needs.changes.outputs.{output} }}}}', required)
 
-    def test_publish_and_deploy_run_only_for_a_develop_push_after_required_ci(self):
+    def test_ci_has_no_publish_or_deploy_and_cancels_superseded_runs(self):
+        # 게시·배포는 별도 CD 워크플로(publish-images.yml)가 CI 성공 뒤에 맡는다. CI에는 게시·배포 권한이 없다.
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
-        jobs = workflow_jobs(workflow)
-        publish, deploy = jobs['publish'], jobs['deploy']
-        self.assertIn('\n    needs: required\n', publish)
-        condition = re.search(r'(?m)^    if: (.*)$', publish)[1]
-        for expected in ("needs.required.result == 'success'", "github.ref == 'refs/heads/develop'",
-                         "github.event_name == 'push'", "github.event_name == 'workflow_dispatch'",
-                         "github.repository == 'SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM'"):
-            self.assertIn(expected, condition)
-        self.assertNotIn('pull_request', condition)  # PR·fork·main에는 게시 권한이 없다
-        self.assertIn('\n    needs: publish\n', deploy)
-        self.assertIn("if: ${{ needs.publish.result == 'success' }}", deploy)
-        self.assertIn('\n    environment: develop-cd\n', deploy)
-        self.assertIn('StrictHostKeyChecking=yes', deploy)
-        # 진행 중인 배포는 새 push가 끊지 않는다: 워크플로 수준은 develop에서 취소를 끄고, 게시·배포는 한 그룹으로 직렬화한다.
-        self.assertIn("\nconcurrency:\n  group: ${{ github.workflow }}-${{ github.ref }}\n  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' }}\n", workflow)
-        for job in (publish, deploy):
-            self.assertIn('\n    concurrency:\n      group: develop-cd\n      cancel-in-progress: false\n', job)
+        self.assertTrue({'publish', 'deploy'}.isdisjoint(workflow_jobs(workflow)))
+        for permission in ('packages: write', 'id-token: write'):
+            self.assertNotIn(permission, workflow)
+        # 같은 ref의 새 push는 진행 중인 CI를 취소한다. 취소된 run은 성공이 아니므로 CD를 시작하지 않는다.
+        self.assertIn('\nconcurrency:\n  group: ${{ github.workflow }}-${{ github.ref }}\n  cancel-in-progress: true\n', workflow)
+
+    def test_cd_starts_only_after_a_successful_ci_run_and_owns_the_publish_permissions(self):
+        source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
+        triggers = source.split('\non:\n', 1)[1].split('\npermissions:\n', 1)[0]
+        self.assertIn('  workflow_run:\n    workflows: [CI]\n    branches: [develop]\n    types: [completed]\n  workflow_dispatch:\n', triggers)
+        self.assertNotIn('pull_request', triggers)
+        self.assertRegex((ci.ROOT / '.github/workflows/ci.yml').read_text(), r'(?m)^name: CI$')  # workflow_run이 이 이름으로 CI를 찾는다
+        jobs = workflow_jobs(source)
+        condition = re.search(r'(?m)^    if: (.*)$', jobs['publish'])[1]
+        self.assertIn("github.event.workflow_run.conclusion == 'success'", condition)
+        self.assertIn("github.event.workflow_run.head_branch == 'develop'", condition)
         self.assertEqual({'publish'}, {name for name, body in jobs.items() if 'packages: write' in body})
         self.assertEqual({'deploy'}, {name for name, body in jobs.items() if 'id-token: write' in body})
-
-    def test_cd_is_part_of_ci_and_no_separate_workflow_remains(self):
-        triggers = (ci.ROOT / '.github/workflows/ci.yml').read_text().split('\non:\n', 1)[1].split('\npermissions:\n', 1)[0]
-        self.assertNotIn('workflow_run', triggers)
-        for events in ('push:\n    branches: [develop, main]', '  pull_request:', '  workflow_dispatch:'):
-            self.assertIn(events, triggers)
-        for removed in ('publish-images.yml', 'deploy-develop.yml'):
-            self.assertFalse((ci.ROOT / '.github/workflows' / removed).exists(), removed)
 
     def test_gradle_cache_is_keyed_per_service(self):
         # setup-java 기본 키는 전 서비스의 *.gradle*을 한데 해시해 core·content·operations가 한 캐시를 나눠 쓴다.
@@ -531,7 +523,7 @@ class ComposeSplitTest(unittest.TestCase):
         self.assertNotIn('${DATABASE_URL', dev)
         self.assertIn('  core-postgres:', dev)
         self.assertNotIn('external:', dev)
-        workflow = workflow_jobs((ci.ROOT / '.github/workflows/ci.yml').read_text())['deploy']
+        workflow = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
         self.assertIn('COMPOSE_LOCAL_YAML', workflow)
         self.assertIn("if: ${{ needs.publish.result == 'success' }}", workflow)
 
@@ -983,28 +975,39 @@ class ConfigurationTest(unittest.TestCase):
             self.assertEqual("[redacted] [redacted]", ci.redact("short-test-token test-password"))
 
     def test_cd_publish_and_deploy_checkout_same_exact_source_sha(self):
-        jobs = workflow_jobs((ci.ROOT / '.github/workflows/ci.yml').read_text())
-        self.assertIn('TARGET_SHA: ${{ github.sha }}', jobs['publish'])
+        source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
         for job in ['publish', 'deploy']:
             with self.subTest(job=job):
-                checkout = jobs[job].split('uses: actions/checkout@', 1)[1].split('\n      - ', 1)[0]
-                self.assertIn('ref: ${{ github.sha }}', checkout)
+                checkout = source.split(f'\n  {job}:\n', 1)[1].split('uses: actions/checkout@', 1)[1].split('\n      - ', 1)[0]
+                self.assertIn('ref: ${{ github.event.workflow_run.head_sha || github.sha }}', checkout)
                 self.assertIn('persist-credentials: false', checkout)
 
     def test_cd_deploy_gets_the_build_trees_publish_computed(self):
-        jobs = workflow_jobs((ci.ROOT / '.github/workflows/ci.yml').read_text())
-        publish, deploy = jobs['publish'], jobs['deploy']
+        source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
+        publish, deploy = source.split('\n  deploy:\n', 1)
         self.assertIn('trees: ${{ steps.images.outputs.trees }}', publish)
         self.assertIn('CD_TREES: ${{ needs.publish.outputs.trees }}', deploy)
         self.assertIn('CD_TREES "$CD_TREES"', deploy)
 
     def test_cd_ssh_directory_uses_step_runner_temp(self):
-        deploy = workflow_jobs((ci.ROOT / '.github/workflows/ci.yml').read_text())['deploy']
+        source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
+        deploy = source.split('\n  deploy:\n', 1)[1]
         job_env = deploy.split('\n    env:\n', 1)[1].split('\n    steps:\n', 1)[0]
         self.assertNotIn('${{ runner.', job_env)
         prepare = deploy.split('      - name: Prepare SSH\n', 1)[1].split('\n      - name:', 1)[0]
         self.assertIn('SSH_DIR="$RUNNER_TEMP/storyfork-ssh"', prepare)
         self.assertIn('printf \'SSH_DIR=%s\\n\' "$SSH_DIR" >> "$GITHUB_ENV"', prepare)
+
+    def test_cd_is_one_trusted_publish_then_deploy_workflow(self):
+        source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
+        self.assertIn('name: CD', source)
+        self.assertIn('needs: publish', source)
+        self.assertIn('head_repository.full_name == github.repository', source)
+        self.assertIn("github.ref == 'refs/heads/develop'", source)
+        self.assertIn("github.event.workflow_run.event == 'push'", source)
+        self.assertIn('environment: develop-cd', source)
+        self.assertIn('StrictHostKeyChecking=yes', source)
+        self.assertFalse((ci.ROOT / '.github/workflows/deploy-develop.yml').exists())
 
 
 if __name__ == "__main__":

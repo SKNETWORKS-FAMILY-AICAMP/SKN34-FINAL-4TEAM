@@ -89,7 +89,7 @@ class SpringServiceConfigurationTest(unittest.TestCase):
             self.assertEqual([], [str(p) for p in sources if flag in p.read_text(encoding="utf-8")], flag)
         for path in (".env.example", "infrastructure/docker-compose.yaml", "infrastructure/docker-compose.local.yaml",
                      "infrastructure/docker-compose.dev.yaml", "infrastructure/ci/compose.test.yaml",
-                     ".github/workflows/ci.yml"):
+                     ".github/workflows/ci.yml", ".github/workflows/publish-images.yml"):
             text = (ROOT / path).read_text(encoding="utf-8")
             for name in ("APP_WORLDSTUDIO_ENABLED", "CORE_NOTIFICATION_EVENTS_ENABLED", "WORLDSTUDIO_CD_MIGRATION_ENABLED",
                          "worldstudio-migrate", "profiles: [worldstudio]", "profiles: [events]"):
@@ -106,7 +106,8 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         sources = list((ROOT / "backend/content-service/src/main").rglob("*.kt")) + list((ROOT / "backend/content-service/src/main/resources").glob("*.properties"))
         self.assertEqual([], [str(p) for p in sources if "MANUSCRIPT_INDEX_ENABLED" in p.read_text(encoding="utf-8") or "app.manuscript-index.enabled" in p.read_text(encoding="utf-8")])
         files = (".env.example", "infrastructure/docker-compose.yaml", "infrastructure/docker-compose.local.yaml", "infrastructure/docker-compose.dev.yaml",
-                 "infrastructure/docker-compose.prod.yaml", "infrastructure/ci/compose.test.yaml", ".github/workflows/ci.yml")
+                 "infrastructure/docker-compose.prod.yaml", "infrastructure/ci/compose.test.yaml", ".github/workflows/ci.yml",
+                 ".github/workflows/publish-images.yml")
         for path in files:
             self.assertNotIn("MANUSCRIPT_INDEX_ENABLED", (ROOT / path).read_text(encoding="utf-8"), path)
 
@@ -145,7 +146,7 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         self.assertFalse((ROOT / "infrastructure/compose.attachments.yaml").exists())
         for path in (".env.example", "backend/content-service/src/main/resources/application.properties",
                      "infrastructure/docker-compose.local.yaml", "infrastructure/docker-compose.dev.yaml",
-                     ".github/workflows/ci.yml"):
+                     ".github/workflows/publish-images.yml", ".github/workflows/ci.yml"):
             text = (ROOT / path).read_text(encoding="utf-8")
             for name in ("SETTING_ATTACHMENTS_ENABLED", "setting-attachments.enabled", "compose.attachments",
                          "DEVELOP_CD_ENABLED", "CONTENT_FRESH_SCHEMA_APPROVED", "DEVELOP_INTERNAL_DB_APPROVED"):
@@ -164,9 +165,10 @@ class SpringServiceConfigurationTest(unittest.TestCase):
         for path in ("infrastructure/docker-compose.local.yaml", "infrastructure/docker-compose.dev.yaml", "infrastructure/ci/compose.test.yaml"):
             self.assertIn("image: " + image, (ROOT / path).read_text(encoding="utf-8"), path)
         self.assertIn("build: !reset null", (ROOT / "infrastructure/ci/compose.test.yaml").read_text(encoding="utf-8"))
+        publish = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
+        self.assertNotIn("ai-service minio; do", publish)
+        self.assertIn('docker manifest inspect "$minio"', publish)
         ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-        self.assertNotIn("ai-service minio; do", ci)
-        self.assertIn('docker manifest inspect "$minio"', ci)
         self.assertIn('docker pull "$minio" || docker build --load', ci)
 
     def test_attachment_integration_tests_run_in_ci_against_minio(self):

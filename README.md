@@ -235,7 +235,7 @@ SKN34-FINAL-4TEAM/
 │  └─ ai-service/            AI: 내부 Health·이어쓰기 제안
 ├─ infrastructure/           Compose·nginx·MinIO, CI 변경 선택기, HTTP 시스템 테스트
 ├─ docs/                     설계·결정·ERD·유스케이스·조사·산출물
-├─ .github/workflows/        CI·이미지 게시/배포(ci.yml)
+├─ .github/workflows/        CI(ci.yml)·이미지 게시/배포(publish-images.yml)
 └─ compose.yaml              로컬 통합 실행 진입점
 ```
 
