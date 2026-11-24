@@ -1768,8 +1768,9 @@ def saved(thread, *requests):
 
 
 def together(*calls):
+    """같은 대화의 변경을 엇갈려 실행한다. 오류는 삼키지 않는다(삼키면 한쪽만 돌아도 결과가 맞아 통과한다)."""
     async def all_of():
-        await asyncio.gather(*calls, return_exceptions=True)
+        await asyncio.gather(*calls)
     asyncio.run(all_of())
 
 
