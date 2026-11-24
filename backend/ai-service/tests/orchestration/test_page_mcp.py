@@ -341,10 +341,11 @@ def test_every_write_tool_waits_for_approval_with_its_fixed_label(monkeypatch, n
     assert resume(thread, True).status == 'completed' and [t for t, _ in writes(log)] == [name]
 
 
-@pytest.mark.parametrize('name', ['story_plan_create', 'story_plan_update'])
-@pytest.mark.parametrize('kind, sent', [('plot', None), ('scene', 0)])
-def test_only_a_scene_plan_keeps_the_position_the_model_copied_from_the_read(monkeypatch, name, kind, sent):
-    """모델이 story_plan_read 결과의 position을 플롯에도 그대로 실으면 Content가 422로 거절한다(#774). 플롯 순서는 없어 뺀다."""
+@pytest.mark.parametrize('name, kind, sent', [('story_plan_create', 'plot', None), ('story_plan_create', 'scene', 0),
+                                              ('story_plan_update', 'plot', None), ('story_plan_update', 'scene', None)])
+def test_only_a_new_scene_plan_keeps_the_position_the_model_gave(monkeypatch, name, kind, sent):
+    """모델이 story_plan_read 결과의 position을 그대로 실으면 Content가 422로 거절한다(#774). 플롯은 순서가 없고,
+    읽은 장면 순번에는 삭제로 생긴 빈자리가 있어 이동 위치로 쓸 수 없으므로 수정에서는 뺀다(순서는 그대로 남는다)."""
     data = {'kind': kind, 'title': '첫 장면', 'content': '', 'position': 0}
     fake_agents(monkeypatch, only_content((name, {'workId': 'work', 'id': 'p', 'data': data})))
     log = content(monkeypatch)
