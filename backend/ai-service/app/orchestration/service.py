@@ -6,7 +6,7 @@ ask_* 도구(app/orchestration/tools.py)만 순서대로 불러 원본 결과를
 그대로 저장할 수 있도록 JSON 값만 담는다.
 
 멀티턴(#57): Content가 발급한 threadId의 대화는 체크포인터에 turns로 쌓인다. 메인 에이전트는 최근 5턴의 요청·답변을, Decision Guard는
-기능을 고르지 못했을 때만 이전 요청을, Q&A는 이전 질문·답을 지칭 해석용 자료로만 받는다. 대화는 첫 턴의 Content 확인 scope(사용자·작품)에
+처음부터 최근 3턴의 요청·답변 앞부분·실행 기능을(#781), Q&A는 이전 질문·답을 지칭 해석용 자료로만 받는다. 대화는 첫 턴의 Content 확인 scope(사용자·작품)에
 묶여 다른 scope로는 이어갈 수 없다. 웹 조사 외부 검색에는 대화 기록을 보내지 않는다.
 
 HITL: 대화 안에서 작가 입력이 빠지면 그 도구가 interrupt로 멈추고 단계와 빠진 입력을 돌려준다. 같은 threadId의 resume(승인+입력 또는 취소)은
@@ -61,7 +61,7 @@ from app.orchestration import agent, mcp_tools
 from app.orchestration.models import (CONTENT_ACTION, ChatHistory, ChatSession, ChatTurn, OrchestrationRequest,
                                       OrchestrationResponse, Resume)
 from app.orchestration.prompt import screen
-from app.orchestration.tools import HISTORY_TURNS, history as _history, previous as _previous, task as _task
+from app.orchestration.tools import HISTORY_TURNS, guard_history, previous as _previous, task as _task
 from app.simulation import service as simulation
 from app.simulation.models import Scene, SimulationPlan
 from app.simulation.scene_agent import scene_agent, turn as simulation_turn
@@ -207,7 +207,7 @@ async def _run_main_agent(state: State, config: RunnableConfig) -> State:
         decide, run_as = {'request': asked[1], 'operation': asked[0], 'materials': state['materials'], 'history': []}, asked[1]
     else:
         decide = {'request': state['request'], 'operation': state.get('operation'), 'materials': [*state['materials'], *seen],
-                  'history': _history(state)}
+                  'history': guard_history(state)}
         run_as = None
     turn = {**state, 'task': run_as, 'decide': decide}
     asking = _task(turn) + (f"\n\n{screen(state['page'])}" if state.get('page') else '')

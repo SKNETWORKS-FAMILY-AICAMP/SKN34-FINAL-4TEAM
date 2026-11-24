@@ -181,9 +181,19 @@ def test_follow_up_turn_gets_previous_requests_and_qa_history(monkeypatch):
     chat(thread, request='카이의 목표는?', inputs={'story_context': QA})
     chat(thread, request='그 목표가 바뀐 이유는?', inputs={'story_context': QA})
     route, qa = [c for c in calls if c[0] == 'judge'], [c for c in calls if c[0] == 'story_context']
-    assert route[0][1][3] == [] and route[1][1][3] == ['카이의 목표는?']
+    assert route[0][1][3] == [] and route[1][1][3] == [{'request': '카이의 목표는?', 'reply': '종합 답변', 'features': ['story_context']}]
     assert qa[0][1][0].history == []
     assert [(t.question, t.answer) for t in qa[1][1][0].history] == [(QA['question'], '밤에 닫는다')]
+
+
+def test_the_guard_history_is_the_last_three_turns_with_a_short_reply_and_the_features_run():
+    turns = [{'request': f'요청{i}', 'reply': {'message': '가' * 400, 'steps': [{'feature': 'web_research'}, {'feature': 'research'}, {'feature': 'rating'}]}}
+             for i in range(4)] + [{'request': '답 없음'}]
+    sent = tools.guard_history({'turns': turns})
+    assert [t['request'] for t in sent] == ['요청2', '요청3', '답 없음']
+    assert sent[0] == {'request': '요청2', 'reply': '가' * 300, 'features': ['research', 'rating']}  # 옛 기능 키는 지금 키로, 중복 없이
+    assert sent[-1] == {'request': '답 없음', 'reply': '', 'features': []}
+    assert tools.guard_history({'turns': turns, 'replaceHistory': True}) == []  # 메시지 수정 턴은 이전 턴을 보내지 않는다
 
 
 def test_each_turn_starts_without_previous_turn_results(monkeypatch):
@@ -1652,7 +1662,7 @@ def test_truncate_drops_the_turn_and_everything_after(monkeypatch):
     assert [t.request for t in conversation('history', thread, ME).turns] == ['하나']
     calls = fake_agents(monkeypatch, plan('story_context'))
     chat(thread, request='넷', inputs={'story_context': QA})
-    assert [c[1][3] for c in calls if c[0] == 'judge'] == [['하나']]  # 지운 턴은 Router 기록에도 없다.
+    assert [[t['request'] for t in c[1][3]] for c in calls if c[0] == 'judge'] == [['하나']]  # 지운 턴은 Router 기록에도 없다.
     conversation('truncate', thread, ME, 0)
     assert conversation('sessions', ME) == []
 
@@ -1943,7 +1953,7 @@ def test_the_clarified_request_does_not_leak_into_the_next_turn(monkeypatch):
     assert calls[1][1][1] == '길드 규칙은?' and calls[4][1][0].question == '길드 규칙은?'
     write_turn(thread, request='다른 질문은?', scope=SCOPE, target=TARGET)
     assert [c[1][1] for c in calls if c[0] == 'retrieval'] == ['길드 규칙은?', '다른 질문은?']
-    assert [c[1][3] for c in calls if c[0] == 'judge'][-1] == ['길드 규칙은?', '작품 질문']
+    assert [t['request'] for t in [c[1][3] for c in calls if c[0] == 'judge'][-1]] == ['길드 규칙은?', '작품 질문']
 
 
 def test_a_capability_name_is_ordinary_text_unless_the_router_just_asked(monkeypatch):
@@ -1952,7 +1962,7 @@ def test_a_capability_name_is_ordinary_text_unless_the_router_just_asked(monkeyp
     chat(thread, request='카이의 목표는?', inputs={'story_context': QA})
     calls = fake_agents(monkeypatch, plan('writing_editing'))
     chat(thread, request='기획·집필·수정', inputs={'writing_editing': PATCH})
-    assert calls[0][1] == ('기획·집필·수정', None, [], ['카이의 목표는?'])
+    assert calls[0][1][:3] == ('기획·집필·수정', None, []) and [t['request'] for t in calls[0][1][3]] == ['카이의 목표는?']
 
 
 def test_a_simulation_clarify_is_not_a_router_clarify(monkeypatch):
@@ -1961,7 +1971,7 @@ def test_a_simulation_clarify_is_not_a_router_clarify(monkeypatch):
     assert write_turn(thread, request='장면 시뮬레이션', scope=SCOPE, target=TARGET).status == 'clarify'
     calls = fake_agents(monkeypatch, plan('writing_editing'))
     write_turn(thread, request='기획·집필·수정', target=TARGET, inputs={'writing_editing': PATCH})
-    assert calls[0][1] == ('기획·집필·수정', None, [], ['장면 시뮬레이션'])
+    assert calls[0][1][:3] == ('기획·집필·수정', None, []) and [t['request'] for t in calls[0][1][3]] == ['장면 시뮬레이션']
 
 
 def test_an_explicit_operation_wins_over_a_clarify_answer(monkeypatch):
@@ -1970,7 +1980,7 @@ def test_an_explicit_operation_wins_over_a_clarify_answer(monkeypatch):
     chat(thread, request=VAGUE)
     calls = fake_agents(monkeypatch, plan('story_context'))
     chat(thread, request='기획·집필·수정', operation='story_context', inputs={'story_context': QA})
-    assert calls[0][1] == ('기획·집필·수정', 'story_context', [], [VAGUE])
+    assert calls[0][1][:3] == ('기획·집필·수정', 'story_context', []) and [t['request'] for t in calls[0][1][3]] == [VAGUE]
 
 
 def test_cancelling_the_finding_pick_runs_no_edit(monkeypatch):

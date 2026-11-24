@@ -4,7 +4,7 @@
 - `SensitiveDataGuard`(PIIMiddleware): 요청에 이메일·카드번호·API 키가 있으면 어떤 모델도 부르지 않고 sensitive_data로 거절한다(외부 전송 방지).
 - `ModerationGuard`(OpenAIModerationMiddleware): OpenAI moderation이 BLOCKED 범주를 걸면 unsafe로 거절한다. 폭력·성 묘사 같은
   창작 범주는 소설에 흔해 막지 않고 Decisions의 guard 질문이 판단한다.
-자료(materials)·이전 요청(history)은 원고·검색 본문이라 가드레일 검사 대상이 아니며 Decisions에만 자료로 보낸다.
+자료(materials)·이전 턴(history: 요청·답변 앞부분·실행 기능)은 원고·검색 본문이라 가드레일 검사 대상이 아니며 Decisions에만 자료로 보낸다.
 """
 
 import os
@@ -61,13 +61,13 @@ class ModerationGuard(OpenAIModerationMiddleware):
 class DecisionsModel(BaseChatModel):
     """create_agent의 모델 슬롯에서 OpenAI Decisions를 부른다. 시스템 메시지는 developer 지시, 사용자 메시지는 작가 요청이다.
 
-    질문·자료·이전 요청은 호출마다 정해 필드로 받는다. 응답(dict)은 그대로 additional_kwargs['decision']에 담고 decide가 검증한다.
+    질문·자료·이전 턴은 호출마다 정해 필드로 받는다. 응답(dict)은 그대로 additional_kwargs['decision']에 담고 decide가 검증한다.
     호출은 generation으로 남기되 모델·사용량·프롬프트 버전만 담는다(요청·자료는 가드레일이 거른 작가 원문이라 이 observation에 넣지 않는다).
     """
     client: Any
     questions: list[dict]
     materials: list[str]
-    history: list[str]
+    history: list[dict]
     prompt: Any = None  # generation에 연결할 Langfuse 프롬프트
 
     @property
@@ -102,7 +102,7 @@ def _provider_message(error: OpenAIError) -> str:
     return ROUTER_FAILED_MESSAGE
 
 
-def decide(request: str, materials: list[str], questions: list[dict], history: list[str] = ()) -> dict[str, str]:
+def decide(request: str, materials: list[str], questions: list[dict], history: list[dict] = ()) -> dict[str, str]:
     key = os.environ.get('OPENAI_API_KEY')
     if not key:
         raise IntentFailure()

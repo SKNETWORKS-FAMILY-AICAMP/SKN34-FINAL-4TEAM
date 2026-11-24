@@ -56,6 +56,7 @@ from app.writing.models import DraftRequest, PatchRequest, PlanBrief, PlanPickRe
 Request = Annotated[str, Field(max_length=2000, description='서브 에이전트에게 줄 작업 지시. 작가 요청과 이번 턴 앞선 결과의 요약을 담을 수 있다.')]
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
 HISTORY_TURNS = 5
+GUARD_TURNS, GUARD_REPLY = 3, 300  # Decision Guard가 받는 이전 턴 수와 답변 앞부분 글자 수(#781). 판정 입력을 짧게 두어 끌려감·지연을 줄인다
 FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure,
             WorldReviewFailure, RatingFailure)
 NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
@@ -130,6 +131,16 @@ def previous(turn: dict) -> list[dict]:
 def history(turn: dict) -> list[str]:
     """이전 턴의 요청. 지칭 해석용 자료로만 쓴다."""
     return [t['request'] for t in previous(turn)][-HISTORY_TURNS:]
+
+
+def guard_history(turn: dict) -> list[dict]:
+    """Decision Guard에 보낼 최근 턴의 {요청, 답변 앞부분, 그 턴에 실행된 기능}(#781). 지칭·대답을 풀 자료로만 쓴다.
+
+    기능은 저장된 답변의 단계(reply.steps)에서 꺼내 옛 기능 키를 지금 키로 바꾸고 중복을 뺀다(새 상태 없음).
+    """
+    return [{'request': t['request'], 'reply': ((t.get('reply') or {}).get('message') or '')[:GUARD_REPLY],
+             'features': list(dict.fromkeys(current_feature(s['feature']) for s in (t.get('reply') or {}).get('steps') or []))}
+            for t in previous(turn)[-GUARD_TURNS:]]
 
 
 def task(turn: dict) -> str:
