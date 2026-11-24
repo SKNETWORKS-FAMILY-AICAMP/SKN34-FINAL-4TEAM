@@ -129,8 +129,8 @@ class Clarify(Exception):
 
 
 def _clarify(message: str, choices: list[dict] = ()) -> dict:
-    """남은 호출을 막고 되묻기로 끝내는 stopped. 선택지의 message는 요청 한도(2,000자)로 자른다."""
-    return {'stopped': {'status': 'clarify', 'message': message, 'choices': [{**c, 'message': c['message'][:2000]} for c in choices][:CHOICES]}}
+    """남은 호출을 막고 되묻기로 끝내는 stopped. 요청 한도(2,000자)를 넘는 선택지는 자르면 다른 요청이 되므로 빼고 작가가 입력창으로 답한다."""
+    return {'stopped': {'status': 'clarify', 'message': message, 'choices': [c for c in choices if len(c['message']) <= 2000][:CHOICES]}}
 
 
 def previous(turn: dict) -> list[dict]:

@@ -829,6 +829,11 @@ def test_ask_author_is_exposed_with_the_decided_tools_and_does_not_use_up_the_th
     calls = fake_agents(monkeypatch, asking())
     run('결말 고쳐줘', inputs={'story_context': QA})
     assert exposed(calls)[0] == ['ask_story_qa', *mcp_tools.NAMES, 'ask_author']
+    # 서브 에이전트 세 번으로 턴당 한도를 다 쓴 뒤에도 묻기는 실행된다.
+    three = [('ask_story_qa', {}), ('ask_research', {'task': 'web'}), ('ask_rating', {})]
+    calls = fake_agents(monkeypatch, asking(*three, capabilities=('story_context', 'research', 'rating')))
+    result = run('결말 고쳐줘', target=TARGET, inputs={'story_context': QA, 'research': WEB})
+    assert len(result.steps) == 3 and (result.status, len(result.choices)) == ('clarify', 2)
 
 
 @pytest.mark.parametrize('options', [

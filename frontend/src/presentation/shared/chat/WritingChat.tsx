@@ -340,7 +340,7 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
       {!!activities?.length && <details className="chat-step-details chat-activity-log"><summary>작업 {activities.length}개</summary><Activities list={activities} finished /></details>}
       {reply?.steps.map((s, i) => <References key={`${s.feature}-${i}`} step={s} />)}
       {!!choices.length && <div className="chat-choices" role="group" aria-label="고를 수 있는 답">
-        {choices.map((c, i) => <button key={i} type="button" className="chat-suggest-btn" disabled={!choosable}
+        {choices.map((c, i) => <button key={i} type="button" className="chat-suggest-btn" disabled={!choosable} title={c.form ? undefined : c.message}
           onClick={() => (c.form ? onOpenSetup?.() : void vm.send(c.message))}>{c.label}</button>)}
       </div>}
       <div className="chat-reply-foot">

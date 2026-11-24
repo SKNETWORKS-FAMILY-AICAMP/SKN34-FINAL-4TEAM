@@ -2873,3 +2873,11 @@ def test_the_next_turn_does_not_carry_the_previous_choices(monkeypatch):
     assert write_turn(thread, request='장면 시뮬레이션', scope=SCOPE, target=TARGET).choices
     fake_agents(monkeypatch, plan('story_context'))
     assert write_turn(thread, request='규칙 알려줘', scope=SCOPE, inputs={'story_context': QA}).choices == []
+
+
+def test_a_choice_whose_message_would_pass_the_request_limit_is_left_out_not_cut(monkeypatch):
+    # 원 요청 끝을 잘라 다른 요청을 보내지 않는다: 한도를 넘는 선택지는 빼고 작가가 입력창으로 답한다(CodeRabbit 지적).
+    long = '가' * 1990
+    fake_agents(monkeypatch, plan('character_simulation'), drafted=SimulationPlan())
+    result = run(long, target=TARGET)
+    assert [(c.label, c.form) for c in result.choices] == [('양식에서 고르기', 'simulation')]
