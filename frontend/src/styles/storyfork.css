@@ -119,7 +119,7 @@ main.wrap{padding-top:32px}
 .hero-step{display:grid;place-items:center;flex:none;width:44px;height:44px;border:1px solid var(--line2);border-radius:50%;background:var(--surface);color:var(--ink)}
 .hero-step:hover{border-color:var(--pri);color:var(--pri-ink)}
 .dots{display:flex;flex-wrap:wrap;justify-content:center;min-width:0}.dots button{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:0;background:none}.dots i{display:block;width:6px;height:6px;border-radius:3px;background:var(--sub);transition:background .3s}.dots i.on{width:22px;background:var(--pri)}
-.hero-rotation{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:8px}.hero-rotation .btn{min-height:44px}.hero-rotation .btn[aria-pressed="true"]{border-color:var(--pri);color:var(--pri-ink)}.hero-rotation small{color:var(--sub);font-size:12px}
+.hero-rotation{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:8px}.hero-rotation .btn{min-height:44px}.hero-rotation small{color:var(--sub);font-size:12px}
 .hero .slide:focus-visible{outline-offset:-4px}
 .rings{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;padding:6px 4px 4px}.rings::-webkit-scrollbar{display:none}
 .ring{flex:none;border:0;background:none;padding:0;width:84px;text-align:center}
