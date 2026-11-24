@@ -1,6 +1,7 @@
 package ai.storyfork.content.writingai.controller
 
 import ai.storyfork.content.writingai.service.WritingAiService
+import ai.storyfork.content.writingai.service.dto.ChatFeedback
 import ai.storyfork.content.writingai.service.dto.ChatRename
 import ai.storyfork.content.writingai.service.dto.ChatSessionCreated
 import ai.storyfork.content.writingai.service.dto.WritingAiRequest
@@ -68,6 +69,13 @@ internal class WritingAiController(private val service: WritingAiService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun truncate(@PathVariable id: String, @PathVariable threadId: String, @PathVariable index: Int, principal: Principal) =
         service.truncate(id, principal.name, threadId, index)
+
+    /** index번 메시지에 대한 답변의 좋아요·싫어요를 저장한다. feedback이 없으면 취소다. 승인·입력을 기다리는 중이면 409다. */
+    @PutMapping("/api/v1/works/{id}/chat/sessions/{threadId}/messages/{index}/feedback")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun feedback(@PathVariable id: String, @PathVariable threadId: String, @PathVariable index: Int, principal: Principal,
+                 @Valid @RequestBody body: ChatFeedback) =
+        service.feedback(id, principal.name, threadId, index, body.feedback)
 
     /**
      * 요청 스레드에서 응답에 바로 써 흘린다. 비동기 응답(StreamingResponseBody)은 끝날 때 ASYNC dispatch가 Security에서

@@ -27,7 +27,7 @@ import tools.jackson.databind.node.ObjectNode
 /**
  * 집필 AI 오케스트레이션의 Content 진입점. 로그인한 작가 본인으로 Q&A 조회 범위를 서명해 발급하고,
  * 대화는 작가·작품 scope에 묶는다. 새 턴은 요청의 근거로, resume은 AI가 저장한 멈춘 턴의 근거 회차·판본(basis)으로 토큰을 새로 발급한다(#668).
- * basis가 없는 턴(판본을 저장하기 전에 멈춤)은 토큰을 보내지 않아 AI가 그 턴의 토큰을 그대로 쓴다.
+ * basis가 없는 턴(판본을 저장하기 전에 멈춤, 발행 회차 없이 시작한 턴 #729)은 토큰을 보내지 않아 AI가 그 턴의 토큰(없으면 없음)을 그대로 쓴다.
  * Writing 문맥·웹 조사 질문 같은 단계 입력은 AI가 입력 대기(waiting)로 멈춘 뒤 작가가 resume.inputs로 채운다.
  * 새 턴은 Writing 반영 대상(작품·회차)을, 모든 요청은 작가의 Bearer를 함께 보낸다. Writing 결과를 작가가 resume으로
  * 승인하면 AI가 그 Bearer로 Content MCP `episode_update_draft`를 호출하고, 인가·revision 확인은 기존 Service가 한다.
@@ -62,6 +62,8 @@ internal class WritingAiService(
     fun history(workId: String, owner: String, threadId: String): JsonNode = client.history(threadId, owned(workId, owner))
     fun rename(workId: String, owner: String, threadId: String, title: String) = client.rename(threadId, owned(workId, owner), title)
     fun delete(workId: String, owner: String, threadId: String) = client.delete(threadId, owned(workId, owner))
+    fun feedback(workId: String, owner: String, threadId: String, index: Int, feedback: String?) =
+        client.feedback(threadId, owned(workId, owner), index, feedback)
     fun truncate(workId: String, owner: String, threadId: String, index: Int) =
         client.truncate(threadId, owned(workId, owner), index)
 
@@ -222,14 +224,17 @@ internal class WritingAiService(
         val reflect = request.targetEpisode ?: request.episode
         if (request.resume == null) {
             checkContent(reflect >= request.episode, message="반영할 회차는 근거 회차보다 앞설 수 없어요.")
+            // 판본이 없는 턴은 근거 회차가 곧 반영 회차다(확인하지 않은 근거 회차가 지식 상한이 되지 않게, #729)
+            checkContent(request.episodeVersionId != null || reflect == request.episode, message="발행 회차 없이 대화할 때는 연 회차만 보낼 수 있어요.")
             // 모델 호출 전에 권한 밖 작품·회차를 막는다. 실제 근거 조회 때 Content가 다시 확정한다.
-            scopes.resolve(workId, owner, QaScopeRequest(request.episode, request.episodeVersionId))
-            if (reflect != request.episode) requireEpisode(workId, owner, reflect)
+            // 판본이 없으면(발행 회차 없음, #729) 원고 근거 없이 대화하므로 반영할 초안 회차만 확인한다.
+            request.episodeVersionId?.let { scopes.resolve(workId, owner, QaScopeRequest(request.episode, it)) }
+            if (reflect != request.episode || request.episodeVersionId == null) requireEpisode(workId, owner, reflect)
             request.page?.let { checkPage(workId, owner, it, reflect) }
         }
         // 이어가기의 episode·episodeVersionId는 작가가 지금 연 회차라 쓰지 않는다(#668).
         val waiting = request.resume?.let { waitingReply(workId, owner, threadId) }
-        val grant = if (waiting == null) QaScopeGrant(workId, owner, request.episode, request.episodeVersionId)
+        val grant = if (waiting == null) request.episodeVersionId?.let { QaScopeGrant(workId, owner, request.episode, it) }
             else waiting.path("basis").takeIf { it.isObject }?.let {
                 QaScopeGrant(workId, owner, it.path("episode").asInt(), it.path("episodeVersionId").asString())
             }
@@ -255,7 +260,7 @@ internal class WritingAiService(
                     put("workId", workId)
                     put("episode", reflect)
                     if (reflect != request.episode) put("baseEpisode", request.episode)
-                    put("episodeVersionId", request.episodeVersionId)
+                    request.episodeVersionId?.let { put("episodeVersionId", it) }
                     // Fork 작품 요청은 AI 추적이 가를 수 있게 알린다(DEC-55). 아니면 키를 싣지 않는다(AI 요청 DTO가 모르는 필드를 거절한다).
                     if (forks.existsById(workId)) put("fork", true)
                 })

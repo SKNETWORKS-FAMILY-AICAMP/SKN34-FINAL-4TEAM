@@ -9,7 +9,7 @@ from fastapi.sse import EventSourceResponse, ServerSentEvent
 from app.intent.errors import IntentFailure
 from app.internal_auth import require_internal_token
 from app.orchestration import service
-from app.orchestration.models import ChatHistory, ChatSession, OrchestrationRequest, OrchestrationResponse, RenameRequest
+from app.orchestration.models import ChatHistory, ChatSession, FeedbackRequest, OrchestrationRequest, OrchestrationResponse, RenameRequest
 
 router = APIRouter()
 
@@ -101,3 +101,10 @@ async def truncate_session(thread_id: str, index: int, scope: str, x_internal_to
     """index번 턴과 그 뒤 대화를 지운다. 수정은 stream의 fromTurn으로 한다."""
     with _session_errors(x_internal_token):
         await service.truncate(thread_id, scope, index)
+
+
+@router.put('/internal/v1/conversations/{thread_id}/turns/{index}/feedback', status_code=204)
+async def rate_turn(thread_id: str, index: int, data: FeedbackRequest, x_internal_token: str = Header(default='')) -> None:
+    """index번 턴 답변의 좋아요·싫어요를 저장한다(feedback이 없으면 취소). 승인·입력을 기다리는 중이면 409다."""
+    with _session_errors(x_internal_token):
+        await service.feedback(thread_id, data.scope, index, data.feedback)

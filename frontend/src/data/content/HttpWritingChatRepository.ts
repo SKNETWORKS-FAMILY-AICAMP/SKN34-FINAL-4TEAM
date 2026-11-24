@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import type { CharacterSimulation } from '../../domain/entities/characterSimulation'
-import type { ChatEvent, ChatHistory, ChatMessageInput, ChatPlanRevision, ChatRating, ChatReply, ChatReview, ChatSession, ChatStep, ChatWorld, ChatWorldReview, PendingAction } from '../../domain/entities/writingChat'
+import type { ChatEvent, ChatFeedback, ChatHistory, ChatMessageInput, ChatPlanRevision, ChatRating, ChatReply, ChatReview, ChatSession, ChatStep, ChatWorld, ChatWorldReview, PendingAction } from '../../domain/entities/writingChat'
 import type { WritingChatRepository } from '../../domain/repositories/WritingChatRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, protectedRequest } from '../api/auth'
@@ -139,7 +139,7 @@ const reply: z.ZodType<ChatReply> = z.object({
 const session: z.ZodType<ChatSession> = z.object({ threadId: z.string(), title: z.string(), updatedAt: z.string() })
 const history: z.ZodType<ChatHistory> = z.object({
   threadId: z.string(), title: z.string(),
-  turns: z.array(z.object({ request: z.string(), reply: reply.nullable(), attachments: z.array(z.object({ name: z.string(), kind: z.enum(['image', 'text']) })).optional() })),
+  turns: z.array(z.object({ request: z.string(), reply: reply.nullable(), attachments: z.array(z.object({ name: z.string(), kind: z.enum(['image', 'text']) })).optional(), feedback: z.enum(['up', 'down']).nullish() })),
 })
 const events = {
   plan: z.object({ steps: z.array(step) }).transform((d) => ({ type: 'plan' as const, ...d })),
@@ -189,6 +189,9 @@ export class HttpWritingChatRepository implements WritingChatRepository {
   remove(workId: string, threadId: string) { return this.api.request(one(workId, threadId), z.undefined(), 'DELETE') }
   truncate(workId: string, threadId: string, index: number) {
     return this.api.request(`${one(workId, threadId)}/messages/${index}`, z.undefined(), 'DELETE')
+  }
+  feedback(workId: string, threadId: string, index: number, value: ChatFeedback | null) {
+    return this.api.request(`${one(workId, threadId)}/messages/${index}/feedback`, z.undefined(), 'PUT', { feedback: value })
   }
 
   async send(workId: string, threadId: string, input: ChatMessageInput, onEvent: (event: ChatEvent) => void, signal?: AbortSignal, editIndex?: number) {

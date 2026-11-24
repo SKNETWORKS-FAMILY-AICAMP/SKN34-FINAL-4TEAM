@@ -167,8 +167,9 @@ class DynamicToolMiddleware(AgentMiddleware):
             return _blocked(call)
         if call['name'] in mcp_tools.NAMES:  # 쓰기는 HumanInTheLoopMiddleware가 승인을 받은 뒤 여기까지 온다
             result = await mcp_tools.execute(request)
-            # 다시 묻는 승인(work_update 409, #687)은 WriteApproval을 지나지 않으므로 이어 가는 요청의 새 조회 토큰(#678)을 여기서 저장한다
-            if scope := get_config()['configurable'].get(RESUME_SCOPE):
+            # 다시 묻는 승인(work_update 409, #687)은 WriteApproval을 지나지 않으므로 이어 가는 요청의 새 조회 토큰(#678)을 여기서 저장한다.
+            # 쓰기에만 싣는다: 읽기는 병렬로 함께 실행돼 같은 단계에서 둘이 쓰면 LangGraph가 거절한다(#725). 쓰기는 항상 단독이다.
+            if call['name'] in mcp_tools.WRITE and (scope := get_config()['configurable'].get(RESUME_SCOPE)):
                 result.update['retrievalScope'] = scope
             return result
         result = await handler(request)

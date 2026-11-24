@@ -193,6 +193,12 @@ def test_revise_plan_without_a_change_is_none_not_a_failure(monkeypatch, title, 
     assert revise(monkeypatch, title, content)[1] is None
 
 
+def test_revise_plan_proposes_the_changed_title_as_content_saves_it(monkeypatch):
+    # Content가 제목을 trim해 저장하므로 승인 카드의 제목도 앞뒤 공백 없이 보인다(#727). 내용은 원문 그대로다.
+    _, result = revise(monkeypatch, ' 새 제목\n', ' 새 내용 ')
+    assert (result.after.title, result.after.content) == ('새 제목', ' 새 내용 ')
+
+
 def test_revise_plan_keeps_the_original_content_when_only_the_title_changes(monkeypatch):
     # 모델이 내용 앞뒤 공백을 지워 돌려줘도 저장할 내용은 원문 그대로다.
     _, result = revise(monkeypatch, '새 제목', '카엘이 리나를 만난다.', original=' 카엘이 리나를 만난다.\n')

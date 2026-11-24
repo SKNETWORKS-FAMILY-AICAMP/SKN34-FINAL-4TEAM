@@ -14,6 +14,7 @@ DEC-55 계측 규칙(Langfuse v4): AI 요청 하나가 trace 하나이고 요청
 
 import base64
 import json
+import logging
 import os
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -26,6 +27,7 @@ from langfuse import Langfuse, propagate_attributes
 from langfuse.api import NotFoundError
 
 _OFF = '0' * 32
+logger = logging.getLogger(__name__)
 
 
 def enabled() -> bool:
@@ -114,6 +116,26 @@ def member_id(authorization: str) -> str | None:
         return str(UUID(json.loads(base64.urlsafe_b64decode(payload + '=' * (-len(payload) % 4)))['sub']))
     except (AttributeError, IndexError, KeyError, TypeError, ValueError):
         return None
+
+
+def feedback(trace_id: str, value: str | None) -> None:
+    """작가의 답변 평가(#560)를 그 턴 trace의 user_feedback 점수(1/0)로 맞춘다. 턴마다 점수 id가 하나라 바꾸면 덮어쓰고 취소(None)하면 지운다.
+
+    정본은 대화 체크포인터라 Langfuse 실패는 기록만 하고 저장을 실패시키지 않는다.
+    """
+    if not enabled():
+        return
+    score_id = f'{trace_id}-user-feedback'
+    try:
+        if value is None:
+            client().flush()  # 아직 보내지 않은 점수가 삭제 뒤에 도착해 되살아나지 않게 먼저 보낸다
+            # shortcut: 서버가 점수를 비동기로 적재해 누르자마자 취소하면 삭제가 먼저 닿아(404) 점수가 남을 수 있다. 분석이 어긋나면 취소를 늦게 지우는 작업으로 바꾼다.
+            client().api.legacy.score_v1.delete(score_id)
+        else:
+            client().create_score(score_id=score_id, trace_id=trace_id, name='user_feedback', value=1.0 if value == 'up' else 0.0,
+                                  data_type='BOOLEAN')
+    except Exception as error:  # 없는 점수 삭제(404)·연결 실패 모두 분석 데이터만 어긋난다
+        logger.warning('user_feedback 점수를 맞추지 못했습니다: %s', type(error).__name__)
 
 
 class PromptUnavailable(Exception):

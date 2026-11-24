@@ -390,6 +390,17 @@ def test_world_read_failure_fails_the_qa_step(monkeypatch):
     assert 'story_context' not in names(calls)
 
 
+def test_qa_without_a_scope_answers_from_the_world_settings_instead_of_waiting(monkeypatch):
+    # 발행 회차가 없으면 Content가 조회 토큰을 주지 않는다(#729): 원고 검색 없이 설정·관계로 답하고 그 사실을 gap으로 알린다
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    linked_world(monkeypatch, calls)
+    result = run('길드 규칙은?', target=TARGET)
+    assert (result.status, result.missingInputs) == ('completed', []) and names(calls) == ['judge', 'mcp', 'mcp', 'story_context']
+    asked = calls[3][1][0]
+    assert [(e.id, e.kind) for e in asked.excerpts] == [('card:k', 'setting')]
+    assert result.steps[0].result.gaps[0] == tools.NO_PUBLISHED
+
+
 def test_qa_without_target_fails_instead_of_skipping_the_world(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context'))
     result = run(scope=SCOPE)
@@ -1666,6 +1677,98 @@ def test_edit_needs_an_existing_turn(monkeypatch):
     chat(thread, inputs={'story_context': QA})
     events = stream(conversation={'threadId': thread, 'scope': ME}, fromTurn=5, inputs={'story_context': QA})
     assert events == [('error', {'message': service.CONVERSATION_NOT_FOUND_MESSAGE})]
+
+
+# 답변 좋아요·싫어요(#560): 정본은 그 턴의 feedback이고, 턴 trace가 있으면 Langfuse 점수를 맞춘다.
+def scores(monkeypatch) -> list:
+    sent = []
+    monkeypatch.setattr(service.tracing, 'feedback', lambda run_id, value: sent.append((run_id, value)))
+    return sent
+
+
+def test_feedback_is_kept_on_the_turn_until_it_is_cleared(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    for text in ('하나', '둘'):
+        chat(thread, request=text, inputs={'story_context': QA})
+    sent = scores(monkeypatch)
+    conversation('feedback', thread, ME, 1, 'down')
+    history = conversation('history', thread, ME)
+    assert ([t.feedback for t in history.turns], history.title) == ([None, 'down'], '하나')
+    conversation('feedback', thread, ME, 1, None)
+    assert [t.feedback for t in conversation('history', thread, ME).turns] == [None, None]
+    assert sent == []  # 추적이 꺼진 턴(runId 없음)은 저장만 한다
+
+
+def test_rating_an_older_conversation_keeps_its_place_and_time_in_the_list(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context'))
+    first, second = str(uuid4()), str(uuid4())
+    chat(first, request='카이의 목표는?', inputs={'story_context': QA})
+    chat(second, request='길드 규칙은?', inputs={'story_context': QA})
+    before = conversation('sessions', ME)
+    conversation('feedback', first, ME, 0, 'up')
+    assert conversation('sessions', ME) == before
+
+
+def test_feedback_of_a_traced_turn_is_sent_as_its_score(monkeypatch):
+    thread = str(uuid4())
+    reply = {'status': 'completed', 'runId': 'trace-1', 'message': '답', 'steps': [], 'missingInputs': []}
+    asyncio.run(service.CHAT.aupdate_state(service._config(thread, ME),
+                                          {'scope': ME, 'turns': [{'request': '질문', 'qa': None, 'reply': reply}]}, as_node='finish'))
+    sent = scores(monkeypatch)
+    conversation('feedback', thread, ME, 0, 'up')
+    conversation('feedback', thread, ME, 0, None)
+    assert sent == [('trace-1', 'up'), ('trace-1', None)]
+
+
+def test_feedback_needs_a_saved_turn_of_the_scope_and_a_finished_run(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chat(thread, inputs={'story_context': QA})
+    for target, scope, index in ((thread, OTHER, 0), (str(uuid4()), ME, 0), (thread, ME, 1), (thread, ME, -1)):
+        with pytest.raises(service.ConversationNotFound):
+            conversation('feedback', target, scope, index, 'up')
+    fake_agents(monkeypatch, plan('research'))
+    chat(thread)  # 입력을 기다리며 멈춘다
+    with pytest.raises(service.ConversationBusy):
+        conversation('feedback', thread, ME, 0, 'up')
+
+
+def test_deleting_or_editing_a_later_turn_keeps_the_feedback_of_earlier_turns(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    for text in ('하나', '둘', '셋'):
+        chat(thread, request=text, inputs={'story_context': QA})
+    for index, value in ((0, 'up'), (1, 'down'), (2, 'down')):
+        conversation('feedback', thread, ME, index, value)
+    conversation('truncate', thread, ME, 2)
+    assert [(t.request, t.feedback) for t in conversation('history', thread, ME).turns] == [('하나', 'up'), ('둘', 'down')]
+    stream(request='둘 고침', conversation={'threadId': thread, 'scope': ME}, fromTurn=1, inputs={'story_context': QA})
+    assert [(t.request, t.feedback) for t in conversation('history', thread, ME).turns] == [('하나', 'up'), ('둘 고침', None)]
+
+
+def test_a_rating_that_read_a_turn_before_it_was_deleted_does_not_bring_it_back(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    for text in ('하나', '둘'):
+        chat(thread, request=text, inputs={'story_context': QA})
+    read, reads = service.CHAT.aget_state, []
+
+    async def read_then_wait(*args, **kwargs):
+        first = not reads
+        reads.append(args)
+        snapshot = await read(*args, **kwargs)
+        if first:  # 평가가 읽은 뒤 쓰기 전의 틈. 같은 대화의 지우기가 이 틈에 끝나면 평가가 지운 턴을 되살린다.
+            await asyncio.sleep(0.1)
+        return snapshot
+
+    monkeypatch.setattr(service.CHAT, 'aget_state', read_then_wait)
+
+    async def both():
+        await asyncio.gather(service.feedback(thread, ME, 1, 'up'), service.truncate(thread, ME, 1))
+
+    asyncio.run(both())
+    assert [t.request for t in conversation('history', thread, ME).turns] == ['하나']
 
 
 # 체크포인트 전용 DB(#337): Core·Content가 쓰는 DB와 섞이지 않게 AI가 시작할 때 storyfork_ai를 준비한다.
