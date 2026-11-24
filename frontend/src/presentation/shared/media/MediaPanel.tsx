@@ -1,5 +1,5 @@
 import {Fragment,useEffect,useMemo,useRef,useState} from 'react'
-import type {Attachment,MediaTarget} from '../../../domain/entities/media'
+import {isFileTarget,type Attachment,type MediaTarget} from '../../../domain/entities/media'
 import {manuscriptBlocks,type InlinePart} from '../../../domain/entities/manuscriptFormat'
 import {useMediaViewModel,useStoredImage} from './useMediaViewModel'
 import {usePublicImageAlts} from './usePublicImageAlts'
@@ -83,9 +83,9 @@ export function MediaPanel({target,onBusy,disabled=false}:{target:MediaTarget;on
     <p><strong>{item.filename}</strong> · {(item.byteSize/1024).toLocaleString('ko-KR',{maximumFractionDigits:1})} KiB</p>
     <div className="media-actions"><button type="button" className="btn sm" onClick={()=>void vm.download(item)}>다운로드 · {item.filename}</button>
      {!cover&&<label className="media-file">파일 교체 · {item.filename}<input type="file" aria-label={`파일 교체 · ${item.filename}`} accept=".png,.jpg,.jpeg,.txt,.md,.csv,.pdf" onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void vm.upload(file,item.id)}}/></label>}
-     {target.kind==='setting'&&renaming!==item.id&&<button type="button" className="btn sm" onClick={()=>setRenaming(item.id)}>이름 변경 · {item.filename}</button>}
+     {isFileTarget(target)&&renaming!==item.id&&<button type="button" className="btn sm" onClick={()=>setRenaming(item.id)}>이름 변경 · {item.filename}</button>}
      <button type="button" className="btn sm" onClick={()=>{if(window.confirm(`${item.filename} 첨부를 삭제할까요?`))void vm.remove(item.id)}}>삭제 · {item.filename}</button></div>
-    {target.kind==='setting'&&renaming===item.id&&<RenameForm item={item} onRename={filename=>vm.rename(item,filename)} onCancel={()=>setRenaming('')}/>}
+    {isFileTarget(target)&&renaming===item.id&&<RenameForm item={item} onRename={filename=>vm.rename(item,filename)} onCancel={()=>setRenaming('')}/>}
    </li>)}</ul>
   </fieldset>
   {vm.busy&&<button className="btn sm" type="button" onClick={vm.cancel}>파일 요청 취소</button>}

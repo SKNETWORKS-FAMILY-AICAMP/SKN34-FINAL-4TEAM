@@ -151,3 +151,32 @@ it('reads public alt texts anonymously and maps them by image id',async()=>{
  fetcher.mockResolvedValue(new Response(null,{status:404}))
  await expect(repo.publicEpisodeImageAlts(workId,2)).rejects.toThrow('공개 이미지 설명')
 })
+
+const cardTarget={kind:'card' as const,worldId:'0b0f6f0e-3a51-4d6b-9a39-1f4f2b6d0a01',cardId:'7c9e1f0a-3a51-4d6b-9a39-1f4f2b6d0a02'}
+const cardBase=`/api/v1/world-studios/${cardTarget.worldId}/cards/${cardTarget.cardId}/attachments`
+const cardMetadata={...metadata,url:`${cardBase}/${id}/content`}
+it('talks to the world card attachment paths to list, upload, replace, rename, download and delete',async()=>{
+ const fetcher=vi.fn()
+ const repo=new HttpMediaRepository(fetcher)
+ fetcher.mockResolvedValueOnce(Response.json({attachments:[cardMetadata]}))
+ expect(await repo.list(cardTarget)).toEqual([cardMetadata])
+ fetcher.mockResolvedValueOnce(Response.json(cardMetadata,{status:201}))
+ await repo.upload(cardTarget,new File(['png'],'지도.png'))
+ fetcher.mockResolvedValueOnce(Response.json(cardMetadata))
+ await repo.upload(cardTarget,new File(['png'],'지도.png'),id)
+ fetcher.mockResolvedValueOnce(Response.json({...cardMetadata,filename:'새 지도.png'}))
+ await repo.rename(cardTarget,id,'새 지도.png')
+ fetcher.mockResolvedValueOnce(new Response('png',{headers:{'Content-Type':'image/png'}}))
+ await repo.download(cardTarget,id)
+ fetcher.mockResolvedValueOnce(new Response(null,{status:204}))
+ await repo.remove(cardTarget,id)
+ expect(fetcher.mock.calls.map(([url,init])=>[init.method,url])).toEqual([
+  ['GET',cardBase],['POST',cardBase],['PUT',`${cardBase}/${id}`],['PATCH',`${cardBase}/${id}`],['GET',`${cardBase}/${id}/content`],['DELETE',`${cardBase}/${id}`],
+ ])
+ expect(fetcher.mock.calls[1][1].headers).toMatchObject({Authorization:'Bearer media-bearer','X-CSRF-TOKEN':'media-csrf'})
+})
+it('never trusts a settings URL for a card attachment and never reads card attachments anonymously',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(Response.json(metadata,{status:201})) // metadata.url은 옛 설정 첨부 경로다
+ await expect(new HttpMediaRepository(fetcher).upload(cardTarget,new File(['png'],'지도.png'))).rejects.toThrow('응답')
+ await expect(new HttpMediaRepository(vi.fn()).download(cardTarget,id,true)).rejects.toThrow('소유자')
+})

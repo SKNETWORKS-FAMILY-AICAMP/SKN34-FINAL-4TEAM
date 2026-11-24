@@ -83,3 +83,46 @@ describe('회차 이미지 목록·대체 텍스트 입력 검사', () => {
     expect(repo.updateEpisodeImageAlt).not.toHaveBeenCalled()
   })
 })
+
+const worldId = '0b0f6f0e-3a51-4d6b-9a39-1f4f2b6d0a01'
+const cardId = '7c9e1f0a-3a51-4d6b-9a39-1f4f2b6d0a02'
+const card = { kind: 'card' as const, worldId, cardId }
+
+describe('세계관 카드 첨부 입력 검사(#735)', () => {
+  it('설정 첨부처럼 이미지와 참고 파일을 올리고 교체·이름 변경·삭제한다', async () => {
+    const { repo, api } = setup()
+    const memo = new File(['메모'], '메모.txt')
+    await api.upload(card, memo)
+    await api.upload(card, memo, id)
+    expect(repo.upload).toHaveBeenNthCalledWith(1, card, memo, undefined, undefined)
+    expect(repo.upload).toHaveBeenNthCalledWith(2, card, memo, id, undefined)
+    expect(await api.rename(card, id, '새 메모.txt')).toBe(renamed)
+    expect(repo.rename).toHaveBeenCalledWith(card, id, '새 메모.txt', undefined)
+    api.remove(card, id)
+    expect(repo.remove).toHaveBeenCalledWith(card, id, undefined)
+  })
+
+  it('서버에 저장된 세계관·카드 UUID가 아니면 어느 동작도 보내지 않는다', async () => {
+    const { repo, api } = setup()
+    for (const bad of [{ ...card, worldId: 'demo' }, { ...card, cardId: 'card-1' }]) {
+      await expect(api.list(bad)).rejects.toThrow('설정 카드')
+      await expect(api.upload(bad, new File(['x'], 'a.txt'))).rejects.toThrow('설정 카드')
+      await expect(api.rename(bad, id, 'a.txt')).rejects.toThrow('설정 카드')
+      expect(() => api.remove(bad, id)).toThrow('설정 카드')
+      expect(() => api.download(bad, id)).toThrow('설정 카드')
+    }
+    for (const call of [repo.list, repo.upload, repo.rename, repo.remove, repo.download]) expect(call).not.toHaveBeenCalled()
+  })
+
+  it('파일 형식·크기·이름 규칙은 설정 첨부와 같고 식별자를 확인한다', async () => {
+    const { repo, api } = setup()
+    await expect(api.upload(card, new File(['x'], 'run.exe'))).rejects.toThrow('PNG·JPEG·TXT·MD·CSV·PDF')
+    await expect(api.upload(card, new File([new Uint8Array(10485761)], 'big.pdf'))).rejects.toThrow('10 MiB')
+    await expect(api.upload(card, new File(['x'], 'a..b.txt'))).rejects.toThrow('파일 이름')
+    await expect(api.rename(card, 'not-a-uuid', '메모.txt')).rejects.toThrow('식별자')
+    expect(() => api.remove(card, 'not-a-uuid')).toThrow('식별자')
+    expect(repo.upload).not.toHaveBeenCalled()
+    expect(repo.rename).not.toHaveBeenCalled()
+    expect(repo.remove).not.toHaveBeenCalled()
+  })
+})

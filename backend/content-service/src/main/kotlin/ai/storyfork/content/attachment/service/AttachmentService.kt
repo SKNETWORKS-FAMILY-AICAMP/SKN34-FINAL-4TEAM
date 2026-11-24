@@ -33,18 +33,22 @@ class AttachmentService(
     private val imageEpisodes: ai.storyfork.content.attachment.repository.ImageEpisodeRepository,
 ) {
     private fun missingSettingAttachment(): Nothing = throw AttachmentFailure(404, "ATTACHMENT_NOT_FOUND", "설정 또는 첨부를 찾을 수 없어요.")
-    private fun ownedSetting(workId: String, settingId: String, owner: String): String {
+    /** [card]이면 세계관 카드(#735)다: [CardAttachmentService]가 세계관 소유·지우지 않은 카드를 이미 확인했으므로 카드 ID를 그대로 대상으로 쓴다. */
+    private fun ownedSetting(workId: String, settingId: String, owner: String, card: Boolean = false): String {
         if (owner.isBlank() || owner.length > 200) throw AttachmentFailure(401, "ATTACHMENT_UNAUTHENTICATED", "인증이 필요해요.")
+        if (card) return settingId
         // 소프트 삭제한 작품의 설정 첨부는 새 행위에서 제외한다(DEC-42).
         val acting = actingOwner(workId, owner)
         works.lockOwned(workId, acting)?.takeIf { it.deletedAt == null } ?: missingSettingAttachment()
         return settings.lockOwnedLocal(workId, settingId, acting)?.id ?: missingSettingAttachment()
     }
-    private fun find(id: String, documentId: String) = attachments.findByIdAndSettingDocumentId(id, documentId) ?: missingSettingAttachment()
+    private fun find(id: String, documentId: String, card: Boolean) =
+        (if (card) attachments.findByIdAndWorldCardId(id, documentId) else attachments.findByIdAndSettingDocumentId(id, documentId)) ?: missingSettingAttachment()
     private fun response(a: SettingAttachment, work: String, setting: String) = AttachmentResponse(a.id, a.filename, a.mediaType, a.kind, a.byteSize, a.createdAt,
-        "/api/v1/works/$work/settings/$setting/attachments/${a.id}/content")
-    private fun limit(document: String, kind: String, previousKind: String? = null) {
-        if (kind == "IMAGE" && previousKind != "IMAGE" && attachments.countBySettingDocumentIdAndKind(document, "IMAGE") >= 10)
+        if (a.worldCardId != null) "/api/v1/world-studios/$work/cards/$setting/attachments/${a.id}/content" else "/api/v1/works/$work/settings/$setting/attachments/${a.id}/content")
+    private fun limit(document: String, kind: String, previousKind: String? = null, card: Boolean = false) {
+        val images = if (card) attachments.countByWorldCardIdAndKind(document, "IMAGE") else attachments.countBySettingDocumentIdAndKind(document, "IMAGE")
+        if (kind == "IMAGE" && previousKind != "IMAGE" && images >= 10)
             throw AttachmentFailure(409, "ATTACHMENT_IMAGE_LIMIT", "설정 이미지는 최대 10개까지 추가할 수 있어요.")
     }
     private fun <T : Any> settingTransaction(action: () -> T): T = try {
@@ -59,30 +63,31 @@ class AttachmentService(
     fun requireSettingUploadAccess(work: String, setting: String, owner: String) { settingTransaction { ownedSetting(work, setting, owner) } }
 
     // ponytail: same-setting reads/writes serialize through S3 I/O; split read locking only if measured contention warrants it.
-    fun listSettingAttachments(work: String, setting: String, owner: String) = settingTransaction {
-        val document = ownedSetting(work, setting, owner)
-        AttachmentListResponse(attachments.findAllBySettingDocumentIdOrderByCreatedAtAscIdAsc(document).map { response(it, work, setting) })
+    fun listSettingAttachments(work: String, setting: String, owner: String, card: Boolean = false) = settingTransaction {
+        val document = ownedSetting(work, setting, owner, card)
+        AttachmentListResponse((if (card) attachments.findAllByWorldCardIdOrderByCreatedAtAscIdAsc(document) else attachments.findAllBySettingDocumentIdOrderByCreatedAtAscIdAsc(document))
+            .map { response(it, work, setting) })
     }
-    fun readSettingAttachment(work: String, setting: String, id: String, owner: String) = settingTransaction {
-        response(find(id, ownedSetting(work, setting, owner)), work, setting)
+    fun readSettingAttachment(work: String, setting: String, id: String, owner: String, card: Boolean = false) = settingTransaction {
+        response(find(id, ownedSetting(work, setting, owner, card), card), work, setting)
     }
-    fun downloadSettingAttachment(work: String, setting: String, id: String, owner: String) = settingTransaction {
-        val attachment = find(id, ownedSetting(work, setting, owner))
+    fun downloadSettingAttachment(work: String, setting: String, id: String, owner: String, card: Boolean = false) = settingTransaction {
+        val attachment = find(id, ownedSetting(work, setting, owner, card), card)
         val bytes = readObject(attachment).bytes
         AttachmentDownloadResult(response(attachment, work, setting), bytes)
     }
-    fun createSettingAttachment(work: String, setting: String, owner: String, payload: AttachmentUploadPayload) = settingTransaction {
-        val document = ownedSetting(work, setting, owner)
-        limit(document, payload.kind)
+    fun createSettingAttachment(work: String, setting: String, owner: String, payload: AttachmentUploadPayload, card: Boolean = false) = settingTransaction {
+        val document = ownedSetting(work, setting, owner, card)
+        limit(document, payload.kind, card = card)
         val key = "setting-attachments/${UUID.randomUUID()}"
         storage.upload(key, AttachmentObjectPayload(payload.bytes, payload.mediaType))
-        val attachment = attachments.saveAndFlush(SettingAttachment(settingDocumentId=document, objectKey=key, filename=payload.filename,
+        val attachment = attachments.saveAndFlush(SettingAttachment(settingDocumentId=document.takeUnless { card }, worldCardId=document.takeIf { card }, objectKey=key, filename=payload.filename,
             mediaType=payload.mediaType, kind=payload.kind, byteSize=payload.bytes.size.toLong()))
         response(attachment, work, setting)
     }
     /** 파일명만 DB에서 바꾼다. 확장자가 형식을 정하므로 대소문자만 무시하고 그대로 두며, 저장소 객체·미디어 형식·크기는 건드리지 않는다. */
-    fun renameSettingAttachment(work: String, setting: String, id: String, owner: String, request: AttachmentRenameRequest) = settingTransaction {
-        val attachment = find(id, ownedSetting(work, setting, owner))
+    fun renameSettingAttachment(work: String, setting: String, id: String, owner: String, request: AttachmentRenameRequest, card: Boolean = false) = settingTransaction {
+        val attachment = find(id, ownedSetting(work, setting, owner, card), card)
         val name = request.filename
         fun extension(value: String) = value.substringAfterLast('.', "").lowercase()
         if (name == null || !AttachmentUploadHelper.validFilename(name) || extension(name) != extension(attachment.filename))
@@ -90,14 +95,14 @@ class AttachmentService(
         attachment.filename = name
         response(attachments.saveAndFlush(attachment), work, setting)
     }
-    fun replaceSettingAttachment(work: String, setting: String, id: String, owner: String, payload: AttachmentUploadPayload): AttachmentResponse {
+    fun replaceSettingAttachment(work: String, setting: String, id: String, owner: String, payload: AttachmentUploadPayload, card: Boolean = false): AttachmentResponse {
         var previousKey: String? = null
         var backup: AttachmentObjectPayload? = null
         try {
             return settingTransaction {
-                val document = ownedSetting(work, setting, owner)
-                val attachment = find(id, document)
-                limit(document, payload.kind, attachment.kind)
+                val document = ownedSetting(work, setting, owner, card)
+                val attachment = find(id, document, card)
+                limit(document, payload.kind, attachment.kind, card)
                 val oldKey = attachment.objectKey
                 val oldObject = readObject(attachment)
                 val key = "setting-attachments/${UUID.randomUUID()}"
@@ -111,12 +116,12 @@ class AttachmentService(
             }
         } catch (e: RuntimeException) { restore(previousKey, backup); throw e }
     }
-    fun deleteSettingAttachment(work: String, setting: String, id: String, owner: String) {
+    fun deleteSettingAttachment(work: String, setting: String, id: String, owner: String, card: Boolean = false) {
         var previousKey: String? = null
         var backup: AttachmentObjectPayload? = null
         try {
             settingTransaction {
-                val attachment = find(id, ownedSetting(work, setting, owner))
+                val attachment = find(id, ownedSetting(work, setting, owner, card), card)
                 val oldObject = readObject(attachment)
                 attachments.delete(attachment); attachments.flush()
                 previousKey=attachment.objectKey; backup=oldObject

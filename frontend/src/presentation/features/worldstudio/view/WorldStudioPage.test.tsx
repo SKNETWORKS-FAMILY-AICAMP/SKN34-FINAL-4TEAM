@@ -37,6 +37,8 @@ vi.mock('../viewmodel/useWorldStudioViewModel', async (original) => {
   const actual = await original<typeof import('../viewmodel/useWorldStudioViewModel')>()
   return { useWorldStudioViewModel: () => actual.useWorldStudioViewModel(useCase, reviewCase) }
 })
+// 카드 첨부 패널(#735)은 자기 테스트(MediaPanel.test)가 맡는다. 여기서는 개요에 어떤 대상으로 붙는지만 본다(실제 패널은 서버에서 목록을 읽어 알림을 더한다).
+vi.mock('../../../shared/media/MediaPanel', () => ({ MediaPanel: ({ target, disabled }: { target: object; disabled?: boolean }) => <p data-testid="card-media-panel">{JSON.stringify(target) + (disabled ? ' 잠김' : '')}</p> }))
 
 /**
  * 편집 화면의 버전 그래프와 확정 버전 시트가 쓰는 훅(서버 목록·상세 조회와 확정 요청)은 이 대역이다. 로그인 세션이 없는 화면 테스트가 서버를 부르지 않고 행·상세·확정 요청만 정하게 한다.
@@ -3859,6 +3861,19 @@ it('카드 이미지를 읽을 수 없는 데모(메모리)에서는 이미지 �
   expect(imageInput().closest('.world-card-tile')?.classList.contains('empty')).toBe(true) // 빈 타일은 그대로 두되 잠겨 있다
   expect(readCardImage).not.toHaveBeenCalled()
   expect(uploadCardImage).not.toHaveBeenCalled()
+})
+
+it('카드 개요에만 첨부 패널이 붙고, 카드 이미지가 없는 데모(메모리)에는 첨부 영역이 없다(#735)', async () => {
+  await showWorld()
+  openCard('가람 인물')
+  expect(overview().getByTestId('card-media-panel')).toBeTruthy()
+  openPane('문서')
+  expect(screen.queryByTestId('card-media-panel')).toBeNull()
+  cleanup()
+  await show(undefined, '/worldstudio/qa', { demoCardImage: true })
+  openCard('가람 인물')
+  expect(overview().queryByTestId('card-media-panel')).toBeNull()
+  expect(overview().queryByRole('region', { name: '설정 첨부' })).toBeNull()
 })
 
 it('목업(mockup) 모드의 발표용 인물 초상은 그대로 보이고 이미지 추가는 잠겨 있다', async () => {
