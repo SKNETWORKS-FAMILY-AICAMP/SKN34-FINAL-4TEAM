@@ -22,7 +22,7 @@ const show=(api:object,w:object=work)=>render(<MemoryRouter><ManuscriptBuildPane
 it('화면 진입만으로 시작하지 않으며 동의 후 명시적으로 접수한다',async()=>{
  const api={read:vi.fn().mockResolvedValue(null),start:vi.fn().mockResolvedValue(job),resume:vi.fn()}
  render(<MemoryRouter><ManuscriptBuildPanel work={work} useCase={api as never}/></MemoryRouter>)
- await screen.findByText('저장된 원고로 비공개 세계관 초안을 만들어요.')
+ await screen.findByText('저장된 원고(비공개 포함)로 비공개 세계관 초안을 만들어요.')
  expect(api.start).not.toHaveBeenCalled()
  expect((screen.getByRole('button',{name:'세계관 만들기'}) as HTMLButtonElement).disabled).toBe(true)
  fireEvent.click(screen.getByRole('checkbox'))
