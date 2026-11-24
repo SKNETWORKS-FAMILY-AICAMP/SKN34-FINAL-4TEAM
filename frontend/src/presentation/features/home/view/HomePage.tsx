@@ -143,8 +143,8 @@ function Top10({ list, works, failed, retry, ranked, computedAt }: { list: Work[
   )
 }
 
-const BookCard = ({ w, label, sub, source }: { w: Work; label?: string; sub: string; source?: { title: string; episode: number } }) => (
-  <Go to={`/work/${w.id}`} className="bk prox"><Cov w={w} likes /><h3 className="hk">{label}</h3><small>{sub}</small>{source && <small className="fork-source">{source.title} · {source.episode}화에서 분기</small>}</Go>
+const BookCard = ({ w, label, sub, source }: { w: Work; label?: string; sub?: string; source?: { title: string; episode: number } }) => (
+  <Go to={`/work/${w.id}`} className="bk prox"><Cov w={w} likes /><h3 className="hk">{label || w.title}</h3>{sub && <small>{sub}</small>}{source && <small className="fork-source">{source.title} · {source.episode}화에서 분기</small>}</Go>
 )
 
 /** 목업 home(): U01 홈 · U02 필터 결과 */
@@ -226,7 +226,12 @@ export function HomePage() {
                 <div className="sec-h"><h2>오늘, 스토리포크의 발견</h2></div>
                 <div className="shelf">
                   <button type="button" className="arr l" aria-label="이전" onClick={() => scrollShelf(-1)}><Chev d={LEFT} /></button>
-                  <div className="row" id="shelf" ref={shelf}>{h.discover.map((w) => <BookCard key={w.id} w={w} label={w.hook || w.dir} sub={shortTitle(w) ?? ''} />)}</div>
+                  <div className="row" id="shelf" ref={shelf}>
+                    {h.discover.map((w) => {
+                      const label = w.hook?.trim() || w.dir?.trim()
+                      return <BookCard key={w.id} w={w} label={label} sub={label ? shortTitle(w) : undefined} />
+                    })}
+                  </div>
                   <button type="button" className="arr r" aria-label="다음" onClick={() => scrollShelf(1)}><Chev d={RIGHT} /></button>
                 </div>
               </section>
