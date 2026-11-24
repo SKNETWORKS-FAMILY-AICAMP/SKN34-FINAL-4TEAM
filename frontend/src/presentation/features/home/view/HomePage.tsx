@@ -184,7 +184,7 @@ export function HomePage() {
             <section className="sec">
               <div className="sec-h"><h2>{vm.chip}</h2><span className="muted small">{h.filtered.length}편</span></div>
               <div className="grid6">
-                {h.filtered.length ? h.filtered.map((w) => <BookCard key={w.id} w={w} label={shortTitle(w)} sub={`${w.author} · ${w.genre}`} source={h.forkSources[w.id]} />) : <p className="muted">아직 소설이 없어요.</p>}
+                {h.filtered.length ? h.filtered.map((w) => <BookCard key={w.id} w={w} label={shortTitle(w)} sub={[w.author, w.genre].filter(Boolean).join(' · ')} source={h.forkSources[w.id]} />) : <p className="muted">아직 소설이 없어요.</p>}
               </div>
             </section>
           )}

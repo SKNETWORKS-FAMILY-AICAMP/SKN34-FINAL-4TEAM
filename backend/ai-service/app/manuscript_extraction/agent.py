@@ -13,7 +13,7 @@ from app.manuscript_extraction.errors import PreprocessingFailure
 from app.manuscript_extraction.models import ProposedExtraction, ProposedResolution
 
 
-def _call(name, instructions, data, schema, fixed=None, fixed_model=None):
+def _call(name, instructions, data, schema, fixed=None, fixed_model=None, *, read_timeout):
     """지시문은 Langfuse 프롬프트 name의 production 버전(instructions는 최초 등록용 코드 문자열)이고 generation이 그 버전을 연결한다.
     fixed·fixed_model은 회귀 평가가 지정한 프롬프트 버전의 본문·모델이다: 있으면 production 버전을 읽지도 generation에 연결하지도 않고 그대로 쓴다.
 
@@ -34,7 +34,7 @@ def _call(name, instructions, data, schema, fixed=None, fixed_model=None):
     if not model:
         raise PreprocessingFailure('MODEL_NOT_CONFIGURED', 503)
     try:
-        llm = ChatOpenAI(api_key=key, model=model, max_retries=0, timeout=Timeout(60, read=70),
+        llm = ChatOpenAI(api_key=key, model=model, max_retries=0, timeout=Timeout(60, read=read_timeout),
                          use_responses_api=True, streaming=True, store=False, max_tokens=16000)
         with tracing.observe('manuscript_extraction.generation', as_type='generation', model=model, prompt=managed.client) as generation:
             result = llm.with_structured_output(schema, method='json_schema', strict=True, include_raw=True).invoke(
@@ -59,7 +59,7 @@ def _call(name, instructions, data, schema, fixed=None, fixed_model=None):
 
 def extract(episode, instructions=None, model=None):
     """원문 회차 하나의 호칭·진술·관계를 제안받는다. instructions·model은 회귀 평가가 지정한 프롬프트 버전의 본문·모델이다(있으면 production 버전을 읽지 않고 그대로 쓴다)."""
-    return _call('manuscript_extraction.extract', prompt.EXTRACT, episode.model_dump(), ProposedExtraction, instructions, model)
+    return _call('manuscript_extraction.extract', prompt.EXTRACT, episode.model_dump(), ProposedExtraction, instructions, model, read_timeout=120)
 
 
 def resolve(extractions):
@@ -67,4 +67,4 @@ def resolve(extractions):
     data = [{'number': e.number,
              'mentions': [{'ref': f'{e.number}:{m.id}', 'name': m.name, 'kind': m.kind, 'quote': m.quote} for m in e.mentions],
              'quotes': sorted({s.quote for s in e.statements} | {r.quote for r in e.relationships})} for e in extractions]
-    return _call('manuscript_extraction.resolve', prompt.RESOLVE, data, ProposedResolution)
+    return _call('manuscript_extraction.resolve', prompt.RESOLVE, data, ProposedResolution, read_timeout=70)

@@ -4,6 +4,7 @@ import {
   LLM_FORBIDDEN, OPTIMIZATION_DEFAULT_CALLS, OPTIMIZATION_MAX_CALLS, estimatedCalls, evaluationStatusLabel, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, modelLabel, passedLabel, pendingSeed, perMillion,
   productionOf, versionAction, type Evaluation, type EvaluationItem,
 } from '../../../../domain/entities/llmOps'
+import { AGENT_EVALUATIONS, latestRun } from '../../../../domain/entities/llmOpsEvalTable'
 import { alertRuleLabel, type AlertRule } from '../../../../domain/entities/operationsAlert'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
@@ -313,6 +314,53 @@ function EvaluationItems({ items }: { items: EvaluationItem[] }) {
         </tbody>
       </Table>
     </>
+  )
+}
+
+/**
+ * 에이전트별 평가 표(#837): 에이전트마다 쓰는 평가 모드·세트·지표와 회귀 평가 세트의 최근 Run을 한눈에 봅니다. 목록은 도메인 상수(llmOpsEvalTable)이고
+ * 최근 Run은 아래 회귀 평가와 같은 평가 목록(최근 50건)에서 세트 이름으로 찾습니다. 세트가 없는 에이전트도 숨기지 않으며
+ * 원문 검색은 모델 없이 CI에서 확인하는 평가라 실행 버튼이 없습니다.
+ */
+export function AgentEvaluations({ l }: Pick<Props, 'l'>) {
+  const rows = l.evaluations.data
+  return (
+    <section className="panel admin-operations" aria-label="에이전트별 평가">
+      <h2>에이전트별 평가</h2>
+      <Table label="에이전트별 평가 표">
+        <thead>
+          <tr>
+            <th scope="col">에이전트</th>
+            <th scope="col">평가 모드</th>
+            <th scope="col">평가 세트(항목 수)</th>
+            <th scope="col">지표</th>
+            <th scope="col">최근 결과</th>
+          </tr>
+        </thead>
+        <tbody>
+          {AGENT_EVALUATIONS.map((row) => {
+            const latest = row.dataset && rows ? latestRun(row.dataset, rows) : undefined
+            return (
+              <tr key={`${row.agent}|${row.feature}`}>
+                <td>{row.agent}<div className="small muted">{row.feature}</div></td>
+                <td>{row.mode}</td>
+                <td>{row.set}</td>
+                <td>{row.metrics}</td>
+                <td>
+                  {!row.dataset ? row.result : !rows ? '—' : !latest ? '실행한 평가 없음' : (
+                    <>
+                      {evaluationChip(latest)} <span className="small muted">{latest.prompt} {latest.version}번 버전 · {kstDateTime(latest.createdAt)}</span>{' '}
+                      <button type="button" className="btn sm" aria-label={`「${latest.dataset} 최근 평가 ${latest.runId}」 Run 상세`} onClick={() => l.openEvaluation(latest.runId)}>Run 상세</button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </Table>
+      <p className="admin-note">새 답변 생성은 아래 회귀 평가로 실행하고, 원문 검색은 고정 원문의 검색 순위만 채점하는 CI 평가라 실행 버튼이 없어요(수치는 docs/evaluation/retrieval.md). 최근 Run은 회귀 평가 목록(최근 50건) 안에서 찾아요.</p>
+    </section>
   )
 }
 
