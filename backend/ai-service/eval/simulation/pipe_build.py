@@ -28,7 +28,7 @@ from app.manuscript_extraction.models import EpisodeExtraction, EpisodeText, Ide
 RESERVE_USD = 0.05          # 진행 중인 호출이 상한을 넘기지 않게 남겨 두는 여유(llm.RESERVE_USD와 같다)
 CALL_MAX_USD = 0.03         # 추출 호출 하나가 쓸 수 있는 최대 금액 어림(입력 12만 자 제한 + 출력 16,000토큰, luna 단가): 동시 호출 수만큼 여유를 둔다
 READ_TIMEOUT = 300          # ocx 게이트웨이는 지연이 OpenAI API와 달라 운영의 읽기 70초를 늘린다
-CHARS_PER_TOKEN = 1.3       # 지시문 + 회차 JSON의 글자/토큰 비: 유료 실행 실측(공개 세트 14편 92회차, 입력 평균 5,297토큰)에서 1.30(고어체가 많아 근대 소설만이면 1.35~1.5)
+CHARS_PER_TOKEN = 1.3       # 지시문 + 회차 JSON의 글자/토큰 비: 유료 실행 실측(공개 세트 14편 92회차, 입력 평균 5,297토큰)에서 1.30(고전이 섞여서이고 근대 소설만이면 1.35~1.5)
 # 호출당 토큰은 유료 실행 실측(OpenAI gpt-6-luna, 2026-11-24, 공개 세트 14편): 추출 입력 평균 5,297·출력 평균 5,083(ocx 스모크 m01은 출력 859~2,258이었다), 정체 정리 입력 평균 7,184(회차당 약 1,100)·출력 평균 1,120.
 # ponytail: 작품·모델이 달라지면 장부(cost-pipeline.jsonl)의 호출당 토큰으로 다시 고친다.
 EXTRACT_OUT, RESOLVE_OUT, RESOLVE_IN_PER_EPISODE = 5100, 1100, 1100
