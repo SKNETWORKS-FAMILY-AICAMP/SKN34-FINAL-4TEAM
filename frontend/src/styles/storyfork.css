@@ -272,6 +272,7 @@ input[type=checkbox]:disabled,input[type=radio]:disabled{opacity:.5;cursor:not-a
 .admin-permissions{min-width:0;border:1px solid var(--line2);border-radius:14px;padding:12px 14px}.admin-permissions legend{padding:0 6px;color:var(--sub);font-size:13px;font-weight:700}.admin-perm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(max(190px,24%),1fr));gap:8px}.admin-perm-grid label{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;color:var(--ink2)}
 .reply{background:var(--pri-soft);border:1px solid color-mix(in srgb,var(--pri) 30%,transparent);border-radius:16px;padding:14px;font-size:14px;line-height:1.7}.reply .lab{font-size:12px;font-weight:800;color:var(--pri-ink);margin-bottom:4px;display:flex;gap:6px;align-items:center}
 .ev{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13px}.ev small{color:var(--sub);font-weight:700;display:block}
+.sheet :is(.note,.reply) a{color:var(--pri-ink);text-decoration:underline;text-underline-offset:3px}
 .note{font-size:12.5px;color:var(--sub);background:var(--muted-bg);border-radius:12px;padding:10px 12px}
 .policy{font-size:12.5px;color:var(--acc-ink);background:var(--acc-soft);border-radius:12px;padding:10px 12px}
 .rowend{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
@@ -289,6 +290,7 @@ input[type=checkbox]:disabled,input[type=radio]:disabled{opacity:.5;cursor:not-a
 .fstep{padding:22px;margin-bottom:14px}.fstep h3,main.fork .fstep h2{font-size:16px;display:flex;align-items:center;gap:10px;margin-bottom:14px}.fstep h3 i,main.fork .fstep h2 i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--pri);color:var(--on-pri);display:grid;place-items:center;font-size:13px}
 .epc{display:flex;gap:8px;flex-wrap:wrap}.epc button{border:1px solid var(--tline);background:transparent;color:var(--tfg);border-radius:16px;padding:10px 14px;text-align:left}.epc button small{display:block;color:var(--tsub);font-size:11.5px}.epc button.on{border-color:var(--pri);background:var(--pri-soft)}.epc button[disabled]{opacity:.35;cursor:not-allowed}
 .tinp{width:100%;height:50px;border-radius:16px;border:1px solid var(--line3);background:var(--surface);padding:0 16px;color:var(--tfg);font-family:var(--tfont);font-size:16px}
+.fork-guidance{display:grid;gap:4px;margin-top:12px}
 .carry{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.carry span,.carry li{font-size:12.5px;border:1px solid var(--tline);border-radius:999px;padding:4px 10px;color:var(--tsub);overflow-wrap:anywhere}ul.carry{list-style:none;margin:12px 0 0;padding:0}.bm{font-size:12.5px;color:var(--tsub);margin:6px 0 18px}
 /* "가져가는 것" 머리말은 데이터 칩이 아니라 머리말로 보인다. */
 #carry>span:first-child{border:0;padding-left:0;font-weight:700;color:var(--tfg)}

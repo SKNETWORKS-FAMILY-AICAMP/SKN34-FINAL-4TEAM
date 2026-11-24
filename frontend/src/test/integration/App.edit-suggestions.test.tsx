@@ -79,7 +79,7 @@ describe('회차 열람의 수정 제안 시트 (기능 24)', () => {
     return { repo, dialog, text: first.textContent! }
   }
 
-  it('고른 문장을 변경 전으로 채운 시트에서 고친 문장과 사유를 보내면 서버에 등록하고 시트를 닫는다', async () => {
+  it('수정 제안을 등록하면 시트에서 접수 결과와 내역 링크를 보이고 확인에 초점을 둔다', async () => {
     const { repo, dialog, text } = await openSheet()
     expect(dialog.querySelector('.quote')!.textContent).toBe(text)
     const box = within(dialog).getByLabelText<HTMLTextAreaElement>('고친 문장')
@@ -89,9 +89,29 @@ describe('회차 열람의 수정 제안 시트 (기능 24)', () => {
     fireEvent.change(within(dialog).getByLabelText('사유 (선택)'), { target: { value: ' 맞춤법 ' } })
     fireEvent.click(within(dialog).getByRole('button', { name: '수정 제안 보내기' }))
     await waitFor(() => expect(repo.create).toHaveBeenCalledWith('guunmong', 2, { beforeText: text, afterText: `${text} (고침)`, reason: '맞춤법' }))
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: '문장 수정 제안' })).toBeNull())
-    expect(toastText()).toContain('수정 제안을 보냈어요')
-    expect(toastText()).toContain('작가가 승인해야 원고에 반영되고')
+    const receipt = await within(dialog).findByRole('status')
+    const confirm = within(dialog).getByRole('button', { name: '확인' })
+    expect(receipt.textContent).toContain('수정 제안을 보냈어요')
+    // 접수 칩은 내역 목록과 같은 이름이고, 보낸 글은 읽기 전용으로 남아 무엇을 보냈는지 다시 볼 수 있다.
+    expect(within(receipt).getByText('검토 대기').className).toContain('wait')
+    expect(box.readOnly).toBe(true)
+    expect(box.value).toBe(` ${text} (고침) `)
+    expect(within(receipt).getByRole('link', { name: '내 제보·수정 제안' }).getAttribute('href')).toBe('/content?view=reports')
+    expect(confirm.getAttribute('aria-describedby')).toBe(receipt.id)
+    expect(document.activeElement).toBe(confirm)
+    expect(toastText()).not.toContain('수정 제안을 보냈어요')
+    fireEvent.click(confirm)
+    expect(screen.queryByRole('dialog', { name: '문장 수정 제안' })).toBeNull()
+  })
+
+  it('접수 결과의 내역 링크로 가면 그 화면에서 읽던 회차로 돌아갈 수 있다', async () => {
+    const { dialog, text } = await openSheet()
+    fireEvent.change(within(dialog).getByLabelText('고친 문장'), { target: { value: `${text} (고침)` } })
+    fireEvent.click(within(dialog).getByRole('button', { name: '수정 제안 보내기' }))
+    fireEvent.click(within(await within(dialog).findByRole('status')).getByRole('link', { name: '내 제보·수정 제안' }))
+    await screen.findByRole('heading', { level: 1, name: '내 제보·수정 제안' })
+    expect(screen.getByRole('link', { name: '회차로 돌아가기' }).getAttribute('href')).toBe('/read/guunmong/2')
+    expect(screen.queryByRole('link', { name: '내가 쓰는 소설' })).toBeNull()
   })
 
   it('서버가 거절하면 시트 안에서만 알리고 시트와 입력을 그대로 둔다', async () => {

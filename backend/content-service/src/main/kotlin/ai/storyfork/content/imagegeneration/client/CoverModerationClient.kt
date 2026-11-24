@@ -17,7 +17,13 @@ class CoverModerationClient(
     props: AiServiceClientProperties,
     @Value("\${INTERNAL_TOKEN:}") private val token: String,
 ) {
-    private val http = buildRestClient(builder.clone(), props.baseUrl, props.connectTimeout, Duration.ofSeconds(35))
+    private val http = buildRestClient(
+        builder.clone(),
+        props.baseUrl,
+        props.connectTimeout,
+        Duration.ofSeconds(35),
+        forwardUser = true,
+    )
 
     fun check(bytes: ByteArray, mediaType: String) {
         val status = try {

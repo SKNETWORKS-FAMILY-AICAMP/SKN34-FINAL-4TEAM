@@ -161,6 +161,28 @@ it('필터 칩 묶음은 이름이 있는 그룹이다', async () => {
   expect(chips.map((chip) => [chip.textContent, chip.getAttribute('aria-pressed')])).toContainEqual(['추천', 'true'])
 })
 
+it('발견 선반은 소개와 분기 방향이 없으면 작품 제목을 h3로 한 번만 표시한다', async () => {
+  const useCase = appContainer.resolve('readingUseCase')
+  const original = useCase.getHome.bind(useCase)
+  const discover = [
+    { ...server('plain', '바다: 첫 항해'), parent: undefined, hook: '', dir: '' },
+    { ...server('hooked', '별의 지도'), parent: undefined, hook: '별을 따라가는 모험', dir: undefined },
+    { ...server('forked', '원작: 포크 소설'), parent: 'plain', hook: '', dir: '북쪽으로 향했다' },
+  ]
+  vi.spyOn(useCase, 'getHome').mockImplementation(async (role, chip) => ({
+    ...(await original(role, chip)), discover,
+  }))
+
+  renderHome()
+  const shelf = within((await screen.findByRole('heading', { name: '오늘, 스토리포크의 발견' })).closest('section')!)
+  const fallback = shelf.getByRole('heading', { level: 3, name: '바다: 첫 항해' })
+  expect(fallback.closest('a')?.querySelector('small')).toBeNull()
+  const originalHeading = shelf.getByRole('heading', { level: 3, name: '별을 따라가는 모험' })
+  within(originalHeading.closest('a')!).getByText('별의 지도', { selector: 'small' })
+  const forkHeading = shelf.getByRole('heading', { level: 3, name: '북쪽으로 향했다' })
+  within(forkHeading.closest('a')!).getByText('포크 소설', { selector: 'small' })
+})
+
 it.each([[true, 'instant'], [false, 'smooth']] as const)('발견 선반 화살표는 동작 줄이기(%s)를 따라 %s로 넘긴다', async (reduced, behavior) => {
   vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: reduced, addEventListener: () => {}, removeEventListener: () => {} })))
   // jsdom에는 요소 scrollBy가 없다.

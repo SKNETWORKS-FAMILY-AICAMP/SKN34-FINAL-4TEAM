@@ -313,14 +313,34 @@ describe('계정 화면 구조', () => {
   })
 })
 
-describe('계정 문서 제목', () => {
+describe('계정 하위 주소', () => {
   it.each([
+    ['/me', '프로필'],
     ['/me/profile', '프로필'],
+    ['/me/liked', '관심 소설'],
+    ['/me/storage', '저장 공간'],
+    ['/me/pay', '결제 내역'],
     ['/me/inquiry', '문의하기'],
     ['/me/notice', '공지사항'],
-    ['/me/unknown', '계정'],
-  ])('%s의 탭 제목은 하위 탭 이름(없으면 계정)이다', async (path, name) => {
+    ['/me/event', '이벤트'],
+  ])('%s의 화면 제목과 문서 제목은 %s이다', async (path, name) => {
     setup(path)
-    await waitFor(() => expect(document.title).toBe(`${name} · STORYFORK`))
+    await screen.findByRole('heading', { level: 2, name: new RegExp(`^${name}`) })
+    expect(document.title).toBe(`${name} · STORYFORK`)
+  })
+
+  it.each(['/me/unknown', '/me/notifications', '/me/constructor'])('%s 경로에서 공통 404 화면을 보여 준다', async (path) => {
+    setup(path)
+    await screen.findByRole('heading', { level: 1, name: '페이지를 찾을 수 없어요' })
+    expect(document.title).toBe('페이지를 찾을 수 없어요 · STORYFORK')
+  })
+
+  it('비로그인 방문자의 /me/pay는 돌아갈 주소를 보존하고 로그인으로 보낸다', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) =>
+      url.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : new Response(null, { status: 401 })))
+    const { store } = renderApp('/me/pay')
+
+    await screen.findByRole('heading', { level: 1, name: '로그인' })
+    expect(store.getState().session).toMatchObject({ next: '/me/pay', loginMsg: '로그인이 필요한 화면이에요.' })
   })
 })
