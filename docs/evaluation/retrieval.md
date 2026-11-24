@@ -20,7 +20,7 @@
 
 ### 1.1 LLMOps 화면의 에이전트별 평가 표
 
-LLMOps 화면 '평가·누설 검사'의 맨 위 '에이전트별 평가' 표와 같은 목록이다(프런트 `frontend/src/domain/entities/llmOpsEvalTable.ts`. 이 표를 고치면 그 상수도 고치고, 둘이 같은지 `llmOpsEvalTable.test.ts`가 본다).
+LLMOps 화면 '프롬프트·평가'의 입구(첫 보기) '에이전트별 평가' 표와 같은 목록이다(프런트 `frontend/src/domain/entities/llmOpsEvalTable.ts`. 이 표를 고치면 그 상수도 고치고, 둘이 같은지 `llmOpsEvalTable.test.ts`가 본다).
 에이전트마다 쓰는 평가 세트·지표가 다르다. 세트가 없는 에이전트도 숨기지 않고 '평가 세트 없음(후속)'으로 보인다. '최근 Run'은 화면이 평가 목록(최근 50건)에서 그 세트의 가장 최근 Run을 찾아 통과·미통과와 Run 상세로 보이는 칸이다.
 
 | 에이전트 · 기능 | 모드 | 평가 세트(항목 수) | 지표 | 최근 결과 |

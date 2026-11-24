@@ -38,8 +38,8 @@ type VM = ReturnType<typeof useAdminViewModel>
 type Data = NonNullable<VM['data']>
 
 /**
- * 운영 업무 대상별 메뉴: 회원 → 콘텐츠 → 소통 → LLM Ops → 서비스. 개요는 묶음 없이 맨 위 단독 항목이고, 프로필·로그아웃은 상단바 닉네임 메뉴에 있습니다.
- * LLM Ops의 네 메뉴는 같은 탭(llm)의 쪽이라 세 번째 값에 쪽(view)을 적습니다.
+ * 운영 업무 대상별 메뉴: 회원 → 콘텐츠 → 소통 → LLM Ops → 서비스. 대시보드는 묶음 없이 맨 위 단독 항목이고, 프로필·로그아웃은 상단바 닉네임 메뉴에 있습니다.
+ * LLM Ops의 세 메뉴는 같은 탭(llm)의 쪽이라 세 번째 값에 쪽(view)을 적습니다.
  */
 const GROUPS: [string, [AdminTab, string, LlmPage?][]][] = [
   ['회원 관리', [['users', '사용자'], ['admins', '관리자 계정·권한']]],
@@ -50,13 +50,12 @@ const GROUPS: [string, [AdminTab, string, LlmPage?][]][] = [
 ]
 /** LLM Ops는 쪽마다 제목(문서 제목 포함)이 다릅니다. */
 const LLM_TITLES: Record<LlmPage, [string, string]> = {
-  alerts: ['LLM Ops · 경고', '운영 경고를 확인하고 조치하며, 경고 기준과 켜고 끄기를 정합니다.'],
-  traces: ['LLM Ops · 추적·지표', 'Langfuse 기준 AI 요청 추적과 기간별 품질·비용 지표를 확인합니다.'],
-  prompts: ['LLM Ops · 프롬프트·모델', '프롬프트·모델 조합의 후보 등록과 서비스 반영, 모델 단가를 관리합니다.'],
-  quality: ['LLM Ops · 평가·누설 검사', '회귀 평가를 실행해 결과를 확인하고, 정보 누설 검사 기록과 표본 비율을 관리합니다.'],
+  metrics: ['LLM Ops · 에이전트 지표', 'AI 요청·경고 요약과 최근 7일 사용, 에이전트(기능)별 요청·실패율·지연·비용을 카드로 보고 Langfuse 추적을 찾아 봅니다.'],
+  prompts: ['LLM Ops · 프롬프트·평가', '에이전트별 평가에서 프롬프트의 개선 루프(프롬프트·평가 세트·평가·자동 개선·게이트·서비스 반영)를 따라가며 모델 단가와 AI 파이프라인도 봅니다.'],
+  alerts: ['LLM Ops · 경고·누설 감시', '운영 경고를 확인하고 조치하며, 경고 기준과 정보 누설 검사 기록·표본 비율을 관리합니다.'],
 }
 const TITLES: Record<Exclude<AdminTab, 'llm'>, [string, string]> = {
-  data: ['관리 개요', '서비스 지표와 회원·AI 사용·작업·미처리 업무 현황을 확인합니다.'],
+  data: ['대시보드', '회원·작업·미처리 업무 카드와 서비스 지표(전체 기간)를 확인합니다. AI 요청·경고와 에이전트별 지표는 LLM Ops 에이전트 지표에 있습니다.'],
   rights: ['신고·권리 관리', '운영 신고를 검토하고 대상(작품·회차·세계관) 제한·권리 증빙 요청을 기록합니다.'],
   admins: ['관리자 계정과 권한', '업무별 접근 권한을 나누어 관리자 계정을 추가합니다.'],
   users: ['사용자 관리', '회원 목록을 조회하고 이용 제한·해제를 요청합니다.'],
@@ -157,11 +156,11 @@ export function AdminPage() {
     if (dy) n.scrollTop += dy
   }, [tab, page])
   const content = useRef<HTMLElement>(null)
-  // 머리 오른쪽 자리(데모 칩·목록 새로고침). 개요 탭은 자기 새로고침을 이 자리에 포털로 두므로 요소를 상태로 들고 있다가 건넵니다.
+  // 머리 오른쪽 자리(데모 칩·목록 새로고침). 대시보드 탭은 자기 새로고침을 이 자리에 포털로 두므로 요소를 상태로 들고 있다가 건넵니다.
   const [headSide, setHeadSide] = useState<HTMLDivElement | null>(null)
   const successTarget = IN_FORM.test(vm.lastSuccessKey) ? undefined : actionTarget(vm, vm.lastSuccessKey)
   // 운영 API가 없는 데모 탭만 메뉴에 '데모' 배지를 답니다. 배지는 읽지 않게 두는 대신 링크 설명으로 스크린리더에 알립니다(링크 이름은 그대로).
-  // 현재 표시는 탭과 쪽(view)이 모두 같을 때만 켭니다. LLM Ops 네 메뉴는 같은 탭이라 쪽까지 같아야 합니다.
+  // 현재 표시는 탭과 쪽(view)이 모두 같을 때만 켭니다. LLM Ops 세 메뉴는 같은 탭이라 쪽까지 같아야 합니다.
   const navLink = (k: AdminTab, l: string, view?: LlmPage) => {
     const on = tab === k && (!view || view === page)
     const to = view ? llmPageHref(view) : `/admin?tab=${k}`
@@ -196,7 +195,7 @@ export function AdminPage() {
       <div className='admin-side'>
         <nav ref={nav} className='admin-nav' aria-label='관리자 업무'>
           <Go to='/' className='admin-brand' aria-label='STORYFORK 관리자 · 메인 페이지로' title='메인 페이지로'>STORYFORK 관리자</Go>
-          {navLink('data', '개요')}
+          {navLink('data', '대시보드')}
           {/* 메뉴 묶음 이름은 본문 제목(h1)보다 앞에 오므로 제목으로 읽히지 않게 하고, 묶음 이름은 group의 레이블로 전합니다. */}
           {GROUPS.map(([g, items]) => (
             <section key={g} role='group' aria-label={g}>
@@ -290,7 +289,7 @@ type BodyProps = {
   setF: (x: Partial<Filter>) => void
   sel: string | null
   setSel: (s: string) => void
-  /** 제목 줄 오른쪽 자리. 개요 탭이 새로고침을 여기에 둔다. */
+  /** 제목 줄 오른쪽 자리. 대시보드 탭이 새로고침을 여기에 둔다. */
   headSide: HTMLElement | null
 }
 

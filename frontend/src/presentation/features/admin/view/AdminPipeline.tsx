@@ -16,7 +16,7 @@ import { useAdminDetailFocus } from './useAdminDetailFocus'
 const PipelineCanvas = lazy(() => import('./AdminPipelineCanvas'))
 
 /**
- * 프롬프트·모델 쪽의 '전체' 보기(DEC-58): 집필 AI 파이프라인을 고정 좌표 캔버스로 보이고, 노드(Decision Guard·메인 에이전트·업무 Agent·도구)를 고르면
+ * 프롬프트·평가 쪽의 'AI 파이프라인' 보기(DEC-58, 예전 프롬프트·모델의 전체): 집필 AI 파이프라인을 고정 좌표 캔버스로 보이고, 노드(Decision Guard·메인 에이전트·업무 Agent·도구)를 고르면
  * 그 노드의 observation 기록(결과 필터·표, 펼치면 입력·출력·메타데이터·도구 호출, 실행 흐름, 프롬프트 보기)을 캔버스와 노드 버튼 아래에 전체 폭으로 보인다(옆에 두면 표가 반쪽 폭에서 넘친다).
  * 캔버스는 보조라 같은 노드를 키보드로 고르는 버튼 목록을 캔버스 아래에 둔다. 노드를 고르면 기록 제목으로, 닫으면 눌렀던 노드 버튼으로 초점을 옮긴다.
  */

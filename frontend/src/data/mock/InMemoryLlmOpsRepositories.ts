@@ -1,7 +1,7 @@
 import type { JobRun, JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
 import { CANDIDATE_REQUIRED_MESSAGE, versionAction } from '../../domain/entities/llmOps'
 import type {
-  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, OptimizationInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
+  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, MetricRow, Metrics, MetricsQuery, Model, ModelInput, OptimizationInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
 import type { PipelineNode, PipelineRecord, PipelineRecordQuery } from '../../domain/entities/llmOpsPipeline'
 import { OperationsError, OperationsRejected, type OperationsPage } from '../../domain/entities/operations'
@@ -111,10 +111,25 @@ const PIPELINE_RECORDS: Record<string, PipelineRecord[]> = {
 const recordsOf = (node: PipelineNode): PipelineRecord[] => PIPELINE_RECORDS[node.id]
   ?? [entry(`${node.id}-1`, 'trace-1', `step.${node.id}`, 8, { latencyMs: 900, input: { request: '예시 입력' }, output: '예시 출력' }), ...(node.errors ? [entry(`${node.id}-2`, 'trace-2', `step.${node.id}`, 60, { level: 'ERROR', statusMessage: '단계 실패(예시)' })] : [])]
 
+const featureRow = (key: string, requests: number, failureRate: number | null, timeoutRate: number | null, p50: number | null, p95: number | null, tokens: [number, number], costPlatform: number): MetricRow => ({
+  key, requests, failureRate, timeoutRate, p50LatencyMs: p50, p95LatencyMs: p95, inputTokens: tokens[0], outputTokens: tokens[1], costUser: 0, costPlatform,
+})
+/** 에이전트 지표 카드 예시(기능별, 요청 많은 순): AI 서비스가 trace에 다는 실제 기능 키. 실패가 잦은 기능·시간 초과가 있는 기능·요청 없이 비용만 있는 기능(데이터 없음)도 한 장씩 있습니다. */
+const FEATURE_ROWS: MetricRow[] = [
+  featureRow('orchestration', 412, 0.051, 0.012, 5200, 14800, [1_240_000, 310_000], 4.82),
+  featureRow('manuscript_review', 96, 0.083, 0.052, 7600, 21000, [410_000, 96_000], 1.37),
+  featureRow('writing_editing', 74, 0.027, 0, 9100, 16500, [330_000, 142_000], 1.64),
+  featureRow('world_review', 51, 0.02, 0, 4300, 8200, [210_000, 61_000], 0.73),
+  featureRow('proposals', 44, 0, 0, 3300, 5100, [96_000, 38_000], 0.31),
+  featureRow('rating', 23, 0.13, 0.043, 2800, 9400, [52_000, 9_000], 0.12),
+  featureRow('web_research', 18, 0.278, 0.111, 6100, 27000, [88_000, 21_000], 0.29),
+  featureRow('prompt_optimization', 0, null, null, null, null, [640_000, 120_000], 2.1),
+]
+
 export class InMemoryLlmOpsRepository implements LlmOpsRepository {
   private readonly traceRows = [
-    trace('trace-1', 'qa', 'success', 5, 1840, 0.0042), trace('trace-2', 'writing', 'failed', 40, 920, 0.0011),
-    trace('trace-3', 'manuscript_review', 'timeout', 95, 30000, 0.0087), trace('trace-4', 'qa', 'success', 180, 1620, 0.0039),
+    trace('trace-1', 'orchestration', 'success', 5, 1840, 0.0042), trace('trace-2', 'writing_editing', 'failed', 40, 920, 0.0011),
+    trace('trace-3', 'manuscript_review', 'timeout', 95, 30000, 0.0087), trace('trace-4', 'orchestration', 'success', 180, 1620, 0.0039),
   ]
   private readonly prompts_: Omit<Prompt, 'candidates'>[] = [
     { name: 'qa-answer', versions: [
@@ -125,12 +140,48 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     { name: 'writing-assist', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '작가의 요청대로 원고를 고치세요.' }] },
     { name: 'decision_guard.judge', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '요청이 범위 안인지 판정하세요.' }] },
     { name: 'main-agent', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '작가를 돕는 집필 AI입니다.' }] },
+    // 개선 루프(#857) 예시: 실제 프롬프트 이름과 짝 평가 세트(evaluationDataset)를 쓴다. 인물 대사는 네 버전이 통과·미통과·후보·반영 중을 모두 보이고 자동 개선(GEPA) 대상이다.
+    { name: 'character_simulation.act', evaluationDataset: 'simulation.act', versions: [
+      { version: 4, labels: [], createdAt: ago(60), evaluation: { runId: 'run-act-4', passed: true, createdAt: ago(30) }, model: 'gpt-demo', commitMessage: '자동 개선(GEPA) · 기준 1번 버전', prompt: '인물의 말투와 의도를 지키고, 아직 모르는 사실은 말하지 마세요. 짧게 한 줄로 답하세요.' },
+      { version: 3, labels: [], createdAt: ago(300), evaluation: { runId: 'run-act-3', passed: false, createdAt: ago(240) }, model: 'gpt-demo', commitMessage: '말투 지침 강화', prompt: '인물의 말투를 최대한 살려 길게 말하세요.' },
+      { version: 2, labels: ['candidate-2'], createdAt: ago(1500), evaluation: { runId: 'run-act-2', passed: true, createdAt: ago(1400) }, model: 'gpt-demo', commitMessage: '의도 지침 추가', prompt: '인물의 말투와 의도를 지켜 말하세요.' },
+      { version: 1, labels: ['production', 'seed'], createdAt: ago(9000), evaluation: { runId: 'run-act-1', passed: true, createdAt: ago(8800) }, model: 'gpt-demo', prompt: '인물로서 다음 대사를 말하세요.' },
+    ] },
+    { name: 'character_simulation.narrate', evaluationDataset: 'simulation.narrate', versions: [
+      { version: 1, labels: ['production', 'seed'], createdAt: ago(9000), evaluation: { runId: 'run-narrate-1', passed: true, createdAt: ago(200) }, model: 'gpt-demo', prompt: '장면의 나레이션을 원작의 문체로 이어 쓰세요.' },
+    ] },
+    { name: 'story_context.answer', evaluationDataset: 'qa.grounding', versions: [
+      { version: 1, labels: ['production', 'seed'], createdAt: ago(9000), evaluation: { runId: 'run-qa-1', passed: true, createdAt: ago(120) }, model: 'gpt-demo', prompt: '근거가 있는 내용만 답하고 근거를 함께 보여 주세요.' },
+    ] },
+    { name: 'manuscript_extraction.extract', evaluationDataset: 'extraction.extract', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), model: 'gpt-demo', prompt: '회차에서 설정 대상·진술·관계를 근거 인용과 함께 뽑으세요.' }] },
+    { name: 'world_review.check', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '새 설정이 기존 설정과 충돌하는지 지적하세요.' }] },
+    { name: 'orchestration.main', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '작가의 요청을 분석해 알맞은 업무 에이전트에 맡기세요.' }] },
+    { name: 'web_research.search', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '고증에 필요한 자료를 웹에서 찾아 출처와 함께 정리하세요.' }] },
+    { name: 'rating.assess', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '원고의 심의 등급을 판정하고 근거를 적으세요.' }] },
   ]
   private readonly modelRows: Model[] = [
     { id: 'model-1', modelName: 'gpt-demo', matchPattern: '(?i)^gpt-demo$', inputPrice: 0.0000025, outputPrice: 0.00001 },
     { id: 'model-2', modelName: 'embed-demo', matchPattern: '(?i)^embed-demo$', inputPrice: 0.0000001, outputPrice: 0 },
   ]
   private readonly evaluationRows: Evaluation[] = [
+    // 개선 루프 예시 Run(최신순): 짝 세트 Run, 범용 세트(world.conflict) Run, 문항별 결과(실패 먼저).
+    { runId: 'run-act-4', dataset: 'simulation.act', prompt: 'character_simulation.act', version: 4, status: 'completed', passed: true, createdAt: ago(30), metrics: [
+      { name: 'voice', score: 0.82, baseline: 0.78, delta: 0.04 }, { name: 'intent', score: 0.88, baseline: 0.85, delta: 0.03 }, { name: 'pov_ok', score: 1, baseline: 1, delta: 0 }],
+    items: [{ itemId: 'simulation.act-07', scores: { voice: 0.25, intent: 0.5, pov_ok: 1 }, failed: true }, { itemId: 'simulation.act-01', scores: { voice: 0.75, intent: 1, pov_ok: 1 }, failed: false }, { itemId: 'simulation.act-02', scores: { voice: 1, intent: 0.75, pov_ok: 1 }, failed: false }] },
+    { runId: 'run-world-1', dataset: 'world.conflict', prompt: 'world_review.check', version: 1, status: 'completed', passed: true, createdAt: ago(50), metrics: [{ name: 'conflict_geval', score: 0.8, baseline: null, delta: null }] },
+    { runId: 'run-qa-1', dataset: 'qa.grounding', prompt: 'story_context.answer', version: 1, status: 'completed', passed: true, createdAt: ago(120), metrics: [
+      { name: 'faithfulness', score: 0.92, baseline: null, delta: null }, { name: 'context_precision', score: 0.88, baseline: null, delta: null }] },
+    { runId: 'run-narrate-1', dataset: 'simulation.narrate', prompt: 'character_simulation.narrate', version: 1, status: 'completed', passed: true, createdAt: ago(200), metrics: [
+      { name: 'style', score: 0.8, baseline: null, delta: null }, { name: 'info', score: 0.84, baseline: null, delta: null }, { name: 'pov_ok', score: 1, baseline: null, delta: null }] },
+    { runId: 'run-act-3', dataset: 'simulation.act', prompt: 'character_simulation.act', version: 3, status: 'completed', passed: false, createdAt: ago(240), metrics: [
+      { name: 'voice', score: 0.7, baseline: 0.78, delta: -0.08 }, { name: 'intent', score: 0.62, baseline: 0.85, delta: -0.23 }, { name: 'pov_ok', score: 0.92, baseline: 1, delta: -0.08 }],
+    items: [
+      { itemId: 'simulation.act-19', scores: {}, failed: true, error: '생성 또는 채점에 실패했어요.' }, { itemId: 'simulation.act-12', scores: { voice: 1, intent: 1, pov_ok: 0 }, failed: true },
+      { itemId: 'simulation.act-07', scores: { voice: 0.25, intent: 0.5, pov_ok: 1 }, failed: true }, { itemId: 'simulation.act-01', scores: { voice: 0.75, intent: 1, pov_ok: 1 }, failed: false }] },
+    { runId: 'run-act-2', dataset: 'simulation.act', prompt: 'character_simulation.act', version: 2, status: 'completed', passed: true, createdAt: ago(1400), metrics: [
+      { name: 'voice', score: 0.78, baseline: 0.77, delta: 0.01 }, { name: 'intent', score: 0.85, baseline: 0.84, delta: 0.01 }, { name: 'pov_ok', score: 1, baseline: 1, delta: 0 }] },
+    { runId: 'run-act-1', dataset: 'simulation.act', prompt: 'character_simulation.act', version: 1, status: 'completed', passed: true, createdAt: ago(8800), metrics: [
+      { name: 'voice', score: 0.77, baseline: null, delta: null }, { name: 'intent', score: 0.84, baseline: null, delta: null }, { name: 'pov_ok', score: 1, baseline: null, delta: null }] },
     { runId: 'run-2', dataset: 'qa-regression', prompt: 'qa-answer', version: 3, status: 'completed', passed: false, createdAt: ago(240), metrics: [
       { name: 'faithfulness', score: 0.78, baseline: 0.9, delta: -0.12 }, { name: 'answer_relevancy', score: 0.91, baseline: 0.89, delta: 0.02 }] },
     { runId: 'run-1', dataset: 'qa-regression', prompt: 'qa-answer', version: 2, status: 'completed', passed: true, createdAt: ago(3900), metrics: [
@@ -165,16 +216,18 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     }
   }
   async metrics({ groupBy }: MetricsQuery): Promise<Metrics> {
-    const keys = groupBy === 'day' ? [0, 1, 2].map((d) => ago(d * 1440).slice(0, 10)) : groupBy === 'feature' ? ['qa', 'writing', 'manuscript_review'] : ['gpt-demo', 'embed-demo']
+    const keys = groupBy === 'day' ? [0, 1, 2].map((d) => ago(d * 1440).slice(0, 10)) : ['gpt-demo', 'embed-demo']
     return {
-      rows: keys.map((key, i) => ({ key, requests: 120 - i * 30, failureRate: 0.04 + i * 0.02, timeoutRate: i * 0.01, p50LatencyMs: 1500, p95LatencyMs: 4200 + i * 900, inputTokens: 150000 - i * 20000, outputTokens: 42000 - i * 6000, costUser: 0, costPlatform: 0.31 - i * 0.07 })),
+      rows: groupBy === 'feature'
+        ? FEATURE_ROWS
+        : keys.map((key, i) => ({ key, requests: 120 - i * 30, failureRate: 0.04 + i * 0.02, timeoutRate: i * 0.01, p50LatencyMs: 1500, p95LatencyMs: 4200 + i * 900, inputTokens: 150000 - i * 20000, outputTokens: 42000 - i * 6000, costUser: 0, costPlatform: 0.31 - i * 0.07 })),
       adoptionRate: 0.42, approvalRate: 0.67, filterRestoreRate: null,
     }
   }
   // 서버처럼 목록은 production·seed 버전의 라벨·모델과 후보 수만, 상세는 모든 버전과 본문까지 준다(#786).
   async prompts() {
-    return structuredClone(this.prompts_.map(({ name, versions }) => ({
-      name, candidates: candidatesOf(versions),
+    return structuredClone(this.prompts_.map(({ name, versions, evaluationDataset }) => ({
+      name, candidates: candidatesOf(versions), evaluationDataset,
       versions: versions.filter((v) => v.labels.includes('production') || v.labels.includes('seed')).map(({ prompt: _body, ...v }) => v),
     })))
   }
@@ -201,7 +254,7 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
   }
   async models() { return structuredClone(this.modelRows) }
   async createModel(input: ModelInput) { this.modelRows.push({ id: `model-${this.modelRows.length + 1}`, ...input }) }
-  async evaluations() { return structuredClone(this.evaluationRows.map((row) => ({ ...row, metrics: [] }))) }
+  async evaluations() { return structuredClone(this.evaluationRows.map(({ items: _items, ...row }) => ({ ...row, metrics: [] }))) }
   async evaluation(runId: string) { return structuredClone(found(this.evaluationRows.find((row) => row.runId === runId))) }
   async runEvaluation(input: EvaluationInput) {
     found(this.prompts_.find((p) => p.name === input.prompt)?.versions.find((v) => v.version === input.version))

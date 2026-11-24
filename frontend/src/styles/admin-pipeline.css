@@ -1,7 +1,7 @@
-/* AI 파이프라인(DEC-58, LLM Ops 프롬프트·모델 > 전체). 위계는 선과 글자로만 만들고 색은 오류(위험)와 선택(주 색)에만 쓴다.
+/* AI 파이프라인(DEC-58, LLM Ops 프롬프트·평가 > AI 파이프라인 보기). 위계는 선과 글자로만 만들고 색은 오류(위험)와 선택(주 색)에만 쓴다.
    전역 storyfork.css는 @layer(base)라 이 비레이어 규칙이 늘 이기며, 선택자는 admin-operations.css의 같은 요소 규칙(.adm .admin-operations h3 등)보다 특이도를 한 칸 높였다. */
 
-/* 프롬프트·모델 쪽의 보기 전환(전체·프롬프트·모델): 현재 보기만 글자 색과 밑줄로 알린다. */
+/* LLM Ops 쪽 안의 보기 전환(에이전트 지표의 지표·추적, 프롬프트·평가의 에이전트별 평가·프롬프트·모델·AI 파이프라인): 현재 보기만 글자 색과 밑줄로 알린다. */
 .adm .pipe-views { display: flex; gap: 4px; margin: 0 0 12px; border-bottom: 1px solid var(--line2); }
 .adm .pipe-views a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--sub); font-size: 14px; font-weight: 600; text-decoration: none; }
 .adm .pipe-views a:hover { color: var(--ink); }

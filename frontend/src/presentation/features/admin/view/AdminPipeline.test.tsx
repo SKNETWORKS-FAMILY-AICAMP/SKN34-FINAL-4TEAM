@@ -16,7 +16,8 @@ import { AdminPage } from './AdminPage'
 vi.mock('react-force-graph-2d', () => ({ default: () => null }))
 afterEach(() => { cleanup(); vi.restoreAllMocks(); document.title = 'STORYFORK' })
 
-const renderPipeline = (query = '') => render(
+// AI 파이프라인은 프롬프트·평가 쪽의 보기(sub=all)다(#857: 쪽의 첫 보기는 에이전트별 평가라 주소에 sub=all을 붙인다).
+const renderPipeline = (query = '&sub=all') => render(
   <Provider store={createAppStore({ role: 'admin' })}>
     <MemoryRouter initialEntries={[`/admin?tab=llm&view=prompts${query}`]} useTransitions={false}><AdminPage /></MemoryRouter>
   </Provider>,
@@ -33,19 +34,23 @@ const openRowMenu = (row: HTMLElement) => {
   return within(screen.getByRole('menu'))
 }
 
-it('프롬프트·모델 쪽은 sub가 없으면 전체(AI 파이프라인)이고, 보기 전환 링크로 프롬프트·모델을 오간다', async () => {
+it('AI 파이프라인은 프롬프트·평가 쪽의 보기(sub=all)이고, 보기 전환 링크로 에이전트별 평가·프롬프트·모델을 오간다', async () => {
   renderPipeline()
-  const views = within(await screen.findByRole('navigation', { name: '프롬프트·모델 보기' }))
+  const views = within(await screen.findByRole('navigation', { name: '프롬프트·평가 보기' }))
   expect(views.getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href'), link.getAttribute('aria-current')])).toEqual([
-    ['전체', '/admin?tab=llm&view=prompts', 'page'], ['프롬프트', '/admin?tab=llm&view=prompts&sub=prompts', null], ['모델', '/admin?tab=llm&view=prompts&sub=models', null],
+    ['에이전트별 평가', '/admin?tab=llm&view=prompts', null], ['프롬프트', '/admin?tab=llm&view=prompts&sub=prompts', null],
+    ['모델', '/admin?tab=llm&view=prompts&sub=models', null], ['AI 파이프라인', '/admin?tab=llm&view=prompts&sub=all', 'page'],
   ])
   await screen.findByRole('region', { name: 'AI 파이프라인' })
   fireEvent.click(views.getByRole('link', { name: '프롬프트' }))
   await screen.findByRole('region', { name: '프롬프트' })
   expect(screen.queryByRole('region', { name: 'AI 파이프라인' })).toBeNull()
-  fireEvent.click(within(screen.getByRole('navigation', { name: '프롬프트·모델 보기' })).getByRole('link', { name: '모델' }))
+  fireEvent.click(within(screen.getByRole('navigation', { name: '프롬프트·평가 보기' })).getByRole('link', { name: '모델' }))
   await screen.findByRole('region', { name: '모델 단가' })
   expect(screen.queryByRole('region', { name: '프롬프트' })).toBeNull()
+  fireEvent.click(within(screen.getByRole('navigation', { name: '프롬프트·평가 보기' })).getByRole('link', { name: '에이전트별 평가' }))
+  await screen.findByRole('region', { name: '에이전트별 평가' })
+  expect(screen.queryByRole('region', { name: '모델 단가' })).toBeNull()
 })
 
 it('노드는 캔버스 아래 버튼 목록(요청 흐름·단독 기능)으로도 있고 건수와 오류 수를 보이며, 오류가 있는 노드만 위험 표시를 단다', async () => {
@@ -158,10 +163,10 @@ it('프롬프트 보기는 그 노드의 프롬프트 상세(프롬프트 보기
   fireEvent.click(openRowMenu(dataRows(rows)[0]).getByRole('menuitem', { name: '프롬프트 보기' }))
   const detail = await screen.findByLabelText('프롬프트 상세')
   await within(detail).findByRole('heading', { name: 'decision_guard.judge' })
-  expect(screen.queryByRole('navigation', { name: '프롬프트·모델 보기' })).toBeNull()
+  expect(screen.queryByRole('navigation', { name: '프롬프트·평가 보기' })).toBeNull()
   expect(screen.queryByRole('region', { name: 'AI 파이프라인' })).toBeNull()
   fireEvent.click(within(detail).getByRole('button', { name: '프롬프트 목록으로' }))
-  const views = within(await screen.findByRole('navigation', { name: '프롬프트·모델 보기' }))
+  const views = within(await screen.findByRole('navigation', { name: '프롬프트·평가 보기' }))
   expect(views.getByRole('link', { name: '프롬프트' }).getAttribute('aria-current')).toBe('page')
 })
 

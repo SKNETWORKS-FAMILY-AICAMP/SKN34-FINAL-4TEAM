@@ -1,3 +1,4 @@
+import { llmPageHref } from './admin'
 import { count, percent, usd } from './llmOps'
 import type { Funnel } from './operationsFunnel'
 
@@ -35,6 +36,14 @@ export function dashboardCards(d: Dashboard): DashboardCard[] {
     { key: 'inquiries', label: '답변 대기 문의', value: unit(pending?.inquiries, '건'), details: [], to: '/admin?tab=feedback' },
     { key: 'reports', label: '접수 신고', value: unit(pending?.reports, '건'), details: [], to: '/admin?tab=rights' },
     { key: 'authorReviews', label: '작가 검토 대기', value: unit(pending?.authorReviews, '건'), details: [] },
-    { key: 'openAlerts', label: '미확인 경고', value: unit(d.openAlerts, '건'), details: [], to: '/admin?tab=llm' },
+    { key: 'openAlerts', label: '미확인 경고', value: unit(d.openAlerts, '건'), details: [], to: llmPageHref('alerts') },
   ]
 }
+
+/**
+ * AI 요청·작업·경고 성격의 카드(#857, 넷): 대시보드가 아니라 LLM Ops 에이전트 지표 위에 보입니다. 진행 중 작업은 전처리·회귀 평가 같은 AI 작업이라 이쪽입니다.
+ * 나머지 넷(회원·답변 대기 문의·접수 신고·작가 검토 대기)이 대시보드의 서비스 지표 카드입니다. 두 띠 모두 넷이라 2열(넓은 화면 4열)에서 마지막 줄이 비지 않습니다.
+ */
+const AI_CARDS = ['aiToday', 'aiWeek', 'jobs', 'openAlerts']
+export const serviceCards = (d: Dashboard) => dashboardCards(d).filter((card) => !AI_CARDS.includes(card.key))
+export const aiCards = (d: Dashboard) => dashboardCards(d).filter((card) => AI_CARDS.includes(card.key))

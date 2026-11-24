@@ -1,3 +1,5 @@
+import { llmPageHref } from './admin'
+
 /** Core 알림 분류 코드. 읽기·창작·AI·외부 도구 변경만 회원이 끌 수 있습니다(UC-27, #553). */
 export type NoticeKind = 'reading' | 'creation' | 'result' | 'credit' | 'rights-security' | 'ai-tool'
 
@@ -34,8 +36,8 @@ export function noticeTarget(n: Pick<AppNotification, 'kind' | 'targetType' | 't
   if (n.targetType === 'credit-expiry') return '/me/pay'
   // 탈퇴 취소 카드는 프로필 맨 아래라, 알림에서 왔다는 표시(focus)를 붙여 그 카드로 스크롤·포커스합니다(화면 안 이동에 #anchor를 쓰지 않음).
   if (n.targetType === 'withdrawal') return '/me/profile?focus=withdrawal'
-  // 운영 경고(operations.alert.raised): 대상 id는 주소에 쓰지 않고 경고를 확인·처리하는 LLM Ops 탭(첫 보기가 경고)으로 보냅니다.
-  if (n.targetType === 'alert') return '/admin?tab=llm'
+  // 운영 경고(operations.alert.raised): 대상 id는 주소에 쓰지 않고 경고를 확인·처리하는 LLM Ops의 경고·누설 감시 쪽으로 보냅니다.
+  if (n.targetType === 'alert') return llmPageHref('alerts')
   return null
 }
 

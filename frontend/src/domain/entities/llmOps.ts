@@ -28,7 +28,8 @@ export type MetricRow = {
 export type Metrics = { rows: MetricRow[]; adoptionRate?: number | null; approvalRate?: number | null; filterRestoreRate?: number | null }
 export type MetricsGroup = 'day' | 'feature' | 'model'
 export type MetricsQuery = { from: string; to: string; groupBy: MetricsGroup }
-export const METRICS_GROUPS: [MetricsGroup, string][] = [['day', '날짜'], ['feature', '기능'], ['model', '모델']]
+/** 에이전트 지표(#857)는 기능별이 기본(카드)이라 기능이 맨 앞입니다. */
+export const METRICS_GROUPS: [MetricsGroup, string][] = [['feature', '기능'], ['day', '날짜'], ['model', '모델']]
 
 /**
  * model은 그 버전에 고른 모델(#705, Langfuse 버전 config.model)이고 비면 AI 서비스의 환경 변수 기본 모델입니다.
@@ -66,6 +67,10 @@ export type Evaluation = {
   items?: EvaluationItem[] | null
 }
 export type EvaluationInput = { dataset: string; prompt: string; version: number }
+
+/** 프롬프트 개선 루프(#857)의 여섯 단계: 프롬프트 → 평가 세트 → 평가 → 자동 개선 → 게이트 → 서비스 반영. 프롬프트 상세 위의 단계 표시와 아래 패널이 같은 키를 씁니다. */
+export const LOOP_STAGES = [['prompt', '프롬프트'], ['set', '평가 세트'], ['eval', '평가'], ['optimize', '자동 개선'], ['gate', '게이트'], ['serve', '서비스 반영']] as const
+export type LoopStage = (typeof LOOP_STAGES)[number][0]
 
 /** 자동 개선(GEPA, #823) 요청: 기준 버전과 평가 호출 상한(1~500)입니다. */
 export type OptimizationInput = { version: number; maxMetricCalls: number }
@@ -114,6 +119,8 @@ export const traceStatusLabel = (status: string) => TRACE_STATUSES.get(status) ?
 export const evaluationStatusLabel = (status: string) => EVALUATION_STATUSES.get(status) ?? status
 /** 평가 통과 여부: 아직 결과가 없으면(실행 중) 대시입니다. */
 export const passedLabel = (passed: boolean | null | undefined) => (passed == null ? '—' : passed ? '통과' : '미통과')
+/** 평가 통과 여부의 칩 색: 미통과만 실패 색(bad)이고, 통과는 중립, 결과 없음(null)은 칠하지 않는다. */
+export const passTone = (passed: boolean | null | undefined) => (passed === false ? 'bad' : passed ? 'ok' : '')
 
 /** 조회 기간 선택지(시간). 지금부터 거꾸로 센 구간으로 보냅니다. */
 export const PERIODS: [number, string][] = [[24, '최근 24시간'], [24 * 7, '최근 7일'], [24 * 30, '최근 30일']]

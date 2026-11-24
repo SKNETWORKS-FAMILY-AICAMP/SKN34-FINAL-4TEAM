@@ -1,6 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 
 import { lastPage } from '../../../../domain/entities/operations'
+import type { dashboardCards } from '../../../../domain/entities/operationsDashboard'
+import { Go } from '../../../shared/Go'
 import { kstDateTime } from '../../../shared/format'
 import type { AdminActionState, useAdminViewModel } from '../viewmodel/useAdminViewModel'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
@@ -51,6 +53,22 @@ export function LiveState({ vm, label, state, forbidden }: { vm: VM; label: stri
       )}
       {forbidden && l.data === null && <p className="admin-action-error" role="alert">{forbidden}</p>}
     </>
+  )
+}
+
+/** 숫자 카드 띠(#857: 대시보드의 서비스 지표 카드, 에이전트 지표 위의 AI 요청·경고 카드). 값을 읽지 못한 칸은 0이 아니라 '불러오지 못함'이고 이동할 쪽이 있는 칸은 링크를 가집니다. */
+export function SummaryBand({ cards }: { cards: ReturnType<typeof dashboardCards> }) {
+  return (
+    <div className="admin-summary">
+      {cards.map((card) => (
+        <div key={card.key}>
+          <small>{card.label}</small>
+          <b className={card.value === null ? 'unavailable' : undefined}>{card.value ?? '불러오지 못함'}</b>
+          {card.details.map((line) => <span key={line} className="small muted">{line}</span>)}
+          {card.to && <Go to={card.to} aria-label={`${card.label} 바로 가기`}>바로 가기</Go>}
+        </div>
+      ))}
+    </div>
   )
 }
 
