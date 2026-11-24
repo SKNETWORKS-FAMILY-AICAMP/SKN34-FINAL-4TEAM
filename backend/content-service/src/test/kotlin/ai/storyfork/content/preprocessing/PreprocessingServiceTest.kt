@@ -19,6 +19,7 @@ import ai.storyfork.content.preprocessing.service.dto.PreprocessingUpdateRespons
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.world.service.ManuscriptBuildService
+import ai.storyfork.content.world.service.ManuscriptBuildFinished
 import ai.storyfork.content.world.service.ManuscriptBuildInput
 import ai.storyfork.content.world.service.ManuscriptBuildSource
 import ai.storyfork.content.world.service.dto.ManuscriptBuildRequest
@@ -72,6 +73,7 @@ class PreprocessingServiceTest {
         `when`(jobs.requeueSnapshot("job")).thenReturn(1)
         `when`(manager.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
         `when`(works.findById("work")).thenReturn(Optional.of(work))
+        `when`(works.lockAll(listOf("work"))).thenAnswer { works.findById("work").stream().toList() }
         `when`(episodes.savedNumbers("work")).thenReturn(listOf(1, 2, 5))
         `when`(jobs.saveAndFlush(anyJob())).thenAnswer { call ->
             (call.arguments[0] as PreprocessingJobEntity).also { savedStates += it.status to it.failedReason }
@@ -398,6 +400,15 @@ class PreprocessingServiceTest {
         assertEquals(PreprocessingUpdateResponse(update.id, FAILED, listOf(6, 7), "WORLD_CHANGED"), service.latest("work", ownerId).update)
     }
 
+    @Test fun `owner summary prefers the running older retry to the newest completed update`() {
+        ready()
+        val older = updateJob(RUNNING, listOf(6))
+        `when`(jobs.findFirstByWorkIdAndKindAndStatusInOrderByCreatedAtDesc("work", "update", setOf(QUEUED, RUNNING, LOADING))).thenReturn(older)
+
+        assertEquals(PreprocessingUpdateResponse(older.id, RUNNING, listOf(6), null), service.latest("work", ownerId).update)
+        verify(jobs, never()).findFirstByWorkIdAndKindOrderByCreatedAtDesc("work", "update")
+    }
+
     @Test fun `an update job never decides the initial start`() {
         `when`(jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc("work", "initial")).thenReturn(job(COMPLETED, "old"))
         assertEquals(409, rejected { service.start("work", ownerId) }.status)
@@ -488,7 +499,7 @@ class PreprocessingServiceTest {
         verifyNoInteractions(ai)
     }
 
-    @Test fun `a lost AI acceptance fails the queued update so the next publish can take its episodes again`() {
+    @Test fun `a lost AI acceptance marks the update failed for manual retry`() {
         ready()
         doThrow(PreprocessingAiFailure("AI_TIMEOUT")).`when`(ai).accept(anyRequest())
 
@@ -496,6 +507,55 @@ class PreprocessingServiceTest {
 
         val saved = savedJobs().single()
         verify(build).failQueued(UUID.fromString(saved.id), UUID.fromString(ownerId), "AI_INTAKE_FAILED")
+    }
+
+    @Test fun `a terminal update queues the published backlog without another publish and an open successor blocks duplicate intake`() {
+        ready()
+        val finished = ManuscriptBuildFinished(UUID.randomUUID(), 2, "work", world, UUID.fromString(ownerId))
+        service.continueUpdate(finished)
+
+        val saved = savedJobs().single()
+        assertEquals(listOf(PreprocessingAiRequest(saved.id, "work", listOf(6))), aiRequests())
+        val order = inOrder(works, jobs, build)
+        order.verify(works).lockAll(listOf("work"))
+        order.verify(jobs).openOn(world)
+        order.verify(build).freezeUpdate("work", setOf(1, 2, 5))
+        order.verify(build).prepareUpdate(UUID.fromString(saved.id), "work", UUID.fromString(ownerId),
+            ManuscriptBuildRequest(world, "continue:${finished.jobId}:2", true), newEpisodes)
+
+        ready(openOnWorld = true)
+        service.continueUpdate(finished)
+        assertEquals(1, aiRequests().size)
+    }
+
+    @Test fun `automatic intake skips failed manifests both on job completion and on a new first publish`() {
+        ready()
+        val untouched = ManuscriptBuildInput(listOf(ManuscriptBuildSource(8, "e8", "v8", "8화", "발행된 8화")))
+        `when`(jobs.failedUpdateNumbers("work", world)).thenReturn(setOf(6, 7))
+        doReturn(untouched).`when`(build).freezeUpdate("work", setOf(1, 2, 5, 6, 7))
+
+        service.continueUpdate(ManuscriptBuildFinished(UUID.randomUUID(), 2, "work", world, UUID.fromString(ownerId)))
+        `when`(jobs.reflectedNumbers("work")).thenReturn(setOf(1, 2, 5, 8))
+        assertEquals("NO_NEW_EPISODES", service.startUpdate("work", ownerId, "ev-9"))
+
+        verify(build).freezeUpdate("work", setOf(1, 2, 5, 6, 7, 8))
+        assertEquals(listOf(listOf(8)), aiRequests().map { it.episodes })
+    }
+
+    @Test fun `an older failed update can be retried after the newer update ends`() {
+        val old = updateJob(FAILED, listOf(6, 7)).apply { failedEpisodes = listOf(7) }
+        `when`(jobs.lock(old.id)).thenReturn(old)
+        val newer = updateJob(COMPLETED, listOf(8))
+        `when`(jobs.findFirstByWorkIdAndKindOrderByCreatedAtDesc("work", "update")).thenReturn(newer)
+        `when`(jobs.requeueSnapshot(old.id)).thenReturn(1)
+        `when`(jobs.openOn(world)).thenReturn(true)
+        assertEquals(409, rejected { service.retry(old.id) }.status)
+        verifyNoInteractions(ai)
+
+        `when`(jobs.openOn(world)).thenReturn(false)
+        `when`(jobs.reflectedNumbers("work")).thenReturn(setOf(1, 2, 5, 8))
+        assertEquals(QUEUED, service.retry(old.id).status)
+        assertEquals(listOf(listOf(7)), aiRequests().map { it.episodes })
     }
 
     // ---- retry: 이미 다른 completed 작업으로 반영된 회차가 있으면 거절 ----

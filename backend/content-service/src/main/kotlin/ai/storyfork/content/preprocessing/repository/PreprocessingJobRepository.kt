@@ -16,6 +16,10 @@ interface PreprocessingJobRepository : JpaRepository<PreprocessingJobEntity, Str
      */
     fun findFirstByWorkIdAndKindOrderByCreatedAtDesc(workId: String, kind: String): PreprocessingJobEntity?
 
+    fun findFirstByWorkIdAndKindAndStatusInOrderByCreatedAtDesc(
+        workId: String, kind: String, statuses: Collection<String>,
+    ): PreprocessingJobEntity?
+
     /**
      * 운영 목록의 출처다. V15 작업 행(manuscript_build_job)이 있는 작업의 V41 행만 돌려준다(작업 행은 원고 본문이 든 manifest를 가져서 목록에서 읽지 않는다).
      * 쪽·정렬(최신 접수 순)은 [pageable]이 정한다.
@@ -58,6 +62,13 @@ interface PreprocessingJobRepository : JpaRepository<PreprocessingJobEntity, Str
      * ponytail: manifest(원고 본문 포함)를 통째로 읽어 번호만 쓴다. 회차가 수백 개로 늘어 첫 발행 점검이 느려지면 manifest 번호만 뽑는 쿼리로 바꾼다.
      */
     fun reflectedNumbers(work: String): Set<Int> = completedBuilds(work).flatMapTo(mutableSetOf()) { manifestNumbers(it) }
+
+    @Query("select b from ManuscriptBuildJob b where b.workId=:work and b.worldId=:world and b.kind='update' and b.status='failed'")
+    fun failedUpdates(@Param("work") work: String, @Param("world") world: UUID): List<ManuscriptBuildJob>
+
+    /** 실패한 업데이트는 manifest 전체가 미반영이다. 자동 접수는 건너뛰고 운영이 원래 작업을 재실행한다. */
+    fun failedUpdateNumbers(work: String, world: UUID): Set<Int> =
+        failedUpdates(work, world).flatMapTo(mutableSetOf()) { manifestNumbers(it) }
 
     @Query("select count(b)>0 from ManuscriptBuildJob b where b.workId=:work and b.requestKey=:key")
     fun requestKeyExists(@Param("work") work: String, @Param("key") key: String): Boolean
