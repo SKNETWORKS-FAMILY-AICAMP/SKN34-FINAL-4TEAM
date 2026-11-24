@@ -37,6 +37,8 @@ vi.mock('../viewmodel/useWorldStudioViewModel', async (original) => {
   const actual = await original<typeof import('../viewmodel/useWorldStudioViewModel')>()
   return { useWorldStudioViewModel: () => actual.useWorldStudioViewModel(useCase, reviewCase) }
 })
+// 카드 첨부 패널(#735)은 자기 테스트(MediaPanel.test)가 맡는다. 여기서는 개요에 어떤 대상으로 붙는지만 본다(실제 패널은 서버에서 목록을 읽어 알림을 더한다).
+vi.mock('../../../shared/media/MediaPanel', () => ({ MediaPanel: ({ target, disabled }: { target: object; disabled?: boolean }) => <p data-testid="card-media-panel">{JSON.stringify(target) + (disabled ? ' 잠김' : '')}</p> }))
 
 /**
  * 편집 화면의 버전 그래프와 확정 버전 시트가 쓰는 훅(서버 목록·상세 조회와 확정 요청)은 이 대역이다. 로그인 세션이 없는 화면 테스트가 서버를 부르지 않고 행·상세·확정 요청만 정하게 한다.
@@ -1755,15 +1757,16 @@ it('표지를 읽지 못하면 기본 표지를 두고 패널에서 이유를 �
   expect(await coverGroup().findByText('표지를 불러오지 못했어요.')).toBeTruthy()
 })
 
-it('표지 칸은 이미지 선택과 AI로 생성(준비 중, 잠김)을 두고 5 MiB 형식 안내를 보이며 삭제는 표지가 있을 때만 보인다', async () => {
+it('표지 칸은 이미지 선택과 AI 생성 입력을 두고 5 MiB 형식 안내를 보이며 삭제는 표지가 있을 때만 보인다', async () => {
   await showWorld()
   openInfoEdit()
   expect(coverGroup().getByText('PNG·JPEG·WebP, 5 MiB 이하.')).toBeTruthy() // 안내는 형식·크기 한 줄이다
   const input = coverGroup().getByLabelText<HTMLInputElement>('이미지 선택')
   expect([input.type, input.accept, input.disabled]).toEqual(['file', 'image/png,image/jpeg,image/webp', false])
   const ai = coverGroup().getByRole<HTMLButtonElement>('button', { name: /AI로 생성/ })
-  expect(ai.disabled).toBe(true)
-  expect(document.getElementById(ai.getAttribute('aria-describedby') ?? '')?.textContent).toBe('준비 중')
+  expect(ai.disabled).toBe(false)
+  fireEvent.click(ai)
+  expect(screen.getByRole('group', { name: 'AI 이미지 생성' })).toBeTruthy()
   expect(coverGroup().queryByRole('button', { name: '표지 삭제' })).toBeNull()
   cleanup()
   await show(undefined, '/worldstudio/qa', { hasCover: true })
@@ -3872,6 +3875,19 @@ it('카드 이미지를 읽을 수 없는 데모(메모리)에서는 이미지 �
   expect(imageInput().closest('.world-card-tile')?.classList.contains('empty')).toBe(true) // 빈 타일은 그대로 두되 잠겨 있다
   expect(readCardImage).not.toHaveBeenCalled()
   expect(uploadCardImage).not.toHaveBeenCalled()
+})
+
+it('카드 개요에만 첨부 패널이 붙고, 카드 이미지가 없는 데모(메모리)에는 첨부 영역이 없다(#735)', async () => {
+  await showWorld()
+  openCard('가람 인물')
+  expect(overview().getByTestId('card-media-panel')).toBeTruthy()
+  openPane('문서')
+  expect(screen.queryByTestId('card-media-panel')).toBeNull()
+  cleanup()
+  await show(undefined, '/worldstudio/qa', { demoCardImage: true })
+  openCard('가람 인물')
+  expect(overview().queryByTestId('card-media-panel')).toBeNull()
+  expect(overview().queryByRole('region', { name: '설정 첨부' })).toBeNull()
 })
 
 it('목업(mockup) 모드의 발표용 인물 초상은 그대로 보이고 이미지 추가는 잠겨 있다', async () => {

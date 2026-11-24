@@ -258,13 +258,13 @@ function OwnCover({ workId, editing, blocked, disabled, editRef, onBusy, onEdit,
                     </button>
                   </div>
                 )}
-                {/* 브라우저 기본 파일 입력은 시각적으로만 숨기고(키보드·스크린리더 유지) 라벨을 버튼처럼 그린다. 옆의 'AI로 생성'은 아직 연결 전이라 비활성이다. */}
+                {/* 브라우저 기본 파일 입력은 시각적으로만 숨기고(키보드·스크린리더 유지) 라벨을 버튼처럼 그린다. 옆의 AI 생성은 미리보기에서 선택한 파일을 같은 저장 흐름에 전달한다. */}
                 <div className='ep-cover-pick'>
                   <label className='btn sm ep-file-pick'>
                     이미지 선택
                     <input ref={first} type='file' accept='.png,.jpg,.jpeg' onChange={(e) => setFile(e.target.files?.[0])} />
                   </label>
-                  <AiCoverButton />
+                  <AiCoverButton workId={workId} hasCurrentCover={!!current} onPick={setFile} />
                 </div>
                 {file
                   ? (

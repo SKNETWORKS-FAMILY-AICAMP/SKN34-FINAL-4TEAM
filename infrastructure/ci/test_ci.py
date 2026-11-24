@@ -668,6 +668,16 @@ class ConfigurationTest(unittest.TestCase):
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
         self.assertIn('world-studios', text)
 
+    def test_world_studio_proxy_accepts_card_attachment_uploads(self):
+        # 설정 카드 첨부(#735)는 파일당 10 MiB(multipart 11 MiB)까지다. 세계관 프록시의 본문 한도가 그보다 작으면 nginx가 먼저 413으로 끊는다.
+        route = '/api/v1/world-studios/world-id/cards/card-id/attachments/attachment-id/content'
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            with self.subTest(proxy=path):
+                self.assertEqual('http://content-service:8081', nginx_upstream(text, route))
+                body = re.search(r'location \^~ /api/v1/world-studios/ \{([^}]*)\}', text)[1]
+                self.assertGreaterEqual(int(re.search(r'client_max_body_size (\d+)m;', body)[1]), 11)
+
     def test_public_world_studio_routes_go_to_content(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
             text = (ci.ROOT / path).read_text()

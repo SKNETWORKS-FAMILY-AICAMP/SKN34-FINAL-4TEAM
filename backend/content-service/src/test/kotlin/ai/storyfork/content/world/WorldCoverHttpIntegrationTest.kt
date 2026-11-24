@@ -8,6 +8,7 @@ import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.VerifiedMemberResponse
 import ai.storyfork.content.auth.client.dto.NicknamesPayload
 import ai.storyfork.content.auth.client.dto.NicknamesResponse
+import ai.storyfork.content.imagegeneration.client.CoverModerationClient
 import ai.storyfork.content.fixture.CsrfFixture
 import ai.storyfork.content.world.service.dto.*
 import java.awt.image.BufferedImage
@@ -39,6 +40,7 @@ class WorldCoverHttpIntegrationTest {
     class Doubles {
         /** 객체 저장소 대역이 들고 있는 객체(키 → 바이트). 거절·교체·삭제 뒤 남은 객체를 테스트가 센다. */
         val objects=ConcurrentHashMap<String,ByteArray>()
+        @Bean @Primary fun coverModeration():CoverModerationClient=mock(CoverModerationClient::class.java)
         @Bean @Primary fun worldCoverTestCoreAuthClient():CoreAuthClient=mock(CoreAuthClient::class.java)
         @Bean @Primary fun worldCoverTestStorage():AttachmentStorageClient {
             val storage=mock(AttachmentStorageClient::class.java)

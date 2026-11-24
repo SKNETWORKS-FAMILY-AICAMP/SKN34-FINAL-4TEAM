@@ -153,7 +153,7 @@ def test_content(draft_work):
                   f"WHERE e.work_id='{draft_work['id']}' AND e.sequence=1 AND d.content='CI persisted manuscript'") == "1"
 
 
-def test_content_cover_upload_does_not_increase_storage_usage(draft_work):
+def test_content_cover_is_not_stored_when_moderation_is_unavailable(draft_work):
     client = draft_work["client"]
     usage_path = "/api/v1/me/storage-usage"
     before = client.get(usage_path)
@@ -166,10 +166,10 @@ def test_content_cover_upload_does_not_increase_storage_usage(draft_work):
     refresh_csrf(client)
     uploaded = client.put(cover_path, files={"file": ("cover.png", png, "image/png")},
                           headers={"Origin": str(client.base_url).rstrip("/")})
-    assert uploaded.status_code == 200
-    stored = client.get(cover_path + "/content")
-    assert stored.status_code == 200
-    assert stored.content == png
+    # CI의 AI 서비스에는 실제 검사 키가 없다. 검사하지 못한 표지는 저장하지 않는다.
+    assert uploaded.status_code == 503
+    assert uploaded.json()["code"] == "COVER_MODERATION_UNAVAILABLE"
+    assert client.get(cover_path + "/content").status_code == 404
 
     after = client.get(usage_path)
     assert after.status_code == 200

@@ -21,6 +21,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM python:3.11-slim-bookworm AS runtime
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-eng tesseract-ocr-kor && \
+    rm -rf /var/lib/apt/lists/*
+
 ENV PATH="/app/.venv/bin:${PATH}" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

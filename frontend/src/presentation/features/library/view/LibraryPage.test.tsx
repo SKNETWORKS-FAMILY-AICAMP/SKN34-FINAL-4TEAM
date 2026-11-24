@@ -55,7 +55,7 @@ it('삭제 완료는 내가 쓰는 소설 탭이 열린 뒤 한 번 안내한다
     renderLibrary({ pathname: '/lib', search: '?tab=write', state: { deletedWorkTitle: '삭제한 작품' } })
     expect(notify).not.toHaveBeenCalled()
     await screen.findByRole('heading', { name: '새로 시작하기' })
-    expect(notify).toHaveBeenCalledExactlyOnceWith('「삭제한 작품」 작품을 삭제했어요.')
+    await waitFor(() => expect(notify).toHaveBeenCalledExactlyOnceWith('「삭제한 작품」 작품을 삭제했어요.'))
     fireEvent.click(tab('읽는 중'))
     await screen.findByRole('heading', { name: '이어 읽기' })
     fireEvent.click(tab('내가 쓰는 소설'))
@@ -70,7 +70,7 @@ it('서재를 불러오지 못해도 이미 끝난 작품 삭제는 안내한다
   try {
     renderLibrary({ pathname: '/lib', search: '?tab=write', state: { deletedWorkTitle: '삭제한 작품' } })
     await screen.findByRole('button', { name: '다시 불러오기' })
-    expect(notify).toHaveBeenCalledExactlyOnceWith('「삭제한 작품」 작품을 삭제했어요.')
+    await waitFor(() => expect(notify).toHaveBeenCalledExactlyOnceWith('「삭제한 작품」 작품을 삭제했어요.'))
   } finally {
     notify.mockRestore()
     load.mockRestore()
