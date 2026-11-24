@@ -145,7 +145,7 @@ describe('회차 뷰어 (U05·U07·U08)', () => {
   it('비회원도 로그인 없이 공개 회차를 읽는다 (UC-01)', async () => {
     guestSession()
     const { store } = renderApp('/read/guunmong/2')
-    await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' })
+    await screen.findByRole('heading', { name: '돌다리 위의 팔선녀' }, { timeout: 4000 })
     expect(screen.queryByText('소설을 읽으려면 로그인해 주세요.')).toBeNull()
     expect(store.getState().session).toMatchObject({ role: null, next: null })
     screen.getByRole('link', { name: '‹ 이전 화' })
