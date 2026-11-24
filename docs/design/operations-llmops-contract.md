@@ -45,10 +45,10 @@
   metadata `request_id`·`work_id`·`fork`(Fork 작품 요청이면 true)·`credit_reservation_id`(있을 때)를 단다.
 - 모델 호출 observation은 `generation`으로 남기고 `model`·`usage`(입력·출력 토큰)를 넣는다. 비용은 Langfuse 모델 단가 정의로 계산한다.
 - 프롬프트는 Langfuse Prompt Management에서 `production` 라벨 버전을 읽고 generation에 그 prompt를 연결한다(사용 버전 조회의 근거).
-  코드의 프롬프트는 시드다: 처음 읽을 때 Langfuse에 없으면(404) 버전 1(`production`·`seed`)로 등록한다. 프로세스에서 프롬프트를 처음 읽을 때 시드를 `seed` 라벨 버전으로 맞춘다(#705):
-  production 본문이 시드와 같으면 그 버전에 `seed` 라벨만 달고, 다르면 `seed` 버전이 이미 시드 본문이면 그대로, 아니면 시드를 라벨 `seed`의 새 버전(production의 `config` 이어받음)으로 등록한다.
+  코드의 프롬프트는 시드다: 처음 읽을 때 Langfuse에 없으면(404) 버전 1(`production`·`seed`)로 등록한다. 프롬프트를 읽을 때마다 시드를 `seed` 라벨 버전으로 맞춘다(#705, 맞춰진 상태는 SDK 캐시 읽기뿐이고 쓰기 직전에만 캐시 없이 다시 읽는다):
+  production 본문이 시드와 같으면 그 버전에 `seed` 라벨만 달고(시드 본문으로 모델만 바꾼 버전을 승격해도 seed가 따라온다), 다르면 `seed` 버전이 이미 시드 본문이면 그대로, 아니면 시드를 라벨 `seed`의 새 버전(production의 `config` 이어받음)으로 등록한다.
   production은 옮기지 않고(승격은 평가 게이트), 맞추기 실패는 경고 로그만 남기고 다음 호출이 다시 맞춘다. 모델은 production 버전의 `config.model`이고 없으면 환경 변수 기본 모델이다
-  (Decisions API 호출은 제외). SDK 캐시가 60초라 승격·모델 변경은 재배포 없이 1분 안에 반영된다. 회귀 평가도 평가하는 버전의 `config.model`로 생성한다. 이름은 `<기능>.<용도>`(예 `story_context.answer`, `orchestration.main`).
+  (Decisions API 호출은 제외). SDK 캐시가 60초라 승격·모델 변경은 재배포 없이 반영된다: 캐시가 지난 뒤 첫 호출은 옛 값을 쓰며 새로 읽고 그다음 호출부터 새 버전이다(SDK의 stale-while-revalidate). 회귀 평가도 평가하는 버전의 `config.model`로 생성한다. 이름은 `<기능>.<용도>`(예 `story_context.answer`, `orchestration.main`).
   Langfuse 키가 없으면(로컬·CI) 추적과 같이 꺼지고 코드 프롬프트를 그대로 쓴다. 키가 있는데 읽기에 실패하면 SDK 캐시(마지막 성공 값)를 쓰고, 캐시도 없으면 503으로 실패한다.
 - 시간 초과는 `status:timeout`, 그 밖의 실패는 `status:failed`와 observation `level=ERROR`다. 대기(`waiting`) 턴·취소·연결 끊김은 상태 태그를 달지 않는다.
 - 회원 UUID는 Content가 넘기는 작가 Bearer(`X-User-Authorization`)의 `sub`에서 읽고(추적 전용, 인가에 쓰지 않음), `request_id`는 AI가 HTTP 요청마다 발급한다. `fork`는 Content가 오케스트레이션 `target.fork`로 알린다. 요청 루트 trace에는 본문을 남기지 않고 generation observation이 입출력을 갖는다.

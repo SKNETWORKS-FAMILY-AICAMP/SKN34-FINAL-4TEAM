@@ -226,7 +226,6 @@ def langfuse(monkeypatch, **kwargs) -> FakePrompts:
     monkeypatch.setenv('LANGFUSE_PUBLIC_KEY', 'pk-test')
     monkeypatch.setenv('LANGFUSE_SECRET_KEY', 'sk-test')
     monkeypatch.setattr(tracing, 'client', lambda: fake)
-    monkeypatch.setattr(tracing, '_seeded', set())
     return fake
 
 
@@ -269,7 +268,9 @@ def test_a_changed_code_seed_becomes_a_new_seed_version_with_the_production_mode
     fake = langfuse(monkeypatch, stored='운영 지시', config={'model': 'gpt-x'}, seed='옛 코드 지시')
     managed = tracing.prompt('review.mechanical', '새 코드 지시')
     assert managed.text == '운영 지시'
-    assert fake.calls[1:] == [('get', 'review.mechanical', {'label': 'production', 'cache_ttl_seconds': 0}),
+    # 캐시로 먼저 보고, 버전을 만들기 직전에만 캐시 없이 다시 확인한다(같은 시드가 두 번 등록되지 않게)
+    assert fake.calls[1:] == [('get', 'review.mechanical', {'label': 'seed', 'cache_ttl_seconds': 60}),
+                              ('get', 'review.mechanical', {'label': 'production', 'cache_ttl_seconds': 0}),
                               ('get', 'review.mechanical', {'label': 'seed', 'cache_ttl_seconds': 0}),
                               ('create', {'name': 'review.mechanical', 'prompt': '새 코드 지시', 'labels': ['seed'], 'type': 'text',
                                           'config': {'model': 'gpt-x'}})]
@@ -282,15 +283,29 @@ def test_the_seed_version_is_registered_only_when_none_holds_the_code_text(monke
     assert any(call[0] == 'create' for call in fake.calls) is created
 
 
-def test_the_seed_is_synced_once_per_process_and_a_failed_sync_is_retried_without_failing_the_call(monkeypatch, caplog):
+def test_a_synced_prompt_only_reads_the_cache_and_a_failed_sync_never_fails_the_call(monkeypatch, caplog):
     fake = langfuse(monkeypatch, stored='운영 지시', seed_error=RuntimeError('down'))
     assert tracing.prompt('review.mechanical', '코드 지시').text == '운영 지시'
     assert 'review.mechanical' in caplog.text and 'down' not in caplog.text
     fake.seed_error, fake.seed = None, '코드 지시'
-    tracing.prompt('review.mechanical', '코드 지시')
     calls = len(fake.calls)
-    tracing.prompt('review.mechanical', '코드 지시')
+    tracing.prompt('review.mechanical', '코드 지시')   # 시드 대기 상태: 캐시된 읽기 둘뿐, 쓰기 없음
+    assert fake.calls[calls:] == [('get', 'review.mechanical', {'label': 'production', 'cache_ttl_seconds': 60}),
+                                  ('get', 'review.mechanical', {'label': 'seed', 'cache_ttl_seconds': 60})]
+    fake.labels = ['production', 'seed']
+    fake.stored = '코드 지시'
+    calls = len(fake.calls)
+    tracing.prompt('review.mechanical', '코드 지시')   # 맞춰진 상태: production 캐시 읽기 하나뿐
     assert fake.calls[calls:] == [('get', 'review.mechanical', {'label': 'production', 'cache_ttl_seconds': 60})]
+
+
+def test_promoting_a_version_with_the_seed_text_moves_the_seed_label_on_the_next_call(monkeypatch):
+    """#705 E2E: 시드와 본문이 같고 모델만 다른 버전을 승격하면 seed가 옛 버전에 남아 화면이 '코드 시드 대기'로 잘못 보였다."""
+    fake = langfuse(monkeypatch, stored='운영 지시', seed='코드 지시')
+    tracing.prompt('review.mechanical', '코드 지시')
+    fake.stored, fake.labels = '코드 지시', ['production', 'latest']   # 관리자가 시드 본문 + 새 모델 버전을 승격했다
+    tracing.prompt('review.mechanical', '코드 지시')
+    assert fake.calls[-1] == ('update', {'name': 'review.mechanical', 'version': 2, 'new_labels': ['production', 'seed']})
 
 
 @pytest.mark.parametrize('options, calls', [({'read_error': RuntimeError('down')}, 1), ({'create_error': RuntimeError('down')}, 2)])
