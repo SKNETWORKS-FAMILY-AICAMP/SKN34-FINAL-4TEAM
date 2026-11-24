@@ -192,7 +192,7 @@ uv run --locked --extra dev python eval/extraction/ex_cli.py score eval/extracti
 - 범위를 좁히기 전(전부 센 값)과 거의 같다(게이트 A → B 0.64 → 0.65, B → A 0.80 → 0.81): 줄거리 사건·일상 물건을 빼도 두 실행이 서로를 맞추는 정도는 크게 달라지지 않는다. 게이트가 풀보다 조금 낮고 회차 편차가 큰 것은 게이트가 30편을 한 편씩 고른 층화 표본이라(짧은 소품·긴 장편이 섞인다) 편차가 큰 작품을 그대로 담기 때문이다.
 - 설정 밖 `core`의 재현율(`outside`, 참고)은 게이트에서 A → B 대상 0.43·진술 0.67·관계 0.36, B → A 1.00·0.76·0.48이다(밖의 대상은 물건 17개뿐이라 값이 거칠다).
 - 지시문 둘이 뽑는 양이 달라 두 방향이 비대칭이다(많이 뽑는 B가 A의 정답은 잘 맞춘다). **절대값이 아니라 기준 Run과의 차이로 읽는다**(게이트가 하는 일).
-- 운영 지시문(`manuscript_extraction.extract`)과 운영 모델(`gpt-6-luna`)의 점수는 **아직 재지 않았다**: OpenAI 유료 호출이라 이 작업에서는 돌리지 않았다. 처음 평가한 Run이 기준 Run이 된다.
+- 운영 지시문(`manuscript_extraction.extract`)과 운영 모델(`gpt-6-luna`)의 점수는 8.6절에 있다(#841 첫 실행, 처음 평가한 Run이 기준 Run이 됐다).
 
 ### 8.4 해리 포터 로컬 세트 (집계만)
 
@@ -238,3 +238,18 @@ uv run --locked --extra dev python eval/extraction/ex_cli.py score eval/extracti
 - 서비스 검증이 뺀 항목은 A 109건·B 121건(통과 항목 대비 2~3%)이다.
 - 설정 범위로 센 정답표끼리의 서로 채점 `recall`은 A → B 0.75(표준편차 0.13)·B → A 0.83(0.10)이다(대상 0.80·0.95, 진술 0.76·0.74, 관계 0.68·0.82. 8.3절과 같은 방법). 설정 밖 `core` 재현율(`outside`)은 A → B 대상 0.60·진술 0.66·관계 0.53, B → A 0.95·0.82·0.71이다.
 - 운영 지시문의 오프라인 채점(`ex_cli.py score eval/extraction/.data/sets/webnovel.jsonl`)은 유료 OpenAI 호출이라 실행하지 않았다.
+
+### 8.6 운영 기준 Run 첫 실측 (#841, 2026-11-24)
+
+운영 지시문(`manuscript_extraction.extract` production v1, 모델은 기본 `gpt-6-luna`)으로 게이트 30회차를 처음 평가했다(로컬 실스택, `POST /internal/v1/evaluations`, Langfuse Run `manuscript_extraction.extract@v1-20261124T110147Z-e28667`). 새 이미지로 `ai-eval-seed`를 한 번 돌려 `extraction.extract` 30항목이 Langfuse에 처음 올라갔고, 이 Run이 production v1의 기준 Run이다.
+
+| 지표 | 평균 | 회차별 표준편차 | 범위 |
+|---|---:|---:|---|
+| `recall` | 0.4646 | 0.165 | 0.17 ~ 0.80 |
+| `quote_ok` | 0.7987 | 0.204 | 0.20 ~ 1.00 |
+
+- 기준 Run이 없던 첫 Run이라 지표를 비교하지 않았고 `passed`는 항목 실패가 없어 true다. 같은 지시문을 한 번 더 돌린 Run은 만들지 않아 Run끼리의 편차는 아직 모른다.
+- `recall` 0.46은 정답표를 만든 상위 모델 두 실행이 서로를 맞추는 정도(8.3절 게이트 A → B 0.65·B → A 0.81)보다 낮다.
+- `quote_ok` 0.80은 정답표를 만든 `gpt-6.2-sol`의 0.97(8.1절)보다 낮다. 게이트 항목 6개를 같은 지시문·모델로 다시 돌려 보니 뺀 항목 23건 중 22건이 `INVALID_OR_AMBIGUOUS_QUOTE`(근거 인용이 원문에 정확히 한 번 나오지 않음), 1건이 `KNOWLEDGE_NOT_EXPLICIT`이었고 한 회차에서 9건까지 빠졌다. 또 6회차 중 4회차는 검증을 통과한 관계가 하나도 없었다. 같은 검증의 인용 대조 실패는 고전 원문 전처리에서도 따로 조사 중이다(#846).
+- 시간·금액: 3분 38초(항목 5개 동시, 항목당 23~50초·중앙값 31초), 생성 30호출(입력 172,856·출력 143,148 토큰) 약 $0.089(Langfuse의 luna 단가 입력 $0.10·출력 $0.50 /1M 토큰). 채점 모델 호출은 없고 항목 실패·ERROR level은 0이다.
+- 문항별 결과: Langfuse Experiments items API가 30행·30개 `experimentItemId`(항목당 1행)를 주고 행마다 지표 둘(`recall`·`quote_ok`)이 있다.
