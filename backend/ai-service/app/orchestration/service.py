@@ -34,6 +34,7 @@ import base64
 import dataclasses
 import operator
 import os
+from collections import defaultdict
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated, TypedDict
@@ -609,28 +610,34 @@ async def delete(thread_id: str, scope: str) -> None:
     await CHAT.checkpointer.adelete_thread(thread_id)
 
 
+# ponytail: 같은 대화의 평가·지우기는 이 프로세스 안에서만 차례로 처리한다(uvicorn 단일 프로세스, 잠금은 지우지 않는다). 여러 프로세스로 늘리면 체크포인트 버전 비교로 바꾼다.
+_THREAD_LOCKS = defaultdict(asyncio.Lock)
+
+
 async def truncate(thread_id: str, scope: str, index: int) -> None:
     """index번 턴과 그 뒤를 지운다. 첫 턴부터 지우면 대화가 없어진다."""
-    config, snapshot = await _owned(thread_id, scope)
-    fork = await _fork_point(config, snapshot, index)
-    if fork is None:
-        await CHAT.checkpointer.adelete_thread(thread_id)
-        return
-    await _branch(config, snapshot, fork, index)
+    async with _THREAD_LOCKS[thread_id]:  # 먼저 읽은 평가가 그 사이 지운 턴을 되살리지 못하게 읽기부터 쓰기까지 한 번에 처리한다
+        config, snapshot = await _owned(thread_id, scope)
+        fork = await _fork_point(config, snapshot, index)
+        if fork is None:
+            await CHAT.checkpointer.adelete_thread(thread_id)
+            return
+        await _branch(config, snapshot, fork, index)
 
 
 async def feedback(thread_id: str, scope: str, index: int, value: str | None) -> None:
     """index번 턴 답변의 좋아요·싫어요(#560, None이면 취소). 그 턴의 trace(runId)가 있으면 Langfuse 점수도 맞춘다. 멈춘 실행이 있으면 409다."""
-    config, snapshot = await _owned(thread_id, scope)
-    if snapshot.next:
-        raise ConversationBusy()
-    turns = snapshot.values.get('turns', [])
-    if not 0 <= index < len(turns):
-        raise ConversationNotFound()
-    turns = [{**turn, 'feedback': value} if i == index else turn for i, turn in enumerate(turns)]
-    await CHAT.aupdate_state(merge_configs(config, {'metadata': {'feedback': True}}), {'turns': Overwrite(turns)}, as_node='finish')
-    if run_id := (turns[index].get('reply') or {}).get('runId'):
-        await asyncio.to_thread(tracing.feedback, run_id, value)  # 점수 삭제는 동기 HTTP다
+    async with _THREAD_LOCKS[thread_id]:  # 점수도 저장 순서대로 맞추려고 잠금 안에서 보낸다
+        config, snapshot = await _owned(thread_id, scope)
+        if snapshot.next:
+            raise ConversationBusy()
+        turns = snapshot.values.get('turns', [])
+        if not 0 <= index < len(turns):
+            raise ConversationNotFound()
+        turns = [{**turn, 'feedback': value} if i == index else turn for i, turn in enumerate(turns)]
+        await CHAT.aupdate_state(merge_configs(config, {'metadata': {'feedback': True}}), {'turns': Overwrite(turns)}, as_node='finish')
+        if run_id := (turns[index].get('reply') or {}).get('runId'):
+            await asyncio.to_thread(tracing.feedback, run_id, value)  # 점수 삭제는 동기 HTTP다
 
 
 def _traced(data: OrchestrationRequest, authorization: str, state: dict):

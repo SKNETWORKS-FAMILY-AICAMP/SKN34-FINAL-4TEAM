@@ -605,6 +605,39 @@ it('승인·입력을 기다리는 대화는 앞 답변도 평가할 수 없다(
   rated(null, { request: '조사해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['research'] } })
   await screen.findByText('주인공은 홍길동입니다.')
   expect((screen.getByRole('button', { name: '이 답변 좋아요' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(screen.getAllByTitle('진행 중인 작업을 마치면 평가할 수 있어요.')).toHaveLength(2) // 좋아요·싫어요 둘 다 잠긴 이유를 알린다
+})
+
+it('평가를 저장하는 동안에도 누른 버튼은 잠기지 않아 키보드 초점이 남고, 그사이 다시 눌러도 저장은 한 번만 요청한다(#560)', async () => {
+  let saved!: () => void
+  feedback.mockReturnValue(new Promise<void>((resolve) => { saved = resolve }))
+  rated(null)
+  await screen.findByText('주인공은 홍길동입니다.')
+  const like = screen.getByRole('button', { name: '이 답변 좋아요' }) as HTMLButtonElement
+  like.focus()
+  fireEvent.click(like)
+  expect(like.disabled).toBe(false)
+  expect(document.activeElement).toBe(like)
+  fireEvent.click(like)
+  expect(feedback).toHaveBeenCalledTimes(1)
+  await act(async () => { saved() })
+})
+
+it('평가를 저장하는 사이 다른 대화를 고르면 그 응답이 고른 대화의 턴을 눌린 상태로 바꾸지 않는다(#560)', async () => {
+  let saved!: () => void
+  feedback.mockReturnValue(new Promise<void>((resolve) => { saved = resolve }))
+  sessions.mockResolvedValue([{ threadId: 'a', title: '첫 대화', updatedAt: '' }, { threadId: 'b', title: '둘째 대화', updatedAt: '' }])
+  history.mockImplementation(async (_work: string, thread: string) => ({
+    threadId: thread, title: '', turns: [{ request: '질문', reply: { status: 'completed', message: thread === 'a' ? '첫 답변' : '둘째 답변', steps: [] }, feedback: null }],
+  }))
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('첫 답변')
+  fireEvent.click(screen.getByRole('button', { name: '이 답변 좋아요' }))
+  fireEvent.change(screen.getByLabelText('대화 고르기'), { target: { value: 'b' } })
+  await screen.findByText('둘째 답변')
+  await act(async () => { saved() })
+  expect(pressed('이 답변 좋아요')).toBe('false')
+  expect(feedback.mock.calls).toEqual([['w', 'a', 0, 'up']])
 })
 
 // ── World 단계(#546): enrich 제안은 설정집 초안에 반영할지 묻고, 반영되면 세계관 화면(onWorldApplied)이 초안을 다시 읽는다 ──

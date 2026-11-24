@@ -207,8 +207,10 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     }, '메시지를 지우지 못했어요.'),
     /** index번 턴 답변의 좋아요·싫어요(#560). 저장에 성공한 뒤에만 눌린 상태를 바꾼다. null이면 취소다. */
     rate: (index: number, value: ChatFeedback | null) => change(async () => {
+      const owner = generation.current
       await useCase!.feedback(workId!, threadId!, index, value)
-      setTurns((rows) => rows.map((turn, i) => (i === index ? { ...turn, feedback: value } : turn)))
+      // 저장하는 사이 다른 대화(작품)로 옮겼으면 그 화면의 같은 번호 턴을 바꾸지 않는다.
+      if (current.current === threadId && generation.current === owner) setTurns((rows) => rows.map((turn, i) => (i === index ? { ...turn, feedback: value } : turn)))
     }, '평가를 저장하지 못했어요.'),
     rename: (next: string) => change(async () => { await useCase!.rename(workId!, threadId!, next); setTitle(next.trim()); await refreshSessions() }, '제목을 바꾸지 못했어요.'),
     remove: () => change(async () => {

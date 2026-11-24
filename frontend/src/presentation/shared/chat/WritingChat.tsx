@@ -305,8 +305,10 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
     const reply = shown[index]?.reply
     const rating = shown[index]?.feedback ?? null
     // 멈춘 실행이 있으면 서버가 평가를 409로 막는다(대화 기록을 고치면 멈춘 자리가 사라진다).
-    const rateLocked = vm.pending || !!live || !!vm.waiting
-    const rate = (value: 'up' | 'down') => void vm.rate(index, rating === value ? null : value)
+    // 저장 중에는 누른 버튼을 잠그지 않는다(잠그면 키보드 초점이 body로 떨어진다). 다시 누르는 것만 무시한다.
+    const rateLocked = !!live || !!vm.waiting
+    const lockedTitle = '진행 중인 작업을 마치면 평가할 수 있어요.'
+    const rate = (value: 'up' | 'down') => { if (!vm.pending) void vm.rate(index, rating === value ? null : value) }
     const text = reply && m.format === 'markdown' ? replyText(reply) : ''
     const outcome = text && reply ? replyOutcome(reply) : []
     return <>
@@ -315,8 +317,8 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
       <div className="chat-reply-foot">
         {text && <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details>}
         <div className="chat-msg-actions">
-          <button type="button" aria-label="이 답변 좋아요" title="이 답변 좋아요" aria-pressed={rating === 'up'} disabled={rateLocked} onClick={() => rate('up')}><ThumbUpIcon size={16} /></button>
-          <button type="button" aria-label="이 답변 싫어요" title="이 답변 싫어요" aria-pressed={rating === 'down'} disabled={rateLocked} onClick={() => rate('down')}><ThumbDownIcon size={16} /></button>
+          <button type="button" aria-label="이 답변 좋아요" title={rateLocked ? lockedTitle : '이 답변 좋아요'} aria-pressed={rating === 'up'} disabled={rateLocked} onClick={() => rate('up')}><ThumbUpIcon size={16} /></button>
+          <button type="button" aria-label="이 답변 싫어요" title={rateLocked ? lockedTitle : '이 답변 싫어요'} aria-pressed={rating === 'down'} disabled={rateLocked} onClick={() => rate('down')}><ThumbDownIcon size={16} /></button>
         </div>
       </div>
     </>

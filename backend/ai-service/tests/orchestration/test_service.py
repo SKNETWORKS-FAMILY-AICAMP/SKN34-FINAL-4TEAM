@@ -1747,6 +1747,30 @@ def test_deleting_or_editing_a_later_turn_keeps_the_feedback_of_earlier_turns(mo
     assert [(t.request, t.feedback) for t in conversation('history', thread, ME).turns] == [('하나', 'up'), ('둘 고침', None)]
 
 
+def test_a_rating_that_read_a_turn_before_it_was_deleted_does_not_bring_it_back(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    for text in ('하나', '둘'):
+        chat(thread, request=text, inputs={'story_context': QA})
+    read, reads = service.CHAT.aget_state, []
+
+    async def read_then_wait(*args, **kwargs):
+        first = not reads
+        reads.append(args)
+        snapshot = await read(*args, **kwargs)
+        if first:  # 평가가 읽은 뒤 쓰기 전의 틈. 같은 대화의 지우기가 이 틈에 끝나면 평가가 지운 턴을 되살린다.
+            await asyncio.sleep(0.1)
+        return snapshot
+
+    monkeypatch.setattr(service.CHAT, 'aget_state', read_then_wait)
+
+    async def both():
+        await asyncio.gather(service.feedback(thread, ME, 1, 'up'), service.truncate(thread, ME, 1))
+
+    asyncio.run(both())
+    assert [t.request for t in conversation('history', thread, ME).turns] == ['하나']
+
+
 # 체크포인트 전용 DB(#337): Core·Content가 쓰는 DB와 섞이지 않게 AI가 시작할 때 storyfork_ai를 준비한다.
 URL = 'postgresql://writer:secret@postgres:5432/storyfork_ai'
 
