@@ -20,8 +20,9 @@ type Props = {
 }
 
 /**
- * 세계관·설정집 탭의 설정집 요약: 작품 설정집의 이름·상태·최초 분기 기준과, 그 아래 설정 첨부(참고 파일·설정 이미지)를 보여 준다.
+ * 세계관·설정집 탭의 설정집 요약: 작품 설정집의 이름·상태·최초 분기 기준과, 그 아래 옛 작품 설정의 첨부(참고 파일·설정 이미지)를 보여 준다.
  * 설정 항목 편집·원작 변경 반영·버전 복원은 이 화면에서 하지 않는다. 내 세계관(WorldStudio)과의 연결은 같은 탭의 `LinkedWorldPanel`이 맡는다.
+ * 새 작품의 첨부는 세계관 스튜디오의 설정 카드에서 한다(`WorldCardAttachments`, #735). 이 카드는 옛 설정이 없으면 그리로 안내한다.
  * 옛 작품 설정집 방식 Fork(원작을 따라가고 따라가던 설정이 있음)는 `내 세계관으로 만들어 수정하기`로 그 공개 설정 전체를 내 세계관의 카드로 복사해 독립하고(#737) 새 세계관 관리 화면으로 간다.
  * 원작에 세계관이 있는 Fork는 `LinkedWorldPanel`의 이어받는 세계관 카드가 같은 일을 하고, 독립해 세계관이 연결되면 옛 설정집에는 설정이 남지 않으므로 그 세계관을 안내한다.
  * ponytail: 설정집 읽기는 useWorldViewModel을 그대로 쓴다. 원작에 옛 설정과 세계관이 모두 있는 Fork는 두 카드에 같은 버튼이 보인다(서버는 세계관 이어받기가 우선이다).
@@ -75,8 +76,8 @@ export function WorldPanel({ workId, useCase, locked = false, onMediaBusy, linke
 }
 
 /**
- * 설정 첨부(참고 파일·설정 이미지): 확정했거나 저장한 초안인 설정 하나를 골라 그 설정의 첨부를 올리고 내려받고 이름을 바꾸고 지운다.
- * 원작을 따라가는 설정집은 내 설정이 없어 붙일 수 없고, 설정이 없으면 빈 상태를 알린다.
+ * 옛 작품 설정의 첨부(참고 파일·설정 이미지): 확정했거나 저장한 초안인 설정 하나를 골라 그 설정의 첨부를 올리고 내려받고 이름을 바꾸고 지운다.
+ * 원작을 따라가는 설정집은 내 설정이 없어 붙일 수 없고, 옛 설정이 없으면 세계관 스튜디오의 설정 카드에서 첨부하라고 안내한다.
  */
 function SettingFiles({ workId, world: w, locked, onBusy }: { workId: string; world: World; locked: boolean; onBusy?: (busy: boolean) => void }) {
   const rows = [...w.settings, ...w.drafts.filter((draft) => !w.settings.some((setting) => setting.id === draft.id))]
@@ -88,7 +89,7 @@ function SettingFiles({ workId, world: w, locked, onBusy }: { workId: string; wo
       {w.mode === 'following'
         ? <p className='ep-muted'>원작을 따라가는 설정에는 파일을 붙일 수 없어요.</p>
         : !row
-        ? <p className='ep-muted'>첨부할 설정이 아직 없어요.</p>
+        ? <p className='ep-muted'>이 작품 설정집에는 첨부할 설정이 없어요. 참고 파일·이미지는 세계관 스튜디오의 설정 카드에서 첨부해 주세요.</p>
         : (
           <>
             <label>

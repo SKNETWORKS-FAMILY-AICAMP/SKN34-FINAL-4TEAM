@@ -74,6 +74,17 @@ it('keeps the form and the typed name open when the rename fails, and cancel clo
  expect(rename).toHaveBeenCalledTimes(1)
 })
 
+it('lets a world card attachment be replaced and renamed like a setting attachment',async()=>{
+ const rename=vi.fn().mockResolvedValue(true)
+ renderPanel({items:[memo],rename},{kind:'card',worldId:'world-id',cardId:'card-id'})
+ expect(screen.getByRole('region',{name:'설정 첨부'})).toBeTruthy()
+ expect(screen.getByLabelText('파일 교체 · 세계관 메모.pdf')).toBeTruthy()
+ fireEvent.click(screen.getByRole('button',{name:'이름 변경 · 세계관 메모.pdf'}))
+ fireEvent.change(screen.getByLabelText('새 파일 이름 · 세계관 메모.pdf'),{target:{value:'새 메모'}})
+ fireEvent.click(screen.getByRole('button',{name:'이름 저장'}))
+ await waitFor(()=>expect(rename).toHaveBeenCalledWith(memo,'새 메모.pdf'))
+})
+
 it.each<MediaTarget>([{kind:'cover',workId:'work-id'},{kind:'episode',workId:'work-id',number:1}])('has no rename for %o',target=>{
  renderPanel({items:[memo]},target)
  expect(screen.queryByRole('button',{name:/이름 변경/})).toBeNull()

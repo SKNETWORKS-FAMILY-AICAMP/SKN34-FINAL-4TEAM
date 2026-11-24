@@ -32,6 +32,7 @@ import { CardActivityBar } from './CardActivityBar'
 import { CardCategoryNotice } from './CardCategoryNotice'
 import { CardDeletionConfirm } from './CardDeletionConfirm'
 import { CardImageControl, CardThumb } from './WorldCardImage'
+import { WorldCardAttachments } from './WorldCardAttachments'
 import { CharacterDocs } from './CharacterDocs'
 import { NewCardMenu } from './NewCardMenu'
 import { WorldCardFindings } from './WorldCardFindings'
@@ -249,6 +250,7 @@ export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, on
                       </div>
                     </div>
                   )}
+                  {pane === 'overview' && <WorldCardAttachments vm={vm} cardId={item.id} />}
                   {pane === 'doc' && (
                     <>
                       {docs.orphaned && <p role="status" className="small world-doc-orphaned">인물이 아닌 설정에는 SOUL.md·GOAL.md·회차별 기억을 저장하지 않아요. 유형을 인물로 되돌리면 이어 쓸 수 있고, 이대로 저장하면 사라져요.</p>}

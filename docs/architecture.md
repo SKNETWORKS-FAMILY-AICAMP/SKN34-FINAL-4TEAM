@@ -98,6 +98,7 @@ Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 �
 요청/응답 DTO는 `attachment/service/dto`, S3 전용 계약은 `attachment/client/dto`에 둡니다. `AttachmentConfig`·`AttachmentProperties`는 기존 `app.setting-attachments` 속성·활성화 조건을 유지하며 기존 Auth JPA·Content JDBC 경계는 바꾸지 않습니다.
 `setting_document`·`world`·`work_current`의 기존 소유권을 확인하고 following Fork·익명 공개·URL만 아는 접근은 허용하지 않습니다.
 이미지는 설정당 10개를 설정 행 잠금으로 보호하고 일반 파일에는 그 한도를 적용하지 않습니다.
+새 작품은 옛 설정 문서가 없어서 같은 첨부를 WorldStudio 설정 카드에도 붙입니다(#735): `CardAttachmentController → CardAttachmentService`가 세계관 소유자·지우지 않은 카드를 WorldStudio 쪽(`WorldStudioService.hasCard`)에서 먼저 확인한 뒤 같은 `AttachmentService`를 `card = true`로 부릅니다. `setting_attachment`는 옛 설정 문서 또는 카드 중 하나를 가리키며(`settingattachment/V2`, 카드는 별도 스키마라 FK 없음) 소유자 전용이라 공개·Fork·가져오기에 싣지 않습니다. 옛 작품 설정 첨부는 그대로입니다.
 파일은 비공개 버킷에 UUID key로 저장하며 원본 endpoint가 아닌 Core의 인증 download API만 노출합니다.
 새 Flyway leaf/history는 `db/migration/settingattachment`/`setting_attachment_schema_history`입니다.
 Auth SQL은 내용과 기존 이력을 보존한 채 `db/migration/auth`로 이동하여 독립 V1과 충돌하지 않게 합니다.

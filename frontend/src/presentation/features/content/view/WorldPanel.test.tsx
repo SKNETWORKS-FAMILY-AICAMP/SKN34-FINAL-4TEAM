@@ -90,10 +90,11 @@ it('원작을 따라가는 설정집은 첨부할 수 없는 이유를 알리고
  expect(files.queryByRole('combobox')).toBeNull()
 })
 
-it('첨부할 설정이 없는 설정집은 빈 상태를 알리고 패널을 붙이지 않는다',async()=>{
+it('첨부할 옛 설정이 없는 설정집은 세계관 스튜디오 카드에서 첨부하라고 안내하고 패널을 붙이지 않는다',async()=>{
  show(vi.fn().mockResolvedValueOnce(Response.json(world())))
  const files=within(await screen.findByRole('region',{name:'설정 첨부'}))
- expect(files.getByText('첨부할 설정이 아직 없어요.')).toBeTruthy()
+ expect(files.getByText('이 작품 설정집에는 첨부할 설정이 없어요. 참고 파일·이미지는 세계관 스튜디오의 설정 카드에서 첨부해 주세요.')).toBeTruthy()
+ expect(files.queryByText('첨부할 설정이 아직 없어요.')).toBeNull()
  expect(files.queryByTestId('media-panel')).toBeNull()
 })
 

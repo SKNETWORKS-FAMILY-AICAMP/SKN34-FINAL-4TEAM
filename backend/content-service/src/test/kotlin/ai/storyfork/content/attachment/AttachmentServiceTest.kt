@@ -471,4 +471,60 @@ class AttachmentServiceTest {
         assertEquals(422, response.statusCode.value())
         assertEquals("ATTACHMENT_INVALID", response.body?.code)
     }
+
+    // ---- 세계관 카드 첨부(#735): 같은 설정 첨부 로직을 card=true로 재사용한다. 세계관 소유·카드 확인은 CardAttachmentService가 앞서 끝낸다. ----
+    private fun cardRow(filename: String = "map.png") = SettingAttachment(id = "attachment", worldCardId = "card", objectKey = "setting-attachments/old",
+        filename = filename, mediaType = "image/png", kind = "IMAGE", byteSize = png.size.toLong())
+        .also { `when`(attachments.findByIdAndWorldCardId("attachment", "card")).thenReturn(it) }
+
+    @Test fun `a card attachment is stored against the card only and never touches the work or setting locks`() {
+        val created = service.createSettingAttachment("world", "card", "owner", request("note.txt", "text/plain", "참고".toByteArray()), card = true)
+        val saved = ArgumentCaptor.forClass(SettingAttachment::class.java)
+        verify(attachments).saveAndFlush(saved.capture() ?: SettingAttachment())
+        assertEquals("card", saved.value.worldCardId)
+        assertNull(saved.value.settingDocumentId)
+        assertEquals("/api/v1/world-studios/world/cards/card/attachments/${created.id}/content", created.url)
+        assertEquals("FILE", created.kind)
+        verify(storage).upload(anyString(), any(AttachmentObjectPayload::class.java) ?: AttachmentObjectPayload(ByteArray(0), ""))
+        verifyNoInteractions(settings, works)
+    }
+
+    @Test fun `card attachments are listed read downloaded renamed and deleted through the card queries and card URLs`() {
+        val row = cardRow()
+        val url = "/api/v1/world-studios/world/cards/card/attachments/attachment/content"
+        `when`(attachments.findAllByWorldCardIdOrderByCreatedAtAscIdAsc("card")).thenReturn(listOf(row))
+        `when`(storage.read(row.objectKey)).thenReturn(AttachmentObjectResult(png))
+        assertEquals(listOf(url), service.listSettingAttachments("world", "card", "owner", card = true).attachments.map { it.url })
+        assertEquals(url, service.readSettingAttachment("world", "card", "attachment", "owner", card = true).url)
+        assertArrayEquals(png, service.downloadSettingAttachment("world", "card", "attachment", "owner", card = true).bytes)
+        assertEquals("새 이름.png", service.renameSettingAttachment("world", "card", "attachment", "owner", AttachmentRenameRequest("새 이름.png"), card = true).filename)
+        service.deleteSettingAttachment("world", "card", "attachment", "owner", card = true)
+        verify(attachments).delete(row)
+        verify(storage).delete("setting-attachments/old")
+        verify(attachments, never()).findAllBySettingDocumentIdOrderByCreatedAtAscIdAsc(anyString())
+        verify(attachments, never()).findByIdAndSettingDocumentId(anyString(), anyString())
+        verifyNoInteractions(settings, works)
+    }
+
+    @Test fun `replacing a card attachment keeps its id and card target and counts only that card's images`() {
+        val row = cardRow()
+        `when`(storage.read(row.objectKey)).thenReturn(AttachmentObjectResult(png))
+        val replaced = service.replaceSettingAttachment("world", "card", "attachment", "owner", request("new.png"), card = true)
+        assertEquals("attachment", replaced.id)
+        assertEquals("card", row.worldCardId)
+        assertNull(row.settingDocumentId)
+        assertNotEquals("setting-attachments/old", row.objectKey)
+        `when`(attachments.countByWorldCardIdAndKind("card", "IMAGE")).thenReturn(10L)
+        assertEquals("ATTACHMENT_IMAGE_LIMIT", assertThrows(AttachmentFailure::class.java) {
+            service.createSettingAttachment("world", "card", "owner", request(), card = true)
+        }.code)
+        verify(attachments, never()).countBySettingDocumentIdAndKind(anyString(), anyString())
+    }
+
+    @Test fun `card attachments keep the unauthenticated and missing attachment errors`() {
+        cardRow()
+        assertEquals("ATTACHMENT_UNAUTHENTICATED", assertThrows(AttachmentFailure::class.java) { service.listSettingAttachments("world", "card", "", card = true) }.code)
+        assertEquals("ATTACHMENT_NOT_FOUND", assertThrows(AttachmentFailure::class.java) { service.readSettingAttachment("world", "card", "missing", "owner", card = true) }.code)
+        verifyNoInteractions(storage)
+    }
 }

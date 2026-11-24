@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice(assignableTypes = [SettingAttachmentController::class, WorkCoverController::class, EpisodeImageController::class])
+@RestControllerAdvice(assignableTypes = [SettingAttachmentController::class, CardAttachmentController::class, WorkCoverController::class, EpisodeImageController::class])
 class AttachmentExceptionHandler {
     @ExceptionHandler(AttachmentFailure::class)
     fun failure(e: AttachmentFailure) = ResponseEntity.status(e.status).body(AttachmentErrorResponse(e.code, e.message))
