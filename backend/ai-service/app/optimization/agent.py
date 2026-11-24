@@ -7,6 +7,7 @@
 """
 
 import os
+from urllib.parse import urlparse
 
 from openai import OpenAI, OpenAIError
 
@@ -28,12 +29,18 @@ def settings() -> tuple[str, str | None, str]:
     return key, env('PROMPT_OPTIMIZER_BASE_URL') or None, env('PROMPT_OPTIMIZER_MODEL') or DEFAULT_MODEL
 
 
+def _headers(base_url: str | None) -> dict[str, str] | None:
+    """로컬 OpenCodex 게이트웨이는 Host가 localhost·127.0.0.1·[::1]이 아니면 403(origin_rejected)이다(#841 첫 실행). 컨테이너가 호스트를 host.docker.internal로 부를 때만 Host를 localhost로 보낸다."""
+    parsed = urlparse(base_url or '')
+    return {'Host': parsed.netloc.replace(parsed.hostname, 'localhost')} if parsed.hostname == 'host.docker.internal' else None
+
+
 def reflect(prompt: str) -> str:
     """GEPA의 reflection_lm: 반성 입력(글)을 한 번 보내 새 지시문이 든 응답 글을 받는다."""
     key, base_url, model = settings()
     with tracing.observe('optimization.reflect', as_type='generation', model=model) as generation:
         try:
-            with OpenAI(api_key=key, base_url=base_url, timeout=TIMEOUT, max_retries=2) as client:   # 구독 게이트웨이의 429·일시 오류 대비
+            with OpenAI(api_key=key, base_url=base_url, default_headers=_headers(base_url), timeout=TIMEOUT, max_retries=2) as client:   # 구독 게이트웨이의 429·일시 오류 대비
                 response = client.responses.create(model=model, store=False, input=[{'role': 'user', 'content': prompt}])
         except OpenAIError:  # 예외 메시지에 키·입력이 실릴 수 있어 고정 문구로 바꾼다
             raise OptimizationFailure(502, FAILED) from None
