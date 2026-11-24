@@ -156,6 +156,12 @@ describe('episode.css 작품 관리 조용히 다듬기 계약', () => {
     expect(hover?.[1]).toContain(':disabled')
     expect(hover?.[1]).toContain('[aria-current]')
   })
+
+  it('[quieter-Q3] 메뉴 항목은 관리자 화면 메뉴(.adm .admin-nav)처럼 기본 500이고 선택한 항목만 650이다 — 항목이 모두 650이라 카드 제목(700)과 겨뤘다(공용 관리 틀이라 세계관 관리 사이드바도 같다)', () => {
+    expect(rule('.ep-menu nav button')).toMatch(/font-weight:500/)
+    // 650을 쓰는 메뉴 항목 규칙은 선택한 항목 하나뿐이다.
+    expect(rules.filter((r) => r.selector.startsWith('.ep-menu nav button') && /font-weight:650/.test(r.body)).map((r) => r.selector)).toEqual(['.ep-menu nav button[aria-current]'])
+  })
 })
 
 describe('episode.css 관리 화면 사이드바 틀 계약 (작품 관리·세계관 관리 공용 — 공용 상단바·푸터가 없고 사이드바가 상단바 역할을 한다)', () => {
@@ -449,6 +455,8 @@ describe('episode.css 작품 관리 화면 polish 계약 (A·B 리뷰 반영)', 
     expect(locked?.selector).toContain('.ep-operating-settings .ep-form-footer')
     // AI 집필 탭의 설정 저장도 같은 잠긴 모양이다(채운 연보라 + 흰 글자라 읽기 어렵고 운영 설정과 달랐다).
     expect(locked?.selector).toContain('.ep-serial .ep-form-footer')
+    // 작품 관리 탭 카드의 동작 줄(원고로 세계관 만들기·세계관 연결)도 같다 — 4단계 quieter 전에는 전역 .btn.pri 채움에 흐림(.55)만 얹혀 연보라 덩어리 둘로 남았다. .ep-tab은 작품 관리만 쓰는 클래스라 세계관 관리의 .ep-card-actions는 바뀌지 않는다.
+    expect(locked?.selector).toContain('.ep-tab .ep-card-actions')
   })
 
   it('[R11] 운영 설정 탭 카드: 넓은 화면은 2열 격자이고, 패널 껍데기(.ep-operating-settings)는 격자에 끼지 않으며(display:contents) 카드가 아닌 것(알림·불러오는 중)은 한 줄을 다 쓴다. 카드 틀은 이 탭 규칙 하나이고(margin:0이 카드 아래 간격을 grid gap 하나로 모은다) 삭제 구역은 맨 아래 전체 폭이다', () => {
@@ -625,5 +633,20 @@ describe('episode.css 작품 관리 critique (G1 2단계)', () => {
     expect(hint).toMatch(/color:var\(--sub\)/)
     // 칸 높이는 flex가 가장 높은 칸에 맞춘다. 줄이 남는 높이를 나눠 가지면(stretch) 보조 줄이 없는 칸은 이름 줄이 늘어나 값이 그만큼 아래로 내려간다.
     expect(rule('.ep-metrics>div')).toMatch(/align-content:start/)
+  })
+})
+
+describe('episode.css 관리 화면 quieter 계약 (manage-cards G1 4단계)', () => {
+  it('[quieter-Q4] 세계관 연결의 표지 격자는 카드 안이라 장마다 떠 있는 그림자(--sh) 대신 1px 윤곽이고 이름은 600이다(고른 표지의 3px 고리는 특이도가 더 높아 이 윤곽을 이긴다)', () => {
+    expect(rule('.episode-app .ep-pick .cov')).toMatch(/box-shadow:0 0 0 1px var\(--line2\)/)
+    expect(rule('.episode-app .ep-pick-card .hk')).toMatch(/font-weight:600/)
+  })
+
+  it('[quieter-Q5] 히어로·작품 요약의 칩 줄은 장르 글(.g)도 칩(.chip)도 600이다 — 700 제목 바로 아래에 네 개까지 붙어 제목만큼 무거웠고 같은 히어로의 해시태그(600)와도 달랐다. 색·칩 종류는 그대로다', () => {
+    expect(rule('.episode-app .ep-chips :is(.g,.chip)')).toMatch(/font-weight:600/)
+  })
+
+  it('[quieter-Q2 점검] 동의 체크 문장(.ep-check)은 이미 12px·400이다 — .episode-app .ep-check(0,2,0)가 .ep-main label(650·13px, 0,1,1)보다 특이도가 높아서라 접두사(.episode-app)를 지우면 650으로 진다', () => {
+    expect(rule('.episode-app .ep-check')).toMatch(/font-weight:400/)
   })
 })

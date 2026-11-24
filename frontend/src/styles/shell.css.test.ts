@@ -167,6 +167,10 @@ describe('server-writing.css 서재 목록 제목 줄·칩 줄 계약', () => {
     expect(writingCss).toMatch(/\.server-writing \.sec-h > \.btn \{[^}]*margin-left: auto/)
     expect(writingCss).toMatch(/\.server-tags \{[^}]*display: flex[^}]*flex-wrap: wrap[^}]*align-items: center/)
   })
+
+  it('[quieter] 칩 줄의 칩은 600이다 — 700 제목(.hk) 바로 아래 칩이 같은 굵기로 겨루지 않고 작품 관리 히어로 칩 줄·관리자 칩(600)과 맞춘다. 색·칩 종류는 그대로다', () => {
+    expect(writingCss).toMatch(/\.server-tags \.chip \{[^}]*font-weight: 600/)
+  })
 })
 
 describe('storyfork.css GNB 검색 버튼 계약 (#505)', () => {
@@ -443,6 +447,10 @@ describe('storyfork.css 실시간 인기(.t10) 순위 목록 계약 (홈 / 과 �
     expect(value('.t10 ol', 'justify-content')).toBe('flex-start')
   })
 
+  it('[quieter] "24시간 조회" 칩(.t10h .live)은 대기·주의 칩이 쓰는 주황(--acc-*)이 아니라 .chip과 같은 회색(--muted-bg·--sub)이다 — 금·은·동 메달(.md1~3)은 순위 정보라 색을 그대로 둔다', () => {
+    expect(value('.t10h .live', 'background')).toBe('var(--muted-bg)')
+    expect(value('.t10h .live', 'color')).toBe('var(--sub)')
+  })
 })
 
 describe('storyfork.css 상단바(.gnb) 계정 아바타 계약', () => {
