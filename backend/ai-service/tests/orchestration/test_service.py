@@ -2810,3 +2810,13 @@ def test_a_summary_failure_is_an_error_span(monkeypatch, spans):
         service.summarize('', [{'request': '하나'}])
     [span] = [s for s in spans() if s.name == 'orchestration.summary']
     assert span.attributes['langfuse.observation.level'] == 'ERROR'
+
+
+def test_requests_the_guard_rejected_never_reach_the_summary_model_but_still_count_as_summarized(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan(status='rejected', reason='sensitive_data'))
+    chat(thread, request='내 키는 sk-비밀')
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, *TURNS[1:7])
+    assert summaries(calls) == [('', ['요청2'])]  # 거절된 1턴은 모델에 보내지 않고 건너뛴다
+    assert summary_of(thread) == {'text': '요청2', 'upTo': 2}

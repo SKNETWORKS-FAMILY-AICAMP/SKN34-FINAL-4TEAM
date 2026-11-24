@@ -53,8 +53,7 @@ from langgraph.errors import GraphBubbleUp
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, Overwrite, interrupt
 
-from app import tracing
-from app import agent_runtime
+from app import agent_runtime, tracing
 from app.agent_runtime import UsageLedger
 from app.content_mcp import service as content_mcp
 from app.content_mcp.errors import ContentMcpFailure
@@ -364,13 +363,17 @@ def finish(state: State) -> State:
 
 
 def _summarized(summary: dict | None, turns: list[dict]) -> State:
-    """최근 5턴 밖으로 밀려났는데 요약에 아직 없는 턴만 기존 요약에 합친다(#790). 실패하면 요약을 그대로 두어 다음 턴에 다시 합친다."""
+    """최근 5턴 밖으로 밀려났는데 요약에 아직 없는 턴만 기존 요약에 합친다(#790). 실패하면 요약을 그대로 두어 다음 턴에 다시 합친다.
+
+    Decision Guard가 거절한 턴(민감정보·인젝션)은 요청 원문을 요약 모델·추적에 보내지 않고 건너뛴다(upTo는 그 턴도 지난다).
+    """
     summary = summary or {'text': '', 'upTo': 0}
     upto = len(turns) - HISTORY_TURNS
     if upto <= summary['upTo']:
         return {}
+    pushed = [t for t in turns[summary['upTo']:upto] if (t.get('reply') or {}).get('status') != 'rejected']
     try:
-        return {'summary': {'text': summarize(summary['text'], turns[summary['upTo']:upto]), 'upTo': upto}}
+        return {'summary': {'text': summarize(summary['text'], pushed) if pushed else summary['text'], 'upTo': upto}}
     except SummaryFailure:  # orchestration.summary span에 ERROR로 남았다
         return {}
 
