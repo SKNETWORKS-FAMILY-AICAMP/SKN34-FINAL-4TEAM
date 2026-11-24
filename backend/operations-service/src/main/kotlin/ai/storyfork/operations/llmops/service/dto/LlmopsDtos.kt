@@ -1,5 +1,6 @@
 package ai.storyfork.operations.llmops.service.dto
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.Instant
 import java.util.UUID
 import tools.jackson.databind.JsonNode
@@ -101,7 +102,8 @@ data class EvaluationItem(val itemId: String, val scores: Map<String, Double>, v
 /** [runId] is the name of the Langfuse experiment (Dataset Run); [status] is running, completed or failed. [items] are only in a run's detail. */
 data class Evaluation(
     val runId: String, val dataset: String, val prompt: String, val version: Int, val status: String, val passed: Boolean?,
-    val createdAt: Instant, val metrics: List<EvaluationMetric>, val items: List<EvaluationItem>? = null,
+    val createdAt: Instant, val metrics: List<EvaluationMetric>,
+    @field:JsonInclude(JsonInclude.Include.NON_NULL) val items: List<EvaluationItem>? = null,
 )
 
 data class EvaluationListResponse(val items: List<Evaluation>)
