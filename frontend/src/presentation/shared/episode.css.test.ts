@@ -189,6 +189,13 @@ describe('episode.css 관리 화면 사이드바 틀 계약 (작품 관리·세�
     expect(wide('.ep-manage .ep-content')).toMatch(/padding-top:16px/)
   })
 
+  it('[R7] 사이드바가 화면 높이(100dvh)를 쓰는 901px 이상에서는 .ep-main 아래 여백(56px)이 없어 문서가 화면보다 길어지지 않고, 끝 여백은 내용 열 안쪽 24px이다(900px 이하·메뉴 없는 화면의 아래 여백은 그대로)', () => {
+    expect(wide('.ep-main:has(.ep-manage)')).toMatch(/padding-bottom:0(?![\d.])/)
+    expect(wide('.ep-manage .ep-content')).toMatch(/padding-bottom:24px/)
+    expect(rule('.ep-main')).toMatch(/padding:8px 24px 56px/)
+    expect(narrow('.ep-main:has(.ep-manage)')).toBe('')
+  })
+
   it('맨 위 줄은 로고와 접기 토글이 한 줄이고, 로고는 전역 .logo의 600px 이하 font-size:0(글자 없이 SF만)을 덮어 사이드바 폭(195px)에서 토글과 한 줄에 들어가는 15px이다', () => {
     expect(rule('.ep-menu-top')).toMatch(/display:flex;align-items:center;justify-content:space-between/)
     const logo = rule('.ep-menu-logo')
@@ -289,8 +296,29 @@ describe('episode.css 관리 화면 distill 계약 (작품 관리 탭 내용)', 
     expect(css).not.toMatch(/article :is\(h4,p\)/)
   })
 
-  it('세계관 탭의 연결·설정집 구획은 테두리 없는 구획(tcard 없음)이라 카드 안쪽 여백도 두지 않는다', () => {
-    expect(rule('.episode-app .ep-card:not(.tcard)')).toMatch(/padding:0(?![\d.])/)
+  it('세계관 탭의 구획(연결·설정집·설정 첨부)은 모두 카드(tcard ep-card)라, tcard가 아닌 .ep-card의 안쪽 여백을 지우는 규칙이 없고 카드 안쪽 여백은 .ep-card 한 규칙이 정한다', () => {
+    expect(rules.map((r) => r.selector)).not.toContain('.episode-app .ep-card:not(.tcard)')
+    expect(rule('.episode-app .ep-card')).toMatch(/padding:20px 24px/)
+  })
+
+  it('세계관 연결의 연결 양식(.ep-pick-form)은 폼의 560px 제한을 풀어 표지 격자가 카드 폭을 다 쓰고, 같은 특이도의 .ep-edit 규칙보다 뒤에 있어 이긴다(검색창 .lq와 다른 편집 폼은 그대로)', () => {
+    expect(rule('.episode-app .ep-pick-form')).toMatch(/max-width:none/)
+    expect(css.indexOf('.episode-app .ep-pick-form{')).toBeGreaterThan(css.indexOf('.episode-app .ep-edit{'))
+    expect(rule('.episode-app .ep-edit')).toMatch(/max-width:560px/)
+  })
+
+  it('카드 안의 첨부 패널(.ep-card>.media-panel)은 위 선과 위아래 이중 여백을 없애고 위 12px만 둔다', () => {
+    const panel = rule('.ep-card>.media-panel')
+    expect(panel).toMatch(/margin-block:12px 0(?![\d.])/)
+    expect(panel).toMatch(/padding-block:0(?![\d.])/)
+    expect(panel).toMatch(/border-block-start:0(?![\d.])/)
+  })
+
+  it('이력 탭(.ep-history)의 세 묶음은 카드라, 카드 안 제목은 위 여백 없이 아래 12px, 안내·빈 상태 문단은 보조색이고 마지막 줄·항목은 카드 테두리와 겹치는 아래 선·여백이 없다', () => {
+    expect(rule('.ep-history .ep-card>h3')).toMatch(/margin:0 0 12px/)
+    expect(rule('.ep-history .ep-card>p:not([role])')).toMatch(/color:var\(--sub\)/)
+    expect(rule('.ep-history .ep-settings-history li:last-child')).toMatch(/border-bottom:0/)
+    expect(rule('.ep-history .ep-card>article:last-child')).toMatch(/border-bottom:0;padding-bottom:0/)
   })
 })
 
@@ -533,7 +561,7 @@ describe('episode.css 작품 관리 polish (G2 5단계)', () => {
   })
 
   it('[polish] 이력 탭 발행 이력 줄도 개요처럼 한 줄 글(block)이라 <time> 앞뒤 구분점이 매달리지 않고, 운영 설정의 이력 줄(flex)은 그대로다', () => {
-    expect(rule('.ep-reading>.ep-settings-history li')).toMatch(/display:block/)
+    expect(rule('.ep-history .ep-settings-history li')).toMatch(/display:block/)
     expect(rule('.ep-settings-history li')).toMatch(/display:\s*flex/)
   })
 })

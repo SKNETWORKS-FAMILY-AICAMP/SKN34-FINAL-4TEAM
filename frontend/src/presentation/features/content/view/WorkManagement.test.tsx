@@ -11,7 +11,7 @@ import { kstDateTime } from '../../../shared/format'
 import { WorkManagement } from './WorkManagement'
 
 // 히어로(WorkOverview)는 개요 탭의 내용이다. 그 안(작품 정보·표지 편집)은 EpisodePage.test가 보고, 여기서는 개요 탭이 히어로를 그리는지만 본다. 포크 수는 12화에만 2편이 갈라졌다고 본다(회차 번호로 조회).
-vi.mock('./WorkOverview', () => ({ WorkOverview: () => <p>작품 개요 히어로</p> }))
+vi.mock('./WorkOverview', () => ({ WorkOverview: ({ serialOn }: { serialOn?: boolean }) => <p data-serial={String(serialOn)}>작품 개요 히어로</p> }))
 // 요약 머리는 넘겨받은 초안 수만 data-drafts로 드러낸다(수를 세는 규칙은 이 화면의 몫이다).
 vi.mock('./WorkBrief', () => ({ WorkBrief: ({ draftCount }: { draftCount?: number | null }) => <p data-drafts={String(draftCount)}>작품 요약 머리</p> }))
 // 개요 대시보드의 조회·표시(바로가기 링크 포함)는 WorkDashboard.test가 본다. 여기서는 개요 탭이 그것을 그리고 넘겨 주는 값(잠금 포함)만 본다.
@@ -456,6 +456,14 @@ it('AI 자율 집필 중에도 공개 회차 탭에는 작성 중인 초안 묶�
   expect(screen.getAllByRole('link').map((a) => a.getAttribute('href')).filter((href) => href?.startsWith('/studio/'))).toEqual(['/studio/w'])
 })
 
+it('개요 히어로에 AI 자율 집필이 켜져 있는지(serialLocked)를 그대로 넘긴다(AI 자율 연재 칩은 히어로가 그린다. 새 요청은 없다)', () => {
+  for (const [serialLocked, expected] of [[true, 'true'], [false, 'false'], [undefined, 'false']] as const) {
+    cleanup()
+    render(<MemoryRouter><WorkManagement {...shell} vm={vm as never} work={work(1)} serialLocked={serialLocked} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+    expect(screen.getByText('작품 개요 히어로').getAttribute('data-serial'), String(serialLocked)).toBe(expected)
+  }
+})
+
 // ── 메뉴를 누르면 고른 탭의 내용으로 화면을 옮긴다: 탭 내용이 히어로·분기 정책 카드 아래(접힌 선 밖)에서 시작해, 눌러도 바뀐 것이 안 보였다 ──
 it('메뉴를 누르면 탭 내용 머리로 스크롤하고(처음 렌더에서는 하지 않는다) 초점은 누른 메뉴 버튼에 남는다', () => {
   open(3)
@@ -490,6 +498,32 @@ it('이력 탭의 저장본·AI 제안 항목 제목은 묶음 제목(h3) 바로
   openHistory()
   expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['발행 이력', '원고 저장본', 'AI 요청·제안'])
   expect(screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)).toEqual(['1화 · 저장 버전 1 · 첫 화', 'gpt · 검토 대기'])
+})
+
+it('이력 탭의 발행 이력·원고 저장본·AI 요청·제안은 각각 제목이 이름인 카드(tcard ep-card) 구획이고, 항목은 자기 카드 안에 있으며, 안내문은 카드 밖에 둔다', () => {
+  const versions = [saved('v1')]
+  const proposal = { id: 'p1', text: '제안 본문', model: 'gpt', revision: 1, status: 'pending' as const, prompt: '지시문' }
+  openWith({ writing: { id: 'w', rows: [row(1, { versions })] }, history: { versions, proposals: [proposal], publicationHistory: [publication('v1')] } })
+  openHistory()
+  const card = (name: string) => screen.getByRole('region', { name })
+  for (const name of ['발행 이력', '원고 저장본', 'AI 요청·제안']) {
+    expect([...card(name).classList], name).toEqual(expect.arrayContaining(['tcard', 'ep-card']))
+    expect(within(card(name)).getByRole('heading', { level: 3, name })).toBeTruthy()
+  }
+  expect(within(card('발행 이력')).getByText(/1화 · 발행 ·/)).toBeTruthy()
+  expect(within(card('원고 저장본')).getByRole('heading', { level: 4, name: '1화 · 저장 버전 1 · 첫 화' })).toBeTruthy()
+  expect(within(card('AI 요청·제안')).getByRole('heading', { level: 4, name: 'gpt · 검토 대기' })).toBeTruthy()
+  // 이력 탭 전용 카드 규칙(.ep-history)이 걸리는 틀이고, 읽기 전용 안내문은 카드 밖이다.
+  expect(historySection().classList.contains('ep-history')).toBe(true)
+  expect(screen.getByText('저장본은 보존돼요. 이 화면에서는 이력을 읽기만 하고, 복원과 공개는 집필실에서 해요.').closest('.ep-card')).toBeNull()
+})
+
+it('이력의 빈 상태·응답 오류도 자기 카드 안에서 알린다', () => {
+  openWith({ writing: { id: 'w', rows: [row(1)] }, history: { versions: [], proposals: [], publicationHistory: undefined } })
+  openHistory()
+  expect(within(screen.getByRole('region', { name: '발행 이력' })).getByRole('alert').textContent).toBe('발행 이력 응답을 확인할 수 없어요.')
+  expect(within(screen.getByRole('region', { name: '원고 저장본' })).getByText('아직 보관된 저장본이 없어요. 원고를 저장하면 버전 이력을 확인할 수 있어요.')).toBeTruthy()
+  expect(within(screen.getByRole('region', { name: 'AI 요청·제안' })).getByText('아직 AI 제안이 없어요.')).toBeTruthy()
 })
 
 // ── 이력 탭의 불러오는 중·실패: 탭을 누르면 탭 머리로 스크롤돼 화면 맨 위 알림이 화면 밖이므로 이력 구획 안에서 알린다 ──

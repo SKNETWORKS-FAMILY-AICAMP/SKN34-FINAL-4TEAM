@@ -155,6 +155,7 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
               onSuggestTags={vm.suggestTags}
               editing={editing}
               onEditingChange={setEditing}
+              serialOn={serialLocked}
             />
           )}
           {/* 히어로 아래 현황: 지표 카드·최근 발행 이력·바로가기(집필실·소설 상세). 이동 잠금은 메뉴와 같은 규칙이다. */}
@@ -191,47 +192,50 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
             </>
           )}
           {tab === 'history' && (
-            <section className='ep-reading'>
+            <section className='ep-reading ep-history'>
               <p>저장본은 보존돼요. 이 화면에서는 이력을 읽기만 하고, 복원과 공개는 집필실에서 해요.</p>
               {/* 이력 요청의 진행·실패는 맨 위 알림(탭 머리로 스크롤하면 화면 밖)이 아니라 여기서 알린다. 다른 요청과 섞이지 않게 origin이 history일 때만 보인다. */}
               {vm.origin === 'history' && vm.error && <p className="ep-alert" role="alert">{vm.error}</p>}
               {vm.origin === 'history' && vm.busy && !vm.history && <p role='status'>이력을 불러오고 있어요…</p>}
               {vm.history && (
                 <>
-                  <h3>발행 이력</h3>
-                  {!vm.history.publicationHistory?<p className="ep-alert" role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol role='list' className='ep-settings-history'>{vm.history.publicationHistory.map((event,i)=><li key={i}>
-                    {event.episode}화 · {publicationActionLabel[event.action]} · <time dateTime={event.publishedAt}>{kstDateTime(event.publishedAt)}</time> · {savedVersion(event.episode, event.versionId)}
-                  </li>)}</ol>:<p>발행 이력이 없어요.</p>}
-                  <h3>원고 저장본</h3>
-                  {vm.history.versions.length === 0 && (
-                    <p>
-                      아직 보관된 저장본이 없어요. 원고를 저장하면 버전 이력을 확인할 수 있어요.
-                    </p>
-                  )}
-                  {vm.history.versions.map((v) => <SavedVersion key={v.id} workId={w.id} version={v} label={savedVersion(v.episode, v.id)} />)}
-                  <h3>AI 요청·제안</h3>
-                  {vm.history.proposals.length === 0 && <p>아직 AI 제안이 없어요.</p>}
-                  {vm.history.proposals.map((p) => (
-                    <article key={p.id}>
-                      <h4>
-                        {p.model} · {p.status === 'accepted' ? '적용 완료' : '검토 대기'}
-                      </h4>
-                      <p>{p.prompt ?? '지시문 기록 없음'}</p>
-                      {p.baseBody !== undefined && (
-                        <details>
-                          <summary>요청 당시 원고</summary>
-                          <div>{p.baseBody}</div>
-                        </details>
-                      )}
-                      {p.context && (
-                        <details>
-                          <summary>요청 당시 설정·문맥 근거</summary>
-                          <ContextPreview value={p.context} />
-                        </details>
-                      )}
-                      <div>{p.text}</div>
-                    </article>
-                  ))}
+                  <HistoryCard title='발행 이력'>
+                    {!vm.history.publicationHistory?<p className="ep-alert" role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol role='list' className='ep-settings-history'>{vm.history.publicationHistory.map((event,i)=><li key={i}>
+                      {event.episode}화 · {publicationActionLabel[event.action]} · <time dateTime={event.publishedAt}>{kstDateTime(event.publishedAt)}</time> · {savedVersion(event.episode, event.versionId)}
+                    </li>)}</ol>:<p>발행 이력이 없어요.</p>}
+                  </HistoryCard>
+                  <HistoryCard title='원고 저장본'>
+                    {vm.history.versions.length === 0 && (
+                      <p>
+                        아직 보관된 저장본이 없어요. 원고를 저장하면 버전 이력을 확인할 수 있어요.
+                      </p>
+                    )}
+                    {vm.history.versions.map((v) => <SavedVersion key={v.id} workId={w.id} version={v} label={savedVersion(v.episode, v.id)} />)}
+                  </HistoryCard>
+                  <HistoryCard title='AI 요청·제안'>
+                    {vm.history.proposals.length === 0 && <p>아직 AI 제안이 없어요.</p>}
+                    {vm.history.proposals.map((p) => (
+                      <article key={p.id}>
+                        <h4>
+                          {p.model} · {p.status === 'accepted' ? '적용 완료' : '검토 대기'}
+                        </h4>
+                        <p>{p.prompt ?? '지시문 기록 없음'}</p>
+                        {p.baseBody !== undefined && (
+                          <details>
+                            <summary>요청 당시 원고</summary>
+                            <div>{p.baseBody}</div>
+                          </details>
+                        )}
+                        {p.context && (
+                          <details>
+                            <summary>요청 당시 설정·문맥 근거</summary>
+                            <ContextPreview value={p.context} />
+                          </details>
+                        )}
+                        <div>{p.text}</div>
+                      </article>
+                    ))}
+                  </HistoryCard>
                 </>
               )}
             </section>
@@ -398,6 +402,17 @@ function WorldBuildBadge({ work }: { work: Pick<Work, 'id' | 'worldStudioId'> })
   const { job, error } = useManuscriptBuild(work.id, work.worldStudioId)
   const label = error ? null : worldBuildBadge(job)
   return label ? <div className='ep-notes'><p><span className='chip wait'>{label}</span></p></div> : null
+}
+
+/** 이력 탭의 한 묶음(발행 이력·원고 저장본·AI 요청·제안): 제목(h3)이 이름인 카드 구획이다(세계관·설정집 탭의 카드와 같은 `tcard ep-card`). */
+function HistoryCard({ title, children }: { title: string; children: ReactNode }) {
+  const id = useId()
+  return (
+    <section className='tcard ep-card' aria-labelledby={id}>
+      <h3 id={id}>{title}</h3>
+      {children}
+    </section>
+  )
 }
 
 /**

@@ -14,7 +14,7 @@ export function WorldPanel({ workId, useCase, locked = false, onMediaBusy }: { w
   const w = vm.world
   if (!w) {
     return (
-      <section className='ep-card'>
+      <section className='tcard ep-card'>
         <p role={vm.error ? 'alert' : 'status'} className={vm.error ? 'ep-alert' : undefined}>{vm.error || '설정집을 불러오고 있어요…'}</p>
         {vm.error && (
           <div className='ep-card-actions'>
@@ -26,7 +26,7 @@ export function WorldPanel({ workId, useCase, locked = false, onMediaBusy }: { w
   }
   return (
     <>
-      <section className='ep-card' aria-label='세계관 설정집'>
+      <section className='tcard ep-card' aria-label='세계관 설정집'>
         <h3>{w.name}</h3>
         <p>
           {w.mode === 'following'
@@ -51,7 +51,7 @@ function SettingFiles({ workId, world: w, locked, onBusy }: { workId: string; wo
   const [picked, setPicked] = useState('')
   const row = rows.find((setting) => setting.id === picked) ?? rows[0]
   return (
-    <section className='ep-card' aria-label='설정 첨부'>
+    <section className='tcard ep-card' aria-label='설정 첨부'>
       <h3>설정 첨부 파일</h3>
       {w.mode === 'following'
         ? <p className='ep-muted'>원작을 따라가는 설정에는 파일을 붙일 수 없어요.</p>

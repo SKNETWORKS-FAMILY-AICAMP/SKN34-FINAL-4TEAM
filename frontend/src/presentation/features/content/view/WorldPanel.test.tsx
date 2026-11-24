@@ -26,6 +26,8 @@ it('shows only the settings book summary and no coming-soon studio button now th
  const fetcher=vi.fn().mockResolvedValueOnce(Response.json(world({name:'구운몽 설정집',mode:'following',basis:{episode:2,version:1,settings:[setting,setting]},settings:[setting],history:[setting]})))
  show(fetcher)
  const card=await screen.findByRole('region',{name:'세계관 설정집'})
+ // 같은 탭의 연결·원고로 세계관 만들기 구획과 같은 카드(tcard ep-card)다.
+ expect([...card.classList]).toEqual(expect.arrayContaining(['tcard','ep-card']))
  expect(within(card).getByRole('heading',{name:'구운몽 설정집'})).toBeTruthy()
  expect(within(card).getByText('원작 추종 중 · 첫 설정 수정 시 전체 공개 설정이 독립해요.')).toBeTruthy()
  expect(within(card).getByText('최초 분기 기준: 2화 · 원고 버전 1 · 설정 2개')).toBeTruthy()
@@ -52,6 +54,8 @@ it('shows a load failure as an alert and reads the settings book again only from
  const fetcher=vi.fn().mockResolvedValueOnce(Response.json({detail:'설정집을 불러오지 못했어요.'},{status:500})).mockResolvedValueOnce(Response.json(world()))
  show(fetcher)
  expect((await screen.findByRole('alert')).textContent).toBe('설정집을 불러오지 못했어요.')
+ // 불러오는 중·실패 구획도 카드다(읽은 뒤 설정집 카드로 바뀌어도 모양이 같다).
+ expect([...screen.getByRole('alert').closest('section')!.classList]).toEqual(expect.arrayContaining(['tcard','ep-card']))
  fireEvent.click(screen.getByRole('button',{name:'설정집 다시 불러오기'}))
  await screen.findByRole('region',{name:'세계관 설정집'})
  expect(screen.queryByRole('alert')).toBeNull()
@@ -64,7 +68,9 @@ it('내 설정집은 설정 하나를 골라 그 설정의 첨부 패널(참고 
  const second={...setting,id:'s2',versionId:'v2',name:'인물 표'}
  const draftOnly={id:'d',name:'초안 설정',content:'초안',category:'장소',tags:[],visibility:'private',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
  show(vi.fn().mockResolvedValueOnce(Response.json(world({settings:[setting,second],drafts:[draftOnly]}))))
- const files=within(await screen.findByRole('region',{name:'설정 첨부'}))
+ const filesRegion=await screen.findByRole('region',{name:'설정 첨부'})
+ expect([...filesRegion.classList]).toEqual(expect.arrayContaining(['tcard','ep-card']))
+ const files=within(filesRegion)
  const select=files.getByRole<HTMLSelectElement>('combobox',{name:'첨부할 설정'})
  expect(Array.from(select.options,option=>option.textContent)).toEqual(['지도','인물 표','초안 설정'])
  expect(files.getByTestId('media-panel').textContent).toBe(panelOf('w','s'))

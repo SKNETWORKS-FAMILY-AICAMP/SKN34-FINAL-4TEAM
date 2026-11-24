@@ -1171,6 +1171,30 @@ it.each([
   expect(screen.queryByText(LOCK_NOTICE)).toBeNull()
 })
 
+// ── AI 자율 연재 칩(개요 히어로): 켜짐은 EpisodePage가 이미 읽는 useSerialLock 값이라 새 요청이 없다 ──
+const heroChips = () => Array.from(document.querySelectorAll('.ep-hero .ep-chips > *'), (chip) => chip.textContent)
+
+it('shows an AI 자율 연재 chip right after the 분기 작품 chip of the overview hero while AI 자율 집필 is on, from the one read that already locks the studio', async () => {
+  stubCover()
+  const read = serialRead(() => Promise.resolve(serialSettings({ enabled: true })))
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([myFork]) }), '내 포크')
+  await waitFor(() => expect(heroChips()).toEqual(['판타지 · SF', '분기 작품', 'AI 자율 연재', '공개 회차 없음']))
+  expect(document.querySelector('.ep-hero .ep-chips .chip.wait')?.textContent).toBe('AI 자율 연재')
+  expect(read).toHaveBeenCalledTimes(1)
+})
+
+it.each([
+  ['AI 자율 집필이 꺼져 있으면', () => Promise.resolve(serialSettings({ enabled: false }))],
+  ['켜짐 여부를 읽지 못하면 (모르는 값을 켜짐으로 꾸미지 않는다)', () => Promise.reject(new Error('설정 서버 오류'))],
+])('%s 개요 히어로에 AI 자율 연재 칩이 없다', async (_name, answer) => {
+  stubCover()
+  const read = serialRead(answer)
+  await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([myFork]) }), '내 포크')
+  await waitFor(() => expect(read).toHaveBeenCalled())
+  await act(async () => {})
+  expect(heroChips()).toEqual(['판타지 · SF', '분기 작품', '공개 회차 없음'])
+})
+
 // ── Fork 세계관 독립(#583): 자기 세계관이 없는 Fork의 세계관 탭 ──
 const ORIGIN_WORLD = '5c0b3f0e-3a51-4d6b-9a39-1f4f2b6d0a02'
 const inheritedAnswer = {

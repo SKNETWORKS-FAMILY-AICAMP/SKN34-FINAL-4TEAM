@@ -4,6 +4,7 @@ import { Go } from '../../../shared/Go'
 import { useStoredImage } from '../../../shared/media/useMediaViewModel'
 import { paginate } from '../../../shared/paginate'
 import { Pager } from '../../../shared/Pager'
+import { useSerialLock } from '../../../shared/useSerialLock'
 import { useServerWorks } from '../viewmodel/useServerWorks'
 import './server-writing.css'
 
@@ -13,6 +14,12 @@ function Cover({ id }: { id: string }) {
   const { url, error } = useStoredImage({ kind: 'cover', workId: id }, '')
   // 요청이 끝나기 전에는 비워 둔다. 표지가 있는 작품이 기본 표지에서 실제 표지로 바뀌며 깜빡이지 않게 한다.
   return <div className="th">{url || error ? <img className="cimg" src={url || '/default-work-cover.svg'} alt="" /> : null}</div>
+}
+
+/** AI 자율 연재가 켜진 작품의 칩. 켜짐은 소유자 `GET /works/{id}/ai-serial`의 enabled이고, 읽는 중·읽기 실패는 칩이 없다(`useSerialLock`이 모르는 값을 켜짐으로 꾸미지 않는다). */
+// ponytail: 카드마다 켜짐을 따로 읽는다(위 표지와 같다). 작품 목록 응답에 enabled가 실리면 이 요청을 없앤다.
+function SerialChip({ id }: { id: string }) {
+  return useSerialLock(id).locked ? <span className="chip wait">AI 자율 연재</span> : null
 }
 
 const TABS = [['all', '전체'], ['original', '원작'], ['fork', '포크 작품']] as const
@@ -52,7 +59,7 @@ export function ServerWritingList({ newTo }: { newTo: string }) {
           {view.items.length ? <div className="list">{view.items.map(work => <article className="li rowlink" key={work.id}>
             <Cover id={work.id} />
             <div className="server-writing-content"><h3><Go to={`/content?work=${work.id}`} className="li-link">{work.title}</Go></h3>
-              <div className="m server-tags"><span className={work.visibility === 'public' ? 'chip ok' : 'chip'}>{work.visibility === 'public' ? '공개 중' : '비공개'}</span>{work.source && <><span className="chip">Fork</span>「{work.source.title}」 {work.source.episode}화에서</>}</div>
+              <div className="m server-tags"><span className={work.visibility === 'public' ? 'chip ok' : 'chip'}>{work.visibility === 'public' ? '공개 중' : '비공개'}</span><SerialChip id={work.id} />{work.source && <><span className="chip">Fork</span>「{work.source.title}」 {work.source.episode}화에서</>}</div>
               {work.summary && <p className="m server-summary">{work.summary}</p>}
             </div>
             <div className="acts">

@@ -277,7 +277,9 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
 
   it('브랜드는 메인(/)으로 가는 링크(a)라, 메뉴 항목 규칙(.adm .admin-nav :is(button,a): 38px·500·--fixed-sub)보다 높은 명시도로 브랜드 모양을 지키고 상단바 브랜드는 터치 목표 44px이다', () => {
     // 같은 레이어에서 명시도 (0,2,1)인 메뉴 항목 규칙이 (0,2,0) 브랜드 규칙을 이겨 브랜드가 메뉴 항목처럼 작아졌다: 클래스 셋(0,3,0)으로 올린다. display는 정하지 않는다(메뉴 안 링크 규칙이 flex로 두고, 위 계약이 기본 구간 display 없음을 지킨다).
-    expect(['height', 'font-weight', 'color'].map((prop) => value('.adm .admin-nav .admin-brand', prop))).toEqual(['60px', '800', 'var(--fixed-ink)'])
+    expect(['height', 'font-weight', 'color', 'justify-content'].map((prop) => value('.adm .admin-nav .admin-brand', prop))).toEqual(['60px', '800', 'var(--fixed-ink)', 'center'])
+    // 메뉴 항목 규칙(:is(button,a){text-align:left})이 브랜드도 왼쪽에 붙였다. 링크는 flex라 text-align이 아니라 justify-content로 사이드바 가운데에 둔다(메뉴 항목 규칙은 왼쪽 정렬 그대로).
+    expect(values('.adm .admin-nav :is(button,a)', 'justify-content')).toEqual([])
     // 900px 이하 가로 메뉴 구간의 상단바 브랜드는 누르는 영역이 글자 높이만큼이던 것을 44px로 올린다.
     expect(narrow('.adm .admin-brand-top', 'min-height')).toBe('44px')
   })
@@ -434,4 +436,10 @@ describe('storyfork.css 디자인 점검 P1 계약 (#623)', () => {
 
 it('소설 상세 히어로의 장르 뒤 칩(자율 연재·연재 상태·원작 링크)은 인라인 style 대신 이 규칙으로 8px 띄운다', () => {
   expect(value('.whero-body .chip', 'margin-left')).toBe('8px')
+})
+
+describe('storyfork.css 실시간 인기(.t10) 순위 목록 계약 (홈 / 과 공개 세계관 /worlds가 같은 .t10을 쓴다)', () => {
+  it('순위 목록(.t10 ol)은 위에서부터 쌓고 남는 높이를 줄 사이에 벌리지 않는다 — 패널 아래가 비어도 된다(space-between은 항목이 적을 때 줄 간격이 들쭉날쭉 벌어졌다)', () => {
+    expect(value('.t10 ol', 'justify-content')).toBe('flex-start')
+  })
 })
