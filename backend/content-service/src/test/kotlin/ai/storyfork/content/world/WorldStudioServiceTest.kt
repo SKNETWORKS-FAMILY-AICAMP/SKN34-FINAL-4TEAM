@@ -9,6 +9,7 @@ import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.studio.entity.*
 import ai.storyfork.content.world.studio.repository.*
 import ai.storyfork.content.imagegeneration.client.CoverModerationClient
+import ai.storyfork.content.world.service.ManuscriptBuildMapper
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.GenreTemplateRepair
 import ai.storyfork.content.world.service.GenreTemplateSeeder
@@ -63,6 +64,14 @@ class WorldStudioServiceTest {
         val reordered=request.copy(cards=listOf(card.copy(semanticMetadata=linkedMapOf(
             "characterDocs" to mapOf("episodes" to mapOf("01" to "기억"),"goal" to "목표","soul" to "성격"),"z" to mapOf("first" to 1,"second" to 2)))))
         assertEquals(service.manuscriptRequestHash(world,request),service.manuscriptRequestHash(world,reordered))
+    }
+    @Test fun `a manuscript character card with an empty body passes the draft edit validation`() {
+        // 정체 진술이 없는 인물은 본문이 빈 문자열로 적재된다(#839). 초안은 빈 본문을 받고(확정 버전만 본문을 요구한다) 이 검사가 거절하면 최초 구축 전체가 CONTENT_REJECTED로 끝난다.
+        val payload=ManuscriptLoadPayload(listOf(ManuscriptCard("hero","character","치삼",emptyList(),"",1,ManuscriptCharacterDocs("[묘사] 치삼은 웃었다.","",emptyMap()))),emptyList())
+        val built=ManuscriptBuildMapper.build(UUID.randomUUID(),WorldDraftResponse(world,0,null,null,"원고 세계관","",emptyList(),emptyList()),payload,
+            mapOf("hero" to listOf(mapOf("sourceId" to "version-1","quote" to "치삼은 웃었다."))))
+        assertEquals("",built.single().cards.single().body)
+        built.forEach { service.validateEditRequest(it) }
     }
     private fun owned(marker:Boolean=true) {
         `when`(worlds.lockOwned(world,actor)).thenReturn(StudioWorld(world,actor))
