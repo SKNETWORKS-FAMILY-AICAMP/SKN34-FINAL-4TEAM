@@ -178,10 +178,10 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .ep-cover-ai-panel .ep-alert{display:block;padding:8px 10px;line-height:1.55;font-size:13px}
 .ep-cover-ai-result{width:100%;padding-block-start:12px;border-top:1px solid var(--line2)}
 .ep-cover-ai-result img{max-width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;border-radius:8px;background:var(--muted-bg)}
-@media(max-width:900px){
- .ep-hero-cover:has(.ep-cover-ai[data-open]){max-width:none}
- .ep-hero-cover:has(.ep-cover-ai[data-open])>.ep-cover{max-width:220px}
-}
+/* AI 생성 패널을 펴면 화면 폭과 상관없이 히어로를 한 열로 바꿔 폼이 240px 표지 열에 갇히지 않게 하고, 표지 그림은 원래 폭을 지킨다. */
+.episode-app .ep-hero:has(.ep-cover-ai[data-open]){grid-template-columns:minmax(0,1fr);gap:20px}
+.ep-hero-cover:has(.ep-cover-ai[data-open]){max-width:none}
+.ep-hero-cover:has(.ep-cover-ai[data-open])>.ep-cover{max-width:220px}
 
 /* 새 작품 만들기 정리: 상단 링크 한 줄, 폼 안 체크 항목은 grid 간격만 쓰고, 모바일 제목 입력은 placeholder가 잘리지 않게 줄인다. */
 .ep-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}

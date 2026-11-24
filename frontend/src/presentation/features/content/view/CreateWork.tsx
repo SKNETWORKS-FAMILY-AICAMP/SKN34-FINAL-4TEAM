@@ -55,7 +55,7 @@ export function CreateWork({ busy, ready, error, onCreate }: Props) {
                   onChange={(e) => setCover(e.target.files?.[0])}
                 />
               </label>
-              <AiCoverButton disabled={busy} onPick={setCover} />
+              <AiCoverButton disabled={busy} onPick={setCover} saveHint="'작품 만들기'를 누르면 표지로 저장돼요." />
             </div>
             <p className='small muted'>
               {cover
