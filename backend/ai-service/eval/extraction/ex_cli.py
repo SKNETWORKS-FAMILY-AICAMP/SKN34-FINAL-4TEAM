@@ -4,10 +4,12 @@
     uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source public [--raw-dir 위키문헌 원문 폴더] [--workers 4] [--limit N]   # 없는 원문 받기(낮은 속도) + ocx gpt-6.2-sol 정답표(금액 0) → .data/sets/public.jsonl
     uv run --locked --extra dev python eval/extraction/ex_cli.py export [--gate 30]                                                          # 층화로 나눠 → 게이트 app/evaluation/datasets/extraction.extract.jsonl + 풀 datasets/optimize/(공개 항목만)
     uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source hp [--hp-dir <.data/hp>] [--per-book 2]                       # 로컬 전용 → .data/sets/hp.jsonl(커밋·Langfuse 금지)
+    uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source webnovel --novel-dir <웹소설 txt 폴더>                          # 로컬 전용 → .data/sets/webnovel.jsonl(선택표 .data/webnovel/manifest.json, 커밋·Langfuse 금지)
     set -a; . <키 파일>; set +a                                                                                                               # 이하 OpenAI 호출(유료): 유료 명령마다 같은 명령 안에서 불러온다(키 값은 출력하지 않는다)
-    uv run --locked --extra dev python eval/extraction/ex_cli.py score .data/sets/hp.jsonl [--instructions 파일] [--model M] [--tag T] [--limit N]   # 오프라인 채점 → results/extraction-<세트>-<태그>.json(집계만)
+    uv run --locked --extra dev python eval/extraction/ex_cli.py score .data/sets/{hp,webnovel}.jsonl [--instructions 파일] [--model M] [--tag T] [--limit N]   # 오프라인 채점 → results/extraction-<세트>-<태그>.json(집계만)
 
 시작 때 Langfuse 키를 지워 원문이 Langfuse로 가지 않게 한다. gold는 호출을 ocx로 돌리고 실제 OpenAI 키를 쓰지 않는다. 원문·정답표·응답은 .data(git 무시)에만 두고 results에는 숫자와 항목 id만 둔다.
+저작권 있는 원천(해리 포터·웹소설)의 원문·정답표·선택표도 .data에만 둔다: 커밋·푸시·Langfuse 금지, 평가 세트 폴더(app/evaluation/datasets)에도 두지 않는다.
 """
 
 import argparse
@@ -20,6 +22,7 @@ from statistics import fmean
 
 import ex_gold
 import ex_sources
+import ex_webnovel
 from app.evaluation import extraction
 from app.evaluation.errors import EvaluationFailure
 from app.manuscript_extraction import prompt
@@ -28,6 +31,7 @@ from app.manuscript_extraction.errors import PreprocessingFailure
 HERE = Path(__file__).resolve().parent
 DATA = HERE / '.data'
 SETS, GOLD, RESULTS = DATA / 'sets', DATA / 'gold', HERE / 'results'
+MANIFEST = DATA / 'webnovel' / 'manifest.json'   # 웹소설 선택표(작품·장르·회차 번호): 로컬 전용
 DATASET = HERE.parents[1] / 'app' / 'evaluation' / 'datasets' / 'extraction.extract.jsonl'
 POOL = DATASET.parent / 'optimize' / DATASET.name   # 최적화 풀: seed가 올리지 않는 하위 폴더(datasets/*.jsonl glob 밖)
 GATE_SIZE = 30   # 게이트 세트 회차 수(평가 1회 = 운영 모델 호출 이만큼)
@@ -52,10 +56,13 @@ def read_items(path: Path) -> list[dict]:
 
 def cmd_gold(args) -> int:
     """회차 원천 → 정답표 → .data/sets/<source>.jsonl. 호출은 ocx(금액 0)다. 실패한 회차가 있으면 코드를 보이고 1로 끝낸다(된 항목은 쓰고, 같은 명령을 다시 치면 캐시로 이어 간다)."""
+    if args.source == 'webnovel' and not args.novel_dir:
+        raise SystemExit('--novel-dir(웹소설 txt 폴더)가 필요하다.')
     ex_gold.use_ocx()
     if args.source == 'public':
         ex_sources.fetch_public(args.raw_dir)
-    episodes = ex_sources.public_episodes(args.raw_dir) if args.source == 'public' else ex_sources.hp_episodes(args.hp_dir, args.per_book)
+    episodes = {'public': lambda: ex_sources.public_episodes(args.raw_dir), 'hp': lambda: ex_sources.hp_episodes(args.hp_dir, args.per_book),
+                'webnovel': lambda: ex_webnovel.episodes(args.novel_dir, MANIFEST)}[args.source]()
     items, failures = ex_gold.build(episodes[:args.limit], GOLD / args.source, args.workers)
     write_items(SETS / f'{args.source}.jsonl', items)
     for item in items:
@@ -125,6 +132,7 @@ def score_items(items: list[dict], instructions: str, model: str, workers: int) 
     return {'items': len(items), 'failed': {id: code for id, _, code in done if code}, 'recall': mean([r['recall'] for r in rows]), 'quote_ok': mean([r['quote_ok'] for r in rows]),
             'recalls': {kind: mean([r['recalls'][kind] for r in rows]) for kind in extraction.KINDS},
             'reference': {'precision': {kind: mean([r['reference']['precision'][kind] for r in rows]) for kind in extraction.KINDS},
+                          'outside': {kind: mean([r['reference']['outside'][kind] for r in rows]) for kind in extraction.KINDS},
                           **{name: mean([r['reference'][name] for r in rows]) for name in ('kind_match', 'direction', 'label')}}, 'rows': rows}
 
 
@@ -152,10 +160,11 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest='command', required=True)
     gold = commands.add_parser('gold', help='정답표 만들기(ocx gpt-6.2-sol)')
-    gold.add_argument('--source', choices=('public', 'hp'), required=True)
+    gold.add_argument('--source', choices=('public', 'hp', 'webnovel'), required=True)
     gold.add_argument('--raw-dir', type=Path, default=DATA / 'raw' / 'wikisource')
     gold.add_argument('--hp-dir', type=Path, default=SIMULATION_DATA / 'hp')
     gold.add_argument('--per-book', type=int, default=2)
+    gold.add_argument('--novel-dir', type=Path)
     gold.add_argument('--limit', type=int)
     gold.add_argument('--workers', type=int, default=4)
     gold.set_defaults(run=cmd_gold)

@@ -26,7 +26,7 @@
 | `extraction.extract.jsonl` | `manuscript_extraction.extract` | **게이트** 30회차(작품 30편, 작가를 번갈아 한 회차씩 고른 층화). 평가 1회 = 운영 모델 호출 30회 |
 | `optimize/extraction.extract.jsonl` | (자동 개선의 훈련·검증 재료) | **최적화 풀** 157회차(id `extraction.extract.opt-NNN`, `metadata.split` train 137·val 20). seed가 읽지 않는 하위 폴더라 Langfuse에 올라가지 않는다. 게이트와 항목·(작품, 회차)·본문이 겹치지 않는다(`tests/evaluation/test_seed.py`) |
 
-- `input`은 운영이 모델에 보내는 `{number, title, body}` 그대로이고 `expectedOutput`은 정답표(`mentions`·`statements`·`relationships`, 항목마다 `core` = 상위 모델이 서로 다른 지시문으로 두 번 모두 뽑음)다. 채점 모델은 없고 코드가 정답표와 대조한다. 풀도 같은 모양이다.
+- `input`은 운영이 모델에 보내는 `{number, title, body}` 그대로이고 `expectedOutput`은 정답표(`mentions`·`statements`·`relationships`, 항목마다 `core` = 상위 모델이 서로 다른 지시문으로 두 번 모두 뽑음)다. 채점 모델은 없고 코드가 정답표와 대조하며, 게이트 `recall`은 정답표 가운데 설정다운 `core`(`kind`·진술의 `document`로 가른다: 일상 물건·줄거리 사건 제외)만 센다. 정답표 진술은 `{kind, document, quote, core}`다. 풀도 같은 모양이다.
 - `metadata.source`가 작품·저자·출처·라이선스(사망 연도와 위키문헌 PD 틀)·회차이고 `metadata.gold`가 정답표를 만든 모델·실행·일치도다.
 - **정답표는 모델 두 번의 결과라 사람 검수 전이다.** 진술은 두 번의 선택이 갈려 `core`가 작다. `core` 대상이 3개 미만이거나 진술이 5개 미만인 회차는 만들지 않았다.
-- 해리 포터 원문·정답표는 저작권이 있어 이 세트에 없다(로컬 오프라인 평가 전용, `eval/extraction/.data`).
+- 해리 포터·웹소설 원문·정답표는 저작권이 있어 이 세트에 없다(로컬 오프라인 평가 전용, `eval/extraction/.data`).

@@ -22,9 +22,12 @@ def relation(i, source, target, label):
     return {'id': i, 'source': source, 'target': target, 'label': label, 'quote': S2}
 
 
+def statement(n, kind, quote, document=None):
+    return {'id': f's{n}', 'kind': kind, 'quote': quote, 'document': document or ('memory' if kind == 'event' else 'identity')}
+
+
 def run(mentions, statements=(), relationships=(), skipped=None):
-    return {'mentions': list(mentions), 'statements': [{'id': f's{n}', 'kind': kind, 'quote': quote} for n, (kind, quote) in enumerate(statements)],
-            'relationships': list(relationships), 'skipped': skipped or {}}
+    return {'mentions': list(mentions), 'statements': [statement(n, *row) for n, row in enumerate(statements)], 'relationships': list(relationships), 'skipped': skipped or {}}
 
 
 A = run([mention('m1', '길동'), mention('m2', '춘섬'), mention('m3', '서울', 'location')], [('event', S1), ('fact', S2)], [relation('r1', 'm2', 'm1', '어머니')])
@@ -45,6 +48,15 @@ def test_merge_keeps_the_union_and_marks_what_both_runs_found_as_core():
     assert by_name(table, '길동')['aliases'] == ['홍길동'] and by_name(table, '춘섬')['aliases'] == []   # 호칭이 다른 쪽은 별칭으로 남는다
     assert [(s['quote'], s['core']) for s in table['statements']] == [(S1, False), (S2, True), (S3, False)]
     assert agreement == {'mentions': pytest.approx(2 / 5), 'statements': pytest.approx(1 / 3), 'relationships': 0.5}
+
+
+def test_a_merged_statement_keeps_the_kind_and_the_document_of_the_first_run_that_found_it():
+    first = run([mention('a', '길동')], [('fact', S1, 'soul')])
+    second = run([mention('a', '길동')], [('fact', S1, 'memory'), ('goal', S2, 'goal')])
+
+    table, _ = ex_gold.merge(BODY, [first, second])
+
+    assert [(s['quote'], s['kind'], s['document'], s['core']) for s in table['statements']] == [(S1, 'fact', 'soul', True), (S2, 'goal', 'goal', False)]   # 게이트 채점이 document로 설정 진술을 가른다
 
 
 def test_relations_merge_by_their_two_ends_whatever_the_direction_and_the_label_and_use_the_merged_mention_names():

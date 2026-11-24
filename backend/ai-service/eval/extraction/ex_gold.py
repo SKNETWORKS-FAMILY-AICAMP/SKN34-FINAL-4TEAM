@@ -174,7 +174,7 @@ def merge(body: str, runs: list[dict]) -> tuple[dict, dict]:
         return [{'ends': frozenset((id(s), id(t))), 'source': s['item']['name'], 'target': t['item']['name'], 'label': label} for s, t, label in found]
 
     overlap = lambda a, b: extraction.shared(body, a['quote'], b['quote']) if extraction.overlaps(body, a['quote'], b['quote']) else 0  # noqa: E731
-    statements, _ = _join(pick(first['statements'], 'kind', 'quote'), pick(second['statements'], 'kind', 'quote'), overlap)
+    statements, _ = _join(pick(first['statements'], 'kind', 'document', 'quote'), pick(second['statements'], 'kind', 'document', 'quote'), overlap)
     relations, _ = _join(relations_of(0, first), relations_of(1, second), lambda a, b: int(a['ends'] == b['ends']))
     table = {'mentions': [{**slot['item'], 'core': slot['core']} for slot in mentions],
              'statements': [{**slot['item'], 'core': slot['core']} for slot in statements],

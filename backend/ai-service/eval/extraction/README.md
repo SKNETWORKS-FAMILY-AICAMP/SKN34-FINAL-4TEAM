@@ -1,11 +1,12 @@
 # 추출 평가 세트 빌더 (`eval/extraction/`)
 
-회차 설정 추출 지시문 `manuscript_extraction.extract`의 운영 평가 세트 `extraction.extract`(저작권 만료 공개 작품, 게이트 30회차)와 자동 개선용 최적화 풀(`datasets/optimize/`, 나머지 회차)을 만들고, 같은 항목 모양의 로컬 세트(해리 포터)를 오프라인으로 채점한다.
+회차 설정 추출 지시문 `manuscript_extraction.extract`의 운영 평가 세트 `extraction.extract`(저작권 만료 공개 작품, 게이트 30회차)와 자동 개선용 최적화 풀(`datasets/optimize/`, 나머지 회차)을 만들고, 같은 항목 모양의 로컬 세트(해리 포터·웹소설)를 오프라인으로 채점한다.
 설계·채점 정의·측정 결과·한계는 [추출 평가 세트](../../../../docs/evaluation/extraction-set.md)에 있다. 운영 채점 코드는 `app/evaluation/extraction.py`(이 폴더는 이미지에 들어가지 않는다).
 
 | 파일 | 역할 |
 |---|---|
 | `ex_sources.py` | 회차 원천: 공개 근대 소설 80편(위키문헌 원문, 현대어 번역·번안판 아님, 작가 14명·사망 1962년 이전)과 로컬 해리 포터를 운영 회차 크기(5천~6천 자)로 자른다. 없는 원문은 낮은 속도로 받는다 |
+| `ex_webnovel.py` | 웹소설(로컬 전용) 원천: txt 폴더에서 장르를 번갈아 22작품을 고르고(번역본·패러디 제외, utf-8·utf-16·cp949 판별) 회차 표지로 나눠 작품마다 초반 3회차와 중반 1회차를 운영 크기로 만든다. 선택표는 `.data/webnovel/manifest.json` |
 | `ex_gold.py` | 정답표: ocx `gpt-6.2-sol`(금액 0)이 서로 다른 지시문 A·B로 두 번 뽑고 서비스 검증을 통과한 항목을 core(교집합)·합집합으로 합친다 |
 | `ex_cli.py` | `gold`(정답표 → `.data/sets/<원천>.jsonl`), `export`(공개 세트를 층화로 나눠 게이트 → `app/evaluation/datasets/`, 풀 → `datasets/optimize/`), `score`(오프라인 채점 → `results/` 집계) |
 | `test_ex_*.py` | 가짜 호출 단위 테스트 |
@@ -14,8 +15,9 @@
 cd backend/ai-service
 uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source public --workers 16   # 없는 원문 받기 + 정답표. ocx 게이트웨이(127.0.0.1:10100)가 켜져 있어야 한다. OpenAI 키를 쓰지 않는다. 같은 명령을 다시 치면 캐시로 이어 간다
 uv run --locked --extra dev python eval/extraction/ex_cli.py export --gate 30                   # 게이트 30회차 + 풀(나머지)
+uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source webnovel --novel-dir <웹소설 txt 폴더> --workers 24   # 로컬 전용 → .data/sets/webnovel.jsonl (원본 폴더는 읽기만 한다)
 uv run --locked --extra dev python -m pytest eval/extraction                         # CI는 tests/만 돌리므로 이 폴더는 로컬 실행
 ```
 
-- `.data/`(`.gitignore`)에 원문·정답표·모델 응답 캐시가 있다. 해리 포터 원문·정답표는 **저장소·Langfuse에 두지 않는다**(`export`는 저작권 만료 공개 항목이 아니면 멈춘다). `results/`에는 숫자와 항목 id만 둔다.
+- `.data/`(`.gitignore`)에 원문·정답표·모델 응답 캐시가 있다. 해리 포터·웹소설 원문·정답표·선택표는 **저장소·Langfuse에 두지 않는다**(`export`는 저작권 만료 공개 항목이 아니면 멈추고 `app/evaluation/datasets`에도 두지 않는다). `results/`에는 숫자와 항목 id만 둔다.
 - `ex_cli.py`는 시작 때 Langfuse 키를 지운다(원문이 Langfuse로 가지 않게).

@@ -16,7 +16,7 @@ REQUEST = EvaluationRequest(dataset='extraction.extract', prompt='manuscript_ext
 Q1, Q2 = '김 첨지는 새벽부터 인력거를 끌고 나갔다.', '치삼이는 김 첨지의 오랜 친구였다.'
 INPUT = {'number': 1, 'title': '운수 좋은 날', 'body': '\n'.join((Q1, Q2))}
 GOLD = {'mentions': [{'name': '김 첨지', 'kind': 'character', 'aliases': [], 'core': True}, {'name': '치삼', 'kind': 'character', 'aliases': [], 'core': True}],
-        'statements': [{'kind': 'event', 'quote': Q1, 'core': True}], 'relationships': []}
+        'statements': [{'kind': 'fact', 'document': 'identity', 'quote': Q1, 'core': True}], 'relationships': []}
 FULL = {'mentions': [{'id': 'a', 'name': '김 첨지', 'kind': 'character', 'quote': Q1}, {'id': 'b', 'name': '치삼', 'kind': 'character', 'quote': Q2}],
         'statements': [{'id': 's', 'kind': 'event', 'quote': Q1}], 'relationships': [], 'skipped': {}}   # 재현율 1, 인용 통과율 1
 LOSSY = {'mentions': FULL['mentions'][:1], 'statements': FULL['statements'], 'relationships': [], 'skipped': {'UNKNOWN_ENTITY': 1}}   # 대상 재현율 0.5·진술 1 → 0.75, 통과 2 ÷ 3

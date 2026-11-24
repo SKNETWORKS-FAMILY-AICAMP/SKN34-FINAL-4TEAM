@@ -8,13 +8,14 @@ import pytest
 import ex_cli
 import ex_gold
 import ex_sources
+import ex_webnovel
 from app.evaluation import extraction
 from app.manuscript_extraction.errors import PreprocessingFailure
 
 Q1, Q2 = '김 첨지는 새벽부터 인력거를 끌고 나갔다.', '치삼이는 김 첨지의 오랜 친구였다.'
 BODY = '\n'.join((Q1, Q2))
 GOLD = {'mentions': [{'name': '김 첨지', 'kind': 'character', 'aliases': [], 'core': True}, {'name': '치삼', 'kind': 'character', 'aliases': [], 'core': True}],
-        'statements': [{'kind': 'event', 'quote': Q1, 'core': True}], 'relationships': []}
+        'statements': [{'kind': 'fact', 'document': 'identity', 'quote': Q1, 'core': True}], 'relationships': []}
 FULL = {'mentions': [{'id': 'a', 'name': '김 첨지', 'kind': 'character', 'quote': Q1}, {'id': 'b', 'name': '치삼', 'kind': 'character', 'quote': Q2}],
         'statements': [{'id': 's', 'kind': 'event', 'quote': Q1}], 'relationships': [], 'skipped': {}}
 HALF = {**FULL, 'mentions': FULL['mentions'][:1]}
@@ -31,6 +32,7 @@ def home(tmp_path, monkeypatch):
     monkeypatch.setattr(ex_cli, 'SETS', tmp_path / 'sets')
     monkeypatch.setattr(ex_cli, 'GOLD', tmp_path / 'gold')
     monkeypatch.setattr(ex_cli, 'RESULTS', tmp_path / 'results')
+    monkeypatch.setattr(ex_cli, 'MANIFEST', tmp_path / 'webnovel' / 'manifest.json')
     monkeypatch.setattr(ex_cli, 'DATASET', tmp_path / 'datasets' / 'extraction.extract.jsonl')
     monkeypatch.setattr(ex_cli, 'POOL', tmp_path / 'datasets' / 'optimize' / 'extraction.extract.jsonl')
     return tmp_path
@@ -73,11 +75,38 @@ def test_the_hp_source_reads_the_local_folder_and_never_the_dataset_file(home, m
     seen = []
     monkeypatch.setattr(ex_gold, 'use_ocx', lambda *a, **k: None)
     monkeypatch.setattr(ex_sources, 'hp_episodes', lambda folder, per_book: seen.append((str(folder), per_book)) or [{'id': 'hp-b1-01-1'}])
-    monkeypatch.setattr(ex_gold, 'build', lambda *a, **k: ([item(1, license='저작권 있음(번역본): 로컬', id='hp-b1-01-1')], []))
+    monkeypatch.setattr(ex_gold, 'build', lambda *a, **k: ([item(1, license=ex_sources.HP_LICENSE, id='hp-b1-01-1')], []))
 
     assert ex_cli.main(['gold', '--source', 'hp', '--hp-dir', '/hp', '--per-book', '3']) == 0
 
-    assert seen == [('/hp', 3)] and (home / 'sets' / 'hp.jsonl').exists() and not ex_cli.DATASET.exists()   # 해리 포터는 세트 파일을 만들지 않는다
+    assert seen == [('/hp', 3)] and (home / 'sets' / 'hp.jsonl').exists() and not ex_cli.DATASET.exists()   # 해리 포터는 .data의 세트 파일만 만들고 평가 세트 파일은 만들지 않는다
+
+
+def test_the_webnovel_source_reads_the_novel_folder_with_the_manifest_and_never_the_dataset_file(home, monkeypatch):
+    seen = []
+    monkeypatch.setattr(ex_gold, 'use_ocx', lambda *a, **k: None)
+    monkeypatch.setattr(ex_webnovel, 'episodes', lambda folder, manifest: seen.append((str(folder), manifest)) or [{'id': 'webnovel-01-1'}])
+    monkeypatch.setattr(ex_gold, 'build', lambda *a, **k: ([item(1, license=ex_webnovel.LICENSE, id='webnovel-01-1')], []))
+
+    assert ex_cli.main(['gold', '--source', 'webnovel', '--novel-dir', '/novels']) == 0
+
+    assert seen == [('/novels', home / 'webnovel' / 'manifest.json')] and (home / 'sets' / 'webnovel.jsonl').exists() and not ex_cli.DATASET.exists()   # 웹소설도 .data의 세트 파일만 만들고 평가 세트 파일은 만들지 않는다
+
+
+def test_the_webnovel_source_stops_before_any_call_when_the_novel_folder_is_missing(home, monkeypatch):
+    monkeypatch.setattr(ex_gold, 'use_ocx', lambda *a, **k: pytest.fail('폴더가 없으면 ocx를 쓰기 전에 멈춘다'))
+
+    with pytest.raises(SystemExit, match='--novel-dir'):
+        ex_cli.main(['gold', '--source', 'webnovel'])
+
+
+def test_export_reads_only_the_public_set_so_the_webnovel_set_never_reaches_the_dataset_files(home):
+    ex_cli.write_items(home / 'sets' / 'public.jsonl', catalog())
+    ex_cli.write_items(home / 'sets' / 'webnovel.jsonl', [item(1, license=ex_webnovel.LICENSE, id='webnovel-01-1')])
+
+    ex_cli.main(['export', '--gate', '6'])
+
+    assert 'webnovel' not in ex_cli.DATASET.read_text(encoding='utf-8') + ex_cli.POOL.read_text(encoding='utf-8')
 
 
 def work_items(author, work, count, start):
@@ -192,6 +221,7 @@ def test_score_items_scores_each_item_with_the_code_and_keeps_failures_out_of_th
     assert result['items'] == 3 and result['failed'] == {'extraction.extract-03': 'MODEL_TIMEOUT'}   # 실패는 0점으로 평균에 섞지 않는다
     assert result['recall'] == pytest.approx((1.0 + 0.75) / 2) and result['quote_ok'] == 1.0
     assert result['rows'][0]['id'] == 'extraction.extract-01' and result['rows'][0]['recall'] == 1.0
+    assert result['reference']['outside'] == {'mentions': None, 'statements': None, 'relationships': None}   # 설정 밖 정답이 없으면 비율이 없다(정답표 대상은 모두 인물)
 
 
 def test_the_score_result_has_numbers_and_ids_only_so_it_can_be_committed_for_the_local_set(monkeypatch):
