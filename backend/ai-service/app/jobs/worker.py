@@ -1,4 +1,4 @@
-"""ai-jobs-worker(큐 jobs)의 Celery 태스크: 회귀 평가 실행과 운영 정기 작업 실행 요청(계약 operations-funnel-credit-contract §4).
+"""ai-jobs-worker(큐 jobs)의 Celery 태스크: 회귀 평가·프롬프트 자동 개선 실행과 운영 정기 작업 실행 요청(계약 operations-funnel-credit-contract §4).
 
 Celery 앱·설정(acks_late·prefetch 1·결과 저장 없음)은 전처리의 것을 그대로 가져다 쓰고 전처리 태스크·큐(preprocessing)는 건드리지 않는다.
 워커는 이 모듈을 -A로 불러 jobs 큐만 받는다: celery -A app.jobs.worker worker -Q jobs --concurrency=${AI_JOBS_CONCURRENCY:-4}
@@ -10,6 +10,7 @@ import httpx
 
 from app.evaluation import service as evaluation
 from app.jobs.models import JobRunRequest
+from app.optimization import service as optimization
 from app.preprocessing.worker import celery
 
 log = logging.getLogger(__name__)
@@ -18,6 +19,15 @@ log = logging.getLogger(__name__)
 @celery.task(name="evaluation.run", queue="jobs")
 def run_evaluation(job: dict) -> None:
     evaluation.run_job(job)
+
+
+@celery.task(name="optimization.run", queue="jobs", acks_late=False)
+def run_optimization(job: dict) -> None:
+    """프롬프트 자동 개선(#823). 수십 분 걸려 RabbitMQ 확인 제한(기본 30분)을 넘기면 늦은 확인(acks_late) 때문에 같은 작업이 다시 배달돼 중복 실행·과금이 되므로 받자마자 확인한다.
+
+    ponytail: 죽은 워커의 개선은 자동으로 이어 받지 않는다(끝나지 않은 trace가 남고 다시 누르면 처음부터 돈다).
+    """
+    optimization.run_job(job)
 
 
 @celery.task(name="operations.run_job", queue="jobs")

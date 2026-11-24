@@ -1,6 +1,9 @@
 """Run one claimed Content snapshot. Content alone persists inputs, results and receipts."""
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor
+from contextvars import copy_context
+
 import httpx
 from celery import Celery
 
@@ -11,6 +14,7 @@ from app.manuscript_extraction.models import EpisodeText, EpisodeExtraction
 from app.preprocessing.models import JobRequest
 
 log = logging.getLogger(__name__)
+EPISODE_CONCURRENCY = 4
 
 # 모델·검증의 세부 코드를 Content·화면이 아는 실패 사유로 옮긴다. 그 밖의 검증·출력 오류는 모두 AI_OUTPUT_INVALID다.
 REASONS = {"MODEL_TIMEOUT": "AI_TIMEOUT", "MODEL_UNAVAILABLE": "AI_RESPONSE_UNCONFIRMED", "MODEL_NOT_CONFIGURED": "AI_REQUEST_REJECTED",
@@ -66,18 +70,27 @@ def run(request: JobRequest) -> None:
 
         if not claim["loading"]:
             # Content는 failed의 episodes가 결과가 저장되지 않은 회차 전체와 같기를 요구한다.
-            unsaved, reason = [raw["number"] for raw in claim["missing"]], "AI_OUTPUT_INVALID"
-            for raw in claim["missing"]:
-                episode = EpisodeText.model_validate(raw)
-                try:
-                    result = service.extract(episode)
-                except Exception as error:  # 모델·검증 실패도 예상 밖 예외도 그 회차의 실패다
-                    reason = reason_of(job, error)
-                    continue
-                # A lost write response is ambiguous. Never start another job or overwrite its state.
-                if not send("result", {"result": result.model_dump(mode="json")}, unsaved):
-                    return
-                unsaved.remove(episode.number)
+            missing = claim["missing"]
+            unsaved, reason = [raw["number"] for raw in missing], "AI_OUTPUT_INVALID"
+            with ThreadPoolExecutor(max_workers=EPISODE_CONCURRENCY) as pool:
+                for start in range(0, len(missing), EPISODE_CONCURRENCY):
+                    episodes = [
+                        EpisodeText.model_validate(raw) for raw in missing[start:start + EPISODE_CONCURRENCY]
+                    ]
+                    pending = [
+                        (episode.number, pool.submit(copy_context().run, service.extract, episode))
+                        for episode in episodes
+                    ]
+                    # 저장과 실패 보고는 한 흐름에서 처리한다. 응답이 유실된 저장은 Content가 재개 시 확인한다.
+                    for number, future in pending:
+                        try:
+                            result = future.result()
+                        except Exception as error:
+                            reason = reason_of(job, error)
+                            continue
+                        if not send("result", {"result": result.model_dump(mode="json")}, unsaved):
+                            return
+                        unsaved.remove(number)
             if unsaved:
                 fail(unsaved, reason)
                 return
@@ -95,8 +108,7 @@ def run(request: JobRequest) -> None:
         send("load", {}, [])
 
 
-# 회차 원고 전처리 Celery 태스크(2026-11-20 사용자 결정). 작품 하나가 태스크 하나이고 ai-worker(동시성 1)가 큐 순서대로 하나씩 실행한다.
-# ponytail: 순차라 회차별 병렬은 없다. 태스크를 회차 단위로 나누고 Content claim(작업 단위 실행권)을 바꿔야 한다.
+# 회차 원고 전처리 Celery 태스크. 작품 작업 하나가 태스크 하나이며 동시 실행 수는 ai-worker 설정이 정한다.
 # ponytail: acks_late 재배달은 Content claim이 거절(claimed=false)해 무해하지만 죽은 실행의 자동 재개는 아니다. 만료 뒤 사용자가 '같은 작업 재개'를 누른다.
 celery = Celery("preprocessing", broker=os.environ.get("AI_CELERY_BROKER_URL"))
 celery.conf.update(task_acks_late=True, worker_prefetch_multiplier=1, task_ignore_result=True)

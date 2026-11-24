@@ -20,6 +20,7 @@ import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
@@ -37,6 +38,7 @@ class WorldStudioService(
     private val genres:GenreRepository,
     private val buildJobs:ManuscriptBuildJobRepository,private val buildSteps:ManuscriptBuildLoadStepRepository,
     private val cardCategories:CardCategoryRepository,
+    private val events:ApplicationEventPublisher,
 ) {
     private val log=org.slf4j.LoggerFactory.getLogger(javaClass)
     private val transaction=TransactionTemplate(manager)
@@ -635,6 +637,7 @@ class WorldStudioService(
                         job.status="completed";job.failureCode=null
                     } else job.status="loading"
                     buildJobs.flush()
+                    if (job.status=="completed") events.updateFinished(job)
                 }
                 states.flush()
             }

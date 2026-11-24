@@ -66,8 +66,14 @@ class Plan:
     model: str | None = None  # 요청한 버전이 고른 모델(config.model, #705). 없으면 실행 틀이 OPENAI_MODEL을 쓴다
 
 
-def prepare(request: EvaluationRequest) -> Plan:
-    """평가를 시작하기 전에 확인한다: Langfuse·모델 설정, 허용 오차, 평가 세트, 요청한 프롬프트 버전. 어긋나면 Run을 만들지 않고 오류로 돌려준다."""
+def name_run(prompt: str, version: int) -> str:
+    """Run 이름(운영이 이 형식에서 프롬프트·버전을 읽는다). 자동 개선(app/optimization)은 새 버전의 commitMessage에 넣으려고 평가 전에 이름을 먼저 만든다."""
+    return f'{prompt}@v{version}-{datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")}-{secrets.token_hex(3)}'
+
+
+def prepare(request: EvaluationRequest, run_name: str | None = None) -> Plan:
+    """평가를 시작하기 전에 확인한다: Langfuse·모델 설정, 허용 오차, 평가 세트, 요청한 프롬프트 버전. 어긋나면 Run을 만들지 않고 오류로 돌려준다.
+    run_name을 주면 그 이름으로 Run을 만든다(name_run이 만든 이름)."""
     kind = simulation.KINDS.get(request.dataset)
     if kind and request.prompt != f'character_simulation.{kind}':   # 다른 호출의 지시문으로 돌리면 점수가 뜻이 없다
         raise EvaluationFailure(422, '시뮬레이션 평가 세트는 같은 호출의 지시문(character_simulation.act·narrate)만 평가할 수 있어요.')
@@ -80,8 +86,7 @@ def prepare(request: EvaluationRequest) -> Plan:
     prompt = _fetch(client.get_prompt, request.prompt, version=request.version, missing='프롬프트 버전을 찾을 수 없어요.')
     if not isinstance(prompt.prompt, str):  # 채팅 프롬프트는 메시지 목록이라 지시문으로 쓸 수 없다
         raise EvaluationFailure(422, '텍스트 프롬프트만 평가할 수 있어요.')
-    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-    return Plan(request, f'{request.prompt}@v{request.version}-{stamp}-{secrets.token_hex(3)}', dataset, prompt.prompt, tolerance,
+    return Plan(request, run_name or name_run(request.prompt, request.version), dataset, prompt.prompt, tolerance,
                 _baseline(client, dataset, request), tracing.model_of(prompt.config))
 
 

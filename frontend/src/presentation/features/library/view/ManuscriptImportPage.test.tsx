@@ -204,7 +204,7 @@ it('확정은 조정한 목록을 보내고 성공·일부 성공·실패를 따
 
 it('등록 버튼 곁에 OpenAI 전송 안내 한 줄을 두고 별도 확인 없이 등록한다', async () => {
   await toPreview()
-  const notice = screen.getByText('업로드한 원고는 세계관 자동 추출을 위해 OpenAI로 전송돼요.')
+  const notice = screen.getByText('세계관을 처음 만들 때는 업로드한 원고가 자동 추출을 위해 OpenAI로 전송돼요.')
   const button = screen.getByRole('button', { name: '3개 회차 등록' })
   expect(notice.closest('fieldset')).toBe(button.closest('fieldset'))
   expect(screen.queryByLabelText(/OpenAI/)).toBeNull()

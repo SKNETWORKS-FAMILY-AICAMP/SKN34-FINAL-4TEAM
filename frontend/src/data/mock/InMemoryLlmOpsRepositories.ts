@@ -1,7 +1,7 @@
 import type { JobRun, JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
 import { CANDIDATE_REQUIRED_MESSAGE, versionAction } from '../../domain/entities/llmOps'
 import type {
-  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
+  Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, OptimizationInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
 import type { PipelineNode, PipelineRecord, PipelineRecordQuery } from '../../domain/entities/llmOpsPipeline'
 import { OperationsError, OperationsRejected, type OperationsPage } from '../../domain/entities/operations'
@@ -194,6 +194,10 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     const p = found(this.prompts_.find((item) => item.name === name)), target = found(p.versions.find((v) => v.version === version))
     if (!target.labels.includes(`candidate-${version}`)) throw new OperationsRejected(CANDIDATE_REQUIRED_MESSAGE)
     for (const v of p.versions) v.labels = [...v.labels.filter((label) => label !== 'production'), ...(v === target ? ['production'] : [])]
+  }
+  /** 데모에는 개선을 돌리는 쪽이 없어 요청이 받아들여질 뿐이고(대상 버전만 확인), 데모 프롬프트에는 자동 개선 대상이 없어 화면에서는 이 요청이 나가지 않습니다. */
+  async optimize(name: string, { version }: OptimizationInput) {
+    found(this.prompts_.find((p) => p.name === name)?.versions.find((v) => v.version === version))
   }
   async models() { return structuredClone(this.modelRows) }
   async createModel(input: ModelInput) { this.modelRows.push({ id: `model-${this.modelRows.length + 1}`, ...input }) }
