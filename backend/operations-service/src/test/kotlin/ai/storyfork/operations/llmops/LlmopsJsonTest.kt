@@ -76,12 +76,15 @@ class LlmopsJsonTest {
     @Test
     fun `a prompt with its versions and evaluation has the contract fields`() {
         val tree = tree(PromptListResponse(listOf(Prompt("qa/answer", listOf(
-            PromptVersion(2, listOf("production"), at, PromptEvaluation("run-1", true, at)), PromptVersion(1, emptyList(), null, null),
+            PromptVersion(2, listOf("production"), at, PromptEvaluation("run-1", true, at), "gpt-x", json("\"지시\"")), PromptVersion(1, emptyList(), null, null),
         )))))
 
         val prompt = tree.path("items").path(0)
         assertEquals(listOf("name", "versions"), prompt.names())
-        assertEquals(listOf("version", "labels", "createdAt", "evaluation"), prompt.path("versions").path(0).names())
+        // model is the version's config.model and prompt the body (detail only); both are null when absent (#705).
+        assertEquals(listOf("version", "labels", "createdAt", "evaluation", "model", "prompt"), prompt.path("versions").path(0).names())
+        assertEquals(listOf("gpt-x", "지시"), listOf(prompt.path("versions").path(0).path("model").asString(), prompt.path("versions").path(0).path("prompt").asString()))
+        assertTrue(prompt.path("versions").path(1).path("model").isNull && prompt.path("versions").path(1).path("prompt").isNull)
         assertEquals(listOf("runId", "passed", "createdAt"), prompt.path("versions").path(0).path("evaluation").names())
         assertTrue(prompt.path("versions").path(1).path("evaluation").isNull)
         assertTrue(prompt.path("versions").path(1).path("createdAt").isNull)

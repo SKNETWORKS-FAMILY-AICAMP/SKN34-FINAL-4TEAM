@@ -87,7 +87,7 @@ export function Prompts({ vm, l }: Props) {
                 <th scope="col">모델</th>
                 <th scope="col">등록</th>
                 <th scope="col">회귀 평가</th>
-                <th scope="col" className="act">조치</th>
+                <th scope="col" className="admin-nowrap">조치</th>
               </tr>
             </thead>
             <tbody>
@@ -110,7 +110,7 @@ export function Prompts({ vm, l }: Props) {
                         )
                         : '평가 없음'}
                     </td>
-                    <td className="act">
+                    <td className="admin-nowrap">
                       {action === 'live'
                         ? '—'
                         : action === 'promote'
