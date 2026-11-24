@@ -37,11 +37,12 @@ vi.mock('../viewmodel/useManuscriptBuild', async () => {
   const { useEffect } = await import('react')
   return { useManuscriptBuild: () => { useEffect(() => { build.mounts += 1 }, []); return build.current } }
 })
-// 일괄 업로드 시트는 저장 결과로 닫히는 것만 필요해 대역이다. 시트 자체는 EpisodeBulkImportSheet.test가 본다.
+// 시트는 첫 회차의 저장본 유무 전달과 닫기 동작만 확인한다. 안내 표시는 EpisodeBulkImportSheet.test가 본다.
 vi.mock('./EpisodeBulkImportSheet', async () => {
   const { createElement } = await import('react')
   return {
-    EpisodeBulkImportSheet: (props: { onClose: (refresh: boolean) => void }) => createElement('div', { role: 'dialog' },
+    EpisodeBulkImportSheet: (props: { firstEpisodeUnsaved: boolean; onClose: (refresh: boolean) => void }) =>
+      createElement('div', { role: 'dialog', 'data-first-episode-unsaved': props.firstEpisodeUnsaved },
       createElement('button', { onClick: () => props.onClose(true) }, '저장하고 닫기'),
       createElement('button', { onClick: () => props.onClose(false) }, '저장 없이 닫기')),
   }
@@ -612,6 +613,17 @@ it('목업 빌드는 서버 조회가 없어 배지를 그리지도 조회하지
   showBuild('running')
   expect(screen.queryByText(BADGE)).toBeNull()
   expect(build.mounts).toBe(0)
+})
+
+it.each([
+  { rows: [row(1)], expected: 'true' },
+  { rows: [row(1, { versions: [saved('v1')] })], expected: 'false' },
+  { rows: [row(1, { inherited: true })], expected: 'false' },
+  { rows: undefined, expected: 'false' },
+])('소유자 회차 목록에서 1화의 저장본 유무를 확인해 일괄 업로드 시트에 전달한다 (%#)', ({ rows, expected }) => {
+  openWith({ writing: { id: 'w', rows } })
+  fireEvent.click(screen.getByRole('button', { name: '회차 파일 일괄 업로드' }))
+  expect(screen.getByRole('dialog').getAttribute('data-first-episode-unsaved')).toBe(expected)
 })
 
 it('일괄 업로드가 회차를 저장하고 닫히면 작품을 다시 읽고 배지도 상태를 다시 읽는다', () => {
