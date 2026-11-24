@@ -424,3 +424,16 @@ def test_content_fixture_matches_python_output():
     data = json.loads(path.read_text(encoding='utf-8'))
     rows = {row['number']: row for row in data['extractions']}
     assert service.organize(data['identity'], rows) == LoadPayload.model_validate(data['payload'])
+
+
+def test_extract_passes_a_regression_evaluations_instructions_and_model_to_the_agent_and_still_verifies(monkeypatch):
+    """#824: 평가가 지정한 버전의 본문·모델은 agent로 가고, 결과는 production과 같은 원문 검증을 거친다. 평소 호출은 아무것도 넘기지 않는다."""
+    seen = []
+    monkeypatch.setattr(service.agent, 'extract', lambda ep, instructions=None, model=None: seen.append((instructions, model)) or proposed())
+    episode = EpisodeText(number=1, title='계획', body='길동은 산을 넘을 계획이었다.')
+
+    evaluated = service.extract(episode, '평가할 버전 본문', 'gpt-evaluated')
+    service.extract(episode)
+
+    assert seen == [('평가할 버전 본문', 'gpt-evaluated'), (None, None)]
+    assert evaluated.statements[0].kind == 'plan' and evaluated.evidence[0].quote == '길동은 산을 넘을 계획이었다.'

@@ -132,10 +132,10 @@ def _validate(episode, proposed):
                              skipped=dict(skipped))
 
 
-def extract(episode: EpisodeText) -> EpisodeExtraction:
-    """한 회차를 실제 LLM으로 구조화하고 원문·ID·유형·시점을 다시 검증한다."""
+def extract(episode: EpisodeText, instructions: str | None = None, model: str | None = None) -> EpisodeExtraction:
+    """한 회차를 실제 LLM으로 구조화하고 원문·ID·유형·시점을 다시 검증한다. instructions·model은 회귀 평가가 지정한 프롬프트 버전의 본문·모델이다."""
     try:
-        return _validate(episode, agent.extract(episode))
+        return _validate(episode, agent.extract(episode) if instructions is None else agent.extract(episode, instructions, model))
     except (ValidationError, TypeError, ValueError, UnicodeError):
         raise PreprocessingFailure('INVALID_EXTRACTION') from None
 
