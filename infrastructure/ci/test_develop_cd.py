@@ -32,6 +32,8 @@ class DevelopDeploymentTest(unittest.TestCase):
                 '   [[ "${CD_LANGFUSE_COMPOSE_FILE:-}" == "$DOCKER_CONFIG/docker-compose.langfuse.yaml" && -f "${CD_LANGFUSE_COMPOSE_FILE:-}" ]] || exit 27\n'
                 '   [[ "$3 $4 $5 $6 $7" == "$CD_WEB_IMAGE $CD_CORE_API_IMAGE $CD_CONTENT_SERVICE_IMAGE $CD_AI_SERVICE_IMAGE $CD_OPERATIONS_SERVICE_IMAGE" ]] || exit 26\n'
                 '   printf "%040d\\n" 1 ;;\n'
+                # 실제 compose exec는 stdin을 컨테이너로 넘겨 끝까지 읽는다(스크립트가 stdin으로 읽히면 남은 줄을 먹는다).
+                ' *" exec "*) cat >/dev/null ;;\n'
                 'esac\n', encoding="utf-8")
             docker.chmod(0o755)
             env = dict(os.environ, CD_DIRECTORY=directory.replace("\\", "/"), CD_WEB_PORT="8088", TARGET_SHA="%040d" % 1,
@@ -96,6 +98,12 @@ class DevelopDeploymentTest(unittest.TestCase):
         smoke = after_pull.index("exec -T ai-service python -c")
         self.assertLess(after_pull.index("up -d --no-build --pull never --wait --wait-timeout 600\n"), smoke)
         self.assertLess(smoke, after_pull.index("image prune --force\n"))
+
+    def test_exec_that_reads_stdin_does_not_swallow_the_final_prune(self):
+        # 스크립트는 ssh의 `bash -se` stdin으로 읽히므로, stdin을 읽는 exec(위 fake docker)가 남은 줄을 먹으면 마지막 prune이 조용히 건너뛰어진다(#770).
+        code, commands, error = self.deploy()
+        self.assertEqual(0, code, error)
+        self.assertIn("image prune --force\n", commands.split("exec -T ai-service", 1)[1])
 
     def test_develop_stack_runs_official_elasticsearch_for_content_on_a_kept_volume(self):
         dev = (ROOT / "infrastructure/docker-compose.dev.yaml").read_text(encoding="utf-8")

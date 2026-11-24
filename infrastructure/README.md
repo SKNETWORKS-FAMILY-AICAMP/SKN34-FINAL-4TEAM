@@ -181,6 +181,7 @@ develop CI가 성공하면 CD가 [`docker-compose.dev.yaml`](docker-compose.dev.
 - **AI 이미지**: `--extra manuscript`(numpy·onnxruntime·tokenizers, `uv.lock` 고정)를 설치합니다. 고정 리비전 `614241f6…`의 `onnx/model_qint8_avx512_vnni.onnx`와 `onnx/tokenizer.json`은 빌드할 때 `ADD --checksum`으로 받으며, SHA-256이 다르면 빌드가 실패합니다. 위치는 `MANUSCRIPT_EMBEDDING_MODEL_DIR=/app/models/multilingual-e5-small`입니다. 서버에는 모델 디렉터리나 `.env` 값을 따로 둘 필요가 없습니다.
 - **배포 확인**: 스택이 healthy가 된 뒤 CD가 `ai-service`에서 E5 임베딩을 한 번 실행합니다. 실패하면 이전 이미지를 정리하지 않고 CD를 실패로 끝냅니다.
 - **디스크 확보**: pull 전에 dangling 이미지(`docker image prune --force`)와 빌드 캐시(`docker builder prune --force`)만 지우고 `df -h /`·`docker system df`를 로그에 남깁니다. 태그 있는 이미지·컨테이너·볼륨(공유 DB 포함)은 지우지 않습니다(#770).
+- **원격 스크립트 stdin**: 스크립트를 SSH stdin(`bash -se`)으로 보내므로 stdin을 읽는 명령이 남은 줄을 먹을 수 있습니다. stdin을 넘기는 `docker compose exec`에는 `</dev/null`을 붙여 마지막 `docker image prune --force`가 성공 종료 속에 건너뛰어지지 않게 합니다(#770).
 
 배포 전제조건은 CD가 확인하지 않으므로 서버 관리자가 확인해야 합니다.
 
