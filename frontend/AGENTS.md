@@ -119,7 +119,7 @@ View 이벤트 → ViewModel handler → UseCase 메서드 호출
 - 같은 상태를 Hook과 Redux에 중복 저장하지 않는다. Redux에는 직렬화 가능한 값만 넣고 `AbortController`·타이머는 넣지 않는다.
 - 진행 중 중복 전송을 막고, 새 요청·화면 이탈·로그아웃 시 이전 요청을 취소하며 요청 ID로 늦은 응답을 무시한다.
 - 로딩·실패·완료 표시는 실제 API 결과와 일치시킨다. AI 제안 도착을 저장·승인·발행 완료로 표시하지 않는다.
-- 시트 안에서 보낸 요청의 거절·실패는 시트가 열려 있는 동안 시트 안 `role="alert"`에 남기고 이미 닫았으면 토스트로 알린다(`reading/viewmodel/useInlineFailure.ts`). 접수 결과는 `role="status"`로 알리고 '확인'에 초점을 둔다. 곧 사라지는 토스트만으로 결과를 알리지 않는다(서재 '내 제보'는 `shared/feedbackReports/useReportSender`의 `notice`를 그 카드 안에 남긴다).
+- 시트 안에서 보낸 요청의 거절·실패는 시트가 열려 있는 동안 시트 안 `role="alert"`에 남기고 이미 닫았으면 토스트로 알린다(`reading/viewmodel/useInlineFailure.ts`). 접수 결과는 `role="status"`로 알리고 '확인'에 초점을 둔다. '내 제보·수정 제안' 내역 링크는 접수한 뒤에만 링크로 두고(쓰는 중 이동으로 입력을 잃지 않게) 읽던 회차 경로를 `state.back`으로 넘겨, 그 화면의 돌아가기 링크가 `회차로 돌아가기`가 된다. 수정 제안은 접수 뒤에도 보낸 글을 읽기 전용으로 남긴다. 곧 사라지는 토스트만으로 결과를 알리지 않는다(서재 '내 제보'는 `shared/feedbackReports/useReportSender`의 `notice`를 그 카드 안에 남긴다).
 - 같은 목록 안의 필터·선택을 바꿔 다시 읽을 때는 `useAsyncData`의 `refresh`로 이전 목록을 유지한 채 읽고(`/chat` 목록 필터, `/inbox?i=` 선택), 조회 중·실패(다시 불러오기)는 그 화면의 틀 안에서 알린다.
 
 ## 데모 화면과 실제 기능

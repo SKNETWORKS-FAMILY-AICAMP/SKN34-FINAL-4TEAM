@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { useLocation } from 'react-router'
 
 import { SUGGESTION_MAX } from '../../../../domain/entities/editSuggestion'
 import type { Sentence } from '../../../../domain/entities/feedback'
@@ -16,20 +17,21 @@ export function EditSuggestionSheet({ workId, n, sentence, onClose }: { workId: 
   const [after, setAfter] = useState(sentence.t)
   const [reason, setReason] = useState('')
   const hint = useId()
+  const { pathname } = useLocation()
   // 비었거나 원문과 같으면 보낼 수 없다(UseCase·서버도 같은 규칙으로 거절한다).
   const unchanged = !after.trim() || after.trim() === sentence.t.trim()
   return (
     <Sheet sid="U06" label="문장 수정 제안" onClose={onClose}>
       <div className="sh-h"><h3>✎ 수정 제안 · {n}화</h3><button type="button" className="x" aria-label="닫기" onClick={onClose}>✕</button></div>
       <div className="quote">{sentence.t}</div>
+      <label className="field">고친 문장<textarea className="ta" data-autofocus maxLength={SUGGESTION_MAX} readOnly={vm.done} value={after} onChange={(e) => setAfter(e.target.value)} /></label>
+      <label className="field">사유 (선택)<textarea className="ta" maxLength={SUGGESTION_MAX} readOnly={vm.done} placeholder="왜 고치면 좋은지 적어 주세요" value={reason} onChange={(e) => setReason(e.target.value)} /></label>
       {vm.done ? (
-        <SheetReceipt status="접수됨" onClose={onClose} message={<>
-          수정 제안을 보냈어요. 작가가 검토하면 상태가 바뀌어요. 계정 메뉴의 <Go to="/content?view=reports">내 제보·수정 제안</Go>에서 확인할 수 있어요.
+        <SheetReceipt status="검토 대기" onClose={onClose} message={<>
+          수정 제안을 보냈어요. 작가가 검토하면 상태가 바뀌어요. 계정 메뉴의 <Go to="/content?view=reports" state={{ back: pathname }}>내 제보·수정 제안</Go>에서 확인할 수 있어요.
         </>} />
       ) : (
         <>
-          <label className="field">고친 문장<textarea className="ta" data-autofocus maxLength={SUGGESTION_MAX} value={after} onChange={(e) => setAfter(e.target.value)} /></label>
-          <label className="field">사유 (선택)<textarea className="ta" maxLength={SUGGESTION_MAX} placeholder="왜 고치면 좋은지 적어 주세요" value={reason} onChange={(e) => setReason(e.target.value)} /></label>
           <div className="note">작가가 승인해야 원고에 반영돼요. 승인해도 발행은 작가가 따로 하며, 자동 반영은 없어요.</div>
           {vm.error && <p role="alert">{vm.error}</p>}
           {unchanged && <p id={hint} className="small muted">원래 문장과 달라야 보낼 수 있어요.</p>}

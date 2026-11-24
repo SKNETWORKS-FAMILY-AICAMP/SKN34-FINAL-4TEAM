@@ -3,7 +3,7 @@ import { SuggestionDiff, SuggestionStatusChip } from '../../../shared/editSugges
 import { useMyEditSuggestionsViewModel } from '../viewmodel/useMyEditSuggestionsViewModel'
 
 /**
- * 내 서재 '내 댓글·신고' 탭의 내 수정 제안(기능 24). 상태만 읽습니다.
+ * ‘내 제보·수정 제안’ 화면의 내 수정 제안(기능 24). 상태만 읽습니다.
  * 승인돼도 독자에게 보이려면 작가가 발행해야 하므로 초안 반영과 발행을 구분해 안내합니다.
  * embedded는 작품 관리의 '내 제보·수정 제안' 탭 안이다: 탭 제목(h2) 아래 묶음 제목이라 h3다(그 밖에는 쪽 제목(h1) 아래 구획이라 h2).
  */

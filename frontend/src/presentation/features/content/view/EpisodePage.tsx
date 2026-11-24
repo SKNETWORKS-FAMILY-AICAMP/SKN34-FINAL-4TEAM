@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
 import '../../../shared/episode.css'
@@ -23,6 +23,9 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
   const [params] = useSearchParams()
   const wanted = params.get('work')
   const reports = params.get('view') === 'reports'
+  // 독자 시트의 내역 링크로 왔으면 읽던 회차로 돌아간다(앱이 넘긴 state의 `/read/` 경로만 받는다).
+  const backState: unknown = useLocation().state
+  const readerBack = reports && backState && typeof backState === 'object' && 'back' in backState && typeof backState.back === 'string' && backState.back.startsWith('/read/') ? backState.back : null
   const vm = useEpisodeViewModel(wanted, useCase)
   const w = vm.active
   const loading = !!wanted && !vm.ready
@@ -63,7 +66,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
         <main className='ep-main' id='main' tabIndex={-1}>
           {!(managed && menuOpen) && (
             <div className='ep-top'>
-              <Go to='/lib?tab=write' className='ep-back'><BackChev />내가 쓰는 소설</Go>
+              <Go to={readerBack ?? '/lib?tab=write'} className='ep-back'><BackChev />{readerBack ? '회차로 돌아가기' : '내가 쓰는 소설'}</Go>
             </div>
           )}
           {!managed && notices}

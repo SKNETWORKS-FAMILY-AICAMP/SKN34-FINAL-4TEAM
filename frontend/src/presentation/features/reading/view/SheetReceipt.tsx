@@ -10,7 +10,7 @@ export function SheetReceipt({ status, message, onClose }: { status: string; mes
   useEffect(() => { ok.current?.focus() }, [])
   return (
     <>
-      <div className="reply" role="status" id={result}><span className={`chip ${['접수됨', '작가 확인 전', '작가 검토 대기', '분석 중', '필터 대기'].includes(status) ? 'wait' : 'ok'}`}>{status}</span> {message}</div>
+      <div className="reply" role="status" id={result}><span className={`chip ${['접수됨', '작가 확인 전', '작가 검토 대기', '검토 대기', '분석 중', '필터 대기'].includes(status) ? 'wait' : 'ok'}`}>{status}</span> {message}</div>
       <div className="rowend"><button ref={ok} type="button" className="btn pri" aria-describedby={result} onClick={onClose}>확인</button></div>
     </>
   )

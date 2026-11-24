@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router'
 
 import { FEEDBACK_TYPES, REPORT_TYPES, type FeedbackType, type Sentence } from '../../../../domain/entities/feedback'
 import { REPORT_BODY_MAX, REPORT_VISIBILITY_LABEL, type FeedbackReportVisibility } from '../../../../domain/entities/feedbackReport'
@@ -110,6 +111,7 @@ export function FeedbackSheet({ workId, n, sentence, onClose, canonical = false,
   const [done, setDone] = useState<{ status: string; message: string } | null>(null)
   const [busy, setBusy] = useState(false)
   const failure = useInlineFailure()
+  const { pathname } = useLocation()
   return (
     <Sheet sid="U06" label="피드백 보내기" onClose={onClose}>
       <Head title={`✉ 피드백 보내기 · ${n}화`} onClose={onClose} />
@@ -126,7 +128,7 @@ export function FeedbackSheet({ workId, n, sentence, onClose, canonical = false,
           </select>
         </label>
       )}
-      {canonical ? <p className="note">제보는 작가에게 전달되고, 작가가 확인하거나 답변하면 상태가 바뀌어요. 계정 메뉴의 <Go to="/content?view=reports">내 제보·수정 제안</Go>에서 제보를 정정·철회하거나 공개 범위를 바꿀 수 있어요. 자동 분석이나 자동 답변은 없어요.</p> : type === '스토리 오류' && !done ? (
+      {canonical ? <p className="note">제보는 작가에게 전달되고, 작가가 확인하거나 답변하면 상태가 바뀌어요. 계정 메뉴의 {done ? <Go to="/content?view=reports" state={{ back: pathname }}>내 제보·수정 제안</Go> : '내 제보·수정 제안'}에서 제보를 정정·철회하거나 공개 범위를 바꿀 수 있어요. 자동 분석이나 자동 답변은 없어요.</p> : type === '스토리 오류' && !done ? (
         <>
           <label className="ck"><input type="checkbox" checked={storyCheck} onChange={(e) => setStoryCheck(e.target.checked)} /> 스토리 오류 검증 시뮬레이션에 동의</label>
           <p className="note">기본 피드백은 무료예요. 선택 검증의 비용과 한도는 미정이며, 이 데모는 실제 AI 호출이나 차감이 없어요. 오류가 검증·반영되면 보상 크레딧을 줄 수 있지만 실제 보상은 연결되지 않았어요. 정식 서비스의 유해 콘텐츠 1차 필터는 연결되지 않았어요.</p>
