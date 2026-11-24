@@ -918,26 +918,6 @@ def test_an_explicit_fix_patches_the_finding_even_with_a_selected_text(monkeypat
     assert [patch.selection for name, (patch, *_), _ in calls if name == 'patch'] == ['바람이 차가왔다.']
 
 
-@pytest.mark.parametrize('streamed', [False, True], ids=['run', 'stream'])
-@pytest.mark.parametrize('approved, status, patched', [(True, 'waiting', ['바람이 차가왔다.']), (False, 'cancelled', [])], ids=['picked', 'cancelled'])
-def test_a_turn_stopped_to_pick_a_finding_keeps_the_answer_with_a_selected_text(monkeypatch, approved, status, patched, streamed):
-    """#636 전에 선택 글이 실린 채 지적 고르기에서 멈춘 턴: 작가가 고른 번호와 취소를 선택 글 수정으로 바꾸지 않는다."""
-    thread = str(uuid4())
-    calls = conditional(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'))
-    assert write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW}).missingInputs == ['writing_editing']
-    # 지금 코드는 선택 글이 있으면 이 대기를 만들지 않으므로, 멈춘 턴의 저장된 화면에 선택 글이 있던 상태를 만든다.
-    main = service._run_main_agent
-    monkeypatch.setattr(service, '_run_main_agent', lambda state, config: main({**state, 'page': SELECTED_PAGE}, config))
-    inputs = {'writing_editing': {'fix': 1}} if approved else {}
-    answer = {'approved': approved, 'inputs': inputs}
-    if streamed:  # 화면은 stream으로 이어 간다
-        done = stream(request=None, conversation={'threadId': thread, 'scope': 'user:1/work:1'}, resume=answer)[-1][1]['status']
-    else:
-        done = write_turn(thread, resume=answer).status
-    assert done == status
-    assert [patch.selection for name, (patch, *_), _ in calls if name == 'patch'] == patched
-
-
 def test_writing_result_waits_for_author_approval_before_any_write(monkeypatch):
     fake_agents(monkeypatch, plan('writing_editing'))
     applied = writer(monkeypatch)

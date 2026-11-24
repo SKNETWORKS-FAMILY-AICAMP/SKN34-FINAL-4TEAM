@@ -8,7 +8,7 @@ import { createAppStore } from '../../../app/store'
 import type { CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { chatPage, type ChatEvent, type ChatStep } from '../../../domain/entities/writingChat'
 import { useWritingChatViewModel } from './useWritingChatViewModel'
-import { NO_BEFORE } from './PendingActionCard'
+import { NO_BEFORE, WORK_CHANGED_NOTE } from './PendingActionCard'
 import { WritingChat } from './WritingChat'
 
 const { sessions, history, send, open, writingEpisode } = vi.hoisted(() => ({ sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), writingEpisode: vi.fn() }))
@@ -750,6 +750,16 @@ it('카드를 찾을 수 없는 화면(집필실)의 카드 수정 승인은 새
   expect(screen.queryByText(/새 설정/)).toBeNull()
   expect(screen.getByText(NO_BEFORE)).toBeTruthy()
   expect(screen.getByText(/실행하지 않기를 누르면 아무것도 바뀌지 않아요/)).toBeTruthy()
+  expect(screen.queryByText(WORK_CHANGED_NOTE)).toBeNull()
+})
+
+it('작품 정보 수정 승인은 원고 저장으로 작품이 바뀌면 실행하지 않고 다시 제안한다고 미리 알린다(#687)', async () => {
+  openThread([{ request: '소개를 바꿔 줘', reply: { status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'content_action',
+    pendingAction: { tool: 'work_update', label: '작품 정보 수정', args: { id: 'w', data: { title: '제목', summary: '소개', revision: 12 } } } } }])
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  expect(await screen.findByText(WORK_CHANGED_NOTE)).toBeTruthy()
+  expect(screen.getByText(/이 내용이 작품 정보에 반영돼요/)).toBeTruthy()
+  expect((screen.getByRole('button', { name: '실행' }) as HTMLButtonElement).disabled).toBe(false)
 })
 
 it('새 메시지를 보낼 때만 지금 화면(page)을 싣고, 이어가기에는 싣지 않는다', async () => {
@@ -1036,7 +1046,7 @@ it('승인한 Content 계획 도구(story_plan_create·story_plan_update)도 계
 describe('집필 AI 채팅 첨부(#617)', () => {
   const png = () => new File([new Uint8Array([137, 80, 78, 71])], '지도.png', { type: 'image/png' })
   const note = (text = '북문은 밤에 닫힌다.') => new File([text], '메모.md', { type: '' })
-  const attach = (...files: File[]) => fireEvent.drop(document.querySelector('.chat-card')!, { dataTransfer: { files } })
+  const attach = (...files: File[]) => fireEvent.drop(document.querySelector('.chat-card')!, { dataTransfer: { files, types: ['Files'] } })
   const ask = (text: string) => { fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: text } }); fireEvent.click(screen.getByRole('button', { name: '전송' })) }
   const chipsOf = (name: string) => within(screen.getByRole('list', { name })).getAllByRole('listitem').map((li) => li.textContent)
 
@@ -1045,8 +1055,8 @@ describe('집필 AI 채팅 첨부(#617)', () => {
     renderChat()
     await screen.findByText('새 대화', { selector: 'h3' })
     const row = document.querySelector('.chat-sessions')!
-    expect(fireEvent.dragOver(row, { dataTransfer: { files: [png()] } })).toBe(false)
-    expect(fireEvent.drop(row, { dataTransfer: { files: [png()] } })).toBe(false)
+    expect(fireEvent.dragOver(row, { dataTransfer: { files: [png()], types: ['Files'] } })).toBe(false)
+    expect(fireEvent.drop(row, { dataTransfer: { files: [png()], types: ['Files'] } })).toBe(false)
   })
 
   it('고른 이미지·텍스트를 Base64로 읽어 새 요청에 싣고, 보낸 첨부는 입력창에서 비운다', async () => {

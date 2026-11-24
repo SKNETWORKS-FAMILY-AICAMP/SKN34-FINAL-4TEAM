@@ -2,7 +2,7 @@ import { StoryPlanPanel } from '../../plans/view/StoryPlanWorkspace'
 import { useStoryPlanViewModel } from '../../../shared/plans/useStoryPlanViewModel'
 import { useWritingPlanNavigation } from '../viewmodel/useWritingPlanNavigation'
 import { Suspense,useEffect,useEffectEvent,useId,useRef,useState,type ReactNode } from 'react'
-import { useLocation,useSearchParams } from 'react-router'
+import { useLocation,useNavigate,useSearchParams } from 'react-router'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
 import { appContainer } from '../../../../app/appContainer'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
@@ -20,6 +20,7 @@ import { McpChangeBanner } from '../../../shared/McpChangeBanner'
 import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { useScreenId } from '../../../shared/screenIds'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
+import { requestLeave } from '../../../shared/events'
 import {ManuscriptBody} from '../../../shared/media/MediaPanel'
 import { ManuscriptExportPanel } from './ManuscriptExportPanel'
 import { EpisodeImagePanel } from './EpisodeImagePanel'
@@ -130,8 +131,15 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const {dark,toggle:toggleTheme}=useTheme()
   const dispatch=useAppDispatch()
   // 로그인이 풀린 오류의 '로그인' 링크: 로그인 뒤 홈이 아니라 쓰던 회차(?ep=n 포함)로 돌아오게 현재 주소를 넘긴다(댓글·작품 화면과 같은 방식).
-  const {pathname,search}=useLocation()
+  const {pathname,search,key:locationKey}=useLocation()
+  const navigate=useNavigate()
   const requireLogin=()=>{dispatch(sessionActions.requireLogin({next:pathname+search,msg:'로그인하면 쓰던 회차로 돌아와요. 저장하지 않은 입력은 먼저 복사해 두세요.',role:'user'}))}
+  // 상단 '뒤로': 앱 안에 이전 화면이 있으면 그리로(서재든 작품 관리든 온 곳), 없으면(주소를 직접 연 첫 항목) 이 작품의 관리 화면으로 간다.
+  // 이전 화면으로 갈 때의 저장 확인은 되돌아가기 보호(useWritingPlanNavigation의 popstate)가 맡으므로 여기서 묻지 않는다(묻으면 두 번 뜬다). 첫 항목으로의 이동은 링크 클릭이 아니라 그 보호가 못 잡아 직접 확인한다.
+  const goBack=()=>{
+    if(locationKey!=='default'){navigate(-1);return}
+    if(requestLeave())navigate(`/content?work=${encodeURIComponent(id)}`)
+  }
   const showSid=useAppSelector(s=>s.ui.showSid)
   const dev=import.meta.env.DEV
   // 고급 패널은 숨겨도 마운트를 유지해 계획 입력과 원고를 함께 보존한다.
@@ -190,8 +198,11 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   }[historyView]
   const comparison=useVersionComparisonViewModel(active?.versions??[],versionsOpen&&active?`${id}:${active.number}`:'')
   const selected=active?.number===selection.episode?active.versions.find(v=>v.id===selection.id):undefined
-  // 그래프의 저장 버전 노드는 기존 버전 시트를 열고 그 버전을 선택해 둔다(비교·복원·공개는 시트의 기존 기능).
+  // 편집이 잠긴 회차의 그래프 노드는 기존 버전 시트를 열고 그 버전을 선택해 둔다(비교·복원·공개는 시트의 기존 기능).
   const openVersion=(versionId:string)=>{if(!active)return;setSelection({episode:active.number,id:versionId});setRights(false);setHistoryView('versions');setVersionsOpen(true)}
+  // 그래프의 저장 버전 노드(#730): 편집할 수 있는 회차면 시트 없이 그 버전을 작업 초안에 불러온다(새 버전은 만들지 않고 자동 저장이 초안으로 저장한다, 남기려면 버전 저장).
+  // 시트의 '복원' 버튼과 같은 잠금(원작 기준·AI 자율 연재·운영자 열람)에서는 본문을 바꾸지 않고 위 시트로 미리보기만 보인다. 요청 중에는 그래프 노드 자체가 잠겨(disabled) 이 함수가 불리지 않는다.
+  const pickVersion=(versionId:string)=>{if(active?.inherited||noWrite||viewOnly)openVersion(versionId);else vm.loadVersion(versionId)}
   // 항목의 ⋮ 메뉴가 고른 회차를 먼저 선택한다(저장하지 않은 입력을 버리지 않으면 false). 이미 선택된 회차는 다시 고르지 않는다.
   const pick=(e:WritingEpisode)=>{if(active?.number===e.number)return true;if(!vm.select(e))return false;setSelection({episode:0,id:''});setRights(false);return true}
   // 승인을 기다리는 장면·제안의 반영 회차(서버가 알려 준 값)가 열린 회차와 다르면 편집기를 그 회차로 연다. 새로 고친 뒤 주소의 ?ep=n이 다른 회차여도 승인 문구와 편집기가 같은 회차를 가리킨다.
@@ -220,7 +231,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     {/* 상단 바: 왼쪽은 어디서 무엇을 하는지(돌아가기·제목·저장 상태), 오른쪽은 자주 쓰는 네 가지(모드·버전 저장·버전 공개·더보기)만 둔다. */}
     <header ref={bar} className="sbar">
       <div className="writing-bar">
-        <Go className="back rback" to="/lib?tab=write"><BackChev />내가 쓰는 소설</Go>
+        <button type="button" className="back rback" onClick={goBack}><BackChev />뒤로</button>
         <h1 className="t">집필실</h1>
         {/* 완료 안내는 늘 있는 이 줄에 이어 적는다: 알림 문단이 생기고 사라지며 아래 3단을 밀지 않고, 스크린리더도 저장 상태와 함께 한 번만 읽는다. */}
         <span ref={statusLine} tabIndex={-1} className="st" role="status" aria-live="polite">{status}{vm.notice&&<span className="writing-notice"> · {vm.notice}</span>}</span>
@@ -292,7 +303,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
             <ResizeSeparator label="회차 목록과 버전 그래프 크기 조절" controls={listId} value={split} min={20} max={80} onChange={setSplit} />
             <section className="writing-graph" aria-label="버전 그래프">
               <h2>버전 그래프 · {active.number}화</h2>
-              <VersionGraph rows={versionGraphRows(active,vm.dirty)} selectedId={selected?.id??''} disabled={vm.busy} onPick={openVersion}/>
+              <VersionGraph rows={versionGraphRows(active,vm.dirty,vm.draft)} selectedId={selected?.id??''} disabled={vm.busy} onPick={pickVersion}/>
             </section>
           </>}
         </div>

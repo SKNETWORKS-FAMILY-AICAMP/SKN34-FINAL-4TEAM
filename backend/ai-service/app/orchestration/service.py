@@ -59,7 +59,7 @@ from app.orchestration import agent, mcp_tools
 from app.orchestration.models import (CONTENT_ACTION, ChatHistory, ChatSession, ChatTurn, OrchestrationRequest,
                                       OrchestrationResponse, Resume)
 from app.orchestration.prompt import screen
-from app.orchestration.tools import HISTORY_TURNS, RESUME_FIX, history as _history, previous as _previous, task as _task
+from app.orchestration.tools import HISTORY_TURNS, history as _history, previous as _previous, task as _task
 from app.simulation import service as simulation
 from app.simulation.models import Scene, SimulationPlan
 from app.simulation.scene_agent import scene_agent, turn as simulation_turn
@@ -452,8 +452,6 @@ async def _target(data: OrchestrationRequest):
         raise NothingToResume()
     waiting = snapshot.interrupts[0].value
     _check_scene(data.resume, waiting)
-    if waiting.get('missingInputs') and waiting['steps'][-1].get('when') == 'if_issues_found':
-        config = merge_configs(config, {'configurable': {RESUME_FIX: True}})
     asked = waiting.get('action_requests')
     if data.resume.refresh and (not asked or asked[0]['name'] != 'world_studio_edit_draft'):  # 다른 대기에 그대로 넘기면 취소·거절로 처리된다
         raise NothingToResume()
@@ -461,7 +459,8 @@ async def _target(data: OrchestrationRequest):
     if asked:  # Content 쓰기 도구 승인(HITL): {approved, refresh}를 HumanInTheLoopMiddleware의 결정으로 바꾼다
         decision = ({'type': 'approve'} if data.resume.approved else {'type': 'respond', 'message': agent.REFRESH} if data.resume.refresh
                     else {'type': 'reject', 'message': CONTENT_ACTION_REJECTED})
-        answer = {'decisions': [decision] * len(asked)}
+        # 결정에 작가가 본 카드의 인자를 싣는다: 승인 뒤 낡아 다시 묻는 작품 정보 수정 카드(#687)는 이어갈 때 함수가 처음부터 다시 돌아도 그 인자 그대로 실행해야 한다(mcp_tools.execute).
+        answer = {'decisions': [{**decision, 'args': a['args']} for a in asked]}
         if token := data.resume.scope:  # 결정에는 실을 자리가 없어 이 요청의 설정으로 넘긴다. WriteApproval이 저장한다(#678).
             config = merge_configs(config, {'configurable': {agent.RESUME_SCOPE: token.model_dump()}})
     return CHAT, config, Command(resume=answer), dict(snapshot.values)

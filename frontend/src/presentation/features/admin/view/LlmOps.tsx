@@ -84,7 +84,7 @@ function Traces({ vm, l }: { vm: VM; l: LlmVM }) {
         </label>
         <label className="field">회원<input className="inp" name="userId" defaultValue={f.userId} placeholder="회원 ID" /></label>
         <label className="field">요청 ID<input className="inp" name="requestId" defaultValue={f.requestId} placeholder="AI 요청 ID" /></label>
-        <button type="submit" className="btn sm pri">조회</button>
+        <button type="submit" className="btn sm">조회</button>
       </form>
       <LiveState vm={vm} label="추적 목록" state={l.traces} forbidden={LLM_FORBIDDEN} />
       {page && (page.items.length
@@ -213,7 +213,7 @@ function Metrics({ vm, l }: { vm: VM; l: LlmVM }) {
           묶음
           <select className="inp" name="groupBy" defaultValue={q.groupBy}>{METRICS_GROUPS.map(([value, label]) => <option key={value} value={value}>{label}별</option>)}</select>
         </label>
-        <button type="submit" className="btn sm pri">조회</button>
+        <button type="submit" className="btn sm">조회</button>
       </form>
       <LiveState vm={vm} label="지표 현황" state={l.metrics} forbidden={LLM_FORBIDDEN} />
       {m && (

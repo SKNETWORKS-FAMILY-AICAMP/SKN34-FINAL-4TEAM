@@ -115,14 +115,13 @@ describe('계정 (U30~U35E)', () => {
     expect(where()).toBe('/login')
   })
 
-  it('로그인 전에는 보호 메뉴가 로그인으로 가고, 가입 화면은 미정 약관을 안내한다', async () => {
+  it('로그인 전에는 보호 메뉴가 로그인으로 가고, 가입 화면에는 약관 동의 입력이 없다', async () => {
     renderAt('/me/profile', null)
     await waitFor(() => expect(where()).toBe('/login'))
     cleanup()
     renderAt('/me/signup', null)
     await screen.findByRole('heading', { name: '회원가입' })
     expect(document.getElementById('sid')).toBeNull()
-    expect(screen.getByText(/운영 약관과 동의 절차는 준비 중/)).toBeTruthy()
     expect(screen.queryByLabelText('전체 동의')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '가입 요청' }))
     expect(screen.getByText('이메일 형식을 확인해 주세요')).toBeTruthy()

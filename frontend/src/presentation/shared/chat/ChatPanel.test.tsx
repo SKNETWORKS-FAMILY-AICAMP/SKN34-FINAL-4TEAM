@@ -254,7 +254,7 @@ describe('공용 채팅 비활성·첨부', () => {
   const IMAGES = 'image/png,image/jpeg,image/webp'
   const TEXTS = '.txt,.md,text/plain,text/markdown'
   const chips = () => screen.queryByRole('list', { name: '보낼 첨부' })
-  const drop = (container: HTMLElement, ...files: File[]) => fireEvent.drop(card(container), { dataTransfer: { files } })
+  const drop = (container: HTMLElement, ...files: File[]) => fireEvent.drop(card(container), { dataTransfer: { files, types: ['Files'] } })
 
   it('비활성 사유가 있으면 입력·전송·첨부를 모두 잠그고 사유를 카드 아래에 연결해 알린다', () => {
     const onSend = vi.fn()
@@ -309,8 +309,8 @@ describe('공용 채팅 비활성·첨부', () => {
     expect(screen.getAllByText(note)).toHaveLength(1)
     // 첨부가 꺼진 화면은 파일 선택 칸도 없고, 파일을 끌어다 놓아도 아무것도 가로채지 않는다
     expect(container.querySelector('input[type="file"]')).toBeNull()
-    expect(fireEvent.dragOver(card(container))).toBe(true)
-    expect(fireEvent.dragOver(screen.getByRole('log', { name: '대화 내용' }))).toBe(true)
+    expect(fireEvent.dragOver(card(container), { dataTransfer: { types: ['Files'] } })).toBe(true)
+    expect(fireEvent.dragOver(screen.getByRole('log', { name: '대화 내용' }), { dataTransfer: { types: ['Files'] } })).toBe(true)
     // 마이크는 항상 준비 중이라 잠겨 있다
     expect((screen.getByRole('button', { name: '음성 입력 (준비 중)' }) as HTMLButtonElement).disabled).toBe(true)
     // Escape로 닫으면 + 버튼으로 초점이 돌아온다
@@ -343,7 +343,7 @@ describe('공용 채팅 비활성·첨부', () => {
 
   it('입력 카드에 끌어다 놓은 파일도 같은 검사를 거쳐 칩이 된다', () => {
     const { container } = render(<ChatPanel messages={[]} onSend={vi.fn()} checkFile={checkAttachment} />)
-    expect(fireEvent.dragOver(card(container))).toBe(false) // preventDefault: 놓을 수 있다
+    expect(fireEvent.dragOver(card(container), { dataTransfer: { types: ['Files'] } })).toBe(false) // preventDefault: 놓을 수 있다
     drop(container, png(), note())
     expect(within(chips()!).getAllByRole('listitem').map(li => li.textContent)).toEqual(['이미지 · 지도.png×', '텍스트 · 메모.md×'])
   })
@@ -351,8 +351,16 @@ describe('공용 채팅 비활성·첨부', () => {
   it('입력 카드 밖(대화 영역)에 파일을 놓아도 브라우저가 파일을 열어 화면을 떠나지 않지만, 첨부로 받지는 않는다(#688 UI 리뷰 P2)', () => {
     render(<ChatPanel messages={[{ id: 'a', role: 'assistant', text: '답' }]} onSend={vi.fn()} checkFile={checkAttachment} />)
     const log = screen.getByRole('log', { name: '대화 내용' })
-    expect(fireEvent.dragOver(log)).toBe(false) // preventDefault: 브라우저의 파일 열기(탐색)를 막는다
-    expect(fireEvent.drop(log, { dataTransfer: { files: [png()] } })).toBe(false)
+    expect(fireEvent.dragOver(log, { dataTransfer: { types: ['Files'] } })).toBe(false) // preventDefault: 브라우저의 파일 열기(탐색)를 막는다
+    expect(fireEvent.drop(log, { dataTransfer: { files: [png()], types: ['Files'] } })).toBe(false)
+    expect(chips()).toBeNull()
+  })
+
+  it('글자를 끌어다 입력창에 놓는 것은 막지 않고 첨부로도 받지 않는다(#706)', () => {
+    render(<ChatPanel messages={[]} onSend={vi.fn()} checkFile={checkAttachment} />)
+    const text = { dataTransfer: { files: [], types: ['text/plain'], getData: () => '북문' } }
+    expect(fireEvent.dragOver(box(), text)).toBe(true)
+    expect(fireEvent.drop(box(), text)).toBe(true)
     expect(chips()).toBeNull()
   })
 

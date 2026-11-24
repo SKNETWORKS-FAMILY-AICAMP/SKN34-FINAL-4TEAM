@@ -19,7 +19,7 @@ const originals = (count: number) => Array.from({ length: count }, (_, index) =>
 /** 목록을 불러와 첫 카드(heading)가 보일 때까지 기다린다. */
 const show = async (works: object[], heading = '내 포크') => {
   api.list.mockResolvedValueOnce(works)
-  const view = render(<MemoryRouter><ServerWritingList /></MemoryRouter>)
+  const view = render(<MemoryRouter><ServerWritingList newTo="/content" /></MemoryRouter>)
   await screen.findByRole('heading', { name: heading })
   return view
 }
@@ -84,7 +84,7 @@ it('shows ten works per page, marks the current page, and returns to page 1 when
 
 it('offers a retry next to the load error instead of a refresh button', async () => {
   api.list.mockRejectedValueOnce(new Error('접근 권한이 없어요')).mockResolvedValueOnce([original])
-  render(<MemoryRouter><ServerWritingList /></MemoryRouter>)
+  render(<MemoryRouter><ServerWritingList newTo="/content" /></MemoryRouter>)
   expect((await screen.findByRole('alert')).textContent).toBe('접근 권한이 없어요')
   fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
   await screen.findByRole('heading', { name: '원작' })
@@ -99,21 +99,46 @@ it('is titled 집필 중인 작품 and has no refresh button, Fork toggle, or Fo
   expect(screen.queryByRole('button', { name: /새로고침|내 포크만 보기|포크 삭제|포크 공개 중단|기본 정보 저장/ })).toBeNull()
 })
 
-it('opens the work management page and the writing studio from separate links on every card', async () => {
+it('opens the writing studio from the one primary button of every card and the work management page only from the title link that covers the card', async () => {
   await show([original, fork])
-  expect(screen.getByRole('link', { name: '내 포크 관리하기' }).getAttribute('href')).toBe('/content?work=fork')
   expect(screen.getByRole('link', { name: '내 포크 회차 작성하기' }).getAttribute('href')).toBe('/studio/fork')
-  expect(screen.getByRole('link', { name: '원작 관리하기' }).getAttribute('href')).toBe('/content?work=original')
-  expect(screen.getByRole('link', { name: '원작 관리하기' }).className).toBe('btn sm') // 세계관 카드의 관리하기와 같은 보조 버튼
   expect(screen.getByRole('link', { name: '원작 회차 작성하기' }).getAttribute('href')).toBe('/studio/original')
+  // 카드 전체(제목 링크)와 같은 주소로 가는 '관리하기' 버튼은 없다: 버튼은 주 버튼 하나뿐이고 줄의 오른쪽 끝이다
+  const acts = screen.getByRole('link', { name: '원작 회차 작성하기' }).parentElement
+  expect(Array.from(acts?.children ?? [], button => button.textContent)).toEqual(['회차 작성하기'])
+  expect(acts?.lastElementChild?.className).toBe('btn sm pri')
+  // 제목이 작품 관리 링크이고 ::after가 카드 전체를 덮는다(storyfork.css)
+  expect(screen.getByRole('link', { name: '원작' }).getAttribute('href')).toBe('/content?work=original')
+  expect(screen.getByRole('link', { name: '내 포크' }).getAttribute('href')).toBe('/content?work=fork')
+  expect(screen.getByRole('link', { name: '원작' }).closest('article')?.className).toBe('li rowlink')
 })
 
-it('shows the stored cover when there is one and the default cover otherwise, with a one-line status', async () => {
+it('shows the stored cover when there is one and the default cover otherwise', async () => {
   // 원작은 표지가 없어(404) 요청이 실패로 끝나고, 포크는 저장된 표지가 있다.
   cover.mockImplementation(({ workId }) => workId === 'fork' ? { url: 'blob:cover', error: '' } : { url: '', error: '파일이 없거나 조회 권한이 없어요.' })
   const { container } = await show([original, fork])
   expect(Array.from(container.querySelectorAll('img.cimg'), image => image.getAttribute('src'))).toEqual(['/default-work-cover.svg', 'blob:cover'])
-  expect(screen.getByText('공개 중 · Fork · 「원작」 2화에서')).toBeTruthy()
+})
+
+it('marks each card with a public/private chip, and a Fork with a Fork badge beside its source, so originals and forks read apart at a glance', async () => {
+  await show([original, fork, { ...original, id: 'secret', title: '비공개 원작', visibility: 'private' }])
+  const card = (title: string) => within(screen.getByRole('heading', { level: 3, name: title }).closest('article') as HTMLElement)
+  expect(card('원작').getByText('공개 중').className).toBe('chip ok')
+  expect(card('원작').queryByText('Fork')).toBeNull()
+  expect(card('비공개 원작').getByText('비공개').className).toBe('chip') // 비공개는 기본 상태라 색을 쓰지 않는다
+  expect(card('내 포크').getByText('공개 중').className).toBe('chip ok')
+  expect(card('내 포크').getByText('Fork').className).toBe('chip')
+  expect(card('내 포크').getByText('「원작」 2화에서')).toBeTruthy()
+})
+
+it('puts a small primary + 새 소설 button on the right of the heading row, going where the 새로 시작하기 card goes, and keeps it when the list failed', async () => {
+  api.list.mockRejectedValueOnce(new Error('연결 실패'))
+  render(<MemoryRouter><ServerWritingList newTo="/new" /></MemoryRouter>)
+  await screen.findByRole('alert')
+  const create = screen.getByRole('link', { name: '+ 새 소설' })
+  expect([create.getAttribute('href'), create.className]).toEqual(['/new', 'btn sm pri'])
+  expect(create.previousElementSibling?.textContent).toBe('집필 중인 작품')
+  expect(create.parentElement?.className).toBe('sec-h')
 })
 
 it('leaves the thumbnail empty until the cover request settles, so a work with a cover never flashes the default', async () => {

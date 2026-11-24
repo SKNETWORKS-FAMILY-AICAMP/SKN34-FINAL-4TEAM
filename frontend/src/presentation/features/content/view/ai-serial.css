@@ -1,13 +1,28 @@
 /* 작품 관리 'AI 집필' 탭: 설정 폼과 게시판 기록 표. 틀(.ep-reading·.ep-form-*·.ep-check·.ep-alert)은 shared/episode.css를 그대로 쓴다. */
-.ep-serial form{max-width:520px;margin-top:16px;gap:14px}
+.ep-serial form{gap:14px}
 .ep-serial fieldset{border:0;padding:0;margin:0;min-width:0;display:flex;flex-wrap:wrap;gap:0 18px}
+/* 좁은 화면(≤650px)의 요일 7개는 같은 폭 7칸 한 줄이다(줄바꿈 flex에서는 390px에서 '일'만 다음 줄로 넘어갔다). 320px에서도 칸(41px)이 항목 폭과 같아 넘치지 않는다. */
+@media(max-width:650px){.ep-serial fieldset{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:0}}
 .ep-serial legend{width:100%;padding:0;margin-bottom:4px;font-size:13px;font-weight:650}
+/* AI 자율 집필이 꺼져 있으면(운영 설정의 집필 방식) 연재 설정 폼 전체를 fieldset disabled로 잠그고 흐리게 한다: 입력·저장이 안 된다는 것이 눈에 보이게. 위 fieldset 규칙은 요일 묶음용이라 이 바깥 껍데기는 블록으로 되돌린다.
+   fieldset은 새 블록 서식 맥락이라 폼의 위 간격(16px)은 폼이 아니라 껍데기가 가진다(앞 형제의 아래 간격과 겹쳐지는 방식이 예전과 같다).
+   잠긴 fieldset 안의 저장 버튼은 공용 잠금 흐림(.55)을 한 번 더 받지 않는다(.6×.55≈.33이라 배경에 녹았다). 켜진 상태에서 바뀐 값이 없을 때의 흐림은 그대로다. */
+.ep-serial .ep-serial-fields{display:block;margin-top:16px}
+.ep-serial .ep-serial-fields:disabled{opacity:.6}
+.ep-serial .ep-serial-fields:disabled .btn:disabled{opacity:1}
 .ep-serial .ep-check{margin:0}
+/* 공용 .ep-check input은 위 여백만 덮어 UA 왼쪽 4px·아래 3px가 남는다 → 첫 체크박스가 legend·라벨보다 안쪽에 놓이고 글자보다 낮다. 여백을 모두 없앤다(간격은 gap 9·18만 남는다). */
+.ep-serial .ep-check input{margin:0}
 .ep-serial input[type=time]{max-width:180px}
 /* 저장 버튼은 안내문 아래 왼쪽이다(운영 설정 탭과 같다). 650px 이하 공용 규칙의 button{align-self:flex-end}는 이 패널에서만 되돌린다. */
 .ep-serial .ep-form-footer{flex-direction:column;align-items:flex-start}
 .ep-serial .ep-form-footer button{align-self:auto}
-.ep-serial .ep-form-actions{margin:12px 0}
+/* 버튼과 잠긴 이유 문구는 한 줄에 간격을 두고 나란히 놓는다(운영 설정의 .ep-form-actions와 같은 값). */
+.ep-serial .ep-form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0}
+/* 설정 탭은 안내문→버튼이 footer의 gap 12 하나다(운영 설정과 같다). margin:12px 0은 footer 밖 기록 탭 맨 위 버튼 줄용이라 footer 안에서는 뺀다. */
+.ep-serial .ep-form-footer .ep-form-actions{margin:0}
+/* 잠긴 .pri 버튼은 운영 설정의 잠긴 저장 버튼과 같은 윤곽선이다(채운 보라는 눌러도 되는 버튼처럼 보인다). */
+.episode-app .ep-serial .btn.pri:disabled{background:none;border-color:var(--line2);color:var(--ink)}
 /* 기록 표는 좁은 화면에서 가로로 민다(열을 쌓으면 표 구조를 잃는다). */
 .ep-serial-scroll{overflow-x:auto}
 .ep-serial-scroll:focus-visible{outline:2px solid var(--pri);outline-offset:2px}

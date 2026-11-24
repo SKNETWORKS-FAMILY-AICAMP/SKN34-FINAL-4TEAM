@@ -210,6 +210,17 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     // 회차 목록의 항목별 메뉴가 선택하지 않은 회차의 삭제 가능 여부도 같은 규칙으로 알린다.
     deleteBlockerOf:(e:WritingEpisode)=>deleteBlocker(e,episodes),
     edit:(patch:Partial<Pick<Draft,'title'|'body'|'authorNote'>>)=>{put({...current.current,...patch});setNotice('')},
+    // 버전 그래프에서 고른 저장 버전의 제목·본문·작가의 말을 작업 초안에 불러온다(#730). 새 저장 버전은 만들지 않고, 입력처럼 자동 저장이 초안으로 저장한다(버전으로 남기려면 버전 저장).
+    // 저장하지 않은 입력이 있으면 덮어쓰기 전에 확인을 받고, 취소하거나 없는 버전이면 아무것도 바꾸지 않는다. 편집이 잠긴 회차인지는 부르는 화면이 정한다(제목·본문 readOnly와 같다).
+    // ponytail: 이미 자동 저장된 초안은 묻지 않고 덮어쓴다(버전으로 남기지 않았다면 되돌릴 수 없다). 초안이 어떤 저장 버전과도 다를 때 묻는 규칙은 정책이 정해지면 더한다.
+    loadVersion:(versionId:string)=>{
+      const at=active?.versions.findIndex(v=>v.id===versionId)??-1
+      const version=active?.versions[at]
+      if(!version)return
+      if(dirty&&!window.confirm('저장하지 않은 입력을 버리고 이 버전을 불러올까요?'))return
+      put({...current.current,title:version.title,body:version.body,authorNote:version.authorNote})
+      setNotice(`버전 ${at+1}의 내용을 본문에 불러왔어요. 버전으로 남기려면 버전 저장을 눌러 주세요.`)
+    },
     save,
     retrySave:()=>{if(active&&!active.inherited&&dirty&&!pending.current&&!waiting.current){setFailedDraft(null);setError('');autoSave()}},
     deleteDraft:()=>remove(false),

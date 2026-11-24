@@ -760,3 +760,52 @@ it('refresh로 다시 읽었을 때 열어 둔 회차가 서버에서 지워졌�
   await act(async()=>{expect(await result.current.refresh()).toBe(false)})
   expect(result.current.error).toBe('연결 실패')
 })
+
+// #730 그래프에서 고른 저장 버전을 작업 초안에 불러온다: 새 버전은 만들지 않고, 입력처럼 자동 저장이 초안으로 저장한다.
+const savedVersion=(id:string,patch:Record<string,unknown>={})=>({id,episode:1,title:'버전 제목',body:'버전 본문',authorNote:'버전 작가의 말',revision:2,savedAt:'2026-11-04T00:00:00Z',...patch})
+
+it('loadVersion은 고른 저장 버전의 제목·본문·작가의 말을 현재 초안 revision으로 불러오고, 새 버전 없이 자동 저장이 초안으로 저장한다',async()=>{
+  vi.useFakeTimers()
+  const versions=[savedVersion('v1',{title:'첫 버전',body:'첫 본문',authorNote:'첫 말'}),savedVersion('v2')]
+  const loaded={title:'첫 버전',body:'첫 본문',authorNote:'첫 말',revision:4}
+  const api=deletionApi([row(1,{versions})])
+  api.writeEpisode.mockResolvedValue(row(1,{versions,draft:{...loaded,revision:5}}))
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(true)
+  try {
+    const {result}=renderHook(()=>useWritingViewModel('w',api))
+    await act(async()=>{})
+    act(()=>result.current.loadVersion('없는 버전'))
+    expect(result.current.draft.body).toBe('기존')
+    expect(result.current.notice).toBe('')
+    act(()=>result.current.loadVersion('v1'))
+    expect(result.current.draft).toEqual(loaded)
+    expect(result.current.dirty).toBe(true)
+    expect(result.current.notice).toBe('버전 1의 내용을 본문에 불러왔어요. 버전으로 남기려면 버전 저장을 눌러 주세요.')
+    expect(confirm).not.toHaveBeenCalled()
+    expect(api.writeEpisode).not.toHaveBeenCalled()
+    await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+    expect(api.writeEpisode).toHaveBeenCalledExactlyOnceWith('w',1,loaded,false,expect.any(AbortSignal))
+    expect(api.restoreEpisode).not.toHaveBeenCalled()
+    expect(result.current.dirty).toBe(false)
+    // 자동 저장의 성공은 안내를 지우지 않는다: 작가가 다음에 입력하거나 다른 요청을 누를 때까지 상태 줄에 남는다.
+    expect(result.current.notice).toContain('버전 1의 내용을')
+  } finally {confirm.mockRestore()}
+})
+
+it('loadVersion은 저장하지 않은 입력이 있으면 덮어쓰기 전에 묻고, 취소하면 입력과 안내를 그대로 둔다',async()=>{
+  const api=deletionApi([row(1,{versions:[savedVersion('v1'),savedVersion('v2',{title:'둘째',body:'둘째 본문',authorNote:undefined})]})])
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+  try {
+    const {result}=renderHook(()=>useWritingViewModel('w',api))
+    await act(async()=>{})
+    act(()=>result.current.edit({body:'미저장 입력'}))
+    act(()=>result.current.loadVersion('v2'))
+    expect(confirm).toHaveBeenCalledExactlyOnceWith('저장하지 않은 입력을 버리고 이 버전을 불러올까요?')
+    expect(result.current.draft).toEqual({title:'1화',body:'미저장 입력',revision:4})
+    expect(result.current.notice).toBe('')
+    confirm.mockReturnValue(true)
+    act(()=>result.current.loadVersion('v2'))
+    expect(result.current.draft).toEqual({title:'둘째',body:'둘째 본문',authorNote:undefined,revision:4})
+    expect(result.current.notice).toContain('버전 2의 내용을')
+  } finally {confirm.mockRestore()}
+})
