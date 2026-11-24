@@ -101,7 +101,8 @@ def episode(**changes):
             'source': {'work': '운수 좋은 날', 'author': '현진건', 'origin': 'https://ko.wikisource.org/wiki/x', 'license': '저작권 만료(테스트)', 'episode': 2}, **changes}
 
 
-def test_an_item_has_the_model_input_the_answer_table_and_the_gold_provenance():
+def test_an_item_has_the_model_input_the_answer_table_and_the_gold_provenance(monkeypatch):
+    monkeypatch.setattr(ex_gold, 'MIN_CORE', (2, 1))   # 이 시험의 두 실행은 core 대상 2·진술 1이다
     item = ex_gold.build_item(episode(), [A, B])
 
     assert item['id'] == 'extraction.extract-01' and item['input'] == {'number': 2, 'title': '운수 좋은 날', 'body': BODY}   # 운영이 모델에 보내는 값 그대로
@@ -111,8 +112,14 @@ def test_an_item_has_the_model_input_the_answer_table_and_the_gold_provenance():
     json.dumps(item, ensure_ascii=False)   # jsonl 한 줄이 된다
 
 
-def test_an_episode_without_a_core_mention_is_not_an_item():
-    assert ex_gold.build_item(episode(), [run([mention('a', '길동')]), run([mention('b', '춘섬')])]) is None   # 두 번 모두 뽑은 대상이 없으면 정답이 없다
+@pytest.mark.parametrize('mentions, statements, built', [(3, 5, True), (2, 5, False), (3, 4, False), (0, 0, False)])
+def test_an_episode_whose_core_is_below_the_floor_is_not_an_item(mentions, statements, built):
+    lines = [f'{i}번째 문장은 인물이 말했다.' for i in range(8)]
+    both = run([mention(f'm{i}', f'인물{chr(0xAC00 + i)}') for i in range(mentions)], [('event', lines[i]) for i in range(statements)])   # 두 번이 같으면 전부 core다
+
+    got = ex_gold.build_item(episode(body='\n'.join(lines)), [both, both])
+
+    assert ex_gold.MIN_CORE == (3, 5) and (got is not None) is built   # core 대상 3개·진술 5개 미만이면 재현율이 너무 거칠어 정답이 없는 것으로 본다
 
 
 def test_the_two_gold_instructions_differ_from_each_other_and_from_the_production_prompt():
@@ -179,6 +186,8 @@ def test_a_cached_result_is_reused_only_for_the_same_model_and_the_same_episode_
 
 
 def test_build_makes_items_from_both_runs_and_reports_the_failed_ones_by_their_codes(tmp_path, monkeypatch):
+    monkeypatch.setattr(ex_gold, 'MIN_CORE', (2, 1))
+
     def generate(instructions, item_input, model=None):
         if instructions == ex_gold.RUNS['B'] and item_input['number'] == 3:
             raise PreprocessingFailure('MODEL_TIMEOUT', 504)
@@ -188,3 +197,11 @@ def test_build_makes_items_from_both_runs_and_reports_the_failed_ones_by_their_c
     items, failures = ex_gold.build([episode(), episode(id='extraction.extract-02', number=3)], tmp_path, workers=2)
 
     assert [item['id'] for item in items] == ['extraction.extract-01'] and failures == [('extraction.extract-02', 'B', 'MODEL_TIMEOUT')]   # 실패한 회차는 항목으로 만들지 않고 숨기지도 않는다
+
+
+def test_build_reports_an_episode_whose_core_is_too_small_instead_of_hiding_it(tmp_path, monkeypatch):
+    monkeypatch.setattr(extraction, 'generate', lambda instructions, item_input, model=None: B if instructions == ex_gold.RUNS['B'] else A)
+
+    items, failures = ex_gold.build([episode()], tmp_path, workers=1)
+
+    assert items == [] and failures == [('extraction.extract-01', '-', 'CORE_TOO_SMALL')]

@@ -1,8 +1,8 @@
 """추출 평가 세트 실행기. 설계·규칙은 docs/evaluation/extraction-set.md.
 
     cd backend/ai-service
-    uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source public [--raw-dir 위키문헌 원문 폴더] [--workers 4] [--limit N]   # ocx gpt-6.2-sol 정답표(금액 0) → .data/sets/public.jsonl
-    uv run --locked --extra dev python eval/extraction/ex_cli.py export                                                                      # → app/evaluation/datasets/extraction.extract.jsonl(공개 항목만)
+    uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source public [--raw-dir 위키문헌 원문 폴더] [--workers 4] [--limit N]   # 없는 원문 받기(낮은 속도) + ocx gpt-6.2-sol 정답표(금액 0) → .data/sets/public.jsonl
+    uv run --locked --extra dev python eval/extraction/ex_cli.py export [--gate 30]                                                          # 층화로 나눠 → 게이트 app/evaluation/datasets/extraction.extract.jsonl + 풀 datasets/optimize/(공개 항목만)
     uv run --locked --extra dev python eval/extraction/ex_cli.py gold --source hp [--hp-dir <.data/hp>] [--per-book 2]                       # 로컬 전용 → .data/sets/hp.jsonl(커밋·Langfuse 금지)
     set -a; . <키 파일>; set +a                                                                                                               # 이하 OpenAI 호출(유료): 유료 명령마다 같은 명령 안에서 불러온다(키 값은 출력하지 않는다)
     uv run --locked --extra dev python eval/extraction/ex_cli.py score .data/sets/hp.jsonl [--instructions 파일] [--model M] [--tag T] [--limit N]   # 오프라인 채점 → results/extraction-<세트>-<태그>.json(집계만)
@@ -14,6 +14,7 @@ import argparse
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor
+from itertools import zip_longest
 from pathlib import Path
 from statistics import fmean
 
@@ -28,6 +29,8 @@ HERE = Path(__file__).resolve().parent
 DATA = HERE / '.data'
 SETS, GOLD, RESULTS = DATA / 'sets', DATA / 'gold', HERE / 'results'
 DATASET = HERE.parents[1] / 'app' / 'evaluation' / 'datasets' / 'extraction.extract.jsonl'
+POOL = DATASET.parent / 'optimize' / DATASET.name   # 최적화 풀: seed가 올리지 않는 하위 폴더(datasets/*.jsonl glob 밖)
+GATE_SIZE = 30   # 게이트 세트 회차 수(평가 1회 = 운영 모델 호출 이만큼)
 SIMULATION_DATA = HERE.parent / 'simulation' / '.data'
 
 
@@ -48,6 +51,8 @@ def read_items(path: Path) -> list[dict]:
 def cmd_gold(args) -> int:
     """회차 원천 → 정답표 → .data/sets/<source>.jsonl. 호출은 ocx(금액 0)다. 실패한 회차가 있으면 코드를 보이고 1로 끝낸다(된 항목은 쓰고, 같은 명령을 다시 치면 캐시로 이어 간다)."""
     ex_gold.use_ocx()
+    if args.source == 'public':
+        ex_sources.fetch_public(args.raw_dir)
     episodes = ex_sources.public_episodes(args.raw_dir) if args.source == 'public' else ex_sources.hp_episodes(args.hp_dir, args.per_book)
     items, failures = ex_gold.build(episodes[:args.limit], GOLD / args.source, args.workers)
     write_items(SETS / f'{args.source}.jsonl', items)
@@ -60,14 +65,36 @@ def cmd_gold(args) -> int:
     return 1 if failures else 0
 
 
+def split(items: list[dict], gate_size: int) -> tuple[list[dict], list[dict]]:
+    """공개 항목을 게이트 세트(gate_size개)와 최적화 풀(나머지)로 나눈다(층화): 작가를 번갈아 돌며 작품마다 한 회차씩 gate_size개를 채우고(작품이 gate_size보다 많으면 뒤 작품은 풀뿐이다),
+    작품 안에서는 회차를 고르게 뽑는다(하나면 가운데). 입력 순서를 지키고 두 쪽은 겹치지 않는다."""
+    works = {}
+    for item in items:
+        source = item['metadata']['source']
+        works.setdefault((source['author'], source['work']), []).append(item)
+    authors = {}
+    for author, work in works:
+        authors.setdefault(author, []).append((author, work))
+    order = [key for turn in zip_longest(*authors.values()) for key in turn if key]   # 작가를 번갈아 돈 작품 순서
+    quota = dict.fromkeys(order, 0)
+    while sum(quota.values()) < gate_size and any(quota[key] < len(works[key]) for key in order):
+        for key in order:
+            if sum(quota.values()) < gate_size and quota[key] < len(works[key]):
+                quota[key] += 1
+    gate = {works[key][(2 * i + 1) * len(works[key]) // (2 * quota[key])]['id'] for key in order for i in range(quota[key])}
+    return [item for item in items if item['id'] in gate], [item for item in items if item['id'] not in gate]
+
+
 def cmd_export(args) -> int:
-    """공개 세트(.data/sets/public.jsonl)를 저장소 세트 파일로 내보낸다. 저작권 만료 공개 항목이 아니면 아무것도 쓰지 않고 멈춘다(해리 포터가 저장소·Langfuse로 가지 않게)."""
+    """공개 세트(.data/sets/public.jsonl)를 게이트 세트와 최적화 풀로 나눠 저장소에 쓴다. 저작권 만료 공개 항목이 아니면 아무것도 쓰지 않고 멈춘다(해리 포터가 저장소·Langfuse로 가지 않게)."""
     items = read_items(SETS / 'public.jsonl')
     bad = [item['id'] for item in items if not (item['id'].startswith('extraction.extract-') and item['metadata']['license'].startswith('저작권 만료'))]
     if bad:
         raise SystemExit(f'저작권 만료 공개 항목만 내보낼 수 있다: {", ".join(bad)}')
-    write_items(DATASET, items)
-    print(f'항목 {len(items)}개 → {DATASET}')
+    gate, pool = split(items, args.gate)
+    write_items(DATASET, gate)
+    write_items(POOL, pool)
+    print(f'게이트 {len(gate)}개 → {DATASET}\n풀 {len(pool)}개 → {POOL}')
     return 0
 
 
@@ -115,13 +142,15 @@ def main(argv=None) -> int:
     commands = parser.add_subparsers(dest='command', required=True)
     gold = commands.add_parser('gold', help='정답표 만들기(ocx gpt-6.2-sol)')
     gold.add_argument('--source', choices=('public', 'hp'), required=True)
-    gold.add_argument('--raw-dir', type=Path, default=SIMULATION_DATA / 'orig' / 'raw' / 'wikisource')
+    gold.add_argument('--raw-dir', type=Path, default=DATA / 'raw' / 'wikisource')
     gold.add_argument('--hp-dir', type=Path, default=SIMULATION_DATA / 'hp')
     gold.add_argument('--per-book', type=int, default=2)
     gold.add_argument('--limit', type=int)
     gold.add_argument('--workers', type=int, default=4)
     gold.set_defaults(run=cmd_gold)
-    commands.add_parser('export', help='공개 세트를 저장소 세트 파일로').set_defaults(run=cmd_export)
+    export = commands.add_parser('export', help='공개 세트를 게이트 세트와 최적화 풀로 나눠 저장소에')
+    export.add_argument('--gate', type=int, default=GATE_SIZE)
+    export.set_defaults(run=cmd_export)
     score = commands.add_parser('score', help='오프라인 채점(유료 OpenAI 호출)')
     score.add_argument('items', type=Path)
     score.add_argument('--instructions', type=Path)

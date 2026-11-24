@@ -23,6 +23,7 @@ from app.manuscript_extraction.errors import PreprocessingFailure  # noqa: E402
 MODEL = 'gpt-6.2-sol'   # 정답표 모델(ocx, 금액 0)
 TIMEOUT, MAX_TOKENS = 900, 32000   # 운영 호출의 읽기 70초·출력 16,000토큰은 상위 모델의 추론 토큰까지 담지 못해 늘린다
 FIELDS = ('number', 'title', 'body')   # 모델 입력(운영 EpisodeText)
+MIN_CORE = (3, 5)   # 정답표의 core 대상·진술이 이보다 적은 회차는 항목으로 만들지 않는다(재현율이 너무 거칠다)
 
 GOLD_A = """당신은 웹소설 플랫폼의 설정집 편집자입니다. 소설 한 회차({number, title, body})를 읽고, 작가가 설정집에 올릴 정보를 대상·진술·관계로 정리합니다.
 정리한 항목은 프로그램이 본문과 글자 단위로 대조하고 근거가 어긋난 항목은 버립니다. 본문 밖의 지식은 쓰지 않고, 근거를 찾을 수 없는 것은 적지 않습니다.
@@ -119,7 +120,7 @@ def run(label: str, instructions: str, episode: dict, cache: Path, model: str = 
 
 
 def build(episodes: list[dict], cache: Path, workers: int = 4, model: str = MODEL) -> tuple[list[dict], list[tuple[str, str, str]]]:
-    """회차마다 두 지시문(RUNS)으로 뽑아 항목을 만든다. (항목들, 실패들 (회차 id, 실행 이름, 코드))를 돌려준다: 실패한 회차는 항목으로 만들지 않고, 두 번 모두 뽑은 대상이 없는 회차는 NO_CORE_MENTION이다."""
+    """회차마다 두 지시문(RUNS)으로 뽑아 항목을 만든다. (항목들, 실패들 (회차 id, 실행 이름, 코드))를 돌려준다: 실패한 회차는 항목으로 만들지 않고, core가 MIN_CORE보다 적은 회차는 CORE_TOO_SMALL이다."""
     def attempt(job):
         episode, label, text = job
         try:
@@ -134,15 +135,15 @@ def build(episodes: list[dict], cache: Path, workers: int = 4, model: str = MODE
         results = done[i * len(RUNS):(i + 1) * len(RUNS)]
         failed = [(episode['id'], label, error) for label, (_, error) in zip(RUNS, results) if error]
         item = None if failed else build_item(episode, [result for result, _ in results])
-        failures += failed or ([] if item else [(episode['id'], '-', 'NO_CORE_MENTION')])
+        failures += failed or ([] if item else [(episode['id'], '-', 'CORE_TOO_SMALL')])
         items += [item] if item else []
     return items, failures
 
 
 def build_item(episode: dict, runs: list[dict]) -> dict | None:
-    """회차와 두 번의 추출로 평가 세트 항목 하나(id·input·expectedOutput·metadata)를 만든다. 두 번 모두 뽑은 대상이 하나도 없으면 정답이 없어 None이다."""
+    """회차와 두 번의 추출로 평가 세트 항목 하나(id·input·expectedOutput·metadata)를 만든다. 두 번 모두 뽑은 대상·진술이 MIN_CORE보다 적으면 None이다."""
     table, agreement = merge(episode['body'], runs)
-    if not any(m['core'] for m in table['mentions']):
+    if any(sum(row['core'] for row in table[kind]) < least for kind, least in zip(('mentions', 'statements'), MIN_CORE)):
         return None
     return {'id': episode['id'], 'input': {field: episode[field] for field in FIELDS}, 'expectedOutput': table,
             'metadata': {'license': episode['license'], 'source': episode['source'], 'gold': {'model': MODEL, 'runs': list(RUNS), 'agreement': agreement}}}
