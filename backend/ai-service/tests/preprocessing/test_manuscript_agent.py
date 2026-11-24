@@ -53,6 +53,12 @@ def test_strict_responses_path_no_retries_and_original_is_data(provider):
 def test_the_resolve_prompt_leaves_same_names_to_the_program():
     assert '프로그램이 종류와 이름이 같은 대상을 같은 대상으로 묶는다' in prompt.RESOLVE
     assert 'name_only' not in prompt.RESOLVE and 'explicit_coreference' not in prompt.RESOLVE
+    assert '호칭 변형' in prompt.RESOLVE and '치삼이' in prompt.RESOLVE  # -이·-아·-야나 조사가 붙은 꼴도 프로그램이 묶으니 다른 사람이면 distinct로 알리게 한다(#839)
+
+
+def test_the_extract_prompt_takes_soul_from_dialogue_and_action_without_a_narrator_description():
+    rule = next(line for line in prompt.EXTRACT.splitlines() if '대사' in line and 'soul' in line)
+    assert '서술자가 성격을 설명하지 않아도' in rule and '문장 하나' in rule  # 인용은 원문 한 문장 규칙 그대로(#839)
 
 
 @pytest.mark.parametrize('completed,stream_error,expected', [

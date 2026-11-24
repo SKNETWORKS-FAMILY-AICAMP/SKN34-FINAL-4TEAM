@@ -423,7 +423,7 @@
         "cardType": "character",
         "title": "길동",
         "aliases": [],
-        "body": "길동",
+        "body": "",
         "firstEpisode": 1,
         "characterDocs": {
           "soul": "[묘사] 길동은 약자를 돕는 성격이다.",
@@ -441,7 +441,7 @@
         "cardType": "character",
         "title": "홍길동",
         "aliases": [],
-        "body": "홍길동",
+        "body": "",
         "firstEpisode": 2,
         "characterDocs": {
           "soul": "",
@@ -456,7 +456,7 @@
         "cardType": "character",
         "title": "홍길동",
         "aliases": [],
-        "body": "홍길동",
+        "body": "",
         "firstEpisode": 1,
         "characterDocs": {
           "soul": "",
