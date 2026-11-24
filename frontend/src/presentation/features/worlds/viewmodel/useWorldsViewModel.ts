@@ -12,17 +12,14 @@ import { useGenres } from '../../../shared/useGenres'
 import { parseBookSort, type BookSort } from '../../../shared/worldBoard'
 import { pageItems } from '../../../shared/pageItems'
 import { ALL_CHIP, genreCode, worldChips } from '../../../shared/worldGenres'
-import { buildWorldAtlas, highlightIds, liveRank, rankByRecent, type AtlasNode } from '../worldAtlas'
+import { buildWorldAtlas, highlightIds, liveRank, type AtlasNode } from '../worldAtlas'
 import {
   bookRows, buildCharacterGraph, buildSettingGraph, cardPage, cardPath, kindCounts, parseBookKind, parseDetailTab, selectVisible, type DetailNode, type DetailTab,
 } from '../worldDetail'
 
-// 선반은 홈처럼 앞의 몇 개만 보이고, 전부는 '세계관 모아 보기'와 지도가 보여 준다.
-const RAIL_SIZE = 10
-
 /**
  * 공개 세계관 대시보드의 장르 칩과 그에 맞는 지도·순위·목록. 이 화면에서만 쓰므로 Redux 없이 로컬 상태로 둔다.
- * 지도·'실시간 인기'·'새로 공개된' 선반은 장르와 상관없이 늘 최근 공개 순 전체 목록(`overview`)에서 만들고, 장르 칩은 지도를 흐리게만 한다(`lit`, 추천이면 undefined).
+ * 지도·'실시간 인기'는 장르와 상관없이 늘 최근 공개 순 전체 목록(`overview`)에서 만들고, 장르 칩은 지도를 흐리게만 한다(`lit`, 추천이면 undefined).
  * 칩은 추천 + 세계관이 있는 공개 장르이고(장르 목록은 `useGenres`), 칩의 장르 쿼리(`genre`, 장르 코드)로 다시 읽는 것은 '모아 보기' 목록 하나뿐이다(추천 칩은 전체 목록을 그대로 쓴다). 지도의 장르 노드를 누르면 그 장르 칩이 골라진다.
  * 장르 목록을 읽지 못하면 칩 줄에 실패와 다시 불러오기를 알린다(`genresFailed`).
  * 요청 취소·늦은 응답 무시·실패 재시도는 `useAsyncData`가 맡는다. 첫 조회가 끝나기 전·실패했을 때는 `world`가 없고(`isLoading`·`isError`), 전체가 0개면 `empty`다.
@@ -40,7 +37,6 @@ export function useWorldsViewModel(useCase: PublicWorldUseCase = appContainer.re
   const atlas = useMemo(() => (all ? buildWorldAtlas(all.items) : undefined), [all])
   const lit = useMemo(() => (atlas ? highlightIds(atlas, chip) : undefined), [atlas, chip])
   const rank = useMemo(() => (all ? liveRank(all.items) : undefined), [all])
-  const newest = useMemo(() => (all ? rankByRecent(all.items, RAIL_SIZE) : []), [all])
   const grid = genre ? filtered : overview
   const listing = genre ? filtered.data : all
   return {
@@ -55,7 +51,6 @@ export function useWorldsViewModel(useCase: PublicWorldUseCase = appContainer.re
     demo: all?.demo === true,
     atlas, lit, total: all?.total ?? 0,
     liveRank: rank?.worlds ?? [], rankBasis: rank?.basis,
-    newest,
     /** 모아 보기 목록과 그 조회 상태. 장르 칩이면 그 장르 쿼리 결과, 추천이면 전체 목록이다. */
     list: { worlds: listing?.items ?? [], total: listing?.total ?? 0, isLoading: grid.isLoading, isError: grid.isError && !listing, retry: grid.retry },
     /** 장르 노드는 그 장르 칩 선택으로(칩이 없는 '미지정'은 무시), 세계관 노드는 그 세계관 상세로, 카드 노드는 그 카드의 페이지로 */

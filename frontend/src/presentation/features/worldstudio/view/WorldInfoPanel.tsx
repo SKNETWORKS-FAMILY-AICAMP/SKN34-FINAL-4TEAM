@@ -21,6 +21,7 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
  * 표지 삭제만은 확인한 뒤 바로 지운다. 표지 'AI로 생성'은 연결 전이라 비활성이다.
  * 저장하지 않은 수정이 있으면(`vm.infoLocked`) 그 수정이 이름·설명 저장에 딸려 가지 않도록, 이름·설명을 바꾼 동안에는 저장을 잠그고 먼저 저장하라고 알린다.
  * 공개 범위·장르·표지는 초안 저장과 별개라 잠그지 않는다: 공개로 고른 뒤 경고의 `전체 공개`(초안 변경)를 눌러도 공개 설정은 그대로 저장할 수 있다.
+ * 공개 설정 카드의 경고는 공개 범위를 저장값과 다르게 고른 때만 보인다: 저장된 공개 세계관의 경고와 `전체 공개`는 헤더 하나가 알려 같은 경고가 두 번 나오지 않는다.
  * 서버에서 다시 읽으면(`vm.relationKey`) 호출 쪽이 이 폼을 새로 만들어 낡은 입력이 남지 않게 한다.
  */
 export function WorldInfoPanel({ vm, world }: { vm: VM; world: StudioWorld }) {
@@ -36,7 +37,8 @@ export function WorldInfoPanel({ vm, world }: { vm: VM; world: StudioWorld }) {
   const deleteId = useId()
   const basicId = useId()
   const infoChanged = name.trim() !== world.name || description !== world.description
-  const publicationChanged = publication.visibility !== vm.publication.visibility || publication.genre !== vm.publication.genre
+  const visibilityChanged = publication.visibility !== vm.publication.visibility
+  const publicationChanged = visibilityChanged || publication.genre !== vm.publication.genre
   const changed = infoChanged || publicationChanged || !!cover
   const locked = infoChanged && vm.infoLocked
   const canSave = changed && !!name.trim() && !locked
@@ -90,7 +92,7 @@ export function WorldInfoPanel({ vm, world }: { vm: VM; world: StudioWorld }) {
               <legend>공개 설정</legend>
               <PublishFields value={publication} onChange={(change) => setPublication((current) => ({ ...current, ...change }))} />
               <p className="small muted">저장하면 적용돼요. 공개 화면에는 확정 버전의 공개 설정만, 소설이 발행한 회차까지 보여요.</p>
-              <PublicCardsNotice vm={vm} visibility={publication.visibility} />
+              {visibilityChanged && <PublicCardsNotice vm={vm} visibility={publication.visibility} />}
             </fieldset>
           </div>
           <div className="world-info-card world-cover-edit" role="group" aria-label="표지">

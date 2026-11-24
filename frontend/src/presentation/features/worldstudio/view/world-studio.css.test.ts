@@ -568,6 +568,10 @@ it('헤더 버튼 줄(.acts)은 한 줄로 흐른다: 독자 시점 안내문이
   expect(css).not.toMatch(/\.world-manage-hero[^{]*\{[^}]*flex-basis:100%/)
 })
 
+it('헤더 버튼 줄의 링크 버튼(a.btn: 독자 시점으로 보기)은 옆의 button 버튼(내보내기)처럼 밑줄이 없다: 공용 .btn은 text-decoration을 정하지 않아 순수 <a>에는 브라우저 밑줄이 남는다(공개 화면 보기는 Go의 data-route-link가 이미 없앴다)', () => {
+  expect(rule((s) => s === '.world-manage-hero .acts a.btn')?.body).toMatch(/text-decoration:\s*none/)
+})
+
 // ── 개요 탭: 작품 관리 개요(WorkDashboard)처럼 위에 지표 띠, 아래에 구획 카드(impeccable audit R2) ─────────────────────────
 const overviewTab = '.ep-content[data-view=overview]'
 const asCard = (tail: string) => rule((s) => s === `${overviewTab} ${tail}`)?.body ?? ''
@@ -592,6 +596,11 @@ it('구획 카드 면은 운영 설정 카드(.ep-settings-cards)와 같은 값�
   expect(asCard('.world-info-card.ep-delete')).toMatch(/border-color:color-mix\(in srgb,var\(--danger\) 35%,var\(--line2\)\)/)
   expect(asCard('.world-info-basic')).toMatch(/display:grid;align-content:start;gap:16px/)
   expect(asCard('.world-info-card .world-publish')).toMatch(/margin:0/) // 공개 설정 묶음의 위 16px·아래 12px 여백(.episode-app .world-publish)은 카드 안에서 쓰지 않는다
+})
+
+it('삭제 버튼이 잠겨 삭제할 수 없는 동안(연결된 소설이 있음) 삭제 카드는 다른 카드와 같은 회색 테두리라 누를 수 없는 동작이 개요에서 가장 강한 색을 갖지 않는다(삭제할 수 있을 때의 옅은 위험색은 위 규칙 그대로)', () => {
+  // :disabled가 아니라 속성이다: 바깥 fieldset[disabled](vm.busy, 저장하는 동안)에도 :disabled가 걸려 저장할 때마다 테두리가 회색으로 깜빡인다.
+  expect(asCard('.world-info-card.ep-delete:has(.ep-danger[disabled])')).toMatch(/border-color:var\(--line2\)/)
 })
 
 it('공개 설정 카드 안의 공개 범위 토글·장르 선택은 카드 폭을 채운다(한 줄에 하나씩이고 토글 200px·선택 150px 고정이 아니다)', () => {

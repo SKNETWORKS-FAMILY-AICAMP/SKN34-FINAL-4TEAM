@@ -1339,7 +1339,7 @@ it('개요 탭에서 이름을 고친 채 초안이 바뀌면(전체 공개) 저
   openInfoEdit()
   fireEvent.change(infoForm().getByRole('textbox', { name: '세계관 이름' }), { target: { value: '새 이름' } })
   expect(infoForm().getByRole<HTMLButtonElement>('button', { name: '저장' }).disabled).toBe(false)
-  fireEvent.click(warningIn(infoForm()).getByRole('button', { name: '전체 공개' })) // 초안(설정 공개)이 바뀐다
+  fireEvent.click(warningIn(headerOf()).getByRole('button', { name: '전체 공개' })) // 초안(설정 공개)이 바뀐다. 저장된 공개 세계관의 경고는 헤더 하나다(개요 카드는 저장값과 다르게 고른 때만)
   expect(infoForm().getByRole<HTMLButtonElement>('button', { name: '저장' }).disabled).toBe(true)
   expect(infoForm().getByText(/작성 중인 변경을 먼저 저장하세요/)).toBeTruthy()
   fireEvent.submit(screen.getByRole('form', { name: '세계관 정보 편집' })) // Enter 제출도 막힌다
@@ -2164,6 +2164,19 @@ it('이미 공개인 세계관도 공개로 둔 설정이 없으면 헤더가 �
   cleanup()
   await show([{ ...person('가람'), visibility: 'public' }], '/worldstudio/qa', { visibility: 'public', currentRevisionId: 'rev-1' })
   expect(screen.queryByText(noPublicCards)).toBeNull()
+})
+
+it('개요의 공개 설정 카드는 저장된 공개 세계관의 경고를 헤더 하나에 맡기고, 입력이 저장값과 다를 때(공개로 막 고른 때)만 스스로 경고한다', async () => {
+  await show([person('가람')], '/worldstudio/qa', { visibility: 'public', currentRevisionId: 'rev-1' })
+  openInfoEdit()
+  expect(infoForm().queryByText(noPublicCards)).toBeNull()
+  expect(screen.getAllByText(noPublicCards)).toHaveLength(1) // 같은 경고와 전체 공개 버튼이 헤더·카드에 두 번 나오지 않는다
+  warningIn(headerOf()).getByRole('button', { name: '전체 공개' })
+  fireEvent.click(publishGroup().getByRole('button', { name: '비공개', pressed: false }))
+  expect(infoForm().queryByText(noPublicCards)).toBeNull() // 비공개로 고르면 카드 경고는 없다(저장된 공개 상태의 경고는 헤더가 그대로 알린다)
+  fireEvent.click(publishGroup().getByRole('button', { name: '공개', pressed: false }))
+  expect(infoForm().queryByText(noPublicCards)).toBeNull() // 저장값(공개)으로 돌아오면 다시 헤더 하나다
+  expect(screen.getAllByText(noPublicCards)).toHaveLength(1)
 })
 
 it('작성 모드에서도 공개로 바꾸면 기본 정보 단계의 공개 설정 아래에 같은 경고와 전체 공개를 보인다', async () => {
