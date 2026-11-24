@@ -1341,3 +1341,24 @@ it('진행 목록(activity)은 같은 id 줄을 갱신하고 실패를 숨기지
   expect(log.open).toBe(false)
   expect(within(log).getByText('웹 검색').closest('li')?.getAttribute('data-state')).toBe('fail')
 })
+
+it('고쳐 보낸 턴은 그 턴의 진행 목록을 새 목록으로 바꾼다(#784)', async () => {
+  openThread([])
+  const reply = { status: 'completed' as const, steps: [], missingInputs: [], message: '답' }
+  const rows = [[{ id: 'a', label: '회차 읽기', status: 'done' as const }, { id: 'b', label: '웹 검색', status: 'done' as const }], [{ id: 'c', label: '세계관 읽기', status: 'done' as const }]]
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    for (const activity of rows[send.mock.calls.length - 1]) onEvent({ type: 'activity', activity })
+    history.mockResolvedValue({ threadId: 'a', title: '', turns: [{ request: '질문', reply }] })
+    onEvent({ type: 'done', reply })
+  })
+  render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  expect(await screen.findByText('작업 2개')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '이 메시지 고치기' }))
+  fireEvent.change(screen.getByLabelText('고칠 메시지'), { target: { value: '고친 질문' } })
+  fireEvent.click(screen.getByRole('button', { name: '고쳐서 다시 보내기' }))
+  expect(await screen.findByText('작업 1개')).toBeTruthy()
+  expect(screen.queryByText('작업 2개')).toBeNull()
+})
