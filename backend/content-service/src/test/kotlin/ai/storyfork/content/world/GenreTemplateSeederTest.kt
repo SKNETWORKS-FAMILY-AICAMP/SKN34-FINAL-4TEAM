@@ -45,7 +45,7 @@ class GenreTemplateSeederTest {
             mock(WorldRevisionCardRepository::class.java), mock(WorldSaveRequestRepository::class.java), mock(WorldRelationshipStateRepository::class.java),
             mock(TemplatePublicationOnceRepository::class.java), mock(ExpandedSeedProgressRepository::class.java), mock(InitialWorldApplicationRepository::class.java), mock(SettingCardImageRepository::class.java), graph, manager,
             JsonMapper.builder().addModule(KotlinModule.Builder().build()).build(), mock(ai.storyfork.content.work.repository.GenreRepository::class.java), mock(ai.storyfork.content.world.studio.repository.ManuscriptBuildJobRepository::class.java), mock(ai.storyfork.content.world.studio.repository.ManuscriptBuildLoadStepRepository::class.java),
-            mock(ai.storyfork.content.world.studio.repository.CardCategoryRepository::class.java).also { `when`(it.findAll()).thenReturn(defaultCardCategories()) })
+            mock(ai.storyfork.content.world.studio.repository.CardCategoryRepository::class.java).also { `when`(it.findAll()).thenReturn(defaultCardCategories()) }, mock(org.springframework.context.ApplicationEventPublisher::class.java))
         val single = spy(GenreTemplateSeeder(real, JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()))
         val sample = legacy.first()
         doReturn(listOf(sample)).`when`(single).loadLegacy()

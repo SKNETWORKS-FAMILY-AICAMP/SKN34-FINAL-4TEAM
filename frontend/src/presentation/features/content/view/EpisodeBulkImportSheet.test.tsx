@@ -13,7 +13,7 @@ vi.mock('../viewmodel/useEpisodeBulkImport', () => ({ useEpisodeBulkImport: () =
 
 import { EpisodeBulkImportSheet } from './EpisodeBulkImportSheet'
 
-const NOTICE = '업로드한 원고는 세계관 자동 추출을 위해 OpenAI로 전송돼요.'
+const NOTICE = '세계관을 처음 만들 때는 업로드한 원고가 자동 추출을 위해 OpenAI로 전송돼요.'
 const started: ImportWorldBuild = { status: 'started', jobId: 'job-1', code: null, message: null }
 const rejected: ImportWorldBuild = { status: 'rejected', jobId: null, code: 'PREPROCESSING_LOAD_REVIEW_REQUIRED', message: '이전 작업의 적재 여부를 먼저 확인해 주세요.' }
 const show = (extra: Record<string, unknown> = {}) => {
@@ -48,4 +48,12 @@ it('접수하지 않았으면(null) 세계관 추출 문구를 그리지 않는�
   show({ editable: false, savedCount: 1, worldBuild: null })
   expect(screen.queryByText(/세계관 추출을 시작/)).toBeNull()
   expect(screen.queryByRole('alert')).toBeNull()
+})
+
+it('최초 구축이 끝난 작품은 발행 안내를 상태 메시지로 보여 준다', () => {
+  const message = '새 회차를 처음 발행하면 세계관 초안에 반영돼요.'
+  show({ editable: false, savedCount: 1, worldBuild: { ...rejected, code: 'WORLD_UPDATE_ON_PUBLISH', message } })
+  expect(screen.getByRole('status').textContent).toBe(message)
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(screen.queryByText(NOTICE)).toBeNull()
 })

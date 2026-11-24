@@ -30,7 +30,7 @@ manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제�
 
 사용자 정정에 따라 이번 연결은 4화 수용 검증 후 10화까지 진행한다. 20~30화 안정성 검증과 100화 이상·유료 모델 평가는 제외한다. AI 내부 접수 경로에서 실행권을 한 번 획득해 누락된 회차만 처리한다. V41이 작업 상태를, V15가 복구 자료를 보존한다. 이전 실행 token을 지목한 명시적 동일 작업 재개로 복구한다.
 
-공개 접수/조회는 `/api/v1/works/{id}/world-preprocessing`이고 시작 동의·작품 및 세계관 소유권을 확인한다. AI는 내부 `/internal/v1/preprocessing/jobs`에서 작업을 받고 Content의 `/internal/v1/ai/manuscript-build/{id}` 하위 경로로 결과를 기록한다. 실제 적재는 Content가 기존 WorldStudioService로 수행한다. AI 실행은 아래 '업로드 자동 시작과 Celery 큐'대로 Celery 큐(순차)다. MCP 적재는 쓰지 않는다.
+공개 접수/조회는 `/api/v1/works/{id}/world-preprocessing`이고 시작 동의·작품 및 세계관 소유권을 확인한다. AI는 내부 `/internal/v1/preprocessing/jobs`에서 작업을 받고 Content의 `/internal/v1/ai/manuscript-build/{id}` 하위 경로로 결과를 기록한다. 실제 적재는 Content가 기존 WorldStudioService로 수행한다. AI 실행은 아래 '업로드 자동 시작과 Celery 큐'를 따른다.
 
 `app.manuscript-build.enabled` 코드 기본값은 false이고, 2026-11-20 실모델(`gpt-6-luna`) four-episodes 1회 실측(회차당 5~12초, 정체 정리 5초, 제외 항목 0, 카드 11장) 뒤 사용자 결정으로 base compose가 `APP_MANUSCRIPTBUILD_ENABLED`(기본 true)로 켠다. 기존 업로드는 이 플래그와 무관하게 분석·적재·발행을 시작하지 않는다. 작성자가 명시적으로 POST를 호출해야 한다. 카드의 UI 검토 표시 `approved`는 최초 일괄 초안 생성 동의에 따른 편집 가능 상태이며 직접 입력 후보의 검토 결정 기록이나 확정 버전을 뜻하지 않는다. `analysisId`·`decisionSequence`는 생성하지 않는다.
 
@@ -79,10 +79,12 @@ DEC-47 저장/화면의 episodes key는 "0", "3" 형태다. 추출 결과의 파
 
 ## 업로드 자동 시작과 Celery 큐 (2026-11-20 사용자 결정)
 
-전처리 담당자가 이어받을 틀이다. 기존 접수·재개·조회 함수를 그대로 부르고 두 번째 경로를 만들지 않는다. 회차별 병렬 실행과 #343 골격(`preprocessing_job`) 정리는 담당자의 후속이다.
+업로드 자동 시작은 기존 접수·재개·조회 함수를 사용한다. #343 골격(`preprocessing_job`) 정리는 후속 범위다.
 
-- **실행기:** AI의 `POST /internal/v1/preprocessing/jobs`는 `BackgroundTasks` 대신 Celery 태스크(`preprocessing.run`) 하나를 큐에 올리고 202를 돌려준다. 브로커는 기존 `rabbitmq` 컨테이너(Core와 같은 자격), 결과 저장소는 쓰지 않는다. 작업(작품) 하나가 태스크 하나이고 워커 동시성은 1이라 큐에 들어온 순서대로 하나씩 처리한다(순차 처리). 워커는 ai-service와 같은 이미지의 별도 컨테이너(`ai-worker`)다. `acks_late`라 워커가 도중에 죽으면 같은 태스크가 다시 배달되지만 Content 실행권(claim)이 이미 시작된 작업을 거절(`claimed=false`)해 다시 실행되지 않는다(만료된 적재만 load를 다시 시도한다). 죽은 실행의 재개는 실행 기한이 지난 뒤 사용자의 '같은 작업 재개'다. 접수·콜백·검증·적재 계약은 바꾸지 않는다.
-- **업로드 자동 시작:** 원고 가져오기(`POST /works/{id}/manuscript-imports`, `…/manuscript-imports/bulk`)가 회차를 하나 이상 저장하면 Content가 같은 요청 안에서 최초 구축 접수(위 '결과와 재실행'의 시작과 같은 검사·작업 행)를 시도한다. 별도 확인 없이 업로드 화면의 안내 문구로 OpenAI 전송을 알린다(동의 기록은 `consent=true`, key는 `import:<가져오기 요청 id>`). 세계관은 작품에 연결된 세계관, 없으면 새 UUID다. 업로드할 때마다 시도하고, 접수 결과를 가져오기 응답의 `worldBuild`에 싣는다: `{ "status": "started" | "rejected", "jobId": string|null, "code": string|null, "message": string|null }`(거절이면 시작 API와 같은 오류 code·한국어 문구). 접수 실패가 가져오기 저장을 되돌리지 않는다. 일괄 가져오기는 묶음(요청)마다 `startWorldBuild`(기본 true)를 받아 화면이 마지막 묶음만 true로 보낸다(앞 묶음에서 일부 회차만 고정되지 않게). 마지막 묶음이 모두 실패하면 접수하지 않는다. 구축 응답(조회·시작·재개)은 `requestKey`를 실어, 브라우저에 요청 기록이 없어도(업로드가 시작한 작업·다른 브라우저) 응답의 worldId·requestKey로 같은 작업을 재개한다.
+- **실행기:** AI의 `POST /internal/v1/preprocessing/jobs`는 작품 작업 하나를 Celery 태스크(`preprocessing.run`) 하나로 큐에 올리고 202를 돌려준다. 브로커는 기존 `rabbitmq` 컨테이너(Core와 같은 자격)다. ai-service와 같은 이미지의 `ai-worker`가 `AI_PREPROCESSING_CONCURRENCY`(Compose 기본 3)만큼 작업을 동시에 실행한다. `acks_late`라 워커가 도중에 죽으면 같은 태스크가 다시 배달되지만 Content 실행권(claim)이 이미 시작된 작업을 거절(`claimed=false`)한다. 만료된 적재만 load를 다시 시도한다. 추출 중 중단된 작업은 기한이 지난 뒤 사용자의 '같은 작업 재개'로 복구한다.
+- **회차 추출 병렬화 ([#673](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/673)):** 같은 실행권에서 미저장 회차를 최대 4개씩 묶어 동시에 추출한다. 각 묶음의 `result` 콜백은 회차 순서대로 보내고, 저장이 확인된 회차를 실패 보고 대상에서 뺀다. `result`가 4xx면 남은 미저장 회차 전체를 `failed`에 보고하고 다음 묶음을 시작하지 않는다. 5xx·응답 유실은 실행 실패로 전파해 같은 작업을 재개할 때 Content의 저장 상태를 다시 읽는다. 정체 통합과 적재는 전체 회차의 결과가 저장된 뒤 순서대로 진행한다.
+- **성능 비교** 기본값이면 워커 한 대에서 회차 추출 요청이 최대 12개 겹칠 수 있다. 모델 응답 스트리밍 적용 후 Windows 송신 경로로 재검증한 결과, 업로드 요청부터 적재 완료 확인까지 1작품×8회차는 129.23초, 3작품×2회차는 58.03~62.69초가 걸렸다. WSL 직접 송신에서 재현된 모델 연결 오류와 이전 측정값은 [#673 검증](../verification/issue-673-preprocessing.md)에 남겼다.
+- **업로드 자동 시작:** 원고 가져오기(`POST /works/{id}/manuscript-imports`, `…/manuscript-imports/bulk`)가 회차를 하나 이상 저장하면 Content가 같은 요청 안에서 최초 구축 접수(위 '결과와 재실행'의 시작과 같은 검사·작업 행)를 시도한다. 별도 확인 없이 업로드 화면의 안내 문구로 OpenAI 전송을 알린다(동의 기록은 `consent=true`, key는 `import:<가져오기 요청 id>`). 세계관은 작품에 연결된 세계관, 없으면 새 UUID다. 현재 연결된 세계관의 최초 구축이 완료됐으면 다시 접수하지 않고 `WORLD_UPDATE_ON_PUBLISH` 코드와 “새 회차를 처음 발행하면 세계관 초안에 반영돼요.”를 반환한다. 그 밖의 경우 접수 결과를 가져오기 응답의 `worldBuild`에 싣는다: `{ "status": "started" | "rejected", "jobId": string|null, "code": string|null, "message": string|null }`(거절이면 시작 API와 같은 오류 code·한국어 문구, `WORLD_UPDATE_ON_PUBLISH`는 접수 대신 표시하는 다음 행동 안내다). 접수 실패가 가져오기 저장을 되돌리지 않는다. 일괄 가져오기는 묶음(요청)마다 `startWorldBuild`(기본 true)를 받아 화면이 마지막 묶음만 true로 보낸다(앞 묶음에서 일부 회차만 고정되지 않게). 마지막 묶음이 모두 실패하면 접수하지 않는다. 구축 응답(조회·시작·재개)은 `requestKey`를 실어, 브라우저에 요청 기록이 없어도(업로드가 시작한 작업·다른 브라우저) 응답의 worldId·requestKey로 같은 작업을 재개한다.
 - **운영 화면:** Content 내부 `GET /internal/v1/preprocessing-jobs`·`POST …/{id}/retry`의 출처를 `manuscript_build_job`으로 바꾼다(응답 형식 유지). 재실행은 실패한 작업을 같은 작업으로 다시 접수한다. 목록은 `manuscript_build_job` 행만 고르고 진행 수·시각은 트리거가 맞춰 둔 같은 id의 `preprocessing_job` 행에서 읽는다(`unknown`은 `loading`으로 보인다).
 - **회차 관리 표시:** 작품 관리는 기존 `GET /works/{id}/world-preprocessing`을 읽어 `queued`·`running`·`loading`이면 '세계관 추출 중' 배지를 보인다. 새 API는 없다.
 
@@ -105,17 +107,18 @@ DEC-47 저장/화면의 episodes key는 "0", "3" 형태다. 추출 결과의 파
 
 ## 발행 회차로 세계관 업데이트 (2026-11-22 사용자 결정)
 
-최초 구축이 끝난 작품에서 회차를 발행하면, 업로드 자동 시작과 같은 방식으로 그 회차를 세계관 **초안**에 더한다. 별도 화면·동의 단계는 없다. 위 '범위와 정본'의 "완료 후 신규 회차 자동 갱신 제외"와 409('이미 설정이 있는 세계관…')는 최초 구축(`kind=initial`)에만 적용한다.
+최초 구축이 끝난 작품에서 회차를 처음 발행하면, 업로드 자동 시작과 같은 방식으로 그 회차를 세계관 **초안**에 더한다. 별도 화면·동의 단계는 없다. 위 '범위와 정본'의 "완료 후 신규 회차 자동 갱신 제외"와 409('이미 설정이 있는 세계관…')는 최초 구축(`kind=initial`)에만 적용한다.
 
-- **기록:** `manuscript_build_job`에 `kind`(`initial`|`update`, 기존 행 `initial`)를 더한다. 업데이트도 같은 테이블·결과·적재 단계·`preprocessing_job` 트리거·운영 목록·재실행을 그대로 쓴다. 요청 key는 `publish:<episodeVersionId>`, 동의 기록은 `consent=true`다.
+- **기록:** `manuscript_build_job`에 `kind`(`initial`|`update`, 기존 행 `initial`)를 더한다. 업데이트도 같은 테이블·결과·적재 단계·`preprocessing_job` 트리거·운영 목록·재실행을 그대로 쓴다. 첫 발행에서 접수한 요청 key는 `publish:<episodeVersionId>`, 앞 작업 종료로 접수한 요청 key는 `continue:<jobId>:<lockVersion>`, 발행본 변경 때문에 운영이 새로 접수한 키는 `retry:<새 jobId>`다. 동의 기록은 `consent=true`다.
   구현: WorldStudio V16이 `kind`와 claim 때 정하는 `basis`(jsonb)를 더하고(V15 불변 트리거가 비교하는 입력 칼럼이 아니라 그대로 동작한다), Content V43이 V41 `preprocessing_job`에도 `kind`를 더해 부분 유니크 인덱스를 둘로 가른다: initial은 이전처럼 작품당 진행 중·완료 하나, update는 작품당 진행 중(`queued`·`running`·`loading`) 하나다(완료된 최초 구축 옆에 접수되고 동시 접수는 이 인덱스가 막는다). V15 트리거는 같은 id의 V41 행에 상태·진행만 맞추므로 update 행에서도 그대로 동작한다.
-- **시작 조건:** 발행 동작이 `publish`(첫 발행, 수동·예약 모두)일 때만 시도한다. `replace`·`republish`·되돌리기는 시도하지 않는다. 작품에 세계관이 연결돼 있고, 그 작품·세계관의 `initial` 작업이 `completed`이며, 같은 세계관에 끝나지 않은(`queued`·`running`·`loading`·`unknown`) 작업이 없을 때만 접수한다. 조건이 맞지 않거나 접수가 실패해도 발행은 그대로 성공하고, 사유는 코드 문자열로 로그에만 남긴다.
-  구현: `PublicationService.apply`가 `publish`일 때 트랜잭션이 있으면 커밋 뒤 콜백(롤백이면 없다)으로, 없으면 바로 `PreprocessingService.startUpdate`를 부른다(`PublicationService`는 의존 순환을 끊으려고 `@Lazy`로 받는다). 이 함수는 호출자의 트랜잭션을 중단하고 실행하며 예외를 던지지 않고 결과 코드(`STARTED`·`NO_WORK`·`NO_WORLD`·`INITIAL_NOT_COMPLETED`·`OPEN_JOB`·`NO_NEW_EPISODES`·거절 코드 또는 `HTTP_<상태>`·예외 종류)만 돌려준다.
-- **대상 회차:** 발행된 회차 중 아직 반영되지 않은 회차 전체다. 반영된 회차는 `completed` 작업 manifest에 들어 있던 회차 번호다. 앞선 작업이 진행 중이라 접수하지 못한 회차는 다음 발행 때 함께 들어간다. manifest는 각 회차의 **발행본** 버전(제목·본문·sourceHash)이다. Fork 상속 회차는 넣지 않는다.
+- **시작 조건:** 발행 동작이 `publish`(첫 발행, 수동·예약 모두)이거나 업데이트가 `completed`·`failed`로 커밋되면 접수를 시도한다(#674). `replace`·`republish`·되돌리기는 시도하지 않는다. 작품에 세계관이 연결돼 있고, 그 작품·세계관의 `initial` 작업이 `completed`이며, 같은 세계관에 끝나지 않은(`queued`·`running`·`loading`·`unknown`) 작업이 없을 때만 접수한다. 조건이 맞지 않거나 접수가 실패해도 발행은 그대로 성공하고, 사유는 코드 문자열로 로그에만 남긴다.
+  구현: 최종 적재 또는 실패 전이에서 발행한 이벤트는 커밋 뒤에만 처리한다. `unknown`은 종료 상태가 아니다. 첫 발행·종료의 접수와 운영 재실행은 작품 행 잠금으로 중복 반영을 막고, AI 접수는 트랜잭션 밖에서 한다. `PublicationService.apply`가 `publish`일 때 트랜잭션이 있으면 커밋 뒤 콜백(롤백이면 없다)으로, 없으면 바로 `PreprocessingService.startUpdate`를 부른다(`PublicationService`는 의존 순환을 끊으려고 `@Lazy`로 받는다). 이 함수는 호출자의 트랜잭션을 중단하고 실행하며 예외를 던지지 않고 결과 코드(`STARTED`·`NO_WORK`·`NO_WORLD`·`INITIAL_NOT_COMPLETED`·`OPEN_JOB`·`NO_NEW_EPISODES`·거절 코드 또는 `HTTP_<상태>`·예외 종류)만 돌려준다.
+  한계: 커밋 뒤 처리는 메모리 이벤트·콜백이라 영속 재처리 경로가 없다. 커밋과 처리 사이에 Content가 종료되면 그 접수는 사라지고, 미반영 발행 회차는 다음 첫 발행의 접수에 함께 포함된다. 다음 발행이 없으면 반영되지 않은 채 남는다(발표 범위에서 감수, 필요하면 기동 시 미반영 회차 재접수로 보완).
+- **대상 회차:** 발행된 회차 중 아직 반영되지 않은 회차 전체다. 반영된 회차는 `completed` 작업 manifest에 들어 있던 회차 번호다. 앞선 업데이트 중에 발행한 회차는 작업이 끝난 뒤 이어서 처리한다. 실패 업데이트의 manifest에 있는 회차는 새 첫 발행과 종료 후 이어받기 모두에서 제외한다. 일부 회차의 추출이 저장된 실패 작업도 초안에 반영되기 전이므로 해당 manifest 전체를 보류한다. manifest는 각 회차의 **발행본** 버전(제목·본문·sourceHash)이다. Fork 상속 회차는 넣지 않는다.
   구현: 반영된 회차는 `completed` 작업(initial·update 모두) manifest 번호의 합집합이고, 발행본은 `episode_current.published_version_id`의 버전(`versionId`는 `contentVersionId`)이다. 발행본이 아닌 저장 버전·초안은 읽지 않는다. 원고 변경 검사(`SOURCE_CHANGED`)도 고정한 회차의 발행본만 비교한다(다른 회차의 새 발행은 다음 업데이트 몫이다).
 - **기준 초안:** 업데이트 작업은 `claim` 때의 세계관 초안을 기준으로 고정한다. 추출 중에 초안이 바뀌면 최초 구축과 같이 `WORLD_CHANGED`로 실패한다.
   구현: manifest는 접수 때 고정하는 불변 입력이라 기준 초안을 거기에 쓰지 않고 V16 `basis`에 claim이 실행권을 받은 직후 현재 초안을 읽어 쓴다(읽을 수 없으면 `WORLD_CHANGED`). 이후 `prepareManuscript` 기준 검사와 카드 맞춤은 이 값을 쓰고, 큐에서 기다리는 동안의 작가 편집은 실패가 아니다. 최초 구축은 그대로 manifest의 `basis`를 쓴다.
-- **AI:** 바꾸지 않는다. 같은 `preprocessing.run` 태스크(`ai-worker`, 동시성 1)가 manifest 회차를 추출하고 정체를 정리해 같은 적재 요청을 보낸다.
+- **AI:** 최초 구축과 같은 `preprocessing.run` 태스크와 회차 추출 병렬화 규칙으로 manifest 회차를 처리한 뒤 같은 적재 요청을 보낸다.
 - **적재(Content):** 적재 요청의 카드를 기준 초안의 카드와 맞춘다.
   - 종류(`cardType`)와 이름(제목 또는 별칭)이 같은 기존 카드가 **정확히 하나**면 같은 대상으로 본다. 그 카드의 본문·제목·별칭·SOUL·GOAL·공개 설정은 바꾸지 않고, 인물 기억(`characterDocs.episodes`)에서 아직 없는 회차 키만 더한다. 적재 요청의 `00` 기억은 이 작업에서 처음 등장한 회차의 기억으로 옮긴다.
   - 맞는 카드가 없으면 새 카드(`visibility=private`)로 더한다.
@@ -123,9 +126,9 @@ DEC-47 저장/화면의 episodes key는 "0", "3" 형태다. 추출 결과의 파
   - 관계는 맞춘 카드 ID로 바꿔 DEC-51 회차별 관계로 더한다. 기존 관계는 교체하지 않는다. 사건 카드는 새 카드다.
   - 구현(`ManuscriptBuildMapper.build(update=true)`): 이름은 제목·별칭을 `trim`해 하나라도 같으면 같은 이름이고 삭제된(`removed`) 카드는 맞추지 않는다. 한 기존 카드를 요청 카드 여럿이 노리면 둘 이상 맞는 경우와 같이 새 카드+`needsReview`다. `00` 기억은 이 인물(요청 카드)이 이 작업에서 처음 등장한 회차(`firstAppearanceEpisode`) 키로 옮긴다: 작업의 첫 회차로 옮기면 뒤 회차에서 처음 나온 인물의 기억이 앞 회차 독자에게 먼저 보이기 때문이다. 새 카드의 `00`은 그대로 시작 전 기억(`0`)이다. 더할 키가 없는 맞춘 카드는 요청에 싣지 않는다(인물이 아닌 카드는 늘 그렇다). 적재 단계의 `WorldStudioService.edit`은 update 작업의 단계에서만 이미 있는 카드 초안을 다시 쓸 수 있고 최초 구축 단계는 계속 거절한다. 맞춘 카드가 요청에 든 만큼 영수증의 `cardIds`에도 든다.
 - **확정:** 초안에 더하기만 하고, 확정은 작가가 기존 revisions API로 한다.
-- **조회·화면:** `GET /works/{id}/world-preprocessing` 응답 최상위(`build`와 나란히)에 `update`(가장 최근 업데이트 작업의 `{jobId, status, episodes:[회차 번호], failureCode}`, 없으면 null)를 더한다. 기존 필드는 계속 최초 구축 작업을 가리킨다(`update.status`는 `build.status`와 같은 값이라 만료된 실행·적재 결과 확인 대기는 `unknown`이다). 작품 관리 '공개 회차' 머리에는 `update.status`가 `queued`·`running`·`loading`이면 '세계관 업데이트 중' 배지를 보인다.
-- **한계:** 실패한 업데이트는 운영 작업 감시의 재실행으로 같은 작업을 다시 돌린다. 실패 작업은 끝나지 않은 작업이 아니므로, 다음 발행이 그 회차를 다시 담아 새 작업으로 접수한다. 그 회차가 이미 다른 작업으로 반영됐으면 이전 실패 작업의 재실행은 409다. 이름이 다른 같은 대상(별칭이 처음 나온 경우)은 자동으로 합치지 않는다.
-  구현: '가장 최근 실패 작업만 재실행'은 종류별이다(initial은 initial 중, update는 update 중). AI가 접수를 받았는지 알 수 없는 update 작업(접수 응답이 없을 때)은 사람이 다시 접수할 길이 없어 실행권이 없는 `queued` 작업을 `AI_INTAKE_FAILED`로 실패 처리한다(AI가 이미 받았다면 그 `claim`이 먼저 실행권을 가져가 거절되고, 늦게 도착한 접수는 `claim`이 `queued`가 아니라서 거절한다). 업데이트 작업이 끝나지 않은 채 AI가 멈추면 최초 구축과 같이 다음 접수를 막는다(실패했거나 실행 기한이 지난 작업은 운영 재실행으로 푼다). 발행 요청은 AI 접수 호출(읽기 제한 10초)이 끝난 뒤 응답한다. 기존 관계와 같은 (시작·끝·이름)의 새 관계가 나오면 따로 합치지 않고 그대로 더한다.
+- **조회·화면:** `GET /works/{id}/world-preprocessing` 응답 최상위(`build`와 나란히)에 `update`(진행 중인 업데이트를 우선하고 없으면 가장 최근 작업의 `{jobId, status, episodes:[회차 번호], failureCode}`, 없으면 null)를 더한다. 기존 필드는 계속 최초 구축 작업을 가리킨다(`update.status`는 `build.status`와 같은 값이라 만료된 실행·적재 결과 확인 대기는 `unknown`이다). 작품 관리 '공개 회차' 머리에는 `update.status`가 `queued`·`running`·`loading`이면 '세계관 업데이트 중' 배지를 보인다.
+- **한계:** 실패한 업데이트는 이후 작업이 끝난 뒤에도 운영 작업 감시에서 재실행할 수 있다. 작품이 같은 세계관에 연결돼 있어야 하고, 다른 작업이 진행 중이면 409다. `SOURCE_CHANGED`로 실패한 작업은 운영이 재실행할 때 원래 입력 중 아직 반영되지 않고 현재 발행본이 있는 회차만 새 작업으로 접수한다. 남은 회차가 없으면 409다. 기존 작업을 그대로 재실행할 때는 이미 다른 작업이 반영한 회차가 원래 입력에 하나라도 섞여 있으면 409다. 이름이 다른 같은 대상(별칭이 처음 나온 경우)은 자동으로 합치지 않는다.
+  구현: 최초 구축은 같은 종류의 가장 최근 작업만 재실행한다. 발행본 변경으로 새로 접수할 때는 이전 작업을 실패 이력으로 보존한다. 그 밖의 업데이트 재실행은 기존 manifest·추출 결과를 재사용하고 실패 회차(없으면 manifest 전체)를 재접수한다. AI 접수 응답이 없으면 실행권이 없는 `queued` 작업을 `AI_INTAKE_FAILED`로 실패 처리한다(AI가 이미 받았다면 그 `claim`이 먼저 실행권을 가져가 거절되고, 늦게 도착한 접수는 `claim`이 `queued`가 아니라서 거절한다). 업데이트 작업이 끝나지 않은 채 AI가 멈추면 최초 구축과 같이 다음 접수를 막는다(실패했거나 실행 기한이 지난 작업은 운영 재실행으로 푼다). 발행 요청은 AI 접수 호출(읽기 제한 10초)이 끝난 뒤 응답한다. 기존 관계와 같은 (시작·끝·이름)의 새 관계가 나오면 따로 합치지 않고 그대로 더한다.
 
 ## 최초 구축 사용자 화면
 

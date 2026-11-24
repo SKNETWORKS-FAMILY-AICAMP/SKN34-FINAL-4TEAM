@@ -38,6 +38,14 @@ class OperationsExceptionHandler {
     fun candidateRequired(): ResponseEntity<OperationsErrorResponse> =
         ResponseEntity.status(409).body(OperationsErrorResponse("CANDIDATE_REQUIRED", "Only a candidate prompt version can be promoted."))
 
+    @ExceptionHandler(OptimizationRunningException::class)
+    fun optimizationRunning(): ResponseEntity<OperationsErrorResponse> =
+        ResponseEntity.status(409).body(OperationsErrorResponse("OPTIMIZATION_RUNNING", "An optimization of this prompt is already running."))
+
+    @ExceptionHandler(OptimizationUnsupportedException::class)
+    fun optimizationUnsupported(): ResponseEntity<OperationsErrorResponse> =
+        ResponseEntity.status(422).body(OperationsErrorResponse("OPTIMIZATION_UNSUPPORTED", "This prompt cannot be optimized automatically."))
+
     @ExceptionHandler(EvaluationRequiredException::class)
     fun evaluationRequired(): ResponseEntity<OperationsErrorResponse> =
         ResponseEntity.status(409).body(OperationsErrorResponse("EVALUATION_REQUIRED", "A passing regression evaluation on the prompt's evaluation set is required."))

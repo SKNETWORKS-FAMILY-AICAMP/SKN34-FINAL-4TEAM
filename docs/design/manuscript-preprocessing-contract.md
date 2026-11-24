@@ -2,9 +2,11 @@
 
 [결정 목록](decisions.md#결정-목록) DEC-50 · [서비스 경계](service-boundaries.md) · [Content MCP 창구](content-mcp-contract.md)
 
-아래 초기 설계의 회차별 병렬 Celery·MCP 적재는 제안 당시의 실행 방식이다. 2026-11-20 사용자 결정으로 Celery 큐는 도입하되 작업(작품) 하나를 태스크 하나로 순차 실행한다([최초 구축 저장 계약](initial-build-storage-contract.md#업로드-자동-시작과-celery-큐-2026-11-20-사용자-결정)). #552 통합 후보의 실제 실행 경로와 복구 조건은 [최초 구축 저장 계약](initial-build-storage-contract.md)과 이 문서의 마지막 절을 따른다.
+현재 구현은 작품 작업 하나를 Celery 태스크 하나로 실행하고, 회차 결과와 적재는 Content 내부 콜백으로 기록한다. [#673](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/673)부터 Compose의 전처리 워커는 기본 3개 작업을 동시에 실행하고, 각 작업은 미저장 회차를 최대 4개씩 동시에 추출한다. 저장·정체 통합·적재 순서와 복구 조건은 [최초 구축 저장 계약](initial-build-storage-contract.md#업로드-자동-시작과-celery-큐-2026-11-20-사용자-결정)을 따른다. 아래의 회차 단위 Celery 태스크와 MCP 적재는 초기 설계의 실행 방식이다.
 
 > 2026-11-17 사용자 정정: #344·#351·#428과 Celery/LangGraph는 참고 구현이며 필수 의존성이 아니다. 최신 develop의 저장 경계를 우선한다. 최초 구축의 영속 기록은 [초기 구축 저장 계약](initial-build-storage-contract.md)에 따라 보완 중이며 자동 실행 완료를 의미하지 않는다.
+
+회차 추출과 정체 통합은 OpenAI Responses API의 엄격한 JSON 스키마 응답을 스트리밍으로 받는다. 완료 이벤트를 받고 스키마 검증을 통과한 결과만 Content에 전달한다. 완료 없이 끝난 응답은 출력 미완료로, 읽기 시간 초과와 전송 오류는 기존 모델 시간 초과와 응답 미확인으로 각각 처리한다.
 
 ## 목적
 
