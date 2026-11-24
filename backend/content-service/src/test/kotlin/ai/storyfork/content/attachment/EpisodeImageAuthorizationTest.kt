@@ -6,6 +6,7 @@ import ai.storyfork.content.attachment.client.dto.AttachmentObjectResult
 import ai.storyfork.content.attachment.domain.AttachmentFailure
 import ai.storyfork.content.attachment.entity.ContentImage
 import ai.storyfork.content.attachment.repository.*
+import ai.storyfork.content.imagegeneration.client.CoverModerationClient
 import ai.storyfork.content.attachment.service.AttachmentService
 import ai.storyfork.content.episode.entity.*
 import ai.storyfork.content.episode.repository.*
@@ -74,7 +75,7 @@ class EpisodeImageAuthorizationTest {
     private val storage = mock(AttachmentStorageClient::class.java)
     private val manager = mock(PlatformTransactionManager::class.java)
     private val attachments = AttachmentService(mock(AttachmentSettingRepository::class.java), mock(SettingAttachmentRepository::class.java),
-        images, mock(ImageWorkRepository::class.java), content, writing, storage, TransactionTemplate(manager), mock(ImageEpisodeRepository::class.java))
+        images, mock(ImageWorkRepository::class.java), content, writing, storage, TransactionTemplate(manager), mock(ImageEpisodeRepository::class.java), mock(CoverModerationClient::class.java))
     private val episode = EpisodeEntity("episode", "work", 1)
     private val draft = EpisodeDraftEntity("episode", "original title", "original body", 4)
     private val row = EpisodeCurrentEntity("episode", "work", 1)

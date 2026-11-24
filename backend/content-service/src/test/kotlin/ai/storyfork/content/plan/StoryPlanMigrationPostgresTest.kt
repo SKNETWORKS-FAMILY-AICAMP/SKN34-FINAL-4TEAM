@@ -29,8 +29,8 @@ class StoryPlanMigrationPostgresTest {
             fun migrations() = Flyway.configure().dataSource(source).schemas(schema).defaultSchema(schema)
                 .locations(*ContentPersistenceConfig.MIGRATION_LOCATIONS).table("content_schema_history")
             val initial=migrations().let { if(version>0) it.target(version.toString()) else it }.load()
-            // V24·V32~V35를 제외한 V46까지의 마이그레이션 수다. target 10·11은 결번 이전이다.
-            val migrationCount = 41
+            // V24·V32~V35를 제외한 V47까지의 마이그레이션 수다. target 10·11은 결번 이전이다.
+            val migrationCount = 42
             assertEquals(if(version>0) version else migrationCount,initial.migrate().migrationsExecuted)
             val checksums=jdbc.queryForList("SELECT version,checksum FROM content_schema_history ORDER BY installed_rank")
             jdbc.update("INSERT INTO member(id) VALUES ('owner')")

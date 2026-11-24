@@ -11,6 +11,7 @@ import ai.storyfork.content.attachment.repository.ContentImageRepository
 import ai.storyfork.content.attachment.repository.ImageWorkRepository
 import ai.storyfork.content.attachment.repository.SettingAttachmentRepository
 import ai.storyfork.content.attachment.service.dto.*
+import ai.storyfork.content.imagegeneration.client.CoverModerationClient
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.episode.service.EpisodeService
 import java.util.UUID
@@ -31,6 +32,7 @@ class AttachmentService(
     private val storage: AttachmentStorageClient,
     @Qualifier("attachmentTransactions") private val transactions: TransactionTemplate,
     private val imageEpisodes: ai.storyfork.content.attachment.repository.ImageEpisodeRepository,
+    private val coverModeration: CoverModerationClient,
 ) {
     private fun missingSettingAttachment(): Nothing = throw AttachmentFailure(404, "ATTACHMENT_NOT_FOUND", "설정 또는 첨부를 찾을 수 없어요.")
     /** [card]이면 세계관 카드(#735)다: [CardAttachmentService]가 세계관 소유·지우지 않은 카드를 이미 확인했으므로 카드 ID를 그대로 대상으로 쓴다. */
@@ -171,17 +173,21 @@ class AttachmentService(
         if (public) content.publicEpisodes(work)
         return imageTransaction { if (!public) ownedWork(work, owner ?: ""); val image = cover(work); AttachmentDownloadResult(response(image), imageBytes(image)) }
     }
-    fun putCover(work: String, owner: String, payload: AttachmentUploadPayload) = imageTransaction {
-        ownedWork(work, owner)
-        val data = imagePayload(payload)
-        val previous = images.findByWorkIdAndEpisodeNo(work, 0).singleOrNull()
-        val key = "work-covers/${UUID.randomUUID()}"
-        storage.upload(key, AttachmentObjectPayload(data.bytes, data.mediaType))
-        val image = previous ?: ContentImage(workId = work)
-        image.objectKey = key; image.filename = data.filename; image.mediaType = data.mediaType; image.byteSize = data.bytes.size.toLong()
-        images.saveAndFlush(image)
-        // ponytail: retain superseded objects instead of risking loss on an ambiguous DB commit; lifecycle reconciliation is operator-owned.
-        response(image)
+    fun putCover(work: String, owner: String, loadPayload: () -> AttachmentUploadPayload): AttachmentResponse {
+        requireWorkUploadAccess(work, owner)
+        val data = imagePayload(loadPayload())
+        coverModeration.check(data.bytes, data.mediaType)
+        return imageTransaction {
+            ownedWork(work, owner)
+            val previous = images.findByWorkIdAndEpisodeNo(work, 0).singleOrNull()
+            val key = "work-covers/${UUID.randomUUID()}"
+            storage.upload(key, AttachmentObjectPayload(data.bytes, data.mediaType))
+            val image = previous ?: ContentImage(workId = work)
+            image.objectKey = key; image.filename = data.filename; image.mediaType = data.mediaType; image.byteSize = data.bytes.size.toLong()
+            images.saveAndFlush(image)
+            // ponytail: retain superseded objects instead of risking loss on an ambiguous DB commit; lifecycle reconciliation is operator-owned.
+            response(image)
+        }
     }
     fun deleteCover(work: String, owner: String) { imageTransaction { ownedWork(work, owner); images.delete(cover(work)); images.flush(); true } }
     /** EPUB 가져오기는 검증한 이미지와 대체 텍스트를 전달한다. */

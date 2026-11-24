@@ -229,14 +229,15 @@ it('shows the default cover in the cover slot of the creation screen', async () 
   expect(document.querySelector('.ep-cover img[src="/default-work-cover.svg"]')).toBeTruthy()
 })
 
-it('puts the same disabled AI 생성 button with a visible 준비 중 note beside the cover input of the creation screen', async () => {
+it('opens image generation beside the cover input of the creation screen', async () => {
   stubCover()
   openContent(contentApi({ 'GET /api/v1/works': () => Response.json([]) }))
   await screen.findByRole('heading', { level: 1, name: '새 작품 만들기' })
   const ai = screen.getByRole('button', { name: 'AI로 생성' }) as HTMLButtonElement
-  expect(ai.disabled).toBe(true)
+  expect(ai.disabled).toBe(false)
   expect(ai.classList.contains('sm')).toBe(true)
-  expect(document.getElementById(ai.getAttribute('aria-describedby') ?? '')?.textContent).toBe('준비 중')
+  fireEvent.click(ai)
+  expect(screen.getByRole('group', { name: 'AI 이미지 생성' })).toBeTruthy()
   // 작품 관리의 표지 편집과 같이 '표지 이미지 선택' 보조 버튼과 한 줄(.ep-cover-pick)에 놓인다.
   const picker = screen.getByLabelText('표지 이미지 선택')
   expect(picker.closest('label')?.classList.contains('btn')).toBe(true)
@@ -874,7 +875,7 @@ it('shows a styled 이미지 선택 button instead of the browser file input and
   expect(Array.from(form.querySelectorAll('.ep-edit-actions button'), (b) => b.textContent)).toEqual(['저장', '취소'])
 })
 
-it('puts a disabled AI 생성 button with a visible 준비 중 note beside 이미지 선택 in the cover edit', async () => {
+it('opens image generation beside 이미지 선택 in the cover edit', async () => {
   const id = '11111111-1111-4111-8111-111111111111'
   stubCover()
   stubPreviewUrl()
@@ -884,16 +885,17 @@ it('puts a disabled AI 생성 button with a visible 준비 중 note beside 이�
   fireEvent.click(screen.getByRole('button', { name: '표지 편집' }))
   const form = screen.getByRole('form', { name: '표지 편집' })
   const ai = within(form).getByRole('button', { name: 'AI로 생성' }) as HTMLButtonElement
-  // 아직 연결 전이라 비활성이고, '준비 중'은 툴팁이 아니라 보이는 글자이며 버튼 설명으로 이어진다.
-  expect(ai.disabled).toBe(true)
+  // 생성 입력을 열어도 기존 표지는 저장 전까지 유지된다.
+  expect(ai.disabled).toBe(false)
   expect(ai.title).toBe('')
-  expect(document.getElementById(ai.getAttribute('aria-describedby') ?? '')?.textContent).toBe('준비 중')
+  fireEvent.click(ai)
+  expect(screen.getByRole('group', { name: 'AI 이미지 생성' })).toBeTruthy()
   // '이미지 선택'과 같은 보조 버튼 크기이고 한 줄(.ep-cover-pick)에 놓인다.
   const picker = within(form).getByLabelText('이미지 선택')
   expect(ai.classList.contains('sm')).toBe(true)
   expect(picker.closest('label')?.classList.contains('sm')).toBe(true)
   expect(ai.closest('.ep-cover-pick')).toBe(picker.closest('.ep-cover-pick'))
-  // 눌러도 아무 일도 없다: 저장은 여전히 파일을 골라야 켜진다.
+  // 생성 입력을 닫아도 기존 저장은 파일 선택 전까지 잠긴다.
   fireEvent.click(ai)
   expect((within(form).getByRole('button', { name: '저장' }) as HTMLButtonElement).disabled).toBe(true)
 })

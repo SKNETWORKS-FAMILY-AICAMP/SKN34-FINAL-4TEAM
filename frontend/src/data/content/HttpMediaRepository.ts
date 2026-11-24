@@ -18,7 +18,8 @@ export class HttpMediaRepository implements MediaRepository {
  constructor(fetcher?:typeof fetch){this.fetcher=fetcher}
  private async request(url:string,method='GET',body?:FormData|string,signal?:AbortSignal,publicView=false) {
   const version=authVersion()
-  const requestSignal=signal?AbortSignal.any([signal,AbortSignal.timeout(30000)]):AbortSignal.timeout(30000)
+  const timeout=AbortSignal.timeout(method==='PUT'&&url.endsWith('/cover')?45000:30000)
+  const requestSignal=signal?AbortSignal.any([signal,timeout]):timeout
   const headers:Record<string,string>={}
   if(typeof body==='string')headers['Content-Type']='application/json'
   if(method!=='GET')headers['X-CSRF-TOKEN']=await csrf(requestSignal)
