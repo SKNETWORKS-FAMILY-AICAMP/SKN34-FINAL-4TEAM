@@ -122,6 +122,7 @@ JUnit/Vitest/pytest 단위·통합 테스트는 서비스 디렉터리에, pytes
 변경 선택 후 단위·통합 서비스 행렬과 설정 검사는 서로 독립적으로 병렬 실행합니다. 시스템은 필요한 단위·통합·설정 검사가 성공한 뒤 실행하며, 실패·취소 시 생략합니다. 단위/통합 범위는 서로 제외해 중복 실행하지 않습니다.
 Core/Content/Operations의 혼합 경계 클래스는 통합에 두며 Kotlin/Java의 Spring/HTTP/DB 분류 누락을 회귀로 검사합니다.
 Core/Content/Operations의 Gradle 캐시(`setup-java`)는 `cache-dependency-path`로 서비스별 키를 씁니다. 한 키를 함께 쓰면 먼저 저장한 서비스의 의존성만 남아 나머지는 Maven Central에서 다시 받다 429로 실패할 수 있습니다.
+Core/Content/Operations 이미지 빌드는 Gradle 의존성을 `COPY src` 앞 별도 레이어에서 받아(소스 레이어는 `--offline`) CI의 `type=gha` 레이어 캐시에 싣습니다. BuildKit cache mount는 그 캐시로 내보내지지 않아 소스가 바뀔 때마다 Maven Central을 다시 부르다 429로 실패했습니다(#800).
 Core 통합은 임시 PostgreSQL·Mailpit의 Auth/내부 보안을, Content 통합은 `TEST_CONTENT_DATABASE_URL`의 fresh 초기화·이력·JPA/Studio·HTTP proxy를 확인합니다. #132는 Content 통합 job에만 격리 Neo4j를 추가해 현재 관계 CRUD·재시도·부분 실패·권한·재조회와 카드 history의 not_recorded를 검증하도록 구성했습니다. 원고 색인이 늘 켜져 있어 모든 Content Spring 컨텍스트가 시작할 때 Elasticsearch에 접속하므로 Content 통합 job에는 격리 Elasticsearch service(`127.0.0.1:9200`)도 있습니다(로컬에서 Content 통합 테스트를 돌릴 때도 필요하며 `INTERNAL_TOKEN`도 비어 있으면 안 됩니다). Studio HTTP 통합의 Core 인증은 대역이며 실제 Core 로그인/nginx Studio 시스템 시나리오·hosted 실행 결과는 별도 대기입니다. Operations 통합은 job별 임시 PostgreSQL의 `TEST_OPERATIONS_DATABASE_URL/USER/PASSWORD`와 서비스 토큰/독립 CRUD·Flyway·JPA를 확인하도록 구성합니다. `content_test`/빈 비밀번호는 격리 runner trust 인증 전용입니다. 실제 S3 lifecycle은 fixture 부재로 조건부 skip이며 통과로 표현하지 않습니다.
 
 #### 변경·영향 선택
