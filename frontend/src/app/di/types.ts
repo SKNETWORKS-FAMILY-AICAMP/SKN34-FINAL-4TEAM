@@ -42,6 +42,8 @@ import type { WorkInterestUseCase } from '../../domain/usecases/WorkInterestUseC
 export type FetchCoreApiHealth = (signal?: AbortSignal) => Promise<CoreApiHealth>
 
 export type AppCradle = {
+  imageGenerationRepository: import("../../domain/repositories/ImageGenerationRepository").ImageGenerationRepository
+  imageGenerationUseCase: import("../../domain/usecases/ImageGenerationUseCase").ImageGenerationUseCase
   operationsRepository: import('../../domain/repositories/OperationsRepository').OperationsRepository
   operationsUseCase: import('../../domain/usecases/OperationsUseCase').OperationsUseCase
   noticeRepository: import('../../domain/repositories/NoticeRepository').NoticeRepository

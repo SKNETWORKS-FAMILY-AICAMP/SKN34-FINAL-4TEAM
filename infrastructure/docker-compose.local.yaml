@@ -97,6 +97,18 @@ services:
       timeout: 3s
       retries: 20
 
+  image-worker:
+    build:
+      context: ../backend/ai-service
+      dockerfile: Dockerfile
+    environment:
+      ATTACHMENT_S3_ENDPOINT: http://minio:9000
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
   ai-service:
     build: &ai-build
       context: ../backend/ai-service

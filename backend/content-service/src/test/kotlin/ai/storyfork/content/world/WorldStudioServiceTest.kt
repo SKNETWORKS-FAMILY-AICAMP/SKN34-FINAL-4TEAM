@@ -8,6 +8,7 @@ import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.studio.entity.*
 import ai.storyfork.content.world.studio.repository.*
+import ai.storyfork.content.imagegeneration.client.CoverModerationClient
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.GenreTemplateRepair
 import ai.storyfork.content.world.service.GenreTemplateSeeder
@@ -729,7 +730,7 @@ class WorldStudioServiceTest {
     @Test fun `cover delete records an explicit owner choice even when already absent`() {
         val f=pristineTemplateFixture()
         val covers=ai.storyfork.content.world.service.WorldCoverService(worlds,
-            mock(ai.storyfork.content.attachment.client.AttachmentStorageClient::class.java),expandedSeeds,manager)
+            mock(ai.storyfork.content.attachment.client.AttachmentStorageClient::class.java),expandedSeeds,manager,mock(CoverModerationClient::class.java))
         covers.delete(f.template.worldId,GenreTemplateSeeder.TEMPLATE_OWNER)
         assertEquals(1L,f.world.ownerMetadataVersion)
         service.publishPristineTemplate(f.template,null,null)
@@ -739,7 +740,7 @@ class WorldStudioServiceTest {
         val f=pristineTemplateFixture()
         val storage=mock(ai.storyfork.content.attachment.client.AttachmentStorageClient::class.java)
         doThrow(IllegalStateException("storage offline")).`when`(storage).upload(anyString(),any() ?: ai.storyfork.content.attachment.client.dto.AttachmentObjectPayload(byteArrayOf(1),"image/png"))
-        val covers=ai.storyfork.content.world.service.WorldCoverService(worlds,storage,expandedSeeds,manager)
+        val covers=ai.storyfork.content.world.service.WorldCoverService(worlds,storage,expandedSeeds,manager,mock(CoverModerationClient::class.java))
         assertThrows(RuntimeException::class.java) { covers.put(f.template.worldId,GenreTemplateSeeder.TEMPLATE_OWNER,
             ai.storyfork.content.world.domain.WorldCoverFile(byteArrayOf(1),"image/png")) }
         assertEquals(1L,f.world.ownerMetadataVersion)
