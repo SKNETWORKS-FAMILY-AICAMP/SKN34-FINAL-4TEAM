@@ -187,11 +187,11 @@ def test_follow_up_turn_gets_previous_requests_and_qa_history(monkeypatch):
 
 
 def test_the_guard_history_is_the_last_three_turns_with_a_short_reply_and_the_features_run():
-    turns = [{'request': f'요청{i}', 'reply': {'message': '가' * 400, 'steps': [{'feature': 'web_research'}, {'feature': 'research'}, {'feature': 'rating'}]}}
+    turns = [{'request': f'요청{i}', 'reply': {'message': '가' * 400, 'steps': [{'feature': 'web_research'}, {'feature': 'research'}, {'feature': 'content_action'}, {'feature': 'rating'}]}}
              for i in range(4)] + [{'request': '답 없음'}]
     sent = tools.guard_history({'turns': turns})
     assert [t['request'] for t in sent] == ['요청2', '요청3', '답 없음']
-    assert sent[0] == {'request': '요청2', 'reply': '가' * 300, 'features': ['research', 'rating']}  # 옛 기능 키는 지금 키로, 중복 없이
+    assert sent[0] == {'request': '요청2', 'reply': '가' * 300, 'features': ['research', 'rating']}  # 옛 기능 키는 지금 키로, 중복·Content 쓰기 단계 없이
     assert sent[-1] == {'request': '답 없음', 'reply': '', 'features': []}
     assert tools.guard_history({'turns': turns, 'replaceHistory': True}) == []  # 메시지 수정 턴은 이전 턴을 보내지 않는다
 

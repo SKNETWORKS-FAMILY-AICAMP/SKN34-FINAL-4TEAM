@@ -51,7 +51,6 @@ def fake_decisions(monkeypatch, answers, flagged=(), moderated=None, before_mode
             pass
 
     monkeypatch.setattr(agent, 'OpenAI', Client)
-    agent._client.cache_clear()
     return calls
 
 
@@ -336,6 +335,11 @@ def test_moderation_and_decisions_are_sent_at_the_same_time(monkeypatch):
             return super().post(*args, **kwargs)
     monkeypatch.setattr(agent, 'OpenAI', Signalling)
     assert service.judge('검수해줘').capabilities == ['manuscript_review'] and len(calls) == 1
+
+
+def test_a_blocked_request_is_unsafe_even_when_decisions_fails(monkeypatch):
+    fake_decisions(monkeypatch, OpenAIError('down'), flagged=('sexual_minors',))
+    assert (service.judge('검수해줘').reason) == 'unsafe'  # 분류 실패(503)가 아니라 안전 정책 거절이다
 
 
 def test_the_openai_client_is_reused_across_judgments(monkeypatch):
