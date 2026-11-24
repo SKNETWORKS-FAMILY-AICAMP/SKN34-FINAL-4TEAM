@@ -713,7 +713,7 @@
 <tr><td>모바일 화면 대응 <small>(서버 집필실 툴바·회차 버튼 정렬 및 터치 영역 정리, 로컬 구현·CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/110">PR #110</a></td></tr>
 <tr><td>집필실 3단 레이아웃 <small>(왼쪽 회차 목록·새 회차 아이콘·항목별 ⋮ 메뉴·크기 조절 분할선·버전 그래프, 가운데 제목 첫 줄과 본문 편집기(Toast UI Editor, 아래 행)·공개 분량 5,000자 규칙(화면 규칙), 오른쪽 공용 채팅, 기본/고급 플롯 패널(#374 소스 구현, CI 대기). 채팅은 집필 AI에 연결(#331), 이미지·텍스트 파일 첨부는 #617(+ 메뉴·끌어다 놓기·칩, 소스 구현·로컬 단위 테스트 통과, 로컬 스택 실제 OpenAI 호출·브라우저 e2e(이미지 글자·메모 내용이 기획 답변에 반영, 거절 이유·× 제거·20,000자 초과 알림, 첨부 없는 채팅 유지) 확인, hosted CI 통과(PR #652 병합)), 설정 수집은 준비 중 잠금, 로컬 구현·CI 대기)</small></td><td>❌</td></tr>
 <tr><td>집필실 본문 Toast UI 편집기와 원고 기본 서식 <small>(툴바 굵게·기울임·소제목·인용·구분선·이미지와 쓰기·미리보기, 저장은 문자열 그대로, 독자 화면·저장 버전 보기·EPUB 내보내기가 같은 문법으로 표시, DEC-48)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/330">PR #330</a></td></tr>
-<tr><td rowspan="23">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="23"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/24">#24</a></td></tr>
+<tr><td rowspan="24">56 공통 사용자 환경</td><td>앱 라이트·다크 모드 전환</td><td>❌</td><td rowspan="24"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/24">#24</a></td></tr>
 <tr><td>홈 단색 배경 보조 텍스트의 라이트·다크 대비 확보</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>홈 Hero 자동 넘김을 이름 있는 정지·재생 제어로 조작</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>홈 Hero 포커스·수동 전환 후 명시적 재생 전까지 자동 넘김 정지</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
@@ -727,7 +727,8 @@
 <tr><td>홈 선택 필터의 눌림 상태를 보조 기술에 제공</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>공유 Go를 주소·라우터 state·클릭 콜백을 유지하는 네이티브 링크로 탐색</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>비활성 Go 회차의 주소·탭 진입·클릭 탐색 차단</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
-<tr><td>홈 화면·섹션·작품의 h1·h2·h3 제목 계층 제공 <small>(발견 선반은 소개·분기 방향이 없으면 작품 제목을 h3에 한 번 표시, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/733">#733</a>)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
+<tr><td>홈 화면·섹션·작품의 h1·h2·h3 제목 계층 제공</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
+<tr><td>홈 발견 선반에서 소개·분기 방향이 없으면 작품 제목을 h3에 한 번 표시</td><td>❌ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/733">#733</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/776">PR #776</a> <small>(병합 대기)</small></td></tr>
 <tr><td>홈 더보기·전체 보기의 최소 44px 터치 영역 제공</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>모바일 홈·공유 셸 검색·계정·필터·알림·테마의 최소 44×44px 터치 영역 제공</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td>터치 기기(<code>pointer:coarse</code>, 태블릿 포함)에서도 전역 버튼·탭·칩·아이콘 버튼 최소 44px, 입력 글자 16px</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/316">PR #316</a></td></tr>
