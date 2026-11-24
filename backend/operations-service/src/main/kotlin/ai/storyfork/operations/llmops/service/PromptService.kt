@@ -104,7 +104,7 @@ class PromptService(
         val evaluation = evaluations.latest(name, request.version, EVALUATION_SETS[name])
         if (candidate !in labels) {
             if (name in EVALUATION_SETS && evaluation?.passed != true) throw EvaluationRequiredException()
-            langfuse.setPromptLabels(name, request.version, (labels - "latest") + candidate)
+            langfuse.setPromptLabels(name, request.version, listOf(candidate))  // Langfuse adds it and keeps the other labels
             activities.record(member, "PROMPT_CANDIDATE", "PROMPT", name, "v${request.version}")
         }
         return PromptVersion(request.version, (labels - candidate) + candidate, createdAt(current), evaluation?.summary(), model(current))
@@ -116,11 +116,12 @@ class PromptService(
         require(request.version >= 1) { "Invalid version." }
         val current = langfuse.prompt(name, request.version)
         val labels = labels(current)
-        if (PRODUCTION in labels) return version(current, evaluations.latest(name, request.version))
+        if (PRODUCTION in labels) return version(current, evaluations.latest(name, request.version, EVALUATION_SETS[name]))
         if (candidateLabel(request.version) !in labels) throw CandidateRequiredException()
-        val evaluation = evaluations.latest(name, request.version)  // only for the answer: the gate no longer reads evaluations
-        // Langfuse manages "latest" itself and keeps labels unique across versions, so the version's other labels stay and production moves here.
-        langfuse.setPromptLabels(name, request.version, (labels - "latest") + PRODUCTION)
+        val evaluation = evaluations.latest(name, request.version, EVALUATION_SETS[name])  // only for the answer, on the same set as the candidate gate
+        // Langfuse adds the sent label and keeps it unique across versions, so production moves here and the version's other labels stay.
+        // Only production is sent: re-sending labels read earlier could move back a label another request moved meanwhile.
+        langfuse.setPromptLabels(name, request.version, listOf(PRODUCTION))
         activities.record(member, "PROMPT_PROMOTE", "PROMPT", name, "v${request.version}")
         return PromptVersion(request.version, labels + PRODUCTION, createdAt(current), evaluation?.summary(), model(current))
     }

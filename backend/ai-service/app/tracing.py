@@ -202,8 +202,8 @@ def _sync_seed(name: str, default: str, cached) -> None:
             return
         production = client().get_prompt(name, label='production', cache_ttl_seconds=0)
         if production.prompt == default:
-            if SEED not in production.labels:  # Langfuse가 라벨을 버전 사이에서 하나로 유지하므로 다른 버전의 seed는 여기로 옮겨진다
-                client().update_prompt(name=name, version=production.version, new_labels=[*(label for label in production.labels if label != 'latest'), SEED])
+            if SEED not in production.labels:  # Langfuse가 보낸 라벨을 더하고 버전 사이에서 하나로 유지하므로 다른 버전의 seed는 여기로 옮겨진다
+                client().update_prompt(name=name, version=production.version, new_labels=[SEED])  # 읽은 라벨을 다시 보내면 그 사이 승격된 production을 되돌린다
         elif _seed_text(name, 0) != default:
             client().create_prompt(name=name, prompt=default, labels=[SEED], type='text', config=production.config)
     except Exception as error:

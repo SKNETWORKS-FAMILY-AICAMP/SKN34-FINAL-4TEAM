@@ -69,7 +69,7 @@ export function Prompts({ vm, l }: Props) {
     <section className="panel admin-operations" aria-label="프롬프트 상세">
       <button type="button" className="btn sm" onClick={l.closePrompt}>프롬프트 목록으로</button>
       <LiveState vm={vm} label="프롬프트 버전 목록" state={l.prompt} forbidden={LLM_FORBIDDEN} />
-      <ActionLines vm={vm} prefix="prompt:" />
+      <ActionLines vm={vm} prefix={`prompt:${l.promptName}:`} />
       {p && (
         <>
           <h2 tabIndex={-1}>{p.name}</h2>
@@ -87,7 +87,7 @@ export function Prompts({ vm, l }: Props) {
                 <th scope="col">모델</th>
                 <th scope="col">등록</th>
                 <th scope="col">회귀 평가</th>
-                <th scope="col" className="admin-nowrap">조치</th>
+                <th scope="col" className="act admin-nowrap">조치</th>
               </tr>
             </thead>
             <tbody>
@@ -112,17 +112,24 @@ export function Prompts({ vm, l }: Props) {
                     </td>
                     <td className="admin-nowrap">
                       {action === 'live'
-                        ? '—'
+                        ? '반영 중'
                         : action === 'promote'
                           ? (
                             <button
                               type="button" className="btn sm pri" disabled={busy} aria-label={`${p.name} ${v.version}번 버전 서비스에 반영`}
-                              onClick={() => { if (window.confirm(`${p.name} ${v.version}번 버전을 서비스에 반영할까요? AI 서비스가 곧 이 조합(${modelLabel(v.model, p.name)})을 쓰게 돼요.`)) void l.promote(p.name, v.version) }}
+                              onClick={(e) => {
+                                if (!window.confirm(`${p.name} ${v.version}번 버전을 서비스에 반영할까요? AI 서비스가 곧 이 조합(${modelLabel(v.model, p.name)})을 쓰게 돼요.`)) return
+                                // 반영되면 이 버튼이 '반영 중' 글자로 바뀌어 초점이 사라지므로 상세 제목으로 옮긴다.
+                                const heading = e.currentTarget.closest('section')?.querySelector<HTMLElement>('h2')
+                                void l.promote(p.name, v.version).then((ok) => { if (ok) heading?.focus() })
+                              }}
                             >
                               서비스에 반영
                             </button>
                           )
-                          : (
+                          : p.evaluationDataset && evaluation?.passed !== true
+                            ? <span className="small muted">평가 통과 후 가능</span>   // 서버도 409로 막는다(#787). 행의 평가는 짝 세트의 최신 Run이다
+                            : (
                             <button type="button" className="btn sm" disabled={busy} aria-label={`${p.name} ${v.version}번 버전 후보 등록`} onClick={() => void l.registerCandidate(p.name, v.version)}>
                               후보 등록
                             </button>

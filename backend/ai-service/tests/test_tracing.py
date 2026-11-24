@@ -259,9 +259,9 @@ def test_the_model_is_the_one_chosen_in_the_production_version_config(monkeypatc
 def test_the_code_seed_equal_to_production_only_gets_the_seed_label_on_that_version_read_fresh(monkeypatch):
     fake = langfuse(monkeypatch, stored='코드 지시', labels=['production', 'latest'])
     tracing.prompt('review.mechanical', '코드 지시')
-    # 캐시된 production(지난 라벨)로 라벨을 쓰면 그 사이 승격된 production을 되돌릴 수 있어 캐시 없이 다시 읽는다
+    # 캐시된 production(지난 라벨)로 라벨을 쓰면 그 사이 승격된 production을 되돌릴 수 있어 캐시 없이 다시 읽고, Langfuse가 보낸 라벨만 더하므로 seed만 보낸다
     assert fake.calls[1:] == [('get', 'review.mechanical', {'label': 'production', 'cache_ttl_seconds': 0}),
-                              ('update', {'name': 'review.mechanical', 'version': 2, 'new_labels': ['production', 'seed']})]
+                              ('update', {'name': 'review.mechanical', 'version': 2, 'new_labels': ['seed']})]
 
 
 def test_a_changed_code_seed_becomes_a_new_seed_version_with_the_production_model_and_production_stays(monkeypatch):
@@ -305,7 +305,7 @@ def test_promoting_a_version_with_the_seed_text_moves_the_seed_label_on_the_next
     tracing.prompt('review.mechanical', '코드 지시')
     fake.stored, fake.labels = '코드 지시', ['production', 'latest']   # 관리자가 시드 본문 + 새 모델 버전을 승격했다
     tracing.prompt('review.mechanical', '코드 지시')
-    assert fake.calls[-1] == ('update', {'name': 'review.mechanical', 'version': 2, 'new_labels': ['production', 'seed']})
+    assert fake.calls[-1] == ('update', {'name': 'review.mechanical', 'version': 2, 'new_labels': ['seed']})
 
 
 @pytest.mark.parametrize('options, calls', [({'read_error': RuntimeError('down')}, 1), ({'create_error': RuntimeError('down')}, 2)])

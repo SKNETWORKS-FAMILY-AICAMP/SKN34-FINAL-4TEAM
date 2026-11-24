@@ -159,5 +159,6 @@
 .adm .admin-prompt-name { padding: 0; border: 0; background: none; color: var(--pri-ink); font: inherit; font-weight: 600; text-align: left; overflow-wrap: anywhere; }
 .adm .admin-prompt-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 .adm .admin-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.adm .admin-prompt-live { max-width: 640px; margin-top: 4px; }
+.adm .admin-prompt-live { margin-top: 4px; }
+@media (max-width: 600px) { .adm .admin-prompt-name { min-height: 44px; } }
 @media (min-width: 1100px) { .adm .admin-prompt-live { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

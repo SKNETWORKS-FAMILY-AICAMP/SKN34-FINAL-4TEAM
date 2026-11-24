@@ -497,7 +497,7 @@ describe('관리자 (A01~A18)', () => {
     await screen.findByRole('heading', { name: 'qa-answer' })
     // 후보가 아닌 버전에는 반영 버튼이 없고, 서비스에 반영 중인 버전에는 조치 버튼이 없다.
     expect(screen.queryByRole('button', { name: 'qa-answer 3번 버전 서비스에 반영' })).toBeNull()
-    expect(screen.queryByRole('button', { name: /qa-answer 2번 버전/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /qa-answer 2번 버전 (후보 등록|서비스에 반영)/ })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'qa-answer 3번 버전 후보 등록' }))
     await toastIs('qa-answer 3번 버전을 후보로 등록했어요.')
     fireEvent.click(await screen.findByRole('button', { name: 'qa-answer 3번 버전 서비스에 반영' }))

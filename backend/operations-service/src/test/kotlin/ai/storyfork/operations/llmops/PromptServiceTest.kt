@@ -205,7 +205,8 @@ class PromptServiceTest {
         // Langfuse keeps a label on one version only, so each candidate carries its own version in the label and several candidates can coexist.
         assertEquals(listOf("latest", "seed", "candidate-3"), candidate.labels)
         val order = inOrder(langfuse, activities)
-        order.verify(langfuse).setPromptLabels("qa/answer", 3, listOf("seed", "candidate-3"))
+        // Langfuse adds the sent labels and keeps the rest, so only the new label goes (re-sending a stale production would undo a concurrent promotion).
+        order.verify(langfuse).setPromptLabels("qa/answer", 3, listOf("candidate-3"))
         order.verify(activities).record(operators.llm, "PROMPT_CANDIDATE", "PROMPT", "qa/answer", "v3")
     }
 
@@ -278,9 +279,18 @@ class PromptServiceTest {
 
         assertEquals(listOf(3, listOf("latest", "candidate-3", "production")), listOf(promoted.version, promoted.labels))
         val order = inOrder(langfuse, activities)
-        // Langfuse manages "latest" itself; every other label the version already had is kept.
-        order.verify(langfuse).setPromptLabels("qa/answer", 3, listOf("candidate-3", "production"))
+        // Langfuse adds the sent label and keeps the version's other labels, so only production goes.
+        order.verify(langfuse).setPromptLabels("qa/answer", 3, listOf("production"))
         order.verify(activities).record(operators.llm, "PROMPT_PROMOTE", "PROMPT", "qa/answer", "v3")
+    }
+
+    @Test
+    fun `promoting a prompt with an evaluation set answers with the newest run on that set like the candidate gate`() {
+        val name = "story_context.answer"
+        givenRuns(run("r-other", "2026-11-19T03:00:00Z", name, 3, "leak.spoiler") to false, run("r-set", "2026-11-19T01:00:00Z", name, 3, "qa.grounding") to true)
+        `when`(langfuse.prompt(name, 3)).thenReturn(version(name, 3, """["candidate-3"]"""))
+
+        assertEquals("r-set", service.promote(operators.llm, name, PromptPromoteRequest(3)).evaluation?.runId)
     }
 
     @Test
