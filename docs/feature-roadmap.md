@@ -99,7 +99,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="328">콘텐츠 서비스</td><td rowspan="6">개발 데이터 관리</td><td rowspan="6">91 개발 샘플 정본 이관</td><td>정규 CSV를 승인된 정확한 DB/schema에 COPY·동일 재실행만 허용·충돌 거절</td><td>❌</td><td rowspan="6">—</td></tr>
+<tr><td rowspan="339">콘텐츠 서비스</td><td rowspan="6">개발 데이터 관리</td><td rowspan="6">91 개발 샘플 정본 이관</td><td>정규 CSV를 승인된 정확한 DB/schema에 COPY·동일 재실행만 허용·충돌 거절</td><td>❌</td><td rowspan="6">—</td></tr>
 <tr><td>Core subject에 대응하는 자격증명 없는 Content member 참조 저장</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/180">PR #180</a></td></tr>
 <tr><td>샘플 작품 11개를 정규 작품·소유권 행으로 이관</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/180">PR #180</a></td></tr>
 <tr><td>자체 원고 17개의 정확한 본문·버전·발행 사건 이관</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/180">PR #180</a></td></tr>
