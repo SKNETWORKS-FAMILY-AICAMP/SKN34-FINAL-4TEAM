@@ -40,6 +40,11 @@ it('지도 카드(.worlds-atlas)는 홈 .hero의 가운데 정렬(align-items: c
   expect(css).toMatch(/\.worlds-atlas \{ display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; \}/)
 })
 
+it('지도 카드의 남는 높이(.herow가 오른쪽 실시간 인기 칸 높이로 맞춘 만큼)는 통계 줄 밑 빈 띠가 아니라 지도 면이 받는다 — stage를 세로 flex로 두고 지도(.atlas-view)와 불러오는 중(.atlas-loading)만 늘린다(캔버스 380px는 그대로, .worlds-graph 상세 그래프는 .worlds-atlas 밖이라 그대로)', () => {
+  expect(css).toMatch(/\.worlds-atlas \.atlas-stage \{ display: flex; flex-direction: column; \}/)
+  expect(css).toMatch(/\.worlds-atlas :is\(\.atlas-view, \.atlas-loading\) \{ flex: 1; \}/)
+})
+
 it('지도 컨트롤 다섯은 같은 옅은 윤곽선(.atlas-foot .btn)이고 채운 보라 규칙(.btn.pri)은 없다 — 가끔 쓰는 다시 배치가 어두운 지도에서 가장 진한 면이던 것을 거뒀다(quieter)', () => {
   expect(css).toContain('.atlas-foot .btn { background: color-mix(')
   expect(css).not.toMatch(/\.atlas-foot \.btn\.pri/)

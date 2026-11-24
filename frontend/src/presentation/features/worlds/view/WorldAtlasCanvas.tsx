@@ -13,6 +13,8 @@ const DISTANCE = { genre: 60, card: 18, derive: 70, combine: 70 }
 const STRENGTH = { genre: 0.4, card: 0.9, derive: 0.05, combine: 0.05 }
 
 const isLineage = (l: AtlasLink) => l.kind === 'derive' || l.kind === 'combine'
+// 맞춤(zoomToFit)과 화살표 끝은 force-graph가 반지름을 sqrt(nodeVal)·nodeRelSize(기본 4)로 읽는다. 기본 `val`은 세계관의 설정 카드 수(수천)라 그린 반지름(`nodeRadius`)과 달라 맞춤이 헐겁고 지도가 위로 몰렸다.
+const radiusVal = (n: AtlasNode) => (nodeRadius(n) / 4) ** 2
 
 /**
  * 공개 세계관 지도의 캔버스. 노드 이름은 HTML 툴팁(`nodeLabel`) 대신 캔버스에 직접 그린다(툴팁은 문자열을 HTML로 넣는다).
@@ -114,7 +116,7 @@ export default function WorldAtlasCanvas({ atlas, lit, onOpen }: { atlas: WorldA
           <ForceGraph2D<AtlasNode, AtlasLink>
             ref={graph} graphData={atlas} width={width} height={height} backgroundColor="rgba(0,0,0,0)"
             cooldownTicks={paused ? 0 : 240} warmupTicks={reduced ? 270 : 30} minZoom={0.25} maxZoom={8}
-            nodeLabel={() => ''} nodeCanvasObject={paintNode} onRenderFramePost={paintLabels}
+            nodeLabel={() => ''} nodeVal={radiusVal} nodeCanvasObject={paintNode} onRenderFramePost={paintLabels}
             nodePointerAreaPaint={(n, color, ctx, scale) => {
               ctx.fillStyle = color
               ctx.beginPath()

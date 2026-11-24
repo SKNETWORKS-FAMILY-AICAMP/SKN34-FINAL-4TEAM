@@ -171,7 +171,7 @@ function WorldHeader({ vm, world }: { vm: VM; world: StudioWorld }) {
         </div>
         <div className="ep-chips">
           <span className="chip">설정 {cardLibraryRows(saved.settings, 'all', '').length}개</span>
-          <span className="chip">저장 버전 {saved.version}</span>
+          <span className="chip">저장 버전 {saved.version.toLocaleString('ko-KR')}개</span>
           <span className={'chip' + (visibility === 'public' ? ' ok' : '')}>{visibility === 'public' ? '공개' : '비공개'}</span>
           {genre && <GenreChip code={genre} />}
           {!manage && <span role="status" className={'chip ' + state.tone}>{state.text}</span>}

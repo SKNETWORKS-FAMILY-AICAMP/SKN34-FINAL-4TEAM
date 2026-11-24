@@ -286,7 +286,7 @@ it('관리 헤더는 저장한 세계관의 소개와 설정 수·저장 버전�
   await showWorld()
   const header = within(screen.getByRole('heading', { name: '검증 세계', level: 1 }).closest('section')!)
   expect(header.getByText('설정 1개')).toBeTruthy()
-  expect(header.getByText('저장 버전 1')).toBeTruthy()
+  expect(header.getByText('저장 버전 1개')).toBeTruthy()
   expect(header.getByText('비공개', { selector: '.chip' })).toBeTruthy() // 서버 연결 예정 칩은 실제 공개 범위 칩이 됐다
   expect(header.getByText('설명')).toBeTruthy()
   expect(saveBar().getByText('저장됨')).toBeTruthy() // 관리 모드의 저장 상태는 헤더 칩이 아니라 사이드바의 저장 영역이 보인다
@@ -1059,7 +1059,7 @@ it('저장 버전이 0이어도 주소에 ?new=1이 없으면(서재 관리하�
   fireEvent.click(save) // 같은 저장을 두 번 보내지 않는다
   await waitFor(() => expect(saveBar().getByText('저장됨')).toBeTruthy())
   expect(saveStudio).toHaveBeenCalledOnce()
-  expect(headerOf().getByText('저장 버전 1')).toBeTruthy()
+  expect(headerOf().getByText('저장 버전 1개')).toBeTruthy()
   expect(saveBar().queryByRole('button', { name: '세계관 저장' })).toBeNull() // 저장했으니 저장할 것이 없다
 })
 
@@ -1084,7 +1084,7 @@ it('한 번도 저장하지 않은 새 세계관은 바꾼 것이 없어도 검�
   fireEvent.click(save) // 같은 저장을 두 번 보내지 않는다
   await screen.findByRole('navigation', { name: '세계관 메뉴' })
   expect(saveStudio).toHaveBeenCalledOnce()
-  expect(headerOf().getByText('저장 버전 1')).toBeTruthy()
+  expect(headerOf().getByText('저장 버전 1개')).toBeTruthy()
 })
 
 it('마법사의 관리 화면으로 링크는 저장하지 않고 관리 모드로 나가며 입력은 그대로 남는다', async () => {
@@ -1176,10 +1176,11 @@ it('저장이 실패하면 오류와 입력을 그대로 두고 저장 영역이
   const saveStudio = vi.fn<WorldStudioRepository['saveStudio']>().mockRejectedValueOnce(new Error('저장 충돌')).mockImplementation(async (next) => next)
   await show(undefined, '/worldstudio/qa', { saveStudio })
   dirtyCard()
+  expect(saveBar().getByText('저장하지 않은 변경 있음').classList.contains('bad')).toBe(false) // 아직 누르지 않았을 뿐이라 위험색이 아니다(.wait)
   fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
   expect((await screen.findByRole('alert')).textContent).toBe('저장 충돌')
   expect(screen.queryByRole('button', { name: '다시 시도' })).toBeNull() // 세계관을 다시 읽으면 입력이 사라지므로 편집 중 실패에는 다시 시도를 두지 않는다
-  expect(saveBar().getByText('저장 실패 · 입력은 유지돼요')).toBeTruthy()
+  expect(saveBar().getByText('저장 실패 · 입력은 유지돼요').classList.contains('bad')).toBe(true) // 실패만 위험색(.bad)이라 사이드바만 봐도 아직 안 눌렀음(.wait)과 갈린다
   openCard('고친 이름 인물')
   expect(screen.getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('고친 이름')
   expect(saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(false)

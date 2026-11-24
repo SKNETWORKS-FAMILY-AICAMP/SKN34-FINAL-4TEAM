@@ -243,6 +243,10 @@ it('저장 상태 글자(wait)는 보라(--pri-ink)가 아니라 본문색(--tfg
   expect(rule((s) => s === '.world-save-state')?.body).toMatch(/font-weight:650/)
 })
 
+it('저장 실패 글자(.bad)만 위험색(--danger)이다 — 사이드바만 보는 사용자가 실패와 아직 누르지 않은 변경(.wait, 본문색 --tfg는 위 quieter 테스트가 지킨다)을 색으로 가른다 (polish)', () => {
+  expect(rule((s) => s === '.world-save-state.bad')?.body).toMatch(/color:var\(--danger\)/)
+})
+
 it('게시판 제목은 800이 아니라 650이라 줄마다 무거운 글자가 쌓이지 않고(상태 칩 제외), 공개 칸의 N화부터는 보라 기둥도 굵은 기둥도 아니라 본문색 보통 굵기다', () => {
   expect(rule((s) => s === '.world-card-library .worlds-board-table .col-title :is(a,button):not(.world-status-chip)')?.body).toMatch(/font-weight:650/)
   const vis = rule((s) => s === '.world-card-library .worlds-board-table .col-vis[data-public=true]')?.body ?? ''
