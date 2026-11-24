@@ -359,7 +359,8 @@ def test_a_base_version_that_does_not_exist_or_is_a_chat_prompt_fails_before_any
     assert attrs(root)['langfuse.observation.status_message']
 
 
-def test_an_unexpected_error_is_logged_by_class_only(world, caplog, monkeypatch):
+def test_an_unexpected_error_is_logged_by_class_and_place_only(world, caplog, monkeypatch):
+    """#841 첫 실행: 클래스 이름(TypeError)만으로는 원인을 찾지 못했다. 난 곳(파일:줄 함수)은 코드 위치라 본문이 섞이지 않는다."""
     def broken(**options):
         raise RuntimeError('입력 원문이 든 메시지')
     install_gepa(monkeypatch, broken)
@@ -367,7 +368,8 @@ def test_an_unexpected_error_is_logged_by_class_only(world, caplog, monkeypatch)
     with caplog.at_level(logging.ERROR):
         service.run_job(REQUEST.model_dump())
 
-    assert 'RuntimeError' in caplog.text and '원문' not in caplog.text and status_of(root_of(world)) == 'failed'
+    assert 'RuntimeError' in caplog.text and 'test_service.py:' in caplog.text and ' broken' in caplog.text
+    assert '원문' not in caplog.text and status_of(root_of(world)) == 'failed'
 
 
 def test_a_failing_reflection_ends_the_run_at_once_even_though_gepa_swallows_exceptions_of_its_reflection_calls(world, monkeypatch):

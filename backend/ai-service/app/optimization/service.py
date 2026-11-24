@@ -8,6 +8,7 @@
 import json
 import logging
 import os
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from pathlib import Path
@@ -113,9 +114,15 @@ def run_job(job: dict) -> None:
                 if not acquired:   # 접수 뒤 큐에서 기다리는 사이에 다른 실행이 시작했다
                     raise OptimizationFailure(409, RUNNING)
                 _optimize(request)
-    except Exception as error:   # 입력·응답 본문이 섞일 수 있어 고정 문구(실패 클래스)가 아니면 예외 이름만 남긴다
+    except Exception as error:   # 입력·응답 본문이 섞일 수 있어 고정 문구(실패 클래스)가 아니면 예외 이름과 난 곳만 남긴다
         known = isinstance(error, (OptimizationFailure, EvaluationFailure))
-        logger.error('프롬프트 자동 개선 %s v%s 실패: %s', request.prompt, request.version, error if known else type(error).__name__)
+        logger.error('프롬프트 자동 개선 %s v%s 실패: %s', request.prompt, request.version, error if known else f'{type(error).__name__} ({_where(error)})')
+
+
+def _where(error: BaseException) -> str:
+    """예외가 난 곳(폴더/파일:줄 함수). 메시지에는 입력·응답 본문이 섞일 수 있어 코드 위치만 남긴다(#841 첫 실행: 클래스 이름만으로는 TypeError의 원인을 찾지 못했다)."""
+    frame = traceback.extract_tb(error.__traceback__)[-1]
+    return f"{'/'.join(Path(frame.filename).parts[-2:])}:{frame.lineno} {frame.name}"
 
 
 def _optimize(request: OptimizationRequest) -> None:

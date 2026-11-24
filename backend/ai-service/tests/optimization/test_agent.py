@@ -67,6 +67,23 @@ def test_blank_settings_fall_back_to_openai_the_openai_key_and_gpt_6_sol(monkeyp
     assert made['base_url'] is None and made['api_key'] == 'openai-key' and FakeOpenAI.sent[0]['model'] == 'gpt-6-sol'
 
 
+@pytest.mark.parametrize('url, host', [
+    ('http://host.docker.internal:10100/v1', 'localhost:10100'),
+    ('http://host.docker.internal/v1', 'localhost'),
+    ('http://127.0.0.1:10100/v1', None),
+    ('', None),   # 주소가 없으면 기본 OpenAI다
+])
+def test_only_the_container_to_host_name_sends_a_loopback_host_header(monkeypatch, url, host):
+    """로컬 OpenCodex 게이트웨이는 Host가 localhost·127.0.0.1·[::1]이 아니면 403(origin_rejected)이라 컨테이너가 host.docker.internal로 부를 때만 Host를 localhost로 보낸다(#841 첫 실행)."""
+    monkeypatch.setenv('PROMPT_OPTIMIZER_BASE_URL', url)
+    monkeypatch.setenv('OPENAI_API_KEY', 'openai-key')
+
+    agent.reflect('개선해 줘')
+
+    [made] = FakeOpenAI.made
+    assert made['default_headers'] == ({'Host': host} if host else None)
+
+
 def test_without_any_key_it_fails_before_calling_anything():
     with pytest.raises(OptimizationFailure) as error:
         agent.reflect('개선해 줘')
