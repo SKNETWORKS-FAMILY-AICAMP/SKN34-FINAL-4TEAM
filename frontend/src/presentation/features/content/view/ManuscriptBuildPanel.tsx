@@ -26,7 +26,10 @@ export function ManuscriptBuildPanel({work,useCase}:{work:Pick<Work,'id'|'worldS
    {agree}
    <div className="ep-card-actions"><button className="btn pri" disabled={!vm.ready||vm.busy||!vm.consent||!!vm.error} onClick={()=>void vm.start()}>세계관 만들기</button></div>
    <p>저장된 비공개 원고도 대상이에요. 서버에서 저장된 원고가 있는지 확인해요.</p></>}
-  {job&&<><p role="status">{states[job.status]}</p><p>추출 결과 저장 {job.completedEpisodes} / {job.totalEpisodes}화</p>
+  <div role="status" aria-atomic="true">
+   {job&&<><p>{states[job.status]}</p><p>추출 결과 저장 {job.completedEpisodes} / {job.totalEpisodes}화</p></>}
+  </div>
+  {job&&<>
    {job.failureCode&&<p>{reasons[job.failureCode]??'결과를 검증하지 못했어요. 원고와 작업 상태를 확인해 주세요.'}</p>}
    {job.status==='unknown'&&!job.failureCode&&<p>완료로 확인되지 않았어요. 원래 요청을 유지해 복구해 주세요.</p>}
    {['queued','failed','unknown','loading'].includes(job.status)&&<button className="btn" disabled={vm.busy} onClick={()=>void vm.resume()}>같은 작업 재개</button>}

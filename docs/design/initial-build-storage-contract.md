@@ -30,7 +30,7 @@ manifest에는 정렬된 전체 회차 번호, episodeId, 저장 버전 ID, 제�
 
 사용자 정정에 따라 이번 연결은 4화 수용 검증 후 10화까지 진행한다. 20~30화 안정성 검증과 100화 이상·유료 모델 평가는 제외한다. AI 내부 접수 경로에서 실행권을 한 번 획득해 누락된 회차만 처리한다. V41이 작업 상태를, V15가 복구 자료를 보존한다. 이전 실행 token을 지목한 명시적 동일 작업 재개로 복구한다.
 
-공개 접수/조회는 `/api/v1/works/{id}/world-preprocessing`이고 시작 동의·작품 및 세계관 소유권을 확인한다. AI는 내부 `/internal/v1/preprocessing/jobs`에서 작업을 받고 Content의 `/internal/v1/ai/manuscript-build/{id}` 하위 경로로 결과를 기록한다. 실제 적재는 Content가 기존 WorldStudioService로 수행한다. AI 실행은 아래 '업로드 자동 시작과 Celery 큐'대로 Celery 큐(순차)다. MCP 적재는 쓰지 않는다.
+공개 접수/조회는 `/api/v1/works/{id}/world-preprocessing`이고 시작 동의·작품 및 세계관 소유권을 확인한다. AI는 내부 `/internal/v1/preprocessing/jobs`에서 작업을 받고 Content의 `/internal/v1/ai/manuscript-build/{id}` 하위 경로로 결과를 기록한다. 실제 적재는 Content가 기존 WorldStudioService로 수행한다. AI 실행은 아래 '업로드 자동 시작과 Celery 큐'를 따른다.
 
 `app.manuscript-build.enabled` 코드 기본값은 false이고, 2026-11-20 실모델(`gpt-6-luna`) four-episodes 1회 실측(회차당 5~12초, 정체 정리 5초, 제외 항목 0, 카드 11장) 뒤 사용자 결정으로 base compose가 `APP_MANUSCRIPTBUILD_ENABLED`(기본 true)로 켠다. 기존 업로드는 이 플래그와 무관하게 분석·적재·발행을 시작하지 않는다. 작성자가 명시적으로 POST를 호출해야 한다. 카드의 UI 검토 표시 `approved`는 최초 일괄 초안 생성 동의에 따른 편집 가능 상태이며 직접 입력 후보의 검토 결정 기록이나 확정 버전을 뜻하지 않는다. `analysisId`·`decisionSequence`는 생성하지 않는다.
 
@@ -79,9 +79,11 @@ DEC-47 저장/화면의 episodes key는 "0", "3" 형태다. 추출 결과의 파
 
 ## 업로드 자동 시작과 Celery 큐 (2026-11-20 사용자 결정)
 
-전처리 담당자가 이어받을 틀이다. 기존 접수·재개·조회 함수를 그대로 부르고 두 번째 경로를 만들지 않는다. 회차별 병렬 실행과 #343 골격(`preprocessing_job`) 정리는 담당자의 후속이다.
+업로드 자동 시작은 기존 접수·재개·조회 함수를 사용한다. #343 골격(`preprocessing_job`) 정리는 후속 범위다.
 
-- **실행기:** AI의 `POST /internal/v1/preprocessing/jobs`는 `BackgroundTasks` 대신 Celery 태스크(`preprocessing.run`) 하나를 큐에 올리고 202를 돌려준다. 브로커는 기존 `rabbitmq` 컨테이너(Core와 같은 자격), 결과 저장소는 쓰지 않는다. 작업(작품) 하나가 태스크 하나이고 워커 동시성은 1이라 큐에 들어온 순서대로 하나씩 처리한다(순차 처리). 워커는 ai-service와 같은 이미지의 별도 컨테이너(`ai-worker`)다. `acks_late`라 워커가 도중에 죽으면 같은 태스크가 다시 배달되지만 Content 실행권(claim)이 이미 시작된 작업을 거절(`claimed=false`)해 다시 실행되지 않는다(만료된 적재만 load를 다시 시도한다). 죽은 실행의 재개는 실행 기한이 지난 뒤 사용자의 '같은 작업 재개'다. 접수·콜백·검증·적재 계약은 바꾸지 않는다.
+- **실행기:** AI의 `POST /internal/v1/preprocessing/jobs`는 작품 작업 하나를 Celery 태스크(`preprocessing.run`) 하나로 큐에 올리고 202를 돌려준다. 브로커는 기존 `rabbitmq` 컨테이너(Core와 같은 자격)다. ai-service와 같은 이미지의 `ai-worker`가 `AI_PREPROCESSING_CONCURRENCY`(Compose 기본 3)만큼 작업을 동시에 실행한다. `acks_late`라 워커가 도중에 죽으면 같은 태스크가 다시 배달되지만 Content 실행권(claim)이 이미 시작된 작업을 거절(`claimed=false`)한다. 만료된 적재만 load를 다시 시도한다. 추출 중 중단된 작업은 기한이 지난 뒤 사용자의 '같은 작업 재개'로 복구한다.
+- **회차 추출 병렬화 ([#673](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/673)):** 같은 실행권에서 미저장 회차를 최대 4개씩 묶어 동시에 추출한다. 각 묶음의 `result` 콜백은 회차 순서대로 보내고, 저장이 확인된 회차를 실패 보고 대상에서 뺀다. `result`가 4xx면 남은 미저장 회차 전체를 `failed`에 보고하고 다음 묶음을 시작하지 않는다. 5xx·응답 유실은 실행 실패로 전파해 같은 작업을 재개할 때 Content의 저장 상태를 다시 읽는다. 정체 통합과 적재는 전체 회차의 결과가 저장된 뒤 순서대로 진행한다.
+- **성능 비교:** 기본값이면 워커 한 대에서 회차 추출 요청이 최대 12개 겹칠 수 있다. [PR #665 기준 기록](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/665#issuecomment-7076316743)의 원고와 모델로 1작품×8회차(기준 420초)와 3작품×2회차(기준 106/189/294초)를 다시 측정한다. 작업별 완료 시간과 OpenAI 429 발생 여부를 기록한다. 변경 후 실측은 아직 남아 있다.
 - **업로드 자동 시작:** 원고 가져오기(`POST /works/{id}/manuscript-imports`, `…/manuscript-imports/bulk`)가 회차를 하나 이상 저장하면 Content가 같은 요청 안에서 최초 구축 접수(위 '결과와 재실행'의 시작과 같은 검사·작업 행)를 시도한다. 별도 확인 없이 업로드 화면의 안내 문구로 OpenAI 전송을 알린다(동의 기록은 `consent=true`, key는 `import:<가져오기 요청 id>`). 세계관은 작품에 연결된 세계관, 없으면 새 UUID다. 업로드할 때마다 시도하고, 접수 결과를 가져오기 응답의 `worldBuild`에 싣는다: `{ "status": "started" | "rejected", "jobId": string|null, "code": string|null, "message": string|null }`(거절이면 시작 API와 같은 오류 code·한국어 문구). 접수 실패가 가져오기 저장을 되돌리지 않는다. 일괄 가져오기는 묶음(요청)마다 `startWorldBuild`(기본 true)를 받아 화면이 마지막 묶음만 true로 보낸다(앞 묶음에서 일부 회차만 고정되지 않게). 마지막 묶음이 모두 실패하면 접수하지 않는다. 구축 응답(조회·시작·재개)은 `requestKey`를 실어, 브라우저에 요청 기록이 없어도(업로드가 시작한 작업·다른 브라우저) 응답의 worldId·requestKey로 같은 작업을 재개한다.
 - **운영 화면:** Content 내부 `GET /internal/v1/preprocessing-jobs`·`POST …/{id}/retry`의 출처를 `manuscript_build_job`으로 바꾼다(응답 형식 유지). 재실행은 실패한 작업을 같은 작업으로 다시 접수한다. 목록은 `manuscript_build_job` 행만 고르고 진행 수·시각은 트리거가 맞춰 둔 같은 id의 `preprocessing_job` 행에서 읽는다(`unknown`은 `loading`으로 보인다).
 - **회차 관리 표시:** 작품 관리는 기존 `GET /works/{id}/world-preprocessing`을 읽어 `queued`·`running`·`loading`이면 '세계관 추출 중' 배지를 보인다. 새 API는 없다.
@@ -98,7 +100,7 @@ DEC-47 저장/화면의 episodes key는 "0", "3" 형태다. 추출 결과의 파
   구현: 반영된 회차는 `completed` 작업(initial·update 모두) manifest 번호의 합집합이고, 발행본은 `episode_current.published_version_id`의 버전(`versionId`는 `contentVersionId`)이다. 발행본이 아닌 저장 버전·초안은 읽지 않는다. 원고 변경 검사(`SOURCE_CHANGED`)도 고정한 회차의 발행본만 비교한다(다른 회차의 새 발행은 다음 업데이트 몫이다).
 - **기준 초안:** 업데이트 작업은 `claim` 때의 세계관 초안을 기준으로 고정한다. 추출 중에 초안이 바뀌면 최초 구축과 같이 `WORLD_CHANGED`로 실패한다.
   구현: manifest는 접수 때 고정하는 불변 입력이라 기준 초안을 거기에 쓰지 않고 V16 `basis`에 claim이 실행권을 받은 직후 현재 초안을 읽어 쓴다(읽을 수 없으면 `WORLD_CHANGED`). 이후 `prepareManuscript` 기준 검사와 카드 맞춤은 이 값을 쓰고, 큐에서 기다리는 동안의 작가 편집은 실패가 아니다. 최초 구축은 그대로 manifest의 `basis`를 쓴다.
-- **AI:** 바꾸지 않는다. 같은 `preprocessing.run` 태스크(`ai-worker`, 동시성 1)가 manifest 회차를 추출하고 정체를 정리해 같은 적재 요청을 보낸다.
+- **AI:** 최초 구축과 같은 `preprocessing.run` 태스크와 회차 추출 병렬화 규칙으로 manifest 회차를 처리한 뒤 같은 적재 요청을 보낸다.
 - **적재(Content):** 적재 요청의 카드를 기준 초안의 카드와 맞춘다.
   - 종류(`cardType`)와 이름(제목 또는 별칭)이 같은 기존 카드가 **정확히 하나**면 같은 대상으로 본다. 그 카드의 본문·제목·별칭·SOUL·GOAL·공개 설정은 바꾸지 않고, 인물 기억(`characterDocs.episodes`)에서 아직 없는 회차 키만 더한다. 적재 요청의 `00` 기억은 이 작업에서 처음 등장한 회차의 기억으로 옮긴다.
   - 맞는 카드가 없으면 새 카드(`visibility=private`)로 더한다.
