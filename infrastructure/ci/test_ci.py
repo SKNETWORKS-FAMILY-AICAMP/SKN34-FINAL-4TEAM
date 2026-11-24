@@ -653,6 +653,13 @@ class ConfigurationTest(unittest.TestCase):
         self.assertIn('NEO4J_PASSWORD: synthetic-config-only', configuration)
         self.assertNotIn('--profile', configuration)
 
+    def test_nginx_proxy_waits_beyond_the_75s_generation_deadline(self):
+        # Content의 AI 생성 대기(75초)보다 길어야 nginx가 먼저 끊지 않는다. 첫 일치가 서버 수준 값이다.
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            with self.subTest(proxy=path):
+                timeout = re.search(r'^\s*proxy_read_timeout\s+(\d+)s;', read(path), re.M)
+                self.assertTrue(timeout and int(timeout.group(1)) > 75, 'proxy must wait beyond the 75s generation deadline')
+
     def test_world_studio_graph_public_routes_stay_content_owned(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
             text = (ci.ROOT / path).read_text()
