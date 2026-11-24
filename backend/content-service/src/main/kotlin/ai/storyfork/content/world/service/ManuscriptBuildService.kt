@@ -91,11 +91,11 @@ class ManuscriptBuildService(
 
     /**
      * 발행본이 있는 회차(Fork 상속 제외) 중 [excluded](이미 반영됐거나 재실행을 기다리는 회차)에 없는 회차의 발행 버전을 고정한다(업데이트 작업, 2026-11-22).
-     * 반영할 회차가 없으면 null이고 기능이 꺼져 있으면 503이다.
+     * 운영에서 발행본 변경에 대응하면 [only]로 기존 작업에 속한 회차만 고른다. 반영할 회차가 없으면 null이고 기능이 꺼져 있으면 503이다.
      */
-    fun freezeUpdate(workId:String,excluded:Set<Int>):ManuscriptBuildInput? {
+    fun freezeUpdate(workId:String,excluded:Set<Int>,only:Set<Int>?=null):ManuscriptBuildInput? {
         requireEnabled()
-        return snapshot.readPublished(workId) { it !in excluded }
+        return snapshot.readPublished(workId) { it !in excluded && (only==null || it in only) }
     }
 
     /** 접수한 업데이트 작업을 AI가 받지 못했다. 실행권이 없는 queued 작업만 실패로 끝내고 운영 재실행을 기다린다. */

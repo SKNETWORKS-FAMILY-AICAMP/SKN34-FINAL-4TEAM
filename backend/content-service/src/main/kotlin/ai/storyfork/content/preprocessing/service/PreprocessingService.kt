@@ -19,6 +19,7 @@ import ai.storyfork.content.work.domain.workPage
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.world.service.ManuscriptBuildFinished
+import ai.storyfork.content.world.service.ManuscriptBuildInput
 import ai.storyfork.content.world.service.ManuscriptBuildService
 import ai.storyfork.content.world.service.dto.ManuscriptBuildRequest
 import java.time.Instant
@@ -114,8 +115,6 @@ class PreprocessingService(
     /** 두 자동 진입점이 같은 잠금 안에서 진행 작업과 이미 처리한 회차를 읽고, 접수 자리를 하나만 확보한다. */
     private fun enqueueUpdate(workId: String, owner: String, key: String, expectedWorld: UUID? = null): String {
         return try {
-            val id = UUID.randomUUID()
-            val actor = UUID.fromString(owner)
             val (job, frozen) = claim {
                 val work = works.lockAll(listOf(workId)).singleOrNull()?.takeIf { it.ownerId == owner && it.deletedAt == null }
                     ?: throw ContentFailure(404, "작품을 찾을 수 없어요.", "NO_WORK")
@@ -129,22 +128,33 @@ class PreprocessingService(
                     ?: throw ContentFailure(409, "새로 반영할 회차가 없어요.", "NO_NEW_EPISODES")
                 if (jobs.requestKeyExists(workId, key))
                     throw ContentFailure(409, "이 요청 키는 이미 이전 작업에 사용됐어요.", "PREPROCESSING_REQUEST_KEY_USED")
-                jobs.saveAndFlush(PreprocessingJobEntity(id = id.toString(), workId = workId, worldId = world, memberId = owner,
-                    total = frozen.episodes.size, kind = PreprocessingKind.UPDATE)) to frozen
+                reserveUpdate(workId, owner, world, frozen) to frozen
             }
-            try {
-                build.prepareUpdate(id, workId, actor, ManuscriptBuildRequest(requireNotNull(job.worldId), key, true), frozen)
-            } catch (error: Exception) {
-                discard(job, workId, owner)
-                throw error
-            }
-            handOff(job, frozen.episodes.map { it.number }, ownerDetail = false)
+            prepareAndHandOffUpdate(job, key, frozen, ownerDetail = false)
             "STARTED"
         } catch (e: ContentFailure) {
             e.code ?: "HTTP_${e.status}"
         } catch (e: RuntimeException) {
             e.javaClass.simpleName
         }
+    }
+
+    private fun reserveUpdate(workId: String, owner: String, world: UUID, input: ManuscriptBuildInput): PreprocessingJobEntity =
+        jobs.saveAndFlush(PreprocessingJobEntity(id = UUID.randomUUID().toString(), workId = workId, worldId = world,
+            memberId = owner, total = input.episodes.size, kind = PreprocessingKind.UPDATE))
+
+    /** 기존 작업을 재개하지 않는 새 update는 고정 입력을 먼저 저장한 뒤 AI에 넘긴다. */
+    private fun prepareAndHandOffUpdate(
+        job: PreprocessingJobEntity, key: String, input: ManuscriptBuildInput, ownerDetail: Boolean,
+    ): PreprocessingJobResponse {
+        try {
+            build.prepareUpdate(UUID.fromString(job.id), job.workId, UUID.fromString(job.memberId),
+                ManuscriptBuildRequest(requireNotNull(job.worldId), key, true), input)
+        } catch (error: Exception) {
+            discard(job, job.workId, job.memberId)
+            throw error
+        }
+        return handOff(job, input.episodes.map { it.number }, ownerDetail)
     }
 
     /** 접수가 성립하지 않았다. 최초 입력이 만들어지지 않았으면 접수 행을 지우고(실패 행으로 남기면 작품이 적재 확인 대기로 영구히 막힌다) 만들어진 뒤의 실패만 failed 행으로 남긴다. */
@@ -197,10 +207,10 @@ class PreprocessingService(
 
     /**
      * 운영 재실행이다. 최초 구축은 가장 최근 작업을, 업데이트는 다른 작업이 진행 중이지 않으면 이전 실패 작업도 다시 접수한다.
-     * 작업의 고정 입력과 이미 저장한 추출 결과를 재사용한다.
+     * 고정 입력과 저장한 추출 결과를 재사용한다. SOURCE_CHANGED는 현재 발행본으로 새 작업을 만든다.
      */
     fun retry(jobId: String, ownerDetail: Boolean = false): PreprocessingJobResponse {
-        val (job, numbers) = claim {
+        val (job, numbers, replacement) = claim {
             val job = jobs.lock(jobId) ?: throw missing()
             guardQueuedSnapshot(job)
             val expired = job.status == PreprocessingStatus.RUNNING && jobs.hasExpiredLease(job.id)
@@ -217,18 +227,27 @@ class PreprocessingService(
             }
             val frozen = jobs.frozenNumbers(job.id, job.workId, job.memberId)
             if (frozen.isEmpty()) throw missingSnapshot()
-            // 이전 계약으로 만든 작업에는 다른 작업이 이미 반영한 회차가 섞여 있을 수 있다.
-            if (job.kind == PreprocessingKind.UPDATE)
-                checkContent(jobs.reflectedNumbers(job.workId).none { it in frozen }, 409, "이미 다른 작업으로 세계관에 반영된 회차가 있어 다시 실행할 수 없어요.")
+            if (job.kind == PreprocessingKind.UPDATE) {
+                val reflected = jobs.reflectedNumbers(job.workId)
+                if (job.failedReason == "SOURCE_CHANGED") {
+                    val current = build.freezeUpdate(job.workId, reflected, only = frozen.toSet())
+                        ?: throw ContentFailure(409, "다시 반영할 수 있는 발행 회차가 없어요.")
+                    val replacement = reserveUpdate(job.workId, job.memberId, requireNotNull(job.worldId), current)
+                    return@claim Triple(replacement, emptyList(), current)
+                }
+                // 이전 계약으로 만든 작업에는 다른 작업이 이미 반영한 회차가 섞여 있을 수 있다.
+                checkContent(reflected.none { it in frozen }, 409, "이미 다른 작업으로 세계관에 반영된 회차가 있어 다시 실행할 수 없어요.")
+            }
             val numbers = job.failedEpisodes.ifEmpty { frozen }
             checkContent(frozen.containsAll(numbers), 409, "최초 입력과 실패 회차가 일치하지 않아요.")
             checkContent(jobs.requeueSnapshot(job.id)==1,409,"스냅샷의 실행 상태를 확인해 주세요.")
             if (expired) job.status = PreprocessingStatus.FAILED
             job.requeue()
             checkContent(numbers.isNotEmpty(), 422, "저장한 회차가 있어야 다시 실행할 수 있어요.")
-            jobs.saveAndFlush(job) to numbers
+            Triple(jobs.saveAndFlush(job), numbers, null)
         }
-        return handOff(job, numbers, ownerDetail)
+        return if (replacement == null) handOff(job, numbers, ownerDetail)
+            else prepareAndHandOffUpdate(job, "retry:${job.id}", replacement, ownerDetail)
     }
 
     /** 트랜잭션 안에서 접수·재실행 상태를 바꾼다. 같은 작품의 진행 중·완료 작업이 이미 있어 유일 인덱스가 거절하면 409다. */

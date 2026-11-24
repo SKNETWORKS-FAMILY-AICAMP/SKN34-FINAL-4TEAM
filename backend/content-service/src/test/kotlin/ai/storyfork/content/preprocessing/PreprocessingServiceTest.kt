@@ -560,6 +560,33 @@ class PreprocessingServiceTest {
 
     // ---- retry: 이미 다른 completed 작업으로 반영된 회차가 있으면 거절 ----
 
+    @Test fun `retrying a source changed update freezes the current published versions in a new job`() {
+        val old = updateJob(FAILED, listOf(6, 7)).apply { failedReason = "SOURCE_CHANGED" }
+        val current = ManuscriptBuildInput(listOf(ManuscriptBuildSource(6, "e6", "v6-replaced", "6화", "새 발행본")))
+        `when`(jobs.lock(old.id)).thenReturn(old)
+        `when`(jobs.reflectedNumbers("work")).thenReturn(setOf(1, 2, 5, 7))
+        doReturn(current).`when`(build).freezeUpdate("work", setOf(1, 2, 5, 7), setOf(6, 7))
+
+        val retried = service.retry(old.id)
+
+        assertNotEquals(old.id, retried.id)
+        assertEquals(FAILED, old.status)
+        verify(jobs, never()).requeueSnapshot(old.id)
+        verify(build).prepareUpdate(UUID.fromString(retried.id), "work", UUID.fromString(ownerId),
+            ManuscriptBuildRequest(world, "retry:${retried.id}", true), current)
+        assertEquals(listOf(PreprocessingAiRequest(retried.id, "work", listOf(6))), aiRequests())
+    }
+
+    @Test fun `retrying a source changed update without remaining current published sources refuses intake`() {
+        val old = updateJob(FAILED, listOf(6)).apply { failedReason = "SOURCE_CHANGED" }
+        `when`(jobs.lock(old.id)).thenReturn(old)
+
+        val failure = rejected { service.retry(old.id) }
+        assertEquals(409, failure.status)
+        verify(jobs, never()).saveAndFlush(anyJob())
+        verifyNoInteractions(ai)
+    }
+
     @Test fun `retrying an update job whose episodes another completed job already holds is 409`() {
         val old = updateJob(FAILED, listOf(6, 7)).apply { failedEpisodes = listOf(7) }
         `when`(jobs.lock(old.id)).thenReturn(old)
