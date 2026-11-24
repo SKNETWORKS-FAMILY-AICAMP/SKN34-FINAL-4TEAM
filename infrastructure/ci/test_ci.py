@@ -734,7 +734,7 @@ class ConfigurationTest(unittest.TestCase):
             for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
                 self.assertNotIn(private, text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
-        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits|world-studios|card-categories)', text)
+        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits|world-studios|card-categories|feedback-reports)', text)
 
     def test_operations_works_public_routes_go_to_operations(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
@@ -843,6 +843,22 @@ class ConfigurationTest(unittest.TestCase):
             with self.subTest(vite=route):
                 self.assertRegex(route, pattern)
         for route in ['/api/v1/operations/credits-extra', '/api/v1/operations/credit']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, pattern)
+
+    def test_operations_feedback_reports_route_goes_to_operations(self):
+        # #750: 운영자가 독자 제보를 읽는(읽기 전용) API는 접두와 하위 경로를 Operations로 보낸다(일반 /api(Core)보다 구체적).
+        routes = ['/api/v1/operations/feedback-reports', '/api/v1/operations/feedback-reports?status=unchecked&page=1&size=20',
+                  '/api/v1/operations/feedback-reports/r1']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in routes:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://operations-service:8082', nginx_upstream(read(path), route))
+        pattern = re.search(r"'(\^/api/v1/operations/[^']*)':\s*\{", read('frontend/vite.config.ts'))[1].replace('\\\\', '\\')
+        for route in routes:
+            with self.subTest(vite=route):
+                self.assertRegex(route, pattern)
+        for route in ['/api/v1/operations/feedback-reports-extra', '/api/v1/operations/feedback-report']:
             with self.subTest(vite=route):
                 self.assertNotRegex(route, pattern)
 
