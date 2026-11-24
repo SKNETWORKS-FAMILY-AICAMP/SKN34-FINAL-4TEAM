@@ -12,8 +12,10 @@ import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.forkWorldCopy
+import ai.storyfork.content.world.domain.legacyWorldCopy
 import ai.storyfork.content.world.domain.readerUpto
 import ai.storyfork.content.world.service.PublicWorldService
+import ai.storyfork.content.world.service.WorldService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.CreateWorldRequest
 import ai.storyfork.content.world.service.dto.InheritedWorldResponse
@@ -38,7 +40,7 @@ import org.springframework.transaction.support.TransactionTemplate
 class WorkWorldService(
     private val access: WorkAccessService, private val works: WorkRepository, private val publication: PublicationService,
     private val studios: StudioWorldRepository, private val publicWorlds: PublicWorldService, private val references: ForkWorldReferenceRepository,
-    private val worldStudio: WorldStudioService, @Qualifier("contentTransactions") private val transaction: TransactionTemplate,
+    private val worldStudio: WorldStudioService, private val legacyWorlds: WorldService, @Qualifier("contentTransactions") private val transaction: TransactionTemplate,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(javaClass)
     private val studioErrors = WorldStudioExceptionHandler()
@@ -98,34 +100,45 @@ class WorkWorldService(
         else publicWorlds.inheritedWorld(workId, worldId, minOf(requested ?: basis, basis))
     }
 
+    /** Fork [work]가 따라가는 원작이다: 추종(`following`) 중이고 자기 세계관이 없으며 삭제되지 않은 원작이 있을 때만이고, 아니면 null이다. Content 트랜잭션 안에서 부른다. */
+    private fun followed(work: WorkAccessResult) = work.source?.takeUnless { it.deleted }?.takeIf {
+        references.findById(work.id).orElse(null)?.referenceStatus == "following" && works.findById(work.id).orElseThrow().worldStudioId == null
+    }
+
     /** Fork [work]가 이어받는 원작 세계관(이어받을 것이 없으면 null)과 지식 상한인 Fork 기준 회차다. 읽기([inheritedWorld])와 독립([detachInheritedWorld])이 같은 판정을 쓴다. Content 트랜잭션 안에서 부른다. */
     private fun inheritance(work: WorkAccessResult): Pair<UUID?, Int> {
-        val source = work.source?.takeUnless { it.deleted }
-        val following = references.findById(work.id).orElse(null)?.referenceStatus == "following"
-        val inherited = source?.takeIf { following && works.findById(work.id).orElseThrow().worldStudioId == null }
-        return inherited?.let { works.findById(it.workId).orElseThrow().worldStudioId } to (source?.episode ?: 0)
+        val source = followed(work)
+        return source?.let { works.findById(it.workId).orElseThrow().worldStudioId } to (source?.episode ?: 0)
     }
 
     /**
      * Fork [workId]가 이어받는 원작 세계관을 요청자 [owner]의 새 세계관으로 독립한다(DEC-37, #583). [inheritedWorld]와 같은 카드·관계([PublicWorldService.inheritedSource])를 [forkWorldCopy]로 복사해
      * 이름 `{작품 제목} 세계관`의 비공개 세계관 초안에 한 번 저장하고(저장 버전 1, 확정 버전은 만들지 않는다: 작가가 고친 뒤 남긴다) 작품에 연결하며 참조를 `independent`로 바꾼다.
+     * 원작에 세계관이 연결돼 있지 않은 옛 작품 설정집 방식 Fork(추종 중이고 자기 세계관이 없음)는 따라가던 설정([WorldService.followingSettings])을 [legacyWorldCopy]로 카드로 복사하고 나머지는 같다(#737).
      * 순서: ① Content 트랜잭션에서 소유·조건 확인 → ② 원작 읽기 → ③ WorldStudio 생성·초안 편집(Content 트랜잭션과 겹치면 매니저가 달라 실패한다) → ④ Content 트랜잭션에서 참조 행을 잠그고 재확인한 뒤 연결.
-     * ③ 이후의 실패(④ 재확인 실패 = 동시에 먼저 끝난 요청이 있음 포함)는 만든 세계관을 소프트 삭제하고 알린다. 남의·없는 작품 404, 이어받을 것이 없으면 409 `FORK_WORLD_NOT_INHERITED`, 관계 저장소 불확실 503이며 어느 쪽도 세계관을 만들지 않는다.
+     * ③ 이후의 실패(④ 재확인 실패 = 동시에 먼저 끝난 요청이 있음 포함)는 만든 세계관을 소프트 삭제하고 알린다. 남의·없는 작품 404, 이어받을 것(복사할 카드·설정)이 없으면 409 `FORK_WORLD_NOT_INHERITED`, 관계 저장소 불확실 503이며 어느 쪽도 세계관을 만들지 않는다.
      * WorldStudio 호출의 실패는 WorldStudio API와 같은 상태·code로 옮긴다([studioCall]).
      */
     fun detachInheritedWorld(workId: String, owner: String): WorkWorldLinkResponse {
-        val (work, inherited) = checkNotNull(transaction.execute { access.own(workId, owner).let { it to inheritance(it) } })
+        val (work, inherited, settingsBook) = checkNotNull(transaction.execute {
+            val own = access.own(workId, owner)
+            val inheriting = inheritance(own)
+            Triple(own, inheriting, inheriting.first == null && followed(own) != null)
+        })
         val (sourceWorld, basis) = inherited
-        if (sourceWorld == null) throw notInherited()
-        val source = publicWorlds.inheritedSource(workId, sourceWorld, basis) ?: throw notInherited()
-        if (source.world.relationshipStatus != "current") throw ContentFailure(503, "원작 세계관의 관계를 확인하지 못해 세계관을 만들지 않았어요. 잠시 뒤 다시 시도해 주세요.")
+        if (sourceWorld == null && !settingsBook) throw notInherited()
+        val source = sourceWorld?.let { publicWorlds.inheritedSource(workId, it, basis) ?: throw notInherited() }
+        if (source != null && source.world.relationshipStatus != "current") throw ContentFailure(503, "원작 세계관의 관계를 확인하지 못해 세계관을 만들지 않았어요. 잠시 뒤 다시 시도해 주세요.")
+        // 원작에 세계관이 없으면 옛 작품 설정집을 따라가던 Fork다: 그 설정이 복사할 원본이고, 없으면 독립할 것이 없다.
+        val settings = if (source == null) legacyWorlds.followingSettings(workId, owner).ifEmpty { throw notInherited() } else emptyList()
         val subject = UUID.fromString(owner)
         val world = UUID.randomUUID()
         try {
             // 세계관 이름은 100자까지라 작품 제목(120자까지)을 잘라 맞춘다. 서로게이트 쌍 가운데서 잘리면 짝 잃은 글자를 뺀다.
             val name = "${work.title.take(96).dropLastWhile(Char::isHighSurrogate)} 세계관"
             val created = studioCall { worldStudio.create(subject, CreateWorldRequest(name, "", world)) }
-            val copy = forkWorldCopy(source, created.draftRevision, name, UUID.randomUUID().toString())
+            val key = UUID.randomUUID().toString()
+            val copy = if (source != null) forkWorldCopy(source, created.draftRevision, name, key) else legacyWorldCopy(settings, created.draftRevision, name, key)
             studioCall { worldStudio.edit(world, subject, copy) }
             transaction.executeWithoutResult { connect(workId, owner, sourceWorld, world) }
         } catch (error: RuntimeException) {
@@ -136,13 +149,13 @@ class WorkWorldService(
     }
 
     /**
-     * ④: 작품 행(기존 경로와 같은 작품 → 참조 행 순서)과 참조 행을 잠그고 조건을 다시 확인한 뒤 [world]를 연결하고 참조를 독립으로 바꾼다.
-     * 확인 뒤 그 사이 먼저 끝난 요청이 있으면(참조가 이미 독립이거나 자기 세계관이 생김) 409다. Content 트랜잭션 안에서 부른다.
+     * ④: 작품 행(기존 경로와 같은 작품 → 참조 행 순서)과 참조 행을 잠그고 조건을 다시 확인한 뒤 [world]를 연결하고 참조를 독립으로 바꾼다. [sourceWorld]는 복사한 원작 세계관이고 옛 설정집 방식이면 null이다.
+     * 확인 뒤 그 사이 먼저 끝난 요청이 있으면(참조가 이미 독립이거나 자기 세계관이 생김) 또는 이어받는 세계관이 읽을 때와 달라졌으면(원작에 세계관이 새로 연결됨) 409다. Content 트랜잭션 안에서 부른다.
      */
-    private fun connect(workId: String, owner: String, sourceWorld: UUID, world: UUID) {
+    private fun connect(workId: String, owner: String, sourceWorld: UUID?, world: UUID) {
         val work = access.own(workId, owner)
         val reference = references.lockById(workId)
-        if (inheritance(work).first != sourceWorld) throw notInherited()
+        if (followed(work) == null || inheritance(work).first != sourceWorld) throw notInherited()
         val row = works.findById(workId).orElseThrow()
         row.worldStudioId = world
         works.saveAndFlush(row)
