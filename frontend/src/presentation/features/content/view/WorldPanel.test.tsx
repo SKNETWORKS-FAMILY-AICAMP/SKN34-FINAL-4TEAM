@@ -40,7 +40,7 @@ it('shows only the settings book summary and no coming-soon studio button now th
 })
 
 it.each([
- ['independent','독립 세계관 · 원작 변경은 선택해서 반영해요.'],
+ ['independent','독립 세계관 · 원작이 바뀌어도 따라오지 않아요.'],
  ['own','내 작품의 세계관 · 확정 설정만 문맥에 사용해요.'],
 ] as const)('describes a %s settings book and shows no first-fork basis when it has none',async(mode,text)=>{
  show(vi.fn().mockResolvedValueOnce(Response.json(world({mode}))))
