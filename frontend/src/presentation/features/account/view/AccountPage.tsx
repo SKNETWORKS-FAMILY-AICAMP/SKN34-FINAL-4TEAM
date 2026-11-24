@@ -7,6 +7,7 @@ import { Cov } from '../../../shared/art'
 import { EventStatusChip } from '../../../shared/EventStatusChip'
 import { kstDateTime, kstPeriod } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
+import { NotFoundPage } from '../../../shared/NotFoundPage'
 import { RequireRole } from '../../../shared/session/RequireRole'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
@@ -22,7 +23,8 @@ const TITLE: Record<string, string> = { profile: '프로필', liked: '관심 소
 
 /** 목업 mePage(sub): 로그인 전에는 프로필·관심 소설·결제 내역·저장 공간을 막습니다. */
 export function AccountPage() {
-  const sub = useParams().sub || 'profile'
+  const sub = useParams().sub ?? 'profile'
+  if (!Object.hasOwn(TITLE, sub)) return <NotFoundPage />
   return PRIVATE.includes(sub) ? <RequireRole><Account sub={sub} /></RequireRole> : <Account sub={sub} />
 }
 
@@ -44,7 +46,7 @@ function MeNav({ vm, cur }: { vm: VM; cur: string }) {
 
 function Account({ sub }: { sub: string }) {
   const vm = useAccountViewModel(sub)
-  useDocumentTitle(TITLE[sub] ?? '계정')
+  useDocumentTitle(TITLE[sub])
   const [q] = useSearchParams()
   const id = q.get('id')
   let T: ReactNode = null
