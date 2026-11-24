@@ -41,9 +41,9 @@ function MyReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
 }
 
 /**
- * 내 서재 ‘내 댓글·제보’ 탭의 내 제보(기능 23). 실제 작품에 남긴 제보를 최신순으로 보이고 공개 범위 변경·정정·철회를 서버로 보냅니다.
+ * ‘내 제보·수정 제안’ 화면의 내 제보(기능 23). 실제 작품에 남긴 제보를 최신순으로 보이고 공개 범위 변경·정정·철회를 서버로 보냅니다.
  * 데모 작품의 피드백 기록은 같은 탭의 기존 메모리 목록이 그대로 보입니다.
- * embedded는 작품 관리의 '내 댓글·제보' 탭 안이다: 탭 제목(h2) 아래 묶음 제목이라 h3다(그 밖에는 쪽 제목(h1) 아래 구획이라 h2).
+ * embedded는 작품 관리의 '내 제보·수정 제안' 탭 안이다: 탭 제목(h2) 아래 묶음 제목이라 h3다(그 밖에는 쪽 제목(h1) 아래 구획이라 h2).
  */
 export function MyFeedbackReports({ embedded = false }: { embedded?: boolean }) {
   const vm = useMyFeedbackReportsViewModel()

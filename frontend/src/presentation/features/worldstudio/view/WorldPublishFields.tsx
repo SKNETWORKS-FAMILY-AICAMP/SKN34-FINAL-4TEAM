@@ -37,7 +37,7 @@ export function PublishFields({ value, onChange }: { value: WorldPublicationInpu
 
 /**
  * 공개 세계관(또는 공개로 바꾸려는 세계관)인데 초안에 공개로 둔 설정이 하나도 없을 때의 경고와 `전체 공개`. 공개 세계관 화면에는 공개된 카드만 보이므로(DEC-46·53) 이대로면 설정이 하나도 보이지 않는다.
- * 관리 헤더(공개 세계관), 정보 편집 패널(고른 공개 범위), 작성 모드 공개 설정이 함께 쓴다. 공개 설정 자체는 막지 않는다.
+ * 관리 헤더(저장된 공개 세계관), 정보 편집 패널(저장값과 다르게 고른 공개 범위일 때만: 저장된 상태는 헤더 하나가 알린다), 작성 모드 공개 설정이 함께 쓴다. 공개 설정 자체는 막지 않는다.
  * `전체 공개`는 설정집의 카드를 모두 1화부터 공개로 바꾸는 초안 변경이라 세계관 저장과 확정 버전을 거쳐야 공개 화면에 반영된다(집필 메모·관계는 건드리지 않는다). 다른 회차는 설정집 게시판의 일괄 공개가 회차를 입력받아 정한다.
  */
 export function PublicCardsNotice({ vm, visibility }: { vm: ReturnType<typeof useWorldStudioViewModel>; visibility: WorldVisibility }) {

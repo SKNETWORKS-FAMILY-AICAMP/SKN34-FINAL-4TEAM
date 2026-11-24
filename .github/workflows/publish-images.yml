@@ -153,6 +153,11 @@ jobs:
           export CD_CONTENT_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
           export CD_AI_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
           export CD_OPERATIONS_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-operations-service:develop
+          # pull 전에 공간을 먼저 확보한다(#770). 공유 DB 볼륨과 태그 있는 이미지는 건드리지 않도록 dangling 이미지와 빌드 캐시(--no-build라 서버는 안 씀)만 지운다.
+          df -h / || true
+          docker system df || true
+          docker image prune --force
+          docker builder prune --force
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env pull
           revisions=$(docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE" "$CD_OPERATIONS_SERVICE_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
           # 재실행된 이전 run이 더 새 develop 이미지와 이전 Compose를 섞어 배포하지 않게 한다.
@@ -166,7 +171,8 @@ jobs:
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 600
           # 원고 검색 인덱스는 Content 시작 때 생성·검증된다(실패하면 위 --wait가 실패). 고정 리비전 E5 모델은
           # 이 서버 CPU에서 한 번 실제로 실행해 확인한다. 실패하면 이전 이미지를 지우지 않고 CD를 실패시킨다.
-          docker compose --project-directory "$CD_DIRECTORY" --env-file .env exec -T ai-service python -c 'from app.story_qa.service import get_encoder; get_encoder().encode(["query: storyfork deploy check"])'
+          # 이 스크립트는 ssh의 `bash -se` stdin으로 읽히므로, exec가 stdin을 넘기면 남은 줄(마지막 prune)을 먹는다. </dev/null로 막는다.
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env exec -T ai-service python -c 'from app.story_qa.service import get_encoder; get_encoder().encode(["query: storyfork deploy check"])' </dev/null
           # 같은 :develop 태그를 다시 pull하면 이전 이미지가 dangling으로 남아 디스크를 채운다.
           # 새 스택이 healthy가 된 뒤에만 지우며, 컨테이너가 참조하는 이미지와 태그 있는 이미지는 지우지 않는다.
           docker image prune --force

@@ -66,6 +66,39 @@ describe('홈 Hero 자동 넘김과 접근성', () => {
     fireEvent.click(screen.getByRole('button', { name: '자동 넘김 일시 정지' }))
     advance()
     expect(count()).toBe('3 / 4')
+    expect(screen.queryByRole('button', { name: '자동 넘김 일시 정지' })).toBeNull() // 멈췄으니 같은 버튼이 '재생'으로 바뀐다
+  })
+
+  it('정지·재생은 지금 상태에 따라 이름이 바뀌는 버튼 하나이며 aria-pressed를 겹쳐 쓰지 않는다', () => {
+    render(<Carousel />)
+    const toggle = () => screen.getByRole('button', { name: /^자동 넘김 / }) // 둘 이상 보이면 던진다
+    const state = () => [toggle().textContent, toggle().getAttribute('aria-label'), toggle().hasAttribute('aria-pressed')]
+    expect(state()).toEqual(['일시 정지', '자동 넘김 일시 정지', false])
+    fireEvent.click(toggle())
+    expect(state()).toEqual(['재생', '자동 넘김 재생', false])
+    advance(9000)
+    expect(count()).toBe('1 / 4')
+    fireEvent.click(toggle())
+    expect(state()).toEqual(['일시 정지', '자동 넘김 일시 정지', false])
+    advance()
+    expect(count()).toBe('2 / 4')
+  })
+
+  it('마우스는 click보다 focus가 먼저 오지만 토글 자신의 포커스는 정지로 치지 않아 누른 대로 바뀐다', () => {
+    render(<Carousel />)
+    const toggle = screen.getByRole('button', { name: '자동 넘김 일시 정지' })
+    act(() => toggle.focus())
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-label')).toBe('자동 넘김 재생')
+    advance()
+    expect(count()).toBe('1 / 4')
+  })
+
+  it('슬라이드가 한 화면에 다 보이면 넘길 것이 없으니 토글을 멈춤(재생)으로 잠근다', () => {
+    render(<Carousel list={works.slice(0, 1)} />)
+    expect(vi.getTimerCount()).toBe(0)
+    const toggle = screen.getByRole('button', { name: /^자동 넘김 / })
+    expect([toggle.getAttribute('aria-label'), toggle.hasAttribute('disabled')]).toEqual(['자동 넘김 재생', true])
   })
 
   it('hover와 열린 시트에서는 넘기지 않고 수동 정지는 hover 종료로 풀리지 않는다', () => {

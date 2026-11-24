@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
 import '../../../shared/episode.css'
@@ -16,13 +16,16 @@ import { useSerialLock } from '../../../shared/useSerialLock'
  * 작품 관리 화면. 주소가 화면을 정한다: `/content`는 새 작품 만들기, `/content?work=<id>`는 그 내 작품의 관리 화면(`&tab=world`면 세계관 탭부터)이고
  * 내 작품이 아니면 안내한다. 작품 목록은 서재(`/lib?tab=write`)가 맡고 원고 작성은 집필실(`/studio/{id}`)이 맡는다.
  * 작품 관리(`?work=`)는 세계관 관리와 같은 사이드바 화면이라 공용 상단바(Gnb)·푸터를 그리지 않고 사이드바(ManageMenu)가 그 역할을 맡는다 — 서재로 돌아가는 링크는 사이드바 맨 위,
- * 접으면 상단 줄(`.ep-top`)에 있다. 새 작품 만들기(`/content`)와 내 댓글·제보 화면(`?view=reports`, 작품 관리 메뉴의 '내 댓글·제보' 탭과 같은 내용)은 사이드바가 없어 공용 Gnb·Footer가 그대로고, 서재로 돌아가는 링크는 본문 맨 위에 둔다.
+ * 접으면 상단 줄(`.ep-top`)에 있다. 새 작품 만들기(`/content`)와 내 제보·수정 제안 화면(`?view=reports`, 작품 관리 메뉴의 '내 제보·수정 제안' 탭과 같은 내용)은 사이드바가 없어 공용 Gnb·Footer가 그대로고, 서재로 돌아가는 링크는 본문 맨 위에 둔다.
  */
 export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const wanted = params.get('work')
   const reports = params.get('view') === 'reports'
+  // 독자 시트의 내역 링크로 왔으면 읽던 회차로 돌아간다(앱이 넘긴 state의 `/read/` 경로만 받는다).
+  const backState: unknown = useLocation().state
+  const readerBack = reports && backState && typeof backState === 'object' && 'back' in backState && typeof backState.back === 'string' && backState.back.startsWith('/read/') ? backState.back : null
   const vm = useEpisodeViewModel(wanted, useCase)
   const w = vm.active
   const loading = !!wanted && !vm.ready
@@ -40,7 +43,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
   const problem = vm.origin === '' ? vm.error : ''
   const alert = useRef<HTMLDivElement>(null)
   useEffect(() => { if (problem) alert.current?.scrollIntoView?.({ block: 'nearest' }) }, [problem])
-  useDocumentTitle(reports ? '내 댓글·제보' : !wanted ? '새 작품 만들기' : w ? `작품 관리 · ${w.title}` : '작품 관리')
+  useDocumentTitle(reports ? '내 제보·수정 제안' : !wanted ? '새 작품 만들기' : w ? `작품 관리 · ${w.title}` : '작품 관리')
   const notices = (
     <>
       {problem && (
@@ -63,7 +66,7 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
         <main className='ep-main' id='main' tabIndex={-1}>
           {!(managed && menuOpen) && (
             <div className='ep-top'>
-              <Go to='/lib?tab=write' className='ep-back'><BackChev />내가 쓰는 소설</Go>
+              <Go to={readerBack ?? '/lib?tab=write'} className='ep-back'><BackChev />{readerBack ? '회차로 돌아가기' : '내가 쓰는 소설'}</Go>
             </div>
           )}
           {!managed && notices}

@@ -17,6 +17,7 @@ import type { AdminActivity } from '../../../../domain/entities/adminActivity'
 import { OperationsForbidden, OperationsRejected } from '../../../../domain/entities/operations'
 import { CREDIT_INSUFFICIENT_MESSAGE, CREDITS_FORBIDDEN, MEMBER_SEARCH_FORBIDDEN, type MemberCredits } from '../../../../domain/entities/operationsCredit'
 import type { OperationsComment } from '../../../../domain/entities/operationsComment'
+import type { OperationsFeedbackReport } from '../../../../domain/entities/operationsFeedbackReport'
 import type { OperationsWork } from '../../../../domain/entities/operationsWork'
 import { AdminActivityUseCase } from '../../../../domain/usecases/AdminActivityUseCase'
 import { OperationsCommentUseCase } from '../../../../domain/usecases/OperationsCommentUseCase'
@@ -50,6 +51,14 @@ it('신고·권리 탭은 운영 API 실패를 데모 행이나 빈 목록으로
 it.each(['llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'genres', 'cardCategories'])(
   '%s 탭의 모든 표에 캡션·열 머리 범위·키보드 스크롤 영역이 있다',
   async (tab) => {
+    // 작가 검토 제보는 한 건도 없으면 표 대신 빈 상태 글을 그리므로, 표 검사를 위해 제보 한 건을 준다.
+    if (tab === 'feedback') {
+      const report: OperationsFeedbackReport = {
+        id: 'r1', workId: 'w1', workTitle: '별빛 서약의 탑', episodeNumber: 3, kind: 'typo', body: '오탈자가 있어요', quote: null,
+        visibility: 'private', status: 'unchecked', reporterName: '연화', withdrawn: false, createdAt: '2026-11-20T01:02:03Z',
+      }
+      vi.spyOn(appContainer.resolve('operationsFeedbackReportUseCase')!, 'list').mockResolvedValue({ items: [report], page: 0, size: 20, total: 1 })
+    }
     renderAdmin(tab)
     await waitFor(() => expect(tables().length).toBeGreaterThan(0))
     for (const table of tables()) {

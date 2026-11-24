@@ -6,13 +6,13 @@ import { useEpisodeFeedbackReportsViewModel } from '../viewmodel/useEpisodeFeedb
  * 제보 등록은 문장 팝업의 피드백 시트가 맡습니다. 행은 .list(전역 surface 배경)에 넣지 않고 댓글(.cm)처럼 독서 테마 위에 바로 놓습니다.
  * 회차가 바뀌면 호출 측이 key로 새로 만들어 요청 상태를 비웁니다.
  */
-export function EpisodeFeedbackReports({ workId, n, refresh }: { workId: string; n: number; refresh: number }) {
+export function EpisodeFeedbackReports({ workId, n, refresh, loggedIn }: { workId: string; n: number; refresh: number; loggedIn: boolean }) {
   const vm = useEpisodeFeedbackReportsViewModel(workId, n, refresh)
   const { reports } = vm
   return (
     <section className="tcard cms" aria-label="독자 제보" aria-busy={!reports && !vm.isError}>
       <h3>{reports ? `제보 ${reports.length}` : '제보'}</h3>
-      <p className="small muted">공개 제보와 공개 답변이 보여요. 로그인하면 나와 작가만 보는 비공개 제보도 함께 보여요.</p>
+      <p className="small muted">공개 제보와 공개 답변이 보여요. {loggedIn ? '내가 남긴 비공개 제보도 함께 보여요.' : '로그인하면 내가 남긴 비공개 제보도 볼 수 있어요.'}</p>
       {vm.isError && (
         <div role="alert">
           <p className="muted">제보를 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.</p>

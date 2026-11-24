@@ -28,7 +28,7 @@
 | AI 요청 수·실패·시간 초과·지연·토큰·비용 | Langfuse trace·observation | 운영 → Langfuse `GET /api/public/metrics`, `GET /api/public/traces` |
 | 사용자 부담 비용 | Core 크레딧 예약 확정 + trace metadata `credit_reservation_id` | 확정된 예약이 붙은 trace의 비용 합. 아직 AI 요청이 크레딧을 차감하지 않으므로 지금은 전부 플랫폼 부담으로 나온다 |
 | 답변 대기 문의·접수 신고 | 운영 DB | 운영 Repository |
-| 작가 검토 대기(확인 전 제보 `unchecked`·대기 수정 제안 `pending`) | Content | Content `GET /internal/v1/operations/stats` |
+| 작가 검토 대기(확인 전 제보 `unchecked`·대기 수정 제안 `pending`) | Content | Content `GET /internal/v1/operations/stats` (제보 목록 열람은 `GET /internal/v1/feedback-reports`, [제보 계약](feedback-report-suggestion-contract.md#운영자-열람-750-사용자-결정-2026-11-24)) |
 | 제안 채택률·수정안 승인률 | Content 제안(기간 내 생성 제안 중 채택된 비율)·수정 제안 승인(결정 중 승인) | 같은 Content 통계 API(`from`·`to`) |
 | 필터 복원률 | 콘텐츠 필터 기능(미구현) | 필터가 생기기 전까지 `null`, 화면은 '데이터 없음' |
 | 전처리 작업 진행 | Content 전처리 작업 테이블(DEC-50 계약) | Content `GET /internal/v1/preprocessing-jobs` |

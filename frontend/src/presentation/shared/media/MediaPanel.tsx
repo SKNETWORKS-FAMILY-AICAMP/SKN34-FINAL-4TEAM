@@ -67,9 +67,12 @@ export function MediaPanel({target,onBusy,disabled=false}:{target:MediaTarget;on
  const vm=useMediaViewModel(target)
  const [renaming,setRenaming]=useState('')
  const cover=target.kind==='cover'
+ // 옛 설정 첨부는 작품 관리의 바깥 카드('설정 첨부', h3) 안쪽이라 h4이고 이름 없는 구역이다(같은 이름의 구역이 겹치지 않게). 표지와 세계관 설정 카드 첨부(#735)는 혼자 선 구역(h3)이다.
+ const nested=target.kind==='setting'
+ const Heading=nested?'h4':'h3'
  useEffect(()=>{onBusy?.(vm.mutating);return ()=>onBusy?.(false)},[vm.mutating,onBusy])
- return <section className={`media-panel ${cover?'media-cover':''}`} aria-label={cover?'작품 표지':'설정 첨부'}>
-  <h3>{cover?'작품 표지':'이미지·파일 첨부'}</h3>
+ return <section className={`media-panel ${cover?'media-cover':''}`} aria-label={cover?'작품 표지':nested?undefined:'설정 첨부'}>
+  <Heading>{cover?'작품 표지':'이미지·파일 첨부'}</Heading>
   <p className="small muted">{cover?'PNG·JPEG, 10 MiB 이하. 작품 공개 전에는 나만 볼 수 있어요.':'PNG·JPEG·TXT·MD·CSV·PDF, 파일당 10 MiB 이하 · 설정 이미지 최대 10개. 첨부는 소유자 전용이며 독자에게 자동 공개되지 않아요.'}</p>
   {vm.error&&<p role="alert">{vm.error}</p>}
   <p role="status">{vm.busy?'파일을 처리하고 있어요…':vm.notice||(!vm.items.length?'저장된 파일이 없어요.':'')}</p>

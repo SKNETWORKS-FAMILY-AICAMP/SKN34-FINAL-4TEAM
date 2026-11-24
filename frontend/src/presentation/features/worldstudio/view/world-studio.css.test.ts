@@ -235,6 +235,18 @@ it('잠긴 저장 버튼(개요 저장·사이드바/상단 저장·마법사 �
   expect(css).not.toMatch(/\.world-writing \.btn\.pri:disabled/) // 화면 전체로 넓히면 어두운 무대의 상대 선택·채팅 버튼까지 바뀐다
 })
 
+it('저장 상태 글자(wait)는 보라(--pri-ink)가 아니라 본문색(--tfg)이다 — 저장할 것이 있다는 강조는 바로 아래 채운 저장 버튼 하나가 맡고, 굵기 650은 그대로라 회색 "저장됨"(--tsub)과 위계가 유지된다 (quieter)', () => {
+  const wait = rule((s) => s === '.world-save-state.wait')?.body ?? ''
+  expect(wait).toMatch(/color:var\(--tfg\)/)
+  expect(wait).not.toMatch(/--pri-ink/)
+  expect(rule((s) => s === '.world-save-state.ok')?.body).toMatch(/color:var\(--tsub\)/)
+  expect(rule((s) => s === '.world-save-state')?.body).toMatch(/font-weight:650/)
+})
+
+it('저장 실패 글자(.bad)만 위험색(--danger)이다 — 사이드바만 보는 사용자가 실패와 아직 누르지 않은 변경(.wait, 본문색 --tfg는 위 quieter 테스트가 지킨다)을 색으로 가른다 (polish)', () => {
+  expect(rule((s) => s === '.world-save-state.bad')?.body).toMatch(/color:var\(--danger\)/)
+})
+
 it('게시판 제목은 800이 아니라 650이라 줄마다 무거운 글자가 쌓이지 않고(상태 칩 제외), 공개 칸의 N화부터는 보라 기둥도 굵은 기둥도 아니라 본문색 보통 굵기다', () => {
   expect(rule((s) => s === '.world-card-library .worlds-board-table .col-title :is(a,button):not(.world-status-chip)')?.body).toMatch(/font-weight:650/)
   const vis = rule((s) => s === '.world-card-library .worlds-board-table .col-vis[data-public=true]')?.body ?? ''
@@ -566,4 +578,69 @@ it('헤더 버튼 줄(.acts)은 한 줄로 흐른다: 독자 시점 안내문이
   expect(css).toMatch(/\.episode-app \.world-manage-hero \.acts\{[^}]*flex-wrap:wrap/)
   expect(css).not.toContain('acts-note')
   expect(css).not.toMatch(/\.world-manage-hero[^{]*\{[^}]*flex-basis:100%/)
+})
+
+it('헤더 버튼 줄의 링크 버튼(a.btn: 독자 시점으로 보기)은 옆의 button 버튼(내보내기)처럼 밑줄이 없다: 공용 .btn은 text-decoration을 정하지 않아 순수 <a>에는 브라우저 밑줄이 남는다(공개 화면 보기는 Go의 data-route-link가 이미 없앴다)', () => {
+  expect(rule((s) => s === '.world-manage-hero .acts a.btn')?.body).toMatch(/text-decoration:\s*none/)
+})
+
+// ── 개요 탭: 작품 관리 개요(WorkDashboard)처럼 위에 지표 띠, 아래에 구획 카드(impeccable audit R2) ─────────────────────────
+const overviewTab = '.ep-content[data-view=overview]'
+const asCard = (tail: string) => rule((s) => s === `${overviewTab} ${tail}`)?.body ?? ''
+
+it('개요 탭은 바깥 내용 카드(.tcard.ep-card)의 면을 지워 구획 카드가 카드 안의 카드가 되지 않는다(관계도 보기와 같은 방식, 카드 요소·scroll-margin은 그대로)', () => {
+  const box = rule((s) => s === `${overviewTab}>.ep-card`)?.body ?? ''
+  expect(box).toMatch(/padding:0;border:0;background:none;box-shadow:none/)
+  expect(box).toMatch(/margin-bottom:0/) // 면이 없는 껍데기 아래에 32px 빈 띠를 남기지 않는다
+})
+
+it('개요 폼은 560px 폭 제한을 풀고 구획 카드를 내용 열을 채우는 auto-fit 격자에 놓는다: 기본 정보·저장 줄·삭제는 전체 폭이고 공개 설정·표지는 둘째 줄 반폭 두 카드다(360px 미만이면 1열)', () => {
+  expect(asCard('.world-info-edit')).toMatch(/max-width:none/) // 공용 .episode-app .ep-edit의 560px보다 특이도가 높다
+  expect(asCard('.world-info-edit')).toMatch(/margin-top:0/) // 지표 구획과의 간격은 .ep-dash의 gap 하나가 정한다
+  expect(asCard('.world-info-edit>fieldset')).toMatch(/grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,360px\),1fr\)\)/)
+  expect(asCard('.world-info-edit>fieldset>:is(.world-info-basic,.ep-edit-actions,.ep-delete,p)')).toMatch(/grid-column:1\/-1/)
+  expect(rules.filter((r) => r.selector.includes('.world-cover-edit') && /grid-column/.test(r.body))).toEqual([]) // 표지는 전체 폭이 아니라 공개 설정 옆 반폭이다(오른쪽이 비지 않게)
+  expect(asCard('.world-info-edit .ep-edit-actions,' + overviewTab + ' .world-info-edit>fieldset>p')).toMatch(/margin:0/) // 격자 gap 위에 .ep-card의 위 여백이 겹치지 않게
+})
+
+it('구획 카드 면은 운영 설정 카드(.ep-settings-cards)와 같은 값이고(--surface·1px --line2·16px·20px 24px) 삭제 카드만 빨간 테두리다', () => {
+  expect(asCard('.world-info-card')).toMatch(/box-sizing:border-box;min-width:0;margin:0;padding:20px 24px;border:1px solid var\(--line2\);border-radius:16px;background:var\(--surface\)/)
+  expect(asCard('.world-info-card.ep-delete')).toMatch(/border-color:color-mix\(in srgb,var\(--danger\) 35%,var\(--line2\)\)/)
+  expect(asCard('.world-info-basic')).toMatch(/display:grid;align-content:start;gap:16px/)
+  expect(asCard('.world-info-card .world-publish')).toMatch(/margin:0/) // 공개 설정 묶음의 위 16px·아래 12px 여백(.episode-app .world-publish)은 카드 안에서 쓰지 않는다
+})
+
+it('삭제 버튼이 잠겨 삭제할 수 없는 동안(연결된 소설이 있음) 삭제 카드는 다른 카드와 같은 회색 테두리라 누를 수 없는 동작이 개요에서 가장 강한 색을 갖지 않는다(삭제할 수 있을 때의 옅은 위험색은 위 규칙 그대로)', () => {
+  // :disabled가 아니라 속성이다: 바깥 fieldset[disabled](vm.busy, 저장하는 동안)에도 :disabled가 걸려 저장할 때마다 테두리가 회색으로 깜빡인다.
+  expect(asCard('.world-info-card.ep-delete:has(.ep-danger[disabled])')).toMatch(/border-color:var\(--line2\)/)
+})
+
+it('공개 설정 카드 안의 공개 범위 토글·장르 선택은 카드 폭을 채운다(한 줄에 하나씩이고 토글 200px·선택 150px 고정이 아니다)', () => {
+  expect(asCard('.world-publish .field')).toMatch(/flex:1 1 100%/)
+  expect(asCard('.world-publish :is(.seg,select)')).toMatch(/width:100%/)
+})
+
+it('평소 비어 있는 저장 알림 문단(p[role=status]:empty)은 격자 칸을 만들지 않아 저장 줄과 삭제 카드 사이가 카드 사이 간격(16px) 하나다', () => {
+  expect(asCard('.world-info-edit>fieldset>p[role=status]:empty')).toMatch(/position:absolute/) // 절대 위치 자식은 격자 트랙·gap을 만들지 않고 알림 영역(live region)은 접근성 트리에 남는다
+})
+
+it('카드·구획 제목(지표 h3·기본 정보 h3·공개 설정 legend·표지 이름)은 같은 16px/700이고, .ep-tab 안에서만 걸리는 공용 h3 규칙에 기대지 않는다', () => {
+  const title = rule((s) => s.includes(`${overviewTab} .ep-dash section>h3`) && s.includes(`${overviewTab} .world-info-card>h3`) && s.includes(`${overviewTab} .world-info-card legend`) && s.includes(`${overviewTab} .world-info-card .world-cover-label`))
+  expect(title?.body).toMatch(/margin:0;padding:0;font-size:16px;font-weight:700;line-height:1.5/)
+  expect(asCard('.world-info-card legend')).toMatch(/margin-bottom:16px/) // 제목 아래 간격은 기본 정보 카드(gap 16px)와 같다
+})
+
+it('지표 띠는 작품 관리 개요의 .ep-dash·.ep-metrics를 다시 정의하지 않고 개요 안에서 칸의 최소 폭만 120px로 줄인다(채팅을 연 1440px의 내용 열 약 800px에서 6칸이 5+1로 갈라지지 않게)', () => {
+  const selectors = rules.map((r) => r.selector)
+  for (const shared of ['.ep-dash', '.ep-metrics', '.ep-metrics>div', '.ep-metrics dd']) expect(selectors, shared).not.toContain(shared)
+  expect(asCard('.ep-metrics>div')).toMatch(/flex-basis:120px/)
+  expect(asCard('.ep-metrics dd.world-metric-title')).toMatch(/font-size:14px;font-weight:600/) // 연결된 소설 제목은 숫자 칸(22px)이 아니라 보조 글 크기다
+})
+
+it('표지 카드는 601px부터 지금 표지(160px)를 왼쪽에 띄우고 버튼·안내를 그 오른쪽에 흘려 오른쪽이 비지 않고(반폭 카드도 같다: 카드는 360px 아래로 줄지 않아 오른쪽 열이 130px 아래가 되지 않는다), 600px 이하는 기존처럼 세로로 쌓인다', () => {
+  const from601 = (selector: string) => mediaRule('(min-width:601px)', selector)
+  expect(from601(`${overviewTab} .world-cover-edit`)).toMatch(/display:flow-root/) // 띄운 표지를 카드 높이에 포함한다
+  expect(from601(`${overviewTab} .world-cover-edit>.world-cover-now`)).toMatch(/float:left/)
+  expect(from601(`${overviewTab} .world-cover-edit>.world-cover-label`)).toMatch(/display:block;margin-bottom:16px/)
+  expect(rule((s) => s === '.world-cover-edit')?.body).toMatch(/display:grid/) // 기본(좁은 화면)은 세로 한 열 그대로
 })

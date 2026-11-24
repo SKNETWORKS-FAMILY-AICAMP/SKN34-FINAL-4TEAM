@@ -18,9 +18,10 @@ const shortTitle = (w: Work) => w.title.split(': ').pop()
 /** 방금 업데이트 줄의 오른쪽 문구. 서버 작품은 서버가 준 업데이트 시각이 있을 때(server)만 상대 시각을 보이고, 없으면 회차만 알립니다. */
 const freshLabel = (w: Work, server: boolean) => w.canonical ? `${server ? `${ago(w.upd)} · ` : ''}${epsOf(w).length}화` : ago(w.upd)
 
-/** 포커스·수동 조작 후에는 재생을 명시해야 하며, 동작 줄이기에서는 타이머를 만들지 않습니다. */
+/** 포커스·수동 조작 후에는 재생을 명시해야 하며, 동작 줄이기에서는 타이머를 만들지 않습니다. 정지·재생 토글은 마우스로 누르면 click보다 focus가 먼저 오므로 그 포커스는 정지로 치지 않습니다(치면 눌러도 도로 풀립니다). */
 export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: number; stepHero: (d: number) => void; setHero: (i: number) => void }) {
   const track = useRef<HTMLDivElement>(null)
+  const toggle = useRef<HTMLButtonElement>(null)
   const [resize, setResize] = useState(0)
   const [visible, setVisible] = useState(1)
   const [paused, setPaused] = useState(false)
@@ -63,11 +64,14 @@ export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: 
   const positions = Math.max(1, N - visible + 1)
   // 현재 위치가 가운데 오도록 점의 범위를 잡고 양 끝에서는 붙인다. 전체 위치는 위의 'n / N'이 알린다.
   const firstDot = Math.max(0, Math.min(shown - Math.floor(DOTS / 2), positions - DOTS))
+  // 자동 넘김이 없는 상태(동작 줄이기·한 화면에 다 보임)는 멈춤이라 토글을 잠그고 '재생'으로 둔다.
+  const locked = reducedMotion || N <= visible
+  const playing = !paused && !locked
   const move = (i: number) => { setPaused(true); setHero(i) }
   if (!N) return null
   return (
     <section className="hero" aria-labelledby="hero-heading" aria-roledescription="캐러셀"
-      onFocusCapture={() => setPaused(true)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+      onFocusCapture={(e) => { if (e.target !== toggle.current) setPaused(true) }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <h2 id="hero-heading" className="sr-only">추천 소설</h2>
       <span className="cnt" id="cnt" aria-live="off">{shown + 1} / {N}</span>
       <div className="vp">
@@ -95,8 +99,7 @@ export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: 
         <button type="button" className="hero-step" aria-label="다음 소설" onClick={() => move(hero + 1)}><Chev d={RIGHT} /></button>
       </div>
       <div className="hero-rotation">
-        <button type="button" className="btn sm" aria-label="자동 넘김 일시 정지" aria-pressed={paused} onClick={() => setPaused(true)}>일시 정지</button>
-        <button type="button" className="btn sm" aria-label="자동 넘김 재생" aria-pressed={!paused && !reducedMotion} disabled={reducedMotion || N <= visible} onClick={() => setPaused(false)}>재생</button>
+        <button ref={toggle} type="button" className="btn sm" aria-label={playing ? '자동 넘김 일시 정지' : '자동 넘김 재생'} disabled={locked} onClick={() => setPaused(!paused)}>{playing ? '일시 정지' : '재생'}</button>
         {reducedMotion && <small>동작 줄이기 설정으로 자동 넘김이 꺼져 있어요.</small>}
       </div>
     </section>
@@ -143,8 +146,8 @@ function Top10({ list, works, failed, retry, ranked, computedAt }: { list: Work[
   )
 }
 
-const BookCard = ({ w, label, sub, source }: { w: Work; label?: string; sub: string; source?: { title: string; episode: number } }) => (
-  <Go to={`/work/${w.id}`} className="bk prox"><Cov w={w} likes /><h3 className="hk">{label}</h3><small>{sub}</small>{source && <small className="fork-source">{source.title} · {source.episode}화에서 분기</small>}</Go>
+const BookCard = ({ w, label, sub, source }: { w: Work; label?: string; sub?: string; source?: { title: string; episode: number } }) => (
+  <Go to={`/work/${w.id}`} className="bk prox"><Cov w={w} likes /><h3 className="hk">{label || w.title}</h3>{sub && <small>{sub}</small>}{source && <small className="fork-source">{source.title} · {source.episode}화에서 분기</small>}</Go>
 )
 
 /** 목업 home(): U01 홈 · U02 필터 결과 */
@@ -226,7 +229,12 @@ export function HomePage() {
                 <div className="sec-h"><h2>오늘, 스토리포크의 발견</h2></div>
                 <div className="shelf">
                   <button type="button" className="arr l" aria-label="이전" onClick={() => scrollShelf(-1)}><Chev d={LEFT} /></button>
-                  <div className="row" id="shelf" ref={shelf}>{h.discover.map((w) => <BookCard key={w.id} w={w} label={w.hook || w.dir} sub={shortTitle(w) ?? ''} />)}</div>
+                  <div className="row" id="shelf" ref={shelf}>
+                    {h.discover.map((w) => {
+                      const label = w.hook?.trim() || w.dir?.trim()
+                      return <BookCard key={w.id} w={w} label={label} sub={label ? shortTitle(w) : undefined} />
+                    })}
+                  </div>
                   <button type="button" className="arr r" aria-label="다음" onClick={() => scrollShelf(1)}><Chev d={RIGHT} /></button>
                 </div>
               </section>

@@ -29,7 +29,10 @@ const show=(fetcher:typeof fetch,props:{locked?:boolean;linkedWorldId?:string|nu
 it('shows only the settings book summary and no coming-soon studio button now that world linking has its own panel',async()=>{
  const fetcher=vi.fn().mockResolvedValueOnce(Response.json(world({name:'구운몽 설정집',mode:'following',basis:{episode:2,version:1,settings:[setting,setting]},settings:[setting],history:[setting]})))
  show(fetcher)
- const card=await screen.findByRole('region',{name:'세계관 설정집'})
+ // 구역 이름은 화면에 보이는 제목(h3)이다(aria-label이 아니라 aria-labelledby).
+ const card=await screen.findByRole('region',{name:'구운몽 설정집'})
+ // 같은 탭의 연결·원고로 세계관 만들기 구획과 같은 카드(tcard ep-card)다.
+ expect([...card.classList]).toEqual(expect.arrayContaining(['tcard','ep-card']))
  expect(within(card).getByRole('heading',{name:'구운몽 설정집'})).toBeTruthy()
  expect(within(card).getByText(FOLLOWING)).toBeTruthy()
  expect(within(card).getByText('최초 분기 기준: 2화 · 원고 버전 1 · 설정 2개')).toBeTruthy()
@@ -56,8 +59,10 @@ it('shows a load failure as an alert and reads the settings book again only from
  const fetcher=vi.fn().mockResolvedValueOnce(Response.json({detail:'설정집을 불러오지 못했어요.'},{status:500})).mockResolvedValueOnce(Response.json(world()))
  show(fetcher)
  expect((await screen.findByRole('alert')).textContent).toBe('설정집을 불러오지 못했어요.')
+ // 불러오는 중·실패 구획도 카드다(읽은 뒤 설정집 카드로 바뀌어도 모양이 같다).
+ expect([...screen.getByRole('alert').closest('section')!.classList]).toEqual(expect.arrayContaining(['tcard','ep-card']))
  fireEvent.click(screen.getByRole('button',{name:'설정집 다시 불러오기'}))
- await screen.findByRole('region',{name:'세계관 설정집'})
+ await screen.findByRole('region',{name:'설정집'})
  expect(screen.queryByRole('alert')).toBeNull()
  expect(fetcher).toHaveBeenCalledTimes(2)
 })
@@ -68,7 +73,9 @@ it('내 설정집은 설정 하나를 골라 그 설정의 첨부 패널(참고 
  const second={...setting,id:'s2',versionId:'v2',name:'인물 표'}
  const draftOnly={id:'d',name:'초안 설정',content:'초안',category:'장소',tags:[],visibility:'private',fromEpisode:1,toEpisode:null,knownBy:[],evidence:''}
  show(vi.fn().mockResolvedValueOnce(Response.json(world({settings:[setting,second],drafts:[draftOnly]}))))
- const files=within(await screen.findByRole('region',{name:'설정 첨부'}))
+ const filesRegion=await screen.findByRole('region',{name:'설정 첨부'})
+ expect([...filesRegion.classList]).toEqual(expect.arrayContaining(['tcard','ep-card']))
+ const files=within(filesRegion)
  const select=files.getByRole<HTMLSelectElement>('combobox',{name:'첨부할 설정'})
  expect(Array.from(select.options,option=>option.textContent)).toEqual(['지도','인물 표','초안 설정'])
  expect(files.getByTestId('media-panel').textContent).toBe(panelOf('w','s'))
@@ -97,13 +104,21 @@ it('첨부할 옛 설정이 없는 설정집은 세계관 스튜디오 카드에
  expect(files.queryByText('첨부할 설정이 아직 없어요.')).toBeNull()
  expect(files.queryByTestId('media-panel')).toBeNull()
 })
+it('설정집 카드와 설정 첨부 카드의 구역 이름은 화면에 보이는 제목(h3)이고, 첨부 카드의 제목은 설정 첨부 하나다',async()=>{
+ show(vi.fn().mockResolvedValueOnce(Response.json(world({name:'구운몽 설정집',settings:[setting]}))))
+ const book=await screen.findByRole('region',{name:'구운몽 설정집'})
+ expect(book.getAttribute('aria-labelledby')).toBe(within(book).getByRole('heading',{level:3,name:'구운몽 설정집'}).id)
+ const files=screen.getByRole('region',{name:'설정 첨부'})
+ expect(files.getAttribute('aria-labelledby')).toBe(within(files).getByRole('heading',{level:3,name:'설정 첨부'}).id)
+ expect(screen.queryByRole('heading',{name:'설정 첨부 파일'})).toBeNull()
+})
 
 const following=(over:object={})=>world({mode:'following',basis:{episode:1,version:1,settings:[setting]},settings:[setting],history:[setting],...over})
 
 it('원작을 따라가는 설정집은 따라가던 설정이 있으면 내 세계관으로 만들어 수정하기를 보이고, 누르면 새 세계관 관리 화면으로 간다',async()=>{
  const onDetach=vi.fn().mockResolvedValue('new-world')
  show(vi.fn().mockResolvedValueOnce(Response.json(following())),{onDetach})
- const card=await screen.findByRole('region',{name:'세계관 설정집'})
+ const card=await screen.findByRole('region',{name:'설정집'})
  fireEvent.click(within(card).getByRole('button',{name:DETACH}))
  expect(onDetach).toHaveBeenCalledTimes(1)
  await waitFor(()=>expect(screen.getByTestId('where').textContent).toBe('/worldstudio/new-world'))
@@ -112,7 +127,7 @@ it('원작을 따라가는 설정집은 따라가던 설정이 있으면 내 세
 it('독립이 취소되거나 실패하면(null) 이동하지 않고, 호출 측이 준 실패 사유를 카드 안에 알린다',async()=>{
  const onDetach=vi.fn().mockResolvedValue(null)
  show(vi.fn().mockResolvedValueOnce(Response.json(following())),{onDetach,detachError:'이어받는 원작 세계관이 없어서 독립할 수 없어요.'})
- const card=await screen.findByRole('region',{name:'세계관 설정집'})
+ const card=await screen.findByRole('region',{name:'설정집'})
  expect(within(card).getByRole('alert').textContent).toBe('이어받는 원작 세계관이 없어서 독립할 수 없어요.')
  fireEvent.click(within(card).getByRole('button',{name:DETACH}))
  await waitFor(()=>expect(onDetach).toHaveBeenCalledTimes(1))
@@ -131,13 +146,13 @@ it.each([
  ['호출 측이 독립을 연결하지 않은',following(),false],
 ] as const)('%s 설정집에는 독립 버튼이 없다',async(_name,body,wired)=>{
  show(vi.fn().mockResolvedValueOnce(Response.json(body)),wired?{onDetach:vi.fn()}:{})
- await screen.findByRole('region',{name:'세계관 설정집'})
+ await screen.findByRole('region',{name:'설정집'})
  expect(screen.queryByRole('button',{name:DETACH})).toBeNull()
 })
 
 it('독립해 세계관이 연결된 설정집은 설정 카드를 고치는 연결된 세계관을 안내한다',async()=>{
  show(vi.fn().mockResolvedValueOnce(Response.json(world({mode:'independent'}))),{linkedWorldId:'new-world'})
- const card=await screen.findByRole('region',{name:'세계관 설정집'})
+ const card=await screen.findByRole('region',{name:'설정집'})
  expect(within(card).getByText('독립 세계관 · 원작이 바뀌어도 따라오지 않아요.')).toBeTruthy()
  expect(within(card).getByText(/설정 카드는 연결된 세계관에서 보고 고쳐요/)).toBeTruthy()
  expect(within(card).getByRole('link',{name:'연결된 세계관 열기'}).getAttribute('href')).toBe('/worldstudio/new-world')

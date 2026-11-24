@@ -45,6 +45,13 @@ it('구획 세 개(작품 지표·최근 발행 이력·바로가기)가 묶음 
   expect(screen.queryByRole('heading', { level: 2 })).toBeNull() // 탭 제목(h2)은 호출 측이 그린다
 })
 
+it('최근 발행 이력과 바로가기는 이력·세계관 탭과 같은 카드(tcard ep-card)이고, 작품 지표는 칸 하나하나가 카드라 구획을 다시 카드로 감싸지 않는다', () => {
+  loaded()
+  open()
+  for (const name of ['최근 발행 이력', '바로가기']) expect([...screen.getByRole('region', { name }).classList], name).toEqual(expect.arrayContaining(['tcard', 'ep-card']))
+  expect(screen.getByRole('region', { name: '작품 지표' }).classList.contains('ep-card')).toBe(false)
+})
+
 it('공개 작품의 지표 카드는 서버가 준 값을 그대로 보인다(공개 회차·초안·총 글자 수·포크·피드백·누적 조회·좋아요)', () => {
   loaded()
   open()
@@ -57,14 +64,19 @@ it('공개 작품의 지표 카드는 서버가 준 값을 그대로 보인다(�
   expect(metric('좋아요')).toBe('56')
 })
 
-it('총 글자 수는 이어받은 원작 회차를 빼고 세며, 빼는 때는 이름에 그 사실을 적는다', () => {
+/** 값 아래 보조 줄: 이름(dt)과 값(dd) 뒤에 오는 두 번째 dd */
+const hint = (name: string) => screen.getByText(name, { selector: 'dt' }).parentElement!.querySelectorAll('dd')[1]?.textContent
+
+it('총 글자 수는 이어받은 원작 회차를 빼고 세며, 이름은 그대로 두고 기준(공백 포함·빼는 때는 원작 회차 제외)을 값 아래 보조 줄에 적는다', () => {
   loaded()
   open({ work: work({ episodes: [episode(1, '가나다', true), episode(2, '라마'), episode(3, '바')] }) })
-  expect(metric(/^총 글자 수/)).toBe('3자')
-  expect(screen.getByText('총 글자 수 · 공백 포함, 원작 회차 제외', { selector: 'dt' })).toBeTruthy()
+  expect(metric('총 글자 수')).toBe('3자')
+  expect(hint('총 글자 수')).toBe('공백 포함 · 원작 회차 제외')
   cleanup()
   open()
-  expect(screen.getByText('총 글자 수 · 공백 포함', { selector: 'dt' })).toBeTruthy()
+  expect(metric('총 글자 수')).toBe('5자')
+  expect(hint('총 글자 수')).toBe('공백 포함')
+  expect(hint('공개 회차')).toBeUndefined() // 다른 칸에는 보조 줄이 없다
 })
 
 it('큰 수는 천 단위로 끊어 보인다', () => {
@@ -130,8 +142,13 @@ it('최근 발행 이력은 회차·동작·시각을 한 줄씩 보이고, 시�
   open()
   const items = within(screen.getByRole('list')).getAllByRole('listitem')
   expect(items).toHaveLength(2)
-  expect(items[0].textContent).toContain('3화 · 발행 ·')
-  expect(items[1].textContent).toContain('2화 · 공개 중단 ·')
+  expect(items[0].textContent).toContain('3화 · 발행')
+  expect(items[1].textContent).toContain('2화 · 공개 중단')
+  // 시각(<time>)은 줄 오른쪽 끝에 따로 서는 칸이라(CSS) 동작 뒤에 구분점이 매달리지 않고, 줄의 마지막 칸이다.
+  const lead = (li: HTMLElement) => Array.from(li.childNodes).filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent).join('').trim()
+  expect(lead(items[0])).toBe('3화 · 발행')
+  expect(lead(items[1])).toBe('2화 · 공개 중단')
+  expect(items[0].lastChild).toBe(items[0].querySelector('time'))
   expect(items[0].querySelector('time')?.getAttribute('datetime')).toBe('2026-11-09T00:00:00Z')
   // 시각은 한국시간이고 초는 붙이지 않는다(AI 집필 기록과 같은 공용 kstDateTime).
   expect(items[0].querySelector('time')?.textContent).toBe(kstDateTime('2026-11-09T00:00:00Z'))

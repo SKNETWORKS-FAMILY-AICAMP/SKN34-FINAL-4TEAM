@@ -13,6 +13,7 @@ export function useInlineFailure() {
   return {
     /** 마지막 요청이 거절·실패한 이유. 다음 요청을 시작할 때 `clear`로 지웁니다. */
     error,
+    isOpen: () => open.current,
     clear: () => setError(null),
     fail: (message: string) => { if (open.current) setError(message); else toast(message) },
   }
