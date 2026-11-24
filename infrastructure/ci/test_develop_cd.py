@@ -191,11 +191,13 @@ class DevelopDeploymentTest(unittest.TestCase):
             self.assertEqual(0, result.returncode, result.stderr)
             commands = (path / "commands").read_text().splitlines()
             output = (path / "output").read_text()
-        built = {line.split()[-1]: line for line in commands if line.startswith("build ")}
+        built = {line.split()[-1]: line for line in commands if line.startswith("buildx build ")}
         self.assertEqual({"frontend", "backend/ai-service"}, set(built))
         for service, context in (("web", "frontend"), ("ai-service", "backend/ai-service")):
             for expected in (f"--label io.storyfork.build-tree={trees[service]}", f"--label org.opencontainers.image.revision={sha}",
-                             f"--tag {APP}{service}:tree-{trees[service]}", f"--tag {APP}{service}:sha-{sha}"):
+                             f"--tag {APP}{service}:tree-{trees[service]}", f"--tag {APP}{service}:sha-{sha}",
+                             # CI system job(compose.test.yaml)이 쓰는 같은 scope의 레이어 캐시를 읽고, 이어지는 docker push를 위해 이미지를 데몬에 올린다.
+                             f"--cache-from type=gha,scope={service}", "--load"):
                 self.assertIn(expected, built[context])
         pushes = [line for line in commands if line.startswith("push ")]
         self.assertCountEqual([f"push {APP}{service}:{tag}" for service in ("web", "ai-service") for tag in (f"tree-{trees[service]}", f"sha-{sha}")], pushes)
