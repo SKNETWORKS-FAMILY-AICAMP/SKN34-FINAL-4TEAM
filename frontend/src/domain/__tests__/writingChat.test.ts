@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, stepName, lastScene, pendingChanges, rangePreview, selectionNote, worldProposalIsStale, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, trackActivity, type ChatEvent, type ChatStatus } from '../entities/writingChat'
+import { cancelNotice, chatBasis, chatPage, cleanScene, draftNotice, featureLabel, stepName, lastScene, pendingChanges, rangePreview, selectionNote, worldProposalIsStale, PLAN_PICK_HINT, replyChoices, replyOutcome, replyText, stepText, type ChatPlanRevision, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix, streamedAnswer, trackActivity, type ChatEvent, type ChatStatus } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -607,5 +607,21 @@ describe('trackActivity(#784)', () => {
     const list = [row('a', 'running'), row('b', 'running', '웹 검색'), row('a', 'done'), { type: 'answer', delta: '글' } as ChatEvent, row('b', 'failed', '웹 검색')]
       .reduce(trackActivity, [])
     expect(list).toEqual([{ id: 'a', label: '세계관 읽기', status: 'done' }, { id: 'b', label: '웹 검색', status: 'failed' }])
+  })
+})
+
+describe('replyChoices', () => {
+  const reply = (extra: Partial<ChatReply>): ChatReply => ({ status: 'completed', steps: [], missingInputs: [], ...extra })
+  it('되묻기 선택지는 서버가 준 그대로 쓴다(#794)', () => {
+    const choices = [{ label: '3화', message: '3화 결말을 고쳐줘' }]
+    expect(replyChoices(reply({ status: 'clarify', choices }))).toEqual(choices)
+    expect(replyChoices(reply({ status: 'clarify' }))).toEqual([])
+  })
+
+  it('기획 결과(plans)는 계획마다 그 계획대로 쓰라는 새 메시지 선택지가 된다(최대 4개)', () => {
+    const plans = Array.from({ length: 5 }, (_, i) => ({ title: `계획${i}`, beats: [] }))
+    const planned = reply({ steps: [{ feature: 'writing_editing', status: 'completed', result: { plans } }] })
+    expect(replyChoices(planned)).toEqual([1, 2, 3, 4].map((n) => ({ label: `계획 ${n}대로 쓰기`, message: `계획 ${n}대로 써줘` })))
+    expect(replyChoices(reply({ steps: [{ feature: 'writing_editing', status: 'failed', result: { plans } }] }))).toEqual([])
   })
 })

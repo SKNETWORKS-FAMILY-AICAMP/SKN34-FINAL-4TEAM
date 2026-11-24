@@ -1,4 +1,4 @@
-"""메인 에이전트의 서브 에이전트 도구 `ask_*` 7종(#473). 각 도구는 기존 업무 Agent 서비스를 그대로 감싼다.
+"""메인 에이전트의 서브 에이전트 도구 `ask_*` 7종(#473)과 작가에게 선택지로 되묻는 `ask_author`(#794). 각 서브 에이전트 도구는 기존 업무 Agent 서비스를 그대로 감싼다.
 
 모델이 정하는 인자는 작업 지시 `request`(2,000자 이하)와 열거형(`check`·`task`·`fix`)뿐이다. 작품·회차·revision·scope 토큰·선택 구간·
 외부 전송 동의는 도구가 Content가 확인한 상태(바깥 그래프 상태 = 실행 context, 메인 에이전트 상태의 inputs·retrievalScope)에서 읽는다.
@@ -46,7 +46,7 @@ from app.simulation.models import GAP_LABELS, SimulationPlan
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.story_qa.models import AnswerRequest
-from app.orchestration.models import QaStepResult, current_feature
+from app.orchestration.models import Choice, QaStepResult, current_feature
 from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.writing import agent as writing
@@ -79,6 +79,7 @@ NO_SAVED_PLANS = '저장된 플롯·장면 계획이 없어 고칠 수 없어요
 NO_PLAN_CHANGE = '요청대로 바꿀 내용이 없어요. 고칠 방향을 더 구체적으로 알려 주세요.'
 PLAN_EPISODE_MISSING = '연결한 회차가 삭제됐어요. 계획 패널에서 회차 연결을 해제한 뒤 다시 요청해 주세요.'
 PLAN_CANDIDATES = 5  # 되묻기에 보이는 후보 계획 제목 수
+CHOICES = 4  # 되묻기 선택지 수 상한(#794, OrchestrationResponse.choices)
 # 판정 기능 → 메인에 노출할 도구 이름. 판정 기능마다 도구가 있어 미구현으로 끝내는 기능이 없다.
 TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world': 'ask_world', 'writing_editing': 'ask_writing',
               'research': 'ask_research', 'rating': 'ask_rating', 'character_simulation': 'ask_character_simulation'}
@@ -120,7 +121,16 @@ class Skipped(Exception):
 
 
 class Clarify(Exception):
-    """대상을 하나로 정할 수 없어 아무것도 만들지 않고 작가에게 되묻는다. 메시지가 작가에게 보일 한 문장이다."""
+    """대상을 하나로 정할 수 없어 아무것도 만들지 않고 작가에게 되묻는다. 메시지가 작가에게 보일 한 문장이고 choices는 고를 수 있는 답이다(#794)."""
+
+    def __init__(self, message: str, choices: list[dict] = ()):
+        super().__init__(message)
+        self.choices = list(choices)
+
+
+def _clarify(message: str, choices: list[dict] = ()) -> dict:
+    """남은 호출을 막고 되묻기로 끝내는 stopped. 선택지의 message는 요청 한도(2,000자)로 자른다."""
+    return {'stopped': {'status': 'clarify', 'message': message, 'choices': [{**c, 'message': c['message'][:2000]} for c in choices][:CHOICES]}}
 
 
 def previous(turn: dict) -> list[dict]:
@@ -239,7 +249,7 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
         step.update(status='skipped', error=str(skip))
     except Clarify as ask:  # 단계를 남기지 않고 한 문장으로 되묻는다(시뮬레이션 계획의 되묻기와 같다)
         agent_runtime.report(runtime.tool_call_id, name, 'done', feature=feature)
-        return _reply(runtime, feature, f'[확인 필요] {name}: {ask}', {'stopped': {'status': 'clarify', 'message': str(ask)}}, failed=True)
+        return _reply(runtime, feature, f'[확인 필요] {name}: {ask}', _clarify(str(ask), ask.choices), failed=True)
     except FAILURES as error:
         step.update(status='failed', error=str(error))
     if ran:  # 실패는 failed로 보이고, 조건이 거짓이라 건너뛴 단계(skipped)는 끝난 작업이다
@@ -433,7 +443,8 @@ def _revise_plan(runtime: ToolRuntime, request: str) -> Command:
         if (picked := writing.pick_plan(PlanPickRequest(request=request, plans=briefs))) not in titles:
             shown = ', '.join(f"'{b.title}'" for b in briefs[:PLAN_CANDIDATES])
             more = f' 외 {len(briefs) - PLAN_CANDIDATES}개' if len(briefs) > PLAN_CANDIDATES else ''
-            raise Clarify(f'어느 계획을 고칠지 정할 수 없어요. 고칠 계획의 제목을 알려 주세요. 저장된 계획: {shown}{more}')
+            raise Clarify(f'어느 계획을 고칠지 정할 수 없어요. 고칠 계획의 제목을 알려 주세요. 저장된 계획: {shown}{more}',
+                          [{'label': f"'{b.title[:13]}' 고치기", 'message': f"'{b.title}' 계획을 고쳐줘: {task(turn)}"} for b in briefs[:CHOICES]])
         current = content_mcp.read_plan(work, picked)
         if current.episodeMissing:  # 그대로 저장하면 Content가 승인 순간 거절하므로 제안 전에 알린다(#641)
             raise WritingFailure(422, PLAN_EPISODE_MISSING)
@@ -547,8 +558,24 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
     if gaps := drafted.gaps():
         asked = ', '.join(GAP_LABELS[g] for g in gaps)
         message = f'시뮬레이션을 시작하려면 {asked}을(를) 알려 주세요.'
-        return _reply(runtime, 'character_simulation', f'[확인 필요] 인물 시뮬레이션: {message}', {'stopped': {'status': 'clarify', 'message': message}}, failed=True)
+        # 모드는 바로 고르는 버튼, 여러 명을 고르는 인물은 집필실 시작 양식을 여는 버튼이다(#794). 전제·비트는 글로 답한다.
+        choices = [{'label': label, 'message': f'{mode} 시뮬레이션으로 해줘: {task(turn)}'}
+                   for label, mode in (('IF로 시작', 'IF'), ('흐름대로 시작', '흐름'))] if 'mode' in gaps else []
+        if 'characterIds' in gaps:
+            choices.append({'label': '양식에서 고르기', 'message': task(turn), 'form': 'simulation'})
+        return _reply(runtime, 'character_simulation', f'[확인 필요] 인물 시뮬레이션: {message}', _clarify(message, choices), failed=True)
     plan = drafted.model_dump(mode='json')
     content = json.dumps({'feature': 'character_simulation', 'status': 'planned', 'mode': plan['mode'],
                           'characters': len(plan['characterIds'])}, ensure_ascii=False)
     return _reply(runtime, 'character_simulation', content, {'steps': [step], 'simulationPlan': plan})
+
+
+@tool
+def ask_author(question: Annotated[str, Field(min_length=1, max_length=500, description='작가에게 보일 확인 질문 한 문장')],
+               options: Annotated[list[Choice], Field(min_length=2, max_length=4, description='고를 수 있는 답 2~4개. label은 버튼 글(20자 이하), '
+                                                      'message는 누르면 작가 이름으로 보낼 요청 문장(그것만 읽어도 할 일이 분명하게)')],
+               runtime: ToolRuntime) -> Command:
+    """작가에게 선택지로 되묻는다(#794): 대상·작업을 정할 수 없고 고를 후보(회차·인물·계획·작업 등)가 있을 때만 부른다. 부르면 이번 턴은 이 질문으로 끝난다.
+    후보가 없으면 이 도구 없이 확인 질문 한 문장으로 답한다."""
+    return Command(update={**_clarify(question, [o.model_dump() for o in options]),
+                           'messages': [ToolMessage(content='[확인 필요] 작가에게 물었어요.', tool_call_id=runtime.tool_call_id, name='ask_author')]})

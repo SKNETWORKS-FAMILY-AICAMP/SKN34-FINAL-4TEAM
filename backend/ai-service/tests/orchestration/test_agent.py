@@ -83,7 +83,7 @@ def test_an_allowed_decision_without_features_runs_the_main_agent_with_only_the_
     calls = fake_agents(monkeypatch, plan(status='clarify'))
     result = run(inputs={'story_context': QA})
     assert (result.status, result.message, result.steps) == ('clarify', '종합 답변', [])
-    assert exposed(calls) == [list(mcp_tools.NAMES)]
+    assert exposed(calls) == [[*mcp_tools.NAMES, 'ask_author']]
 
 
 def test_the_main_agent_answers_small_talk_itself():
@@ -116,7 +116,7 @@ def test_the_guard_gets_the_request_operation_materials_and_no_history_on_the_fi
 def test_only_the_tools_of_the_decided_features_are_exposed(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context', 'rating'))
     run(target=TARGET, inputs={'story_context': QA})
-    assert exposed(calls)[0] == ['ask_story_qa', 'ask_rating', *mcp_tools.NAMES]
+    assert exposed(calls)[0] == ['ask_story_qa', 'ask_rating', *mcp_tools.NAMES, 'ask_author']
 
 
 def test_a_tool_outside_the_decision_is_blocked_before_it_runs(monkeypatch):
@@ -146,7 +146,7 @@ def test_the_last_allowed_model_call_has_no_tools_so_it_can_only_answer(monkeypa
     calls = fake_agents(monkeypatch, plan(*['story_context'] * 9))
     result = run(inputs={'story_context': QA})
     assert len(calls.main) == agent.MODEL_CALLS == 8
-    assert exposed(calls)[:7] == [['ask_story_qa', *mcp_tools.NAMES]] * 7 and exposed(calls)[7] == []
+    assert exposed(calls)[:7] == [['ask_story_qa', *mcp_tools.NAMES, 'ask_author']] * 7 and exposed(calls)[7] == []
     assert (result.status, result.message) == ('completed', '종합 답변')
 
 
@@ -782,7 +782,7 @@ def test_a_failed_platform_step_is_named_for_the_model_as_a_public_world_referen
 
 
 def test_a_decision_recorded_as_web_research_still_exposes_ask_research():
-    assert {n for n in agent._allowed({'decision': {'capabilities': ['web_research']}}) if n.startswith('ask_')} == {'ask_research'}  # MCP 도구(#554)는 기능과 무관하게 함께 노출된다
+    assert {n for n in agent._allowed({'decision': {'capabilities': ['web_research']}}) if n.startswith('ask_')} == {'ask_research', 'ask_author'}  # MCP 도구(#554)는 기능과 무관하게 함께 노출된다
 
 
 def test_a_pending_ask_web_research_call_from_an_old_checkpoint_runs_as_ask_research():
@@ -803,3 +803,46 @@ def test_the_main_agent_calls_the_model_chosen_in_its_prompt_version(monkeypatch
     monkeypatch.setattr(tracing, 'prompt', lambda name, default: tracing.Prompt('관리된 지시', model='gpt-chosen'))
     run(inputs={'story_context': QA})
     assert calls.main.init['model'] == 'gpt-chosen'
+
+
+# 작가에게 선택지로 묻기(#794)
+
+OPTIONS = [{'label': '3화', 'message': '3화 결말을 고쳐줘'}, {'label': '4화', 'message': '4화 결말을 고쳐줘'}]
+
+
+def asking(*before, options=OPTIONS, capabilities=('story_context',)):
+    """판정 기능은 그대로 두고 메인이 before 도구들 뒤에 ask_author를 부르는 대본."""
+    from .stubs import Planned
+    return Planned(DecisionResult(allowed=True, capabilities=list(capabilities)),
+                   [*before, ('ask_author', {'question': '어느 회차 결말을 고칠까요?', 'options': options})])
+
+
+def test_ask_author_ends_the_turn_as_a_clarify_with_the_options_as_choices(monkeypatch):
+    calls = fake_agents(monkeypatch, asking())
+    result = run('결말 고쳐줘', inputs={'story_context': QA})
+    assert (result.status, result.message, result.steps) == ('clarify', '어느 회차 결말을 고칠까요?', [])
+    assert [(c.label, c.message) for c in result.choices] == [('3화', '3화 결말을 고쳐줘'), ('4화', '4화 결말을 고쳐줘')]
+    assert len(calls.main) == 1  # 묻고 나면 모델을 다시 부르지 않는다(종합 없음)
+
+
+def test_ask_author_is_exposed_with_the_decided_tools_and_does_not_use_up_the_three_calls(monkeypatch):
+    calls = fake_agents(monkeypatch, asking())
+    run('결말 고쳐줘', inputs={'story_context': QA})
+    assert exposed(calls)[0] == ['ask_story_qa', *mcp_tools.NAMES, 'ask_author']
+
+
+@pytest.mark.parametrize('options', [
+    [OPTIONS[0]],                                                     # 2개 미만
+    [*OPTIONS, *OPTIONS, OPTIONS[0]],                                 # 4개 초과
+    [{'label': '가' * 21, 'message': '보낼 말'}, OPTIONS[0]],          # label 20자 초과
+])
+def test_ask_author_with_bad_options_is_returned_to_the_model_and_asks_nothing(monkeypatch, options):
+    calls = fake_agents(monkeypatch, asking(options=options))
+    result = run('결말 고쳐줘', inputs={'story_context': QA})
+    assert result.choices == [] and result.message == '종합 답변' and len(calls.main) == 2
+    assert tool_messages(calls)[0].status == 'error'
+
+
+def test_rule_three_asks_with_ask_author_only_when_there_are_candidates():
+    rule = next(line for line in INSTRUCTIONS.splitlines() if line.startswith('3.'))
+    assert 'ask_author' in rule and '후보가 없으면' in rule

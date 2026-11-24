@@ -98,7 +98,7 @@ def test_without_a_page_nothing_is_added_to_the_request_or_the_materials(monkeyp
 def test_only_the_ten_allowed_content_tools_are_given_to_the_main_agent(monkeypatch):
     calls = fake_agents(monkeypatch, only_content())
     turn(str(uuid4()), page=PAGE)
-    assert calls.main[0]['tools'] == list(mcp_tools.NAMES) and len(mcp_tools.NAMES) == 10 and 'episode_update_draft' not in mcp_tools.NAMES
+    assert calls.main[0]['tools'] == [*mcp_tools.NAMES, 'ask_author'] and len(mcp_tools.NAMES) == 10 and 'episode_update_draft' not in mcp_tools.NAMES
     assert set(mcp_tools.READ) == {'world_studio_read', 'episode_read', 'episode_list', 'work_read', 'story_plan_list', 'story_plan_read'}
     assert set(mcp_tools.WRITE) == {'world_studio_edit_draft', 'work_update', 'story_plan_create', 'story_plan_update'}
 
@@ -108,7 +108,7 @@ def test_an_allowed_request_without_features_still_runs_the_main_agent_with_the_
     log = content(monkeypatch)
     result = turn(str(uuid4()), request='3화 내용을 봐줘')
     assert (result.status, result.steps, result.message) == ('completed', [], '종합 답변')  # 읽기만 한 턴은 되묻기(clarify)가 아니다
-    assert log == [('episode_read', {'id': 'work', 'number': 3})] and calls.main[0]['tools'] == list(mcp_tools.NAMES)
+    assert log == [('episode_read', {'id': 'work', 'number': 3})] and calls.main[0]['tools'] == [*mcp_tools.NAMES, 'ask_author']
 
 
 def test_a_request_the_tools_cannot_do_gets_the_fixed_guidance_and_runs_nothing(monkeypatch):
@@ -386,7 +386,7 @@ def test_a_request_the_ui_assigned_to_one_feature_gets_no_content_tools(monkeypa
     calls = fake_agents(monkeypatch, plan('story_context'))
     content(monkeypatch)
     turn(str(uuid4()), operation='story_context', inputs={'story_context': {'question': 'q', 'excerpts': [{'id': 'a', 'episode': 1, 'quote': '인용'}]}})
-    assert calls.main[0]['tools'] == ['ask_story_qa']
+    assert calls.main[0]['tools'] == ['ask_story_qa', 'ask_author']
 
 
 def test_a_write_in_a_batch_with_a_read_waits_for_its_own_turn_so_only_one_card_appears(monkeypatch):

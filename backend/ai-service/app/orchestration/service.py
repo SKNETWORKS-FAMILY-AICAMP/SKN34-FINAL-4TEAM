@@ -140,6 +140,7 @@ class State(TypedDict, total=False):
     message: str | None
     steps: list[dict]
     missingInputs: list[str]
+    choices: list[dict]  # clarify의 선택지(#794). 턴마다 비운다
     scope: str | None
     attachments: list[dict]  # 이번 턴의 첨부(Attachment JSON, Base64 포함). 이번 턴의 메인 에이전트만 본다. 다음 새 턴의 _initial이 비워 덮고 turns에는 이름·종류만 남는다(#617).
     page: dict | None  # 작가가 지금 보는 화면(PageContext JSON). 그 턴의 메인 에이전트·Decision Guard만 본다. turns에는 남기지 않는다.
@@ -240,7 +241,7 @@ async def _run_main_agent(state: State, config: RunnableConfig) -> State:
                    'writingBaseRevision': (out.get('writingBase') or {}).get('revision')}
     stopped = out.get('stopped') or {}
     if stopped.get('status') == 'clarify':
-        return {**done, 'status': 'clarify', 'message': stopped['message'] + unavailable}
+        return {**done, 'status': 'clarify', 'message': stopped['message'] + unavailable, 'choices': stopped.get('choices', [])}
     if out['messages'][-1].name == agent.FAILED:
         return {**done, 'status': 'failed'}
     if stopped:
@@ -468,7 +469,7 @@ def _initial(data: OrchestrationRequest) -> State:
     """턴마다 바뀌는 값은 모두 새로 넣어 이전 턴 결과가 이번 응답에 남지 않게 한다. runId·traceParent는 이 턴을 여는 요청의 루트가 채운다(_claim)."""
     return {'runId': None, 'traceParent': None, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
-            'steps': [], 'missingInputs': [], 'writingBaseRevision': None, 'replaceHistory': False, 'simulationPlan': None, 'task': None,
+            'steps': [], 'missingInputs': [], 'choices': [], 'writingBaseRevision': None, 'replaceHistory': False, 'simulationPlan': None, 'task': None,
             'scene': None, 'sceneAction': None, 'simulationForm': data.simulation.model_dump(mode='json') if data.simulation else None,
             'attachments': [a.model_dump() for a in data.attachments],
             'scope': data.conversation.scope if data.conversation else None, 'page': data.page.model_dump(exclude_none=True) if data.page else None,

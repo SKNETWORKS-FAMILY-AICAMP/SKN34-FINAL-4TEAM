@@ -14,6 +14,9 @@
 .chat-suggest-btn { min-height: 36px; padding: 0 14px; border: 1px solid var(--tline); border-radius: 999px; background: var(--chat-card, var(--tcard)); color: inherit; font-size: 13px; font-weight: 600; }
 .chat-suggest-btn:hover:not(:disabled) { border-color: var(--tacc); color: var(--pri-ink); }
 .chat-suggest-btn:disabled { cursor: not-allowed; opacity: .6; }
+/* 되묻기 선택지(#794): 답변 말풍선 아래 왼쪽 정렬 알약 버튼 줄. 추천 칩과 같은 버튼을 쓴다. */
+.chat-choices { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+.chat-choices .chat-suggest-btn:focus-visible { outline: 2px solid var(--tacc); outline-offset: 2px; }
 
 /* 메시지: 나 = 오른쪽 진한 말풍선, AI = 왼쪽 아바타 + 옅은 틴트 말풍선, 안내 = 가운데 작은 글씨 */
 .chat-msg { display: flex; align-items: flex-end; gap: 8px; min-width: 0; }

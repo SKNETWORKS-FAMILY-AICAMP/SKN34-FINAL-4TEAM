@@ -1385,3 +1385,48 @@ it('고쳐 보낸 요청이 도착하기 전에 실패하면 원래 진행 목�
   expect(screen.getByText('작업 1개')).toBeTruthy()
   expect(screen.getByText('원래 답')).toBeTruthy()
 })
+
+describe('되묻기 선택지(#794)', () => {
+  const clarify = (choices: unknown[]) => ({ status: 'clarify', message: '어느 회차 결말을 고칠까요?', steps: [], missingInputs: [], choices })
+  const two = [{ label: '3화', message: '3화 결말을 고쳐줘' }, { label: '4화', message: '4화 결말을 고쳐줘' }]
+
+  it('마지막 턴의 선택지를 누르면 그 message를 새 채팅 메시지로 보내고, 입력창은 그대로 둔다', async () => {
+    openThread([{ request: '결말 고쳐줘', reply: clarify(two) }])
+    send.mockResolvedValue(undefined)
+    renderChat()
+    const group = await screen.findByRole('group', { name: '고를 수 있는 답' })
+    fireEvent.click(within(group).getByRole('button', { name: '4화' }))
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+    expect(send.mock.calls[0][2]).toMatchObject({ request: '4화 결말을 고쳐줘' })
+    expect(screen.getByRole('textbox', { name: /메시지/ })).toBeTruthy()
+  })
+
+  it('지난 턴의 선택지는 비활성으로 보인다', async () => {
+    openThread([{ request: '결말 고쳐줘', reply: clarify(two) }, { request: '3화', reply: { status: 'completed', message: '답', steps: [], missingInputs: [] } }])
+    renderChat()
+    const group = await screen.findByRole('group', { name: '고를 수 있는 답' })
+    expect(within(group).getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
+  })
+
+  it('기획 결과에는 계획 N대로 쓰기 버튼이 보인다', async () => {
+    openThread([{ request: '다음 화 기획해줘', reply: { status: 'completed', message: '계획 두 개예요.', missingInputs: [], steps: [
+      { feature: 'writing_editing', status: 'completed', result: { plans: [{ title: '항구', beats: ['도착'] }, { title: '숲', beats: ['추격'] }], notes: [] } }] } }])
+    send.mockResolvedValue(undefined)
+    renderChat()
+    fireEvent.click(await screen.findByRole('button', { name: '계획 2대로 쓰기' }))
+    await waitFor(() => expect(send.mock.calls[0]?.[2]).toMatchObject({ request: '계획 2대로 써줘' }))
+  })
+
+  it('양식 선택지는 시작 양식을 열고 메시지를 보내지 않으며, 양식이 없는 화면에서는 보이지 않는다', async () => {
+    openThread([{ request: '시뮬레이션', reply: clarify([{ label: '양식에서 고르기', message: '시뮬레이션', form: 'simulation' }]) }])
+    const setup = vi.fn()
+    const { unmount } = render(<WritingChat workId="w" basis={basis} emptyTitle="" emptyText="" suggestions={[]} onOpenSetup={setup} />)
+    fireEvent.click(await screen.findByRole('button', { name: '양식에서 고르기' }))
+    expect(setup).toHaveBeenCalledTimes(1)
+    expect(send).not.toHaveBeenCalled()
+    unmount()
+    renderChat()
+    expect(await screen.findByText('어느 회차 결말을 고칠까요?')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '양식에서 고르기' })).toBeNull()
+  })
+})

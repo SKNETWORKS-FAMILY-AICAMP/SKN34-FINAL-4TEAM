@@ -135,6 +135,7 @@ const reply: z.ZodType<ChatReply> = z.object({
   awaitingScene: z.string().nullish(),
   approvalEpisode: z.number().int().positive().nullish(),
   pendingAction: pendingAction.nullish(),
+  choices: z.array(z.object({ label: z.string(), message: z.string(), form: z.enum(['simulation']).nullish() })).default([]),
 })
 const session: z.ZodType<ChatSession> = z.object({ threadId: z.string(), title: z.string(), updatedAt: z.string() })
 const history: z.ZodType<ChatHistory> = z.object({

@@ -150,7 +150,7 @@ class FakeMain(BaseChatModel):
         usage = {'input_tokens': 20, 'output_tokens': 5, 'total_tokens': 25}
         if done < len(self.script) and tools:
             batch = self.script[done] if isinstance(self.script[done], list) else [self.script[done]]
-            calls = [{'name': name, 'args': args if (name, args.get('task')) == ('ask_research', 'web') or name in mcp_tools.NAMES else {'request': messages[last].text, **args},
+            calls = [{'name': name, 'args': args if (name, args.get('task')) == ('ask_research', 'web') or name in (*mcp_tools.NAMES, 'ask_author') else {'request': messages[last].text, **args},
                       'id': f'call-{done}-{i}'} for i, (name, args) in enumerate(batch)]
             message = AIMessage(content='', tool_calls=calls, response_metadata=meta, usage_metadata=usage)
         elif isinstance(self.answer, Exception):

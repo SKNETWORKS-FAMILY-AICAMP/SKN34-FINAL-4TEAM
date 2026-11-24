@@ -88,6 +88,8 @@ export type ChatStep = {
 /** 작가의 승인을 기다리는 Content 쓰기 도구(#554). 모델의 요약이 아니라 실제로 실행할 도구와 인자다. label은 서버의 도구별 고정 문구다. */
 export type PendingAction = { tool: string; label: string; args: Record<string, unknown> }
 export type ChatStatus = 'completed' | 'failed' | 'clarify' | 'rejected' | 'unsupported' | 'needs_input' | 'waiting' | 'cancelled'
+/** 되묻기 선택지(#794). 누르면 message를 새 채팅 메시지로 보낸다(resume이 아니다). form이면 메시지 대신 그 양식(시뮬레이션 시작)을 연다. */
+export type ChatChoice = { label: string; message: string; form?: 'simulation' | null }
 export type ChatReply = {
   status: ChatStatus
   message?: string | null
@@ -99,6 +101,8 @@ export type ChatReply = {
   approvalEpisode?: number | null
   /** awaitingApproval이 content_action일 때 실행을 기다리는 도구와 인자 */
   pendingAction?: PendingAction | null
+  /** clarify의 선택지(#794, 최대 4개). 옛 기록에는 없다. */
+  choices?: ChatChoice[]
 }
 export type ChatFeedback = 'up' | 'down'
 /** attachments는 그 턴에 보낸 첨부의 이름·종류다(원본은 남지 않는다). 첨부 기능 전의 턴과 첨부 없는 턴은 비었거나 없다.
@@ -414,3 +418,12 @@ const appliedLine = (s: ChatStep) => (s.applied
  */
 export const replyOutcome = (reply: ChatReply): string[] =>
   reply.steps.flatMap((s) => [s.status === 'failed' ? `${stepLabel(s)} ${stepText(s)}` : '', appliedLine(s)].filter(Boolean))
+
+/**
+ * 답변 아래 버튼으로 보일 선택지(#794): 서버의 되묻기 선택지와, 기획 결과(plans)의 "계획 N대로 쓰기"(서버는 최근 기획 결과로 쓴다).
+ * 입력창은 그대로라 작가는 선택지 밖의 답도 보낼 수 있다.
+ */
+export const replyChoices = (reply: ChatReply): ChatChoice[] => {
+  const plans = reply.steps.find((s) => s.feature === 'writing_editing' && s.status === 'completed' && s.result?.plans?.length)?.result?.plans ?? []
+  return [...(reply.choices ?? []), ...plans.slice(0, 4).map((_, i) => ({ label: `계획 ${i + 1}대로 쓰기`, message: `계획 ${i + 1}대로 써줘` }))]
+}

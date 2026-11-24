@@ -121,6 +121,16 @@ describe('집필 AI 채팅 세션', () => {
     expect(history.turns[0].reply?.awaitingApproval).toBe('writing_editing')
   })
 
+  it('되묻기 선택지(choices)를 읽고, 없는 옛 기록은 빈 목록으로 읽는다(#794)', async () => {
+    const choices = [{ label: 'IF로 시작', message: 'IF 시뮬레이션으로 해줘: 요청' }, { label: '양식에서 고르기', message: '요청', form: 'simulation' }]
+    const fetcher = vi.fn().mockResolvedValueOnce(Response.json({ threadId: 't1', title: '', turns: [
+      { request: '요청', reply: { status: 'clarify', message: '모드를 알려 주세요.', steps: [], missingInputs: [], choices } },
+      { request: '옛 질문', reply: { status: 'clarify', message: '어느 회차요?', steps: [], missingInputs: [] } },
+    ] }))
+    const turns = (await new HttpWritingChatRepository(fetcher).history('w1', 't1')).turns
+    expect(turns.map((t) => t.reply?.choices)).toEqual([choices, []])
+  })
+
   it('답변 평가는 그 메시지의 feedback으로 PUT하고 이력에서 평가를 읽는다(#560)', async () => {
     const fetcher = vi.fn()
       .mockResolvedValueOnce(new Response(null, { status: 204 }))

@@ -244,6 +244,17 @@ class Basis(BaseModel):
     episodeVersionId: str
 
 
+class Choice(BaseModel):
+    """되묻기 선택지 하나(#794). 누르면 message를 새 채팅 메시지로 보낸다(resume이 아니다). message 한도는 요청 request와 같다."""
+    label: str = Field(min_length=1, max_length=20)
+    message: str = Field(min_length=1, max_length=2000)
+
+
+class ReplyChoice(Choice):
+    """응답의 선택지. form이 있으면 메시지 대신 그 화면 양식을 연다(simulation: 집필실 시뮬레이션 시작 양식)."""
+    form: Literal['simulation'] | None = None
+
+
 class OrchestrationResponse(BaseModel):
     """steps는 메인 에이전트가 서브 에이전트를 부른 순서다. message는 메인 에이전트의 종합 답변이거나 실행하지 않은 턴의 고정 문구다.
 
@@ -262,6 +273,7 @@ class OrchestrationResponse(BaseModel):
     pendingAction: PendingAction | None = None  # awaitingApproval이 content_action일 때 실행을 기다리는 도구와 인자
     awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다
     basis: Basis | None = None  # waiting에만 있다. 판본을 저장하기 전(#668)에 멈춘 턴에는 없다
+    choices: list[ReplyChoice] = Field(default=[], max_length=4)  # clarify의 선택지(#794). 작가는 고르거나 입력창에 직접 답한다
     approvalEpisode: int | None = None  # 승인 질문·장면 대기·입력 대기(#635)에서 결과를 반영할 회차(target.episode). 편집기 회차 맞춤은 입력 대기를 빼고, 구간 카드는 이 회차에 고정한다
 
 

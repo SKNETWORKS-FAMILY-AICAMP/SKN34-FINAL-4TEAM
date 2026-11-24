@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { checkAttachment, type ChatTurnAttachment } from '../../../domain/entities/chatAttachment'
-import { cancelNotice, draftNotice, featureLabel, PLAN_LABEL, rangePreview, referenceHref, replyOutcome, replyText, reviewCheckLabel, stepName, stepText, usedPlan, type ChatActivity, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
+import { cancelNotice, draftNotice, featureLabel, PLAN_LABEL, rangePreview, referenceHref, replyChoices, replyOutcome, replyText, reviewCheckLabel, stepName, stepText, usedPlan, type ChatActivity, type ChatBasis, type ChatPage, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck, type WorldDraftRevision } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
@@ -278,6 +278,8 @@ type WritingChatProps = {
   worldDraft?: WorldDraftRevision
   /** 다음 메시지에 함께 보내지는 화면의 선택 글 안내(집필실, #636). */
   sendNote?: string
+  /** 시뮬레이션 시작 양식을 연다(집필실). 없으면 양식을 여는 선택지(#794)를 보이지 않는다. */
+  onOpenSetup?: () => void
 }
 
 export function WritingChat({ chat, basis = null, onApplied, onWorldApplied, getPage, ...rest }: WritingChatProps) {
@@ -289,7 +291,7 @@ function OwnedChat({ basis, onApplied, onWorldApplied, getPage, ...rest }: Omit<
   return <WorkChat vm={vm} {...rest} />
 }
 
-function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage, cardOf, unsaved, worldDraft, sendNote }: { vm: ChatViewModel } & Pick<WritingChatProps, 'workId' | 'emptyTitle' | 'emptyText' | 'suggestions' | 'onOpenStage' | 'cardOf' | 'unsaved' | 'worldDraft' | 'sendNote'>) {
+function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage, cardOf, unsaved, worldDraft, sendNote, onOpenSetup }: { vm: ChatViewModel } & Pick<WritingChatProps, 'workId' | 'emptyTitle' | 'emptyText' | 'suggestions' | 'onOpenStage' | 'cardOf' | 'unsaved' | 'worldDraft' | 'sendNote' | 'onOpenSetup'>) {
   const id = useId()
   const [editing, setEditing] = useState<{ index: number; text: string } | null>(null)
   const [renaming, setRenaming] = useState<string | null>(null)
@@ -330,10 +332,17 @@ function WorkChat({ vm, workId, emptyTitle, emptyText, suggestions, onOpenStage,
     const text = reply && m.format === 'markdown' ? replyText(reply) : ''
     const outcome = text && reply ? replyOutcome(reply) : []
     const activities = vm.activityLog[index]
+    // 선택지(#794)는 마지막 턴에서만 누를 수 있고 지난 턴은 비활성으로 남긴다. 누르면 그 문장을 새 메시지로 보낸다(입력창도 그대로 쓸 수 있다).
+    const choices = reply ? replyChoices(reply).filter((c) => !c.form || onOpenSetup) : []
+    const choosable = index === vm.turns.length - 1 && !live && !vm.pending && !vm.waiting && !vm.lockedReason
     return <>
       {outcome.map((line, i) => <p key={i} className="chat-note">{line}</p>)}
       {!!activities?.length && <details className="chat-step-details chat-activity-log"><summary>작업 {activities.length}개</summary><Activities list={activities} finished /></details>}
       {reply?.steps.map((s, i) => <References key={`${s.feature}-${i}`} step={s} />)}
+      {!!choices.length && <div className="chat-choices" role="group" aria-label="고를 수 있는 답">
+        {choices.map((c, i) => <button key={i} type="button" className="chat-suggest-btn" disabled={!choosable}
+          onClick={() => (c.form ? onOpenSetup?.() : void vm.send(c.message))}>{c.label}</button>)}
+      </div>}
       <div className="chat-reply-foot">
         {text && <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details>}
         <div className="chat-msg-actions">

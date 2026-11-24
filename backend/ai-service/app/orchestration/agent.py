@@ -2,7 +2,8 @@
 
 모델은 `ChatOpenAI`(Responses API, store=False, reasoning_effort=high(#619), 자동 재시도 없음, 병렬 도구 호출 켬)이며 도구는 판정된 기능의 `ask_*`뿐이다.
 Retrieval·웹 검색·원고 반영 도구는 없고, 서브 에이전트에 해당하지 않는 간단한 작업용 Content MCP 도구 10개(`mcp_tools.py`, #554: 읽기 6 자동·쓰기 4 작가 승인 뒤 실행)가
-있다. 모델의 판단은 인가·승인·정본 적용이 아니고 아래 미들웨어와 도구가 경계를 지킨다.
+있다. 선택지로 되묻는 `ask_author`(#794)는 기능과 무관하게 노출하고 도구 한도에 세지 않으며, 부르면 남은 호출 없이 clarify로 끝난다.
+모델의 판단은 인가·승인·정본 적용이 아니고 아래 미들웨어와 도구가 경계를 지킨다.
 - `DecisionGuardMiddleware.before_agent`: 턴당 1회 Decision Guard(`intent.judge`). 거절이면 모델을 부르지 않고 끝낸다. 허용됐지만 기능이 비면 MCP 도구만으로 진행한다.
 - `WriteApproval`(`HumanInTheLoopMiddleware` 상속): 쓰기 MCP 도구 4개는 작가가 승인(approve)한 뒤에만 실행한다(reject면 실행하지 않는다). 다른 미들웨어가 이미 답한 호출은 묻지 않는다.
   멈출 때 그때까지의 단계를 payload에 싣는다(#587).
@@ -82,6 +83,7 @@ def _allowed(state: dict) -> set[str]:
     # UI가 기능을 고른 요청(operation)은 그 기능의 서브 에이전트만 쓴다. Content 도구는 기능을 고르지 않은 자유 입력에서만 쓴다.
     if state.get('mcpCalls', 0) < mcp_tools.MCP_CALLS and not state['decision'].get('operation'):
         available |= set(mcp_tools.NAMES)  # 실제 노출은 request.tools(Content가 알려 준 도구)와의 교집합이다
+    available.add(tools.ask_author.name)  # 선택지로 되묻기(#794)는 판정 기능과 무관하게 쓸 수 있다
     steps = state.get('steps', [])
     failed = {s['feature'] for s in steps if s['status'] == 'failed'}
     if failed:
@@ -174,7 +176,7 @@ class DynamicToolMiddleware(AgentMiddleware):
             return result
         result = await handler(request)
         # 도구는 항상 Command로 답한다. 오류 ToolMessage만 왔다면 ToolNode가 인자 검증 실패를 돌려준 것이라 그 기능 단계를 실패로 남긴다.
-        if isinstance(result, ToolMessage) and result.status == 'error':
+        if isinstance(result, ToolMessage) and result.status == 'error' and call['name'] != tools.ask_author.name:  # 되묻기 인자 오류는 단계가 아니라 모델에게 돌려준다
             feature = next(f for f, t in TOOLS.items() if t.name == request.tool_call['name'])
             step = {'feature': feature, 'when': 'always', 'status': 'failed', 'error': BAD_ARGUMENTS}
             return Command(update={'steps': [step], 'messages': [result.model_copy(update={'content': tools._summary(step)})]})
@@ -235,7 +237,7 @@ class ToolCallLimit(ToolCallLimitMiddleware):
             if isinstance(asked, AIMessage):
                 break
             answered.add(asked.tool_call_id)
-        pending = asked.model_copy(update={'tool_calls': [c for c in asked.tool_calls if c['id'] not in answered and c['name'] not in mcp_tools.NAMES]})
+        pending = asked.model_copy(update={'tool_calls': [c for c in asked.tool_calls if c['id'] not in answered and c['name'] not in (*mcp_tools.NAMES, tools.ask_author.name)]})
         counted = {**state, 'messages': [pending]}
         if (old_name := OLD_TOOL_NAMES.get(self.tool_name)) and (old_count := state.get('thread_tool_call_count', {}).get(old_name)):
             counts = state['thread_tool_call_count']
@@ -331,7 +333,7 @@ def build(found: list[dict] = ()):
     # respond는 제안 다시 받기(#662)만 쓴다: 실행하지 않고 서버 문구를 거절 표시 없이 그대로 모델에게 준다.
     approval = {t.name: {'allowed_decisions': ['approve', 'reject', 'respond'], 'when': _unanswered, 'description': mcp_tools.LABELS[t.name]}
                 for t in mcp if t.name in mcp_tools.WRITE}
-    return create_agent(chat, tools=[*TOOLS.values(), *mcp], system_prompt=managed.text, state_schema=MainState, context_schema=dict, middleware=[
+    return create_agent(chat, tools=[*TOOLS.values(), *mcp, tools.ask_author], system_prompt=managed.text, state_schema=MainState, context_schema=dict, middleware=[
         # after_model 훅은 목록의 역순으로 돈다: 모델 호출 수 → 노출·묶음 확인 → 도구 한도 → 쓰기 승인. 순서를 바꾸면 막힌 호출이 한도를 쓰거나 승인을 묻는다.
         DecisionGuardMiddleware(), MainModelMiddleware(managed.client),
         *([WriteApproval(interrupt_on=approval)] if approval else []),

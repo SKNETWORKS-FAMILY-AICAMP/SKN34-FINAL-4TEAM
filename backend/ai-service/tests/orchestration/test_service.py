@@ -2822,3 +2822,54 @@ def test_requests_the_guard_rejected_never_reach_the_summary_model_but_still_cou
     chats(thread, *TURNS[1:7])
     assert summaries(calls) == [('', ['요청2'])]  # 거절된 1턴은 모델에 보내지 않고 건너뛴다
     assert summary_of(thread) == {'text': '요청2', 'upTo': 2}
+
+
+# 되묻기 선택지(#794)
+
+
+def test_revise_plan_clarify_offers_the_top_candidate_plans_as_choices(monkeypatch):
+    fake_agents(monkeypatch, REVISE)
+    monkeypatch.setattr(tools.writing, 'pick_plan', lambda data: None)
+    plan_tools(monkeypatch, listed=[{**PLAN_READ, 'id': f'scene-{i}', 'title': f'장면{i}'} for i in range(6)]
+               + [{**PLAN_READ, 'id': 'long', 'title': '가' * 30}])
+    result = revise_turn()
+    assert result.status == 'clarify'
+    assert [c.label for c in result.choices] == ["'장면0' 고치기", "'장면1' 고치기", "'장면2' 고치기", "'장면3' 고치기"]
+    assert result.choices[0].message == f"'장면0' 계획을 고쳐줘: {REVISE_REQUEST}" and result.choices[0].form is None
+
+
+def test_revise_plan_choice_labels_are_cut_to_twenty_characters_but_the_message_keeps_the_title(monkeypatch):
+    fake_agents(monkeypatch, REVISE)
+    monkeypatch.setattr(tools.writing, 'pick_plan', lambda data: None)
+    plan_tools(monkeypatch, listed=[{**PLAN_READ, 'title': '가' * 30}])
+    [choice] = revise_turn().choices
+    assert len(choice.label) <= 20 and choice.message.startswith(f"'{'가' * 30}' 계획을")
+
+
+def test_a_clarify_without_candidates_has_no_choices(monkeypatch):
+    fake_agents(monkeypatch, REVISE)
+    plan_tools(monkeypatch, listed=[])
+    assert revise_turn().choices == []
+
+
+@pytest.mark.parametrize('drafted, choices', [
+    (SimulationPlan(characterIds=['k']), [('IF로 시작', None), ('흐름대로 시작', None)]),
+    (SimulationPlan(), [('IF로 시작', None), ('흐름대로 시작', None), ('양식에서 고르기', 'simulation')]),
+    (SimulationPlan(mode='flow', beats=['성문 대면']), [('양식에서 고르기', 'simulation')]),
+    (SimulationPlan(mode='if', characterIds=['k']), []),  # 전제는 글로 답한다
+])
+def test_simulation_clarify_offers_the_mode_and_the_start_form_as_choices(monkeypatch, drafted, choices):
+    fake_agents(monkeypatch, plan('character_simulation'), drafted=drafted)
+    result = run(REQUEST, target=TARGET)
+    assert result.status == 'clarify' and [(c.label, c.form) for c in result.choices] == choices
+    if drafted.mode is None:
+        assert result.choices[0].message == f'IF 시뮬레이션으로 해줘: {REQUEST}'
+        assert result.choices[1].message == f'흐름 시뮬레이션으로 해줘: {REQUEST}'
+
+
+def test_the_next_turn_does_not_carry_the_previous_choices(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('character_simulation'), drafted=SimulationPlan(characterIds=['k']))
+    assert write_turn(thread, request='장면 시뮬레이션', scope=SCOPE, target=TARGET).choices
+    fake_agents(monkeypatch, plan('story_context'))
+    assert write_turn(thread, request='규칙 알려줘', scope=SCOPE, inputs={'story_context': QA}).choices == []
