@@ -65,10 +65,19 @@ def skipped_by(records: list[dict]) -> dict:
     return dict(Counter(r['skipped'] for r in records if r.get('skipped')))
 
 
-def assemble(key: str, pipeline: list[dict], hand: list[dict]) -> dict:
-    """세트 하나의 세계관별 집계(orig_run의 기존 루브릭 집계)와, 손라벨 기록이 있으면 같은 문항의 짝 비교(후보 = 파이프라인, 기준선 = 손라벨)."""
+def assemble(key: str, pipeline: list[dict], hand: list[dict], other: list[dict] | None = None) -> dict:
+    """세트 하나의 세계관별 집계(orig_run의 기존 루브릭 집계)와, 손라벨 기록이 있으면 같은 문항의 짝 비교(후보 = 파이프라인, 기준선 = 손라벨).
+    other(다른 태그의 파이프라인 기록, 예: --reveal이 다른 실행)가 있으면 이 태그가 후보, other가 기준선인 짝 비교도 낸다."""
     side = lambda records: {'summary': SUMMARIZE[key](records), 'skippedBy': skipped_by(records)}  # noqa: E731
-    return {'pipeline': side(pipeline), **({'hand': side(hand), 'vsHand': rn.compare_runs(key, hand, pipeline)} if hand else {})}
+    return {'pipeline': side(pipeline), **({'hand': side(hand), 'vsHand': rn.compare_runs(key, hand, pipeline)} if hand else {}),
+            **({'vsOther': rn.compare_runs(key, other, pipeline)} if other else {})}
+
+
+def availability(statuses: dict[str, list[tuple[str, str]]]) -> tuple[dict, dict]:
+    """세트마다 (작품, 문항 상태) 목록 → 세트별 상태 개수와 작품별 상태 개수. 표본이 아니라 세트 전체 문항이 파이프라인 세계관으로 돌 수 있는지(모델 호출 없음)."""
+    works = sorted({w for rows in statuses.values() for w, _ in rows})
+    return ({key: dict(Counter(s for _, s in rows)) for key, rows in statuses.items()},
+            {w: {key: dict(Counter(s for x, s in rows if x == w)) for key, rows in statuses.items()} for w in works})
 
 
 def claim_run(folder: Path, meta: dict) -> None:
@@ -92,7 +101,9 @@ def world_report(work: dict, built, names: set[str]) -> dict:
     """한 작품의 세계관 단·페르소나 단 보고(개수·비율, 원문·카드 본문 없음). names = 이 작품의 평가 문항에 나오는 인물 이름."""
     cards = built.payload.cards
     sources = {e['number']: e['text'] for e in work['episodes']}
-    return {'episodes': len(work['episodes']), 'cards': len(cards), 'characters': sum(c.cardType == 'character' for c in cards), 'relations': len(built.payload.relations),
+    characters = [c for c in cards if c.cardType == 'character']   # 평가 문항에 안 나온 인물까지 모두: 문서 공백(운영 시뮬레이션이 거절하는 SOUL 없음, 이름으로 채운 IDENTITY)의 기준선
+    return {'episodes': len(work['episodes']), 'cards': len(cards), 'characters': len(characters), 'soulEmpty': sum(not c.characterDocs.soul.strip() for c in characters),
+            'identityEmpty': sum(not ps.LABEL.match(c.body) for c in characters), 'relations': len(built.payload.relations),
             'failures': [[n, code] for n, code in built.failures], 'extraction': ps.extraction_stats(built.extractions.values()),
             'coverage': ps.coverage(names, cards), 'persona': ps.persona_stats([(c, sources) for c in people_of(cards, names)])}
 
@@ -104,6 +115,7 @@ def world_section(entries: list[tuple[dict, object, set[str]]]) -> dict:
     pairs = [(c, {e['number']: e['text'] for e in work['episodes']}) for work, built, names in entries for c in people_of(built.payload.cards, names)]
     names, found = sum(r['coverage']['names'] for r in per.values()), sum(r['coverage']['found'] for r in per.values())
     return {'perWork': per, 'total': {'works': len(per), 'cards': sum(r['cards'] for r in per.values()), 'characters': sum(r['characters'] for r in per.values()),
+                                      'soulEmpty': sum(r['soulEmpty'] for r in per.values()), 'identityEmpty': sum(r['identityEmpty'] for r in per.values()),
                                       'relations': sum(r['relations'] for r in per.values()), 'failures': sum(len(r['failures']) for r in per.values()),
                                       'extraction': ps.extraction_stats(pooled), 'coverage': {'names': names, 'found': found, 'rate': ps.ratio(found, names)},
                                       'persona': ps.persona_stats(pairs)}}
@@ -119,20 +131,23 @@ def render(result: dict) -> str:
     ex, persona = total['extraction'], total['persona']
     grounded = lambda *names: ps.ratio(sum(persona['docs'][n]['grounded'] for n in names), sum(persona['docs'][n]['lines'] for n in names))  # noqa: E731
     out = [f"[{result['tag']}] 작품 {total['works']}편 · 카드 {total['cards']}(인물 {total['characters']}) · 관계 {total['relations']} · 추출 실패 회차 {total['failures']}",
+           f"인물 카드 {total['characters']}장 중 SOUL 없음 {total['soulEmpty']}장({pct(ps.ratio(total['soulEmpty'], total['characters']))}) · "
+           f"IDENTITY를 이름으로 채움 {total['identityEmpty']}장({pct(ps.ratio(total['identityEmpty'], total['characters']))})",
            f"세계관: 인용 통과율 {pct(ex['quotePass'])} · 항목 통과율 {pct(ex['itemPass'])}(남은 {ex['kept']} / 제안 {ex['kept'] + ex['dropped']}) · "
            f"평가 인물 포함률 {pct(total['coverage']['rate'])}({total['coverage']['found']}/{total['coverage']['names']})",
            f"페르소나: 평가 인물 {persona['characters']}명 중 IDENTITY·SOUL이 줄로 있는 인물 {persona['ready']}명 · IDENTITY·SOUL 줄 원문 근거 {pct(grounded('identity', 'soul'))} · "
            f"이름 명시 {pct(ps.ratio(sum(persona['docs'][n]['named'] for n in ('identity', 'soul')), sum(persona['docs'][n]['lines'] for n in ('identity', 'soul'))))}"]
     for key, counts in result['items'].items():
-        out.append(f"문항 {oc.NAMES[key]}: " + ' · '.join(f'{STATUS.get(k, k)} {n}' for k, n in sorted(counts.items(), key=lambda kv: kv[0] != 'ok')))
+        out.append(f"문항 {oc.NAMES[key]}: " + ' · '.join(f'{STATUS.get(k, k)} {n}({pct(n / sum(counts.values()))})' for k, n in sorted(counts.items(), key=lambda kv: kv[0] != 'ok')))
     for key, sides in result['simulation'].items():
         for kind in ('pipeline', 'hand'):
             if kind in sides:
                 s = sides[kind]['summary']
                 scores = ' · '.join(f"{m} {s[m]['mean']:.2f}" for m in ('voice', 'intent', 'style', 'info') if m in s and s[m]['mean'] is not None)
                 out.append(f"시뮬레이션 {oc.NAMES[key]} {kind}: 문항 {s['n']} · 건너뜀 {sides[kind]['skippedBy'] or 0} · 오류 {s['errors']} · 채점 실패 {s['failedJudge']} · {scores} · 시점 위반 {pct(s['leak']['rate'])}")
-        if 'vsHand' in sides:
-            out.append('    짝 비교(파이프라인 − 손라벨): ' + ' · '.join(f"{m} {v['up']}↑{v['down']}↓{v['tie']}= (평균차 {v['meanDiff'] or 0:+.2f}, p={v['p']:.3f}, n={v['n']})" for m, v in sides['vsHand']['metrics'].items()))
+        for name, label in (('vsHand', '파이프라인 − 손라벨'), ('vsOther', f"{result['tag']} − {result.get('vsTag')}")):
+            if name in sides:
+                out.append(f'    짝 비교({label}): ' + ' · '.join(f"{m} {v['up']}↑{v['down']}↓{v['tie']}= (평균차 {v['meanDiff'] or 0:+.2f}, p={v['p']:.3f}, n={v['n']})" for m, v in sides[name]['metrics'].items()))
     return '\n'.join(out)
 
 
@@ -249,13 +264,14 @@ def cmd_report(args) -> None:
     corpus, folder, sets = pw.PipelineCorpus(hand, worlds), RUNS / args.tag, args.sets.split(',')
     every = {key: [i for i in oc.load_items('public', key) if i['work'] in works] for key in sets}
     entries = [(works[w], b, {name for items in every.values() for i in items if i['work'] == w for name in i['ids']}) for w, b in built.items() if b]
-    result = {'tag': args.tag, 'config': json.loads((folder / 'meta.json').read_text()) if (folder / 'meta.json').exists() else None, 'works': sorted(works),
-              'world': world_section(entries), 'items': {key: dict(Counter(corpus.status(i) for i in items)) for key, items in every.items()},   # 표본이 아니라 세트 전체 문항이 돌 수 있는지
-              'simulation': {}}
+    items, items_by_work = availability({key: [(i['work'], corpus.status(i)) for i in rows] for key, rows in every.items()})
+    result = {'tag': args.tag, 'vsTag': args.vs_tag, 'config': json.loads((folder / 'meta.json').read_text()) if (folder / 'meta.json').exists() else None, 'works': sorted(works),
+              'world': world_section(entries), 'items': items, 'itemsByWork': items_by_work, 'simulation': {}}
     for key in sets:
         done = {kind: list(rn.load_done(rn.run_path(folder, key, kind)).values()) for kind in ('pipeline', 'hand')}
+        other = list(rn.load_done(rn.run_path(RUNS / args.vs_tag, key, 'pipeline')).values()) if args.vs_tag else None
         if done['pipeline']:
-            result['simulation'][key] = assemble(key, done['pipeline'], done['hand'])
+            result['simulation'][key] = assemble(key, done['pipeline'], done['hand'], other)
     RESULTS.mkdir(exist_ok=True)
     path = RESULTS / f'pipeline-eval-{args.tag}.json'
     path.write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
@@ -286,6 +302,8 @@ def parser() -> argparse.ArgumentParser:
             p.add_argument('--workers', type=int, default=4 if name == 'build' else 6)
         if name == 'run':
             p.add_argument('--judge-model', default=JUDGE, help='ocx 채점 모델(기본 gpt-6.2-sol)')
+        if name == 'report':
+            p.add_argument('--vs-tag', default=None, help='다른 태그의 파이프라인 기록과 같은 문항 짝 비교(예: --reveal이 다른 실행). 이 태그가 후보, 그 태그가 기준선')
     return top
 
 
