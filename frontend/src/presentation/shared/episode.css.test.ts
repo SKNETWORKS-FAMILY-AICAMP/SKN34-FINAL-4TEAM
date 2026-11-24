@@ -616,4 +616,14 @@ describe('episode.css 작품 관리 critique (G1 2단계)', () => {
     expect(facts).not.toMatch(/display:flex|flex-wrap/)
     expect(rule('.ep-facts>div')).toMatch(/min-width:0/) // 긴 값이 칸을 밀어내지 않는다
   })
+
+  // ── 3단계 distill(G1): 지표 이름 두 줄 꺾임을 보조 줄로 옮긴 규칙 ──
+  it('[distill] 지표 칸의 값 아래 보조 줄(.ep-metric-hint)은 이름(dt)과 같은 12px·보통 굵기·보조색이고, 칸 안 줄은 위에서부터 쌓여 보조 줄이 있는 칸 때문에 다른 칸의 값이 아래로 밀리지 않는다', () => {
+    const hint = rule('.ep-metrics dd.ep-metric-hint')
+    expect(hint).toMatch(/font-size:12px/)
+    expect(hint).toMatch(/font-weight:400/)
+    expect(hint).toMatch(/color:var\(--sub\)/)
+    // 칸 높이는 flex가 가장 높은 칸에 맞춘다. 줄이 남는 높이를 나눠 가지면(stretch) 보조 줄이 없는 칸은 이름 줄이 늘어나 값이 그만큼 아래로 내려간다.
+    expect(rule('.ep-metrics>div')).toMatch(/align-content:start/)
+  })
 })

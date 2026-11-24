@@ -232,14 +232,15 @@ body:has(.ep-menu-account) .thm-float{display:none}
 .episode-app .ep-brief .ep-cover{border-radius:10px;box-shadow:var(--sh)}
 .episode-app .ep-brief .stats b{font-weight:600}
 
-/* 작품 관리 개요 대시보드(R6): 지표 카드·최근 발행·바로가기. 구획 사이는 구획 제목 위가 아래보다 넓게 32px(다른 탭의 구획 간격과 같다). 글자 상태(공개 전·집계 없음·불러오지 못했어요)는 숫자 칸보다 작은 보조 글이다. 지표 카드는 줄바꿈 flex라 줄 끝에 남은 카드가 그 줄을 채운다(카드 수가 5~7로 바뀌어 고정 열 격자는 어느 폭에서든 홀로 남는 카드가 생겼다). 1072px에서 7장이 한 줄이다. 650px 이하는 2열 격자라 홀수 개수의 마지막 칸도 반폭이다(flex면 마지막 칸이 한 줄을 다 차지했다). 바로가기 알약은 지표보다 무겁지 않게 옅은 테두리·600이고, 바로가기 격자는 auto-fit이라 버튼 수만큼 같은 폭으로 줄을 채운다(auto-fill이면 버튼 둘이 줄의 40%만 차지하고 나머지가 비었다). 최근 발행 이력과 바로가기는 이력·세계관 탭과 같은 카드(tcard ep-card)다(카드 면·테두리는 아래 '작품 관리 탭 카드' 규칙). */
+/* 작품 관리 개요 대시보드(R6): 지표 카드·최근 발행·바로가기. 구획 사이는 구획 제목 위가 아래보다 넓게 32px(다른 탭의 구획 간격과 같다). 글자 상태(공개 전·집계 없음·불러오지 못했어요)는 숫자 칸보다 작은 보조 글이고, 값 아래 보조 줄(.ep-metric-hint: 총 글자 수의 기준)은 이름(dt)과 같은 12px이다. 칸 안 줄은 위에서부터 쌓여(align-content:start) 보조 줄이 있는 칸 때문에 높이를 맞춘 다른 칸의 값이 아래로 밀리지 않는다(세계관 관리 개요의 지표 칸도 같은 규칙을 쓴다). 지표 카드는 줄바꿈 flex라 줄 끝에 남은 카드가 그 줄을 채운다(카드 수가 5~7로 바뀌어 고정 열 격자는 어느 폭에서든 홀로 남는 카드가 생겼다). 1072px에서 7장이 한 줄이다. 650px 이하는 2열 격자라 홀수 개수의 마지막 칸도 반폭이다(flex면 마지막 칸이 한 줄을 다 차지했다). 바로가기 알약은 지표보다 무겁지 않게 옅은 테두리·600이고, 바로가기 격자는 auto-fit이라 버튼 수만큼 같은 폭으로 줄을 채운다(auto-fill이면 버튼 둘이 줄의 40%만 차지하고 나머지가 비었다). 최근 발행 이력과 바로가기는 이력·세계관 탭과 같은 카드(tcard ep-card)다(카드 면·테두리는 아래 '작품 관리 탭 카드' 규칙). */
 .ep-dash{display:grid;gap:32px;margin-top:8px}
 .ep-dash section>h3+p{margin-top:12px}
 .ep-metrics{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 0}
-.ep-metrics>div{flex:1 1 128px;display:grid;gap:4px;min-width:0;padding:14px 16px;background:var(--surface);border:1px solid var(--line2);border-radius:12px}
+.ep-metrics>div{flex:1 1 128px;display:grid;align-content:start;gap:4px;min-width:0;padding:14px 16px;background:var(--surface);border:1px solid var(--line2);border-radius:12px}
 .ep-metrics dt{font-size:12px;color:var(--sub)}
 .ep-metrics dd{margin:0;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .ep-metrics dd.ep-muted{font-size:14px;font-weight:600}
+.ep-metrics dd.ep-metric-hint{font-size:12px;font-weight:400;color:var(--sub)}
 @media(max-width:650px){.ep-tab .ep-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
 .ep-shortcuts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px;margin-top:12px}
 .episode-app .ep-shortcut{justify-content:flex-start;border-color:var(--line);font-weight:600}

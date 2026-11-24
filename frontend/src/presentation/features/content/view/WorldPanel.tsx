@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { World } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { MediaPanel } from '../../../shared/media/MediaPanel'
@@ -11,6 +11,7 @@ import { useWorldViewModel } from '../viewmodel/useWorldViewModel'
  */
 export function WorldPanel({ workId, useCase, locked = false, onMediaBusy }: { workId: string; useCase?: EpisodeUseCase; locked?: boolean; onMediaBusy?: (busy: boolean) => void }) {
   const vm = useWorldViewModel(workId, useCase)
+  const title = useId()
   const w = vm.world
   if (!w) {
     return (
@@ -26,8 +27,8 @@ export function WorldPanel({ workId, useCase, locked = false, onMediaBusy }: { w
   }
   return (
     <>
-      <section className='tcard ep-card' aria-label='세계관 설정집'>
-        <h3>{w.name}</h3>
+      <section className='tcard ep-card' aria-labelledby={title}>
+        <h3 id={title}>{w.name}</h3>
         <p>
           {w.mode === 'following'
             ? '원작 추종 중 · 첫 설정 수정 시 전체 공개 설정이 독립해요.'
@@ -50,9 +51,10 @@ function SettingFiles({ workId, world: w, locked, onBusy }: { workId: string; wo
   const rows = [...w.settings, ...w.drafts.filter((draft) => !w.settings.some((setting) => setting.id === draft.id))]
   const [picked, setPicked] = useState('')
   const row = rows.find((setting) => setting.id === picked) ?? rows[0]
+  const title = useId()
   return (
-    <section className='tcard ep-card' aria-label='설정 첨부'>
-      <h3>설정 첨부 파일</h3>
+    <section className='tcard ep-card' aria-labelledby={title}>
+      <h3 id={title}>설정 첨부</h3>
       {w.mode === 'following'
         ? <p className='ep-muted'>원작을 따라가는 설정에는 파일을 붙일 수 없어요.</p>
         : !row

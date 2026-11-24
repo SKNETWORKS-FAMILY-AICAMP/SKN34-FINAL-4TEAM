@@ -64,14 +64,19 @@ it('공개 작품의 지표 카드는 서버가 준 값을 그대로 보인다(�
   expect(metric('좋아요')).toBe('56')
 })
 
-it('총 글자 수는 이어받은 원작 회차를 빼고 세며, 빼는 때는 이름에 그 사실을 적는다', () => {
+/** 값 아래 보조 줄: 이름(dt)과 값(dd) 뒤에 오는 두 번째 dd */
+const hint = (name: string) => screen.getByText(name, { selector: 'dt' }).parentElement!.querySelectorAll('dd')[1]?.textContent
+
+it('총 글자 수는 이어받은 원작 회차를 빼고 세며, 이름은 그대로 두고 기준(공백 포함·빼는 때는 원작 회차 제외)을 값 아래 보조 줄에 적는다', () => {
   loaded()
   open({ work: work({ episodes: [episode(1, '가나다', true), episode(2, '라마'), episode(3, '바')] }) })
-  expect(metric(/^총 글자 수/)).toBe('3자')
-  expect(screen.getByText('총 글자 수 · 공백 포함, 원작 회차 제외', { selector: 'dt' })).toBeTruthy()
+  expect(metric('총 글자 수')).toBe('3자')
+  expect(hint('총 글자 수')).toBe('공백 포함 · 원작 회차 제외')
   cleanup()
   open()
-  expect(screen.getByText('총 글자 수 · 공백 포함', { selector: 'dt' })).toBeTruthy()
+  expect(metric('총 글자 수')).toBe('5자')
+  expect(hint('총 글자 수')).toBe('공백 포함')
+  expect(hint('공개 회차')).toBeUndefined() // 다른 칸에는 보조 줄이 없다
 })
 
 it('큰 수는 천 단위로 끊어 보인다', () => {

@@ -25,7 +25,7 @@ export function WorkBrief({ work: w, draftCount, serialOn }: { work: Work; draft
         <div className='ep-chips'>
           {!!w.genres?.length && <span className='g'>{w.genres.join(' · ')}</span>}
           {kind && <span className='chip'>{kind}</span>}
-          {serialOn && <span className='chip wait'>AI 자율 연재</span>}
+          {serialOn && <span className='chip'>AI 자율 연재</span>}
           <span className={'chip ' + (w.visibility === 'public' ? 'ok' : '')}>
             {w.visibility === 'private' ? '비공개 작품' : w.episodes.length ? '공개 중' : '공개 회차 없음'}
           </span>

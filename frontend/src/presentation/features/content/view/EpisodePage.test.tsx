@@ -1016,7 +1016,7 @@ it('shows the world link panel above the settings book summary in the world tab'
   myWorlds([{ id: WORLD_ID, name: '별빛 세계' }])
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([{ ...owned, worldStudioId: WORLD_ID }]), 'GET /api/v1/works/w/world': () => Response.json(settingsBook) }))
   fireEvent.click(screen.getByRole('button', { name: '세계관·설정집' }))
-  const card = await screen.findByRole('region', { name: '세계관 설정집' })
+  const card = await screen.findByRole('region', { name: '설정집' })
   expect(within(card).getByText('최초 분기 기준: 2화 · 원고 버전 7 · 설정 0개')).toBeTruthy()
   const link = screen.getByRole('region', { name: '세계관 연결' })
   expect(link.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -1032,7 +1032,7 @@ it('opens the world tab first when the address has tab=world', async () => {
   myWorlds([{ id: WORLD_ID, name: '별빛 세계' }])
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([{ ...owned, worldStudioId: WORLD_ID }]), 'GET /api/v1/works/w/world': () => Response.json(settingsBook) }), '옛 제목', '/content?work=w&tab=world')
   expect(within(screen.getByRole('navigation', { name: '작품 메뉴' })).getByRole('button', { name: '세계관·설정집' }).getAttribute('aria-current')).toBe('page')
-  expect(await screen.findByRole('region', { name: '세계관 설정집' })).toBeTruthy()
+  expect(await screen.findByRole('region', { name: '설정집' })).toBeTruthy()
 })
 
 it('links and unlinks my world from the world tab and shows the server reason when the world is already linked', async () => {
@@ -1099,7 +1099,7 @@ it('titles every tab body (one h2) with exactly the words of its menu tab — fi
   const ready: Record<string, () => Promise<unknown>> = {
     '개요': () => screen.findByRole('heading', { level: 1, name: '옛 제목' }), // 히어로의 제목(h1)은 개요 탭 제목(h2) 위에 있다
     '공개 회차 · 0': () => screen.findByText(/아직 공개한 회차가 없어요/), // 공개 회차가 없는 안내(초안 묶음은 없다)
-    '세계관·설정집': () => screen.findByRole('region', { name: '세계관 설정집' }),
+    '세계관·설정집': () => screen.findByRole('region', { name: '설정집' }),
     '이야기 분기': async () => screen.getByRole('heading', { level: 3, name: '그 순간, 다른 선택을 했다면' }),
     'AI 집필': () => screen.findByRole('button', { name: '설정 저장' }),
     '받은 피드백': () => screen.findByRole('heading', { level: 3, name: '독자 제보 0' }),
@@ -1181,7 +1181,8 @@ it('shows an AI 자율 연재 chip right after the 분기 작품 chip of the ove
   const read = serialRead(() => Promise.resolve(serialSettings({ enabled: true })))
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([myFork]) }), '내 포크')
   await waitFor(() => expect(heroChips()).toEqual(['판타지 · SF', '분기 작품', 'AI 자율 연재', '공개 회차 없음']))
-  expect(document.querySelector('.ep-hero .ep-chips .chip.wait')?.textContent).toBe('AI 자율 연재')
+  // 대기·주의(chip wait) 색이 아니라 유형 칩과 같은 회색 기본 칩이다.
+  expect(Array.from(document.querySelectorAll('.ep-hero .ep-chips > .chip'), (chip) => [chip.textContent, chip.className])).toContainEqual(['AI 자율 연재', 'chip'])
   expect(read).toHaveBeenCalledTimes(1)
 })
 
@@ -1207,7 +1208,7 @@ it('shows the AI 자율 연재 chip in the short head of the other tabs too, rig
   await waitFor(() => expect(heroChips()).toContain('AI 자율 연재'))
   toReadTab()
   expect(briefChips()).toEqual(['판타지 · SF', '분기 작품', 'AI 자율 연재', '공개 회차 없음'])
-  expect(document.querySelector('.ep-brief .ep-chips .chip.wait')?.textContent).toBe('AI 자율 연재')
+  expect(Array.from(document.querySelectorAll('.ep-brief .ep-chips > .chip'), (chip) => [chip.textContent, chip.className])).toContainEqual(['AI 자율 연재', 'chip'])
   expect(read).toHaveBeenCalledTimes(1) // 탭을 옮겨도 새 요청은 없다
 })
 
@@ -1573,7 +1574,8 @@ it('개요 탭 히어로 아래에 대시보드가 있고, 공개 작품의 독�
   expect(readerStats).toHaveBeenCalledWith('w', expect.any(AbortSignal))
   expect(dashMetric('좋아요')).toBe('3')
   expect(dashMetric('공개 회차')).toBe('1화')
-  expect(dashMetric('총 글자 수 · 공백 포함')).toBe('5자') // 내가 쓴 공개 회차의 글자만('1화 본문')
+  expect(dashMetric('총 글자 수')).toBe('5자') // 내가 쓴 공개 회차의 글자만('1화 본문')
+  expect(within(screen.getByText('총 글자 수', { selector: '.ep-dash dt' }).parentElement!).getByText('공백 포함')).toBeTruthy() // 기준은 이름이 아니라 값 아래 보조 줄
   await waitFor(() => expect(dashMetric('받은 피드백')).toBe('0건'))
   const recent = within(await screen.findByRole('region', { name: '최근 발행 이력' }))
   expect((await recent.findByRole('listitem')).textContent).toContain('1화 · 발행')

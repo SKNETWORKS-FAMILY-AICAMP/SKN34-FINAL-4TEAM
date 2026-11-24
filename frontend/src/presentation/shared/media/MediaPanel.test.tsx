@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import {act,cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react'
+import {act,cleanup,fireEvent,render,screen,waitFor,within} from '@testing-library/react'
 import {afterEach,expect,it,vi} from 'vitest'
 import type {MediaTarget} from '../../../domain/entities/media'
 import {MediaPanel,StoredImage} from './MediaPanel'
@@ -43,6 +43,16 @@ it('does not use a work-cover placeholder for manuscript images',()=>{
 
 const settingTarget:MediaTarget={kind:'setting',workId:'work-id',settingId:'setting-id'}
 const memo={id:'memo-id',filename:'세계관 메모.pdf',mediaType:'application/pdf',kind:'FILE' as const,byteSize:2048,createdAt:'2026-11-05T00:00:00Z',url:'/unused'}
+
+it('a setting panel sits under the outer card heading as an h4 and is not a second 설정 첨부 region, while the cover panel keeps its own region and h3',()=>{
+ renderPanel({},settingTarget)
+ expect(screen.getByRole('heading',{level:4,name:'이미지·파일 첨부'})).toBeTruthy()
+ expect(screen.queryByRole('heading',{level:3})).toBeNull()
+ expect(screen.queryByRole('region')).toBeNull()
+ cleanup()
+ renderPanel()
+ expect(within(screen.getByRole('region',{name:'작품 표지'})).getByRole('heading',{level:3,name:'작품 표지'})).toBeTruthy()
+})
 
 it('renames a setting attachment with the extension fixed and closes the form after the server accepts it',async()=>{
  const rename=vi.fn().mockResolvedValue(true)

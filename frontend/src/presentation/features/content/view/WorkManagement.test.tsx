@@ -480,10 +480,12 @@ it('개요 탭의 탭 제목(h2)은 작품 제목(h1)을 그리는 히어로 다
   const after = (earlier: Node, later: Node) => Boolean(earlier.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING)
   openFresh(2)
   const title = screen.getByRole('heading', { level: 2, name: '개요' })
+  expect(title.classList.contains('sr-only')).toBe(true) // 사이드바에서 이미 '개요'가 선택돼 있어 제목 줄은 화면 밖이다(세계관 관리 개요와 같다)
   expect(after(screen.getByText('작품 개요 히어로'), title)).toBe(true) // 히어로(h1) → 탭 제목(h2)
   expect(after(title, screen.getByRole('button', { name: '대시보드' }))).toBe(true) // 탭 제목(h2) → 현황(h3 구획)
   fireEvent.click(screen.getByRole('button', { name: /^공개 회차/ }))
   expect(after(screen.getByText('작품 요약 머리'), screen.getByRole('heading', { level: 2 }))).toBe(true)
+  expect(screen.getByRole('heading', { level: 2 }).classList.contains('sr-only')).toBe(false) // 다른 탭의 제목은 보이는 본문 시작이다
 })
 
 // ── 메뉴를 누르면 고른 탭의 내용으로 화면을 옮긴다: 탭 내용이 히어로·분기 정책 카드 아래(접힌 선 밖)에서 시작해, 눌러도 바뀐 것이 안 보였다 ──

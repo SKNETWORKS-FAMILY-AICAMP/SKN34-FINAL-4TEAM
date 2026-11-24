@@ -25,7 +25,8 @@ const show=(fetcher:typeof fetch,props:{locked?:boolean}={})=>render(<WorldPanel
 it('shows only the settings book summary and no coming-soon studio button now that world linking has its own panel',async()=>{
  const fetcher=vi.fn().mockResolvedValueOnce(Response.json(world({name:'구운몽 설정집',mode:'following',basis:{episode:2,version:1,settings:[setting,setting]},settings:[setting],history:[setting]})))
  show(fetcher)
- const card=await screen.findByRole('region',{name:'세계관 설정집'})
+ // 구역 이름은 화면에 보이는 제목(h3)이다(aria-label이 아니라 aria-labelledby).
+ const card=await screen.findByRole('region',{name:'구운몽 설정집'})
  // 같은 탭의 연결·원고로 세계관 만들기 구획과 같은 카드(tcard ep-card)다.
  expect([...card.classList]).toEqual(expect.arrayContaining(['tcard','ep-card']))
  expect(within(card).getByRole('heading',{name:'구운몽 설정집'})).toBeTruthy()
@@ -57,7 +58,7 @@ it('shows a load failure as an alert and reads the settings book again only from
  // 불러오는 중·실패 구획도 카드다(읽은 뒤 설정집 카드로 바뀌어도 모양이 같다).
  expect([...screen.getByRole('alert').closest('section')!.classList]).toEqual(expect.arrayContaining(['tcard','ep-card']))
  fireEvent.click(screen.getByRole('button',{name:'설정집 다시 불러오기'}))
- await screen.findByRole('region',{name:'세계관 설정집'})
+ await screen.findByRole('region',{name:'설정집'})
  expect(screen.queryByRole('alert')).toBeNull()
  expect(fetcher).toHaveBeenCalledTimes(2)
 })
@@ -97,4 +98,12 @@ it('첨부할 설정이 없는 설정집은 빈 상태를 알리고 패널을 �
  const files=within(await screen.findByRole('region',{name:'설정 첨부'}))
  expect(files.getByText('첨부할 설정이 아직 없어요.')).toBeTruthy()
  expect(files.queryByTestId('media-panel')).toBeNull()
+})
+it('설정집 카드와 설정 첨부 카드의 구역 이름은 화면에 보이는 제목(h3)이고, 첨부 카드의 제목은 설정 첨부 하나다',async()=>{
+ show(vi.fn().mockResolvedValueOnce(Response.json(world({name:'구운몽 설정집',settings:[setting]}))))
+ const book=await screen.findByRole('region',{name:'구운몽 설정집'})
+ expect(book.getAttribute('aria-labelledby')).toBe(within(book).getByRole('heading',{level:3,name:'구운몽 설정집'}).id)
+ const files=screen.getByRole('region',{name:'설정 첨부'})
+ expect(files.getAttribute('aria-labelledby')).toBe(within(files).getByRole('heading',{level:3,name:'설정 첨부'}).id)
+ expect(screen.queryByRole('heading',{name:'설정 첨부 파일'})).toBeNull()
 })

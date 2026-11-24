@@ -126,14 +126,14 @@ it('shows the stored cover when there is one and the default cover otherwise', a
   expect(Array.from(container.querySelectorAll('img.cimg'), image => image.getAttribute('src'))).toEqual(['/default-work-cover.svg', 'blob:cover'])
 })
 
-it('marks each card with a public/private chip, and a Fork with a Fork badge beside its source, so originals and forks read apart at a glance', async () => {
+it('marks each card with a public/private chip, and a Fork with a 분기 작품 badge (the name the work management page uses) beside its source, so originals and forks read apart at a glance', async () => {
   await show([original, fork, { ...original, id: 'secret', title: '비공개 원작', visibility: 'private' }])
   const card = (title: string) => within(screen.getByRole('heading', { level: 3, name: title }).closest('article') as HTMLElement)
   expect(card('원작').getByText('공개 중').className).toBe('chip ok')
-  expect(card('원작').queryByText('Fork')).toBeNull()
+  expect(card('원작').queryByText('분기 작품')).toBeNull()
   expect(card('비공개 원작').getByText('비공개').className).toBe('chip') // 비공개는 기본 상태라 색을 쓰지 않는다
   expect(card('내 포크').getByText('공개 중').className).toBe('chip ok')
-  expect(card('내 포크').getByText('Fork').className).toBe('chip')
+  expect(card('내 포크').getByText('분기 작품').className).toBe('chip')
   expect(card('내 포크').getByText('「원작」 2화에서')).toBeTruthy()
 })
 
@@ -158,9 +158,9 @@ it('marks a work whose AI 자율 연재 is on with a chip right after the public
   await show([original, fork, { ...original, id: 'slow', title: '읽는 중' }, { ...original, id: 'broken', title: '읽기 실패' }])
   const card = (title: string) => within(screen.getByRole('heading', { level: 3, name: title }).closest('article') as HTMLElement)
   const chip = await card('내 포크').findByText('AI 자율 연재')
-  expect(chip.className).toBe('chip wait') // 보라 '공개 중'(chip ok)과 색이 다르다
-  // 공개 범위 칩 바로 뒤, Fork 배지 앞이다.
-  expect(Array.from(chip.parentElement!.children, (el) => el.textContent)).toEqual(['공개 중', 'AI 자율 연재', 'Fork'])
+  expect(chip.className).toBe('chip') // 대기·주의(chip wait)가 아니라 유형 칩과 같은 회색 기본 칩이다(켜진 작업 방식이 경고처럼 읽히지 않게)
+  // 공개 범위 칩 바로 뒤, 분기 작품 배지 앞이다.
+  expect(Array.from(chip.parentElement!.children, (el) => el.textContent)).toEqual(['공개 중', 'AI 자율 연재', '분기 작품'])
   await waitFor(() => expect(api.settings).toHaveBeenCalledTimes(4))
   expect(api.settings.mock.calls.map(([id]) => id).sort()).toEqual(['broken', 'fork', 'original', 'slow'])
   // 꺼짐·읽는 중·읽기 실패는 모르는 값을 켜짐으로 꾸미지 않는다(useSerialLock 규칙 그대로).

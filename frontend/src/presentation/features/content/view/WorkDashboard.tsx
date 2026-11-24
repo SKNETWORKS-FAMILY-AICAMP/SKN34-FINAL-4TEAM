@@ -10,9 +10,9 @@ const number = (value: number) => value.toLocaleString('ko-KR')
 const LOADING = <>…<span className='sr-only'>불러오는 중</span></>
 const FAILED = '불러오지 못했어요'
 
-/** 글자(공개 전·집계 없음·실패)는 숫자 칸보다 작은 보조 글이다. */
-function Metric({ label, note, children }: { label: string; note?: boolean; children: ReactNode }) {
-  return <div><dt>{label}</dt><dd className={note ? 'ep-muted' : undefined}>{children}</dd></div>
+/** 글자(공개 전·집계 없음·실패)는 숫자 칸보다 작은 보조 글이다. hint는 값 아래의 더 작은 한 줄이다: 이름(dt)을 길게 꺾지 않고 값의 기준을 두 번째 설명(dd)으로 알린다. */
+function Metric({ label, note, hint, children }: { label: string; note?: boolean; hint?: string; children: ReactNode }) {
+  return <div><dt>{label}</dt><dd className={note ? 'ep-muted' : undefined}>{children}</dd>{hint && <dd className='ep-metric-hint'>{hint}</dd>}</div>
 }
 
 /** 바로가기 한 칸. 잠기면(편집·요청 중) 같은 모양의 잠긴 버튼으로 그린다: 링크는 잠글 수 없어, 그대로 두면 집필실·소설 상세로 떠나 저장하지 않은 입력을 잃는다. */
@@ -48,7 +48,7 @@ type Props = {
  * 최근 발행 이력과 바로가기는 이력·세계관 탭과 같은 카드(`tcard ep-card`)다(작품 지표는 칸 하나하나가 카드라 구획을 다시 감싸지 않는다). 발행 이력 줄은 회차·동작이 왼쪽, 시각이 오른쪽 끝이다.
  * 바로가기는 사이드바 메뉴에 없는 목적지(집필실, 공개 작품이면 소설 상세)만 두고, 메뉴와 같은 탭 전환 버튼은 두지 않는다. 버튼 수만큼 같은 폭으로 줄을 채운다.
  * 독자 지표(누적 조회·좋아요)는 새 API 없이 공개 상세의 값이라, 비공개 작품은 '공개 전', 집계가 없으면 '집계 없음'이다. 어느 값도 모르면서 0으로 채우지 않는다.
- * 총 글자 수는 내가 쓴 공개 회차만 센다(이어받은 원작 회차의 글자를 내 것으로 세지 않는다).
+ * 총 글자 수는 내가 쓴 공개 회차만 센다(이어받은 원작 회차의 글자를 내 것으로 세지 않는다). 그 기준은 이름이 아니라 값 아래 보조 줄이다: '공백 포함'이고, 이어받은 회차를 뺀 때는 '공백 포함 · 원작 회차 제외'.
  */
 export function WorkDashboard({ work: w, draftCount, forkCounts, mockup, disabled, useCase }: Props) {
   const { reader, publications, feedback } = useWorkDashboard(w, mockup, { episodes: useCase })
@@ -64,7 +64,7 @@ export function WorkDashboard({ work: w, draftCount, forkCounts, mockup, disable
         <dl className='ep-metrics'>
           <Metric label='공개 회차'>{w.episodes.length}화</Metric>
           {draftCount !== undefined && <Metric label='작성 중인 초안'>{draftCount === null ? LOADING : `${draftCount}개`}</Metric>}
-          <Metric label={own.length < w.episodes.length ? '총 글자 수 · 공백 포함, 원작 회차 제외' : '총 글자 수 · 공백 포함'}>{number(characters)}자</Metric>
+          <Metric label='총 글자 수' hint={own.length < w.episodes.length ? '공백 포함 · 원작 회차 제외' : '공백 포함'}>{number(characters)}자</Metric>
           {forkCounts && <Metric label='포크 수'>{number(Object.values(forkCounts).reduce((sum, count) => sum + count, 0))}편</Metric>}
           {feedback.isError
             ? <Metric label='받은 피드백' note>{FAILED}</Metric>

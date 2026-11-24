@@ -19,7 +19,7 @@ function Cover({ id }: { id: string }) {
 /** AI 자율 연재가 켜진 작품의 칩. 켜짐은 소유자 `GET /works/{id}/ai-serial`의 enabled이고, 읽는 중·읽기 실패는 칩이 없다(`useSerialLock`이 모르는 값을 켜짐으로 꾸미지 않는다). */
 // ponytail: 카드마다 켜짐을 따로 읽는다(위 표지와 같다). 작품 목록 응답에 enabled가 실리면 이 요청을 없앤다.
 function SerialChip({ id }: { id: string }) {
-  return useSerialLock(id).locked ? <span className="chip wait">AI 자율 연재</span> : null
+  return useSerialLock(id).locked ? <span className="chip">AI 자율 연재</span> : null
 }
 
 const TABS = [['all', '전체'], ['original', '원작'], ['fork', '포크 작품']] as const
@@ -59,7 +59,7 @@ export function ServerWritingList({ newTo }: { newTo: string }) {
           {view.items.length ? <div className="list">{view.items.map(work => <article className="li rowlink" key={work.id}>
             <Cover id={work.id} />
             <div className="server-writing-content"><h3><Go to={`/content?work=${work.id}`} className="li-link">{work.title}</Go></h3>
-              <div className="m server-tags"><span className={work.visibility === 'public' ? 'chip ok' : 'chip'}>{work.visibility === 'public' ? '공개 중' : '비공개'}</span><SerialChip id={work.id} />{work.source && <><span className="chip">Fork</span>「{work.source.title}」 {work.source.episode}화에서</>}</div>
+              <div className="m server-tags"><span className={work.visibility === 'public' ? 'chip ok' : 'chip'}>{work.visibility === 'public' ? '공개 중' : '비공개'}</span><SerialChip id={work.id} />{work.source && <><span className="chip">분기 작품</span>「{work.source.title}」 {work.source.episode}화에서</>}</div>
               {work.summary && <p className="m server-summary">{work.summary}</p>}
             </div>
             <div className="acts">

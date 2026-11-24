@@ -120,7 +120,8 @@ export function WorkManagement({ vm, work: w, useCase, initialTab, onForked, onD
   }
   // 탭 제목(h2)은 메뉴 탭 이름과 똑같은 글이다: 어느 탭에 있는지 본문에서도 읽힌다. 탭 안의 묶음 제목은 h3다.
   // 헤딩 순서는 어느 탭이든 작품 제목(h1) → 탭 제목(h2) → 묶음 제목(h3)이다: 다른 탭은 위의 요약 머리가 h1이라 탭 내용 맨 앞에 그리고, 작품 제목(h1)이 탭 내용 안(히어로)에 있는 개요는 히어로 다음에 그린다.
-  const heading = <h2>{tabs.find(([value]) => value === tab)![1]}</h2>
+  // 개요는 사이드바에서 이미 '개요'가 골라져 있고 바로 아래 지표 구획(h3)이 이름을 말하므로 제목 줄은 화면 밖에 둔다(세계관 관리 개요와 같다. 헤딩 순서는 그대로다).
+  const heading = <h2 className={tab === 'overview' ? 'sr-only' : undefined}>{tabs.find(([value]) => value === tab)![1]}</h2>
   return (
     <div className='ep-manage' data-menu={menuOpen ? undefined : 'collapsed'}>
       <ManageMenu name='작품' open={menuOpen} onOpenChange={onMenuOpenChange} back={{ to: '/lib?tab=write', label: '내가 쓰는 소설' }}>

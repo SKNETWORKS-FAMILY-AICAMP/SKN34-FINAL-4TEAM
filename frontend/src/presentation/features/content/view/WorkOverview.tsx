@@ -82,7 +82,7 @@ export function WorkOverview({ work: w, locked, busy, coverRevision, onMediaBusy
         <div className='ep-chips'>
           {!!w.genres?.length && <span className='g'>{w.genres.join(' · ')}</span>}
           {kind && <span className='chip'>{kind}</span>}
-          {serialOn && <span className='chip wait'>AI 자율 연재</span>}
+          {serialOn && <span className='chip'>AI 자율 연재</span>}
           <span className={'chip ' + (w.visibility === 'public' ? 'ok' : '')}>
             {w.visibility === 'private' ? '비공개 작품' : w.episodes.length ? '공개 중' : '공개 회차 없음'}
           </span>
@@ -91,7 +91,7 @@ export function WorkOverview({ work: w, locked, busy, coverRevision, onMediaBusy
           ? <InfoForm key={w.revision} work={w} locked={locked} onSave={onSaveInfo} onSuggest={onSuggestTags} onClose={close} />
           : w.summary
           ? <p className='sum'>{w.summary}</p>
-          : <p className='sum ep-muted'>당신의 이야기를 한 문장씩 채워 보세요.</p>}
+          : <p className='sum ep-muted'>아직 소개가 없어요.</p>}
         {!!w.hashtags?.length && <div className='hashes'>{w.hashtags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
       </div>
     </section>
