@@ -1,6 +1,6 @@
 # STORYFORK Docker 실행 기반
 
-Core → Content 업무·테스트·인증 확인·공개 라우팅·이미지/CI 연결을 소스에 반영했습니다. **hosted CI·실제 DB 전환·게시·배포는 확인 대기**입니다. 운영 서비스(operations-service)는 신고·회원·관리자 공개 API를 위해 Compose에 추가했으며 호스트 포트 없이 컨테이너 네트워크에서만 노출합니다. develop CD는 publish 워크플로에서 operations-service 이미지도 빌드·게시하고 배포 revision 검사에 포함합니다. [서비스 경계](../docs/design/service-boundaries.md)와 [이관 계약](../docs/design/content-service-migration-contract.md)을 따릅니다.
+Core → Content 업무·테스트·인증 확인·공개 라우팅·이미지/CI 연결을 소스에 반영했습니다. **hosted CI·실제 DB 전환·게시·배포는 확인 대기**입니다. 운영 서비스(operations-service)는 신고·회원·관리자 공개 API를 위해 Compose에 추가했으며 호스트 포트 없이 컨테이너 네트워크에서만 노출합니다. develop CD는 publish 워크플로에서 operations-service 이미지도 빌드·게시하고 배포 build-tree 검사에 포함합니다. [서비스 경계](../docs/design/service-boundaries.md)와 [이관 계약](../docs/design/content-service-migration-contract.md)을 따릅니다.
 
 Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다. 과거 Content history와 호환되지 않으며 실제 대상 DB·보존/복구 범위·중단 시간을 확인하기 전 기존 DB에 바로 배포하지 않습니다. 이 문서는 DB 삭제·volume 초기화·개인 `.env` 변경·배포 승인이 아닙니다. Auth·첨부·독립 WorldStudio의 SQL/이력은 유지합니다.
 
@@ -53,7 +53,7 @@ docker compose down
 
 `storyfork-local_core-postgres`는 새 프로젝트 범위 volume입니다. 과거 `storyfork-dev`·`storyfork-prod-validation`·CD의 컨테이너/volume을 가져오거나 지우지 않습니다. 기존 `COMPOSE_FILE`·`COMPOSE_PROJECT_NAME` override가 있으면 기본 진입점/격리를 바꿀 수 있으므로 확인합니다. 포트가 이미 점유돼 있으면 시작이 실패합니다. 기존 앱을 중지하지 말고 루트 `.env`의 로컬 포트와 `AUTH_PUBLIC_ORIGIN`을 조정합니다.
 
-`down`에는 volume 삭제를 붙이지 않으며 해당 로컬 프로젝트만 대상으로 합니다. **소스 빌드는 hot reload가 아닙니다.** Vite/소스 mount가 없으므로 변경 후 `docker compose up -d --build`로 다시 빌드하거나 아래 네이티브 명령을 사용합니다. dev 배포는 아래 CD 절차를 사용하며 단순 수동 `pull/up`은 revision 일치·구 writer 중지·fresh 대상 승인 검사를 대신하지 못합니다.
+`down`에는 volume 삭제를 붙이지 않으며 해당 로컬 프로젝트만 대상으로 합니다. **소스 빌드는 hot reload가 아닙니다.** Vite/소스 mount가 없으므로 변경 후 `docker compose up -d --build`로 다시 빌드하거나 아래 네이티브 명령을 사용합니다. dev 배포는 아래 CD 절차를 사용하며 단순 수동 `pull/up`은 build-tree 일치·구 writer 중지·fresh 대상 승인 검사를 대신하지 못합니다.
 
 | 변수 | 기본값 | 소비 경계 |
 |---|---|---|
@@ -180,6 +180,8 @@ develop CI가 성공하면 CD가 [`docker-compose.dev.yaml`](docker-compose.dev.
 - **Content**: `MANUSCRIPT_INDEX_URL=http://elasticsearch:9200`로 시작합니다(색인은 끄는 플래그 없이 항상 켭니다). 인덱스가 없으면 생성하고, 있으면 매핑을 검증합니다. 실패하면 Content가 healthy가 되지 않아 `up --wait`가 실패합니다.
 - **AI 이미지**: `--extra manuscript`(numpy·onnxruntime·tokenizers, `uv.lock` 고정)를 설치합니다. 고정 리비전 `614241f6…`의 `onnx/model_qint8_avx512_vnni.onnx`와 `onnx/tokenizer.json`은 빌드할 때 `ADD --checksum`으로 받으며, SHA-256이 다르면 빌드가 실패합니다. 위치는 `MANUSCRIPT_EMBEDDING_MODEL_DIR=/app/models/multilingual-e5-small`입니다. 서버에는 모델 디렉터리나 `.env` 값을 따로 둘 필요가 없습니다.
 - **배포 확인**: 스택이 healthy가 된 뒤 CD가 `ai-service`에서 E5 임베딩을 한 번 실행합니다. 실패하면 이전 이미지를 정리하지 않고 CD를 실패로 끝냅니다.
+- **변경된 서비스만 빌드·pull**: 변경 판정은 서비스 빌드 컨텍스트(`frontend`, `backend/<서비스>`)의 git tree 해시입니다(Dockerfile과 `COPY` 대상이 모두 그 안에 있습니다). publish는 `storyfork-<서비스>:tree-<tree>`가 GHCR에 이미 있으면 그 서비스를 빌드하지 않고, 없을 때만 빌드해 `tree-<tree>`·`sha-<SHA>` 태그와 라벨 `io.storyfork.build-tree`를 붙입니다. 모든 tree 이미지를 게시한 뒤에만 `develop` 태그를 서비스마다 그 tree 이미지로 맞춥니다(이미 게시된 tree로 되돌린 커밋도 `develop`이 그 이미지를 가리키게 됩니다). deploy는 서버 앱 이미지의 `build-tree` 라벨이 이번 run의 tree와 같으면 그 이미지를 그대로 쓰고, 다르거나 없는 이미지만 `docker pull <이미지>:develop` 합니다. 전체 `compose pull`은 하지 않으며 `up --pull missing`이 서버에 없는 서드파티 이미지(첫 배포·정리 뒤)만 받습니다(같은 태그는 갱신하지 않습니다).
+- **빌드·pull 생략의 한계**: 베이스 이미지(`node`·`nginx`·`eclipse-temurin`·`python`) 태그만 갱신돼도 컨텍스트가 같으면 다시 빌드하지 않습니다(컨텍스트가 바뀌면 반영됩니다). 첫 실행은 tree 태그가 없어 모든 앱 이미지를 빌드·pull합니다. `sha-<SHA>` 태그는 그 커밋에서 새로 빌드한 이미지에만 붙습니다.
 - **디스크 확보**: pull 전에 dangling 이미지(`docker image prune --force`)와 빌드 캐시(`docker builder prune --force`)만 지우고 `df -h /`·`docker system df`를 로그에 남깁니다. 태그 있는 이미지·컨테이너·볼륨(공유 DB 포함)은 지우지 않습니다(#770).
 - **원격 스크립트 stdin**: 스크립트를 SSH stdin(`bash -se`)으로 보내므로 stdin을 읽는 명령이 남은 줄을 먹을 수 있습니다. stdin을 넘기는 `docker compose exec`에는 `</dev/null`을 붙여 마지막 `docker image prune --force`가 성공 종료 속에 건너뛰어지지 않게 합니다(#770).
 
@@ -249,7 +251,7 @@ docker volume rm $(docker volume ls -q -f name=storyfork-local_langfuse-)
 
 - CI는 변경 선택 → 단위·통합·설정 병렬 → 선택 HTTP 시스템 → `Required CI`입니다.
 - 자동 CD publish는 신뢰된 같은 저장소 develop의 성공한 push/수동 CI만 받습니다. PR·fork·main·실패·취소 CI는 게시/배포 권한이 없습니다.
-- 수동 **CD → Run workflow → develop**은 해당 커밋 네 이미지를 게시합니다. 이 수동 경로가 CI 재검증을 대신하지는 않습니다. 다른 ref는 생략합니다.
+- 수동 **CD → Run workflow → develop**은 해당 커밋의 이미지를 게시합니다(이미 게시된 빌드 tree는 건너뜁니다). 이 수동 경로가 CI 재검증을 대신하지는 않습니다. 다른 ref는 생략합니다.
 - deploy는 publish 성공만 요구하며 별도 활성화·승인 변수는 없습니다. GitHub environment 승인과 Tailscale·SSH host key 검증을 유지합니다.
 - packages write는 publish, packages read/id-token write는 deploy에만 부여합니다. `storyfork-develop-cd` concurrency로 직렬화하고 실행 중 취소하지 않습니다.
 
@@ -264,9 +266,9 @@ docker volume rm $(docker volume ls -q -f name=storyfork-local_langfuse-)
 - `ghcr.io/sknetworks-family-aicamp/storyfork-content-service`
 - `ghcr.io/sknetworks-family-aicamp/storyfork-ai-service`
 
-모든 `sha-<전체 SHA>`를 게시한 뒤 `develop` 태그를 갱신합니다. publish는 대상 SHA가 현재 develop HEAD가 아니면 게시하지 않습니다. deploy는 pull한 네 `develop` 이미지의 revision이 모두 이 run의 SHA와 같지 않으면(혼합 revision·더 새 커밋 포함) 앱을 멈추기 전에 중단합니다. 같은 CD run에서 실패한 job만 재실행할 수 있습니다. 별도 run ID/artifact 증거 체계는 추가하지 않습니다.
+서비스 빌드 컨텍스트의 git tree가 이미 게시돼 있으면 그 서비스는 다시 빌드하지 않습니다(규칙은 [개발 서버 자동 배포(CD)](#개발-서버-자동-배포cd)). 새로 빌드한 이미지는 `tree-<tree>`·`sha-<전체 SHA>` 태그와 라벨 `io.storyfork.build-tree`로 게시하고, 모든 tree 이미지를 게시한 뒤에만 `develop` 태그를 각 서비스의 tree 이미지로 맞춥니다. publish는 대상 SHA가 현재 develop HEAD가 아니면 게시하지 않습니다. deploy는 앱 `develop` 이미지의 `build-tree` 라벨이 모두 이 run의 서비스별 tree와 같지 않으면(혼합 커밋·더 새 커밋 포함) 앱을 멈추기 전에 중단합니다. 같은 CD run에서 실패한 job만 재실행할 수 있습니다. 별도 run ID/artifact 증거 체계는 추가하지 않습니다.
 
-Langfuse는 공식 이미지(`docker.langfuse.com/langfuse/langfuse`·`langfuse-worker`, ClickHouse·PostgreSQL·Redis)와 이미 게시하는 `storyfork-minio`를 그대로 쓰므로 게시 목록은 바뀌지 않습니다. 배포는 이 이미지들도 `pull`하지만 revision 비교 대상은 앱 이미지뿐입니다.
+Langfuse는 공식 이미지(`docker.langfuse.com/langfuse/langfuse`·`langfuse-worker`, ClickHouse·PostgreSQL·Redis)와 이미 게시하는 `storyfork-minio`를 그대로 쓰므로 게시 목록은 바뀌지 않습니다. 배포는 이 이미지들을 서버에 없을 때만 받고(`up --pull missing`) build-tree 비교 대상은 앱 이미지뿐입니다.
 
 ### 배포 설정과 전환
 
@@ -281,9 +283,9 @@ Langfuse는 공식 이미지(`docker.langfuse.com/langfuse/langfuse`·`langfuse-
 
 **fresh 승인 변수는 DB를 초기화하거나 준비 상태를 검증하지 않습니다.** 정확한 개발 대상·보존할 Auth/Studio/첨부·백업/격리 복원·중단 시간·호환 이미지의 복구 방법을 담당자가 확정해야 합니다. 이 확인 없이 기존 Content history에 새 앱을 배포하지 않습니다. 일괄 DROP/volume 삭제·자동 repair/clean을 하지 않습니다.
 
-CD는 기존 전용 디렉터리/project labels를 확인하고 base·dev와 참조되는 local(extends)·Langfuse(include) Compose 파일을 SSH stdin으로 임시 전달하며 서버 `.env`를 덮어쓰지 않습니다. 순서는 **두 DB 승인 확인 → login/pull → 앱 네 이미지만 revision 확인 → web·구 Core·Content writer 중지 → 내부 PostgreSQL·Mailpit `up --wait` → opt-in Studio 명시 migration → 새 앱 `up --wait`**입니다. 전체 스택의 `--wait-timeout`은 600초입니다(첫 배포는 Langfuse 저장소·Elasticsearch·앱이 함께 처음 뜨고, PostgreSQL·Mailpit만 먼저 올릴 때는 180초). PostgreSQL/Mailpit 이미지는 앱 revision 비교에서 제외하며 원격 앱 소스 build는 없습니다. Core Health 뒤 Content를 시작합니다. Studio main은 Content 이미지에 있으며 [대상 allowlist/백업/실패 계약](../docs/deployment/worldstudio-v1-rollout.md)을 따릅니다.
+CD는 기존 전용 디렉터리/project labels를 확인하고 base·dev와 참조되는 local(extends)·Langfuse(include) Compose 파일을 SSH stdin으로 임시 전달하며 서버 `.env`를 덮어쓰지 않습니다. 순서는 **두 DB 승인 확인 → login → 바뀐 앱 이미지만 pull → 앱 이미지 build-tree 확인 → web·구 Core·Content writer 중지 → 내부 PostgreSQL·Mailpit `up --wait` → opt-in Studio 명시 migration → 새 앱 `up --wait`**입니다. 전체 스택의 `--wait-timeout`은 600초입니다(첫 배포는 Langfuse 저장소·Elasticsearch·앱이 함께 처음 뜨고, PostgreSQL·Mailpit만 먼저 올릴 때는 180초). PostgreSQL/Mailpit 이미지는 앱 build-tree 비교에서 제외하며 원격 앱 소스 build는 없습니다. Core Health 뒤 Content를 시작합니다. Studio main은 Content 이미지에 있으며 [대상 allowlist/백업/실패 계약](../docs/deployment/worldstudio-v1-rollout.md)을 따릅니다.
 
-중지 전 login/pull/revision 실패는 기존 앱을 건드리지 않습니다. 중지 후 migration/startup 실패는 **ingress를 멈춘 채 실패**하며 자동 rollback/repair/retry·`down`/prune/volume 삭제를 하지 않습니다. 새 이력과 구 binary가 비호환이므로 운영자가 로그/이력과 호환 스냅샷을 확인해 복구를 결정합니다. `up --wait`는 running/healthcheck 확인이지 사용자 HTTP/DB/SMTP 전체 수용 검증이 아닙니다. web의 loopback 외 운영 TLS/ingress는 별도입니다.
+중지 전 login/pull/build-tree 확인 실패는 기존 앱을 건드리지 않습니다. 중지 후 migration/startup 실패는 **ingress를 멈춘 채 실패**하며 자동 rollback/repair/retry·`down`/prune/volume 삭제를 하지 않습니다. 새 이력과 구 binary가 비호환이므로 운영자가 로그/이력과 호환 스냅샷을 확인해 복구를 결정합니다. `up --wait`는 running/healthcheck 확인이지 사용자 HTTP/DB/SMTP 전체 수용 검증이 아닙니다. web의 loopback 외 운영 TLS/ingress는 별도입니다.
 
 ## 설정 확인
 

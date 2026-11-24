@@ -434,7 +434,6 @@ class ComposeSplitTest(unittest.TestCase):
         self.assertNotIn('external:', dev)
         workflow = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
         self.assertIn('COMPOSE_LOCAL_YAML', workflow)
-        self.assertIn('docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE"', workflow)
         self.assertIn("if: ${{ needs.publish.result == 'success' }}", workflow)
 
     def test_ci_and_attachment_callers_keep_source_builds(self):
@@ -879,6 +878,13 @@ class ConfigurationTest(unittest.TestCase):
                 checkout = source.split(f'\n  {job}:\n', 1)[1].split('uses: actions/checkout@', 1)[1].split('\n      - ', 1)[0]
                 self.assertIn('ref: ${{ github.event.workflow_run.head_sha || github.sha }}', checkout)
                 self.assertIn('persist-credentials: false', checkout)
+
+    def test_cd_deploy_gets_the_build_trees_publish_computed(self):
+        source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
+        publish, deploy = source.split('\n  deploy:\n', 1)
+        self.assertIn('trees: ${{ steps.images.outputs.trees }}', publish)
+        self.assertIn('CD_TREES: ${{ needs.publish.outputs.trees }}', deploy)
+        self.assertIn('CD_TREES "$CD_TREES"', deploy)
 
     def test_cd_ssh_directory_uses_step_runner_temp(self):
         source = (ci.ROOT / '.github/workflows/publish-images.yml').read_text()
