@@ -94,6 +94,8 @@ LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화�
 
 **시뮬레이션 평가 세트**(`simulation.act`·`simulation.narrate`, 짝이 되는 지시문 `character_simulation.act`·`narrate`의 버전만 받고 아니면 422)는 업무 Agent 틀이 아니라 실제 서비스 호출(`app/simulation/agent`의 `act`·`narrate`에 그 버전 본문을 그대로 주고, act는 terra·구조화 출력)로 응답을 만들고 원문 평가 루브릭(`app/evaluation/rubric.py`)으로 한 번에 채점합니다. 지표는 모두 높을수록 좋고(act `voice`·`intent`, narrate `style`·`info`, 둘 다 `pov_ok`) 점수는 Ragas·GEval처럼 0~1로 기록합니다(1~5점은 (점수−1)/4, `pov_ok`는 그대로). 채점 입력은 항목 `metadata.judge`(인물·직전 장면·시점 위반 정답표)입니다. 세트·승격 절차는 [계약](../../docs/design/operations-llmops-contract.md)과 [v3 보고서 6장](../../docs/evaluation/simulation-v3.md)입니다.
 
+**라우팅 평가 세트**(`decision_guard.routing`, 지시문 `decision_guard.judge`의 버전만 받고 아니면 422, #783)는 실제 Decision Guard 판정(`app/intent/service.judge`에 그 버전 본문)으로 만들고 정답(`expectedOutput {guard, capabilities}`)과 견줘 모델 없이 채점합니다: `guard`(일치 1·불일치 0), `precision`(고른 기능 중 맞은 비율)·`recall`(정답 기능 중 고른 비율), 분모가 비면 1입니다. 항목 `input`은 `{request, history?}`이고 history는 오케스트레이션이 보내는 이전 턴 모양(`{request, reply, features}`)입니다. 세트 구성은 [세트 안내](app/evaluation/datasets/README.md)입니다.
+
 ## 작업 실행 큐 (운영 정기 작업·회귀 평가, 계약 §4)
 
 `ai-jobs-worker`(ai-service와 같은 이미지, Celery 큐 `jobs`, 동시 실행 수 `AI_JOBS_CONCURRENCY` 기본 4)가 회귀 평가(`evaluation.run`)와 운영 정기 작업(`operations.run_job`)을 실행합니다. 원고 전처리 워커 `ai-worker`(`-Q preprocessing`, 동시성 1)와 큐·태스크는 따로이며 그대로입니다([계약](../../docs/design/operations-funnel-credit-contract.md)).

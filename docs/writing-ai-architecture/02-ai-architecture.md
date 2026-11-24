@@ -77,7 +77,7 @@ flowchart TD
 #### Decision Guard (JEV 가드 대체)
 
 - **위치:** 메인 에이전트의 `before_agent` 미들웨어(`DecisionGuardMiddleware`)가 턴마다 한 번 부른다. 메인 에이전트의 모델 턴마다 다시 부르지 않고, 서브 에이전트는 상태의 판정(`decision`)을 물려받는다.
-- **호출:** 기존 `app/intent/agent.decide`를 재사용한다. 그 안의 공통 입력 가드레일(`SensitiveDataGuard`의 이메일·카드번호·API 키, `ModerationGuard`의 차단 범주)이 Decisions보다 먼저 작가 요청을 거르고, Decisions 응답의 선택지·누락·중복·refusal 검증도 그대로 쓴다. 바뀌는 것은 보내는 질문뿐이다.
+- **호출:** 기존 `app/intent/agent.decide`를 재사용한다. 그 안의 공통 입력 가드레일(`SensitiveDataGuard`의 이메일·카드번호·API 키는 Decisions보다 먼저, `ModerationGuard`의 차단 범주는 Decisions와 동시에(#783) 작가 요청을 거르고, Decisions 응답의 선택지·누락·중복·refusal 검증도 그대로 쓴다. 바뀌는 것은 보내는 질문뿐이다.
 - **질문:**
   - `guard`: `none`·`prompt_injection`·`sensitive_data`(DEC-60, #782: 보안 위험만 거절하고 인사·잡담·창작과 무관한 질문은 `none`으로 메인이 답한다). `none`이 아니면 고정 거절 문구로 끝나며, guard 질문 자체를 거부하면 `unsafe`다.
   - 기능별 필요 여부: `story_context`·`manuscript_review`·`world`·`writing_editing`·`research`·`rating`·`character_simulation`마다 독립 `choice` 질문(`yes`·`no`)을 하나씩 보낸다. 기능 설명은 `app/intent/prompt.py`의 `FEATURES` 문구다. `character_simulation`은 "사용자가 시뮬레이션 실행을 명시적으로 요청했는가"로 묻는다.
@@ -211,7 +211,7 @@ flowchart TD
 
 | 미들웨어 | 붙는 곳 | 역할 |
 |---|---|---|
-| `SensitiveDataGuard`(PII)·`ModerationGuard` | Decision Guard(`intent.agent.decide`) | 작가 요청을 Decisions보다 먼저 거름(현재와 같음) |
+| `SensitiveDataGuard`(PII)·`ModerationGuard` | Decision Guard(`intent.agent.decide`) | PII는 Decisions보다 먼저, moderation은 Decisions와 동시에 거름(#783, 차단이면 판정을 버림) |
 | `DecisionGuardMiddleware` | 메인 `before_agent` | 턴당 1회 범위·기능 판정, 거절·확인·미지원이면 종료 |
 | `DynamicToolMiddleware` | 메인 `after_model`·`wrap_model_call`·`wrap_tool_call` | 판정 기능의 도구만 노출, 병렬 묶음 검사(단독·입력 대기 호출 미룸, #474), 실행 직전 재확인, 실패 뒤 호출 차단 |
 | `ToolCallLimit`(`ToolCallLimitMiddleware` 상속) | 메인 | 기능당 1회(`ask_research`만 2회, #640), 턴당 3회. 막거나 미룬 호출은 세지 않음 |
@@ -336,7 +336,8 @@ Decision Guard가 `manuscript_review`와 `writing_editing`을 함께 판정하�
 - 모델은 OpenAI Decisions(`POST /v1/decisions`, 지원 모델 `gpt-6-luna`)의 choice 질문만 쓴다(2026-11-11 사용자 결정). 모델은 보낸 선택지 중 하나만 고르고, 작가에게 보이는 거절·확인 문구는 서버 고정 문구다. 설치된 SDK에 decisions 리소스가 없어 `OpenAI.post`로 호출하고 응답을 다시 검증한다.
 - 가드레일(`guard` 질문, DEC-60·#782): `prompt_injection`(시스템·개발자 지시 무시·공개, 역할 변경으로 규칙·권한 검사 우회, 다른 사용자·권한 밖 작품의 비공개 자료 요청)과 `sensitive_data`(회원 개인정보, 키·토큰·비밀번호·내부 설정)만 `rejected`와 고정 안내 문구를 반환하고 아무 기능도 실행하지 않는다. 인사·감사·잡담·창작 고민 대화는 허용 + 기능 없음으로 메인이 도구 없이 짧게 답하고(메인 지시 규칙 8), 창작과 무관한 작업은 메인이 안내만 한다. 저장·발행·삭제는 HITL 승인 카드와 Content 인가가, 도구 노출·실행은 `DynamicToolMiddleware`·Content 인가가 막으므로 가드에서 보지 않는다.
 - refusal: guard가 `none`이 아닌 요청에서 나머지 질문의 refusal은 그 거절 사유로 끝낸다. guard 질문을 거부했거나, guard가 `none`인데 다른 질문을 거부하면 실행하지 않는 쪽으로 닫아 `unsafe` 거절이다(`intent/agent.py` `decide`).
-- 입력 가드레일 미들웨어(#373): Decisions 앞에서 작가 요청만 LangChain 기본 미들웨어를 상속해 거른다. `SensitiveDataGuard`(`PIIMiddleware`, 이메일·카드번호·`sk-`/`pk-` API 키)는 어떤 모델도 부르지 않고 `sensitive_data`로, `ModerationGuard`(`OpenAIModerationMiddleware`, `omni-moderation-latest`)는 `sexual/minors`·`self-harm/instructions`·`illicit/violent` 범주만 `unsafe`로 거절한다. 폭력·성 묘사 같은 창작 범주와 자료(`materials`)·이전 턴(`history`)은 검사하지 않고 Decisions guard 질문이 판단한다. moderation 호출 실패는 판정 실패(실행하지 않음)다. 판정은 `create_agent`(모델 슬롯 `DecisionsModel`이 Decisions를 1회 호출, `ModelCallLimitMiddleware`) 위에서 실행된다.
+- 입력 가드레일 미들웨어(#373): Decisions 앞에서 작가 요청만 LangChain 기본 미들웨어를 상속해 거른다. `SensitiveDataGuard`(`PIIMiddleware`, 이메일·카드번호·`sk-`/`pk-` API 키)는 어떤 모델도 부르지 않고 `sensitive_data`로, `ModerationGuard`(`OpenAIModerationMiddleware`, `omni-moderation-latest`)는 `sexual/minors`·`self-harm/instructions`·`illicit/violent` 범주만 `unsafe`로 거절한다. 폭력·성 묘사 같은 창작 범주와 자료(`materials`)·이전 턴(`history`)은 검사하지 않고 Decisions guard 질문이 판단한다. moderation은 `wrap_model_call`에서 Decisions와 동시에 보내고(#783: 직렬이던 한 왕복을 줄임) BLOCKED면 받은 판정을 버리고 `unsafe`다. moderation 호출 실패는 판정 결과와 상관없이 판정 실패(실행하지 않음)다. OpenAI 클라이언트는 키마다 하나를 재사용해 판정마다 DNS·TLS 연결을 새로 맺지 않는다(#783). 판정은 `create_agent`(모델 슬롯 `DecisionsModel`이 Decisions를 1회 호출, `ModelCallLimitMiddleware`) 위에서 실행된다.
+- 라우팅 평가(#783): `app/evaluation/datasets/decision_guard.routing.jsonl`(49건: 단일·복합 기능, 헷갈리는 짝, 지칭·대답형 후속, 인사·잡담, 인젝션, 기밀)을 운영 회귀 평가가 실제 판정(`intent.service.judge`에 평가할 `decision_guard.judge` 버전 본문)으로 돌리고 모델 없이 `guard`(일치)·`precision`·`recall`로 채점한다. `decision_guard.judge`의 새 버전은 이 세트를 통과해야 후보가 된다(#787 게이트). 2026-11-24 측정(호스트, 순차 49건): 개선 전(develop) guard 정확도 85.7%·판정 p50 788ms/p95 11.9s → 개선 후 100%·p50 395ms/p95 454~584ms, 기능 precision/recall은 `writing_editing` recall 0.92를 빼고 모두 1.0.
 - UI에서 고른 operation이 있으면 guard 질문만 보내고 통과하면 그 기능 하나로 확정한다. 등록되지 않은 값(예전 `story_development` 포함)은 모델 호출 전에 거절한다.
 - 직전 턴의 답이 고정 확인 질문(`CLARIFY_MESSAGE`)이었고 이번 요청이 그 기능 보기 이름(작품 질문·원고 검수·설정집 검토·인물 시뮬레이션·기획·집필·수정·설정·플롯 분석·고증 조사·심의 등급, 공백·가운뎃점 차이 무시. 이전 보기 이름 `전개 제안`·`집필·수정`도 Writing & Editing으로 받는다)과 같으면 모델에게 다시 판정시키지 않는다. `main_agent` 노드가 되물음을 받은 요청을 그 기능의 operation 경로(guard만 질문)로 확정해 실행한다(대화 기록에는 작가가 보낸 글이 남는다).
 - 요청과 검색·원고 자료(`materials`)는 `input_json` 데이터로만 보내며 자료 안 지시는 판정에 반영하지 않는다.

@@ -1,3 +1,4 @@
+import threading
 from types import SimpleNamespace
 
 import httpx
@@ -12,16 +13,18 @@ from app.intent.models import DecisionResult
 from traced import attrs
 
 
-def fake_decisions(monkeypatch, answers, flagged=(), moderated=None):
+def fake_decisions(monkeypatch, answers, flagged=(), moderated=None, before_moderation=None):
     """OpenAI Decisions 대역. answers는 {질문 이름: 선택값} 또는 던질 예외, 또는 그대로 돌려줄 응답이다.
 
     list면 호출 순서대로 하나씩 쓴다(같은 요청을 다시 물을 때 답이 달라지는 경우).
     moderation 대역은 flagged에 든 범주(예: 'sexual_minors')를 걸고, 받은 입력을 moderated 목록에 담는다. 예외면 그대로 던진다.
     """
     monkeypatch.setenv('OPENAI_API_KEY', 'test-placeholder')
-    calls = []
+    calls = Calls()
 
     def moderate(model, input):
+        if before_moderation:
+            before_moderation()
         if moderated is not None:
             moderated.append(input)
         if isinstance(flagged, Exception):
@@ -31,6 +34,7 @@ def fake_decisions(monkeypatch, answers, flagged=(), moderated=None):
 
     class Client:
         def __init__(self, **kwargs):
+            calls.clients = getattr(calls, 'clients', 0) + 1
             self.moderations = SimpleNamespace(create=moderate)
 
         def post(self, path, cast_to, body):
@@ -47,7 +51,13 @@ def fake_decisions(monkeypatch, answers, flagged=(), moderated=None):
             pass
 
     monkeypatch.setattr(agent, 'OpenAI', Client)
+    agent._client.cache_clear()
     return calls
+
+
+class Calls(list):
+    """Decisions 호출 목록. clients는 만든 OpenAI 클라이언트 수다."""
+    clients = 0
 
 
 def ok(guard='none', **needed):
@@ -307,12 +317,39 @@ def test_sensitive_data_only_in_materials_is_not_blocked(monkeypatch):
 
 
 @pytest.mark.parametrize('category', ['sexual_minors', 'self_harm_instructions', 'illicit_violent'])
-def test_moderation_blocked_category_is_rejected_as_unsafe_without_judging(monkeypatch, category):
+def test_moderation_blocked_category_is_rejected_as_unsafe_discarding_the_judgment(monkeypatch, category):
     moderated = []
     calls = fake_decisions(monkeypatch, ok(manuscript_review='yes'), flagged=(category,), moderated=moderated)
     result = service.judge('검수해줘', materials=['자료 본문'])
-    assert (result.allowed, result.reason) == (False, 'unsafe')
-    assert calls == [] and moderated == ['검수해줘']  # moderation에는 작가 요청만 보낸다
+    assert (result.allowed, result.reason, result.capabilities) == (False, 'unsafe', [])  # 동시에 받은 판정(허용)은 쓰지 않는다
+    assert len(calls) == 1 and moderated == ['검수해줘']  # moderation에는 작가 요청만 보낸다
+
+
+def test_moderation_and_decisions_are_sent_at_the_same_time(monkeypatch):
+    posted = threading.Event()
+    calls = fake_decisions(monkeypatch, [ok(manuscript_review='yes')], before_moderation=lambda: posted.wait(5) or pytest.fail('moderation이 Decisions보다 먼저 끝나야만 했다'))
+    original = agent.OpenAI
+
+    class Signalling(original):
+        def post(self, *args, **kwargs):
+            posted.set()
+            return super().post(*args, **kwargs)
+    monkeypatch.setattr(agent, 'OpenAI', Signalling)
+    assert service.judge('검수해줘').capabilities == ['manuscript_review'] and len(calls) == 1
+
+
+def test_the_openai_client_is_reused_across_judgments(monkeypatch):
+    calls = fake_decisions(monkeypatch, ok(manuscript_review='yes'))
+    service.judge('검수해줘')
+    service.judge('다시 검수해줘')
+    assert len(calls) == 2 and calls.clients == 1  # 판정마다 연결(DNS·TLS)을 새로 맺지 않는다
+
+
+def test_given_instructions_replace_the_managed_prompt(monkeypatch):
+    calls = fake_decisions(monkeypatch, ok(rating='yes'))
+    monkeypatch.setattr(tracing, 'prompt', lambda *a, **k: pytest.fail('평가할 버전 본문이 있으면 production을 읽지 않는다'))
+    assert service.judge('등급 봐줘', instructions='평가할 버전 본문').capabilities == ['rating']
+    assert calls[0][1]['input'][0] == {'role': 'developer', 'content': '평가할 버전 본문'}
 
 
 def test_fiction_violence_flag_alone_is_left_to_the_decision(monkeypatch):
