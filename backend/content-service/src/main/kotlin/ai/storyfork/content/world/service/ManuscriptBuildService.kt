@@ -151,7 +151,9 @@ class ManuscriptBuildService(
         if(job.status!="queued") return mapOf("claimed" to false)
         val frozen=input(job)
         val now=Instant.now()
-        val token=execution.claim(id,owner,now,now.plusSeconds(90L*(frozen.episodes.size+1)))
+        // 회차 추출(읽기 120초)과 정체 정리(70초)에 각각 연결·검증·콜백 시간을 더한다(#675).
+        val leaseSeconds = 200L * frozen.episodes.size + 150L
+        val token=execution.claim(id,owner,now,now.plusSeconds(leaseSeconds))
         if(sourceChanged(job,frozen)) stale(id,owner,token,"SOURCE_CHANGED")
         if(job.kind=="update") freezeBasis(id,owner,job.worldId,token)
         return mapOf("claimed" to true,"loading" to false,"token" to token,

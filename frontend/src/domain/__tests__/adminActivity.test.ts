@@ -18,7 +18,7 @@ const ACTIONS: [string, string][] = [
 
 /** DEC-55 관리자 변경 조치 13종: LLMOps 9종(#705의 후보 등록 포함)은 서버 코드의 이름, 작업 감시 4종(JOB_*)은 조각 3이 확정한 이름이다. CANDIDATE_REQUIRED는 조치가 아니라 반영의 409 오류 code라 여기에 없다 */
 const LLMOPS_ACTIONS: [string, string][] = [
-  ['PROMPT_CREATE', '프롬프트 버전 등록'], ['PROMPT_CANDIDATE', '프롬프트 후보 등록'], ['PROMPT_PROMOTE', '프롬프트 서비스 반영'], ['MODEL_CREATE', '모델 등록'], ['EVALUATION_RUN', '회귀 평가 실행'],
+  ['PROMPT_CREATE', '프롬프트 버전 등록'], ['PROMPT_CANDIDATE', '프롬프트 후보 등록'], ['PROMPT_PROMOTE', '프롬프트 서비스 반영'], ['PROMPT_OPTIMIZE', '프롬프트 자동 개선 실행'], ['MODEL_CREATE', '모델 등록'], ['EVALUATION_RUN', '회귀 평가 실행'],
   ['ALERT_ACKNOWLEDGE', '경고 확인'], ['ALERT_RESOLVE', '경고 조치 완료'], ['ALERT_RULE_UPDATE', '경고 기준 변경'], ['LLMOPS_SETTING_UPDATE', 'LLMOps 설정 변경'],
   ['JOB_SCHEDULE_CREATE', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATE', '정기 작업 일정 변경'], ['JOB_SCHEDULE_CANCEL', '정기 작업 일정 취소'], ['JOB_RETRY', '작업 실패 재실행'],
 ]
@@ -29,8 +29,8 @@ describe('관리자 활동 기록 표시 규칙 (72)', () => {
     for (const [code, label] of ACTIONS) expect(activityActionLabel(code)).toBe(label)
   })
 
-  it('운영 대시보드·LLMOps·작업 감시의 조치 13종도 한국어 이름으로 보인다', () => {
-    expect(LLMOPS_ACTIONS).toHaveLength(13)
+  it('운영 대시보드·LLMOps·작업 감시의 조치 14종도 한국어 이름으로 보인다', () => {
+    expect(LLMOPS_ACTIONS).toHaveLength(14)
     for (const [code, label] of LLMOPS_ACTIONS) expect(activityActionLabel(code)).toBe(label)
   })
 

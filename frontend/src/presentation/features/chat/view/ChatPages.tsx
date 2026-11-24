@@ -50,7 +50,7 @@ function ChatList() {
           <div className="rgrid">{data.listed.length ? data.listed.map(({ w, character: c, parent }) => (
             <Go key={w.id + c.n} to={`/chat/${w.id}/${encodeURIComponent(c.n)}`} className="rg" aria-label={`${c.n} · ${w.title}${w.parent ? ' · 포크' : ''}`}>
               <div className="rc"><CoverOf w={w} />{w.parent && <span className="tag if">포크</span>}</div>
-              <div className="ri"><small className="g">{w.parent ? '포크' : '원작'} · {w.genre}</small><div className="chh" style={{ padding: 0, border: 0 }}><i className="pt"><Portrait name={c.n} size={36} /></i><div><b>{c.n}</b><small>{c.d}</small></div></div>
+              <div className="ri"><small className="g">{[w.parent ? '포크' : '원작', w.genre].filter(Boolean).join(' · ')}</small><div className="chh" style={{ padding: 0, border: 0 }}><i className="pt"><Portrait name={c.n} size={36} /></i><div><b>{c.n}</b><small>{c.d}</small></div></div>
                 <small>{w.title}{parent ? ` · 원작 ${parent.title}` : ''}</small><span className="m">조회 {kfmt(w.views || 0)} <i /> ♥ {kfmt(w.likes || 0)} <i /> {ago(w.upd || 0)}</span></div>
             </Go>
           )) : <p className="muted" style={{ gridColumn: '1/-1', padding: '20px 8px' }}>조건에 맞는 캐릭터챗이 없어요. 작품 유형이나 필터를 바꿔 보세요. <Go to="/chat" className="btn sm">필터 초기화</Go></p>}</div>

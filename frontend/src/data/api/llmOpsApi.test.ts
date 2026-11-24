@@ -244,6 +244,35 @@ describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
     await expect(new HttpLlmOpsRepository(ok({ ...run, status: undefined })).evaluation('r1')).rejects.toThrow(FORMAT)
   })
 
+  it('평가 상세는 문항별 결과(items)를 읽고 없거나 null이어도 받으며, 형식이 틀리면 거부한다', async () => {
+    const run = { runId: 'r1', dataset: 'simulation.act', prompt: 'character_simulation.act', version: 2, status: 'completed', passed: false, createdAt: AT, metrics: [] }
+    const items = [
+      { itemId: 'simulation.act-02', scores: { voice: 0.25, intent: 1, pov_ok: 1 }, failed: true, error: null },
+      { itemId: 'simulation.act-03', scores: {}, failed: true, error: '생성 또는 채점에 실패했어요.' },
+      { itemId: 'simulation.act-01', scores: { voice: 0.75, intent: 1, pov_ok: 1 }, failed: false },
+    ]
+    expect((await new HttpLlmOpsRepository(ok({ ...run, items })).evaluation('r1')).items).toEqual(items)   // error는 항목 오류일 때만 오고 null·생략 모두 받는다
+    expect((await new HttpLlmOpsRepository(ok({ ...run, items: null })).evaluation('r1')).items).toBeNull()
+    expect((await new HttpLlmOpsRepository(ok(run)).evaluation('r1')).items).toBeUndefined()
+    await expect(new HttpLlmOpsRepository(ok({ ...run, items: [{ itemId: 'a', scores: { voice: '높음' }, failed: false }] })).evaluation('r1')).rejects.toThrow(FORMAT)
+    await expect(new HttpLlmOpsRepository(ok({ ...run, items: [{ itemId: 'a', scores: {} }] })).evaluation('r1')).rejects.toThrow(FORMAT)
+  })
+
+  it('자동 개선은 프롬프트별 경로에 기준 버전과 평가 호출 상한을 POST하고 거절은 code로 정한 문구를 보인다', async () => {
+    const fetcher = ok({ accepted: true, prompt: 'character_simulation.act', version: 2, maxMetricCalls: 150 }, 202)
+    await new HttpLlmOpsRepository(fetcher).optimize('character_simulation.act', { version: 2, maxMetricCalls: 150 })
+    expect(callsOf(fetcher).map(([url, init]) => [url, init.method, init.body])[0]).toEqual([
+      '/api/v1/operations/llmops/prompts/character_simulation.act/optimizations', 'POST', JSON.stringify({ version: 2, maxMetricCalls: 150 })])
+
+    const running = new HttpLlmOpsRepository(fail(409, { code: 'OPTIMIZATION_RUNNING', message: 'An optimization of this prompt is already running.' })).optimize('character_simulation.act', { version: 2, maxMetricCalls: 150 })
+    await expect(running).rejects.toThrow(new OperationsRejected('이 프롬프트의 자동 개선이 이미 실행 중이에요. 끝난 뒤에 다시 시도해 주세요.'))
+    const unsupported = new HttpLlmOpsRepository(fail(422, { code: 'OPTIMIZATION_UNSUPPORTED', message: 'This prompt cannot be optimized automatically.' })).optimize('qa', { version: 2, maxMetricCalls: 150 })
+    await expect(unsupported).rejects.toThrow(new OperationsRejected('이 프롬프트는 자동 개선을 지원하지 않아요.'))
+    // 상한 밖(400)·AI 접수 실패(502)는 상태별 일반 안내다.
+    await expect(new HttpLlmOpsRepository(fail(400, { code: 'INVALID_REQUEST', message: 'Invalid request.' })).optimize('character_simulation.act', { version: 2, maxMetricCalls: 501 })).rejects.toThrow(OperationsError)
+    await expect(new HttpLlmOpsRepository(fail(502, { code: 'UPSTREAM_FAILED', message: 'Upstream service request failed.' })).optimize('character_simulation.act', { version: 2, maxMetricCalls: 150 })).rejects.toThrow('연결된 서비스(Langfuse·AI·Core·Content)에서 처리하지 못했어요. 잠시 후 다시 시도해 주세요.')
+  })
+
   it('누설 검사·경고 기준·표본 비율은 계약 경로와 본문을 쓴다', async () => {
     const check = { id: 'c1', traceId: 't1', workId: 'w1', checkedAt: AT, matched: ['비공개 카드 제목'], suspected: true, reason: '제목이 답변에 그대로 나옴' }
     const rule = { key: 'ai_failure_rate', metric: 'failure_rate', threshold: null, windowMinutes: 60, enabled: false, updatedAt: AT }

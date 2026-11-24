@@ -17,9 +17,11 @@
 | 회원 식별 | trace의 `user_id`에 **회원 UUID**를 남긴다. 이메일·닉네임·키는 계속 남기지 않는다(2026-11-13 팀 결정의 보완) |
 | 경고 기준 | 기준값은 문서로 고정하지 않고 **운영 화면에서 관리자가 정한다**. 초기 행은 꺼진 상태로 시드하고 값을 넣어 켠다 |
 | 평가 | 회귀 평가는 AI 서비스의 **Ragas**(Q&A RAG)·**DeepEval**(생성·검토·누설 판정)로 채점하고, **시뮬레이션 평가 세트**(`simulation.act`·`simulation.narrate`)는 서비스 호출로 만든 응답을 원문 평가 루브릭으로 채점하며(점수는 0~1로 기록), 결과를 Langfuse Dataset Run 점수로 남긴다. 채점 모델은 `EVALUATION_JUDGE_MODEL`(비면 `OPENAI_MODEL`)이다. 1회 비용 상한은 **추후 결정**(그 전까지 상한 없음, 평가는 관리자가 직접 실행할 때만 돈다) |
+| 에이전트별 평가 표(#837, 2026-11-24 사용자 결정) | LLMOps 화면 '평가·누설 검사' 쪽 맨 위에 **에이전트 × 평가 모드 × 평가 세트 × 지표 × 최근 결과** 표를 보인다(메인 에이전트·Decision Guard·업무 Agent 6(Q&A·Manuscript Review·World·Writing·Research·Rating)·인물 시뮬레이션 act·narrate·전처리 설정 추출). 에이전트마다 쓰는 세트·지표가 다르다. 모드는 둘이다: **새 답변 생성**(고정 근거로 프롬프트 버전이 새 답변을 만들게 해 채점 = 위 회귀 평가, 화면에서 실행)과 **원문 검색**(모델 없이 고정 원문의 검색 순위만 채점 = CI 고정 평가 #830, 실행 버튼 없이 '버튼 없음 · CI에서 확인'으로 표시. 웹 검색은 제외, Content 원고 벡터 검색은 후속). 저장한 답변을 다시 채점하는 모드는 만들지 않는다. 세트가 없는 에이전트는 숨기지 않고 '평가 세트 없음(후속)'으로 보인다. **운영 API·응답 필드는 바뀌지 않는다**: 행 목록은 프런트 상수(`frontend/src/domain/entities/llmOpsEvalTable.ts`)이고 기준표는 [검색 품질 평가 §1.1](../evaluation/retrieval.md#11-llmops-화면의-에이전트별-평가-표)이며(둘이 같은지 프런트 단위 테스트가 문서 표와 AI 세트 파일의 이름·항목 수를 대조한다), '최근 결과'는 기존 `GET /llmops/evaluations`(최근 50건)에서 세트 이름으로 찾은 그 세트의 가장 최근 Run(통과·미통과·실행 중·실패와 Run 상세)이다 |
 | 작업 감시 | 회차 원고 전처리(DEC-50, 100화 이상 작품의 회차를 하나씩 전처리해 세계관 카드를 만드는 Celery 작업)·운영 정기 작업·회귀 평가 실행을 한 화면에서 본다. 실제 실행은 업무 소유 서비스(운영 정기 작업은 AI 작업 워커가 운영의 execute API를 불러 실행, [작업 실행 이관](operations-funnel-credit-contract.md#4-작업-실행을-celery로-이관-리팩터링-2026-11-20-사용자-결정)), 감시·재실행 요청은 운영(F-JOB-01). 평가 실행은 작업 감시에서 재실행하지 않는다 |
 | 후보 등록 평가 게이트(#787, 2026-11-24 사용자 결정) | 평가 세트가 그 호출로 만든 세트인 프롬프트만 짝을 둔다(운영 서비스 `PromptService`의 상수): `story_context.answer`↔`qa.grounding`, `character_simulation.act`↔`simulation.act`, `character_simulation.narrate`↔`simulation.narrate`. 이 셋은 **그 버전을 그 세트로 돌린 가장 최근 Run의 `passed`가 true**여야 후보로 등록된다(실행 중·미통과·다른 세트 통과는 409 `EVALUATION_REQUIRED`). 범용 세트(`leak.spoiler`·`world.conflict`·`writing.fix`)는 업무 Agent 틀로 만들어 서비스 호출의 입력 모양과 달라 짝을 두지 않는다. 짝이 없는 프롬프트는 지금처럼 평가 없이 후보로 등록한다. 이미 후보인 버전은 그대로 후보다(서비스 반영 조건은 후보 라벨뿐). 짝이 있는 프롬프트는 목록·상세의 버전별 최신 평가도 그 세트의 Run만 보여 화면과 게이트가 같은 Run을 본다 |
 | 에이전트별 모델·프롬프트 선택(#705, 2026-11-24 사용자 결정) | 모델은 **Langfuse 프롬프트 버전의 `config.model`**에 둔다(본문과 모델이 한 버전 = 한 **조합**, 새 저장소 없음). 고를 수 있는 모델은 **운영 설정 `LLMOPS_MODELS`의 목록**(AI 서비스가 OpenAI로 부르는 모델만, 기본 gpt-6-luna·gpt-6.1-terra·gpt-6-sol·gpt-6.1-sol·gpt-6-astra, 쉼표로 더하거나 뺀다, #806)이고 운영 서비스가 등록 때 검사한다. Langfuse 모델 정의(모델 단가 탭)는 비용 계산용 단가표일 뿐 선택지가 아니다(claude·gemini 등 AI가 부를 수 없는 정의가 기본으로 들어 있다). 화면은 모델을 고르지 않은 버전을 '기본 모델(환경 설정)'로 보인다(실제 이름은 AI 서비스 환경 변수라 단정하지 않는다, #808). **모든 LLM 호출**(서비스 호출 33개, `app/prompts.py`)의 프롬프트를 AI 서비스가 **기동 때 모두 등록**해 화면에 처음부터 보인다. 기본값은 모델 **gpt-6-luna**(인물 대사 `character_simulation.act`만 2026-11-23 결정대로 gpt-6.1-terra), 프롬프트는 지금 코드 본문이다: `config.model`이 없는 버전은 환경 변수 모델(`OPENAI_MODEL`=gpt-6-luna·act의 `SIMULATION_ACT_MODEL`/terra)을 쓴다. 반영 흐름은 **조합 저장 → (선택) 회귀 평가·지표 → 후보 등록 → 서비스 반영**이고 서비스 반영(production)은 **후보만** 된다(409 `CANDIDATE_REQUIRED`). 후보 등록의 평가 조건은 아래 '후보 등록 평가 게이트(#787)' 행을 따른다. 코드 시드가 바뀌면 AI가 `seed` 라벨의 새 버전으로 자동 등록하고 화면이 '코드 시드 대기'로 보인다. Decisions API로 부르는 `decision_guard.judge`·`character_simulation.direct`는 프롬프트만 바꾸고 모델은 gpt-6-luna 고정이며, 평가 채점기(루브릭)는 서비스 호출이 아니라 대상이 아니다 |
+| 프롬프트 자동 개선(#823, 2026-11-24 사용자 결정) | 시뮬레이션 지시문(`character_simulation.act`·`character_simulation.narrate`)의 새 버전을 **GEPA**(`gepa`, MIT, AI `eval` extra)로 만든다: 평가 세트의 **최적화 풀**(게이트 세트와 겹치지 않는 나머지 문항, train/val)로 반성(reflection) 모델이 지시문을 고쳐 쓰고 val 평균이 가장 높은 후보를 고른다. 반성 모델은 `gpt-6-sol`이고 **로컬 OpenCodex 게이트웨이로만** 부른다(`PROMPT_OPTIMIZER_BASE_URL`·`_API_KEY`·`_MODEL`). 생성(task)·채점은 기존 OpenAI 경로·`EVALUATION_JUDGE_MODEL` 그대로다. 1회 평가 호출 상한 `maxMetricCalls`는 기본 **150**·서버 상한 **500**(화면에서 바꾼다). **자동 범위는 새 버전 저장(라벨 없음) + 그 버전의 게이트 세트 회귀 평가 Run 1회까지**다: 후보 등록·서비스 반영은 사람이 기존 버튼으로 한다(게이트 그대로). 트리거는 LLMOps 화면 버튼뿐이고 정기 작업 kind는 만들지 않는다. 저장된 답변을 다시 채점하는 모드는 만들지 않는다. 절차·수치는 [프롬프트 자동 개선 평가 문서](../evaluation/prompt-optimization.md) |
 | Airflow | 지금은 쓰지 않는다. 운영 스케줄러가 맡는 '정해진 시각에 소유 서비스의 실행 API 호출'과 '실행 기록 조회'를 나중에 Airflow DAG·REST API로 바꿀 수 있게 실행 API와 기록 모양을 출처 독립으로 둔다 |
 
 ## 데이터 출처
@@ -76,8 +78,9 @@
 | `PUT /llmops/prompts/{name}/candidate` `{version}` | `llm` | 그 버전(조합)을 서비스 반영 후보로 등록: 라벨 `candidate-<version>`을 단다(Langfuse 라벨은 한 버전에만 있어 버전 번호를 넣는다, 여럿 공존). 평가 세트가 있는 프롬프트는 그 세트의 최신 Run 통과가 필요하고 아니면 409 `EVALUATION_REQUIRED`(#787), 나머지는 평가를 요구하지 않는다 |
 | `PUT /llmops/prompts/{name}/production` `{version}` | `llm` | `production` 라벨 이동(서비스 반영·이전 버전 복원). 그 버전에 자기 후보 라벨이 없으면 409 `CANDIDATE_REQUIRED`(화면은 code로 한국어 안내). 복원도 후보로 등록한 뒤 한다 |
 | `GET /llmops/models`, `POST /llmops/models` | `llm` | Langfuse 모델 정의(이름·매칭 패턴·입력/출력 단가) 조회·등록 |
-| `GET /llmops/evaluations`, `GET /llmops/evaluations/{runId}` | `llm` | Dataset Run 목록·상세(지표별 점수, 기준 버전 대비 차이, 통과 여부) |
+| `GET /llmops/evaluations`, `GET /llmops/evaluations/{runId}` | `llm` | Dataset Run 목록·상세(지표별 점수, 기준 버전 대비 차이, 통과 여부). 상세만 문항별 결과 `items`를 싣는다(아래 '평가 항목 결과'). 목록은 평가 화면의 '에이전트별 평가' 표가 세트별 최근 Run을 찾는 데도 쓴다(위 '에이전트별 평가 표') |
 | `POST /llmops/evaluations` `{dataset, prompt, version}` | `llm` | 회귀 평가 실행 요청(AI에 위임, 202 + 실행 기록 ID) |
+| `POST /llmops/prompts/{name}/optimizations` `{version, maxMetricCalls?}` | `llm` | 프롬프트 자동 개선 실행 요청(AI에 위임, 202 `{accepted:true, prompt, version, maxMetricCalls}`). 최적화 가능 프롬프트(`character_simulation.act`·`character_simulation.narrate`)가 아니면 422 `OPTIMIZATION_UNSUPPORTED`, `maxMetricCalls`가 1~500 밖(기본 150)이거나 없는 버전이면 400·404, 같은 프롬프트의 개선이 실행 중이면 409 `OPTIMIZATION_RUNNING`(AI가 준 409 그대로), AI 접수 실패는 502. 아래 '프롬프트 자동 개선' |
 | `GET /llmops/leak-checks` | `llm` | 정보 누설 표본 검사 결과·의심 건 |
 | `GET /alerts?status=open|acknowledged|resolved` | `llm` 또는 `jobs` | 경고 목록(최신 100개) |
 | `PUT /alerts/{id}` `{status, note}` | `llm` 또는 `jobs` | 확인·조치 완료 기록 |
@@ -108,7 +111,9 @@ Metrics { rows:[MetricRow], adoptionRate?, approvalRate?, filterRestoreRate? }  
 Prompt { name, versions:[{version, labels:[string], createdAt?, evaluation?:{runId, passed, createdAt}, model?, prompt?, commitMessage?}], candidates, evaluationDataset?, models? }   // model은 config.model(없으면 기본 모델), prompt·commitMessage·models는 상세에서만, 목록의 versions는 production·seed뿐, evaluationDataset은 후보 등록에 통과가 필요한 세트(없으면 null)
 Model { id, modelName, matchPattern, inputPrice, outputPrice, unit }        // 가격은 토큰당 USD
 Evaluation { runId, dataset, prompt, version, status(running|completed|failed), passed?, createdAt,
-             metrics:[{name, score, baseline?, delta?}] }
+             metrics:[{name, score, baseline?, delta?}], items?:[EvaluationItem] }      // items는 상세에만
+EvaluationItem { itemId, scores:{<지표>:0~1}, failed, error? }
+OptimizationAccepted { accepted:true, prompt, version, maxMetricCalls }
 LeakCheck { id, traceId, workId, checkedAt, matched:[string], suspected, reason? }
 Alert { id, ruleKey, status, message, value?, targetRef?, createdAt, actedBy?, actedAt?, note? }
 AlertRule { key, metric, threshold?, windowMinutes, enabled, updatedAt }
@@ -118,7 +123,7 @@ Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRu
 
 목록 경로는 끝 슬래시 없이 부른다(Spring 6 기본). 오류는 기존 운영 공통 `{code,message}`이며 Langfuse·AI·Core·Content 실패는 502 `UPSTREAM_FAILED`(대시보드만 칸별 `unavailable`).
 
-관리자 변경 조치(프롬프트 등록·후보 등록·서비스 반영, 모델 등록, 평가 실행, 경고 처리·기준 변경, 표본 비율 변경, 일정 CRUD, 재실행)는 성공 뒤
+관리자 변경 조치(프롬프트 등록·후보 등록·서비스 반영, 자동 개선 실행(`PROMPT_OPTIMIZE`), 모델 등록, 평가 실행, 경고 처리·기준 변경, 표본 비율 변경, 일정 CRUD, 재실행)는 성공 뒤
 `AdminActivityService.record`로 기록하고 [활동 기록 계약](operations-admin-activity-contract.md) action 표와 프런트 라벨에 더한다.
 
 ## 저장 (operations Flyway V8)
@@ -155,6 +160,36 @@ Content 내부 `GET /internal/v1/works/{id}/leak-references`는 Fork 작품의 �
 - 대시보드 `jobs`: `running`은 대기·실행 중인 `job_run` 수 + Content 전처리 `queued`·`running`·`loading` 수 + 실행 중인 회귀 평가 수, `failedLast24h`는 최근 24시간 안에 끝난 `FAILED` `job_run` 수 + 같은 24시간 안에 끝난 Content 전처리 `failed` 수 + 시작이 24시간 안인 실패한 회귀 평가 수다(Content 쪽은 최신 100건, 평가는 끝난 시각이 없고 최신 50개만 읽는다). Content나 Langfuse를 읽지 못하면 일부만 센 값을 보이지 않고 이 칸을 `null`로 하며 `unavailable`에 그 출처(`content`·`langfuse`)를 한 번만 적는다(평가는 Content 집계가 끝난 뒤에만 읽고, Langfuse가 이미 실패했으면 다시 읽지 않는다).
 - `llm_alert_check`의 `job_failed`(metric `failed_jobs`) 판정: 규칙 `windowMinutes` 안에 끝난 `FAILED` `job_run` 수 + Content 전처리 `failed` 수(위 `failedLast24h`에서 회귀 평가 실행을 뺀 집계: Langfuse가 내려가도 판정이 계속돼야 하고 경고 검사의 실패가 `job_failed`에 잡혀야 하므로 평가는 세지 않는다)가 `threshold` 이상이면 값=건수로 경고를 만든다. 실패가 0건이면 `threshold`가 0이어도 만들지 않고, 같은 규칙의 미해결 경고가 있으면 다시 만들지 않는다. Langfuse(AI 규칙)와 Content(`job_failed`)는 따로 읽어 한쪽이 내려가도 다른 쪽을 평가하고, 읽지 못한 쪽이 있으면 둘 다 시도한 뒤 실행이 실패한다.
 
+## 프롬프트 자동 개선 (#823, 2026-11-24 사용자 결정)
+
+LLMOps 화면의 `자동 개선` 버튼이 시뮬레이션 지시문의 새 버전을 만든다. 운영은 접수만 하고(위 API) 실행은 AI 작업 워커(`ai-jobs-worker`, 큐 `jobs`)가 한다. 최적화 가능 프롬프트와 그 게이트 세트·최적화 풀은 다음 둘이다(운영·AI가 각자 상수로 갖는다).
+
+| 프롬프트 | 게이트 세트(회귀 평가) | 최적화 풀(AI 이미지 안, Langfuse에 올리지 않는다) |
+|---|---|---|
+| `character_simulation.act` | `simulation.act` | `app/evaluation/datasets/optimize/simulation.act.jsonl` |
+| `character_simulation.narrate` | `simulation.narrate` | `app/evaluation/datasets/optimize/simulation.narrate.jsonl` |
+
+최적화 풀은 원문 평가 공개 세트(저작권 만료 고전·근대 소설과 CC BY-SA 3.0 SCP 이야기, 해리 포터 없음) 중 **게이트 세트가 쓰지 않은 나머지 문항**이다(`orig_cli.py export --pool`, 호출 없음). 항목 모양은 게이트 세트와 같고 `metadata.split`이 `train`·`val`이다. `seed.load()`는 `datasets/*.jsonl`만 읽으므로 하위 폴더 `optimize/`는 Langfuse에 등록되지 않는다. 게이트 세트는 바꾸지 않는다(바꾸면 기준 Run을 다시 만든다): 그래서 게이트 세트가 최적화가 한 번도 보지 못한 검증 세트가 된다.
+
+| 단계 | 내용 |
+|---|---|
+| 접수 | 운영이 `llm` 권한·최적화 가능 프롬프트·버전 존재를 확인하고 AI 내부 `POST /internal/v1/optimizations` `{prompt, version, maxMetricCalls}`(`X-Internal-Token`)를 부른다. AI는 지원 대상이 아니면 422, 같은 프롬프트의 개선이 실행 중이면 409 `{"detail": …}`(운영은 그대로 409 `OPTIMIZATION_RUNNING`)이고, 아니면 Celery `jobs` 큐 태스크 `optimization.run`을 올려 202 `{accepted:true}`를 돌려준다(올리지 못하면 503). **이 태스크만 `acks_late=False`다**: 개선은 수십 분 걸려 RabbitMQ 확인 제한(기본 30분)을 넘기면 같은 작업이 다시 배달돼 처음부터 다시 돌고 과금이 두 번 되기 때문이다(죽은 워커의 개선을 자동으로 이어 받지 않는다) |
+| 동시 실행 | 프롬프트별 1건. 워커가 AI 체크포인트 DB(`AI_CHECKPOINT_DATABASE_URL`)의 Postgres advisory lock(세션 잠금, 키 `prompt_optimization:<이름>`)을 실행 내내 잡고, 접수도 같은 잠금을 한 번 잡았다 놓아 실행 중인지 본다. 큐에서 기다리는 사이의 접수는 막지 못한다(워커가 시작할 때 잠금을 못 잡으면 그 실행은 trace ERROR로 끝난다) |
+| 기준 평가 | 풀 읽기·`gepa` 설치·**반성 게이트웨이**(반성 모델에 짧은 호출 1회, 로컬 게이트웨이라 OpenAI 호출이 아니다)를 먼저 확인해 어긋나면 OpenAI 호출 없이 ERROR로 끝낸다. 그 뒤 게이트 세트에 현재 production 버전의 끝난 기준 Run이 없으면 먼저 그 평가를 돌린다(기준 Run이 없으면 새 버전이 실패 항목만 없어도 통과해 무엇이든 후보가 되기 때문) |
+| 개선 | GEPA(`gepa.optimize`)가 `{instructions: <기준 버전 본문>}`을 시드로 풀의 train으로 반성하고 val로 고른다. 안쪽 평가는 항목마다 `simulation.generate`(생성)와 루브릭 채점을 **직접 호출**하고 Langfuse Dataset Run을 만들지 않는다(minibatch마다 Run이 생겨 평가 목록·기준 Run 탐색 창(최근 100개)을 밀어내기 때문). 항목 점수는 그 세트 지표(act `voice`·`intent`·`pov_ok`, narrate `style`·`info`·`pov_ok`, 0~1)의 평균이다. 반성 입력은 모델 입력·생성 글·정답(원작의 다음 글)·지표 점수·위반 사실 본문(`metadata.judge.facts`)이고 루브릭 문구는 바꾸지 않는다(기준 Run과 어긋난다). 생성·채점이 실패한 항목은 0점으로 두되 **실패 호출이 전체의 20%를 넘으면 중단하고 trace를 ERROR로 남긴다**(실패를 점수로 숨기지 않는다) |
+| 저장 | 최고 후보가 `best − seed ≥ 0.05`(seed = 기준 본문의 val 평균)일 때만 저장한다: 지표 표준오차가 0.03~0.08이라 후보 여럿 중 최고를 고르면 잡음만으로 시드를 넘기 때문이다. 그리고 ① `app/simulation/prompt.py`의 `SAFETY` 문장을 포함하고 ② 길이가 기준 본문의 2배 이하여야 한다. 어긋나면 저장하지 않고 이유를 trace에 남긴다. 저장은 Langfuse 새 버전(**라벨 없음**, 기준 버전의 `config`를 이어받음)이고 `commitMessage`는 `GEPA 자동 개선: 기준 v{n}, val {seed}→{best}, 평가 Run {run}`이다 |
+| 회귀 평가 | 저장한 버전을 게이트 세트로 평가하는 Run **1회**(기준 Run 비교·`passed`는 기존 규칙 그대로)로 자동 범위가 끝난다. Run 이름은 저장 전에 만든다(commitMessage에 넣어야 하므로 예상 버전 = 최신 버전 + 1을 쓰고, 저장된 버전 번호가 다르면 평가 없이 ERROR로 끝난다). 기준·회귀 평가 Run은 정식 평가처럼 **자기 trace로** 돈다(`prompt_optimization` trace 문맥 밖의 새 스레드에서 실행해 항목 span이 이 trace에 붙지 않는다, 실패는 그대로 올라와 trace를 ERROR로 끝낸다) |
+| 끝난 뒤 | 후보 등록(`PUT …/candidate`)과 서비스 반영(`PUT …/production`)은 사람이 기존 화면 버튼으로 한다. 후보 등록은 평가 게이트(#787)를 그대로 지난다 |
+
+- **결과 가시성**: 개선 1건 = trace `prompt_optimization`(요청 루트 관측 이름·태그 `feature:prompt_optimization`). 시작 때 metadata `prompt`·`baseVersion`·`maxMetricCalls`, 끝날 때 `seedScore`·`bestScore`·`savedVersion`·`baselineRun`(기준 평가를 했을 때)·`evaluationRun`(두 평가 Run은 이름만 남기고 항목 호출은 각 Run의 trace에 있다)·`outcome`(`saved`·`no_improvement`·`rejected`)과 저장하지 않았을 때의 이유 `reason`(`개선 없음`, 또는 SAFETY·길이 검사 실패 문구)을 남긴다. 실패면 level ERROR와 고정 사유다. GEPA 안쪽 생성 호출은 그 trace의 generation으로 남아 비용이 보이고 반성 모델 호출은 모델·사용량만 남긴다(본문 없음).
+- **반성 모델 경로**: `PROMPT_OPTIMIZER_BASE_URL`(로컬 `.env` 예 `http://host.docker.internal:10100/v1`, 비면 기본 OpenAI)·`PROMPT_OPTIMIZER_API_KEY`(비면 `OPENAI_API_KEY`)·`PROMPT_OPTIMIZER_MODEL`(기본 `gpt-6-sol`). 게이트웨이의 Responses 호출은 `input`이 메시지 목록이고 `store=False`일 때만 된다. 구독 게이트웨이의 429·일시 오류는 SDK가 두 번까지 다시 시도한다(`max_retries=2`). Docker Desktop이 아닌 Linux에서는 `host.docker.internal`이 자동으로 풀리지 않아 compose가 반성을 부르는 `ai-jobs-worker`에도 `extra_hosts: host.docker.internal:host-gateway`를 준다. 생성·채점은 이 설정과 무관하게 OpenAI API 키다.
+- **예상 호출·시간**: 화면이 보이는 OpenAI 호출 수 어림 = `2 × maxMetricCalls`(생성 + 채점) `+ 2 ×` 게이트 세트 문항 수(회귀 평가: act 24·narrate 46, 화면 상수)이고 기준 Run이 없으면 그만큼 더 든다(반성 모델 호출은 로컬 게이트웨이라 OpenAI 호출이 아니다). 호출당 2~3초에 항목 5개 동시면 20~45분이다(문서 수치로 한 어림, 첫 실행에서 실측한다).
+
+### 평가 항목 결과(실패 로그)
+
+운영 상세 `GET /llmops/evaluations/{runId}`는 지표 평균에 더해 문항별 결과 `items`를 싣는다(목록은 싣지 않는다). AI는 지금처럼 항목마다 trace 점수(점수 이름 = 지표 이름, `pov_ok` 점수의 comment에 위반 사실 id)를 남기고, 운영은 Langfuse **Experiments items API**(`GET /api/public/experiment-items?experimentId&fromStartTime&fields=core,scores`)로 Run의 항목과 항목 점수를 읽는다(v4는 Dataset Run items GET이 404다). 입력·출력·정답 본문은 읽지도 싣지도 않는다.
+
+`items:[{itemId, scores:{<지표>:0~1}, failed, error?}]`: `itemId`는 평가 세트 항목 id(Experiments의 `experimentItemId`)다. 문항 `failed` = ① 항목 오류(생성 실패: 항목 관측 level ERROR, 채점 실패: 항목 점수 없음 — **끝난 Run에서만**) ② `pov_ok`가 0(위반 사실 있음) ③ 지표 하나라도 0.5 미만. `error`는 ①일 때만 고정 문구(`생성 또는 채점에 실패했어요.`)다. 실행 중인 Run(`status=running`)에서 점수가 아직 없는 문항은 생성·채점 중이라 실패로 보지 않고 `failed=false`·`scores={}`·`error` 없음으로 주며(화면은 '진행 중'), Run이 끝나거나 실패로 판정된 뒤에야 점수 없음이 실패다. 정렬은 실패 먼저·항목 id 순이다.
 ## 사이트 안 알림
 
 경고가 생기면 운영 서비스가 기존 교환기 `storyfork.events`에 `operations.alert.raised`(recipient = `llm` 또는 `jobs` 권한을 가진 운영자마다 한 건)를 발행하고 Core가 알림함에 넣는다.
@@ -164,7 +199,7 @@ Content 내부 `GET /internal/v1/works/{id}/leak-references`는 Fork 작품의 �
 
 - nginx·Vite: `/api/v1/operations/{dashboard,llmops,alerts,jobs}`와 하위 경로를 Operations로. Langfuse 웹은 공개 진입점에 열지 않는다(개발자용 별도 포트).
 - env: 운영 `OPERATIONS_LANGFUSE_BASE_URL`·`LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY`(AI와 같은 프로젝트 키), `OPERATIONS_AI_BASE_URL`·`INTERNAL_TOKEN`(AI 내부 호출, 그리고 AI 작업 워커가 운영 `/internal/v1/jobs/**`를 부를 때 받는 쪽 인증. AI 워커는 `OPERATIONS_SERVICE_BASE_URL`로 운영을 부르고 `/internal/**`은 공개 진입점(nginx·Vite)에 열지 않는다), RabbitMQ 접속값. Langfuse 프로젝트·키는 `LANGFUSE_INIT_*` 헤드리스 초기화로 만든다.
-- AI 평가 의존성 `ragas`·`deepeval`은 `[project.optional-dependencies] eval`에 두고 평가를 실행하는 이미지(worker)만 설치한다.
+- AI 평가 의존성 `ragas`·`deepeval`과 자동 개선 의존성 `gepa`(MIT, #823 사용자 승인)는 `[project.optional-dependencies] eval`에 두고 평가를 실행하는 이미지(worker)만 설치한다. 자동 개선은 `PROMPT_OPTIMIZER_BASE_URL`·`PROMPT_OPTIMIZER_API_KEY`·`PROMPT_OPTIMIZER_MODEL`(위 '프롬프트 자동 개선')을 AI 작업 워커에 넘긴다.
 
 ## 단계
 
@@ -177,8 +212,14 @@ Content 내부 `GET /internal/v1/works/{id}/leak-references`는 Fork 작품의 �
 - 운영 화면의 지표는 Langfuse 집계를 요청마다 읽는다(캐시 없음). 느려지면 정기 작업 스냅샷 테이블로 바꾼다.
 - 사용자 부담 비용은 AI 요청이 Core 크레딧 예약을 쓰기 시작해야 0이 아니게 된다.
 - 필터 복원률은 콘텐츠 필터 기능이 생기기 전까지 비어 있다.
-- 평가 비용 상한이 없다(추후 결정). 평가는 관리자 실행·켠 일정으로만 돈다.
+- 회귀 평가의 비용 상한이 없다(추후 결정). 평가는 관리자 실행·켠 일정으로만 돈다. 자동 개선만 `maxMetricCalls`(기본 150·상한 500) 상한이 있다.
 - 시뮬레이션 세트는 항목이 24·46개라 같은 항목을 두 지시문으로 돌린 차이에 잡음이 있다. 로컬 확인(12·23항목)의 표준오차는 0~1 눈금에서 act 의도 0.077·말투 0.042·시점 0.083, narrate 문체 0.035·정보 0.027이다(전체 세트면 1/√2쯤). 기본 `EVAL_TOLERANCE` 0.1(Compose가 `.env`의 값을 AI 컨테이너로 넘기고 비면 0.1)은 낫지도 나쁘지도 않은 변경이 잡음만으로 불통과가 되는 일을 줄이지만 없애지는 못한다: act 의도는 표준오차의 1.3배라 12항목 기준 어림으로 10% 안팎이 불통과일 수 있다(24항목이면 4% 안팎). 로컬 확인(채점 `gpt-6.2-sol`)의 항목별 기록을 새 기준으로 **다시 판정만** 하면(추가 호출 없음) P1은 `voice` +0.042·`intent` −0.083·`pov_ok` +0.083, N3는 `style` +0.022·`info` −0.022·`pov_ok` 0이라 둘 다 통과가 예상된다(처음 1~5점 기록과 허용 오차 0.05로는 둘 다 불통과였다). 세부는 [v3 보고서 6장](../evaluation/simulation-v3.md#6-운영-화면에서-p1n3-반영하는-절차)이다.
 - 운영 스케줄러는 단일 인스턴스를 가정한다(DB 잠금 없음). 여러 대로 늘리거나 Airflow로 옮길 때 실행 주체를 하나로 바꾼다. (handler 실행은 AI 작업 워커 여러 개가 병렬로 부르지만 `queued`→`running` 선점이 조건부 UPDATE라 한 기록은 한 번만 돈다.)
 - 멈춘 기록 정리의 한도(queued 10분·running 30분)는 고정 상수다. 30분을 넘겨 도는 handler는 실패로 기록된 뒤 끝나면 자기 결과로 덮어쓰고, 그동안 같은 일정이 다음 기록을 만들 수 있다. 한도가 모자라는 작업이 생기면 설정으로 바꾼다.
 - 작업 워커 큐 `jobs`는 평가와 정기 작업이 같이 쓰므로 긴 평가가 워커를 모두 차지하면 정기 작업 기록이 `queued`로 기다리고, 10분을 넘기면 위 정리가 실패로 닫는다(워커 수는 `AI_JOBS_CONCURRENCY`).
+- 자동 개선(#823)은 프롬프트별 1건만 잠금으로 막고 큐에서 기다리는 사이의 두 번째 접수는 막지 못한다(그 실행은 시작할 때 잠금을 못 잡아 ERROR로 끝난다). 긴 개선이 `jobs` 큐 워커를 오래 차지하므로 개선 중에는 정기 작업 기록이 `queued`로 기다린다(10분을 넘기면 위 정리가 실패로 닫는다).
+- 자동 개선의 저장 여유 0.05·실패율 20%·val 20문항·동시 5건은 고정값이다. val이 작아 후보 고르기에 잡음이 있고 최종 확인은 게이트 세트 Run이다(그 Run도 24·46문항이라 위 표준오차가 그대로 적용된다). 예상 버전(최신 + 1)과 저장된 버전이 다른 드문 경쟁은 평가 없이 끝나고 저장된 라벨 없는 버전만 남는다.
+- GEPA는 평가 호출 상한을 반복 단위로 확인해 상한을 조금 넘길 수 있다(실측: 상한 40에 호출 42, 최대 val 문항 수 + minibatch 2회쯤). 화면의 예상 호출 수는 어림이다.
+- 죽은 워커의 개선은 자동으로 이어 받지 않는다(`acks_late=False`): 끝나지 않은 trace(`status` 없음)가 남고 다시 누르면 처음부터 돈다. 안쪽 평가가 건너뛴 Langfuse Dataset Run 대신 trace의 generation으로만 비용이 남는다.
+- 평가 상세 `items`는 Experiments items API의 앞 100개까지만 읽고(게이트 세트 24·46문항), 항목 생성·채점 실패의 사유는 고정 문구 하나다(원인은 AI 로그·trace에서 본다).
+- 에이전트별 평가 표(#837)의 최근 결과는 평가 목록(최근 50건) 안에서만 찾아, 그보다 오래전 Run뿐인 세트는 '실행한 평가 없음'으로 보인다. 행 목록은 프런트 상수라 세트가 생기면(Decision Guard 라우팅·설정 추출 등) 상수와 [검색 품질 평가 §1.1](../evaluation/retrieval.md#11-llmops-화면의-에이전트별-평가-표)을 함께 고친다.

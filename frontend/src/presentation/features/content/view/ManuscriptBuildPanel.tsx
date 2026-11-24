@@ -4,7 +4,7 @@ import {Go} from '../../../shared/Go'
 import {useManuscriptBuild} from '../viewmodel/useManuscriptBuild'
 const states={queued:'분석을 준비하고 있어요',running:'원고를 분석하고 있어요',loading:'세계관 초안에 저장하고 있어요',failed:'분석이 멈췄어요',unknown:'저장 또는 실행 결과를 확인해야 해요',completed:'세계관 초안이 준비됐어요'}
 const reasons:Record<string,string>={
- AI_TIMEOUT:'시간 안에 분석 응답을 받지 못했어요. 저장된 성공 결과를 유지하고 같은 작업을 재개할 수 있어요.',
+ AI_TIMEOUT:'분석 응답 대기 시간이 초과됐어요. 같은 작업을 재개하면 저장된 추출 결과를 이어서 사용해요.',
  AI_RESPONSE_UNCONFIRMED:'분석 응답을 확인하지 못했어요. 저장된 성공 결과를 유지하고 같은 작업을 재개해 다시 확인해 주세요.',
  AI_REQUEST_REJECTED:'분석 요청이 받아들여지지 않았어요. 회차 분량이 너무 길거나 분석 설정이 준비되지 않았을 수 있어요.',
  AI_OUTPUT_INVALID:'분석 결과를 검증하지 못했어요. 잘못된 결과는 초안에 넣지 않았어요. 같은 작업을 재개해 다시 분석할 수 있어요.',

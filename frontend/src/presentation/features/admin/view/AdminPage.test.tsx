@@ -14,6 +14,7 @@ import { HttpAdminActivityRepository, HttpOperationsCommentRepository, HttpOpera
 import { InMemoryOperationsGenreRepository } from '../../../../data/mock/InMemoryGenreRepositories'
 import { ADMIN_PERMISSIONS } from '../../../../domain/entities/admin'
 import type { AdminActivity } from '../../../../domain/entities/adminActivity'
+import type { Evaluation } from '../../../../domain/entities/llmOps'
 import { OperationsForbidden, OperationsRejected } from '../../../../domain/entities/operations'
 import { CREDIT_INSUFFICIENT_MESSAGE, CREDITS_FORBIDDEN, MEMBER_SEARCH_FORBIDDEN, type MemberCredits } from '../../../../domain/entities/operationsCredit'
 import type { OperationsComment } from '../../../../domain/entities/operationsComment'
@@ -1327,6 +1328,33 @@ it('회귀 평가 실행의 세 입력은 화면 표에 나오는 값 형식을 
   const run = await screen.findByRole('region', { name: '회귀 평가' })
   expect(['데이터셋', '프롬프트 이름', '버전'].map((name) => within(run).getByLabelText(name).getAttribute('placeholder')))
     .toEqual(['예: simulation.narrate', '예: character_simulation.narrate', '예: 2'])
+})
+
+it('평가·누설 검사 쪽은 회귀 평가 위에 에이전트별 평가 표를 쌓아 세트 없는 에이전트도 보이고, 세트마다 최근 Run을 통과 여부와 Run 상세로 보인다(#837)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  const run = (runId: string, passed: boolean, createdAt: string): Evaluation => ({ runId, dataset: 'simulation.act', prompt: 'character_simulation.act', version: 2, status: 'completed', passed, createdAt, metrics: [] })
+  const newest = run('act-new', false, '2026-11-24T02:00:00Z')
+  vi.spyOn(llm, 'evaluations').mockResolvedValue([run('act-old', true, '2026-11-20T02:00:00Z'), newest])
+  vi.spyOn(llm, 'evaluation').mockResolvedValue(newest)
+  renderAdmin('llm', 'quality')
+  const catalog = await region('에이전트별 평가')
+  expect(before(catalog, await region('회귀 평가'))).toBe(true)
+  const table = within(catalog).getByRole('table', { name: '에이전트별 평가 표' })
+  expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['에이전트', '평가 모드', '평가 세트(항목 수)', '지표', '최근 결과'])
+  const rowOf = (feature: string) => within(within(table).getAllByRole('row').find((tr) => within(tr).queryByText(feature)) as HTMLElement)
+  // 세트가 없는 에이전트도 숨기지 않고, 세트는 있으나 Run이 없으면 그렇게 알린다.
+  rowOf('orchestration.main').getByText('평가 세트 없음(후속)')
+  rowOf('character_simulation.narrate').getByText('실행한 평가 없음')
+  // 원문 검색은 실행 버튼 없이 CI에서 확인한다.
+  rowOf('기억 회상(NovelBrain recall)').getByText(/버튼 없음 · CI에서 확인/)
+  expect(rowOf('기억 회상(NovelBrain recall)').queryByRole('button')).toBeNull()
+  // 그 세트의 가장 최근 Run(목록 순서와 무관)이 통과·미통과와 Run 상세로 보인다.
+  const act = rowOf('character_simulation.act')
+  act.getByText('미통과')
+  act.getByText(/character_simulation.act 2번 버전/)
+  fireEvent.click(act.getByRole('button', { name: /act-new/ }))
+  await region('평가 상세')
+  expect(screen.queryByRole('region', { name: '에이전트별 평가' })).toBeNull()
 })
 
 it('크레딧 탭은 회원을 고르면 상세 제목으로 초점을 옮기고, 같은 회원을 목록에서 다시 골라도 제목으로 되돌린다', async () => {

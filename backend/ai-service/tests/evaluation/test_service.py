@@ -461,3 +461,13 @@ def test_the_evaluated_version_runs_on_the_model_chosen_in_that_version_even_thr
 def test_a_model_that_is_not_a_name_in_the_version_config_is_the_env_default(monkeypatch):
     install(monkeypatch, FakeDataset([item(1, QA)]), {('qa.answer', 3): SimpleNamespace(prompt='지시문', version=3, config={'model': None})})
     assert service.prepare(QA_REQUEST).model is None
+
+
+def test_a_caller_can_name_the_run_before_it_exists_with_the_same_format(monkeypatch):
+    """자동 개선(app/optimization)은 저장할 새 버전의 commitMessage에 평가 Run 이름을 넣어야 해서 이름을 먼저 만든다."""
+    name = service.name_run('qa.answer', 4)
+    assert re.fullmatch(r'qa\.answer@v4-\d{8}T\d{6}Z-[0-9a-f]{6}', name)
+
+    install(monkeypatch, FakeDataset([item(1, QA)]), {('qa.answer', 3): prompt('지시문', 3)})
+    assert service.prepare(QA_REQUEST, run_name=name).run_name == name
+    assert service.prepare(QA_REQUEST).run_name != name   # 안 주면 지금처럼 새로 만든다
