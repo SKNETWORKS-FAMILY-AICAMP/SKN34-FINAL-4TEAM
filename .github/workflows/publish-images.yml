@@ -153,6 +153,11 @@ jobs:
           export CD_CONTENT_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
           export CD_AI_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
           export CD_OPERATIONS_SERVICE_IMAGE=ghcr.io/sknetworks-family-aicamp/storyfork-operations-service:develop
+          # pull 전에 공간을 먼저 확보한다(#770). 공유 DB 볼륨과 태그 있는 이미지는 건드리지 않도록 dangling 이미지와 빌드 캐시(--no-build라 서버는 안 씀)만 지운다.
+          df -h / || true
+          docker system df || true
+          docker image prune --force
+          docker builder prune --force
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env pull
           revisions=$(docker image inspect "$CD_WEB_IMAGE" "$CD_CORE_API_IMAGE" "$CD_CONTENT_SERVICE_IMAGE" "$CD_AI_SERVICE_IMAGE" "$CD_OPERATIONS_SERVICE_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | sort -u)
           # 재실행된 이전 run이 더 새 develop 이미지와 이전 Compose를 섞어 배포하지 않게 한다.

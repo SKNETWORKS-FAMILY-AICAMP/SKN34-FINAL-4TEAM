@@ -8,6 +8,7 @@ import textwrap
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
+PULL = "--env-file .env pull\n"  # fake Docker가 기록한 Compose pull 줄의 끝(앞뒤로 나눠 보는 기준)
 
 
 class DevelopDeploymentTest(unittest.TestCase):
@@ -56,12 +57,26 @@ class DevelopDeploymentTest(unittest.TestCase):
     def test_superseded_images_are_pruned_only_after_the_new_stack_is_healthy(self):
         code, commands, error = self.deploy()
         self.assertEqual(0, code, error)
-        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 600\n"),
-            commands.index("image prune --force\n"))
+        # pull이 옛 :develop 이미지를 dangling으로 만든 뒤의 정리만 본다(pull 앞의 공간 확보는 아래 별도 시험).
+        after_pull = commands.split(PULL, 1)[1]
+        self.assertLess(after_pull.index("up -d --no-build --pull never --wait --wait-timeout 600\n"),
+            after_pull.index("image prune --force\n"))
+
+    def test_disk_is_freed_before_pull_by_pruning_only_dangling_images_and_build_cache(self):
+        code, commands, error = self.deploy()
+        self.assertEqual(0, code, error)
+        # 디스크가 찬 서버는 pull 중 no space left on device로 실패하므로(#770) 받기 전에 먼저 비운다.
+        before_pull = commands.split(PULL, 1)[0]
+        self.assertIn("image prune --force\n", before_pull)
+        self.assertIn("builder prune --force\n", before_pull)
+        # 정리 명령은 이 둘뿐이다: 공유 DB 볼륨·태그 있는 이미지를 지우는 -a·--all·--volumes·volume prune 등은 없다.
+        self.assertEqual({"image prune --force", "builder prune --force"},
+            {line for line in commands.splitlines() if "prune" in line})
+        self.assertNotIn("--volumes", commands)
 
     def test_failed_revision_check_keeps_previous_images(self):
         _, commands, _ = self.deploy(overrides={"TARGET_SHA": "%040d" % 2})
-        self.assertNotIn("image prune", commands)
+        self.assertNotIn("prune", commands.split(PULL, 1)[1])
 
     def test_inherited_profile_cannot_change_the_deployed_stack(self):
         code, commands, error = self.deploy(overrides={"COMPOSE_PROFILES": "anything"})
@@ -77,9 +92,10 @@ class DevelopDeploymentTest(unittest.TestCase):
     def test_embedding_model_is_smoke_tested_in_the_new_stack_before_prune(self):
         code, commands, error = self.deploy()
         self.assertEqual(0, code, error)
-        smoke = commands.index("exec -T ai-service python -c")
-        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 600\n"), smoke)
-        self.assertLess(smoke, commands.index("image prune --force\n"))
+        after_pull = commands.split(PULL, 1)[1]
+        smoke = after_pull.index("exec -T ai-service python -c")
+        self.assertLess(after_pull.index("up -d --no-build --pull never --wait --wait-timeout 600\n"), smoke)
+        self.assertLess(smoke, after_pull.index("image prune --force\n"))
 
     def test_develop_stack_runs_official_elasticsearch_for_content_on_a_kept_volume(self):
         dev = (ROOT / "infrastructure/docker-compose.dev.yaml").read_text(encoding="utf-8")
