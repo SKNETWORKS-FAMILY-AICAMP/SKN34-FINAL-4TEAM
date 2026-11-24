@@ -310,4 +310,14 @@ class OperationsExceptionHandlerTest {
     fun `registering a candidate without a passing evaluation on its set is a 409 with its own code`() {
         assertError(handler.evaluationRequired(), 409, "EVALUATION_REQUIRED", "A passing regression evaluation on the prompt's evaluation set is required.")
     }
+
+    @Test
+    fun `starting an optimization on a prompt that is already being improved is a 409 with its own code`() {
+        assertError(handler.optimizationRunning(), 409, "OPTIMIZATION_RUNNING", "An optimization of this prompt is already running.")
+    }
+
+    @Test
+    fun `optimizing a prompt that cannot be optimized is a 422 with its own code`() {
+        assertError(handler.optimizationUnsupported(), 422, "OPTIMIZATION_UNSUPPORTED", "This prompt cannot be optimized automatically.")
+    }
 }

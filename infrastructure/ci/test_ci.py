@@ -615,6 +615,14 @@ class ComposeSplitTest(unittest.TestCase):
                      'OPERATIONS_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}'):
             self.assertIn(line, operations)
 
+    def test_the_workers_that_call_the_prompt_optimizer_gateway_resolve_the_host_gateway_name(self):
+        # 2026-11-24 #823: 자동 개선의 반성 모델은 호스트의 로컬 게이트웨이(PROMPT_OPTIMIZER_BASE_URL의 host.docker.internal)로 부른다.
+        # Docker Desktop이 아닌 Linux에서는 이 이름이 자동으로 풀리지 않아, 반성을 부르는 ai-jobs-worker에도 ai-service처럼 host-gateway가 필요하다.
+        base = read('infrastructure/docker-compose.yaml')
+        for name in ('ai-service', 'ai-jobs-worker'):
+            self.assertIn('extra_hosts:\n      - "host.docker.internal:host-gateway"', service_block(base, name), name)
+        self.assertNotIn('host.docker.internal', service_block(base, 'ai-worker'))   # 반성을 부르지 않는 전처리 워커는 그대로다
+
     def test_operations_waits_for_the_broker_it_publishes_alerts_to(self):
         for name in ('local', 'dev'):
             with self.subTest(file=name):

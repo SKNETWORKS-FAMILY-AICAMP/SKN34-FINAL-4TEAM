@@ -97,4 +97,30 @@ class AiClientTest {
         }
         assertEquals(502, status { client(RecordingRequestFactory { Reply(200, "") }).startEvaluation("d", "p", 1) })
     }
+
+    @Test
+    fun `starting an optimization sends prompt version and budget with the internal token and needs only the 202`() {
+        val factory = RecordingRequestFactory { Reply(202, """{"accepted":true}""") }
+
+        client(factory).startOptimization("character_simulation.act", 2, 150)
+
+        val call = factory.calls.single()
+        assertEquals(HttpMethod.POST, call.method)
+        assertEquals("/internal/v1/optimizations", call.uri.path)
+        assertEquals("internal-token-1", call.headers.getFirst("X-Internal-Token"))
+        assertNull(call.headers.getFirst("X-Operations-Service-Token"))
+        val body = mapper.readTree(call.body)
+        assertEquals(listOf("prompt", "version", "maxMetricCalls"), body.propertyNames().toList())
+        assertEquals("character_simulation.act", body.path("prompt").asString())
+        assertEquals(2, body.path("version").asInt())
+        assertEquals(150, body.path("maxMetricCalls").asInt())
+    }
+
+    @Test
+    fun `a running optimization stays a 409 and every other AI failure is a 502`() {
+        assertEquals(409, status { client(RecordingRequestFactory { Reply(409, """{"detail":"이미 실행 중이에요."}""") }).startOptimization("p", 1, 150) })
+        for (failure in listOf(422, 500, 503)) {
+            assertEquals(502, status { client(RecordingRequestFactory { Reply(failure, """{"detail":"x"}""") }).startOptimization("p", 1, 150) })
+        }
+    }
 }
