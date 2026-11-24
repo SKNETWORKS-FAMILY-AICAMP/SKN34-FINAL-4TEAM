@@ -25,13 +25,15 @@ def submit(data: JobRequest, x_internal_token: str = Header(default="")) -> JobR
 async def moderate_cover(request: Request, x_internal_token: str = Header(default="")) -> Response:
     """내부 요청의 표지 파일을 저장하지 않고 검사한다."""
     require_internal_token(x_internal_token)
-    raw = bytearray()
-    async for chunk in request.stream():
-        if len(raw) + len(chunk) > 10 * 1024 * 1024:
-            raise HTTPException(413, "표지 파일 크기 초과")
-        raw.extend(chunk)
+    member_id = tracing.member_id(request.headers.get("X-User-Authorization", ""))
     try:
-        await run_in_threadpool(moderation.check_cover, bytes(raw), request.headers.get("content-type", ""))
+        with tracing.request("cover_moderation", user_id=member_id):
+            raw = bytearray()
+            async for chunk in request.stream():
+                if len(raw) + len(chunk) > 10 * 1024 * 1024:
+                    raise HTTPException(413, "표지 파일 크기 초과")
+                raw.extend(chunk)
+            await run_in_threadpool(moderation.check_cover, bytes(raw), request.headers.get("content-type", ""))
     except moderation.InvalidCover:
         raise HTTPException(400, "검사할 수 없는 표지 파일") from None
     except moderation.OutputBlocked:

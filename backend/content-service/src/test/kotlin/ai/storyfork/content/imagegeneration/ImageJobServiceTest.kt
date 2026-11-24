@@ -144,7 +144,21 @@ class ImageJobServiceTest {
   assertEquals("황동 탑",mapper.readTree(mapper.writeValueAsString(claimed.input)).get("visualSettings").asText())
   assertEquals(accepted.jobId,service.submit(owner,requestKey,request).jobId)
   val changed=mapper.readValue("""{"purpose":"work_cover","prompt":"새벽 항구","visualSettings":"흰 석조 탑"}""",ImageRequest::class.java)
-  assertEquals(409,assertThrows(ContentFailure::class.java){service.submit(owner,requestKey,changed)}.status)
+  val conflict=assertThrows(ContentFailure::class.java){service.submit(owner,requestKey,changed)}
+  assertEquals(409,conflict.status)
+  assertEquals("이전 요청과 생성 조건이 달라요. 다시 생성해 주세요.",conflict.message)
+ }
+ @Test fun `submitting a deleted job again asks the user to generate again`() {
+  val owner=UUID.randomUUID().toString()
+  val requestKey=UUID.randomUUID()
+  val request=mapper.readValue("""{"purpose":"work_cover","prompt":"scene"}""",ImageRequest::class.java)
+  val saved=ImageJob(owner=owner,requestKey=requestKey,status="deleted",
+   inputHash=java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsBytes(request))))
+  `when`(jobs.findByOwnerAndRequestKey(owner,requestKey)).thenReturn(saved)
+
+  val deleted=assertThrows(ContentFailure::class.java){service.submit(owner,requestKey,request)}
+  assertEquals(410,deleted.status)
+  assertEquals("이전 생성 요청이 삭제됐어요. 다시 생성해 주세요.",deleted.message)
  }
  @Test fun `v1 request hashes and queued snapshots remain compatible`() {
   val owner=UUID.randomUUID().toString();val requestKey=UUID.randomUUID()
