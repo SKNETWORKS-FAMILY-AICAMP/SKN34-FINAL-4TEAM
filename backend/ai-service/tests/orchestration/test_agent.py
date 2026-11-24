@@ -463,9 +463,10 @@ def test_the_main_agent_gets_the_last_five_turns_of_requests_and_answers(monkeyp
         turn(thread, f'질문 {n}', inputs={'story_context': QA})
     for n in range(6, 7):
         turn(thread, f'질문 {n}', inputs={'story_context': QA})
-    history = [m.text for m in calls.main[-1]['messages'][1:11]]  # 시스템 지시 뒤 최근 5턴(질문 1~5)
-    assert history == [t for n in range(1, 6) for t in (f'질문 {n}', '종합 답변')]
-    assert calls.main[-1]['messages'][11].text == '질문 6'
+    sent = calls.main[-1]['messages']
+    assert sent[1].text.endswith('질문 0')  # 시스템 지시 뒤 창 밖 턴의 요약 블록(#790, 요약 모델은 대역)
+    assert [m.text for m in sent[2:12]] == [t for n in range(1, 6) for t in (f'질문 {n}', '종합 답변')]  # 최근 5턴(질문 1~5)
+    assert sent[12].text == '질문 6'
 
 
 # 리뷰 반영(#473)

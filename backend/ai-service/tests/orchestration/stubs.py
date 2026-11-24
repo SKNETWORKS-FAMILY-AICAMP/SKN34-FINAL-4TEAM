@@ -10,7 +10,7 @@ from app.intent import service as intent
 from app.intent.models import DecisionResult
 from app.story_qa.models import AnswerResponse, Claim
 from app.content_mcp import service as content_mcp
-from app.orchestration import agent as main_agent, mcp_tools, tools as service
+from app.orchestration import agent as main_agent, mcp_tools, service as orchestration, tools as service
 from app.rating.models import EpisodeRating, RatingResponse
 from app.research.models import Finding, PlatformReference, PlatformResult, ResearchResponse
 from app.retrieval.models import RetrievalResult
@@ -244,6 +244,8 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
     monkeypatch.setattr(service.world_review, 'linked_world', recorded('world_read', lambda work_id: (WORLD_REVIEW_REQUEST, 'w', 7)))
     monkeypatch.setattr(service.world_review, 'enrich', recorded('world_enrich', WORLD_ENRICH))
     monkeypatch.setattr(service.world_review, 'impact', recorded('world_impact', WORLD_IMPACT))
+    # 대화 요약(#790): 기존 요약 뒤에 새로 합친 턴의 요청을 잇는다(어떤 턴을 합쳤는지 결과로 보인다)
+    monkeypatch.setattr(orchestration, 'summarize', recorded('summary', lambda text, turns: ' '.join([*filter(None, [text]), *(t['request'] for t in turns)])))
     calls.main = seen
     return calls
 

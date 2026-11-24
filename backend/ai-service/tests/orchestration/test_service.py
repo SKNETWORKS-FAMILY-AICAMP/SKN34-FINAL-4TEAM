@@ -6,13 +6,14 @@ import time
 from uuid import uuid4
 
 import pytest
+from langchain_core.messages import AIMessage, HumanMessage
 
 from app.content_mcp.errors import ContentMcpFailure
 from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
-from app.orchestration import service, tools
+from app.orchestration import prompt, service, tools
 from app.orchestration.models import AppliedDraft, AttachmentRef, ChatTurn, OrchestrationRequest
 from app.rating.errors import RatingFailure
 from app.research.errors import ResearchFailure
@@ -27,6 +28,7 @@ from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.world_review.models import Affected, EnrichResult, Finding as WorldFinding, Fix, ImpactResult, WorldReviewResult
 
+from fake_chat import fake_chat
 from traced import MEMBER, attrs, bearer, status_of
 
 from app.writing.errors import WritingFailure
@@ -2723,3 +2725,88 @@ def test_a_finished_turn_does_not_keep_the_attachment_originals_in_the_latest_st
     chat(thread, request='이 자료를 봐줘', attachments=_attachments(), inputs={'story_context': QA})
     latest = asyncio.run(service.CHAT.aget_state(service._config(thread, ME))).values
     assert latest['attachments'] == [] and [t['attachments'] for t in latest['turns']] == [[{'name': '메모.md', 'kind': 'text'}, {'name': '지도.png', 'kind': 'image'}]]
+
+
+# 증분 대화 요약(#790): 최근 5턴 밖으로 밀려난 턴만 finish가 기존 요약에 합치고, 요약은 메인 에이전트만 받는다.
+def summary_of(thread):
+    return asyncio.run(service.CHAT.aget_state(service._config(thread, ME))).values.get('summary')
+
+
+def chats(thread, *texts):
+    for text in texts:
+        chat(thread, request=text, inputs={'story_context': QA})
+
+
+def summaries(calls):
+    """요약 호출마다 (기존 요약, 새로 합친 턴의 요청)."""
+    return [(c[1][0], [t['request'] for t in c[1][1]]) for c in calls if c[0] == 'summary']
+
+
+TURNS = [f'요청{i}' for i in range(1, 8)]
+
+
+def test_no_summary_up_to_five_turns_and_then_only_the_turn_pushed_out_is_merged(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, *TURNS[:5])
+    assert summaries(calls) == [] and summary_of(thread) is None
+    chats(thread, *TURNS[5:])
+    assert summaries(calls) == [('', ['요청1']), ('요청1', ['요청2'])]  # 매번 전체가 아니라 밀려난 턴만 합친다
+    assert summary_of(thread) == {'text': '요청1 요청2', 'upTo': 2}
+
+
+def test_only_the_main_agent_gets_the_summary_block_before_the_last_five_turns(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, *TURNS[:6])
+    calls.clear()
+    calls.main.clear()
+    chats(thread, TURNS[6])
+    sent = [m for m in calls.main[0]['messages'] if isinstance(m, (HumanMessage, AIMessage))]
+    assert sent[0].text == f'{prompt.SUMMARY_HEADER}\n요청1'
+    assert [m.text for m in sent[1::2]] == TURNS[1:]  # 요약 뒤에 최근 5턴과 이번 요청
+    guard, qa = [c for c in calls if c[0] == 'judge'], [c for c in calls if c[0] == 'story_context']
+    assert '요청1' not in str(guard[0][1]) and '요청1' not in str(qa[0][1])  # 가드·Q&A에는 요약도 창 밖 턴도 없다
+
+
+def test_a_failed_summary_keeps_the_turn_and_the_next_turn_merges_the_missed_turns_again(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, *TURNS[:5])
+    fake_agents(monkeypatch, plan('story_context'), fail={'summary': service.SummaryFailure(503, '대화 요약 모델 호출에 실패했습니다.')})
+    assert chat(thread, request=TURNS[5], inputs={'story_context': QA}).status == 'completed'
+    assert summary_of(thread) is None
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, TURNS[6])
+    assert summaries(calls) == [('', ['요청1', '요청2'])]
+    assert summary_of(thread) == {'text': '요청1 요청2', 'upTo': 2}
+
+
+def test_an_edited_later_turn_keeps_the_summary_of_its_point_and_a_restart_clears_it(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    chats(thread, *TURNS)
+    stream(request='요청7 고침', conversation={'threadId': thread, 'scope': ME}, fromTurn=6, inputs={'story_context': QA})
+    assert summaries(calls)[-1] == ('요청1', ['요청2'])  # 6턴 시점의 요약을 이어받아 다시 밀려난 턴만 합친다
+    assert summary_of(thread) == {'text': '요청1 요청2', 'upTo': 2}
+    calls.main.clear()
+    stream(request='처음부터', conversation={'threadId': thread, 'scope': ME}, fromTurn=0, inputs={'story_context': QA})
+    assert summary_of(thread) is None
+    assert not any(prompt.SUMMARY_HEADER in str(m.content) for m in calls.main[0]['messages'])  # 다시 시작하는 턴은 옛 요약을 받지 않는다
+
+
+def test_summarize_sends_the_old_summary_and_the_turns_with_low_effort(monkeypatch):
+    seen = fake_chat(monkeypatch, text='  카이는 북문을 지키기로 했다.  ')
+    turns = [{'request': '카이를 어떻게 할까', 'reply': {'message': '북문을 지키게 하죠'}, 'qa': None}, {'request': '좋아'}]
+    assert service.summarize('이전 요약', turns) == '카이는 북문을 지키기로 했다.'
+    assert seen['init']['reasoning_effort'] == 'low'
+    assert json.loads(seen['messages'][-1].text) == {'summary': '이전 요약', 'turns': [
+        {'request': '카이를 어떻게 할까', 'reply': '북문을 지키게 하죠'}, {'request': '좋아', 'reply': ''}]}
+
+
+def test_a_summary_failure_is_an_error_span(monkeypatch, spans):
+    fake_chat(monkeypatch, text='')  # 빈 요약은 쓸 수 없다(프롬프트를 읽을 수 없어도 같은 실패다)
+    with pytest.raises(service.SummaryFailure):
+        service.summarize('', [{'request': '하나'}])
+    [span] = [s for s in spans() if s.name == 'orchestration.summary']
+    assert span.attributes['langfuse.observation.level'] == 'ERROR'

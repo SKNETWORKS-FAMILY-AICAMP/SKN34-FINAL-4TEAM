@@ -6,7 +6,10 @@ ask_* 도구(app/orchestration/tools.py)만 순서대로 불러 원본 결과를
 그대로 저장할 수 있도록 JSON 값만 담는다.
 
 멀티턴(#57): Content가 발급한 threadId의 대화는 체크포인터에 turns로 쌓인다. 메인 에이전트는 최근 5턴의 요청·답변을, Decision Guard는
-처음부터 최근 3턴의 요청·답변 앞부분·실행 기능을(#781), Q&A는 이전 질문·답을 지칭 해석용 자료로만 받는다. 대화는 첫 턴의 Content 확인 scope(사용자·작품)에
+처음부터 최근 3턴의 요청·답변 앞부분·실행 기능을(#781), Q&A는 이전 질문·답을 지칭 해석용 자료로만 받는다.
+5턴을 넘긴 대화는 finish가 창 밖으로 새로 밀려난 턴만 기존 요약(summary {text, upTo})에 합쳐(#790) 메인 에이전트만 최근 5턴 앞의
+참고용 요약 블록으로 받는다(가드·Q&A·기획 재사용은 받지 않는다). 요약이 실패하면 턴은 그대로 끝내고 요약을 두어 다음 턴에 다시 합친다.
+처음부터 다시 시작하는 턴은 요약을 비우고, 중간 턴 수정·삭제는 갈라진 checkpoint의 그 시점 요약을 이어받는다. 대화는 첫 턴의 Content 확인 scope(사용자·작품)에
 묶여 다른 scope로는 이어갈 수 없다. 웹 조사 외부 검색에는 대화 기록을 보내지 않는다.
 
 HITL: 대화 안에서 작가 입력이 빠지면 그 도구가 interrupt로 멈추고 단계와 빠진 입력을 돌려준다. 같은 threadId의 resume(승인+입력 또는 취소)은
@@ -51,6 +54,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, Overwrite, interrupt
 
 from app import tracing
+from app import agent_runtime
 from app.agent_runtime import UsageLedger
 from app.content_mcp import service as content_mcp
 from app.content_mcp.errors import ContentMcpFailure
@@ -60,7 +64,7 @@ from app.intent.prompt import CLARIFY_MESSAGE, REJECT_MESSAGES
 from app.orchestration import agent, mcp_tools
 from app.orchestration.models import (CONTENT_ACTION, ChatHistory, ChatSession, ChatTurn, OrchestrationRequest,
                                       OrchestrationResponse, Resume)
-from app.orchestration.prompt import screen
+from app.orchestration.prompt import SUMMARY_HEADER, SUMMARY_INSTRUCTIONS, screen
 from app.orchestration.tools import HISTORY_TURNS, guard_history, previous as _previous, task as _task
 from app.simulation import service as simulation
 from app.simulation.models import Scene, SimulationPlan
@@ -92,6 +96,7 @@ CONVERSATION_NOT_FOUND_MESSAGE = '대화나 메시지를 찾을 수 없습니다
 CONVERSATION_BUSY_MESSAGE = '진행 중인 작업이 끝난 뒤에 바꿀 수 있습니다.'
 TITLE_LENGTH = 40
 STREAM_FAILED_MESSAGE = '작업을 완료할 수 없습니다.'
+SUMMARY_MAX = 2000  # 요약 지시는 1,000자 이내다. 넘으면 쓰지 않고 실패로 둔다
 
 
 class ConversationMismatch(Exception):
@@ -116,6 +121,14 @@ class ConversationUnavailable(Exception):
 
 class SceneRejected(Exception):
     """resume.scene을 지금 받을 수 없다: 장면·승인 대기가 아니거나 없는 턴을 가리키거나 장면이 끝나기 전에 승인했다. 메시지는 고정 문구다."""
+
+
+class SummaryFailure(Exception):
+    """대화 요약을 만들지 못했다. 턴은 실패시키지 않는다."""
+
+    def __init__(self, status: int, message: str):
+        super().__init__(message)
+        self.status = status
 
 
 class State(TypedDict, total=False):
@@ -143,6 +156,7 @@ class State(TypedDict, total=False):
     title: str  # 대화 제목. 첫 턴 요청 앞부분이며 rename으로만 바뀐다.
     replaceHistory: bool
     turns: Annotated[list[dict], operator.add]  # 턴마다 {request, qa, reply}를 하나씩 덧붙인다.
+    summary: dict | None  # 최근 5턴 밖 턴의 누적 요약 {text, upTo}(#790). upTo는 요약에 든 마지막 턴 번호(앞에서 upTo개)다.
 
 
 def _clarified(state: State) -> tuple[str, str] | None:
@@ -176,9 +190,11 @@ def _refs(attachments: list[dict]) -> list[dict]:
 
 
 def _conversation(state: State) -> list:
-    """메인 에이전트가 받는 최근 5턴의 요청·답변. 지칭 해석용이며 근거가 아니다."""
-    return [m for t in _previous(state)[-HISTORY_TURNS:] for m in
-            (HumanMessage(t['request']), AIMessage((t.get('reply') or {}).get('message') or ''))]
+    """메인 에이전트가 받는 최근 5턴의 요청·답변과 그 앞의 이전 대화 요약(#790). 지칭 해석·맥락용이며 근거가 아니다."""
+    recent = [m for t in _previous(state)[-HISTORY_TURNS:] for m in
+              (HumanMessage(t['request']), AIMessage((t.get('reply') or {}).get('message') or ''))]
+    summary = None if state.get('replaceHistory') else (state.get('summary') or {}).get('text')
+    return [HumanMessage(f'{SUMMARY_HEADER}\n{summary}'), *recent] if summary else recent
 
 
 async def main_agent(state: State, config: RunnableConfig) -> State:
@@ -341,8 +357,34 @@ def finish(state: State) -> State:
     reply = _response({**state, **done}).model_dump(mode='json')
     turn = [{'request': state['request'], 'qa': qa, 'reply': reply, 'attachments': _refs(state.get('attachments', []))}]
     if state.get('replaceHistory'):
-        return {**done, 'turns': Overwrite(turn), 'title': state['request'][:TITLE_LENGTH], 'replaceHistory': False, 'attachments': []}
-    return {**done, 'turns': turn, 'attachments': []}  # 첨부 원본은 이 턴이 끝나면 상태에서 비운다(turns에는 이름·종류만 남는다)
+        return {**done, 'turns': Overwrite(turn), 'title': state['request'][:TITLE_LENGTH], 'replaceHistory': False, 'attachments': [],
+                'summary': None}
+    # 첨부 원본은 이 턴이 끝나면 상태에서 비운다(turns에는 이름·종류만 남는다)
+    return {**done, 'turns': turn, 'attachments': [], **_summarized(state.get('summary'), [*state.get('turns', []), *turn])}
+
+
+def _summarized(summary: dict | None, turns: list[dict]) -> State:
+    """최근 5턴 밖으로 밀려났는데 요약에 아직 없는 턴만 기존 요약에 합친다(#790). 실패하면 요약을 그대로 두어 다음 턴에 다시 합친다."""
+    summary = summary or {'text': '', 'upTo': 0}
+    upto = len(turns) - HISTORY_TURNS
+    if upto <= summary['upTo']:
+        return {}
+    try:
+        return {'summary': {'text': summarize(summary['text'], turns[summary['upTo']:upto]), 'upTo': upto}}
+    except SummaryFailure:  # orchestration.summary span에 ERROR로 남았다
+        return {}
+
+
+def summarize(text: str, turns: list[dict]) -> str:
+    """기존 요약 text에 turns의 요청·답변을 합친 새 요약. 모델·지시문은 Langfuse 프롬프트 orchestration.summary(#705)이고 추론 강도는 낮게 둔다."""
+    data = {'summary': text, 'turns': [{'request': t['request'], 'reply': (t.get('reply') or {}).get('message') or ''} for t in turns]}
+    with tracing.observe('orchestration.summary', input={'turns': len(turns)}):
+        message, _ = agent_runtime.run('orchestration.summary.generation', '대화 요약', SummaryFailure, SUMMARY_INSTRUCTIONS, data,
+                                       prompt_name='orchestration.summary', max_tokens=2000, timeout=40, trace=data, effort='low')
+        summary = message.text.strip()
+        if not summary or len(summary) > SUMMARY_MAX:
+            raise SummaryFailure(502, '대화 요약 모델 응답을 확인할 수 없습니다.')
+    return summary
 
 
 def _next(state: State) -> str:
