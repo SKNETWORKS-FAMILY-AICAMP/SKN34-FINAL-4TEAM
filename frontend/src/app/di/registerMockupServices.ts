@@ -61,6 +61,8 @@ export function registerMockupServices(container: AppContainer) {
     operationsWorkRepository: asValue(new InMemoryOperationsWorkRepository(mockDb)),
     // 운영 댓글 API 대신 데모 관리자 댓글을 운영 댓글 형태로 보여 주고, 숨김은 데모 회차 뷰어가 읽는 숨김 목록에 반영합니다.
     operationsCommentRepository: asValue(new InMemoryOperationsCommentRepository(mockDb)),
+    // 운영 독자 제보 열람 API 대신 제보·문의 탭은 기존 메모리 데모 제보 표를 그대로 보입니다(UseCase가 없으면 그 표를 그립니다).
+    operationsFeedbackReportUseCase: asValue(null),
     // 운영 활동 기록 API 대신 데모 관리자 화면이 쌓은 데모 조치를 활동 기록 형태로 보여 줍니다.
     adminActivityRepository: asValue(new InMemoryAdminActivityRepository(mockDb)),
     // 운영 대시보드·LLMOps·작업 감시 API 대신 Langfuse·AI·Content를 읽지 않는 예시 값입니다.

@@ -31,8 +31,8 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_CONTENT_DEV_PROXY_TARGET || 'http://localhost:8081',
           changeOrigin: true,
         },
-        // 운영 공개 API는 신고·회원·관리자·작품(works)·댓글(comments)·장르(genres)·크레딧(credits)·세계관(world-studios)·카드 카테고리(card-categories)·고객지원(support)·관리자 활동(admin/activities)·공지·이벤트 admin/public 경로와 대시보드·LLMOps·경고·작업 감시(dashboard·llmops·alerts·jobs)만 Operations로 보낸다(서비스 토큰용 공지·이벤트·문의 경로는 비노출).
-        '^/api/v1/operations/(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits|world-studios|card-categories)(?:/|\\?|$)': {
+        // 운영 공개 API는 신고·회원·관리자·작품(works)·댓글(comments)·장르(genres)·크레딧(credits)·세계관(world-studios)·카드 카테고리(card-categories)·독자 제보 열람(feedback-reports)·고객지원(support)·관리자 활동(admin/activities)·공지·이벤트 admin/public 경로와 대시보드·LLMOps·경고·작업 감시(dashboard·llmops·alerts·jobs)만 Operations로 보낸다(서비스 토큰용 공지·이벤트·문의 경로는 비노출).
+        '^/api/v1/operations/(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs|genres|credits|world-studios|card-categories|feedback-reports)(?:/|\\?|$)': {
           target: env.VITE_OPERATIONS_DEV_PROXY_TARGET || 'http://localhost:8082',
           changeOrigin: true,
         },

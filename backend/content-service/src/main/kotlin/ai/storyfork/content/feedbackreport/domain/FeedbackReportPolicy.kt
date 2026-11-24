@@ -7,6 +7,8 @@ private val KINDS = setOf("typo", "story", "question", "suggestion")
 private val VISIBILITIES = setOf("public", "private")
 // 작가는 확인함·답변함·처리 완료·종료로만 바꿀 수 있고 확인 전(unchecked)으로 되돌릴 수 없다.
 private val SETTABLE_STATUSES = setOf("checked", "answered", "resolved", "closed")
+// 운영 서비스의 제보 열람이 거를 수 있는 상태는 확인 전을 더한 다섯 가지다.
+private val STATUSES = setOf("unchecked") + SETTABLE_STATUSES
 
 private const val BODY_MAX = 500
 private const val RESPONSE_MAX = 2000
@@ -16,6 +18,9 @@ fun reportKind(code: String): String = code.also { checkContent(it in KINDS, mes
 
 /** 공개 범위다. 생략하면 비공개이고 모르는 값은 422다. */
 fun reportVisibility(code: String?): String = (code ?: "private").also { checkContent(it in VISIBILITIES, message = "공개 범위를 확인해 주세요.") }
+
+/** 운영 서비스의 제보 열람이 거르는 상태다. 없으면 모든 상태(null)이고 모르는 값은 422다. */
+fun reportStatusFilter(code: String?): String? = code?.also { checkContent(it in STATUSES, message = "status 값을 확인해 주세요.") }
 
 /** 작가가 바꿀 수 있는 처리 상태다. unchecked로 되돌리기와 모르는 값은 422다. */
 fun settableStatus(code: String): String = code.also { checkContent(it in SETTABLE_STATUSES, message = "처리 상태는 확인함·답변함·처리 완료·종료 중에서 골라 주세요.") }
