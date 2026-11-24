@@ -18,7 +18,7 @@ export function AdminFeedbackReports({ vm, reports }: { vm: VM; reports: Reports
       <p className="small muted">독자가 작품 회차에 남긴 제보를 최신순으로 보여 줘요. 열람 전용 · 처리는 작가가 합니다.</p>
       <div className="admin-filter">
         <label className="field">
-          상태
+          제보 상태
           <select
             className="inp"
             value={reports.status ?? ''}

@@ -143,7 +143,7 @@ describe('관리자 (A01~A18)', () => {
     }
     const list = vi.spyOn(appContainer.resolve('operationsFeedbackReportUseCase')!, 'list').mockImplementation(async ({ page, status }) => ({
       items: page === 0 && !status
-        ? [row, { ...row, id: 'r2', kind: 'story', status: 'answered', visibility: 'public', quote: null, withdrawn: true, reporterName: '탈퇴한 회원' }]
+        ? [row, { ...row, id: 'r2', kind: 'story', body: '결말이 앞 회차 설정과 맞지 않아요', status: 'answered', visibility: 'public', quote: null, withdrawn: true, reporterName: '탈퇴한 회원' }]
         : [{ ...row, id: 'r3', body: '다른 쪽 제보', status: status ?? 'unchecked' }],
       page, size: 20, total: 41,
     }))
@@ -167,7 +167,7 @@ describe('관리자 (A01~A18)', () => {
     fireEvent.click(within(panel).getByRole('button', { name: '다음' }))
     await within(panel).findByText('다른 쪽 제보')
     expect(list).toHaveBeenLastCalledWith({ page: 1, status: null })
-    fireEvent.change(within(panel).getByLabelText('상태'), { target: { value: 'checked' } })
+    fireEvent.change(within(panel).getByLabelText('제보 상태'), { target: { value: 'checked' } })
     await waitFor(() => expect(list).toHaveBeenLastCalledWith({ page: 0, status: 'checked' }))
     await within(panel).findByText('확인함', { selector: '.chip' })
   })
