@@ -48,12 +48,25 @@ def test_persona_stats_finds_soul_quotes_in_the_first_and_later_episodes_only():
     assert ps.persona_stats([(later, SOURCES)])['docs']['soul']['grounded'] == 0   # 첫 등장(2화)보다 앞 회차(1화)의 글은 SOUL의 근거가 될 수 없다
 
 
+def test_soul_future_reads_a_quote_with_line_breaks_as_one_line():
+    # 인용에 개행이 있으면 표지 없이 이어지는 물리 줄이 생긴다: 첫 줄만 앞 회차에 있어도 전체 인용은 뒤 회차에만 있다(파이프라인 검증도 원문 그대로 나온 인용만 통과시킨다)
+    sources = {1: '그는 웃었다.', 2: '그는 웃었다.' + chr(10) + '아무도 믿지 않았다.'}
+    who = card('a', '김 첨지', '[사실] x.', 1, soul='[묘사] 그는 웃었다.' + chr(10) + '아무도 믿지 않았다.')
+    assert ps.soul_future(who, sources, 1) == (1, 1) and ps.soul_future(who, sources, 2) == (1, 0)
+
+
+def test_persona_stats_checks_a_quote_with_line_breaks_as_a_whole():
+    good, bad = card('a', '김 첨지', '[사실] 김 첨지는' + chr(10) + '인력거꾼이다.', 1), card('b', '치삼', '[사실] 치삼은' + chr(10) + '거짓말쟁이다.', 1)
+    sources = {1: '김 첨지는' + chr(10) + '인력거꾼이다. 치삼은 사람이다.'}
+    assert ps.persona_stats([(good, sources), (bad, sources)])['docs']['identity'] == {'lines': 2, 'grounded': 1, 'named': 2, 'empty': 0}   # 개행이 있어도 한 줄이고 인용 전체가 원문에 있어야 근거다
+
+
 def test_soul_future_counts_lines_found_only_in_episodes_after_the_base_episode():
     # #839: SOUL은 회차 차원 없이 뒤 회차의 soul 진술까지 쌓는다. 기준 회차(base)까지의 원문에 없는 줄은 기준 회차 뒤에 드러난 성격·말투다.
     sources = {1: '그는 성미가 급하다.', 2: '치삼은 오래된 친구였다.', 3: '그는 말이 없다.'}
-    soul = '[묘사] 그는 성미가 급하다.' + chr(10) + '[묘사] 치삼은 오래된 친구였다.' + chr(10) + '[묘사] 그는 말이 없다.' + chr(10) + '줄 표지가 없는 글'
+    soul = '표지 없는 앞머리' + chr(10) + '[묘사] 그는 성미가 급하다.' + chr(10) + '[묘사] 치삼은 오래된 친구였다.' + chr(10) + '[묘사] 그는 말이 없다.'
     who = card('a', '김 첨지', '[사실] x.', 1, soul=soul)
-    assert [ps.soul_future(who, sources, base) for base in (1, 2, 3)] == [(3, 2), (3, 1), (3, 0)]   # 표지 없는 글은 줄이 아니다
+    assert [ps.soul_future(who, sources, base) for base in (1, 2, 3)] == [(3, 2), (3, 1), (3, 0)]   # 표지로 시작하지 않는 앞머리는 줄이 아니다
     assert ps.soul_future(card('b', '치삼', '[사실] x.', 1, soul=''), sources, 1) == (0, 0)
 
 

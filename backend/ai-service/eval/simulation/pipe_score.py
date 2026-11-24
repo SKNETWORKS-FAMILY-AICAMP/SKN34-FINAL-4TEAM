@@ -39,9 +39,20 @@ def coverage(names: set[str], cards: list[Card]) -> dict:
     return {'names': len(names), 'found': found, 'rate': ratio(found, len(names))}
 
 
+def doc_lines(text: str) -> list[str]:
+    """문서의 줄(표지를 뗀 인용). 인용에 개행이 있으면 표지 없이 이어지는 물리 줄을 앞 줄에 붙여 한 줄로 읽는다(표지로 시작하지 않는 앞머리는 줄이 아니다)."""
+    lines = []
+    for row in text.split(chr(10)):
+        if LABEL.match(row):
+            lines.append(LABEL.sub('', row))
+        elif lines:
+            lines[-1] += chr(10) + row
+    return lines
+
+
 def soul_future(card: Card, sources: dict[int, str], base: int) -> tuple[int, int]:
     """(SOUL 줄 수, 그중 기준 회차(base)까지의 원문에 없는 줄 수). #839의 SOUL은 회차 차원 없이 뒤 회차의 soul 진술까지 쌓아, 기준 회차 뒤에 드러난 성격·말투가 기준 회차 시점의 인물에 섞인다."""
-    lines = [LABEL.sub('', line) for line in card.characterDocs.soul.split(chr(10)) if LABEL.match(line)]
+    lines = doc_lines(card.characterDocs.soul)
     return len(lines), sum(not any(quote in text for n, text in sources.items() if n <= base) for quote in lines)
 
 
@@ -59,7 +70,7 @@ def persona_stats(pairs: list[tuple[Card, dict[int, str]]]) -> dict:
                  'memory': [(text, int(number) or card.firstEpisode) for number, text in written.episodes.items()]}
         have = {}
         for name, texts in parts.items():
-            lines = [(LABEL.sub('', line), episode) for text, episode in texts for line in text.split(chr(10)) if LABEL.match(line)]
+            lines = [(line, episode) for text, episode in texts for line in doc_lines(text)]
             have[name] = bool(lines)
             docs[name]['empty'] += not lines
             docs[name]['lines'] += len(lines)
