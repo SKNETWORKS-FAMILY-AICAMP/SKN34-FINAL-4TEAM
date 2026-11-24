@@ -545,7 +545,7 @@
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="144">운영 관리 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>운영 서비스 독립 Spring Boot 실행 기반(loopback 8082 유지)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/164">PR #164</a></td><td>—</td></tr>
+<tr><td rowspan="152">운영 관리 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>운영 서비스 독립 Spring Boot 실행 기반(loopback 8082 유지)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/164">PR #164</a></td><td>—</td></tr>
 <tr><td rowspan="6">운영 API 공통 기반</td><td rowspan="6">91 서비스 자격·저장 격리</td><td>전용 X-Operations-Service-Token으로 서비스 호출 인증(사람의 관리자 권한 아님)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/164">PR #164</a></td><td rowspan="6">—</td></tr>
 <tr><td>미설정·공백·잘못된 서비스 자격의 보호 접근 거절</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/164">PR #164</a></td></tr>
 <tr><td>독립 operations schema·전용 Flyway 이력과 JPA validate 저장</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/164">PR #164</a></td></tr>
@@ -660,7 +660,7 @@
 <tr><td>대시보드 AI 요청·실패율·사용자/플랫폼 비용 요약 조회</td><td>✅</td></tr>
 <tr><td>대시보드 진행 중 작업·미확인 경고 수 조회</td><td>✅</td></tr>
 <tr><td>대시보드 서비스 지표 퍼널(전체 기간) 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/654">PR #654</a></td></tr>
-<tr><td rowspan="33">LLMOps</td><td rowspan="8">40-A AI 호출 추적</td><td>AI 작업별 추적 기록 저장</td><td>✅</td><td rowspan="8"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td rowspan="37">LLMOps</td><td rowspan="8">40-A AI 호출 추적</td><td>AI 작업별 추적 기록 저장</td><td>✅</td><td rowspan="8"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 호출 기록 목록 조회</td><td>✅</td></tr>
 <tr><td>AI 호출 기록 상세 조회</td><td>✅</td></tr>
 <tr><td>요청 ID 기반 실행 단계 조회</td><td>✅</td></tr>
@@ -668,7 +668,7 @@
 <tr><td>응답 지연 조회</td><td>✅</td></tr>
 <tr><td>실행 성공·실패 상태 조회</td><td>✅</td></tr>
 <tr><td>AI 파이프라인 전체 보기(캔버스·노드별 Guard 판정·단계·도구 호출·NovelBrain 회상 기록)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/654">PR #654</a></td></tr>
-<tr><td rowspan="8">40-B 프롬프트·모델 버전 관리</td><td>모델 버전 등록</td><td>✅</td><td rowspan="6"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td rowspan="9">40-B 프롬프트·모델 버전 관리</td><td>모델 버전 등록</td><td>✅</td><td rowspan="6"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>모델 버전 조회</td><td>✅</td></tr>
 <tr><td>프롬프트 버전 등록</td><td>✅</td></tr>
 <tr><td>프롬프트 버전 조회</td><td>✅</td></tr>
@@ -677,12 +677,13 @@
 <tr><td>모든 LLM 호출의 모델·프롬프트 조합 선택·후보 등록·서비스 반영과 코드 시드 자동 등록</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/705">#705</a></td></tr>
 <tr><td>평가 세트가 있는 프롬프트(Q&A 답변·인물 대사·나레이션)의 후보 등록에 회귀 평가 통과 조건</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/787">#787</a></td></tr>
 <tr><td>인물 대사·나레이션 지시문 자동 개선(GEPA): 새 버전 저장(라벨 없음)과 게이트 세트 회귀 평가까지 자동, 후보 등록·서비스 반영은 수동</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/823">#823</a></td></tr>
-<tr><td rowspan="6">40-C 회귀 평가</td><td>고정 평가 세트 관리 범위 확정</td><td>✅</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td rowspan="7">40-C 회귀 평가</td><td>고정 평가 세트 관리 범위 확정</td><td>✅</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>회귀 평가 실행</td><td>✅</td></tr>
 <tr><td>회귀 평가 결과 조회</td><td>✅</td></tr>
 <tr><td>기존 버전과 평가 결과 비교</td><td>✅</td></tr>
 <tr><td>배포 전 평가 통과 여부 확인</td><td>✅</td></tr>
 <tr><td>평가 상세의 문항별 결과(실패 로그) 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/823">#823</a></td></tr>
+<tr><td>에이전트별 평가 모드·세트·지표 표와 세트별 최근 Run 조회(원문 검색은 CI 고정 평가로 표시, 세트 없는 에이전트는 '평가 세트 없음(후속)')</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/837">#837</a></td></tr>
 <tr><td rowspan="9">40-D 품질·비용 지표</td><td>AI 오류 지표 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 시간 초과율 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 비용 지표 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
