@@ -72,6 +72,7 @@ NO_ISSUES = '검수에서 고칠 문제를 찾지 못해 수정하지 않았어�
 ONLY_SUSPECTED = '확정된 문제가 없어 자동으로 고치지 않았어요. 의심 지적은 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
 PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않았어요. 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
 BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 확정 지적을 골라 주세요.'
+FIX_TOO_FAR = '고른 지적이 서로 멀어 한 번에 고칠 수 없어요. 가까운 지적끼리 나눠 골라 주세요.'
 DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
 PATCH_READY = '수정안을 만들었고 본문은 화면의 결과 카드에 있어요.'
@@ -207,6 +208,22 @@ SUMMARIES: dict[str, Callable[[dict], dict]] = {
         if 'references' in r else {'findings': [{k: f[k] for k in ('text', 'verdict', 'sourceUrls')} for f in r['findings']]})},
     'rating': lambda r: {'verdict': r['verdict'], 'prohibited': r['prohibited']},
 }
+
+
+# 다시 쓰기(#795)가 같은 입력으로 다시 부를 수 있는 Writing 호출과 그 입력 모델
+REWRITABLE = {'draft': DraftRequest, 'patch': PatchRequest, 'plan_and_draft': PlanRequest}
+
+
+def write(call: dict):
+    """기록한 Writing 호출 {call, input, gaps?}을 실행한다. 첫 실행과 다시 쓰기(#795)가 같은 경로라 같은 입력이면 같은 방식으로 쓴다."""
+    result = getattr(writing, call['call'])(REWRITABLE[call['call']].model_validate(call['input']))
+    return result.model_copy(update={'gaps': call['gaps']}) if 'gaps' in call else result
+
+
+def _recorded(recipe: dict, name: str, data, gaps: list[str] | None = None):
+    """Writing 호출을 recipe에 기록하고 실행한다. 승인 대기의 다시 쓰기가 이 기록으로 같은 입력을 다시 보낸다."""
+    recipe.update(call=name, input=data.model_dump(mode='json'), **({'gaps': gaps} if gaps is not None else {}))
+    return write(recipe)
 
 
 def _reply(runtime: ToolRuntime, feature: str, content: str, update: dict, failed: bool = False, artifact=None) -> Command:
@@ -387,7 +404,7 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
     if fixing:
         return _fix(runtime, reviewed, fix)
 
-    base = None
+    base, recipe = None, {}
 
     def run(inputs, scope):
         nonlocal base
@@ -401,25 +418,34 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch', 'revis
             patch = PatchRequest.model_validate(data['patch'])
             if target and not patch.context:  # 채팅 구간 입력(#497): Content는 구간만 검증하므로 허용 문맥은 여기서 채운다. gaps는 PatchResponse에 없어 버린다
                 patch.context, _ = _allowed_context(target, patch.instruction)
-            return writing.patch(patch)
+            return _recorded(recipe, 'patch', patch)
         if task == 'patch' and selected and 'draft' not in data:  # 선택한 글이 있으면 입력 대기 없이 그 글을 수정한다. 반영 때 초안에 한 번만 있어야 한다
-            return writing.patch(PatchRequest(selection=selected, instruction=request or '선택한 문장을 다듬어 주세요.'))
+            return _recorded(recipe, 'patch', PatchRequest(selection=selected, instruction=request or '선택한 문장을 다듬어 주세요.'))
         if 'draft' in data:
             draft, gaps = DraftRequest.model_validate(data['draft']), []
             if target and not draft.context:
                 draft.context, gaps = _allowed_context(target, draft.plan)
-            return writing.draft(draft).model_copy(update={'gaps': gaps})
+            return _recorded(recipe, 'draft', draft, gaps)
         if not target:
             raise WritingFailure(422, NO_WRITING_TARGET)
         context, gaps = _allowed_context(target, request)
         planned = PlanRequest(episodeNumber=target['episode'], request=request, context=context, previousPlans=_previous_plans(turn))
-        return (writing.plan(planned) if task == 'plan' else writing.plan_and_draft(planned)).model_copy(update={'gaps': gaps})
+        if task == 'plan':  # 기획은 원고가 아니라 반영·다시 쓰기가 없다
+            return writing.plan(planned).model_copy(update={'gaps': gaps})
+        return _recorded(recipe, 'plan_and_draft', planned, gaps)
 
     # 부분 수정은 Content·작가가 주는 선택 구간이 있어야 한다. 기획·바로 집필은 요청과 반영 대상으로 실행한다(#387).
     needs = lambda inputs, scope: task == 'patch' and not selected and not {'patch', 'draft'} & set(inputs.get('writing_editing') or {})  # noqa: E731
-    command = _ask(runtime, 'writing_editing', run, needs=needs, task_kind=task)
-    if base is not None and command.update['steps'][0]['status'] == 'completed':
-        command.update['writingBase'] = base
+    return _written(_ask(runtime, 'writing_editing', run, needs=needs, task_kind=task), recipe, base)
+
+
+def _written(command: Command, recipe: dict, base: dict | None) -> Command:
+    """완료한 Writing 단계면 다시 쓰기용 호출 기록(writingCall, 후보 검수를 다시 돌릴 집필 직전 초안 base 포함)과 검수 기준 초안을 남긴다."""
+    if command.update.get('steps', [{}])[0].get('status') == 'completed':
+        if recipe:
+            command.update['writingCall'] = {**recipe, **({'base': base} if base is not None else {})}
+        if base is not None:
+            command.update['writingBase'] = base
     return command
 
 
@@ -457,12 +483,13 @@ def _revise_plan(runtime: ToolRuntime, request: str) -> Command:
 
 
 def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None) -> Command:
-    """조건부 수정(#370): 이번 턴 Review의 확정 지적 하나를 부분 수정한다. 메인 에이전트의 판단만으로 수정 입력을 만들지 않는다.
+    """조건부 수정(#370): 이번 턴 Review의 확정 지적을 부분 수정한다. 메인 에이전트의 판단만으로 수정 입력을 만들지 않는다.
 
-    확정 지적(위치가 하나로 정해진 지적)만 고친다. 작가가 고른 번호(inputs.writing_editing.fix) > 메인 에이전트의 fix > 유일한 확정 지적 순이며,
-    여러 개인데 정해지지 않으면 대화에서 작가가 고른다. 앞뒤 문장은 검수한 판본 그대로인지 확인한 초안에서 자른다.
+    확정 지적(위치가 하나로 정해진 지적)만 고친다. 작가가 고른 번호(inputs.writing_editing.fix, 하나 또는 여럿 #795) > 메인 에이전트의 fix > 유일한 확정 지적 순이며,
+    여러 개인데 정해지지 않으면 대화에서 작가가 고른다. 여럿이면 첫 지적부터 끝 지적까지를 한 구간(5,000자 이하)으로 한 번에 고친다.
+    앞뒤 문장은 검수한 판본 그대로인지 확인한 초안에서 자른다.
     """
-    turn = runtime.context
+    turn, recipe = runtime.context, {}
     pick = lambda inputs: (inputs.get('writing_editing') or {}).get('fix', fix)  # noqa: E731
 
     def needs(inputs, scope):
@@ -481,23 +508,32 @@ def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None) -> Comman
     def run(inputs, scope):
         findings = reviewed['result']['findings']
         confirmed = [i for i, f in enumerate(findings) if f['status'] == 'confirmed']
-        chosen_at = pick(inputs) if pick(inputs) is not None else confirmed[0]
-        if chosen_at not in confirmed:
+        picks = pick(inputs) if pick(inputs) is not None else confirmed[0]
+        picks = picks if isinstance(picks, list) else [picks]
+        if not set(picks) <= set(confirmed):
             raise WritingFailure(422, BAD_FIX)
-        chosen, target = findings[chosen_at], turn['target']
+        target = turn['target']
         try:
             draft = content_mcp.call('episode_read', {'id': target['workId'], 'number': target['episode']})['draft']
             body, revision = draft['body'], draft['revision']
         except (LookupError, TypeError):
             raise ContentMcpFailure(502, BAD_DRAFT) from None
-        at = content_mcp.place(body, chosen['quote']) if isinstance(body, str) else None
-        if revision != reviewed['result']['revision'] or at is None:
+        chosen = [(content_mcp.place(body, findings[i]['quote']) if isinstance(body, str) else None, findings[i]) for i in picks]
+        if revision != reviewed['result']['revision'] or any(at is None for at, _ in chosen):
             raise ContentMcpFailure(409, DRAFT_CHANGED)
+        chosen.sort(key=lambda placed: placed[0])  # 지시는 원고 순서로 적는다
+        start, end = chosen[0][0], max(at + len(f['quote']) for at, f in chosen)
+        if end - start > 5000:  # PatchRequest.selection 상한
+            raise WritingFailure(422, FIX_TOO_FAR)
+        if content_mcp.place(body, body[start:end]) != start:  # 반영은 고칠 구간이 초안에 한 곳만 있어야 한다
+            raise ContentMcpFailure(409, DRAFT_CHANGED)
+        lines = [f"{f['reason']} 제안: {f['suggestion']}" for _, f in chosen]
+        instruction = lines[0] if len(lines) == 1 else '\n'.join(f'{n}. "{f["quote"]}": {line}' for n, ((_, f), line) in enumerate(zip(chosen, lines), 1))
         # shortcut: 허용 문맥(context) 없이 지적의 이유·제안만 지시로 보낸다. 설정을 고쳐 써야 하는 수정이 약하면 Semantic 근거 설정을 context로 넘긴다.
-        return writing.patch(PatchRequest(selection=chosen['quote'], instruction=f"{chosen['reason']} 제안: {chosen['suggestion']}"[:2000],
-                                          precedingText=body[:at][-2000:], followingText=body[at + len(chosen['quote']):][:2000]))
+        return _recorded(recipe, 'patch', PatchRequest(selection=body[start:end], instruction=instruction[:2000],
+                                                        precedingText=body[:start][-2000:], followingText=body[end:][:2000]))
 
-    return _ask(runtime, 'writing_editing', run, needs=needs, when='if_issues_found', task_kind='patch')
+    return _written(_ask(runtime, 'writing_editing', run, needs=needs, when='if_issues_found', task_kind='patch'), recipe, None)
 
 
 def _previous_plans(turn: dict) -> list[dict]:

@@ -37,6 +37,7 @@ const stepFields = {
   error: z.string().nullish(),
   approval: z.enum(['approved', 'declined']).nullish(),
   applied: z.object({ episode: z.number().int(), revision: z.number().int() }).nullish(),
+  selected: z.array(z.number().int().nonnegative()).nullish(), // World 보강 제안 중 골라 반영한 번호(#795)
 }
 // 원고 검수(#59) 단계 결과. AI ReviewResponse 중 화면이 쓰는 값만 계약의 열거값으로 받는다.
 const manuscriptReview: z.ZodType<ChatReview> = z.object({
@@ -136,6 +137,7 @@ const reply: z.ZodType<ChatReply> = z.object({
   approvalEpisode: z.number().int().positive().nullish(),
   pendingAction: pendingAction.nullish(),
   choices: z.array(z.object({ label: z.string(), message: z.string(), form: z.enum(['simulation']).nullish() })).default([]),
+  rewritesLeft: z.number().int().nonnegative().nullish(),
 })
 const session: z.ZodType<ChatSession> = z.object({ threadId: z.string(), title: z.string(), updatedAt: z.string() })
 const history: z.ZodType<ChatHistory> = z.object({
@@ -149,8 +151,8 @@ const events = {
   answer: z.object({ delta: z.string().nullable() }).transform((d) => ({ type: 'answer' as const, ...d })),
   activity: z.object({ id: z.string(), label: z.string(), target: z.string().nullish(), status: z.enum(['running', 'done', 'failed']) })
     .transform((activity) => ({ type: 'activity' as const, activity })),
-  waiting: z.object({ steps: z.array(step), missingInputs: z.array(featureKey).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish(), pendingAction: pendingAction.nullish() })
-    .transform((d) => ({ type: 'waiting' as const, ...d })),
+  waiting: z.object({ steps: z.array(step), missingInputs: z.array(featureKey).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish(), pendingAction: pendingAction.nullish(),
+    rewritesLeft: z.number().int().nonnegative().nullish() }).transform((d) => ({ type: 'waiting' as const, ...d })),
   done: reply.transform((r) => ({ type: 'done' as const, reply: r })),
   error: z.object({ message: z.string() }).transform((d) => ({ type: 'error' as const, ...d })),
 }

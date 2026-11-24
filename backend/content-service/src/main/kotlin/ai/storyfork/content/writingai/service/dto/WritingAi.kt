@@ -79,13 +79,18 @@ data class WritingAiSimulation(
  * 키는 멈춘 단계가 물은 입력(missingInputs)이어야 하고 story_context는 받지 않는다(아니면 422, #677).
  * 값은 writing_editing만 Content가 먼저 확인한다: span은 patch로 바꾸고, 직접 보낸 patch와 멈춘 턴의 반영 회차가 아니거나 context가 있는 draft는 422다(#668).
  * scene은 시뮬레이션 무대의 장면 조작이다. scene이 있으면 AI는 approved를 적용하지 않고 장면을 처리한 뒤 다시 멈춘다.
- * refresh는 Content 쓰기 승인 대기에서 오래된 제안 대신 새 제안을 받는 답이며(#662) approved=false와만 함께 온다.
+ * refresh는 Content 쓰기 승인 대기에서 오래된 제안 대신 새 제안을 받는 답이며(#662), 원고 반영 대기에서는 같은 입력으로 다시 쓰는 답이다(#795, 턴당 2회는 AI가 센다).
+ * approved=false와만 함께 온다.
+ * selected는 World 보강 제안 중 반영할 수정안 번호, edited는 Content 쓰기 승인에서 작가가 글 필드만 고친 도구 인자다(#795). 둘 다 approved=true와만 함께 오고
+ * 범위·고친 필드는 AI가 멈춘 승인 카드와 대조한다.
  */
 data class WritingAiResume(
     val approved: Boolean,
     val inputs: JsonNode? = null,
     @field:Valid val scene: WritingAiScene? = null,
     val refresh: Boolean? = null,
+    @field:Size(min = 1, max = 5) val selected: List<@Min(0) Int>? = null,
+    val edited: JsonNode? = null,
 )
 
 /** 무대의 장면 조작(next·edit·redo·stop). 형식·길이만 확인해 AI로 그대로 넘기고, 조작별 필수 필드(edit의 turn·text 등)는 AI가 확인한다. */

@@ -203,3 +203,33 @@ def test_reply_choices_are_at_most_four_short_labels_with_a_sendable_message(cho
     with pytest.raises(ValidationError):
         OrchestrationResponse.model_validate({'status': 'clarify', 'choices': choices})
     assert OrchestrationResponse(status='clarify').choices == []
+
+
+# 승인 카드 확장(#795)
+
+@pytest.mark.parametrize('fix', [1, [1], [0, 2]])
+def test_the_author_may_pick_one_or_several_findings_to_fix(fix):
+    assert WritingInput(fix=fix).fix == fix
+
+
+@pytest.mark.parametrize('fix', [-1, [], [-1], [1, 1]])
+def test_picked_findings_are_distinct_non_negative_numbers(fix):
+    with pytest.raises(ValidationError):
+        WritingInput(fix=fix)
+
+
+@pytest.mark.parametrize('body', [
+    {'approved': False, 'selected': [0]},
+    {'approved': False, 'edited': {'id': 'w'}},
+    {'approved': True, 'selected': []},
+    {'approved': True, 'selected': [0, 0]},
+    {'approved': True, 'selected': [-1]},
+])
+def test_picked_proposals_and_edited_arguments_only_come_with_an_approval(body):
+    with pytest.raises(ValidationError):
+        Resume.model_validate(body)
+
+
+def test_an_approval_may_carry_the_picked_proposals_or_the_edited_arguments():
+    assert Resume(approved=True, selected=[1, 0]).selected == [1, 0]
+    assert Resume(approved=True, edited={'id': 'w'}).edited == {'id': 'w'}
