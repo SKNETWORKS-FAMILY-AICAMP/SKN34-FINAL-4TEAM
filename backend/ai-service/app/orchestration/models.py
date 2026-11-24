@@ -246,6 +246,8 @@ class Basis(BaseModel):
 
 class Choice(BaseModel):
     """되묻기 선택지 하나(#794). 누르면 message를 새 채팅 메시지로 보낸다(resume이 아니다). message 한도는 요청 request와 같다."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     label: str = Field(min_length=1, max_length=20)
     message: str = Field(min_length=1, max_length=2000)
 
