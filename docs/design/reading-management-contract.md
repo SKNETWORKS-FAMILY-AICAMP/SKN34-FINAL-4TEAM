@@ -49,7 +49,7 @@
 
 ## 내부 API·사건
 
-- **20 — Core `POST /internal/v1/members/nicknames`**: 요청 `{ "ids": [uuid...] }`(1~200개), 응답 `{ "nicknames": { "<id>": "<닉네임>" } }`(없는 회원은 맵에서 제외).
+- **20 — Core `POST /internal/v1/members/nicknames`**: 요청 `{ "ids": [uuid...] }`(배열 길이 최대 200개이며 중복도 개수에 포함, 중복 ID는 무시, 빈 목록은 빈 맵), 응답 `{ "nicknames": { "<id>": "<닉네임>" } }`(없는 회원은 맵에서 제외).
   `X-Content-Service-Token`만 허용한다(`/internal/v1/auth/verify`와 같은 신뢰 판정, `InternalAuthSecurityConfig`). Content는 응답 하나를 만들 때 소유자 ID를 모아 **한 번만** 호출한다(N+1 금지).
 - **21-B — 사건 `content.episode.published`**: Content가 공개 작품의 회차를 발행하면 같은 트랜잭션에서 관심 등록한 회원마다(작가 본인 제외) `content_event_outbox`에 한 행을 쓰고,
   스케줄 발행기가 [알림 사건 계약](../notification-event-contract.md) 형식(`target.type = "work"`, `target.id = 작품 id`)으로 `storyfork.events`에 보낸 뒤 `published_at`을 채운다.
