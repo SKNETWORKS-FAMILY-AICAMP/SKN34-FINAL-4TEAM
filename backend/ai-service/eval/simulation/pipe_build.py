@@ -75,7 +75,7 @@ def build_world(work: dict, cache: Path, model: str, offline: bool = False, work
 
     def one(episode: EpisodeText):
         path = _extract_path(folder, episode, model)
-        failed = path.with_suffix('.failed')   # 실패 표시: 다시 하면 그 회차를 다시 부르고(캐시하지 않는다), 오프라인 읽기는 이것으로 실패를 알아본다
+        failed = path.with_suffix('.failed')   # 실패 표시: 다시 하면 그 회차를 다시 부르고(캐시하지 않는다), 오프라인 읽기는 추출 파일이 없을 때만 이것으로 실패를 알아본다
         if path.exists():
             return episode.number, EpisodeExtraction.model_validate_json(path.read_text(encoding='utf-8')), None, 0
         if offline:
@@ -89,7 +89,6 @@ def build_world(work: dict, cache: Path, model: str, offline: bool = False, work
             failed.write_text(str(error), encoding='utf-8')
             return episode.number, None, str(error), 1
         path.write_text(row.model_dump_json(), encoding='utf-8')
-        failed.unlink(missing_ok=True)
         return episode.number, row, None, 1
 
     with ThreadPoolExecutor(workers) as pool:
@@ -114,7 +113,6 @@ def build_world(work: dict, cache: Path, model: str, offline: bool = False, work
             failed.write_text(str(error), encoding='utf-8')
             raise WorldFailed(str(error)) from None
         path.write_text(identity.model_dump_json(), encoding='utf-8')
-        failed.unlink(missing_ok=True)
         calls += 1
     try:
         payload = service.organize(identity, ok)   # 모델 호출 없는 결정적 구성이라 캐시하지 않는다

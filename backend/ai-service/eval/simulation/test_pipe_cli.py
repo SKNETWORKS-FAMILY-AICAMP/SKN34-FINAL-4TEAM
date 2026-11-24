@@ -36,12 +36,14 @@ def graded(i, voice, intent, leaked=(), skipped=None):
 
 
 def test_assemble_summarizes_each_world_and_pairs_them_on_shared_items():
-    pipeline = [graded(0, 4, 3), graded(1, 2, 2, ['f']), graded(2, 0, 0, skipped='no_character')]
+    pipeline = [graded(0, 4, 3), graded(1, 3, 2, ['f']), graded(2, 0, 0, skipped='no_character')]
     hand = [graded(0, 3, 3), graded(1, 3, 2)]
     got = pc.assemble('1', pipeline, hand)
     assert got['pipeline']['skippedBy'] == {'no_character': 1} and got['pipeline']['summary']['n'] == 3 and got['pipeline']['summary']['skipped'] == 1
     assert got['hand']['summary']['voice']['mean'] == 3.0 and got['hand']['skippedBy'] == {}
-    assert got['vsHand']['metrics']['voice'] == {'n': 2, 'up': 1, 'down': 1, 'tie': 0, 'p': 1.0, 'meanDiff': 0.0}   # 후보 = 파이프라인, 기준선 = 손라벨, 건너뛴 문항은 짝에서 빠진다
+    # 후보 = 파이프라인, 기준선 = 손라벨(방향이 바뀌면 up·down이 뒤집힌다), 건너뛴 문항은 짝에서 빠진다
+    assert got['vsHand']['metrics']['voice'] == {'n': 2, 'up': 1, 'down': 0, 'tie': 1, 'p': 1.0, 'meanDiff': 0.5}
+    assert got['vsHand']['metrics']['clean'] == {'n': 2, 'up': 0, 'down': 1, 'tie': 1, 'p': 1.0, 'meanDiff': -0.5}
     assert 'hand' not in pc.assemble('1', pipeline, []) and 'vsHand' not in pc.assemble('1', pipeline, [])
 
 

@@ -23,18 +23,18 @@ def card(key, title, body, first, soul='', goal='', episodes=None, aliases=()):
     return Card(key=key, cardType='character', title=title, aliases=list(aliases), body=body, firstEpisode=first, characterDocs=CharacterDocs(soul=soul, goal=goal, episodes=episodes or {}))
 
 
-SOURCES = {1: '김 첨지는 인력거꾼이다. 그는 성미가 급하다.', 2: '치삼은 오래된 친구였다.'}
+SOURCES = {1: '김 첨지는 인력거꾼이다. 그는 성미가 급하다. 아내는 병들었다.', 2: '치삼은 오래된 친구였다.'}
 
 
 def test_persona_stats_checks_each_document_line_against_the_source():
     cards = [card('a', '김 첨지', '[사실] 김 첨지는 인력거꾼이다.' + chr(10) + '[묘사] 원문에 없는 문장이다.', 1, soul='[묘사] 그는 성미가 급하다.', episodes={'00': '[사실] 김 첨지는 인력거꾼이다.'}),
-             card('b', '치삼', '치삼', 2, episodes={'02': '[사건] 치삼은 오래된 친구였다.'})]
+             card('b', '치삼', '치삼', 2, episodes={'02': '[사건] 치삼은 오래된 친구였다.'}), card('c', '아내', '[사실] 아내는 병들었다.', 1)]
     got = ps.persona_stats([(c, SOURCES) for c in cards])
-    assert got['characters'] == 2 and got['ready'] == 1   # IDENTITY·SOUL이 모두 줄로 있는 인물(치삼은 IDENTITY가 이름으로 채운 것, SOUL 없음)
-    assert got['docs']['identity'] == {'lines': 2, 'grounded': 1, 'named': 1, 'empty': 1}   # 한 줄은 원문에 없고, 둘째 인물은 줄이 없다
-    assert got['docs']['soul'] == {'lines': 1, 'grounded': 1, 'named': 0, 'empty': 1}   # 이름 없이 '그는'으로 쓴 줄은 근거는 있어도 named가 아니다
-    assert got['docs']['goal'] == {'lines': 0, 'grounded': 0, 'named': 0, 'empty': 2}
-    assert got['docs']['memory'] == {'lines': 2, 'grounded': 2, 'named': 2, 'empty': 0}   # 00은 첫 등장 회차 원문, 02는 2화 원문에서 찾는다
+    assert got['characters'] == 3 and got['ready'] == 1   # IDENTITY·SOUL이 모두 줄로 있는 인물만(치삼은 IDENTITY가 이름으로 채운 것·SOUL 없음, 아내는 SOUL 없음)
+    assert got['docs']['identity'] == {'lines': 3, 'grounded': 2, 'named': 2, 'empty': 1}   # 한 줄은 원문에 없고, 치삼은 줄이 없다
+    assert got['docs']['soul'] == {'lines': 1, 'grounded': 1, 'named': 0, 'empty': 2}   # 이름 없이 '그는'으로 쓴 줄은 근거는 있어도 named가 아니다
+    assert got['docs']['goal'] == {'lines': 0, 'grounded': 0, 'named': 0, 'empty': 3}
+    assert got['docs']['memory'] == {'lines': 2, 'grounded': 2, 'named': 2, 'empty': 1}   # 00은 첫 등장 회차 원문, 02는 2화 원문에서 찾는다
 
 
 def test_persona_stats_accepts_aliases_as_naming_and_missing_source_is_ungrounded():

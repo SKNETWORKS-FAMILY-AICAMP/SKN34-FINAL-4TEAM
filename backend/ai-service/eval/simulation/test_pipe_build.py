@@ -107,7 +107,7 @@ def test_offline_read_reports_failures_recorded_by_the_build_instead_of_asking_f
     again = pb.build_world(WORK, tmp_path, 'm1', offline=True)   # 실패한 회차는 캐시가 없어도 모델을 부르지 않고 그 실패를 그대로 돌려준다
     assert again.failures == built.failures == [(2, 'MODEL_TIMEOUT')] and again.payload == built.payload and again.calls == 0 and sorted(fake.extract) == [1, 2]
     del fake.fail[2]
-    assert pb.build_world(WORK, tmp_path, 'm1').failures == [] and pb.build_world(WORK, tmp_path, 'm1', offline=True).failures == []   # 다시 뽑아 성공하면 실패 표시는 지워진다
+    assert pb.build_world(WORK, tmp_path, 'm1').failures == [] and pb.build_world(WORK, tmp_path, 'm1', offline=True).failures == []   # 다시 뽑아 성공하면 오프라인도 성공으로 읽는다(추출 파일이 실패 표시보다 먼저다)
     fake.fail[None] = PreprocessingFailure('INVALID_IDENTITY_OUTPUT')
     with pytest.raises(pb.WorldFailed, match='INVALID_IDENTITY_OUTPUT'):
         pb.build_world({**WORK, 'id': 'other'}, tmp_path, 'm1')
