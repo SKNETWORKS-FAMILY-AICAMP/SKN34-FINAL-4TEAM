@@ -34,10 +34,10 @@ services:
     expose:
       - "8000"
 
-  # 회차 원고 전처리 Celery 워커. ai-service와 같은 이미지·환경(Content 콜백 주소·내부 토큰·OpenAI·Langfuse)으로 큐의 작업을 한 번에 하나씩 실행한다.
+  # 회차 원고 전처리 Celery 워커. ai-service와 같은 이미지·환경을 쓰며 동시 작업 수는 AI_PREPROCESSING_CONCURRENCY가 정한다.
   ai-worker:
     init: true
-    command: [celery, -A, app.preprocessing.worker, worker, -Q, preprocessing, --concurrency=1, --loglevel=INFO]
+    command: [celery, -A, app.preprocessing.worker, worker, -Q, preprocessing, "--concurrency=${AI_PREPROCESSING_CONCURRENCY:-3}", --loglevel=INFO]
     environment: *ai-environment
 
   # 작업 Celery 워커(회귀 평가·운영 정기 작업, 계약 operations-funnel-credit-contract §4). ai-service와 같은 이미지·환경으로 jobs 큐의 작업을

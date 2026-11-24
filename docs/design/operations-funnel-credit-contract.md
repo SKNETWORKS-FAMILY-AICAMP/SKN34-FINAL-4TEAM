@@ -97,7 +97,7 @@ Content `GET /internal/v1/operations/funnel`(운영 서비스 토큰 체인, 파
 
 ## 4. 작업 실행을 Celery로 이관 (리팩터링, 2026-11-20 사용자 결정)
 
-원고 전처리(`preprocessing.run`, `ai-worker` `-Q preprocessing` 동시성 1)는 **그대로 둔다**. 그 밖의 작업 실행을 같은 Celery·브로커(`rabbitmq`)로 옮기고, 실행 기록은 지금처럼 작업 감시(`/admin?tab=jobs`)에서 본다.
+원고 전처리는 별도 워커와 큐(`ai-worker`, `-Q preprocessing`)를 사용한다. 그 밖의 작업 실행을 같은 Celery·브로커(`rabbitmq`)로 옮기고, 실행 기록은 지금처럼 작업 감시(`/admin?tab=jobs`)에서 본다.
 
 - **새 워커 `ai-jobs-worker`:** ai-service와 같은 이미지, `celery … worker -Q jobs --concurrency=${AI_JOBS_CONCURRENCY:-4}`(기본 4개 병렬). Celery 앱 설정(acks_late·prefetch 1·결과 저장 없음)은 전처리와 같은 값을 쓰되 전처리 태스크·큐는 건드리지 않는다.
 - **회귀 평가:** AI `POST /internal/v1/evaluations`는 `BackgroundTasks` 대신 태스크 `evaluation.run`(큐 `jobs`)을 올리고 지금처럼 202 `{runName}`. 재시작해도 큐에 남아 이어 실행된다.
