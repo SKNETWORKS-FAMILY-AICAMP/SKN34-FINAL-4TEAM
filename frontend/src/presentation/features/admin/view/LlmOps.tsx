@@ -13,6 +13,7 @@ import { AgentMetrics } from './AgentMetrics'
 import { LlmAlerts } from './LlmAlerts'
 import { AgentEvaluations, AlertRules, LeakSampleRate, Models, Prompts } from './LlmOpsManage'
 import { PromptDetail } from './PromptLoop'
+import { PromptName } from './PromptName'
 import { formText } from './formValue'
 import { LiveState, Pager, Table } from './OperationsPanels'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
@@ -197,7 +198,7 @@ function TraceDetailPanel({ vm, l }: { vm: VM; l: LlmVM }) {
                     <span className={`chip ${o.level === 'ERROR' ? 'bad' : ''}`}>{o.level}</span>
                     {o.statusMessage && <div className="small">{o.statusMessage}</div>}
                   </td>
-                  <td>{o.promptName ? `${o.promptName} v${o.promptVersion ?? '?'}` : '—'}</td>
+                  <td>{o.promptName ? <><PromptName code={o.promptName} /> v{o.promptVersion ?? '?'}</> : '—'}</td>
                 </tr>
               ))}
             </tbody>

@@ -1,13 +1,17 @@
 import type { JobRun, JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
+import type { DatasetItem, EvalDataset } from '../../domain/entities/llmDatasets'
 import { CANDIDATE_REQUIRED_MESSAGE, versionAction } from '../../domain/entities/llmOps'
+import { AGENT_EVALUATIONS, pairedPrompt, setItems } from '../../domain/entities/llmOpsEvalTable'
 import type {
   Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, MetricRow, Metrics, MetricsQuery, Model, ModelInput, OptimizationInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
 import type { PipelineNode, PipelineRecord, PipelineRecordQuery } from '../../domain/entities/llmOpsPipeline'
+import { PROMPT_NAMES, promptLabel } from '../../domain/entities/promptNames'
 import { OperationsError, OperationsRejected, type OperationsPage } from '../../domain/entities/operations'
 import type { Alert, AlertRule, AlertRuleInput, AlertStatus } from '../../domain/entities/operationsAlert'
 import type { Dashboard } from '../../domain/entities/operationsDashboard'
 import type { JobMonitorRepository } from '../../domain/repositories/JobMonitorRepository'
+import type { LlmDatasetRepository } from '../../domain/repositories/LlmDatasetRepository'
 import type { LlmOpsRepository } from '../../domain/repositories/LlmOpsRepository'
 import type { OperationsDashboardRepository } from '../../domain/repositories/OperationsDashboardRepository'
 
@@ -66,19 +70,26 @@ const flowNode = (id: string, label: string, next: string[], count: number, erro
 const PIPELINE: PipelineNode[] = [
   flowNode('request', '집필 AI 요청', ['guard'], 52, 0, 6200),
   flowNode('guard', 'Decision Guard', ['main'], 104, 1, 820, ['decision_guard.judge']),
-  flowNode('main', '메인 에이전트', ['qa', 'manuscript_review', 'rating', 'research', 'writing', 'world', 'character_simulation', 'mcp'], 71, 1, 5400, ['main-agent']),
-  flowNode('qa', '작품 질문', ['main'], 30, 1, 3100, ['qa-answer']),
-  flowNode('manuscript_review', '원고 검수', ['main'], 9, 0, 7700),
-  flowNode('rating', '심의 등급', ['main'], 3, 0, 2800),
-  flowNode('research', '고증 조사', ['main'], 4, 0, 6100),
-  flowNode('writing', '기획·집필·수정', ['apply', 'main'], 14, 0, 9800, ['writing-assist']),
-  flowNode('world', '세계관', ['apply', 'main'], 6, 0, 4200),
-  flowNode('character_simulation', '인물 시뮬레이션', ['apply', 'novelbrain', 'main'], 2, 0, 12000),
+  flowNode('main', '메인 에이전트', ['qa', 'manuscript_review', 'rating', 'research', 'writing', 'world', 'character_simulation', 'mcp'], 71, 1, 5400, ['orchestration.main']),
+  flowNode('qa', '작품 질문', ['main'], 30, 1, 3100, ['story_context.answer']),
+  flowNode('manuscript_review', '원고 검수', ['main'], 9, 0, 7700, ['manuscript_review.mechanical', 'manuscript_review.semantic']),
+  flowNode('rating', '심의 등급', ['main'], 3, 0, 2800, ['rating.assess']),
+  flowNode('research', '고증 조사', ['main'], 4, 0, 6100, ['research.pick', 'research.refer', 'web_research.search']),
+  flowNode('writing', '기획·집필·수정', ['apply', 'main'], 14, 0, 9800, ['writing_editing.plan', 'writing_editing.plan_pick', 'writing_editing.plan_revise']),
+  flowNode('world', '세계관', ['apply', 'main'], 6, 0, 4200, ['world_review.check', 'world_review.enrich', 'world_review.impact']),
+  flowNode('character_simulation', '인물 시뮬레이션', ['apply', 'novelbrain', 'main'], 2, 0, 12000, [
+    'character_simulation.act', 'character_simulation.check', 'character_simulation.direct', 'character_simulation.narrate', 'character_simulation.plan',
+  ]),
   flowNode('novelbrain', 'NovelBrain 기억 회상', [], 18, 0, 410),
   flowNode('mcp', 'Content MCP 도구', [], 23, 1, 640),
   flowNode('apply', '작가 승인 반영', ['mcp'], 11, 0, 900),
-  ...([['proposals', '전개 제안'], ['initial_world', '초기 세계관 분석'], ['manuscript_extraction', '원고 설정 추출'], ['work_tags', '장르·키워드 추천'], ['world_review', '설정집 검토'], ['rating_direct', '심의 등급(단독)'], ['writing_editing', '새 원고·부분 수정']] as const)
-    .map(([id, label]): PipelineNode => ({ ...flowNode(id, label, [], 5), standalone: true })),
+  // 단독 기능도 그 기능이 쓰는 프롬프트가 연결됩니다(없는 노드는 '프롬프트 보기' 버튼이 없습니다).
+  ...([
+    ['proposals', '전개 제안', ['proposals.continue']], ['initial_world', '초기 세계관 분석', ['initial_world.extract']], ['manuscript_extraction', '원고 설정 추출', ['manuscript_extraction.extract', 'manuscript_extraction.resolve']],
+    ['work_tags', '장르·키워드 추천', ['work_tags.suggest']], ['world_review', '설정집 검토', ['world_review.check']], ['rating_direct', '심의 등급(단독)', ['rating.assess']],
+    ['writing_editing', '새 원고·부분 수정', ['writing_editing.draft', 'writing_editing.patch']],
+  ] as const)
+    .map(([id, label, promptNames]): PipelineNode => ({ ...flowNode(id, label, [], 5, 0, null, [...promptNames]), standalone: true })),
 ]
 const entry = (id: string, traceId: string, name: string, minutes: number, extra: Partial<PipelineRecord> = {}): PipelineRecord => ({ id, traceId, name, type: 'SPAN', startTime: ago(minutes), latencyMs: 600, level: 'DEFAULT', ...extra })
 /** 노드별 기록 예시(최신순). 추적 id는 데모 추적(trace-1~4)이라 실행 흐름 보기도 열립니다. Guard의 거절은 수준이 아니라 출력의 allowed=false입니다. */
@@ -91,13 +102,22 @@ const PIPELINE_RECORDS: Record<string, PipelineRecord[]> = {
   ],
   main: [
     entry('main-1', 'trace-1', 'main_agent', 5, {
-      type: 'GENERATION', model: 'gpt-demo', promptName: 'main-agent', promptVersion: 1, latencyMs: 2100, input: [{ role: 'user', content: '세계수의 비밀을 알려줘' }],
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'orchestration.main', promptVersion: 1, latencyMs: 2100, input: [{ role: 'user', content: '세계수의 비밀을 알려줘' }],
       output: { text: '스토리 Q&A로 조회할게요.', toolCalls: [{ name: 'ask_story_qa', args: { request: '세계수의 비밀' } }] },
     }),
-    entry('main-2', 'trace-4', 'main_agent', 180, { type: 'GENERATION', model: 'gpt-demo', promptName: 'main-agent', promptVersion: 1, latencyMs: 1700, output: { text: '조회 결과를 정리했어요.', toolCalls: [] } }),
+    entry('main-2', 'trace-4', 'main_agent', 180, { type: 'GENERATION', model: 'gpt-demo', promptName: 'orchestration.main', promptVersion: 1, latencyMs: 1700, output: { text: '조회 결과를 정리했어요.', toolCalls: [] } }),
     // 메인이 실행하지 않고 돌려보낸 도구 호출: level은 DEFAULT이고 이름은 input, 이유는 output에 남는다.
     entry('main-3', 'trace-2', 'main_agent.blocked', 40, { input: { name: 'ask_writing' }, output: { reason: '이번 요청에서 노출되지 않은 도구예요.' } }),
-    entry('main-4', 'trace-3', 'main_agent', 95, { type: 'GENERATION', model: 'gpt-demo', promptName: 'main-agent', promptVersion: 1, latencyMs: 30000, level: 'ERROR', statusMessage: '모델 응답 실패(예시)' }),
+    entry('main-4', 'trace-3', 'main_agent', 95, { type: 'GENERATION', model: 'gpt-demo', promptName: 'orchestration.main', promptVersion: 1, latencyMs: 30000, level: 'ERROR', statusMessage: '모델 응답 실패(예시)' }),
+  ],
+  // 인물 시뮬레이션: 생성 기록에 프롬프트·버전·모델이 남는다. 모델을 고르지 않은 버전은 환경 설정의 기본 모델로 돌아(인물 대사는 따로 정한 모델) 이 기록이 '기본 모델 · 최근 사용'의 근거가 된다.
+  character_simulation: [
+    entry('character_simulation-1', 'trace-1', 'simulation.act', 12, {
+      type: 'GENERATION', model: 'gpt-demo-mini', promptName: 'character_simulation.act', promptVersion: 1, latencyMs: 4200, input: [{ role: 'user', content: '카엘의 다음 대사를 써 줘' }], output: { text: '"세계수가 시들면 이 숲도 끝이야."' },
+    }),
+    entry('character_simulation-2', 'trace-1', 'simulation.narrate', 13, {
+      type: 'GENERATION', model: 'gpt-demo', promptName: 'character_simulation.narrate', promptVersion: 1, latencyMs: 3100, input: [{ role: 'user', content: '장면의 나레이션을 이어 써 줘' }], output: { text: '숲 위로 바람이 지나갔다.' },
+    }),
   ],
   // NovelBrain 기억 회상(novelbrain.recall): 출력의 recalled가 인물이 그 시점에 떠올린 근거다. 카드 항목은 제목이 있고 관계·원고 항목은 ref와 점수뿐이다(본문은 남기지 않는다).
   novelbrain: [
@@ -110,6 +130,14 @@ const PIPELINE_RECORDS: Record<string, PipelineRecord[]> = {
 }
 const recordsOf = (node: PipelineNode): PipelineRecord[] => PIPELINE_RECORDS[node.id]
   ?? [entry(`${node.id}-1`, 'trace-1', `step.${node.id}`, 8, { latencyMs: 900, input: { request: '예시 입력' }, output: '예시 출력' }), ...(node.errors ? [entry(`${node.id}-2`, 'trace-2', `step.${node.id}`, 60, { level: 'ERROR', statusMessage: '단계 실패(예시)' })] : [])]
+
+/** AI 서비스가 기동 때 등록하는 나머지 프롬프트(코드 시드 버전 1): 파이프라인 노드의 '프롬프트 보기'가 모두 열리도록 이름만 있는 예시 본문으로 채웁니다(#857). */
+const withSeeds = (rows: Omit<Prompt, 'candidates'>[]): Omit<Prompt, 'candidates'>[] => [
+  ...rows,
+  ...[...PROMPT_NAMES.keys()].filter((name) => !rows.some((row) => row.name === name)).map((name) => ({
+    name, versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: `${promptLabel(name)} 호출에 쓰는 지시문(시연용 예시 본문)입니다.` }],
+  })),
+]
 
 const featureRow = (key: string, requests: number, failureRate: number | null, timeoutRate: number | null, p50: number | null, p95: number | null, tokens: [number, number], costPlatform: number): MetricRow => ({
   key, requests, failureRate, timeoutRate, p50LatencyMs: p50, p95LatencyMs: p95, inputTokens: tokens[0], outputTokens: tokens[1], costUser: 0, costPlatform,
@@ -131,7 +159,7 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     trace('trace-1', 'orchestration', 'success', 5, 1840, 0.0042), trace('trace-2', 'writing_editing', 'failed', 40, 920, 0.0011),
     trace('trace-3', 'manuscript_review', 'timeout', 95, 30000, 0.0087), trace('trace-4', 'orchestration', 'success', 180, 1620, 0.0039),
   ]
-  private readonly prompts_: Omit<Prompt, 'candidates'>[] = [
+  private readonly prompts_: Omit<Prompt, 'candidates'>[] = withSeeds([
     { name: 'qa-answer', versions: [
       { version: 3, labels: ['seed'], createdAt: ago(300), evaluation: { runId: 'run-2', passed: false, createdAt: ago(240) }, model: 'gpt-demo', prompt: '근거가 있는 내용만 답하고 근거를 함께 보여 주세요.' },
       { version: 2, labels: ['production'], createdAt: ago(4000), evaluation: { runId: 'run-1', passed: true, createdAt: ago(3900) }, model: 'gpt-demo', prompt: '근거가 있는 내용만 답하세요.' },
@@ -145,10 +173,10 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
       { version: 4, labels: [], createdAt: ago(60), evaluation: { runId: 'run-act-4', passed: true, createdAt: ago(30) }, model: 'gpt-demo', commitMessage: '자동 개선(GEPA) · 기준 1번 버전', prompt: '인물의 말투와 의도를 지키고, 아직 모르는 사실은 말하지 마세요. 짧게 한 줄로 답하세요.' },
       { version: 3, labels: [], createdAt: ago(300), evaluation: { runId: 'run-act-3', passed: false, createdAt: ago(240) }, model: 'gpt-demo', commitMessage: '말투 지침 강화', prompt: '인물의 말투를 최대한 살려 길게 말하세요.' },
       { version: 2, labels: ['candidate-2'], createdAt: ago(1500), evaluation: { runId: 'run-act-2', passed: true, createdAt: ago(1400) }, model: 'gpt-demo', commitMessage: '의도 지침 추가', prompt: '인물의 말투와 의도를 지켜 말하세요.' },
-      { version: 1, labels: ['production', 'seed'], createdAt: ago(9000), evaluation: { runId: 'run-act-1', passed: true, createdAt: ago(8800) }, model: 'gpt-demo', prompt: '인물로서 다음 대사를 말하세요.' },
+      { version: 1, labels: ['production', 'seed'], createdAt: ago(9000), evaluation: { runId: 'run-act-1', passed: true, createdAt: ago(8800) }, prompt: '인물로서 다음 대사를 말하세요.' },
     ] },
     { name: 'character_simulation.narrate', evaluationDataset: 'simulation.narrate', versions: [
-      { version: 1, labels: ['production', 'seed'], createdAt: ago(9000), evaluation: { runId: 'run-narrate-1', passed: true, createdAt: ago(200) }, model: 'gpt-demo', prompt: '장면의 나레이션을 원작의 문체로 이어 쓰세요.' },
+      { version: 1, labels: ['production', 'seed'], createdAt: ago(9000), evaluation: { runId: 'run-narrate-1', passed: true, createdAt: ago(200) }, prompt: '장면의 나레이션을 원작의 문체로 이어 쓰세요.' },
     ] },
     { name: 'story_context.answer', evaluationDataset: 'qa.grounding', versions: [
       { version: 1, labels: ['production', 'seed'], createdAt: ago(9000), evaluation: { runId: 'run-qa-1', passed: true, createdAt: ago(120) }, model: 'gpt-demo', prompt: '근거가 있는 내용만 답하고 근거를 함께 보여 주세요.' },
@@ -158,7 +186,7 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     { name: 'orchestration.main', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '작가의 요청을 분석해 알맞은 업무 에이전트에 맡기세요.' }] },
     { name: 'web_research.search', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '고증에 필요한 자료를 웹에서 찾아 출처와 함께 정리하세요.' }] },
     { name: 'rating.assess', versions: [{ version: 1, labels: ['production', 'seed'], createdAt: ago(9000), prompt: '원고의 심의 등급을 판정하고 근거를 적으세요.' }] },
-  ]
+  ])
   private readonly modelRows: Model[] = [
     { id: 'model-1', modelName: 'gpt-demo', matchPattern: '(?i)^gpt-demo$', inputPrice: 0.0000025, outputPrice: 0.00001 },
     { id: 'model-2', modelName: 'embed-demo', matchPattern: '(?i)^embed-demo$', inputPrice: 0.0000001, outputPrice: 0 },
@@ -209,7 +237,7 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
         { id: `${id}-1`, name: 'retrieve', type: 'SPAN', startTime: row.timestamp, endTime: row.timestamp, latencyMs: 210, level: 'DEFAULT', input: { question: '세계수의 비밀은 무엇인가요?' }, output: { passages: 2 }, metadata: { source: 'story_context' } },
         {
           id: `${id}-2`, parentObservationId: `${id}-1`, name: 'generate', type: 'GENERATION', startTime: row.timestamp, endTime: row.timestamp, latencyMs: row.latencyMs, model: 'gpt-demo', inputTokens: 1200, outputTokens: 340,
-          level: failed ? 'ERROR' : 'DEFAULT', statusMessage: failed ? '모델 응답 실패(예시)' : null, promptName: 'qa-answer', promptVersion: 2,
+          level: failed ? 'ERROR' : 'DEFAULT', statusMessage: failed ? '모델 응답 실패(예시)' : null, promptName: 'story_context.answer', promptVersion: 1,
           input: [{ role: 'user', content: '세계수의 비밀은 무엇인가요?' }], output: failed ? null : '아직 공개되지 않은 설정이라 말씀드릴 수 없어요.', metadata: { turn: 1 },
         },
       ],
@@ -270,6 +298,34 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
   async updateAlertRule(key: string, input: AlertRuleInput) { Object.assign(found(this.ruleRows.find((rule) => rule.key === key)), input, { updatedAt: new Date().toISOString() }) }
   async settings() { return { ...this.setting } }
   async updateSettings(settings: LlmOpsSettings) { this.setting = { ...settings } }
+}
+
+/** 평가 데이터셋 예시(#857, 서버 API 예정): 저장소의 7개 세트를 에이전트별 평가 표의 문항 수에 맞춘 예시 문항으로 보이고, 올린 문항은 메모리에만 쌓이며 새로 고치면 사라집니다. */
+const demoItems = (name: string, count: number): DatasetItem[] => Array.from({ length: count }, (_, i) => {
+  const n = String(i + 1).padStart(2, '0')
+  return { id: `${name}-${n}`, input: { 예시: `${name} 문항 ${n}의 입력(시연용 예시 문장)` }, expectedOutput: `${name} 문항 ${n}의 기대 답변(시연용)`, metadata: { source: '시연용 예시' } }
+})
+const SEED_SOURCE = '저장소 시드(ai-eval-seed)'
+
+export class InMemoryLlmDatasetRepository implements LlmDatasetRepository {
+  private readonly sets = new Map<string, { source: string; items: DatasetItem[] }>(
+    AGENT_EVALUATIONS.flatMap((row) => (row.dataset ? [[row.dataset, { source: SEED_SOURCE, items: demoItems(row.dataset, setItems(row) ?? 0) }] as const] : [])),
+  )
+
+  async datasets(): Promise<EvalDataset[]> {
+    return [...this.sets].map(([name, { source, items }]) => ({ name, prompt: pairedPrompt(name), items: items.length, source })).sort((a, b) => a.name.localeCompare(b.name))
+  }
+  async items(name: string) { return structuredClone(found(this.sets.get(name)).items) }
+  /** 서버가 Langfuse 항목을 id로 upsert하듯 같은 id는 덮어쓰고 새 id는 뒤에 붙입니다. */
+  async upload(name: string, fileName: string, items: DatasetItem[]) {
+    const set = this.sets.get(name) ?? { source: `업로드 · ${fileName}`, items: [] }
+    for (const item of items) {
+      const at = set.items.findIndex((row) => row.id === item.id)
+      if (at < 0) set.items.push(item)
+      else set.items[at] = item
+    }
+    this.sets.set(name, set)
+  }
 }
 
 export class InMemoryJobMonitorRepository implements JobMonitorRepository {

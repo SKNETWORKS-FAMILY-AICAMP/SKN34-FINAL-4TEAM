@@ -42,20 +42,20 @@ it('에이전트 지표 쪽의 보기는 sub로 정하고 없거나 모르는 �
   expect(METRICS_SUBS.map(([sub]) => metricsSubHref(sub))).toEqual(['/admin?tab=llm', '/admin?tab=llm&sub=traces'])
 })
 
-it('프롬프트·평가 쪽의 보기는 sub로 정하고 없거나 모르는 값은 에이전트별 평가(입구)이며, 입구만 sub 없는 주소다(#857, DEC-58의 전체는 AI 파이프라인)', () => {
-  expect(PROMPT_SUBS.map(([sub, label]) => [sub, label])).toEqual([['evals', '에이전트별 평가'], ['prompts', '프롬프트'], ['models', '모델'], ['all', 'AI 파이프라인']])
-  expect(['prompts', 'models', 'all'].map(promptSub)).toEqual(['prompts', 'models', 'all'])
-  expect([null, '', 'evals', 'nope', 'PROMPTS'].map(promptSub)).toEqual(['evals', 'evals', 'evals', 'evals', 'evals'])
+it('프롬프트·평가 쪽의 보기는 sub로 정하고 없거나 모르는 값은 전체(AI 파이프라인)이며, 전체만 sub 없는 주소다(#857: 전체가 가장 왼쪽·기본 보기, 에이전트별 평가는 그 뒤)', () => {
+  expect(PROMPT_SUBS.map(([sub, label]) => [sub, label])).toEqual([['all', '전체(AI 파이프라인)'], ['evals', '에이전트별 평가'], ['prompts', '프롬프트'], ['models', '모델']])
+  expect(['evals', 'prompts', 'models'].map(promptSub)).toEqual(['evals', 'prompts', 'models'])
+  expect([null, '', 'all', 'nope', 'PROMPTS'].map(promptSub)).toEqual(['all', 'all', 'all', 'all', 'all'])
   expect(PROMPT_SUBS.map(([sub]) => promptSubHref(sub))).toEqual([
-    '/admin?tab=llm&view=prompts', '/admin?tab=llm&view=prompts&sub=prompts', '/admin?tab=llm&view=prompts&sub=models', '/admin?tab=llm&view=prompts&sub=all',
+    '/admin?tab=llm&view=prompts', '/admin?tab=llm&view=prompts&sub=evals', '/admin?tab=llm&view=prompts&sub=prompts', '/admin?tab=llm&view=prompts&sub=models',
   ])
 })
 
 it('로그인 복귀는 sub도 알려진 값만 보존하고(프롬프트·평가·에이전트 지표 쪽만), 다른 쪽이나 모르는 값의 sub는 버린다', () => {
   expect(adminReturnPath('?tab=llm&view=prompts&sub=models')).toBe('/admin?tab=llm&view=prompts&sub=models')
   expect(adminReturnPath('?tab=llm&view=prompts&sub=prompts')).toBe('/admin?tab=llm&view=prompts&sub=prompts')
-  expect(adminReturnPath('?tab=llm&view=prompts&sub=all')).toBe('/admin?tab=llm&view=prompts&sub=all')
-  expect(adminReturnPath('?tab=llm&view=prompts&sub=evals')).toBe('/admin?tab=llm&view=prompts')
+  expect(adminReturnPath('?tab=llm&view=prompts&sub=evals')).toBe('/admin?tab=llm&view=prompts&sub=evals')
+  expect(adminReturnPath('?tab=llm&view=prompts&sub=all')).toBe('/admin?tab=llm&view=prompts')
   expect(adminReturnPath('?tab=llm&view=prompts&sub=https://example.invalid')).toBe('/admin?tab=llm&view=prompts')
   expect(adminReturnPath('?tab=llm&view=quality&sub=models')).toBe('/admin?tab=llm&view=prompts&sub=models')
   expect(adminReturnPath('?tab=llm&sub=traces')).toBe('/admin?tab=llm&sub=traces')

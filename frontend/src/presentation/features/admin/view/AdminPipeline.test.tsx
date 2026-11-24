@@ -16,14 +16,15 @@ import { AdminPage } from './AdminPage'
 vi.mock('react-force-graph-2d', () => ({ default: () => null }))
 afterEach(() => { cleanup(); vi.restoreAllMocks(); document.title = 'STORYFORK' })
 
-// AI 파이프라인은 프롬프트·평가 쪽의 보기(sub=all)다(#857: 쪽의 첫 보기는 에이전트별 평가라 주소에 sub=all을 붙인다).
-const renderPipeline = (query = '&sub=all') => render(
+// AI 파이프라인은 프롬프트·평가 쪽의 첫 보기(전체)라 sub가 없어도 열린다(#857: 전체가 가장 왼쪽·기본 보기).
+const renderPipeline = (query = '') => render(
   <Provider store={createAppStore({ role: 'admin' })}>
     <MemoryRouter initialEntries={[`/admin?tab=llm&view=prompts${query}`]} useTransitions={false}><AdminPage /></MemoryRouter>
   </Provider>,
 )
 const llm = () => appContainer.resolve('llmOpsUseCase')
-const pick = async (name: RegExp | string) => { fireEvent.click(await screen.findByRole('button', { name })) }
+// 노드 버튼은 이름이 노드 이름으로 시작한다(같은 이름을 품은 '프롬프트 보기' 버튼과 겹치지 않게 시작을 고정한다).
+const pick = async (label: string) => { fireEvent.click(await screen.findByRole('button', { name: new RegExp(`^${label}`) })) }
 const panel = (node: string) => screen.findByRole('region', { name: `${node} 기록` })
 const table = async (node: string) => within(await screen.findByRole('region', { name: `${node} 기록 표` }))
 const dataRows = (t: ReturnType<typeof within>) => t.getAllByRole('row').slice(1)
@@ -34,12 +35,12 @@ const openRowMenu = (row: HTMLElement) => {
   return within(screen.getByRole('menu'))
 }
 
-it('AI 파이프라인은 프롬프트·평가 쪽의 보기(sub=all)이고, 보기 전환 링크로 에이전트별 평가·프롬프트·모델을 오간다', async () => {
+it('AI 파이프라인(전체)은 프롬프트·평가 쪽의 가장 왼쪽·기본 보기이고, 보기 전환 링크로 에이전트별 평가·프롬프트·모델을 오간다', async () => {
   renderPipeline()
   const views = within(await screen.findByRole('navigation', { name: '프롬프트·평가 보기' }))
   expect(views.getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href'), link.getAttribute('aria-current')])).toEqual([
-    ['에이전트별 평가', '/admin?tab=llm&view=prompts', null], ['프롬프트', '/admin?tab=llm&view=prompts&sub=prompts', null],
-    ['모델', '/admin?tab=llm&view=prompts&sub=models', null], ['AI 파이프라인', '/admin?tab=llm&view=prompts&sub=all', 'page'],
+    ['전체(AI 파이프라인)', '/admin?tab=llm&view=prompts', 'page'], ['에이전트별 평가', '/admin?tab=llm&view=prompts&sub=evals', null],
+    ['프롬프트', '/admin?tab=llm&view=prompts&sub=prompts', null], ['모델', '/admin?tab=llm&view=prompts&sub=models', null],
   ])
   await screen.findByRole('region', { name: 'AI 파이프라인' })
   fireEvent.click(views.getByRole('link', { name: '프롬프트' }))
@@ -57,8 +58,9 @@ it('노드는 캔버스 아래 버튼 목록(요청 흐름·단독 기능)으로
   renderPipeline()
   const flow = within(await screen.findByRole('group', { name: '요청 흐름' }))
   const solo = within(screen.getByRole('group', { name: '단독 기능' }))
-  expect([flow.getAllByRole('button').length, solo.getAllByRole('button').length]).toEqual([13, 7])
-  const guard = flow.getByRole('button', { name: /Decision Guard/ })
+  const nodeButtons = (group: ReturnType<typeof within>) => group.getAllByRole('button').filter((button: HTMLElement) => button.classList.contains('pipe-node'))
+  expect([nodeButtons(flow).length, nodeButtons(solo).length]).toEqual([13, 7])
+  const guard = flow.getByRole('button', { name: /^Decision Guard/ })
   within(guard).getByText('104건 · 오류 1건')
   expect(guard.className).toContain('bad')
   expect(flow.getByRole('button', { name: /^집필 AI 요청/ }).className).not.toContain('bad')
@@ -68,14 +70,15 @@ it('노드는 캔버스 아래 버튼 목록(요청 흐름·단독 기능)으로
 
 it('노드를 고르면 기록 패널이 열려 제목으로 초점이 가고, 닫으면 눌렀던 노드 버튼으로 돌아온다', async () => {
   renderPipeline()
-  const button = await screen.findByRole('button', { name: /Decision Guard/ })
+  const button = await screen.findByRole('button', { name: /^Decision Guard/ })
   fireEvent.click(button)
   const records = await panel('Decision Guard')
   await waitFor(() => expect(document.activeElement).toBe(within(records).getByRole('heading', { name: 'Decision Guard 기록' })))
   // 기록 패널은 캔버스·노드 버튼 아래에 쌓인다(옆에 두면 표가 넘쳤다).
   expect([...document.querySelector('.pipe-body')!.children].map((el) => el.className)).toEqual(['pipe-diagram', 'pipe-records'])
   expect(button.getAttribute('aria-current')).toBe('true')
-  within(records).getByText(/p95 지연 820ms · 프롬프트 decision_guard\.judge/)
+  within(records).getByText(/p95 지연 820ms · 프롬프트 Decision Guard · 요청 판정\(judge\)/)
+  expect(records.querySelector('p.muted small.prompt-code')?.textContent).toBe('decision_guard.judge')   // 코드는 작은 보조 글씨
   fireEvent.click(within(records).getByRole('button', { name: '기록 닫기' }))
   await waitFor(() => expect(screen.queryByRole('region', { name: 'Decision Guard 기록' })).toBeNull())
   await waitFor(() => expect(document.activeElement).toBe(button))
@@ -84,7 +87,7 @@ it('노드를 고르면 기록 패널이 열려 제목으로 초점이 가고, �
 
 it('Guard 기록은 결과 칸에 허용·거절과 이유·기능을, 오류는 위험 표시로 보인다', async () => {
   renderPipeline()
-  await pick(/Decision Guard/)
+  await pick('Decision Guard')
   const rows = await table('Decision Guard')
   expect(dataRows(rows)).toHaveLength(4)
   expect(rows.getByText('허용').closest('td')!.textContent).toContain('기능 작품 질문') // 기능 코드(story_context)가 아니라 집필 채팅과 같은 표시 이름
@@ -97,7 +100,7 @@ it('Guard 기록은 결과 칸에 허용·거절과 이유·기능을, 오류는
 it('결과 필터: Guard는 서버에 level을 보내지 않고 받은 쪽에서 가려 다시 읽지 않고, 다른 노드는 level로 서버에 다시 묻는다', async () => {
   const records = vi.spyOn(llm(), 'pipelineRecords')
   renderPipeline()
-  await pick(/Decision Guard/)
+  await pick('Decision Guard')
   const guard = await panel('Decision Guard')
   await table('Decision Guard')
   const reads = records.mock.calls.length
@@ -107,7 +110,7 @@ it('결과 필터: Guard는 서버에 level을 보내지 않고 받은 쪽에서
   await waitFor(async () => expect(dataRows(await table('Decision Guard'))).toHaveLength(2)) // 허용 + 통과(생성 기록)
   expect(records.mock.calls.length).toBe(reads)
   expect(records.mock.calls.every(([query]) => query.level === '')).toBe(true)
-  await pick(/작품 질문/)
+  await pick('작품 질문')
   const qa = await panel('작품 질문')
   fireEvent.change(within(qa).getByLabelText('결과'), { target: { value: 'ERROR' } })
   await waitFor(() => expect(records.mock.calls.at(-1)![0]).toMatchObject({ nodeId: 'qa', level: 'ERROR', page: 0 }))
@@ -116,7 +119,7 @@ it('결과 필터: Guard는 서버에 level을 보내지 않고 받은 쪽에서
 
 it('기록 한 줄을 펼치면 입력·출력·메타데이터를, 메인 에이전트는 도구 호출(이름·인자)까지 그대로 보인다', async () => {
   renderPipeline()
-  await pick(/메인 에이전트/)
+  await pick('메인 에이전트')
   await table('메인 에이전트')
   const toggle = () => document.querySelector<HTMLButtonElement>('.pipe-records button.pipe-toggle')!
   expect(toggle().getAttribute('aria-expanded')).toBe('false')
@@ -135,7 +138,7 @@ it('기록 한 줄을 펼치면 입력·출력·메타데이터를, 메인 에�
 
 it('Guard 기록의 펼침은 메타데이터를 판정 근거로 이름 붙인다', async () => {
   renderPipeline()
-  await pick(/Decision Guard/)
+  await pick('Decision Guard')
   await table('Decision Guard')
   fireEvent.click(document.querySelector<HTMLButtonElement>('.pipe-records button.pipe-toggle')!)
   within(document.querySelector<HTMLElement>('.pipe-detail')!).getByText('판정 근거(메타데이터)')
@@ -143,7 +146,7 @@ it('Guard 기록의 펼침은 메타데이터를 판정 근거로 이름 붙인�
 
 it('실행 흐름 보기는 그 기록이 속한 작업의 observation을 부모 아래 자식으로 들여 쓴 트리로 보이고, 단계마다 입력·출력을 펼친다', async () => {
   renderPipeline()
-  await pick(/메인 에이전트/)
+  await pick('메인 에이전트')
   const rows = await table('메인 에이전트')
   fireEvent.click(openRowMenu(dataRows(rows)[0]).getByRole('menuitem', { name: '실행 흐름 보기' }))
   const flow = await screen.findByRole('region', { name: '실행 흐름' })
@@ -158,11 +161,11 @@ it('실행 흐름 보기는 그 기록이 속한 작업의 observation을 부모
 
 it('프롬프트 보기는 그 노드의 프롬프트 상세(프롬프트 보기 sub)로 옮겨 열고, 상세가 열린 동안은 보기 전환을 숨긴다', async () => {
   renderPipeline()
-  await pick(/Decision Guard/)
+  await pick('Decision Guard')
   const rows = await table('Decision Guard')
   fireEvent.click(openRowMenu(dataRows(rows)[0]).getByRole('menuitem', { name: '프롬프트 보기' }))
   const detail = await screen.findByLabelText('프롬프트 상세')
-  await within(detail).findByRole('heading', { name: 'decision_guard.judge' })
+  await within(detail).findByRole('heading', { name: /^Decision Guard · 요청 판정\(judge\) decision_guard\.judge$/ })
   expect(screen.queryByRole('navigation', { name: '프롬프트·평가 보기' })).toBeNull()
   expect(screen.queryByRole('region', { name: 'AI 파이프라인' })).toBeNull()
   fireEvent.click(within(detail).getByRole('button', { name: '프롬프트 목록으로' }))
@@ -170,10 +173,73 @@ it('프롬프트 보기는 그 노드의 프롬프트 상세(프롬프트 보기
   expect(views.getByRole('link', { name: '프롬프트' }).getAttribute('aria-current')).toBe('page')
 })
 
+it('프롬프트가 연결된 노드는 노드 버튼 목록에 \'프롬프트 보기\'가 있다: 하나면 버튼, 여럿이면 목록 메뉴, 없으면 버튼이 없고, 고르면 그 프롬프트의 상세(개선 루프)를 연다(#857)', async () => {
+  renderPipeline()
+  const flow = within(await screen.findByRole('group', { name: '요청 흐름' }))
+  const solo = within(screen.getByRole('group', { name: '단독 기능' }))
+  // 프롬프트가 없는 노드(요청·NovelBrain·MCP·승인 반영)에는 버튼이 없다.
+  for (const label of ['집필 AI 요청', 'NovelBrain 기억 회상', 'Content MCP 도구', '작가 승인 반영']) expect(flow.queryByRole('button', { name: new RegExp(`^프롬프트 보기 · ${label}`) }), label).toBeNull()
+  // 하나: 버튼(이름에 노드와 한국어 프롬프트 이름). 노드를 고르는 버튼과 따로다.
+  const guard = flow.getByRole('button', { name: '프롬프트 보기 · Decision Guard · Decision Guard · 요청 판정(judge)' })
+  expect(guard.textContent).toBe('프롬프트 보기')
+  expect(guard.getAttribute('aria-haspopup')).toBeNull()
+  // 여럿: 목록 메뉴(항목은 프롬프트마다 한국어 이름).
+  expect(flow.queryByRole('button', { name: '프롬프트 보기 · 인물 시뮬레이션 · 인물 시뮬레이션 · 인물 대사(act)' })).toBeNull()
+  fireEvent.click(flow.getByRole('button', { name: '프롬프트 보기 · 인물 시뮬레이션' }))
+  const menu = within(screen.getByRole('menu', { name: '프롬프트 보기 · 인물 시뮬레이션' }))
+  expect(menu.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+    '인물 시뮬레이션 · 인물 대사(act)', '인물 시뮬레이션 · 문단 검사(check)', '인물 시뮬레이션 · 장면 연출(direct)', '인물 시뮬레이션 · 나레이션·독백(narrate)', '인물 시뮬레이션 · 시뮬레이션 계획(plan)',
+  ])
+  fireEvent.click(menu.getByRole('menuitem', { name: '인물 시뮬레이션 · 인물 대사(act)' }))
+  const detail = await screen.findByLabelText('프롬프트 상세')
+  await within(detail).findByRole('heading', { name: /^인물 시뮬레이션 · 인물 대사\(act\) character_simulation\.act$/ })
+  expect(screen.queryByRole('region', { name: 'AI 파이프라인' })).toBeNull()
+  cleanup()
+  // 단독 기능 노드도 같다(한 프롬프트 노드는 버튼, 둘인 노드는 메뉴).
+  renderPipeline()
+  const soloNow = within(await screen.findByRole('group', { name: '단독 기능' }))
+  fireEvent.click(soloNow.getByRole('button', { name: '프롬프트 보기 · 전개 제안 · 이어쓰기 제안 · 다음 문단 제안(continue)' }))
+  await within(await screen.findByLabelText('프롬프트 상세')).findByRole('heading', { name: /다음 문단 제안\(continue\)/ })
+  expect(solo).toBeTruthy()
+})
+
+it('프롬프트 연결이 없는 노드의 기록 머리글은 프롬프트 없음이고, 있는 노드는 한국어 이름(작은 코드)을 / 로 이어 보인다(#857)', async () => {
+  renderPipeline()
+  await pick('Content MCP 도구')
+  within(await panel('Content MCP 도구')).getByText(/p95 지연 640ms · 프롬프트 없음/)
+  await pick('작품 질문')
+  const qa = within(await panel('작품 질문'))
+  qa.getByText(/프롬프트 Q&A · 작품 질문 답변\(answer\)/)
+  await pick('원고 검수')
+  const review = within(await panel('원고 검수'))
+  review.getByText(/프롬프트 Manuscript Review · 수치·표기·맞춤법 검수\(mechanical\) \/ Manuscript Review · 설정 충돌·인과 검수\(semantic\)/)
+})
+
+it('기록 표의 프롬프트 칸은 한국어 이름(작은 코드)과 버전이고, 기록 줄 메뉴의 프롬프트 보기도 한국어 이름을 쓴다(#857)', async () => {
+  renderPipeline()
+  await pick('Decision Guard')
+  const rows = dataRows(await table('Decision Guard'))
+  const generation = rows.find((row: HTMLElement) => row.textContent?.includes('decision_guard.generation')) as HTMLElement
+  expect(within(generation).getAllByRole('cell')[5].textContent).toBe('Decision Guard · 요청 판정(judge) decision_guard.judge v1')
+  // 기록에 프롬프트가 있으면 그 하나만 대상이라 이름 없이 '프롬프트 보기'이고, 기록에 없어 노드의 프롬프트가 여럿이면 프롬프트마다 항목을 둔다.
+  cleanup()
+  renderPipeline()
+  await pick('인물 시뮬레이션')
+  const sim = dataRows(await table('인물 시뮬레이션'))
+  expect(openRowMenu(sim[0]).getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['실행 흐름 보기', '프롬프트 보기'])
+  cleanup()
+  renderPipeline()
+  await pick('세계관')
+  const world = dataRows(await table('세계관'))
+  expect(openRowMenu(world[0]).getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+    '실행 흐름 보기', '프롬프트 보기 · World · 설정집 오류 검토(check)', '프롬프트 보기 · World · 설정집 보강(enrich)', '프롬프트 보기 · World · 설정 변경 영향 분석(impact)',
+  ])
+})
+
 it('조회 권한(llm)이 없으면(403) 파이프라인도 노드 기록도 다시 불러오기 없이 권한 안내만 보인다', async () => {
   vi.spyOn(llm(), 'pipelineRecords').mockResolvedValue(null)
   renderPipeline()
-  await pick(/Decision Guard/)
+  await pick('Decision Guard')
   const guard = await panel('Decision Guard')
   await within(guard).findByText(LLM_FORBIDDEN)
   expect(within(guard).queryByRole('table')).toBeNull()
@@ -211,11 +277,11 @@ it('기록은 20건씩 쪽을 넘기며 읽고, 다른 노드를 고르면 첫 �
   const item = (id: string): PipelineRecord => ({ id, traceId: 'trace-1', name: 'decision_guard', type: 'SPAN', startTime: '2026-11-21T01:00:00Z', latencyMs: 100, level: 'DEFAULT' })
   const records = vi.spyOn(llm(), 'pipelineRecords').mockResolvedValue({ items: [item('a'), item('b')], page: 0, size: 20, total: 45, unavailable: [] })
   renderPipeline()
-  await pick(/Decision Guard/)
+  await pick('Decision Guard')
   await screen.findByText(/전체 45건 · 1\/3쪽/)
   fireEvent.click(screen.getByRole('button', { name: '다음' }))
   await waitFor(() => expect(records.mock.calls.at(-1)![0]).toMatchObject({ nodeId: 'guard', page: 1 }))
-  await pick(/메인 에이전트/)
+  await pick('메인 에이전트')
   await waitFor(() => expect(records.mock.calls.at(-1)![0]).toMatchObject({ nodeId: 'main', page: 0 }))
 })
 
@@ -223,7 +289,7 @@ it('서버는 기록을 최신 1,000건까지만 주므로 그 밖의 쪽으로�
   const item: PipelineRecord = { id: 'a', traceId: 'trace-1', name: 'decision_guard', type: 'SPAN', startTime: '2026-11-21T01:00:00Z', latencyMs: 100, level: 'DEFAULT' }
   vi.spyOn(llm(), 'pipelineRecords').mockResolvedValue({ items: [item], page: 49, size: 20, total: 3000, unavailable: [] })
   renderPipeline()
-  await pick(/Decision Guard/)
+  await pick('Decision Guard')
   await screen.findByText(/전체 3,000건 · 50\/50쪽/)
   expect((screen.getByRole('button', { name: '다음' }) as HTMLButtonElement).disabled).toBe(true)
   screen.getByText(/최신 1,000건까지만 볼 수 있어요/)
@@ -232,9 +298,9 @@ it('서버는 기록을 최신 1,000건까지만 주므로 그 밖의 쪽으로�
 it('NovelBrain 기억 회상 노드는 인물 시뮬레이션 바로 뒤에 이어지고, 기록을 펼치면 회상한 기억(recalled)의 제목 목록을 보인다', async () => {
   renderPipeline()
   const flow = within(await screen.findByRole('group', { name: '요청 흐름' }))
-  const labels = flow.getAllByRole('button').map((button) => button.querySelector('b')?.textContent)
+  const labels = flow.getAllByRole('button').filter((button) => button.classList.contains('pipe-node')).map((button) => button.querySelector('b')?.textContent)
   expect(labels.indexOf('NovelBrain 기억 회상')).toBe(labels.indexOf('인물 시뮬레이션') + 1)
-  await pick(/NovelBrain 기억 회상/)
+  await pick('NovelBrain 기억 회상')
   await table('NovelBrain 기억 회상')
   fireEvent.click(document.querySelector<HTMLButtonElement>('.pipe-records button.pipe-toggle')!)
   const detail = within(document.querySelector<HTMLElement>('.pipe-detail')!)
@@ -260,7 +326,7 @@ it('지연은 같은 밀리초 안에 끝난 기록(0)을 1ms 미만으로, 종�
     ],
   })
   renderPipeline()
-  await pick(/NovelBrain 기억 회상/)
+  await pick('NovelBrain 기억 회상')
   const rows = dataRows(await table('NovelBrain 기억 회상'))
   expect(rows.map((row: HTMLElement) => within(row).getAllByRole('cell')[3].textContent)).toEqual(['1ms 미만', '—', '250ms'])
   fireEvent.click(openRowMenu(rows[0]).getByRole('menuitem', { name: '실행 흐름 보기' }))

@@ -6,7 +6,8 @@ import { InMemoryAdminActivityRepository } from '../data/mock/InMemoryAdminActiv
 import { InMemoryCardCategoryRepository, InMemoryOperationsCardCategoryRepository } from '../data/mock/InMemoryCardCategoryRepositories'
 import { InMemoryEventRepository } from '../data/mock/InMemoryEventRepository'
 import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../data/mock/InMemoryGenreRepositories'
-import { InMemoryJobMonitorRepository, InMemoryLlmOpsRepository, InMemoryOperationsDashboardRepository } from '../data/mock/InMemoryLlmOpsRepositories'
+import { InMemoryJobMonitorRepository, InMemoryLlmDatasetRepository, InMemoryLlmOpsRepository, InMemoryOperationsDashboardRepository } from '../data/mock/InMemoryLlmOpsRepositories'
+import { LlmDatasetUseCase } from '../domain/usecases/LlmDatasetUseCase'
 import { InMemoryNoticeRepository } from '../data/mock/InMemoryNoticeRepository'
 import { InMemoryOperationsCommentRepository } from '../data/mock/InMemoryOperationsCommentRepository'
 import { InMemoryOperationsWorkRepository } from '../data/mock/InMemoryOperationsWorkRepository'
@@ -46,6 +47,7 @@ export function createFixtureContainer() {
     adminActivityRepository: asValue(new InMemoryAdminActivityRepository(db)),
     operationsDashboardRepository: asValue(new InMemoryOperationsDashboardRepository()),
     llmOpsRepository: asValue(new InMemoryLlmOpsRepository()),
+    llmDatasetUseCase: asValue(new LlmDatasetUseCase(new InMemoryLlmDatasetRepository())),
     jobMonitorRepository: asValue(new InMemoryJobMonitorRepository()),
     publicWorldRepository: asValue(new InMemoryPublicWorldRepository()),
     // 정본 작품이 없는 격리 컨테이너라 제보 목록은 비어 있고, 제보 화면을 확인하는 테스트는 저장소 메서드를 spyOn으로 바꾼다.

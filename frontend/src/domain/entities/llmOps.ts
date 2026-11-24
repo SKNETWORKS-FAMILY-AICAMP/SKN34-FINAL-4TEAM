@@ -2,6 +2,8 @@
  * LLMOps 화면 값(DEC-55). 정본은 Langfuse이고 운영 서비스가 중계합니다.
  * 비어 올 수 있는 값은 `?: T | null`이며, 화면은 비어 있음을 0으로 바꾸지 않습니다.
  */
+import type { PipelineRecord } from './llmOpsPipeline'
+
 export type TraceItem = {
   id: string; timestamp: string; feature: string
   /** success | failed | timeout. 새 값이 생겨도 받을 수 있게 문자열로 둡니다. */
@@ -142,8 +144,26 @@ export function pendingSeed(p: Prompt) {
   const seed = p.versions.find((v) => v.labels.includes('seed'))
   return seed && !seed.labels.includes('production') ? seed : null
 }
-/** 버전에 모델을 고르지 않으면 AI 서비스의 환경 변수 기본 모델(OPENAI_MODEL, 인물 대사는 SIMULATION_ACT_MODEL)로 돌아 이름을 단정하지 않습니다(#808). */
-export const modelLabel = (model: string | null | undefined) => model ?? '기본 모델(환경 설정)'
+/**
+ * 버전에 모델을 고르지 않으면 AI 서비스의 환경 변수 기본 모델(OPENAI_MODEL, 인물 대사는 SIMULATION_ACT_MODEL)로 돌아 프론트가 이름을 알 수 없습니다(#808).
+ * 파이프라인 기록에서 실제로 쓰인 모델을 찾았다면(recentDefaultModel) '기본 모델 · 최근 사용 …'으로 근거와 함께 보이고, 못 찾았으면 이름을 지어내지 않습니다(#857).
+ */
+export const modelLabel = (model: string | null | undefined, recent?: Pick<RecentModel, 'model'> | null) => model ?? (recent ? `기본 모델 · 최근 사용 ${recent.model}` : '기본 모델(환경 설정)')
+
+/** 기본 모델로 도는 버전이 파이프라인 기록에 남긴 가장 최근 모델과 그 버전·시각. */
+export type RecentModel = { model: string; version: number; at: string | null }
+/**
+ * '기본 모델 · 최근 사용 …'의 근거(#857): 모델을 고르지 않은 버전(= 환경 설정의 기본 모델로 도는 버전)이 파이프라인 기록에 남긴 가장 최근 모델입니다.
+ * 기록의 프롬프트 이름·버전·모델이 모두 있고, 그 버전이 이 프롬프트에 있으며 모델이 정해지지 않은 버전일 때만 씁니다(모델을 고른 버전의 기록은 기본 모델이 아니고, 목록 응답처럼
+ * 버전이 모자라 모르는 버전의 기록도 단정하지 않습니다). 목록 순서를 믿지 않고 시작 시각으로 고르며 근거가 없으면 null입니다.
+ */
+export function recentDefaultModel(prompt: Prompt, records: PipelineRecord[]): RecentModel | null {
+  const unpinned = new Set(prompt.versions.filter((v) => !v.model).map((v) => v.version))
+  const time = (at: string | null) => (at ? Date.parse(at) : -Infinity)
+  return records
+    .flatMap((r): RecentModel[] => (r.promptName === prompt.name && r.model && r.promptVersion != null && unpinned.has(r.promptVersion) ? [{ model: r.model, version: r.promptVersion, at: r.startTime ?? null }] : []))
+    .reduce<RecentModel | null>((latest, r) => (!latest || time(r.at) > time(latest.at) ? r : latest), null)
+}
 /** Decisions API(gpt-6-luna만 지원)로 부르는 프롬프트: 버전에 모델을 골라도 AI 서비스가 쓰지 않습니다. */
 const FIXED_MODEL_PROMPTS = new Set(['decision_guard.judge', 'character_simulation.direct'])
 export const fixedModel = (name: string) => FIXED_MODEL_PROMPTS.has(name)

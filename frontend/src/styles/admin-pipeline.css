@@ -56,3 +56,17 @@
 .adm .admin-pipeline .pipe-step p { margin: 4px 0 0; }
 .adm .admin-pipeline .pipe-step details { margin-top: 4px; }
 .adm .admin-pipeline .pipe-step summary { color: var(--sub); font-size: 13px; cursor: pointer; }
+
+/* 파이프라인 노드의 '프롬프트 보기'(#857, NodePromptLink): 캔버스 노드 위 오른쪽 가장자리에 얹은 작은 칩과 노드 버튼 목록 안 노드 아래의 글자 링크가 같은 부품이다. */
+.adm .admin-pipeline .pipe-canvas-wrap { position: relative; }
+.adm .admin-pipeline .pipe-node-links { position: absolute; top: 1px; left: 1px; pointer-events: none; }
+.adm .admin-pipeline .pipe-node-link { position: absolute; pointer-events: auto; }   /* transform을 쓰지 않는다: 쓰면 안쪽 메뉴(fixed)의 기준 칸이 이 자리로 바뀐다 */
+.adm .admin-pipeline .pipe-prompt-link { display: inline-flex; align-items: center; min-height: 20px; padding: 0 8px; border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--pri-ink); font: inherit; font-size: 11px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.adm .admin-pipeline .pipe-prompt-link:hover { border-color: var(--pri); }
+.adm .admin-pipeline .pipe-nodes li { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.adm .admin-pipeline .pipe-nodes .pipe-prompt-link { min-height: 24px; padding: 0 4px; border: 0; background: none; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+@media (pointer: coarse) { .adm .admin-pipeline .pipe-nodes .pipe-prompt-link { min-height: 44px; } }
+/* 프롬프트가 여럿인 노드는 목록 메뉴다: 트리거는 글자 칩이고(행 메뉴의 36px 원형 버튼 규칙을 덮는다), 목록은 이름이 길어 줄을 바꾼다. */
+.adm .row-menu.pipe-prompt-menu .pop-menu-btn { width: auto; height: auto; border-radius: 999px; color: inherit; }
+.adm .row-menu.pipe-prompt-menu .pop-menu-btn:hover, .adm .row-menu.pipe-prompt-menu .pop-menu-btn[aria-expanded="true"] { background: none; }
+.adm .pipe-prompt-menu .pop-menu-list [role="menuitem"] { height: auto; padding-top: 8px; padding-bottom: 8px; white-space: normal; }

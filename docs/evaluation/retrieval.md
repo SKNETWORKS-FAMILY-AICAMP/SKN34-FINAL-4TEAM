@@ -20,7 +20,7 @@
 
 ### 1.1 LLMOps 화면의 에이전트별 평가 표
 
-LLMOps 화면 '프롬프트·평가'의 입구(첫 보기) '에이전트별 평가' 표와 같은 목록이다(프런트 `frontend/src/domain/entities/llmOpsEvalTable.ts`. 이 표를 고치면 그 상수도 고치고, 둘이 같은지 `llmOpsEvalTable.test.ts`가 본다).
+LLMOps 화면 '프롬프트·평가'의 보기 '에이전트별 평가'(`&sub=evals`) 표와 같은 목록이다(화면의 행 이름은 프롬프트가 정해진 행이면 `evaluationName`이 그 프롬프트의 한국어 이름으로 바꿔 보이고, 이 표는 상수의 '에이전트 · 기능' 칸을 그대로 둔다)(프런트 `frontend/src/domain/entities/llmOpsEvalTable.ts`. 이 표를 고치면 그 상수도 고치고, 둘이 같은지 `llmOpsEvalTable.test.ts`가 본다).
 에이전트마다 쓰는 평가 세트·지표가 다르다. 세트가 없는 에이전트도 숨기지 않고 '평가 세트 없음(후속)'으로 보인다. '최근 Run'은 화면이 평가 목록(최근 50건)에서 그 세트의 가장 최근 Run을 찾아 통과·미통과와 Run 상세로 보이는 칸이다.
 
 | 에이전트 · 기능 | 모드 | 평가 세트(항목 수) | 지표 | 최근 결과 |
@@ -31,7 +31,7 @@ LLMOps 화면 '프롬프트·평가'의 입구(첫 보기) '에이전트별 평�
 | Q&A · 비공개 설정 누설(Fork 응답) | 새 답변 생성 | `leak.spoiler`(5) | GEval 누설 점수 | 최근 Run |
 | Q&A · 설정·관계 발췌(`world_excerpts`) | 원문 검색 | 한국어 62문항(설정 14·누설 62) | Recall@8 · MRR@8 · 비공개 설정 누설 | 버튼 없음 · CI에서 확인 — setting Recall@8 1.00 · MRR@8 0.92, 누설 0건 |
 | Q&A · 원고 벡터 검색(Content) | 원문 검색 | 평가 세트 없음(후속) | — | — |
-| Manuscript Review · `manuscript_review.*` | — | 평가 세트 없음(후속) | — | — |
+| Manuscript Review · 원고 검수(`manuscript_review.*`) | — | 평가 세트 없음(후속) | — | — |
 | World · 설정 충돌 지적 | 새 답변 생성 | `world.conflict`(5) | GEval(항목별 기준문) | 최근 Run |
 | Writing · 집필 교정 | 새 답변 생성 | `writing.fix`(5) | GEval(항목별 기준문) | 최근 Run |
 | Research · `web_research.search` | — | 평가 세트 없음(후속) | — | — |

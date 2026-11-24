@@ -1,10 +1,11 @@
 import { useState } from 'react'
 
 import {
-  LLM_FORBIDDEN, OPTIMIZATION_DEFAULT_CALLS, OPTIMIZATION_MAX_CALLS, estimatedCalls, evaluationStatusLabel, itemReason, itemWaiting, modelLabel, passTone, passedLabel, pendingSeed, perMillion,
-  productionOf, type Evaluation, type EvaluationItem, type Prompt,
+  LLM_FORBIDDEN, OPTIMIZATION_DEFAULT_CALLS, OPTIMIZATION_MAX_CALLS, estimatedCalls, evaluationStatusLabel, itemReason, itemWaiting, passTone, passedLabel, pendingSeed, perMillion,
+  productionOf, recentDefaultModel, type Evaluation, type EvaluationItem, type Prompt,
 } from '../../../../domain/entities/llmOps'
-import { AGENT_EVALUATIONS, latestRun, pairSets, promptRuns } from '../../../../domain/entities/llmOpsEvalTable'
+import { AGENT_EVALUATIONS, evaluationName, latestRun, pairSets, promptRuns } from '../../../../domain/entities/llmOpsEvalTable'
+import { promptLabel } from '../../../../domain/entities/promptNames'
 import { alertRuleLabel, type AlertRule } from '../../../../domain/entities/operationsAlert'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
@@ -12,17 +13,20 @@ import { PopMenu } from '../../../shared/PopMenu'
 import { EvaluationChart } from './AdminCharts'
 import type { LlmVM, VM } from './LlmOps'
 import { formNumber, formText } from './formValue'
+import { ModelLabel } from './ModelLabel'
 import { ActionLines, LiveState, Table } from './OperationsPanels'
+import { PromptName } from './PromptName'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
 
 type Props = { vm: VM; l: LlmVM }
 
 /**
- * 프롬프트 목록(#705): 모든 LLM 호출의 프롬프트를 표로 보이고, 이름을 누르면 그 프롬프트의 개선 루프(PromptLoop의 프롬프트 상세, #857)가 열립니다.
+ * 프롬프트 목록(#705): 모든 LLM 호출의 프롬프트를 표로 보이고, 이름(한국어 표시 이름 + 작은 코드, #857)을 누르면 그 프롬프트의 개선 루프(PromptLoop의 프롬프트 상세)가 열립니다.
+ * 모델 칸은 고른 모델이 없으면 파이프라인 기록에서 찾은 '기본 모델 · 최근 사용 …'(근거가 없으면 '기본 모델(환경 설정)')입니다.
  * 회귀 평가·지표는 평가 세트가 있는 프롬프트(#787)만 후보 등록에 통과가 필요하고 나머지는 선택입니다. 변경 조치는 모두 활동 로그에 남습니다.
  */
 export function Prompts({ vm, l }: Props) {
-  const rows = l.prompts.data
+  const rows = l.prompts.data, pool = l.recent.data
   return (
     <section className="panel admin-operations" aria-label="프롬프트">
       <LiveState vm={vm} label="프롬프트 목록" state={l.prompts} forbidden={LLM_FORBIDDEN} />
@@ -41,11 +45,12 @@ export function Prompts({ vm, l }: Props) {
             <tbody>
               {[...rows].sort((a, b) => a.name.localeCompare(b.name)).map((row) => {
                 const current = productionOf(row), pending = pendingSeed(row), candidates = row.candidates
+                const recent = current && !current.model && pool ? recentDefaultModel(row, pool) : null
                 return (
                   <tr key={row.name}>
-                    <td><button type="button" className="admin-prompt-name" data-record-id={row.name} onClick={() => l.openPrompt(row.name)}>{row.name}</button></td>
+                    <td><button type="button" className="admin-prompt-name" data-record-id={row.name} onClick={() => l.openPrompt(row.name)}><PromptName code={row.name} /></button></td>
                     <td className="admin-num">{current ? `${current.version}번 버전` : '없음'}</td>
-                    <td>{current ? modelLabel(current.model) : '—'}</td>
+                    <td>{current ? <ModelLabel model={current.model} recent={recent} /> : '—'}</td>
                     <td className="admin-num">{candidates ? `${candidates}개` : '—'}</td>
                     <td>{pending ? <span className="chip wait">코드 시드 {pending.version}번 버전 대기</span> : '—'}</td>
                   </tr>
@@ -206,7 +211,7 @@ export function AgentEvaluations({ vm, l }: Props) {
       <Table label="에이전트별 평가 표">
         <thead>
           <tr>
-            <th scope="col">에이전트</th>
+            <th scope="col">에이전트 · 평가하는 호출</th>
             <th scope="col">평가 모드</th>
             <th scope="col">평가 세트(항목 수)</th>
             <th scope="col">지표</th>
@@ -220,10 +225,9 @@ export function AgentEvaluations({ vm, l }: Props) {
             return (
               <tr key={`${row.agent}|${row.feature}`}>
                 <td>
-                  {row.agent}
-                  <div className="small muted">
-                    {prompt ? <button type="button" className="admin-prompt-name" aria-label={`${prompt} 프롬프트 열기`} onClick={() => l.openPrompt(prompt)}>{row.feature}</button> : row.feature}
-                  </div>
+                  {prompt
+                    ? <button type="button" className="admin-prompt-name" aria-label={`${promptLabel(prompt)} 프롬프트 열기`} onClick={() => l.openPrompt(prompt)}><PromptName code={prompt} /></button>
+                    : evaluationName(row)}
                 </td>
                 <td>{row.mode}</td>
                 <td>{row.set}</td>
@@ -231,7 +235,7 @@ export function AgentEvaluations({ vm, l }: Props) {
                 <td>
                   {!row.dataset ? row.result : !rows ? '—' : !latest ? '실행한 평가 없음' : (
                     <>
-                      {evaluationChip(latest)} <span className="small muted">{latest.prompt} {latest.version}번 버전 · {kstDateTime(latest.createdAt)}</span>{' '}
+                      {evaluationChip(latest)} <span className="small muted"><PromptName code={latest.prompt} /> {latest.version}번 버전 · {kstDateTime(latest.createdAt)}</span>{' '}
                       <button type="button" className="btn sm" aria-label={`「${latest.dataset} 최근 평가 ${latest.runId}」 Run 상세`} onClick={() => l.openPrompt(latest.prompt, 'eval', latest.runId)}>Run 상세</button>
                     </>
                   )}
@@ -242,7 +246,7 @@ export function AgentEvaluations({ vm, l }: Props) {
         </tbody>
       </Table>
       <p className="admin-note">
-        프롬프트 이름을 누르면 그 프롬프트의 개선 루프(프롬프트 → 평가 세트 → 평가 → 자동 개선 → 게이트 → 서비스 반영)가 열려요. 새 답변 생성은 프롬프트 상세의 평가 단계에서 실행하고
+        행 이름(한국어 이름과 작은 코드)을 누르면 그 프롬프트의 개선 루프(프롬프트 → 평가 세트 → 평가 → 자동 개선 → 게이트 → 서비스 반영)가 열려요. 새 답변 생성은 프롬프트 상세의 평가 단계에서 실행하고
         (범용 세트 leak.spoiler·world.conflict·writing.fix도 어느 프롬프트에서든 데이터셋 이름을 골라 돌려요), 원문 검색은 고정 원문의 검색 순위만 채점하는 CI 평가라 실행 버튼이 없어요(수치는 docs/evaluation/retrieval.md).
         최근 Run은 평가 목록(최근 50건) 안에서 찾아요.
       </p>
@@ -265,7 +269,7 @@ export function Evaluations({ vm, l, p }: Props & { p: Prompt }) {
         <LiveState vm={vm} label="평가 지표 목록" state={l.evaluation} forbidden={LLM_FORBIDDEN} />
         {e && (
           <>
-            <h3 tabIndex={-1}>{e.dataset} · {e.prompt} {e.version}번 버전</h3>
+            <h3 tabIndex={-1}>{e.dataset} · <PromptName code={e.prompt} /> {e.version}번 버전</h3>
             <p>{evaluationChip(e)} <span className="small muted">{kstDateTime(e.createdAt)} · 실행 {e.runId}</span></p>
             {e.metrics.length > 0 && <EvaluationChart metrics={e.metrics} />}
             {e.metrics.length
@@ -320,7 +324,7 @@ export function Evaluations({ vm, l, p }: Props & { p: Prompt }) {
               {rows.map((row) => (
                 <tr key={row.runId}>
                   <td>{row.dataset}</td>
-                  <td>{row.prompt} {row.version}번 버전</td>
+                  <td><PromptName code={row.prompt} /> {row.version}번 버전</td>
                   <td>{evaluationChip(row)}</td>
                   <td className="admin-date">{kstDateTime(row.createdAt)}</td>
                   <td className="act-menu" data-record-id={row.runId}>

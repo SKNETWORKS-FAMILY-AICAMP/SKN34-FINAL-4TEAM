@@ -263,5 +263,5 @@ export function recalledTitles(record: Pick<PipelineRecord, 'output' | 'metadata
   })
 }
 
-/** 프롬프트 보기 대상: 그 기록의 프롬프트이고, 기록에 없으면 노드에 연결된 프롬프트입니다. */
-export const promptTargets = (node: Pick<PipelineNode, 'promptNames'>, record: Pick<PipelineRecord, 'promptName'>) => (record.promptName ? [record.promptName] : node.promptNames)
+/** 프롬프트 보기 대상: 그 기록의 프롬프트이고, 기록이 없거나 기록에 없으면 노드에 연결된 프롬프트입니다(노드 자체의 '프롬프트 보기'는 기록 없이 부릅니다, #857). */
+export const promptTargets = (node: Pick<PipelineNode, 'promptNames'>, record?: Pick<PipelineRecord, 'promptName'>) => (record?.promptName ? [record.promptName] : node.promptNames)

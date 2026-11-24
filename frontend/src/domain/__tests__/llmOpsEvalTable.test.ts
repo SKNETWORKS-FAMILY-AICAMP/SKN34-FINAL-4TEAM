@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import type { Evaluation } from '../entities/llmOps'
-import { AGENT_EVALUATIONS, NO_SET, RECENT_RUN, latestRun, pairSets, promptRuns, setItems } from '../entities/llmOpsEvalTable'
+import { AGENT_EVALUATIONS, NO_SET, RECENT_RUN, evaluationName, latestRun, pairSets, pairedPrompt, promptRuns, setItems } from '../entities/llmOpsEvalTable'
+import { promptLabel } from '../entities/promptNames'
 
 const run = (runId: string, dataset: string, createdAt: string): Evaluation => ({ runId, dataset, prompt: 'p', version: 1, status: 'completed', passed: true, createdAt, metrics: [] })
 
@@ -90,5 +91,17 @@ describe('프롬프트 개선 루프의 짝 평가 세트(#857)', () => {
     // 짝 세트가 없는 프롬프트는 그 프롬프트로 돌린 Run만 보인다.
     expect(promptRuns('world_review.check', rows).map((e) => e.runId)).toEqual(['d'])
     expect(promptRuns('nope', rows)).toEqual([])
+  })
+
+  it('행 이름은 프롬프트가 정해진 행이면 그 프롬프트의 한국어 이름(에이전트 이름으로 시작), 아니면 에이전트 · 기능이고, 모든 행의 이름이 다르다(#857)', () => {
+    const names = AGENT_EVALUATIONS.map(evaluationName)
+    expect(new Set(names).size).toBe(names.length)
+    for (const row of AGENT_EVALUATIONS.filter((r) => r.prompt)) expect([evaluationName(row), evaluationName(row).startsWith(row.agent + ' · ')], row.feature).toEqual([promptLabel(row.prompt!), true])
+    expect(names).toEqual(expect.arrayContaining(['인물 시뮬레이션 · 인물 대사(act)', '인물 시뮬레이션 · 나레이션·독백(narrate)', 'World · 설정 충돌 지적', 'Manuscript Review · 원고 검수(manuscript_review.*)']))
+  })
+
+  it('pairedPrompt는 세트의 짝 프롬프트를 주고, 범용 세트·모르는 세트는 없음이다(데이터셋 목록의 짝 프롬프트 칸)', () => {
+    expect(['simulation.act', 'simulation.narrate', 'qa.grounding', 'extraction.extract'].map(pairedPrompt)).toEqual(['character_simulation.act', 'character_simulation.narrate', 'story_context.answer', 'manuscript_extraction.extract'])
+    expect(['leak.spoiler', 'world.conflict', 'writing.fix', 'my-upload'].map(pairedPrompt)).toEqual([null, null, null, null])
   })
 })

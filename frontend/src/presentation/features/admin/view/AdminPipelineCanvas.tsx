@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import ForceGraph2D, { type ForceGraphMethods } from 'react-force-graph-2d'
 
 import { NODE_HEIGHT, NODE_WIDTH, layoutPipeline, linkCurve, nodeStats, pipelineSummary, type PipelineNode, type PlacedNode } from '../../../../domain/entities/llmOpsPipeline'
@@ -9,6 +9,8 @@ type GraphLink = { source: string | GraphNode; target: string | GraphNode; back:
 type Palette = { ink: string; sub: string; line: string; surface: string; danger: string; pri: string; font: string }
 
 const PAD = 24
+/** 이보다 작게 줄어든 캔버스에서는 노드 위 부품(프롬프트 보기)이 노드보다 커져 서로 겹치므로 얹지 않는다(노드 버튼 목록에 같은 부품이 있다). 칩은 약 78px, 노드는 132 × 비율이다. */
+const LINK_MIN_SCALE = 0.6
 const FALLBACK: Palette = { ink: '#191A1F', sub: '#5F6370', line: '#DEE2E6', surface: '#FFFFFF', danger: '#B42318', pri: '#6D4AE0', font: 'system-ui, sans-serif' }
 
 /** 캔버스는 CSS 변수를 못 읽으므로, 그릴 때마다 호스트에 계산된 테마 토큰(밝은·어두운 테마 값)을 글자로 읽는다. */
@@ -27,8 +29,10 @@ function readPalette(el: Element | null): Palette {
  * 이름·건수·오류 수를 상자에 직접 그리고(오류가 있으면 위험 색, 고른 노드는 주 색 테두리) 선은 앞 노드 오른쪽에서 다음 노드 왼쪽으로 잇는다. 결과를 메인에 돌려주는
  * 되돌아가는 선(업무 Agent→메인)은 같은 길의 선과 겹치지 않게 비켜 점선으로 따로 그리고, 업무 Agent 묶음 라벨(읽기·검토·작성)은 선·노드 아래에 글자로 그린다.
  * 캔버스는 보조라 role="img" 요약만 갖고, 같은 노드를 키보드로 고르는 버튼 목록은 화면이 캔버스 아래에 둔다. ResizeObserver가 없는 jsdom에서는 크기를 못 재 틀(role="img")만 그린다.
+ * nodeLink가 있으면 그 노드 위(상자 위 오른쪽 가장자리)에 눌러 쓰는 부품(프롬프트 보기, #857)을 HTML로 얹는다. role="img"의 자식은 보조 기술에 안 읽히므로 캔버스 바깥 형제 자리에 두고,
+ * 위치는 배치 좌표와 확대 비율(scale)로 계산한다(원점이 캔버스 가운데, 아래·오른쪽 끝 기준). 부품이 없는 노드(null)는 자리도 만들지 않고, 비율이 LINK_MIN_SCALE보다 작으면(좁은 화면) 겹치지 않게 아예 얹지 않는다.
  */
-export default function AdminPipelineCanvas({ nodes, selected, onSelect }: { nodes: PipelineNode[]; selected: string | null; onSelect: (id: string) => void }) {
+export default function AdminPipelineCanvas({ nodes, selected, onSelect, nodeLink }: { nodes: PipelineNode[]; selected: string | null; onSelect: (id: string) => void; nodeLink?: (node: PipelineNode) => ReactNode }) {
   const host = useRef<HTMLDivElement>(null)
   const graph = useRef<ForceGraphMethods<GraphNode, GraphLink>>(undefined)
   const palette = useRef(FALLBACK)
@@ -104,6 +108,7 @@ export default function AdminPipelineCanvas({ nodes, selected, onSelect }: { nod
   }
 
   return (
+    <div className="pipe-canvas-wrap">
     <div ref={host} className="pipe-canvas" role="img" aria-label={pipelineSummary(nodes)} style={height ? { height } : undefined}>
       {width > 0 && (
         <ForceGraph2D<GraphNode, GraphLink>
@@ -116,6 +121,16 @@ export default function AdminPipelineCanvas({ nodes, selected, onSelect }: { nod
           onNodeClick={(node) => onSelect(node.id)}
         />
       )}
+    </div>
+    {nodeLink && width > 0 && scale >= LINK_MIN_SCALE && (
+      <div className="pipe-node-links" style={{ width, height }}>
+        {layout.nodes.map((n) => {
+          const link = nodeLink(n)
+          // transform으로 비키면 안쪽 메뉴(fixed)의 기준이 이 칸으로 바뀌어 어긋나므로 right·bottom으로 앉힌다(칩의 아래 끝이 상자 위 가장자리 5px 아래, 오른쪽 끝이 상자 오른쪽 끝 6px 안쪽).
+          return link && <div key={n.id} className="pipe-node-link" style={{ right: width / 2 - (n.x + NODE_WIDTH / 2) * scale + 6, bottom: height / 2 - (n.y - NODE_HEIGHT / 2) * scale - 5 }}>{link}</div>
+        })}
+      </div>
+    )}
     </div>
   )
 }

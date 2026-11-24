@@ -20,6 +20,7 @@ import { CREDIT_INSUFFICIENT_MESSAGE, CREDITS_FORBIDDEN, MEMBER_SEARCH_FORBIDDEN
 import type { OperationsComment } from '../../../../domain/entities/operationsComment'
 import type { OperationsFeedbackReport } from '../../../../domain/entities/operationsFeedbackReport'
 import type { OperationsWork } from '../../../../domain/entities/operationsWork'
+import { promptLabel } from '../../../../domain/entities/promptNames'
 import { AdminActivityUseCase } from '../../../../domain/usecases/AdminActivityUseCase'
 import { OperationsCommentUseCase } from '../../../../domain/usecases/OperationsCommentUseCase'
 import { OperationsGenreUseCase } from '../../../../domain/usecases/OperationsGenreUseCase'
@@ -826,15 +827,19 @@ it('에이전트 지표 카드는 기능마다 하나씩 요청 많은 순으로
   expect(screen.queryAllByRole('article')).toHaveLength(0)
 })
 
-it('LLM Ops 프롬프트·평가 쪽은 보기 전환(sub)에 따라 에이전트별 평가(입구)·프롬프트·모델·AI 파이프라인 중 하나만, 경고·누설 감시 쪽은 경고·경고 기준·누설 검사 기록·표본 비율을 쌓는다', async () => {
-  // sub가 없으면 에이전트별 평가가 입구이고, 프롬프트·모델·AI 파이프라인은 따로 보인다.
+it('LLM Ops 프롬프트·평가 쪽은 보기 전환(sub)에 따라 전체(AI 파이프라인, 가장 왼쪽·기본)·에이전트별 평가·프롬프트·모델 중 하나만, 경고·누설 감시 쪽은 경고·경고 기준·누설 검사 기록·표본 비율을 쌓는다', async () => {
+  // sub가 없으면 전체(AI 파이프라인)가 기본 보기이고, 에이전트별 평가(입구 표)·프롬프트·모델은 따로 보인다(#857).
   renderAdmin('llm', 'prompts')
-  await region('에이전트별 평가')
+  await region('AI 파이프라인')
   expect(links(screen.getByRole('navigation', { name: '프롬프트·평가 보기' }))).toEqual([
-    ['에이전트별 평가', '/admin?tab=llm&view=prompts', 'page'], ['프롬프트', '/admin?tab=llm&view=prompts&sub=prompts', null],
-    ['모델', '/admin?tab=llm&view=prompts&sub=models', null], ['AI 파이프라인', '/admin?tab=llm&view=prompts&sub=all', null],
+    ['전체(AI 파이프라인)', '/admin?tab=llm&view=prompts', 'page'], ['에이전트별 평가', '/admin?tab=llm&view=prompts&sub=evals', null],
+    ['프롬프트', '/admin?tab=llm&view=prompts&sub=prompts', null], ['모델', '/admin?tab=llm&view=prompts&sub=models', null],
   ])
   const others = (...names: string[]) => names.forEach((name) => expect(screen.queryByRole('region', { name }), name).toBeNull())
+  others('에이전트별 평가', '프롬프트', '모델 단가')
+  cleanup()
+  renderAdmin('llm', 'prompts&sub=evals')
+  await region('에이전트별 평가')
   others('프롬프트', '모델 단가', 'AI 파이프라인')
   cleanup()
   renderAdmin('llm', 'prompts&sub=prompts')
@@ -900,7 +905,7 @@ it('LLM Ops는 쪽을 옮기면 열어 둔 추적 상세를 닫아, 돌아오면
   expect(screen.queryByRole('region', { name: 'LLM 추적' })).toBeNull()
   expect(screen.queryByRole('navigation', { name: '에이전트 지표 보기' })).toBeNull()
   fireEvent.click(within(menu).getByRole('link', { name: '프롬프트·평가' }))
-  await region('에이전트별 평가')
+  await region('AI 파이프라인')
   fireEvent.click(within(menu).getByRole('link', { name: '에이전트 지표' }))
   await region('LLM 지표')
   expect(screen.queryByRole('region', { name: '추적 상세' })).toBeNull()
@@ -1387,7 +1392,7 @@ it('경고 기준 행은 값이 저장값과 다르면 저장 버튼 곁에 "저
 
 // 프롬프트 상세(개선 루프)를 입구(에이전트별 평가)의 이름 버튼으로 연다. 예시 프롬프트(character_simulation.act)는 네 버전·짝 세트 simulation.act·자동 개선 대상이다.
 const openLoop = async (prompt = 'character_simulation.act') => {
-  fireEvent.click(await screen.findByRole('button', { name: `${prompt} 프롬프트 열기` }))
+  fireEvent.click(await screen.findByRole('button', { name: `${promptLabel(prompt)} 프롬프트 열기` }))
   const detail = await region('프롬프트 상세')
   await within(detail).findByRole('navigation', { name: '프롬프트 개선 루프 단계' })
   return detail
@@ -1398,7 +1403,7 @@ const rowsOf = (table: HTMLElement) => [...table.querySelectorAll('tbody tr')].m
 
 it('회귀 평가 실행은 프롬프트를 상세의 프롬프트로 고정하고 데이터셋(짝 세트가 처음 들어 있음)과 버전(그 프롬프트의 버전 목록, 반영 중인 버전이 기본)만 받는다(#857)', async () => {
   const run = vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'runEvaluation').mockResolvedValue(undefined)
-  renderAdmin('llm', 'prompts')
+  renderAdmin('llm', 'prompts&sub=evals')
   const detail = await openLoop()
   fireEvent.click(stepOf(detail, '평가'))
   const form = await region('회귀 평가')
@@ -1418,34 +1423,40 @@ it('프롬프트·평가 쪽은 에이전트별 평가 표를 입구로 열어 �
   const newest = run('act-new', false, '2026-11-24T02:00:00Z')
   vi.spyOn(llm, 'evaluations').mockResolvedValue([run('act-old', true, '2026-11-20T02:00:00Z'), newest])
   vi.spyOn(llm, 'evaluation').mockResolvedValue(newest)
-  renderAdmin('llm', 'prompts')
+  renderAdmin('llm', 'prompts&sub=evals')
   const catalog = await region('에이전트별 평가')
   const table = within(catalog).getByRole('table', { name: '에이전트별 평가 표' })
-  expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['에이전트', '평가 모드', '평가 세트(항목 수)', '지표', '최근 결과'])
-  const rowOf = (feature: string) => within(within(table).getAllByRole('row').find((tr) => within(tr).queryByText(feature)) as HTMLElement)
+  expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['에이전트 · 평가하는 호출', '평가 모드', '평가 세트(항목 수)', '지표', '최근 결과'])
+  const rowOf = (feature: string) => within(within(table).getAllByRole('row').find((tr) => tr.textContent?.includes(feature)) as HTMLElement)
   // 세트가 없는 에이전트도 숨기지 않고, 세트는 있으나 Run이 없으면 그렇게 알린다.
   rowOf('orchestration.main').getByText('평가 세트 없음(후속)')
   rowOf('character_simulation.narrate').getByText('실행한 평가 없음')
   // 원문 검색은 실행 버튼 없이 CI에서 확인한다.
   rowOf('기억 회상(NovelBrain recall)').getByText(/버튼 없음 · CI에서 확인/)
   expect(rowOf('기억 회상(NovelBrain recall)').queryByRole('button')).toBeNull()
-  // 프롬프트 이름이 feature인 행은 이름이 개선 루프를 여는 버튼이고, 범용 세트·검색·묶음 행은 버튼이 아니다.
-  rowOf('orchestration.main').getByRole('button', { name: 'orchestration.main 프롬프트 열기' })
+  // 행 이름은 한국어로 자세히('에이전트 · 무슨 호출'): 프롬프트가 정해진 행은 한국어 이름(작은 코드 곁들임)이 개선 루프를 여는 버튼이고, 범용 세트·검색·묶음 행은 버튼이 아니다(#857).
+  const names = within(table).getAllByRole('row').slice(1).map((tr) => within(tr).getAllByRole('cell')[0].textContent)
+  expect(names).toEqual(expect.arrayContaining([
+    '인물 시뮬레이션 · 인물 대사(act) character_simulation.act', '인물 시뮬레이션 · 나레이션·독백(narrate) character_simulation.narrate', '메인 에이전트 · 작가 요청 처리(main) orchestration.main',
+    'Q&A · 작품 질문 답변(answer) story_context.answer', 'Manuscript Review · 원고 검수(manuscript_review.*)', 'World · 설정 충돌 지적', 'Q&A · 설정·관계 발췌(world_excerpts)',
+  ]))
+  expect(new Set(names).size).toBe(names.length)
+  rowOf('orchestration.main').getByRole('button', { name: '메인 에이전트 · 작가 요청 처리(main) 프롬프트 열기' })
   for (const feature of ['설정 충돌 지적', '집필 교정', '설정·관계 발췌(world_excerpts)', 'manuscript_review.*']) expect(rowOf(feature).queryByRole('button', { name: /프롬프트 열기/ }), feature).toBeNull()
   // 그 세트의 가장 최근 Run(목록 순서와 무관)이 통과·미통과와 Run 상세로 보이고, Run 상세는 그 프롬프트 상세의 평가 단계에서 Run을 연다.
   const act = rowOf('character_simulation.act')
   act.getByText('미통과')
-  act.getByText(/character_simulation.act 2번 버전/)
+  act.getByText(/인물 대사\(act\) 2번 버전/)
   fireEvent.click(act.getByRole('button', { name: /act-new/ }))
   const detail = await region('프롬프트 상세')
   await region('평가 상세')
   expect(screen.queryByRole('region', { name: '에이전트별 평가' })).toBeNull()
-  within(detail).getByRole('heading', { name: 'character_simulation.act', level: 2 })
+  within(detail).getByRole('heading', { name: /인물 대사\(act\) character_simulation\.act$/, level: 2 })
   expect(stepOf(detail, '평가').getAttribute('aria-current')).toBe('step')
 })
 
 it('프롬프트 상세는 단계 표시(① 프롬프트 ─ ② 평가 세트 ─ ③ 평가 ─ ④ 자동 개선 ─ ⑤ 게이트 ─ ⑥ 서비스 반영)가 위에 있고 현재 단계는 aria-current=step이며, 단계를 고르면 아래 패널이 바뀐다(#857)', async () => {
-  renderAdmin('llm', 'prompts')
+  renderAdmin('llm', 'prompts&sub=evals')
   const detail = await openLoop()
   const stepButtons = () => within(within(detail).getByRole('navigation', { name: '프롬프트 개선 루프 단계' })).getAllByRole('button')
   const current = () => stepButtons().map((button) => [button.textContent, button.getAttribute('aria-current')])
@@ -1463,10 +1474,12 @@ it('프롬프트 상세는 단계 표시(① 프롬프트 ─ ② 평가 세트 
   expect(panelOf(detail).getAttribute('aria-label')).toBe('2단계 평가 세트')
   const set = within(panelOf(detail))
   expect(['simulation.act', '24문항', 'voice(말투) · intent(의도) · pov_ok(시점)', '후보로 등록하려면 이 세트의 회귀 평가를 통과해야 해요.'].map((text) => set.getByText(text, { selector: 'dd' }).tagName)).toEqual(['DD', 'DD', 'DD', 'DD'])
-  set.getByText(/보기 전용이에요/)
+  set.getByText(/위의 JSONL 업로드와 데이터셋 목록은 운영 서버 API\(예정\)가 열리면/)
   set.getByText(/python -m app\.evaluation\.seed/)
   set.getByText(/저작권이 있는 원문\(해리 포터·웹소설\)은 저장소와 Langfuse에 올리지 않고/)
-  expect(panelOf(detail).querySelector('form, button, input')).toBeNull()
+  // 이 단계에는 평가 데이터셋 목록·JSONL 업로드가 이어진다(아래 테스트가 본다).
+  set.getByRole('region', { name: '평가 데이터셋' })
+  set.getByRole('form', { name: 'JSONL 업로드' })
   // ③ 평가: 그 프롬프트의 짝 세트 Run만(다른 세트·다른 프롬프트의 Run은 거른다).
   fireEvent.click(stepOf(detail, '평가'))
   const runs = await within(panelOf(detail)).findByRole('region', { name: '회귀 평가 표' })
@@ -1483,7 +1496,7 @@ it('프롬프트 상세는 단계 표시(① 프롬프트 ─ ② 평가 세트 
 })
 
 it('프롬프트 상세에서 단계를 오가도 ① 새 조합 만들기에 쓰던 입력이 남는다(#857)', async () => {
-  renderAdmin('llm', 'prompts')
+  renderAdmin('llm', 'prompts&sub=evals')
   const detail = await openLoop()
   fireEvent.change(within(detail).getByLabelText<HTMLTextAreaElement>('프롬프트 본문'), { target: { value: '쓰던 본문' } })
   fireEvent.click(stepOf(detail, '평가 세트'))
@@ -1496,7 +1509,7 @@ it('프롬프트 상세 ⑤ 게이트는 버전마다 짝 세트의 가장 최�
   const candidate = vi.spyOn(llm, 'candidate').mockResolvedValue(undefined)
   const promote = vi.spyOn(llm, 'promote').mockResolvedValue(undefined)
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
-  renderAdmin('llm', 'prompts')
+  renderAdmin('llm', 'prompts&sub=evals')
   const detail = await openLoop()
   fireEvent.click(stepOf(detail, '게이트'))
   within(panelOf(detail)).getByText('후보 등록 조건: 평가 세트 simulation.act의 회귀 평가를 통과해야 해요(그 버전의 가장 최근 평가 기준).')
@@ -1526,7 +1539,7 @@ it('프롬프트 상세 ⑤ 게이트는 버전마다 짝 세트의 가장 최�
   fireEvent.click(row(within(panelOf(detail)).getByRole('region', { name: '평가 게이트 버전 표' }), 3).getByRole('button', { name: 'character_simulation.act 3번 버전 평가 결과 보기' }))
   const run = await region('평가 상세')
   expect(stepOf(detail, '평가').getAttribute('aria-current')).toBe('step')
-  const title = await within(run).findByRole('heading', { name: 'simulation.act · character_simulation.act 3번 버전', level: 3 })
+  const title = await within(run).findByRole('heading', { name: /^simulation\.act · 인물 시뮬레이션 · 인물 대사\(act\) character_simulation\.act 3번 버전$/, level: 3 })
   await waitFor(() => expect(document.activeElement).toBe(title))
   within(run).getByRole('region', { name: '평가 지표 표' })
   within(run).getByText('실패 3문항 / 전체 4문항 (실패: 항목 오류 · 시점 위반 · 지표 하나라도 0.5 미만)')
@@ -1537,7 +1550,7 @@ it('프롬프트 상세 ⑤ 게이트는 버전마다 짝 세트의 가장 최�
 })
 
 it('짝 평가 세트가 없는 프롬프트의 상세는 ② 평가 세트가 없음을 알리고, ④ 자동 개선은 지원하지 않음을, ⑤ 게이트는 평가 없이 후보로 등록할 수 있음을 알린다(#857)', async () => {
-  renderAdmin('llm', 'prompts')
+  renderAdmin('llm', 'prompts&sub=evals')
   const detail = await openLoop('orchestration.main')
   fireEvent.click(stepOf(detail, '평가 세트'))
   within(panelOf(detail)).getByText(/이 프롬프트는 짝 평가 세트가 없어요/)
@@ -1550,6 +1563,185 @@ it('짝 평가 세트가 없는 프롬프트의 상세는 ② 평가 세트가 �
   expect(within(panelOf(detail)).queryByRole('form', { name: '프롬프트 자동 개선' })).toBeNull()
   fireEvent.click(stepOf(detail, '게이트'))
   within(panelOf(detail)).getByText('이 프롬프트는 짝 평가 세트가 없어 평가 없이 후보로 등록할 수 있어요.')
+})
+
+it('모델을 고르지 않은 버전의 모델 칸은 파이프라인 기록에서 실제로 쓰인 모델을 \'기본 모델 · 최근 사용 …\'으로 근거와 함께 보이고, 근거가 없는 프롬프트는 이름을 지어내지 않는다(#857)', async () => {
+  renderAdmin('llm', 'prompts&sub=prompts')
+  const table = await screen.findByRole('region', { name: '프롬프트 표' })
+  const modelOf = (name: RegExp) => within(within(table).getByRole('button', { name }).closest('tr') as HTMLElement).getAllByRole('cell')[2]
+  // 인물 대사·나레이션·메인은 예시 파이프라인 기록에 프롬프트·버전·모델이 남아 있고(인물 대사만 다른 모델), 웹 고증 검색은 기록이 없다.
+  await waitFor(() => expect(modelOf(/인물 대사\(act\)/).textContent).toBe('기본 모델 · 최근 사용 gpt-demo-mini'))
+  expect(modelOf(/나레이션·독백/).textContent).toBe('기본 모델 · 최근 사용 gpt-demo')
+  expect(modelOf(/작가 요청 처리\(main\)/).textContent).toBe('기본 모델 · 최근 사용 gpt-demo')
+  expect(modelOf(/웹 고증 검색/).textContent).toBe('기본 모델(환경 설정)')
+  // 근거(어느 버전의 기록인지·언제인지)는 마우스를 올리면 보인다. 모델을 고른 버전은 그 이름이 그대로이고 근거를 붙이지 않는다.
+  expect(within(modelOf(/인물 대사\(act\)/)).getByTitle(/^1번 버전의 파이프라인 기록 · /)).toBeTruthy()
+  expect(modelOf(/작품 질문 답변\(answer\)/).textContent).toBe('gpt-demo')
+  expect(within(modelOf(/작품 질문 답변\(answer\)/)).queryByTitle(/파이프라인 기록/)).toBeNull()
+
+  // 상세: 반영 중인 조합 요약에는 근거까지 글자로, 버전 표는 기본 모델 버전에만 근거를 붙이고 모델을 고른 버전(2~4번)은 그 이름이며, 새 조합의 기본 선택지도 같다.
+  fireEvent.click(within(table).getByRole('button', { name: /인물 대사\(act\)/ }))
+  const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
+  const live = await within(detail).findByRole('group', { name: '서비스 반영 중인 조합' })
+  await waitFor(() => expect(live.textContent).toContain('기본 모델 · 최근 사용 gpt-demo-mini'))
+  expect(live.textContent).toContain('(1번 버전의 파이프라인 기록 · ')
+  const versions = await within(detail).findByRole('region', { name: '프롬프트 버전 표' })
+  const modelCell = (version: number) => within(within(versions).getByRole('cell', { name: String(version) }).closest('tr') as HTMLElement).getAllByRole('cell')[2].textContent
+  expect([1, 2, 3, 4].map(modelCell)).toEqual(['기본 모델 · 최근 사용 gpt-demo-mini', 'gpt-demo', 'gpt-demo', 'gpt-demo'])
+  expect(within(versions).getAllByTitle(/파이프라인 기록/)).toHaveLength(1)   // 근거는 기본 모델 버전(1번)에만 붙고, 모델을 고른 버전에는 붙지 않는다
+  expect([...within(detail).getByLabelText<HTMLSelectElement>('모델').options].map((option) => option.text)[0]).toBe('기본 모델 · 최근 사용 gpt-demo-mini')
+})
+
+it('모델을 고른 버전이 남긴 기록은 기본 모델의 근거가 아니고, 기록을 읽지 못해도 이름을 지어내지 않는다(#857)', async () => {
+  const llm = appContainer.resolve('llmOpsUseCase')
+  const record = (id: string, promptVersion: number, model: string) => ({ id, traceId: 't', name: 'n', type: 'GENERATION', level: 'DEFAULT', startTime: '2026-11-24T01:00:00Z', promptName: 'character_simulation.act', promptVersion, model })
+  const records = vi.spyOn(llm, 'promptRecords').mockResolvedValue([record('a', 2, 'gpt-pinned')])
+  renderAdmin('llm', 'prompts&sub=prompts')
+  const table = await screen.findByRole('region', { name: '프롬프트 표' })
+  const act = () => within(within(table).getByRole('button', { name: /인물 대사\(act\)/ }).closest('tr') as HTMLElement).getAllByRole('cell')[2].textContent
+  await waitFor(() => expect(records).toHaveBeenCalled())
+  expect(act()).toBe('기본 모델(환경 설정)')   // 2번 버전은 모델을 고른 버전이라 기본 모델의 근거가 아니다
+  cleanup()
+  records.mockRejectedValue(new Error('기록 조회 실패'))
+  renderAdmin('llm', 'prompts&sub=prompts')
+  const again = await screen.findByRole('region', { name: '프롬프트 표' })
+  await waitFor(() => expect(records).toHaveBeenCalledTimes(2))
+  expect(within(within(again).getByRole('button', { name: /인물 대사\(act\)/ }).closest('tr') as HTMLElement).getAllByRole('cell')[2].textContent).toBe('기본 모델(환경 설정)')
+})
+
+const cellsOf = (tr: HTMLElement) => within(tr).getAllByRole('cell').map((td) => td.textContent)
+const jsonl = (...ids: string[]) => ids.map((id) => JSON.stringify({ id, input: { question: `${id} 질문` }, expectedOutput: '정답', metadata: { source: '시험' } })).join('\n')
+const pickFile = (form: HTMLElement, name: string, text: string) => fireEvent.change(within(form).getByLabelText(/^JSONL 파일/), { target: { files: [new File([text], name)] } })
+const openSets = async () => {
+  renderAdmin('llm', 'prompts&sub=evals')
+  const detail = await openLoop()
+  fireEvent.click(stepOf(detail, '평가 세트'))
+  return detail
+}
+
+it('② 평가 세트에는 평가 데이터셋 목록(세트 이름·짝 프롬프트·문항 수·출처)이 있고, 세트를 고르면 문항(id·요약)이 나오며 본문은 접혀 있다(#857)', async () => {
+  const detail = await openSets()
+  const table = await within(panelOf(detail)).findByRole('region', { name: '평가 데이터셋 표' })
+  expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['세트 이름', '짝 프롬프트', '문항 수', '출처'])
+  const rows = within(table).getAllByRole('row').slice(1)
+  const seeds = rows.map(cellsOf).filter((cells) => cells[3] === '저장소 시드(ai-eval-seed)')
+  expect(seeds).toEqual([
+    ['extraction.extract', '전처리 설정 추출 · 회차 설정 추출(extract) manuscript_extraction.extract', '30문항', '저장소 시드(ai-eval-seed)'],
+    ['leak.spoiler', '—', '5문항', '저장소 시드(ai-eval-seed)'],
+    ['qa.grounding', 'Q&A · 작품 질문 답변(answer) story_context.answer', '6문항', '저장소 시드(ai-eval-seed)'],
+    ['simulation.act', '인물 시뮬레이션 · 인물 대사(act) character_simulation.act', '24문항', '저장소 시드(ai-eval-seed)'],
+    ['simulation.narrate', '인물 시뮬레이션 · 나레이션·독백(narrate) character_simulation.narrate', '46문항', '저장소 시드(ai-eval-seed)'],
+    ['world.conflict', '—', '5문항', '저장소 시드(ai-eval-seed)'],
+    ['writing.fix', '—', '5문항', '저장소 시드(ai-eval-seed)'],
+  ])
+  expect(within(panelOf(detail)).queryByRole('region', { name: 'simulation.act 문항' })).toBeNull()
+  fireEvent.click(within(table).getByRole('button', { name: 'simulation.act' }))
+  const items = await within(panelOf(detail)).findByRole('region', { name: 'simulation.act 문항' })
+  const list = within(items).getAllByRole('listitem')
+  expect(list).toHaveLength(24)
+  expect(within(list[0]).getByRole('button', { name: 'simulation.act-01' }).getAttribute('aria-expanded')).toBe('false')
+  expect(list[0].textContent).toContain('simulation.act 문항 01의 입력')   // 한 줄 요약
+  expect(list[0].querySelector('pre')).toBeNull()   // 본문은 접혀 있다
+  fireEvent.click(within(list[0]).getByRole('button', { name: 'simulation.act-01' }))
+  expect(list[0].querySelector('pre')?.textContent).toContain('"expectedOutput": "simulation.act 문항 01의 기대 답변(시연용)"')
+  fireEvent.click(within(list[0]).getByRole('button', { name: 'simulation.act-01' }))
+  expect(list[0].querySelector('pre')).toBeNull()
+  // 같은 세트를 다시 누르면 문항 목록이 접힌다.
+  fireEvent.click(within(table).getByRole('button', { name: 'simulation.act' }))
+  expect(within(panelOf(detail)).queryByRole('region', { name: 'simulation.act 문항' })).toBeNull()
+})
+
+it('JSONL 업로드는 .jsonl만 받고, 고르면 건수·첫 항목·오류 줄을 미리 보이며, 오류가 있거나 저작권 확인이 없으면 올릴 수 없다(#857)', async () => {
+  const upload = vi.spyOn(appContainer.resolve('llmDatasetUseCase')!, 'upload')
+  const detail = await openSets()
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  const submit = within(form).getByRole('button', { name: '업로드' }) as HTMLButtonElement
+  const check = within(form).getByRole('checkbox', { name: /저작권 있는 원문\(웹소설·해리 포터 등\)이 아님/ }) as HTMLInputElement
+  expect([check.required, check.checked, submit.disabled]).toEqual([true, false, true])
+  // .jsonl이 아니면 읽지도 않고 안내한다.
+  pickFile(form, 'items.csv', 'a,b')
+  expect((await within(form).findByRole('alert')).textContent).toBe('.jsonl 파일만 올릴 수 있어요.')
+  expect(within(form).queryByLabelText('업로드 미리보기')).toBeNull()
+  // 통과한 파일: 건수와 첫 항목을 보이고, 세트 이름은 파일 이름으로 채운다. 저작권 확인이 없으면 아직 올릴 수 없다.
+  pickFile(form, 'my-set.jsonl', jsonl('a', 'b', 'c'))
+  const preview = within(await within(form).findByLabelText('업로드 미리보기'))
+  preview.getByText('my-set.jsonl')
+  expect(preview.getByRole('status').textContent).toContain('줄 3개 중 3개 통과')
+  expect(preview.getByText(/"id": "a"/).tagName).toBe('PRE')
+  expect((within(form).getByLabelText('세트 이름') as HTMLInputElement).value).toBe('my-set')
+  expect(within(form).queryByRole('alert')).toBeNull()
+  expect(submit.disabled).toBe(true)
+  fireEvent.click(check)
+  expect(submit.disabled).toBe(false)
+  // 오류 줄이 있으면 줄 번호와 이유를 보이고(처음 5줄만, 나머지는 건수) 올릴 수 없다.
+  const broken = [jsonl('ok'), '{not json', ...Array.from({ length: 6 }, (_, i) => JSON.stringify({ id: `bad-${i}`, input: null, metadata: {} }))].join('\n')
+  pickFile(form, 'broken.jsonl', broken)
+  const errors = within(await within(form).findByLabelText('업로드 미리보기'))
+  expect(errors.getByRole('status').textContent).toContain('줄 8개 중 1개 통과 · 오류 7줄')
+  expect(errors.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+    '2번째 줄 · JSON으로 읽을 수 없어요.', '3번째 줄 · input이 필요해요.', '4번째 줄 · input이 필요해요.', '5번째 줄 · input이 필요해요.', '6번째 줄 · input이 필요해요.', '…외 2줄',
+  ])
+  expect(submit.disabled).toBe(true)
+  expect(upload).not.toHaveBeenCalled()
+})
+
+it('파일을 연달아 고르면 마지막에 고른 파일의 읽기 결과만 미리보기에 반영한다: 늦게 끝난 앞 파일이 덮어쓰지 않는다(#857)', async () => {
+  const detail = await openSets()
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  let finishFirst: (text: string) => void = () => {}
+  const first = new File([''], 'first.jsonl')
+  Object.defineProperty(first, 'text', { value: () => new Promise<string>((resolve) => { finishFirst = resolve }) })   // 첫 파일은 읽기가 오래 걸린다
+  fireEvent.change(within(form).getByLabelText(/^JSONL 파일/), { target: { files: [first] } })
+  pickFile(form, 'second.jsonl', jsonl('b-1'))
+  const preview = await within(form).findByLabelText('업로드 미리보기')
+  expect(preview.textContent).toContain('second.jsonl')
+  await act(async () => { finishFirst(jsonl('a-1', 'a-2')) })
+  expect(within(form).getByLabelText('업로드 미리보기').textContent).toContain('second.jsonl · 줄 1개 중 1개 통과')
+  expect(within(form).queryByText('first.jsonl')).toBeNull()
+  expect((within(form).getByLabelText('세트 이름') as HTMLInputElement).value).toBe('second')
+  // 오래 걸린 읽기가 실패해도 새 선택에 오류를 남기지 않는다.
+  const failing = new File([''], 'failing.jsonl')
+  let failFirst: (error: Error) => void = () => {}
+  Object.defineProperty(failing, 'text', { value: () => new Promise<string>((_, reject) => { failFirst = reject }) })
+  fireEvent.change(within(form).getByLabelText(/^JSONL 파일/), { target: { files: [failing] } })
+  pickFile(form, 'third.jsonl', jsonl('c-1'))
+  await within(form).findByText('third.jsonl')
+  await act(async () => { failFirst(new Error('읽기 실패')) })
+  expect(within(form).queryByRole('alert')).toBeNull()
+})
+
+it('검사를 통과한 파일은 세트 이름으로 올라가 목록에 새 세트(출처 업로드 · 파일 이름)로 나타나고 그 세트의 문항이 보이며, 올린 뒤 폼은 비워진다(#857)', async () => {
+  const detail = await openSets()
+  const form = await within(panelOf(detail)).findByRole('form', { name: 'JSONL 업로드' })
+  pickFile(form, 'upload-me.jsonl', jsonl('x-1', 'x-2'))
+  await within(form).findByLabelText('업로드 미리보기')
+  fireEvent.change(within(form).getByLabelText('세트 이름'), { target: { value: ' my-upload ' } })
+  fireEvent.click(within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }))
+  fireEvent.click(within(form).getByRole('button', { name: '업로드' }))
+  await within(form).findByText("2개 문항을 'my-upload' 세트에 올렸어요(시연용 메모리).")
+  within(form).getByText(/시연용 메모리에서 동작해 올린 문항이 Langfuse에 저장되지 않고 새로 고치면 사라져요/)
+  const table = within(panelOf(detail)).getByRole('region', { name: '평가 데이터셋 표' })
+  await waitFor(() => expect(within(table).getAllByRole('row').slice(1).map(cellsOf).find((cells) => cells[0] === 'my-upload')).toEqual(['my-upload', '—', '2문항', '업로드 · upload-me.jsonl']))
+  // 올린 세트가 골라져 문항 목록이 보이고, 폼은 비워지며 올리기는 다시 잠긴다.
+  const items = await within(panelOf(detail)).findByRole('region', { name: 'my-upload 문항' })
+  expect(within(items).getAllByRole('listitem').map((li) => li.querySelector('button')?.textContent)).toEqual(['x-1', 'x-2'])
+  expect([(within(form).getByLabelText('세트 이름') as HTMLInputElement).value, (within(form).getByRole('checkbox', { name: /저작권 있는 원문/ }) as HTMLInputElement).checked, within(form).queryByLabelText('업로드 미리보기')]).toEqual(['', false, null])
+  expect((within(form).getByRole('button', { name: '업로드' }) as HTMLButtonElement).disabled).toBe(true)
+})
+
+it('서버 API가 없는 실제 모드(UseCase 없음)에서는 평가 데이터셋을 서버 준비 중으로 잠그고 아무것도 읽거나 올리지 않는다(성공을 흉내 내지 않음, #857)', async () => {
+  const resolve = appContainer.resolve.bind(appContainer)
+  vi.spyOn(appContainer, 'resolve').mockImplementation(((key: string) => (key === 'llmDatasetUseCase' ? null : resolve(key as never))) as never)
+  const detail = await openSets()
+  const sets = within(panelOf(detail)).getByRole('region', { name: '평가 데이터셋' })
+  expect(within(sets).getByRole('status').textContent).toContain('서버 준비 중')
+  expect(within(sets).queryByRole('table')).toBeNull()
+  const form = within(sets).getByRole('form', { name: 'JSONL 업로드' })
+  expect((form.querySelector('fieldset') as HTMLFieldSetElement).disabled).toBe(true)
+  expect((within(form).getByRole('button', { name: '업로드' }) as HTMLButtonElement).disabled).toBe(true)
+  within(form).getByText('서버 준비 중이라 지금은 올릴 수 없어요.')
+  // 짝 세트 안내(위쪽)는 서버와 무관하게 그대로 보인다.
+  within(panelOf(detail)).getByText('simulation.act', { selector: 'dd' })
 })
 
 it('크레딧 탭은 회원을 고르면 상세 제목으로 초점을 옮기고, 같은 회원을 목록에서 다시 골라도 제목으로 되돌린다', async () => {
@@ -1587,13 +1779,15 @@ it('프롬프트 표는 에이전트별 서비스 반영 버전·모델·후보 
   // Langfuse 모델 정의(단가표)에는 AI가 부를 수 없는 모델도 있어 선택지가 아니다(#806).
   vi.spyOn(llm, 'models').mockResolvedValue([{ id: 'm9', modelName: 'claude-sonnet-5-5', matchPattern: 'c' }])
   const create = vi.spyOn(llm, 'createPromptVersion').mockResolvedValue(undefined)
+  // 파이프라인 기록에 근거가 없는 경우(기본 모델 이름을 지어내지 않는다): 근거가 있는 경우는 아래 테스트가 본다(#857).
+  vi.spyOn(llm, 'promptRecords').mockResolvedValue([])
   renderAdmin('llm', 'prompts&sub=prompts')
 
   const table = await screen.findByRole('region', { name: '프롬프트 표' })
-  const cells = (name: string) => [...(within(table).getByRole('button', { name }).closest('tr') as HTMLElement).querySelectorAll('td')].map((td) => td.textContent)
-  expect(cells('orchestration.main')).toEqual(['orchestration.main', '2번 버전', 'gpt-x', '1개', '코드 시드 3번 버전 대기'])
-  expect(cells('decision_guard.judge')).toEqual(['decision_guard.judge', '1번 버전', '기본 모델(환경 설정)', '—', '—'])   // 실제 기본 모델은 AI 서비스 환경 변수라 이름을 단정하지 않는다(#808)
-  fireEvent.click(within(table).getByRole('button', { name: 'orchestration.main' }))
+  const cells = (name: RegExp) => [...(within(table).getByRole('button', { name }).closest('tr') as HTMLElement).querySelectorAll('td')].map((td) => td.textContent)
+  expect(cells(/작가 요청 처리\(main\)/)).toEqual(['메인 에이전트 · 작가 요청 처리(main) orchestration.main', '2번 버전', 'gpt-x', '1개', '코드 시드 3번 버전 대기'])
+  expect(cells(/요청 판정\(judge\)/)).toEqual(['Decision Guard · 요청 판정(judge) decision_guard.judge', '1번 버전', '기본 모델(환경 설정)', '—', '—'])   // 기록에 근거가 없으면 이름을 단정하지 않는다(#808)
+  fireEvent.click(within(table).getByRole('button', { name: /작가 요청 처리\(main\)/ }))
 
   const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
   const live = await within(detail).findByRole('group', { name: '서비스 반영 중인 조합' })
@@ -1683,7 +1877,7 @@ it('평가 세트가 있는 프롬프트의 상세는 후보 등록 조건을 �
   vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'story_context.answer', candidates: 0, evaluationDataset: 'qa.grounding', versions: [{ version: 1, labels: ['production'], prompt: '답' }] })
   vi.spyOn(llm, 'models').mockResolvedValue([])
   renderAdmin('llm', 'prompts&sub=prompts')
-  fireEvent.click(await screen.findByRole('button', { name: 'story_context.answer' }))
+  fireEvent.click(await screen.findByRole('button', { name: /작품 질문 답변\(answer\)/ }))
   const region = await screen.findByRole('region', { name: '프롬프트 상세' })
   fireEvent.click(await within(region).findByRole('button', { name: '게이트' }))
   await within(region).findByText('후보 등록 조건: 평가 세트 qa.grounding의 회귀 평가를 통과해야 해요(그 버전의 가장 최근 평가 기준).')
@@ -1698,7 +1892,7 @@ it('평가 세트가 있는 프롬프트는 통과하지 않은 버전에 후보
     { version: 1, labels: ['production'], prompt: '답' }] })
   vi.spyOn(llm, 'models').mockResolvedValue([])
   renderAdmin('llm', 'prompts&sub=prompts')
-  fireEvent.click(await screen.findByRole('button', { name: 'story_context.answer' }))
+  fireEvent.click(await screen.findByRole('button', { name: /작품 질문 답변\(answer\)/ }))
   fireEvent.click(await screen.findByRole('button', { name: '게이트' }))
   await screen.findByRole('button', { name: 'story_context.answer 3번 버전 후보 등록' })
   expect(screen.queryByRole('button', { name: 'story_context.answer 2번 버전 후보 등록' })).toBeNull()
@@ -1710,7 +1904,7 @@ it('Decisions API로 부르는 프롬프트는 새 버전에서 모델을 고를
   vi.spyOn(llm, 'prompt').mockResolvedValue({ name: 'decision_guard.judge', candidates: 0, versions: [{ version: 1, labels: ['production', 'seed'], prompt: '판정' }] })
   vi.spyOn(llm, 'prompts').mockResolvedValue([{ name: 'decision_guard.judge', candidates: 0, versions: [{ version: 1, labels: ['production', 'seed'] }] }])
   renderAdmin('llm', 'prompts&sub=prompts')
-  fireEvent.click(await screen.findByRole('button', { name: 'decision_guard.judge' }))
+  fireEvent.click(await screen.findByRole('button', { name: /요청 판정\(judge\)/ }))
   const detail = await screen.findByRole('region', { name: '프롬프트 상세' })
   expect((await within(detail).findByLabelText('모델') as HTMLSelectElement).disabled).toBe(true)
   within(detail).getByText('Decisions API가 gpt-6-luna만 지원해 모델은 고정이에요. 프롬프트만 바꿀 수 있어요.')

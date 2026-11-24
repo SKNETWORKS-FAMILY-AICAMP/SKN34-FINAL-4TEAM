@@ -2,7 +2,7 @@
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 
-import { pipelineSummary, type PipelineNode } from '../../../../domain/entities/llmOpsPipeline'
+import { NODE_HEIGHT, NODE_WIDTH, layoutPipeline, pipelineSummary, type PipelineNode } from '../../../../domain/entities/llmOpsPipeline'
 import AdminPipelineCanvas from './AdminPipelineCanvas'
 
 // 실제 react-force-graph(d3·canvas)는 그리지 않고 캔버스가 넘기는 값만 붙잡는다.
@@ -96,4 +96,50 @@ it('업무 Agent 묶음 라벨(읽기·검토, 작성)은 프레임을 그리기
   const { ctx, calls } = recorder()
   forceGraph.props!.onRenderFramePre(ctx, 1)
   expect(calls.filter(([name]) => name === 'fillText').map(([, text]) => text)).toEqual(['읽기·검토', '작성'])
+})
+
+it('nodeLink가 있으면 부품이 있는 노드 위(상자 위 오른쪽 가장자리, 오른쪽·아래 끝 기준)에만 HTML로 얹고, 캔버스(role=img) 바깥 형제 자리에 두어 보조 기술에 읽히게 한다(#857)', () => {
+  measure(900)
+  const list = [node('request', ['guard']), node('guard', ['main'], { promptNames: ['decision_guard.judge'] }), node('main', [], { promptNames: ['orchestration.main'] })]
+  const link = vi.fn((n: PipelineNode) => (n.promptNames.length ? <button type="button">프롬프트 보기 · {n.id}</button> : null))
+  const { container } = render(<AdminPipelineCanvas nodes={list} selected={null} onSelect={vi.fn()} nodeLink={link} />)
+  const canvas = screen.getByRole('img', { name: pipelineSummary(list) })
+  // 버튼은 role=img 안이 아니라 그 곁에 있다(role=img의 자식은 보조 기술에 안 읽힌다).
+  expect(canvas.querySelector('button')).toBeNull()
+  const wraps = [...container.querySelectorAll<HTMLElement>('.pipe-node-link')]
+  expect(wraps.map((wrap) => wrap.textContent)).toEqual(['프롬프트 보기 · guard', '프롬프트 보기 · main'])   // 부품이 없는 노드(request)는 자리도 없다
+  // 위치는 배치 좌표와 확대 비율로 정한다: 원점이 캔버스 가운데이고 노드 상자의 위 오른쪽 모서리에 둔다.
+  const layout = layoutPipeline(list)
+  const width = 900, height = Math.round(Math.min(Math.max((width * layout.height) / layout.width, 240), 760))
+  const scale = Math.min((width - 48) / layout.width, (height - 48) / layout.height)
+  const guard = layout.nodes.find((n) => n.id === 'guard')!
+  // 오른쪽·아래 끝 기준으로 앉힌다(transform을 쓰면 안쪽 메뉴의 fixed 기준 칸이 바뀌어 어긋난다).
+  expect([wraps[0].style.right, wraps[0].style.bottom]).toEqual([`${width / 2 - (guard.x + NODE_WIDTH / 2) * scale + 6}px`, `${height / 2 - (guard.y - NODE_HEIGHT / 2) * scale - 5}px`])
+  expect([wraps[0].style.left, wraps[0].style.top, wraps[0].style.transform]).toEqual(['', '', ''])
+  const overlay = container.querySelector<HTMLElement>('.pipe-node-links')!
+  expect([overlay.style.width, overlay.style.height]).toEqual(['900px', `${height}px`])
+  expect(link).toHaveBeenCalledTimes(3)
+})
+
+it('nodeLink가 없으면(또는 크기를 못 재 틀만 그릴 때) 부품 자리를 만들지 않는다', () => {
+  measure(900)
+  const { container, unmount } = render(draw())
+  expect(container.querySelector('.pipe-node-links')).toBeNull()
+  unmount()
+  vi.unstubAllGlobals()
+  const { container: bare } = render(<AdminPipelineCanvas nodes={nodes} selected={null} onSelect={vi.fn()} nodeLink={() => <button type="button">보기</button>} />)
+  expect(bare.querySelector('.pipe-node-links')).toBeNull()
+})
+
+it('캔버스가 너무 작게 줄어든(좁은 화면) 비율에서는 노드 위 부품이 서로 겹치므로 얹지 않는다(노드 버튼 목록에 같은 부품이 있다)', () => {
+  const list = [node('request', ['guard']), node('guard', ['main'], { promptNames: ['decision_guard.judge'] }), node('main', [], { promptNames: ['orchestration.main'] })]
+  const link = () => <button type="button">프롬프트 보기</button>
+  measure(300)
+  const narrow = render(<AdminPipelineCanvas nodes={list} selected={null} onSelect={vi.fn()} nodeLink={link} />)
+  expect(forceGraph.props).not.toBeNull()   // 그림은 그리되
+  expect(narrow.container.querySelector('.pipe-node-links')).toBeNull()   // 부품은 얹지 않는다
+  narrow.unmount()
+  measure(900)
+  const wide = render(<AdminPipelineCanvas nodes={list} selected={null} onSelect={vi.fn()} nodeLink={link} />)
+  expect(wide.container.querySelectorAll('.pipe-node-link')).toHaveLength(3)
 })

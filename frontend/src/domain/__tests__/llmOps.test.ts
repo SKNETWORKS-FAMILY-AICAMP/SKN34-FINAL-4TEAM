@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, usd, versionAction, type EvaluationItem, type PromptVersion,
+  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, recentDefaultModel, usd, versionAction, type EvaluationItem, type Prompt, type PromptVersion,
 } from '../entities/llmOps'
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
+import type { PipelineRecord } from '../entities/llmOpsPipeline'
 import { lastPage } from '../entities/operations'
 
 describe('LLMOps 표시 값', () => {
@@ -116,6 +117,9 @@ describe('권한 안내 문구', () => {
   it('버전에 고른 모델이 없으면 기본 모델(환경 설정)로 보이고, Decisions API 프롬프트는 모델을 고를 수 없다', () => {
     // 고르지 않은 버전의 실제 모델은 AI 서비스 환경 변수라 이름을 단정하지 않는다(#808).
     expect([modelLabel('gpt-x'), modelLabel(null), modelLabel(undefined)]).toEqual(['gpt-x', '기본 모델(환경 설정)', '기본 모델(환경 설정)'])
+    // 근거(최근 사용)가 있을 때만 기본 모델 뒤에 붙고, 고른 모델이 있으면 근거를 붙이지 않으며, 근거가 없으면 이름을 지어내지 않는다(#857).
+    const recent = { model: 'gpt-demo', version: 3, at: '2026-11-24T01:00:00Z' }
+    expect([modelLabel(null, recent), modelLabel(undefined, recent), modelLabel('gpt-x', recent), modelLabel(null, null)]).toEqual(['기본 모델 · 최근 사용 gpt-demo', '기본 모델 · 최근 사용 gpt-demo', 'gpt-x', '기본 모델(환경 설정)'])
     expect([fixedModel('decision_guard.judge'), fixedModel('character_simulation.direct'), fixedModel('orchestration.main')]).toEqual([true, true, false])
   })
 })
@@ -152,5 +156,34 @@ describe('문항별 결과의 진행 중 표시(#823)', () => {
     expect(itemWaiting(item({}))).toBe(true)
     // 점수가 있으면 끝난 문항이고, 실패(항목 오류)한 문항은 진행 중이 아니다.
     expect([itemWaiting(item({ scores: { voice: 0.5 } })), itemWaiting(item({ failed: true, error: '생성 또는 채점에 실패했어요.' }))]).toEqual([false, false])
+  })
+})
+
+describe('기본 모델의 근거: 모델을 고르지 않은 버전이 기록에 남긴 가장 최근 모델(#857)', () => {
+  const version = (n: number, model: string | null = null): PromptVersion => ({ version: n, labels: [], model })
+  const prompt: Prompt = { name: 'character_simulation.act', candidates: 0, versions: [version(1), version(2, 'gpt-pinned'), version(3)] }
+  const record = (extra: Partial<PipelineRecord> = {}): PipelineRecord => ({
+    id: 'o', traceId: 't', name: 'step.act', type: 'GENERATION', startTime: '2026-11-24T01:00:00Z', level: 'DEFAULT', promptName: prompt.name, promptVersion: 3, model: 'gpt-default', ...extra,
+  })
+
+  it('가장 최근 기록의 모델과 버전·시각을 주며, 목록 순서가 아니라 시작 시각으로 고른다', () => {
+    const rows = [record({ id: 'old', startTime: '2026-11-20T01:00:00Z', model: 'gpt-older', promptVersion: 1 }), record({ id: 'new', startTime: '2026-11-24T05:00:00Z', model: 'gpt-newer' }), record({ id: 'mid', startTime: '2026-11-22T01:00:00Z' })]
+    expect(recentDefaultModel(prompt, rows)).toEqual({ model: 'gpt-newer', version: 3, at: '2026-11-24T05:00:00Z' })
+  })
+
+  it('모델을 고른 버전·이 프롬프트에 없는 버전·버전 없는 기록·다른 프롬프트·모델 없는 기록은 기본 모델의 근거가 아니다', () => {
+    const rows = [
+      record({ id: 'pinned', promptVersion: 2, model: 'gpt-pinned', startTime: '2026-11-24T09:00:00Z' }), record({ id: 'unknown', promptVersion: 9, model: 'gpt-x', startTime: '2026-11-24T08:00:00Z' }),
+      record({ id: 'unversioned', promptVersion: null, model: 'gpt-x', startTime: '2026-11-24T07:00:00Z' }), record({ id: 'other', promptName: 'character_simulation.narrate', model: 'gpt-x', startTime: '2026-11-24T06:00:00Z' }),
+      record({ id: 'blank', model: null, startTime: '2026-11-24T05:00:00Z' }), record({ id: 'empty', model: '', startTime: '2026-11-24T04:30:00Z' }),
+      record({ id: 'ok', promptVersion: 1, model: 'gpt-default', startTime: '2026-11-24T04:00:00Z' }),
+    ]
+    expect(recentDefaultModel(prompt, rows)).toEqual({ model: 'gpt-default', version: 1, at: '2026-11-24T04:00:00Z' })
+  })
+
+  it('근거가 되는 기록이 없으면 null이고, 시작 시각이 없는 기록도 근거가 된다(시각만 없음)', () => {
+    expect(recentDefaultModel(prompt, [])).toBeNull()
+    expect(recentDefaultModel(prompt, [record({ promptVersion: 2, model: 'gpt-pinned' })])).toBeNull()
+    expect(recentDefaultModel(prompt, [record({ startTime: null })])).toEqual({ model: 'gpt-default', version: 3, at: null })
   })
 })

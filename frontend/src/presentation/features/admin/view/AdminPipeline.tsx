@@ -1,15 +1,18 @@
-import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { Fragment, Suspense, lazy, useEffect, useRef, useState, type CSSProperties } from 'react'
 
 import { LLM_FORBIDDEN, PERIODS, bodyText, traceStatusLabel, type Observation } from '../../../../domain/entities/llmOps'
 import {
   PIPELINE_RECORDS_LIMIT, RECORD_RESULTS, filterRecords, flowTree, guardVerdict, nodeStats, promptTargets, recalledTitles, recordResult, spanMillis, splitOutput, verdictText, type PipelineNode, type PipelineRecord,
 } from '../../../../domain/entities/llmOpsPipeline'
+import { promptLabel } from '../../../../domain/entities/promptNames'
 import { kstDateTime } from '../../../shared/format'
 import { MoreVerticalIcon } from '../../../shared/icons'
 import { PopMenu } from '../../../shared/PopMenu'
 import '../../../../styles/admin-pipeline.css'
 import type { LlmVM, VM } from './LlmOps'
+import { NodePromptLink } from './NodePromptLink'
 import { LiveState, Pager, Table } from './OperationsPanels'
+import { PromptName } from './PromptName'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
 
 // react-force-graph(d3·canvas)는 파이프라인 그림을 볼 때만 내려받는다.
@@ -19,6 +22,7 @@ const PipelineCanvas = lazy(() => import('./AdminPipelineCanvas'))
  * 프롬프트·평가 쪽의 'AI 파이프라인' 보기(DEC-58, 예전 프롬프트·모델의 전체): 집필 AI 파이프라인을 고정 좌표 캔버스로 보이고, 노드(Decision Guard·메인 에이전트·업무 Agent·도구)를 고르면
  * 그 노드의 observation 기록(결과 필터·표, 펼치면 입력·출력·메타데이터·도구 호출, 실행 흐름, 프롬프트 보기)을 캔버스와 노드 버튼 아래에 전체 폭으로 보인다(옆에 두면 표가 반쪽 폭에서 넘친다).
  * 캔버스는 보조라 같은 노드를 키보드로 고르는 버튼 목록을 캔버스 아래에 둔다. 노드를 고르면 기록 제목으로, 닫으면 눌렀던 노드 버튼으로 초점을 옮긴다.
+ * 프롬프트가 연결된 노드는 캔버스 노드 위와 노드 버튼 목록 모두에 '프롬프트 보기'(NodePromptLink: 하나면 버튼·여럿이면 목록·없으면 없음, #857)가 있어 프롬프트 상세(개선 루프)로 바로 갑니다.
  */
 export function AdminPipeline({ vm, l }: { vm: VM; l: LlmVM }) {
   const nodes = l.pipeline.data
@@ -40,9 +44,9 @@ export function AdminPipeline({ vm, l }: { vm: VM; l: LlmVM }) {
           <div className="pipe-body">
             <div className="pipe-diagram">
               <Suspense fallback={<p className="admin-data-state" role="status">파이프라인 그림을 불러오고 있어요.</p>}>
-                <PipelineCanvas nodes={nodes} selected={l.nodeId} onSelect={l.selectNode} />
+                <PipelineCanvas nodes={nodes} selected={l.nodeId} onSelect={l.selectNode} nodeLink={(n) => (promptTargets(n).length ? <NodePromptLink l={l} node={n} /> : null)} />
               </Suspense>
-              <NodeButtons nodes={nodes} selected={l.nodeId} onSelect={l.selectNode} />
+              <NodeButtons l={l} nodes={nodes} selected={l.nodeId} onSelect={l.selectNode} />
             </div>
             {node && <NodeRecords vm={vm} l={l} node={node} />}
           </div>
@@ -53,7 +57,7 @@ export function AdminPipeline({ vm, l }: { vm: VM; l: LlmVM }) {
   )
 }
 
-function NodeButtons({ nodes, selected, onSelect }: { nodes: PipelineNode[]; selected: string | null; onSelect: (id: string) => void }) {
+function NodeButtons({ l, nodes, selected, onSelect }: { l: LlmVM; nodes: PipelineNode[]; selected: string | null; onSelect: (id: string) => void }) {
   const groups: [string, PipelineNode[]][] = [['요청 흐름', nodes.filter((n) => !n.standalone)], ['단독 기능', nodes.filter((n) => n.standalone)]]
   return (
     <div className="pipe-nodes">
@@ -67,6 +71,7 @@ function NodeButtons({ nodes, selected, onSelect }: { nodes: PipelineNode[]; sel
                   <b>{n.label}</b>
                   <span className="small muted">{nodeStats(n)}</span>
                 </button>
+                <NodePromptLink l={l} node={n} />
               </li>
             ))}
           </ul>
@@ -85,7 +90,7 @@ function NodeRecords({ vm, l, node }: { vm: VM; l: LlmVM; node: PipelineNode }) 
         <h2 tabIndex={-1}>{node.label} 기록</h2>
         <button type="button" className="btn sm" onClick={l.closeNode}>기록 닫기</button>
       </div>
-      <p className="small muted">{nodeStats(node)} · p95 지연 {spanMillis(node.p95LatencyMs)} · 프롬프트 {node.promptNames.length ? node.promptNames.join(', ') : '없음'}</p>
+      <p className="small muted">{nodeStats(node)} · p95 지연 {spanMillis(node.p95LatencyMs)} · 프롬프트 {node.promptNames.length ? node.promptNames.map((name, i) => <Fragment key={name}>{i > 0 && ' / '}<PromptName code={name} /></Fragment>) : '없음'}</p>
       <div className="admin-filter">
         <label className="field">
           결과
@@ -143,12 +148,12 @@ function RecordRow({ l, node, row }: { l: LlmVM; node: PipelineNode; row: Pipeli
         </td>
         <td>{spanMillis(row.latencyMs)}</td>
         <td>{row.model ?? '—'}</td>
-        <td>{row.promptName ? `${row.promptName} v${row.promptVersion ?? '?'}` : '—'}</td>
+        <td>{row.promptName ? <><PromptName code={row.promptName} /> v{row.promptVersion ?? '?'}</> : '—'}</td>
         <td className="act-menu">
           <PopMenu className="row-menu" label={`「${row.name} ${row.id}」 조치`} icon={<MoreVerticalIcon />}>
             <button type="button" role="menuitem" onClick={() => l.openFlow(row.traceId, row.id)}>실행 흐름 보기</button>
             {prompts.map((name) => (
-              <button key={name} type="button" role="menuitem" onClick={() => l.openPrompt(name)}>프롬프트 보기{prompts.length > 1 ? ` · ${name}` : ''}</button>
+              <button key={name} type="button" role="menuitem" onClick={() => l.openPrompt(name)}>프롬프트 보기{prompts.length > 1 ? ` · ${promptLabel(name)}` : ''}</button>
             ))}
           </PopMenu>
         </td>
@@ -215,7 +220,7 @@ function FlowPanel({ vm, l, flow }: { vm: VM; l: LlmVM; flow: { traceId: string;
 }
 
 function FlowStep({ step, depth, here }: { step: Observation; depth: number; here: boolean }) {
-  const meta = [step.type, spanMillis(step.endTime ? step.latencyMs : null), step.model, step.promptName ? `${step.promptName} v${step.promptVersion ?? '?'}` : null].filter(Boolean).join(' · ')
+  const meta = [step.type, spanMillis(step.endTime ? step.latencyMs : null), step.model, step.promptName ? `${promptLabel(step.promptName)} v${step.promptVersion ?? '?'}` : null].filter(Boolean).join(' · ')
   return (
     <li className="pipe-step" style={{ '--depth': depth } as CSSProperties} aria-current={here ? 'true' : undefined}>
       <div className="pipe-step-head">

@@ -42,19 +42,19 @@ export const metricsSub = (v: string | null): MetricsSub => METRICS_SUBS.find(([
 /** 지표만 sub 없는 주소입니다. */
 export const metricsSubHref = (sub: MetricsSub) => sub === 'cards' ? llmPageHref('metrics') : `${llmPageHref('metrics')}&sub=${sub}`
 
-/** 프롬프트·평가 쪽의 보기(주소 `&sub=`, #857): 에이전트별 평가(입구)·프롬프트·모델·AI 파이프라인(DEC-58). 없거나 모르는 값은 에이전트별 평가입니다. */
-export const PROMPT_SUBS = [['evals', '에이전트별 평가'], ['prompts', '프롬프트'], ['models', '모델'], ['all', 'AI 파이프라인']] as const
+/** 프롬프트·평가 쪽의 보기(주소 `&sub=`, #857): 전체(AI 파이프라인, DEC-58)가 가장 왼쪽·기본이고 에이전트별 평가(입구)·프롬프트·모델이 이어집니다. 없거나 모르는 값은 전체입니다. */
+export const PROMPT_SUBS = [['all', '전체(AI 파이프라인)'], ['evals', '에이전트별 평가'], ['prompts', '프롬프트'], ['models', '모델']] as const
 export type PromptSub = (typeof PROMPT_SUBS)[number][0]
-export const promptSub = (v: string | null): PromptSub => PROMPT_SUBS.find(([sub]) => sub === v)?.[0] ?? 'evals'
-/** 에이전트별 평가(입구)만 sub 없는 주소입니다. */
-export const promptSubHref = (sub: PromptSub) => sub === 'evals' ? llmPageHref('prompts') : `${llmPageHref('prompts')}&sub=${sub}`
+export const promptSub = (v: string | null): PromptSub => PROMPT_SUBS.find(([sub]) => sub === v)?.[0] ?? 'all'
+/** 전체(AI 파이프라인)만 sub 없는 주소입니다. */
+export const promptSubHref = (sub: PromptSub) => sub === 'all' ? llmPageHref('prompts') : `${llmPageHref('prompts')}&sub=${sub}`
 
 /** 로그인 복귀에는 알려진 내부 관리자 탭 하나만 남깁니다. 임의 next/외부 URL은 전달하지 않습니다. */
 export function adminReturnPath(search: string): string {
   const query = new URLSearchParams(search)
   if (!query.has('tab')) return '/admin'
   const tab = adminTab(query.get('tab'))
-  // LLM Ops는 알려진 쪽(view, 옮기거나 없앤 옛 주소는 새 위치)도 남기고, 프롬프트·평가·에이전트 지표 쪽은 알려진 보기(sub)도 남깁니다(없거나 모르는 값은 에이전트 지표·에이전트별 평가·지표).
+  // LLM Ops는 알려진 쪽(view, 옮기거나 없앤 옛 주소는 새 위치)도 남기고, 프롬프트·평가·에이전트 지표 쪽은 알려진 보기(sub)도 남깁니다(없거나 모르는 값은 에이전트 지표·전체(AI 파이프라인)·지표).
   if (tab !== 'llm') return `/admin?tab=${tab}`
   const page = llmPage(query.get('view'))
   return page === 'prompts' ? promptSubHref(promptSub(query.get('sub'))) : page === 'metrics' ? metricsSubHref(metricsSub(query.get('sub'))) : llmPageHref(page)

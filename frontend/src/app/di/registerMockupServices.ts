@@ -11,7 +11,8 @@ import { InMemoryGenreRepository, InMemoryOperationsGenreRepository } from '../.
 import { InMemoryCardCategoryRepository, InMemoryOperationsCardCategoryRepository } from '../../data/mock/InMemoryCardCategoryRepositories'
 import { InMemoryOperationsCommentRepository } from '../../data/mock/InMemoryOperationsCommentRepository'
 import { InMemoryAdminActivityRepository } from '../../data/mock/InMemoryAdminActivityRepository'
-import { InMemoryJobMonitorRepository, InMemoryLlmOpsRepository, InMemoryOperationsDashboardRepository } from '../../data/mock/InMemoryLlmOpsRepositories'
+import { InMemoryJobMonitorRepository, InMemoryLlmDatasetRepository, InMemoryLlmOpsRepository, InMemoryOperationsDashboardRepository } from '../../data/mock/InMemoryLlmOpsRepositories'
+import { LlmDatasetUseCase } from '../../domain/usecases/LlmDatasetUseCase'
 import { InMemoryOperationsWorkRepository } from '../../data/mock/InMemoryOperationsWorkRepository'
 import { seedNotices } from '../../data/mock/seed'
 import { createMockupManuscriptRepository, createMockupWorldStudioRepository, createMockupWritingRepository, mockupAuthRepository, mockupFeedbackReportRepository, mockupNotificationRepository, mockupUnsupportedMedia, mockupWithdrawalRepository } from '../../data/mock/mockupRepositories'
@@ -68,6 +69,8 @@ export function registerMockupServices(container: AppContainer) {
     // 운영 대시보드·LLMOps·작업 감시 API 대신 Langfuse·AI·Content를 읽지 않는 예시 값입니다.
     operationsDashboardRepository: asValue(new InMemoryOperationsDashboardRepository()),
     llmOpsRepository: asValue(new InMemoryLlmOpsRepository()),
+    // 평가 데이터셋(#857)은 서버 API가 없어 예시 세트와 메모리 업로드로 화면을 보입니다.
+    llmDatasetUseCase: asValue(new LlmDatasetUseCase(new InMemoryLlmDatasetRepository())),
     jobMonitorRepository: asValue(new InMemoryJobMonitorRepository()),
     // 검색 저장소를 주지 않아 홈 순위·검색은 서버 호출 없이 메모리 데모를 유지하고, 독서 기록도 mockDb.progress 메모리입니다.
     readingUseCase: asValue(new ReadingUseCase(workRepository, readingRepository, readingRecordRepository, undefined, undefined, genreRepository)),

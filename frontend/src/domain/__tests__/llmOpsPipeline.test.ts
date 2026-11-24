@@ -324,6 +324,12 @@ describe('Guard 판정·메인 출력 읽기', () => {
     expect(promptTargets(node('qa', [], { promptNames: ['qa-answer', 'qa-check'] }), rec({ name: 'step.qa' }))).toEqual(['qa-answer', 'qa-check'])
     expect(promptTargets(node('apply'), rec({ name: 'step.qa.apply' }))).toEqual([])
   })
+
+  it('기록 없이 노드만 주면 노드에 연결된 프롬프트가 그대로 나오고(여럿이면 목록), 없으면 빈 목록이라 버튼을 달지 않는다(#857: 파이프라인 노드의 프롬프트 보기)', () => {
+    expect(promptTargets(node('guard', [], { promptNames: ['decision_guard.judge'] }))).toEqual(['decision_guard.judge'])
+    expect(promptTargets(node('character_simulation', [], { promptNames: ['character_simulation.act', 'character_simulation.narrate'] }))).toEqual(['character_simulation.act', 'character_simulation.narrate'])
+    expect(promptTargets(node('apply'))).toEqual([])
+  })
 })
 
 describe('결과 필터: Guard는 거절이 level이 아니라 출력(allowed=false)이라 받은 쪽 안에서 가린다', () => {

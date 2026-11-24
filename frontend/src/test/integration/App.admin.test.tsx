@@ -342,11 +342,11 @@ describe('관리자 (A01~A18)', () => {
     vi.spyOn(llm, 'alertRules').mockResolvedValue(null)
     vi.spyOn(llm, 'settings').mockResolvedValue(null)
     renderAt('/admin?tab=llm')
-    // 쪽·보기마다 권한이 없는 패널 수만큼 같은 안내가 보이고(에이전트 지표: 7일 사용·지표 2, 추적 1, 에이전트별 평가 1, 프롬프트·모델·AI 파이프라인 각 1, 경고·누설 감시: 경고 기준·누설 검사·표본 비율 3),
+    // 쪽·보기마다 권한이 없는 패널 수만큼 같은 안내가 보이고(에이전트 지표: 7일 사용·지표 2, 추적 1, 프롬프트·평가: 전체(AI 파이프라인, 기본 보기)·에이전트별 평가·프롬프트·모델 각 1, 경고·누설 감시: 경고 기준·누설 검사·표본 비율 3),
     // 목록이 403이면 등록·실행·저장 폼도 숨겨 권한 안내만 보인다.
     const pages: [string, string | null, number, RegExp | null][] = [
       ['에이전트 지표', null, 2, null], ['에이전트 지표', '추적', 1, null],
-      ['프롬프트·평가', null, 1, null], ['프롬프트·평가', '프롬프트', 1, null], ['프롬프트·평가', '모델', 1, /^모델 등록$/], ['프롬프트·평가', 'AI 파이프라인', 1, null],
+      ['프롬프트·평가', null, 1, null], ['프롬프트·평가', '에이전트별 평가', 1, null], ['프롬프트·평가', '프롬프트', 1, null], ['프롬프트·평가', '모델', 1, /^모델 등록$/],
       ['경고·누설 감시', null, 3, /기준 저장$|^표본 비율 저장$/],
     ]
     for (const [page, view, notes, hiddenForm] of pages) {
@@ -537,8 +537,8 @@ describe('관리자 (A01~A18)', () => {
   })
 
   it('LLM Ops 평가는 프롬프트 상세의 평가 단계에서 지표 표와 문항별 결과를 보이고, 모델 단가·누설 검사 기록도 읽는다', async () => {
-    renderAt('/admin?tab=llm&view=prompts')
-    fireEvent.click(await screen.findByRole('button', { name: 'character_simulation.act 프롬프트 열기' }))
+    renderAt('/admin?tab=llm&view=prompts&sub=evals')
+    fireEvent.click(await screen.findByRole('button', { name: '인물 시뮬레이션 · 인물 대사(act) 프롬프트 열기' }))
     fireEvent.click(await screen.findByRole('button', { name: '평가' }))
     fireEvent.click(await screen.findByRole('button', { name: '「simulation.act character_simulation.act 3번 버전 평가」 조치' }))
     fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '상세' }))
@@ -552,7 +552,7 @@ describe('관리자 (A01~A18)', () => {
     within(items).getByText('생성 또는 채점에 실패했어요.')
     within(items).getByText('시점 위반(위반 사실 있음)')
     fireEvent.click(within(nav()).getByRole('link', { name: '프롬프트·평가' }))
-    // 프롬프트·평가 쪽의 첫 보기는 에이전트별 평가라 모델 단가는 '모델' 보기로 옮겨 본다.
+    // 프롬프트·평가 쪽의 첫 보기는 전체(AI 파이프라인)라 모델 단가는 '모델' 보기로 옮겨 본다.
     fireEvent.click(within(await screen.findByRole('navigation', { name: '프롬프트·평가 보기' })).getByRole('link', { name: '모델' }))
     within(await screen.findByRole('region', { name: '모델 단가 표' })).getByText('$2.50')
     fireEvent.click(within(nav()).getByRole('link', { name: '경고·누설 감시' }))

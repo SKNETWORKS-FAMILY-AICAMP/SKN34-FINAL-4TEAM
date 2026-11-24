@@ -1,4 +1,5 @@
 import type { Evaluation } from './llmOps'
+import { promptLabel } from './promptNames'
 
 /**
  * LLMOps 화면 '에이전트별 평가' 표(#837)의 기준 목록이다. 같은 표가 docs/evaluation/retrieval.md §1.1에 있고 llmOpsEvalTable.test.ts가 둘이 같은지 본다.
@@ -36,7 +37,7 @@ export const AGENT_EVALUATIONS: AgentEvaluation[] = [
   { agent: 'Q&A', feature: '비공개 설정 누설(Fork 응답)', mode: '새 답변 생성', set: 'leak.spoiler(5)', dataset: 'leak.spoiler', metrics: 'GEval 누설 점수', result: RECENT_RUN },
   { agent: 'Q&A', feature: '설정·관계 발췌(world_excerpts)', mode: '원문 검색', set: '한국어 62문항(설정 14·누설 62)', metrics: 'Recall@8 · MRR@8 · 비공개 설정 누설', result: `${CI} — setting Recall@8 1.00 · MRR@8 0.92, 누설 0건` },
   { agent: 'Q&A', feature: '원고 벡터 검색(Content)', ...NONE, mode: '원문 검색' },
-  { agent: 'Manuscript Review', feature: 'manuscript_review.*', ...NONE },
+  { agent: 'Manuscript Review', feature: '원고 검수(manuscript_review.*)', ...NONE },
   { agent: 'World', feature: '설정 충돌 지적', mode: '새 답변 생성', set: 'world.conflict(5)', dataset: 'world.conflict', metrics: 'GEval(항목별 기준문)', result: RECENT_RUN },
   { agent: 'Writing', feature: '집필 교정', mode: '새 답변 생성', set: 'writing.fix(5)', dataset: 'writing.fix', metrics: 'GEval(항목별 기준문)', result: RECENT_RUN },
   { agent: 'Research', feature: 'web_research.search', prompt: 'web_research.search', ...NONE },
@@ -72,3 +73,9 @@ export const promptRuns = (prompt: string, evaluations: Evaluation[]) => {
   const sets = pairSets(prompt).flatMap((row) => row.dataset ?? [])
   return evaluations.filter((e) => e.prompt === prompt || sets.includes(e.dataset))
 }
+
+/** 표의 행 이름(#857): 프롬프트가 정해진 행은 그 프롬프트의 한국어 이름('인물 시뮬레이션 · 인물 대사(act)', 에이전트 이름으로 시작), 아니면 '에이전트 · 기능'입니다. */
+export const evaluationName = (row: Pick<AgentEvaluation, 'agent' | 'feature' | 'prompt'>) => (row.prompt ? promptLabel(row.prompt) : `${row.agent} · ${row.feature}`)
+
+/** 평가 세트의 짝 프롬프트(#857, 데이터셋 목록): 표에서 그 세트로 한 프롬프트를 평가하는 행의 프롬프트. 범용 세트(`leak.*`·`world.*`·`writing.*`)·모르는 세트는 없음(null)입니다. */
+export const pairedPrompt = (dataset: string) => AGENT_EVALUATIONS.find((row) => row.dataset === dataset && row.prompt)?.prompt ?? null

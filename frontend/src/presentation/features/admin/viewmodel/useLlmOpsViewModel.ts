@@ -4,10 +4,13 @@ import { appContainer } from '../../../../app/appContainer'
 import type { LlmPage } from '../../../../domain/entities/admin'
 import { PERIODS, periodRange, type LoopStage, type MetricsGroup } from '../../../../domain/entities/llmOps'
 import { serverLevel } from '../../../../domain/entities/llmOpsPipeline'
+import { promptLabel } from '../../../../domain/entities/promptNames'
 import type { AlertRuleInput } from '../../../../domain/entities/operationsAlert'
+import type { LlmDatasetUseCase } from '../../../../domain/usecases/LlmDatasetUseCase'
 import type { LlmOpsUseCase } from '../../../../domain/usecases/LlmOpsUseCase'
 import { useAsyncData } from '../../../shared/useAsyncData'
 import type { AdminMutate } from './useAdminViewModel'
+import { useDatasetViewModel } from './useDatasetViewModel'
 
 /** 추적 목록 조건. 기간은 시간(지금부터 거꾸로)이고, 비어 있는 값은 서버에 보내지 않습니다. page는 0부터입니다. */
 type TraceFilters = { hours: number; feature: string; status: string; userId: string; requestId: string; page: number }
@@ -29,6 +32,7 @@ type Opened = { at: string; id: string; stage: LoopStage; run: string | null }
  */
 export function useLlmOpsViewModel(
   mutate: AdminMutate, page: LlmPage, openPage: (page: LlmPage, sub?: string) => void, sub: string, useCase: LlmOpsUseCase = appContainer.resolve('llmOpsUseCase'),
+  datasetUseCase: LlmDatasetUseCase | null = appContainer.resolve('llmDatasetUseCase'),
 ) {
   const [traceFilters, setTraceFilters] = useState(FIRST_TRACES)
   const [metricsQuery, setMetricsQuery] = useState<{ hours: number; groupBy: MetricsGroup }>({ hours: PERIODS[1][0], groupBy: 'feature' })
@@ -65,6 +69,11 @@ export function useLlmOpsViewModel(
   const leaks = useAsyncData(async () => page === 'alerts' ? useCase.leakChecks() : null, [useCase, page])
   const rules = useAsyncData(async () => page === 'alerts' ? useCase.alertRules() : null, [useCase, page])
   const settings = useAsyncData(async () => page === 'alerts' ? useCase.settings() : null, [useCase, page])
+  // 프롬프트 목록·상세의 '기본 모델 · 최근 사용 …' 근거(#857): 프롬프트가 연결된 노드의 최근 파이프라인 기록입니다. 보조 정보라 늦거나 실패해도 화면은 '기본 모델(환경 설정)'로 두고 이름을 지어내지 않습니다.
+  const onPrompts = here === 'prompts:prompts'
+  const recent = useAsyncData(async () => onPrompts ? useCase.promptRecords() : null, [useCase, onPrompts])
+  // 프롬프트 상세 ② 평가 세트의 데이터셋 목록·업로드(#857, 서버 API 예정): UseCase가 없으면(실제 모드) 읽지도 보내지도 않습니다.
+  const dataset = useDatasetViewModel(mutate, !!promptName && stage === 'set', datasetUseCase)
 
   // AI 파이프라인(DEC-58, 프롬프트·평가 쪽의 AI 파이프라인 보기): 노드 목록, 고른 노드의 기록, 기록 한 줄의 실행 흐름. 기본 기간은 최근 7일이고 기록은 서버가 최신순 20건씩 줍니다.
   // Guard는 거절이 level이 아니라 출력에 있어 서버 level 조건을 보내지 않으므로(serverLevel) 결과 필터만 바꿀 때는 다시 읽지 않고 받은 쪽에서 가립니다.
@@ -87,14 +96,14 @@ export function useLlmOpsViewModel(
     setTracePage: (next: number) => setTraceFilters((filters) => ({ ...filters, page: next })),
     trace, traceId, openTrace: (id: string) => openOn('metrics', id, 'traces'), closeTrace: () => setOpen(null),
     metrics, metricsQuery, setMetricsQuery,
-    prompts, prompt, promptName, stage, setStage: (next: LoopStage) => setOpen((now) => now && { ...now, stage: next, run: null }),
+    prompts, prompt, promptName, recent, dataset, stage, setStage: (next: LoopStage) => setOpen((now) => now && { ...now, stage: next, run: null }),
     openPrompt: (name: string, at?: LoopStage, run?: string | null) => openOn('prompts', name, 'prompts', at, run), closePrompt: () => setOpen(null),
     createPromptVersion: (name: string, text: string, note: string, model: string) =>
       mutate(`prompt:${name}:new`, '조합을 저장했어요. 후보로 등록하면 서비스에 반영할 수 있어요.', () => useCase.createPromptVersion(name, text, note, model)),
     registerCandidate: (name: string, version: number) =>
-      mutate(`prompt:${name}:${version}`, `${name} ${version}번 버전을 후보로 등록했어요. 이제 서비스에 반영할 수 있어요.`, () => useCase.candidate(name, version)),
+      mutate(`prompt:${name}:${version}`, `${promptLabel(name)} ${version}번 버전을 후보로 등록했어요. 이제 서비스에 반영할 수 있어요.`, () => useCase.candidate(name, version)),
     promote: (name: string, version: number) =>
-      mutate(`prompt:${name}:${version}`, `${name}의 서비스 반영이 ${version}번 버전으로 바뀌었어요.`, () => useCase.promote(name, version)),
+      mutate(`prompt:${name}:${version}`, `${promptLabel(name)}의 서비스 반영이 ${version}번 버전으로 바뀌었어요.`, () => useCase.promote(name, version)),
     optimize: (name: string, version: number, maxMetricCalls: number) =>
       mutate(`prompt:${name}:optimize`, '자동 개선을 요청했어요. 끝나면 새 버전(라벨 없음)과 회귀 평가 결과가 버전 표에 나타나요(수십 분 걸려요).', () => useCase.optimize(name, version, maxMetricCalls)),
     models,

@@ -143,6 +143,8 @@ export function registerAppServices(container: AppContainer) {
     operationsDashboardUseCase: asFunction(({ operationsDashboardRepository }) => new OperationsDashboardUseCase(operationsDashboardRepository)).singleton(),
     llmOpsRepository: asFunction(() => new HttpLlmOpsRepository()).singleton(),
     llmOpsUseCase: asFunction(({ llmOpsRepository }) => new LlmOpsUseCase(llmOpsRepository)).singleton(),
+    // 평가 데이터셋 API는 서버에 아직 없어(#857, 예정) HTTP 구현을 만들지 않았다: UseCase 없이 화면이 '서버 준비 중'으로 잠그고 성공을 흉내 내지 않는다.
+    llmDatasetUseCase: asValue(null),
     jobMonitorRepository: asFunction(() => new HttpJobMonitorRepository()).singleton(),
     jobMonitorUseCase: asFunction(({ jobMonitorRepository }) => new JobMonitorUseCase(jobMonitorRepository)).singleton(),
     initialWorldUseCase: asFunction(() => new InitialWorldUseCase(new HttpInitialWorldRepository())).singleton(),

@@ -28,6 +28,18 @@ export class LlmOpsUseCase {
   pipeline(query: PipelineQuery) { return orNullIfForbidden(this.repository.pipeline(query)) }
   pipelineRecords(query: PipelineRecordQuery) { return orNullIfForbidden(this.repository.pipelineRecords(query)) }
 
+  /**
+   * 프롬프트가 연결된 노드의 최근 7일 기록(노드마다 첫 쪽)에서 프롬프트와 모델이 모두 있는 것(#857): 프롬프트 화면의 '기본 모델 · 최근 사용 …' 근거입니다.
+   * 노드 목록에 권한이 없으면 null이고, 한 노드의 기록에 권한이 없으면 그 노드만 비웁니다.
+   */
+  async promptRecords(now = new Date()) {
+    const range = periodRange(24 * 7, now)
+    const nodes = await this.pipeline(range)
+    if (!nodes) return null
+    const pages = await Promise.all(nodes.filter((node) => node.promptNames.length).map((node) => this.pipelineRecords({ ...range, nodeId: node.id, level: '', page: 0 })))
+    return pages.flatMap((page) => page?.items ?? []).filter((record) => record.promptName && record.model)
+  }
+
   /** 대시보드 차트: 지금부터 7일 전까지의 날짜별 지표('지표' 보기의 최근 7일과 같은 구간). */
   weeklyMetrics(now = new Date()) { return this.metrics({ ...periodRange(24 * 7, now), groupBy: 'day' }) }
   candidate(name: string, version: number) { return this.repository.candidate(name, version) }

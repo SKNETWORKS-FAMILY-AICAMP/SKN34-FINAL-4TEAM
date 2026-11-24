@@ -206,3 +206,29 @@
 .adm .agent-bar-latency { display: block; }
 .adm .agent-bar-latency > i.p50 { position: absolute; inset: 0 auto 0 0; min-width: 2px; background: var(--pri); }
 .adm .agent-bar-latency > i.p95 { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -3px; min-width: 0; background: var(--acc-ink); }
+
+/* 모델 칸의 근거(#857, ModelLabel): 반영 중인 조합 요약(.admin-summary)의 모델 값은 큰 글씨 <b>이고, 그 안의 span이 요약 규칙(작은 회색 줄)을 받지 않게 값 글씨를 그대로 잇는다. */
+.adm .admin-summary b span { grid-column: auto; font-size: inherit; line-height: inherit; color: inherit; }
+.adm .admin-summary b .model-basis { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; line-height: 1.5; color: var(--sub); }
+.adm .model-basis { font-size: 12.5px; font-weight: 400; color: var(--sub); }
+
+/* 프롬프트 한국어 표시 이름 옆의 코드(#857): 이름이 주이고 코드는 작은 보조 글씨다. */
+.adm .prompt-code { font-family: var(--mono); font-size: 11.5px; font-weight: 400; color: var(--sub); overflow-wrap: anywhere; }
+
+/* 평가 데이터셋(#857, 프롬프트 상세 ② 평가 세트): 목록 아래에 고른 세트의 문항 목록과 JSONL 업로드 폼을 쌓는다. */
+.adm .admin-datasets { margin-top: 28px; }
+.adm .admin-datasets h3 { margin: 0 0 10px; }
+.adm .admin-datasets h4 { margin: 20px 0 8px; font-size: 14px; }
+.adm .dataset-items ul { max-height: 360px; margin: 0; padding: 0; overflow: auto; list-style: none; border: 1px solid var(--line2); border-radius: 10px; }
+.adm .dataset-items li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 6px 12px; border-top: 1px solid var(--line); }
+.adm .dataset-items li:first-child { border-top: 0; }
+.adm .dataset-items li pre.admin-prose { flex: 1 1 100%; margin: 4px 0 6px; }
+.adm .dataset-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 4px 0; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 600; text-align: left; overflow-wrap: anywhere; }
+.adm .dataset-toggle::before { content: '▸'; width: 1em; color: var(--sub); }
+.adm .dataset-toggle[aria-expanded="true"]::before { content: '▾'; }
+@media (pointer: coarse) { .adm .dataset-toggle { min-height: 44px; } }
+.adm .dataset-upload fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.adm .dataset-preview { min-width: 0; padding: 10px 12px; border: 1px solid var(--line2); border-radius: 10px; }
+.adm .dataset-preview p { margin: 0 0 4px; }
+.adm .dataset-preview pre.admin-prose { max-height: 200px; margin: 4px 0 8px; }
+.adm .dataset-errors { margin: 4px 0 0; padding-left: 18px; color: var(--danger); font-size: 13px; }

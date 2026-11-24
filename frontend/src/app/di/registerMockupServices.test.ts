@@ -98,6 +98,18 @@ it('운영 대시보드·LLMOps·작업 감시 저장소는 실제 모드에서 
   expect((await mockup.resolve('operationsDashboardUseCase').dashboard()).unavailable).toEqual([])
 })
 
+it('평가 데이터셋(#857)은 서버 API가 없어 실제 모드에서는 UseCase가 없고(화면이 서버 준비 중으로 잠근다), mockup에서만 메모리 예시 세트를 읽고 올린다', async () => {
+  expect(createAppContainer().resolve('llmDatasetUseCase')).toBeNull()
+  vi.stubEnv('MODE', 'mockup')
+  const datasets = createAppContainer().resolve('llmDatasetUseCase')!
+  expect((await datasets.datasets())!.map((row) => [row.name, row.items])).toEqual([
+    ['extraction.extract', 30], ['leak.spoiler', 5], ['qa.grounding', 6], ['simulation.act', 24], ['simulation.narrate', 46], ['world.conflict', 5], ['writing.fix', 5],
+  ])
+  await datasets.upload('mine', 'mine.jsonl', '{"id":"a","input":"q","metadata":{}}', true)
+  expect((await datasets.datasets())!.find((row) => row.name === 'mine')).toEqual({ name: 'mine', prompt: null, items: 1, source: '업로드 · mine.jsonl' })
+  expect(await datasets.items('mine')).toEqual([{ id: 'a', input: 'q', metadata: {} }])
+})
+
 it('장르 저장소는 실제 모드에서 Content·운영 API를, mockup에서 같은 목록을 보는 메모리를 쓰고 홈 칩·세계관 이름이 그 목록을 따른다', async () => {
   const real = createAppContainer()
   expect(real.resolve('genreRepository').constructor.name).toBe('HttpGenreRepository')
