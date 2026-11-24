@@ -10,6 +10,7 @@ import '../scrollToSpy'
 import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
+import '../../presentation/features/studio/view/StudioPage'
 
 afterEach(cleanup)
 

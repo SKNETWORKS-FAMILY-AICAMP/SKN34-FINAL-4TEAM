@@ -9,6 +9,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import '../scrollToSpy'
 import App from '../../App'
 import { createAppStore } from '../../app/store'
+import '../../presentation/features/reading/view/ReaderPage'
+import '../../presentation/features/reading/view/WorkPage'
+import '../../presentation/features/studio/view/StudioPage'
 
 beforeEach(() => {
   vi.spyOn(window, 'confirm').mockReturnValue(true)

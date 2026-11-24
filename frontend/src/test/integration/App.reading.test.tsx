@@ -18,6 +18,9 @@ import { ReadingUseCase } from '../../domain/usecases/ReadingUseCase'
 import { EpisodeComments } from '../../presentation/features/reading/view/EpisodeComments'
 import { sessionActions } from '../../presentation/shared/session/sessionSlice'
 import { renderApp } from '../renderApp'
+import '../../presentation/features/reading/view/PublicWikiPage'
+import '../../presentation/features/reading/view/ReaderPage'
+import '../../presentation/features/reading/view/WorkPage'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); Reflect.deleteProperty(navigator, 'clipboard') })
 
