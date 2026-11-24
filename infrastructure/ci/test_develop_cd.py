@@ -13,7 +13,7 @@ SERVICES = ("web", "core-api", "content-service", "ai-service", "operations-serv
 TREES = {service: "%040d" % number for number, service in enumerate(SERVICES, 1)}  # 이번 run의 서비스별 빌드 tree(publish가 계산)
 STALE = "%040d" % 99  # 다른 커밋에서 빌드한 이미지의 tree
 PULL = "pull " + APP  # fake Docker가 기록한 첫 앱 이미지 pull 줄의 시작(앞뒤로 나눠 보는 기준)
-FULL_UP = "up -d --no-build --pull missing --wait --wait-timeout 600\n"
+FULL_UP = "up -d --no-build --pull missing --wait --wait-timeout 600 --scale ai-eval-seed=0\n"
 
 
 class DevelopDeploymentTest(unittest.TestCase):
@@ -103,6 +103,12 @@ class DevelopDeploymentTest(unittest.TestCase):
         self.assertEqual(0, code, error)
         self.assertNotIn("--env-file .env pull", commands)  # 모든 이미지를 받는 compose pull은 없다
         self.assertIn("up -d --no-build --pull missing --wait --wait-timeout 180 postgres mailpit\n", commands)
+
+    def test_wait_up_leaves_out_the_one_shot_eval_seed_and_starts_it_after_the_stack_is_healthy(self):
+        # compose --wait는 끝난 컨테이너를 exit 0이어도 실패('exited (0)')로 봐서 1회성 ai-eval-seed가 먼저 끝나면 배포가 실패한다. 전체 스택 --wait up은 seed를 0개로 두고, healthy 뒤 기다리지 않는 up으로 따로 시작한다.
+        code, commands, error = self.deploy()
+        self.assertEqual(0, code, error)
+        self.assertLess(commands.index(FULL_UP), commands.index("up -d --no-build --no-deps ai-eval-seed\n"))
 
     def test_inherited_profile_cannot_change_the_deployed_stack(self):
         code, commands, error = self.deploy(overrides={"COMPOSE_PROFILES": "anything"})
