@@ -515,6 +515,9 @@ class LangfuseClientTest {
         assertEquals("/api/public/v2/prompts", create.uri.path)
         assertEquals("application/json", create.headers.contentType.toString())
         assertEquals("qa/answer", mapper.readTree(create.body).path("name").asString())
+        langfuse.prompt("qa/answer", "production")
+        assertEquals(listOf("production"), factory.calls[3].query["label"])
+        assertEquals(null, factory.calls[3].query["version"])
         assertEquals(404, status { client(RecordingRequestFactory { Reply(404) }).prompt("x", 1) })
         assertEquals(502, status { client(RecordingRequestFactory { Reply(400) }).prompt("x", 1) })
     }

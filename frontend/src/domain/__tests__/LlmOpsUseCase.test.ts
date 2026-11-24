@@ -10,9 +10,9 @@ const rejects = (promise: Promise<unknown>, message: string) => expect(promise).
 describe('프롬프트 새 버전', () => {
   it('본문은 그대로, 변경 메모는 다듬어 보내고 본문이 비면 보내지 않는다', async () => {
     const createPromptVersion = vi.fn(async () => {})
-    await make({ createPromptVersion }).createPromptVersion('qa-answer', '  첫 줄\n둘째 줄 ', '  말투 조정 ')
-    expect(createPromptVersion).toHaveBeenCalledWith('qa-answer', { prompt: '  첫 줄\n둘째 줄 ', commitMessage: '말투 조정' })
-    await rejects(make({ createPromptVersion }).createPromptVersion('qa-answer', '  \n ', ''), '프롬프트 본문을 입력해 주세요.')
+    await make({ createPromptVersion }).createPromptVersion('qa-answer', '  첫 줄\n둘째 줄 ', '  말투 조정 ', ' gpt-x ')
+    expect(createPromptVersion).toHaveBeenCalledWith('qa-answer', { prompt: '  첫 줄\n둘째 줄 ', commitMessage: '말투 조정', model: 'gpt-x' })
+    await rejects(make({ createPromptVersion }).createPromptVersion('qa-answer', '  \n ', '', ''), '프롬프트 본문을 입력해 주세요.')
     expect(createPromptVersion).toHaveBeenCalledTimes(1)
   })
 })
@@ -93,7 +93,7 @@ describe('LLM Ops 조회 권한', () => {
     const forbidden = async () => { throw new OperationsForbidden('권한 없음') }
     const uc = make({
       traces: forbidden, trace: forbidden, metrics: forbidden, prompts: forbidden, prompt: forbidden, models: forbidden, evaluations: forbidden,
-      evaluation: forbidden, leakChecks: forbidden, alertRules: forbidden, settings: forbidden, promote: forbidden,
+      evaluation: forbidden, leakChecks: forbidden, alertRules: forbidden, settings: forbidden, promote: forbidden, candidate: forbidden,
     })
     const traceQuery = { from: '', to: '', feature: '', status: '', userId: '', requestId: '', page: 0 }
     const reads = await Promise.all([
@@ -102,6 +102,7 @@ describe('LLM Ops 조회 권한', () => {
     ])
     expect(reads).toEqual(Array(11).fill(null))
     await expect(uc.promote('qa-answer', 1)).rejects.toThrow(OperationsForbidden)
+    await expect(uc.candidate('qa-answer', 1)).rejects.toThrow(OperationsForbidden)
   })
 })
 
