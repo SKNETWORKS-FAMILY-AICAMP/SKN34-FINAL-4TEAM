@@ -100,7 +100,12 @@ export function EvaluationChart({ metrics }: { metrics: EvaluationMetric[] }) {
   )
 }
 
-/** 서비스 지표(DEC-57)의 단계 막대: 단계별 수를 가로 막대로 그리고 막대 끝에 수를 적습니다. 비율·오차는 lead(차트 위 목록)에 있고 차트는 보조입니다. */
+/**
+ * 서비스 지표(DEC-57)의 단계 막대: 단계별 수를 가로 막대로 그리고 막대 끝에 수를 적습니다. 비율·오차는 lead(차트 위 목록)에 있고 차트는 보조입니다.
+ * Recharts는 폭 0 막대와 그 막대에서 만드는 숫자를 그리지 않아(값 0 단계에 숫자 없음) minPointSize 2px로 막대와 '0'을 남기고,
+ * 숫자는 애니메이션이 끝나야 보이므로(showLabels = !isAnimating) 막대를 움직이지 않습니다.
+ * ponytail: 숫자는 5자리까지(오른쪽 여백 44px − 간격 5px ≥ 5글자 ≈ 37px), 넘으면 여백을 키운다.
+ */
 export function FunnelChart({ group, lead }: { group: FunnelGroup; lead?: ReactNode }) {
   return (
     <ChartFrame title={group.title} summary={groupSummary(group)} height={group.steps.length * 44 + 16} lead={lead}>
@@ -108,7 +113,7 @@ export function FunnelChart({ group, lead }: { group: FunnelGroup; lead?: ReactN
         <XAxis type="number" hide />
         <YAxis type="category" dataKey="label" tick={TICK} tickLine={false} axisLine={{ stroke: 'var(--line2)' }} width={150} />
         {tooltip}
-        <Bar dataKey="count" name="수" {...PRIMARY} maxBarSize={22} radius={[0, 4, 4, 0]}>
+        <Bar dataKey="count" name="수" {...PRIMARY} maxBarSize={22} radius={[0, 4, 4, 0]} minPointSize={2} isAnimationActive={false}>
           <LabelList dataKey="count" position="right" fill="var(--ink2)" fontSize={12} />
         </Bar>
       </BarChart>
@@ -116,14 +121,18 @@ export function FunnelChart({ group, lead }: { group: FunnelGroup; lead?: ReactN
   )
 }
 
-/** 발행 회차 하나당 좋아요·관심·댓글 평균. 발행 회차가 없으면 값이 null이라 막대를 그리지 않습니다. */
+/**
+ * 발행 회차 하나당 좋아요·관심·댓글 평균. 발행 회차가 없으면 값이 null이라 막대를 그리지 않습니다.
+ * 눈금 글자의 오른쪽 끝은 축 폭 − 8(tickSize 6 + tickMargin 2)이라 폭 40에서는 0.0105의 앞의 0이 잘려 비용 축($0.0105)과 같은 56으로 둡니다.
+ * ponytail: 7글자(0.00105)까지, 더 작은 평균이 나오면 width="auto".
+ */
 export function ReactionsChart({ rows, lead }: { rows: Reaction[]; lead?: ReactNode }) {
   return (
     <ChartFrame title="회차당 반응" summary={reactionSummary(rows)} height={200} lead={lead}>
       <BarChart data={rows} margin={MARGIN} accessibilityLayer={false}>
         <CartesianGrid stroke="var(--line)" vertical={false} />
         <XAxis dataKey="label" tick={TICK} tickLine={false} axisLine={{ stroke: 'var(--line2)' }} />
-        <YAxis tick={TICK} tickLine={false} axisLine={false} width={40} />
+        <YAxis tick={TICK} tickLine={false} axisLine={false} width={56} />
         {tooltip}
         <Bar dataKey="perEpisode" name="회차당" {...PRIMARY} maxBarSize={36} radius={[4, 4, 0, 0]} />
       </BarChart>
