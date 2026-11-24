@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, usd, versionAction, type EvaluationItem, type PromptVersion,
+  LLM_FORBIDDEN, bodyText, estimatedCalls, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, modelLabel, pendingSeed, percent, periodRange, productionOf, usd, versionAction, type EvaluationItem, type PromptVersion,
 } from '../entities/llmOps'
 import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobRetryable, jobSourceLabel, jobStatusLabel, type JobRun } from '../entities/jobMonitor'
 import { lastPage } from '../entities/operations'
@@ -143,5 +143,14 @@ describe('프롬프트 자동 개선 표시 값(#823)', () => {
     expect(itemReason(item({ failed: true, scores: { voice: 0.25, intent: 1, pov_ok: 0 } }))).toBe('시점 위반(위반 사실 있음) · 0.5 미만 지표: voice')
     // 서버가 실패로 센 이유를 이 규칙으로 찾지 못해도 이유 칸이 비지 않는다.
     expect(itemReason(item({ failed: true }))).toBe('실패')
+  })
+})
+
+describe('문항별 결과의 진행 중 표시(#823)', () => {
+  it('점수가 아직 없고 실패도 아닌 문항은 진행 중이다', () => {
+    const item = (over: Partial<EvaluationItem>): EvaluationItem => ({ itemId: 'simulation.act-01', scores: {}, failed: false, ...over })
+    expect(itemWaiting(item({}))).toBe(true)
+    // 점수가 있으면 끝난 문항이고, 실패(항목 오류)한 문항은 진행 중이 아니다.
+    expect([itemWaiting(item({ scores: { voice: 0.5 } })), itemWaiting(item({ failed: true, error: '생성 또는 채점에 실패했어요.' }))]).toEqual([false, false])
   })
 })

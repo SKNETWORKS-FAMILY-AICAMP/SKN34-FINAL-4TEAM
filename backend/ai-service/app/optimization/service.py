@@ -8,6 +8,7 @@
 import json
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -50,8 +51,8 @@ def accept(request: OptimizationRequest) -> None:
 def running(prompt_name: str) -> bool:
     """같은 프롬프트의 자동 개선이 실행 중인가: 잠금을 한 번 잡아 보고 잡히면 바로 놓는다."""
     with _connect() as connection:
-        if _try_lock(connection, prompt_name):
-            connection.execute('SELECT pg_advisory_unlock(hashtext(%s))', (_lock_key(prompt_name),))
+        if _lock(connection, 'pg_try_advisory_lock', prompt_name):
+            _lock(connection, 'pg_advisory_unlock', prompt_name)
             return False
         return True
 
@@ -61,7 +62,7 @@ def hold(prompt_name: str):
     """워커가 실행 내내 잠금을 잡는다(세션 잠금이라 연결이 닫히면 풀린다). 이미 다른 실행이 잡았으면 False를 내준다."""
     connection = _connect()
     try:
-        yield _try_lock(connection, prompt_name)
+        yield _lock(connection, 'pg_try_advisory_lock', prompt_name)
     finally:
         connection.close()
 
@@ -122,8 +123,9 @@ def _optimize(request: OptimizationRequest) -> None:
     base = _read(client, request.prompt, version=request.version)
     if not isinstance(base.prompt, str):   # 채팅 프롬프트는 메시지 목록이라 지시문으로 개선할 수 없다
         raise OptimizationFailure(422, '텍스트 프롬프트만 개선할 수 있어요.')
-    train, val = load_pool(dataset)   # 풀·gepa 설치는 기준 평가(OpenAI 호출)를 하기 전에 확인한다
+    train, val = load_pool(dataset)   # 풀·gepa 설치·반성 게이트웨이는 기준 평가(OpenAI 호출)를 하기 전에 확인한다
     import gepa
+    agent.check()
     _ensure_baseline(client, dataset, request.prompt)
     adapter = SimulationAdapter(simulation.KINDS[dataset], tracing.model_of(base.config))
     try:
@@ -148,7 +150,7 @@ def _optimize(request: OptimizationRequest) -> None:
         raise OptimizationFailure(409, '저장된 버전 번호가 예상과 달라 회귀 평가를 하지 못했어요.')
     plan = evaluation.prepare(EvaluationRequest(dataset=dataset, prompt=request.prompt, version=created.version), run_name=run_name)
     _note(evaluationRun=run_name)
-    evaluation._run(plan)
+    _evaluate(plan)
 
 
 def _ensure_baseline(client, dataset: str, prompt_name: str) -> None:
@@ -158,7 +160,15 @@ def _ensure_baseline(client, dataset: str, prompt_name: str) -> None:
         return
     plan = evaluation.prepare(EvaluationRequest(dataset=dataset, prompt=prompt_name, version=production.version))
     if plan.baseline is None:
-        evaluation._run(plan)
+        _note(baselineRun=plan.run_name)
+        _evaluate(plan)
+
+
+def _evaluate(plan) -> None:
+    """회귀 평가 Run은 정식 평가처럼 자기 trace로 돈다: 새 스레드는 호출한 쪽의 추적 문맥(열린 prompt_optimization 루트·전파 속성)을 물려받지 않아 항목 span이 이 trace에 붙지 않는다
+    (concurrent.futures는 asyncio.to_thread와 달리 contextvars를 복사하지 않는다). 실패는 result()가 그대로 올려 trace를 ERROR로 끝낸다. 이 trace에는 Run 이름(_note)만 남긴다."""
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        pool.submit(evaluation._run, plan).result()
 
 
 def _read(client, name: str, *, missing: str | None = '프롬프트 버전을 찾을 수 없어요.', **which):
@@ -178,12 +188,12 @@ def _note(**metadata) -> None:
     tracing.client().update_current_span(metadata=metadata)
 
 
-def _lock_key(prompt_name: str) -> str:
-    return f'prompt_optimization:{prompt_name}'
-
-
-def _try_lock(connection, prompt_name: str) -> bool:
-    return connection.execute('SELECT pg_try_advisory_lock(hashtext(%s))', (_lock_key(prompt_name),)).fetchone()[0]
+def _lock(connection, function: str, prompt_name: str) -> bool:
+    """advisory lock 함수 한 번(pg_try_advisory_lock·pg_advisory_unlock, 키 prompt_optimization:<이름>). 연결 뒤 질의 실패도 접속 정보가 실릴 수 있는 원문 대신 고정 문구 503이다."""
+    try:
+        return connection.execute(f'SELECT {function}(hashtext(%s))', (f'prompt_optimization:{prompt_name}',)).fetchone()[0]
+    except psycopg.Error:
+        raise OptimizationFailure(503, '자동 개선 잠금용 데이터베이스 질의에 실패했습니다.') from None
 
 
 def _connect():

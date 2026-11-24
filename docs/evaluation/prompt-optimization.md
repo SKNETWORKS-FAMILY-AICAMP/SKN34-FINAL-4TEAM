@@ -38,14 +38,14 @@ LLMOps 화면의 `자동 개선` 버튼 → 운영이 접수 → AI 작업 워�
 | 어디 | 무엇 |
 |---|---|
 | LLMOps → 프롬프트 상세 | 새 버전(라벨 없음, 변경 메모 `GEPA 자동 개선: 기준 v{n}, val {seed}→{best}, 평가 Run {run}`)과 그 버전의 회귀 평가 결과. 통과하면 `후보 등록` → `서비스에 반영` |
-| LLMOps → 평가 상세 | 지표 평균과 **문항별 결과 표**(문항 id·지표 점수·결과·이유. 실패 = 항목 오류 · `pov_ok` 0 · 지표 하나라도 0.5 미만, 실패 먼저). 게이트 세트의 실패 문항을 보고 지시문을 사람이 더 고칠 수 있다 |
-| LLMOps → 추적(기능 `prompt_optimization`) | 한 번의 개선: `seedScore`·`bestScore`·`savedVersion`·`evaluationRun`·`outcome`(`saved`·`no_improvement`·`rejected`)·저장하지 않은 이유 `reason`(`개선 없음` 등)·`failedCalls`/`totalCalls`. 안쪽 생성 호출이 generation으로 남아 비용이 보인다. 실패면 level ERROR와 고정 사유 |
+| LLMOps → 평가 상세 | 지표 평균과 **문항별 결과 표**(문항 id·지표 점수·결과·이유. 실패 = 항목 오류 · `pov_ok` 0 · 지표 하나라도 0.5 미만, 실패 먼저. 실행 중인 Run의 점수 없는 문항은 '진행 중'). 게이트 세트의 실패 문항을 보고 지시문을 사람이 더 고칠 수 있다 |
+| LLMOps → 추적(기능 `prompt_optimization`) | 한 번의 개선: `seedScore`·`bestScore`·`savedVersion`·`baselineRun`·`evaluationRun`(두 평가 Run은 이름만, 항목 호출은 각 Run의 trace)·`outcome`(`saved`·`no_improvement`·`rejected`)·저장하지 않은 이유 `reason`(`개선 없음` 등)·`failedCalls`/`totalCalls`. 안쪽 생성 호출이 generation으로 남아 비용이 보인다. 실패면 level ERROR와 고정 사유 |
 
 `outcome=no_improvement`(최고 − 시드 < 0.05)·`rejected`(`SAFETY` 문장 누락·길이 2배 초과)면 저장하지 않는다. 지표 표준오차가 0.03~0.08이라 0.05 여유 없이 최고를 고르면 잡음만으로 시드를 넘는다.
 
 ## 첫 실행에서 확인할 것
 
-1. `PROMPT_OPTIMIZER_BASE_URL`(로컬 `http://host.docker.internal:10100/v1`)이 `ai-jobs-worker` 컨테이너에서 닿는지(반성 호출 실패는 trace ERROR `프롬프트 개선 모델 호출에 실패했어요.`로 바로 끝난다).
+1. `PROMPT_OPTIMIZER_BASE_URL`(로컬 `http://host.docker.internal:10100/v1`)이 `ai-jobs-worker` 컨테이너에서 닿는지(Linux는 compose가 `extra_hosts`를 준다). 워커는 시작할 때 반성 모델에 짧은 확인 호출 1회를 해서, 닿지 않으면 OpenAI 호출 없이 trace ERROR `프롬프트 개선 모델 호출에 실패했어요.`로 끝난다(429·일시 오류는 SDK가 두 번까지 다시 시도한다).
 2. 실제 호출 수·시간·금액(OpenAI 사용량)이 위 어림과 맞는지, `failedCalls`가 0에 가까운지.
 3. 개선 폭이 0.05를 넘는지와 게이트 세트 Run이 통과하는지. 게이트 세트 평가는 24·46문항이라 같은 지시문도 Run마다 흔들린다([계약 한계](../design/operations-llmops-contract.md#ponytail-한계)).
 

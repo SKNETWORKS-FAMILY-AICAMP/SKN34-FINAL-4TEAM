@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react'
 
 import {
-  LLM_FORBIDDEN, OPTIMIZATION_DEFAULT_CALLS, OPTIMIZATION_MAX_CALLS, estimatedCalls, evaluationStatusLabel, fixedModel, isOptimizable, itemReason, labelText, modelLabel, passedLabel, pendingSeed, perMillion,
+  LLM_FORBIDDEN, OPTIMIZATION_DEFAULT_CALLS, OPTIMIZATION_MAX_CALLS, estimatedCalls, evaluationStatusLabel, fixedModel, isOptimizable, itemReason, itemWaiting, labelText, modelLabel, passedLabel, pendingSeed, perMillion,
   productionOf, versionAction, type Evaluation, type EvaluationItem,
 } from '../../../../domain/entities/llmOps'
 import { alertRuleLabel, type AlertRule } from '../../../../domain/entities/operationsAlert'
@@ -306,7 +306,7 @@ function EvaluationItems({ items }: { items: EvaluationItem[] }) {
             <tr key={item.itemId}>
               <td>{item.itemId}</td>
               {names.map((name) => <td key={name} className="admin-num">{item.scores[name] == null ? '—' : item.scores[name].toFixed(2)}</td>)}
-              <td><span className={`chip ${item.failed ? 'bad' : ''}`}>{item.failed ? '실패' : '통과'}</span></td>
+              <td><span className={`chip ${item.failed ? 'bad' : itemWaiting(item) ? 'wait' : ''}`}>{item.failed ? '실패' : itemWaiting(item) ? '진행 중' : '통과'}</span></td>
               <td>{itemReason(item) ?? '—'}</td>
             </tr>
           ))}

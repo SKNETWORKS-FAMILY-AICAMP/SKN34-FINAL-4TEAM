@@ -79,7 +79,8 @@ class EvaluationService(
     internal fun detail(member: OperationsMember, runId: String, now: Instant): Evaluation {
         permissions.requirePermission(member, LLM)
         val run = runs(now, runId).firstOrNull { it.name == runId } ?: throw NoSuchElementException("Evaluation not found.")
-        return evaluations(listOf(run), now).single().copy(items = items(run))
+        val evaluation = evaluations(listOf(run), now).single()
+        return evaluation.copy(items = items(run, evaluation.status))
     }
 
     /** The AI service answers 202 and keeps running; the result shows up in the run list. */
@@ -124,12 +125,13 @@ class EvaluationService(
 
     /**
      * The run's items from the Experiments items API (item scores, no text), failed ones first and then by item id. An item that errored while generating has level ERROR,
-     * one that generated but was never scored (a scoring failure) has no scores; both are failed with the fixed reason.
+     * one that generated but was never scored (a scoring failure) has no scores; both are failed with the fixed reason. While the run is [status] running an item without
+     * scores is not failed: it is still being generated or scored, so it comes as waiting (no scores, not failed, no error); only a run that is over turns it into a failure.
      */
-    private fun items(run: Run): List<EvaluationItem> = langfuse.experimentItems(run.id, run.createdAt.minus(ITEM_LOOKBACK)).map { node ->
+    private fun items(run: Run, status: String): List<EvaluationItem> = langfuse.experimentItems(run.id, run.createdAt.minus(ITEM_LOOKBACK)).map { node ->
         val scores = node.path("scores").values().filter { it.path("dataType").asString() == "NUMERIC" }
             .mapNotNull { score -> score.path("value").doubleOrNull()?.let { score.path("name").asString() to it } }.toMap()
-        val errored = node.path("level").asString() == "ERROR" || scores.isEmpty()
+        val errored = node.path("level").asString() == "ERROR" || (scores.isEmpty() && status != "running")
         // A pov_ok of 0 (a violated fact) is below the pass score too, so one comparison covers "a violation or a low metric".
         EvaluationItem(node.path("experimentItemId").asString(), scores, errored || scores.values.any { it < ITEM_PASS_SCORE }, if (errored) ITEM_ERROR else null)
     }.sortedWith(compareByDescending<EvaluationItem> { it.failed }.thenBy { it.itemId })

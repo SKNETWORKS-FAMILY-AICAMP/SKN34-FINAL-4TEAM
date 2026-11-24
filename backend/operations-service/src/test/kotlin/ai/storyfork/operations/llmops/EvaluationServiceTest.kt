@@ -359,4 +359,30 @@ class EvaluationServiceTest {
         assertNull(service.list(operators.llm, now).items.first().items)
         assertEquals(1, mockingDetails(langfuse).invocations.count { it.method.name == "experimentItems" })   // 상세만 읽는다
     }
+
+    @Test
+    fun `in a running run an item without scores is waiting not failed and an errored one still fails`() {
+        givenAllRuns()
+        items["id-c3d4e5"] = listOf(
+            experimentItem("id-c3d4e5", "simulation.act-01", good),
+            experimentItem("id-c3d4e5", "simulation.act-02", emptyMap()),                   // still generating or being scored
+            experimentItem("id-c3d4e5", "simulation.act-03", emptyMap(), level = "ERROR"),  // its generation failed
+        )
+
+        val got = service.detail(operators.llm, name(running), now).items!!.associateBy { it.itemId }
+
+        assertEquals(listOf(false, false, true), listOf("simulation.act-01", "simulation.act-02", "simulation.act-03").map { got.getValue(it).failed })
+        assertNull(got.getValue("simulation.act-02").error)
+        assertEquals("생성 또는 채점에 실패했어요.", got.getValue("simulation.act-03").error)
+    }
+
+    @Test
+    fun `once a run is over an item without scores is a scoring failure`() {
+        givenAllRuns()
+        items["id-d4e5f6"] = listOf(experimentItem("id-d4e5f6", "simulation.act-01", emptyMap()))   // the stale run has no verdict after two hours: failed
+
+        val item = service.detail(operators.llm, name(stale), now).items!!.single()
+
+        assertEquals(listOf(true, "생성 또는 채점에 실패했어요."), listOf(item.failed, item.error))
+    }
 }

@@ -50,6 +50,9 @@ services:
     init: true
     command: [celery, -A, app.jobs.worker, worker, -Q, jobs, "--concurrency=${AI_JOBS_CONCURRENCY:-4}", --loglevel=INFO]
     environment: *ai-environment
+    # 프롬프트 자동 개선(#823)의 반성 모델을 호스트의 로컬 게이트웨이(PROMPT_OPTIMIZER_BASE_URL의 host.docker.internal)로 부르는 워커다. Linux는 이 이름이 자동으로 풀리지 않는다.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # 평가 세트(app/evaluation/datasets/*.jsonl)를 Langfuse Dataset으로 등록하는 1회성 작업. 같은 AI 이미지로 `up`마다 한 번 돌고 끝난다(멱등 upsert).
   # Langfuse가 막 뜨는 중이면 실패하므로 10초 간격으로 30번까지 다시 시도하고, 그래도 안 되면 실패로 끝나 로그에 남는다.

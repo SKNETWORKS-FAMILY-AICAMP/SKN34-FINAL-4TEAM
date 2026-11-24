@@ -88,6 +88,8 @@ export function itemReason(item: EvaluationItem): string | null {
   if (low.length) reasons.push(`0.5 미만 지표: ${low.join(', ')}`)
   return reasons.join(' · ') || '실패'
 }
+/** 점수가 아직 없고 실패도 아닌 문항: 실행 중인 Run에서 아직 생성·채점 중인 문항입니다(끝난 Run에서 점수가 없는 문항은 서버가 실패로 줍니다). */
+export const itemWaiting = (item: EvaluationItem) => !item.failed && Object.keys(item.scores).length === 0
 /** 같은 프롬프트의 자동 개선이 이미 돌 때(409 OPTIMIZATION_RUNNING) 보이는 문구. */
 export const OPTIMIZATION_RUNNING_MESSAGE = '이 프롬프트의 자동 개선이 이미 실행 중이에요. 끝난 뒤에 다시 시도해 주세요.'
 /** 자동 개선을 지원하지 않는 프롬프트(422 OPTIMIZATION_UNSUPPORTED)일 때 보이는 문구. */

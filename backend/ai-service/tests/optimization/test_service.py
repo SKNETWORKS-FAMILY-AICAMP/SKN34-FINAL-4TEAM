@@ -381,12 +381,19 @@ def test_a_failing_reflection_ends_the_run_at_once_even_though_gepa_swallows_exc
             swallowed.append(error)
         pytest.fail('반성이 실패했는데 GEPA가 다음 반복으로 넘어갔다')
     install_gepa(monkeypatch, optimize)
-    monkeypatch.setattr(agent, 'reflect', lambda text: (_ for _ in ()).throw(OptimizationFailure(502, '프롬프트 개선 모델 호출에 실패했어요.')))
+    answers = []
+
+    def reflect(text):
+        answers.append(text)
+        if len(answers) > 1:   # 첫 호출은 게이트웨이 확인이라 통과하고 GEPA 안의 반성 호출부터 실패한다
+            raise OptimizationFailure(502, '프롬프트 개선 모델 호출에 실패했어요.')
+        return 'OK'
+    monkeypatch.setattr(agent, 'reflect', reflect)
 
     service.run_job(REQUEST.model_dump())
 
     root = root_of(world)
-    assert swallowed == [] and status_of(root) == 'failed' and world.created == [] and world.ran == []
+    assert swallowed == [] and len(answers) == 2 and status_of(root) == 'failed' and world.created == [] and world.ran == []
     assert attrs(root)['langfuse.observation.status_message'] == '프롬프트 개선 모델 호출에 실패했어요.'
 
 
@@ -401,3 +408,91 @@ def test_a_missing_pool_ends_the_run_before_the_baseline_evaluation_spends_anyth
 
     root = root_of(world)
     assert status_of(root) == 'failed' and world.prepared == [] and world.ran == [] and world.optimized == []
+
+
+def test_the_evaluation_runs_start_their_own_traces_instead_of_hanging_under_the_optimization_trace(world, monkeypatch):
+    world.baseline = None   # 기준 평가와 최종 평가가 모두 돈다
+    plans = []
+
+    def run(plan):   # 정식 평가의 항목 span처럼 현재 추적 문맥 아래에 span을 연다
+        plans.append(plan)
+        with tracing.observe('experiment-item-run'):
+            pass
+    monkeypatch.setattr(evaluation, '_run', run)
+
+    service.run_job(REQUEST.model_dump())
+
+    root = root_of(world)
+    items = [s for s in world.spans() if s.name == 'experiment-item-run']
+    assert len(items) == 2 and status_of(root) == 'success'
+    assert all(s.parent is None and s.context.trace_id != root.context.trace_id for s in items)   # 최적화 trace에 붙지 않고 각자 루트다
+    assert all('feature:prompt_optimization' not in (attrs(s).get('langfuse.trace.tags') or []) for s in items)   # 전파 속성도 따라가지 않는다
+    assert (meta(root, 'baselineRun'), meta(root, 'evaluationRun')) == (plans[0].run_name, plans[1].run_name)   # trace에는 Run 이름만 남는다
+
+
+def test_a_failing_regression_evaluation_still_ends_the_optimization_in_error(world, monkeypatch):
+    def broken(plan):
+        raise EvaluationFailure(502, 'Langfuse에서 평가 Run을 찾지 못해 결과를 기록하지 못했습니다.')
+    monkeypatch.setattr(evaluation, '_run', broken)
+
+    service.run_job(REQUEST.model_dump())
+
+    root = root_of(world)
+    assert status_of(root) == 'failed' and attrs(root)['langfuse.observation.status_message'] == 'Langfuse에서 평가 Run을 찾지 못해 결과를 기록하지 못했습니다.'
+    assert meta(root, 'savedVersion') == 6   # 저장은 이미 됐고 trace에 남는다
+
+
+def test_the_gateway_is_checked_before_the_baseline_evaluation_spends_anything(world, monkeypatch):
+    world.baseline = None
+    events = []
+    prepare = evaluation.prepare
+    monkeypatch.setattr(evaluation, 'prepare', lambda request, run_name=None: events.append('prepare') or prepare(request, run_name))
+    monkeypatch.setattr(agent, 'reflect', lambda text: events.append('reflect') or 'OK')
+
+    service.run_job(REQUEST.model_dump())
+
+    assert events[:2] == ['reflect', 'prepare']   # 게이트웨이 확인이 OpenAI 호출을 쓰는 기준 평가보다 먼저다
+
+
+def test_an_unreachable_gateway_ends_the_run_in_error_before_any_openai_call(world, monkeypatch):
+    world.baseline = None
+    monkeypatch.setattr(agent, 'reflect', lambda text: (_ for _ in ()).throw(OptimizationFailure(502, '프롬프트 개선 모델 호출에 실패했어요.')))
+
+    service.run_job(REQUEST.model_dump())
+
+    root = root_of(world)
+    assert status_of(root) == 'failed' and attrs(root)['langfuse.observation.status_message'] == '프롬프트 개선 모델 호출에 실패했어요.'
+    assert world.prepared == [] and world.ran == [] and world.optimized == [] and world.created == []   # 평가(OpenAI)도 GEPA도 저장도 없다
+
+
+class BrokenConnection(FakeConnection):
+    """연결은 됐지만 질의가 실패하는 연결. fail_on은 몇 번째 질의부터 실패하는지(1 = 첫 질의)다."""
+
+    def __init__(self, fail_on):
+        super().__init__(got=True)
+        self.fail_on = fail_on
+
+    def execute(self, sql, params=()):
+        if len(self.sql) + 1 >= self.fail_on:
+            raise service.psycopg.OperationalError('server closed the connection: postgresql://user:비밀번호@postgres')
+        return super().execute(sql, params)
+
+
+@pytest.mark.parametrize('fail_on', [1, 2], ids=['lock-query', 'unlock-query'])
+def test_a_query_failure_after_connecting_is_the_same_fixed_503_and_the_connection_is_closed(database, fail_on):
+    database.connect.connection = BrokenConnection(fail_on)
+
+    with pytest.raises(OptimizationFailure) as error:
+        service.running('character_simulation.act')
+
+    assert error.value.status == 503 and '비밀번호' not in str(error.value) and database.connect.connection.closed
+
+
+def test_hold_fails_with_the_fixed_503_when_the_lock_query_fails_and_still_closes_the_connection(database):
+    database.connect.connection = BrokenConnection(1)
+
+    with pytest.raises(OptimizationFailure) as error:
+        with service.hold('character_simulation.act'):
+            pytest.fail('잠금을 못 잡았는데 실행으로 넘어갔다')
+
+    assert error.value.status == 503 and '비밀번호' not in str(error.value) and database.connect.connection.closed

@@ -51,7 +51,8 @@ def test_the_gateway_settings_are_used_and_the_prompt_goes_as_a_message_list_wit
     assert agent.reflect('개선해 줘') == '새 지시문'
 
     [made] = FakeOpenAI.made
-    assert made['base_url'] == 'http://host.docker.internal:10100/v1' and made['api_key'] == 'gateway-key' and made['max_retries'] == 0
+    assert made['base_url'] == 'http://host.docker.internal:10100/v1' and made['api_key'] == 'gateway-key'
+    assert made['max_retries'] == 2   # 구독 게이트웨이의 429·일시 오류는 SDK가 두 번까지 다시 시도한다
     assert FakeOpenAI.sent == [{'model': 'gpt-6.2-sol', 'store': False, 'input': [{'role': 'user', 'content': '개선해 줘'}]}]   # 게이트웨이는 메시지 목록·store=False만 받는다
 
 
@@ -93,3 +94,17 @@ def test_the_call_is_traced_with_model_and_usage_but_without_the_prompt_text(mon
     attributes = attrs(span)
     assert attributes['langfuse.observation.model.name'] == 'gpt-6-sol' and 'langfuse.observation.input' not in attributes   # 본문은 남기지 않는다
     assert '11' in attributes['langfuse.observation.usage_details'] and '7' in attributes['langfuse.observation.usage_details']
+
+
+def test_a_check_sends_one_short_message_to_the_gateway_and_fails_like_the_real_call(monkeypatch):
+    monkeypatch.setenv('OPENAI_API_KEY', 'openai-key')
+
+    assert agent.check() is None
+
+    [sent] = FakeOpenAI.sent
+    assert sent['store'] is False and len(sent['input'][0]['content']) < 100   # 게이트웨이에 닿는지만 보는 짧은 호출(개선이 OpenAI 호출을 쓰기 전에)
+
+    FakeOpenAI.reply = OpenAIError('키 sk-비밀이 든 원문')
+    with pytest.raises(OptimizationFailure) as error:
+        agent.check()
+    assert error.value.status == 502 and '비밀' not in str(error.value)
