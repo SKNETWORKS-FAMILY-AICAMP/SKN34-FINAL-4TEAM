@@ -61,6 +61,7 @@ docker compose down
 | `OPENAI_MODEL` | local·prod 빈 값 / dev `gpt-5.6-luna` | AI runtime만, 팀 모델 선정·접근 검증 아님 |
 | `EVALUATION_JUDGE_MODEL` | 빈 값(`OPENAI_MODEL`) | AI의 운영 회귀 평가(`ai-jobs-worker`)·누설 판정의 채점 모델, 예 `gpt-6.2-sol`. 바꾸면 이전 Run과 채점 모델이 달라 첫 기준 비교가 흔들린다 |
 | `EVAL_TOLERANCE` | `0.1` | AI 회귀 평가의 통과 허용 오차(지표별 기준 평균 − 이 값 이상이면 통과). 점수는 모두 0~1이다(시뮬레이션 평가 세트의 1~5점은 (점수 − 1)/4로 기록) |
+| `PROMPT_OPTIMIZER_BASE_URL`·`PROMPT_OPTIMIZER_API_KEY`·`PROMPT_OPTIMIZER_MODEL` | 빈 값(기본 OpenAI·`OPENAI_API_KEY`·`gpt-6-sol`) | AI 프롬프트 자동 개선(GEPA, `ai-jobs-worker`)의 반성 모델 경로. 로컬 `.env` 예 `http://host.docker.internal:10100/v1`(OpenCodex 게이트웨이)이며 이 호출만 거치고 생성·채점은 `OPENAI_API_KEY`다 |
 | `AI_SERVICE_CONNECT_TIMEOUT` | `1s` | Core/Content → AI |
 | `AI_SERVICE_READ_TIMEOUT` | `12s` | Core → AI Health |
 | `AI_GENERATION_READ_TIMEOUT` | `75s` | Content → AI 생성 |
